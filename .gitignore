@@ -1,0 +1,13 @@
+# Compiled class file
+*.class
+.idea
+target
+*.iml
+
+.classpath
+.project
+.settings
+Bin
+
+# Log file
+*.log
