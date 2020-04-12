@@ -11,3 +11,7 @@ Bin
 
 # Log file
 *.log
+
+# ignore vnote
+**/_vnote.json
+_v_recycle_bin
