@@ -1,0 +1,238 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+	<!-- 声明项目描述符遵循哪一个POM模型版本 -->
+	<modelVersion>4.0.0</modelVersion>
+	<!-- 配置maven项目坐标信息,项目的全球唯一标识符，通常使用全限定的包名区分该项目和其他项目 -->
+	<groupId>com.moon</groupId>
+	<!-- 构件的标识符，它和group ID一起唯一标识一个构件 -->
+	<artifactId>day79-maven-02-ssh</artifactId>
+	<!-- 项目当前版本，格式为:主版本.次版本.增量版本-限定版本号 --> 
+	<version>0.0.1-SNAPSHOT</version>
+	<!-- 项目产生的构件类型 -->
+	<packaging>war</packaging>
+	<!-- 项目的名称, Maven产生的文档用 -->
+	<name>Maven整合SSH框架</name>
+	<!-- 项目的详细描述, Maven 产生的文档用 -->
+	<description>Maven整合SSH框架，包括SSH的配置文件等</description>
+	
+	<!-- 设置相关属性，用于定义SSH框架的版本号 -->
+	<properties>
+		<spring.version>4.2.4.RELEASE</spring.version>
+		<hibernate.version>5.0.7.Final</hibernate.version>
+		<struts.version>2.3.24</struts.version>
+	</properties>
+	
+	<!-- 配置锁定版本：struts2-2.3.24、spring4.2.4、hibernate5.0.7 -->
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>org.springframework</groupId>
+				<artifactId>spring-context</artifactId>
+				<!-- 使用OGNL表达式，读取配置文件设置的属性值 -->
+				<version>${spring.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.springframework</groupId>
+				<artifactId>spring-aspects</artifactId>
+				<version>${spring.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.springframework</groupId>
+				<artifactId>spring-orm</artifactId>
+				<version>${spring.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.springframework</groupId>
+				<artifactId>spring-test</artifactId>
+				<version>${spring.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.springframework</groupId>
+				<artifactId>spring-web</artifactId>
+				<version>${spring.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.hibernate</groupId>
+				<artifactId>hibernate-core</artifactId>
+				<version>${hibernate.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.struts</groupId>
+				<artifactId>struts2-core</artifactId>
+				<version>${struts.version}</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.struts</groupId>
+				<artifactId>struts2-spring-plugin</artifactId>
+				<version>${struts.version}</version>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
+
+	<!-- 配置依赖管理 -->
+	<dependencies>
+		<!-- 配置spring依赖，已锁定版本，不需要再指定版本 -->
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-context</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-aspects</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-orm</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-test</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-web</artifactId>
+		</dependency>
+		
+		<!-- 配置hibernate依赖 -->
+		<dependency>
+			<groupId>org.hibernate</groupId>
+			<artifactId>hibernate-core</artifactId>
+		</dependency>
+		
+		<!-- 配置数据库驱动 -->
+		<dependency>
+			<groupId>mysql</groupId>
+			<artifactId>mysql-connector-java</artifactId>
+			<version>5.1.40</version>
+			<!-- 配置运行时依赖范围 -->
+			<scope>runtime</scope>
+		</dependency>
+		
+		<!-- 配置c3p0连接池-->
+		<dependency>
+			<groupId>c3p0</groupId>
+			<artifactId>c3p0</artifactId>
+			<version>0.9.1.2</version>
+		</dependency>
+		
+		<!-- 配置struts2依赖 -->
+		<dependency>
+			<groupId>org.apache.struts</groupId>
+			<artifactId>struts2-core</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.struts</groupId>
+			<artifactId>struts2-spring-plugin</artifactId>
+		</dependency>
+		
+		<!-- 配置servlet jsp依赖 -->
+		<dependency>
+			<groupId>javax.servlet</groupId>
+			<artifactId>servlet-api</artifactId>
+			<version>2.5</version>
+			<!-- 配置依赖范围：在项目发布过程中，帮助决定哪些构件被包括进来 -->
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>javax.servlet</groupId>
+			<artifactId>jsp-api</artifactId>
+			<version>2.0</version>
+			<scope>provided</scope>
+		</dependency>
+		
+		<!-- 配置日志依赖 -->
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-log4j12</artifactId>
+			<version>1.7.2</version>
+		</dependency>
+		
+		<!-- 配置junit依赖 -->
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.9</version>
+			<!-- 测试测试依赖范围 -->
+			<scope>test</scope>
+		</dependency>
+		
+		<!-- 配置jstl依赖 -->
+		<dependency>
+			<groupId>jstl</groupId>
+			<artifactId>jstl</artifactId>
+			<version>1.2</version>
+		</dependency>
+	</dependencies>
+
+
+	<!-- jdk编译版本1.5，在pom.xml中添加项目jdk编译插件 -->
+	<build>
+		<plugins>
+			<!-- 设置编译版本为1.8 -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.2</version>
+				<configuration>
+					<source>1.7</source>
+					<target>1.7</target>
+					<encoding>UTF-8</encoding>
+					<showWarnings>true</showWarnings>
+				</configuration>
+			</plugin>
+			
+			<!-- 配置maven内置 的tomcat6插件，tomcat:run -->
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>tomcat-maven-plugin</artifactId>
+				<version>1.1</version>
+				<configuration>
+					<!-- 可以灵活配置工程路径 -->
+					<path>/maven-ssh</path>
+					<!-- 可以灵活配置端口号 -->
+					<port>8080</port>
+				</configuration>
+			</plugin>
+			
+			<!-- 设置maven tomcat插件（maven默认是运行tomcat6，不支持jdk1.7+），tomcat7:run -->
+			<plugin>
+				<groupId>org.apache.tomcat.maven</groupId>
+				<artifactId>tomcat7-maven-plugin</artifactId>
+				<version>2.2</version>
+				<configuration>
+					<!-- 指定端口 -->
+					<port>8080</port>
+					<!-- 指定访问路径 -->
+					<path>/maven-ssh</path>
+					<uriEncoding>UTF-8</uriEncoding>
+					<finalName>maven-ssh</finalName>
+					<server>tomcat7</server>
+				</configuration>
+			</plugin>
+			
+			<!-- 解决maven test命令时console出现中文乱码乱码（非必须）  -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<version>2.12.4</version>
+				<configuration>
+					<forkMode>once</forkMode>
+					<argLine>-Dfile.encoding=UTF-8</argLine>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+	
+	<!-- 配置上传资源到私服 -->
+	<distributionManagement>
+		<repository>
+			<id>releases</id>
+			<url>http://localhost:8081/nexus/content/repositories/releases/</url>
+		</repository>
+		<snapshotRepository>
+			<id>snapshots</id>
+			<url>http://localhost:8081/nexus/content/repositories/snapshots/</url>
+		</snapshotRepository>
+	</distributionManagement>
+</project>

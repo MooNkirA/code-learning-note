@@ -1,0 +1,628 @@
+# Spring 源码分析
+
+## 1. Spring 源码分析准备工作
+
+> 注：下载spring源码并写注释，里面会标识相应方法的重要程度：1~5。
+>
+> - 0：不重要，可以不看
+> - 1：一般重要，可看可不看
+> - 5：非常重要，一定要看
+
+### 1.1. Spring 源码下载
+
+1. 到github下载源码
+    - 源码下载地址：https://github.com/spring-projects/spring-framework
+    - 国内镜像：https://gitee.com/mirrors/spring-framework
+2. 下载 gradle，需要 JDK8 及以上的版本
+3. 到下载的 spring 源码路径执行 gradle 命令，`gradlew :spring-oxm:compileTestJava`
+4. 用 idea 打开 spring 源码工程，在 idea 中安装插件 kotlin，重启 idea
+5. 把编译好的源码导入到工程中，这样可以在源码中写注释并且断点调试源码了。
+
+### 1.2. 把源码导入到工程
+
+1. 选择源码测试工程所依赖的spring相应的版本，右键选择【Open Library Settings】
+
+![导入源码步骤1](images/20191215155948627_17845.png)
+
+2. 选择Libraries里的spring源码包，在Classes、Sources、Annotations中增加编译好的源码
+
+![导入源码步骤2](images/20191215160339293_2908.png)
+
+
+3. 选择Classes
+
+![导入源码步骤3](images/20191215181733460_8930.png)
+
+4. 选择Sources
+
+![导入源码步骤4](images/20191215181830565_31571.png)
+
+
+### 1.3. 创建 Spring 示例项目
+
+- 创建maven项目，修改pom.xml导入 spring 依赖。其中 spring 中最核心的4个jar如下
+    - spring-beans
+    - spring-core
+    - spring-context
+    - spring-expression
+- 一个最简单的 spring 工程，理论上就只需要依赖一个 spring-context 就足够了
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+         http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+    <parent>
+        <artifactId>mz-system-learning</artifactId>
+        <groupId>com.moon</groupId>
+        <version>0.3.1</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+    <artifactId>mz-learning-springsource</artifactId>
+    <packaging>war</packaging>
+    <name>${project.artifactId}</name>
+    <description>Spring Framework 源码学习案例工程</description>
+
+    <!-- 版本号管理 -->
+    <properties>
+        <spring.version>5.1.3.RELEASE</spring.version>
+        <junit.version>4.12</junit.version>
+    </properties>
+
+    <dependencies>
+        <!--
+            spring框架最核心的依赖，一个最基本的spring项目只需要引入此依赖即可
+                此依赖包括：spring-context,spring-aop,spring-beans,spring-core,spring-expression
+        -->
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-context</artifactId>
+            <version>${spring.version}</version>
+        </dependency>
+    </dependencies>
+
+</project>
+```
+
+> spring-context 包本身就依赖了，spring-aop，spring-beans，spring-core 等模块jar包
+
+- 一个空的 spring 工程是不能打印日志的，要导入 spring 依赖的日志 jar 包
+
+```xml
+<!-- spring 框架输出日志的依赖包 -->
+<dependency>
+    <groupId>ch.qos.logback</groupId>
+    <artifactId>logback-classic</artifactId>
+    <version>LATEST</version>
+</dependency>
+```
+
+## 2. Spring 基础使用
+### 2.1. spring 配置文件中xsd文件引入
+
+XSD 是编写 xml 文件的一种规范，有了这个规范才能校验当前 xml 文件是否准确，在 spring 中同样有 XSD 规范。
+
+
+### 2.2. spring 容器加载方式
+#### 2.2.1. ClassPathXmlApplicationContext(类路径获取配置文件上下文对象)
+
+比较常用的上下文对象，用于启动时读取上下文对象
+
+```java
+/* 类路径获取配置文件上下文对象（ClassPathXmlApplicationContext） */
+@Test
+public void ClassPathXmlApplicationContextTest() {
+    // 读取spring类路径下的配置文件
+    ClassPathXmlApplicationContext applicationContext = new ClassPathXmlApplicationContext("spring.xml");
+    Student student = (Student) applicationContext.getBean("student");
+    System.out.println(student.getUserName());
+}
+```
+
+#### 2.2.2. FileSystemXmlApplicationContext(文件系统路径【绝对路径】获取配置文件上下文对象)
+
+此上下文对象很少使用，一般都使用类路径读取配置文件的上下文对象
+
+```java
+/* 文件系统路径获取配置文件【绝对路径】上下文对象（FileSystemXmlApplicationContext）【基本上不用】 */
+@Test
+public void FileSystemXmlApplicationContextTest() {
+    // 读取spring的配置文件，需要绝对路径
+    FileSystemXmlApplicationContext applicationContext = new FileSystemXmlApplicationContext("D:\\code\\moonzero-system\\mz-system-learning\\mz-learning-springsource\\src\\main\\resources\\spring.xml");
+    Student student = (Student) applicationContext.getBean("student");
+    System.out.println(student.getUserName());
+}
+```
+
+#### 2.2.3. AnnotationConfigApplicationContext(无配置文件加载容器上下文对象)
+
+此上下文对象也比较少用，一般在测试用例中使用比较多，因为可以直接扫描指定的包，获取包下所有有spring注解标识的类实例
+
+```java
+private static final String BASE_PACKAGE = "com.moon.learningspring";
+
+/* 无配置文件加载容器上下文对象（AnnotationConfigApplicationContext） */
+@Test
+public void AnnotationConfigApplicationContextTest() {
+    // 注解扫描上下文对象
+    AnnotationConfigApplicationContext applicationContext = new AnnotationConfigApplicationContext(BASE_PACKAGE);
+    Student student = (Student) applicationContext.getBean("student");
+    System.out.println(student.getUserName());
+}
+```
+
+#### 2.2.4. EmbeddedWebApplicationContext(springboot 加载容器)
+
+此上下文对象是spring boot的框架，启动的时候可以创建一个嵌入式的tomcat
+
+```xml
+<!-- springboot web 的依赖，用于引入EmbeddedWebApplicationContext类  -->
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot</artifactId>
+    <version>1.5.13.RELEASE</version>
+</dependency>
+```
+
+```java
+/* springboot 加载容器的上下文对象（EmbeddedWebApplicationContext） */
+@Test
+public void EmbeddedWebApplicationContextTest() {
+    // springboot在启动的时候就会用到此上下文对象，启动spring容器，创建一个嵌入式的tomcat
+    ApplicationContext applicationContext = (ApplicationContext) new EmbeddedWebApplicationContext();
+    Student student = (Student) applicationContext.getBean("student");
+    System.out.println(student.getUserName());
+}
+```
+
+## 3. Spring 框架涉及的设计模式
+### 3.1. 设计模式1 - 模板设计模式
+
+在 spring 中大量的使用了模板设计模式，可以说是用得最多的设计模式。
+
+模板设计模式demo代码详见：moonzero-system项目中的mz-learning-springsource模块，`com.moon.learningspring.designPattern.template`包下的demo
+
+**模板设计模式的核心是：创建抽象类或者接口，定义一个主业务方法，而主业务方法有些业务逻辑可以抽象类已经实现，在主业务方法中预留了一些抽象方法，这些抽象方法由子类继承(或实现)的时候实现该方法的业务逻辑，到根据不同的业务场景，使用不同的子类，从而在调用父类主业务方法时，实现不同的（子类）业务逻辑**
+
+> 注：模板类中的主业务可以使用final声明此方法，从而子类不可以重写，只能继承使用。至于其他的抽象方法，子类可以实现自己的业务逻辑，
+
+spring框架中使用模板设计模式案例
+
+![spring 框架使用模板设计模式](images/20191221190743024_24584.png)
+
+### 3.2. 设计模式2 - 委托模式
+
+有两个对象参与处理同一个请求，接受请求的对象将请求委托给另一个对象来处理
+
+
+### 3.3. 设计模式3 - 装饰模式
+
+- 装饰模式主要分几个元素
+    1. 被装饰者：已存在的具体对象，需要被增强的对象
+    2. 抽象装饰者：具体对象与装饰对象的共同父接口
+    3. 装饰者对象：对具体对象进行功能的增强，进行装饰的类。对方法进行增强。(自定义的类)
+
+装饰者设计模式demo详见：moonzero-system项目中的mz-learning-springsource模块，`com.moon.learningspring.designPattern.decorator`包下的demo
+
+### 3.4. SPI 设计思想
+
+自定义标签的解析就是一个 SPI 设计思想，即通过加装全文配置文件，做到代码灵活的调用。实现步骤如下：
+
+1. 定义一个服务提供接口
+
+```java
+package com.moon.learningspring.spi;
+
+/**
+ * service provider interface
+ * <P>服务提供接口，需要提供一个可配置的服务接口的实现类</P>
+ */
+public interface SpiService {
+    String query(String param);
+}
+```
+
+2. 编写服务接口的实现类
+
+```java
+package com.moon.learningspring.spi;
+
+/**
+ * SPI服务接口实现类
+ */
+public class SpiServiceImpl implements SpiService {
+    @Override
+    public String query(String param) {
+        System.out.println("=======SpiServiceImpl.query()方法执行了======");
+        return "OK";
+    }
+}
+```
+
+3. 在 resources 目录下创建 META-INF/services 文件夹，创建文件（文件的名称为服务接口全限定名）
+
+![服务接口文件](images/20200108165533678_12262.png)
+
+![服务接口文件](images/20200108165644374_29698.png)
+
+4. 这样就可以通过这个接口，找到配置在文件中的所有该接口的实现类（可以是多个实现类）。
+    - **这种设计的好处是：实现业务代码解耦，扩展性高。**核心的业务不需要再修改，日后增加新的业务需求时，可以通过增加新的实现类与修改配置文件即可
+    - 缺点是：粒度不够细，通过配置的方式不能唯一确定一个实现类
+
+```java
+package com.moon.learningspring.spi;
+
+import java.util.ServiceLoader;
+
+/**
+ * SPI 服务接口测试
+ */
+public class SpiTest {
+    /**
+     * 此设计的好处是：实现业务代码解耦，扩展性高。核心的业务不需要再修改，日后增加新的业务需求时，可以通过增加新的实现类与修改配置文件即可
+     * 缺点是：粒度不够细，通过配置的方式不能唯一确定一个实现类
+     */
+    public static void main(String[] args) {
+        // 通过jdk的api，ServiceLoader获取配置文件中定义所有实现类实例
+        ServiceLoader<SpiService> load = ServiceLoader.load(SpiService.class);
+        // 调用实现类的业务方法
+        for (SpiService spiService : load) {
+            spiService.query("呵呵");
+        }
+    }
+}
+```
+
+#### 3.4.1. spring 框架对spi设计的运用
+
+spring 中自定义标签的解析就是这种 SPI 设计的运用，在自定义标签中解析的过程中，spring 会去加载 META-INF/spring.handlers 文件，然后建立映射关系，程序在解析标签头的时候，如：`<context:>`这种的标签头。会拿到一个 namespaceUri，然后再从映射关系中找到这个 namespaceUri 所对应的处理类
+
+![spi设计思想运用](images/20200109133154692_23233.png)
+
+#### 3.4.2. 扩展：dubbo对spi的优化(有时间研究)
+
+dubbo在spi的配置文件中，设置为key-value的形式，这样在xml配置文件中配置相关属性，就可以唯一的确认一个实现类。
+
+## 4. Spring 框架解析xml文件流程
+### 4.1. 解析xml文件入口
+
+此次分析源码如何解析xml文件的的入口选择了比较常用的`ClassPathXmlApplicationContext`类，点击查看此类的构造方法
+
+1. 此方法先调用父类的构造方法
+2. 再创建解析器，解析configLocations属性
+3. **调用父类核心方法`refresh()`，该方法是spring容器初始化的核心方法。是spring容器初始化的核心流程，spring容器要加载必须执行该方法**
+
+```java
+public ClassPathXmlApplicationContext(
+		String[] configLocations, boolean refresh, @Nullable ApplicationContext parent)
+		throws BeansException {
+
+	// 调用父类的构造方法
+	super(parent);
+	// 创建解析器，解析configLocations
+	setConfigLocations(configLocations);
+	// 是否自己刷新spring context
+	if (refresh) {
+		// 调用父类AbstractApplicationContext的refresh()的方法，是核心方法
+		refresh();
+	}
+}
+```
+
+### 4.2. 解析xml文件流程
+
+1. 通过构造函数，创建对应的上下文对象。调用父类AbstractApplicationContext中的`refresh()`方法
+2. 做了一些初始化容器的准备工作后，调用父类AbstractApplicationContext的`obtainFreshBeanFactory()`方法，返回`ConfigurableListableBeanFactory`对象
+3. 在`obtainFreshBeanFactory()`方法中，有模板方法`refreshBeanFactory()`，由子类去实现具体业务。而此ClassPathXmlApplicationContext读取配置文件是由AbstractRefreshableApplicationContext类去实现
+
+> 注：如何判断钩子方法是那个调用那个类的方法，通过创建出来的对象，*如：ClassPathXmlApplicationContext对象*的类关系去分析即可
+
+![ClassPathXmlApplicationContext类关系图](images/20191223100557813_9264.jpg)
+
+`refresh()`方法中的`ConfigurableListableBeanFactory beanFactory = obtainFreshBeanFactory();`。该方法主要进行 xml 解析工作，流程如下：
+
+1. 创建 XmlBeanDefinitionReader 对象
+
+![xml文件解析流程](images/20191222120310814_5603.png)
+
+2. 通过 Reader 对象加载配置文件
+
+![xml文件解析流程](images/20191222120435332_8429.png)
+
+3. 根据加载的配置文件把配置文件封装成 document 对象
+
+![xml文件解析流程](images/20191222120708779_22348.png)
+
+4. 创建 BeanDefinitionDocumentReader 对象，DocumentReader 负责对 document 对象解析
+
+![xml文件解析流程](images/20191222120933729_19630.png)
+
+5. `parseDefaultElement(ele, delegate);`负责常规标签解析
+6. `delegate.parseCustomElement(ele);`负责自定义标签解析
+
+![xml文件解析流程](images/20191222174025008_27590.png)
+
+7. 最终解析的标签封装成 BeanDefinition 并缓存到容器中
+
+**Xml 流程分析图**
+
+![xml流程分析图](images/20191222113802450_32288.png)
+
+### 4.3. 自定义标签解析
+
+![自定义标签解析入口](images/20200109144928626_7171.png)
+
+spring框架是通过spi设计思想来解决自定义标签解析。在DefaultBeanDefinitionDocumentReader类中的`parseBeanDefinitions()`方法中实现，具体的解析委托给BeanDefinitionParserDelegate类来实现，实现流程如下：
+
+1. 获取自定义标签的 namespace 命令空间。如：`xmlns:context="http://www.springframework.org/schema/context"`
+
+```java
+// 根据node获取到node的命名空间，形如：http://www.springframework.org/schema/p
+String namespaceUri = getNamespaceURI(node);
+```
+
+2. 根据命令空间获取 NamespaceHandler 对象。NamespaceUri 和 NamespaceHandler 之间会建立一个映射，spring 会从所有的 spring 的 jar 包中扫描 spring.handlers 文件，建立映射关系。
+
+![](images/20200109150646047_16467.png)
+
+spring.handler 文件，其实就是 namespaceUri 和类的完整限定名的映射
+
+![](images/20200109142022356_24375.png)
+
+3. 反射获取 NamespaceHandler 实例
+
+```java
+// 通过反射实例化对象
+NamespaceHandler namespaceHandler = (NamespaceHandler) BeanUtils.instantiateClass(handlerClass);
+```
+
+4. 调用 init 方法
+
+```java
+// 调用处理类的init方法，在init方法中完成标签元素解析类的注册
+namespaceHandler.init();
+```
+
+5. 返回处理类的实例对象后，调用 parse 方法
+
+```java
+handler.parse(ele, new ParserContext(this.readerContext, this, containingBd));
+```
+
+## 5. BeanDefinition
+### 5.1. BeanDefinition 简介
+
+BeanDefinition 在 spring 中贯穿全部，spring 要根据 BeanDefinition 对象来实例化 bean，只要把解析的标签，扫描的注解类封装成 BeanDefinition 对象，spring 才能实例化 bean
+
+### 5.2. BeanDefinition 实现类
+
+- ChildBeanDefinition
+    - ChildBeanDefinition 是一种 bean definition，它可以继承它父类的设置，即ChildBeanDefinition 对 RootBeanDefinition 有一定的依赖关系
+    - ChildBeanDefinition 从父类继承构造参数值，属性值并可以重写父类的方法，同时也可以增加新的属性或者方法。(类同于 java 类的继承关系)。若指定初始化方法，销毁方法或者静态工厂方法，ChildBeanDefinition 将重写相应父类的设置。`depends on`，`autowire mode`，`dependency check`，`sigleton`，`lazy init` 一般由子类自行设定。
+- **GenericBeanDefinition（源码分析的重点关注的实现类）**
+    - 注意：从 spring 2.5 开始，提供了一个更好的注册 bean definition 类 GenericBeanDefinition，它支持动态定义父依赖，方法是GenericBeanDefinition对象中`public void setParentName(@Nullable String parentName);`，GenericBeanDefinition 可以在绝大分部使用场合有效的替代 ChildBeanDefinition
+    - GenericBeanDefinition 是一站式的标准 bean definition，除了具有指定类、可选的构造参数值和属性参数这些其它 bean definition 一样的特性外，它还具有通过 parenetName 属性来灵活设置 parent bean definition
+    - 通常，GenericBeanDefinition 用来注册用户可见的 bean definition(可见的bean definition意味着可以在该类bean definition上定义post-processor来对bean进行操作，甚至为配置 parent name 做扩展准备)。RootBeanDefinition / ChildBeanDefinition 用来预定义具有 parent/child 关系的 bean definition。
+- RootBeanDefinition
+    - 一个 RootBeanDefinition 定义表明它是一个可合并的 bean definition：即在 spring beanFactory 运行期间，可以返回一个特定的 bean。RootBeanDefinition 可以作为一个重要的通用的 bean definition 视图。
+    - RootBeanDefinition 用来在配置阶段进行注册 bean definition。然后，从 spring 2.5 后，编写注册 bean definition 有了更好的的方法：GenericBeanDefinition。GenericBeanDefinition 支持动态定义父类依赖，而非硬编码作为 root bean definition。
+
+### 5.3. GenericBeanDefinition 创建实例测试
+
+手动创建`BeanDefinition`对象并注册到spring容器中，定义一个被spring容器管理的类，实现`BeanDefinitionRegistryPostProcessor`接口，实现`postProcessBeanDefinitionRegistry`方法，在方法里设置需要实例化的类即可
+
+```java
+package com.moon.learningspring.beanDefinition;
+
+import org.springframework.beans.BeansException;
+import org.springframework.beans.MutablePropertyValues;
+import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
+import org.springframework.beans.factory.support.BeanDefinitionRegistry;
+import org.springframework.beans.factory.support.BeanDefinitionRegistryPostProcessor;
+import org.springframework.beans.factory.support.GenericBeanDefinition;
+import org.springframework.stereotype.Component;
+
+/**
+ * BeanDefinition 创建测试
+ */
+@Component
+public class BeanDefinitionTest implements BeanDefinitionRegistryPostProcessor {
+    /**
+     * 在spring容器加载的执行此方法，可以手动创建BeanDefinition对象并注册到spring容器中
+     *
+     * @param registry
+     * @throws BeansException
+     */
+    @Override
+    public void postProcessBeanDefinitionRegistry(BeanDefinitionRegistry registry) throws BeansException {
+        // 创建GenericBeanDefinition对象
+        GenericBeanDefinition genericBeanDefinition = new GenericBeanDefinition();
+        // 设置需要实例化的类
+        genericBeanDefinition.setBeanClass(BeanClass.class);
+
+        // 如果需要实例化的类中属性赋值，需要获取MutablePropertyValues属性，赋值到此属性中
+        MutablePropertyValues propertyValues = genericBeanDefinition.getPropertyValues();
+        propertyValues.addPropertyValue("userName", "moon");
+
+        // 将BeanDefinition对象注册到spring容器中，spring实例化对象，必须将beanName与BeanDefinition对象进行映射。（即添加到beanDefinitionMap属性中）
+        registry.registerBeanDefinition("beanClass", genericBeanDefinition);
+    }
+
+    @Override
+    public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
+    }
+}
+```
+
+### 5.4. BeanDefinition 中的属性
+#### 5.4.1. 属性图示
+
+原文件在\Java\编程资料笔记-相关配套资料\【02】后端框架\【03】Spring\BeanDefinition属性结构图.xmind
+
+![BeanDefinition相关属性](images/20191231112210755_22971.png)
+
+#### 5.4.2. 属性作用解释
+
+- 【id】：Bean 的唯一标识名。它必须是合法的 XMLID，在整个 XML 文档中唯一
+- 【class】：用来定义类的全限定名（包名+类名）。只有子类 Bean 不用定义该属性
+- 【name】：用来为 id 创建一个或多个别名。它可以是任意的字母符合。多个别名之间用逗号或空格分开
+- 【parent】：子类 Bean 定义它所引用它的父类 Bean。这时前面的 class 属性失效。子类 Bean 会继承父类 Bean 的所有属性，子类 Bean 也可以覆盖父类 Bean 的属性。注意：子类 Bean 和父类 Bean 是同一个 Java 类
+- 【abstract】：默认为“false”。用来定义 Bean 是否为抽象 Bean。它表示这个 Bean 将不会被实例化，一般用于父类 Bean，因为父类 Bean 主要是供子类 Bean 继承使用
+- 【lazy-init】：默认为“default”。用来定义这个 Bean 是否实现懒初始化。如果为“true”，它将在 BeanFactory 启动时初始化所有的 SingletonBean。反之，如果为“false”,它只在 Bean 请求时才开始创建 SingletonBean
+- 【autowire】：自动装配，默认为“default”。它定义了 Bean 的自动装载方式。
+    - `no`：不使用自动装配功能
+    - `byName`：通过 Bean 的属性名实现自动装配
+    - `byType`：通过 Bean 的类型实现自动装配
+    - `constructor`：类似于`byType`，但它是用于构造函数的参数的自动组装
+    - `autodetect`：通过 Bean 类的反省机制（introspection）决定是使用`constructor`还是使用`byType`
+- 【autowire-candidate】：**采用 xml 格式配置 bean 时**，将`<bean/>`元素的 autowire-candidate 属性设置为 false，这样容器在查找自动装配对象时，将不考虑该 bean，即它不会被考虑作为其它 bean 自动装配的候选者，但是该 bean 本身还是可以使用自动装配来注入其它 bean 的。
+    - 主要的使用场景是：如果一个接口有多个实现类，但不希望某一个类自动注入的时候可以使用此配置，*注意，只有在用xml配置的时候生效*
+- 【depends-on】：依赖对象。这个 Bean 在初始化时依赖的对象，这个对象会在这个 Bean 初始化之前创建
+- 【init-method】：用来定义 Bean 的初始化方法，它会在 Bean 组装之后调用。它**必须是一个无参数的方法**
+- 【primary】：用于定义某个实现类是否优先被选择注入。当一个接口有多个实现类时，如果在xml配置文件中将primary的值设置为true，并在某一个实现类上加上`@Primary`注解，此时spring容器在需要自动注入该接口时，优先选择此实现类进行注入
+- 【destroy-method】：用来定义 Bean 的销毁方法，它在 BeanFactory 关闭时调用。同样，它也**必须是一个无参数的方法，而且只能应用于 singletonBean**
+- 【factory-method】：定义创建该 Bean 对象的工厂方法。它用于相应的属性“factory-bean”，表示这个 Bean 是通过工厂方法创建。此时，“class”属性失效
+- 【factory-bean】：定义创建该 Bean 对象的工厂类。如果使用了“factory-bean”则“class”属性失效
+- 【MutablePropertyValues】：用于封装`<property>`标签的信息，其实类里面就是有一个 list，list里面是 PropertyValue 对象，PropertyValue 就是一个 name 和 value 属性，用于封装`<property>`标签的名称和值信息
+- 【ConstructorArgumentValues】：用于封装`<constructor-arg>`标签的信息，其实类里面就是有一个 map，map 中用构造函数的参数顺序作为 key，值作为 value 存储到 map 中
+- 【MethodOverrides】：用于封装 bean 标签下的 lookup-method 和 replaced-method 等子标签的信息，同样的类里面有一个 Set 对象添加 LookupOverride 对象和 ReplaceOverride 对象
+
+### 5.5. BeanDefinition 创建过程
+
+主要在`BeanDefinitionParserDelegate`类的`parseBeanDefinitionElement()`方法中进行对xml配置文件里面的bean标签进行解析，并创建BeanDefinition对象。
+
+1. 创建BeanDefinition对象
+
+```java
+// 创建GenericBeanDefinition对象
+AbstractBeanDefinition bd = createBeanDefinition(className, parent);
+```
+
+2. 解析属性
+
+```java
+// 解析bean标签的属性，并把解析出来的属性设置到BeanDefinition对象中
+parseBeanDefinitionAttributes(ele, beanName, containingBean, bd);
+```
+
+3. 解析子标签
+
+```java
+// 解析bean中的meta标签
+parseMetaElements(ele, bd);
+
+// 解析bean中的lookup-method标签  重要程度【2】，可看可不看
+parseLookupOverrideSubElements(ele, bd.getMethodOverrides());
+
+// 解析bean中的replaced-method标签  重要程度【2】，可看可不看
+parseReplacedMethodSubElements(ele, bd.getMethodOverrides());
+
+// 解析bean中的constructor-arg标签  重要程度【2】，可看可不看
+parseConstructorArgElements(ele, bd);
+
+// 解析bean中的property标签  重要程度【2】，可看可不看
+parsePropertyElements(ele, bd);
+```
+
+**解析过程重点记忆：MutablePropertyValues属性**。如果想要设置类的属性值，那么就需要往这个对象中添加 PropertyValue 对象
+
+## 6. Bean 的实例化过程
+### 6.1. BeanDefinitionRegistryPostProcessor 接口
+
+在AbstractApplicationContext类的`refresh()`方法中，调用`invokeBeanFactoryPostProcessors(beanFactory)`方法
+
+BeanDefinitionRegistryPostProcessor 这个接口的调用分为三步：
+
+1. 调用实现了 PriorityOrdered 排序接口
+2. 调用实现了 Ordered 排序接口
+3. 没有实现接口的调用
+
+这个接口的理解：获取 BeanDefinitionRegistry 对象，获取到这个对象就可以获取这个对象中注册的所有 BeanDefinition 对象，所以可以知道，拥有这个对象就可以完成里面所有 BeanDefinition 对象的修改和新增操作
+
+### 6.2. BeanPostProcessor 的注册
+
+1. 在AbstractApplicationContext类的`refresh()`方法中，调用`registerBeanPostProcessors(beanFactory);`这个方法里面。会拿到 BeanFactory 中所有注册的 BeanDefinition 对象的名称 beanName。
+
+```java
+public static void registerBeanPostProcessors(
+		ConfigurableListableBeanFactory beanFactory, AbstractApplicationContext applicationContext) {
+
+	// 获取到工程里面所有实现了BeanPostProcessor接口的类，获取到BeanDefinition的名称
+	String[] postProcessorNames = beanFactory.getBeanNamesForType(BeanPostProcessor.class, true, false);
+	....
+}
+```
+
+2. 然后判断是否实现了 `PriorityOrdered` 排序接口、`Ordered` 排序接口，getBean 是将该 ppName 对应的 BeanDefinition 对象实例化
+
+```java
+// 提前实例化BeanPostProcessor类型的bean，然后bean进行排序
+for (String ppName : postProcessorNames) {
+	if (beanFactory.isTypeMatch(ppName, PriorityOrdered.class)) {
+		// getBean是实例化方法，是bean实例化过程
+		BeanPostProcessor pp = beanFactory.getBean(ppName, BeanPostProcessor.class);
+		priorityOrderedPostProcessors.add(pp);
+		// 判断类型是否为MergedBeanDefinitionPostProcessor，如果是则代码是内部使用的
+		if (pp instanceof MergedBeanDefinitionPostProcessor) {
+			internalPostProcessors.add(pp);
+		}
+	}
+	else if (beanFactory.isTypeMatch(ppName, Ordered.class)) {
+		orderedPostProcessorNames.add(ppName);
+	}
+	else {
+		nonOrderedPostProcessorNames.add(ppName);
+	}
+}
+```
+
+3. 把对应的 `BeanPostProcessor` 对象注册到 BeanFactory 中，BeanFactory 中有一个 List 容器接收
+
+```java
+// 注册到BeanFactory中
+registerBeanPostProcessors(beanFactory, priorityOrderedPostProcessors);
+
+/* 注册的BeanPostProcessor所有实例都存放在BeanFactory的 private final List<BeanPostProcessor> beanPostProcessors = new CopyOnWriteArrayList<>(); 容器中 */
+```
+
+### 6.3. getSingleton 方法
+
+- 核心代码位置：`AbstractBeanFactory.doGetBean()` 方法中
+
+```java
+......
+
+// Create bean instance.
+if (mbd.isSingleton()) {
+	// 此逻辑是重点，因为大部分情况都是单例的
+	sharedInstance = getSingleton(beanName, () -> {
+		try {
+			// 创建bean实例核心逻辑
+			return createBean(beanName, mbd, args);
+		}
+		catch (BeansException ex) {
+			// Explicitly remove instance from singleton cache: It might have been put there
+			// eagerly by the creation process, to allow for circular reference resolution.
+			// Also remove any beans that received a temporary reference to the bean.
+			destroySingleton(beanName);
+			throw ex;
+		}
+	});
+	// 此方法是FactoryBean接口的调用入口
+	bean = getObjectForBeanInstance(sharedInstance, name, beanName, mbd);
+}
+
+......
+```
+
+
+
+
+
+
+
+
+
