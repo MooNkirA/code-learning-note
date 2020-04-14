@@ -43,16 +43,17 @@
 
   * [01-SpringCloud笔记](/07-分布式架构&微服务架构/02-SpringCloud/01-SpringCloud笔记)
 
-* 【数据库】
   * [01-MySQL基础笔记](/04-数据库/01-MySQL/01-MySQL基础笔记)
   * [02-MySQL数据库规范与性能优化](/04-数据库/01-MySQL/02-MySQL数据库规范与性能优化)
-* [01-Oracle基础笔记](/04-数据库/02-Oracle/01-Oracle基础笔记)
+
+  * [01-Oracle基础笔记](/04-数据库/02-Oracle/01-Oracle基础笔记)
+
   * [01-Redis笔记](/04-数据库/03-Redis/01-Redis笔记)
-* [02-Redis安装](/04-数据库/03-Redis/02-Redis安装)
+  * [02-Redis安装](/04-数据库/03-Redis/02-Redis安装)
   * [03-Redis场景应用设计](/04-数据库/03-Redis/03-Redis场景应用设计)
   * [01-MongoDB笔记](/04-数据库/04-MongoDb/01-MongoDB笔记)
-  
-* 【前端资料】
+
+* 【前端】
 
   * [01-HTML-超文本标签语言](/03-前端资料/01-前端基础语法/01-HTML-超文本标签语言)
   * [02-CSS-层叠样式表](/03-前端资料/01-前端基础语法/02-CSS-层叠样式表)
