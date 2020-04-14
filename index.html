@@ -19,24 +19,26 @@
       subMaxLevel: 3,
       homepage: 'README.md',
       // coverpage: true, // 添加一个封面
-
-      loadSidebar: true, // 添加侧边栏文件
+      // loadSidebar: true, // 添加侧边栏文件
       // _sidebar.md 的加载逻辑是从每层目录下获取文件，如果当前目录不存在该文件则回退到上一级目录。
       // 例如当前路径为 /zh-cn/more-pages 则从 /zh-cn/_sidebar.md 获取文件，如果不存在则从 /_sidebar.md 获取。
       alias: {
         '/.*/_sidebar.md': '/_sidebar.md'
       }, // 配置 alias 避免不必要的回退过程
 
+      // load from _navbar.md
+      loadNavbar: true,
+
       auto2top: true, // 切换页面后是否自动跳转到页面顶部
       //全文搜索
       search: {
         maxAge: 86400000, // 过期时间，单位毫秒，默认一天
         paths: 'auto',
-        placeholder: '搜索',
+        placeholder: '🔍 搜索',
         noData: '找不到结果',
         // 搜索标题的最大程级, 1 - 6
-        depth: 3,
-      }
+        depth: 3
+      },
     }
   </script>
   <script src="//unpkg.com/docsify/lib/docsify.min.js"></script>
