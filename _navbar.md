@@ -1,5 +1,5 @@
-* 【项目资料】
-* 【Java & JavaWeb】
+* 【后端】
+
   * [Java案例](/01-Java&JavaWeb/00-收集的案例/Java案例)
   * [网络资料-Java中的常量治理](/01-Java&JavaWeb/00-收集的案例/网络资料-Java中的常量治理)
   * [网络资料-Java中的枚举的治理](/01-Java&JavaWeb/00-收集的案例/网络资料-Java中的枚举的治理)
@@ -14,9 +14,7 @@
   * [19-Java基础-排序算法](/01-Java&JavaWeb/01-JavaSE基础/19-Java基础-排序算法)
   * [20-设计模式](/01-Java&JavaWeb/01-JavaSE基础/20-设计模式)
   * [01-JavaWeb基础笔记](/01-Java&JavaWeb/02-JavaWeb/01-JavaWeb基础笔记)
-* 【后端框架】
-  * 【Hibernate】
-  * 【Struts2】
+
   * [01-Spring笔记](/02-后端框架/03-Spring/01-Spring笔记)
   * [02-Spring案例](/02-后端框架/03-Spring/02-Spring案例)
   * [03-Spring注解汇总](/02-后端框架/03-Spring/03-Spring注解汇总)
@@ -34,7 +32,28 @@
   * [05-Guava（Google基于Java类库扩展）](/02-后端框架/06-工具框架/05-Guava（Google基于Java类库扩展）)
   * [06-Netty（网络应用程序框架）](/02-后端框架/06-工具框架/06-Netty（网络应用程序框架）)
   * [07-Lombok工具插件](/02-后端框架/06-工具框架/07-Lombok工具插件)
+  * [01-SpringBoot笔记](/07-分布式架构&微服务架构/01-SpringBoot/01-SpringBoot笔记)
+  * [02-SpringBoot笔记-其他相关内容](/07-分布式架构&微服务架构/01-SpringBoot/02-SpringBoot笔记-其他相关内容)
+  * [03-SpringBoot源码分析](/07-分布式架构&微服务架构/01-SpringBoot/03-SpringBoot源码分析)
+  * [04-SpringBoot整合Servlet、Filter、Listener](/07-分布式架构&微服务架构/01-SpringBoot/04-SpringBoot整合Servlet、Filter、Listener)
+  * [05-SpringBoot整合MyBatis](/07-分布式架构&微服务架构/01-SpringBoot/05-SpringBoot整合MyBatis)
+  * [06-SpringBoot整合Druid-数据库连接池](/07-分布式架构&微服务架构/01-SpringBoot/06-SpringBoot整合Druid-数据库连接池)
+  * [12-SpringBoot整合JavaMail](/07-分布式架构&微服务架构/01-SpringBoot/12-SpringBoot整合JavaMail)
+  * [13-SpringBoot整合javax.validation](/07-分布式架构&微服务架构/01-SpringBoot/13-SpringBoot整合javax.validation)
+
+  * [01-SpringCloud笔记](/07-分布式架构&微服务架构/02-SpringCloud/01-SpringCloud笔记)
+
+* 【数据库】
+  * [01-MySQL基础笔记](/04-数据库/01-MySQL/01-MySQL基础笔记)
+  * [02-MySQL数据库规范与性能优化](/04-数据库/01-MySQL/02-MySQL数据库规范与性能优化)
+* [01-Oracle基础笔记](/04-数据库/02-Oracle/01-Oracle基础笔记)
+  * [01-Redis笔记](/04-数据库/03-Redis/01-Redis笔记)
+* [02-Redis安装](/04-数据库/03-Redis/02-Redis安装)
+  * [03-Redis场景应用设计](/04-数据库/03-Redis/03-Redis场景应用设计)
+  * [01-MongoDB笔记](/04-数据库/04-MongoDb/01-MongoDB笔记)
+  
 * 【前端资料】
+
   * [01-HTML-超文本标签语言](/03-前端资料/01-前端基础语法/01-HTML-超文本标签语言)
   * [02-CSS-层叠样式表](/03-前端资料/01-前端基础语法/02-CSS-层叠样式表)
   * [03-JavaScript](/03-前端资料/01-前端基础语法/03-JavaScript)
@@ -50,31 +69,3 @@
 
   * [01-node.js笔记](/03-前端资料/05-Node.js&Webpack/01-node.js笔记)
   * [02-webpack笔记](/03-前端资料/05-Node.js&Webpack/02-webpack笔记)
-* 【数据库】
-  * [01-MySQL基础笔记](/04-数据库/01-MySQL/01-MySQL基础笔记)
-  * [02-MySQL数据库规范与性能优化](/04-数据库/01-MySQL/02-MySQL数据库规范与性能优化)
-
-  * [01-Oracle基础笔记](/04-数据库/02-Oracle/01-Oracle基础笔记)
-
-  * [01-Redis笔记](/04-数据库/03-Redis/01-Redis笔记)
-  * [02-Redis安装](/04-数据库/03-Redis/02-Redis安装)
-  * [03-Redis场景应用设计](/04-数据库/03-Redis/03-Redis场景应用设计)
-
-  * [01-MongoDB笔记](/04-数据库/04-MongoDb/01-MongoDB笔记)
-* 【DevOps工具】
-* 【Linux】
-* 【分布式架构&微服务架构】
-  * [01-SpringBoot笔记](/07-分布式架构&微服务架构/01-SpringBoot/01-SpringBoot笔记)
-  * [02-SpringBoot笔记-其他相关内容](/07-分布式架构&微服务架构/01-SpringBoot/02-SpringBoot笔记-其他相关内容)
-  * [03-SpringBoot源码分析](/07-分布式架构&微服务架构/01-SpringBoot/03-SpringBoot源码分析)
-  * [04-SpringBoot整合Servlet、Filter、Listener](/07-分布式架构&微服务架构/01-SpringBoot/04-SpringBoot整合Servlet、Filter、Listener)
-  * [05-SpringBoot整合MyBatis](/07-分布式架构&微服务架构/01-SpringBoot/05-SpringBoot整合MyBatis)
-  * [06-SpringBoot整合Druid-数据库连接池](/07-分布式架构&微服务架构/01-SpringBoot/06-SpringBoot整合Druid-数据库连接池)
-  * [12-SpringBoot整合JavaMail](/07-分布式架构&微服务架构/01-SpringBoot/12-SpringBoot整合JavaMail)
-  * [13-SpringBoot整合javax.validation](/07-分布式架构&微服务架构/01-SpringBoot/13-SpringBoot整合javax.validation)
-
-  * [01-SpringCloud笔记](/07-分布式架构&微服务架构/02-SpringCloud/01-SpringCloud笔记)
-* 【并发编程】
-* 【性能调优】
-* 【其他】
-
