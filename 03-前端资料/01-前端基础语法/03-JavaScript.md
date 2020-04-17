@@ -444,9 +444,11 @@ console.log(Array.from([12,45,47,56,213,4654,154]))
 
 - 语法：`array.reduce(callback(accumulator, item[, index[, array]])[, initialValue])`
     - 接收一个函数callback（必须）和一个初始值initialValue（可选）
-    - callback函数接收两个参数：
-        - 第一个参数accumulator是上一次 reduce处理的结果
-        - 第二个参数item是数组中要处理的下一个元素
+    - callback函数接收4个参数：
+        - accumulator（必选）：第一个参数是上一次 reduce处理的结果
+        - item（必选）：第二个参数是数组中要处理的下一个元素
+        - index（可选）：当前元素的索引
+        - array（可选）：当前元素所属的数组对象
 - 作用：将数组进行处理返回一个值，可以理解为对数组的所有元素项进行累积操作
 - 具体流程：`reduce()` 会从左到右依次把数组中的元素用reduce处理，并把处理的结果作为下次reduce的第一个参数。如果是第一次，会把前两个元素作为计算参数，或者把用户指定的初始值作为起始参数
 - > 注：如果没有使用 initialValue 来设置初始值，则默认使用数组的第一个元素作为初始值。
