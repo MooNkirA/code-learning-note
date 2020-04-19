@@ -60,7 +60,7 @@
 
 下图是项目技术架构的简图，了解项目所使用的技术栈。
 
-![技术架构简图](images/20190407231009211_12639.png)
+![](images/20190407231009211_12639.png)
 
 重点了解微服务技术栈：
 
@@ -292,11 +292,11 @@ CMS采用MongoDB数据库存储CMS页面信息，CMS选用Mongodb的原因如下
 
 #### 4.3.1. 安装MongoDB
 
-参考笔记【\【04】数据库\【04】MongoDb\01-MongoDb 笔记.md】 或者 课程资料“mongodb安装及入门”文档安装Mongodb Server及 Studio 3T客户端软件。
+参考笔记【\04-数据库\04-MongoDb\01-MongoDb 笔记.md】 或者 课程资料“mongodb安装及入门”文档安装Mongodb Server及 Studio 3T客户端软件。
 
 #### 4.3.2. MongoDB入门
 
-参考笔记【\【04】数据库\【04】MongoDb\01-MongoDb 笔记.md】 或者 课程资料“mongodb安装及入门”文档
+参考笔记【\04-数据库\04-MongoDb\01-MongoDb 笔记.md】 或者 课程资料“mongodb安装及入门”文档
 
 
 ### 4.4. 导入CMS数据库
