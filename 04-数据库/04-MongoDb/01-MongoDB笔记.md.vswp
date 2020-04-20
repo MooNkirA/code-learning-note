@@ -326,7 +326,8 @@ mongodb://[username:password@]host1[:port1][,host2[:port2],...[,hostN[:portN]]][
     - `port`：端口，可不填，默认27017
     - `/database`：连接某一个数据库
     - `?options`：连接参数，key/value对
-- 例子：
+
+> 例子
 
 ```shell
 mongodb://localhost     # 连接本地数据库27017端口
@@ -344,7 +345,9 @@ mongodb://localhost,localhost:27018,localhost:27019    # 连接三台主从服�
 - 此时就可以输入命令来操作mongodb数据库了，javascript shell可以运行javascript程序。
 
 
-### 2.3. 使用studio3T连接（暂无内容）
+### 2.3. 使用studio3T连接
+
+内容参考本笔记的 《5.studio3t》
 
 ### 2.4. 使用java程序连接
 
@@ -461,6 +464,25 @@ db.student.drop()
 show tables
 ```
 
+### 4.4. 给集合创建索引
+#### 4.4.1. 命令语句创建
+
+
+#### 4.4.2. 使用studio 3t软件创建
+
+1. 右键点击需要增加索引的集合
+
+![](images/20200420230413176_23718.png)
+
+- 选择索引相应的域
+
+![](images/20200420230849873_9104.png)
+
+- 生成唯一索引
+
+![](images/20200420231216319_18685.png)
+
+![](images/20200420231441375_4007.png)
 
 ## 5. 文档操作
 ### 5.1. 插入文档

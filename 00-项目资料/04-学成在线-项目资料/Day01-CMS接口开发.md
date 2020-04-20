@@ -426,7 +426,6 @@ import lombok.ToString;
  * CMS系统查询条件查询类
  */
 @Data
-@ToString
 public class QueryPageRequest extends RequestData {
     // 站点id
     private String siteId;
