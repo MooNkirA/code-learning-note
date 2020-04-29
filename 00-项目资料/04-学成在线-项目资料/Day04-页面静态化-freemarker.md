@@ -11,7 +11,7 @@
     - 页面静态化就是将页面模板和数据通过技术手段将二者合二为一，生成一个html网页文件。
 4. 页面静态化及页面发布流程图如下
 
-    ![页面发布流程图](images/20190520110016298_7125.png)
+    ![](images/20200425225023146_21168.png)
 
     - 业务流程如下：
         1. 获取模型数据
@@ -132,7 +132,7 @@ Hello ${name}!
 创建Controller类，向Map中添加name，最后返回模板文件
 
 ```java
-@Controller
+@Controller // 此处需要注意，不能使用@RestController注解，因为需要输出html页面，而@RestController是输出json数据
 @RequestMapping("/freemarker")
 public class FreemarkerController {
 
@@ -148,9 +148,9 @@ public class FreemarkerController {
      */
     @RequestMapping("/test1")
     public String freemarker(Map<String, Object> map) {
-        // 设置数据模型
+        // 设置数据模型，此map是freemarker模板所使用的数据
         map.put("name", "月の哀傷");
-        // 返回模板文件名称
+        // 返回模板文件名称，这个freemarker模板的位置，是基于resources/templastes路径下
         return "test1";
     }
 }
@@ -479,7 +479,7 @@ public class CmsConfigController implements CmsConfigControllerApi {
 
 使用postman测试接口，get请求：http://localhost:31001/cms/config/getmodel/5a791725dd573c3574ee333f
 
-#### 4.2.2. 远程请求接口
+#### 4.2.2. 远程请求接口（RestTemplate）
 
 SpringMVC 提供 RestTemplate 请求http接口，RestTemplate的底层可以使用第三方的http客户端工具实现 http 的请求，常用的http客户端工具有Apache HttpClient、OkHttpClient等，本项目使用 OkHttpClient 完成http请求，原因也是因为它的性能比较出众
 
