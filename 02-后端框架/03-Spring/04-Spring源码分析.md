@@ -197,7 +197,6 @@ spring框架中使用模板设计模式案例
 
 有两个对象参与处理同一个请求，接受请求的对象将请求委托给另一个对象来处理
 
-
 ### 3.3. 设计模式3 - 装饰模式
 
 - 装饰模式主要分几个元素
@@ -460,7 +459,7 @@ public class BeanDefinitionTest implements BeanDefinitionRegistryPostProcessor {
 ### 5.4. BeanDefinition 中的属性
 #### 5.4.1. 属性图示
 
-原文件在\Java\编程资料笔记-相关配套资料\【02】后端框架\【03】Spring\BeanDefinition属性结构图.xmind
+原文件在\code-learning-note\note attachments\02-后端框架\03-Spring\BeanDefinition属性结构图.xmind
 
 ![BeanDefinition相关属性](images/20191231112210755_22971.png)
 
@@ -588,7 +587,8 @@ registerBeanPostProcessors(beanFactory, priorityOrderedPostProcessors);
 /* 注册的BeanPostProcessor所有实例都存放在BeanFactory的 private final List<BeanPostProcessor> beanPostProcessors = new CopyOnWriteArrayList<>(); 容器中 */
 ```
 
-### 6.3. getSingleton 方法
+### 6.3. getSingleton 方法（获取单例）
+#### 6.3.1. 代码所在位置
 
 - 核心代码位置：`AbstractBeanFactory.doGetBean()` 方法中
 
@@ -618,8 +618,17 @@ if (mbd.isSingleton()) {
 ......
 ```
 
+在执行`Object getSingleton(String beanName, ObjectFactory<?> singletonFactory)`方法的过程中，调用了`singletonObject = singletonFactory.getObject();`方法，会调用lambda表达式的逻辑
 
+![](images/20200502171135831_22205.png)
 
+![](images/20200502171240975_217.png)
+
+#### 6.3.2. 涉及相关重要的核心属性
+
+在`DefaultSingletonBeanRegistry`类中的`singletonObjects`属性，此属性是Map结构容器，用于存在完全实例化的对象。
+
+> 完全实例化对象：指的是此类创建出对象，并且类里的所有属性与DI（依赖注入）都全部已经完成
 
 
 
