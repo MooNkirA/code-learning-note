@@ -756,7 +756,69 @@ protected Constructor<?>[] determineConstructorsFromBeanPostProcessors(@Nullable
 
 #### 6.4.3. 无参构造函数的实例化
 
-这就是简单的反射实例化。大部分类的实例化都会走此逻辑
+这就是简单的反射实例化。大部分类的实例化都会走无参构造的逻辑
+
+```java
+protected BeanWrapper createBeanInstance(String beanName, RootBeanDefinition mbd, @Nullable Object[] args) {
+	......
+
+	// 通过无参构造函数的实例化bean，实际上大部分的实例都是采用的无参构造函数的方式实例化
+	// No special handling: simply use no-arg constructor.
+	return instantiateBean(beanName, mbd);
+}
+```
+
+#### 6.4.4. 类中注解的收集
+
+实例化完成后，接下来就需要对类中的属性进行依赖注入操作。类里面属性和方法的依赖注入往往用 `@Autowired` 或者 `@Resource` 注解
+
+```java
+// Allow post-processors to modify the merged bean definition.
+synchronized (mbd.postProcessingLock) {
+	if (!mbd.postProcessed) {
+		try {
+			/*
+			 * 此方法是对实例化的bean的注解收集，对类中注解的装配过程。重要程度【5】
+			 * 	这个接口是BeanPostProcessor接口的典型运用，需要重点理解，其中BeanPostProcessor接口的实现类相应处理的注解如下：
+			 * 		CommonAnnotationBeanPostProcessor  支持了@PostConstruct，@PreDestroy，@Resource注解
+			 * 		AutowiredAnnotationBeanPostProcessor 支持 @Autowired，@Value注解
+			 */
+			applyMergedBeanDefinitionPostProcessors(mbd, beanType, beanName);
+		}
+		catch (Throwable ex) {
+			throw new BeanCreationException(mbd.getResourceDescription(), beanName,
+					"Post-processing of merged bean definition failed", ex);
+		}
+		mbd.postProcessed = true;
+	}
+}
+```
+
+注解的收集，也是通过不同的 `BeanPostProcessor` 接口类型实例来一个个循环处理的。
+
+![](images/20200505171610617_18011.png)
+
+
+##### 6.4.4.1. CommonAnnotationBeanPostProcessor
+
+第1个是调用 `CommonAnnotationBeanPostProcessor` 类，这个类完成了 `@Resource` 注解的属性或者方法的收集。这个类还对 `@PostConstruct` 和 `@PreDestory` 等注解的支持
+
+![](images/20200505172241784_18237.png)
+
+其中收集`@Resource`注解的过程如下：
+
+1. 看缓存里面有没有 `InjectionMetadata` 对象
+2. 从类中获取所有 `Field` 对象，循环 `field` 对象，判断 `field` 有没有 `@Resource` 注解，如果有注解封装成 `ResourceElement` 对象
+3. 从类中获取所有 `Method` 对象，循环 `Method` 对象，判断 `Method` 有没有 `@Resource` 注解，如果有注解封装成 `ResourceElement` 对象
+4. 最终把两个 `field` 和 `Method` 封装的对象集合封装到 `InjectionMetadata` 对象中
+
+##### 6.4.4.2. AutowiredAnnotationBeanPostProcessor
+
+`AutowiredAnnotationBeanPostProcessor` 类，对 `@Autowired` 注解的属性和方法的收集。收集过程基本上跟 `@Resource` 注解的收集差不多
+
+#### 6.4.5. IOC\DI 依赖注入
+
+
 
 
 
