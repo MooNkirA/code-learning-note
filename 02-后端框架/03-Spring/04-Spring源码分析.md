@@ -816,6 +816,7 @@ synchronized (mbd.postProcessingLock) {
 `AutowiredAnnotationBeanPostProcessor` 类，对 `@Autowired` 注解的属性和方法的收集。收集过程基本上跟 `@Resource` 注解的收集差不多
 
 #### 6.4.5. IOC\DI 依赖注入
+##### 6.4.5.1. @Resource 和 @Autowired 注解依赖注入
 
 ![](images/20200511233417561_3122.png)
 
@@ -888,7 +889,7 @@ protected void inject(Object bean, @Nullable String beanName, @Nullable Property
 }
 ```
 
-方法的依赖注入类似
+方法的依赖注入类似的逻辑
 
 ```java
 @Override
@@ -910,6 +911,100 @@ protected void inject(Object bean, @Nullable String beanName, @Nullable Property
 	}
 }
 ```
+
+以上就是对注解 `@Resource` 和 `@Autowired` 的依赖注入的实现逻辑
+
+##### 6.4.5.2. xml 配置的依赖注入
+
+比如在spring的xml配置文件的 `<bean>` 标签中配置以下属性
+
+```xml
+<!-- property子标签测试（此方式几乎不使用，直接使用@Value实现） -->
+<bean class="com.moon.spring.bean.PropertyBean" id="propertyBean">
+    <property name="username" value="MoonZero"/>
+    <property name="password" value="123"/>
+</bean>
+```
+
+标签的依赖注入实现逻辑代码位置如下：
+
+![](images/20200514231626392_26218.png)
+
+这块逻辑是专门做 xml 配置依赖注入的，基本上现在基于 xml 配置的依赖很少使用，暂时不研究
+
+#### 6.4.6. bean 实例化后的操作
+
+核心代码位置在`AbstractAutowireCapableBeanFactory`类中的`doCreateBean()`方法
+
+##### 6.4.6.1. InitializingBean 接口介绍
+
+实现`InitializingBean`接口的类，spring会在实例化该类以后，调用接口的`afterPropertiesSet()`方法
+
+```java
+package com.moon.spring.bean;
+
+import org.springframework.beans.factory.InitializingBean;
+
+/**
+ * Spring 框架中 InitializingBean 接口的示例
+ * <p>
+ * 如果需要在一个类实例化以后去做一些逻辑处理，那么就可以借助这个InitializingBean接口来完成。
+ *
+ * @author MoonZero
+ * @version 1.0
+ * @date 2020-5-18 23:31
+ * @description
+ */
+public class InitMethodBean implements InitializingBean {
+
+    @Override
+    public void afterPropertiesSet() throws Exception {
+        System.out.println("****** 实现InitializingBean接口的afterPropertiesSet()方法执行了 ******");
+    }
+
+    /*
+     * 在xml配置文件中<bean>标签中，配置init-method属性
+     *  注意：通过xml配置文件的方式实现类创建后执行init-method，相应的方法的执行顺序是在实现了InitializingBean接口的afterPropertiesSet()方法执行之后
+     */
+    public void initMethod() {
+        System.out.println("======= InitMethodBean.initMethod()方法执行了 =========");
+    }
+
+}
+```
+
+也可以通过xml配置文件的方式，实现与`InitializingBean`接口一样的效果，只要在`<bean>`标签中配置`init-method`属性，值为需要执行的方法名称
+
+```xml
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xmlns:p="http://www.springframework.org/schema/p"
+       xmlns:c="http://www.springframework.org/schema/c"
+       xmlns:moon="http://www.moon.com/schema/mytags"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+       http://www.springframework.org/schema/beans/spring-beans.xsd
+       http://www.springframework.org/schema/context
+       http://www.springframework.org/schema/context/spring-context.xsd
+       http://www.springframework.org/schema/aop
+       http://www.springframework.org/schema/aop/spring-aop.xsd
+       http://www.moon.com/schema/mytags
+       http://www.moon.com/schema/mytags.xsd">
+    ......
+    <!-- 配置init-method属性示例
+            用于定义 Bean 的初始化方法，会在 Bean 组装之后调用。注意：该方法必须是一个无参数的方法
+     -->
+    <bean id="initMethodBean" class="com.moon.spring.bean.InitMethodBean" init-method="initMethod"/>
+</beans>
+```
+
+> 注意：通过xml配置文件的方式实现类创建后执行`init-method`，相应的方法的执行顺序是在实现了`InitializingBean`接口的`afterPropertiesSet()`方法执行之后
+
+启动spring，运行结果如下
+
+![](images/20200519232135597_12874.png)
+
 
 
 
