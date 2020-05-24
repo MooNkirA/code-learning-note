@@ -934,7 +934,12 @@ protected void inject(Object bean, @Nullable String beanName, @Nullable Property
 
 #### 6.4.6. bean 实例化后的操作
 
-核心代码位置在`AbstractAutowireCapableBeanFactory`类中的`doCreateBean()`方法
+核心代码位置在`AbstractAutowireCapableBeanFactory`类中的`doCreateBean()`方法中
+
+```java
+// bean实例化+ioc依赖注入完以后的调用，非常重要，重要程度【5】
+exposedObject = initializeBean(beanName, exposedObject, mbd);
+```
 
 ##### 6.4.6.1. InitializingBean 接口介绍
 
@@ -1005,7 +1010,47 @@ public class InitMethodBean implements InitializingBean {
 
 ![](images/20200519232135597_12874.png)
 
+##### 6.4.6.2. 实例化Bean后执行流程 - 对某些 Aware 接口的调用
 
+此步骤主要是对于当前实现Aware的接口的方法调用
+
+![](images/20200524183014736_11831.png)
+
+```java
+private void invokeAwareMethods(final String beanName, final Object bean) {
+	if (bean instanceof Aware) {
+		// 调用实现BeanNameAware接口的setBeanName()方法，可以获取当前实例化的beanName
+		if (bean instanceof BeanNameAware) {
+			((BeanNameAware) bean).setBeanName(beanName);
+		}
+		if (bean instanceof BeanClassLoaderAware) {
+			ClassLoader bcl = getBeanClassLoader();
+			if (bcl != null) {
+				((BeanClassLoaderAware) bean).setBeanClassLoader(bcl);
+			}
+		}
+		// 调用实现BeanFactoryAware接口的setBeanFactory()方法，可以获取当前BeanFactory对象
+		if (bean instanceof BeanFactoryAware) {
+			((BeanFactoryAware) bean).setBeanFactory(AbstractAutowireCapableBeanFactory.this);
+		}
+	}
+}
+```
+
+##### 6.4.6.3. 实例化Bean后执行流程 - @PostConstruct 注解方法的调用
+
+此处又是一个 `BeanPostProcessor` 接口的运用。核心代码位置
+
+```java
+/* AbstractAutowireCapableBeanFactory类中的initializeBean()方法 */
+Object wrappedBean = bean;
+if (mbd == null || !mbd.isSynthetic()) {
+	// 对类中某些特殊方法的调用，比如@PostConstruct，Aware接口。重要程度【5】
+	wrappedBean = applyBeanPostProcessorsBeforeInitialization(wrappedBean, beanName);
+}
+```
+
+从前面了解到，有 `@PostConstruct` 注解的方法会收集到一个 `metaData` 对象中，现在就是通过 `BeanPostProcessor` 接口调到 `CommonAnnotationBeanPostProcessor` 类，然后在类中拿到 `metaData` 对象，根据对象里面的容器来反射调用有注解的方法。
 
 
 
