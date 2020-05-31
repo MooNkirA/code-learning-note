@@ -63,7 +63,7 @@ moonzero-system
 - 使用idea编写启动的脚本，在VM options中增加定义环境变量的脚本
 
 ```bash
--DMAIL_HOST=smtp.139.com -DMAIL_USERNAME=13826018654@139.com -DMAIL_PWD=44ohmygod100188 -DMAIL_SEND_TO=eric_ending@126.com
+-DMAIL_HOST=smtp.139.com -DMAIL_USERNAME=xxx@xxx.com -DMAIL_PWD=xxxx -DMAIL_SEND_TO=xxx@xxx.com
 ```
 
 > 注: 各邮箱服务地址：
@@ -251,7 +251,7 @@ npm run dev
 -DACTIVE_NAME=dev -DSERVER_PORT=38090 -DEUREKA_SERVER=http://localhost:51001/eureka/,http://localhost:51002/eureka/ -DIP_ADDRESS=127.0.0.1 -Dmaven.test.skip=true
 
 # mail邮件模块服务开发启动脚本，设置VM options（eureka单机版）
--DACTIVE_NAME=dev -DSERVER_PORT=38090 -DEUREKA_SERVER=http://localhost:51001/eureka/ -DIP_ADDRESS=127.0.0.1 -DMAIL_HOST=smtp.139.com -DMAIL_USERNAME=13826018654@139.com -DMAIL_PWD=44ohmygod100188 -Dmaven.test.skip=true
+-DACTIVE_NAME=dev -DSERVER_PORT=38090 -DEUREKA_SERVER=http://localhost:51001/eureka/ -DIP_ADDRESS=127.0.0.1 -DMAIL_HOST=smtp.139.com -DMAIL_USERNAME=xxx@xxx.com -DMAIL_PWD=xxx -Dmaven.test.skip=true
 ```
 
 #### 5.2.5. 生产环境

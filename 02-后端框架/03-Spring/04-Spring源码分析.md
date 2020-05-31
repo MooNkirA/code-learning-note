@@ -1010,7 +1010,7 @@ public class InitMethodBean implements InitializingBean {
 
 ![](images/20200519232135597_12874.png)
 
-##### 6.4.6.2. 实例化Bean后执行流程 - 对某些 Aware 接口的调用
+##### 6.4.6.2. 对某些 Aware 接口的调用(实例化Bean后执行流程1)
 
 此步骤主要是对于当前实现Aware的接口的方法调用
 
@@ -1037,7 +1037,7 @@ private void invokeAwareMethods(final String beanName, final Object bean) {
 }
 ```
 
-##### 6.4.6.3. 实例化Bean后执行流程 - @PostConstruct 注解方法的调用
+##### 6.4.6.3. @PostConstruct 注解方法的调用(实例化Bean后执行流程2)
 
 此处又是一个 `BeanPostProcessor` 接口的运用。核心代码位置
 
@@ -1050,8 +1050,247 @@ if (mbd == null || !mbd.isSynthetic()) {
 }
 ```
 
-从前面了解到，有 `@PostConstruct` 注解的方法会收集到一个 `metaData` 对象中，现在就是通过 `BeanPostProcessor` 接口调到 `CommonAnnotationBeanPostProcessor` 类，然后在类中拿到 `metaData` 对象，根据对象里面的容器来反射调用有注解的方法。
+```java
+@Override
+public Object applyBeanPostProcessorsBeforeInitialization(Object existingBean, String beanName)
+		throws BeansException {
+	Object result = existingBean;
+	/*
+	 * 循环容器中所有BeanPostProcessor，着重理解以下几个实现类
+	 *  1、ApplicationContextAwareProcessor  对某个Aware接口方法的调用
+	 *  2、InitDestroyAnnotationBeanPostProcessor  @PostConstruct注解方法的调用
+	 *  3、ImportAwareBeanPostProcessor  对ImportAware类型实例setImportMetadata方法调用。（这个对理解springboot有很大帮助。此时暂时不深入了解）
+	 */
+	for (BeanPostProcessor processor : getBeanPostProcessors()) {
+		Object current = processor.postProcessBeforeInitialization(result, beanName);
+		if (current == null) {
+			return result;
+		}
+		result = current;
+	}
+	return result;
+}
+```
 
+从前面了解到，有 `@PostConstruct` 注解的方法会收集到一个 `metaData` 对象中，现在就是通过 `BeanPostProcessor` 接口调到 `CommonAnnotationBeanPostProcessor` 类，然后在类中拿到 `metaData` 对象，根据对象里面的容器来反射调用有注解的方法。核心逻辑（*以`InitDestroyAnnotationBeanPostProcessor`为例，此类用于调用`@PostConstruct`相应的方法*）代码如下：
+
+```java
+@Override
+public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
+	// 获取生命周期相关方法的Metadata对象
+	LifecycleMetadata metadata = findLifecycleMetadata(bean.getClass());
+	try {
+		// 调用@PostConstruct注解的方法
+		metadata.invokeInitMethods(bean, beanName);
+	}
+	catch (InvocationTargetException ex) {
+		throw new BeanCreationException(beanName, "Invocation of init method failed", ex.getTargetException());
+	}
+	catch (Throwable ex) {
+		throw new BeanCreationException(beanName, "Failed to invoke init method", ex);
+	}
+	return bean;
+}
+```
+
+```java
+public void invokeInitMethods(Object target, String beanName) throws Throwable {
+	Collection<LifecycleElement> checkedInitMethods = this.checkedInitMethods;
+	Collection<LifecycleElement> initMethodsToIterate =
+			(checkedInitMethods != null ? checkedInitMethods : this.initMethods); // 获取之前收集 @PostConstruct 注解的 initMethods 容器中
+	if (!initMethodsToIterate.isEmpty()) {
+		for (LifecycleElement element : initMethodsToIterate) {
+			if (logger.isTraceEnabled()) {
+				logger.trace("Invoking init method on bean '" + beanName + "': " + element.getMethod());
+			}
+			// 反射调用
+			element.invoke(target);
+		}
+	}
+}
+```
+
+有 `@PostConstruct` 注解的会收集到 `initMethods` 容器中，接下来就是方法的反射调用。
+
+```java
+public void invoke(Object target) throws Throwable {
+	ReflectionUtils.makeAccessible(this.method);
+	this.method.invoke(target, (Object[]) null);
+}
+```
+
+##### 6.4.6.4. InitializingBean 接口和 init-method 属性的调用(实例化Bean后执行流程3)
+
+执行流程往下就是对实现了 `InitializingBean` 接口的类与在xml配置文件中`<bean>`标签中配置了 `init-method` 属性的相应方法的调用
+
+![](images/20200525230453678_20366.png)
+
+从源码可以看出，实现了 `InitializingBean` 接口的类就必然会调用到 `afterPropertiesSet()` 方法，且 `Init-method` 属性调用是在 `afterPropertiesSet()` 方法之后
+
+```java
+protected void invokeInitMethods(String beanName, final Object bean, @Nullable RootBe
+		throws Throwable {
+	// 判断是否为InitializingBean接口实现
+	boolean isInitializingBean = (bean instanceof InitializingBean);
+	// 首先调用实现InitializingBean接口的afterPropertiesSet()方法
+	if (isInitializingBean && (mbd == null || !mbd.isExternallyManagedInitMethod("aft
+		if (logger.isTraceEnabled()) {
+			logger.trace("Invoking afterPropertiesSet() on bean with name '" + beanNa
+		}
+		if (System.getSecurityManager() != null) {
+			try {
+				AccessController.doPrivileged((PrivilegedExceptionAction<Object>) ()
+					((InitializingBean) bean).afterPropertiesSet();
+					return null;
+				}, getAccessControlContext());
+			}
+			catch (PrivilegedActionException pae) {
+				throw pae.getException();
+			}
+		}
+		else {
+			// 直接调用afterPropertiesSet()方法
+			((InitializingBean) bean).afterPropertiesSet();
+		}
+	}
+	// 然后调用xml配置文件中的init-method属性相应的方法
+	if (mbd != null && bean.getClass() != NullBean.class) {
+		// 获取调用的方法名称
+		String initMethodName = mbd.getInitMethodName();
+		if (StringUtils.hasLength(initMethodName) &&
+				!(isInitializingBean && "afterPropertiesSet".equals(initMethodName))
+				!mbd.isExternallyManagedInitMethod(initMethodName)) {
+			// 此方法为调用xml配置文件中的init-method属性相应的方法
+			invokeCustomInitMethod(beanName, bean, mbd);
+		}
+	}
+}
+```
+
+`afterPropertiesSet`、`Init-method`和有`@PostConstruct`注解的方法其实核心功能都是一样的，只是调用时序不一样而已，都是在该类实例化和 IOC 做完后调用的，可以在这些方法中做一些在 spring 或者 servlet 容器启动的时候的初始化工作。比如缓存预热，比如缓存数据加载到内存，比如配置解析，等等初始化工作。
+
+在这个方法里面还有一个重要的逻辑
+
+```java
+/* AbstractAutowireCapableBeanFactory */
+protected Object initializeBean(final String beanName, final Object bean, @Nullable RootBeanDefinition mbd) {
+    ......
+    // 此部分也是一个 BeanPostProcessor 接口的运用，在这里会返回 bean 的代理实例，这个就是 AOP 的入口【暂未研究】
+    if (mbd == null || !mbd.isSynthetic()) {
+    	wrappedBean = applyBeanPostProcessorsAfterInitialization(wrappedBean, beanName);
+    }
+
+    return wrappedBean;
+}
+```
+
+也是一个 `BeanPostProcessor` 接口的运用，在这里会返回 bean 的代理实例，这个就是 AOP 的入口。
+
+##### 6.4.6.5. FactoryBean 接口
+
+接口方法触发入口位置：`AbstractBeanFactory --> doGetBean()`
+
+```java
+// Create bean instance.
+if (mbd.isSingleton()) {
+	/* 此逻辑是重点，因为大部分情况都是单例的 */
+	sharedInstance = getSingleton(beanName, () -> {
+		try {
+			// 创建bean实例核心逻辑
+			return createBean(beanName, mbd, args);
+		}
+		catch (BeansException ex) {
+			// Explicitly remove instance from singleton cache: It might have been put there
+			// eagerly by the creation process, to allow for circular reference resolution.
+			// Also remove any beans that received a temporary reference to the bean.
+			destroySingleton(beanName);
+			throw ex;
+		}
+	});
+	// 此方法是FactoryBean接口的调用入口
+	bean = getObjectForBeanInstance(sharedInstance, name, beanName, mbd);
+}
+```
+
+该接口的作用是：在实例化和 IOC/DI 做完后，就会调用 FactoryBean 类型的接口，重写`getObject()`，方法，可以返回不同的bean类型，此bean实例会被Spring容器管理
+
+- 如果要获取到 FactoryBean 接口实现类本身，就必须加上`&`符号，比如：`beanFactory.getBean("&beanName")`。
+- `BeanFactory.getBean("beanName")` 只能获取到 `getObject()` 方法返回的实例
+
+示例如下：
+
+```java
+package com.moon.spring.factorybean;
+
+import org.springframework.beans.factory.FactoryBean;
+import org.springframework.stereotype.Component;
+
+/**
+ * Spring 框架 FactoryBean 接口使用示例
+ */
+@Component
+public class FactoryBeanDemo implements FactoryBean {
+
+    @Override
+    public Object getObject() throws Exception {
+        /*
+         *  此处可以进行一些其他的逻辑处理，然后返回一个新的bean
+         *   注：此处返回的新的实例与原来实现了FactoryBean接口的此类的实例互不干扰
+         */
+        return new FactoryBeanOther();
+    }
+
+    @Override
+    public Class<?> getObjectType() {
+        return FactoryBeanOther.class;
+    }
+}
+
+
+/* 测试 */
+@Autowired
+private ApplicationContext applicationContext;
+
+/* FactoryBean接口实现测试 */
+@Test
+public void factoryBeanTest() {
+    // 实现了FactoryBean接口的类，通过bean的id只能获取该类实现了getObject()方法返回的对象实例
+    FactoryBeanOther other = (FactoryBeanOther) applicationContext.getBean("factoryBeanDemo");
+    System.out.println(other); // com.moon.spring.factorybean.FactoryBeanOther@4cc8eb05
+    // 如果要获取实现了FactoryBean接口的类的实例，只能通过【"&" + beanName】来获取实例
+    FactoryBeanDemo factoryBeanDemo = (FactoryBeanDemo) applicationContext.getBean("&factoryBeanDemo");
+    System.out.println(factoryBeanDemo); // com.moon.spring.factorybean.FactoryBeanDemo@51f116b8
+}
+```
+
+##### 6.4.6.6. 循环依赖
+###### 6.4.6.6.1. 循环依赖流程图
+
+循环依赖参照流程图（引用其他资料。）<font color="red">有时间自己再重新整理</font>
+
+![](images/20200531165112369_24084.png)
+
+> 图片出处：https://www.processon.com/view/link/5df9ce52e4b0c4255ea1a84f
+
+###### 6.4.6.6.2. 循环依赖需要注意的问题
+
+- 循环依赖只会出现在单例实例无参构造函数实例化情况下
+- 有参构造函数的加 `@Autowired` 的方式循环依赖会直接报错的，多例的循环依赖也是直接报错的。
+
+###### 6.4.6.6.3. 循环依赖步骤总结
+
+1. A 类无参构造函数实例化后，将实例设置到三级缓存中
+2. A 类执行 `populateBean()` 方法进行依赖注入，这里触发了 B 类属性的 `getBean()` 操作
+3. B 类无参构造函数实例化后，将实例设置到三级缓存中
+4. B 类执行 `populateBean()` 方法进行依赖注入，这里又会触发了 A 类属性的 `getBean()` 操作
+5. A 类之前正在实例化，`singletonsCurrentlyInCreation` 集合中有已经有这个 A 类的实例了，三级缓存里面也有了，所以这时候是从三级缓存中拿到的提前暴露的 A 实例，该实例还没有进行 B 类属性的依赖注入的，B 类属性为空。
+6. B 类拿到了 A 的提前暴露实例注入到引入 A 类属性中了
+7. B 类实例化已经完成，B 类的实例化是由 A 类实例化中 B 属性的依赖注入触发的 `getBean()` 操作进行的，现在 B 已经实例化，所以 A 类中 B 属性就可以完成依赖注入了，这时候 A 类 B 属性已经有值了
+8. B 类 A 属性指向的就是 A 类实例堆空间，所以这时候 B 类 A 属性也会有值了。
+
+## 7. BeanPostProcessor 接口理解
+
+BeanPostProcessor 接口类型实例是针对某种特定功能的埋点，在这个点会根据接口类型来过滤掉不关注这个点的其他类，只有真正关注的类才会在这个点进行相应的功能实现。
 
 
 
