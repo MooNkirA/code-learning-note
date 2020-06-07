@@ -1340,7 +1340,7 @@ public void prototypeTest() {
 - Scope 是 `Prototype` 时，在spring容器启动中，是不会创建实例，需要主动调用 `getBean()` 时才会创建实例
 - Request 作用域时，是把实例存储到 request 对象中；Session 作用域时，是把实例存储到 session 对象中。注：request 和 session 作用域只会在 web 环境才会存在
 
-##### 6.4.8.2. Request与Session作用域
+##### 6.4.8.2. Request与Session作用域(!!后面需要补充tomcat部署时的截图。目前因为没有配置好web.xml文件与springMVC)
 
 定义两个作用域测试bean。*注：需要引入spring-web的依赖*
 
@@ -1372,24 +1372,261 @@ public void requestSessoinScopeTest() {
 ![](images/20200603234906381_7555.png)
 
 
-
-
-
 ##### 6.4.8.3. 自定义作用域
 
-1. 要获取 BeanFactory 对象，必须实现 BeanFactoryPostProcessor 接口才能获取 BeanFactory 对象。
-2. 调用 registerScope 方法把自定义的 scope 注册进去
-3. 写一个类实现 scope 接口
+阅读`AbstractBeanFactory`类的源码发现，有一个public的方法`registerScope`，该方法可以往spring构架中的scopes容器中注册（添加自定义作用域）。所以只要通过实现`BeanFactoryPostProcessor`接口，拿到spring的BeanFactory对象，即可调用该方法往作用域scopes容器中注册自定义作用域
+
+```java
+/* 该方法实现向spring容器中注册一个Scope（bean作用范围）对象 */
+@Override
+public void registerScope(String scopeName, Scope scope) {
+	Assert.notNull(scopeName, "Scope identifier must not be null");
+	Assert.notNull(scope, "Scope must not be null");
+	if (SCOPE_SINGLETON.equals(scopeName) || SCOPE_PROTOTYPE.equals(scopeName)) {
+		throw new IllegalArgumentException("Cannot replace existing scopes 'singleton' and 'prototype'");
+	}
+	Scope previous = this.scopes.put(scopeName, scope);
+	if (previous != null && previous != scope) {
+		if (logger.isDebugEnabled()) {
+			logger.debug("Replacing scope '" + scopeName + "' from [" + previous + "] to [" + scope + "]");
+		}
+	}
+	else {
+		if (logger.isTraceEnabled()) {
+			logger.trace("Registering scope '" + scopeName + "' with implementation [" + scope + "]");
+		}
+	}
+}
+```
+
+自定义作用域实现步骤：
+
+1. 写一个类实现 scope 接口，实现`get()`方法，该方法是管理生成bean实例作用域的逻辑
+
+```java
+package com.moon.spring.scope;
+
+import org.springframework.beans.factory.ObjectFactory;
+import org.springframework.beans.factory.config.Scope;
+
+/**
+ * 自定义bean作用域，需要实现Scope接口
+ * <p> 此自定义作用域的需求是，在同一个线程中获取都是同一个实例，不同线程获取不同实例 </p>
+ */
+public class CustomScope implements Scope {
+
+    private ThreadLocal<Object> threadLocal = new ThreadLocal<>();
+
+    /**
+     * 获取bean实例的方法，此方法可以实现管理生成bean实例作用域逻辑。
+     *
+     * @param name
+     * @param objectFactory
+     * @return
+     */
+    @Override
+    public Object get(String name, ObjectFactory<?> objectFactory) {
+        System.out.println("=====自定义作用域CustomScope.get()执行=====");
+
+        // 如果当前线程存在实现化完成的对象，直接返回
+        if (threadLocal.get() != null) {
+            return threadLocal.get();
+        }
+
+        // 此方法就是调用spring框架ObjectFactory接口的createbean方法获得一个实例
+        Object object = objectFactory.getObject();
+        // 设置到ThreadLocal容器并返回
+        threadLocal.set(object);
+        return object;
+    }
+
+    @Override
+    public Object remove(String name) {
+        return null;
+    }
+
+    @Override
+    public void registerDestructionCallback(String name, Runnable callback) {
+
+    }
+
+    @Override
+    public Object resolveContextualObject(String key) {
+        return null;
+    }
+
+    @Override
+    public String getConversationId() {
+        return null;
+    }
+}
+```
+
+2. 要获取 BeanFactory 对象，必须实现 BeanFactoryPostProcessor 接口才能获取 BeanFactory 对象。调用 registerScope 方法把自定义的 scope 注册进去
+
+```java
+package com.moon.spring.scope;
+
+import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
+import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
+import org.springframework.stereotype.Component;
+
+/**
+ * 实现BeanFactoryPostProcessor接口，用于注册自定义bean作用域
+ */
+@Component
+public class CustomBeanFactoryPostProcessor implements BeanFactoryPostProcessor {
+    // 实现postProcessBeanFactory方法，注册自定义作用域
+    @Override
+    public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
+        beanFactory.registerScope("MooNkirAScope", new CustomScope());
+    }
+}
+```
+
+3. 编写测试bean。测试结果如下：
+
+```java
+package com.moon.spring.scope;
+
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
+
+/**
+ * 测试自定义bean作用域
+ */
+@Component
+@Scope("MooNkirAScope")
+public class CustomScopeBean {
+    private String id;
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+}
+```
+
+![](images/20200607101708791_9813.png)
+
+![](images/20200607102144946_18607.png)
+
+##### 6.4.8.4. Bean作用域总结
+
+Spring框架Bean的作用域的本质是对Bean实例的管理。
+
+1. 单例模式Bean的实例是存储在`DefaultSingletonBeanRegistry`类中的`singletonObjects`的map容器中
+2. 实现`FactoryBean`接口后所创建的Bean实例，是存储在`FactoryBeanRegistrySupport`类中的`factoryBeanObjectCache`的Map容器中
+3. 多例模式Bean的实例是没有存缓存中，每次获取时创建
+4. Request与Session模式Bean的实例是存储在web容器相应的request与session对象中
+5. 自定义作用域其实是自已定义Bean实例的管理方式，存储到缓存或者直接创建由定义者决定
 
 #### 6.4.9. Bean 的销毁
 
+在 bean 创建完成后就会对这个 bean 注册一个销毁的 DisposableBeanAdapter 对象
 
+```java
+/** AbstractAutowireCapableBeanFactory.doCreateBean()  **/
+// Register bean as disposable.
+try {
+	// 注册bean销毁时的处理类DisposableBeanAdapter
+	registerDisposableBeanIfNecessary(beanName, bean, mbd);
+}
+catch (BeanDefinitionValidationException ex) {
+	throw new BeanCreationException(
+			mbd.getResourceDescription(), beanName, "Invalid destruction signature", ex);
+}
+```
+
+```java
+protected void registerDisposableBeanIfNecessary(String beanName, Object bean, RootBeanDefinition mbd) {
+	AccessControlContext acc = (System.getSecurityManager() != null ? getAccessControlContext() : null);
+	if (!mbd.isPrototype() && requiresDestruction(bean, mbd)) {
+		if (mbd.isSingleton()) {
+			// Register a DisposableBean implementation that performs all destruction
+			// work for the given bean: DestructionAwareBeanPostProcessors,
+			// DisposableBean interface, custom destroy method.
+			// 注册beanName与DisposableBeanAdapter映射关系到 一个叫disposableBeans的容器中
+			registerDisposableBean(beanName,
+					new DisposableBeanAdapter(bean, beanName, mbd, getBeanPostProcessors(), acc));
+		}
+		else {
+			// A bean with a custom scope...
+			Scope scope = this.scopes.get(mbd.getScope());
+			if (scope == null) {
+				throw new IllegalStateException("No Scope registered for scope name '" + mbd.getScope() + "'");
+			}
+			scope.registerDestructionCallback(beanName,
+					new DisposableBeanAdapter(bean, beanName, mbd, getBeanPostProcessors(), acc));
+		}
+	}
+}
+```
+
+这个`DisposableBeanAdapter`对象就是负责bean销毁的类。在这个类中收集了该bean是否实现了 `DisposableBean` 接口，是否配置 `destroy-method` 属性，过滤了 `DestructionAwareBeanPostProcessor` 类型的接口。
+
+而 bean 销毁时机是，在 tomcat 关闭的时候就会调用到 servlet 中的销毁方法
+
+```java
+public class ContextLoaderListener extends ContextLoader implements ServletContextListener {
+    ......
+    /**
+	 * Close the root web application context.
+	 * web应用关闭时调用此方法
+	 */
+	@Override
+	public void contextDestroyed(ServletContextEvent event) {
+	    / 在此方法中，最终会调用到spring 的 DisposableBeanAdapter 类的 destroy() 方法
+		closeWebApplicationContext(event.getServletContext());
+		ContextCleanupListener.cleanupAttributes(event.getServletContext());
+	}
+}
+```
+
+在这个方法中就会最终掉用到 DisposableBeanAdapter 类的，destroy()方法，该方法就会根据前面的收集进行调用。
 
 ## 7. BeanPostProcessor 接口理解（！待整理）
 
 BeanPostProcessor 接口类型实例是针对某种特定功能的埋点，在这个点会根据接口类型来过滤掉不关注这个点的其他类，只有真正关注的类才会在这个点进行相应的功能实现。
 
+## 8. ConfigurationClassPostProcessor 类
 
+此类的作用是支持了`@Configuration`、`@ComponentScan`、`@Import`、`@ImportResource`、`@PropertySource`、`@Order` 等注解，对于理解 springboot 帮助很大，真正的可以做到零 xml 配置
+
+### 8.1. 测试@ComponentScan配置扫描
+
+- 创建配置类，在类上增加`@ComponentScan`注解，作用相当于xml配置文件中的`<context:component-scan base-package="com.moon.spring"/>`标签
+
+```java
+package com.moon.spring.config;
+
+import org.springframework.context.annotation.ComponentScan;
+
+/**
+ * 测试 @ComponentScan 注解配置类
+ */
+@ComponentScan(basePackages = {"com.moon.spring"})
+public class ComponentScanConfig {
+}
+```
+
+- 测试，将Spring的xml配置文件注释后，传入上面创建的测试配置类ComponentScanConfig类，创建`AnnotationConfigApplicationContext`对象
+
+```java
+// @RunWith(SpringJUnit4ClassRunner.class)
+// @ContextConfiguration(locations = {"classpath:spring.xml"})
+public class MyTest {
+    @Test
+    public void componentScanTest() {
+        applicationContext = new AnnotationConfigApplicationContext(ComponentScanConfig.class);
+        System.out.println("@ComponentScan Test --> " + applicationContext.getBean("userServiceImpl"));
+    }
+}
+```
 
 
 
