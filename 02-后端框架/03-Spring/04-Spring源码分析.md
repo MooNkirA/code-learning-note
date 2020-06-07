@@ -1593,7 +1593,7 @@ public class ContextLoaderListener extends ContextLoader implements ServletConte
 
 BeanPostProcessor 接口类型实例是针对某种特定功能的埋点，在这个点会根据接口类型来过滤掉不关注这个点的其他类，只有真正关注的类才会在这个点进行相应的功能实现。
 
-## 8. ConfigurationClassPostProcessor 类
+## 8. 纯注解扫描的过程
 
 此类的作用是支持了`@Configuration`、`@ComponentScan`、`@Import`、`@ImportResource`、`@PropertySource`、`@Order` 等注解，对于理解 springboot 帮助很大，真正的可以做到零 xml 配置
 
@@ -1628,8 +1628,68 @@ public class MyTest {
 }
 ```
 
+### 8.2. AnnotationConfigApplicationContext 注解上下文对象
 
+- 构造函数
 
+```java
+public AnnotationConfigApplicationContext(Class<?>... annotatedClasses) {
+	this();
+	// 将传入的类注册到BeanDefinition中
+	register(annotatedClasses);
+	refresh();
+}
+
+public AnnotationConfigApplicationContext() {
+	// 创建读取注解的BeanDefinition读取器
+	this.reader = new AnnotatedBeanDefinitionReader(this);
+	/*
+	 * 创建扫描器，用于扫描包或类，封装成BeanDefinition对象
+	 * 		spring默认的扫描器其实不是这个scanner对象
+	 * 		而是在后面自己又重新new了一个ClassPathBeanDefinitionScanner
+	 * 		spring在执行工程后置处理器ConfigurationClassPostProcessor时，去扫描包时会new一个ClassPathBeanDefinitionScanner
+	 * 	这个scanner是为了可以手动调用AnnotationConfigApplicationContext对象的scan方法
+	 */
+	this.scanner = new ClassPathBeanDefinitionScanner(this);
+}
+```
+
+- 在执行`this.reader = new AnnotatedBeanDefinitionReader(this);`时，创建注解读取器AnnotatedBeanDefinitionReader时，在调用`AnnotationConfigUtils.registerAnnotationConfigProcessors(this.registry)`方法时完成注解与相应处理类的注册到BeanDefinitionRegistry对象中。
+
+```java
+public AnnotatedBeanDefinitionReader(BeanDefinitionRegistry registry, Environment environment) {
+	Assert.notNull(registry, "BeanDefinitionRegistry must not be null");
+	Assert.notNull(environment, "Environment must not be null");
+	this.registry = registry;
+	this.conditionEvaluator = new ConditionEvaluator(registry, environment, null);
+	// 完成相关注解与其相应的处理的类的注册到BeanDefinitionRegistry对象中
+	AnnotationConfigUtils.registerAnnotationConfigProcessors(this.registry);
+}
+```
+
+> 注：上面的`registerAnnotationConfigProcessors()`方法，在xml自定义标签标签时的逻辑一致
+
+### 8.3. ConfigurationClassPostProcessor 类
+
+在`registerAnnotationConfigProcessors()`方法中，会完成很多注解处理类的注册，其中`ConfigurationClassPostProcessor`类就是完成对    等注解的注册
+
+#### 8.3.1. 开启xml配置注解扫描标签的差异
+
+- 如果不开启xml配置文件中的注解扫描时，运行`AnnotationConfigApplicationContext`测试，会发现BeanDefinitionRegistry对象中的BeanDefinitionNames只有当前传入的类名称
+
+![](images/20200607185052429_18031.png)
+
+- 如果开启xml配置文件中的注解扫描时，同样运行`AnnotationConfigApplicationContext`测试，会发现BeanDefinitionRegistry对象中的BeanDefinitionNames已经注册很多BeanDefinition名称
+
+![](images/20200607185839856_2003.png)
+
+![](images/20200607185929199_23512.png)
+
+![](images/20200607185216275_9314.png)
+
+- 以上的差异是因为在spring的核心方法`AbstractApplicationContext.refresh()`方法中，执行的逻辑时序是先解析xml配置文件，再调用`BeanDefinitionRegistryPostProcessor`接口的`postProcessBeanDefinitionRegistry()`方法读取已经注册的BeanDefinition名称
+
+![](images/20200607191232299_16943.png)
 
 
 
