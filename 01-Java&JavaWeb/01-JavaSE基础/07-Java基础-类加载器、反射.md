@@ -534,13 +534,14 @@ method对象.invoke(null(或该方法的所在的类对象), 方法的参数值)
 
 ### 6.4. 通过反射，创建对象，调用指定的方法（包括private）
 
-- 获取成员方法（包括私有），步骤如下：
-	1. 获取Class对象
-	2. 获取构造方法
-	3. 通过构造方法，创建对象
-	4. 获取指定的方法
-	5. 开启暴力访问
-	6. 执行找到的方法
+获取成员方法（包括私有），步骤如下：
+
+1. 获取Class对象
+2. 获取构造方法
+3. 通过构造方法，创建对象
+4. 获取指定的方法
+5. 开启暴力访问
+6. 执行找到的方法
 
 ### 6.5. 案例：通过反射方式，获取成员方法(私有成员变量)，并调用
 
@@ -754,9 +755,336 @@ public class MoonZero {
 }
 ```
 
+# 代理模式
+
+## 1. 代理模式的概述
+
+代理模式的作用：拦截对真实对象的直接访问，并增加一些功能。
+
+## 2. 代理模式的分类(了解)
+
+代理模式分成静态代理和动态代理
+
+区别：**静态代理字节码文件已经生成；动态代理的字节码文件随用随加载**。
+
+### 2.1. 静态代理模式
+
+静态代理模式的特点：
+
+1. 优点：
+    - 不需要修改目标对象就实现了目标对象功能的增加
+2. 缺点：
+    - 一个真实对象必须对应一个代理对象，如果大量使用会导致类的数量急速增长。
+    - 如果抽象对象中存在很多方法，则代理对象也要同样实现相应数量的方法。
+
+### 2.2. 动态代理模式
+
+动态代理模式特点：
+
+1. 动态生成代理对象，不用手动编写代理对象
+2. 不需要编写目标对象中所有同名的方法
 
 
+## 3. 动态代理使用
+### 3.1. Proxy 类 newProxyInstance 方法
+
+```java
+public static Object newProxyInstance(ClassLoader loader, Class<?>[] interfaces, InvocationHandler h)
+```
+
+创建代理对象，生成动态代理的方法
+
+- 参数`ClassLoader loader`：类加载器对象，和被代理对象使用相同的类加载器
+- 参数`Class<?>[] interfaces`：真实对象所现实的所有接口的class对象数组，即和被代理对象具有相同的行为，实现相同的接口。
+- 参数`InvocationHandler h`：回调处理对象，具体的代理操作，`InvocationHandler`是一个接口，需要传入一个实现了此接口的实现类。（**可以使用匿名内部类来现实**）
+
+<font color=red>**回调处理对象注意事项：不要在invoke方法中通过proxy对象调用方法，因为会产生死循环**</font>
+
+<u><font color=purple>**真实对象与代理对象的是实现了共同接口，所以返回的Object代理对象需要转成接口类型**</font></u>
+
+> 引用网络资料的解释：为什么jdk动态代理的对象必须实现一个统一的接口，其实我的理解大致是代理类本身已经extends了TimeHandler,如果传入的是父类，很可能出现这种情况：“public class $Proxy1 extends Proxy extends 传入的父类”；这个明显在java中是不允许的，Java只支持单继承，但是实现接口是完全可以的。
+
+### 3.2. InvocationHandler 接口的核心方法
+
+`InvocationHandler`的`invoke`方法，**在这方法中实现对真实方法的增强或拦截**
+
+> 该方法使用了一个设计模式：策略模式
+>
+> - 参与者明确
+> - 目标明确
+> - 中间实现的过程就是策略
+
+```java
+public Object invoke(Object proxy, Method method, Object[] args);
+```
+
+- 作用：每当通过代理对象调用方法时，都会被该方法拦截。
+- 参数`(Object proxy`：代理对象本身（不一定每次都用得到）。即方法` newProxyInstance()`方法返回的代理对象，该对象一般<font color=red>**不要在 `invoke` 方法中使用，容易出现递归调用**</font>。
+- 参数`Method method`：代理对象调用的方法，被拦截的方法，<font color=red>**真实对象的方法对象**</font>，会进行多次调用，每次调用 method 对象都不同。
+- 参数`Object[] args`：**代理对象调用方法时传递的参数，该参数会传递给真实对象的方法**。
+- 返回值Object：**一般返回真实对象方法执行后的结果**。
+
+### 3.3. Class 类getInterfaces方法
+
+```java
+public Class<?>[] getInterfaces()
+```
+
+- 作用：返回调用对象的类所有的接口数组。
+- 如果此对象表示一个类，则返回值是一个数组，它包含了表示该类所实现的所有接口的对象。
+
+示例（伪代码）
+
+```java
+public class Demo implements A, B, C, …… {
+}
+Class[] arr = Demo.class.getInterfaces();
+```
+
+### 3.4. 动态代理模式的开发步骤(案例)
+
+1. 先明确要被代理的功能(方法)是什么
+2. 然后将需要被代理的(功能)方法定义的接口中
+3. 真实对象实现接口重写方法
+4. 创建真实对象，但不通过真实对象直接调用方法
+5. 利用Proxy类创建代理对象
+	- 真实对象的类加载器
+	- 真实对象现实的所有接口的Class类型数组
+	- 回调处理对象，拦截对代理方法调用
+6. 通过代理对象调用相关方法，方法就会被回调处理对象拦截
+    - 可以在拦截的方法中执行相关的判断。
+
+	1.直接创建真实对象
+	2.通过 Proxy 类，创建代理对象
+	3.调用代理方法，其实是调用 InvocationHandler 接口中的 invoke() 方法
 
 
+#### 3.4.1. Code Demo 1
 
+> 注：定义了个有参构造方法，传入被代理对象。也可以使用直接使用final修饰被代理的成员变量。
+
+```java
+package level01.test04;
+
+import java.lang.reflect.Proxy;
+
+/*
+ * 关卡1训练案例4
+ * 一、按以下要求编写代码：
+ 	* 1. 定义一个接口：Person，包含以下抽象方法：work()
+ 		* 1) 定义一个类 Student，实现 Person 接口，实现 work()方法，打印输出：”我做 Java 项目”；
+ 	* 2. 定义一个 MyHandler，实现 InvocationHandler 接口，有如下要求：
+		 * 1) 定义成员属性--被代理对象：
+		 * 2) 定义构造方法，为被代理对象赋值；
+		 * 3) 定义一个方法 before()，打印输出：”项目设计”；
+		 * 4) 定义一个方法 after()，打印输出：”项目总结”；
+		 * 5) 重写 invoke()方法，要求在调用方法前执行 before()方法，在调用方法后执行 after()方法。
+	* 3. 定义一个测试类：Test，包含 main()方法。要求用动态代理获取 Student 类的代理对象，并执行 work()方法。
+ */
+public class Test01_04 {
+	public static void main(String[] args) {
+		// 创建学生类对象
+		Student stu = new Student();
+
+		// 创建MyHandler对象
+		MyHandler h = new MyHandler(stu);
+
+		// 创建代理对象
+		Person proxy = (Person) Proxy.newProxyInstance(stu.getClass().getClassLoader(),
+				stu.getClass().getInterfaces(), h);
+
+		// 使用代理对象调用学生类的方法
+		proxy.work();
+	}
+}
+
+
+package level01.test04;
+
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.Method;
+
+// 定义MyHandler实现InvocationHandler接口
+public class MyHandler implements InvocationHandler {
+	private Object target;
+
+	public MyHandler(Object target) {
+		this.target = target;
+	}
+
+	// 重写invoke方法
+	@Override
+	public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+		before();
+		Object obj = method.invoke(target, args);
+		after();
+		return obj;
+	}
+
+	public static void before() {
+		System.out.println("项目设计");
+	}
+
+	public static void after() {
+		System.out.println("项目总结");
+	}
+}
+
+package level01.test04;
+
+public class Student implements Person{
+	@Override
+	public void work() {
+		System.out.println("我做 Java 项目");
+	}
+}
+
+
+package level01.test04;
+
+public interface Person {
+	public void work();
+}
+```
+
+#### 3.4.2. Code Demo 2
+
+或者这样玩，在`InvocationHandler`接口的实现类中直接使用`Proxy`的`newProxyInstance`方法，返回一个代理对象。
+
+```java
+package level01.test04;
+
+public class Test01_04 {
+	public static void main(String[] args) {
+		// 创建学生类对象
+		Student stu = new Student();
+
+		// 创建MyHandler对象
+		MyHandler h = new MyHandler();
+
+		// 调用MyHandler方法直接获取代理对象
+		Person proxy = (Person) h.getProxy(stu);
+
+		// 使用代理对象调用学生类的方法
+		proxy.work();
+	}
+}
+
+
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
+
+public class MyHandler implements InvocationHandler {
+	private Object target;
+
+	public Object getProxy(Object target) {
+		this.target = target;
+		return Proxy.newProxyInstance(target.getClass().getClassLoader(),
+								target.getClass().getInterfaces(), this);
+	}
+
+	// 重写invoke方法
+	@Override
+	public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+		before();
+		Object obj = method.invoke(target, args);
+		after();
+		return obj;
+	}
+
+	public static void before() {
+		System.out.println("项目设计");
+	}
+
+	public static void after() {
+		System.out.println("项目总结");
+	}
+}
+```
+
+**总结这种方式的好处：**
+
+1. Proxy类的代码量被固定下来，不会因为业务的逐渐庞大而庞大；
+2. 可以实现AOP编程(面向切面编程)，实际上静态代理也可以实现，总的来说，AOP可以算作是代理模式的一个典型应用；
+3. 解耦，通过参数就可以判断真实类，不需要事先实例化，更加灵活多变。
+
+#### 3.4.3. 框架学习阶段时案例
+
+```java
+public interface IActor {
+	/**
+	 * 基本表演
+	 */
+	void basicAct(float money);
+
+	/**
+	 * 精彩表演
+	 */
+	void wonderfulAct(float money);
+}
+
+public class ActorImpl implements IActor {
+
+	@Override
+	public void basicAct(float money) {
+		System.out.println("拿到 " + money + " 元，开始基本的表演!!");
+	}
+
+	@Override
+	public void wonderfulAct(float money) {
+		System.out.println("拿到 " + money + " 元，开始精彩的表演!!");
+	}
+
+}
+
+/**
+ * 动态代理测试
+ */
+public class Client {
+	public static void main(String[] args) {
+		// 获取接口实现类
+		IActor actor = new ActorImpl();
+
+		System.out.println("=============没有使用动态代理模式前=============");
+		actor.basicAct(108.89F);
+		actor.wonderfulAct(3000.1F);
+		System.out.println("=============没有使用动态代理模式后=============");
+
+		// 获取代理
+		IActor proxy = (IActor) Proxy.newProxyInstance(ActorImpl.class.getClassLoader(),
+				ActorImpl.class.getInterfaces(), new InvocationHandler() {
+					// 重写拦截的方法
+					@Override
+					public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+						// 获取调用方法的名字
+						String mothodName = method.getName();
+						// 获取调用方法的参数
+						float money = (float) args[0];
+
+						// 开始判断
+						if ("basicAct".equals(mothodName)) {
+							// 对象调用了basicAct方法
+							if (money > 2000) {
+								// 满足条件才执行方法
+								proxy = method.invoke(actor, money / 2);
+							}
+						} else if ("wonderfulAct".equals(mothodName)) {
+							// 对象调用了wonderfulAct方法
+							if (money > 5000) {
+								// 满足条件才执行方法
+								proxy = method.invoke(actor, money / 2);
+							}
+						}
+
+						return proxy;
+					}
+				});
+
+		// 使用代理调用方法
+		proxy.basicAct(1003F);
+		proxy.wonderfulAct(6234F);
+	}
+}
+```
 
