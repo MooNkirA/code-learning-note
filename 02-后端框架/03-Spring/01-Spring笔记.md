@@ -461,7 +461,7 @@ public class ClientTest {
 }
 ```
 
-<font color="purple">**注意：如果使用基于子类的方式创建动态代理，对象就不能实现接口，创建的代理需要自己用子类去接收。**
+<font color="purple">**注意：如果使用基于子类的方式创建动态代理，对象就不能实现接口，创建的代理需要自己用子类去接收。**</font>
 
 ### 2.2. 切入点表达式说明
 
@@ -682,7 +682,7 @@ public class Logger {
 #### 3.1.6. 第6步 在 spring 配置文件中开启 spring 对注解 AOP 的支持
 
 ```xml
-<!-- 开启spring对象注解aop的支持 -->
+<!-- 开启spring容器对AOP注解的支持 -->
 <aop:aspectj-autoproxy />
 ```
 
