@@ -1701,6 +1701,8 @@ AOP的源码分析，可以通过注解与xml配置分别去找到aop的入口
 
 使用`@EnableAspectJAutoProxy`可以替代传统的xml配置文件中的`<aop:aspectj-autoproxy />`标签。**其作用都是开启Spring容器对AOP注解的支持**。
 
+##### 9.1.1.1. 开启AOP支持
+
 - 开启AOP注解支持配置类
 
 ```java
@@ -1759,10 +1761,125 @@ public class AopTest {
 }
 ```
 
-总结：
+##### 9.1.1.2. AOP基础使用示例
+
+- 准备测试的接口与实现类
+
+```java
+package com.moon.spring.service;
+
+public interface UserService {
+    public String queryUser(String userId);
+}
+
+
+package com.moon.spring.service;
+
+import org.springframework.context.annotation.Primary;
+import org.springframework.stereotype.Service;
+
+@Primary // 有多个实现同一个接口，spring注入时会优先选择标识了 @Primary 注解实现类
+@Service
+public class UserServiceImpl1 implements UserService {
+    @Override
+    public String queryUser(String userId) {
+        System.out.println("测试aop增强，UserServiceImpl1.queryUser()方法调用，入参userId->" + userId);
+        return "UserServiceImpl1.queryUser()返回：" + userId;
+    }
+}
+```
+
+- 编写切面类，定义切入点与增强的方法
+
+```java
+package com.moon.spring.aop.aspectj;
+
+import org.aspectj.lang.ProceedingJoinPoint;
+import org.aspectj.lang.annotation.Around;
+import org.aspectj.lang.annotation.Aspect;
+import org.aspectj.lang.annotation.Pointcut;
+import org.springframework.stereotype.Component;
+
+/**
+ * 基于注解的方式的AOP使用
+ */
+@Component
+@Aspect // 声明此类是一个切面
+public class AspectOnAnnotation {
+
+    /*
+     * @Pointcut注解标识定义切入点
+     * execution(表达式)：表示拦截的位置（方法）
+     *  表达式语法：execution([修饰符] 返回值类型 包名.类名.方法名(参数))
+     */
+    @Pointcut("execution(public * com.moon.spring.service.*.*(..))")
+    public void pc1() {
+    }
+
+    /**
+     * 环绕通知（增强）
+     */
+    @Around("pc1()")
+    public Object aroudAdvice(ProceedingJoinPoint joinPoint) throws Throwable {
+        System.out.println("==============AspectOnAnnotation类的 @Around环绕通知的前置通知=========");
+        Object result = joinPoint.proceed();
+        System.out.println("==============AspectOnAnnotation类的 @Around环绕通知的后置通知=========");
+        return result;
+    }
+}
+```
+
+- 测试
+
+```java
+package com.moon.spring.test;
+
+import com.moon.spring.config.ComponentScanConfig;
+import com.moon.spring.service.UserService;
+import org.junit.Before;
+import org.junit.Test;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+
+/**
+ * Spring AOP 测试
+ */
+public class AopTest {
+
+    private ApplicationContext context;
+
+    @Before
+    public void before() {
+        // 使用注解扫描方式启动spring容器，ComponentScanConfig配置类有@ComponentScan注解
+        context = new AnnotationConfigApplicationContext(ComponentScanConfig.class);
+    }
+
+    /**
+     * 基于注解方式的aop测试 - @Around环绕增强
+     */
+    @Test
+    public void aspectOnAnnotationAroundTest() {
+        UserService userService = context.getBean(UserService.class);
+        userService.queryUser("MooNkirA");
+    }
+}
+```
+
+![](images/20200619225215912_374.png)
+
+##### 9.1.1.3. 总结：注解开启AOP的流程
 
 - 注解的扫描逻辑是：通过读取配置类`ComponentScanConfig`上的`@ComponentScan`注解，首先会扫描到`@Configuration`、`@Service`、`@Component`等注解，对标识这些注解的类进行收集并封装成BeanDefinition对象，再扫描到`@EnableAspectJAutoProxy`注解（其实是扫描该注解上的`@Import`注解）
 - 通过扫描注解`@EnableAspectJAutoProxy(proxyTargetClass = false, exposeProxy = true)`注册了 AOP 入口类，入口是在`@Import(AspectJAutoProxyRegistrar.class)`注解中导入
+
+
+
+
+
+
+
+
+
 
 #### 9.1.2. 基于xml配置
 

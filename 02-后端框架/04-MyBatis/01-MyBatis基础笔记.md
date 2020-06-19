@@ -1,17 +1,51 @@
 # 01-MyBatis 基础笔记
 
-## 1. XML 映射文件
-### 1.1. 查询映射`<select>`
+## 1. 回顾原生JDBC存在问题
 
-### 1.2. 新增映射`<insert>`
+1. 数据库连接，使用时就创建，不使用立即释放。对数据库进行频繁连接开启和关闭，造成数据库资源浪费，影响数据库性能
 
-### 1.3. 更新映射`<update>`
+> 解决方案：使用数据库连接池管理数据库连接。MyBatis内部自带连接池
 
-### 1.4. 删除映射`<delete>`
+2. 将sql语句硬编码到java代码中，在企业项目中，sql语句变化的需求比较大。如果sql语句修改，需要重新编译java代码，不利于系统维护
+
+> 解决方案：将sql语句配置在xml配置文件中，即使sql语句变化，不需要对java代码进行重新编译
+
+3. 向preparedStatement中设置参数，对占位符位置和设置参数值，硬编码在java代码中，不利于系统维护
+
+> 解决方案：将sql语句及占位符和参数全部配置在xml配置文件中
+
+4. 从resultSet中遍历结果集数据时，存在硬编码，将获取表的字段进行硬编码，不利于系统维护。如果可以映射成java对象会比较方便
+
+> 解决方案：将查询的结果集，自动映射成java对象
+
+## 2. MyBatis框架
+### 2.1. MyBatis是什么
+
+MyBatis是一个持久层的框架，本是apache的一个开源项目iBatis，2010年这个项目由apache software foundation迁移到了google code，并且改名为MyBatis。2013年11月迁移到Github
+
+MyBatis让程序将主要精力放在sql上，通过MyBatis提供的映射方式，自由灵活生成(半自动化)满足需要的sql语句
+
+MyBatis可以将向preparedStatement中的输入参数自动进行输入映射，将查询结果集映射成java对象(输出映射)
+
+> 下载地址：https://github.com/mybatis/mybatis-3/releases
+
+### 2.2. MyBatis框架执行流程
 
 
 
-### 1.5. MyBatis输入输出映射准备项目测试环境
+
+## 3. XML 映射文件
+### 3.1. 查询映射`<select>`
+
+### 3.2. 新增映射`<insert>`
+
+### 3.3. 更新映射`<update>`
+
+### 3.4. 删除映射`<delete>`
+
+
+
+### 3.5. MyBatis输入输出映射准备项目测试环境
 
 1. 创建maven项目，修改pom.xml文件，添加MyBatis、数据库等依赖，配置jdk插件
 2. 准备数据库参数的配置文件db.properties；MyBatis总配置文件SqlMapConfig.xml；日志配置文件log4j.properties
@@ -20,8 +54,8 @@
 
 ![准备项目测试环境](images/20190823154355771_8940.jpg)
 
-### 1.6. 标签属性 - parameterType（输入参数映射）
-#### 1.6.1. java的简单类型（四类八种）
+### 3.6. 标签属性 - parameterType（输入参数映射）
+#### 3.6.1. java的简单类型（四类八种）
 
 示例：parameeterType为整形数据类型
 
@@ -31,7 +65,7 @@
 </select>
 ```
 
-#### 1.6.2. pojo类型（对象类型）
+#### 3.6.2. pojo类型（对象类型）
 
 示例：parameeterType是User封装的实体类型
 
@@ -45,7 +79,7 @@
 </insert>
 ```
 
-#### 1.6.3. pojo包装类型
+#### 3.6.3. pojo包装类型
 
 > - pojo包装类型：指的是在pojo中包含了其他的pojo。（即实体类的一个属性是引用其他的实体类）
 > - 一般在项目中用于接收综合查询条件
@@ -121,8 +155,8 @@ public void queryUserByConditionTest() {
 }
 ```
 
-### 1.7. 标签属性 - resultType（输出结果映射）
-#### 1.7.1. java的简单类型
+### 3.7. 标签属性 - resultType（输出结果映射）
+#### 3.7.1. java的简单类型
 
 - 需求：统计用户数量，这种情况输出映射是基本数据类型
 - 定义UserMapper.xml
@@ -162,16 +196,16 @@ public void countUsersTest() {
 }
 ```
 
-#### 1.7.2. 输出pojo（对象）类型
+#### 3.7.2. 输出pojo（对象）类型
 
 参考上面的demo(待整理)
 
-### 1.8. resultMap（输出结果映射）
+### 3.8. resultMap（输出结果映射）
 
 `resultMap` 元素是 MyBatis 中最重要最强大的元素。ResultMap 的设计思想是，对于简单的语句根本不需要配置显式的结果映射，而对于复杂一点的语句只需要描述它们的关系就行了
 
-#### 1.8.1. resultMap 简单使用示例
-##### 1.8.1.1. 使用 resultType 输出属性与表不一致时存在问题
+#### 3.8.1. resultMap 简单使用示例
+##### 3.8.1.1. 使用 resultType 输出属性与表不一致时存在问题
 
 - 实体类
 
@@ -238,7 +272,7 @@ public void queryAllOrdersTest() {
 >     - 原因(注意事项)：使用resultType完成输出映射，要求sql语句中的字段名称，与java对象的属性名称（与set/get方法的后面部分）要一致。
 >     - 解决方法：使用返回值类型是resultMap
 
-##### 1.8.1.2. 使用 resultMap 映射查询结果
+##### 3.8.1.2. 使用 resultMap 映射查询结果
 
 在mapper配置文件中，配置resultMap标签，配置对象与表的映射关系。在`<select>`标签引用`<resultMap>`，修改OrderMapper.xml配置文件
 
@@ -271,7 +305,7 @@ public void queryAllOrdersTest() {
 > 注：字段一样的属性可以不需要配置，但实际开发中建议配置，方便日后维护。
 
 
-#### 1.8.2. ResultMap 的属性列表
+#### 3.8.2. ResultMap 的属性列表
 
 | 属性        | 描述                                                         |
 | ----------- | ------------------------------------------------------------ |
@@ -281,7 +315,7 @@ public void queryAllOrdersTest() {
 
 > **【最佳实践】最好一步步地建立结果映射。单元测试可以在这个过程中起到很大帮助。如果你尝试一次创建一个像上面示例那样的巨大的结果映射，那么很可能会出现错误而且很难去使用它来完成工作。从最简单的形态开始，逐步迭代。而且别忘了单元测试！使用框架的缺点是有时候它们看上去像黑盒子（无论源代码是否可见）。为了确保你实现的行为和想要的一致，最好的选择是编写单元测试。提交 bug 的时候它也能起到很大的作用。**
 
-#### 1.8.3. resultMap 标签内部标签元素
+#### 3.8.3. resultMap 标签内部标签元素
 
 - `constructor` - 用于在实例化类时，注入结果到构造方法中
     - `idArg` - ID 参数；标记出作为 ID 的结果可以帮助提高整体性能
@@ -296,7 +330,7 @@ public void queryAllOrdersTest() {
     - `case` – 基于某些值的结果映射
     - 嵌套结果映射 – `case` 本身可以是一个 resultMap 元素，因此可以具有相同的结构和元素，或者从别处引用一个
 
-##### 1.8.3.1. `<id>` 和 `<result>` 标签
+##### 3.8.3.1. `<id>` 和 `<result>` 标签
 
 ```xml
 <id property="id" column="post_id"/>
@@ -321,7 +355,7 @@ public void queryAllOrdersTest() {
 
 ![JDBC 类型](images/20190823160350628_31578.png)
 
-##### 1.8.3.2. `<constructor>` 构造
+##### 3.8.3.2. `<constructor>` 构造
 
 通过构造方法进行注入。构造方法注入允许你在初始化时为类设置属性的值，而不用暴露出公有方法。
 
@@ -367,7 +401,7 @@ public class User {
 | resultMap   | 结果映射的 ID，可以将嵌套的结果集映射到一个合适的对象树中。它可以作为使用额外 select 语句的替代方案     |
 | name        | 构造方法形参的名字。从 3.4.3 版本开始，通过指定具体的参数名，可以以任意顺序写入 arg 元素               |
 
-##### 1.8.3.3. `<association>` 关联(！待整理)
+##### 3.8.3.3. `<association>` 关联(！待整理)
 
 > 参考：http://www.mybatis.org/mybatis-3/zh/sqlmap-xml.html#Result_Maps
 
@@ -380,7 +414,7 @@ public class User {
 
 关联（association）元素处理“有一个”类型的关系。
 
-##### 1.8.3.4. `<collection>` 集合
+##### 3.8.3.4. `<collection>` 集合
 
 ```xml
 <collection property="posts" ofType="domain.blog.Post">
@@ -473,11 +507,11 @@ public class User {
 </resultMap>
 ```
 
-##### 1.8.3.5. `<discriminator>` 鉴别器（！待整理）
+##### 3.8.3.5. `<discriminator>` 鉴别器（！待整理）
 
 > 参考：http://www.mybatis.org/mybatis-3/zh/sqlmap-xml.html#Result_Maps
 
-#### 1.8.4. 高级结果映射示例
+#### 3.8.4. 高级结果映射示例
 
 ```xml
 <!-- 非常复杂的语句 -->
@@ -546,7 +580,7 @@ public class User {
 </resultMap>
 ```
 
-### 1.9. MyBatis关联查询
+### 3.9. MyBatis关联查询
 
 - 一对一关联关系
 - 一对多关联关系
@@ -554,8 +588,8 @@ public class User {
 
 > 此部分主要使用了`<association>`标签和`<conllection>`标签，在上一节【resultMap（输出结果映射）】有相关的参数说明与用法
 
-#### 1.9.1. 一对一关联查询【`<association>`标签】
-##### 1.9.1.1. 定义与属性
+#### 3.9.1. 一对一关联查询【`<association>`标签】
+##### 3.9.1.1. 定义与属性
 
 - `<association>`标签：配置一对一关联关系专用标签
     - **property**属性：要映射的属性名称
@@ -570,7 +604,7 @@ public class User {
 </association>
 ```
 
-##### 1.9.1.2. 使用示例
+##### 3.9.1.2. 使用示例
 
 需求：查询订单数据，并且关联查询出订单所属的用户数据
 
@@ -669,15 +703,15 @@ public void queryOrdersAndUsersTest() {
 
 ![association标签测试](images/20190823171853829_25411.jpg)
 
-#### 1.9.2. 一对多关联查询【`<conllection>`标签】
-##### 1.9.2.1. 定义与属性
+#### 3.9.2. 一对多关联查询【`<conllection>`标签】
+##### 3.9.2.1. 定义与属性
 
 - `<conllection>`标签：配置一对多关联关系标签
     - **property**属性：要映射的属性名称
     - **javaType**属性：要映射的属性类型（可以指定，也可以不指定。建议指定）
     - **ofType**属性：集合中存放的类型（**必须要指定**）
 
-##### 1.9.2.2. 使用示例
+##### 3.9.2.2. 使用示例
 
 需求：查询用户数据，并且关联查询出用户的所有订单数据
 
@@ -772,7 +806,7 @@ public void queryUsersAndOrdersTest() {
 
 ![conllection标签测试](images/20190823173829009_14236.jpg)
 
-## 2. MyBatis 动态 SQL
+## 4. MyBatis 动态 SQL
 
 
 
