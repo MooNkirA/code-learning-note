@@ -577,7 +577,7 @@ sqlMapConfig.xml文件`<properties>`标签示例：
 *注：mybatis内置别名中，没有配置set集合，所以mybatis中使用List比较多*
 
 #### 5.4.2. `<typeAliases>`标签：自定义别名
-##### 5.4.2.1. 方式1：<typeAlias>子标签
+##### 5.4.2.1. 方式1：`<typeAlias>`子标签
 
 1. `type`属性：指定别名的类型
 2. 默认使用类的名称，作为别名的名称

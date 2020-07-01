@@ -15,11 +15,11 @@
     window.$docsify = {
       name: 'Code Learning Note',
       // repo: 'https://github.com/MooNkirA/code-learning-note',
-      maxLevel: 6, // 最大支持渲染的标题层级
+      // maxLevel: 6, // 最大支持渲染的标题层级
       subMaxLevel: 3,
       homepage: 'README.md',
-      // coverpage: true, // 添加一个封面
-      loadSidebar: true, // 添加侧边栏文件
+      coverpage: true, // 添加一个封面
+      // loadSidebar: true, // 添加侧边栏文件
       // _sidebar.md 的加载逻辑是从每层目录下获取文件，如果当前目录不存在该文件则回退到上一级目录。
       // 例如当前路径为 /zh-cn/more-pages 则从 /zh-cn/_sidebar.md 获取文件，如果不存在则从 /_sidebar.md 获取。
       // autoHeader: true,  // 同时设置 loadSidebar 和 autoHeader 后，可以根据 _sidebar.md 的内容自动为每个页面增加标题。
@@ -39,7 +39,7 @@
         placeholder: '🔍 搜索',
         noData: '找不到结果',
         // 搜索标题的最大程级, 1 - 6
-        depth: 3
+        depth: 6
       },
       // externalLinkTarget: '_self' // Target to open external links inside the markdown. Default '_blank' (new window/tab)
       // themeColor: '#3F51B5'
