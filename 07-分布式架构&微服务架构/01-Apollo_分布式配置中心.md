@@ -377,7 +377,7 @@ public class GetConfigTest {
      */
     @Test
     public void getAppConfigTest() {
-        // 获取apollo配置对象
+        // 获取apollo配置对象，此方法是读取默认namespace: application下的配置信息
         Config config = ConfigService.getAppConfig();
         // 需要获取的配置对应的key
         String key = "sms.enable";
@@ -419,9 +419,7 @@ public class GetConfigTest {
 1. 修改代码为每3秒获取一次
 
 ```java
-/*
- * 配置实时更新测试
- */
+/* 配置实时更新测试 */
 @Test
 public void hotPublishTest() throws InterruptedException {
     // 获取apollo配置对象
@@ -457,14 +455,291 @@ public void hotPublishTest() throws InterruptedException {
 
 ### 4.1. Apollo 工作原理
 
+Apollo架构模块的概览图
+
+![](images/20200704234551440_787.png)
+
+#### 4.1.1. 各模块职责
+
+Apollo的总体设计各模块职责如下：
+
+- Config Service提供配置的读取、推送等功能，服务对象是Apollo客户端
+- Admin Service提供配置的修改、发布等功能，服务对象是Apollo Portal管理界面
+- Eureka提供服务注册和发现，为了简单起见，目前Eureka在部署时和Config Service是在一个JVM进程中的
+- Config Service和Admin Service都是多实例、无状态部署，所以需要将自己注册到Eureka中并保持心跳
+- 在Eureka之上架了一层Meta Server用于封装Eureka的服务发现接口
+- Client通过域名访问Meta Server获取Config Service服务列表（IP+Port），而后直接通过IP+Port访问服务，同时在Client侧会做load balance、错误重试
+- Portal通过域名访问Meta Server获取Admin Service服务列表（IP+Port），而后直接通过IP+Port访问服务，同时在Portal侧会做load balance、错误重试
+- 为了简化部署，实际上会把Config Service、Eureka和Meta Server三个逻辑角色部署在同一个JVM进程中
+
+#### 4.1.2. 分步执行流程
+
+1. Apollo启动后，Config/Admin Service会自动注册到Eureka服务注册中心，并定期发送保活心跳。
+2. Apollo Client和Portal管理端通过配置的Meta Server的域名地址经由Software Load Balancer(软件负载均衡器)进行负载均衡后分配到某一个Meta Server
+3. Meta Server从Eureka获取Config Service和Admin Service的服务信息，相当于是一个Eureka Client
+4. Meta Server获取Config Service和Admin Service（IP+Port）失败后会进行重试
+5. 获取到正确的Config Service和Admin Service的服务信息后，Apollo Client通过Config Service为应用提供配置获取、实时更新等功能；Apollo Portal管理端通过Admin Service提供配置新增、修改、发布等功能
+
+### 4.2. 核心概念
+
+- **application (应用)**
+    - 就是实际使用配置的应用，Apollo客户端在运行时需要知道当前是哪个应用，从而可以去获取对应的配置
+    - **关键字：`appId`**
+- **environment (环境)**
+    - 配置对应的环境，Apollo客户端在运行时需要知道当前应用处于哪个环境，从而可以去获取应用的配置
+    - **关键字：`env`**
+- **cluster (集群)**
+    - 一个应用下不同实例的分组，比如典型的可以按照数据中心分，把上海机房的应用实例分为一个集群，把北京机房的应用实例分为另一个集群。
+    - **关键字：`cluster`**
+- **namespace (命名空间)**
+    - 一个应用下不同配置的分组，可以简单地把namespace类比为文件，不同类型的配置存放在不同的文件中，如数据库配置文件，RPC配置文件，应用自身的配置文件等
+    - **关键字：`namespaces`**
+
+相应的关系图
+
+![](images/20200705112352443_29683.png)
+
+### 4.3. 项目管理（Apollo Portal管理界面）
+
+#### 4.3.1. 基础设置
+
+##### 4.3.1.1. 部门管理
+
+apollo 默认部门有两个。要增加自己的部门，可在系统参数中修改
+
+1. 点击【管理员工具】-->【系统参数】
+2. 在key输入框中输入`organizations`，查询已存在的部门设置
+
+![](images/20200705155707591_17313.png)
+
+3. 通过修改value值可以添加新部门，如下面添加一个微服务部门：
+
+```json
+[{"orgId":"TEST1","orgName":"样例部门1"},{"orgId":"TEST2","orgName":"样例部门2"},{"orgId":"micro_service","orgName":"微服务部门"}]
+```
+
+添加成功
+
+![](images/20200705160039219_3277.png)
+
+##### 4.3.1.2. 添加用户
+
+apollo默认提供一个超级管理员：`apollo`，点击【管理员工具】-->【用户管理】，可以添加用户
+
+![](images/20200705160252219_26666.png)
+
+#### 4.3.2. 创建项目
+
+1. 打开apollo-portal主页：http://localhost:8070/
+2. 点击【创建项目】，创建名为account-service的项目
+3. 输入项目信息
+    - 部门：选择应用所在的部门
+    - 应用AppId：用来标识应用身份的唯一id，格式为string，需要和项目配置文件applications.properties中配置的app.id对应
+    - 应用名称：应用名，仅用于界面展示
+    - 应用负责人：选择的人默认会成为该项目的管理员，具备项目权限管理、集群创建、Namespace创建等权限
+
+![](images/20200705162314852_21871.png)
+
+4. 点击提交后，创建成功则会自动跳转到项目首页
+5. 在项目管理页面，使用管理员apollo将指定项目授权给之前添加的用户“moon”，管理account-service服务的权限
+
+![](images/20200705163101527_9647.png)
+
+![](images/20200705163859779_28566.png)
+
+6. 使用“mono”登录，查看项目配置
+
+![](images/20200705164521166_31552.png)
+
+#### 4.3.3. 删除项目
+
+如删除整个项目，点击【管理员工具】-->【删除应用、集群、AppNamespace】。先查询出要删除的项目，再点击【删除应用】
+
+![](images/20200705162240719_1525.png)
+
+### 4.4. 配置管理（Apollo Portal管理界面）
+
+以下示例操作在account-service项目中进行配置
+
+#### 4.4.1. 添加发布配置项
+
+方式一：通过表格模式添加配置，在项目信息页面，点击【表格】标签（*默认的*）-->【新增配置】
+
+![](images/20200705171124312_11099.png)
+
+方式二：通过文本模式编辑，Apollo除了支持表格模式，逐个添加、修改配置外，还提供文本模式批量添加、修改。对于从已有的`properties`文件迁移十分方便。在项目信息页面，选择【文本】标签，修改配置后点击右上角【修改配置】图标
+
+![](images/20200705171230412_461.png)
+
+#### 4.4.2. 修改配置
+
+1. 找到对应的配置项，点击修改
+2. 修改为需要的值，点击提交
+3. 发布配置
+
+#### 4.4.3. 删除配置
+
+1. 找到需要删除的配置项，点击删除按钮
+
+![](images/20200705171614508_9462.png)
+
+2. 确认删除后，点击发布
+
+#### 4.4.4. 添加Namespace
+
+Namespace作为配置的分类，可当成一个配置文件。下面以添加rocketmq配置为例，添加名叫“spring-rocketmq”的`Namespace`配置rocketmq相关信息
+
+1. 添加项目私有Namespace：`spring-rocketmq`。进入项目首页，点击左下角的【添加Namespace】，共包括两项：【关联公共Namespace】和【创建Namespace】，这里选择【创建Namespace】
+
+![](images/20200705171941040_5736.png)
+
+![](images/20200705172202217_1530.png)
+
+2. 添加配置项
+
+```properties
+rocketmq.name-server = 127.0.0.1:9876
+rocketmq.producer.group = PID_ACCOUNT
+```
+
+3. 发布配置
+
+#### 4.4.5. 客户端获取Namespace的配置
+
+修改VM options：`-Dapp.id=account-service -Denv=DEV -Ddev_meta=http://localhost:8080`，运行以下测试程序
+
+```java
+/* 测试获取指定namespace下的配置信息 */
+@Test
+public void getNamespaceConfigTest() throws InterruptedException {
+    // 创建带namespace参数的配置对象
+    Config config = ConfigService.getConfig("spring-rocketmq");
+    // 需要获取的配置对应的key
+    String key = "rocketmq.name-server";
+    while (true) {
+        // 获取key的值
+        String value = config.getProperty(key, null);
+        System.out.printf("now: %s, rocketmq.name-server: %s%n", LocalDateTime.now().toString(), value);
+        Thread.sleep(3000L);
+    }
+}
+```
+
+#### 4.4.6. 公共配置
+
+##### 4.4.6.1. 添加公共Namespace
+
+在项目开发中，有一些配置可能是通用的，可以通过把这些通用的配置放到公共的Namespace中，这样其他项目要使用时可以直接添加需要的公共Namespace
+
+1. 新建common-template项目，用于存放公共配置项
+
+![](images/20200705173553080_11646.png)
+
+2. 添加公共Namespace：`spring-boot-http`。进入common-template项目管理页面：http://localhost:8070/config.html?#/appid=common-template。点击左下角【添加Namespace】
+
+![](images/20200705174254914_20089.png)
+
+3. 添加配置项并发布
+
+```properties
+spring.http.encoding.enabled = true
+spring.http.encoding.charset = UTF-8
+spring.http.encoding.force = true
+server.tomcat.remote_ip_header = x-forwarded-for
+server.tomcat.protocol_header = x-forwarded-proto
+server.use-forward-headers = true
+server.servlet.context‐path = /
+```
+
+![](images/20200705174512560_30311.png)
+
+##### 4.4.6.2. 关联公共Namespace
+
+1. 打开已有的account-service项目
+2. 点击左侧的添加Namespace
+3. 选择关联公共Namespace，选择公共的namespace
+
+![](images/20200705175153676_10671.png)
+
+![](images/20200705175317437_27536.png)
+
+4. 根据需求可以覆盖引入公共Namespace中的配置，下面以覆盖`server.servlet.context-path`为例，将其修改为`/account-service`，发布修改的配置项
+
+![](images/20200705175342306_15346.png)
+
+![](images/20200705175630955_19755.png)
+
+### 4.5. 多项目配置（Apollo Portal管理界面）
+
+通常一个分布式系统包括多个项目，所以需要配置多个项目，下面以一个P2P金融的项目为例，添加交易中心微服务`transaction-service`。*详细操作以上章节已有*，步骤如下：
+
+1. 添加交易中心微服务transaction-service
+2. 关联公共Namespace（*任务应用都可以关联公共Namespace*），或者创建私有Namespace。
+3. 覆盖配置，修改交易中心微服务的context-path为：`/transaction`
+4. 发布修改后的配置
+
+### 4.6. 集群管理
+
+在有些情况下，应用有需求对不同的集群做不同的配置，比如部署在A机房的应用连接的RocketMQ服务器地址和部署在B机房的应用连接的RocketMQ服务器地址不一样。另外在项目开发过程中，也可为不同的开发人员创建不同的集群来满足开发人员的自定义配置
+
+#### 4.6.1. 创建集群
+
+1. 进入项目信息页面，点击页面左下角的【添加集群】按钮
+
+![](images/20200705180404100_1304.png)
+
+2. 输入集群名称`SHAJQ`，选择环境并提交：添加上海金桥数据中心为例
+
+![](images/20200705180445443_628.png)
+
+3. 切换到对应的集群，修改配置并发布即可
+
+![](images/20200705180518251_8996.png)
+
+> <font color=red>**注：每个环境下都有一个`default`集群，通常创建项目后，添加的配置都是在此集群中。所以创建新的集群后，相应的配置都是空**</font>
+
+#### 4.6.2. 同步集群配置
+
+同步集群的配置是指在同一个应用中拷贝某个环境下的集群的配置到目标环境下的目标集群。
+
+1. 切换到原有集群
+2. 展开要同步的Namespace，点击【同步配置】
+
+![](images/20200705181409110_7739.png)
+
+3. 选择同步到的新集群，再选择要同步的配置
+
+![](images/20200705181711803_26761.png)
+
+![](images/20200705181732645_32511.png)
+
+4. 同步完成后，切换到SHAJQ集群，发布配置
+
+![](images/20200705181815330_7834.png)
+
+#### 4.6.3. 读取指定集群配置
+
+读取某个集群的配置，需要启动应用时指定具体的应用、环境和集群。
+
+```
+-Dapp.id=应用名称
+-Denv=环境名称
+-Dapollo.cluster=集群名称
+-D环境_meta=meta地址
+```
+
+修改启动测试程序的VM options，观察是否读取到不同集群的配置
+
+```bash
+-Dapp.id=account-service -Denv=DEV -Dapollo.cluster=SHAJQ -Ddev_meta=http://localhost:8080
+```
+
+## 5. Apollo 配置发布原理分析
 
 
 
 
-
-
-
-
+## 6. Apollo应用于分布式系统
 
 
 
