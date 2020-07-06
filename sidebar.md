@@ -99,7 +99,7 @@
 
 ### ✨ Redis ✨
 
-* #### [-Redis笔记](/04-数据库/03-Redis/01-Redis笔记)
+* #### [Redis笔记](/04-数据库/03-Redis/01-Redis笔记)
 * #### [Redis安装](/04-数据库/03-Redis/02-Redis安装)
 * #### [Redis场景应用设计](/04-数据库/03-Redis/03-Redis场景应用设计)
 
@@ -122,7 +122,7 @@
 
 * #### [Docker应用容器引擎](/05-DevOps工具/03-Docker/01-Docker应用容器引擎)
 
-#### ✨ Gradle ✨
+### ✨ Gradle ✨
 
 * #### [0Gradle基础笔记](/05-DevOps工具/06-Gradle/01-Gradle基础笔记)
 

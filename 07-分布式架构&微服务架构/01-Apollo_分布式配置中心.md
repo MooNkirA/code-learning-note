@@ -1026,20 +1026,115 @@ public String getDBConfig(@Value("${spring.datasource.url}") String url) {
 
 ### 6.3. 生产环境部署
 
+当一个项目要上线部署到生产环境时，项目的配置比如数据库连接、RocketMQ地址等都会发生变化，此时就需要通过Apollo为生产环境添加自己的配置。
 
+#### 6.3.1. 企业部署方案
 
+在企业中常用的部署方案为：`Apollo-adminservice`和`Apollo-configservice`两个服务分别在线上环境(pro)，仿真环境(uat)和开发环境(dev)各部署一套，`Apollo-portal`做为管理端只部署一套，统一管理上述三套环境。具体如下图所示：
 
+![](images/20200706145459676_4727.png)
 
+#### 6.3.2. 创建生产环境数据库
 
+创建生产环境的ApolloConfigDB：每添加一套环境就需要部署一套ApolloConfgService和ApolloAdminService
 
+> 创建数据的脚本位置：`java-technology-stack\java-stack-apollo\scripts\sql\ApolloConfigDB_PRO__initialization.sql`
 
+#### 6.3.3. 配置启动参数
 
+1. 配置启动参数
+2. 设置ApolloConfigService端口为：8081，ApolloAdminService端口为8091。启动脚本（windows）如下：
 
+```bash
+echo
 
+set url="localhost:3306"
+set username="root"
+set password="123456"
 
+start "configService-PRO" java -Dserver.port=8081 -Xms256m -Xmx256m -Dapollo_profile=github -Dspring.datasource.url=jdbc:mysql://%url%/ApolloConfigDBPRO?characterEncoding=utf8 -Dspring.datasource.username=%username% -Dspring.datasource.password=%password% -Dlogging.file=.\logs\apollo-configservice.log -jar .\apollo-configservice-1.6.1.jar
+start "adminService-PRO" java -Dserver.port=8091 -Xms256m -Xmx256m -Dapollo_profile=github -Dspring.datasource.url=jdbc:mysql://%url%/ApolloConfigDBPRO?characterEncoding=utf8 -Dspring.datasource.username=%username% -Dspring.datasource.password=%password% -Dlogging.file=.\logs\apollo-adminservice.log -jar .\apollo-adminservice-1.6.1.jar
+```
 
+3. 运行runApollo-PRO.bat（脚本位置java-technology-stack\java-stack-apollo\scripts\run\runApollo-PRO.bat|runApollo-PRO.sh）
 
+#### 6.3.4. 修改Eureka地址
 
+更新生产环境Apollo的Eureka地址：
+
+```sql
+USE ApolloConfigDBPRO;
+UPDATE ServerConfig SET `Value` = "http://localhost:8081/eureka/" WHERE `key` = "eureka.service.url";
+```
+
+#### 6.3.5. 调整 ApolloPortal 服务配置
+
+服务配置项统一存储在`ApolloPortalDB.ServerConfig`表中，可以通过点击【管理员工具】-->【系统参数】页面进行配置。输入key为`apollo.portal.envs`，查询可支持的环境列表。默认值是dev，如果portal需要管理多个环境的话，以逗号分隔即可（大小写不敏感），如：
+
+![](images/20200706151206353_14000.png)
+
+#### 6.3.6. 重新启动 ApolloPortal
+
+Apollo Portal需要在不同的环境访问不同的meta service(apollo-configservice)地址，所以需要在配置中提供这些信息。
+
+```bash
+-Ddev_meta=http://localhost:8080/ -Dpro_meta=http://localhost:8081/
+```
+
+1. 关闭之前启动的ApolloPortal服务，使用runApolloPortal.bat启动多环境配置，启动脚本（windows）如下：
+
+```bash
+echo
+
+set url="localhost:3306"
+set username="root"
+set password="123456"
+
+start "ApolloPortal" java -Xms256m -Xmx256m -Dapollo_profile=github,auth -Ddev_meta=http://localhost:8080/ -Dpro_meta=http://localhost:8081/ -Dserver.port=8070 -Dspring.datasource.url=jdbc:mysql://%url%/ApolloPortalDB?characterEncoding=utf8 -Dspring.datasource.username=%username% -Dspring.datasource.password=%password% -Dlogging.file=.\logs\apollo-portal.log -jar .\apollo-portal-1.6.1.jar
+```
+
+> 脚本位置：java-technology-stack\java-stack-apollo\scripts\run\runApolloPortal.bat|runApolloPortal.sh
+
+2. 重新启动之后，点击account-service服务配置后会提示环境缺失，此时需要补全上边新增生产环境的配置
+
+![](images/20200706153009720_10138.png)
+
+3. 点击补缺环境。补缺过生产环境后，切换到PRO环境后会提示有Namespace缺失，点击补缺
+
+![](images/20200706153404647_19152.png)
+
+![](images/20200706153412240_4929.png)
+
+![](images/20200706153422142_10211.png)
+
+4. 从dev环境同步配置到pro
+
+![](images/20200706153737477_21387.png)
+
+#### 6.3.7. 验证生产环境配置
+
+1. 切换到pro环境，修改生产环境rocketmq地址后发布配置，用于测试
+2. 在apollo-env.properties中增加`pro.meta=http://localhost:8081`
+3. 修改account-service启动参数为：`-Denv=pro`
+
+```bash
+-Denv=pro -Dapollo.cacheDir=E:/opt/data/apollo-config -Dapollo.cluster=DEFAULT
+```
+
+4. 访问`http://127.0.0.1:63000/account-service/mq` 验证RocketMQ地址是否为上边设置的PRO环境的值
+
+### 6.4. 灰度发布
+
+#### 6.4.1. 灰度发布定义
+
+灰度发布是指在黑与白之间，能够平滑过渡的一种发布方式。在其上可以进行A/B testing，即让一部分用户继续用产品特性A，一部分用户开始用产品特性B，如果用户对B没有什么反对意见，那么逐步扩大范围，把所有用户都迁移到B上面来
+
+#### 6.4.2. Apollo 实现的功能
+
+1. 对于一些对程序有比较大影响的配置，可以先在一个或者多个实例生效，观察一段时间没问题后再全量发布配置。
+2. 对于一些需要调优的配置参数，可以通过灰度发布功能来实现A/B测试。可以在不同的机器上应用不同的配置，不断调整、测评一段时间后找出较优的配置再全量发布配置。
+
+#### 6.4.3. 创建模拟灰度测试场景
 
 
 

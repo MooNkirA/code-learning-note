@@ -10,4 +10,4 @@
 
 如果本项目对你有帮助，今天可以喝杯咖啡吗？😁
 
-![](/note attachments/other/wechat_pay.png)
+![](note attachments/other/wechat_pay.png)
