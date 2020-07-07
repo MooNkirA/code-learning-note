@@ -34,7 +34,6 @@
 
 ![](images/20200704104014355_26317.png)
 
-
 集中管理配置，那么就要将应用的配置作为一个单独的服务抽离出来了，所以也需要解决一些新的问题，比如：版本管理（为了支持回滚），权限管理等。
 
 总结：在传统巨型单体应用纷纷转向细粒度微服务架构的历史进程中，配置中心是微服务化不可缺少的一个系统组件，在这种背景下中心化的配置服务即配置中心应运而生，一个合格的配置中心需要具备以下几点：
@@ -1136,17 +1135,159 @@ start "ApolloPortal" java -Xms256m -Xmx256m -Dapollo_profile=github,auth -Ddev_m
 
 #### 6.4.3. 创建模拟灰度测试场景
 
+1. 启动apollo-quickstart项目GrayTest类输出timeout的值。设置VM options: `-Dapp.id=apollo-quickstart -Denv=DEV -Ddev_meta=http://localhost:8080`
+
+```java
+package com.moon.apollo.quickstart;
+
+import com.ctrip.framework.apollo.Config;
+import com.ctrip.framework.apollo.ConfigService;
+
+import java.time.LocalDateTime;
+
+/**
+ * 灰度发布测试
+ */
+public class GrayTest {
+    public static void main(String[] args) throws InterruptedException {
+        // 获取apollo配置对象
+        Config config = ConfigService.getAppConfig();
+        // 需要获取的配置对应的key
+        String key = "timeout";
+        while (true) {
+            // 获取key的值
+            String value = config.getProperty(key, null);
+            System.out.printf("now: %s, timeout: %s%n", LocalDateTime.now().toString(), value);
+            Thread.sleep(3000L);
+        }
+    }
+}
+```
+
+2. 使用maven命令将apollo-quickstart项目打包成jar包，然后部署到linux系统中（本地虚拟机），模拟另一个服务器
+
+```bash
+package -Dmaven.test.skip=true -f pom.xml
+```
+
+![](images/20200707091737860_20003.png)
+
+到target文件夹将jar包上传到linux系统（192.168.12.132）
+
+```shell
+java -Dapp.id=apollo-quickstart -Denv=DEV -Ddev_meta=http://192.168.200.165:8080 -jar apollo-quickstart.jar
+```
+
+本机与虚拟机成功连接后，在apollo控制台对应的项目信息里可以看到相应的ip
+
+![](images/20200707091404230_31642.png)
+
+**灰度发布测试需求：**
+
+当前有一个配置timeout=2000，最终测试结果需要对虚拟机（IP: 172.17.0.1）灰度发布timeout=3000，对本地（IP: 192.168.200.165）仍然是timeout=2000。
+
+> *注：以上ip非固定，按实际情况修改*
 
 
+#### 6.4.4. 创建灰度
 
+1. 点击apollo-quickstart项目application namespace右上角的【创建灰度】按钮
 
+![](images/20200707092957068_22898.png)
 
+2. 点击确定后，灰度版本就创建成功了，页面会自动切换到【灰度版本】Tab
 
+#### 6.4.5. 灰度配置
 
+1. 点击【主版本的配置】中，timeout配置右边的【对此配置灰度】按钮
 
+![](images/20200707094745219_9769.png)
 
+2. 在弹出框中填入要灰度的值：3000，点击提交。
 
+![](images/20200707101336608_28024.png)
 
+> **注：如果需要发布灰度，必须要配置了灰度规则**
+
+#### 6.4.6. 配置灰度规则
+
+1. 切换到【灰度规则】Tab页，点击【新增规则】按钮
+
+![](images/20200707101613519_26571.png)
+
+2. 在弹出框中【灰度的IP】下拉框会默认展示当前使用配置的机器列表，选择要灰度的IP，点击完成
+
+![](images/20200707103618628_21905.png)
+
+如果下拉框中没找到需要的IP，说明机器还没从Apollo取过配置，可以点击手动输入IP来输入，输入完后点击添加按钮
+
+![](images/20200707103908313_26163.png)
+
+#### 6.4.7. 灰度发布
+
+1. 启动本地apollo-quickstart项目的GrayTest类与启动虚拟机的jar包，此时输出timeout的值均为2001
+
+![](images/20200707105429065_5598.png)
+
+2. 切换到【配置】Tab页，再次检查灰度的配置部分，如果没有问题，点击【灰度发布】
+
+![](images/20200707105530080_21467.png)
+
+3. 在弹出框中可以看到主版本的值是2000，灰度版本即将发布的值是3000。填入其它信息后，点击发布
+
+![](images/20200707105552575_7641.png)
+
+4. 发布后，切换到【灰度实例列表】Tab页，就能看到172.17.0.1实例已经使用了灰度发布的值
+
+![](images/20200707105912870_23476.png)
+
+测试输出结果如下：
+
+![](images/20200707105708767_13102.png)
+
+#### 6.4.8. 全量发布
+
+如果灰度的配置测试下来比较理想，符合预期，那么就可以操作【全量发布】。全量发布的效果是：
+
+1. 灰度版本的配置会合并回主版本，在这个例子中，就是主版本的timeout会被更新成3000
+2. 主版本的配置会自动进行一次发布
+3. 在全量发布页面，可以选择是否保留当前灰度版本，默认为不保留。
+
+![](images/20200707110014565_8513.png)
+
+![](images/20200707110038117_26932.png)
+
+![](images/20200707110049917_1469.png)
+
+![](images/20200707110125460_22633.png)
+
+#### 6.4.9. 放弃灰度
+
+如果灰度版本不理想或者不需要了，可以点击【放弃灰度】
+
+![](images/20200707110217260_5947.png)
+
+#### 6.4.10. 发布历史
+
+点击主版本的【发布历史】按钮，可以看到当前namespace的主版本以及灰度版本的发布历史
+
+![](images/20200707110230948_26415.png)
+
+## 7. 其他
+
+### 7.1. 测试灰度发布时编译jar遇到的问题
+
+> 注：以下这种打包方式，打包成jar后，上传到linux系统，无法连接apollo服务，暂时没有分析出原因
+
+![](images/20200706214825825_5898.png)
+
+![](images/20200706220842086_134.png)
+
+![](images/20200706220610950_29248.png)
+
+![](images/20200706220315590_10685.png)
+
+保存确认后，选择【Build Project】，到上图jar包保存路径下拿到生成的jar包。
 
 
 
