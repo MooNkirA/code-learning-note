@@ -1965,7 +1965,7 @@ AOP 的其他入口类的配置是基于 xml 的形式
 
 ### 9.3. 代理生成逻辑
 
-当一个bean实例化完成之后，就会判断是当前bean是否需要生成代理，即aop的入口处理时机就在`AbstractAutowireCapableBeanFactory`类中`doCreateBean`方法中完成DI依赖注入以后，具体位置如下图：
+当一个bean实例化完成之后，就会判断是当前bean是否需要生成代理，所以aop的处理时机（入口）就在`AbstractAutowireCapableBeanFactory`类中`doCreateBean`方法中完成DI依赖注入以后，具体位置如下图：
 
 ![](images/20200627001003392_9660.png)
 
@@ -2021,7 +2021,7 @@ protected Object wrapIfNecessary(Object bean, String beanName, Object cacheKey) 
 		this.advisedBeans.put(cacheKey, Boolean.FALSE);
 		return bean;
 	}
-	// 如果这个bean有advice的话，则创建当前bean的代理。重要程度【5】
+	// 给当前的bean寻找advisor切面，如果这个bean有advice的话，则代表后面需要创建当前bean的代理。重要程度【5】
 	// Create proxy if we have advice.
 	Object[] specificInterceptors = getAdvicesAndAdvisorsForBean(bean.getClass(), beanName, null);
 	// 判断如果有切面，则生成该bean的代理
