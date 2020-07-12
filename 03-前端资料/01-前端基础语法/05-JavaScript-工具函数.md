@@ -1,6 +1,6 @@
 # JavaScript工具函数
 
-## 1. 工具函数
+## 1. 原生JS工具函数
 
 ### 1.1. 判断JS各种数据类型是否为空
 
@@ -789,4 +789,89 @@ export function validatenumord(num, type) {
   }
   return true;
 };
+```
+
+## 2. 依赖第三工具包工具函数
+
+### 2.1. clipboard.js(复制文本到剪切板)
+
+依赖clipboard.js复制文字工具包，官网地址：http://www.clipboardjs.cn/
+
+#### 2.1.1. 安装
+
+可以通过npm工具安装
+
+```bash
+npm install clipboard --save
+```
+
+或者下载js文件，在html页面引入`clipboard.min.js`
+
+```html
+<script src="dist/clipboard.min.js"></script>
+```
+
+#### 2.1.2. 使用示例(Vue框架)
+
+- 创建切剪板工具函数
+
+```js
+/** Clipboard（复制粘贴）工具JS */
+import Vue from 'vue'
+import Clipboard from 'clipboard'
+
+function clipboardSuccess() {
+  Vue.prototype.$message({
+    message: 'Copy successfully',
+    type: 'success',
+    duration: 1500
+  })
+}
+
+function clipboardError() {
+  Vue.prototype.$message({
+    message: 'Copy failed',
+    type: 'error'
+  })
+}
+
+export default function handleClipboard(text, event) {
+  const clipboard = new Clipboard(event.target, {
+    text: () => text
+  })
+  clipboard.on('success', () => {
+    clipboardSuccess()
+    clipboard.destroy()
+  })
+  clipboard.on('error', () => {
+    clipboardError()
+    clipboard.destroy()
+  })
+  clipboard.onClick(event)
+}
+```
+
+- 在页面中导入工具js，调用复制方法即可
+
+```html
+<!-- 将字母转大写按钮 -->
+<el-button v-if="operationalStatus === 'create'" slot="prepend" @click="changeUpperCase($event)">转大写</el-button>
+
+<script>
+import clip from '@/utils/clipboard' // use clipboard directly
+
+export default {
+    ......
+     methods: {
+        /* 将字母转成大写，并复制到剪切板 */
+        changeUpperCase(event) {
+          const { id } = this.tempObj
+          // 转大写
+          this.tempObj.id = id.toUpperCase()
+          // 复制内容到剪切板
+          clip(this.tempObj.id, event)
+        },
+     }
+}
+</script>
 ```

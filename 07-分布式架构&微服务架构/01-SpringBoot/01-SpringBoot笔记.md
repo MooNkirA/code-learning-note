@@ -225,7 +225,7 @@ public class Application {
 spring 加入配置
 ```xml
 <!-- controller注解扫描 -->
-<context:component-scan base-package="cn.itcast.springboot.controller" />
+<context:component-scan base-package="com.moon.springboot.controller" />
 <!-- 注解驱动 -->
 <mvc:annotation-driven />
 ```
@@ -1150,7 +1150,7 @@ public class HelloController {
     <artifactId>spring-boot-starter-parent</artifactId>
     <version>1.5.6.RELEASE</version>
   </parent>
-  <groupId>cn.itcast</groupId>
+  <groupId>com.moon</groupId>
   <artifactId>springboot02-jsp-test</artifactId>
   <version>0.0.1-SNAPSHOT</version>
   <packaging>war</packaging>
@@ -1365,7 +1365,7 @@ server.contextPath=/boot
 
 # Spring Boot 整合
 ## 1. 创建Spring Boot父项目（整合Spring Cloud）
-### 1.1. 1创建Maven父工程（pom）
+### 1.1. 创建Maven父工程（pom）
 
 - 采用Maven多Module的形式。创建Maven工程，在主Maven工和的pom文件引入Spring Boot的版本（根据需求定版本），Spring cloud版本（根据需求定版本），并可以指定一些公共的依赖，还有一些项目的公共属性（如项目的编码）
 - 其余的Module工程的pom文件继承主Maven工程，拥有父工程的公共的依赖和配置
