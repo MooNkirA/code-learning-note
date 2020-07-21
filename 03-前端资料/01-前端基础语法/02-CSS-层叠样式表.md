@@ -394,6 +394,8 @@ li:nth-child(4) {   /* 选择第4个孩子  n  代表 第几个的意思 */
 
 #### 2.4.7. 伪元素选择器（CSS3)
 
+##### 2.4.7.1. 基础语法与使用
+
 - `E::first-letter`：文本的第一个单词或字（如中文、日文、韩文等）
 - `E::first-line`：文本第一行，如果缩小浏览器，换行后的那部分文本则无效
 - `E::selection`：可改变选中文本的样式
@@ -427,6 +429,86 @@ div::after {
 ```
 
 > `E:after`、`E:before` 在旧版本里是伪元素，CSS3的规范里“`:`”用来表示伪类，“`::`”用来表示伪元素，但是在高版本浏览器下`E:after`、`E:before`会被自动识别为`E::after`、`E::before`，这样做的目的是用来做兼容处理。
+
+##### 2.4.7.2. before 和 after 伪元素(详解)
+
+之所以被称为伪元素，是因为它们不是真正的页面元素，在html页面没有对应的元素，但是其所有用法和表现行为与真正的页面元素一样，可以对其使用诸如页面元素一样的css样式，表面上看上去貌似是页面的某些元素来展现，实际上是css样式展现的行为，因此被称为伪元素。是伪元素在html代码机构中的展现，可以看出无法伪元素的结构无法审查
+
+<font color=red>**注意：伪元素 `::before` 和 `::after` 添加的内容默认是`inline`行内元素；这个两个伪元素的`content`属性，表示伪元素的内容，设置`::before`和`::after`时必须设置其`content`属性，否则伪元素就不起作用**</font>
+
+```html
+<head>
+  <meta charset="utf-8" />
+  <style>
+    /* .one  类选择器  :hover 伪类选择器  ::after 伪元素选择器 */
+    div::before {
+      content: "我是before伪元素";
+      background-color: pink;
+      border: 1px solid red;
+      width: 100px;
+      height: 100px;
+      display: block;
+      /* 类选择 伪类选择器 就是选区对象
+		     伪元素选择器本质上是插入一个元素（标签 盒子），只不过是行内元素 如：<span>、<a>*/
+    }
+    div::after {
+      content: "我是after伪元素";
+      display: block;
+      width: 50px;
+      height: 50px;
+      border: 1px solid skyblue;
+    }
+  </style>
+</head>
+<body>
+  <div>这是一个div</div>
+</body>
+```
+
+##### 2.4.7.3. 伪元素使用案例
+
+需求：给图片增加一个
+
+```html
+<head>
+  <meta charset="utf-8" />
+  <style>
+    div {
+      width: 296px;
+      height: 180px;
+      margin: 20px auto;
+      position: relative; /* 子绝父相 */
+    }
+    div:hover::before {
+      /* 鼠标经过之后，前面插入一个伪元素 */
+      content: "";
+      width: 100%;
+      height: 100%;
+      border: 10px solid rgba(255, 255, 255, 0.3);
+      display: block; /* 伪元素属于行内元素，需要转换 */
+      position: absolute; /* 要伪元素不占位，就用绝对定位 */
+      top: 0;
+      left: 0;
+      box-sizing: border-box; /* 把padding和border都算入width里面 */
+    }
+  </style>
+</head>
+<body>
+  <div>
+    <img src="images/mi.jpg" height="180" width="296" alt="" />
+  </div>
+  <div>
+    <img src="images/mi.jpg" height="180" width="296" alt="" />
+  </div>
+  <div>
+    <img src="images/mi.jpg" height="180" width="296" alt="" />
+  </div>
+  <div>
+    <img src="images/mi.jpg" height="180" width="296" alt="" />
+  </div>
+</body>
+```
+
 
 #### 2.4.8. 伪元素选择器与伪类选择器的区别
 
@@ -937,38 +1019,12 @@ background: url(test1.jpg) no-repeat scroll 10px 20px/50px 60px,
 
 `overflow`属性是检索或设置当对象的内容超过其指定高度及宽度时如何管理内容
 
-- `visible`：不剪切内容也不添加滚动条。
+- `visible`：不剪切内容也不添加滚动条。默认值
 - `auto`：超出自动显示滚动条，不超出不显示滚动条
-- `hidden`：不显示超过对象尺寸的内容，超出的部分隐藏掉
+- `hidden`：不显示超过对象尺寸的内容，超出的部分隐藏掉（常用）
 - `scroll`：不管超出内容否，总是显示滚动条
 
-### 3.6. 其他样式
-#### 3.6.1. 光标样式
-
-| 功能                                                         | 属性名 | 属性取值与作用                                               |
-| ------------------------------------------------------------ | ------ | ------------------------------------------------------------ |
-| cursor（光标样式）：属性可规定当指向某元素之上时被显示的指针类型 | cursor | **default**：默认光标（通常是一个箭头）<br />**crosshair**：光标呈现为十字线。<br />**pointer**：光标呈现为指示某个链接的指针（一只手） |
-
-#### 3.6.2. css 下长连续字母或数据不换行解决方法
-
-css 下长连续字母或数据不换行解决方法,css字母自动换行,css数字自动换行
-
-- `word-wrap`用来控制换行，有以下两种取值
-    - normal
-    - break-word（此值用来强制换行，内容将在边界内换行，中文没有任何问题，英文语句也没问题。但是对于长串的英文，就不起作用。）
-- `word-break`用来控制断词，有以下三种取值
-    - normal
-    - break-all（是断开单词。在单词到边界时，下个字母自动到下一行。主要解决了长串英文的问题。）
-    - keep-all（是指Chinese, Japanese, and Korean不断词，一句话一行，可以用来排列古诗哟~）
-
-【解决方法】可以在CSS中加入
-
-```css
-word-wrap: break-word;
-word-break: break-all;
-```
-
-## 4. CSS选择器和常用样式案例
+### 3.6. CSS选择器和常用样式案例练习
 
 ![CSS样式案例](images/20190702100652030_21340.png)
 
@@ -1060,6 +1116,242 @@ h1 span{
 	color: #999;
 	font-style: normal;
 }
+```
+
+
+## 4. CSS高级样式技巧
+
+### 4.1. CSS用户界面样式
+
+界面样式，就是更改一些用户操作样式，比如：更改用户的鼠标样式，表单轮廓，防止表单域拖拖拽等。但是比如滚动条的样式改动受到了很多浏览器的抵制，就不会去改变
+
+#### 4.1.1. 鼠标样式（cursor）
+
+设置或检索在对象上移动的鼠标指针采用何种系统预定义的光标形状。语法如下：
+
+```css
+cursor: default(默认光标，通学是一个箭头) | pointer(小手) | move(移动) | text(文本) | crosshair(十字线)
+```
+
+示例：
+
+```css
+<ul>
+    <li style="cursor: default;">我是默认光标（通常是一个箭头）</li>
+    <li style="cursor: pointer;">我是小手（光标呈现为指示某个链接的指针）</li>
+    <li style="cursor: move;">我是移动光标（十字有勾的光标）</li>
+    <li style="cursor: text;">我是文本光标（像“I”的文本选择光标）</li>
+    <li style="cursor: crosshair;">我是十字线光标（十字样式的光标）</li>
+</ul>
+```
+
+> 注： 尽量不要用小手光标因为火狐浏览器不支持`pointer`，在ie6以上都支持的尽量用
+
+#### 4.1.2. 轮廓（outline）
+
+轮廓（`outline`）是绘制于元素周围的一条线，位于边框边缘的外围，可起到突出元素的作用。语法如下：
+
+```css
+ outline: outline-color || outline-style || outline-width;
+```
+
+通过都不会设置，一般都是用来去掉包围的线（多用于去掉文本输入框，获取焦点时在文本输入框外面有一圈光亮的线）
+
+去掉外围光亮线的写法是：`outline: 0;` 或者 `outline: none;`
+
+```html
+<input  type="text"  style="outline: 0;"/>
+```
+
+#### 4.1.3. 防止拖拽文本域（resize）
+
+`resize：none;`这个属性可以防止火狐、谷歌等浏览器随意的拖动多行文本域的大小。
+
+```css
+<textarea style="resize: none;"></textarea>
+```
+
+### 4.2. 垂直对齐（vertical-align）
+
+- 如果让带有宽度的块级元素居中对齐，是`margin: 0 auto;`
+- 如果让文字居中对齐，是`text-align: center;`
+
+而`vertical-align`属性是设置或检索对象内容的垂直对其方式。语法如下：
+
+```css
+vertical-align: baseline | top | middle | bottom
+```
+
+![](images/20200720225650177_8265.jpg)
+
+<font color=red>**特别注意是：`vertical-align`不影响块级元素中的内容对齐，它只针对于行内元素或者行内块元素，特别是行内块元素，通常用于控制图片/表单与文字的对齐**</font>
+
+![](images/20200720225214514_13578.png)
+
+#### 4.2.1. 图片、表单和文字对齐
+
+通过vertical-align 控制图片和文字的垂直关系了。 默认的图片会和文字基线对齐。
+
+```html
+<head>
+  <meta charset="utf-8" />
+  <style>
+    div {
+      width: 200px;
+      height: 100px;
+      background-color: pink;
+      margin-left: auto;
+      margin-right: auto; /* 左右自动 auto  盒子可水平居中对齐 */
+      text-align: center; /* 文字水平居中 */
+      /* vertical-align: middle; 对于块级元素无效 */
+    }
+    /* 对于图片/文本框这类行内块元素，可以设置文字与它们的垂直对齐方式 */
+    img {
+      /* vertical-align: baseline;  默认的基线对齐 */
+      vertical-align: middle; /* 手动改为中线对齐 */
+    }
+    textarea {
+      height: 300px;
+      width: 300px;
+      vertical-align: middle;
+    }
+  </style>
+</head>
+<body>
+  <div>文字居中</div>
+  <hr />
+  <!-- 图片和文字默认的是基线对齐（即baseline），通过vertical-align可以设置文字的中线对齐 -->
+  <img src="images/2.jpg" /> 我与图片的垂直对齐方式
+  <hr />
+  用户留言: <textarea></textarea>
+</body>
+```
+
+#### 4.2.2. 去除图片底侧空白缝隙
+
+**有个重要特性需要记忆：图片或者表单等行内块元素，它的底线会和父级盒子的基线对齐。这样会造成一个问题，就是图片底侧会有一个空白缝隙。**
+
+解决的方法有两种：
+
+1. 给img元素`vertical-align: middle | top;`。让图片不要和基线对齐。（推荐）
+2. 给img元素添加 `display：block;` 转换为块级元素就不会存在问题了。
+
+```html
+<head>
+  <meta charset="utf-8" />
+  <style>
+    div {
+      width: 222px;
+      height: 220px;
+      background-color: pink;
+    }
+    img {
+      /* display: block; 转换为块级元素可以解决图片与父盒子底部的间隙 */
+      /* vertical-align: baseline; */
+      vertical-align: top; /* 将垂直对齐为 top 或者 middle，让图片不要和基线对齐即可。(最常用) */
+    }
+  </style>
+</head>
+<body>
+  <div>
+    <img src="images/3.jpg" height="220" width="222" alt="" />
+  </div>
+</body>
+```
+
+#### 4.2.3. 溢出的文字隐藏
+
+#### 4.2.4. word-break（自动换行）
+
+`word-break`属性用于设置英文单词是否换行。主要属性如下：
+
+- `normal`：使用浏览器默认的换行规则。
+- `break-all`：允许在单词内换行。
+- `keep-all`：只能在半角空格或连字符处换行。
+
+> 注：主要用于处理英文单词
+
+```html
+<head>
+  <meta charset="utf-8" />
+  <style>
+    div {
+      width: 120px;
+      height: 20px;
+      border: 1px solid #f00;
+      /* word-break: break-all; 允许单词拆开显示 */
+      word-break: keep-all; /* 不允许拆开单词显示，除非特殊的连字符。如：-、z-index等  */
+    }
+  </style>
+</head>
+<body>
+  <div>
+    my name is MooNkirA
+  </div>
+</body>
+```
+
+#### 4.2.5. white-space（文本显示方式）
+
+`white-space`属性用于设置或检索对象内文本显示方式，通常使用来强制一行显示内容。主要属性如下：
+
+- `normal`：默认处理方式
+- `nowrap`：强制在同一行内显示所有文本，直到文本结束或者遭遇`<br>`标签对象才换行。
+
+> 注：此属性可以处理中文
+
+#### 4.2.6. CSS长连续字母或数据不换行解决方法
+
+CSS 长连续字母或数据不换行解决方法，CSS字母自动换行，CSS数字自动换行
+
+- `word-wrap`用来控制换行，有以下两种取值
+    - normal
+    - break-word（此值用来强制换行，内容将在边界内换行，中文没有任何问题，英文语句也没问题。但是对于长串的英文，就不起作用。）
+- `word-break`用来控制断词，有以下三种取值
+    - normal
+    - break-all（是断开单词。在单词到边界时，下个字母自动到下一行。主要解决了长串英文的问题。）
+    - keep-all（是指Chinese, Japanese, and Korean不断词，一句话一行，可以用来排列古诗哟~）
+
+【解决方法】可以在CSS中加入
+
+```css
+word-wrap: break-word;
+word-break: break-all;
+```
+
+#### 4.2.7. text-overflow（文字溢出）
+
+`text-overflow`属性是用于设置或检索是否使用一个省略标记（`...`）来标示对象内文本的溢出，语法与主要属性如下：
+
+```css
+text-overflow: clip | ellipsis;
+```
+
+- `clip`：不显示省略标记（`...`），而是简单的裁切
+- `ellipsis`：当对象内文本溢出时显示省略标记（`...`）
+
+> <font color=red>**注意：首先必须设置`white-space: nowrap`强制一行内显示，然后再和`overflow`属性搭配使用**</font>
+
+```html
+<head>
+  <meta charset="utf-8" />
+  <style>
+    div {
+      width: 120px;
+      height: 20px;
+      border: 1px solid #f00;
+      white-space: nowrap; /* 首先必须添加white-space属性，强制文本一行显示*/
+      overflow: hidden; /* 其次必须有这句话 */
+      /* text-overflow: clip;  设置超出范围的文字直接裁剪 */
+      text-overflow: ellipsis; /* 设置超出的部分用省略号代替 */
+    }
+  </style>
+</head>
+<body>
+  <div>
+    我的是一段很长很长很长很长很长很长很长的文字！！！
+  </div>
+</body>
 ```
 
 ## 5. 盒子模型（CSS重点）
@@ -2420,19 +2712,27 @@ position属性的常用值
 </body>
 ```
 
+## 11. 伸缩布局(CSS3)
 
+CSS3在布局方面做了非常大的改进，使得对块级元素的布局排列变得十分灵活，适应性非常强，其强大的伸缩性，在响应式开中可以发挥极大的作用。
 
+### 11.1. 伸缩布局（Flex）相关概念
 
+- **主轴**：Flex容器的主轴主要用来配置Flex项目，默认是水平方向
+- **侧轴**：与主轴垂直的轴称作侧轴，默认是垂直方向的
+- **方向**：默认主轴从左向右，侧轴默认从上到下
 
+**注：主轴和侧轴并不是固定不变的，通过`flex-direction`属性可以互换。**
 
+![](images/20200721234509451_19468.png)
 
+> Flex布局的语法规范经过几年发生了很大的变化，也给Flexbox的使用带来一定的局限性，因为语法规范版本众多，浏览器支持不一致，致使Flexbox布局使用不多
 
+### 11.2. 各属性详解
 
+## 12. CSS书写规范
 
-
-## 11. CSS书写规范
-
-### 11.1. 空格规范
+### 12.1. 空格规范
 
 【强制】 `选择器` 与 `{` 之间必须包含空格。
 
@@ -2446,7 +2746,7 @@ position属性的常用值
 font-size: 12px;
 ```
 
-### 11.2. 选择器规范
+### 12.2. 选择器规范
 
 【强制】 当一个 rule 包含多个 selector 时，每个选择器声明必须独占一行。
 
@@ -2476,7 +2776,7 @@ font-size: 12px;
 .comment div * {}
 ```
 
-### 11.3. 属性规范
+### 12.3. 属性规范
 
 【强制】 属性定义必须另起一行。
 
@@ -2505,4 +2805,33 @@ font-size: 12px;
 }
 ```
 
+# 其他
+
+## 1. CSS精灵技术（sprite）（了解）
+
+> 详细参考《2017.07.05-Web前端入门教程》笔记
+
+### 1.1. 精灵技术本质
+
+简单地说，CSS精灵是一种处理网页背景图像的方式。它将一个页面涉及到的所有零星背景图像都集中到一张大图中去，然后将大图应用于网页，这样，当用户访问该页面时，只需向服务发送一次请求，网页中的背景图像即可全部展示出来。通常情况下，这个由很多小的背景图像合成的大图被称为精灵图（雪碧图）
+
+## 2. 字体图标（iconfont）（了解）
+
+> 详细参考《2017.07.05-Web前端入门教程》笔记
+
+### 2.1. 字体图标优点
+
+- 可以做出跟图片一样可以做的事情,改变透明度、旋转度等等...
+- 但是本质其实是文字，可以很随意的改变颜色、产生阴影、透明效果等等...
+- 本身体积更小，但携带的信息并没有削减。
+- 几乎支持所有的浏览器
+- 在移动端设备响应式放大和缩小不会失真
+
+### 2.2. 字体图标使用流程
+
+![](images/20200721213121168_8319.png)
+
+icomoon字库。网站：http://www.iconfont.cn/
+
+阿里icon font字库。网站：http://www.iconfont.cn/
 
