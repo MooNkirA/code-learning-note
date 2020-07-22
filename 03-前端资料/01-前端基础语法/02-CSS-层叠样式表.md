@@ -2728,7 +2728,454 @@ CSS3在布局方面做了非常大的改进，使得对块级元素的布局排�
 
 > Flex布局的语法规范经过几年发生了很大的变化，也给Flexbox的使用带来一定的局限性，因为语法规范版本众多，浏览器支持不一致，致使Flexbox布局使用不多
 
-### 11.2. 各属性详解
+### 11.2. Flex 各属性详解
+
+#### 11.2.1. 缩放比例
+
+flex子元素在主轴的缩放比例，不指定flex属性，则不参与伸缩分配
+
+|    属性值    |       作用描述       |                             说明                             |
+| ----------- | -------------------- | ------------------------------------------------------------ |
+| `min-width` | 设置当前子元素的最小值 | `min-width: 280px;`即当前盒子最小宽度280伸缩到此值后，不再缩小   |
+| `max-width` | 设置当前子元素的最大值 | `min-width: 1280px;`即当前盒子最大宽度1280伸缩到此值后，不再放大 |
+
+#### 11.2.2. flex-direction（主轴方向）
+
+`flex-direction`属性用于调整主轴方向。默认为水平方向
+
+|               属性值               |     作用描述      |
+| :-------------------------------: | ---------------- |
+|      `flex-direction: row;`       | 水平排列(默认值)   |
+|     `flex-direction: column;`     | 垂直排列          |
+|  `flex-direction: row-reverse;`   | 水平排列(顺序反转) |
+| `flex-direction: column-reverse;` | 垂直排列(顺序反转) |
+
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Document</title>
+    <style>
+      /* 公共部分 */
+      h2 {
+        text-align: center;
+      }
+      section {
+        width: 80%;
+        height: 200px;
+        border: 1px solid pink;
+        margin: 10px auto;
+        /* 父盒子添加 flex 属性*/
+        display: flex; /* 伸缩布局模式 */
+      }
+      #s1 div,
+      #s2 div,
+      #s3 div {
+        height: 100%;
+      }
+      /* 伸缩布局三分布局 */
+      #s1 div:nth-child(1) {
+        background-color: pink;
+        flex: 1; /*子盒子添加分数 flex:1 不加单位*/
+      }
+      #s1 div:nth-child(2) {
+        background-color: purple;
+        margin: 0 5px;
+        flex: 2; /*子盒子添加分数*/
+      }
+      #s1 div:nth-child(3) {
+        background-color: pink;
+        flex: 3; /*子盒子添加分数*/
+      }
+
+      /* 伸缩布局固定部分宽度 */
+      #s2 {
+        min-width: 500px;
+      }
+      #s2 div:nth-child(1) {
+        background-color: pink;
+        width: 200px; /* 固定宽度 */
+      }
+      #s2 div:nth-child(2) {
+        background-color: purple;
+        margin: 0 5px;
+        width: 100px; /* 固定宽度 */
+      }
+      #s2 div:nth-child(3) {
+        background-color: pink;
+        flex: 1; /* 子盒子添加分数 */
+      }
+      #s2 div:nth-child(4) {
+        background-color: skyblue;
+        flex: 1; /* 子盒子添加分数 */
+      }
+
+      /* 伸缩布局排列方式 */
+      #s3 {
+        /* 给父盒子添加排列方式属性flex-direction，可以是水平也可以是垂直 */
+        /* flex-direction: row; 水平排列（默认） */
+        flex-direction: column; /* 垂直排列 */
+        /* flex-direction: row-reverse;  水平排列(顺序反转) */
+        /* flex-direction: column-reverse;  垂直排列(顺序反转) */
+      }
+      #s3 div:nth-child(1) {
+        background-color: pink;
+        flex: 2;
+      }
+      #s3 div:nth-child(2) {
+        background-color: purple;
+        margin: 0 5px;
+        flex: 3;
+      }
+      #s3 div:nth-child(3) {
+        background-color: pink;
+        flex: 1;
+      }
+      #s3 div:nth-child(4) {
+        background-color: skyblue;
+        flex: 1;
+      }
+    </style>
+  </head>
+  <body>
+    <h2>伸缩布局三分布局</h2>
+    <section id="s1">
+      <div>1</div>
+      <div>2</div>
+      <div>3</div>
+    </section>
+    <h2>伸缩布局固定宽度</h2>
+    <section id="s2">
+      <div>1</div>
+      <div>2</div>
+      <div>3</div>
+      <div>4</div>
+    </section>
+    <h2>伸缩布局排列方式</h2>
+    <section id="s3">
+      <div>1</div>
+      <div>2</div>
+      <div>3</div>
+      <div>4</div>
+    </section>
+  </body>
+</html>
+```
+
+#### 11.2.3. justify-content（主轴对齐/水平对齐）
+
+`justify-content`属性用于调整主轴对齐（水平对齐），即子盒子如何在父盒子里面水平对齐。此属性是在父级盒子中定义
+
+|      值       |                                      描述                                      |
+| ------------- | ----------------------------------------------------------------------------- |
+| flex-start    | 默认值。项目位于容器的开头。让子元素从父容器的开头开始排序但是盒子顺序不变            |
+| flex-end      | 项目位于容器的结尾。让子元素从父容器的后面开始排序但是盒子顺序不变                   |
+| center        | 项目位于容器的中心。让子元素在父容器中间显示                                       |
+| space-between | 项目位于各行之间留有空白的容器内。 左右的盒子贴近父盒子，中间的平均分布空白间距        |
+| space-around  | 项目位于各行之前、之间、之后都留有空白的容器内。相当于给每个盒子添加了左右margin外边距 |
+
+```html
+<head>
+  <meta charset="utf-8" />
+  <style>
+    section {
+      width: 1000px;
+      height: 300px;
+      border: 2px solid pink;
+      margin: 100px auto;
+      display: flex;
+      /* justify-content: flex-start; 让子元素从父容器的开头开始排序，盒子顺序不变 */
+      /* justify-content: flex-end;  让子元素从父容器的开头开始排序，盒子顺序不变 */
+      /* justify-content: center; 让子元素在父容器中间显示 */
+      /* justify-content: space-between; 左右的盒子贴近父盒子，中间的平均分布空白间距 */
+      justify-content: space-around; /* 相当于给每个盒子添加了左右margin外边距 */
+    }
+    div {
+      width: 250px;
+      height: 100%;
+    }
+    div:first-child {
+      background-color: pink;
+    }
+    div:nth-child(2) {
+      background-color: purple;
+    }
+    div:nth-child(3) {
+      background-color: skyblue;
+    }
+  </style>
+</head>
+<body>
+  <section>
+    <div>1</div>
+    <div>2</div>
+    <div>3</div>
+  </section>
+</body>
+```
+
+#### 11.2.4. align-items（侧轴对齐/垂直对齐）
+
+`align-items`属性用于调整侧轴对齐（垂直对齐），即子盒子如何在父盒子里面垂直对齐（单行）。此属性是在父级盒子中定义
+
+|     值     |                                    描述                                    |
+| ---------- | -------------------------------------------------------------------------- |
+| stretch    | 默认值。项目被拉伸以适应容器。让子元素的高度拉伸适用父容器（子元素不给高度的前提下) |
+| center     | 项目位于容器的中心。垂直居中                                                  |
+| flex-start | 项目位于容器的开头。垂直对齐开始位置 上对齐                                     |
+| flex-end   | 项目位于容器的结尾。垂直对齐结束位置 底对齐                                    |
+
+```html
+<head>
+  <meta charset="utf-8" />
+  <style>
+    section {
+      width: 1000px;
+      height: 600px;
+      border: 2px solid pink;
+      margin: 100px auto;
+      display: flex;
+      justify-content: space-around; /* 相当于给每个盒子添加了左右margin外边距 */
+      /* 垂直对齐 */
+      /* align-items: flex-start; 上对齐 */
+      /* align-items: flex-end; 底对齐 */
+      /* align-items: center; 垂直居中 */
+      align-items: stretch; /* 相当于 height: 100%; 让子元素的高度拉伸适用父容器（子元素不给高度的前提下) */
+    }
+    div {
+      width: 250px;
+      /* height: 200px; */
+    }
+    div:first-child {
+      background-color: pink;
+    }
+    div:nth-child(2) {
+      background-color: purple;
+    }
+    div:nth-child(3) {
+      background-color: skyblue;
+    }
+  </style>
+</head>
+<body>
+  <section>
+    <div>1</div>
+    <div>2</div>
+    <div>3</div>
+  </section>
+</body>
+```
+
+#### 11.2.5. flex-wrap（控制是否换行）
+
+当子盒子内容宽度多于父盒子的时候，通过`flex-wrap`属性控制子盒子是否换行
+
+|      值      |                                  描述                                  |
+| ------------ | --------------------------------------------------------------------- |
+| nowrap       | 默认值。规定灵活的项目不拆行或不拆列。不换行，则收缩（压缩）显示强制一行内显示 |
+| wrap         | 规定灵活的项目在必要的时候拆行或拆列。                                     |
+| wrap-reverse | 规定灵活的项目在必要的时候拆行或拆列，盒子的顺序将反转。                           |
+
+```html
+<head>
+  <meta charset="utf-8" />
+  <style>
+    section {
+      width: 1000px;
+      height: 600px;
+      border: 2px solid pink;
+      margin: 100px auto;
+      display: flex;
+      justify-content: space-around; /*  相当于给每个盒子添加了左右margin外边距 */
+      /* 垂直对齐 */
+      align-items: stretch; /* 相当于 height: 100%; 让子元素的高度拉伸适用父容器（子元素不给高度的前提下)*/
+      /* 规定灵活的项目不拆行或不拆列。不换行，则收缩（压缩）显示，强制一行内显示	*/
+      flex-wrap: nowrap; /* 默认值，不换行 */
+      /* flex-wrap: wrap; 换行 */
+      /* flex-wrap: wrap-reverse; 换行，并且顺序会翻转 */
+    }
+    div {
+      width: 250px;
+      height: 200px;
+    }
+    div:first-child {
+      background-color: pink;
+    }
+    div:nth-child(2) {
+      background-color: purple;
+    }
+    div:nth-child(3) {
+      background-color: skyblue;
+    }
+    div:nth-child(4) {
+      background-color: hotpink;
+    }
+    div:nth-child(5) {
+      background-color: deeppink;
+    }
+  </style>
+</head>
+<body>
+  <section>
+    <div>1</div>
+    <div>2</div>
+    <div>3</div>
+    <div>4</div>
+    <div>5</div>
+  </section>
+</body>
+```
+
+#### 11.2.6. flex-flow
+
+`flex-flow`是`flex-direction`、`flex-wrap`这两个属性的合并简写形式，中间以空格隔开
+
+```css
+flex-flow: flex-direction的值 flex-wrap的值;
+```
+
+```css
+section {
+  width: 1000px;
+  height: 600px;
+  border: 2px solid pink;
+  margin: 100px auto;
+  display: flex;
+  /* flex-direction: row;
+     flex-wrap: wrap;   这两句话等价于下面的flex-flow*/
+  flex-flow: column wrap; /* 上面两者的综合 */
+}
+```
+
+#### 11.2.7. align-content（多行垂直对齐方式）
+
+`align-content`属性是针对flex容器里面多轴(多行)的情况，（由flex-wrap产生的独立行，设置多行垂直对齐方式。而`align-items`是针对一行的情况进行排列。
+
+<font color=red>**必须对父元素设置伸缩属性`display: flex;`，并且设置排列方式为横向排列`flex-direction :row;`，并且设置换行`flex-wrap: wrap;`。这样这个属性的设置才会起作用。**</font>
+
+|      值       |                    描述                     |
+| ------------- | ------------------------------------------- |
+| stretch       | 默认值。项目被拉伸以适应容器。                 |
+| center        | 项目位于容器的中心。                          |
+| flex-start    | 项目位于容器的开头。                          |
+| flex-end      | 项目位于容器的结尾。                          |
+| space-between | 项目位于各行之间留有空白的容器内。             |
+| space-around  | 项目位于各行之前、之间、之后都留有空白的容器内。 |
+
+```html
+<head>
+  <meta charset="utf-8" />
+  <style>
+    section {
+      width: 1000px;
+      height: 600px;
+      border: 2px solid pink;
+      margin: 100px auto;
+      display: flex; /* 必须定义为伸缩盒子 */
+      flex-flow: row wrap; /* 必须定义水平排列与换行 */
+      align-content: space-around;
+    }
+    div {
+      width: 250px;
+      height: 200px;
+    }
+    div:first-child {
+      background-color: pink;
+    }
+    div:nth-child(2) {
+      background-color: purple;
+    }
+    div:nth-child(3) {
+      background-color: skyblue;
+    }
+    div:nth-child(4) {
+      background-color: hotpink;
+    }
+    div:nth-child(5) {
+      background-color: deeppink;
+    }
+    div:nth-child(6) {
+      background-color: #f40;
+    }
+    div:nth-child(7) {
+      background-color: #daa520;
+    }
+  </style>
+</head>
+<body>
+  <section>
+    <div>1</div>
+    <div>2</div>
+    <div>3</div>
+    <div>4</div>
+    <div>5</div>
+    <div>6</div>
+    <div>7</div>
+  </section>
+</body>
+```
+
+#### 11.2.8. order（子盒子排列顺序）
+
+`order`属性用于控制子盒子的排列顺序，正序方式排序，从小到大。用整数值来定义排列顺序，数值小的排在前面。可以为负值。默认值是0
+
+```html
+<head>
+  <meta charset="utf-8" />
+  <style>
+    section {
+      width: 1000px;
+      height: 600px;
+      border: 2px solid pink;
+      margin: 100px auto;
+      display: flex;
+      flex-flow: row wrap;
+      align-content: space-around;
+    }
+    div {
+      width: 250px;
+      height: 200px;
+    }
+    div:first-child {
+      background-color: pink;
+    }
+    div:nth-child(2) {
+      background-color: purple;
+      order: 1;
+    }
+    div:nth-child(3) {
+      background-color: skyblue;
+    }
+    div:nth-child(4) {
+      background-color: hotpink;
+      order: -1; /* 数值越小，越往前，可以为负数*/
+    }
+    div:nth-child(5) {
+      background-color: deeppink;
+    }
+    div:nth-child(6) {
+      background-color: #f40;
+      order: -2;
+    }
+    div:nth-child(7) {
+      background-color: #daa520;
+    }
+  </style>
+</head>
+<body>
+  <section>
+    <div>1</div>
+    <div>2</div>
+    <div>3</div>
+    <div>4</div>
+    <div>5</div>
+    <div>6</div>
+    <div>7</div>
+  </section>
+</body>
+```
 
 ## 12. CSS书写规范
 
