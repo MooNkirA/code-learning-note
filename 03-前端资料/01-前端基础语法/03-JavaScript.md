@@ -1995,3 +1995,67 @@ umi dev
 运行效果：
 
 ![运行效果图](images/20191104172347775_380.jpg)
+
+### 1.2. JS实现浏览器：加入收藏、设为首页、保存到桌面的方法功能
+
+使用js实现在一些网页的“设置为首页”和“ 收藏本站”，以及“保存到桌面”等功能，完美兼容IE,chrome,ff等浏览器。
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>设置为首页、加入收藏、保存到桌面等功能实现测试</title>
+    <script type="text/JavaScript">
+      //设为首页
+      function SetHome(obj, url) {
+        try {
+          obj.style.behavior = 'url(#default#homepage)';
+          obj.setHomePage(url);
+        } catch(e) {
+          if (window.netscape) {
+            try {
+              netscape.security.PrivilegeManager.enablePrivilege("UniversalXPConnect");
+            } catch(e) {
+              alert("抱歉，此操作被浏览器拒绝！\n\n请在浏览器地址栏输入“about:config”并回车然后将[signed.applets.codebase_principal_support]设置为'true'");
+            }
+          } else {
+            alert("抱歉，您所使用的浏览器无法完成此操作。\n\n您需要手动将【"+url+"】设置为首页。");
+          }
+        }
+      }
+      //收藏本站
+      function AddFavorite(title, url) {
+        try {
+          window.external.addFavorite(url, title);
+        } catch (e) {
+          try {
+            window.sidebar.addPanel(title, url, "");
+          } catch (e) {
+            alert("抱歉，您所使用的浏览器无法完成此操作。\n\n加入收藏失败，请使用Ctrl+D进行添加");
+          }
+        }
+      }
+      //保存到桌面
+      function toDesktop(sUrl,sName){
+        try {
+          var WshShell = new ActiveXObject("WScript.Shell");
+          var oUrlLink = WshShell.CreateShortcut(WshShell.SpecialFolders("Desktop") + "\\" + sName + ".url");
+          oUrlLink.TargetPath = sUrl;
+          oUrlLink.Save();
+        } catch(e) {
+          alert("当前IE安全级别不允许操作！");
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <a href="JavaScript:void(0);" onclick="SetHome(this, 'http://www.moon.com');">设为首页</a>
+    <hr />
+    <a href="JavaScript:void(0);" onclick="AddFavorite('我的网站', location.href)">收藏本站</a>
+    <hr />
+    <a href="JavaScript:void(0);" onclick=" toDesktop(location.href, '我的网站')">保存到桌面</a>
+  </body>
+</html>
+```
