@@ -140,6 +140,428 @@ public static void main(String[] args) {
 }
 ```
 
+## 2. IOC的常用注解 - 用于注解驱动的注解
+
+### 2.1. @Configuration
+
+#### 2.1.1. 源码
+
+```java
+@Target(ElementType.TYPE)
+@Retention(RetentionPolicy.RUNTIME)
+@Documented
+@Component
+public @interface Configuration {
+	/**
+	 * Explicitly specify the name of the Spring bean definition associated with the
+	 * {@code @Configuration} class. If left unspecified (the common case), a bean
+	 * name will be automatically generated.
+	 * <p>The custom name applies only if the {@code @Configuration} class is picked
+	 * up via component scanning or supplied directly to an
+	 * {@link AnnotationConfigApplicationContext}. If the {@code @Configuration} class
+	 * is registered as a traditional XML bean definition, the name/id of the bean
+	 * element will take precedence.
+	 * @return the explicit component name, if any (or empty String otherwise)
+	 * @see org.springframework.beans.factory.support.DefaultBeanNameGenerator
+	 */
+	@AliasFor(annotation = Component.class)
+	String value() default "";
+}
+```
+
+#### 2.1.2. 作用
+
+它是在spring3.0版本之后加入的。此注解是Spring支持注解驱动开发的一个标志。表示当前类是Spring的一个配置类，作用是替代传统主Spring的`applicationContext.xml`配置文件。
+
+从它的源码可以看出，其本质就是`@Component`注解，被此注解修饰的类，也会被存入spring的ioc容器。
+
+#### 2.1.3. 相关属性
+
+- `value`：用于存入spring的Ioc容器中Bean的id
+
+#### 2.1.4. 使用场景
+
+在注解驱动开发时，用于编写配置的类，通常可以使用此注解。一般情况下，配置也会分为主从配置，`@Configuration`一般出现在主配置类上。
+
+例如，在上面快递入门案例中的`SpringConfiguration`类上。值得注意的是，构建ioc容器（`AnnotationConfigApplicationContext`）使用的是传入字节码的构造函数，此注解可以省略。
+
+```java
+ApplicationContext context = new AnnotationConfigApplicationContext(SpringConfiguration.class);
+
+// @Configuration /* 标识当前类为配置类 */
+@Import(JdbcConfig.class)
+@PropertySource("classpath:jdbc.properties")
+public class SpringConfiguration {
+}
+```
+
+但是如果使用基础包扫描的构造函数创建`AnnotationConfigApplicationContext`，则配置类中的`@Configuration `注解则不能省略。
+
+```java
+ApplicationContext context = new AnnotationConfigApplicationContext("com.moon.springsample");
+
+@Configuration /* 标识当前类为配置类 */
+@Import(JdbcConfig.class) /* @Import注解是写在类上的，通常是和注解驱动的配置类一起使用的。其作用是引入其他的配置类 */
+@PropertySource("classpath:jdbc.properties") /* 用于指定读取资源文件的位置。不仅支持properties，也支持xml文件 */
+public class SpringConfiguration {
+}
+```
+
+#### 2.1.5. 示例
+
+- 创建配置类
+
+```java
+package com.moon.springsample.config;
+
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Configuration;
+
+/**
+ * spring项目的配置类，用于代替传统的xml配置文件
+ * <p>没有applicationContext.xml，就没法在xml中配置spring创建容器要扫描的包了。</p>
+ * <p>那么可以创建一些类，通过注解配置到ioc容器中也无法实现了。此时就可以使用此注解来代替spring的配置文件。</p>
+ */
+@Configuration("springConfiguration") /* 标识当前类为配置类 */
+@ComponentScan("com.moon.springsample") /* 配置开启包扫描 */
+// @Import(Xxxxx.class) /* 通过@Import注解导入其他的配置类 */
+// @PropertySource("classpath:xxxx.properties") /* 通过@PropertySource注解导入配置文件，如.properties、.xml等 */
+public class SpringConfiguration {
+}
+```
+
+- 测试
+
+```java
+package com.moon.springannotation.test;
+
+import com.moon.springsample.config.SpringConfiguration;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+
+/**
+ * `@Configuration` 注解使用测试
+ *
+ * @author MooNkirA
+ * @version 1.0
+ * @date 2020-7-31 23:40
+ * @description
+ */
+public class ConfigurationTest {
+    /* Configuratio注解使用测试 */
+    public static void main(String[] args) {
+        // 方式一：1. 获取基于注解的spinrg容器，使用基础包basePackages的构造函数创建=容器，此时SpringConfiguration类上必须加上@Configuration注解
+        // ApplicationContext context = new AnnotationConfigApplicationContext("com.moon.springsample");
+        // 方式二：1. 获取基于注解的spinrg容器，使用传入字节码的构造函数创建容器，此时SpringConfiguration类上可以不加@Configuration注解
+        ApplicationContext context = new AnnotationConfigApplicationContext(SpringConfiguration.class);
+        // 2. 根据id或者类型去获取对应的bean实例
+        SpringConfiguration springConfiguration = (SpringConfiguration) context.getBean("springConfiguration");
+        System.out.println(springConfiguration);
+    }
+}
+```
+
+### 2.2. @ComponentScan
+
+#### 2.2.1. 源码
+
+```java
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.TYPE)
+@Documented
+@Repeatable(ComponentScans.class)
+public @interface ComponentScan {
+
+	/**
+	 * basePackages的别名
+	 * 允许在不需要其他属性的情况下进行更简洁的注释声明，例如:
+	 * {@code @ComponentScan("org.my.pkg") 相当于 @ComponentScan(basePackages = "org.my.pkg")`}
+	 */
+	@AliasFor("basePackages")
+	String[] value() default {};
+
+	/**
+	 * 扫描带注解的基础包，是value的别名，不能同时配置
+	 */
+	@AliasFor("value")
+	String[] basePackages() default {};
+
+	/**
+	 * 扫描具体的类。basePackagesClasses属性的类型是Class数组，也就是说支持同时指定多个扫描类。
+	 */
+	Class<?>[] basePackageClasses() default {};
+
+	/**
+	 * 配置beanName生成器，默认是BeanNameGenerator类。一般情况下，都是使用默认的beanName生成器，但是Spring实现了可配置beanName生成器。
+	 */
+	Class<? extends BeanNameGenerator> nameGenerator() default BeanNameGenerator.class;
+
+	/**
+	 * 处理检测到的bean的scope范围。spring的bean是有作用域的，默认是singleton，这个默认值就是在ScopeMetaData类中指定的：{@code private String scopeName = "singleton";}
+	 * 这个属性也是可选配置，默认的处理bean作用域的实现类是AnnotationScopeMetaDataResolver.class。如果设置就是取注解上获取指定的scope的value值，如果没有配置，就是用默认值singleton。
+	 */
+	Class<? extends ScopeMetadataResolver> scopeResolver() default AnnotationScopeMetadataResolver.class;
+
+	/**
+	 * 用于指定bean生成时的代理方式。默认是Default，则不使用代理。可选值有四个：DEFAULT，NO，INTERFACES，TARGET_CLASS。
+	 */
+	ScopedProxyMode scopedProxy() default ScopedProxyMode.DEFAULT;
+
+	/**
+	 * 是否对带有@Component @Repository @Service @Controller注解的类开启检测，默认是开启的。
+	 */
+	String resourcePattern() default ClassPathScanningCandidateComponentProvider.DEFAULT_RESOURCE_PATTERN;
+
+	/**
+	 * 用于指定符合组件检测条件的类文件，默认值ClassPathScanningCandidateComponentProvider.DEFAULT_RESOURCE_PATTERN
+	 */
+	boolean useDefaultFilters() default true;
+
+	/**
+     * 自定义组件扫描的过滤规则，用于扫描组件。
+	 */
+	Filter[] includeFilters() default {};
+
+	/**
+	 * 自定义组件扫描的排除规则
+	 */
+	Filter[] excludeFilters() default {};
+
+	/**
+	 * 组件扫描时是否采用懒加载，默认值为false（不开启）
+	 */
+	boolean lazyInit() default false;
+
+	@Retention(RetentionPolicy.RUNTIME)
+	@Target({})
+	@interface Filter {
+
+		FilterType type() default FilterType.ANNOTATION;
+
+		@AliasFor("classes")
+		Class<?>[] value() default {};
+
+		@AliasFor("value")
+		Class<?>[] classes() default {};
+
+		String[] pattern() default {};
+	}
+}
+```
+
+#### 2.2.2. 注解的作用与使用场景
+
+用于指定创建容器时要扫描的包。该注解在指定扫描的位置时，可以指定包名，也可以指定扫描的类。同时支持定义扫描规则，例如包含哪些或者排除哪些。同时，它还支持自定义Bean的命名规则
+
+在注解驱动开发时，编写的类都使用注解的方式进行配置，但想让加上相关spring注解(如：`@Controller`、`@Service`、`@Repository`、`@Component`)的类添加到spring的ioc容器中，就需要使用`@ComponentScan`注解来实现组件的扫描。
+
+<font color=red>**注意：在spring4.3版本之后还加入了一个`@ComponentScans`的注解，该注解相当于支持配置多个`@ComponentScan`**</font>
+
+#### 2.2.3. 相关属性
+
+- `value`：用于指定要扫描的包。当指定了包的名称之后，spring会扫描指定的包及其子包下的所有类
+- `basePackages`：与value作用一样
+- `basePackageClasses`：指定具体要扫描的类的字节码，spring会扫描指定字节码的类所在的包及其子包下的所有类。
+- `nameGenrator`：指定扫描bean对象存入容器时的命名规则。详情参考《Spring源码分析》的BeanNameGenerator及其实现类。
+- `scopeResolver`：用于处理并转换检测到的Bean的作用范围。
+- `soperdProxy`：用于指定bean生成时的代理方式。默认是Default，则不使用代理，可选值有四个：`DEFAULT`，`NO`，`INTERFACES`，`TARGET_CLASS`。详情请参考《Spring源码分析》的ScopedProxyMode枚举。
+- `resourcePattern`：用于指定符合组件检测条件的类文件，默认是包扫描下的`**/*.class`
+- `useDefaultFilters`：是否对带有@Component @Repository @Service @Controller注解的类开启检测，默认是开启的。
+- `includeFilters`：自定义组件扫描的过滤规则，用于扫描组件。注解的是`Filter`注解数组，`Filter`的`type`属性是`FilterType`的枚举，有5种类型：
+    - `ANNOTATION`：注解类型 默认
+    - `ASSIGNABLE_TYPE`：指定固定类
+    - `ASPECTJ`：ASPECTJ类型
+    - `REGEX`：正则表达式
+    - `CUSTOM`：自定义类型
+    - > 详情参考《Spring源码分析》自定义组件扫描过滤规则
+- `excludeFilters`：自定义组件扫描的排除规则。
+- `lazyInit`：组件扫描时是否采用懒加载 ，默认不开启。
+
+#### 2.2.4. 示例
+
+##### 2.2.4.1. 不指定扫描包的使用
+
+- 创建配置类
+
+```java
+@Configuration /* 标识当前类为配置类 */
+@ComponentScan /* 配置开启包扫描，不写扫描的包路径，则默认扫描当前@ComponentScan注解的类所在的包及其下的所有子包 */
+public class SpringConfiguration {
+}
+```
+
+- 测试代码
+
+```java
+@Test
+public void componentScanBaseTest() {
+    // 1. 获取基于注解的spinrg容器，使用传入字节码的构造函数创建容器。（这里故意不使用传入基础包的构造函数，如果这里配置了扫描包包含了测试层的位置，则看不出效果）
+    ApplicationContext context = new AnnotationConfigApplicationContext(SpringConfiguration.class);
+    // 2. 根据id或者类型去获取对应的bean实例
+    UserService userService = context.getBean("userService", UserService.class);
+    // 3. 调用对象方法
+    userService.saveUser();
+}
+```
+
+测试结果，`@ComponentScan`不指定扫描包，只会扫描当前配置类所在的包及其下的所有子包
+
+![](images/20200805234044677_8448.png)
+
+##### 2.2.4.2. value与basePackages属性
+
+- 创建简单模拟的业务层代码
+
+```java
+package com.moon.springsample.service;
+
+public interface UserService {
+    /* 模拟保存用户 */
+    void saveUser();
+}
+```
+
+```java
+package com.moon.springsample.service.impl;
+
+import com.moon.springsample.service.UserService;
+import org.springframework.stereotype.Service;
+
+@Service("userService") /* 配置当前类交给spring ioc容器管理，其中value为对象在容器中的名称 */
+public class UserServiceImpl implements UserService {
+    @Override
+    public void saveUser() {
+        System.out.println("成功保存用户");
+    }
+}
+```
+
+- 创建配置类，使用`@ComponentScan`注解
+
+```java
+package com.moon.springsample.config;
+
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Configuration;
+
+/**
+ * spring项目的配置类
+ */
+@Configuration /* 标识当前类为配置类 */
+// @ComponentScan("com.moon.springsample") /* 配置开启包扫描，配置value属性，如果没有配置，则可以省略不写value="xxxx" */
+@ComponentScan(basePackages = {"com.moon.springsample"}) /* 配置开启包扫描，配置basePackages属性，效果与value一样，但不能与value属性同时存在 */
+public class SpringConfiguration {
+}
+```
+
+- 测试
+
+```java
+@Test
+public void componentScanBasePackagesTest() {
+    // 1. 获取基于注解的spinrg容器，使用传入字节码的构造函数创建容器。（这里故意不使用传入基础包的构造函数，如果这里配置了扫描包包含了测试层的位置，则看不出效果）
+    ApplicationContext context = new AnnotationConfigApplicationContext(SpringConfiguration.class);
+    // 2. 根据id或者类型去获取对应的bean实例
+    UserService userService = context.getBean("userService", UserService.class);
+    // 3. 调用对象方法
+    userService.saveUser();
+}
+```
+
+##### 2.2.4.3. basePackageClassesn属性
+
+- 配置`basePackageClasses`属性，指定扫描类的字节码
+
+```java
+@Configuration /* 标识当前类为配置类 */
+@ComponentScan(basePackageClasses = UserService.class) /* 配置开启包扫描，指定具体要扫描的类的字节码，spring会扫描指定字节码的类所在的包及其子包下的所有类。 */
+public class SpringConfiguration {
+}
+```
+
+- 测试
+
+```java
+@Test
+public void componentScanBasePackageClassesTest() {
+    // 1. 获取基于注解的spinrg容器，使用基础包的构造函数，只扫描配置类所在的包。
+    ApplicationContext context = new AnnotationConfigApplicationContext("com.moon.springsample.config");
+    // 2. 根据id或者类型去获取对应的bean实例
+    UserService userService = context.getBean("userService", UserService.class);
+    // 3. 调用对象方法
+    userService.saveUser();
+    // 使用basePackageClasses方法扫描，测试指定字节码类所在的包及其子包所有的类是否被扫描到
+    AccountService accoutService = context.getBean("accountService", AccountService.class);
+    accoutService.deleteAccount();
+}
+```
+
+测试结果：扫描到UserService所在的包及其子包
+
+![](images/20200809001235062_3991.png)
+
+#### 2.2.5. 自定义BeanNameGenerator生成规则
+
+##### 2.2.5.1. nameGenrator属性
+
+通过查看`@ComponentScan`注解的源码，有`nameGenrator`属性，用来定义bean在spring容器中的名称。属性的值是一个`BeanNameGenerator`接口，spring有默认实现的生成名称，其实现类为`AnnotationBeanNameGenerator`。
+
+其中`AnnotationBeanNameGenerator`实现的逻辑主要通过类上的注解元数据，在获取注解中的value值，如果value有值，则以value的值为baen的名称。如果value没有值，则将获取类名，将首字母转成小写，用作bean的名称
+
+> 注：在《Spring源码分析》中有`BeanNameGenerator`的详细介绍
+
+##### 2.2.5.2. 自定义beanName生成规则示例
+
+- 创建自定义beanName生成规则类`com.moon.springsample.custom.CustomBeanNameGenerator`，实现`BeanNameGenerator`接口。里面的逻辑可以参考源码
+
+```java
+
+```
+
+- 在配置类中的`@ComponentScan`注解，加入`nameGenrator`属性，值为自定义的规则实现类`CustomBeanNameGenerator`
+
+```java
+
+```
+
+
+
+
+
+
+
+### 2.3. @Bean
+
+#### 2.3.1. 源码
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

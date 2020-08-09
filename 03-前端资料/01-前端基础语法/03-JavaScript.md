@@ -23,7 +23,7 @@ const obj = {
 ```
 
 - **`null`与`undefined`的区别**
-    - `null`: 其实是Object对象类型，这个对象只是没有值，为空
+    - `null`：其实是Object对象类型，这个对象只是没有值，为空
     - `undefined`：没有初始化的类型，并不知道是什么数据类型
 
 #### 1.1.2. typeof操作符
@@ -173,10 +173,6 @@ let variable2 = variable1 || "foo";
 let variable = param && param.prop;
 ```
 
-
-
-
-
 ## 2. 数组对象Array
 
 在JS中，数组等价于集合
@@ -295,7 +291,7 @@ for (let index = 0; index < colors.length; index++) {
 #### 2.3.3. forEach()方法
 
 - 语法：`array.forEach(callback(item[, index[, array]]))`
-    
+  
     - 参数callback函数，该函数参数包括：当前遍历项（item）、索引（index）和数组本身（array）。
 - 作用：forEach是Array新方法中最基本的一个，就是遍历，循环。对数组中的每一项元素调用callback函数，执行相关逻辑来遍历数组所有元素项
 - forEach方法与map方法的区别是：forEach不返回值，只用来操作数据。
@@ -314,7 +310,7 @@ arr.forEach((item, index) => {
 #### 2.4.1. map()方法 - ES6新特性
 
 - 语法：`map(callback(item[, index[, array]]))`
-    
+  
     - 参数callback函数，该函数参数包括：当前遍历项（item）、索引（index）和数组本身（array）。
 - 作用：接收一个函数，将原数组中的所有元素用这个函数处理后，创建新的数组返回。
 - > 注：`array.map()`创建一个新的映射数组，而不改变原始数组。
@@ -960,7 +956,7 @@ i32a.copyWithin(0, 2);
 #### 2.11.1. flat() 方法
 
 - 语法：`array.flat([depth])`
-    
+  
     - 参数depth：可选参数，默认值为1
 - 作用：通过递归扁平属于数组的项直到一定深度来创建新数组
 - > 注：`array.flat()` 创建一个新数组，而不会改变原始数组
