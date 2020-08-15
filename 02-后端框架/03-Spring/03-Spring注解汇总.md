@@ -1,5 +1,7 @@
 # Spring 注解开发使用详解汇总
 
+> 注：注解的源码注释参考项目 https://github.com/MooNkirA/spring-note/tree/master/Spring-Framework
+
 ## 1. Spring注解驱动开发入门
 
 ### 1.1. 简介
@@ -144,42 +146,17 @@ public static void main(String[] args) {
 
 ### 2.1. @Configuration
 
-#### 2.1.1. 源码
-
-```java
-@Target(ElementType.TYPE)
-@Retention(RetentionPolicy.RUNTIME)
-@Documented
-@Component
-public @interface Configuration {
-	/**
-	 * Explicitly specify the name of the Spring bean definition associated with the
-	 * {@code @Configuration} class. If left unspecified (the common case), a bean
-	 * name will be automatically generated.
-	 * <p>The custom name applies only if the {@code @Configuration} class is picked
-	 * up via component scanning or supplied directly to an
-	 * {@link AnnotationConfigApplicationContext}. If the {@code @Configuration} class
-	 * is registered as a traditional XML bean definition, the name/id of the bean
-	 * element will take precedence.
-	 * @return the explicit component name, if any (or empty String otherwise)
-	 * @see org.springframework.beans.factory.support.DefaultBeanNameGenerator
-	 */
-	@AliasFor(annotation = Component.class)
-	String value() default "";
-}
-```
-
-#### 2.1.2. 作用
+#### 2.1.1. 作用
 
 它是在spring3.0版本之后加入的。此注解是Spring支持注解驱动开发的一个标志。表示当前类是Spring的一个配置类，作用是替代传统主Spring的`applicationContext.xml`配置文件。
 
 从它的源码可以看出，其本质就是`@Component`注解，被此注解修饰的类，也会被存入spring的ioc容器。
 
-#### 2.1.3. 相关属性
+#### 2.1.2. 相关属性
 
 - `value`：用于存入spring的Ioc容器中Bean的id
 
-#### 2.1.4. 使用场景
+#### 2.1.3. 使用场景
 
 在注解驱动开发时，用于编写配置的类，通常可以使用此注解。一般情况下，配置也会分为主从配置，`@Configuration`一般出现在主配置类上。
 
@@ -207,7 +184,7 @@ public class SpringConfiguration {
 }
 ```
 
-#### 2.1.5. 示例
+#### 2.1.4. 示例
 
 - 创建配置类
 
@@ -263,93 +240,7 @@ public class ConfigurationTest {
 
 ### 2.2. @ComponentScan
 
-#### 2.2.1. 源码
-
-```java
-@Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.TYPE)
-@Documented
-@Repeatable(ComponentScans.class)
-public @interface ComponentScan {
-
-	/**
-	 * basePackages的别名
-	 * 允许在不需要其他属性的情况下进行更简洁的注释声明，例如:
-	 * {@code @ComponentScan("org.my.pkg") 相当于 @ComponentScan(basePackages = "org.my.pkg")`}
-	 */
-	@AliasFor("basePackages")
-	String[] value() default {};
-
-	/**
-	 * 扫描带注解的基础包，是value的别名，不能同时配置
-	 */
-	@AliasFor("value")
-	String[] basePackages() default {};
-
-	/**
-	 * 扫描具体的类。basePackagesClasses属性的类型是Class数组，也就是说支持同时指定多个扫描类。
-	 */
-	Class<?>[] basePackageClasses() default {};
-
-	/**
-	 * 配置beanName生成器，默认是BeanNameGenerator类。一般情况下，都是使用默认的beanName生成器，但是Spring实现了可配置beanName生成器。
-	 */
-	Class<? extends BeanNameGenerator> nameGenerator() default BeanNameGenerator.class;
-
-	/**
-	 * 处理检测到的bean的scope范围。spring的bean是有作用域的，默认是singleton，这个默认值就是在ScopeMetaData类中指定的：{@code private String scopeName = "singleton";}
-	 * 这个属性也是可选配置，默认的处理bean作用域的实现类是AnnotationScopeMetaDataResolver.class。如果设置就是取注解上获取指定的scope的value值，如果没有配置，就是用默认值singleton。
-	 */
-	Class<? extends ScopeMetadataResolver> scopeResolver() default AnnotationScopeMetadataResolver.class;
-
-	/**
-	 * 用于指定bean生成时的代理方式。默认是Default，则不使用代理。可选值有四个：DEFAULT，NO，INTERFACES，TARGET_CLASS。
-	 */
-	ScopedProxyMode scopedProxy() default ScopedProxyMode.DEFAULT;
-
-	/**
-	 * 是否对带有@Component @Repository @Service @Controller注解的类开启检测，默认是开启的。
-	 */
-	String resourcePattern() default ClassPathScanningCandidateComponentProvider.DEFAULT_RESOURCE_PATTERN;
-
-	/**
-	 * 用于指定符合组件检测条件的类文件，默认值ClassPathScanningCandidateComponentProvider.DEFAULT_RESOURCE_PATTERN
-	 */
-	boolean useDefaultFilters() default true;
-
-	/**
-     * 自定义组件扫描的过滤规则，用于扫描组件。
-	 */
-	Filter[] includeFilters() default {};
-
-	/**
-	 * 自定义组件扫描的排除规则
-	 */
-	Filter[] excludeFilters() default {};
-
-	/**
-	 * 组件扫描时是否采用懒加载，默认值为false（不开启）
-	 */
-	boolean lazyInit() default false;
-
-	@Retention(RetentionPolicy.RUNTIME)
-	@Target({})
-	@interface Filter {
-
-		FilterType type() default FilterType.ANNOTATION;
-
-		@AliasFor("classes")
-		Class<?>[] value() default {};
-
-		@AliasFor("value")
-		Class<?>[] classes() default {};
-
-		String[] pattern() default {};
-	}
-}
-```
-
-#### 2.2.2. 注解的作用与使用场景
+#### 2.2.1. 作用与使用场景
 
 用于指定创建容器时要扫描的包。该注解在指定扫描的位置时，可以指定包名，也可以指定扫描的类。同时支持定义扫描规则，例如包含哪些或者排除哪些。同时，它还支持自定义Bean的命名规则
 
@@ -357,7 +248,7 @@ public @interface ComponentScan {
 
 <font color=red>**注意：在spring4.3版本之后还加入了一个`@ComponentScans`的注解，该注解相当于支持配置多个`@ComponentScan`**</font>
 
-#### 2.2.3. 相关属性
+#### 2.2.2. 相关属性
 
 - `value`：用于指定要扫描的包。当指定了包的名称之后，spring会扫描指定的包及其子包下的所有类
 - `basePackages`：与value作用一样
@@ -377,9 +268,9 @@ public @interface ComponentScan {
 - `excludeFilters`：自定义组件扫描的排除规则。
 - `lazyInit`：组件扫描时是否采用懒加载 ，默认不开启。
 
-#### 2.2.4. 示例
+#### 2.2.3. 示例
 
-##### 2.2.4.1. 不指定扫描包的使用
+##### 2.2.3.1. 不指定扫描包的使用
 
 - 创建配置类
 
@@ -408,7 +299,7 @@ public void componentScanBaseTest() {
 
 ![](images/20200805234044677_8448.png)
 
-##### 2.2.4.2. value与basePackages属性
+##### 2.2.3.2. value与basePackages属性
 
 - 创建简单模拟的业务层代码
 
@@ -468,7 +359,7 @@ public void componentScanBasePackagesTest() {
 }
 ```
 
-##### 2.2.4.3. basePackageClassesn属性
+##### 2.2.3.3. basePackageClassesn属性
 
 - 配置`basePackageClasses`属性，指定扫描类的字节码
 
@@ -500,9 +391,9 @@ public void componentScanBasePackageClassesTest() {
 
 ![](images/20200809001235062_3991.png)
 
-#### 2.2.5. 自定义BeanNameGenerator生成规则
+#### 2.2.4. 自定义BeanNameGenerator生成规则
 
-##### 2.2.5.1. nameGenrator属性
+##### 2.2.4.1. nameGenrator属性
 
 通过查看`@ComponentScan`注解的源码，有`nameGenrator`属性，用来定义bean在spring容器中的名称。属性的值是一个`BeanNameGenerator`接口，spring有默认实现的生成名称，其实现类为`AnnotationBeanNameGenerator`。
 
@@ -510,7 +401,7 @@ public void componentScanBasePackageClassesTest() {
 
 > 注：在《Spring源码分析》中有`BeanNameGenerator`的详细介绍
 
-##### 2.2.5.2. 自定义beanName生成规则示例
+##### 2.2.4.2. 自定义beanName生成规则示例
 
 - 创建自定义beanName生成规则类`com.moon.springsample.custom.CustomBeanNameGenerator`，实现`BeanNameGenerator`接口。里面的逻辑可以参考源码
 
