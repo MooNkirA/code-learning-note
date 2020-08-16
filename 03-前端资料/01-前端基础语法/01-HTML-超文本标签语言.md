@@ -1003,13 +1003,6 @@ table表格的相关属性：
 </html>
 ```
 
-# 其他
-
-## 1. 常用参考文档
-
-- W3C：http://www.w3school.com.cn/
-- MDN：https://developer.mozilla.org/zh-CN/
-
 # HTML5
 
 ## 1. HTML5 Canvas标签详解
