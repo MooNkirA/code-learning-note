@@ -2090,7 +2090,9 @@ box-shadow: 水平阴影 垂直阴影 模糊距离 阴影尺寸 阴影颜色 内
 </style>
 ```
 
-## 7. 传统网页布局的三种方式
+## 7. 网页布局-浮动(float)（重点）
+
+### 7.1. 传统网页布局的三种方式
 
 网页布局的本质：就是用CSS来摆放盒子位置。
 
@@ -2102,7 +2104,7 @@ CSS 提供了三种传统布局方式(简单来说，就是盒子如何进行排
 
 > 注意：实际开发中，一个页面基本都包含了这三种布局方式
 
-### 7.1. 网页布局-普通流(normal flow)
+### 7.2. 网页布局-普通流(normal flow)
 
 normal flow 也有称为文档流。
 
@@ -2113,7 +2115,9 @@ html语言当中另外一个相当重要的概念：标准流！或者普通流�
 
 以上都是标准流布局，标准流是最基本的布局方式。
 
-## 8. 网页布局-浮动(float)（重点）
+### 7.3. 浮动的定义
+
+#### 7.3.1. 什么是浮动
 
 有很多的布局效果，标准流没有办法完成，此时就可以利用浮动完成布局。因为浮动可以改变元素标签默认的排列方式
 
@@ -2125,11 +2129,11 @@ html语言当中另外一个相当重要的概念：标准流！或者普通流�
 
 <font color=red>**网页布局第一准则：多个块级元素纵向排列用标准流，多个块级元素横向排列用浮动。**</font>
 
-### 8.1. 浮动的定义
-
 元素的浮动是指设置了浮动属性的元素会脱离标准普通流的控制，移动到其父元素中指定位置的过程
 
-在CSS中，通过`float`属性来定义浮动，其基本语法格式如下：
+#### 7.3.2. CSS中如何设置浮动
+
+在CSS中，`float`属性用于创建浮动框，将其移动到一边，直到左边缘或右边缘触及包含块或另一个浮动框的边缘。其基本语法格式如下：
 
 ```css
 选择器 { float: 属性值; }
@@ -2141,7 +2145,35 @@ html语言当中另外一个相当重要的概念：标准流！或者普通流�
 | right | 元素向右浮动                                 |
 | none  | 元素不浮动（不设置float属性，此为默认值）      |
 
-### 8.2. 浮动详细内幕特性
+### 7.4. 浮动特性
+
+添加浮动之后的元素，会有以下特点：
+
+1. 浮动元素会脱离标准流(脱标)
+2. 浮动的元素会一行内显示并且元素顶部对齐
+3. 浮动的元素会具有行内块元素的特性
+
+#### 7.4.1. 特性1 - 浮动元素脱标
+
+1. 浮动（float）的元素会脱离标准普通流的控制（浮）移动到指定位置（动），俗称脱标
+2. 浮动的盒子<font color=red>**不再保留原先的位置**</font>
+3. 浮动只有左右浮动
+
+#### 7.4.2. 特性2 - 浮动元素的排序
+
+如果多个盒子都设置了浮动，则它们会按照属性值的方向，<font color=red>**在一行内显示并且顶端对齐排列**</font>
+
+<font color=red>**注意：浮动的元素是互相贴靠在一起的（元素之间不会有缝隙），如果父级宽度装不下这些浮动的盒子，多出的盒子会另起一行对齐。**</font>
+
+#### 7.4.3. 特性3 - 浮动元素的行内块元素特性
+
+任何元素都可以浮动。不管原先是什么模式的元素，添加浮动之后具有行内块元素相似的特性。
+
+> - 如果块级盒子没有设置宽度，默认宽度和父级一样宽，但是添加浮动后，它的大小根据内容来决定
+> - 浮动的盒子中间是没有缝隙的，是紧挨着一起的
+> - 行内元素也是一样的效果
+
+#### 7.4.4. 浮动内幕特性示例详解
 
 浮动会脱离标准流，不占位置，会影响标准流。浮动只有左右浮动。
 
@@ -2226,25 +2258,298 @@ html语言当中另外一个相当重要的概念：标准流！或者普通流�
     1. 浮动的盒子需要和标准流的父级搭配使用
     2. 特别注意浮动可以使元素（行内、块）显示模式体现为行内块元素的特性
 
-### 8.3. 消除浮动
+### 7.5. 常见浮动布局用法
 
-#### 8.3.1. 为什么要清除浮动
+#### 7.5.1. 浮动元素和标准流父级元素搭配使用
 
-浮动本质是用来做一些文字混排效果的，但是被拿来做布局用，则会有很多的问题出现
+为了约束浮动元素位置, 网页布局一般采取的策略是：<font color=red>**先用标准流的父元素排列上下位置，之后内部子元素采取浮动排列左右位置**</font>。符合网页布局第一准侧.
 
-由于浮动元素不再占用原文档流的位置，所以它会对后面的元素排版产生影响，为了解决这些问题，此时就需要在该元素中清除浮动。
+```html
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+  <title>浮动布局练习3</title>
+  <style>
+    .box {
+      width: 1226px;
+      height: 615px;
+      background-color: pink;
+      margin: 0 auto;
+    }
+    .left {
+      float: left;
+      width: 234px;
+      height: 615px;
+      background-color: purple;
+    }
+    .right {
+      float: left;
+      width: 992px;
+      height: 615px;
+      background-color: skyblue;
+    }
+    .right > div {
+      float: left;
+      width: 234px;
+      height: 300px;
+      background-color: pink;
+      margin-left: 14px;
+      margin-bottom: 14px;
+    }
+  </style>
+</head>
+<body>
+  <div class="box">
+    <div class="left">左青龙</div>
+    <div class="right">
+      <div>1</div>
+      <div>2</div>
+      <div>3</div>
+      <div>4</div>
+      <div>5</div>
+      <div>6</div>
+      <div>7</div>
+      <div>8</div>
+    </div>
+  </div>
+</body>
+```
 
-<font color=red>**准确地说，并不是清除浮动，而是清除浮动后造成的影响**</font>
+最终效果：
 
-#### 8.3.2. 清除浮动本质
+![](images/20200817233839454_2305.png)
 
-清除浮动主要为了解决父级元素因为子级浮动引起内部高度为0的问题
+#### 7.5.2. 版心（可视区）和布局流程
+
+在制作网页时，要想使页面结构清晰、有条理，也需要对网页进行“排版”。“版心”(可视区) 是指网页中主体内容所在的区域。一般在浏览器窗口中水平居中显示，常见的宽度值为960px、980px、1000px、1200px等。
+
+为了提高网页制作的效率，布局时通常需要遵守一定的布局流程，具体如下：
+
+1. 确定页面的版心（可视区）
+2. 分析页面中的行模块，以及每个行模块中的列模块
+3. 制作HTML结构
+4. CSS初始化，然后开始运用盒子模型的原理，通过DIV+CSS布局来控制网页的各个模块
+
+#### 7.5.3. 一列固定宽度且居中
+
+![](images/20200719124302976_5988.jpg)
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0; /* 常用样式初始化，清除内外边距 */
+      }
+      /* 相同的样式，使用并集选择器定义 */
+      .top,
+      .banner,
+      .main,
+      .footer {
+        width: 960px;
+        text-align: center; /* 文字居中对齐 */
+        margin: 0 auto; /* 让盒子居中对齐，设置保证左右属性值为auto即可 */
+        margin-bottom: 10px;
+        border: 1px dashed #ccc;
+      }
+      .top {
+        height: 80px;
+        background-color: pink;
+      }
+      .banner {
+        height: 120px;
+        background-color: purple;
+      }
+      .main {
+        height: 500px;
+        background-color: hotpink;
+      }
+      .footer {
+        height: 150px;
+        background-color: black;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="top">top</div>
+    <div class="banner">banner</div>
+    <div class="main">main</div>
+    <div class="footer">footer</div>
+  </body>
+</html>
+```
+
+#### 7.5.4. 两列左窄右宽型
+
+![](images/20200719124344369_13434.jpg)
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+      }
+      .top,  /* 并集选择器给相同样式集体声明 */
+	  .banner,
+	  .main,
+	  .footer {
+        width: 960px;
+        margin: 0 auto;
+        border: 1px dashed #ccc;
+        text-align: center;
+        background-color: #eee;
+        margin-bottom: 8px;
+      }
+      .top {
+        height: 80px;
+      }
+      .banner {
+        height: 150px;
+      }
+      .main {
+        height: 500px;
+      }
+      /* 计算好中间的间隔的宽度后，调整左右子元素的宽度，不要超出父元素的宽度。然后再设置子元素分别左右浮动即可 */
+      .left {
+        width: 360px;
+        height: 500px;
+        background-color: pink;
+        float: left;
+      }
+      .right {
+        width: 592px;
+        height: 500px;
+        background-color: purple;
+        float: right;
+      }
+      .footer {
+        height: 120px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="top">top</div>
+    <div class="banner">banner</div>
+    <div class="main">
+      <div class="left">left</div>
+      <div class="right">right</div>
+    </div>
+    <div class="footer">footer</div>
+  </body>
+</html>
+```
+
+#### 7.5.5. 通栏平均分布型
+
+![](images/20200719124410070_23928.jpg)
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+      }
+      ul {
+        list-style: none; /* 取消列表的默认样式小点 */
+      }
+      .top {
+        height: 60px;
+        background-color: #000;
+      }
+      .banner {
+        width: 960px;
+        height: 400px;
+        background-color: skyblue;
+        margin: 20px auto;
+        border-radius: 15px;
+      }
+      .main {
+        width: 960px;
+        margin: 0 auto;
+        height: 200px;
+      }
+      .main ul li {
+        width: 240px;
+        height: 200px;
+        background-color: pink;
+        float: left; /* 浮动的目的让多个块级li 一行显示并且没有间隔 */
+      }
+      .main ul li:nth-child(even) {
+        /* even：偶数  odd：奇数 */
+        background-color: purple;
+      }
+      .footer {
+        height: 100px;
+        background-color: #000;
+        margin-top: 20px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="top">top</div>
+    <div class="banner">banner</div>
+    <div class="main">
+      <ul>
+        <li>1</li>
+        <li>2</li>
+        <li>3</li>
+        <li>4</li>
+      </ul>
+    </div>
+    <div class="footer">footer</div>
+  </body>
+</html>
+```
+
+#### 7.5.6. 浮动布局注意点
+
+1. 浮动和标准流的父盒子搭配
+
+<font color=red>**先用标准流的父元素排列上下位置, 之后内部子元素采取浮动排列左右位置**</font>
+
+2. 一个元素浮动了，理论上其余的兄弟元素也要浮动
+
+一个盒子里面有多个子盒子，如果其中一个盒子浮动了，那么其他兄弟也应该浮动，以防止引起问题。
+
+<font color=red>**浮动的盒子只会影响浮动盒子后面的标准流，不会影响前面的标准流**</font>
+
+### 7.6. 消除浮动
+
+#### 7.6.1. 为什么要清除浮动
+
+由于父级盒子很多情况下，不方便给高度，希望子元素将父盒子撑开，但是子盒子设置了浮动后不再占用原文档流的位置，最后会导致父级盒子高度变为0，就会影响后面的标准流盒子的排版。为了解决这些问题，此时就需要在该元素中清除浮动。
+
+#### 7.6.2. 清除浮动本质
+
+清除浮动主要为了解决父级元素因为子级浮动引起内部高度为0的问题。<font color=red>**准确地说，并不是清除浮动，而是清除浮动后造成的影响**</font>
+
+注意：如果父盒子本身有高度，则不需要清除浮动
+
+<font color=red>**清除浮动之后，父级就会根据浮动的子盒子自动检测高度。父级有了高度，就不会影响下面的标准流了**</font>
 
 ![](images/20200719132443426_23721.jpg)
 
 ![](images/20200719132502347_16327.jpg)
 
-### 8.4. 清除浮动的方法
+### 7.7. 清除浮动的方法
 
 其实本质叫做闭合浮动。清除浮动就是把浮动的盒子圈到里面，让父盒子闭合出口和入口不让他们出来影响其他元素。
 
@@ -2254,18 +2559,20 @@ html语言当中另外一个相当重要的概念：标准流！或者普通流�
 选择器 { clear: 属性值; }
 ```
 
-| 属性值   | 描述                    |
-| ----- | --------------------- |
+| 属性值 |                  描述                  |
+| ----- | ------------------------------------- |
 | left  | 不允许左侧有浮动元素（清除左侧浮动的影响） |
 | right | 不允许右侧有浮动元素（清除右侧浮动的影响） |
-| both  | 同时清除左右两侧浮动的影响         |
+| both  | 同时清除左右两侧浮动的影响               |
 
-#### 8.4.1. 额外标签法
+#### 7.7.1. 额外标签法
 
-是W3C推荐的做法，主要是通过在浮动元素末尾添加一个空的标签。例如`<div style=”clear:both”></div>`，或则其他标签`<br>`等亦可。
+额外标签法也称为隔墙法，是W3C推荐的做法，主要是通过在浮动元素末尾添加一个空的标签。例如`<div style=”clear:both”></div>`，或则其他标签`<br>`等亦可。
 
 - 优点：通俗易懂，书写方便
 - 缺点：添加许多无意义的标签，结构化较差。
+
+<font color=red>**注意： 要求这个新的空标签必须是块级元素。**</font>
 
 ```html
 <!DOCTYPE html>
@@ -2313,9 +2620,9 @@ html语言当中另外一个相当重要的概念：标准流！或者普通流�
 </html>
 ```
 
-#### 8.4.2. 父级添加overflow属性方法
+#### 7.7.2. 父级添加overflow属性方法
 
-可以通过触发BFC的方式，可以实现清除浮动效果。给父级标签添加以下属性，均可实现
+可以通过触发BFC的方式，可以实现清除浮动效果。给<font color=red>**父级标签**</font>添加以下属性，均可实现
 
 ```css
 overflow: hidden | auto | scroll;
@@ -2364,7 +2671,7 @@ overflow: hidden | auto | scroll;
 </html>
 ```
 
-#### 8.4.3. 使用after伪元素清除浮动（推荐）
+#### 7.7.3. 使用after伪元素清除浮动（推荐）
 
 `:after`方式为空元素的升级版，好处是不用单独加标签。使用方法：
 
@@ -2433,9 +2740,9 @@ overflow: hidden | auto | scroll;
 </html>
 ```
 
-#### 8.4.4. 使用before和after双伪元素清除浮动（推荐）
+#### 7.7.4. 使用before和after双伪元素清除浮动（推荐）
 
-使用方法：
+使用方法：给父级元素增加以下固定的属性
 
 ```css
 .clearfix:before, .clearfix:after {
@@ -2453,234 +2760,29 @@ overflow: hidden | auto | scroll;
 - 优点：代码更简洁
 - 缺点：由于IE6-7不支持`:after`，使用`zoom:1`触发`hasLayout`。
 
-## 9. 版心（可视区）和布局流程
+## 8. 网页布局-定位(position)（重点）
 
-在制作网页时，要想使页面结构清晰、有条理，也需要对网页进行“排版”。“版心”(可视区) 是指网页中主体内容所在的区域。一般在浏览器窗口中水平居中显示，常见的宽度值为960px、980px、1000px、1200px等。
-
-### 9.1. 布局流程
-
-为了提高网页制作的效率，布局时通常需要遵守一定的布局流程，具体如下：
-
-1. 确定页面的版心（可视区）
-2. 分析页面中的行模块，以及每个行模块中的列模块
-3. 制作HTML结构
-4. CSS初始化，然后开始运用盒子模型的原理，通过DIV+CSS布局来控制网页的各个模块
-
-### 9.2. 常用布局示例
-
-#### 9.2.1. 一列固定宽度且居中
-
-![](images/20200719124302976_5988.jpg)
-
-```html
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Document</title>
-    <style>
-      * {
-        margin: 0;
-        padding: 0; /* 常用样式初始化，清除内外边距 */
-      }
-      /* 相同的样式，使用并集选择器定义 */
-      .top,
-      .banner,
-      .main,
-      .footer {
-        width: 960px;
-        text-align: center; /* 文字居中对齐 */
-        margin: 0 auto; /* 让盒子居中对齐，设置保证左右属性值为auto即可 */
-        margin-bottom: 10px;
-        border: 1px dashed #ccc;
-      }
-      .top {
-        height: 80px;
-        background-color: pink;
-      }
-      .banner {
-        height: 120px;
-        background-color: purple;
-      }
-      .main {
-        height: 500px;
-        background-color: hotpink;
-      }
-      .footer {
-        height: 150px;
-        background-color: black;
-      }
-    </style>
-  </head>
-  <body>
-    <div class="top">top</div>
-    <div class="banner">banner</div>
-    <div class="main">main</div>
-    <div class="footer">footer</div>
-  </body>
-</html>
-```
-
-#### 9.2.2. 两列左窄右宽型
-
-![](images/20200719124344369_13434.jpg)
-
-```html
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Document</title>
-    <style>
-      * {
-        margin: 0;
-        padding: 0;
-      }
-      .top,  /* 并集选择器给相同样式集体声明 */
-		  .banner,
-		  .main,
-	  	.footer {
-        width: 960px;
-        margin: 0 auto;
-        border: 1px dashed #ccc;
-        text-align: center;
-        background-color: #eee;
-        margin-bottom: 8px;
-      }
-      .top {
-        height: 80px;
-      }
-      .banner {
-        height: 150px;
-      }
-      .main {
-        height: 500px;
-      }
-      /* 计算好中间的间隔的宽度后，调整左右子元素的宽度，不要超出父元素的宽度。然后再设置子元素分别左右浮动即可 */
-      .left {
-        width: 360px;
-        height: 500px;
-        background-color: pink;
-        float: left;
-      }
-      .right {
-        width: 592px;
-        height: 500px;
-        background-color: purple;
-        float: right;
-      }
-      .footer {
-        height: 120px;
-      }
-    </style>
-  </head>
-  <body>
-    <div class="top">top</div>
-    <div class="banner">banner</div>
-    <div class="main">
-      <div class="left">left</div>
-      <div class="right">right</div>
-    </div>
-    <div class="footer">footer</div>
-  </body>
-</html>
-```
-
-#### 9.2.3. 通栏平均分布型
-
-![](images/20200719124410070_23928.jpg)
-
-```html
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Document</title>
-    <style>
-      * {
-        margin: 0;
-        padding: 0;
-      }
-      ul {
-        list-style: none; /* 取消列表的默认样式小点 */
-      }
-      .top {
-        height: 60px;
-        background-color: #000;
-      }
-      .banner {
-        width: 960px;
-        height: 400px;
-        background-color: skyblue;
-        margin: 20px auto;
-        border-radius: 15px;
-      }
-      .main {
-        width: 960px;
-        margin: 0 auto;
-        height: 200px;
-      }
-      .main ul li {
-        width: 240px;
-        height: 200px;
-        background-color: pink;
-        float: left; /* 浮动的目的让多个块级li 一行显示并且没有间隔 */
-      }
-      .main ul li:nth-child(even) {
-        /* even：偶数  odd：奇数 */
-        background-color: purple;
-      }
-      .footer {
-        height: 100px;
-        background-color: #000;
-        margin-top: 20px;
-      }
-    </style>
-  </head>
-  <body>
-    <div class="top">top</div>
-    <div class="banner">banner</div>
-    <div class="main">
-      <ul>
-        <li>1</li>
-        <li>2</li>
-        <li>3</li>
-        <li>4</li>
-      </ul>
-    </div>
-    <div class="footer">footer</div>
-  </body>
-</html>
-```
-
-## 10. 网页布局-定位(position)（重点）
-
-### 10.1. 为什么要用定位？
+### 8.1. 为什么要用定位？
 
 定位常用的场景：
 
-1. 小黄色块可以再图片上移动：
+1. 某个元素可以自由的在一个盒子内移动位置，并且压住其他盒子
+2. 当滚动窗口的时候，盒子是固定屏幕某个位置的
 
-![](images/20200719162749521_27199.gif)
+以上效果，如果用标准流或者浮动，实现会比较复杂或者难以实现，此时用定位来做就比较简单
 
-2. 左右箭头压住图片：
+**浮动与定位的应用场景总结**：
 
-![](images/20200719162823871_12682.gif)
+- 浮动可以让多个块级盒子一行没有缝隙排列显示，经常用于横向排列盒子
+- 定位则是可以让盒子自由的在某个盒子内移动位置或者固定屏幕中某个位置，并且可以压住其他盒子
 
-3. hot 再盒子外面多出一块，更加突出：
+### 8.2. 元素的定位属性
 
-![it](images/20200719162908111_26149.png)
+定位：将盒子定在某一个位置，并且按照定位的方式移动盒子
 
-以上三个小地方，如果用标准流或者浮动，实现会比较复杂或者难以实现，此时用定位来做就比较简单
+定位属性主要包括**定位模式**和**边偏移**两部分。<font color=red>**定位模式用于指定一个元素在文档中的定位方式。边偏移则决定了该元素的最终位置。**</font>
 
-### 10.2. 元素的定位属性
-
-元素的定位属性主要包括**定位模式**和**边偏移**两部分
-
-1. 定位模式(定位的分类)
+#### 8.2.1. 定位模式(定位的分类)
 
 在CSS中，position属性用于定义元素的定位模式，其基本语法格式如下：
 
@@ -2692,12 +2794,12 @@ position属性的常用值
 
 | 定位模式值 |                    描述                     |
 | :------: | ------------------------------------------- |
-|  static  | 自动定位（默认定位方式）               |
+|  static  | 自动定位（默认定位方式）                      |
 | relative | 相对定位，相对于其原文档流的位置进行定位        |
 | absolute | 绝对定位，相对于其上一个已经定位的父元素进行定位 |
 |  fixed   | 固定定位，相对于浏览器窗口进行定位             |
 
-2. 边偏移
+#### 8.2.2. 边偏移
 
 | 边偏移属性 |                   描述                    |
 | :------: | ----------------------------------------- |
@@ -2708,38 +2810,46 @@ position属性的常用值
 
 定位要和边偏移搭配使用了， 比如`top: 100px; left: 30px;`等等。**注意不能同给上下或者左右的边偏移**
 
-### 10.3. 静态定位(static)
+### 8.3. 静态定位(static)
 
-静态定位是所有元素的默认定位方式，当`position`属性的取值为`static`时，可以将元素定位于静态位置。所谓静态位置就是各个元素在HTML文档流中默认的位置。
+静态定位是所有元素的默认定位方式。可以理解为网页的标签文档流就是静态定位的。
 
-通俗来说，就是网页中所有元素都默认的是静态定位，其实就是标准流的特性。
+```css
+选择器 { position: static; }
+```
 
-在静态定位状态下，无法通过边偏移属性（top、bottom、left或right）来改变元素的位置。
+> 通俗来说，就是网页中所有元素都默认的是静态定位，其实就是标准流的特性。在静态定位状态下，无法通过边偏移属性（top、bottom、left或right）来改变元素的位置。
 
-### 10.4. 相对定位(relative)
+### 8.4. 相对定位(relative)
 
-相对定位是将元素相对于它在标准流中的位置进行定位，当`position`属性的取值为`relative`时，可以将元素定位于相对位置。
+相对定位是将元素相对于它在标准流中的原位置进行移动后的定位，是相对于它原来的位置。
+
+```css
+选择器 { position: relative; }
+```
 
 对元素设置相对定位后，可以通过边偏移属性改变元素的位置，但是它在文档流中的位置仍然保留。如下图所示，即是一个相对定位的效果展示：
 
 ![](images/20200719164926953_8398.png)
 
-注意：
+- **相对定位特点**：
+1. 每次移动的位置，相对于自己原来的位置来移动的（移动位置的时候参照点是自己原来的位置）
+2. 相对定位最重要的一点是，<font color=red>**它可以通过边偏移移动位置后，原来在标准流的位置继续占有，即相对定位的元素并没有脱标。**</font>
 
-1. 相对定位最重要的一点是，它可以通过边偏移移动位置，但是原来的所占的位置，继续占有。
-2. 每次移动的位置，是以自己的左上角为基点移动（相对于自己来移动位置）
+> 就是说，相对定位的盒子仍在标准流中，它后面的盒子仍以标准流方式对待它。（相对定位不脱标）。如果说浮动的主要目的是让多个块级元素一行显示，那么定位的主要价值就是移动位置，让盒子到想要的位置上去。
 
-> 就是说，相对定位的盒子仍在标准流中，它后面的盒子仍以标准流方式对待它。（相对定位不脱标）
->
-> 如果说浮动的主要目的是让多个块级元素一行显示，那么定位的主要价值就是移动位置，让盒子到想要的位置上去。
+### 8.5. 绝对定位(absolute)
 
-### 10.5. 绝对定位(absolute)
+绝对定位是元素在移动位置的时候，是<font color=red>**相对于它的父元素或者以上元素来说的**</font>
 
-当`position`属性的取值为`absolute`时，可以将元素的定位模式设置为绝对定位。
+```css
+选择器 { position: absolute; }
+```
 
-> - 注意：
-> 1. 绝对定位最重要的一点是，它可以通过边偏移移动位置，但是它完全脱标准文档流，完全不占位置。
-> 2. 如果文档（网页）可滚动，绝对定位元素会随着它滚动，因为元素最终会相对于正常流的某一部分定位。
+- **绝对定位特点**：
+1. 如果<font color=red>没有祖先元素或者祖先元素没有定位</font>，则以浏览器为准定位（Document文档）。
+2. 如果祖先元素有定位（相对、绝对、固定定位），则以最近一级的有定位祖先元素为参考点移动位置
+3. <font color=red>**绝对定位不再占有原先的位置（完全脱标）**</font>
 
 ```html
 <head>
@@ -2767,7 +2877,7 @@ position属性的常用值
 </body>
 ```
 
-#### 10.5.1. 父级元素没有定位
+#### 8.5.1. 父级元素没有定位
 
 若所有父元素都没有定位，以浏览器为准对齐(document文档)。
 
@@ -2800,7 +2910,7 @@ position属性的常用值
 </body>
 ```
 
-#### 10.5.2. 父级元素有定位
+#### 8.5.2. 父级元素有定位
 
 如果父级元素有定位，子元素的绝对定位将依据最近的已经定位（绝对、固定或相对定位）的父元素（祖先）进行定位。
 
@@ -2835,13 +2945,18 @@ position属性的常用值
 </body>
 ```
 
-#### 10.5.3. 子绝父相
+#### 8.5.3. 子绝父相
 
-“子绝父相”是定位的重要的口诀。意思是<font color=red>**子级是绝对定位的话，父级要用相对定位**</font>。
+“子绝父相”是定位的重要的口诀。意思是<font color=red>**子级是绝对定位的话，父级要用相对定位**</font>。原因如下：
 
-首先，绝对定位是将元素依据最近的已经定位（绝对、固定或相对定位）的父元素（祖先）进行定位。子级元素是绝对定位，父级元素只要是定位即可（不管父级是绝对定位还是相对定位，甚至是固定定位都可以），即：子绝父绝，子绝父相都是正确的。
+1. 子级绝对定位，不会占有位置，可以放到父盒子里面的任何一个地方，不会影响其他的兄弟盒子。
+2. 父盒子需要加定位限制子盒子在父盒子内显示
+3. 父盒子布局时，需要占有位置，防止后面的标准流盒子排版错乱，因此父亲只能是相对定位
 
-**但一般都会使用“子绝父相”，因为子级是绝对定位，不会占有位置，可以放到父盒子里面的任何一个地方。但父盒子布局时，需要占有位置，因此父亲只能是相对定位。这就是子绝父相的由来**
+总结：**使用“子绝父相”，因为子级是绝对定位，不会占有位置，可以放到父盒子里面的任何一个地方。但父盒子布局时，需要占有位置，因此父亲只能是相对定位。这就是子绝父相的由来**
+
+- <font color=red>**相对定位经常用来作为绝对定位的父级**</font>
+- <font color=red>**因为父级需要占有位置，因此是相对定位，子盒子不需要占有位置，则是绝对定位**</font>
 
 ```html
 <!DOCTYPE html>
@@ -2889,7 +3004,7 @@ position属性的常用值
 
 ![](images/20200719175751502_6788.png)
 
-### 10.6. 绝对定位的盒子水平/垂直居中
+#### 8.5.4. 绝对定位小技巧 - 让盒子水平/垂直居中
 
 普通的盒子主要设置左右margin属性为auto即可，即`margin: auto;`，但是对于绝对定位就无效了
 
@@ -2933,14 +3048,18 @@ position属性的常用值
 </html>
 ```
 
-### 10.7. 固定定位(fixed)
+### 8.6. 固定定位(fixed)
 
-固定定位是绝对定位的一种特殊形式，类似于正方形是一个特殊的矩形。它以浏览器窗口作为参照物来定义网页元素。当`position`属性的取值为`fixed`时，即可将元素的定位模式设置为固定定位。
+固定定位是元素固定于浏览器可视区的位置，即以浏览器窗口作为参照物来定义网页元素的位置。主要使用场景：可以在浏览器页面滚动时元素的位置不会改变。
+
+```css
+选择器 { position: fixed; }
+```
 
 当对元素设置固定定位后，它将脱离标准文档流的控制，始终依据浏览器窗口来定义自己的显示位置。不管浏览器滚动条如何滚动也不管浏览器窗口的大小如何变化，该元素都会始终显示在浏览器窗口的固定位置。**固定定位有以两个特点**：
 
-1. 固定定位的元素跟父亲没有任何关系，**只认浏览器**。
-2. 固定定位完全脱标，不占有位置，**不随着滚动条滚动**。
+1. 固定定位的元素跟父元素没有任何关系，**只以浏览器的可视窗口为参照点移动元素。**。
+2. 固定定位完全脱标，不占原先位置，**不随着滚动条滚动**。
 
 > 注：ie6等低版本浏览器不支持固定定位
 
@@ -2993,7 +3112,47 @@ position属性的常用值
 
 ![](images/20200719181831197_8129.png)
 
-### 10.8. 叠放次序（z-index）
+#### 8.6.1. 固定定位小技巧 - 固定到版心右侧
+
+小技巧：
+
+1. 让固定定位的盒子`left: 50%`。走到浏览器可视区（也可以看做版心）的一半位置
+2. 让固定定位的盒子`margin-left`版心宽度的一半距离。多走版心宽度的一半位置
+
+就可以让固定定位的盒子贴着版心右侧对齐了。
+
+```html
+<head>
+  <style>
+    .w {
+      width: 800px;
+      height: 1400px;
+      background-color: pink;
+      margin: 0 auto;
+    }
+    .fixed {
+      position: fixed;
+      /* 1. 偏移浏览器宽度的一半 */
+      left: 50%;
+      /* 2. 利用margin属性，再移动版心盒子宽度的一半距离 */
+      margin-left: 405px;
+      width: 50px;
+      height: 150px;
+      background-color: skyblue;
+    }
+  </style>
+</head>
+<body>
+  <div class="fixed"></div>
+  <div class="w">版心盒子 800像素</div>
+</body>
+```
+
+效果：
+
+![](images/20200818235640115_26015.png)
+
+### 8.7. 叠放次序（z-index）
 
 当对多个元素同时设置定位时，定位元素之间有可能会发生重叠。
 
@@ -3039,7 +3198,7 @@ position属性的常用值
 </body>
 ```
 
-### 10.9. 四种定位总结
+### 8.8. 四种定位总结
 
 |     定位模式     |   是否脱标占有位置   | 是否可以使用边偏移 |     移动位置基准      |
 | --------------- | ------------------ | ---------------- | -------------------- |
@@ -3048,7 +3207,7 @@ position属性的常用值
 | 绝对定位absolute | 完全脱标，不占有位置 | 可以             | 相对于定位父级移动位置 |
 | 固定定位fixed    | 完全脱标，不占有位置 | 可以             | 相对于浏览器移动位置   |
 
-## 11. 定位模式转换
+## 9. 定位模式转换
 
 跟浮动一样，元素添加了绝对定位或固定定位之后，元素模式也会发生转换，都转换为行内块模式
 
@@ -3080,11 +3239,11 @@ position属性的常用值
 </body>
 ```
 
-## 12. 伸缩布局(CSS3)
+## 10. 伸缩布局(CSS3)
 
 CSS3在布局方面做了非常大的改进，使得对块级元素的布局排列变得十分灵活，适应性非常强，其强大的伸缩性，在响应式开中可以发挥极大的作用。
 
-### 12.1. 伸缩布局（Flex）相关概念
+### 10.1. 伸缩布局（Flex）相关概念
 
 - **主轴**：Flex容器的主轴主要用来配置Flex项目，默认是水平方向
 - **侧轴**：与主轴垂直的轴称作侧轴，默认是垂直方向的
@@ -3096,9 +3255,9 @@ CSS3在布局方面做了非常大的改进，使得对块级元素的布局排�
 
 > Flex布局的语法规范经过几年发生了很大的变化，也给Flexbox的使用带来一定的局限性，因为语法规范版本众多，浏览器支持不一致，致使Flexbox布局使用不多
 
-### 12.2. Flex 各属性详解
+### 10.2. Flex 各属性详解
 
-#### 12.2.1. 缩放比例
+#### 10.2.1. 缩放比例
 
 flex子元素在主轴的缩放比例，不指定flex属性，则不参与伸缩分配
 
@@ -3107,7 +3266,7 @@ flex子元素在主轴的缩放比例，不指定flex属性，则不参与伸缩
 | `min-width` | 设置当前子元素的最小值 | `min-width: 280px;`即当前盒子最小宽度280伸缩到此值后，不再缩小   |
 | `max-width` | 设置当前子元素的最大值 | `min-width: 1280px;`即当前盒子最大宽度1280伸缩到此值后，不再放大 |
 
-#### 12.2.2. flex-direction（主轴方向）
+#### 10.2.2. flex-direction（主轴方向）
 
 `flex-direction`属性用于调整主轴方向。默认为水平方向
 
@@ -3232,7 +3391,7 @@ flex子元素在主轴的缩放比例，不指定flex属性，则不参与伸缩
 </html>
 ```
 
-#### 12.2.3. justify-content（主轴对齐/水平对齐）
+#### 10.2.3. justify-content（主轴对齐/水平对齐）
 
 `justify-content`属性用于调整主轴对齐（水平对齐），即子盒子如何在父盒子里面水平对齐。此属性是在父级盒子中定义
 
@@ -3284,7 +3443,7 @@ flex子元素在主轴的缩放比例，不指定flex属性，则不参与伸缩
 </body>
 ```
 
-#### 12.2.4. align-items（侧轴对齐/垂直对齐）
+#### 10.2.4. align-items（侧轴对齐/垂直对齐）
 
 `align-items`属性用于调整侧轴对齐（垂直对齐），即子盒子如何在父盒子里面垂直对齐（单行）。此属性是在父级盒子中定义
 
@@ -3336,7 +3495,7 @@ flex子元素在主轴的缩放比例，不指定flex属性，则不参与伸缩
 </body>
 ```
 
-#### 12.2.5. flex-wrap（控制是否换行）
+#### 10.2.5. flex-wrap（控制是否换行）
 
 当子盒子内容宽度多于父盒子的时候，通过`flex-wrap`属性控制子盒子是否换行
 
@@ -3396,7 +3555,7 @@ flex子元素在主轴的缩放比例，不指定flex属性，则不参与伸缩
 </body>
 ```
 
-#### 12.2.6. flex-flow
+#### 10.2.6. flex-flow
 
 `flex-flow`是`flex-direction`、`flex-wrap`这两个属性的合并简写形式，中间以空格隔开
 
@@ -3417,7 +3576,7 @@ section {
 }
 ```
 
-#### 12.2.7. align-content（多行垂直对齐方式）
+#### 10.2.7. align-content（多行垂直对齐方式）
 
 `align-content`属性是针对flex容器里面多轴(多行)的情况，（由flex-wrap产生的独立行，设置多行垂直对齐方式。而`align-items`是针对一行的情况进行排列。
 
@@ -3485,7 +3644,7 @@ section {
 </body>
 ```
 
-#### 12.2.8. order（子盒子排列顺序）
+#### 10.2.8. order（子盒子排列顺序）
 
 `order`属性用于控制子盒子的排列顺序，正序方式排序，从小到大。用整数值来定义排列顺序，数值小的排在前面。可以为负值。默认值是0
 
@@ -3545,9 +3704,9 @@ section {
 </body>
 ```
 
-## 13. CSS书写规范
+## 11. CSS书写规范
 
-### 13.1. 空格规范
+### 11.1. 空格规范
 
 【强制】 `选择器` 与 `{` 之间必须包含空格。
 
@@ -3561,7 +3720,7 @@ section {
 font-size: 12px;
 ```
 
-### 13.2. 选择器规范
+### 11.2. 选择器规范
 
 【强制】 当一个 rule 包含多个 selector 时，每个选择器声明必须独占一行。
 
@@ -3591,7 +3750,7 @@ font-size: 12px;
 .comment div * {}
 ```
 
-### 13.3. 属性规范
+### 11.3. 属性规范
 
 【强制】 属性定义必须另起一行。
 
@@ -3619,6 +3778,33 @@ font-size: 12px;
     margin: 0
 }
 ```
+
+### 11.4. CSS 属性书写顺序(重点)
+
+1. 布局定位属性：display / position / float / clear / visibility / overflow（建议 display 第一个写，毕竟关系到模式）
+2. 自身属性：width / height / margin / padding / border / background
+3. 文本属性：color / font / text-decoration / text-align / vertical-align / white-space / break-word
+4. 其他属性（CSS3）：content / cursor / border-radius / box-shadow / text-shadow / background:linear-gradient ...
+
+示例
+
+```css
+.jdc {
+    display: block;
+    position: relative;
+    float: left;
+    width: 100px;
+    height: 100px;
+    margin: 0 10px;
+    padding: 20px 0;
+    font-family: Arial, 'Helvetica Neue', Helvetica, sans-serif;
+    color: #333;
+    background: rgba(0,0,0,.5);
+    border-radius: 10px;
+}
+```
+
+
 
 # 其他
 
