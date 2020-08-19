@@ -789,30 +789,89 @@ div::after {
 
 #### 3.2.1. display 显示
 
-`display`属性是设置或检索对象是否及如何显示。
+`display`属性是设置或检索对象是否及如何显示。即是让一个元素在页面中隐藏或者显示出来
 
 - `display: none;`：隐藏对象
-- `display: block`：显示对象，注意，这个属性除了转换为块级元素之外，同时还有显示元素的意思。
+- `display: block`：显示对象，*注意，这个属性除了转换为块级元素之外，同时还有显示元素的意思*。
 
-特点：隐藏之后，<font color=red>**不再保留位置**</font>。
+特点：<font color=red>**display 隐藏元素后，不再占有原来的位置**</font>。
 
 #### 3.2.2. visibility 可见性
 
-`visibility`属性是设置或检索是否显示对象。
+`visibility`属性是设置或检索是否显示对象，指定一个元素应可见还是隐藏
 
-- `visible`：对象可视
-- `hidden`：对象隐藏
+- `visible`：元素可视
+- `hidden`：元素隐藏
 
-特点： 隐藏之后，<font color=red>**继续保留原有位置**</font>。
+特点： <font color=red>**visibility 隐藏元素后，继续占有原来的位置**</font>。
+
+> 如果隐藏元素想要原来位置，就用`visibility: hidden;`
+>
+> 如果隐藏元素不想要原来位置，就用`display: none;` (用处更多，重点）
 
 #### 3.2.3. overflow 溢出
 
-`overflow`属性是检索或设置当对象的内容超过其指定高度及宽度时如何管理内容
+`overflow`属性是检索或设置当元素的内容超过其指定高度及宽度时，如何管理内容
 
 - `visible`：不剪切内容也不添加滚动条。默认值
 - `auto`：超出自动显示滚动条，不超出不显示滚动条
 - `hidden`：不显示超过对象尺寸的内容，超出的部分隐藏掉（常用）
 - `scroll`：不管超出内容否，总是显示滚动条
+
+一般情况下，都不想让溢出的内容显示出来，因为溢出的部分会影响布局。但是如果有定位的盒子，请慎用`overflow: hidden;`，因为它会隐藏多余的部分
+
+#### 3.2.4. 显示隐藏综合案例-仿土豆网显示隐藏遮罩
+
+```html
+<head>
+  <style>
+    .tudou {
+      position: relative;
+      width: 444px;
+      height: 320px;
+      background-color: pink;
+      margin: 30px auto;
+    }
+    .tudou img {
+      width: 100%;
+      height: 100%;
+    }
+    .mask {
+      /* 隐藏遮罩层 */
+      display: none;
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.4) url(images/arr.png) no-repeat center;
+    }
+    /* 当鼠标经过了tudou这个盒子，就让里面遮罩层显示出来 */
+    .tudou:hover .mask {
+      /* 而是显示元素 */
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <div class="tudou">
+    <div class="mask"></div>
+    <img src="images/tudou.jpg" alt="" />
+  </div>
+  <div class="tudou">
+    <div class="mask"></div>
+    <img src="images/tudou.jpg" alt="" />
+  </div>
+  <div class="tudou">
+    <div class="mask"></div>
+    <img src="images/tudou.jpg" alt="" />
+  </div>
+  <div class="tudou">
+    <div class="mask"></div>
+    <img src="images/tudou.jpg" alt="" />
+  </div>
+</body>
+```
 
 ## 4. CSS常用的样式
 
@@ -1434,11 +1493,42 @@ h1 span{
 
 ## 5. CSS高级样式技巧
 
-### 5.1. CSS用户界面样式
+### 5.1. CSS实现三角形
+
+只要不给盒子高度与宽度，分别设置5个边框，就出现如下效果
+
+![](images/20200819233409543_1357.png)
+
+```css
+.box1 {
+    width: 0;
+    height: 0;
+    border-top: 10px solid pink;
+    border-right: 10px solid red;
+    border-bottom: 10px solid blue;
+    border-left: 10px solid green;
+}
+```
+
+如果只生成三角形，主要设置一个边框，其余3个边框都设置为透明即可
+
+```css
+.box2 {
+    width: 0;
+    height: 0;
+    line-height: 0;
+    font-size: 0;
+    border: 50px solid transparent;
+    border-left-color: pink;
+    margin: 100px auto;
+}
+```
+
+### 5.2. CSS用户界面样式
 
 界面样式，就是更改一些用户操作样式，比如：更改用户的鼠标样式，表单轮廓，防止表单域拖拖拽等。但是比如滚动条的样式改动受到了很多浏览器的抵制，就不会去改变
 
-#### 5.1.1. 鼠标样式（cursor）
+#### 5.2.1. 鼠标样式（cursor）
 
 设置或检索在对象上移动的鼠标指针采用何种系统预定义的光标形状。语法如下：
 
@@ -1460,12 +1550,12 @@ cursor: default(默认光标，通学是一个箭头) | pointer(小手) | move(�
 
 > 注： 尽量不要用小手光标因为火狐浏览器不支持`pointer`，在ie6以上都支持的尽量用
 
-#### 5.1.2. 轮廓（outline）
+#### 5.2.2. 表单轮廓（outline）
 
 轮廓（`outline`）是绘制于元素周围的一条线，位于边框边缘的外围，可起到突出元素的作用。语法如下：
 
 ```css
- outline: outline-color || outline-style || outline-width;
+outline: outline-color || outline-style || outline-width;
 ```
 
 通过都不会设置，一般都是用来去掉包围的线（多用于去掉文本输入框，获取焦点时在文本输入框外面有一圈光亮的线）
@@ -1476,7 +1566,7 @@ cursor: default(默认光标，通学是一个箭头) | pointer(小手) | move(�
 <input  type="text"  style="outline: 0;"/>
 ```
 
-#### 5.1.3. 防止拖拽文本域（resize）
+#### 5.2.3. 防止拖拽文本域（resize）
 
 `resize：none;`这个属性可以防止火狐、谷歌等浏览器随意的拖动多行文本域的大小。
 
@@ -1484,7 +1574,7 @@ cursor: default(默认光标，通学是一个箭头) | pointer(小手) | move(�
 <textarea style="resize: none;"></textarea>
 ```
 
-### 5.2. 垂直对齐（vertical-align）
+### 5.3. 垂直对齐（vertical-align）
 
 - 如果让带有宽度的块级元素居中对齐，是`margin: 0 auto;`
 - 如果让文字居中对齐，是`text-align: center;`
@@ -1501,7 +1591,7 @@ vertical-align: baseline | top | middle | bottom
 
 ![](images/20200720225214514_13578.png)
 
-#### 5.2.1. 图片、表单和文字对齐
+#### 5.3.1. 图片、表单和文字对齐
 
 通过vertical-align 控制图片和文字的垂直关系了。 默认的图片会和文字基线对齐。
 
@@ -1540,7 +1630,7 @@ vertical-align: baseline | top | middle | bottom
 </body>
 ```
 
-#### 5.2.2. 去除图片底侧空白缝隙
+#### 5.3.2. 去除图片底侧空白缝隙
 
 **有个重要特性需要记忆：图片或者表单等行内块元素，它的底线会和父级盒子的基线对齐。这样会造成一个问题，就是图片底侧会有一个空白缝隙。**
 
@@ -1572,9 +1662,9 @@ vertical-align: baseline | top | middle | bottom
 </body>
 ```
 
-#### 5.2.3. 溢出的文字隐藏
+#### 5.3.3. 溢出的文字隐藏
 
-#### 5.2.4. word-break（自动换行）
+#### 5.3.4. word-break（自动换行）
 
 `word-break`属性用于设置英文单词是否换行。主要属性如下：
 
@@ -1604,7 +1694,7 @@ vertical-align: baseline | top | middle | bottom
 </body>
 ```
 
-#### 5.2.5. white-space（文本显示方式）
+#### 5.3.5. white-space（文本显示方式）
 
 `white-space`属性用于设置或检索对象内文本显示方式，通常使用来强制一行显示内容。主要属性如下：
 
@@ -1613,7 +1703,7 @@ vertical-align: baseline | top | middle | bottom
 
 > 注：此属性可以处理中文
 
-#### 5.2.6. CSS长连续字母或数据不换行解决方法
+#### 5.3.6. CSS长连续字母或数据不换行解决方法
 
 CSS 长连续字母或数据不换行解决方法，CSS字母自动换行，CSS数字自动换行
 
@@ -1632,7 +1722,7 @@ word-wrap: break-word;
 word-break: break-all;
 ```
 
-#### 5.2.7. text-overflow（文字溢出）
+#### 5.3.7. text-overflow（文字溢出）
 
 `text-overflow`属性是用于设置或检索是否使用一个省略标记（`...`）来标示对象内文本的溢出，语法与主要属性如下：
 
@@ -1984,7 +2074,7 @@ aside {
 2. 可以给父元素定义1像素的上内边距
 3. 可以给父元素添加`overflow: hidden;`属性
 
-> 还有其他方法，比如浮动、固定，绝对定位的盒子不会有塌陷问题
+> 还有其他方法，比如<font color=red>**设置了浮动、固定，绝对定位的盒子不会有塌陷问题**</font>
 
 #### 6.6.9. content宽度和高度（了解）
 
@@ -2019,7 +2109,7 @@ Element Width = content width + padding + border （Width为内容宽度）
 
 1. `margin` 会有外边距合并的问题，还有ie6浏览器 `margin` 加倍的bug，所以最后使用
 2. `padding` 会影响盒子大小，需要进行加减计算，所以其次使用。
-3. `width` 没有问题（嗨皮）我们经常使用宽度剩余法 高度剩余法来做。
+3. `width` 没有问题，经常使用宽度剩余法 高度剩余法来做。
 
 ### 6.7. 盒模型（CSS3）
 
@@ -3004,49 +3094,6 @@ position属性的常用值
 
 ![](images/20200719175751502_6788.png)
 
-#### 8.5.4. 绝对定位小技巧 - 让盒子水平/垂直居中
-
-普通的盒子主要设置左右margin属性为auto即可，即`margin: auto;`，但是对于绝对定位就无效了
-
-绝对定位的盒子也可以水平或者垂直居中，其算法如下：
-
-1. 首先设置`left: 50%`，即父级盒子的一半大小
-2. 再设置子级元素外边距`margin-left`为负的自身宽度的一半值即可。
-
-```html
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <style>
-      .father {
-        width: 800px;
-        height: 400px;
-        background-color: pink;
-        margin: 40px auto;
-        position: relative;
-      }
-      .son {
-        width: 100px;
-        height: 40px;
-        background-color: purple;
-        position: absolute;
-        /* margin: 0 auto;  子元素为绝对定位的盒子，设置margin左右auto来居中就无效了 */
-        /* left: 400px; */
-        left: 50%; /* 设置 left 为父盒子宽度的一半 */
-        margin-left: -50px; /* 再设置左走自己宽度的一半，即margin-left: -宽度一半 */
-        top: 50%;
-        margin-top: -20px;
-      }
-    </style>
-  </head>
-  <body>
-    <div class="father">
-      <div class="son"></div>
-    </div>
-  </body>
-</html>
-```
 
 ### 8.6. 固定定位(fixed)
 
@@ -3112,51 +3159,34 @@ position属性的常用值
 
 ![](images/20200719181831197_8129.png)
 
-#### 8.6.1. 固定定位小技巧 - 固定到版心右侧
+### 8.7. 粘性定位 sticky（了解）
 
-小技巧：
+粘性定位可以被认为是相对定位和固定定位的混合。
 
-1. 让固定定位的盒子`left: 50%`。走到浏览器可视区（也可以看做版心）的一半位置
-2. 让固定定位的盒子`margin-left`版心宽度的一半距离。多走版心宽度的一半位置
-
-就可以让固定定位的盒子贴着版心右侧对齐了。
-
-```html
-<head>
-  <style>
-    .w {
-      width: 800px;
-      height: 1400px;
-      background-color: pink;
-      margin: 0 auto;
-    }
-    .fixed {
-      position: fixed;
-      /* 1. 偏移浏览器宽度的一半 */
-      left: 50%;
-      /* 2. 利用margin属性，再移动版心盒子宽度的一半距离 */
-      margin-left: 405px;
-      width: 50px;
-      height: 150px;
-      background-color: skyblue;
-    }
-  </style>
-</head>
-<body>
-  <div class="fixed"></div>
-  <div class="w">版心盒子 800像素</div>
-</body>
+```css
+选择器 {
+    position: sticky;
+    top: 10px;
+}
 ```
 
-效果：
+**粘性定位的特点**：
 
-![](images/20200818235640115_26015.png)
+1. 以浏览器的可视窗口为参照点移动元素（固定定位特点）
+2. 粘性定位<font color=red>**占有原先的位置**</font>（相对定位特点）
+3. 必须添加 top 、left、right、bottom 其中一个才有效
 
-### 8.7. 叠放次序（z-index）
+> 不常用，兼容性较差，IE不支持
 
-当对多个元素同时设置定位时，定位元素之间有可能会发生重叠。
+### 8.8. 叠放次序（z-index）
 
-在CSS中，要想调整重叠定位元素的堆叠顺序，可以对定位元素应用`z-index`层叠等级属性，其取值可为正整数、负整数和0。比如：`z-index: 2;`。叠放次序有以下注意点：
+当对多个元素同时设置定位时，定位元素之间有可能会发生重叠。在CSS中，要想调整重叠定位元素的堆叠顺序，可以对定位元素应用`z-index`层叠等级属性，其取值可为正整数、负整数和0。
+
+```css
+选择器 { z-index: 1; }
+```
+
+叠放次序有以下注意点：
 
 1. `z-index`的默认属性值是0，取值越大，定位元素在层叠元素中越居上。
 2. 如果取值相同，则根据书写顺序，后来居上。
@@ -3198,7 +3228,7 @@ position属性的常用值
 </body>
 ```
 
-### 8.8. 四种定位总结
+### 8.9. 五种定位总结
 
 |     定位模式     |   是否脱标占有位置   | 是否可以使用边偏移 |     移动位置基准      |
 | --------------- | ------------------ | ---------------- | -------------------- |
@@ -3206,10 +3236,106 @@ position属性的常用值
 | 相对定位relative | 不脱标，占有位置     | 可以             | 相对自身位置移动      |
 | 绝对定位absolute | 完全脱标，不占有位置 | 可以             | 相对于定位父级移动位置 |
 | 固定定位fixed    | 完全脱标，不占有位置 | 可以             | 相对于浏览器移动位置   |
+| 粘性定位sticky   | 不脱标，占有位置     | 可以             | 相对于浏览器可视区     |
 
-## 9. 定位模式转换
+### 8.10. 定位拓展
+
+#### 8.10.1. 固定定位小技巧 - 固定到版心右侧
+
+小技巧：
+
+1. 让固定定位的盒子`left: 50%`。走到浏览器可视区（也可以看做版心）的一半位置
+2. 让固定定位的盒子`margin-left`版心宽度的一半距离。多走版心宽度的一半位置
+
+就可以让固定定位的盒子贴着版心右侧对齐了。
+
+```html
+<head>
+  <style>
+    .w {
+      width: 800px;
+      height: 1400px;
+      background-color: pink;
+      margin: 0 auto;
+    }
+    .fixed {
+      position: fixed;
+      /* 1. 偏移浏览器宽度的一半 */
+      left: 50%;
+      /* 2. 利用margin属性，再移动版心盒子宽度的一半距离 */
+      margin-left: 405px;
+      width: 50px;
+      height: 150px;
+      background-color: skyblue;
+    }
+  </style>
+</head>
+<body>
+  <div class="fixed"></div>
+  <div class="w">版心盒子 800像素</div>
+</body>
+```
+
+效果：
+
+![](images/20200818235640115_26015.png)
+
+#### 8.10.2. 绝对定位小技巧 - 让盒子水平/垂直居中
+
+普通的盒子主要设置左右margin属性为auto即可，即`margin: auto;`，但是对于绝对定位就无效了
+
+绝对定位的盒子也可以水平或者垂直居中，其算法如下：
+
+1. 首先设置`left: 50%`，即父级盒子的一半大小
+2. 再设置子级元素外边距`margin-left`为负的自身宽度的一半值即可。
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <style>
+      .father {
+        width: 800px;
+        height: 400px;
+        background-color: pink;
+        margin: 40px auto;
+        position: relative;
+      }
+      .son {
+        width: 100px;
+        height: 40px;
+        background-color: purple;
+        position: absolute;
+        /* margin: 0 auto;  子元素为绝对定位的盒子，设置margin左右auto来居中就无效了 */
+        /* left: 400px; */
+        left: 50%; /* 设置 left 为父盒子宽度的一半 */
+        margin-left: -50px; /* 再设置左走自己宽度的一半，即margin-left: -宽度一半 */
+        top: 50%;
+        margin-top: -20px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="father">
+      <div class="son"></div>
+    </div>
+  </body>
+</html>
+```
+
+#### 8.10.3. 绝对定位（固定定位）会完全压住盒子
+
+浮动元素不同，只会压住它下面标准流的盒子，但是不会压住下面标准流盒子里面的文字（或图片）。因为浮动产生的目的最初是为了做文字环绕效果的，文字会围绕浮动元素
+
+但是绝对定位（固定定位） 会压住下面标准流所有的内容。
+
+### 8.11. 定位模式转换
 
 跟浮动一样，元素添加了绝对定位或固定定位之后，元素模式也会发生转换，都转换为行内块模式
+
+1. 行内元素添加绝对或者固定定位，可以直接设置高度和宽度。
+2. 块级元素添加绝对或者固定定位，如果不给宽度或者高度，默认大小是内容的大小。
 
 **因此，行内元素如果添加了绝对定位、固定定位或浮动后，可以不用转换模式，直接给高度和宽度即可。**
 
@@ -3239,11 +3365,11 @@ position属性的常用值
 </body>
 ```
 
-## 10. 伸缩布局(CSS3)
+## 9. 伸缩布局(CSS3)
 
 CSS3在布局方面做了非常大的改进，使得对块级元素的布局排列变得十分灵活，适应性非常强，其强大的伸缩性，在响应式开中可以发挥极大的作用。
 
-### 10.1. 伸缩布局（Flex）相关概念
+### 9.1. 伸缩布局（Flex）相关概念
 
 - **主轴**：Flex容器的主轴主要用来配置Flex项目，默认是水平方向
 - **侧轴**：与主轴垂直的轴称作侧轴，默认是垂直方向的
@@ -3255,9 +3381,9 @@ CSS3在布局方面做了非常大的改进，使得对块级元素的布局排�
 
 > Flex布局的语法规范经过几年发生了很大的变化，也给Flexbox的使用带来一定的局限性，因为语法规范版本众多，浏览器支持不一致，致使Flexbox布局使用不多
 
-### 10.2. Flex 各属性详解
+### 9.2. Flex 各属性详解
 
-#### 10.2.1. 缩放比例
+#### 9.2.1. 缩放比例
 
 flex子元素在主轴的缩放比例，不指定flex属性，则不参与伸缩分配
 
@@ -3266,7 +3392,7 @@ flex子元素在主轴的缩放比例，不指定flex属性，则不参与伸缩
 | `min-width` | 设置当前子元素的最小值 | `min-width: 280px;`即当前盒子最小宽度280伸缩到此值后，不再缩小   |
 | `max-width` | 设置当前子元素的最大值 | `min-width: 1280px;`即当前盒子最大宽度1280伸缩到此值后，不再放大 |
 
-#### 10.2.2. flex-direction（主轴方向）
+#### 9.2.2. flex-direction（主轴方向）
 
 `flex-direction`属性用于调整主轴方向。默认为水平方向
 
@@ -3391,7 +3517,7 @@ flex子元素在主轴的缩放比例，不指定flex属性，则不参与伸缩
 </html>
 ```
 
-#### 10.2.3. justify-content（主轴对齐/水平对齐）
+#### 9.2.3. justify-content（主轴对齐/水平对齐）
 
 `justify-content`属性用于调整主轴对齐（水平对齐），即子盒子如何在父盒子里面水平对齐。此属性是在父级盒子中定义
 
@@ -3443,7 +3569,7 @@ flex子元素在主轴的缩放比例，不指定flex属性，则不参与伸缩
 </body>
 ```
 
-#### 10.2.4. align-items（侧轴对齐/垂直对齐）
+#### 9.2.4. align-items（侧轴对齐/垂直对齐）
 
 `align-items`属性用于调整侧轴对齐（垂直对齐），即子盒子如何在父盒子里面垂直对齐（单行）。此属性是在父级盒子中定义
 
@@ -3495,7 +3621,7 @@ flex子元素在主轴的缩放比例，不指定flex属性，则不参与伸缩
 </body>
 ```
 
-#### 10.2.5. flex-wrap（控制是否换行）
+#### 9.2.5. flex-wrap（控制是否换行）
 
 当子盒子内容宽度多于父盒子的时候，通过`flex-wrap`属性控制子盒子是否换行
 
@@ -3555,7 +3681,7 @@ flex子元素在主轴的缩放比例，不指定flex属性，则不参与伸缩
 </body>
 ```
 
-#### 10.2.6. flex-flow
+#### 9.2.6. flex-flow
 
 `flex-flow`是`flex-direction`、`flex-wrap`这两个属性的合并简写形式，中间以空格隔开
 
@@ -3576,7 +3702,7 @@ section {
 }
 ```
 
-#### 10.2.7. align-content（多行垂直对齐方式）
+#### 9.2.7. align-content（多行垂直对齐方式）
 
 `align-content`属性是针对flex容器里面多轴(多行)的情况，（由flex-wrap产生的独立行，设置多行垂直对齐方式。而`align-items`是针对一行的情况进行排列。
 
@@ -3644,7 +3770,7 @@ section {
 </body>
 ```
 
-#### 10.2.8. order（子盒子排列顺序）
+#### 9.2.8. order（子盒子排列顺序）
 
 `order`属性用于控制子盒子的排列顺序，正序方式排序，从小到大。用整数值来定义排列顺序，数值小的排在前面。可以为负值。默认值是0
 
@@ -3704,9 +3830,9 @@ section {
 </body>
 ```
 
-## 11. CSS书写规范
+## 10. CSS书写规范
 
-### 11.1. 空格规范
+### 10.1. 空格规范
 
 【强制】 `选择器` 与 `{` 之间必须包含空格。
 
@@ -3720,7 +3846,7 @@ section {
 font-size: 12px;
 ```
 
-### 11.2. 选择器规范
+### 10.2. 选择器规范
 
 【强制】 当一个 rule 包含多个 selector 时，每个选择器声明必须独占一行。
 
@@ -3750,7 +3876,7 @@ font-size: 12px;
 .comment div * {}
 ```
 
-### 11.3. 属性规范
+### 10.3. 属性规范
 
 【强制】 属性定义必须另起一行。
 
@@ -3779,7 +3905,7 @@ font-size: 12px;
 }
 ```
 
-### 11.4. CSS 属性书写顺序(重点)
+### 10.4. CSS 属性书写顺序(重点)
 
 1. 布局定位属性：display / position / float / clear / visibility / overflow（建议 display 第一个写，毕竟关系到模式）
 2. 自身属性：width / height / margin / padding / border / background
