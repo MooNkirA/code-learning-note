@@ -456,7 +456,7 @@ p,
 }
 ```
 
-#### 2.4.5. 属性选择器
+#### 2.4.5. 属性选择器（CSS3）
 
 选取标签带有某些特殊属性的选择器，称为属性选择器，即根据指定的标签包含指定的属性去改变样式。**语法：标签名后使用中括号`[]`包含指定的属性**
 
@@ -467,7 +467,7 @@ p,
 }
 ```
 
-- 第2种：标签有某个属性，并且等于指定的值
+- 第2种：标签有某个属性，并且等于指定的值（**重点**）
 
 ```css
 标签名[属性名="属性值"] {
@@ -488,6 +488,10 @@ div[class*=tao] { /* class*=tao  *=  表示tao 在任意位置都可以 */
     color: green;
 }
 ```
+
+![](images/20200822211305720_20851.png)
+
+> <font color=red>**注意：类选择器、属性选择器、伪类选择器，权重为 10。**</font>
 
 #### 2.4.6. 伪类选择器
 ##### 2.4.6.1. 作用与语法格式
@@ -531,12 +535,23 @@ input:focus {
 
 ##### 2.4.6.4. 结构(位置)伪类选择器（CSS3)
 
+结构伪类选择器主要根据**文档结构**来选择器元素，常用于根据父级选择器里面的子元素
+
 - `:first-child`：选取属于其父元素的首个子元素的指定选择器
 - `:last-child`：选取属于其父元素的最后一个子元素的指定选择器
 - `:nth-child(n)`： 匹配属于其父元素的第 N 个子元素，不论元素的类型
 - `:nth-last-child(n)`：选择器匹配属于其元素的第 N 个子元素的每个元素，不论元素的类型，从最后一个子元素开始计数。
+- `E:first-of-type`：选择指定类型E的第一个元素
+- `E:last-of-type`：选择指定类型E的最后一个元素
+- `E:eth-of-type()`：选择指定类型E的第n个元素
 
-> n 可以是数字、关键词或公式
+<font color=red>**注意：n 可以是数字、关键词或公式**</font>
+
+- n 如果是数字，就是选择第n个子元素，里面数字从1开始
+- n 可以是关键字：`even`（偶数），`odd`（奇数）
+- n 可以是公式：常见的公式如下 ( 如果n是公式，则从0开始计算，但是第0个元素或者超出了元素的个数会被忽略 )
+
+![](images/20200822213010118_28100.png)
 
 ```css
 li:first-child { /*  选择第一个孩子 */
@@ -554,7 +569,22 @@ li:nth-child(2n) {   /* 选择所有偶数的孩子 2n 代表偶数的意思 */
 li:nth-child(n) {   /* 选择所有奇数的孩子 n 代表奇数的意思 */
     color: yellow;
 }
+/* nth-child 会把所有的盒子都排列序号 */
+/* 执行的时候首先看  :nth-child(1) 之后回去看前面div */
+section div:nth-child(1) {
+    background-color: red;
+}
+/* nth-of-type 会把指定元素的盒子排列序号 */
+/* 执行的时候首先看  div指定的元素，之后回去看 :nth-of-type(1) 第几个孩子 */
+section div:nth-of-type(1) {
+    background-color: blue;
+}
 ```
+
+**nth-child 与 nth-of-type 的区别**
+
+1. `nth-child` 对父元素里面所有子元素排序选择（序号是固定的，先找到第n个子元素，然后看看是否和E匹配
+2. `nth-of-type` 对父元素里面指定子元素进行排序选择。先去匹配E类型，然后再根据E类型找第n个子元素
 
 ##### 2.4.6.5. 目标伪类选择器(CSS3)
 
@@ -568,6 +598,8 @@ li:nth-child(n) {   /* 选择所有奇数的孩子 n 代表奇数的意思 */
 ```
 
 #### 2.4.7. 伪元素选择器（CSS3)
+
+伪元素选择器可以利用CSS创建新标签元素，而不需要HTML标签，从而简化HTML结构。
 
 ##### 2.4.7.1. 基础语法与使用
 
@@ -642,7 +674,7 @@ div::after {
 
 ##### 2.4.7.3. 伪元素使用案例
 
-需求：给图片增加一个
+需求：给图片增加一个鼠标经过的特效
 
 ```html
 <head>
@@ -683,7 +715,6 @@ div::after {
   </div>
 </body>
 ```
-
 
 #### 2.4.8. 伪元素选择器与伪类选择器的区别
 
@@ -1490,284 +1521,92 @@ h1 span{
 }
 ```
 
+### 4.6. CSS3 其他新特性（了解）
 
-## 5. CSS高级样式技巧
+#### 4.6.1. filter 滤镜
 
-### 5.1. CSS实现三角形
+filter CSS属性将模糊或颜色偏移等图形效果应用于元素
 
-只要不给盒子高度与宽度，分别设置5个边框，就出现如下效果
-
-![](images/20200819233409543_1357.png)
-
-```css
-.box1 {
-    width: 0;
-    height: 0;
-    border-top: 10px solid pink;
-    border-right: 10px solid red;
-    border-bottom: 10px solid blue;
-    border-left: 10px solid green;
-}
-```
-
-如果只生成三角形，主要设置一个边框，其余3个边框都设置为透明即可
+语法：
 
 ```css
-.box2 {
-    width: 0;
-    height: 0;
-    line-height: 0;
-    font-size: 0;
-    border: 50px solid transparent;
-    border-left-color: pink;
-    margin: 100px auto;
-}
+filter: 函数();
 ```
-
-### 5.2. CSS用户界面样式
-
-界面样式，就是更改一些用户操作样式，比如：更改用户的鼠标样式，表单轮廓，防止表单域拖拖拽等。但是比如滚动条的样式改动受到了很多浏览器的抵制，就不会去改变
-
-#### 5.2.1. 鼠标样式（cursor）
-
-设置或检索在对象上移动的鼠标指针采用何种系统预定义的光标形状。语法如下：
 
 ```css
-cursor: default(默认光标，通学是一个箭头) | pointer(小手) | move(移动) | text(文本) | crosshair(十字线)
+/* blur模糊处理 数值越大越模糊 */
+filter: blur(5px);
 ```
+
+#### 4.6.2. calc 函数
+
+`calc()` 此CSS函数可以在声明CSS属性值时执行一些计算。括号里面可以使用 `+ - * /` 来进行计算，*注：需要写单位*
+
+```css
+width: calc(100% - 80px);
+```
+
+#### 4.6.3. transition 过渡（重点）
+
+过渡（transition)是CSS3中具有颠覆性的特征之一，用于设置当元素从一种样式变换为另一种样式时为元素添加效果。
+
+过渡动画：是从一个状态 渐渐的过渡到另外一个状态，<font color=red>经常和`:hover`一起搭配使用</font>
+
+- 语法：
+
+```css
+transition: 要过渡的属性 花费时间 运动曲线 何时开始;
+```
+
+1. 过渡的属性：想要变化的 css 属性，宽度高度、背景颜色、内外边距都可以 。如果想要所有的属性都变化过渡，写一个all即可
+2. 花费时间：单位是秒（必须写单位） 比如 0.5s
+3. 运动曲线：默认是 `ease` （可以省略）
+4. 何时开始：单位是秒（必须写单位）可以设置延迟触发时间 默认是 0s （可以省略）
+
+> <font color=red>**注：谁做过渡给谁加**</font>
 
 示例：
 
-```css
-<ul>
-    <li style="cursor: default;">我是默认光标（通常是一个箭头）</li>
-    <li style="cursor: pointer;">我是小手（光标呈现为指示某个链接的指针）</li>
-    <li style="cursor: move;">我是移动光标（十字有勾的光标）</li>
-    <li style="cursor: text;">我是文本光标（像“I”的文本选择光标）</li>
-    <li style="cursor: crosshair;">我是十字线光标（十字样式的光标）</li>
-</ul>
-```
-
-> 注： 尽量不要用小手光标因为火狐浏览器不支持`pointer`，在ie6以上都支持的尽量用
-
-#### 5.2.2. 表单轮廓（outline）
-
-轮廓（`outline`）是绘制于元素周围的一条线，位于边框边缘的外围，可起到突出元素的作用。语法如下：
-
-```css
-outline: outline-color || outline-style || outline-width;
-```
-
-通过都不会设置，一般都是用来去掉包围的线（多用于去掉文本输入框，获取焦点时在文本输入框外面有一圈光亮的线）
-
-去掉外围光亮线的写法是：`outline: 0;` 或者 `outline: none;`
-
-```html
-<input  type="text"  style="outline: 0;"/>
-```
-
-#### 5.2.3. 防止拖拽文本域（resize）
-
-`resize：none;`这个属性可以防止火狐、谷歌等浏览器随意的拖动多行文本域的大小。
-
-```css
-<textarea style="resize: none;"></textarea>
-```
-
-### 5.3. 垂直对齐（vertical-align）
-
-- 如果让带有宽度的块级元素居中对齐，是`margin: 0 auto;`
-- 如果让文字居中对齐，是`text-align: center;`
-
-而`vertical-align`属性是设置或检索对象内容的垂直对其方式。语法如下：
-
-```css
-vertical-align: baseline | top | middle | bottom
-```
-
-![](images/20200720225650177_8265.jpg)
-
-<font color=red>**特别注意是：`vertical-align`不影响块级元素中的内容对齐，它只针对于行内元素或者行内块元素，特别是行内块元素，通常用于控制图片/表单与文字的对齐**</font>
-
-![](images/20200720225214514_13578.png)
-
-#### 5.3.1. 图片、表单和文字对齐
-
-通过vertical-align 控制图片和文字的垂直关系了。 默认的图片会和文字基线对齐。
-
 ```html
 <head>
-  <meta charset="utf-8" />
   <style>
     div {
       width: 200px;
       height: 100px;
       background-color: pink;
-      margin-left: auto;
-      margin-right: auto; /* 左右自动 auto  盒子可水平居中对齐 */
-      text-align: center; /* 文字水平居中 */
-      /* vertical-align: middle; 对于块级元素无效 */
+      /* transition: 变化的属性 花费时间 运动曲线 何时开始; */
+      /* transition: width .5s ease 0s, height .5s ease 1s; */
+      /* 如果想要写多个属性，利用逗号进行分割 */
+      /* transition: width .5s, height .5s; */
+      /* 如果想要多个属性都变化，属性写all就可以了 */
+      /* transition: height .5s ease 1s; */
+      /* 谁做过渡，给谁加 */
+      transition: all 0.5s;
     }
-    /* 对于图片/文本框这类行内块元素，可以设置文字与它们的垂直对齐方式 */
-    img {
-      /* vertical-align: baseline;  默认的基线对齐 */
-      vertical-align: middle; /* 手动改为中线对齐 */
-    }
-    textarea {
-      height: 300px;
-      width: 300px;
-      vertical-align: middle;
-    }
-  </style>
-</head>
-<body>
-  <div>文字居中</div>
-  <hr />
-  <!-- 图片和文字默认的是基线对齐（即baseline），通过vertical-align可以设置文字的中线对齐 -->
-  <img src="images/2.jpg" /> 我与图片的垂直对齐方式
-  <hr />
-  用户留言: <textarea></textarea>
-</body>
-```
-
-#### 5.3.2. 去除图片底侧空白缝隙
-
-**有个重要特性需要记忆：图片或者表单等行内块元素，它的底线会和父级盒子的基线对齐。这样会造成一个问题，就是图片底侧会有一个空白缝隙。**
-
-解决的方法有两种：
-
-1. 给img元素`vertical-align: middle | top;`。让图片不要和基线对齐。（推荐）
-2. 给img元素添加 `display：block;` 转换为块级元素就不会存在问题了。
-
-```html
-<head>
-  <meta charset="utf-8" />
-  <style>
-    div {
-      width: 222px;
-      height: 220px;
-      background-color: pink;
-    }
-    img {
-      /* display: block; 转换为块级元素可以解决图片与父盒子底部的间隙 */
-      /* vertical-align: baseline; */
-      vertical-align: top; /* 将垂直对齐为 top 或者 middle，让图片不要和基线对齐即可。(最常用) */
+    div:hover {
+      width: 400px;
+      height: 200px;
+      background-color: skyblue;
     }
   </style>
 </head>
 <body>
-  <div>
-    <img src="images/3.jpg" height="220" width="222" alt="" />
-  </div>
+  <div></div>
 </body>
+html>
 ```
 
-#### 5.3.3. 溢出的文字隐藏
-
-#### 5.3.4. word-break（自动换行）
-
-`word-break`属性用于设置英文单词是否换行。主要属性如下：
-
-- `normal`：使用浏览器默认的换行规则。
-- `break-all`：允许在单词内换行。
-- `keep-all`：只能在半角空格或连字符处换行。
-
-> 注：主要用于处理英文单词
-
-```html
-<head>
-  <meta charset="utf-8" />
-  <style>
-    div {
-      width: 120px;
-      height: 20px;
-      border: 1px solid #f00;
-      /* word-break: break-all; 允许单词拆开显示 */
-      word-break: keep-all; /* 不允许拆开单词显示，除非特殊的连字符。如：-、z-index等  */
-    }
-  </style>
-</head>
-<body>
-  <div>
-    my name is MooNkirA
-  </div>
-</body>
-```
-
-#### 5.3.5. white-space（文本显示方式）
-
-`white-space`属性用于设置或检索对象内文本显示方式，通常使用来强制一行显示内容。主要属性如下：
-
-- `normal`：默认处理方式
-- `nowrap`：强制在同一行内显示所有文本，直到文本结束或者遭遇`<br>`标签对象才换行。
-
-> 注：此属性可以处理中文
-
-#### 5.3.6. CSS长连续字母或数据不换行解决方法
-
-CSS 长连续字母或数据不换行解决方法，CSS字母自动换行，CSS数字自动换行
-
-- `word-wrap`用来控制换行，有以下两种取值
-    - normal
-    - break-word（此值用来强制换行，内容将在边界内换行，中文没有任何问题，英文语句也没问题。但是对于长串的英文，就不起作用。）
-- `word-break`用来控制断词，有以下三种取值
-    - normal
-    - break-all（是断开单词。在单词到边界时，下个字母自动到下一行。主要解决了长串英文的问题。）
-    - keep-all（是指Chinese, Japanese, and Korean不断词，一句话一行，可以用来排列古诗哟~）
-
-【解决方法】可以在CSS中加入
-
-```css
-word-wrap: break-word;
-word-break: break-all;
-```
-
-#### 5.3.7. text-overflow（文字溢出）
-
-`text-overflow`属性是用于设置或检索是否使用一个省略标记（`...`）来标示对象内文本的溢出，语法与主要属性如下：
-
-```css
-text-overflow: clip | ellipsis;
-```
-
-- `clip`：不显示省略标记（`...`），而是简单的裁切
-- `ellipsis`：当对象内文本溢出时显示省略标记（`...`）
-
-> <font color=red>**注意：首先必须设置`white-space: nowrap`强制一行内显示，然后再和`overflow`属性搭配使用**</font>
-
-```html
-<head>
-  <meta charset="utf-8" />
-  <style>
-    div {
-      width: 120px;
-      height: 20px;
-      border: 1px solid #f00;
-      white-space: nowrap; /* 首先必须添加white-space属性，强制文本一行显示*/
-      overflow: hidden; /* 其次必须有这句话 */
-      /* text-overflow: clip;  设置超出范围的文字直接裁剪 */
-      text-overflow: ellipsis; /* 设置超出的部分用省略号代替 */
-    }
-  </style>
-</head>
-<body>
-  <div>
-    我的是一段很长很长很长很长很长很长很长的文字！！！
-  </div>
-</body>
-```
-
-## 6. 盒子模型（CSS重点）
+## 5. 盒子模型（重点）
 
 **CSS就三个大模块：盒子模型、浮动、定位，其余的都是细节。**
 
-### 6.1. 盒子模型概念
+### 5.1. 盒子模型概念
 
 所谓盒子模型就是把HTML页面中的元素看作是一个矩形的盒子，也就是一个盛装内容的容器。每个矩形都由元素的内容（content）、内边距（padding）、边框（border）和外边距（margin）组成。
 
 看透网页布局的本质：把网页元素比如文字图片等等，放入盒子里面，然后利用CSS摆放盒子的过程，就是网页布局。
 
-### 6.2. 盒子模型图解（Box Model）
+### 5.2. 盒子模型图解（Box Model）
 
 网页元素盒子模型的各个属性图
 
@@ -1777,7 +1616,7 @@ text-overflow: clip | ellipsis;
 
 ![](images/20200816165157020_22694.png)
 
-### 6.3. 盒子属性汇总表
+### 5.3. 盒子属性汇总表
 
 |  属性   |                   作用                   |
 | :-----: | --------------------------------------- |
@@ -1787,11 +1626,11 @@ text-overflow: clip | ellipsis;
 | margin  | 外边距                                   |
 | padding | 内边距                                   |
 
-### 6.4. 盒子边框属性（border）
+### 5.4. 盒子边框属性（border）
 
 <font color=red>**注意：设置盒子边框宽度会影响盒子大小**</font>
 
-#### 6.4.1. 边框样式属性汇总表
+#### 5.4.1. 边框样式属性汇总表
 
 |   作用   |     属性      |
 | :------: | :-----------: |
@@ -1800,7 +1639,7 @@ text-overflow: clip | ellipsis;
 | 边框颜色 | border-color  |
 | 边框圆角 | border-radius |
 
-#### 6.4.2. 单独设置边框属性
+#### 5.4.2. 单独设置边框属性
 
 ```css
 选择器 {
@@ -1821,7 +1660,7 @@ text-overflow: clip | ellipsis;
 - `dotted`：边框为点线
 - `double`：边框为双实线
 
-#### 6.4.3. 边框属性汇总写法
+#### 5.4.3. 边框属性汇总写法
 
 ```css
 /* 注意：多个值中间以空格隔开 */
@@ -1830,7 +1669,7 @@ text-overflow: clip | ellipsis;
 }
 ```
 
-#### 6.4.4. 盒子边框常用写法汇总
+#### 5.4.4. 盒子边框常用写法汇总
 
 | 设置内容     | 样式属性                                                                                                 | 常用属性值                                                     |
 | :-----------: | ------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------- |
@@ -1843,7 +1682,7 @@ text-overflow: clip | ellipsis;
 | 颜色综合设置 | border-color:上边 [右边 下边 左边];                                                                       | 颜色值、#十六进制、rgb(r,g,b)、rgb(r%,g%,b%)                    |
 | 边框综合设置 | border:四边宽度 四边样式 四边颜色;                                                                         |                                                               |
 
-#### 6.4.5. 圆角边框(CSS3)
+#### 5.4.5. 圆角边框(CSS3)
 
 在 CSS3 中，新增了圆角边框样式。`border-radius`属性用于设置元素的外边框圆角。
 
@@ -1917,13 +1756,13 @@ border-radius: 左上角 右上角 右下角 左下角;
 </html>
 ```
 
-#### 6.4.6. 表格（table标签）的细线边框（扩展）
+#### 5.4.6. 表格（table标签）的细线边框（扩展）
 
 在学习html的table标签时，设置表格的单元格叠加后边框会很粗
 
 只要设置`border-collapse:collapse;`属性，就表示边框合并在一起。
 
-### 6.5. 内边距（padding）
+### 5.5. 内边距（padding）
 
 `padding`属性用于设置内边距。是指边框与内容之间的距离。分别设置上、右、下、左内边距属性如下：
 
@@ -1947,11 +1786,11 @@ border-radius: 左上角 右上角 右下角 左下角;
 
 <font color=red>**如果父级元素有宽度/高度，子级元素不指定宽度/高度，增加内边距也不会改变盒子的宽度/高度**</font>
 
-### 6.6. 外边距（margin）
+### 5.6. 外边距（margin）
 
 `margin`属性用于设置盒子的外边距，即控制盒子和盒子之间的距离。设置外边距会在元素之间创建“空白”区域，这空白区域通常不能放置其他内容。
 
-#### 6.6.1. 外边距相关属性
+#### 5.6.1. 外边距相关属性
 
 - `margin-top`: 上外边距
 - `margin-right`: 右外边距
@@ -1961,7 +1800,7 @@ border-radius: 左上角 右上角 右下角 左下角;
 
 > 注：取值顺序跟内边距相同。
 
-#### 6.6.2. `margin`属性设置四边值写法
+#### 5.6.2. `margin`属性设置四边值写法
 
 |          外边距的写法          | 含义                  |
 | :----------------------------: | --------------------- |
@@ -1970,7 +1809,7 @@ border-radius: 左上角 右上角 右下角 左下角;
 |   `margin: 10px 20px 30px;`    | 分别设置：上 左右 下  |
 | `margin: 10px 20px 30px 40px;` | 分别设置：上 右 下 左 |
 
-#### 6.6.3. `margin-*`设置一边值的写法
+#### 5.6.3. `margin-*`设置一边值的写法
 
 |      外边距的写法      |   含义   |      内边距的写法       |   含义   |
 | :--------------------: | :------: | :---------------------: | :------: |
@@ -1979,7 +1818,7 @@ border-radius: 左上角 右上角 右下角 左下角;
 | `margin-bottom: 10px;` | 下外边距 | `padding-bottom: 10px;` | 下内边距 |
 | `margin-right: 10px;`  | 右外边距 | `padding-right: 10px;`  | 右内边距 |
 
-#### 6.6.4. 外边距典型应用 - 实现盒子居中（块级元素）
+#### 5.6.4. 外边距典型应用 - 实现盒子居中（块级元素）
 
 外边距可以让块级盒子<font color=red>**水平居中**</font>，但是必须满足3个条件：
 
@@ -2003,7 +1842,7 @@ margin: 0 auto; /* 这种最常用 */
 
 > 注意：以上方法是让块级元素水平居中，<font color=red>**行内元素或者行内块元素水平居中给其父元素添加 `text-align:center` 即可**</font>。
 
-#### 6.6.5. 清除元素的默认内外边距
+#### 5.6.5. 清除元素的默认内外边距
 
 网页元素很多都带有默认的内外边距，而且不同浏览器默认的也不一致。因此在布局前，为了更方便地控制网页中的元素，首先要清除下网页元素的内外边距。
 
@@ -2016,7 +1855,7 @@ margin: 0 auto; /* 这种最常用 */
 
 > 注意：行内元素是只有左右外边距的，是没有上下外边距的。内边距，在ie6等低版本浏览器也会有问题。所以尽量不要给行内元素指定上下的内外边距。但是转换为块级和行内块元素就可以了
 
-#### 6.6.6. 文字盒子居中
+#### 5.6.6. 文字盒子居中
 
 - 文字水平居中，设置`text-align: center;`
 - 盒子水平居中，将左右 `margin` 改为 `auto`
@@ -2026,7 +1865,7 @@ text-align: center;  /* 文字居中水平 */
 margin: 10px auto;  /* 盒子水平居中，左右 margin 改为 auto */
 ```
 
-#### 6.6.7. 图片和背景区别
+#### 5.6.7. 图片和背景区别
 
 - 使用插入图片的场景：比如产品展示类
 - 使用背景图片的塌景：一般用于小图标背景或者超大背景图片
@@ -2050,11 +1889,11 @@ aside {
 }
 ```
 
-#### 6.6.8. 外边距合并
+#### 5.6.8. 外边距合并
 
 使用`margin`定义块元素的<font color=red>**垂直外边距**</font>时，可能会出现外边距的合并。
 
-##### 6.6.8.1. 相邻块元素垂直外边距的合并
+##### 5.6.8.1. 相邻块元素垂直外边距的合并
 
 当上下相邻的两个块元素相遇时，如果上面的元素有下外边距margin-bottom，下面的元素有上外边距margin-top，则**他们之间的垂直间距不是margin-bottom与margin-top之和，而是两者中的较大者的值。这种现象被称为相邻块元素垂直外边距的合并（也称外边距塌陷）**。
 
@@ -2062,7 +1901,7 @@ aside {
 
 此问题的解决方案是：<font color=red>**尽量只给一个盒子添加`margin`值即可**</font>
 
-##### 6.6.8.2. 嵌套块元素垂直外边距的合并
+##### 5.6.8.2. 嵌套块元素垂直外边距的合并
 
 对于两个嵌套关系的块元素，如果父元素没有上内边距及边框，则父元素的上外边距会与子元素的上外边距发生合并，合并后的外边距为两者中的较大者，即使父元素的上外边距为0，也会发生合并。
 
@@ -2076,7 +1915,7 @@ aside {
 
 > 还有其他方法，比如<font color=red>**设置了浮动、固定，绝对定位的盒子不会有塌陷问题**</font>
 
-#### 6.6.9. content宽度和高度（了解）
+#### 5.6.9. content宽度和高度（了解）
 
 使用宽度属性width和高度属性height可以对盒子的大小进行控制。
 
@@ -2099,7 +1938,7 @@ Element Width = content width + padding + border （Width为内容宽度）
 2. 计算盒子模型的总高度时，还应考虑上下两个盒子垂直外边距合并的情况。
 3. <font color=red>**如果一个盒子没有给定宽度/高度或者继承父亲的宽度/高度，则`padding`属性不会影响本盒子大小**</font>
 
-#### 6.6.10. 盒子模型布局稳定性
+#### 5.6.10. 盒子模型布局稳定性
 
 盒子模型什么情况下使用内边距，什么情况下使用外边距？其实大部分情况下是可以混用的。哪种方便使用哪种。但根据稳定性来分，建议如下：
 
@@ -2111,11 +1950,11 @@ Element Width = content width + padding + border （Width为内容宽度）
 2. `padding` 会影响盒子大小，需要进行加减计算，所以其次使用。
 3. `width` 没有问题，经常使用宽度剩余法 高度剩余法来做。
 
-### 6.7. 盒模型（CSS3）
+### 5.7. CSS3 的盒模型
 
 CSS3中可以通过 `box-sizing` 来指定盒模型，其属性值为`content-box`、`border-box`，这样原计算盒子大小的方式就发生了改变。可以分成两种情况：
 
-1. `box-sizing: content-box;`：盒子大小为 width + padding + border。`content-box`此值为其默认值，其让元素维持W3C的标准Box Mode
+1. `box-sizing: content-box;`：盒子大小为 width + padding + border。此值为其默认值，其让元素维持W3C的标准Box Mode
 2. `box-sizing: border-box;`：盒子大小为 width，就是说 `padding` 和 `border` 是包含到width里面的
 
 > 注：上面的标注的width指的是CSS属性里设置的`width: length`，content的值是会自动调整的。
@@ -2142,7 +1981,7 @@ div:last-child {
 }
 ```
 
-### 6.8. box-shadow（盒子阴影）
+### 5.8. box-shadow（盒子阴影）
 
 `box-shadow`属性用于给盒子显示阴影部分，
 
@@ -2180,9 +2019,9 @@ box-shadow: 水平阴影 垂直阴影 模糊距离 阴影尺寸 阴影颜色 内
 </style>
 ```
 
-## 7. 网页布局-浮动(float)（重点）
+## 6. 网页布局-浮动(float)（重点）
 
-### 7.1. 传统网页布局的三种方式
+### 6.1. 传统网页布局的三种方式
 
 网页布局的本质：就是用CSS来摆放盒子位置。
 
@@ -2194,7 +2033,7 @@ CSS 提供了三种传统布局方式(简单来说，就是盒子如何进行排
 
 > 注意：实际开发中，一个页面基本都包含了这三种布局方式
 
-### 7.2. 网页布局-普通流(normal flow)
+### 6.2. 网页布局-普通流(normal flow)
 
 normal flow 也有称为文档流。
 
@@ -2205,9 +2044,9 @@ html语言当中另外一个相当重要的概念：标准流！或者普通流�
 
 以上都是标准流布局，标准流是最基本的布局方式。
 
-### 7.3. 浮动的定义
+### 6.3. 浮动的定义
 
-#### 7.3.1. 什么是浮动
+#### 6.3.1. 什么是浮动
 
 有很多的布局效果，标准流没有办法完成，此时就可以利用浮动完成布局。因为浮动可以改变元素标签默认的排列方式
 
@@ -2221,7 +2060,7 @@ html语言当中另外一个相当重要的概念：标准流！或者普通流�
 
 元素的浮动是指设置了浮动属性的元素会脱离标准普通流的控制，移动到其父元素中指定位置的过程
 
-#### 7.3.2. CSS中如何设置浮动
+#### 6.3.2. CSS中如何设置浮动
 
 在CSS中，`float`属性用于创建浮动框，将其移动到一边，直到左边缘或右边缘触及包含块或另一个浮动框的边缘。其基本语法格式如下：
 
@@ -2235,7 +2074,7 @@ html语言当中另外一个相当重要的概念：标准流！或者普通流�
 | right | 元素向右浮动                                 |
 | none  | 元素不浮动（不设置float属性，此为默认值）      |
 
-### 7.4. 浮动特性
+### 6.4. 浮动特性
 
 添加浮动之后的元素，会有以下特点：
 
@@ -2243,19 +2082,19 @@ html语言当中另外一个相当重要的概念：标准流！或者普通流�
 2. 浮动的元素会一行内显示并且元素顶部对齐
 3. 浮动的元素会具有行内块元素的特性
 
-#### 7.4.1. 特性1 - 浮动元素脱标
+#### 6.4.1. 特性1 - 浮动元素脱标
 
 1. 浮动（float）的元素会脱离标准普通流的控制（浮）移动到指定位置（动），俗称脱标
 2. 浮动的盒子<font color=red>**不再保留原先的位置**</font>
 3. 浮动只有左右浮动
 
-#### 7.4.2. 特性2 - 浮动元素的排序
+#### 6.4.2. 特性2 - 浮动元素的排序
 
 如果多个盒子都设置了浮动，则它们会按照属性值的方向，<font color=red>**在一行内显示并且顶端对齐排列**</font>
 
 <font color=red>**注意：浮动的元素是互相贴靠在一起的（元素之间不会有缝隙），如果父级宽度装不下这些浮动的盒子，多出的盒子会另起一行对齐。**</font>
 
-#### 7.4.3. 特性3 - 浮动元素的行内块元素特性
+#### 6.4.3. 特性3 - 浮动元素的行内块元素特性
 
 任何元素都可以浮动。不管原先是什么模式的元素，添加浮动之后具有行内块元素相似的特性。
 
@@ -2263,7 +2102,7 @@ html语言当中另外一个相当重要的概念：标准流！或者普通流�
 > - 浮动的盒子中间是没有缝隙的，是紧挨着一起的
 > - 行内元素也是一样的效果
 
-#### 7.4.4. 浮动内幕特性示例详解
+#### 6.4.4. 浮动内幕特性示例详解
 
 浮动会脱离标准流，不占位置，会影响标准流。浮动只有左右浮动。
 
@@ -2348,9 +2187,9 @@ html语言当中另外一个相当重要的概念：标准流！或者普通流�
     1. 浮动的盒子需要和标准流的父级搭配使用
     2. 特别注意浮动可以使元素（行内、块）显示模式体现为行内块元素的特性
 
-### 7.5. 常见浮动布局用法
+### 6.5. 常见浮动布局用法
 
-#### 7.5.1. 浮动元素和标准流父级元素搭配使用
+#### 6.5.1. 浮动元素和标准流父级元素搭配使用
 
 为了约束浮动元素位置, 网页布局一般采取的策略是：<font color=red>**先用标准流的父元素排列上下位置，之后内部子元素采取浮动排列左右位置**</font>。符合网页布局第一准侧.
 
@@ -2410,7 +2249,7 @@ html语言当中另外一个相当重要的概念：标准流！或者普通流�
 
 ![](images/20200817233839454_2305.png)
 
-#### 7.5.2. 版心（可视区）和布局流程
+#### 6.5.2. 版心（可视区）和布局流程
 
 在制作网页时，要想使页面结构清晰、有条理，也需要对网页进行“排版”。“版心”(可视区) 是指网页中主体内容所在的区域。一般在浏览器窗口中水平居中显示，常见的宽度值为960px、980px、1000px、1200px等。
 
@@ -2421,7 +2260,7 @@ html语言当中另外一个相当重要的概念：标准流！或者普通流�
 3. 制作HTML结构
 4. CSS初始化，然后开始运用盒子模型的原理，通过DIV+CSS布局来控制网页的各个模块
 
-#### 7.5.3. 一列固定宽度且居中
+#### 6.5.3. 一列固定宽度且居中
 
 ![](images/20200719124302976_5988.jpg)
 
@@ -2475,7 +2314,7 @@ html语言当中另外一个相当重要的概念：标准流！或者普通流�
 </html>
 ```
 
-#### 7.5.4. 两列左窄右宽型
+#### 6.5.4. 两列左窄右宽型
 
 ![](images/20200719124344369_13434.jpg)
 
@@ -2541,7 +2380,7 @@ html语言当中另外一个相当重要的概念：标准流！或者普通流�
 </html>
 ```
 
-#### 7.5.5. 通栏平均分布型
+#### 6.5.5. 通栏平均分布型
 
 ![](images/20200719124410070_23928.jpg)
 
@@ -2609,7 +2448,7 @@ html语言当中另外一个相当重要的概念：标准流！或者普通流�
 </html>
 ```
 
-#### 7.5.6. 浮动布局注意点
+#### 6.5.6. 浮动布局注意点
 
 1. 浮动和标准流的父盒子搭配
 
@@ -2621,13 +2460,13 @@ html语言当中另外一个相当重要的概念：标准流！或者普通流�
 
 <font color=red>**浮动的盒子只会影响浮动盒子后面的标准流，不会影响前面的标准流**</font>
 
-### 7.6. 消除浮动
+### 6.6. 消除浮动
 
-#### 7.6.1. 为什么要清除浮动
+#### 6.6.1. 为什么要清除浮动
 
 由于父级盒子很多情况下，不方便给高度，希望子元素将父盒子撑开，但是子盒子设置了浮动后不再占用原文档流的位置，最后会导致父级盒子高度变为0，就会影响后面的标准流盒子的排版。为了解决这些问题，此时就需要在该元素中清除浮动。
 
-#### 7.6.2. 清除浮动本质
+#### 6.6.2. 清除浮动本质
 
 清除浮动主要为了解决父级元素因为子级浮动引起内部高度为0的问题。<font color=red>**准确地说，并不是清除浮动，而是清除浮动后造成的影响**</font>
 
@@ -2639,7 +2478,7 @@ html语言当中另外一个相当重要的概念：标准流！或者普通流�
 
 ![](images/20200719132502347_16327.jpg)
 
-### 7.7. 清除浮动的方法
+### 6.7. 清除浮动的方法
 
 其实本质叫做闭合浮动。清除浮动就是把浮动的盒子圈到里面，让父盒子闭合出口和入口不让他们出来影响其他元素。
 
@@ -2655,7 +2494,7 @@ html语言当中另外一个相当重要的概念：标准流！或者普通流�
 | right | 不允许右侧有浮动元素（清除右侧浮动的影响） |
 | both  | 同时清除左右两侧浮动的影响               |
 
-#### 7.7.1. 额外标签法
+#### 6.7.1. 额外标签法
 
 额外标签法也称为隔墙法，是W3C推荐的做法，主要是通过在浮动元素末尾添加一个空的标签。例如`<div style=”clear:both”></div>`，或则其他标签`<br>`等亦可。
 
@@ -2710,7 +2549,7 @@ html语言当中另外一个相当重要的概念：标准流！或者普通流�
 </html>
 ```
 
-#### 7.7.2. 父级添加overflow属性方法
+#### 6.7.2. 父级添加overflow属性方法
 
 可以通过触发BFC的方式，可以实现清除浮动效果。给<font color=red>**父级标签**</font>添加以下属性，均可实现
 
@@ -2761,7 +2600,7 @@ overflow: hidden | auto | scroll;
 </html>
 ```
 
-#### 7.7.3. 使用after伪元素清除浮动（推荐）
+#### 6.7.3. 使用after伪元素清除浮动（推荐）
 
 `:after`方式为空元素的升级版，好处是不用单独加标签。使用方法：
 
@@ -2830,7 +2669,7 @@ overflow: hidden | auto | scroll;
 </html>
 ```
 
-#### 7.7.4. 使用before和after双伪元素清除浮动（推荐）
+#### 6.7.4. 使用before和after双伪元素清除浮动（推荐）
 
 使用方法：给父级元素增加以下固定的属性
 
@@ -2850,9 +2689,9 @@ overflow: hidden | auto | scroll;
 - 优点：代码更简洁
 - 缺点：由于IE6-7不支持`:after`，使用`zoom:1`触发`hasLayout`。
 
-## 8. 网页布局-定位(position)（重点）
+## 7. 网页布局-定位(position)（重点）
 
-### 8.1. 为什么要用定位？
+### 7.1. 为什么要用定位？
 
 定位常用的场景：
 
@@ -2866,13 +2705,13 @@ overflow: hidden | auto | scroll;
 - 浮动可以让多个块级盒子一行没有缝隙排列显示，经常用于横向排列盒子
 - 定位则是可以让盒子自由的在某个盒子内移动位置或者固定屏幕中某个位置，并且可以压住其他盒子
 
-### 8.2. 元素的定位属性
+### 7.2. 元素的定位属性
 
 定位：将盒子定在某一个位置，并且按照定位的方式移动盒子
 
 定位属性主要包括**定位模式**和**边偏移**两部分。<font color=red>**定位模式用于指定一个元素在文档中的定位方式。边偏移则决定了该元素的最终位置。**</font>
 
-#### 8.2.1. 定位模式(定位的分类)
+#### 7.2.1. 定位模式(定位的分类)
 
 在CSS中，position属性用于定义元素的定位模式，其基本语法格式如下：
 
@@ -2889,7 +2728,7 @@ position属性的常用值
 | absolute | 绝对定位，相对于其上一个已经定位的父元素进行定位 |
 |  fixed   | 固定定位，相对于浏览器窗口进行定位             |
 
-#### 8.2.2. 边偏移
+#### 7.2.2. 边偏移
 
 | 边偏移属性 |                   描述                    |
 | :------: | ----------------------------------------- |
@@ -2900,7 +2739,7 @@ position属性的常用值
 
 定位要和边偏移搭配使用了， 比如`top: 100px; left: 30px;`等等。**注意不能同给上下或者左右的边偏移**
 
-### 8.3. 静态定位(static)
+### 7.3. 静态定位(static)
 
 静态定位是所有元素的默认定位方式。可以理解为网页的标签文档流就是静态定位的。
 
@@ -2910,7 +2749,7 @@ position属性的常用值
 
 > 通俗来说，就是网页中所有元素都默认的是静态定位，其实就是标准流的特性。在静态定位状态下，无法通过边偏移属性（top、bottom、left或right）来改变元素的位置。
 
-### 8.4. 相对定位(relative)
+### 7.4. 相对定位(relative)
 
 相对定位是将元素相对于它在标准流中的原位置进行移动后的定位，是相对于它原来的位置。
 
@@ -2928,7 +2767,7 @@ position属性的常用值
 
 > 就是说，相对定位的盒子仍在标准流中，它后面的盒子仍以标准流方式对待它。（相对定位不脱标）。如果说浮动的主要目的是让多个块级元素一行显示，那么定位的主要价值就是移动位置，让盒子到想要的位置上去。
 
-### 8.5. 绝对定位(absolute)
+### 7.5. 绝对定位(absolute)
 
 绝对定位是元素在移动位置的时候，是<font color=red>**相对于它的父元素或者以上元素来说的**</font>
 
@@ -2967,7 +2806,7 @@ position属性的常用值
 </body>
 ```
 
-#### 8.5.1. 父级元素没有定位
+#### 7.5.1. 父级元素没有定位
 
 若所有父元素都没有定位，以浏览器为准对齐(document文档)。
 
@@ -3000,7 +2839,7 @@ position属性的常用值
 </body>
 ```
 
-#### 8.5.2. 父级元素有定位
+#### 7.5.2. 父级元素有定位
 
 如果父级元素有定位，子元素的绝对定位将依据最近的已经定位（绝对、固定或相对定位）的父元素（祖先）进行定位。
 
@@ -3035,7 +2874,7 @@ position属性的常用值
 </body>
 ```
 
-#### 8.5.3. 子绝父相
+#### 7.5.3. 子绝父相
 
 “子绝父相”是定位的重要的口诀。意思是<font color=red>**子级是绝对定位的话，父级要用相对定位**</font>。原因如下：
 
@@ -3095,7 +2934,7 @@ position属性的常用值
 ![](images/20200719175751502_6788.png)
 
 
-### 8.6. 固定定位(fixed)
+### 7.6. 固定定位(fixed)
 
 固定定位是元素固定于浏览器可视区的位置，即以浏览器窗口作为参照物来定义网页元素的位置。主要使用场景：可以在浏览器页面滚动时元素的位置不会改变。
 
@@ -3159,7 +2998,7 @@ position属性的常用值
 
 ![](images/20200719181831197_8129.png)
 
-### 8.7. 粘性定位 sticky（了解）
+### 7.7. 粘性定位 sticky（了解）
 
 粘性定位可以被认为是相对定位和固定定位的混合。
 
@@ -3178,7 +3017,7 @@ position属性的常用值
 
 > 不常用，兼容性较差，IE不支持
 
-### 8.8. 叠放次序（z-index）
+### 7.8. 叠放次序（z-index）
 
 当对多个元素同时设置定位时，定位元素之间有可能会发生重叠。在CSS中，要想调整重叠定位元素的堆叠顺序，可以对定位元素应用`z-index`层叠等级属性，其取值可为正整数、负整数和0。
 
@@ -3228,7 +3067,7 @@ position属性的常用值
 </body>
 ```
 
-### 8.9. 五种定位总结
+### 7.9. 五种定位总结
 
 |     定位模式     |   是否脱标占有位置   | 是否可以使用边偏移 |     移动位置基准      |
 | --------------- | ------------------ | ---------------- | -------------------- |
@@ -3238,9 +3077,9 @@ position属性的常用值
 | 固定定位fixed    | 完全脱标，不占有位置 | 可以             | 相对于浏览器移动位置   |
 | 粘性定位sticky   | 不脱标，占有位置     | 可以             | 相对于浏览器可视区     |
 
-### 8.10. 定位拓展
+### 7.10. 定位拓展
 
-#### 8.10.1. 固定定位小技巧 - 固定到版心右侧
+#### 7.10.1. 固定定位小技巧 - 固定到版心右侧
 
 小技巧：
 
@@ -3280,7 +3119,7 @@ position属性的常用值
 
 ![](images/20200818235640115_26015.png)
 
-#### 8.10.2. 绝对定位小技巧 - 让盒子水平/垂直居中
+#### 7.10.2. 绝对定位小技巧 - 让盒子水平/垂直居中
 
 普通的盒子主要设置左右margin属性为auto即可，即`margin: auto;`，但是对于绝对定位就无效了
 
@@ -3324,13 +3163,13 @@ position属性的常用值
 </html>
 ```
 
-#### 8.10.3. 绝对定位（固定定位）会完全压住盒子
+#### 7.10.3. 绝对定位（固定定位）会完全压住盒子
 
 浮动元素不同，只会压住它下面标准流的盒子，但是不会压住下面标准流盒子里面的文字（或图片）。因为浮动产生的目的最初是为了做文字环绕效果的，文字会围绕浮动元素
 
 但是绝对定位（固定定位） 会压住下面标准流所有的内容。
 
-### 8.11. 定位模式转换
+### 7.11. 定位模式转换
 
 跟浮动一样，元素添加了绝对定位或固定定位之后，元素模式也会发生转换，都转换为行内块模式
 
@@ -3363,6 +3202,641 @@ position属性的常用值
   <div>稳住，定位不难，我们能赢</div>
   <span>我是行内元素</span>
 </body>
+```
+
+## 8. CSS高级样式技巧
+
+### 8.1. CSS实现三角形
+
+只要不给盒子高度与宽度，分别设置5个边框，就出现如下效果
+
+![](images/20200819233409543_1357.png)
+
+```css
+.box1 {
+    width: 0;
+    height: 0;
+    border-top: 10px solid pink;
+    border-right: 10px solid red;
+    border-bottom: 10px solid blue;
+    border-left: 10px solid green;
+}
+```
+
+如果只生成三角形，主要设置一个边框，其余3个边框都设置为透明即可
+
+```css
+.box2 {
+    width: 0;
+    height: 0;
+    line-height: 0;
+    font-size: 0;
+    border: 50px solid transparent;
+    border-left-color: pink;
+    margin: 100px auto;
+}
+```
+
+### 8.2. CSS用户界面样式
+
+界面样式，就是更改一些用户操作样式，比如：更改用户的鼠标样式，表单轮廓，防止表单域拖拖拽等。但是比如滚动条的样式改动受到了很多浏览器的抵制，就不会去改变
+
+#### 8.2.1. 鼠标样式（cursor）
+
+设置或检索在对象上移动的鼠标指针采用何种系统预定义的光标形状。语法如下：
+
+```css
+cursor: default(默认光标，通学是一个箭头) | pointer(小手) | move(移动) | text(文本) | crosshair(十字线)
+```
+
+示例：
+
+```css
+<ul>
+    <li style="cursor: default;">我是默认光标（通常是一个箭头）</li>
+    <li style="cursor: pointer;">我是小手（光标呈现为指示某个链接的指针）</li>
+    <li style="cursor: move;">我是移动光标（十字有勾的光标）</li>
+    <li style="cursor: text;">我是文本光标（像“I”的文本选择光标）</li>
+    <li style="cursor: crosshair;">我是十字线光标（十字样式的光标）</li>
+</ul>
+```
+
+> 注： 尽量不要用小手光标因为火狐浏览器不支持`pointer`，在ie6以上都支持的尽量用
+
+#### 8.2.2. 表单轮廓（outline）
+
+轮廓（`outline`）是绘制于元素周围的一条线，位于边框边缘的外围，可起到突出元素的作用。语法如下：
+
+```css
+outline: outline-color || outline-style || outline-width;
+```
+
+通过都不会设置，一般都是用来去掉包围的线（多用于去掉文本输入框，获取焦点时在文本输入框外面有一圈光亮的线）
+
+去掉外围光亮线的写法是：`outline: 0;` 或者 `outline: none;`
+
+```html
+<input  type="text"  style="outline: 0;"/>
+```
+
+#### 8.2.3. 防止拖拽文本域（resize）
+
+`resize：none;`这个属性可以防止火狐、谷歌等浏览器随意的拖动多行文本域的大小。
+
+```css
+<textarea style="resize: none;"></textarea>
+```
+
+### 8.3. 垂直对齐（vertical-align）
+
+- 如果让带有宽度的块级元素居中对齐，是`margin: 0 auto;`
+- 如果让文字居中对齐，是`text-align: center;`
+
+`vertical-align`用于设置一个元素的垂直对齐方式，但是它只针对于行内元素或者行内块元素有效。经常用于设置图片或者表单(行内块元素）和文字垂直对齐。
+
+```css
+vertical-align: baseline | top | middle | bottom
+```
+
+|  属性值   |               作用描述               |
+| :------: | ------------------------------------ |
+| baseline | 默认。元素放置在父元素的基线上。        |
+|   top    | 把元素的顶端与行中最高元素的顶端对齐     |
+|  middle  | 把此元素放置在父元素的中部。            |
+|  bottom  | 把元素的顶端与行中最低的元素的顶端对齐。 |
+
+
+![](images/20200720225650177_8265.jpg)
+
+<font color=red>**特别注意是：`vertical-align`不影响块级元素中的内容对齐，它只针对于行内元素或者行内块元素，特别是行内块元素，通常用于控制图片/表单与文字的对齐**</font>
+
+![](images/20200720225214514_13578.png)
+
+#### 8.3.1. 图片、表单和文字对齐
+
+通过vertical-align 控制图片和文字的垂直关系了。 默认的图片会和文字基线对齐。
+
+```html
+<head>
+  <meta charset="utf-8" />
+  <style>
+    div {
+      width: 200px;
+      height: 100px;
+      background-color: pink;
+      margin-left: auto;
+      margin-right: auto; /* 左右自动 auto  盒子可水平居中对齐 */
+      text-align: center; /* 文字水平居中 */
+      /* vertical-align: middle; 对于块级元素无效 */
+    }
+    /* 对于图片/文本框这类行内块元素，可以设置文字与它们的垂直对齐方式 */
+    img {
+      /* vertical-align: baseline;  默认的基线对齐 */
+      vertical-align: middle; /* 手动改为中线对齐 */
+    }
+    textarea {
+      height: 300px;
+      width: 300px;
+      vertical-align: middle;
+    }
+  </style>
+</head>
+<body>
+  <div>文字居中</div>
+  <hr />
+  <!-- 图片和文字默认的是基线对齐（即baseline），通过vertical-align可以设置文字的中线对齐 -->
+  <img src="images/2.jpg" /> 我与图片的垂直对齐方式
+  <hr />
+  用户留言: <textarea></textarea>
+</body>
+```
+
+#### 8.3.2. 去除图片底侧空白缝隙
+
+**有个重要特性需要记忆：图片或者表单等行内块元素，它的底线会和父级盒子的基线对齐。这样会造成一个问题，就是图片底侧会有一个空白缝隙。**
+
+解决的方法有两种：
+
+1. 给img元素`vertical-align: middle | top;`。让图片不要和基线对齐。（推荐）
+2. 给img元素添加 `display：block;` 转换为块级元素就不会存在问题了。
+
+```html
+<head>
+  <meta charset="utf-8" />
+  <style>
+    div {
+      width: 222px;
+      height: 220px;
+      background-color: pink;
+    }
+    img {
+      /* display: block; 转换为块级元素可以解决图片与父盒子底部的间隙 */
+      /* vertical-align: baseline; */
+      vertical-align: top; /* 将垂直对齐为 top 或者 middle，让图片不要和基线对齐即可。(最常用) */
+    }
+  </style>
+</head>
+<body>
+  <div>
+    <img src="images/3.jpg" height="220" width="222" alt="" />
+  </div>
+</body>
+```
+
+### 8.4. CSS处理溢出的文字隐藏
+
+#### 8.4.1. word-break（自动换行）
+
+`word-break`属性用于设置英文单词是否换行。主要属性如下：
+
+```css
+word-break: normal | break-all | keep-all;
+```
+
+|   属性值   |          作用描述          |
+| :-------: | ------------------------- |
+|  normal   | 使用浏览器默认的换行规则     |
+| break-all | 允许在单词内换行            |
+| keep-all  | 只能在半角空格或连字符处换行 |
+
+> 注：主要用于处理英文单词
+
+```html
+<head>
+  <meta charset="utf-8" />
+  <style>
+    div {
+      width: 120px;
+      height: 20px;
+      border: 1px solid #f00;
+      /* word-break: break-all; 允许单词拆开显示 */
+      word-break: keep-all; /* 不允许拆开单词显示，除非特殊的连字符。如：-、z-index等  */
+    }
+  </style>
+</head>
+<body>
+  <div>
+    my name is MooNkirA
+  </div>
+</body>
+```
+
+#### 8.4.2. white-space（文本显示方式）
+
+`white-space`属性用于设置或检索对象内文本显示方式，通常使用来强制一行显示内容。主要属性如下：
+
+```css
+word-wrap: normal | break-word;
+```
+
+|   属性值    |                            作用描述                            |
+| :--------: | ------------------------------------------------------------- |
+|   normal   | 默认处理方式，只在允许的断字点换行                                |
+| break-word | 强制在同一行内显示所有文本，直到文本结束或者遭遇`<br>`标签对象才换行 |
+
+> 注：此属性可以处理中文
+
+#### 8.4.3. CSS长连续字母或数据不换行解决方法
+
+CSS 长连续字母或数据不换行解决方法：CSS字母自动换行，CSS数字自动换行
+
+```css
+word-wrap: break-word;
+word-break: break-all;
+```
+
+#### 8.4.4. text-overflow（文字溢出）
+
+`text-overflow`属性是用于设置或检索是否使用一个省略标记（`...`）来标示对象内文本的溢出，语法与主要属性如下：
+
+```css
+text-overflow: clip | ellipsis;
+```
+
+|  属性值   |               作用描述               |
+| :------: | ----------------------------------- |
+|   clip   | 不显示省略标记（`...`），而是简单的裁切      |
+| ellipsis | 当对象内文本溢出时显示省略标记（`...`） |
+
+> <font color=red>**注意：首先必须设置`white-space: nowrap`强制一行内显示，然后再和`overflow`属性搭配使用**</font>
+
+```html
+<head>
+  <meta charset="utf-8" />
+  <style>
+    div {
+      width: 120px;
+      height: 20px;
+      border: 1px solid #f00;
+      white-space: nowrap; /* 首先必须添加white-space属性，强制文本一行显示*/
+      overflow: hidden; /* 其次必须有这句话 */
+      /* text-overflow: clip;  设置超出范围的文字直接裁剪 */
+      text-overflow: ellipsis; /* 设置超出的部分用省略号代替 */
+    }
+  </style>
+</head>
+<body>
+  <div>
+    我的是一段很长很长很长很长很长很长很长的文字！！！
+  </div>
+</body>
+```
+
+#### 8.4.5. 溢出的文字省略号显示案例
+
+##### 8.4.5.1. 单行文本溢出显示省略号
+
+单行文本溢出显示省略号--必须满足三个条件
+
+```css
+/*1. 先强制一行内显示文本*/
+white-space: nowrap; （ 默认 normal 自动换行）
+/*2. 超出的部分隐藏*/
+overflow: hidden;
+/*3. 文字用省略号替代超出的部分*/
+text-overflow: ellipsis;
+```
+
+##### 8.4.5.2. 多行文本溢出显示省略号（了解）
+
+多行文本溢出显示省略号，有较大兼容性问题， 适合于webKit浏览器或移动端（移动端大部分是webkit内核）
+
+```css
+overflow: hidden;
+text-overflow: ellipsis;
+/* 弹性伸缩盒子模型显示 */
+display: -webkit-box;
+/* 限制在一个块元素显示的文本的行数 */
+-webkit-line-clamp: 2;
+/* 设置或检索伸缩盒对象的子元素的排列方式 */
+-webkit-box-orient: vertical;
+```
+
+### 8.5. 常见布局技巧
+
+#### 8.5.1. margin负值的运用
+
+需求：商品列表，当鼠标经过时，商品的盒子出现外边框
+
+![](images/20200820230425670_12755.png)
+
+实现步骤
+
+1. 让每个盒子`margin`往左侧移动`-1px`正好压住相邻盒子边框
+2. 鼠标经过某个盒子的时候，提高当前盒子的层级即可（如果没有有定位，则加相对定位（保留位置），如果有定位，则加`z-index`）
+
+```html
+<head>
+  <style>
+    ul li {
+      position: relative;
+      float: left;
+      list-style: none;
+      width: 150px;
+      height: 200px;
+      border: 1px solid red;
+      margin-left: -1px;
+    }
+    /* ul li:hover {
+      情况1. 如果盒子没有定位，则鼠标经过添加相对定位即可
+      position: relative;
+      border: 1px solid blue;
+     } */
+    ul li:hover {
+      /* 情况2.如果li都有定位，则利用 z-index 提高层级 */
+      z-index: 1;
+      border: 1px solid blue;
+    }
+  </style>
+</head>
+<body>
+  <ul>
+    <li>1</li>
+    <li>2</li>
+    <li>3</li>
+    <li>4</li>
+    <li>5</li>
+  </ul>
+</body>
+```
+
+#### 8.5.2. 文字围绕浮动元素
+
+巧妙运用浮动元素不会压住文字的特性，实现左边图片+右边文字的效果
+
+```html
+<head>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+    }
+    .box {
+      width: 300px;
+      height: 70px;
+      background-color: pink;
+      margin: 0 auto;
+      padding: 5px;
+    }
+    .pic {
+      float: left;
+      width: 120px;
+      height: 60px;
+      margin-right: 5px;
+    }
+    .pic img {
+      width: 100%;
+    }
+  </style>
+</head>
+<body>
+  <div class="box">
+    <div class="pic">
+      <img src="images/word-around.png" alt="" />
+    </div>
+    <p>【集锦】热身赛-巴西0-1秘鲁 内马尔替补两人血染赛场</p>
+  </div>
+</body>
+```
+
+#### 8.5.3. 行内块巧妙运用
+
+需求，实现常见页面居中的分页页码栏的效果，思路如下：
+
+1. 把这些链接盒子转换为行内块，之后给父级指定`text-align: center;`
+2. 利用行内块元素中间有缝隙，并且给父级添加`text-align: center;` 行内块元素会水平会居中
+
+```html
+<head>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+    }
+    .box {
+      text-align: center;
+    }
+    .box a {
+      display: inline-block;
+      width: 36px;
+      height: 36px;
+      background-color: #f7f7f7;
+      border: 1px solid #ccc;
+      text-align: center;
+      line-height: 36px;
+      text-decoration: none;
+      color: #333;
+      font-size: 14px;
+    }
+    .box .prev,
+    .box .next {
+      width: 85px;
+    }
+    .box .current,
+    .box .elp {
+      background-color: #fff;
+      border: none;
+    }
+    .box input {
+      height: 36px;
+      width: 45px;
+      border: 1px solid #ccc;
+      outline: none;
+    }
+    .box button {
+      width: 60px;
+      height: 36px;
+      background-color: #f7f7f7;
+      border: 1px solid #ccc;
+    }
+  </style>
+</head>
+<body>
+  <div class="box">
+    <a href="#" class="prev">&lt;&lt;上一页</a>
+    <a href="#" class="current">2</a>
+    <a href="#">3</a>
+    <a href="#">4</a>
+    <a href="#">5</a>
+    <a href="#">6</a>
+    <a href="#" class="elp">...</a>
+    <a href="#" class="next">&gt;&gt;下一页</a>
+    到第
+    <input type="text" />
+    页
+    <button>确定</button>
+  </div>
+</body>
+```
+
+#### 8.5.4. CSS 三角强化
+
+需求：实现以下图片的效果
+
+![](images/20200820232115086_8065.png)
+
+实现一个直角三角形的方法
+
+```css
+.box1 {
+    width: 0;
+    height: 0;
+    /* 1.只保留右边的边框有颜色 */
+    border-color: transparent red transparent transparent;
+    /* 2. 样式都是solid */
+    border-style: solid;
+    /* 3. 上边框宽度要大，右边框宽度稍小，其余的边框该为0 */
+    border-width: 100px 50px 0 0;
+}
+```
+
+完整示例
+
+```html
+<head>
+  <style>
+    .box1 {
+      width: 0;
+      height: 0;
+      /* 把上边框宽度调大 */
+      /* border-top: 100px solid transparent;
+          border-right: 50px solid skyblue; */
+      /* 左边和下边的边框宽度设置为0 */
+      /* border-bottom: 0 solid blue;
+          border-left: 0 solid green; */
+      /* 直角三角形 */
+      /* 1.只保留右边的边框有颜色 */
+      border-color: transparent red transparent transparent;
+      /* 2. 样式都是solid */
+      border-style: solid;
+      /* 3. 上边框宽度要大，右边框宽度稍小，其余的边框该为0 */
+      border-width: 100px 50px 0 0;
+    }
+    .price {
+      width: 160px;
+      height: 24px;
+      line-height: 24px;
+      border: 1px solid red;
+      margin: 0 auto;
+    }
+    .miaosha {
+      position: relative;
+      float: left;
+      width: 90px;
+      height: 100%;
+      background-color: red;
+      text-align: center;
+      color: #fff;
+      font-weight: 700;
+      margin-right: 8px;
+    }
+    /* 直角三角形，然后定位到右侧即可 */
+    .miaosha i {
+      position: absolute;
+      right: 0;
+      top: 0;
+      width: 0;
+      height: 0;
+      border-color: transparent #fff transparent transparent;
+      border-style: solid;
+      border-width: 24px 10px 0 0;
+    }
+    .origin {
+      font-size: 12px;
+      color: gray;
+      text-decoration: line-through;
+    }
+  </style>
+</head>
+<body>
+  <div class="box1"></div>
+  <div class="price">
+    <span class="miaosha">
+      ¥1650
+      <i></i>
+    </span>
+    <span class="origin">¥5650</span>
+  </div>
+</body>
+```
+
+### 8.6. CSS 初始化
+
+不同浏览器对有些标签的默认值是不同的，为了消除不同浏览器对HTML文本呈现的差异，照顾浏览器的兼容，需要对CSS初始化。简单来说，CSS初始化是指重设浏览器的样式(也称为CSS reset）
+
+Unicode编码字体：把中文字体的名称用相应的Unicode编码来代替，这样就可以有效的避免浏览器解释CSS代码时候出现乱码的问题。如：黑体 `\9ED1\4F53`、宋体 `\5B8B\4F53`、微软雅黑 `\5FAE\8F6F\96C5\9ED1`
+
+京东的CSS初始化示例
+
+```css
+/* 把我们所有标签的内外边距清零 */
+* {
+  margin: 0;
+  padding: 0;
+}
+/* em 和 i 斜体的文字不倾斜 */
+em,
+i {
+  font-style: normal;
+}
+/* 去掉li 的小圆点 */
+li {
+  list-style: none;
+}
+
+img {
+  /* border 0 照顾低版本浏览器 如果图片外面包含了链接会有边框的问题 */
+  border: 0;
+  /* 取消图片底侧有空白缝隙的问题 */
+  vertical-align: middle;
+}
+
+button {
+  /* 当鼠标经过button按钮的时候，鼠标变成小手 */
+  cursor: pointer;
+}
+
+a {
+  color: #666;
+  text-decoration: none;
+}
+
+a:hover {
+  color: #c81623;
+}
+
+button,
+input {
+  /* "\5B8B\4F53" 就是宋体的意思 这样浏览器兼容性比较好 */
+  font-family: Microsoft YaHei, Heiti SC, tahoma, arial, Hiragino Sans GB,
+    "\5B8B\4F53", sans-serif;
+}
+
+body {
+  /* CSS3 抗锯齿形 让文字显示的更加清晰 */
+  -webkit-font-smoothing: antialiased;
+  background-color: #fff;
+  font: 12px/1.5 Microsoft YaHei, Heiti SC, tahoma, arial, Hiragino Sans GB,
+    "\5B8B\4F53", sans-serif;
+  color: #666;
+}
+
+.hide,
+.none {
+  display: none;
+}
+/* 清除浮动 */
+.clearfix:after {
+  visibility: hidden;
+  clear: both;
+  display: block;
+  content: ".";
+  height: 0;
+}
+
+.clearfix {
+  *zoom: 1;
+}
 ```
 
 ## 9. 伸缩布局(CSS3)
