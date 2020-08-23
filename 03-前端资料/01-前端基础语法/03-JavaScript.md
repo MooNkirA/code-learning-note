@@ -173,12 +173,794 @@ let variable2 = variable1 || "foo";
 let variable = param && param.prop;
 ```
 
-## 2. 数组对象Array
+## 2. 函数
+
+### 2.1. 函数的定义与语法格式
+
+#### 2.1.1. 函数的定义
+
+- 第1种方式：全名函数
+
+```js
+function 函数名(参数列表) {
+    代码块;
+    // 如果有返回值就加return
+    [return 返回值;]
+}
+```
+
+- 第2种方式：匿名函数
+
+```js
+var 变量名 = function (参数列表) {
+    代码块;
+    // 如果有返回值就加return
+    [return 返回值;]
+}
+```
+
+示例
+
+```js
+// 方式一 定义函数
+function sayHi(name){
+    // 弹出个新窗口显示 window可能省略
+    window.alert("和 " + name + " 打个鸟招呼！");
+}
+
+// 定义一个name变量
+var realName = "birdMan";
+// 调用函数 或者直接sayHi("birdMan");
+sayHi(realName);
+
+// 方式二 匿名函数
+var sayHi2 = function (name){
+    window.alert("和 " + name + " 打第2个鸟招呼！");
+}
+
+// 调用函数，输入形式变量
+sayHi2("鸟人");
+```
+
+#### 2.1.2. 参数类型与返回值
+
+1. 形参的类型。在定义函数时，形参的类型是不需要指定的，因是可以变化的类型
+2. 函数的返回值。function前面没有返回类型，如果有返回值，使用return，如果没有返回值则不用写。
+
+#### 2.1.3. 函数的重载
+
+在JS中没有函数的重载，后面定义的同名函数会覆盖前面的函数，只有最后一个函数起作用。
+
+形参的个数与实参个数没有关系
+
+#### 2.1.4. arguments隐式数组对象
+
+在每一个函数的内部都有一个隐式的数组对象，名字叫arguments，用来保存用户提交的实际参数。函数运行的时候形参从数组中去取值，再进行运算。
+
+实参个数与形参个数无关
+
+- 调用函数时，隐式数组的执行流程
+1. 调用的时候，先会将形参的值赋值给arguments数组
+2. 执行的时候，实参从arguments数组中按顺序取出值，再进行计算
+
+<font color=red>**结论：函数的形参的个数与调用时实参的个数不用相等，可以不同。建议还是写成相同的个数。**</font>
+
+Code Demo: 输出arguments的长度和数组中的每个元素
+
+```js
+// 输出隐式数组
+function innerArray(n1,n2){
+    // 输出函数中的数组
+    document.write("数组的长度是：" + arguments.length + "<br/>");
+    // 输出数组中每个元素
+    for (var i = 0; i<arguments.length; i++) {
+        document.write(arguments[i] + "&nbsp;");
+    }
+
+    document.write("<br/>");
+    document.write("n1 = " + n1 + "<br/>");
+    document.write("n2 = " + n2 + "<br/>");
+}
+
+// 调用函数
+innerArray(10);
+innerArray(10,20);
+innerArray(10,20,30);
+```
+
+输出结果：
+
+```
+数组的长度是：1
+10
+n1 = 10
+n2 = undefined
+数组的长度是：2
+10 20
+n1 = 10
+n2 = 20
+数组的长度是：3
+10 20 30
+n1 = 10
+n2 = 20
+```
+
+### 2.2. 函数内 this 的指向
+
+函数内 this 的指向，是当调用函数的时候确定的。调用方式的不同决定了this 的指向不同。一般指向调用者
+
+![](images/20200823171520434_1035.png)
+
+```js
+// 函数的不同调用方式决定了this 的指向不同
+// 1. 普通函数 this 指向window
+function fn() {
+  console.log("普通函数的this" + this)
+}
+window.fn()
+// 2. 对象的方法 this指向的是对象 o
+var o = {
+  sayHi: function () {
+    console.log("对象方法的this:" + this)
+  },
+}
+o.sayHi()
+// 3. 构造函数 this 指向 moon 这个实例对象原型对象里面的this 指向的也是moon这个实例对象
+function Star() {}
+Star.prototype.sing = function () {}
+var moon = new Star()
+// 4. 绑定事件函数 this 指向的是函数的调用者 btn这个按钮对象
+var btn = document.querySelector("button")
+btn.onclick = function () {
+  console.log("绑定时间函数的this:" + this)
+}
+// 5. 定时器函数 this 指向的也是window
+window.setTimeout(function () {
+  console.log("定时器的this:" + this)
+}, 1000)
+// 6. 立即执行函数 this还是指向window
+;(function () {
+  console.log("立即执行函数的this" + this)
+})()
+```
+
+JavaScript 专门提供了一些函数方法来处理函数内部 this 的指向问题，常用的有 bind()、call()、apply() 三种方法
+
+#### 2.2.1. call 方法
+
+语法：
+
+```js
+fun.call(thisArg, arg1, arg2, ...)
+```
+
+- `thisArg`：在 fun 函数运行时指定的 this 值
+- `arg1，arg2`：传递的其他参数
+- 返回值就是函数的返回值，因为它就是调用函数
+
+```js
+// 改变函数内this指向，js提供了三种方法：call()  apply()  bind()
+// 1. call()方法
+var o = {
+  name: "MooN",
+}
+function fn(a, b) {
+  console.log(this)
+  console.log(a + b)
+}
+// call 第一个可以调用函数 第二个可以改变函数内的this 指向
+fn.call(o, 1, 2)
+// call 的主要作用可以实现继承
+function Father(uname, age, sex) {
+  this.uname = uname
+  this.age = age
+  this.sex = sex
+}
+function Son(uname, age, sex) {
+  Father.call(this, uname, age, sex)
+}
+var son = new Son("路飞", 18, "男")
+console.log(son)
+```
+
+#### 2.2.2. apply 方法
+
+`apply()` 方法调用一个函数。简单理解为调用函数的方式，但是它可以改变函数的 this 指向。语法如下：
+
+```js
+fun.apply(thisArg, [argsArray])
+```
+
+- `thisArg`：在fun函数运行时指定的 this 值
+- `argsArray`：传递的值，必须包含在数组里面
+- 返回值就是函数的返回值，因为它就是调用函数
+- `apply()` 函数主要跟数组有关系，比如使用 `Math.max()` 求数组的最大值
+
+```js
+// 改变函数内this指向  js提供了三种方法  call()  apply()  bind()
+// 2. apply()  应用 运用的意思
+var o = {
+  name: "MooN",
+}
+function fn(arr) {
+  console.log(this)
+  console.log(arr) // 'pink'
+}
+fn.apply(o, ["pink"])
+// 1. 也是调用函数 第二个可以改变函数内部的this指向
+// 2. 但是他的参数必须是数组(伪数组)
+// 3. apply 的主要应用 比如说可以利用 apply 借助于数学内置对象求数组最大值
+// Math.max();
+var arr = [1, 66, 3, 99, 4]
+var arr1 = ["red", "pink"]
+// var max = Math.max.apply(null, arr);
+var max = Math.max.apply(Math, arr)
+var min = Math.min.apply(Math, arr)
+console.log(max, min)
+```
+
+#### 2.2.3. bind 方法
+
+`bind()` 方法不会调用函数。但是能改变函数内部 this 指向。语法如下：
+
+```js
+fun.bind(thisArg, arg1, arg2, ...)
+```
+
+- `thisArg`：在 fun 函数运行时指定的 this 值
+- `arg1，arg2`：传递的其他参数
+- 返回由指定的 this 值和初始化参数改造的原函数拷贝
+- 因此当只是想改变 this 指向，并且不想调用这个函数的时候，可以使用 `bind()`
+
+```js
+// 改变函数内this指向  js提供了三种方法  call()  apply()  bind()
+// 3. bind()方法 绑定
+var o = {
+  name: "MooN",
+}
+function fn(a, b) {
+  console.log(this)
+  console.log(a + b)
+}
+var f = fn.bind(o, 1, 2)
+f()
+// 1. 不会调用原来的函数，可以改变原来函数内部的this 指向
+// 2. 返回的是原函数改变this之后产生的新函数
+// 3. 如果有的函数不需要立即调用,但是又想改变这个函数内部的this指向此时用bind
+// 示例：有一个按钮,当点击了之后,就禁用这个按钮,3秒钟之后开启这个按钮
+/* var btn1 = document.querySelector("button")
+btn1.onclick = function () {
+  this.disabled = true // 这个this 指向的是 btn 这个按钮
+  // var that = this;
+  setTimeout(
+    function () {
+      // that.disabled = false; // 定时器函数里面的this 指向的是window
+      this.disabled = false // 此时定时器函数里面的this 指向的是btn
+    }.bind(this),
+    3000
+  ) // 这个this 指向的是btn 这个对象
+} */
+// 多个按钮
+var btns = document.querySelectorAll("button")
+for (var i = 0; i < btns.length; i++) {
+  btns[i].onclick = function () {
+    this.disabled = true
+    setTimeout(
+      function () {
+        this.disabled = false
+      }.bind(this),
+      2000
+    )
+  }
+}
+```
+
+#### 2.2.4. 改变函数内部 this 指向三种方式总结
+
+- 相同点：
+    - 都可以改变函数内部的this指向
+- 区别点：
+    - call 和 apply 会调用函数，并且改变函数内部this指向
+    - call 和 apply 传递的参数不一样，call 传递参数 `arg1, arg2..`形式。apply 必须数组形式[arg]
+    - bind 不会调用函数，可以改变函数内部this指向
+- 主要应用场景：
+    - `call`：经常做继承
+    - `apply`：经常跟数组有关系。比如借助于数学对象实现数组最大值最小值
+    - `bind`：不调用函数，但是还想改变this指向/比如改变定时器内部的this指向
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+## 3. JavaScript 的对象
+
+类就是对象的模板，对象就是类的实例。在 ES6之前，JS 中并没用引入类的概念。
+
+在 ES6之前，对象不是基于类创建的，而是用一种称为<font color=red>**构建函数**</font>的特殊函数来定义对象和它们的特征。
+
+创建对象可以通过以下三种方式：
+
+1. 对象字面量。例如：`var obj2 = {}`
+2. `new Object()`。例如：`var obj1 = new Object()`
+3. 自定义构造函数
+
+### 3.1. 构造函数
+
+**构造函数**是一种特殊的函数，主要用来初始化对象，即为对象成员变量赋初始值，它总与 `new` 关键字一起使用。可以把对象中一些公共的属性和方法抽取出来，然后封装到这个函数里面
+
+```js
+// ES6之前，利用构造函数创建对象
+function Star(uname, age) {
+  this.uname = uname
+  this.age = age
+  this.sing = function () {
+    console.log(this.uname + "会唱歌")
+  }
+}
+var shiyuan = new Star("石原里美", 18)
+var jieye = new Star("新垣结衣", 20)
+console.log(shiyuan)
+shiyuan.sing()
+jieye.sing()
+```
+
+在 JS 中，使用构造函数时要注意以下两点：
+
+- 构造函数用于创建某一类对象，<font color=red>**其首字母要大写**</font>
+- <font color=red>**构造函数要和`new`一起使用**</font>才有意义
+
+**new 对象在执行时会做四件事情**：
+
+1. 在内存中创建一个新的空对象。
+2. 让 `this` 指向这个新的对象。
+3. 执行构造函数里面的代码，给这个新对象添加属性和方法。
+4. 返回这个新对象（所以构造函数里面不需要 return ）。
+
+### 3.2. 静态成员和实例成员
+
+JavaScript 的构造函数中可以添加一些成员，可以在构造函数本身上添加，也可以在构造函数内部的 `this` 上添加。通过这两种方式添加的成员，就分别称为静态成员和实例成员。
+
+- **静态成员**：在构造函数本上添加的成员称为静态成员，<font color=red>**只能由构造函数本身来访问**</font>
+- **实例成员**：在构造函数内部创建的对象成员称为实例成员，<font color=red>**只能由实例化的对象来访问**</font>
+
+```js
+// 构造函数中的属性和方法称为成员, 成员可以添加
+function Star(uname, age) {
+  this.uname = uname
+  this.age = age
+  this.sing = function () {
+    console.log("我会唱歌")
+  }
+}
+var shiyuan = new Star("石原里美", 18)
+// 1.实例成员就是构造函数内部通过this添加的成员 uname age sing 就是实例成员
+// 实例成员只能通过实例化的对象来访问
+console.log(shiyuan.uname)
+shiyuan.sing()
+// console.log(Star.uname); // 不可以通过构造函数来访问实例成员
+// 2. 静态成员在构造函数本身直接添加的成员，就是静态成员。比较这个sex属性
+Star.sex = "女"
+console.log(Star.sex) // 静态成员只能通过构造函数来访问
+console.log(ldh.sex) // 不能通过对象来访问
+```
+
+### 3.3. 原型
+
+#### 3.3.1. 构造函数原型 prototype
+
+JavaScript 规定，<font color=red>**每一个构造函数都有一个 `prototype` 属性**</font>，指向另一个对象。注意这个 `prototype` 就是一个对象，这个对象的所有属性和方法，都会被构造函数所拥有，所有通过此构造函数生成的对象都共享此`prototype`对象。
+
+所以可以把那些不变的方法，直接定义在 `prototype` 对象上，这样所有对象的实例就可以共享这些方法。
+
+```js
+// 1. 构造函数的问题.
+function Star(uname, age) {
+  this.uname = uname
+  this.age = age
+  // 直接定义到构造函数上的函数，会造成浪费内存空间的问题
+  /* this.sing = function () {
+    console.log("我会唱歌")
+  } */
+}
+/*
+  2. 一般情况下，的公共属性定义到构造函数里面, 公共的方法放到原型对象身上
+      这样可以使所有实例都共享这些公共的方法，节省内存空间
+*/
+Star.prototype.sing = function () {
+  console.log("我会唱歌")
+}
+var shiyuan = new Star("石原里美", 18)
+var jieye = new Star("新垣结衣", 20)
+console.log(shiyuan.sing === jieye.sing)
+console.dir(Star); // 通过输入到控制台可以看到构造函数中的prototype属性对象
+shiyuan.sing()
+jieye.sing()
+```
+
+#### 3.3.2. 对象原型 __proto__
+
+<font color=red>**对象都会有一个属性 `__proto__` 指向构造函数的 `prototype` 原型对象**</font>
+
+- `__proto__`对象原型和原型对象 `prototype` 是等价的
+- `__proto__`对象原型的意义就在于为对象的查找机制提供一个方向，或者说一条路线，但是它是一个非标准属性，因此实际开发中，不可以使用这个属性，它只是内部指向原型对象 `prototype`
+
+```js
+function Star(uname, age) {
+  this.uname = uname
+  this.age = age
+}
+Star.prototype.sing = function () {
+  console.log("我会唱歌")
+}
+var shiyuan = new Star("石原里美", 18)
+shiyuan.sing()
+console.log(shiyuan) // 对象身上系统自己添加一个 __proto__ 指向构造函数的原型对象 prototype
+console.log(shiyuan.__proto__ === Star.prototype)
+/*
+  方法的查找规则: 首先先看实例对象身上是否有 sing 方法,如果有就执行这个对象上的sing
+  如果么有sing 这个方法,因为有__proto__ 的存在,就去构造函数原型对象prototype身上去查找sing这个方法
+ */
+```
+
+#### 3.3.3. 构造函数 constructor
+
+对象原型（`__proto__`）和构造函数（`prototype`）原型对象里面都有一个属性 `constructor` 属性 `，constructor` 称为构造函数，因为它指回构造函数本身。
+
+`constructor` 主要用于记录该对象引用于哪个构造函数，它可以让原型对象重新指向原来的构造函数
+
+<font color=red>**一般情况下，对象的方法都在构造函数的原型对象中设置**</font>。如果有多个对象的方法，可以给原型对象采取对象形式赋值，但是这样就会覆盖构造函数原型对象原来的内容，这样修改后的原型对象 `constructor`  就不再指向当前构造函数了。此时，我们可以在修改后的原型对象中，添加一个 `constructor` 指向原来的构造函数。
+
+```js
+function Star(uname, age) {
+  this.uname = uname
+  this.age = age
+}
+// 很多情况下,需要手动的利用constructor 这个属性指回 原来的构造函数
+/* Star.prototype.sing = function() {
+    console.log('我会唱歌');
+};
+Star.prototype.movie = function() {
+    console.log('我会演电影');
+} */
+Star.prototype = {
+  // 如果修改了原来的原型对象，给原型对象赋值的是一个对象，则必须手动的利用constructor指回原来的构造函数
+  constructor: Star,
+  sing: function () {
+    console.log("我会唱歌")
+  },
+  movie: function () {
+    console.log("我会演电影")
+  },
+}
+var shiyuan = new Star("石原里美", 18)
+console.log(Star.prototype)
+console.log(shiyuan.__proto__)
+console.log(Star.prototype.constructor)
+console.log(shiyuan.__proto__.constructor)
+```
+
+#### 3.3.4. 构造函数、实例、原型对象三者之间的关系
+
+![](images/20200823105900008_3346.png)
+
+#### 3.3.5. 原型链
+
+![](images/20200823105941956_20146.png)
+
+```js
+function Star(uname, age) {
+  this.uname = uname
+  this.age = age
+}
+Star.prototype.sing = function () {
+  console.log("我会唱歌")
+}
+var shiyuan = new Star("石原里美", 18)
+// 1. 只要是对象就有__proto__ 原型, 指向原型对象
+console.log(Star.prototype)
+console.log(Star.prototype.__proto__ === Object.prototype)
+// 2.我们Star原型对象里面的__proto__原型指向的是 Object.prototype
+console.log(Object.prototype.__proto__)
+// 3. 我们Object.prototype原型对象里面的__proto__原型  指向为 null
+```
+
+### 3.4. JavaScript 的成员查找机制(规则)
+
+1. 当访问一个对象的属性（包括方法）时，首先查找这个对象自身有没有该属性。
+2. 如果没有就查找它的原型（也就是 `__proto__` 指向的 `prototype` 原型对象）。
+3. 如果还没有就查找原型对象的原型（Object的原型对象）。
+4. 依此类推一直找到 Object 为止（null）。
+5. `__proto__`对象原型的意义就在于为对象成员查找机制提供一个方向，或者说一条路线。
+
+```js
+function Star(uname, age) {
+  this.uname = uname
+  this.age = age
+}
+Star.prototype.sing = function () {
+  console.log("我会唱歌")
+}
+// Object.prototype.sex = '男';
+Star.prototype.sex = "男"
+var shiyuan = new Star("石原里美", 18)
+shiyuan.sex = "女"
+console.log(shiyuan.sex)
+console.log(Object.prototype)
+console.log(shiyuan)
+console.log(Star.prototype)
+console.log(shiyuan.toString())
+```
+
+### 3.5. 原型对象this指向
+
+- 构造函数中的 `this` 指向实例对象
+- **原型对象**里面放的是方法，这个方法里面的 `this` 指向的是这个方法的调用者，也就是这个实例对象
+
+```js
+function Star(uname, age) {
+  this.uname = uname
+  this.age = age
+}
+var that
+Star.prototype.sing = function () {
+  console.log("我会唱歌")
+  that = this
+}
+var shiyuan = new Star("石原里美", 18)
+// 1. 在构造函数中，里面this指向的是对象实例
+shiyuan.sing()
+// 2.原型对象函数里面的 this 指向的是实例对象
+console.log(that === shiyuan)
+```
+
+### 3.6. 扩展 JS 内置对象
+
+可以通过原型对象，对JS原来的内置对象进行扩展自定义的方法。
+
+```js
+// 原型对象的应用 扩展内置对象方法
+Array.prototype.sum = function () {
+  var sum = 0
+  for (var i = 0; i < this.length; i++) {
+    sum += this[i]
+  }
+  return sum
+}
+// 使用此方式扩展内置对象，会覆盖原来其他方法。
+/* Array.prototype = {
+  sum: function () {
+    var sum = 0
+    for (var i = 0; i < this.length; i++) {
+      sum += this[i]
+    }
+    return sum
+  },
+} */
+var arr = [1, 2, 3]
+console.log(arr.sum())
+console.log(Array.prototype)
+var arr1 = new Array(11, 22, 33)
+console.log(arr1.sum())
+```
+
+> 注意：数组和字符串内置对象不能给原型对象覆盖操作` Array.prototype = {}` ，只能是 `Array.prototype.xxx = function(){}` 的方式。
+
+### 3.7. 对象常用方法
+
+#### 3.7.1. Object.keys() 获取对象全部属性
+
+`Object.keys()` 用于获取对象自身所有的属性名，返回对象所有属性名的数组
+
+```js
+Object.keys(obj);
+```
+
+示例：
+
+```js
+// 用于获取对象自身所有的属性
+var obj = {
+  id: 1,
+  pname: "小米",
+  price: 1999,
+  num: 2000,
+}
+var arr = Object.keys(obj)
+console.log(arr)
+arr.forEach(function (value) {
+  console.log(value)
+})
+```
+
+#### 3.7.2. Object.defineProperty() 定义属性
+
+`Object.defineProperty()` 定义对象中新属性或修改原有的属性。语法如下：
+
+```js
+Object.defineProperty(obj, prop, descriptor)
+```
+
+- `obj`：必需。目标对象
+- `prop`：必需。需定义或修改的属性的名字
+- `descriptor`：必需。目标属性所拥有的特性。以对象形式`{}`书写
+    - `value`：设置属性的值，默认为undefined
+    - `writable`：值是否可以重写。取值：true|false，默认为false
+    - `enumerable`：目标属性是否可以被枚举。取值：true|false，默认为 false
+    - `configurable`：目标属性是否可以被删除或是否可以再次修改特性。取值：true|false，默认为false
+
+```js
+// Object.defineProperty() 定义新属性或修改原有的属性
+var obj = {
+  id: 1,
+  pname: "小米",
+  price: 1999,
+}
+// 1. 以前的对象添加和修改属性的方式
+// obj.num = 1000;
+// obj.price = 99;
+// console.log(obj);
+// 2. Object.defineProperty() 定义新属性或修改原有的属性
+Object.defineProperty(obj, "num", {
+  value: 1000,
+  enumerable: true,
+})
+console.log(obj)
+Object.defineProperty(obj, "price", {
+  value: 9.9,
+})
+console.log(obj)
+Object.defineProperty(obj, "id", {
+  // 如果值为false 不允许修改这个属性值 默认值也是false
+  writable: false,
+})
+obj.id = 2
+console.log(obj)
+Object.defineProperty(obj, "address", {
+  value: "中国山东蓝翔技校xx单元",
+  // 如果只为false 不允许修改这个属性值 默认值也是false
+  writable: false,
+  // enumerable 如果值为false 则不允许遍历, 默认的值是 false
+  enumerable: false,
+  // configurable 如果为false 则不允许删除这个属性 不允许在修改第三个参数里面的特性 默认为false
+  configurable: false,
+})
+console.log(obj)
+console.log(Object.keys(obj))
+delete obj.address
+console.log(obj)
+delete obj.pname
+console.log(obj)
+Object.defineProperty(obj, "address", {
+  value: "中国山东蓝翔技校xx单元",
+  // 如果值为false 不允许修改这个属性值 默认值也是false
+  writable: true,
+  // enumerable 如果值为false 则不允许遍历, 默认的值是 false
+  enumerable: true,
+  // configurable 如果为false 则不允许删除这个属性 默认为false
+  configurable: true,
+})
+console.log(obj.address)
+```
+
+## 4. 继承（ES6以前的实现方式）
+
+ES6之前并没有提供 `extends` 继承。但可以<font color=red>**通过构造函数+原型对象模拟实现继承，被称为组合继承**</font>
+
+### 4.1. call() 函数
+
+通过`call()`去调用某个函数, 并且修改函数运行时的 `this` 指向
+
+```js
+fun.call(thisArg, arg1, arg2, ...)
+```
+
+- `thisArg`：当前调用函数 this 的指向对象
+- `arg1，arg2`：传递的其他参数
+
+```js
+// call 方法
+function fn(x, y) {
+  console.log("我想喝手磨咖啡")
+  console.log(this)
+  console.log(x + y)
+}
+var o = {
+  name: "斩月",
+}
+// 直接调用函数
+// fn();
+// 1. call() 可以调用函数
+// fn.call();
+// 2. call() 可以改变这个函数的this指向 此时这个函数的this 就指向了o这个对象
+fn.call(o, 1, 2)
+```
+
+### 4.2. 借用构造函数继承父类型属性
+
+核心原理：通过 `call()` 把父类型的this指向子类型的this，这样就可以实现子类型继承父类型的属性。
+
+```js
+// 借用父构造函数继承属性
+// 1. 父构造函数
+function Father(uname, age) {
+  // this 指向父构造函数的对象实例
+  this.uname = uname
+  this.age = age
+}
+// 2 .子构造函数
+function Son(uname, age, score) {
+  // this 指向子构造函数的对象实例
+  Father.call(this, uname, age)
+  this.score = score
+}
+var son = new Son("敌法师", 18, 100)
+console.log(son)
+```
+
+### 4.3. 借用原型对象继承父类型方法
+
+<font color=red>**一般情况下，对象的方法都在构造函数的原型对象中设置，通过构造函数无法继承父类方法**</font>。实现的核心原理：
+
+1. 将子类所共享的方法提取出来，让子类的 `prototype 原型对象 = new 父类()`
+2. 本质：子类原型对象等于是实例化父类，因为父类实例化之后另外开辟空间，就不会影响原来父类原型对象
+3. 将子类的 constructor 从新指向子类的构造函数
+
+```js
+// 借用父构造函数继承属性
+// 1. 父构造函数
+function Father(uname, age) {
+  // this 指向父构造函数的对象实例
+  this.uname = uname
+  this.age = age
+}
+Father.prototype.money = function () {
+  console.log(100000)
+}
+// 2 .子构造函数
+function Son(uname, age, score) {
+  // this 指向子构造函数的对象实例
+  Father.call(this, uname, age)
+  this.score = score
+}
+// 这样直接赋值会有问题，如果修改了子原型对象，父原型对象也会跟着一起变化
+// Son.prototype = Father.prototype
+Son.prototype = new Father()
+// 如果利用对象的形式修改了原型对象,别忘了利用constructor 指回原来的构造函数
+Son.prototype.constructor = Son
+// 这个是子构造函数专门的方法
+Son.prototype.exam = function () {
+  console.log("孩子要考试")
+}
+var son = new Son("剑圣主宰", 18, 100)
+console.log(son)
+console.log(Father.prototype)
+console.log(Son.prototype.constructor)
+```
+
+
+
+
+
+
+
+
+
+## 5. 数组对象Array
 
 在JS中，数组等价于集合
 
-### 2.1. 创建数组的方式
-#### 2.1.1. 一维数组
+### 5.1. 创建数组的方式
+#### 5.1.1. 一维数组
 
 1. 创建一个长度为0的数组
 
@@ -204,7 +986,7 @@ var arr = new Array(x1,x2,x3……);
 var arr = [x1,x2,x3,……];
 ```
 
-#### 2.1.2. 二维数组
+#### 5.1.2. 二维数组
 
 ```js
 var arr = [[x,x,x],[x,x,x],[x,x],……];
@@ -213,7 +995,7 @@ var arr = [[x,x,x],[x,x,x],[x,x],……];
 - 值：`arr[0] = [x,x,x]`
 - 使用嵌套循环遍历
 
-#### 2.1.3. Array.of() 方法
+#### 5.1.3. Array.of() 方法
 
 `Array.of()`方法用于将一组值，转换为数组。这个方法的主要目的，是弥补数组构造函数`Array()`的不足。因为参数个数的不同，会导致`Array()`的行为有差异。
 
@@ -236,7 +1018,7 @@ Array.of(3).length // 1
 - `Array.of()`方法基本上可以用来替代`Array()`或`new Array()`，并且不存在由于参数不同而导致的重载。它的行为非常统一。
 - `Array.of()`方法总是返回参数值组成的数组。如果没有参数，就返回一个空数组。
 
-### 2.2. 数组中元素的类型
+### 5.2. 数组中元素的类型
 
 1. 数组中的元素类型可以各不相同
 2. 数组的长度可以动态增长
@@ -252,8 +1034,8 @@ arr[5] = 99;
 - 数组的长度是6
 - 数组的内容是`[1, 3, "hello", 时间对象, undefined, 99]`
 
-### 2.3. 数组的遍历
-#### 2.3.1. for...of 循环
+### 5.3. 数组的遍历
+#### 5.3.1. for...of 循环
 
 - 语法：`for(const item of array)`
 - 作用：循环遍历数组所有元素项
@@ -270,7 +1052,7 @@ for (const color of colors) {
 // 'white'
 ```
 
-#### 2.3.2. for 循环
+#### 5.3.2. for 循环
 
 - 语法：`for(let i; i < array.length; i++)`
 - 作用：循环使用递增的索引变量的方式遍历数组所有元素项，index变量从0递增到`colors.length-1`
@@ -288,14 +1070,17 @@ for (let index = 0; index < colors.length; index++) {
 // 'white'
 ```
 
-#### 2.3.3. forEach()方法
+#### 5.3.3. forEach()方法
 
-- 语法：`array.forEach(callback(item[, index[, array]]))`
-  
-    - 参数callback函数，该函数参数包括：当前遍历项（item）、索引（index）和数组本身（array）。
+- 语法：
+
+```js
+array.forEach(callback(item[, index[, array]]))
+```
+
+- 参数callback函数，该函数参数包括：当前遍历项（item）、索引（index）和数组本身（array）。
 - 作用：forEach是Array新方法中最基本的一个，就是遍历，循环。对数组中的每一项元素调用callback函数，执行相关逻辑来遍历数组所有元素项
 - forEach方法与map方法的区别是：forEach不返回值，只用来操作数据。
-- > 注：`array.forEach()`迭代中，不能使用`break`来中断操作
 
 ```js
 var arr = [1,2,3];
@@ -305,12 +1090,13 @@ arr.forEach((item, index) => {
 })
 ```
 
-### 2.4. 数组的映射
+> 注：`array.forEach()`迭代中，不能使用`break`来中断操作
 
-#### 2.4.1. map()方法 - ES6新特性
+### 5.4. 数组的映射
+
+#### 5.4.1. map()方法 - ES6新特性
 
 - 语法：`map(callback(item[, index[, array]]))`
-  
     - 参数callback函数，该函数参数包括：当前遍历项（item）、索引（index）和数组本身（array）。
 - 作用：接收一个函数，将原数组中的所有元素用这个函数处理后，创建新的数组返回。
 - > 注：`array.map()`创建一个新的映射数组，而不改变原始数组。
@@ -327,13 +1113,13 @@ console.log(newArr)
 
 ![数组的map方法](images/20190421103633831_23300.png)
 
-#### 2.4.2. Array.from()方法
+#### 5.4.2. Array.from()方法
 
 `Array.from()`方法就是将一个**类数组对象**或者**可遍历对象(包括ES6新增的数据结构Set和Map)**转换成一个真正的数组。
 
 **类数组对象**，最基本的要求就是具有length属性的对象。
 
-##### 2.4.2.1. 语法
+##### 5.4.2.1. 语法
 
 ```js
 Array.from(arrayLike[, mapFunction[, thisArg]])
@@ -355,7 +1141,7 @@ Array.from(someNumbers, value => value * 2); // => [20, 30]
 > - `Array.from()`创建一个新的映射数组，而不改变原始数组。
 > - `Array.from()`更适合从类似数组的对象进行映射。
 
-##### 2.4.2.2. 用法1：将类数组对象转换为真正数组
+##### 5.4.2.2. 用法1：将类数组对象转换为真正数组
 
 ```js
 let arrayLike = {
@@ -404,7 +1190,7 @@ console.log(arr)  // [ undefined, undefined, undefined, undefined ]
     2. 该类数组对象的属性名必须为数值型或字符串型的数字
 - ps: 该类数组对象的属性名可以加引号，也可以不加引号
 
-##### 2.4.2.3. 用法2：将Set结构的数据转换为真正的数组
+##### 5.4.2.3. 用法2：将Set结构的数据转换为真正的数组
 
 ```js
 let arr = [12,45,97,9797,564,134,45642]
@@ -420,14 +1206,14 @@ let set = new Set(arr)
 console.log(Array.from(set, item => item + 1)) // [ 13, 46, 98, 9798, 565, 135, 45643 ]
 ```
 
-##### 2.4.2.4. 用法3：将字符串转换为数组
+##### 5.4.2.4. 用法3：将字符串转换为数组
 
 ```js
 let str = 'hello world!';
 console.log(Array.from(str)) // ["h", "e", "l", "l", "o", " ", "w", "o", "r", "l", "d", "!"]s
 ```
 
-##### 2.4.2.5. Array.from参数是一个真正的数组
+##### 5.4.2.5. Array.from参数是一个真正的数组
 
 Array.from会返回一个一模一样的新数组
 
@@ -435,8 +1221,8 @@ Array.from会返回一个一模一样的新数组
 console.log(Array.from([12,45,47,56,213,4654,154]))
 ```
 
-### 2.5. 数据的简化
-#### 2.5.1. reduce()方法 - ES6新特性
+### 5.5. 数据的简化
+#### 5.5.1. reduce()方法 - ES6新特性
 
 - 语法：`array.reduce(callback(accumulator, item[, index[, array]])[, initialValue])`
     - 接收一个函数callback（必须）和一个初始值initialValue（可选）
@@ -461,8 +1247,8 @@ let result4 = arr.reduce((a, b) => a * b, 1);     // 结果：-300
 let result5 = arr.reduce((a, b) => a * b, -1);    // 结果：300
 ```
 
-### 2.6. 数据的连接
-#### 2.6.1. concat()方法
+### 5.6. 数据的连接
+#### 5.6.1. concat()方法
 
 - 语法：`array.concat(array1[, array2, ...])`
 - 作用：连接两个或更多的数组，或者给数组增加元素，并返回结果。一般用于数组的拼接和增加元素操作
@@ -476,7 +1262,7 @@ const concatArray = arr1.concat(arr2);
 console.log(concatArray); // 1, 2, moon, hehe
 ```
 
-#### 2.6.2. 展开操作符(...)
+#### 5.6.2. 展开操作符(...)
 
 - 语法：`[...array1, ...array2]`
 - 作用：可以使用展开操作符与数组变量一起使用来连接数组，与`concat()`方法效果一样
@@ -489,7 +1275,7 @@ const concatArray = [...arr1, ...arr2];
 console.log(concatArray); // 1, 2, moon, hehe
 ```
 
-#### 2.6.3. join() 方法 - 将数组转成字符串
+#### 5.6.3. join() 方法 - 将数组转成字符串
 
 - 语法：`array.join(separator分隔符)`
 - join方法正好与**字符串的方法`split(分隔符)`（方法将一个字符串切割成一个字符串数组）**相反，将数组通过分隔符，拼成一个字符串。
@@ -500,13 +1286,13 @@ var str = a3.join("+")
 // 输出结果："1+2+3"
 ```
 
-#### 2.6.4. split() 方法 - 将字符串转成数组
+#### 5.6.4. split() 方法 - 将字符串转成数组
 
 - 语法：`array.split(separator分隔符)`
 - 作用：将字符串，按指定的分隔符截取成数组，与join()方法相反
 
-### 2.7. 过滤（获取）数组的部分数据
-#### 2.7.1. slice() 方法
+### 5.7. 过滤（获取）数组的部分数据
+#### 5.7.1. slice() 方法
 
 - 语法：`array.slice([fromIndex[，toIndex]])`
     - 可选参数fromIndex：截取的开始索引，默认值为0
@@ -524,10 +1310,15 @@ console.log(heroes) // ["moon", "abc"]
 console.log(villains) // ["kira", "N"]
 ```
 
-#### 2.7.2. filter()方法
+#### 5.7.2. filter()方法
 
-- 语法：`array.filter(predicate(item[, index[, array]]))`
-    - 参数predicate函数，该函数参数包括：当前遍历项（item）、索引（index）和数组本身（array）。
+- 语法：
+
+```js
+array.filter(predicate(item[, index[, array]]))
+```
+
+- 参数predicate函数，该函数参数包括：当前遍历项（item）、索引（index）和数组本身（array）。
 - 作用：对数组进行筛选出符合条件的项，最终得到一个新的筛选后的数组
 
 ```js
@@ -539,7 +1330,7 @@ var newarr = arr.filter((item, idx) => {
 
 > 注：`array.filter()` 创建一个新数组，而不改变原始数组
 
-##### 2.7.2.1. 扩展：使用Boolean过滤数组中的所有假值
+##### 5.7.2.1. 扩展：使用Boolean过滤数组中的所有假值
 
 JS中的相关假值：`false`, `null`, `0`, `undefined`, `NaN`。可以使用Boolean构造函数来进行一次转换，快速将数组中假值过滤
 
@@ -550,8 +1341,8 @@ compact([0, 1, false, 2, "", 3, "a", "e" * 23, NaN, "s", 34]);
 ```
 
 
-### 2.8. 数组的拷贝
-#### 2.8.1. 方式1：使用展开操作符(...)
+### 5.8. 数组的拷贝
+#### 5.8.1. 方式1：使用展开操作符(...)
 
 - 语法：`const clone = [...array]`
 - 作用：复制一个新的数组
@@ -565,7 +1356,7 @@ console.log(clone); // => ['white', 'black', 'gray']
 console.log(colors === clone); // => false
 ```
 
-#### 2.8.2. 方式2：[].concat(array)
+#### 5.8.2. 方式2：[].concat(array)
 
 - 语法：`[].concat(array)`是另一种复制数组的方式
 - > 注：`[].concat(array)`是创建一个浅拷贝。
@@ -578,7 +1369,7 @@ console.log(clone); // => ['white', 'black', 'gray']
 console.log(colors === clone); // => false
 ```
 
-#### 2.8.3. 方式3：slice()
+#### 5.8.3. 方式3：slice()
 
 - 语法：`array.slice()`，利用slice的参数默认值，进行数组的复制
 - > `array.slice()` 创建一个浅拷贝。
@@ -591,8 +1382,8 @@ console.log(clone); // => ['white', 'black', 'gray']
 console.log(colors === clone); // => false
 ```
 
-### 2.9. 查找数组中元素
-#### 2.9.1. includes()方法
+### 5.9. 查找数组中元素
+#### 5.9.1. includes()方法
 
 - 语法：`Array.includes(itemToSearch[，fromIndex])`
     - 参数itemToSearch：数据包含的元素
@@ -622,7 +1413,7 @@ function test(fruit) {
 ```
 
 
-#### 2.9.2. find() 和 findIndex() 方法
+#### 5.9.2. find() 和 findIndex() 方法
 
 - 语法：`array.find/findIndex((value, index, arr) => {})`
 - 函数参数都是一个查找的回调函数。
@@ -657,7 +1448,7 @@ console.log('%s', ret3)    // 4
 console.log('%s', ret4)    // -1
 ```
 
-#### 2.9.3. indexOf() 方法
+#### 5.9.3. indexOf() 方法
 
 - 语法：`array.indexOf(itemToSearch[, fromIndex])`
     - 参数itemToSearch：查找的元素
@@ -672,7 +1463,7 @@ const index = arr.indexOf('b');
 console.log(index); // 1
 ```
 
-#### 2.9.4. every() 方法
+#### 5.9.4. every() 方法
 
 - 语法：`array.every(predicate(item[, index[, array]]))`
     - 参数predicate函数，该函数参数包括：当前遍历项（item）、索引（index）和数组本身（array）。
@@ -706,7 +1497,7 @@ function test() {
 }
 ```
 
-#### 2.9.5. some() 方法
+#### 5.9.5. some() 方法
 
 - 语法：`array.every(predicate(item[, index[, array]]))`
     - 参数predicate函数，该函数参数包括：当前遍历项（item）、索引（index）和数组本身（array）。
@@ -728,8 +1519,8 @@ function test() {
 }
 ```
 
-### 2.10. 数组的增删改操作
-#### 2.10.1. push() 方法增加元素
+### 5.10. 数组的增删改操作
+#### 5.10.1. push() 方法增加元素
 
 - 语法：`array.push(item1 [...，itemN])`
 - 作用：将一个或多个项追加到数组的末尾，并返回新的长度
@@ -741,7 +1532,7 @@ names.push('abc')
 console.log(names) // ["moon", "abc"]
 ```
 
-#### 2.10.2. unshift() 方法增加元素
+#### 5.10.2. unshift() 方法增加元素
 
 - 语法：`array.unshift(item1[..., itemN])`
 - 作用：将一个或多个项追加到数组的开头，并返回新的长度
@@ -753,7 +1544,7 @@ names.unshift('abc')
 console.log(names) // ["abc", "moon"]
 ```
 
-#### 2.10.3. 展开操作符(...)增加元素
+#### 5.10.3. 展开操作符(...)增加元素
 
 - 通过组合展开操作符和数组变量，以不可变的方式在数组中插入项
 - 在数组末尾追加一个项
@@ -785,7 +1576,7 @@ const names2 = [
 console.log(names2)  // ["moon", "newWord", "kira"]
 ```
 
-#### 2.10.4. pop() 方法删除元素
+#### 5.10.4. pop() 方法删除元素
 
 - 语法：`array.pop()`
 - 作用：从数组中删除最后一个元素，然后返回该元素
@@ -798,7 +1589,7 @@ console.log(lastColor); // => 'black'
 console.log(colors); // => ['blue', 'green']
 ```
 
-#### 2.10.5. shift() 方法删除元素
+#### 5.10.5. shift() 方法删除元素
 
 - 语法：`array.shift()`
 - 作用：从数组中删除第一个元素，然后返回该元素
@@ -811,7 +1602,7 @@ console.log(firstColor); // => 'blue'
 console.log(colors); // => ['green', 'black']
 ```
 
-#### 2.10.6. splice() 方法，对数组删除/替换/插入某一项
+#### 5.10.6. splice() 方法，对数组删除/替换/插入某一项
 
 - 语法：`array.splice(index, len, [item, ...itemN])`
 - 作用：返回增删改后的数组，**该方法会改变原始数组**
@@ -868,7 +1659,7 @@ delete arr[1];
 arr; // ["a", undefined × 1, "c", "d"] 中间出现两个逗号，数组长度不变，有一项为undefined
 ```
 
-#### 2.10.7. 展开操作符号(...)
+#### 5.10.7. 展开操作符号(...)
 
 可以通过组合展开操作符和数据字面量以不可变的方式从数组中删除项
 
@@ -885,7 +1676,7 @@ const newNames = [
 console.log(newNames) // ["moon", "L+N"]
 ```
 
-#### 2.10.8. array.length 属性清空数组
+#### 5.10.8. array.length 属性清空数组
 
 - array.length是保存数组长度的属性。 除此之外，array.length是可写的。
 - 如果写一个小于当前长度的`array.length = newLength`，多余的元素从数组中移除
@@ -896,7 +1687,7 @@ colors.length = 0;
 console.log(colors); // []
 ```
 
-#### 2.10.9. fill() 方法填充数组
+#### 5.10.9. fill() 方法填充数组
 
 - 语法：`arr.fill(value, start, end)`
     - value：填充值
@@ -915,7 +1706,7 @@ new Array(3).fill(7)    // [7, 7, 7]
 ['a', 'b', 'c'].fill(7, 1, 2)    // ['a', 7, 'c']
 ```
 
-#### 2.10.10. copyWithin() 方法
+#### 5.10.10. copyWithin() 方法
 
 - 语法：`arr.copyWithin(target[, start[, end]])`
 - 参数：
@@ -952,8 +1743,8 @@ i32a.copyWithin(0, 2);
 // Int32Array [4, 2, 3, 4, 5]
 ```
 
-### 2.11. 数组的扁平化
-#### 2.11.1. flat() 方法
+### 5.11. 数组的扁平化
+#### 5.11.1. flat() 方法
 
 - 语法：`array.flat([depth])`
   
@@ -968,8 +1759,8 @@ const flatArray = arrays.flat();
 console.log(flatArray); // [0, 1, 3, 5, 2, 4, 6]
 ```
 
-### 2.12. 数组的排序
-#### 2.12.1. sort()方法
+### 5.12. 数组的排序
+#### 5.12.1. sort()方法
 
 - 语法：`array.sort([compare])`
     - 可选参数compare(a, b)是一个自定义排序顺的回调函数。如果按数字排序，需要指定排序的函数（类似java的比较器），如下是函数的比较规则：
@@ -1002,14 +1793,26 @@ numbers.sort(compare);
 console.log(numbers); // => [4, 2, 3, 1]
 ```
 
-#### 2.12.2. reverse()方法
+#### 5.12.2. reverse()方法
 
 - 对数组进行反转，直接操作数组本身
 
-## 3. JavaScript 一些语法应用案例
+## 6. 字符串(String)
 
-### 3.1. 字符串转对象的三种方式
-#### 3.1.1. 方式1：`JSON.parse(str)`
+### 6.1. trim() 方法
+
+`trim()`方法会从一个字符串的两端删除空白字符。
+
+```js
+str.trim();
+```
+
+> <font color=red>**注：`trim()`方法并不影响原字符串本身，它返回的是一个新的字符串。**</font>
+
+## 7. JavaScript 一些语法应用案例
+
+### 7.1. 字符串转对象的三种方式
+#### 7.1.1. 方式1：`JSON.parse(str)`
 
 ```js
 // 定义一个对象字符串
@@ -1020,7 +1823,7 @@ var obj = JSON.parse(str);
 console.log(obj);
 ```
 
-#### 3.1.2. 方式2：`eval("("+str+")")`
+#### 7.1.2. 方式2：`eval("("+str+")")`
 
 ```js
 // 定义一个对象字符串
@@ -1031,7 +1834,7 @@ var obj = eval("(" + str + ")")
 console.log(obj);
 ```
 
-#### 3.1.3. 方式3：`(new Function("return " + str))()`
+#### 7.1.3. 方式3：`(new Function("return " + str))()`
 
 ```js
 // 定义一个对象字符串
@@ -1042,8 +1845,8 @@ var obj = (new Function("return " + str))();
 console.log(obj);
 ```
 
-### 3.2. 对象复制
-#### 3.2.1. Object.assign：对象属性复制，浅拷贝
+### 7.2. 对象复制
+#### 7.2.1. Object.assign：对象属性复制，浅拷贝
 
 - 使用Object.assign方法可以浅克隆一个对象：
 
@@ -1057,10 +1860,10 @@ let cloneObj = Object.assign({}, targetObj)
 let cloneObj = JSON.parse(JSON.stringify(targetObj))
 ```
 
-## 4. 其他
+## 8. 其他
 
-### 4.1. console对象使用
-#### 4.1.1. 常用方法
+### 8.1. console对象使用
+#### 8.1.1. 常用方法
 
 1. console.log()
 
@@ -1106,7 +1909,7 @@ console.error("错误");
 14. console.trace()
     - 堆栈跟踪相关的调试
 
-#### 4.1.2. 格式化符号
+#### 8.1.2. 格式化符号
 
 | **格式化符号** | **实现的功能**                       |
 | :------------: | ------------------------------------ |
@@ -1720,6 +2523,24 @@ JavaScript 语言的传统方法是通过构造函数定义井生成新对象。
 
 ### 10.1. 基本用法
 
+#### 10.1.1. 创建类
+
+- 语法：
+
+```js
+class ClassName {
+  // class body
+}
+```
+
+- 创建实例：
+
+```js
+var xx = new ClassName();
+```
+
+- 示例：
+
 ```js
 /* 定义类 */
 class User {
@@ -1746,7 +2567,103 @@ console.log(user.sayHello()); // hello
 console.log(User.isAdult(20)); // 成年人
 ```
 
+#### 10.1.2. constructor 类的构造函数
+
+`constructor()`是类的构造函数(默认方法)，<font color=red>**用于传递参数，返回实例对象**</font>，通过 `new` 关键字生成对象实例时，自动调用该方法。如果没有显示定义，类内部会自动给创建一个无参的构造函数`constructor()`
+
+- 语法：
+
+```js
+class ClassName {
+    constructor(属性1, 属性2) {   // constructor 构造方法或者构造函数
+        this.属性1 = 属性1;
+        this.属性2 = 属性2;
+    }
+}
+```
+
+- 示例：
+
+```js
+class Star {
+    constructor(uname, age) {
+        this.uname = uname
+        this.age = age
+    }
+}
+
+var shiyuan = new Star("石原里美", 18);
+console.log(shiyuan);
+```
+
+#### 10.1.3. 定义类的方法
+
+- 语法：
+
+```js
+class Person {
+  constructor(name, age) {   // constructor 构造器或者构造函数
+      this.name = name;
+      this.age = age;
+    }
+   say() {
+      console.log(this.name + '你好');
+   }
+}
+```
+
+- 方法的调用
+
+```js
+var shiyuan = new Person('石原里美', 18);
+shiyuan.say() // 石原里美你好
+```
+
+<font color=red>**注意：方法之间不能加逗号分隔，同时方法不需要添加 `function` 关键字。**</font>
+
+- 示例
+
+```js
+// 1. 创建类 class  创建一个 明星类
+class Star {
+  // 类的共有属性放到 constructor 里面
+  constructor(uname, age) {
+    this.uname = uname
+    this.age = age
+  }
+  sing(song) {
+    // console.log('我唱歌');
+    console.log(this.uname + song)
+  }
+}
+// 2. 利用类创建对象 new
+var ldh = new Star("刘德华", 18)
+var zxy = new Star("张学友", 20)
+console.log(ldh)
+console.log(zxy)
+/*
+  (1) 定义类里面所有的函数不需要写function关键字
+  (2) 多个函数方法之间不需要添加逗号分隔
+*/
+ldh.sing("冰雨")
+zxy.sing("李香兰")
+```
+
 ### 10.2. 类的继承
+
+#### 10.2.1. 创建类的继承
+
+- 语法：
+
+```js
+class Father{   // 父类
+}
+
+class  Son extends Father {  // 子类继承父类
+}
+```
+
+- 示例
 
 ```js
 class User {
@@ -1779,6 +2696,150 @@ let zs = new ZhangSan();
 console.log(zs.name, zs.address);   // 输出结果：张三 上海
 console.log(zs.sayHello());         // 输出结果：hello
 console.log(ZhangSan.isAdult(20));  // 输出结果：成年人
+```
+
+#### 10.2.2. super 关键字
+
+`super` 关键字用于访问和调用对象父类上的函数。<font color=red>**可以调用父类的构造函数，也可以调用父类的普通函数**</font>。语法如下：
+
+```js
+class Person {   // 父类
+    constructor(surname){
+        this.surname = surname;
+    }
+}
+class  Student extends Person {       // 子类继承父类
+    constructor(surname,firstname){
+        super(surname);             // 调用父类的constructor(surname)
+        this.firstname = firstname; // 定义子类独有的属性
+    }
+}
+```
+
+<font color=red>**注意：子类在构造函数中使用`super`，必须放到 `this` 前面(必须先调用父类的构造方法，在使用子类构造方法)**</font>
+
+- 调用父类构造函数示例
+
+```js
+/* 父类 */
+class Father {
+  constructor(x, y) {
+    this.x = x
+    this.y = y
+  }
+  sum() {
+    console.log(this.x + this.y)
+  }
+}
+/* 子类 */
+class Son extends Father {
+  constructor(x, y) {
+    super(x, y) // 通过super关键字调用了父类中的构造函数
+  }
+}
+var son = new Son(1, 2)
+var son1 = new Son(11, 22)
+son.sum()
+son1.sum()
+```
+
+- 调用父类普通方法示例
+
+```js
+// super 关键字调用父类普通函数
+class Father {
+  say() {
+    return "我是爸爸"
+  }
+}
+class Son extends Father {
+  say() {
+    // console.log('我是儿子');
+    // super.say() 就是调用父类中的普通函数 say()
+    console.log(super.say() + "的儿子")
+  }
+}
+var son = new Son()
+son.say()
+/*
+  继承中的属性或者方法查找原则: 就近原则
+  1. 继承中，如果实例化子类输出一个方法，先看子类有没有这个方法，如果有就先执行子类的
+  2. 继承中，如果子类里面没有，就去查找父类有没有这个方法，如果有，就执行父类的这个方法(就近原则)
+*/
+```
+
+#### 10.2.3. 子类扩展自己的方法
+
+```js
+// 父类有加法方法
+class Father {
+  constructor(x, y) {
+    this.x = x
+    this.y = y
+  }
+  sum() {
+    console.log(this.x + this.y)
+  }
+}
+// 子类继承父类加法方法，同时扩展减法方法
+class Son extends Father {
+  constructor(x, y) {
+    // 利用super 调用父类的构造函数，super 必须在子类this之前调用
+    super(x, y)
+    this.x = x
+    this.y = y
+  }
+  subtract() {
+    console.log(this.x - this.y)
+  }
+}
+var son = new Son(5, 3)
+son.subtract() // 调用子类扩展的方法
+son.sum() // 调用父类方法
+```
+
+### 10.3. 类与对象的注意点
+
+1. 在 ES6 中类没有变量提升，所以必须先定义类，才能通过类实例化对象
+2. 类里面的共有属性和方法一定要加`this`使用
+3. 类里面的`this`指向问题：`constructor`函数里面的`this`指向实例对象，方法里面的`this`指向这个方法的调用者
+
+### 10.4. 面向对象综合案例
+
+项目代码详见：【html-css-js-sample\javascript-sample\07-面向对象案例\】
+
+### 10.5. 类的本质
+
+1. class本质还是function
+2. 类的所有方法都定义在类的`prototype`属性上
+3. 类创建的实例,里面也有`__proto__`指向类的`prototype`原型对象
+4. 所以ES6的类它的绝大部分功能，ES5都可以做到，新的class写法只是让对象原型的写法更加清晰、更像面向对象编程的语法而已。
+5. 所以ES6的类其实就是语法糖。语法糖就是一种便捷写法。简单理解，有两种方法可以实现同样的功能，但是一种写法更加清晰、方便，那么这个方法就是语法糖
+
+```js
+/*
+ES6 之前通过 构造函数+ 原型实现面向对象 编程
+  (1) 构造函数有原型对象prototype
+  (2) 构造函数原型对象prototype 里面有constructor 指向构造函数本身
+  (3) 构造函数可以通过原型对象添加方法
+  (4) 构造函数创建的实例对象有__proto__ 原型指向 构造函数的原型对象
+*/
+// ES6 通过类实现面向对象编程
+class Star {}
+console.log(typeof Star)
+// 1. 类的本质其实还是一个函数，也可以简单的认为，类就是构造函数的另外一种写法
+// (1) 类有原型对象prototype
+console.log(Star.prototype)
+// (2) 类原型对象prototype 里面有constructor 指向类本身
+console.log(Star.prototype.constructor)
+// (3) 类可以通过原型对象添加方法
+Star.prototype.act = function () {
+  console.log("非自然死亡")
+}
+var shiyuan = new Star()
+console.dir(shiyuan)
+// (4) 类创建的实例对象有__proto__ 原型指向 类的原型对象
+console.log(shiyuan.__proto__ === Star.prototype)
 ```
 
 ## 11. 模块化
