@@ -1,4 +1,4 @@
-## 📕 <font color="violet" face="微软雅黑">**Java & JavaWeb**</font>
+## 📕 Java & JavaWeb
 
 ### ✨ 收集的案例 ✨
 
@@ -23,7 +23,7 @@
 
 * #### [JavaWeb基础笔记](/01-Java&JavaWeb/02-JavaWeb/01-JavaWeb基础笔记)
   
-## 📗 <font color="violet" face="微软雅黑">**后端框架**</font>
+## 📗 后端框架
 
 ### ✨ Hibernate ✨
 
@@ -58,7 +58,7 @@
 * #### [Netty（网络应用程序框架）](/02-后端框架/06-工具框架/06-Netty（网络应用程序框架）)
 * #### [Lombok工具插件](/02-后端框架/06-工具框架/07-Lombok工具插件)
 
-## 📘 <font color="violet" face="微软雅黑">**前端资料**</font>
+## 📘 前端资料
 
 ### ✨ 前端基础语法 ✨
 
@@ -95,7 +95,7 @@
 * #### [node.js笔记](/03-前端资料/05-Node.js&Webpack/01-node.js笔记)
 * #### [webpack笔记](/03-前端资料/05-Node.js&Webpack/02-webpack笔记)
 
-## 📙 <font color="violet" face="微软雅黑">**数据库**</font>
+## 📙 数据库
 
 ### ✨ MySQL ✨
 
@@ -116,7 +116,7 @@
 
 * #### [MongoDB笔记](/04-数据库/04-MongoDb/01-MongoDB笔记)
 
-## 📓 <font color="violet" face="微软雅黑">**DevOps工具**</font>
+## 📓 DevOps工具
 
 ### ✨ Maven ✨
 
@@ -135,11 +135,11 @@
 
 * #### [0Gradle基础笔记](/05-DevOps工具/06-Gradle/01-Gradle基础笔记)
 
-## 📄 <font color="violet" face="微软雅黑">**Linux**</font>
+## 📄 Linux
 
 * ### [Linux笔记](/06-Linux/01-Linux笔记)
 
-## 📚 <font color="violet" face="微软雅黑">**分布式架构 & 微服务架构**</font>
+## 📚 分布式架构 & 微服务架构
 
 ### ✨ SpringBoot ✨
 
@@ -164,18 +164,18 @@
 
 * #### [FastDFS 分布式文件系统](/07-分布式架构&微服务架构/05-FastDFS_分布式文件系统)
 
-## 📒 <font color="violet" face="微软雅黑">**并发编程**</font>
+## 📒 并发编程
 
 * ### [并发基础-多线程](/08-并发编程/01-并发基础-多线程)
 
-## 📃 <font color="violet" face="微软雅黑">**性能调优**</font>
+## 📃 性能调优
 
 ### ✨ JVM-Java虚拟机 ✨
 
 * #### [JVM-基础笔记](/09-性能调优/01-JVM-Java虚拟机/01-JVM-基础笔记)
 
-## 📜 <font color="violet" face="微软雅黑">**其他**</font>
+## 📜 其他
 
-- ### [编程资源收集](/99-其他/编程资源收集)
+* ### [编程资源收集](/99-其他/编程资源收集)
 
-## 📖 <font color="violet" face="微软雅黑">**项目资料**</font>
+## 📖 项目资料
