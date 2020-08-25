@@ -255,7 +255,7 @@ public class ConfigurationTest {
 - `basePackageClasses`：指定具体要扫描的类的字节码，spring会扫描指定字节码的类所在的包及其子包下的所有类。
 - `nameGenrator`：指定扫描bean对象存入容器时的命名规则。详情参考《Spring源码分析》的BeanNameGenerator及其实现类。
 - `scopeResolver`：用于处理并转换检测到的Bean的作用范围。
-- `soperdProxy`：用于指定bean生成时的代理方式。默认是Default，则不使用代理，可选值有四个：`DEFAULT`，`NO`，`INTERFACES`，`TARGET_CLASS`。详情请参考《Spring源码分析》的ScopedProxyMode枚举。
+- `soperdProxy`：用于指定bean生成时的代理方式。默认是Default，则不使用代理，可选值有四个：`DEFAULT`，`NO`，`INTERFACES`，`TARGET_CLASS`。详情请可查看spring源码的ScopedProxyMode枚举。
 - `resourcePattern`：用于指定符合组件检测条件的类文件，默认是包扫描下的`**/*.class`
 - `useDefaultFilters`：是否对带有@Component @Repository @Service @Controller注解的类开启检测，默认是开启的。
 - `includeFilters`：自定义组件扫描的过滤规则，用于扫描组件。注解的是`Filter`注解数组，`Filter`的`type`属性是`FilterType`的枚举，有5种类型：
@@ -264,11 +264,10 @@ public class ConfigurationTest {
     - `ASPECTJ`：ASPECTJ类型
     - `REGEX`：正则表达式
     - `CUSTOM`：自定义类型
-    - > 详情参考《Spring源码分析》自定义组件扫描过滤规则
 - `excludeFilters`：自定义组件扫描的排除规则。
 - `lazyInit`：组件扫描时是否采用懒加载 ，默认不开启。
 
-#### 2.2.3. 示例
+#### 2.2.3. 包扫描配置示例
 
 ##### 2.2.3.1. 不指定扫描包的使用
 
@@ -299,7 +298,7 @@ public void componentScanBaseTest() {
 
 ![](images/20200805234044677_8448.png)
 
-##### 2.2.3.2. value与basePackages属性
+##### 2.2.3.2. value 与 basePackages 属性
 
 - 创建简单模拟的业务层代码
 
@@ -359,7 +358,7 @@ public void componentScanBasePackagesTest() {
 }
 ```
 
-##### 2.2.3.3. basePackageClassesn属性
+##### 2.2.3.3. basePackageClasses 属性
 
 - 配置`basePackageClasses`属性，指定扫描类的字节码
 
@@ -532,6 +531,42 @@ public void componentScanNameGeneratorTest() {
 ```
 
 ![](images/20200811230734059_29542.png)
+
+#### 2.2.5. resourcePattern 属性配置扫描规则
+
+`resourcePattern` 属性的默认值是包扫描下的` **/*.class`。可以通过该属性修改包扫描的规则
+
+```java
+@Configuration
+@ComponentScan(basePackages = {"com.moon.springsample"}, resourcePattern = "*/*.class")
+public class SpringConfiguration {
+}
+```
+
+```java
+/* 测试resourcePattern属性 */
+@Test
+public void componentScanNameResourcePatternTest() {
+    // 1. 获取基于注解的spinrg容器，使用基础包的构造函数，只扫描配置类所在的包。
+    ApplicationContext context = new AnnotationConfigApplicationContext("com.moon.springsample.config");
+    // 2. 因为是配置了resourcePattern属性为"*/*.class"，所以扫描"com.moon.springsample"下任意包的任意class文件，所以扫描不到service包下的impl包中的注解
+    UserService userService = context.getBean("userService", UserService.class);
+    // 3. 因为没有扫描到实现类的注解，所有无法加入到spring容器中，对象为null，调用对象方法时报错
+    userService.saveUser();
+}
+```
+
+![](images/20200824232433304_30206.png)
+
+#### 2.2.6. 组件扫描过滤器
+
+
+
+
+
+
+
+
 
 
 
