@@ -558,15 +558,51 @@ public void componentScanNameResourcePatternTest() {
 
 ![](images/20200824232433304_30206.png)
 
-#### 2.2.6. 组件扫描过滤器
+#### 2.2.6. 自定义组件扫描过滤规则
 
+##### 2.2.6.1. 基础使用
 
+- `includeFilters`：指定包含的过滤规则，不会影响spring扫描其他规则
+- `excludeFilters`：指定排除的过滤规则，指定后该扫描规则会被过滤，不会被扫描加入spring容器
 
+```java
+/* includeFilters用于指定自定义组件扫描的过滤规则，表示包含某些规则，不会排除其他的规则 */
+// @ComponentScan(basePackages = {"com.moon.springsample"}, includeFilters = @ComponentScan.Filter(value = Service.class))
+/* excludeFilters用于指定组件扫描的排除规则，排除后不会加入到spring容器 */
+@ComponentScan(basePackages = {"com.moon.springsample"}, excludeFilters = @ComponentScan.Filter(value = Service.class))
+public class SpringConfiguration {
+}
+```
 
+测试
 
+```java
+/* 测试includeFilters、excludeFilters属性 */
+@Test
+public void componentScanFiltersTest() {
+    // 1. 获取基于注解的spinrg容器，使用基础包的构造函数，只扫描配置类所在的包。
+    ApplicationContext context = new AnnotationConfigApplicationContext("com.moon.springsample.config");
+    /*
+     *  配置includeFilters属性为@ComponentScan.Filter(value = Service.class)，
+     *      代表过滤规则包含@Service注解，不会影响其他注解的扫描，如LogUtil类上的@Component注解
+     *  配置excludeFilters属性为@ComponentScan.Filter(value = Service.class)，
+     *      代表过滤规则会排除@Service注解，有该注解的类不会被扫描也不会加入到spring容器，如UserService类上的@Service注解
+     */
+    UserService userService = context.getBean("userService", UserService.class);
+    LogUtil logUtil = context.getBean("logUtil", LogUtil.class);
+    // 3. 如果配置excludeFilters排除@Service注解后，执行程序会报[No bean named 'userService' available]的错误
+    userService.saveUser();
+    logUtil.printLog();
+}
+```
 
+![](images/20200825231904111_18299.png)
 
+![](images/20200825232151925_20711.png)
 
+##### 2.2.6.2. FilterType枚举
+
+`FilterType`枚举类包含
 
 
 
