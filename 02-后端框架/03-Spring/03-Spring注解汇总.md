@@ -259,7 +259,7 @@ public class ConfigurationTest {
 - `resourcePattern`：用于指定符合组件检测条件的类文件，默认是包扫描下的`**/*.class`
 - `useDefaultFilters`：是否对带有@Component @Repository @Service @Controller注解的类开启检测，默认是开启的。
 - `includeFilters`：自定义组件扫描的过滤规则，用于扫描组件。注解的是`Filter`注解数组，`Filter`的`type`属性是`FilterType`的枚举，有5种类型：
-    - `ANNOTATION`：注解类型 默认
+    - `ANNOTATION`：注解类型（默认）
     - `ASSIGNABLE_TYPE`：指定固定类
     - `ASPECTJ`：ASPECTJ类型
     - `REGEX`：正则表达式
@@ -602,10 +602,381 @@ public void componentScanFiltersTest() {
 
 ##### 2.2.6.2. FilterType枚举
 
-`FilterType`枚举类包含
+```java
+public enum FilterType {
+	/**
+	 * 过滤标记指定注解类型的对象 (默认)
+	 */
+	ANNOTATION,
 
+	/**
+	 * 过滤指定固定类
+	 */
+	ASSIGNABLE_TYPE,
 
+	/**
+	 * 过滤 ASPECTJ 类型
+	 */
+	ASPECTJ,
 
+	/**
+	 * 过滤正则表达式匹配的类
+	 */
+	REGEX,
+
+	/**
+	 * 过滤自定义类型
+	 */
+	CUSTOM
+}
+```
+
+##### 2.2.6.3. TypeFilter接口
+
+TypeFilter接口，自定义过滤器必须实现的基础接口
+
+```java
+/* Spring 过滤器必须实现的基础接口 */
+@FunctionalInterface
+public interface TypeFilter {
+	/**
+	 * Determine whether this filter matches for the class described by
+	 * the given metadata.
+	 * @param metadataReader the metadata reader for the target class
+	 * @param metadataReaderFactory a factory for obtaining metadata readers
+	 * for other classes (such as superclasses and interfaces)
+	 * @return whether this filter matches
+	 * @throws IOException in case of I/O failure when reading metadata
+	 *
+	 * 此方法是用于判断过滤器是否与目标类匹配，返回值是boolean类型。
+	 * 		true: 表示该类加入到spring的容器中
+	 * 		false: 表示该类不加入容器
+	 * 	@param metadataReader 元数据读取器，读取到的当前正在扫描的类的信息
+	 * 	@param metadataReaderFactory 元数据读取器的工厂，可以获得到其他任何类的信息
+	 */
+	boolean match(MetadataReader metadataReader, MetadataReaderFactory metadataReaderFactory)
+			throws IOException;
+}
+```
+
+##### 2.2.6.4. Spring提供的过滤规则 - AnnotationTypeFilter
+
+spring框架本身就提供了一些过滤规则的实现，比如`AnnotationTypeFilter`，用于筛选指定的标识了指定类型注解的类
+
+当在项目开发中，spring提供的容器分为`RootApplicationContext`和`ServletApplicationContext`。此时如果不希望`RootApplicationContext`容器创建时把Controller层的类加入到容器中，就可以使用过滤规则排除`@Controller`注解配置的Bean对象。
+
+```java
+@Configuration
+@ComponentScan(value = {"com.moon.springsample"},
+        excludeFilters = @ComponentScan.Filter(type = FilterType.ANNOTATION, classes = {Controller.class}))
+public class SpringConfiguration {
+}
+```
+
+##### 2.2.6.5. 自定义过滤器案例模拟场景分析
+
+在实际开发中，有很多下面这种业务场景：一个业务需求根据环境的不同，可能要加载不同的实现。比如以下案例：
+
+> - 在店欢活动中，会员用户下单优惠50元，平台提成15%；普通用户下单优惠10元，平台提成8%
+> - 平时正常的营业，会员用户下单优惠10元，平台提成9%；普通用户下单优惠0元，平台提成2%；
+
+此时应该考虑采用桥接设计模式，把将涉及到场景差异的模块功能单独抽取到代表场景功能的接口中。针对不同场景进行实现。并且在扫描组件注册到容器中时，采用哪个场景的具体实现，应该采用配置文件配置起来。而自定义TypeFilter就可以实现注册指定场景的组件到spring容器中。
+
+##### 2.2.6.6. 相关代码准备
+
+- **定义场景的注解**
+
+```java
+package com.moon.springsample.annotations;
+
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+
+/**
+ * 用于标识不同场景的注解
+ */
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.TYPE)
+public @interface Scene {
+    /**
+     * 用于指定场景的名称
+     */
+    String value() default "";
+}
+```
+
+- **定义功能的接口，即案例中的下单优惠、平台提成功能**
+
+```java
+/**
+ * 用户下单业务接口
+ */
+public interface OrderService {
+    /**
+     * 计算下单优惠的金额
+     * @param userType 用户的类型
+     */
+    void calcOrderDiscount(String userType);
+}
+
+/**
+ * 运营平台的业务接口
+ */
+public interface PlatformService {
+    /**
+     * 计算运营平台提成的数量
+     * @param userType 用户的类型
+     */
+    void calcSalePercentage(String userType);
+}
+```
+
+- **分不同场景，编写不同实现类**
+
+```java
+/**
+ * 周年欢活动场景，订单业务实现类
+ */
+@Service("orderService")
+@Scene("anniversary") // 使用自定义注解，标识当前是哪种场景的实现
+public class AnniversaryOrderImpl implements OrderService {
+    @Override
+    public void calcOrderDiscount(String userType) {
+        // 判断用户类型
+        if ("member".equalsIgnoreCase(userType)) {
+            System.out.println("周年庆活动，会员用户下单优惠50元");
+        } else if ("normal".equalsIgnoreCase(userType)) {
+            System.out.println("周年庆活动，普通用户下单优惠10元");
+        }
+    }
+}
+
+/**
+ * 周年欢场景 运营平台业务实现类
+ */
+@Service("platformService")
+@Scene("anniversary") // 使用自定义注解，标识当前是哪种场景的实现
+public class AnniversaryPlatformImpl implements PlatformService {
+
+    @Override
+    public void calcSalePercentage(String userType) {
+        if ("member".equalsIgnoreCase(userType)) {
+            System.out.println("周年庆活动，会员用户下单平台提成15%");
+        } else if ("normal".equalsIgnoreCase(userType)) {
+            System.out.println("周年庆活动，普通用户下单平台提成8%");
+        }
+    }
+}
+
+/**
+ * 正常营业场景，订单业务实现类
+ */
+@Service("orderService")
+@Scene("normal") // 使用自定义注解，标识当前是哪种场景的实现
+public class NormalOrderImpl implements OrderService {
+    @Override
+    public void calcOrderDiscount(String userType) {
+        if ("member".equalsIgnoreCase(userType)) {
+            System.out.println("正常营业，会员用户下单优惠10元");
+        } else if ("normal".equalsIgnoreCase(userType)) {
+            System.out.println("正常营业，普通用户下单无优惠");
+        }
+    }
+}
+
+/**
+ * 正常营业场景，运营平台业务实现类
+ */
+@Service("platformService")
+@Scene("normal") // 使用自定义注解，标识当前是哪种场景的实现
+public class NormalPlatformImpl implements PlatformService {
+    @Override
+    public void calcSalePercentage(String userType) {
+        if ("member".equalsIgnoreCase(userType)) {
+            System.out.println("正常营业，会员用户下单平台提成9%");
+        } else if ("normal".equalsIgnoreCase(userType)) {
+            System.out.println("正常营业，普通用户下单平台提成2%");
+        }
+    }
+}
+```
+
+##### 2.2.6.7. 不使用过滤器测试
+
+- **编写项目的配置类**
+
+```java
+@Configuration
+@ComponentScan(value = {"com.moon.springsample"})
+public class SpringConfiguration {
+}
+```
+
+- **如果不配置使用自定义过滤器扫描，区分加载不同场景的实现。此时会出现实现类名称相同的错误**
+
+```java
+@Test
+public void noTypeFiltertest() {
+    // 1. 传入项目配置类字节码方式，创建基于注解的spinrg容器
+    ApplicationContext context = new AnnotationConfigApplicationContext(SpringConfiguration.class);
+    // 2. 根据bean名称，从容器中获取订单与平台业务实现类，并调用方法
+    OrderService orderService = context.getBean("orderService", OrderService.class);
+    orderService.calcOrderDiscount("member");
+
+    PlatformService platformService = context.getBean("platformService", PlatformService.class);
+    platformService.calcSalePercentage("normal");
+}
+```
+
+![](images/20200828000712072_18714.png)
+
+##### 2.2.6.8. 使用自定义过滤器实现不同场景不同实现（重点）
+
+- **编写自定义扫描过滤规则**。可以通过实现顶级接口`TypeFilter`，但也可以选择继承其他的抽象类（如`AbstractTypeHierarchyTraversingFilter`），因为抽象类已经实现部分逻辑，这样减少一些代码的编写
+
+```java
+package com.moon.springsample.typefilter;
+
+import com.moon.springsample.annotations.Scene;
+import org.springframework.core.io.support.PropertiesLoaderUtils;
+import org.springframework.core.type.filter.AbstractTypeHierarchyTraversingFilter;
+import org.springframework.util.AntPathMatcher;
+import org.springframework.util.ClassUtils;
+import org.springframework.util.PathMatcher;
+
+import java.util.Properties;
+
+/**
+ * spring的自定义扫描规则 - 实现不同场景下不同实现
+ */
+public class SceneTypeFilter extends AbstractTypeHierarchyTraversingFilter {
+
+    // 定义路径校验类对象（Spring框架提供的工具类）
+    private PathMatcher pathMatcher;
+
+    /*
+     *  定义场景名称，此值应该是通过配置去修改，不能使用硬编码方式
+     *      需要注意：这里使用 @Value 注解的方式是获取不到配置值，
+     *      因为Spring的生命周期里，负责填充属性值的 InstantiationAwareBeanPostProcessor 与 TypeFilter 的实例化过程两者没有任何关系
+     */
+    // @Value("${common.scene.name}")
+    private String sceneName;
+
+    /**
+     * 定义构造函数，因为父类没有无参构造函数，所以必须要定义构造函数并调用父类的构造器
+     */
+    public SceneTypeFilter() {
+        /*
+         * 调用父类构造函数
+         *  第1个参数considerInherited: 不考虑基类
+         *  第2个参数considerInterfaces: 不考虑接口上的信息
+         */
+        super(false, false);
+        // 借助Spring默认的Resource通配符路径方式
+        this.pathMatcher = new AntPathMatcher();
+        // 此处使用硬编码读取配置信息（实现应用时再想使用其他方式实现）
+        try {
+            // 使用spring工具类PropertiesLoaderUtils，读取根目录下的配置文件
+            Properties properties = PropertiesLoaderUtils.loadAllProperties("scene.properties");
+            // 读取配置文件中的场景名称
+            this.sceneName = properties.getProperty("common.scene.name");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * 重写父类方法，注意此方法的作用是，将指定的类将注册为Exclude（排除过滤）, 返回
+     *
+     * @param className 校验的类的名称
+     * @return true 代表排除此类，不加入到 spring 容器中；false 代表不排除
+     */
+    @Override
+    protected boolean matchClassName(String className) {
+        try {
+            /*
+             * 判断当前传入的类的名称（className）是否在指定的包路径上的类（即只处理本案例中相关的不场景的业务类）
+             */
+            if (!isPotentialPackageClass(className)) {
+                // 类路径不符合本过滤器定义的扫描路径规则，即表示此类不需要排除，直接返回false
+                return false;
+            }
+            /* 以上逻辑是：判断当前类上标识的自定义场景注解是否与配置文件中的场景名称一致，如不一致，则排除，不能注册到spring容器中 */
+            // 根据类名称获取字节码对象
+            Class<?> clazz = ClassUtils.forName(className, SceneTypeFilter.class.getClassLoader());
+            // 通过反射获取当前类上的 @Scene 注解对象
+            Scene scene = clazz.getAnnotation(Scene.class);
+            // 判断此类上是否有 @Scene 注解
+            if (scene == null) {
+                // 无标识此注解，不需要排除
+                return false;
+            }
+            // 获取标识 @Scene 注解中的value值
+            String sceneValue = scene.value();
+            // 校验，如果此类上标识的value属性值与配置文件中场景名称一致，则注册到spring ioc 容器中（即返回false）。排除则返回true
+            return !this.sceneName.equalsIgnoreCase(sceneValue);
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException(e);
+        }
+    }
+
+    /*
+     * 定义潜在的满足条件的类的名称（本类逻辑能处理的类）, 指定在哪个 package下
+     *  这里为了实现可以支持通配符方式的，借用spring框架中 ClassUtils 工具类
+     */
+    private static final String PATTERN_STANDARD =
+            ClassUtils.convertClassNameToResourcePath("com.moon.springsample.service.impl.*.*");
+
+    /**
+     * 判断当前传入的类名称，是否在本类（本过滤规则）逻辑中可以处理的类
+     *
+     * @param className 待判断类的名称
+     * @return true: 表示可以处理
+     */
+    private boolean isPotentialPackageClass(String className) {
+        // 1. 将类名转换为资源路径, 以进行匹配测试
+        String resourcePath = ClassUtils.convertClassNameToResourcePath(className);
+        // 2. 使用工具类对资源的路径进行匹配校验
+        return pathMatcher.match(PATTERN_STANDARD, resourcePath);
+    }
+}
+```
+
+- **编写properties配置文件，指定场景**
+
+```properties
+# resources\scene.properties
+# 配置当前使用的场景
+common.scene.name=anniversary
+```
+
+- **修改配置类，增加排除规则**
+
+```java
+package com.moon.springsample.config;
+
+import com.moon.springsample.typefilter.SceneTypeFilter;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.FilterType;
+
+/**
+ * spring项目的配置类
+ */
+@Configuration
+// 添加排除属性excludeFilters，选择自定义规则（FilterType.CUSTOM），指定自定义过滤器的class
+@ComponentScan(value = {"com.moon.springsample"},
+        excludeFilters = @ComponentScan.Filter(type = FilterType.CUSTOM, classes = SceneTypeFilter.class))
+public class SpringConfiguration {
+}
+```
+
+- 再次运行上面的测试方法，结果成功只执行配置文件中的场景实现
+
+![](images/20200829001505989_13028.png)
 
 ### 2.3. @Bean
 

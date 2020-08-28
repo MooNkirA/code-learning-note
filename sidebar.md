@@ -125,7 +125,7 @@
 
 ### ✨ Gradle ✨
 
-* [0Gradle基础笔记](/05-DevOps工具/06-Gradle/01-Gradle基础笔记)
+* [Gradle基础笔记](/05-DevOps工具/06-Gradle/01-Gradle基础笔记)
 
 ## 📄 Linux
 
