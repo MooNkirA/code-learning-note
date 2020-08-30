@@ -369,7 +369,7 @@ person:
 person: {name: haohao,age: 31,addr: beijing}
 ```
 
-- **注意：key1前面的空格个数不限定，在yml语法中，相同缩进代表同一个级别**
+- <font color=red>**注意：key1前面的空格个数不限定，在yml语法中，相同缩进代表同一个级别**</font>
 
 ##### 3.3.2.3. 配置Map数据
 

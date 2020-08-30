@@ -133,7 +133,7 @@ jdbc.password=123456
 ```java
 /* 测试spring全注解开发示例 */
 public static void main(String[] args) {
-    // 1. 获取基于注解的spinrg容器
+    // 1. 获取基于注解的spring容器
     ApplicationContext context = new AnnotationConfigApplicationContext("com.moon.springsample");
     // 2. 测试根据id获取spring容器中的对象
     JdbcTemplate jdbcTemplate = context.getBean("jdbcTemplate", JdbcTemplate.class);
@@ -142,7 +142,7 @@ public static void main(String[] args) {
 }
 ```
 
-## 2. IOC的常用注解 - 用于注解驱动的注解
+## 2. IOC常用注解 - 用于注解驱动
 
 ### 2.1. @Configuration
 
@@ -154,7 +154,9 @@ public static void main(String[] args) {
 
 #### 2.1.2. 相关属性
 
-- `value`：用于存入spring的Ioc容器中Bean的id
+|  属性名  |              作用               | 取值 |
+| ------- | ------------------------------- | --- |
+| `value` | 用于存入spring的Ioc容器中Bean的id |     |
 
 #### 2.1.3. 使用场景
 
@@ -227,9 +229,9 @@ import org.springframework.context.annotation.AnnotationConfigApplicationContext
 public class ConfigurationTest {
     /* Configuratio注解使用测试 */
     public static void main(String[] args) {
-        // 方式一：1. 获取基于注解的spinrg容器，使用基础包basePackages的构造函数创建=容器，此时SpringConfiguration类上必须加上@Configuration注解
+        // 方式一：1. 获取基于注解的spring容器，使用基础包basePackages的构造函数创建=容器，此时SpringConfiguration类上必须加上@Configuration注解
         // ApplicationContext context = new AnnotationConfigApplicationContext("com.moon.springsample");
-        // 方式二：1. 获取基于注解的spinrg容器，使用传入字节码的构造函数创建容器，此时SpringConfiguration类上可以不加@Configuration注解
+        // 方式二：1. 获取基于注解的spring容器，使用传入字节码的构造函数创建容器，此时SpringConfiguration类上可以不加@Configuration注解
         ApplicationContext context = new AnnotationConfigApplicationContext(SpringConfiguration.class);
         // 2. 根据id或者类型去获取对应的bean实例
         SpringConfiguration springConfiguration = (SpringConfiguration) context.getBean("springConfiguration");
@@ -250,22 +252,19 @@ public class ConfigurationTest {
 
 #### 2.2.2. 相关属性
 
-- `value`：用于指定要扫描的包。当指定了包的名称之后，spring会扫描指定的包及其子包下的所有类
-- `basePackages`：与value作用一样
-- `basePackageClasses`：指定具体要扫描的类的字节码，spring会扫描指定字节码的类所在的包及其子包下的所有类。
-- `nameGenrator`：指定扫描bean对象存入容器时的命名规则。详情参考《Spring源码分析》的BeanNameGenerator及其实现类。
-- `scopeResolver`：用于处理并转换检测到的Bean的作用范围。
-- `soperdProxy`：用于指定bean生成时的代理方式。默认是Default，则不使用代理，可选值有四个：`DEFAULT`，`NO`，`INTERFACES`，`TARGET_CLASS`。详情请可查看spring源码的ScopedProxyMode枚举。
-- `resourcePattern`：用于指定符合组件检测条件的类文件，默认是包扫描下的`**/*.class`
-- `useDefaultFilters`：是否对带有@Component @Repository @Service @Controller注解的类开启检测，默认是开启的。
-- `includeFilters`：自定义组件扫描的过滤规则，用于扫描组件。注解的是`Filter`注解数组，`Filter`的`type`属性是`FilterType`的枚举，有5种类型：
-    - `ANNOTATION`：注解类型（默认）
-    - `ASSIGNABLE_TYPE`：指定固定类
-    - `ASPECTJ`：ASPECTJ类型
-    - `REGEX`：正则表达式
-    - `CUSTOM`：自定义类型
-- `excludeFilters`：自定义组件扫描的排除规则。
-- `lazyInit`：组件扫描时是否采用懒加载 ，默认不开启。
+|        属性名         |                                                  作用                                                  |                                                                  取值                                                                  |
+| :------------------: | ------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------- |
+|       `value`        | 用于指定要扫描的包。当指定了包的名称之后，spring会扫描指定的包及其子包下的所有类                               |                                                                                                                                       |
+|    `basePackages`    | 与value作用一样                                                                                         |                                                                                                                                       |
+| `basePackageClasses` | 指定具体要扫描的类的字节码，spring会扫描指定字节码的类所在的包及其子包下的所有类。                             |                                                                                                                                       |
+|    `nameGenrator`    | 指定扫描bean对象存入容器时的命名规则。详情参考《Spring源码分析》的BeanNameGenerator及其实现类。               |                                                                                                                                       |
+|   `scopeResolver`    | 用于处理并转换检测到的Bean的作用范围。                                                                    |                                                                                                                                       |
+|    `soperdProxy`     | 用于指定bean生成时的代理方式。默认是Default，则不使用代理                                                   | 可选值有4个：`DEFAULT`，`NO`，`INTERFACES`，`TARGET_CLASS`。<br/>详情请可查看spring源码的ScopedProxyMode枚举。                             |
+|  `resourcePattern`   | 用于指定符合组件检测条件的类文件，默认是包扫描下的`**/*.class`                                              |                                                                                                                                       |
+| `useDefaultFilters`  | 是否对带有`@Component` `@Repository` `@Service` `@Controller`注解的类开启检测，默认是开启的。              |                                                                                                                                       |
+|   `includeFilters`   | 自定义组件扫描的过滤规则，用于扫描组件。该注解的值是`Filter`注解数组，`Filter`的`type`属性是`FilterType`的枚举 | `ANNOTATION`：注解类型（默认）<br/>`ASSIGNABLE_TYPE`：指定固定类<br/>`ASPECTJ`：ASPECTJ类型<br/>`REGEX`：正则表达式<br/>`CUSTOM`：自定义类型 |
+|   `excludeFilters`   | 自定义组件扫描的排除规则。注解值的类型与`includeFilters`一致                                               |                                                                                                                                       |
+|      `lazyInit`      | 组件扫描时是否采用懒加载 ，默认不开启。                                                                    |                                                                                                                                       |
 
 #### 2.2.3. 包扫描配置示例
 
@@ -285,7 +284,7 @@ public class SpringConfiguration {
 ```java
 @Test
 public void componentScanBaseTest() {
-    // 1. 获取基于注解的spinrg容器，使用传入字节码的构造函数创建容器。（这里故意不使用传入基础包的构造函数，如果这里配置了扫描包包含了测试层的位置，则看不出效果）
+    // 1. 获取基于注解的spring容器，使用传入字节码的构造函数创建容器。（这里故意不使用传入基础包的构造函数，如果这里配置了扫描包包含了测试层的位置，则看不出效果）
     ApplicationContext context = new AnnotationConfigApplicationContext(SpringConfiguration.class);
     // 2. 根据id或者类型去获取对应的bean实例
     UserService userService = context.getBean("userService", UserService.class);
@@ -349,7 +348,7 @@ public class SpringConfiguration {
 ```java
 @Test
 public void componentScanBasePackagesTest() {
-    // 1. 获取基于注解的spinrg容器，使用传入字节码的构造函数创建容器。（这里故意不使用传入基础包的构造函数，如果这里配置了扫描包包含了测试层的位置，则看不出效果）
+    // 1. 获取基于注解的spring容器，使用传入字节码的构造函数创建容器。（这里故意不使用传入基础包的构造函数，如果这里配置了扫描包包含了测试层的位置，则看不出效果）
     ApplicationContext context = new AnnotationConfigApplicationContext(SpringConfiguration.class);
     // 2. 根据id或者类型去获取对应的bean实例
     UserService userService = context.getBean("userService", UserService.class);
@@ -374,7 +373,7 @@ public class SpringConfiguration {
 ```java
 @Test
 public void componentScanBasePackageClassesTest() {
-    // 1. 获取基于注解的spinrg容器，使用基础包的构造函数，只扫描配置类所在的包。
+    // 1. 获取基于注解的spring容器，使用基础包的构造函数，只扫描配置类所在的包。
     ApplicationContext context = new AnnotationConfigApplicationContext("com.moon.springsample.config");
     // 2. 根据id或者类型去获取对应的bean实例
     UserService userService = context.getBean("userService", UserService.class);
@@ -518,7 +517,7 @@ public class SpringConfiguration {
 ```java
  @Test
 public void componentScanNameGeneratorTest() {
-    // 1. 获取基于注解的spinrg容器，使用基础包的构造函数，只扫描配置类所在的包。
+    // 1. 获取基于注解的spring容器，使用基础包的构造函数，只扫描配置类所在的包。
     ApplicationContext context = new AnnotationConfigApplicationContext("com.moon.springsample.config");
     // 2. 根据id去获取对应的bean实例，因为是自定义baeanName命名规则，所以需要使用自定义的beanName才能获取到相应的spring容器的对象
     UserService userService = context.getBean("MooN_userService", UserService.class);
@@ -547,7 +546,7 @@ public class SpringConfiguration {
 /* 测试resourcePattern属性 */
 @Test
 public void componentScanNameResourcePatternTest() {
-    // 1. 获取基于注解的spinrg容器，使用基础包的构造函数，只扫描配置类所在的包。
+    // 1. 获取基于注解的spring容器，使用基础包的构造函数，只扫描配置类所在的包。
     ApplicationContext context = new AnnotationConfigApplicationContext("com.moon.springsample.config");
     // 2. 因为是配置了resourcePattern属性为"*/*.class"，所以扫描"com.moon.springsample"下任意包的任意class文件，所以扫描不到service包下的impl包中的注解
     UserService userService = context.getBean("userService", UserService.class);
@@ -580,7 +579,7 @@ public class SpringConfiguration {
 /* 测试includeFilters、excludeFilters属性 */
 @Test
 public void componentScanFiltersTest() {
-    // 1. 获取基于注解的spinrg容器，使用基础包的构造函数，只扫描配置类所在的包。
+    // 1. 获取基于注解的spring容器，使用基础包的构造函数，只扫描配置类所在的包。
     ApplicationContext context = new AnnotationConfigApplicationContext("com.moon.springsample.config");
     /*
      *  配置includeFilters属性为@ComponentScan.Filter(value = Service.class)，
@@ -819,7 +818,7 @@ public class SpringConfiguration {
 ```java
 @Test
 public void noTypeFiltertest() {
-    // 1. 传入项目配置类字节码方式，创建基于注解的spinrg容器
+    // 1. 传入项目配置类字节码方式，创建基于注解的spring容器
     ApplicationContext context = new AnnotationConfigApplicationContext(SpringConfiguration.class);
     // 2. 根据bean名称，从容器中获取订单与平台业务实现类，并调用方法
     OrderService orderService = context.getBean("orderService", OrderService.class);
@@ -980,37 +979,1094 @@ public class SpringConfiguration {
 
 ### 2.3. @Bean
 
-#### 2.3.1. 源码
+#### 2.3.1. 作用与使用场景
+
+- `@Bean`注解可以写在方法上，表示把当前方法的返回值存入Spring的ioc容器。
+- `@Bean`注解同时还可以出现在注解上，作为元注解来使用。
+
+使用场景：
+
+通常情况下，在基于注解的配置中，用于把一个类对象实例存入spring的ioc容器中，首先考虑的是使用`@Component`以及它的衍生注解。但是如果遇到要存入容器的Bean对象不是自己编写的类，而是第三方的工具类，此时无法在该类上添加`@Component`注解，这时就需要使用`@Bean`注解来实现将对象存入ioc容器
+
+例如：在配置`JdbcTemplate`使用Spring内置数据源`DriverManagerDataSource`时，数据源类是spring-jdbc这个jar包中类，此时无法编辑在该类上面加注解，此时就可以使用`@Bean`注解配置
+
+#### 2.3.2. 相关属性
+
+|        属性名        |                                                                作用                                                                 |    取值    |
+| :-----------------: | ----------------------------------------------------------------------------------------------------------------------------------- | ---------- |
+|       `name`        | 用于指定存入spring容器中bean的标识。支持指定多个标识。当不指定该属性时，默认值是当前方法的名称。                                             |            |
+|       `value`       | 此属性是在4.3.3版本之后加入的。它和name属性的作用是一样的。当前`@Bean`注解没有设置其他属性值时，value可以省略                                |            |
+|     `autowire`      | 5.1版本后该属性已过期，使用`autowireCandidate`属性代替                                                                                 |            |
+| `autowireCandidate` | 用于指定是否支持自动按类型注入到其他bean中。只影响`@Autowired`注解的使用。不影响`@Resource`注解注入。默认值为true，意为允许使用自动按类型注入。 | true/false |
+|    `initMethod`     | 用于指定初始化方法。*注：一般比较少，建议使用编程式试直接在创建对象的同时做初始化的工作*                                                     |            |
+|   `destroyMethod`   | 用于指定销毁方法。*注意：该方法不能有入参*                                                                                              |            |
 
 
+#### 2.3.3. @Bean 注解的使用细节
+
+1. 如果`@Bean`注解不指定name/value属性，则存入ioc容器时，标识了该注解下的方法的名称作为bean的名称标识，存入到ioc容器
+2. 如果`@Bean`注解不指定name/value属性，并出现了方法重载，则以最后定义的方法的返回对象，注入到spring ioc容器中
+
+![](images/20200829100648693_3807.png)
+
+![](images/20200829100714846_11912.png)
+
+3. `@Bean`注解可以定义在注解类上，做为元注解使用。该注解可以实现与`@Bean`一样的功能
+
+```java
+/**
+ * 使用@Bean注解作为元注解，自定义注解实现@Bean注解相同的功能
+ */
+@Target({ElementType.METHOD})
+@Retention(RetentionPolicy.RUNTIME)
+@Bean
+public @interface MyBean {
+}
+
+// 使用@Bean做为元注解，自定义@MyBean注解，实现功能与@Bean一致
+@MyBean
+public JdbcTemplate createJdbcTemplate(@Autowired DataSource dataSource) {
+    System.out.println("执行了有参的createJdbcTemplate()方法");
+    return new JdbcTemplate(dataSource);
+}
+```
+
+#### 2.3.4. 使用示例
+
+- 定义Spring项目的配置类
+
+```java
+@Configuration
+public class SpringConfiguration {
+
+    /* @Bean注解的autowireCandidate属性，不会影响 @Resource 注解的注入*/
+    @Resource(name = "dataSource")
+    private DataSource dataSource;
+
+    /**
+     * 创建一个数据源对象，并使用 @Bean 注解存入 spring ioc 容器
+     *
+     * @return DataSource
+     */
+    // name属性用于指定存入spring容器中bean的标识。支持指定多个标识。当不指定该属性时，默认值是当前方法的名称。
+    // @Bean(name = "dataSource")
+    // valeu属性是4.3.3版本之后加入，与name属性作用一样，当前@Bean注解没有设置其他属性值时，value可以省略
+    // @Bean(value = "dataSource")
+    // autowireCandidate用于指定是否支持自动按类型注入到其他bean中。只影响`@Autowired`注解的使用。不影响`@Resource`注解注入。默认值为true
+    @Bean(value = "dataSource", autowireCandidate = true)
+    public DataSource createDataSource() {
+        // 1. 创建对象
+        DataSource dataSource = new DriverManagerDataSource();
+        /*
+         * 2. 对象初始化的工作
+         *   注：这里虽然可以使用@Bean注解的initMethod属性来单独编写方法来实现此步骤
+         *   但一般比较少用，建议使用编程式试直接在创建对象的同时做初始化的工作
+         */
+        // ....
+        // 3. 返回对象到ioc容器
+        return dataSource;
+    }
+
+    /* 使用@Autowired自动注入ioc容器对象 */
+    // @Bean("jdbcTemplate")
+    // 如果返回DataSource对象的方法的@Bean注解设置属性autowireCandidate = false，则通过@Autowired注解无法自动注入DataSource对象
+    // public JdbcTemplate createJdbcTemplate(@Autowired DataSource dataSource) {
+    // 但可以使用@Resource注解注入到成员变量的方式实现
+    // 如果不指定name/value属性，则存入ioc容器时，以方法的名称作为bean的名称标识
+    @Bean
+    public JdbcTemplate createJdbcTemplate() {
+        System.out.println("执行了无参的createJdbcTemplate()方法");
+        return new JdbcTemplate(dataSource);
+    }
+
+    // 如果不指定name/value属性，并出现了方法重载，则以最后定义的方法的返回对象，注入到spring ioc容器中
+    // 使用@Bean做为元注解，自定义@MyBean注解，实现功能与@Bean一致
+    @MyBean
+    public JdbcTemplate createJdbcTemplate(@Autowired DataSource dataSource) {
+        System.out.println("执行了有参的createJdbcTemplate()方法");
+        return new JdbcTemplate(dataSource);
+    }
+}
+```
+
+- 测试`@Bean`注解使用
+
+```java
+public class SpringBeanTest {
+
+    /* @Bean注解基础使用测试 */
+    @Test
+    public void beanAnnotaionBasicTest() {
+        // 1. 获取基于注解的spring容器，使用基础包basePackages的构造函数创建容器
+        ApplicationContext context = new AnnotationConfigApplicationContext("com.moon.springsample");
+        // 2. 获取@Bean注解存入的对象实例
+        DataSource dataSource = context.getBean("dataSource", DataSource.class);
+        // 输出结果
+        System.out.println(dataSource);
+    }
+
+    /* @Bean注解的autowireCandidate属性使用测试 */
+    @Test
+    public void autowireCandidateTest() {
+        // 1. 获取基于注解的spring容器，使用基础包basePackages的构造函数创建容器
+        ApplicationContext context = new AnnotationConfigApplicationContext("com.moon.springsample");
+        // 2. 获取@Bean注解存入的对象实例
+        JdbcTemplate jdbcTemplate = context.getBean("createJdbcTemplate", JdbcTemplate.class);
+        /*
+         * 输出结果
+         *   如果返回DataSource对象的方法的@Bean注解设置属性autowireCandidate = false，
+         *   则通过@Autowired注解无法自动注入DataSource对象，程序运行会报ioc容器找不到DataSource对象 "No qualifying bean of type 'javax.sql.DataSource' available"
+         *
+         *   但可以使用@Resource注解注入到成员变量的方式来获取DataSource对象，autowireCandidate属性不会影响@Resource注解
+         */
+        System.out.println(jdbcTemplate);
+    }
+}
+```
+
+### 2.4. @Import
+
+#### 2.4.1. 作用与使用场景
+
+- **作用**：该注解是写在类上的，通常都是和注解驱动的配置类一起使用的。其作用是引入其他的配置类。使用了此注解之后，可以使注解驱动开发和早期xml配置一样，按不同的功能模块，分别配置不同的内容，使配置更加清晰。同时指定了此注解之后，被引入的类上可以不再使用`@Configuration`，`@Component`等注解的支撑，spring ioc也可以将引入类加载到ioc容器。
+- **使用场景**：当在使用注解驱动开发时，由于配置项过多，如果都写在一个类里面，配置结构和内容将杂乱不堪，此时使用此注解可以把配置项进行分模块进行配置。
+
+#### 2.4.2. 相关属性
+
+| 属性名  |                           作用                            | 取值 |
+| :-----: | --------------------------------------------------------- | ---- |
+| `value` | 用于导入其他配置类，其值类型为类的字节码。它支持指定多个配置类。 |      |
+
+#### 2.4.3. 基础使用示例
+
+在入门案例中，使用了`SpringConfiguration`做为主配置类，而连接数据库相关的配置被分配到了`JdbcConfig`配置类中，此时使用在`SpringConfiguration`类上使用`@Import`注解把`JdbcConfig`导入进来就可以了。
+
+```java
+@Configuration
+/*
+ * 使用@Import注解引入其他配置类，被引入的类上可以不再使用`@Configuration`，`@Component`等注解的支撑，spring ioc也可以将引入类加载到ioc容器中。
+ *  注意：通过@Import注解引入的类，该类加载到spring ioc容器的唯一标识（beanName）与使用`@Configuration`，`@Component`等注解的默认标识的命名方式不一样
+ *      使用`@Configuration`，`@Component`等注解加载ioc容器，如果不指定名称，则以类名称且首字母小写，作为容器中唯一标识与其对象实例进行映射
+ *      而使用@Import注解引入的类，则以引入类的全限定名做为容器中唯一标识，并与其对象实例进行映射
+ */
+@Import({JdbcConfig.class})
+public class SpringConfiguration {
+}
+
+/**
+ * 将连接数据库的相关配置独立到一个配置类中
+ */
+/*
+ * Spring框架会先扫描到标识有@Configuration,@Component等注解的类，加载到ioc容器后，该类中的@Bean注解才会再被扫描及实例化对象加载到容器中
+ *  但抽取模块的配置独立到一个配置类中，就是为了达到分类管理目的，并且只想将关注点在配置内容上，
+ *  所以一般不建议每个独立模块的配置类上加@Configuration,@Component等注解，并且也不想让项目扫描配置类时手动指定每个模块。故最好使用@Import注解导入到主配置类中
+ */
+// @Configuration
+public class JdbcConfig {
+    /* 创建DataSource对象 */
+    @Bean("dataSource")
+    public DataSource createDataSource() {
+        DriverManagerDataSource dataSource = new DriverManagerDataSource();
+        // 配置数据源相关参数 （注：此处为了暂时不涉及@PropertySource注解，所以直接将相关的配置值硬编码！）
+        dataSource.setDriverClassName("com.mysql.jdbc.Driver");
+        dataSource.setUrl("jdbc:mysql://localhost:3306/tempdb?characterEncoding=utf-8");
+        dataSource.setUsername("root");
+        dataSource.setPassword("123456");
+        return dataSource;
+    }
+}
+```
+
+```java
+@Test
+public void importAnnotaionBasicTest() {
+    /*
+     * 1. 创建注解扫描的容器，这里只扫描项目总配置类SpringConfiguration，
+     *   所以抽取出来的其他模块的配置类，就算标识@Configuration,@Component等注解，也不会被spring扫描加载
+     *   此时就需要使用 @Import 注解，将其他模块的配置类引入到项目总配置类中
+     */
+    ApplicationContext context = new AnnotationConfigApplicationContext(SpringConfiguration.class);
+    // 2. 测试使用 @Import 注解引入的配置类是否加载到ioc容器中，可以根据对象的类型去获取
+    // JdbcConfig jdbcConfig = context.getBean(JdbcConfig.class);
+    // 如果想通过ioc容器中bean的名称去获取，则要了解，通过@Import注解引入的类，其命名规则是以类的全限定名称来作为ioc容器中的唯一标识
+    JdbcConfig jdbcConfig = context.getBean("com.moon.springsample.config.JdbcConfig", JdbcConfig.class);
+    // 输出结果
+    System.out.println(jdbcConfig);
+    // 3. 获取@Bean注解存入的配置类中的对象实例
+    DataSource dataSource = context.getBean("dataSource", DataSource.class);
+    // 输出结果
+    System.out.println(dataSource);
+}
+```
+
+#### 2.4.4. （扩展）通过spring容器对象获取所有注册的bean的唯一标识
+
+```java
+/* 获取spring ioc容器中所有注册的bean的名称 */
+@Test
+public void getBeanDefinitionNamesTest() {
+    // 创建注解扫描的容器
+    ApplicationContext context = new AnnotationConfigApplicationContext(SpringConfiguration.class);
+    // 调用getBeanDefinitionNames()方法，获取所有注册到容器中bean的名称（唯一标识），返回值是字符串数组
+    String[] beanDefinitionNames = context.getBeanDefinitionNames();
+    // 循环输入所有名称
+    for (String name : beanDefinitionNames) {
+        System.out.println(name);
+    }
+}
+```
+
+### 2.5. @Import 注解的高级分析
+
+#### 2.5.1. ImportSelector 和 ImportBeanDefinitionRegistrar 介绍
+
+- `ImportSelector`：导入器，用于动态注册bean对象到容器中
+- `ImportBeanDefinitionRegistrar`：注册器，用于动态注册bean对象到容器中
+
+##### 2.5.1.1. bean对象注册到spring容器的方式
+
+在spring框架中，注册bean到ioc容器有很多种方式。
+
+1. 自己编写的类，可以使用`@Component`、`@Service`、`@Repository`、`@Controller`等等注解注册到ioc容器中。
+2. 导入的第三方库中的类时，可以使用`@Bean`（*需要做一些初始化操作时，比如`DataSource`对象*），手动创建对象注册到ioc容器中，也可以使用`@Import`注解，直接指定要引入的类的字节码，同样可以实现注册到容器中。
+3. 当类的数量比较多的时候，在每个类上加注解或者使用`@Bean`或者`@Import`都会写起来变得很繁琐。此时可以采用自定义`ImportSelector`或者`ImportBeanDefinitionRegistrar`来实现注册bean对象到容器中
+
+> 扩展：
+>
+> 在SpringBoot中，类似`@EnableXXX`这样的注解，绝大多数都借助了`ImportSelector`或者`ImportBeanDefinitionRegistrar`来实现。例如：在spring中，`@EnableTransactionManagement`就是借助了ImportSelector，而`@EnableAspectJAutoProxy`就是借助了`ImportBeanDefinitionRegistrar`。
+
+##### 2.5.1.2. 共同点、区别、注意事项
+
+- **共同点**：
+    - `ImportSelector`与`ImportBeanDefinitionRegistrar`都是用于动态注册bean对象到容器中的。并且支持大批量的bean导入。
+- **区别**：
+    - `ImportSelector`是一个接口，在使用时需要提供实现类。实现类中返回要注册的bean的全限定类名数组，然后执行`ConfigurationClassParser`类中的`processImports()`方法注册bean对象的
+    - `ImportBeanDefinitionRegistrar`也是一个接口，需要编写实现类，实现的方法是没有返回值，在实现类中手动注册bean到容器中
+- **注意事项**：
+    1. 实现了`ImportSelector`接口或者`ImportBeanDefinitionRegistrar`接口的类<font color=red>**不会被解析成一个Bean注册到容器中**</font>。
+    2. 通过以上两个接口实现注册bean对象到容器中时，<font color=red>**bean的唯一标识是全限定类名，而非短类名**</font>。
+
+#### 2.5.2. 自定义 ImportSelector
+
+##### 2.5.2.1. 代码准备
+
+- 添加示例相关依赖，因为本示例使用aspectJ过滤规则，所以需要添加aspectjweaver的依赖
+
+```xml
+<dependencies>
+    <dependency>
+        <groupId>org.springframework</groupId>
+        <artifactId>spring-context</artifactId>
+    </dependency>
+    <!-- 导入aspectJ的依赖 -->
+    <dependency>
+        <groupId>org.aspectj</groupId>
+        <artifactId>aspectjweaver</artifactId>
+        <version>1.8.13</version>
+    </dependency>
+    <dependency>
+        <groupId>junit</groupId>
+        <artifactId>junit</artifactId>
+        <scope>test</scope>
+    </dependency>
+</dependencies>
+```
+
+- 准备相关待注册到容器的类，*注：此示例通过`ImportSelector`注册，所以不会标识`@Component`等注解*
+
+```java
+public interface UserService {
+    void saveUser();
+}
+
+public class UserServiceImpl implements UserService {
+    @Override
+    public void saveUser() {
+        System.out.println("UserServiceImpl.saveUser()方法执行，保存用户数据");
+    }
+}
+
+public class LogUtil {
+    public void saveLog() {
+        System.out.println("LogUtil.saveLog()方法执行，保存日志");
+    }
+}
+```
+
+包的结构如下：
+
+![](images/20200829163002863_5933.png)
+
+- 编写配置文件，用于定义扫描包路径的aspectJ表达式
+
+```properties
+# 指定扫描包路径的ASPECTJ表达式
+custom.importselector.expression=com.moon.springsample.service.impl.*
+```
+
+- 编写项目的配置类，使用`@Import`注解导入自定义`ImportSelector`
+
+```java
+@Configuration
+// 导入自定义ImportSelector导入器
+@Import(CustomImportSelector.class)
+public class SpringConfiguration {
+}
+```
+
+##### 2.5.2.2. 自定义导入器，实现 ImportSelector 接口
+
+```java
+package com.moon.springsample.importselector;
+
+import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.ImportSelector;
+import org.springframework.core.io.support.PropertiesLoaderUtils;
+import org.springframework.core.type.AnnotationMetadata;
+import org.springframework.core.type.filter.AspectJTypeFilter;
+import org.springframework.core.type.filter.TypeFilter;
+
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Properties;
+import java.util.Set;
+
+/**
+ * 自定义导入器，实现 ImportSelector 接口
+ */
+public class CustomImportSelector implements ImportSelector {
+
+    // 定义ASPECTJ的表达式变量，注：这里不能通过@Value注解来赋值
+    private String expression;
+
+    /*
+     * 默认无参构造方法
+     *  这里需要实现的逻辑是：用于读取配置文件，给表达式赋值
+     */
+    public CustomImportSelector() {
+        try {
+            // 1. 使用spring框架的工具类，获取配置文件的properties对象
+            Properties properties = PropertiesLoaderUtils.loadAllProperties("customImport.properties");
+            // 2. 读取配置值，给expression属性赋值
+            this.expression = properties.getProperty("custom.importselector.expression");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * 此方法用于批量导入bean对象到ioc容器，所以需要实现获取要导入的bean全限定类名数组
+     * 需求：
+     * 导入的过滤规则是FilterType的ASPECTJ的类型
+     *
+     * @param importingClassMetadata
+     * @return
+     */
+    @Override
+    public String[] selectImports(AnnotationMetadata importingClassMetadata) {
+        // 1. 定义扫描包的名称字符串数组
+        String[] basePackages = null;
+
+        /*
+         * 2. 判断有 @Import 注解的类上是否有 @ComponentScan 注解
+         *   这里的主要逻辑是如果配置了 @ComponentScan 注解并指定了扫描的包，则以此配置值为要扫描的包
+         */
+        if (importingClassMetadata.hasAnnotation(ComponentScan.class.getName())) {
+            // 3. 取出@ComponentScan注解的属性值（value/basePackages）
+            Map<String, Object> attributes = importingClassMetadata
+                    .getAnnotationAttributes(ComponentScan.class.getName());
+            // 4. 根据key获取basePackages的属性值（注：这里的”basePackages“解析什值包含了”value“的值）
+            basePackages = (String[]) attributes.get("basePackages");
+        }
+
+        /*
+         * 5. 判断是否有此属性，或者是否指定了包扫描的信息
+         *  如果没有@ComponentScan注解则属性值为null，如果有@ComponentScan注解但未指定value/basePackages值，则basePackages默认为空数组
+         *  这里主要处理的逻辑就是，如果@ComponentScan没有配置包扫描路径，设置默认扫描当前@Import注解所在的包路径
+         */
+        if (basePackages == null || basePackages.length == 0) {
+            // 定义变量接收标识了@Import注解的类所在的包路径
+            String basePackage = null;
+            // 6. 获取标识了@Import注解类所在包的名称
+            try {
+                basePackage = Class.forName(importingClassMetadata.getClassName()).getPackage().getName();
+            } catch (ClassNotFoundException e) {
+                e.printStackTrace();
+            }
+            // 7. 保存到 basePackages 数组中
+            basePackages = new String[]{basePackage};
+        }
+
+        /*
+         * 8. 创建类路径扫描器。 此构造函数传入参数是useDefaultFilters，代表是否使用默认的扫描规则。
+         *  因为本示例中想使用aspectJ扫描规则，不想让将要注册的类添加@Component等注解，所以此参数设置为false，不使用默认扫描规则
+         */
+        ClassPathScanningCandidateComponentProvider scanner = new ClassPathScanningCandidateComponentProvider(false);
+        // 9. 创建类型过滤器(此处使用aspectJ切入点表达式类型过滤器)
+        TypeFilter typeFilter = new AspectJTypeFilter(expression, CustomImportSelector.class.getClassLoader());
+        // 10. 将创建好的类型过滤器添加到类路径扫描器中
+        scanner.addIncludeFilter(typeFilter);
+
+        // 11. 定义用于存放扫描结果的类全限定名称集合
+        Set<String> classes = new HashSet<>();
+        // 12. 循环包路径数组，使用扫描器挨个扫描包下的类，获取类的全限定名称
+        for (String basePackage : basePackages) {
+            // 将扫描到每个类的全限定名称添加到set集合中
+            scanner.findCandidateComponents(basePackage).forEach(beanDefinition -> classes.add(beanDefinition.getBeanClassName()));
+        }
+
+        // 13. 按方法的返回值类型，返回全限定类名的数组
+        return classes.toArray(new String[classes.size()]);
+    }
+}
+```
+
+##### 2.5.2.3. 测试
+
+- 编写测试代码
+
+```java
+@Test
+public void customImportSelectorTest() {
+    // 1. 创建注解扫描容器
+    ApplicationContext context = new AnnotationConfigApplicationContext(SpringConfiguration.class);
+    // 2. 获取相关对象，注意：使用ImportSelector导入器，bean对象在ioc容器的唯一标识是类的全限定名称
+    UserService userService = context.getBean("com.moon.springsample.service.impl.UserServiceImpl", UserService.class);
+    userService.saveUser();
+    LogUtil logUtil = context.getBean("com.moon.springsample.utils.LogUtil", LogUtil.class);
+    logUtil.saveLog();
+}
+```
+
+- 测试情况一：项目配置类`SpringConfiguration`没有标识`@ComponentScan`注解指定扫描包路径，则上面编写的自定义导入器customImportSelector只会扫描标识了`@Import`注解的类所在的包及其子包，所以无法扫描到测试方法中的类，程序报错
+
+![](images/20200829160429490_16837.png)
+
+- 测试情况二：在项目配置类`SpringConfiguration`标识`@ComponentScan`注解并指定扫描包路径，此时，可以扫描到UserServiceImpl类，但LogUtil类则没有扫描到，原因是在customImport.properties配置文件中定义的aspectJ切入点表达式只扫描`com.moon.springsample.service.impl`包下所有类。
+
+```java
+@Configuration
+// 指定包扫描路径
+@ComponentScan("com.moon.springsample")
+// 导入自定义ImportSelector导入器
+@Import(CustomImportSelector.class)
+public class SpringConfiguration {
+}
+```
+
+![](images/20200829160908463_28203.png)
+
+- 测试情况三：修改customImport.properties配置文件中的aspectJ表达式，扩大其扫描范围，此时LogUtil类会成功被自定义导入器扫描到
+
+```properties
+# 表示com.moon.springsample.service包及其任意子包的所有类
+custom.importselector.expression=com.moon.springsample.service..*
+```
+
+![](images/20200829163236262_18296.png)
+
+> <font color=purple>**注：此处有坑，如果aspectJ切入点表达式包含自定义导入器`CustomImportSelector`类的话，会报错，在学习源码后再试试分析分析**</font>
+
+##### 2.5.2.4. 改造自定义导入器逻辑，将扫描包路径也定义在配置文件中
+
+改造需求：通过properties配置文件指定扫描的包路径，同时兼容`@ComponentScan`指定的扫描包路径。如果注解与配置文件都没有指定包路径时，才扫描标识`@Import`注解的类所有包路径。
+
+- 删除SpringConfiguration配置类中的`@ComponentScan`注解，将扫描的包路径定义在customImport.properties配置文件中。
+
+```properties
+# 配置扫描的包路径，可以与@ComponentScan注解配置包扫描路径同时兼容
+custom.importselector.package=com.moon.springsample
+```
+
+- 改造自定义导入器 CustomImportSelector 的逻辑
+
+```java
+public class CustomImportSelector implements ImportSelector {
+
+    // 定义ASPECTJ的表达式变量，注：这里不能通过@Value注解来赋值
+    private String expression;
+
+    // 定义变量，保存配置文件所指定的扫描的包路径
+    private String customPackage;
+
+    /*
+     * 默认无参构造方法
+     *  这里需要实现的逻辑是：用于读取配置文件，给表达式赋值
+     */
+    public CustomImportSelector() {
+        try {
+            // 1. 使用spring框架的工具类，获取配置文件的properties对象
+            Properties properties = PropertiesLoaderUtils.loadAllProperties("customImport.properties");
+            // 2. 读取配置值，给expression属性赋值
+            this.expression = properties.getProperty("custom.importselector.expression");
+            // 3. 读取配置指定的扫描包路径
+            this.customPackage = properties.getProperty("custom.importselector.package");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * 此方法用于批量导入bean对象到ioc容器，所以需要实现获取要导入的bean全限定类名数组
+     * 需求：
+     * 导入的过滤规则是FilterType的ASPECTJ的类型
+     */
+    @Override
+    public String[] selectImports(AnnotationMetadata importingClassMetadata) {
+        // 1. 定义扫描包的名称字符串集合
+        List<String> basePackages = null;
+
+        /*
+         * 2. 判断有 @Import 注解的类上是否有 @ComponentScan 注解
+         *   这里的主要逻辑是如果配置了 @ComponentScan 注解并指定了扫描的包，则以此配置值为要扫描的包
+         */
+        if (importingClassMetadata.hasAnnotation(ComponentScan.class.getName())) {
+            // 3. 取出@ComponentScan注解的属性值（value/basePackages）
+            Map<String, Object> attributes = importingClassMetadata
+                    .getAnnotationAttributes(ComponentScan.class.getName());
+            // 4. 根据key获取basePackages的属性值（注：这里的”basePackages“解析什值包含了”value“的值）
+            basePackages = new ArrayList<>(Arrays.asList((String[]) attributes.get("basePackages")));
+        }
+
+        /*
+         * 5. 判断是否有此属性，或者是否指定了包扫描的信息
+         *  如果没有@ComponentScan注解则属性值为null，如果有@ComponentScan注解但未指定value/basePackages值，则basePackages默认为空数组
+         *  这里主要处理的逻辑就是，如果@ComponentScan没有配置包扫描路径，设置默认扫描当前@Import注解所在的包路径
+         */
+        if (basePackages == null || basePackages.size() == 0) {
+            // 定义变量接收标识了@Import注解的类所在的包路径
+            String basePackage = null;
+            // 6. 获取标识了@Import注解类所在包的名称
+            try {
+                basePackage = Class.forName(importingClassMetadata.getClassName()).getPackage().getName();
+            } catch (ClassNotFoundException e) {
+                e.printStackTrace();
+            }
+            // 7. 保存到 basePackages 信息中
+            basePackages = new ArrayList<>();
+            basePackages.add(basePackage);
+        }
+
+        // 需求改造增加的逻辑：判断配置文件中是否指定包扫描的路径
+        if (!StringUtils.isEmpty(this.customPackage)) {
+            // 有配置，则加到需要扫描的包路径集合中
+            basePackages.add(this.customPackage);
+        }
+
+        /*
+         * 8. 创建类路径扫描器。 此构造函数传入参数是useDefaultFilters，代表是否使用默认的扫描规则。
+         *  因为本示例中想使用aspectJ扫描规则，不想让将要注册的类添加@Component等注解，所以此参数设置为false，不使用默认扫描规则
+         */
+        ClassPathScanningCandidateComponentProvider scanner = new ClassPathScanningCandidateComponentProvider(false);
+        // 9. 创建类型过滤器(此处使用aspectJ切入点表达式类型过滤器)
+        TypeFilter typeFilter = new AspectJTypeFilter(expression, CustomImportSelector.class.getClassLoader());
+        // 10. 将创建好的类型过滤器添加到类路径扫描器中
+        scanner.addIncludeFilter(typeFilter);
+
+        // 11. 定义用于存放扫描结果的类全限定名称集合
+        Set<String> classes = new HashSet<>();
+        // 12. 循环包路径数组，使用扫描器挨个扫描包下的类，获取类的全限定名称
+        for (String basePackage : basePackages) {
+            // 将扫描到每个类的全限定名称添加到set集合中
+            scanner.findCandidateComponents(basePackage).forEach(beanDefinition -> classes.add(beanDefinition.getBeanClassName()));
+        }
+
+        // 13. 按方法的返回值类型，返回全限定类名的数组
+        return classes.toArray(new String[classes.size()]);
+    }
+}
+```
+
+- 测试一：将`@ComponentScan`注解删除后再测试，结果是可以扫描到相关的类
+
+![](images/20200829170538045_21201.png)
+
+- 测试二：将`@ComponentScan`注解修改只扫描utils包下，customImport.properties配置文件修改为只扫描impl包下，测试最后结果也是两个包同时可以扫描到
+
+```java
+@Configuration
+@ComponentScan("com.moon.springsample.service.utils")
+@Import(CustomImportSelector.class)
+public class SpringConfiguration {
+}
+```
+
+```properties
+custom.importselector.package=com.moon.springsample.service.impl
+```
+
+#### 2.5.3. 自定义 ImportBeanDefinitionRegistrar
+
+##### 2.5.3.1. 代码准备
+
+- 添加示例相关依赖，参考《自定义ImportSelector》
+- 准备相关待注册到容器的类，参考《自定义ImportSelector》
+- 编写配置文件，用于定义扫描包路径的aspectJ表达式
+
+```properties
+# 表示com.moon.springsample.service包及其任意子包的所有类
+custom.importselector.expression=com.moon.springsample.service..*
+# 配置扫描的包路径，可以与@ComponentScan注解配置包扫描路径同时兼容
+custom.importselector.package=com.moon.springsample.service.utils
+```
+
+- 编写项目配置类，使用`@Import`注解导入自定义`ImportBeanDefinitionRegistrar`
+
+```java
+@Configuration
+// 配置扫描的包路径
+@ComponentScan("com.moon.springsample.service.impl")
+// 导入自定义 bean 定义注册器
+@Import(CustomImportDefinitionRegistrar.class)
+public class SpringConfiguration {
+}
+```
+
+##### 2.5.3.2. 自定义bean定义注册器，实现ImportBeanDefinitionRegistrar接口
+
+实现的逻辑可以参考《自定义 ImportSelector》章节，注意的是`ImportBeanDefinitionRegistrar`接口是通过扫描包来实现对象的注册
+
+```java
+package com.moon.springsample.registrar;
+
+import org.springframework.beans.factory.support.BeanDefinitionRegistry;
+import org.springframework.context.annotation.ClassPathBeanDefinitionScanner;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.ImportBeanDefinitionRegistrar;
+import org.springframework.core.io.support.PropertiesLoaderUtils;
+import org.springframework.core.type.AnnotationMetadata;
+import org.springframework.core.type.filter.AspectJTypeFilter;
+import org.springframework.core.type.filter.TypeFilter;
+import org.springframework.util.StringUtils;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+
+/**
+ * 自定义 bean 定义注册器，实现 ImportBeanDefinitionRegistrar 接口
+ */
+public class CustomImportDefinitionRegistrar implements ImportBeanDefinitionRegistrar {
+
+    // 定义ASPECTJ的表达式变量，注：这里不能通过@Value注解来赋值
+    private String expression;
+
+    // 定义变量，保存配置文件所指定的扫描的包路径
+    private String customPackage;
+
+    /* 默认无参构造方法，用于读取配置文件，给表达式赋值 */
+    public CustomImportDefinitionRegistrar() {
+        try {
+            // 1. 使用spring框架的工具类，获取配置文件的properties对象
+            Properties properties = PropertiesLoaderUtils.loadAllProperties("customImport.properties");
+            // 2. 读取配置值，给expression属性赋值
+            this.expression = properties.getProperty("custom.importselector.expression");
+            // 3. 读取配置指定的扫描包路径
+            this.customPackage = properties.getProperty("custom.importselector.package");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void registerBeanDefinitions(AnnotationMetadata importingClassMetadata, BeanDefinitionRegistry registry) {
+        // 1. 定义扫描包的名称字符串集合
+        List<String> basePackages = null;
+
+        /*
+         * 2. 判断有 @Import 注解的类上是否有 @ComponentScan 注解
+         *   这里的主要逻辑是如果配置了 @ComponentScan 注解并指定了扫描的包，则以此配置值为要扫描的包
+         */
+        if (importingClassMetadata.hasAnnotation(ComponentScan.class.getName())) {
+            // 3. 取出@ComponentScan注解的属性值（value/basePackages）
+            Map<String, Object> attributes = importingClassMetadata
+                    .getAnnotationAttributes(ComponentScan.class.getName());
+            // 4. 根据key获取basePackages的属性值（注：这里的”basePackages“解析什值包含了”value“的值）
+            basePackages = new ArrayList<>(Arrays.asList((String[]) attributes.get("basePackages")));
+        }
+
+        /*
+         * 5. 判断是否有此属性，或者是否指定了包扫描的信息
+         *  如果没有@ComponentScan注解则属性值为null，如果有@ComponentScan注解但未指定value/basePackages值，则basePackages默认为空数组
+         *  这里主要处理的逻辑就是，如果@ComponentScan没有配置包扫描路径，设置默认扫描当前@Import注解所在的包路径
+         */
+        if (basePackages == null || basePackages.isEmpty()) {
+            // 定义变量接收标识了@Import注解的类所在的包路径
+            String basePackage = null;
+            // 6. 获取标识了@Import注解类所在包的名称
+            try {
+                basePackage = Class.forName(importingClassMetadata.getClassName()).getPackage().getName();
+            } catch (ClassNotFoundException e) {
+                e.printStackTrace();
+            }
+            // 7. 保存到 basePackages 信息中
+            basePackages = new ArrayList<>();
+            basePackages.add(basePackage);
+        }
+
+        // 判断配置文件中是否指定包扫描的路径
+        if (!StringUtils.isEmpty(this.customPackage)) {
+            // 有配置，则加到需要扫描的包路径集合中
+            basePackages.add(this.customPackage);
+        }
+
+        /*
+         * 8. 创建类路径扫描器。（这里的扫描器与自定义 ImportSelector 的使用的不一样）
+         *   参数registry：是spring框架的BeanDefinitionRegistry注册中心
+         *   参数useDefaultFilters：代表是否使用默认的扫描规则。本例使用aspectJ扫描规则，故设置为false
+         */
+        ClassPathBeanDefinitionScanner scanner = new ClassPathBeanDefinitionScanner(registry, false);
+        // 9. 创建类型过滤器(此处使用aspectJ切入点表达式类型过滤器)
+        TypeFilter typeFilter = new AspectJTypeFilter(expression, this.getClass().getClassLoader());
+        // 10. 将创建好的类型过滤器添加到类路径扫描器中
+        scanner.addIncludeFilter(typeFilter);
+
+        // 11. 扫描指定包
+        scanner.scan(basePackages.toArray(new String[basePackages.size()]));
+    }
+}
+```
+
+##### 2.5.3.3. 测试
+
+```java
+@Test
+public void customImportBeanDefinitionRegistrarTest() {
+    // 1. 创建注解扫描容器
+    ApplicationContext context = new AnnotationConfigApplicationContext(SpringConfiguration.class);
+    // 2. 获取相关对象，注意：使用ImportBeanDefinitionRegistrar注册器，bean对象默认在ioc容器的唯一标识是类的名称，首字母小写
+    UserService userService = context.getBean("userServiceImpl", UserService.class);
+    userService.saveUser();
+    LogUtil logUtil = context.getBean("logUtil", LogUtil.class);
+    logUtil.saveLog();
+}
+```
+
+结果与自定义ImportSelector一样
 
 
+#### 2.5.4. 实现原理分析
+
+此部分内容详见《04-Spring源码分析.md》
+
+### 2.6. @PropertySource
+
+#### 2.6.1. 作用与使用场景
+
+用于指定读取资源文件的位置。不仅支持properties文件，也支持xml文件，并且通过YAML解析器，配合自定义PropertySourceFactory实现解析yml配置文件
+
+使用场景：实际开发中，使用注解驱动后，xml配置文件就没有了，此时一些配置如果直接写在类中，会造成和java源码的紧密耦合，修改起来不方法。此时一些配置可以使用properties或者yml来配置就变得很灵活方便。
+
+#### 2.6.2. 相关属性
+
+|          属性名           |                                     作用                                     |                                         取值                                         |
+| :----------------------: | ---------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
+|          `name`          | 指定资源的名称。如果没有指定，将根据基础资源描述生成。                             |                                                                                      |
+|         `value`          | 指定资源的位置。可以是类路径，也可以是文件路径。                                  | 如：类路径:`classpath:/com/myco/app.properties`<br/>文件路径：`file:/path/to/file.xml` |
+| `ignoreResourceNotFound` | 指定是否忽略资源文件不存在，默认是false,也就是说当资源文件不存在时spring启动将会报错 | true/false                                                                           |
+|        `encoding`        | 指定解析资源文件使用的字符集。当有中文的时候，需要指定中文的字符集。                 | 如："UTF-8"                                                                          |
+|        `factory`         | 指定读取对应资源文件的工厂类，默认的是PropertySourceFactory。                    |                                                                                      |
+
+#### 2.6.3. 基础使用示例
+
+- 创建配置文件jdbc.properties或者jdbc.xml（这种格式比较少用）
+
+```properties
+jdbc.driver=com.mysql.jdbc.Driver
+jdbc.url=jdbc:mysql://localhost:3306/tempdb?characterEncoding=utf-8&useSSL=false
+jdbc.username=root
+jdbc.password=123456
+```
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd">
+<properties>
+    <entry key="jdbc.driver">com.mysql.jdbc.Driver</entry>
+    <entry key="jdbc.url">jdbc:mysql://localhost:3306/tempdb</entry>
+    <entry key="jdbc.username">root</entry>
+    <entry key="jdbc.password">123456</entry>
+</properties>
+```
+
+- 创建JDBC配置类，使用`@Value`注解读取配置文件值
+
+```java
+public class JdbcConfig {
+    @Value("${jdbc.driver}")
+    private String driver;
+    @Value("${jdbc.url}")
+    private String url;
+    @Value("${jdbc.username}")
+    private String username;
+    @Value("${jdbc.password}")
+    private String password;
+    /* 创建DataSource对象 */
+    @Bean("dataSource")
+    public DataSource createDataSource() {
+        System.out.println("createDataSource()方法获取到的驱动driver是" + driver);
+        // 1. 创建Spring的内置数据源
+        DriverManagerDataSource dataSource = new DriverManagerDataSource();
+        // 2. 配置数据源相关参数
+        dataSource.setDriverClassName(this.driver);
+        dataSource.setUrl(this.url);
+        dataSource.setUsername(this.username);
+        dataSource.setPassword(this.password);
+        return dataSource;
+    }
+}
+```
+
+- 创建项目的配置类，使用`@Import`注解导入JDBC配置类，`@PropertySource`注解指定配置文件位置
+
+```java
+@Configuration
+// 导入其他模块的配置类
+@Import({JdbcConfig.class})
+// 导入配置文件（支持类路径方式）
+@PropertySource("classpath:jdbc.properties")
+
+// 导入配置文件（支持文件路径方式）
+// @PropertySource("file:///D:/code/spring-note/spring-analysis-note/spring-sample-annotation/08-annotation-propertysource/src/main/resources/jdbc.properties")
+
+// 导入配置文件，如果存在其他属性，则路径属性value不能省略，ignoreResourceNotFound属性指定是否忽略资源文件不存在，默认是false，如果修改为true，如果找不到资源文件，也不会报错。
+// @PropertySource(value = {"classpath:jdbc.properties"}, ignoreResourceNotFound = true)
+
+// 导入配置文件，如果存在其他属性，则路径属性value不能省略，encoding属性指定解析资源文件使用的字符集。当有中文的时候，需要指定中文的字符集。
+// @PropertySource(value = {"classpath:jdbc.properties"}, encoding = "UTF-8")
+
+// 导入配置文件，也支持xml类型的文件（比较少用）
+// @PropertySource({"classpath:jdbc.xml"})
+public class SpringConfiguration {
+    /*
+     * 注意：spring 4.3版本以前，没有资源文件的工厂类factory这个属性，即无默认的文件解析器
+     *  如果要解析资源文件，则需要手动注册资源文件解析器bean实例到ioc容器中
+     *  以下方法是针对Spring 4.3版本之前的properties文件解析器创建。
+     *  在4.3版本之后使用PropertySourceFactory接口的唯一实现类：DefaultPropertySourceFactory
+     */
+    /*@Bean
+    public static PropertySourcesPlaceholderConfigurer createPropertySourcesPlaceholderConfigurer() {
+        return new PropertySourcesPlaceholderConfigurer();
+    }*/
+}
+```
+
+- 测试
+
+```java
+@Test
+public void propertySourceBasicTest() throws Exception {
+    // 1. 创建注解扫描的容器
+    ApplicationContext context = new AnnotationConfigApplicationContext("com.moon.springsample");
+    // 2. 获取数据源对象
+    DataSource dataSource = context.getBean("dataSource", DataSource.class);
+    // 3. 操作数据源获取连接
+    Connection connection = dataSource.getConnection();
+    connection.close();
+}
+```
+
+### 2.7. 自定义 PropertySourceFactory 实现YAML文件解析
+
+通过分析`@PropertySource`源码，可知默认情况下此注解只能解析properties文件和xml文件，而遇到yaml（yml）文件，解析就会报错。此时就需要编写一个`PropertySourceFactory`的实现类，借助yaml解析器，实现yml文件的解析。
 
 
+#### 2.7.1. 编写yml配置文件
 
+```yml
+jdbc:
+  driver: com.mysql.jdbc.Driver
+  url: jdbc:mysql://localhost:3306/tempdb?characterEncoding=utf-8&useSSL=false
+  username: root
+  password: 123456
+```
 
+#### 2.7.2. 引入yaml解析器的依赖
 
+修改pom.xml文件，增加yaml解析器的依赖
 
+```xml
+<!-- yaml文件解析器 -->
+<dependency>
+    <groupId>org.yaml</groupId>
+    <artifactId>snakeyaml</artifactId>
+    <version>1.23</version>
+</dependency>
+```
 
+#### 2.7.3. 编写自定义 PropertySourceFactory
 
+分析：实现逻辑可以参考Spring构架的默认实现`DefaultPropertySourceFactory`，将接口中的方法的入参EncodedResource转成PropertySource对象即可
 
+```java
+package com.moon.springsample.propertysource.factory;
 
+import org.springframework.beans.factory.config.YamlPropertiesFactoryBean;
+import org.springframework.core.env.PropertiesPropertySource;
+import org.springframework.core.env.PropertySource;
+import org.springframework.core.io.support.EncodedResource;
+import org.springframework.core.io.support.PropertySourceFactory;
 
+import java.io.IOException;
+import java.util.Properties;
 
+/**
+ * 自定义解析yaml文件的工厂类
+ */
+public class CustomPropertySourceFactory implements PropertySourceFactory {
 
+    /**
+     * 自定义解析规则，该方法主要实现的逻辑是将方法的入参EncodedResource转成PropertySource对象即可
+     * 引入第三yaml文件解析器
+     *
+     * @param name
+     * @param resource
+     * @return
+     * @throws IOException
+     */
+    @Override
+    public PropertySource<?> createPropertySource(String name, EncodedResource resource) throws IOException {
+        // 1. 创建yaml文件解析工厂
+        YamlPropertiesFactoryBean yamlFactoryBean = new YamlPropertiesFactoryBean();
+        // 2. 设置要解析的内容
+        yamlFactoryBean.setResources(resource.getResource());
+        // 3. 将资源解析成properties文件
+        Properties properties = yamlFactoryBean.getObject();
+        /*
+         * 4. 转成PropertySource对象返回
+         *  原DefaultPropertySourceFactory中是通过ResourcePropertySource来创建PropertySource对象，但构造函数的入参不是Properties对象
+         *  按源码往父类构造方法去寻找，此时发现父类PropertiesPropertySource的构造方法入参为Properties对象，
+         *  所以通过PropertiesPropertySource来创建PropertySource对象，但PropertiesPropertySource只有一个两个参数的构造函数
+         *  调用时只能修改逻辑为如果没有，则与资源文件名称做为
+         */
+        String nameNew = name != null ? name : resource.getResource().getFilename();
+        return new PropertiesPropertySource(name, properties);
+    }
+}
+```
 
+#### 2.7.4. 使用`@PropertyeSource`的factory属性配置自定义工厂
 
+```java
+@Configuration
+// 导入其他模块的配置类
+@Import(JdbcConfig.class)
+// 导入yml格式的配置文件，默认情况下此注解只能解析properties文件和xml文件。yaml（yml）文件解析就会报错。需要一个PropertySourceFactory的实现类，实现yml文件的解析
+@PropertySource(value = {"classpath:jdbc.yml"}, factory = CustomPropertySourceFactory.class)
+public class SpringConfiguration {
+}
+```
 
+测试是否获取yaml文件内容：
 
+```java
+@Test
+public void propertySourceFactoryTest() throws Exception {
+    // 1. 创建注解扫描的容器
+    ApplicationContext context = new AnnotationConfigApplicationContext("com.moon.springsample");
+    // 2. 获取数据源对象
+    DataSource dataSource = context.getBean("dataSource", DataSource.class);
+    // 3. 操作数据源获取连接
+    Connection connection = dataSource.getConnection();
+    connection.close();
+}
+```
 
+## 3. IOC常用注解，注入时机和设定注入条件
 
+### 3.1. @DependsOn
 
+#### 3.1.1. 作用与使用场景
 
+**作用**：用于指定某个类的创建依赖的bean对象先创建。spring中没有特定bean的加载顺序，使用此注解则可指定bean的加载顺序。(在基于注解配置中，是按照类中方法的书写顺序决定的)
 
+**使用场景**：在观察者模式中，分为事件，事件源和监听器。一般情况下，监听器负责监听事件源，当事件源触发了事件之后，监听器就要捕获，并且做出相应的处理。以此为前提，肯定希望监听器的创建时间在事件源之前，此时就可以使用此注解
 
+#### 3.1.2. 相关属性
 
+| 属性名  |                           作用                            | 取值 |
+| :-----: | -------------------------------------------------------- | ---- |
+| `value` | 用于指定bean的唯一标识。被指定的bean会在当前bean创建之前加载。 |      |
 
+#### 3.1.3. 基础使用示例
 
+- 创建项目配置类
+
+```java
+@Configuration
+@ComponentScan("com.moon.springsample")
+public class SpringConfiguration {
+}
+```
+
+- 创建两个用于测试先后创建的类
+
+```java
+/**
+ * 事件监听器
+ */
+@Component
+// 注：这里故意将名称中间多插入一个无关的"Z"字母，为了让这个类按字母排序时比较先后，以便观察使用@DependsOn注解后调整创建顺序的效果
+public class EventZListener {
+    public EventZListener() {
+        System.out.println("事件监听器EventZListener对象创建了");
+    }
+}
+
+/**
+ * 事件源
+ */
+@Component
+public class EventSource {
+    public EventSource() {
+        System.out.println("事件源EventSource对象创建了");
+    }
+}
+```
+
+- 测试方法
+
+```java
+@Test
+public void dependsOnBasicTest() {
+    // 1. 创建注解扫描的容器
+    AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(SpringConfiguration.class);
+    // 2. 启动容器，观察相关测试类的创建先后顺序
+    context.start();
+    /* 在没有添加任何关于创建顺序的注解的情况下，spring框架默认类的创建顺序是按扫描到当前包时，类的名称的字母排序决定的 */
+    /* 通过 @DependsOn 注解，可以调整类与类之间依赖关系，来定制创建的顺序 */
+}
+```
+
+- 测试结果
+
+未标识`@DependsOn`注解前
+
+![](images/20200830181132309_23945.png)
+
+标识`@DependsOn`注解后
+
+```java
+@Component
+// @DependsOn 代表当前类依赖于value属性中相关类的创建，当其相关类创建完成后，当前类再进行创建
+@DependsOn("eventZListener")
+public class EventSource {
+   ....
+}
+```
+
+![](images/20200830181753817_31032.png)
+
+### 3.2. @Lazy
+
+#### 3.2.1. 作用与使用场景
+
+#### 3.2.2. 相关属性
+
+#### 3.2.3. 基础使用示例
 
 
 
