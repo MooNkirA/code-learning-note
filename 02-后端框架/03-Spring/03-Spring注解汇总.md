@@ -1942,8 +1942,8 @@ public class CustomPropertySourceFactory implements PropertySourceFactory {
          *  所以通过PropertiesPropertySource来创建PropertySource对象，但PropertiesPropertySource只有一个两个参数的构造函数
          *  调用时只能修改逻辑为如果没有，则与资源文件名称做为
          */
-        String nameNew = name != null ? name : resource.getResource().getFilename();
-        return new PropertiesPropertySource(name, properties);
+        String propertyName = name != null ? name : resource.getResource().getFilename();
+        return new PropertiesPropertySource(propertyName, properties);
     }
 }
 ```
@@ -2064,9 +2064,529 @@ public class EventSource {
 
 #### 3.2.1. 作用与使用场景
 
+- **作用**：用于指定<font color=red>**单例bean对象的创建时机**</font>。<font color=red>**值得注意的是：此注解只对单例bean对象起作用，当指定了`@Scope`注解的`prototype`取值后，此注解不起作用**</font>。在没有使用此注解时，单例bean的生命周期与容器相同。但是当使用了此注解之后，单例对象的创建时机变成了第一次使用时创建。注意：这不是延迟加载思想（因为不是每次使用时都创建，只是第一次创建的时机改变了）。
+- **使用场景**：在实际开发中，当创建的Bean是单例对象时，并不是每个都需要一开始都加载到ioc容器之中，有些对象可以在真正使用的时候再加载，当有此需求时，即可使用此注解。
+
 #### 3.2.2. 相关属性
 
+| 属性名  |                   作用                   |    取值    |
+| :-----: | ---------------------------------------- | ---------- |
+| `value` | 指定是否采用延迟加载。默认值为true，表示开启 | true/false |
+
 #### 3.2.3. 基础使用示例
+
+- 创建配置类
+
+```java
+@Configuration
+@ComponentScan("com.moon.springsample")
+public class SpringConfiguration {
+}
+```
+
+- 准备用地测试的类
+
+```java
+@Component
+@Component
+// 指定单例bean延迟加载，不是在容器创建时就创建当前bean对象，在bean对象调用的时候才创建
+@Lazy
+// 如果指定当前多例模式，则@Lazy没有任何作用，因为多例情况下，bean实例都是懒加载的。
+// @Scope("prototype")
+public class LogUtil {
+    public LogUtil() {
+        System.out.println("LogUtil构造函数执行了");
+    }
+    public void printLog() {
+        System.out.println("LogUtil.printLog()方法调用，模拟记录日志");
+    }
+}
+```
+
+- 测试程序
+
+```java
+@Test
+public void lazyBasicTest() {
+    // 1. 创建注解扫描的容器
+    ApplicationContext context = new AnnotationConfigApplicationContext("com.moon.springsample.config");
+    // 2. 获取容器中的bean对象
+    LogUtil logUtil = context.getBean("logUtil", LogUtil.class);
+    // 3. 执行方法
+    logUtil.printLog();
+}
+```
+
+![](images/20200831225707309_20245.png)
+
+### 3.3. @Conditional
+
+#### 3.3.1. 作用与使用场景
+
+- **作用**：根据条件选择注入的bean对象。该注解可以作用在类、方法上
+- **使用场景**：在开发时，可能会使用多平台来测试，例如测试数据库分别部署到了linux和windows两个操作系统上面，现在根据工程运行环境来选择连接的数据库。此时就可以使用此注解。同时基于此注解引出的`@Profile`注解，就是根据不同的环境，加载不同的配置信息，*详情请参考后面章节的`@Profile`的使用*。
+
+#### 3.3.2. 相关属性
+
+| 属性名  |                                       作用                                       | 取值 |
+| :-----: | -------------------------------------------------------------------------------- | ---- |
+| `value` | 提供一个或者多个Condition接口的实现类，实现类中需要编写具体代码实现注册到ioc容器的条件。 |      |
+
+#### 3.3.3. 基础使用示例
+
+示例场景说明：本示例模拟在不同操作系统平台上，项目根据工程运行的环境来选择连接不同的数据库。
+
+##### 3.3.3.1. 不使用@Conditional注解前存在的问题
+
+- 创建两套配置文件
+
+```properties
+# jdbc.properties ---> window系统连接的数据库配置
+jdbc.driver=com.mysql.jdbc.Driver
+jdbc.url=jdbc:mysql://localhost:3306/tempdb?characterEncoding=utf-8&useSSL=false
+jdbc.username=root
+jdbc.password=123456
+
+# jlinuxJdbc.properties ---> linux系统连接的数据库配置
+linux.driver=com.mysql.jdbc.Driver
+linux.url=jdbc:mysql://localhost:3306/jav_db_test?characterEncoding=utf-8&useSSL=false
+linux.username=root
+linux.password=123456
+```
+
+- 创建配置类，加载两套配置文件
+
+```java
+@Configuration
+// 引入其他配置类
+@Import(JdbcConfig.class)
+// 加载配置文件
+@PropertySource({"classpath:jdbc.properties", "classpath:linuxJdbc.properties"})
+public class SpringConfiguration {
+}
+```
+
+- 编写数据库配置类
+
+```java
+public class JdbcConfig {
+    @Value("${jdbc.driver}")
+    private String driver;
+    @Value("${jdbc.url}")
+    private String url;
+    @Value("${jdbc.username}")
+    private String username;
+    @Value("${jdbc.password}")
+    private String password;
+
+    /* 创建window系统环境下的DataSource对象 */
+    @Bean("dataSource")
+    public DataSource createDataSource() {
+        // 1. 创建Spring的内置数据源
+        DriverManagerDataSource dataSource = new DriverManagerDataSource();
+        // 2. 配置数据源相关参数
+        dataSource.setDriverClassName(driver);
+        dataSource.setUrl(url);
+        dataSource.setUsername(username);
+        dataSource.setPassword(password);
+        // 输出当前系统环境的url
+        System.out.println("createWindowsDataSource()方法执行，Window URL is: " + url);
+        return dataSource;
+    }
+
+    /* 创建linux系统环境下的DataSource对象 */
+    @Bean("dataSource")
+    public DataSource createDataSource(@Value("${linux.driver}") String linuxDriver,
+                                       @Value("${linux.url}") String linuxUrl,
+                                       @Value("${linux.username}") String linuxUsername,
+                                       @Value("${linux.password}") String linuxPassword) {
+        // 1. 创建Spring的内置数据源
+        DriverManagerDataSource dataSource = new DriverManagerDataSource();
+        // 2. 配置数据源相关参数
+        dataSource.setDriverClassName(linuxDriver);
+        dataSource.setUrl(linuxUrl);
+        dataSource.setUsername(linuxUsername);
+        dataSource.setPassword(linuxPassword);
+        // 输出当前系统环境的url
+        System.out.println("createLinuxDataSource()方法执行，Linux URL is: " + linuxUrl);
+        return dataSource;
+    }
+}
+```
+
+- 测试
+
+```java
+@Test
+public void conditionalBasicTest() {
+    // 1. 创建注解扫描的容器
+    ApplicationContext context = new AnnotationConfigApplicationContext("com.moon.springsample.config");
+    // 2. 获取容器中的bean对象
+    DataSource dataSource = context.getBean("dataSource", DataSource.class);
+    // 3. 输出对象
+    System.out.println(dataSource);
+}
+```
+
+测试结果输出如下
+
+```
+createLinuxDataSource()方法执行，Linux URL is: jdbc:mysql://localhost:3306/jav_db_test?characterEncoding=utf-8&useSSL=false
+org.springframework.jdbc.datasource.DriverManagerDataSource@7ee955a8
+```
+
+以上结果明显不符合项目的需求，当前`@Bean`注解存在方法重载时，spring的默认规则是以最后定义的方法的返回对象，注入到spring ioc容器中。需要使用`@Conditional`注解去控制加载哪个bean的到ioc容器中
+
+##### 3.3.3.2. 使用@Conditional注解改造程序
+
+- 分别创建两套自定义注册条件类，需要实现Spring框架的`Condition`接口
+
+```java
+/**
+ * 自定义bean注册条件 - window系统时注册
+ */
+public class WindowCondition implements Condition {
+    /**
+     * 定义是否注册到ioc容器的条件实现逻辑
+     *
+     * @param context  IOC容器的上下文对象
+     * @param metadata
+     * @return 当返回true时，代表在@Conditional注解标识此自定义注册条件实现类的bean对象可以注册到容器中。否则不注册
+     */
+    @Override
+    public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
+        /* 此ConditionContext上下文对象可以获取以下spring框架对象 */
+        // 获取ioc使用的beanFactory对象
+        ConfigurableListableBeanFactory beanFactory = context.getBeanFactory();
+        // 获取类加载器
+        ClassLoader classLoader = context.getClassLoader();
+        // 获取bean定义信息(BeanDefinition)的注册中心
+        BeanDefinitionRegistry registry = context.getRegistry();
+
+        /* ******** 本地示例实际逻辑部分 ********  */
+        // 1. 获取当前操作环境（用于判断是window还是linux系统）
+        Environment environment = context.getEnvironment();
+        // 输出一下环境信息，查看一下里面的具体的内容
+        if (environment instanceof StandardEnvironment) {
+            // 判断是否标准的环境对象（StandardEnvironment），此类可以查看相应的信息
+            StandardEnvironment standardEvn = (StandardEnvironment) environment;
+            // 获取环境信息map集合
+            Map<String, Object> systemProperties = standardEvn.getSystemProperties();
+            // 循环输出
+            for (Map.Entry<String, Object> entry : systemProperties.entrySet()) {
+                System.out.println(entry.getKey() + ": " + entry.getValue());
+            }
+        }
+        // 2. 获取当前系统的名称
+        String osName = environment.getProperty("os.name");
+        // osName = "os.Linux"; // 这里用于模拟linux系统环境
+        // 3. 根据名称判断当前系统类型，包含Windows则说明是windows系统
+        if (osName.contains("Windows")) {
+            // 返回true，代表将bean注册到容器中
+            return true;
+        }
+        // 返回false，代表不注册到容器中
+        return false;
+    }
+}
+```
+
+```java
+/**
+ * 自定义bean注册条件 - linux系统时注册
+ */
+public class LinuxCondition implements Condition {
+    /**
+     * 定义是否注册到ioc容器的条件实现逻辑
+     *
+     * @param context
+     * @param metadata
+     * @return 当返回true时，代表在@Conditional注解标识此自定义注册条件实现类的bean对象可以注册到容器中。否则不注册
+     */
+    @Override
+    public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
+        // 1. 获取当前操作环境（用于判断是window还是linux系统）
+        Environment environment = context.getEnvironment();
+        // 2. 获取当前系统的名称
+        String osName = environment.getProperty("os.name");
+        // osName = "os.Linux"; // 这里用于模拟linux系统环境
+        // 3. 根据名称判断当前系统类型，包含"Linux"则说明是Linux系统
+        if (osName.contains("Linux")) {
+            // 返回true，代表将bean注册到容器中
+            return true;
+        }
+        // 返回false，代表不注册到容器中
+        return false;
+    }
+}
+```
+
+- 修改原来数据连接的配置类，增加`@Conditional`注解与*修改原来重载方法的名称“createDataSource”，分别修改为“createWindowsDataSource”与“createLinuxDataSource”*
+
+```java
+/* 创建window系统环境下的DataSource对象 */
+@Bean("dataSource")
+// 指定创建的bean对象注册到容器的条件，注解的参数是一个或者多个Condition接口的实现类，实现类中需要编写具体代码实现是否注册到ioc容器的条件。
+@Conditional(WindowCondition.class)
+public DataSource createWindowsDataSource() {
+    ....
+}
+
+/* 创建linux系统环境下的DataSource对象 */
+@Bean("dataSource")
+@Conditional(LinuxCondition.class)
+public DataSource createLinuxDataSource(@Value("${linux.driver}") String linuxDriver,
+                                        @Value("${linux.url}") String linuxUrl,
+                                        @Value("${linux.username}") String linuxUsername,
+                                        @Value("${linux.password}") String linuxPassword) {
+    ....
+}
+```
+
+<font color=red>**注意：如果还是按原来方法重载的方法，是无法实现`@Conditional`注解的条件注册，因为`@Bean`注解的存在，它是在`@Conditional`注解之前执行，所以如果方法重载，spring框架会默认将后面定义的重载方法的返回bean对象注册到容器中**</font>
+
+- 测试，观察控制台输出
+
+```
+....
+os.name: Windows 10
+....
+createWindowsDataSource()方法执行，Window URL is: jdbc:mysql://localhost:3306/tempdb?characterEncoding=utf-8&useSSL=false
+org.springframework.jdbc.datasource.DriverManagerDataSource@647fd8ce
+```
+
+### 3.4. @Profile
+
+#### 3.4.1. 作用与使用场景
+
+`@Profile`注解是spring提供的一个用来标明当前运行环境的注解。正常开发的过程中经常分成多套环境的配置，开发环境是一套环境，测试是一套环境，线上部署又是一套环境。为了解决此的问题，一般会使用一种方法，就是针对不同的环境进行不同的配置，从而在不同的场景中正常运行程序。
+
+而spring中的`@Profile`注解的作用就体现在：在spring使用DI来注入的时候，能够根据当前制定的运行环境来注入相应的bean。最常见的就是使用不同的DataSource了。
+
+#### 3.4.2. 基础使用示例
+
+##### 3.4.2.1. 示例项目相关依赖
+
+```xml
+<dependencies>
+    <dependency>
+        <groupId>org.springframework</groupId>
+        <artifactId>spring-context</artifactId>
+        <version>5.1.6.RELEASE</version>
+    </dependency>
+    <dependency>
+        <groupId>org.springframework</groupId>
+        <artifactId>spring-test</artifactId>
+        <version>5.1.6.RELEASE</version>
+    </dependency>
+    <!-- 阿里druid数据源 -->
+    <dependency>
+        <groupId>com.alibaba</groupId>
+        <artifactId>druid</artifactId>
+        <version>1.1.9</version>
+    </dependency>
+    <!-- mysql驱动 -->
+    <dependency>
+        <groupId>mysql</groupId>
+        <artifactId>mysql-connector-java</artifactId>
+        <version>5.1.45</version>
+    </dependency>
+    <dependency>
+        <groupId>junit</groupId>
+        <artifactId>junit</artifactId>
+        <version>4.12</version>
+        <scope>test</scope>
+    </dependency>
+</dependencies>
+```
+
+##### 3.4.2.2. 编写配置类与配置文件
+
+```properties
+jdbc.driver=com.mysql.jdbc.Driver
+jdbc.url=jdbc:mysql://localhost:3306/tempdb?characterEncoding=utf-8&useSSL=false
+jdbc.username=root
+jdbc.password=123456
+```
+
+```java
+@Configuration
+// 引入其他配置类
+@Import(JdbcConfig.class)
+// 加载配置文件
+@PropertySource({"classpath:jdbc.properties"})
+public class SpringConfiguration {
+}
+```
+
+##### 3.4.2.3. 定义不同环境的数据源配置类
+
+定义不同的方法，设置返回不同属性的数据源对象，为避免方法重载带来对于对象注册到ioc的不必要麻烦，每个方法名称都设置不一样。并在每个方法上标识`@Profile`注解，标识不同环境
+
+```java
+public class JdbcConfig {
+    @Value("${jdbc.driver}")
+    private String driver;
+    @Value("${jdbc.url}")
+    private String url;
+    @Value("${jdbc.username}")
+    private String username;
+    @Value("${jdbc.password}")
+    private String password;
+
+    /** 开发环境的数据源 */
+    @Bean("dataSource")
+    // @Profile注解是spring提供的一个用来标明当前运行环境的注解
+    @Profile("dev")
+    public DruidDataSource createDevDataSource() {
+        // 1. 创建druid数据源
+        DruidDataSource dataSource = new DruidDataSource();
+        // 2. 设置数据源相关属性
+        dataSource.setDriverClassName(driver);
+        dataSource.setUrl(url);
+        dataSource.setUsername(username);
+        dataSource.setPassword(password);
+        // 3. 设置开发环境的最大活跃连接数：5
+        dataSource.setMaxActive(5);
+        // 4. 返回对象
+        return dataSource;
+    }
+
+    /** 测试环境的数据源 */
+    @Bean("dataSource")
+    @Profile("test")
+    public DruidDataSource createTestDataSource() {
+        // 1. 创建druid数据源
+        DruidDataSource dataSource = new DruidDataSource();
+        // 2. 设置数据源相关属性
+        dataSource.setDriverClassName(driver);
+        dataSource.setUrl(url);
+        dataSource.setUsername(username);
+        dataSource.setPassword(password);
+        // 3. 设置测试环境的最大活跃连接数：50
+        dataSource.setMaxActive(50);
+        // 4. 返回对象
+        return dataSource;
+    }
+
+    /** 生产环境的数据源 */
+    @Bean("dataSource")
+    @Profile("pro")
+    public DruidDataSource createProDataSource() {
+        // 1. 创建druid数据源
+        DruidDataSource dataSource = new DruidDataSource();
+        // 2. 设置数据源相关属性
+        dataSource.setDriverClassName(driver);
+        dataSource.setUrl(url);
+        dataSource.setUsername(username);
+        dataSource.setPassword(password);
+        // 3. 设置生产环境的最大活跃连接数：150
+        dataSource.setMaxActive(150);
+        // 4. 返回对象
+        return dataSource;
+    }
+}
+```
+
+##### 3.4.2.4. 编写测试类
+
+```java
+/**
+ * 注解 @Profile 测试，由于需要指定不同环境，此示例使用junit的 @ActiveProfiles 注解来模拟实际web项目指定环境的设置
+ */
+// 设置使用spring框架的测试容器，注解替换原有运行器
+@RunWith(SpringJUnit4ClassRunner.class)
+// 指定 spring 配置文件的位置(配置类),参数值为数组，如果只有一个值{}省略
+@ContextConfiguration(classes = SpringConfiguration.class)
+// 用于指定当前测试示例使用的环境
+@ActiveProfiles("test")
+public class SpringProfileTest {
+    @Autowired
+    private DruidDataSource dataSource;
+    @Test
+    public void profileBasicTest() {
+        // 测试从ioc容器中DI依赖注入的数据源对象的最大连接数，判断是否与当前环境一致
+        System.out.println(dataSource.getMaxActive());
+    }
+}
+```
+
+测试结果
+
+![](images/20200901152609840_19300.png)
+
+## 4. 用于创建对象的注解
+
+### 4.1. @Component、@Controller、@Service、@Repository
+
+#### 4.1.1. 作用与使用场景
+
+- **作用**：这四个注解都是用于修饰类的，作用是标识当前类由Spring框架管理，负责创建对象示例，并存入Spring的IOC容器中。在实例化时，首选默认无参构造函数。同时支持带参构造，前提是构造函数的参数依赖必须要有值，否则抛异常
+- **使用场景**：当需要把编写的类注入到IOC容器中，就可以使用以上四个注解实现。以上四个注解中`@Component`注解通常用在非三层对象中。而`@Controller`，`@Service`，`@Repository`三个注解一般是针对控制层、业务层、数据层对象使用的，提供更加精确的语义化配置。
+
+<font color=purple>需要注意的是，spring在注解驱动开发时，要求必须先接管类对象，然后会处理类中的属性和方法。如果类没有被spring接管，那么里面的属性和方法上的注解都不会被解析。
+</font>
+
+
+#### 4.1.2. 相关属性
+
+| 属性名  |                                作用                                 | 取值 |
+| :-----: | ------------------------------------------------------------------ | ---- |
+| `value` | 用于指定存入容器时bean的ID。当不指定时，默认值为当前类的名称，首字母小写。 |      |
+
+#### 4.1.3. 基于@Component等注解综合使用示例
+
+综合示例代码详见：
+
+> [github仓库](https://github.com/MooNkirA/spring-note/tree/master/spring-analysis-note/spring-sample-annotation/14-annotation-component-composite-sample)
+>
+> 本地：spring-note\spring-analysis-note\spring-sample-annotation\14-annotation-component-composite-sample\
+
+## 5. 用于注入数据的注解
+
+### 5.1. @Autowired
+
+#### 5.1.1. 作用与使用场景
+
+- **作用**：自动按照类型注入。当ioc容器中有且只有一个类型匹配时可以直接注入成功。
+- **使用场景**：通常情况下自己写的类中注入依赖bean对象时，都可以采用此注解。
+
+- 注意事项：
+    - 当`@Autowired`注解属性值`required`为true时，代表必须注入成功，如果当前IOC容器无可匹配的类型时，会报找到类型对象的错误
+    - 当`@Autowired`注解属性值`required`为false时，代表不必须注入成功，如果当前IOC容器无可匹配的类型时，不会报错，但对应标识此注解的变量为null
+    - 当IOC容器有超过一个匹配时，则使用变量名称（如写在方法上就是方法名称）作为bean的id，在符合类型的bean中再次匹配，能匹配上就可以注入成功。找不到匹配时根据`required`属性的取值决定是否报错
+
+#### 5.1.2. 相关属性
+
+|   属性名    |                                      作用                                      |    取值    |
+| :--------: | ----------------------------------------------------------------------------- | ---------- |
+| `required` | 是否必须注入成功。默认值是true，表示必须注入成功。当取值为true的时候，注入不成功会报错 | true/false |
+
+#### 5.1.3. 基础使用示例
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
