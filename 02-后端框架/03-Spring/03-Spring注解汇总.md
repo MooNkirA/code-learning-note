@@ -2564,6 +2564,459 @@ public class SpringProfileTest {
 
 #### 5.1.3. 基础使用示例
 
+- 创建用于测试的类
+
+```java
+public interface UserService {
+    void saveUser();
+}
+
+public class UserServiceImpl implements UserService {
+    @Override
+    public void saveUser() {
+        System.out.println("UserServiceImpl.saveUser()方法执行，保存用户数据");
+    }
+}
+```
+
+- 创建配置类，使用`@Bean`手动注册两个类型的实现，注册到容器中
+
+```java
+@Configuration
+// 配置包扫描
+@ComponentScan("com.moon.springsample")
+public class SpringConfiguration {
+    /**
+     * 手动创建bean实例，注册到容器中
+     *
+     * @return
+     */
+    // @Bean // 用于测试两个同类型的实例测试到容器中
+    @Bean("userService")
+    public UserService createUserService() {
+        return new UserServiceImpl();
+    }
+
+    /**
+     * 手动创建同类型的bean实例，注册到容器中
+     *
+     * @return
+     */
+    // @Bean
+    @Bean("userServiceOther")
+    public UserService createUserServiceOther() {
+        return new UserServiceImpl();
+    }
+}
+```
+
+- 测试代码
+
+```java
+@RunWith(SpringJUnit4ClassRunner.class)
+@ContextConfiguration(classes = SpringConfiguration.class)
+public class SpringAutowiredTest {
+    /*
+     * 使用@Autowired注解自动按类型注入对象实例。此注解有required属性，默认值true，表示必须注入成功
+     *  如果容器中没有此类型的实例，则会报“找不到此类型实例”
+     *  如果容器中有多个同类型的实例，则会报“预期是单个，但找到2个可匹配的实例”
+     *  如果设置属性required = false，则不会报错，但该对象无法注入，为null
+     *  如果容器中有多个同类型的实例并且bean的id不一样，如果标识@Autowired注解的变量名称与其中一个bean的id一致则会注入成功，否则报错
+     */
+    // @Autowired(required = false)
+    @Autowired(required = true)
+    private UserService userService;
+
+    @Test
+    public void autowiredBasicTest() {
+        System.out.println(userService);
+        // 调用自动按类型注入的对象
+        userService.saveUser();
+    }
+}
+```
+
+### 5.2. @Qualifier
+
+#### 5.2.1. 作用与使用场景
+
+- **作用**：当使用自动按类型注入时，遇到有多个类型匹配的时候，就可以使用此注解来明确注入哪个bean对象。注意它通常情况下都必须配置`@Autowired`注解一起使用
+- **使用场景**：在项目开发中，很多时候都会用到消息队列，以ActiveMQ为例。当和spring整合之后，Spring框架提供了一个JmsTemplate对象，它既可以用于发送点对点模型消息也可以发送主题模型消息。如果项目中两种消息模型都用上了，那么针对不同的代码，将会注入不同的JmsTemplate，而容器中出现两个之后，就可以使用此注解注入。当然不用也可以，只需要把要注入的变量名称改为和要注入的bean的id一致即可。
+
+#### 5.2.2. 相关属性
+
+|  属性名  |         作用         | 取值 |
+| :-----: | -------------------- | ---- |
+| `value` | 用于指定bean的唯一标识 |      |
+
+
+#### 5.2.3. 使用示例
+
+基于`@Autowired`注解的使用示例工程，增加`@Qualifier`注解部分
+
+```java
+@Autowired
+@Qualifier("userServiceOther") // @Qualifier注解与@Autowired注解配合使用，一般用于容器中存在多个同类型的bean实例，@Qualifier注解来指定注入的bean的ID
+private UserService userService;
+```
+
+### 5.3. @Value
+
+#### 5.3.1. 作用与使用场景
+
+- **作用**：用于注入基本类型和String类型的数据。它支持spring的EL表达式，可以通过`${}`的方式获取配置文件中的数据。配置文件支持properties，xml和yml类型的文件
+- **使用场景**：在实际开发中，像连接数据库的配置，发送邮件的配置等等，都可以使用配置文件配置起来。此时读取配置文件就可以借助spring的el表达式读取。
+
+#### 5.3.2. 相关属性
+
+|  属性名  |               作用               | 取值 |
+| :-----: | ------------------------------- | ---- |
+| `value` | 指定注入的数据或者spring的el表达式 |      |
+
+#### 5.3.3. 使用示例
+
+- 创建配置文件name.properties
+
+```properties
+project.name=MooNkirA
+```
+
+- 创建配置类，使用`@Value`注解注入相关的值。*测试只生成getter方法，不用生成setter方法也是可以成功注入（后面研究源码再分析原因）*
+
+```java
+@Configuration
+// 配置包扫描
+@ComponentScan("com.moon.springsample")
+// 指定导入配置文件
+@PropertySource("classpath:name.properties")
+public class SpringConfiguration {
+    // 注入基本类型
+    @Value("red")
+    private String color;
+
+    // 注入基本类型，转成int类型
+    @Value("123")
+    private int number;
+
+    // 使用Spring的el表达式，用于读取配置文件
+    @Value("${project.name}")
+    private String name;
+    // 只生成getter方法，不用生成setter方法也是可以成功注入...以下省略所有getter方法
+}
+```
+
+- 测试代码
+
+```java
+@Test
+public void valueBasicTest(){
+    // 1. 创建注解扫描的容器
+    ApplicationContext context = new AnnotationConfigApplicationContext(SpringConfiguration.class);
+    // 2. 获取配置类对象对象
+    SpringConfiguration configuration = context.getBean("springConfiguration", SpringConfiguration.class);
+    // 3. 输出使用@Value注入的相关属性值
+    System.out.println(configuration.getColor());
+    System.out.println(configuration.getName());
+    System.out.println(configuration.getNumber());
+}
+```
+
+### 5.4. @Resource
+
+#### 5.4.1. 作用与使用场景
+
+此注解来源于JSR规范（Java Specification Requests），其作用是找到依赖的组件注入到应用来，它利用了JNDI（Java Naming and Directory Interface Java命名目录接口 J2EE规范之一）技术查找所需的资源。
+
+- **作用**：用于指定依赖注入的对象
+    - 默认情况下，即所有属性都不指定，它默认按照byType（类型）的方式装配bean对象。
+    - 如果指定了name，没有指定type，则采用byName（bean的唯一标识id）的方式装配bean对象
+    - 如果没有指定name，而是指定了type，则按照byType的方式装配bean对象
+    - 当byName和byType都指定了，两个都会校验，有任何一个不符合条件就会报错。
+- **使用场景**：当某个类的依赖bean在ioc容器中存在多个的时候，可以使用此注解指定特定的bean对象注入。当然也可以使用`@Autowired`配合`@Qualifier`注入。
+
+#### 5.4.2. 相关属性
+
+|        属性名         |                                              作用                                               | 取值 |
+| :------------------: | ---------------------------------------------------------------------------------------------- | ---- |
+|        `name`        | 资源的JNDI名称。在spring的注入时，指定bean的唯一标识                                               |      |
+|        `type`        | 指定bean的类型                                                                                  |      |
+|       `lookup`       | 引用指向的资源的名称。它可以使用全局JNDI名称链接到任何兼容的资源                                      |      |
+| `authenticationType` | 指定资源的身份验证类型。它只能为任何受支持类型的连接工厂的资源指定此选项，而不能为其他类型的资源指定此选项 |      |
+|     `shareable`      | 指定此资源是否可以在此组件和其他组件之间共享                                                        |      |
+|     `mappedName`     | 指定资源的映射名称                                                                               |      |
+|    `description`     | 指定资源的描述                                                                                   |      |
+
+#### 5.4.3. 基础使用示例
+
+- 创建配置类
+
+```java
+@Configuration
+@ComponentScan("com.moon.springsample")
+public class SpringConfiguration {
+}
+```
+
+- 创建用于待注入的类
+
+```java
+public interface AccountDao {
+    void save();
+}
+
+@Repository
+public class AccountDaoImplOne implements AccountDao {
+    @Override
+    public void save() {
+        System.out.println("AccountDaoImplOne.save()方法执行，保存账户数据");
+    }
+}
+
+@Repository
+public class AccountDaoImplTwo implements AccountDao {
+    @Override
+    public void save() {
+        System.out.println("AccountDaoImplTwo.save()方法执行，保存账户数据");
+    }
+}
+```
+
+- 创建需要依赖注入的类
+
+```java
+public interface AccountService {
+    void save();
+}
+
+@Service("accountService")
+public class AccountServiceImpl implements AccountService {
+
+    /* 实现依赖注入方式一：使用@Autowired按类型自动注入 */
+    // @Autowired
+    // @Qualifier("accountDaoImplOne") // 因为AccountDao的两个实现存入ioc容器，此时会报错。需要配置@Qualifier注解指定bean对象id来实现自动注入
+
+    /* 实现依赖注入方式二：使用@Resource注解 */
+    // @Resource // 1. 如果不设置任何属性，默认是按类型去匹配注入，其结果与@Autowired注解是一样，报存在两个相同类型的bean实例的错误
+    @Resource(name = "accountDaoImplTwo") // 2. 设置name属性，按bean实例的名称去匹配，匹配成功则注入，否则报错
+    // @Resource(type = AccountDao.class) // 3. 设置type属性，按指定的类型去匹配，如果匹配到唯一对象实例时则成功注入，否则报错
+    // @Resource(type = AccountDao.class, name = "accountDaoImplThree") // 4. 同时设置name属性与type属性，按指定类型与bean实例的名称同时匹配，匹配成功则注入，否则报错
+    private AccountDao accountDao;
+
+    @Override
+    public void save() {
+        accountDao.save();
+    }
+}
+```
+
+- 测试代码
+
+```java
+@Test
+public void resourceBasicTest() {
+    // 1. 创建注解扫描的容器
+    ApplicationContext context = new AnnotationConfigApplicationContext(SpringConfiguration.class);
+    // 2. 获取容器中的bean对象
+    AccountService accountService = context.getBean("accountService", AccountService.class);
+    // 3. 调用方法
+    accountService.save();
+}
+```
+
+### 5.5. @Inject
+
+#### 5.5.1. 作用与使用场景
+
+- **作用**：也是用于建立依赖关系的。和`@Resource`和`@Autowired`的作用是一样。在使用之前需要先导入依赖坐标
+- **使用场景**：在使用`@Autowired`注解的地方，都可以替换成`@Inject`。它也可以出现在方法上，构造函数上和字段上，<font color=red>**但是需要注意的是：因为JRE无法决定构造方法注入的优先级，所以规范中规定类中只能有一个构造方法标识`@Inject`注解。**</font>
+
+#### 5.5.2. 需导入的依赖
+
+```xml
+<dependency>
+    <groupId>javax.inject</groupId>
+    <artifactId>javax.inject</artifactId>
+    <version>1</version>
+</dependency>
+```
+
+#### 5.5.3. 与其他注入数据注解的区别
+
+- `@Autowired`：来源于spring框架自身。默认是byType自动装配，当配合了`@Qualifier`注解之后，由`@Qualifier`来实现byName的方式装配。它有一个`required`属性，用于指定是否必须注入成功。
+- `@Resource`：来源于JSR-250规范。在没有指定name属性时是byType自动装配，当指定了name属性之后，采用byName方式自动装配。
+- `@Inject`：来源于JSR-330规范。（JSR330是Jcp给出的官方标准反向依赖注入规范。）它不支持任何属性，但是可以配合`@Qualifier`或者`@Primary`注解使用。同时，它默认是采用byType装配，当指定了JSR-330规范中的`@Named`注解之后，变成byName装配。
+
+#### 5.5.4. 使用示例
+
+示例基础代码沿用`@Resource`注解示例项目，引入inject的依赖
+
+- `@Inject`使用方式一：标识在类属性上
+
+```java
+/* 现依赖注入方式三：使用@Inject注解 */
+@Inject // @Inject注解没有任何属性，只能按类型匹配注入，如果容器中存在多个同类型的bean实例，此时会报错
+// @Named("accountDaoImplTwo") // 配合JSR-330规范中的@Named注解使用之后，可以变成根据bean名称（byName）去匹配注入。(注：@Named不能脱离@Inject单独使用)
+@Qualifier("accountDaoImplOne") // @Inject也可以配合 @Qualifier 注解指定bean对象id来实现按名称（byName）自动注入（注：同理@Autowired与@Named也可以配合使用）
+private AccountDao accountDao;
+```
+
+- `@Inject`使用方式二：标识在构造函数上
+
+```java
+private AccountDao accountDao;
+/* 实现依赖注入方式三：使用@Inject注解（标识在构造方法上） */
+@Inject // 此时要求容器中必须有AccountDao对象，但是需要注意的是：因为JRE无法决定构造方法注入的优先级，所以规范中规定类中只能有一个构造方法标识`@Inject`注解
+@Named("accountDaoImplOne")
+public AccountServiceImpl(AccountDao accountDao) {
+    this.accountDao = accountDao;
+}
+```
+
+### 5.6. @Primary
+
+#### 5.6.1. 作用与使用场景
+
+- **作用**：用于指定bean的注入优先级。被`@Primary`修饰的bean对象优先注入
+- **使用场景**：当依赖对象有多个存在时，`@Autowired`注解已经无法完成功能，此时首先想到的是`@Qualifier`注解指定依赖bean的id。但是此时就产生了，无论有多少个bean，每次都会使用指定的bean注入。但是当使用`@Primary`，表示优先使用被`@Primary`注解标识的bean，但是当不存在时还会使用其他的。
+
+#### 5.6.2. 使用示例
+
+示例基础代码沿用`@Resource`注解示例项目，修改待注入的类，标识`@Primary`注解
+
+```java
+@Repository
+// 用于指定bean的注入优先级。被@Primary修饰的bean对象优先注入
+@Primary
+public class AccountDaoImplTwo implements AccountDao {
+    ...
+}
+```
+
+```java
+@Service("accountService")
+public class AccountServiceImpl implements AccountService {
+    /*
+     * 使用@Autowired按类型自动注入。因为AccountDao的两个实现存入ioc容器，此时会报错。
+     *  在不使用@Qualifier注解指定按名称注入的情况下，可以在相应多个实现类上，将想优先注入的类上标识@Primary注解，提高注入的优先级
+     */
+    @Autowired
+    private AccountDao accountDao;
+
+    @Override
+    public void save() {
+        accountDao.save();
+    }
+}
+```
+
+## 6. 和生命周期以及作用范围相关的注解
+
+### 6.1. @Scope
+
+#### 6.1.1. 作用与使用场景
+
+- **作用**：用于指定bean对象的作用范围，标识在类上。
+- **使用场景**：在实际开发中，bean对象默认都是单例的。通常情况下，被spring管理的bean都使用单例模式来创建。但是也有例外，例如Struts2框架中的Action，由于有模型驱动和OGNL表达式的原因，就必须配置成多例的。
+
+#### 6.1.2. 相关属性
+
+|    属性名    |                                                                      作用                                                                      |                                                                          取值                                                                          |
+| :---------: | --------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+|   `value`   | 指定作用范围的取值。在注解中默认值是""。但是在spring初始化容器时，会借助ConfigurableBeanFactory接口中的类成员：`String SCOPE_SINGLETON = "singleton";` | "singleton"/"prototype"                                                                                                                               |
+| `scopeName` | 它和value的作用是一样的                                                                                                                         |                                                                                                                                                       |
+| `proxyMode` | 指定bean对象的代理方式。指定的是ScopedProxyMode枚举的值                                                                                           | `DEFAULT`：默认值。（就是NO）<br/>`NO`：不使用代理。<br/>`INTERFACES`：使用JDK官方的基于接口的代理。<br/>`TARGET_CLASS`：使用CGLIB基于目标类的子类创建代理对象。 |
+
+### 6.2. @PostConstruct 与 @PreDestroy 的方式实现生命周期方法
+
+#### 6.2.1. 作用与使用场景
+
+- **作用**：
+    - `@PostConstruct`用于指定bean对象的初始化后执行的方法。
+    - `@PreDestroy`用于指定bean对象的销毁前执行的方法。
+- **使用场景**：
+    - `@PostConstruct`可以在bean对象创建完成后，需要对bean中的成员进行一些初始化的操作时，就可以使用此注解配置一个初始化方法，完成一些初始化的操作。
+    - `@PreDestroy`可以在bean对象销毁之前，可以进行一些清理操作。
+
+**注：单例的生命周期与容器的生命周期一致，对象随着容器的创建而创建，随容器的销毁而销毁。如果将作用范围设置为多例，则对象的生命周期会脱离容器，当对象被使用时创建，因为容器不知道对象什么时候会不再使用，所以对象的销毁是GC垃圾回收器决定**
+
+#### 6.2.2. 使用示例
+
+参考代码详见：`spring-note\spring-analysis-note\spring-sample-annotation\19-annotation-lifecycle\`
+
+1. 创建LogUtil类，定义`@PostConstruct`和`@PreDestroy`注解修饰的方法
+
+```java
+// @Component
+/*
+ * 注意：单例的生命周期与容器的生命周期一致，对象随着容器的创建而创建，随容器的销毁而销毁
+ *   如果将作用范围设置为多例，则对象的生命周期会脱离容器，当对象被使用时创建，
+ *   因为容器不知道对象什么时候会不再使用，所以对象的销毁是GC垃圾回收器决定
+ */
+// @Scope("prototype")
+public class LogUtil {
+    /* 构造方法 */
+    public LogUtil() {
+        System.out.println("LogUtil类的无参构造函数执行了...");
+    }
+
+    /* @PostConstruct 注解用于指定bean对象的初始化后执行的方法 */
+    @PostConstruct
+    public void init() {
+        System.out.println("LogUtil基于@PostConstruct注解的初始化后的方法执行了...");
+    }
+
+    /* @PreDestroy 用于指定bean对象的销毁前执行的方法 */
+    @PreDestroy
+    public void destroy() {
+        System.out.println("LogUtil基于@PreDestroy注解销毁前的方法执行了...");
+    }
+}
+```
+
+2. 在配置类指定包扫描
+
+```java
+@Configuration
+@ComponentScan("com.moon.springsample")
+public class SpringConfiguration {
+}
+```
+
+3. 测试代码
+
+```java
+@Test
+public void lifecycleBasicTest() {
+    // 1. 创建注解扫描的容器
+    AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(SpringConfiguration.class);
+    System.out.println("************* 容器创建完毕 *************");
+    // 2. 获取容器中的bean对象，并输出
+    LogUtil logUtil = context.getBean("logUtil", LogUtil.class);
+    System.out.println(logUtil);
+    // 3. 关闭容器，观察单例对象的销毁前的方法
+    context.close();
+}
+```
+
+测试结果
+
+```
+LogUtil类的无参构造函数执行了...
+LogUtil基于@PostConstruct注解的初始化后的方法执行了...
+************* 容器创建完毕 *************
+com.moon.springsample.utils.LogUtil@27c86f2d
+LogUtil基于@PreDestroy注解销毁前的方法执行了...
+```
+
+<font color=purple>*注：这两个注解并非Spring提供，而是JSR250规范提供*</font>
+
+
+
+
+
+
+
+
 
 
 
