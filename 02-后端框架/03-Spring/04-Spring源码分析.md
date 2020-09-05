@@ -392,24 +392,8 @@ handler.parse(ele, new ParserContext(this.readerContext, this, containingBd));
 ```
 
 ## 5. BeanDefinition
-### 5.1. BeanDefinition 简介
 
-BeanDefinition 在 spring 中贯穿全部，spring 要根据 BeanDefinition 对象来实例化 bean，只要把解析的标签，扫描的注解类封装成 BeanDefinition 对象，spring 才能实例化 bean
-
-### 5.2. BeanDefinition 实现类
-
-- ChildBeanDefinition
-    - ChildBeanDefinition 是一种 bean definition，它可以继承它父类的设置，即ChildBeanDefinition 对 RootBeanDefinition 有一定的依赖关系
-    - ChildBeanDefinition 从父类继承构造参数值，属性值并可以重写父类的方法，同时也可以增加新的属性或者方法。(类同于 java 类的继承关系)。若指定初始化方法，销毁方法或者静态工厂方法，ChildBeanDefinition 将重写相应父类的设置。`depends on`，`autowire mode`，`dependency check`，`sigleton`，`lazy init` 一般由子类自行设定。
-- **GenericBeanDefinition（源码分析的重点关注的实现类）**
-    - 注意：从 spring 2.5 开始，提供了一个更好的注册 bean definition 类 GenericBeanDefinition，它支持动态定义父依赖，方法是GenericBeanDefinition对象中`public void setParentName(@Nullable String parentName);`，GenericBeanDefinition 可以在绝大分部使用场合有效的替代 ChildBeanDefinition
-    - GenericBeanDefinition 是一站式的标准 bean definition，除了具有指定类、可选的构造参数值和属性参数这些其它 bean definition 一样的特性外，它还具有通过 parenetName 属性来灵活设置 parent bean definition
-    - 通常，GenericBeanDefinition 用来注册用户可见的 bean definition(可见的bean definition意味着可以在该类bean definition上定义post-processor来对bean进行操作，甚至为配置 parent name 做扩展准备)。RootBeanDefinition / ChildBeanDefinition 用来预定义具有 parent/child 关系的 bean definition。
-- RootBeanDefinition
-    - 一个 RootBeanDefinition 定义表明它是一个可合并的 bean definition：即在 spring beanFactory 运行期间，可以返回一个特定的 bean。RootBeanDefinition 可以作为一个重要的通用的 bean definition 视图。
-    - RootBeanDefinition 用来在配置阶段进行注册 bean definition。然后，从 spring 2.5 后，编写注册 bean definition 有了更好的的方法：GenericBeanDefinition。GenericBeanDefinition 支持动态定义父类依赖，而非硬编码作为 root bean definition。
-
-### 5.3. GenericBeanDefinition 创建实例测试
+### 5.1. GenericBeanDefinition 创建实例测试
 
 手动创建`BeanDefinition`对象并注册到spring容器中，定义一个被spring容器管理的类，实现`BeanDefinitionRegistryPostProcessor`接口，实现`postProcessBeanDefinitionRegistry`方法，在方法里设置需要实例化的类即可
 
@@ -456,40 +440,7 @@ public class BeanDefinitionTest implements BeanDefinitionRegistryPostProcessor {
 }
 ```
 
-### 5.4. BeanDefinition 中的属性
-#### 5.4.1. 属性图示
-
-原文件在\code-learning-note\note attachments\02-后端框架\03-Spring\BeanDefinition属性结构图.xmind
-
-![BeanDefinition相关属性](images/20191231112210755_22971.png)
-
-#### 5.4.2. 属性作用解释
-
-- 【id】：Bean 的唯一标识名。它必须是合法的 XMLID，在整个 XML 文档中唯一
-- 【class】：用来定义类的全限定名（包名+类名）。只有子类 Bean 不用定义该属性
-- 【name】：用来为 id 创建一个或多个别名。它可以是任意的字母符合。多个别名之间用逗号或空格分开
-- 【parent】：子类 Bean 定义它所引用它的父类 Bean。这时前面的 class 属性失效。子类 Bean 会继承父类 Bean 的所有属性，子类 Bean 也可以覆盖父类 Bean 的属性。注意：子类 Bean 和父类 Bean 是同一个 Java 类
-- 【abstract】：默认为“false”。用来定义 Bean 是否为抽象 Bean。它表示这个 Bean 将不会被实例化，一般用于父类 Bean，因为父类 Bean 主要是供子类 Bean 继承使用
-- 【lazy-init】：默认为“default”。用来定义这个 Bean 是否实现懒初始化。如果为“true”，它将在 BeanFactory 启动时初始化所有的 SingletonBean。反之，如果为“false”,它只在 Bean 请求时才开始创建 SingletonBean
-- 【autowire】：自动装配，默认为“default”。它定义了 Bean 的自动装载方式。
-    - `no`：不使用自动装配功能
-    - `byName`：通过 Bean 的属性名实现自动装配
-    - `byType`：通过 Bean 的类型实现自动装配
-    - `constructor`：类似于`byType`，但它是用于构造函数的参数的自动组装
-    - `autodetect`：通过 Bean 类的反省机制（introspection）决定是使用`constructor`还是使用`byType`
-- 【autowire-candidate】：**采用 xml 格式配置 bean 时**，将`<bean/>`元素的 autowire-candidate 属性设置为 false，这样容器在查找自动装配对象时，将不考虑该 bean，即它不会被考虑作为其它 bean 自动装配的候选者，但是该 bean 本身还是可以使用自动装配来注入其它 bean 的。
-    - 主要的使用场景是：如果一个接口有多个实现类，但不希望某一个类自动注入的时候可以使用此配置，*注意，只有在用xml配置的时候生效*
-- 【depends-on】：依赖对象。这个 Bean 在初始化时依赖的对象，这个对象会在这个 Bean 初始化之前创建
-- 【init-method】：用来定义 Bean 的初始化方法，它会在 Bean 组装之后调用。它**必须是一个无参数的方法**
-- 【primary】：用于定义某个实现类是否优先被选择注入。当一个接口有多个实现类时，如果在xml配置文件中将primary的值设置为true，并在某一个实现类上加上`@Primary`注解，此时spring容器在需要自动注入该接口时，优先选择此实现类进行注入
-- 【destroy-method】：用来定义 Bean 的销毁方法，它在 BeanFactory 关闭时调用。同样，它也**必须是一个无参数的方法，而且只能应用于 singletonBean**
-- 【factory-method】：定义创建该 Bean 对象的工厂方法。它用于相应的属性“factory-bean”，表示这个 Bean 是通过工厂方法创建。此时，“class”属性失效
-- 【factory-bean】：定义创建该 Bean 对象的工厂类。如果使用了“factory-bean”则“class”属性失效
-- 【MutablePropertyValues】：用于封装`<property>`标签的信息，其实类里面就是有一个 list，list里面是 PropertyValue 对象，PropertyValue 就是一个 name 和 value 属性，用于封装`<property>`标签的名称和值信息
-- 【ConstructorArgumentValues】：用于封装`<constructor-arg>`标签的信息，其实类里面就是有一个 map，map 中用构造函数的参数顺序作为 key，值作为 value 存储到 map 中
-- 【MethodOverrides】：用于封装 bean 标签下的 lookup-method 和 replaced-method 等子标签的信息，同样的类里面有一个 Set 对象添加 LookupOverride 对象和 ReplaceOverride 对象
-
-### 5.5. BeanDefinition 创建过程
+### 5.2. BeanDefinition 创建过程
 
 主要在`BeanDefinitionParserDelegate`类的`parseBeanDefinitionElement()`方法中进行对xml配置文件里面的bean标签进行解析，并创建BeanDefinition对象。
 
@@ -2094,21 +2045,578 @@ protected List<Advisor> findEligibleAdvisors(Class<?> beanClass, String beanName
 
 依赖注入（DI），是Spring框架核心IOC的具体实现。IOC解耦只是降低他们的依赖关系，但不会消除。比如：业务层需要依赖数据层的方法。
 
+## 2. Spring 中的 BeanFactory
+
+BeanFactory是一个接口，Spring框架中，所有对Bean相关操作，都可以在BeanFactory里实现
+
+### 2.1. BeanFactory类视图
+
+![](images/20200903095250647_20309.png)
+
+### 2.2. Spring 框架中各类工厂（*BeanFactory）介绍
+
+#### 2.2.1. BeanFactory
+
+BeanFactory 中定义的各种方法其中将近一半是获取 bean 对象的各种方法，另外就是对 bean 属性的获取和判定，该接口仅仅是定义了 IOC 容器的最基本基本形式，具体实现都交由子类来实现。
+
+#### 2.2.2. HierarchicalBeanFactory
+
+```java
+public interface HierarchicalBeanFactory extends BeanFactory
+```
+
+HierarchicalBeanFactory（译为中文是“分层的”），它相对于 BeanFactory 而言，增加了对父 BeanFactory 的获取，子容器可以通过接口方法访问父容器，让容器的设计具备了层次性。
+
+这种层次性增强了容器的扩展性和灵活性，可以通过编程的方式为一个已有的容器添加一个或多个子容器，从而实现一些特殊功能。
+
+层次容器有一个特点就是子容器对于父容器来说是透明的，而子容器则能感知到父容器的存在。典型的应用场景就是 Spring MVC，控制层的 bean 位于子容器中，并将业务层和持久层的 bean 所在的容器设置为父容器，这样的设计可以让控制层的 bean 访问业务层和持久层的 bean，反之则不行，从而在容器层面对三层软件结构设计提供支持。
+
+#### 2.2.3. ListableBeanFactory
+
+```java
+public interface ListableBeanFactory extends BeanFactory
+```
+
+该接口引入了获取容器中 bean 的配置信息的若干方法，比如获取容器中 bean 的个数，获取容器中所有 bean 的名称列表，按照目标类型获取 bean 名称，以及检查容器中是否包含指定名称的 bean 等等。
+
+Listable 中文译为“可列举的”，对于容器而言，bean 的定义和属性是可以列举的对象
+
+#### 2.2.4. AutowireCapableBeanFactory
+
+```java
+public interface AutowireCapableBeanFactory extends BeanFactory
+```
+
+该接口提供了创建 bean、自动注入、初始化以及应用 bean 的后置处理器等功能。自动注入让配置变得更加简单，也让注解配置成为可能，Spring 提供了四种自动注入类型：
+
+- `byName`：根据名称自动装配。假设 bean A 有一个名为 b 的对象属性，如果容器中刚好存在一个 bean 的名称为 b，则将该 bean 装配给 bean A 的 b 属性。
+- `byType`：根据类型自动匹配。假设 bean A 有一个类型为 B 的对象属性，如果容器中刚好有一个 B 类型的 bean，则使用该 bean 装配 A 的对应属性。
+- `constructor`：仅针对构造方法注入而言，类似于 byType。如果 bean A 有一个构造方法，构造方法包含一个 B 类型的入参，如果容器中有一个 B 类型的 bean，则使用该 bean 作为入参，如果找不到，则抛出异常。
+- `autodetect`：根据 bean 的自省机制决定采用 byType 还是 constructor 进行自动装配。如果 bean 提供了默认的构造函数，则采用 byType，否则采用 constructor。
+
+**总结**：`<beans />`元素标签中的 `default-autowire` 属性可以配置全局自动匹配，`default-autowire` 默认值为 `no`，表示不启用自动装配。在实际开发中，XML 配置方式很少启用自动装配功能，而基于注解的配置方式默认采用 byType 自动装配策略。
+
+#### 2.2.5. ConfigurableBeanFactory
+
+```java
+public interface ConfigurableBeanFactory extends HierarchicalBeanFactory, SingletonBeanRegistry
+```
+
+ConfigurableBeanFactory 提供配置 Factory 的各种方法，增强了容器的可定制性，定义了设置类装载器、属性编辑器、容器初始化后置处理器等方法。
+
+#### 2.2.6. DefaultListableBeanFactory（重要）
+
+```java
+public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFactory
+		implements ConfigurableListableBeanFactory, BeanDefinitionRegistry, Serializable
+```
+
+`DefaultListableBeanFactory` 是一个非常重要的类，它包含了 IOC 容器所应该具备的重要功能，是容器完整功能的一个基本实现。
+
+其中 `XmlBeanFactory`(已过时)是一个典型的由该类派生出来的 Factory 类，并且只是增加了加载 XML 配置资源的逻辑，而容器相关的特性则全部由 `DefaultListableBeanFactory` 来实现。
+
+```java
+@Deprecated
+@SuppressWarnings({"serial", "all"})
+public class XmlBeanFactory extends DefaultListableBeanFactory
+```
+
+### 2.3. Spring 框架中的高级容器（*Context）
+
+#### 2.3.1. ApplicationContext
+
+```java
+public interface ApplicationContext extends EnvironmentCapable, ListableBeanFactory, HierarchicalBeanFactory,
+		MessageSource, ApplicationEventPublisher, ResourcePatternResolver
+```
+
+`ApplicationContext` 是 Spring 为开发者提供的高级容器形式，也是初始化 Spring 容器的常用方式，除了简单容器所具备的功能（*即继承了ListableBeanFactory, HierarchicalBeanFactory接口*）外，`ApplicationContext` 还提供了许多额外功能，这些额外的功能主要包括：
+
+- 国际化支持：`ApplicationContext` 实现了 `org.springframework.context.MessageSource` 接口，该接口为容器提供国际化消息访问功能，支持具备多语言版本需求的应用开发，并提供了多种实现来简化国际化资源文件的装载和获取。
+- 发布应用上下文事件：`ApplicationContext` 实现了 `org.springframework.context.ApplicationEventPublisher` 接口，该接口让容器拥有发布应用上下文事件的功能，包括容器启动、关闭事件等，如果一个 bean 需要接收容器事件，则只需要实现 ApplicationListener 接口即可，Spring 会自动扫描对应的监听器配置，并注册成为主题的观察者。
+- 丰富的资源获取的方式：`ApplicationContext` 实现了 `org.springframework.core.io.support.ResourcePatternResolver` 接口，`ResourcePatternResolver` 的实现类 `PathMatchingResourcePatternResolver` 让我们可以采用 Ant 风格的资源路径去加载配置文件。
+
+#### 2.3.2. ConfigurableApplicationContext
+
+```java
+public interface ConfigurableApplicationContext extends ApplicationContext, Lifecycle, Closeable
+```
+
+`ConfigurableApplicationContext` 中主要增加了 `refresh()` 和 `close()` 两个方法，从而为应用上下文提供了启动、刷新和关闭的能力。其中 `refresh()` 方法是高级容器的核心方法，方法中概括了高级容器初始化的主要流程（包含简单的容器的全部功能，以及高级容器特有的扩展功能）
+
+#### 2.3.3. WebApplicationContext
+
+```java
+public interface WebApplicationContext extends ApplicationContext
+```
+
+`WebApplicationContext` 是为 WEB 应用定制的上下文，可以基于 WEB 容器来实现配置文件的加载，以及初始化工作。对于非 WEB 应用而言，bean 只有 `singleton` 和 `prototype` 两种作用域，而在 `WebApplicationContext` 中则新增了 `request`、`session`、`globalSession`，以及 `application` 四种作用域。
+
+`WebApplicationContext` 将整个应用上下文对象以属性的形式放置到 ServletContext 中，所以在 WEB 应用中，可以通过 `WebApplicationContextUtils` 的`getWebApplicationContext(ServletContext sc)` 方法，从 ServletContext 中获取到 ApplicationContext 实例。为了支持这一特性，WebApplicationContext 定义了一个常量：
+
+```java
+String ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE = WebApplicationContext.class.getName() + ".ROOT";
+```
+
+并在初始化应用上下文时以该常量为 key，将 `WebApplicationContext` 实例存放到 ServletContext 的属性列表中，当调用 `WebApplicationContextUtils` 的 `getWebApplicationContext(ServletContext sc)` 方法时，本质上是在调用 ServletContext 的 `getAttribute(String name)` 方法，只不过 Spring 会对获取的结果做一些校验。
 
 
+### 2.4. 高级容器的一些具体实现类
+
+#### 2.4.1. AnnotationConfigApplicationContext
+
+```java
+public class AnnotationConfigWebApplicationContext extends AbstractRefreshableWebApplicationContext
+		implements AnnotationConfigRegistry
+```
+
+`AnnotationConfigWebApplicationContext` 是基于注解驱动开发的高级容器实现类，该类中提供了`AnnotatedBeanDefinitionReader`和`ClassPathBeanDefinitionScanner`两个成员
+
+- `AnnotatedBeanDefinitionReader`：用于读取注解创建Bean的定义信息
+- `ClassPathBeanDefinitionScanner`：负责扫描指定包获取Bean的定义信息
+
+#### 2.4.2. ClasspathXmlApplicationContext
+
+```java
+public class ClassPathXmlApplicationContext extends AbstractXmlApplicationContext
+```
+
+`ClasspathXmlApplicationContext` 是基于xml配置的高级容器类，它用于加载类路径下配置文件。
+
+#### 2.4.3. FileSystemXmlApplicationContext
+
+```java
+public class FileSystemXmlApplicationContext extends AbstractXmlApplicationContext
+```
+
+`FileSystemXmlApplicationContext` 是基于xml配置的高级容器类，它用于加载文件系统中的配置文件。
+
+#### 2.4.4. AnnotationConfigWebApplicationContext
+
+```java
+public class AnnotationConfigWebApplicationContext extends AbstractRefreshableWebApplicationContext
+		implements AnnotationConfigRegistry
+```
+
+`AnnotationConfigWebApplicationContext` 是注解驱动开发web应用的高级容器类。
+
+## 3. Spring 中的 BeanDefinition
+
+### 3.1. BeanDefinition 简介
+
+```java
+public interface BeanDefinition extends AttributeAccessor, BeanMetadataElement
+```
+
+BeanDefinition 在 spring 中贯穿全部，spring 要根据 BeanDefinition 对象来实例化 bean，只要把解析的标签或者扫描的注解类封装成 BeanDefinition 对象，spring 才能实例化 bean
+
+#### 3.1.1. 作用说明
+
+Spring 的容器是用于存储 bean 对象。通常对于容器中存储 bean 的理解是一个个对应配置文件中的 `<bean/>` 标签或者是被注解的类，但是这些都是 bean 的静态表示，是还没有放入容器的物料，最终（<font color=red>**加载完配置，且在 getBean 之前**</font>）加载到容器中的是一个个 `BeanDefinition` 实例。
+
+BeanDefinition 的继承关系如下图，`RootBeanDefinition`、`ChildBeanDefinition`，以及 `GenericBeanDefinition` 是三个主要的实现。
+
+在配置时，通过 `parent` 属性指定 bean 的父子关系，这个时候父 bean 则用 `RootBeanDefinition` 表示，而子 bean 则用 `ChildBeanDefinition` 表示。`GenericBeanDefinition` 自 2.5 版本引入，是对于一般的 bean 定义的一站式服务中心。
+
+#### 3.1.2. BeanDefinition类视图
+
+![](images/20200903233604050_18807.png)
 
 
+### 3.2. BeanDefinition 接口与实现类
 
+#### 3.2.1. AbstractBeanDefinition 抽象类
 
+##### 3.2.1.1. 源码分析
 
+```java
+/*
+ * RootBeanDefinition，ChildBeanDefinition，GenericBeanDefinition三个类都是由AbstractBeanDefinition派生而来
+ * 该抽象类中包含了bean的所有配置项和一些支持程序运行的属性。
+ */
+public abstract class AbstractBeanDefinition extends BeanMetadataAttributeAccessor
+		implements BeanDefinition, Cloneable {
+    ......省略定义的变量
 
+	/* bean 对应的类实例 */
+	@Nullable
+	private volatile Object beanClass;
+	/* bean的作用域，对应scope属性 */
+	@Nullable
+	private String scope = SCOPE_DEFAULT;
+	/* 是否是抽象类，对应abstract属性 */
+	private boolean abstractFlag = false;
+	/* 是否延迟加载，对应lazy-init属性 */
+	private boolean lazyInit = false;
+	/* 自动装配模式，对应autowire属性 */
+	private int autowireMode = AUTOWIRE_NO;
+	/* 依赖检查，对应dependency-check属性 */
+	private int dependencyCheck = DEPENDENCY_CHECK_NONE;
 
+	/* 对应depends-on，表示一个bean实例化前置依赖另一个bean */
+	@Nullable
+	private String[] dependsOn;
+	/* 对应autowire-candidate属性，设置为false时表示取消当前bean作为自动装配候选者的资格 */
+	private boolean autowireCandidate = true;
+	/* 对应primary属性，当自动装配存在多个候选者时，将其作为首选 */
+	private boolean primary = false;
+	/* 对应qualifier属性 */
+	private final Map<String, AutowireCandidateQualifier> qualifiers = new LinkedHashMap<>();
 
+	@Nullable
+	private Supplier<?> instanceSupplier;
+	/* 非配置项：表示允许访问非公开的构造器和方法，由程序设置 */
+	private boolean nonPublicAccessAllowed = true;
 
+	/*
+	 * 非配置项：表示是否允许以宽松的模式解析构造函数，由程序设置
+	 * 	例如：如果设置为true，则在下列情况时不会抛出异常
+	 * 		interface ITest{}
+	 * 		class ITestImpl implements ITest {}
+	 * 		class Main {
+	 * 			Main(ITest i){}
+	 * 			Main(ITestImpl i){}
+	 * 		}
+	 */
+	private boolean lenientConstructorResolution = true;
+	/* 对应factory-bean属性 */
+	@Nullable
+	private String factoryBeanName;
+	/* 对应factory-method属性 */
+	@Nullable
+	private String factoryMethodName;
+	/* 记录构造函数注入属性，对应<construct-arg/>标签 */
+	@Nullable
+	private ConstructorArgumentValues constructorArgumentValues;
+	/* 记录<property/>属性集合 */
+	@Nullable
+	private MutablePropertyValues propertyValues;
+	/* 记录<lookup-method/>和<replaced-method/>标签配置 */
+	@Nullable
+	private MethodOverrides methodOverrides;
+	/* 对应init-method属性 */
+	@Nullable
+	private String initMethodName;
+	/* 对应destroy-method属性 */
+	@Nullable
+	private String destroyMethodName;
+	/* 非配置项：是否执行init-method，由程序设置 */
+	private boolean enforceInitMethod = true;
+	/* 非配置项：是否执行destroy-method，由程序设置 */
+	private boolean enforceDestroyMethod = true;
+	/* 非配置项：表示是否是用户定义，而不是程序定义的，创建AOP时为true,由程序设置 */
+	private boolean synthetic = false;
+	/*
+	 * 非配置项：定义bean的应用场景，由程序设置，角色如下：
+	 * 		ROLE_APPLICATION：用户
+	 * 		ROLE_INFRASTRUCTURE：完全内部使用
+	 * 		ROLE_SUPPORT：某些复杂配置的一部分
+	 */
+	private int role = BeanDefinition.ROLE_APPLICATION;
+	/* bean的描述信息，对应description标签 */
+	@Nullable
+	private String description;
+	/* bean定义的资源 */
+	@Nullable
+	private Resource resource;
 
+    ......省略定义的方法
+}
+```
 
+##### 3.2.1.2. 总结
 
+`BeanDefinition` 是容器对于bean配置的内部表示，Spring 将各个 bean 的 `BeanDefinition` 实例注册记录在 `BeanDefinitionRegistry` 中，该接口定义了对 `BeanDefinition` 的各种增删查操作，类似于内存数据库，其实现类 `SimpleBeanDefinitionRegistry` 主要以 Map 作为存储标的。
 
+#### 3.2.2. RootBeanDefinition 类
+
+- 一个 RootBeanDefinition 定义表明它是一个可合并的 beanDefinition：即在 spring beanFactory 运行期间，可以返回一个特定的 bean。RootBeanDefinition 可以作为一个重要的通用的 beanDefinition 视图。
+- RootBeanDefinition 用来在配置阶段进行注册 beanDefinition。然后，从 spring 2.5 后，编写注册 beanDefinition 有了更好的的方法：GenericBeanDefinition。GenericBeanDefinition 支持动态定义父类依赖，而非硬编码作为 root bean definition。
+
+#### 3.2.3. ChildBeanDefinition 类
+
+- ChildBeanDefinition 是一种 bean definition，它可以继承它父类的设置，即ChildBeanDefinition 对 RootBeanDefinition 有一定的依赖关系
+- ChildBeanDefinition 从父类继承构造参数值，属性值并可以重写父类的方法，同时也可以增加新的属性或者方法。(类同于 java 类的继承关系)。若指定初始化方法，销毁方法或者静态工厂方法，ChildBeanDefinition 将重写相应父类的设置。`depends on`，`autowire mode`，`dependency check`，`sigleton`，`lazy init` 一般由子类自行设定。
+
+#### 3.2.4. GenericBeanDefinition 类（源码分析的重点关注的实现类）
+
+- 注意：从 spring 2.5 开始，提供了一个更好的注册 bean definition 类 GenericBeanDefinition，它支持动态定义父依赖，方法是GenericBeanDefinition对象中`public void setParentName(@Nullable String parentName);`，GenericBeanDefinition 可以在绝大分部使用场合有效的替代 ChildBeanDefinition
+- GenericBeanDefinition 是一站式的标准 bean definition，除了具有指定类、可选的构造参数值和属性参数这些其它 bean definition 一样的特性外，它还具有通过 parenetName 属性来灵活设置 parent bean definition
+- 通常，GenericBeanDefinition 用来注册用户可见的 bean definition(可见的bean definition意味着可以在该类bean definition上定义post-processor来对bean进行操作，甚至为配置 parent name 做扩展准备)。RootBeanDefinition / ChildBeanDefinition 用来预定义具有 parent/child 关系的 bean definition。
+
+### 3.3. BeanDefinition 中的属性
+
+#### 3.3.1. 属性图示
+
+原文件位置：`\code-learning-note\note attachments\02-后端框架\03-Spring\BeanDefinition属性结构图.xmind`
+
+![BeanDefinition相关属性](images/20191231112210755_22971.png)
+
+#### 3.3.2. 属性作用解释
+
+- 【id】：Bean 的唯一标识名。它必须是合法的 XMLID，在整个 XML 文档中唯一
+- 【class】：用来定义类的全限定名（包名+类名）。只有子类 Bean 不用定义该属性
+- 【name】：用来为 id 创建一个或多个别名。它可以是任意的字母符合。多个别名之间用逗号或空格分开
+- 【parent】：子类 Bean 定义它所引用它的父类 Bean。这时前面的 class 属性失效。子类 Bean 会继承父类 Bean 的所有属性，子类 Bean 也可以覆盖父类 Bean 的属性。注意：子类 Bean 和父类 Bean 是同一个 Java 类
+- 【abstract】：默认为“false”。用来定义 Bean 是否为抽象 Bean。它表示这个 Bean 将不会被实例化，一般用于父类 Bean，因为父类 Bean 主要是供子类 Bean 继承使用
+- 【lazy-init】：默认为“default”。用来定义这个 Bean 是否实现懒初始化。如果为“true”，它将在 BeanFactory 启动时初始化所有的 SingletonBean。反之，如果为“false”,它只在 Bean 请求时才开始创建 SingletonBean
+- 【autowire】：自动装配，默认为“default”。它定义了 Bean 的自动装载方式。
+    - `no`：不使用自动装配功能
+    - `byName`：通过 Bean 的属性名实现自动装配
+    - `byType`：通过 Bean 的类型实现自动装配
+    - `constructor`：类似于`byType`，但它是用于构造函数的参数的自动组装
+    - `autodetect`：通过 Bean 类的反省机制（introspection）决定是使用`constructor`还是使用`byType`
+- 【autowire-candidate】：**采用 xml 格式配置 bean 时**，将`<bean/>`元素的 autowire-candidate 属性设置为 false，这样容器在查找自动装配对象时，将不考虑该 bean，即它不会被考虑作为其它 bean 自动装配的候选者，但是该 bean 本身还是可以使用自动装配来注入其它 bean 的。
+    - 主要的使用场景是：如果一个接口有多个实现类，但不希望某一个类自动注入的时候可以使用此配置，*注意，只有在用xml配置的时候生效*
+- 【depends-on】：依赖对象。这个 Bean 在初始化时依赖的对象，这个对象会在这个 Bean 初始化之前创建
+- 【init-method】：用来定义 Bean 的初始化方法，它会在 Bean 组装之后调用。它**必须是一个无参数的方法**
+- 【primary】：用于定义某个实现类是否优先被选择注入。当一个接口有多个实现类时，如果在xml配置文件中将primary的值设置为true，并在某一个实现类上加上`@Primary`注解，此时spring容器在需要自动注入该接口时，优先选择此实现类进行注入
+- 【destroy-method】：用来定义 Bean 的销毁方法，它在 BeanFactory 关闭时调用。同样，它也**必须是一个无参数的方法，而且只能应用于 singletonBean**
+- 【factory-method】：定义创建该 Bean 对象的工厂方法。它用于相应的属性“factory-bean”，表示这个 Bean 是通过工厂方法创建。此时，“class”属性失效
+- 【factory-bean】：定义创建该 Bean 对象的工厂类。如果使用了“factory-bean”则“class”属性失效
+- 【MutablePropertyValues】：用于封装`<property>`标签的信息，其实类里面就是有一个 list，list里面是 PropertyValue 对象，PropertyValue 就是一个 name 和 value 属性，用于封装`<property>`标签的名称和值信息
+- 【ConstructorArgumentValues】：用于封装`<constructor-arg>`标签的信息，其实类里面就是有一个 map，map 中用构造函数的参数顺序作为 key，值作为 value 存储到 map 中
+- 【MethodOverrides】：用于封装 bean 标签下的 lookup-method 和 replaced-method 等子标签的信息，同样的类里面有一个 Set 对象添加 LookupOverride 对象和 ReplaceOverride 对象
+
+## 4. 基于注解驱动的Spring执行过程分析
+
+### 4.1. 使用配置类字节码的构造函数
+
+#### 4.1.1. 构造方法
+
+```java
+public class AnnotationConfigApplicationContext extends GenericApplicationContext implements AnnotationConfigRegistry
+```
+
+- 调用`AnnotationConfigApplicationContext`类的构造方法，通过传入一个或者多个配置类的字节码对象来创建容器
+
+```java
+/**
+ * Create a new AnnotationConfigApplicationContext, deriving bean definitions
+ * from the given annotated classes and automatically refreshing the context.
+ * @param annotatedClasses one or more annotated classes,
+ * e.g. {@link Configuration @Configuration} classes
+ */
+public AnnotationConfigApplicationContext(Class<?>... annotatedClasses) {
+	// 子类的构造方法执行时，第一步会默认调父类的无参构造方法，即public GenericApplicationContext()
+	// this()此无参构造方法是用来注册与初始化框架的本身的类
+	this();
+	// 将传入的类字节码对象（配置类）注册到BeanDefinition中
+	register(annotatedClasses);
+	refresh();
+}
+```
+
+#### 4.1.2. 初始化注解读取器与扫描器
+
+- 初始化注解的读取器`AnnotatedBeanDefinitionReader`与扫描器`ClassPathBeanDefinitionScanner`
+
+```java
+/**
+ * Create a new AnnotationConfigApplicationContext that needs to be populated
+ * through {@link #register} calls and then manually {@linkplain #refresh refreshed}.
+ */
+// AnnotationConfigApplicationContext(Class<?>... annotatedClasses) 与 AnnotationConfigApplicationContext(String... basePackages) 创建容器的第一步会调用此构造方法
+public AnnotationConfigApplicationContext() {
+	// 创建读取注解的BeanDefinition读取器
+	this.reader = new AnnotatedBeanDefinitionReader(this);
+	/*
+	 * 创建扫描器，用于扫描包或类，封装成BeanDefinition对象
+	 * 		spring默认的扫描器其实不是这个scanner对象
+	 * 		而是在后面自己又重新new了一个ClassPathBeanDefinitionScanner
+	 * 		spring在执行工程后置处理器ConfigurationClassPostProcessor时，去扫描包时会new一个ClassPathBeanDefinitionScanner
+	 * 	这个scanner是为了可以手动调用AnnotationConfigApplicationContext对象的scan方法
+	 */
+	this.scanner = new ClassPathBeanDefinitionScanner(this);
+}
+```
+
+#### 4.1.3. register 方法说明
+
+它是根据传入的配置类字节码解析Bean对象中注解的（包括类上的和类中方法和字段上的注解。如果类没有被注解，那么类中方法和字段上的注解不会被扫描）。使用的是AnnotatedGenericBeanDefinition，里面包含了BeanDefinition和Scope两部分信息，其中BeanDefinition是传入注解类的信息，即构造方法传入的项目的配置类；scope是指定bean的作用范围，默认情况下为单例。
+
+同时，借助`AnnotationConfigUtils`类中`processCommonDefinitionAnnotations`方法判断是否使用了`@Primary`，`@Lazy`，`@DependsOn`等注解来决定Bean的加载时机。
+
+在`ConfigurationClassBeanDefinitionReader`类中的`registerBeanDefinitionForImportedConfigurationClass`方法会把导入的在自己配置类通过`@Bean`注解创建的类注册到容器中。而`loadBeanDefinitionsForBeanMethod`方法会解析`@Bean`注解，把被`@Bean`注解修饰的方法返回值存入容器。
+
+### 4.2. 使用包扫描的构造函数
+
+#### 4.2.1. 构造方法
+
+```java
+/**
+ * Create a new AnnotationConfigApplicationContext, scanning for bean definitions
+ * in the given packages and automatically refreshing the context.
+ * @param basePackages the packages to check for annotated classes
+ */
+public AnnotationConfigApplicationContext(String... basePackages) {
+	this();
+	// 如果入参为基础包，则进行包扫描的操作
+	scan(basePackages);
+	refresh();
+}
+```
+
+#### 4.2.2. scan 方法说明
+
+它是根据传入的类路径下(`classpath*`)的包解析Bean对象中注解的（包括类上以及类成员的），使用的是`ClassPathBeanDefinitionScanner`类中的`doScan`方法，该方法最终将得到的BeanDefinitionHolder信息存储到LinkedHashSet中，为后面初始化容器做准备。
+
+`doScan()`中的`findCandidateComponents`方法调用`ClassPathScanningCandidateComponentProvider`类中的`scanCandidateComponents`方法，而此方法又去执行了`PathMatchingResourcePatternResolver`类中的`doFindAllClassPathResources`方法，找到指定扫描包的URL(是URL，不是路径。因为是带有file协议的)，然后根据磁盘路径读取当前目录及其子目录下的所有类。接下来执行`AnnotationConfigUtils`类中的`processCommonDefinitionAnnotations`方法，剩余执行流程与通过字节码方式的一样。
+
+### 4.3. ClassPathScanningCandidateComponentProvider 的 registerDefaultFilters
+
+`ClassPathScanningCandidateComponentProvider` 的 `registerDefaultFilters()` 方法是Spring注册注解类型过滤器的处理逻辑
+
+详情查询源代码工程`\spring-note\Spring-Framework\`
+
+### 4.4. AbstractApplicationContext 的 refresh()
+
+`AbstractApplicationContext` 的 `refresh()` 方法是初始化容器与创建实现主流程【重点流程】
+
+```java
+/*
+ * 该方法是spring容器初始化的核心方法。是spring容器初始化的核心流程
+ * 	 此方法是典型的父类模板设计模式的运用，里面设置很多抽象方法。
+ * 	 根据不同的上下文对象，会调用不同的上下文对象子类方法中
+ *
+ * 核心上下文子类有：
+ * 	ClassPathXmlApplicationContext
+ * 	FileSystemXmlApplicationContext
+ * 	AnnotationConfigApplicationContext
+ * 	EmbeddedWebApplicationContext(springboot的上下文对象)
+ *
+ * 注：此方法重要程度【5】，必看
+ */
+@Override
+public void refresh() throws BeansException, IllegalStateException {
+	synchronized (this.startupShutdownMonitor) {
+		// 为容器初始化做准备，设置一些初始化信息，例如启动时间。验证必须要的属性等等。重要程度【0】
+		// Prepare this context for refreshing.
+		prepareRefresh();
+		/*
+		 *  告诉子类刷新内部bean工厂。实际就是重新创建一个Bean工厂
+		 *  此方法的重要程度【5】，主要的作用如下：
+		 *  1. 创建BeanFactory对象
+		 *  2. xml解析
+		 * 		传统标签解析，如：bean、import等
+		 * 		自定义标签解析，如：<context:component-scan base-package="com.moon.learningspring"/>
+		 * 		自定义标签解析流程：
+		 * 			1. 根据当前解析标签的头信息找到对应的namespaceUri
+		 * 			2. 加载spring所以jar中的spring.handlers文件。并建立映射关系
+		 * 			3. 根据namespaceUri从映射关系中找到对应的实现了NamespaceHandler接口的类
+		 * 			4. 调用类的init方法，init方法是注册了各种自定义标签的解析类
+		 * 			5. 根据namespaceUri找到对应的解析类，然后调用paser方法完成标签解析
+		 *  3. 将解析出来的xml标签封装成BeanDefinition对象
+		 */
+		// Tell the subclass to refresh the internal bean factory.
+		ConfigurableListableBeanFactory beanFactory = obtainFreshBeanFactory();
+		// 准备使用创建的这个BeanFactory，此方法给beanFactory设置一些属性值以及添加一些处理器，即准备Spring的上下文环境，重要程度【1】
+		// Prepare the bean factory for use in this context.
+		prepareBeanFactory(beanFactory);
+		try {
+			// Allows post-processing of the bean factory in context subclasses.
+			// 由子类实现对BeanFacoty的添加一些后置处理器（BeanPostProcessor）。例如，在web环境中bean的作用范围等等。（可以暂时不研究）
+			postProcessBeanFactory(beanFactory);
+			/*
+			 * 在Singleton的Bean对象初始化前，对Bean工厂进行一些处理
+			 * 此方法完成实例化实现了以下两个接口的类，并且调用postProcessBeanDefinitionRegistry()方法
+			 * 		BeanDefinitionRegistryPostProcessor
+			 *  	BeanFactoryPostProcessor
+			 */
+			// Invoke factory processors registered as beans in the context.
+			invokeBeanFactoryPostProcessors(beanFactory);
+			// 把实现了BeanPostProcessor接口的类实例化，并且加入到BeanFactory中。即注册拦截bean创建的处理器
+			// Register bean processors that intercept bean creation.
+			registerBeanPostProcessors(beanFactory);
+			// 初始化消息资源接口的实现类。主要用于处理国际化（i18n），重要程度【2】
+			// Initialize message source for this context.
+			initMessageSource();
+			// 为容器注册与初始化事件管理类
+			// Initialize event multicaster for this context.
+			initApplicationEventMulticaster();
+			/*
+			 * 在AbstractApplicationContext的子类中初始化其他特殊的bean
+			 * 此方法重点理解模板设计模式，因为在springboot中，此方法是用来完成内嵌式tomcat启动
+			 */
+			// Initialize other special beans in specific context subclasses.
+			onRefresh();
+			/*
+			 * 往事件管理类中注册事件类应用的监听器，就是注册实现了ApplicationListener接口的监听器bean
+			 * 	此方法会与initApplicationEventMulticaster()方法成对出现的
+			 */
+			// Check for listener beans and register them.
+			registerListeners();
+			/*
+			 * 实例化所有剩余的（非lazy init）单例。（就是没有被@Lazy修饰的单例Bean）
+			 * 此方法是spring中最重要的方法（没有之一），重要程度【5】。
+			 * 所以此方法要重点理解分析，此方法具体作用如下：
+			 * 		1. bean实例化过程
+			 * 		2. ioc
+			 * 		3. 注解支持
+			 * 		4. BeanPostProcessor的执行
+			 *		5. Aop的入口
+			 */
+			// Instantiate all remaining (non-lazy-init) singletons.
+			finishBeanFactoryInitialization(beanFactory);
+			// Last step: publish corresponding event.
+			// 完成context的刷新。主要是调用LifecycleProcessor的onRefresh()方法，并且发布事件（ContextRefreshedEvent）
+			finishRefresh();
+		}
+		catch (BeansException ex) {
+			if (logger.isWarnEnabled()) {
+				logger.warn("Exception encountered during context initialization - " +
+						"cancelling refresh attempt: " + ex);
+			}
+			// Destroy already created singletons to avoid dangling resources.
+			// 如果刷新失败那么就会将已经创建好的单例Bean销毁掉
+			destroyBeans();
+			// Reset 'active' flag.
+			// 重置context的活动状态
+			cancelRefresh(ex);
+			// Propagate exception to caller.
+			throw ex; // 抛出异常
+		}
+		finally {
+			// Reset common introspection caches in Spring's core, since we
+			// might not ever need metadata for singleton beans anymore...
+			// 重置的Spring内核的缓存。因为可能不再需要metadata给单例Bean了
+			resetCommonCaches();
+		}
+	}
+}
+```
+
+### 4.5. AbstractBeanFactory 的 doGetBean
+
+`AbstractBeanFactory`的`doGetBean()`方法，是实例化和获取Bean对象的主要流程
+
+详情查询源代码工程`\spring-note\Spring-Framework\`
+
+## 5. BeanNameGenerator及其实现类
+
+`BeanNameGenerator` 接口位于 `org.springframework.beans.factory.support` 包下面:
+
+```java
+public interface BeanNameGenerator {
+	/**
+	 * Generate a bean name for the given bean definition.
+	 * @param definition the bean definition to generate a name for
+	 * @param registry the bean definition registry that the given definition
+	 * is supposed to be registered with
+	 * @return the generated bean name
+	 */
+	String generateBeanName(BeanDefinition definition, BeanDefinitionRegistry registry);
+}
+```
+
+它有两个实现类，分别是：
+
+![](images/20200905140112370_25865.png)
+
+- `DefaultBeanNameGenerator`是给资源文件加载bean时使用（BeanDefinitionReader中使用）
+- `AnnotationBeanNameGenerator`是为了处理注解生成beanName的情况。
+
+> `DefaultBeanNameGenerator`与`AnnotationBeanNameGenerator`详见代码工程的注释
 
 
 
