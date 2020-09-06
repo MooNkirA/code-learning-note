@@ -1,4 +1,4 @@
-# Spring 注解开发使用详解汇总
+# Spring 基于 IOC 注解汇总
 
 > 注：注解的源码注释参考项目 https://github.com/MooNkirA/spring-note/tree/master/Spring-Framework
 
@@ -1975,7 +1975,7 @@ public void propertySourceFactoryTest() throws Exception {
 }
 ```
 
-## 3. IOC常用注解，注入时机和设定注入条件
+## 3. IOC常用注解 - 注入时机和设定注入条件
 
 ### 3.1. @DependsOn
 
@@ -3010,10 +3010,192 @@ LogUtil基于@PreDestroy注解销毁前的方法执行了...
 
 <font color=purple>*注：这两个注解并非Spring提供，而是JSR250规范提供*</font>
 
+# Spring 基于 AOP 注解汇总
+
+## 1. Spring注解驱动AOP开发入门示例
+
+案例需求：实现在执行service方法时输出执行日志。（除了业务层外，表现层和持久层也可以实现）
+
+### 1.1. 示例项目准备
+
+- 项目pom.xml引入依赖
+
+```xml
+<!-- spring核心依赖 -->
+<dependency>
+    <groupId>org.springframework</groupId>
+    <artifactId>spring-context</artifactId>
+    <version>5.1.6.RELEASE</version>
+</dependency>
+<!-- aspectj 依赖 -->
+<dependency>
+    <groupId>org.aspectj</groupId>
+    <artifactId>aspectjweaver</artifactId>
+    <version>1.8.13</version>
+</dependency>
+```
+
+- 创建实体类
+
+```java
+public class User implements Serializable {
+    private String id;
+    private String username;
+    private String password;
+    private String email;
+    private Date birthday;
+    private String gender;
+    private String mobile;
+    private String nickname;
+    // 省略getter、setter
+}
+```
+
+- 业务层接口与现实类
+
+```java
+public interface UserService {
+    /**
+     * 模拟保存用户
+     */
+    void saveUser(User user);
+}
+
+@Service("userService")
+public class UserServiceImpl implements UserService {
+    @Override
+    public void saveUser(User user) {
+        System.out.println("UserServiceImpl.saveUser()执行了保存用户" + user.toString());
+    }
+}
+```
+
+### 1.2. 项目配置类
+
+```java
+@Configuration
+@ComponentScan("com.moon.springsample")
+// 开启spring注解aop配置的支持
+@EnableAspectJAutoProxy
+public class SpringConfiguration {
+}
+```
+
+### 1.3. 编写切面类
+
+编写日志切面类
+
+```java
+// 将当前切面类注册到spring容器中
+@Component
+// 标识当前类是一个切面类
+@Aspect
+public class LogAspect {
+    /*
+     * 定义切入点表达式
+     *   表达式意思是：匹配 任意返回值 com.moon.springsample.sevice.impl包下 任意类 任意方法 任意类型参数列表
+     */
+    @Pointcut("execution(* com.moon.springsample.sevice.impl.*.*(..))")
+    private void pt() {}
+
+    /* @Before注解用于配置当前方法是一个前置通知 */
+    @Before("pt()")
+    public void beforeLog(JoinPoint joinPoint) {
+        System.out.println("前置通知(@Before)：执行切入点方法前...记录日志");
+    }
+
+    /* @AfterReturning注解用于配置当前方法是一个后置通知 */
+    @AfterReturning("pt()")
+    public void afterReturnLog() {
+        System.out.println("后置通知(@AfterReturning)：执行切入点方法后...记录日志");
+    }
+
+    /* @AfterThrowing注解用于配置当前方法是一个异常通知 */
+    @AfterThrowing("pt()")
+    public void afterThrowingLog() {
+        System.out.println("异常通知(@AfterThrowing)：执行切入点方法出现异常时...记录日志");
+    }
+
+    /* @After注解用于配置当前方法是一个最终通知 */
+    @After("pt()")
+    public void afterLog() {
+        System.out.println("最终通知(@After)：执行切入点方法完成后（不管有无异常都会执行）...记录日志");
+    }
+
+    /* @Around注解用于配置当前方法是一个环绕通知 */
+    @Around("pt()")
+    public Object aroundLog(ProceedingJoinPoint joinPoint) {
+        // 定义返回值
+        Object retValue = null;
+        try {
+            // 前置通知
+            System.out.println("环绕通知(@Around)：执行切入点方法之前...记录日志");
+            // 获取切入点方法执行所需的参数
+            Object[] args = joinPoint.getArgs();
+            // 执行切入点的方法
+            retValue = joinPoint.proceed(args);
+            // 后置通知
+            System.out.println("环绕通知(@Around)：执行切入点方法之后...记录日志");
+        } catch (Throwable throwable) {
+            throwable.printStackTrace();
+            //异常通知
+            System.out.println("环绕通知(@Around)：执行切入点方法产生异常后记录日志");
+        } finally {
+            //最终通知
+            System.out.println("环绕通知(@Around)：无论切入点方法执行是否有异常都记录日志");
+        }
+        return retValue;
+    }
+}
+```
+
+### 1.4. 测试
+
+- 测试代码
+
+```java
+@Test
+public void aspectBasicTest() {
+    // 1. 创建注解扫描的容器
+    ApplicationContext context = new AnnotationConfigApplicationContext(SpringConfiguration.class);
+    // 2.获取对象
+    UserService userService = context.getBean("userService", UserService.class);
+    // 3.执行方法
+    User user = new User();
+    user.setId("1");
+    user.setUsername("石原里美");
+    user.setNickname("十元");
+    userService.saveUser(user);
+}
+```
+
+- 测试结果
+
+```
+环绕通知(@Around)：执行切入点方法之前...记录日志
+前置通知(@Before)：执行切入点方法前...记录日志
+UserServiceImpl.saveUser()执行了保存用户User[id='1', username='石原里美', password='null', email='null', birthday=null, gender='null', mobile='null', nickname='十元']
+环绕通知(@Around)：执行切入点方法之后...记录日志
+环绕通知(@Around)：无论切入点方法执行是否有异常都记录日志
+最终通知(@After)：执行切入点方法完成后（不管有无异常都会执行）...记录日志
+后置通知(@AfterReturning)：执行切入点方法后...记录日志
+```
+
+## 2. 用于开启注解AOP支持的、配置切面、配置切入点表达式
+
+### 2.1. @EnableAspectJAutoProxy
+
+#### 2.1.1. 作用与使用场景
 
 
 
 
+#### 2.1.2. 相关属性
+
+| 属性名  |                       作用                       | 取值 |
+| :----: | ------------------------------------------------ | ---- |
+| `name` | 资源的JNDI名称。在spring的注入时，指定bean的唯一标识 |      |
+| `type` | 指定bean的类型                                    |      |
 
 
 
