@@ -15,3 +15,6 @@ Bin
 # ignore vnote
 **/_vnote.json
 _v_recycle_bin
+
+# 忽略VNote软件的缓存文件
+*.vswp
