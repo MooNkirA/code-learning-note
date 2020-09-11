@@ -3012,7 +3012,7 @@ LogUtil基于@PreDestroy注解销毁前的方法执行了...
 
 # Spring 基于 AOP 注解汇总
 
-## 1. Spring注解驱动AOP开发入门示例
+## 1. Spring注解驱动AOP快速入门示例
 
 案例需求：实现在执行service方法时输出执行日志。（除了业务层外，表现层和持久层也可以实现）
 
@@ -3093,9 +3093,9 @@ public class SpringConfiguration {
 public class LogAspect {
     /*
      * 定义切入点表达式
-     *   表达式意思是：匹配 任意返回值 com.moon.springsample.sevice.impl包下 任意类 任意方法 任意类型参数列表
+     *   表达式意思是：匹配 任意返回值 com.moon.springsample.service.impl包下 任意类 任意方法 任意类型参数列表
      */
-    @Pointcut("execution(* com.moon.springsample.sevice.impl.*.*(..))")
+    @Pointcut("execution(* com.moon.springsample.service.impl.*.*(..))")
     private void pt() {}
 
     /* @Before注解用于配置当前方法是一个前置通知 */
@@ -3187,44 +3187,976 @@ UserServiceImpl.saveUser()执行了保存用户User[id='1', username='石原里�
 
 #### 2.1.1. 作用与使用场景
 
-
-
+- **作用**：表示开启spring对注解aop的支持，只能标识有类或接口上。它有两个属性，分别是指定采用的代理方式和是否暴露代理对象，通过AopContext可以进行访问。从定义可以看得出，它引入`AspectJAutoProxyRegister.class`对象，该对象是基于注解`@EnableAspectJAutoProxy`注册一个`AnnotationAwareAspectJAutoProxyCreator`，该对象通过调用`AopConfigUtils.registerAspectJAnnotationAutoProxyCreatorIfNecessary(registry);`注册一个aop代理对象生成器。
+- **使用场景**：当注解驱动开发时，在需要使用aop实现某些功能的情况下，都需要用到此注解去开启AOP功能
 
 #### 2.1.2. 相关属性
 
-| 属性名  |                       作用                       | 取值 |
-| :----: | ------------------------------------------------ | ---- |
-| `name` | 资源的JNDI名称。在spring的注入时，指定bean的唯一标识 |      |
-| `type` | 指定bean的类型                                    |      |
+|       属性名        |                                作用                                 |    取值    |
+| :----------------: | ------------------------------------------------------------------- | ---------- |
+| `proxyTargetClass` | 指定是否采用cglib进行代理。默认值是false，表示使用jdk的代理              | true/false |
+|   `exposeProxy`    | 指定是否暴露代理对象，默认值是false。如果暴露则通过AopContext可以进行访问 | true/false |
 
+#### 2.1.3. 基础使用示例
 
+> 注：示例代码基于上面的AOP快速入门示例
 
+```java
+// 开启spring注解aop配置的支持，如不加上此注解，所有切面类逻辑都无法生效
+// @EnableAspectJAutoProxy
+/*
+ * proxyTargetClass属性，指定代理的方式
+ *   默认是false，使用jdk的代理；基于接口生成代理类
+ *   如果设置为true，则使用cglib方式是基于子类生成代理，此时业务的实现类不能用final修饰（因为final修饰的类不能被继承）
+ */
+// @EnableAspectJAutoProxy(proxyTargetClass = true)
+// 指定是否暴露代理对象，默认值是false。如果暴露则通过AopContext可以进行访问
+@EnableAspectJAutoProxy(exposeProxy = true)
+public class SpringConfiguration {
+}
+```
 
+- 修改切入点只指定一个方法
 
+```java
+@Component
+@Aspect
+public class LogAspect {
+    /*
+     * 修改为切入点只包含某些方法，其他方法在调用该切入点方法时，也想被实现此增强的逻辑
+     *  此时就需要通过暴露代理对象，再使用代理对象调用相应的切入点方法即可
+     */
+    @Pointcut("execution(* com.moon.springsample.service.impl.*.saveUser(..))")
+    private void pt() {
+    }
+    ....
+}
+```
 
+- 在实现类增加没有被切入点包含的方法，然后通过暴露的代理类去调用切入点的方法
 
+```java
+@Service("userService")
+// 如果设置@EnableAspectJAutoProxy(proxyTargetClass = true)，则不能使用final修改此实现类，因为不能生成子类
+public final class UserServiceImpl implements UserService {
 
+    @Override
+    public void saveUser(User user) {
+        System.out.println("UserServiceImpl.saveUser()执行了保存用户" + user.toString());
+    }
 
+    @Override
+    public void saveAllUser(List<User> users) {
+       // 设置@EnableAspectJAutoProxy(exposeProxy = true)，可以通过AopContext获取，暴露aop的代理对象
+        UserService proxy = (UserService) AopContext.currentProxy();
+        for (User user : users) {
+            // 因为定义切入点没有包含saveAllUser方法，所以不被切面增强，就算调用切入点的方法，也不会有增强的效果
+            // this.saveUser(user);
+            // 此时通过代理对象去调用切入点的方法即可
+            proxy.saveUser(user);
+        }
+    }
+}
+```
 
+- 测试代码
 
+```java
+@Test
+public void enableAspecctJAutoProxyasicTest() {
+    // 1. 创建注解扫描的容器
+    ApplicationContext context = new AnnotationConfigApplicationContext(SpringConfiguration.class);
+    // 2.获取对象
+    UserService userService = context.getBean("userService", UserService.class);
+    // 3.执行方法
+    User user = new User();
+    user.setId("1");
+    user.setUsername("石原里美");
+    user.setNickname("十元");
+    // 执行没有被切面切到的方法
+    ArrayList<User> users = new ArrayList<>();
+    users.add(user);
+    userService.saveAllUser(users);
+}
+```
 
+### 2.2. @Aspect
 
+#### 2.2.1. 作用与使用场景
 
+- **作用**：声明当前类是一个切面类。
+- **使用场景**：此注解也是一个注解驱动开发aop的必备注解。
 
+#### 2.2.2. 相关属性
 
+|  属性名  |                                               作用                                                |                         取值                         |
+| :-----: | ------------------------------------------------------------------------------------------------ | ---------------------------------------------------- |
+| `value` | 默认的切面类应该为单例的。当切面类为一个多例类时，指定预处理的切入点表达式。用法是`perthis(切入点表达式)`。 | Valid values are "" (singleton), "perthis(...)", etc |
 
+> `@Aspect`注解它支持指定切入点表达式，或者在修饰的切面类中，使用`@Pointcut`修饰的方法名称（要求全限定方法名）
+>
+> 属性中的`perthis`切入点表达式的优先级比`@Pointcut`高
 
+#### 2.2.3. 使用示例
 
+- 改造切面类，用于测试指定`@Aspect`属性值时的变化。
 
+```java
+@Component
+// 标识当前类是一个切面类，如果不标识此注解，就算有@Compoent注解，也只能是让spring容器管理此类的实例，不会解析里面的相关通知方法
+@Aspect
+/*
+ * 注意点1：当@Aspect注解中指定有值，或者切入点表达式后，此时当前类就会变成多例。如果不标识@Scope为多例，会报以下的错误
+ *      Bean with name 'logAspect' is a singleton, but aspect instantiation model is not singleton
+ * 注意点2：在@Aspect注解切入点表达式，其执行优先级会高于在@Pointcut注解或者在相关通知的注解上的表达式
+ *
+ * 实际开发中，在@Aspect注解中指定切入点表达式极少用
+ */
+// @Aspect("perthis(execution(* com.moon.springsample.service.impl.UserServiceImpl.saveAll(..)))")
+// @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE) // 注意：通常情况下切面类是不需要多例的。
+@Order(1) // 通过@Order注解来指定多个切面同一个类型的通知方法执行的顺序
+public class LogAspect {
+    /* @Before注解用于配置当前方法是一个前置通知 */
+    @Before("execution(* com.moon.springsample.service.impl.*.*(..))")
+    public void beforeLog(JoinPoint joinPoint) {
+        System.out.println("前置通知(@Before)：执行切入点方法前...记录日志");
+    }
+}
+```
 
+- 增加多个切面，用于测试多个情况下同一类型的通知方法的执行顺序
 
+```java
+@Component
+/*
+ * 多个切面类，同一个类型通知的执行顺序如下：
+ *  1. 如果什么都配置的情况，是以类的名称首字母顺序来执行同一个类型的通知方法（与标识通知类型注解的方法名称无关）
+ *  2. 通过在切面类上标识@Order注解来指定同一类型的通知方法的顺序，值越小越优先
+ */
+@Aspect
+@Order(9)
+public class EfficiencyAspect {
 
+    private Long time;
 
+    /**
+     * 前置通知，记录开始时间
+     */
+    @Before("execution(* com.moon.springsample.service.impl.*.*(..))")
+    public void before() {
+        time = System.currentTimeMillis();
+        System.out.println("方法执行开始时间：" + time);
+    }
 
+    /**
+     * 最终通知，统计方法执行时长
+     */
+    @After("execution(* com.moon.springsample.service.impl.*.*(..))")
+    public void after() {
+        System.out.println("方法执行时间为:" + ((System.currentTimeMillis() - time) / 1000));
+    }
+}
+```
 
+- 测试结果
 
+```
+前置通知(@Before)：执行切入点方法前...记录日志
+方法执行开始时间：1599555847226
+UserServiceImpl.saveUser()执行了保存用户User[id='1', username='石原里美', password='null', email='null', birthday=null, gender='null', mobile='null', nickname='十元']
+方法执行时间为:1
+```
 
+### 2.3. @Pointcut
 
+#### 2.3.1. 作用与使用场景
+
+- **作用**：此注解是用于指定切入点表达式的。此注解是代替xml中的`<aop:pointcut>`标签，实现切入点表达式的通用化。
+- **使用场景**：在实际开发中，当多个通知需要执行，同时增强的规则确定的情况下，就可以把切入点表达式通用化。
+
+#### 2.3.2. 相关属性
+
+|   属性名    |                                                    作用                                                    | 取值 |
+| :--------: | --------------------------------------------------------------------------------------------------------- | ---- |
+|  `value`   | 用于指定切入点表达式                                                                                         |      |
+| `argNames` | 用于指定切入点表达式的参数，参数可以是execution中的，也可以是args中的。通常情况下不使用此属性也可以获得切入点方法参数 |      |
+
+> 表达式的配置详解详见《01-Spring笔记.md》
+
+#### 2.3.3. 使用示例
+
+- 创建一个独立的类，抽取公共的切入点表达式，方法的权限修饰符设置为`public`，也可以根据不同的需求定义为`protected`或者空
+
+```java
+/**
+ * 定义用于多个切面类使用的 @Pointcut
+ */
+public class MyPointcut {
+    /*
+     * 将一些公共的切入点表达式抽取到一个类中，使用 @Pointcut 注解修饰的方法设置为 public 即可(也可以根据不同的需求定义为`protected`或者空)
+     *  同理，在某个切面类中，定义的@Pointcut方法，将包权限修饰符修改为 public，其他切面类也可以使用
+     */
+    @Pointcut("execution(* com.moon.springsample.service.impl.*.*(..))")
+    public void pt() {
+    }
+}
+```
+
+- 修改原来示例的两个切面类
+
+```java
+@Component
+// 类上的@Aspect注解也可以指定抽取的公共切入点表达式，但指定后需要将作用范围设置为多例，否则会报错
+@Aspect("perthis(com.moon.springsample.aspect.MyPointcut.pt())")
+@Scope("prototype")
+public class LogAspect {
+    /*
+     * @Pointcut切入点基础使用
+     *   value属性：指定切入点表达式，在相应的通知类注解引入相应的方法名称即可
+     */
+    /*@Pointcut("execution(* com.moon.springsample.service.impl.*.*(..))")
+    private void pt() {
+    }*/
+
+    /* @Before注解用于配置当前方法是一个前置通知 */
+    /*@Before("pt()")
+    public void beforeLog() {
+        System.out.println("前置通知(@Before)：执行切入点方法前...记录日志");
+    }*/
+
+    /*
+     * @Pointcut切入点指定方法参数的使用
+     *   在value属性的中使用了&&符号，表示并且的关系。
+     *      &&符号后面的args和execution一样，都是切入点表达式支持的关键字，表示匹配参数。
+     *      指定的内容可以是全限定类名，或者是名称。当指定参数名称时，要求与方法中形参名称相同
+     *
+     *   argNames属性，是定义参数的名称，该名称必须和args关键字中的名称一致。(其实不指定一样可以实现)
+     */
+    // 指定argNames属性，该名称必须和args关键字中的名称一致。
+    // @Pointcut(value = "execution(* com.moon.springsample.service.impl.*.*(..)) && args(user)", argNames = "user")
+    // 不指定argNames属性，args指定参数名称时，要求与方法中形参名称相同
+    // @Pointcut(value = "execution(* com.moon.springsample.service.impl.*.*(..)) && args(user)")
+    // execution中方法参数使用全限定类名
+    /*@Pointcut(value = "execution(* com.moon.springsample.service.impl.*.*(com.moon.springsample.domain.User)) && args(user)")
+    private void pt(User user) {
+    }*/
+
+    /* @Before等注解通知类注解，与@Pointcut一样，不指定argNames属性也是可以 */
+    // @Before(value = "pt(user)", argNames = "user")
+    /*@Before("pt(user)")
+    public void beforeLog(User user) {
+        System.out.println("前置通知(@Before)：执行切入点方法前...记录日志" + user.toString());
+    }*/
+
+    /* 使用MyPointcut类中定义的全局@Pointcut注解 */
+    @Before("com.moon.springsample.aspect.MyPointcut.pt()")
+    public void beforeLog() {
+        System.out.println("前置通知(@Before)：执行切入点方法前...记录日志");
+    }
+}
+```
+
+```java
+@Component
+@Aspect
+public class EfficiencyAspect {
+
+    private Long time;
+
+    /**
+     * 前置通知，记录开始时间
+     */
+    @Before("com.moon.springsample.aspect.MyPointcut.pt()")
+    public void before() {
+        time = System.currentTimeMillis();
+        System.out.println("方法执行开始时间：" + time);
+    }
+
+    /**
+     * 最终通知，统计方法执行时长
+     */
+    @After("com.moon.springsample.aspect.MyPointcut.pt()")
+    public void after() {
+        System.out.println("方法执行时间为:" + ((System.currentTimeMillis() - time) / 1000));
+    }
+}
+```
+
+## 3. AOP用于配置通知的注解
+
+### 3.1. @Before
+
+#### 3.1.1. 作用与使用场景
+
+- **作用**：被此注解修饰的方法为前置通知。前置通知的执行时间点是在切入点方法执行之前。
+- **使用场景**：在实际开发中，如果需要对切入点方法执行之前进行增强，此时就用到了前置通知。在通知（增强的方法）中需要获取切入点方法中的参数进行处理时，就要配合切入点表达式参数来使用。
+
+#### 3.1.2. 相关属性
+
+|   属性名    |                                               作用                                               | 取值 |
+| :--------: | ------------------------------------------------------------------------------------------------ | ---- |
+|  `value`   | 用于指定切入点表达式。可以是表达式，也可以是表达式的引用。                                             |      |
+| `argNames` | 用于指定切入点表达式的参数，它要求和切入点表达式中的参数名称一致。通常不指定也可以获取切入点方法的参数内容。 |      |
+
+### 3.2. @AfterReturning
+
+#### 3.2.1. 作用与使用场景
+
+- **作用**：用于配置后置通知。后置通知的执行是在切入点方法<font color=red>**正常执行**</font>之后执行。
+- **使用场景**：此注解是用于配置后置增强切入点方法的。被此注解修饰方法会在切入点方法正常执行情况下之后执行。在实际开发中，像提交事务，记录访问日志，统计方法执行效率等等都可以利用后置通知实现
+
+<font color=red>**需要注意的是：由于基于注解的配置时，spring创建通知方法的拦截器链时，后置通知在最终通知之后，所以会先执行`@After`注解修饰的方法。**</font>
+
+#### 3.2.2. 相关属性
+
+|   属性名    |                                               作用                                               | 取值 |
+| :---------: | ------------------------------------------------------------------------------------------------ | ---- |
+|   `value`   | 用于指定切入点表达式，可以是表达式，也可以是表达式的引用                                               |      |
+| `pointcut`  | 作用和value是一样的                                                                                |      |
+| `returning` | 指定切入点方法返回值的变量名称。它必须和切入点方法返回值名称一致                                        |      |
+| `argNames`  | 用于指定切入点表达式的参数，它要求和切入点表达式中的参数名称一致。通常不指定也可以获取切入点方法的参数内容。 |      |
+
+### 3.3. @AfterThrowing
+
+#### 3.3.1. 作用与使用场景
+
+- **作用**：用于配置异常通知。
+- **使用场景**：用此注解修饰的方法执行时机是在切入点方法执行产生异常之后执行。
+
+#### 3.3.2. 相关属性
+
+|   属性名    |                                               作用                                               | 取值 |
+| :--------: | ------------------------------------------------------------------------------------------------ | ---- |
+|  `value`   | 用于指定切入点表达式，可以是表达式，也可以是表达式的引用                                               |      |
+| `pointcut` | 作用和value是一样的                                                                                |      |
+| `throwing` | 指定切入点方法执行产生异常时的异常对象变量名称。它必须和异常变量名称一致                                 |      |
+| `argNames` | 用于指定切入点表达式的参数，它要求和切入点表达式中的参数名称一致。通常不指定也可以获取切入点方法的参数内容。 |      |
+
+### 3.4. @After
+
+#### 3.4.1. 作用与使用场景
+
+- **作用**：用于指定最终通知。
+- **使用场景**：最终通知的执行时机，是在切入点方法执行完成之后执行，无论切入点方法执行是否产生异常最终通知都会执行。所以被此注解修饰的方法，通常都是做一些清理操作。
+
+#### 3.4.2. 相关属性
+
+|   属性名    |                                               作用                                               | 取值 |
+| :--------: | ------------------------------------------------------------------------------------------------ | ---- |
+|  `value`   | 用于指定切入点表达式。可以是表达式，也可以是表达式的引用。                                             |      |
+| `argNames` | 用于指定切入点表达式的参数，它要求和切入点表达式中的参数名称一致。通常不指定也可以获取切入点方法的参数内容。 |      |
+
+### 3.5. 前4种注解综合示例
+
+#### 3.5.1. 基础使用示例
+
+- 修改用于测试的业务类
+
+```java
+@Service("userService")
+public class UserServiceImpl implements UserService {
+    @Override
+    public void saveUser(User user, String id) {
+        System.out.println("UserServiceImpl.saveUser()执行了保存用户" + user.toString());
+        // int a = 1 / 0; // 模拟异常
+    }
+
+    @Override
+    public User findById(String id) {
+        User user = new User();
+        user.setId(id);
+        user.setUsername("长泽雅美");
+        System.out.println("准备返回的User对象是: " + user.toString());
+        // int a = 1 / 0; // 模拟异常
+        return user;
+    }
+}
+```
+
+- 修改切面类，增加4种不同通知的注解
+
+```java
+// 将当前切面类注册到spring容器中
+@Component
+// 标识当前类是一个切面类
+@Aspect
+public class LogAspect {
+    /* 定义切入点表达式：匹配 任意返回值 com.moon.springsample.service.impl包下 任意类 任意方法 任意类型参数列表 */
+    @Pointcut("execution(* com.moon.springsample.service.impl.*.*(..))")
+    private void pt() {
+    }
+
+    /*
+     * @Before注解用于配置当前方法是一个前置通知
+     *  基于注解的AOP情况下：它是在切入点方法执行之前
+     *  前置通知可以方法的参数，被对其进行预处理与增强，如果是多个参数，在args函数中定义即可
+     *  argNames属性不写也同样效果
+     *
+     * 注：如果匹配了args方法参数，则会拦截有对应参数的方法，不再是类中任意方法，即此注解只拦截UserServiceImpl#saveUser(User user, String id)方法
+     */
+    @Before(value = "execution(* com.moon.springsample.service.impl.*.*(..)) && args(user, id)", argNames = "user,id")
+    // @Before("execution(* com.moon.springsample.service.impl.*.*(..)) && args(user, id)")
+    public void beforeLog(User user, String id) {
+        id = UUID.randomUUID() + "|" + id;
+        user.setId(id);
+        System.out.println("前置通知(@Before)：获取id后修改为 = " + id);
+        System.out.println("前置通知(@Before)：执行切入点方法前...记录日志");
+    }
+
+    /*
+     * @AfterReturning注解用于配置当前方法是一个后置通知
+     *  基于注解的AOP情况下：它是在切入点方法正常执行并返回之前执行（注意：此时已经执行完最终通知了）
+     *  pointcut属性与value的作用完全一样
+     *  returning属性可以获取方法的返回值
+     */
+    @AfterReturning(pointcut = "pt()", returning = "object")
+    public void afterReturnLog(Object object) {
+        if (object instanceof User) {
+            User user = (User) object;
+            System.out.println("后置通知(@AfterReturning)，获取到的返回值是" + user.toString());
+        }
+        System.out.println("后置通知(@AfterReturning)：执行切入点方法正常执行后并返回之前执行（执行完最终通知后）...记录日志");
+    }
+
+    /*
+     * @AfterThrowing注解用于配置当前方法是一个异常通知
+     *  基于注解的AOP情况下：它是在切入点方法执行产生异常之后执行（注意：此时已经执行完最终通知了）
+     *  pointcut属性与value的作用完全一样
+     *  throwing属性可以获取切入点方法出现的异常对象
+     */
+    @AfterThrowing(value = "pt()", throwing = "t")
+    public void afterThrowingLog(Throwable t) {
+        System.out.println("异常通知(@AfterThrowing)：执行切入点方法出现异常: " + t.getMessage());
+    }
+
+    /*
+     * @After注解用于配置当前方法是一个最终通知
+     *  基于注解的AOP情况下：它是在切入点方法执行之后执行
+     *  与@Before注解一样，可以获取方法参数，如果指定了方法的参数列表，即只会拦截与其相应的方法
+     *
+     * 注：即此示例只拦截到UserServiceImpl#findById(String id)方法
+     */
+    @After(value = "execution(* com.moon.springsample.service.impl.*.*(..)) && args(id)", argNames = "id")
+    public void afterLog(String id) {
+        System.out.println("最终通知(@After)：获取到的方法入参id：" + id);
+        System.out.println("最终通知(@After)：执行切入点方法完成后（不管有无异常都会执行）...记录日志");
+    }
+}
+```
+
+- 测试代码与结果
+
+```java
+@Test
+public void adviceTypeBasicTest() {
+    // 1. 创建注解扫描的容器
+    ApplicationContext context = new AnnotationConfigApplicationContext(SpringConfiguration.class);
+    // 2.获取对象
+    UserService userService = context.getBean("userService", UserService.class);
+    // 3.执行方法
+    User user = new User();
+    user.setId("1");
+    user.setUsername("石原里美");
+    user.setNickname("十元");
+    userService.saveUser(user, user.getId());
+    // 调用有返回值的方法
+    userService.findById("69");
+}
+```
+
+**运行结果（无异常）**
+
+![](images/20200909142830145_13433.png)
+
+**运行结果（有异常）**
+
+![](images/20200909143016664_4466.png)
+
+#### 3.5.2. 同一切面同一通知类型的执行顺序示例
+
+```java
+@Component
+@Aspect
+public class LogAspect {
+    /* 定义切入点 */
+    @Pointcut("execution(* com.moon.springsample.service.impl.*.*(..))")
+    private void pt() {
+    }
+
+    /*
+     * 同一个切面中，同一个类型的通知执行顺序：
+     *  以下两个前置通知的执行顺序是 beforeLog_C --> beforeLog_a
+     *  所以spring aop默认的执行顺序是根据方法名逐个字母的ascII码表的值大小排序，越小越优先
+     */
+    /* @Before前置通知 2 */
+    /*@Before("pt()")
+    public void beforeLog_a() {
+        System.out.println("beforeLog_a前置通知方法执行了...");
+    }*/
+
+    /* @Before前置通知 1 */
+    /*@Before("pt()")
+    public void beforeLog_C() {
+        System.out.println("beforeLog_C前置通知方法执行了...");
+    }*/
+
+    /* ************************** 方法重载的情况 ********************************* */
+    /*
+     * 同一个切面中，同一个类型的通知方法重载的情况执行顺序：
+     *  比较的方法与非重载的方法一致，也是根据比较方法名 + 参数列表的逐个字母的ascII码表的值大小排序，越小越优先
+     */
+    @Before("execution(* com.moon.springsample.service.impl.*.*(..))")
+    public void beforeLog() {
+        System.out.println("beforeLog()前置通知方法执行了...");
+    }
+
+    @Before("execution(* com.moon.springsample.service.impl.*.*(..)) && args(user)")
+    public void beforeLog(User user) {
+        System.out.println("beforeLog(User user)前置通知方法执行了...");
+    }
+}
+```
+
+### 3.6. @Around
+
+#### 3.6.1. 作用与使用场景
+
+- **作用**：用于指定环绕通知。
+- **使用场景**：环绕通知有别于前面介绍的四种通知类型。它不是指定增强方法执行时机的，而是spring提供的一种可以通过编码的方式手动控制增强方法何时执行的机制。
+
+#### 3.6.2. 相关属性
+
+|   属性名    |                                               作用                                               | 取值 |
+| :--------: | ------------------------------------------------------------------------------------------------ | ---- |
+|  `value`   | 用于指定切入点表达式。可以是表达式，也可以是表达式的引用。                                             |      |
+| `argNames` | 用于指定切入点表达式的参数，它要求和切入点表达式中的参数名称一致。通常不指定也可以获取切入点方法的参数内容。 |      |
+
+#### 3.6.3. 使用示例
+
+案例需求：模块执行一个业务层的多个方法，分别记录每个方法执行的相关信息（如：方法名、方法描述等）
+
+- 创建测试相关的实体类与业务接口实现
+
+```java
+/**
+ * 系统日志的实体类
+ */
+public class SystemLog implements Serializable {
+    private String id;      // 日志的主键
+    private String method;  // 当前执行的操作方法名称
+    private String action;  // 当前执行的操作方法说明
+    private Date time;      // 执行时间
+    private String remoteIP;// 来访者IP
+    // ...省略getter/setter
+}
+
+public interface UserService {
+    /**
+     * 模拟保存用户
+     */
+    // @Description注解是spring提供的用于添加描述信息，可用于类、接口、方法上
+    @Description("保存用户")
+    void saveUser(User user);
+
+    /**
+     * 根据id查询用户
+     */
+    @Description("根据ID查询用户")
+    User findById(String id);
+
+    /**
+     * 更新用户
+     */
+    @Description("更新用户")
+    void update(User user);
+
+    /**
+     * 删除用户
+     */
+    @Description("根据ID删除用户")
+    void delete(String id);
+
+    /**
+     * 查询所有用户
+     */
+    @Description("查询所有用户")
+    List<User> findAll();
+}
+
+@Service("userService")
+public class UserServiceImpl implements UserService {
+    @Override
+    public void saveUser(User user) {
+        System.out.println("UserServiceImpl.saveUser()执行了保存用户" + user.toString());
+    }
+
+    @Override
+    public User findById(String id) {
+        User user = new User();
+        user.setId(id);
+        user.setUsername("长泽雅美");
+        return user;
+    }
+
+    @Override
+    public void update(User user) {
+        System.out.println("执行了更新用户" + user);
+    }
+
+    @Override
+    public void delete(String id) {
+        System.out.println("执行了删除用户" + id);
+    }
+
+    @Override
+    public List<User> findAll() {
+        List<User> users = new ArrayList<>();
+        for (int i = 1; i < 10; i++) {
+            User user = new User();
+            user.setId(String.valueOf(i));
+            user.setUsername("天锁斩月" + i);
+            user.setNickname("MooNkirA" + i);
+            users.add(user);
+        }
+        return users;
+    }
+}
+```
+
+- 创建配置类
+
+```java
+@Configuration
+@ComponentScan("com.moon.springsample")
+@EnableAspectJAutoProxy
+public class SpringConfiguration {
+}
+```
+
+- 编写切面类
+
+```java
+@Component
+@Aspect
+public class LogAspect {
+    /* 定义切入点表达式 */
+    @Pointcut("execution(* com.moon.springsample.service.impl.*.*(..))")
+    private void pt() {
+    }
+
+    /** 注解 @Around 使用案例 */
+    @Around("pt()")
+    public Object aroundLog(ProceedingJoinPoint joinPoint) {
+        // 定义返回值
+        Object retValue = null;
+        try {
+            // 创建系统日志对象
+            SystemLog systemLog = new SystemLog();
+            // 设置主键
+            String id = UUID.randomUUID().toString().replace("-", "").toUpperCase();
+            systemLog.setId(id);
+            // 设置来访者ip（java工程，没有请求信息，实际web项目，可以通过Request对象获取）
+            systemLog.setRemoteIP("127.0.0.1");
+            // 设置执行时间
+            systemLog.setTime(new Date());
+
+            /* 设置当前执行的方法名称、方法描述信息 */
+            // 1. 使用ProceedingJoinPoint接口中的获取签名方法
+            Signature signature = joinPoint.getSignature();
+            // 2. 判断当前签名是否方法签名类型
+            if (signature instanceof MethodSignature) {
+                // 3. 把签名转成方法签名
+                MethodSignature methodSignature = (MethodSignature) signature;
+                // 4. 获取当前执行的方法对象
+                Method method = methodSignature.getMethod();
+                // 5. 获取方法名称
+                String methodName = method.getName();
+                // 6. 设置系统日志对象的方法名称属性
+                systemLog.setMethod(methodName);
+
+                // 7. 判断当前方法上是否有@Description注解
+                if (method.isAnnotationPresent(Description.class)) {
+                    // 8. 获取得到当前方法上的@Description注解
+                    Description description = method.getAnnotation(Description.class);
+                    // 9. 获取注解的value属性
+                    String value = description.value();
+                    // 10. 设置系统日志对象的方法说明属性赋值
+                    systemLog.setAction(value);
+                }
+            }
+
+            // 切入点方法执行前记录日志（实际项目是保存到日志，此处只进行模拟）
+            System.out.println("环绕通知(@Around)执行了记录日志：" + systemLog.toString());
+
+            // 获取切入点方法执行所需的参数
+            Object[] args = joinPoint.getArgs();
+            // 执行切入点的方法（就算不传入切入点方法的的参数，也是可以正常执行的）
+            retValue = joinPoint.proceed(args);
+        } catch (Throwable throwable) {
+            throwable.printStackTrace();
+            // 异常处理
+            System.out.println("环绕通知(@Around)：增强方法异常处理");
+        }
+        // 返回
+        return retValue;
+    }
+
+    /*
+     * @Around注解用于配置当前方法是一个环绕通知
+     *  注意：如果将通知的方法返回设置为void，而拦截增强的方法是有返回的情况下，经过通知增加后，原来的方法是获取不到返回值的
+     *      所以一般都是定义返回Object类型即可
+     */
+    /*@Around("pt()")
+    public Object aroundLog(ProceedingJoinPoint joinPoint) {
+        // 定义返回值
+        Object retValue = null;
+
+        try {
+            // 前置通知
+            System.out.println("环绕通知(@Around)：执行切入点方法之前...记录日志");
+
+            // 获取切入点方法执行所需的参数
+            Object[] args = joinPoint.getArgs();
+            // 执行切入点的方法（就算不传入切入点方法的的参数，也是可以正常执行的）
+            retValue = joinPoint.proceed(args);
+
+            // 后置通知
+            System.out.println("环绕通知(@Around)：执行切入点方法之后...记录日志");
+        } catch (Throwable throwable) {
+            throwable.printStackTrace();
+            // 异常通知
+            System.out.println("环绕通知(@Around)：执行切入点方法产生异常后记录日志");
+        } finally {
+            // 最终通知
+            System.out.println("环绕通知(@Around)：无论切入点方法执行是否有异常都记录日志");
+        }
+        return retValue;
+    }*/
+}
+```
+
+- 测试代码
+
+```java
+@Test
+public void aroundDemoTest() {
+    // 1. 创建注解扫描的容器
+    ApplicationContext context = new AnnotationConfigApplicationContext(SpringConfiguration.class);
+    // 2.获取对象
+    UserService userService = context.getBean("userService", UserService.class);
+    // 测试保存方法
+    User user = new User();
+    user.setId("1");
+    user.setUsername("石原里美");
+    user.setNickname("十元");
+    userService.saveUser(user);
+    System.out.println("-------------------------------------");
+    // 测试根据id查询
+    User user1 = userService.findById("1");
+    System.out.println("执行了根据id查询: " + user1.toString());
+    System.out.println("-------------------------------------");
+    // 测试删除
+    userService.delete("1");
+    System.out.println("-------------------------------------");
+    //测试更新
+    userService.update(user);
+    System.out.println("-------------------------------------");
+    //测试查询所有
+    List<User> users = userService.findAll();
+    for (User u : users) {
+        System.out.println("执行了查询所有: " + u.toString());
+    }
+}
+```
+
+## 4. AOP用于扩展目标类的注解
+
+### 4.1. @DeclareParents
+
+#### 4.1.1. 作用与使用场景
+
+- **作用**：用于给被增强的类提供新的方法。（即相当被增强的类多实现了新的接口）
+- **使用场景**：当完成了一个项目的某个阶段开发，此时需要对已完成的某个类加入一些新的方法，首先想到的是写一个接口，然后让这些需要方法的类实现此接口，但是如果目标类非常复杂，改动的话可能非常麻烦。此时就可以使用此注解，然后建一个代理类，同时代理该类和目标类。
+
+#### 4.1.2. 相关属性
+
+|     属性名     |                                作用                                | 取值 |
+| :-----------: | ----------------------------------------------------------------- | ---- |
+|    `value`    | 用于指定目标类型的表达式。当在全限定类名后面跟上`+`时，表示当前类及其子类 |      |
+| `defaultImpl` | 指定提供方法或者字段的默认实现类                                      |      |
+
+#### 4.1.3. 使用示例
+
+> 使用前端示例基础的代码
+
+- 创建校验的接口与实现类
+
+```java
+public interface ValidateExtensionService {
+    /**
+     * 校验用户信息
+     */
+    boolean checkUser(User user);
+}
+
+public class ValidateExtensionServiceImpl implements ValidateExtensionService {
+    @Override
+    public boolean checkUser(User user) {
+        if (user.getNickname() == null) {
+            return true;
+        }
+        // 不为空，则校验是否包含过滤的字眼
+        return !user.getNickname().contains("孙子");
+    }
+}
+```
+
+- 修改切面类，使用`@DeclareParents`注解引入扩展接口
+
+```java
+@Component
+@Aspect
+public class LogAspect {
+    /*
+     * @DeclareParents注解让目标类具备当前声明接口中的方法，相当于多实现了一个接口，实现的逻辑就在defaultImpl属性指定，
+     * 底层也是使用动态代理实现
+     *      value属性：用于指定目标类型的表达式。当在全限定类名后面跟上”+“时，表示当前类及其子类
+     *      defaultImpl属性：指定提供方法或者字段的默认实现类，此示例为校验扩展实现类
+     */
+    @DeclareParents(value = "com.moon.springsample.service.UserService+", defaultImpl = ValidateExtensionServiceImpl.class)
+    private ValidateExtensionService validateExtensionService;
+
+    /*
+     * 第二种触发@DeclareParents注解的方式
+     *   通过this关键字，将扩展接口的对象引用做为通知方法形参
+     *   而args函数是切入点方法的形参，两个不能搞混
+     */
+    @Before("execution(* com.moon.springsample.service.impl.*.*(..))&&this(validateExtensionService)&&args(user)")
+    public void beforeLog(ValidateExtensionService validateExtensionService, User user) {
+        // 调用扩展接口的方法
+        if (validateExtensionService.checkUser(user)) {
+            // 校验通过
+            System.out.println("beforeLog()前置通知方法执行了...");
+        } else {
+            // 校验不通过，抛出异常
+            throw new IllegalArgumentException("用户昵称包含非法字符！");
+        }
+    }
+}
+```
+
+- 测试代码
+
+```java
+@Test
+public void adviceSequenceBasicTest() {
+    // 1. 创建注解扫描的容器
+    ApplicationContext context = new AnnotationConfigApplicationContext(SpringConfiguration.class);
+    // 2.获取对象
+    UserService userService = context.getBean("userService", UserService.class);
+    // 3.执行方法
+    User user = new User();
+    user.setId("1");
+    user.setUsername("石原里美");
+    user.setNickname("十元的孙子");
+
+    // 第一种触发@DeclareParents扩展接口的方式：在使用时自行强转新引入接口类型，然后调用方法。
+    // ValidateExtensionService validate = (ValidateExtensionService) userService;
+    // 调用扩展接口的方法
+    /*if (validate.checkUser(user)) {
+        userService.saveUser(user);
+    } else {
+        System.out.println("用户信息校验不通过");
+    }*/
+
+    /*
+     * 第二种触发@DeclareParents扩展接口的方式：在通知类中，使用this关键字，引入新目标类对象，调用方法触发。
+     *   所以这里按原来逻辑直接调用方法即可
+     */
+    userService.saveUser(user);
+}
+```
+
+### 4.2. @EnableLoadTimeWeaving
+
+#### 4.2.1. 作用与使用场景
+
+- **作用**：用于切换不同场景下实现增强。
+- **使用场景**：
+    - 在Java 语言中，从织入切面的方式上来看，存在三种织入方式：编译期织入、类加载期织入和运行期织入。编译期织入是指在Java编译期，采用特殊的编译器，将切面织入到Java类中；而类加载期织入则指通过特殊的类加载器，在类字节码加载到JVM时，织入切面；运行期织入则是采用CGLib工具或JDK动态代理进行切面的织入。
+    - AspectJ提供了两种切面织入方式，第一种通过特殊编译器，在编译期，将AspectJ语言编写的切面类织入到Java类中，可以通过一个Ant或Maven任务来完成这个操作；第二种方式是类加载期织入，也简称为LTW（Load Time Weaving）
+
+#### 4.2.2. 相关属性
+
+|      属性名       |                                作用                                |                                                                                 取值                                                                                 |
+| :--------------: | ----------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `aspectjWeaving` | 是否开启LTW的支持。读取`META‐INF/aop.xml`文件，路径与文件名称是固定的。 | `AspectJWeaving.ENABLED`：开启LTW<br/>`AspectJWeaving.DISABLED`：不开启LTW<br/> `AspectJWeaving.AUTODETECT`：如果类路径下能读取到META‐INF/aop.xml文件，则开启LTW，否则关闭 |
+
+#### 4.2.3. 使用示例
+
+- 引入实现LTW（Load Time Weaving）依赖坐标
+
+```xml
+<!-- LTW（Load Time Weaving）实现的依赖 -->
+<dependency>
+    <groupId>org.springframework</groupId>
+    <artifactId>spring-instrument</artifactId>
+    <version>5.1.6.RELEASE</version>
+</dependency>
+```
+
+- 修改配置类，增加开启类加载时期的增强
+
+```java
+@Configuration
+@ComponentScan("com.moon.springsample")
+// 开启spring注解aop配置的支持（注：此注解是采用运行期增强），与@EnableLoadTimeWeaving不会同时使用
+// @EnableAspectJAutoProxy
+// 开启类加载时期的增强（注：此注解是采用加载器时期进行织入，执行目标类方法时增强）
+@EnableLoadTimeWeaving
+public class SpringConfiguration {
+}
+```
+
+- 创建切面类
+
+```java
+// 因为META-INF/aop.xml文件中指定当前的切面类，所以不需要标识@Component注解，因为此注解是运行期生成对象。现在使用@EnableLoadTimeWeaving是在编译期生成对象
+// @Component
+@Aspect
+public class LoadTimeWeavingAspect {
+    @Pointcut("execution(* com.moon.springsample.service.impl.*.*(..))")
+    private void pt() {
+    }
+
+    /*
+     * 增强的需求：
+     *   统计方法的执行时间，在开发与测试环境下统计，生产环境不统计
+     */
+    @Around("pt()")
+    public Object profile(ProceedingJoinPoint joinPoint) throws Throwable {
+        // 1. 创建spring框架的秒表对象
+        StopWatch stopWatch = new StopWatch(this.getClass().getSimpleName());
+        try {
+            // 2. 执行记录
+            stopWatch.start(joinPoint.getSignature().getName());
+            // 3. 执行切入点方法
+            return joinPoint.proceed();
+        } finally {
+            // 4. 停止计时
+            stopWatch.stop();
+            // 5. 输出计时结果
+            System.out.println(stopWatch.prettyPrint());
+        }
+    }
+}
+```
+
+- 设置测试用例的VM options参数：`-javaagent:D:/development/maven/repository/org/springframework/spring-instrument/5.1.6.RELEASE/spring-instrument-5.1.6.RELEASE.jar`
+
+![](images/20200910155958434_2336.png)
+
+> TODO: 检查过代码所有都没有问题，但使用`@EnableLoadTimeWeaving`后无法增强，如果使用原来的`@EnableAspectJAutoProxy`的方式，是正常可以增强，所以目前觉得可以aop.xml文件没有生效，日后有时间再去排查
 
 # 其他暂存
 
