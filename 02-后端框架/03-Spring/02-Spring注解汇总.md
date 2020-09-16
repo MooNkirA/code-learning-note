@@ -4158,6 +4158,393 @@ public class LoadTimeWeavingAspect {
 
 > TODO: 检查过代码所有都没有问题，但使用`@EnableLoadTimeWeaving`后无法增强，如果使用原来的`@EnableAspectJAutoProxy`的方式，是正常可以增强，所以目前觉得可以aop.xml文件没有生效，日后有时间再去排查
 
+# Spring 事务注解汇总
+
+## 1. 入门案例（声明式事务，且基于纯注解配置）
+
+### 1.1. 案例说明
+
+本案例采用的是经典转账案例测试事务控制。本案例中，采用的是声明式事务，且注解驱动的方式配置。
+
+### 1.2. 引入依赖
+
+```xml
+<!-- 注：依赖的版本按实际需要，此处省略 -->
+<dependencies>
+    <!-- spring核心依赖 -->
+    <dependency>
+        <groupId>org.springframework</groupId>
+        <artifactId>spring-context</artifactId>
+    </dependency>
+    <!-- spring操作持久层依赖 -->
+    <dependency>
+        <groupId>org.springframework</groupId>
+        <artifactId>spring-jdbc</artifactId>
+    </dependency>
+    <!-- mysql驱动 -->
+    <dependency>
+        <groupId>mysql</groupId>
+        <artifactId>mysql-connector-java</artifactId>
+    </dependency>
+    <dependency>
+        <groupId>junit</groupId>
+        <artifactId>junit</artifactId>
+    </dependency>
+    <dependency>
+        <groupId>org.springframework</groupId>
+        <artifactId>spring-test</artifactId>
+    </dependency>
+</dependencies>
+```
+
+### 1.3. 编写基础代码、配置类
+
+> 复用上面《注解驱动入门案例》中的账户实体类Account.java，数据库连接参数的配置文件jdbc.properties，Jdbc配置类JdbcConfig.java
+
+- 创建事务管理器的配置类，往ioc容器中注册事务管理器PlatformTransactionManager
+
+```java
+/**
+ * 事务管理器的配置类
+ */
+public class TransactionManagerConfig {
+    // 创建PlatformTransactionManager事务管理器，注册到ioc容器中
+    @Bean
+    public PlatformTransactionManager createPlatformTransactionManager(DataSource dataSource) {
+        return new DataSourceTransactionManager(dataSource);
+    }
+}
+```
+
+- spring核心配置文件，增加`@EnableTransactionManagement`注解开启注解事务支持，并导入Jdbc配置类与事务管理器的配置类
+
+```java
+@Configuration // 标识配置类
+@ComponentScan("com.moon.springsample") // 开启包扫描
+@Import({JdbcConfig.class, TransactionManagerConfig.class}) // 导入jdbc配置类与事务管理器的配置类
+@PropertySource("classpath:jdbc.properties") // 引入数据库连接配置文件
+/* 开启spring注解事务的支持 */
+@EnableTransactionManagement
+public class SpringConfiguration {
+}
+```
+
+### 1.4. 编写业务层与持久层
+
+- 持久层接口与实现
+
+```java
+public interface AccountDao {
+    /**
+     * 更新账户
+     */
+    void update(Account account);
+
+    /**
+     * 根据名称查询账户
+     */
+    Account findByName(String name);
+}
+
+@Repository("accountDao")
+public class AccountDaoImpl implements AccountDao {
+    // 注入JdbcTemplate操作对象
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
+
+    @Override
+    public void update(Account account) {
+        jdbcTemplate.update("update account set name=?,money=? where id = ?", account.getName(), account.getMoney(), account.getId());
+    }
+
+    @Override
+    public Account findByName(String name) {
+        List<Account> accounts = jdbcTemplate.query("select * from account where name = ?", new BeanPropertyRowMapper<>(Account.class), name);
+        if (accounts.isEmpty()) {
+            return null;
+        }
+        if (accounts.size() > 1) {
+            throw new RuntimeException("账户不唯一");
+        }
+        return accounts.get(0);
+    }
+}
+```
+
+- 编写业务层接口与实现，使用`@Transactional`注解
+
+```java
+public interface AccountService {
+    /** 转账 */
+    void transfer(String sourceName, String targetName, Double money);
+}
+
+@Service("accountService")
+@Transactional
+public class AccountServiceImpl implements AccountService {
+    // 注入dao接口
+    @Autowired
+    private AccountDao accountDao;
+
+    @Override
+    public void transfer(String sourceName, String targetName, Double money) {
+        // 1. 根据名称查询转出账户
+        Account source = accountDao.findByName(sourceName);
+        // 2. 根据名称查询转入账户
+        Account target = accountDao.findByName(targetName);
+        // 3. 转出账户减钱
+        source.setMoney(source.getMoney() - money);
+        // 4. 转入账户加钱
+        target.setMoney(target.getMoney() + money);
+        // 5. 更新转出账户
+        accountDao.update(source);
+        // int i = 1 / 0; // 模拟转账异常
+        // 6. 更新转入账户
+        accountDao.update(target);
+    }
+}
+```
+
+### 1.5. 测试
+
+```java
+@RunWith(SpringJUnit4ClassRunner.class)
+@ContextConfiguration(classes = SpringConfiguration.class)
+public class SpringTransactionTest {
+    @Autowired
+    private AccountService accountService;
+
+    /* 测试转账 */
+    @Test
+    public void testTransfer() {
+        accountService.transfer("石原里美", "新垣结衣", 100d);
+    }
+}
+```
+
+## 2. 事务中的注解
+
+### 2.1. @EnableTransactionManagement
+
+#### 2.1.1. 作用
+
+此注解是Spring支持注解事务配置的标志。表明Spring开启注解事务配置的支持。是注解驱动开发事务配置的必备注解。
+
+#### 2.1.2. 相关属性
+
+|       属性名        |                                              作用                                               |                取值                 |
+| :----------------: | ---------------------------------------------------------------------------------------------- | ----------------------------------- |
+| `proxyTargetClass` | 指定基于目标类代理还是基于接口代理。默认为false，采用JDK官方的基于接口代理。                           | true/false                          |
+|       `mode`       | 指定事务通知是如何执行的。默认是通过代理方式执行的。如果是同一个类中调用的话，请采用AdviceMode.ASPECTJ。 | AdviceMode.PROXY/AdviceMode.ASPECTJ |
+|      `order`       | 指示在特定连接点应用多个通知时事务处理的执行顺序。默认值是：最低优先级（Integer.MAX_VALUE）             |                                     |
+
+### 2.2. @Transactional
+
+#### 2.2.1. 作用
+
+`@Transactional`注解是Spring注解配置事务的核心注解，无论是注解驱动开发还是注解和XML混合开发，只有涉及配置事务采用注解的方式，都需要使用此注解。
+
+通过源码能看到，该注解可以出现在接口上，类上和方法上。分别表明：
+
+- 接口上：当前接口的所有实现类中重写接口的方法有事务支持。
+- 类上：当前类中所有方法有事务支持。
+- 方法上：当前方法有事务的支持。
+
+以上三个标识位置的优先级：方法 > 类 > 接口
+
+#### 2.2.2. 相关属性
+
+|          属性名           |                                              作用                                               |    取值    |
+| :----------------------: | ---------------------------------------------------------------------------------------------- | ---------- |
+|         `value`          | 指定事务管理器的唯一标识，等同于transactionManager属性                                             |            |
+|   `transactionManager`   | 指定事务管理器的唯一标识，等同于value属性                                                          |            |
+|      `propagation`       | 指定事务的传播行为                                                                               |            |
+|       `isolation`        | 指定事务的隔离级别，一般都是使用默认                                                               |            |
+|        `timeout`         | 指定事务的超时时间，默认值为-1，表示永不超时（注：但只是相对而言，因为如果数据库连接超时，也是一样会失败） |            |
+|        `readOnly`        | 指定事务是否只读                                                                                 | true/false |
+|      `rollbackFor`       | 通过指定异常类的字节码，限定事务在特定情况下回滚                                                     |            |
+|  `rollbackForClassName`  | 通过指定异常类的全限定类名，限定事务在特定情况下回滚                                                 |            |
+|     `noRollbackFor`      | 通过指定异常类的字节码，限定事务在特定情况下不回滚                                                   |            |
+| `noRollbackForClassName` | 通过指定异常类的全限定类名，限定事务在特定情况下不回滚                                               |            |
+
+> 注：`@Transactional`的默认值：`transactionManager="transactionManager",propagation=Propagation.REQUIRED,readOnly=false,isolation=Isolation.DEFAULT`
+
+#### 2.2.3. @Transactional用法总结
+
+`@Transactional` 可以作用于接口、接口方法、类以及类方法上。当作用于类上时，该类的所有 public方法将都具有该类型的事务属性，同时，也可以在方法级别使用该标注来覆盖类级别的定义。
+
+虽然 `@Transactional` 注解可以作用于接口、接口方法、类以及类方法上，但是 Spring 建议不要在接口或者接口方法上使用该注解，因为这只有在使用基于接口的代理时它才会生效。另外， `@Transactional` 注解应该只被应用到 public 方法上，这是由 Spring AOP 的本质决定的。如果在 protected、private或者默认可见性的方法上使用 `@Transactional` 注解，这将被忽略，也不会抛出任何异常。
+
+默认情况下，只有来自外部的方法调用才会被AOP代理捕获，也就是，类内部方法调用本类内部的其他方法并不会引起事务行为，即使被调用方法使用`@Transactional`注解进行修饰。
+
+### 2.3. @TransactionalEventListener
+
+#### 2.3.1. 作用
+
+`@TransactionalEventListener`是spring在4.2版本之后加入的注解。用于配置一个事务的事件监听器。可以在事务提交和回滚前后可以做一些额外的功能。例如：对事务执行监控，执行中同步做一些操作等等。
+
+#### 2.3.2. 相关属性
+
+|        属性名        |                                 作用                                  |                                                                                                  取值                                                                                                  |
+| :-----------------: | --------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+|       `phase`       | 指定事务监听器的执行是在何时                                             | TransactionPhase.BEFORE_COMMIT 事务提交之前<br/>TransactionPhase.AFTER_COMMIT 事务提交之后（默认值）<br/>TransactionPhase.AFTER_ROLLBACK 事务回滚之后<br/>TransactionPhase.AFTER_COMPLETION 事务执行完成之后 |
+| `fallbackExecution` | 若没有事务的时候，对应的event是否已经执行。默认值为false表示没事务就不执行了 | true/false                                                                                                                                                                                            |
+|       `value`       | 指定事件类的字节码                                                      |                                                                                                                                                                                                       |
+|      `classes`      | 它和value属性的作用是一样，指定事件类的字节码                             |                                                                                                                                                                                                       |
+|     `condition`     | 用于指定执行事件处理器的条件。取值是基于Spring的el表达式编写的              |                                                                                                                                                                                                       |
+
+#### 2.3.3. 使用示例
+
+> 在事务的入门案例中进行修改
+
+- 创建事件源类，继承`ApplicationEvent`类
+
+```java
+public class MyApplicationEvent extends ApplicationEvent {
+    // 定义属性接收事件源
+    private Object source;
+
+    /* 因为父类定义有参构造方法，所以子类必须提供有参构造 */
+    public MyApplicationEvent(Object source) {
+        super(source);
+        this.source = source;
+    }
+
+    @Override
+    public Object getSource() {
+        return source;
+    }
+}
+```
+
+- 修改案例中的转账方法，增加事件发布的逻辑
+
+```java
+/* 注入Spring的事件发布对象 */
+@Autowired
+private ApplicationEventPublisher applicationEventPublisher;
+@Override
+public void transfer(String sourceName, String targetName, Double money) {
+    try {
+        // 1. 根据名称查询转出账户
+        Account source = accountDao.findByName(sourceName);
+        // 2. 根据名称查询转入账户
+        Account target = accountDao.findByName(targetName);
+        // 3. 转出账户减钱
+        source.setMoney(source.getMoney() - money);
+        // 4. 转入账户加钱
+        target.setMoney(target.getMoney() + money);
+        // 5. 更新转出账户
+        accountDao.update(source);
+        int i = 1 / 0; // 模拟转账异常
+        // 6. 更新转入账户
+        accountDao.update(target);
+    } finally {
+        // 发布事件逻辑（定义在finally中，让无论转账完成或者失败回滚都会执行）
+        Map<String, Object> map = new HashMap<>();
+        map.put("sourceName", sourceName);
+        map.put("targetName", targetName);
+        map.put("money", money);
+        applicationEventPublisher.publishEvent(new MyApplicationEvent(map));
+    }
+}
+```
+
+- 编写事件监听器，分别定义事务提交与事务回滚后执行的方法
+
+```java
+/**
+ * 事务的事件监听器
+ */
+@Component
+public class MyTransactionalEventListener {
+    /**
+     * 当事务提交之后执行
+     */
+    /* phase属性是定义方法的执行时机，TransactionPhase.AFTER_COMMIT为默认值，不设置也一样的效果 */
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    public void doSomethingAfterCommit(MyApplicationEvent event) {
+        // 1. 从事件对象中获取事件源
+        Map map = (Map) event.getSource();
+        // 2. 获取相关信息
+        Object sourceName = map.get("sourceName");
+        Object targetName = map.get("targetName");
+        Object money = map.get("money");
+        // 3. 输出
+        System.out.println("事务提交了，" + sourceName + "给" + targetName + "转了" + String.valueOf(money) + "钱！转账成功");
+    }
+
+    /**
+     * 当事务回滚之后执行
+     */
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_ROLLBACK)
+    public void doSomethingAfterRollback(MyApplicationEvent event) {
+        // 1. 从事件对象中获取事件源
+        Map map = (Map) event.getSource();
+        // 2. 获取相关信息
+        Object sourceName = map.get("sourceName");
+        Object targetName = map.get("targetName");
+        Object money = map.get("money");
+        // 3. 输出
+        System.out.println("事务回滚了，" + sourceName + "给" + targetName + "转了" + String.valueOf(money) + "钱！转账失败");
+    }
+}
+```
+
+### 2.4. 番外篇 - TransactionTemplate编程式事务的模板对象实现事务控制
+
+除了注解声明式实现事务控制，也可以使用Spring提供的`TransactionTemplate`编程式事务的模板对象实现事务控制
+
+- 修改入门案例，在事务管理器的配置类`TransactionManagerConfig`中，增加注册`TransactionTemplate`事务模板对象到容器中
+
+```java
+// 创建TransactionTemplate事务模板对象，注册到ioc容器中
+@Bean
+public TransactionTemplate createTransactionTemplate(PlatformTransactionManager transactionManager) {
+    return new TransactionTemplate(transactionManager);
+}
+```
+
+- 修改业务层逻辑，使用模板对象`TransactionTemplate`的`execute()`实现事务控制
+
+```java
+/* 注入编程式事务的模板对象TransactionTemplate */
+@Autowired
+private TransactionTemplate transactionTemplate;
+
+@Override
+public void transfer(String sourceName, String targetName, Double money) {
+    transactionTemplate.execute(status -> {
+        /* 业务的核心代码都是写在此TransactionCallback<T>函数式接口的doInTransaction方法内部的 */
+        try {
+            // 1. 根据名称查询转出账户
+            Account source = accountDao.findByName(sourceName);
+            // 2. 根据名称查询转入账户
+            Account target = accountDao.findByName(targetName);
+            // 3. 转出账户减钱
+            source.setMoney(source.getMoney() - money);
+            // 4. 转入账户加钱
+            target.setMoney(target.getMoney() + money);
+            // 5. 更新转出账户
+            accountDao.update(source);
+            int i = 1 / 0; // 模拟转账异常
+            // 6. 更新转入账户
+            accountDao.update(target);
+        } finally {
+            // 发布事件逻辑（定义在finally中，让无论转账完成或者失败回滚都会执行）
+            Map<String, Object> map = new HashMap<>();
+            map.put("sourceName", sourceName);
+            map.put("targetName", targetName);
+            map.put("money", money);
+            applicationEventPublisher.publishEvent(new MyApplicationEvent(map));
+        }
+        return null;
+    });
+}
+```
+
+
+
 # 其他暂存
 
 ## 1. `@ControllerAdvice` 注解
