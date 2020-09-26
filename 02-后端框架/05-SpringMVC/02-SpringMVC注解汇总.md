@@ -303,7 +303,7 @@ public class OrderController {
 `@RequestMapping`的衍生注解是：`@GetMapping`、`@PostMapping`、`@PutMapping`、`@DeleteMapping`、`@PatchMapping`，其衍生的注解的基础用法与`@RequestMapping`一样。但有以下注意细节：
 
 - 衍生注解只是将请求方式限定了，即没有与不用设置method属性，其他属性作用与用法与`@RequestMapping`一样
-- <font color=red>**>衍生注解只能标识在方法上，而`@RequestMapping`注解可以分别标识在类与方法上**</font
+- <font color=red>**衍生注解只能标识在方法上，而`@RequestMapping`注解可以分别标识在类与方法上**</font>
 
 #### 1.2.4. 使用示例
 

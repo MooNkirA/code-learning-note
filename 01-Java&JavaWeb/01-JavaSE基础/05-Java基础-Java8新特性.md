@@ -1,15 +1,59 @@
 # Java8新特性
 
 ## 1. Lambda 表达式
+
 ### 1.1. Lambda 表达式定义
 
-- Lambda 表达式，也可称为闭包，它是推动 Java 8 发布的最重要新特性。
-- Lambda 允许把函数作为一个方法的参数（函数作为参数传递进方法中）。
-- 使用 Lambda 表达式可以使代码变的更加简洁紧凑。
+- Lambda 表达式，也可称为闭包，它是推动 Java 8 发布的最重要新特性
+- Lambda 允许把函数作为一个方法的参数（函数作为参数传递进方法中）
+- 使用 Lambda 表达式可以使代码变的更加简洁紧凑
+- 在调用方法时，如果参数是函数式接口，就可以考虑使用Lambda表达式，Lambda表达式相当于是对接口中抽象方法的重写
+
+示例：当需要启动一个线程去完成任务时，通常会通过 `Runnable` 接口来定义任务内容，并使用 `Thread` 类来启动该线程。
+
+```java
+/* 示例：当需要启动一个线程去完成任务时，通常会通过 `Runnable` 接口来定义任务内容，并使用 `Thread` 类来启动该线程。 */
+@Test
+public void quickstartTest() {
+    /*
+     * 传统写法，使用匿名内部类实现
+     * 对于 Runnable 的匿名内部类用法，可以分析出几点内容：
+     *      1.Thread 类需要 Runnable 接口作为参数，其中的抽象 run 方法是用来指定线程任务内容的核心
+     *      2.为了指定 run 的方法体，不得不需要 Runnable 接口的实现类
+     *      3.为了省去定义一个 Runnable 实现类的麻烦，不得不使用匿名内部类
+     *      4.必须覆盖重写抽象 run 方法，所以方法名称、方法参数、方法返回值不得不再写一遍，且不能写错
+     *      5.实际上，似乎只有方法体才是关键所在。
+     */
+    new Thread(new Runnable() {
+        @Override
+        public void run() {
+            System.out.println("新线程任务执行！");
+        }
+    }).start();
+
+    /*
+     * 使用Lambda表达式实现，Lambda是一个匿名函数
+     *       简化匿名内部类的使用，语法更加简单
+     */
+    new Thread(() -> {
+        System.out.println("使用Lambda表达式创建的线程任务执行了！");
+    }).start();
+}
+```
 
 ### 1.2. Lambda 表达式语法
 
-- Lambda 表达式的语法格式如下：
+#### 1.2.1. Lambda的标准语法格式
+
+- 标准语法格式
+
+```java
+(参数类型 参数名称) -> {
+    代码体;
+}
+```
+
+- 其他简化格式
 
 ```java
 // 方式1
@@ -19,19 +63,23 @@
 (parameters) -> { statements; }
 ```
 
-- lambda表达式的重要特征:
-    - **可选类型声明**：不需要声明参数类型，编译器可以统一识别参数值。
-    - **可选的参数圆括号**：一个参数无需定义圆括号，但多个参数需要定义圆括号。
-    - **可选的大括号**：如果主体包含了一个语句，就不需要使用大括号。
-    - **可选的返回关键字**：如果主体只有一个表达式返回值则编译器会自动返回值，大括号需要指定明表达式返回了一个数值。
-- **使用 Lambda 表达式需要注意以下几点**：
-    1. Lambda 表达式主要用来定义行内执行的方法类型接口，例如，一个简单方法接口。在上面例子中，我们使用各种类型的Lambda表达式来定义MathOperation接口的方法。然后我们定义了sayMessage的执行。Lambda 表达式免去了使用匿名方法的麻烦，并且给予Java简单但是强大的函数化的编程能力。
-    2. 使用Lambda表达式的接口只能有一个方法，此种接口可以称为函数式接口
-    3. 如果一个接口使用注解`@FunctonalInterface`修饰，则该接口称为函数式接口。如果该接口中有多个方法，但除了一个方法外的其它方法都有默认实现（使用`default`关键字修改的方法），则也是可以做为函数式接口
-    4. 如果接口里面有Object类下的非默认方法，也是一个函数式接口，可以使用lambda表达式
+#### 1.2.2. lambda表达式的重要特征（可省略规则）
 
-### 1.3. Lambda 表达式实例
-#### 1.3.1. 简单例子
+- **可选类型声明**：不需要声明参数类型，编译器可以统一识别参数值。
+- **可选的参数圆括号**：一个参数无需定义圆括号，但多个参数需要定义圆括号。
+- **可选的大括号**：如果主体包含了一个语句，就不需要使用大括号。
+- **可选的返回关键字**：如果主体只有一个表达式返回值则编译器会自动返回值，大括号需要指定明表达式返回了一个数值。
+
+#### 1.2.3. 使用 Lambda 表达式前提条件
+
+1. Lambda 表达式主要用来定义行内执行的方法类型接口，例如，一个简单方法接口。在上面例子中，使用各种类型的Lambda表达式来定义MathOperation接口的方法。然后我们定义了sayMessage的执行。Lambda 表达式免去了使用匿名方法的麻烦，并且给予Java简单但是强大的函数化的编程能力。
+2. 使用Lambda表达式的接口只能有一个方法，此种接口可以称为函数式接口
+3. 如果一个接口使用注解`@FunctonalInterface`修饰，则该接口称为函数式接口。如果该接口中有多个方法，但除了一个方法外的其它方法都有默认实现（使用`default`关键字修改的方法），则也是可以做为函数式接口
+4. 如果接口里面有Object类下的非默认方法，也是一个函数式接口，可以使用lambda表达式
+
+### 1.3. Lambda 表达式示例
+
+#### 1.3.1. 基础综合示例1
 
 ```java
 // 1. 不需要参数,返回值为 5
@@ -50,7 +98,7 @@ x -> 2 * x
 (String s) -> System.out.print(s)
 ```
 
-#### 1.3.2. 示例2
+#### 1.3.2. 综合示例2
 
 ```java
 public class Java8Tester {
@@ -115,7 +163,120 @@ Hello Runoob
 Hello Google
 ```
 
-### 1.4. 变量作用域
+#### 1.3.3. 无参数无返回值的Lambda
+
+- 定义只有一个抽象方法的接口
+
+```java
+public interface Sportable {
+    void doSport();
+}
+```
+
+- 使用Lambda表达式
+
+```java
+/* 无参数无返回值的Lambda */
+@Test
+public void lambdaNoParamsTest() {
+    // 传统写法：匿名内部类方式实现
+    playBasketball(new Sportable() {
+        @Override
+        public void doSport() {
+            System.out.println("使用匿名内部类方式调用playBasketball(Sportable sportable)方法...");
+        }
+    });
+    /*
+     * Lambda表达式方式实现
+     *  相当于是对接口抽象方法的重写
+     */
+    playBasketball(() -> System.out.println("使用Lambda表达式方式调用playBasketball(Sportable sportable)方法..."));
+}
+
+// 定义方法，入参为Sportable接口，方法体中调用Sportable接口的doSport()方法
+private void playBasketball(Sportable sportable) {
+    sportable.doSport();
+}
+```
+
+#### 1.3.4. 有参数有返回值的Lambda
+
+示例：调用 `java.util.Comparator<T>` 接口的使用场景代码，其中的抽象方法定义为：
+
+```java
+public abstract int compare(T o1, T o2);
+```
+
+当需要对一个对象集合进行排序时，`Collections.sort` 方法需要一个 `Comparator` 接口实例来指定排序的规则
+
+```java
+/* 02 有参数有返回值的Lambda */
+@Test
+public void lambdaHasParamsTest() {
+    ArrayList<Person> persons = new ArrayList<>();
+    persons.add(new Person("石原里美", 30, 156));
+    persons.add(new Person("新垣结衣", 28, 168));
+    persons.add(new Person("天锁斩月", 183, 180));
+    persons.add(new Person("樱木花道", 18, 189));
+    // 传统写法：匿名内部类方式实现
+    /*Collections.sort(persons, new Comparator<Person>() {
+        @Override
+        public int compare(Person o1, Person o2) {
+            // 返回对象年龄属性的差值，可以实现按年龄排序
+            return o1.getAge() - o2.getAge();
+        }
+    });*/
+    // Lambda表达式方式实现，标准格式
+    Collections.sort(persons, (Person o1, Person o2) -> {
+        return o1.getAge() - o2.getAge();
+    });
+    // 输入结果
+    for (Person person : persons) {
+        System.out.println(person);
+    }
+}
+```
+
+#### 1.3.5. 省略格式的Lambda
+
+```java
+/* Lambda表达式省略格式写法示例 */
+public static void main(String[] args) {
+    ArrayList<Person> persons = new ArrayList<>();
+    persons.add(new Person("石原里美", 30, 156));
+    persons.add(new Person("新垣结衣", 28, 168));
+    persons.add(new Person("天锁斩月", 183, 180));
+    persons.add(new Person("樱木花道", 18, 189));
+    /*
+     * Lambda表达式省略格式写法：多个参数，有返回值
+     *  1. 小括号内参数的类型可以省略
+     *  2. 小括号内参数是多个，则小括号不可以省略
+     *  3. 如果大括号内有且仅有一个语句，可以同时省略大括号、return关键字及语句分号
+     */
+    Collections.sort(persons, (o1, o2) -> o1.getAge() - o2.getAge());
+    /*
+     * Lambda表达式省略格式写法：单个参数，无返回值
+     *  1. 小括号内参数的类型可以省略
+     *  2. 小括号内参数只有一个，则小括号可以省略
+     *  3. 如果大括号内有且仅有一个语句，可以同时省略大括号、return关键字及语句分号
+     */
+    persons.forEach(person -> System.out.println(person));
+}
+```
+
+### 1.4. Lambda的实现原理（！待整理）
+
+> 参考《2019.10.25-JavaJDK新特性详解-JDK8》笔记
+
+总结：
+
+- 匿名内部类在编译的时候会一个class文件
+- Lambda在程序运行的时候形成一个类
+    1. 在类中新增一个方法，这个方法的方法体就是Lambda表达式中的代码
+    2. 还会生成一个匿名内部类，实现接口，重写抽象方法
+    3. 在接口的重写方法中会调用第1点中新生成的方法
+
+### 1.5. 变量作用域
 
 - lambda 表达式只能引用标记了 final 的外层局部变量，这就是说不能在 lambda 内部修改定义在域外的局部变量，否则会编译错误。
 
@@ -186,13 +347,371 @@ public class Java8Tester {
 }
 ```
 
-## 2. Java 8 函数式接口
+### 1.6. Lambda和匿名内部类对比总结
+
+1. 所需的类型不一样
+    - 匿名内部类需要的类型可以是类，抽象类，接口
+    - Lambda表达式需要的类型必须是接口
+2. 抽象方法的数量不一样
+    - 匿名内部类所需的接口中抽象方法的数量随意
+    - Lambda表达式所需的接口只能有一个抽象方法
+3. 实现原理不同
+    - 匿名内部类是在编译后会形成class
+    - Lambda表达式是在程序运行的时候动态生成class
+
+## 2. JDK8 接口的默认方法与静态方法
+
+### 2.1. JDK 8接口增强介绍
+
+JDK 8以前的接口：
+
+```java
+public interface 接口名 {
+    静态常量;
+    抽象方法;
+}
+```
+
+JDK 8对接口的增强，接口还可以有**默认方法**和**静态方法**
+
+```java
+public interface 接口名 {
+    静态常量;
+    抽象方法;
+    默认方法;
+    静态方法;
+}
+```
+
+### 2.2. 默认方法
+
+#### 2.2.1. 接口引入默认方法的背景介绍
+
+- Java 8 新增了接口的默认方法。简单说，默认方法就是接口可以有实现方法，而且不需要实现类去实现其方法。
+- 只需在方法名前面加个default关键字即可实现默认方法。
+
+为什么要有这个特性？
+
+首先，之前的接口是个双刃剑，好处是面向抽象而不是面向具体编程，缺陷是，当需要修改接口时候，需要修改全部实现该接口的类，目前的java 8之前的集合框架没有foreach方法，通常能想到的解决办法是在JDK里给相关的接口添加新的方法及实现。然而，对于已经发布的版本，是没法在给接口添加新方法的同时不影响已有的实现。所以引进的默认方法。他们的目的是为了解决接口的修改与现有的实现类不兼容的问题。
+
+#### 2.2.2. 接口默认方法语法格式
+
+语法格式：
+
+```java
+public interface 接口名 {
+    修饰符 default 返回值类型 方法名() {
+        方法体;
+    }
+}
+```
+
+> 注：接口中的默认方法修饰符可省略，默认是public
+
+示例：
+
+```java
+public interface Java8DefaultMethod {
+    default void defaultMethod() {
+        // do something...
+    }
+}
+```
+
+#### 2.2.3. 接口默认方法的使用
+
+- 方式一：实现类直接调用接口默认方法
+- 方式二：实现类重写接口默认方法
+
+```java
+/**
+ * 定义动物接口
+ */
+interface Animal {
+    /**
+     * 定义默认方法（方法修饰符可省略，默认是public）
+     */
+    public default void eat() {
+        System.out.println("我是Animal接口的默认方法eat()...");
+    }
+}
+
+/**
+ * 默认方法使用方式一: 实现类可以直接使用
+ */
+class Cat implements Animal {
+}
+
+/**
+ * 默认方法使用方式二: 实现类重写接口默认方法，对象进行调用
+ */
+class Person implements Animal {
+    @Override
+    public void eat() {
+        System.out.println("我是Person实现类重写后的默认方法eat()...");
+    }
+}
+
+@Test
+public void defaultFunctionTest() {
+    // 方式一：创建实现类，直接调用默认方法
+    Cat cat = new Cat();
+    cat.eat();
+    System.out.println("--------------------------");
+    // 方式二：创建实现类，实现类重写默认方法，再调用
+    Person person = new Person();
+    person.eat();
+}
+```
+
+#### 2.2.4. 多个默认方法
+
+一个接口有默认方法，考虑这样的情况，一个类实现了多个接口，且这些接口有相同的默认方法，有以下两种解决的方案
+
+1. 第一个解决方案是创建自己的默认方法，来覆盖重写接口的默认方法
+2. 第二种解决方案可以使用 `super` 关键字来调用指定接口的默认方法
+
+```java
+/**
+ * 定义接口1与同名参数列表相同的方法
+ */
+interface Java8Interface1 {
+    default void defaultMethod() {
+        System.out.println("Java8Interface1.defaultMethod()方法执行了....");
+    }
+}
+
+/**
+ * 定义接口2与同名参数列表相同的方法
+ */
+interface Java8Interface2 {
+    default void defaultMethod() {
+        System.out.println("Java8Interface2.defaultMethod()方法执行了....");
+    }
+}
+
+/**
+ * 第一个解决方案是创建自己的默认方法，来覆盖重写接口的默认方法
+ */
+class MultiDefaultMethodImpl1 implements Java8Interface1, Java8Interface2 {
+    @Override
+    public void defaultMethod() {
+        System.out.println("实现两个接口的MultiDefaultMethodImpl1.defaultMethod()方法执行了....");
+    }
+}
+
+/**
+ * 第二种解决方案可以使用 super 关键字来调用指定接口的默认方法
+ */
+class MultiDefaultMethodImpl2 implements Java8Interface1, Java8Interface2 {
+    @Override
+    public void defaultMethod() {
+        // 调用接口1的方法
+        Java8Interface1.super.defaultMethod();
+        System.out.println("实现两个接口的MultiDefaultMethodImpl2.defaultMethod()方法执行了....");
+        // 调用接口2的方法
+        Java8Interface2.super.defaultMethod();
+    }
+}
+
+// 测试
+@Test
+public void multiDefaultFunctionTest() {
+    // 方式一：实现类，重写两个接口的同名方法
+    MultiDefaultMethodImpl1 impl1 = new MultiDefaultMethodImpl1();
+    impl1.defaultMethod();
+    System.out.println("--------------------------");
+    // 方式二：实现类，重写两个接口的同名方法，方法内部使用super关键字调用指定的接口的默认方法
+    MultiDefaultMethodImpl2 impl2 = new MultiDefaultMethodImpl2();
+    impl2.defaultMethod();
+}
+```
+
+### 2.3. 静态默认方法
+
+Java 8 的另一个特性是接口可以声明（并且可以提供实现）静态方法。
+
+#### 2.3.1. 接口默认方法语法格式
+
+语法格式：
+
+```java
+public interface 接口名 {
+    修饰符 static 返回值类型 方法名() {
+        方法体;
+    }
+}
+```
+
+> 注：接口中的默认方法修饰符可省略，默认是public
+
+示例：
+
+```java
+public interface Java8DefaultMethod1 {
+    default void defaultMethod() {
+        // do something...
+    }
+
+    // 静态方法
+    static void staticMethod() {
+        // do something...
+    }
+}
+```
+
+#### 2.3.2. 接口静态方法的使用
+
+直接使用接口名调用即可，`接口名.静态方法名();`
+
+```java
+/**
+ * 定义有静态方法的接口
+ */
+interface StaticMethodInterface {
+    /**
+     * 定义静态方法（方法修饰符可省略，默认是public）
+     */
+    public static void staticMethod() {
+        System.out.println("我是StaticMethodInterface接口的静态方法staticMethod()...");
+    }
+}
+
+/**
+ * 接口实现类，静态方法不能被继承与重写
+ */
+class StaticMethodInterfaceImpl implements StaticMethodInterface {
+    // 静态方法不被重写，也不被继承
+    /*@Override
+    public void staticMethod() {
+    }*/
+}
+
+// 测试
+@Test
+public void defaultFunctionTest() {
+    // 创建接口实现类
+    StaticMethodInterfaceImpl impl = new StaticMethodInterfaceImpl();
+    // 报错，说明实现类无法继承接口的静态方法，对象也不能调用
+    // impl.staticMethod();
+    // 接口静态方法的调用：接口名.静态方法名();
+    StaticMethodInterface.staticMethod();
+}
+```
+
+### 2.4. 接口默认方法和静态方法的区别
+
+1. 默认方法通过实例调用，静态方法通过接口名调用。
+2. 默认方法可以被继承，实现类可以直接使用接口默认方法，也可以重写接口默认方法。
+3. 静态方法不能被继承，实现类不能重写接口静态方法，只能使用接口名调用。
+
+小结：如果接口某个方法需要被实现类继承或重写，则使用默认方法，如果接口中的方法不需要被继承就使用静态方法
+
+### 2.5. 默认方法与默认方法综合示例
+
+```java
+public class Jdk8DefaultAndStaticMethodDemo {
+    public static void main(String[] args) {
+        Vehicle vehicle = new Car();
+        vehicle.print();
+    }
+}
+
+interface Vehicle {
+    default void print() {
+        System.out.println("我是一辆车!");
+    }
+
+    static void blowHorn() {
+        System.out.println("按喇叭!!!");
+    }
+}
+
+interface FourWheeler {
+    default void print() {
+        System.out.println("我是一辆四轮车!");
+    }
+}
+
+class Car implements Vehicle, FourWheeler {
+    // 重写两个接口同名默认方法
+    @Override
+    public void print() {
+        Vehicle.super.print();
+        FourWheeler.super.print(); // 调用接口的默认方法
+        Vehicle.blowHorn(); // 调用接口静态方法
+        System.out.println("我是一辆汽车!");
+    }
+}
+```
+
+程序输出结果
+
+```console
+我是一辆车!
+我是一辆四轮车!
+按喇叭!!!
+我是一辆汽车!
+```
+
+## 3. Java 8 函数式接口
+
+### 3.1. 定义
+
+函数式接口在Java中是指：**有且仅有一个抽象方法的接口**
 
 - 函数式接口(FunctionalInterface)就是一个有且仅有一个抽象方法的接口，但可以有多个默认方法，静态方法
 - 函数式接口可以被隐式转换为 lambda 表达式
 - 函数式接口可以现有的函数友好地支持 lambda 表达式
 
-### 2.1. 相关接口
+### 3.2. @FunctionalInterface 注解
+
+与 `@Override` 注解的作用类似，Java 8中专门为函数式接口引入了一个新的注解：`@FunctionalInterface`。该注解可用于一个接口的定义上：
+
+```java
+@FunctionalInterface
+public interface 接口名 {
+    返回值类型 方法名();
+}
+```
+
+使用该注解来定义接口，编译器将会强制检查该接口是否确实有且仅有一个抽象方法，否则将会报错。不过，即使不使用该注解，只要满足函数式接口的定义，这仍然是一个函数式接口，使用起来效果一样
+
+```java
+public class Demo01FunctionalInterface {
+    @Test
+    public void functionalInterfaceTest() {
+        // 创建待求和数组
+        int[] arr = {1, 2, 3, 4};
+        // 使用lambda表达式方式，调用方法
+        sum(arr, a -> {
+            int total = 0;
+            for (int n : a) {
+                total += n;
+            }
+            return total;
+        });
+    }
+
+    // 定义方法，方法形参为自定义的函数式接口作为方法参数
+    private void sum(int[] arr, Operator operator) {
+        // 1. 调用函数式接口的求和抽象方法
+        int sum = operator.getSum(arr);
+        // 2. 输入结果
+        System.out.println("数组的计算结果是：" + sum);
+    }
+}
+
+/**
+ * 定义函数式接口（只有一个抽象方法，可以有多个默认方法与静态方法）
+ */
+@FunctionalInterface
+interface Operator {
+    int getSum(int[] arr);
+}
+```
+
+### 3.3. 相关Java内置函数式接口接口
 
 - JDK 1.8之前已有的函数式接口:
     - java.lang.Runnable
@@ -206,15 +725,342 @@ public class Java8Tester {
     - java.awt.event.ActionListener
     - javax.swing.event.ChangeListener
 - JDK 1.8 新增加的函数接口：
-    - java.util.function
+    - java.util.function 包下
 
-java.util.function 它包含了很多类，用来支持 Java的函数式编程
+`java.util.function` 它包含了很多类，用来支持 Java的函数式编程，
 
-### 2.2. 函数式接口实例
+### 3.4. 常用内置函数式接口
 
-- `Predicate <T>` 接口是java.util.function包下的一个函数式接口，它接受一个输入参数`T`，返回一个布尔值结果
+#### 3.4.1. Supplier接口
+
+```java
+@FunctionalInterface
+public interface Supplier<T> {
+    /**
+     * Gets a result.
+     */
+    T get();
+}
+```
+
+`java.util.function.Supplier<T>` 接口，它意味着"供给"，对应的Lambda表达式需要“对外提供”一个符合泛型类型的对象数据。供给型接口，通过`Supplier`接口中的`get()`方法可以得到一个值，无参有返回的接口。
+
+示例：使用 `Supplier` 接口作为方法参数类型，通过Lambda表达式求出int数组中的最大值。
+
+```java
+public class Demo02Supplier {
+    @Test
+    public void supplierTest() {
+        // 使用Lambda表达式返回数组元素最大值
+        printMax(() -> {
+            System.out.println("Supplier接口实现get()方法执行开始...");
+            int[] arr = {11, 99, 88, 77, 22};
+            // Arrays工具类的sort方法默认是升序排序
+            Arrays.sort(arr);
+            return arr[arr.length - 1];
+        });
+    }
+
+    private void printMax(Supplier<Integer> supplier) {
+        System.out.println("printMax()方法执行开始...");
+        // 调用“供给”接口Supplier，获取数组最大值
+        Integer max = supplier.get();
+        System.out.println("max = " + max);
+        System.out.println("printMax()方法执行结束...");
+    }
+}
+```
+
+输出结果
+
+```
+printMax()方法执行开始...
+Supplier接口实现get()方法执行开始...
+max = 99
+printMax()方法执行结束...
+```
+
+#### 3.4.2. Consumer 接口
+
+##### 3.4.2.1. 基础使用
+
+```java
+@FunctionalInterface
+public interface Consumer<T> {
+    /**
+     * Performs this operation on the given argument.
+     *
+     * @param t the input argument
+     */
+    void accept(T t);
+
+    default Consumer<T> andThen(Consumer<? super T> after) {
+        Objects.requireNonNull(after);
+        return (T t) -> { accept(t); after.accept(t); };
+    }
+}
+```
+
+`java.util.function.Consumer<T>` 接口则正好与`Supplier`相反，它不是生产一个数据，而是消费一个数据，其数据类型由泛型参数决定。`Consumer`消费型接口，可以拿到`accept(T t)`方法参数传递过来的数据进行处理, 有参无返回的接口。
+
+示例：将一个字符串转成全大写的字符串
+
+```java
+public class Demo03Consumer {
+    @Test
+    public void consumerTest() {
+        System.out.println("程序开始!");
+        // 使用Lambda表达式将一个字符串转成大写的字符串
+        printString(str -> System.out.println(str.toUpperCase()));
+        System.out.println("程序结束!!");
+    }
+    private void printString(Consumer<String> consumer) {
+        System.out.println("printString()方法执行开始...");
+        // 调用“消费型”接口Consumer，处理传入的字符串
+        consumer.accept("Hello Consumer");
+        System.out.println("printString()方法执行结束...");
+    }
+}
+
+// 输出结果
+程序开始!
+printString()方法执行开始...
+HELLO CONSUMER
+printString()方法执行结束...
+程序结束!!
+```
+
+##### 3.4.2.2. 默认方法：andThen()
+
+如果一个方法的参数和返回值全都是 `Consumer` 类型，那么就可以实现效果：消费一个数据的时候，首先做一个操作，然后再做一个操作，实现组合。而这个方法就是 `Consumer` 接口中的default方法 `andThen()`
+
+```java
+default Consumer<T> andThen(Consumer<? super T> after) {
+    Objects.requireNonNull(after);
+    return (T t) -> { accept(t); after.accept(t); };
+}
+```
+
+> 备注： `java.util.Objects` 的 `requireNonNull` 静态方法将会在参数为null时主动抛出 `NullPointerException` 异常。这省去了重复编写if语句和抛出空指针异常的麻烦
+
+示例：将一个字符串先转成全小写的字符串，再转成全大写的字符串
+
+```java
+public class Demo04ConsumerAndThen {
+    @Test
+    public void consumerTest() {
+        System.out.println("程序开始!");
+        /* 使用Lambda表达式先将一个字符串转成小写的字符串,再转成大写 */
+        printString(str -> System.out.println(str.toLowerCase()),
+                str -> System.out.println(str.toUpperCase()));
+        System.out.println("程序结束!!");
+    }
+
+    private void printString(Consumer<String> c1, Consumer<String> c2) {
+        System.out.println("printString()方法执行开始...");
+        // 待处理字符串
+        String str = "Hello Consumer";
+        // 实现方式一：先后调用两个“消费型”接口Consumer，处理不同的逻辑
+        // c1.accept(str);
+        // c2.accept(str);
+
+        // 实现方式二：使用Consumer接口的andThen方法，实现先后执行不同的Consumer接口实现
+        c1.andThen(c2).accept(str);
+        System.out.println("printString()方法执行结束...");
+    }
+}
+
+// 输出结果
+程序开始!
+printString()方法执行开始...
+hello consumer
+HELLO CONSUMER
+printString()方法执行结束...
+程序结束!!
+```
+
+#### 3.4.3. Function 接口
+
+##### 3.4.3.1. 基础使用
+
+```java
+@FunctionalInterface
+public interface Function<T, R> {
+
+    /**
+     * Applies this function to the given argument.
+     *
+     * @param t the function argument
+     * @return the function result
+     */
+    R apply(T t);
+
+    default <V> Function<V, R> compose(Function<? super V, ? extends T> before) {
+        Objects.requireNonNull(before);
+        return (V v) -> apply(before.apply(v));
+    }
+
+    default <V> Function<T, V> andThen(Function<? super R, ? extends V> after) {
+        Objects.requireNonNull(after);
+        return (T t) -> after.apply(apply(t));
+    }
+
+    static <T> Function<T, T> identity() {
+        return t -> t;
+    }
+}
+```
+
+`java.util.function.Function<T,R>` 接口用来根据一个类型的数据得到另一个类型的数据，前者称为前置条件，后者称为后置条件。`Function`转换型接口，对`apply`方法传入的`T`类型数据进行处理，返回`R`类型的结果，有参有返回的接口。
+
+> <font color=red>**请注意，Function的前置条件泛型和后置条件泛型可以相同。**</font>
+
+示例：将 String 类型转换为 Integer 类型
+
+```java
+public class Demo05Function {
+    @Test
+    public void functionTest() {
+        System.out.println("程序开始!");
+        // 使用Lambda表达式将字符串转成数字
+        stringToInteger(str -> Integer.parseInt(str));
+        System.out.println("程序结束!!");
+    }
+
+    private void stringToInteger(Function<String, Integer> function) {
+        System.out.println("stringToInteger()方法执行开始...");
+        // 调用“转换型”接口Function，处理传入的字符串转成数字类型
+        Integer num = function.apply("8");
+        System.out.println("字符串转数字类型结果：" + num);
+        System.out.println("stringToInteger()方法执行结束...");
+    }
+}
+
+// 输出结果
+程序开始!
+stringToInteger()方法执行开始...
+字符串转数字类型结果：8
+stringToInteger()方法执行结束...
+程序结束!!
+```
+
+##### 3.4.3.2. 默认方法：andThen()
+
+```java
+default <V> Function<T, V> andThen(Function<? super R, ? extends V> after) {
+    Objects.requireNonNull(after);
+    return (T t) -> after.apply(apply(t));
+}
+```
+
+`Function` 接口中有一个默认的 `andThen` 方法，用来进行组合操作。
+
+示例：先将字符串解析成为int数字，再操作数字乘以10
+
+```java
+public class Demo06FunctionAndThen {
+    @Test
+    public void functionTest() {
+        System.out.println("程序开始!");
+        // 使用Lambda表达式先将字符串解析成为int数字，再操作数字乘以10
+        stringToInteger(str -> Integer.parseInt(str), i -> i * 10);
+        System.out.println("程序结束!!");
+    }
+
+    private void stringToInteger(Function<String, Integer> f1, Function<Integer, Integer> f2) {
+        System.out.println("stringToInteger()方法执行开始...");
+        // 实现方式一：选择调用“转换型”接口Function，先后处理不同的转换逻辑
+        // Integer num = f1.apply("8");
+        // Integer result = f2.apply(num);
+
+        // 实现方式二：使用Function接口的andThen方法，实现先后执行不同的Function接口实现
+        Integer result = f1.andThen(f2).apply("8");
+
+        System.out.println("字符串转数字类型再乘10后结果：" + result);
+        System.out.println("stringToInteger()方法执行结束...");
+    }
+}
+
+// 输入结果
+程序开始!
+stringToInteger()方法执行开始...
+字符串转数字类型再乘10后结果：80
+stringToInteger()方法执行结束...
+程序结束!!
+```
+
+#### 3.4.4. Predicate 接口
+
+##### 3.4.4.1. 基础使用
+
+```java
+@FunctionalInterface
+public interface Predicate<T> {
+    /**
+     * Evaluates this predicate on the given argument.
+     *
+     * @param t the input argument
+     * @return {@code true} if the input argument matches the predicate,
+     * otherwise {@code false}
+     */
+    boolean test(T t);
+
+    default Predicate<T> and(Predicate<? super T> other) {
+        Objects.requireNonNull(other);
+        return (t) -> test(t) && other.test(t);
+    }
+
+    default Predicate<T> negate() {
+        return (t) -> !test(t);
+    }
+
+    default Predicate<T> or(Predicate<? super T> other) {
+        Objects.requireNonNull(other);
+        return (t) -> test(t) || other.test(t);
+    }
+
+    static <T> Predicate<T> isEqual(Object targetRef) {
+        return (null == targetRef)
+                ? Objects::isNull
+                : object -> targetRef.equals(object);
+    }
+}
+```
+
+- `java.util.function.Predicate<T>` 接口是一个函数式接口，它接受一个输入参数`T`，返回一个布尔值结果
 - 该接口包含多种默认方法来将Predicate组合成其他复杂的逻辑（比如：与，或，非）
 - 该接口用于测试对象是 true 或 false
+
+示例1：判断一个人名如果超过3个字就认为是很长的名字
+
+```java
+public class Demo07Predicate {
+    @Test
+    public void predicateTest() {
+        System.out.println("程序开始!");
+        // 使用Lambda判断一个人名如果超过3个字就认为是很长的名字
+        isLongName("石原里美", str -> str.length() > 3);
+        System.out.println("程序结束!!");
+    }
+
+    private void isLongName(String name, Predicate<String> predicate) {
+        System.out.println("isLongName()方法执行开始...");
+        // 调用“判断型”接口Predicate，进行相应的逻辑处理
+        boolean isLong = predicate.test(name);
+        System.out.println("名字是否过长：" + isLong);
+        System.out.println("isLongName()方法执行结束...");
+    }
+}
+
+// 输出结果
+程序开始!
+isLongName()方法执行开始...
+名字是否过长：true
+isLongName()方法执行结束...
+程序结束!!
+```
+
+示例2：
 
 ```java
 package com.moon.jav.test;
@@ -262,11 +1108,8 @@ public class Java8Tester {
         }
     }
 }
-```
 
-程序运行结果
-
-```console
+// 输出结果
 输出所有数据:
 1 2 3 4 5 6 7 8 9
 输出所有偶数:
@@ -275,7 +1118,67 @@ public class Java8Tester {
 4 5 6 7 8 9
 ```
 
-## 3. 方法引用
+##### 3.4.4.2. 默认方法：and、or、negate
+
+```java
+default Predicate<T> and(Predicate<? super T> other) {
+    Objects.requireNonNull(other);
+    return (t) -> test(t) && other.test(t);
+}
+
+default Predicate<T> negate() {
+    return (t) -> !test(t);
+}
+
+default Predicate<T> or(Predicate<? super T> other) {
+    Objects.requireNonNull(other);
+    return (t) -> test(t) || other.test(t);
+}
+```
+
+- 默认方法`and()`：将两个 `Predicate` 条件使用“`&&`”逻辑连接起来实现“并且”的效果
+- 默认方法`or()`：将两个 `Predicate` 条件使用“`||`”逻辑连接起来实现“或者”的效果
+- 默认方法`negate()`：将 `Predicate` 条件使用“`!`”逻辑实现“非”（“取反”）的效果
+
+示例：
+
+```java
+public class Demo08PredicateAndOrNegate {
+    @Test
+    public void predicateTest() {
+        System.out.println("程序开始!");
+        test("Hello World", str -> str.contains("W"), str -> str.contains("H"));
+        System.out.println("程序结束!!");
+    }
+
+    private void test(String str, Predicate<String> p1, Predicate<String> p2) {
+        System.out.println("test()方法执行开始...");
+        // 使用Lambda表达式判断一个字符串中既包含W,也包含H
+        // and方法，相当于 p1.test(str) && p2.test(str)
+        boolean b1 = p1.and(p2).test(str);
+        if (b1) {
+            System.out.println("既包含W,也包含H");
+        }
+
+        // 使用Lambda表达式判断一个字符串中包含W或者包含H
+        // or方法，相当于 p1.test(str) || p2.test(str)
+        boolean b2 = p1.or(p2).test(str);
+        if (b2) {
+            System.out.println("包含W或者包含H");
+        }
+
+        // 使用Lambda表达式判断一个字符串中不包含W
+        // negate相当于取反 相当于 !p1.test(str)
+        boolean b3 = p1.negate().test(str);
+        if (b3) {
+            System.out.println("不包含W");
+        }
+        System.out.println("test()方法执行结束...");
+    }
+}
+```
+
+## 4. 方法引用
 
 方法引用是Lambda表达式的一个简化写法。所引用的方法其实是Lambda表达式的方法体的实现。如果正好有某个方法满足一个lambda表达式的形式，那就可以将这个lambda表达式用方法引用的方式表示，但是如果这个lambda表达式的比较复杂就不能用方法引用进行替换。实际上方法引用是lambda表达式的一种语法糖
 
@@ -283,40 +1186,151 @@ public class Java8Tester {
 - 方法引用可以使语言的构造更紧凑简洁，减少冗余代码
 - 方法引用语法是使用一对冒号 `::`
 
-### 3.1. 语法格式
+**应用场景**：如果Lambda所要实现的方案，已经有其他方法存在相同方案，那么则可以使用方法引用
 
-- 主要有四种语法格式
-    - `对象::实例方法名`
-    - `类::实例方法名`
-    - `类::静态方法名`
-    - `类::new`
-- 注意：Lambda体中调用的方法的参数列表与返回值类型，要与函数式中接口的抽象方法的参数列表和返回值类型一样
+**方法引用的注意事项**
 
-### 3.2. 方法引用用法示例
+1. 被引用的方法，参数要和接口中抽象方法的参数一样
+2. 当接口抽象方法有返回值时，被引用的方法也必须有返回值
+
+> <font color=red>**注意的是方法引用只能"引用"已经存在的方法**</font>
+
+### 4.1. 方法引用语法格式
+
+- **方法引用语法符号**：`::`
+- **方法引用符号说明**：双冒号为方法引用运算符，而它所在的表达式被称为方法引用。
+
+### 4.2. 常见引用方式
+
+主要有5种语法格式：
+
+- `instanceName::methodName`(`对象::实例方法名`)：调用类的普通方法
+- `ClassName::staticMethodName`(`类::实例方法名`)：调用类的普通方法
+- `ClassName::methodName`(`类::静态方法名`)：调用类的静态方法
+- `ClassName::new`(`类::new`)：调用类的构造函数
+- `TypeName[]::new`(`数据类型[]::new`)：调用数组的构造器
+
+> <font color=red>**注意：Lambda体中调用的方法的参数列表与返回值类型，要与函数式中接口的抽象方法的参数列表和返回值类型一样**</font>
+
+#### 4.2.1. 对象名::引用成员方法
+
+最常见的一种用法，如果一个类中已经存在了一个成员方法，则可以通过对象名引用成员方法
 
 ```java
-class Car {
-    @FunctionalInterface
-    public interface Supplier<T> {
-        T get();
-    }
+/*
+ * 对象::实例方法 - 方法引用示例
+ */
+@Test
+public void methodReftest01() {
+    Date now = new Date();
+    // Lambda表达式实现函数式接口
+    // Supplier<Long> supplier = () -> now.getTime();
+    // 使用方法引用对象实例方法，实现函数式接口
+    Supplier<Long> supplier = now::getTime;
+    Long time = supplier.get();
+    System.out.println("time: " + time);
+}
+```
 
-    // Supplier是jdk1.8的接口，这里和lamda一起使用了
-    public static Car create(final Supplier<Car> supplier) {
-        return supplier.get();
-    }
+#### 4.2.2. 类名::引用静态方法
 
-    public static void collide(final Car car) {
-        System.out.println("Collided " + car.toString());
-    }
+```java
+@Test
+public void test02() {
+    // Lambda表达式实现函数式接口
+    // Supplier<Long> supplier = () -> System.currentTimeMillis();
+    // 使用方法引用类静态方法，实现函数式接口
+    Supplier<Long> supplier = System::currentTimeMillis;
+    Long time = supplier.get();
+    System.out.println("time = " + time);
+}
+```
 
-    public void follow(final Car another) {
-        System.out.println("Following the " + another.toString());
-    }
+#### 4.2.3. 类名::引用实例方法
 
-    public void repair() {
-        System.out.println("Repaired " + this.toString());
+Java面向对象中，类名只能调用静态方法，<font color=red>**类名引用实例方法是有前提的，实际上是拿第一个参数作为方法的调用者**</font>
+
+```java
+@Test
+public void test03() {
+    // Lambda表达式实现函数式接口(一个参数)
+    // Function<String, Integer> f1 = str -> str.length();
+    // 使用方法引用类实例方法，实现函数式接口(注意:类名::实例方法实际上会将第一个参数作为方法的调用者)
+    Function<String, Integer> f1 = String::length;
+    int length = f1.apply("hello");
+    System.out.println("length = " + length);
+    // Lambda表达式实现函数式接口(两个参数)
+    // BiFunction<String, Integer, String> f2 = (String str, Integer index) -> str.substring(index);
+    // 使用方法引用类实例方法，实现函数式接口
+    BiFunction<String, Integer, String> f2 = String::substring;
+    String str2 = f2.apply("helloworld", 3);
+    System.out.println("str2 = " + str2);
+}
+```
+
+#### 4.2.4. 类名::new引用构造器
+
+由于构造器的名称与类名完全一样。所以构造器引用使用` 类名称::new` 的格式表示。
+
+```java
+public class Person {
+    private String name;
+    private int age;
+    private int height;
+    public Person() {
+        System.out.println("执行Person类无参构造");
     }
+    public Person(String name, int age) {
+        String temp = new StringJoiner(", ", "执行Person类有参构造" + "[", "]")
+                .add("name='" + name + "'")
+                .add("age=" + age)
+                .toString();
+        System.out.println(temp);
+        this.name = name;
+        this.age = age;
+    }
+    // 省略其他代码
+}
+```
+
+```java
+@Test
+public void test04() {
+    // Lambda表达式实现函数式接口
+    // Supplier<Person> supplier1 = () -> new Person();
+    // 使用方法引用类构造器方法，实现函数式接口
+    Supplier<Person> supplier1 = Person::new;
+    Person person = supplier1.get();
+    System.out.println("person = " + person);
+    // Lambda表达式实现函数式接口
+    // BiFunction<String, Integer, Person> bif = (String name, Integer age) -> new Person(name, age);
+    // 使用方法引用类构造器方法（有参构造），实现函数式接口。方法引用时，会根据参数列表的个数，引用相应的构造方法
+    BiFunction<String, Integer, Person> bif = Person::new;
+    Person person2 = bif.apply("新垣结衣", 18);
+    System.out.println("person2 = " + person2);
+}
+```
+
+#### 4.2.5. 数组::new 引用数组构造器
+
+数组也是 `Object` 的子类对象，所以同样具有构造器
+
+```java
+@Test
+public void test05() {
+    // Lambda表达式实现函数式接口
+    // Function<Integer, int[]> f = (Integer length) -> new int[length];
+    // 使用方法引用数组构造器方法
+    Function<Integer, int[]> f = int[]::new;
+    int[] arr = f.apply(10);
+    System.out.println(Arrays.toString(arr));
+}
+```
+
+### 4.3. 方法引用用法综合示例
+
+```java
+public class Demo02MethodRefComprehensive {
 
     public static void main(String[] args) {
         // 构造器引用：它的语法是Class::new，或者更一般的Class<T>::new实例如下：
@@ -337,6 +1351,26 @@ class Car {
         cars.forEach(police::follow);
         System.out.println("===================特定对象的方法引用===================");
     }
+
+}
+
+class Car {
+    // Supplier是jdk1.8的接口，这里和lamda一起使用了
+    public static Car create(final Supplier<Car> supplier) {
+        return supplier.get();
+    }
+
+    public static void collide(final Car car) {
+        System.out.println("Collided " + car.toString());
+    }
+
+    public void follow(final Car another) {
+        System.out.println("Following the " + another.toString());
+    }
+
+    public void repair() {
+        System.out.println("Repaired " + this.toString());
+    }
 }
 ```
 
@@ -344,163 +1378,21 @@ class Car {
 
 ```console
 ===================构造器引用========================
-Collided com.xuecheng.manage_course.dao.Car@4f8e5cde
-Collided com.xuecheng.manage_course.dao.Car@504bae78
-Collided com.xuecheng.manage_course.dao.Car@3b764bce
-Collided com.xuecheng.manage_course.dao.Car@759ebb3d
+Collided com.moon.java.jdk8methodref.Car@3b9a45b3
+Collided com.moon.java.jdk8methodref.Car@7699a589
+Collided com.moon.java.jdk8methodref.Car@58372a00
+Collided com.moon.java.jdk8methodref.Car@4dd8dc3
 ===================静态方法引用========================
-Repaired com.xuecheng.manage_course.dao.Car@4f8e5cde
-Repaired com.xuecheng.manage_course.dao.Car@504bae78
-Repaired com.xuecheng.manage_course.dao.Car@3b764bce
-Repaired com.xuecheng.manage_course.dao.Car@759ebb3d
+Repaired com.moon.java.jdk8methodref.Car@3b9a45b3
+Repaired com.moon.java.jdk8methodref.Car@7699a589
+Repaired com.moon.java.jdk8methodref.Car@58372a00
+Repaired com.moon.java.jdk8methodref.Car@4dd8dc3
 ==============特定类的任意对象的方法引用================
-Following the com.xuecheng.manage_course.dao.Car@4f8e5cde
-Following the com.xuecheng.manage_course.dao.Car@504bae78
-Following the com.xuecheng.manage_course.dao.Car@3b764bce
-Following the com.xuecheng.manage_course.dao.Car@759ebb3d
+Following the com.moon.java.jdk8methodref.Car@3b9a45b3
+Following the com.moon.java.jdk8methodref.Car@7699a589
+Following the com.moon.java.jdk8methodref.Car@58372a00
+Following the com.moon.java.jdk8methodref.Car@4dd8dc3
 ===================特定对象的方法引用===================
-```
-
-### 3.3. 方法引用实例
-
-```java
-public class Java8Tester {
-    public static void main(String[] args) {
-        List<String> names = new ArrayList<>();
-        names.add("Google");
-        names.add("Runoob");
-        names.add("Taobao");
-        names.add("Baidu");
-        names.add("Sina");
-        names.forEach(System.out::println);
-    }
-}
-```
-
-实例中将`System.out::println`方法作为静态方法来引用
-
-## 4. 默认方法
-
-- Java 8 新增了接口的默认方法。简单说，默认方法就是接口可以有实现方法，而且不需要实现类去实现其方法。
-- 只需在方法名前面加个default关键字即可实现默认方法。
-
-为什么要有这个特性？
-
-首先，之前的接口是个双刃剑，好处是面向抽象而不是面向具体编程，缺陷是，当需要修改接口时候，需要修改全部实现该接口的类，目前的java 8之前的集合框架没有foreach方法，通常能想到的解决办法是在JDK里给相关的接口添加新的方法及实现。然而，对于已经发布的版本，是没法在给接口添加新方法的同时不影响已有的实现。所以引进的默认方法。他们的目的是为了解决接口的修改与现有的实现类不兼容的问题。
-
-### 4.1. 语法格式
-
-```java
-public interface Java8DefaultMethod {
-    default void defaultMethod() {
-        // do something...
-    }
-}
-```
-
-### 4.2. 多个默认方法
-
-一个接口有默认方法，考虑这样的情况，一个类实现了多个接口，且这些接口有相同的默认方法，以下实例说明了这种情况的解决方法
-
-```java
-// 接口1
-public interface Java8DefaultMethod1 {
-    default void defaultMethod() {
-        // do something...
-    }
-}
-
-// 接口2
-public interface Java8DefaultMethod2 {
-    default void defaultMethod() {
-        // do another thing...
-    }
-}
-```
-
-1. 第一个解决方案是创建自己的默认方法，来覆盖重写接口的默认方法
-
-```java
-public class DefaultMethodImpl implements Java8DefaultMethod1, Java8DefaultMethod2 {
-    @Override
-    public void defaultMethod() {
-        // do something
-    }
-}
-```
-
-2. 第二种解决方案可以使用 super 来调用指定接口的默认方法
-
-```java
-public class DefaultMethodImpl implements Java8DefaultMethod1, Java8DefaultMethod2 {
-    @Override
-    public void defaultMethod() {
-        // 调用指定接口的方法
-        Java8DefaultMethod1.super.defaultMethod();
-    }
-}
-```
-
-### 4.3. 静态默认方法
-
-Java 8 的另一个特性是接口可以声明（并且可以提供实现）静态方法。
-
-```java
-public interface Java8DefaultMethod1 {
-    default void defaultMethod() {
-        // do something...
-    }
-
-    // 静态方法
-    static void staticMethod() {
-        // do something...
-    }
-}
-```
-
-### 4.4. 默认方法实例
-
-```java
-public class Java8Tester {
-    public static void main(String args[]) {
-        Vehicle vehicle = new Car();
-        vehicle.print();
-    }
-}
-
-interface Vehicle {
-    default void print() {
-        System.out.println("我是一辆车!");
-    }
-
-    static void blowHorn() {
-        System.out.println("按喇叭!!!");
-    }
-}
-
-interface FourWheeler {
-    default void print() {
-        System.out.println("我是一辆四轮车!");
-    }
-}
-
-class Car implements Vehicle, FourWheeler {
-    public void print() {
-        Vehicle.super.print();
-        FourWheeler.super.print();
-        Vehicle.blowHorn();
-        System.out.println("我是一辆汽车!");
-    }
-}
-```
-
-程序输出结果
-
-```console
-我是一辆车!
-我是一辆四轮车!
-按喇叭!!!
-我是一辆汽车!
 ```
 
 ## 5. Stream流
@@ -510,6 +1402,8 @@ class Car implements Vehicle, FourWheeler {
 - Stream API 可以极大提高Java程序员的生产力，让程序员写出高效率、干净、简洁的代码。
 - 这种风格将要处理的元素集合看作一种流，流在管道中传输，并且可以在管道的节点上进行处理，比如筛选，排序，聚合等。
 - 元素流在管道中经过中间操作（intermediate operation）的处理，最后由最终操作(terminal operation)得到前面处理的结果。
+
+Stream流式思想类似于工厂车间的“生产流水线”，Stream流不是一种数据结构，不保存数据，而是对数据进行加工处理处理
 
 ### 5.1. 什么是 Stream？
 
@@ -523,20 +1417,23 @@ class Car implements Vehicle, FourWheeler {
     - Pipelining:：中间操作都会返回流对象本身。这样多个操作可以串联成一个管道，如同流式风格（fluent style）。这样做可以对操作进行优化，比如延迟执行(laziness)和短路(short-circuiting)。
     - 内部迭代：以前对集合遍历都是通过Iterator或者For-Each的方式,显式的在集合外部进行迭代，这叫做外部迭代。Stream提供了内部迭代的方式，通过访问者模式(Visitor)实现。
 
-### 5.2. 流的操作特性
+### 5.2. 流的操作特性（重要）
 
 1. stream 不是数据结构，不存储数据
 2. stream 不改变原来的数据源，它会将操作后的数据保存到另外一个对象中。
 3. stream 不可重复使用。每次进行操作后都会产生新的流，原来的流就会关闭，所以可以进行链式编程，就不会出现“流已关闭”的错误
-4. 惰性求值，流在中间处理过程中，只是对操作进行了记录，并不会立即执行（*即相当于预告声明，不会马上操作*），需要等到执行终止操作的时候才会进行实际的计算。
+4. 惰性求值，流在中间处理过程中，只是对操作进行了记录，并不会立即执行（*即相当于预告声明，不会马上操作*），需要等到执行终止操作的时候才会进行实际的计算。（即Stream不调用终结方法时，中间的操作不会执行）
 
 ### 5.3. 流的分类
+
 #### 5.3.1. 流的操作类型
 
-- stream 所有操作组合在一起即变成了管道，管道中有以下两个操作：
-    - **中间操作**（intermediate）：调用中间操作方法会返回一个新的流。通过连续执行多个操作倒便就组成了Stream中的执行管道（pipeline）。需要注意的是这些管道被添加后并不会真正执行，只有等到调用终值操作之后才会执行。
-    - **终值操作**（terminal）：在调用该方法之后，将执行之前所有的中间操作，获得返回结果结束对流的使用
-- 流的执行顺序说明：其每个元素挨着作为参数去调用中间操作及终值操作，而不是遍历一个方法，再遍历下一个方法
+stream 所有操作组合在一起即变成了管道，管道中有以下两个操作：
+
+- **中间操作**（intermediate）：调用中间操作方法会返回一个新的流。通过连续执行多个操作倒便就组成了Stream中的执行管道（pipeline）。需要注意的是这些管道被添加后并不会真正执行，只有等到调用终值操作之后才会执行。
+- **终值操作**（terminal）：在调用该方法之后，将执行之前所有的中间操作，获得返回结果结束对流的使用
+
+流的执行顺序说明：其每个元素挨着作为参数去调用中间操作及终值操作，而不是遍历一个方法，再遍历下一个方法
 
 #### 5.3.2. 流的API方法对应分类
 
@@ -554,14 +1451,14 @@ class Car implements Vehicle, FourWheeler {
 - Short-circuiting：
     - anyMatch、 allMatch、 noneMatch、 findFirst、 findAny、 limit
 
-### 5.4. Stream 的使用
+### 5.4. 流的常用创建方法
 
-#### 5.4.1. 流的常用创建方法
-##### 5.4.1.1. Collection 下的 stream() 和 parallelStream() 方法
+#### 5.4.1. Collection 下的 stream() 和 parallelStream() 方法
 
-- 在 Java 8 中，集合接口有两个方法来生成流：
-    - `stream()`：为集合创建串行流
-    - `parallelStream()`：为集合创建并行流
+在 Java 8 中，所有的 `Collection` 集合接口有两个方法来生成流：
+
+- `stream()`：为集合创建串行流
+- `parallelStream()`：为集合创建并行流
 
 ```java
 public static void main(String[] args) {
@@ -582,14 +1479,9 @@ System.out.println(count);    // 输出：2
 
 这样可以很容易的在顺序运行和并行直接切换
 
-##### 5.4.1.2. Arrays 中的 stream() 方法，将数组转成流
+#### 5.4.2. Stream 中的静态方法：of()、iterate()、generate()
 
-```java
-Integer[] nums = new Integer[10];
-Stream<Integer> stream = Arrays.stream(nums);
-```
-
-##### 5.4.1.3. Stream 中的静态方法：of()、iterate()、generate()
+由于数组对象不可能添加默认方法，所以 `Stream` 接口中提供了静态方法 `of`
 
 ```java
 Stream<Integer> stream = Stream.of(1,2,3,4,5,6);
@@ -601,7 +1493,20 @@ Stream<Double> stream3 = Stream.generate(Math::random).limit(2);
 stream3.forEach(System.out::println);
 ```
 
-##### 5.4.1.4. BufferedReader.lines() 方法，将每行内容转成流
+> 备注： `Stream.of()` 方法的参数其实是一个可变参数，所以支持数组。
+
+#### 5.4.3. Arrays.stream()
+
+`Arrays` 中的 `stream()` 静态方法，将数组转成流
+
+```java
+Integer[] nums = new Integer[10];
+Stream<Integer> stream = Arrays.stream(nums);
+```
+
+#### 5.4.4. BufferedReader.lines()
+
+`BufferedReader.lines()` 方法，将每行内容转成流
 
 ```java
 BufferedReader reader = new BufferedReader(new FileReader("F:\\test_stream.txt"));
@@ -609,7 +1514,9 @@ Stream<String> lineStream = reader.lines();
 lineStream.forEach(System.out::println);
 ```
 
-##### 5.4.1.5. Pattern.splitAsStream() 方法，将字符串分隔成流
+#### 5.4.5. Pattern.splitAsStream()
+
+`Pattern.splitAsStream()` 方法，将字符串分隔成流
 
 ```java
 Pattern pattern = Pattern.compile(",");
@@ -617,17 +1524,43 @@ Stream<String> stringStream = pattern.splitAsStream("a,b,c,d");
 stringStream.forEach(System.out::println);
 ```
 
-#### 5.4.2. 流的中间操作
-##### 5.4.2.1. 映射类方法（map/flatMap）
+### 5.5. 流的中间操作
 
-- map：接收一个函数作为参数，该函数会被应用到每个元素上，并将其映射成一个新的元素。
+#### 5.5.1. Stream流的 map 方法
 
 ```java
-List<Integer> numbers = Arrays.asList(3, 2, 2, 3, 7, 3, 5);
-// 获取对应的平方数
-List<Integer> squaresList = numbers.stream().map(i -> i * i).distinct().collect(Collectors.toList());
-System.out.println(squaresList);    // 输出：[9, 4, 49, 25]
+<R> Stream<R> map(Function<? super T, ? extends R> mapper);
 ```
+
+Stream流的`map`方法流中的元素映射到另一个流中，该接口需要一个 `Function` 函数式接口参数，该函数会被应用到每个元素上，可以将当前流中的`T`类型数据转换为另一种`R`类型新元素的流。示例如下：
+
+```java
+@Test
+public void mapTest() {
+    Stream<String> original = Stream.of("11", "22", "33");
+    // 获取流，调用Stream流的map将一种类型的流转换成另一种类型的流
+    /*
+     * 示例1：将Stream流中的字符串转成Integer
+     *  map 方法的参数通过方法引用，将字符串类型转换成为了int类型（并自动装箱为 Integer 类对象）。
+     */
+    /*Stream<Integer> stream = original.map((String s) -> {
+        return Integer.parseInt(s);
+    });*/
+    // 简化lambda表达式
+    // original.map(s -> Integer.parseInt(s)).forEach(System.out::println)
+    // 使用方法引用
+    original.map(Integer::parseInt).forEach(System.out::println);
+    // 示例2：获取数组元素的平方数
+    List<Integer> numbers = Arrays.asList(3, 2, 2, 3, 7, 3, 5);
+    List<Integer> squaresList = numbers.stream()
+            .map(i -> i * i)
+            .distinct()
+            .collect(Collectors.toList());
+    System.out.println(squaresList);    // 输出：[9, 4, 49, 25]
+}
+```
+
+#### 5.5.2. 映射类方法（flatMap）
 
 - flatMap：接收一个函数作为参数，将流中的每个值都换成另一个流，然后把所有流连接成一个流。
 
@@ -660,134 +1593,165 @@ Stream<Integer> outputStream = inputStream.flatMap((childList) -> childList.stre
 
 原本的inputStream持有的元素中类型为`List<Integer>`，而我们在扁平化后的outputStream只想要持有Integer类型的元素，即去除List这层嵌套关系。因此在flapMap中，对每个`List<Integer>`类型的元素执行`childList.stream()`方法，转换成`Stream<Integer>`类型，然后由flatMap进行合并。
 
-##### 5.4.2.2. 筛选与切片（filter/limit/skip/distinct）
-
-- `filter`：过滤通过设置条件过滤出流中的元素，保留返回true的元素，抛弃返回false的元素
+#### 5.5.3. Stream流的 filter 方法
 
 ```java
-List<String> strings = Arrays.asList("abc", "", "bc", "efg", "abcd", "", "jkl");
-// 获取空字符串的数量
-int count = (int) strings.stream().filter(string -> string.isEmpty()).count();
-System.out.println(count);    // 输出：2
+Stream<T> filter(Predicate<? super T> predicate);
 ```
 
-- `limit(n)`：获取 Stream 的前面 n 个元素
-- `skip(n)`：跳过n元素，配合`limit(n)`可实现分页
+Stream流的 `filter` 方法用于过滤数据，返回符合过滤条件的数据，保留返回true的元素，抛弃返回false的元素。可以通过 `filter` 方法将一个流转换成另一个子集流。
+
+该接口接收一个 `Predicate` 函数式接口参数（可以是一个Lambda或方法引用）作为筛选条件。示例如下：
 
 ```java
-// 案例1
-Random random = new Random();
-random.ints().limit(10).forEach(System.out::println);
-
-// 案例2
-public void testLimitAndSkip() {
-	List<Person> persons = new ArrayList();
-	for (int i = 1; i <= 10000; i++) {
-		Person person = new Person(i, "name" + i);
-		persons.add(person);
-	}
-	List<String> personList2 = persons.stream().
-	map(Person::getName).limit(10).skip(3).collect(Collectors.toList());
-	System.out.println(personList2);
-}
-private class Person {
-	public int no;
-	private String name;
-	public Person (int no, String name) {
-		this.no = no;
-		this.name = name;
-	}
-	public String getName() {
-		System.out.println(name);
-		return name;
-	}
-}
-
-结果：
-name1
-name2
-name3
-name4
-name5
-name6
-name7
-name8
-name9
-name10
-[name4, name5, name6, name7, name8, name9, name10]
-```
-
-- `distinct`：通过流中元素的 `hashCode()` 和 `equals()` 去除重复元素，如果对引用对象运行去重，引用对象要实现hashCode和equal方法，否则去重无效
-
-```java
-public static void main(String[] args) {
-    testDistinct1();
-    testDistinct2();
-}
-
-/**
- * 集合去重（基本类型）
- */
-private static void testDistinct1() {
-    //简单字符串的去重
-    List<String> list = Arrays.asList("111", "222", "333", "111", "222");
-    list.stream().distinct().forEach(System.out::println);
-}
-
-/**
- * 集合去重（引用对象）
- */
-private static void testDistinct2() {
-    //引用对象的去重，引用对象要实现hashCode和equal方法，否则去重无效
-    Student s1 = new Student(1L, "肖战", 15, "浙江");
-    Student s2 = new Student(2L, "王一博", 15, "湖北");
-    Student s3 = new Student(3L, "杨紫", 17, "北京");
-    Student s4 = new Student(4L, "李现", 17, "浙江");
-    Student s5 = new Student(1L, "肖战", 15, "浙江");
-    List<Student> students = new ArrayList<>();
-    students.add(s1);
-    students.add(s2);
-    students.add(s3);
-    students.add(s4);
-    students.add(s5);
-    students.stream().distinct().forEach(System.out::println);
+@Test
+public void filterTest() {
+    List<String> nameList = new ArrayList<>();
+    Collections.addAll(nameList, "天锁斩月", "剑圣", "石原里美", "樱木花道", "敌法师", "新垣结衣");
+    // 示例1：获取流，调用Stream流的filter过滤名字长度为4个字的人
+    /*nameList.stream().filter((String s) -> {
+        return s.length() == 4;
+    }).forEach((String n) -> {
+        System.out.println(n);
+    });*/
+    // 简化lambda表达式与使用方法引用
+    nameList.stream().filter(s -> s.length() == 4).forEach(System.out::println);
+    // 示例2：获取空字符串的数量
+    List<String> strings = Arrays.asList("abc", "", "bc", "efg", "abcd", "", "jkl");
+    int count = (int) strings.stream().filter(String::isEmpty).count();
+    System.out.println("空字符串的数量: " + count); // 空字符串的数量: 2
 }
 ```
 
-##### 5.4.2.3. 排序（sorted）
-
-- sorted()：自然排序，流中元素需实现Comparable接口
-- sorted(Comparator com)：定制排序，自定义Comparator排序器
+#### 5.5.4. Stream流的 limit 方法
 
 ```java
-// 使用 sorted 方法对输出的 10 个随机数进行排序
-Random random = new Random();
-random.ints().limit(10).sorted().forEach(System.out::println);
+Stream<T> limit(long maxSize);
+```
 
-// 案例2
-List<String> list = Arrays.asList("aa", "ff", "dd");
-// String 类自身已实现Compareable接口
-list.stream().sorted().forEach(System.out::println);    // aa dd ff
+Stream流的 `limit` 方法可以对流进行截取，只取用前的`maxSize`个数据。参数是一个long型，<font color=red>**如果集合当前长度大于参数则进行截取。否则不进行操作**</font>。示例如下：
 
-Student s1 = new Student("aa", 10);
-Student s2 = new Student("bb", 20);
-Student s3 = new Student("aa", 30);
-Student s4 = new Student("dd", 40);
-List<Student> studentList = Arrays.asList(s1, s2, s3, s4);
+```java
+@Test
+public void limitTest() {
+    List<String> nameList = new ArrayList<>();
+    Collections.addAll(nameList, "天锁斩月", "剑圣", "石原里美", "樱木花道", "敌法师", "新垣结衣");
+    // 示例1：获取流，调用Stream流的limit获取前3个名字
+    nameList.stream()
+            .limit(3)
+            .forEach(System.out::println);
+    // 示例2：获取10个随机数
+    new Random().ints().limit(10).forEach(System.out::println);
+}
+```
 
-// 自定义排序：先按姓名升序，姓名相同则按年龄升序
-studentList.stream().sorted(
-    (o1, o2) -> {
-        if (o1.getName().equals(o2.getName())) {
+#### 5.5.5. Stream流的 skip 方法
+
+```java
+Stream<T> skip(long n);
+```
+
+Stream流的 `skip` 方法可以跳过前几个元素，并获取一个截取之后的新流。<font color=red>**如果流的当前长度大于n，则跳过前n个；否则将会得到一个长度为0的空流**</font>。示例如下：
+
+```java
+@Test
+public void skipTest() {
+    List<String> nameList = new ArrayList<>();
+    Collections.addAll(nameList, "天锁斩月", "剑圣", "石原里美", "樱木花道", "敌法师", "新垣结衣");
+    // 示例1：获取流，调用Stream流的skip跳过前面2个数据
+    nameList.stream().skip(2).forEach(System.out::println);
+}
+```
+
+> 注：Stream流的`skip(n)`方法配合`limit(n)`方法，可以实现分页的效果
+
+#### 5.5.6. Stream流的 distinct 方法
+
+```java
+Stream<T> distinct();
+```
+
+Stream流的 `distinct` 方法用于去除重复数据。通过流中元素的 `hashCode()` 和 `equals()` 去除重复元素，如果对引用对象运行去重，引用对象要实现hashCode和equal方法，否则去重无效。
+
+```java
+@Test
+public void distinctTest() {
+    // 示例1：基本类型集合去重
+    List<Integer> integerList = Stream.of(22, 33, 22, 11, 33).distinct().collect(Collectors.toList());
+    System.out.println(integerList);
+    List<String> stringList = Stream.of("aa", "bb", "aa", "bb", "cc").distinct().collect(Collectors.toList());
+    System.out.println(stringList);
+
+    // 示例2：对象集合去重。引用对象必须要重写hashCode和equal方法，否则去重无效。
+    List<Person> persons = Stream.of(
+            new Person("新垣结衣", 18),
+            new Person("石原里美", 30),
+            new Person("夜神月", 16),
+            new Person("新垣结衣", 18),
+            new Person("石原里美", 30),
+            new Person("L", 17)
+    ).distinct().collect(Collectors.toList());
+    System.out.println(persons);
+}
+```
+
+#### 5.5.7. Stream流的 sorted 方法
+
+```java
+Stream<T> sorted();
+Stream<T> sorted(Comparator<? super T> comparator);
+```
+
+Stream流的`sorted`方法是用于排序，可以根据元素的自然顺序排序，也可以指定比较器排序。
+
+- `sorted()`：自然排序，流中元素需实现Comparable接口
+- `sorted(Comparator comparator)`：定制排序，自定义`Comparator`排序器
+
+```java
+@Test
+public void sortedTest() {
+    /*
+     * 示例1：
+     *   sorted(): 根据元素的自然顺序排序
+     *   sorted(Comparator<? super T> comparator): 根据比较器指定的规则排序
+     */
+    Stream<Integer> stream = Stream.of(33, 22, 11, 55);
+    // 对元素自然顺序排序
+    // stream.sorted().forEach(System.out::println);
+    // 使用比较器排序
+    /*stream.sorted((Integer i1, Integer i2) -> {
+        return i2 - i1;
+    }).forEach(System.out::println);*/
+    // 使用lambda表达与方法引用
+    stream.sorted((i1, i2) -> i2 - i1).forEach(System.out::println);
+
+    // 示例2：使用 sorted 方法对输出的 10 个随机数进行排序
+    new Random().ints().limit(10).sorted().forEach(System.out::println);
+
+    // 示例3：字符串排序。String 类自身已实现Compareable接口
+    List<String> strList = Arrays.asList("dd", "ff", "aa")
+            .stream()
+            .sorted()
+            .collect(Collectors.toList());
+    System.out.println(strList);
+
+    // 示例4：对象自定义排序：先按姓名升序，姓名相同则按年龄升序
+    Person p1 = new Person("石原里美", 31);
+    Person p2 = new Person("新垣结衣", 28);
+    Person p3 = new Person("敌法师", 180);
+    Person p4 = new Person("新月", 18);
+    List<Person> persons = Arrays.asList(p1, p2, p3, p4).stream().sorted((o1, o2) -> {
+        if (o1.getName().startsWith(o2.getName().substring(0, 1))) {
             return o1.getAge() - o2.getAge();
         } else {
             return o1.getName().compareTo(o2.getName());
         }
-    }
-).forEach(System.out::println);
+    }).collect(Collectors.toList());
+    System.out.println(persons);
+}
 ```
 
-##### 5.4.2.4. 消费（peek）
+#### 5.5.8. 消费（peek）
 
 peek：如同于map，能得到流中的每一个元素。但map接收的是一个Function表达式，有返回值；而peek接收的是Consumer表达式，没有返回值
 
@@ -805,43 +1769,124 @@ Student{name='aa', age=100}
 Student{name='bb', age=100}
 ```
 
-#### 5.4.3. 流的终止操作
-##### 5.4.3.1. 匹配、聚合操作
+### 5.6. 流的终止操作
 
-- allMatch：接收一个 Predicate 函数，当流中每个元素都符合该断言时才返回true，否则返回false
-- noneMatch：接收一个 Predicate 函数，当流中每个元素都不符合该断言时才返回true，否则返回false
-- anyMatch：接收一个 Predicate 函数，只要流中有一个元素满足该断言则返回true，否则返回false
-- findFirst：返回流中第一个元素
-- findAny：返回流中的任意元素
-- count：返回流中元素的总个数
-- max：返回流中元素最大值
-- min：返回流中元素最小值
+#### 5.6.1. Stream流的 forEach 方法
 
 ```java
-List<Integer> list = Arrays.asList(1, 2, 3, 4, 5);
-
-boolean allMatch = list.stream().allMatch(e -> e > 10); //false
-boolean noneMatch = list.stream().noneMatch(e -> e > 10); //true
-boolean anyMatch = list.stream().anyMatch(e -> e > 4);  //true
-
-Integer findFirst = list.stream().findFirst().get(); //1
-Integer findAny = list.stream().findAny().get(); //1
-
-long count = list.stream().count(); //5
-Integer max = list.stream().max(Integer::compareTo).get(); //5
-Integer min = list.stream().min(Integer::compareTo).get(); //1
+void forEach(Consumer<? super T> action);
 ```
 
-##### 5.4.3.2. forEach
-
-Stream 提供了新的方法 `forEach` 来迭代流中的每个数据。以下代码片段使用forEach 输出了10个随机数
+Stream 提供的方法 `forEach` 来迭代流中的每个数据。该方法接收一个 `Consumer` 接口函数，会将每一个流元素交给该函数进行处理。示例如下：
 
 ```java
-Random random = new Random();
-random.ints().limit(10).forEach(System.out::println);
+@Test
+public void forEachTest() {
+    List<String> nameList = new ArrayList<>();
+    Collections.addAll(nameList, "天锁斩月", "剑圣", "石原里美", "樱木花道", "敌法师", "新垣结衣");
+    // 示例1：遍历名称字符串集合
+    // 获取流，调用Stream流的forEach方法遍历集合
+    nameList.stream().forEach((String str) -> {
+        System.out.println(str);
+    });
+    // 简化Lambda表达式
+    nameList.stream().forEach(str -> System.out.println(str));
+    // 使用方法引用替换Lambda表达式
+    nameList.stream().forEach(System.out::println);
+    // 示例2：输出了10个随机数
+    Random random = new Random();
+    // Random类的ints()方法获取IntStream流对象，可以使用
+    random.ints().limit(10).forEach(System.out::println);
+}
 ```
 
-##### 5.4.3.3. 规约操作（reduce）
+#### 5.6.2. Stream流的 count 方法
+
+```java
+long count();
+```
+
+Stream流提供 `count` 方法来统计其中的元素个数。该方法返回一个`long`值代表元素个数。示例如下：
+
+```java
+@Test
+public void countTest() {
+    List<String> nameList = new ArrayList<>();
+    Collections.addAll(nameList, "天锁斩月", "剑圣", "石原里美", "樱木花道", "敌法师", "新垣结衣");
+    // 获取流，调用Stream流的count获取集合的个数
+    long count = nameList.stream().count();
+    System.out.println("count: " + count);
+}
+```
+
+#### 5.6.3. Stream流的 match 相关方法
+
+```java
+boolean anyMatch(Predicate<? super T> predicate);
+boolean allMatch(Predicate<? super T> predicate);
+boolean noneMatch(Predicate<? super T> predicate);
+```
+
+Stream流的 `anyMatch`、`allMatch`、`noneMatch` 方法用于判断数据是否匹配指定的条件
+
+- `anyMatch`：接收一个 `Predicate` 函数，只要流中有一个元素满足该断言则返回true，否则返回false
+- `allMatch`：接收一个 `Predicate` 函数，当流中每个元素都符合该断言时才返回true，否则返回false
+- `noneMatch`：接收一个 `Predicate` 函数，当流中每个元素都不符合该断言时才返回true，否则返回false
+
+```java
+@Test
+public void matchTest() {
+    // 定义集合
+    List<Integer> list = Arrays.asList(5, 3, 6, 1);
+
+    // allMatch: 匹配所有元素，所有元素都需要满足条件
+    boolean allMatch = list.stream().allMatch(i -> i > 2);
+    System.out.println(allMatch);
+    // anyMatch: 匹配某个元素，只要有其中一个元素满足条件即可
+    boolean anyMatch = list.stream().anyMatch(i -> i > 5);
+    System.out.println(anyMatch);
+    // noneMatch: 匹配所有元素，所有元素都不满足条件
+    boolean noneMatch = list.stream().noneMatch(i -> i < 0);
+    System.out.println(noneMatch);
+}
+```
+
+#### 5.6.4. Stream流的 find 相关方法
+
+```java
+Optional<T> findFirst();
+Optional<T> findAny();
+```
+
+Stream流的 `findFirst`、`findAny` 方法用于查找数据，都是返回流中的第一元素
+
+#### 5.6.5. Stream流的 max 和 min 方法
+
+```java
+Optional<T> min(Comparator<? super T> comparator);
+Optional<T> max(Comparator<? super T> comparator);
+```
+
+Stream流的 `max` 和 `min` 方法是用于获取最大值和最小值
+
+- `max`：返回流中元素最大值
+- `min`：返回流中元素最小值
+
+```java
+@Test
+public void maxAndMinTest() {
+    // 定义集合
+    List<Integer> list = Arrays.asList(5, 3, 6, 1);
+    // 获取最大值
+    Optional<Integer> max = list.stream().max((o1, o2) -> o1 - o2);
+    System.out.println("最大值: " + max.get());
+    // 获取最小值
+    Optional<Integer> min = list.stream().min(Integer::compareTo);
+    System.out.println("最小值: " + min.get());
+}
+```
+
+#### 5.6.6. 规约操作（reduce）
 
 这个方法的主要作用是把 Stream 元素组合起来。它提供一个起始值（种子），然后依照运算规则（BinaryOperator），和前面 Stream 的第一个、第二个、第 n 个元素组合。从这个意义上说，字符串拼接、数值的 sum、min、max、average 都是特殊的 reduce
 
@@ -862,7 +1907,7 @@ concat = Stream.of("a", "B", "c", "D", "e", "F")
     .reduce("", String::concat);
 ```
 
-###### 5.4.3.3.1. 相关API
+##### 5.6.6.1. 相关API
 
 ```java
 Optional<T> reduce(BinaryOperator<T> accumulator)
@@ -882,7 +1927,7 @@ T reduce(T identity, BinaryOperator<T> accumulator)
 
 - 在串行流(stream)中，该方法跟第二个方法一样，即第三个参数combiner不会起作用。在并行流(parallelStream)中，我们知道流被fork join出多个线程进行执行，此时每个线程的执行流程就跟第二个方法reduce(identity,accumulator)一样，而第三个参数combiner函数，则是将每个线程的执行结果当成一个新的流，然后使用第一个方法reduce(accumulator)流程进行规约
 
-###### 5.4.3.3.2. 案例
+##### 5.6.6.2. 案例
 
 ```java
 //经过测试，当元素个数小于24时，并行时线程数等于元素个数，当大于等于24时，并行时线程数为16
@@ -918,8 +1963,8 @@ System.out.println(v3); //197474048
 ```
 
 
-##### 5.4.3.4. 收集操作（Collector）
-###### 5.4.3.4.1. Collector 接口
+#### 5.6.7. 收集操作（Collector）
+##### 5.6.7.1. Collector 接口
 
 - collect：接收一个Collector实例，将流中元素收集成另外一个数据结构
 - Collector<T, A, R> 是一个接口，有以下5个抽象方法
@@ -957,7 +2002,7 @@ Set<Characteristics> characteristics()
     - UNORDERED：表示该收集操作不会保留流中元素原有的顺序。
     - IDENTITY_FINISH：表示finisher参数只是标识而已，可忽略。
 
-###### 5.4.3.4.2. Collector 工具库：Collectors
+##### 5.6.7.2. Collector 工具库：Collectors
 
 - Collectors 类实现了很多归约操作，例如将流转换成集合和聚合元素。Collectors可用于返回列表或字符串：
 
@@ -1013,7 +2058,7 @@ Map<Boolean, List<Student>> partMap = list.stream().collect(Collectors.partition
 Integer allAge = list.stream().map(Student::getAge).collect(Collectors.reducing(Integer::sum)).get(); //40
 ```
 
-###### 5.4.3.4.3. Collectors.toList() 源码解析（了解）
+##### 5.6.7.3. Collectors.toList() 源码解析（了解）
 
 ```java
 // Collectors.toList() 源码
@@ -1064,7 +2109,7 @@ public <T> Collector<T, ?, List<T>> toList() {
 }
 ```
 
-#### 5.4.4. 统计
+### 5.7. 统计
 
 一些产生统计结果的收集器也非常有用。它们主要用于int、double、long等基本类型上，它们可以用来产生类似如下的统计结果。
 
@@ -1077,7 +2122,7 @@ System.out.println("所有数之和 : " + stats.getSum());    // 所有数之和
 System.out.println("平均数 : " + stats.getAverage());  // 平均数 : 3.5714285714285716
 ```
 
-#### 5.4.5. Optional类型
+### 5.8. Optional类型
 
 - 这也是一个模仿 Scala 语言中的概念，作为一个容器，它可能含有某值，或者不包含。使用它的目的是尽可能避免 NullPointerException
 - Optional里面只持有一个元素，而Stream可持有多个元素
@@ -1115,7 +2160,7 @@ public static int getLength(String text) {
 
 Stream 中的 findAny、max/min、reduce 等方法等返回 Optional 值。还有例如 `IntStream.average()` 返回 OptionalDouble 等等
 
-### 5.5. Stream 完整实例
+### 5.9. Stream 完整实例
 
 ```java
 package com.moon.test;

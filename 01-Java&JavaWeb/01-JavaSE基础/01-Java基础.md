@@ -1786,8 +1786,18 @@ public class TCPServerThread extends Thread {
 }
 ```
 
-## 4. 其他综合内容
-### 4.1. 实体类 VO、PO、DO、DTO、BO、QO、DAO、POJO 的概念
+# 其他综合内容
+
+## 1. Open JDK 与 Open JDK
+
+Oracle JDK是基于Open JDK源代码的商业版本。要学习Java新技术可以去Open JDK 官网学习。
+
+### 1.1. Open JDK 官网介绍
+
+- Open JDK 官网：http://openjdk.java.net/
+- JDK Enhancement Proposals(JDK增强建议)。通俗的讲JEP就是JDK的新特性
+
+## 2. 实体类 VO、PO、DO、DTO、BO、QO、DAO、POJO 的概念
 
 - DO（ Data Object）领域对象：与数据库表结构一一对应，通过DAO层向上传输数据源对象。
 - PO（persistant object）持久对象：在 o/r 映射的时候出现的概念，如果没有 o/r 映射，没有这个概念存在了。通常对应数据模型 ( 数据库 ), 本身还有部分业务逻辑的处理。可以看成是与数据库中的表相映射的 java 对象。最简单的 PO 就是对应数据库中某个表中的一条记录，多个记录可以用 PO 的集合。 PO 中应该不包含任何对数据库的操作
