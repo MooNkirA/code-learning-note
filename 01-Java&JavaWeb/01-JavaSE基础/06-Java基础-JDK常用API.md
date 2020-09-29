@@ -220,6 +220,7 @@ public void applyPattern(String pattern)
 - 将给定模式字符串应用于此日期格式。（**此方法用于SimpleDateFormal创建对象的时候没有指定格式，使用这方法可以给对象指定日期格式。**）
 
 ### 3.4. SimpleDateFormat存在问题与解决方案
+
 #### 3.4.1. 存在线程安全问题
 
 - SimpleDateFormat并不是一个线程安全的类。在多线程情况下，会出现异常
@@ -447,7 +448,7 @@ public class TestSimpleDateFormat {
         System.out.println(":: parsing date string ::");
         IntStream.rangeClosed(0, 10)
                 .forEach((i) -> executorService.submit(() -> System.out.println(DateUtilsJava8.parse(source))));
-        executorService.shutdown();
+        executorService.shutdown();d
     }
 }
 ```

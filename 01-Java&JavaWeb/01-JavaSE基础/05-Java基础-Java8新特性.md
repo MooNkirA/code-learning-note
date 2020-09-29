@@ -1453,12 +1453,9 @@ stream 所有操作组合在一起即变成了管道，管道中有以下两个�
 
 ### 5.4. 流的常用创建方法
 
-#### 5.4.1. Collection 下的 stream() 和 parallelStream() 方法
+#### 5.4.1. Collection 下的 stream() 方法
 
-在 Java 8 中，所有的 `Collection` 集合接口有两个方法来生成流：
-
-- `stream()`：为集合创建串行流
-- `parallelStream()`：为集合创建并行流
+在 Java 8 中，所有的 `Collection` 集合接口都有`stream()`为集合创建串行流。<font color=red>**串行的流，就是在一个线程上执行**</font>
 
 ```java
 public static void main(String[] args) {
@@ -1467,17 +1464,6 @@ public static void main(String[] args) {
     Stream<String> parallelStream = strings.parallelStream();    // 获取一个并行流
 }
 ```
-
-- 并行（parallel）程序 `parallelStream` 是流并行处理程序的代替方法。以下实例使用 parallelStream 来输出空字符串的数量：
-
-```java
-List<String> strings = Arrays.asList("abc", "", "bc", "efg", "abcd", "", "jkl");
-// 获取空字符串的数量
-int count = (int) strings.parallelStream().filter(string -> string.isEmpty()).count();
-System.out.println(count);    // 输出：2
-```
-
-这样可以很容易的在顺序运行和并行直接切换
 
 #### 5.4.2. Stream 中的静态方法：of()、iterate()、generate()
 
@@ -1560,9 +1546,13 @@ public void mapTest() {
 }
 ```
 
-#### 5.5.2. 映射类方法（flatMap）
+#### 5.5.2. Stream流的 flatMap 方法
 
-- flatMap：接收一个函数作为参数，将流中的每个值都换成另一个流，然后把所有流连接成一个流。
+```java
+<R> Stream<R> flatMap(Function<? super T, ? extends Stream<? extends R>> mapper);
+```
+
+Stream流的`flatMap`方法流中的元素映射到另一个流中，接收一个函数作为参数，将流中的每个值都换成另一个流，然后把所有流连接成一个流。。示例如下：
 
 ```java
 List<String> list = Arrays.asList("a,b,c", "1,2,3");
@@ -1591,7 +1581,7 @@ Stream<List<Integer>> inputStream = Stream.of(
 Stream<Integer> outputStream = inputStream.flatMap((childList) -> childList.stream());
 ```
 
-原本的inputStream持有的元素中类型为`List<Integer>`，而我们在扁平化后的outputStream只想要持有Integer类型的元素，即去除List这层嵌套关系。因此在flapMap中，对每个`List<Integer>`类型的元素执行`childList.stream()`方法，转换成`Stream<Integer>`类型，然后由flatMap进行合并。
+原本的inputStream持有的元素中类型为`List<Integer>`，而在扁平化后的outputStream只想要持有Integer类型的元素，即去除List这层嵌套关系。因此在flapMap中，对每个`List<Integer>`类型的元素执行`childList.stream()`方法，转换成`Stream<Integer>`类型，然后由flatMap进行合并。
 
 #### 5.5.3. Stream流的 filter 方法
 
@@ -1751,9 +1741,13 @@ public void sortedTest() {
 }
 ```
 
-#### 5.5.8. 消费（peek）
+#### 5.5.8. Stream流的 peek 方法
 
-peek：如同于map，能得到流中的每一个元素。但map接收的是一个Function表达式，有返回值；而peek接收的是Consumer表达式，没有返回值
+```java
+Stream<T> peek(Consumer<? super T> action);
+```
+
+Stream流的`peek`方法如同于map，能得到流中的每一个元素。但map接收的是一个`Function`表达式，有返回值；而peek接收的是`Consumer`表达式，没有返回值
 
 ```java
 Student s1 = new Student("aa", 10);
@@ -1886,88 +1880,247 @@ public void maxAndMinTest() {
 }
 ```
 
-#### 5.6.6. 规约操作（reduce）
+#### 5.6.6. Stream流的 reduce 方法
 
-这个方法的主要作用是把 Stream 元素组合起来。它提供一个起始值（种子），然后依照运算规则（BinaryOperator），和前面 Stream 的第一个、第二个、第 n 个元素组合。从这个意义上说，字符串拼接、数值的 sum、min、max、average 都是特殊的 reduce
+##### 5.6.6.1. 功能介绍
+
+这个方法的主要作用是把 Stream 元素组合起来。它提供一个起始值（种子），然后依照运算规则（BinaryOperator），和前面 Stream 的第一个、第二个、第 n 个元素组合。从这个意义上说，字符串拼接、数值的 sum、min、max、average 都是特殊的 `reduce`
 
 例如：Stream 的 sum 就相当于 `Integer sum = integers.reduce(0, (a, b) -> a+b);` 或 `Integer sum = integers.reduce(0, Integer::sum);`；也有没有起始值的情况，这时会把 Stream 的前面两个元素组合起来，返回的是 Optional。
 
-```java
-// 字符串连接，concat = "ABCD"
-String concat = Stream.of("A", "B", "C", "D").reduce("", String::concat); 
-// 求最小值，minValue = -3.0
-double minValue = Stream.of(-1.5, 1.0, -3.0, -2.0).reduce(Double.MAX_VALUE, Double::min); 
-// 求和，sumValue = 10, 有起始值
-int sumValue = Stream.of(1, 2, 3, 4).reduce(0, Integer::sum);
-// 求和，sumValue = 10, 无起始值
-sumValue = Stream.of(1, 2, 3, 4).reduce(Integer::sum).get();
-// 过滤，字符串连接，concat = "ace"
-concat = Stream.of("a", "B", "c", "D", "e", "F")
-    .filter(x -> x.compareTo("Z") > 0)
-    .reduce("", String::concat);
-```
-
-##### 5.6.6.1. 相关API
+##### 5.6.6.2. 源码相关API
 
 ```java
-Optional<T> reduce(BinaryOperator<T> accumulator)
+Optional<T> reduce(BinaryOperator<T> accumulator);
 ```
 
 - 第一次执行时，accumulator函数的第一个参数为流中的第一个元素，第二个参数为流中元素的第二个元素；第二次执行时，第一个参数为第一次函数执行的结果，第二个参数为流中的第三个元素；依次类推。
 
 ```java
-T reduce(T identity, BinaryOperator<T> accumulator)
+T reduce(T identity, BinaryOperator<T> accumulator);
 ```
 
-- 流程跟上面一样，只是第一次执行时，accumulator函数的第一个参数为identity，而第二个参数为流中的第一个元素。
+- 流程跟上面一样，只是第一次执行时，`accumulator`函数的第一个参数为identity，而第二个参数为流中的第一个元素。
 
 ```java
-<U> U reduce(U identity,BiFunction<U, ? super T, U> accumulator,BinaryOperator<U> combiner)
+<U> U reduce(U identity, BiFunction<U, ? super T, U> accumulator, BinaryOperator<U> combiner);
 ```
 
 - 在串行流(stream)中，该方法跟第二个方法一样，即第三个参数combiner不会起作用。在并行流(parallelStream)中，我们知道流被fork join出多个线程进行执行，此时每个线程的执行流程就跟第二个方法reduce(identity,accumulator)一样，而第三个参数combiner函数，则是将每个线程的执行结果当成一个新的流，然后使用第一个方法reduce(accumulator)流程进行规约
 
-##### 5.6.6.2. 案例
+##### 5.6.6.3. 基础使用示例
 
 ```java
-//经过测试，当元素个数小于24时，并行时线程数等于元素个数，当大于等于24时，并行时线程数为16
-List<Integer> list = Arrays.asList(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24);
+@Test
+public void reduceTest() {
+    // 定义集合
+    List<Integer> list = Arrays.asList(4, 5, 3, 9);
 
-Integer v = list.stream().reduce((x1, x2) -> x1 + x2).get();
-System.out.println(v);   // 300
+    /*
+     * T reduce(T identity, BinaryOperator<T> accumulator);
+     *  第1个参数identity：方法执行时初始值，首次执行的时候，会赋值给accumulator参数函数的第一个入参
+     *  第2个参数accumulator：流每次处理数据的逻辑
+     *
+     * 示例中reduce方法的执行流程：
+     *  第一次, 将默认值赋值给x, 取出集合第一元素赋值给y
+     *  第二次, 将上一次返回的结果赋值x, 取出集合第二元素赋值给y
+     *  第三次, 将上一次返回的结果赋值x, 取出集合第三元素赋值给y
+     *  第四次, 将上一次返回的结果赋值x, 取出集合第四元素赋值给y
+     */
+    // 使用reduce方法求和
+    int result = list.stream().reduce(0, (x, y) -> {
+        System.out.println("x = " + x + ", y = " + y);
+        return x + y;
+    });
+    System.out.println("result = " + result); // 21
 
-Integer v1 = list.stream().reduce(10, (x1, x2) -> x1 + x2);
-System.out.println(v1);  //310
+    // 使用reduce方法获取最大值
+    Integer max = list.stream().reduce(0, (x, y) -> x > y ? x : y);
+    System.out.println("max = " + max);
 
-Integer v2 = list.stream().reduce(0,
-        (x1, x2) -> {
-            System.out.println("stream accumulator: x1:" + x1 + "  x2:" + x2);
-            return x1 - x2;
-        },
-        (x1, x2) -> {
-            System.out.println("stream combiner: x1:" + x1 + "  x2:" + x2);
-            return x1 * x2;
-        });
-System.out.println(v2); // -300
+    // 字符串连接，concat = "ABCD"
+    String concatString = Stream.of("A", "B", "C", "D").reduce("", String::concat);
+    System.out.println("concatString = " + concatString);
 
-Integer v3 = list.parallelStream().reduce(0,
-        (x1, x2) -> {
-            System.out.println("parallelStream accumulator: x1:" + x1 + "  x2:" + x2);
-            return x1 - x2;
-        },
-        (x1, x2) -> {
-            System.out.println("parallelStream combiner: x1:" + x1 + "  x2:" + x2);
-            return x1 * x2;
-        });
-System.out.println(v3); //197474048
+    // 求最小值，minValue = -3.0
+    double minValue = Stream.of(-1.5, 1.0, -3.0, -2.0).reduce(Double.MAX_VALUE, Double::min);
+    System.out.println("minValue = " + minValue);
+
+    // 求和，sumValue = 11, 有起始值
+    int sumValue = Stream.of(1, 2, 3, 4).reduce(1, Integer::sum);
+    System.out.println("sumValue = " + sumValue);
+
+    // 求和，sumValue = 10, 无起始值
+    sumValue = Stream.of(1, 2, 3, 4).reduce(Integer::sum).get();
+    System.out.println("sumValue = " + sumValue);
+
+    // 过滤，字符串连接，concatString = "ace"
+    concatString = Stream.of("a", "B", "c", "D", "e", "F")
+            .filter(x -> x.compareTo("Z") > 0)
+            .reduce("", String::concat);
+    System.out.println("concatString = " + concatString);
+
+    //经过测试，当元素个数小于24时，并行时线程数等于元素个数，当大于等于24时，并行时线程数为16
+    List<Integer> testList = Arrays.asList(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24);
+
+    Integer v = testList.stream().reduce((x1, x2) -> x1 + x2).get();
+    System.out.println(v);   // 300
+
+    // 可以使用方法引用简化lambda表达式。Integer类的static int sum(int a, int b)静态方法等价于(x1, x2) -> x1 + x2
+    Integer v1 = testList.stream().reduce(10, Integer::sum);
+    System.out.println(v1);  // 310
+
+    Integer v2 = testList.stream().reduce(0,
+            (x1, x2) -> {
+                System.out.println("stream accumulator: x1:" + x1 + "  x2:" + x2);
+                return x1 - x2;
+            },
+            (x1, x2) -> {
+                System.out.println("stream combiner: x1:" + x1 + "  x2:" + x2);
+                return x1 * x2;
+            });
+    System.out.println(v2); // -300
+
+    Integer v3 = testList.parallelStream().reduce(0,
+            (x1, x2) -> {
+                System.out.println("parallelStream accumulator: x1:" + x1 + "  x2:" + x2);
+                return x1 - x2;
+            },
+            (x1, x2) -> {
+                System.out.println("parallelStream combiner: x1:" + x1 + "  x2:" + x2);
+                return x1 * x2;
+            });
+    System.out.println(v3); // -775946240
+}
 ```
 
+##### 5.6.6.4. 配合map方法使用示例
 
-#### 5.6.7. 收集操作（Collector）
-##### 5.6.7.1. Collector 接口
+```java
+@Test
+public void mapAndReduceTest() {
+    // 准备测试的集合数据
+    List<Person> persons = Arrays.asList(
+            new Person("新垣结衣", 18),
+            new Person("夜神月", 16),
+            new Person("石原里美", 30),
+            new Person("L", 17)
+    );
 
-- collect：接收一个Collector实例，将流中元素收集成另外一个数据结构
-- Collector<T, A, R> 是一个接口，有以下5个抽象方法
+    /*
+     * 示例1：求出所有年龄的总和
+     *   1.得到所有的年龄
+     *   2.让年龄相加
+     */
+    Integer totalAge = persons.stream()
+            .map(p -> p.getAge())
+            .reduce(0, Integer::sum); // Integer类有sum方法，相当于(x, y) -> x + y
+    System.out.println("totalAge = " + totalAge);
+
+    /*
+     * 示例2：求出最大年龄
+     *  1.得到所有的年龄
+     *  2.获取最大的年龄
+     */
+    Integer maxAge = persons.stream()
+            .map(Person::getAge) // 使用方法引用简化lambda表达式，类名::引用成员方法 相当于 p -> p.getAge()
+            .reduce(0, Math::max); // Math类有max方法，相当于(a, b) -> (a >= b) ? a : b
+    System.out.println("maxAge = " + maxAge);
+
+    // 示例3：统计a出现的次数。实现思路：将要统计的元素转成数值1，其他元素转成0，然后将所有1相加即为元素出现的次数
+    //                         1    0    0    1    0    1
+    Integer count = Stream.of("a", "c", "b", "a", "b", "a")
+            .map(s -> {
+                if ("a".equalsIgnoreCase(s)) {
+                    return 1;
+                } else {
+                    return 0;
+                }
+            })
+            .reduce(0, Integer::sum);
+    System.out.println("count = " + count);
+}
+```
+
+#### 5.6.7. Stream流的 mapToInt、mapToLong、mapToDouble 方法
+
+```java
+IntStream mapToInt(ToIntFunction<? super T> mapper);
+LongStream mapToLong(ToLongFunction<? super T> mapper);
+DoubleStream mapToDouble(ToDoubleFunction<? super T> mapper);
+```
+
+Stream流转换后的数据都默认生成对象类型或者基本包装类型，如果结果只需要一些基本类型，此时就就会出现问题。因为包装类型占用的内存比基本类型多，在Stream流操作中还会自动装箱和拆箱，这样的操作会影响程序的执行效率。
+
+如果需要将Stream中的Integer类型数据转成int类型，可以使用 `mapToInt` 方法。同理于`mapToLong`、`mapToDouble`方法
+
+![](images/20200927093136629_31506.png)
+
+
+```java
+@Test
+public void mapToIntTest() {
+    List<Integer> list = Arrays.asList(1, 2, 3, 4, 5);
+
+    // 示例：把大于3的打印出来
+    // Integer占用的内存比int多,在Stream流操作中会自动装箱和拆箱
+    list.stream().filter(n -> n > 3).forEach(System.out::println);
+
+    /*
+     * IntStream mapToInt(ToIntFunction<? super T> mapper);
+     *  IntStream：内部操作的是int类型的数据，可以节省内存，减少自动装箱和拆箱的操作
+     */
+    // IntStream intStream = list.stream().mapToInt((Integer n) -> n.intValue());
+    IntStream intStream = list.stream().mapToInt(Integer::intValue); // 使用方法引用简化代码
+    intStream.filter(n -> n > 3).forEach(System.out::println);
+}
+```
+
+#### 5.6.8. Stream流的 concat 方法
+
+```java
+public static <T> Stream<T> concat(Stream<? extends T> a, Stream<? extends T> b)
+```
+
+Stream流的 `concat` 方法用于将两个流合并成一个流
+
+> 特别注意：
+>
+> 1. 这是一个静态方法，与 `java.lang.String` 当中的 `concat` 方法是不同的
+> 2. 如果使用`concat`方法将两个流合并后，此前的两个流都已关闭，如果再次操作会出现异常
+
+```java
+@Test
+public void concatTest() {
+    Stream<String> streamA = Stream.of("夜神月", "L", "斩月");
+    Stream<String> streamB = Stream.of("石原里美", "新垣结衣");
+
+    // 合并成一个流
+    Stream<String> newStream = Stream.concat(streamA, streamB);
+    // 注意：合并流之后，之前的流都已关闭，如果再次操作会出现异常
+    // streamA.forEach(System.out::println);
+
+    newStream.forEach(System.out::println);
+}
+```
+
+### 5.7. Stream流数据的收集操作
+
+#### 5.7.1. Stream流的 collect 方法
+
+Stream流提供 `collect` 方法，用于将流中元素收集成另外一个数据结构，其参数需要一个 `java.util.stream.Collector<T,A, R>` 接口对象来指定收集到哪种集合中。`java.util.stream.Collectors` 类提供一些方法，可以作为`Collector`接口的实例
+
+```java
+<R, A> R collect(Collector<? super T, A, R> collector);
+
+<R> R collect(Supplier<R> supplier,
+              BiConsumer<R, ? super T> accumulator,
+              BiConsumer<R, R> combiner);
+```
+
+#### 5.7.2. Collector 接口
+
+`Collector<T, A, R>` 是一个接口，有以下5个抽象方法
 
 ```java
 Supplier<A> supplier()
@@ -2002,63 +2155,325 @@ Set<Characteristics> characteristics()
     - UNORDERED：表示该收集操作不会保留流中元素原有的顺序。
     - IDENTITY_FINISH：表示finisher参数只是标识而已，可忽略。
 
-##### 5.6.7.2. Collector 工具库：Collectors
+#### 5.7.3. Collector 工具库：Collectors
 
-- Collectors 类实现了很多归约操作，例如将流转换成集合和聚合元素。Collectors可用于返回列表或字符串：
+`Collectors` 工具类实现了很多归约操作，例如将流转换成集合和聚合元素。Collectors可用于返回列表或字符串。
 
-```java
-List<String> strings = Arrays.asList("abc", "", "bc", "efg", "abcd", "", "jkl");
-List<String> filtered = strings.stream().filter(string -> !string.isEmpty()).collect(Collectors.toList());
-System.out.println("筛选列表: " + filtered);    // 筛选列表: [abc, bc, efg, abcd, jkl]
-String mergedString = strings.stream().filter(string -> !string.isEmpty()).collect(Collectors.joining(", "));
-System.out.println("合并字符串: " + mergedString);   // 合并字符串: abc, bc, efg, abcd, jkl
-```
+> *具体常用的API参考以下各个操作的说明与示例*
+
+#### 5.7.4. 收集Stream流中的结果到集合中
 
 ```java
-Student s1 = new Student("aa", 10,1);
-Student s2 = new Student("bb", 20,2);
-Student s3 = new Student("cc", 10,3);
-List<Student> list = Arrays.asList(s1, s2, s3);
-
-// 装成list
-List<Integer> ageList = list.stream().map(Student::getAge).collect(Collectors.toList()); // [10, 20, 10]
-
-// 转成set
-Set<Integer> ageSet = list.stream().map(Student::getAge).collect(Collectors.toSet()); // [20, 10]
-
-// 转成map,注:key不能相同，否则报错
-Map<String, Integer> studentMap = list.stream().collect(Collectors.toMap(Student::getName, Student::getAge)); // {cc=10, bb=20, aa=10}
-
-// 字符串分隔符连接
-String joinName = list.stream().map(Student::getName).collect(Collectors.joining(",", "(", ")")); // (aa,bb,cc)
-
-// 聚合操作
-// 1.学生总数
-Long count = list.stream().collect(Collectors.counting()); // 3
-// 2.最大年龄 (最小的minBy同理)
-Integer maxAge = list.stream().map(Student::getAge).collect(Collectors.maxBy(Integer::compare)).get(); // 20
-// 3.所有人的年龄
-Integer sumAge = list.stream().collect(Collectors.summingInt(Student::getAge)); // 40
-// 4.平均年龄
-Double averageAge = list.stream().collect(Collectors.averagingDouble(Student::getAge)); // 13.333333333333334
-// 带上以上所有方法
-DoubleSummaryStatistics statistics = list.stream().collect(Collectors.summarizingDouble(Student::getAge));
-System.out.println("count:" + statistics.getCount() + ",max:" + statistics.getMax() + ",sum:" + statistics.getSum() + ",average:" + statistics.getAverage());
-
-// 分组
-Map<Integer, List<Student>> ageMap = list.stream().collect(Collectors.groupingBy(Student::getAge));
-// 多重分组,先根据类型分再根据年龄分
-Map<Integer, Map<Integer, List<Student>>> typeAgeMap = list.stream().collect(Collectors.groupingBy(Student::getType, Collectors.groupingBy(Student::getAge)));
-
-// 分区
-// 分成两部分，一部分大于10岁，一部分小于等于10岁
-Map<Boolean, List<Student>> partMap = list.stream().collect(Collectors.partitioningBy(v -> v.getAge() > 10));
-
-// 规约
-Integer allAge = list.stream().map(Student::getAge).collect(Collectors.reducing(Integer::sum)).get(); //40
+public final class Collectors {
+    public static <T> Collector<T, ?, List<T>> toList()
+    public static <T> Collector<T, ?, Set<T>> toSet()
+    public static <T, C extends Collection<T>> Collector<T, ?, C> toCollection(Supplier<C> collectionFactory)
+}
 ```
 
-##### 5.6.7.3. Collectors.toList() 源码解析（了解）
+使用`Collectors`工具类中的转成`Collection`相关类型的方法。使用示例如下：
+
+```java
+@Test
+public void streamToCollectionTest() {
+    List<String> LIST = new ArrayList<>();
+    Collections.addAll(LIST, "天锁斩月", "L", "夜神月", "樱木花道", "宇智波鼬", "金田一一", "乌尔奇奥拉·西法", "L");
+    // 将流中的数据收集到List集合
+    List<String> list = LIST.stream().collect(Collectors.toList());
+    System.out.println("list: " + list);
+
+    // 将流中的数据收集到Set集合
+    Set<String> set = LIST.stream().collect(Collectors.toSet());
+    System.out.println("set: " + set);
+
+    // 将流中的数据收集到指定的ArrayList类型中
+    ArrayList<String> arrayList = LIST.stream()
+            .collect(Collectors.toCollection(ArrayList::new));
+    System.out.println("arrayList: " + arrayList);
+
+    // 将流中的数据收集到指定的ArrayList类型中
+    HashSet<String> hashSet = LIST.stream().collect(Collectors.toCollection(HashSet::new));
+    System.out.println("hashSet: " + hashSet);
+}
+```
+
+#### 5.7.5. 收集Stream流中的结果到数组中
+
+```java
+public interface Stream<T> extends BaseStream<T, Stream<T>> {
+    public Object[] toArray()
+    public <T> T[] toArray(T[] a)
+}
+```
+
+`Stream`接口提供 `toArray` 方法来将结果放到一个数组中，返回值类型是`Object[]`的数组。还能指定返回数组的类型`T[]`，示例如下：
+
+```java
+@Test
+public void streamToArrayTest() {
+    List<String> LIST = new ArrayList<>();
+    Collections.addAll(LIST, "天锁斩月", "L", "夜神月", "樱木花道", "宇智波鼬", "金田一一", "乌尔奇奥拉·西法", "L");
+    // 将流中的数据收集到数组中，默认收到到Object类型的数组中
+    Object[] objects = LIST.stream().toArray();
+    for (Object object : objects) {
+        System.out.println("objectArray element: " + object);
+    }
+
+    // 将流中的数据收集到指定类型的数组中
+    String[] strArray = LIST.stream().toArray(String[]::new);
+    for (String str : strArray) {
+        System.out.println("strArray element: " + str + ", string length: " + str.length());
+    }
+}
+```
+
+#### 5.7.6. 对流中数据进行聚合、统计计算
+
+```java
+public final class Collectors {
+    // 获取最大值
+    public static <T> Collector<T, ?, Optional<T>> maxBy(Comparator<? super T> comparator)
+    // 获取最小值
+    public static <T> Collector<T, ?, Optional<T>> minBy(Comparator<? super T> comparator)
+    // 求和
+    public static <T> Collector<T, ?, Integer> summingInt(ToIntFunction<? super T> mapper)
+    public static <T> Collector<T, ?, Long> summingLong(ToLongFunction<? super T> mapper)
+    public static <T> Collector<T, ?, Double> summingDouble(ToDoubleFunction<? super T> mapper)
+    // 获取平均值
+    public static <T> Collector<T, ?, Double> averagingInt(ToIntFunction<? super T> mapper)
+    public static <T> Collector<T, ?, Double> averagingLong(ToLongFunction<? super T> mapper)
+    public static <T> Collector<T, ?, Double> averagingDouble(ToDoubleFunction<? super T> mapper)
+    // 统计数量
+    public static <T> Collector<T, ?, Long> counting()
+
+    // 聚合统计操作，可以实现以上所有操作。它们主要用于int、double、long等基本类型上
+    public static <T> Collector<T, ?, IntSummaryStatistics> summarizingInt(ToIntFunction<? super T> mapper)
+    public static <T> Collector<T, ?, LongSummaryStatistics> summarizingLong(ToLongFunction<? super T> mapper)
+    public static <T> Collector<T, ?, DoubleSummaryStatistics> summarizingDouble(ToDoubleFunction<? super T> mapper)
+}
+```
+
+`Collectors`工具类提供相关用于`Stream.collect()`时的聚合处理的方法，当使用Stream流处理数据后，可以像数据库的聚合函数一样对某个字段进行操作。比如获取最大值，获取最小值，求总和，平均值，统计数量。示例如下：
+
+```java
+@Test
+public void streamToPolymerizationTest() {
+    List<Student> STUDENTS = new ArrayList<>();
+    Collections.addAll(STUDENTS,
+            new Student("石原里美", 23, 95),
+            new Student("樱庭奈奈美", 18, 34),
+            new Student("长泽雅美", 23, 45),
+            new Student("新垣结衣", 18, 88)
+    );
+
+    // 使用Collectors.maxBy()方法在收集流数据时获取最大值，获取学生分数的最大值
+    Optional<Student> max = STUDENTS.stream()
+            .collect(Collectors.maxBy((o1, o2) -> o1.getSocre() - o2.getSocre()));
+    System.out.println("分数Socre最大值: " + max.orElseThrow(NullPointerException::new));
+
+    // 使用Collectors.minBy()方法在收集流数据时获取最小值，获取学生分数最小值
+    Optional<Student> min = STUDENTS.stream()
+            .collect(Collectors.minBy((o1, o2) -> o1.getSocre() - o2.getSocre()));
+    System.out.println("分数Socre最小值: " + min.orElseThrow(NullPointerException::new));
+
+    // 使用Collectors.summingInt()方法在收集流数据时获取总和，获取学生年龄的总和
+    Integer sum = STUDENTS.stream()
+            // .collect(Collectors.summingInt(o -> o.getAge()));
+            .collect(Collectors.summingInt(Student::getAge)); // 使用方法引用优化
+    System.out.println("年龄总和: " + sum);
+
+    // 使用Collectors.averagingInt()方法在收集流数据时获取平均值，获取学生分数的平均值
+    Double avg = STUDENTS.stream()
+            .collect(Collectors.averagingInt(Student::getSocre));
+    System.out.println("分数平均值: " + avg);
+
+    // 使用Collectors.counting()方法在收集流数据时获取数量，获取学生人数统计数量
+    Long count = STUDENTS.stream().collect(Collectors.counting());
+    System.out.println("统计学生数量: " + count);
+
+    // Collectors.summarizingInt()聚合操作汇总的方法，可以实现以上所有操作
+    IntSummaryStatistics statistics = STUDENTS.stream()
+            .collect(Collectors.summarizingInt(Student::getSocre));
+    System.out.println(
+            String.format("max: %d, min: %d, sum: %d, avg: %s, count: %d",
+                    statistics.getMax(),
+                    statistics.getMin(),
+                    statistics.getSum(),
+                    statistics.getAverage(),
+                    statistics.getCount()
+            )
+    );
+}
+```
+
+#### 5.7.7. 对流中数据进行分组
+
+```java
+public final class Collectors {
+    public static <T, K> Collector<T, ?, Map<K, List<T>>> groupingBy(Function<? super T, ? extends K> classifier)
+
+    public static <T, K, A, D> Collector<T, ?, Map<K, D>> groupingBy(Function<? super T, ? extends K> classifier, Collector<? super T, A, D> downstream)
+
+    public static <T, K, D, A, M extends Map<K, D>>
+        Collector<T, ?, M> groupingBy(Function<? super T, ? extends K> classifier,
+                                      Supplier<M> mapFactory,
+                                      Collector<? super T, A, D> downstream)
+}
+```
+
+##### 5.7.7.1. 单个分组
+
+`Collectors`工具类提供`groupingBy()`方法，用于在数据收集操作时根据某个属性将数据分组的方法，示例如下：
+
+```java
+@Test
+public void streamToGroupingByTest() {
+    List<Student> STUDENTS = new ArrayList<>();
+    Collections.addAll(STUDENTS,
+            new Student("石原里美", 23, 95),
+            new Student("樱庭奈奈美", 18, 34),
+            new Student("长泽雅美", 23, 45),
+            new Student("新垣结衣", 18, 88)
+    );
+
+    // 示例1：根据学生的年龄分组
+    Map<Integer, List<Student>> ageGroupMap = STUDENTS.stream()
+            .collect(Collectors.groupingBy(Student::getAge));
+    /*
+     * 在JDK8，Map提供一个新的API，用于Map数据的遍历
+     *   default void forEach(BiConsumer<? super K, ? super V> action)
+     */
+    ageGroupMap.forEach((k, v) -> System.out.println(k + "::" + v));
+
+    // 示例2：根据分数分组。将分数大于60的分为一组。小于60分成另一组
+    Map<String, List<Student>> socreGroupMap = STUDENTS.stream().collect(Collectors.groupingBy(s -> {
+        if (s.getSocre() > 60) {
+            return "及格";
+        } else {
+            return "不及格";
+        }
+    }));
+    socreGroupMap.forEach((k, v) -> System.out.println(k + "::" + v));
+}
+```
+
+##### 5.7.7.2. 多级分组
+
+`Collectors`工具类提供`groupingBy()`方法，还可以在收集数据时进行多级的分组，示例如下：
+
+```java
+@Test
+public void streamToMultiGroupingByTest() {
+    List<Student> STUDENTS = new ArrayList<>();
+    Collections.addAll(STUDENTS,
+            new Student("石原里美", 23, 95),
+            new Student("樱庭奈奈美", 18, 34),
+            new Student("长泽雅美", 23, 45),
+            new Student("新垣结衣", 18, 88)
+    );
+
+    /*
+     * 示例1：根据学生的年龄分组后，再根据分数分组
+     *  使用到Collectors工具类的groupingBy重载方法
+     *  public static <T, K, A, D> Collector<T, ?, Map<K, D>> groupingBy(Function<? super T, ? extends K> classifier,
+     *                                 Collector<? super T, A, D> downstream)
+     */
+    Map<Integer, Map<String, List<Student>>> map = STUDENTS.stream()
+            .collect(Collectors.groupingBy(Student::getAge, Collectors.groupingBy(s -> {
+                if (s.getSocre() > 60) {
+                    return "及格";
+                } else {
+                    return "不及格";
+                }
+            })));
+
+    // 遍历多级map
+    map.forEach((k, v) -> {
+        // 输出第一次分组的key
+        System.out.println(k);
+        // 遍历第二层map
+        v.forEach((k2, v2) -> System.out.println("\t" + k2 + " == " + v2));
+    });
+}
+```
+
+输出结果
+
+![](images/20200927161046878_19446.png)
+
+#### 5.7.8. 对流中数据进行分区
+
+```java
+public final class Collectors {
+    public static <T> Collector<T, ?, Map<Boolean, List<T>>> partitioningBy(Predicate<? super T> predicate)
+    public static <T, D, A> Collector<T, ?, Map<Boolean, D>> partitioningBy(Predicate<? super T> predicate,
+                                                                            Collector<? super T, A, D> downstream)
+}
+```
+
+`Collectors`工具类提供`partitioningBy()`方法，用于在数据收集操作时根据指定的处理逻辑，返回值是否为true，把集合分割为两个列表，一个true列表，一个false列表。示例如下：
+
+> 注：分区与分组实质差不多，区别在于分组可以根据某个属性进去分组，结果可以将数据分成多个不同的组别；但分区只能分成两个区域，并且区域的key为`true`与`false`
+
+```java
+@Test
+public void partitioningByTest() {
+    List<Student> STUDENTS = new ArrayList<>();
+    Collections.addAll(STUDENTS,
+            new Student("石原里美", 23, 95),
+            new Student("樱庭奈奈美", 18, 34),
+            new Student("长泽雅美", 23, 45),
+            new Student("新垣结衣", 18, 88)
+    );
+
+    // 示例1：根据学生的分数进行分区
+    // partitioningBy会根据值是否为true，把集合分割为两个列表，一个true列表，一个false列表。
+    Map<Boolean, List<Student>> map = STUDENTS.stream()
+            .collect(Collectors.partitioningBy(s -> s.getSocre() > 60));
+    // 遍历map
+    map.forEach((k, v) -> System.out.println(k + " :: " + v));
+}
+```
+
+#### 5.7.9. 对流中数据进行拼接
+
+```java
+public final class Collectors {
+    // 直接将字符串元素拼接
+    public static Collector<CharSequence, ?, String> joining()
+    // 指定连接符delimiter，将每个字符串元素与连接符拼接
+    public static Collector<CharSequence, ?, String> joining(CharSequence delimiter)
+    // 指定连接符delimiter、前缀prefix、后缀suffix，将每个字符串元素与连接符拼接并加上前后缀
+    public static Collector<CharSequence, ?, String> joining(CharSequence delimiter,
+                                                             CharSequence prefix,
+                                                             CharSequence suffix)
+}
+```
+
+`Collectors`工具类提供`joining()`方法，用于将所有元素拼接成一个字符串。可以指定拼接时的连接符与前、后缀。示例如下：
+
+```java
+@Test
+public void joiningTest() {
+    // 示例1：将学生的姓名进去拼接
+    // 1. 直接将所有元素进行拼接
+    String names1 = STUDENTS.stream().map(Student::getName)
+            .collect(Collectors.joining());
+    System.out.println("字符直接拼接：" + names1);
+
+    // 2. 指定连接符，将每个元素之间连接符拼接
+    String names2 = STUDENTS.stream().map(Student::getName)
+            .collect(Collectors.joining("_"));
+    System.out.println("字符与连接符拼接：" + names2);
+
+    // 3. 指定连接符、前缀、后缀，将每个元素之间连接符拼接再加上前后缀
+    String names3 = STUDENTS.stream().map(Student::getName)
+            .collect(Collectors.joining("_", "[", "]"));
+    System.out.println("字符与连接符、前后缀拼接：" + names3);
+}
+```
+
+#### 5.7.10. Collectors.toList() 源码解析（了解）
 
 ```java
 // Collectors.toList() 源码
@@ -2109,58 +2524,280 @@ public <T> Collector<T, ?, List<T>> toList() {
 }
 ```
 
-### 5.7. 统计
+### 5.8. 并行的Stream流
 
-一些产生统计结果的收集器也非常有用。它们主要用于int、double、long等基本类型上，它们可以用来产生类似如下的统计结果。
+#### 5.8.1. 创建方式
 
-```java
-List<Integer> numbers = Arrays.asList(3, 2, 2, 3, 7, 3, 5);
-IntSummaryStatistics stats = numbers.stream().mapToInt((x) -> x).summaryStatistics();
-System.out.println("列表中最大的数 : " + stats.getMax());  // 列表中最大的数 : 7
-System.out.println("列表中最小的数 : " + stats.getMin());  // 列表中最小的数 : 2
-System.out.println("所有数之和 : " + stats.getSum());    // 所有数之和 : 25
-System.out.println("平均数 : " + stats.getAverage());  // 平均数 : 3.5714285714285716
-```
-
-### 5.8. Optional类型
-
-- 这也是一个模仿 Scala 语言中的概念，作为一个容器，它可能含有某值，或者不包含。使用它的目的是尽可能避免 NullPointerException
-- Optional里面只持有一个元素，而Stream可持有多个元素
+1. 直接获取并行的流。在 Java 8 中，所有的 `Collection` 集合，都可以使用接口的`parallelStream()`方法为集合创建并行流
+2. 将串行流转成并行流。创建串行的Stream流后，调用`Stream`接口的`parallel()`方法，将流转成并行流
 
 ```java
-String strA = " abcd ", strB = null;
-print(strA);
-print("");
-print(strB);
-getLength(strA);
-getLength("");
-getLength(strB);
+@Test
+public void parallelStreamCreateTest() {
+    // 定义集合
+    List<Integer> list = Arrays.asList(4, 5, 3, 9, 1, 2, 6);
 
-public static void print(String text) {
-	// Java 8
-	Optional.ofNullable(text).ifPresent(System.out::println);
+    // 方式一：直接使用Collection接口的 parallelStream() 方法创建并行流
+    Stream<Integer> parallelStream1 = list.parallelStream();
+    // 调用Stream接口的isParallel()来判断当前是否为并行流
+    System.out.println("parallelStream1是否为并行流: " + parallelStream1.isParallel());
 
-	// Pre-Java 8
-	if (text != null) {
-	System.out.println(text);
-	}
+    // 方式二：将串行流转成并行流，调用Stream接口的 parallel() 方法，转成并行流
+    Stream<Integer> parallelStream2 = list.stream().parallel();
+    System.out.println("parallelStream2是否为并行流: " + parallelStream2.isParallel());
 }
-public static int getLength(String text) {
-	// Java 8
-	return Optional.ofNullable(text).map(String::length).orElse(-1);
-
-	// Pre-Java 8
-	// return if (text != null) ? text.length() : -1;
-};
-
-// 还有ifPresentOrElse()方法等
 ```
 
-在更复杂的 `if (xx != null)` 的情况中，使用 Optional 代码的可读性更好，而且它提供的是编译时检查，能极大的降低 NPE 这种 Runtime Exception 对程序的影响，或者迫使程序员更早的在编码阶段处理空值问题，而不是留到运行时再发现和调试。
+#### 5.8.2. 并行Stream流定义
 
-Stream 中的 findAny、max/min、reduce 等方法等返回 Optional 值。还有例如 `IntStream.average()` 返回 OptionalDouble 等等
+以上学习使用的Stream流是串行的，就是在一个线程上执行。
+
+而`parallelStream`其实就是一个并行执行的流。它通过默认的`ForkJoinPool`，可能提高多线程任务的速度
+
+```java
+@Test
+public void serialAndParallelStreamTest() {
+    // 创建串行流，输出执行时线程的名称
+    LIST.stream().filter(s -> {
+        System.out.println(Thread.currentThread() + "::" + s);
+        return s > 3;
+    }).count();
+    System.out.println("------------------------");
+
+    // 创建串行流，输出执行时线程的名称
+    LIST.parallelStream().filter(s -> {
+        System.out.println(Thread.currentThread() + "::" + s);
+        return s > 3;
+    }).count();
+}
+```
+
+![](images/20200927233135356_29670.png)
+
+#### 5.8.3. 串行与并行流的效率对比
+
+需求：使用for循环，串行Stream流，并行Stream流来对5亿个数字求和。看消耗的时间。
+
+```java
+// 定义循环的次数
+private static final int times = 500000000;
+// 定义开始时间
+private long startTime;
+
+@Before
+public void init() {
+    startTime = System.currentTimeMillis();
+}
+
+@After
+public void destory() {
+    long endTime = System.currentTimeMillis();
+    System.out.println("消耗时间: " + (endTime - startTime));
+}
+
+/* for循环对5亿个数字求和的执行效率测试  消耗时间：166 */
+@Test
+public void forEachEfficiencyTest() {
+    int sum = 0;
+    for (int i = 0; i < times; i++) {
+        sum += i;
+    }
+}
+
+/* 串行Stream流对5亿个数字求和的执行效率测试  消耗时间：390 */
+@Test
+public void serialStreamTest() {
+    // LongStream类的rangeClosed静态方法用于创建一个指定执行次数的流
+    LongStream.rangeClosed(0, times).reduce(0, Long::sum);
+}
+
+/* 并行Stream流对5亿个数字求和的执行效率测试  消耗时间：186 */
+@Test
+public void parallelStreamTest() {
+    // LongStream类的rangeClosed静态方法用于创建一个指定执行次数的流
+    LongStream.rangeClosed(0, times)
+            .parallel() // 转成并行流
+            .reduce(0, Long::sum);
+}
+```
+
+示例正常来说，应该是`parallelStream`的执行效率是最高的（*不知道为什么，本机测试居然比for循环还要慢*）
+
+Stream并行处理的过程会分而治之，也就是将一个大任务切分成多个小任务，这表示每个任务都是一个操作。
+
+#### 5.8.4. parallelStream线程安全问题
+
+并行流`parallelStream`是多线程操作，所以就会出现线程安全的问题。线程安全问题示例：
+
+```java
+@Test
+public void threadSafetyTest() {
+    // 定义待测试的集合
+    List<Integer> list = new ArrayList<>();
+
+    /*
+     * 创建并行流，往集合插入数据，会出现线程安全问题
+     *  实现插入数据数量比指定的数次少
+     */
+    IntStream.rangeClosed(1, 1000)
+            .parallel()
+            // .forEach(i -> list.add(i));
+            .forEach(list::add); // 使用方法引用简化lambda表达式
+    System.out.println("list = " + list.size());
+
+    /* 解决parallelStream线程安全问题方案一: 使用同步代码块 */
+    list.clear(); // 演示线程安全，重复使用集合，需要先清空
+    Object o = new Object(); // 定义锁对象
+    IntStream.rangeClosed(1, 1000)
+            .parallel()
+            .forEach(i -> {
+                synchronized (o) {
+                    list.add(i);
+                }
+            });
+    System.out.println("list = " + list.size());
+
+    /* 解决parallelStream线程安全问题方案二: 使用线程安全的集合 */
+    // 线程安全的集合1：Vector
+    Vector<Integer> vector = new Vector();
+    IntStream.rangeClosed(1, 1000)
+            .parallel()
+            .forEach(vector::add);
+    System.out.println("vector = " + vector.size());
+
+    // 线程安全的集合2：Collections工具类提供的synchronizedList方法，将非线程安全的list转成线程安全
+    list.clear(); // 演示线程安全，重复使用集合，需要先清空
+    List<Integer> synchronizedList = Collections.synchronizedList(list);
+    IntStream.rangeClosed(1, 1000)
+            .parallel()
+            .forEach(synchronizedList::add);
+    System.out.println("synchronizedList = " + synchronizedList.size());
+
+
+    /* 解决parallelStream线程安全问题方案三: 调用Stream流的collect/toArray */
+    List<Integer> collectList = IntStream.rangeClosed(1, 1000)
+            .parallel()
+            .boxed() // 转成stream流
+            .collect(Collectors.toList());
+    System.out.println("collectList = " + collectList.size());
+}
+
+// 输出结果
+list = 985
+list = 1000
+vector = 1000
+synchronizedList = 1000
+collectList = 1000
+```
+
+总结parallelStream线程安全的解决方案有：
+
+1. 在操作出现线程安全部分的代码时，使用同步代码块
+2. 使用线程安全的集合，如：`Vector`、`Collections`工具类提供的`synchronizedList`方法将集合转换成线程安全的
+3. 调用Stream流的`collect`、`toArray`去操作集合
+
+#### 5.8.5. parallelStream底层实现原理
+
+> 注：parallelStream底层实现是使用Fork/Join框架，此框架的详细学习笔记详见《08-并发编程》中的相关笔记
+
+##### 5.8.5.1. Fork/Join框架介绍
+
+parallelStream使用的是Fork/Join框架。Fork/Join框架自JDK 7引入。Fork/Join框架可以将一个大任务拆分为很多小任务来异步执行。 Fork/Join框架主要包含三个模块：
+
+1. 线程池：`ForkJoinPool`
+2. 任务对象：`ForkJoinTask`
+3. 执行任务的线程：`ForkJoinWorkerThread`
+
+![](images/20200928092050486_29775.png)
+
+##### 5.8.5.2. Fork/Join原理-分治法
+
+ForkJoinPool主要用来使用分治法(Divide-and-Conquer Algorithm)来解决问题。ForkJoinPool需要使用相对少的线程来处理大量的任务。比如要对1000万个数据进行排序，那么会将这个任务分割成两个500万的排序任务和一个针对这两组500万数据的合并任务。以此类推，对于500万的数据也会做出同样的分割处理，到最后会设置一个阈值来规定当数据规模到多少时，停止这样的分割处理。
+
+![](images/20200928092111832_27148.png)
+
+##### 5.8.5.3. Fork/Join原理-工作窃取算法
+
+Fork/Join最核心的地方就是如何利用多核的处理器。工作窃取（work-stealing）算法就是整个Fork/Join框架的核心理念。Fork/Join工作窃取（work-stealing）算法是指某个线程从其他队列里窃取任务来执行
+
+![](images/20200928092925898_1468.png)
+
+假如我们需要做一个比较大的任务，我们可以把这个任务分割为若干互不依赖的子任务，为了减少线程间的竞争，于是把这些子任务分别放到不同的队列里，并为每个队列创建一个单独的线程来执行队列里的任务，线程和队列一一对应，比如A线程负责处理A队列里的任务。但是有的线程会先把自己队列里的任务干完，而其他线程对应的队列里还有任务等待处理。干完活的线程与其等着，不如去帮其他线程干活，于是它就去其他线程的队列里窃取一个任务来执行。而在这时它们会访问同一个队列，所以为了减少窃取任务线程和被窃取任务线程之间的竞争，通常会使用双端队列，被窃取任务线程永远从双端队列的头部拿任务执行，而窃取任务的线程永远从双端队列的尾部拿任务执行
+
+工作窃取算法的优点是充分利用线程进行并行计算，并减少了线程间的竞争，其缺点是在某些情况下还是存在竞争
+
+Java 8引入了自动并行化的概念。它能够让一部分Java代码自动地以并行的方式执行，也就是使用了ForkJoinPool的ParallelStream
+
+对于ForkJoinPool通用线程池的线程数量，通常使用默认值就可以了，即运行时计算机的处理器数量。可以通过设置系统属性：`java.util.concurrent.ForkJoinPool.common.parallelism=N` （N为线程数量），来调整ForkJoinPool的线程数量，可以尝试调整成不同的参数来观察每次的输出结果
+
+##### 5.8.5.4. Fork/Join案例
+
+需求：使用Fork/Join计算1-10000的和，当一个任务的计算数量大于3000时拆分任务，数量小于3000时计算。
+
+```java
+public class Demo07ForkJoin {
+    @Test
+    public void forkJoinTest() {
+        long start = System.currentTimeMillis();
+        ForkJoinPool pool = new ForkJoinPool();
+        SumRecursiveTask task = new SumRecursiveTask(1, 99999999999L);
+        Long result = pool.invoke(task);
+        System.out.println("result = " + result);
+        long end = System.currentTimeMillis();
+        System.out.println("消耗时间: " + (end - start));
+    }
+}
+
+/** 创建一个求和的任务 */
+class SumRecursiveTask extends RecursiveTask<Long> {
+    // 定义是否要拆分的临界值
+    private static final long THRESHOLD = 3000L;
+    // 起始值
+    private final long start;
+    // 结束值
+    private final long end;
+
+    // 定义构造器，指定起始与结束值
+    public SumRecursiveTask(long start, long end) {
+        this.start = start;
+        this.end = end;
+    }
+
+    // 处理计算逻辑
+    @Override
+    protected Long compute() {
+        long length = end - start;
+        if (length > THRESHOLD) {
+            // 大于临界值，进行拆分
+            long middle = (start + end) / 2;
+            SumRecursiveTask left = new SumRecursiveTask(start, middle);
+            left.fork();
+            SumRecursiveTask right = new SumRecursiveTask(middle + 1, end);
+            right.fork();
+
+            return left.join() + right.join();
+        } else {
+            // 小于临界值，执行计算
+            long sum = 0;
+            for (long i = start; i <= end; i++) {
+                sum += i;
+            }
+            return sum;
+        }
+    }
+}
+```
+
+#### 5.8.6. 总结
+
+1. parallelStream是线程不安全的
+2. parallelStream适用的场景是CPU密集型的，只是做到别浪费CPU，假如本身电脑CPU的负载很大，那还到处用并行流，那并不能起到作用
+3. I/O密集型 磁盘I/O、网络I/O都属于I/O操作，这部分操作是较少消耗CPU资源，一般并行流中不适用于I/O密集型的操作，就比如使用并流行进行大批量的消息推送，涉及到了大量I/O，使用并行流反而慢了很多
+4. 在使用并行流的时候是无法保证元素的顺序的，也就是即使你用了同步集合也只能保证元素都正确但无法保证其中的顺序
 
 ### 5.9. Stream 完整实例
+
+#### 5.9.1. 综合示例1
 
 ```java
 package com.moon.test;
@@ -2375,6 +3012,35 @@ Squares List: [9, 4, 49, 25]
 空字符串的数量为: 2
 ```
 
+#### 5.9.2. 综合示例2
+
+```java
+@Test
+public void comprehensiveStreamTest02() {
+    // 第一个队伍
+    List<String> teamA = Arrays.asList("天锁斩月", "L", "夜神月", "樱木花道", "宇智波鼬", "金田一一", "乌尔奇奥拉·西法");
+    // 第二个队伍
+    List<String> teamB = Arrays.asList("樱庭奈奈美", "长泽雅美", "新垣结衣", "石原里美", "郭靖", "杨过", "张无忌");
+
+    // 1.第一个队伍只要名字为4个字的成员姓名;
+    // 2.第一个队伍筛选之后只要前3个人;
+    Stream<String> streamA = teamA.stream().filter(s -> s.length() == 4).limit(3);
+
+    // 3.第二个队伍只要包含“美”字的成员姓名;
+    // 4.第二个队伍筛选之后不要前2个人;
+    Stream<String> streamB = teamB.stream().filter(s -> s.contains("美")).skip(2);
+
+    // 5.将两个队伍合并为一个队伍;
+    Stream<String> concatStream = Stream.concat(streamA, streamB);
+
+    // 6.根据姓名创建Person象;
+    Stream<Person> personStream = concatStream.map(Person::new);
+
+    // 7.打印整个队伍的Person对象信息。
+    personStream.forEach(System.out::println);
+}
+```
+
 ## 6. StringJoiner 类（字符拼接）
 ### 6.1. 简介
 
@@ -2473,20 +3139,107 @@ StringJoiner其实是通过StringBuilder实现的，所以他的性能和StringB
 
 `java.util.Optional<T>`类的声明：`public final class Optional<T> extends Object`
 
-### 7.2. Optional 创建方式
+### 7.2. Optional 类型说明
 
-Optional本质是一个容器，需要将对象实例传入该容器中。Optional 的构造方法为 private，无法直接使用 new 构建对象，只能使用 Optional 提供的静态方法创建。Optional 三个创建方法如下：
+- 这也是一个模仿 Scala 语言中的概念，作为一个容器，它可能含有某值，或者不包含。使用它的目的是尽可能避免 NullPointerException
+- Optional里面只持有一个元素，而Stream可持有多个元素
 
-- `Optional.of(obj)`：如果对象为 null，将会抛出 NPE。
-- `Optional.ofNullable(obj)`：如果对象为 null，将会创建不包含值的 empty Optional 对象实例。
-- `Optional.empty()`：等同于 `Optional.ofNullable(null)`
+```java
+String strA = " abcd ", strB = null;
+print(strA);
+print("");
+print(strB);
+getLength(strA);
+getLength("");
+getLength(strB);
 
-![两种容器区别](images/20191029145031531_25291.jpg)
+public static void print(String text) {
+	// Java 8
+	Optional.ofNullable(text).ifPresent(System.out::println);
 
-> 只有在确定对象不会为 null 的情况使用 `Optional.of()`，否则建议使用 `Optional.ofNullable()` 方法
+	// Pre-Java 8
+	if (text != null) {
+	System.out.println(text);
+	}
+}
+public static int getLength(String text) {
+	// Java 8
+	return Optional.ofNullable(text).map(String::length).orElse(-1);
 
-### 7.3. 类的常用方法
-#### 7.3.1. get()与isPresent()方法
+	// Pre-Java 8
+	// return if (text != null) ? text.length() : -1;
+};
+
+// 还有ifPresentOrElse()方法等
+```
+
+在更复杂的 `if (xx != null)` 的情况中，使用 Optional 代码的可读性更好，而且它提供的是编译时检查，能极大的降低 NPE 这种 Runtime Exception 对程序的影响，或者迫使程序员更早的在编码阶段处理空值问题，而不是留到运行时再发现和调试。
+
+Stream 中的 findAny、max/min、reduce 等方法等返回 Optional 值。还有例如 `IntStream.average()` 返回 OptionalDouble 等等
+
+### 7.3. Optional 创建方式
+
+`Optional`是一个没有子类的工具类。`Optional`本质是一个容器，需要将对象实例传入该容器中。`Optional` 的构造方法为 `private`，无法直接使用 `new` 构建对象，只能使用 `Optional` 提供的静态方法创建。`Optiona`l 三个创建方法如下：
+
+```java
+public static <T> Optional<T> of(T value)
+```
+
+- `Optional.of(obj)`方法，创建一个有值的`Optional`实例。如果方法传入的对象为null，将会抛出 NPE 异常。
+
+```java
+public static <T> Optional<T> ofNullable(T value)
+```
+
+- `Optional.ofNullable(obj)`方法，创建一个可以为空的`Optional`实例。如果对象为null，将会创建不包含值的 `empty Optional` 对象实例。
+
+```java
+public static<T> Optional<T> empty()
+```
+
+- `Optional.empty()`方法，创建一个空的`Optional`实例。等同于 `Optional.ofNullable(null)`
+
+![](images/20191029145031531_25291.jpg)
+
+> 注：只有在确定对象不会为 null 的情况使用 `Optional.of()`，否则建议使用 `Optional.ofNullable()` 方法
+
+
+```java
+@Test
+public void optionalCreateTest() {
+    /* 由于Optional的构造方法为private修饰，无法直接使用new构建对象，只能使用Optional提供的静态方法创建 */
+
+    /*
+     * 方式一：public static <T> Optional<T> of(T value)
+     *   该方法创建一个有值的Optional实例。如果方法传入的对象为null，将会抛出 NPE 异常
+     */
+    Optional<String> op1 = Optional.of("天锁斩月");
+    // Optional<String> op1 = Optional.of(null); // 异常
+    System.out.println("op1: " + op1.get());
+
+    /*
+     * 方式二：public static <T> Optional<T> ofNullable(T value)
+     *   该方法创建一个可以为空的Optional实例。如果对象为null，将会创建不包含值的empty Optional对象实例
+     */
+    Optional<String> op2 = Optional.ofNullable("石原里美");
+    // Optional<String> op2 = Optional.ofNullable(null); // 创建Optional实例时不会报错
+    // 如果是空的Optional对象实例，直接调用get()方法会抛出 NoSuchElementException 异常
+    System.out.println("op2: " + op2.get());
+
+    /*
+     * 方式三：public static<T> Optional<T> empty()
+     *   该方法创创建一个空的Optional实例。等同于 Optional.ofNullable(null)
+     */
+    Optional<String> op3 = Optional.empty();
+    // 如果是空的Optional对象实例，直接调用get()方法会抛出 NoSuchElementException 异常
+    // System.out.println("op3: " + op3.get());
+    System.out.println("op3是否有值: " + op3.isPresent());
+}
+```
+
+### 7.4. 类的常用方法
+
+#### 7.4.1. get() 与 isPresent()
 
 ```java
 public T get() {
@@ -2497,7 +3250,7 @@ public T get() {
 }
 ```
 
-- 如果在这个Optional中包含这个值，返回值，否则抛出异常：NoSuchElementException
+- 获取`Optional`容器的值。如果在这个`Optional`中包含这个值，返回值，否则抛出异常：`NoSuchElementException`
 
 ```java
 public boolean isPresent() {
@@ -2505,75 +3258,30 @@ public boolean isPresent() {
 }
 ```
 
-- 如果值存在则方法会返回true，否则返回 false。
+- 判断是否包含值。如果值存在则方法会返回true，否则返回false。
 
-通常使用方式：对象实例存入 Optional 容器中之后，最后需要从中取出。`Optional.get()` 方法用于取出内部对象实例，不过需要注意的是，如果是 empty Optional 实例，由于容器内没有任何对象实例，使用 `get()` 方法将会抛出 NoSuchElementException 异常。
+通常使用方式：对象实例存入 `Optional` 容器中之后，最后需要从中取出。`Optional.get()` 方法用于取出内部对象实例，不过需要注意的是，如果是 empty Optional 实例，由于容器内没有任何对象实例，使用 `get()` 方法将会抛出 NoSuchElementException 异常。
 
 为了防止异常抛出，可以使用 `Optional.isPresent()`。这个方法将会判断内部是否存在对象实例，若存在则返回 true
 
 ```java
-/* 示例代码 */
-Optional<Company> optCompany = Optional.ofNullable(company);
-// 与直接使用空指针判断没有任何区别
-if (optCompany.isPresent()) {
-    System.out.println(optCompany.get().getName());
+@Test
+public void getAndIsPresentTest() {
+    // 创建测试的Optional容器
+    Optional<String> op = Optional.ofNullable("石原里美");
+    // Optional<String> op = Optional.empty();
+
+    // isPresent()方法：用于判断Optional容器中是否有值，有值返回true，没有值返回false
+    if (op.isPresent()) {
+        // get()方法：用于获取Optional容器中的值，如果有值则返回具体值，没有值就报错
+        System.out.println("op的值: " + op.get());
+    } else {
+        System.out.println("op没有值");
+    }
 }
 ```
 
-#### 7.3.2. ifPresent()方法
-
-```java
-public void ifPresent(Consumer<? super T> consumer) {
-    if (value != null)
-        consumer.accept(value);
-}
-```
-
-- 如果值存在则使用该值调用 consumer , 否则不做任何事情。即使用 ifPresent 方法，不用再显示的进行检查
-
-```java
-/* 示例代码 */
-/* 原处理逻辑 */
-Company company = ...;
-if (company != null) {
-    System.out.println(company);
-}
-/* 使用Optional的ifPresent的处理逻辑 */
-Optional<Company> optCompany = ...;
-optCompany.ifPresent(System.out::println);
-```
-
-#### 7.3.3. filter()方法
-
-```java
-public Optional<T> filter(Predicate<? super T> predicate) {
-    Objects.requireNonNull(predicate);
-    if (!isPresent())
-        return this;
-    else
-        return predicate.test(value) ? this : empty();
-}
-```
-
-- 如果值存在，并且这个值匹配给定的 predicate，返回一个Optional用以描述这个值，否则返回一个空的Option Optional
-
-示例：当某些属性满足一定条件，才进行下一步动作
-
-```java
-/* 示例代码 */
-/* 原处理逻辑 */
-if (company != null && "Apple".equals(company.getName())) {
-    System.out.println("ok");
-}
-/* 使用 Optional#filter 结合 Optional#ifPresent 重写上面的代码 */
-Optional<Company> companyOpt = ...;
-companyOpt.filter(company -> "Apple".equals(company.getName()))
-        .ifPresent(company -> System.out.println("ok"));
-```
-
-> filter 方法将会判断对象是否符合条件。如果不符合条件，将会返回一个空的 Optional
-
-#### 7.3.4. orElse() 与 orElseThrow() 方法
+#### 7.4.2. orElse()、orElseGet() 与 orElseThrow()
 
 ```java
 public T orElse(T other) {
@@ -2581,7 +3289,15 @@ public T orElse(T other) {
 }
 ```
 
-- 如果存在该值，返回值，否则返回 other。
+- `orElse`方法：如果容器存在该值，返回值，否则返回形参传入的other值
+
+```java
+public T orElseGet(Supplier<? extends T> other) {
+    return value != null ? value : other.get();
+}
+```
+
+- `orElseGet`方法：如果容器存在该值，返回值，否则返回形参的函数式接口`Supplier`返回的值
 
 ```java
 public <X extends Throwable> T orElseThrow(Supplier<? extends X> exceptionSupplier) throws X {
@@ -2593,25 +3309,74 @@ public <X extends Throwable> T orElseThrow(Supplier<? extends X> exceptionSuppli
 }
 ```
 
-- 如果存在该值，返回包含的值，否则抛出由 Supplier 继承的异常
+- `orElseThrow`方法：如果容器存在该值，返回包含的值，否则抛出由 `Supplier` 继承的异常
 
 示例：当一个对象为 null 时，业务上通常可以设置一个默认值，从而使流程继续下去。或者抛出一个内部异常，记录失败原因，快速失败
 
 ```java
-/* 示例代码 */
-/* 原处理逻辑 */
-String name = company != null ? company.getName() : "Unknown";
-if (company.getName() == null) {
-    throw new RuntimeException();
+private final Optional<String> op = Optional.ofNullable("石原里美");
+// private final Optional<String> op = Optional.empty();
+
+/* Optional类的orElse()方法 */
+@Test
+public void orElseTest() {
+    // orElse()方法：如果Optional容器中有值，就返回该值；如果没有值就返回参数指定的值
+    String name = op.orElse("新垣结衣?");
+    System.out.println("name = " + name);
 }
-/* 使用 Optional 类提供两个方法 orElse 与 orElseThrow ，可以方便完成上面转化 */
-// 设置默认值
-String name = companyOpt.orElse(new Company("Unknown")).getName();
-// 抛出异常，如果 Optional 为空，提供默认值或抛出异常
-String name = companyOpt.orElseThrow(RuntimeException::new).getName();
+
+/* Optional类的orElseGet()方法 */
+@Test
+public void orElseGetTest() {
+    // orElseGet()方法：如果Optional容器中有值，就返回该值；如果没有值就返回参数的Supplier接口提供的值
+    String name = op.orElseGet(() -> "长泽雅美");
+    System.out.println("name = " + name);
+}
+
+/* Optional类的orElseThrow()方法 */
+@Test
+public void orElseThrowTest() {
+    // orElseThrow()方法：如果Optional容器中有值，就返回该值；如果没有值就抛出由Supplier继承的异常
+    String name = op.orElseThrow(NullPointerException::new);
+    System.out.println("name = " + name);
+}
 ```
 
-#### 7.3.5. map() 与 flatMap() 方法
+#### 7.4.3. ifPresent()
+
+```java
+public void ifPresent(Consumer<? super T> consumer) {
+    if (value != null)
+        consumer.accept(value);
+}
+```
+
+- `ifPresent`方法：如果值存在则使用该值调用 `Consumer` 接口进行消费处理，否则不做任何事情。即使用 `ifPresent` 方法，不用再进行非空检查
+
+```java
+// private final Optional<String> op = Optional.ofNullable("石原里美");
+private final Optional<String> op = Optional.empty();
+
+@Test
+public void ifPresentTest() {
+    // ifPresent()方法：如果Optional容器中有值，使用该值调用Consumer接口进行消费处理，否则不做任何事情
+    op.ifPresent(s -> System.out.println("name = " + s));
+
+    /*
+     * 番外：JDK9 对Optional类做了增强，增加了ifPresentOrElse方法
+     *  该方法可以定义容器分别是否为空时的相应处理逻辑
+     *  参数1：当前容器有值时，执行此消费方法逻辑
+     *  参数2：当前容器为空时，执行此方法逻辑
+     */
+    /*op.ifPresentOrElse(s -> {
+        System.out.println("有值: " + s);
+    }, () -> {
+        System.out.println("没有值");
+    });*/
+}
+```
+
+#### 7.4.4. map() 与 flatMap()
 
 ```java
 public<U> Optional<U> map(Function<? super T, ? extends U> mapper) {
@@ -2624,7 +3389,7 @@ public<U> Optional<U> map(Function<? super T, ? extends U> mapper) {
 }
 ```
 
-- 如果存在该值，提供的映射方法，如果返回非null，返回一个Optional描述结果。
+- `map`方法：如果存在该值，执行参数提供的映射方法`Function`，如果映射方法返回非null值，则`map`最终会返回一个返回值的`Optional`实例。如果映射方法处理返回null时，则返回空的`Optional`实例
 
 ```java
 public<U> Optional<U> flatMap(Function<? super T, Optional<U>> mapper) {
@@ -2637,25 +3402,73 @@ public<U> Optional<U> flatMap(Function<? super T, Optional<U>> mapper) {
 }
 ```
 
-- 如果值存在，返回基于Optional包含的映射方法的值，否则返回一个空的Optional
+- `flatMap`方法：如果值存在，返回基于Optional包含的映射方法的值，否则返回一个空的Optional
 
 > 以上两个方法与 Java8 Stream 的相似，`Stream.map()`方法可以将当前对象转化为另外一个对象， `Optional.map()` 方法也与之类似
 >
-> 示例：map 方法可以将原先 `Optional<Company>` 转变成 `Optional<String>` ，此时 Optional 内部对象变成 String 类型。如果转化之前 Optional 对象为空，则什么也不会发生
+> 示例：map 方法可以将原先 `Optional<User>` 转变成 `Optional<String>` ，此时 `Optional` 内部对象变成 `String` 类型。如果转化之前 `Optional` 对象为空，则什么也不会发生
 
 ```java
-/* 示例代码 */
-Optional<Company> optCompany = ...;
-Optional<String> nameopt = optCompany.map(Company::getName);
+@Test
+public void mapTest() {
+    // 示例：将用户对象的用户名转成大写并返回
+    // User user = null;
+    // User user = new User(null, 18);
+    User user = new User("mooN", 18);
+
+    // map()方法：如果Optional容器中有值，则执行参数的Function接口实现逻辑；如没有值则返回空的Optional对象实例
+    /*String userName = Optional.ofNullable(user)
+            .map(u -> u.getUserName())
+            .map(s -> s.toUpperCase())
+            .orElse("null");*/
+
+    /* 使用方法引用简化上面的代码 */
+    String userName = Optional.ofNullable(user) // 创建User对象的Optional容器
+            .map(User::getUserName) // 如果User实例不为空，则调用gteUserName方法获取用户名称，否则返回空Optional实例
+            .map(String::toUpperCase) // 如果userName不为空，则调用toUpperCase方法转成大写，否则返回空Optional实例
+            .orElse("null"); // 如果上述其中一步返回空的Optional实例，则会执行则
+
+    System.out.println("用户名转成大写后值为：" + userName);
+}
 ```
 
-#### 7.3.6. 其他常用方法
+#### 7.4.5. filter()
 
 ```java
-static <T> Optional<T> empty()
+public Optional<T> filter(Predicate<? super T> predicate) {
+    Objects.requireNonNull(predicate);
+    if (!isPresent())
+        return this;
+    else
+        return predicate.test(value) ? this : empty();
+}
 ```
 
-- 返回空的 Optional 实例。
+- `filter`方法：如果值存在，并且这个值匹配给定的 predicate，返回一个包含此值的`Optional`实例，否则返回一个空的`Optional`实例
+
+示例：当某些属性满足一定条件，才进行下一步动作
+
+```java
+@Test
+public void filterTest() {
+    // 示例：如果用户对象的用户名称不为空且长度大于3，则输出结果
+    // User user = null;
+    // User user = new User(null, 18);
+    User user = new User("mooN", 18);
+
+    // filter()方法：如果Optional容器中有值，并且这个值匹配参数的Predicate接口实现逻辑；返回一个包含此值的Optional实例，否则返回一个空的Optional实例
+    Optional.ofNullable(user) // 创建User对象的Optional容器
+            .filter(u -> {
+                String userName = u.getUserName();
+                return userName != null && userName.length() > 3;
+            }) // 如果user对象不为空，则将user对象去匹配参数的Predicate接口实现逻辑，如果条件成功则返回user对象的Optional实例，否则返回空Optional实例
+            .ifPresent(u -> System.out.println("用户名: " + u.getUserName())); // 如果上述其中一步返回空的Optional实例，则会执行则
+}
+```
+
+> `filter` 方法将会判断对象是否符合条件。如果不符合条件，将会返回一个空的 `Optional`
+
+#### 7.4.6. 其他常用方法
 
 ```java
 boolean equals(Object obj)
@@ -2670,31 +3483,14 @@ int hashCode()
 - 返回存在值的哈希码，如果值不存在返回 0。
 
 ```java
-static <T> Optional<T> of(T value)
-```
-
-- 返回一个指定非null值的Optional。
-
-```java
-static <T> Optional<T> ofNullable(T value)
-```
-
-- 如果为非空，返回 Optional 描述的指定值，否则返回空的 Optional。
-
-```java
-T orElseGet(Supplier<? extends T> other)
-```
-
-- 如果存在该值，返回值，否则触发 other，并返回 other 调用的结果。
-
-```java
 String toString()
 ```
 
 - 返回一个Optional的非空字符串，用来调试
 
-### 7.4. Optional 使用实例
-#### 7.4.1. 示例1
+### 7.5. Optional 使用实例
+
+#### 7.5.1. 示例1
 
 ```java
 package com.moon.jav.test;
@@ -2734,7 +3530,7 @@ public class Java8Tester {
 10
 ```
 
-#### 7.4.2. 示例2
+#### 7.5.2. 示例2
 
 - 未使用Optional之前代码
 
@@ -2789,20 +3585,501 @@ staffOpt.flatMap(Staff::getDepartment)
         .orElse("Unknown");
 ```
 
-## 8. 日期时间 API
+## 8. JDK8 新的日期和时间 API
 
-- Java 8 通过发布新的Date-Time API (JSR 310)来进一步加强对日期与时间的处理。
-- 在旧版的Java 中，日期时间API 存在诸多问题，其中有：
-    - 非线程安全 − `java.util.Date` 是非线程安全的，所有的日期类都是可变的，这是Java日期类最大的问题之一。
-    - 设计很差 − Java的日期/时间类的定义并不一致，在 `java.util` 和 `java.sql` 的包中都有日期类，此外用于格式化和解析的类在java.text包中定义。`java.util.Date`同时包含日期和时间，而 `java.sql.Date` 仅包含日期，将其纳入 `java.sql` 包并不合理。另外这两个类都有相同的名字，这本身就是一个非常糟糕的设计。
-    - 时区处理麻烦 − 日期类并不提供国际化，没有时区支持，因此Java引入了`java.util.Calendar`和`java.util.TimeZone`类，但他们同样存在上述所有的问题。
-- Java 8 在 `java.time` 包下提供了很多新的 API。以下为两个比较重要的 API：
-    - **Local(本地)** − 简化了日期时间的处理，没有时区的问题。
-    - **Zoned(时区)** − 通过制定的时区处理日期时间。
+### 8.1. 旧版日期时间 API 存在的问题
 
-新的java.time包涵盖了所有处理日期，时间，日期/时间，时区，时刻（instants），过程（during）与时钟（clock）的操作。
+1. 设计很差： 在`java.util`和`java.sql`的包中都有日期类，`java.util.Date`同时包含日期和时间，而`java.sql.Date`仅包含日期。此外用于格式化和解析的类在`java.text`包中定义
+2. 非线程安全：`java.util.Date` 是非线程安全的，所有的日期类都是可变的，这是Java日期类最大的问题之一
+3. 时区处理麻烦：日期类并不提供国际化，没有时区支持，因此Java引入了`java.util.Calendar`和`java.util.TimeZone`类，但他们同样存在上述所有的问题
 
-### 8.1. 本地化日期时间 API
+### 8.2. 新的日期时间 API
+
+JDK 8中增加了一套全新的日期时间API，这套API设计合理，是线程安全的。新的`java.time`包涵盖了所有处理日期，时间，日期/时间，时区，时刻（instants），过程（during）与时钟（clock）的操作。常用有以下的关键类：
+
+- `LocalDate`：表示日期，包含年月日，格式为 2019-10-16
+- `LocalTime`：表示时间，包含时分秒，格式为 16:38:54.158549300
+- `LocalDateTime`：表示日期时间，包含年月日，时分秒，格式为 2018-09-06T15:33:56.750
+- `DateTimeFormatter`：日期时间格式化类
+- `Instant`：时间戳，表示一个特定的时间瞬间
+- `Duration`：用于计算2个时间(`LocalTime`，时分秒)的距离
+- `Period`：用于计算2个日期(`LocalDate`，年月日)的距离
+- `ZonedDateTime`：包含时区的时间
+
+Java中使用的历法是ISO 8601日历系统，它是世界民用历法，也就是通常所说的公历。平年有365天，闰年是366天。此外Java 8还提供了4套其他历法，分别是：
+
+- `ThaiBuddhistDate`：泰国佛教历
+- `MinguoDate`：中华民国历
+- `JapaneseDate`：日本历
+- `HijrahDate`：伊斯兰历
+
+#### 8.2.1. JDK 8的日期和时间类
+
+`LocalDate`、`LocalTime`、`LocalDateTime`类的实例是不可变的对象，分别表示使用 ISO-8601 日历系统的日期、时间、日期和时间。它们提供了简单的日期或时间，并不包含当前的时间信息，也不包含与时区相关的信息
+
+```java
+/* LocalDate类: 表示日期，有年月日信息 */
+@Test
+public void localDateTest() {
+    // 工厂方法LocalDate.of()可以创建任意日期，该方法需要传入年、月、日做参数，返回对应的LocalDate实例。
+    LocalDate date = LocalDate.of(2018, 8, 8);
+    System.out.println("指定日期: " + date);
+
+    // 通过静态工厂方法LocalDate.now()获取当天日期
+    LocalDate now = LocalDate.now();
+    System.out.println("今天的日期：" + now);
+
+    // 获取年信息
+    System.out.println("year: " + now.getYear());
+    // 获取月信息信息（值为Month的枚举类）
+    System.out.println("Month枚举: " + now.getMonth());
+    // 获取月信息（值为1~12），注：与Date类不一样，Date获取的月份是从0开始
+    System.out.println("month: " + now.getMonthValue());
+    // 获取日信息
+    System.out.println("day: " + now.getDayOfMonth());
+}
+
+/* LocalTime: 表示时间，有时分秒的信息 */
+@Test
+public void localTimeTest() {
+    // 通过静态工厂方法LocalTime.of()获取指定时间对象
+    LocalTime time = LocalTime.of(13, 26, 39);
+    System.out.println("指定时间time: " + time);
+
+    // 通过静态工厂方法LocalTime.now()获取当前时间
+    LocalTime now = LocalTime.now();
+    System.out.println("当前的时间,不含有日期: " + now);
+
+    System.out.println("hour: " + now.getHour()); // 获取时
+    System.out.println("minute: " + now.getMinute()); // 获取分
+    System.out.println("second: " + now.getSecond()); // 获取秒
+    System.out.println("nano: " + now.getNano()); // 获取毫秒
+}
+
+/* LocalDateTime: 相当于 LocalDate + LocalTime 具有年月日 时分秒的信息 */
+@Test
+public void localDateTimeTest() {
+    // 通过静态工厂方法LocalDateTime.of()获取指定日期时间对象
+    LocalDateTime dateTime = LocalDateTime.of(2018, 7, 12, 13, 28, 59);
+    System.out.println("指定的日期时间: " + dateTime);
+
+    // 通过静态工厂方法LocalDateTime.now()获取当前日期时间
+    LocalDateTime now = LocalDateTime.now();
+    System.out.println("当前的日期时间: " + now);
+
+    System.out.println("year: " + now.getYear()); // 获取年
+    System.out.println("month: " + now.getMonthValue()); // 获取月
+    System.out.println("day: " + now.getDayOfMonth()); // 获取日
+    System.out.println("hour: " + now.getHour()); // 获取时
+    System.out.println("minute: " + now.getMinute()); // 获取分
+    System.out.println("second: " + now.getSecond()); // 获取秒
+}
+```
+
+对日期时间的修改，对已存在的`LocalDate`、`LocalTime`、`LocalDateTime`对象，使用`withAttribute`方法会创建对象的一个副本，并按照需要修改它的属性。以下所有的方法都返回了一个修改属性的对象，不会影响原来的对象。
+
+```java
+/* LocalDate、LocalTime、LocalDateTime 日期时间修改、计算测试 */
+@Test
+public void computeLocalDateTimeTest() {
+    // LocalDate、LocalTime、LocalDateTime都同样的修改方式，调用withXxxx方法修改相应的属性
+    LocalDateTime now = LocalDateTime.now();
+    // 修改当前时间的年属性，修改返回新的日期时间对象，不会影响原日期时间对象
+    LocalDateTime dateTime = now.withYear(2222);
+    System.out.println("dateTime = " + dateTime);
+    System.out.println("now == dateTime: " + (now == dateTime)); // false
+
+    /*
+     * 增加或减去日期、时间
+     *   plusXxxx: 增加指定的时间
+     *   minusXxxx: 减去指定的时间
+     *   Temporal plus(long amountToAdd, TemporalUnit unit)：通过指定时间单位，增加时间
+     *   default Temporal minus(long amountToSubtract, TemporalUnit unit)：通过指定时间单位，减少时间
+     *
+     * 注1：Java 8除了不变类型和线程安全的好处之外，还提供如更好的plusHours()方法替换add()，并且是兼容的。
+     * 注2：这些方法返回一个全新的LocalTime实例，由于其不可变性，返回后一定要用变量赋值。
+     * 注3：LocalDate、LocalTime、LocalDateTime 均相同的api来操作日期时间
+     */
+    // 经过测试，增加指定时间后，如果日期出现跨天的话，日期也会增加
+    System.out.println("当前时间：" + now + " ，加上2年：" + now.plusYears(2));
+    System.out.println("当前时间：" + now + " ，加上5月：" + now.plusMonths(5));
+    System.out.println("当前时间：" + now + " ，加上20天：" + now.plusDays(20));
+    System.out.println("当前时间：" + now + " ，加上10小时：" + now.plusHours(10));
+    System.out.println("当前时间：" + now + " ，加上20分钟：" + now.plusMinutes(20));
+    System.out.println("当前时间：" + now + " ，加上30秒：" + now.plusSeconds(30));
+    // 经过测试，减去指定时间后，如果日期出现跨天的话，日期也会减少
+    System.out.println("当前时间：" + now + " ，减去2年：" + now.minusYears(2));
+    System.out.println("当前时间：" + now + " ，减去5月：" + now.minusMonths(5));
+    System.out.println("当前时间：" + now + " ，减去29天：" + now.minusDays(29));
+    System.out.println("当前时间：" + now + " ，减去17小时：" + now.minusHours(17));
+    System.out.println("当前时间：" + now + " ，减去20分钟：" + now.minusMinutes(20));
+    System.out.println("当前时间：" + now + " ，减去30秒：" + now.minusSeconds(30));
+
+    // 创建LocalTime对象，只包含时间信息，没有日期。操作增加/减少小时、分、秒来计算的时间
+    LocalTime time = LocalTime.now();
+    System.out.println("获取当前的时间:" + time); // 23:30:22.677
+
+    LocalTime plusTime = time.plusHours(3);
+    System.out.println("3个小时后的时间为:" + plusTime); // 02:30:22.677
+
+    LocalTime minusTime = time.minusHours(2);
+    System.out.println("2个小时前的时间为:" + minusTime); // 21:30:22.677
+
+    // 创建LocalDate对象，只包含日期不包含时间信息。操作增加/减少小时、分、秒来计算的时间
+    LocalDate today = LocalDate.now();
+    System.out.println("今天的日期为:" + today); // 2020-07-12
+
+    // 通过使用LocalDate的plus()方法来增加天、周、月，ChronoUnit类声明了这些时间单位。
+    // 由于LocalDate也是不变类型，返回后一定要用变量赋值。
+    LocalDate plusDate = today.plus(1, ChronoUnit.WEEKS);
+    System.out.println("一周后的日期为:" + plusDate); //  2020-07-19
+
+    LocalDate minusDate = today.minus(3, ChronoUnit.DAYS);
+    System.out.println("3天前的日期为:" + minusDate); // 2020-07-09
+
+    LocalDate previousYear = today.minus(1, ChronoUnit.YEARS);
+    System.out.println("一年前的日期 : " + previousYear); // 2019-07-12
+
+    LocalDate nextYear = today.plus(1, ChronoUnit.YEARS);
+    System.out.println("一年后的日期:" + nextYear); // 2021-07-12
+
+    /* 注：可以用同样的方法增加（或减少）1个月、1年、1小时、1分钟甚至一个世纪 */
+}
+```
+
+`LocalDate`、`LocalTime`、`LocalDateTime`类可以通过`isBefore()`、`isAfter()`、`equals()`方法来进行日期时间的比较
+
+```java
+/* LocalDate、LocalTime、LocalDateTime 日期时间比较测试 */
+@Test
+public void compareLocalDateTimeTest() {
+    LocalDateTime dateTime = LocalDateTime.of(2018, 7, 12, 13, 28, 59);
+    LocalDateTime now = LocalDateTime.now();
+    System.out.println("当前日期时间:" + now);
+
+    // 日期对象a,b 调用 a.isAfter(b)，用于判断a日期是否在b日期之后
+    System.out.println(dateTime + "是否在当前日期之后: " + now.isAfter(dateTime)); // true
+    // 日期对象a,b 调用 a.isBefore(b)，用于判断a日期是否在b日期之前
+    System.out.println(dateTime + "是否在当前日期之前: " + now.isBefore(dateTime)); // false
+    // 日期对象a,b 调用 a.isEqual(b)，用于判断a日期是否在b日期相等
+    System.out.println(dateTime + "是否与当前日期相等: " + now.isEqual(dateTime)); //  false
+    // 直接调用LocalDateTime对象的equals()方法也可以判断两个日期是否相等（LocalDate也有此API）
+    System.out.println("equals()方法，" + dateTime + "是否与当前日期相等: " + now.equals(dateTime)); //  false
+
+    LocalDate today = LocalDate.now();
+    LocalDate yesterday = today.minus(1, ChronoUnit.DAYS);
+    System.out.println("当前日期:" + today);
+    System.out.println(yesterday + "是否在当前日期之后: " + yesterday.isBefore(today)); // true
+    System.out.println(yesterday + "是否在当前日期之前: " + yesterday.isAfter(today)); // false
+    System.out.println(yesterday + "是否与当前日期相等: " + yesterday.isEqual(today)); // false
+}
+```
+
+#### 8.2.2. JDK 8的时间格式化与解析
+
+通过 `java.time.format.DateTimeFormatter` 类可以进行日期时间解析与格式化。
+
+```java
+@Test
+public void parseAndFormatLocalDateTimeTest() {
+    // 日期字符串
+    String dayString = "20200714";
+    // 日期时间字符串
+    String dateTimeString = "2020年09月20日 15时16分16秒";
+    // 创建一个日期时间对象
+    LocalDateTime now = LocalDateTime.now();
+
+    /* ==================== 日期对象转字符串测试 ==================== */
+    // 创建日期格式化对象，使用JDK自带的时间格式 （JDK8 日期的格式化对象是DateTimeFormatter）
+    DateTimeFormatter isoFormatter = DateTimeFormatter.BASIC_ISO_DATE;
+    // 使用DateTimeFormatter类的静态ofPattern()方法，创建日期格式化对象，指定自定义格式
+    DateTimeFormatter customFormatter = DateTimeFormatter.ofPattern("yyyy年MM月dd日 HH时mm分ss秒");
+
+    /*
+     * 调用日期时间对象的format方法，按指定的格式将日期时间对象转成字符串
+     *  public String format(DateTimeFormatter formatter)
+     */
+    System.out.printf("LocalDateTime对象 '%s' 转成JDK自带BASIC_ISO_DATE格式字符串：'%s'%n", now, now.format(isoFormatter));
+    System.out.printf("LocalDateTime对象 '%s' 转成自定义格式字符串：'%s'%n", now, now.format(customFormatter));
+
+    /* ==================== 字符串解析成日期对象测试 ==================== */
+    /*
+     * 日期时间解析：LocalDateTime类的parse静态方法，将日期时间字符串转成对象
+     *  parse(CharSequence text, DateTimeFormatter formatter)
+     *      作用：将字符串转成LocalDate日期对象
+     *      text参数：待转换的日期时间字符串
+     *      formatter参数：日期格式化对象DateTimeFormatter，该格式器有一些静态属性为指定解析时日期的格式
+     */
+    //
+    LocalDate dateFormatted = LocalDate.parse(dayString, isoFormatter);
+    System.out.printf("字符串 '%s' 格式化后的日期LocalDate类型为：%s%n", dayString, dateFormatted);
+
+    LocalDateTime parseDateTime = LocalDateTime.parse(dateTimeString, customFormatter);
+    System.out.printf("字符串 '%s' 格式化后的日期LocalDateTime类型为：%s%n", dateTimeString, parseDateTime);
+
+    /* 测试多线程下，解析日期是否正常 */
+    for (int i = 0; i < 50; i++) {
+        new Thread(() ->
+                System.out.println("多线程解析日期 = " + LocalDateTime.parse(dateTimeString, customFormatter))
+        ).start();
+    }
+}
+```
+
+#### 8.2.3. JDK 8的 Instant 类
+
+`Instant` 类是jdk8新提供的时间戳（时间线），内部保存了从1970年1月1日 00:00:00以来的秒和纳秒。
+
+```java
+@Test
+public void instantTest() {
+    // Instant内部保存了秒和纳秒(一般不是给用户使用的，而是方便程序做一些统计的)
+    // Instant类有一个静态工厂方法now()会返回当前的时间戳
+    Instant timestamp = Instant.now();
+    System.out.println("What is value of this instant : " + timestamp); // 2020-09-28T09:22:33.732Z
+
+    // 增加秒
+    Instant plus = timestamp.plusSeconds(20);
+    System.out.println("plus = " + plus); // 2020-09-28T09:22:53.732Z
+
+    // 减去秒
+    Instant minus = timestamp.minusSeconds(20);
+    System.out.println("minus = " + minus); // 2020-09-28T09:22:13.732Z
+
+    // 调用Instant对象的getEpochSecond()方法，获取秒值
+    System.out.println("What is value of this instant.getEpochSecond() : " + timestamp.getEpochSecond());
+    // 调用Instant对象的getNano()方法，获取纳秒值
+    System.out.println("What is value of this instant.getNano() : " + timestamp.getNano());
+    // 调用Instant对象的toEpochMilli()方法，获取毫秒值
+    System.out.println("What is value of this instant.toEpochMilli() : " + timestamp.toEpochMilli()); // 1594646847755
+
+    /*
+     * Instant类时间戳信息里同时包含了日期和时间，这和java.util.Date很像。
+     *      实际上Instant类确实等同于 Java 8之前的Date类，可以使用Date类和Instant类各自的转换方法互相转换
+     *      例如：Date.from(Instant) 将Instant转换成java.util.Date，Date.toInstant()则是将Date类转换成Instant类。
+     */
+    Date dateFromInstant = Date.from(timestamp);
+    System.out.println("Instant转成Date：" + dateFromInstant); // Mon Sep 28 17:22:33 CST 2020
+
+    Instant dateToInstant = new Date().toInstant();
+    System.out.println("Date转成Instant：" + dateToInstant); // 2020-09-28T09:22:33.811Z
+}
+```
+
+#### 8.2.4. JDK 8的计算日期时间差类
+
+JDK8 提供了 `Duration`与`Period`类，用于计算日期时间差
+
+- `Duration`：用于计算2个时间(`LocalTime`，时分秒)的距离
+- `Period`：用于计算2个日期(`LocalDate`，年月日)的距离
+
+```java
+/*
+ * 计算两个日期之间的天数、周数或月数
+ *      在Java 8中可以用java.time.Period类来做计算。
+ * 计算两个时间之间的天数、小时、分钟、秒、毫秒
+ *      在Java 8中可以用java.time.Duration类来做计算。
+ *  注：都调用以上两个的between()方法实现，都是后面参数减前端的参数
+ */
+@Test
+public void computeTimeDifferenceTest() {
+    LocalDate today = LocalDate.now();
+    System.out.println("Today is : " + today); // 2020-07-13
+    LocalDate dateToCompute = LocalDate.of(2021, 12, 14);
+
+    // 计算两个日期的差值
+    Period periodBetweenTwoDate = Period.between(today, dateToCompute);
+    // getYears()计算的差值直接为年份数相减
+    System.out.println("Years left between today and dateToCompute : " + periodBetweenTwoDate.getYears());
+    // getMonths()计算的差值直接为月份数相减，年不在计算范围内
+    System.out.println("Months left between today and dateToCompute : " + periodBetweenTwoDate.getMonths());
+    // getDays()计算的差值直接为天数相减，月与年不在计算范围内
+    System.out.println("Days left between today and dateToCompute : " + periodBetweenTwoDate.getDays());
+
+    LocalTime nowTime = LocalTime.now();
+    System.out.println("Now is : " + nowTime); // 2020-07-13
+    LocalTime timeToCompute = LocalTime.of(20, 12, 14);
+    // 计算两个时间的差值
+    Duration durationBetweenTwoTime = Duration.between(nowTime, timeToCompute);
+    // toDays()计算两个时间相差的天数
+    System.out.println("Days left between nowTime and timeToCompute : " + durationBetweenTwoTime.toDays());
+    // toHours()计算两个时间相差的小时数
+    System.out.println("Hours left between nowTime and timeToCompute : " + durationBetweenTwoTime.toHours());
+    // toMinutes()计算两个时间相差的分钟数
+    System.out.println("Minutes left between nowTime and timeToCompute : " + durationBetweenTwoTime.toMinutes());
+    // toMillis()计算两个时间相差的秒数
+    System.out.println("Seconds left between nowTime and timeToCompute : " + durationBetweenTwoTime.toMillis());
+    // toNanos()计算两个时间相差的毫秒数
+    System.out.println("Milliseconds left between nowTime and timeToCompute : " + durationBetweenTwoTime.toNanos());
+}
+```
+
+#### 8.2.5. JDK 8的时间校正器
+
+时间校正器：用于自定义调整时间操作，将日期调整到指定某个时间点
+
+- `TemporalAdjuster`：时间校正器
+- `TemporalAdjusters`：该类通过静态方法提供了大量的常用TemporalAdjuster的实现。
+
+```java
+ @Test
+public void temporalAdjusterTest() {
+    // 获取当前日期时间
+    LocalDateTime now = LocalDateTime.now();
+
+    // TemporalAdjuster是函数式接口，使用lambda表达式创建TemporalAdjuster的实现
+    TemporalAdjuster firstDayOfNextMonth = temporal -> {
+        // LocalDateTime实现了 TemporalAdjuster 接口
+        LocalDateTime dateTime = (LocalDateTime) temporal;
+        // 返回时间校正的规则。示例：下一个月的第一天
+        return dateTime.plusMonths(1).withDayOfMonth(1);
+    };
+    // 调用LocalDateTime对象的with方法，传入自定义时间校正器TemporalAdjuster的lambda实现
+    LocalDateTime newDateTime1 = now.with(firstDayOfNextMonth);
+    System.out.println("将当前日期时间调整到下一个月的第一天: " + newDateTime1);
+
+    // 除了自定义时间校正器，JDK中TemporalAdjusters类提供了很多时间调整器
+    LocalDateTime newDateTime2 = now.with(TemporalAdjusters.firstDayOfNextYear());
+    System.out.println("将当前日期时间调整到下一个年的第一天: " + newDateTime2);
+}
+```
+
+#### 8.2.6. JDK 8设置日期时间的时区
+
+Java8 中加入了对时区的支持，`LocalDate`、`LocalTime`、`LocalDateTime`是不带时区的，带时区的日期时间类分别为：`ZonedDate`、`ZonedTime`、`ZonedDateTime`
+
+其中每个时区都对应着ID，ID的格式为“区域/城市”。例如：`Asia/Shanghai`等。而所有的时区信息都定义在`ZoneId`类中
+
+```java
+/*
+ * Java 8中处理时区
+ *   Java 8不仅分离了日期和时间，也把时区分离出来了。
+ *   现在有一系列单独的类如ZoneId来处理特定时区，ZoneDateTime类来表示某时区下的时间。
+ *   这在Java 8以前都是 GregorianCalendar类来做的。
+ */
+@Test
+public void zoneDateTimeTest() {
+    // 通过ZoneId类的getAvailableZoneIds静态方法，获取所有的时区ID
+    // ZoneId.getAvailableZoneIds().forEach(System.out::println);
+
+    // 获取计算机的当前时间。LocalDate、LocalTime、LocalDateTime是不带时区的
+    LocalDateTime now = LocalDateTime.now(); // 中国使用的东八区的时区.比标准时间早8个小时
+    System.out.println("不带时区的LocalDateTime: " + now); // 2020-09-28T23:37:11.298
+
+    /*
+     * 操作带时区的类：ZonedDateTime
+     *  now(Clock.systemUTC()): 创建世界标准时间
+     */
+    ZonedDateTime zonedDateTime1 = ZonedDateTime.now(Clock.systemUTC());
+    System.out.println("世界标准时间ZonedDateTime: " + zonedDateTime1); // 2020-09-28T15:37:11.299Z
+
+    // ZonedDateTime.now(): 使用计算机的默认的时区,创建日期时间
+    ZonedDateTime zonedDateTime2 = ZonedDateTime.now();
+    System.out.println("带时区的当前时间zonedDateTime2: " + zonedDateTime2); // 2020-09-28T23:37:11.299+08:00[Asia/Shanghai]
+
+    // ZonedDateTime.now(ZoneId zone) 使用指定的时区创建日期时间
+    ZonedDateTime zonedDateTime3 = ZonedDateTime.now(ZoneId.of("America/Vancouver"));
+    System.out.println("使用指定的时区创建日期时间: " + zonedDateTime3); // 2020-09-28T08:37:11.300-07:00[America/Vancouver]
+
+    /*
+     * 通过ZonedDateTime对象的withZoneSameInstant方法，修改时区
+     *  注：withZoneSameInstant: 即更改时区，也更改时间
+     */
+    ZonedDateTime withZoneSameInstant = zonedDateTime3.withZoneSameInstant(ZoneId.of("Asia/Shanghai"));
+    System.out.println("withZoneSameInstant = " + withZoneSameInstant); // 2020-09-28T23:37:11.300+08:00[Asia/Shanghai]
+
+    /*
+     * 通过ZonedDateTime对象的withZoneSameLocal方法，修改时区
+     *  注：withZoneSameLocal: 只更改时区,不更改时间
+     */
+    ZonedDateTime withZoneSameLocal = zonedDateTime3.withZoneSameLocal(ZoneId.of("Asia/Shanghai"));
+    System.out.println("withZoneSameLocal = " + withZoneSameLocal); // 2020-09-28T08:37:11.300+08:00[Asia/Shanghai]
+
+    // Date and time with timezone in Java 8（Java 8中带时区的日期和时间）
+    ZoneId america = ZoneId.of("America/New_York");  // 指定美国时区
+    LocalDateTime localtDateAndTime = LocalDateTime.now(); // 创建时间对象
+
+    // 获取带有指定时区的时间对象（ZonedDateTime）
+    ZonedDateTime dateTimeInNewYork = ZonedDateTime.of(localtDateAndTime, america);
+    System.out.println("Current date and time in a particular timezone : " + dateTimeInNewYork); // 2020-09-28T23:37:11.313-04:00[America/New_York]
+}
+```
+
+#### 8.2.7. JDK8 其他的API使用示例
+
+```java
+/*
+ * Java 8中检查是否周期性日期事件
+ *  MonthDay对象：用于每年重复周期性事件，即月+日，如生日、节日等
+ *  YearMonth对象：用于，还可以用这个类得到当月共有多少天。
+ */
+@Test
+public void monthDayAndYearMonthTest() {
+    /* MonthDay对象测试部分 */
+    LocalDate now = LocalDate.now();
+    LocalDate date = LocalDate.of(2020, 7, 12);
+
+    // 通过静态工厂方法MonthDay.of(Month month, int dayOfMonth)，获取指定月与日的MonthDay对象
+    MonthDay birthday = MonthDay.of(date.getMonth(), date.getDayOfMonth());
+    // 通过静态方法MonthDay.from(TemporalAccessor temporal)，获取指定某年的的MonthDay对象
+    MonthDay currentMonthDay = MonthDay.from(now);
+
+    // 比较两个MonthDay对象
+    if (currentMonthDay.equals(birthday)) {
+        System.out.println("是你的生日");
+    } else {
+        System.out.println("你的生日还没有到");
+    }
+
+    /* YearMonth对象测试部分 */
+    YearMonth currentYearMonth = YearMonth.now();
+    System.out.printf("Days in month year %s: %d%n", currentYearMonth, currentYearMonth.lengthOfMonth()); // Days in month year 2020-07: 31
+    YearMonth creditCardExpiry = YearMonth.of(2020, Month.JULY);
+    System.out.printf("Your credit card expires on %s %n", creditCardExpiry); // Your credit card expires on 2020-07
+
+    // YearMonth实例的lengthOfMonth()方法可以返回当月的天数，在判断2月有28天还是29天时非常有用
+    YearMonth yearMonth = YearMonth.of(2020, Month.FEBRUARY);
+    if (yearMonth.lengthOfMonth() == 29) {
+        System.out.println(yearMonth.getYear() + "是闰年");
+    } else {
+        System.out.println(yearMonth.getYear() + "非闰年");
+    }
+}
+
+/* Java 8中检查是否闰年 */
+@Test
+public void isLeapYearTest() {
+    // 除了通过YearMonth实例的lengthOfMonth()返回的天数判断是否闰年，还可以使用LocalDate的isLeapYear()方法直接判断是否为闰年
+    LocalDate today = LocalDate.now();
+    if (today.isLeapYear()) {
+        System.out.printf("%d is Leap year", today.getYear());
+    } else {
+        System.out.printf("%d is not a Leap year", today.getYear());
+    }
+}
+
+/*
+ * Java 8的Clock时钟类
+ *      Java 8增加了一个 Clock 时钟类用于获取当时的时间戳，或当前时区下的日期时间信息。
+ *      JDK8以后，可以用 Clock 对象相应的方法替换 System.currentTimeInMillis() 和 TimeZone.getDefault() 。
+ */
+@Test
+public void clockTest() {
+    // Returns the current time based on your system clock and set to UTC.（根据您的系统时钟返回当前时间，并将其设置为UTC。）
+    Clock clock = Clock.systemUTC();
+    // 获取当前时间的毫秒值, 相关于JDK8以前的System.currentTimeInMillis()方法
+    System.out.println("Clock的millis()方法获取的毫秒值: " + clock.millis()); // 1594568628639
+    System.out.println("System.currentTimeInMillis()的毫秒值: " + clock.millis()); // 1594568628639
+
+    // Returns time based on system clock zone（根据系统时钟区域返回时间）
+    Clock defaultZoneClock = Clock.systemDefaultZone();
+    System.out.println("系统所在时钟区域的Clock的毫秒值: " + defaultZoneClock.millis()); // 1594568628711
+}
+```
+
+### 8.3. 使用示例
+
+#### 8.3.1. 本地化日期时间 API
 
 LocalDate/LocalTime 和 LocalDateTime 类可以在处理时区不是必须的情况。
 
@@ -2857,7 +4134,7 @@ date4: 22:15
 date5: 20:15:30
 ```
 
-### 8.2. 使用时区的日期时间API
+#### 8.3.2. 使用时区的日期时间API
 
 需要考虑到时区，就可以使用时区的日期时间API
 
@@ -2976,3 +4253,124 @@ ZDc3Mjc2MDdjZjUtYjA1ZC00N2U5LTlkODItZDk5YTliMDA1MmRkN2FkZTdjM2EtZTFhOS00Zjgz
 LTlkZjgtNWZjYWIyNzhjYjlk
 ```
 
+## 10. JDK 8 重复注解与类型注解
+
+### 10.1. 重复注解
+
+#### 10.1.1. 重复注解的介绍
+
+自从Java 5中引入注解以来，在各个框架和项目中被广泛使用。不过注解有一个很大的限制是：在同一个地方不能多次使用同一个注解。JDK 8引入了重复注解的概念，允许在同一个地方多次使用同一个注解
+
+在JDK 8中使用`@Repeatable`注解定义重复注解。
+
+#### 10.1.2. 重复注解的使用步骤
+
+1. 定义一个可以重复的注解
+
+```java
+@Retention(RetentionPolicy.RUNTIME)
+@Repeatable(MyRepeatableContainer.class)
+@interface MyRepeatableAnnotation {
+    String value();
+}
+```
+
+2. 定义重复的注解容器注解
+
+```java
+@Retention(RetentionPolicy.RUNTIME)
+@interface MyRepeatableContainer {
+    // 定义重复注解容器的属性
+    MyRepeatableAnnotation[] value();
+}
+```
+
+3. 在测试类中配置多个重复的注解
+
+```java
+/* 3. 在类中标识重复注解 */
+@MyRepeatableAnnotation("AA")
+@MyRepeatableAnnotation("BB")
+@MyRepeatableAnnotation("CC")
+public class Demo01RepeatableAnnotation {
+
+    /* 3. 在方法中标识重复注解 */
+    @MyRepeatableAnnotation("XX")
+    @MyRepeatableAnnotation("YY")
+    public void foo() {
+    }
+}
+```
+
+4. 解析得到指定注解
+
+```java
+/* Class与Method对象的 getAnnotationsByType 方法是新增的API，用于获取重复的注解 */
+@Test
+public void repeatableAnnotationTest() throws NoSuchMethodException {
+    // 获取类上的重复注解
+    MyRepeatableAnnotation[] repeatableAnnos = RepeatableAnnotationDemo.class
+            .getAnnotationsByType(MyRepeatableAnnotation.class);
+    // 循环输出重复注解值
+    for (MyRepeatableAnnotation repeatableAnno : repeatableAnnos) {
+        System.out.println(repeatableAnno + " 重复注解（标识在类上）的value值为: " + repeatableAnno.value());
+    }
+    System.out.println("------------------------------");
+
+    // 获取方法上的重复注解
+    MyRepeatableAnnotation[] methodRepeatableAnnos = RepeatableAnnotationDemo.class
+            .getMethod("foo").getAnnotationsByType(MyRepeatableAnnotation.class);
+    for (MyRepeatableAnnotation repeatableAnno : methodRepeatableAnnos) {
+        System.out.println(repeatableAnno + " 重复注解（标识在方法上）的value值为: " + repeatableAnno.value());
+    }
+}
+```
+
+### 10.2. 类型注解
+
+JDK 8为`@Target`元注解新增了两种类型：`TYPE_PARAMETER`，`TYPE_USE`
+
+- `TYPE_PARAMETER`：表示该注解能写在类型参数的声明语句中。类型参数声明如：`<T>`
+- `TYPE_USE`：表示注解可以再任何用到类型的地方使用
+
+#### 10.2.1. TYPE_PARAMETER 类型的使用
+
+```java
+// 标识在类上的泛型前
+public class TypeParameterDemo<@MyTypeParameter T> {
+    // 标识在方法上的泛型前
+    public <@MyTypeParameter E extends Integer> void foo() {
+    }
+}
+
+/**
+ * 定义TYPE_PARAMETER类型的注解
+ * 表示该注解能写在类型参数的声明语句中。类型参数声明如：<T>
+ */
+@Target(ElementType.TYPE_PARAMETER)
+@interface MyTypeParameter {
+}
+```
+
+#### 10.2.2. TYPE_USE 类型的使用
+
+```java
+public class TypeUseDemo {
+    // 在类属性类型前使用
+    private @MyTypeUse int a = 10;
+
+    // 在方法形参的类型前使用
+    public void test(@MyTypeUse String str, @MyTypeUse int a) {
+        // 在方法内的变量类型前使用
+        @MyTypeUse double d = 10.1;
+    }
+}
+
+/**
+ * 定义TYPE_USE类型的注解
+ * 表示注解可以再任何用到类型的地方使用
+ */
+@Target(ElementType.TYPE_USE)
+@interface MyTypeUse {
+}
+```
