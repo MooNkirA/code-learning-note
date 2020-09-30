@@ -1,6 +1,7 @@
 # Day03-项目介绍以及开发后台系统
 
 ## 1. 好客租房
+
 ### 1.1. 项目背景
 
 详情查看项目资料
@@ -24,13 +25,13 @@
 
 ### 2.1. 前端搭建
 
-根据前面的pro的入门知识，参考《好客租房 PRD 文档 V1.0.0beat.docx》、《好客租房后台V1.0.0.rp》，将系统的菜单、页面等做改造。
+根据前面的Ant Design Pro的入门知识，参考《好客租房 PRD 文档 V1.0.0beat.docx》、《好客租房后台V1.0.0.rp》，将系统的菜单、页面等做改造。
 
 ![](images/20200411175913624_32081.png)
 
 #### 2.1.1. 创建工程
 
-- 第一步，将资料文件中的itcast-haoke-manage-web.zip解压项目开发的目录
+- 第一步，将资料文件中的haoke-manage-web.zip解压项目开发的目录
 - 第二步，导入到开发IDE中，本项目使用vsCode开发
 - 第三步，到前端项目的目录下，执行命令导入相关的依赖
 
@@ -45,6 +46,8 @@ npm start # 启动项目
 
 ![](images/20200411181717642_15142.png)
 
+#### 2.1.2. 关于此工程提交git报错问题的解决方法
+
 > ps: 如果提交到git的时候报错如下
 >
 > `husky > pre-commit hook failed (add --no-verify to bypass)`
@@ -56,12 +59,12 @@ npm start # 启动项目
 > 1. 卸载husky。只要把项目的package.json文件中devDependencies节点下的husky库删掉，然后重新npm i 一次即可。或者直接在项目根目录下执行`npm uninstall husky --save`也可以，再次提交，自动化测试功能就屏蔽掉
 > 2. 进入项目的.git文件夹(文件夹默认隐藏，可先设置显示或者命令ls查找)，再进入hooks文件夹，删除pre-commit文件，重新`git commit -m 'xxx' git push`即可。
 > 3. 将`git commit -m "XXX"` 改为 `git commit --no-verify -m "XXX"`
->
-> 使用git图形化操作客户端sourcetree，点选
->
-> ![](images/20200411184032171_27367.png)
 
-#### 2.1.2. 示例操作 - 修改logo以及版权信息
+第3种方案的简易操作是：使用git图形化操作客户端sourcetree，点选
+
+![](images/20200411184032171_27367.png)
+
+#### 2.1.3. 示例操作 - 修改logo以及版权信息
 
 - 全局的布局文件
 
@@ -113,7 +116,7 @@ const FooterView = () => (
 export default FooterView;
 ```
 
-#### 2.1.3. 编写左侧菜单
+#### 2.1.4. 编写左侧菜单
 
 - 根据需求文档，修改左侧的菜单。（参考项目代码：\haoke-project-ui\haoke-manage-web\config\router.config.js）
 - 在src/pages目录下创建haoke文件夹，项目中的页面代码均放在此目录中
@@ -125,6 +128,7 @@ export default FooterView;
 ![](images/20200411191817142_19828.png)
 
 ### 2.2. 新增房源
+
 #### 2.2.1. 数据结构
 
 参考资料中的《前后端开发接口文档.md》文档
@@ -163,15 +167,15 @@ export default FooterView;
 - 在代码实现中，需要解决的问题是：父组件如何获取子组件中的数据。
 - 解决思路：父组件通过属性的方式进行引用子组件，在bind方法中改变this的引用为父组件，在子组件中，通过this.props获取传入的函数，进行调用，即可把数据传递到父组件中。
 
-父组件：
+父组件引用子组件，绑定属性handleFileList相应的方法
 
 ![](images/20200412182558236_9178.png)
 
-子组件
+当子组件中的handleChange方法执行时，就调用到props中父组件通过属性传入的handleFileList方法
 
 ![](images/20200412182657316_19842.png)
 
-父组件中的方法，获取数据
+父组件中的handleFileList方法，获取子组件传递的数据
 
 ```js
 handleFileList = obj => {
@@ -200,10 +204,10 @@ handleFileList = obj => {
 > DUBBO是一个分布式服务框架，致力于提供高性能和透明化的RPC远程服务调用方案，是阿里巴巴SOA服务化治理方案的核心框架，每天为2,000+个服务提供3,000,000,000+次访问量支持，并被广泛应用于阿里巴巴集团的各成员站点。
 >
 > Dubbo是Alibaba开源的分布式服务框架，它最大的特点是按照分层的方式来架构，使用这种方式可以使各个层之间解耦合（或者最大限度地松耦合）。从服务模型的角度来看，Dubbo采用的是一种非常简单的模型，要么是提供方提供服务，要么是消费方消费服务，所以基于这一点可以抽象出服务提供方（Provider）和服务消费方（Consumer）两个角色。关于注册中心、协议支持、服务监控等内容。
->
-> 什么是RPC？
->
-> ![](images/20200412184940210_12330.png)
+
+什么是RPC？
+
+![](images/20200412184940210_12330.png)
 
 #### 3.2.2. 框架说明
 ##### 3.2.2.1. 背景
@@ -242,7 +246,7 @@ handleFileList = obj => {
 
 以上是 Dubbo 最基本的几个需求
 
-##### 3.2.2.3. 架构
+##### 3.2.2.3. Dubbo的架构
 
 ![](images/20200412225124541_20182.png)
 
