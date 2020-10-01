@@ -193,7 +193,8 @@ handleFileList = obj => {
 
 说明：在后台服务的架构中，采用了RPC+微服务的架构思想，RPC采用dubbo框架作为服务治理框架，对外接口采用RESTful和GraphQL接口方式。
 
-### 3.2. dubbo快速入门
+### 3.2. dubbo框架介绍
+
 #### 3.2.1. 什么是dubbo?
 
 - Apache Dubbo™ (incubating)是一款高性能Java RPC框架。官网：http://dubbo.apache.org/zh-cn/index.html
@@ -316,8 +317,357 @@ docker create --name zk -p 2181:2181 zookeeper:3.5
 docker start zk
 ```
 
+使用ZooInspector图形化客户端软件测试是否部署成功（软件的位置07-编程工具资料\03-Java相关框架+源代码\zookeeper-注册中心\Zookeeper图形化客户端\ZooInspector）
+
+![](images/20201001104718381_25865.png)
+
+### 3.3. dubbo快速入门示例
+
+#### 3.3.1. 聚合项目
+
+##### 3.3.1.1. 创建工程，配置依赖
+
+创建pom聚合项目sample-dubbo，修改pom.xml文件引用示例项目公共依赖
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <artifactId>haoke-technology-stack-sample</artifactId>
+        <groupId>com.moon</groupId>
+        <version>1.0-SNAPSHOT</version>
+    </parent>
+
+    <modelVersion>4.0.0</modelVersion>
+    <artifactId>sample-dubbo</artifactId>
+    <name>${project.artifactId}</name>
+    <packaging>pom</packaging>
+    <description>技术栈示例 - dubbo</description>
+
+    <!-- 版本号 -->
+    <properties>
+        <dubbo-starter.version>0.2.0</dubbo-starter.version>
+        <dubbo.version>2.6.4</dubbo.version>
+        <zookeeper.version>3.4.13</zookeeper.version>
+        <zkclient.version>0.1</zkclient.version>
+
+        <!-- 本项目的版本号 -->
+        <project.version>1.0-SNAPSHOT</project.version>
+    </properties>
+
+    <!-- 版本控制 -->
+    <dependencyManagement>
+        <dependencies>
+            <!-- dubbo的springboot依赖(这也包含了dubbo的依赖，下面单独指定可使用更新的版本) -->
+            <dependency>
+                <groupId>com.alibaba.boot</groupId>
+                <artifactId>dubbo-spring-boot-starter</artifactId>
+                <version>${dubbo-starter.version}</version>
+            </dependency>
+
+            <!-- dubbo依赖 -->
+            <dependency>
+                <groupId>com.alibaba</groupId>
+                <artifactId>dubbo</artifactId>
+                <version>${dubbo.version}</version>
+            </dependency>
+
+            <!-- zookeeper -->
+            <dependency>
+                <groupId>org.apache.zookeeper</groupId>
+                <artifactId>zookeeper</artifactId>
+                <version>${zookeeper.version}</version>
+            </dependency>
+            <!-- zookeeper客户端依赖 -->
+            <dependency>
+                <groupId>com.github.sgroschupf</groupId>
+                <artifactId>zkclient</artifactId>
+                <version>${zkclient.version}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <!-- 项目公共依赖部分 -->
+    <dependencies>
+        <!-- dubbo的springboot依赖 -->
+        <dependency>
+            <groupId>com.alibaba.boot</groupId>
+            <artifactId>dubbo-spring-boot-starter</artifactId>
+        </dependency>
+
+        <!-- dubbo依赖 -->
+        <dependency>
+            <groupId>com.alibaba</groupId>
+            <artifactId>dubbo</artifactId>
+        </dependency>
+
+        <!-- zookeeper注册中心的依赖 -->
+        <dependency>
+            <groupId>org.apache.zookeeper</groupId>
+            <artifactId>zookeeper</artifactId>
+        </dependency>
+        <!-- zookeeper客户端依赖 -->
+        <dependency>
+            <groupId>com.github.sgroschupf</groupId>
+            <artifactId>zkclient</artifactId>
+        </dependency>
+
+        <!-- SpringBoot测试 -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <!-- 项目构造部分 -->
+    <build>
+        <plugins>
+            <!-- 添加springboot的maven插件 -->
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
+</project>
+```
+
+> 注：这里的haoke-technology-stack-sample项目是整个好客租房技术栈示例项目的聚合工程，里面引入了`spring-boot-starter-parent`的依赖，版本为`2.1.0.RELEASE`
+
+#### 3.3.2. 服务提供方工程
+
+##### 3.3.2.1. 创建项目，配置依赖
+
+创建`sample-dubbo-service`项目，打包方式选jar类型。修改maven项目pom.xml文件添加依赖
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <groupId>com.moon</groupId>
+        <artifactId>sample-dubbo</artifactId>
+        <version>1.0-SNAPSHOT</version>
+    </parent>
+
+    <modelVersion>4.0.0</modelVersion>
+    <artifactId>sample-dubbo-service</artifactId>
+    <name>${project.artifactId}</name>
+    <packaging>jar</packaging>
+    <description>dubbo服务提供方示例工程</description>
+
+    <!-- 引入依赖 -->
+    <dependencies>
+        <!-- springboot依赖，非web项目 -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter</artifactId>
+        </dependency>
+    </dependencies>
+
+</project>
+```
+
+> *注： 此示例为了简化重复依赖配置，将dubbo与zookeeper的依赖都配置在聚合工程中。实际项目会有很多其他模块、公共的工程，此时就不能将这些dubbo与zookeeper的依赖都配置在聚合工程中*
+
+##### 3.3.2.2. 创建实体对象
+
+创建用于测试dubbo调用接口时传输的封装的实体类。<font color=red>**注：dubbo框架接口调用用来传输数据的对象必须实现序列化接口`java.io.Serializable`**</font>
+
+```java
+// 注：使用dubbo传输的对象要求必须实现序列化接口
+public class User implements Serializable {
+    private static final long serialVersionUID = -7786052938617694652L;
+    private Long id;
+    private String username;
+    private String password;
+    private Integer age;
+    // 省略setter/getter....
+}
+```
+
+##### 3.3.2.3. 创建提供服务的接口与实现类
+
+- 创建UserService（接口）提供查询服务
+
+```java
+public interface UserService {
+    /**
+     * 查询所有的用户数据
+     */
+    List<User> queryAll();
+
+}
+```
+
+- 创建UserServiceImpl实现类
+
+```java
+/*
+ * 声明这是一个dubbo服务实现。
+ *   注：此@Service注解是dubbo框架的，非spring框架
+ *   此version属性用来标识接口实现的版本号，一个接口有多个不同版本的实现，
+ *   方便消费者调用不同的版本的实现
+ */
+@Service(version = "${dubbo.service.version}")
+public class UserServiceImpl implements UserService {
+    /**
+     * 实现查询，这里做模拟实现，不做具体的数据库查询
+     */
+    @Override
+    public List<User> queryAll() {
+        List<User> list = new ArrayList<>();
+        for (int i = 0; i < 10; i++) {
+            User user = new User();
+            user.setAge(10 + i);
+            user.setId(Long.valueOf(i + 1));
+            user.setPassword("123456");
+            user.setUsername("username_" + i);
+            list.add(user);
+        }
+        System.out.println("---------UserServiceImpl.queryAll()方法执行------------");
+        return list;
+    }
+}
+```
+
+##### 3.3.2.4. 编写项目配置文件
+
+编写SpringBoot项目的`application.properties`配置文件
+
+```properties
+# Spring boot application
+spring.application.name=sample-dubbo-service
+server.port=9090
+# dubbo服务接口版本号
+dubbo.service.version=1.0.0
+# 服务的扫描包
+dubbo.scan.basePackages=com.moon.sample.dubbo.service
+# dubbo应用名称
+dubbo.application.name=dubbo-provider-demo
+# dubbo的协议以及端口
+dubbo.protocol.name=dubbo
+dubbo.protocol.port=20882
+# zk注册中心
+dubbo.registry.address=zookeeper://192.168.12.134:2181
+dubbo.registry.client=zkclient
+```
+
+##### 3.3.2.5. 编写启动类
+
+```java
+@SpringBootApplication
+public class DubboProvider {
+    public static void main(String[] args) {
+        new SpringApplicationBuilder(DubboProvider.class)
+                .web(WebApplicationType.NONE) // 配置非web应用
+                .run(args);
+    }
+}
+```
+
+运行启动类，启动项目后查看zk客户端中相关信息：UserService服务已经注册到zk中了
+
+![](images/20201001171726066_18539.png)
 
 
+#### 3.3.3. 服务消费方工程
 
+##### 3.3.3.1. 创建工程，配置依赖
 
+创建`sample-dubbo-consumer`项目，打包方式选jar类型。修改maven项目pom.xml文件添加依赖
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <groupId>com.moon</groupId>
+        <artifactId>sample-dubbo</artifactId>
+        <version>1.0-SNAPSHOT</version>
+    </parent>
+
+    <modelVersion>4.0.0</modelVersion>
+    <artifactId>sample-dubbo-consumer</artifactId>
+    <name>${project.artifactId}</name>
+    <packaging>jar</packaging>
+    <description>dubbo服务消费方示例工程</description>
+
+    <dependencies>
+        <!-- springboot依赖，非web项目 -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter</artifactId>
+        </dependency>
+        <!-- 引入提供者工程的依赖（注：这里只是为了引入其接口，非实现类） -->
+        <dependency>
+            <groupId>com.moon</groupId>
+            <artifactId>sample-dubbo-service</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+    </dependencies>
+
+</project>
+```
+
+##### 3.3.3.2. 编写项目配置文件
+
+编写SpringBoot项目的`application.properties`配置文件，增加项目与dubbo相关配置
+
+```properties
+# Spring boot application
+spring.application.name=sample-dubbo-consumer
+server.port=9091
+# dubbo应用名称
+dubbo.application.name=dubbo-consumer-demo
+# zk注册中心配置信息
+dubbo.registry.address=zookeeper://192.168.12.134:2181
+dubbo.registry.client=zkclient
+```
+
+##### 3.3.3.3. 编写测试用例
+
+```java
+@RunWith(SpringRunner.class)
+@SpringBootTest
+public class UserServiceTest {
+    /*
+     * 使用dubbo的@Reference注解注入提供方服务接口
+     *  因为提供方的@Service注解中配置版本号，所以此处也指定版本号
+     */
+    @Reference(version = "1.0.0")
+    private UserService userService;
+
+    @Test
+    public void queryAllTest() {
+        List<User> users = this.userService.queryAll();
+        for (User user : users) {
+            System.out.println(user);
+        }
+    }
+}
+```
+
+运行测试，可以获取到数据，说明已经成功调用了service中提供的接口
+
+##### 3.3.3.4. 写代码时遇到的小坑
+
+因为消费者工程里只写了测试用例，没有编写启动类与配置类，但工程依赖了提供者工程，而提供者工程是有springboot的启动类，那里会默认扫描启动类所在包及其子包。
+
+所以当时在做这个示例的时候，消费者的测试用例类的包路径与提供者工程的启动类所在包路径不一样，导致了运行测试用例时，会报 `Unable to find a @SpringBootConfiguration, you need to use @ContextConfiguration or @SpringBootTest(classes=...) with your test`的报错。
+
+![](images/20201001230235828_7260.png)
+
+修改包路径后，测试成功
+
+![](images/20201001230419020_21405.png)
+
+### 3.4. Dubbo Admin
+
+Dubbo Admin 是 Dubbo 提供了可视化的界面管理工具，方便对服务进行管理
 

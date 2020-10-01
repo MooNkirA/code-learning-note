@@ -15,10 +15,170 @@
 
 ![](images/20200930231851537_15316.jpg)
 
-## 2. CentOS-7-x86_64-DVD-1804版本的安装
+## 2. CentOS-7-x86_64-DVD-1804 版本的安装
 
+### 2.1. 安装相关设置
 
-## 3. CentOS-8-x86_64-1905-dvd1的安装
+![](images/20201001080227632_11192.jpg)
+
+![](images/20201001080236366_21623.jpg)
+
+![](images/20201001080246344_8083.jpg)
+
+![](images/20201001080253959_1317.jpg)
+
+![](images/20201001080303134_31470.jpg)
+
+![](images/20201001080317286_29824.jpg)
+
+![](images/20201001080331585_19378.jpg)
+
+![](images/20201001080341943_15446.jpg)
+
+虚拟机系统内存的可用量设置为2GB，最低不应低于1GB。根据真机的性能设置CPU处理器的数量以及每个处理器的核心数量，并开启虚拟化功能
+
+![](images/20201001080707106_497.jpg)
+
+![](images/20201001080717336_15359.jpg)
+
+![](images/20201001080725269_14567.jpg)
+
+![](images/20201001080733693_7656.jpg)
+
+选择安装源：
+
+![](images/20201001080812940_1258.jpg)
+
+软件选择：
+
+![](images/20201001080840559_21059.jpg)
+
+安装位置：
+
+![](images/20201001080905891_21968.jpg)
+
+网络连接：
+
+![](images/20201001080939484_28748.jpg)
+
+![](images/20201001080948721_14748.jpg)
+
+设置完成后，点击开始安装
+
+![](images/20201001081058616_15059.jpg)
+
+![](images/20201001081106504_26986.jpg)
+
+安装的过程点击设置root的密码，也可以点击创建用户（可以暂时不用，后面通过root用户再进行创建）
+
+### 2.2. 设置IP地址、网关DNS
+
+（1）为虚拟机添加虚拟网卡
+
+![](images/20201001081212094_10721.jpg)
+
+（2）开启修改权限，点击下图的“更改设置”
+
+![](images/20201001081219322_6903.jpg)
+
+（3）点击添加网络
+
+![](images/20201001081300744_10930.jpg)
+
+（4）添加后会自动分配子网IP，不用修改。点击应用、确定
+
+![](images/20201001081308427_9020.jpg)
+
+（5）添加完成后本机的网络上会多出一个对应的网络适配器（本例：VMnet 2），根据虚拟机中的子网IP设置此IP地址
+
+![](images/20201001081354278_4189.jpg)
+
+（6）自定义虚拟机的网络适配器，自定义为刚才手动添加的那个网络适配器
+
+![](images/20201001081412721_6890.jpg)
+
+需要将当前虚拟网络设置为【NAT模式】，注意，但只能设置一个网络为NAT模拟，所有如果有几个虚拟机linux系统，都选择那个NAT模式的虚拟网络即可，到时设置不同的IP
+
+![](images/20201001081435089_17121.jpg)
+
+### 2.3. 网络配置参考示例
+
+说明：CentOS 7.0默认安装好之后是没有自动开启网络连接的！
+
+```bash
+cd /etc/sysconfig/network-scripts # 进入网络配置文件目录
+vi ifcfg-ens33 # 编辑配置文件，添加修改以下内容(注意，ens33是当前linux系统的网卡名称)
+```
+
+参考一：（参考设置，具体需要根据文件的内容进行设置，如果是本例centOS7，只关注以下标识修改部分）
+
+```shell
+DEVICE=eth0
+
+# 主要修改的部分
+BOOTPRPTP=static    # 启用静态IP地址
+IPADDR=192.168.12.131
+NETMASK=255.255.255.0
+# 主要修改的部分
+
+HWADDR=00:50:56:32:4B:4C
+IPV6INIT=yes
+IPV6_AUTOCONF=yes
+
+# 主要修改的部分
+ONBOOT=yes    # 开启自动启用网络连接
+# 主要修改的部分
+```
+
+参考二：（网上参考）
+
+```shell
+HWADDR=00:0C:29:8D:24:73
+TYPE=Ethernet
+BOOTPROTO=static  #启用静态IP地址
+DEFROUTE=yes
+PEERDNS=yes
+PEERROUTES=yes
+IPV4_FAILURE_FATAL=no
+IPV6INIT=yes
+IPV6_AUTOCONF=yes
+IPV6_DEFROUTE=yes
+IPV6_PEERDNS=yes
+IPV6_PEERROUTES=yes
+IPV6_FAILURE_FATAL=no
+NAME=eno16777736
+UUID=ae0965e7-22b9-45aa-8ec9-3f0a20a85d11
+ONBOOT=yes  #开启自动启用网络连接
+IPADDR0=192.168.21.128  #设置IP地址
+PREFIXO0=24  #设置子网掩码
+GATEWAY0=192.168.21.2  #设置网关
+DNS1=8.8.8.8  #设置主DNS
+DNS2=8.8.4.4  #设置备DNS
+```
+
+修改后操作
+
+```bash
+:wq!  # 保存退出
+service network restart   # 重启网络
+ping www.baidu.com  # 测试网络是否正常
+ip addr  # 查看IP地址
+```
+
+### 2.4. 设置主机名为www
+
+```bash
+hostname  www  # 设置主机名为www
+vi /etc/hostname # 编辑配置文件
+www   # 修改localhost.localdomain为www
+:wq!  # 保存退出
+vi /etc/hosts # 编辑配置文件
+127.0.0.1   localhost  www   # 修改localhost.localdomain为www
+:wq!  # 保存退出
+shutdown -r now  # 重启系统
+```
+
+## 3. CentOS-8-x86_64-1905-dvd1 的安装
 
 ### 3.1. 安装相关前虚拟机设置
 
@@ -257,22 +417,64 @@ DNS2=8.8.4.4  #设置备DNS
 
 如果出现主机可以ping通虚拟机，而虚拟机无法ping通主机的情况，一般是主机防火墙的设置问题，通过设置防火墙的高级设置即可，见下图？
 
+## 4. ubuntu-16.04.3-server-amd64 的安装
 
+### 4.1. 配置静态IP地址
 
+1. 查看配置文件
 
+```bash
+cat /etc/network/interfaces
+```
 
+![](images/20201001085225526_9850.png)
 
+此种方法是动态获取ip地址，但是如果没有DNS服务器，就无法获取到ip地址了
 
+2. 编辑配置文件`/etc/network/interfaces`
 
+```bash
+vi /etc/network/interfaces
+```
 
+增加以下内容
 
+```shell
+auto ens33
+iface ens33 inet static
+address 192.168.12.134
+netmask 255.255.255.0
+gateway 192.168.12.2
+dns-nameserver 119.29.29.29
+# 或者dns-nameserver 114.114.114.114
+```
 
+![](images/20201001095341937_20101.png)
 
+这句一定需要有，`dns-nameserver 119.29.29.29`。因为以前是DHCP解析，所以会自动分配DNS 服务器地址。而一旦设置为静态IP后就没有自动获取到DNS服务器了，需要自己设置一个
 
+设置完重启电脑后，`/etc/resolv.conf` 文件中会自动添加 `nameserver 119.29.29.29`(或者nameserver 8.8.8.8)可以根据访问速度，选择合适的公共DNS
 
+![](images/20201001095453634_13336.png)
 
+3. 输入`reboot`命令，重启操作系统，验证ip地址是否永久性
 
+![](images/20201001090729603_31085.png)
 
+4. ping域名进行测试是否可以联网，使用以下命令重启网卡
+
+```bash
+/etc/init.d/networking restart
+```
+
+5. 重启系统或者网络后还是无法联网，编辑`/etc/resolvconf/resolv.conf.d/base`文件，增加nameserver部分
+
+```bash
+vim /etc/resolvconf/resolv.conf.d/base
+
+# 增加以下内容
+nameserver 119.29.29.29
+```
 
 
 

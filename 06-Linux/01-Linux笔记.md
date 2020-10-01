@@ -1,6 +1,48 @@
-# 01-Linux 系统笔记
+# Linux 系统基础笔记
+
+## 1. Linux 概述
+
+### 1.1. Unix 介绍
+
+Unix 是一个强大的多用户、多任务操作系统
+
+### 1.2. Linux 介绍
+
+- Linux 是一套免费的类 Unix 操作系统
+- Linux 是一套免费使用和自由传播的类 Unix 操作系统,可以任意修改其源代码。
+- Linux 存在着许多不同的 Linux 版本，但它们都使用了 Linux 内核。
+
+Linux 的特点：它是多用户，多任务，丰富的网络功能，可靠的系统安全，良好的可移植性，具有标准兼容性，良好的用户界面，出色的速度性能
+
+- Linux 的基本思想有两点：
+    1. <font color=red>**一切都是文件**</font>
+    2. 每个软件都有确定的用途
+
+全字符界面，需要任何页面效果渲染，速度快。linux安全性好，开源
+
+比如：window系统安装tomcat软件，网络中的其他的电脑默认都可以访问tomcat。linux如果安装了tomcat，网络中的其他的电脑默认是无法访问tomcat的，必须要通过设置相关操作才可以访问。所以linux安全性方面比window做的好，从这点可以看出安全性高的linux适合做服务器，安全性低的window适合普通个人用户使用。
+
+
+### 1.3. Linux 系统的应用
+
+- 服务器系统：<font color=red>**Web 应用服务器**</font>、数据库服务器、接口服务器、DNS、FTP 等等；
+- 嵌入式系统：路由器、防火墙、手机、PDA、IP 分享器、交换器、家电用品的微电脑控制器等等，高性能运算、计算密集型应用：Linux 有强大的运算能力。
+- 桌面应用系统
+- 移动手持系统：android底层就是linux系统
+
+### 1.4. Linux 的版本
+
+Linux 的版本分为两种：内核版本(https://www.kernel.org/)和发行版本。
+
+- <font color=red>**内核版本**</font>是指在 Linus 领导下的内核小组开发维护的系统内核的版本号
+- <font color=red>**发行版本**</font>是一些组织和公司根据自己发行版的不同而自定的
+
+目前学习使用的版本 CentOS是 Linux 发行版之一。Red Hat Enterprise Linux 提供的源代码编译而成。很多公司使用 CentOS 替代商业版 RedHat Linux
+
+# 其他
 
 ## 1. 使用rm -f误删除后如何恢复（网上资料，待实践）
+
 ### 1.1. 模拟场景-删除
 
 误删除服务器目录/root/selenium/Spider下的MySql.Data.dll文件：
