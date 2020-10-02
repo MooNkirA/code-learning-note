@@ -19,7 +19,7 @@
 
 ![](images/20200410234304891_1926.png)
 
-## 2. 后台系统搭建
+## 2. 后台系统前端项目搭建
 
 后台系统采用的是前后端分离开发模式，前端使用Ant Design Pro系统作为模板进行改造，后端采用的是SpringBoot+StringMVC+Dubbo+Mybatis的架构进行开发。
 
@@ -272,7 +272,7 @@ handleFileList = obj => {
 
 Dubbo 架构具有以下几个特点，分别是连通性、健壮性、伸缩性、以及向未来架构的升级性。更多介绍参见：http://dubbo.apache.org/zh-cn/docs/user/preface/architecture.html
 
-#### 3.2.3. 注册中心
+### 3.3. 注册中心
 
 dubbo支持多种注册中心，推荐使用ZooKeeper。参考文档：http://dubbo.apache.org/zh-cn/docs/user/references/registry/introduction.html
 
@@ -296,7 +296,7 @@ Zookeeper 是 Apacahe Hadoop 的子项目，是一个树型的目录服务，支
 - 可通过 `<dubbo:registry group="dubbo" />` 设置 zookeeper 的根节点，不配置将使用默认的根节点。
 - 支持 `*` 号通配符 `<dubbo:reference group="*" version="*" />`，可订阅服务的所有分组和所有版本的提供者
 
-##### 3.2.3.1. 部署 ZooKeeper
+#### 3.3.1. 部署 ZooKeeper
 
 本项目使用docker容器化技术进行部署ZooKeeper。之所以采用docker部署的形式，是考虑到微服务节点的部署，以及后续的集群扩展的便捷性。
 
@@ -304,7 +304,7 @@ Zookeeper 是 Apacahe Hadoop 的子项目，是一个树型的目录服务，支
 >
 > 参考资料中的《VMware Workstation 中安装 Ubuntu16.04 虚拟机.docx》文档进行安装，统一环境。
 
-##### 3.2.3.2. docker安装zookeeper的相关命令
+#### 3.3.2. docker安装zookeeper的相关命令
 
 ```shell
 # 拉取zk镜像
@@ -321,11 +321,11 @@ docker start zk
 
 ![](images/20201001104718381_25865.png)
 
-### 3.3. dubbo快速入门示例
+## 4. dubbo快速入门示例
 
-#### 3.3.1. 聚合项目
+### 4.1. 聚合项目
 
-##### 3.3.1.1. 创建工程，配置依赖
+#### 4.1.1. 创建工程，配置依赖
 
 创建pom聚合项目sample-dubbo，修改pom.xml文件引用示例项目公共依赖
 
@@ -437,9 +437,9 @@ docker start zk
 
 > 注：这里的haoke-technology-stack-sample项目是整个好客租房技术栈示例项目的聚合工程，里面引入了`spring-boot-starter-parent`的依赖，版本为`2.1.0.RELEASE`
 
-#### 3.3.2. 服务提供方工程
+### 4.2. 服务提供方工程
 
-##### 3.3.2.1. 创建项目，配置依赖
+#### 4.2.1. 创建项目，配置依赖
 
 创建`sample-dubbo-service`项目，打包方式选jar类型。修改maven项目pom.xml文件添加依赖
 
@@ -474,7 +474,7 @@ docker start zk
 
 > *注： 此示例为了简化重复依赖配置，将dubbo与zookeeper的依赖都配置在聚合工程中。实际项目会有很多其他模块、公共的工程，此时就不能将这些dubbo与zookeeper的依赖都配置在聚合工程中*
 
-##### 3.3.2.2. 创建实体对象
+#### 4.2.2. 创建实体对象
 
 创建用于测试dubbo调用接口时传输的封装的实体类。<font color=red>**注：dubbo框架接口调用用来传输数据的对象必须实现序列化接口`java.io.Serializable`**</font>
 
@@ -490,7 +490,7 @@ public class User implements Serializable {
 }
 ```
 
-##### 3.3.2.3. 创建提供服务的接口与实现类
+#### 4.2.3. 创建提供服务的接口与实现类
 
 - 创建UserService（接口）提供查询服务
 
@@ -535,7 +535,7 @@ public class UserServiceImpl implements UserService {
 }
 ```
 
-##### 3.3.2.4. 编写项目配置文件
+#### 4.2.4. 编写项目配置文件
 
 编写SpringBoot项目的`application.properties`配置文件
 
@@ -557,7 +557,7 @@ dubbo.registry.address=zookeeper://192.168.12.134:2181
 dubbo.registry.client=zkclient
 ```
 
-##### 3.3.2.5. 编写启动类
+#### 4.2.5. 编写启动类
 
 ```java
 @SpringBootApplication
@@ -575,9 +575,9 @@ public class DubboProvider {
 ![](images/20201001171726066_18539.png)
 
 
-#### 3.3.3. 服务消费方工程
+### 4.3. 服务消费方工程
 
-##### 3.3.3.1. 创建工程，配置依赖
+#### 4.3.1. 创建工程，配置依赖
 
 创建`sample-dubbo-consumer`项目，打包方式选jar类型。修改maven项目pom.xml文件添加依赖
 
@@ -615,7 +615,7 @@ public class DubboProvider {
 </project>
 ```
 
-##### 3.3.3.2. 编写项目配置文件
+#### 4.3.2. 编写项目配置文件
 
 编写SpringBoot项目的`application.properties`配置文件，增加项目与dubbo相关配置
 
@@ -630,7 +630,7 @@ dubbo.registry.address=zookeeper://192.168.12.134:2181
 dubbo.registry.client=zkclient
 ```
 
-##### 3.3.3.3. 编写测试用例
+#### 4.3.3. 编写测试用例
 
 ```java
 @RunWith(SpringRunner.class)
@@ -655,7 +655,7 @@ public class UserServiceTest {
 
 运行测试，可以获取到数据，说明已经成功调用了service中提供的接口
 
-##### 3.3.3.4. 写代码时遇到的小坑
+#### 4.3.4. 写代码时遇到的小坑
 
 因为消费者工程里只写了测试用例，没有编写启动类与配置类，但工程依赖了提供者工程，而提供者工程是有springboot的启动类，那里会默认扫描启动类所在包及其子包。
 
@@ -667,7 +667,176 @@ public class UserServiceTest {
 
 ![](images/20201001230419020_21405.png)
 
-### 3.4. Dubbo Admin
+## 5. Dubbo Admin
 
-Dubbo Admin 是 Dubbo 提供了可视化的界面管理工具，方便对服务进行管理
+### 5.1. 概述
 
+Dubbo Admin 是 Dubbo 提供了可视化的界面管理工具，方便对服务进行管理。代码地址：https://github.com/apache/incubator-dubbo-ops
+
+### 5.2. 部署安装
+
+- 第一步，下载并且解压：
+
+```bash
+git clone https://github.com/apache/incubator-dubbo-ops.git
+```
+
+> 或者直接使用项目资料中提供的incubator-dubbo-ops.tar.gz，上传到linux系统，解压到/usr/haoke文件夹中
+
+```bash
+mkdir /usr/haoke # 创建文件夹
+rz # 进入文件夹并选择上传文件
+tar -xvf incubator-dubbo-ops.tar.gz #解压文件
+rm -rf incubator-dubbo-ops.tar.gz #删除压缩文件
+```
+
+![](images/20201002074013331_31371.png)
+
+- 第二步，修改配置文件：
+
+在 `dubbo-admin-backend/src/main/resources/application.properties` 中指定注册中心地址，默认是本机。（示例是zk与admin项目都安装同一台虚拟机上，所以不需要修改）
+
+![](images/20201002075129988_334.png)
+
+- 第三步，安装maven（如未安装maven请先安装maven）：
+
+1. 到项目资料中提供的maven压缩包，上传解压apache-maven-3.6.0-bin.tar.gz到linux
+
+```bash
+rz # 进入/usr/haoke文件夹并选择上传文件
+tar -xvf apache-maven-3.6.0-bin.tar.gz #解压文件
+rm -rf apache-maven-3.6.0-bin.tar.gz #删除压缩文件
+```
+
+2. 配置环境变量：
+
+```bash
+vim /etc/profile
+# 写入如下内容
+export MVN_HOME=/usr/haoke/apache-maven-3.6.0
+export PATH=$MVN_HOME/bin:$PATH
+```
+
+3. 刷新环境变量配置
+
+```bash
+source /etc/profile
+```
+
+4. 修改maven配置文件，增加阿里云私服镜像(非必需)
+
+```bash
+vim /usr/haoke/apache-maven-3.6.0/conf/settings.xml
+```
+
+增加以下配置
+
+```xml
+<mirror>
+	<id>nexus-aliyun</id>
+	<mirrorOf>*</mirrorOf>
+	<name>Nexus aliyun</name>
+	<url>http://maven.aliyun.com/nexus/content/groups/public/</url>
+</mirror>
+```
+
+- 第四步，使用maven进行构建项目
+
+```bash
+# 进入项目的根目录
+cd /usr/haoke/incubator-dubbo-ops
+mvn clean package
+```
+
+- 第五步，通过mavn插件启动程序：
+
+```bash
+mvn --projects dubbo-admin-backend spring-boot:run
+```
+
+- 第六步，访问系统。打开浏览器访问：http://192.168.12.134:8080/#/
+
+![](images/20201002090628513_11520.png)
+
+## 6. Dubbo 的服务负载均衡
+
+### 6.1. Dubbo 框架的负载均衡策略
+
+在集群负载均衡时，Dubbo 提供了多种均衡策略，缺省为 `random` 随机调用。
+
+**负载均衡策略**：
+
+- Random LoadBalance：随机，按权重设置随机概率
+- RoundRobin LoadBalance：轮询，按公约后的权重设置轮询比率
+- LeastActive LoadBalance：最少活跃调用数，相同活跃数的随机，活跃数指调用前后计数差
+- ConsistentHash LoadBalance：一致性 Hash，相同参数的请求总是发到同一提供者
+
+> 相关具体说明，参考官网：http://dubbo.apache.org/zh-cn/docs/user/demos/loadbalance.html
+
+### 6.2. 负载均衡策略 - 轮询测试
+
+- 修改消费方工程的测试代码
+
+```java
+/*
+ * 使用dubbo的@Reference注解注入提供方服务接口
+ *  因为提供方的@Service注解中配置版本号，所以此处也指定版本号
+ * 配置负载均衡属性loadbalance为轮询(roundrobin)
+ */
+@Reference(version = "1.0.0", loadbalance = "roundrobin")
+private UserService userService;
+
+@Test
+public void queryAllTest() {
+    // 循环多次调用
+    for (int i = 0; i < 30; i++) {
+        System.out.println("开始调用远程服务 >>>>>" + i);
+        List<User> users = this.userService.queryAll();
+        for (User user : users) {
+            System.out.println(user);
+        }
+
+        // 睡眠1秒
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+}
+```
+
+- 测试方法：启动多个提供方，进行测试，观察提供方的输出，会发现会有轮询的效果出现。
+
+idea勾选可以多例运行
+
+![](images/20201002091812224_29183.png)
+
+每次启动新的提供方，需要修改`application.properties`文件中的`dubbo.protocol.port`属性，设置不同的端口号。还有方法的输出信息，方便观查
+
+![](images/20201002092040974_10575.png)
+
+![](images/20201002092235228_11687.png)
+
+## 7. dubbo:// 协议
+
+Dubbo 缺省协议采用单一长连接和 NIO 异步通讯，适合于小数据量大并发的服务调用，以及服务消费者机器数远大于服务提供者机器数的情况。
+
+反之，Dubbo 缺省协议不适合传送大数据量的服务，比如传文件，传视频等，除非请求量很低。
+
+![](images/20201002085258888_32124.png)
+
+- Transporter（传输）: mina, netty, grizzy
+- Serialization（序列化）: dubbo, hessian2, java, json
+- Dispatcher（分发调度）: all, direct, message, execution, connection
+- ThreadPool（线程池）: fixed, cached
+
+`dubbo://` 协议是dubbo框架的缺省协议，使用基于 mina 1.1.7 和 hessian 3.2.1 的 tbremoting 交互。有以下特性：
+
+- 连接个数：单连接
+- 连接方式：长连接
+- 传输协议：TCP
+- 传输方式：NIO 异步传输
+- 序列化：Hessian 二进制序列化
+- 适用范围：传入传出参数数据包较小（建议小于100K），消费者比提供者个数多，单一消费者无法压满提供者，尽量不要用 dubbo 协议传输大文件或超大字符串。
+- 适用场景：常规远程服务方法调用
