@@ -44,6 +44,7 @@
 * [MyBatis基础笔记](/02-后端框架/04-MyBatis/01-MyBatis基础笔记)
 * [MyBatis代码生成器（逆向工程）](/02-后端框架/04-MyBatis/02-MyBatis代码生成器（逆向工程）)
 * [MyBatis源码笔记](/02-后端框架/04-MyBatis/03-MyBatis源码笔记)
+* [MyBatisPlus笔记](/02-后端框架/04-MyBatis/04-MyBatisPlus)
 
 ### ✨ SpringMVC ✨
 
@@ -178,7 +179,56 @@
 
 ## 📖 项目资料
 
+### ProjectB 项目资料
 
+- [Day01-分布式服务框架-Dubbo](/00-项目资料/02-Project-B-项目资料/Day01-分布式服务框架-Dubbo)
+- [Day02-前端框架AngularJS、通用Mapper](/00-项目资料/02-Project-B-项目资料/Day02-前端框架AngularJS、通用Mapper)
+- [Day03-Nginx&品牌管理模块功能](/00-项目资料/02-Project-B-项目资料/Day03-Nginx&品牌管理模块功能)
+- [Day04-Angular前端分层&规格及模板管理](/00-项目资料/02-Project-B-项目资料/Day04-Angular前端分层&规格及模板管理)
+- [Day05-SpringSecurity安全框架与商家入驻审核功能](/00-项目资料/02-Project-B-项目资料/Day05-SpringSecurity安全框架与商家入驻审核功能)
+- [Day06-商品录入模块（一）（富文本&FastDFS）](/00-项目资料/02-Project-B-项目资料/Day06-商品录入模块（一）（富文本&FastDFS）)
+- [Day07-商品录入模块（二）（选择商品分类&选择品牌&选择规格&SKU）](/00-项目资料/02-Project-B-项目资料/Day07-商品录入模块（二）（选择商品分类&选择品牌&选择规格&SKU）)
+- [Day08-商品修改与审核&注解式事务配置&Nginx静态资源服务器](/00-项目资料/02-Project-B-项目资料/Day08-商品修改与审核&注解式事务配置&Nginx静态资源服务器)
+- [Day09-广告管理&SpringDataRedis缓存方案](/00-项目资料/02-Project-B-项目资料/Day09-广告管理&SpringDataRedis缓存方案)
+- [Day10-搜索解决方案（一）-SpringDataSolr](/00-项目资料/02-Project-B-项目资料/Day10-搜索解决方案（一）-SpringDataSolr)
+- [Day11-搜索解决方案（二）-高亮&显示分类规格&搜索过滤](/00-项目资料/02-Project-B-项目资料/Day11-搜索解决方案（二）-高亮&显示分类规格&搜索过滤)
+- [Day12-搜索解决方案（三）-分页&价格区间筛选&排序&更新索引库](/00-项目资料/02-Project-B-项目资料/Day12-搜索解决方案（三）-分页&价格区间筛选&排序&更新索引库)
+- [Day13-Freemarker-网页静态化解决方案](/00-项目资料/02-Project-B-项目资料/Day13-Freemarker-网页静态化解决方案)
+- [Day14-JMS-消息中间件解决方案&FreeMarker静态化](/00-项目资料/02-Project-B-项目资料/Day14-JMS-消息中间件解决方案&FreeMarker静态化)
+- [Day15-SpringBoot框架&短信微服务&用户中心注册功能](/00-项目资料/02-Project-B-项目资料/Day15-SpringBoot框架&短信微服务&用户中心注册功能)
+- [Day16-CAS-单点登录解决方案&CAS集成SpringSecurity](/00-项目资料/02-Project-B-项目资料/Day16-CAS-单点登录解决方案&CAS集成SpringSecurity)
+- [Day17-购物车解决方案&子系统集成CAS](/00-项目资料/02-Project-B-项目资料/Day17-购物车解决方案&子系统集成CAS)
+- [Day18-CORS跨域请求解决方案&结算页&保存订单](/00-项目资料/02-Project-B-项目资料/Day18-CORS跨域请求解决方案&结算页&保存订单)
+- [Day19-生成二维码&微信扫码支付&支付日志](/00-项目资料/02-Project-B-项目资料/Day19-生成二维码&微信扫码支付&支付日志)
+- [Day20-秒杀解决方案](/00-项目资料/02-Project-B-项目资料/Day20-秒杀解决方案)
+- [Day21-SpringTask任务调度&Nginx负载均衡&MyCat分库分表](/00-项目资料/02-Project-B-项目资料/Day21-SpringTask任务调度&Nginx负载均衡&MyCat分库分表)
+- [附录1-项目涉及技术框架API](/00-项目资料/02-Project-B-项目资料/附录1-项目涉及技术框架API)
+- [附录2-项目扩展知识](/00-项目资料/02-Project-B-项目资料/附录2-项目扩展知识)
+- [项目整体架构配置笔记](/00-项目资料/02-Project-B-项目资料/项目2整体架构配置笔记)
+
+### 学成在线-项目资料
+
+- [Day01-CMS接口开发](/00-项目资料/04-学成在线-项目资料/Day01-CMS接口开发)
+- [Day02-CMS前端开发](/00-项目资料/04-学成在线-项目资料/Day02-CMS前端开发)
+- [Day03-CMS页面管理开发](/00-项目资料/04-学成在线-项目资料/Day03-CMS页面管理开发)
+- [Day04-页面静态化-freemarker](/00-项目资料/04-学成在线-项目资料/Day04-页面静态化-freemarker)
+- [Day05-消息中间件-RabbitMQ](/00-项目资料/04-学成在线-项目资料/Day05-消息中间件-RabbitMQ)
+- [Day06-页面发布-课程管理（RabbitMQ实践）](/00-项目资料/04-学成在线-项目资料/Day06-页面发布-课程管理（RabbitMQ实践）)
+- [Day07-课程管理功能模块](/00-项目资料/04-学成在线-项目资料/Day07-课程管理功能模块)
+- [Day08-课程图片管理&分布式文件系统](/00-项目资料/04-学成在线-项目资料/Day08-课程图片管理&分布式文件系统)
+- [Day09-课程预览&Eureka、Feign、Ribbon使用](/00-项目资料/04-学成在线-项目资料/Day09-课程预览&Eureka、Feign、Ribbon使用)
+- [Day11-搜索服务](/00-项目资料/04-学成在线-项目资料/Day11-搜索服务)
+- [Day16-SpringSecurityOauth2认证方案&JWT研究](/00-项目资料/04-学成在线-项目资料/Day16-SpringSecurityOauth2认证方案&JWT研究)
+- [Day17-用户认证&Zuul网关](/00-项目资料/04-学成在线-项目资料/Day17-用户认证&Zuul网关)
+- [Day18-用户授权](/00-项目资料/04-学成在线-项目资料/Day18-用户授权)
+- [学成在线项目-整体架构配置笔记](/00-项目资料/04-学成在线-项目资料/学成在线项目-整体架构配置笔记)
+
+### 好客租房-项目资料
+
+- [Day01-ES6新特性以及ReactJS入门](/00-项目资料/05-好客租房-项目资料/Day01-ES6新特性以及ReactJS入门)
+- [Day02-AntDesign以及AntDesignPro入门](/00-项目资料/05-好客租房-项目资料/Day02-AntDesign以及AntDesignPro入门)
+- [Day03-项目介绍以及开发后台系统](/00-项目资料/05-好客租房-项目资料/Day03-项目介绍以及开发后台系统)
+- [好客租房项目-整体架构配置笔记](/00-项目资料/05-好客租房-项目资料/好客租房项目-整体架构配置笔记)
 
 <style type="text/css">
 .li {
