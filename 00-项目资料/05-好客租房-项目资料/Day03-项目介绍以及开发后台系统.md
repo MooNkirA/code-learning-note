@@ -60,6 +60,16 @@ npm start # 启动项目
 > 2. 进入项目的.git文件夹(文件夹默认隐藏，可先设置显示或者命令ls查找)，再进入hooks文件夹，删除pre-commit文件，重新`git commit -m 'xxx' git push`即可。
 > 3. 将`git commit -m "XXX"` 改为 `git commit --no-verify -m "XXX"`
 
+第1种方案的简易操作是：将`package.json`文件中的husky设置删除
+
+```json
+"husky": {
+  "hooks": {
+    "pre-commit": "npm run lint-staged"
+  }
+}
+```
+
 第3种方案的简易操作是：使用git图形化操作客户端sourcetree，点选
 
 ![](images/20200411184032171_27367.png)
