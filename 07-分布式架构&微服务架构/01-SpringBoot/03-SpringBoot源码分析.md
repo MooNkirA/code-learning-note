@@ -5,6 +5,7 @@
 > 下载地址：https://github.com/spring-projects/spring-boot/releases
 
 ## 1. SpringBoot源码构建
+
 ### 1.1. 方式1：maven命令编译项目
 
 1. 进入到下载的源码目录执行如下命令：
@@ -25,6 +26,7 @@ mvn -Dmaven.test.skip=true clean install
 ![](images/20200218000353682_15308.png)
 
 2. 如果出现报错找不到spring-javaformat插件 执行`mvn spring-javaformat:apply`命令即可。命令执行成功后，再次执行指令：`mvnw clean install -DskipTests -Pfast`
+
 
 
 

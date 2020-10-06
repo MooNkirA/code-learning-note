@@ -141,13 +141,14 @@
 ### ✨ SpringBoot ✨
 
 * [SpringBoot笔记](/07-分布式架构&微服务架构/01-SpringBoot/01-SpringBoot笔记)
-* [SpringBoot笔记-其他相关内容](/07-分布式架构&微服务架构/01-SpringBoot/02-SpringBoot笔记-其他相关内容)
+* [SpringBoot注解汇总](/07-分布式架构&微服务架构/01-SpringBoot/02-SpringBoot注解汇总)
 * [SpringBoot源码分析](/07-分布式架构&微服务架构/01-SpringBoot/03-SpringBoot源码分析)
 * [SpringBoot整合Servlet、Filter、Listener](/07-分布式架构&微服务架构/01-SpringBoot/04-SpringBoot整合Servlet、Filter、Listener)
 * [SpringBoot整合MyBatis](/07-分布式架构&微服务架构/01-SpringBoot/05-SpringBoot整合MyBatis)
 * [SpringBoot整合Druid-数据库连接池](/07-分布式架构&微服务架构/01-SpringBoot/06-SpringBoot整合Druid-数据库连接池)
 * [SpringBoot整合JavaMail](/07-分布式架构&微服务架构/01-SpringBoot/12-SpringBoot整合JavaMail)
 * [SpringBoot整合javax.validation](/07-分布式架构&微服务架构/01-SpringBoot/13-SpringBoot整合javax.validation)
+* [SpringBoot笔记-其他相关内容](/07-分布式架构&微服务架构/01-SpringBoot/99-SpringBoot笔记-其他相关内容)
 
 ### ✨ SpringCloud ✨
 
@@ -228,6 +229,8 @@
 - [Day01-ES6新特性以及ReactJS入门](/00-项目资料/05-好客租房-项目资料/Day01-ES6新特性以及ReactJS入门)
 - [Day02-AntDesign以及AntDesignPro入门](/00-项目资料/05-好客租房-项目资料/Day02-AntDesign以及AntDesignPro入门)
 - [Day03-项目介绍以及开发后台系统](/00-项目资料/05-好客租房-项目资料/Day03-项目介绍以及开发后台系统)
+- [Day04-后台服务的搭建与实现以及MybatisPlus的入门](/00-项目资料/05-好客租房-项目资料/Day04-后台服务的搭建与实现以及MybatisPlus的入门)
+- [Day05-阿里云OSS以及GraphQL入门](/00-项目资料/05-好客租房-项目资料/Day05-阿里云OSS以及GraphQL入门)
 - [好客租房项目-整体架构配置笔记](/00-项目资料/05-好客租房-项目资料/好客租房项目-整体架构配置笔记)
 
 <style type="text/css">
