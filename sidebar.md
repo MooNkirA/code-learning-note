@@ -152,7 +152,8 @@
 
 ### ✨ SpringCloud ✨
 
-* [SpringCloud笔记](/07-分布式架构&微服务架构/02-SpringCloud/01-SpringCloud笔记)
+* [SpringCloud简介](/07-分布式架构&微服务架构/02-SpringCloud/01-Spring-Cloud-Overview)
+* [Spring Cloud Netflix（包含Eureka、Ribbon、Hystrix、Zuul等组件）](/07-分布式架构&微服务架构/02-SpringCloud/02-Spring-Cloud-Netflix)
 
 ### ✨ 其他 ✨
 
