@@ -177,7 +177,9 @@
 
 ### 💻 IDE
 
-- [IntelliJ IDEA 常用配置](/99-其他/01-IDE/01-IDEA常用配置)
+- [IntelliJ IDEA 常用配置](/99-其他/01-IDE/01-IDEA)
+- [Eclipse 常用配置](/99-其他/01-IDE/02-eclipse)
+- [Visual Studio Code 常用配置](/99-其他/01-IDE/03-Visual-Studio-Code)
 
 ## 📖 项目资料
 

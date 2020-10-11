@@ -1,61 +1,16 @@
 # Spring Cloud Netflix
 
+**Spring Cloud Netflix组件**包括了Eureka、Ribbon、Feign、Hystrix、Zuul
+
 # Eureka 服务注册和发现
 
 > **Eureka案例代码地址：`spring-cloud-note\spring-cloud-greenwich-sample\02-springcloud-eureka\`**
 
-## 1. 微服务的注册中心
-
-注册中心相当于微服务架构中的“通讯录”，它记录了服务和服务地址的映射关系。在分布式架构中，服务会注册到这里，当服务需要调用其它服务时，就这里找到服务的地址，进行调用。
-
-![](images/20201008120245097_22177.png)
-
-### 1.1. 注册中心的主要作用
-
-服务注册中心（下称注册中心）是微服务架构非常重要的一个组件，在微服务架构里主要起到了协调者的一个作用。注册中心一般包含如下几个功能：
-
-1. 服务发现：
-    - 服务注册/反注册：保存服务提供者和服务调用者的信息
-    - 服务订阅/取消订阅：服务调用者订阅服务提供者的信息，最好有实时推送的功能
-    - 服务路由（可选）：具有筛选整合服务提供者的能力。
-2. 服务配置：
-    - 配置订阅：服务提供者和服务调用者订阅微服务相关的配置
-    - 配置下发：主动将配置推送给服务提供者和服务调用者
-3. 服务健康检测
-    - 检测服务提供者的健康情况
-
-### 1.2. 常见的注册中心
-
-- **Zookeeper**：它是一个分布式服务框架，是Apache Hadoop 的一个子项目，它主要是用来解决分布式应用中经常遇到的一些数据管理问题，如：统一命名服务、状态同步服务、集群管理、分布式应用配置项的管理等。简单来说<font color=red>**zookeeper=文件系统+监听通知机制**</font>。
-- **Eureka**：是使用Java语言开发的，基于Restful Api开发的服务注册与发现组件，Springcloud Netflix中的重要组
-- **Consul**：是由HashiCorp基于Go语言开发的支持多数据中心分布式高可用的服务发布和注册服务软件，采用Raft算法保证服务的一致性，且支持健康检查。
-- **Nacos**：是一个更易于构建云原生应用的动态服务发现、配置管理和服务管理平台。简单来说<font color=red>**Nacos 就是注册中心 + 配置中心的组合**</font>，提供简单易用的特性集，解决微服务开发必会涉及到的服务注册与发现，服务配置，服务管理等问题。Nacos 还是 Spring Cloud Alibaba 组件之一
-
-选择什么类型的服务注册与发现组件可以根据自身项目要求决定。常见的注册中心总结如下：
-
-|   组件名   | 语言 | CAP | 一致性算法 | 服务健康检查 | 对外暴露接口 |
-| --------- | ---- | --- | --------- | ----------- | ----------- |
-| Eureka    | Java | AP  | 无        | 可配支持     | HTTP        |
-| Consul    | go   | CP  | Raft      | 支持        | HTTP/DNS    |
-| Zookeeper | Java | CP  | Paxos     | 支持        | 客户端      |
-| Nacos     | Java | AP  | Raft      | 支持        | HTTP        |
-
-### 1.3. 微服务的注册与发现流程图
-
-![](images/20190501091354200_14049.jpg)
-
-由上图可以看出：
-
-1. 服务提供者将服务注册到注册中心
-2. 服务消费者通过注册中心查找服务
-3. 查找到服务后进行调用（这里就是无需硬编码url的解决方案）
-4. 服务的消费者与服务注册中心保持心跳连接，一旦服务提供者的地址发生变更时，注册中心会通知服务消费者
-
-## 2. Eureka 注册中心
+## 1. Eureka 注册中心
 
 Eureka是Netflix开发的服务发现框架，SpringCloud将它集成在自己的子项目spring-cloud-netflix中，实现SpringCloud的服务发现功能。Spring Cloud提供了多种注册中心的支持，如：Eureka、ZooKeeper等。推荐使用Eureka。
 
-### 2.1. Eureka 的基本架构
+### 1.1. Eureka 的基本架构
 
 ![](images/20201008123337857_27461.png)
 
@@ -65,7 +20,7 @@ Eureka是Netflix开发的服务发现框架，SpringCloud将它集成在自己�
 - `Service Provider`：服务提供者，将自身服务注册到Eureka，使服务消费方能够找到
 - `Service Consumer`：服务消费者，从Eureka获取注册服务列表，消费服务
 
-### 2.2. Eureka 的交互流程与原理
+### 1.2. Eureka 的交互流程与原理
 
 ![](images/20201008123931375_6484.png)
 
@@ -85,13 +40,13 @@ Eureka是Netflix开发的服务发现框架，SpringCloud将它集成在自己�
 
 Eureka通过心跳检查、客户端缓存等机制，确保了系统的高可用性、灵活性和可伸缩性。
 
-## 3. Eureka 注册中心使用示例
+## 2. Eureka 注册中心使用示例
 
 > 案例代码：spring-cloud-note\spring-cloud-greenwich-sample\02-springcloud-eureka\
 >
 > 沿用上面`01-microservice-no-springcloud`项目的代码
 
-### 3.1. 引入 Spring Cloud 依赖
+### 2.1. 引入 Spring Cloud 依赖
 
 修改聚合工程pom.xml文件，增加spring cloud Greenwich 版本的依赖
 
@@ -110,9 +65,9 @@ Eureka通过心跳检查、客户端缓存等机制，确保了系统的高可�
 </dependencyManagement>
 ```
 
-### 3.2. 搭建Eureka注册中心(单节点版)
+### 2.2. 搭建Eureka注册中心(单节点版)
 
-#### 3.2.1. 搭建Eureka服务中心
+#### 2.2.1. 搭建Eureka服务中心
 
 1. 创建`shop-server-eureka`子模块，引入eureka服务端的依赖
 
@@ -168,15 +123,15 @@ public class EurekaServerApplication {
 }
 ```
 
-#### 3.2.2. 服务注册中心管理后台
+#### 2.2.2. 服务注册中心管理后台
 
 访问`http://localhost:8761`即可进入EurekaServer内置的管理控制台
 
 ![](images/20201009103306998_27461.png)
 
-### 3.3. 服务注册到Eureka注册中心
+### 2.3. 服务注册到Eureka注册中心
 
-#### 3.3.1. 商品服务注册
+#### 2.3.1. 商品服务注册
 
 1. 在`shop-service-product`工程的pom.xml文件增加eureka client的相关坐标
 
@@ -221,11 +176,11 @@ public class ProductApplication {
 
 > <font color=red>**注：从Spring Cloud Edgware版本开始，`@EnableDiscoveryClient` 或 `@EnableEurekaClient` 可省略。只需加上相关依赖，并进行相应配置，即可将微服务注册到服务发现组件上。**</font>
 
-#### 3.3.2. 订单服务注册
+#### 2.3.2. 订单服务注册
 
 和商品微服务一样，只需要引入坐标依赖，在工程的 `application.yml` 中添加Eureka Server的主机地址即可
 
-#### 3.3.3. @EnableDiscoveryClient 与 @EnableEurekaClient 的区别
+#### 2.3.3. @EnableDiscoveryClient 与 @EnableEurekaClient 的区别
 
 两个注解的用法上基本一致。
 
@@ -237,7 +192,7 @@ public class ProductApplication {
 
 注解`@EnableEurekaClient`上有`@EnableDiscoveryClient`注解，可以说基本就是`@EnableEurekaClient`有`@EnableDiscoveryClient`的功能，另外上面的注释中提到，其实`@EnableEurekaClient`注解就是一种方便使用eureka的注解而已，可以说使用其他的注册中心后，都可以使用`@EnableDiscoveryClient`注解，但是使用`@EnableEurekaClient`的情景，就是在服务采用eureka作为注册中心的时候，使用场景较为单一
 
-## 4. Eureka的自我保护模式
+## 3. Eureka的自我保护模式
 
 微服务第一次注册成功之后，每30秒会发送一次心跳将服务的实例信息注册到注册中心。通知 Eureka Server 该实例仍然存在。默认情况下，如果Eureka Server在一定时间内没有接收到某个微服务实例的心跳，Eureka Server将会注销该实例（默认90秒）。但是当网络分区故障发生时，微服务与Eureka Server之间无法正常通信，这就可能变得非常危险了。因为微服务本身是健康的，此时本不应该注销这个微服务。
 
@@ -268,9 +223,9 @@ eureka:
 
 ![](images/20201009153015124_9293.png)
 
-## 5. Eureka中的元数据
+## 4. Eureka中的元数据
 
-### 5.1. 概念
+### 4.1. 概念
 
 Eureka的元数据有两种：**标准元数据和自定义元数据**
 
@@ -310,7 +265,7 @@ public class EurekaTest {
 }
 ```
 
-### 5.2. 通过Eureka的元数据实现服务调用
+### 4.2. 通过Eureka的元数据实现服务调用
 
 修改`shop-service-order`工程的`OrderController`，注入`DiscoveryClient`对象，获取商品服务的url，进行远程调用
 
@@ -348,7 +303,7 @@ public class OrderController {
 }
 ```
 
-## 6. Eureka Server 高可用集群
+## 5. Eureka Server 高可用集群
 
 在单节点的Eureka Server的服务中，Eureka Client会定时连接Eureka Server，获取注册表中的信息并缓存到本地。微服务在消费远程API时总是使用本地缓存中的数据。因此一般来说，即使Eureka Server发生宕机，也不会影响到服务之间的调用。
 
@@ -358,13 +313,13 @@ public class OrderController {
 
 Eureka Server可以通过运行多个实例并相互注册的方式实现高可用部署，Eureka Server实例会彼此增量地同步信息，从而确保所有节点数据一致。事实上，节点之间相互注册是Eureka Server的默认行为
 
-### 6.1. 搭建 Eureka Server 高可用集群
+### 5.1. 搭建 Eureka Server 高可用集群
 
 > 复用`02-springcloud-eureka`工程的代码，在原有基础上增加集群部分配置。详细示例详见`spring-cloud-note\spring-cloud-greenwich-sample\03-springcloud-eureka-cluster\`
 
 *注：使用idea开启多个服务的方法有多种，下面是通过定义不同的profiles的方式，还有通过启动多个实例，直接修改配置文件；还有通过启动时定义配置文件的参数方式，详细参考学成项目的配置方式*
 
-#### 6.1.1. 修改相关配置
+#### 5.1.1. 修改相关配置
 
 1. 修改本机host属性
 
@@ -420,7 +375,7 @@ eureka:
 
 <font color=purple>**说明：在配置文件中通过连字符（`---`）将文件分为三个部分，第一部分为应用名称，第二部分和第三部分是根据不同的`profiles`选项动态添加，可以在IDEA启动时进行激活配置**</font>
 
-#### 6.1.2. 启动服务
+#### 5.1.2. 启动服务
 
 使用IDEA启动两次`EurekaServerApplicaion`分别激活`eureka01`和`eureka02`配置
 
@@ -430,7 +385,7 @@ eureka:
 
 ![](images/20201009235133859_20051.png)
 
-### 6.2. 服务注册到Eureka Server集群
+### 5.2. 服务注册到Eureka Server集群
 
 如果需要将微服务注册到Eureka Server集群，只需要修改yml配置文件中的`eureka.client.service-url.defaultZone`属性，指定集群各个Eureka Server的地址，多个地址中间用“,”分隔
 
@@ -446,15 +401,15 @@ eureka:
       defaultZone: http://eureka01:8001/eureka/,http://eureka02:8002/eureka/
 ```
 
-## 7. Eureka中的常见细节问题
+## 6. Eureka中的常见细节问题
 
-### 7.1. 服务注册慢
+### 6.1. 服务注册慢
 
 默认情况下，服务注册到Eureka Server的过程较慢。SpringCloud官方文档中给出了详细的原因：
 
 大致含义：服务的注册涉及到心跳，默认心跳间隔为30s。在实例、服务器、客户端都在本地缓存中具有相同的元数据之前，服务不可用于客户端发现（所以可能需要3次心跳）。可以通过配置`eureka.instance.leaseRenewalIntervalInSeconds` (心跳频率)加快客户端连接到其他服务的过程。在生产中，最好使用默认值，因为在服务器内部有一些计算，官方开发团队对续约做出假设。
 
-### 7.2. 监控页面显示服务的ip
+### 6.2. 监控页面显示服务的ip
 
 在Eureka Server的管控台中，显示的服务实例名称默认情况下是微服务定义的名称和端口。为了更好的对所有服务进行定位，微服务注册到Eureka Server的时候可以手动配置示例ID。
 
@@ -470,7 +425,7 @@ eureka:
 
 ![](images/20201010094344963_13130.png)
 
-### 7.3. 服务节点剔除问题
+### 6.3. 服务节点剔除问题
 
 默认情况下，由于Eureka Server剔除失效服务间隔时间为90s且存在自我保护的机制。所以不能有效而迅速的剔除失效节点，开发或测试时希望可以马上剔除不用的服务。解决方案如下：
 
@@ -503,7 +458,7 @@ eureka:
       defaultZone: http://eureka01:8001/eureka/,http://eureka02:8002/eureka/
 ```
 
-### 7.4. 解决响应为xml格式的问题
+### 6.4. 解决响应为xml格式的问题
 
 有些版本会出现请求响应返回数据会变成xml格式。
 
@@ -523,9 +478,9 @@ eureka:
 </dependency>
 ```
 
-### 7.5. 为Eureka添加用户认证
+### 6.5. 为Eureka添加用户认证
 
-#### 7.5.1. Eureka服务端配置用户认证
+#### 6.5.1. Eureka服务端配置用户认证
 
 添加用户认证，即需要密码才能访问查询注册中心的信息
 
@@ -581,7 +536,7 @@ eureka:
 2018-10-01 07:24:51.745  WARN 3652 --- [nfoReplicator-0] com.netflix.discovery.DiscoveryClient    : DiscoveryClient_SPRINGCLOUD-MICROSERVICE-ITEM/localhost:springcloud-microservice-item:8081 - registration failed Cannot execute request on any known server
 ```
 
-#### 7.5.2. 服务提供者注册时设置账户信息
+#### 6.5.2. 服务提供者注册时设置账户信息
 
 服务注册到有认证需求的注册中心时，需要设置如下信息
 
@@ -598,5 +553,266 @@ eureka:
   instance:
     prefer-ip-address: true # 将自己的ip地址注册到Eureka服务中
 ```
+
+## 7. Eureka源码解析
+
+### 7.1. SpringBoot 中的自动装载原理
+
+#### 7.1.1. ImportSelector 接口
+
+`ImportSelector`接口是Spring导入外部配置的核心接口，在SpringBoot的自动化配置和`@EnableXxx`(功能性注解)中起到了决定性的作用。当在`@Configuration`标注的Class上使用`@Import`引入了一个`ImportSelector`实现类后，会把实现类中定义所有标识`@Bean`注解的方法所返回的类实例都注册到Spring容器中。
+
+```java
+public interface ImportSelector {
+	/**
+	 * Select and return the names of which class(es) should be imported based on
+	 * the {@link AnnotationMetadata} of the importing @{@link Configuration} class.
+	 */
+	String[] selectImports(AnnotationMetadata importingClassMetadata);
+}
+```
+
+`DeferredImportSelector`接口继承`ImportSelector`，它和`ImportSelector`的区别在于装载bean的时机上，`DeferredImportSelector`需要等所有的`@Configuration`都执行完毕后才会进行装载
+
+```java
+public interface DeferredImportSelector extends ImportSelector
+```
+
+而SpringBoot的`@EnableAutoConfiguration`注解中`@Import`引入的`AutoConfigurationImportSelector`就是实现了`DeferredImportSelector`接口
+
+#### 7.1.2. ImportSelector 基础使用示例
+
+1. 定义Bean对象
+
+```java
+@Data
+public class User {
+    private String name;
+    private Integer age;
+}
+```
+
+2. 定义配置类，不标识任何spring注解
+
+```java
+/**
+ * 配置类，注意：此类不标识@Component、@Service、@Repository、@Controller等注解，
+ * spring扫描的时候并不会装载该类，待使用@Import注解引入一个ImportSelector接口实现类，在实现类中处理注册到容器中
+ * 注意事项：实现了ImportSelector接口的类不会被解析成一个Bean注册到容器中，只会将里面标识的@Bean注解的方法创建实例注册到容器
+ */
+public class UserConfiguration {
+    /* 创建User实例 */
+    @Bean
+    public User getUser() {
+        User user = new User();
+        user.setAge(12);
+        user.setName("石原里美");
+        return user;
+    }
+}
+```
+
+3. 定义`ImportSelector`接口的实现类
+
+```java
+public class UserImportSelector implements ImportSelector {
+    public String[] selectImports(AnnotationMetadata importingClassMetadata) {
+        // 返回需要加载的配置类名称数组，此示例直接返回UserConfiguration类全限定名
+        return new String[]{UserConfiguration.class.getName()};
+    }
+}
+```
+
+4. 定义`EnableXxx`注解，并使用`@Import`注解引入自定义的`ImportSelector`接口的实现类
+
+```java
+/**
+ * 自定义注解，使用@Import注解引入ImportSelector接口实现类
+ */
+@Retention(RetentionPolicy.RUNTIME)
+@Documented
+@Target(ElementType.TYPE)
+@Import(UserImportSelector.class)
+public @interface EnableUserBean {}
+```
+
+5. 测试
+
+```java
+@EnableUserBean
+public class ImportSelectorTest {
+    public static void main(String[] args) {
+        /*
+         * 创建注解扫描容器，执行流程如下：
+         *  创建注解扫描容器 --> 扫描到@EnableUserBean注解 --> 通过注解上@Import注解找到ImportSelector实现类UserImportSelector
+         *  --> 调用ImportSelector接口实现的selectImports方法，返回需要注册到容器的类全限定名称数组 --> 注册UserConfiguration类实例到容器
+         *  --> 通过@Bean注解将User类实例注册到容器
+         */
+        AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(ImportSelectorTest.class);
+        // 从容器获取User实例
+        User user = context.getBean(User.class);
+        System.out.println(user);
+        // UserConfiguration实例有注册到spring容器中
+        UserConfiguration config = context.getBean(UserConfiguration.class);
+        System.out.println(config);
+        // 此处会报错：No qualifying bean of type 'com.moon.importselector.UserImportSelector' available
+        // 说明实现了ImportSelector接口或者ImportBeanDefinitionRegistrar接口的类不会被解析成一个Bean注册到容器中
+        UserImportSelector importSelector = context.getBean(UserImportSelector.class);
+        System.out.println(importSelector);
+    }
+}
+```
+
+> 示例结论：`UserConfiguration`类并没有使用Spring的相关的对象创建注解声明（`@Controller`，`@Service`，`@Repostiroty`等），而是使用编程的方式动态的载入bean
+
+#### 7.1.3. ImportSelector 接口的调用时机
+
+`ConfigurationClassParser`类的`processImports`方法中进行`ImportSelector`接口的处理
+
+![](images/20201011114217359_5447.png)
+
+分析源码可以看到，`ImportSelector`接口的返回值会递归进行解析，把解析到的类全名按照`@Configuration`进行处理
+
+#### 7.1.4. springBoot自动装载的实现
+
+SpringBoot开箱即用的特点（自动装载机制），是基于`ImportSelector`实现。
+
+1. 在SpringBoot启动类中配置的主要注解`@SpringBootApplication`，在此注解中声明了一个`@EnableAutoConfiguration`
+
+```java
+@Target(ElementType.TYPE)
+@Retention(RetentionPolicy.RUNTIME)
+@Documented
+@Inherited
+@SpringBootConfiguration
+@EnableAutoConfiguration
+@ComponentScan(excludeFilters = { @Filter(type = FilterType.CUSTOM, classes = TypeExcludeFilter.class),
+		@Filter(type = FilterType.CUSTOM, classes = AutoConfigurationExcludeFilter.class) })
+public @interface SpringBootApplication {
+}
+```
+
+2. 在`@EnableAutoConfiguration`中通过`@Import`引入了SpringBoot定义的`AutoConfigurationImportSelector`
+
+```java
+@Target(ElementType.TYPE)
+@Retention(RetentionPolicy.RUNTIME)
+@Documented
+@Inherited
+@AutoConfigurationPackage
+@Import(AutoConfigurationImportSelector.class)
+public @interface EnableAutoConfiguration {
+}
+```
+
+3. `AutoConfigurationImportSelector`会执行里面的`selectImports`方法
+
+```java
+public class AutoConfigurationImportSelector implements DeferredImportSelector, BeanClassLoaderAware,
+		ResourceLoaderAware, BeanFactoryAware, EnvironmentAware, Ordered {
+    // ....省略代码
+    @Override
+	public String[] selectImports(AnnotationMetadata annotationMetadata) {
+		if (!isEnabled(annotationMetadata)) {
+			return NO_IMPORTS;
+		}
+		AutoConfigurationMetadata autoConfigurationMetadata = AutoConfigurationMetadataLoader
+				.loadMetadata(this.beanClassLoader);
+		// 此方法是主要处理逻辑，获取需要加载的bean全限定名集合
+		AutoConfigurationEntry autoConfigurationEntry = getAutoConfigurationEntry(autoConfigurationMetadata,
+				annotationMetadata);
+		return StringUtils.toStringArray(autoConfigurationEntry.getConfigurations());
+	}
+
+	protected AutoConfigurationEntry getAutoConfigurationEntry(AutoConfigurationMetadata autoConfigurationMetadata,
+			AnnotationMetadata annotationMetadata) {
+		if (!isEnabled(annotationMetadata)) {
+			return EMPTY_ENTRY;
+		}
+		AnnotationAttributes attributes = getAttributes(annotationMetadata);
+		// 通过getCandidateConfigurations方法获取所有需要加载的bean全限定名集合
+		List<String> configurations = getCandidateConfigurations(annotationMetadata, attributes);
+		// 去重处理
+		configurations = removeDuplicates(configurations);
+		// 获取不需要加载的bean,这里我们可以通过spring.autoconfigure.exclude人为配置
+		Set<String> exclusions = getExclusions(annotationMetadata, attributes);
+		checkExcludedClasses(configurations, exclusions);
+		configurations.removeAll(exclusions);
+		configurations = filter(configurations, autoConfigurationMetadata);
+		// 发送事件，通知所有的AutoConfigurationImportListener进行监听
+		fireAutoConfigurationImportEvents(configurations, exclusions);
+		return new AutoConfigurationEntry(configurations, exclusions);
+	}
+
+    // 这里是获取bean渠道的地方，重点是SpringFactoriesLoader#loadFactoryNames方法
+	protected List<String> getCandidateConfigurations(AnnotationMetadata metadata, AnnotationAttributes attributes) {
+		// 此处的getSpringFactoriesLoaderFactoryClass()最终返回EnableAutoConfiguration.class
+		List<String> configurations = SpringFactoriesLoader.loadFactoryNames(getSpringFactoriesLoaderFactoryClass(),
+				getBeanClassLoader());
+		Assert.notEmpty(configurations, "No auto configuration classes found in META-INF/spring.factories. If you "
+				+ "are using a custom packaging, make sure that file is correct.");
+		return configurations;
+	}
+	// ....省略代码
+}
+```
+
+`SpringFactoriesLoader.loadFactoryNames`方法，会读取相应jar定义的`META-INF/spring.factories`，jar被加载的同时`spring.factories`里面定义的bean就可以自动被加载
+
+```java
+public final class SpringFactoriesLoader {
+    public static final String FACTORIES_RESOURCE_LOCATION = "META-INF/spring.factories";
+    // ....省略代码
+    public static List<String> loadFactoryNames(Class<?> factoryClass, @Nullable ClassLoader classLoader) {
+        // 通过factoryClassName获取相应的bean全称
+		String factoryClassName = factoryClass.getName();
+		return loadSpringFactories(classLoader).getOrDefault(factoryClassName, Collections.emptyList());
+	}
+
+    private static Map<String, List<String>> loadSpringFactories(@Nullable ClassLoader classLoader) {
+		MultiValueMap<String, String> result = cache.get(classLoader);
+		if (result != null) {
+			return result;
+		}
+
+		try {
+			// 获取工程中所有META-INF/spring.factories文件,将其中的键值组合成Map
+			Enumeration<URL> urls = (classLoader != null ?
+					classLoader.getResources(FACTORIES_RESOURCE_LOCATION) :
+					ClassLoader.getSystemResources(FACTORIES_RESOURCE_LOCATION));
+			result = new LinkedMultiValueMap<>();
+			while (urls.hasMoreElements()) {
+				URL url = urls.nextElement();
+				UrlResource resource = new UrlResource(url);
+				Properties properties = PropertiesLoaderUtils.loadProperties(resource);
+				for (Map.Entry<?, ?> entry : properties.entrySet()) {
+					String factoryClassName = ((String) entry.getKey()).trim();
+					for (String factoryName : StringUtils.commaDelimitedListToStringArray((String) entry.getValue())) {
+						result.add(factoryClassName, factoryName.trim());
+					}
+				}
+			}
+			cache.put(classLoader, result);
+			return result;
+		}
+		catch (IOException ex) {
+			throw new IllegalArgumentException("Unable to load factories from location [" +
+					FACTORIES_RESOURCE_LOCATION + "]", ex);
+		}
+	}
+	// ....省略代码
+}
+```
+
+### 7.2. Eureka服务注册核心源码解析
+
+
+
+### 7.3. Eureka服务发现核心源码解析
+
+
+# Ribbon 服务调用
+
+
 
 

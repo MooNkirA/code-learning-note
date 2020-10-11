@@ -84,3 +84,24 @@ idea.system.path=D:/development/JetBrains/.IntelliJIdea/system
 - `No popup`：不显示该弹出窗
 
 ![](images/20201009222219012_2906.jpg)
+
+## 4. 导入maven项目时无法识别
+
+导入项目父级目录不是 Maven Parent 目录而是普通的文件夹，里面的子 maven 项目无法识别（子module变灰）。
+
+### 4.1. 方式1
+
+1. 右键父项目 --> 选择【open Module Settings】 --> 选择【modules】 --> 点击【+】号 --> 选择【Import Module】
+
+![](images/20201010234047833_29940.jpg)
+
+![](images/20201010234122234_17422.jpg)
+
+2. 选择变灰项目的【pom.xml】文件
+3. 点击【ok】 --> 【next】 --> 一直选择到结束即可
+
+### 4.2. 方式2
+
+选择无法识别的 pom.xml 文件，右键选择【+ Add as Maven Project】
+
+![](images/20201010234327948_1885.png)
