@@ -806,12 +806,891 @@ public final class SpringFactoriesLoader {
 
 ### 7.2. Eureka服务注册核心源码解析
 
+#### 7.2.1. @EnableEurekaServer 注解的作用
 
+通过 `@EnableEurekaServer` 注解激活Eureka Server。
+
+```java
+@Target(ElementType.TYPE)
+@Retention(RetentionPolicy.RUNTIME)
+@Documented
+@Import(EurekaServerMarkerConfiguration.class)
+public @interface EnableEurekaServer {
+}
+```
+
+此注解有一个重要作用：使用`@Import`注解导入`EurekaServerMarkerConfiguration`配置类，实例化了一个Marker的bean对象，此对象是实例化核心配置类的前提条件。**跟踪源码会知道，因为后面Eureka server的自动配置类`EurekaServerAutoConfiguration`标识了`@ConditionalOnBean(EurekaServerMarkerConfiguration.Marker.class)`注解，设置了当容器中存在`Marker`实例后，才初始化该类**
+
+```java
+@Configuration
+public class EurekaServerMarkerConfiguration {
+	@Bean
+	public Marker eurekaServerMarkerBean() {
+		return new Marker();
+	}
+
+	class Marker {
+	}
+}
+```
+
+#### 7.2.2. 自动装载核心配置类
+
+Spring Cloud 对 Eureka Server 做了封装。根据自动装载原则，Eureka Server项目的启动时，会在到`spring-cloud-netflix-eureka-server-x.x.x.RELEASE.jar`中找`META-INF/spring.factories`配置文件，加载此配置文件中定义的类
+
+![](images/20201011221059474_31721.png)
+
+```java
+@Configuration
+@Import(EurekaServerInitializerConfiguration.class)
+@ConditionalOnBean(EurekaServerMarkerConfiguration.Marker.class)
+@EnableConfigurationProperties({ EurekaDashboardProperties.class,
+		InstanceRegistryProperties.class })
+@PropertySource("classpath:/eureka/server.properties")
+public class EurekaServerAutoConfiguration extends WebMvcConfigurerAdapter {
+    // ....省略代码
+}
+```
+
+`EurekaServerAutoConfiguration` 是Eureka服务端的自动配置类，从源码可以分析到以下的要点：
+
+1. 此配置类实例化的前提条件是上下文中存在 `EurekaServerMarkerConfiguration.Marker` 的实例
+2. 通过`@EnableConfigurationProperties({ EurekaDashboardProperties.class, InstanceRegistryProperties.class })`又导入了两个配置类
+    - `EurekaDashboardProperties` 配置 Eureka Server 的管控台
+    - `InstanceRegistryProperties` 配置期望续约数量和默认的通信数量
+3. 通过`@Import(EurekaServerInitializerConfiguration.class)`引入启动配置类
+
+#### 7.2.3. EurekaServerInitializerConfiguration 启动配置类
+
+`EurekaServerInitializerConfiguration`实现了`SmartLifecycle`，也就意味着Spring容器启动时会去执行`start()`方法。加载所有的Eureka Server的配置
+
+```java
+@Configuration
+public class EurekaServerInitializerConfiguration
+		implements ServletContextAware, SmartLifecycle, Ordered {
+    // ....省略部分代码
+    @Override
+	public void start() {
+		new Thread(new Runnable() {
+			@Override
+			public void run() {
+				try {
+					//TODO: is this class even needed now?
+					eurekaServerBootstrap.contextInitialized(EurekaServerInitializerConfiguration.this.servletContext);
+					log.info("Started Eureka Server");
+
+					publish(new EurekaRegistryAvailableEvent(getEurekaServerConfig()));
+					EurekaServerInitializerConfiguration.this.running = true;
+					publish(new EurekaServerStartedEvent(getEurekaServerConfig()));
+				}
+				catch (Exception ex) {
+					// Help!
+					log.error("Could not initialize Eureka servlet context", ex);
+				}
+			}
+		}).start();
+	}
+    // ....省略部分代码
+}
+```
+
+#### 7.2.4. EurekaServerAutoConfiguration 自动配置类
+
+在此配置类中，主要实例化一些bean，其中有以下比较重要的bean实例化
+
+- 实例化了Eureka Server的管控台的Controller类 `EurekaController`
+- 实例化`EurekaServerBootstrap`类
+- 实例化`jersey`相关配置类。<font color=red>**jersey是RESTful的Web服务框架**</font>
+
+```java
+public class EurekaServerAutoConfiguration extends WebMvcConfigurerAdapter {
+    // ....省略部分代码
+    @Bean
+    @ConditionalOnProperty(prefix = "eureka.dashboard", name = "enabled", matchIfMissing = true)
+    public EurekaController eurekaController() {
+    	return new EurekaController(this.applicationInfoManager);
+    }
+    // ....省略部分代码
+
+    @Bean
+	public EurekaServerBootstrap eurekaServerBootstrap(PeerAwareInstanceRegistry registry,
+			EurekaServerContext serverContext) {
+		return new EurekaServerBootstrap(this.applicationInfoManager,
+				this.eurekaClientConfig, this.eurekaServerConfig, registry,
+				serverContext);
+	}
+
+    @Bean
+	public FilterRegistrationBean jerseyFilterRegistration(
+			javax.ws.rs.core.Application eurekaJerseyApp) {
+		FilterRegistrationBean bean = new FilterRegistrationBean();
+		bean.setFilter(new ServletContainer(eurekaJerseyApp));
+		bean.setOrder(Ordered.LOWEST_PRECEDENCE);
+		bean.setUrlPatterns(
+				Collections.singletonList(EurekaConstants.DEFAULT_PREFIX + "/*"));
+
+		return bean;
+	}
+
+    @Bean
+	public javax.ws.rs.core.Application jerseyApplication(Environment environment,
+			ResourceLoader resourceLoader) {
+
+		ClassPathScanningCandidateComponentProvider provider = new ClassPathScanningCandidateComponentProvider(
+				false, environment);
+
+		// Filter to include only classes that have a particular annotation.
+		//
+		provider.addIncludeFilter(new AnnotationTypeFilter(Path.class));
+		provider.addIncludeFilter(new AnnotationTypeFilter(Provider.class));
+
+		// Find classes in Eureka packages (or subpackages)
+		//
+		Set<Class<?>> classes = new HashSet<>();
+		for (String basePackage : EUREKA_PACKAGES) {
+			Set<BeanDefinition> beans = provider.findCandidateComponents(basePackage);
+			for (BeanDefinition bd : beans) {
+				Class<?> cls = ClassUtils.resolveClassName(bd.getBeanClassName(),
+						resourceLoader.getClassLoader());
+				classes.add(cls);
+			}
+		}
+
+		// Construct the Jersey ResourceConfig
+		//
+		Map<String, Object> propsAndFeatures = new HashMap<>();
+		propsAndFeatures.put(
+				// Skip static content used by the webapp
+				ServletContainer.PROPERTY_WEB_PAGE_CONTENT_REGEX,
+				EurekaConstants.DEFAULT_PREFIX + "/(fonts|images|css|js)/.*");
+
+		DefaultResourceConfig rc = new DefaultResourceConfig(classes);
+		rc.setPropertiesAndFeatures(propsAndFeatures);
+
+		return rc;
+	}
+	// ....省略部分代码
+}
+```
+
+在 `jerseyApplication` 方法中，会往容器中存放了一个`jerseyApplication`对象，`jerseyApplication()`方法里的东西和Spring源码里扫描`@Component`逻辑类似，扫描`@Path`和`@Provider`标签，然后封装成BeanDefinition，封装到Application的set容器里。通过filter过滤器来过滤url进行映射到对象的Controller
+
+#### 7.2.5. 暴露的服务端接口
+
+集成了`Jersey`，可以找到在EurekaServer的依赖包中的 `eureka-core-x.x.x.jar`，可以看到一系列`XXXResource`的类。<font color=red>**这些类都是通过`Jersey`发布了供客户端调用的服务接口**</font>
+
+![](images/20201011225911509_18018.png)
+
+##### 7.2.5.1. 服务端接受客户端的注册
+
+`ApplicationResource`类是处理客户端的注册，通过`addInstance()`方法中`this.registry.register(info, "true".equals(isReplication));`这一逻辑完成客户端的注册。具体的逻辑由`PeerAwareInstanceRegistryImpl`类实现
+
+```java
+@Singleton
+public class PeerAwareInstanceRegistryImpl extends AbstractInstanceRegistry implements PeerAwareInstanceRegistry {
+    // ....省略部分代码
+    @Override
+    public void register(final InstanceInfo info, final boolean isReplication) {
+        // 默认有效时长90ms
+        int leaseDuration = Lease.DEFAULT_DURATION_IN_SECS;
+        if (info.getLeaseInfo() != null && info.getLeaseInfo().getDurationInSecs() > 0) {
+            leaseDuration = info.getLeaseInfo().getDurationInSecs();
+        }
+        // 注册实例
+        super.register(info, leaseDuration, isReplication);
+        // 同步到其他Eureka Server服务
+        replicateToPeers(Action.Register, info.getAppName(), info.getId(), info, null, isReplication);
+    }
+    // ....省略部分代码
+}
+```
+
+跟踪`super.register(info, leaseDuration, isReplication);`方法，调用了父类`AbstractInstanceRegistry`的方法，里面的就是整个注册的过程
+
+```java
+public abstract class AbstractInstanceRegistry implements InstanceRegistry {
+    // ....省略部分代码
+    // 使用了线程安全的map，存放所有注册的示例对象
+    private final ConcurrentHashMap<String, Map<String, Lease<InstanceInfo>>> registry
+            = new ConcurrentHashMap<String, Map<String, Lease<InstanceInfo>>>();
+
+    public void register(InstanceInfo registrant, int leaseDuration, boolean isReplication) {
+        try {
+            read.lock();
+            Map<String, Lease<InstanceInfo>> gMap = registry.get(registrant.getAppName());
+            REGISTER.increment(isReplication);
+            // 如果第一个实例注册会给registry put 进去一个空的
+            if (gMap == null) {
+                final ConcurrentHashMap<String, Lease<InstanceInfo>> gNewMap = new ConcurrentHashMap<String, Lease<InstanceInfo>>();
+                gMap = registry.putIfAbsent(registrant.getAppName(), gNewMap);
+                if (gMap == null) {
+                    gMap = gNewMap;
+                }
+            }
+            // 根据注册的示例对象id，获取已存在的Lease
+            Lease<InstanceInfo> existingLease = gMap.get(registrant.getId());
+            // Retain the last dirty timestamp without overwriting it, if there is already a lease
+            if (existingLease != null && (existingLease.getHolder() != null)) {
+                Long existingLastDirtyTimestamp = existingLease.getHolder().getLastDirtyTimestamp();
+                Long registrationLastDirtyTimestamp = registrant.getLastDirtyTimestamp();
+                logger.debug("Existing lease found (existing={}, provided={}", existingLastDirtyTimestamp, registrationLastDirtyTimestamp);
+
+                // this is a > instead of a >= because if the timestamps are equal, we still take the remote transmitted
+                // InstanceInfo instead of the server local copy.
+                if (existingLastDirtyTimestamp > registrationLastDirtyTimestamp) {
+                    logger.warn("There is an existing lease and the existing lease's dirty timestamp {} is greater" +
+                            " than the one that is being registered {}", existingLastDirtyTimestamp, registrationLastDirtyTimestamp);
+                    logger.warn("Using the existing instanceInfo instead of the new instanceInfo as the registrant");
+                    registrant = existingLease.getHolder();
+                }
+            } else {
+                // The lease does not exist and hence it is a new registration
+                synchronized (lock) {
+                    if (this.expectedNumberOfClientsSendingRenews > 0) {
+                        // Since the client wants to register it, increase the number of clients sending renews
+                        this.expectedNumberOfClientsSendingRenews = this.expectedNumberOfClientsSendingRenews + 1;
+                        updateRenewsPerMinThreshold();
+                    }
+                }
+                logger.debug("No previous lease information found; it is new registration");
+            }
+            Lease<InstanceInfo> lease = new Lease<InstanceInfo>(registrant, leaseDuration);
+            if (existingLease != null) {
+                lease.setServiceUpTimestamp(existingLease.getServiceUpTimestamp());
+            }
+            // 将lease存入gMap
+            gMap.put(registrant.getId(), lease);
+            synchronized (recentRegisteredQueue) {
+                recentRegisteredQueue.add(new Pair<Long, String>(
+                        System.currentTimeMillis(),
+                        registrant.getAppName() + "(" + registrant.getId() + ")"));
+            }
+            // This is where the initial state transfer of overridden status happens
+            if (!InstanceStatus.UNKNOWN.equals(registrant.getOverriddenStatus())) {
+                logger.debug("Found overridden status {} for instance {}. Checking to see if needs to be add to the "
+                                + "overrides", registrant.getOverriddenStatus(), registrant.getId());
+                if (!overriddenInstanceStatusMap.containsKey(registrant.getId())) {
+                    logger.info("Not found overridden id {} and hence adding it", registrant.getId());
+                    overriddenInstanceStatusMap.put(registrant.getId(), registrant.getOverriddenStatus());
+                }
+            }
+            InstanceStatus overriddenStatusFromMap = overriddenInstanceStatusMap.get(registrant.getId());
+            if (overriddenStatusFromMap != null) {
+                logger.info("Storing overridden status {} from map", overriddenStatusFromMap);
+                registrant.setOverriddenStatus(overriddenStatusFromMap);
+            }
+
+            // Set the status based on the overridden status rules
+            InstanceStatus overriddenInstanceStatus = getOverriddenInstanceStatus(registrant, existingLease, isReplication);
+            registrant.setStatusWithoutDirty(overriddenInstanceStatus);
+
+            // If the lease is registered with UP status, set lease service up timestamp
+            if (InstanceStatus.UP.equals(registrant.getStatus())) {
+                lease.serviceUp();
+            }
+            registrant.setActionType(ActionType.ADDED);
+            recentlyChangedQueue.add(new RecentlyChangedItem(lease));
+            registrant.setLastUpdatedTimestamp();
+            invalidateCache(registrant.getAppName(), registrant.getVIPAddress(), registrant.getSecureVipAddress());
+            logger.info("Registered instance {}/{} with status {} (replication={})",
+                    registrant.getAppName(), registrant.getId(), registrant.getStatus(), isReplication);
+        } finally {
+            read.unlock();
+        }
+    }
+    // ....省略部分代码
+}
+```
+
+##### 7.2.5.2. 服务端接受客户端的续约
+
+在`InstanceResource`类中，处理客户端的续约逻辑。通过`renewLease`方法中完成客户端的心跳（续约）处理
+
+```java
+@Produces({"application/xml", "application/json"})
+public class InstanceResource {
+    // ....省略部分代码
+    @PUT
+    public Response renewLease(
+            @HeaderParam(PeerEurekaNode.HEADER_REPLICATION) String isReplication,
+            @QueryParam("overriddenstatus") String overriddenStatus,
+            @QueryParam("status") String status,
+            @QueryParam("lastDirtyTimestamp") String lastDirtyTimestamp) {
+        boolean isFromReplicaNode = "true".equals(isReplication);
+        boolean isSuccess = registry.renew(app.getName(), id, isFromReplicaNode);
+
+        // Not found in the registry, immediately ask for a register
+        if (!isSuccess) {
+            logger.warn("Not Found (Renew): {} - {}", app.getName(), id);
+            return Response.status(Status.NOT_FOUND).build();
+        }
+        // Check if we need to sync based on dirty time stamp, the client
+        // instance might have changed some value
+        Response response;
+        if (lastDirtyTimestamp != null && serverConfig.shouldSyncWhenTimestampDiffers()) {
+            response = this.validateDirtyTimestamp(Long.valueOf(lastDirtyTimestamp), isFromReplicaNode);
+            // Store the overridden status since the validation found out the node that replicates wins
+            if (response.getStatus() == Response.Status.NOT_FOUND.getStatusCode()
+                    && (overriddenStatus != null)
+                    && !(InstanceStatus.UNKNOWN.name().equals(overriddenStatus))
+                    && isFromReplicaNode) {
+                registry.storeOverriddenStatusIfRequired(app.getAppName(), id, InstanceStatus.valueOf(overriddenStatus));
+            }
+        } else {
+            response = Response.ok().build();
+        }
+        logger.debug("Found (Renew): {} - {}; reply status={}", app.getName(), id, response.getStatus());
+        return response;
+    }
+    // ....省略部分代码
+}
+```
+
+其中最关键的逻辑就是`this.registry.renew(this.app.getName(), this.id, isFromReplicaNode)`，具体的逻辑由`PeerAwareInstanceRegistryImpl`类实现
+
+```java
+public boolean renew(final String appName, final String id, final boolean isReplication) {
+    // 客户端续约
+    if (super.renew(appName, id, isReplication)) {
+        // 同步到其他的Eureka Server服务
+        replicateToPeers(Action.Heartbeat, appName, id, null, null, isReplication);
+        return true;
+    }
+    return false;
+}
+```
+
+跟踪父类`AbstractInstanceRegistry`的`renew`方法，实现了整个续约的过程
+
+```java
+public abstract class AbstractInstanceRegistry implements InstanceRegistry {
+    // ....省略部分代码
+    public boolean renew(String appName, String id, boolean isReplication) {
+        RENEW.increment(isReplication);
+        Map<String, Lease<InstanceInfo>> gMap = registry.get(appName);
+        // 从内存map中根据id获取示例对象的Lease对象
+        Lease<InstanceInfo> leaseToRenew = null;
+        if (gMap != null) {
+            leaseToRenew = gMap.get(id);
+        }
+        if (leaseToRenew == null) {
+            RENEW_NOT_FOUND.increment(isReplication);
+            logger.warn("DS: Registry: lease doesn't exist, registering resource: {} - {}", appName, id);
+            return false;
+        } else {
+            // 获取示例对象
+            InstanceInfo instanceInfo = leaseToRenew.getHolder();
+            if (instanceInfo != null) {
+                // touchASGCache(instanceInfo.getASGName());
+                InstanceStatus overriddenInstanceStatus = this.getOverriddenInstanceStatus(
+                        instanceInfo, leaseToRenew, isReplication);
+                if (overriddenInstanceStatus == InstanceStatus.UNKNOWN) {
+                    logger.info("Instance status UNKNOWN possibly due to deleted override for instance {}"
+                            + "; re-register required", instanceInfo.getId());
+                    RENEW_NOT_FOUND.increment(isReplication);
+                    return false;
+                }
+                if (!instanceInfo.getStatus().equals(overriddenInstanceStatus)) {
+                    logger.info(
+                            "The instance status {} is different from overridden instance status {} for instance {}. "
+                                    + "Hence setting the status to overridden status", instanceInfo.getStatus().name(),
+                                    instanceInfo.getOverriddenStatus().name(),
+                                    instanceInfo.getId());
+                    // 设置示例状态
+                    instanceInfo.setStatusWithoutDirty(overriddenInstanceStatus);
+
+                }
+            }
+            // 设置续约次数
+            renewsLastMin.increment();
+            leaseToRenew.renew();
+            return true;
+        }
+    }
+    // ....省略部分代码
+}
+```
+
+#### 7.2.6. 服务剔除
+
+在`AbstractInstanceRegistry.postInit()`方法，在此方法里开启了一个每60秒调用一次`EvictionTask.evict()`的定时器
+
+```java
+protected void postInit() {
+    renewsLastMin.start();
+    if (evictionTaskRef.get() != null) {
+        evictionTaskRef.get().cancel();
+    }
+    evictionTaskRef.set(new EvictionTask());
+    evictionTimer.schedule(evictionTaskRef.get(),
+            serverConfig.getEvictionIntervalTimerInMs(),
+            serverConfig.getEvictionIntervalTimerInMs());
+}
+```
+
+![](images/20201012093533007_12200.png)
+
+```java
+public void evict(long additionalLeaseMs) {
+    logger.debug("Running the evict task");
+
+    if (!isLeaseExpirationEnabled()) {
+        logger.debug("DS: lease expiration is currently disabled.");
+        return;
+    }
+
+    // We collect first all expired items, to evict them in random order. For large eviction sets,
+    // if we do not that, we might wipe out whole apps before self preservation kicks in. By randomizing it,
+    // the impact should be evenly distributed across all applications.
+    List<Lease<InstanceInfo>> expiredLeases = new ArrayList<>();
+    for (Entry<String, Map<String, Lease<InstanceInfo>>> groupEntry : registry.entrySet()) {
+        Map<String, Lease<InstanceInfo>> leaseMap = groupEntry.getValue();
+        if (leaseMap != null) {
+            for (Entry<String, Lease<InstanceInfo>> leaseEntry : leaseMap.entrySet()) {
+                Lease<InstanceInfo> lease = leaseEntry.getValue();
+                if (lease.isExpired(additionalLeaseMs) && lease.getHolder() != null) {
+                    expiredLeases.add(lease);
+                }
+            }
+        }
+    }
+
+    // To compensate for GC pauses or drifting local time, we need to use current registry size as a base for
+    // triggering self-preservation. Without that we would wipe out full registry.
+    int registrySize = (int) getLocalRegistrySize();
+    int registrySizeThreshold = (int) (registrySize * serverConfig.getRenewalPercentThreshold());
+    int evictionLimit = registrySize - registrySizeThreshold;
+
+    int toEvict = Math.min(expiredLeases.size(), evictionLimit);
+    if (toEvict > 0) {
+        logger.info("Evicting {} items (expired={}, evictionLimit={})", toEvict, expiredLeases.size(), evictionLimit);
+
+        Random random = new Random(System.currentTimeMillis());
+        for (int i = 0; i < toEvict; i++) {
+            // Pick a random item (Knuth shuffle algorithm)
+            int next = i + random.nextInt(expiredLeases.size() - i);
+            Collections.swap(expiredLeases, i, next);
+            Lease<InstanceInfo> lease = expiredLeases.get(i);
+
+            String appName = lease.getHolder().getAppName();
+            String id = lease.getHolder().getId();
+            EXPIRED.increment();
+            logger.warn("DS: Registry: expired lease for {}/{}", appName, id);
+            internalCancel(appName, id, false);
+        }
+    }
+}
+```
 
 ### 7.3. Eureka服务发现核心源码解析
 
+#### 7.3.1. 自动装载
+
+在服务消费者导入的坐标中，找到 `spring-cloud-netflix-eureka-client-x.x.x.RELEASE.jar` 包下的 `spring.factories`，里面配置了所有自动装载的配置类
+
+![](images/20201012134905556_20327.png)
+
+#### 7.3.2. 客户端的创建
+
+查看自动装载的配置类`EurekaClientAutoConfiguration`，里面的有一个创建`EurekaDiscoveryClient`类的方法，此类是就是Eureka Client客户端
+
+```java
+@Bean
+public DiscoveryClient discoveryClient(EurekaClient client, EurekaClientConfig clientConfig) {
+	return new EurekaDiscoveryClient(client, clientConfig);
+}
+```
+
+#### 7.3.3. 服务注册
+
+在`eureka-client-x.x.x.jar`包中的`DiscoveryClient`类，其中`register()`就是实现了服务的注册
+
+```java
+@Singleton
+public class DiscoveryClient implements EurekaClient {
+    // ....省略部分代码
+    boolean register() throws Throwable {
+        logger.info(PREFIX + "{}: registering service...", appPathIdentifier);
+        EurekaHttpResponse<Void> httpResponse;
+        try {
+            httpResponse = eurekaTransport.registrationClient.register(instanceInfo);
+        } catch (Exception e) {
+            logger.warn(PREFIX + "{} - registration failed {}", appPathIdentifier, e.getMessage(), e);
+            throw e;
+        }
+        if (logger.isInfoEnabled()) {
+            logger.info(PREFIX + "{} - registration status: {}", appPathIdentifier, httpResponse.getStatusCode());
+        }
+        return httpResponse.getStatusCode() == Status.NO_CONTENT.getStatusCode();
+    }
+    // ....省略部分代码
+}
+```
+
+#### 7.3.4. 服务下架
+
+在`eureka-client-x.x.x.jar`包中的`DiscoveryClient`类，其中`register()`就是实现了服务的注册
+
+```java
+@Singleton
+public class DiscoveryClient implements EurekaClient {
+    // ....省略部分代码
+    @PreDestroy
+    @Override
+    public synchronized void shutdown() {
+        if (isShutdown.compareAndSet(false, true)) {
+            logger.info("Shutting down DiscoveryClient ...");
+
+            if (statusChangeListener != null && applicationInfoManager != null) {
+                applicationInfoManager.unregisterStatusChangeListener(statusChangeListener.getId());
+            }
+
+            cancelScheduledTasks();
+
+            // If APPINFO was registered
+            if (applicationInfoManager != null
+                    && clientConfig.shouldRegisterWithEureka()
+                    && clientConfig.shouldUnregisterOnShutdown()) {
+                applicationInfoManager.setInstanceStatus(InstanceStatus.DOWN);
+                unregister();
+            }
+
+            if (eurekaTransport != null) {
+                eurekaTransport.shutdown();
+            }
+
+            heartbeatStalenessMonitor.shutdown();
+            registryStalenessMonitor.shutdown();
+
+            logger.info("Completed shut down of DiscoveryClient");
+        }
+    }
+    // ....省略部分代码
+}
+```
+
+#### 7.3.5. 心跳续约
+
+在`com.netflix.discovery.DiscoveryClient.HeartbeatThread`中`renew()`方法，实现了续约的操作。具体的流程：首先向注册中心执行了心跳续约的请求，`StatusCode`为200成功，若为404则执行`register()`重新注册操作;
+
+```java
+@Singleton
+public class DiscoveryClient implements EurekaClient {
+    // ....省略部分代码
+    private class HeartbeatThread implements Runnable {
+
+        public void run() {
+            if (renew()) {
+                lastSuccessfulHeartbeatTimestamp = System.currentTimeMillis();
+            }
+        }
+    }
+
+    boolean renew() {
+        EurekaHttpResponse<InstanceInfo> httpResponse;
+        try {
+            httpResponse = eurekaTransport.registrationClient.sendHeartBeat(instanceInfo.getAppName(), instanceInfo.getId(), instanceInfo, null);
+            logger.debug(PREFIX + "{} - Heartbeat status: {}", appPathIdentifier, httpResponse.getStatusCode());
+            if (httpResponse.getStatusCode() == Status.NOT_FOUND.getStatusCode()) {
+                REREGISTER_COUNTER.increment();
+                logger.info(PREFIX + "{} - Re-registering apps/{}", appPathIdentifier, instanceInfo.getAppName());
+                long timestamp = instanceInfo.setIsDirtyWithTime();
+                boolean success = register();
+                if (success) {
+                    instanceInfo.unsetIsDirty(timestamp);
+                }
+                return success;
+            }
+            return httpResponse.getStatusCode() == Status.OK.getStatusCode();
+        } catch (Throwable e) {
+            logger.error(PREFIX + "{} - was unable to send heartbeat!", appPathIdentifier, e);
+            return false;
+        }
+    }
+    // ....省略部分代码
+}
+```
+
+#### 7.3.6. Eureka 客户端流程总结
+
+1. 根据配置文件初始化bean，创建客户端实例信息类`InstanceInfo`
+2. 第一次全量拉取注册中心服务列表(`url=/apps`)，初始化周期任务：
+    1.  `CacheRefreshThread` 定时刷新本地缓存服务列表，若是客户端第一次拉取，则会全量拉取，后面则增量拉取。若增量拉取失败则全量拉取，配置属性为`eureka.client.registryFetchIntervalSeconds=30`，即默认30s拉取一次
+    2. `HeartbeatThread` 通过`renew()`方法实现续约任务，维持于注册中心的心跳(`url=/apps/{id}`)，若返回状态码为404则说明该服务实例没有在注册中心注册，执行`register()`向注册中心注册实例信息
+    3. `ApplicationInfoManager.StatusChangeListener` 注册实例状态监听类，监听服务实例状态变化，向注册中心同步实例状态
+    4. `InstanceInfoReplicator`定时刷新实例状态，并向注册中心同步，默认`eureka.client.instanceInfoReplicationIntervalSeconds=30`，即30s执行一次。若实例状态有变更，则重新执行注册
 
 # Ribbon 服务调用
+
+## 1. Ribbon 概述
+
+当启动某个服务的时候，可以通过HTTP的形式将信息注册到注册中心，并且可以通过SpringCloud提供的工具获取注册中心的服务列表。但是还存在很多的问题，如服务之间的如何调用，多个微服务的提供者如何选择，如何负载均衡等。Spring Cloud提供了Ribbon组件的解决方案
+
+### 1.1. Ribbon 是什么
+
+Ribbon 组件是 Netflixfa 发布的一个负载均衡器，有助于控制 HTTP 和 TCP 客户端行为。在Spring Cloud中推荐使用Ribbon来实现负载均衡。即使用客户端根据服务的负载情况去选择空闲或者访问压力小的服务
+
+负载均衡分为**服务端负载均衡**和**客户端负载均衡**，<font color=red>**SpringCloud Ribbon是基于客户端的负载均衡工具**</font>
+
+在 SpringCloud 中，Eureka一般配合Ribbon进行使用，Ribbon提供了客户端负载均衡的功能，Ribbon自动的从注册中心（如Eureka）中获取服务提供者的列表信息，在调用服务节点提供的服务时，并提供客户端的软件负载均衡算法，如轮询、随机等，会合理的进行负载请求服务。
+
+Ribbon客户端组件提供一系列完善的配置项如连接超时，重试等。也可为Ribbon实现自定义的负载均衡算法
+
+### 1.2. Ribbon 的主要作用
+
+#### 1.2.1. 服务调用
+
+基于Ribbon实现服务调用，是通过拉取到的所有服务列表组成（服务名-请求路径的）映射关系。借助estTemplate 最终进行调用
+
+#### 1.2.2. 负载均衡
+
+当有多个服务提供者时，Ribbon可以根据负载均衡的算法自动的选择需要调用的服务地址
+
+### 1.3. Ribbon 架构
+
+![Ribbon架构](images/ribbon架构_1538697723_25876.jpg)
+
+## 2. Ribbon 基础使用示例
+
+需求：改造上面Eureka注册中心（单机版）示例，基于Ribbon组件实现订单调用商品服务
+
+> 复制上面`02-springcloud-eureka`工程的代码，在原有基础进行修改。改造后示例源代码详见：`spring-cloud-note\spring-cloud-greenwich-sample\04-springcloud-ribbon\`
+
+### 2.1. Ribbon 的依赖
+
+在SpringCloud提供的服务工程，主要引入eureka组件，无论是服务端还是客户端，其jar都已经包含了Ribbon的依赖。所以使用Ribbon组件不需要导入任何额外的坐标
+
+![](images/20201012154059447_22112.png)
+
+### 2.2. 服务项目使用Ribbon组件
+
+#### 2.2.1. 改造步骤
+
+1. 在创建`RestTemplate`实例的时候，声明Ribbon组件的`@LoadBalanced`注解
+2. 在使用`RestTemplate`调用远程微服务接口时，不需要手动拉普拉斯微服务的url，只需要将指定待请求的服务名称即可
+
+#### 2.2.2. 服务提供者
+
+修改`shop-service-product`工程中`ProductController`控制器的`findById()`方法，在返回数据中增加当时服务的ip与端口号（这里用于后面测试Ribbon负载均衡调用测试）
+
+```java
+@RestController
+@RequestMapping("product")
+public class ProductController {
+    // ....省略部分代码
+    // 注入配置文件中当前服务的端口号
+    @Value("${server.port}")
+    private String port;
+    /*
+     * 注解当前服务的ip地址
+     *  使用el表达式：spring.cloud.client.ip-address
+     *  spring cloud 自动的获取当前应用的ip地址
+     */
+    @Value("${spring.cloud.client.ip-address}")
+    private String ip;
+
+    @GetMapping("/{id}")
+    public Product findById(@PathVariable Long id) {
+        Product product = productService.findById(id);
+        /* 设置当前被调用的服务的ip与端口，用于测试ribbon的负载均衡 */
+        product.setProductDesc(product.getProductDesc() + "===当前被调用的product服务的ip: " + ip + " ,端口: " + port);
+        return product;
+    }
+    // ....省略部分代码
+}
+```
+
+#### 2.2.3. 服务消费者
+
+修改服务消费者`shop_service_order`工程配置类`HttpConfig`，在创建`RestTemplate`方法上添加 `@LoadBalanced` 注解
+
+```java
+@LoadBalanced // 是Ribbon组件提供的负载均衡的注解，声明此注解后就可以基于Ribbon的服务调用与负载均衡
+@Bean("restTemplate")
+public RestTemplate createRestTemplate() {
+    return new RestTemplate();
+}
+```
+
+修改`OrderController`中的`createOrder`方法，将原来的ip地址改相应的服务名称，`RestTemplate`完成调用服务
+
+```java
+@RestController
+@RequestMapping("order")
+public class OrderController {
+    /* 日志对象 */
+    private static final Logger LOGGER = LoggerFactory.getLogger(OrderController.class);
+
+    // 注入HTTP请求工具类RestTemplate
+    @Autowired
+    private RestTemplate restTemplate;
+
+    /**
+     * 根据商品id创建订单
+     */
+    @PostMapping("/{id}")
+    public String createOrder(@PathVariable Long id) {
+        /*
+         * 通过http请求，获取商品数据
+         * 拼接请求url，将原来使用ip+端口调用的方式，改成要调用的服务对应的名称即可
+         * 服务提供者名称在其项目配置文件的spring.application.name属性中定义
+         */
+        Product product = restTemplate.getForObject("http://shop-service-product/product/" + id, Product.class);
+        LOGGER.info("当前下单的商品是: ${}", product);
+        return "创建订单成功";
+    }
+}
+```
+
+#### 2.2.4. 代码测试
+
+发起post请求`http://127.0.0.1:9002/order/1`，查看后端日志输出，已经可以在订单微服务中以服务名称的形式调用商品微服务获取数据
+
+## 3. Ribbon 的负载均衡
+
+### 3.1. 负载均衡的定义
+
+负载均衡是一种基础的网络服务，其原理是通过运行在前面的负载均衡服务，按照指定的负载均衡算法，将流量分配到后端服务集群上，从而为系统提供并行扩展的能力
+
+负载均衡的应用场景包括流量包、转发规则以及后端服务，由于该服务有内外网个例、健康检查等功能，能够有效提供系统的安全性和可用性
+
+![](images/20201012165205002_10570.png)
+
+### 3.2. 客户端负载均衡与服务端负载均衡
+
+#### 3.2.1. 服务端负载均衡
+
+先发送请求到负载均衡服务器或者软件，然后通过负载均衡算法，在多个服务器之间选择一个进行访问。即在服务器端再进行负载均衡算法分配
+
+#### 3.2.2. 客户端负载均衡
+
+客户端会有一个服务器地址列表，在发送请求前通过负载均衡算法选择一个服务器，然后进行访问，这是客户端负载均衡。即在客户端就进行负载均衡算法分配
+
+### 3.3. 基于Ribbon实现服务负载均衡的示例
+
+#### 3.3.1. 搭建多服务实例
+
+修改 `shop-service-product` 的 `application.yml` 配置文件，将端口号设置为变量，在启动应用时指定变量值，从而实现模拟多实例
+
+```yml
+server:
+  port: ${PORT:9001} # 项目端口，设置为变量，指定默认值为9001
+# ....以下部分省略
+```
+
+启动服务时，指定端口号
+
+![](images/20201013103825899_15324.png)
+
+![](images/20201013103935048_30213.png)
+
+![](images/20201013104009863_4157.png)
+
+ribbon默认的负载均衡策略是轮询，所以使用order服务去调用商品服务，观察后端日志输出的端口，每次访问换一台服务器
+
+![](images/20201013133355958_11290.png)
+
+#### 3.3.2. 负载均衡策略配置
+
+Ribbon内置了多种负载均衡策略，内部负责复杂均衡的顶级接口为`com.netflix.loadbalancer.IRule`，有以下的实现类：
+
+- `com.netflix.loadbalancer.RoundRobinRule`：以轮询的方式进行负载均衡【默认】
+- `com.netflix.loadbalancer.RandomRule`：随机策略
+- `com.netflix.loadbalancer.RetryRule`：重试策略
+- `com.netflix.loadbalancer.WeightedResponseTimeRule`：权重策略。会计算每个服务的权重，越高的被调用的可能性越大
+- `com.netflix.loadbalancer.BestAvailableRule`：最佳策略。遍历所有的服务实例，过滤掉故障实例，并返回请求数最小的实例返回
+- `com.netflix.loadbalancer.AvailabilityFilteringRule`：可用过滤策略。过滤掉故障和请求数超过阈值的服务实例，再从剩下的实力中轮询调用
+
+**策略选择：**
+
+1. 如果服务部署的每个机器配置性能差不多，则建议不修改策略，让每台服务器平均分担压力 (推荐)
+2. 如果部分机器配置强，则可以改为 `WeightedResponseTimeRule` 权重策略，让性能高的服务器承担更多的请求
+
+在服务消费者的`application.yml`配置文件中修改负载均衡策略即可，增加以下配置：
+
+格式：`服务名.ribbon.NFLoadBalancerRuleClassName: 策略全限定名`
+
+```yml
+# Ribbon配置
+shop-service-product:
+  ribbon:
+    NFLoadBalancerRuleClassName: com.netflix.loadbalancer.RandomRule # 修改策略为随机
+```
+
+![](images/20201013143107548_3493.png)
+
+#### 3.3.3. 请求重试配置
+
+请求重试的机制是：当服务消费者去请求多个服务提供者时，如果当前请求的服务A出现网络的波动或者宕机的情况，此时，请求就会出现报错或者请求不到数据。请求重试就是根据当前用户设置的参数（如：请求连接超时时间、获取数据返回超时时间等），如果超出了用户设置的限制，就会直接重新发起新的请求到另一台服务。
+
+Ribbon配置的请求重试的步骤如下：
+
+1. 在服务消费者工程引入spring的重试组件，以订单服务（`shop-service-order`）为例：
+
+```xml
+<!-- Spring 框架的重试组件 -->
+<dependency>
+    <groupId>org.springframework.retry</groupId>
+    <artifactId>spring-retry</artifactId>
+</dependency>
+```
+
+![](images/20201013144404585_28140.png)
+
+2. 修改消费者工程的配置文件
+
+```yml
+# 配置日志级别，用于观察请求重试时输出的日志
+logging:
+  level:
+    root: debug
+# Ribbon配置
+shop-service-product:
+  ribbon:
+    ConnectTimeout: 250 # Ribbon的连接超时时间
+    ReadTimeout: 1000 # Ribbon的数据读取超时时间
+    OkToRetryOnAllOperations: true # 是否对所有操作都进行重试
+    MaxAutoRetriesNextServer: 1 # 切换实例的重试次数
+    MaxAutoRetries: 1 # 对当前实例的重试次数
+```
+
+3. 测试，启动两个服务提供者，正常请求消费后再停用其中一个服务，再请求后观察后台日志
+
+![](images/20201013161008081_12757.png)
+
+
+
+
+
+
+
+
+
+
+
+
+
+## 4. Ribbon 的负载均衡源码解析
+
+### 4.1. 实现分析（待整理）
+
+### 4.2. 总结
+
+Ribbon 的负载均衡主要是通 LoadBalancerClient 来实现，而 LoadBalancerClient 具体是交给 ILoadBalancer 来处理，ILoadBalancer 通过配置 IRule、IPing 等，向 EurekaClient 获取注册列表信息，默认每10秒向 EurekaClient 发送一次“ping” 请求，用于检查是否需要更新服务的注册列表信息。最后，在得到服务注册列表令牌后，ILoadBalancer 根据 IRule 的策略进行负载均衡。
+
+在 RestTemplate 加上 `@LoadBalanced` 注解后，在远程调度时能够负载均衡，主要是维护了一个被 `@LoadBalanced` 注解的 RestTemplate 列表，并给该列表中的 RestTemplate 对象添加了拦截器。在拦截器的方法中，将远程调度方法交给了 Ribbon 的负载均衡器 LoadBalancerClient 去处理，从而达到了负载均衡的目的。
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
