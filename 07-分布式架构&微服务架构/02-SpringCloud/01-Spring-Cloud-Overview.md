@@ -887,3 +887,55 @@ public class OrderController {
 
 **解决方法：通过注册中心动态的对服务注册和服务发现**
 
+## 4. SpringCloud不同组件的注册中心与服务调用对比总结
+
+> **注：详细用法详见本系列中不同的章节笔记**
+
+### 4.1. 注册中心对比
+
+#### 4.1.1. Eureka
+
+**搭建注册中心**
+
+- 引入 `spring-cloud-starter-netflix-eureka-server` 依赖
+- 配置 Eureka Server
+- 通过 `@EnableEurekaServer` 激活Eureka Server端配置
+
+**服务注册**
+
+- 服务提供者引入 `spring-cloud-starter-netflix-eureka-client` 依赖
+- 通过 `eureka.client.serviceUrl.defaultZone` 配置注册中心地址
+
+#### 4.1.2. Consul
+
+**搭建注册中心**
+
+- 下载安装consul
+- 启动consul `consul agent -dev`
+
+**服务注册**
+
+- 服务提供者引入 `spring-cloud-starter-consul-discovery` 依赖
+- 通过 `spring.cloud.consul.host` 和 `spring.cloud.consul.port` 指定Consul Server的请求地址
+
+### 4.2. 服务调用对比
+
+#### 4.2.1. Ribbon
+
+- 通过Ribbon结合RestTemplate方式进行服务调用只需要在声明RestTemplate的方法上添加注解@LoadBalanced即可
+- 可以通过 `服务名称.ribbon.NFLoadBalancerRuleClassName` 配置负载均衡策略
+
+#### 4.2.2. Feign
+
+- 服务消费者引入 `spring-cloud-starter-openfeign` 依赖
+- 通过 `@FeignClient` 声明一个调用远程微服务接口
+- 启动类上通过 `@EnableFeignClients` 激活Feign
+
+## 5. 微服务架构的高并发问题
+
+
+
+
+
+
+
