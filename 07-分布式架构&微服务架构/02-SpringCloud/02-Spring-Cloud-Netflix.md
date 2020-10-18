@@ -2932,5 +2932,378 @@ final class SynchronousMethodHandler implements MethodHandler {
 
 # Hystrix 服务熔断
 
+## 1. 微服务容错处理的引入
+
+### 1.1. 微服务架构高并发导致系统负载过高存在的问题分析
+
+在微服务架构中，会将业务拆分成一个个的服务，服务与服务之间可以相互调用，由于网络原因或者自身的原因，服务并不能保证服务的100%可用，如果单个服务出现问题，调用这个服务就会出现网络延迟，此时若有大量的网络涌入，会形成任务累计，导致服务瘫痪。
+
+在SpringBoot程序中，默认使用内置tomcat作为web服务器。单tomcat支持最大的并发请求是有限的，如果某一接口阻塞，待执行的任务积压越来越多，那么势必会影响其他接口的调用
+
+### 1.2. 搭建模拟高并发并请求响应过慢的示例
+
+> 复用前面`01-microservice-no-springcloud`项目代码，模拟高并发请求的案例
+
+### 1.3. 模拟服务接口响应慢
+
+1. 修改`shop-service-product`服务的`ProductController`控制类的`findById`方法，令线程睡眠2秒，模拟响应慢
+
+```java
+@GetMapping("/{id}")
+public Product findById(@PathVariable Long id) {
+    // 睡眠2秒，模拟请求响应慢
+    try {
+        Thread.sleep(2000L);
+    } catch (InterruptedException e) {
+        e.printStackTrace();
+    }
+    return productService.findById(id);
+}
+```
+
+2. 修改`shop-service-order`服务的`application.yml`配置，调小tomcat容器最大连接数，模拟并发请求数量超出web容器可承受最大连接数
+
+```yml
+server:
+  port: 9002 # 项目端口
+  tomcat:
+    max-threads: 10 # 修改web容器最大连接数
+```
+
+3. 修改`shop-service-order`服务的`OrderController`控制类，增加一个普通的请求方法，用于测试其他请求接口阻塞时，此请求的响应时间
+
+```java
+@GetMapping(value = "/{id}")
+public String findOrder(@PathVariable Long id) {
+    System.out.println(Thread.currentThread().getName());
+    return "根据id查询订单";
+}
+```
+
+4. 启动product与order服务，使用jMeter压力测试工具，创建一个每秒50并发的POST请求一直请求创建订单的接口，然后在浏览器中访问`http://localhost:9002/order/1`查询订单接口，观察此接口响应时间
+
+单独请求的响应时间
+
+![](images/20201018084511683_1502.png)
+
+开启并发请求创建订单接口后，再次访问此查询接口的响应时间
+
+![](images/20201018084802914_26721.png)
+
+## 2. 基于线程池的形式实现服务隔离
+
+> 改造`07-springcloud-concurrency-isolation`工程，实现线程池的隔离
+
+### 2.1. 引入依赖
+
+为了方便实现线以线程池的形式完成资源隔离，需要在`shop-service-order`工程中引入如下依赖
+
+```xml
+<!-- hystrix 组件的依赖，此示例用于实现基于线程池的形式完成服务的隔离 -->
+<dependency>
+    <groupId>com.netflix.hystrix</groupId>
+    <artifactId>hystrix-metrics-event-stream</artifactId>
+    <version>1.5.12</version>
+</dependency>
+<dependency>
+    <groupId>com.netflix.hystrix</groupId>
+    <artifactId>hystrix-javanica</artifactId>
+    <version>1.5.12</version>
+</dependency>
+```
+
+### 2.2. 分配线程池
+
+配置`HystrixCommand`接口的实现类，在实现类中可以对线程池资源进行分配
+
+```java
+package com.moon.order.command;
+
+import com.moon.entity.Product;
+import com.netflix.hystrix.HystrixCommand;
+import com.netflix.hystrix.HystrixCommandGroupKey;
+import com.netflix.hystrix.HystrixCommandKey;
+import com.netflix.hystrix.HystrixCommandProperties;
+import com.netflix.hystrix.HystrixThreadPoolKey;
+import com.netflix.hystrix.HystrixThreadPoolProperties;
+import org.springframework.web.client.RestTemplate;
+
+/**
+ * HystrixCommand的原生实现方式，对服务进行服务降级限流
+ */
+public class OrderCommand extends HystrixCommand<Product> {
+
+    private RestTemplate restTemplate;
+
+    private Long id;
+
+    public OrderCommand(RestTemplate restTemplate, Long id) {
+        super(setter());
+        this.restTemplate = restTemplate;
+        this.id = id;
+    }
+
+    private static Setter setter() {
+
+        // 服务分组
+        HystrixCommandGroupKey groupKey = HystrixCommandGroupKey.Factory.asKey("order_product");
+        // 服务标识
+        HystrixCommandKey commandKey = HystrixCommandKey.Factory.asKey("product");
+        // 线程池名称
+        HystrixThreadPoolKey threadPoolKey = HystrixThreadPoolKey.Factory.asKey("order_product_pool");
+        /*
+         * 线程池配置
+         *     withCoreSize : 线程池大小为10
+         *     withKeepAliveTimeMinutes : 线程存活时间15秒
+         *     withQueueSizeRejectionThreshold : 队列等待的阈值为100,超过100执行拒绝策略
+         */
+        // 注：测试案例设置了tomcat最大线程数为10，所以这里设置线程池大小为5，实现此接口的线程数量控制。
+        HystrixThreadPoolProperties.Setter threadPoolProperties = HystrixThreadPoolProperties.Setter().withCoreSize(5)
+                .withKeepAliveTimeMinutes(15).withQueueSizeRejectionThreshold(100);
+
+        // 命令属性配置Hystrix 开启超时
+        HystrixCommandProperties.Setter commandProperties = HystrixCommandProperties.Setter()
+                // 采用线程池方式实现服务隔离
+                .withExecutionIsolationStrategy(HystrixCommandProperties.ExecutionIsolationStrategy.THREAD)
+                // 禁止
+                .withExecutionTimeoutEnabled(false);
+        return HystrixCommand.Setter.withGroupKey(groupKey).andCommandKey(commandKey).andThreadPoolKey(threadPoolKey)
+                .andThreadPoolPropertiesDefaults(threadPoolProperties).andCommandPropertiesDefaults(commandProperties);
+
+    }
+
+    @Override
+    protected Product run() throws Exception {
+        return restTemplate.getForObject("http://127.0.0.1:9001/product/" + id, Product.class);
+    }
+
+    /**
+     * 服务降级方法
+     *
+     * @return
+     */
+    @Override
+    protected Product getFallback() {
+        Product product = new Product();
+        product.setProductName("服务降级方法返回的数据");
+        return product;
+    }
+}
+```
+
+### 2.3. 服务调用的改造
+
+修改`OrderController`，使用自定义的`OrderCommand`完成调用
+
+```java
+@PostMapping("/{id}")
+public String createOrder(@PathVariable Long id) {
+    // 使用OrderCommand调用远程服务
+    OrderCommand orderCommand = new OrderCommand(restTemplate, id);
+    Product product = orderCommand.execute();
+    LOGGER.info("当前下单的商品是: ${}", product);
+    return "创建订单成功";
+}
+```
+
+### 2.4. 测试
+
+按上面案例测试方式，启动product与order服务，使用jMeter压力测试工具，创建一个每秒50并发的POST请求一直请求创建订单的接口，然后在浏览器中访问`http://localhost:9002/order/1`查询订单接口，观察此接口响应时间。因为控制了请求product服务的线程数量，所以此请求响应不会被影响
+
+![](images/20201018113952944_5550.png)
+
+## 3. Hystrix 介绍
+
+Hystrix是由Netflix开源的一个延迟和容错库，用于隔离访问远程系统、服务或者第三方库，防止级联失败，从而提升系统的可用性与容错性。Hystrix主要通过以下几点实现延迟和容错。
+
+- **包裹请求**：使用HystrixCommand包裹对依赖的调用逻辑，每个命令在独立线程中执行。这使用了设计模式中的“命令模式”。
+- **跳闸机制**：当某服务的错误率超过一定的阈值时，Hystrix可以自动或手动跳闸，停止请求该服务一段时间。
+- **资源隔离**：Hystrix为每个依赖都维护了一个小型的线程池（或者信号量）。如果该线程池已满，发往该依赖的请求就被立即拒绝，而不是排队等待，从而加速失败判定。
+- **监控**：Hystrix可以近乎实时地监控运行指标和配置的变化，例如成功、失败、超时、以及被拒绝的请求等。
+- **回退机制**：当请求失败、超时、被拒绝，或当断路器打开时，执行回退逻辑。回退逻辑由开发人员自行提供，例如返回一个缺省值。
+- **自我修复**：断路器打开一段时间后，会自动进入“半开”状态。
+
+## 4. Hystrix 对 RestTemplate 实现服务的熔断
+
+### 4.1. 示例项目搭建
+
+复用`04-springcloud-ribbon`工程的代码，创建新的工程`08-springcloud-hystrix-resttemplate`。整理删除一些无用的依赖与代码
+
+### 4.2. 配置hystrix依赖
+
+在 `shop-service-order` 模块中添加Hystrix的相关依赖
+
+```xml
+<!--引入hystrix依赖-->
+<dependency>
+    <groupId>org.springframework.cloud</groupId>
+    <artifactId>spring-cloud-starter-netflix-hystrix</artifactId>
+</dependency>
+```
+
+### 4.3. 开启熔断支持
+
+在`shop-service-order`工程中，在`OrderApplication`启动类中添加`@EnableCircuitBreaker`注解，代表开启对熔断的支持
+
+```java
+@SpringBootApplication(scanBasePackages = "com.moon.order")
+@EntityScan("com.moon.entity") // 指定扫描实体类的包路径
+@EnableCircuitBreaker // 开启hystrix熔断支持
+public class OrderApplication {
+    public static void main(String[] args) {
+        SpringApplication.run(OrderApplication.class, args);
+    }
+}
+```
+
+注：随着功能的增多，微服务的启动类中的注解也越来越多。所以<font color=red>**SpringCloud提供了一个组合注解注解：`@SpringCloudApplication`。此注解相关于`@SpringBootApplication` + `@EnableDiscoveryClient` + `@EnableCircuitBreaker**</font>`，注解源码如下：
+
+```java
+@Target(ElementType.TYPE)
+@Retention(RetentionPolicy.RUNTIME)
+@Documented
+@Inherited
+@SpringBootApplication
+@EnableDiscoveryClient
+@EnableCircuitBreaker
+public @interface SpringCloudApplication {
+}
+```
+
+对工程的启动类进行以下的改造，其效果以上面配置一致
+
+```java
+@EntityScan("com.moon.entity") // 指定扫描实体类的包路径
+@SpringCloudApplication // 此组合注解相当于 @SpringBootApplication + @EnableDiscoveryClient + @EnableCircuitBreaker
+public class OrderApplication {
+}
+```
+
+### 4.4. 配置熔断降级业务逻辑
+
+改造`shop-service-order`工程的`OrderController`控制类，增加熔断部分的逻辑
+
+#### 4.4.1. 开启熔断与配置单个降级方法
+
+1. 编写一个服务降级（回退）方法`orderFallBack`方法。有以下注意点
+    - 此降级方法要与相应的熔断方法具有相同的参数列表
+    - 此降级方法要与相应的熔断方法具有相同的返回值类型
+2. 需要熔断的方法上，标识注解`@HystrixCommand`，代表此方法需要熔断，然后在注解的`fallbackMethod`属性，指定熔断触发的降级方法名称
+
+```java
+@RestController
+@RequestMapping("order")
+public class OrderController {
+    /* 日志对象 */
+    private static final Logger LOGGER = LoggerFactory.getLogger(OrderController.class);
+
+    // 注入HTTP请求工具类RestTemplate
+    @Autowired
+    private RestTemplate restTemplate;
+
+    /*
+     * 标识 @HystrixCommand 注解代表此方法配置熔断保护
+     *      fallbackMethod属性：指定熔断之后的降级方法
+     */
+    @HystrixCommand(fallbackMethod = "orderFallBack")
+    @PostMapping("/{id}")
+    public String createOrder(@PathVariable Long id) {
+        // 调用服务
+        Product product = restTemplate.getForObject("http://shop-service-product/product/" + id, Product.class);
+        LOGGER.info("当前下单的商品是: ${}", product);
+        return "创建订单成功";
+    }
+
+    /*
+     * 降级方法
+     *  和需要收到保护的方法的返回值一致
+     *  方法参数一致
+     */
+    public String orderFallBack(Long id) {
+        LOGGER.info("当前下单商品的id是: " + id + "，触发createOrder熔断的降级方法");
+        return "当前下单商品的id是: " + id + "，触发createOrder熔断的降级方法";
+    }
+}
+```
+
+3. 测试，当`shop-service-product`微服务正常时，浏览器访问`http://127.0.0.1:9002/order/1`可以正常调用服务提供者获取数据。当将商品微服务停止时继续访问，
+
+![](images/20201018221924533_10212.png)
+
+#### 4.4.2. 开启熔断与配置统一降级方法
+
+如果当前类中每个方法的降级方法逻辑都一样，可以在当前类上标识`@DefaultProperties`注解，并在`defaultFallback`属性中指定公共的降级方法名称。
+
+注：如果过在`@DefaultProperties`指定了公共的降级方法，则相应配置`@HystrixCommand`熔断保护的方法不需要单独指定了降级方法
+
+```java
+@RestController
+@RequestMapping("order")
+/*
+ * @DefaultProperties注解用于指定此接口中公共的熔断设置，
+ *  defaultFallback属性：用于公共的降级方法名称
+ *  如果过在@DefaultProperties指定了公共的降级方法，在相应的熔断保护@HystrixCommand中不需要单独指定降级方法
+ */
+@DefaultProperties(defaultFallback = "defaultFallBack")
+public class OrderController {
+    /* 日志对象 */
+    private static final Logger LOGGER = LoggerFactory.getLogger(OrderController.class);
+
+    // 注入HTTP请求工具类RestTemplate
+    @Autowired
+    private RestTemplate restTemplate;
+
+    /*
+     * 标识 @HystrixCommand 注解代表此方法配置熔断保护
+     *      fallbackMethod属性：指定熔断之后的降级方法
+     */
+    @HystrixCommand // 使用统一降级方法，则不需要再指定fallbackMethod属性
+    @PostMapping("/{id}")
+    public String createOrder(@PathVariable Long id) {
+        // 调用服务
+        Product product = restTemplate.getForObject("http://shop-service-product/product/" + id, Product.class);
+        LOGGER.info("当前下单的商品是: ${}", product);
+        return "创建订单成功";
+    }
+
+    /*
+     * 公共的降级方法
+     *  注意: 1.此方法不能有形参
+     *       2.如果使用统一的降级方法，则最好统一所有需要熔断保护的方法的返回类型
+     */
+    public String defaultFallBack() {
+        LOGGER.info("触发熔断公共降级方法");
+        return "触发熔断公共降级方法";
+    }
+}
+```
+
+![](images/20201018223720618_4832.png)
+
+### 4.5. 超时设置
+
+使用Hystrix组件，默认是请求在超过1秒后都会返回执行降级的方法，可以在`application.yml`项目配置文件中，修改`timeoutInMilliseconds`属性来设置地超时处理时长
+
+```yml
+# hystrix 配置
+hystrix:
+  command:
+    default:
+      execution:
+        isolation:
+          thread:
+            timeoutInMilliseconds: 3000 # 配置连接超时时长，默认的连接超时时间1秒，即若1秒没有返回数据，自动的触发降级逻辑
+```
+
+## 5. Hystrix 对 Feign 实现服务的熔断
+
+SpringCloud Fegin 默认已整合了 hystrix，所以添加Feign依赖后就不用在添加hystrix依赖
+
+
+
+
+
+
+
 
 
