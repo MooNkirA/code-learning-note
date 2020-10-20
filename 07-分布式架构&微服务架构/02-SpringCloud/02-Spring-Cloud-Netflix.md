@@ -1910,7 +1910,7 @@ Ribbon 的负载均衡主要是通 `LoadBalancerClient` 来实现，而 `LoadBal
 
 在 `RestTemplate` 加上 `@LoadBalanced` 注解后，在远程调度时能够负载均衡，主要是维护了一个被 `@LoadBalanced` 注解的 `RestTemplate` 列表，并给该列表中的 `RestTemplate` 对象添加了拦截器。在拦截器的方法中，将远程调度方法交给了 Ribbon 的负载均衡器 `LoadBalancerClient` 去处理，从而达到了负载均衡的目的。
 
-# Consul 注册中心（Eureka替换方案）
+# Eureka替换方案（Consul 注册中心）
 
 ## 1. Eureka 的替换方案
 
@@ -1926,1009 +1926,13 @@ consul是近几年比较流行的服务发现工具。consul的三个主要应�
 
 Nacos 是阿里巴巴推出来的一个新开源项目，这是一个更易于构建云原生应用的动态服务发现、配置管理和服务管理平台。Nacos 致力于帮助您发现、配置和管理微服务。Nacos 提供了一组简单易用的特性集，帮助您快速实现动态服务发现、服务配置、服务元数据及流量管理。Nacos 帮助您更敏捷和容易地构建、交付和管理微服务平台。 Nacos 是构建以“服务”为中心的现代应用架构 (例如微服务范式、云原生范式) 的服务基础设施
 
-## 2. consul 基础入门
+## 2. Consul 注册中心入门
 
-官网：https://www.consul.io/
-
-### 2.1. consul 概述
-
-Consul 是 HashiCorp 公司推出的开源工具，用于实现分布式系统的服务发现与配置。与其它分布式服务注册与发现的方案，Consul 的方案更“一站式”，内置了服务注册与发现框架、分布一致性协议实现、健康检查、Key/Value 存储、多数据中心方案，不再需要依赖其它工具（比如 ZooKeeper 等）。使用起来也较 为简单。Consul 使用 Go 语言编写，因此具有天然可移植性(支持Linux、windows和Mac OS X)；安装包仅包含一个可执行文件，方便部署，与 Docker 等轻量级容器可无缝配合
-
-**Consul 的优势**：
-
-- 使用 Raft 算法来保证一致性, 比复杂的 Paxos 算法更直接. 相比较而言, zookeeper 采用的是Paxos, 而 etcd 使用的则是 Raft。
-- 支持多数据中心，内外网的服务采用不同的端口进行监听。 多数据中心集群可以避免单数据中心的单点故障,而其部署则需要考虑网络延迟, 分片等情况等。 zookeeper 和 etcd 均不提供多数据中心功能的支持。
-- 支持健康检查。 etcd 不提供此功能。
-- 支持 http 和 dns 协议接口。 zookeeper 的集成较为复杂, etcd 只支持 http 协议。
-- 官方提供 web 管理界面, etcd 无此功能。
-
-**Consul 的特性**：
-
-- 服务发现
-- 健康检查
-- Key/Value 存储
-- 多数据中心
-
-### 2.2. consul与Eureka的区别
-
-1. 一致性
-
-Consul强一致性（CP）
-
-- 服务注册相比Eureka会稍慢一些。因为Consul的raft协议要求必须过半数的节点都写入成功才认为注册成功
-- Leader挂掉时，重新选举期间整个consul不可用。保证了强一致性但牺牲了可用性
-
-Eureka保证高可用和最终一致性（AP）
-
-- 服务注册相对要快，因为不需要等注册信息replicate到其他节点，也不保证注册信息是否replicate成功
-- 当数据出现不一致时，虽然A, B上的注册信息不完全相同，但每个Eureka节点依然能够正常对外提供服务，这会出现查询服务信息时如果请求A查不到，但请求B就能查到。如此保证了可用性但牺牲了一致性
-
-2. 开发语言和使用
-
-- eureka就是个servlet程序，跑在servlet容器中
-- Consul则是go编写而成，安装启动即可
-
-### 2.3. consul的下载与安装
-
-Consul 不同于 Eureka 需要单独安装，访问 Consul 官网下载 Consul 的最新版本（本次示例安装consul1.5x版）
-
-> 已下载的安装包位置：`\07-编程工具资料\注册中心\consul\`
-
-#### 2.3.1. Linux系统安装Consul
-
-输入以下命令
-
-```bash
-## 从官网下载最新版本的Consul服务
-wget https://releases.hashicorp.com/consul/1.5.3/consul_1.5.3_linux_amd64.zip
-## 使用unzip命令解压
-unzip consul_1.5.3_linux_amd64.zip
-## 将解压好的consul可执行命令拷贝到/usr/local/bin目录下
-cp consul /usr/local/bin
-## 测试
-consul
-```
-
-启动consul服务
-
-```bash
-##已开发者模式快速启动，-client指定客户端可以访问的ip地址
-[root@node01 ~]# consul agent -dev -client=0.0.0.0
-==> Starting Consul agent...
-    Version: 'v1.5.3'
-    Node ID: '49ed9aa0-380b-3772-a0b6-b0c6ad561dc5'
-    Node name: 'node01'
-    Datacenter: 'dc1' (Segment: '<all>')
-    Server: true (Bootstrap: false)
-    Client Addr: [127.0.0.1] (HTTP: 8500, HTTPS: -1, gRPC: 8502, DNS: 8600)
-    Cluster Addr: 127.0.0.1 (LAN: 8301, WAN: 8302)
-    Encrypt: Gossip: false, TLS-Outgoing: false, TLS-Incoming: false, Auto-Encrypt-TLS: false
-```
-
-启动成功之后访问：`http://linux系统ip:8500`，可以看到 Consul 的管理界面
-
-#### 2.3.2. window系统安装Consul
-
-1. 将window版压缩包`consul_1.5.3_windows_amd64.zip`解压到没有中文和空格的目录
-2. 进入目录，运行命令行。输入以下命令，启动consul服务
-
-```bash
-# 以开发者模式快速启动
-consul agent -dev -client=0.0.0.0
-```
-
-![](images/20201014140655017_29915.png)
-
-3. 启动成功后访问`http://127.0.0.1:8500`，进入consul管理界面
-
-### 2.4. consul 的基本使用
-
-Consul 支持健康检查，并提供了 HTTP 和 DNS 调用的API接口完成服务注册，服务发现，以及K/V存储这些功能。以下是基于通过发送HTTP请求的形式来实现Consul的基础使用
-
-> *官方的API接口文档地址：https://www.consul.io/api/catalog.html#catalog_register*
-
-#### 2.4.1. 注册服务
-
-通过postman发送PUT请求到`http://192.168.74.101:8500/v1/catalog/register`地址可以完成服务注册，请求参数如下：
-
-```json
-{
-    "Datacenter": "dc1",
-    "Node": "node01",
-    "Address": "192.168.74.102",
-    "Service": {
-        "ID": "mysql-01",
-        "Service": "mysql",
-        "tags": [
-            "master",
-            "v1"
-        ],
-        "Address": "192.168.74.102",
-        "Port": 3306
-    }
-}
-```
-
-#### 2.4.2. 服务查询
-
-通过postman发送GET请求到`http://192.168.74.101:8500/v1/catalog/services`查看所有的服务列表
-
-![](images/20201014144011035_32225.png)
-
-通过postman发送GET请求到`http://192.168.74.101:8500/v1/catalog/service/`服务名查看具体的服务详情
-
-![](images/20201014144036460_8373.png)
-
-#### 2.4.3. 服务删除
-
-通过postman发送PUT请求到`http://192.168.74.101:8500/v1/catalog/deregister`删除服务
-
-```json
-{
-    "Datacenter": "dc1",
-    "Node": "node01",
-    "ServiceID": "mysql-01"
-}
-```
-
-#### 2.4.4. Consul的K/V存储
-
-可以参照Consul提供的KV存储的API完成基于Consul的数据存储
-
-|   含义    |   请求路径    | 请求方式 |
-| --------- | :-----------: | :-----: |
-| 查看key   | `v1/kv/:key`  |   GET   |
-| 保存或更新 | `v1/kv/:key`  |   PUT   |
-| 删除      | `/v1/kv/:key` | DELETE  |
-
-- key值中可以带`/`, 可以看做是不同的目录结构
-- value的值经过了base64_encode,获取到数据后base64_decode才能获取到原始值。数据不能大于512Kb
-- 不同数据中心的kv存储系统是独立的，使用`dc=?`参数指定。
-
-## 3. 基于consul的服务注册与发现示例
-
-### 3.1. 示例工程的准备
-
-复用之前eureka单机版的示例项目`02-springcloud-eureka`，将里面eureka子模块、相关的配置与依赖都删除。命名为`05-springcloud-consul`
-
-### 3.2. 引入 consul 依赖
-
-修改服务提供者与消费者微服务的`pom.xml`文件，添加SpringCloud提供的基于Consul的依赖
-
-```xml
-<!-- springcloud 提供的对基于Consul的服务发现 -->
-<dependency>
-    <groupId>org.springframework.cloud</groupId>
-    <artifactId>spring-cloud-starter-consul-discovery</artifactId>
-</dependency>
-<!-- actuator的健康检查（心跳检查） -->
-<dependency>
-    <groupId>org.springframework.boot</groupId>
-    <artifactId>spring-boot-starter-actuator</artifactId>
-</dependency>
-```
-
-- `spring-cloud-starter-consul-discovery` 是SpringCloud提供的对consul支持的相关依赖
-- `spring-boot-starter-actuator` 适用于完成心跳检测响应的相关依赖
-
-### 3.3. 配置服务注册
-
-修改服务提供者与消费者微服务的`application.yml`配置文件，添加consul服务注册的相关配置信息
-
-```yml
-spring:
-  # ...省略其他配置
-  # Consul的服务注册配置
-  cloud:
-    consul:
-      host: 127.0.0.1 # consul服务器的主机ip地址
-      port: 8500 # consul服务器的端口
-      discovery:
-        register: true # 是否需要注册，默认值是true
-        instance-id: ${spring.application.name}:${server.port} # 注册的实例ID (唯一标志)
-        service-name: ${spring.application.name} # 服务的名称
-        port: ${server.port} # 服务的请求端口
-        prefer-ip-address: true # 是否开启ip地址注册，默认值是false
-        ip-address: ${spring.cloud.client.ip-address} # 当前服务的请求ip
-        health-check-path: /actuator/health # 健康检查路径，默认值就是/actuator/health
-        health-check-interval: 15s # 健康检查时间间隔，默认值是10s
-```
-
-`spring.cloud.consul` 属性是添加consul的相关配置
-
-- `host`：表示Consul的Server的请求地址
-- `port`：表示Consul的Server的端口
-- `discovery`：服务注册与发现的相关配置
-    - `instance-id`：实例的唯一id（推荐必填），spring cloud官网文档的推荐，为了保证生成一个唯一的id，也可以换成`${spring.application.name}:${spring.cloud.client.ip-address}`
-    - `prefer-ip-address`：开启ip地址注册
-    - `ip-address`：当前微服务的请求ip
-
-### 3.4. Consul 控制台查看服务列表
-
-启动相关的微服务，打开ConsulServer的管理控制台，相关的微服务已经全部注册到Consul中了
-
-![](images/20201014155442987_9782.png)
-
-### 3.5. 基于consul的服务发现
-
-由于SpringCloud对Consul进行了封装。对于在消费者端获取服务提供者信息和Eureka是一致的。同样使用 `DiscoveryClient` 完成调用获取微服务实例信息，也可以使用 Ribbon 完成服务的调用。
-
-![](images/20201014160048541_5289.png)
-
-下面以Ribbon的方式完成服务的调用示例
-
-#### 3.5.1. 修改配置类增加负载均衡
-
-修改消费者的配置类`HttpConfig`，给`RestTemplate`对象增加Ribbon组件的`@LoadBalanced`注解标识
-
-```java
-@LoadBalanced // springcloud对consul进行了封装，集成了Ribbon的支持
-@Bean("restTemplate")
-public RestTemplate createRestTemplate() {
-    return new RestTemplate();
-}
-```
-
-#### 3.5.2. 修改消费者请求方式
-
-修改消费者`OrderController`使用Ribbon请求方式
-
-```java
-@Autowired
-private RestTemplate restTemplate;
-
-/**
- * 根据商品id创建订单
- *
- * @param id 商品的id
- * @return
- */
-@PostMapping("/{id}")
-public String createOrder(@PathVariable Long id) {
-    /*
-     * 通过http请求，获取商品数据
-     * 拼接请求url，将原来使用ip+端口调用的方式，改成要调用的服务对应的名称即可
-     * 服务提供者名称在其项目配置文件的spring.application.name属性中定义
-     */
-    Product product = restTemplate.getForObject("http://shop-service-product/product/" + id, Product.class);
-    LOGGER.info("当前下单的商品是: ${}", product);
-    return "创建订单成功";
-}
-```
-
-## 4. consul高可用集群
-
-### 4.1. consul 集群架构图
-
-![](images/20201014160743484_12697.png)
-
-上图是官网提供的一个事例系统图，图中的Server是consul服务端高可用集群，Client是consul客户端。consul客户端不保存数据，客户端将接收到的请求转发给响应的Server端。Server之间通过局域网或广域网通信实现数据一致性。每个Server或Client都是一个consul agent。Consul集群间使用了GOSSIP协议通信和raft一致性算法。上面这张图涉及到了很多术语：
-
-- Agent：agent是一直运行在Consul集群中每个成员上的守护进程。通过运行 consul agent来启动。agent可以运行在client或者server模式。指定节点作为client或者server是非常简单的，除非有其他agent实例。所有的agent都能运行DNS或者HTTP接口，并负责运行时检查和保持服务同步。
-- Client：一个Client是一个转发所有RPC到server的代理。这个client是相对无状态的。client唯一执行的后台活动是加入LAN gossip池。这有一个最低的资源开销并且仅消耗少量的网络带宽。
-- Server：一个server是一个有一组扩展功能的代理，这些功能包括参与Raft选举，维护集群状态，响应RPC查询，与其他数据中心交互WANgossip和转发查询给leader或者远程数据中心。
-- DataCenter：虽然数据中心的定义是显而易见的，但是有一些细微的细节必须考虑。例如，在EC2中，多个可用区域被认为组成一个数据中心？我们定义数据中心为一个私有的，低延迟和高带宽的一个网络环境。这不包括访问公共网络，但是对于我们而言，同一个EC2中的多个可用区域可以被认为是一个数据中心的一部分。
-- Consensus：在我们的文档中，我们使用Consensus来表明就leader选举和事务的顺序达成一致。由于这些事务都被应用到有限状态机上，Consensus暗示复制状态机的一致性。
-- Gossip：Consul建立在Serf的基础之上，它提供了一个用于多播目的的完整的gossip协议。Serf提供成员关系，故障检测和事件广播。更多的信息在gossip文档中描述。这足以知道gossip使用基于UDP的随机的点到点通信
-- LAN Gossip：它包含所有位于同一个局域网或者数据中心的所有节点。
-- WAN Gossip：它只包含Server。这些server主要分布在不同的数据中心并且通常通过因特网或者广域网通信
-
-在每个数据中心，client和server是混合的。一般建议有3-5台server。这是基于有故障情况下的可用性和性能之间的权衡结果，因为越多的机器加入达成共识越慢。然而，并不限制client的数量，它们可以很容易的扩展到数千或者数万台。
-
-同一个数据中心的所有节点都必须加入gossip协议。这意味着gossip协议包含一个给定数据中心的所有节点。这服务于几个目的：第一，不需要在client上配置server地址。发现都是自动完成的。第二，检测节点故障的工作不是放在server上，而是分布式的。这是的故障检测相比心跳机制有更高的可扩展性。第三：它用来作为一个消息层来通知事件，比如leader选举发生时。
-
-每个数据中心的server都是Raft节点集合的一部分。这意味着它们一起工作并选出一个leader，一个有额外工作的server。leader负责处理所有的查询和事务。作为一致性协议的一部分，事务也必须被复制到所有其他的节点。因为这一要求，当一个非leader得server收到一个RPC请求时，它将请求转发给集群leader。
-
-server节点也作为WAN gossip Pool的一部分。这个Pool不同于LAN Pool，因为它是为了优化互联网更高的延迟，并且它只包含其他Consul server节点。这个Pool的目的是为了允许数据中心能够以low-touch的方式发现彼此。这使得一个新的数据中心可以很容易的加入现存的WAN gossip。因为server都运行在这个pool中，它也支持跨数据中心请求。当一个server收到来自另一个数据中心的请求时，它随即转发给正确数据中想一个server。该server再转发给本地leader。
-
-这使得数据中心之间只有一个很低的耦合，但是由于故障检测，连接缓存和复用，跨数据中心的请求都是相对快速和可靠的。
-
-<font color=red>**总结：**</font>
-
-`agent`命令用于启动一个consul的守护进程，其中有3个参数：`dev`、`client`、`server`
-
-- `dev`：是开发者模式
-- `client`：用于高可用集群，是consul的代理，主要作用是和consul server进行交互。一般一个微服务会绑定一个client，相当于微服务和client部署到同一台机器上
-- `server`：用于高可用集群，所有操作都由此服务进行。官方建议一般部署3-5个server进行集群，如果过多server会因为数据的同步导致注册比较慢
-
-### 4.2. Consul的核心知识
-
-#### 4.2.1. Gossip协议
-
-传统的监控，如ceilometer，由于每个节点都会向server报告状态，随着节点数量的增加server的压力随之增大。在所有的Agent之间（包括服务器模式和普通模式）运行着Gossip协议。服务器节点和普通Agent都会加入这个Gossip集群，收发Gossip消息。每隔一段时间，每个节点都会随机选择几个节点发送Gossip消息，其他节点会再次随机选择其他几个节点接力发送消息。这样一段时间过后，整个集群都能收到这条消息。示意图如下：
-
-![](images/20201014170754150_14336.png)
-
-Gossip协议实现效果动态图如下：
-
-![](images/20201014162817624_12895.gif)
-
-#### 4.2.2. RAFT协议（一致性算法）
-
-![](images/20201014171328705_9010.png)
-
-为了实现集群中多个ConsulServer中的数据保持一致性，consul使用了基于强一致性的RAFT算法。
-
-在Raft中，任何时候一个服务器可以扮演下面角色之一：
-
-1. Leader：处理所有客户端交互，日志复制等，一般一次只有一个Leader
-2. Follower：类似选民，完全被动
-3. Candidate（候选人）：可以被选为一个新的领导人
-
-Leader全权负责所有客户端的请求，以及将数据同步到Follower中（同一时刻系统中只存在一个Leader）。Follower被动响应请求RPC，从不主动发起请求RPC。Candidate由Follower向Leader转换的中间状态
-
-> 关于RAFT一致性算法有一个经典的动画，其中详细介绍了选举，数据同步的步骤。网址：http://thesecretlivesofdata.com/raft/
-
-### 4.3. Consul 集群搭建
-
-![](images/20201014171726368_29074.png)
-
-首先需要有一个正常的Consul集群，有Server，有Leader。这里在服务器Server1、Server2、Server3上分别部署了Consul Server。（这些服务器上最好只部署Consul程序，以尽量维护Consul Server的稳定）
-
-服务器Server4和Server5上通过Consul Client分别注册Service A、B、C，这里每个Service分别部署在了两个服务器上，这样可以避免Service的单点问题。（一般微服务和Client绑定）
-
-在服务器Server6中Program D需要访问Service B，这时候Program D首先访问本机Consul Client提供的HTTP API，本机Client会将请求转发到Consul Server，Consul Server查询到Service B当前的信息返回
-
-#### 4.3.1. 准备环境
-
-| 服务器ip       | consul类型 | Node（节点名称） | 序号 |
-| -------------- | ---------- | ---------------- | ---- |
-| 192.168.74.101 | server     | server-1         | s1   |
-| 192.168.74.102 | server     | server-2         | s2   |
-| 192.168.74.103 | server     | server-3         | s3   |
-| 192.168.71.1   | client     | clent-1          | s4   |
-
-- Agent 以 client 模式启动的节点。在该模式下，该节点会采集相关信息，通过 RPC 的方式向 server 发送。Client模式节点有无数个，官方建议搭配微服务配置
-- Agent 以 server 模式启动的节点。一个数据中心中至少包含 1 个 server 节点。不过官方建议使用 3 或 5 个 server 节点组建成集群，以保证高可用且不失效率。server 节点参与 Raft、维护会员信息、注册服务、健康检查等功能。
-
-#### 4.3.2. 安装consul并启动
-
-- 在每个consul节点上安装consul服务，下载安装过程和单节点一致。
-
-```shell
-## 从官网下载最新版本的Consul服务
-wget https://releases.hashicorp.com/consul/1.5.3/consul_1.5.3_linux_amd64.zip
-## 使用unzip命令解压
-unzip consul_1.5.3_linux_amd64.zip
-## 将解压好的consul可执行命令拷贝到/usr/local/bin目录下
-cp consul /usr/local/bin
-## 测试一下
-consul
-```
-
-- 启动每个consul server节点
-
-```shell
-# 登录s1虚拟机，以server形式运行
-consul agent -server -bootstrap-expect 3 -data-dir /etc/consul.d -node=server-1 -bind=192.168.74.101 -ui -client 0.0.0.0 &
-# 登录s2 虚拟机，以server形式运行
-consul agent -server -bootstrap-expect 2 -data-dir /etc/consul.d -node=server-2 -bind=192.168.74.102 -ui -client 0.0.0.0 &
-# 登录s3 虚拟机，以server形式运行
-consul agent -server -bootstrap-expect 2 -data-dir /etc/consul.d -node=server-3 -bind=192.168.74.103 -ui -client 0.0.0.0 &
-```
-
-参数说明：
-
-- `-server`：以server身份启动。
-- `-bootstrap-expect`：集群要求的最少server数量，当低于这个数量，集群即失效。
-- `-data-dir`：data存放的目录，更多信息请参阅consul数据同步机制
-- `-node`：节点id，在同一集群不能重复。
-- `-bind`：监听的ip地址。
-- `-client`：客户端的ip地址(0.0.0.0表示不限制)
-- `&`：在后台运行，此为linux脚本语法
-
-至此三个Consul Server模式服务全部启动成功
-
-- 启动 Consul Client
-
-```shell
-# 在本地电脑中使用client形式启动consul
-consul agent -client=0.0.0.0  -data-dir /etc/consul.d -node=client-1
-```
-
-#### 4.3.3. 每个节点加入集群
-
-在s2，s3，s4 服务其上通过consul join 命令加入 s1中的consul集群中
-
-```shell
-# 加入consul集群
-consul join 192.168.74.101
-```
-
-#### 4.3.4. 测试
-
-在任意一台服务器中输入 `consul members` 查看集群中的所有节点信息
-
-```shell
-# 查看consul集群节点信息
-consul members
-```
-
-![](images/20201014172501670_23487.png)
-
-![](images/20201014172506497_25688.png)
-
-## 5. Consul 常见问题
-
-### 5.1. 节点和服务注销
-
-当服务或者节点失效，Consul不会对注册的信息进行剔除处理，仅仅标记已状态进行标记（并且不可使用）。如果担心失效节点和失效服务过多影响监控，可以通过调用HTTP API的形式进行处理。节点和服务的注销可以使用HTTP API：
-
-- 注销任意节点和服务：`/catalog/deregister`
-- 注销当前节点的服务：`/agent/service/deregister/:service_id`
-
-如果某个节点不继续使用了，也可以在本机使用`consul leave`命令，或者在其它节点使用 `consul force-leave` 节点Id
-
-### 5.2. 健康检查与故障转移
-
-在集群环境下，健康检查是由服务注册到的Agent来处理的，那么如果这个Agent挂掉了，那么此节点的健康检查就处于无人管理的状态
-
-从实际应用看，节点上的服务可能既要被发现，又要发现别的服务，如果节点挂掉了，仅提供被发现的功能实际上服务还是不可用的。当然发现别的服务也可以不使用本机节点，可以通过访问一个Nginx实现的若干Consul节点的负载均衡来实现
+Consul 注册中心组件的详细介绍与使用，详见`code-learning-note\07-分布式架构&微服务架构\02-SpringCloud\05-Spring-Cloud-Consul.md`
 
 # Feign 服务调用
 
-## 1. Feign简介
-
-Feign是Netflix开发的声明式，模板化的HTTP客户端，其灵感来自Retrofit，JAXRS-2.0以及WebSocket
-
-- Feign可更加便捷，优雅的调用HTTP API
-- 在SpringCloud中，使用Feign非常简单——创建一个接口，并在接口上添加一些注解，代码就完成了
-- Feign支持多种注解，例如Feign自带的注解或者JAX-RS注解等
-- SpringCloud对Feign进行了增强，使Feign支持了SpringMVC注解，并整合了Ribbon和Eureka，从而让Feign的使用更加方便
-
-## 2. 基于Feign的服务调用示例
-
-### 2.1. 示例工程准备
-
-复用之前eureka单机版的示例项目`02-springcloud-eureka`，命名为`06-springcloud-feign`
-
-### 2.2. 引入Feign依赖
-
-在服务消费者 `shop-service-order` 工程添加Feign依赖
-
-```xml
-<!-- SpringCloud整合的openFeign -->
-<dependency>
-    <groupId>org.springframework.cloud</groupId>
-    <artifactId>spring-cloud-starter-openfeign</artifactId>
-</dependency>
-```
-
-### 2.3. 开启Feign的支持
-
-在服务消费者的启动类上，通过`@EnableFeignClients`注解开启Spring Cloud Feign的支持功能
-
-```java
-@SpringBootApplication(scanBasePackages = "com.moon.order")
-@EntityScan("com.moon.entity") // 指定扫描实体类的包路径
-@EnableFeignClients // 开启Feign的支持
-public class OrderApplication {
-    public static void main(String[] args) {
-        SpringApplication.run(OrderApplication.class, args);
-    }
-}
-```
-
-### 2.4. 创建Feign服务调用的接口
-
-#### 2.4.1. 基础使用步骤
-
-在服务消费者 `shop-service-order` 创建一个Feign接口，此接口是在Feign中调用微服务的核心接口。
-
-```java
-/*
- * @FeignClient 注解，用于标识当前接口为Feign调用微服务的核心接口
- *  value/name属性：指定需要调用的服务提供者的名称
- */
-@FeignClient("shop-service-product") // 或者：@FeignClient(name = "shop-service-product")
-public interface ProductFeignClient {
-
-    /*
-     * 创建需要调用的微服务接口方法，SpringCloud 对 Feign 进行了增强兼容了 SpringMVC 的注解
-     *  在使用的两个注意点：
-     *  1. FeignClient 接口有参数时，必须在参数加@PathVariable("XXX")和@RequestParam("XXX")注解，并且必须要指定对应的参数值（原来SpringMVC是可以省略）
-     *  2. feignClient 返回值为复杂对象时，其对象类型必须有无参构造函数
-     */
-    @GetMapping("/product/{id}")
-    Product findById(@PathVariable("id") Long id);
-
-}
-```
-
-#### 2.4.2. 基础使用步骤总结
-
-1. 启动类添加`@EnableFeignClients`注解，表示开启对Feign的支持，Spring会扫描标记了`@FeignClient`注解的接口，并生成此接口的代理对象
-2. `@FeignClient`注解通过`name/value`属性指定需要调用的微服务的名称，用于创建Ribbon的负载均衡器。所以Ribbon从注册中心中获取服务列表，并通过负载均衡算法调用相应名称的服务。如：`@FeignClient("service-xxx")`即指定了服务提供者的名称`service-xxx`，Feign会从注册中心获取服务列表，并通过负载均衡算法进行服务调用名为`service-xxx`的服务
-3. 在接口方法中使用`@GetMapping("/xxxx")`等SpringMVC的注解，指定调用的url，Feign将根据url进行远程调用
-
-#### 2.4.3. Feign组件使用注意事项
-
-- 定义接口方法对于形参绑定时，`@PathVariable`、`@RequestParam`、`@RequestHeader`等可以指定参数属性，在Feign中绑定参数必须通过`value`属性来指明具体的参数名，不然会抛出异常
-- `FeignClient` 返回值为复杂对象时，其对象类型必须有无参构造函数
-
-### 2.5. 配置消费者调用服务接口
-
-修改消费者`shop-service-order`的`OrderController`控制类，注入`ProductFeignClient`接口实例，并在相应的方法中使用`ProductFeignClient`实例方法完成微服务调用即可
-
-```java
-@RestController
-@RequestMapping("order")
-public class OrderController {
-    /* 日志对象 */
-    private static final Logger LOGGER = LoggerFactory.getLogger(OrderController.class);
-
-    // 注入FeignClient服务调用接口
-    @Autowired
-    private ProductFeignClient productFeignClient;
-
-    /**
-     * 根据商品id创建订单
-     *
-     * @param id 商品的id
-     * @return
-     */
-    @PostMapping("/{id}")
-    public String createOrder(@PathVariable Long id) {
-        // 使用Feign组件实现服务远程调用，直接调用FeignClient的接口定义的相应方法即可
-        Product product = productFeignClient.findById(id);
-        LOGGER.info("当前下单的商品是: ${}", product);
-        return "创建订单成功";
-    }
-}
-```
-
-启动相应的服务，进行测试
-
-## 3. Feign 和 Ribbon 的联系
-
-- Ribbon 是一个基于 HTTP 和 TCP 客户端的负载均衡的工具。它可以在客户端配置`RibbonServerList`（服务端列表），使用 `HttpClient` 或 `RestTemplate` 模拟http请求，步骤比较繁琐
-- Feign 是在 Ribbon 的基础上进行了一次改进，是一个使用起来更加方便的 HTTP 客户端。采用接口的方式，只需要创建一个接口，然后在上面添加注解即可，将需要调用的其他服务的方法定义成抽象方法即可，不需要自己构建http请求。然后就像是调用自身工程的方法调用，而感觉不到是调用远程方法，使得编写客户端变得非常容易
-
-## 4. Feign 的负载均衡
-
-Feign中本身已经集成了Ribbon依赖和自动配置，因此不需要额外引入依赖，也不需要再注册 `RestTemplate` 对象。x
-
-配置负载均衡的方式与使用Ribbon的配置方式一致，即也可以通过修改项目配置文件中 `ribbon.xx` 来进行全局配置。也可以通过`服务名.ribbon.xx` 来对指定服务配置
-
-启动两个`shop-service-product`服务，重新测试可以发现使用Ribbon的轮询策略进行负载均衡
-
-![](images/20201015140621794_15061.png)
-
-## 5. Feign 相关配置
-
-### 5.1. Feign 可配置项说明
-
-从Spring Cloud Edgware 版本开始，Feign支持使用属性自定义Feign。对于一个指定名称的Feign Client（例如该Feign Client的名称为 feignName ），Feign支持如下配置项：
-
-```yml
-# Feign 属性配置
-feign:
-  client:
-    config:
-      shop-service-product:  # 需要调用的服务名称
-        connectTimeout: 5000 # 相当于Request.Options
-        readTimeout: 5000 # 相当于Request.Options
-        loggerLevel: full # 配置Feign的日志级别，相当于代码配置方式中的Logger
-        errorDecoder: com.example.SimpleErrorDecoder # Feign的错误解码器，相当于代码配置方式中的ErrorDecoder
-        retryer: com.example.SimpleRetryer # 配置重试，相当于代码配置方式中的Retryer
-        requestInterceptors: # 配置拦截器，相当于代码配置方式中的RequestInterceptor
-          - com.example.FooRequestInterceptor
-          - com.example.BarRequestInterceptor
-        decode404: false
-```
-
-部分属性配置说明：
-
-- `feignName`：FeignClient的名称，即上面例子的`shop-service-product`
-- `connectTimeout`：建立链接的超时时长
-- `readTimeout`：读取超时时长
-- `loggerLevel`：Feign的日志级别
-- `errorDecoder`：Feign的错误解码器
-- `retryer`：配置重试
-- `requestInterceptors`：添加请求拦截器
-- `decode404`：配置熔断不处理404异常
-
-### 5.2. 请求压缩配置
-
-Spring Cloud Feign 支持对请求和响应进行GZIP压缩，以减少通信过程中的性能损耗。通过下面的参数即可开启请求与响应的压缩功能：
-
-```yml
-feign:
-  compression: # Feign 请求压缩配置
-    request:
-      enabled: true # 开启请求压缩
-    response:
-      enabled: true # 开启响应压缩
-```
-
-也可以对请求的数据类型，以及触发压缩的大小下限进行设置：
-
-```yml
-feign:
-  compression: # Feign 请求压缩配置
-    request:
-      enabled: true # 开启请求压缩
-      mime-types: text/html,application/xml,application/json # 设置压缩的数据类型
-      min-request-size: 2048 # 设置触发压缩的大小下限
-```
-
-> 注：上面的数据类型、压缩大小下限均为默认值。
-
-### 5.3. 日志级别
-
-如果在开发或者运行阶段希望看到Feign请求过程的日志记录，默认情况下Feign的日志是没有开启的。要想用属性配置方式来达到日志效果，只需在 `application.yml` 中添加如下内容即可：
-
-```yml
-# 配置feign日志的输出
-feign:
-  client:
-    config:
-      shop-service-product:  # 需要调用的服务名称
-        loggerLevel: full # 配置Feign的日志级别，相当于代码配置方式中的Logger
-# 日志配置
-logging:
-  level:
-    # 配置只输出ProductFeignClient接口的日志
-    com.moon.order.feign.ProductFeignClient: debug
-```
-
-配置参数说明：
-
-- `logging.level.xx: debug`：配置Feign只会对日志级别为debug的做出响应
-- `feign.client.config.服务名称.loggerLevel`： 配置Feign的日志级别，其中Feign有以下四种日志级别：
-    - `NONE`【性能最佳，适用于生产】：不记录任何日志（默认值）
-    - `BASIC`【适用于生产环境追踪问题】：仅记录请求方法、URL、响应状态代码以及执行时间
-    - `HEADERS`：记录BASIC级别的基础上，记录请求和响应的header。
-    - `FULL`【比较适用于开发及测试环境定位问题】：记录请求和响应的header、body和元数据。
-
-![](images/20201015210138012_24744.png)
-
-## 6. Feign 源码分析
-
-通过使用过程可知，`@EnableFeignClients`和`@FeignClient`两个注解就实现了Feign的功能，所以从`@EnableFeignClients`注解开始分析Feign的源码
-
-### 6.1. @EnableFeignClients 注解
-
-```java
-@Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.TYPE)
-@Documented
-@Import(FeignClientsRegistrar.class)
-public @interface EnableFeignClients {
-    // ....省略代码
-}
-```
-
-通过 `@EnableFeignClients` 引入了`FeignClientsRegistrar`客户端注册类
-
-### 6.2. FeignClientsRegistrar 客户端注册类
-
-```java
-class FeignClientsRegistrar implements ImportBeanDefinitionRegistrar,
-		ResourceLoaderAware, EnvironmentAware {
-    // ....省略代码
-    @Override
-	public void registerBeanDefinitions(AnnotationMetadata metadata,
-			BeanDefinitionRegistry registry) {
-	    // 注册默认配置
-		registerDefaultConfiguration(metadata, registry);
-		registerFeignClients(metadata, registry);
-	}
-    // ....省略代码
-}
-```
-
-根据源码可知，`FeignClientsRegistrar`类实现了`ImportBeanDefinitionRegistrar`接口，在实现的`registerBeanDefinitions()`里就会解析和注册BeanDefinition，主要注册的对象类型有两种：
-
-1. 注册缺省配置的配置信息
-
-```java
-private void registerDefaultConfiguration(AnnotationMetadata metadata,
-		BeanDefinitionRegistry registry) {
-	Map<String, Object> defaultAttrs = metadata
-			.getAnnotationAttributes(EnableFeignClients.class.getName(), true);
-
-	if (defaultAttrs != null && defaultAttrs.containsKey("defaultConfiguration")) {
-		String name;
-		if (metadata.hasEnclosingClass()) {
-			name = "default." + metadata.getEnclosingClassName();
-		}
-		else {
-			name = "default." + metadata.getClassName();
-		}
-		registerClientConfiguration(registry, name,
-				defaultAttrs.get("defaultConfiguration"));
-	}
-}
-```
-
-2. 注册添加了标识`@FeignClient`注解的类或接口
-
-```java
-public void registerFeignClients(AnnotationMetadata metadata,
-		BeanDefinitionRegistry registry) {
-	ClassPathScanningCandidateComponentProvider scanner = getScanner();
-	scanner.setResourceLoader(this.resourceLoader);
-
-	Set<String> basePackages;
-
-	Map<String, Object> attrs = metadata
-			.getAnnotationAttributes(EnableFeignClients.class.getName());
-	AnnotationTypeFilter annotationTypeFilter = new AnnotationTypeFilter(
-			FeignClient.class);
-	final Class<?>[] clients = attrs == null ? null
-			: (Class<?>[]) attrs.get("clients");
-	if (clients == null || clients.length == 0) {
-		scanner.addIncludeFilter(annotationTypeFilter);
-		basePackages = getBasePackages(metadata);
-	}
-	else {
-		final Set<String> clientClasses = new HashSet<>();
-		basePackages = new HashSet<>();
-		for (Class<?> clazz : clients) {
-			basePackages.add(ClassUtils.getPackageName(clazz));
-			clientClasses.add(clazz.getCanonicalName());
-		}
-		AbstractClassTestingTypeFilter filter = new AbstractClassTestingTypeFilter() {
-			@Override
-			protected boolean match(ClassMetadata metadata) {
-				String cleaned = metadata.getClassName().replaceAll("\\$", ".");
-				return clientClasses.contains(cleaned);
-			}
-		};
-		scanner.addIncludeFilter(
-				new AllTypeFilter(Arrays.asList(filter, annotationTypeFilter)));
-	}
-
-	for (String basePackage : basePackages) {
-		Set<BeanDefinition> candidateComponents = scanner
-				.findCandidateComponents(basePackage);
-		for (BeanDefinition candidateComponent : candidateComponents) {
-			if (candidateComponent instanceof AnnotatedBeanDefinition) {
-				// verify annotated class is an interface
-				AnnotatedBeanDefinition beanDefinition = (AnnotatedBeanDefinition) candidateComponent;
-				AnnotationMetadata annotationMetadata = beanDefinition.getMetadata();
-				Assert.isTrue(annotationMetadata.isInterface(),
-						"@FeignClient can only be specified on an interface");
-
-				Map<String, Object> attributes = annotationMetadata
-						.getAnnotationAttributes(
-								FeignClient.class.getCanonicalName());
-
-				String name = getClientName(attributes);
-				registerClientConfiguration(registry, name,
-						attributes.get("configuration"));
-
-				registerFeignClient(registry, annotationMetadata, attributes);
-			}
-		}
-	}
-}
-```
-
-`registerFeignClients()`方法主要是扫描类路径，对所有的FeignClient生成对应的`BeanDefinition`。同时又调用了 `registerClientConfiguration` 注册配置的方法。这里是第二次调用，主要是将扫描的目录下，每个项目的配置类加载的容器当中。调用 `registerFeignClient` 注册对象
-
-### 6.3. FeignClient 对象的注册
-
-在上一步中，获取`@FeignClient`注解的数据封装到一个map集合后，调用`registerFeignClient(registry, annotationMetadata, attributes);`方法，往spring容器中注册`BeanDefinition`对象
-
-```java
-private void registerFeignClient(BeanDefinitionRegistry registry,
-		AnnotationMetadata annotationMetadata, Map<String, Object> attributes) {
-	// 1. 获取类名称，也就是本例中的FeignService接口
-	String className = annotationMetadata.getClassName();
-	/*
-     * 2. BeanDefinitionBuilder的主要作用就是构建一个AbstractBeanDefinition
-     *  AbstractBeanDefinition类最终被构建成一个BeanDefinitionHolder然后注册到Spring容器中
-     *  注意：beanDefinition类为FeignClientFactoryBean，所以在Spring获取类的时候实际返回的是FeignClientFactoryBean类
-     */
-	BeanDefinitionBuilder definition = BeanDefinitionBuilder
-			.genericBeanDefinition(FeignClientFactoryBean.class);
-	validate(attributes);
-	// 3. 添加FeignClientFactoryBean的属性，这些属性都是在@FeignClient中定义的属性
-	definition.addPropertyValue("url", getUrl(attributes));
-	definition.addPropertyValue("path", getPath(attributes));
-	String name = getName(attributes);
-	definition.addPropertyValue("name", name);
-	String contextId = getContextId(attributes);
-	definition.addPropertyValue("contextId", contextId);
-	definition.addPropertyValue("type", className);
-	definition.addPropertyValue("decode404", attributes.get("decode404"));
-	definition.addPropertyValue("fallback", attributes.get("fallback"));
-	definition.addPropertyValue("fallbackFactory", attributes.get("fallbackFactory"));
-	definition.setAutowireMode(AbstractBeanDefinition.AUTOWIRE_BY_TYPE);
-
-    // 4. 设置别名 name就是我们在@FeignClient中定义的name属性
-	String alias = contextId + "FeignClient";
-	AbstractBeanDefinition beanDefinition = definition.getBeanDefinition();
-
-	boolean primary = (Boolean)attributes.get("primary"); // has a default, won't be null
-
-	beanDefinition.setPrimary(primary);
-
-	String qualifier = getQualifier(attributes);
-	if (StringUtils.hasText(qualifier)) {
-		alias = qualifier;
-	}
-
-    // 5. 定义BeanDefinitionHolder，在本例中名称为FeignService，类为FeignClientFactoryBean
-	BeanDefinitionHolder holder = new BeanDefinitionHolder(beanDefinition, className,
-			new String[] { alias });
-	BeanDefinitionReaderUtils.registerBeanDefinition(holder, registry);
-}
-```
-
-通过源分析可知：最终是向Spring中注册了一个bean，bean的名称就是类或接口的名称（也就是本例中的FeignService），bean的实现类是`FeignClientFactoryBean`，其属性设置就是在`@FeignClient`中定义的属性。那么下面在Controller中对`FeignService`的的引入，实际就是引入了`FeignClientFactoryBean`类
-
-### 6.4. FeignClientFactoryBean 类
-
-对`@EnableFeignClients`注解的源码进行了分析，了解到其主要作用就是把带有`@FeignClient`注解的类或接口用`FeignClientFactoryBean`类注册到Spring容器中。
-
-```java
-class FeignClientFactoryBean implements FactoryBean<Object>, InitializingBean,
-		ApplicationContextAware {
-    // ....省略代码
-    @Override
-	public Object getObject() throws Exception {
-		return getTarget();
-	}
-    // ....省略代码
-}
-```
-
-通过 `FeignClientFactoryBean` 类结构可以发现其实现了`FactoryBean<T>`类，那么当从ApplicationContext中获取该bean的时候，实际调用的是其`getObject()`方法。方法中返回是调用`getTarget()`方法
-
-```java
-<T> T getTarget() {
-	FeignContext context = applicationContext.getBean(FeignContext.class);
-	Feign.Builder builder = feign(context);
-
-	if (!StringUtils.hasText(this.url)) {
-		if (!this.name.startsWith("http")) {
-			url = "http://" + this.name;
-		}
-		else {
-			url = this.name;
-		}
-		url += cleanPath();
-		return (T) loadBalance(builder, context, new HardCodedTarget<>(this.type,
-				this.name, url));
-	}
-	if (StringUtils.hasText(this.url) && !this.url.startsWith("http")) {
-		this.url = "http://" + this.url;
-	}
-	String url = this.url + cleanPath();
-	Client client = getOptional(context, Client.class);
-	if (client != null) {
-		if (client instanceof LoadBalancerFeignClient) {
-			// not load balancing because we have a url,
-			// but ribbon is on the classpath, so unwrap
-			client = ((LoadBalancerFeignClient)client).getDelegate();
-		}
-		builder.client(client);
-	}
-	Targeter targeter = get(context, Targeter.class);
-	return (T) targeter.target(this, builder, context, new HardCodedTarget<>(
-			this.type, this.name, url));
-}
-```
-
-代码流程说明：
-
-- `FeignClientFactoryBean`类实现三个接口，分别是：
-    - `FactoryBean`接口的`getObject`、`getObjectType`、`isSingleton`方法；
-    - 实现了`InitializingBean`接口的`afterPropertiesSet`方法；
-    - 实现了`ApplicationContextAware`接口的`setApplicationContext`方法
-- `getObject()`方法中调用的是`getTarget()`方法，它从applicationContext取出FeignContext，然后构造`Feign.Builder`并设置了logger、encoder、decoder、contract，之后通过configureFeign根据`FeignClientProperties`来进一步配置`Feign.Builder`的retryer、errorDecoder、request.Options、requestInterceptors、queryMapEncoder、decode404
-- 初步配置完`Feign.Builder`之后再判断是否需要loadBalance，如果需要则通过loadBalance方法来设置，不需要则在Client是`LoadBalancerFeignClient`的时候进行unwrap
-
-### 6.5. 发送请求的实现
-
-从上面的源码分析可知，`FeignClientFactoryBean.getObject()`具体返回的是一个代理类，具体为`FeignInvocationHandler`
-
-```java
-public class ReflectiveFeign extends Feign {
-    // ....省略代码
-    static class FeignInvocationHandler implements InvocationHandler {
-
-    private final Target target;
-    private final Map<Method, MethodHandler> dispatch;
-
-    FeignInvocationHandler(Target target, Map<Method, MethodHandler> dispatch) {
-      this.target = checkNotNull(target, "target");
-      this.dispatch = checkNotNull(dispatch, "dispatch for %s", target);
-    }
-
-    @Override
-    public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-      if ("equals".equals(method.getName())) {
-        try {
-          Object otherHandler =
-              args.length > 0 && args[0] != null ? Proxy.getInvocationHandler(args[0]) : null;
-          return equals(otherHandler);
-        } catch (IllegalArgumentException e) {
-          return false;
-        }
-      } else if ("hashCode".equals(method.getName())) {
-        return hashCode();
-      } else if ("toString".equals(method.getName())) {
-        return toString();
-      }
-
-      return dispatch.get(method).invoke(args);
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-      if (obj instanceof FeignInvocationHandler) {
-        FeignInvocationHandler other = (FeignInvocationHandler) obj;
-        return target.equals(other.target);
-      }
-      return false;
-    }
-
-    @Override
-    public int hashCode() {
-      return target.hashCode();
-    }
-
-    @Override
-    public String toString() {
-      return target.toString();
-    }
-  }
-    // ....省略代码
-}
-```
-
-`FeignInvocationHandler`类说明：
-
-- `FeignInvocationHandler`实现了`InvocationHandler`接口，是动态代理的代理类。
-- 当执行非`Object`方法时进入到`this.dispatch.get(method)).invoke(args)`
-- dispatch是一个map集合，根据方法名称获取`MethodHandler`。具体实现类为`SynchronousMethodHandler`
-
-```java
-final class SynchronousMethodHandler implements MethodHandler {
-  // ....省略代码
-  @Override
-  public Object invoke(Object[] argv) throws Throwable {
-    RequestTemplate template = buildTemplateFromArgs.create(argv);
-    Retryer retryer = this.retryer.clone();
-    while (true) {
-      try {
-        return executeAndDecode(template);
-      } catch (RetryableException e) {
-        // ....省略代码
-      }
-    }
-  }
-
-  Object executeAndDecode(RequestTemplate template) throws Throwable {
-    Request request = targetRequest(template);
-
-    if (logLevel != Logger.Level.NONE) {
-      logger.logRequest(metadata.configKey(), logLevel, request);
-    }
-
-    Response response;
-    long start = System.nanoTime();
-    try {
-      response = client.execute(request, options);
-    } catch (IOException e) {
-      if (logLevel != Logger.Level.NONE) {
-        logger.logIOException(metadata.configKey(), logLevel, e, elapsedTime(start));
-      }
-      throw errorExecuting(request, e);
-    }
-    // ....省略代码
-  }
-  // ....省略代码
-}
-```
-
-- `SynchronousMethodHandler`内部创建了一个`RequestTemplate`对象，是Feign中的请求模板对象。内部封装了一次请求的所有元数据。
-- `retryer`中定义了用户的重试策略。
-- 调用`executeAndDecode`方法通过client完成请求处理，client的实现类是`LoadBalancerFeignClient`
+Feign组件的详细介绍与使用，详见`code-learning-note\07-分布式架构&微服务架构\02-SpringCloud\04-Spring-Cloud-OpenFeign.md`
 
 # Hystrix 服务熔断
 
@@ -3282,7 +2286,7 @@ public class OrderController {
 
 ### 4.5. 超时设置
 
-使用Hystrix组件，默认是请求在超过1秒后都会返回执行降级的方法，可以在`application.yml`项目配置文件中，修改`timeoutInMilliseconds`属性来设置地超时处理时长
+使用Hystrix组件，请求在超过规定的时间没有获取到微服务的数据，此时会自动触发熔断降级方法，默认值是1000（1秒）。可以在`application.yml`项目配置文件中，修改`timeoutInMilliseconds`属性来设置地超时处理时长
 
 ```yml
 # hystrix 配置
@@ -3299,11 +2303,492 @@ hystrix:
 
 SpringCloud Fegin 默认已整合了 hystrix，所以添加Feign依赖后就不用在添加hystrix依赖
 
+### 5.1. 示例项目搭建
+
+复用`06-springcloud-feign`工程的代码，创建新的工程`09-springcloud-hystrix-feign`。整理删除一些无用的依赖与代码
+
+### 5.2. 开启hystrix
+
+在Feign中已经内置了hystrix，但是默认是关闭的。修改项目的`application.yml`配置文件开启对hystrix的支持
+
+```yml
+feign:
+  hystrix:
+    enabled: true # 开启对hystrix的支持，默认值是false（关闭）
+```
+
+### 5.3. 配置FeignClient接口的实现类
+
+基于Feign实现熔断降级，需要创建`FeignClient`接口的实现类，在实现类中定义降级方法
+
+```java
+/**
+ * ProductFeignClient接口实现，此类中实现的方法为相应的降级方法
+ */
+// Hystrix组件会在spring容器中查找FeignClient相应的实现类，调用其降级方法，所在需要标识注解注册到spring容器中
+@Component
+public class ProductFeignClientCallBack implements ProductFeignClient {
+    /* 日志对象 */
+    private static final Logger LOGGER = LoggerFactory.getLogger(ProductFeignClientCallBack.class);
+
+    /**
+     * 此方法为ProductFeignClient接口中相应方法的降级实现
+     */
+    @Override
+    public Product findById(Long id) {
+        LOGGER.info("当前下单商品的id是: " + id + "，触发ProductFeignClientCallBack类中熔断的findById降级方法");
+        Product product = new Product();
+        product.setProductName("feign调用触发熔断降级方法");
+        return product;
+    }
+}
+```
+
+### 5.4. FeignClient接口指定hystrix熔断方法
+
+在接口上的`@FeignClient`注解，添加`fallback`属性，声明降级方法（接口的实现类）
+
+```java
+/*
+ * @FeignClient 注解，用于标识当前接口为Feign调用微服务的核心接口
+ *  value/name属性：指定需要调用的服务提供者的名称
+ *  fallback属性：配置熔断时降级方法（实现类）
+ */
+@FeignClient(name = "shop-service-product", fallback = ProductFeignClientCallBack.class)
+public interface ProductFeignClient {
+    @GetMapping("/product/{id}")
+    Product findById(@PathVariable("id") Long id);
+}
+```
+
+## 6. Hystrix的监控平台
+
+### 6.1. Hystrix 的设置实时监控
+
+**注意细节**：当请求失败，被拒绝，超时的时候，都会进入到降级方法中。但进入降级方法并不意味着断路器已经被打开。
+
+除了实现容错功能，Hystrix还提供了近乎实时的监控，`HystrixCommand`和`HystrixObservableCommand`在执行时，会生成执行结果和运行指标。比如每秒的请求数量，成功数量等。
+
+这些状态会暴露在`Actuator`提供的`/health`端点中。只需为项目添加 `spring-boot-actuator` 依赖，重启项目，访问`http://localhost:9002/actuator/hystrix.stream`，即可看到实时的监控数据。
+
+#### 6.1.1. 引入依赖
+
+在`09-springcloud-hystrix-feign`示例中，修改`shop-service-order`工程maven依赖
+
+```xml
+<!-- 引入hystrix的监控信息 -->
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-actuator</artifactId>
+</dependency>
+<!-- hystrix 核心依赖 -->
+<dependency>
+    <groupId>org.springframework.cloud</groupId>
+    <artifactId>spring-cloud-starter-netflix-hystrix</artifactId>
+</dependency>
+```
+
+#### 6.1.2. 配置开启Hystrix支持
+
+在`shop-service-order`工程启动类中，标识`@EnableCircuitBreaker`开启Hystrix支持
+
+```javas
+@SpringBootApplication(scanBasePackages = "com.moon.order")
+@EntityScan("com.moon.entity") // 指定扫描实体类的包路径
+@EnableFeignClients // 开启Feign的支持
+@EnableCircuitBreaker // 开启Hystrix支持
+public class OrderApplication {
+    // ....省略
+}
+```
+
+> **注：想开启Hystrix实现监控的功能，必须标识`@EnableCircuitBreaker`注解**
+
+#### 6.1.3. 设置暴露所有监控接口
+
+默认Hystrix只暴露Actuator部分接口，访问`http://localhost:9001/actuator`可以查询到默认暴露的接口
+
+![](images/20201019134944141_11016.png)
+
+配置暴露所有Actuator监控端点，需要修改项目的`application.yml`文件，添加以下配置
+
+```yml
+# 配置暴露所有Actuator监控端点
+management:
+  endpoints:
+    web:
+      exposure:
+        include: '*'
+```
+
+#### 6.1.4. 访问实时监控页面
+
+启动项目，访问`http://localhost:9002/actuator/hystrix.stream`，可以看到实时的监控数据。
+
+### 6.2. Hystrix DashBoard 监控平台
+
+Hystrix的实时监控，访问`/hystrix.stream`接口获取的都是已文字形式展示的信息。但通过文字的方式很难直观的展示系统的运行状态，所以Hystrix官方还提供了基于图形化的DashBoard（仪表板）监控平台。Hystrix仪表板可以显示每个断路器（被`@HystrixCommand`注解的方法）的状态。
+
+#### 6.2.1. 引入依赖
+
+搭建Hystrix DashBoard监控，配置工程的maven引入相关依赖
+
+```xml
+<!-- 引入hystrix的监控信息 -->
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-actuator</artifactId>
+</dependency>
+<!-- hystrix 核心依赖 -->
+<dependency>
+    <groupId>org.springframework.cloud</groupId>
+    <artifactId>spring-cloud-starter-netflix-hystrix</artifactId>
+</dependency>
+<!-- Hystrix DashBoard 监控平台依赖 -->
+<dependency>
+    <groupId>org.springframework.cloud</groupId>
+    <artifactId>spring-cloud-starter-netflix-hystrix-dashboard</artifactId>
+</dependency>
+```
+
+#### 6.2.2. 开启监控平台
+
+在项目的启动类中添加`@EnableHystrixDashboard`注解，表示激活监控平台（仪表盘）
+
+```java
+@SpringBootApplication(scanBasePackages = "com.moon.order")
+@EntityScan("com.moon.entity") // 指定扫描实体类的包路径
+@EnableFeignClients // 开启Feign的支持
+@EnableCircuitBreaker // 开启Hystrix支持
+@EnableHystrixDashboard // 激活监控平台（仪表盘）
+public class OrderApplication {
+}
+```
+
+#### 6.2.3. 测试访问监控平台
+
+访问相应项目的url，`http://localhost:9002/hystrix`，进去平台初始化页面。
+
+![](images/20201019143815171_30988.png)
+
+输入实时监控断点url：`http://localhost:9002/actuator/hystrix.stream`，以图形化方式展示监控的详细数据
+
+![](images/20201019144947097_1413.png)
+
+### 6.3. 断路器聚合监控 Turbine
+
+在微服务架构体系中，每个服务都需要配置Hystrix DashBoard监控。如果每次只能查看单个实例的监控数据，就需要不断切换监控地址，这显然很不方便。要想看这个系统的Hystrix Dashboard数据就需要用到Hystrix Turbine。Turbine是一个聚合Hystrix 监控数据的工具，他可以将所有相关微服务的Hystrix监控数据聚合到一起，方便使用。引入Turbine后，整个监控系统架构如下：
+
+![](images/20201019150719838_6878.png)
+
+> <font color=red>**注：每个需要监控的微服务，都需要配置相应Hystrix DashBoard监控。只是访问时通过聚合监控项目可以查询所有节点的情况**</font>
+
+#### 6.3.1. 搭建聚合监控工程
+
+创建工程`shop-server-hystrix-turbine`，引入相关依赖坐标
+
+```xml
+<!-- Hystrix Turbine 聚合监控核心依赖 -->
+<dependency>
+    <groupId>org.springframework.cloud</groupId>
+    <artifactId>spring-cloud-starter-netflix-turbine</artifactId>
+</dependency>
+<dependency>
+    <groupId>org.springframework.cloud</groupId>
+    <artifactId>spring-cloud-starter-netflix-hystrix</artifactId>
+</dependency>
+<dependency>
+    <groupId>org.springframework.cloud</groupId>
+    <artifactId>spring-cloud-starter-netflix-hystrix-dashboard</artifactId>
+</dependency>
+```
+
+#### 6.3.2. 配置多个微服务的hystrix监控
+
+修改项目的`application.yml`配置文件，开启turbine并进行相关配置
+
+```yml
+server:
+  port: 8031
+spring:
+  application:
+    name: shop-server-hystrix-turbine
+# 配置eureka服务，用于获取相关监控的微服务地址列表
+eureka:
+  client:
+    service-url:
+      defaultZone: http://127.0.0.1:8001/eureka/
+  instance:
+    prefer-ip-address: true
+# hystrix turbine 配置
+turbine:
+  # 配置需要监控的微服务列表，多个服务之前使用,分隔
+  appConfig: shop-service-order
+  clusterNameExpression: "'default'"
+```
+
+- eureka相关配置：指定注册中心地址
+- turbine相关配置：指定需要监控的微服务列表
+
+turbine会自动的从注册中心中获取需要监控的微服务，并聚合所有微服务中的 `/hystrix.stream` 数据
+
+#### 6.3.3. 配置启动类
+
+作为一个独立的监控项目，需要配置启动类，使用`@EnableHystrixDashboard`注解开启Hystrix Dashboard监控平台；并使用`@EnableTurbine`注解激活Turbine
+
+```java
+@SpringBootApplication
+@EnableTurbine // 开启 Turbine
+@EnableHystrixDashboard // 开启Hystrix Dashboard监控平台
+public class TurbineServerApplication {
+    public static void main(String[] args) {
+        SpringApplication.run(TurbineServerApplication.class, args);
+    }
+}
+```
+
+#### 6.3.4. 测试访问
+
+浏览器访问`http://localhost:8031/hystrix`展示Hystrix Dashboard。并在url位置输入 `http://localhost:8031/turbine.stream`，动态根据turbine.stream数据展示多个微服务的监控数据
+
+## 7. 熔断器的状态
+
+### 7.1. 简介
+
+熔断器有三个状态：`CLOSED`、`OPEN`、`HALF_OPEN`，熔断器默认是关闭状态。
+
+当触发熔断后状态变更为`OPEN`，在等待到指定的时间，Hystrix会放开部分请求用于检测服务是否开启，这期间熔断器会变为`HALF_OPEN`半开启状态，当熔断探测服务可用时，则会将状态变更为`CLOSED`，关闭熔断器
+
+![](images/20201019160521917_6966.png)
+
+- `Closed`：关闭状态（断路器关闭），所有请求都正常访问。代理类维护了最近调用失败的次数，如果某次调用失败，则使失败次数加1。如果最近失败次数超过了在给定时间内允许失败的阈值，则代理类切换到断开(Open)状态。此时代理开启了一个超时时钟，当该时钟超过了该时间，则切换到半断开（Half-Open）状态。该超时时间的设定是给了系统一次机会来修正导致调用失败的错误。
+- `Open`：打开状态（断路器打开），所有请求都会被降级。Hystix会对请求情况计数，当一定时间内失败请求百分比达到阈值，则触发熔断，断路器会完全关闭。默认失败比例的阈值是50%，请求次数最少不低于20次。
+- `Half Open`：半开状态，open状态不是永久的，打开后会进入休眠时间（默认是5s）。随后断路器会自动进入半开状态。此时会释放1次请求通过，若这个请求是健康的，则会关闭断路器，否则继续保持打开，再次进行5秒休眠计时。
+
+### 7.2. 状态的测试
+
+在`08-springcloud-hystrix-resttemplate`示例工程中进行熔断状态的测试。
+
+#### 7.2.1. 测试的准备
+
+为了能够精确控制请求的成功或失败，在`shop-service-product`工程的`ProductController`类的`findById`方法中调用业务中加入一段逻辑：
+
+```java
+@GetMapping("/{id}")
+public Product findById(@PathVariable Long id) {
+    // 为了能够精确控制请求的成功或失败，当id不为1时，抛出异常
+    if (id != 1) {
+        throw new RuntimeException("服务器异常");
+    }
+    // ....省略
+}
+```
+
+当id为1时，正常请求；id不为1时，请求异常
+
+为了更好观察测试结果，在`shop-service-order`引入Hystrix DashBoard 监控平台，修改项目配置文件`application.yml`，修改熔断器相应的默认配置：
+
+```yml
+# hystrix 配置
+hystrix:
+  command:
+    default:
+      execution:
+        isolation:
+          thread:
+            timeoutInMilliseconds: 3000 # 配置连接超时时长，默认的连接超时时间1秒，即若1秒没有返回数据，自动的触发降级逻辑
+      circuitBreaker:
+        requestVolumeThreshold: 5 # 配置触发熔断的最小请求次数，默认20
+        sleepWindowInMilliseconds: 10000 # 配置熔断多少秒后去尝试请求 默认5秒   打开状态的时间
+        errorThresholdPercentage: 50 # 触发熔断的失败请求最小占比，默认50%
+```
+
+配置说明：
+
+- `requestVolumeThreshold`：触发熔断的最小请求次数，默认20
+- `errorThresholdPercentage`：触发熔断的失败请求最小占比，默认50%
+- `sleepWindowInMilliseconds`：熔断多少秒后去尝试请求，默认5秒
 
 
+#### 7.2.2. 测试结果分析
 
+当连续访问id为2的请求时（超过10次），就会触发熔断。断路器会端口，一切请求都会被降级处理。此时访问id为1的请求，会发现返回的也是失败，而且失败时间很短，只有20毫秒左右：
 
+![](images/20201019164832955_18166.png)
 
+![](images/20201019164856714_13200.png)
 
+![](images/20201019164924699_31656.png)
 
+## 8. 熔断器的隔离策略
+
+### 8.1. 两种隔离策略
+
+微服务使用Hystrix熔断器实现了服务的自动降级，让微服务具备自我保护的能力，提升了系统的稳定性，也较好的解决雪崩效应。**其使用方式目前支持两种策略**：
+
+- **线程池隔离策略**：使用一个线程池来存储当前的请求，线程池对请求作处理，设置任务返回处理超时时间，堆积的请求堆积入线程池队列。这种方式需要为每个依赖的服务申请线程池，有一定的资源消耗，好处是可以应对突发流量（流量洪峰来临时，处理不完可将数据存储到线程池队里慢慢处理）
+- **信号量隔离策略**：使用一个原子计数器（或信号量）来记录当前有多少个线程在运行，请求来先判断计数器的数值，若超过设置的最大线程个数则丢弃改类型的新请求，若不超过则执行计数操作请求来计数器+1，请求返回计数器-1。这种方式是严格的控制线程且立即返回模式，无法应对突发流量（流量洪峰来临时，处理的线程超过数量，其他的请求会直接返回，不继续去请求依赖的服务）
+
+### 8.2. 线程池和型号量两种策略功能支持对比
+
+![](images/20201019170508303_8541.png)
+
+### 8.3. 切换不同策略的配置
+
+- `hystrix.command.default.execution.isolation.strategy`：配置隔离策略
+    - `ExecutionIsolationStrategy.SEMAPHORE`：信号量隔离
+    - `ExecutionIsolationStrategy.THREAD`：线程池隔离
+- `hystrix.command.default.execution.isolation.maxConcurrentRequests`：最大信号量上限
+
+```yml
+hystrix:
+  command:
+    default:
+      execution:
+        isolation:
+          # 配置隔离策略，取值：ExecutionIsolationStrategy.SEMAPHORE（信号量隔离）、ExecutionIsolationStrategy.THREAD（线程池隔离）
+          strategy: ExecutionIsolationStrategy.SEMAPHORE # 信号量隔离
+          maxConcurrentRequests: 20 # 配置最大信号量上限
+```
+
+## 9. Hystrix 核心源码分析
+
+Hystrix 底层基于 RxJava，RxJava 是响应式编程开发库，因此Hystrix的整个实现策略简单说即：把一个`HystrixCommand`封装成一个`Observable`（待观察者），针对自身要实现的核心功能，对`Observable`进行各种装饰，并在订阅各步装饰的`Observable`，以便在指定事件到达时，添加自己的业务。
+
+![](images/20201019172428063_32564.jpg)
+
+### 9.1. Hystrix主要有4种调用方式
+
+- `toObservable()`：未做订阅，只是返回一个Observable
+- `observe()`：调用 `toObservable()` 方法，并向 `Observable` 注册 `rx.subjects.ReplaySubject` 发起订阅
+- `queue()`：调用 `toObservable()` 方法的基础上，调用：`Observable.toBlocking()` 和 `BlockingObservable.toFuture()` 返回 `Future` 对象
+- `execute()`：调用 `queue()` 方法的基础上，调用 `Future.get()` 方法，同步返回 `run()` 方法的执行结果。
+
+### 9.2. 主要的执行逻辑
+
+1. 每次调用创建一个新的`HystrixCommand`，把依赖调用封装在`run()`方法中
+2. 执行`execute()`/`queue()`做同步或异步调用.
+3. 判断熔断器(circuit-breaker)是否打开，如果打开跳到步骤8，进行降级策略，如果关闭进入步骤
+4. 判断线程池/队列/信号量是否跑满，如果跑满进入降级步骤8，否则继续后续步骤
+5. 调用`HystrixCommand`的`run`方法。运行依赖逻辑，依赖逻辑调用超时，进入步骤8
+6. 判断逻辑是否调用成功。返回成功调用结果；调用出错，进入步骤8
+7. 计算熔断器状态，所有的运行状态(成功，失败，拒绝，超时)上报给熔断器，用于统计从而判断熔断器状态
+8. `getFallback()`降级逻辑。以下四种情况将触发`getFallback`的调用：
+    1. `run()`方法抛出非`HystrixBadRequestException`异常
+    2. `run()`方法调用超时
+    3. 熔断器开启拦截调用
+    4. 线程池/队列/信号量是否跑满
+    5. 没有实现`getFallback`的`Command`将直接抛出异常，`fallback`降级逻辑调用成功直接返回，降级逻辑调用失败抛出异常
+9. 返回执行成功结果
+
+### 9.3. HystrixCommand 注解
+
+通过`@HystrixCommand`注解能够更加简单快速的实现Hystrix的应用，查看`@HystrixCommand`注解源码，其中包含了诸多参数配置，如执行隔离策略，线程池定义等
+```java
+@Target({ElementType.METHOD})
+@Retention(RetentionPolicy.RUNTIME)
+@Inherited
+@Documented
+public @interface HystrixCommand {
+    String groupKey() default "";
+
+    String commandKey() default "";
+
+    String threadPoolKey() default "";
+
+    String fallbackMethod() default "";
+
+    HystrixProperty[] commandProperties() default {};
+
+    HystrixProperty[] threadPoolProperties() default {};
+
+    Class<? extends Throwable>[] ignoreExceptions() default {};
+
+    ObservableExecutionMode observableExecutionMode() default ObservableExecutionMode.EAGER;
+
+    HystrixException[] raiseHystrixExceptions() default {};
+
+    String defaultFallback() default "";
+}
+```
+
+其定义了`fallbackMethod`属性，其作用是提供了一个定义回退方法映射，在异常触发时此方法名对应的method将被触发执行，从而实现服务的降级。被 `@HystrixCommand` 注解的方法将会执行切面处理。其切面类是`HystrixCommandAspect.java`，其切点定义如下
+
+```java
+@Aspect
+public class HystrixCommandAspect {
+    private static final Map<HystrixPointcutType, MetaHolderFactory> META_HOLDER_FACTORY_MAP;
+
+    static {
+        META_HOLDER_FACTORY_MAP = ImmutableMap.<HystrixPointcutType, MetaHolderFactory>builder()
+                .put(HystrixPointcutType.COMMAND, new CommandMetaHolderFactory())
+                .put(HystrixPointcutType.COLLAPSER, new CollapserMetaHolderFactory())
+                .build();
+    }
+
+    @Pointcut("@annotation(com.netflix.hystrix.contrib.javanica.annotation.HystrixCommand)")
+    public void hystrixCommandAnnotationPointcut() {}
+
+    @Pointcut("@annotation(com.netflix.hystrix.contrib.javanica.annotation.HystrixCollapser)")
+    public void hystrixCollapserAnnotationPointcut() {}
+
+    @Around("hystrixCommandAnnotationPointcut() || hystrixCollapserAnnotationPointcut()")
+    public Object methodsAnnotatedWithHystrixCommand(final ProceedingJoinPoint joinPoint) throws Throwable {
+        Method method = getMethodFromTarget(joinPoint);
+        Validate.notNull(method, "failed to get method from joinPoint: %s", joinPoint);
+        if (method.isAnnotationPresent(HystrixCommand.class) && method.isAnnotationPresent(HystrixCollapser.class)) {
+            throw new IllegalStateException("method cannot be annotated with HystrixCommand and HystrixCollapser " +
+                    "annotations at the same time");
+        }
+        MetaHolderFactory metaHolderFactory = META_HOLDER_FACTORY_MAP.get(HystrixPointcutType.of(method));
+        MetaHolder metaHolder = metaHolderFactory.create(joinPoint);
+        HystrixInvokable invokable = HystrixCommandFactory.getInstance().create(metaHolder);
+        ExecutionType executionType = metaHolder.isCollapserAnnotationPresent() ?
+                metaHolder.getCollapserExecutionType() : metaHolder.getExecutionType();
+
+        Object result;
+        try {
+            if (!metaHolder.isObservable()) {
+                result = CommandExecutor.execute(invokable, executionType, metaHolder);
+            } else {
+                result = executeObservable(invokable, executionType, metaHolder);
+            }
+        } catch (HystrixBadRequestException e) {
+            throw e.getCause();
+        } catch (HystrixRuntimeException e) {
+            throw hystrixRuntimeExceptionToThrowable(metaHolder, e);
+        }
+        return result;
+    }
+    // ....省略
+}
+```
+
+在`HystrixCommandAspect`的`methodsAnnotatedWithHystrixCommand`方法，此方法通过环绕通知的形式对目标方法进行增强，主要作用如下：
+
+- `HystrixInvokable`：定义了后续真正执行`HystrixCommand`的`GenericCommand`实例
+- 定义`metaHolder`，包含了当前被注解方法的所有相关有效信息
+- 执行方法：在进入执行体前，其有一个判断条件，判断其是否是一个`Observable`模式（在Hystrix中，其实现大量依赖RXJAVA，会无处不在的看到`Observable`，其是一种观察者模式的实现，具体可以到RxJava项目官方做更多了解）
+
+# Hystrix 服务熔断的替换方案
+
+18年底Netflix官方宣布 Hystrix 已经足够稳定并且不再开发，该项目将处于维护模式。就目前来看Hystrix是比较稳定的，并且Hystrix只是停止开发新的版本，并不是完全停止维护，出现bug问题依然会维护的。因此短期内，Hystrix依然是继续使用的。但从长远来看，Hystrix总会达到它的生命周期，那么Spring Cloud生态中是否有替代产品呢？
+
+## 1. 替换方案介绍
+
+**Alibaba Sentinel**
+
+Sentinel 是阿里巴巴开源的一款断路器实现，目前在Spring Cloud的孵化器项目Spring Cloud Alibaba中的一员Sentinel本身在阿里内部已经被大规模采用，非常稳定。因此可以作为一个较好的替代品
+
+**Resilience4J**
+
+Resilicence4J 一款非常轻量、简单，并且文档非常清晰、丰富的熔断工具，这也是Hystrix官方推荐的替代产品。不仅如此，Resilicence4j还原生支持Spring Boot 1.x/2.x，而且监控也不像Hystrix一样弄Dashboard/Hystrix等一堆轮子，而是支持和Micrometer（Pivotal开源的监控门面，Spring Boot 2.x中的Actuator就是基于Micrometer的）、prometheus（开源监控系统，来自谷歌的论文）、以及Dropwizard metrics（Spring Boot曾经的模仿对象，类似于Spring Boot）进行整合
+
+## 2. Spring Cloud Alibaba Sentinel
+
+Spring Cloud Alibaba Sentinel 组件详细介绍与使用，详见`code-learning-note\07-分布式架构&微服务架构\02-SpringCloud\03-Spring-Cloud-Alibaba.md`
+
+## 3. Resilience4J（待学习与整理）
+
+待学习与整理！
 

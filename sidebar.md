@@ -165,8 +165,11 @@
 
 ### ✨ SpringCloud ✨
 
-* [SpringCloud简介](/07-分布式架构&微服务架构/02-SpringCloud/01-Spring-Cloud-Overview)
+* [SpringCloud 整体介绍](/07-分布式架构&微服务架构/02-SpringCloud/01-Spring-Cloud-Overview)
 * [Spring Cloud Netflix（包含Eureka、Ribbon、Hystrix、Zuul等组件）](/07-分布式架构&微服务架构/02-SpringCloud/02-Spring-Cloud-Netflix)
+* [Spring Cloud Alibaba (包含Sentinel等组件)](/07-分布式架构&微服务架构/02-SpringCloud/03-Spring-Cloud-Alibaba)
+* [Spring Cloud OpenFeign 服务调用](/07-分布式架构&微服务架构/02-SpringCloud/04-Spring-Cloud-OpenFeign)
+* [Spring Cloud Consul 注册中心](/07-分布式架构&微服务架构/02-SpringCloud/05-Spring-Cloud-Consul)
 
 ### ✨ 其他 ✨
 

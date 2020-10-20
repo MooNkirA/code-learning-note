@@ -3969,6 +3969,23 @@ public void aroundDemoTest() {
 }
 ```
 
+### 3.7. 通知相关的注解使用注意要点
+
+1. 定义几个不同的切入点，如果想让一个通知方法对此几个切入点都进行增加，在通知类注解`value`属性中指定多个切入点方法名称，多个方法名称中间使用`||`隔开
+
+```java
+@Pointcut("@annotation(com.netflix.hystrix.contrib.javanica.annotation.HystrixCommand)")
+public void hystrixCommandAnnotationPointcut() {}
+
+@Pointcut("@annotation(com.netflix.hystrix.contrib.javanica.annotation.HystrixCollapser)")
+public void hystrixCollapserAnnotationPointcut() {}
+
+@Around("hystrixCommandAnnotationPointcut() || hystrixCollapserAnnotationPointcut()")
+public Object methodsAnnotatedWithHystrixCommand(final ProceedingJoinPoint joinPoint) throws Throwable {
+    // ....省略逻辑代码
+}
+```
+
 ## 4. AOP用于扩展目标类的注解
 
 ### 4.1. @DeclareParents
@@ -3987,7 +4004,7 @@ public void aroundDemoTest() {
 
 #### 4.1.3. 使用示例
 
-> 使用前端示例基础的代码
+> 使用前面示例基础的代码
 
 - 创建校验的接口与实现类
 
