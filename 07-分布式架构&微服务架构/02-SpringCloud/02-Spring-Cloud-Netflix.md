@@ -1420,6 +1420,26 @@ public class DiscoveryClient implements EurekaClient {
     3. `ApplicationInfoManager.StatusChangeListener` 注册实例状态监听类，监听服务实例状态变化，向注册中心同步实例状态
     4. `InstanceInfoReplicator`定时刷新实例状态，并向注册中心同步，默认`eureka.client.instanceInfoReplicationIntervalSeconds=30`，即30s执行一次。若实例状态有变更，则重新执行注册
 
+## 8. Eureka替换方案（Consul 注册中心）
+
+### 8.1. Eureka 的替换方案
+
+- **Zookeeper**
+
+ZooKeeper是一个分布式的，开放源码的分布式应用程序协调服务，是Google的Chubby一个开源的实现，是Hadoop和Hbase的重要组件。它是一个为分布式应用提供一致性服务的软件，提供的功能包括：配置维护、域名服务、分布式同步、组服务等。
+
+- **Consul**
+
+consul是近几年比较流行的服务发现工具。consul的三个主要应用场景：服务发现、服务隔离、服务配置
+
+- **Nacos**
+
+Nacos 是阿里巴巴推出来的一个新开源项目，这是一个更易于构建云原生应用的动态服务发现、配置管理和服务管理平台。Nacos 致力于帮助您发现、配置和管理微服务。Nacos 提供了一组简单易用的特性集，帮助您快速实现动态服务发现、服务配置、服务元数据及流量管理。Nacos 帮助您更敏捷和容易地构建、交付和管理微服务平台。 Nacos 是构建以“服务”为中心的现代应用架构 (例如微服务范式、云原生范式) 的服务基础设施
+
+### 8.2. Consul 注册中心入门
+
+Consul 注册中心组件的详细介绍与使用，详见`code-learning-note\07-分布式架构&微服务架构\02-SpringCloud\05-Spring-Cloud-Consul.md`
+
 # Ribbon 服务调用
 
 ## 1. Ribbon 概述
@@ -1909,26 +1929,6 @@ public class RibbonClientConfiguration {
 Ribbon 的负载均衡主要是通 `LoadBalancerClient` 来实现，而 `LoadBalancerClient` 具体是交给 `ILoadBalancer` 来处理，`ILoadBalancer` 通过配置 `IRule`、`IPing` 等，向 `EurekaClient` 获取注册列表信息，默认每10秒向 `EurekaClient` 发送一次“ping” 请求，用于检查是否需要更新服务的注册列表信息。最后，在得到服务注册列表令牌后，`ILoadBalancer` 根据 `IRule` 的策略进行负载均衡。
 
 在 `RestTemplate` 加上 `@LoadBalanced` 注解后，在远程调度时能够负载均衡，主要是维护了一个被 `@LoadBalanced` 注解的 `RestTemplate` 列表，并给该列表中的 `RestTemplate` 对象添加了拦截器。在拦截器的方法中，将远程调度方法交给了 Ribbon 的负载均衡器 `LoadBalancerClient` 去处理，从而达到了负载均衡的目的。
-
-# Eureka替换方案（Consul 注册中心）
-
-## 1. Eureka 的替换方案
-
-- **Zookeeper**
-
-ZooKeeper是一个分布式的，开放源码的分布式应用程序协调服务，是Google的Chubby一个开源的实现，是Hadoop和Hbase的重要组件。它是一个为分布式应用提供一致性服务的软件，提供的功能包括：配置维护、域名服务、分布式同步、组服务等。
-
-- **Consul**
-
-consul是近几年比较流行的服务发现工具。consul的三个主要应用场景：服务发现、服务隔离、服务配置
-
-- **Nacos**
-
-Nacos 是阿里巴巴推出来的一个新开源项目，这是一个更易于构建云原生应用的动态服务发现、配置管理和服务管理平台。Nacos 致力于帮助您发现、配置和管理微服务。Nacos 提供了一组简单易用的特性集，帮助您快速实现动态服务发现、服务配置、服务元数据及流量管理。Nacos 帮助您更敏捷和容易地构建、交付和管理微服务平台。 Nacos 是构建以“服务”为中心的现代应用架构 (例如微服务范式、云原生范式) 的服务基础设施
-
-## 2. Consul 注册中心入门
-
-Consul 注册中心组件的详细介绍与使用，详见`code-learning-note\07-分布式架构&微服务架构\02-SpringCloud\05-Spring-Cloud-Consul.md`
 
 # Feign 服务调用
 
@@ -2770,11 +2770,11 @@ public class HystrixCommandAspect {
 - 定义`metaHolder`，包含了当前被注解方法的所有相关有效信息
 - 执行方法：在进入执行体前，其有一个判断条件，判断其是否是一个`Observable`模式（在Hystrix中，其实现大量依赖RXJAVA，会无处不在的看到`Observable`，其是一种观察者模式的实现，具体可以到RxJava项目官方做更多了解）
 
-# Hystrix 服务熔断的替换方案
+## 10. Hystrix 服务熔断的替换方案
 
 18年底Netflix官方宣布 Hystrix 已经足够稳定并且不再开发，该项目将处于维护模式。就目前来看Hystrix是比较稳定的，并且Hystrix只是停止开发新的版本，并不是完全停止维护，出现bug问题依然会维护的。因此短期内，Hystrix依然是继续使用的。但从长远来看，Hystrix总会达到它的生命周期，那么Spring Cloud生态中是否有替代产品呢？
 
-## 1. 替换方案介绍
+### 10.1. 替换方案介绍
 
 **Alibaba Sentinel**
 
@@ -2784,11 +2784,169 @@ Sentinel 是阿里巴巴开源的一款断路器实现，目前在Spring Cloud�
 
 Resilicence4J 一款非常轻量、简单，并且文档非常清晰、丰富的熔断工具，这也是Hystrix官方推荐的替代产品。不仅如此，Resilicence4j还原生支持Spring Boot 1.x/2.x，而且监控也不像Hystrix一样弄Dashboard/Hystrix等一堆轮子，而是支持和Micrometer（Pivotal开源的监控门面，Spring Boot 2.x中的Actuator就是基于Micrometer的）、prometheus（开源监控系统，来自谷歌的论文）、以及Dropwizard metrics（Spring Boot曾经的模仿对象，类似于Spring Boot）进行整合
 
-## 2. Spring Cloud Alibaba Sentinel
+### 10.2. Spring Cloud Alibaba Sentinel
 
 Spring Cloud Alibaba Sentinel 组件详细介绍与使用，详见`code-learning-note\07-分布式架构&微服务架构\02-SpringCloud\03-Spring-Cloud-Alibaba.md`
 
-## 3. Resilience4J（待学习与整理）
+### 10.3. Resilience4J（待学习与整理）
 
-待学习与整理！
+*待学习与整理！*
+
+# Zuul 微服务网关
+
+## 1. Zuul简介
+
+Zuul是Netflix开源的微服务网关，它可以和Eureka、Ribbon、Hystrix等组件配合使用，Zuul组件的核心是一系列的过滤器，这些过滤器可以完成以下功能：
+
+- 动态路由：动态将请求路由到不同后端集群
+- 压力测试：逐渐增加指向集群的流量，以了解性能
+- 负载分配：为每一种负载类型分配对应容量，并弃用超出限定值的请求
+- 静态响应处理：边缘位置进行响应，避免转发到内部集群
+- 身份认证和安全：识别每一个资源的验证要求，并拒绝那些不符的请求。Spring Cloud对Zuul进行了整合和增强。
+
+## 2. Zuul 网关服务器搭建准备
+
+创建Zuul组件的示例工程`11-springcloud-zuul`，复用之前`06-springcloud-feign`工程的代码，删除一些无用的内容
+
+### 2.1. 创建zuul服务引入依赖
+
+创建zuul网关工程 `shop-server-zuul` ，并添加zuul组件的依赖
+
+```java
+<!-- spring cloud netflix zuul 组件核心依赖 -->
+<dependency>
+    <groupId>org.springframework.cloud</groupId>
+    <artifactId>spring-cloud-starter-netflix-zuul</artifactId>
+</dependency>
+```
+
+### 2.2. 开启zuul网关功能
+
+创建启动类 `ZuulServerApplication`，在启动类上标识`@EnableZuulProxy`注解开启zuul网关功能
+
+```java
+@SpringBootApplication
+@EnableZuulProxy // 开启zuul网关功能
+public class ZuulServerApplication {
+    public static void main(String[] args) {
+        SpringApplication.run(ZuulServerApplication.class, args);
+    }
+}
+```
+
+### 2.3. 项目配置
+
+创建工程的配置文件`application.yml`，并添加基础配置
+
+```yml
+server:
+  port: 8080 # 项目端口
+spring:
+  application:
+    name: shop-server-zuul # 服务名称
+```
+
+## 3. Zuul 的路由转发
+
+**路由转发**是指根据请求URL，将请求分配到对应的处理程序。在微服务体系中，Zuul负责接收所有的请求。根据不同的URL匹配规则，将不同的请求转发到不同的微服务处理。
+
+### 3.1. 基础配置
+
+修改工程的`application.yml`配置文件，配置路由规则
+
+```yml
+# zuul 路由配置
+zuul:
+  routes:
+    # 商品微服务
+    shop-service-product: # 路由名称，名称任意，保持所有路由名称唯一即可
+      path: /product-service/** # 配置映射路径，当前示例即：localhost:8080/product-service/xxxx/xx
+      url: http://127.0.0.1:9001 # 配置请求映射路径时转发到对应的实际微服务url地址，可以是实际ip或者域名
+      sensitiveHeaders: # 默认zuul会屏蔽cookie，cookie不会传到下游服务，这里设置为空则取消默认的黑名单，如果设置了具体的头信息则不会传到下游服务
+```
+
+配置项说明：
+
+- `shop-service-product`：配置路由id，可以随意取名，只要保持配置中所有路由id唯一即可
+- `path`：配置映射路径，上面示例代表所有前缀为`/product-service`的请求，都会转发到`http://127.0.0.1:9001`
+- `url`：映射路径对应的实际url地址
+
+Zuul路由配置后，启动服务，在浏览器中输入`http://localhost:8080/product-service/product/1`，即可访问到商品微服务
+
+### 3.2. 通过注册中心方式的路由配置
+
+对于一个URL请求，最终会确认一个服务实例进行处理。在实际项目众多微服务情况下，如果对每个服务实例手动指定一个唯一访问地址，然后根据URL去手动实现请求匹配，显然不可能的。
+
+Zuul支持与Eureka整合开发，根据`ServiceID`自动的从注册中心中获取服务地址并转发请求，此配置方式不仅可以通过单个端点来访问应用的所有服务，而且在添加或移除服务实例的时候不用修改Zuul的路由配置
+
+1. 修改网关服务，添加注册中心Eureka客户端的依赖
+
+```xml
+<dependency>
+    <groupId>org.springframework.cloud</groupId>
+    <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
+</dependency>
+```
+
+2. 开启Eureka客户端发现功能。在启动类中标识`@EnableDiscoveryClient`。*注：从Spring Cloud Edgware版本开始，开启服务发现的注解可以省略不写。只需加上相关依赖与相应配置，即可注册服务*
+3. 在`application.yml`中添加Eureka配置，获取服务信息
+
+```yml
+# Eureka 客户端配置
+eureka:
+  instance:
+    prefer-ip-address: true # 将当前服务的ip地址注册到Eureka服务中
+    instance-id: ${spring.cloud.client.ip-address}:${server.port}  # 指定实例id
+  client:
+    service-url:
+      defaultZone: http://localhost:8001/eureka/ # Eureka server 地址，多个eureka server之间用,隔开
+      registry-fetch-interval-seconds: 5 # 配置获取服务列表的周期为5s，默认值是30s
+```
+
+4. 修改zuul的映射配置，通过服务名称获取。引入Eureka客户端后，可以从Eureka获取服务的地址信息，因此映射时无需指定IP地址，而是通过服务名称来访问，而且Zuul已经集成了Ribbon的负载均衡功能
+
+```yml
+zuul:
+  routes:
+    # 商品微服务
+    shop-service-product: # 路由名称，名称任意，保持所有路由名称唯一即可
+      path: /product-service/** # 配置映射路径，当前示例即：localhost:8080/product-service/xxxx/xx
+      serviceId: shop-service-product # 配置请求转发相应的服务名称，网关会从eureka中获取该服务名称下的服务实例的地址
+      sensitiveHeaders: # 默认zuul会屏蔽cookie，cookie不会传到下游服务，这里设置为空则取消默认的黑名单，如果设置了具体的头信息则不会传到下游服务
+```
+
+配置项说明：
+
+- `serviceId`：指定请求需要转发的微服务实例名称（服务注册到eureka的名称）
+
+依次启动Eureka，商品微服务，API网关，在浏览器上通过访问 http://localhost:8080/product-service/product/1 查看最终效果。
+
+
+## 4. Zuul 的过滤器
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
