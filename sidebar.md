@@ -170,6 +170,7 @@
 * [Spring Cloud Alibaba (包含Sentinel等组件)](/07-分布式架构&微服务架构/02-SpringCloud/03-Spring-Cloud-Alibaba)
 * [Spring Cloud OpenFeign 服务调用](/07-分布式架构&微服务架构/02-SpringCloud/04-Spring-Cloud-OpenFeign)
 * [Spring Cloud Consul 注册中心](/07-分布式架构&微服务架构/02-SpringCloud/05-Spring-Cloud-Consul)
+* [Spring Cloud Gateway 服务网关](/07-分布式架构&微服务架构/02-SpringCloud/06-Spring-Cloud-Gateway)
 
 ### ✨ 其他 ✨
 
