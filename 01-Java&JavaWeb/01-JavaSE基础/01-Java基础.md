@@ -1,6 +1,7 @@
 # Java 基础语法
 
 ## 1. static 关键字
+
 ### 1.1. static 概述
 
 - static 是一个修饰符
@@ -920,11 +921,470 @@ public class Day20Test02_02 {
 }
 ```
 
----
+# 枚举类(Enum)
+
+## 1. 枚举的概述
+
+枚举类型是在JDK1.5后的新特性。<font color=red>**本质就是一个类，所有自定义的枚举类都默认是Enum的子类**</font>
+
+> 关于枚举，阿里巴巴开发手册有这样两条建议：
+>
+> 1. 枚举类名带上 `Enum` 后缀，枚举成员名称需要全大写，单词间用下划线隔开。
+> 2. 如果变量值仅在一个固定范围内变化用 `enum` 类型来定义。
+
+### 1.1. JDK1.5之前实现类似枚举的功能（了解）
+
+JDK1.5之前的解决输入非法成员变量值的方法：
+
+重新定义一个成员变量的类，在定义成员变量的时候，使用这个相应的成员变量类。将成员变量的类的构造方法私有，不能让使用者new对象。
+
+<font color=red>**JKD1.5之后的解决方法：定义一个枚举类，解决调用构造方法创建对象时输入非法成员变量的情况。**</font>
+
+### 1.2. Enum类
+
+```java
+public abstract class Enum<E extends Enum<E>> implements Comparable<E>, Serializable
+```
+
+这是所有 Java 语言枚举类型的公共基本类
+
+### 1.3. 枚举的作用
+
+1. 提高代码的可读性
+2. 控制某一数据类型的值不能乱写，避免产生垃圾值，保证数据有效性
+
+### 1.4. 枚举的使用场景
+
+当数据类型的值只能在给定的范围内进行选择时(数量不能太多的时候)。比如：性别、季节、月份、星期…
+
+## 2. 枚举底层实现
+
+### 2.1. 枚举编译后的代码
+
+创建一个`ColorEnum`的枚举类，通过编译，再反编译看看它发生了哪些变化。
+
+```java
+public enum ColorEnum {
+    RED,GREEN,BULE;
+}
+```
+
+使用命令`javac ColorEnum.java`进行编译生成class文件，然后再用命令`javap -p ColorEnum.class`进行反编译。
+
+![](images/20201105082910802_4924.png)
+
+去掉包名，反编译后的内容如下：
+
+```java
+public final class ColorEnum extends Enum{
+    public static final ColorEnum GREEN;
+    public static final ColorEnum BULE;
+    private static final ColorEnum[] $VALUES;
+    public static ColorEnum[] values();
+    public static ColorEnum valueOf(java.lang.String);
+    private ColorEnum();
+    static {};
+}
+```
+
+### 2.2. 枚举的特点
+
+1. 枚举类被`final`修饰，因此枚举类不能被继承；
+2. 枚举类默认继承了`Enum`类，java不支持多继承，因此枚举类不能继承其他类；
+3. 枚举类的构造器是`private`修饰的，因此其他类不能通过构造器来获取对象；
+4. 枚举类的成员变量是`static`修饰的，可以用`类名.变量`来获取对象；
+5. `values()`方法是获取所有的枚举实例；
+6. `valueOf(java.lang.String)`是根据名称获取对应的实例；
+
+## 3. 枚举的基础使用
+
+### 3.1. 枚举类的定义格式
+
+```java
+enum 枚举名称 {
+    成员名称1, 成员名称2, 成员名称3
+}
+```
+
+<font color=red>**枚举的底层实现，枚举的底层是一个类继承了`Enum`**</font>
+
+
+### 3.2. 枚举的使用步骤
+
+1. 定义枚举类
+2. 在成员变量类型上面使用枚举类型
+3. 设置枚举值(如`WeekDay.FRI`)，语法即`枚举名称.成员`
+4. 可以做枚举比较`e.getResetDay() == WeekDay.STA`
+
+总结：<font color=red>**枚举的作用是用来表示几个固定的值，可以使用枚举中成员**</font>
+
+### 3.3. 枚举常用方法
+
+```java
+public final String name();
+```
+
+- 获得枚举名，返回此枚举常量的名称
+
+```java
+public static <T extends Enum<T>> T valueOf(Class<T> enumType, String name)
+```
+
+- 根据枚举名字符串获得枚举值对象
+- 返回带指定名称的指定枚举类型的枚举常量。名称必须与在此类型中声明枚举常量所用的标识符完全匹配。（不允许使用额外的空白字符。）
+
+> <font color=red>*此方法虽然在JDK文档中查找不到，但每个枚举类都具有该方法，它遍历枚举类的所有枚举值非常方便*</font>
+
+### 3.4. 枚举注意事项
+
+- 定义枚举类要用关键字 `enum`
+- 所有枚举类都是 `Enum` 的子类（默认是`Enum`的子类，不需要（能）再写`extends Enum`）
+- 枚举值必须是枚举类的第一行有效语句。
+- 多个枚举值必须要用逗号(`,`)分隔。最后一个枚举项后的分号是可以省略的，但是如果枚举类有其他的东西，这个分号就不能省略。建议不要省略
+- 枚举类可以有构造方法，但必须是`private`修饰的，它默认的也是 `private` 的。
+- 枚举项的用法比较特殊：可以定义为枚举`(" xxx ")`，但定义构造方法。
+
+![](images/20201105085210521_20886.png)
+
+### 3.5. 枚举使用案例 - 消除if/else
+
+假如要写一套加密接口，分别给小程序、app和web端来使用，但是这三种客户端的加密方式不一样。一般情况下我们会传一个类型type来判断来源，然后调用对应的解密方法即可。代码如下：
+
+```java
+if ("WEIXIN".equals(type)) {
+    // dosomething
+} else if ("APP".equals(type)) {
+    // dosomething
+} else if ("WEB".equals(type)) {
+    // dosomething
+}
+```
+
+使用枚举来代替if/else。写一个加密用的接口，有加密和解密两个方法。然后用不同的算法去实现这个接口完成加解密。
+
+```java
+public interface Util {
+    // 解密
+    String decrypt();
+
+    // 加密
+    String encrypt();
+}
+```
+
+创建一个枚举类来实现这个接口
+
+```java
+public enum UtilEnum implements Util {
+
+    WEIXIN {
+        @Override
+        public String decrypt() {
+            return "微信解密";
+        }
+
+        @Override
+        public String encrypt() {
+            return "微信加密";
+        }
+    },
+    APP {
+        @Override
+        public String decrypt() {
+            return "app解密";
+        }
+
+        @Override
+        public String encrypt() {
+            return "app加密";
+        }
+    },
+    WEB {
+        @Override
+        public String decrypt() {
+            return "web解密";
+        }
+
+        @Override
+        public String encrypt() {
+            return "web加密";
+        }
+    };
+}
+```
+
+最后，获取到type后，直接可以根据type调用解密方法即可
+
+```java
+String decryptMessage = UtilEnum.valueOf(type).decrypt();
+```
+
+## 4. （扩展）枚举创建线程安全的单例模式
+
+```java
+public enum  SingletonEnum {
+
+    INSTANCE;
+
+    public void doSomething(){
+        // dosomething...
+    }
+}
+```
+这样一个单例模式就创建好了，通过`SingletonEnum.INSTANCE`来获取对象就可以了。
+
+### 4.1. 序列化造成单例模式不安全
+
+一个类如果如果实现了序列化接口，则可能破坏单例。每次反序列化一个序列化的一个实例对象都会创建一个新的实例。
+
+枚举序列化是由JVM保证的，每一个枚举类型和定义的枚举变量在JVM中都是唯一的，在枚举类型的序列化和反序列化上，Java做了特殊的规定：在序列化时Java仅仅是将枚举对象的name属性输出到结果中，反序列化的时候则是通过`java.lang.Enum`的`valueOf`方法来根据名字查找枚举对象。同时，编译器是不允许任何对这种序列化机制的定制的并禁用了`writeObject`、`readObject`、`readObjectNoData`、`writeReplace`和`readResolve`等方法，从而保证了枚举实例的唯一性。
+
+### 4.2. 反射造成单例模式不安全
+
+通过反射强行调用私有构造器来生成实例对象，造成单例模式不安全。
+
+```java
+Class<?> aClass = Class.forName("xx.xx.xx");
+Constructor<?> constructor = aClass.getDeclaredConstructor(String.class);
+SingletonEnum singleton = (SingletonEnum) constructor.newInstance("Demo");
+```
+
+但是使用枚举创建的单例完全不用考虑这个问题，以下为newInstance的源码
+
+```java
+public T newInstance(Object ... initargs)
+    throws InstantiationException, IllegalAccessException,
+IllegalArgumentException, InvocationTargetException
+{
+    if (!override) {
+        if (!Reflection.quickCheckMemberAccess(clazz, modifiers)) {
+            Class<?> caller = Reflection.getCallerClass();
+            checkAccess(caller, clazz, null, modifiers);
+        }
+    }
+    // 如果是枚举类型，直接抛出异常，不让创建实例对象！
+    if ((clazz.getModifiers() & Modifier.ENUM) != 0)
+        throw new IllegalArgumentException("Cannot reflectively create enum objects");
+    ConstructorAccessor ca = constructorAccessor;   // read volatile
+    if (ca == null) {
+        ca = acquireConstructorAccessor();
+    }
+    @SuppressWarnings("unchecked")
+    T inst = (T) ca.newInstance(initargs);
+    return inst;
+}
+```
+
+如果是`enum`类型，则直接抛出异常`Cannot reflectively create enum objects`，无法通过反射创建实例对象！
+
+# 序列化与反序列化
+
+## 1. 对象的序列化与反序列化概述
+
+什么是序列化？对象并不只是存在内存中，还需要传输网络，或者保存起来下次再加载出来用，所以需要Java序列化技术。
+
+Java序列化技术正是将对象转变成一串由二进制字节组成的数组，可以通过将二进制数据保存到磁盘或者传输网络，磁盘或者网络接收者可以在对象的属类的模板上来反序列化类的对象，达到对象持久化的目的。
+
+- <font color=red>**对象序列化：将自定义对象以流的形式保存到文件中的过程**</font>
+    - 要实现对象的序列化需要使用的流：`ObjectOutputStream` 继承 `OutputStream`
+- <font color=red>**对象反序列化：将文件中的对象以流的形式读取出来的过程**</font>
+    - 要实现对象的反序列化需要使用的流：**ObjectInputStream** 继承 **InputStream**
+
+## 2. 对象序列化流 ObjectOutputStream 类
+
+### 2.1. ObjectOutputStream 类作用
+
+对象输出流，将Java的对象保存到文件中
+
+### 2.2. 构造方法
+
+```java
+public ObjectOutputStream(OutputStream out);
+```
+
+根据指定的字节输出`OutputStream`对象来创建`ObjectOutputStream`。如：
+
+```java
+ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream("stu.txt"));
+```
+
+### 2.3. 相关方法
+
+```java
+public final void writeObject(Object obj)
+```
+
+将对象Obj写出到流关联的目标文件中
+
+### 2.4. 序列化接口(Serializable)
+
+```java
+package java.io;
+
+public interface Serializable {
+}
+```
+
+- `Serializable`接口概述：没有任何方法，该接口属于标记性接口。
+- `Serializable`接口作用：能够保证实现了该接口的类的对象可以直接被序列化到文件中
+
+<font color=red>**注：被保存的对象要求实现 `Serializable` 接口，否则不能直接保存到文件中。否则会出现`java.io.NotSerializableException`。**</font>
+
+### 2.5. 序列化步骤
+
+1. 定义类，实现Serializable接口，自定义一个Serializable接口序列号
+
+```java
+public class Student implements Serializable {}
+```
+
+2. 创建对象
+3. 创建对象输出流`ObjectOutputStream`
+4. 调用`writeObject`将对象写入文件中
+5. 关流
+
+## 3. 对象反序列化流ObjectInputStream
+
+### 3.1. ObjectInputStream作用
+
+将文件中的对象读取到程序中，将对象从文件中读取出来，实现对象的反序列化操作。
+
+### 3.2. 构造方法
+
+```java
+ObjectInputStream(InputStream in)
+```
+
+通过字节输入`InputStream`对象创建`ObjectInputStream`
+
+### 3.3. 普通方法
+
+```java
+public final Object readObject()
+```
+
+从流关联的的文件中读取对象
+
+### 3.4. 反序列化步骤
+
+1. 创建对象输入流
+2. 调用`readObject()`方法读取对象
+3. 关流
+
+## 4. 序列化和反序列化的注意事项
+
+### 4.1. InvalidClassException 异常
+
+`java.io.InvalidClassException`: 无效的类异常。此异常是<font color=red>**序列号冲突**</font>。
+
+- 出错的核心问题：**类改变后，类的序列化号也改变，就和文件中的序列化号不一样**
+- 解决方法：**修改类的时候,让序列化号不变，自定义一个序列号，不要系统随机生成序列号。**
+
+![](images/20201105141312805_17748.png)
+
+### 4.2. 瞬态关键字 `transient`
+
+序列化对象时，如果不想保存某一个成员变量的值，该如何处理？
+
+#### 4.2.1. 关键字 transient 的作用
+
+`transient`关键字作用是用于指定**序列化对象时不保存某个成员变量的值**
+
+用 `transient` 修饰成员变量，能够保证该成员变量的值不能被序列化到文件中。当对象被反序列化时，被 `transient` 修饰的变量值不会被持久化和恢复
+
+#### 4.2.2. 使用 static 修饰的成员变量（不建议使用）
+
+可以将该成员变量定义为静态的成员变量。因为对象序列化只会保存对象自己的信息，静态成员变量是属于类的信息，所有不会被保存
+
+#### 4.2.3. 注意点
+
+`transient` 只能修饰变量，不能修饰类和方法
+
+### 4.3. 其它要点
+
+- 序列化对象必须实现序列化接口。
+- 序列化对象里面的属性是对象的话也要实现序列化接口。
+- 类的对象序列化后，类的序列化ID不能轻易修改，不然反序列化会失败。
+- 类的对象序列化后，类的属性有增加或者删除不会影响序列化，只是值会丢失。
+- 如果父类序列化了，子类会继承父类的序列化，子类无需添加序列化接口。
+- 如果父类没有序列化，子类序列化了，子类中的属性能正常序列化，但父类的属性会丢失，不能序列化。
+- 用Java序列化的二进制字节数据只能由Java反序列化，不能被其他语言反序列化。如果要进行前后端或者不同语言之间的交互一般需要将对象转变成Json/Xml通用格式的数据，再恢复原来的对象。
+- 如果某个字段不想序列化，在该字段前加上`transient`关键字即可
+
+## 5. 序列化对象 - 网上案例
+
+要序列化一个对象，这个对象所在类就必须实现Java序列化的接口：java.io.Serializable。
+
+### 5.1. 类添加序列化接口
+
+```java
+import java.io.Serializable;
+
+public class User implements Serializable {
+
+    private static final long serialVersionUID = -8475669200846811112L;
+
+    private String username;
+    private String address;
+
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public String getAddress() {
+        return address;
+    }
+
+    public void setAddress(String address) {
+        this.address = address;
+    }
+
+    @Override
+    public String toString() {
+        return "User{" +
+                "username='" + username + '\'' +
+                ", address='" + address + '\'' +
+                '}';
+    }
+}
+```
+
+### 5.2. 序列化/反序列化
+
+可以借助commons-lang3工具包里面的类实现对象的序列化及反序列化，无需自己写
+
+```java
+import org.apache.commons.lang3.SerializationUtils;
+
+public class Test {
+    public static void main(String[] args) {
+        User user = new User();
+        user.setUsername("Java");
+        user.setAddress("China");
+        byte[] bytes = SerializationUtils.serialize(user);
+
+        User u = SerializationUtils.deserialize(bytes);
+        System.out.println(u);
+    }
+}
+```
+
+输出结果：
+
+```
+User{username='Java', address='China'}
+```
+
+上例通过序列化对象字节到内存然后反序列化，当然里面也提供了序列化磁盘然后再反序列化的方法，原理都是一样的，只是目标地不一样。
 
 # 面向网络编程
 
 ## 1. 网络编程概述
+
 ### 1.1. 网络7层架构
 
 7 层模型主要包括：

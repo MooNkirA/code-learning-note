@@ -1,4 +1,4 @@
-# 02-webpack 笔记
+# webpack 笔记
 
 ## 1. webpack介绍
 

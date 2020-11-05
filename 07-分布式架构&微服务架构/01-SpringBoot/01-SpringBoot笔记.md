@@ -1454,10 +1454,22 @@ server.contextPath=/boot
 ```
 请求地址：http://127.0.0.2/boot/findAll
 
----
+## 9. 其他
+
+### 9.1. SpingBoot项目在windows环境中运行时命令行窗口及日志中文乱码
+
+1. 配置日志的xml文件中，`<appender name="CONSOLE">`与`appender name="FILE">`的标签中都要指定`<encoder>`标签内的`<charset>utf8</charset>`
+2. 由于指定的编码与windows系统默认编码不符，此时命令行窗口将会出现日志输出乱码，需要将系统默认编码改为utf-8。cmd命令窗口在启动jar包之前增加命令`chcp 65001`
+
+```bash
+$ chcp 65001
+$ java -Dxxxx=xxxx -jar .\app.jar
+```
 
 # Spring Boot 整合
+
 ## 1. 创建Spring Boot父项目（整合Spring Cloud）
+
 ### 1.1. 创建Maven父工程（pom）
 
 - 采用Maven多Module的形式。创建Maven工程，在主Maven工和的pom文件引入Spring Boot的版本（根据需求定版本），Spring cloud版本（根据需求定版本），并可以指定一些公共的依赖，还有一些项目的公共属性（如项目的编码）

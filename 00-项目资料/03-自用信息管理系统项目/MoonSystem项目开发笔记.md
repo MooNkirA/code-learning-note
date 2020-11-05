@@ -22,14 +22,11 @@ moonzero-system
 |-- mz-service-mail      # 邮件服务模块。开发与生产端口：38090
 |-- mz-system-common     # 系统公共模块。
 |-- mz-system-model      # 系统实体类模块
-|-- mz-system-learning   # 系统新技术测试工程聚合模块
-  |-- mz-learning-springbean-lifecycle    # Spring Framework 框架 bean 生命周期学习工程。port: 39999，context-path: /lifecycle
-  |-- mz-learning-netty                   # netty框架学习工程。port: 39998，context-path: /netty
-  |-- mz-learing-lombok                   # lombok实体类框架使用demo工程
 |-- mz-system-utils      # 系统公共工具模块
 |-- mz-system-api        # 系统接口统一管理模块
 |-- mz-govern-eureka     # eureka注册中心服务。开发与生产端口：51001和51002(如果做高可用)
 |-- mz-govern-gateway    # zuul网关管理服务。开发与生产端口：51101
+|-- mz-sdk							 # 项目sdk包，抽取一些功能做成直接运行的jar包
 |-- project-resources    # 项目相关的资源
 ```
 

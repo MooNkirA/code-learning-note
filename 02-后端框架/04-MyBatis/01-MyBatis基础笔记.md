@@ -1,4 +1,4 @@
-# 01-MyBatis 基础笔记
+# MyBatis 基础笔记
 
 ## 1. MyBatis框架
 ### 1.1. MyBatis是什么
