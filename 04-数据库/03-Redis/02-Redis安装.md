@@ -89,3 +89,10 @@ redis-server.exe --service-stop    # 停止服务
     - 还可以用 `kill` 命令关闭，此方式不会做持久化，还会造成缓冲区非法关闭，可能会造成 AOF 和丢失数据
     - 关闭前生成持久化文件：使用 `redis-cli -a 123456` 登录进去，再 `shutdown nosave|save`
 
+#### 3.3.3. redis-cli 客户端监控命令
+
+打开redis-cli 客户端后，输入以下命令打开redis服务的数据监控
+
+```bash
+127.0.0.1:6379> monitor
+```

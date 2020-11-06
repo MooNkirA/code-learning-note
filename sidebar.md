@@ -131,7 +131,8 @@
 
 ### ✨ 版本管理工具 ✨
 
-* [Git笔记](/05-DevOps工具/02-版本管理工具/01-Git笔记)
+* [Git 笔记](/05-DevOps工具/02-版本管理工具/01-Git笔记)
+* [GitHub 相关资料与常用使用技巧](/05-DevOps工具/02-版本管理工具/02-GitHub)
 
 ### ✨ 应用容器 ✨
 
@@ -198,6 +199,7 @@
 - [IntelliJ IDEA 常用配置](/99-其他/01-IDE/01-IDEA)
 - [Eclipse 常用配置](/99-其他/01-IDE/02-eclipse)
 - [Visual Studio Code 常用配置](/99-其他/01-IDE/03-Visual-Studio-Code)
+- [其它开发工具常用配置与使用](/99-其他/01-IDE/99-DevelopmentTool)
 
 ## 📖 项目资料
 

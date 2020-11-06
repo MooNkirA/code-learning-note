@@ -625,25 +625,85 @@ public class AuthorizeFilter implements GlobalFilter, Ordered {
 
 ![](images/20201030152045455_1850.png)
 
+### 5.2. 基于Filter的限流
 
+Spring Cloud Gateway 官方就提供了基于令牌桶的限流支持。基于其内置的过滤器工厂 `RequestRateLimiterGatewayFilterFactory` 实现。在过滤器工厂中是通过Redis和lua脚本结合的方式进行流量控制。
 
+```java
+@ConfigurationProperties("spring.cloud.gateway.filter.request-rate-limiter")
+public class RequestRateLimiterGatewayFilterFactory extends AbstractGatewayFilterFactory<RequestRateLimiterGatewayFilterFactory.Config> {
+    ....
+}
+```
 
+#### 5.2.1. 环境准备
 
+因为Spring Cloud Gateway的令牌桶限流是基于Redis和lua脚本实现的，所以需要准备redis服务端。*本示例项目使用windows版本的redis*
 
+![](images/20201106162444138_8121.png)
 
+打开redis-cli客户端，输入`monitor`命令，开启redis的监控功能
 
+![](images/20201106162619033_23547.png)
 
+#### 5.2.2. 添加redis的reactive依赖
 
+在`shop-server-gateway`工程的pom文件中引入SpringBoot监控平台的起步依赖和redis的reactive依赖，代码如下：
 
+```xml
+<!-- 监控依赖 -->
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-actuator</artifactId>
+</dependency>
+<!-- redis的依赖 -->
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-data-redis-reactive</artifactId>
+</dependency>
+```
 
+#### 5.2.3. 修改 application.yml 配置文件
 
+在`shop-server-gateway`工程的application.yml配置文件中加入限流的配置
 
+```yml
+spring:
+  application:
+    name: shop-server-gateway # 服务名称
+  cloud:
+    # Spring Cloud Gateway 配置
+    gateway:
+      # 配置路由（包含的元素：路由id、路由到微服务的uri，断言【判断条件】）
+      routes:
+        # 路由配置都是多个，所以此处是一个数组
+        - id: shop-service-product # 路由id
+          uri: lb://shop-service-product # 方式二：根据微服务名称从注册中心拉取服务的地址与端口，格式： lb://服务名称（服务在注册中心上注册的名称）
+          predicates:
+            # 注意此path属性与zuul的path属性不一样，zuul只会将/**部分拼接到uri后面，而gateway会将全部拼接到uri后面
+            - Path=/shop-service-product/**
+          filters: # 配置路由过滤器
+            - name: RequestRateLimiter # 配置使用限流过滤器，是Spring Cloud Gateway提供的内置过滤器
+              args:
+                # 使用SpEL表达式，从spring容器中获取bean名称为keyResolver的对象，此对象就是KeyResolver接口的实例
+                key-resolver: '#{@keyResolver}'
+                # 令牌桶每秒填充平均速率，示例配置表示：每秒往令牌桶填充1个令牌
+                redis-rate-limiter.replenishRate: 1
+                # 令牌桶的上限（总容量），示例配置表示：令牌桶的总容量为3上令牌
+                redis-rate-limiter.burstCapacity: 3
+            # 配置路径重写的过滤器，通过正则表达式将 http://127.0.0.1:8080/shop-service-product/product/2 重写为 http://127.0.0.1:9001/product/2
+            - RewritePath=/shop-service-product/(?<segment>.*), /$\{segment}
+```
 
+在 application.yml 中添加了redis的信息，并配置了`RequestRateLimiter`的限流过滤器，以下是配置参数的说明：
 
+- `key-resolver`：用于配置提供用于限流的存储在redis的键的解析器的 Bean 对象的名字。它使用 SpEL 表达式根据`#{@beanName}`从 Spring 容器中获取 Bean 对象
+- `redis-rate-limiter.replenishRate`：令牌桶每秒填充平均速率
+- `redis-rate-limiter.burstCapacity`：令牌桶总容量
 
+#### 5.2.4. 创建 KeyResolver 键解析器对象
 
-
-
+为了达到不同的限流效果和规则，可以通过实现 `KeyResolver` 接口，定义不同请求类型的限流键
 
 
 
