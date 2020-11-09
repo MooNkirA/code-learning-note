@@ -705,9 +705,117 @@ spring:
 
 为了达到不同的限流效果和规则，可以通过实现 `KeyResolver` 接口，定义不同请求类型的限流键
 
+```java
+package com.moon.gateway.config;
+
+import org.springframework.cloud.gateway.filter.ratelimit.KeyResolver;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.web.server.ServerWebExchange;
+import reactor.core.publisher.Mono;
+
+/**
+ * KeyResolver配置类，创建 KeyResolver 接口实例，定义不同请求类型的限流键与规则
+ */
+@Configuration
+public class KeyResolverConfiguration {
+    /**
+     * 基于请求路径的限流
+     *
+     * @return
+     */
+    @Bean("keyResolver")
+    public KeyResolver pathKeyResolver() {
+        // 示例：根据请求路径做限流依据（路径的值会作为redis的key）
+        return new KeyResolver() {
+            @Override
+            public Mono<String> resolve(ServerWebExchange exchange) {
+                return Mono.just(exchange.getRequest().getPath().toString());
+            }
+        };
+    }
+
+    /**
+     * 基于请求参数的限流
+     *
+     * @return
+     */
+    // @Bean("keyResolver")
+    public KeyResolver userKeyResolver() {
+        // 示例：根据请求参数中的userId做限流依据（userId的值会作为redis的key）
+        return exchange -> Mono.just(exchange.getRequest().getQueryParams().getFirst("userId"));
+    }
+
+    /**
+     * 基于请求ip地址的限流
+     *
+     * @return
+     */
+    // @Bean("keyResolver")
+    public KeyResolver ipKeyResolver() {
+        // 示例：根据请求ip做限流依据（ip的值会作为redis的key）
+        return exchange -> Mono.just(exchange.getRequest().getHeaders().getFirst("X-Forwarded-For"));
+    }
+}
+```
+
+#### 5.2.5. 测试
+
+使用Jmetter模拟5组线程访问
+
+![](images/20201107103337876_2134.png)
+
+![](images/20201107102546131_2240.png)
+
+因为之前加了自定义过滤器进行权限校验，所以这里要加上请求头信息（*也可以将工程中的过滤注释掉*）
+
+![](images/20201107103123860_4115.png)
+
+结果如下，当达到令牌桶的总容量3时，其他的请求会返回429错误。
+
+![](images/20201107103737641_18492.png)
+
+通过reids的MONITOR可以监听redis的执行过程。这时候Redis中会有对应的数据：
+
+![](images/20201107104108105_18731.png)
+
+大括号中就是限流Key，这边是IP，本地的就是localhost
+
+- `timestamp`：存储的是当前时间的秒数，也就是`System.currentTimeMillis()/1000`或者`Instant.now().getEpochSecond()`
+- `tokens`：存储的是当前这秒钟的对应的可用的令牌数量
+
+#### 5.2.6. 总结
+
+Spring Cloud Gateway目前提供的限流还是相对比较简单的，在实际项目中限流策略会有很多种情况，比如：
+
+- 对不同接口的限流
+- 被限流后的友好提示
+
+这些可以通过自定义RedisRateLimiter来实现自己的限流策略
+
+### 5.3. 基于Sentinel的限流
+
+Sentinel 支持对 Spring Cloud Gateway、Zuul 等主流的 API Gateway 进行限流。
+
+![](images/20201109140057733_8923.png)
+
+从 1.6.0 版本开始，Sentinel 提供了 Spring Cloud Gateway 的适配模块，可以提供两种资源维度的限流：
+
+- **route 维度**：即在 Spring 配置文件中配置的路由条目，资源名为对应的 routeId
+- **自定义 API 维度**：用户可以利用 Sentinel 提供的 API 来自定义一些 API 分组
 
 
 
+
+
+
+
+
+## 6. 网关高可用
+
+**高可用HA**（High Availability）是分布式系统架构设计中必须考虑的因素之一，它通常是指，通过设计减少系统不能提供服务的时间。单点服务设计往往是系统高可用最大的风险点，应该尽量在系统设计的过程中避免单点服务设计。方法论上，高可用保证的原则是“集群化”，或者叫“冗余”：只有一个单点，挂掉后整个服务会受影响；如果有冗余备份，挂了还有其他备用节点能够顶上。
+
+![](images/20201109171300708_23038.png)
 
 
 
