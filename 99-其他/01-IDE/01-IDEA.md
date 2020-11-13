@@ -592,7 +592,27 @@ Postfix Completion其实就是关于代码补全的一些模板。在【Settings
 
 ![](images/20201010234327948_1885.png)
 
-## 13. Tomcat Server（当前项目配置）
+## 13. IDEA复制项目导致sources root复用了另一个项目【解决办法】
+
+比如现在新建一个项目，而对原来的uis-gateway复制粘贴，然后改项目名就成了uis-application了。这时会发现如下图所示，sources root依然是uis-gateway：
+
+![](images/20201111133014786_1013.png)
+
+解决方法：快捷键`Ctrl+Alt+Shift+S`打开Project Structure -> 在Modules中点下原始项目uis-gateway，可以看到这时它的Sources、Test、Resources都是新项目uis-application的：
+
+![](images/20201111135549742_10717.png)
+
+点上图右边框框里的叉叉删掉：
+
+![](images/20201111135608229_7886.png)
+
+![](images/20201111135626445_15338.png)
+
+此时恢复原状：
+
+![](images/20201111135651846_8443.png)
+
+## 14. Tomcat Server（当前项目配置）
 
 Tomcat或者Jetty这些都是部署的容器，自然会联想到Deployment ，打开部署配置，可以看到应用服务器的配置
 
@@ -600,13 +620,13 @@ Tomcat或者Jetty这些都是部署的容器，自然会联想到Deployment ，�
 
 ![](images/20201105154033810_20978.jpg)
 
-## 14. IDEA 的项目配置和Web部署
+## 15. IDEA 的项目配置和Web部署
 
 IDEA中最重要的各种设置项，就是这个 `Project Structre` 了，关乎你的项目运行
 
 ![](images/20201105154113621_18429.jpg)
 
-### 14.1. Project选项卡
+### 15.1. Project选项卡
 ![](images/20201105154138246_26519.jpg)
 
 - `Project name`：定义项目的名称；
@@ -614,17 +634,17 @@ IDEA中最重要的各种设置项，就是这个 `Project Structre` 了，关�
 - `Project language level`：这个和JDK的类似，区别在于，假如你设置了JDK1.8，却只用到1.6的特性，那么这里可以设置语言等级为1.6，这个是限定项目编译检查时最低要求的JDK特性；
 - `Project compiler output`：项目中的默认编译输出总目录，如图黄色部分，实际上每个模块可以自己设置特殊的输出目录（Modules - (project) - Paths - Use module compile output path），所以这个设置有点鸡肋。
 
-### 14.2. Modules选项卡
+### 15.2. Modules选项卡
 
 ![](images/20201105154246189_1479.jpg)
 
-#### 14.2.1. 增删子项目
+#### 15.2.1. 增删子项目
 
 ![](images/20201105154340793_28073.jpg)
 
 一个项目中可以有多个子项目，每个子项目相当于一个模块。一般我们项目只是单独的一个，IntelliJ IDEA 默认也是单子项目的形式，所以只需要配置一个模块
 
-#### 14.2.2. 子项目配置
+#### 15.2.2. 子项目配置
 
 每个子项目都对应了Sources、Paths、Dependencies 三大配置选项
 
@@ -638,13 +658,13 @@ IDEA中最重要的各种设置项，就是这个 `Project Structre` 了，关�
 
 ![](images/20201105154536810_4240.jpg)
 
-#### 14.2.3. 增删框架（Web部署-1）
+#### 15.2.3. 增删框架（Web部署-1）
 
 每个子项目之下都可以定义它所使用的框架，这里重点说明一下Web部分的设置
 
 ![](images/20201105154614214_17076.jpg)
 
-### 14.3. Libraries选项卡
+### 15.3. Libraries选项卡
 
 这里可以显示所添加的jar包，同时也可以添加jar包，并且可以把多个jar放在一个组里面，类似于jar包整理。
 
@@ -652,7 +672,7 @@ IDEA中最重要的各种设置项，就是这个 `Project Structre` 了，关�
 
 ![](images/20201105154650284_16459.jpg)
 
-### 14.4. Facets选项卡
+### 15.4. Facets选项卡
 
 官方的解释是：When you select a framework (a facet) in the element selector pane, the settings for the framework are shown in the right-hand part of the dialog.（当你在左边选择面板点击某个技术框架，右边将会显示这个框架的一些设置）
 
@@ -660,7 +680,7 @@ IDEA中最重要的各种设置项，就是这个 `Project Structre` 了，关�
 
 ![](images/20201105154731311_7022.jpg)
 
-### 14.5. Artifacts（Web部署-2）
+### 15.5. Artifacts（Web部署-2）
 
 项目的打包部署设置，这个是项目配置里面比较关键的地方。先理解下它的含义，来看看官方定义的artifacts：
 
@@ -687,7 +707,7 @@ IDEA中最重要的各种设置项，就是这个 `Project Structre` 了，关�
 
 ![](images/20201105154911012_26433.jpg)
 
-## 15. 设置idea连接linux系统
+## 16. 设置idea连接linux系统
 
 根据linux系统的编码设置Default encoding
 
@@ -707,24 +727,24 @@ IDEA中最重要的各种设置项，就是这个 `Project Structre` 了，关�
 
 ![](images/20201105155227043_12236.jpg)
 
-## 16. 使用idae创建的Spring Boot项目，运行两个一样的启动类
+## 17. 使用idae创建的Spring Boot项目，运行两个一样的启动类
 
 ![](images/20201105155459921_5551.jpg)
 
 ![](images/20201105155507031_28656.jpg)
 
-## 17. Intellij IDEA 4种配置热部署的方法
+## 18. Intellij IDEA 4种配置热部署的方法
 
 热部署可以使的修改代码后，无须重启服务器，就可以加载更改的代码。
 
-### 17.1. 方式1：修改服务器配置，使得IDEA窗口失去焦点时，更新类和资源
+### 18.1. 方式1：修改服务器配置，使得IDEA窗口失去焦点时，更新类和资源
 
 菜单Run -> EditConfiguration , 然后配置指定服务器下，右侧server标签下on frame deactivation = Update classes and resource。
 
 - 优点：简单
 - 缺点：基于JVM提供的热加载仅支持方法块内代码修改，只有debug模式下，并且是在idea失去焦点时才会出发热加载，相对加载速度缓慢
 
-### 17.2. 方式2：使用springloaded jar包
+### 18.2. 方式2：使用springloaded jar包
 
 下载jar包，github：https://github.com/spring-projects/spring-loaded
 
@@ -733,7 +753,7 @@ IDEA中最重要的各种设置项，就是这个 `Project Structre` 了，关�
 - 优点：对Spring系列框架支持好（不含Spring boot）, 支持 成员级别的修改（增删改方法、字段、注解），支持对枚举值集。
 - 缺点：与优点相对
 
-### 17.3. 方式3：使用spring-boot-devtools提供的开发者工具
+### 18.3. 方式3：使用spring-boot-devtools提供的开发者工具
 
 spring-boot项目中引入如下依赖
 
@@ -747,20 +767,20 @@ spring-boot项目中引入如下依赖
 - 优点：简单，支持Spring-boot项目，支持成员级别的修改热部署。
 - 缺点：只支持spring-boot项目。
 
-### 17.4. 方式4：使用Jrebel插件实现热部署(该插件14天免费试用)
+### 18.4. 方式4：使用Jrebel插件实现热部署(该插件14天免费试用)
 
 在线安装：菜单File -> Setting -> Plugin, 点击右侧底部 Browse repositories, 弹出框顶部输入:JReble for Intellij， 选中安装即可
 
 - 优点：强大，对各类框架支持，并且提供IDE插件的方式
 
-### 17.5. 注意
+### 18.5. 注意
 
 最后3种方法是基于类加载机制来实现热加载的，因此你修改完成代码后必须重新编译当前代码，才能触发热部署，Eclipse默认就支持了自动编译，而在Intellij IDEA中默认是关闭了自动编译的，可以按照如下2步设置开启：
 
 1. IDEA开启项目自动编译，进入设置，Build,Execut, Deployment -> Compiler 勾选中左侧的`Build Project automatically`
 2. IDEA开启项目运行时自动make, ctrl + shift + a搜索命令：registry -> 勾选`compiler.automake.allow.when.app.running`
 
-## 18. IDEA 2019 中文字体渲染有粗有细异常解决方法
+## 19. IDEA 2019 中文字体渲染有粗有细异常解决方法
 
 ![](images/20201105160134895_28746.jpg)
 
@@ -768,7 +788,7 @@ spring-boot项目中引入如下依赖
 
 ![](images/20201105160145406_6013.jpg)
 
-## 19. 开启/关闭一个项目中的某些模块
+## 20. 开启/关闭一个项目中的某些模块
 
 在项目根目录上右键，选择【Load/Unload Modules...】
 
@@ -778,13 +798,13 @@ spring-boot项目中引入如下依赖
 
 ![](images/20201105160248817_9448.jpg)
 
-## 20. 常用操作
+## 21. 常用操作
 
-### 20.1. 个人修改的快捷键
+### 21.1. 个人修改的快捷键
 
 查看附件\note attachments\99-其他\IntelliJ IDEA\IntelliJ IDEA 快捷键.xlsx
 
-### 20.2. 查看图形形式的继承链
+### 21.2. 查看图形形式的继承链
 
 在想查看的类的标签页内，点击右键，选择 Diagrams，其中有 show 和 show ... Popup，只是前者新建在标签页内，后者以浮窗的形式展示：
 
@@ -798,11 +818,11 @@ spring-boot项目中引入如下依赖
 - <font color=blue>**蓝色**</font>实线箭头是指继承关系
 - <font color=green>**绿色**</font>虚线箭头是指接口实现关系
 
-### 20.3. 同时编辑多行
+### 21.3. 同时编辑多行
 
 按着ALT键，用鼠标左键拖动需要编辑的行内容
 
-### 20.4. inject language快速构建一些语法 - 快速定义JSON
+### 21.4. inject language快速构建一些语法 - 快速定义JSON
 
 1. 定义一个json字符串则需要手动的去用`\`将`"`转义。使用inject language则可以省去这个步骤。
 2. 定义一个json的字符串，将光标放在`""`中间，然后按Alt+Enter，出来如下提示后，选择Inject language or reference。

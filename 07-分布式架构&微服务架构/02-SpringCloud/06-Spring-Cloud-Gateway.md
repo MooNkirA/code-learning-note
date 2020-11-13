@@ -804,12 +804,260 @@ Sentinel 支持对 Spring Cloud Gateway、Zuul 等主流的 API Gateway 进行�
 - **route 维度**：即在 Spring 配置文件中配置的路由条目，资源名为对应的 routeId
 - **自定义 API 维度**：用户可以利用 Sentinel 提供的 API 来自定义一些 API 分组
 
+#### 5.3.1. 环境搭建
 
+复用`12-springcloud-gateway`工程的代码创建`13-springcloud-gateway-sentinel`项目，移除不需要的依赖，导入 Sentinel 的相关依赖
 
+1. 在父聚合项目中引入Spring Cloud Alibaba的依赖版本管理
 
+```xml
+<!-- Spring Cloud Alibaba 相应 Spring Cloud Greenwich 版本的依赖 -->
+<dependency>
+    <groupId>com.alibaba.cloud</groupId>
+    <artifactId>spring-cloud-alibaba-dependencies</artifactId>
+    <version>2.1.2.RELEASE</version>
+    <type>pom</type>
+    <scope>import</scope>
+</dependency>
+```
 
+2. 在`shop-server-gateway`工程中引入sentinel的限流依赖
 
+```xml
+<!-- sentinel限流 -->
+<dependency>
+    <groupId>com.alibaba.csp</groupId>
+    <artifactId>sentinel-spring-cloud-gateway-adapter</artifactId>
+</dependency>
+```
 
+> 注：也可以不引入`spring-cloud-alibaba-dependencies`的依赖，直接在gateway工程中依赖`sentinel-spring-cloud-gateway-adapter`，指定版本号即可（待测试！）
+
+```java
+<dependency>
+    <groupId>com.alibaba.csp</groupId>
+    <artifactId>sentinel-spring-cloud-gateway-adapter</artifactId>
+    <version>1.7.1</version>
+</dependency>
+```
+
+#### 5.3.2. 编写Sentinel的配置类
+
+```java
+package com.moon.gateway.config;
+
+import com.alibaba.csp.sentinel.adapter.gateway.common.rule.GatewayFlowRule;
+import com.alibaba.csp.sentinel.adapter.gateway.common.rule.GatewayRuleManager;
+import com.alibaba.csp.sentinel.adapter.gateway.sc.SentinelGatewayFilter;
+import com.alibaba.csp.sentinel.adapter.gateway.sc.exception.SentinelGatewayBlockExceptionHandler;
+import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.cloud.gateway.filter.GlobalFilter;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
+import org.springframework.http.codec.ServerCodecConfigurer;
+import org.springframework.web.reactive.result.view.ViewResolver;
+
+import javax.annotation.PostConstruct;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+/**
+ * Sentinel限流的配置类
+ */
+@Configuration
+public class SentinelConfiguration {
+
+    private final List<ViewResolver> viewResolvers;
+
+    private final ServerCodecConfigurer serverCodecConfigurer;
+
+    /**
+     * 构造方法，用于初始化 List<ViewResolver> 与 ServerCodecConfigurer
+     *
+     * @param viewResolversProvider
+     * @param serverCodecConfigurer
+     */
+    public SentinelConfiguration(ObjectProvider<List<ViewResolver>> viewResolversProvider,
+                                 ServerCodecConfigurer serverCodecConfigurer) {
+        this.viewResolvers = viewResolversProvider.getIfAvailable(Collections::emptyList);
+        this.serverCodecConfigurer = serverCodecConfigurer;
+    }
+
+    /**
+     * 配置限流的异常处理器: SentinelGatewayBlockExceptionHandler
+     */
+    @Bean
+    @Order(Ordered.HIGHEST_PRECEDENCE)
+    public SentinelGatewayBlockExceptionHandler sentinelGatewayBlockExceptionHandler() {
+        return new SentinelGatewayBlockExceptionHandler(viewResolvers, serverCodecConfigurer);
+    }
+
+    /**
+     * 配置限流过滤器：GlobalFilter
+     */
+    @Bean
+    @Order(Ordered.HIGHEST_PRECEDENCE)
+    public GlobalFilter sentinelGatewayFilter() {
+        return new SentinelGatewayFilter();
+    }
+
+    /**
+     * 配置初始化的限流参数，用于指定资源的限流规则，需要的配置项如下：
+     * 1. 资源名称 (路由id)
+     * 2. 配置统计时间
+     * 3. 配置限流阈值
+     */
+    @PostConstruct
+    public void initGatewayRules() {
+        // 创建限流规则 GatewayFlowRule 实例的set集合（因为可以指定多个规则）
+        Set<GatewayFlowRule> rules = new HashSet<>();
+        rules.add(new GatewayFlowRule("shop-service-product") // 指定限流的资源名称
+                .setCount(1) // 设置限流的阈值
+                .setIntervalSec(1)  // 设置统计时间，单位是秒，默认是 1 秒
+        );
+        // 添加限流规则到 GatewayRuleManager 管理器
+        GatewayRuleManager.loadRules(rules);
+    }
+}
+```
+
+配置说明：
+
+- 基于 Sentinel 的 Gateway 限流是通过Sentinel内置提供的`Filter`来完成的，使用时只需配置注入对应的 `SentinelGatewayFilter` 实例以及 `SentinelGatewayBlockExceptionHandler` 实例即可
+- `@PostConstruct`注解定义初始化的加载方法，用于指定资源的限流规则。上面的示例的资源的名称为`shop-service-product`，统计时间是1秒内，限流阈值是1。表示每秒只能访问一个请求。
+
+#### 5.3.3. 网关限流配置
+
+修改`shop-server-gateway`的`application.yml`配置文件，删除基于Spring Cloud Gateway的Filter的限流配置，只保留路由断言与路由重写的配置即可
+
+```yml
+server:
+  port: 8080 # 项目端口
+spring:
+  application:
+    name: shop-server-gateway # 服务名称
+  cloud:
+    # Spring Cloud Gateway 配置
+    gateway:
+      routes:
+        - id: shop-service-product # 路由id
+          uri: lb://shop-service-product # 方式二：根据微服务名称从注册中心拉取服务的地址与端口，格式： lb://服务名称（服务在注册中心上注册的名称）
+          predicates:
+            - Path=/shop-service-product/**
+          filters: # 配置路由过滤器
+            - RewritePath=/shop-service-product/(?<segment>.*), /$\{segment}
+```
+
+#### 5.3.4. 测试
+
+在一秒钟内多次访问`http://127.0.0.1:8080/shop-service-product/product/2`，就可以看到限流生效了。
+
+![](images/20201111171238326_12649.png)
+
+#### 5.3.5. 自定义异常提示
+
+当触发限流后页面显示的是`Blocked by Sentinel: FlowException`。为了展示更加友好的限流提示，Sentinel支持自定义异常处理。只需要在`GatewayCallbackManager`的静态方法`setBlockHandler`注册回调中进行定制即可：
+
+```java
+public final class GatewayCallbackManager {
+    // .....
+    public static void setBlockHandler(BlockRequestHandler blockHandler){
+        AssertUtil.notNull(blockHandler, "blockHandler cannot be null");
+        GatewayCallbackManager.blockHandler = blockHandler;
+    }
+    // .....
+}
+```
+
+静态方法`setBlockHandler`：是注册函数用于实现自定义的逻辑处理被限流的请求，对应接口为`BlockRequestHandler`。默认实现为 `DefaultBlockRequestHandler` ，当被限流时会返回类似于下面的错误信息：`Blocked by Sentinel: FlowException`。
+
+在`shop-server-gateway`工程的`SentinelConfiguration`配置类中，增加初始化后执行的方法，注册自定义异常处理逻辑
+
+```java
+/**
+ * 自定义限流处理器，用于定制异常处理的逻辑
+ */
+@PostConstruct
+public void initBlockHandlers() {
+    GatewayCallbackManager.setBlockHandler((serverWebExchange, throwable) -> {
+        Map<String, Object> map = new HashMap<>();
+        map.put("code", -1);
+        map.put("message", "不好意思,限流啦");
+        // 通过 serverWebExchange 上下文对象，设置相应的响应内容
+        return ServerResponse.status(HttpStatus.OK)
+                .contentType(MediaType.APPLICATION_JSON_UTF8)
+                .body(BodyInserters.fromObject(map));
+    });
+}
+```
+
+测试结果
+
+![](images/20201112083546595_6059.png)
+
+#### 5.3.6. 参数限流
+
+以上的配置都是针对整个路由来限流的，也可以通过使用参数限流方式，针对某个路由的某个参数做限流。具体的实现是：在配置限流参数`GatewayFlowRule`时，增加对特定的参数限制规则`setParamItem`即可
+
+```java
+@PostConstruct
+public void initGatewayRules() {
+    // 创建限流规则 GatewayFlowRule 实例的set集合（因为可以指定多个规则）
+    Set<GatewayFlowRule> rules = new HashSet<>();
+    rules.add(new GatewayFlowRule("shop-service-product") // 指定限流的资源名称
+            .setCount(1) // 设置限流的阈值
+            .setIntervalSec(1)  // 设置统计时间，单位是秒，默认是 1 秒
+            .setParamItem(new GatewayParamFlowItem()
+                    .setParseStrategy(SentinelGatewayConstants.PARAM_PARSE_STRATEGY_URL_PARAM)
+                    .setFieldName("id")) // 指定参数限流，示例是通过指定PARAM_PARSE_STRATEGY_URL_PARAM表示从url中获取参数，setFieldName指定参数名称
+    );
+    // 添加限流规则到 GatewayRuleManager 管理器
+    GatewayRuleManager.loadRules(rules);
+}
+```
+
+#### 5.3.7. 自定义API分组
+
+自定义API分组的限流规则，就是用户定义针对不同的请求实现限流的规则。*示例实现的限流效果与上面一样*
+
+```java
+@PostConstruct
+public void initGatewayRules() {
+    // 创建限流规则 GatewayFlowRule 实例的set集合（因为可以指定多个规则）
+    Set<GatewayFlowRule> rules = new HashSet<>();
+    // 创建以下自定义的API限流分组规则，并注册到限流规则管理器中
+    rules.add(new GatewayFlowRule("product_api").setCount(1).setIntervalSec(1));
+    // 添加限流规则到 GatewayRuleManager 管理器
+    GatewayRuleManager.loadRules(rules);
+}
+
+/*
+ * 自定义API限流分组，
+ *      1.定义分组
+ *      2.对小组配置限流规则
+ */
+@PostConstruct
+private void initCustomizedApis() {
+    Set<ApiDefinition> definitions = new HashSet<>();
+    ApiDefinition api1 = new ApiDefinition("product_api")
+            .setPredicateItems(new HashSet<ApiPredicateItem>() {{
+                add(new ApiPathPredicateItem().setPattern("/shop-service-product/product/**"). // 以 /shop-service-product/product/ 开头都的所有url
+                        setMatchStrategy(SentinelGatewayConstants.URL_MATCH_STRATEGY_PREFIX));
+            }});
+    ApiDefinition api2 = new ApiDefinition("order_api")
+            .setPredicateItems(new HashSet<ApiPredicateItem>() {{
+                add(new ApiPathPredicateItem().setPattern("/shop-service-order/order")); // 完全匹配 /shop-service-order/order 的url
+            }});
+    definitions.add(api1);
+    definitions.add(api2);
+    // 添加到 GatewayApiDefinitionManager 接口定义管理器
+    GatewayApiDefinitionManager.loadApiDefinitions(definitions);
+}
+```
 
 ## 6. 网关高可用
 
@@ -817,8 +1065,44 @@ Sentinel 支持对 Spring Cloud Gateway、Zuul 等主流的 API Gateway 进行�
 
 ![](images/20201109171300708_23038.png)
 
+实际使用 Spring Cloud Gateway 的方式如上图，同时启动多个 Gateway 实例进行负载，不同的客户端使用不同的负载将请求分发到后端的 Gateway 服务，Gateway 再通过HTTP调用后端服务，最后对外输出。因此为了保证 Gateway 的高可用性，可以请求到达 Gateway 前的使用 Nginx 或者 F5 进行负载转发以达到高可用性。
 
+### 6.1. 配置多个Gateway工程
 
+修改`13-springcloud-gateway-sentinel`工程`shop-server-gateway`的application.yml配置文件，配置通过参数指定项目的端口号：
 
+```java
+server:
+  port: ${PORT:8080} # 项目端口
+```
 
+通过配置不同的`PORT`参数，启动多个网关服务，请求端口分别为8080和8081。浏览器验证发现效果是一致的
 
+### 6.2. 配置nginx
+
+修改nginx配置文件，`nginx-1.18.0\conf\nginx.conf`，添加以下配置
+
+```
+# 配置多台服务器（这里只在一台服务器上的不同端口）
+upstream gateway {
+    server 127.0.0.1:8081;
+    server 127.0.0.1:8080;
+}
+# 请求转向gateway 定义的服务器列表
+location / {
+    proxy_pass http://gateway;
+}
+```
+
+在浏览器上通过访问`http://127.0.0.1/shop-service-product/product/2`请求的效果和之前是一样的。关闭一台网关服务器，还是可以支持部分请求的访问。
+
+## 7. Spring Cloud Gateway 执行流程分析
+
+![](images/20201112100011250_7292.png)
+
+Spring Cloud Gateway 核心处理流程如上图所示
+
+1. Gateway的客户端向 Spring Cloud Gateway 发送请求，请求首先被 `HttpWebHandlerAdapter` 进行提取组装成网关上下文，然后网关的上下文会传递到`DispatcherHandler`。
+2. `DispatcherHandler` 是所有请求的分发处理器，`DispatcherHandler`主要负责分发请求对应的处理器。比如请求分发到对应的 `RoutePredicateHandlerMapping` （路由断言处理映射器）。
+3. 路由断言处理映射器主要作用用于路由查找，以及找到路由后返回对应的`FilterWebHandler`。
+4. `FilterWebHandler` 主要负责组装Filter链并调用Filter执行一系列的Filter处理，然后再把请求转到后端对应的代理服务处理，处理完毕之后将`Response`返回到Gateway客户端。

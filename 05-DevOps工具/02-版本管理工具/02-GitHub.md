@@ -151,3 +151,58 @@ Tip：推荐 SwitchHosts 工具管理 hosts。以 SwitchHosts 为例，自动修
 GitHub正常访问，但GitHub Pages无法访问。尝试过修改hosts域名的映射，没有作用。后来直接修改网卡的DNS服务器地址为`114.114.114.114`可访问（*不确保百分百有效*）
 
 ![](images/20201105231308260_23184.png)
+
+## 6. 一键生成 Github 简历
+
+通过 http://resume.github.io/ 这个网站可以一键生成一个在线的 Github 简历。
+
+## 7. 个性化 Github 首页
+
+创建一个和你的 Github 账户同名的仓库，然后自定义README.md的内容，该内容就展示在主页上。
+
+通过 `github-readme-stats` 这个开源项目，可以在 README 中展示动态生成的 GitHub 统计信息。
+
+## 8. 自定义项目徽章
+
+通过 https://shields.io/ 这个网站生成的，还可以动态读取你项目的状态并生成对应的徽章。
+
+## 9. Github 表情
+
+表情素材参考：www.webfx.com/tools/emoji-cheat-sheet/
+
+## 10. 自动为 Markdown 文件生成目录
+
+如果想为 Github 上的 Markdown 文件生成目录的话，通过 VS Code 的 Markdown Preview Enhanced 这个插件就可以了。
+
+生成的目录后，可以直接点击目录中的链接即可跳转到文章对应的位置，可以优化阅读体验。
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

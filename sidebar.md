@@ -173,12 +173,17 @@
 * [Spring Cloud OpenFeign 服务调用](/07-分布式架构&微服务架构/02-SpringCloud/04-Spring-Cloud-OpenFeign)
 * [Spring Cloud Consul 注册中心](/07-分布式架构&微服务架构/02-SpringCloud/05-Spring-Cloud-Consul)
 * [Spring Cloud Gateway 服务网关](/07-分布式架构&微服务架构/02-SpringCloud/06-Spring-Cloud-Gateway)
+* [Spring Cloud Sleuth 链路跟踪](/07-分布式架构&微服务架构/02-SpringCloud/07-Spring-Cloud-Sleuth)
+
+### ✨ 分布式配置中心 ✨
+
+* [分布式配置中心综述](/07-分布式架构&微服务架构/08-分布式配置中心/00-Distributed-Configuration-Center-Overview)
+* [Apollo 分布式配置中心](/07-分布式架构&微服务架构/08-分布式配置中心/01-Apollo)
 
 ### ✨ 其他 ✨
 
-* [Apollo 分布式配置中心(服务中间件)](/07-分布式架构&微服务架构/01-Apollo_分布式配置中心)
-* [分布式缓存](/07-分布式架构&微服务架构/04-分布式缓存)
-* [FastDFS 分布式文件系统](/07-分布式架构&微服务架构/05-FastDFS_分布式文件系统)
+* [分布式缓存](/07-分布式架构&微服务架构/99-其他/01-分布式缓存)
+* [FastDFS 分布式文件系统](/07-分布式架构&微服务架构/99-其他/02-FastDFS_分布式文件系统)
 
 ## 📒 并发编程
 
