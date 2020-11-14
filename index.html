@@ -37,9 +37,11 @@
         // _sidebar.md 的加载逻辑是从每层目录下获取文件，如果当前目录不存在该文件则回退到上一级目录。
         // 例如当前路径为 /zh-cn/more-pages 则从 /zh-cn/_sidebar.md 获取文件，如果不存在则从 /_sidebar.md 获取。
         // autoHeader: true,  // 同时设置 loadSidebar 和 autoHeader 后，可以根据 _sidebar.md 的内容自动为每个页面增加标题。
-        alias: {
-          "/.*/_sidebar.md": "/_sidebar.md",
-        }, // 配置 alias 避免不必要的回退过程
+
+        // alias: {
+        //   "/.*/_sidebar.md": "/_sidebar.md",
+        // }, // 配置 alias 避免不必要的回退过程
+
         mergeNavbar: true, // 在较小的屏幕上，导航栏将与边栏合并。
 
         // load from _navbar.md

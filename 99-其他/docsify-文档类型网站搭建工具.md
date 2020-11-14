@@ -7,6 +7,7 @@
 - 其他教程：https://mp.weixin.qq.com/s?__biz=Mzg2OTA0Njk0OA==&mid=2247486555&idx=2&sn=8486026ee9f9ba645ff0363df6036184&chksm=cea24390f9d5ca86ff4177c0aca5e719de17dc89e918212513ee661dd56f17ca8269f4a6e303&scene=0&xtrack=1#rd
 
 ## 2. 使用说明
+
 ### 2.1. 使用前准备
 
 1. 下载安装 NPM 并且使用这个命令：`npm i docsify-cli -g` 安装了 docsify-cli 这个工具。下载成功后在npm所配置的文件目录

@@ -155,7 +155,7 @@ java -jar zipkin-server-2.22.0-exec.jar
     - 配置文件地址：https://github.com/openzipkin/zipkin/blob/master/zipkin-server/src/main/resources/zipkin-server-shared.yml
 - 在浏览器输入 `http://127.0.0.1:9411` 即可进入到Zipkin Server的管理后台
 
-## 5. 客户端 Zipkin + Sleuth 整合
+## 5. 客户端 Zipkin + Sleuth 整合（基于http方式收集数据）
 
 结合zipkin可以很直观地显示微服务之间的调用关系。
 
@@ -185,18 +185,178 @@ spring:
       type: web # 设置数据的传输方式 , 以 http 的形式向server端发送数据
   sleuth:
     sampler:
-      probability: 1 # 配置，默认是 0.01 秒
+      probability: 1 # 配置采样的百分比，默认是 0.1（即10%）
 ```
 
+配置说明：
 
+- `spring.zipkin.base-url`：指定了zipkin server的地址
+- `spring.zipkin.sender.type`：用于设置采样的数据传输方式，上面示例是使用http形式向server端发送数据
+- `spring.sleuth.sampler.probability`：制定需采样的百分比，默认为0.1，即10%，此示例配置1，是记录全部的sleuth信息，是为了收集到更多的数据（仅供测试用）。在分布式系统中，过于频繁的采样会影响系统性能，所以这里配置需要采用一个合适的值。
 
+### 5.3. 测试
 
+启动Zipkin Service，并启动每个微服务。通过浏览器发送一次微服务请求。打开 Zipkin Service 控制台，我们可以根据条件追踪每次请求调用过程
 
+![](images/20201113090901957_21895.png)
 
+点击“SHOW”可以看到请求更多的细节
 
+![](images/20201113090926521_26943.png)
 
+### 5.4. 默认Zipkin数据采集方式存在的问题
 
+在默认情况下，zipkin数据采集有如下特点：
 
+1. zipkin采集到的数据是保存在内存中
+2. Zipkin客户端和Server之间是使用HTTP请求的方式进行通信（即同步的请求方式，会拖慢核心业务的处理时间）
 
+存在的问题：
 
+1. 当服务出现异常或者宕机的情况，存储在内存的数据就会出现丢失
+2. 在出现网络波动时，Server端异常等情况下可能存在信息收集不及时的问题。
 
+## 6. 跟踪数据的存储
+
+Zipkin Server默认时间追踪数据信息保存到内存，这种方式不适合生产环境。因为一旦Service关闭重启或者服务崩溃，就会导致历史数据消失。Zipkin支持将追踪数据持久化到mysql数据库或者存储到elasticsearch中。*这里示例以mysql为例*
+
+### 6.1. 准备存储跟踪数据的数据库
+
+创建zipkin持久化相应数据库表sql脚本位置：`spring-cloud-note\spring-cloud-greenwich-sample\document\sql\zipkin_db.sql`
+
+> 可以从官网找到Zipkin Server持久mysql的数据库脚本。脚本地址：https://github.com/openzipkin/zipkin/blob/master/zipkin-storage/mysql-v1/src/main/resources/mysql.sql
+
+### 6.2. 配置启动服务端
+
+在启动zipkin服务端时增加相关数据库参数即可，启动脚本如下：
+
+```bash
+java -jar zipkin-server-2.22.0-exec.jar --STORAGE_TYPE=mysql --MYSQL_HOST=127.0.0.1 --MYSQL_TCP_PORT=3306 --MYSQL_DB=tempdb --MYSQL_USER=root --MYSQL_PASS=123456
+```
+
+启动参数说明：
+
+- `STORAGE_TYPE`：存储类型
+- `MYSQL_HOST`：mysql主机地址
+- `MYSQL_TCP_PORT`：mysql端口
+- `MYSQL_DB`：mysql数据库名称
+- `MYSQL_USER`：mysql用户名
+- `MYSQL_PASS`：mysql密码
+
+> 相关的参数可以参考官方提供的`zipkin-server-shared.yml`
+>
+> 配置文件地址：https://github.com/openzipkin/zipkin/blob/master/zipkin-server/src/main/resources/zipkin-server-shared.yml
+
+配置好服务端之后，可以在浏览器请求几次。在数据库查看会发现数据已经持久化到mysql中
+
+## 7. 基于消息中间件收集数据
+
+Zipkin支持与rabbitMQ整合完成异步消息传输。加了MQ之后，通信过程如下图所示：
+
+![](images/20201113091547938_16673.png)
+
+### 7.1. RabbitMQ的安装与启动
+
+要使用消息中间件实现收集数据传输，需要准备MQ的服务。*此示例使用RabbitMQ*
+
+> 更多RabbitMQ的内容详见：[\07-分布式架构&微服务架构\03-分布式消息中件间\03-RabbitMQ.md](/07-分布式架构&微服务架构/03-分布式消息中件间/03-RabbitMQ)
+
+### 7.2. 服务端启动
+
+在启动zipkin服务端时增加相关RabbitMQ的参数即可，启动脚本如下：
+
+```bash
+java -jar zipkin-server-2.22.0-exec.jar --RABBIT_ADDRESSES=192.168.12.132:5672
+```
+
+启动参数说明：
+
+- `RABBIT_ADDRESSES`：指定RabbitMQ地址
+- `RABBIT_USER`：用户名（默认guest，如使用默认值，则启动时不需要指定）
+- `RABBIT_PASSWORD` ：密码（默认guest，如使用默认值，则启动时不需要指定）
+
+> 相关的参数可以参考官方提供的`zipkin-server-shared.yml`
+
+启动Zipkin Server之后，通过RabbitMQ的控制台可以看到多了一个Queue，其中 `zipkin` 就是zipkin服务自动创建的Queue队列
+
+![](images/20201113151201801_189.png)
+
+### 7.3. 客户端配置
+
+#### 7.3.1. 配置依赖
+
+修改需要被追踪的微服务添加zipkin整合sleuth、rabbitmq的依赖。*所以示例项目的网关、订单、商品服务都需要添加依赖*
+
+```xml
+<!-- sleuth链路追踪依赖 -->
+<dependency>
+    <groupId>org.springframework.cloud</groupId>
+    <artifactId>spring-cloud-starter-sleuth</artifactId>
+</dependency>
+<!-- zipkin 依赖 -->
+<dependency>
+    <groupId>org.springframework.cloud</groupId>
+    <artifactId>spring-cloud-starter-zipkin</artifactId>
+</dependency>
+
+<!-- zipkin整合sleuth依赖 -->
+<dependency>
+    <groupId>org.springframework.cloud</groupId>
+    <artifactId>spring-cloud-sleuth-zipkin</artifactId>
+</dependency>
+<!-- RabbitMQ 依赖 -->
+<dependency>
+    <groupId>org.springframework.amqp</groupId>
+    <artifactId>spring-rabbit</artifactId>
+</dependency>
+```
+
+导入 `spring-rabbit` 依赖，是Spring提供的对RabbitMQ的封装，客户端会根据配置自动的生产消息并发送到目标队列中
+
+> 注：如果前面两个依赖已经存在，则不需要重复添加依赖
+
+#### 7.3.2. 配置消息中间件地址等信息
+
+修改需要被追踪的微服务的application.yml配置文件（*所以示例项目的网关、订单、商品服务都需要修改配置文件*）。修改要求如下：
+
+- 修改采集的数据发送方式为`rabbit`
+- 增加RabbitMQ的相关信息配置
+
+```yml
+spring:
+  # 配置 zipkin
+  zipkin:
+    sender:
+      type: rabbit # 设置数据的传输方式 , 以向 RabbitMQ 发送消息的方式采集数据
+  sleuth:
+    sampler:
+      probability: 1 # 配置采样的百分比，默认是 0.1（即10%）
+  # 配置 RabbitMQ
+  rabbitmq:
+    host: 192.168.12.132
+    port: 5672
+    username: guest
+    password: guest
+    listener: # 配置重试策略
+      direct:
+        retry:
+          enabled: true
+      simple:
+        retry:
+          enabled: true
+```
+
+### 7.4. 测试
+
+启动所有微服务，关闭Zipkin Server，并发起几个请求连接。打开rabbitmq管理后台可以看到，消息已经推送到rabbitmq。
+
+![](images/20201113153715963_4827.png)
+
+当Zipkin Server启动时，会自动的从rabbitmq获取消息并消费，展示追踪数据
+
+![](images/20201113153812910_3620.png)
+
+可以看到如下效果：
+
+- 请求的耗时时间不会出现突然耗时特长的情况
+- 当Zipkin Server不可用时（比如关闭、网络不通等），追踪信息不会丢失，因为这些信息会保存在Rabbitmq服务器上，直到Zipkin服务器可用时，再从Rabbitmq中取出这段时间的信息
