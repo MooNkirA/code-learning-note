@@ -1,0 +1,50 @@
+:root {
+  /* App
+  ============================================================================= */
+
+  /* Base
+  ============================================================================= */
+  --base-font-size: 16px;
+  /* Change the theme color hue */
+  /* --theme-hue: 325; */
+  /* --base-background-color: #f7f7f7; */
+  --base-background-color: #cceed0;
+
+  /* =============== Content
+  ============================================================================= */
+  --content-max-width: 90em;
+
+  /* Code */
+  --code-block-border-radius: 0.8em;
+  --code-block-line-height: 1.2em;
+  --code-block-padding: 0.8em;
+
+  --code-inline-background: #333;
+  --code-inline-border-radius: 0.3em;
+  --code-inline-color: #00f7ff;
+  --code-inline-margin: 0 0.15em;
+  --code-inline-padding: 0.125em 0.4em;
+
+  /* Headings */
+  --heading-font-weight: 700;
+  --heading-h1-font-size: 2.5em;
+  --heading-h1-color: #b83030;
+  --heading-h2-font-size: 1.75em;
+  --heading-h2-color: #ef7060;
+  --heading-h3-font-size: 1.45em;
+  --heading-h3-color: #468;
+  --heading-h4-font-size: 1.25em;
+  --heading-h4-color: purple;
+  --heading-h5-font-size: 1.1em;
+  --heading-h5-color: purple;
+  --heading-h6-font-size: 1em;
+  --heading-h6-color: purple;
+
+  /* Sidebar
+  ============================================================================= */
+  --sidebar-nav-link-before-content: "😀";
+
+  /* =============== Plugin: Copy Code =============== */
+  --copycode-background: #808080;
+  --copycode-color: #fff;
+}

@@ -11,12 +11,36 @@
     />
     <!-- 配置主题（官方提供，在线） -->
     <!-- <link rel="stylesheet" href="//unpkg.com/docsify/lib/themes/vue.css" /> -->
-    <!-- 官方主题(版本: 4.11.6)，下载到本地 -->
-    <link rel="stylesheet" href="css/vue.css" type="text/css" />
+    <!-- docsify-themeable 一个用于docsify的，简单到令人愉悦的主题系统.  -->
+    <!-- Theme: Defaults -->
+    <!-- <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/docsify-themeable@0/dist/css/theme-defaults.css"> -->
+    <!-- Theme: Simple -->
+    <!-- <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/docsify-themeable@0/dist/css/theme-simple.css" /> -->
+    <!-- Theme: Simple Dark -->
+    <!-- <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/docsify-themeable@0/dist/css/theme-simple-dark.css"> -->
+
+    <!-- 下载在本地 -->
+    <!-- 官方主题(版本: 4.11.6) -->
+    <!-- <link rel="stylesheet" href="css/vue.css" type="text/css" /> -->
     <!-- <link rel="stylesheet" href="css/buble.css" type="text/css" /> -->
     <!-- <link rel="stylesheet" href="css/dark.css" type="text/css" /> -->
     <!-- <link rel="stylesheet" href="css/dolphin.css" type="text/css" /> -->
     <!-- <link rel="stylesheet" href="css/pure.css" type="text/css" /> -->
+    <!-- docsify-themeable@0.8.4 -->
+    <link
+      rel="stylesheet"
+      href="./css/docsify-themeable@0.8.4/theme-simple.css"
+      type="text/css"
+    />
+
+    <!-- docsify-themeable 自定义主题属性，抽取成文件引入 -->
+    <link rel="stylesheet" href="./css/docsify-themeable@0.8.4/theme-custom.css">
+
+    <!-- PrismJS theme 代码块高亮主题 -->
+    <link rel="stylesheet" href="./css/prismjs@1.22.0/prism-funky.css">
+    <!-- <link rel="stylesheet" href="./css/prismjs@1.22.0/prism-okaidia.css"> -->
+    <!-- <link rel="stylesheet" href="./css/prismjs@1.22.0/prism-tomorrow.css"> -->
+
   </head>
   <body>
     <!-- 如果你需要定制导航栏，可以用 HTML 创建一个导航栏。 -->
@@ -52,21 +76,43 @@
         search: {
           maxAge: 86400000, // 过期时间，单位毫秒，默认一天
           paths: "auto",
-          placeholder: "🔍 搜索",
+          // placeholder: "🔍 搜索",
+          placeholder: "搜索...",
           noData: "找不到结果",
           // 搜索标题的最大程级, 1 - 6
           depth: 6,
         },
         // externalLinkTarget: '_self' // Target to open external links inside the markdown. Default '_blank' (new window/tab)
         // themeColor: '#3F51B5'
+        // 复制文本
+        copyCode: {
+          buttonText : 'Copy to clipboard',
+          errorText  : 'Error',
+          successText: 'Copied'
+        },
+
+        // 开启
+        themeable: {
+          // readyTransition: true, // default: true
+          responsiveTables: false // default: true
+        },
       }
     </script>
     <script src="//unpkg.com/docsify/lib/docsify.min.js"></script>
     <!--Java代码高亮start-->
-    <script src="//unpkg.com/prismjs/components/prism-java.js"></script>
-    <script src="//unpkg.com/prismjs/components/prism-bash.js"></script>
-    <script src="//unpkg.com/prismjs/components/prism-yaml.js"></script>
-    <script src="//unpkg.com/prismjs/components/prism-javascript.js"></script>
+    <script src="//unpkg.com/prismjs/components/prism-java.min.js"></script>
+    <script src="//unpkg.com/prismjs/components/prism-javadoc.min.js"></script>
+    <script src="//unpkg.com/prismjs/components/prism-bash.min.js"></script>
+    <script src="//unpkg.com/prismjs/components/prism-yaml.min.js"></script>
+    <script src="//unpkg.com/prismjs/components/prism-javascript.min.js"></script>
+    <script src="//unpkg.com/prismjs/components/prism-js-extras.min.js"></script>
+    <script src="//unpkg.com/prismjs/components/prism-json.min.js"></script>
+    <script src="//unpkg.com/prismjs/components/prism-css.min.js"></script>
+    <script src="//unpkg.com/prismjs/components/prism-less.min.js"></script>
+    <script src="//unpkg.com/prismjs/components/prism-scss.min.js"></script>
+    <script src="//unpkg.com/prismjs/components/prism-sql.min.js"></script>
+    <script src="//unpkg.com/prismjs/components/prism-typescript.min.js"></script>
+    <script src="//unpkg.com/prismjs/components/prism-xml-doc.min.js"></script>
     <!--Java代码高亮end-->
 
     <!--全文搜索,直接用官方提供的无法生效-->
@@ -75,5 +121,10 @@
     <script src="//unpkg.com/docsify/lib/plugins/zoom-image.js"></script>
     <!-- 字数统计 -->
     <script src="//unpkg.com/docsify-count/dist/countable.js"></script>
+    <!-- 复制代码块 -->
+    <script src="https://unpkg.com/docsify-copy-code"></script>
+
+    <!-- docsify-themeable 插件 -->
+    <script src="./js/docsify-themeable@0.8.4/docsify-themeable.min.js"></script>
   </body>
 </html>
