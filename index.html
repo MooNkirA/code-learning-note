@@ -41,23 +41,40 @@
     <!-- <link rel="stylesheet" href="./css/prismjs@1.22.0/prism-okaidia.css"> -->
     <!-- <link rel="stylesheet" href="./css/prismjs@1.22.0/prism-tomorrow.css"> -->
 
+    <style>
+      /* 把所有标签的内外边距清零 */
+      * {
+        margin: 0;
+        padding: 0;
+        /* css3盒子模型 */
+        box-sizing: border-box;
+      }
+      img {
+        width: 2.5em;
+        vertical-align: middle;
+        margin-right: 0.5em;
+      }
+    </style>
   </head>
   <body>
     <!-- 如果你需要定制导航栏，可以用 HTML 创建一个导航栏。 -->
     <!-- <nav>
       <a href="#/">EN</a>
+      |
       <a href="#/zh-cn/">中文</a>
     </nav> -->
     <div id="app"></div>
     <script>
       window.$docsify = {
-        name: "Code Learning Note",
+        // logo: './css/svg/086-determined-face.svg',
+        name: "<div><a class='app-name-link' data-nosearch='' href='/'><img alt='MooNkirA' src='./css/svg/086-determined-face.svg'>月の哀傷</a></div>",
         // repo: 'https://github.com/MooNkirA/code-learning-note',
         maxLevel: 6, // 最大支持渲染的标题层级
         // subMaxLevel: 5,
+        // homepage: "homepage.html",
         homepage: "README.md",
         // coverpage: true, // 添加一个封面
-        // loadSidebar: true, // 添加侧边栏文件
+        // loadSidebar: true, // 添加侧边栏文件，默认名称
         // _sidebar.md 的加载逻辑是从每层目录下获取文件，如果当前目录不存在该文件则回退到上一级目录。
         // 例如当前路径为 /zh-cn/more-pages 则从 /zh-cn/_sidebar.md 获取文件，如果不存在则从 /_sidebar.md 获取。
         // autoHeader: true,  // 同时设置 loadSidebar 和 autoHeader 后，可以根据 _sidebar.md 的内容自动为每个页面增加标题。

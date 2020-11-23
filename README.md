@@ -1,4 +1,4 @@
-# MooNkirA Code Learning Note
+MooNkirA Code Learning Note
 
 > 个人编程笔记文档网站，持续更新中...
 
@@ -6,9 +6,15 @@
 
 ### ✨ 收集的案例 ✨
 
-* [Java案例](/01-Java&JavaWeb/00-收集的案例/Java案例)
-* [网络资料-Java中的常量治理](/01-Java&JavaWeb/00-收集的案例/网络资料-Java中的常量治理)
-* [网络资料-Java中的枚举的治理](/01-Java&JavaWeb/00-收集的案例/网络资料-Java中的枚举的治理)
+<div class="docs">
+	<a href="#/01-Java&JavaWeb/00-收集的案例/Java案例">Java案例</a>
+</div>
+<div class="docs">
+	<a href="#/01-Java&JavaWeb/00-收集的案例/网络资料-Java中的常量治理">网络资料-Java中的常量治理</a>
+</div>
+<div class="docs">
+	<a href="#/01-Java&JavaWeb/00-收集的案例/网络资料-Java中的枚举的治理">网络资料-Java中的枚举的治理</a>
+</div>
 
 ### ✨ JavaSE基础 ✨
 
@@ -289,6 +295,19 @@
 ![](images/ali_pay.jpg)
 
 <style type="text/css">
+.docs {
+	height: 2em;
+	max-width: 40%;
+	background-color: #eee;
+	margin: 1em 0;
+}
+.docs:hover {
+	box-shadow: 8px 8px 8px -4px rgba(0, 0, 0, 0.3);
+}
+.docs a, .docs a:hover {
+	text-decoration: none;
+}
+
 a:link{
 	color: rgb(183, 0, 255);
 }
