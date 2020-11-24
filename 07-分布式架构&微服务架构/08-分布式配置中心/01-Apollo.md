@@ -51,21 +51,29 @@
 
 目前市面上用的比较多的配置中心有：（按开源时间排序）
 
-1. Disconf （网址：https://github.com/knightliao/disconf）
+1. Disconf
 
 2014年7月百度开源的配置管理中心，专注于各种「分布式系统配置管理」的「通用组件」和「通用平台」，提供统一的「配置管理服务」。目前已经不再维护更新。
 
-2. Spring Cloud Config （网址：https://github.com/spring-cloud/spring-cloud-config）
+> 官网：https://github.com/knightliao/disconf
+
+2. Spring Cloud Config
 
 2014年9月开源，Spring Cloud 生态组件，可以和Spring Cloud体系无缝整合。
 
-3. Apollo （网址：https://github.com/ctripcorp/apollo）
+> 官网：https://github.com/spring-cloud/spring-cloud-config
+
+3. Apollo
 
 2016年5月，携程开源的配置管理中心，能够集中化管理应用不同环境、不同集群的配置，配置修改后能够实时推送到应用端，并且具备规范的权限、流程治理等特性，适用于微服务配置管理场景。
 
-4. Nacos （网址：https://github.com/alibaba/nacos）
+> 官网：https://github.com/ctripcorp/apollo
+
+4. Nacos
 
 2018年6月，阿里开源的配置中心，也可以做DNS和RPC的服务发现。
+
+> 官网：https://github.com/alibaba/nacos
 
 #### 2.1.1. 功能特性对比
 

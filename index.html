@@ -34,10 +34,13 @@
     />
 
     <!-- docsify-themeable 自定义主题属性，抽取成文件引入 -->
-    <link rel="stylesheet" href="./css/docsify-themeable@0.8.4/theme-custom.css">
+    <link
+      rel="stylesheet"
+      href="./css/docsify-themeable@0.8.4/theme-custom.css"
+    />
 
     <!-- PrismJS theme 代码块高亮主题 -->
-    <link rel="stylesheet" href="./css/prismjs@1.22.0/prism-funky.css">
+    <link rel="stylesheet" href="./css/prismjs@1.22.0/prism-funky.css" />
     <!-- <link rel="stylesheet" href="./css/prismjs@1.22.0/prism-okaidia.css"> -->
     <!-- <link rel="stylesheet" href="./css/prismjs@1.22.0/prism-tomorrow.css"> -->
 
@@ -49,7 +52,7 @@
         /* css3盒子模型 */
         box-sizing: border-box;
       }
-      img {
+      .moon-logo > a > img {
         width: 2.5em;
         vertical-align: middle;
         margin-right: 0.5em;
@@ -67,7 +70,8 @@
     <script>
       window.$docsify = {
         // logo: './css/svg/086-determined-face.svg',
-        name: "<div><a class='app-name-link' data-nosearch='' href='/'><img alt='MooNkirA' src='./css/svg/086-determined-face.svg'>月の哀傷</a></div>",
+        name:
+          "<div class='moon-logo'><a class='app-name-link' data-nosearch='' href='/'><img alt='MooNkirA' src='./css/svg/086-determined-face.svg'>月の哀傷</a></div>",
         // repo: 'https://github.com/MooNkirA/code-learning-note',
         maxLevel: 6, // 最大支持渲染的标题层级
         // subMaxLevel: 5,
@@ -103,15 +107,15 @@
         // themeColor: '#3F51B5'
         // 复制文本
         copyCode: {
-          buttonText : 'Copy to clipboard',
-          errorText  : 'Error',
-          successText: 'Copied'
+          buttonText: "Copy to clipboard",
+          errorText: "Error",
+          successText: "Copied",
         },
 
         // 开启
         themeable: {
           // readyTransition: true, // default: true
-          responsiveTables: false // default: true
+          responsiveTables: false, // default: true
         },
       }
     </script>

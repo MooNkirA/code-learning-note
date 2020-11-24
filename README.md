@@ -297,7 +297,6 @@ MooNkirA Code Learning Note
 <style type="text/css">
 .docs {
 	height: 2em;
-	max-width: 40%;
 	background-color: #eee;
 	margin: 1em 0;
 }

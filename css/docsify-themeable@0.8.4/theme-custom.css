@@ -1,3 +1,17 @@
+/* 把所有标签的内外边距清零 */
+* {
+  /* margin: 0;
+  padding: 0; */
+  /* css3盒子模型 */
+  box-sizing: border-box;
+}
+/* logo */
+.moon-logo > a > img {
+  width: 2.5em;
+  vertical-align: middle;
+  margin-right: 0.5em;
+}
+
 :root {
   /* App
   ============================================================================= */
@@ -9,6 +23,8 @@
   /* --theme-hue: 325; */
   /* --base-background-color: #f7f7f7; */
   --base-background-color: #cceed0;
+  /* Horizontal Rule */
+  --hr-border: 1px solid #f22f27;
 
   /* =============== Content
   ============================================================================= */
@@ -27,7 +43,7 @@
 
   /* Headings */
   --heading-font-weight: 700;
-  --heading-h1-font-size: 2.5em;
+  --heading-h1-font-size: 2.1em;
   --heading-h1-color: #b83030;
   --heading-h2-font-size: 1.75em;
   --heading-h2-color: #ef7060;
@@ -47,4 +63,87 @@
   /* =============== Plugin: Copy Code =============== */
   --copycode-background: #808080;
   --copycode-color: #fff;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-weight: 700;
+  line-height: 1.5;
+  margin: 0.5em 0 0.5em;
+}
+
+h1 {
+  font-size: 2.1em;
+  text-align: center;
+  padding-bottom: 0.3em;
+  line-height: 1.2;
+  margin: 1.2em auto 1.2em;
+  color: #d31d1d;
+}
+
+h1:after {
+  content: "";
+  display: block;
+  margin: 0.2em auto 0;
+  width: 100px;
+  height: 2px;
+  border-bottom: 2px dashed #f22f27;
+}
+
+/* 增加对h3标题属性的修改 */
+h2 {
+  border-bottom: 2px solid rgb(63, 63, 63);
+  border-top: 2px solid rgb(63, 63, 63);
+  /* font-size: 1.75rem; */
+}
+
+/*增加对h3标题字体的修改*/
+h2 span {
+  border-bottom: 2px solid rgb(63, 63, 63);
+  border-top: 2px solid rgb(63, 63, 63);
+  display: block;
+  color: #fff;
+  background: rgb(63, 63, 63);
+  padding: 0.25em 0.25em;
+}
+
+h3 > a > span {
+  color: purple;
+  padding-right: 0.5em;
+  padding-left: 0.5em;
+  /* font-size: 1.45em; */
+  background-image: linear-gradient(
+    to right,
+    rgb(50, 153, 210),
+    rgb(239, 189, 181)
+  );
+  background-position: initial;
+  background-size: initial;
+  background-repeat: initial;
+  background-attachment: initial;
+  background-origin: initial;
+  background-clip: initial;
+  display: inline-block;
+  border-radius: 0.4em;
+  margin-right: 2px;
+  margin-left: 2px;
+  letter-spacing: 1px;
+  --darkreader-inline-bgimage: linear-gradient(to right, #2477a5, #561c13);
+  --darkreader-inline-color: #e8e6e3;
+  box-shadow: 10px 10px 10px -4px rgba(0, 0, 0, 0.3);
+}
+
+h4 span,
+h5 span,
+h6 span {
+  margin: 20px 10px 20px 0;
+  padding-left: 9px;
+  border-left: 6px solid #ff7e79;
+  font-weight: 700;
+  line-height: 1.43;
+  color: #468;
 }
