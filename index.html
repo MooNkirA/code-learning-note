@@ -34,30 +34,12 @@
     />
 
     <!-- docsify-themeable 自定义主题属性，抽取成文件引入 -->
-    <link
-      rel="stylesheet"
-      href="./css/docsify-themeable@0.8.4/theme-custom.css"
-    />
+    <link rel="stylesheet" href="./css/theme-custom.css" />
 
     <!-- PrismJS theme 代码块高亮主题 -->
     <link rel="stylesheet" href="./css/prismjs@1.22.0/prism-funky.css" />
     <!-- <link rel="stylesheet" href="./css/prismjs@1.22.0/prism-okaidia.css"> -->
     <!-- <link rel="stylesheet" href="./css/prismjs@1.22.0/prism-tomorrow.css"> -->
-
-    <style>
-      /* 把所有标签的内外边距清零 */
-      * {
-        margin: 0;
-        padding: 0;
-        /* css3盒子模型 */
-        box-sizing: border-box;
-      }
-      .moon-logo > a > img {
-        width: 2.5em;
-        vertical-align: middle;
-        margin-right: 0.5em;
-      }
-    </style>
   </head>
   <body>
     <!-- 如果你需要定制导航栏，可以用 HTML 创建一个导航栏。 -->
@@ -75,7 +57,6 @@
         // repo: 'https://github.com/MooNkirA/code-learning-note',
         maxLevel: 6, // 最大支持渲染的标题层级
         // subMaxLevel: 5,
-        // homepage: "homepage.html",
         homepage: "README.md",
         // coverpage: true, // 添加一个封面
         // loadSidebar: true, // 添加侧边栏文件，默认名称
@@ -88,12 +69,9 @@
         // }, // 配置 alias 避免不必要的回退过程
 
         mergeNavbar: true, // 在较小的屏幕上，导航栏将与边栏合并。
-
-        // load from _navbar.md
-        // loadNavbar: true,
-
+        loadNavbar: true, // 添加导航栏 load from _navbar.md
         auto2top: true, // 切换页面后是否自动跳转到页面顶部
-        //全文搜索
+        // 全文搜索
         search: {
           maxAge: 86400000, // 过期时间，单位毫秒，默认一天
           paths: "auto",
@@ -141,7 +119,7 @@
     <!-- 图片缩放 -->
     <script src="//unpkg.com/docsify/lib/plugins/zoom-image.js"></script>
     <!-- 字数统计 -->
-    <script src="//unpkg.com/docsify-count/dist/countable.js"></script>
+    <!-- <script src="//unpkg.com/docsify-count/dist/countable.js"></script> -->
     <!-- 复制代码块 -->
     <script src="https://unpkg.com/docsify-copy-code"></script>
 

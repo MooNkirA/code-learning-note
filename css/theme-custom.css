@@ -1,0 +1,279 @@
+/* 把所有标签的内外边距清零 */
+* {
+  /* margin: 0;
+  padding: 0; */
+  /* css3盒子模型 */
+  box-sizing: border-box;
+}
+/* logo */
+.moon-logo > a > img {
+  width: 2.5em;
+  vertical-align: middle;
+  margin-right: 0.5em;
+}
+
+/* 自定义首页按钮 */
+.docs {
+  margin: 1em 0;
+  font-size: 1.1em;
+}
+.docs a {
+  text-decoration: none;
+}
+.docs a:hover {
+  color: yellow;
+  text-decoration: none;
+  padding: 0.3em 0.5em;
+  background-image: linear-gradient(
+    to right,
+    rgb(50, 153, 210),
+    rgb(239, 189, 181)
+  );
+  background-position: initial;
+  background-size: initial;
+  background-repeat: initial;
+  background-attachment: initial;
+  background-origin: initial;
+  background-clip: initial;
+  display: inline-block;
+  border-radius: 0.4em;
+  margin-right: 2px;
+  margin-left: 2px;
+  letter-spacing: 1px;
+  box-shadow: 10px 10px 10px -4px rgba(0, 0, 0, 0.3);
+}
+
+:root {
+  /* App
+  ============================================================================= */
+
+  /* Base
+  ============================================================================= */
+  --base-font-size: 16px;
+  --base-font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica,
+    Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+  --base-background-color: #cceed0;
+  /* Horizontal Rule */
+  --hr-border: 1px solid #f22f27;
+
+  /* =============== Content
+  ============================================================================= */
+  --content-max-width: 90em;
+
+  /* Code */
+  --code-block-border-radius: 0.8em;
+  --code-block-line-height: 1.2em;
+  --code-block-padding: 0.8em;
+
+  --code-inline-background: rgba(51, 51, 51, 0.3);
+  --code-inline-border-radius: 0.3em;
+  --code-inline-color: #e02222;
+  --code-inline-margin: 0 0.15em;
+  --code-inline-padding: 0.125em 0.4em;
+
+  /* Headings */
+  --heading-font-weight: 700;
+  --heading-h1-font-size: 2em;
+  --heading-h1-color: #b83030;
+  --heading-h2-font-size: 1.6em;
+  --heading-h2-color: #ef7060;
+  --heading-h3-font-size: 1.4em;
+  --heading-h3-color: #468;
+  --heading-h4-font-size: 1.2em;
+  --heading-h4-color: purple;
+  --heading-h5-font-size: 1.1em;
+  --heading-h5-color: purple;
+  --heading-h6-font-size: 1em;
+  --heading-h6-color: purple;
+
+  /* Links */
+  --link-color: #1591fa;
+  --link-color--hover: pink;
+  --link-text-decoration: underline;
+  --link-text-decoration--hover: underline;
+
+  /* Tables */
+  --table-body-border-color: #1591fa;
+  --table-body-border-width: 1px;
+  --table-cell-border-color: #1591fa;
+  --table-cell-border-width: 1px;
+  --table-cell-padding: 0.75em 0.5em;
+  /* --table-head-background: ; */
+  --table-head-border-color: var(--table-cell-border-color);
+  --table-head-border-width: 1px;
+  --table-head-font-weight: var(--strong-font-weight);
+  --table-row-even-background: ;
+  --table-row-odd-background: var(--mono-tint3);
+
+  /* Sidebar
+  ============================================================================= */
+  --sidebar-nav-link-before-content: "🌙";
+
+  /* =============== Plugin: Copy Code =============== */
+  --copycode-background: #808080;
+  --copycode-color: #fff;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-weight: 700;
+  line-height: 1.5;
+  margin: 0.5em 0 0.5em;
+}
+
+h1 {
+  text-align: center;
+  padding-bottom: 0.3em;
+  line-height: 1.2;
+  margin: 1.2em auto 1.2em;
+  color: #d31d1d;
+}
+
+h1:after {
+  content: "";
+  display: block;
+  margin: 0.2em auto 0;
+  width: 100px;
+  height: 2px;
+  border-bottom: 2px dashed #f22f27;
+}
+
+/* 增加对h2标题属性的修改 */
+h2 span {
+  display: inline-block;
+  background: rgb(63, 63, 63);
+  color: #ffffff;
+  padding: 10px 16px;
+  border-radius: 0.3em;
+  box-shadow: 5px 5px 10px black;
+}
+
+/* h3 标题样式 */
+h3 > a > span {
+  color: purple;
+  padding: 0.3em 0.5em;
+  background-image: linear-gradient(
+    to right,
+    rgb(50, 153, 210),
+    rgb(239, 189, 181)
+  );
+  background-position: initial;
+  background-size: initial;
+  background-repeat: initial;
+  background-attachment: initial;
+  background-origin: initial;
+  background-clip: initial;
+  display: inline-block;
+  border-radius: 0.4em;
+  margin-right: 2px;
+  margin-left: 2px;
+  letter-spacing: 1px;
+  box-shadow: 10px 10px 10px -4px rgba(0, 0, 0, 0.3);
+}
+
+h4 span,
+h5 span,
+h6 span {
+  margin: 20px 10px 20px 0;
+  padding-left: 9px;
+  border-left: 6px solid #ff7e79;
+  font-weight: 700;
+  line-height: 1.43;
+  color: #468;
+}
+
+/* table 样式 */
+table {
+  padding: 0;
+  word-break: initial;
+}
+
+table tr {
+  border-top: 1px solid #1591fa;
+  margin: 0;
+  padding: 0;
+}
+
+table tr:nth-child(2n),
+thead {
+  background-color: #d3d3d3;
+}
+
+table tr th {
+  font-weight: bold;
+  border: 1px solid #1598fa;
+  border-bottom: 0;
+  text-align: center;
+  margin: 0;
+  padding: 6px 13px;
+  background-color: #87cefa;
+}
+
+table tr td {
+  border: 1px solid #1598fa;
+  text-align: left;
+  margin: 0;
+  padding: 6px 13px;
+}
+
+table tr th:first-child,
+table tr td:first-child {
+  margin-top: 0;
+}
+
+table tr th:last-child,
+table tr td:last-child {
+  margin-bottom: 0;
+}
+
+.markdown-section blockquote {
+  padding: 0.3em 0.5em;
+}
+
+/* 导航栏样式 */
+.app-nav > ul > li {
+  width: 6em;
+  height: 3em;
+  text-align: center;
+  border-radius: 0.8em;
+  color: #fff;
+}
+.app-nav > ul > li > p {
+  margin: 0;
+  line-height: 3em;
+}
+.app-nav > ul > li:nth-child(1) {
+  background-color: #ffa900;
+}
+.app-nav > ul > li:nth-child(2) {
+  background-color: #2f98bc;
+}
+.app-nav > ul > li:nth-child(1):hover {
+  background-color: #483dc5;
+}
+.app-nav > ul > li:nth-child(2):hover {
+  background-color: #71c136;
+}
+
+.app-nav > ul > li > ul {
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  background-color: rgb(85, 88, 90, 0.8);
+  text-align: center;
+  border-radius: 0.5em;
+}
+
+.app-nav > ul > li > ul > li > a {
+  padding: 0;
+  height: 1.5em;
+  line-height: 1.5em;
+}
+
+.app-nav > ul > li > ul > li:hover {
+  background-color: #ff6700;
+}
