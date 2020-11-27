@@ -387,8 +387,333 @@ spring:
           type: rabbit # 指定绑定消息中间件的类型
 ```
 
+#### 2.3.4. 创建消息监听类
 
+```java
+package com.moon.stream.listener;
 
+import org.springframework.cloud.stream.annotation.EnableBinding;
+import org.springframework.cloud.stream.annotation.StreamListener;
+import org.springframework.cloud.stream.messaging.Sink;
+import org.springframework.stereotype.Component;
 
+/**
+ * 消息监听类
+ */
+@Component // 注册到spring容器中
+@EnableBinding(Sink.class)  // 绑定消息通道，此示例绑定的是Spring Cloud Stream内置的Sink接口
+public class MessageListener {
+    /**
+     * 监听binding中的消息，通过@StreamListener注解指定绑定的名称，
+     * 这里使用Spring Cloud Stream内置的Sink接口，名称为“input”
+     * (ps. 方法名称随意)
+     *
+     * @param message
+     */
+    @StreamListener(Sink.INPUT)
+    public void input(String message) {
+        System.out.println("获取的消息：" + message);
+    }
+}
+```
 
+在消息监听类上添加注解`@EnableBinding(Sink.class)`，其中 `Sink` 就是上述Spring Cloud Stream内置的接口。同时定义一个方法（此处是 input，方法名随意）标明注解为`@StreamListener(Sink.INPUT)`，表示绑定的消息名称，方法参数`String message`为监听接收到的消息内容。
+
+#### 2.3.5. 测试接收消息
+
+- 创建启动类
+
+```java
+/**
+ * Spring Cloud Stream 消息消费者（Consumer）启动类
+ * <p>
+ * Spring Cloud Stream 消息消费者的实现步骤：
+ * 1. 引入Spring Cloud Stream的依赖
+ * 2. 修改application.yml配置消息中间件与stream的相关配置
+ * 3. 定义一个通道接口，通过接口中内置的通道。此示例使用Spring Cloud Stream内置的Sink接口
+ * 4. 标识@EnableBinding注解绑定对应通道
+ * 5. 配置一个监听方法：当程序从中间件获取数据之后，执行的业务逻辑方法，需要在监听方法上标识 @StreamListener 注解
+ */
+@SpringBootApplication
+public class ConsumerApplication {
+    public static void main(String[] args) {
+        SpringApplication.run(ConsumerApplication.class, args);
+    }
+}
+```
+
+工程启动后，默认是会创建一个临时队列，临时队列绑定的exchange为`stream-sample-default`，routing key为“`#`”。所有发送exchange为`stream-sample-default`的MQ消息都会被投递到这个临时队列，并且触发上述的方法。
+
+![](images/20201122092305968_19464.png)
+
+- 启动消息生的消费者，再运行消息发送测试程序，观察是否接收到消息
+
+![](images/20201122092141361_7436.png)
+
+## 3. 自定义消息通道
+
+Spring Cloud Stream 内置了两种接口，分别定义了 binding 为 `input` 的输入流和 `output` 的输出流，而在实际使用中，往往是需要自定义各种输入输出流。
+
+### 3.1. 创建自定义消息binding接口
+
+参考Spring Cloud Stream 内置的binding接口，创建一个自定义的消息binding接口。接口主要包含的内容是：
+
+1. 定义输入（输出）通道的名称
+2. 使用`@Input`注解标识输入流方法（*方法名随意*）方法的返回值为`SubscribableChannel`；使用`@Output`注解标识输出流方法（*方法名随意*）方法的返回值为`MessageChannel`
+
+一个接口中，可以定义无数个输入输出流，可以根据实际业务情况划分。以下示例的接口，定义了一个输入和输出两个 binding。
+
+```java
+package com.moon.stream.channel;
+
+import org.springframework.cloud.stream.annotation.Input;
+import org.springframework.cloud.stream.annotation.Output;
+import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.SubscribableChannel;
+
+/**
+ * 自定义的消息通道
+ * 1. 定义消息通道的名称（输入/输出）
+ * 2. 使用@Input与@Output注解修饰消息消费与生产的方法（方法名随意
+ */
+public interface CustomProcessor {
+    /* 定义输入通道名称 */
+    String INPUT = "customInput";
+
+    /* 定义输出通道名称 */
+    String OUTPUT = "customOutput";
+
+    /* 定义消息消费者的配置 */
+    @Input(CustomProcessor.INPUT)
+    SubscribableChannel input();
+
+    /* 定义消息生产者的配置 */
+    @Output(CustomProcessor.OUTPUT)
+    MessageChannel output();
+}
+```
+
+> *使用上面快速入门的示例代码，因为将输入与输出两个binding定义在一个接口中，而消息的生产者与消费者工程都用到，所以抽取此消息binding接口到一个工程中，并将Spring Cloud Stream的依赖抽取到此公共工程中，详见《spring-cloud-note\spring-cloud-greenwich-sample\15-springcloud-stream》*
+
+### 3.2. 修改消费者与生产者项目配置
+
+- 修改生产者工程配置，增加自定义消息通道的配置
+
+```yml
+spring:
+  cloud:
+    stream: # Spring Cloud Stream 配置
+      bindings:
+        output: # Spring Cloud Stream内置的发送消息的通道（名称为output）
+          destination: stream-sample-default  # 指定消息发送的目的地，在RabbitMQ中，发送到一个stream-sample-default的exchange中
+          contentType: text/plain # 用于指定消息的类型
+        customOutput: # 自定义的发送消息的通道（在CustomProcessor接口中定义的）
+          destination: stream-sample-custom
+      binders:  # 配置绑定器
+        defaultRabbit:
+          type: rabbit # 指定绑定消息中间件的类型
+```
+
+- 修改消费者项目的配置，与生产者一样，增加自定义消息通道的配置
+
+```yml
+spring:
+  cloud:
+    stream: # Spring Cloud Stream 配置
+      bindings:
+        input: # Spring Cloud Stream内置的获取消息的通道（名称为input）
+          destination: stream-sample-default # 指定消息获取的目的地，在RabbitMQ中，从一个stream-sample-default的exchange中获取消息
+        customInput: # 自定义的获取消息的通道（在CustomProcessor接口中定义的）
+          destination: stream-sample-custom
+      binders:  # 配置绑定器
+        defaultRabbit:
+          type: rabbit # 指定绑定消息中间件的类型
+```
+
+### 3.3. 创建消息发送工具类与消息监听类
+
+- 创建`CustomMessageSender`消息发送工具类，绑定自定义消息通道
+
+```java
+/**
+ * 自定义消息通道绑定与消息发送工具类 */
+@Component
+@EnableBinding(CustomProcessor.class) // 绑定自定义消息通道接口
+public class CustomMessageSender {
+    /* 注入自定义消息通道对象 */
+    @Autowired
+    // @Qualifier(CustomProcessor.OUTPUT) // 指定spring容器中MessageChannel的名称，或者注入的属性名称与容器中beanName一致也可以
+    private MessageChannel customOutput;
+
+    /**
+     * 发送消息
+     *
+     * @param obj 发送的内容
+     */
+    public void send(Object obj) {
+        // 通过消息通过对象，发送MQ消息
+        customOutput.send(MessageBuilder.withPayload(obj).build());
+    }
+}
+```
+
+- 创建`CustomMessageListener`消息监听类，监听自定义消息通道
+
+```java
+/**
+ * 自定义消息通道的消息监听类
+ */
+@Component
+@EnableBinding(CustomProcessor.class) // 绑定自定义消息通道
+public class CustomMessageListener {
+    /**
+     * 监听自定义消息通道（CustomProcessor.INPUT）的消息(ps. 方法名称随意)
+     */
+    @StreamListener(CustomProcessor.INPUT)
+    public void input(String message) {
+        System.out.println("监听自定义消费通道获取的消息：" + message);
+    }
+}
+```
+
+### 3.4. 测试发送与接收消息
+
+- 创建生产者的发送消息的
+
+```java
+@Autowired
+private CustomMessageSender customMessageSender;
+
+/* 测试自定义消息通道发送消息 */
+@Test
+public void sendMessageByCustomChannel() {
+    customMessageSender.send("Hello, send message from custom channel!");
+}
+```
+
+启动消费者工程，通过测试方法发送消息到自定义消息通道
+
+![](images/20201126172138222_19130.png)
+
+## 4. 消息分组
+
+通常在生产环境，每个服务都不会以单节点的方式运行在生产环境，当同一个服务启动多个实例的时候，这些实例都会绑定到同一个消息通道的目标主题（Topic）上。默认情况下，当生产者发出一条消息到绑定通道上，这条消息会产生多个副本被每个消费者实例接收和处理，但是有些业务场景之下，只希望生产者产生的消息只被其中一个实例消费，此时就需要为这些消费者设置消费组来实现这样的功能。
+
+![](images/20201127084118094_19960.png)
+
+实现此需求只需要在服务消费者端设置`spring.cloud.stream.bindings.输入通道名称.group` 属性即可，在同一个group中的多个消费者只有一个可以获取到消息并消费。配置如下：
+
+```yml
+spring:
+  cloud:
+    stream: # Spring Cloud Stream 配置
+      bindings:
+        input: # Spring Cloud Stream内置的获取消息的通道（名称为input）
+          destination: stream-sample-default # 指定消息获取的目的地，在RabbitMQ中，从一个stream-sample-default的exchange中获取消息
+        customInput: # 自定义的获取消息的通道（在CustomProcessor接口中定义的）
+          destination: stream-sample-custom
+          group: group-1 # 设置此消息目的地所属分组的名称，同名分组中的多个消息者，只有一个实例去获取消息并消费
+      binders:  # 配置绑定器
+        defaultRabbit:
+          type: rabbit # 指定绑定消息中间件的类型
+```
+
+> 复制上面示例消息者工程创建新的副本工程，将端口号改成`7003`即可用于测试
+
+![](images/20201127085451235_13094.png)
+
+<font color=red>经测试，同一个分组的多个消费者默认是以**轮询**的方法进行消费</font>
+
+## 5. 消息分区
+
+有一些场景需要满足，同一个特征的数据被同一个实例消费，比如同一个id的传感器监测数据必须被同一个实例统计计算分析，否则可能无法获取全部的数据。又比如部分异步任务，首次请求启动task，二次请求取消task，此场景就必须保证两次请求至同一实例
+
+![](images/20201127085715243_1387.png)
+
+### 5.1. 消息生产者配置
+
+修改生产者工程的`application.yml`配置文件，增加分区相关配置
+
+```yml
+spring:
+  application:
+    name: stream-producer # 指定服务名
+  rabbitmq:
+    addresses: 192.168.12.132
+    username: guest
+    password: guest
+  cloud:
+    stream: # Spring Cloud Stream 配置
+      bindings:
+        output: # Spring Cloud Stream内置的发送消息的通道（名称为output）
+          destination: stream-sample-default  # 指定消息发送的目的地，在RabbitMQ中，发送到一个stream-sample-default的exchange中
+          contentType: text/plain # 用于指定消息的类型
+        customOutput: # 自定义的发送消息的通道（在CustomProcessor接口中定义的）
+          destination: stream-sample-custom
+          producer:
+            partitionKeyExpression: payload # 指定分区键（关键字）的表达式规则。可以使用SpEL表达式配置。注：属性名也可以使用中划线间隔方式，如，partition-key-expression
+            partitionCount: 2 # 指定消息分区的数量
+```
+
+**配置说明**
+
+- `spring.cloud.stream.bindings.消息通道名称.producer.partitionKeyExpression`：通过该参数指定了分区键的表达式规则，可以根据实际的输出消息规则来配置SpEL来生成合适的分区键
+- `spring.cloud.stream.bindings.消息通道名称.producer.partitionCount`：该参数指定了消息分区的数量
+
+[点击查看官网更多生产者详细配置项](https://cloud.spring.io/spring-cloud-static/spring-cloud-stream/2.2.1.RELEASE/spring-cloud-stream.html#_producer_properties)
+
+### 5.2. 消息消费者配置
+
+修改消费者工程的`application.yml`配置文件，增加分区相关配置
+
+```yml
+spring:
+  application:
+    name: stream-consumer # 指定服务名
+  rabbitmq:
+    addresses: 192.168.12.132
+    username: guest
+    password: guest
+  cloud:
+    stream: # Spring Cloud Stream 配置
+      instanceCount: 2  # 指定消费者实例总数 注：属性名也可以使用中划线间隔方式，如，instance-count
+      instanceIndex: 0  # 当前消费者实例的索引，从0开始，最大值为 “instanceCount参数值-1”
+      bindings:
+        input: # Spring Cloud Stream内置的获取消息的通道（名称为input）
+          destination: stream-sample-default # 指定消息获取的目的地，在RabbitMQ中，从一个stream-sample-default的exchange中获取消息
+        customInput: # 自定义的获取消息的通道（在CustomProcessor接口中定义的）
+          destination: stream-sample-custom
+          group: group-1 # 设置此消息目的地所属分组的名称，同名分组中的多个消息者，只有一个实例去获取消息并消费
+          consumer:
+            partitioned: true  # 开启消费者分区支持
+      binders:  # 配置绑定器
+        defaultRabbit:
+          type: rabbit # 指定绑定消息中间件的类型
+```
+
+**配置说明**
+
+- `spring.cloud.stream.instanceCount`：该参数指定了当前消费者的总实例数量
+- `spring.cloud.stream.instanceIndex`：该参数设置当前实例的索引号，从0开始，最大值为 “`spring.cloud.stream.instanceCount`参数值 - 1”。*测试时也可以通过运行参数的方式启动多个实例，从而设置不同的索引值*
+- `spring.cloud.stream.bindings.消息通道名称.consumer.partitioned`：通过该参数开启消费者分区功能
+
+[点击查看官网更多消费者详细配置项](https://cloud.spring.io/spring-cloud-static/spring-cloud-stream/2.2.1.RELEASE/spring-cloud-stream.html#_consumer_properties)
+
+### 5.3. 测试
+
+编写生产的测试方法，发送多次消息
+
+```java
+/* 测试消息分区支持功能 */
+@Test
+public void testMessagePartitioningSupport() {
+    for (int i = 0; i < 5; i++) {
+        customMessageSender.send(0);
+    }
+}
+```
+
+以上示例的消息分区配置就完成了，可以再次启动这两个应用，同时消费者启动多个，但需要注意的是要为消费者指定不同的实例索引号，这样当同一个消息被发给消费组时，可以发现只有一个消费实例在接收和处理这些相同的消息。
+
+![](images/20201127145557318_5987.png)
 
