@@ -45,3 +45,13 @@ Spring Cloud Config 为分布式系统中的外部配置提供服务器和客户
 ### 1.6. 各个方案的区别
 
 ![](images/20201112104840769_17016.png)
+
+## 2. 配置中心基础使用笔记
+
+### 2.1. Apollo
+
+具体内容详见：[Apollo.md](/07-分布式架构&微服务架构/08-分布式配置中心/01-Apollo)
+
+### 2.2. Spring Cloud Config
+
+具体内容详见：[Spring-Cloud-Config.md](/07-分布式架构&微服务架构/02-SpringCloud/09-Spring-Cloud-Config)
