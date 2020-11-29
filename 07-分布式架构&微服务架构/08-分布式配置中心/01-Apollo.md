@@ -47,56 +47,18 @@
 
 ## 2. Apollo 简介
 
-### 2.1. 主流配置中心
+### 2.1. Apollo 介绍
 
-目前市面上用的比较多的配置中心有：（按开源时间排序）
-
-1. Disconf
-
-2014年7月百度开源的配置管理中心，专注于各种「分布式系统配置管理」的「通用组件」和「通用平台」，提供统一的「配置管理服务」。目前已经不再维护更新。
-
-> 官网：https://github.com/knightliao/disconf
-
-2. Spring Cloud Config
-
-2014年9月开源，Spring Cloud 生态组件，可以和Spring Cloud体系无缝整合。
-
-> 官网：https://github.com/spring-cloud/spring-cloud-config
-
-3. Apollo
-
-2016年5月，携程开源的配置管理中心，能够集中化管理应用不同环境、不同集群的配置，配置修改后能够实时推送到应用端，并且具备规范的权限、流程治理等特性，适用于微服务配置管理场景。
-
-> 官网：https://github.com/ctripcorp/apollo
-
-4. Nacos
-
-2018年6月，阿里开源的配置中心，也可以做DNS和RPC的服务发现。
-
-> 官网：https://github.com/alibaba/nacos
-
-#### 2.1.1. 功能特性对比
-
-由于Disconf不再维护，下面主要对比一下Spring Cloud Config、Apollo和Nacos。
-
-![](images/20200704110318314_10929.png)
-
-#### 2.1.2. 对比总结
-
-总的来看，Apollo和Nacos相对于Spring Cloud Config的生态支持更广，在配置管理流程上做的更好。Apollo相对于Nacos在配置管理做的更加全面，Nacos则使用起来相对比较简洁，在对性能要求比较高的大规模场景更适合。但对于一个开源项目的选型，项目上的人力投入（迭代进度、文档的完整性）、社区的活跃度（issue的数量和解决速度、Contributor数量、社群的交流频次等），这些因素也比较关键，考虑到Nacos开源时间不长和社区活跃度，所以从目前来看Apollo应该是最合适的配置中心选型。
-
-### 2.2. Apollo 介绍
-
-Apollo - A reliable configuration management system
-
-Apollo（阿波罗）是携程框架部门研发的分布式配置中心，能够集中化管理应用的不同环境、不同集群的配置，配置修改后能够实时推送到应用端，并且具备规范的权限、流程治理等特性，适用于微服务配置管理场景。
+Apollo - A reliable configuration management system。Apollo（阿波罗）是携程框架部门研发的分布式配置中心，能够集中化管理应用的不同环境、不同集群的配置，配置修改后能够实时推送到应用端，并且具备规范的权限、流程治理等特性，适用于微服务配置管理场景。
 
 Apollo包括服务端和客户端两部分：
 
 - 服务端基于Spring Boot和Spring Cloud开发，打包后可以直接运行，不需要额外安装Tomcat等应用容器。
 - 客户端（Java）不依赖任何框架，能够运行于所有Java运行时环境，同时对Spring/Spring Boot环境也有较好的支持。
 
-### 2.3. Apollo 特性
+> 官网：https://github.com/ctripcorp/apollo
+
+### 2.2. Apollo 特性
 
 基于配置的特殊性，所以Apollo设计成为一个有治理能力的配置发布平台，目前提供了以下的特性：
 
@@ -122,6 +84,18 @@ Apollo包括服务端和客户端两部分：
 - **提供开放平台API**
     - Apollo自身提供了比较完善的统一配置管理界面，支持多环境、多数据中心配置管理、权限、流程治理等特性。不过Apollo出于通用性考虑，不会对配置的修改做过多限制，只要符合基本的格式就能保存，不会针对不同的配置值进行针对性的校验，如数据库用户名、密码，Redis服务地址等
     - 对于这类应用配置，Apollo支持应用方通过开放平台API在Apollo进行配置的修改和发布，并且具备完善的授权和权限控制
+- **部署简单**
+    - 配置中心作为基础服务，可用性要求非常高，这就要求Apollo对外部依赖尽可能地少
+    - 目前唯一的外部依赖是MySQL，所以部署非常简单，只要安装好Java和MySQL就可以运行Apollo应用
+    - Apollo还提供了打包脚本，一键就可以生成所有需要的安装包，并且支持自定义运行时参数
+
+### 2.3. 几款主流配置中心方案对比总结
+
+由于Disconf不再维护，下面主要对比一下Spring Cloud Config、Apollo和Nacos。
+
+![](images/20200704110318314_10929.png)
+
+总的来看，Apollo和Nacos相对于Spring Cloud Config的生态支持更广，在配置管理流程上做的更好。Apollo相对于Nacos在配置管理做的更加全面，Nacos则使用起来相对比较简洁，在对性能要求比较高的大规模场景更适合。但对于一个开源项目的选型，项目上的人力投入（迭代进度、文档的完整性）、社区的活跃度（issue的数量和解决速度、Contributor数量、社群的交流频次等），这些因素也比较关键，考虑到Nacos开源时间不长和社区活跃度，所以从目前来看Apollo应该是最合适的配置中心选型。
 
 ## 3. Apollo 快速入门
 
@@ -131,12 +105,23 @@ Apollo包括服务端和客户端两部分：
 
 ![](images/20200704111631707_11545.png)
 
-操作流程如下：
+Apollo客户端的实现原理如下：
 
-1. 在Apollo配置中心修改配置
-2. 应用程序通过Apollo客户端从配置中心拉取配置信息
+1. 用户通过Apollo管理平台，对Apollo配置中心修改配置
+2. 应用程序通过Apollo客户端从配置中心拉取配置信息。客户端和服务端保持了一个长连接，从而能第一时间获得配置更新的推送。
+3. 客户端还会定时从Apollo配置中心服务端拉取应用的最新配置
+    - 这是一个fallback机制，为了防止推送机制失效导致配置不更新
+    - 客户端定时拉取会上报本地版本，所以一般情况下，对于定时拉取的操作，服务端都会返回`304 - Not Modified`
+    - 定时频率默认为每5分钟拉取一次，客户端也可以通过在运行时指定`System Property:apollo.refreshInterval`来覆盖，单位为分钟。
+4. 客户端从Apollo配置中心服务端获取到应用的最新配置后，会保存在内存中
+5. 客户端会把从服务端获取到的配置在本地文件系统缓存一份
+    - 在遇到服务不可用，或网络不通的时候，依然能从本地恢复配置
+6. 应用程序从Apollo客户端获取最新的配置、订阅配置更新通知
 
-用户通过Apollo配置中心修改或发布配置后，会有两种机制来保证应用程序来获取最新配置：一种是Apollo配置中心会向客户端推送最新的配置；另外一种是Apollo客户端会定时从Apollo配置中心拉取最新的配置，通过以上两种机制共同来保证应用程序能及时获取到配置。
+用户通过Apollo配置中心修改或发布配置后，会有两种机制来保证应用程序来获取最新配置：
+
+- 一种是Apollo配置中心会向客户端推送最新的配置；
+- 另外一种是Apollo客户端会定时从Apollo配置中心拉取最新的配置，通过以上两种机制共同来保证应用程序能及时获取到配置。
 
 ### 3.2. Apollo 安装
 
@@ -221,7 +206,7 @@ select `Id`, `Key`, `Value`, `Comment` from `ApolloConfigDB`.`ServerConfig` limi
 
 ### 3.3. Apollo 启动
 
-1. Apollo默认会启动3个服务，分别使用8070, 8080, 8090端口，确保这3个端口当前未被占用
+1. Apollo默认会启动3个服务，分别使用8070（`apollo-portal`）, 8080（`apollo-configservice`）, 8090（`apollo-adminservice`）端口，确保这3个端口当前未被占用
 2. 启动apollo-configservice，在apollo目录下执行如下命令(根据实际情况修改)。可通过`-Dserver.port=xxxx`修改默认端口
 
 ```bash
@@ -768,7 +753,9 @@ server.servlet.context‐path = /
 
 ### 6.2. Spring Boot 应用集成 Apollo
 
-以集成统一账户服务(account-service)为例
+Spring Boot支持通过`application.properties`/`bootstrap.properties`来配置，该方式能使配置在更早的阶段注入，比如使用 `@ConditionalOnProperty` 的场景或者是有一些`spring-boot-starter`在启动阶段就需要读取配置做一些事情（如`dubbo-spring-boot-project`）
+
+下面示例以集成统一账户服务(account-service)为例
 
 #### 6.2.1. 导入工程
 
