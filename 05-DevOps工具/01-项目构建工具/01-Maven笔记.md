@@ -1,6 +1,34 @@
 # Maven 笔记
 
+## 1. Maven概述
 
+### 1.1. Maven是什么
+
+Maven的Apache公司开源项目，是项目管理、构建工具。用来依赖管理
+
+Maven采用Project Object Modle（POM）概念来管理项目，所有的项目配置信息都定义在pom.xml文件中。
+
+Maven是用于建立jar包仓库，使用依赖管理，就是对jar包统一管理，maven项目中如果需要使用一个jar包，只需要在maven项目中配置需要jar包坐标信息，maven程序根据jar包坐标的信息去jar包仓库中查找jar包
+
+### 1.2. Maven的坐标
+
+#### 1.2.1. 定义
+
+坐标(GAV)：作为查找定位jar包（项目/组件）的唯一依据。例如：`struts2-core-2.3.24.jar`
+
+坐标的规则：`Apache(公司名称)+struts2(项目名称)+2.3.24(版本信息)`
+
+#### 1.2.2. Maven坐标主要组成
+
+- `groupId`：定义当前Maven项目隶属项目、组织
+- `artifactId`：定义实际项目中的一个模块
+- `version`：定义当前项目的当前版本
+- `packaging`：定义该项目的打包方式(pom/jar/war，默认是jar包)
+
+### 1.3. maven的两大核心
+
+- **项目构建**：项目在编码完成后，对项目进行编译、测试、打包、部署等一系列的操作都通过**命令**来实现
+- **依赖管理**：对jar包管理过程
 
 # 扩展资料
 

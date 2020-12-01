@@ -51,20 +51,22 @@ Git 的工作流程图
 
 ## 2. Git 安装
 
+### 2.1. Git 下载网址
 
+Git下载网址：https://git-scm.com/download
 
+> 笔记使用的版本：
+>
+> - window版本：Git-2.16.2-64-bit.exe
+> - linux版本：git-2.16.2.tar.gz
 
+### 2.2. Git 相关图形化客户端
 
-
-
-
-
-
-
-
-
-
-
+- Git 第三方 GUI Clients 官方推荐整理：https://git-scm.com/downloads/guis
+- Sourcetree 网址：https://www.sourcetreeapp.com/
+- GitHub Desktop 网址：https://desktop.github.com/
+- TortoiseGit 网址：https://tortoisegit.org/
+- Git Extensions 网址：https://gitextensions.github.io/
 
 
 # Git 扩展知识
