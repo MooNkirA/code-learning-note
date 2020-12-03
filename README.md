@@ -83,6 +83,8 @@
   <li><a href="#/02-后端框架/06-工具框架/06-Netty（网络应用程序框架）">Netty（网络应用程序框架）</a></li>
   <li><a href="#/02-后端框架/06-工具框架/07-Lombok工具插件">Lombok工具插件</a></li>
   <li><a href="#/02-后端框架/06-工具框架/08-Apache-Commons-IO">Apache Commons IO（IO操作工具类库）</a></li>
+  <li><a href="#/02-后端框架/06-工具框架/08-Apache-Commons-Lang">Apache Commons Lang（Java基础API增强的工具包）</a></li>
+  <li><a href="#/02-后端框架/06-工具框架/09-PowerMock">PowerMock (单元测试模拟框架)</a></li>
 </ul>
 
 ## 前端资料 📘
@@ -131,6 +133,7 @@
 <ul class="docs">
   <li><a href="#/04-数据库/01-MySQL/01-MySQL基础笔记">MySQL基础笔记</a></li>
   <li><a href="#/04-数据库/01-MySQL/02-MySQL数据库规范与性能优化">MySQL数据库规范与性能优化</a></li>
+  <li><a href="#/04-数据库/01-MySQL/03-MySQL安装与部署">MySQL安装与部署</a></li>
 </ul>
 
 ### ✨ Oracle ✨
