@@ -2,6 +2,7 @@
 
 ## 1. Eclipse各版本号
 
+- Eclipse 2020-12 (4.18)
 - Eclipse 2020-09 (4.17)
 - Eclipse 2020-06-R (4.16)
 - Eclipse 2020-03-R (4.15)

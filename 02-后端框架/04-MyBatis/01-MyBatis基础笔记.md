@@ -1,6 +1,7 @@
 # MyBatis 基础笔记
 
 ## 1. MyBatis框架
+
 ### 1.1. MyBatis是什么
 
 MyBatis是一个持久层的框架，本是apache的一个开源项目iBatis，2010年这个项目由apache software foundation迁移到了google code，并且改名为MyBatis。2013年11月迁移到Github
@@ -10,6 +11,8 @@ MyBatis让程序将主要精力放在sql上，通过MyBatis提供的映射方式
 MyBatis可以将向preparedStatement中的输入参数自动进行输入映射，将查询结果集映射成java对象(输出映射)
 
 > 下载地址：https://github.com/mybatis/mybatis-3/releases
+>
+> Mybatis中文文档：https://mybatis.org/mybatis-3/zh/
 
 ### 1.2. MyBatis框架执行流程
 
@@ -31,6 +34,7 @@ MyBatis可以将向preparedStatement中的输入参数自动进行输入映射�
 6. 操作数据库
 
 ## 2. MyBatis基本使用
+
 ### 2.1. MyBatis文件结构
 
 ![](images/20200621084315586_13990.jpg)
@@ -38,6 +42,7 @@ MyBatis可以将向preparedStatement中的输入参数自动进行输入映射�
 > 注：在搭建MyBatis环境时，记得加入MySQL/Oracle的驱动包
 
 ### 2.2. MyBatis基本使用步骤
+
 #### 2.2.1. log4j.properties
 
 log4j.properties文件的内容在MyBatis帮助文档可以查询
@@ -1881,16 +1886,16 @@ public void queryUsersAndOrdersTest() {
 
 MyBatis中用于实现动态SQL的元素，主要存放在`<select>`标签中
 
-|标签名|属性|说明|
-|------------|------------|------------|
-|`<if>`|test：判断条件|根据条件判断拼接标签体的sql语句|
-|`<where>`||1.where标签，相当于sql语句中的where关键字<br/>2.根据传入的参数情况，智能的去掉多余的and，or关键字<br/>3.根据传入的参数情况，智能的去掉多余的where关键字|
-|`<choose>`|子标签：<br/>`<when>`、`<otherwise>`标签|相当于java中的switch，如果满足条件则不会再往下执行|
-|`<set>`||1.相当于sql语句中的set关键字<br/>2.根据传入的参数情况，智能的去掉最后一个多余的逗号|
-|`<foreach>`|`collection`：参数集合<br/>`item`：当前循环的对象引用<br/>`open`：拼装的sql语句片段开始<br/>`close`：拼装的sql语句片段的结束<br/>`separator`：指定元素之间的分割符|循环遍历处理参数集合（List、数组）|
-|`<sql>`|id：唯一标识的名称，根据id引用该sql片段|提取公共的sql语句片段|
-|`<include>`|refid：引用sql片段的id值|引用sql片段|
-|`<trim>`||格式化|
+|    标签名    |                                                                           属性                                                                           |                                                                    说明                                                                     |
+| ----------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| `<if>`      | test：判断条件                                                                                                                                            | 根据条件判断拼接标签体的sql语句                                                                                                                |
+| `<where>`   |                                                                                                                                                          | 1.where标签，相当于sql语句中的where关键字<br/>2.根据传入的参数情况，智能的去掉多余的and，or关键字<br/>3.根据传入的参数情况，智能的去掉多余的where关键字 |
+| `<choose>`  | 子标签：<br/>`<when>`、`<otherwise>`标签                                                                                                                  | 相当于java中的switch，如果满足条件则不会再往下执行                                                                                              |
+| `<set>`     |                                                                                                                                                          | 1.相当于sql语句中的set关键字<br/>2.根据传入的参数情况，智能的去掉最后一个多余的逗号                                                                |
+| `<foreach>` | `collection`：参数集合<br/>`item`：当前循环的对象引用<br/>`open`：拼装的sql语句片段开始<br/>`close`：拼装的sql语句片段的结束<br/>`separator`：指定元素之间的分割符 | 循环遍历处理参数集合（List、数组）                                                                                                             |
+| `<sql>`     | id：唯一标识的名称，根据id引用该sql片段                                                                                                                     | 提取公共的sql语句片段                                                                                                                         |
+| `<include>` | refid：引用sql片段的id值                                                                                                                                  | 引用sql片段                                                                                                                                 |
+| `<trim>`    |                                                                                                                                                          | 格式化                                                                                                                                      |
 
 
 为什么要使用动态SQL标签？因为在多条件查询下，MyBatis框架，当参数不传递，它会默认设置一个null值，导致查询不到数据。所以**多条件查询使用到动态sql标签**
