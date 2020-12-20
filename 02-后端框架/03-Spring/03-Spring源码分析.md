@@ -13,10 +13,50 @@
 1. 到github下载源码
     - 源码下载地址：https://github.com/spring-projects/spring-framework
     - 国内镜像：https://gitee.com/mirrors/spring-framework
-2. 下载 gradle，需要 JDK8 及以上的版本
-3. 到下载的 spring 源码路径执行 gradle 命令，`gradlew :spring-oxm:compileTestJava`
-4. 用 idea 打开 spring 源码工程，在 idea 中安装插件 kotlin，重启 idea
-5. 把编译好的源码导入到工程中，这样可以在源码中写注释并且断点调试源码了。
+    - 目前源码学习的笔记更新至spring-framework 5.2.8.RELEASE，下载地址：https://gitee.com/mirrors/Spring-Framework/tree/v5.2.8.RELEASE
+2. 下载 gradle，需要 JDK8 及以上的版本。解压Gradle压缩包到无中文与空格的目录，然后配置gradle环境变量
+
+![](images/20201213174420466_14560.png)
+
+![](images/20201213174502507_749.png)
+
+3. 修改源码项目的`settings.gradle`文件，增加阿里云仓库
+
+```gradle
+pluginManagement {
+	repositories {
+		gradlePluginPortal()
+        maven { url 'https://maven.aliyun.com/repository/public' }
+		maven { url 'https://repo.spring.io/plugins-release' }
+	}
+}
+```
+
+4. 修改源码项目的`gradle.properties`文件，修改一些参数配置
+
+```properties
+version=5.2.8.RELEASE
+org.gradle.jvmargs=-Xmx2048M
+org.gradle.caching=true
+org.gradle.parallel=true
+org.gradle.configureondemand=true
+org.gradle.daemon=true
+```
+
+5. 修改源码项目的`build.gradle`文件，增加阿里云仓库
+
+```gradle
+repositories {
+    maven { url 'https://maven.aliyun.com/nexus/content/groups/public/' }
+    maven { url 'https://maven.aliyun.com/nexus/content/repositories/jcenter'}
+	mavenCentral()
+    maven { url "https://repo.spring.io/libs-spring-framework-build" }
+}
+```
+
+6. 到下载的 spring 源码路径执行 gradle 命令，`gradlew :spring-oxm:compileTestJava`。编译spring-oxm模块，编译成功后会有`BUILD SUCCESSFUL`的提示。
+7. 用 idea 打开 spring 源码工程，在 idea 中安装插件 kotlin，重启 idea
+8. 把编译好的源码导入到工程中，这样可以在源码中写注释并且断点调试源码了。
 
 ### 1.2. 把源码导入到工程
 
@@ -101,12 +141,13 @@
 ```
 
 ## 2. Spring 基础使用
+
 ### 2.1. spring 配置文件中xsd文件引入
 
 XSD 是编写 xml 文件的一种规范，有了这个规范才能校验当前 xml 文件是否准确，在 spring 中同样有 XSD 规范。
 
-
 ### 2.2. spring 容器加载方式
+
 #### 2.2.1. ClassPathXmlApplicationContext(类路径获取配置文件上下文对象)
 
 比较常用的上下文对象，用于启动时读取上下文对象
@@ -131,7 +172,7 @@ public void ClassPathXmlApplicationContextTest() {
 @Test
 public void FileSystemXmlApplicationContextTest() {
     // 读取spring的配置文件，需要绝对路径
-    FileSystemXmlApplicationContext applicationContext = new FileSystemXmlApplicationContext("D:\\code\\moonzero-system\\mz-system-learning\\mz-learning-springsource\\src\\main\\resources\\spring.xml");
+    FileSystemXmlApplicationContext applicationContext = new FileSystemXmlApplicationContext("D:\\code\\src\\main\\resources\\spring.xml");
     Student student = (Student) applicationContext.getBean("student");
     System.out.println(student.getUserName());
 }
