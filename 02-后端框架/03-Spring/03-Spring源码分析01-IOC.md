@@ -60,25 +60,27 @@ repositories {
 
 ### 1.2. 把源码导入到工程
 
-1. 选择源码测试工程所依赖的spring相应的版本，右键选择【Open Library Settings】
+1. 使用gradle在将相关模块的源码打成jar
 
-![导入源码步骤1](images/20191215155948627_17845.png)
+![](images/20201226100102742_32136.png)
 
-2. 选择Libraries里的spring源码包，在Classes、Sources、Annotations中增加编译好的源码
+2. 在Project侧边栏中的External Libraries，选择源码测试工程所依赖的spring相应的版本，右键选择【Open Library Settings】
 
-![导入源码步骤2](images/20191215160339293_2908.png)
+![](images/20201226101626229_17268.png)
 
+3. 选择Libraries里的spring源码包，在Classes、Sources、Annotations中增加编译好的源码
 
-3. 选择Classes
+![](images/20201226102200321_32128.png)
 
-![导入源码步骤3](images/20191215181733460_8930.png)
+4. 选择Classes、Sources，删除原来maven仓库的jar，改成使用源码编译后jar包
 
-4. 选择Sources
+![](images/20201226102458984_31395.png)
 
-![导入源码步骤4](images/20191215181830565_31571.png)
+![](images/20201226102637109_31955.png)
 
+![](images/20201226102647171_22314.png)
 
-### 1.3. 创建 Spring 示例项目
+### 1.3. 创建 Spring 最基础示例项目
 
 - 创建maven项目，修改pom.xml导入 spring 依赖。其中 spring 中最核心的4个jar如下
     - spring-beans
@@ -87,30 +89,117 @@ repositories {
     - spring-expression
 - 一个最简单的 spring 工程，理论上就只需要依赖一个 spring-context 就足够了
 
+1. 创建pom父工程，此工程包含所有示例项目
+
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
-
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
-         http://maven.apache.org/xsd/maven-4.0.0.xsd">
-
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
-        <artifactId>mz-system-learning</artifactId>
+        <artifactId>spring-analysis-note</artifactId>
         <groupId>com.moon</groupId>
-        <version>0.3.1</version>
+        <version>1.0-SNAPSHOT</version>
     </parent>
+
     <modelVersion>4.0.0</modelVersion>
-    <artifactId>mz-learning-springsource</artifactId>
-    <packaging>war</packaging>
+    <artifactId>spring-source-study-2021</artifactId>
+    <packaging>pom</packaging>
     <name>${project.artifactId}</name>
-    <description>Spring Framework 源码学习案例工程</description>
+    <description>
+        Spring Framework 5.2.8.RELEASE 版本的源码学习案例工程(包括基础使用示例、涉及设计模式示例) - 2021年整理版本
+    </description>
+    <modules>
+        <module>01-spring-basic</module>
+    </modules>
 
     <!-- 版本号管理 -->
     <properties>
-        <spring.version>5.1.3.RELEASE</spring.version>
-        <junit.version>4.12</junit.version>
+        <spring.version>5.2.8.RELEASE</spring.version>
+        <lombok.version>1.18.4</lombok.version>
+        <junit.version>4.13</junit.version>
+        <slf4j.version>1.7.10</slf4j.version>
+        <logback.version>1.1.2</logback.version>
     </properties>
+
+    <!-- 版本控制 -->
+    <dependencyManagement>
+        <dependencies>
+            <!-- spring framework 核心依赖 -->
+            <dependency>
+                <groupId>org.springframework</groupId>
+                <artifactId>spring-context</artifactId>
+                <version>${spring.version}</version>
+            </dependency>
+
+            <!-- junit测试框架 -->
+            <dependency>
+                <groupId>junit</groupId>
+                <artifactId>junit</artifactId>
+                <version>${junit.version}</version>
+            </dependency>
+
+            <!-- 日志相关依赖 -->
+            <dependency>
+                <groupId>org.slf4j</groupId>
+                <artifactId>slf4j-api</artifactId>
+                <version>${slf4j.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>ch.qos.logback</groupId>
+                <artifactId>logback-classic</artifactId>
+                <version>${logback.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>ch.qos.logback</groupId>
+                <artifactId>logback-core</artifactId>
+                <version>${logback.version}</version>
+            </dependency>
+
+            <!-- 工具框架 -->
+            <dependency>
+                <groupId>org.projectlombok</groupId>
+                <artifactId>lombok</artifactId>
+                <version>${lombok.version}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <!-- 公共依赖 -->
+    <dependencies>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+        </dependency>
+    </dependencies>
+
+</project>
+```
+
+2. 创建子项目，只需要引入 spring-context 的依赖，其包本身就依赖了 spring-aop，spring-beans，spring-core 等模块jar包
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <artifactId>spring-source-study-2021</artifactId>
+        <groupId>com.moon</groupId>
+        <version>1.0-SNAPSHOT</version>
+    </parent>
+
+    <modelVersion>4.0.0</modelVersion>
+    <artifactId>01-spring-basic</artifactId>
+    <packaging>war</packaging>
+    <name>${project.artifactId}</name>
+    <description>Spring Framework 基础入门示例</description>
 
     <dependencies>
         <!--
@@ -120,27 +209,69 @@ repositories {
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-context</artifactId>
-            <version>${spring.version}</version>
         </dependency>
     </dependencies>
 
 </project>
 ```
 
-> spring-context 包本身就依赖了，spring-aop，spring-beans，spring-core 等模块jar包
+3. 创建一个spring的xml配置文件
 
-- 一个空的 spring 工程是不能打印日志的，要导入 spring 依赖的日志 jar 包
+```xml
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xmlns:p="http://www.springframework.org/schema/p"
+       xmlns:c="http://www.springframework.org/schema/c"
+       xsi:schemaLocation="
+	http://www.springframework.org/schema/beans
+	http://www.springframework.org/schema/beans/spring-beans.xsd
+    http://www.springframework.org/schema/context
+    http://www.springframework.org/schema/context/spring-context.xsd
+    http://www.springframework.org/schema/aop
+	http://www.springframework.org/schema/aop/spring-aop-3.2.xsd"
+       default-lazy-init="false">
+
+    <bean id="student" class="com.moon.spring.bean.Student"/>
+
+</beans>
+```
+
+4. 编写示例方法
+
+```java
+@Test
+public void testBasic() {
+    ClassPathXmlApplicationContext applicationContext = new ClassPathXmlApplicationContext("spring.xml");
+    Student bean = applicationContext.getBean(Student.class);
+    System.out.println(bean.getUsername());
+}
+```
+
+![](images/20201226095117800_6335.png)
+
+5. 一个空的 spring 工程是不能打印日志的，要导入 spring 依赖的日志 jar 包
 
 ```xml
 <!-- spring 框架输出日志的依赖包 -->
 <dependency>
+    <groupId>org.slf4j</groupId>
+    <artifactId>slf4j-api</artifactId>
+</dependency>
+<dependency>
     <groupId>ch.qos.logback</groupId>
     <artifactId>logback-classic</artifactId>
-    <version>LATEST</version>
+</dependency>
+<dependency>
+    <groupId>ch.qos.logback</groupId>
+    <artifactId>logback-core</artifactId>
 </dependency>
 ```
 
-## 2. Spring 基础使用
+![](images/20201226105547008_31835.png)
+
+## 2. Spring 基础
 
 ### 2.1. spring 配置文件中xsd文件引入
 
@@ -195,7 +326,7 @@ public void AnnotationConfigApplicationContextTest() {
 }
 ```
 
-#### 2.2.4. EmbeddedWebApplicationContext(springboot 加载容器)
+#### 2.2.4. EmbeddedWebApplicationContext(SpringBoot 加载容器)
 
 此上下文对象是spring boot的框架，启动的时候可以创建一个嵌入式的tomcat
 
@@ -2659,563 +2790,3 @@ public interface BeanNameGenerator {
 
 > `DefaultBeanNameGenerator`与`AnnotationBeanNameGenerator`详见代码工程的注释
 
-# Spring 的 AOP
-
-## 1. AOP 相关理论
-
-### 1.1. 设计模式-代理模式
-
-代理模式：给某一个对象提供一个代理对象，并由代理对象控制对源对象的引用。
-
-代理模式可以并不知道真正的被代理对象，而仅仅持有一个被代理对象的接口，这时候代理对象不能够创建被代理对象，被代理对象必须有系统的其他角色代为创建并传入。
-
-为什么要使用代理模式呢？
-
-1. 它有间接的特点，可以起到中介隔离作用。减少耦合
-2. 它有增强的功能。
-
-> 代理模式示例代码详见：`spring-note\spring-analysis-note\spring-sample-annotation\20-spring-aop-proxy\`
-
-### 1.2. AOP思想及实现原理
-
-#### 1.2.1. AOP 思想
-
-在软件业，AOP为Aspect Oriented Programming的缩写，意为：面向切面编程，通过预编译方式和运行期动态代理实现程序功能的统一维护的一种技术。AOP是OOP的延续，是软件开发中的一个热点，也是Spring框架中的一个重要内容，是函数式编程的一种衍生范型。利用AOP可以对业务逻辑的各个部分进行隔离，从而使得业务逻辑各部分之间的耦合度降低，提高程序的可重用性，同时提高了开发的效率。
-
-#### 1.2.2. AOP 实现原理
-
-实现原理是基于动态代理技术实现的。具体的两种实现方式分别是**基于接口的动态代理**和**基于子类的动态代理**，详见《01-Spring笔记.md》
-
-#### 1.2.3. Spring中AOP的术语
-
-详见《01-Spring笔记.md》
-
-## 2. AOP注解执行过程及核心对象的分析
-
-### 2.1. 加载 @EnableAspectJAutoproxy 注解
-
-当spring扫描到`@EnableAspectJAutoProxy`注解时，会加载`AspectJAutoProxyRegistrar`的注册类。
-
-```java
-@Target(ElementType.TYPE)
-@Retention(RetentionPolicy.RUNTIME)
-@Documented
-@Import(AspectJAutoProxyRegistrar.class) // 引入AOP注解开启注册类
-public @interface EnableAspectJAutoProxy {
-	/**
-	 * 指定是否采用cglib进行代理。
-	 *
-	 * 设置为true
-	 * 1、目标对象实现了接口 – 使用CGLIB代理机制
-	 * 2、目标对象没有接口(只有实现类) – 使用CGLIB代理机制
-	 *
-	 * 设置为false（默认值）
-	 * 1、目标对象实现了接口 – 使用JDK动态代理机制(代理所有实现了的接口)
-	 * 2、目标对象没有接口(只有实现类) – 使用CGLIB代理机制
-	 */
-	boolean proxyTargetClass() default false;
-
-	/**
-	 * 指定是否暴露代理对象，如果暴露则通过AopContext可以进行访问
-	 */
-	boolean exposeProxy() default false;
-}
-```
-
-### 2.2. AspectJAutoProxyRegistrar
-
-`AspectJAutoProxyRegistrar`运行注册逻辑后，会往容器中注册`AnnotationAwareAspectJAutoProxyCreator`实例
-
-### 2.3. AnnotationAwareAspectJAutoProxyCreator对象的分析
-
-#### 2.3.1. 类视图
-
-![](images/20200911154622758_24752.jpg)
-
-#### 2.3.2. 加载过程
-
-1. 执行父类`AbstractAutoProxyCreator`中的`postProcessAfterInitialization()`方法
-
-```java
-@Override
-public Object postProcessAfterInitialization(@Nullable Object bean, String beanName) {
-	if (bean != null) {
-		// 首先根据bean的class和name构建出key
-		Object cacheKey = getCacheKey(bean.getClass(), beanName);
-		if (!this.earlyProxyReferences.contains(cacheKey)) {
-			// 判断是否需要包装成代理的（从方法名可以很容易看出意图）
-			return wrapIfNecessary(bean, beanName, cacheKey);
-		}
-	}
-	return bean;
-}
-
-/* 构建key */
-protected Object getCacheKey(Class<?> beanClass, @Nullable String beanName) {
-	if (StringUtils.hasLength(beanName)) {
-		return (FactoryBean.class.isAssignableFrom(beanClass) ?
-				BeanFactory.FACTORY_BEAN_PREFIX + beanName : beanName);
-	}
-	else {
-		return beanClass;
-	}
-}
-```
-
-2. 判断是否需要增强或已经被增强过了
-
-```java
-/* 判断当前的bean对象是否需要增强或已经被增强过，需要则返回增加后对象，不需要则直接返回原对象 */
-protected Object wrapIfNecessary(Object bean, String beanName, Object cacheKey) {
-	// 判断该对象是否已经处理过了，返回原对象
-	if (StringUtils.hasLength(beanName) && this.targetSourcedBeans.contains(beanName)) {
-		return bean;
-	}
-	// 判断如不需要进行AOP增强，返回原对象
-	if (Boolean.FALSE.equals(this.advisedBeans.get(cacheKey))) {
-		return bean;
-	}
-	// 判断这个Bean是不是基础设施类，或者配置了跳过自动代理
-	if (isInfrastructureClass(bean.getClass()) || shouldSkip(bean.getClass(), beanName)) {
-		this.advisedBeans.put(cacheKey, Boolean.FALSE);
-		return bean;
-	}
-	// 给当前的bean寻找advisor切面，如果这个bean有advice的话，则代表后面需要创建当前bean的代理。重要程度【5】
-	// Create proxy if we have advice.
-	Object[] specificInterceptors = getAdvicesAndAdvisorsForBean(bean.getClass(), beanName, null);
-	// 判断获取到了要切面增强的方法，如果有，则需要针对这些需要增强的方法创建该bean的代理对象
-	if (specificInterceptors != DO_NOT_PROXY) {
-		this.advisedBeans.put(cacheKey, Boolean.TRUE);
-		// 把被代理对象bean实例封装到SingletonTargetSource对象中
-		Object proxy = createProxy(
-				bean.getClass(), beanName, specificInterceptors, new SingletonTargetSource(bean));
-		this.proxyTypes.put(cacheKey, proxy.getClass());
-		return proxy;
-	}
-	this.advisedBeans.put(cacheKey, Boolean.FALSE);
-	return bean;
-}
-```
-
-3. 判断是否为基础类（通知类）
-
-```java
-/*
- * 判断是否为基础设施类，基础设施了不需要代理
- * 	Advisor、Advice、AopInfrastructureBean这3个类属于基础设施类。
- */
-protected boolean isInfrastructureClass(Class<?> beanClass) {
-	boolean retVal = Advice.class.isAssignableFrom(beanClass) ||
-			Pointcut.class.isAssignableFrom(beanClass) ||
-			Advisor.class.isAssignableFrom(beanClass) ||
-			AopInfrastructureBean.class.isAssignableFrom(beanClass);
-	if (retVal && logger.isTraceEnabled()) {
-		logger.trace("Did not attempt to auto-proxy infrastructure class [" + beanClass.getName() + "]");
-	}
-	return retVal;
-}
-```
-
-4. 获取增强的代码（在`AbstractAdvisorAutoProxyCreator`类实现`getAdvicesAndAdvisorsForBean()`抽象方法进行处理）
-
-```java
-@Override
-@Nullable
-protected Object[] getAdvicesAndAdvisorsForBean(
-		Class<?> beanClass, String beanName, @Nullable TargetSource targetSource) {
-	// 这里是找到合格的切面，返回一个对象数组
-	List<Advisor> advisors = findEligibleAdvisors(beanClass, beanName);
-	if (advisors.isEmpty()) {
-		return DO_NOT_PROXY;
-	}
-	return advisors.toArray();
-}
-
-protected List<Advisor> findEligibleAdvisors(Class<?> beanClass, String beanName) {
-	// 找到候选的切面,其实就是寻找有@Aspectj注解的过程，把工程中所有加上了此注解的类封装成Advisor返回
-	List<Advisor> candidateAdvisors = findCandidateAdvisors();
-	// 判断候选的切面是否作用在当前beanClass上面，就是一个匹配过程
-	List<Advisor> eligibleAdvisors = findAdvisorsThatCanApply(candidateAdvisors, beanClass, beanName);
-	extendAdvisors(eligibleAdvisors);
-	if (!eligibleAdvisors.isEmpty()) {
-		// 此方法是对有@Order@Priority等注解进行排序
-		eligibleAdvisors = sortAdvisors(eligibleAdvisors);
-	}
-	return eligibleAdvisors;
-}
-```
-
-5. 根据增强创建代理对象
-
-```java
-protected Object createProxy(Class<?> beanClass, @Nullable String beanName,
-		@Nullable Object[] specificInterceptors, TargetSource targetSource) {
-	if (this.beanFactory instanceof ConfigurableListableBeanFactory) {
-		AutoProxyUtils.exposeTargetClass((ConfigurableListableBeanFactory) this.beanFactory, beanName, beanClass);
-	}
-	ProxyFactory proxyFactory = new ProxyFactory();
-	proxyFactory.copyFrom(this);
-	if (!proxyFactory.isProxyTargetClass()) {
-		if (shouldProxyTargetClass(beanClass, beanName)) {
-			proxyFactory.setProxyTargetClass(true);
-		}
-		else {
-			evaluateProxyInterfaces(beanClass, proxyFactory);
-		}
-	}
-	Advisor[] advisors = buildAdvisors(beanName, specificInterceptors);
-	proxyFactory.addAdvisors(advisors);
-	proxyFactory.setTargetSource(targetSource);
-	customizeProxyFactory(proxyFactory);
-	proxyFactory.setFrozen(this.freezeProxy);
-	if (advisorsPreFiltered()) {
-		proxyFactory.setPreFiltered(true);
-	}
-	return proxyFactory.getProxy(getProxyClassLoader());
-}
-```
-
-#### 2.3.3. 加载过程总结
-
-1. 首先进行创建cacheKey
-2. 判断是否已经处理过了
-3. 判断是不是不需要增强
-4. 判断是不是基础设施类或者是不是需要跳过的bean
-5. 获取增强器
-6. 根据增强器进行创建代理对象
-
-### 2.4. 解析切入点表达式的加载流程(!待整理)
-
-spring在解析切入点表达式时，是通过一些类进行封装的。此实现类`PointcutImpl`实现了`Pointcut`接口。
-
-- 如果使用`@Pointcut`注解的话，则会将切入点表达式封装到`PointcutImpl`类中，此类实现Spring框架的`Pointcut`接口。
-- 如果没有使用`@Pointcut`注解的话，则会将切入点表达式封装到`KindedPointcut`类中，此类继承了aspectjweaver依赖包下`Pointcut`抽象类
-
-*注：`PointcutImpl`与`KindedPointcut`是在`org.aspectj.aspectjweaver`的依赖包下*
-
-### 2.5. 解析通知注解
-
-#### 2.5.1. 初始化通知注解的Map(!待整理)
-
-首先在执行初始化时容器创建时，spring框架把和通知相关的注解都放到一个受保护的内部类中了。
-
-```java
-public abstract class AbstractAspectJAdvisorFactory implements AspectJAdvisorFactory {
-    // 类中的其他代码略
-    /*
-     * 在protected权限的内部类中，在静态代码块中定义着和通知类型相关的注解。
-     */
-    protected static class AspectJAnnotation<A extends Annotation> {
-    	private static final String[] EXPRESSION_ATTRIBUTES = new String[] {"pointcut", "value"};
-    	private static Map<Class<?>, AspectJAnnotationType> annotationTypeMap = new HashMap<>(8);
-    	static {
-    		annotationTypeMap.put(Pointcut.class, AspectJAnnotationType.AtPointcut);
-    		annotationTypeMap.put(Around.class, AspectJAnnotationType.AtAround);
-    		annotationTypeMap.put(Before.class, AspectJAnnotationType.AtBefore);
-    		annotationTypeMap.put(After.class, AspectJAnnotationType.AtAfter);
-    		annotationTypeMap.put(AfterReturning.class, AspectJAnnotationType.AtAfterReturning);
-    		annotationTypeMap.put(AfterThrowing.class, AspectJAnnotationType.AtAfterThrowing);
-    	}
-    	// 内部类的其余代码略
-	}
-    // 类中的其他代码略
-}
-```
-
-#### 2.5.2. 构建通知的拦截器链(!待整理)
-
-# Spring 的事务
-
-## 1. 相关注解源码分析
-
-### 1.1. @EnableTransactionManagement 源码分析
-
-`@EnableTransactionManagement`通过在`@Import`注解中传入`TransactionManagementConfigurationSelector`类，会给容器中导入两个组件：
-
-- AutoProxyRegistrar
-- ProxyTransactionManagementConfiguration
-
-```java
-/* Spring支持注解事务配置的标志，表明Spring开启注解事务配置的支持。 */
-@Target(ElementType.TYPE)
-@Retention(RetentionPolicy.RUNTIME)
-@Documented
-@Import(TransactionManagementConfigurationSelector.class)
-public @interface EnableTransactionManagement {
-    /* 指定基于目标类代理还是基于接口代理。默认采用JDK官方的基于接口代理。 */
-	boolean proxyTargetClass() default false;
-
-	/*
-	 * 指定事务通知是如何执行的。默认是通过代理方式执行的。
-	 * 如果是同一个类中调用的话，请采用AdviceMode.ASPECTJ
-	 */
-	AdviceMode mode() default AdviceMode.PROXY;
-
-	/*
-	 * 指示在特定连接点应用多个通知时事务处理的执行顺序。
-	 * 默认值是：最低优先级（Integer.MAX_VALUE）
-	 */
-	int order() default Ordered.LOWEST_PRECEDENCE;
-}
-```
-
-#### 1.1.1. TransactionManagementConfigurationSelector
-
-`TransactionManagementConfigurationSelector`类的作用是给容器导入两个组件：`AutoProxyRegistrar`、`ProxyTransactionManagementConfiguration`
-
-#### 1.1.2. AutoProxyRegistrar
-
-`AutoProxyRegistrar`此类的作用是给容器中注册一个 `InfrastructureAdvisorAutoProxyCreator` 组件
-
-利用后置处理器机制在对象创建以后，包装对象，并返回一个代理对象（增强器），代理对象执行方法利用拦截器链进行调用。
-
-#### 1.1.3. ProxyTransactionManagementConfiguration
-
-`ProxyTransactionManagementConfiguration`使用`@Configuration`注解修饰，表明是一个配置类。
-
-```java
-@Configuration
-public class ProxyTransactionManagementConfiguration extends AbstractTransactionManagementConfiguration {
-	/* 此方法的作用：给容器中注册事务增强器transactionAdvisor */
-	@Bean(name = TransactionManagementConfigUtils.TRANSACTION_ADVISOR_BEAN_NAME)
-	@Role(BeanDefinition.ROLE_INFRASTRUCTURE)
-	public BeanFactoryTransactionAttributeSourceAdvisor transactionAdvisor() {
-		BeanFactoryTransactionAttributeSourceAdvisor advisor = new BeanFactoryTransactionAttributeSourceAdvisor();
-		advisor.setTransactionAttributeSource(transactionAttributeSource());
-		advisor.setAdvice(transactionInterceptor());
-		if (this.enableTx != null) {
-			advisor.setOrder(this.enableTx.<Integer>getNumber("order"));
-		}
-		return advisor;
-	}
-
-	/* 创建事务属性信息管理器 TransactionAttributeSource */
-	@Bean
-	@Role(BeanDefinition.ROLE_INFRASTRUCTURE)
-	public TransactionAttributeSource transactionAttributeSource() {
-		return new AnnotationTransactionAttributeSource();
-	}
-
-	/* 创建事务拦截器 TransactionInterceptor */
-	@Bean
-	@Role(BeanDefinition.ROLE_INFRASTRUCTURE)
-	public TransactionInterceptor transactionInterceptor() {
-		TransactionInterceptor interceptor = new TransactionInterceptor();
-		interceptor.setTransactionAttributeSource(transactionAttributeSource());
-		if (this.txManager != null) {
-			interceptor.setTransactionManager(this.txManager);
-		}
-		return interceptor;
-	}
-}
-```
-
-1. `transactionAdvisor()`方法
-    - 给容器中注册事务增强器`transactionAdvisor`
-2. `transactionAttributeSource()`方法
-    - 创建AnnotationTransactionAttributeSource解析事务注解，包含事务增强器要用事务注解的信息
-3. `transactionInterceptor()`方法
-    - 创建事务拦截器transactionInterceptor，保存了事务属性信息，事务管理器
-    - `TransactionInterceptor`本身是一个 `MethodInterceptor`。在目标方法执行的时候，会`getAdvisors()`获取拦截器链，并执行拦截器链，当只有事务拦截器时：
-        1. 先获取事务相关的属性
-        2. 再获取`PlatformTransactionManager`，如果事先没有添加指定任何`transactionmanger`，最终会从容器中按照类型获取一个`PlatformTransactionManager`
-        3. 执行目标方法。如果正常，利用事务管理器，提交事务；如果异常，获取到事务管理器，利用事务管理回滚操作。
-
-### 1.2. @Transactional 源码分析
-
-1. 在`@EnableTransactionManagement`注解中，有一个导入器：`TransactionManagementConfigurationSelector`，该导入器中在`AdiviceMode`为默认值`PROXY`时，往容器中注入了两个bean对象，`AutoProxyRegistrar`和`ProxyTransactionManagementConfiguration`
-2. `ProxyTransactionManagementConfiguration`类中的一个方法`transactionAttributeSource()`，创建了一个注解事务的属性解析对象
-3. `AnnotationTransactionAttributeSource`类的实例化，调用一个有参构造方法，在该方法中会判断注解的类型，此时会构建一个`SpringTransactionAnnotationParser`（事务注解解析器）
-4. `SpringTransactionAnnotationParser`会进行注解解析，里面有多个重载`parseTransactionAnnotation`方法，用于解析传入的注解，事务的注解封装到`RuleBasedTransactionAttribute`对象，该对象其实就是`TransactionAttribute`。最后会存储到容器中，用于以后读取相关信息来进行事务的操作。
-
-### 1.3. @TransactionalEventListener 源码分析
-
-1. 在IoC容器加载时，执行`AbstractApplicationContext`的`refresh()`方法，在执行到`finishBeanFactoryInitialization(beanFactory)`方法时，就会初始化剩余的单例bean对象。
-2. 初始化剩余单例bean对象.调用的是`DefaultListableBeanFactory`类中的`preInstantiateSingletons`方法。
-3. `DefaultListableBeanFactory`类中的`preInstantiateSingletons`方法中执行了`afterSingletonsInstantiated()`方法。此方法是`SmartInitializingSingleton`接口中声明的。具体实现类包含：`EventListenerMethodProcessor`事件监听器方法处理器。
-4. `EventListenerMethodProcessor`中的`afterSingletonsInstantiated`会被执行，该方法中包含处理bean的方法：`processBean`。
-5. 在`processBean`方法中调用了创建事件监听器的方法`createApplicationListener`。该方法是`EventListenerFactory`接口中声明的方法。
-6. `TransactionalEventListenerFactory`类实现了`EventListenerFactory`接口，并重写了`createApplicationListener`方法。
-7. `ApplicationListenerMethodTransactionalAdapter`的实例化。至此，解析`TransactionalEventListener`注解的过程完成
-
-## 2. 事务涉及相关类源码分析
-
-### 2.1. TransactionTemplate
-
-`TransactionTemplate`类是用于编程式事务的模板对象。其中实现编程式事务控制的核心方法是重写了`TransactionOperations`接口中的`execute()`方法
-
-```java
-/* 编程事务控制的核心方法,重写的是TransactionOperations接口中的方法 */
-@Override
-@Nullable
-public <T> T execute(TransactionCallback<T> action) throws TransactionException {
-	Assert.state(this.transactionManager != null, "No PlatformTransactionManager set");
-
-	/*
-	 * 判断当前事务管理器是否为CallbackPreferringPlatformTransactionManager类型，
-	 * 如果是的话，直接使用该接口实现类中的execute方法执行。
-	 * 而无需继续让PlatformTransactionManager的实现类控制事务，
-	 * 当前坐标环境下它只有一个实现类：WebSphereUowTransactionManager
-	 */
-	if (this.transactionManager instanceof CallbackPreferringPlatformTransactionManager) {
-		return ((CallbackPreferringPlatformTransactionManager) this.transactionManager).execute(this, action);
-	}
-	else {
-		// 需要借助PlatformTransactionManager的实现类控制事务
-		TransactionStatus status = this.transactionManager.getTransaction(this);
-		T result;
-		try {
-			/*
-			 * 执行TransactionCallback中的doInTransaction方法，此处又是策略模式。
-			 * spring只提供了一个接口（还有一个抽象实现类），而具体需要事务支持的业务代码由使用者提供。
-			 */
-			result = action.doInTransaction(status);
-		}
-		catch (RuntimeException | Error ex) {
-			// Transactional code threw application exception -> rollback
-			// 当doInTransaction执行有异常时事务回滚
-			rollbackOnException(status, ex);
-			throw ex;
-		}
-		catch (Throwable ex) {
-			// Transactional code threw unexpected exception -> rollback
-			// 当doInTransaction执行有无法预知的异常时，事务回滚。
-			rollbackOnException(status, ex);
-			throw new UndeclaredThrowableException(ex, "TransactionCallback threw undeclared checked exception");
-		}
-		// 没有异常，则事务提交
-		this.transactionManager.commit(status);
-		// 返回执行结果（有可能是结果集，也有可能是影响数据库记录的行数）
-		return result;
-	}
-}
-```
-
-### 2.2. DataSourceUtils
-
-`DataSourceUtils`是Spring中数据源的工具类。里面定义着获取连接的方法
-
-```java
-/* spring中数据源的工具类。里面定义着获取连接的方法 */
-public abstract class DataSourceUtils {
-    // ....省略部分代码....
-	/* 获取连接的方法，它本身没有任何操作而是调用了doGetConnection */
-	public static Connection getConnection(DataSource dataSource) throws CannotGetJdbcConnectionException {
-		try {
-			// 真正获取连接的方法
-			return doGetConnection(dataSource);
-		}
-		catch (SQLException ex) {
-			throw new CannotGetJdbcConnectionException("Failed to obtain JDBC Connection", ex);
-		}
-		catch (IllegalStateException ex) {
-			throw new CannotGetJdbcConnectionException("Failed to obtain JDBC Connection: " + ex.getMessage());
-		}
-	}
-
-	/* 从数据源中获取连接的方法 */
-	public static Connection doGetConnection(DataSource dataSource) throws SQLException {
-		Assert.notNull(dataSource, "No DataSource specified");
-
-		// 通过事务同步管理器对象获取连接持有者对象
-		ConnectionHolder conHolder = (ConnectionHolder) TransactionSynchronizationManager.getResource(dataSource);
-		/*
-		 * 当连接持有者不为null时，并且再满足连接持有者有连接或者是同步的事务其中任何一个条件，则直接返回连接持有者的连接对象。
-		 * synchronizedWithTransaction默认值为false。
-		 * 但是在DataSourceTransactionManager中的doBegin方法中对synchronizedWithTransaction属性赋值为true了
-		 */
-		if (conHolder != null && (conHolder.hasConnection() || conHolder.isSynchronizedWithTransaction())) {
-			conHolder.requested();
-			// 如果ConnectionHandle为null，则返回false，此处取反。就表示ConnectionHandle为null时，进入if代码块中，给ConnectionHolder设置一个连接
-			if (!conHolder.hasConnection()) {
-				logger.debug("Fetching resumed JDBC Connection from DataSource");
-				conHolder.setConnection(fetchConnection(dataSource));
-			}
-			// 返回ConnectionHolder对象中的连接
-			return conHolder.getConnection();
-		}
-		// Else we either got no holder or an empty thread-bound holder here.
-
-		logger.debug("Fetching JDBC Connection from DataSource");
-		// 如果不满足上面的条件，则从数据源中获取一个连接
-		Connection con = fetchConnection(dataSource);
-
-		// 判断是否激活了事务同步器
-		if (TransactionSynchronizationManager.isSynchronizationActive()) {
-			logger.debug("Registering transaction synchronization for JDBC Connection");
-			// Use same Connection for further JDBC actions within the transaction.
-			// Thread-bound object will get removed by synchronization at transaction completion.
-			// 在激活同步的条件下，如果ConnectionHolder为null就创建连接持有者对象
-			ConnectionHolder holderToUse = conHolder;
-			if (holderToUse == null) {
-				// 创建连接持有者对象
-				holderToUse = new ConnectionHolder(con);
-			}
-			else {
-				// 如已经存在的连接持有者，直接使用并把获取到的连接填充进去
-				holderToUse.setConnection(con);
-			}
-			holderToUse.requested();
-			// 注册同步器
-			TransactionSynchronizationManager.registerSynchronization(
-					new ConnectionSynchronization(holderToUse, dataSource));
-			// 设置snchronizedWithTransaction属性为true
-			holderToUse.setSynchronizedWithTransaction(true);
-			// 判断当新创建了连接持有者时
-			if (holderToUse != conHolder) {
-				// 从名称为Transactional resources的ThreadLocal中获取绑定的Map，并把数据源和ConnectionHolder存入map中
-				TransactionSynchronizationManager.bindResource(dataSource, holderToUse);
-			}
-		}
-		// 此时如果激活了事务同步管理器，则返回当前线程的连接。如果没激活，返回的就是数据源中拿到的连接
-		return con;
-	}
-
-	/* 从数据源中获取一个连接的方法，此时没有和线程绑定 */
-	private static Connection fetchConnection(DataSource dataSource) throws SQLException {
-		// 从数据源中获取一个连接
-		Connection con = dataSource.getConnection();
-		// 判断连接是否为空。如果没有，则表示数据源中没有连接
-		if (con == null) {
-			throw new IllegalStateException("DataSource returned null from getConnection(): " + dataSource);
-		}
-		// 返回拿到的连接对象
-		return con;
-	}
-	// ....省略其余代码....
-}
-```
-
-### 2.3. TransactionSynchronizationManager
-
-`TransactionSynchronizationManager`事务的同步管理器类，实现连接和线程绑定从而控制事务的核心类。它是个抽象类，但是没有任何子类，因为它所有的方法都是静态的
-
-![](images/20200916164040380_11556.png)
-
-![](images/20200916164116724_9712.png)
-
-![](images/20200916164133767_10017.png)
-
-### 2.4. TransactionAwareDataSourceProxy
-
-`TransactionAwareDataSourceProxy`是Spring提供的一个数据源代理类，它继承了`DelegatingDataSource`类。而`DelegatingDataSource`类实现了`javax.sql.DataSource`接口。
-
-Spring通过装饰者模式，把原始DataSource中一些不希望用户直接使用的方法又套了一个壳子。因为数据连接泄露是个很头疼的问题，Spring框架也提供了很多种办法来避免这个问题。
-
-比如使用XXXTemplate，当然其背后是`DataSourceUtils`。同时还有另外一种办法，使用`TransactionAwareDataSourceProxy`。通过`TransactionAwareDataSourceProxy`对数据源代理后，数据源对象就有了事务上下文感知的能力了。通过源码会发现，其实它还是使用的`DataSourceUtils`
-
-### 2.5. High-level Synchronization Approach和Low-level Synchronization Approach
-
-#### 2.5.1. High-level Synchronization Approach
-
-首选的方法是使用基于Spring的和持久化集成的API高级模板，或者使用原生的ORM API，应用于事务支持型工厂bean或者管理原生资源的工厂的代理。这些事务型解决方案内建对资源创建、重用、清理、资源的可选事务同步以及异常的映射的支持。这样用户的数据访问代码就可以不再关心定位任务，专心于非样板化的持久化逻辑。通常，使用原生的ORM API或者使用JdbcTemplate的方法来进行JDBC访问
-
-#### 2.5.2. Low-level Synchronization Approach
-
-像DataSourceUtils (JDBC), EntityManagerFactoryUtils (JPA), SessionFactoryUtils(Hibernate), PersistenceManagerFactoryUtils (JDO), 等等这些类都是属于低级方法中的。当你的代码想要直接使用有关本地持久化事务API的时候，你需要让这些类明确Spring 框架管理的实例已经得到了，事务已经同步好了（可选的），并且异常运行中的异常也都会映射到一个一致的API
-
-例如, 在JDBC的例子中, 可以使用Spring框架中提供的`org.springframework.jdbc.datasource.Datasourceutils`类，而不是对数据源调用`getconnection()`这种原始JDBC方法，就像这样：`Connection conn = DataSourceUtils.getConnection(dataSource);`
-
-如果存在一个已经和他同步(已连接)的事务，那就返回它。否则，方法就会激发一个触发器创建一个新的连接，并且是(可选的)与任何存在的事务同步的，并且已经准备好在接下来在相同的事务中重用。就像提到的那样，所有的SQLException都会被包装成Spring Framework的CannotGetJdbcConnectionException，这是 Spring Framework的非检查型数据访问异常(DataAccessExceptions)的一种层次。这个方法给你的信息比 SQLException给你的信息多，并且确保跨数据库，即使是不同的持久化技术的可移植性
-
-该方法同样可以独立于Spring事务管理工作(事务同步是可选的)，所以可以使用它不管是使用或者不使用Spring的事务管理

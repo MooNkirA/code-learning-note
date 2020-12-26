@@ -1,4 +1,4 @@
-# Spring 事务
+# Spring Transaction（事务）
 
 ## 1. Spring 中的 JdbcTemplate
 
