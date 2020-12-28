@@ -2,7 +2,7 @@
 
 > 个人编程笔记文档网站，持续更新中...
 
-## Java & JavaWeb 📕
+## Java & JavaWeb
 
 ### ✨ 收集的案例 ✨
 
@@ -33,7 +33,7 @@
   <li><a href="#/01-Java&JavaWeb/02-JavaWeb/01-JavaWeb基础笔记">JavaWeb基础笔记</a></li>
 </ul>
 
-## 后端框架 📗
+## 后端框架
 
 ### ✨ Spring ✨
 
@@ -89,7 +89,7 @@
   <li><a href="#/02-后端框架/06-工具框架/09-PowerMock">PowerMock (单元测试模拟框架)</a></li>
 </ul>
 
-## 前端资料 📘
+## 前端资料
 
 ### ✨ 前端基础语法 ✨
 
@@ -128,7 +128,7 @@
   <li><a href="#/03-前端资料/05-Node&Webpack/02-webpack笔记">Webpack 笔记</a></li>
 </ul>
 
-## 数据库 📙
+## 数据库
 
 ### ✨ MySQL ✨
 
@@ -158,7 +158,7 @@
   <li><a href="#/04-数据库/04-MongoDb/01-MongoDB笔记">MongoDB笔记</a></li>
 </ul>
 
-## DevOps工具 📓
+## DevOps工具
 
 ### ✨ 项目构建工具 ✨
 
@@ -191,14 +191,14 @@
   <li><a href="#/05-DevOps工具/05-测试工具/01-JMeter-压力测试">JMeter 压力测试</a></li>
 </ul>
 
-## Linux 📄
+## Linux
 
 <ul class="docs">
   <li><a href="#/06-Linux/01-Linux笔记">Linux 笔记</a></li>
   <li><a href="#/06-Linux/02-Linux安装">Linux 安装</a></li>
 </ul>
 
-## 分布式架构 & 微服务架构 📚
+## 分布式架构 & 微服务架构
 
 ### ✨ SpringBoot ✨
 
@@ -250,13 +250,13 @@
   <li><a href="#/07-分布式架构&微服务架构/99-其他/02-FastDFS_分布式文件系统">FastDFS 分布式文件系统</a></li>
 </ul>
 
-## 并发编程 📒
+## 并发编程
 
 <ul class="docs">
   <li><a href="#/08-并发编程/01-并发基础-多线程">并发基础-多线程</a></li>
 </ul>
 
-## 性能调优 📃
+## 性能调优
 
 ### ✨ JVM-Java虚拟机 ✨
 
@@ -264,7 +264,7 @@
   <li><a href="#/09-性能调优/01-JVM-Java虚拟机/01-JVM-基础笔记">JVM 基础笔记</a></li>
 </ul>
 
-## 其他 📜
+## 其他
 
 <ul class="docs">
   <li><a href="#/99-其他/编程资源收集">编程资源收集</a></li>
@@ -279,7 +279,7 @@
   <li><a href="#/99-其他/01-IDE/99-DevelopmentTool">其它开发工具常用配置与使用</a></li>
 </ul>
 
-## 收集的项目实战资料 📖
+## 收集的项目实战资料
 
 <ul class="docs">
   <li><a href="#/catalog-project-training?id=projectb-项目资料">ProjectB 项目资料</a></li>

@@ -73,8 +73,11 @@
 
   /* Headings */
   --heading-font-weight: 700;
+  --heading-padding: ;
   --heading-h1-font-size: 2em;
   --heading-h1-color: #b83030;
+  --heading-h2-border-style: ;
+  --heading-h2-padding: ;
   --heading-h2-font-size: 1.6em;
   --heading-h2-color: #ef7060;
   --heading-h3-font-size: 1.4em;
@@ -143,14 +146,65 @@ h1:after {
 }
 
 /* 增加对h2标题属性的修改 */
-h2 span {
+/* h2 span {
   display: inline-block;
   background: rgb(63, 63, 63);
   color: #ffffff;
   padding: 10px 16px;
   border-radius: 0.3em;
   box-shadow: 5px 5px 10px black;
+} */
+
+h2 {
+  background: #3f3f3f;
+  border-radius: 0.3em;
+  box-shadow: 5px 5px 10px black;
 }
+
+/* 增加过渡动画 start */
+h2 span {
+  margin: 0.4em 0 0.4em 0.5em;
+  padding-left: 0.1em;
+  display: block;
+  /* height: 100%; */
+  color: #8c888b;
+  background: -webkit-linear-gradient(
+    45deg,
+    #70f7fe,
+    #fbd7c6,
+    #fdefac,
+    #bfb5dd,
+    #bed5f5
+  );
+  background: -moz-linear-gradient(
+    45deg,
+    #70f7fe,
+    #fbd7c6,
+    #fdefac,
+    #bfb5dd,
+    #bed5f5
+  );
+  background: -ms-linear-gradient(
+    45deg,
+    #70f7fe,
+    #fbd7c6,
+    #fdefac,
+    #bfb5dd,
+    #bed5f5
+  );
+  color: transparent;
+  -webkit-background-clip: text;
+  animation: ran 10s linear infinite;
+}
+@keyframes ran {
+  from {
+    backgroud-position: 0 0;
+  }
+  to {
+    background-position: 2000px 0;
+  }
+}
+/* 增加过渡动画 end */
 
 /* h3 标题样式 */
 h3 > a > span {
