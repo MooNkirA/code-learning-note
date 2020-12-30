@@ -164,7 +164,7 @@ h2 {
 /* 增加过渡动画 start */
 h2 span {
   margin: 0.4em 0 0.4em 0.5em;
-  padding-left: 0.1em;
+  padding: 0 0.1em;
   display: block;
   /* height: 100%; */
   color: #8c888b;

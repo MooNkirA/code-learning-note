@@ -1,5 +1,7 @@
 # Spring 源码分析
 
+官方参考文档：https://docs.spring.io/spring-framework/docs/5.2.12.RELEASE/spring-framework-reference/
+
 ## 1. Spring 源码分析准备工作
 
 > 注：下载spring源码并写注释，里面会标识相应方法的重要程度：1~5。
@@ -277,20 +279,22 @@ public void testBasic() {
 
 XSD 是编写 xml 文件的一种规范，有了这个规范才能校验当前 xml 文件是否准确，在 spring 中同样有 XSD 规范。
 
-### 2.2. spring 容器加载方式
+### 2.2. spring 容器加载方式（了解）
+
+现在实际项目中几乎用不到
 
 #### 2.2.1. ClassPathXmlApplicationContext(类路径获取配置文件上下文对象)
 
-比较常用的上下文对象，用于启动时读取上下文对象
+比较常用的上下文对象，用于启动时读取类路径下的配置文件，创建xml的上下文对象
 
 ```java
 /* 类路径获取配置文件上下文对象（ClassPathXmlApplicationContext） */
 @Test
-public void ClassPathXmlApplicationContextTest() {
+public void testClassPathXmlApplicationContext() {
     // 读取spring类路径下的配置文件
     ClassPathXmlApplicationContext applicationContext = new ClassPathXmlApplicationContext("spring.xml");
     Student student = (Student) applicationContext.getBean("student");
-    System.out.println(student.getUserName());
+    System.out.println(student.getUsername());
 }
 ```
 
@@ -301,11 +305,11 @@ public void ClassPathXmlApplicationContextTest() {
 ```java
 /* 文件系统路径获取配置文件【绝对路径】上下文对象（FileSystemXmlApplicationContext）【基本上不用】 */
 @Test
-public void FileSystemXmlApplicationContextTest() {
+public void testFileSystemXmlApplicationContext() {
     // 读取spring的配置文件，需要绝对路径
-    FileSystemXmlApplicationContext applicationContext = new FileSystemXmlApplicationContext("D:\\code\\src\\main\\resources\\spring.xml");
+    FileSystemXmlApplicationContext applicationContext = new FileSystemXmlApplicationContext("D:\\code\\spring-note\\spring.xml");
     Student student = (Student) applicationContext.getBean("student");
-    System.out.println(student.getUserName());
+    System.out.println(student.getUsername());
 }
 ```
 
@@ -314,15 +318,15 @@ public void FileSystemXmlApplicationContextTest() {
 此上下文对象也比较少用，一般在测试用例中使用比较多，因为可以直接扫描指定的包，获取包下所有有spring注解标识的类实例
 
 ```java
-private static final String BASE_PACKAGE = "com.moon.learningspring";
+private static final String BASE_PACKAGE = "com.moon.spring";
 
 /* 无配置文件加载容器上下文对象（AnnotationConfigApplicationContext） */
 @Test
-public void AnnotationConfigApplicationContextTest() {
+public void testAnnotationConfigApplicationContext() {
     // 注解扫描上下文对象
     AnnotationConfigApplicationContext applicationContext = new AnnotationConfigApplicationContext(BASE_PACKAGE);
-    Student student = (Student) applicationContext.getBean("student");
-    System.out.println(student.getUserName());
+    BeanWithAnnotation bean = (BeanWithAnnotation) applicationContext.getBean("beanWithAnnotation");
+    System.out.println(bean.getData());
 }
 ```
 
@@ -331,31 +335,39 @@ public void AnnotationConfigApplicationContextTest() {
 此上下文对象是spring boot的框架，启动的时候可以创建一个嵌入式的tomcat
 
 ```xml
-<!-- springboot web 的依赖，用于引入EmbeddedWebApplicationContext类  -->
+<!-- springboot web 的依赖，用于引入EmbeddedWebApplicationContext类 -->
 <dependency>
     <groupId>org.springframework.boot</groupId>
     <artifactId>spring-boot</artifactId>
-    <version>1.5.13.RELEASE</version>
+    <version>1.5.17.RELEASE</version>
+</dependency>
+<dependency>
+    <groupId>org.springframework</groupId>
+    <artifactId>spring-webmvc</artifactId>
+</dependency>
+<dependency>
+    <groupId>javax.servlet</groupId>
+    <artifactId>servlet-api</artifactId>
+    <version>2.5</version>
 </dependency>
 ```
 
 ```java
 /* springboot 加载容器的上下文对象（EmbeddedWebApplicationContext） */
 @Test
-public void EmbeddedWebApplicationContextTest() {
+public void testEmbeddedWebApplicationContext() {
     // springboot在启动的时候就会用到此上下文对象，启动spring容器，创建一个嵌入式的tomcat
-    ApplicationContext applicationContext = (ApplicationContext) new EmbeddedWebApplicationContext();
-    Student student = (Student) applicationContext.getBean("student");
-    System.out.println(student.getUserName());
+    new EmbeddedWebApplicationContext();
 }
 ```
 
 ## 3. Spring 框架涉及的设计模式
+
 ### 3.1. 设计模式1 - 模板设计模式
 
 在 spring 中大量的使用了模板设计模式，可以说是用得最多的设计模式。
 
-模板设计模式demo代码详见：moonzero-system项目中的mz-learning-springsource模块，`com.moon.learningspring.designPattern.template`包下的demo
+模板设计模式demo代码详见：spring-analysis-note项目中的spring-source-study-2021\00-spring-design-patterns\01-design-patterns-template-method模块中demo
 
 **模板设计模式的核心是：创建抽象类或者接口，定义一个主业务方法，而主业务方法有些业务逻辑可以抽象类已经实现，在主业务方法中预留了一些抽象方法，这些抽象方法由子类继承(或实现)的时候实现该方法的业务逻辑，到根据不同的业务场景，使用不同的子类，从而在调用父类主业务方法时，实现不同的（子类）业务逻辑**
 
@@ -365,7 +377,7 @@ spring框架中使用模板设计模式案例
 
 ![spring 框架使用模板设计模式](images/20191221190743024_24584.png)
 
-### 3.2. 设计模式2 - 委托模式
+### 3.2. 设计模式2 - 委托模式(代理模式)
 
 有两个对象参与处理同一个请求，接受请求的对象将请求委托给另一个对象来处理
 
