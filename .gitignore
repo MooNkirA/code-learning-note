@@ -12,9 +12,15 @@ Bin
 # Log file
 *.log
 
-# ignore vnote
+# ignore vnote 2.x config file
 **/_vnote.json
+*.vswp
 _v_recycle_bin
 
-# 忽略VNote软件的缓存文件
-*.vswp
+# ignore vnote 3.x config file
+vx.json
+vx_notebook
+
+# 忽略VNote软件的删除缓存
+vx_recycle_bin
+
