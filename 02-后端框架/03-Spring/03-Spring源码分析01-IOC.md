@@ -392,34 +392,51 @@ spring框架中使用模板设计模式案例
 
 ### 3.4. SPI 设计思想
 
-自定义标签的解析就是一个 SPI 设计思想，即通过加装全文配置文件，做到代码灵活的调用。实现步骤如下：
+#### 3.4.1. SPI是什么
+
+SPI全称Service Provider Interface，是Java提供的一套用来被第三方实现或者扩展的API，它可以用来启用框架扩展和替换组件。整体机制图如下：
+
+![](images/20210102173348265_455.png)
+
+<font color=red>**Java SPI 实际上是“基于接口的编程＋策略模式＋配置文件”组合实现的动态加载机制。**</font>
+
+#### 3.4.2. Java SPI 机制基础实现
+
+要使用Java SPI，需要遵循如下约定：
+
+1. 当服务提供者提供了接口的一种具体实现后，在jar包的`META-INF/services`目录下创建一个以“接口全限定名”为命名的文件，内容为实现类的全限定名；
+2. 接口实现类所在的jar包放在主程序的classpath中；
+3. 主程序通过`java.util.ServiceLoder`动态装载实现模块，它通过扫描`META-INF/services`目录下的配置文件找到实现类的全限定名，把类加载到JVM；
+4. SPI的实现类必须携带一个不带参数的构造方法；
+
+自定义标签的解析就是一个 SPI 设计思想，即通过加装全文配置文件，做到代码灵活的调用案例。实现步骤如下：
 
 1. 定义一个服务提供接口
 
 ```java
-package com.moon.learningspring.spi;
+package com.moon.spring.spi;
 
 /**
  * service provider interface
  * <P>服务提供接口，需要提供一个可配置的服务接口的实现类</P>
  */
 public interface SpiService {
-    String query(String param);
+    String query(String param)
 }
 ```
 
 2. 编写服务接口的实现类
 
 ```java
-package com.moon.learningspring.spi;
+package com.moon.spring.spi;
 
 /**
- * SPI服务接口实现类
+ * SPI 服务接口实现
  */
 public class SpiServiceImpl implements SpiService {
     @Override
     public String query(String param) {
-        System.out.println("=======SpiServiceImpl.query()方法执行了======");
+        System.out.println(String.format("=======SpiServiceImpl.query(%s)方法执行了======", param));
         return "OK";
     }
 }
@@ -427,16 +444,16 @@ public class SpiServiceImpl implements SpiService {
 
 3. 在 resources 目录下创建 META-INF/services 文件夹，创建文件（文件的名称为服务接口全限定名）
 
-![服务接口文件](images/20200108165533678_12262.png)
+![](images/20210102194403216_14936.png)
 
-![服务接口文件](images/20200108165644374_29698.png)
+![](images/20210102194536166_13398.png)
 
 4. 这样就可以通过这个接口，找到配置在文件中的所有该接口的实现类（可以是多个实现类）。
     - **这种设计的好处是：实现业务代码解耦，扩展性高。**核心的业务不需要再修改，日后增加新的业务需求时，可以通过增加新的实现类与修改配置文件即可
     - 缺点是：粒度不够细，通过配置的方式不能唯一确定一个实现类
 
 ```java
-package com.moon.learningspring.spi;
+package com.moon.spring.spi;
 
 import java.util.ServiceLoader;
 
@@ -451,6 +468,7 @@ public class SpiTest {
     public static void main(String[] args) {
         // 通过jdk的api，ServiceLoader获取配置文件中定义所有实现类实例
         ServiceLoader<SpiService> load = ServiceLoader.load(SpiService.class);
+
         // 调用实现类的业务方法
         for (SpiService spiService : load) {
             spiService.query("呵呵");
@@ -459,13 +477,13 @@ public class SpiTest {
 }
 ```
 
-#### 3.4.1. spring 框架对spi设计的运用
+#### 3.4.3. spring 框架对spi设计的运用
 
 spring 中自定义标签的解析就是这种 SPI 设计的运用，在自定义标签中解析的过程中，spring 会去加载 META-INF/spring.handlers 文件，然后建立映射关系，程序在解析标签头的时候，如：`<context:>`这种的标签头。会拿到一个 namespaceUri，然后再从映射关系中找到这个 namespaceUri 所对应的处理类
 
 ![spi设计思想运用](images/20200109133154692_23233.png)
 
-#### 3.4.2. 扩展：dubbo对spi的优化(有时间研究)
+#### 3.4.4. 扩展：dubbo对spi的优化(有时间研究)
 
 dubbo在spi的配置文件中，设置为key-value的形式，这样在xml配置文件中配置相关属性，就可以唯一的确认一个实现类。
 
