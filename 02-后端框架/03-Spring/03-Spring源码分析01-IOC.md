@@ -683,6 +683,7 @@ parsePropertyElements(ele, bd);
 **解析过程重点记忆：MutablePropertyValues属性**。如果想要设置类的属性值，那么就需要往这个对象中添加 PropertyValue 对象
 
 ## 6. Bean 的实例化过程
+
 ### 6.1. BeanDefinitionRegistryPostProcessor 接口
 
 在AbstractApplicationContext类的`refresh()`方法中，调用`invokeBeanFactoryPostProcessors(beanFactory)`方法
@@ -742,6 +743,7 @@ registerBeanPostProcessors(beanFactory, priorityOrderedPostProcessors);
 ```
 
 ### 6.3. getSingleton 方法（获取单例）
+
 #### 6.3.1. 代码所在位置
 
 - 核心代码位置：`AbstractBeanFactory.doGetBean()` 方法中

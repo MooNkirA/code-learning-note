@@ -1,6 +1,7 @@
 # Java日志工具类库
 
 ## 1. 主流日志框架简介
+
 ### 1.1. java.util.logging (JUL)
 
 - JDK1.4 开始，通过 java.util.logging 提供日志功能。
@@ -789,3 +790,153 @@ public class ArgumentJsonFormatLayout extends MessageConverter {
 ```
 
 通过以上设置，就可以直接使用`log.info("req = {}", obj)`这样的形式记录日志了
+
+# 日志级别与记录日志规范
+
+对于记录日志来说，只是在方法开始、结束、异常时输出一些什么，那是绝对不够的，这样的日志对于日志分析没有任何意义。如果在方法的开始和结束整个日志，那方法中呢？如果方法中没有日志的话，那就完全失去了日志的意义！如果应用出现问题要查找由什么原因造成的，也没有什么作用。
+
+## 1. 常用的日志级别
+
+- DEBUG
+- INFO
+- WARN
+- ERROR
+
+这是四个最经常用的日志级别，还有四个是不怎么用到的
+
+### 1.1. DEBUG
+
+DEBUG级别的主要输出调试性质的内容，该级别日志主要用于在开发、测试阶段输出。该级别的日志应尽可能地详尽，便于在开发、测试阶段出现问题或者异常时，对其进行分析。
+
+### 1.2. INFO
+
+INFO 级别的主要输出提示性质的内容，该级别日志主要用于生产环境的日志输出。该级别或更高级别的日志不要出现在循环中，可以在循环开始或者结束后输出循环的次数，以及一些其他重要的数据。
+
+INFO 级别日志原则是在生产环境中，通过 INFO 和更高级别的日志，可以了解系统的运行状况，以及出现问题或者异常时，能快速地对问题进行定位，还原当时调用的上下文数据，能重现问题,那么INFO级别的日志主要是用于哪些方面呢？
+
+1. 应用启动时所加载的配置参数值（比如：连接参数、线程池参数、超时时间等，以及一些与环境相关的配置，或者是整个配置参数）
+2. 一些重要的依赖注入对象的类名
+3. 方法（服务方法）的输入参数值、返回值，由于一些方法入参的值非常多，只在入口处输出一次就可以了，在服务方法内部或者调用非服务方法时就不需要再输出了
+4. 方法中重要的部分，比如：从数据库中所获取较为重要的数据，以及调用第三方接口的输入参数值和接口返回值
+
+这个INFO应该用来反馈系统的当前状态给最终用户的，所以，在这里输出的信息，应该对最终用户具有实际意义，也就是最终用户要能够看得明白是什么意思才行。从某种角度上说，INFO 输出的信息可以看作是软件产品的一部分（就像那些交互界面上的文字一样），所以需要谨慎对待，不可随便。此输出级别常用语业务事件信息。例如某项业务处理完毕，或者业务处理过程中的一些信息。
+
+此输出级别也常用于输出一些对系统有比较大的影响的需要被看到的message，例如数据库更新，系统发送了额外的请求等。
+
+### 1.3. WARN
+
+WARN 级别的主要输出警告性质的内容，这些内容是可以预知且是有规划的，比如，某个方法入参为空或者该参数的值不满足运行该方法的条件时。在 WARN 级别的时应输出较为详尽的信息，以便于事后对日志进行分析，不要直接写成：
+
+```java
+log.warn("name is null");
+```
+
+因为除了输出警告的原因之外，还需要将其他参数内容都输出，以便于有更多的信息供为日志分析的参考。所以可以写成如下：
+
+```java
+log.warn("[{}] name is null, ignore the method, arg0: {}, arg1: {}", username, param1, param2);
+```
+
+### 1.4. ERROR
+
+ERROR 级别主要针对于一些不可预知的信息，诸如：错误、异常等，比如，在 catch 块中抓获的网络通信、数据库连接等异常，若异常对系统的整个流程影响不大，可以使用 WARN 级别日志输出。在输出 ERROR 级别的日志时，尽量多地输出方法入参数、方法执行过程中产生的对象等数据，在带有错误、异常对象的数据时，需要将该对象一并输出.
+
+这个时候也就是说，发生了必须马上处理的错误。此类错误出现以后可以允许程序继续运行，但必须马上修正，如果不修正，就会导致不能完成相应的业务。
+
+## 2. 日志优先级别
+
+优先级从高到低依次为: ERROR > WARN > INFO > DEBUG
+
+如果将log level设置在某一个级别上，那么比此级别优先级高的log都能打印出来。例如：如果设置优先级为`WARN`那么`ERROR` `WARN` 2个级别的log能正常输出，而`INFO` `DEBUG`级别的log则会被忽略。
+
+## 3. 基本日志规范
+
+### 3.1. 一些个人整理的规范
+
+- 在一个对象中通常只使用一个Logger对象，Logger应该是使用`private static final`修饰的，只有在少数需要在构造函数中传递logger的情况下才使用`private final`。
+
+```java
+private static final Logger_LOG = LoggerFactory.getLogger(Test.class)
+```
+
+- 输出Exceptions的全部Throwable信息，因为`logger.error(msg)`和`logger.error(msg,e.getMessage())`这样的日志输出方法会丢失掉最重要的StackTrace信息。
+
+```java
+try {
+    ...
+} catch (Exception e) {
+    Log.error("xxx", e);
+}
+```
+
+- 不允许记录日志后又抛出异常，因为这样会多次记录日志，只允许记录一次日志。以下是错误的示范：
+
+```java
+try {
+    ...
+} catch (Exception e) {
+    Log.error("xxx", e);
+    thorw new LogException("xxx", e);
+}
+```
+
+- 日志性能的考虑，如果代码为核心代码，执行频率非常高，则输出日志建议增加判断，尤其是低级别的输出`debug`、`info`、`warn`。
+
+### 3.2. 阿里巴巴Java开发手册日志规约（节选嵩山版）
+
+- <font color=red>**【强制】**</font>应用中不可直接使用日志系统（Log4j、Logback）中的 API，而应依赖使用日志框架（SLF4J、JCL--Jakarta Commons Logging）中的 API，使用门面模式的日志框架，有利于维护和各个类的日志处理方式统一。*说明：日志框架（SLF4J、JCL--Jakarta Commons Logging）的使用方式（推荐使用 SLF4J）*
+
+```java
+/* 使用 SLF4J：*/
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+private static final Logger logger = LoggerFactory.getLogger(Test.class);
+
+/* 使用 JCL：*/
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+private static final Log log = LogFactory.getLog(Test.class);
+```
+
+- <font color=red>**【强制】**</font>所有日志文件至少保存 15 天，因为有些异常具备以“周”为频次发生的特点。对于当天日志，以“`应用名.log`”来保存，保存在`/home/admin/应用名/logs/`目录下，过往日志格式为: `{logname}.log.{保存日期}`，日期格式：`yyyy-MM-dd`，以 aap 应用为例：
+
+> - 日志保存位置：/home/admin/aapserver/logs/aap.log
+> - 历史日志名称为：aap.log.2016-08-01
+
+- <font color=red>**【强制】**</font>应用中的扩展日志（如打点、临时监控、访问日志等）命名方式：`appName_logType_logName.log`。这种命名的好处：通过文件名就可知道日志文件属于什么应用，什么类型，什么目的，也有利于归类查找。*说明：推荐对日志进行分类，如将错误日志和业务日志分开存放，便于开发人员查看，也便于通过日志对系统进行及时监控。*
+
+> - `logType`: 日志类型，如 stats/monitor/access 等；
+> - `logName`: 日志描述
+>
+> 示例：mppserver 应用中单独监控时区转换异常，如：`mppserver_monitor_timeZoneConvert.log`
+
+- <font color=red>**【强制】**</font>在日志输出时，字符串变量之间的拼接使用占位符的方式。*说明：因为`String`字符串的拼接会使用`StringBuilder`的`append()`方式，有一定的性能损耗。使用占位符仅是替换动作，可以有效提升性能。*
+
+```java
+logger.debug("Processing trade with id: {} and symbol: {}", id, symbol);
+```
+
+- <font color=red>**【强制】**</font>对于 trace/debug/info 级别的日志输出，必须进行日志级别的开关判断。*说明：虽然在 `debug(参数)` 的方法体内第一行代码`isDisabled(Level.DEBUG_INT)`为真时（Slf4j 的常见实现 Log4j 和 Logback），就直接return，但是参数可能会进行字符串拼接运算。此外，如果`debug(getName())`这种参数内有`getName()`方法调用，无谓浪费方法调用的开销。*
+
+```java
+// 如果判断为真，那么可以输出 trace 和 debug 级别的日志
+if (logger.isDebugEnabled()) {
+    logger.debug("Current ID is: {} and name is: {}", id, getName());
+}
+```
+
+- <font color=red>**【强制】**</font>避免重复打印日志，浪费磁盘空间，务必在日志配置文件中设置 `additivity=false`。
+
+```java
+<logger name="com.taobao.dubbo.config" additivity="false">
+```
+
+- <font color=red>**【强制】**</font>生产环境禁止直接使用 `System.out` 或 `System.err` 输出日志或使用 `e.printStackTrace()` 打印异常堆栈。*说明：标准日志输出与标准错误输出文件每次 Jboss 重启时才滚动，如果大量输出送往这两个文件，容易造成文件大小超过操作系统大小限制。*
+
+- <font color=red>**【强制】**</font>日志打印时禁止直接用 JSON 工具将对象转换成 String。
+
+> - 说明：如果对象里某些 `get` 方法被覆写，存在抛出异常的情况，则可能会因为打印日志而影响正常业务流程的执行。
+> - 正例：打印日志时仅打印出业务相关属性值或者调用其对象的`toString()`方法。
+
+- <font color=gold>**【推荐】**</font>谨慎地记录日志。生产环境禁止输出 debug 日志；有选择地输出 info 日志；如果使用 warn 来记录刚上线时的业务行为信息，一定要注意日志输出量的问题，避免把服务器磁盘撑爆，并记得及时删除这些观察日志。*说明：大量地输出无效日志，不利于系统性能提升，也不利于快速定位错误点。*
+- <font color=gold>**【推荐】**</font>可以使用 warn 日志级别来记录用户输入参数错误的情况，避免用户投诉时，无所适从。如非必要，请不要在此场景打出 error 级别，避免频繁报警。*说明：注意日志输出的级别，error 级别只记录系统逻辑出错、异常或者重要的错误信息。*
