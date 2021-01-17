@@ -475,3 +475,20 @@ public class CommonController implements CommonControllerApi {
     }
 }
 ```
+
+## 2. 自定义扫描器
+
+> 此示例源码位置：spring-note\spring-analysis-note\spring-source-study-2021\00-spring-extension\custom-scanner
+>
+> - 其他相同的示例（spring注解驱动开发案例工程）源码位置：spring-note\spring-analysis-note\spring-sample-annotation\07-annotation-import-importbeandefinitionregistrar
+> - 相应笔记的详见《02-Spring注解汇总.md》中的《自定义 ImportBeanDefinitionRegistrar》章节
+
+### 2.1. 需求
+
+- 案例实现的需求：如果出现大量类需要注册到Spring进行管理，但又不想每个类上都加上`@Component`等注解，实现指定包的路径即可将此包下所有bean扫描到并且实例化
+- 实现思路：可以通过实现`ImportBeanDefinitionRegistrar`（或者`ImportSelector`）接口来批量注册bean对象到容器中，再使用`@Import`注解引入其实现类即可
+
+### 2.2. 实现步骤
+
+
+

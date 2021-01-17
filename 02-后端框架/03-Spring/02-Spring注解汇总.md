@@ -1750,7 +1750,7 @@ public void customImportBeanDefinitionRegistrarTest() {
 
 #### 2.5.4. 实现原理分析
 
-此部分内容详见《04-Spring源码分析.md》
+此部分内容详见《03-Spring源码分析01-IOC.md》
 
 ### 2.6. @PropertySource
 
