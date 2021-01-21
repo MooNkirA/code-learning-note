@@ -490,5 +490,183 @@ public class CommonController implements CommonControllerApi {
 
 ### 2.2. 实现步骤
 
+准备工作：创建一些测试使用的实体类
 
+#### 2.2.1. 创建自定义扫描器注解
+
+```java
+package com.moon.spring.extenstion.annotation;
+
+import com.moon.spring.extenstion.registrar.BeansScannerRegistrar;
+import com.moon.spring.extenstion.registrar.CustomBeanDefinitionScanner;
+import org.springframework.context.annotation.Import;
+import org.springframework.core.annotation.AliasFor;
+
+import java.lang.annotation.Annotation;
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+
+/**
+ * 自定义实体扫描注解，用于指定扫描的包路径
+ */
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.TYPE)
+@Documented
+@Import(BeansScannerRegistrar.class) // 通过@Import注解导入自定义包扫描的处理逻辑类
+public @interface BeansScanner {
+
+    @AliasFor("basePackages")
+    String[] value() default {};
+
+    @AliasFor("value")
+    String[] basePackages() default {};
+
+    Class<? extends Annotation> annotationClass() default Annotation.class;
+}
+```
+
+#### 2.2.2. 创建自定义扫描器
+
+自定义扫描器，继承Spring框架的扫描器`ClassPathBeanDefinitionScanner`，重写`doScan`方法，可以对其进行扩展（*但本示例没有做扩展*）
+
+```java
+package com.moon.spring.extenstion.registrar;
+
+import org.springframework.beans.factory.config.BeanDefinitionHolder;
+import org.springframework.beans.factory.support.BeanDefinitionRegistry;
+import org.springframework.context.annotation.ClassPathBeanDefinitionScanner;
+
+import java.util.Set;
+
+/**
+ * 自定义类扫描器，继承Spring框架的ClassPathBeanDefinitionScanner
+ */
+public class CustomBeanDefinitionScanner extends ClassPathBeanDefinitionScanner {
+
+    public CustomBeanDefinitionScanner(BeanDefinitionRegistry registry) {
+        super(registry, false);
+    }
+
+    // 重写扫描的方法，即可以做相应的扩展，但此示例暂无做扩展
+    @Override
+    protected Set<BeanDefinitionHolder> doScan(String... basePackages) {
+        return super.doScan(basePackages);
+    }
+}
+```
+
+#### 2.2.3. 创建自定义注册器
+
+自定义注册器，须实现 `ImportBeanDefinitionRegistrar` 接口，在`registerBeanDefinitions`方法中实现注册的相关逻辑
+
+```java
+package com.moon.spring.extenstion.registrar;
+
+import com.moon.spring.extenstion.annotation.BeansScanner;
+import org.springframework.beans.factory.support.BeanDefinitionRegistry;
+import org.springframework.context.annotation.ImportBeanDefinitionRegistrar;
+import org.springframework.core.annotation.AnnotationAttributes;
+import org.springframework.core.type.AnnotationMetadata;
+import org.springframework.core.type.filter.AnnotationTypeFilter;
+import org.springframework.util.StringUtils;
+
+import java.lang.annotation.Annotation;
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * 自定义 bean 注册器，实现 ImportBeanDefinitionRegistrar 接口
+ */
+public class BeansScannerRegistrar implements ImportBeanDefinitionRegistrar {
+
+    /**
+     * 注册 BeanDefinition 的处理逻辑
+     *
+     * @param importingClassMetadata 注解元数据
+     * @param registry               BeanDefinition 注册中心
+     */
+    @Override
+    public void registerBeanDefinitions(AnnotationMetadata importingClassMetadata, BeanDefinitionRegistry registry) {
+        // 是否扫描所有类标识
+        boolean scanAllBeans = true;
+
+        // 获取自定义的扫描器注解
+        AnnotationAttributes annotationAttributes = AnnotationAttributes
+                .fromMap(importingClassMetadata.getAnnotationAttributes(BeansScanner.class.getName()));
+
+        // 创建自定义包扫描器（其实没有做扩展）
+        CustomBeanDefinitionScanner scanner = new CustomBeanDefinitionScanner(registry);
+
+        // 判断自定义BeansScaner注解annotationClass属性
+        Class<? extends Annotation> clazz = annotationAttributes.getClass("annotationClass");
+        // 判断是否设置扫描指定的注解，如有，则设置全部类扫描标识为false
+        if (!Annotation.class.equals(clazz)) {
+            scanAllBeans = false;
+            scanner.addIncludeFilter(new AnnotationTypeFilter(clazz));
+        }
+
+        // 分别获取value与basePackages属性，收集所有配置的包路径
+        List<String> basePackages = new ArrayList<>();
+        for (String pkg : annotationAttributes.getStringArray("value")) {
+            if (StringUtils.hasText(pkg)) {
+                basePackages.add(pkg);
+            }
+        }
+        for (String pkg : annotationAttributes.getStringArray("basePackages")) {
+            if (StringUtils.hasText(pkg)) {
+                basePackages.add(pkg);
+            }
+        }
+
+        // 判断是否整个包扫描
+        if (scanAllBeans) {
+            // 方法的入参TypeFilter是函数式接口，直接使用lambda表达，直接返回true就是扫描所有的类
+            scanner.addIncludeFilter((metadataReader, metadataReaderFactory) -> true);
+        }
+
+        // 扫描包
+        scanner.doScan(StringUtils.toStringArray(basePackages));
+    }
+}
+```
+
+> 示例中也可以直接使用Spring提供的包扫描器
+
+#### 2.2.4. spring的配置类中使用
+
+在配置类中，标识自定义扫描器注解
+
+```java
+package com.moon.spring.extenstion.config;
+
+import com.moon.spring.extenstion.annotation.BeansScanner;
+
+/**
+ * Spring 项目的配置类
+ */
+// 标识自定义扫描规则注解，指定要批量扫描的包路径
+@BeansScanner("com.moon.spring.extenstion.bean")
+public class SpringConfiguration {
+}
+```
+
+#### 2.2.5. 测试
+
+```java
+@Test
+public void testBeansScanner() {
+    // 加载spring配置类
+    AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(SpringConfiguration.class);
+    // 输出容器中所有实例
+    for (String beanName : context.getBeanDefinitionNames()) {
+        Object bean = context.getBean(beanName);
+        System.out.println(bean);
+    }
+}
+```
+
+![](images/20210117221409334_12149.png)
 

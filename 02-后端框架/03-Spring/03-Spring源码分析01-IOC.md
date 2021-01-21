@@ -385,6 +385,97 @@ public void testEmbeddedWebApplicationContext() {
 }
 ```
 
+### 3.3. Bean 实例注册到 Spring 容器的方式
+
+#### 3.3.1. 使用xml配置
+
+最传统的配置方式，通过xml配置文件，配置需要实例化类的全限定名称，与实例id
+
+```xml
+<!-- 注册bean到spring容器方式1: 使用xml配置文件配置 -->
+<bean id="student" class="com.moon.spring.common.bean.Student"/>
+```
+
+```java
+@Test
+public void testXmlRegisterBean() {
+    ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("spring.xml");
+    Student student = context.getBean("student", Student.class);
+    System.out.println(student);
+    Assert.assertNotNull(student);
+}
+```
+
+#### 3.3.2. 使用注解
+
+通过在需要spring实例化与管理的类上标识`@Component`等注解，开启包扫描
+
+```java
+/**
+ * 注册bean到spring容器方式2: 使用@Component等注解配置
+ */
+@Data
+@Component
+public class Dog {
+    private String name;
+    private int age;
+}
+```
+
+```java
+@Test
+public void testAnnotationRegisterBean() {
+    AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext("com.moon.spring");
+    Dog dog = context.getBean("dog", Dog.class);
+    System.out.println(dog);
+    Assert.assertNotNull(dog);
+}
+```
+
+#### 3.3.3. 通过BeanFactory手动注册
+
+通过阅读源码，在spring的核心流程中的`initApplicationEventMulticaster`初始化事件管理器的方式是手动创建管理器实例，然后通过`BeanFactory`的`registerSingleton`手动注册到spring容器
+
+```java
+@Data
+public class Fish {
+    private String name;
+    private String color;
+}
+```
+
+测试代码
+
+```java
+@Test
+public void testBeanFactoryRegisterBean() {
+    AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext("com.moon.spring");
+    // 获取bean实例工厂
+    ConfigurableListableBeanFactory beanFactory = context.getBeanFactory();
+    // 获取目前容器中所有实例的名称
+    System.out.println("===== 手动注册Fish实例前 =====");
+    for (String singletonName : beanFactory.getSingletonNames()) {
+        System.out.println(singletonName);
+    }
+
+    // 实例工厂注册实例
+    beanFactory.registerSingleton("fish", new Fish());
+    // 获取目前容器中所有实例的名称
+    System.out.println("===== 手动注册Fish实例后 =====");
+    for (String singletonName : beanFactory.getSingletonNames()) {
+        System.out.println(singletonName);
+    }
+
+    // 通过实例工厂删除实例
+    ((DefaultListableBeanFactory) beanFactory).destroySingleton("dog");
+    // 获取目前容器中所有实例的名称
+    System.out.println("===== 删除容器中的Dog实例后 =====");
+    for (String singletonName : beanFactory.getSingletonNames()) {
+        System.out.println(singletonName);
+    }
+}
+```
+
 ## 4. Spring 框架涉及的设计模式
 
 ### 4.1. 设计模式1 - 模板设计模式
@@ -1430,7 +1521,7 @@ protected void initApplicationEventMulticaster() {
 	else {
 		// 没有则创建一个新的事件管理类
 		this.applicationEventMulticaster = new SimpleApplicationEventMulticaster(beanFactory);
-		// 将事件管理类实例注册到spring容器中
+		// 手动创建事件管理类实例，通过BeanFactory的registerSingleton方法注册到spring容器中
 		beanFactory.registerSingleton(APPLICATION_EVENT_MULTICASTER_BEAN_NAME, this.applicationEventMulticaster);
 		if (logger.isTraceEnabled()) {
 			logger.trace("No '" + APPLICATION_EVENT_MULTICASTER_BEAN_NAME + "' bean, using " +
@@ -1952,7 +2043,6 @@ protected void addSingleton(String beanName, Object singletonObject) {
 ![](images/20200503085619659_19844.png)
 
 ![](images/20200503085137982_4511.png)
-
 
 #### 8.3.1. FactoryMethodName 属性的处理
 
