@@ -1944,30 +1944,136 @@ AbstractBeanFactory.doGetBean(String name, @Nullable Class<T> requiredType, @Nul
 此方法开始就通过`Object sharedInstance = getSingleton(beanName);`方法获取缓存中的实例，判断缓存中是否存在 Bean 的实例(无，则新创建 Bean)
 
 ```java
-......
-// Create bean instance.
-if (mbd.isSingleton()) {
-	// 此逻辑是重点，因为大部分情况都是单例的
-	sharedInstance = getSingleton(beanName, () -> {
-		try {
-			// 创建bean实例核心逻辑
-			return createBean(beanName, mbd, args);
+protected <T> T doGetBean(
+		String name, @Nullable Class<T> requiredType, @Nullable Object[] args, boolean typeCheckOnly)
+		throws BeansException {
+	/*
+	 * 将方法传入的bean名称转成对应spring容器的保存真正的beanName
+	 * 	因为传入的参数可以是alias，也可能是FactoryBean的name，所以需要进行解析，包含以下内容：
+	 * 		1. 如果是FactoryBean，则去掉修饰符“&”
+	 * 		2. 沿着引用链获取alias对应的最终name
+	 */
+	String beanName = transformedBeanName(name);
+	Object bean;
+
+	/*
+	 * 检查缓存或者实例工厂中是否有对应的单例
+	 * 	在创建单例bean的时候会存在依赖注入的情况，而在创建依赖的时候为了避免循环依赖，
+	 * 	Spring创建bean的原则是不等bean创建完成就会将创建bean的ObjectFactory提前曝光（将对应的ObjectFactory加入到缓存）
+	 * 	一旦下一个bean创建需要依赖上一个bean，则直接使用ObjectFactory对象
+	 */
+	// Eagerly check singleton cache for manually registered singletons.
+	Object sharedInstance = getSingleton(beanName);
+	// 如果缓存里面能拿到实例
+	if (sharedInstance != null && args == null) {
+		// 实例已存在
+		if (logger.isTraceEnabled()) {
+			if (isSingletonCurrentlyInCreation(beanName)) {
+				logger.trace("Returning eagerly cached instance of singleton bean '" + beanName +
+						"' that is not fully initialized yet - a consequence of a circular reference");
+			}
+			else {
+				logger.trace("Returning cached instance of singleton bean '" + beanName + "'");
+			}
 		}
-		catch (BeansException ex) {
-			// Explicitly remove instance from singleton cache: It might have been put there
-			// eagerly by the creation process, to allow for circular reference resolution.
-			// Also remove any beans that received a temporary reference to the bean.
-			destroySingleton(beanName);
-			throw ex;
-		}
-	});
-	// 此方法是FactoryBean接口的调用入口
-	bean = getObjectForBeanInstance(sharedInstance, name, beanName, mbd);
+		// 这个方法是FactoryBean接口的调用入口
+		bean = getObjectForBeanInstance(sharedInstance, name, beanName, null);
+	}
+    ......
+    // Create bean instance.
+    if (mbd.isSingleton()) {
+    	// 此逻辑是重点，因为大部分情况都是单例的
+    	sharedInstance = getSingleton(beanName, () -> {
+    		try {
+    			// 创建bean实例核心逻辑
+    			return createBean(beanName, mbd, args);
+    		}
+    		catch (BeansException ex) {
+    			// Explicitly remove instance from singleton cache: It might have been put there
+    			// eagerly by the creation process, to allow for circular reference resolution.
+    			// Also remove any beans that received a temporary reference to the bean.
+    			destroySingleton(beanName);
+    			throw ex;
+    		}
+    	});
+    	// 此方法是FactoryBean接口的调用入口
+    	bean = getObjectForBeanInstance(sharedInstance, name, beanName, mbd);
+    }
+    ......
 }
-......
 ```
 
-#### 8.2.2. 方法流程中核心要点
+#### 8.2.2. getSingleton 两个重载方法
+
+```java
+/**
+ * Return the (raw) singleton object registered under the given name.
+ * <p>Checks already instantiated singletons and also allows for an early
+ * reference to a currently created singleton (resolving a circular reference).
+ * @param beanName the name of the bean to look for
+ * @param allowEarlyReference whether early references should be created or not
+ * @return the registered singleton object, or {@code null} if none found
+ */
+@Nullable
+protected Object getSingleton(String beanName, boolean allowEarlyReference)
+
+
+/**
+ * Return the (raw) singleton object registered under the given name,
+ * creating and registering a new one if none registered yet.
+ * @param beanName the name of the bean
+ * @param singletonFactory the ObjectFactory to lazily create the singleton
+ * with, if necessary
+ * @return the registered singleton object
+ */
+public Object getSingleton(String beanName, ObjectFactory<?> singletonFactory)
+```
+
+在`doGetBean`方法中执行流程，有`getSingleton`两个重载的方法
+
+- 第一个`getSingleton`方法是根据beanName从缓存中获取单例对象。并且检查是否允许循环依赖
+- 第二个`getSingleton`方法也是根据beanName从缓存中获取单例对象，如果缓存中没有，则创建一个新的实例对象
+
+#### 8.2.3. getSingleton 从缓存中获取 Bean 实例的过程
+
+```java
+/* 根据beanName从缓存中获取实例 */
+@Nullable
+protected Object getSingleton(String beanName, boolean allowEarlyReference) {
+	// 1. 先从一级缓存查找获取对象实例（如果类的实例化全部完成后，都是从此容器中获取；如第一次进入此方法时，里面是没有相应的实例）
+	Object singletonObject = this.singletonObjects.get(beanName);
+	// 如果bean还正在创建，还没创建完成，其实就是堆内存有了，属性还没有DI依赖注入
+	if (singletonObject == null && isSingletonCurrentlyInCreation(beanName)) {
+		synchronized (this.singletonObjects) {
+			// 2. 再从二级缓存中查找获取对象实例
+			singletonObject = this.earlySingletonObjects.get(beanName);
+
+			// 判断如果没有查找到，并且允许bean提前暴露
+			if (singletonObject == null && allowEarlyReference) {
+				// 3. 从三级缓存中拿到对象工厂
+				ObjectFactory<?> singletonFactory = this.singletonFactories.get(beanName);
+				if (singletonFactory != null) {
+					// 从工厂中拿到对象
+					singletonObject = singletonFactory.getObject();
+					// 升级到二级缓存
+					this.earlySingletonObjects.put(beanName, singletonObject);
+					// 删除三级缓存
+					this.singletonFactories.remove(beanName);
+				}
+			}
+		}
+	}
+	return singletonObject;
+}
+```
+
+- 此方法的主要处理流程：
+1. 先从singletonObjects（一级缓存）中获取单例实例
+2. 判断一级缓存中没有，并且是正在创建中，则再从earlySingletonObjects（二级缓存）中获取
+3. 如果二级缓存中没有，并且是允许实例提前暴露，则再从singletonFactories（三级缓存）中获取。
+4. 如果三级缓存中也没有，则直接返回null；如果三级缓存中存在实例，则将实例存入二级缓存，并且将其实例对象从三级缓存中删除。（**这个操作主要是用于循环依赖**）
+
+#### 8.2.4. beforeSingletonCreation
 
 方法开始，调用`this.singletonObjects.get(beanName);`方法，从一级缓存中获取实例，如果一级缓存中有，说明bean实例化已完成，则直接返回；如果一级缓存中没有，说明bean还没有实例化，则进行创建
 
@@ -1991,17 +2097,21 @@ protected void beforeSingletonCreation(String beanName) {
 }
 ```
 
+#### 8.2.5. singletonFactory.getObject
+
 在执行`Object getSingleton(String beanName, ObjectFactory<?> singletonFactory)`方法的过程中，调用了`singletonObject = singletonFactory.getObject();`方法(即会调用外层的lambda表达式的逻辑)。调到 getObject 方法，完成 bean 的实例化。
 
 ![](images/20210123230138897_23033.png)
 
 ![](images/20210123230657453_30340.png)
 
+#### 8.2.6. afterSingletonCreation
+
 当`getObject`方法调用完后，就代表着 Bean 实例化已经完成了，此后还需要进行以下两步操作：
 
-![](images/20200503082651108_14373.png)
+![](images/20210130122708941_20242.png)
 
-1. 调用`afterSingletonCreation`方法，把 beanName 从这个集合中删除
+1. 调用`afterSingletonCreation(beanName);`方法，主要的作用是，要bean实例创建完成后，根据 beanName 从`singletonsCurrentlyInCreation`容器（存储正在实例化的bean的集合）中删除该bean
 
 ```java
 /**
@@ -2017,7 +2127,9 @@ protected void afterSingletonCreation(String beanName) {
 }
 ```
 
-2. 调用`addSingleton`方法，把 bean 缓存到一级缓存中
+> *注：如果正在实例化的容器中，根据beanName没有可删除的元素时，会抛出异常*
+
+2. 调用`addSingleton(beanName, singletonObject);`方法，主要的作用是，创建对象成功后，把bean对象实例缓存到singletonObjects一级缓存中，删除二、三级缓存（`earlySingletonObjects`、`singletonFactories`），并注册bean实例化名称到容器（`registeredSingletons`）中
 
 ```java
 /**
@@ -2028,15 +2140,19 @@ protected void afterSingletonCreation(String beanName) {
  */
 protected void addSingleton(String beanName, Object singletonObject) {
 	synchronized (this.singletonObjects) {
+		// 设置实例到一级缓存
 		this.singletonObjects.put(beanName, singletonObject);
+		// 将创建好的bean的名称从三级缓存中移除
 		this.singletonFactories.remove(beanName);
+		// 将创建好的bean的名称从二级缓存中移除
 		this.earlySingletonObjects.remove(beanName);
+		// 保存已注册到容器的bean实例的名称
 		this.registeredSingletons.add(beanName);
 	}
 }
 ```
 
-#### 8.2.3. 涉及相关重要的核心属性
+#### 8.2.7. 涉及相关重要的核心属性
 
 在`DefaultSingletonBeanRegistry`类中的`singletonObjects`属性，此属性是Map结构容器，用于存在完全实例化的对象。
 
@@ -2066,6 +2182,15 @@ instanceWrapper = createBeanInstance(beanName, mbd, args);
 
 ![](images/20200503085137982_4511.png)
 
+##### 8.3.3.1. 此方法主要处理的内容
+
+1. 实例化factoryMethod方法相应的实例
+2. 实例化标识`@Autowired`注解的有参构造函数
+3. 实例化没有`@Autowired`注解的有参构造函数
+4. 实例化无参构造函数
+
+##### 8.3.3.2. 获取bean的Class对象
+
 该方法首先通过beanName，反射获取将要实例化的bean的Class对象
 
 ```java
@@ -2076,15 +2201,145 @@ protected BeanWrapper createBeanInstance(String beanName, RootBeanDefinition mbd
 	....
 ```
 
-#### 8.3.4. FactoryMethodName 属性的处理
+#### 8.3.4. createBeanInstance 对 FactoryMethodName 属性的处理
 
-进入`createBeanInstance(beanName, mbd, args);`方法中，会有判断是否配置了`FactoryMethodName`属性的处理
+##### 8.3.4.1. 源码分析
+
+进入`createBeanInstance(beanName, mbd, args);`方法中，会有判断当前创建中类（BeanDefinition对象）的`FactoryMethodName`属性是否为空，如果不为空，则调用`instantiateUsingFactoryMethod()`方法进行factory-method的实例处理，核心代码如下：
 
 ![](images/20210124123117637_6346.png)
 
-这个方法主要逻辑是：如果有`FactoryMethodName`属性，则反射调用类中的 factoryMethod 方法。这要知道 `@Bean` 方法的原理，实际上 spring 会扫描有 `@bean` 注解的方法，然后把方法名称设置到 BeanDefinition 的 factoryMethod 属性中，接下来就会调到上面截图中的方法实现 `@Bean` 方法的调用。该方法里面的参数解析过程不需要了解。
+这个方法主要逻辑是：如果有`FactoryMethodName`属性，则反射调用类中的 factoryMethod 方法。这要知道 `@Bean` 方法的原理，实际上 spring 会扫描有 `@Bean` 注解的方法，然后把方法名称设置到 BeanDefinition 的 factoryMethod 属性中，接下来就会调到上面截图中的方法实现 `@Bean` 方法的调用。该方法里面的参数解析过程不需要了解。
 
-#### 8.3.5. 类存在有参构造函数时的实例化过程
+```java
+public BeanWrapper instantiateUsingFactoryMethod(
+		String beanName, RootBeanDefinition mbd, @Nullable Object[] explicitArgs) {
+
+	// 创建一个包装类
+	BeanWrapperImpl bw = new BeanWrapperImpl();
+	this.beanFactory.initBeanWrapper(bw);
+
+	Object factoryBean;
+	Class<?> factoryClass;
+	// 此标识用于判断配置的factory-method方法是否为静态方法
+	boolean isStatic;
+
+	// 获取factoryBean的name（相当于factory-method所在的类的名称）
+	String factoryBeanName = mbd.getFactoryBeanName();
+	if (factoryBeanName != null) {
+		if (factoryBeanName.equals(beanName)) {
+			throw new BeanDefinitionStoreException(mbd.getResourceDescription(), beanName,
+					"factory-bean reference points back to the same bean definition");
+		}
+		// 如果配置了factory-bean属性，则先实例此factoryBean
+		factoryBean = this.beanFactory.getBean(factoryBeanName);
+		/*
+		 * 判断当前正在实例化的bean是单例的，并且根据beanName在容器中找到此实例已存在，抛出异常。
+		 * 	因为配置了factory-method属性，当前实例是从factory-method属性相应的方法来实例化的
+		 */
+		if (mbd.isSingleton() && this.beanFactory.containsSingleton(beanName)) {
+			throw new ImplicitlyAppearedSingletonException();
+		}
+		// 获取配置的factory-bean的Class对象
+		factoryClass = factoryBean.getClass();
+		// 设置方法标识为false，即factoryMethod要为非静态方法
+		isStatic = false;
+	}
+	else {
+		// It's a static factory method on the bean class.
+		// 如果没配置factory-bean属性（即factoryBeanName值为空），进入此分支，此时如果也没有配置class属性，则抛出异常
+		if (!mbd.hasBeanClass()) {
+			throw new BeanDefinitionStoreException(mbd.getResourceDescription(), beanName,
+					"bean definition declares neither a bean class nor a factory-bean reference");
+		}
+		factoryBean = null;
+		// 如果没有配置factory-bean属性，则获取当前类的Class类对象
+		factoryClass = mbd.getBeanClass();
+		// 设置方法标识为true，即factoryMethod需要为静态方法
+		isStatic = true;
+	}
+
+	Method factoryMethodToUse = null;
+	ArgumentsHolder argsHolderToUse = null;
+	Object[] argsToUse = null;
+
+	if (explicitArgs != null) {
+		argsToUse = explicitArgs;
+	}
+	else {
+		Object[] argsToResolve = null;
+		synchronized (mbd.constructorArgumentLock) {
+			factoryMethodToUse = (Method) mbd.resolvedConstructorOrFactoryMethod;
+			if (factoryMethodToUse != null && mbd.constructorArgumentsResolved) {
+				// Found a cached factory method...
+				argsToUse = mbd.resolvedConstructorArguments;
+				if (argsToUse == null) {
+					argsToResolve = mbd.preparedConstructorArguments;
+				}
+			}
+		}
+		if (argsToResolve != null) {
+			// 对方法参数的解析，获取参数列表，再一个个去判断参数类型，还要判断参数上是否有注解，比较难理解。暂时未研究
+			argsToUse = resolvePreparedArguments(beanName, mbd, bw, factoryMethodToUse, argsToResolve, true);
+		}
+	}
+
+	if (factoryMethodToUse == null || argsToUse == null) {
+		// Need to determine the factory method...
+		// Try all methods with this name to see if they match the given arguments.
+		factoryClass = ClassUtils.getUserClass(factoryClass);
+
+		List<Method> candidates = null;
+		if (mbd.isFactoryMethodUnique) {
+			if (factoryMethodToUse == null) {
+				factoryMethodToUse = mbd.getResolvedFactoryMethod();
+			}
+			if (factoryMethodToUse != null) {
+				candidates = Collections.singletonList(factoryMethodToUse);
+			}
+		}
+		if (candidates == null) {
+			candidates = new ArrayList<>();
+			// 获取类中所有方法对象
+			Method[] rawCandidates = getCandidateMethods(factoryClass, mbd);
+			for (Method candidate : rawCandidates) {
+				/*
+				 * 判断当前循环的方法是否与上面的isStatic标识一致，并且方法的名称等于配置的factoryMethod属性值
+				 * 注：Modifier.isStatic()方法是jdk的方法，用于判断方法是否为静态方法
+				 */
+				if (Modifier.isStatic(candidate.getModifiers()) == isStatic && mbd.isFactoryMethod(candidate)) {
+					candidates.add(candidate);
+				}
+			}
+		}
+		.....
+}
+```
+
+##### 8.3.4.2. factory-method 两种调用形式总结
+
+1. 配置`factory-bean`属性，`factory-method`指定类中的非静态方法
+2. 如不配置`factory-bean`属性，则必须配置`class`属性，并且`factory-method`指定类中的静态方法
+
+#### 8.3.5. createBeanInstance 对不同类型的构造函数处理
+
+##### 8.3.5.1. 标识`@Autowired`注解的有参构造函数实例化过程
+
+测试示例：
+
+```java
+@Component
+public class AutowiredConstructorComponent {
+    /**
+     * 用于测试标识`@Autowired`注解的有参构造函数实例化过程
+     */
+    @Autowired
+    public AutowiredConstructorComponent(ComponentA a, ComponentB b) {
+        System.out.println(a);
+        System.out.println(b);
+    }
+}
+```
 
 如果没有配置`factoryMethod`属性，则继续往下执行到`determineConstructorsFromBeanPostProcessors`方法，此方法是 `BeanPostProcessor` 接口类的首次应用，最终会调到 `AutowiredAnnotationBeanPostProcessor` 类的方法，在方法中会扫描有注解的构造函数然后完成装配过程，然后会将标识了`@Autowired`注解的构造函数返回
 
@@ -2100,6 +2355,8 @@ if (ctors != null || mbd.getResolvedAutowireMode() == AUTOWIRE_CONSTRUCTOR ||
 ```
 
 `determineConstructorsFromBeanPostProcessors()`方法源码如下：主要处理逻辑是，获取所有的BeanPostProcessor接口类型的求对象，然后判断是否是`SmartInstantiationAwareBeanPostProcessor`类型的，然后循环调用接口的`determineCandidateConstructors`方法，该方法的作用是获取所有`@Autowired`注解的构造函数
+
+注：此循环中所有`SmartInstantiationAwareBeanPostProcessor`类型的实现类都会进入if判断中，并且执行了`determineCandidateConstructors`方法，但如果不是处理此个功能的实现类只需要返回null即可，所以此处的逻辑只会`AutowiredAnnotationBeanPostProcessor`会起作用
 
 ```java
 @Nullable
@@ -2128,7 +2385,7 @@ protected Constructor<?>[] determineConstructorsFromBeanPostProcessors(@Nullable
 }
 ```
 
-上面已经拿到正在实例化的类的构造函数，然后`autowireConstructor`方法是获取参数的过程
+上面已经拿到正在实例化的类的带有`@Autowired`构造函数，然后`autowireConstructor`方法是获取构造参数的过程
 
 ```java
 /* AbstractAutowireCapableBeanFactory 类 */
@@ -2138,17 +2395,50 @@ protected BeanWrapper autowireConstructor(
 }
 ```
 
-调用`ConstructorResolver`类中的`autowireConstructor`方法
+调用`ConstructorResolver`类中的`autowireConstructor`方法，处理标识有`@Autowired`注解的构造函数
 
-```java
+![](images/20210129150408315_29510.png)
 
-```
+![](images/20210129150504706_24041.png)
+
+![](images/20210129150611643_22529.png)
+
+![](images/20210129150735396_15973.png)
+
+此处的`descriptor.resolveCandidate`方法实际是通过getBean方法来获取实例
+
+![](images/20210129150815394_17697.png)
+
+![](images/20210129150849039_7011.png)
+
+当上面的构造函数的入参都创建完成后，通过构造函数对象反射实例化
+
+![](images/20210129151619775_20650.png)
 
 <font color=red>**总结：由以上源码分析可知，不管是Field，Method、或者是构造函数，凡是使用`@Autowired`注解，如果自动注入的参数是一个引用的类型，就会触发这个引用类型的getBean方法来进行实例化，获取bean实例**</font>
 
-#### 8.3.6. 无参构造函数的实例化过程
+##### 8.3.5.2. 无`@Autowired`注解的有参构造函数实例化过程
 
-这就是简单的反射实例化。大部分类的实例化都会走无参构造的逻辑
+当实例化的类中有一个无`@Autowired`的有参数构造函数时，spring是可以正常实例化该类；如果多个无标识`@Autowired`的有参构造函数时，实例化时会报错，但报错非spring框架的错误，而是会报实例化时找不到构造函数。因为这种情况下，spring框架实例化会去找无参构造函数。如不让程序报错，增加无参构造函数即可
+
+```java
+public AutowiredConstructorComponent(ComponentA a, ComponentB b) {
+    System.out.println(a);
+    System.out.println(b);
+}
+
+public AutowiredConstructorComponent(ComponentA a) {
+    System.out.println(a);
+}
+```
+
+分析源码`AutowiredAnnotationBeanPostProcessor.determineCandidateConstructors`
+
+![](images/20210130001836071_9330.png)
+
+##### 8.3.5.3. 无参构造函数的实例化过程
+
+通过上面有`@Autowired`注解与无注解的有参构造方法处理后，如果都没有，则走到无参数构造函数的实例化。**这就是简单的反射实例化。大部分类的实例化都会走无参构造的逻辑**
 
 ```java
 protected BeanWrapper createBeanInstance(String beanName, RootBeanDefinition mbd, @Nullable Object[] args) {
@@ -2160,9 +2450,15 @@ protected BeanWrapper createBeanInstance(String beanName, RootBeanDefinition mbd
 }
 ```
 
-#### 8.3.7. 类中注解的收集
+##### 8.3.5.4. 小结
 
-实例化完成后，接下来就需要对类中的属性进行依赖注入操作。类里面属性和方法的依赖注入往往用 `@Autowired` 或者 `@Resource` 注解
+为什么spring框架要设计可以使用`@Autowired`注解标识有参构造函数的方式来实例化对象，如果类只一个构造函数，或者不写构造函数（此时会有默认的构造函数）都可以支持类到的实例化。
+
+因为类是可以定义多个构造函数，所以通过设计这种注解的的方式，方便使用者去指定以那个构造函数用于实例化
+
+#### 8.3.6. 类中注解的收集 applyMergedBeanDefinitionPostProcessors
+
+实例化完成后，接下来就需要对类中的属性进行依赖注入操作。类里面属性和方法的依赖注入往往都标识了 `@Autowired` 或者 `@Resource` 注解，核心方法就是`applyMergedBeanDefinitionPostProcessors`
 
 ```java
 // Allow post-processors to modify the merged bean definition.
@@ -2190,11 +2486,111 @@ synchronized (mbd.postProcessingLock) {
 
 ![](images/20200505171610617_18011.png)
 
-##### 8.3.7.1. CommonAnnotationBeanPostProcessor
+##### 8.3.6.1. CommonAnnotationBeanPostProcessor
 
 第1个是调用 `CommonAnnotationBeanPostProcessor` 类，这个类完成了 `@Resource` 注解的属性或者方法的收集。这个类还对 `@PostConstruct` 和 `@PreDestory` 等注解的支持
 
+```java
+/*
+ * 1、扫描类里面的属性或者方法
+ * 2、判断属性或者方法上面是否有@PostConstruct @PreDestroy @Resource注解
+ * 3、如果有注解的属性或者方法，包装成一个类
+ */
+@Override
+public void postProcessMergedBeanDefinition(RootBeanDefinition beanDefinition, Class<?> beanType, String beanName) {
+	// 调用父类（InitDestroyAnnotationBeanPostProcessor）的方法，扫描@PostConstruct、@PreDestroy注解
+	super.postProcessMergedBeanDefinition(beanDefinition, beanType, beanName);
+	// 扫描目标类的属性和方法上面是否有@Resource注解，如果有则收集起来封装成InjectionMetadata对象
+	InjectionMetadata metadata = findResourceMetadata(beanName, beanType, null);
+	// 设置InjectionMetadata对象的checkedElements属性
+	metadata.checkConfigMembers(beanDefinition);
+}
+```
+
+在`CommonAnnotationBeanPostProcessor`类的构造方法中，设置`@PostConstruct`与`@PreDestroy`注解的支持
+
 ![](images/20200505172241784_18237.png)
+
+**在父类（`InitDestroyAnnotationBeanPostProcessor`）中处理收集被`@PostConstruct`和`@PreDestroy`注解标注的方法**，具体流程如下：
+
+1. 看缓存里面有没有 `InjectionMetadata` 对象
+
+```java
+private LifecycleMetadata findLifecycleMetadata(Class<?> clazz) {
+	// 先从缓存里查找当前类的LifecycleMetadata对象，此对象就是包装了目标对象与相关的生命周期方法
+	if (this.lifecycleMetadataCache == null) {
+		// Happens after deserialization, during destruction...
+		// 没有则去初始化类与LifecycleMetadata对象的映射，放到缓存中
+		return buildLifecycleMetadata(clazz);
+	}
+	// Quick check on the concurrent map first, with minimal locking.
+	LifecycleMetadata metadata = this.lifecycleMetadataCache.get(clazz);
+	if (metadata == null) {
+		synchronized (this.lifecycleMetadataCache) {
+			metadata = this.lifecycleMetadataCache.get(clazz);
+			if (metadata == null) {
+				metadata = buildLifecycleMetadata(clazz);
+				this.lifecycleMetadataCache.put(clazz, metadata);
+			}
+			return metadata;
+		}
+	}
+	return metadata;
+}
+```
+
+2. 循环遍历类中的所有的方法，判断方法上是否有`@PostConstruct`注解如果有的话加入到 `initMethods` 集合，判断方法上是否有`@PreDestroy` 注解，如果有加入到 `destroyMethods` 集合中去
+
+```java
+private LifecycleMetadata buildLifecycleMetadata(final Class<?> clazz) {
+	// 判断当前实例化类的方法上是否有@PostConstruct或者@PreDestroy注解
+	if (!AnnotationUtils.isCandidateClass(clazz, Arrays.asList(this.initAnnotationType, this.destroyAnnotationType))) {
+		return this.emptyLifecycleMetadata;
+	}
+
+	List<LifecycleElement> initMethods = new ArrayList<>();
+	List<LifecycleElement> destroyMethods = new ArrayList<>();
+	Class<?> targetClass = clazz;
+
+	// 循环类中所有的方法
+	do {
+		final List<LifecycleElement> currInitMethods = new ArrayList<>();
+		final List<LifecycleElement> currDestroyMethods = new ArrayList<>();
+
+		/* doWithLocalMethods(Class<?> clazz, MethodCallback mc)，此方法就是循环调用函数式接口MethodCallback里的doWith()方法，方法里通过反射调用Method对象 */
+		ReflectionUtils.doWithLocalMethods(targetClass, method -> {
+			// 判断方法上是否有@PostConstruct注解，包装成LifecycleElement对象，加入到LifecycleMetadata.initMethods容器中
+			if (this.initAnnotationType != null && method.isAnnotationPresent(this.initAnnotationType)) {
+				LifecycleElement element = new LifecycleElement(method);
+				currInitMethods.add(element);
+				if (logger.isTraceEnabled()) {
+					logger.trace("Found init method on class [" + clazz.getName() + "]: " + method);
+				}
+			}
+			// 判断方法上是否有@PreDestroy注解，包装成LifecycleElement对象，加入到LifecycleMetadata.destroyMethods容器中
+			if (this.destroyAnnotationType != null && method.isAnnotationPresent(this.destroyAnnotationType)) {
+				currDestroyMethods.add(new LifecycleElement(method));
+				if (logger.isTraceEnabled()) {
+					logger.trace("Found destroy method on class [" + clazz.getName() + "]: " + method);
+				}
+			}
+		});
+
+		// 使用List集合收集所有初始化和销毁方法
+		initMethods.addAll(0, currInitMethods);
+		destroyMethods.addAll(currDestroyMethods);
+		// 循环递归查询父类
+		targetClass = targetClass.getSuperclass();
+	}
+	while (targetClass != null && targetClass != Object.class);
+
+	// 包装成LifecycleMetadata对象并返回
+	return (initMethods.isEmpty() && destroyMethods.isEmpty() ? this.emptyLifecycleMetadata :
+			new LifecycleMetadata(clazz, initMethods, destroyMethods));
+}
+```
+
+**收集被 @Resource 注解的标注的方法**
 
 其中收集`@Resource`注解的过程如下：
 
@@ -2203,13 +2599,13 @@ synchronized (mbd.postProcessingLock) {
 3. 从类中获取所有 `Method` 对象，循环 `Method` 对象，判断 `Method` 有没有 `@Resource` 注解，如果有注解封装成 `ResourceElement` 对象
 4. 最终把两个 `field` 和 `Method` 封装的对象集合封装到 `InjectionMetadata` 对象中
 
-##### 8.3.7.2. AutowiredAnnotationBeanPostProcessor
+##### 8.3.6.2. AutowiredAnnotationBeanPostProcessor
 
 `AutowiredAnnotationBeanPostProcessor` 类，对 `@Autowired` 注解的属性和方法的收集。收集过程基本上跟 `@Resource` 注解的收集差不多
 
-#### 8.3.8. IOC\DI 依赖注入
+#### 8.3.7. IOC\DI 依赖注入
 
-##### 8.3.8.1. @Resource 和 @Autowired 注解依赖注入
+##### 8.3.7.1. @Resource 和 @Autowired 注解依赖注入
 
 ![](images/20200511233417561_3122.png)
 
@@ -2307,7 +2703,7 @@ protected void inject(Object bean, @Nullable String beanName, @Nullable Property
 
 以上就是对注解 `@Resource` 和 `@Autowired` 的依赖注入的实现逻辑
 
-##### 8.3.8.2. xml 配置的依赖注入
+##### 8.3.7.2. xml 配置的依赖注入
 
 比如在spring的xml配置文件的 `<bean>` 标签中配置以下属性
 
@@ -2325,7 +2721,7 @@ protected void inject(Object bean, @Nullable String beanName, @Nullable Property
 
 这块逻辑是专门做 xml 配置依赖注入的，基本上现在基于 xml 配置的依赖很少使用，暂时不研究
 
-#### 8.3.9. bean 实例化后的操作
+#### 8.3.8. bean 实例化后的操作
 
 核心代码位置在`AbstractAutowireCapableBeanFactory`类中的`doCreateBean()`方法中
 
@@ -2334,7 +2730,7 @@ protected void inject(Object bean, @Nullable String beanName, @Nullable Property
 exposedObject = initializeBean(beanName, exposedObject, mbd);
 ```
 
-##### 8.3.9.1. InitializingBean 接口介绍
+##### 8.3.8.1. InitializingBean 接口介绍
 
 实现`InitializingBean`接口的类，spring会在实例化该类以后，调用接口的`afterPropertiesSet()`方法
 
@@ -2403,7 +2799,7 @@ public class InitMethodBean implements InitializingBean {
 
 ![](images/20200519232135597_12874.png)
 
-##### 8.3.9.2. 对某些 Aware 接口的调用(实例化Bean后执行流程1)
+##### 8.3.8.2. 对某些 Aware 接口的调用(实例化Bean后执行流程1)
 
 此步骤主要是对于当前实现Aware的接口的方法调用
 
@@ -2430,7 +2826,7 @@ private void invokeAwareMethods(final String beanName, final Object bean) {
 }
 ```
 
-##### 8.3.9.3. @PostConstruct 注解方法的调用(实例化Bean后执行流程2)
+##### 8.3.8.3. @PostConstruct 注解方法的调用(实例化Bean后执行流程2)
 
 此处又是一个 `BeanPostProcessor` 接口的运用。核心代码位置
 
@@ -2512,7 +2908,7 @@ public void invoke(Object target) throws Throwable {
 }
 ```
 
-##### 8.3.9.4. InitializingBean 接口和 init-method 属性的调用(实例化Bean后执行流程3)
+##### 8.3.8.4. InitializingBean 接口和 init-method 属性的调用(实例化Bean后执行流程3)
 
 执行流程往下就是对实现了 `InitializingBean` 接口的类与在xml配置文件中`<bean>`标签中配置了 `init-method` 属性的相应方法的调用
 
@@ -2579,7 +2975,7 @@ protected Object initializeBean(final String beanName, final Object bean, @Nulla
 
 也是一个 `BeanPostProcessor` 接口的运用，在这里会返回 bean 的代理实例，这个就是 AOP 的入口。
 
-##### 8.3.9.5. FactoryBean 接口
+##### 8.3.8.5. FactoryBean 接口
 
 接口方法触发入口位置：`AbstractBeanFactory --> doGetBean()`
 
@@ -2656,8 +3052,8 @@ public void factoryBeanTest() {
 }
 ```
 
-#### 8.3.10. 循环依赖
-##### 8.3.10.1. 循环依赖流程图
+#### 8.3.9. 循环依赖
+##### 8.3.9.1. 循环依赖流程图
 
 循环依赖参照流程图（引用其他资料。）<font color="red">有时间自己再重新整理</font>
 
@@ -2665,12 +3061,12 @@ public void factoryBeanTest() {
 
 > 图片出处：https://www.processon.com/view/link/5df9ce52e4b0c4255ea1a84f
 
-##### 8.3.10.2. 循环依赖需要注意的问题
+##### 8.3.9.2. 循环依赖需要注意的问题
 
 - 循环依赖只会出现在单例实例无参构造函数实例化情况下
 - 有参构造函数的加 `@Autowired` 的方式循环依赖会直接报错的，多例的循环依赖也是直接报错的。
 
-##### 8.3.10.3. 循环依赖步骤总结
+##### 8.3.9.3. 循环依赖步骤总结
 
 1. A 类无参构造函数实例化后，将实例设置到三级缓存中
 2. A 类执行 `populateBean()` 方法进行依赖注入，这里触发了 B 类属性的 `getBean()` 操作
@@ -2681,8 +3077,8 @@ public void factoryBeanTest() {
 7. B 类实例化已经完成，B 类的实例化是由 A 类实例化中 B 属性的依赖注入触发的 `getBean()` 操作进行的，现在 B 已经实例化，所以 A 类中 B 属性就可以完成依赖注入了，这时候 A 类 B 属性已经有值了
 8. B 类 A 属性指向的就是 A 类实例堆空间，所以这时候 B 类 A 属性也会有值了。
 
-#### 8.3.11. Bean 的多例及作用域
-##### 8.3.11.1. 多例Bean测试
+#### 8.3.10. Bean 的多例及作用域
+##### 8.3.10.1. 多例Bean测试
 
 通过`@Scope`注解可以设置bean为多例
 
@@ -2733,7 +3129,7 @@ public void prototypeTest() {
 - Scope 是 `Prototype` 时，在spring容器启动中，是不会创建实例，需要主动调用 `getBean()` 时才会创建实例
 - Request 作用域时，是把实例存储到 request 对象中；Session 作用域时，是把实例存储到 session 对象中。注：request 和 session 作用域只会在 web 环境才会存在
 
-##### 8.3.11.2. Request与Session作用域(!!后面需要补充tomcat部署时的截图。目前因为没有配置好web.xml文件与springMVC)
+##### 8.3.10.2. Request与Session作用域(!!后面需要补充tomcat部署时的截图。目前因为没有配置好web.xml文件与springMVC)
 
 定义两个作用域测试bean。*注：需要引入spring-web的依赖*
 
@@ -2765,7 +3161,7 @@ public void requestSessoinScopeTest() {
 ![](images/20200603234906381_7555.png)
 
 
-##### 8.3.11.3. 自定义作用域
+##### 8.3.10.3. 自定义作用域
 
 阅读`AbstractBeanFactory`类的源码发现，有一个public的方法`registerScope`，该方法可以往spring构架中的scopes容器中注册（添加自定义作用域）。所以只要通过实现`BeanFactoryPostProcessor`接口，拿到spring的BeanFactory对象，即可调用该方法往作用域scopes容器中注册自定义作用域
 
@@ -2908,7 +3304,7 @@ public class CustomScopeBean {
 
 ![](images/20200607102144946_18607.png)
 
-##### 8.3.11.4. Bean作用域总结
+##### 8.3.10.4. Bean作用域总结
 
 Spring框架Bean的作用域的本质是对Bean实例的管理。
 
@@ -2918,7 +3314,7 @@ Spring框架Bean的作用域的本质是对Bean实例的管理。
 4. Request与Session模式Bean的实例是存储在web容器相应的request与session对象中
 5. 自定义作用域其实是自已定义Bean实例的管理方式，存储到缓存或者直接创建由定义者决定
 
-#### 8.3.12. Bean 的销毁
+#### 8.3.11. Bean 的销毁
 
 在 bean 创建完成后就会对这个 bean 注册一个销毁的 DisposableBeanAdapter 对象
 
