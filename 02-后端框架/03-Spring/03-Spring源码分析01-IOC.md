@@ -2592,34 +2592,77 @@ private LifecycleMetadata buildLifecycleMetadata(final Class<?> clazz) {
 
 **收集被 @Resource 注解的标注的方法**
 
-其中收集`@Resource`注解的过程如下：
+在执行完父类的`super.postProcessMergedBeanDefinition(beanDefinition, beanType, beanName);`方法后，调用`findResourceMetadata()`方法收集`@Resource`注解，收集过程如下：
 
 1. 看缓存里面有没有 `InjectionMetadata` 对象
+
+```java
+private InjectionMetadata findResourceMetadata(String beanName, final Class<?> clazz, @Nullable PropertyValues pvs) {
+	// Fall back to class name as cache key, for backwards compatibility with custom callers.
+	String cacheKey = (StringUtils.hasLength(beanName) ? beanName : clazz.getName());
+	// 先从缓存中查询
+	// Quick check on the concurrent map first, with minimal locking.
+	InjectionMetadata metadata = this.injectionMetadataCache.get(cacheKey);
+	if (InjectionMetadata.needsRefresh(metadata, clazz)) {
+		// 如果缓存中没有，则收集并设置到缓存中
+		synchronized (this.injectionMetadataCache) {
+			metadata = this.injectionMetadataCache.get(cacheKey);
+			if (InjectionMetadata.needsRefresh(metadata, clazz)) {
+				if (metadata != null) {
+					metadata.clear(pvs);
+				}
+				// 收集@Resource注解，主要逻辑在此方法上
+				metadata = buildResourceMetadata(clazz);
+				// 收集后将数据缓存起来
+				this.injectionMetadataCache.put(cacheKey, metadata);
+			}
+		}
+	}
+	return metadata;
+}
+```
+
 2. 从类中获取所有 `Field` 对象，循环 `field` 对象，判断 `field` 有没有 `@Resource` 注解，如果有注解封装成 `ResourceElement` 对象
-3. 从类中获取所有 `Method` 对象，循环 `Method` 对象，判断 `Method` 有没有 `@Resource` 注解，如果有注解封装成 `ResourceElement` 对象
-4. 最终把两个 `field` 和 `Method` 封装的对象集合封装到 `InjectionMetadata` 对象中
+
+![](images/20210131085953294_22586.png)
+
+3. 再从类中获取所有 `Method` 对象，循环 `Method` 对象，判断 `Method` 有没有 `@Resource` 注解，如果有注解封装成 `ResourceElement` 对象
+
+![](images/20210131091710111_3625.png)
+
+4. 最终把两个 `field` 和 `Method` 封装的对象集合封装到 `InjectionMetadata` 对象中，并加入`injectionMetadataCache`的Map缓存中
+
+![](images/20210131091651338_31028.png)
+
+![](images/20210131091802503_20563.png)
 
 ##### 8.3.6.2. AutowiredAnnotationBeanPostProcessor
 
-`AutowiredAnnotationBeanPostProcessor` 类，对 `@Autowired` 注解的属性和方法的收集。收集过程基本上跟 `@Resource` 注解的收集差不多
+`AutowiredAnnotationBeanPostProcessor`类，对`@Autowired`与`@Value`注解的属性和方法的收集。收集过程基本上跟`@Resource`注解的收集差不多，详见源码注释
 
-#### 8.3.7. IOC\DI 依赖注入
+#### 8.3.7. IOC\DI 依赖注入（populateBean）
 
-##### 8.3.7.1. @Resource 和 @Autowired 注解依赖注入
+##### 8.3.7.1. populateBean 源码位置
 
-![](images/20200511233417561_3122.png)
+![](images/20210131093846296_3242.png)
 
-相应的方法代码块
+##### 8.3.7.2. DI前是否需要注入判断
 
-```java
-populateBean(beanName, mbd, instanceWrapper);
-```
+![](images/20210131151426080_17297.png)
 
-进入方法，核心代码位置在红框中
+在依赖注入核心方法`populateBean`中，方法开始时在依赖引入类属性之前，会循环所有实现`InstantiationAwareBeanPostProcessors`接口，会调用接口中的`postProcessAfterInstantiation`方法，如果此方法返回值为false，会直接中止，程序不再往下执行依赖注入部分的逻辑，这样会使当前创建中实例的属性没有DI注入。如果不去针对某个类型，而是直接返回false的话，全部实例的属性都没有DI注入
 
-![](images/20200511234427945_22372.png)
+> 注：此部分运用的示例详见`spring-note\spring-analysis-note\spring-source-study-2021\09-spring-beanpostprocessor\CustomInstantiationAwareBeanPostProcessor.java`
 
-上面又是一个 `BeanPostProcessor` 类型接口的运用，前面有对`@Resource`、`@Autowired`注解的收集，那么这个方法就是根据收集到的注解进行反射调用。研究其中的子类`org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor`的实现逻辑
+##### 8.3.7.3. @Resource 和 @Autowired 注解依赖注入
+
+在Bean实例化完成、并且收集完`@Resource`和`@Autowired`注解以后，通过上面的依赖注入前的校验后，开始处理依赖注入的逻辑
+
+![](images/20210131171907877_4031.png)
+
+依赖注入又是一个`BeanPostProcessor`类型接口的运用，前面已经完成对`@Resource`、`@Autowired`注解的收集，此时就是根据收集到的注解进行反射调用。
+
+> 研究其中的子类`org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor`的实现逻辑
 
 ![](images/20200511234732131_22606.png)
 
@@ -2642,11 +2685,12 @@ public PropertyValues postProcessProperties(PropertyValues pvs, Object bean, Str
 }
 ```
 
-循环收集到的 `metaData` 对象中的List集合，调用里面的每个 InjectedElement 的 inject 方法完成依赖注入。
+循环收集到的`metaData`对象中的List集合，调用里面的每个`InjectedElement`对象的`inject`方法完成依赖注入。
 
 ```java
 public void inject(Object target, @Nullable String beanName, @Nullable PropertyValues pvs) throws Throwable {
 	Collection<InjectedElement> checkedElements = this.checkedElements;
+	// injectedElements集合是以前收集到的@Autowired注解的字段、方法对象
 	Collection<InjectedElement> elementsToIterate =
 			(checkedElements != null ? checkedElements : this.injectedElements);
 	if (!elementsToIterate.isEmpty()) {
@@ -2655,7 +2699,7 @@ public void inject(Object target, @Nullable String beanName, @Nullable PropertyV
 			if (logger.isTraceEnabled()) {
 				logger.trace("Processing injected element of bean '" + beanName + "': " + element);
 			}
-			// 对元素/方法进行注入
+			// 循环调用每个元素/方法进行注入处理
 			element.inject(target, beanName, pvs);
 		}
 	}
@@ -2664,46 +2708,191 @@ public void inject(Object target, @Nullable String beanName, @Nullable PropertyV
 
 ![](images/20200512233942404_30191.png)
 
-其中 value 值的获取，如果依赖的属性是一个引用类型必定会触发该属性的`BeanFactory.getBean()`操作，从 spring 容器中获取到对应的实例。
+`element.inject`其实就是通过反射来完成依赖注入调用。<font color=red>**注：其中 value 值的获取，如果依赖的属性是一个引用类型必定会触发该属性的`BeanFactory.getBean()`操作，从 spring 容器中获取到对应的实例。**</font>
+
+- 字段属性依赖注入
 
 ```java
-@Override
-protected void inject(Object bean, @Nullable String beanName, @Nullable PropertyValues pvs) throws Throwable {
-	Field field = (Field) this.member;
-	......
-	if (value != null) {
-		ReflectionUtils.makeAccessible(field);
-		field.set(bean, value);
+private class AutowiredFieldElement extends InjectionMetadata.InjectedElement {
+    ....
+	/*
+	 * 属性DI，依赖注入
+	 */
+	@Override
+	protected void inject(Object bean, @Nullable String beanName, @Nullable PropertyValues pvs) throws Throwable {
+		Field field = (Field) this.member;
+		Object value;
+		if (this.cached) {
+			value = resolvedCachedArgument(beanName, this.cachedFieldValue);
+		}
+		else {
+			DependencyDescriptor desc = new DependencyDescriptor(field, this.required);
+			desc.setContainingClass(bean.getClass());
+			Set<String> autowiredBeanNames = new LinkedHashSet<>(1);
+			Assert.state(beanFactory != null, "No BeanFactory available");
+			TypeConverter typeConverter = beanFactory.getTypeConverter();
+			try {
+				// 这里会触发依赖注入属性的getBean操作
+				value = beanFactory.resolveDependency(desc, beanName, autowiredBeanNames, typeConverter);
+			}
+			catch (BeansException ex) {
+				throw new UnsatisfiedDependencyException(null, beanName, new InjectionPoint(field), ex);
+			}
+			synchronized (this) {
+				if (!this.cached) {
+					if (value != null || this.required) {
+						this.cachedFieldValue = desc;
+						registerDependentBeans(beanName, autowiredBeanNames);
+						if (autowiredBeanNames.size() == 1) {
+							String autowiredBeanName = autowiredBeanNames.iterator().next();
+							if (beanFactory.containsBean(autowiredBeanName) &&
+									beanFactory.isTypeMatch(autowiredBeanName, field.getType())) {
+								this.cachedFieldValue = new ShortcutDependencyDescriptor(
+										desc, autowiredBeanName, field.getType());
+							}
+						}
+					}
+					else {
+						this.cachedFieldValue = null;
+					}
+					this.cached = true;
+				}
+			}
+		}
+		if (value != null) {
+		    // 反射注入
+			ReflectionUtils.makeAccessible(field);
+			field.set(bean, value);
+		}
 	}
 }
 ```
 
-方法的依赖注入类似的逻辑
+- 方法的依赖注入类似的逻辑
 
 ```java
-@Override
-protected void inject(Object bean, @Nullable String beanName, @Nullable PropertyValues) throws Throwable {
-	if (checkPropertySkipping(pvs)) {
-		return;
-	}
-	Method method = (Method) this.member;
-	......
-
-	if (arguments != null) {
-		try {
-			ReflectionUtils.makeAccessible(method);
-			method.invoke(bean, arguments);
+private class AutowiredMethodElement extends InjectionMetadata.InjectedElement {
+    ....
+	/*
+	 * 方法的DI注入
+	 */
+	@Override
+	protected void inject(Object bean, @Nullable String beanName, @Nullable PropertyValues pvs) throws Throwable {
+		if (checkPropertySkipping(pvs)) {
+			return;
 		}
-		catch (InvocationTargetException ex) {
-			throw ex.getTargetException();
+		Method method = (Method) this.member;
+		Object[] arguments;
+		if (this.cached) {
+			// Shortcut for avoiding synchronization...
+			arguments = resolveCachedArguments(beanName);
+		}
+		else {
+			int argumentCount = method.getParameterCount();
+			arguments = new Object[argumentCount];
+			DependencyDescriptor[] descriptors = new DependencyDescriptor[argumentCount];
+			Set<String> autowiredBeans = new LinkedHashSet<>(argumentCount);
+			Assert.state(beanFactory != null, "No BeanFactory available");
+			TypeConverter typeConverter = beanFactory.getTypeConverter();
+			for (int i = 0; i < arguments.length; i++) {
+				MethodParameter methodParam = new MethodParameter(method, i);
+				DependencyDescriptor currDesc = new DependencyDescriptor(methodParam, this.required);
+				currDesc.setContainingClass(bean.getClass());
+				descriptors[i] = currDesc;
+				try {
+					Object arg = beanFactory.resolveDependency(currDesc, beanName, autowiredBeans, typeConverter);
+					if (arg == null && !this.required) {
+						arguments = null;
+						break;
+					}
+					arguments[i] = arg;
+				}
+				catch (BeansException ex) {
+					throw new UnsatisfiedDependencyException(null, beanName, new InjectionPoint(methodParam), ex);
+				}
+			}
+			synchronized (this) {
+				if (!this.cached) {
+					if (arguments != null) {
+						DependencyDescriptor[] cachedMethodArguments = Arrays.copyOf(descriptors, arguments.length);
+						registerDependentBeans(beanName, autowiredBeans);
+						if (autowiredBeans.size() == argumentCount) {
+							Iterator<String> it = autowiredBeans.iterator();
+							Class<?>[] paramTypes = method.getParameterTypes();
+							for (int i = 0; i < paramTypes.length; i++) {
+								String autowiredBeanName = it.next();
+								if (beanFactory.containsBean(autowiredBeanName) &&
+										beanFactory.isTypeMatch(autowiredBeanName, paramTypes[i])) {
+									cachedMethodArguments[i] = new ShortcutDependencyDescriptor(
+											descriptors[i], autowiredBeanName, paramTypes[i]);
+								}
+							}
+						}
+						this.cachedMethodArguments = cachedMethodArguments;
+					}
+					else {
+						this.cachedMethodArguments = null;
+					}
+					this.cached = true;
+				}
+			}
+		}
+		if (arguments != null) {
+			try {
+    			// 反射调用方法
+				ReflectionUtils.makeAccessible(method);
+				method.invoke(bean, arguments);
+			}
+			catch (InvocationTargetException ex) {
+				throw ex.getTargetException();
+			}
 		}
 	}
+    ....
 }
 ```
 
-以上就是对注解 `@Resource` 和 `@Autowired` 的依赖注入的实现逻辑
+- `@Resource`注解标识依赖注入
 
-##### 8.3.7.2. xml 配置的依赖注入
+```java
+/**
+ * A single injected element.
+ * 单个注入元素
+ */
+public abstract static class InjectedElement {
+    ....
+	/**
+	 * Either this or {@link #getResourceToInject} needs to be overridden.
+	 */
+	protected void inject(Object target, @Nullable String requestingBeanName, @Nullable PropertyValues pvs)
+			throws Throwable {
+
+		if (this.isField) {
+			Field field = (Field) this.member;
+			ReflectionUtils.makeAccessible(field);
+			field.set(target, getResourceToInject(target, requestingBeanName));
+		}
+		else {
+			if (checkPropertySkipping(pvs)) {
+				return;
+			}
+			try {
+				Method method = (Method) this.member;
+				ReflectionUtils.makeAccessible(method);
+				method.invoke(target, getResourceToInject(target, requestingBeanName));
+			}
+			catch (InvocationTargetException ex) {
+				throw ex.getTargetException();
+			}
+		}
+	}
+    ....
+}
+```
+
+<font color=red>**上述过程是对`@Autowired`、`@Resource`以及`@Value`注解修饰的`Field`和`Method`等完成依赖注入**</font>
+
+##### 8.3.7.4. xml 配置的依赖注入
 
 比如在spring的xml配置文件的 `<bean>` 标签中配置以下属性
 
@@ -2719,18 +2908,27 @@ protected void inject(Object bean, @Nullable String beanName, @Nullable Property
 
 ![](images/20200514231626392_26218.png)
 
-这块逻辑是专门做 xml 配置依赖注入的，基本上现在基于 xml 配置的依赖很少使用，暂时不研究
+这块逻辑是针对xml配置依赖注入的，基本上现在基于xml配置的依赖很少使用，没必要研究
 
-#### 8.3.8. bean 实例化后的操作
+#### 8.3.8. Bean 实例化和 IOC 依赖注入完成后逻辑处理
 
-核心代码位置在`AbstractAutowireCapableBeanFactory`类中的`doCreateBean()`方法中
+##### 8.3.8.1. 源码位置与逻辑处理内容
+
+核心代码位置在`AbstractAutowireCapableBeanFactory`类中的`doCreateBean()`方法中。`initializeBean`方法主要是
 
 ```java
 // bean实例化+ioc依赖注入完以后的调用，非常重要，重要程度【5】
 exposedObject = initializeBean(beanName, exposedObject, mbd);
 ```
 
-##### 8.3.8.1. InitializingBean 接口介绍
+此方法主要处理的内容如下：
+
+1. 调用Aware接口
+2. 调用`@PostConstruct`注解的方法，主要是通过BeanPostProcessor接口来实现该功能
+3. 调用实现了`InitializingBean`接口的类中的`afterPropertiesSet`方法，调用init-method中配置的方法
+4. 代理实例的创建，用BeanPostProcessor接口来完成代理实例的生成
+
+##### 8.3.8.2. InitializingBean 接口介绍
 
 实现`InitializingBean`接口的类，spring会在实例化该类以后，调用接口的`afterPropertiesSet()`方法
 
@@ -2799,7 +2997,7 @@ public class InitMethodBean implements InitializingBean {
 
 ![](images/20200519232135597_12874.png)
 
-##### 8.3.8.2. 对某些 Aware 接口的调用(实例化Bean后执行流程1)
+##### 8.3.8.3. 对 Aware 接口的调用(实例化Bean后执行流程1)
 
 此步骤主要是对于当前实现Aware的接口的方法调用
 
@@ -2826,7 +3024,7 @@ private void invokeAwareMethods(final String beanName, final Object bean) {
 }
 ```
 
-##### 8.3.8.3. @PostConstruct 注解方法的调用(实例化Bean后执行流程2)
+##### 8.3.8.4. @PostConstruct 注解方法的调用(实例化Bean后执行流程2)
 
 此处又是一个 `BeanPostProcessor` 接口的运用。核心代码位置
 
@@ -2908,7 +3106,7 @@ public void invoke(Object target) throws Throwable {
 }
 ```
 
-##### 8.3.8.4. InitializingBean 接口和 init-method 属性的调用(实例化Bean后执行流程3)
+##### 8.3.8.5. InitializingBean 接口和 init-method 属性的调用(实例化Bean后执行流程3)
 
 执行流程往下就是对实现了 `InitializingBean` 接口的类与在xml配置文件中`<bean>`标签中配置了 `init-method` 属性的相应方法的调用
 
@@ -2975,7 +3173,7 @@ protected Object initializeBean(final String beanName, final Object bean, @Nulla
 
 也是一个 `BeanPostProcessor` 接口的运用，在这里会返回 bean 的代理实例，这个就是 AOP 的入口。
 
-##### 8.3.8.5. FactoryBean 接口
+##### 8.3.8.6. FactoryBean 接口
 
 接口方法触发入口位置：`AbstractBeanFactory --> doGetBean()`
 
@@ -3053,6 +3251,9 @@ public void factoryBeanTest() {
 ```
 
 #### 8.3.9. 循环依赖
+
+> <font color=red>**注：此部分的逻辑是在IOC/DI依赖注入之前，为了方便理解，先分析了依赖注入与bean实例化后操作流程再来分析**</font>
+
 ##### 8.3.9.1. 循环依赖流程图
 
 循环依赖参照流程图（引用其他资料。）<font color="red">有时间自己再重新整理</font>
