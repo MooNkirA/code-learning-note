@@ -4510,9 +4510,9 @@ public void testPropertiesByXml() {
 ${moon.name} :: ${moon.password}
 ```
 
-### 2.2. context:property-placeholder 标签实现参数解析源码分析
+### 2.2. PropertyPlaceholderBeanDefinitionParser 标签解析类
 
-#### 2.2.1. PropertyPlaceholderBeanDefinitionParser 标签解析类
+`PropertyPlaceholderBeanDefinitionParser`是`<context:property-placeholder>`标签的解析类
 
 查看spring-context包下的`spring.handlers`文件，找到相应的`context`自定义标签头的相应的解析类注册的处理类`ContextNamespaceHandler`
 
@@ -4522,9 +4522,118 @@ ${moon.name} :: ${moon.password}
 
 ![](images/20210209171135214_12736.png)
 
-### 2.3. PropertySourcesPlaceholderConfigurer 与 PropertyPlaceholderConfigurer 的区别
+在`getBeanClass`方法中，返回相应的属性值占位符的解析类`PropertySourcesPlaceholderConfigurer`或者`PropertyPlaceholderConfigurer`（*旧版本，已过时*）
 
-Spring在5.2版本以后，使用`PropertySourcesPlaceholderConfigurer`类做为参数表达式的解析类，而`PropertyPlaceholderConfigurer`是以前版本的解析类。
+```java
+protected Class<?> getBeanClass(Element element) {
+	// As of Spring 3.1, the default value of system-properties-mode has changed from
+	// 'FALLBACK' to 'ENVIRONMENT'. This latter value indicates that resolution of
+	// placeholders against system properties is a function of the Environment and
+	// its current set of PropertySources.
+	if (SYSTEM_PROPERTIES_MODE_DEFAULT.equals(element.getAttribute(SYSTEM_PROPERTIES_MODE_ATTRIBUTE))) {
+		// 属性值占位符解析器
+		return PropertySourcesPlaceholderConfigurer.class;
+	}
 
-它们的区别在于，`PropertyPlaceholderConfigurer`类只通过读取表达式的方式去解析；而`PropertySourcesPlaceholderConfigurer`类即通过读取表达式的方式解析，还通过`Environment`对象去解析。
+	// The user has explicitly specified a value for system-properties-mode: revert to
+	// PropertyPlaceholderConfigurer to ensure backward compatibility with 3.0 and earlier.
+	// This is deprecated; to be removed along with PropertyPlaceholderConfigurer itself.
+	// 5.2版本以前的属性值占位符解析器（已过时）
+	return org.springframework.beans.factory.config.PropertyPlaceholderConfigurer.class;
+}
+```
 
+### 2.3. PropertySourcesPlaceholderConfigurer 占位符解析器
+
+从源码的继承关系可知，`PropertySourcesPlaceholderConfigurer`类不仅实现了`BeanFactoryPostProcessor`接口、还实现了`EnvironmentAware`、`BeanNameAware`、`BeanFactoryAware`等接口
+
+- 新版本参数占位符赋值处理都是调用此方法执行，此方法会将`Environment`对象与本地配置文件属性与值包装成`PropertySource`对象，然后加入到`MutablePropertySources`类的list集合中，然后处理占位符赋值的逻辑
+
+```java
+public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
+	if (this.propertySources == null) {
+		this.propertySources = new MutablePropertySources();
+		if (this.environment != null) {
+			// 把environment对象封装成PropertySource对象后，加到MutablePropertySources中的list中
+			this.propertySources.addLast(
+				// 把environment对象封装成的PropertySource对象
+				new PropertySource<Environment>(ENVIRONMENT_PROPERTIES_PROPERTY_SOURCE_NAME, this.environment) {
+					@Override
+					@Nullable
+					public String getProperty(String key) {
+						// source就是PropertySource类的泛型T，即environment对象
+						return this.source.getProperty(key);
+					}
+				}
+			);
+		}
+		try {
+			// 加载本地配置文件中的属性值，并包装成properties对象后，最终包装成PropertySource对象
+			PropertySource<?> localPropertySource =
+					new PropertiesPropertySource(LOCAL_PROPERTIES_PROPERTY_SOURCE_NAME, mergeProperties());
+			// 加入到MutablePropertySources中的list中，根据localOverride标识决定排序
+			if (this.localOverride) {
+				this.propertySources.addFirst(localPropertySource);
+			}
+			else {
+				this.propertySources.addLast(localPropertySource);
+			}
+		}
+		catch (IOException ex) {
+			throw new BeanInitializationException("Could not load properties", ex);
+		}
+	}
+	// 处理占位符赋值的主要逻辑
+	processProperties(beanFactory, new PropertySourcesPropertyResolver(this.propertySources));
+	this.appliedPropertySources = this.propertySources;
+}
+```
+
+- 
+
+
+
+
+
+
+
+
+### 2.4. PropertySourcesPlaceholderConfigurer 与 PropertyPlaceholderConfigurer 的区别
+
+Spring在5.2版本以后，使用`PropertySourcesPlaceholderConfigurer`类做为属性值占位符的解析器，而`PropertyPlaceholderConfigurer`是以前版本的占位符解析器。
+
+```java
+public class PropertySourcesPlaceholderConfigurer extends PlaceholderConfigurerSupport implements EnvironmentAware {
+    ....
+}
+
+@Deprecated
+public class PropertyPlaceholderConfigurer extends PlaceholderConfigurerSupport {
+    ....
+}
+```
+
+它们的区别在于，`PropertyPlaceholderConfigurer`类解析属性值占位符时获取值的渠道，只通过读取配置文件（如：properties文件）；
+
+从源码可以看到，`PropertySourcesPlaceholderConfigurer`类实现`EnvironmentAware`接口，该类解析属性值占位符时获取值的渠道，不只通过读取配置文件（如：properties文件），还通过`Environment`对象去获取。
+
+因为`PropertySourcesPlaceholderConfigurer`类重写了`postProcessBeanFactory`方法，而`PropertyPlaceholderConfigurer`类没有重写该方法，是直接调用抽象父类`PlaceholderConfigurerSupport`的`postProcessBeanFactory`方法
+
+```java
+/* 5.2以前的版本的 PropertyPlaceholderConfigurer 占位符赋值的处理是调用抽象父类 PropertyResourceConfigurer 的方法 */
+@Override
+public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
+	try {
+		Properties mergedProps = mergeProperties();
+
+		// Convert the merged properties, if necessary.
+		convertProperties(mergedProps);
+
+		// Let the subclass process the properties.
+		processProperties(beanFactory, mergedProps);
+	}
+	catch (IOException ex) {
+		throw new BeanInitializationException("Could not load properties", ex);
+	}
+}
+```
