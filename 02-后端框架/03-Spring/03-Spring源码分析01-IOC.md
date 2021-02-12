@@ -4354,8 +4354,6 @@ BeanPostProcessor 接口类型实例是针对某种特定功能的埋点，在�
 
 ## 2. Spring 配置文件的解析
 
-
-
 ### 2.1. 基础使用示例
 
 #### 2.1.1. 准备测试类、xml配置、properties文件
@@ -4492,7 +4490,34 @@ public class PropertyBeanDefinitionRegistryPostProcessor implements BeanDefiniti
 }
 ```
 
-#### 2.1.4. 测试
+#### 2.1.4. 通过`ResourceLoaderAware`接口实现读取properties配置文件
+
+- 实现`ResourceLoaderAware`接口，通过`setResourceLoader`方法获取到资源加载对象`ResourceLoader`，通过该对象读取properties文件，手动设置到spring的占位符解析器`PropertySourcesPlaceholderConfigurer`
+
+```java
+@Component
+public class CustomResourceLoaderAware implements ResourceLoaderAware {
+
+    private ResourceLoader resourceLoader;
+
+    @Override
+    public void setResourceLoader(ResourceLoader resourceLoader) {
+        this.resourceLoader = resourceLoader;
+    }
+
+    /* 通过@Bean注解，创建占位符解析器 */
+    @Bean
+    public PropertySourcesPlaceholderConfigurer getPropertySourcesPlaceholderConfigurer() {
+        PropertySourcesPlaceholderConfigurer propertySourcesPlaceholderConfigurer = new PropertySourcesPlaceholderConfigurer();
+        // 通过ResourceLoader对象读取配置文件，并设置到PropertySourcesPlaceholderConfigurer占位符解析器的location属性
+        propertySourcesPlaceholderConfigurer.setLocation(resourceLoader.getResource("application.properties"));
+        return propertySourcesPlaceholderConfigurer;
+    }
+
+}
+```
+
+#### 2.1.5. 测试
 
 ```java
 private ApplicationContext context = new ClassPathXmlApplicationContext("spring.xml");
@@ -4589,14 +4614,150 @@ public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) 
 }
 ```
 
-- 
+- 其中`mergeProperties`方法是读取本地配置文件（如`.properties`）的属性与值
 
+![](images/20210211091110659_29101.png)
 
+![](images/20210211091937037_12606.png)
 
+- `doProcessProperties`方法处理将属性的占位符`${xxx}`替换成真正的值
 
+```java
+protected void processProperties(ConfigurableListableBeanFactory beanFactoryToProcess,
+		final ConfigurablePropertyResolver propertyResolver) throws BeansException {
 
+	// 设置占位符的前缀后缀
+	propertyResolver.setPlaceholderPrefix(this.placeholderPrefix);
+	propertyResolver.setPlaceholderSuffix(this.placeholderSuffix);
+	// 设分割符“:”
+	propertyResolver.setValueSeparator(this.valueSeparator);
 
+	// @Value注解的依赖注入会调到此匿名对象，重要程度【4】
+	StringValueResolver valueResolver = strVal -> {
+		String resolved = (this.ignoreUnresolvablePlaceholders ?
+				propertyResolver.resolvePlaceholders(strVal) :
+				propertyResolver.resolveRequiredPlaceholders(strVal));
+		if (this.trimValues) {
+			resolved = resolved.trim();
+		}
+		return (resolved.equals(this.nullValue) ? null : resolved);
+	};
+	// 核心流程。把占位符${xxx}替换成真正的值
+	doProcessProperties(beanFactoryToProcess, valueResolver);
+}
+```
 
+```java
+protected void doProcessProperties(ConfigurableListableBeanFactory beanFactoryToProcess,
+		StringValueResolver valueResolver) {
+
+	// 创建BeanDefinition的修改者
+	BeanDefinitionVisitor visitor = new BeanDefinitionVisitor(valueResolver);
+
+	// 获取所有的beanNames
+	String[] beanNames = beanFactoryToProcess.getBeanDefinitionNames();
+	for (String curName : beanNames) {
+		// Check that we're not parsing our own bean definition,
+		// to avoid failing on unresolvable placeholders in properties file locations.
+		if (!(curName.equals(this.beanName) && beanFactoryToProcess.equals(this.beanFactory))) {
+			// 获取BeanDefinition对象
+			BeanDefinition bd = beanFactoryToProcess.getBeanDefinition(curName);
+			try {
+				// 修改BeanDefinition中的MutablePropertyValues中的每一个属性值，把属性值有${xxx.xxx}修改成真正的参数值
+				visitor.visitBeanDefinition(bd);
+			}
+			catch (Exception ex) {
+				throw new BeanDefinitionStoreException(bd.getResourceDescription(), curName, ex.getMessage(), ex);
+			}
+		}
+	}
+
+	// New in Spring 2.5: resolve placeholders in alias target names and aliases as well.
+	beanFactoryToProcess.resolveAliases(valueResolver);
+	// 把内嵌的Value解析器设置到BeanFactory中，为@Value的依赖注入做准备
+	// New in Spring 3.0: resolve placeholders in embedded values such as annotation attributes.
+	beanFactoryToProcess.addEmbeddedValueResolver(valueResolver);
+}
+```
+
+- 其中`visitor.visitBeanDefinition(bd);`方法是处理占位符替换成真正的属性值的核心方法
+
+![](images/20210211103307503_6767.png)
+
+![](images/20210211103330816_2459.png)
+
+调用`resolveStringValue`方法解析
+
+![](images/20210211103611828_5260.png)
+
+![](images/20210211103634096_8266.png)
+
+> 注：以上的`this.valueResolver.resolveStringValue(strVal);`方法调用，调用`PropertySourcesPlaceholderConfigurer#processProperties`方法中的lambda表达式匿名内部类
+>
+> ```java
+> String resolved = (this.ignoreUnresolvablePlaceholders ?
+>         propertyResolver.resolvePlaceholders(strVal) :
+>         propertyResolver.resolveRequiredPlaceholders(strVal));
+> ```
+
+- `AbstractPropertyResolver#resolveRequiredPlaceholders`方法
+
+```java
+@Override
+public String resolveRequiredPlaceholders(String text) throws IllegalArgumentException {
+	if (this.strictHelper == null) {
+		this.strictHelper = createPlaceholderHelper(false);
+	}
+	return doResolvePlaceholders(text, this.strictHelper);
+}
+```
+
+```java
+private String doResolvePlaceholders(String text, PropertyPlaceholderHelper helper) {
+	return helper.replacePlaceholders(text, this::getPropertyAsRawString);
+}
+```
+
+```java
+@Override
+@Nullable
+protected String getPropertyAsRawString(String key) {
+	return getProperty(key, String.class, false);
+}
+
+@Nullable
+protected <T> T getProperty(String key, Class<T> targetValueType, boolean resolveNestedPlaceholders) {
+	// 其实就是从MutablePropertySources中的list中获取每一个PropertySource对象然后调用getProperty方法
+	if (this.propertySources != null) {
+		for (PropertySource<?> propertySource : this.propertySources) {
+			if (logger.isTraceEnabled()) {
+				logger.trace("Searching for key '" + key + "' in PropertySource '" +
+						propertySource.getName() + "'");
+			}
+			// 调用getProperty方法，属性值的来源分别是Environment对象和本地配置文件
+			Object value = propertySource.getProperty(key);
+			if (value != null) {
+				if (resolveNestedPlaceholders && value instanceof String) {
+					value = resolveNestedPlaceholders((String) value);
+				}
+				logKeyFound(key, propertySource, value);
+				// 参数转换
+				return convertValueIfNecessary(value, targetValueType);
+			}
+		}
+	}
+	if (logger.isTraceEnabled()) {
+		logger.trace("Could not find key '" + key + "' in any property source");
+	}
+	return null;
+}
+```
+
+- 在`doResolvePlaceholders`方法中，调用`helper.replacePlaceholders(text, this::getPropertyAsRawString);`，最终会
+
+![](images/20210211105104468_5517.png)
+
+![](images/20210211113856229_15045.png)
 
 ### 2.4. PropertySourcesPlaceholderConfigurer 与 PropertyPlaceholderConfigurer 的区别
 
@@ -4637,3 +4798,88 @@ public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) 
 	}
 }
 ```
+
+### 2.5. 占位符设置BeanClass属性示例
+
+通过源码分析，其他的属性都可以设置为占位符，在下图的位置可以进行占位符的替换操作。如`BeanClass`属性，与处理类属性值一样，同样会调用`resolveStringValue`方法处理占位符
+
+![](images/20210211165756850_32392.png)
+
+![](images/20210211170315558_4337.png)
+
+利用Spring这个功能，可以通过配置文件与占位符来创建Bean实例
+
+#### 2.5.1. 配置文件
+
+修改properties文件，设置占位符与待创建实例的类全限定名
+
+```properties
+# 定义beanClass的占位符
+moon.beanClass=${moon.placeHolderBean1},${moon.placeHolderBean2},${moon.placeHolderBean3}
+# 定义占位符相应的beanClass的值
+moon.placeHolderBean1=com.moon.spring.bean.Bird
+moon.placeHolderBean2=com.moon.spring.bean.Cat
+moon.placeHolderBean3=com.moon.spring.bean.Fish
+```
+
+#### 2.5.2. 通过BeanDefinitionRegistry注册中心设置BeanClass占位符
+
+创建`BeanDefinitionRegistryPostProcessor`接口的实现类，在`postProcessBeanDefinitionRegistry`方法注册`beanClass`属性为占位符的 BeanDefinition。
+
+```java
+@Component
+public class BeanClassDefinitionRegistryPostProcessor implements BeanDefinitionRegistryPostProcessor {
+    @Override
+    public void postProcessBeanDefinitionRegistry(BeanDefinitionRegistry registry) throws BeansException {
+        try {
+            // 使用工具类读取properties文件
+            Properties properties = PropertiesLoaderUtils.loadAllProperties("application.properties", ClassUtils.getDefaultClassLoader());
+            // 读取所有占位符
+            String beanClassProperty = properties.getProperty("moon.beanClass");
+            for (String beanClass : beanClassProperty.split(",")) {
+                // 创建BeanDefinition对象
+                BeanDefinition beanDefinition = new GenericBeanDefinition();
+                // 设置占位符的beanClass
+                beanDefinition.setBeanClassName(beanClass);
+                // 注册BeanDefinition
+                String beanName = BeanDefinitionReaderUtils.generateBeanName(beanDefinition, registry);
+                registry.registerBeanDefinition(beanName, beanDefinition);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
+        // do nothing
+    }
+}
+```
+
+#### 2.5.3. 测试
+
+注：此测试需要在xml中开启配置文件读取
+
+```xml
+<context:property-placeholder location="classpath:application.properties"/>
+```
+
+```java
+private final ApplicationContext context = new ClassPathXmlApplicationContext("spring.xml");
+
+@Test
+public void testBeanClassByPlaceHolder() {
+    Cat cat = context.getBean(Cat.class);
+    System.out.println(cat);
+    Bird bird = context.getBean(Bird.class);
+    System.out.println(bird);
+    Fish fish = context.getBean(Fish.class);
+    System.out.println(fish);
+}
+```
+
+### 2.6. @Value 属性值注入
+
+在`AbstractAutowireCapableBeanFactory#doCreateBean`的方法，执行到`applyMergedBeanDefinitionPostProcessors(mbd, beanType, beanName);`时，会对`@Value`注解的收集，
+
