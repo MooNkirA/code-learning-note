@@ -3136,7 +3136,35 @@ public abstract static class InjectedElement {
 
 <font color=red>**上述过程是对`@Autowired`、`@Resource`以及`@Value`注解修饰的`Field`和`Method`等完成依赖注入**</font>
 
-#### 3.7.4. xml 配置的依赖注入
+#### 3.7.4. @Value 属性值注入
+
+其实`@Value`的属性值注入，与`@Autowired`注解注入流程是一样。在`AbstractAutowireCapableBeanFactory#doCreateBean`的方法，执行到`applyMergedBeanDefinitionPostProcessors(mbd, beanType, beanName);`时，会对`@Value`注解的收集，然后在`populateBean`处理对属性的注入，主要`AutowiredAnnotationBeanPostProcessor`这个BeanPostProcessor实现
+
+与`@Autowired`主要的区别就是，`@Value`注入的是非引用类型，所以不会触发getBean的操作
+
+![](images/20210212112142373_1615.png)
+
+![](images/20210212112807863_5793.png)
+
+![](images/20210212112851134_29722.png)
+
+![](images/20210212112908639_17420.png)
+
+![](images/20210212114047851_8211.png)
+
+进入`resolveEmbeddedValue`方法中，会循环一个`List<StringValueResolver> embeddedValueResolvers`的容器，里面是存放着xml配置或者`@Bean`注册的配置文件占位符解析器。
+
+![](images/20210212114815048_22942.png)
+
+此占位符解析器的注册流程详见<a href="#/02-后端框架/03-Spring/03-Spring源码分析01-IOC?id=_2-spring-配置文件的解析">《Spring 配置文件的解析》章节</a>，核心注册的代码位置如下：
+
+![](images/20210212121452695_28810.png)
+
+![](images/20210212121545198_7115.png)
+
+![](images/20210212121621247_23021.png)
+
+#### 3.7.5. xml 配置的依赖注入
 
 比如在spring的xml配置文件的 `<bean>` 标签中配置以下属性
 
@@ -3570,88 +3598,11 @@ protected Object initializeBean(final String beanName, final Object bean, @Nulla
 
 <font color=red>**这也是一个 `BeanPostProcessor` 接口的运用，在这里会返回 bean 的代理实例，这个就是 AOP 的入口。**</font>
 
-### 3.9. FactoryBean 接口
-
-接口方法触发入口位置：`AbstractBeanFactory --> doGetBean()`
-
-```java
-// Create bean instance.
-if (mbd.isSingleton()) {
-	/* 此逻辑是重点，因为大部分情况都是单例的 */
-	sharedInstance = getSingleton(beanName, () -> {
-		try {
-			// 创建bean实例核心逻辑
-			return createBean(beanName, mbd, args);
-		}
-		catch (BeansException ex) {
-			// Explicitly remove instance from singleton cache: It might have been put there
-			// eagerly by the creation process, to allow for circular reference resolution.
-			// Also remove any beans that received a temporary reference to the bean.
-			destroySingleton(beanName);
-			throw ex;
-		}
-	});
-	// 此方法是FactoryBean接口的调用入口
-	bean = getObjectForBeanInstance(sharedInstance, name, beanName, mbd);
-}
-```
-
-该接口的作用是：在实例化和 IOC/DI 做完后，就会调用 FactoryBean 类型的接口，重写`getObject()`，方法，可以返回不同的bean类型，此bean实例会被Spring容器管理
-
-- 如果要获取到 FactoryBean 接口实现类本身，就必须加上`&`符号，比如：`beanFactory.getBean("&beanName")`。
-- `BeanFactory.getBean("beanName")` 只能获取到 `getObject()` 方法返回的实例
-
-示例如下：
-
-```java
-package com.moon.spring.factorybean;
-
-import org.springframework.beans.factory.FactoryBean;
-import org.springframework.stereotype.Component;
-
-/**
- * Spring 框架 FactoryBean 接口使用示例
- */
-@Component
-public class FactoryBeanDemo implements FactoryBean {
-
-    @Override
-    public Object getObject() throws Exception {
-        /*
-         *  此处可以进行一些其他的逻辑处理，然后返回一个新的bean
-         *   注：此处返回的新的实例与原来实现了FactoryBean接口的此类的实例互不干扰
-         */
-        return new FactoryBeanOther();
-    }
-
-    @Override
-    public Class<?> getObjectType() {
-        return FactoryBeanOther.class;
-    }
-}
-
-
-/* 测试 */
-@Autowired
-private ApplicationContext applicationContext;
-
-/* FactoryBean接口实现测试 */
-@Test
-public void factoryBeanTest() {
-    // 实现了FactoryBean接口的类，通过bean的id只能获取该类实现了getObject()方法返回的对象实例
-    FactoryBeanOther other = (FactoryBeanOther) applicationContext.getBean("factoryBeanDemo");
-    System.out.println(other); // com.moon.spring.factorybean.FactoryBeanOther@4cc8eb05
-    // 如果要获取实现了FactoryBean接口的类的实例，只能通过【"&" + beanName】来获取实例
-    FactoryBeanDemo factoryBeanDemo = (FactoryBeanDemo) applicationContext.getBean("&factoryBeanDemo");
-    System.out.println(factoryBeanDemo); // com.moon.spring.factorybean.FactoryBeanDemo@51f116b8
-}
-```
-
-### 3.10. 循环依赖
+### 3.9. 循环依赖
 
 > <font color=red>**注：此部分的逻辑是在IOC/DI依赖注入之前，为了方便理解，先分析了依赖注入与bean实例化后操作流程再来分析**</font>
 
-#### 3.10.1. 循环依赖流程图
+#### 3.9.1. 循环依赖流程图
 
 循环依赖参照流程图（引用其他资料。）<font color="red">有时间自己再重新整理</font>
 
@@ -3659,13 +3610,13 @@ public void factoryBeanTest() {
 
 > 图片出处：https://www.processon.com/view/link/5df9ce52e4b0c4255ea1a84f
 
-#### 3.10.2. 循环依赖需要注意的问题
+#### 3.9.2. 循环依赖需要注意的问题
 
 - 循环依赖只会出现在单例实例无参构造函数实例化情况下
 - 有参构造函数的加 `@Autowired` 的方式循环依赖会直接报错
 - 多例的循环依赖也是直接报错
 
-#### 3.10.3. 循环依赖步骤与源码分析
+#### 3.9.3. 循环依赖步骤与源码分析
 
 > *注：以最简单的两个单例A与B相互引用为案例说明*
 
@@ -3744,7 +3695,7 @@ protected void addSingletonFactory(String beanName, ObjectFactory<?> singletonFa
 - 依赖注入后，B类实例化已经完成，B类的实例化是由A类实例化中B属性的依赖注入触发的 `getBean()` 操作进行的，现在B类已经实例化，所以A类中B属性就可以完成依赖注入了，此时A类B属性已经有值了
 - B类A属性指向的就是A类实例堆空间，所以这时候B类A属性也会有值了。
 
-#### 3.10.4. earlySingletonObjects （二级缓存）的作用总结
+#### 3.9.4. earlySingletonObjects （二级缓存）的作用总结
 
 `earlySingletonObjects`是`DefaultSingletonBeanRegistry`类中的一个Map集合，作用是用于存放提前暴露的bean实例的映射。
 
@@ -3756,7 +3707,7 @@ protected void addSingletonFactory(String beanName, ObjectFactory<?> singletonFa
 
 > *注：其实`singletonFactories`（三级缓存）在多次的循环依赖情况下，只会触发一次就会被删除，将实例放到`earlySingletonObjects`（二级缓存）中*
 
-#### 3.10.5. 有参构造函数的`@Autowired`循环依赖
+#### 3.9.5. 有参构造函数的`@Autowired`循环依赖
 
 1. 创建A类的实例是在方法 `createBeanInstance(beanName, mbd, args)` 中通过无参或标识`@Autowired`注解的有参构造函数实例化进行的
 2. 如果A类的有参构造函数的参数是引用类型B类，创建当前实例的时候，就是触发B类的`getBean`实例化操作。
@@ -3774,7 +3725,7 @@ protected void addSingletonFactory(String beanName, ObjectFactory<?> singletonFa
 
 **如果是通过属性加`@Autowired`方式进行循环依赖，在执行`populateBean`方法进行属性依赖注入之前就会把 bean 放入三级缓存中，从而在`populateBean`方法进行依赖注入操作时触发 `getBean` 操作时就可以直接从三级缓存中获取到提前暴露的实例引入**
 
-#### 3.10.6. 多例模式的循环依赖
+#### 3.9.6. 多例模式的循环依赖
 
 多例模式也是不支持循环依赖，原理同上有参构造函数的循环依赖，多例每次创建的三级缓存都不一样，所以第2次触发`getBean`操作时找不到对应的三级缓存，校验的时候也会报错误。
 
@@ -3792,9 +3743,9 @@ protected void addSingletonFactory(String beanName, ObjectFactory<?> singletonFa
 
 ![](images/20210206232329791_17264.png)
 
-### 3.11. Bean 的多例及作用域
+### 3.10. Bean 的多例及作用域
 
-#### 3.11.1. 多例Bean测试
+#### 3.10.1. 多例Bean测试
 
 通过`@Scope`注解可以设置bean为多例
 
@@ -3845,7 +3796,7 @@ public void prototypeTest() {
 - Scope 是 `Prototype` 时，在spring容器启动中，是不会创建实例，需要主动调用 `getBean()` 时才会创建实例
 - Request 作用域时，是把实例存储到 request 对象中；Session 作用域时，是把实例存储到 session 对象中。注：request 和 session 作用域只会在 web 环境才会存在
 
-#### 3.11.2. Request与Session作用域(!!后面需要补充tomcat部署时的截图。目前因为没有配置好web.xml文件与springMVC)
+#### 3.10.2. Request与Session作用域(!!后面需要补充tomcat部署时的截图。目前因为没有配置好web.xml文件与springMVC)
 
 定义两个作用域测试bean。*注：需要引入spring-web的依赖*
 
@@ -3877,7 +3828,7 @@ public void requestSessoinScopeTest() {
 ![](images/20200603234906381_7555.png)
 
 
-#### 3.11.3. 自定义作用域
+#### 3.10.3. 自定义作用域
 
 阅读`AbstractBeanFactory`类的源码发现，有一个public的方法`registerScope`，该方法可以往spring构架中的scopes容器中注册（添加自定义作用域）。所以只要通过实现`BeanFactoryPostProcessor`接口，拿到spring的BeanFactory对象，即可调用该方法往作用域scopes容器中注册自定义作用域
 
@@ -4020,7 +3971,7 @@ public class CustomScopeBean {
 
 ![](images/20200607102144946_18607.png)
 
-#### 3.11.4. Bean作用域总结
+#### 3.10.4. Bean作用域总结
 
 Spring框架Bean的作用域的本质是对Bean实例的管理。
 
@@ -4030,9 +3981,9 @@ Spring框架Bean的作用域的本质是对Bean实例的管理。
 4. Request与Session模式Bean的实例是存储在web容器相应的request与session对象中
 5. 自定义作用域其实是自已定义Bean实例的管理方式，存储到缓存或者直接创建由定义者决定
 
-### 3.12. Bean 的销毁
+### 3.11. Bean 的销毁
 
-#### 3.12.1. DisposableBeanAdapter（销毁处理器）的注册
+#### 3.11.1. DisposableBeanAdapter（销毁处理器）的注册
 
 在依赖注入完成并调用了相关的Aware接口、生命周期方法后，程序往下执行到`registerDisposableBeanIfNecessary`方法。此方法会在 bean 创建完成后就会对这个 bean 注册一个销毁的 `DisposableBeanAdapter` 对象， `disposableBeans`集合负责对需要销毁的 bean 进行放置。
 
@@ -4150,7 +4101,7 @@ private List<DestructionAwareBeanPostProcessor> filterPostProcessors(List<BeanPo
 }
 ```
 
-#### 3.12.2. Bean 销毁的时的调用处理
+#### 3.11.2. Bean 销毁的时的调用处理
 
 测试代码：
 
@@ -4208,6 +4159,102 @@ public class ContextLoaderListener extends ContextLoader implements ServletConte
 ![](images/20210209100935985_22524.png)
 
 ![](images/20210209101119229_6741.png)
+
+### 3.12. FactoryBean 接口
+
+#### 3.12.1. 接口的作用
+
+`FactirtBean`接口的作用是：在实例化和 IOC/DI 做完后，就会调用 `FactoryBean` 类型的接口重写的`getObject()`方法，可以返回不同的bean类型，此bean实例会被Spring容器管理
+
+- 如果要获取到 `FactoryBean` 接口实现类实例本身，就必须在beanName前加上`&`符号，比如：`beanFactory.getBean("&beanName")`。
+- `BeanFactory.getBean("beanName")` 只能获取到 `getObject()` 方法返回的实例
+
+> 注：`FactoryBean`类型的类本身与`getObject()`方法返回的实例都会被Spring容器管理
+
+#### 3.12.2. 基础使用示例
+
+示例如下：
+
+```java
+/**
+ * Spring 框架 FactoryBean 接口使用示例
+ */
+// FactoryBean是泛型接口，如果不指定泛型，但getObject()方法返回值为Object类型
+@Component
+public class FactoryBeanDemo implements FactoryBean<Cat> {
+    /*
+     *  此方法可以进行一些其他的逻辑处理，然后返回一个新的bean
+     *   注：此处返回的新的实例与原来实现了FactoryBean接口当前类的实例互不干扰，都会被spring管理
+     */
+    @Override
+    public Cat getObject() throws Exception {
+        System.out.println("FactoryBeanDemo.getObject()方法执行了....");
+        Cat cat = new Cat();
+        cat.setName("I am born form FactoryBeanDemo");
+        cat.setColor("purple");
+        return cat;
+    }
+
+    @Override
+    public Class<?> getObjectType() {
+        return Cat.class;
+    }
+}
+```
+
+- 测试
+
+```java
+private final ApplicationContext context = new AnnotationConfigApplicationContext("com.moon.spring");
+
+@Test
+public void testFactoryBeanBasic() {
+    // 实现了FactoryBean接口的类，通过bean的id只能获取该类实现了getObject()方法返回的对象实例
+    Cat cat = (Cat) context.getBean("factoryBeanDemo");
+    System.out.println(cat); // Cat(name=I am born form FactoryBeanDemo, color=purple)
+
+    // 如果要获取实现了FactoryBean接口的类的实例，只能通过【"&" + beanName】来获取实例
+    FactoryBeanDemo factoryBean = context.getBean("&factoryBeanDemo", FactoryBeanDemo.class);
+    System.out.println(factoryBean); // com.moon.spring.factorybean.FactoryBeanDemo@5c909414
+}
+```
+
+#### 3.12.3. 源码分析
+
+`FactoryBean` 类型接口触发的位置：`AbstractBeanFactory --> doGetBean()`
+
+```java
+// Create bean instance.
+if (mbd.isSingleton()) {
+	/* 此逻辑是重点，因为大部分情况都是单例的 */
+	sharedInstance = getSingleton(beanName, () -> {
+		try {
+			// 创建bean实例核心逻辑
+			return createBean(beanName, mbd, args);
+		}
+		catch (BeansException ex) {
+			// Explicitly remove instance from singleton cache: It might have been put there
+			// eagerly by the creation process, to allow for circular reference resolution.
+			// Also remove any beans that received a temporary reference to the bean.
+			destroySingleton(beanName);
+			throw ex;
+		}
+	});
+	// 此方法是FactoryBean接口的调用入口
+	bean = getObjectForBeanInstance(sharedInstance, name, beanName, mbd);
+}
+```
+
+
+
+
+
+
+
+
+
+
+
 
 ## 4. 纯注解扫描的过程
 
@@ -4329,7 +4376,7 @@ BeanPostProcessor 接口类型实例是针对某种特定功能的埋点，在�
 
 ![](images/20210208141325680_8337.png)
 
-### 1.3. 解决循环依赖攏暴露bean实例的埋点
+### 1.3. 解决循环依赖提前暴露bean实例的埋点
 
 - 作用：用于从三级缓存中暴露bean的实例，如果当前bean不需要增加装饰或者生成代理，则直接返回，此设计方便日后增强
 - 此功能实现的`BeanPostProcessor`接口类型是：`SmartInstantiationAwareBeanPostProcessor`
@@ -4360,8 +4407,8 @@ BeanPostProcessor 接口类型实例是针对某种特定功能的埋点，在�
 
 ```java
 @Data
-public class PropertiesXmlBean {
-    private String name;
+public class PropertyBean {
+    private String username;
     private String password;
 }
 ```
@@ -4372,7 +4419,7 @@ public class PropertiesXmlBean {
 <!-- 开启注解扫描 -->
 <context:component-scan base-package="com.moon.spring"/>
 <!-- 配置读取配置文件 -->
-<bean class="com.moon.spring.bean.PropertiesXmlBean" id="propertiesXmlBean">
+<bean class="com.moon.spring.bean.PropertyBean" id="propertyBean">
     <!--
         通过property标签可以给属性注入相应的值，
         但此时将value部分设置为占位符${}，实现读取properties文件指定的key，有两种解决方案：
@@ -4442,12 +4489,26 @@ moon.password=123456
 </bean>
 ```
 
+- 测试
+
+```java
+private final ApplicationContext context = new ClassPathXmlApplicationContext("spring.xml");
+/* 测试xml配置中的property占位符赋值 */
+@Test
+public void testPropertiesByXml() {
+    PropertyBean bean = context.getBean("propertyBean", PropertyBean.class);
+    System.out.println(bean.getUsername() + " :: " + bean.getPassword());
+}
+```
+
 #### 2.1.3. 通过BeanDefinitionRegistryPostProcessorr接口修改BeanDefinition
 
-- 创建配置类，使用`@PropertySource`注解引入配置文件。*注：此注解只是引入，无法实现将注入xml配置文件中的el表达式相应的值*
+- 使用上面示例原始的xml配置文件（*不需要配置`context:property-placeholder`标签*）与properties文件
+- 创建配置类，使用`@PropertySource`注解引入配置文件。
 
 ```java
 @Configuration
+// @PropertySource注解只是引入配置文件，无法实现将注入属性值替换相应占位符的值
 @PropertySource("classpath:application.properties")
 public class SpringConfiguration {
 }
@@ -4490,6 +4551,24 @@ public class PropertyBeanDefinitionRegistryPostProcessor implements BeanDefiniti
 }
 ```
 
+- 测试
+
+```java
+private final ApplicationContext context = new ClassPathXmlApplicationContext("spring.xml");
+/* 测试xml配置中的property占位符赋值 */
+@Test
+public void testPropertiesByXml() {
+    PropertyBean bean = context.getBean("propertyBean", PropertyBean.class);
+    System.out.println(bean.getUsername() + " :: " + bean.getPassword());
+}
+```
+
+> <font color=red>*注：`@PropertySource`注解只是引入配置文件，无法实现将注入属性值替换相应占位符的值，但会将properties或xml配置文件的值会注册到`Environment`对象中*</font>
+>
+> 此方式只是测试一下`Environment`对象，不是正确的一种配置解析方式
+
+![](images/20210212170144330_26134.png)
+
 #### 2.1.4. 通过`ResourceLoaderAware`接口实现读取properties配置文件
 
 - 实现`ResourceLoaderAware`接口，通过`setResourceLoader`方法获取到资源加载对象`ResourceLoader`，通过该对象读取properties文件，手动设置到spring的占位符解析器`PropertySourcesPlaceholderConfigurer`
@@ -4517,19 +4596,9 @@ public class CustomResourceLoaderAware implements ResourceLoaderAware {
 }
 ```
 
-#### 2.1.5. 测试
+#### 2.1.5. 注意事项
 
-```java
-private ApplicationContext context = new ClassPathXmlApplicationContext("spring.xml");
-
-@Test
-public void testPropertiesByXml() {
-    PropertiesXmlBean bean = context.getBean("propertiesXmlBean", PropertiesXmlBean.class);
-     System.out.println(bean.getName() + " :: " + bean.getPassword());
-}
-```
-
-<font color=red>**注：如果都不配置以上的任何一种参数解析方案，xml则直接将el表达式当成字符串赋值给相应的属性**</font>
+<font color=red>**注：如果都不配置以上的任何一种参数解析方案，xml则直接将占位符（el表达式）当成字符串赋值给相应的属性**</font>，结果如下：
 
 ```
 ${moon.name} :: ${moon.password}
@@ -4680,6 +4749,8 @@ protected void doProcessProperties(ConfigurableListableBeanFactory beanFactoryTo
 }
 ```
 
+> 注：方法的最后一行代码`beanFactoryToProcess.addEmbeddedValueResolver(valueResolver);`，会将刚刚外面的调用方法的传入的lambda表达式创建的匿名内部类保存到`embeddedValueResolvers`的容器中
+
 - 其中`visitor.visitBeanDefinition(bd);`方法是处理占位符替换成真正的属性值的核心方法
 
 ![](images/20210211103307503_6767.png)
@@ -4822,7 +4893,27 @@ moon.placeHolderBean2=com.moon.spring.bean.Cat
 moon.placeHolderBean3=com.moon.spring.bean.Fish
 ```
 
-#### 2.5.2. 通过BeanDefinitionRegistry注册中心设置BeanClass占位符
+#### 2.5.2. 创建配置类
+
+在配置类中设置包扫描与手动创建`PropertySourcesPlaceholderConfigurer`占位符解析器
+
+```java
+@Configuration
+@ComponentScan("com.moon.spring")
+public class SpringConfiguration {
+    /* 通过@Bean注解，创建占位符解析器 */
+    @Bean
+    public PropertySourcesPlaceholderConfigurer getPropertySourcesPlaceholderConfigurer() {
+        PropertySourcesPlaceholderConfigurer propertySourcesPlaceholderConfigurer = new PropertySourcesPlaceholderConfigurer();
+        // 读取本地配置文件，设置占位符解析器location属性
+        ClassPathResource resource = new ClassPathResource("application.properties");
+        propertySourcesPlaceholderConfigurer.setLocation(resource);
+        return propertySourcesPlaceholderConfigurer;
+    }
+}
+```
+
+#### 2.5.3. 通过BeanDefinitionRegistry注册中心设置BeanClass占位符
 
 创建`BeanDefinitionRegistryPostProcessor`接口的实现类，在`postProcessBeanDefinitionRegistry`方法注册`beanClass`属性为占位符的 BeanDefinition。
 
@@ -4857,16 +4948,10 @@ public class BeanClassDefinitionRegistryPostProcessor implements BeanDefinitionR
 }
 ```
 
-#### 2.5.3. 测试
-
-注：此测试需要在xml中开启配置文件读取
-
-```xml
-<context:property-placeholder location="classpath:application.properties"/>
-```
+#### 2.5.4. 测试
 
 ```java
-private final ApplicationContext context = new ClassPathXmlApplicationContext("spring.xml");
+private final ApplicationContext context = new AnnotationConfigApplicationContext(SpringConfiguration.class);
 
 @Test
 public void testBeanClassByPlaceHolder() {
@@ -4879,7 +4964,20 @@ public void testBeanClassByPlaceHolder() {
 }
 ```
 
-### 2.6. @Value 属性值注入
+### 2.6. Spring 配置文件解析总结
 
-在`AbstractAutowireCapableBeanFactory#doCreateBean`的方法，执行到`applyMergedBeanDefinitionPostProcessors(mbd, beanType, beanName);`时，会对`@Value`注解的收集，
+Spring 在属性值（或者一些其他BeanDefinition属性，如`BeanClass`）是可以使用占位符（如`${xx.xx}`），此时需要配合Spring提供的`PropertySourcesPlaceholderConfigurer`类来对占位符解析成相应`Environment`对象或者本地配置文件中的值。如果不配置此类，则会将占位符字符串直接注入属性中。
 
+通过xml配置或者`@Bean`注解将`PropertySourcesPlaceholderConfigurer`类注册到spring容器中，会占位符解析方法存入到`AbstractBeanFactory`类的`List<StringValueResolver> embeddedValueResolvers`容器中，在实例创建的过程依赖注入`populateBean`的方法，会使用占位符解析方法进行解析，从而获取到占位符相应的值
+
+## 3. `@Lazy`注解标识构造函数不会出现循环依赖的问题
+
+在构造函数中循环依赖会报错的根本原因是：在相互依赖的构造函数中，会多次触发getBean操作，然而在调用有参构造函数时，不会提前将实例放到三级缓存中，然后在第二次触发getBean操作时，缓存不存在实例，所以就会创建实例。此时`singletonsCurrentlyInCreation`容器已存在当前创建的beanName，就会报出异常
+
+![](images/20210212135442985_28675.png)
+
+从源码分析中可知，如果将`@Lazy`标识在有循环依赖的构造函数上，不直接调用参数为引入类型的beanBean操作，而返回一个代理对象，因为多次触发getBean操作，所以不会出现循环依赖报错的异常
+
+![](images/20210212155257473_19386.png)
+
+![](images/20210212155543231_28764.png)

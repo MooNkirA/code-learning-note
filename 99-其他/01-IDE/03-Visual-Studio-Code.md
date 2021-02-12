@@ -1,16 +1,20 @@
 # Visual Studio Code
 
-## 1. 常用插件
+## 1. 官方网站
 
-### 1.1. Chinese (Simplified) Language Pack for VS Code
+官网：https://code.visualstudio.com/
+
+## 2. 常用插件
+
+### 2.1. Chinese (Simplified) Language Pack for VS Code
 
 中文汉化包
 
-### 1.2. Eclipse Keymap
+### 2.2. Eclipse Keymap
 
 配置与eclipse差不多一致的快捷键
 
-### 1.3. Vetur
+### 2.3. Vetur
 
 配置vue文件语法高亮、智能感知、Emmet等。
 
@@ -20,15 +24,15 @@
 "vetur.format.defaultFormatter.js": "vscode-typescript"
 ```
 
-### 1.4. vscode-icon 或 Material Icon Theme
+### 2.4. vscode-icon 或 Material Icon Theme
 
 让vscode资源目录加上图标（必备）
 
-### 1.5. Path Intellisense
+### 2.5. Path Intellisense
 
 自动路劲补全，默认不带这个功能的（必备）
 
-### 1.6. 推荐主题
+### 2.6. 推荐主题
 
 One Monokai Theme
 
@@ -50,7 +54,7 @@ Material Palenight Theme
 
 ![](images/20201106084601911_5155.jpg)
 
-### 1.7. eslint插件
+### 2.7. eslint插件
 
 ![](images/20201106084622737_26552.jpg)
 
@@ -270,24 +274,24 @@ module.exports = {
 }
 ```
 
-### 1.8. beautify 与 Prettier - Code formatter
+### 2.8. beautify 与 Prettier - Code formatter
 
 - beautify：格式化代码的工具，可以格式化JSON|JS|HTML|CSS|SCSS,比内置格式化好用；但是react工程的jsx文件用beautify插件格式化会乱掉，建议不要用
 - Prettier - Code formatter：格式化代码的工具，可以支持react
 
-### 1.9. Bracket Pair Colorizer 或 Bracket Pair Colorizer2
+### 2.9. Bracket Pair Colorizer 或 Bracket Pair Colorizer2
 
 此扩展允许使用颜色标识匹配的括号
 
-### 1.10. Auto Close Tag
+### 2.10. Auto Close Tag
 
 自动添加HTML / XML关闭标签
 
-### 1.11. Atuo Rename Tag
+### 2.11. Atuo Rename Tag
 
 修改 html 标签，自动帮你完成尾部闭合标签的同步修改，不过有些bug。
 
-### 1.12. IntelliSense for CSS class names in HTML 或 HTML CSS Support
+### 2.12. IntelliSense for CSS class names in HTML 或 HTML CSS Support
 
 **IntelliSense for CSS class names in HTML**
 
@@ -297,7 +301,7 @@ module.exports = {
 
 让 html 标签上写class 智能提示当前项目所支持的样式。新版已经支持scss文件检索
 
-### 1.13. 待整理
+### 2.13. 待整理
 
 - HTML Snippets
     - 超级实用且初级的 H5代码片段以及提示
@@ -314,9 +318,9 @@ module.exports = {
 
 ![](images/20201106085236711_21502.jpg)
 
-## 2. 常用配置
+## 3. 常用配置
 
-### 2.1. 出现CPU 100% 优化的设置
+### 3.1. 出现CPU 100% 优化的设置
 
 有时，vscode会出现CPU利用率100%的情况，两个rg.exe占用了全部的CPU。
 
@@ -326,7 +330,7 @@ module.exports = {
 
 ![](images/20201106085408474_25960.jpg)
 
-### 2.2. 如何配置VSCODE打开文件总是在一个新的标签
+### 3.2. 如何配置VSCODE打开文件总是在一个新的标签
 
 经常搞混单击和双击的区别？这里在左侧资源管理器这边 如果单击文件是打开文件的预览模式，文件所在的标签上显示的文件名是 斜体状态，表明是在 预览模式，会被新打开的文件替换。所以如果是要打开文件进行编辑需要双击文件进行打开
 
@@ -344,7 +348,7 @@ module.exports = {
 
 ![](images/20201106085551962_7405.jpg)
 
-### 2.3. 设置tab为4个空格与格式化时缩进4个空格
+### 3.3. 设置tab为4个空格与格式化时缩进4个空格
 
 tab的宽度设置
 
@@ -354,36 +358,45 @@ tab的宽度设置
 
 ![](images/20201106085641403_18541.jpg)
 
-## 3. 常用快捷键
+## 4. 快捷键
+
+### 4.1. 官方快捷键列表
+
+- 官网地址：https://code.visualstudio.com/shortcuts/keyboard-shortcuts-windows.pdf
+- windows 快捷键
+
+![](../../note_attachments/99-其他/Visual-Studio-Code/keyboard-shortcuts-windows.jpg)
+
+### 4.2. 常用快捷键
 
 - `ctrl+shift+L` 批量修改变量名称
 
-### 3.1. 多行编辑操作
+### 4.3. 多行编辑操作
 
 VScode对多行编辑有两种模式。
 
-#### 3.1.1. 第一种模式
+#### 4.3.1. 第一种模式
 
 竖列选择：长按`Alt+Shift`，按左键拖动鼠标选择多行。这种模式下只可以选择竖列，不可以随意插入光标。所以只限制于同一列且不间隔的情况下
 
-#### 3.1.2. 第二种模式
+#### 4.3.2. 第二种模式
 
 - 竖列选择：`Shift+Ctrl`
 - 选择多个编辑位点：`Ctrl+光标点击`
 
 这种模式下不仅可以选择竖列，同时还可以在多个地方插入光标
 
-#### 3.1.3. 两种模式的切换
+#### 4.3.3. 两种模式的切换
 
 使用`Ctrl+Shift+p`快捷键调用查询输入栏，输入“cursor”，列表中会出现“切换多行修改键”这个选项。选择这个选项就可以在两种模式下切换
 
-## 4. VSCode拓展推荐（前端开发）【网络资源】
+## 5. VSCode拓展推荐（前端开发）【网络资源】
 
 https://github.com/varHarrie/varharrie.github.io/issues/10
 
 > 最后更新于：2018-08-20 11:13:21
 
-## 5. 个人首选项配置（网络资源，仅供参考）
+## 6. 个人首选项配置（网络资源，仅供参考）
 
 ```json
 {

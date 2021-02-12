@@ -974,3 +974,18 @@ Codota 还有一个在线网站，在这个网站上可以根据代码关键字�
 - Vuesion Theme主题下载地址：https://plugins.jetbrains.com/plugin/13106-xcode-dark-theme/versions
 - One Dark theme主题下载地址：https://plugins.jetbrains.com/plugin/11938-one-dark-theme
 - Dark Purple Theme主题下载地址：https://plugins.jetbrains.com/plugin/12100-dark-purple-theme
+
+## 4. 官方网站
+
+- 官网：https://www.jetbrains.com/idea/
+
+## 5. 快捷键
+
+- 官方快捷键：https://resources.jetbrains.com/storage/products/intellij-idea/docs/IntelliJIDEA_ReferenceCard.pdf
+- windows 快捷键
+
+![](../../note_attachments/99-其他/IntelliJ-IDEA/IntelliJIDEA_ReferenceCard_win.jpg)
+
+- macOS 快捷键
+
+![](../../note_attachments/99-其他/IntelliJ-IDEA/IntelliJIDEA_ReferenceCard_mac.jpg)
