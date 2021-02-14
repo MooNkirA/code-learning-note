@@ -1336,26 +1336,24 @@ public ClassPathXmlApplicationContext(
 
 ![xml流程分析图](images/20191222113802450_32288.png)
 
-### 1.3. 自定义标签解析
+### 1.3. 自定义标签解析（component-scan 标签为例）
 
 ![自定义标签解析入口](images/20200109144928626_7171.png)
 
 spring框架是通过spi设计思想来解决自定义标签解析。在DefaultBeanDefinitionDocumentReader类中的`parseBeanDefinitions()`方法中实现，具体的解析委托给`BeanDefinitionParserDelegate`类来实现，实现流程如下：
 
-1. 获取自定义标签的 namespace 命令空间。如：`xmlns:context="http://www.springframework.org/schema/context"`
+1. 获取自定义标签的 namespace 命名空间。如：`xmlns:context="http://www.springframework.org/schema/context"`
 
 ```java
 // 根据node获取到node的命名空间，形如：http://www.springframework.org/schema/p
 String namespaceUri = getNamespaceURI(node);
 ```
 
-2. 根据命令空间获取 NamespaceHandler 对象。NamespaceUri 和 NamespaceHandler 之间会建立一个映射，spring 会从所有的 spring 的 jar 包中扫描 spring.handlers 文件，建立映射关系。
-
-![](images/20200109150646047_16467.png)
+2. 根据命名空间获取`NamespaceHandler`对象。通过SPI机制 spring 会从所有的 jar 包中扫描 `META-INF/spring.handlers` 文件，建立 NamespaceUri 和 NamespaceHandler 之间映射关系。
 
 spring.handler 文件，其实就是 namespaceUri 和类的完整限定名的映射
 
-![](images/20200109142022356_24375.png)
+![](images/20210214224016971_12325.png)
 
 3. 反射获取 NamespaceHandler 实例
 
@@ -1364,7 +1362,7 @@ spring.handler 文件，其实就是 namespaceUri 和类的完整限定名的映
 NamespaceHandler namespaceHandler = (NamespaceHandler) BeanUtils.instantiateClass(handlerClass);
 ```
 
-4. 调用 init 方法
+4. 调用对应标签（如`ContextNameHandler`标签）的`init()`方法完成标签相应的元素解析类的注册
 
 ```java
 // 调用处理类的init方法，在init方法中完成标签元素解析类的注册
@@ -1376,6 +1374,53 @@ namespaceHandler.init();
 ```java
 handler.parse(ele, new ParserContext(this.readerContext, this, containingBd));
 ```
+
+![](images/20200109150646047_16467.png)
+
+每个NameHander的`init()`方法注册不同标签对应的不同的 Parse 解析器，如 `<context:component-scan/>` 标签的解析是`ComponentScanBeanDefinitionParser`，其`parse`方法源码如下：
+
+```java
+/*
+ * 此解析类的parse方法主要需要处理的逻辑如下：
+ * 	1. 扫描标签设置的“base-package”属性的包路径，所有.class后缀的文件
+ * 	2. 将第1步扫描出来的文件所有相关信息都封装到一个Metadata对象中，再去判断扫描到的类上是否有注解
+ * 	3. 将有注解的类包装成BeanDefinition对象
+ * 		GenericBeanDefinition genericBeanDefinition = new GenericBeanDefinition();
+ * 		genericBeanDefinition.setBeanClass(Xxxx.class);
+ * 	4. 完成beanDefinition对象注册到spring容器中
+ */
+@Override
+@Nullable
+public BeanDefinition parse(Element element, ParserContext parserContext) {
+	// 获取标签设置的“base-package”属性的值
+	String basePackage = element.getAttribute(BASE_PACKAGE_ATTRIBUTE);
+	basePackage = parserContext.getReaderContext().getEnvironment().resolvePlaceholders(basePackage);
+
+	// “base-package”可以使用逗号分隔，配置多个扫描的包路径
+	String[] basePackages = StringUtils.tokenizeToStringArray(basePackage,
+			ConfigurableApplicationContext.CONFIG_LOCATION_DELIMITERS);
+
+	// Actually scan for bean definitions and register them.
+	// 创建注解扫描器
+	ClassPathBeanDefinitionScanner scanner = configureScanner(parserContext, element);
+	// 进行扫描，并将扫描到的类封装成BeanDefinition对象。核心方法，重要程度【5】
+	Set<BeanDefinitionHolder> beanDefinitions = scanner.doScan(basePackages);
+
+	/*
+	 * 注册一些XxxBeanPostProcessor类，是用于使用注解DI依赖注入（如@Autowired、@Value等） 重要程度【5】
+	 *   如：ConfigurationClassPostProcessor、AutowiredAnnotationBeanPostProcessor、CommonAnnotationBeanPostProcessor等
+	 * 	这些BeanPostProcessor接口实现都会在AbstractApplicationContext的refresh()核心方法中的registerBeanPostProcessors方法中进行提前实例化
+	 */
+	registerComponents(parserContext.getReaderContext(), beanDefinitions, element);
+
+	return null;
+}
+```
+
+- 流程总结：
+1. 获取 `base-package` 属性
+2. 创建注解扫描器 `configureScanner`(扫描所有`.class`文件)
+
 
 ## 2. invokeBeanFactoryPostProcessors 方法调用
 
@@ -4596,7 +4641,7 @@ public AnnotatedBeanDefinitionReader(BeanDefinitionRegistry registry, Environmen
 
 ## 2. ConfigurationClassPostProcessor 类
 
-在`registerAnnotationConfigProcessors()`方法中，会完成很多注解处理类的注册，`ConfigurationClassPostProcessor`类的作用就是支持了`@Configuration`、`@ComponentScan`、`@Import`、`@ImportResource`、`@PropertySource`、`@Order` 等注解的注册，对于理解 springboot 帮助很大，真正的可以做到零 xml 配置
+在`registerAnnotationConfigProcessors()`方法中，会完成很多注解处理类的注册，`ConfigurationClassPostProcessor`类的作用就是支持了`@Configuration`、`@Component`、`@ComponentScan`、`@Import`、`@ImportResource`、`@PropertySource`、`@Order` 等注解的注册，对于理解 springboot 帮助很大，真正的可以做到零 xml 配置
 
 ### 2.1. 类作用分析
 
@@ -4616,38 +4661,9 @@ public int getOrder() {
 }
 ```
 
-### 2.2. 测试@ComponentScan配置扫描
+### 2.2. 纯注解扫描的过程
 
-- 创建配置类，在类上增加`@ComponentScan`注解，作用相当于xml配置文件中的`<context:component-scan base-package="com.moon.spring"/>`标签
-
-```java
-package com.moon.spring.config;
-
-import org.springframework.context.annotation.ComponentScan;
-
-/**
- * 测试 @ComponentScan 注解配置类
- */
-@ComponentScan(basePackages = {"com.moon.spring"})
-public class ComponentScanConfig {
-}
-```
-
-- 测试，将Spring的xml配置文件注释后，传入上面创建的测试配置类ComponentScanConfig类，创建`AnnotationConfigApplicationContext`对象
-
-```java
-// @RunWith(SpringJUnit4ClassRunner.class)
-// @ContextConfiguration(locations = {"classpath:spring.xml"})
-public class MyTest {
-    @Test
-    public void componentScanTest() {
-        applicationContext = new AnnotationConfigApplicationContext(ComponentScanConfig.class);
-        System.out.println("@ComponentScan Test --> " + applicationContext.getBean("userServiceImpl"));
-    }
-}
-```
-
-### 2.3. 纯注解扫描的过程
+#### 2.2.1. bean实例化前的处理
 
 `ConfigurationClassPostProcessor`实现`BeanDefinitionRegistryPostProcessor`接口，所以实例化bean前会调用`postProcessBeanDefinitionRegistry`方法
 
@@ -4670,7 +4686,9 @@ public void postProcessBeanDefinitionRegistry(BeanDefinitionRegistry registry) {
 }
 ```
 
-调用`processConfigBeanDefinitions`方法，完成相关注解处理类的注册
+#### 2.2.2. 包含支持的注解的BeanDefinition收集
+
+调用`processConfigBeanDefinitions`方法，完成有包含可支持注解的BeanDefinition收集
 
 ```java
 public void processConfigBeanDefinitions(BeanDefinitionRegistry registry) {
@@ -4678,6 +4696,7 @@ public void processConfigBeanDefinitions(BeanDefinitionRegistry registry) {
 	// 获取所有的beanNames
 	String[] candidateNames = registry.getBeanDefinitionNames();
 
+    // 此循环所有BeanDefinition的作用是判断要创建的类上是否有需要处理的注解
 	for (String beanName : candidateNames) {
 		BeanDefinition beanDef = registry.getBeanDefinition(beanName);
 		// 如果有该标识就不再处理
@@ -4775,7 +4794,7 @@ public static boolean checkConfigurationClassCandidate(
 }
 ```
 
-
+判断是否为部分支持的注解
 
 ```java
 public static boolean isConfigurationCandidate(AnnotationMetadata metadata) {
@@ -4810,8 +4829,362 @@ Set集合`candidateIndicators`所包含的支持的注解名称
 
 ![](images/20210213231426026_5664.png)
 
+#### 2.2.3. ConfigurationClassParser - 解析候选BeanDefinition中的相关注解
 
-### 2.4. 开启xml配置注解扫描标签的差异
+收集完候选的BeanDefinition后，程序继续往下执行，会创建一个注解的解析类`ConfigurationClassParser`，然后对筛选出来的
+
+```java
+public void processConfigBeanDefinitions(BeanDefinitionRegistry registry) {
+    ....省略
+    // Parse each @Configuration class
+	// 此处创建一个重要的ConfigurationClassParser类（对候选BeanDefinition的解析），是对@ComponentScan @Configuration支持
+	ConfigurationClassParser parser = new ConfigurationClassParser(
+			this.metadataReaderFactory, this.problemReporter, this.environment,
+			this.resourceLoader, this.componentScanBeanNameGenerator, registry);
+
+	Set<BeanDefinitionHolder> candidates = new LinkedHashSet<>(configCandidates);
+	// 用于存放已经处理过的类，因为有些类会通过@Import重复导入一些类
+	Set<ConfigurationClass> alreadyParsed = new HashSet<>(configCandidates.size());
+	do {
+		// ConfigurationClassParser类的解析核心流程，重要程度【5】
+		// 将相关的支持的注解进行封装，即把类上面的特殊注解解析出来最终封装成BeanDefinition
+		parser.parse(candidates);
+		parser.validate();
+
+		Set<ConfigurationClass> configClasses = new LinkedHashSet<>(parser.getConfigurationClasses());
+		configClasses.removeAll(alreadyParsed);
+
+		// Read the model and create bean definitions based on its content
+		if (this.reader == null) {
+			this.reader = new ConfigurationClassBeanDefinitionReader(
+					registry, this.sourceExtractor, this.resourceLoader, this.environment,
+					this.importBeanNameGenerator, parser.getImportRegistry());
+		}
+		// 设置beanDefinition的属性值，具体执行 @Import/@ImportSource/@Bean 的逻辑。重要程度【5】
+		this.reader.loadBeanDefinitions(configClasses);
+		// 已经解析完成了的类
+		alreadyParsed.addAll(configClasses);
+
+		candidates.clear();
+		// 比较差异又走一遍解析流程
+		if (registry.getBeanDefinitionCount() > candidateNames.length) {
+			String[] newCandidateNames = registry.getBeanDefinitionNames();
+			Set<String> oldCandidateNames = new HashSet<>(Arrays.asList(candidateNames));
+			Set<String> alreadyParsedClasses = new HashSet<>();
+			for (ConfigurationClass configurationClass : alreadyParsed) {
+				alreadyParsedClasses.add(configurationClass.getMetadata().getClassName());
+			}
+			for (String candidateName : newCandidateNames) {
+				if (!oldCandidateNames.contains(candidateName)) {
+					BeanDefinition bd = registry.getBeanDefinition(candidateName);
+					if (ConfigurationClassUtils.checkConfigurationClassCandidate(bd, this.metadataReaderFactory) &&
+							!alreadyParsedClasses.contains(bd.getBeanClassName())) {
+						candidates.add(new BeanDefinitionHolder(bd, candidateName));
+					}
+				}
+			}
+			candidateNames = newCandidateNames;
+		}
+	}
+	while (!candidates.isEmpty());
+    ....省略
+}
+```
+
+调用`ConfigurationClassParser.parse`方法循环解析
+
+```java
+public void parse(Set<BeanDefinitionHolder> configCandidates) {
+	for (BeanDefinitionHolder holder : configCandidates) {
+		BeanDefinition bd = holder.getBeanDefinition();
+		try {
+			// 扫描注解得到的BeanDefinition
+			if (bd instanceof AnnotatedBeanDefinition) {
+				parse(((AnnotatedBeanDefinition) bd).getMetadata(), holder.getBeanName());
+			}
+			// 非扫描注解得到的BeanDefinition(如自己手动创建的BeanDefinition注册到BeanDefinitionRegistry)
+			else if (bd instanceof AbstractBeanDefinition && ((AbstractBeanDefinition) bd).hasBeanClass()) {
+				parse(((AbstractBeanDefinition) bd).getBeanClass(), holder.getBeanName());
+			}
+			else {
+				parse(bd.getBeanClassName(), holder.getBeanName());
+			}
+		}
+		catch (BeanDefinitionStoreException ex) {
+			throw ex;
+		}
+		catch (Throwable ex) {
+			throw new BeanDefinitionStoreException(
+					"Failed to parse configuration class [" + bd.getBeanClassName() + "]", ex);
+		}
+	}
+	// 这行代码不能忽视
+	this.deferredImportSelectorHandler.process();
+}
+```
+
+```java
+protected final void parse(AnnotationMetadata metadata, String beanName) throws IOException {
+	// 将metadata对象与beanName再封装成ConfigurationClass对象
+	processConfigurationClass(new ConfigurationClass(metadata, beanName), DEFAULT_EXCLUSION_FILTER);
+}
+```
+
+`doProcessConfigurationClass`方法进行相关注解的解析。
+
+```java
+protected void processConfigurationClass(ConfigurationClass configClass, Predicate<String> filter) throws IOException {
+	// 对@Condition注解的支持，过滤掉不需要实例化的类
+	if (this.conditionEvaluator.shouldSkip(configClass.getMetadata(), ConfigurationPhase.PARSE_CONFIGURATION)) {
+		return;
+	}
+
+	ConfigurationClass existingClass = this.configurationClasses.get(configClass);
+	if (existingClass != null) {
+		if (configClass.isImported()) {
+			if (existingClass.isImported()) {
+				existingClass.mergeImportedBy(configClass);
+			}
+			// Otherwise ignore new imported config class; existing non-imported class overrides it.
+			return;
+		}
+		else {
+			// Explicit bean definition found, probably replacing an import.
+			// Let's remove the old one and go with the new one.
+			this.configurationClasses.remove(configClass);
+			this.knownSuperclasses.values().removeIf(configClass::equals);
+		}
+	}
+
+	// Recursively process the configuration class and its superclass hierarchy. --> 翻译：递归处理配置类及其超类层次结构
+	/*
+	 * 封装成SourceClass对象(ConfigurationClassParser的内部类)，此对象主要封装了处理类的Class对象与类相关信息的metadata对象
+	 * 这个对象理解为跟类或者接口对应，然后把metadata对象包装进去了
+	 */
+	SourceClass sourceClass = asSourceClass(configClass, filter);
+	do {
+		// 处理相关注解解析，核心代码，重要程度【5】
+		sourceClass = doProcessConfigurationClass(configClass, sourceClass, filter);
+	}
+	while (sourceClass != null);
+
+	this.configurationClasses.put(configClass, configClass);
+}
+```
+
+### 2.3. @PropertySource 与 @PropertySources 实现原理
+
+`@PropertySource`与`@PropertySources`在`ConfigurationClassParser.doProcessConfigurationClass`方法中，会循环当前类中所有此两个注解进行解析
+
+```java
+// Process any @PropertySource annotations
+// 处理 @PropertySources 和 @PropertySource 注解
+for (AnnotationAttributes propertySource : AnnotationConfigUtils.attributesForRepeatable(
+		sourceClass.getMetadata(), PropertySources.class,
+		org.springframework.context.annotation.PropertySource.class)) {
+	if (this.environment instanceof ConfigurableEnvironment) {
+		// 核心逻辑
+		processPropertySource(propertySource);
+	}
+	else {
+		logger.info("Ignoring @PropertySource annotation on [" + sourceClass.getMetadata().getClassName() +
+				"]. Reason: Environment must implement ConfigurableEnvironment");
+	}
+}
+```
+
+读取并封装`@PropertySource`与`@PropertySources`注解的信息。在`this.environment.resolveRequiredPlaceholders(location)`方法，就是用来解析占位符，如不是占位符，则直接返回原数据
+
+```java
+/**
+ * Process the given <code>@PropertySource</code> annotation metadata.
+ * @param propertySource metadata for the <code>@PropertySource</code> annotation found
+ * @throws IOException if loading a property source failed
+ */
+private void processPropertySource(AnnotationAttributes propertySource) throws IOException {
+	String name = propertySource.getString("name");
+	if (!StringUtils.hasLength(name)) {
+		name = null;
+	}
+	String encoding = propertySource.getString("encoding");
+	if (!StringUtils.hasLength(encoding)) {
+		encoding = null;
+	}
+	// 获取配置文件路径
+	String[] locations = propertySource.getStringArray("value");
+	Assert.isTrue(locations.length > 0, "At least one @PropertySource(value) location is required");
+	boolean ignoreResourceNotFound = propertySource.getBoolean("ignoreResourceNotFound");
+
+	Class<? extends PropertySourceFactory> factoryClass = propertySource.getClass("factory");
+	PropertySourceFactory factory = (factoryClass == PropertySourceFactory.class ?
+			DEFAULT_PROPERTY_SOURCE_FACTORY : BeanUtils.instantiateClass(factoryClass));
+
+	for (String location : locations) {
+		try {
+			// 替换占位符
+			String resolvedLocation = this.environment.resolveRequiredPlaceholders(location);
+			// 流的方式加载配置文件并封装成Resource对象
+			Resource resource = this.resourceLoader.getResource(resolvedLocation);
+			// 加载Resource中的配置属性封装成Properties对象中，并创建PropertySource对象加入到Environment对象中
+			addPropertySource(factory.createPropertySource(name, new EncodedResource(resource, encoding)));
+		}
+		catch (IllegalArgumentException | FileNotFoundException | UnknownHostException ex) {
+			// Placeholders not resolvable or resource not found when trying to open it
+			if (ignoreResourceNotFound) {
+				if (logger.isInfoEnabled()) {
+					logger.info("Properties location [" + location + "] not resolvable: " + ex.getMessage());
+				}
+			}
+			else {
+				throw ex;
+			}
+		}
+	}
+}
+```
+
+![](images/20210214121653062_10573.png)
+
+根据配置的location值，通过流的方式读取配置文件，并转成`Resource`对象，然后调用`addPropertySource`方法，获取`Environment`对象中的`MutablePropertySources`（`PropertySources`的子类），然后将每个配置文件转成的`PropertySource`加入到`MutablePropertySources`中。*注：如果出现多个`@PropertySource`配置的name名称一样的，会将`PropertySource`进行合并成`CompositePropertySource`类型，其实将新旧的值都保存起来再合并*
+
+```java
+private void addPropertySource(PropertySource<?> propertySource) {
+	String name = propertySource.getName();
+	// 获取Environment对象中的MutablePropertySources
+	MutablePropertySources propertySources = ((ConfigurableEnvironment) this.environment).getPropertySources();
+
+	// 如果已经存在了该配置文件的PropertySource则进行合并
+	if (this.propertySourceNames.contains(name)) {
+		// We've already added a version, we need to extend it
+		PropertySource<?> existing = propertySources.get(name);
+		if (existing != null) {
+			PropertySource<?> newSource = (propertySource instanceof ResourcePropertySource ?
+					((ResourcePropertySource) propertySource).withResourceName() : propertySource);
+			// 合并二次后的类型
+			if (existing instanceof CompositePropertySource) {
+				((CompositePropertySource) existing).addFirstPropertySource(newSource);
+			}
+			else {
+				if (existing instanceof ResourcePropertySource) {
+					existing = ((ResourcePropertySource) existing).withResourceName();
+				}
+				// 其实就是CompositePropertySource里面有一个Set，Set里面装了新和旧的PropertySource对象
+				CompositePropertySource composite = new CompositePropertySource(name);
+				composite.addPropertySource(newSource);
+				composite.addPropertySource(existing);
+				// 合并
+				propertySources.replace(name, composite);
+			}
+			return;
+		}
+	}
+
+	if (this.propertySourceNames.isEmpty()) {
+		propertySources.addLast(propertySource);
+	}
+	else {
+		// 用于计算插入的位置index
+		String firstProcessed = this.propertySourceNames.get(this.propertySourceNames.size() - 1);
+		// 把propertySource对象存入MutablePropertySources的list中
+		propertySources.addBefore(firstProcessed, propertySource);
+	}
+	// 将解析过的@PropertySource的name值加到集合中
+	this.propertySourceNames.add(name);
+}
+```
+
+### 2.4. @Component 实现原理
+
+`@Component`在`ConfigurationClassParser.doProcessConfigurationClass`方法中，去处理该注解
+
+```java
+// 判断类上面是否有@Component注解
+if (configClass.getMetadata().isAnnotated(Component.class.getName())) {
+	// Recursively process any member (nested) classes first --> 翻译：首先递归处理任何成员（嵌套）类
+	// 递归处理有@Component注解的内部类
+	processMemberClasses(configClass, sourceClass, filter);
+}
+```
+
+调用`processMemberClasses`方法，获取当前类中的所有内部类（如果包含内部类有该注解，则会递归处理）
+
+```java
+/**
+ * Register member (nested) classes that happen to be configuration classes themselves.
+ */
+private void processMemberClasses(ConfigurationClass configClass, SourceClass sourceClass,
+		Predicate<String> filter) throws IOException {
+
+	// 获取当前类的内部类并又包装成sourceClass对象
+	Collection<SourceClass> memberClasses = sourceClass.getMemberClasses();
+	if (!memberClasses.isEmpty()) {
+		List<SourceClass> candidates = new ArrayList<>(memberClasses.size());
+		for (SourceClass memberClass : memberClasses) {
+			// 判断内部类是候选的
+			if (ConfigurationClassUtils.isConfigurationCandidate(memberClass.getMetadata()) &&
+					!memberClass.getMetadata().getClassName().equals(configClass.getMetadata().getClassName())) {
+				candidates.add(memberClass);
+			}
+		}
+		// 排序
+		OrderComparator.sort(candidates);
+		// 循环去处理每一个内部类
+		for (SourceClass candidate : candidates) {
+			if (this.importStack.contains(configClass)) {
+				this.problemReporter.error(new CircularImportProblem(configClass, this.importStack));
+			}
+			else {
+				this.importStack.push(configClass);
+				try {
+					/*
+					 * candidate 是 configClass 的内部类，此处将内部类包装成ConfigurationClass类
+					 *  即相对来说变成了外部类，然后调用processConfigurationClass方法，进行递归处理
+					 */
+					processConfigurationClass(candidate.asConfigClass(configClass), filter);
+				}
+				finally {
+					this.importStack.pop();
+				}
+			}
+		}
+	}
+}
+```
+
+### 2.5. @ComponentScan 实现原理
+
+#### 2.5.1. 测试@ComponentScan配置扫描
+
+- 创建配置类，在类上增加`@ComponentScan`注解，作用相当于xml配置文件中的`<context:component-scan base-package="com.moon.spring"/>`标签
+
+```java
+package com.moon.spring.config;
+
+import org.springframework.context.annotation.ComponentScan;
+
+/**
+ * 测试 @ComponentScan 注解配置类
+ */
+@ComponentScan(basePackages = {"com.moon.spring"})
+public class ComponentScanConfig {
+}
+```
+
+- 测试，将Spring的xml配置文件注释后，传入上面创建的测试配置类ComponentScanConfig类，创建`AnnotationConfigApplicationContext`对象
+
+```java
+// @RunWith(SpringJUnit4ClassRunner.class)
+// @ContextConfiguration(locations = {"classpath:spring.xml"})
+public class MyTest {
+    @Test
+    public void componentScanTest() {
+        applicationContext = new AnnotationConfigApplicationContext(ComponentScanConfig.class);
+        System.out.println("@ComponentScan Test --> " + applicationContext.getBean("userServiceImpl"));
+    }
+}
+```
+
+#### 2.5.2. 开启xml配置注解扫描标签的差异
 
 - 如果不开启xml配置文件中的注解扫描时，运行`AnnotationConfigApplicationContext`测试，会发现`BeanDefinitionRegistry`对象中的`BeanDefinitionNames`只有当前传入的类名称
 
@@ -4828,6 +5201,10 @@ Set集合`candidateIndicators`所包含的支持的注解名称
 以上的差异是因为在spring的核心方法`AbstractApplicationContext.refresh()`方法中，执行的逻辑时序是先解析xml配置文件，再调用`BeanDefinitionRegistryPostProcessor`接口的`postProcessBeanDefinitionRegistry()`方法读取已经注册的BeanDefinition名称
 
 ![](images/20200607191232299_16943.png)
+
+#### 2.5.3. 解析流程
+
+
 
 
 # Spring 相关功能与设计
