@@ -3743,247 +3743,9 @@ protected void addSingletonFactory(String beanName, ObjectFactory<?> singletonFa
 
 ![](images/20210206232329791_17264.png)
 
-### 3.10. Bean 的多例及作用域
+### 3.10. Bean 的销毁
 
-#### 3.10.1. 多例Bean测试
-
-通过`@Scope`注解可以设置bean为多例
-
-```java
-package com.moon.spring.bean;
-
-import org.springframework.beans.factory.config.ConfigurableBeanFactory;
-import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Component;
-
-/**
- * 用于测试 Spring Bean 的多例情况与作用范围
- */
-@Component
-// @Scope(ConfigurableBeanFactory.SCOPE_SINGLETON) // Bean实例是单例，默认不需要设置
-@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE) // Bean实例是多例
-public class PrototypeBean {
-}
-```
-
-```java
-/* 测试Spring Bean的实例作用范围 */
-@Test
-public void prototypeTest() {
-    /*
-     * 测试单例与多例
-     *      单例情况：每个线程获取的实例的hashCode都一样
-     *      多例情况：每个线程获取的实例的hashCode都不一样
-     *      多例情况，一个线程多次获取实例，其hashCode也是不一样
-     */
-    for (int i = 0; i < 10; i++) {
-        int finalI = i;
-        new Thread(() -> {
-            if (finalI % 2 == 0) {
-                System.out.println(Thread.currentThread().getName() + " --> " + applicationContext.getBean("prototypeBean"));
-                System.out.println(Thread.currentThread().getName() + " --> " + applicationContext.getBean("prototypeBean"));
-            } else {
-                System.out.println(Thread.currentThread().getName() + " --> " + applicationContext.getBean("prototypeBean"));
-            }
-        }).start();
-    }
-}
-```
-
-**重点注意**：
-
-- Scope 如果是 `Prototype` 时，不管是否同一个线程，只要是 `getBean()` 方法就会得到一个新的实例
-- Scope 是 `Prototype` 时，在spring容器启动中，是不会创建实例，需要主动调用 `getBean()` 时才会创建实例
-- Request 作用域时，是把实例存储到 request 对象中；Session 作用域时，是把实例存储到 session 对象中。注：request 和 session 作用域只会在 web 环境才会存在
-
-#### 3.10.2. Request与Session作用域(!!后面需要补充tomcat部署时的截图。目前因为没有配置好web.xml文件与springMVC)
-
-定义两个作用域测试bean。*注：需要引入spring-web的依赖*
-
-```java
-@Component
-@Scope(value = RequestAttributes.REFERENCE_REQUEST/*,proxyMode = ScopedProxyMode.TARGET_CLASS*/)
-public class RequestScopeBean {
-}
-
-@Component
-@Scope(value = RequestAttributes.REFERENCE_SESSION/*,proxyMode = ScopedProxyMode.TARGET_CLASS*/)
-public class SessionScopeBean {
-}
-```
-
-如果直接使用单元测试，调用spring容器的`getBean()`方法，则会直接报错
-
-```java
-@Test
-public void requestSessoinScopeTest() {
-    applicationContext.getBean("requestScopeBean");
-}
-```
-
-![](images/20200603234203880_27806.png)
-
-因为spring框架的scopes容器没有request作用域
-
-![](images/20200603234906381_7555.png)
-
-
-#### 3.10.3. 自定义作用域
-
-阅读`AbstractBeanFactory`类的源码发现，有一个public的方法`registerScope`，该方法可以往spring构架中的scopes容器中注册（添加自定义作用域）。所以只要通过实现`BeanFactoryPostProcessor`接口，拿到spring的BeanFactory对象，即可调用该方法往作用域scopes容器中注册自定义作用域
-
-```java
-/* 该方法实现向spring容器中注册一个Scope（bean作用范围）对象 */
-@Override
-public void registerScope(String scopeName, Scope scope) {
-	Assert.notNull(scopeName, "Scope identifier must not be null");
-	Assert.notNull(scope, "Scope must not be null");
-	if (SCOPE_SINGLETON.equals(scopeName) || SCOPE_PROTOTYPE.equals(scopeName)) {
-		throw new IllegalArgumentException("Cannot replace existing scopes 'singleton' and 'prototype'");
-	}
-	Scope previous = this.scopes.put(scopeName, scope);
-	if (previous != null && previous != scope) {
-		if (logger.isDebugEnabled()) {
-			logger.debug("Replacing scope '" + scopeName + "' from [" + previous + "] to [" + scope + "]");
-		}
-	}
-	else {
-		if (logger.isTraceEnabled()) {
-			logger.trace("Registering scope '" + scopeName + "' with implementation [" + scope + "]");
-		}
-	}
-}
-```
-
-自定义作用域实现步骤：
-
-1. 写一个类实现 scope 接口，实现`get()`方法，该方法是管理生成bean实例作用域的逻辑
-
-```java
-package com.moon.spring.scope;
-
-import org.springframework.beans.factory.ObjectFactory;
-import org.springframework.beans.factory.config.Scope;
-
-/**
- * 自定义bean作用域，需要实现Scope接口
- * <p> 此自定义作用域的需求是，在同一个线程中获取都是同一个实例，不同线程获取不同实例 </p>
- */
-public class CustomScope implements Scope {
-
-    private ThreadLocal<Object> threadLocal = new ThreadLocal<>();
-
-    /**
-     * 获取bean实例的方法，此方法可以实现管理生成bean实例作用域逻辑。
-     *
-     * @param name
-     * @param objectFactory
-     * @return
-     */
-    @Override
-    public Object get(String name, ObjectFactory<?> objectFactory) {
-        System.out.println("=====自定义作用域CustomScope.get()执行=====");
-
-        // 如果当前线程存在实现化完成的对象，直接返回
-        if (threadLocal.get() != null) {
-            return threadLocal.get();
-        }
-
-        // 此方法就是调用spring框架ObjectFactory接口的createbean方法获得一个实例
-        Object object = objectFactory.getObject();
-        // 设置到ThreadLocal容器并返回
-        threadLocal.set(object);
-        return object;
-    }
-
-    @Override
-    public Object remove(String name) {
-        return null;
-    }
-
-    @Override
-    public void registerDestructionCallback(String name, Runnable callback) {
-
-    }
-
-    @Override
-    public Object resolveContextualObject(String key) {
-        return null;
-    }
-
-    @Override
-    public String getConversationId() {
-        return null;
-    }
-}
-```
-
-2. 要获取 BeanFactory 对象，必须实现 BeanFactoryPostProcessor 接口才能获取 BeanFactory 对象。调用 registerScope 方法把自定义的 scope 注册进去
-
-```java
-package com.moon.spring.scope;
-
-import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
-import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
-import org.springframework.stereotype.Component;
-
-/**
- * 实现BeanFactoryPostProcessor接口，用于注册自定义bean作用域
- */
-@Component
-public class CustomBeanFactoryPostProcessor implements BeanFactoryPostProcessor {
-    // 实现postProcessBeanFactory方法，注册自定义作用域
-    @Override
-    public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
-        beanFactory.registerScope("MooNkirAScope", new CustomScope());
-    }
-}
-```
-
-3. 编写测试bean。测试结果如下：
-
-```java
-package com.moon.spring.scope;
-
-import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Component;
-
-/**
- * 测试自定义bean作用域
- */
-@Component
-@Scope("MooNkirAScope")
-public class CustomScopeBean {
-    private String id;
-
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
-}
-```
-
-![](images/20200607101708791_9813.png)
-
-![](images/20200607102144946_18607.png)
-
-#### 3.10.4. Bean作用域总结
-
-Spring框架Bean的作用域的本质是对Bean实例的管理。
-
-1. 单例模式Bean的实例是存储在`DefaultSingletonBeanRegistry`类中的`singletonObjects`的map容器中
-2. 实现`FactoryBean`接口后所创建的Bean实例，是存储在`FactoryBeanRegistrySupport`类中的`factoryBeanObjectCache`的Map容器中
-3. 多例模式Bean的实例是没有存缓存中，每次获取时创建
-4. Request与Session模式Bean的实例是存储在web容器相应的request与session对象中
-5. 自定义作用域其实是自已定义Bean实例的管理方式，存储到缓存或者直接创建由定义者决定
-
-### 3.11. Bean 的销毁
-
-#### 3.11.1. DisposableBeanAdapter（销毁处理器）的注册
+#### 3.10.1. DisposableBeanAdapter（销毁处理器）的注册
 
 在依赖注入完成并调用了相关的Aware接口、生命周期方法后，程序往下执行到`registerDisposableBeanIfNecessary`方法。此方法会在 bean 创建完成后就会对这个 bean 注册一个销毁的 `DisposableBeanAdapter` 对象， `disposableBeans`集合负责对需要销毁的 bean 进行放置。
 
@@ -4101,7 +3863,7 @@ private List<DestructionAwareBeanPostProcessor> filterPostProcessors(List<BeanPo
 }
 ```
 
-#### 3.11.2. Bean 销毁的时的调用处理
+#### 3.10.2. Bean 销毁的时的调用处理
 
 测试代码：
 
@@ -4160,9 +3922,9 @@ public class ContextLoaderListener extends ContextLoader implements ServletConte
 
 ![](images/20210209101119229_6741.png)
 
-### 3.12. FactoryBean 接口
+### 3.11. FactoryBean 接口
 
-#### 3.12.1. 接口的作用
+#### 3.11.1. 接口的作用
 
 `FactirtBean`接口的作用是：在实例化和 IOC/DI 做完后，就会调用 `FactoryBean` 类型的接口重写的`getObject()`方法，可以返回不同的bean类型，此bean实例会被Spring容器管理
 
@@ -4171,7 +3933,7 @@ public class ContextLoaderListener extends ContextLoader implements ServletConte
 
 > 注：`FactoryBean`类型的类本身与`getObject()`方法返回的实例都会被Spring容器管理
 
-#### 3.12.2. 基础使用示例
+#### 3.11.2. 基础使用示例
 
 示例如下：
 
@@ -4219,7 +3981,7 @@ public void testFactoryBeanBasic() {
 }
 ```
 
-#### 3.12.3. 源码分析
+#### 3.11.3. 源码分析
 
 `FactoryBean` 类型接口触发的位置：`AbstractBeanFactory --> doGetBean()`
 
@@ -4245,22 +4007,616 @@ if (mbd.isSingleton()) {
 }
 ```
 
+`FactoryBean`接口调用主要逻辑
+
+- 判断beanName是否以`&`开头，并且是`FactoryBean`接口类型，如果是，直接返回。
+- 判断
+
+```java
+protected Object getObjectForBeanInstance(
+		Object beanInstance, String name, String beanName, @Nullable RootBeanDefinition mbd) {
+
+	// Don't let calling code try to dereference the factory if the bean isn't a factory.
+	// 如果Bean不是工厂，请不要让调用代码尝试取消引用工厂
+	// 根据方法传入的名称判断当前实例是否为FactoryBean接口类型
+	if (BeanFactoryUtils.isFactoryDereference(name)) {
+		if (beanInstance instanceof NullBean) {
+			return beanInstance;
+		}
+		// 进入此if代码块，说明bean实例是FactoryBean接口类型，但如果不是，则抛出异常
+		if (!(beanInstance instanceof FactoryBean)) {
+			throw new BeanIsNotAFactoryException(beanName, beanInstance.getClass());
+		}
+		if (mbd != null) {
+			// 设置BeanDefinition的isFactoryBean标识为true
+			mbd.isFactoryBean = true;
+		}
+		return beanInstance;
+	}
+
+	// Now we have the bean instance, which may be a normal bean or a FactoryBean.
+	// If it's a FactoryBean, we use it to create a bean instance, unless the
+	// caller actually wants a reference to the factory.
+	/*
+	 * 代码执行到这里，说明beanName不是以"&"开头的，
+	 * 此时判断如果传入的实例不是FactoryBean接口类型的，则直接返回传入的实例（相当于此方法没有任何作用）
+	 */
+	if (!(beanInstance instanceof FactoryBean)) {
+		return beanInstance;
+	}
+
+	// 以下逻辑说明了当前实例beanInstance是FactoryBean接口类型的，并且beanName不是以&开头
+	Object object = null;
+	if (mbd != null) {
+		mbd.isFactoryBean = true;
+	}
+	else {
+		// 从缓存（factoryBeanObjectCache容器）里面获取FactoryBean类型的实例
+		object = getCachedObjectForFactoryBean(beanName);
+	}
+	if (object == null) {
+		// 如果缓存没有实例，执行创建实例。其实就是调用`FactoryBean`接口的`getObject`方法获取实例
+		// Return bean instance from factory.
+		FactoryBean<?> factory = (FactoryBean<?>) beanInstance;
+		// Caches object obtained from FactoryBean if it is a singleton.
+		if (mbd == null && containsBeanDefinition(beanName)) {
+			mbd = getMergedLocalBeanDefinition(beanName);
+		}
+		boolean synthetic = (mbd != null && mbd.isSynthetic());
+		// 重点关注此方法，调用接口的`getObject`方法获取实例，重要程度【5】
+		object = getObjectFromFactoryBean(factory, beanName, !synthetic);
+	}
+	return object;
+}
+```
+
+判断beanName是否有`&`的前缀
+
+```java
+public static boolean isFactoryDereference(@Nullable String name) {
+	// 判断bean的名称带有"&"的前缀
+	return (name != null && name.startsWith(BeanFactory.FACTORY_BEAN_PREFIX));
+}
+```
+
+`getObjectFromFactoryBean`方法的主要执行逻辑是：先从`factoryBeanObjectCache`缓存中获取，如果缓存为空，则调用`FactoryBean.getObect()`方法获取实例，最后会判断一级缓存中已存在，则会在专门保存`FactoryBean`类型的`factoryBeanObjectCache`缓存多保存一份
+
+```java
+protected Object getObjectFromFactoryBean(FactoryBean<?> factory, String beanName, boolean shouldPostProcess) {
+	if (factory.isSingleton() && containsSingleton(beanName)) {
+		synchronized (getSingletonMutex()) {
+			// 先从factoryBeanObjectCache缓存容器中获取
+			Object object = this.factoryBeanObjectCache.get(beanName);
+			if (object == null) {
+				// 缓存没有，则调用getObject方法
+				object = doGetObjectFromFactoryBean(factory, beanName);
+				// Only post-process and store if not put there already during getObject() call above
+				// (e.g. because of circular reference processing triggered by custom getBean calls)
+				Object alreadyThere = this.factoryBeanObjectCache.get(beanName);
+				if (alreadyThere != null) {
+					object = alreadyThere;
+				}
+				else {
+					if (shouldPostProcess) {
+						// 判断如果当前beanName的实例是正在创建中，则直接返回
+						if (isSingletonCurrentlyInCreation(beanName)) {
+							// Temporarily return non-post-processed object, not storing it yet..
+							return object;
+						}
+						beforeSingletonCreation(beanName);
+						try {
+							object = postProcessObjectFromFactoryBean(object, beanName);
+						}
+						catch (Throwable ex) {
+							throw new BeanCreationException(beanName,
+									"Post-processing of FactoryBean's singleton object failed", ex);
+						}
+						finally {
+							afterSingletonCreation(beanName);
+						}
+					}
+					if (containsSingleton(beanName)) {
+						// 把实例缓存到factoryBeanObjectCache的map容器中，这个是单独缓存FactoryBean类型实例的map
+						this.factoryBeanObjectCache.put(beanName, object);
+					}
+				}
+			}
+			return object;
+		}
+	}
+	else {
+		Object object = doGetObjectFromFactoryBean(factory, beanName);
+		if (shouldPostProcess) {
+			try {
+				object = postProcessObjectFromFactoryBean(object, beanName);
+			}
+			catch (Throwable ex) {
+				throw new BeanCreationException(beanName, "Post-processing of FactoryBean's object failed", ex);
+			}
+		}
+		return object;
+	}
+}
+```
+
+调用`getObject`方法获取实例
+
+```java
+private Object doGetObjectFromFactoryBean(FactoryBean<?> factory, String beanName) throws BeanCreationException {
+	Object object;
+	try {
+		if (System.getSecurityManager() != null) {
+			AccessControlContext acc = getAccessControlContext();
+			try {
+				object = AccessController.doPrivileged((PrivilegedExceptionAction<Object>) factory::getObject, acc);
+			}
+			catch (PrivilegedActionException pae) {
+				throw pae.getException();
+			}
+		}
+		else {
+			// 调用getObject方法
+			object = factory.getObject();
+		}
+	}
+	catch (FactoryBeanNotInitializedException ex) {
+		throw new BeanCurrentlyInCreationException(beanName, ex.toString());
+	}
+	catch (Throwable ex) {
+		throw new BeanCreationException(beanName, "FactoryBean threw exception on object creation", ex);
+	}
+
+	// Do not accept a null value for a FactoryBean that's not fully
+	// initialized yet: Many FactoryBeans just return null then.
+	if (object == null) {
+		if (isSingletonCurrentlyInCreation(beanName)) {
+			throw new BeanCurrentlyInCreationException(
+					beanName, "FactoryBean which is currently in creation returned null from getObject");
+		}
+		object = new NullBean();
+	}
+	return object;
+}
+```
+
+#### 3.11.4. 小结
+
+`FactoryBean`接口类型实例的调用具体调用位置是在`getSingleton`方法之后`getObjectForBeanInstance`的方法中，主要处理的内容如下：
+
+1. 如果 bean 实例不是 `FactoryBean` 类型的或者 name 以`&`开始的则直接返回实例。
+2. 如果 bean 是 `FacotyBean` 类型并且不是以`&`开头，会通过方法 `doGetObjectFromFactoryBean` 调用 `FactoryBean` 内部继承实现的 `getObject` 方法，并且判断一级缓存中如果存在该 bean 实例把实例缓存到`factoryBeanObjectCache`对应的Map中，这个是单独缓存`FactoryBean`类型实例的Map容器
+
+从源码分析可知：从开始循环所有创建的Bean实例名称集合时，如果是`FactoryBean`类型，则会拼加`&`的前缀。所以`BeanFactory.getBean("beanName")`只能获取到`FactoryBean`接口的`getObject()`方法返回的实例。该方法返回的实例会有单独的缓存存储，跟其他实例不是同一个缓存，对应的缓存是：`factoryBeanObjectCache`
+
+![](images/20210213104817442_8012.png)
+
+![](images/20210213110049953_2671.png)
+
+![](images/20210213110534655_8412.png)
+
+### 3.12. Bean 的多例及作用域
+
+#### 3.12.1. 多例Bean测试
+
+通过`@Scope`注解可以设置bean为多例
+
+```java
+package com.moon.spring.bean;
+
+import org.springframework.beans.factory.config.ConfigurableBeanFactory;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
+
+/**
+ * 用于测试 Spring Bean 的多例情况与作用范围
+ */
+@Component
+// @Scope(ConfigurableBeanFactory.SCOPE_SINGLETON) // Bean实例是单例，默认不需要设置
+@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE) // Bean实例是多例
+public class PrototypeBean {
+    public PrototypeBean() {
+        System.out.println("PrototypeBean类的无参构造函数执行了....");
+    }
+}
+```
+
+测试Spring Bean的实例作用范围
+
+```java
+@Test
+public void testPrototype() throws InterruptedException {
+    /*
+     * 测试单例与多例
+     *      单例情况：每个线程获取的实例的hashCode都一样
+     *      多例情况：每个线程获取的实例的hashCode都不一样
+     *      多例情况，一个线程多次获取实例，其hashCode也是不一样
+     */
+    for (int i = 0; i < 10; i++) {
+        new Thread(() -> {
+            System.out.println(Thread.currentThread().getName() + " --> " + context.getBean("prototypeBean"));
+            System.out.println(Thread.currentThread().getName() + " --> " + context.getBean("prototypeBean"));
+        }).start();
+        Thread.sleep(1000);
+    }
+}
+```
+
+单例：
+
+![](images/20210213120741703_22472.png)
+
+多例：
+
+![](images/20210213120839072_32605.png)
+
+#### 3.12.2. 多例Bean源码分析
+
+![](images/20210213121102156_12992.png)
+
+- Bean 的多例模式，在容器启动时不会进行实例化，在方法 `preInstantiateSingletons` 中有判断，如果 bean 不是抽象的、单例的、非懒加载的才会进行实例化，多例模式需要在手动调用 `getBean` 触发。存放正在创建的多例 bean 对象的集合是 `prototypesCurrentlyInCreation`，此容器是`ThreadLocal<Object>`，为了确保**同一个线程的同一次`getBean`操作**不会重复创建实例
+- Bean 的多例模式不支持循环依赖 `doGetBean` 方法中有判断，因为多例的 Bean 不进行实例化，所以没法从一级缓存中获取，所以直接就走此方法 `isPrototypeCurrentlyInCreation`，如果 scope 是 `Prototype` 的，校验是否有出现循环依赖，如果有则直接报错。
+
+#### 3.12.3. 多例Bean注意项
+
+- scope 作用域：默认是单例模式，即 `scope="singleton"`。另外 scope 还有 prototype、request、session、global session 作用域。`scope="prototype"`表示多例。<font color=red>**注：request 和 session 作用域只会在 web 环境才会存在(此时 bean 的管理是由 tomcat 进行的)**</font>
+- Scope 是 `Prototype` 时，不管是否同一个线程，只要是 `getBean()` 方法就会得到一个新的实例
+- Scope 是 `Prototype` 时，在spring容器启动中，是不会创建实例，需要主动调用 `getBean()` 时才会创建实例
+- Request 作用域时，是把实例存储到 request 对象中(此时 bean 的管理是由 tomcat 进行的)， 通过 `request.getAttruibte/setAttibute` 进行操作
+- Session 作用域时，是把实例存储到 session 对象中，通过 `session.getAttruibte/setAttibute` 进行操作
+- `ClassPathApplicationContext` 容器是没有 request 和 session 的作用域
+- `WebXmlApplicationContext` 容器是有 request 和 session 的作用域，但是如何添加呢？
 
 
+#### 3.12.4. Request与Session作用域(!!后面需要补充tomcat部署时的截图。目前因为没有配置好web.xml文件与springMVC)
+
+定义两个作用域测试bean。*注：需要引入spring-web的依赖*
+
+```java
+@Component
+@Scope(value = RequestAttributes.REFERENCE_REQUEST/*,proxyMode = ScopedProxyMode.TARGET_CLASS*/)
+public class RequestScopeBean {
+}
+
+@Component
+@Scope(value = RequestAttributes.REFERENCE_SESSION/*,proxyMode = ScopedProxyMode.TARGET_CLASS*/)
+public class SessionScopeBean {
+}
+```
+
+如果直接使用单元测试，调用spring容器的`getBean()`方法，则会直接报错
+
+```java
+@Test
+public void requestSessoinScopeTest() {
+    applicationContext.getBean("requestScopeBean");
+}
+```
+
+![](images/20200603234203880_27806.png)
+
+因为spring框架的scopes容器没有request作用域
+
+![](images/20200603234906381_7555.png)
+
+#### 3.12.5. 自定义作用域
+
+##### 3.12.5.1. 自定义作用域源码分析
+
+阅读`AbstractBeanFactory`类的源码发现，有一个public的方法`registerScope`，该方法可以往spring构架中的scopes容器中注册（添加自定义作用域）。所以只要通过实现`BeanFactoryPostProcessor`接口，拿到spring的BeanFactory对象，即可调用该方法往作用域scopes容器中注册自定义作用域
+
+```java
+/* 该方法实现向spring容器中注册一个Scope（bean作用范围）对象 */
+@Override
+public void registerScope(String scopeName, Scope scope) {
+	Assert.notNull(scopeName, "Scope identifier must not be null");
+	Assert.notNull(scope, "Scope must not be null");
+	if (SCOPE_SINGLETON.equals(scopeName) || SCOPE_PROTOTYPE.equals(scopeName)) {
+		throw new IllegalArgumentException("Cannot replace existing scopes 'singleton' and 'prototype'");
+	}
+	Scope previous = this.scopes.put(scopeName, scope);
+	if (previous != null && previous != scope) {
+		if (logger.isDebugEnabled()) {
+			logger.debug("Replacing scope '" + scopeName + "' from [" + previous + "] to [" + scope + "]");
+		}
+	}
+	else {
+		if (logger.isTraceEnabled()) {
+			logger.trace("Registering scope '" + scopeName + "' with implementation [" + scope + "]");
+		}
+	}
+}
+```
+
+- 自定义scope作用域的调用位置。主要会从`scopes`容器获取已经注册的`Scope`接口实例，然后调用`Scope`接口实例的`get`方法，当前调用入参的`ObjectFactory.getObject()`方法时，就会调用到lambda表达式的代码，创建实例返回
+
+```java
+protected <T> T doGetBean(
+		String name, @Nullable Class<T> requiredType, @Nullable Object[] args, boolean typeCheckOnly)
+		throws BeansException {
+    ....省略
+    else {
+		/* 其他作用范围的bean的实例化 */
+		String scopeName = mbd.getScope();
+		if (!StringUtils.hasLength(scopeName)) {
+			throw new IllegalStateException("No scope name defined for bean ´" + beanName + "'");
+		}
+		// 从scopes的Map容器中，根据scopeName获取Scope接口实例
+		Scope scope = this.scopes.get(scopeName);
+		if (scope == null) {
+			throw new IllegalStateException("No Scope registered for scope name '" + scopeName + "'");
+		}
+		try {
+			/*
+			 * 此处会调用Scope接口的get方法，其中第二个入参为ObjectFactory对象
+			 * 在实现Scope接口的get方法中，调用ObjectFactory.getObject()方法，
+			 * 即调用到此lambda表达式的代码，会返回spring创建的实例
+			 *
+			 * 注：这里spring只会创建，不会保存到缓存中，意味着实例的管理由自己来实现
+			 */
+			Object scopedInstance = scope.get(beanName, () -> {
+				beforePrototypeCreation(beanName);
+				try {
+					return createBean(beanName, mbd, args);
+				}
+				finally {
+					afterPrototypeCreation(beanName);
+				}
+			});
+			// 此方法是FactoryBean接口的调用入口
+			bean = getObjectForBeanInstance(scopedInstance, name, beanName, mbd);
+		}
+		catch (IllegalStateException ex) {
+			throw new BeanCreationException(beanName,
+					"Scope '" + scopeName + "' is not active for the current thread; consider " +
+					"defining a scoped proxy for this bean if you intend to refer to it from a singleton",
+					ex);
+		}
+	}
+    ....省略
+}
+
+```
+
+- `Scope`接口的`remove(String name)`方法的调用
+
+```java
+@Override
+public void destroyScopedBean(String beanName) {
+	RootBeanDefinition mbd = getMergedLocalBeanDefinition(beanName);
+	if (mbd.isSingleton() || mbd.isPrototype()) {
+		throw new IllegalArgumentException(
+				"Bean name '" + beanName + "' does not correspond to an object in a mutable scope");
+	}
+	String scopeName = mbd.getScope();
+	// 从scope容器中获取自定义的scope对象
+	Scope scope = this.scopes.get(scopeName);
+	if (scope == null) {
+		throw new IllegalStateException("No Scope SPI registered for scope name '" + scopeName + "'");
+	}
+	// 调用自定义的scope对象的remove方法
+	Object bean = scope.remove(beanName);
+	if (bean != null) {
+		destroyBean(beanName, bean, mbd);
+	}
+}
+```
 
 
+##### 3.12.5.2. 自定义作用域实现
 
+1. 写一个类实现 scope 接口，实现`get()`方法，该方法是管理生成bean实例作用域的逻辑
 
+```java
+package com.moon.spring.scope;
 
+import org.springframework.beans.factory.ObjectFactory;
+import org.springframework.beans.factory.config.Scope;
 
+/**
+ * 自定义bean作用域，需要实现Scope接口
+ * <p>此自定义作用域的需求是，在同一个线程中获取都是同一个实例，不同线程获取不同实例</p>
+ */
+public class CustomScope implements Scope {
 
+    private final ThreadLocal<Object> threadLocal = new ThreadLocal<>();
 
+    /**
+     * 获取bean实例的方法，此方法可以实现管理生成bean实例作用域逻辑
+     */
+    @Override
+    public Object get(String name, ObjectFactory<?> objectFactory) {
+        System.out.println("=====自定义作用域CustomScope.get()执行=====");
 
-## 4. 纯注解扫描的过程
+        // 如果当前线程存在创建完成的实例，直接返回
+        if (threadLocal.get() != null) {
+            return threadLocal.get();
+        }
 
-此类的作用是支持了`@Configuration`、`@ComponentScan`、`@Import`、`@ImportResource`、`@PropertySource`、`@Order` 等注解，对于理解 springboot 帮助很大，真正的可以做到零 xml 配置
+        // 此处调用ObjectFactory接口的getObject方法，相应源码就是调用spring框架的createbean方法获得一个实例
+        Object object = objectFactory.getObject();
+        // 设置到ThreadLocal容器并返回
+        threadLocal.set(object);
+        return object;
+    }
 
-### 4.1. 测试@ComponentScan配置扫描
+    @Override
+    public Object remove(String name) {
+        Object o = threadLocal.get();
+        threadLocal.remove();
+        return o;
+    }
+
+    @Override
+    public void registerDestructionCallback(String name, Runnable callback) {
+
+    }
+
+    @Override
+    public Object resolveContextualObject(String key) {
+        return null;
+    }
+
+    @Override
+    public String getConversationId() {
+        return null;
+    }
+}
+```
+
+2. 要获取`BeanFactory`对象，必须实现`BeanFactoryPostProcessor`或者``接口才能获取 `BeanFactory` 对象。调用 `BeanFactory.registerScope` 方法把自定义的 scope 注册进去
+
+```java
+package com.moon.spring.scope;
+
+import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
+import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
+import org.springframework.stereotype.Component;
+
+/**
+ * 实现BeanFactoryPostProcessor接口，用于注册自定义bean作用域
+ */
+@Component
+public class CustomBeanFactoryPostProcessor implements BeanFactoryPostProcessor {
+    // 实现postProcessBeanFactory方法，注册自定义作用域
+    @Override
+    public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
+        beanFactory.registerScope("MooNkirAScope", new CustomScope());
+    }
+}
+```
+
+3. 编写测试bean。测试结果如下：
+
+```java
+@Component
+@Scope("MooNkirAScope")
+public class CustomScopeBean {
+}
+```
+
+![](images/20200607101708791_9813.png)
+
+![](images/20210213151048197_11426.png)
+
+#### 3.12.6. Bean作用域总结
+
+Spring框架Bean的作用域的本质是对Bean实例的管理。
+
+1. 单例模式Bean的实例是存储在`DefaultSingletonBeanRegistry`类中的`singletonObjects`的map容器中
+2. 实现`FactoryBean`接口后所创建的Bean实例，是存储在`FactoryBeanRegistrySupport`类中的`factoryBeanObjectCache`的Map容器中
+3. 多例模式Bean的实例是没有存缓存中，每次获取时创建
+4. Request与Session模式Bean的实例是存储在web容器相应的request与session对象中
+5. 自定义作用域其实是自已定义Bean实例的管理方式，存储到缓存或者直接创建由定义者决定
+
+# Bean 的实例化过程（基于纯注解配置方式）
+
+注：Spring基于纯注解的Bean实例化过程，基本上与xml的流程差不多，目前项目几乎都是基于注解驱动开发的，所以基于注解的方式的实例化是重点
+
+## 1. AnnotationConfigApplicationContext 基于注解配置上下文对象
+
+### 1.1. 构造方法
+
+创建基于注解的上下文对象一般都会调用以下的构造方法
+
+```java
+/**
+ * Create a new AnnotationConfigApplicationContext, scanning for components
+ * in the given packages, registering bean definitions for those components,
+ * and automatically refreshing the context.
+ * @param basePackages the packages to scan for component classes
+ */
+public AnnotationConfigApplicationContext(String... basePackages) {
+	this();
+	// 如果入参为基础包，则进行包扫描的操作
+	scan(basePackages);
+	refresh();
+}
+```
+
+```java
+/**
+ * Create a new AnnotationConfigApplicationContext, deriving bean definitions
+ * from the given component classes and automatically refreshing the context.
+ * @param componentClasses one or more component classes &mdash; for example,
+ * {@link Configuration @Configuration} classes
+ */
+public AnnotationConfigApplicationContext(Class<?>... componentClasses) {
+	// 子类的构造方法执行时，第一步会默认调父类的无参构造方法，即public GenericApplicationContext()
+	// 调用无参构造方法，用来注册与初始化框架的本身一些核心类，主要完成一些解析器与扫描器的注册
+	this();
+	// 将传入的类字节码对象（配置类）注册到BeanDefinition中
+	register(componentClasses);
+	refresh();
+}
+```
+
+### 1.2. 注解读取处理类与扫描器的注册
+
+在执行`this.reader = new AnnotatedBeanDefinitionReader(this);`时，创建注解读取器AnnotatedBeanDefinitionReader时，在调用`AnnotationConfigUtils.registerAnnotationConfigProcessors(this.registry)`方法时完成注解与相应处理类的注册到BeanDefinitionRegistry对象中，会注册一些比较重要的`BeanPostProcessor`处理类，如：`ConfigurationClassPostProcessor`、`AutowiredAnnotationBeanPostProcessor`、`CommonAnnotationBeanPostProcessor`，
+
+```java
+/**
+ * Create a new AnnotationConfigApplicationContext that needs to be populated
+ * through {@link #register} calls and then manually {@linkplain #refresh refreshed}.
+ */
+/*
+ * AnnotationConfigApplicationContext(Class<?>... annotatedClasses)
+ * AnnotationConfigApplicationContext(String... basePackages)
+ * 	以上两个构造函数，创建容器的第一步会调用此无参构造方法
+ */
+public AnnotationConfigApplicationContext() {
+	// 创建读取注解的BeanDefinition读取器
+	this.reader = new AnnotatedBeanDefinitionReader(this);
+	/*
+	 * 创建扫描器，用于扫描包或类，封装成BeanDefinition对象
+	 * 		spring默认的扫描器其实不是这个scanner对象
+	 * 		而是在后面自己又重新new了一个ClassPathBeanDefinitionScanner
+	 * 		spring在执行工程后置处理器ConfigurationClassPostProcessor时，去扫描包时会new一个ClassPathBeanDefinitionScanner
+	 * 	这个scanner是为了可以手动调用AnnotationConfigApplicationContext对象的scan方法
+	 */
+	this.scanner = new ClassPathBeanDefinitionScanner(this);
+}
+```
+
+```java
+public AnnotatedBeanDefinitionReader(BeanDefinitionRegistry registry, Environment environment) {
+	Assert.notNull(registry, "BeanDefinitionRegistry must not be null");
+	Assert.notNull(environment, "Environment must not be null");
+	this.registry = registry;
+	this.conditionEvaluator = new ConditionEvaluator(registry, environment, null);
+	// 完成相关注解与其相应的处理的类的注册到BeanDefinitionRegistry对象中
+	AnnotationConfigUtils.registerAnnotationConfigProcessors(this.registry);
+}
+```
+
+![](images/20210213162906871_2956.png)
+
+> 注：上面的`registerAnnotationConfigProcessors()`方法，在xml自定义标签标签时的逻辑一致。因为基于纯注解配置，没有了xml配置文件，其实以前基于xml自定义标签(如`<context:component-scan>`等)来配置注解扫描的解析，也会调用`AnnotationConfigUtils.registerAnnotationConfigProcessors()`方法，来完成这些组件的注册。
+
+## 2. ConfigurationClassPostProcessor 类
+
+在`registerAnnotationConfigProcessors()`方法中，会完成很多注解处理类的注册，`ConfigurationClassPostProcessor`类的作用就是支持了`@Configuration`、`@ComponentScan`、`@Import`、`@ImportResource`、`@PropertySource`、`@Order` 等注解的注册，对于理解 springboot 帮助很大，真正的可以做到零 xml 配置
+
+### 2.1. 类作用分析
+
+```java
+public class ConfigurationClassPostProcessor implements BeanDefinitionRegistryPostProcessor,
+		PriorityOrdered, ResourceLoaderAware, BeanClassLoaderAware, EnvironmentAware
+```
+
+从类的继承关系可以看出，`ConfigurationClassPostProcessor`实现`BeanDefinitionRegistryPostProcessor`接口，所以此类主要的作用就是在处理容器实例化前对`BeanDefinition`进行操作并且加入到`BeanDefinitionRegistry`注册中心中
+
+此类也实现了`PriorityOrdered`，并且设置优先为最低，会在所有的`BeanDefinitionRegistryPostProcessor`接口实现类都调用后，才会进行调用
+
+```java
+@Override
+public int getOrder() {
+	return Ordered.LOWEST_PRECEDENCE;  // within PriorityOrdered
+}
+```
+
+### 2.2. 测试@ComponentScan配置扫描
 
 - 创建配置类，在类上增加`@ComponentScan`注解，作用相当于xml配置文件中的`<context:component-scan base-package="com.moon.spring"/>`标签
 
@@ -4291,58 +4647,177 @@ public class MyTest {
 }
 ```
 
-### 4.2. AnnotationConfigApplicationContext 注解上下文对象
+### 2.3. 纯注解扫描的过程
 
-- 构造函数
+`ConfigurationClassPostProcessor`实现`BeanDefinitionRegistryPostProcessor`接口，所以实例化bean前会调用`postProcessBeanDefinitionRegistry`方法
 
 ```java
-public AnnotationConfigApplicationContext(Class<?>... annotatedClasses) {
-	this();
-	// 将传入的类注册到BeanDefinition中
-	register(annotatedClasses);
-	refresh();
-}
+@Override
+public void postProcessBeanDefinitionRegistry(BeanDefinitionRegistry registry) {
+	int registryId = System.identityHashCode(registry);
+	if (this.registriesPostProcessed.contains(registryId)) {
+		throw new IllegalStateException(
+				"postProcessBeanDefinitionRegistry already called on this post-processor against " + registry);
+	}
+	if (this.factoriesPostProcessed.contains(registryId)) {
+		throw new IllegalStateException(
+				"postProcessBeanFactory already called on this post-processor against " + registry);
+	}
+	this.registriesPostProcessed.add(registryId);
 
-public AnnotationConfigApplicationContext() {
-	// 创建读取注解的BeanDefinition读取器
-	this.reader = new AnnotatedBeanDefinitionReader(this);
+	// 此方法会完成很多注解处理类的注册，核心逻辑，重要程度【5】
+	processConfigBeanDefinitions(registry);
+}
+```
+
+调用`processConfigBeanDefinitions`方法，完成相关注解处理类的注册
+
+```java
+public void processConfigBeanDefinitions(BeanDefinitionRegistry registry) {
+	List<BeanDefinitionHolder> configCandidates = new ArrayList<>();
+	// 获取所有的beanNames
+	String[] candidateNames = registry.getBeanDefinitionNames();
+
+	for (String beanName : candidateNames) {
+		BeanDefinition beanDef = registry.getBeanDefinition(beanName);
+		// 如果有该标识就不再处理
+		if (beanDef.getAttribute(ConfigurationClassUtils.CONFIGURATION_CLASS_ATTRIBUTE) != null) {
+			if (logger.isDebugEnabled()) {
+				logger.debug("Bean definition has already been processed as a configuration class: " + beanDef);
+			}
+		}
+		// 判断类上是否有@Configuration、@Component，或者类中的方法有@Bean注解，如果是则放入List集合容器configCandidates
+		else if (ConfigurationClassUtils.checkConfigurationClassCandidate(beanDef, this.metadataReaderFactory)) {
+			configCandidates.add(new BeanDefinitionHolder(beanDef, beanName));
+		}
+	}
+
+	// Return immediately if no @Configuration classes were found
+	// 如果容器为空，即没有找到以上的注解，则直接返回
+	if (configCandidates.isEmpty()) {
+		return;
+	}
+	....省略
+}
+```
+
+通过`BeanDefinitionRegistry`对象获取到容器中所有`BeanDefinition`，循环所有并调用`ConfigurationClassUtils.checkConfigurationClassCandidate`方法，判断循环当前类上是否有包含需要处理的注解（如：`@Configuration`、`@Component`，或者类中的方法有`@Bean`注解）
+
+```java
+public static boolean checkConfigurationClassCandidate(
+		BeanDefinition beanDef, MetadataReaderFactory metadataReaderFactory) {
+
+	String className = beanDef.getBeanClassName();
+	if (className == null || beanDef.getFactoryMethodName() != null) {
+		return false;
+	}
+
+	AnnotationMetadata metadata;
+	// 如果是扫描注解产生的BeanDefinition
+	if (beanDef instanceof AnnotatedBeanDefinition &&
+			className.equals(((AnnotatedBeanDefinition) beanDef).getMetadata().getClassName())) {
+		// Can reuse the pre-parsed metadata from the given BeanDefinition...
+		metadata = ((AnnotatedBeanDefinition) beanDef).getMetadata();
+	}
+	// 非扫描注解产生的BeanDefinition
+	else if (beanDef instanceof AbstractBeanDefinition && ((AbstractBeanDefinition) beanDef).hasBeanClass()) {
+		// Check already loaded Class if present...
+		// since we possibly can't even load the class file for this Class.
+		Class<?> beanClass = ((AbstractBeanDefinition) beanDef).getBeanClass();
+		if (BeanFactoryPostProcessor.class.isAssignableFrom(beanClass) ||
+				BeanPostProcessor.class.isAssignableFrom(beanClass) ||
+				AopInfrastructureBean.class.isAssignableFrom(beanClass) ||
+				EventListenerFactory.class.isAssignableFrom(beanClass)) {
+			return false;
+		}
+		metadata = AnnotationMetadata.introspect(beanClass);
+	}
+	else {
+		try {
+			MetadataReader metadataReader = metadataReaderFactory.getMetadataReader(className);
+			metadata = metadataReader.getAnnotationMetadata();
+		}
+		catch (IOException ex) {
+			if (logger.isDebugEnabled()) {
+				logger.debug("Could not find class file for introspecting configuration annotations: " +
+						className, ex);
+			}
+			return false;
+		}
+	}
+
+	// 从metadata中获取@Configuration注解
+	Map<String, Object> config = metadata.getAnnotationAttributes(Configuration.class.getName());
+	// 判断如果有@Configuration注解，设置一个标识（CONFIGURATION_CLASS_FULL="full"），代表完全匹配标识
+	if (config != null && !Boolean.FALSE.equals(config.get("proxyBeanMethods"))) {
+		beanDef.setAttribute(CONFIGURATION_CLASS_ATTRIBUTE, CONFIGURATION_CLASS_FULL);
+	}
 	/*
-	 * 创建扫描器，用于扫描包或类，封装成BeanDefinition对象
-	 * 		spring默认的扫描器其实不是这个scanner对象
-	 * 		而是在后面自己又重新new了一个ClassPathBeanDefinitionScanner
-	 * 		spring在执行工程后置处理器ConfigurationClassPostProcessor时，去扫描包时会new一个ClassPathBeanDefinitionScanner
-	 * 	这个scanner是为了可以手动调用AnnotationConfigApplicationContext对象的scan方法
+	 * 判断是否有@Component、@ComponentScan、@Import、@ImportResource注解或者方法上面有@Bean注解，
+	 * 或者类上面没注解（xml配置实例化）但方法上面有@Bean注解
+	 * 如果是，则设置一个标识（CONFIGURATION_CLASS_LITE="lite"），代表部分匹配标识
 	 */
-	this.scanner = new ClassPathBeanDefinitionScanner(this);
+	else if (config != null || isConfigurationCandidate(metadata)) {
+		beanDef.setAttribute(CONFIGURATION_CLASS_ATTRIBUTE, CONFIGURATION_CLASS_LITE);
+	}
+	else {
+		return false;
+	}
+
+	// 获取@Order注解值，用于排序
+	// It's a full or lite configuration candidate... Let's determine the order value, if any.
+	Integer order = getOrder(metadata);
+	if (order != null) {
+		beanDef.setAttribute(ORDER_ATTRIBUTE, order);
+	}
+
+	return true;
 }
 ```
 
-- 在执行`this.reader = new AnnotatedBeanDefinitionReader(this);`时，创建注解读取器AnnotatedBeanDefinitionReader时，在调用`AnnotationConfigUtils.registerAnnotationConfigProcessors(this.registry)`方法时完成注解与相应处理类的注册到BeanDefinitionRegistry对象中。
+
 
 ```java
-public AnnotatedBeanDefinitionReader(BeanDefinitionRegistry registry, Environment environment) {
-	Assert.notNull(registry, "BeanDefinitionRegistry must not be null");
-	Assert.notNull(environment, "Environment must not be null");
-	this.registry = registry;
-	this.conditionEvaluator = new ConditionEvaluator(registry, environment, null);
-	// 完成相关注解与其相应的处理的类的注册到BeanDefinitionRegistry对象中
-	AnnotationConfigUtils.registerAnnotationConfigProcessors(this.registry);
+public static boolean isConfigurationCandidate(AnnotationMetadata metadata) {
+	// Do not consider an interface or an annotation...
+	if (metadata.isInterface()) {
+		return false;
+	}
+
+	// Any of the typical annotations found?
+	// 判断是否包含@Component,@ComponentScan,@Import,@ImportResource
+	for (String indicator : candidateIndicators) {
+		if (metadata.isAnnotated(indicator)) {
+			return true;
+		}
+	}
+
+	// Finally, let's look for @Bean methods...
+	try {
+		// 判断是否有@Bean注解
+		return metadata.hasAnnotatedMethods(Bean.class.getName());
+	}
+	catch (Throwable ex) {
+		if (logger.isDebugEnabled()) {
+			logger.debug("Failed to introspect @Bean methods on class [" + metadata.getClassName() + "]: " + ex);
+		}
+		return false;
+	}
 }
 ```
 
-> 注：上面的`registerAnnotationConfigProcessors()`方法，在xml自定义标签标签时的逻辑一致
+Set集合`candidateIndicators`所包含的支持的注解名称
 
-### 4.3. ConfigurationClassPostProcessor 类
+![](images/20210213231426026_5664.png)
 
-在`registerAnnotationConfigProcessors()`方法中，会完成很多注解处理类的注册，其中`ConfigurationClassPostProcessor`类就是完成对`@Configuration`、`@Component`、`@Bean`、`@ComponentScan`、`@Import`、`@ImportResource`等注解的注册
 
-#### 4.3.1. 开启xml配置注解扫描标签的差异
+### 2.4. 开启xml配置注解扫描标签的差异
 
-- 如果不开启xml配置文件中的注解扫描时，运行`AnnotationConfigApplicationContext`测试，会发现BeanDefinitionRegistry对象中的BeanDefinitionNames只有当前传入的类名称
+- 如果不开启xml配置文件中的注解扫描时，运行`AnnotationConfigApplicationContext`测试，会发现`BeanDefinitionRegistry`对象中的`BeanDefinitionNames`只有当前传入的类名称
 
 ![](images/20200607185052429_18031.png)
 
-- 如果开启xml配置文件中的注解扫描时，同样运行`AnnotationConfigApplicationContext`测试，会发现BeanDefinitionRegistry对象中的BeanDefinitionNames已经注册很多BeanDefinition名称
+- 如果开启xml配置文件中的注解扫描时，同样运行`AnnotationConfigApplicationContext`测试，会发现`BeanDefinitionRegistry`对象中的`BeanDefinitionNames`已经注册很多`BeanDefinition`名称
 
 ![](images/20200607185839856_2003.png)
 
@@ -4353,6 +4828,7 @@ public AnnotatedBeanDefinitionReader(BeanDefinitionRegistry registry, Environmen
 以上的差异是因为在spring的核心方法`AbstractApplicationContext.refresh()`方法中，执行的逻辑时序是先解析xml配置文件，再调用`BeanDefinitionRegistryPostProcessor`接口的`postProcessBeanDefinitionRegistry()`方法读取已经注册的BeanDefinition名称
 
 ![](images/20200607191232299_16943.png)
+
 
 # Spring 相关功能与设计
 
@@ -4503,12 +4979,32 @@ public void testPropertiesByXml() {
 
 #### 2.1.3. 通过BeanDefinitionRegistryPostProcessorr接口修改BeanDefinition
 
-- 使用上面示例原始的xml配置文件（*不需要配置`context:property-placeholder`标签*）与properties文件
+- 使用上面示例原始的xml配置文件（*但不需要配置`context:property-placeholder`标签*）与properties文件
+- 创建使用`@Value`注解占位符注入属性的测试类
+
+```java
+@Component
+@Data
+public class PlaceholderBean {
+    @Value("${moon.name}")
+    private String name;
+    @Value("${moon.password}")
+    private String password;
+}
+```
+
 - 创建配置类，使用`@PropertySource`注解引入配置文件。
 
 ```java
 @Configuration
-// @PropertySource注解只是引入配置文件，无法实现将注入属性值替换相应占位符的值
+/*
+ * @PropertySource注解用于引入配置文件，与xml的配置
+ * <context:property-placeholder location="classpath:application.properties"/>
+ * 作用一样，也可实现将注入属性值为占位符时替换成相应的值
+ *
+ * 注：但此注解在使用@Value(${xx.xx})的情况，能成功解析占位符并替换成配置文件中的值
+ * xml配置<property name="abc" value="${xx.xx}"/> 却无法解析占位符
+ */
 @PropertySource("classpath:application.properties")
 public class SpringConfiguration {
 }
@@ -4560,14 +5056,21 @@ private final ApplicationContext context = new ClassPathXmlApplicationContext("s
 public void testPropertiesByXml() {
     PropertyBean bean = context.getBean("propertyBean", PropertyBean.class);
     System.out.println(bean.getUsername() + " :: " + bean.getPassword());
+
+    PlaceholderBean placeholderBean = context.getBean("placeholderBean", PlaceholderBean.class);
+    System.out.println(placeholderBean.getName() + " :: " + placeholderBean.getPassword());
 }
 ```
 
-> <font color=red>*注：`@PropertySource`注解只是引入配置文件，无法实现将注入属性值替换相应占位符的值，但会将properties或xml配置文件的值会注册到`Environment`对象中*</font>
->
-> 此方式只是测试一下`Environment`对象，不是正确的一种配置解析方式
+> <font color=red>**注：`@PropertySource`注解引入配置文件与xml配置中`<context:property-placeholder>`标签效果一样，也可以实现将注入属性值替换相应占位符的值，同时也会将properties或xml配置文件的值会注册到`Environment`对象中**</font>
 
 ![](images/20210212170144330_26134.png)
+
+但这次测试中发现问题是：如果`@PropertySource`注解引入配置文件只对使用`@Value`的占位符生效，对xml配置文件中的`<property name="username" value="${moon.name}"/>`的占位符是无效，注释`BeanDefinitionRegistryPostProcessor`接口实现修改部分，属性值直接就为占位符，此问题待日后详细研究源码后再分析原因
+
+![](images/20210213225012610_20998.png)
+
+![](images/20210213224956223_12043.png)
 
 #### 2.1.4. 通过`ResourceLoaderAware`接口实现读取properties配置文件
 
