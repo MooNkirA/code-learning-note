@@ -1220,6 +1220,10 @@ public void getBeanDefinitionNamesTest() {
 
 ### 2.5. @Import 注解的高级分析
 
+`@Import`注解除了可以直接导入一个（或多个）类，还可以导入实现一些接口的实现类，而这些接口分别是：`ImportSelector`与`ImportBeanDefinitionRegistrar`
+
+<font color=red>**注：`ImportSelector`与`ImportBeanDefinitionRegistrar`这两个接口的方法，必须通过`@Import`导入的方式才会被spring调用，如果使用`@Component`等注解加入到spring中，是无法调用接口的方法**</font>
+
 #### 2.5.1. ImportSelector 和 ImportBeanDefinitionRegistrar 介绍
 
 - `ImportSelector`：导入器，用于动态注册bean对象到容器中
@@ -1247,6 +1251,7 @@ public void getBeanDefinitionNamesTest() {
 - **注意事项**：
     1. 实现了`ImportSelector`接口或者`ImportBeanDefinitionRegistrar`接口的类<font color=red>**不会被解析成一个Bean注册到容器中**</font>。
     2. 通过以上两个接口实现注册bean对象到容器中时，<font color=red>**bean的唯一标识是全限定类名，而非短类名**</font>。
+    3. 以上两个接口的实现类不能通过`@Component`等注解来加入到spring容器，使用此方式接口的方法不会被spring所调用，必须配合`@Import`注解导入的方式，接口的方法才会被spring所调用。
 
 #### 2.5.2. 自定义 ImportSelector
 
@@ -1337,6 +1342,7 @@ import java.util.Set;
 /**
  * 自定义导入器，实现 ImportSelector 接口
  */
+/* 注：实现ImportSelector接口的类，必须配合@Import注解导入的方式，接口的方法才会被spring所调用 */
 public class CustomImportSelector implements ImportSelector {
 
     // 定义ASPECTJ的表达式变量，注：这里不能通过@Value注解来赋值
@@ -1651,6 +1657,7 @@ import java.util.Properties;
 /**
  * 自定义 bean 定义注册器，实现 ImportBeanDefinitionRegistrar 接口
  */
+/* 注：实现ImportBeanDefinitionRegistrar接口的类，必须配合@Import注解导入的方式，接口的方法才会被spring所调用 */
 public class CustomImportDefinitionRegistrar implements ImportBeanDefinitionRegistrar {
 
     // 定义ASPECTJ的表达式变量，注：这里不能通过@Value注解来赋值

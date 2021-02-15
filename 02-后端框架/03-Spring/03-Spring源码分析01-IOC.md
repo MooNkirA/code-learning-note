@@ -1338,9 +1338,13 @@ public ClassPathXmlApplicationContext(
 
 ### 1.3. 自定义标签解析（component-scan 标签为例）
 
-![自定义标签解析入口](images/20200109144928626_7171.png)
+#### 1.3.1. 自定义标签解析源码调用逻辑
+
+![](images/20200109144928626_7171.png)
 
 spring框架是通过spi设计思想来解决自定义标签解析。在DefaultBeanDefinitionDocumentReader类中的`parseBeanDefinitions()`方法中实现，具体的解析委托给`BeanDefinitionParserDelegate`类来实现，实现流程如下：
+
+![](images/20210215104821498_32344.png)
 
 1. 获取自定义标签的 namespace 命名空间。如：`xmlns:context="http://www.springframework.org/schema/context"`
 
@@ -1349,33 +1353,22 @@ spring框架是通过spi设计思想来解决自定义标签解析。在DefaultB
 String namespaceUri = getNamespaceURI(node);
 ```
 
-2. 根据命名空间获取`NamespaceHandler`对象。通过SPI机制 spring 会从所有的 jar 包中扫描 `META-INF/spring.handlers` 文件，建立 NamespaceUri 和 NamespaceHandler 之间映射关系。
-
-spring.handler 文件，其实就是 namespaceUri 和类的完整限定名的映射
+2. 根据命名空间获取`NamespaceHandler`对象。通过SPI机制 spring 会从所有的 jar 包中扫描 `META-INF/spring.handlers` 文件，建立 NamespaceUri 和 NamespaceHandler 之间映射关系。*spring.handler 文件，其实就是 namespaceUri 和类的完整限定名的映射*
 
 ![](images/20210214224016971_12325.png)
 
-3. 反射获取 NamespaceHandler 实例
+3. 在`DefaultNamespaceHandlerResolver`类的`resolve`方法中，通过反射获取 `NamespaceHandler` 实例
+4. 调用对应标签（如`ContextNameHandler`标签）的`init()`方法完成标签相应的元素解析类的注册，并返回`NamespaceHandler`实例
 
-```java
-// 通过反射实例化对象
-NamespaceHandler namespaceHandler = (NamespaceHandler) BeanUtils.instantiateClass(handlerClass);
-```
+![](images/20210215110937247_18064.png)
 
-4. 调用对应标签（如`ContextNameHandler`标签）的`init()`方法完成标签相应的元素解析类的注册
-
-```java
-// 调用处理类的init方法，在init方法中完成标签元素解析类的注册
-namespaceHandler.init();
-```
-
-5. 返回处理类的实例对象后，调用 parse 方法
+5. 返回处理类的实例对象后，调用`parse`方法进行标签解析，最终解析的标签封装成`BeanDefinition`并缓存到容器中
 
 ```java
 handler.parse(ele, new ParserContext(this.readerContext, this, containingBd));
 ```
 
-![](images/20200109150646047_16467.png)
+#### 1.3.2. parse 解析方法流程分析（以`<context:component-scan/>`为例）
 
 每个NameHander的`init()`方法注册不同标签对应的不同的 Parse 解析器，如 `<context:component-scan/>` 标签的解析是`ComponentScanBeanDefinitionParser`，其`parse`方法源码如下：
 
@@ -1417,9 +1410,123 @@ public BeanDefinition parse(Element element, ParserContext parserContext) {
 }
 ```
 
-- 流程总结：
-1. 获取 `base-package` 属性
-2. 创建注解扫描器 `configureScanner`(扫描所有`.class`文件)
+- `parse`方法主要的处理逻辑总结：
+1. `element.getAttribute(BASE_PACKAGE_ATTRIBUTE);`方法获取`base-package`属性
+2. `configureScanner(parserContext, element)`创建注解扫描器`ClassPathBeanDefinitionScanner`(扫描所有`.class`文件)
+3. 通过`scanner.doScan`方法，扫描类并封装成`BeanDefiniton`对象
+4. `registerComponents(parserContext.getReaderContext(), beanDefinitions, element);`方法注册相关`BeanPostProcessor`类，后面用于注解DI依赖注入
+
+#### 1.3.3. configureScanner 注解扫描器的创建
+
+![](images/20210215092125857_29037.png)
+
+```java
+protected ClassPathBeanDefinitionScanner configureScanner(ParserContext parserContext, Element element) {
+	// 使用默认的过滤器，默认就是扫描spring框架的@Service @Component等注解
+	boolean useDefaultFilters = true;
+	// 判断是否有配置“use-default-filters”属性
+	if (element.hasAttribute(USE_DEFAULT_FILTERS_ATTRIBUTE)) {
+		// 使用xml文件中配置“use-default-filters”的值
+		useDefaultFilters = Boolean.parseBoolean(element.getAttribute(USE_DEFAULT_FILTERS_ATTRIBUTE));
+	}
+
+	// Delegate bean definition registration to scanner class.
+	// 创建注解的扫描器，此方法的主要逻辑是往注解扫描器中注册相关注解过滤器AnnotationTypeFilter（存放到一个List集合中），用于过滤哪些注解需要扫描
+	ClassPathBeanDefinitionScanner scanner = createScanner(parserContext.getReaderContext(), useDefaultFilters);
+	....省略
+	// 解析<context:exclude-filter>与<context:include-filter>两个子标签，将配置包含与不包含的过滤器分别加入
+	// ClassPathScanningCandidateComponentProvider类的 List<TypeFilter> excludeFilters 与 List<TypeFilter> includeFilters 属性中
+	parseTypeFilters(element, scanner, parserContext);
+
+	return scanner;
+}
+```
+
+1. 扫描过滤器中添加需要扫描的注解类型为`Component.class`。因此会扫码`@Component`注解和`@Service`注解，`@Service`注解继承自`@Component`注解
+
+![](images/20210215092315914_7523.png)
+
+![](images/20210215092337206_32622.png)
+
+![](images/20210215092426629_7032.png)
+
+扫描过滤器中添加 `include-filter` 和 `exclude-filter`
+
+![](images/20210215093532078_25864.png)
+
+#### 1.3.4. doScan 注解类的扫描
+
+![](images/20210215094056202_17085.png)
+
+调用`ClassPathBeanDefinitionScanner`的`doScan`方法进行类扫描。通过层层递归扫描`base-package`下的包，先扫描出`classpath:/base-package`以`.class`结尾的所有文件，然后再根据过滤器扫描出具有`@Service`和`@Component`注解的类添加到对应的集合 `Set<BeanDefinition>`完成`BeanDefinition`的注册。
+
+```java
+/*
+ * doScan方法实现注解扫描的核心流程：
+ * 	1. 扫描基础包basePackages路径下的所有.class文件
+ *  2. 通过递归的方式去加载.class文件
+ *  3. 判断.class文件中是否存在指定的注解，即includeFilters容器中包含注解，如: @Component
+ * 	4. 将符合第3点的的类封装成BeanDefinition对象
+ */
+protected Set<BeanDefinitionHolder> doScan(String... basePackages) {
+	Assert.notEmpty(basePackages, "At least one base package must be specified");
+	Set<BeanDefinitionHolder> beanDefinitions = new LinkedHashSet<>();
+	for (String basePackage : basePackages) {
+		// 循环每个配置的包路径，扫描到适合要求并有注解的类并封装成BeanDefinition对象
+		Set<BeanDefinition> candidates = findCandidateComponents(basePackage);
+		// 循环并将BeanDefinition对象中其余属性值补全
+		for (BeanDefinition candidate : candidates) {
+			ScopeMetadata scopeMetadata = this.scopeMetadataResolver.resolveScopeMetadata(candidate);
+			// 从metadata对象中获取此类的作用范围，是单例还是多例
+			candidate.setScope(scopeMetadata.getScopeName());
+			String beanName = this.beanNameGenerator.generateBeanName(candidate, this.registry);
+			if (candidate instanceof AbstractBeanDefinition) {
+				postProcessBeanDefinition((AbstractBeanDefinition) candidate, beanName);
+			}
+			if (candidate instanceof AnnotatedBeanDefinition) {
+				// 支持了@Lazy、@DependOn等注解，即从metadata对象中获取扫描到的类上的注解的值，然后将值设置到BeanDefinition对象中
+				AnnotationConfigUtils.processCommonDefinitionAnnotations((AnnotatedBeanDefinition) candidate);
+			}
+			if (checkCandidate(beanName, candidate)) {
+				BeanDefinitionHolder definitionHolder = new BeanDefinitionHolder(candidate, beanName);
+
+				// 判断是否需要生成代理（不需要研究）
+				definitionHolder =
+						AnnotationConfigUtils.applyScopedProxyMode(scopeMetadata, definitionHolder, this.registry);
+				beanDefinitions.add(definitionHolder);
+
+				// 上面的逻辑都是对BeanDefinition进行创建、设置值后，最后这里是将BeanDefinition注册到BeanDefinitionRegistry容器中
+				registerBeanDefinition(definitionHolder, this.registry);
+			}
+		}
+	}
+	return beanDefinitions;
+}
+```
+
+循环每个配置的包路径，扫描到适合要求并有注解的类，封装成BeanDefinition对象返并返回
+
+![](images/20210215094631704_29.png)
+
+![](images/20210215094811791_29554.png)
+
+`@Lazy`、`@DependOn`、`@Primary`等注解支持
+
+![](images/20210215095043845_19017.png)
+
+#### 1.3.5. registerComponents 组件注册
+
+![](images/20210215100353499_22959.png)
+
+`registerComponents` 方法中，注册了几个比较重要的如 `ConfigurationClassPostProcessor`(扫描`@Configuration`、`@Component`、`@Bean`注解的解析)、`AutowiredAnnotationBeanPostProcessor`(扫描`@Value`和`@Autowired`注解)、`CommonAnnotationBeanPostProcessor`
+
+![](images/20210215102345396_15195.png)
+
+![](images/20210215102418029_31561.png)
+
+例如：`ConfigurationClassPostProcessor`类对`@Configuration`、`@Component`、`@Bean`注解扫描与解析
+
+![](images/20210215104255501_11966.png)
 
 
 ## 2. invokeBeanFactoryPostProcessors 方法调用
@@ -5203,6 +5310,100 @@ public class MyTest {
 ![](images/20200607191232299_16943.png)
 
 #### 2.5.3. 解析流程
+
+`@ComponentScan`在`ConfigurationClassParser.doProcessConfigurationClass`方法中，去处理该注解
+
+```java
+// Process any @ComponentScan annotations --> 翻译：处理任何@ComponentScan注解
+// 从metaData对象中获取是否有@ComponentScans或@ComponentScan注解
+Set<AnnotationAttributes> componentScans = AnnotationConfigUtils.attributesForRepeatable(
+		sourceClass.getMetadata(), ComponentScans.class, ComponentScan.class);
+// 判断是否存在@ComponentScans注解，并且是否需要跳过
+if (!componentScans.isEmpty() &&
+		!this.conditionEvaluator.shouldSkip(sourceClass.getMetadata(), ConfigurationPhase.REGISTER_BEAN)) {
+	for (AnnotationAttributes componentScan : componentScans) {
+		// The config class is annotated with @ComponentScan -> perform the scan immediately
+		// 处理@ComponentScan注解，此parse方法里面的逻辑，基本上跟<component-scan>自定义标签解析的逻辑差不多
+		Set<BeanDefinitionHolder> scannedBeanDefinitions =
+				this.componentScanParser.parse(componentScan, sourceClass.getMetadata().getClassName());
+		// Check the set of scanned definitions for any further config classes and parse recursively if needed
+		// 扫描到@Component生成beanDefinition后，又递归去校验类上面是否有特殊注解
+		for (BeanDefinitionHolder holder : scannedBeanDefinitions) {
+			BeanDefinition bdCand = holder.getBeanDefinition().getOriginatingBeanDefinition();
+			if (bdCand == null) {
+				bdCand = holder.getBeanDefinition();
+			}
+			// 判断是否是候选的BeanDefinition，如果是则又递归调用parse方法
+			if (ConfigurationClassUtils.checkConfigurationClassCandidate(bdCand, this.metadataReaderFactory)) {
+				parse(bdCand.getBeanClassName(), holder.getBeanName());
+			}
+		}
+	}
+}
+```
+
+`this.componentScanParser.parse()`方法的处理逻辑基本上自定义标签`<context:component-scan>`解析逻辑差不多，先创建扫描器，解析配置了includeFilters属性与excludeFilters属性，最后调用`ClassPathBeanDefinitionScanner.doScan`方法进行扫描
+
+![](images/20210215122201400_10755.png)
+
+与自定义标签扫描调用的方法一样
+
+![](images/20210215122313222_26564.png)
+
+值得注意的是，在处理包扫描后，此时扫描出来类都只是包含`@Component`注解，然而这些类上可能还会有其他的注解（如：`@Import`、`@Bean`等等注解）。此时就又会调用`ConfigurationClassUtils.checkConfigurationClassCandidate`方法进行是否有候选待处理的注解，如果有，则再递归调用`ConfigurationClassParser.parse`方法
+
+### 2.6. @Import 实现原理
+
+`@Import`在`ConfigurationClassParser.doProcessConfigurationClass`方法中，去处理该注解
+
+```java
+// 解析@Import注解，其注解的作用是引入一个（或多个）类，getImports(sourceClass) 获取类上面的@Import注解导入的类并封装成SourceClass的set集合
+processImports(configClass, sourceClass, getImports(sourceClass), filter, true);
+```
+
+#### 2.6.1. getImports 收集所有导入的类数据
+
+收集`@Import`注解`value`属性配置导入的多个类字节码对象，又将每个导入的类包装成`SourceClass`对象。
+
+```java
+private Set<SourceClass> getImports(SourceClass sourceClass) throws IOException {
+	Set<SourceClass> imports = new LinkedHashSet<>();
+	Set<SourceClass> visited = new LinkedHashSet<>();
+	collectImports(sourceClass, imports, visited);
+	return imports;
+}
+```
+
+```java
+private void collectImports(SourceClass sourceClass, Set<SourceClass> imports, Set<SourceClass> visited)
+		throws IOException {
+
+	if (visited.add(sourceClass)) {
+		// 获取当前类所有注解
+		for (SourceClass annotation : sourceClass.getAnnotations()) {
+			String annName = annotation.getMetadata().getClassName();
+			// 判断如果当前是@Import注解，则跳过；不是则递归再调用collectImports方法
+			if (!annName.equals(Import.class.getName())) {
+				// 递归调用
+				collectImports(annotation, imports, visited);
+			}
+		}
+		// 最后将@Import注解的value属性配置的多个类又包装成SourceClass对象，增加到Set<SourceClass> imports 集合容器中
+		imports.addAll(sourceClass.getAnnotationAttributes(Import.class.getName(), "value"));
+	}
+}
+```
+
+#### 2.6.2. processImports
+
+
+
+
+
+
+
+
+
 
 
 
