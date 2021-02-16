@@ -5396,6 +5396,207 @@ private void collectImports(SourceClass sourceClass, Set<SourceClass> imports, S
 
 #### 2.6.2. processImports
 
+`processImports`方法是处理`@Import`注解的主要逻辑源码与分析如下：
+
+```java
+private void processImports(ConfigurationClass configClass, SourceClass currentSourceClass,
+		Collection<SourceClass> importCandidates, Predicate<String> exclusionFilter,
+		boolean checkForCircularImports) {
+
+	// 如果收集@Import注解导入的类set集合为空，则不处理直接返回
+	if (importCandidates.isEmpty()) {
+		return;
+	}
+
+	if (checkForCircularImports && isChainedImportOnStack(configClass)) {
+		this.problemReporter.error(new CircularImportProblem(configClass, this.importStack));
+	}
+	else {
+		this.importStack.push(configClass);
+		try {
+			// 循环类上面的@Import注解导入的每一个类
+			for (SourceClass candidate : importCandidates) {
+				// 判断@Import注解引入的是ImportSelector类型
+				if (candidate.isAssignable(ImportSelector.class)) {
+					// Candidate class is an ImportSelector -> delegate to it to determine imports
+					Class<?> candidateClass = candidate.loadClass();
+					// 反射实例化
+					ImportSelector selector = ParserStrategyUtils.instantiateClass(candidateClass, ImportSelector.class,
+							this.environment, this.resourceLoader, this.registry);
+					Predicate<String> selectorFilter = selector.getExclusionFilter();
+					if (selectorFilter != null) {
+						exclusionFilter = exclusionFilter.or(selectorFilter);
+					}
+					// 判断@Import注解引入的是DeferredImportSelector类型
+					if (selector instanceof DeferredImportSelector) {
+						// 如果为延迟导入处理则加入集合当中，比较复杂，SpringBoot中自动配置会用到
+						this.deferredImportSelectorHandler.handle(configClass, (DeferredImportSelector) selector);
+					}
+					else {
+						// 调用ImportSelector接口的selectImports方法，获取方法返回的类全限定名称数组
+						String[] importClassNames = selector.selectImports(currentSourceClass.getMetadata());
+						// 根据ImportSelector接口方法的返回值来进行递归操作，将返回的类都封装成SourceClass对象
+						Collection<SourceClass> importSourceClasses = asSourceClasses(importClassNames, exclusionFilter);
+						// 递归处理，有可能import进来的类上又有@Import注解
+						processImports(configClass, currentSourceClass, importSourceClasses, exclusionFilter, false);
+					}
+				}
+				// 判断@Import注解引入的是ImportBeanDefinitionRegistrar类型
+				else if (candidate.isAssignable(ImportBeanDefinitionRegistrar.class)) {
+					// Candidate class is an ImportBeanDefinitionRegistrar ->
+					// delegate to it to register additional bean definitions
+					Class<?> candidateClass = candidate.loadClass();
+					// 反射实例化
+					ImportBeanDefinitionRegistrar registrar =
+							ParserStrategyUtils.instantiateClass(candidateClass, ImportBeanDefinitionRegistrar.class,
+									this.environment, this.resourceLoader, this.registry);
+					/*
+					 * 加入到Map<ImportBeanDefinitionRegistrar, AnnotationMetadata> importBeanDefinitionRegistrars容器中，
+					 *  这里还没有调用registerBeanDefinitions方法
+					 */
+					configClass.addImportBeanDefinitionRegistrar(registrar, currentSourceClass.getMetadata());
+				}
+				else {
+					// Candidate class not an ImportSelector or ImportBeanDefinitionRegistrar ->
+					// process it as an @Configuration class
+					// 如果当前的类既不是ImportSelector也不是ImportBeanDefinitionRegistar就按@Configuration注解解析流程去处理
+					this.importStack.registerImport(
+							currentSourceClass.getMetadata(), candidate.getMetadata().getClassName());
+					// 如果都不是，则调用@Configuration注解的处理方法
+					processConfigurationClass(candidate.asConfigClass(configClass), exclusionFilter);
+				}
+			}
+		}
+		catch (BeanDefinitionStoreException ex) {
+			throw ex;
+		}
+		catch (Throwable ex) {
+			throw new BeanDefinitionStoreException(
+					"Failed to process import candidates for configuration class [" +
+					configClass.getMetadata().getClassName() + "]", ex);
+		}
+		finally {
+			this.importStack.pop();
+		}
+	}
+}
+```
+
+- 方法的第一行语句`importCandidates.isEmpty()`的判断就说明了，如果没有收集到`@Import`注解导入的类，则程序不会继续往下执行。意味着`ImportSelector`、`DeferredImportSelector`、`ImportBeanDefinitionRegistrar`等接口的实现也不会被调用了。
+- 判断是否`ImportSelector`接口类型，通过反射实例化import导入的类（不会注册到spring ioc容器）
+    - 此处会一个分支，如果当前又是`DeferredImportSelector`接口类型，会延迟导入处理，加入一个容器中，SpringBoot中自动配置会用到
+    - 否则直接调用`ImportSelector`接口的`selectImports`方法，获取方法返回值后封装成SourceClass对象数组，递归调用`processImports`方法（因为有可能import导入的类上又有`@Import`注解）
+- 判断是否`ImportBeanDefinitionRegistrar`接口类型，也通过反射实例化import导入的类（不会注册到spring ioc容器），加入到`Map<ImportBeanDefinitionRegistrar, AnnotationMetadata> importBeanDefinitionRegistrars`容器中，这里还没有调用接口的`registerBeanDefinitions`方法
+- 判断都不是以上两种类型，按`@Configuration`注解解析流程去处理，调用`processConfigurationClass`方法解析
+
+#### 2.6.3. ImportSelector 与 ImportBeanDefinitionRegistrar 接口运用小示例
+
+- 创建自定义注解用于测试
+
+```java
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.TYPE)
+@Documented
+public @interface CustomAnnotation {
+    String[] value() default {};
+}
+```
+
+- 创建配置类，使用`@Import`注解导入
+
+```java
+@ComponentScan(Constants.BASE_PACKAGES)
+// 使用@Import注解导入一个（或多个）类，导入的类不需要再使用@Component相关注解即可
+@Import({Bird.class, Cat.class, ImportSelectorDemo.class, ImportBeanDefinitionRegistrarDemo.class})
+// 用于测试导入ImportSelector与ImportBeanDefinitionRegistrar接口实现方法是否以下注解信息
+@CustomAnnotation({"MooN", "L", "kirA"})
+public class AppConfig {
+}
+```
+
+- `ImportSelector`接口示例
+
+```java
+public class ImportSelectorDemo implements ImportSelector {
+    /**
+     * 此方法用于批量导入bean对象到ioc容器
+     *
+     * @param importingClassMetadata 导入类上相关注解信息，此示例是获取到AppConfig类上的所有注解
+     * @return 需要注册到ioc容器的bean的全限定名数组
+     */
+    @Override
+    public String[] selectImports(AnnotationMetadata importingClassMetadata) {
+        System.out.println("ImportSelectorDemo.selectImports() 方法执行了....");
+
+        /* 获取导入类的所有注解信息 */
+        MergedAnnotations annotations = importingClassMetadata.getAnnotations();
+        // 获取@CustomAnnotation自定义注解数据
+        if (importingClassMetadata.hasAnnotation(CustomAnnotation.class.getName())) {
+            MergedAnnotation<CustomAnnotation> customAnnotation = annotations.get(CustomAnnotation.class);
+            Optional<String[]> value = customAnnotation.getValue("value", String[].class);
+            value.ifPresent(v -> {
+                for (String s : v) {
+                    System.out.println("CustomAnnotation注解的value值：" + s);
+                }
+            });
+        }
+
+        // 获取@ComponentScan注解数据
+        if (importingClassMetadata.hasAnnotation(ComponentScan.class.getName())) {
+            Optional<String[]> value = annotations.get(ComponentScan.class).getValue("value", String[].class);
+            value.ifPresent(v -> {
+                for (String s : v) {
+                    System.out.println("ComponentScan注解的value值：" + s);
+                }
+            });
+        }
+
+        // 返回需要实例化类的全限定名数组
+        return new String[]{Parent.class.getName(), Son.class.getName()};
+    }
+}
+```
+
+- `ImportBeanDefinitionRegistrar`接口示例
+
+```java
+public class ImportBeanDefinitionRegistrarDemo implements ImportBeanDefinitionRegistrar {
+    /**
+     * 此方法无返回值，需要在方法中手动注册bean到注册中心容器中
+     *
+     * @param importingClassMetadata 使用@Import注解的类上所有的注解信息，
+     *                               此示例即SpringConfiguration类上所有注解信息
+     * @param registry               BeanDefinition注册中心
+     */
+    @Override
+    public void registerBeanDefinitions(AnnotationMetadata importingClassMetadata, BeanDefinitionRegistry registry,
+                                        BeanNameGenerator importBeanNameGenerator) {
+        System.out.println("ImportBeanDefinitionRegistrarDemo.registerBeanDefinitions() 方法执行了....");
+
+        /* importingClassMetadata 一样可以获取导入类的所有注解信息 */
+        MergedAnnotations annotations = importingClassMetadata.getAnnotations();
+
+        // 需要手动将实例化类加入到registry注册中心
+        GenericBeanDefinition beanDefinition = new GenericBeanDefinition();
+        beanDefinition.setBeanClass(Student.class);
+        MutablePropertyValues propertyValues = new MutablePropertyValues();
+        propertyValues.addPropertyValue(new PropertyValue("username", "ImportBeanDefinitionRegistrar接口修改的名称"));
+        beanDefinition.setPropertyValues(propertyValues);
+        String beanName = importBeanNameGenerator.generateBeanName(beanDefinition, registry);
+        System.out.println("BeanNameGenerator类生成的BeanDefinition的名称是：" + beanName); // com.moon.spring.bean.Student
+        // 注册BeanDefinition
+        registry.registerBeanDefinition(beanName, beanDefinition);
+    }
+}
+```
+
+- 控制台打印相关测试到容器的类，测试结果如下：
+
+![](images/20210216172033290_29931.png)
+
+![](images/20210216172047889_18121.png)
+
+#### 2.6.4. DeferredImportSelector 接口调用流程与使用示例（待整理）
 
 
 
@@ -5404,6 +5605,12 @@ private void collectImports(SourceClass sourceClass, Set<SourceClass> imports, S
 
 
 
+
+### 2.7. @Bean 实现原理
+
+
+
+### 2.8. @ImportResource 实现原理
 
 
 

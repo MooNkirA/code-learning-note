@@ -1222,7 +1222,7 @@ public void getBeanDefinitionNamesTest() {
 
 `@Import`注解除了可以直接导入一个（或多个）类，还可以导入实现一些接口的实现类，而这些接口分别是：`ImportSelector`与`ImportBeanDefinitionRegistrar`
 
-<font color=red>**注：`ImportSelector`与`ImportBeanDefinitionRegistrar`这两个接口的方法，必须通过`@Import`导入的方式才会被spring调用，如果使用`@Component`等注解加入到spring中，是无法调用接口的方法**</font>
+<font color=red>**注：`ImportSelector`与`ImportBeanDefinitionRegistrar`这此接口的方法，必须通过`@Import`导入的方式才会被spring调用，如果使用`@Component`等注解加入到spring中，是无法调用接口的方法**</font>
 
 #### 2.5.1. ImportSelector 和 ImportBeanDefinitionRegistrar 介绍
 
@@ -1245,9 +1245,13 @@ public void getBeanDefinitionNamesTest() {
 
 - **共同点**：
     - `ImportSelector`与`ImportBeanDefinitionRegistrar`都是用于动态注册bean对象到容器中的。并且支持大批量的bean导入。
+    - `ImportSelector`接口的`selectImports`方法与`ImportBeanDefinitionRegistrar`接口的`registerBeanDefinitions`方法入参都可以获取到使用`@Import`导入此两个接口实现类的类上的所有注解数据。
 - **区别**：
     - `ImportSelector`是一个接口，在使用时需要提供实现类。实现类中返回要注册的bean的全限定类名数组，然后执行`ConfigurationClassParser`类中的`processImports()`方法注册bean对象的
-    - `ImportBeanDefinitionRegistrar`也是一个接口，需要编写实现类，实现的方法是没有返回值，在实现类中手动注册bean到容器中
+    - `ImportBeanDefinitionRegistrar`也是一个接口，需要编写实现类，实现的方法是没有返回值，在实现类中手动注册bean到容器中，其方法入参比`ImportSelector`接口方法多传入一个`BeanDefinitionRegistry`注册中心实例
+    - 在源码的`ImportSelector`与`ImportBeanDefinitionRegistrar`接口的方法调用时序的区别：
+        - `ImportSelector`是在`@Import`注解解析时就被调用，此时注册中心`BeanDefinitionRegistry`只是spring初始化构造函数时创建的几个BeanDefinition
+        - `ImportBeanDefinitionRegistrar`在`@Import`注解解析时，接口方法没有被调用，只会建立好实例与该实现类的注解Metadata元信息的映射关系，真正的调用是在所有BeanDefinition都注册好之后再调用
 - **注意事项**：
     1. 实现了`ImportSelector`接口或者`ImportBeanDefinitionRegistrar`接口的类<font color=red>**不会被解析成一个Bean注册到容器中**</font>。
     2. 通过以上两个接口实现注册bean对象到容器中时，<font color=red>**bean的唯一标识是全限定类名，而非短类名**</font>。
@@ -1368,7 +1372,8 @@ public class CustomImportSelector implements ImportSelector {
      * 需求：
      * 导入的过滤规则是FilterType的ASPECTJ的类型
      *
-     * @param importingClassMetadata
+     * @param importingClassMetadata 使用@Import注解的类上所有的注解信息，
+     *                               此示例即SpringConfiguration类上所有注解信息
      * @return
      */
     @Override
@@ -1680,6 +1685,13 @@ public class CustomImportDefinitionRegistrar implements ImportBeanDefinitionRegi
         }
     }
 
+    /**
+     * 此方法无返回值，需要在方法中手动注册bean到注册中心容器中
+     *
+     * @param importingClassMetadata 使用@Import注解的类上所有的注解信息，
+     *                               此示例即SpringConfiguration类上所有注解信息
+     * @param registry               BeanDefinition注册中心
+     */
     @Override
     public void registerBeanDefinitions(AnnotationMetadata importingClassMetadata, BeanDefinitionRegistry registry) {
         // 1. 定义扫描包的名称字符串集合
@@ -1756,10 +1768,17 @@ public void customImportBeanDefinitionRegistrarTest() {
 
 结果与自定义ImportSelector一样
 
+#### 2.5.4. 自定义 DeferredImportSelector（！待理解后再整理）
 
-#### 2.5.4. 实现原理分析
+```java
+public interface DeferredImportSelector extends ImportSelector
+```
 
-此部分内容详见《03-Spring源码分析01-IOC.md》
+`DeferredImportSelector`接口继承了`ImportSelector`，当使用`@Import`注解引入的是`DeferredImportSelector`类型时，在spring源码中，为延迟导入处理则加入集合当中，处理流程比较复杂，springboot中自动配置会用到
+
+#### 2.5.5. 实现原理分析
+
+以上`@Import`注解的实现原理，与`ImportSelector`、`ImportBeanDefinitionRegistrar`接口的调用逻辑，此部分内容详见《03-Spring源码分析01-IOC.md》
 
 ### 2.6. @PropertySource
 
