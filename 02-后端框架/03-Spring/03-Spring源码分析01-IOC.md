@@ -4768,9 +4768,7 @@ public int getOrder() {
 }
 ```
 
-### 2.2. 纯注解扫描的过程
-
-#### 2.2.1. bean实例化前的处理
+### 2.2. bean实例化前的处理
 
 `ConfigurationClassPostProcessor`实现`BeanDefinitionRegistryPostProcessor`接口，所以实例化bean前会调用`postProcessBeanDefinitionRegistry`方法
 
@@ -4793,7 +4791,7 @@ public void postProcessBeanDefinitionRegistry(BeanDefinitionRegistry registry) {
 }
 ```
 
-#### 2.2.2. 包含支持的注解的BeanDefinition收集
+### 2.3. 包含所支持的注解的类收集
 
 调用`processConfigBeanDefinitions`方法，完成有包含可支持注解的BeanDefinition收集
 
@@ -4901,7 +4899,7 @@ public static boolean checkConfigurationClassCandidate(
 }
 ```
 
-判断是否为部分支持的注解
+判断是否为所支持的注解
 
 ```java
 public static boolean isConfigurationCandidate(AnnotationMetadata metadata) {
@@ -4936,7 +4934,7 @@ Set集合`candidateIndicators`所包含的支持的注解名称
 
 ![](images/20210213231426026_5664.png)
 
-#### 2.2.3. ConfigurationClassParser - 解析候选BeanDefinition中的相关注解
+### 2.4. ConfigurationClassParser - 解析候选BeanDefinition中的相关注解
 
 收集完候选的BeanDefinition后，程序继续往下执行，会创建一个注解的解析类`ConfigurationClassParser`，然后对筛选出来的
 
@@ -4957,41 +4955,7 @@ public void processConfigBeanDefinitions(BeanDefinitionRegistry registry) {
 		// 将相关的支持的注解进行封装，即把类上面的特殊注解解析出来最终封装成BeanDefinition
 		parser.parse(candidates);
 		parser.validate();
-
-		Set<ConfigurationClass> configClasses = new LinkedHashSet<>(parser.getConfigurationClasses());
-		configClasses.removeAll(alreadyParsed);
-
-		// Read the model and create bean definitions based on its content
-		if (this.reader == null) {
-			this.reader = new ConfigurationClassBeanDefinitionReader(
-					registry, this.sourceExtractor, this.resourceLoader, this.environment,
-					this.importBeanNameGenerator, parser.getImportRegistry());
-		}
-		// 设置beanDefinition的属性值，具体执行 @Import/@ImportSource/@Bean 的逻辑。重要程度【5】
-		this.reader.loadBeanDefinitions(configClasses);
-		// 已经解析完成了的类
-		alreadyParsed.addAll(configClasses);
-
-		candidates.clear();
-		// 比较差异又走一遍解析流程
-		if (registry.getBeanDefinitionCount() > candidateNames.length) {
-			String[] newCandidateNames = registry.getBeanDefinitionNames();
-			Set<String> oldCandidateNames = new HashSet<>(Arrays.asList(candidateNames));
-			Set<String> alreadyParsedClasses = new HashSet<>();
-			for (ConfigurationClass configurationClass : alreadyParsed) {
-				alreadyParsedClasses.add(configurationClass.getMetadata().getClassName());
-			}
-			for (String candidateName : newCandidateNames) {
-				if (!oldCandidateNames.contains(candidateName)) {
-					BeanDefinition bd = registry.getBeanDefinition(candidateName);
-					if (ConfigurationClassUtils.checkConfigurationClassCandidate(bd, this.metadataReaderFactory) &&
-							!alreadyParsedClasses.contains(bd.getBeanClassName())) {
-						candidates.add(new BeanDefinitionHolder(bd, candidateName));
-					}
-				}
-			}
-			candidateNames = newCandidateNames;
-		}
+        ....省略
 	}
 	while (!candidates.isEmpty());
     ....省略
@@ -5079,7 +5043,180 @@ protected void processConfigurationClass(ConfigurationClass configClass, Predica
 }
 ```
 
-### 2.3. @PropertySource 与 @PropertySources 实现原理
+### 2.5. @Conditional 实现原理
+
+#### 2.5.1. 注解作用
+
+`@Conditional`注解作用是根据条件选择是否注入的bean对象到Spring容器中。该注解可以作用在类、方法上。该注解的value属性的值老百姓提供一个或者多个`Condition`接口的实现类，实现类中需要编写具体代码实现注册到ioc容器的条件。重写接口的`matches`方法，返回true表示通过校验可实例化到容器
+
+#### 2.5.2. 源码分析
+
+`@Conditional`注解处理源码位置：`ConfigurationClassParser.processConfigurationClass()`。如果进入if代码块，则不会执行到最后增加到`configurationClasses`，就不会加入到`BeanDefinitionRegistry`中
+
+```java
+protected void processConfigurationClass(ConfigurationClass configClass, Predicate<String> filter) throws IOException {
+	// 对@Condition注解的支持，过滤掉不需要实例化的类
+	if (this.conditionEvaluator.shouldSkip(configClass.getMetadata(), ConfigurationPhase.PARSE_CONFIGURATION)) {
+		return;
+	}
+	....省略
+	this.configurationClasses.put(configClass, configClass);
+}
+```
+
+主要的校验在`ConditionEvaluator`类的`shouldSkip`方法中
+
+```java
+public boolean shouldSkip(@Nullable AnnotatedTypeMetadata metadata, @Nullable ConfigurationPhase phase) {
+	// 判断当前类上是否有注解没有@Conditional注解，则直接结束，不作校验
+	if (metadata == null || !metadata.isAnnotated(Conditional.class.getName())) {
+		return false;
+	}
+
+	if (phase == null) {
+		if (metadata instanceof AnnotationMetadata &&
+				ConfigurationClassUtils.isConfigurationCandidate((AnnotationMetadata) metadata)) {
+			return shouldSkip(metadata, ConfigurationPhase.PARSE_CONFIGURATION);
+		}
+		return shouldSkip(metadata, ConfigurationPhase.REGISTER_BEAN);
+	}
+
+	List<Condition> conditions = new ArrayList<>();
+	// 获取@Conditional注解的value值
+	for (String[] conditionClasses : getConditionClasses(metadata)) {
+		for (String conditionClass : conditionClasses) {
+			// 根据value属性配置的字节码，反射实例化Condition对象
+			Condition condition = getCondition(conditionClass, this.context.getClassLoader());
+			conditions.add(condition);
+		}
+	}
+
+	// 排序
+	AnnotationAwareOrderComparator.sort(conditions);
+
+	// 调用每个condition实例的matches方法
+	for (Condition condition : conditions) {
+		ConfigurationPhase requiredPhase = null;
+		if (condition instanceof ConfigurationCondition) {
+			requiredPhase = ((ConfigurationCondition) condition).getConfigurationPhase();
+		}
+		// 调用matches方法
+		if ((requiredPhase == null || requiredPhase == phase) && !condition.matches(this.context, metadata)) {
+			return true;
+		}
+	}
+
+	return false;
+}
+```
+
+#### 2.5.3. 使用示例
+
+> 注：此事例只是基础使用，真正功能实现不严谨
+
+- 创建条件注解
+
+```java
+@Target({ElementType.TYPE, ElementType.METHOD})
+@Retention(RetentionPolicy.RUNTIME)
+@Documented
+@Conditional(CustomOnClassCondition.class)
+public @interface MoonConditionalOnClass {
+    Class<?>[] value() default {};
+    String[] name() default {};
+}
+```
+
+- 编写条件校验实现类
+
+```java
+public class CustomOnClassCondition implements Condition {
+    @Override
+    public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
+        if (metadata.isAnnotated(MoonConditionalOnClass.class.getName())) {
+            Class<?>[] classes = metadata.getAnnotations().get(MoonConditionalOnClass.class).getClassArray("value");
+            try {
+                for (Class<?> clazz : classes) {
+                    ClassUtils.forName(clazz.getName(), ClassUtils.getDefaultClassLoader());
+                }
+                return true;
+            } catch (ClassNotFoundException e) {
+                e.printStackTrace();
+            }
+        }
+        return false;
+    }
+}
+```
+
+- 标识待创建的类
+
+```java
+@Component
+@MoonConditionalOnClass(Dog.class)
+public class ConditionalBean {
+}
+```
+
+### 2.6. @Component 实现原理
+
+`@Component`在`ConfigurationClassParser.doProcessConfigurationClass`方法中，去处理该注解
+
+```java
+// 判断类上面是否有@Component注解
+if (configClass.getMetadata().isAnnotated(Component.class.getName())) {
+	// Recursively process any member (nested) classes first --> 翻译：首先递归处理任何成员（嵌套）类
+	// 递归处理有@Component注解的内部类
+	processMemberClasses(configClass, sourceClass, filter);
+}
+```
+
+调用`processMemberClasses`方法，获取当前类中的所有内部类（如果包含内部类有该注解，则会递归处理）
+
+```java
+/**
+ * Register member (nested) classes that happen to be configuration classes themselves.
+ */
+private void processMemberClasses(ConfigurationClass configClass, SourceClass sourceClass,
+		Predicate<String> filter) throws IOException {
+
+	// 获取当前类的内部类并又包装成sourceClass对象
+	Collection<SourceClass> memberClasses = sourceClass.getMemberClasses();
+	if (!memberClasses.isEmpty()) {
+		List<SourceClass> candidates = new ArrayList<>(memberClasses.size());
+		for (SourceClass memberClass : memberClasses) {
+			// 判断内部类是候选的
+			if (ConfigurationClassUtils.isConfigurationCandidate(memberClass.getMetadata()) &&
+					!memberClass.getMetadata().getClassName().equals(configClass.getMetadata().getClassName())) {
+				candidates.add(memberClass);
+			}
+		}
+		// 排序
+		OrderComparator.sort(candidates);
+		// 循环去处理每一个内部类
+		for (SourceClass candidate : candidates) {
+			if (this.importStack.contains(configClass)) {
+				this.problemReporter.error(new CircularImportProblem(configClass, this.importStack));
+			}
+			else {
+				this.importStack.push(configClass);
+				try {
+					/*
+					 * candidate 是 configClass 的内部类，此处将内部类包装成ConfigurationClass类
+					 *  即相对来说变成了外部类，然后调用processConfigurationClass方法，进行递归处理
+					 */
+					processConfigurationClass(candidate.asConfigClass(configClass), filter);
+				}
+				finally {
+					this.importStack.pop();
+				}
+			}
+		}
+	}
+}
+```
+
+### 2.7. @PropertySource 与 @PropertySources 实现原理
 
 `@PropertySource`与`@PropertySources`在`ConfigurationClassParser.doProcessConfigurationClass`方法中，会循环当前类中所有此两个注解进行解析
 
@@ -5200,67 +5337,9 @@ private void addPropertySource(PropertySource<?> propertySource) {
 }
 ```
 
-### 2.4. @Component 实现原理
+### 2.8. @ComponentScan 实现原理
 
-`@Component`在`ConfigurationClassParser.doProcessConfigurationClass`方法中，去处理该注解
-
-```java
-// 判断类上面是否有@Component注解
-if (configClass.getMetadata().isAnnotated(Component.class.getName())) {
-	// Recursively process any member (nested) classes first --> 翻译：首先递归处理任何成员（嵌套）类
-	// 递归处理有@Component注解的内部类
-	processMemberClasses(configClass, sourceClass, filter);
-}
-```
-
-调用`processMemberClasses`方法，获取当前类中的所有内部类（如果包含内部类有该注解，则会递归处理）
-
-```java
-/**
- * Register member (nested) classes that happen to be configuration classes themselves.
- */
-private void processMemberClasses(ConfigurationClass configClass, SourceClass sourceClass,
-		Predicate<String> filter) throws IOException {
-
-	// 获取当前类的内部类并又包装成sourceClass对象
-	Collection<SourceClass> memberClasses = sourceClass.getMemberClasses();
-	if (!memberClasses.isEmpty()) {
-		List<SourceClass> candidates = new ArrayList<>(memberClasses.size());
-		for (SourceClass memberClass : memberClasses) {
-			// 判断内部类是候选的
-			if (ConfigurationClassUtils.isConfigurationCandidate(memberClass.getMetadata()) &&
-					!memberClass.getMetadata().getClassName().equals(configClass.getMetadata().getClassName())) {
-				candidates.add(memberClass);
-			}
-		}
-		// 排序
-		OrderComparator.sort(candidates);
-		// 循环去处理每一个内部类
-		for (SourceClass candidate : candidates) {
-			if (this.importStack.contains(configClass)) {
-				this.problemReporter.error(new CircularImportProblem(configClass, this.importStack));
-			}
-			else {
-				this.importStack.push(configClass);
-				try {
-					/*
-					 * candidate 是 configClass 的内部类，此处将内部类包装成ConfigurationClass类
-					 *  即相对来说变成了外部类，然后调用processConfigurationClass方法，进行递归处理
-					 */
-					processConfigurationClass(candidate.asConfigClass(configClass), filter);
-				}
-				finally {
-					this.importStack.pop();
-				}
-			}
-		}
-	}
-}
-```
-
-### 2.5. @ComponentScan 实现原理
-
-#### 2.5.1. 测试@ComponentScan配置扫描
+#### 2.8.1. 测试@ComponentScan配置扫描
 
 - 创建配置类，在类上增加`@ComponentScan`注解，作用相当于xml配置文件中的`<context:component-scan base-package="com.moon.spring"/>`标签
 
@@ -5291,7 +5370,7 @@ public class MyTest {
 }
 ```
 
-#### 2.5.2. 开启xml配置注解扫描标签的差异
+#### 2.8.2. 开启xml配置注解扫描标签的差异
 
 - 如果不开启xml配置文件中的注解扫描时，运行`AnnotationConfigApplicationContext`测试，会发现`BeanDefinitionRegistry`对象中的`BeanDefinitionNames`只有当前传入的类名称
 
@@ -5309,7 +5388,7 @@ public class MyTest {
 
 ![](images/20200607191232299_16943.png)
 
-#### 2.5.3. 解析流程
+#### 2.8.3. 解析流程
 
 `@ComponentScan`在`ConfigurationClassParser.doProcessConfigurationClass`方法中，去处理该注解
 
@@ -5352,7 +5431,7 @@ if (!componentScans.isEmpty() &&
 
 值得注意的是，在处理包扫描后，此时扫描出来类都只是包含`@Component`注解，然而这些类上可能还会有其他的注解（如：`@Import`、`@Bean`等等注解）。此时就又会调用`ConfigurationClassUtils.checkConfigurationClassCandidate`方法进行是否有候选待处理的注解，如果有，则再递归调用`ConfigurationClassParser.parse`方法
 
-### 2.6. @Import 实现原理
+### 2.9. @Import 实现原理
 
 `@Import`在`ConfigurationClassParser.doProcessConfigurationClass`方法中，去处理该注解
 
@@ -5361,7 +5440,7 @@ if (!componentScans.isEmpty() &&
 processImports(configClass, sourceClass, getImports(sourceClass), filter, true);
 ```
 
-#### 2.6.1. getImports 收集所有导入的类数据
+#### 2.9.1. getImports 收集所有导入的类数据
 
 收集`@Import`注解`value`属性配置导入的多个类字节码对象，又将每个导入的类包装成`SourceClass`对象。
 
@@ -5394,7 +5473,7 @@ private void collectImports(SourceClass sourceClass, Set<SourceClass> imports, S
 }
 ```
 
-#### 2.6.2. processImports
+#### 2.9.2. processImports
 
 `processImports`方法是处理`@Import`注解的主要逻辑源码与分析如下：
 
@@ -5489,7 +5568,7 @@ private void processImports(ConfigurationClass configClass, SourceClass currentS
 - 判断是否`ImportBeanDefinitionRegistrar`接口类型，也通过反射实例化import导入的类（不会注册到spring ioc容器），加入到`Map<ImportBeanDefinitionRegistrar, AnnotationMetadata> importBeanDefinitionRegistrars`容器中，这里还没有调用接口的`registerBeanDefinitions`方法
 - 判断都不是以上两种类型，按`@Configuration`注解解析流程去处理，调用`processConfigurationClass`方法解析
 
-#### 2.6.3. ImportSelector 与 ImportBeanDefinitionRegistrar 接口运用小示例
+#### 2.9.3. ImportSelector 与 ImportBeanDefinitionRegistrar 接口运用小示例
 
 - 创建自定义注解用于测试
 
@@ -5596,23 +5675,296 @@ public class ImportBeanDefinitionRegistrarDemo implements ImportBeanDefinitionRe
 
 ![](images/20210216172047889_18121.png)
 
-#### 2.6.4. DeferredImportSelector 接口调用流程与使用示例（待整理）
+#### 2.9.4. DeferredImportSelector 接口调用流程与使用示例
+
+##### 2.9.4.1. 基础使用示例
+
+- 创建`DeferredImportSelector`接口实现
+
+```java
+/**
+ * DeferredImportSelector 接口实现示例
+ * 具体方法的时序是：
+ * DeferredImportSelector.getImportGroup.getImportGroup
+ * --> DeferredImportSelector.Group.process
+ * --> DeferredImportSelector.Group.selectImports
+ */
+public class DeferredImportSelectorDemo implements DeferredImportSelector {
+    /**
+     * 此方法是DeferredImportSelector继承了父接口ImportSelector。
+     * 此方法不会被调用，只能是通过手动调用
+     *
+     * @param importingClassMetadata
+     * @return
+     */
+    @Override
+    public String[] selectImports(AnnotationMetadata importingClassMetadata) {
+        System.out.println("DeferredImportSelectorDemo.selectImports()方法执行了....");
+        // 返回需要实例化的类全限定名数组
+        return new String[]{Chocolate.class.getName()};
+    }
+
+    @Override
+    public Predicate<String> getExclusionFilter() {
+        return null;
+    }
+
+    /**
+     * 返回一个实现了DeferredImportSelector.Group接口的类的Class对象
+     *
+     * @return
+     */
+    @Override
+    public Class<? extends Group> getImportGroup() {
+        return DeferredImportSelectorGroupImpl.class;
+    }
+
+    /**
+     * 内部类，实现了DeferredImportSelector.Group接口
+     */
+    private static class DeferredImportSelectorGroupImpl implements DeferredImportSelector.Group {
+
+        private List<Entry> list = new ArrayList<>();
+
+        /**
+         * 处理流程，收集需要加入到Spring容器实例化的类
+         *
+         * @param metadata 使用@Import注解导入的类的所有注解元数据
+         * @param selector 外部类 DeferredImportSelectorDemo 实例
+         */
+        @Override
+        public void process(AnnotationMetadata metadata, DeferredImportSelector selector) {
+            System.out.println("DeferredImportSelectorGroupImpl.process()方法执行了....");
+            // 调用外部类方法，将selectImports方法，获取要创建的类集合
+            for (String s : selector.selectImports(metadata)) {
+                // 创建Entry对象增加到内部属性集合中
+                list.add(new Entry(metadata, s));
+            }
+        }
+
+        /**
+         * 将process收集到的数据(封装成Group.Entry对象)，返回
+         *
+         * @return
+         */
+        @Override
+        public Iterable<Entry> selectImports() {
+            System.out.println("DeferredImportSelectorGroupImpl.selectImports()方法执行了....");
+            // 返回process方法收集的数据
+            return this.list;
+        }
+    }
+}
+```
+
+- 使用`@Import`注解导入
+
+```java
+@ComponentScan(Constants.BASE_PACKAGES)
+@Import({DeferredImportSelectorDemo.class})
+public class AppConfig {
+}
+```
+
+- 测试
+
+```java
+@Test
+public void testDeferredImportSelectorBasic() {
+    Chocolate bean = context.getBean(Chocolate.class);
+    System.out.println(bean);
+    /*
+     * 调用方法的时序如下
+     * ImportSelectorDemo.selectImports() 方法执行了....
+     * DeferredImportSelectorGroupImpl.process()方法执行了....
+     * DeferredImportSelectorDemo.selectImports()方法执行了....
+     * DeferredImportSelectorGroupImpl.selectImports()方法执行了....
+     */
+}
+```
 
 
 
 
 
+##### 2.9.4.2. 源码分析
 
+源码位置：`ConfigurationClassParser.processImports`
 
+![](images/20210217093130823_26773.png)
 
+主要的处理逻辑：
 
-### 2.7. @Bean 实现原理
+```java
+public void handle(ConfigurationClass configClass, DeferredImportSelector importSelector) {
+	// 将方法的入参再包装成DeferredImportSelectorHolder对象
+	DeferredImportSelectorHolder holder = new DeferredImportSelectorHolder(configClass, importSelector);
+	if (this.deferredImportSelectors == null) {
+		// 创建DeferredImportSelectorGroup接口的处理类
+		DeferredImportSelectorGroupingHandler handler = new DeferredImportSelectorGroupingHandler();
+		// 注册并调用DeferredImportSelector接口的方法
+		handler.register(holder);
+		// 收集后调用
+		handler.processGroupImports();
+	}
+	else {
+		this.deferredImportSelectors.add(holder);
+	}
+}
+```
 
+首先调用`DeferredImportSelector`接口的`getImportGroup`方法，获取返回实现了`Group`接口的类，没有实现`Group`接口，则会父接口`ImportSelector`的`selectImports`方法
 
+```java
+public void register(DeferredImportSelectorHolder deferredImport) {
+	// 首先调用getImportGroup方法，返回实现了Group接口的类
+	Class<? extends Group> group = deferredImport.getImportSelector().getImportGroup();
+	// 建立实现了Group接口类和DeferredImportSelectorGrouping的映射关系
+	DeferredImportSelectorGrouping grouping = this.groupings.computeIfAbsent(
+			// 这里如果getImportGroup方法没有返回实现Group接口的类，则后面调用就是父接口ImportSelector的selectImports方法
+			(group != null ? group : deferredImport),
+			key -> new DeferredImportSelectorGrouping(createGroup(group)));
+	grouping.add(deferredImport);
+	this.configurationClasses.put(deferredImport.getConfigurationClass().getMetadata(),
+			deferredImport.getConfigurationClass());
+}
+```
 
-### 2.8. @ImportResource 实现原理
+在`createGroup`方法中，返回`Group`接口的实现，这里就会判断，如果没有自定义的`Group`实现或者没有重写`getImportGroup()`方法返回实现的话，这里就是使用Spring提供的默认的实现：`DefaultDeferredImportSelectorGroup`
 
+![](images/20210217100345862_28521.png)
 
+![](images/20210217100457782_12576.png)
+
+收集完成后，如果有`Group`接口实现，则会调用了`process`方法后再调用`selectImports`方法；如果没有`Group`接口的实现，则直接会调用父接口的`selectImports`方法。无论那种逻辑，还是会获取到需要实例化的类全限定名（包装成Entry对象）集合，最后就会递归去调用`processImports`处理每个待实例化的类。
+
+```java
+public void processGroupImports() {
+	for (DeferredImportSelectorGrouping grouping : this.groupings.values()) {
+		Predicate<String> exclusionFilter = grouping.getCandidateFilter();
+		// 这里调用了Group接口的selectImports()方法
+		grouping.getImports().forEach(entry -> {
+			ConfigurationClass configurationClass = this.configurationClasses.get(entry.getMetadata());
+			try {
+				// 又递归处理每一个返回的Entry
+				processImports(configurationClass, asSourceClass(configurationClass, exclusionFilter),
+						Collections.singleton(asSourceClass(entry.getImportClassName(), exclusionFilter)),
+						exclusionFilter, false);
+			}
+			catch (BeanDefinitionStoreException ex) {
+				throw ex;
+			}
+			catch (Throwable ex) {
+				throw new BeanDefinitionStoreException(
+						"Failed to process import candidates for configuration class [" +
+								configurationClass.getMetadata().getClassName() + "]", ex);
+			}
+		});
+	}
+}
+```
+
+```java
+public Iterable<Group.Entry> getImports() {
+	// 调用了实现了Group接口的process方法
+	for (DeferredImportSelectorHolder deferredImport : this.deferredImports) {
+		this.group.process(deferredImport.getConfigurationClass().getMetadata(),
+				deferredImport.getImportSelector());
+	}
+	// 在这里调用了实现了Group接口的selectImports方法
+	return this.group.selectImports();
+}
+```
+
+### 2.10. @ImportResource 实现原理
+
+`@ImportResource`在`ConfigurationClassParser.doProcessConfigurationClass`方法中，去处理该注解，其处理流程与xml配置文件解析处理流程一样
+
+```java
+// Process any @ImportResource annotations
+// 解析@ImportResource注解，其注解的作用是引入一个xml配置文件，目前的项目都是基于注解开发，所以没什么用
+AnnotationAttributes importResource =
+		AnnotationConfigUtils.attributesFor(sourceClass.getMetadata(), ImportResource.class);
+if (importResource != null) {
+	String[] resources = importResource.getStringArray("locations");
+	Class<? extends BeanDefinitionReader> readerClass = importResource.getClass("reader");
+	for (String resource : resources) {
+		String resolvedResource = this.environment.resolveRequiredPlaceholders(resource);
+		// 建立xml文件和reader的映射关系
+		configClass.addImportedResource(resolvedResource, readerClass);
+	}
+}
+```
+
+### 2.11. @Bean 实现原理
+
+`@Bean`在`ConfigurationClassParser.doProcessConfigurationClass`方法中，去收集该注解所标识的方法，放到`ConfigurationClass`类的`beanMethods`容器（`Set<BeanMethod>`）中
+
+```java
+/* 处理@Bean注解，重要程度【5】 */
+// Process individual @Bean methods
+// 收集有@Bean注解的方法
+Set<MethodMetadata> beanMethods = retrieveBeanMethodMetadata(sourceClass);
+for (MethodMetadata methodMetadata : beanMethods) {
+	// 加入到ConfigurationClass的beanMethods容器中
+	configClass.addBeanMethod(new BeanMethod(methodMetadata, configClass));
+}
+
+// 处理接口里面方法有@Bean注解的，逻辑差不多
+// Process default methods on interfaces
+processInterfaces(configClass, sourceClass);
+```
+
+### 2.12. 注解收集与解析完成后的处理
+
+在`parser.parse(candidates)`注解解析方法完成后，`ConfigurationClassPostProcessor.processConfigBeanDefinitions`的方法继续往下执行
+```java
+public void processConfigBeanDefinitions(BeanDefinitionRegistry registry) {
+    ....省略
+	do {
+		// ConfigurationClassParser类的解析核心流程，重要程度【5】
+		// 将相关的支持的注解进行封装，即把类上面的特殊注解解析出来最终封装成BeanDefinition
+		parser.parse(candidates);
+		parser.validate();
+
+        // 设置BeanDefinition的属性值，具体执行 @Import/@ImportSource/@Bean 的逻辑。重要程度【5】
+		this.reader.loadBeanDefinitions(configClasses);
+		// 将已经解析完成了的类放到
+		alreadyParsed.addAll(configClasses);
+
+		candidates.clear();
+		// 比较差异又走一遍解析流程
+		if (registry.getBeanDefinitionCount() > candidateNames.length) {
+			String[] newCandidateNames = registry.getBeanDefinitionNames();
+			Set<String> oldCandidateNames = new HashSet<>(Arrays.asList(candidateNames));
+			Set<String> alreadyParsedClasses = new HashSet<>();
+			for (ConfigurationClass configurationClass : alreadyParsed) {
+				alreadyParsedClasses.add(configurationClass.getMetadata().getClassName());
+			}
+			for (String candidateName : newCandidateNames) {
+				if (!oldCandidateNames.contains(candidateName)) {
+					BeanDefinition bd = registry.getBeanDefinition(candidateName);
+					if (ConfigurationClassUtils.checkConfigurationClassCandidate(bd, this.metadataReaderFactory) &&
+							!alreadyParsedClasses.contains(bd.getBeanClassName())) {
+						candidates.add(new BeanDefinitionHolder(bd, candidateName));
+					}
+				}
+			}
+			candidateNames = newCandidateNames;
+		}
+	}
+	while (!candidates.isEmpty());
+    ....省略
+}
+```
+
+但前面都是主要处理与解析了注解，但一些通过` @Import`、`@ImportSource`、`@Bean`导入进来的类或者内部类都还没有加入到`BeanDefinitionRegistry`注册中心，只是在`ConfigurationClassParser.processConfigurationClass`方法，将这些类都放到`Map<ConfigurationClass, ConfigurationClass> configurationClasses`的容器中
+
+![](images/20210217231459186_12506.png)
+
+所以
+
+![](images/20210217232348601_27475.png)
 
 
 # Spring 相关功能与设计
