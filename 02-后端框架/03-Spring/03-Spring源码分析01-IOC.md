@@ -5918,6 +5918,7 @@ processInterfaces(configClass, sourceClass);
 ### 2.12. 注解收集与解析完成后的处理
 
 在`parser.parse(candidates)`注解解析方法完成后，`ConfigurationClassPostProcessor.processConfigBeanDefinitions`的方法继续往下执行
+
 ```java
 public void processConfigBeanDefinitions(BeanDefinitionRegistry registry) {
     ....省略
@@ -5927,9 +5928,19 @@ public void processConfigBeanDefinitions(BeanDefinitionRegistry registry) {
 		parser.parse(candidates);
 		parser.validate();
 
+        // 从configurationClasses容器中，获取上面解析完成的类后所包装成的ConfigurationClass对象
+		Set<ConfigurationClass> configClasses = new LinkedHashSet<>(parser.getConfigurationClasses());
+		configClasses.removeAll(alreadyParsed);
+
+		// Read the model and create bean definitions based on its content
+		if (this.reader == null) {
+			this.reader = new ConfigurationClassBeanDefinitionReader(
+					registry, this.sourceExtractor, this.resourceLoader, this.environment,
+					this.importBeanNameGenerator, parser.getImportRegistry());
+		}
         // 设置BeanDefinition的属性值，具体执行 @Import/@ImportSource/@Bean 的逻辑。重要程度【5】
 		this.reader.loadBeanDefinitions(configClasses);
-		// 将已经解析完成了的类放到
+		// 将已经解析完成了的类放到一个set集合中
 		alreadyParsed.addAll(configClasses);
 
 		candidates.clear();
@@ -5962,9 +5973,148 @@ public void processConfigBeanDefinitions(BeanDefinitionRegistry registry) {
 
 ![](images/20210217231459186_12506.png)
 
-所以
+所以获取前面已解析的后的类集合，在`loadBeanDefinitions`方法中循环处理`@Import`、`@ImportSource`、`@Bean`等注解导入的类封装成BeanDefinition与解析xml资源文件，还有调用实现了`ImportBeanDefinitionRegistrar`接口的方法
 
 ![](images/20210217232348601_27475.png)
+
+```java
+private void loadBeanDefinitionsForConfigurationClass(
+		ConfigurationClass configClass, TrackedConditionEvaluator trackedConditionEvaluator) {
+
+	// 调用TrackedConditionEvaluator（跟踪条件处理器对象）方法，判断是否要跳过
+	if (trackedConditionEvaluator.shouldSkip(configClass)) {
+		String beanName = configClass.getBeanName();
+		if (StringUtils.hasLength(beanName) && this.registry.containsBeanDefinition(beanName)) {
+			this.registry.removeBeanDefinition(beanName);
+		}
+		this.importRegistry.removeImportingClass(configClass.getMetadata().getClassName());
+		return;
+	}
+
+	// 判断是否通过@Import注解导入的类或者是内部类，将封装成BeanDefinition
+	if (configClass.isImported()) {
+		registerBeanDefinitionForImportedConfigurationClass(configClass);
+	}
+	// 循环当前类中所有@Bean注解的方法，将方法返回封装成BeanDefinition
+	for (BeanMethod beanMethod : configClass.getBeanMethods()) {
+		loadBeanDefinitionsForBeanMethod(beanMethod);
+	}
+
+	// 执行有@ImportResource注解的逻辑，主要是调用了xml配置文件的解析逻辑
+	loadBeanDefinitionsFromImportedResources(configClass.getImportedResources());
+	// 调用ImportBeanDefinitionRegistra接口的方法
+	loadBeanDefinitionsFromRegistrars(configClass.getImportBeanDefinitionRegistrars());
+}
+```
+
+#### 2.12.1. @Import 导入类的处理
+
+调用`registerBeanDefinitionForImportedConfigurationClass`方法，对`@Import`导入的类封装成BeanDefinition，填充类标识了的注解信息，并注册
+
+```java
+private void registerBeanDefinitionForImportedConfigurationClass(ConfigurationClass configClass) {
+	// 获取当前类的注解元信息
+	AnnotationMetadata metadata = configClass.getMetadata();
+	AnnotatedGenericBeanDefinition configBeanDef = new AnnotatedGenericBeanDefinition(metadata);
+
+	ScopeMetadata scopeMetadata = scopeMetadataResolver.resolveScopeMetadata(configBeanDef);
+	configBeanDef.setScope(scopeMetadata.getScopeName());
+	// 生成bean的名称
+	String configBeanName = this.importBeanNameGenerator.generateBeanName(configBeanDef, this.registry);
+	// 填充类的相关注解信息
+	AnnotationConfigUtils.processCommonDefinitionAnnotations(configBeanDef, metadata);
+
+	BeanDefinitionHolder definitionHolder = new BeanDefinitionHolder(configBeanDef, configBeanName);
+	definitionHolder = AnnotationConfigUtils.applyScopedProxyMode(scopeMetadata, definitionHolder, this.registry);
+	// 注册ImportBeanDefinitionRegistrar
+	this.registry.registerBeanDefinition(definitionHolder.getBeanName(), definitionHolder.getBeanDefinition());
+	configClass.setBeanName(configBeanName);
+
+	if (logger.isTraceEnabled()) {
+		logger.trace("Registered bean definition for imported class '" + configBeanName + "'");
+	}
+}
+```
+
+#### 2.12.2. @Bean 注解的处理
+
+前面已经收集过每个标识了`@Bean`注解的方法，并封装成`BeanMethod`对象。此处调用`loadBeanDefinitionsForBeanMethod`方法，封装成BeanDefinition对象，并注册
+
+<font color=red>**需要注意的是：通过`@Bean`注解创建的对象，会设置其相应的BeanDefinition的`factoryBeanName`属性值为当前类的名称，`factoryMethodName`属性值为当前方法名**</font>
+
+![](images/20210218220553135_6968.png)
+
+#### 2.12.3. @ImportedResources 注解的处理
+
+调用`loadBeanDefinitionsFromImportedResources`进入xml文件的解析，与前面的xml配置文件解析逻辑一样
+
+```java
+private void loadBeanDefinitionsFromImportedResources(
+		Map<String, Class<? extends BeanDefinitionReader>> importedResources) {
+
+	Map<Class<?>, BeanDefinitionReader> readerInstanceCache = new HashMap<>();
+
+	importedResources.forEach((resource, readerClass) -> {
+		// Default reader selection necessary?
+		if (BeanDefinitionReader.class == readerClass) {
+			if (StringUtils.endsWithIgnoreCase(resource, ".groovy")) {
+				// When clearly asking for Groovy, that's what they'll get...
+				readerClass = GroovyBeanDefinitionReader.class;
+			}
+			else {
+				// Primarily ".xml" files but for any other extension as well
+				readerClass = XmlBeanDefinitionReader.class;
+			}
+		}
+
+		BeanDefinitionReader reader = readerInstanceCache.get(readerClass);
+		if (reader == null) {
+			try {
+				// Instantiate the specified BeanDefinitionReader
+				reader = readerClass.getConstructor(BeanDefinitionRegistry.class).newInstance(this.registry);
+				// Delegate the current ResourceLoader to it if possible
+				if (reader instanceof AbstractBeanDefinitionReader) {
+					AbstractBeanDefinitionReader abdr = ((AbstractBeanDefinitionReader) reader);
+					abdr.setResourceLoader(this.resourceLoader);
+					abdr.setEnvironment(this.environment);
+				}
+				readerInstanceCache.put(readerClass, reader);
+			}
+			catch (Throwable ex) {
+				throw new IllegalStateException(
+						"Could not instantiate BeanDefinitionReader class [" + readerClass.getName() + "]");
+			}
+		}
+
+		// 调用xml解析方法（与xml方式配置的处理解析一样）
+		// TODO SPR-6310: qualify relative path locations as done in AbstractContextLoader.modifyLocations
+		reader.loadBeanDefinitions(resource);
+	});
+}
+```
+
+#### 2.12.4. ImportBeanDefinitionRegistrar 接口的调用
+
+在前面注解的解析时，将`@Import`注解导入的`ImportBeanDefinitionRegistrar`接口类型反射实例化，并存入`importBeanDefinitionRegistrars`的容器中
+
+![](images/20210218223407140_32338.png)
+
+在`loadBeanDefinitionsFromRegistrars`方法中，循环调用所有`ImportBeanDefinitionRegistrar`接口的实现
+
+```java
+private void loadBeanDefinitionsFromRegistrars(Map<ImportBeanDefinitionRegistrar, AnnotationMetadata> registrars) {
+	registrars.forEach((registrar, metadata) ->
+			registrar.registerBeanDefinitions(metadata, this.registry, this.importBeanNameGenerator));
+}
+```
+
+#### 2.12.5. 比较差异
+
+执行完`parse`与`loadBeanDefinitions`方法后，会获取最新注册器中所有BeanDefinition数量，与原来的比较差异，如果不一样，又要执行多一次解析流程
+
+## 3. @Configuration 注解
+
+
 
 
 # Spring 相关功能与设计
