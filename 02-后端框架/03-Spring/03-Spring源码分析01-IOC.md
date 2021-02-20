@@ -6114,6 +6114,47 @@ private void loadBeanDefinitionsFromRegistrars(Map<ImportBeanDefinitionRegistrar
 
 ## 3. @Configuration 注解
 
+### 3.1. `@Configuration`与`@Component`的差异
+
+#### 3.1.1. 手动调用@Bean注解方法获取对象
+
+![](images/20210220223137173_31763.png)
+
+> <font color=red>**经上面差异测试，可以知道，在调用`@Bean`注解的方法获取对象时，不是通过类实例本身调用，而是通过代理调用**</font>
+
+### 3.2. 源码分析
+
+`ConfigurationClassPostProcessor`实现了`BeanDefinitionRegistryPostProcessor`接口，分别实现了`postProcessBeanDefinitionRegistry`与`postProcessBeanFactory`方法。而在前面的源码分析中，此两个方法的调用时序是：先`postProcessBeanDefinitionRegistry`后`postProcessBeanFactory`。
+
+`postProcessBeanDefinitionRegistry`方法主要处理注解解析与收集，还有一些接口的调用；而`postProcessBeanFactory`方法就是处理`@Configuration`注解生成代理的逻辑
+
+#### 3.2.1. postProcessBeanFactory 方法
+
+```java
+/* 将配置类替换为CGLIB增强的子类，用于运行时请求生成bean实例 */
+@Override
+public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) {
+	int factoryId = System.identityHashCode(beanFactory);
+	if (this.factoriesPostProcessed.contains(factoryId)) {
+		throw new IllegalStateException(
+				"postProcessBeanFactory already called on this post-processor against " + beanFactory);
+	}
+	this.factoriesPostProcessed.add(factoryId);
+	if (!this.registriesPostProcessed.contains(factoryId)) {
+		// BeanDefinitionRegistryPostProcessor hook apparently not supported...
+		// Simply call processConfigurationClasses lazily at this point then.
+		processConfigBeanDefinitions((BeanDefinitionRegistry) beanFactory);
+	}
+	// 将标识@Configuration的类生成CGlib增加子类
+	enhanceConfigurationClasses(beanFactory);
+	beanFactory.addBeanPostProcessor(new ImportAwareBeanPostProcessor(beanFactory));
+}
+```
+
+#### 3.2.2. 生成CGlib代理子类
+
+在`enhanceConfigurationClasses`方法中，会将原来标识了`@Configuration`的类生成增强的子类
+
 
 
 
@@ -6771,3 +6812,194 @@ Spring 在属性值（或者一些其他BeanDefinition属性，如`BeanClass`）
 ![](images/20210212155257473_19386.png)
 
 ![](images/20210212155543231_28764.png)
+
+
+## 4. CGlib 动态代理库
+
+### 4.1. CGlib 简介
+
+> CGLIB是一个强大的、高性能的代码生成库。其被广泛应用于AOP框架（Spring、dynaop）中，用以提供方法拦截操作。Hibernate作为一个比较受欢迎的ORM框架，同样使用CGLIB来代理单端（多对一和一对一）关联（延迟提取集合使用的另一种机制）。CGLIB作为一个开源项目，其代码托管在github，地址为：https://github.com/cglib/cglib
+>
+> CGLIB代理主要通过对字节码的操作，为对象引入间接级别，以控制对象的访问。CGLIB相比于JDK动态代理更加强大，JDK动态代理虽然简单易用，但是其有一个致命缺陷是，只能对接口进行代理。如果要代理的类为一个普通类、没有接口，那么Java动态代理就没法使用了。
+
+### 4.2. CGlib基础使用示例
+
+- 引入cglib依赖
+
+```xml
+<dependency>
+    <groupId>cglib</groupId>
+    <artifactId>cglib</artifactId>
+    <version>3.3.0</version>
+</dependency>
+```
+
+- 准备被代理类
+
+```java
+public interface GoodsService {
+
+    String queryGoods(String param);
+
+    String addGoods(String param);
+
+    String editGoods(String param);
+
+    String deleteGoods(String param);
+
+    String fixedValue(String param);
+
+}
+
+/**
+ * 被代理类，CGlib与jdk动态不同，代理与被代理不需要实现同一接口
+ */
+public class GoodsServiceImpl implements GoodsService {
+
+    @Override
+    public String queryGoods(String param) {
+        System.out.println("=== queryGoods ===");
+        return "queryGoods";
+    }
+
+    @Override
+    public String addGoods(String param) {
+        System.out.println("=== addGoods ===");
+        return "addGoods";
+    }
+
+    @Override
+    public String editGoods(String param) {
+        System.out.println("=== editGoods ===");
+        return "editGoods";
+    }
+
+    @Override
+    public String deleteGoods(String param) {
+        System.out.println("=== deleteGoods ===");
+        return "deleteGoods";
+    }
+
+    @Override
+    public String fixedValue(String param) {
+        System.out.println("=== fixedValue ===");
+        return "fixedValue";
+    }
+}
+```
+
+- 创建`FixedValue`接口实现，其`loadObject`方法，是用于完全替代被代理类调用的方法
+
+```java
+public class FixedValueIntercepter implements FixedValue {
+
+    @Override
+    public Object loadObject() throws Exception {
+        System.out.println("FixedValueIntercepter.loadObject()方法执行了....");
+        return "loadObject value";
+    }
+
+}
+```
+
+- 创建 `CallbackFilter` 接口实现类，重写`accept`方法，方法返回值相应`Callback`数组的下标时，就会调用相应数组中相应下标的`Callback`
+
+```java
+public class CglibCallbackFilter implements CallbackFilter {
+    private final List<String> methodList = Arrays.asList("addGoods", "editGoods", "queryGoods", "deleteGoods");
+
+    @Override
+    public int accept(Method method) {
+        String methodName = method.getName();
+        // 获取方法名相应的下标
+        int i = methodList.indexOf(methodName);
+        return i < 0 ? 4 : i;
+    }
+}
+```
+
+- 创建获取代理的工厂类`CglibBeanFactory`
+
+```java
+public class CglibBeanFactory {
+
+    public static Object getInstance() {
+        // 创建增强器
+        Enhancer enhancer = new Enhancer();
+        // 设置被代理类（注意：是子类，非接口），会生成字节码文件并加载到jvm中
+        enhancer.setSuperclass(GoodsServiceImpl.class);
+        /*
+         * 创建CallbackFilter对象，实现接口accept方法，在方法中指定调用相应的callback方法
+         * 此方法的返回值是int整数，对于Callbacks数组中的下标
+         */
+        CallbackFilter callbackFilter = new CglibCallbackFilter();
+        enhancer.setCallbackFilter(callbackFilter);
+
+        // 创建几个Callback
+        Callback callback1 = new GoodsServiceInterceptor1();
+        Callback callback2 = new GoodsServiceInterceptor2();
+        Callback callback3 = new GoodsServiceInterceptor3();
+        // 这个NoOp表示no operator，即什么操作也不做，代理类直接调用被代理的方法不进行拦截。
+        Callback noop = NoOp.INSTANCE;
+        // 此FixedValue接口实现，会直接替代被代理类调用的方法
+        Callback fixdValueCallback = new FixedValueIntercepter();
+
+        // 设置Callback回调数组（在CallbackFilter的accept方法返回值，相应此数组的下标，即会调用相应的Callback）
+        Callback[] callbacks = {callback1, callback2, callback3, noop, fixdValueCallback};
+        enhancer.setCallbacks(callbacks);
+        // 创建代理
+        return enhancer.create();
+    }
+
+    private static class GoodsServiceInterceptor1 implements MethodInterceptor {
+        @Override
+        public Object intercept(Object obj, Method method, Object[] args, MethodProxy proxy) throws Throwable {
+            // 前置增强
+            System.out.println(String.format("Interceptor1 执行 %s 前....", method.getName()));
+            // 调用被代理的方法
+            Object o = proxy.invokeSuper(obj, args);
+            // 后置增强
+            System.out.println(String.format("Interceptor1 执行 %s 后....", method.getName()));
+            return o;
+        }
+    }
+
+    private static class GoodsServiceInterceptor2 implements MethodInterceptor {
+        @Override
+        public Object intercept(Object obj, Method method, Object[] args, MethodProxy proxy) throws Throwable {
+            System.out.println(String.format("Interceptor2 执行 %s 前....", method.getName()));
+            Object o = proxy.invokeSuper(obj, args);
+            System.out.println(String.format("Interceptor2 执行 %s 后....", method.getName()));
+            return o;
+        }
+    }
+
+    private static class GoodsServiceInterceptor3 implements MethodInterceptor {
+        @Override
+        public Object intercept(Object obj, Method method, Object[] args, MethodProxy proxy) throws Throwable {
+            System.out.println(String.format("Interceptor3 执行 %s 前....", method.getName()));
+            Object o = proxy.invokeSuper(obj, args);
+            System.out.println(String.format("Interceptor3 执行 %s 后....", method.getName()));
+            return o;
+        }
+    }
+}
+```
+
+- 测试结果
+
+```java
+@Test
+public void testCglibBasic() {
+    // 获取代理
+    GoodsService goodsService = (GoodsService) CglibBeanFactory.getInstance();
+    // 调用相应的方法
+    System.out.println(goodsService.queryGoods("MooN"));
+    System.out.println(goodsService.addGoods("iPhone18"));
+    System.out.println(goodsService.editGoods("战神游戏本"));
+    System.out.println(goodsService.deleteGoods("机械键盘"));
+    System.out.println(goodsService.fixedValue("kirA"));
+}
+```
+
+![](images/20210220211356040_12819.png)
