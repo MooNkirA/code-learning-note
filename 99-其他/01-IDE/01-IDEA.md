@@ -455,6 +455,16 @@ idea对代码进行了审查，在开发的时候也会经常对变量在未使�
 
 ![](images/20201105160034155_21682.jpg)
 
+### 6.24. 关闭idea2020的注释doc默认的Rendered View模式
+
+打开【Settings】 -> Editor -> General -> Appearance -> 取消勾选 【Render documentation comments】
+
+![](images/20210222221153551_1459.png)
+
+Editor -> Reader Mode -> 取消勾选 【Enable Reader mode】
+
+![](images/20210223210345370_19141.png)
+
 ## 7. 配置代码模板（Live Templates）
 
 ![](images/20201104164947850_3828.jpg)

@@ -23,15 +23,397 @@
 
 #### 1.2.2. AOP 实现原理
 
-实现原理是基于动态代理技术实现的。具体的两种实现方式分别是**基于接口的动态代理**和**基于子类的动态代理**，详见《01-Spring笔记.md》
+实现原理是基于动态代理技术实现的。具体的两种实现方式分别是**基于接口的动态代理**和**基于子类的动态代理**，详见[01-Spring笔记02-AOP.md](#/02-后端框架/03-Spring/01-Spring笔记02-AOP)
 
 #### 1.2.3. Spring中AOP的术语
 
-详见《01-Spring笔记.md》
+详见[01-Spring笔记02-AOP.md](#/02-后端框架/03-Spring/01-Spring笔记02-AOP)
 
-## 2. AOP注解执行过程及核心对象的分析
+## 2. AOP 面向切面编程
 
-### 2.1. 加载 @EnableAspectJAutoproxy 注解
+### 2.1. AOP 基础使用
+
+#### 2.1.1. 基于注解 AOP 基础使用
+
+使用`@EnableAspectJAutoProxy`可以替代传统的xml配置文件中的`<aop:aspectj-autoproxy />`标签。**其作用都是开启Spring容器对AOP注解的支持**。
+
+##### 2.1.1.1. 开启AOP支持
+
+- 开启AOP注解支持配置类
+
+```java
+package com.moon.spring.config;
+
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.EnableAspectJAutoProxy;
+
+/**
+ * 配置开启Spring容器的AOP注解支持
+ */
+// 使用@Configuration、@Service、@Component等注解，会被@ComponentScan配置包扫描所扫描到
+@Configuration
+/*
+ * 注解的方式开启AOP注解支持
+ *   相当于xml配置文件中的 <aop:aspectj-autoproxy/> 标签
+ */
+@EnableAspectJAutoProxy(proxyTargetClass = false, exposeProxy = true)
+public class EnableAspectJAutoProxyConfig {
+}
+```
+
+- 包扫描配置类
+
+```java
+package com.moon.spring.config;
+
+import org.springframework.context.annotation.ComponentScan;
+
+/**
+ * 测试 @ComponentScan 注解配置类
+ */
+@ComponentScan(basePackages = {"com.moon.spring"})
+public class ComponentScanConfig {
+}
+```
+
+- 测试，使用加载包扫描配置类
+
+```java
+package com.moon.spring.test;
+
+import com.moon.spring.config.ComponentScanConfig;
+import org.junit.Before;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+
+public class AopTest {
+    private ApplicationContext context;
+
+    @Before
+    public void before() {
+        // 使用注解扫描方式启动spring容器，ComponentScanConfig配置类有@ComponentScan注解
+        context = new AnnotationConfigApplicationContext(ComponentScanConfig.class);
+    }
+}
+```
+
+##### 2.1.1.2. AOP基础使用示例
+
+- 准备测试的接口与实现类
+
+```java
+package com.moon.spring.service;
+
+public interface UserService {
+    public String queryUser(String userId);
+}
+
+
+package com.moon.spring.service;
+
+import org.springframework.context.annotation.Primary;
+import org.springframework.stereotype.Service;
+
+@Primary // 有多个实现同一个接口，spring注入时会优先选择标识了 @Primary 注解实现类
+@Service
+public class UserServiceImpl1 implements UserService {
+    @Override
+    public String queryUser(String userId) {
+        System.out.println("测试aop增强，UserServiceImpl1.queryUser()方法调用，入参userId->" + userId);
+        return "UserServiceImpl1.queryUser()返回：" + userId;
+    }
+}
+```
+
+- 编写切面类，定义切入点与增强的方法
+
+```java
+package com.moon.spring.aop.aspectj;
+
+import org.aspectj.lang.ProceedingJoinPoint;
+import org.aspectj.lang.annotation.Around;
+import org.aspectj.lang.annotation.Aspect;
+import org.aspectj.lang.annotation.Pointcut;
+import org.springframework.stereotype.Component;
+
+/**
+ * 基于注解的方式的AOP使用
+ */
+@Component
+@Aspect // 声明此类是一个切面
+public class AspectOnAnnotation {
+
+    /*
+     * @Pointcut注解标识定义切入点
+     * execution(表达式)：表示拦截的位置（方法）
+     *  表达式语法：execution([修饰符] 返回值类型 包名.类名.方法名(参数))
+     */
+    @Pointcut("execution(public * com.moon.spring.service.*.*(..))")
+    public void pc1() {
+    }
+
+    /**
+     * 环绕通知（增强）
+     */
+    @Around("pc1()")
+    public Object aroudAdvice(ProceedingJoinPoint joinPoint) throws Throwable {
+        System.out.println("==============AspectOnAnnotation类的 @Around环绕通知的前置通知=========");
+        Object result = joinPoint.proceed();
+        System.out.println("==============AspectOnAnnotation类的 @Around环绕通知的后置通知=========");
+        return result;
+    }
+}
+```
+
+- 测试
+
+```java
+package com.moon.spring.test;
+
+import com.moon.spring.config.ComponentScanConfig;
+import com.moon.spring.service.UserService;
+import org.junit.Before;
+import org.junit.Test;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+
+/**
+ * Spring AOP 测试
+ */
+public class AopTest {
+
+    private ApplicationContext context;
+
+    @Before
+    public void before() {
+        // 使用注解扫描方式启动spring容器，ComponentScanConfig配置类有@ComponentScan注解
+        context = new AnnotationConfigApplicationContext(ComponentScanConfig.class);
+    }
+
+    /**
+     * 基于注解方式的aop测试 - @Around环绕增强
+     */
+    @Test
+    public void aspectOnAnnotationAroundTest() {
+        UserService userService = context.getBean(UserService.class);
+        userService.queryUser("MooNkirA");
+    }
+}
+```
+
+![](images/20200619225215912_374.png)
+
+##### 2.1.1.3. 移除配置类的`@Configuration`注解
+
+以下测试如果移除配置类中的`@Configuration`注解，该类没有给spring管理，即`@EnableAspectJAutoProxy`注解不生效。此时测试方法可以看到从spring容器中拿到的是接口实现类实例本身
+
+![](images/20200622230142039_10203.png)
+
+![](images/20200622230233167_20192.png)
+
+如果配置类上有的`@Configuration`注解，即`@EnableAspectJAutoProxy`注解生效。此时测试方法从spring容器中拿到的是接口的代理实例
+
+![](images/20200622230614337_6561.png)
+
+![](images/20200622230644464_14817.png)
+
+#### 2.1.2. 基于 xml 配置基础使用（暂无，待完善）
+
+
+# Spring AOP 源码实现分析
+
+## 1. AOP 源码入口
+
+### 1.1. 源码 AOP 入口位置
+
+AOP的源码分析，因为AOP的实现是需要生成代理，因此可以推断AOP入口会是在Bean的实例化之后，
+
+当一个bean实例化完成之后，就会判断是当前bean是否需要生成代理，所以aop的处理时机（入口）就在`AbstractAutowireCapableBeanFactory`类中`doCreateBean`方法中完成DI依赖注入以后，具体位置如下图：
+
+![](images/20200627001003392_9660.png)
+
+`initializeBean()`方法中生成代理具体逻辑，具体位置如下图：
+
+![](images/20200627001237723_10199.png)
+
+### 1.2. 代理生成逻辑
+
+在`applyBeanPostProcessorsAfterInitialization`方法中，又是一个 `BeanPostProcessor` 接口的运用，`initializeBean` 方法是一个 bean 实例化完成后做的操作，而这个代理实例生成也是在 bean 实例化完成后做的操作，处理代码如下：
+
+```java
+@Override
+public Object applyBeanPostProcessorsAfterInitialization(Object existingBean, String beanName)
+		throws BeansException {
+	Object result = existingBean;
+	/*
+	 * 这里又是BeanPostProcessor接口的运用，这里主要理解以下实现类
+	 * 	1、AbstractAutoProxyCreator 主要处理AOP代理生成的逻辑
+	 */
+	for (BeanPostProcessor processor : getBeanPostProcessors()) {
+		Object current = processor.postProcessAfterInitialization(result, beanName);
+		if (current == null) {
+			return result;
+		}
+		result = current;
+	}
+	return result;
+}
+```
+
+AOP的核心逻辑代码在`BeanPostProcessor`接口现实类`AbstractAutoProxyCreator`中
+
+```java
+@Override
+public Object postProcessAfterInitialization(@Nullable Object bean, String beanName) {
+	if (bean != null) {
+		Object cacheKey = getCacheKey(bean.getClass(), beanName);
+		if (!this.earlyProxyReferences.contains(cacheKey)) {
+			// 判断是否需要包装成代理的（从方法名可以很容易看出意图）
+			return wrapIfNecessary(bean, beanName, cacheKey);
+		}
+	}
+	return bean;
+}
+
+protected Object wrapIfNecessary(Object bean, String beanName, Object cacheKey) {
+	if (StringUtils.hasLength(beanName) && this.targetSourcedBeans.contains(beanName)) {
+		return bean;
+	}
+	if (Boolean.FALSE.equals(this.advisedBeans.get(cacheKey))) {
+		return bean;
+	}
+	if (isInfrastructureClass(bean.getClass()) || shouldSkip(bean.getClass(), beanName)) {
+		this.advisedBeans.put(cacheKey, Boolean.FALSE);
+		return bean;
+	}
+	// 给当前的bean寻找advisor切面，如果这个bean有advice的话，则代表后面需要创建当前bean的代理。重要程度【5】
+	// Create proxy if we have advice.
+	Object[] specificInterceptors = getAdvicesAndAdvisorsForBean(bean.getClass(), beanName, null);
+	// 判断如果有切面，则生成该bean的代理
+	if (specificInterceptors != DO_NOT_PROXY) {
+		this.advisedBeans.put(cacheKey, Boolean.TRUE);
+		// 把被代理对象bean实例封装到SingletonTargetSource对象中
+		Object proxy = createProxy(
+				bean.getClass(), beanName, specificInterceptors, new SingletonTargetSource(bean));
+		this.proxyTypes.put(cacheKey, proxy.getClass());
+		return proxy;
+	}
+	this.advisedBeans.put(cacheKey, Boolean.FALSE);
+	return bean;
+}
+```
+
+上面的的`getAdvicesAndAdvisorsForBean()`方法，就是判断当前bean是否有切面advisor，如果有切面则会执行到`createProxy()`方法，生成代理对象然后返回
+
+```java
+@Override
+@Nullable
+protected Object[] getAdvicesAndAdvisorsForBean(
+		Class<?> beanClass, String beanName, @Nullable TargetSource targetSource) {
+	// 这里是找到合格的切面，返回一个对象数组
+	List<Advisor> advisors = findEligibleAdvisors(beanClass, beanName);
+	if (advisors.isEmpty()) {
+		return DO_NOT_PROXY;
+	}
+	return advisors.toArray();
+}
+
+
+protected List<Advisor> findEligibleAdvisors(Class<?> beanClass, String beanName) {
+	// 找到候选的切面,其实就是寻找有@Aspectj注解的过程，把工程中所有加上了此注解的类封装成Advisor返回
+	List<Advisor> candidateAdvisors = findCandidateAdvisors();
+	// 判断候选的切面是否作用在当前beanClass上面，就是一个匹配过程
+	List<Advisor> eligibleAdvisors = findAdvisorsThatCanApply(candidateAdvisors, beanClass, beanName);
+	extendAdvisors(eligibleAdvisors);
+	if (!eligibleAdvisors.isEmpty()) {
+		// 此方法是对有@Order@Priority等注解进行排序
+		eligibleAdvisors = sortAdvisors(eligibleAdvisors);
+	}
+	return eligibleAdvisors;
+}
+```
+
+## 2. 基于注解 AOP 实现类的导入
+
+- 注解的扫描逻辑是：通过读取配置类`ComponentScanConfig`上的`@ComponentScan`注解，首先会扫描到`@Configuration`、`@Service`、`@Component`等注解，对标识这些注解的类进行收集并封装成BeanDefinition对象，再扫描到`@EnableAspectJAutoProxy`注解（其实是扫描该注解上的`@Import`注解）
+- 通过扫描注解`@EnableAspectJAutoProxy(proxyTargetClass = false, exposeProxy = true)`注册了 AOP 入口类，入口是在`@Import(AspectJAutoProxyRegistrar.class)`注解中导入
+
+```java
+class AspectJAutoProxyRegistrar implements ImportBeanDefinitionRegistrar {
+
+	/**
+	 * Register, escalate, and configure the AspectJ auto proxy creator based on the value
+	 * of the @{@link EnableAspectJAutoProxy#proxyTargetClass()} attribute on the importing
+	 * {@code @Configuration} class.
+	 */
+	@Override
+	public void registerBeanDefinitions(
+			AnnotationMetadata importingClassMetadata, BeanDefinitionRegistry registry) {
+
+		// 此方法注册了AOP入口类（AnnotationAwareAspectJAutoProxyCreator）
+		AopConfigUtils.registerAspectJAnnotationAutoProxyCreatorIfNecessary(registry);
+
+		// 判断是否有@EnableAspectJAutoProxy注解
+		AnnotationAttributes enableAspectJAutoProxy =
+				AnnotationConfigUtils.attributesFor(importingClassMetadata, EnableAspectJAutoProxy.class);
+		if (enableAspectJAutoProxy != null) {
+			/*
+			 * 设置为true
+			 * 1、目标对象实现了接口 – 使用CGLIB代理机制
+			 * 2、目标对象没有接口(只有实现类) – 使用CGLIB代理机制
+			 *
+			 * 设置为false（默认值）
+			 * 1、目标对象实现了接口 – 使用JDK动态代理机制(代理所有实现了的接口)
+			 * 2、目标对象没有接口(只有实现类) – 使用CGLIB代理机制
+			 */
+			if (enableAspectJAutoProxy.getBoolean("proxyTargetClass")) {
+				AopConfigUtils.forceAutoProxyCreatorToUseClassProxying(registry);
+			}
+			// 是否需要把代理对象暴露出来，简单来说是否需要把代理对象用ThreadLocal存起来，如需要则设置为true
+			if (enableAspectJAutoProxy.getBoolean("exposeProxy")) {
+				AopConfigUtils.forceAutoProxyCreatorToExposeProxy(registry);
+			}
+		}
+	}
+}
+```
+
+在`@Import`导入的`AspectJAutoProxyRegistrar`这个类中，注册了 AOP 入口类 `AnnotationAwareAspectJAutoProxyCreator`（*注：此类与xml配置方式开启AOP注解支持是同一个处理类*）。在此类中设置了`proxyTargetClass`与`exposeProxy`的两个属性
+
+### 2.1. `@EnableAspectJAutoProxy`的两个属性
+
+**proxyTargetClass属性**：设置代理机制
+
+- 设置为true
+    1. 目标对象实现了接口 – 使用CGLIB代理机制
+    2. 目标对象没有接口(只有实现类) – 使用CGLIB代理机制
+- 设置为false（默认值）
+    1. 目标对象实现了接口 – 使用JDK动态代理机制(代理所有实现了的接口)
+    2. 目标对象没有接口(只有实现类) – 使用CGLIB代理机制
+
+**exposeProxy属性**：是否需要把代理对象暴露出来，简单来说是否需要把代理对象用ThreadLocal存起来，如需要则设置为true
+
+## 3. 基于 xml 配置 AOP 实现类的导入
+
+AOP 的其他入口类的配置是基于 xml 的形式
+
+比如开启注解支持`<aop:aspectj-autoproxy>`。通过源码分析知道，是注册了`AnnotationAwareAspectJAutoProxyCreator.class`，是`AbstractAutoProxyCreator`的子类
+
+```xml
+<aop:aspectj-autoproxy proxy-target-class="false" expose-proxy="true"/>
+```
+
+比如声明aop配置`<aop:config>`，配置切入点、切面、增加通知等(!待补充)。通过源码可以看到，是注册`AspectJAwareAdvisorAutoProxyCreator.class`类，是`AbstractAutoProxyCreator`的子类
+
+```xml
+<!-- 待补充 -->
+```
+
+> **以上两个都是自定义标签解析，解析过程可参照 `<context:component-scan>` 标签解析过程。最终也是完成 AOP 入口类的注册。**
+
+## 4. AOP注解执行过程及核心对象的分析
+
+### 4.1. 加载 @EnableAspectJAutoproxy 注解
 
 当spring扫描到`@EnableAspectJAutoProxy`注解时，会加载`AspectJAutoProxyRegistrar`的注册类。
 
@@ -61,17 +443,17 @@ public @interface EnableAspectJAutoProxy {
 }
 ```
 
-### 2.2. AspectJAutoProxyRegistrar
+### 4.2. AspectJAutoProxyRegistrar
 
 `AspectJAutoProxyRegistrar`运行注册逻辑后，会往容器中注册`AnnotationAwareAspectJAutoProxyCreator`实例
 
-### 2.3. AnnotationAwareAspectJAutoProxyCreator对象的分析
+### 4.3. AnnotationAwareAspectJAutoProxyCreator对象的分析
 
-#### 2.3.1. 类视图
+#### 4.3.1. 类视图
 
 ![](images/20200911154622758_24752.jpg)
 
-#### 2.3.2. 加载过程
+#### 4.3.2. 加载过程
 
 1. 执行父类`AbstractAutoProxyCreator`中的`postProcessAfterInitialization()`方法
 
@@ -214,7 +596,7 @@ protected Object createProxy(Class<?> beanClass, @Nullable String beanName,
 }
 ```
 
-#### 2.3.3. 加载过程总结
+#### 4.3.3. 加载过程总结
 
 1. 首先进行创建cacheKey
 2. 判断是否已经处理过了
@@ -223,7 +605,7 @@ protected Object createProxy(Class<?> beanClass, @Nullable String beanName,
 5. 获取增强器
 6. 根据增强器进行创建代理对象
 
-### 2.4. 解析切入点表达式的加载流程(!待整理)
+### 4.4. 解析切入点表达式的加载流程(!待整理)
 
 spring在解析切入点表达式时，是通过一些类进行封装的。此实现类`PointcutImpl`实现了`Pointcut`接口。
 
@@ -232,9 +614,9 @@ spring在解析切入点表达式时，是通过一些类进行封装的。此�
 
 *注：`PointcutImpl`与`KindedPointcut`是在`org.aspectj.aspectjweaver`的依赖包下*
 
-### 2.5. 解析通知注解
+### 4.5. 解析通知注解
 
-#### 2.5.1. 初始化通知注解的Map(!待整理)
+#### 4.5.1. 初始化通知注解的Map(!待整理)
 
 首先在执行初始化时容器创建时，spring框架把和通知相关的注解都放到一个受保护的内部类中了。
 
@@ -261,380 +643,6 @@ public abstract class AbstractAspectJAdvisorFactory implements AspectJAdvisorFac
 }
 ```
 
-#### 2.5.2. 构建通知的拦截器链(!待整理)
+#### 4.5.2. 构建通知的拦截器链(!待整理)
 
-## 3. AOP 面向切面编程
-### 3.1. AOP 基础使用
 
-#### 3.1.1. 基于注解 AOP 基础使用
-
-使用`@EnableAspectJAutoProxy`可以替代传统的xml配置文件中的`<aop:aspectj-autoproxy />`标签。**其作用都是开启Spring容器对AOP注解的支持**。
-
-##### 3.1.1.1. 开启AOP支持
-
-- 开启AOP注解支持配置类
-
-```java
-package com.moon.spring.config;
-
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.EnableAspectJAutoProxy;
-
-/**
- * 配置开启Spring容器的AOP注解支持
- */
-// 使用@Configuration、@Service、@Component等注解，会被@ComponentScan配置包扫描所扫描到
-@Configuration
-/*
- * 注解的方式开启AOP注解支持
- *   相当于xml配置文件中的 <aop:aspectj-autoproxy/> 标签
- */
-@EnableAspectJAutoProxy(proxyTargetClass = false, exposeProxy = true)
-public class EnableAspectJAutoProxyConfig {
-}
-```
-
-- 包扫描配置类
-
-```java
-package com.moon.spring.config;
-
-import org.springframework.context.annotation.ComponentScan;
-
-/**
- * 测试 @ComponentScan 注解配置类
- */
-@ComponentScan(basePackages = {"com.moon.spring"})
-public class ComponentScanConfig {
-}
-```
-
-- 测试，使用加载包扫描配置类
-
-```java
-package com.moon.spring.test;
-
-import com.moon.spring.config.ComponentScanConfig;
-import org.junit.Before;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.annotation.AnnotationConfigApplicationContext;
-
-public class AopTest {
-    private ApplicationContext context;
-
-    @Before
-    public void before() {
-        // 使用注解扫描方式启动spring容器，ComponentScanConfig配置类有@ComponentScan注解
-        context = new AnnotationConfigApplicationContext(ComponentScanConfig.class);
-    }
-}
-```
-
-##### 3.1.1.2. AOP基础使用示例
-
-- 准备测试的接口与实现类
-
-```java
-package com.moon.spring.service;
-
-public interface UserService {
-    public String queryUser(String userId);
-}
-
-
-package com.moon.spring.service;
-
-import org.springframework.context.annotation.Primary;
-import org.springframework.stereotype.Service;
-
-@Primary // 有多个实现同一个接口，spring注入时会优先选择标识了 @Primary 注解实现类
-@Service
-public class UserServiceImpl1 implements UserService {
-    @Override
-    public String queryUser(String userId) {
-        System.out.println("测试aop增强，UserServiceImpl1.queryUser()方法调用，入参userId->" + userId);
-        return "UserServiceImpl1.queryUser()返回：" + userId;
-    }
-}
-```
-
-- 编写切面类，定义切入点与增强的方法
-
-```java
-package com.moon.spring.aop.aspectj;
-
-import org.aspectj.lang.ProceedingJoinPoint;
-import org.aspectj.lang.annotation.Around;
-import org.aspectj.lang.annotation.Aspect;
-import org.aspectj.lang.annotation.Pointcut;
-import org.springframework.stereotype.Component;
-
-/**
- * 基于注解的方式的AOP使用
- */
-@Component
-@Aspect // 声明此类是一个切面
-public class AspectOnAnnotation {
-
-    /*
-     * @Pointcut注解标识定义切入点
-     * execution(表达式)：表示拦截的位置（方法）
-     *  表达式语法：execution([修饰符] 返回值类型 包名.类名.方法名(参数))
-     */
-    @Pointcut("execution(public * com.moon.spring.service.*.*(..))")
-    public void pc1() {
-    }
-
-    /**
-     * 环绕通知（增强）
-     */
-    @Around("pc1()")
-    public Object aroudAdvice(ProceedingJoinPoint joinPoint) throws Throwable {
-        System.out.println("==============AspectOnAnnotation类的 @Around环绕通知的前置通知=========");
-        Object result = joinPoint.proceed();
-        System.out.println("==============AspectOnAnnotation类的 @Around环绕通知的后置通知=========");
-        return result;
-    }
-}
-```
-
-- 测试
-
-```java
-package com.moon.spring.test;
-
-import com.moon.spring.config.ComponentScanConfig;
-import com.moon.spring.service.UserService;
-import org.junit.Before;
-import org.junit.Test;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.annotation.AnnotationConfigApplicationContext;
-
-/**
- * Spring AOP 测试
- */
-public class AopTest {
-
-    private ApplicationContext context;
-
-    @Before
-    public void before() {
-        // 使用注解扫描方式启动spring容器，ComponentScanConfig配置类有@ComponentScan注解
-        context = new AnnotationConfigApplicationContext(ComponentScanConfig.class);
-    }
-
-    /**
-     * 基于注解方式的aop测试 - @Around环绕增强
-     */
-    @Test
-    public void aspectOnAnnotationAroundTest() {
-        UserService userService = context.getBean(UserService.class);
-        userService.queryUser("MooNkirA");
-    }
-}
-```
-
-![](images/20200619225215912_374.png)
-
-##### 3.1.1.3. 移除配置类的`@Configuration`注解
-
-以下测试如果移除配置类中的`@Configuration`注解，该类没有给spring管理，即`@EnableAspectJAutoProxy`注解不生效。此时测试方法可以看到从spring容器中拿到的是接口实现类实例本身
-
-![](images/20200622230142039_10203.png)
-
-![](images/20200622230233167_20192.png)
-
-如果配置类上有的`@Configuration`注解，即`@EnableAspectJAutoProxy`注解生效。此时测试方法从spring容器中拿到的是接口的代理实例
-
-![](images/20200622230614337_6561.png)
-
-![](images/20200622230644464_14817.png)
-
-#### 3.1.2. 基于 xml 配置基础使用（暂无，待完善）
-
-### 3.2. AOP 入口
-
-AOP的源码分析，可以通过注解与xml配置分别去找到aop的入口
-
-#### 3.2.1. 基于注解 AOP 入口
-
-- 注解的扫描逻辑是：通过读取配置类`ComponentScanConfig`上的`@ComponentScan`注解，首先会扫描到`@Configuration`、`@Service`、`@Component`等注解，对标识这些注解的类进行收集并封装成BeanDefinition对象，再扫描到`@EnableAspectJAutoProxy`注解（其实是扫描该注解上的`@Import`注解）
-- 通过扫描注解`@EnableAspectJAutoProxy(proxyTargetClass = false, exposeProxy = true)`注册了 AOP 入口类，入口是在`@Import(AspectJAutoProxyRegistrar.class)`注解中导入
-
-```java
-class AspectJAutoProxyRegistrar implements ImportBeanDefinitionRegistrar {
-
-	/**
-	 * Register, escalate, and configure the AspectJ auto proxy creator based on the value
-	 * of the @{@link EnableAspectJAutoProxy#proxyTargetClass()} attribute on the importing
-	 * {@code @Configuration} class.
-	 */
-	@Override
-	public void registerBeanDefinitions(
-			AnnotationMetadata importingClassMetadata, BeanDefinitionRegistry registry) {
-
-		// 此方法注册了AOP入口类（AnnotationAwareAspectJAutoProxyCreator）
-		AopConfigUtils.registerAspectJAnnotationAutoProxyCreatorIfNecessary(registry);
-
-		// 判断是否有@EnableAspectJAutoProxy注解
-		AnnotationAttributes enableAspectJAutoProxy =
-				AnnotationConfigUtils.attributesFor(importingClassMetadata, EnableAspectJAutoProxy.class);
-		if (enableAspectJAutoProxy != null) {
-			/*
-			 * 设置为true
-			 * 1、目标对象实现了接口 – 使用CGLIB代理机制
-			 * 2、目标对象没有接口(只有实现类) – 使用CGLIB代理机制
-			 *
-			 * 设置为false（默认值）
-			 * 1、目标对象实现了接口 – 使用JDK动态代理机制(代理所有实现了的接口)
-			 * 2、目标对象没有接口(只有实现类) – 使用CGLIB代理机制
-			 */
-			if (enableAspectJAutoProxy.getBoolean("proxyTargetClass")) {
-				AopConfigUtils.forceAutoProxyCreatorToUseClassProxying(registry);
-			}
-			// 是否需要把代理对象暴露出来，简单来说是否需要把代理对象用ThreadLocal存起来，如需要则设置为true
-			if (enableAspectJAutoProxy.getBoolean("exposeProxy")) {
-				AopConfigUtils.forceAutoProxyCreatorToExposeProxy(registry);
-			}
-		}
-	}
-}
-```
-
-在`@Import`导入的`AspectJAutoProxyRegistrar`这个类中，注册了 AOP 入口类 `AnnotationAwareAspectJAutoProxyCreator`（*注：此类与xml配置方式开启AOP注解支持是同一个处理类*）。在此类中设置了`proxyTargetClass`与`exposeProxy`的两个属性
-
-##### 3.2.1.1. `@EnableAspectJAutoProxy`的两个属性
-
-**proxyTargetClass属性**：设置代理机制
-
-- 设置为true
-    1. 目标对象实现了接口 – 使用CGLIB代理机制
-    2. 目标对象没有接口(只有实现类) – 使用CGLIB代理机制
-- 设置为false（默认值）
-    1. 目标对象实现了接口 – 使用JDK动态代理机制(代理所有实现了的接口)
-    2. 目标对象没有接口(只有实现类) – 使用CGLIB代理机制
-
-**exposeProxy属性**：是否需要把代理对象暴露出来，简单来说是否需要把代理对象用ThreadLocal存起来，如需要则设置为true
-
-#### 3.2.2. 基于 xml 配置 AOP 入口（!待完善）
-
-AOP 的其他入口类的配置是基于 xml 的形式
-
-比如开启注解支持`<aop:aspectj-autoproxy>`。通过源码分析知道，是注册了`AnnotationAwareAspectJAutoProxyCreator.class`，是`AbstractAutoProxyCreator`的子类
-
-```xml
-<aop:aspectj-autoproxy proxy-target-class="false" expose-proxy="true"/>
-```
-
-比如声明aop配置`<aop:config>`，配置切入点、切面、增加通知等(!待补充)。通过源码可以看到，是注册`AspectJAwareAdvisorAutoProxyCreator.class`类，是`AbstractAutoProxyCreator`的子类
-
-```xml
-<!-- 待补充 -->
-```
-
-> **以上两个都是自定义标签解析，解析过程可参照 `<context:component-scan>` 标签解析过程。最终也是完成 AOP 入口类的注册。**
-
-### 3.3. 代理生成逻辑
-
-当一个bean实例化完成之后，就会判断是当前bean是否需要生成代理，所以aop的处理时机（入口）就在`AbstractAutowireCapableBeanFactory`类中`doCreateBean`方法中完成DI依赖注入以后，具体位置如下图：
-
-![](images/20200627001003392_9660.png)
-
-`initializeBean()`方法中生成代理具体逻辑，具体位置如下图：
-
-![](images/20200627001237723_10199.png)
-
-这是一个 `BeanPostProcessor` 接口的运用，`initializeBean` 方法是一个 bean 实例化完成后做的操作，而这个代理实例生成也是在 bean 实例化完成后做的操作，处理代码如下：
-
-```java
-@Override
-public Object applyBeanPostProcessorsAfterInitialization(Object existingBean, String beanName)
-		throws BeansException {
-	Object result = existingBean;
-	/*
-	 * 这里又是BeanPostProcessor接口的运用，这里主要理解以下实现类
-	 * 	1、AbstractAutoProxyCreator 主要处理AOP代理生成的逻辑
-	 */
-	for (BeanPostProcessor processor : getBeanPostProcessors()) {
-		Object current = processor.postProcessAfterInitialization(result, beanName);
-		if (current == null) {
-			return result;
-		}
-		result = current;
-	}
-	return result;
-}
-```
-
-AOP的核心逻辑代码在`BeanPostProcessor`接口现实类`AbstractAutoProxyCreator`中
-
-```java
-@Override
-public Object postProcessAfterInitialization(@Nullable Object bean, String beanName) {
-	if (bean != null) {
-		Object cacheKey = getCacheKey(bean.getClass(), beanName);
-		if (!this.earlyProxyReferences.contains(cacheKey)) {
-			// 判断是否需要包装成代理的（从方法名可以很容易看出意图）
-			return wrapIfNecessary(bean, beanName, cacheKey);
-		}
-	}
-	return bean;
-}
-
-protected Object wrapIfNecessary(Object bean, String beanName, Object cacheKey) {
-	if (StringUtils.hasLength(beanName) && this.targetSourcedBeans.contains(beanName)) {
-		return bean;
-	}
-	if (Boolean.FALSE.equals(this.advisedBeans.get(cacheKey))) {
-		return bean;
-	}
-	if (isInfrastructureClass(bean.getClass()) || shouldSkip(bean.getClass(), beanName)) {
-		this.advisedBeans.put(cacheKey, Boolean.FALSE);
-		return bean;
-	}
-	// 给当前的bean寻找advisor切面，如果这个bean有advice的话，则代表后面需要创建当前bean的代理。重要程度【5】
-	// Create proxy if we have advice.
-	Object[] specificInterceptors = getAdvicesAndAdvisorsForBean(bean.getClass(), beanName, null);
-	// 判断如果有切面，则生成该bean的代理
-	if (specificInterceptors != DO_NOT_PROXY) {
-		this.advisedBeans.put(cacheKey, Boolean.TRUE);
-		// 把被代理对象bean实例封装到SingletonTargetSource对象中
-		Object proxy = createProxy(
-				bean.getClass(), beanName, specificInterceptors, new SingletonTargetSource(bean));
-		this.proxyTypes.put(cacheKey, proxy.getClass());
-		return proxy;
-	}
-	this.advisedBeans.put(cacheKey, Boolean.FALSE);
-	return bean;
-}
-```
-
-上面的的`getAdvicesAndAdvisorsForBean()`方法，就是判断当前bean是否有切面advisor，如果有切面则会执行到`createProxy()`方法，生成代理对象然后返回
-
-```java
-@Override
-@Nullable
-protected Object[] getAdvicesAndAdvisorsForBean(
-		Class<?> beanClass, String beanName, @Nullable TargetSource targetSource) {
-	// 这里是找到合格的切面，返回一个对象数组
-	List<Advisor> advisors = findEligibleAdvisors(beanClass, beanName);
-	if (advisors.isEmpty()) {
-		return DO_NOT_PROXY;
-	}
-	return advisors.toArray();
-}
-
-
-protected List<Advisor> findEligibleAdvisors(Class<?> beanClass, String beanName) {
-	// 找到候选的切面,其实就是寻找有@Aspectj注解的过程，把工程中所有加上了此注解的类封装成Advisor返回
-	List<Advisor> candidateAdvisors = findCandidateAdvisors();
-	// 判断候选的切面是否作用在当前beanClass上面，就是一个匹配过程
-	List<Advisor> eligibleAdvisors = findAdvisorsThatCanApply(candidateAdvisors, beanClass, beanName);
-	extendAdvisors(eligibleAdvisors);
-	if (!eligibleAdvisors.isEmpty()) {
-		// 此方法是对有@Order@Priority等注解进行排序
-		eligibleAdvisors = sortAdvisors(eligibleAdvisors);
-	}
-	return eligibleAdvisors;
-}
-```

@@ -735,6 +735,17 @@ public abstract class AbstractBeanDefinition extends BeanMetadataAttributeAccess
 - 一个 RootBeanDefinition 定义表明它是一个可合并的 beanDefinition：即在 spring beanFactory 运行期间，可以返回一个特定的 bean。RootBeanDefinition 可以作为一个重要的通用的 beanDefinition 视图。
 - RootBeanDefinition 用来在配置阶段进行注册 beanDefinition。然后，从 spring 2.5 后，编写注册 beanDefinition 有了更好的的方法：GenericBeanDefinition。GenericBeanDefinition 支持动态定义父类依赖，而非硬编码作为 root bean definition。
 
+在Spring实例化过程开始循环全部BeanDefinitionName集合时，会将转成`RootBeanDefinition`
+
+![](images/20210222225044559_3826.png)
+
+![](images/20210222225338140_3062.png)
+
+从构造函数可以知道，将原来的`BeanDefinition`属性值逐个填充到`RootBeanDefinition`类型实例中
+
+![](images/20210222225628718_28191.png)
+
+
 #### 5.2.3. ChildBeanDefinition 类
 
 - ChildBeanDefinition 是一种 bean definition，它可以继承它父类的设置，即ChildBeanDefinition 对 RootBeanDefinition 有一定的依赖关系
@@ -745,6 +756,39 @@ public abstract class AbstractBeanDefinition extends BeanMetadataAttributeAccess
 - 注意：从 spring 2.5 开始，提供了一个更好的注册 bean definition 类 GenericBeanDefinition，它支持动态定义父依赖，方法是GenericBeanDefinition对象中`public void setParentName(@Nullable String parentName);`，GenericBeanDefinition 可以在绝大分部使用场合有效的替代 ChildBeanDefinition
 - GenericBeanDefinition 是一站式的标准 bean definition，除了具有指定类、可选的构造参数值和属性参数这些其它 bean definition 一样的特性外，它还具有通过 parenetName 属性来灵活设置 parent bean definition
 - 通常，GenericBeanDefinition 用来注册用户可见的 bean definition(可见的bean definition意味着可以在该类bean definition上定义post-processor来对bean进行操作，甚至为配置 parent name 做扩展准备)。RootBeanDefinition / ChildBeanDefinition 用来预定义具有 parent/child 关系的 bean definition。
+
+#### 5.2.5. ScannedGenericBeanDefinition
+
+```java
+public class ScannedGenericBeanDefinition extends GenericBeanDefinition implements AnnotatedBeanDefinition
+```
+
+`ScannedGenericBeanDefinition`是在xml配置中，自定义标签`<context:component-scan>`解析时，会使用此类型的`BeanDefinition`进行封装
+
+![](images/20210222223322602_15969.png)
+
+#### 5.2.6. AnnotatedGenericBeanDefinition
+
+```java
+public class AnnotatedGenericBeanDefinition extends GenericBeanDefinition implements AnnotatedBeanDefinition
+```
+
+`AnnotatedGenericBeanDefinition`是在使用`@Import`注解导入的类或者内部类时，会使用此类型的`BeanDefinition`进行封装
+
+![](images/20210222223448474_22100.png)
+
+#### 5.2.7. ConfigurationClassBeanDefinition
+
+```java
+class ConfigurationClassBeanDefinitionReader {
+    ....省略
+    private static class ConfigurationClassBeanDefinition extends RootBeanDefinition implements AnnotatedBeanDefinition
+}
+```
+
+`ConfigurationClassBeanDefinition`是在解析`@Bean`注解创建的实例时，会使用此类型的`BeanDefinition`进行封装
+
+![](images/20210222223936902_17531.png)
 
 ### 5.3. BeanDefinition 中的属性
 
@@ -6120,9 +6164,34 @@ private void loadBeanDefinitionsFromRegistrars(Map<ImportBeanDefinitionRegistrar
 
 ![](images/20210220223137173_31763.png)
 
-> <font color=red>**经上面差异测试，可以知道，在调用`@Bean`注解的方法获取对象时，不是通过类实例本身调用，而是通过代理调用**</font>
+#### 3.1.2. 手动调用实现FactoryBean接口的getObject方法
+
+- 创建`FactoryBean`接口实现
+
+```java
+public class MyFactoryBean implements FactoryBean<Bird> {
+
+    @Override
+    public Bird getObject() throws Exception {
+        return new Bird();
+    }
+
+    @Override
+    public Class<?> getObjectType() {
+        return Bird.class;
+    }
+}
+```
+
+- 使用`@Bean`注解创建`FactoryBean`接口实现类实例，并在其他方法调用该`getObject`方法
+
+![](images/20210221125357999_27977.png)
+
+- 运行测试结果：使用`@Component`注解时，两个hashCode的结果不一样；而使用`@Configuration`注解时，两个hashCode的结果一致
 
 ### 3.2. 源码分析
+
+> <font color=red>**经上面差异测试，可以知道，在调用`@Bean`注解的方法获取对象时，不是通过类实例本身调用，而是通过代理调用**</font>
 
 `ConfigurationClassPostProcessor`实现了`BeanDefinitionRegistryPostProcessor`接口，分别实现了`postProcessBeanDefinitionRegistry`与`postProcessBeanFactory`方法。而在前面的源码分析中，此两个方法的调用时序是：先`postProcessBeanDefinitionRegistry`后`postProcessBeanFactory`。
 
@@ -6153,10 +6222,51 @@ public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) 
 
 #### 3.2.2. 生成CGlib代理子类
 
-在`enhanceConfigurationClasses`方法中，会将原来标识了`@Configuration`的类生成增强的子类
+在`enhanceConfigurationClasses`方法中，会将原来标识了`@Configuration`的类生成增强的子类。*注：CGlib的作用只是动态生成一个增强的字节码文件并加载到jvm中，而真正的实例化由spring来处理*
 
+```java
+// 创建CGLIB代理实例
+private Enhancer newEnhancer(Class<?> configSuperClass, @Nullable ClassLoader classLoader) {
+	Enhancer enhancer = new Enhancer();
+	// 设置待增强的类
+	enhancer.setSuperclass(configSuperClass);
+	enhancer.setInterfaces(new Class<?>[] {EnhancedConfiguration.class});
+	enhancer.setUseFactory(false);
+	enhancer.setNamingPolicy(SpringNamingPolicy.INSTANCE);
+	enhancer.setStrategy(new BeanFactoryAwareGeneratorStrategy(classLoader));
+	// 设置Callback调用处理筛选器
+	enhancer.setCallbackFilter(CALLBACK_FILTER);
+	// 设置Callback数组
+	enhancer.setCallbackTypes(CALLBACK_FILTER.getCallbackTypes());
+	return enhancer;
+}
+```
 
+![](images/20210221092823805_1033.png)
 
+![](images/20210221092858346_16168.png)
+
+#### 3.2.3. 代理调用MethodInterceptor的筛选
+
+在`isMath`方法中，判断调用哪个callback方法的逻辑
+
+![](images/20210221093624703_3913.png)
+
+![](images/20210221093846688_25830.png)
+
+![](images/20210221093830471_18078.png)
+
+所以当前的`method`带有`@Bean`注解的话，就会调用`BeanMethodInterceptor`这个实例的`intercept`方法
+
+#### 3.2.4. BeanMethodInterceptor 类调用代理方法
+
+上面筛选后就是使用代理调用方法的逻辑，在`BeanMethodInterceptor.intercept`方法中实现普通的`@Bean`方法的代理调用
+
+![](images/20210221121019367_19175.png)
+
+以下是在`@Bean`注解的方法调用`FactoryBean`接口实现的处理
+
+![](images/20210221142033066_1059.jpg)
 
 # Spring 相关功能与设计
 
@@ -7003,3 +7113,33 @@ public void testCglibBasic() {
 ```
 
 ![](images/20210220211356040_12819.png)
+
+## 5. 自定义增强型依赖注入注解案例（整理中！）
+
+### 5.1. 案例需求
+
+此案例的需求是：
+
+1. 使 `@Autowired`、`@Resource` 注解可以一次性注入一个接口所有的实现类
+2. 希望能通过注解的方式，可以一次性调用接口中方法对应的所有实现，如果能实现跟dubbo里面的那个ExtensionLoader 这个里面的功能那就更好了，可以批量找实现类，也可以单个找实现类，可以优先匹配某个实现类。
+
+根据源码分析，整理实现此需求的思路如下：
+
+- `@Autowired`注解的收集源码位置是在`AbstractAutowireCapableBeanFactory.doCreateBean`方法的`applyMergedBeanDefinitionPostProcessors`中
+
+![](images/20210221190957444_5124.png)
+
+- Spring实现`@Autowired`注解的收集是通过一个`MergedBeanDefinitionPostProcessor`接口类型的`AutowiredAnnotationBeanPostProcessor`类来完成的
+- Spring的真正的依赖注入源码位置是在`AbstractAutowireCapableBeanFactory.doCreateBean`方法的`populateBean`中
+- Spring实现`@Autowired`依赖注入是通过一个`InstantiationAwareBeanPostProcessor`接口类型的`AutowiredAnnotationBeanPostProcessor`类来完成的
+
+![](images/20210221192710004_15305.png)
+
+- 所以可以参考`AutowiredAnnotationBeanPostProcessor`类来实现此案例的功能
+
+### 5.2. 功能实现
+
+
+
+
+

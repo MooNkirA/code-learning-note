@@ -234,7 +234,9 @@ CGLib 全称为 Code Generation Library，是一个强大的高性能，高质�
 
 ![AOP术语图解](images/20190402102724932_294.jpg)
 
-### 1.6. 学习 spring 中的 AOP 要明确的事
+### 1.6. Spring AOP 总结
+
+#### 1.6.1. 学习 spring 中的 AOP 要明确的事
 
 - 开发阶段（我们做的）
     - 编写核心业务代码（开发主线）：大部分程序员来做，要求熟悉业务需求。
@@ -242,6 +244,16 @@ CGLib 全称为 Code Generation Library，是一个强大的高性能，高质�
     - 在配置文件中，声明切入点与通知间的关系，即切面：AOP 编程人员来做。
 - 运行阶段（Spring 框架完成的）
     - Spring 框架监控切入点方法的执行。一旦监控到切入点方法被运行，使用代理机制，动态创建目标对象的代理对象，根据通知类别，在代理对象的对应位置，将通知对应的功能织入，完成完整的代码逻辑运行
+
+#### 1.6.2. Spring AOP 核心要素总结
+
+- 在Spring框架中，**Aspect(切面)会封装成`Advisor`**，并且必须包含`Pointcut`(切入点)和`Advice`(增强)两个要素
+- **Pointcut(切入点)**的作用是：<font color=red>**匹配、拦截**</font>，`ClassFilter`是用于类的拦截；`MethodMatcher`是用过匹配需要增强的方法。主要是用在以下两个节点：
+
+1. <font color=red>**初始化时，校验相应的类上是否有切面，并生成代理**</font>
+2. <font color=red>**当代理对象调用方法的时候，进行匹配拦截**</font>
+
+- **Advice(增强)**就是具体的增强的逻辑
 
 ### 1.7. Spring的AOP操作
 
@@ -259,7 +271,9 @@ CGLib 全称为 Code Generation Library，是一个强大的高性能，高质�
     - aspectjweaver-1.8.7.jar
 
 ## 2. 基于纯XML的 AOP 配置和使用
+
 ### 2.1. 配置步骤
+
 #### 2.1.1. 第1步 添加相关的依赖(或拷贝jar包到lib目录)
 
 ```xml

@@ -1240,6 +1240,8 @@ public void getBeanDefinitionNamesTest() {
 > 扩展：
 >
 > 在SpringBoot中，类似`@EnableXXX`这样的注解，绝大多数都借助了`ImportSelector`或者`ImportBeanDefinitionRegistrar`来实现。例如：在spring中，`@EnableTransactionManagement`就是借助了ImportSelector，而`@EnableAspectJAutoProxy`就是借助了`ImportBeanDefinitionRegistrar`。
+>
+> 同理，如果开发一个自定义功能，可以使用这种方式，自定义一个注解，通过`@Import`注解导入相关`ImportSelector`或者`ImportBeanDefinitionRegistrar`实现，最后将项目打成jar包，再通过依赖的方式引入到相关工程，再使用自定义注解将相关的类导入到spring容器即可
 
 ##### 2.5.1.2. 共同点、区别、注意事项
 
