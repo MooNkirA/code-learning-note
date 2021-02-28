@@ -190,9 +190,11 @@ AOP的源码分析，因为AOP的实现是需要生成代理，因此可以推�
 >
 > **以上两个都是自定义标签解析，解析过程可参照 `<context:component-scan>` 标签解析过程。最终也是完成 AOP 入口类的注册。**
 
-## 3. 基于注解 AOP 执行过程及核心对象导入的分析
+## 3. 基于注解配置 AOP 实现类导入
 
 ### 3.1. 加载 @EnableAspectJAutoproxy 注解
+
+在Spring工程的配置类上标识`@EnableAspectJAutoproxy`注解，即开启Spring AOP注解的支持
 
 ```java
 @Configuration
@@ -291,7 +293,9 @@ class AspectJAutoProxyRegistrar implements ImportBeanDefinitionRegistrar {
 > - 设置为true时，目标对象无论是否实现了接口，都使用CGLIB代理机制
 > - 设置为false时，目标对象实现了接口，则使用JDK动态代理机制(代理所有实现了的接口)；没有实现接口（只有实现类），则使用CGLIB代理机制
 
-### 3.3. applyBeanPostProcessorsAfterInitialization AOP 处理入口
+## 4. AOP 执行过程及核心对象导入的分析
+
+### 4.1. applyBeanPostProcessorsAfterInitialization AOP 处理入口
 
 在`AbstractAutowireCapableBeanFactory`类中的`doCreateBean`方法，其中执行`initializeBean`方法是一个 bean 实例化完成后做的操作，而这个代理实例生成也是在 bean 实例化完成后做的操作。在`applyBeanPostProcessorsAfterInitialization`方法中，又是一个 `BeanPostProcessor` 接口的运用，处理代码如下：
 
@@ -317,9 +321,7 @@ public Object applyBeanPostProcessorsAfterInitialization(Object existingBean, St
 }
 ```
 
-### 3.4. 代理生成流程
-
-#### 3.4.1. AbstractAutoProxyCreator
+### 4.2. AbstractAutoProxyCreator
 
 切面由切点和增强（引介）组成，它既包括了横切逻辑的定义，也包括了连接点的定义，Spring AOP 就是负责实施切面的框架，它将切面所定义的横切逻辑织入到切面所指定的连接点中。`Advisor = pointCut + advice`
 
@@ -356,7 +358,7 @@ protected Object getCacheKey(Class<?> beanClass, @Nullable String beanName) {
 }
 ```
 
-#### 3.4.2. wrapIfNecessary 判断是否需要增强
+### 4.3. wrapIfNecessary 判断是否需要增强
 
 - 判断当前实例是否需要增强或已经被增强过了
 
@@ -415,7 +417,9 @@ protected boolean isInfrastructureClass(Class<?> beanClass) {
 }
 ```
 
-- 获取增强的代码。在`AbstractAdvisorAutoProxyCreator`类实现`getAdvicesAndAdvisorsForBean()`抽象方法进行处理。就是判断当前bean是否有切面advisor，如果有切面则后面会执行到`createProxy()`方法，生成代理对象然后返回
+### 4.4. getAdvicesAndAdvisorsForBean 获取增强器
+
+获取增强的代码。在`AbstractAdvisorAutoProxyCreator`类实现`getAdvicesAndAdvisorsForBean()`抽象方法进行处理。就是判断当前bean是否有切面advisor，如果有切面则后面会执行到`createProxy()`方法，生成代理对象然后返回
 
 ```java
 @Override
@@ -431,7 +435,7 @@ protected Object[] getAdvicesAndAdvisorsForBean(
 }
 ```
 
-#### 3.4.3. findEligibleAdvisors 匹配候选切面封装成Advisor
+### 4.5. findEligibleAdvisors 匹配候选切面封装成Advisor
 
 `findEligibleAdvisors`方法，主要是一个匹配当前实例是否有合格的切面，并且封装成`Advisor`的过程
 
@@ -451,9 +455,9 @@ protected List<Advisor> findEligibleAdvisors(Class<?> beanClass, String beanName
 }
 ```
 
-#### 3.4.4. findCandidateAdvisors 寻找合格切面的过程
+### 4.6. findCandidateAdvisors 寻找合格切面的过程
 
-##### 3.4.4.1. 定义切面的两种方式
+#### 4.6.1. 定义切面的两种方式
 
 匹配候选切面的首先是寻找有`@Aspectj`注解或者实现`Advisor`接口的类，进行处理封装成`Advisor`返回。相应的处理会先调用AOP入口实现类`AnnotationAwareAspectJAutoProxyCreator`重写的`findCandidateAdvisors`方法
 
@@ -486,21 +490,361 @@ List<Advisor> advisors = super.findCandidateAdvisors();
 this.aspectJAdvisorsBuilder.buildAspectJAdvisors()
 ```
 
-##### 3.4.4.2. 查找实现 Advisor 接口的切面
+#### 4.6.2. 查找实现 Advisor 接口的切面
 
 先调用父类`AbstractAdvisorAutoProxyCreator`的逻辑，通过分析父类的方法的逻辑可知，Spring会收集所有实现`Advisor`接口的实例，所以可以<font color=red>**通过实现`Advisor`接口来自定义一些切面实现，这种方式实现的切面也会被Spring收集与管理**</font>
 
 ![](images/20210226152313171_19445.png)
 
-##### 3.4.4.3. 查找标识 @Aspectj 注解的切面
+#### 4.6.3. 查找标识 @Aspect 注解的切面
 
-接下来在调用`BeanFactoryAspectJAdvisorsBuilder.buildAspectJAdvisors()`方法，处理匹配`@Aspectj`注解的切面类
+接下来在调用`BeanFactoryAspectJAdvisorsBuilder.buildAspectJAdvisors()`方法，处理匹配`@Aspect`注解的切面类。此方法的处理逻辑如下：
+
+- 获取 spring 容器中的所有 bean 的名称 `BeanName` 的数组
+
+![](images/20210227091713066_7023.png)
+
+- 循环遍历 `BeanNames` 数组，判断该类上面是否有`@Aspect`注解，如果有则为需要处理的实例，添加到 `aspectNames` 集合中。
+
+![](images/20210227091814077_12258.png)
+
+- 将标识了`@Aspect`注解的单个beanName包装成`MetadataAwareAspectInstanceFactory`工厂对象，然后通过`getAdvisors`方法获取与创建当前实例中所有切面`Advisor`集合。(注：一个bean当中可能有多个`Advisor`，单个`Advisor`是由`poinCut`和`advice`组成，因此每个bean对应的都是一个`Advisors`集合)
+
+![](images/20210227095235466_28954.png)
+
+- 重点分析`ReflectiveAspectJAdvisorFactory.getAdvisors`方法。该方法主要作用是创建切面`Advisor`对象，主要处理流程是：循环单个Bean实例里面所有方法，通过`getAdvisorMethods(aspectClass)`方法获取除了`@PointCut`注解的其他所有方法，判断当前方法上面的注解是否有标识`@Around`、`@Before`、`@After`、`@AfterReturning`、`@AfterThrowing`等的注解，如果包含在这些注解之中，就把注解里面的信息，比如表达式、argNames、注解类型等信息封装成`AspectJAnnotation`对象
+
+1. 从工厂中获取有`@Aspect`注解的类Class
+2. 从工厂中获取有`@Aspect`注解的类的名称
+3. 创建工厂的装饰类，获取实例只会获取一次
+
+![](images/20210227103751467_5215.png)
+
+4. 从上面包装的工厂中获取对应的带`@Aspect`注解的单个实例的`Class`对象，遍历这个`aspectClass`对象中的所有没有被`@Pointcut`注解标注的方法，然后把收集到的方法进行过滤
+
+![](images/20210227104243907_13827.png)
+
+```java
+private List<Method> getAdvisorMethods(Class<?> aspectClass) {
+	final List<Method> methods = new ArrayList<>();
+	ReflectionUtils.doWithMethods(aspectClass, method -> {
+		// Exclude pointcuts
+		// 这里判断没有@Pointcut注解的方法
+		if (AnnotationUtils.getAnnotation(method, Pointcut.class) == null) {
+			methods.add(method);
+		}
+	}, ReflectionUtils.USER_DECLARED_METHODS);
+	if (methods.size() > 1) {
+		// 按照注解先后顺序+自然顺序排序
+		methods.sort(METHOD_COMPARATOR);
+	}
+	return methods;
+}
+```
+
+5. 核心处理逻辑方法`getAdvisor`，循环遍历没有`@Pointcut`注解的方法，并且把每个方法组装成`Advisor`对象：
+
+![](images/20210227104442611_27755.png)
+
+```java
+/* 参数 candidateAdviceMethod 是候选的Advice方法，候选的增强方法 */
+@Override
+@Nullable
+public Advisor getAdvisor(Method candidateAdviceMethod, MetadataAwareAspectInstanceFactory aspectInstanceFactory,
+		int declarationOrderInAspect, String aspectName) {
+
+	validate(aspectInstanceFactory.getAspectMetadata().getAspectClass());
+
+	// 获取PointCut对象，最重要的是从注解中获取表达式
+	AspectJExpressionPointcut expressionPointcut = getPointcut(
+			candidateAdviceMethod, aspectInstanceFactory.getAspectMetadata().getAspectClass());
+	if (expressionPointcut == null) {
+		return null;
+	}
+
+	/*
+	 * 创建Advisor切面类，这才是真正的切面类，一个切面类里面肯定要包含两个元素
+	 * 	1. pointCut，这里的pointCut是 expressionPointcut
+	 * 	2. advice，增强方法是 candidateAdviceMethod
+	 */
+	return new InstantiationModelAwarePointcutAdvisorImpl(expressionPointcut, candidateAdviceMethod,
+			this, aspectInstanceFactory, declarationOrderInAspect, aspectName);
+}
+```
+
+`getPointcut()`方法，主要处理逻辑是：把注解信息封装成`AspectJAnnotation`对象，封装一个`PointCut`类实例，并且把前面从注解里面解析的表达式设置进去
+
+```java
+@Nullable
+private AspectJExpressionPointcut getPointcut(Method candidateAdviceMethod, Class<?> candidateAspectClass) {
+	/*
+	 * 从候选的增强方法里面 candidateAdviceMethod 找有以下注解
+	 * 	@Pointcut, @Around, @Before, @After, @AfterReturning, @AfterThrowing
+	 * 并把注解信息封装成AspectJAnnotation对象
+	 */
+	AspectJAnnotation<?> aspectJAnnotation =
+			AbstractAspectJAdvisorFactory.findAspectJAnnotationOnMethod(candidateAdviceMethod);
+	if (aspectJAnnotation == null) {
+		return null;
+	}
+
+	// 创建一个PointCut类
+	AspectJExpressionPointcut ajexp =
+			new AspectJExpressionPointcut(candidateAspectClass, new String[0], new Class<?>[0]);
+	/*
+	 * 把前面从注解里面解析的表达式设置到PointCut对象中。
+	 * 	注意：此时只是获取到AspectJ相关注解的value值，可能有些是pointCut的引入字符串而已
+	 */
+	ajexp.setExpression(aspectJAnnotation.getPointcutExpression());
+	if (this.beanFactory != null) {
+		ajexp.setBeanFactory(this.beanFactory);
+	}
+	return ajexp;
+}
+```
+
+在`findAspectJAnnotationOnMethod`方法中，循环`ASPECTJ_ANNOTATION_CLASSES`容器中相关的注解，判断`Method`是否包含这些注解，如有，则将其封装成`AspectJAnnotation`对象
+
+```java
+@Nullable
+protected static AspectJAnnotation<?> findAspectJAnnotationOnMethod(Method method) {
+	// ASPECTJ_ANNOTATION_CLASSES容器的值：Pointcut.class, Around.class, Before.class, After.class, AfterReturning.class, AfterThrowing.class
+	for (Class<?> clazz : ASPECTJ_ANNOTATION_CLASSES) {
+		// 找到ASPECTJ_ANNOTATION_CLASSES容器包含的注解的方法对象，并且把注解里面的信息封装成AspectJAnnotation对象
+		AspectJAnnotation<?> foundAnnotation = findAnnotation(method, (Class<Annotation>) clazz);
+		if (foundAnnotation != null) {
+			return foundAnnotation;
+		}
+	}
+	return null;
+}
+```
+
+![](images/20210227105420878_21843.png)
+
+![](images/20210227111352010_26915.png)
+
+找到相应合格的增强注解后，就创建`PointCut`对象，并设置表达式
+
+![](images/20210227112700026_26199.png)
+
+在上面已创建`AspectJExpressionPointcut`对象，接下来就通过`InstantiationModelAwarePointcutAdvisorImpl`实现类构造函数，创建`Advisor`切面类
+
+![](images/20210227113352351_30400.png)
+
+核心处理逻辑在`instantiateAdvice`方法中
+
+```java
+private Advice instantiateAdvice(AspectJExpressionPointcut pointcut) {
+	// 创建Advice对象
+	Advice advice = this.aspectJAdvisorFactory.getAdvice(this.aspectJAdviceMethod, pointcut,
+			this.aspectInstanceFactory, this.declarationOrder, this.aspectName);
+	return (advice != null ? advice : EMPTY_ADVICE);
+}
+```
+
+其中`getAdvice`方法是获取有`@Aspect`注解的类，然后把方法上面的注解包装成`AspectJAnnotation`对象，这个对象中包括6种注解类型
+
+![](images/20210227114128730_22438.png)
+
+`AspectJAnnotation`包含的注解类型
+
+![](images/20210227115519256_16386.png)
+
+`getAdvice`方法往下执行，之前针对单个方法创建的`PointCut`对象，并已经将注解对象中的表达式设置到`PointCut`对象中，此时就根据不同的注解类型创建出不同的`Advice`对象，包括：`AspectJAroundAdvice`、`AspectJMethodBeforeAdvice`、`AspectJAfterAdvice`、`AspectJAfterReturningAdvice`、`AspectJAfterThrowingAdvice`。最终会把注解对应的`Advice`和`PointCut`对象封装成`Advisor`对象，并返回
+
+![](images/20210227115720216_24956.png)
+
+返回`Advisor`切面类
+
+![](images/20210227120851335_14929.png)
+
+上面的所有处理就是为了给一个类中的某一个方法包装成对应的`Advisor`对象，下面的方法是一个类中可能有多个不同的方法，每个方法都包装成对应的`Advisor`对象，这样对应的一个类中就会有一个`List<Advisor>`集合
+
+![](images/20210227120914424_20789.png)
+
+获取到`List<Advisor>`集合后，`buildAspectJAdvisors`方法继续往下执行逻辑已经将收集到的`Advisor`集合加入到`advisorsCache`缓存与返回
+
+![](images/20210227123620538_23762.png)
+
+**总结`buildAspectJAdvisors`方法的处理流程**：就是循环遍历`Beanfactory`中的所有的bean实例，判断 bean上是否有`@Aspect`注解，如果有此注解，则遍历该类中所有的非`@Pointcut`注解的方法，然后把该方法上的注解信息封装成`AspectJAnnotation`对象，并且把此对象中的`pointcutExpression`表达式，通过`setExpression`方法包装到`AspectJExpressionPointcut`对象（即`PointCut`对象）；然后通过方法中的`AspectJAnnotation`中的不同的`AnnotationType`，创建创建不同的`Advice`类实例，最后把`pointcut`和`advice`对象封装成对应的`Advisor`对象，然后一个类中对应一个 `List<Advisor>`对象。
+
+> TODO: 【然后不同的 bean 循环添加到`List<Advisor>`集合中，封装成`List<List<Advisor>>`最后的集合中去】这句话如何理解？？？
+
+> **以上就是`findCandidateAdvisors`方法寻找切面的全部过程**
+
+### 4.7. findAdvisorsThatCanApply 匹配合格切面的过程
+
+`findEligibleAdvisors`方法寻找到合格的切面
+
+```java
+protected List<Advisor> findEligibleAdvisors(Class<?> beanClass, String beanName) {
+	....
+	// 判断候选的切面是否作用在当前beanClass上面，就是一个匹配过程
+	List<Advisor> eligibleAdvisors = findAdvisorsThatCanApply(candidateAdvisors, beanClass, beanName);
+	....
+}
+```
+
+```java
+protected List<Advisor> findAdvisorsThatCanApply(
+		List<Advisor> candidateAdvisors, Class<?> beanClass, String beanName) {
+
+	ProxyCreationContext.setCurrentProxiedBeanName(beanName);
+	try {
+		// 判断当前类实例是否在这些切面的PointCut中，是调用类和方法的match匹配的过程
+		return AopUtils.findAdvisorsThatCanApply(candidateAdvisors, beanClass);
+	}
+	finally {
+		ProxyCreationContext.setCurrentProxiedBeanName(null);
+	}
+}
+
+/* AopUtils类 */
+public static List<Advisor> findAdvisorsThatCanApply(List<Advisor> candidateAdvisors, Class<?> clazz) {
+	if (candidateAdvisors.isEmpty()) {
+		return candidateAdvisors;
+	}
+	List<Advisor> eligibleAdvisors = new ArrayList<>();
+	for (Advisor candidate : candidateAdvisors) {
+		// 如果是引介切面并且匹配
+		if (candidate instanceof IntroductionAdvisor && canApply(candidate, clazz)) {
+			eligibleAdvisors.add(candidate);
+		}
+	}
+	boolean hasIntroductions = !eligibleAdvisors.isEmpty();
+	// 循环所有切面Advisor
+	for (Advisor candidate : candidateAdvisors) {
+		if (candidate instanceof IntroductionAdvisor) {
+			// already processed
+			continue;
+		}
+		// 调用pointCut中的ClassFilter和MethodMatcher的match方法进行匹配
+		if (canApply(candidate, clazz, hasIntroductions)) {
+			eligibleAdvisors.add(candidate);
+		}
+	}
+	return eligibleAdvisors;
+}
+```
+
+在`canApply`方法中，调用`PointCut`类的`ClassFilter`和`MethodMatcher`的`match`方法进行匹配，找到与当前类匹配的合格的切面。（*注：匹配过程比较复杂，暂不研究*）
+
+![](images/20210227174405906_27599.png)
+
+类匹配`pointCut`
+
+![](images/20210227174411531_330.png)
+
+方法匹配`pointCut`
+
+![](images/20210227174629194_25921.png)
+
+### 4.8. extendAdvisors 添加默认切面
+
+在查找与匹配完切面的后，会调用`extendAdvisors`方法增加一个默认切面`DefaultPointcutAdvisor`。此方法的具体在`AspectJAwareAdvisorAutoProxyCreator`类中
+
+```java
+@Override
+protected void extendAdvisors(List<Advisor> candidateAdvisors) {
+	AspectJProxyUtils.makeAdvisorChainAspectJCapableIfNecessary(candidateAdvisors);
+}
+```
+
+调用`AspectJProxyUtils`类的`makeAdvisorChainAspectJCapableIfNecessary`方法
+
+```java
+public static boolean makeAdvisorChainAspectJCapableIfNecessary(List<Advisor> advisors) {
+	// Don't add advisors to an empty list; may indicate that proxying is just not required
+	if (!advisors.isEmpty()) {
+		boolean foundAspectJAdvice = false;
+		// 循环所有切面
+		for (Advisor advisor : advisors) {
+			// Be careful not to get the Advice without a guard, as this might eagerly
+			// instantiate a non-singleton AspectJ aspect...
+			// 判断是否为使用@Aspect注解的切面
+			if (isAspectJAdvice(advisor)) {
+				foundAspectJAdvice = true;
+				break;
+			}
+		}
+		// 判断当前的切面集合中是否包含DefaultPointcutAdvisor类型的切面
+		if (foundAspectJAdvice && !advisors.contains(ExposeInvocationInterceptor.ADVISOR)) {
+			// 如果没有，则往集合首位置增加默认切面DefaultPointcutAdvisor
+			advisors.add(0, ExposeInvocationInterceptor.ADVISOR);
+			return true;
+		}
+	}
+	return false;
+}
+```
+
+默认切面`ExposeInvocationInterceptor.ADVISOR`
+
+![](images/20210227220339313_7091.png)
+
+默认的切面的`invoke`方法，主要是往当前线程`ThreadLocal`中放入`MethoInvocation`实例
+
+![](images/20210227220344497_5893.png)
+
+<font color=red>**总结：因为切面都是链式调用，所以增加此默认切面的目的是，可以在任意其他切面上，通过工具方法`ExposeInvocationInterceptor.currentInvocation()`，获取到当前`MethodInvocation`对象，从此对象中可以获取到调用的参数、方法、实例对象等，用于切面间的数据传递**</font>
+
+### 4.9. 切面的排序
+
+#### 4.9.1. 查找切面方法时的排序
+
+具体排序位置：
+
+```
+getAdvicesAndAdvisorsForBean -> findEligibleAdvisors -> findCandidateAdvisors -> buildAspectJAdvisors -> getAdvisors -> getAdvisorMethods
+```
+
+![](images/20210227182605619_2642.png)
+
+具体排序器逻辑如下：
+
+```java
+public class ReflectiveAspectJAdvisorFactory extends AbstractAspectJAdvisorFactory implements Serializable {
+
+    private static final Comparator<Method> METHOD_COMPARATOR;
+
+    static {
+    	// Note: although @After is ordered before @AfterReturning and @AfterThrowing,
+    	// an @After advice method will actually be invoked after @AfterReturning and
+    	// @AfterThrowing methods due to the fact that AspectJAfterAdvice.invoke(MethodInvocation)
+    	// invokes proceed() in a `try` block and only invokes the @After advice method
+    	// in a corresponding `finally` block.
+    	// 先按注解类型排序
+    	Comparator<Method> adviceKindComparator = new ConvertingComparator<>(
+    			new InstanceComparator<>(
+    					Around.class, Before.class, After.class, AfterReturning.class, AfterThrowing.class),
+    			(Converter<Method, Annotation>) method -> {
+    				AspectJAnnotation<?> ann = AbstractAspectJAdvisorFactory.findAspectJAnnotationOnMethod(method);
+    				return (ann != null ? ann.getAnnotation() : null);
+    			});
+		// 再按方法名称自然排序
+    	Comparator<Method> methodNameComparator = new ConvertingComparator<>(Method::getName);
+    	// 两次排序
+    	METHOD_COMPARATOR = adviceKindComparator.thenComparing(methodNameComparator);
+    }
+    ....省略
+}
+```
+
+#### 4.9.2. 针对@Order、@Priority等注解的切面排序
+
+前面经过寻找到切面，匹配切面，增加默认的切面后，进行再次进行排序后返回
+
+![](images/20210227174905880_30173.png)
 
 
 
-#### 3.4.5. createProxy 生成代理
 
-- 根据增强创建代理对象
+### 4.10. createProxy 代理的创建
+
+![](images/20210227175435989_5455.png)
+
+如果找到当前Bean实例的`Advisor`切面，即从收集到的所有切面中，每一个切面都会有`PointCut`来进行模块匹配，这个过程就是一个匹配过程，看`PointCut`表达式中的内容是否包含了当前bean，如果包含了，即代表当前bean有切面，就会生成代理。`createProxy`方法就是根据增强切面创建代理对象
 
 ```java
 protected Object createProxy(Class<?> beanClass, @Nullable String beanName,
@@ -539,7 +883,7 @@ protected Object createProxy(Class<?> beanClass, @Nullable String beanName,
 }
 ```
 
-#### 3.4.6. 代理加载流程总结
+### 4.11. 代理加载流程总结
 
 1. 首先调用`getCacheKey`方法，进行创建代理缓存的cacheKey
 2. 判断是否已经处理过了
@@ -548,13 +892,15 @@ protected Object createProxy(Class<?> beanClass, @Nullable String beanName,
 5. 调用`getAdvicesAndAdvisorsForBean`方法，获取增强器。即当前类中是否有advice增强的方法
 6. 根据增强器进行创建代理对象
 
-#### 3.4.7. AnnotationAwareAspectJAutoProxyCreator 类视图与对象的分析
+### 4.12. AnnotationAwareAspectJAutoProxyCreator 类视图与对象的分析
 
 `AnnotationAwareAspectJAutoProxyCreator`是`AbstractAutoProxyCreator`抽象类的子类
 
 ![](images/20200911154622758_24752.jpg)
 
-### 3.5. 解析切入点表达式的加载流程(!待整理)
+## 5. 其他
+
+### 5.1. 解析切入点表达式的加载流程(!待整理)
 
 spring在解析切入点表达式时，是通过一些类进行封装的。此实现类`PointcutImpl`实现了`Pointcut`接口。
 
@@ -563,9 +909,9 @@ spring在解析切入点表达式时，是通过一些类进行封装的。此�
 
 *注：`PointcutImpl`与`KindedPointcut`是在`org.aspectj.aspectjweaver`的依赖包下*
 
-### 3.6. 解析通知注解
+### 5.2. 解析通知注解
 
-#### 3.6.1. 初始化通知注解的Map(!待整理)
+#### 5.2.1. 初始化通知注解的Map(!待整理)
 
 首先在执行初始化时容器创建时，spring框架把和通知相关的注解都放到一个受保护的内部类中了。
 
@@ -592,5 +938,5 @@ public abstract class AbstractAspectJAdvisorFactory implements AspectJAdvisorFac
 }
 ```
 
-#### 3.6.2. 构建通知的拦截器链(!待整理)
+#### 5.2.2. 构建通知的拦截器链(!待整理)
 
