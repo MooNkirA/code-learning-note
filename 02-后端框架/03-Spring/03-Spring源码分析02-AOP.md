@@ -742,7 +742,7 @@ public static List<Advisor> findAdvisorsThatCanApply(List<Advisor> candidateAdvi
 
 ### 4.8. extendAdvisors 添加默认切面
 
-在查找与匹配完切面的后，会调用`extendAdvisors`方法增加一个默认切面`DefaultPointcutAdvisor`。此方法的具体在`AspectJAwareAdvisorAutoProxyCreator`类中
+在查找与匹配完切面的后，会调用`extendAdvisors`方法，当工程中存在`@Aspect`注解时，会增加一个默认切面`DefaultPointcutAdvisor`，其作用是用于不同切面之间参数传递。此方法的具体在`AspectJAwareAdvisorAutoProxyCreator`类中
 
 ```java
 @Override
@@ -783,7 +783,7 @@ public static boolean makeAdvisorChainAspectJCapableIfNecessary(List<Advisor> ad
 
 ![](images/20210227220339313_7091.png)
 
-默认的切面的`invoke`方法，主要是往当前线程`ThreadLocal`中放入`MethoInvocation`实例
+当前某个方法被切面拦截了，就会执行`invoke`方法，该默认的切面的主要处理逻辑是往当前线程`ThreadLocal`中放入`MethoInvocation`实例
 
 ![](images/20210227220344497_5893.png)
 
@@ -791,9 +791,11 @@ public static boolean makeAdvisorChainAspectJCapableIfNecessary(List<Advisor> ad
 
 ### 4.9. 切面的排序
 
+此部分的内容会关系到切面调用的顺序
+
 #### 4.9.1. 查找切面方法时的排序
 
-具体排序位置：
+排序的具体源码位置：
 
 ```
 getAdvicesAndAdvisorsForBean -> findEligibleAdvisors -> findCandidateAdvisors -> buildAspectJAdvisors -> getAdvisors -> getAdvisorMethods
@@ -831,20 +833,112 @@ public class ReflectiveAspectJAdvisorFactory extends AbstractAspectJAdvisorFacto
 }
 ```
 
+> 注：这一步处理没有涉及类标识`@Order`、`@Priority`等注解或者实现`Ordered`接口等排序
+
 #### 4.9.2. 针对@Order、@Priority等注解的切面排序
 
 前面经过寻找到切面，匹配切面，增加默认的切面后，进行再次进行排序后返回
 
 ![](images/20210227174905880_30173.png)
 
+具体会调用`AspectJAwareAdvisorAutoProxyCreator.sortAdvisors`方法
 
+```java
+protected List<Advisor> sortAdvisors(List<Advisor> advisors) {
+	List<PartiallyComparableAdvisorHolder> partiallyComparableAdvisors = new ArrayList<>(advisors.size());
+	for (Advisor advisor : advisors) {
+		/*
+		 * 针对@Aspect注解的排序
+		 * 将每个Advisor包装成PartiallyComparableAdvisorHolder对象，
+		 * DEFAULT_PRECEDENCE_COMPARATOR 是一个排序比较器
+		 */
+		partiallyComparableAdvisors.add(
+				new PartiallyComparableAdvisorHolder(advisor, DEFAULT_PRECEDENCE_COMPARATOR));
+	}
+	// 排序
+	List<PartiallyComparableAdvisorHolder> sorted = PartialOrder.sort(partiallyComparableAdvisors);
+	if (sorted != null) {
+		List<Advisor> result = new ArrayList<>(advisors.size());
+		for (PartiallyComparableAdvisorHolder pcAdvisor : sorted) {
+			result.add(pcAdvisor.getAdvisor());
+		}
+		return result;
+	}
+	else {
+		// 调用父类的排序方法
+		return super.sortAdvisors(advisors);
+	}
+}
+```
 
+`DEFAULT_PRECEDENCE_COMPARATOR`是排序比较器
+
+```java
+private static final Comparator<Advisor> DEFAULT_PRECEDENCE_COMPARATOR = new AspectJPrecedenceComparator();
+```
+
+在`AspectJPrecedenceComparator`类的中`compare`方法处理具体的排序逻辑。主要是先处理`@Order`注解与实现`Ordered`接口的排序，如果当前两个切面是在同一个标识`@Aspect`注解的类中，则方法返回值为0，即按原顺序，不排序。
+
+```java
+/* 具体排序的逻辑 */
+@Override
+public int compare(Advisor o1, Advisor o2) {
+	// 针对@Order注解与实现Ordered接口的排序，如果是@Aspect注解类的切面，则会返回0
+	int advisorPrecedence = this.advisorComparator.compare(o1, o2);
+	// 针对@Aspect注解类的切面排序，当前两个比较的Advisor是在同一个@Aspect注解标识的类中，进入此if代码块
+	if (advisorPrecedence == SAME_PRECEDENCE && declaredInSameAspect(o1, o2)) {
+		advisorPrecedence = comparePrecedenceWithinAspect(o1, o2);
+	}
+	return advisorPrecedence;
+}
+
+private int comparePrecedenceWithinAspect(Advisor advisor1, Advisor advisor2) {
+	boolean oneOrOtherIsAfterAdvice =
+			(AspectJAopUtils.isAfterAdvice(advisor1) || AspectJAopUtils.isAfterAdvice(advisor2));
+	// 如果是同一个@Aspect注解标识的类的两个切面，getAspectDeclarationOrder这个方法永远返回是0（Spring 5.2.7以后的版本）
+	int adviceDeclarationOrderDelta = getAspectDeclarationOrder(advisor1) - getAspectDeclarationOrder(advisor2);
+
+	if (oneOrOtherIsAfterAdvice) {
+		// the advice declared last has higher precedence
+		if (adviceDeclarationOrderDelta < 0) {
+			// advice1 was declared before advice2
+			// so advice1 has lower precedence
+			return LOWER_PRECEDENCE;
+		}
+		else if (adviceDeclarationOrderDelta == 0) {
+			// adviceDeclarationOrderDelta为0的时候，返回也是0，即不会排序
+			return SAME_PRECEDENCE;
+		}
+		else {
+			return HIGHER_PRECEDENCE;
+		}
+	}
+	else {
+		// the advice declared first has higher precedence
+		if (adviceDeclarationOrderDelta < 0) {
+			// advice1 was declared before advice2
+			// so advice1 has higher precedence
+			return HIGHER_PRECEDENCE;
+		}
+		else if (adviceDeclarationOrderDelta == 0) {
+			return SAME_PRECEDENCE;
+		}
+		else {
+			return LOWER_PRECEDENCE;
+		}
+	}
+}
+```
+
+> 注：针对标识了`@Aspect`的切面的`getAspectDeclarationOrder(advisor1)`方法值为什么返回是0，原因是Spring在`buildAspectJAdvisors`方法中处理`@Aspect`注解的创建切面，传入的`declarationOrder`属性值就是0（Spring 5.2.7以后的版本）
 
 ### 4.10. createProxy 代理的创建
 
+如果找到当前Bean实例的`Advisor`切面，即从收集到的所有切面中，每一个切面都会有`PointCut`来进行模块匹配，这个过程就是一个匹配过程，看`PointCut`表达式中的内容是否包含了当前bean，如果包含了，即代表当前bean有切面，就会生成代理。
+
 ![](images/20210227175435989_5455.png)
 
-如果找到当前Bean实例的`Advisor`切面，即从收集到的所有切面中，每一个切面都会有`PointCut`来进行模块匹配，这个过程就是一个匹配过程，看`PointCut`表达式中的内容是否包含了当前bean，如果包含了，即代表当前bean有切面，就会生成代理。`createProxy`方法就是根据增强切面创建代理对象
+一般在创建jdk动态代理时，会持有被代理的实例。在生成代理实例前，Spring的做法是将被代理的实例封装成`TargetSource`的对象（具体实现类`SingletonTargetSource`），然后在增强处理时，通过`getTarget`方法获取被代理实例。以下`createProxy`方法就是根据增强切面创建代理对象具体处理
 
 ```java
 protected Object createProxy(Class<?> beanClass, @Nullable String beanName,
@@ -854,10 +948,13 @@ protected Object createProxy(Class<?> beanClass, @Nullable String beanName,
 		AutoProxyUtils.exposeTargetClass((ConfigurableListableBeanFactory) this.beanFactory, beanName, beanClass);
 	}
 
+    // 创建代理工厂
 	ProxyFactory proxyFactory = new ProxyFactory();
-	// 把AnnotationAwareAspectJAutoProxyCreator中的某些属性copy到proxyFactory中
+	// 把AnnotationAwareAspectJAutoProxyCreator中的某些属性copy到proxyFactory对象中，如proxyTargetClass、exposeProxy等
 	proxyFactory.copyFrom(this);
 
+    // 对代理的方式做处理，例如使用者将proxyTargetClass属性设置为false，代表使用jdk代理，
+	// 但工程内的所有需要被代理的类都没有实现接口，所以此时在这里对proxyTargetClass属性做相应的处理转换
 	if (!proxyFactory.isProxyTargetClass()) {
 		if (shouldProxyTargetClass(beanClass, beanName)) {
 			proxyFactory.setProxyTargetClass(true);
@@ -866,7 +963,7 @@ protected Object createProxy(Class<?> beanClass, @Nullable String beanName,
 			evaluateProxyInterfaces(beanClass, proxyFactory);
 		}
 	}
-	// 组装advisor
+	// Advisor切面对象重新包装，会把自定义的 MethodInterceptor 类型的类包装成 Advisor 切面类并加入到代理工厂中
 	Advisor[] advisors = buildAdvisors(beanName, specificInterceptors);
 	// 把advisor加入到proxyFactory
 	proxyFactory.addAdvisors(advisors);
@@ -883,7 +980,242 @@ protected Object createProxy(Class<?> beanClass, @Nullable String beanName,
 }
 ```
 
-### 4.11. 代理加载流程总结
+### 4.11. buildAdvisors 组装切面
+
+#### 4.11.1. 源码处理逻辑
+
+`AbstractAutoProxyCreator`类的`buildAdvisors`方法，主要是切面对象重新包装，会把自定义的`MethodInterceptor`类型的类包装成`Advisor`切面类。源码如下：
+
+```java
+protected Advisor[] buildAdvisors(@Nullable String beanName, @Nullable Object[] specificInterceptors) {
+	// Handle prototypes correctly...
+	// 设置自定义的 MethodInterceptor 和 Advice，
+	// 获取AnnotationAwareAspectJAutoProxyCreator对象调用setInterceptorNames方法
+	Advisor[] commonInterceptors = resolveInterceptorNames();
+
+	List<Object> allInterceptors = new ArrayList<>();
+	if (specificInterceptors != null) {
+		// 加入当前实例相应的拦截器
+		allInterceptors.addAll(Arrays.asList(specificInterceptors));
+		if (commonInterceptors.length > 0) {
+			// 设置自定义的公共拦截器
+			if (this.applyCommonInterceptorsFirst) {
+				allInterceptors.addAll(0, Arrays.asList(commonInterceptors));
+			}
+			else {
+				allInterceptors.addAll(Arrays.asList(commonInterceptors));
+			}
+		}
+	}
+	if (logger.isTraceEnabled()) {
+		int nrOfCommonInterceptors = commonInterceptors.length;
+		int nrOfSpecificInterceptors = (specificInterceptors != null ? specificInterceptors.length : 0);
+		logger.trace("Creating implicit proxy for bean '" + beanName + "' with " + nrOfCommonInterceptors +
+				" common interceptors and " + nrOfSpecificInterceptors + " specific interceptors");
+	}
+
+	Advisor[] advisors = new Advisor[allInterceptors.size()];
+	for (int i = 0; i < allInterceptors.size(); i++) {
+		// 将所有拦截器都转成Advisor，包括对自定义的Advice进行包装，把adivce包装成Advisor切面对象
+		advisors[i] = this.advisorAdapterRegistry.wrap(allInterceptors.get(i));
+	}
+	return advisors;
+}
+```
+
+- 设置自定义的 `MethodInterceptor` 和 `Advice`
+
+```java
+private Advisor[] resolveInterceptorNames() {
+	BeanFactory bf = this.beanFactory;
+	ConfigurableBeanFactory cbf = (bf instanceof ConfigurableBeanFactory ? (ConfigurableBeanFactory) bf : null);
+	List<Advisor> advisors = new ArrayList<>();
+	// 循环interceptorNames数组，该数组是存放通用拦截器，初始值为空。
+	for (String beanName : this.interceptorNames) {
+		if (cbf == null || !cbf.isCurrentlyInCreation(beanName)) {
+			Assert.state(bf != null, "BeanFactory required for resolving interceptor names");
+			// 将自定义拦截器实例化，实例的类型是MethodInterceptor
+			Object next = bf.getBean(beanName);
+			// 将自定义拦截器MethodInterceptor包装成Advisor（具体是DefaultPointcutAdvisor）
+			advisors.add(this.advisorAdapterRegistry.wrap(next));
+		}
+	}
+	return advisors.toArray(new Advisor[0]);
+}
+```
+
+初始化时，`interceptorNames`通用拦截器数组为空，但可以通过`AbstractAutoProxyCreator`类中的`setInterceptorNames`方法来设置
+
+```java
+public abstract class AbstractAutoProxyCreator extends ProxyProcessorSupport
+		implements SmartInstantiationAwareBeanPostProcessor, BeanFactoryAware {
+	....省略
+    /** Default is no common interceptors. */
+    	private String[] interceptorNames = new String[0];
+
+    public void setInterceptorNames(String... interceptorNames) {
+    	this.interceptorNames = interceptorNames;
+    }
+    ....省略
+}
+```
+
+通过`this.advisorAdapterRegistry.wrap(next)`方法（其具体实现在`DefaultAdvisorAdapterRegistry`类中），将`MethodInterceptor`类型转成`DefaultPointcutAdvisor`返回
+
+```java
+@Override
+public Advisor wrap(Object adviceObject) throws UnknownAdviceTypeException {
+	if (adviceObject instanceof Advisor) {
+		return (Advisor) adviceObject;
+	}
+	if (!(adviceObject instanceof Advice)) {
+		throw new UnknownAdviceTypeException(adviceObject);
+	}
+	Advice advice = (Advice) adviceObject;
+	if (advice instanceof MethodInterceptor) {
+		// So well-known it doesn't even need an adapter.
+		return new DefaultPointcutAdvisor(advice);
+	}
+	for (AdvisorAdapter adapter : this.adapters) {
+		// Check that it is supported.
+		if (adapter.supportsAdvice(advice)) {
+			return new DefaultPointcutAdvisor(advice);
+		}
+	}
+	throw new UnknownAdviceTypeException(advice);
+}
+```
+
+#### 4.11.2. 番外：手动设置AOP入口类的拦截器
+
+通过`BeanPostProcessor`类型的接口，在AOP入口类实例化后设置全局拦截器interceptorNames数组
+
+- 创建测试使用的全局拦截器（其实就是AOP的增强Advice），实现`MethodInterceptor`接口
+
+```java
+package com.moon.spring.aop.advice;
+
+import org.aopalliance.intercept.MethodInterceptor;
+import org.aopalliance.intercept.MethodInvocation;
+import org.springframework.stereotype.Component;
+
+/**
+ * 全局增强Advice，实现MethodInterceptor接口，
+ * 用于测试用于手动设置到 AbstractAutoProxyCreator类的 interceptorNames 数组中
+ */
+@Component
+public class GlobleAdvice implements MethodInterceptor {
+    @Override
+    public Object invoke(MethodInvocation invocation) throws Throwable {
+        System.out.println("GlobleAdvice.invoke拦截方法执行了....");
+        return invocation.proceed();
+    }
+}
+```
+
+- 创建`BeanPostProcessor`接口实现，重写`postProcessAfterInitialization`方法，该方法是`BeanPostProcessor`接口的功能埋点，在bean实例化完成后会调用。所以
+
+```java
+package com.moon.spring.beanpostprocessor;
+
+import org.springframework.aop.aspectj.annotation.AnnotationAwareAspectJAutoProxyCreator;
+import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.config.BeanPostProcessor;
+import org.springframework.core.PriorityOrdered;
+import org.springframework.stereotype.Component;
+
+/**
+ * 通过 BeanPostProcessor 类型的接口，在AOP入口类实例化后设置全局拦截器interceptorNames数组
+ */
+@Component
+public class GlobleAdvicePostProcessor implements BeanPostProcessor, PriorityOrdered {
+    @Override
+    public int getOrder() {
+        return 101;
+    }
+
+    @Override
+    public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
+        // 判断是否为AOP注解入口类
+        if (bean instanceof AnnotationAwareAspectJAutoProxyCreator) {
+            AnnotationAwareAspectJAutoProxyCreator annotationAwareAspectJAutoProxyCreator = (AnnotationAwareAspectJAutoProxyCreator) bean;
+            // 设置全局拦截器
+            annotationAwareAspectJAutoProxyCreator.setInterceptorNames("globleAdvice");
+        }
+        return bean;
+    }
+}
+```
+
+启动测试，观察控制台输出。
+
+> **注意事项：以上这种方式设置aop入口类的拦截器数组，需要注意实例生成的时序问题。TODO: 以后要慢慢深入理解**
+
+### 4.12. getProxy 获取代理
+
+`createProxy`方法最后调用`proxyFactory.getProxy(getProxyClassLoader())`方法获取代理，会根据`proxyTargetClass`参数和是否实现接口来判断是采用JDK代理还是cglib代理
+
+```java
+public Object getProxy(@Nullable ClassLoader classLoader) {
+    // 根据目标对象是否有接口来判断采用哪种代理方式（cglib代理还是jdk动态代理）
+	return createAopProxy().getProxy(classLoader);
+}
+```
+
+```java
+/* ProxyCreatorSupport类 */
+protected final synchronized AopProxy createAopProxy() {
+	if (!this.active) {
+		activate();
+	}
+	return getAopProxyFactory().createAopProxy(this);
+}
+```
+
+`getAopProxyFactory()`方法获取到`AopProxyFactory`接口类型实例（具体实现是`DefaultAopProxyFactory`类），再调用该类中的`createAopProxy`方法，肯定生成哪种代理
+
+```java
+@Override
+public AopProxy createAopProxy(AdvisedSupport config) throws AopConfigException {
+	if (config.isOptimize() || config.isProxyTargetClass() || hasNoUserSuppliedProxyInterfaces(config)) {
+		Class<?> targetClass = config.getTargetClass();
+		if (targetClass == null) {
+			throw new AopConfigException("TargetSource cannot determine target class: " +
+					"Either an interface or a target is required for proxy creation.");
+		}
+		if (targetClass.isInterface() || Proxy.isProxyClass(targetClass)) {
+			return new JdkDynamicAopProxy(config);
+		}
+		return new ObjenesisCglibAopProxy(config);
+	}
+	else {
+		return new JdkDynamicAopProxy(config);
+	}
+}
+```
+
+前面`createAopProxy`方法返回了`JdkDynamicAopProxy`或者`ObjenesisCglibAopProxy`，调用`getProxy`方法创建代理对象，并且把代理工厂对象传递到 jdk 和 cglib 中，<font color=red>**特别注意：这里的代理对象和`JdkDynamicAopProxy`或者`ObjenesisCglibAopProxy`是一一对应的，一个需要代理的bean对应一个代理**</font>
+
+![](images/20210228230135123_24969.png)
+
+JDK动态代理
+
+![](images/20210228230740197_8550.png)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+### 4.13. 代理加载流程总结
 
 1. 首先调用`getCacheKey`方法，进行创建代理缓存的cacheKey
 2. 判断是否已经处理过了
@@ -892,7 +1224,7 @@ protected Object createProxy(Class<?> beanClass, @Nullable String beanName,
 5. 调用`getAdvicesAndAdvisorsForBean`方法，获取增强器。即当前类中是否有advice增强的方法
 6. 根据增强器进行创建代理对象
 
-### 4.12. AnnotationAwareAspectJAutoProxyCreator 类视图与对象的分析
+### 4.14. AnnotationAwareAspectJAutoProxyCreator 类视图与对象的分析
 
 `AnnotationAwareAspectJAutoProxyCreator`是`AbstractAutoProxyCreator`抽象类的子类
 
