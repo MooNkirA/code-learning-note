@@ -1177,6 +1177,7 @@ protected final synchronized AopProxy createAopProxy() {
 ```java
 @Override
 public AopProxy createAopProxy(AdvisedSupport config) throws AopConfigException {
+    // 入参config其实就是ProxyFactory实例
 	if (config.isOptimize() || config.isProxyTargetClass() || hasNoUserSuppliedProxyInterfaces(config)) {
 		Class<?> targetClass = config.getTargetClass();
 		if (targetClass == null) {
@@ -1202,18 +1203,13 @@ JDK动态代理
 
 ![](images/20210228230740197_8550.png)
 
+CGlig代理
 
+![](images/20210301090455259_3907.png)
 
+**以上的流程结束，代理就已经创建完成，即`createProxy`方法执行完**
 
-
-
-
-
-
-
-
-
-
+![](images/20210301104626292_9808.png)
 
 ### 4.13. 代理加载流程总结
 
@@ -1230,9 +1226,85 @@ JDK动态代理
 
 ![](images/20200911154622758_24752.jpg)
 
-## 5. 其他
+## 5. 代理实例的调用
 
-### 5.1. 解析切入点表达式的加载流程(!待整理)
+上面章节就是AOP实现类的导入与bean最后生成aop代理的流程。现在分析代理对象调用，以JDK动态代理为例（*cglib代理的调用逻辑一样*）分析源码的代理调用流程
+
+代理对象创建完成后，参考JDK动态代理的原理，在调用被代理实例的方法时，实际上是调用了生成的字节码文件加载成对应的Class对象，Class对象内部有个跟被代理对象一样的方法名称，此方法内部只有`h.invoke()`一个操作。此时就会调用JDK或者CGlib的实例对象。因为对应的`h`就是`Proxy`中的`InvocatioinHandler`对象，而JDK和CGlib代理对象都实现了该接口。当发生代理对象调用时，肯定会调用到实现了`InvocatioinHandler`接口的类，在Spring中，该类就是`JdkDynamicAopProxy`，也必定会调用到该类的`invoke`方法。所以Spring aop的代理调用逻辑就是此方法中
+
+### 5.1. JdkDynamicAopProxy 的 invoke 方法
+
+```java
+
+```
+
+### 5.2. getInterceptorsAndDynamicInterceptionAdvice 获取方法拦截器链
+
+获取方法拦截器链的源码位置如下：
+
+```java
+/* JdkDynamicAopProxy#invoke */
+List<Object> chain = this.advised.getInterceptorsAndDynamicInterceptionAdvice(method, targetClass);
+```
+
+以上方法是从代理工厂中拿到所有切面，并且与当前被代理类和当前被调用方法进行匹配，如果匹配就返回切面中的`advice`对象，这就是`advice`执行链，其实就是对应的 `interceptorList` 列表，主要的逻辑在实现类`AdvisedSupport`中
+
+```java
+public class AdvisedSupport extends ProxyConfig implements Advised {
+    ....省略
+    /** The AdvisorChainFactory to use. */
+    AdvisorChainFactory advisorChainFactory = new DefaultAdvisorChainFactory();
+
+    /* 根据此配置，确定指定方法的MethodInterceptor对象列表 */
+    public List<Object> getInterceptorsAndDynamicInterceptionAdvice(Method method, @Nullable Class<?> targetClass) {
+    	MethodCacheKey cacheKey = new MethodCacheKey(method);
+    	List<Object> cached = this.methodCache.get(cacheKey);
+    	if (cached == null) {
+    		// 获取过滤器链
+    		cached = this.advisorChainFactory.getInterceptorsAndDynamicInterceptionAdvice(
+    				this, method, targetClass);
+    		// 将匹配到的过滤器链放入缓存中
+    		this.methodCache.put(cacheKey, cached);
+    	}
+    	return cached;
+    }
+    ....省略
+}
+```
+
+调用`DefaultAdvisorChainFactory`类的`getInterceptorsAndDynamicInterceptionAdvice`方法，主要的处理流程如下：
+
+1. `config`是代理工厂对象，从代理工厂中获得该被代理类的所有切面`Advisor`数组，然后遍历
+2. 从切面`Advisor`的`PointCut`中获取`ClassFilter`，调用`matches`方法与被代理对象`Class`类进行匹配 如果切面的`PointCut`是匹配的，说明被代理对象这个`Class`类是切面要拦截的对象
+3. 类匹配完后，调用`MethodMatcher`的`matches`方法进行方法的匹配，判断匹配的被代理对象中的方法是否是切面`Pointcut`需要拦截的方法
+
+```java
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+## 6. 其他
+
+### 6.1. 解析切入点表达式的加载流程(!待整理)
 
 spring在解析切入点表达式时，是通过一些类进行封装的。此实现类`PointcutImpl`实现了`Pointcut`接口。
 
@@ -1241,9 +1313,9 @@ spring在解析切入点表达式时，是通过一些类进行封装的。此�
 
 *注：`PointcutImpl`与`KindedPointcut`是在`org.aspectj.aspectjweaver`的依赖包下*
 
-### 5.2. 解析通知注解
+### 6.2. 解析通知注解
 
-#### 5.2.1. 初始化通知注解的Map(!待整理)
+#### 6.2.1. 初始化通知注解的Map(!待整理)
 
 首先在执行初始化时容器创建时，spring框架把和通知相关的注解都放到一个受保护的内部类中了。
 
@@ -1270,5 +1342,5 @@ public abstract class AbstractAspectJAdvisorFactory implements AspectJAdvisorFac
 }
 ```
 
-#### 5.2.2. 构建通知的拦截器链(!待整理)
+#### 6.2.2. 构建通知的拦截器链(!待整理)
 

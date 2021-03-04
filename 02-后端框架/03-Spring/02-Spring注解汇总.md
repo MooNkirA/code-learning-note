@@ -3312,7 +3312,12 @@ public void enableAspecctJAutoProxyasicTest() {
     user.setId("1");
     user.setUsername("石原里美");
     user.setNickname("十元");
-    // 执行没有被切面切到的方法
+
+    // 执行有切面的方法
+    userService.saveUser(user);
+
+    // 执行没有被切面切到的方法，并在方法中执行原来有切面的saveUser方法，因为不是使用代理调用，所以saveUser方法的切面失效
+    // 但如果设置@EnableAspectJAutoProxy(exposeProxy = true)，可以通过AopContext获取，暴露aop的代理对象，再使用代理调用saveUser即可
     ArrayList<User> users = new ArrayList<>();
     users.add(user);
     userService.saveAllUser(users);
