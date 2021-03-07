@@ -1277,34 +1277,422 @@ public class AdvisedSupport extends ProxyConfig implements Advised {
 1. `config`是代理工厂对象，从代理工厂中获得该被代理类的所有切面`Advisor`数组，然后遍历
 2. 从切面`Advisor`的`PointCut`中获取`ClassFilter`，调用`matches`方法与被代理对象`Class`类进行匹配 如果切面的`PointCut`是匹配的，说明被代理对象这个`Class`类是切面要拦截的对象
 3. 类匹配完后，调用`MethodMatcher`的`matches`方法进行方法的匹配，判断匹配的被代理对象中的方法是否是切面`Pointcut`需要拦截的方法
+4. 一个类中包含了多个`Advisor`，遍历每个`Advisor`，通过`registry.getInterceptors(advisor)`获取对应的`Advice`数组，然后添加到拦截器列表，然后返回
 
 ```java
+@Override
+public List<Object> getInterceptorsAndDynamicInterceptionAdvice(
+		Advised config, Method method, @Nullable Class<?> targetClass) {
 
+	// This is somewhat tricky... We have to process introductions first,
+	// but we need to preserve order in the ultimate list.
+	AdvisorAdapterRegistry registry = GlobalAdvisorAdapterRegistry.getInstance();
+	// 从代理工厂中获得该被代理类的所有切面advisor，config就是代理工厂对象
+	Advisor[] advisors = config.getAdvisors();
+	List<Object> interceptorList = new ArrayList<>(advisors.length);
+	Class<?> actualClass = (targetClass != null ? targetClass : method.getDeclaringClass());
+	Boolean hasIntroductions = null;
+
+	for (Advisor advisor : advisors) {
+		// 大部分都是PointcutAdvisor这种类型
+		if (advisor instanceof PointcutAdvisor) {
+			// Add it conditionally.
+			PointcutAdvisor pointcutAdvisor = (PointcutAdvisor) advisor;
+			// 如果切面的pointCut和被代理对象是匹配的，说明是切面要拦截的对象。先进行类匹配 pointcutAdvisor.getPointcut().getClassFilter().matches
+			if (config.isPreFiltered() || pointcutAdvisor.getPointcut().getClassFilter().matches(actualClass)) {
+				// 先类匹配后，然后再方法匹配，通过MethodMatcher的matches方法匹配
+				MethodMatcher mm = pointcutAdvisor.getPointcut().getMethodMatcher();
+				boolean match;
+				if (mm instanceof IntroductionAwareMethodMatcher) {
+					if (hasIntroductions == null) {
+						hasIntroductions = hasMatchingIntroductions(advisors, actualClass);
+					}
+					match = ((IntroductionAwareMethodMatcher) mm).matches(method, actualClass, hasIntroductions);
+				}
+				else {
+					match = mm.matches(method, actualClass);
+				}
+				// 如果类和方法都匹配
+				if (match) {
+					// 获取到切面advisor中的advice，并且包装成MethodInterceptor类型的对象
+					MethodInterceptor[] interceptors = registry.getInterceptors(advisor);
+					// mm.isRuntime() 用于判断是否自定义的MethodMatcher，如果是生成动态的Interceptor，
+					// 即包装成InterceptorAndDynamicMethodMatcher类型，匹配的粒度大一点
+					if (mm.isRuntime()) {
+						// Creating a new object instance in the getInterceptors() method
+						// isn't a problem as we normally cache created chains.
+						for (MethodInterceptor interceptor : interceptors) {
+							interceptorList.add(new InterceptorAndDynamicMethodMatcher(interceptor, mm));
+						}
+					}
+					else {
+						interceptorList.addAll(Arrays.asList(interceptors));
+					}
+				}
+			}
+		}
+		// 如果是引介切面
+		else if (advisor instanceof IntroductionAdvisor) {
+			IntroductionAdvisor ia = (IntroductionAdvisor) advisor;
+			if (config.isPreFiltered() || ia.getClassFilter().matches(actualClass)) {
+				Interceptor[] interceptors = registry.getInterceptors(advisor);
+				interceptorList.addAll(Arrays.asList(interceptors));
+			}
+		}
+		else {
+			Interceptor[] interceptors = registry.getInterceptors(advisor);
+			interceptorList.addAll(Arrays.asList(interceptors));
+		}
+	}
+
+	return interceptorList;
+}
+```
+
+`getInterceptors`此步骤最关键对不同类型的`advice`进行了统一包装，方便后续进行统计的代码调用如下所示：
+
+- 如果是`MethodInterceptor`类型的，如：`AspectJAroundAdvice`、`AspectJAfterAdvice`、`AspectJAfterThrowingAdvice`直接添加到拦截器数组中
+- 如果是`MethodBeforeAdviceAdapter`、`AfterReturningAdviceAdapter`、`ThrowsAdviceAdapter` 则需要`advice`包装成`MethodInterceptor`类型的`advice`
+
+```java
+@Override
+public MethodInterceptor[] getInterceptors(Advisor advisor) throws UnknownAdviceTypeException {
+	List<MethodInterceptor> interceptors = new ArrayList<>(3);
+	Advice advice = advisor.getAdvice();
+	if (advice instanceof MethodInterceptor) {
+		interceptors.add((MethodInterceptor) advice);
+	}
+	for (AdvisorAdapter adapter : this.adapters) {
+		if (adapter.supportsAdvice(advice)) {
+			interceptors.add(adapter.getInterceptor(advisor));
+		}
+	}
+	if (interceptors.isEmpty()) {
+		throw new UnknownAdviceTypeException(advisor.getAdvice());
+	}
+	return interceptors.toArray(new MethodInterceptor[0]);
+}
+```
+
+### 5.3. 链式调用 invocation.proceed
+
+在匹配到相应的切面后，会判断拦截器链是否为空。如果为空，则表示方法不需要拦截，直接反射调用；如果不为空，则`MethodInvocation`对象执行链式调用。
+
+```java
+// Check whether we have any advice. If we don't, we can fallback on direct
+// reflective invocation of the target, and avoid creating a MethodInvocation.
+if (chain.isEmpty()) {
+	// We can skip creating a MethodInvocation: just invoke the target directly
+	// Note that the final invoker must be an InvokerInterceptor so we know it does
+	// nothing but a reflective operation on the target, and no hot swapping or fancy proxying.
+	// 如果该方法没有执行链，则说明这个方法不需要被拦截，则直接反射调用
+	Object[] argsToUse = AopProxyUtils.adaptArgumentsIfNecessary(method, args);
+	retVal = AopUtils.invokeJoinpointUsingReflection(target, method, argsToUse);
+}
+else {
+	// We need to create a method invocation...
+	// 将代理、被代理实例、方法、参数、拦截器链等信息再包装成ReflectiveMethodInvocation对象
+	MethodInvocation invocation =
+			new ReflectiveMethodInvocation(proxy, target, method, args, targetClass, chain);
+	// Proceed to the joinpoint through the interceptor chain.
+	// 执行链式调用
+	retVal = invocation.proceed();
+}
+```
+
+#### 5.3.1. 拦截器的链式调用
+
+`proceed`方法的具体实现在`ReflectiveMethodInvocation`类中，其方法的主要处理逻辑是，将一个个地调用拦截器链中的增强方法`invoke`，而每个拦截器的`invoke`方法，都会再次调用`proceed`方法，让链式调用不会中断。如果是拦截链数组执行完最后一个时，就会调用`invokeJoinpoint`方法，进行被代理方法的反射调用。
+
+```java
+@Override
+@Nullable
+public Object proceed() throws Throwable {
+	// We start with an index of -1 and increment early.
+	/*
+	 * currentInterceptorIndex此索引初始值为-1，如果索引等于拦截器集合-1时，则终止链式调用
+	 * 如果执行链中的advice全部执行完，则反射调用被代理方法
+	 */
+	if (this.currentInterceptorIndex == this.interceptorsAndDynamicMethodMatchers.size() - 1) {
+		return invokeJoinpoint();
+	}
+
+	// 索引+1后，获取拦截器链上相应位置的拦截器对象
+	Object interceptorOrInterceptionAdvice =
+			this.interceptorsAndDynamicMethodMatchers.get(++this.currentInterceptorIndex);
+	if (interceptorOrInterceptionAdvice instanceof InterceptorAndDynamicMethodMatcher) {
+		// Evaluate dynamic method matcher here: static part will already have
+		// been evaluated and found to match.
+		InterceptorAndDynamicMethodMatcher dm =
+				(InterceptorAndDynamicMethodMatcher) interceptorOrInterceptionAdvice;
+		Class<?> targetClass = (this.targetClass != null ? this.targetClass : this.method.getDeclaringClass());
+		// 调用InterceptorAndDynamicMethodMatcher的matches方法，判断方法是否匹配
+		if (dm.methodMatcher.matches(this.method, targetClass, this.arguments)) {
+			// 若匹配，则调用拦截器的invoke方法，并且传入当前类实例本身
+			return dm.interceptor.invoke(this);
+		}
+		else {
+			// Dynamic matching failed.
+			// Skip this interceptor and invoke the next in the chain.
+			// InterceptorAndDynamicMethodMatcher 的 matches 为 false，递归调用执行链下一个拦截器
+			return proceed();
+		}
+	}
+	else {
+		// It's an interceptor, so we just invoke it: The pointcut will have
+		// been evaluated statically before this object was constructed.
+		// 转成MethodInterceptor类型后，调用拦截器的invoke方法，并且传入当前类实例本身
+		return ((MethodInterceptor) interceptorOrInterceptionAdvice).invoke(this);
+	}
+}
+```
+
+#### 5.3.2. AOP链式调用示例（流程梳理有点乱，慢慢再完善）
+
+以具体的 Spring-AOP 示例来梳理一下具体AOP调用的过程，此例中共有一个`@Before`、一个`@After`和一个`@Around`切面，通过调试发现拦截器数组中的顺序为`AspectJAroundAdvice`、`MethodBeforeAdviceInterceptor`、`AspectJAfterAdvice`，并且首次进入`proceed()`方法时，`this.currentInterceptorIndex`的值为-1
+
+![](images/20210306092736405_27576.png)
+
+![](images/20210306092820216_31819.png)
+
+- 如果是工程中使用了`@Aspect`注解，则Spring会增加一个默认的切面，并且每次调用拦截方法都首先调用此切面的`invoke`方法，此方法只做了一件事情，就将`ReflectiveMethodInvocation`实例放到`ThreadLocal`中，然后再调用`ReflectiveMethodInvocation`实例的`proceed`方法
+
+![](images/20210306093025719_29887.png)
+
+- 在调用完默认切面后，又会再次调用`proceed`方法，<font color=red>**此时`this.currentInterceptorIndex`的值为0**</font>，按拦截器数组的顺序会先执行`AspectJAroundAdvice`内部的`invoke`方法，如下图所示:
+
+![](images/20210306093130469_4935.png)
+
+获取到`AspectJAroundAdvice`拦截器后，`currentInterceptorIndex`会加1，并调用下一个`@Around`注解切面的方法，调用到切面的`invoke`方法
+
+![](images/20210306094025811_19638.png)
+
+在`invokeAdviceMethod`方法中，会调用到`@Aournd`切面的方法
+
+![](images/20210306101840599_17261.png)
+
+![](images/20210306112024432_22879.png)
+
+<font color=red>**注意的是，通过`joinPoint.proceed()`方法会再次调用到`proceed`方法，此时会将`MethodBeforeAdviceInterceptor`与`AspectJAfterAdvice`的拦截器都执行完，`joinPoint.proceed()`方法才会执行结束**</font>
+
+![](images/20210306094324656_6984.png)
+
+- 在调用`@Around`切面中，又会再次调用`proceed`方法，<font color=red>**此时`this.currentInterceptorIndex`的值为1**</font>，按拦截器数组的顺序会先执行`MethodBeforeAdviceInterceptor`内部的`invoke`方法，如下图所示:
+
+![](images/20210306094703412_20772.png)
+
+获取到`MethodBeforeAdviceInterceptor`拦截器后，`currentInterceptorIndex`会加1，并调用执行链下一个`@Before`注解的方法
+
+![](images/20210306094806642_21575.png)
+
+<font color=red>**注意的是：与`@Around`的切面调用不一样，`@Before`拦截器会在`invoke`方法中，先调用`@Before`的方法，然后再自己再回调`proceed()`方法**</font>
+
+![](images/20210306095015187_111.png)
+
+- 在调用完`@Before`切面后，又会再次调用`proceed`方法，<font color=red>**此时`this.currentInterceptorIndex`的值为2**</font>，按拦截器数组的顺序会先执行`AspectJAfterAdvice`内部的`invoke`方法，如下图所示:
+
+![](images/20210306100455099_12341.png)
+
+获取到`AspectJAfterAdvice`拦截器后，`currentInterceptorIndex`会加1，并调用执行链下一个`@After`注解的方法，此时的索引值已经等于“数组大小-1”了。直到数组链中全部调用完后会调用到具体的 `invokeJoinpoint`方法，如图所示:
+
+![](images/20210306100618710_17750.png)
+
+此时方法继续执行，切面`AspectJAfterAdvice`中的`invoke`完成值的返回，把返回值返回给上一个执行的advice，然后在`finally`代码块中会反射调用`@After`的方法。
+
+> <font color=red>**注意此时此finally中的逻辑还没有调用，在等`@Around`注解方法中的`joinPoint.proceed()`方法执行完成后，再执行**</font>如下图所示
+
+![](images/20210306100900509_5382.png)
+
+- 数组链中全部调用完后，调用`invokeJoinpoint`方法，此时就会调用被代理的方法了，调用完毕后，返回的值通过`MethodBeforeAdviceInterceptor`返回到`AspectJAroundAdvice`最终返回到`@Around`切面方法的调用，如下图所示:
+
+![](images/20210306102836431_16323.png)
+
+在上面执行`invokeJoinpoint`即是完成了反射调用`@Around`注解的方法中的`proceed`方法，此时再会执行在`AspectJAfterAdvice`类中的`invoke`方法的`finally`代码块（*即反射调用`@After`注解的方法*）
+
+![](images/20210306103044261_21587.png)
+
+以上就是整个 aop 链式增强调用的过程
+
+#### 5.3.3. 其他的拦截器调用
+
+- 使用`@AfterReturning`注解的通知实现，在`AfterReturningAdviceInterceptor`的`invoke`方法中先调用代理方法，拿到返回值后，再反射调用通知增强方法
+
+```java
+public class AfterReturningAdviceInterceptor implements MethodInterceptor, AfterAdvice, Serializable {
+    ....省略
+	@Override
+	public Object invoke(MethodInvocation mi) throws Throwable {
+		// 调用ReflectiveMethodInvocation的proceed方法，
+		// 当执行了拦截器链最后一个的时候，会调用被代理方法，然后拿到返回值
+		Object retVal = mi.proceed();
+		// 反射调用@AfterReturning的通知方法时，将返回值作为入参传到方法中
+		this.advice.afterReturning(retVal, mi.getMethod(), mi.getArguments(), mi.getThis());
+		return retVal;
+	}
+}
+```
+
+- 使用`@AfterThrowing`注解的通知实现，在`AspectJAfterThrowingAdvice`的`invoke`方法中调用代理方法，然后在`catch`异常中再反射调用通知增加方法
+
+```java
+public class AspectJAfterThrowingAdvice extends AbstractAspectJAdvice
+		implements MethodInterceptor, AfterAdvice, Serializable {
+    ....省略
+	@Override
+	public Object invoke(MethodInvocation mi) throws Throwable {
+		try {
+			// 调用ReflectiveMethodInvocation的proceed方法
+			return mi.proceed();
+		}
+		catch (Throwable ex) {
+			if (shouldInvokeOnThrowing(ex)) {
+				// 如果在调用被代理方法的时出现异常，再将异常作为方法入参，反射调用通知增强方法
+				invokeAdviceMethod(getJoinPointMatch(), null, ex);
+			}
+			throw ex;
+		}
+	}
+}
+```
+
+## 6. 代理的提前生成
+
+### 6.1. 代理提前生成实现流程
+
+在`AbstractAutowireCapableBeanFactory`的`createBean`方法中，在生成实例方法`doCreateBean`前，会执行`resolveBeforeInstantiation`方法，如果这里有返回值，就会直接返回，不会再执行下面生成实例的代码。又是**BeanPostProcessor接口的运用**
+
+```java
+....省略
+try {
+	/*
+	 * TargetSource接口的运用，可以创建一个类实现该接口，然后在里面定义实例化对象的方式，然后返回
+	 * 也就是说不需要spring帮助实例化对象(即自己实现)
+	 *
+	 * 这里可以直接返回实例本身（这个代码不用深入研究，实际开发过程中用不到）
+	 */
+	// Give BeanPostProcessors a chance to return a proxy instead of the target bean instance.
+	Object bean = resolveBeforeInstantiation(beanName, mbdToUse);
+	if (bean != null) {
+		return bean;
+	}
+}
+catch (Throwable ex) {
+	throw new BeanCreationException(mbdToUse.getResourceDescription(), beanName,
+			"BeanPostProcessor before instantiation of bean failed", ex);
+}
+
+try {
+	// 创建bean实例的核心方法，重要程度【5】
+	Object beanInstance = doCreateBean(beanName, mbdToUse, args);
+	if (logger.isTraceEnabled()) {
+		logger.trace("Finished creating instance of bean '" + beanName + "'");
+	}
+	return beanInstance;
+}
+....省略
+```
+
+判断是否为`InstantiationAwareBeanPostProcessor`类型的`BeanPostProcessor`，调用`postProcessBeforeInstantiation`方法
+
+```java
+@Nullable
+protected Object resolveBeforeInstantiation(String beanName, RootBeanDefinition mbd) {
+	Object bean = null;
+	if (!Boolean.FALSE.equals(mbd.beforeInstantiationResolved)) {
+		// Make sure bean class is actually resolved at this point.
+		if (!mbd.isSynthetic() && hasInstantiationAwareBeanPostProcessors()) {
+			Class<?> targetType = determineTargetType(beanName, mbd);
+			if (targetType != null) {
+				// 调用InstantiationAwareBeanPostProcessor类型的postProcessBeforeInstantiation方法
+				bean = applyBeanPostProcessorsBeforeInstantiation(targetType, beanName);
+				if (bean != null) {
+					bean = applyBeanPostProcessorsAfterInitialization(bean, beanName);
+				}
+			}
+		}
+		mbd.beforeInstantiationResolved = (bean != null);
+	}
+	return bean;
+}
+```
+
+![](images/20210306144219559_9141.png)
+
+```java
+@Override
+public Object postProcessBeforeInstantiation(Class<?> beanClass, String beanName) {
+	Object cacheKey = getCacheKey(beanClass, beanName);
+
+	if (!StringUtils.hasLength(beanName) || !this.targetSourcedBeans.contains(beanName)) {
+		if (this.advisedBeans.containsKey(cacheKey)) {
+			return null;
+		}
+		if (isInfrastructureClass(beanClass) || shouldSkip(beanClass, beanName)) {
+			this.advisedBeans.put(cacheKey, Boolean.FALSE);
+			return null;
+		}
+	}
+
+	// Create proxy here if we have a custom TargetSource.
+	// Suppresses unnecessary default instantiation of the target bean:
+	// The TargetSource will handle target instances in a custom fashion.
+	// 如果存在自定义的TargetSource，在此方法中以自定义的方式创建代理
+	TargetSource targetSource = getCustomTargetSource(beanClass, beanName);
+	if (targetSource != null) {
+		if (StringUtils.hasLength(beanName)) {
+			this.targetSourcedBeans.add(beanName);
+		}
+		// 获取bean相应的切面
+		Object[] specificInterceptors = getAdvicesAndAdvisorsForBean(beanClass, beanName, targetSource);
+		// 生成代理，这里与正常流程生成代理不一样的是，方法入参是TargetSource，而不是SingletonTargetSource
+		Object proxy = createProxy(beanClass, beanName, specificInterceptors, targetSource);
+		this.proxyTypes.put(cacheKey, proxy.getClass());
+		return proxy;
+	}
+
+	return null;
+}
+```
+
+由上面的源码分析可知，通过`getCustomTargetSource`方法创建`TargetSource`的实例，如果`TargetSource`实例不为空，则根据此实例生成代理
+
+```java
+@Nullable
+protected TargetSource getCustomTargetSource(Class<?> beanClass, String beanName) {
+	// We can't create fancy target sources for directly registered singletons.
+	// customTargetSourceCreators 是 TargetSourceCreator[] 的数组
+	if (this.customTargetSourceCreators != null &&
+			this.beanFactory != null && this.beanFactory.containsBean(beanName)) {
+		// 循环所有TargetSourceCreator
+		for (TargetSourceCreator tsc : this.customTargetSourceCreators) {
+			// 通过TargetSourceCreator获取TargetSource
+			TargetSource ts = tsc.getTargetSource(beanClass, beanName);
+			if (ts != null) {
+				// Found a matching TargetSource.
+				if (logger.isTraceEnabled()) {
+					logger.trace("TargetSourceCreator [" + tsc +
+							"] found custom TargetSource for bean with name '" + beanName + "'");
+				}
+				return ts;
+			}
+		}
+	}
+
+	// No custom TargetSource found.
+	return null;
+}
 ```
 
 
 
+### 6.2. 自定义 TargetSource 示例
 
 
 
 
+## 7. 其他
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-## 6. 其他
-
-### 6.1. 解析切入点表达式的加载流程(!待整理)
+### 7.1. 解析切入点表达式的加载流程(!待整理)
 
 spring在解析切入点表达式时，是通过一些类进行封装的。此实现类`PointcutImpl`实现了`Pointcut`接口。
 
@@ -1313,9 +1701,9 @@ spring在解析切入点表达式时，是通过一些类进行封装的。此�
 
 *注：`PointcutImpl`与`KindedPointcut`是在`org.aspectj.aspectjweaver`的依赖包下*
 
-### 6.2. 解析通知注解
+### 7.2. 解析通知注解
 
-#### 6.2.1. 初始化通知注解的Map(!待整理)
+#### 7.2.1. 初始化通知注解的Map(!待整理)
 
 首先在执行初始化时容器创建时，spring框架把和通知相关的注解都放到一个受保护的内部类中了。
 
@@ -1342,5 +1730,5 @@ public abstract class AbstractAspectJAdvisorFactory implements AspectJAdvisorFac
 }
 ```
 
-#### 6.2.2. 构建通知的拦截器链(!待整理)
+#### 7.2.2. 构建通知的拦截器链(!待整理)
 
