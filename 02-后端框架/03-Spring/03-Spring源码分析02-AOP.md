@@ -1555,7 +1555,7 @@ public class AspectJAfterThrowingAdvice extends AbstractAspectJAdvice
 }
 ```
 
-## 6. 代理的提前生成
+## 6. 代理的提前生成（非重点，有时间再研究）
 
 ### 6.1. 代理提前生成实现流程
 
@@ -1654,7 +1654,7 @@ public Object postProcessBeforeInstantiation(Class<?> beanClass, String beanName
 }
 ```
 
-由上面的源码分析可知，通过`getCustomTargetSource`方法创建`TargetSource`的实例，如果`TargetSource`实例不为空，则根据此实例生成代理
+由上面的源码分析可知，通过`getCustomTargetSource`方法创建`TargetSource`的实例，如果`TargetSource`实例不为空，则根据此实例生成代理。而下面就是具体获取自定义`TargetSource`的实例的源码逻辑如下：
 
 ```java
 @Nullable
@@ -1683,16 +1683,452 @@ protected TargetSource getCustomTargetSource(Class<?> beanClass, String beanName
 }
 ```
 
+如果`TargetSourceCreator`数组不为空，则会循环数组中每个`TargetSourceCreator`，调用`getTargetSource`方法获取`TargetSource`实例。方法的具体逻辑在`AbstractBeanFactoryBasedTargetSourceCreator`抽象类中。从源码分析可知，`createBeanFactoryBasedTargetSource`是钩子方法，所以工程中需要去实现此方法，在方法中返回`AbstractBeanFactoryBasedTargetSource`实例，往后的代码逻辑会**生成一个新的BeanFactory实例，并将当前实例设置为多例，将实例注册到新的BeanFactory中**
+
+```java
+/* AbstractBeanFactoryBasedTargetSourceCreator */
+@Override
+@Nullable
+public final TargetSource getTargetSource(Class<?> beanClass, String beanName) {
+	// createBeanFactoryBasedTargetSource是钩子方法，重写该方法，在方法中返回AbstractBeanFactoryBasedTargetSource实例
+	AbstractBeanFactoryBasedTargetSource targetSource =
+			createBeanFactoryBasedTargetSource(beanClass, beanName);
+	if (targetSource == null) {
+		return null;
+	}
+
+	if (logger.isDebugEnabled()) {
+		logger.debug("Configuring AbstractBeanFactoryBasedTargetSource: " + targetSource);
+	}
+
+	/* getInternalBeanFactoryForBean 创建了一个新的 BeanFactory 实例 */
+	DefaultListableBeanFactory internalBeanFactory = getInternalBeanFactoryForBean(beanName);
+
+	// We need to override just this bean definition, as it may reference other beans
+	// and we're happy to take the parent's definition for those.
+	// Always use prototype scope if demanded.
+	BeanDefinition bd = this.beanFactory.getMergedBeanDefinition(beanName);
+	GenericBeanDefinition bdCopy = new GenericBeanDefinition(bd);
+	if (isPrototypeBased()) {
+		// 将目标实例变成多例，因为目标对象此时还没有被实例化，
+		// 设置为多例的话，就变成懒加载，当目标对象方法被调用时才实例化
+		bdCopy.setScope(BeanDefinition.SCOPE_PROTOTYPE);
+	}
+	// 将目标实例测试到新的BeanFactory中
+	internalBeanFactory.registerBeanDefinition(beanName, bdCopy);
+
+	// Complete configuring the PrototypeTargetSource.
+	targetSource.setTargetBeanName(beanName);
+	targetSource.setBeanFactory(internalBeanFactory);
+
+	return targetSource;
+}
+```
 
 
 ### 6.2. 自定义 TargetSource 示例
 
+根据上面源码的分析可知，
+
+1. 通过`AbstractAutoProxyCreator`类提供的set方法，将自定义的`TargetSourceCreator`放入`TargetSourceCreator[] customTargetSourceCreators`属性中。下面示例通过使用实现`BeanPostProcessor`接口的方式来赋值
+
+```java
+@Component
+public class TargetSourceCreatorPostProcessor implements BeanPostProcessor, PriorityOrdered, BeanFactoryAware {
+
+    private BeanFactory beanFactory;
+
+    @Override
+    public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
+        this.beanFactory = beanFactory;
+    }
+
+    @Override
+    public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
+        // 判断是否为AOP注解入口类
+        if (bean instanceof AnnotationAwareAspectJAutoProxyCreator) {
+            AnnotationAwareAspectJAutoProxyCreator annotationAwareAspectJAutoProxyCreator = (AnnotationAwareAspectJAutoProxyCreator) bean;
+            // 设置自定义的 TargetSourceCreator 接口的实现
+            CustomTargetSourceCreator customTargetSourceCreator = new CustomTargetSourceCreator();
+            customTargetSourceCreator.setBeanFactory(this.beanFactory); // 设置beanFactory
+            annotationAwareAspectJAutoProxyCreator.setCustomTargetSourceCreators(customTargetSourceCreator);
+        }
+        return bean;
+    }
+
+    @Override
+    public int getOrder() {
+        return 69;
+    }
+}
+```
+
+2. 创建类继承`AbstractBeanFactoryBasedTargetSourceCreator`抽象类或者实现`TargetSourceCreator`接口。*此示例使用继承抽象类的方式*
+    - 实现接口，需要重写`getTargetSource`方法
+    - 继承抽象类，需要重写`createBeanFactoryBasedTargetSource`方法
+
+```java
+public class CustomTargetSourceCreator extends AbstractBeanFactoryBasedTargetSourceCreator {
+    @Override
+    protected AbstractBeanFactoryBasedTargetSource createBeanFactoryBasedTargetSource(Class<?> beanClass, String beanName) {
+        if (getBeanFactory() instanceof ConfigurableListableBeanFactory) {
+            // 判断是否为需要代理的类型
+            if (beanClass.isAssignableFrom(LogServiceImpl.class)) {
+                // 创建自定义的TargetSource
+                return new CustomTargetSource();
+            }
+        }
+        return null;
+    }
+}
+```
+
+3. `TargetSourceCreator`的实现类需要返回自定义的`TargetSource`，所以接下来创建类继承`AbstractBeanFactoryBasedTargetSource`抽象类或者实现`TargetSource`接口。*此示例使用继承抽象类的方式*
+    - 实现接口，需要重写`getTarget`、`getTargetClass`等多个方法
+    - 继承抽象类，需要重写`getTarget`方法
+
+```java
+public class CustomTargetSource extends AbstractBeanFactoryBasedTargetSource {
+    @Override
+    public Object getTarget() throws Exception {
+        // 从BeanFactory中根据bean名称返回实例
+        return getBeanFactory().getBean(getTargetBeanName());
+    }
+}
+```
+
+4. 单元测试，断点调试
+
+```java
+private final ApplicationContext context = new AnnotationConfigApplicationContext(AppConfig.class);
+
+@Test
+public void testTargetSourceBasic() {
+    LogService logService = context.getBean(LogService.class);
+    logService.logErrorMessage("You have an error!");
+}
+```
+
+### 6.3. 代理提前生成一些注意问题
+
+1. 生成的实例是多例，将其设计成多例的用意是，可以加快工程启动的速度
+2. 生成的实例是缓存另一个BeanFactory中，与正常流程创建的实例不一样
+3. 如果某个实例是有切面，但在上面的示例中，自定义的`TargetSource`类中的`getTarget`方法，通过`BeanFactory`的`getBean`方法，返回的不会是代理实例，而实例本身。这个是因为获取自定义`TargetSource`实例的过程中，会通过复制原来的BeanFactory，创建一个新的BeanFactory实例，此新的BeanFactory中是没有AOP的入口类，所以此BeanFactory的`getBean`方法是不会返回代理实例
+
+![](images/20210307170012186_11441.png)
+
+## 7. 作用域代理 ScopedProxy（非重点，有时间再研究）
+
+### 7.1. 作用域代理测试
+
+#### 7.1.1. 测试示例代码
+
+- 创建测试类，设置作用域为多例，作用域代理模式为缺省值，即不创建作用域代理
+
+```java
+@Component
+@Scope(scopeName = ConfigurableBeanFactory.SCOPE_PROTOTYPE, proxyMode = ScopedProxyMode.DEFAULT)
+public class DefaultProxyModeBean {
+    public void getHashCode() {
+        System.out.println(this.hashCode());
+    }
+}
+```
+
+- 创建测试类，设置作用域为多例，作用域代理模式为`ScopedProxyMode.TARGET_CLASS`，即创建基于子类的作用域代理
+
+```java
+@Component
+@Scope(scopeName = ConfigurableBeanFactory.SCOPE_PROTOTYPE, proxyMode = ScopedProxyMode.TARGET_CLASS)
+public class TargetClassProxyModeBean {
+    public void getHashCode() {
+        System.out.println(this.hashCode());
+    }
+}
+```
+
+- 创建类，使用`@Autowired`注解注入以上两种类型的测试类
+
+```java
+@Component
+public class ScopedProxyBean {
+    @Autowired
+    private DefaultProxyModeBean defaultProxyModeBean;
+    @Autowired
+    private TargetClassProxyModeBean targetClassProxyModeBean;
+
+    public void testDefaultProxyModeBean() {
+        defaultProxyModeBean.getHashCode();
+    }
+
+    public void testTargetClassProxyModeBean() {
+        targetClassProxyModeBean.getHashCode();
+    }
+}
+```
+
+- 单元测试，分别循环5次调用注入类的方法，观察输出注入实例的hashCode值
+
+```java
+private final ApplicationContext context = new AnnotationConfigApplicationContext(basePackages);
+
+@Test
+public void testScopedProxy() {
+    ScopedProxyBean scopedProxyBean = context.getBean("scopedProxyBean", ScopedProxyBean.class);
+
+    for (int i = 0; i < 5; i++) {
+        scopedProxyBean.testDefaultProxyModeBean();
+    }
+    System.out.println("=================");
+    for (int i = 0; i < 5; i++) {
+        scopedProxyBean.testTargetClassProxyModeBean();
+    }
+}
+```
+
+![](images/20210307230947928_4955.png)
+
+#### 7.1.2. 测试结论
+
+- 当使用`@Autowired`注解自动注入多例对象时，如果注入类的`@Scope`注解`proxyMode`属性值为缺省值，则不创建作用域代理，即类实例化的过程依赖注入时会调用`getBean`创建实例，就确定了注入类的值，即使多次调用注入类实例都是同一实例
+- 当使用`@Autowired`注解自动注入多例对象时，如果注入类的`@Scope`注解`proxyMode`属性值为`ScopedProxyMode.TARGET_CLASS`，则会创建基于子类的作用域代理，每次调用注入类的方法时，都是不同的实例
+
+### 7.2. 作用域代理生成源码流程
+
+使用`@Autowired`自动注入的实例可以是代理，是因为在Spring容器中，会同时存储该类型的实例与相应的代理。其实现的原理是利用了`BeanDefinition`的`autowire-candidate`属性，该属性的作用是采用 xml 格式配置 bean 时，将`<bean/>`元素的 `autowire-candidate` 属性设置为 false，这样容器在查找自动装配对象时，将不考虑该 bean，即它不会被考虑作为其它 bean 自动装配的候选者，但是该 bean 本身还是可以使用自动装配来注入其它 bean 的。
+
+根据分析可知，要实现以上逻辑，就会在注解的解析流程中，获取`@Scope`注解中的`proxyMode`属性值，再去修改`BeanDefinition`的`autowire-candidate`属性
+
+#### 7.2.1. ScopedProxy作用域代理生成源码流程位置
+
+注解的扫描与解析在`ConfigurationClassPostProcessor`类中（*详见源码分析IOC篇*），
+
+```
+ConfigurationClassPostProcessor.postProcessBeanDefinitionRegistry -> processConfigBeanDefinitions -> ConfigurationClassParser.parse -> processConfigurationClass -> doProcessConfigurationClass -> ComponentScanAnnotationParser.parse -> ClassPathBeanDefinitionScanner.doScan -> AnnotationScopeMetadataResolver.resolveScopeMetadata -> AnnotationConfigUtils.applyScopedProxyMode
+```
+
+![](images/20210308221712428_22100.jpg)
+
+#### 7.2.2. 包扫描时处理是否生成代理
+
+在`ClassPathBeanDefinitionScanner`类的`doScan`方法处理类的扫描时，会解析类止`@Scope`注解，然后再判断是否需要生成代理
+
+![](images/20210308222635129_32115.png)
+
+#### 7.2.3. 解析@Scope注解
+
+`this.scopeMetadataResolver.resolveScopeMetadata(candidate)`方法作用是解析类上的`@Scope`注解，具体实现在`AnnotationScopeMetadataResolver`中
+
+```java
+@Override
+public ScopeMetadata resolveScopeMetadata(BeanDefinition definition) {
+	ScopeMetadata metadata = new ScopeMetadata();
+	if (definition instanceof AnnotatedBeanDefinition) {
+		AnnotatedBeanDefinition annDef = (AnnotatedBeanDefinition) definition;
+		AnnotationAttributes attributes = AnnotationConfigUtils.attributesFor(
+				annDef.getMetadata(), this.scopeAnnotationType);
+		if (attributes != null) {
+			// 获取@Scope注解的value属性值
+			metadata.setScopeName(attributes.getString("value"));
+			// 获取@Scope注解的proxyMode属性值
+			ScopedProxyMode proxyMode = attributes.getEnum("proxyMode");
+			if (proxyMode == ScopedProxyMode.DEFAULT) {
+				proxyMode = this.defaultProxyMode;
+			}
+			metadata.setScopedProxyMode(proxyMode);
+		}
+	}
+	return metadata;
+}
+```
+
+#### 7.2.4. 生成作用域代理
+
+再调用`AnnotationConfigUtils.applyScopedProxyMode`方法来判断是否需要生成代理
+
+```java
+static BeanDefinitionHolder applyScopedProxyMode(
+		ScopeMetadata metadata, BeanDefinitionHolder definition, BeanDefinitionRegistry registry) {
+
+	ScopedProxyMode scopedProxyMode = metadata.getScopedProxyMode();
+	// 如果ScopedProxyMode是NO，则直接返回原BeanDefinition
+	if (scopedProxyMode.equals(ScopedProxyMode.NO)) {
+		return definition;
+	}
+	// 判断作用域代理模式是否为TARGET_CLASS
+	boolean proxyTargetClass = scopedProxyMode.equals(ScopedProxyMode.TARGET_CLASS);
+	// 生成代理并返回
+	return ScopedProxyCreator.createScopedProxy(definition, registry, proxyTargetClass);
+}
+```
+
+```java
+final class ScopedProxyCreator {
+
+	private ScopedProxyCreator() {
+	}
+
+	public static BeanDefinitionHolder createScopedProxy(
+			BeanDefinitionHolder definitionHolder, BeanDefinitionRegistry registry, boolean proxyTargetClass) {
+
+		return ScopedProxyUtils.createScopedProxy(definitionHolder, registry, proxyTargetClass);
+	}
+
+	public static String getTargetBeanName(String originalBeanName) {
+		return ScopedProxyUtils.getTargetBeanName(originalBeanName);
+	}
+}
+```
+
+调用`ScopedProxyUtils`的`createScopedProxy`方法，创建作用域的代理。值得注意的是，在这里将原来实例的BeanDefinition的autowireCandidate属性与primary属性都设置为false，令自动注入时不会注入源实例，再将源实例重新注册到容器中
+
+```java
+public static BeanDefinitionHolder createScopedProxy(BeanDefinitionHolder definition,
+		BeanDefinitionRegistry registry, boolean proxyTargetClass) {
+
+	String originalBeanName = definition.getBeanName();
+	BeanDefinition targetDefinition = definition.getBeanDefinition();
+	String targetBeanName = getTargetBeanName(originalBeanName);
+
+	// Create a scoped proxy definition for the original bean name,
+	// "hiding" the target bean in an internal target definition.
+	// 为原始bean名称创建作用域代理BeanDefinition（ScopedProxyFactoryBean类型），并将目标bean“隐藏”在内部目标BeanDefinition中
+	RootBeanDefinition proxyDefinition = new RootBeanDefinition(ScopedProxyFactoryBean.class);
+	proxyDefinition.setDecoratedDefinition(new BeanDefinitionHolder(targetDefinition, targetBeanName));
+	// 设置原始的BeanDefinition
+	proxyDefinition.setOriginatingBeanDefinition(targetDefinition);
+	proxyDefinition.setSource(definition.getSource());
+	proxyDefinition.setRole(targetDefinition.getRole());
+
+	proxyDefinition.getPropertyValues().add("targetBeanName", targetBeanName);
+	if (proxyTargetClass) {
+		targetDefinition.setAttribute(AutoProxyUtils.PRESERVE_TARGET_CLASS_ATTRIBUTE, Boolean.TRUE);
+		// ScopedProxyFactoryBean's "proxyTargetClass" default is TRUE, so we don't need to set it explicitly here.
+	}
+	else {
+		proxyDefinition.getPropertyValues().add("proxyTargetClass", Boolean.FALSE);
+	}
+
+	// Copy autowire settings from original bean definition.
+	// 将源BeanDefinition的autowireCandidate属性与primary属性值赋值给代理BeanDefinition
+	proxyDefinition.setAutowireCandidate(targetDefinition.isAutowireCandidate());
+	proxyDefinition.setPrimary(targetDefinition.isPrimary());
+	if (targetDefinition instanceof AbstractBeanDefinition) {
+		proxyDefinition.copyQualifiersFrom((AbstractBeanDefinition) targetDefinition);
+	}
+
+	// The target bean should be ignored in favor of the scoped proxy.
+	// 这里将源BeanDefinition的autowireCandidate属性与primary属性都设置为false，令自动注入时不会注入源实例
+	targetDefinition.setAutowireCandidate(false);
+	targetDefinition.setPrimary(false);
+
+	// Register the target bean as separate bean in the factory.
+	registry.registerBeanDefinition(targetBeanName, targetDefinition);
+
+	// Return the scoped proxy definition as primary bean definition
+	// (potentially an inner bean).
+	return new BeanDefinitionHolder(proxyDefinition, originalBeanName, definition.getAliases());
+}
+```
+
+#### 7.2.5. ScopedProxyFactoryBean
+
+作用域代理是`ScopedProxyFactoryBean`类型，此类实现了` FactoryBean<Object>`接口，会在重写的`getObject`方法中返回代理实例。而代理的创建是在实现`BeanFactoryAware`接口的`setBeanFactory`方法中完成
+
+```java
+public class ScopedProxyFactoryBean extends ProxyConfig
+		implements FactoryBean<Object>, BeanFactoryAware, AopInfrastructureBean {
+
+	/** The TargetSource that manages scoping. */
+	private final SimpleBeanTargetSource scopedTargetSource = new SimpleBeanTargetSource();
+
+	/** The name of the target bean. */
+	@Nullable
+	private String targetBeanName;
+
+	/** The cached singleton proxy. */
+	@Nullable
+	private Object proxy;
+
+	/**
+	 * Create a new ScopedProxyFactoryBean instance.
+	 */
+	public ScopedProxyFactoryBean() {
+		setProxyTargetClass(true);
+	}
+
+	/**
+	 * Set the name of the bean that is to be scoped.
+	 */
+	public void setTargetBeanName(String targetBeanName) {
+		this.targetBeanName = targetBeanName;
+		this.scopedTargetSource.setTargetBeanName(targetBeanName);
+	}
+
+	@Override
+	public void setBeanFactory(BeanFactory beanFactory) {
+		if (!(beanFactory instanceof ConfigurableBeanFactory)) {
+			throw new IllegalStateException("Not running in a ConfigurableBeanFactory: " + beanFactory);
+		}
+		ConfigurableBeanFactory cbf = (ConfigurableBeanFactory) beanFactory;
+
+		this.scopedTargetSource.setBeanFactory(beanFactory);
+
+		ProxyFactory pf = new ProxyFactory();
+		pf.copyFrom(this);
+		pf.setTargetSource(this.scopedTargetSource);
+
+		Assert.notNull(this.targetBeanName, "Property 'targetBeanName' is required");
+		// 根据bean的名称，获取到bean的类型（Class）。此API比较实用
+		Class<?> beanType = beanFactory.getType(this.targetBeanName);
+		if (beanType == null) {
+			throw new IllegalStateException("Cannot create scoped proxy for bean '" + this.targetBeanName +
+					"': Target type could not be determined at the time of proxy creation.");
+		}
+		if (!isProxyTargetClass() || beanType.isInterface() || Modifier.isPrivate(beanType.getModifiers())) {
+			pf.setInterfaces(ClassUtils.getAllInterfacesForClass(beanType, cbf.getBeanClassLoader()));
+		}
+
+		// Add an introduction that implements only the methods on ScopedObject.
+		ScopedObject scopedObject = new DefaultScopedObject(cbf, this.scopedTargetSource.getTargetBeanName());
+		pf.addAdvice(new DelegatingIntroductionInterceptor(scopedObject));
+
+		// Add the AopInfrastructureBean marker to indicate that the scoped proxy
+		// itself is not subject to auto-proxying! Only its target bean is.
+		pf.addInterface(AopInfrastructureBean.class);
+
+		this.proxy = pf.getProxy(cbf.getBeanClassLoader());
+	}
+
+	@Override
+	public Object getObject() {
+		if (this.proxy == null) {
+			throw new FactoryBeanNotInitializedException();
+		}
+		return this.proxy;
+	}
+
+	@Override
+	public Class<?> getObjectType() {
+		if (this.proxy != null) {
+			return this.proxy.getClass();
+		}
+		return this.scopedTargetSource.getTargetClass();
+	}
+
+	@Override
+	public boolean isSingleton() {
+		return true;
+	}
+
+}
+```
 
 
 
-## 7. 其他
+## 8. 其他
 
-### 7.1. 解析切入点表达式的加载流程(!待整理)
+### 8.1. 解析切入点表达式的加载流程(!待整理)
 
 spring在解析切入点表达式时，是通过一些类进行封装的。此实现类`PointcutImpl`实现了`Pointcut`接口。
 
@@ -1701,9 +2137,9 @@ spring在解析切入点表达式时，是通过一些类进行封装的。此�
 
 *注：`PointcutImpl`与`KindedPointcut`是在`org.aspectj.aspectjweaver`的依赖包下*
 
-### 7.2. 解析通知注解
+### 8.2. 解析通知注解
 
-#### 7.2.1. 初始化通知注解的Map(!待整理)
+#### 8.2.1. 初始化通知注解的Map(!待整理)
 
 首先在执行初始化时容器创建时，spring框架把和通知相关的注解都放到一个受保护的内部类中了。
 
@@ -1730,5 +2166,5 @@ public abstract class AbstractAspectJAdvisorFactory implements AspectJAdvisorFac
 }
 ```
 
-#### 7.2.2. 构建通知的拦截器链(!待整理)
+#### 8.2.2. 构建通知的拦截器链(!待整理)
 
