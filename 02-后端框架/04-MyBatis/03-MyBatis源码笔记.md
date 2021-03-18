@@ -1,18 +1,19 @@
 # MyBatis 源码笔记
 
 ## 1. MyBatis 源码概述
+
 ### 1.1. MyBatis 源码获取
 
 MyBatis 源码下载地址：`https://github.com/MyBatis/MyBatis-3`
 
-> 建议直接用`\第2期课程\（08）mybatis——lison老师\02-2019.08.27-摸了MyBtis的骨架，我才知道什么是骨骼惊奇（mybatis）\mybatis-3-master（注释版）.zip`的源码包，在里面加注释
+> 直接用`mybatis-3-master（注释版）.zip`的源码包，在里面加注释
 
 源码包导入过程：
 
 1. 下载 MyBatis 的源码
 2. 检查 maven 的版本，必须是 3.25 以上，建议使用 maven 的最新版本
 3. MyBatis 的工程是 maven 工程，在开发工具中导入，工程必须使用 jdk1.8 以上版本；
-4. 把 MyBatis 源码的 pom 文件中`<optional>true</optional>`，全部改为 false；
+4. <font color=red>**把 MyBatis 源码的 pom 文件中`<optional>true</optional>`，全部改为 false或者注释掉，因为这个会阻断依赖的传递，会导致自己做的demo示例无法依赖到mybatis所依赖的第三方的jar包**</font>；
 5. 在工程目录下执行 mvn clean install -Dmaven.test.skip=true,将当前工程安装到本地仓库（pdf 插件报错的话，需要将这个插件屏蔽）；
     - > 注意：安装过程中会可能会有很多异常信息，只要不中断运行，请耐心等待；
 6. 其他工程依赖此工程
@@ -241,24 +242,70 @@ JDK 中生成代理对象主要涉及两个类/接口
 - `UnpooledDataSourceFactory`：工厂接口的实现类之一，用于创建 UnpooledDataSource(不带连接池的数据源)
 - `PooledDataSourceFactory`：工厂接口的实现类之一，用于创建 PooledDataSource（带连接池的数据源）
 
+# MyBatis 源码流程解析
 
+## 1. MyBatis 基础执行流程分析
 
+使用MyBatis完成一次数据库基础操作的代码如下：
 
+```java
+@Test
+public void testMyBatisGetMapper() {
+    try {
+        // ----------------------------------------- 第一阶段 -----------------------------------------
+        // 从 XML 文件中构建 SqlSessionFactory 的实例非常简单，建议使用类路径下的资源文件进行配置。
+        // MyBatis 包含一个名叫 Resources 的工具类，它包含一些实用方法，可以使类路径或其它位置加载资源文件
+        InputStream inputStream = Resources.getResourceAsStream("mybatis-config.xml");
+        // 读取配置文件，创建SqlSessionFactory
+        SqlSessionFactory sqlSessionFactory = new SqlSessionFactoryBuilder().build(inputStream);
 
+        // ----------------------------------------- 第二阶段 -----------------------------------------
+        // 通过SqlSessionFactory开启一个SqlSession
+        SqlSession sqlSession = sqlSessionFactory.openSession();
+        // 通过SqlSession获取指定的mapper映射器（其实是Mapper接口的代理）
+        CommonMapper mapper = sqlSession.getMapper(CommonMapper.class);
 
+        // ----------------------------------------- 第三阶段 -----------------------------------------
+        // 通过代理实例调用相应Mapper接口中的方法
+        System.out.println(mapper.queryAreaByAreaCode(new HashMap<>()));
+    } catch (IOException e) {
+        e.printStackTrace();
+    }
+}
+```
 
+通过对快速入门代码的分析，可以把 MyBatis 的运行流程分为三大阶段：
 
+1. 初始化阶段：读取 XML 配置文件和注解中的配置信息，创建配置对象，并完成各个模块的初始化的工作。
+2. 代理封装阶段：封装 iBatis 的编程模型，使用 mapper 接口开发的初始化工作。
+3. 数据访问阶段：通过 SqlSession 完成 SQL 的解析，参数的映射、SQL 的执行、结果的解析过程。
 
+## 2. 第一阶段：加载与解析配置
 
+### 2.1. 配置加载的核心类
 
+#### 2.1.1. 建造器三个核心类
 
+在 MyBatis 中负责加载配置文件的核心类有三个，类图如下：
 
+![](images/20210316214104041_31880.png)
 
+- `BaseBuilder`：所有解析器的父类，包含配置文件实例，为解析文件提供的一些通用的方法；
+- `XMLConfigBuilder`：主要负责解析总配置文件 mybatis-config.xml；
+- `XMLMapperBuilder`：主要负责解析映射配置 Mapper.xml 文件；
+- `XMLStatementBuilder`：主要负责解析映射配置文件中的 SQL 节点；
 
+#### 2.1.2. 三个核心类分工示意图
 
+`XMLConfigBuilder`、`XMLMapperBuilder`、`XMLStatementBuilder` 这三个类在配置文件加载过程中非常重要，具体分工如下图所示：
 
+![](images/20210316225354736_21111.png)
 
+这三个类使用了建造者模式对 configuration 对象进行初始化，使用建造者模式屏蔽复杂对象的创建过程，把建造者模式演绎成了工厂模式。
 
+### 2.2. Configuration 对象
 
+`Configuration`，里面包含了配置的信息、反射工厂、对象工厂、代理工厂等数据是一个非常庞大的类。**在整个Mybatis流程中无处不在，需要重点关注**
 
+实例化并初始化 `Configuration` 对象是第一个阶段的最终目的。
 

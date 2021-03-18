@@ -258,6 +258,59 @@ public class Test01 {
 1. 参数列表中只能有一个可变参数
 2. 如果出现不同类型的参数，可变参数必须放在参数列表的最后
 
+## 7. Java类的初始化顺序
+
+Java类的创建，相应的初始化顺序是：`静态变量` -> `静态代码块` -> `成员变量（全局变量）` -> `初始化代码块` -> `构造函数`。测试示例如下：
+
+```java
+public class InitSequenceBean {
+
+    private static String staticStr = initStaticMember();
+    private String str = initOrdinaryMember();
+
+    static {
+        System.out.println("静态代码块执行了....");
+    }
+
+    {
+        System.out.println("初始化代码块执行了....");
+    }
+
+    public InitSequenceBean() {
+        System.out.println("无参构造函数执行了....");
+    }
+
+    private static String initStaticMember() {
+        System.out.println("静态成员变量初始化....");
+        return "123";
+    }
+
+    private String initOrdinaryMember() {
+        System.out.println("普通成员变量初始化....");
+        return "abc";
+    }
+}
+```
+
+测试代码与结果
+
+```java
+@Test
+public void testInitializationSequence() {
+    InitSequenceBean bean = new InitSequenceBean();
+    System.out.println(bean);
+    /*
+     * 测试结果：
+     *  静态成员变量初始化....
+     *  静态代码块执行了....
+     *  普通成员变量初始化....
+     *  初始化代码块执行了....
+     *  无参构造函数执行了....
+     *  com.moon.java.basic.InitSequenceBean@ba8a1dc
+     */
+}
+```
+
 ---
 
 # 内部类

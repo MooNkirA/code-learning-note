@@ -347,6 +347,7 @@ public class MyBatisTest02 {
 3. 调用sqlsession方法时传入的变量，由于sqlsession方法使用泛型，即使变量类型传入错误，在编译阶段也不报错，不利于程序员开发
 
 ### 4.3. MyBatis的Mapper动态代理方式开发数据层【重点】
+
 #### 4.3.1. Mapper动态代理开发规则【重点】
 
 Mapper接口开发方法只需要编写Mapper接口（相当于Dao接口），由Mybatis框架根据接口定义创建接口的动态代理对象，代理对象的方法体同上边Dao接口实现类方法。
@@ -481,6 +482,7 @@ public class MyBatisTest03_Mapper {
 ```
 
 ## 5. SqlMapConfig.xml（MyBatis 总配置文件）
+
 ### 5.1. 配置文件内容顺序
 
 SqlMapConfig.xml中配置的内容和顺序如下：（必须按顺序，否则为报错）
@@ -499,7 +501,9 @@ SqlMapConfig.xml中配置的内容和顺序如下：（必须按顺序，否则�
 | 7-1-2 | databaseIdProvider | 多数据库支持     |
 | 8     | mappers            | 映射器          |
 
-### 5.2. `<properties>`标签
+### 5.2. `<properties>`属性标签
+
+#### 5.2.1. 配置属性
 
 1. `resource`属性：指定本地属性文件的位置
 2. `url`属性：指定网络上的配置文件位置（用于放置多个服务器统一使用一份配置文件）
@@ -533,12 +537,63 @@ sqlMapConfig.xml文件`<properties>`标签示例：
 </dataSource>
 ```
 
-<font color=red>**注意：MyBatis将按照下面的顺序来加载属性**</font>：
+除了通过`<properties>`标签的方式，也可以在 `SqlSessionFactoryBuilder.build()` 方法中传入属性值。
+
+```java
+SqlSessionFactory factory = new SqlSessionFactoryBuilder().build(reader, props);
+// ... 或者 ...
+SqlSessionFactory factory = new SqlSessionFactoryBuilder().build(reader, environment, props);
+```
+
+<font color=red>**注意：如果一个属性在不只一个地方进行了配置，MyBatis将按照下面的顺序来加载属性**</font>：
 
 1. 在properties元素体内定义的属性首先被读取。
 2. 然后会读取properties元素中resource或url加载的属性，它会覆盖已读取的同名属性。
+3. 最后读取作为方法参数传递的属性，并覆盖之前读取过的同名属性。
 
-### 5.3. `<settings>`标签
+因此，<font color=red>**通过方法参数传递的属性具有最高优先级，resource/url 属性中指定的配置文件次之，最低优先级的则是 properties 元素中指定的属性。**</font>
+
+#### 5.2.2. 属性默认值
+
+从 MyBatis 3.4.2 开始，可以为占位符指定一个默认值。例如：
+
+```xml
+<dataSource type="POOLED">
+  ...省略内容
+  <property name="username" value="${username:ut_user}"/> <!-- 如果属性 'username' 没有被配置，'username' 属性的值将为 'ut_user' -->
+</dataSource>
+```
+
+这个特性默认是关闭的。要启用这个特性，需要添加一个特定的属性来开启这个特性。例如：
+
+```xml
+<properties resource="org/mybatis/example/config.properties">
+  ...省略内容
+  <property name="org.apache.ibatis.parsing.PropertyParser.enable-default-value" value="true"/> <!-- 启用默认值特性 -->
+</properties>
+```
+
+#### 5.2.3. 属性名中的“:”字符处理
+
+**提示**：如果在属性名中使用了"`:`"字符（如：`db:username`），或者在 SQL 映射中使用了 OGNL 表达式的三元运算符（如：`${tableName != null ? tableName : 'global_constants'}`），就需要设置特定的属性来修改分隔属性名和默认值的字符。例如：
+
+```xml
+<properties resource="org/mybatis/example/config.properties">
+  ...省略内容
+  <property name="org.apache.ibatis.parsing.PropertyParser.default-value-separator" value="?:"/> <!-- 修改默认值的分隔符 -->
+</properties>
+```
+
+```xml
+<dataSource type="POOLED">
+  ...省略内容
+  <property name="username" value="${db:username?:ut_user}"/>
+</dataSource>
+```
+
+### 5.3. `<settings>`设置标签
+
+#### 5.3.1. 配置示例
 
 1. 在`<settings>`标签中，配置用生成的主键值
 
@@ -554,7 +609,67 @@ sqlMapConfig.xml文件`<properties>`标签示例：
 
 > 效果说明：当数据库表的字段为dept_id，会自动转换成deptId
 
-### 5.4. typeAliases（类型别名）
+#### 5.3.2. 相关设置含义清单
+
+> 这是 MyBatis 中极为重要的调整设置，它们会改变 MyBatis 的运行时行为。 下表描述了设置中各项设置的含义、默认值等。(官网提供)
+
+| 设置名                            | 描述                                                                                                                                                                                                                              | 有效值                                                                                      | 默认值                                                 |
+| :------------------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :----------------------------------------------------------------------------------------- | :---------------------------------------------------- |
+| cacheEnabled                     | 全局性地开启或关闭所有映射器配置文件中已配置的任何缓存。                                                                                                                                                                                | true \| false                                                                              | true                                                  |
+| lazyLoadingEnabled               | 延迟加载的全局开关。当开启时，所有关联对象都会延迟加载。 特定关联关系中可通过设置 `fetchType` 属性来覆盖该项的开关状态。                                                                                                                     | true \| false                                                                              | false                                                 |
+| aggressiveLazyLoading            | 开启时，任一方法的调用都会加载该对象的所有延迟加载属性。 否则，每个延迟加载属性会按需加载（参考 `lazyLoadTriggerMethods`)。                                                                                                                 | true \| false                                                                              | false （在 3.4.1 及之前的版本中默认为 true）             |
+| multipleResultSetsEnabled        | 是否允许单个语句返回多结果集（需要数据库驱动支持）。                                                                                                                                                                                   | true \| false                                                                              | true                                                  |
+| useColumnLabel                   | 使用列标签代替列名。实际表现依赖于数据库驱动，具体可参考数据库驱动的相关文档，或通过对比测试来观察。                                                                                                                                         | true \| false                                                                              | true                                                  |
+| useGeneratedKeys                 | 允许 JDBC 支持自动生成主键，需要数据库驱动支持。如果设置为 true，将强制使用自动生成主键。尽管一些数据库驱动不支持此特性，但仍可正常工作（如 Derby）。                                                                                           | true \| false                                                                              | False                                                 |
+| autoMappingBehavior              | 指定 MyBatis 应如何自动映射列到字段或属性。 NONE 表示关闭自动映射；PARTIAL 只会自动映射没有定义嵌套结果映射的字段。 FULL 会自动映射任何复杂的结果集（无论是否嵌套）。                                                                            | NONE, PARTIAL, FULL                                                                        | PARTIAL                                               |
+| autoMappingUnknownColumnBehavior | 指定发现自动映射目标未知列（或未知属性类型）的行为。`NONE`: 不做任何反应`WARNING`: 输出警告日志（`'org.apache.ibatis.session.AutoMappingUnknownColumnBehavior'` 的日志等级必须设置为 `WARN`）`FAILING`: 映射失败 (抛出 `SqlSessionException`) | NONE, WARNING, FAILING                                                                     | NONE                                                  |
+| defaultExecutorType              | 配置默认的执行器。SIMPLE 就是普通的执行器；REUSE 执行器会重用预处理语句（PreparedStatement）； BATCH 执行器不仅重用语句还会执行批量更新。                                                                                                    | SIMPLE REUSE BATCH                                                                         | SIMPLE                                                |
+| defaultStatementTimeout          | 设置超时时间，它决定数据库驱动等待数据库响应的秒数。                                                                                                                                                                                   | 任意正整数                                                                                  | 未设置 (null)                                          |
+| defaultFetchSize                 | 为驱动的结果集获取数量（fetchSize）设置一个建议值。此参数只可以在查询设置中被覆盖。                                                                                                                                                       | 任意正整数                                                                                  | 未设置 (null)                                          |
+| defaultResultSetType             | 指定语句默认的滚动策略。（新增于 3.5.2）                                                                                                                                                                                             | FORWARD_ONLY \| SCROLL_SENSITIVE \| SCROLL_INSENSITIVE \| DEFAULT（等同于未设置）            | 未设置 (null)                                          |
+| safeRowBoundsEnabled             | 是否允许在嵌套语句中使用分页（RowBounds）。如果允许使用则设置为 false。                                                                                                                                                                 | true \| false                                                                              | False                                                 |
+| safeResultHandlerEnabled         | 是否允许在嵌套语句中使用结果处理器（ResultHandler）。如果允许使用则设置为 false。                                                                                                                                                       | true \| false                                                                              | True                                                  |
+| mapUnderscoreToCamelCase         | 是否开启驼峰命名自动映射，即从经典数据库列名 A_COLUMN 映射到经典 Java 属性名 aColumn。                                                                                                                                                  | true \| false                                                                              | False                                                 |
+| localCacheScope                  | MyBatis 利用本地缓存机制（Local Cache）防止循环引用和加速重复的嵌套查询。 默认值为 SESSION，会缓存一个会话中执行的所有查询。 若设置值为 STATEMENT，本地缓存将仅用于执行语句，对相同 SqlSession 的不同查询将不会进行缓存。                           | SESSION \| STATEMENT                                                                       | SESSION                                               |
+| jdbcTypeForNull                  | 当没有为参数指定特定的 JDBC 类型时，空值的默认 JDBC 类型。 某些数据库驱动需要指定列的 JDBC 类型，多数情况直接用一般类型即可，比如 NULL、VARCHAR 或 OTHER。                                                                                     | JdbcType 常量，常用值：NULL、VARCHAR 或 OTHER。                                              | OTHER                                                 |
+| lazyLoadTriggerMethods           | 指定对象的哪些方法触发一次延迟加载。                                                                                                                                                                                                  | 用逗号分隔的方法列表。                                                                       | equals,clone,hashCode,toString                        |
+| defaultScriptingLanguage         | 指定动态 SQL 生成使用的默认脚本语言。                                                                                                                                                                                                | 一个类型别名或全限定类名。                                                                    | org.apache.ibatis.scripting.xmltags.XMLLanguageDriver |
+| defaultEnumTypeHandler           | 指定 Enum 使用的默认 `TypeHandler` 。（新增于 3.4.5）                                                                                                                                                                               | 一个类型别名或全限定类名。                                                                    | org.apache.ibatis.type.EnumTypeHandler                |
+| callSettersOnNulls               | 指定当结果集中值为 null 的时候是否调用映射对象的 setter（map 对象时为 put）方法，这在依赖于 Map.keySet() 或 null 值进行初始化时比较有用。注意基本类型（int、boolean 等）是不能设置成 null 的。                                                  | true \| false                                                                              | false                                                 |
+| returnInstanceForEmptyRow        | 当返回行的所有列都是空时，MyBatis默认返回 `null`。 当开启这个设置时，MyBatis会返回一个空实例。 请注意，它也适用于嵌套的结果集（如集合或关联）。（新增于 3.4.2）                                                                                 | true \| false                                                                              | false                                                 |
+| logPrefix                        | 指定 MyBatis 增加到日志名称的前缀。                                                                                                                                                                                                 | 任何字符串                                                                                  | 未设置                                                 |
+| logImpl                          | 指定 MyBatis 所用日志的具体实现，未指定时将自动查找。                                                                                                                                                                                 | SLF4J \| LOG4J \| LOG4J2 \| JDK_LOGGING \| COMMONS_LOGGING \| STDOUT_LOGGING \| NO_LOGGING | 未设置                                                 |
+| proxyFactory                     | 指定 Mybatis 创建可延迟加载对象所用到的代理工具。                                                                                                                                                                                     | CGLIB \| JAVASSIST                                                                         | JAVASSIST （MyBatis 3.3 以上）                         |
+| vfsImpl                          | 指定 VFS 的实现                                                                                                                                                                                                                    | 自定义 VFS 的实现的类全限定名，以逗号分隔。                                                    | 未设置                                                 |
+| useActualParamName               | 允许使用方法签名中的名称作为语句参数名称。 为了使用该特性，你的项目必须采用 Java 8 编译，并且加上 `-parameters` 选项。（新增于 3.4.1）                                                                                                       | true \| false                                                                              | true                                                  |
+| configurationFactory             | 指定一个提供 `Configuration` 实例的类。 这个被返回的 Configuration 实例用来加载被反序列化对象的延迟加载属性值。 这个类必须包含一个签名为`static Configuration getConfiguration()` 的方法。（新增于 3.2.3）                                     | 一个类型别名或完全限定类名。                                                                  | 未设置                                                 |
+| shrinkWhitespacesInSql           | 从SQL中删除多余的空格字符。请注意，这也会影响SQL中的文字字符串。 (新增于 3.5.5)                                                                                                                                                          | true \| false                                                                              | false                                                 |
+| defaultSqlProviderType           | Specifies an sql provider class that holds provider method (Since 3.5.6). This class apply to the `type`(or `value`) attribute on sql provider annotation(e.g. `@SelectProvider`), when these attribute was omitted.              | A type alias or fully qualified class name                                                 | Not set                                               |
+
+一个配置完整的 settings 元素的示例如下：
+
+```xml
+<settings>
+  <setting name="cacheEnabled" value="true"/>
+  <setting name="lazyLoadingEnabled" value="true"/>
+  <setting name="multipleResultSetsEnabled" value="true"/>
+  <setting name="useColumnLabel" value="true"/>
+  <setting name="useGeneratedKeys" value="false"/>
+  <setting name="autoMappingBehavior" value="PARTIAL"/>
+  <setting name="autoMappingUnknownColumnBehavior" value="WARNING"/>
+  <setting name="defaultExecutorType" value="SIMPLE"/>
+  <setting name="defaultStatementTimeout" value="25"/>
+  <setting name="defaultFetchSize" value="100"/>
+  <setting name="safeRowBoundsEnabled" value="false"/>
+  <setting name="mapUnderscoreToCamelCase" value="false"/>
+  <setting name="localCacheScope" value="SESSION"/>
+  <setting name="jdbcTypeForNull" value="OTHER"/>
+  <setting name="lazyLoadTriggerMethods" value="equals,clone,hashCode,toString"/>
+</settings>
+```
+
+### 5.4. `<typeAliases>`类型别名标签
+
 #### 5.4.1. mybatis 本身所支持的别名
 
 |    别名    | 映射类型 |    别名    |  映射类型   |
@@ -582,6 +697,7 @@ sqlMapConfig.xml文件`<properties>`标签示例：
 *注：mybatis内置别名中，没有配置set集合，所以mybatis中使用List比较多*
 
 #### 5.4.2. `<typeAliases>`标签：自定义别名
+
 ##### 5.4.2.1. 方式1：`<typeAlias>`子标签
 
 1. `type`属性：指定别名的类型
@@ -634,6 +750,17 @@ sqlMapConfig.xml文件包扫描方式配置别名示例：
 
 <font color=purple>*注：实现开发中，推荐使用包扫描方式*</font>
 
+每一个在包`com.moon.entity`中的 Java Bean，在没有注解的情况下，会使用 Bean 的首字母小写的非限定类名来作为它的别名。比如`com.moon.entity.Author`的别名为`author`；若有注解，则别名为其注解值。见下面的例子：
+
+```java
+@Alias("author")
+public class Author {
+    ...
+}
+```
+
+#### 5.4.3. 配置别名示例
+
 sqlMapConfig.xml文件综合配置别名示例：
 
 ```xmL
@@ -646,11 +773,13 @@ sqlMapConfig.xml文件综合配置别名示例：
 </typeAliases>
 ```
 
-#### 5.4.3. `<mappers>`标签
+### 5.5. （待整理）`<environments>`环境配置标签
 
-Mapper配置的几种方法如下：
+### 5.6. `<mappers>`映射器标签
 
-##### 5.4.3.1. `<mapper resource=" " />`子标签
+`<mappers>`映射器标签用于定义 SQL 映射语句，可以使用相对于类路径的资源引用，或完全限定资源定位符（包括 `file:///` 形式的 URL），或类名和包名等。
+
+#### 5.6.1. `<mapper resource="" />`子标签
 
 使用相对于类路径的资源（现在的使用方式），resource：指定配置文件的位置。如下：
 
@@ -658,9 +787,20 @@ Mapper配置的几种方法如下：
 <mapper resource="sqlmap/User.xml" />
 ```
 
+#### 5.6.2. `<mapper url="" />`子标签
+
 url引用的完全限定名（包括`file:///URLs`）
 
-##### 5.4.3.2. `<mapper class=" " />`子标签
+```xml
+<!-- 使用完全限定资源定位符（URL） -->
+<mappers>
+  <mapper url="file:///var/mappers/AuthorMapper.xml"/>
+  <mapper url="file:///var/mappers/BlogMapper.xml"/>
+  <mapper url="file:///var/mappers/PostMapper.xml"/>
+</mappers>
+```
+
+#### 5.6.3. `<mapper class="" />`子标签
 
 使用mapper接口类路径。注意：此种方法要求mapper接口名称和mapper映射文件名称相同，且放在同一个目录中。
 
@@ -673,14 +813,11 @@ url引用的完全限定名（包括`file:///URLs`）
 	-->
 	<mapper class="com.moon.mapper.UserMapper"/>
 </mappers>
-
 ```
 
-##### 5.4.3.3. `<package name=""/>`子标签
+#### 5.6.4. `<package name="" />`子标签
 
-包扫描方式配置映射文件，扫描该包下的所有mapper接口。其中`name`属性是配置需要扫描的包名
-
-包扫描方式使用要求：
+包扫描方式配置映射文件，扫描该包下的所有mapper接口。其中`name`属性是配置需要扫描的包名。包扫描方式使用要求如下：
 
 1. 前提是mapper代理开发方法
 2. 要求mapper映射文件，与mapper接口要放在同一目录
@@ -697,16 +834,15 @@ url引用的完全限定名（包括`file:///URLs`）
 </mappers>
 ```
 
-
-
-
 ## 6. Mapper.xml（SQL映射文件）
+
 ### 6.1. 映射文件编写注意问题
 
 - 映射文件中，`<select>`标签体内的sql语句不能出现“`;`”结尾
 - namespace属性：namespace命名空间，作用就是对sql进行分类化管理，理解为sql隔离；<font color=red>**注意：！！使用mapper代理方法开发，namespace必须和Mapper代理接口的全限定名称一致**</font>
 
 ### 6.2. 查询映射`<select>`
+
 #### 6.2.1. 标签作用与属性
 
 `<select>`标签的作用是MyBatis对数据库表数据进行查询操作，用于定义sql查询映射
@@ -835,6 +971,7 @@ public void findUserByNameTest() throws IOException {
 ```
 
 ### 6.3. 新增映射`<insert>`
+
 #### 6.3.1. 标签作用与属性
 
 `<insert>`标签的作用是MyBatis对数据库表数据进行新增操作，用于添加映射
@@ -842,7 +979,7 @@ public void findUserByNameTest() throws IOException {
 - `parameterType`属性：在添加功能中指定输入类型是实体类
 - `resultType`属性：指定`select LAST_INSERT_ID()`的结果类型
 
-> 标签体可以定义主键的返回，详见上面的MyBatis基本使用
+> 标签体可以定义主键的返回，详见下面的MyBatis基本使用
 
 ##### 6.3.1.1. 定义主键的方式1
 
@@ -866,7 +1003,6 @@ oracle数据库中使用BEFORE:
 	select seq.nextVal from dual;
 </selectKey>
 ```
-
 
 #### 6.3.2. 使用MyBatis添加数据
 
@@ -997,6 +1133,7 @@ public void insertUserTest() throws IOException {
 ```
 
 ### 6.4. 更新映射`<update>`
+
 #### 6.4.1. 标签作用与属性
 
 `<update>`标签的作用是MyBatis对数据库表数据进行更新操作，用于更新映射。需要传入更新的记录的id，和记录的更新信息
@@ -1084,7 +1221,34 @@ public void deleteUserTest() throws IOException {
 }
 ```
 
-### 6.6. MyBatis输入输出映射准备项目测试环境
+### 6.6. Insert, Update, Delete 标签总结
+
+#### 6.6.1. 标签元素的属性清单
+
+| 属性               | 描述                                                                                                                                                                                                      |
+| :----------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `id`               | 在命名空间中唯一的标识符，可以被用来引用这条语句。                                                                                                                                                             |
+| `parameterType`    | 将会传入这条语句的参数的类全限定名或别名。这个属性是可选的，因为 MyBatis 可以通过类型处理器（TypeHandler）推断出具体传入语句的参数，默认值为未设置（`unset`）。                                                         |
+| `parameterMap`     | 用于引用外部 parameterMap 的属性，目前已被废弃。请使用行内参数映射和 parameterType 属性。                                                                                                                       |
+| `flushCache`       | 将其设置为 true 后，只要语句被调用，都会导致本地缓存和二级缓存被清空，默认值：（对 insert、update 和 delete 语句）true。                                                                                           |
+| `timeout`          | 这个设置是在抛出异常之前，驱动程序等待数据库返回请求结果的秒数。默认值为未设置（unset）（依赖数据库驱动）。                                                                                                          |
+| `statementType`    | 可选 STATEMENT，PREPARED 或 CALLABLE。这会让 MyBatis 分别使用 Statement，PreparedStatement 或 CallableStatement，默认值：PREPARED。                                                                           |
+| `useGeneratedKeys` | （仅适用于 insert 和 update）这会令 MyBatis 使用 JDBC 的 getGeneratedKeys 方法来取出由数据库内部生成的主键（比如：像 MySQL 和 SQL Server 这样的关系型数据库管理系统的自动递增字段），默认值：false。                   |
+| `keyProperty`      | （仅适用于 insert 和 update）指定能够唯一识别对象的属性，MyBatis 会使用 getGeneratedKeys 的返回值或 insert 语句的 selectKey 子元素设置它的值，默认值：未设置（`unset`）。如果生成列不止一个，可以用逗号分隔多个属性名称。 |
+| `keyColumn`        | （仅适用于 insert 和 update）设置生成键值在表中的列名，在某些数据库（像 PostgreSQL）中，当主键列不是表中的第一列的时候，是必须设置的。如果生成列不止一个，可以用逗号分隔多个属性名称。                                     |
+| `databaseId`       | 如果配置了数据库厂商标识（databaseIdProvider），MyBatis 会加载所有不带 databaseId 或匹配当前 databaseId 的语句；如果带和不带的语句都有，则不带的会被忽略。                                                           |
+
+#### 6.6.2. selectKey 元素的属性清单
+
+| 属性            | 描述                                                                                                                                                                                                                               |
+| :-------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `keyProperty`   | `selectKey` 语句结果应该被设置到的目标属性。如果生成列不止一个，可以用逗号分隔多个属性名称。                                                                                                                                               |
+| `keyColumn`     | 返回结果集中生成列属性的列名。如果生成列不止一个，可以用逗号分隔多个属性名称。                                                                                                                                                             |
+| `resultType`    | 结果的类型。通常 MyBatis 可以推断出来，但是为了更加准确，写上也不会有什么问题。MyBatis 允许将任何简单类型用作主键的类型，包括字符串。如果生成列不止一个，则可以使用包含期望属性的 Object 或 Map。                                                   |
+| `order`         | 可以设置为 `BEFORE` 或 `AFTER`。如果设置为 `BEFORE`，那么它首先会生成主键，设置 `keyProperty` 再执行插入语句。如果设置为 `AFTER`，那么先执行插入语句，然后是 `selectKey` 中的语句 - 这和 Oracle 数据库的行为相似，在插入语句内部可能有嵌入索引调用。 |
+| `statementType` | 和前面一样，MyBatis 支持 `STATEMENT`，`PREPARED` 和 `CALLABLE` 类型的映射语句，分别代表 `Statement`, `PreparedStatement` 和 `CallableStatement` 类型。                                                                                  |
+
+### 6.7. MyBatis输入输出映射准备项目测试环境
 
 1. 创建maven项目，修改pom.xml文件，添加MyBatis、数据库等依赖，配置jdk插件
 2. 准备数据库参数的配置文件db.properties；MyBatis总配置文件SqlMapConfig.xml；日志配置文件log4j.properties
@@ -1093,8 +1257,11 @@ public void deleteUserTest() throws IOException {
 
 ![准备项目测试环境](images/20190823154355771_8940.jpg)
 
-### 6.7. 标签属性 - parameterType（输入参数映射）
-#### 6.7.1. java的简单类型（四类八种）
+### 6.8. ~~parameterType（输入参数映射，已被废弃）~~
+
+> 官网：`parameterMap` – 老式风格的参数映射。此元素已被废弃，并可能在将来被移除！请使用行内参数映射。此文档中介绍是以前的使用方式。
+
+#### 6.8.1. java的简单类型（四类八种）
 
 示例：parameeterType为整形数据类型
 
@@ -1104,7 +1271,7 @@ public void deleteUserTest() throws IOException {
 </select>
 ```
 
-#### 6.7.2. pojo类型（对象类型）
+#### 6.8.2. pojo类型（对象类型）
 
 示例：parameeterType是User封装的实体类型
 
@@ -1118,7 +1285,7 @@ public void deleteUserTest() throws IOException {
 </insert>
 ```
 
-#### 6.7.3. pojo包装类型
+#### 6.8.3. pojo包装类型
 
 > - pojo包装类型：指的是在pojo中包含了其他的pojo。（即实体类的一个属性是引用其他的实体类）
 > - 一般在项目中用于接收综合查询条件
@@ -1194,14 +1361,15 @@ public void queryUserByConditionTest() {
 }
 ```
 
-### 6.8. 标签属性 - resultType（输出结果映射）
-#### 6.8.1. java的简单类型
+### 6.9. resultType（输出结果映射）
+
+#### 6.9.1. java的简单类型
 
 - 需求：统计用户数量，这种情况输出映射是基本数据类型
 - 定义UserMapper.xml
 
 ```xml
-<!-- 需求：统计用户数量 
+<!-- 需求：统计用户数量
 	resultType：返回基本数据类型
  -->
 <select id="countUser" resultType="int">
@@ -1235,16 +1403,16 @@ public void countUsersTest() {
 }
 ```
 
-#### 6.8.2. 输出pojo（对象）类型
+#### 6.9.2. 输出pojo（对象）类型
 
 参考上面的demo(待整理)
 
-### 6.9. resultMap（输出结果映射）
+### 6.10. resultMap（输出结果映射）
 
 `resultMap` 元素是 MyBatis 中最重要最强大的元素。ResultMap 的设计思想是，对于简单的语句根本不需要配置显式的结果映射，而对于复杂一点的语句只需要描述它们的关系就行了
 
-#### 6.9.1. resultMap 简单使用示例
-##### 6.9.1.1. 使用 resultType 输出属性与表不一致时存在问题
+#### 6.10.1. resultMap 简单使用示例
+##### 6.10.1.1. 使用 resultType 输出属性与表不一致时存在问题
 
 - 实体类
 
@@ -1311,7 +1479,7 @@ public void queryAllOrdersTest() {
 >     - 原因(注意事项)：使用resultType完成输出映射，要求sql语句中的字段名称，与java对象的属性名称（与set/get方法的后面部分）要一致。
 >     - 解决方法：使用返回值类型是resultMap
 
-##### 6.9.1.2. 使用 resultMap 映射查询结果
+##### 6.10.1.2. 使用 resultMap 映射查询结果
 
 在mapper配置文件中，配置resultMap标签，配置对象与表的映射关系。在`<select>`标签引用`<resultMap>`，修改OrderMapper.xml配置文件
 
@@ -1344,7 +1512,7 @@ public void queryAllOrdersTest() {
 > 注：字段一样的属性可以不需要配置，但实际开发中建议配置，方便日后维护。
 
 
-#### 6.9.2. ResultMap 的属性列表
+#### 6.10.2. ResultMap 的属性列表
 
 | 属性        | 描述                                                         |
 | ----------- | ------------------------------------------------------------ |
@@ -1354,7 +1522,7 @@ public void queryAllOrdersTest() {
 
 > **【最佳实践】最好一步步地建立结果映射。单元测试可以在这个过程中起到很大帮助。如果你尝试一次创建一个像上面示例那样的巨大的结果映射，那么很可能会出现错误而且很难去使用它来完成工作。从最简单的形态开始，逐步迭代。而且别忘了单元测试！使用框架的缺点是有时候它们看上去像黑盒子（无论源代码是否可见）。为了确保你实现的行为和想要的一致，最好的选择是编写单元测试。提交 bug 的时候它也能起到很大的作用。**
 
-#### 6.9.3. resultMap 标签内部标签元素
+#### 6.10.3. resultMap 标签内部标签元素
 
 - `constructor` - 用于在实例化类时，注入结果到构造方法中
     - `idArg` - ID 参数；标记出作为 ID 的结果可以帮助提高整体性能
@@ -1369,7 +1537,7 @@ public void queryAllOrdersTest() {
     - `case` – 基于某些值的结果映射
     - 嵌套结果映射 – `case` 本身可以是一个 resultMap 元素，因此可以具有相同的结构和元素，或者从别处引用一个
 
-##### 6.9.3.1. `<id>` 和 `<result>` 标签
+##### 6.10.3.1. `<id>` 和 `<result>` 标签
 
 ```xml
 <id property="id" column="post_id"/>
@@ -1394,7 +1562,7 @@ public void queryAllOrdersTest() {
 
 ![JDBC 类型](images/20190823160350628_31578.png)
 
-##### 6.9.3.2. `<constructor>` 构造
+##### 6.10.3.2. `<constructor>` 构造
 
 通过构造方法进行注入。构造方法注入允许你在初始化时为类设置属性的值，而不用暴露出公有方法。
 
@@ -1440,7 +1608,7 @@ public class User {
 | resultMap   | 结果映射的 ID，可以将嵌套的结果集映射到一个合适的对象树中。它可以作为使用额外 select 语句的替代方案     |
 | name        | 构造方法形参的名字。从 3.4.3 版本开始，通过指定具体的参数名，可以以任意顺序写入 arg 元素               |
 
-##### 6.9.3.3. `<association>` 关联(！待整理)
+##### 6.10.3.3. (！待整理)`<association>` 关联
 
 > 参考：http://www.mybatis.org/mybatis-3/zh/sqlmap-xml.html#Result_Maps
 
@@ -1453,7 +1621,7 @@ public class User {
 
 关联（association）元素处理“有一个”类型的关系。
 
-##### 6.9.3.4. `<collection>` 集合
+##### 6.10.3.4. `<collection>` 集合
 
 ```xml
 <collection property="posts" ofType="domain.blog.Post">
@@ -1546,11 +1714,11 @@ public class User {
 </resultMap>
 ```
 
-##### 6.9.3.5. `<discriminator>` 鉴别器（！待整理）
+##### 6.10.3.5. （！待整理）`<discriminator>` 鉴别器
 
 > 参考：http://www.mybatis.org/mybatis-3/zh/sqlmap-xml.html#Result_Maps
 
-#### 6.9.4. 高级结果映射示例
+#### 6.10.4. 高级结果映射示例
 
 ```xml
 <!-- 非常复杂的语句 -->
@@ -1619,7 +1787,7 @@ public class User {
 </resultMap>
 ```
 
-### 6.10. MyBatis关联查询
+### 6.11. MyBatis关联查询
 
 - 一对一关联关系
 - 一对多关联关系
@@ -1627,8 +1795,8 @@ public class User {
 
 > 此部分主要使用了`<association>`标签和`<conllection>`标签，在上一节【resultMap（输出结果映射）】有相关的参数说明与用法
 
-#### 6.10.1. 一对一关联查询【`<association>`标签】
-##### 6.10.1.1. 定义与属性
+#### 6.11.1. 一对一关联查询【`<association>`标签】
+##### 6.11.1.1. 定义与属性
 
 - `<association>`标签：配置一对一关联关系专用标签
     - **property**属性：要映射的属性名称
@@ -1643,7 +1811,7 @@ public class User {
 </association>
 ```
 
-##### 6.10.1.2. 使用示例
+##### 6.11.1.2. 使用示例
 
 需求：查询订单数据，并且关联查询出订单所属的用户数据
 
@@ -1664,8 +1832,8 @@ public void setUser(User user) {
 - 修改UserMapper.xml配置一对一关系`<association>`标签
 
 ```xml
-<!-- 
-	需求：查询订单数据，并且关联查询出所属的用户数据 
+<!--
+	需求：查询订单数据，并且关联查询出所属的用户数据
 		使用resultMap属性返回映射
  -->
 <select id="queryOrdersAndUsers" resultMap="orderAndUserResultMap">
@@ -1742,15 +1910,15 @@ public void queryOrdersAndUsersTest() {
 
 ![association标签测试](images/20190823171853829_25411.jpg)
 
-#### 6.10.2. 一对多关联查询【`<conllection>`标签】
-##### 6.10.2.1. 定义与属性
+#### 6.11.2. 一对多关联查询【`<conllection>`标签】
+##### 6.11.2.1. 定义与属性
 
 - `<conllection>`标签：配置一对多关联关系标签
     - **property**属性：要映射的属性名称
     - **javaType**属性：要映射的属性类型（可以指定，也可以不指定。建议指定）
     - **ofType**属性：集合中存放的类型（**必须要指定**）
 
-##### 6.10.2.2. 使用示例
+##### 6.11.2.2. 使用示例
 
 需求：查询用户数据，并且关联查询出用户的所有订单数据
 
@@ -1845,7 +2013,7 @@ public void queryUsersAndOrdersTest() {
 
 ![conllection标签测试](images/20190823173829009_14236.jpg)
 
-### 6.11. 映射文件(Mapper.xml)主要配置总结
+### 6.12. 映射文件(Mapper.xml)主要配置总结
 
 |     标签名     |                                                                                                                                                                                                                                                                                                                                                                                                                                                        相关属性                                                                                                                                                                                                                                                                                                                                                                                                                                                        |                         作用说明                         |   父标签    |
 | ------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------- | ---------- |
@@ -1860,20 +2028,20 @@ public void queryUsersAndOrdersTest() {
 | `<cache>`     |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | <font color=red>（不使用）</font>配置给定命名空间缓存      | `<mapper>` |
 | `<cache-ref>` |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | <font color=red>（不使用）</font>从其他命名空间引用缓存配置 | `<mapper>` |
 
-### 6.12. 占位符#{}和字符串拼接符${}的区别总结
-#### 6.12.1. #{} 占位符
+### 6.13. 占位符#{}和字符串拼接符${}的区别总结
+#### 6.13.1. #{} 占位符
 
 - `#{}`表示一个占位符号，`#{}`接收输入参数，类型可以是简单类型（八种基本类型+字符串String），pojo、hashmap。
 - <font color=red>**如果接收简单类型，`#{}`中可以写成value或其它名称**</font>。
 - `#{}`接收pojo对象值，通过OGNL读取对象中的属性值，如果实体类中属性是引用类型，通过`属性.属性.属性...`的方式获取对象属性值
 
-#### 6.12.2. ${} 字符串拼接符
+#### 6.13.2. ${} 字符串拼接符
 
 - `${}`表示一个拼接符号，可能会引用sql注入的问题，所以<font color=red>不建议使用`${}`</font>。虽然经过三层构架可以将字符处理，但还是不建议使用。
 - `${}`接收输入参数，类型可以是简单类型，pojo、hashmap。但<font color=red>如果接收简单类型，`${}`中只能写成value</font>。
 - `${}`接收pojo对象值，通过OGNL读取对象中的属性值，通过`属性.属性.属性...`的方式获取对象属性值
 
-#### 6.12.3. 区别
+#### 6.13.3. 区别
 
 占位符与字符串拼接符的重要区别是，`?`是独立时才算是占位符，不能写成`'%?%'`。如果这样操作最后的结果是没有赋值，而是`?`与其它拼接了：`'%?%'`，不再是一个占位符，会当前字符串处理
 
@@ -1882,6 +2050,7 @@ public void queryUsersAndOrdersTest() {
 ![](images/20200621114336039_6827.jpg)
 
 ## 7. MyBatis 动态 SQL
+
 ### 7.1. 动态 SQL 主要标签
 
 MyBatis中用于实现动态SQL的元素，主要存放在`<select>`标签中
@@ -2207,17 +2376,335 @@ Code Demo2:
 </if>
 ```
 
-# 其他
-## 1. 扩展知识（了解）
+## 8. 映射器注解
 
-### 1.1. MyBatis和Hibernate本质区别和应用场景
-#### 1.1.1. MyBatis和Hibernate相同点
+设计初期的 MyBatis 是一个 XML 驱动的框架。配置信息是基于 XML 的，映射语句也是定义在 XML 中的。而在 MyBatis 3 中，提供了其它的配置方式。MyBatis 3 构建在全面且强大的基于 Java 语言的配置 API 之上。它是 XML 和注解配置的基础。注解提供了一种简单且低成本的方式来实现简单的映射语句。
+
+### 8.1. mapper 接口注解清单
+
+| 注解                                                                                                                             | 使用对象 | XML 等价形式                                                                       | 描述                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| :-------------------------------------------------------------------------------------------------------------------------------- | :---------- | :-------------------------------------------------------------------------------------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `@CacheNamespace`                                                                                                    | `类`      | `<cache>`                                                                         | 为给定的命名空间（比如类）配置缓存。属性：`implemetation`、`eviction`、`flushInterval`、`size`、`readWrite`、`blocking`、`properties`。                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
+| `@Property`                                                                                                                | N/A       | `<property>`                                                                    | 指定参数值或占位符（placeholder）（该占位符能被 `mybatis-config.xml` 内的配置属性替换）。属性：`name`、`value`。（仅在 MyBatis 3.4.2 以上可用）                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| `@CacheNamespaceRef`                                                                                   | `类`      | `<cacheRef>`                                                                    | 引用另外一个命名空间的缓存以供使用。注意，即使共享相同的全限定类名，在 XML 映射文件中声明的缓存仍被识别为一个独立的命名空间。属性：`value`、`name`。如果你使用了这个注解，你应设置 `value` 或者 `name` 属性的其中一个。`value` 属性用于指定能够表示该命名空间的 Java 类型（命名空间名就是该 Java 类型的全限定类名），`name` 属性（这个属性仅在 MyBatis 3.4.2 以上可用）则直接指定了命名空间的名字。                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| `@ConstructorArgs`                                                                                                    | `方法`   | `<constructor>`                                                               | 收集一组结果以传递给一个结果对象的构造方法。属性：`value`，它是一个 `Arg` 数组。                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
+| `@Arg`                                                                                                                     | N/A       | `<arg>`<br />`<idArg>`                                                   | ConstructorArgs 集合的一部分，代表一个构造方法参数。属性：`id`、`column`、`javaType`、`jdbcType`、`typeHandler`、`select`、`resultMap`。id 属性和 XML 元素 `<idArg>` 相似，它是一个布尔值，表示该属性是否用于唯一标识和比较对象。从版本 3.5.4 开始，该注解变为可重复注解。                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| `@TypeDiscriminator`                                                                                                 | `方法`   | `<discriminator>`                                                            | 决定使用何种结果映射的一组取值（case）。属性：`column`、`javaType`、`jdbcType`、`typeHandler`、`cases`。cases 属性是一个 `Case` 的数组。                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| `@Case`                                                                                                                      | N/A       | `<case>`                                                                           | 表示某个值的一个取值以及该取值对应的映射。属性：`value`、`type`、`results`。results 属性是一个 `Results` 的数组，因此这个注解实际上和 `ResultMap` 很相似，由下面的 `Results` 注解指定。                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| `@Results`                                                                                                                   | `方法`   | `<resultMap>`                                              | 一组结果映射，指定了对某个特定结果列，映射到某个属性或字段的方式。属性：`value`、`id`。value 属性是一个 `Result` 注解的数组。而 id 属性则是结果映射的名称。从版本 3.5.4 开始，该注解变为可重复注解。                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| `@Result`                                                                                                                     | N/A       | `<result>`<br />`<id>`                                     | 在列和属性或字段之间的单个结果映射。属性：`id`、`column`、`javaType`、`jdbcType`、`typeHandler`、`one`、`many`。id 属性和 XML 元素 `<id>` 相似，它是一个布尔值，表示该属性是否用于唯一标识和比较对象。one 属性是一个关联，和 `<association>` 类似，而 many 属性则是集合关联，和 `<collection>` 类似。这样命名是为了避免产生名称冲突。                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| `@One`                                                                                                                         | N/A       | `<association>`                                            | 复杂类型的单个属性映射。属性： `select`，指定可加载合适类型实例的映射语句（也就是映射器方法）全限定名； `fetchType`，指定在该映射中覆盖全局配置参数 `lazyLoadingEnabled`； `resultMap`(available since 3.5.5), which is the fully qualified name of a result map that map to a single container object from select result； `columnPrefix`(available since 3.5.5), which is column prefix for grouping select columns at nested result map. **提示** 注解 API 不支持联合映射。这是由于 Java 注解不允许产生循环引用。                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
+| `@Many`                                                                                                                        | N/A       | `<collection>`                                             | 复杂类型的集合属性映射。属性： `select`，指定可加载合适类型实例集合的映射语句（也就是映射器方法）全限定名； `fetchType`，指定在该映射中覆盖全局配置参数 `lazyLoadingEnabled` `resultMap`(available since 3.5.5), which is the fully qualified name of a result map that map to collection object from select result； `columnPrefix`(available since 3.5.5), which is column prefix for grouping select columns at nested result map. **提示** 注解 API 不支持联合映射。这是由于 Java 注解不允许产生循环引用。                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| `@MapKey`                                                                                                                     | `方法`   |                                                            | 供返回值为 Map 的方法使用的注解。它使用对象的某个属性作为 key，将对象 List 转化为 Map。属性：`value`，指定作为 Map 的 key 值的对象属性名。                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
+| `@Options`                                                                                                                   | `方法`   | 映射语句的属性                                                                     | 该注解允许你指定大部分开关和配置选项，它们通常在映射语句上作为属性出现。与在注解上提供大量的属性相比，`Options` 注解提供了一致、清晰的方式来指定选项。属性：`useCache=true`、`flushCache=FlushCachePolicy.DEFAULT`、`resultSetType=DEFAULT`、`statementType=PREPARED`、`fetchSize=-1`、`timeout=-1`、`useGeneratedKeys=false`、`keyProperty=""`、`keyColumn=""`、`resultSets=""`, `databaseId=""`。注意，Java 注解无法指定 `null` 值。因此，一旦你使用了 `Options` 注解，你的语句就会被上述属性的默认值所影响。要注意避免默认值带来的非预期行为。 The `databaseId`(Available since 3.5.5), in case there is a configured `DatabaseIdProvider`, the MyBatis use the `Options` with no `databaseId` attribute or with a `databaseId` that matches the current one. If found with and without the `databaseId` the latter will be discarded.      注意：`keyColumn` 属性只在某些数据库中有效（如 Oracle、PostgreSQL 等）。要了解更多关于 `keyColumn` 和 `keyProperty` 可选值信息，请查看“insert, update 和 delete”一节。                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| `@Insert`<br />`@Update`<br />`@Delete`<br />`@Select`                                                 | `方法`   | `<insert>`<br />`<update>`<br />`<delete>`<br />`<select>` | 每个注解分别代表将会被执行的 SQL 语句。它们用字符串数组（或单个字符串）作为参数。如果传递的是字符串数组，字符串数组会被连接成单个完整的字符串，每个字符串之间加入一个空格。这有效地避免了用 Java 代码构建 SQL 语句时产生的“丢失空格”问题。当然，你也可以提前手动连接好字符串。属性：`value`，指定用来组成单个 SQL 语句的字符串数组。 The `databaseId`(Available since 3.5.5), in case there is a configured `DatabaseIdProvider`, the MyBatis use a statement with no `databaseId` attribute or with a `databaseId` that matches the current one. If found with and without the `databaseId` the latter will be discarded.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| `@InsertProvider`<br />`@UpdateProvider`<br />`@DeleteProvider`<br />`@SelectProvider` | `方法`   | `<insert>`<br />`<update>`<br />`<delete>`<br />`<select>` | 允许构建动态 SQL。这些备选的 SQL 注解允许你指定返回 SQL 语句的类和方法，以供运行时执行。（从 MyBatis 3.4.6 开始，可以使用 `CharSequence` 代替 `String` 来作为返回类型）。当执行映射语句时，MyBatis 会实例化注解指定的类，并调用注解指定的方法。你可以通过 `ProviderContext` 传递映射方法接收到的参数、"Mapper interface type" 和 "Mapper method"（仅在 MyBatis 3.4.5 以上支持）作为参数。（MyBatis 3.4 以上支持传入多个参数） 属性：`value`、`type`、`method`、`databaseId`。 `value` and `type` 属性用于指定类名 (The `type` attribute is alias for `value`, you must be specify either one. But both attributes can be omit when specify the `defaultSqlProviderType` as global configuration)。 `method` 用于指定该类的方法名（从版本 3.5.1 开始，可以省略 `method` 属性，MyBatis 将会使用 `ProviderMethodResolver` 接口解析方法的具体实现。如果解析失败，MyBatis 将会使用名为 `provideSql` 的降级实现）。**提示** 接下来的“SQL 语句构建器”一章将会讨论该话题，以帮助你以更清晰、更便于阅读的方式构建动态 SQL。 The `databaseId`(Available since 3.5.5), in case there is a configured `DatabaseIdProvider`, the MyBatis will use a provider method with no `databaseId` attribute or with a `databaseId` that matches the current one. If found with and without the `databaseId` the latter will be discarded. |
+| `@Param`                                                                                                                      | `参数`   | N/A                                                        | 如果你的映射方法接受多个参数，就可以使用这个注解自定义每个参数的名字。否则在默认情况下，除 `RowBounds` 以外的参数会以 "param" 加参数位置被命名。例如 `#{param1}`, `#{param2}`。如果使用了 `@Param("person")`，参数就会被命名为 `#{person}`。                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| `@SelectKey`                                                                                                                | `方法`   | `<selectKey>`                                              | 这个注解的功能与 `<selectKey>` 标签完全一致。该注解只能在 `@Insert` 或 `@InsertProvider` 或 `@Update` 或 `@UpdateProvider` 标注的方法上使用，否则将会被忽略。如果标注了 `@SelectKey` 注解，MyBatis 将会忽略掉由 `@Options` 注解所设置的生成主键或设置（configuration）属性。属性：`statement` 以字符串数组形式指定将会被执行的 SQL 语句，`keyProperty` 指定作为参数传入的对象对应属性的名称，该属性将会更新成新的值，`before` 可以指定为 `true` 或 `false` 以指明 SQL 语句应被在插入语句的之前还是之后执行。`resultType` 则指定 `keyProperty` 的 Java 类型。`statementType` 则用于选择语句类型，可以选择 `STATEMENT`、`PREPARED` 或 `CALLABLE` 之一，它们分别对应于 `Statement`、`PreparedStatement` 和 `CallableStatement`。默认值是 `PREPARED`。 The `databaseId`(Available since 3.5.5), in case there is a configured `DatabaseIdProvider`, the MyBatis will use a statement with no `databaseId` attribute or with a `databaseId` that matches the current one. If found with and without the `databaseId` the latter will be discarded.                                                                                                                                                                                                                                                                                                                                                                                        |
+| `@ResultMap`                                                                                                                | `方法`   | N/A                                                        | 这个注解为 `@Select` 或者 `@SelectProvider` 注解指定 XML 映射中 `<resultMap>` 元素的 id。这使得注解的 select 可以复用已在 XML 中定义的 ResultMap。如果标注的 select 注解中存在 `@Results` 或者 `@ConstructorArgs` 注解，这两个注解将被此注解覆盖。                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| `@ResultType`                                                                                                               | `方法`   | N/A                                                        | 在使用了结果处理器的情况下，需要使用此注解。由于此时的返回类型为 void，所以 Mybatis 需要有一种方法来判断每一行返回的对象类型。如果在 XML 有对应的结果映射，请使用 `@ResultMap` 注解。如果结果类型在 XML 的 `<select>` 元素中指定了，就不需要使用其它注解了。否则就需要使用此注解。比如，如果一个标注了 @Select 的方法想要使用结果处理器，那么它的返回类型必须是 void，并且必须使用这个注解（或者 @ResultMap）。这个注解仅在方法返回类型是 void 的情况下生效。                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
+| `@Flush`                                                                                                                      | `方法`   | N/A                                                        | 如果使用了这个注解，定义在 Mapper 接口中的方法就能够调用 `SqlSession#flushStatements()` 方法。（Mybatis 3.3 以上可用）                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+
+## 9. MyBatis 缓存
+
+MyBatis 包含一个非常强大的查询缓存特性，使用缓存可以使应用更快地获取数据，避免频繁的数据库交互。分成一级缓存和二级缓存
+
+### 9.1. 一级缓存（sqlSession级别缓存）
+
+#### 9.1.1. 实现步骤
+
+<font color=red>**一级缓存默认开启，无需配置**</font>。一级缓存是指 `SqlSession` 级别的缓存，当在同一个 `SqlSession` 中进行相同的 SQL 语句查询时，第二次以后的查询不会从数据库查询，而是直接从缓存中获取，一级缓存最多缓存 1024 条 SQL。测试代码如下：
+
+```java
+public void oneCacheTest() {
+	// 1.创建sqlSession对象
+	SqlSession sqlSession = sqlSessionFactory.openSession();
+	// 2.从sqlSession对象获取mapper代理对象
+	UserMapper mapper = sqlSession.getMapper(UserMapper.class);
+	// 3.调用动态代理的方法
+	User user = mapper.findUserById(1);
+	System.out.println(user);
+	System.out.println("===================");
+	user = mapper.findUserById(1);
+	System.out.println(user);
+	// 4.释放资源
+	sqlSession.close();
+}
+```
+
+![](images/20210314160852944_27134.jpg)
+
+从上例日志可以看出，查询多次，只生成一句sql语句
+
+#### 9.1.2. 关闭一级缓存
+
+要想关闭某个查询语句的一级缓存，只需要将`flushCache`属性设置为true即可
+
+```java
+<select ... flushCache="false"/>
+```
+
+#### 9.1.3. 一级缓存原理（sqlsession 级别）
+
+第一次发出一个查询 sql，sql 查询结果写入 sqlsession 的一级缓存中，缓存使用的数据结构是一个 map。
+
+- key：MapperID + offset + limit + Sql + 所有的入参
+- value：用户查询的数据
+
+同一个 sqlsession 再次发出相同的 sql，就从缓存中取出数据。如果两次中间出现 commit 操作（修改、添加、删除），本 sqlsession 中的一级缓存区域全部清空，下次再去缓存中查询不到所以要从数据库查询，从数据库查询到再写入缓存。
+
+### 9.2. 二级缓存（SqlSessionFactory级别缓存）
+
+#### 9.2.1. 实现步骤
+
+二级缓存是指`SqlSessionFactory`级别缓存，在同一个`SqlSessionFactory`中多个sqlSession之间共享，开启此缓存的步骤如下：
+
+1. 在mybatis总配置文件（如：SqlMapConfig.xml）中配置开启缓存。*注意配置的位置*
+
+```xml
+<!-- 全局参数配置 -->
+<settings>
+	<!-- 配置启用缓存 -->
+	<setting name="cacheEnabled" value="true"/>
+</settings>
+```
+
+2. 实体类需要实现序列化接口
+
+```java
+public class User implements Serializable{ }
+```
+
+3. 在需要开启的mapper映射文件中，启用缓存
+
+```xml
+<!-- 启用缓存 -->
+<cache
+  eviction="FIFO"
+  flushInterval="60000"
+  size="512"
+  readOnly="true"/>
+```
+
+- eviction（清除策略）：这个更高级的配置创建了一个 FIFO 缓存，每隔 60 秒刷新，最多可以存储结果对象或列表的 512 个引用，而且返回的对象被认为是只读的，因此对它们进行修改可能会在不同线程中的调用者产生冲突。可用的清除策略有：
+    - `LRU` – 最近最少使用：移除最长时间不被使用的对象。是默认的清除策略。
+    - `FIFO` – 先进先出：按对象进入缓存的顺序来移除它们。
+    - `SOFT` – 软引用：基于垃圾回收器状态和软引用规则移除对象。
+    - `WEAK` – 弱引用：更积极地基于垃圾收集器状态和弱引用规则移除对象。
+- flushInterval（刷新间隔）属性可以被设置为任意的正整数，设置的值应该是一个以毫秒为单位的合理时间量。 默认情况是不设置，也就是没有刷新间隔，缓存仅仅会在调用语句时刷新。
+- size（引用数目）属性可以被设置为任意正整数，要注意欲缓存对象的大小和运行环境中可用的内存资源。默认值是 1024。
+- readOnly（只读）属性可以被设置为 true 或 false。只读的缓存会给所有调用者返回缓存对象的相同实例。 因此这些对象不能被修改。这就提供了可观的性能提升。而可读写的缓存会（通过序列化）返回缓存对象的拷贝。 速度上会慢一些，但是更安全，因此默认值是 false。
+
+> **提示：二级缓存是事务性的。这意味着，当 SqlSession 完成并提交时，或是完成并回滚，即使没有执行 `flushCache=true` 的 insert/delete/update 语句时，缓存会获得更新。**
+
+4. 在相应的查询语句标签中配置`useCache="true"`（*注：其实标签的`useCache`属性值默认为true，如果配置成false，但对应的查询语句二级缓存不生效*）
+
+```xml
+<select ... flushCache="false" useCache="true"/>
+```
+
+5. 测试代码
+
+```java
+public void secondCacheTest() {
+	// 1.创建sqlSession对象
+	SqlSession sqlSession = sqlSessionFactory.openSession();
+	// 2.从sqlSession对象获取mapper代理对象
+	UserMapper mapper = sqlSession.getMapper(UserMapper.class);
+	// 3.调用动态代理的方法
+	User user = mapper.findUserById(1);
+	System.out.println(user);
+	// 测试二级缓存，一定要关闭sqlSession
+	sqlSession.close();
+	System.out.println("===================");
+	sqlSession = sqlSessionFactory.openSession();
+	mapper = sqlSession.getMapper(UserMapper.class);
+	user = mapper.findUserById(1);
+	System.out.println(user);
+	// 4.释放资源
+	sqlSession.close();
+}
+```
+
+![](images/20210314161254850_27178.jpg)
+
+<font color=purple>**说明：MyBatis框架的二级缓存，实际开发中不推荐使用，尤其在分布式项目中。原因是MyBatis的二级缓存不能实现细粒度的控制。如果使用缓存，推荐可以使用Redis**</font>
+
+#### 9.2.2. 二级缓存原理
+
+二级缓存的范围是 mapper 级别（mapper同一个命名空间），mapper 以命名空间为单位创建缓存数据结构，结构是 map。mybatis 的二级缓存是通过 CacheExecutor 实现的。CacheExecutor 其实是 Executor 的代理对象。所有的查询操作，在 CacheExecutor 中都会先匹配缓存中是否存在，不存在则查询数据库。
+
+- key：MapperID + offset + limit + Sql + 所有的入参
+
+具体使用需要配置：
+
+1. Mybatis 全局配置中启用二级缓存配置
+2. 在对应的 Mapper.xml 中配置 cache 节点
+3. 在对应的 select 查询节点中添加 `useCache=true`(*默认*)
+
+### 9.3. 自定义缓存
+
+除了MyBatis提供的两种缓存机制，还可以实现自定义缓存，或为其他第三方缓存方案创建适配器，来完全覆盖二级缓存的行为。
+
+#### 9.3.1. 实现步骤
+
+配置开启自定义缓存实现步骤与开启二级缓存一样。
+
+1. 在mybatis总配置文件中，配置开启缓存。
+2. 在xml映射器文件中开启缓存，增加配置`type`属性，需要注意的是，`type`属性指定的类必须实现 `org.apache.ibatis.cache.Cache` 接口
+
+```java
+<!-- 启用二级缓存，配置使用自定义缓存 -->
+<cache type="com.moon.mybatis.cache.CustomCache"
+       eviction="FIFO" flushInterval="60000"
+       size="512" readOnly="true"/>
+```
+
+3. 创建自定义缓存实现类，实现MyBatis框架的`Cache`接口
+
+```java
+public interface Cache {
+  String getId();
+  int getSize();
+  void putObject(Object key, Object value);
+  Object getObject(Object key);
+  boolean hasKey(Object key);
+  Object removeObject(Object key);
+  void clear();
+}
+```
+
+此示例借用了开源缓存工具框架`caffeine`，
+
+```xml
+<!-- 第三方缓存工具框架，用于实现自定义mybatis缓存 -->
+<dependency>
+    <groupId>com.github.ben-manes.caffeine</groupId>
+    <artifactId>caffeine</artifactId>
+    <version>2.8.0</version>
+</dependency>
+```
+
+```java
+package com.moon.mybatis.cache;
+
+import com.alibaba.fastjson.JSONObject;
+import com.github.benmanes.caffeine.cache.Caffeine;
+import org.apache.ibatis.cache.Cache;
+
+import java.time.Duration;
+
+/**
+ * 自定义缓存，需要实现 mybatis 的 Cache 接口。
+ * 此示例借助了第三方缓存框架 caffeine 来实现功能
+ */
+public class CustomCache implements Cache {
+
+    private final String id;
+
+    static com.github.benmanes.caffeine.cache.Cache<String, String> cache = null;
+
+    static {
+        cache = Caffeine.newBuilder()
+                .expireAfterWrite(Duration.ofSeconds(100L))
+                .maximumSize(10000L)
+                .initialCapacity(10)
+                .build();
+    }
+
+    public CustomCache(String id) {
+        this.id = id;
+    }
+
+    @Override
+    public String getId() {
+        return id;
+    }
+
+    @Override
+    public void putObject(Object key, Object value) {
+        cache.put(JSONObject.toJSONString(key), JSONObject.toJSONString(value));
+    }
+
+    @Override
+    public Object getObject(Object key) {
+        return JSONObject.parse(cache.getIfPresent(JSONObject.toJSONString(key)));
+    }
+
+    @Override
+    public Object removeObject(Object key) {
+        cache.invalidate(key);
+        return null;
+    }
+
+    @Override
+    public void clear() {
+        cache.cleanUp();
+    }
+
+    @Override
+    public int getSize() {
+        return Integer.parseInt(cache.estimatedSize() + "");
+    }
+}
+```
+
+4. 运行以下测试代码，观察sql打印的次数
+
+```java
+@Test
+public void testCustomCacheDiffSqlSessionFactory() throws IOException {
+    InputStream inputStream = Resources.getResourceAsStream("mybatis-config.xml");
+    SqlSessionFactory sqlSessionFactory = new SqlSessionFactoryBuilder().build(inputStream);
+    SqlSession sqlSession = sqlSessionFactory.openSession();
+    CacheMapper mapper = sqlSession.getMapper(CacheMapper.class);
+    System.out.println("=========第一次查询==========");
+    System.out.println(mapper.selectAllUser());
+    System.out.println("=========第二次查询==========");
+    System.out.println(mapper.selectAllUser());
+    // 注意：一样需要提交事务与关闭sqlSession，才会序列化结果到自定义缓存
+    sqlSession.commit();
+    sqlSession.close();
+
+    // 获取新的sqlSessionFactory后，再开启一个SqlSession
+    InputStream inputStream = Resources.getResourceAsStream("mybatis-config.xml");
+    SqlSessionFactory sqlSessionFactory = new SqlSessionFactoryBuilder().build(inputStream);
+    SqlSession sqlSession1 = sqlSessionFactory.openSession();
+    System.out.println("=========新的sqlSessionFactory开启的sqlSession查询第一次查询==========");
+    System.out.println(sqlSession1.getMapper(CacheMapper.class).selectAllUser());
+    sqlSession1.commit();
+    sqlSession1.close();
+}
+```
+
+### 9.4. MyBatis缓存机制示意图
+
+![](images/20210314161535846_7931.jpg)
+
+### 9.5. 缓存的注意事项
+
+请注意，缓存的配置和缓存实例会被绑定到 SQL 映射文件的命名空间中。因此，同一命名空间中的所有语句和缓存将通过命名空间绑定在一起。每条语句可以自定义与缓存交互的方式，或将它们完全排除于缓存之外，这可以通过在每条语句上使用两个简单属性来达成。默认情况下，语句会这样来配置：
+
+```java
+<select ... flushCache="false" useCache="true"/>
+<insert ... flushCache="true"/>
+<update ... flushCache="true"/>
+<delete ... flushCache="true"/>
+```
+
+鉴于上面的配置都是默认值，所以不应该再显式配置上述的默认属性。当想改变默认的行为，才需要设置 `flushCache` 和 `useCache` 属性。比如，某些情况下可能希望特定`select`语句的结果排除于缓存之外，或希望一条select语句清空缓存。类似地，也可能希望某些update语句执行时不要刷新缓存。
+
+# 其他
+
+## 1. MyBatis和Hibernate本质区别和应用场景（了解）
+
+### 1.1. MyBatis和Hibernate相同点
 
 1. 对JDBC的封装
 2. 持久层的框架
 3. 用于dao层开发
 
-#### 1.1.2. MyBatis和Hibernate区别
+### 1.2. MyBatis和Hibernate区别
 
 1.	SQL支持
     - hibernate是封装了sql语句，支持数据库无关性，在项目需要支持多种数据库的情况下，代码开发量较少，sql语句优化困难。
@@ -2379,4 +2866,155 @@ Code Demo2:
 
 </configuration>
 ```
+
+## 3. MyBatis常用API总结
+
+### 3.1. Resources 类
+
+#### 3.1.1. 简述
+
+MyBatis提供的文件IO转换的工具类
+
+
+#### 3.1.2. 常用方法
+
+```java
+static InputStream getResourceAsStream(String resource)
+```
+
+- 作用：将指定的文件资源转成输入流对象。
+- 参数`resource`：需要转换的文件资源名称（路径）
+
+### 3.2. SqlSessionFactoryBuilder 类
+
+#### 3.2.1. 简述
+
+通过SqlSessionFactoryBuilder创建会话工厂SqlSessionFactory。将SqlSessionFactoryBuilder当成一个工具类使用即可，不需要使用单例管理SqlSessionFactoryBuilder
+
+在需要创建SqlSessionFactory时候，只需要new一次SqlSessionFactoryBuilder即可
+
+#### 3.2.2. 常用方法
+
+```java
+SqlSessionFactory build(InputStream inputStream);
+```
+
+- 作用：根据全局配置文件，创建SqlSessionFactory会话工厂。
+- 参数`inputStream`：MyBatis的配置文件输入流对象
+
+### 3.3. SqlSessionFactory 接口
+
+#### 3.3.1. 简述
+
+它是mybaties框架的核心对象，是线程安全的。通过SqlSessionFactory创建SqlSession，可以使用单例模式管理sqlSessionFactory（工厂一旦创建，使用一个实例）
+
+mybatis和spring整合后，使用单例模式管理sqlSessionFactory
+
+#### 3.3.2. 常用方法
+
+<font color=violet>*说明：自动提交事务，只要sql语句一执行，就马上提交。如果同时有多个操作，如果有个操作失败，则之前的其他操作无法回滚，此时需要使用手动提交的方式*</font>
+
+```java
+SqlSession openSession();
+```
+
+- 开启会话，返回SqlSession对象。<font color=red>**默认是关闭自动提交事务**</font>
+
+```java
+SqlSession openSession(boolean autoCommit);
+```
+
+- 作用：开启会话并指定是否自动提交事务，返回SqlSession对象
+- 参数`autoCommit`：true开启自动提交/false关闭自动提交
+
+### 3.4. SqlSession 接口
+
+#### 3.4.1. 简述
+
+- SqlSession是一个面向用户（程序员）的接口
+- SqlSession中提供了很多操作数据库的方法：如：selectOne(返回单个对象)、selectList（返回单个或多个对象）
+- <font color=red>*SqlSession是线程不安全的*</font>，在SqlSesion实现类中除了有接口中的方法（操作数据库的方法）还有数据域属性
+- **SqlSession最佳应用场合在方法体内，定义成局部变量使用**
+
+#### 3.4.2. 常用方法
+
+```java
+void close()
+```
+
+- 作用：关闭会话
+
+```java
+void commit()
+```
+
+- 作用：提交事务
+
+```java
+void rollback()
+```
+
+- 作用：回滚事务
+
+```java
+<T> T selectOne(String statement, Object parameter)
+```
+
+- 作用：查询返回单行记录(对象)
+- 参数`statement`：唯一标识符匹配语句。等于映射文件中的`namespace+"."+statement`的id
+- 参数`parameter`：传递给语句的参数对象，和映射文件中的parameterType类型一致
+
+
+```java
+<E> List<E> selectList(String statement, Object parameter)
+```
+
+- 作用：查询返回多行记录(对象)的List集合
+- 参数`statement`：唯一标识符匹配语句。等于映射文件中的`namespace+"."+statement`的id
+- 参数`parameter`：传递给语句的参数对象，和映射文件中的parameterType类型一致
+
+```java
+int insert(String statement, Object parameter)
+```
+
+- 作用：使用给定的参数对象statement执行插入语句。返回受影响的行数
+- 参数`statement`：唯一标识符匹配语句。等于映射文件中的`namespace+"."+statement`的id
+- 参数`parameter`：传递给语句的参数对象，和映射文件中的parameterType类型一致
+
+```java
+int delete(String statement, Object parameter)
+```
+
+- 作用：使用给定的参数对象statement执行删除语句。返回受影响的行数
+- 参数`statement`：唯一标识符匹配语句。等于映射文件中的`namespace+"."+statement`的id
+- 参数parameter``：传递给语句的参数对象，和映射文件中的parameterType类型一致
+
+```java
+int update(String statement, Object parameter)
+```
+
+- 作用：使用给定的参数对象statement执行更新语句。返回受影响的行数
+- 参数`statement`：唯一标识符匹配语句。等于映射文件中的`namespace+"."+statement`的id
+- 参数`parameter`：传递给语句的参数对象，和映射文件中的`parameterType`类型一致，<font color=red>注意参数必须设置id（主键）</font>
+
+```java
+<T> T getMapper(Class<T> type)
+```
+
+- 作用：获取指定的mapper接口动态代理对象
+- 参数`type`：指定的mapper接口的字节码对象
+
+#### 3.4.3. selectOne 和 selectList 区别
+
+- `selectOne`表示查询出一条记录进行映射。如果使用`selectOne`可以实现使用`selectList`也可以实现（list中只有一个对象）。
+- `selectList`表示查询出一个列表（多条记录）进行映射。如果使用`selectList`查询多条记录，不能使用`selectOne`。
+
+
+如果查询多条记录时使用selectOne会报错：
+
+> org.apache.ibatis.exceptions.TooManyResultsException: Expected one result (or null) to be returned by selectOne(), but found: 4
+
+注：在动态代理对象调用`selectOne`和`selectList`是根据mapper接口方法的返回值决定，如果返回list则调用`selectList`方法，如果返回单个对象则调用`selectOne`方法。
+
+
 
