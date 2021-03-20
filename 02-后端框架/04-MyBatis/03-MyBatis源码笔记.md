@@ -19,6 +19,7 @@ MyBatis 源码下载地址：`https://github.com/MyBatis/MyBatis-3`
 6. 其他工程依赖此工程
 
 ### 1.2. 源码架构分析
+
 #### 1.2.1. 物理分层
 
 ![MyBatis源码结构](images/20191124082641659_9996.png)
@@ -41,7 +42,9 @@ MyBatis 源码共 16 个模块，可以分成三层
 > 2. 方便开发团队分工和开发效率的提升；举个例子，mybatis 这么大的一个源码框架不可能是一个人开发的，他需要一个团队，团队之间肯定有分工，既然有了层次的划分，分工也会变得容易，开发人员可以专注于某一层的某一个模块的实现，专注力提升了，开发效率自然也会提升
 > 3. 提高系统的伸缩性和性能。系统分层之后，只要把层次之间的调用接口明确了，那就可以从逻辑上的分层变成物理上的分层。当系统并发量吞吐量上来了，怎么办？为了提高系统伸缩性和性能，可以把不同的层部署在不同服务器集群上，不同的组件放在不同的机器上，用多台机器去抗压力，这就提高了系统的性能。压力大的时候扩展节点加机器，压力小的时候，压缩节点减机器，系统的伸缩性就是这么来的
 
-### 1.3. 外观模式（门面模式）
+## 2. MyBatis涉及的设计模式
+
+### 2.1. 外观模式（门面模式）
 
 从源码的架构分析，特别是接口层的设计，MyBatis的整体架构的设计模式符合外观模式
 
@@ -58,7 +61,7 @@ MyBatis 源码共 16 个模块，可以分成三层
     - 一个复杂的模块或子系统提供一个供外界访问的接口
     - 子系统相对独立，外界对子系统的访问只要黑箱操作即可
 
-### 1.4. 面向对象设计需要遵循的六大设计原则
+### 2.2. 面向对象设计需要遵循的六大设计原则
 
 > 学习源码除了学习编程的技巧、经验之外，最重要的是学习源码的设计的思想以及设计模式的灵活应用
 
@@ -71,14 +74,46 @@ MyBatis 源码共 16 个模块，可以分成三层
 5. **里氏代换原则**：所有引用基类（父类）的地方必须能透明地使用其子类的对象；
 6. **接口隔离原则**：客户端不应该依赖它不需要的接口，一个类对另一个类的依赖应该建立在最小的接口上
 
-## 2. 日志模块分析
-### 2.1. 日志模块需求分析
+### 2.3. 建造者模式
+
+#### 2.3.1. 什么是建造者模式
+
+在配置加载阶段大量的使用了建造者模式，首先学习建造者模式。建造者模式（Builder Pattern）使用多个简单的对象一步一步构建成一个复杂的对象。这种类型的设计模式属于创建型模式，它提供了一种创建对象的最佳方式。建造者模式类图如下：
+
+![](images/20210319091558723_931.png)
+
+建造者模式中主要的元素是：
+
+- `Product`：要创建的复杂对象
+- `Builder`：给出一个抽象接口，以规范产品对象的各个组成成分的建造。这个接口规定要实现复杂对象的哪些部分的创建，并不涉及具体的对象部件的创建；
+- `ConcreteBuilder`：实现`Builder`接口，针对不同的商业逻辑，具体化复杂对象的各部分的创建。 在建造过程完成后，提供产品的实例；
+- `Director`：调用具体建造者来创建复杂对象的各个部分，在指导者中不涉及具体产品的信息，只负责保证对象各部分完整创建或按某种顺序创建
+
+> **关于建造器模式的扩展知识**：流式编程风格越来越流行，如 zookeeper 的 Curator、JDK8 的流式编程等等都是例子。流式编程的优点在于代码编程性更高、可读性更好，缺点在于对程序员编码要求更高、不太利于调试。建造者模式是实现流式编程风格的一种方式。
+
+#### 2.3.2. 与工厂模式区别
+
+建造者模式应用场景如下：
+
+- 需要生成的对象具有复杂的内部结构，实例化对象时要屏蔽掉对象内部的细节，让上层代码与复杂对象的实例化过程解耦，可以使用建造者模式；简而言之，如果“遇到多个构造器参数时要考虑用构建器”
+- 对象的实例化是依赖各个组件的产生以及装配顺序，关注的是一步一步地组装出目标对象，可以使用建造器模式
+
+建造者模式与工程模式的区别在于：
+
+|  设计模式  |                                       对象复杂度                                       |                                   客户端参与程度                                    |
+| --------- | ------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
+| 工厂模式   | 关注的是一个产品整体，无须关心产品的各部分是如何创建出来的                                   | 客户端对产品的创建过程参与度低，对象实例化时属性值相对比较固定                            |
+| 建造者模式 | 建造的对象更加复杂，是一个复合产品，它由各个部件复合而成，部件不同产品对象不同，生成的产品粒度细 | 客户端参与了产品的创建，决定了产品的类型和内容，参与度高；适合实例化对象时属性变化频繁的场景 |
+
+## 3. 日志模块分析
+
+### 3.1. 日志模块需求分析
 
 1. MyBatis 没有提供日志的实现类，需要接入第三方的日志组件，但第三方日志组件都有各自的 Log 级别，且各不相同，而 MyBatis 统一提供了 trace、debug、warn、error 四个级别；
 2. 自动扫描日志实现，并且第三方日志插件加载优先级如下：slf4J --> commonsLoging --> Log4J2 --> Log4J --> JdkLog;
 3. 日志的使用要优雅的嵌入到主体功能中
 
-### 2.2. 适配器模式
+### 3.2. 适配器模式
 
 日志模块的第一个需求是一个典型的使用适配器模式的场景。
 
@@ -106,7 +141,7 @@ MyBatis 源码共 16 个模块，可以分成三层
 **总结：日志模块实现采用适配器模式，日志组件（Target）、适配器以及统一接口（Log 接口）定义清晰明确符合单一职责原则；同时，客户端在使用日志时，面向 Log 接口编程，不需要关心底层日志模块的实现，符合依赖倒转原则；最为重要的是，如果需要加入其他第三方日志框架，只需要扩展新的模块满足新需求，而不需要修改原有代码，这又符合了开闭原则**
 
 
-### 2.3. 怎么实现优先加载日志组件
+### 3.3. 怎么实现优先加载日志组件
 
 见 org.apache.ibatis.logging.LogFactory 中的静态代码块，通过静态代码块确保第三方日志插件加载优先级如下：slf4J → commonsLoging → Log4J2 → Log4J → JdkLog。在`tryImplementation`方法，会判断适配器的构造方法是否为空，为空时才会执行
 
@@ -155,7 +190,7 @@ public final class LogFactory {
 }
 ```
 
-### 2.4. 代理模式和动态代理(知识回顾)
+### 3.4. 代理模式和动态代理(知识回顾)
 
 - 代理模式定义：给目标对象提供一个代理对象，并由代理对象控制对目标对象的引用；
 - 目的：
@@ -167,7 +202,7 @@ public final class LogFactory {
 
 - 代理模式有**静态代理**和**动态代理**两种实现方式
 
-#### 2.4.1. 静态代理
+#### 3.4.1. 静态代理
 
 - 静态代理方式需要代理对象和目标对象实现一样的接口
 - 优点：可以在不修改目标对象的前提下扩展目标对象的功能
@@ -175,7 +210,7 @@ public final class LogFactory {
     - 冗余。由于代理对象要实现与目标对象一致的接口，会产生过多的代理类
     - 不易维护。一旦接口增加方法，目标对象与代理对象都要进行修改
 
-#### 2.4.2. 动态代理
+#### 3.4.2. 动态代理
 
 - 动态代理利用了 JDK API，动态地在内存中构建代理对象，从而实现对目标对象的代理功能
 - 动态代理又被称为 JDK 代理或接口代理。静态代理与动态代理的区别主要在
@@ -188,7 +223,7 @@ JDK 中生成代理对象主要涉及两个类/接口
 - 第一个为 `java.lang.reflect.Proxy` 类，通过静态方法 `newProxyInstance` 生成代理对象
 - 第二个为 `java.lang.reflect.InvocationHandler` 接口，通过 `invoke` 方法对业务进行增强
 
-### 2.5. 优雅的增强日志功能
+### 3.5. 优雅的增强日志功能
 
 通过观察Mybatis框架的日志打印信息，总结框架对如下几个位置需要打日志：
 
@@ -210,21 +245,21 @@ JDK 中生成代理对象主要涉及两个类/接口
 - `StatementLooger`：与PreparedStatementLogger一样，只是打印没有预编译的SQL语句
 
 
-#### 2.5.1. 日志功能是如何加入主体功能中
+#### 3.5.1. 日志功能是如何加入主体功能中
 
 既然在 Mybatis 中 Executor 才是访问数据库的组件，日志功能是在 Executor 中被嵌入的，具体代码在`org.apache.ibatis.executor.SimpleExecutor.prepareStatement(StatementHandler, Log)`方法中
 
 ![添加日志功能入口](images/20191208103527498_13572.png)
 
-## 3. 数据源模块分析
+## 4. 数据源模块分析
 
 数据源模块重点：数据源的创建和数据库连接池（*池化技术*）的源码分析；数据源创建比较复杂，对于复杂对象的创建，可以考虑使用工厂模式来优化，接下来介绍下简单工厂模式和工厂模式
 
-### 3.1. 简单工厂模式
+### 4.1. 简单工厂模式
 
-### 3.2. 工厂模式
+### 4.2. 工厂模式
 
-### 3.3. 数据源的创建
+### 4.3. 数据源的创建
 
 数据源对象是比较复杂的对象，其创建过程相对比较复杂，对于 MyBatis 创建一个数据源，具体来讲有如下难点
 
@@ -303,9 +338,178 @@ public void testMyBatisGetMapper() {
 
 这三个类使用了建造者模式对 configuration 对象进行初始化，使用建造者模式屏蔽复杂对象的创建过程，把建造者模式演绎成了工厂模式。
 
-### 2.2. Configuration 对象
+### 2.2. MyBatis启动入口
+
+根据MyBatis基础的执行代码可知，通过`new SqlSessionFactoryBuilder().build(inputStream);`可创建`SqlSessionFactory`实例，这也是MyBatis项目的启动入口
+
+
+
+### 2.3. 配置加载过程
+
+第一个阶段配置加载过程分解为四个步骤，四个步骤如下图：
+
+![](images/20210319103056605_32064.png)
+
+#### 2.3.1. 核心配置文件读取
+
+通过`SqlSessionFactoryBuilder`建造`SqlSessionFactory`，并创建`XMLConfigBuilder`对象读取MyBatis核心配置文件。具体代码如下：
+
+![](images/20210319104357993_537.png)
+
+![](images/20210319104156962_9631.png)
+
+#### 2.3.2. parseConfiguration 配置元素解析
+
+进入`XMLConfigBuilder`的`parseConfiguration`方法，对MyBatis核心配置文件的各个元素进行解析，读取元素信息后填充到`Configuration`对象。重点关注以下几点：
+
+- 在`XMLConfigBuilder`的`typeAliasesElement()`方法中会解析总配置文件中`<typeAliases>`别名标签，进行别名的注册（**重点关注一下Mybatis扫描类的逻辑，比较与spring的不同点**）
+    - 在指定包扫描的处理逻辑中，有`VFS.getInstance()`的方法获取`VFS`单例实例的方法，这里**使用静态内部类来创建外部类实例的方式来实现单例模式**，因为静态内部在jvm加载的时候就会初始化，并且内存中只会存在一份，jvm的初始化时是线程互斥的（*此处值得关注，具体这种单例实现的方式说明详见 \01-Java&JavaWeb\01-JavaSE基础\20-设计模式.md*）
+- 在`XMLConfigBuilder`的`mapperElement()`方法中通过`XMLMapperBuilder`对象读取所有 mapper.xml 映射文件
+
+![](images/20210319105107175_8507.jpg)
+
+#### 2.3.3. Mapper.xml 配置文件的解析
+
+
+#### 2.3.4. Mapper.xml 中 select、insert、update、delete 节点的解析
+
+
+
+
+## 3. Configuration 类
+
+### 3.1. 类作用简述
 
 `Configuration`，里面包含了配置的信息、反射工厂、对象工厂、代理工厂等数据是一个非常庞大的类。**在整个Mybatis流程中无处不在，需要重点关注**
 
-实例化并初始化 `Configuration` 对象是第一个阶段的最终目的。
+实例化并初始化 `Configuration` 对象是第一个阶段的最终目的。该类的关键属性解析如下：
+
+```java
+public class Configuration {
+    ....省略
+    // 映射注册表
+    protected final MapperRegistry mapperRegistry = new MapperRegistry(this);
+    // 映射的数据库操作语句
+    protected final Map<String, MappedStatement> mappedStatements = new StrictMap<MappedStatement>("Mapped Statements collection")
+        .conflictMessageProducer((savedValue, targetValue) ->
+            ". please check " + savedValue.getResource() + " and " + targetValue.getResource());
+    // 结果映射，即所有的<resultMap>节点
+    protected final Map<String, ResultMap> resultMaps = new StrictMap<>("Result Maps collection");
+    ....省略
+}
+```
+
+- `MapperRegistry`：mapper 接口动态代理工厂类的注册中心。在MyBatis中，通过mapperProxy实现`InvocationHandler`接口，`MapperProxyFactory`用于生成动态代理的实例对象
+- `Map<String, ResultMap> resultMaps`：用于解析 mapper.xml 文件中的 resultMap 节点，使用 `ResultMapping` 来封装 id，result 等子元素；
+- `Map<String, MappedStatement> mappedStatements`：用于存储 mapper.xml 文件中的 select、insert、update 和 delete 节点，同时还包含了这些节点的很多重要属性；
+- `SqlSource`：用于创建`BoundSql`实例，mapper.xml 文件中的 sql 语句会被解析成`BoundSql`对象，经过解析`BoundSql`包含的语句最终仅仅包含`?`占位符，可以直接提交给数据库执行
+
+### 3.2. Configuration 对象的创建与生命周期
+
+#### 3.2.1. 对象的创建
+
+`Configuration`对象的初始化（属性复制），是在建造 `SqlSessionfactory` 的过程中进行的
+
+```java
+/* 创建SqlSessionFactory核心方法 */
+public SqlSessionFactory build(InputStream inputStream, String environment, Properties properties) {
+  try {
+    // 创建XMLConfigBuilder实例，主要是完成将xml配置文件流封装成Document对象，还有重点是创建了Configuration实例
+    XMLConfigBuilder parser = new XMLConfigBuilder(inputStream, environment, properties);
+    // 解析xml配置文件，将解析的信息都放入Configuration实例中
+    // build 方法，创建DefaultSqlSessionFactory实例，该实例中持有Configuration实例
+    return build(parser.parse());
+  } catch (Exception e) {
+    throw ExceptionFactory.wrapException("Error building SqlSession.", e);
+  } finally {
+    ErrorContext.instance().reset();
+    try {
+      inputStream.close();
+    } catch (IOException e) {
+      // Intentionally ignore. Prefer previous error.
+    }
+  }
+}
+```
+
+需要特别注意的是 `Configuration` 对象在MyBatis中是单例的，生命周期是应用级的，换句话说只要MyBatis运行`Configuration`对象就会独一无二的存在；在MyBatis中仅在调用`XMLConfigBuilder`的构造函数`XMLConfigBuilder(XPathParser, String, Properties)`时，创建了`Configuration`实例
+
+```java
+public XMLConfigBuilder(InputStream inputStream, String environment, Properties props) {
+  // 先创建XPathParser实例，然后XMLConfigBuilder类的自己的构造函数
+  this(new XPathParser(inputStream, true, props, new XMLMapperEntityResolver()), environment, props);
+}
+
+private XMLConfigBuilder(XPathParser parser, String environment, Properties props) {
+  // 在这里创建了一个核心类Configuration的实例，调用抽象父类BaseBuilder构造函数，设置成员变量configuration
+  super(new Configuration());
+  ErrorContext.instance().resource("SQL Mapper Configuration");
+  this.configuration.setVariables(props);
+  this.parsed = false;
+  this.environment = environment;
+  this.parser = parser;
+}
+```
+
+#### 3.2.2. 类属性的填充
+
+在创建`SqlSessionFactory`的过程，会调用`XMLConfigBuilder`实例的`parse`方法，在该方法中会对MyBatis的总配置文件的解析，从根节点`<configuration>`开始逐个解析下层节点，然后将解析的数据都封装到`Configuration`类中
+
+```java
+/**
+ * 解析配置文件的入口
+ * @return Configuration 对象
+ */
+public Configuration parse() {
+  // 判断标识，不允许重复解析
+  if (parsed) {
+    throw new BuilderException("Each XMLConfigBuilder can only be used once.");
+  }
+  // 设置解析标识
+  parsed = true;
+  // 从根节点<configuration>标签开始解析
+  parseConfiguration(parser.evalNode("/configuration"));
+  return configuration;
+}
+
+/**
+ * 从根节点configuration开始解析下层节点
+ * @param root 根节点configuration节点
+ */
+/* 当前类中有一个Configuration类的成员属性，在此方法中，所有解析信息的都放入此Configuration实例中 */
+private void parseConfiguration(XNode root) {
+  try {
+    // 首先解析<properties>标签，以保证在解析其他节点时可以会用到properties中的参数值
+    //issue #117 read properties first
+    propertiesElement(root.evalNode("properties"));
+    // 解析<settings>标签
+    Properties settings = settingsAsProperties(root.evalNode("settings"));
+    // 获取 <setting> 标签name属性为vfsImpl的值，加载自定义类扫描器(类似spring的类扫描器)
+    loadCustomVfs(settings);
+    // 获取 <setting> 标签name属性为logImpl的值
+    loadCustomLogImpl(settings);
+    // 别名标签 <typeAliases> 扫描注册【重点】
+    typeAliasesElement(root.evalNode("typeAliases"));
+    // 插件标签 <plugins> 的解析
+    pluginElement(root.evalNode("plugins"));
+    // 解析Pojo对象工厂类。可以用于自定义数据库与pojo对象的映射逻辑，一般都使用默认的【不重要】
+    objectFactoryElement(root.evalNode("objectFactory"));
+    objectWrapperFactoryElement(root.evalNode("objectWrapperFactory"));
+    reflectorFactoryElement(root.evalNode("reflectorFactory"));
+    // 解析settings标签
+    settingsElement(settings);
+    // read it after objectFactory and objectWrapperFactory issue #631
+    // 解析环境标签
+    environmentsElement(root.evalNode("environments"));
+    // 解析数据库厂商标识（databaseIdProvider）
+    databaseIdProviderElement(root.evalNode("databaseIdProvider"));
+    // 解析类型转换器
+    typeHandlerElement(root.evalNode("typeHandlers"));
+    // 解析mappers
+    mapperElement(root.evalNode("mappers"));
+  } catch (Exception e) {
+    throw new BuilderException("Error parsing SQL Mapper Configuration. Cause: " + e, e);
+  }
+}
+```
 

@@ -487,19 +487,19 @@ public class MyBatisTest03_Mapper {
 
 SqlMapConfig.xml中配置的内容和顺序如下：（必须按顺序，否则为报错）
 
-| 顺序  |    配置标签名称     |      说明       |
-| ----- | ------------------ | -------------- |
-| 1     | properties         | 属性            |
-| 2     | settings           | 配置全局配置参数 |
-| 3     | typeAliases        | 类型别名        |
-| 4     | typeHandlers       | 类型处理器      |
-| 5     | objectFactory      | 对象工厂        |
-| 6     | plugins            | 插件            |
-| 7     | environments       | 环境集合属性对象 |
-| 7-1   | environment        | 环境子属性对象   |
-| 7-1-1 | transactionManager | 事务管理        |
-| 7-1-2 | databaseIdProvider | 多数据库支持     |
-| 8     | mappers            | 映射器          |
+- configuration（配置根标签）
+    - properties（属性）
+    - settings（设置全局配置参数）
+    - typeAliases（类型别名）
+    - typeHandlers（类型处理器）
+    - objectFactory（对象工厂）
+    - plugins（插件）
+    - environments（环境集合配置）
+        - environment（环境子属性对象）
+            - transactionManager（事务管理器）
+            - dataSource（数据源）
+    - databaseIdProvider（数据库厂商标识）
+    - mappers（映射器）
 
 ### 5.2. `<properties>`属性标签
 
@@ -2544,11 +2544,7 @@ public void secondCacheTest() {
 
 ### 9.3. 自定义缓存
 
-除了MyBatis提供的两种缓存机制，还可以实现自定义缓存，或为其他第三方缓存方案创建适配器，来完全覆盖二级缓存的行为。
-
-#### 9.3.1. 实现步骤
-
-配置开启自定义缓存实现步骤与开启二级缓存一样。
+除了MyBatis提供的两种缓存机制，还可以实现自定义缓存，或为其他第三方缓存方案创建适配器，来完全覆盖二级缓存的行为。配置开启自定义缓存实现步骤与开启二级缓存一样。
 
 1. 在mybatis总配置文件中，配置开启缓存。
 2. 在xml映射器文件中开启缓存，增加配置`type`属性，需要注意的是，`type`属性指定的类必须实现 `org.apache.ibatis.cache.Cache` 接口
