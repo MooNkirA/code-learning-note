@@ -109,6 +109,17 @@ MyBatis 源码共 16 个模块，可以分成三层
 
 策略模式（Strategy Pattern）策略模式定义了一系列的算法，并将每一个算法封装起来，而且使他们可以相互替换，让算法独立于使用它的客户而独立变化。Spring 容器中使用配置可以灵活的替换掉接口的实现类就是策略模式最常见的应用。类图如下：
 
+![](images/20210324225011253_17597.png)
+
+- Context：算法调用者，使用 setStrategy 方法灵活的选择策略（strategy）
+- Strategy：算法的统一接口
+- ConcreteStrategy：算法的具体实现
+
+#### 2.4.1. 策略模式的使用场景
+
+- 针对同一类型问题的多种处理方式，仅仅是具体行为有差别时
+- 出现同一抽象类有多个子类，而又需要使用 if-else 或者 switch-case 来选择具体子类时
+
 ## 3. 日志模块分析
 
 ### 3.1. 日志模块需求分析
@@ -342,11 +353,28 @@ public void testMyBatisGetMapper() {
 
 这三个类使用了建造者模式对 configuration 对象进行初始化，使用建造者模式屏蔽复杂对象的创建过程，把建造者模式演绎成了工厂模式。
 
-### 2.2. MyBatis启动入口
+### 2.2. SqlSessionFactory（MyBatis启动入口）
 
 根据MyBatis基础的执行代码可知，通过`new SqlSessionFactoryBuilder().build(inputStream);`可创建`SqlSessionFactory`实例，这也是MyBatis项目的启动入口
 
+在执行`SqlSessionFactoryBuilder.build`方法后，会返回`SqlSessionFactory`对象（其默认的实现类为`DefaultSqlSessionFactory`）。
 
+```java
+SqlSessionFactory sqlSessionFactory = new SqlSessionFactoryBuilder().build(inputStream);
+```
+
+![](images/20210321170316298_25705.png)
+
+
+`SqlSessionFactoryBuilder`有五种`build()`方法，每一种都允许从不同的资源中创建一个 `SqlSessionFactory` 实例。
+
+```java
+SqlSessionFactory build(InputStream inputStream)
+SqlSessionFactory build(InputStream inputStream, String environment)
+SqlSessionFactory build(InputStream inputStream, Properties properties)
+SqlSessionFactory build(InputStream inputStream, String env, Properties props)
+SqlSessionFactory build(Configuration config)
+```
 
 ### 2.3. 配置加载过程
 
@@ -1130,23 +1158,89 @@ public void parse() {
 
 经过上面第一阶段的准备，MyBatis已经将所有SQL数据都包装到`Configuration`类中
 
-### 3.1. 开始流程
+### 3.1. SqlSession
 
-在执行`SqlSessionFactoryBuilder.build`方法后，会返回`SqlSessionFactory`对象（具体实现是`DefaultSqlSessionFactory`）。
+#### 3.1.1. 作用简述
+
+第二个阶段使用到的第一个对象就是`SqlSession`，`SqlSession` 是 MyBaits 对外提供的最关键的核心接口，通过它可以执行数据库读写命令、获取映射器、管理事务等；`SqlSession` 也意味着客户端与数据库的一次连接，客户端对数据库的访问请求都是由 `SqlSession` 来处理的。如下图所示：
+
+![](images/20210325085245683_26333.jpg)
+
+- `SqlSession` 是 MyBatis 的门面，是 MyBatis 对外提供数据访问的主要 API
+- 实际上`Sqlsession`的功能都是基于`Executor`来实现的，遵循了单一职责原则，例如在`SqlSession`中的各种查询形式，最终会把请求转发到`Executor.query`方法，如下图所示：
+
+![](images/20210325103501274_28416.png)
+
+#### 3.1.2. 获取
+
+`SqlSession`由`SqlSessionFactory`（其默认的实现类为`DefaultSqlSessionFactory`）使用工厂模式创建，每个`SqlSession`都会引用`SqlSessionFactory`中全局唯一单例存在的`Configuration`实例。而获取`SqlSession`的核心方法是：
 
 ```java
-SqlSessionFactory sqlSessionFactory = new SqlSessionFactoryBuilder().build(inputStream);
+public class DefaultSqlSessionFactory implements SqlSessionFactory {
+
+  private final Configuration configuration;
+
+  public DefaultSqlSessionFactory(Configuration configuration) {
+    this.configuration = configuration;
+  }
+  ....省略
+  /**
+   * 从数据源中获取SqlSession对象
+   * @param execType 执行器类型
+   * @param level 事务隔离级别
+   * @param autoCommit 是否自动提交事务
+   * @return SqlSession对象
+   */
+  private SqlSession openSessionFromDataSource(ExecutorType execType, TransactionIsolationLevel level, boolean autoCommit) {
+    Transaction tx = null;
+    try {
+      // 获取配置中使用的指定环境。如xml配置中，<environment>配置
+      final Environment environment = configuration.getEnvironment();
+      // 从环境中获取相应的事务工厂
+      final TransactionFactory transactionFactory = getTransactionFactoryFromEnvironment(environment);
+      // 从事务工厂中创建事务实例，配置 JDBC 对应的事务实例是 JdbcTransactionFactory；MANAGED 对应事务实例是 ManagedTransactionFactory
+      // 注：MyBatis有自己的事务的管理器，但一般项目都与spring整合，事务都用spring来管理
+      tx = transactionFactory.newTransaction(environment.getDataSource(), level, autoCommit);
+      // 根据配置的执行器类型，创建相应的执行器
+      final Executor executor = configuration.newExecutor(tx, execType);
+      // 创建DefaultSqlSession对象
+      return new DefaultSqlSession(configuration, executor, autoCommit);
+    } catch (Exception e) {
+      closeTransaction(tx); // may have fetched a connection so lets call close()
+      throw ExceptionFactory.wrapException("Error opening session.  Cause: " + e, e);
+    } finally {
+      ErrorContext.instance().reset();
+    }
+  }
+  ....省略
+}
 ```
 
-![](images/20210321170316298_25705.png)
+通过源码可知，最终开启session后，返回的具体实现是`DefaultSqlSession`
 
-### 3.2. SqlSessionFactory
+#### 3.1.3. 多种获取重载方法
 
-`SqlSessionFactory`使用工厂模式创建`SqlSession`，其默认的实现类为`DefaultSqlSessionFactory`。而获取`SqlSession`的核心方法是：
+`SqlSessionFactory` 有六个方法创建 `SqlSession` 实例。通常来说，当选择其中一个方法时，需要考虑以下几点：
+
+- **事务处理**：希望在 session 作用域中使用事务作用域，还是使用自动提交（auto-commit）？（对很多数据库和/或 JDBC 驱动来说，等同于关闭事务支持）
+- **数据库连接**：希望 MyBatis 帮你从已配置的数据源获取连接，还是使用自己提供的连接？
+- **语句执行**：希望 MyBatis 复用 `PreparedStatement` 和/或 批量更新语句（包括插入语句和删除语句）吗？
+
+基于以上需求，有下列已重载的多个 `openSession()` 方法供使用。
 
 ```java
-SqlSession openSessionFromDataSource(ExecutorType execType, TransactionIsolationLevel level, boolean autoCommit)
+SqlSession openSession()
+SqlSession openSession(boolean autoCommit)
+SqlSession openSession(Connection connection)
+SqlSession openSession(TransactionIsolationLevel level)
+SqlSession openSession(ExecutorType execType, TransactionIsolationLevel level)
+SqlSession openSession(ExecutorType execType)
+SqlSession openSession(ExecutorType execType, boolean autoCommit)
+SqlSession openSession(ExecutorType execType, Connection connection)
+Configuration getConfiguration();
 ```
+
+### 3.2. TransactionFactory 事务工厂
 
 此方法是从`Configuration`类中获取的事务工厂`TransactionFactory`是典型的策略模式的应用。运行期，`TransactionFactory`接口的实现，是由配置文件的配置决定，可配置选项包括：
 
@@ -1159,25 +1253,573 @@ SqlSession openSessionFromDataSource(ExecutorType execType, TransactionIsolation
 
 > 配置参考官网：https://mybatis.org/mybatis-3/zh/configuration.html#environments
 
+事务工厂设置到`Configuration`实例的时机，是在解析MyBatis总配置文件时。
 
-### 3.3. Mapper 接口代理实例
+![](images/20210325092724158_27597.png)
+
+### 3.3. Executor 组件
+
+#### 3.3.1. 配置默认执行器类型
+
+在MyBatis总配置文件中，可以设置默认使用的执行器（*不配置则默认为`SIMPLE`*）。
+
+```xml
+<!--配置默认的执行器。SIMPLE 就是普通的执行器；REUSE 执行器会重用预处理语句（prepared statements）；
+    BATCH 执行器将重用语句并执行批量更新。默认值为SIMPLE -->
+<setting name="defaultExecutorType" value="SIMPLE"/>
+```
+
+在配置文件的标签解析时，会将配置值存到`Configuration`实例中
+
+![](images/20210325094226447_3936.png)
+
+也可以通过代码直接修改执行器的类型，如：
+
+```java
+sqlSessionFactory.getConfiguration().setDefaultExecutorType(ExecutorType.BATCH);
+```
+
+#### 3.3.2. 执行器的创建
+
+在调用`sqlSessionFactory.openSession()`方法时，通过`Configuration`类的`getDefaultExecutorType()`方法可以获取到配置的默认执行器类型`ExecutorType`（枚举），然后调用`configuration.newExecutor(tx, execType)`方法，根据执行器类型来获取相应的执行器实现。具体源码如下：
+
+```java
+/**
+ * 创建一个执行器
+ * @param transaction 事务
+ * @param executorType 数据库操作类型
+ * @return 执行器
+ */
+public Executor newExecutor(Transaction transaction, ExecutorType executorType) {
+  executorType = executorType == null ? defaultExecutorType : executorType;
+  executorType = executorType == null ? ExecutorType.SIMPLE : executorType;
+  Executor executor;
+  // 根据数据库操作类型创建市级执行器
+  if (ExecutorType.BATCH == executorType) {
+    executor = new BatchExecutor(this, transaction);
+  } else if (ExecutorType.REUSE == executorType) {
+    executor = new ReuseExecutor(this, transaction);
+  } else {
+    executor = new SimpleExecutor(this, transaction);
+  }
+  // 根据配置文件中的 settings 节点cacheEnabled配置项确定是否启用缓存
+  if (cacheEnabled) { // 如果配置启用该缓存
+    // 使用CachingExecutor装饰实际的执行器
+    executor = new CachingExecutor(executor);
+  }
+  // 为执行器增加拦截器（插件），以启用各个拦截器的功能【重点】
+  executor = (Executor) interceptorChain.pluginAll(executor);
+  return executor;
+}
+```
+
+#### 3.3.3. 执行器的作用与
+
+`Sqlsession`的功能都是基于`Executor`来实现的，`Executor`是MyBaits核心接口之一，定义了数据库操作最基本的方法，在其内部遵循 JDBC 规范完成对数据库的访问。其类继承结构如下图所示：
+
+![](images/20210325101254008_25584.png)
+
+- `BaseExecutor`：抽象类，实现了`Executor`接口的大部分方法，主要提供了缓存管理和事务管理的能力，其他子类需要实现的抽象方法为：`doUpdate`、`doQuery`等方法
+    - `BatchExecutor`：批量执行所有更新语句，基于 jdbc 的 batch 操作实现批处理
+    - `SimpleExecutor`：默认执行器，每次执行都会创建一个`statement`对象，用完后关闭
+    - `ReuseExecutor`：可重用执行器，将`statement`对象存入缓存的 map 中，操作 map 中的`statement`而不会重复创建
+
+- `CacheingExecutor`：使用装饰器模式，对真正提供数据库查询的`Executor`增强了二级缓存的能力，具体生成此增加的位置在`DefaultSqlSessionFactory.openSessionFromDataSource`方法中，会判断是否开启了`<settings>`节点`cacheEnabled`配置，如开启则将原`Executor`实例包装成`CacheingExecutor`
+
+![](images/20210325102521004_25881.png)
+
+### 3.4. MapperProxyFactory 代理工厂的映射建立
+
+通过`SqlSession`实例获取`Mapper`接口实例，其实是jdk的动态代理。在`SqlSessionFactoryBuilder.build`创建`SqlSessionFactory`的过程，会扫描与建立相应Mapper接口代理工厂的映射关系，具体的实现位置如下：
+
+`SqlSessionFactoryBuilder().build` -> `XMLConfigBuilder.parse` -> `parseConfiguration` -> `mapperElement` -> `XMLMapperBuilder.parse` -> `bindMapperForNamespace`
+
+最后建立的映射关系是存放到`MapperRegistry`类中的` Map<Class<?>, MapperProxyFactory<?>> knownMappers`属性中
+
+```java
+// 接口类型与接口代理建立映射关系，注册到本类的 Map<Class<?>, MapperProxyFactory<?>> knownMappers 属性中
+knownMappers.put(type, new MapperProxyFactory<>(type));
+```
+
+> 详见《解析后注册Mapper（XMLMapperBuilder）》章节
+
+### 3.5. Mapper 接口模块分析及相关核心类
+
+`SqlSession` 是 MyBatis 对外提供数据库访问最主要的 API，但是因为直接使用 `SqlSession` 进行数据库开发存在代码可读性差、可维护性差的问题。通过都使用 Mapper 接口的方式进行数据库的开发。实际上 MyBatis 的内部，将对 Mapper 接口的调用转发给了`SqlSession`，这个请求的转发是建立在配置文件解读、动态代理增强的基础之上实现的，实现的过程有三个关键要素
+
+- 找到 SqlSession 中对应的方法执行
+- 找到命名空间和方法名（两维坐标）
+- 传递参数
+
+Mapper接口实例操作数据库功能所涉及的核心类结构如下：
+
+![](images/20210325152717805_19284.png)
+
+- `MapperRegistry`：mapper接口和对应的代理对象工厂的注册中心
+- `MapperProxyFactory`：用于生成 mapper 接口动态代理的实例对象；保证 Mapper 实例对象是局部变量
+- `MapperProxy`：实现了 `InvocationHandler` 接口，它是增强 mapper 接口的实现
+- `MapperMethod`：封装了 Mapper 接口中对应方法的信息，以及对应的 sql 语句的信息；它是 mapper 接口与映射配置文件中 sql 语句的桥梁； MapperMethod 对象不记录任何状态信息，所以它可以在多个代理对象之间共享；MapperMethod 内几个关键数据结构如下：
+    - `SqlCommand`：从 configuration 中获取方法的命名空间.方法名以及 SQL 语句的类型
+    - `MethodSignature`：封装 mapper 接口方法的相关信息（入参，返回类型）
+    - `ParamNameResolver`：解析 mapper 接口方法中的入参，将多个参数转成 Map
+
+### 3.6. Mapper 代理运行流程
+
+从`SqlSession.getMapper(Class<T>)`方法获取Mapper实例开始，Mapper代理生成与绑定的时序图如下所示：
+
+![](images/20210325153548858_8623.png)
+
+
+#### 3.6.1. 获取代理阶段
+
+通过`SqlSession`获取相应的Mapper接口，具体是由`Configuration`类来实现
+
+```java
+@Override
+public <T> T getMapper(Class<T> type) {
+  return configuration.getMapper(type, this);
+}
+```
+
+在`Configuration`类中，会调用`MapperRegistry`对象的`getMapper`方法
+
+```java
+public <T> T getMapper(Class<T> type, SqlSession sqlSession) {
+  return mapperRegistry.getMapper(type, sqlSession);
+}
+```
+
+直接从`knownMappers`容器中根据mapper接口类型获取到相应的`MapperProxyFactory`代理工厂实例。
+
+```java
+/**
+ * 找到指定的映射文件，并根据映射文件信息为该映射接口生成一个代理实现
+ * @param type 映射接口
+ * @param sqlSession sqlSession
+ * @param <T> 映射接口类型
+ * @return 代理实现对象
+ */
+@SuppressWarnings("unchecked")
+public <T> T getMapper(Class<T> type, SqlSession sqlSession) {
+  // 根据类型，获取指定的接口的代理工厂实例
+  final MapperProxyFactory<T> mapperProxyFactory = (MapperProxyFactory<T>) knownMappers.get(type);
+  if (mapperProxyFactory == null) {
+    throw new BindingException("Type " + type + " is not known to the MapperRegistry.");
+  }
+  try {
+    // 通过 mapperProxyFactory 获取相应的代理实例
+    return mapperProxyFactory.newInstance(sqlSession);
+  } catch (Exception e) {
+    throw new BindingException("Error getting mapper instance. Cause: " + e, e);
+  }
+}
+```
+
+通过代理工厂的`newInstance`方法，返回`MapperProxy`的代理实例
+
+```java
+public class MapperProxyFactory<T> {
+
+  private final Class<T> mapperInterface;
+  private final Map<Method, MapperMethod> methodCache = new ConcurrentHashMap<>();
+
+  /**
+   * MapperProxyFactory 构造方法
+   * @param mapperInterface 映射接口
+   */
+  public MapperProxyFactory(Class<T> mapperInterface) {
+    this.mapperInterface = mapperInterface;
+  }
+
+  public Class<T> getMapperInterface() {
+    return mapperInterface;
+  }
+
+  public Map<Method, MapperMethod> getMethodCache() {
+    return methodCache;
+  }
+
+  // 生成一个 MapperProxy 对象，该类实现了InvocationHandler接口
+  @SuppressWarnings("unchecked")
+  protected T newInstance(MapperProxy<T> mapperProxy) {
+    return (T) Proxy.newProxyInstance(mapperInterface.getClassLoader(), new Class[] { mapperInterface }, mapperProxy);
+  }
+
+  public T newInstance(SqlSession sqlSession) {
+    final MapperProxy<T> mapperProxy = new MapperProxy<>(sqlSession, mapperInterface, methodCache);
+    return newInstance(mapperProxy);
+  }
+}
+```
+
+#### 3.6.2. SQL 执行阶段
+
+##### 3.6.2.1. 代理的调用
+
+上面已经拿到Mapper的代理实例`MapperProxy`，然后在调用Mapper接口的相应的方法是，就会调用到`MapperProxy`代理的`invoke`方法
+
+```java
+public class MapperProxy<T> implements InvocationHandler, Serializable {
+
+  private final SqlSession sqlSession;
+  private final Class<T> mapperInterface;
+  // methodCache 属性维护接口方法和 MapperMethod 对象的对应关系
+  // 该Map的键为方法，值为MapperMethod对象，通过该属性，完成MapperProxy内（即映射接口内）方法和MapperMethod的绑定
+  private final Map<Method, MapperMethod> methodCache;
+
+  public MapperProxy(SqlSession sqlSession, Class<T> mapperInterface, Map<Method, MapperMethod> methodCache) {
+    this.sqlSession = sqlSession;
+    this.mapperInterface = mapperInterface;
+    this.methodCache = methodCache;
+  }
+
+  /**
+   * 代理方法
+   * @param proxy 代理对象
+   * @param method 代理方法
+   * @param args 代理方法的参数
+   * @return 方法执行结果
+   * @throws Throwable
+   */
+  @Override
+  public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+    try {
+      if (Object.class.equals(method.getDeclaringClass())) {
+        // 继承自Object的方法，直接执行原有方法
+        return method.invoke(this, args);
+      } else if (method.isDefault()) {
+        // 执行默认方法
+        return invokeDefaultMethod(proxy, method, args);
+      }
+    } catch (Throwable t) {
+      throw ExceptionUtil.unwrapThrowable(t);
+    }
+    // 找对应的 MapperMethod 对象
+    final MapperMethod mapperMethod = cachedMapperMethod(method);
+    // 调用 MapperMethod 中的execute方法
+    return mapperMethod.execute(sqlSession, args);
+  }
+
+  private MapperMethod cachedMapperMethod(Method method) {
+    // 从方法缓存 Map<Method, MapperMethod> methodCache 中获取相应MapperMethod实例，如果缓存中没有，则直接new出新的实现
+    return methodCache.computeIfAbsent(method, k -> new MapperMethod(mapperInterface, method, sqlSession.getConfiguration()));
+  }
+  ....省略
+}
+```
+
+`MapperMethod`的`execute`方法，即会执行到真正的数据库操作。方法中会判断当前执行的方法的类型（增/改/删/查），然后调用相应的操作数据库方法
+
+```java
+/**
+ * 执行映射接口中的方法
+ * <p>
+ * MapperMethod类将一个数据库操作语句和一个 Java方法绑 定在了一起:它的MethodSignature属性保存了这个方法的详细信息;
+ * 它的 SqlCommand属性持有这个方法对应的 SQL语句。因而只要调用 MapperMethod对象的 execute方法，就可以触发具 体的数据库操作，于是数据库操作就被转化为了方法
+ *
+ * @param sqlSession sqlSession接口的实例，通过它可以进行数据库的操作
+ * @param args       执行接口方法时传入的参数
+ * @return 执行结果
+ */
+public Object execute(SqlSession sqlSession, Object[] args) {
+  Object result;
+  switch (command.getType()) { // 根据SQL语句类型，执行不同的操作
+    case INSERT: { // 如果是插入语句
+      // 将参数顺序与实参对应好
+      Object param = method.convertArgsToSqlCommandParam(args);
+      // 执行操作并返回结果
+      result = rowCountResult(sqlSession.insert(command.getName(), param));
+      break;
+    }
+    case UPDATE: { // 如果是更新语句
+      // 将参数顺序与实参对应好
+      Object param = method.convertArgsToSqlCommandParam(args);
+      // 执行操作并返回结果
+      result = rowCountResult(sqlSession.update(command.getName(), param));
+      break;
+    }
+    case DELETE: { // 如果是删除语句
+      // 将参数顺序与实参对应好
+      Object param = method.convertArgsToSqlCommandParam(args);
+      // 执行操作并返回结果
+      result = rowCountResult(sqlSession.delete(command.getName(), param));
+      break;
+    }
+    case SELECT: // 如果是查询语句
+      if (method.returnsVoid() && method.hasResultHandler()) { // 返回返回为void，且有结果处理器
+        // 使用结果处理器执行查询
+        executeWithResultHandler(sqlSession, args);
+        result = null;
+      } else if (method.returnsMany()) { // 多条结果查询
+        result = executeForMany(sqlSession, args);
+      } else if (method.returnsMap()) { // map结果查询
+        result = executeForMap(sqlSession, args);
+      } else if (method.returnsCursor()) { // 游标类型结果查询
+        result = executeForCursor(sqlSession, args);
+      } else { // 单条结果查询
+        // 将参数顺序与实参对应好
+        Object param = method.convertArgsToSqlCommandParam(args);
+        result = sqlSession.selectOne(command.getName(), param);
+        if (method.returnsOptional()
+            && (result == null || !method.getReturnType().equals(result.getClass()))) {
+          result = Optional.ofNullable(result);
+        }
+      }
+      break;
+    case FLUSH: // 如果是清空缓存语句
+      result = sqlSession.flushStatements();
+      break;
+    default: // 未知语句类型，抛出异常
+      throw new BindingException("Unknown execution method for: " + command.getName());
+  }
+  if (result == null && method.getReturnType().isPrimitive() && !method.returnsVoid()) {
+    // 查询结果为null,但返回类型为基本类型。因此返回变量无法接收查询结果，抛出异常。
+    throw new BindingException("Mapper method '" + command.getName()
+        + " attempted to return null from a method with a primitive return type (" + method.getReturnType() + ").");
+  }
+  return result;
+}
+```
+
+以select查询语句为例。
+
+```java
+private <E> Object executeForMany(SqlSession sqlSession, Object[] args) {
+  List<E> result;
+  // 获取执行方法的入参值
+  Object param = method.convertArgsToSqlCommandParam(args);
+  // 判断是否有分页
+  if (method.hasRowBounds()) {
+    RowBounds rowBounds = method.extractRowBounds(args);
+    result = sqlSession.selectList(command.getName(), param, rowBounds);
+  } else {
+    result = sqlSession.selectList(command.getName(), param);
+  }
+  // issue #510 Collections & arrays support
+  if (!method.getReturnType().isAssignableFrom(result.getClass())) {
+    if (method.getReturnType().isArray()) {
+      return convertToArray(result);
+    } else {
+      return convertToDeclaredCollection(sqlSession.getConfiguration(), result);
+    }
+  }
+  return result;
+}
+```
+
+##### 3.6.2.2. 方法参数的封装
+
+通过`method.convertArgsToSqlCommandParam(args)`方法获取当前执行的方法入参，实际是调用了参数解析器`ParamNameResolver`类的`getNamedParams`方法。如果只有一个参数，直接返回参数；如果有多个参数，则进行与之前解析出的参数名称进行对应，返回映射关系map。
+
+此处有一个点值得注意：创建参数解析器`ParamNameResolver`时，是记录了方法参数的映射是`参数位置索引->参数名称`。这里获取方法参数映射的时候，会将key与value的位置交换了，最终返回的映射是`@Param名称->参数值`或者`param+位置索引->参数值`。
+
+```java
+public Object getNamedParams(Object[] args) {
+  final int paramCount = names.size();
+  if (args == null || paramCount == 0) {
+    return null;
+  } else if (!hasParamAnnotation && paramCount == 1) {
+    // 如果只有一个参数，直接返回参数
+    return args[names.firstKey()];
+  } else {
+    // 多个参数
+    final Map<String, Object> param = new ParamMap<>();
+    int i = 0;
+    for (Map.Entry<Integer, String> entry : names.entrySet()) {
+      // 首先按照类注释中提供的key,存入一遍  【参数的@Param名称 或者 参数排序：实参值】
+      // 注意，key和value交换了位置
+      param.put(entry.getValue(), args[entry.getKey()]);
+      // 再按照param1, param2, ...的命名方式存入一遍
+      // add generic param names (param1, param2, ...)
+      final String genericParamName = GENERIC_NAME_PREFIX + String.valueOf(i + 1);
+      // ensure not to overwrite parameter named with @Param
+      if (!names.containsValue(genericParamName)) {
+        // 存入map集合，key是：参数名（如：param1）；value是：参数的位置索引
+        param.put(genericParamName, args[entry.getKey()]);
+      }
+      i++;
+    }
+    return param;
+  }
+}
+```
+
+##### 3.6.2.3. 执行数据库操作
+
+上面获取到待调用的方法的参数之后，就调用MyBatis相关操作数据库的方法（如`selectList`、`selectOne`、`insert`、`update`、`delete`等）。此时会交给`Executor`执行器来执行操作
+
+```java
+/**
+ * 查询结果列表
+ * @param <E> 返回的列表元素的类型
+ * @param statement SQL语句id (即解析xml映射配置时，namespace + sqlId)
+ * @param parameter 参数对象
+ * @param rowBounds  翻页限制条件
+ * @return 结果对象列表
+ */
+@Override
+public <E> List<E> selectList(String statement, Object parameter, RowBounds rowBounds) {
+  try {
+    // 获取查询语句
+    MappedStatement ms = configuration.getMappedStatement(statement);
+    // 交由执行器进行查询
+    return executor.query(ms, wrapCollection(parameter), rowBounds, Executor.NO_RESULT_HANDLER);
+  } catch (Exception e) {
+    throw ExceptionFactory.wrapException("Error querying database.  Cause: " + e, e);
+  } finally {
+    ErrorContext.instance().reset();
+  }
+}
+```
+
+```java
+@Override
+public <E> List<E> query(MappedStatement ms, Object parameter, RowBounds rowBounds, ResultHandler resultHandler) throws SQLException {
+  // 获取拼凑后的sql
+  BoundSql boundSql = ms.getBoundSql(parameter);
+  // 生成缓存键
+  CacheKey key = createCacheKey(ms, parameter, rowBounds, boundSql);
+  // 查询数据
+  return query(ms, parameter, rowBounds, resultHandler, key, boundSql);
+}
+```
+
+##### 3.6.2.4. 动态sql的拼接
+
+`MappedStatement.getBoundSql`方法是用于获取拼接好sql语句，具体实现逻辑如下：
+
+```java
+public BoundSql getBoundSql(Object parameterObject) {
+  // 拼凑sql
+  BoundSql boundSql = sqlSource.getBoundSql(parameterObject);
+  List<ParameterMapping> parameterMappings = boundSql.getParameterMappings();
+  if (parameterMappings == null || parameterMappings.isEmpty()) {
+    boundSql = new BoundSql(configuration, boundSql.getSql(), parameterMap.getParameterMappings(), parameterObject);
+  }
+
+  // check for nested result maps in parameter mappings (issue #30)
+  for (ParameterMapping pm : boundSql.getParameterMappings()) {
+    String rmId = pm.getResultMapId();
+    if (rmId != null) {
+      ResultMap rm = configuration.getResultMap(rmId);
+      if (rm != null) {
+        hasNestedResultMaps |= rm.hasNestedResultMaps();
+      }
+    }
+  }
+
+  return boundSql;
+}
+```
+
+之前解析xml映射文件时，会将sql语句内容封装成`SqlSource`对象，此时`sqlSource.getBoundSql(parameterObject)`方法就会拼凑成真正可执行的sql语句。
+
+![](images/20210325221149491_1952.png)
+
+回忆之前解析xml映射相关操作语句时，会判断是否为动态sql，如果是则创建`DynamicSqlSource`，否则创建`RawSqlSource`
+
+![](images/20210325221805556_11322.png)
+
+![](images/20210325221925289_2475.png)
+
+下面以动态sql为例（`DynamicSqlSource`），每种`SqlSource`都会创建相应类型的拼接辅助类，每个辅助类都有用于拼接sql的`StringBuilder`属性，在调用每个节点的`SqlNode`类的`apply`方法，都传入辅助类。将各自负责的sql拼接后最终都会传到父类`DynamicContext`中（*详细流程跟踪源码，这里比较难截图说明，源码相对还是比较容易理解*）
+
+![](images/20210325222730844_5964.png)
+
+![](images/20210325223052762_9594.png)
+
+![](images/20210325223117928_6897.png)
+
+![](images/20210325223220822_19191.png)
+
+##### 3.6.2.5. 执行并返回结果
+
+上面获取到可执行的sql后，调用`BaseExecutor`执行器的相应的操作数据库方法。这里以查询为例，先从本地缓存获取结果，如果没有则查询数据库
+
+![](images/20210325225025273_30802.png)
+
+<font color=red>**这里需要注意的是：MyBatis是一级缓存就是存储`BaseExecutor`执行器实例的`PerpetualCache localCache`属性中，所以如果每次创建新的`SqlSession`时，都会创建新的执行器缓存，这就是一级缓存不能跨`SqlSession`的原因**</font>
+
+![](images/20210325225142473_11243.png)
+
+`BaseExecutor`的抽象方法`doQuery`，是执行真正的数据库操作，具体的实现由子类来实现。根据前面所配置的执行器类型来调用不同的实现类，这里调用了`SimpleExecutor`类
+
+```java
+private <E> List<E> queryFromDatabase(MappedStatement ms, Object parameter, RowBounds rowBounds, ResultHandler resultHandler, CacheKey key, BoundSql boundSql) throws SQLException {
+  List<E> list;
+  // 向缓存中增加占位符，表示正在查询
+  localCache.putObject(key, EXECUTION_PLACEHOLDER);
+  try {
+    // 真正的查询操作
+    list = doQuery(ms, parameter, rowBounds, resultHandler, boundSql);
+  } finally {
+    // 删除占位符
+    localCache.removeObject(key);
+  }
+  // 将查询结果写入缓存
+  localCache.putObject(key, list);
+  if (ms.getStatementType() == StatementType.CALLABLE) {
+    localOutputParameterCache.putObject(key, parameter);
+  }
+  return list;
+}
+```
 
 
 
 
+#### 3.6.3. MapperMethod （接口与sql信息的封装）
 
+`MapperMethod`类是封装了 Mapper 接口中对应方法的信息，以及对应的 sql 语句的信息（*xml映射文件或者注解配置的*）。`MapperProxy`代理的`invoke`方法中调用`cachedMapperMethod`方法，从`Map<Method, MapperMethod> methodCache`属性中获取到当前执行的接口方法相应`MapperMethod`实例，如果缓存中不存在，则创建并存入缓存中
 
+```java
+private MapperMethod cachedMapperMethod(Method method) {
+  // 从方法缓存 Map<Method, MapperMethod> methodCache 中获取相应MapperMethod实例，如果缓存中没有，则直接new出新的实现
+  return methodCache.computeIfAbsent(method, k -> new MapperMethod(mapperInterface, method, sqlSession.getConfiguration()));
+}
+```
 
+`MapperMethod`的构造函数中，会分别创建`SqlCommand`（方法名和sql的类型）与`MethodSignature`（方法的相关信息）。这两个都是`MapperMethod`的内部类
 
+```java
+/**
+ * MapperMethod的构造方法
+ *
+ * @param mapperInterface 映射接口
+ * @param method          映射接口中的具体方法
+ * @param config          配置信息Configuration
+ */
+public MapperMethod(Class<?> mapperInterface, Method method, Configuration config) {
+  this.command = new SqlCommand(config, mapperInterface, method);
+  this.method = new MethodSignature(config, mapperInterface, method);
+}
+```
 
+内部类`SqlCommand`相当一条SQL，类中有两个属性`name`和`type`，其中`name`是`mappper接口名.方法名`的组合字符串，`type`是sql的类型（`SqlCommandType`枚举）
 
+![](images/20210325163716613_5257.png)
 
+内部类`MethodSignature`封装了 mapper 接口方法的相关信息（入参，返回类型）
 
+![](images/20210325163659647_4163.png)
 
+`ParamNameResolver`类是用于方法参数的解析，主要建立方法的参数的映射关系，**参数顺序->参数名称**。其实方法的参数名称并不重要，普通方法参数只记录参数索引；如果方法参数使用了`@Param`注解，则需要记录注解的value值，用于以后替换sql占位符
 
+#### 3.6.4. SQL 绑定与执行总结
 
+```java
+public class MapperMethod {
+  ....省略
+  public Object execute(SqlSession sqlSession, Object[] args)
+  ....省略
+}
+```
 
+以上是执行相应SQL流程时，对sql语句、方法参数等要素的绑定的核心方法：
 
+- 通过 Sql 语句的类型（`MapperMethod.SqlCommand.type`）和 mapper 接口方法的返回参数（`MapperMethod.MethodSignature.returnType`）确定调用 SqlSession 中的某个方法
+- 通过 `MapperMethod.SqlCommand.name` 生成两维坐标
+- 通过 `MapperMethod.MethodSignature.paramNameResolve` 将传入的多个参数转成 Map 进行参数传递
 
 ## 4. 第三个阶段：数据访问阶段
 
