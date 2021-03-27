@@ -107,6 +107,8 @@ MyBatis 源码共 16 个模块，可以分成三层
 
 ### 2.4. 策略模式
 
+#### 2.4.1. 什么是策略模式
+
 策略模式（Strategy Pattern）策略模式定义了一系列的算法，并将每一个算法封装起来，而且使他们可以相互替换，让算法独立于使用它的客户而独立变化。Spring 容器中使用配置可以灵活的替换掉接口的实现类就是策略模式最常见的应用。类图如下：
 
 ![](images/20210324225011253_17597.png)
@@ -115,10 +117,20 @@ MyBatis 源码共 16 个模块，可以分成三层
 - Strategy：算法的统一接口
 - ConcreteStrategy：算法的具体实现
 
-#### 2.4.1. 策略模式的使用场景
+#### 2.4.2. 策略模式的使用场景
 
 - 针对同一类型问题的多种处理方式，仅仅是具体行为有差别时
 - 出现同一抽象类有多个子类，而又需要使用 if-else 或者 switch-case 来选择具体子类时
+
+### 2.5. 模板模式
+
+**模板模式**是：一个抽象类公开定义了执行它的方法的方式/模板。它的子类可以按需要重写方法实现，但调用将以抽象类中定义的方式进行。定义一个操作中的算法的骨架，而将一些步骤延迟到子类中。模板方法使得子类可以不改变一个算法的结构即可重定义该算法的某些特定实现。类结构如下：
+
+![](images/20210327161725914_30333.png)
+
+`AbstractClass`中模板方法`template()`定义了功能实现的多个步骤，抽象父类只会对其中几个通用的步骤有实现，而一些可定制化的步骤延迟到子类`ConcreteClass1`、`ConcreteClass2`中实现，子类只能定制某几个特定步骤的实现，而不能改变算法的结构
+
+**应用场景**：遇到由一系列步骤构成的过程需要执行，这个过程从高层次上看是相同的，但是有些步骤的实现可能不同，这个时候就需要考虑用模板模式了
 
 ## 3. 日志模块分析
 
@@ -1313,7 +1325,7 @@ public Executor newExecutor(Transaction transaction, ExecutorType executorType) 
 }
 ```
 
-#### 3.3.3. 执行器的作用与
+#### 3.3.3. 执行器的作用与其实现类
 
 `Sqlsession`的功能都是基于`Executor`来实现的，`Executor`是MyBaits核心接口之一，定义了数据库操作最基本的方法，在其内部遵循 JDBC 规范完成对数据库的访问。其类继承结构如下图所示：
 
@@ -1823,8 +1835,40 @@ public class MapperMethod {
 
 ## 4. 第三个阶段：数据访问阶段
 
+### 4.1. Executor 执行器的数据库处理流程
+
+MyBatis 的执行器组件是使用模板模式的典型应用，其中`BaseExecutor`、`BaseStatementHandler`是模板模式的最佳实践。（*模板模式简介详见上面《MyBatis涉及的设计模式》*）
+
+`BaseExecutor`执行器抽象类，实现了 executor 接口的大部分方法，主要提供了缓存管理和事务管理的能力，其他子类需要实现的抽象方法为：`doUpdate`、`doQuery` 等方法。在 BaseExecutor 中进行一次数据库查询操作的流程如下：
+
+![BaseExecutor操作数据库流程图.drawio](images/20210327175747814_2667.jpg)
+
+如上图所示，`doQuery`方法是查询数据的结果的子步骤，有三种`SIMPLE`、`REUSER`、`BATCH`实现，分别在相应的子类中定义
+
+- `SimpleExecutor`：默认配置，在`doQuery`方法中使用 `PrepareStatement` 对象访问数据库，每次访问都要创建新的 `PrepareStatement` 对象
+- `ReuseExecutor`：在`doQuery`方法中，使用预编译 `PrepareStatement` 对象访问数据库，访问时，会重用缓存中的 `PrepareStatement` 对象
+- `BatchExecutor`：在`doQuery`方法中，实现批量执行多条 SQL 语句的能力
+
+### 4.2. Executor 执行器调度的三个组件
+
+对`SimpleExecutor.doQuery()`方法的源码分析可知，`Executor`执行器会调度三个组件来完成数据库的操作
+
+- `StatementHandler`：它的作用是使用数据库的`Statement`或`PrepareStatement`执行操作，启承上启下作用
+- `ParameterHandler`：对预编译的SQL语句进行参数设置，SQL语句中的的占位符`?`都对应`BoundSql.parameterMappings`集合中的一个元素，在该对象中记录了对应的参数名称以及该参数的相关属性
+- `ResultSetHandler`：对数据库返回的结果集（`ResultSet`）进行封装，返回用户指定的实体类型
+
+`Executor`调度三个组件的流程图如下：
+
+![Executor调度三个组件流程图.drawio](images/20210327232303362_2320.jpg)
 
 
+### 4.3. StatementHandler 组件
+
+
+### 4.4. ParameterHandler 组件
+
+
+### 4.5. ResultSetHandler 组件
 
 
 
@@ -1972,7 +2016,5 @@ private void parseConfiguration(XNode root) {
   }
 }
 ```
-
-## 2. Executor 组件
 
 
