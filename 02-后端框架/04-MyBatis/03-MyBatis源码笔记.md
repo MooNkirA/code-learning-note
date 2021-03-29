@@ -1371,11 +1371,11 @@ Mapper接口实例操作数据库功能所涉及的核心类结构如下：
 - `MapperProxyFactory`：用于生成 mapper 接口动态代理的实例对象；保证 Mapper 实例对象是局部变量
 - `MapperProxy`：实现了 `InvocationHandler` 接口，它是增强 mapper 接口的实现
 - `MapperMethod`：封装了 Mapper 接口中对应方法的信息，以及对应的 sql 语句的信息；它是 mapper 接口与映射配置文件中 sql 语句的桥梁； MapperMethod 对象不记录任何状态信息，所以它可以在多个代理对象之间共享；MapperMethod 内几个关键数据结构如下：
-    - `SqlCommand`：从 configuration 中获取方法的命名空间.方法名以及 SQL 语句的类型
+    - `SqlCommand`：从 configuration 中获取方法的`命名空间.方法名`以及 SQL 语句的类型
     - `MethodSignature`：封装 mapper 接口方法的相关信息（入参，返回类型）
     - `ParamNameResolver`：解析 mapper 接口方法中的入参，将多个参数转成 Map
 
-### 3.6. Mapper 代理运行流程
+### 3.6. Mapper 代理绑定流程
 
 从`SqlSession.getMapper(Class<T>)`方法获取Mapper实例开始，Mapper代理生成与绑定的时序图如下所示：
 
@@ -1464,11 +1464,66 @@ public class MapperProxyFactory<T> {
 }
 ```
 
-#### 3.6.2. SQL 执行阶段
+#### 3.6.2. MapperMethod （接口与sql信息的封装）
 
-##### 3.6.2.1. 代理的调用
+`MapperMethod`类是封装了 Mapper 接口中对应方法的信息，以及对应的 sql 语句的信息（*xml映射文件或者注解配置的*）。`MapperProxy`代理的`invoke`方法中调用`cachedMapperMethod`方法，从`Map<Method, MapperMethod> methodCache`属性中获取到当前执行的接口方法相应`MapperMethod`实例，如果缓存中不存在，则创建并存入缓存中
 
-上面已经拿到Mapper的代理实例`MapperProxy`，然后在调用Mapper接口的相应的方法是，就会调用到`MapperProxy`代理的`invoke`方法
+```java
+private MapperMethod cachedMapperMethod(Method method) {
+  // 从方法缓存 Map<Method, MapperMethod> methodCache 中获取相应MapperMethod实例，如果缓存中没有，则直接new出新的实现
+  return methodCache.computeIfAbsent(method, k -> new MapperMethod(mapperInterface, method, sqlSession.getConfiguration()));
+}
+```
+
+`MapperMethod`的构造函数中，会分别创建`SqlCommand`（方法名和sql的类型）与`MethodSignature`（方法的相关信息）。这两个都是`MapperMethod`的内部类
+
+```java
+/**
+ * MapperMethod的构造方法
+ *
+ * @param mapperInterface 映射接口
+ * @param method          映射接口中的具体方法
+ * @param config          配置信息Configuration
+ */
+public MapperMethod(Class<?> mapperInterface, Method method, Configuration config) {
+  this.command = new SqlCommand(config, mapperInterface, method);
+  this.method = new MethodSignature(config, mapperInterface, method);
+}
+```
+
+内部类`SqlCommand`相当一条SQL，类中有两个属性`name`和`type`，其中`name`是`mappper接口名.方法名`的组合字符串，`type`是sql的类型（`SqlCommandType`枚举）
+
+![](images/20210325163716613_5257.png)
+
+内部类`MethodSignature`封装了 mapper 接口方法的相关信息（入参，返回类型）
+
+![](images/20210325163659647_4163.png)
+
+`ParamNameResolver`类是用于方法参数的解析，主要建立方法的参数的映射关系，**参数顺序->参数名称**。其实方法的参数名称并不重要，普通方法参数只记录参数索引；如果方法参数使用了`@Param`注解，则需要记录注解的value值，用于以后替换sql占位符
+
+#### 3.6.3. SQL 绑定与执行总结
+
+```java
+public class MapperMethod {
+  ....省略
+  public Object execute(SqlSession sqlSession, Object[] args)
+  ....省略
+}
+```
+
+以上是执行相应SQL流程时，对sql语句、方法参数等要素的绑定的核心方法：
+
+- 通过 Sql 语句的类型（`MapperMethod.SqlCommand.type`）和 mapper 接口方法的返回参数（`MapperMethod.MethodSignature.returnType`）确定调用 SqlSession 中的某个方法
+- 通过 `MapperMethod.SqlCommand.name` 生成两维坐标
+- 通过 `MapperMethod.MethodSignature.paramNameResolve` 将传入的多个参数转成 Map 进行参数传递
+
+## 4. 第三个阶段：数据访问阶段
+
+### 4.1. Mapper 接口（代理）执行方法流程
+
+#### 4.1.1. 代理的调用
+
+上一个阶段，已经拿到Mapper的代理实例`MapperProxy`，然后在调用Mapper接口的相应的方法时，就会调用到`MapperProxy`代理的`invoke`方法
 
 ```java
 public class MapperProxy<T> implements InvocationHandler, Serializable {
@@ -1619,7 +1674,7 @@ private <E> Object executeForMany(SqlSession sqlSession, Object[] args) {
 }
 ```
 
-##### 3.6.2.2. 方法参数的封装
+#### 4.1.2. 方法参数的封装
 
 通过`method.convertArgsToSqlCommandParam(args)`方法获取当前执行的方法入参，实际是调用了参数解析器`ParamNameResolver`类的`getNamedParams`方法。如果只有一个参数，直接返回参数；如果有多个参数，则进行与之前解析出的参数名称进行对应，返回映射关系map。
 
@@ -1656,7 +1711,7 @@ public Object getNamedParams(Object[] args) {
 }
 ```
 
-##### 3.6.2.3. 执行数据库操作
+#### 4.1.3. 执行数据库操作
 
 上面获取到待调用的方法的参数之后，就调用MyBatis相关操作数据库的方法（如`selectList`、`selectOne`、`insert`、`update`、`delete`等）。此时会交给`Executor`执行器来执行操作
 
@@ -1684,6 +1739,8 @@ public <E> List<E> selectList(String statement, Object parameter, RowBounds rowB
 }
 ```
 
+具体的查询逻辑在抽象子类`BaseExecutor`中
+
 ```java
 @Override
 public <E> List<E> query(MappedStatement ms, Object parameter, RowBounds rowBounds, ResultHandler resultHandler) throws SQLException {
@@ -1696,7 +1753,7 @@ public <E> List<E> query(MappedStatement ms, Object parameter, RowBounds rowBoun
 }
 ```
 
-##### 3.6.2.4. 动态sql的拼接
+#### 4.1.4. 动态sql的拼接
 
 `MappedStatement.getBoundSql`方法是用于获取拼接好sql语句，具体实现逻辑如下：
 
@@ -1744,7 +1801,7 @@ public BoundSql getBoundSql(Object parameterObject) {
 
 ![](images/20210325223220822_19191.png)
 
-##### 3.6.2.5. 执行并返回结果
+#### 4.1.5. 执行并返回结果
 
 上面获取到可执行的sql后，调用`BaseExecutor`执行器的相应的操作数据库方法。这里以查询为例，先从本地缓存获取结果，如果没有则查询数据库
 
@@ -1777,65 +1834,9 @@ private <E> List<E> queryFromDatabase(MappedStatement ms, Object parameter, RowB
 }
 ```
 
+> **以上就是Mapper代理方法调用操作数据库的基础流程，具体还有数据库的操作、预编译SQL语句的占位符处理、数据库结果集的封装成指定实体类等操作，是由`Executor`执行器分别调度`StatementHandler`、`ParameterHandler`、`ResultSetHandler`等三大核心组件来完成。具体源码的处理分析，详见下面章节**
 
-
-
-#### 3.6.3. MapperMethod （接口与sql信息的封装）
-
-`MapperMethod`类是封装了 Mapper 接口中对应方法的信息，以及对应的 sql 语句的信息（*xml映射文件或者注解配置的*）。`MapperProxy`代理的`invoke`方法中调用`cachedMapperMethod`方法，从`Map<Method, MapperMethod> methodCache`属性中获取到当前执行的接口方法相应`MapperMethod`实例，如果缓存中不存在，则创建并存入缓存中
-
-```java
-private MapperMethod cachedMapperMethod(Method method) {
-  // 从方法缓存 Map<Method, MapperMethod> methodCache 中获取相应MapperMethod实例，如果缓存中没有，则直接new出新的实现
-  return methodCache.computeIfAbsent(method, k -> new MapperMethod(mapperInterface, method, sqlSession.getConfiguration()));
-}
-```
-
-`MapperMethod`的构造函数中，会分别创建`SqlCommand`（方法名和sql的类型）与`MethodSignature`（方法的相关信息）。这两个都是`MapperMethod`的内部类
-
-```java
-/**
- * MapperMethod的构造方法
- *
- * @param mapperInterface 映射接口
- * @param method          映射接口中的具体方法
- * @param config          配置信息Configuration
- */
-public MapperMethod(Class<?> mapperInterface, Method method, Configuration config) {
-  this.command = new SqlCommand(config, mapperInterface, method);
-  this.method = new MethodSignature(config, mapperInterface, method);
-}
-```
-
-内部类`SqlCommand`相当一条SQL，类中有两个属性`name`和`type`，其中`name`是`mappper接口名.方法名`的组合字符串，`type`是sql的类型（`SqlCommandType`枚举）
-
-![](images/20210325163716613_5257.png)
-
-内部类`MethodSignature`封装了 mapper 接口方法的相关信息（入参，返回类型）
-
-![](images/20210325163659647_4163.png)
-
-`ParamNameResolver`类是用于方法参数的解析，主要建立方法的参数的映射关系，**参数顺序->参数名称**。其实方法的参数名称并不重要，普通方法参数只记录参数索引；如果方法参数使用了`@Param`注解，则需要记录注解的value值，用于以后替换sql占位符
-
-#### 3.6.4. SQL 绑定与执行总结
-
-```java
-public class MapperMethod {
-  ....省略
-  public Object execute(SqlSession sqlSession, Object[] args)
-  ....省略
-}
-```
-
-以上是执行相应SQL流程时，对sql语句、方法参数等要素的绑定的核心方法：
-
-- 通过 Sql 语句的类型（`MapperMethod.SqlCommand.type`）和 mapper 接口方法的返回参数（`MapperMethod.MethodSignature.returnType`）确定调用 SqlSession 中的某个方法
-- 通过 `MapperMethod.SqlCommand.name` 生成两维坐标
-- 通过 `MapperMethod.MethodSignature.paramNameResolve` 将传入的多个参数转成 Map 进行参数传递
-
-## 4. 第三个阶段：数据访问阶段
-
-### 4.1. Executor 执行器的数据库处理流程
+### 4.2. Executor 执行器的数据库处理流程
 
 MyBatis 的执行器组件是使用模板模式的典型应用，其中`BaseExecutor`、`BaseStatementHandler`是模板模式的最佳实践。（*模板模式简介详见上面《MyBatis涉及的设计模式》*）
 
@@ -1849,7 +1850,7 @@ MyBatis 的执行器组件是使用模板模式的典型应用，其中`BaseExec
 - `ReuseExecutor`：在`doQuery`方法中，使用预编译 `PrepareStatement` 对象访问数据库，访问时，会重用缓存中的 `PrepareStatement` 对象
 - `BatchExecutor`：在`doQuery`方法中，实现批量执行多条 SQL 语句的能力
 
-### 4.2. Executor 执行器调度的三个组件
+### 4.3. Executor 执行器调度的三个组件
 
 对`SimpleExecutor.doQuery()`方法的源码分析可知，`Executor`执行器会调度三个组件来完成数据库的操作
 
@@ -1861,14 +1862,335 @@ MyBatis 的执行器组件是使用模板模式的典型应用，其中`BaseExec
 
 ![Executor调度三个组件流程图.drawio](images/20210327232303362_2320.jpg)
 
+### 4.4. StatementHandler 组件
 
-### 4.3. StatementHandler 组件
+#### 4.4.1. 组件功能简介
 
+`StatementHandler`完成Mybatis最核心的工作，也是`Executor`实现的基础；功能包括：创建`Statement`对象，为SQL语句绑定参数，执行增删改查等SQL语句、将结果映射集进行转化。
 
-### 4.4. ParameterHandler 组件
+`StatementHandler`的类继承关系如下图所示：
 
+![](images/20210328134519894_26486.png)
 
-### 4.5. ResultSetHandler 组件
+- `BaseStatementHandler`：所有`StatementHandler`子类的抽象父类，定义了初始化`Statement`对象的操作逻辑顺序，由子类实现具体的实例化不同的`Statement`（*模板模式的运用*）
+    - `SimpleStatmentHandler`：使用`Statement`对象访问数据库，无须参数化
+    - `PreparedStatmentHandler`：使用预编译`PrepareStatement`对象访问数据库
+    - `CallableStatmentHandler`：调用存储过程对象操作数据库
+- `RoutingStatementHandler`：`StatementHandler`组件的真正实例化的子类，该类中使用了<font color=red>**静态代理模式**</font>。在构造函数中会根据`MappedStatement`对象所设置的`statementType`值，来创建具体类型的`StatementHandler`实现类，并赋值到类的`delegate`属性中。<font color=red>**注：该类在执行数据库操作时，其实是直接调用了`SimpleStatmentHandler`、`PreparedStatmentHandler`或者`CallableStatmentHandler`的代理实例相应的方法**</font>
+
+`statementType`具体是在每个sql操作标签中的`statementType`指定，默认值：`PREPARED`
+
+```xml
+<select id="xxx" statementType="PREPARED" ...>
+    ....省略
+</select>
+```
+
+#### 4.4.2. 组件源码处理流程分析
+
+还是上面操作查询语句为示例，具体在`MapperMethod`类的`executeForMany`方法中，通过`DefaultSqlSession`类中的`Executor`执行器调用`query`方法进行真正的查询操作，而逻辑都在`BaseExecutor`的子类中。
+
+`StatementHandler`组件的具体源码位置分别在`SimpleExecutor`、`ReuseExecutor`、`BatchExecutor`都有运用。下面以`SimpleExecutor`的`doQuery`方法为示例：
+
+```java
+@Override
+public <E> List<E> doQuery(MappedStatement ms, Object parameter, RowBounds rowBounds, ResultHandler resultHandler, BoundSql boundSql) throws SQLException {
+  Statement stmt = null;
+  try {
+    Configuration configuration = ms.getConfiguration();
+    // 获取StatementHandler组件，其实就是使用jdk原生数据库的Statement或PrepareStatement执行操作
+    // 这里创建RoutingStatementHandler实例，该实例中会持有根据statementType来决定具体的StatementHandler实现类
+    StatementHandler handler = configuration.newStatementHandler(wrapper, ms, parameter, rowBounds, resultHandler, boundSql);
+    // 通过StatementHandler来获取Statement对象
+    stmt = prepareStatement(handler, ms.getStatementLog());
+    return handler.query(stmt, resultHandler);
+  } finally {
+    closeStatement(stmt);
+  }
+}
+```
+
+##### 4.4.2.1. RoutingStatementHandler 实现类的创建
+
+在`Configuration`类的`newStatementHandler()`方法中，会创建`StatementHandler`，其具体的实现是`RoutingStatementHandler`
+
+```java
+/* Configuration类 */
+public StatementHandler newStatementHandler(Executor executor, MappedStatement mappedStatement, Object parameterObject, RowBounds rowBounds, ResultHandler resultHandler, BoundSql boundSql) {
+  // 默认创建RoutingStatementHandler实例，在此类的构造函数中，根据MappedStatement对象中的statementType值，来创建具体类型的StatementHandler实现类
+  StatementHandler statementHandler = new RoutingStatementHandler(executor, mappedStatement, parameterObject, rowBounds, resultHandler, boundSql);
+  // 加入插件
+  statementHandler = (StatementHandler) interceptorChain.pluginAll(statementHandler);
+  return statementHandler;
+}
+```
+
+在`RoutingStatementHandler`构造函数中，会根据`MappedStatement`中的`statementType`值来创建相应类型的`StatementHandler`实现类，并赋值给`delegate`属性，执行相应方法时其实是直接调用所持有的被代理类的方法，是**静态代理的运用**
+
+```java
+/**
+ * RoutingStatementHandler 类是一个代理类，它能够根据传入的 MappedStatement 对象的具体类型选中一个具体的被代理对象，然后将所有实际操作都委托给被代理对象。
+ */
+public class RoutingStatementHandler implements StatementHandler {
+
+  // 根据语句类型选取的被代理类型的对象
+  private final StatementHandler delegate;
+
+  public RoutingStatementHandler(Executor executor, MappedStatement ms, Object parameter, RowBounds rowBounds, ResultHandler resultHandler, BoundSql boundSql) {
+    // 根据语句类型选择创建相应的StatementHandler实现类，并赋值给delegate属性
+    switch (ms.getStatementType()) {
+      case STATEMENT:
+        delegate = new SimpleStatementHandler(executor, ms, parameter, rowBounds, resultHandler, boundSql);
+        break;
+      case PREPARED:
+        delegate = new PreparedStatementHandler(executor, ms, parameter, rowBounds, resultHandler, boundSql);
+        break;
+      case CALLABLE:
+        delegate = new CallableStatementHandler(executor, ms, parameter, rowBounds, resultHandler, boundSql);
+        break;
+      default:
+        throw new ExecutorException("Unknown statement type: " + ms.getStatementType());
+    }
+  }
+  ....省略
+  @Override
+  public <E> List<E> query(Statement statement, ResultHandler resultHandler) throws SQLException {
+    return delegate.query(statement, resultHandler);
+  }
+  ....省略
+}
+```
+
+创建`StatementHandler`对象后，接着就通过该对象来获取`Statement`
+
+```java
+private Statement prepareStatement(StatementHandler handler, Log statementLog) throws SQLException {
+  Statement stmt;
+  // 创建带日志记录的Connection连接对象（代理）
+  Connection connection = getConnection(statementLog);
+  // 获取Statement实例
+  stmt = handler.prepare(connection, transaction.getTimeout());
+  // 此方法将sql语句的占位符转成具体参数值。重点方法
+  handler.parameterize(stmt);
+  return stmt;
+}
+```
+
+##### 4.4.2.2. 创建带日志功能的 Connection 代理实例
+
+<font color=red>**值得注意的是，这个`Connection`对象是一个带有日志功能的代理对象**</font>。具体创建的位置在`StatementHandler`组件创建`Statement`对象的前一步
+
+![](images/20210328155126630_26201.png)
+
+![](images/20210328155201932_16505.png)
+
+![](images/20210328155231676_29534.png)
+
+当通过此`Connection`代理对象调用`prepareStatement`方法时，就会调到动态代理`ConnectionLogger`类的`invoke`方法，又是创建了一个`Statement`代理实例
+
+![](images/20210328155312506_32719.png)
+
+##### 4.4.2.3. 创建 Statement 数据库操作实例
+
+`handler.prepare()`方法首先会调到具体实现类`RoutingStatementHandler`的方法
+
+```java
+@Override
+public Statement prepare(Connection connection, Integer transactionTimeout) throws SQLException {
+  // 调用被代理实例的prepare方法，此时会先调用抽象父类BaseStatementHandler的prepare
+  return delegate.prepare(connection, transactionTimeout);
+}
+```
+
+在该方法中会直接调用被代理类的方法，此时会先调用被代理实例抽象父类`BaseStatementHandler`的`prepare`方法
+
+```java
+// 使用模板模式，定义了获取Statement的步骤，其子类实现实例化Statement的具体的方式
+@Override
+public Statement prepare(Connection connection, Integer transactionTimeout) throws SQLException {
+  ErrorContext.instance().sql(boundSql.getSql());
+  Statement statement = null;
+  try {
+    // 通过Connection对象来获取到Statement操作实例。此方法为抽象方法（钩子方法），具体由子类来实现
+    // 通过不同的子类实例化不同的Statement，分为三类：simple(statment)、prepare(prepareStatement)、callable(CallableStatementHandler)
+    statement = instantiateStatement(connection);
+    // 设置超时时间
+    setStatementTimeout(statement, transactionTimeout);
+    // 设置数据集大小
+    setFetchSize(statement);
+    return statement;
+  } catch (SQLException e) {
+    closeStatement(statement);
+    throw e;
+  } catch (Exception e) {
+    closeStatement(statement);
+    throw new ExecutorException("Error preparing statement.  Cause: " + e, e);
+  }
+}
+```
+
+然后在方法中会执行抽象父类的`instantiateStatement`抽象方法（钩子方法）时，就会调用到具体子类的方法（*此示例是子类是`PreparedStatementHandler`*）
+
+```java
+@Override
+// 使用底层的prepareStatement对象来完成对数据库的操作
+protected Statement instantiateStatement(Connection connection) throws SQLException {
+  String sql = boundSql.getSql();
+  // 根据mappedStatement.getKeyGenerator字段（在insert标签中的useGeneratedKeys为true时，该类型即为Jdbc3KeyGenerator），创建prepareStatement
+  if (mappedStatement.getKeyGenerator() instanceof Jdbc3KeyGenerator) {
+    // 对于insert语句，获取到自增主键
+    String[] keyColumnNames = mappedStatement.getKeyColumns();
+    if (keyColumnNames == null) {
+  	  // 返回数据库生成的主键
+      return connection.prepareStatement(sql, PreparedStatement.RETURN_GENERATED_KEYS);
+    } else {
+  	  // 返回数据库生成的主键填充至keyColumnNames中指定的列
+      return connection.prepareStatement(sql, keyColumnNames);
+    }
+  } else if (mappedStatement.getResultSetType() == ResultSetType.DEFAULT) {
+    // 创建普通的prepareStatement对象
+    return connection.prepareStatement(sql);
+  } else {
+    // 设置结果集是否可以滚动以及其游标是否可以上下移动，设置结果集是否可更新
+    return connection.prepareStatement(sql, mappedStatement.getResultSetType().getValue(), ResultSet.CONCUR_READ_ONLY);
+  }
+}
+```
+
+##### 4.4.2.4. sql语句的占位符
+
+创建完成数据操作对象`Statement`后，就要处理预编译SQL语句，主要是进行`?`占位符的处理。<font color=red>**此部分的处理逻辑是由`ParameterHandler`组件来实现，具体源码分析详见《ParameterHandler 组件》章节**</font>
+
+### 4.5. ParameterHandler 组件
+
+#### 4.5.1. 组件功能简介
+
+`ParameterHandler`相比于其他的组件就简单很多了，`ParameterHandler`译为参数处理器，负责为`PreparedStatement`的预编译SQL语句`?`占位符参数动态赋值，这个接口很简单只有两个方法
+
+```java
+public interface ParameterHandler {
+  /** 用于读取参数 */
+  Object getParameterObject();
+  /** 用于对PreparedStatement的参数赋值 */
+  void setParameters(PreparedStatement ps) throws SQLException;
+}
+```
+
+`ParameterHandler`只有一个实现类`DefaultParameterHandler`，它实现了这两个方法。
+
+#### 4.5.2. ParameterHandler 的创建
+
+在`PreparedStatementHandler`中会调用`ParameterHandler`来对SQL语句的占位符进行处理，所以在其抽象父类的构造方法中，有`ParameterHandler`的初始化
+
+![](images/20210328210251666_30215.png)
+
+在`Configuration`类的`newParameterHandler`方法中创建参数处理器，默认实现类是`DefaultParameterHandler`
+
+```java
+ /**
+  * 创建参数处理器
+  * @param mappedStatement 数据库操作的信息
+  * @param parameterObject 参数对象
+  * @param boundSql SQL 语句信息
+  * @return 参数处理器
+  */
+ public ParameterHandler newParameterHandler(MappedStatement mappedStatement, Object parameterObject, BoundSql boundSql) {
+   // 交由 LanguageDriver 来创建具体的参数处理器，LanguageDriver 默认的实现类是 XMLLanguageDriver，具体实现类是DefaultParameterHandler
+   ParameterHandler parameterHandler = mappedStatement.getLang().createParameterHandler(mappedStatement, parameterObject, boundSql);
+   // 将参数处理器交给拦截器链进行替换
+   parameterHandler = (ParameterHandler) interceptorChain.pluginAll(parameterHandler);
+   // 返回最终的参数处理器
+   return parameterHandler;
+ }
+```
+
+#### 4.5.3. 组件源码处理流程分析
+
+##### 4.5.3.1. DefaultParameterHandler 参数处理器默认实现
+
+上面查询操作为例，具体SQL占位符转成参数值是在`SimpleExecutor.prepareStatement`中方法进行处理
+
+```java
+// 此方法将sql语句的占位符转成具体参数值。重点方法
+handler.parameterize(stmt);
+```
+
+调用`PreparedStatementHandler`子类的`parameterize`方法
+
+```java
+/**
+ * PreparedStatementHandler中 parameterize方法最终通过 ParameterHandler接口经过多级中转后调用了 java.sql.PreparedStatement类中的参数赋值方法。
+ */
+@Override
+public void parameterize(Statement statement) throws SQLException {
+  // 使用parameterHandler对sql语句的占位符进行处理
+  parameterHandler.setParameters((PreparedStatement) statement);
+}
+```
+
+调用参数处理器接口默认实现类`DefaultParameterHandler`的`setParameters`方法来处理SQL占位符转换成参数值
+
+```java
+
+```
+
+##### 4.5.3.2. ParameterMapping 对SQL中的#{}或者${}的封装
+
+在上面处理占位符过程中，会获取将`#{}`或者`${}`里面参数的封装成`ParameterMapping`对象，具体封装的处理在`RawSqlSource`中的构造函数中进行，然后在`getBoundSql`方法返回的`BoundSql`实例时，已经将`#{}`转成占位符`?`并且包含了每个占位符信息封装的`ParameterMapping`对象集合
+
+```java
+public class RawSqlSource implements SqlSource {
+  ....省略
+  public RawSqlSource(Configuration configuration, String sql, Class<?> parameterType) {
+    SqlSourceBuilder sqlSourceParser = new SqlSourceBuilder(configuration);
+    Class<?> clazz = parameterType == null ? Object.class : parameterType;
+    // 处理RawSqlSource中的#{}占位符，最终得到StaticSqlSource
+    sqlSource = sqlSourceParser.parse(sql, clazz, new HashMap<>());
+  }
+  ....省略
+  @Override
+  public BoundSql getBoundSql(Object parameterObject) {
+    // BoundSql对象由sqlSource持有的StaticSqlSource对象返回，这里返回的sql已经是将#{}转成占位符?
+    return sqlSource.getBoundSql(parameterObject);
+  }
+}
+```
+
+调用`SqlSourceBuilder`类的`parse`方法，完成占位符的转换与其相应信息的封装
+
+```java
+/**
+ * 将 DynamicSqlSource 和 RawSqlSource 中的 “#{}” 符号替换掉，从而将他们转化为 StaticSqlSource
+ * @param originalSql sqlNode.apply()拼接之后的sql语句。已经不包含<if> <where>等节点，也不含有${}符号
+ * @param parameterType 实参类型
+ * @param additionalParameters 附加参数
+ * @return 解析结束的StaticSqlSource
+ */
+public SqlSource parse(String originalSql, Class<?> parameterType, Map<String, Object> additionalParameters) {
+  // 用来完成#{}处理的处理器
+  ParameterMappingTokenHandler handler = new ParameterMappingTokenHandler(configuration, parameterType, additionalParameters);
+  // 通用的占位符解析器，用来进行占位符替换
+  GenericTokenParser parser = new GenericTokenParser("#{", "}", handler);
+  // 将#{}替换为?的SQL语句
+  String sql = parser.parse(originalSql);
+  // 替换后，生成新的StaticSqlSource对象。此时已经占位符都已经被替换，是静态sql
+  return new StaticSqlSource(configuration, sql, handler.getParameterMappings());
+}
+```
+
+具体在`GenericTokenParser.parse(originalSql)`方法中会调用`ParameterMappingTokenHandler.parse()`方法，将SQL中`#{}`占位符转成`?`，并且将占位符信息封装到`ParameterMapping`对象
+
+![](images/20210328224820294_1668.png)
+
+![](images/20210328224848093_11955.png)
+
+![](images/20210328225016164_28446.png)
+
+在创建`StaticSqlSource`对象时，会保存`List<ParameterMapping> parameterMappings`参数列表数据，然后在调用`getBoundSql`方法时，创建的`BoundSql`对象时会传入`parameterMappings`参数集合并返回。所以在`RawSqlSource.getBoundSql`方法中会获取带有`parameterMappings`参数列表数据的`BoundSql`对象
+
+![](images/20210328225448999_16962.png)
+
+### 4.6. ResultSetHandler 组件
 
 
 
