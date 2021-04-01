@@ -757,7 +757,21 @@ console.log(arr1.sum())
 
 ### 3.7. 对象常用方法
 
-#### 3.7.1. Object.keys() 获取对象全部属性
+#### 3.7.1. Object.assign() 对象属性复制，浅拷贝
+
+- 使用Object.assign方法可以浅克隆一个对象：
+
+```js
+let cloneObj = Object.assign({}, targetObj)
+```
+
+- 简单的深克隆可以使用`JSON.parse()`和`JSON.stringify()`，这两个api是解析json数据的，所以**只能解析除symbol外的原始类型及数组和对象**
+
+```js
+let cloneObj = JSON.parse(JSON.stringify(targetObj))
+```
+
+#### 3.7.2. Object.keys() 获取对象全部属性
 
 `Object.keys()` 用于获取对象自身所有的属性名，返回对象所有属性名的数组
 
@@ -782,7 +796,37 @@ arr.forEach(function (value) {
 })
 ```
 
-#### 3.7.2. Object.defineProperty() 定义属性
+#### 3.7.3. Object.values() 获取对象全部（属性）值
+
+`Object.values(对象)`方法作用是，获取对象内的所有值，返回值的数组。
+
+```js
+const user = {
+  name: "Alex",
+  age: 23,
+  isOnline: false
+}
+
+console.log(Object.values(user));
+// output: ["Alex", 23, false]
+```
+
+#### 3.7.4. Object.entries() 获取对象的键值
+
+`Object.entries(对象)`方法的作用是同时获取对象的键和值，返回一个键和值的多维数组。
+
+```js
+const user = {
+  name: "Alex",
+  age: 23,
+  isOnline: false
+}
+
+console.log(Object.entries(user));
+// output: [["name", "Alex"], ["age", 23], ["isOnline", false]]
+```
+
+#### 3.7.5. Object.defineProperty() 定义属性
 
 `Object.defineProperty()` 定义对象中新属性或修改原有的属性。语法如下：
 
@@ -851,6 +895,75 @@ Object.defineProperty(obj, "address", {
 })
 console.log(obj.address)
 ```
+
+#### 3.7.6. Object.freeze() 防止对象数据修改
+
+`Object.freeze(对象)`方法作用是防止对象中的数据突变。即不能将`Object.freeze()`作为参数传递给对象，更不能添加，更新或删除对象的属性。
+
+```js
+const employee = {
+  name: "James",
+  age: 25,
+  available: true
+}
+
+// Freezing the object.
+Object.freeze(employee);
+// updating and adding properties.
+employee.name = "Brad";
+employee.newProp = "Hard Worker";
+console.log(employee);
+// Output: {name: "James", age: 25, available: true}
+```
+
+#### 3.7.7. Object.seal() 防止对象增加属性
+
+`Object.seal()`方法有点类似于`Object.freeze()`，它可以防止向对象添加新属性，但是可以更改和更新现有属性。
+
+```js
+const user = {
+  name: "Alex",
+  age: 23,
+  isOnline: false
+}
+
+// 使用Object.seal（）
+Object.seal(user);
+// 更新属性。
+user.isOnline = true;
+// 添加一个属性。
+user.active = false;
+console.log(user);
+// 输出：{名称：“ Alex”，年龄：23，isOnline：true}
+```
+
+> 示例中：该对象的`isOnline`属性值已更新，但是无法将新的`active`属性添加到对象中
+
+#### 3.7.8. Object.create() 创建一个新对象
+
+`Object.create()`作用是，从另一个现有对象的原型创建一个新对象。
+
+```js
+const user = {
+  firstName: "John",
+  lastName: "Doe",
+  age: 25,
+  fullName(){
+    return `${this.firstName} ${this.lastName}`;
+  }
+}
+
+// 新对象
+let newObject = Object.create(user);
+// 更新属性
+newObject.firstName = "Mehdi";
+newObject.lastName = "Aoussiad";
+// 也可以在此新对象中使用user的fullName方法。
+newObject.fullName();  // 输出：Mehdi Aoussiad
+console.log(newObject);
+// 输出：{firstName：“ Mehdi”，lastName：“ Aoussiad”}
+```
+
 
 ## 4. 继承（ES6以前的实现方式）
 
@@ -1843,21 +1956,6 @@ var str = '{"error":1,"data":"用户不存在"}';
 var obj = (new Function("return " + str))();
 // 输出该对象
 console.log(obj);
-```
-
-### 7.2. 对象复制
-#### 7.2.1. Object.assign：对象属性复制，浅拷贝
-
-- 使用Object.assign方法可以浅克隆一个对象：
-
-```js
-let cloneObj = Object.assign({}, targetObj)
-```
-
-- 简单的深克隆可以使用`JSON.parse()`和`JSON.stringify()`，这两个api是解析json数据的，所以**只能解析除symbol外的原始类型及数组和对象**
-
-```js
-let cloneObj = JSON.parse(JSON.stringify(targetObj))
 ```
 
 ## 8. 其他
