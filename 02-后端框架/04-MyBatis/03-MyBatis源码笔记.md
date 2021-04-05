@@ -1903,6 +1903,7 @@ public <E> List<E> doQuery(MappedStatement ms, Object parameter, RowBounds rowBo
     StatementHandler handler = configuration.newStatementHandler(wrapper, ms, parameter, rowBounds, resultHandler, boundSql);
     // 通过StatementHandler来获取Statement对象
     stmt = prepareStatement(handler, ms.getStatementLog());
+    // 执行查询
     return handler.query(stmt, resultHandler);
   } finally {
     closeStatement(stmt);
@@ -2080,7 +2081,7 @@ public interface ParameterHandler {
 
 #### 4.5.2. ParameterHandler 的创建
 
-在`PreparedStatementHandler`中会调用`ParameterHandler`来对SQL语句的占位符进行处理，所以在其抽象父类的构造方法中，有`ParameterHandler`的初始化
+在`PreparedStatementHandler`中会调用`ParameterHandler`来对SQL语句的占位符进行处理，所以在其抽象父类的构造方法中会进行`ParameterHandler`的初始化
 
 ![](images/20210328210251666_30215.png)
 
@@ -2131,7 +2132,53 @@ public void parameterize(Statement statement) throws SQLException {
 调用参数处理器接口默认实现类`DefaultParameterHandler`的`setParameters`方法来处理SQL占位符转换成参数值
 
 ```java
-
+/**
+ * 为语句设置参数，
+ * setParameters 方法的实现逻辑也很简单，就是依次取出每个参数的值，然后根据参数类型调用 PreparedStatement中的赋值方法完成赋值。
+ * @param ps 语句
+ */
+@Override
+public void setParameters(PreparedStatement ps) {
+  ErrorContext.instance().activity("setting parameters").object(mappedStatement.getParameterMap().getId());
+  // 取出参数列表，ParameterMapping 就是对 #{} 或者 ${} 里面参数的封装
+  List<ParameterMapping> parameterMappings = boundSql.getParameterMappings();
+  if (parameterMappings != null) {
+    for (int i = 0; i < parameterMappings.size(); i++) {
+      ParameterMapping parameterMapping = parameterMappings.get(i);
+      // ParameterMode.OUT是 CallableStatement的输出参数，已经单独注册，故忽略
+      if (parameterMapping.getMode() != ParameterMode.OUT) {
+        Object value;
+        // 取出参数名称
+        String propertyName = parameterMapping.getProperty();
+        if (boundSql.hasAdditionalParameter(propertyName)) { // issue #448 ask first for additional params
+          // 从附加参数中读取属性
+          value = boundSql.getAdditionalParameter(propertyName);
+        } else if (parameterObject == null) {
+          value = null;
+        } else if (typeHandlerRegistry.hasTypeHandler(parameterObject.getClass())) {
+          // 参数对象是基本类型，则参数对象即为参数值
+          value = parameterObject;
+        } else {
+          // 参数对象是复杂类型，取出参数对象的该属性值
+          MetaObject metaObject = configuration.newMetaObject(parameterObject);
+          value = metaObject.getValue(propertyName);
+        }
+        // 获取该参数相应的处理器（注：策略设计模式的应用）
+        TypeHandler typeHandler = parameterMapping.getTypeHandler();
+        JdbcType jdbcType = parameterMapping.getJdbcType();
+        if (value == null && jdbcType == null) {
+          jdbcType = configuration.getJdbcTypeForNull();
+        }
+        try {
+          // 此方法最终根据参数类型，调用java.sql.PreparedStatement类中的参数赋值方法，对SQL语句中的参数赋值
+          typeHandler.setParameter(ps, i + 1, value, jdbcType);
+        } catch (TypeException | SQLException e) {
+          throw new TypeException("Could not set parameters for mapping: " + parameterMapping + ". Cause: " + e, e);
+        }
+      }
+    }
+  }
+}
 ```
 
 ##### 4.5.3.2. ParameterMapping 对SQL中的#{}或者${}的封装
@@ -2190,14 +2237,113 @@ public SqlSource parse(String originalSql, Class<?> parameterType, Map<String, O
 
 ![](images/20210328225448999_16962.png)
 
+##### 4.5.3.3. 参数类型处理器
+
+在`DefaultParameterHandler.setParameters()`方法中，会调用相应参数类型的处理类，*会首先调用抽象父类`BaseTypeHandler`中的`setParameter`*
+
+```java
+try {
+  // 此方法最终根据参数类型，调用java.sql.PreparedStatement类中的参数赋值方法，对SQL语句中的参数赋值
+  typeHandler.setParameter(ps, i + 1, value, jdbcType);
+} catch (TypeException | SQLException e) {
+  throw new TypeException("Could not set parameters for mapping: " + parameterMapping + ". Cause: " + e, e);
+}
+```
+
+上面的示例，全局映射文件中没有`<typeHandlers>`配置类型处理类，则会调用`UnknownTypeHandler`的实现来完成参数转换，
+
+```java
+@Override
+public void setNonNullParameter(PreparedStatement ps, int i, Object parameter, JdbcType jdbcType)
+    throws SQLException {
+  // 通过实际的参数类型去获取相应的类型处理器
+  TypeHandler handler = resolveTypeHandler(parameter, jdbcType);
+  handler.setParameter(ps, i, parameter, jdbcType);
+}
+
+private TypeHandler<?> resolveTypeHandler(Object parameter, JdbcType jdbcType) {
+  TypeHandler<?> handler;
+  if (parameter == null) {
+    handler = OBJECT_TYPE_HANDLER;
+  } else {
+    // 根据参数的类型来获取相应的TypeHandler（类型处理类）
+    handler = typeHandlerRegistry.getTypeHandler(parameter.getClass(), jdbcType);
+    // check if handler is null (issue #270)
+    if (handler == null || handler instanceof UnknownTypeHandler) {
+      handler = OBJECT_TYPE_HANDLER;
+    }
+  }
+  return handler;
+}
+```
+
+`resolveTypeHandler`方法就是根据参数的类型来寻找相应的`*TypeHandler`处理类，如`StringTypeHandler`字符串类型处理类，具体的逻辑就是`PreparedStatement`实例的`setString`方法，给预编译的占位符赋值
+
+![](images/20210403172535817_23783.png)
+
 ### 4.6. ResultSetHandler 组件
 
+#### 4.6.1. 组件功能简介（待补充流程图）
+
+在`StatementHandler`组件的执行过程中，通过`ParameterHandler`组件对预编译的sql占位符进行赋值后，就会执行相应的sql操作，此时就会通过`ResultSetHandler`组件来将sql操作结果进行封装处理
+
+`ResultSetHandler` 将从数据库查询得到的结果按照映射配置文件的映射规则，映射成相应的结果集对象。<font color=red>**在 `ResultSetHandler` 内部实际是做三个步骤：找到映射匹配规则 -> 反射实例化目标对象 -> 根据规则填充属性值**</font>，具体步骤内部调用的流程图如下：
 
 
 
+#### 4.6.2. ResultSetHandler 的创建
 
+与`ParameterHandler`组件一样，在`PreparedStatementHandler`中会调用`ResultSetHandler`来对SQL语句的结果集进行处理，所以在其抽象父类`BaseStatementHandler`的构造方法中会进行`ResultSetHandler`的初始化。这里如果有配置代理则生成代理对象，如果没有，则生成`DefaultResultSetHandler`实例
 
+![](images/20210404082300110_24475.png)
 
+#### 4.6.3. 组件源码处理流程分析
+
+以上面查询为例，在`SimpleExecutor`执行`doQuery`操作时，会通过`StatementHandler`组件调用其`query`查询方法（*示例的sql语句会调用`PreparedStatementHandler`实现*）
+
+```java
+@Override
+public <E> List<E> query(Statement statement, ResultHandler resultHandler) throws SQLException {
+  PreparedStatement ps = (PreparedStatement) statement;
+  // 执行sql语句
+  ps.execute();
+  // 使用resultSetHandler处理查询结果
+  return resultSetHandler.handleResultSets(ps);
+}
+```
+
+##### 4.6.3.1. DefaultResultSetHandler 结果集处理器默认实现
+
+```java
+
+```
+
+结果集的处理流程如下：
+
+![](images/20210404103240721_19626.png)
+
+校验后，将结果集每一行记录进行映射处理
+
+![](images/20210404103509041_27130.png)
+
+![](images/20210404103442128_24149.png)
+
+![](images/20210404115232188_25486.png)
+
+`applyPropertyMappings`方法中获取结果集中相应的字段值与待封装的对象属性值，再通过反射将结果赋值到相应的对象属性中
+
+![](images/20210404121449686_17917.png)
+
+上面循环处理每条记录后，将转化后的对象保存到容器中
+
+```java
+// 把这一行记录转化出的对象存起来
+storeObject(resultHandler, resultContext, rowValue, parentMapping, resultSet);
+```
+
+![](images/20210404124212240_795.png)
+
+![](images/20210404124240256_26796.png)
 
 
 # 框架核心组件
