@@ -1,12 +1,26 @@
 # MySQL安装与部署
 
-## 1. Linux 系统安装MySQL
+## 1. MySQL目录结构
 
-### 1.1. 下载Linux 安装包
+### 1.1. Linux版本（待补充）
+
+
+
+### 1.2. windows版本
+
+- bin：存放可执行文件，比如MySQL.exe
+- data：存储的是MySQL默认的数据库
+- include：存放的C语言的头文件
+- lib：存放的C++的动态链接库
+- my.ini：数据库的配置文件
+
+## 2. Linux 系统安装MySQL
+
+### 2.1. 下载 Linux 安装包
 
 下载地址：https://dev.mysql.com/downloads/mysql/5.7.html#downloads
 
-### 1.2. 安装MySQL
+### 2.2. 安装 MySQL
 
 1. 卸载 centos 中预安装的 mysql
 
@@ -47,7 +61,7 @@ rpm -ivh MySQL-client-5.6.22-1.el6.i686.rpm
 rpm -ivh MySQL-server-5.6.22-1.el6.i686.rpm
 ```
 
-### 1.3. 启动 MySQL 服务
+### 2.3. 启动 MySQL 服务
 
 ```bash
 service mysql start
@@ -59,7 +73,7 @@ service mysql status
 service mysql restart
 ```
 
-### 1.4. 登录MySQL
+### 2.4. 登录 MySQL
 
 mysql 安装完成之后, 会自动生成一个随机的密码, 并且保存在一个密码文件中：`/root/.mysql_secret`
 
@@ -90,9 +104,9 @@ service iptables status
 service iptables stop
 ```
 
-## 2. CentOS 7.4 安装与配置MySql 5.7.21（项目B安装）
+## 3. CentOS 7.4 安装与配置MySql 5.7.21（项目B安装）
 
-### 2.1. 环境
+### 3.1. 环境
 
 - **系统环境**：centos-7.4 64位
 - **安装方式**：rpm安装
@@ -104,7 +118,7 @@ service iptables stop
 
 ![](images/20201201085630998_10120.jpg)
 
-### 2.2. 系统原mariadb版本
+### 3.2. 系统原mariadb版本
 
 ```bash
 # 查看MySql与mariadb安装情况
@@ -118,7 +132,7 @@ rpm -e --nodeps mariadb-libs-5.5.56-2.el7.x86_64
 
 ![](images/20201201085723353_1572.jpg)
 
-### 2.3. 安装新MySQL
+### 3.3. 安装新MySQL
 
 使用winSCP将下载的“`mysql-5.7.21-1.el7.x86_64.rpm-bundle.tar`”传到虚拟机系统的/root目录下：
 
@@ -162,9 +176,9 @@ rpm -ivh mysql-community-devel-5.7.21-1.el7.x86_64.rpm
 /etc/my.cnf        # 核心配置文件
 ```
 
-### 2.4. 配置MySQL
+### 3.4. 配置MySQL
 
-#### 2.4.1. 启动mysql
+#### 3.4.1. 启动mysql
 
 ```bash
 #启动mysql
@@ -183,7 +197,7 @@ systemctl enable mysqld
 systemctl disable mysqld
 ```
 
-#### 2.4.2. 修改root密码
+#### 3.4.2. 修改root密码
 
 MySQL安装成功后，会生成一个临时密码，第一次登录需要输入这个密码，所以查看该临时密码，然后修改密码。
 
@@ -202,7 +216,7 @@ set password = password('Root_123');
 
 ![](images/20201201090151187_1048.jpg)
 
-#### 2.4.3. 设置允许远程访问
+#### 3.4.3. 设置允许远程访问
 
 ```bash
 #登录，密码为新修改的密码Root_123
@@ -213,7 +227,7 @@ mysql> grant all privileges on  *.*  to  'root' @'%'  identified by 'Root_123';
 mysql> flush privileges;
 ```
 
-#### 2.4.4. 设置3306端口可以被访问
+#### 3.4.4. 设置3306端口可以被访问
 
 ```bash
 # 退出mysql，防火墙中打开3306端口
@@ -239,3 +253,56 @@ systemctl start firewalld.service
 # 禁止防火墙开机启动
 systemctl disable firewalld.service
 ```
+
+## 4. MySQL的安装与运行（Windows版本）
+
+### 4.1. 启动MySQL服务方式1
+
+MySQL会以windows服务的方式为我们提供数据存储功能。开启和关闭服务的操作：
+
+1. 右键点击我的电脑 --> 管理 --> 服务与应用程序 --> 服务 --> 找到MySQL服务开启或停止。
+2. 或者：开始 --> 搜索 --> services.msc --> 服务 --> 可以找到MySQL服务开启或停止。
+
+<font color="purple">（如果不需要开机时就启动MySQL，右键MySQL --> 属性 --> 启动类型选“手动”）</font>
+
+![mysql服务](images/20190403145741573_20104.jpg)
+
+### 4.2. 启动MySQL服务方式2
+
+在DOS窗口，通过命令完成MySQL服务的启动和停止（必须以管理员身份运行cmd命令窗口）
+
+- MySQL 启动: `net start mysql`
+- MySQL 关闭: `net stop mysql`
+
+![mysql服务](images/20190403145927600_25084.jpg)
+
+### 4.3. 登录MySQL数据库
+
+MySQL是一个需要账户名密码登录的数据库，登陆后使用，它提供了一个默认的root账号，使用安装时设置的密码即可登录。
+
+1. 命令行操作登陆与退出数据库
+- 方式1：cmd --> `mysql –u用户名 –p密码`
+
+![命令行操作登陆库1](images/20190403150111866_8506.jpg)
+
+- 方式2：cmd --> `mysql --user=用户名 --password=密码 --host=ip地址 --port=端口号`（这种方式一般用来登陆别人的数据库）
+
+![命令行操作登陆库2](images/20190403150120807_7522.jpg)
+
+- 退出MySQL: exit;
+
+2. 通过第三方图形化界面操作
+3. 通过Java代码操作
+
+### 4.4. SQLyog（MySQL图形化开发工具）
+
+安装：提供的SQLyog软件为免安装版，可直接使用
+
+使用：输入用户名、密码，点击连接按钮，进行访问MySQL数据库进行操作
+
+![SQLyog工具1](images/20190403150510919_18228.jpg)
+
+在Query窗口中，输入SQL代码，选中要执行的SQL代码，按F8键运行，或按执行按钮运行。
+
+![SQLyog工具2](images/20190403150517229_19216.jpg)
+

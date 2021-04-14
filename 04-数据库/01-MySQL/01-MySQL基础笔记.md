@@ -69,69 +69,9 @@
 4. 存储过程(Procedure)：一组为了完成特定功能的 SQL 语句集，存储在数据库中，经过第一次编译后再次调用不需要再次编译，用户通过指定存储过程的名字并给出参数来执行它。
 5. 触发器(Trigger)：触发器是一种特殊类型的存储过程，它在指定的表中的数据发生变化时自动生效。唤醒调用触发器以响应 INSERT、UPDATE 或 DELETE 语句。
 
-## 3. MySQL 数据库使用
-### 3.1. MySQL目录结构
+## 3. SQL 语句
 
-- bin：存放可执行文件，比如MySQL.exe
-- data：存储的是MySQL默认的数据库
-- include：存放的C语言的头文件
-- lib：存放的C++的动态链接库
-- my.ini：数据库的配置文件
-
-### 3.2. MySQL的安装与运行
-
-#### 3.2.1. 启动MySQL服务方式1
-
-MySQL会以windows服务的方式为我们提供数据存储功能。开启和关闭服务的操作：
-
-1. 右键点击我的电脑 --> 管理 --> 服务与应用程序 --> 服务 --> 找到MySQL服务开启或停止。
-2. 或者：开始 --> 搜索 --> services.msc --> 服务 --> 可以找到MySQL服务开启或停止。
-
-<font color="purple">（如果不需要开机时就启动MySQL，右键MySQL --> 属性 --> 启动类型选“手动”）</font>
-
-![mysql服务](images/20190403145741573_20104.jpg)
-
-#### 3.2.2. 启动MySQL服务方式2
-
-在DOS窗口，通过命令完成MySQL服务的启动和停止（必须以管理员身份运行cmd命令窗口）
-
-- MySQL 启动: `net start mysql`
-- MySQL 关闭: `net stop mysql`
-
-![mysql服务](images/20190403145927600_25084.jpg)
-
-### 3.3. 登录MySQL数据库
-
-MySQL是一个需要账户名密码登录的数据库，登陆后使用，它提供了一个默认的root账号，使用安装时设置的密码即可登录。
-
-1. 命令行操作登陆与退出数据库
-- 方式1：cmd --> `mysql –u用户名 –p密码`
-
-![命令行操作登陆库1](images/20190403150111866_8506.jpg)
-
-- 方式2：cmd --> `mysql --user=用户名 --password=密码 --host=ip地址 --port=端口号`（这种方式一般用来登陆别人的数据库）
-
-![命令行操作登陆库2](images/20190403150120807_7522.jpg)
-
-- 退出MySQL: exit;
-
-2. 通过第三方图形化界面操作
-3. 通过Java代码操作
-
-### 3.4. SQLyog（MySQL图形化开发工具）
-
-安装：提供的SQLyog软件为免安装版，可直接使用
-
-使用：输入用户名、密码，点击连接按钮，进行访问MySQL数据库进行操作
-
-![SQLyog工具1](images/20190403150510919_18228.jpg)
-
-在Query窗口中，输入SQL代码，选中要执行的SQL代码，按F8键运行，或按执行按钮运行。
-
-![SQLyog工具2](images/20190403150517229_19216.jpg)
-
-## 4. SQL 语句
-### 4.1. SQL 语言的分类
+### 3.1. SQL 语言的分类
 
 - **数据定义语言：简称DDL(Data Definition Language)**
     - 用来创建，修改，删除数据库中的各种对象：数据库，表，列等。
@@ -146,14 +86,15 @@ MySQL是一个需要账户名密码登录的数据库，登陆后使用，它提
     - 用来执行查询操作的语句。
     - 【关键字】select，show，from，where等
 
-### 4.2. 2、SQL 通用语法
-#### 4.2.1. SQL语句规范
+### 3.2. 2、SQL 通用语法
+
+#### 3.2.1. SQL语句规范
 
 - **SQL语句可以单行或多行书写，以分号结尾**
 - 可使用空格和缩进来增强语句的可读性
 - 同样可以使用`/**/`的方式完成注释
 
-#### 4.2.2. 表名规范
+#### 3.2.2. 表名规范
 
 - MySQL数据库的**SQL语句不区分大小写，建议关键字使用大写，自定义的使用小写**，例如：
 
@@ -164,11 +105,11 @@ SELECT * FROM user;
 - 表名使用**单数**形式。如：员工表使用 EMPLOYEE，而不要使用 EMPLOYEES
 - 采用有意义的名字，一般不超过三个英文单词，单词之间使用**下划线**分隔
 
-#### 4.2.3. 字段名规范
+#### 3.2.3. 字段名规范
 
 字段名称不能包含数据类型，不能使用关键字。
 
-#### 4.2.4. 标准SQL语言没有规范以下功能
+#### 3.2.4. 标准SQL语言没有规范以下功能
 
 - ID自示增长
 - 分页
@@ -176,7 +117,7 @@ SELECT * FROM user;
 - 编程语言
 - 服务端的数据软件
 
-### 4.3. MySQL 中的数据类型
+### 3.3. MySQL 中的数据类型
 
 详细的数据类型如下(了解，红色字体为常用数据类型)
 
@@ -301,7 +242,7 @@ SELECT * FROM user;
 > 1. char、varchar和text等字符串类型都可以存储路径，但使用“\”会被过滤，所以路径中用“/”或“\\”来代替，MySQL就会不会自动过滤路径的分隔字符，完整的表示路径  
 > 2. 一般情况下，数据库中不直接存储图片和音频文件，而是存储图片与文件的路径。如果存储文件，则选择blob类型
 
-### 4.4. MySQL 中的三种注释
+### 3.4. MySQL 中的三种注释
 
 - 单行注释
     - 格式：`# 注释内容` (MySQL特有)
@@ -309,9 +250,11 @@ SELECT * FROM user;
 - 多行注释
     - 格式：`/* 注释内容 */`
 
-## 5. MySQL 数据库的管理
-### 5.1. 查看数据库
-#### 5.1.1. 查看数据库命令
+## 4. MySQL 数据库的管理
+
+### 4.1. 查看数据库
+
+#### 4.1.1. 查看数据库命令
 
 ```sql
 show databases;
@@ -326,14 +269,14 @@ show create database 数据库名;
 - 查看某个数据库在定义时的信息
 - eg: `show create database day21_1;`
 
-#### 5.1.2. mysql默认4个初始数据库的作用
+#### 4.1.2. mysql默认4个初始数据库的作用
 
 - 【information_schema】：MySQL 元数据，一些基础的数据。
 - 【MySQL】：MySQL 配置数据库，配置信息。其中 user 表用于管理 MySQL 用户和密码、权限信息。
 - 【performance_schema】：MySQL 性能监控信息数据库，如：每条语句的执行情况。
 - 【test】：测试数据库。
 
-### 5.2. 创建数据库
+### 4.2. 创建数据库
 
 ```sql
 create database 数据库名;
@@ -349,7 +292,7 @@ create database 数据库名 default character set 字符集;
 - 使用指定字符创建数据库;
 - eg: `create database db2 default character set utf8;` (**注意：不是utf-8**)
 
-### 5.3. 删除数据库
+### 4.3. 删除数据库
 
 ```sql
 drop database 数据库名;
@@ -359,7 +302,7 @@ drop database 数据库名;
 
 **注：删除没有确认信息，做删除处理时需要小心**
 
-### 5.4. 修改数据库默认字符集
+### 4.4. 修改数据库默认字符集
 
 ```sql
 alter database 数据库名 default character set 字符集;
@@ -367,7 +310,7 @@ alter database 数据库名 default character set 字符集;
 
 - 修改数据库默认字符集
 
-### 5.5. 查看正在使用的数据库
+### 4.5. 查看正在使用的数据库
 
 ```sql
 select database();
@@ -375,7 +318,7 @@ select database();
 
 - 查看正在使用的数据库(这个命令一般在DOS下操作才需要使用)
 
-### 5.6. 校对规则（了解）
+### 4.6. 校对规则（了解）
 
 - character set：指定数据库默认的字符集
 - collate：校对规则
@@ -400,19 +343,19 @@ select database();
 
 > eg: `create database db4 default character set gbk collate gbk_chinese_ci;`
 
-## 6. MySQL 表的管理
-### 6.1. 查看表结构
-#### 6.1.1. 选择操作的数据库
+## 5. MySQL 表的管理
+### 5.1. 查看表结构
+#### 5.1.1. 选择操作的数据库
 
 - 语法：`use 数据库名;`
 - 作用：选择数据库
 
-#### 6.1.2. 查看数据库所有表格清单
+#### 5.1.2. 查看数据库所有表格清单
 
 - 语法：`show tables;`
 - 作用：查看当前数据库中的所有表，显示表格的清单
 
-#### 6.1.3. 查看数据库指定表格
+#### 5.1.3. 查看数据库指定表格
 
 - 语法：`show create table 表名;`
 - 作用：以sql格式返回，查看指定表格的结构
@@ -424,12 +367,12 @@ select database();
 
 ![2](images/20190403155005722_23206.jpg)
 
-#### 6.1.4. 查询当前数据库的引擎
+#### 5.1.4. 查询当前数据库的引擎
 
 - 语法：`show table status from 查询的数据库名称;`
 - 作用：查询当前数据库下所有表的状态与信息，包括表的引擎（Enginez）
 
-### 6.2. 创建表
+### 5.2. 创建表
 
 **创建表格式**
 
@@ -469,7 +412,7 @@ CREATE TABLE sort (
 
 如果在建表时不指定字段 int 类型的长度时，系统则默认生成长度为 11 的字段。11 也是 int 类型的最大长度，其中第一位表示符号+或者-，后面十位表示数字。 如果指定了长度，该字段其实也是长度为 11 的字段，因为只要是 int 类型，系统都分配了长度 11 位。**在插入数据时，只要不超出int类型的最大范围即可**
 
-### 6.3. 复制表
+### 5.3. 复制表
 
 - `create table 新表名 like 旧表名;`
     - 创建一个新表，复制旧表的结构(**没有内容，只有表结构**)
@@ -478,7 +421,7 @@ CREATE TABLE sort (
 
 - `create table 新表名 as (select * from 要复制的表名);`
 
-### 6.4. 删除表
+### 5.4. 删除表
 
 - `drop table 表名1,表名2,表名3,……;`
     - 删除一个表格
@@ -486,8 +429,8 @@ CREATE TABLE sort (
     - 删除多个表格，用逗号分隔可以删除多张表
     - eg: `drop table s1, s2, s3;`
 
-### 6.5. 修改表
-#### 6.5.1. 添加字段 add
+### 5.5. 修改表
+#### 5.5.1. 添加字段 add
 
 - `alter table 表名 add字段名1 数据类型(长度) 约束, add 字段名2数据类型(长度) 约束, ……;`
     - 给指定表格添加一个字段
@@ -495,26 +438,26 @@ CREATE TABLE sort (
     - 给指定表格添加多个字段，**每个字段都需要有add**
     - eg: `alter table student add a int, add b int;`
 
-#### 6.5.2. 修改字段类型(长度)或约束 modify
+#### 5.5.2. 修改字段类型(长度)或约束 modify
 
 - `alter table 表名 modify 字段名 修改后的类型(长度) 约束;`
     - 修改指定表格中的指定字段的类型(长度)或约束
     - eg: atler table student modify gender varchar(2);
 			ALTER TABLE sort MODIFY sname VARCHAR(50) NOT NULL;添加约束
 
-#### 6.5.3. 修改字段名称 change
+#### 5.5.3. 修改字段名称 change
 
 - `alter table 表名 change 旧字段名 新字段名 类型(长度) 约束;`
     - 将指定表格中的旧字段名改成新字段名，类型(长度)可变，约束可变
     - eg: `alter table student change gender sex varchar(2);`
 
-#### 6.5.4. 删除字段 drop
+#### 5.5.4. 删除字段 drop
 
 - `alter table 表名 drop 字段名1, drop 字段名2,……;`
     - 删除指定表格中的字段（**可以多个，每个字段前都要加drop**）
     - eg: `alter table student drop a, drop b;`
 
-#### 6.5.5. 修改表名 rename
+#### 5.5.5. 修改表名 rename
 
 - 格式1：`alter table 旧表名 rename 新表名;`
     - 将指定的表格名称修改成新表格名称
@@ -522,20 +465,20 @@ CREATE TABLE sort (
 - 格式2：`rename table 旧表名 to 新表名;`
     - eg: `rename table sutdent to stu;`
 
-#### 6.5.6. 修改表的字符集
+#### 5.5.6. 修改表的字符集
 
 - `alter table 表名 character set 新字符集;`
     - 修改指定表格的字符集
     - eg: `alter table student character set gbk;`
 
-#### 6.5.7. 给数据库的表建立索引
+#### 5.5.7. 给数据库的表建立索引
 
 - `alter table 表名 add index(字段名);`
     - 给指定的表建立索引
 
-## 7. MySQL 数据的管理与操作
-### 7.1. 插入数据 insert
-#### 7.1.1. 插入所有列
+## 6. MySQL 数据的管理与操作
+### 6.1. 插入数据 insert
+#### 6.1.1. 插入所有列
 
 - `insert into 表名 values (值1, 值2, 值3 ……), (值1, 值2, 值3 ……), (值1, 值2, 值3 ……)……;`
     - 向表中插入所有列
@@ -549,15 +492,15 @@ CREATE TABLE sort (
     4. **字符和日期型数据应包含在单引号中。双引号也可以但不推荐**。
     5. 不指定列或使用 null，表示插入空值。
 
-#### 7.1.2. 插入部分列
+#### 6.1.2. 插入部分列
 
 - `insert into 表 (列名1,列名2,列名3..) values (值1,值2,值3..), (值1,值2,值3..),……;`
     - 向表中插入某些列，也可以一次插入多个列
     - eg: `INSERT INTO student(id,NAME,age,remark) VALUES(3,'jacky',27,'佛山人');`
     - 注意事项：**列名和值的顺序、数量、数据类型要保持一致**
 
-### 7.2. insert 高级插入数据语法
-#### 7.2.1. `INSERT ... ON DUPLICATE KEY` 数据存在时更新操作，不存在时进行插入操作
+### 6.2. insert 高级插入数据语法
+#### 6.2.1. `INSERT ... ON DUPLICATE KEY` 数据存在时更新操作，不存在时进行插入操作
 
 `INSERT ... ON DUPLICATE KEY UPDATE`这个语法的目的是为了解决重复性，当数据库中存在某个记录时，执行这条语句会更新它，而不存在这条记录时，会插入它。
 
@@ -586,7 +529,7 @@ CREATE TABLE `t_stock_chg` (
 
 *注：这里的字段f_updatetime每次在更新数据时会自动更新，但是如果记录中存在某条数据，后来又更新它，而更新的数据和原数据一模一样，那么这个字段也不会更新，仍然是上一次的时间。此时`INSERT ... ON DUPLICATE KEY UPDATE`影响行数是0*。
 
-#### 7.2.2. replace into 插入数据
+#### 6.2.2. replace into 插入数据
 
 `replace into` 跟 `insert` 功能类似，不同点在于：`replace into`首先尝试插入数据到表中
 
@@ -607,7 +550,7 @@ MySQL replace into 有三种形式：
 
 前两种形式用的多些。其中“into”关键字可以省略，不过最好加上“into”，这样意思更加直观。另外，对于那些没有给予值的列，MySQL将自动为这些列赋上默认值。
 
-#### 7.2.3. insert ignore into 插入数据
+#### 6.2.3. insert ignore into 插入数据
 
 `INSERT IGNORE` 与 `INSERT INTO` 的区别就是`INSERT IGNORE`会忽略数据库中已经存在的数据，如果数据库没有数据，就插入新的数据；如果有数据的话就跳过这条数据（即执行这条插入语句时不会报错，只有警告，数据实际没有插入）。这样就可以保留数据库中已经存在数据，达到在间隙中插入数据的目的。
 
@@ -633,28 +576,28 @@ INSERT IGNORE INTO test(id, NAME, age) VALUES (2, 'aa', 18);
 
 *结论：执行INSERT时，如果不想报错(语法错误除外)，就用INSERT IGNORE，其它情况两者一样*
 
-### 7.3. 修改数据 update
-#### 7.3.1. 语法格式与关键字
+### 6.3. 修改数据 update
+#### 6.3.1. 语法格式与关键字
 
 - **关键字**
     - `UPDATE`：语法可以用新值更新原有表行中的各列。
     - `SET`：子句指示要修改哪些列和要给予哪些值。
     - `WHERE`：子句指定应更新哪些行。如没有 WHERE 子句，则更新所有的行
 
-#### 7.3.2. 修改所有的记录
+#### 6.3.2. 修改所有的记录
 
 - 格式1：`update 表名 set 列名1=值,列名2=值,……;`
     - 更新所有行的数据（**谨慎使用**）
     - eg: `UPDATE student SET gender='男';`
 
-#### 7.3.3. 修改符合某些条件的一（多）个列数据（用的较多）
+#### 6.3.3. 修改符合某些条件的一（多）个列数据（用的较多）
 
 - 格式2：`update 表名 set 列名1=值,列名2=值,…… where 条件;`
     - 根据条件修改信息
     - eg: `UPDATE student SET age=28,remark='韶关人' WHERE id=2;`
 
-### 7.4. 删除数据 delete
-#### 7.4.1. 删除表中的所有数据( delete )
+### 6.4. 删除数据 delete
+#### 6.4.1. 删除表中的所有数据( delete )
 
 - `delete from 表名;`
     - 删除表的所有记录，相当清空表的内容
@@ -664,14 +607,14 @@ INSERT IGNORE INTO test(id, NAME, age) VALUES (2, 'aa', 18);
         2. 回滚：使用 delete 删除的数据，通过事务可以回滚。
         3. where 子句：可以使用 where 子句
 
-#### 7.4.2. 删除部分行数据
+#### 6.4.2. 删除部分行数据
 
 - `delete from 表名 where 条件;`
     - 删除符合条件的行内容
     - eg: `delete from student where id=3;`
     - **注：删除语句不能使用别名，如：`delete from student s where s.id=3;`会报语法错误。如果使用别名，正确的语法是：`delete s from student s where s.id=3;`**
 
-#### 7.4.3. 删除所有数据( truncate )
+#### 6.4.3. 删除所有数据( truncate )
 
 - `truncate table 表名;`
     - 删除表的所有数据，相当于重新创建一个表，后面不能带条件(`where/having`)
@@ -681,7 +624,7 @@ INSERT IGNORE INTO test(id, NAME, age) VALUES (2, 'aa', 18);
         2. 回滚：使用 truncate 删除的数据，不能回滚！
         3. 后面不能带条件
 
-#### 7.4.4. MySQL 中的 delete 和 truncate 的区别？
+#### 6.4.4. MySQL 中的 delete 和 truncate 的区别？
 
 - **delete**
     - 删除所有数据时，不会影响自增长的值
@@ -690,8 +633,8 @@ INSERT IGNORE INTO test(id, NAME, age) VALUES (2, 'aa', 18);
     - 删除数据时，先直接drop表，然后新建一张表，自增长的值从默认值开始
     - 不可以通过事务回滚数据
 
-## 8. MySQL 数据查询
-### 8.1. 数据查询语法总格式
+## 7. MySQL 数据查询
+### 7.1. 数据查询语法总格式
 
 mysql查询数据有两种方式
 
@@ -729,25 +672,25 @@ from
 	其他子句
 ```
 
-### 8.2. 查询数据 select（查询不会改变原表的数据）
-#### 8.2.1. 查询所有列
+### 7.2. 查询数据 select（查询不会改变原表的数据）
+#### 7.2.1. 查询所有列
 
 - `select * from 表名;`
     - eg: `SELECT * FROM student;`
 
-#### 8.2.2. 查询指定列
+#### 7.2.2. 查询指定列
 
 - `select 列名1, 列名2, ……… from 表名;`
     - eg: `SELECT NAME,gender FROM student;`
 
-#### 8.2.3. 查询时指定列的别名
+#### 7.2.3. 查询时指定列的别名
 
 - `select 列名1 as 别名1, 列名2 as 别名2,…… from 表名;`
     - eg: `SELECT NAME AS '姓名',gender AS '性别' FROM student;`
         - AS 可以省略
         - `SELECT NAME '姓名',gender '性别' FROM student;`
 
-#### 8.2.4. 合并列查询
+#### 7.2.4. 合并列查询
 
 - `select *,(数值类型的列名1+数值类型的列名2+……) as 别名 from 表名;`
     - eg: `SELECT *, (math+english) 总成绩 FROM student;`
@@ -757,7 +700,7 @@ from
         - `SELECT uname,salary,(salary*12) AS '年薪' FROM users;`
         - 查询所有员工的薪资,年薪,以及姓名，也可以选择列后直接进行算术运算
 
-#### 8.2.5. 查询时添加常量列
+#### 7.2.5. 查询时添加常量列
 
 - `select *,'添加的内容' as 别名 from 表名;`
     - 使用`''`后，单引号里的内容就当成常量列，在查询时新增一列到原表。
@@ -775,7 +718,7 @@ from
 +----+------+------+------+---------+--------+
 ```
 
-#### 8.2.6. 去除重复数据
+#### 7.2.6. 去除重复数据
 
 - `select distinct 列名 from 表名;`
     - 根据某一列的内容去掉重复的值，只保留其中一个内容。
@@ -784,12 +727,12 @@ from
     - 根据多列的内容去掉重复的值，要多个列的内容同时一致才去掉。
     - eg: `SELECT DISTINCT(address) FROM student;`
 
-### 8.3. 条件查询 where
+### 7.3. 条件查询 where
 
 - where语句表条件过滤。满足条件操作，不满足不操作，多用于数据的查询与修改。
 - 格式：`select 字段 from 表名 where 条件;`
 
-#### 8.3.1. 比较运算符
+#### 7.3.1. 比较运算符
 
 - 比较运算符
     - `>  <  <=   >=   =  <>`：大于、小于、大于(小于)等于、不等于
@@ -808,7 +751,7 @@ from
 
 **注：mysql中用`<>`与`!=`都是可以的，但sqlserver中不识别`!=`，所以建议用`<>`；但是`!=`在sql2000中用到，则是语法错误，不兼容的**
 
-#### 8.3.2. 逻辑条件
+#### 7.3.2. 逻辑条件
 
 - `& and`：与
 - `|| or`：或
@@ -818,7 +761,7 @@ SELECT * FROM student WHERE id=3 AND gender='男';
 SELECT * FROM student WHERE id=3 OR gender='男';
 ```
 
-#### 8.3.3. 比较条件
+#### 7.3.3. 比较条件
 
 - `>=`：大于等于
 - `<=`：小于等于
@@ -829,7 +772,7 @@ SELECT * FROM student WHERE math>=80 AND math<=88;
 SELECT * FROM student WHERE math BETWEEN 80 AND 88; -- (包前包后)
 ```
 
-#### 8.3.4. 判空条件
+#### 7.3.4. 判空条件
 
 - 判断是否为空串：
     - `=''`: 是空串
@@ -848,7 +791,7 @@ SELECT * FROM student WHERE address IS NULL OR address='';
 SELECT * FROM student WHERE address IS NOT NULL AND address<>'';
 ```
 
-#### 8.3.5. 模糊查询：like
+#### 7.3.5. 模糊查询：like
 
 - `%`：表示匹配多个任意字符(0到多个)
 - `_`：表示匹配一个任意字符
@@ -863,7 +806,7 @@ SELECT * FROM student WHERE NAME LIKE '%张%';
 SELECT * FROM student WHERE NAME LIKE '张__';
 ```
 
-#### 8.3.6. 模糊查询：in
+#### 7.3.6. 模糊查询：in
 
 - `select * from 表名 where 列名 in (条件1,条件2,……);`
 
@@ -872,7 +815,7 @@ SELECT * FROM student WHERE id IN (1,3); -- 这种效率更高
 SELECT * FROM student WHERE id=1 OR id=3; -- 等价于上面的sql
 ```
 
-### 8.4. 排序查询 order by
+### 7.4. 排序查询 order by
 
 - Order by 语句的作用
     - 根据指定的列内容排序
@@ -884,7 +827,7 @@ SELECT * FROM student WHERE id=1 OR id=3; -- 等价于上面的sql
     - **order by 子句应位于 select 语句的结尾。**
     - **order by 后面指定的列名或别名必须存在，否则查询出错。**
 
-#### 8.4.1. 以表中的列名排序
+#### 7.4.1. 以表中的列名排序
 
 - 语法：`select * from 表名 order by 列名(别名) asc/desc;`
     - 按表中的列名排序，如果不写(asc/desc)则默认是顺序
@@ -896,7 +839,7 @@ SELECT * FROM student ORDER BY math;
 SELECT *, (math+english) AS 总分 FROM student ORDER BY 总分 DESC;
 ```
 
-#### 8.4.2. 以 select 语句后指定的列名排序
+#### 7.4.2. 以 select 语句后指定的列名排序
 
 - 语法：`select *,(列名1+列名2+……) as 别名 from 表名 order by 别名 asc/desc;`
     - 按新的列名排序，如果出现where条件查询，则 ORDER	BY 子句应位于 SELECT 语句的结尾。
@@ -906,7 +849,7 @@ SELECT *, (math+english) AS 总分 FROM student ORDER BY 总分 DESC;
 SELECT *, (math+english) AS 总分 FROM student WHERE NAME LIKE '张%' ORDER BY 总分;
 ```
 
-### 8.5. 聚合查询
+### 7.5. 聚合查询
 
 - 语法：`select 聚合函数名称(数值列名) from 表名;`
     - 按聚合函数的结果来查询，列必须是数值列，如果不是数值列，则结果为0，注意：聚合函数，会排除 null 值的数据
@@ -933,7 +876,7 @@ SELECT COUNT(id) FROM student;   -- 效率会比 count(*)效率稍高
 SELECT COUNT(address) FROM student;
 ```
 
-### 8.6. 分页查询 limit
+### 7.6. 分页查询 limit
 
 - 语法：`select * from 表名 limit 起始行号，查询行数。`
 - 作用：用来分页查询数据
@@ -957,8 +900,8 @@ SELECT * FROM student LIMIT 4,2;
 - `startIndex = (curPage-1)*pageSize`
 - 转变：分页实现的前提pageSize每页多少条,curPage当前页，startIndex查询的起始号
 
-### 8.7. 分组查询 group by
-#### 8.7.1. group by 语法规则
+### 7.7. 分组查询 group by
+#### 7.7.1. group by 语法规则
 
 - 语法：`group by 属性名 [having 条件表述式][with rollup]`
     - group by 关键字可以将查询结果按某个字段或多个字段进行分组。字段中值相等的为一组。
@@ -966,7 +909,7 @@ SELECT * FROM student LIMIT 4,2;
     - “having 条件表述式”用来限制分组后的显示内容，满足条件表达式的结果将显示
     - “with rollup”关键字将会在所有记录的最后加上一条记录。该记录是上面所有记录的总和
 
-#### 8.7.2. 分组查询
+#### 7.7.2. 分组查询
 
 - 语法：`select * from 表名 group by 列名;`
     - 按照指定的列对象数据进行分组。通常与聚合函数（`COUNT()`、`SUM()`、`AVG()`、`MAX()`、`MIN()`）一起使用。如果 `group by` 不与上述函数一起使用，那么查询结果就是字段聚会的分组情况，字段中取值相同记录为一组，但只显示该组的第一条记录（这种使用意义不大）
@@ -991,7 +934,7 @@ GROUP BY
 	c.`NAME`
 ```
 
-##### 8.7.2.1. GROUP_CONCAT()函数
+##### 7.7.2.1. GROUP_CONCAT()函数
 
 - GROUP_CONCAT()函数会把每个分组中指定字段值都显示出现
 
@@ -1008,7 +951,7 @@ SELECT t.spec_id, GROUP_CONCAT(t.option_name) FROM tb_specification_option t GRO
 ![](images/20190404092723963_31844.jpg)
 
 
-#### 8.7.3. 分组筛选(having)
+#### 7.7.3. 分组筛选(having)
 
 - `having` 关键字作用：用来对分组信息进行过滤，用法与where一样。
 - 语法格式：`select * from 表名 group by 列名 having 筛选条件;`
@@ -1018,12 +961,12 @@ SELECT address,COUNT(address) '人数' FROM student GROUP BY address;
 SELECT address,COUNT(address) '人数' FROM student GROUP BY address HAVING COUNT(address)>2;
 ```
 
-#### 8.7.4. where 和 having 的区别
+#### 7.7.4. where 和 having 的区别
 
 - where是对行记录进行筛选过滤，where后面**不能跟聚合函数**的(如:`count(*)`)
 - having是对组信息进行筛选过滤，having后面**可以跟聚合函数**的。(如:`count(*)`)
 
-#### 8.7.5. `with rollup` 关键字
+#### 7.7.5. `with rollup` 关键字
 
 在所有记录的最后加上一条记录。该记录是上面所有记录的总和
 
@@ -1051,15 +994,15 @@ mysql> SELECT sex, GROUP_CONCAT(name) FROM employee GROUP BY sex WITH ROLLUP;
 
 最后一条记录是上面记录的总和
 
-### 8.8. DOS 命令行下汉字乱码的问题（了解）
-#### 8.8.1. 查看字符集
+### 7.8. DOS 命令行下汉字乱码的问题（了解）
+#### 7.8.1. 查看字符集
 
 - 语法：`show variables like 'character%';`
     - `show variables` 显示所有的全局变量，`%`代表通配符
 
 ![查看字符集](images/20190404083401020_12924.jpg)
 
-#### 8.8.2. 修改字符集
+#### 7.8.2. 修改字符集
 
 DOS命令行默认的字符集是GBK，而数据库的字符集是UTF-8，要将数据库中下列三项的字符集也改成GBK。在命令行插入数据之前输入: `set names gbk;` 则等同于
 
@@ -2705,5 +2648,12 @@ mysql提供了1个数据类型：decimal，这种数据类型可以轻松解决�
 1. 主键用"pk_"开头，后面跟上该主键所在的表名；
 2. 不能超过30个字符，尽量使用小写英文单词；
 
+# 其他
 
+## 1. 官方资料
+
+- 下载地址：https://downloads.mysql.com/archives/community/
+- 官方文档地址：
+    - https://dev.mysql.com/doc/refman/5.7/en/
+    - https://dev.mysql.com/doc/mysql-errors/5.7/en/
 
