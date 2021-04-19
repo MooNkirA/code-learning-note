@@ -1,12 +1,19 @@
-# MySQL 数据库基础笔记
+# MySQL 体系架构
 
-## 1. 数据库概述
+## 1. 官方资料
 
-### 1.1. 什么是数据库
+- 下载地址：https://downloads.mysql.com/archives/community/
+- 官方文档地址：
+    - https://dev.mysql.com/doc/refman/5.7/en/
+    - https://dev.mysql.com/doc/mysql-errors/5.7/en/
+
+## 2. 数据库概述
+
+### 2.1. 什么是数据库
 
 用来存储数据的仓库
 
-### 1.2. 存储数据的方式
+### 2.2. 存储数据的方式
 
 - 数据存储在集合中
     - 优点：读写速度快
@@ -18,7 +25,7 @@
     - 优点：可以永久存储。查询速度快，查询数据很方便
     - 缺点：要使用SQL语言执行增删改查操作
 
-### 1.3. 常见的数据库管理系统
+### 2.3. 常见的数据库管理系统
 
 - MYSQL
     - 开源免费的数据库，小型的数据库.已经被Oracle收购了.MySQL6.x版本也开始收费。
@@ -36,32 +43,32 @@
 - Java相关的数据库：MYSQL，Oracle。
 - 这里使用MySQL数据库。MySQL中可以有多个数据库，数据库是真正存储数据的地方。
 
-## 2. SQL 的概念
+## 3. SQL 的概念
 
 - 结构化查询语言(Structured Query Language)简称 SQL，是一种数据库查询语言。
 - 作用：用于存取数据、查询、更新和管理关系数据库系统。
 - 关系型数据库：使用表格存储数据的数据库
 
-### 2.1. 数据库服务器、数据库和表的关系
+### 3.1. 数据库服务器、数据库和表的关系
 
 **一般在实际开发中，一个项目就对应一个数据库**
 
 所谓数据库服务器，是指在机器上装了一个数据库管理程序，这个管理程序可以管理多个数据库，一般开发人员会针对每一个应用创建一个数据库。为保存应用中实体的数据，一般会在数据库创建多个表，以保存程序中实体的数据。
 
-### 2.2. MySQL 数据库的结构
+### 3.2. MySQL 数据库创建顺序与管理
 
 - 创建的顺序
 	- 创建数据库 --> 创建数据表 --> 存储数据
 	- 一个数据库包含多个数据表
-- 通过 SQL 语句对 MySQL 数据库进行管理。
+- 通过 SQL 语句对数据库(如：MySQL)进行管理。
 
-### 2.3. 实体类与表的对应关系
+### 3.3. 实体类与表的对应关系
 
 1. 整个数据表可以看作为一个类
 2. 数据表中的每一列代表具体类一个成员变量
 3. 数据表的一行称之为一条纪录，对应一个类的对象
 
-### 2.4. 数据库中的主要对象
+### 3.4. 数据库中的主要对象
 
 1. 表(Table)：在数据库中存储数据记录的容器，一个表中包含多行数据记录。
 2. 视图(View)：是从一个或多个表导出的虚拟表，视图本身并不存储数据。
@@ -69,55 +76,329 @@
 4. 存储过程(Procedure)：一组为了完成特定功能的 SQL 语句集，存储在数据库中，经过第一次编译后再次调用不需要再次编译，用户通过指定存储过程的名字并给出参数来执行它。
 5. 触发器(Trigger)：触发器是一种特殊类型的存储过程，它在指定的表中的数据发生变化时自动生效。唤醒调用触发器以响应 INSERT、UPDATE 或 DELETE 语句。
 
-## 3. SQL 语句
+### 3.5. SQL 语言的分类
 
-### 3.1. SQL 语言的分类
+#### 3.5.1. 数据定义语言：简称DDL(Data Definition Language)
 
-- **数据定义语言：简称DDL(Data Definition Language)**
-    - 用来创建，修改，删除数据库中的各种对象：数据库，表，列等。
-    - 【关键字】创建：create，更改：alter，移除：drop等
-- **数据操作语言：简称DML(Data Manipulation Language)**
-    - 用来修改、删除、添加数据的语句。
-    - 【关键字】插入：insert、删除：delete、更新：update
-- **数据控制语言：简称DCL(Data Control Language)**
-    - 用来创建用户，分配用户权限、删除用户的语句，数据库的访问权限和安全级别。
-    - 【包含两条命令】grant：授权；revoke：撒回
-- **数据查询语言：简称DQL(Data Query Language)**
-    - 用来执行查询操作的语句。
-    - 【关键字】select，show，from，where等
+- 用来创建，修改，删除数据库中的各种对象：数据库，表，列等。
+- 【关键字】创建：`create`，更改：`alter`，移除：`drop`等
 
-### 3.2. 2、SQL 通用语法
+#### 3.5.2. 数据操作语言：简称DML(Data Manipulation Language)
 
-#### 3.2.1. SQL语句规范
+- 用来修改、删除、添加数据的语句。
+- 【关键字】插入：`insert`、删除：`delete`、更新：`update`
 
-- **SQL语句可以单行或多行书写，以分号结尾**
-- 可使用空格和缩进来增强语句的可读性
-- 同样可以使用`/**/`的方式完成注释
+#### 3.5.3. 数据控制语言：简称DCL(Data Control Language)
 
-#### 3.2.2. 表名规范
+- 用来创建用户，分配用户权限、删除用户的语句，数据库的访问权限和安全级别。
+- 【包含两条命令】`grant`：授权；`revoke`：撒回
 
-- MySQL数据库的**SQL语句不区分大小写，建议关键字使用大写，自定义的使用小写**，例如：
+#### 3.5.4. 数据查询语言：简称DQL(Data Query Language)
 
-```sql
-SELECT * FROM user;
+- 用来执行查询操作的语句。
+- 【关键字】`select`，`show`，`from`，`where`等
+
+## 4. MySQL 体系架构
+
+![](images/20210414222957073_28904.png)
+
+从上图可以看出，MySQL 最上层是连接组件。<font color=red>**服务器层是由连接池、管理工具和服务、SQL 接口、解析器、优化器、缓存、存储引擎、文件系统组成**</font>
+
+- 连接池：由于每次建立建立需要消耗很多时间，连接池的作用就是将这些连接缓存下来，下次可以直接用已经建立好的连接，提升服务器性能。
+- 管理工具和服务：系统管理和控制工具，例如备份恢复、Mysql 复制、集群等
+- SQL 接口：接受用户的 SQL 命令，并且返回用户需要查询的结果。比如 `select from xx` 语句就是调用 SQL Interface
+- 解析器: SQL 命令传递到解析器的时候会被解析器验证和解析。解析器主要功能：
+    - 将 SQL 语句分解成数据结构，并将这个结构传递到后续步骤，以后 SQL 语句的传递和处理就是基于这个结构的
+    - 如果在分解构成中遇到错误，那么就说明这个 sql 语句是不合理的
+- 优化器：查询优化器，SQL 语句在查询之前会使用查询优化器对查询进行优化
+- 缓存器：查询缓存，如果查询缓存有命中的查询结果，查询语句就可以直接去查询缓存中取数据。这个缓存机制是由一系列小缓存组成的。比如表缓存，记录缓存，key 缓存，权限缓存等。
+- 存储引擎：存储引擎是底层物理结构和实际文件读写的实现。MySQL 数据库其中一个特点就是其**插件式的表存储引擎**。
+- 文件系统：即存储数据的地方
+
+### 4.1. 连接层（待补充）
+
+
+
+### 4.2. Server 层(SQL 处理层)（待补充）
+
+
+### 4.3. 存储引擎层（待补充）
+
+<font color=red>**需要注意的点：在MySQL中，存储引擎是针对表！！官方建议在同一个数据库中，尽量所有表都使用同一个存储引擎，否则会出现一些奇怪的问题。**</font>
+
+## 5. 启动选项和参数
+
+### 5.1. 配置参数文件
+
+当 MySQL 实例启动时，数据库会先去读一个配置参数文件，用来寻找数据库的各种文件所在位置以及指定某些初始化参数。在默认情况下，MySQL 实例会在按一定的顺序中的指定位置读取配置，用户只需通过命令即可查看到相应的配置位置读取顺序。
+
+```bash
+mysql --help | grep my.cnf
 ```
 
-- 表名使用**单数**形式。如：员工表使用 EMPLOYEE，而不要使用 EMPLOYEES
-- 采用有意义的名字，一般不超过三个英文单词，单词之间使用**下划线**分隔
+![](images/20210414104315884_5048.png)
 
-#### 3.2.3. 字段名规范
+> <font color=red>**注：都是后面配置文件中的配置项会覆盖前面配置文件中的相同的配置项**</font>
 
-字段名称不能包含数据类型，不能使用关键字。
+MySQL 实例可以不需要参数文件，这时所有的参数值取决于编译 MySQL 时指定的默认值和源代码中指定参数的默认值。MySQL 数据库的参数文件是以文本方式进行存储的。通过文本编辑软件即可进行参数的修改
 
-#### 3.2.4. 标准SQL语言没有规范以下功能
+### 5.2. 参数的查看和修改
 
-- ID自示增长
-- 分页
-- 函数
-- 编程语言
-- 服务端的数据软件
+在命令行中输入以下命令可查看数据库中的所有参数。
 
-### 3.3. MySQL 中的数据类型
+```sql
+-- 查询数据库中的所有参数
+SHOW VARIABLES;
+
+-- 模糊查询数据库参数
+SHOW VARIABLES LIKE '%xxx%';
+```
+
+> 从 MySQL 5.1 版本开始，还可以通过 information_schema 架构下的 `GLOBAL_VARIABLES` 视图来进行查找，推荐使用命令`show variables`，使用更为简单，且各版本的 MySQL 数据库都支持。
+
+#### 5.2.1. MySQL 数据库中的参数的分类
+
+从不同的角度来说，主要分成两类
+
+- 从类型上：动态(dynamic)参数和静态(static)参数
+    - 动态参数意味着可以在 MySQL 实例运行中进行更改
+    - 静态参数说明在整个实例生命周期内都不得进行更改，即只读(read only)
+- 从作用范围上：全局变量(GLOBAL)和会话变量(SESSION/LOCAL)
+    - 全局变量（GLOBAL）影响服务器的整体操作。
+    - 会话变量（SESSION/LOCAL）影响某个客户端连接的操作。
+
+用 default_storage_engine 来作为示例说明，在服务器启动时会初始化一个名为 default_storage_engine，作用范围为 `GLOBAL` 的系统变量。之后每当有一个客户端连接到该服务器时，服务器都会单独为该客户端分配一个名为`default_storage_engine`，作用范围为`SESSION`的系统变量，该作用范围为`SESSION`的系统变量值按照当前作用范围为`GLOBAL`的同名系统变量值进行初始化。
+
+#### 5.2.2. 动态参数值的修改
+
+通过 `SET` 命令对动态的参数值进行修改。语法如下：
+
+```bash
+SET [global | session ] system_var_name= expr
+SET [@@global. | @@session.] system_var_name= expr
+```
+
+示例：
+
+```bash
+SET read_ buffer_size=524288;
+SET @@global.read_ buffer_size=524288;
+```
+
+### 5.3. MySQL官方手册（系统参数部分）
+
+网址（5.7版本）：https://dev.mysql.com/doc/refman/5.7/en/server-system-variables.html
+
+## 6. MySQL 数据目录结构分析
+
+像 InnoDB、MyIASM 这样的存储引擎都是把表存储在磁盘上。
+
+### 6.1. 数据目录的位置
+
+通过以下命令可以查看当前MySql的存储数据的目录位置
+
+```sql
+-- 查询数据库的数据目录
+show variables like 'datadir';
+```
+
+![](images/20210414165101686_20230.png)
+
+这个目录位置可以通过配置文件进行修改。
+
+### 6.2. 数据目录的文件
+
+**数据目录中包含创建的数据库、表、视图和触发器等用户数据**，除了这些用户数据，为了程序更好的运行，MySQL 也会创建一些其他的额外数据
+
+#### 6.2.1. 数据库的存储
+
+在使用 `CREATE DATABASE` 语句创建一个数据库时，MySQL会进行以下的处理：
+
+1. 在数据目录下创建一个和数据库名同名的子目录（文件夹)
+2. 在该与数据库名同名的子目录下创建一个名为`db.opt`的文件，这个文件中包含了该数据库的各种属性，例如该数据库的字符集和比较规则等等。
+
+![](images/20210414165446088_14244.png)
+
+进入`datadir`数据目录查看，除了 `information_schema` 这个系统数据库（*比较特殊*）外，其他的数据库在数据目录下都有对应的子目录。
+
+#### 6.2.2. 表的存储
+
+MySQL数据库表的信息可以分成：
+
+1. **表结构的定义**：是定义了表每列的数据类型、约束条件、索引、字符集等等信息。InnoDB 和 MyIASM 这两种存储引擎都在数据目录下对应的数据库子目录下创建了一个专门用于存储描述表结构信息的文件，其文件名是：`表名.frm`
+2. **表中的数据**：就是实际每个表的存储的数据。而不同的存储引擎保存的文件格式、数量也不一样。
+
+#### 6.2.3. InnoDB 表数据的存储
+
+InnoDB 的数据会放在一个表空间或者文件空间（英文名: table space 或者 filespace)的概念，这个表空间是一个抽象的概念，它可以对应文件系统上一个或多个真实文件〈不同表空间对应的文件数量可能不同)。每一个表空间可以被划分为很多个页，表数据就存放在某个表空间下的某些页里。表空间有好几种类型。
+
+- **系统表空间(system tablespace)**
+
+系统表空间可以对应文件系统上一个或多个实际的文件，默认情况下，InnoDB 会在数据目录下创建一个名为 ibdata1(在数据目录下)、大小为 12M 的文件，这个文件就是对应的系纳表空间在文件系统上的表示。
+
+![](images/20210414171418088_247.png)
+
+此文件是自扩展文件，即存储空间不够用时，它会自己增加文件大小。如果想让系统表空间对应文件系统上多个实际文件，可以在 MySQL 启动时配置对应的文件路径以及它们的大小，也可以把系统表空间对应的文件路径不配置到数据目录下，甚至可以配置到单独的磁盘分区上
+
+<font color=red>**需要注意的一点是：在一个 MySQL 服务器中，系统表空间只有一份。从 MySQL5.5.7 到 MySQL5.6.6 之间的各个版本中，表中的数据都会被默认存储到这个系统表空间。**</font>
+
+- **独立表空间(file-per-table tablespace)**
+
+在 MySQL5.6.6 以及之后的版本中，InnoB 并不会默认的把各个表的数据存储到系统表空间中，而是为<font color=red>**每一个表建立一个独立表空间**</font>，也就是说用户创建了多少个表，就有多少个独立表空间。
+
+使用独立表空间来存储表数据的话，会在该表所属数据库对应的子目录下创建一个表示该独立表空间的文件，文件名和表名相同，文件的扩展名是`.ibd`，即：`表名.ibd`
+
+![](images/20210414215622619_11464.png)
+
+如上例，`consult_content.ibd`文件就用来存储`consult_content`表中的数据和索引。也可以指定使用系统表空间还是独立表空间来存储数据，这个功能由启动参数`innodb_file_per_table`控制。配置示例如下：
+
+```
+[server]
+innodb_file_per_table=0
+```
+
+上面的配置意思是：当`imodb_file_per table`的值为0时，代表使用系统表空间；当`innodb_file pertable`的值为1时，代表使用独立表空间。需要注意的是`inmodb_file_per_table`参数只对新建的表起作用，对于已经分配了表空间的表并不起作用。
+
+- **其他类型的表空间**
+
+随着 MySQL 的发展，除了上述两种老牌表空间之外，现在还新提出了一些不同类型的表空间，比如通用表空间(general tablespace)，undo 表空间(undotablespace)、临时表空间（temporary tablespace)等。
+
+#### 6.2.4. MyIASM 表数据的存储
+
+在 MyISAM 存储引擎表中的数据和索引是分开存放的。所以在文件系统中也是使用不同的文件来存储数据文件和索引文件。与 InnoDB 不同的是，MyISAM 并没有表空间的概念，表数据都存放到对应的数据库子目录下。
+
+```sql
+-- 创建不同的是，MyISAM的表
+create table a_myisam(c1 int) engine=MyISAM;
+```
+
+![](images/20210414222629075_25947.png)
+
+如上例所示：`a_myisam.MYD`是表的数据文件；`a_myisam.MYI`是表的索引文件。
+
+### 6.3. 日志文件
+
+服务器运行过程中，会产生各种各样的日志，比如常规的查询日志、错误日志、二进制日志、redo日志、Undo日志等等，日志文件记录了影响 MySQL 数据库的各种类型活动。
+
+MySQL常见的日志文件有：错误日志（error log）、慢查询日志（slow query log）、查询日志（query log）、二进制文件（bin log）。
+
+#### 6.3.1. 错误日志
+
+错误日志文件对 MySQL 的启动、运行、关闭过程进行了记录。遇到问题时应该首先查看该文件以便定位问题。该文件不仅记录了所有的错误信息，也记录一些警告信息或正确的信息。通过下面命令来查看错误日志文件的位置：
+
+```sql
+show variables like 'log_error';
+```
+
+日志文件名称：`主机名.err`
+
+> 当 MySQL 不能正常启动时，第一个必须查找的文件应该就是错误日志文件
+
+#### 6.3.2. 慢查询日志
+
+慢查询日志可以帮助定位可能存在问题的 SQL 语句，从而进行 SQL 语句层面的优化。
+
+日志文件名称：`主机名-slow.log`
+
+#### 6.3.3. 查询日志
+
+查询日志记录了所有对 MySQL 数据库请求的信息，无论这些请求是否正确的执行。
+
+日志文件名称：`主机名.log`
+
+从 MySQL 5.1 开始，可以将查询日志的记录放入 mysql 架构下的 `general_log` 表中
+
+```sql
+SELECT * FROM general_log;
+```
+
+#### 6.3.4. 二进制日志（binlog）
+
+二进制日志记录了对 MySQL 数据库执行更改的所有操作，若操作本身没有导致数据库发生变化，该操作可能也会写入二进制文件。但是不包括 `select` 和 `show` 这类操作（因为这些操作对数据本身不会进行修改）
+
+##### 6.3.4.1. 二进制日志的几种作用
+
+- 恢复（recovery）：某些数据的恢复需要二进制日志，例如，在一个数据库全备文件恢复后，用户可以通过二进制文件进行 point-in-time 的恢复
+- 复制（replication）：其原理与恢复类似，通过复制和执行二进制日志使一台远程的 MySQL 数据库（一般称为 slave 或 standby）与一台 MySQL 数据库（一般称为 master 或 primary）进行实时同步
+- 审计（audit）：用户可以通过二进制日志中的信息来进行审计，判断是否有对数据库进行注入的攻击
+
+##### 6.3.4.2. log-bin 参数
+
+该参数用来控制是否开启二进制日志，默认为关闭。如果想要开启二进制日志的功能，可以在 MySQL 的配置文件中指定如下的格式：
+
+```
+-- 启用/设置二进制日志文件(name 可省略)
+log-bin=name;
+```
+
+> 配置说明：
+>
+> “name”为二进制日志文件的名称。如果不提供 name，那么数据库会使用默认的日志文件名（文件名为主机名，后缀名为二进制日志的序列号），且文件保存在数据库所在的目录（datadir下）
+
+配置以后，就会在数据目录下产生类似于：
+
+bin_log.00001 即为二进制日志文件；bin_log.index 为二进制的索引文件，用来存储过往产生的二进制日志序号，通常情况下，不建议手动修改这个文件。
+
+二进制日志文件在默认情况下并没有启动，需要手动指定参数来启动。开启这个选项会对 MySQL 的性能造成影响，但是性能损失十分有限。根据 MySQL 官方手册中的测试指明，开启二进制日志会使性能下降 1%。
+
+### 6.4. 其他数据文件
+
+MySQL数据目录除了以上的数据文件之外，还有运行程序的额外文件。*这些额外的文件可以在配置文件或者启动时另外指定存放目录*。主要包括这几种类型的文件：
+
+- **服务器进程文件**：每运行一个 MySQL 服务器程序，都意味着启动一个进程。MySQL 服务器会把自己的进程 ID 写入到一个 pid 文件中。
+- **socket文件**
+- **默认/自动生成的 SSL 和 RSA 证书和密钥文件**
+
+![](images/20210415091131021_5401.png)
+
+## 7. MySQL 中的系统库（了解扩展）（补充中...）
+
+### 7.1. 系统库简介
+
+MySQL 有几个系统数据库，这几个数据库包含了 MySQL 服务器运行过程中所需的一些信息以及一些运行状态信息
+
+- **performance_schema**
+
+这个数据库里主要保存 MySQL 服务器运行过程中的一些状态信息，算是对MySQL 服务器的一个性能监控。包括统计最近执行了哪些语句，在执行过程的每个阶段都花费了多长时间，内存的使用情况等等信息。
+
+- **sys**
+
+这个数据库主要是通过视图的形式把 information_schema 和 performance_schema 结合起来，让程序员可以更方便的了解 MySQL 服务器的一些性能信息。
+
+- **information_schema**
+
+这个数据库保存着 MySQL 服务器维护的所有其他数据库的信息，比如有哪些表、哪些视图、哪些触发器、哪些列、哪些索引。这些信息并不是真实的用户数据，而是一些描述性信息，有时候也称之为元数据。
+
+- **mysql**
+
+这个数据库核心，它存储了 MySQL 的用户账户和权限信息，一些存储过程、事件的定义信息，一些运行过程中产生的日志信息，一些帮助信息以及时区信息等。
+
+#### 7.1.1. performance_schema 系统库
+
+##### 7.1.1.1. 简介
+
+MySQL 的 `performance_schema` 系统库是运行在较低级别的用于监控 MySQL Server 运行过程中的资源消耗、资源等待等情况的一个功能特性，有以下的特点：
+
+- 
+
+#### 7.1.2. sys 系统库
+
+
+
+#### 7.1.3. information_schema 系统库
+
+
+
+#### 7.1.4. mysql 系统库（名称为mysql）
+
+
+
+
+# MySQL 数据库基础操作笔记
+
+## 1. SQL 语句
+
+### 1.1. MySQL 中的数据类型
 
 详细的数据类型如下(了解，红色字体为常用数据类型)
 
@@ -242,7 +523,7 @@ SELECT * FROM user;
 > 1. char、varchar和text等字符串类型都可以存储路径，但使用“\”会被过滤，所以路径中用“/”或“\\”来代替，MySQL就会不会自动过滤路径的分隔字符，完整的表示路径  
 > 2. 一般情况下，数据库中不直接存储图片和音频文件，而是存储图片与文件的路径。如果存储文件，则选择blob类型
 
-### 3.4. MySQL 中的三种注释
+### 1.2. MySQL 中的三种注释
 
 - 单行注释
     - 格式：`# 注释内容` (MySQL特有)
@@ -250,11 +531,11 @@ SELECT * FROM user;
 - 多行注释
     - 格式：`/* 注释内容 */`
 
-## 4. MySQL 数据库的管理
+## 2. MySQL 数据库的管理
 
-### 4.1. 查看数据库
+### 2.1. 查看数据库
 
-#### 4.1.1. 查看数据库命令
+#### 2.1.1. 查看数据库命令
 
 ```sql
 show databases;
@@ -269,14 +550,14 @@ show create database 数据库名;
 - 查看某个数据库在定义时的信息
 - eg: `show create database day21_1;`
 
-#### 4.1.2. mysql默认4个初始数据库的作用
+#### 2.1.2. mysql默认4个初始数据库的作用
 
 - 【information_schema】：MySQL 元数据，一些基础的数据。
 - 【MySQL】：MySQL 配置数据库，配置信息。其中 user 表用于管理 MySQL 用户和密码、权限信息。
 - 【performance_schema】：MySQL 性能监控信息数据库，如：每条语句的执行情况。
 - 【test】：测试数据库。
 
-### 4.2. 创建数据库
+### 2.2. 创建数据库
 
 ```sql
 create database 数据库名;
@@ -292,7 +573,7 @@ create database 数据库名 default character set 字符集;
 - 使用指定字符创建数据库;
 - eg: `create database db2 default character set utf8;` (**注意：不是utf-8**)
 
-### 4.3. 删除数据库
+### 2.3. 删除数据库
 
 ```sql
 drop database 数据库名;
@@ -302,7 +583,7 @@ drop database 数据库名;
 
 **注：删除没有确认信息，做删除处理时需要小心**
 
-### 4.4. 修改数据库默认字符集
+### 2.4. 修改数据库默认字符集
 
 ```sql
 alter database 数据库名 default character set 字符集;
@@ -310,7 +591,7 @@ alter database 数据库名 default character set 字符集;
 
 - 修改数据库默认字符集
 
-### 4.5. 查看正在使用的数据库
+### 2.5. 查看正在使用的数据库
 
 ```sql
 select database();
@@ -318,7 +599,7 @@ select database();
 
 - 查看正在使用的数据库(这个命令一般在DOS下操作才需要使用)
 
-### 4.6. 校对规则（了解）
+### 2.6. 校对规则（了解）
 
 - character set：指定数据库默认的字符集
 - collate：校对规则
@@ -342,19 +623,19 @@ select database();
 
 > eg: `create database db4 default character set gbk collate gbk_chinese_ci;`
 
-## 5. MySQL 表的管理
-### 5.1. 查看表结构
-#### 5.1.1. 选择操作的数据库
+## 3. MySQL 表的管理
+### 3.1. 查看表结构
+#### 3.1.1. 选择操作的数据库
 
 - 语法：`use 数据库名;`
 - 作用：选择数据库
 
-#### 5.1.2. 查看数据库所有表格清单
+#### 3.1.2. 查看数据库所有表格清单
 
 - 语法：`show tables;`
 - 作用：查看当前数据库中的所有表，显示表格的清单
 
-#### 5.1.3. 查看数据库指定表格
+#### 3.1.3. 查看数据库指定表格
 
 - 语法：`show create table 表名;`
 - 作用：以sql格式返回，查看指定表格的结构
@@ -366,12 +647,12 @@ select database();
 
 ![2](images/20190403155005722_23206.jpg)
 
-#### 5.1.4. 查询当前数据库的引擎
+#### 3.1.4. 查询当前数据库的引擎
 
 - 语法：`show table status from 查询的数据库名称;`
 - 作用：查询当前数据库下所有表的状态与信息，包括表的引擎（Enginez）
 
-### 5.2. 创建表
+### 3.2. 创建表
 
 **创建表格式**
 
@@ -411,7 +692,7 @@ CREATE TABLE sort (
 
 如果在建表时不指定字段 int 类型的长度时，系统则默认生成长度为 11 的字段。11 也是 int 类型的最大长度，其中第一位表示符号+或者-，后面十位表示数字。 如果指定了长度，该字段其实也是长度为 11 的字段，因为只要是 int 类型，系统都分配了长度 11 位。**在插入数据时，只要不超出int类型的最大范围即可**
 
-### 5.3. 复制表
+### 3.3. 复制表
 
 - `create table 新表名 like 旧表名;`
     - 创建一个新表，复制旧表的结构(**没有内容，只有表结构**)
@@ -420,7 +701,7 @@ CREATE TABLE sort (
 
 - `create table 新表名 as (select * from 要复制的表名);`
 
-### 5.4. 删除表
+### 3.4. 删除表
 
 - `drop table 表名1,表名2,表名3,……;`
     - 删除一个表格
@@ -428,8 +709,8 @@ CREATE TABLE sort (
     - 删除多个表格，用逗号分隔可以删除多张表
     - eg: `drop table s1, s2, s3;`
 
-### 5.5. 修改表
-#### 5.5.1. 添加字段 add
+### 3.5. 修改表
+#### 3.5.1. 添加字段 add
 
 - `alter table 表名 add字段名1 数据类型(长度) 约束, add 字段名2数据类型(长度) 约束, ……;`
     - 给指定表格添加一个字段
@@ -437,26 +718,26 @@ CREATE TABLE sort (
     - 给指定表格添加多个字段，**每个字段都需要有add**
     - eg: `alter table student add a int, add b int;`
 
-#### 5.5.2. 修改字段类型(长度)或约束 modify
+#### 3.5.2. 修改字段类型(长度)或约束 modify
 
 - `alter table 表名 modify 字段名 修改后的类型(长度) 约束;`
     - 修改指定表格中的指定字段的类型(长度)或约束
     - eg: atler table student modify gender varchar(2);
 			ALTER TABLE sort MODIFY sname VARCHAR(50) NOT NULL;添加约束
 
-#### 5.5.3. 修改字段名称 change
+#### 3.5.3. 修改字段名称 change
 
 - `alter table 表名 change 旧字段名 新字段名 类型(长度) 约束;`
     - 将指定表格中的旧字段名改成新字段名，类型(长度)可变，约束可变
     - eg: `alter table student change gender sex varchar(2);`
 
-#### 5.5.4. 删除字段 drop
+#### 3.5.4. 删除字段 drop
 
 - `alter table 表名 drop 字段名1, drop 字段名2,……;`
     - 删除指定表格中的字段（**可以多个，每个字段前都要加drop**）
     - eg: `alter table student drop a, drop b;`
 
-#### 5.5.5. 修改表名 rename
+#### 3.5.5. 修改表名 rename
 
 - 格式1：`alter table 旧表名 rename 新表名;`
     - 将指定的表格名称修改成新表格名称
@@ -464,20 +745,20 @@ CREATE TABLE sort (
 - 格式2：`rename table 旧表名 to 新表名;`
     - eg: `rename table sutdent to stu;`
 
-#### 5.5.6. 修改表的字符集
+#### 3.5.6. 修改表的字符集
 
 - `alter table 表名 character set 新字符集;`
     - 修改指定表格的字符集
     - eg: `alter table student character set gbk;`
 
-#### 5.5.7. 给数据库的表建立索引
+#### 3.5.7. 给数据库的表建立索引
 
 - `alter table 表名 add index(字段名);`
     - 给指定的表建立索引
 
-## 6. MySQL 数据的管理与操作
-### 6.1. 插入数据 insert
-#### 6.1.1. 插入所有列
+## 4. MySQL 数据的管理与操作
+### 4.1. 插入数据 insert
+#### 4.1.1. 插入所有列
 
 - `insert into 表名 values (值1, 值2, 值3 ……), (值1, 值2, 值3 ……), (值1, 值2, 值3 ……)……;`
     - 向表中插入所有列
@@ -491,15 +772,15 @@ CREATE TABLE sort (
     4. **字符和日期型数据应包含在单引号中。双引号也可以但不推荐**。
     5. 不指定列或使用 null，表示插入空值。
 
-#### 6.1.2. 插入部分列
+#### 4.1.2. 插入部分列
 
 - `insert into 表 (列名1,列名2,列名3..) values (值1,值2,值3..), (值1,值2,值3..),……;`
     - 向表中插入某些列，也可以一次插入多个列
     - eg: `INSERT INTO student(id,NAME,age,remark) VALUES(3,'jacky',27,'佛山人');`
     - 注意事项：**列名和值的顺序、数量、数据类型要保持一致**
 
-### 6.2. insert 高级插入数据语法
-#### 6.2.1. `INSERT ... ON DUPLICATE KEY` 数据存在时更新操作，不存在时进行插入操作
+### 4.2. insert 高级插入数据语法
+#### 4.2.1. `INSERT ... ON DUPLICATE KEY` 数据存在时更新操作，不存在时进行插入操作
 
 `INSERT ... ON DUPLICATE KEY UPDATE`这个语法的目的是为了解决重复性，当数据库中存在某个记录时，执行这条语句会更新它，而不存在这条记录时，会插入它。
 
@@ -528,7 +809,7 @@ CREATE TABLE `t_stock_chg` (
 
 *注：这里的字段f_updatetime每次在更新数据时会自动更新，但是如果记录中存在某条数据，后来又更新它，而更新的数据和原数据一模一样，那么这个字段也不会更新，仍然是上一次的时间。此时`INSERT ... ON DUPLICATE KEY UPDATE`影响行数是0*。
 
-#### 6.2.2. replace into 插入数据
+#### 4.2.2. replace into 插入数据
 
 `replace into` 跟 `insert` 功能类似，不同点在于：`replace into`首先尝试插入数据到表中
 
@@ -549,7 +830,7 @@ MySQL replace into 有三种形式：
 
 前两种形式用的多些。其中“into”关键字可以省略，不过最好加上“into”，这样意思更加直观。另外，对于那些没有给予值的列，MySQL将自动为这些列赋上默认值。
 
-#### 6.2.3. insert ignore into 插入数据
+#### 4.2.3. insert ignore into 插入数据
 
 `INSERT IGNORE` 与 `INSERT INTO` 的区别就是`INSERT IGNORE`会忽略数据库中已经存在的数据，如果数据库没有数据，就插入新的数据；如果有数据的话就跳过这条数据（即执行这条插入语句时不会报错，只有警告，数据实际没有插入）。这样就可以保留数据库中已经存在数据，达到在间隙中插入数据的目的。
 
@@ -575,28 +856,28 @@ INSERT IGNORE INTO test(id, NAME, age) VALUES (2, 'aa', 18);
 
 *结论：执行INSERT时，如果不想报错(语法错误除外)，就用INSERT IGNORE，其它情况两者一样*
 
-### 6.3. 修改数据 update
-#### 6.3.1. 语法格式与关键字
+### 4.3. 修改数据 update
+#### 4.3.1. 语法格式与关键字
 
 - **关键字**
     - `UPDATE`：语法可以用新值更新原有表行中的各列。
     - `SET`：子句指示要修改哪些列和要给予哪些值。
     - `WHERE`：子句指定应更新哪些行。如没有 WHERE 子句，则更新所有的行
 
-#### 6.3.2. 修改所有的记录
+#### 4.3.2. 修改所有的记录
 
 - 格式1：`update 表名 set 列名1=值,列名2=值,……;`
     - 更新所有行的数据（**谨慎使用**）
     - eg: `UPDATE student SET gender='男';`
 
-#### 6.3.3. 修改符合某些条件的一（多）个列数据（用的较多）
+#### 4.3.3. 修改符合某些条件的一（多）个列数据（用的较多）
 
 - 格式2：`update 表名 set 列名1=值,列名2=值,…… where 条件;`
     - 根据条件修改信息
     - eg: `UPDATE student SET age=28,remark='韶关人' WHERE id=2;`
 
-### 6.4. 删除数据 delete
-#### 6.4.1. 删除表中的所有数据( delete )
+### 4.4. 删除数据 delete
+#### 4.4.1. 删除表中的所有数据( delete )
 
 - `delete from 表名;`
     - 删除表的所有记录，相当清空表的内容
@@ -606,14 +887,14 @@ INSERT IGNORE INTO test(id, NAME, age) VALUES (2, 'aa', 18);
         2. 回滚：使用 delete 删除的数据，通过事务可以回滚。
         3. where 子句：可以使用 where 子句
 
-#### 6.4.2. 删除部分行数据
+#### 4.4.2. 删除部分行数据
 
 - `delete from 表名 where 条件;`
     - 删除符合条件的行内容
     - eg: `delete from student where id=3;`
     - **注：删除语句不能使用别名，如：`delete from student s where s.id=3;`会报语法错误。如果使用别名，正确的语法是：`delete s from student s where s.id=3;`**
 
-#### 6.4.3. 删除所有数据( truncate )
+#### 4.4.3. 删除所有数据( truncate )
 
 - `truncate table 表名;`
     - 删除表的所有数据，相当于重新创建一个表，后面不能带条件(`where/having`)
@@ -623,7 +904,7 @@ INSERT IGNORE INTO test(id, NAME, age) VALUES (2, 'aa', 18);
         2. 回滚：使用 truncate 删除的数据，不能回滚！
         3. 后面不能带条件
 
-#### 6.4.4. MySQL 中的 delete 和 truncate 的区别？
+#### 4.4.4. MySQL 中的 delete 和 truncate 的区别？
 
 - **delete**
     - 删除所有数据时，不会影响自增长的值
@@ -632,8 +913,8 @@ INSERT IGNORE INTO test(id, NAME, age) VALUES (2, 'aa', 18);
     - 删除数据时，先直接drop表，然后新建一张表，自增长的值从默认值开始
     - 不可以通过事务回滚数据
 
-## 7. MySQL 数据查询
-### 7.1. 数据查询语法总格式
+## 5. MySQL 数据查询
+### 5.1. 数据查询语法总格式
 
 mysql查询数据有两种方式
 
@@ -671,25 +952,25 @@ from
 	其他子句
 ```
 
-### 7.2. 查询数据 select（查询不会改变原表的数据）
-#### 7.2.1. 查询所有列
+### 5.2. 查询数据 select（查询不会改变原表的数据）
+#### 5.2.1. 查询所有列
 
 - `select * from 表名;`
     - eg: `SELECT * FROM student;`
 
-#### 7.2.2. 查询指定列
+#### 5.2.2. 查询指定列
 
 - `select 列名1, 列名2, ……… from 表名;`
     - eg: `SELECT NAME,gender FROM student;`
 
-#### 7.2.3. 查询时指定列的别名
+#### 5.2.3. 查询时指定列的别名
 
 - `select 列名1 as 别名1, 列名2 as 别名2,…… from 表名;`
     - eg: `SELECT NAME AS '姓名',gender AS '性别' FROM student;`
         - AS 可以省略
         - `SELECT NAME '姓名',gender '性别' FROM student;`
 
-#### 7.2.4. 合并列查询
+#### 5.2.4. 合并列查询
 
 - `select *,(数值类型的列名1+数值类型的列名2+……) as 别名 from 表名;`
     - eg: `SELECT *, (math+english) 总成绩 FROM student;`
@@ -699,7 +980,7 @@ from
         - `SELECT uname,salary,(salary*12) AS '年薪' FROM users;`
         - 查询所有员工的薪资,年薪,以及姓名，也可以选择列后直接进行算术运算
 
-#### 7.2.5. 查询时添加常量列
+#### 5.2.5. 查询时添加常量列
 
 - `select *,'添加的内容' as 别名 from 表名;`
     - 使用`''`后，单引号里的内容就当成常量列，在查询时新增一列到原表。
@@ -717,7 +998,7 @@ from
 +----+------+------+------+---------+--------+
 ```
 
-#### 7.2.6. 去除重复数据
+#### 5.2.6. 去除重复数据
 
 - `select distinct 列名 from 表名;`
     - 根据某一列的内容去掉重复的值，只保留其中一个内容。
@@ -726,12 +1007,12 @@ from
     - 根据多列的内容去掉重复的值，要多个列的内容同时一致才去掉。
     - eg: `SELECT DISTINCT(address) FROM student;`
 
-### 7.3. 条件查询 where
+### 5.3. 条件查询 where
 
 - where语句表条件过滤。满足条件操作，不满足不操作，多用于数据的查询与修改。
 - 格式：`select 字段 from 表名 where 条件;`
 
-#### 7.3.1. 比较运算符
+#### 5.3.1. 比较运算符
 
 - 比较运算符
     - `>  <  <=   >=   =  <>`：大于、小于、大于(小于)等于、不等于
@@ -750,7 +1031,7 @@ from
 
 **注：mysql中用`<>`与`!=`都是可以的，但sqlserver中不识别`!=`，所以建议用`<>`；但是`!=`在sql2000中用到，则是语法错误，不兼容的**
 
-#### 7.3.2. 逻辑条件
+#### 5.3.2. 逻辑条件
 
 - `& and`：与
 - `|| or`：或
@@ -760,7 +1041,7 @@ SELECT * FROM student WHERE id=3 AND gender='男';
 SELECT * FROM student WHERE id=3 OR gender='男';
 ```
 
-#### 7.3.3. 比较条件
+#### 5.3.3. 比较条件
 
 - `>=`：大于等于
 - `<=`：小于等于
@@ -771,7 +1052,7 @@ SELECT * FROM student WHERE math>=80 AND math<=88;
 SELECT * FROM student WHERE math BETWEEN 80 AND 88; -- (包前包后)
 ```
 
-#### 7.3.4. 判空条件
+#### 5.3.4. 判空条件
 
 - 判断是否为空串：
     - `=''`: 是空串
@@ -790,7 +1071,7 @@ SELECT * FROM student WHERE address IS NULL OR address='';
 SELECT * FROM student WHERE address IS NOT NULL AND address<>'';
 ```
 
-#### 7.3.5. 模糊查询：like
+#### 5.3.5. 模糊查询：like
 
 - `%`：表示匹配多个任意字符(0到多个)
 - `_`：表示匹配一个任意字符
@@ -805,7 +1086,7 @@ SELECT * FROM student WHERE NAME LIKE '%张%';
 SELECT * FROM student WHERE NAME LIKE '张__';
 ```
 
-#### 7.3.6. 模糊查询：in
+#### 5.3.6. 模糊查询：in
 
 - `select * from 表名 where 列名 in (条件1,条件2,……);`
 
@@ -814,7 +1095,7 @@ SELECT * FROM student WHERE id IN (1,3); -- 这种效率更高
 SELECT * FROM student WHERE id=1 OR id=3; -- 等价于上面的sql
 ```
 
-### 7.4. 排序查询 order by
+### 5.4. 排序查询 order by
 
 - Order by 语句的作用
     - 根据指定的列内容排序
@@ -826,7 +1107,7 @@ SELECT * FROM student WHERE id=1 OR id=3; -- 等价于上面的sql
     - **order by 子句应位于 select 语句的结尾。**
     - **order by 后面指定的列名或别名必须存在，否则查询出错。**
 
-#### 7.4.1. 以表中的列名排序
+#### 5.4.1. 以表中的列名排序
 
 - 语法：`select * from 表名 order by 列名(别名) asc/desc;`
     - 按表中的列名排序，如果不写(asc/desc)则默认是顺序
@@ -838,7 +1119,7 @@ SELECT * FROM student ORDER BY math;
 SELECT *, (math+english) AS 总分 FROM student ORDER BY 总分 DESC;
 ```
 
-#### 7.4.2. 以 select 语句后指定的列名排序
+#### 5.4.2. 以 select 语句后指定的列名排序
 
 - 语法：`select *,(列名1+列名2+……) as 别名 from 表名 order by 别名 asc/desc;`
     - 按新的列名排序，如果出现where条件查询，则 ORDER	BY 子句应位于 SELECT 语句的结尾。
@@ -848,7 +1129,7 @@ SELECT *, (math+english) AS 总分 FROM student ORDER BY 总分 DESC;
 SELECT *, (math+english) AS 总分 FROM student WHERE NAME LIKE '张%' ORDER BY 总分;
 ```
 
-### 7.5. 聚合查询
+### 5.5. 聚合查询
 
 - 语法：`select 聚合函数名称(数值列名) from 表名;`
     - 按聚合函数的结果来查询，列必须是数值列，如果不是数值列，则结果为0，注意：聚合函数，会排除 null 值的数据
@@ -875,7 +1156,7 @@ SELECT COUNT(id) FROM student;   -- 效率会比 count(*)效率稍高
 SELECT COUNT(address) FROM student;
 ```
 
-### 7.6. 分页查询 limit
+### 5.6. 分页查询 limit
 
 - 语法：`select * from 表名 limit 起始行号，查询行数。`
 - 作用：用来分页查询数据
@@ -899,8 +1180,8 @@ SELECT * FROM student LIMIT 4,2;
 - `startIndex = (curPage-1)*pageSize`
 - 转变：分页实现的前提pageSize每页多少条,curPage当前页，startIndex查询的起始号
 
-### 7.7. 分组查询 group by
-#### 7.7.1. group by 语法规则
+### 5.7. 分组查询 group by
+#### 5.7.1. group by 语法规则
 
 - 语法：`group by 属性名 [having 条件表述式][with rollup]`
     - group by 关键字可以将查询结果按某个字段或多个字段进行分组。字段中值相等的为一组。
@@ -908,7 +1189,7 @@ SELECT * FROM student LIMIT 4,2;
     - “having 条件表述式”用来限制分组后的显示内容，满足条件表达式的结果将显示
     - “with rollup”关键字将会在所有记录的最后加上一条记录。该记录是上面所有记录的总和
 
-#### 7.7.2. 分组查询
+#### 5.7.2. 分组查询
 
 - 语法：`select * from 表名 group by 列名;`
     - 按照指定的列对象数据进行分组。通常与聚合函数（`COUNT()`、`SUM()`、`AVG()`、`MAX()`、`MIN()`）一起使用。如果 `group by` 不与上述函数一起使用，那么查询结果就是字段聚会的分组情况，字段中取值相同记录为一组，但只显示该组的第一条记录（这种使用意义不大）
@@ -933,7 +1214,7 @@ GROUP BY
 	c.`NAME`
 ```
 
-##### 7.7.2.1. GROUP_CONCAT()函数
+##### 5.7.2.1. GROUP_CONCAT()函数
 
 - GROUP_CONCAT()函数会把每个分组中指定字段值都显示出现
 
@@ -950,7 +1231,7 @@ SELECT t.spec_id, GROUP_CONCAT(t.option_name) FROM tb_specification_option t GRO
 ![](images/20190404092723963_31844.jpg)
 
 
-#### 7.7.3. 分组筛选(having)
+#### 5.7.3. 分组筛选(having)
 
 - `having` 关键字作用：用来对分组信息进行过滤，用法与where一样。
 - 语法格式：`select * from 表名 group by 列名 having 筛选条件;`
@@ -960,12 +1241,12 @@ SELECT address,COUNT(address) '人数' FROM student GROUP BY address;
 SELECT address,COUNT(address) '人数' FROM student GROUP BY address HAVING COUNT(address)>2;
 ```
 
-#### 7.7.4. where 和 having 的区别
+#### 5.7.4. where 和 having 的区别
 
 - where是对行记录进行筛选过滤，where后面**不能跟聚合函数**的(如:`count(*)`)
 - having是对组信息进行筛选过滤，having后面**可以跟聚合函数**的。(如:`count(*)`)
 
-#### 7.7.5. `with rollup` 关键字
+#### 5.7.5. `with rollup` 关键字
 
 在所有记录的最后加上一条记录。该记录是上面所有记录的总和
 
@@ -993,15 +1274,15 @@ mysql> SELECT sex, GROUP_CONCAT(name) FROM employee GROUP BY sex WITH ROLLUP;
 
 最后一条记录是上面记录的总和
 
-### 7.8. DOS 命令行下汉字乱码的问题（了解）
-#### 7.8.1. 查看字符集
+### 5.8. DOS 命令行下汉字乱码的问题（了解）
+#### 5.8.1. 查看字符集
 
 - 语法：`show variables like 'character%';`
     - `show variables` 显示所有的全局变量，`%`代表通配符
 
 ![查看字符集](images/20190404083401020_12924.jpg)
 
-#### 7.8.2. 修改字符集
+#### 5.8.2. 修改字符集
 
 DOS命令行默认的字符集是GBK，而数据库的字符集是UTF-8，要将数据库中下列三项的字符集也改成GBK。在命令行插入数据之前输入: `set names gbk;` 则等同于
 
@@ -1015,15 +1296,600 @@ set character_set_client=gbk; -- 设置客户端的字符集
 
 注：上面只改变了本次运行时的数据库局部的字符集，重启后也会变回原来的模式。
 
----
+## 6. 自关联
+
+### 6.1. 自关联概述
+
+一张表，自关联一对多，数据表的外键列引用自身的主键列，自关联一般针对多级关系的使用
+
+> 省 --> 市 --> 区(县) --> 镇(街道)
+> 老板 --> 总经理 --> 部门经理 --> 主管 --> 组长 --> 员工
+
+### 6.2. 自关联格式
+
+**创建表同时自关联主外键：**
+
+```sql
+create table 表名(
+	主键名 int primary key auto_increment,
+	其他列,
+	外键名(parent_主键名，一般这么写) int,
+	constraint foreign key(parent_主键名) references 表名(主键名);
+);
+```
+
+**创建表后再关联主外键的格式：**
+
+```sql
+alter table 表名 add constraint foreign key(主键名) references 表名(parent_主键名);
+```
+
+**注：最顶层的 parent_id 是 null**
+
+![](images/20190404104905271_11375.jpg)
+
+```sql
+-- Code Dome:一张表，自关联一对多
+CREATE TABLE AREA(
+	id int PRIMARY KEY auto_increment,
+	NAME VARCHAR(50),
+	description VARCHAR(100),
+	parent_id int
+);
+
+-- 自关联一对多
+ALTER TABLE AREA ADD CONSTRAINT FOREIGN KEY (parent_id) REFERENCES AREA(id);
+```
+
+## 7. 多表连接查询
+
+### 7.1. 多表连接查询概述
+
+- 单表查询：从一张表中查询数据
+- 多表查询：从多张有关联的表中查询数据。
+
+### 7.2. 多表连接类型
+
+- 交叉连接查询
+- 内连接查询
+- 左(内)连接查询
+- 右(外)连接查询
+- 全表连接查询（MySql 不支持，Oracle 支持）
+
+### 7.3. 多表连接查询的步骤
+
+1. 首先确定要查询的数据有哪些
+2. 再确定要查询的数据来自哪些表
+3. 最后确定表之间的连接条件
+
+**多表连接查询必须使用表名(或表别名).列名才进行查询，因为需要区分该列是属于哪个表的，一旦设置了别名后，就必须用别名.列名，用原来表名.列名会报错。**
+
+## 8. 交叉连接查询（笛卡尔积）
+### 8.1. 交叉查询概述
+
+- 当查询记录数等于多个表的记录数乘积时，该查询则称为交叉查询。
+- 交叉查询的结果称为笛卡尔积，即多张表记录的乘积
+- 在实际开发中，笛卡尔积的结果一般没有任何意义，一般都会在笛卡尔积基础上加上过滤条件，得出的结果才会有意义。
+
+### 8.2. 交叉查询格式
+
+- 语法格式：`select 表名1.*,表名2.*,…… from 表名1,表名2,…… where 控制条件;`
+    - 这种查询会产生笛卡尔积，就是两个表的所有记录的乘积
+    - eg: `SELECT e.*, d.* FROM employee e, dept d;`
+
+图例：有 2 张表，1 张 R、1 张 S
+
+- R 表有 ABC 三列，表中有三条记录。
+
+|  A   |  B   |  C   |
+| :--: | :--: | :--: |
+|  a1  |  b1  |  c1  |
+|  a2  |  b2  |  c2  |
+|  a3  |  b3  |  c3  |
+
+- S 表有 CD 两列，表中有三条记录。
+
+|  C   |  D   |
+| :--: | :--: |
+|  c1  |  d1  |
+|  c2  |  d2  |
+|  c4  |  d3  |
+
+- **交叉连接(笛卡尔积):` select r.*,s.* from r,s;`**
+
+|  A   |  B   |  C   |  C   |  D   |
+| :--: | :--: | :--: | :--: | :--: |
+|  a1  |  b1  |  c1  |  c1  |  d1  |
+|  a2  |  b2  |  c2  |  c1  |  d1  |
+|  a3  |  b3  |  c3  |  c1  |  d1  |
+|  a1  |  b1  |  c1  |  c2  |  d2  |
+|  a2  |  b2  |  c2  |  c2  |  d2  |
+|  a3  |  b3  |  c3  |  c2  |  d2  |
+|  a1  |  b1  |  c1  |  c4  |  d3  |
+|  a2  |  b2  |  c2  |  c4  |  d3  |
+|  a3  |  b3  |  c3  |  c4  |  d3  |
+
+## 9. 内连接查询( inner join …… on )
+### 9.1. 内连接概述
+
+- 只有满足连接条件的记录才会被查询出来，实际开发使用频率最高
+- 连接条件：主表的主键与从表的外键值进行相等匹配查询
+
+**内连接查询的分类**
+
+- 隐式内连接：使用where语句(在笛卡尔积的基础上使用)
+- 显式内连接：使用语法格式 `inner join …… on`（inner 可以省略）
+
+### 9.2. 显式内连接：使用 `inner join ... on`
+
+- 显式内连接格式：`select 表名1.*,表名2.* from 表名1 inner join 表名2 on 表名1.列名=表名2.列名;`
+    - 显式内连接，上面的列名分别是主从表的主键与从键，表名后面可以跟表别名，通常用表的首字母，后面使用**表别名.列名**
+
+```sql
+select s.sname,c.sub from student s inner join class c on s.class_id=c.cid;
+```
+
+图例：**内连接：`select r.*,s.* from r inner join s on r.c=s.c;`**
+
+|  A   |  B   |  C   |  C   |  D   |
+| :--: | :--: | :--: | :--: | :--: |
+|  a1  |  b1  |  c1  |  c1  |  d1  |
+|  a2  |  b2  |  c2  |  c2  |  d2  |
+
+### 9.3. 隐式内连接：使用 where 子句（笛卡尔积再过滤）
+
+- 隐式内连接格式：`select表名1.*,表名2.* from 表名1,表名2 where 表名1.列名=表名2.列名;`
+    - 隐式内连接，上面的列名分别是主从表的主键与从键，表名后面可以跟表别名，通常用表的首字母，后面使用**表别名.列名**
+
+```sql
+select s.sname,c.sub from student s,class c where s.class_id=c.cid;
+```
+
+### 9.4. 【扩展】内连接3个以上数据表
+
+- **INNER JOIN 连接三个数据表的用法：**
+
+```sql
+-- 方式1：
+SELECT
+	*
+FROM
+	表1
+INNER JOIN 表2
+INNER JOIN 表3 ON 表1.字段号 = 表2.字段号
+AND 表1.字段号 = 表3.字段号;
+
+-- 方式2：
+SELECT
+	*
+FROM
+	(表1 INNER JOIN 表2 ON 表1.字段号 = 表2.字段号)
+INNER JOIN 表3 ON 表1.字段号 = 表3.字段号;
+
+-- 以上两种写法一样的效果。
+```
+
+- **INNER JOIN 连接四个数据表的用法：**
+
+```sql
+SELECT
+	*
+FROM
+	表1
+INNER JOIN 表2
+INNER JOIN 表3
+INNER JOIN 表4 ON 表1.字段号 = 表2.字段号
+AND 表1.字段号 = 表3.字段号
+AND Member.字段号 = 表4.字段号;
+```
+
+- **INNER JOIN 连接五个数据表的用法：**
+
+```sql
+SELECT
+	*
+FROM
+	表1
+INNER JOIN 表2
+INNER JOIN 表3
+INNER JOIN 表4
+INNER JOIN 表5 ON 表1.字段号 = 表2.字段号
+AND 表1.字段号 = 表3.字段号
+AND Member.字段号 = 表4.字段号
+AND Member.字段号 = 表5.字段号;
+```
+
+*上面的表号根据实际情况确定，连接六个数据表的用法，根据上面类推*
+
+**注意事项：**
+
+- **如果连接n张表，其连接条件就是n-1个。**
+- **使用内连接前，搞清楚需要输出那些字段，字段在那些表中，各自表的主外键的关系。**
+- 在建立数据表时，如果一个表与多个表联接，那么这一个表中的字段必须是“数字”数据类型，而多个表中的相同字段必须是主键，而且是“自动编号”数据类型。否则，很难联接成功。
+
+## 10. 左(外)连接( left join …… on )
+### 10.1. 左外连接概述
+
+- **定义**：用左表的记录去匹配右表的记录，如果条件满足，则右边显示右表的记录；否则右表显示 null。**（左表和右表取决于定义在实际语句的位置）**
+- **格式**：`left outer join …… on ……`（outer 可以省略）
+- **特点**：左边的表的记录一定会全部显示完整
+
+### 10.2. 左外连接格式
+
+语法格式：`select 表名1.*,表名2.* from 表名1 left join 表名2 on 表名1.列名=表名2.列名;`
+
+```sql
+select s.sname,c.sub from student s left join class c on s.class_id=c.cid;
+```
+
+图例：**左连接：`select r.*,s.* from r left join s on r.c=s.c;`**
+
+|  A   |  B   |  C   |  C   |  D   |
+| :--: | :--: | :--: | :--: | :--: |
+|  a1  |  b1  |  c1  |  c1  |  d1  |
+|  a2  |  b2  |  c2  |  c2  |  d2  |
+|  a3  |  b3  |  c3  |      | null |
+
+## 11. 右(外)连接( right join …… on )
+### 11.1. 右外连接概述（outer 可以省略）
+
+- **定义**：用右表的记录去匹配左表的记录，如果条件满足，则左边显示左表的记录；否则左边显示 null。**（左表和右表取决于定义在实际语句的位置）**
+- **格式**：`right outer join …… on ……`（outer 可以省略）
+- **特点**：如果右外连接，右边的表的记录一定会全部显示完整
+
+### 11.2. 右外连接格式
+
+语法格式：`select 表名1.*,表名2.* from 表名1 right join 表名2 on 表名1.列名=表名2.列名;`
+
+```sql
+select s.sname,c.sub from student s right join class c on s.class_id=c.cid;
+```
+
+图例：**右外连接：`select r.*,s.* from r right join s on r.c=s.c;`**
+
+|  A   |  B   |  C   |  C   |  D   |
+| :--: | :--: | :--: | :--: | :--: |
+|  a1  |  b1  |  c1  |  c1  |  d1  |
+|  a2  |  b2  |  c2  |  c2  |  d2  |
+| null | null |      |  c4  |  d3  |
+
+## 12. 全表连接的结果（MySql 不支持，Oracle 支持、了解）
+
+```sql
+select r.*,s.* from r full join s on r.c=s.c
+```
+
+|  A   |  B   |  C   |  C   |  D   |
+| :--: | :--: | :--: | :--: | :--: |
+|  a1  |  b1  |  c1  |  c1  |  d1  |
+|  a2  |  b2  |  c2  |  c2  |  d2  |
+|  a3  |  b3  |  c3  |      | null |
+| null | null |      |  c4  |  d3  |
+
+## 13. SQL 的各种 join 用法(网上资料)
+
+下图展示了 LEFT JOIN、RIGHT JOIN、INNER JOIN、OUTER JOIN 相关的 7 种用法
+
+![表连接查询图1](images/20190404112841616_605.jpg)
+
+### 13.1. INNER JOIN（内连接）
+
+![表连接查询图2](images/20190404113056054_7740.jpg)
+
+```sql
+SELECT
+	< select_list >
+FROM
+	Table_A A
+INNER JOIN Table_B B ON A. KEY = B. KEY
+```
+
+### 13.2. LEFT JOIN（左连接）
+
+![表连接查询图3](images/20190404113103136_9879.jpg)
+
+```sql
+SELECT
+	< select_list >
+FROM
+	Table_A A
+LEFT JOIN Table_B B ON A. KEY = B. KEY
+```
+
+### 13.3. RIGHT JOIN（右连接）
+
+![表连接查询图4](images/20190404113111224_6867.jpg)
+
+```sql
+SELECT
+	< select_list >
+FROM
+	Table_A A
+RIGHT JOIN Table_B B ON A. KEY = B. KEY
+```
+
+### 13.4. OUTER JOIN（外连接）
+
+![表连接查询图5](images/20190404113125064_29354.jpg)
+
+```sql
+SELECT
+	< select_list >
+FROM
+	Table_A A
+FULL OUTER JOIN Table_B B ON A. KEY = B. KEY
+```
+
+### 13.5. LEFT JOIN EXCLUDING INNER JOIN（左连接-内连接）
+
+![表连接查询图6](images/20190404113134408_30772.jpg)
+
+```sql
+SELECT
+	< select_list >
+FROM
+	Table_A A
+LEFT JOIN Table_B B ON A. KEY = B. KEY
+WHERE
+	B. KEY IS NULL
+```
+
+### 13.6. RIGHT JOIN EXCLUDING INNER JOIN（右连接-内连接）
+
+![表连接查询图7](images/20190404113146671_88.jpg)
+
+```sql
+SELECT
+	< select_list >
+FROM
+	Table_A A
+RIGHT JOIN Table_B B ON A. KEY = B. KEY
+WHERE
+	A. KEY IS NULL
+```
+
+### 13.7. OUTER JOIN EXCLUDING INNER JOIN（外连接-内连接）
+
+![表连接查询图8](images/20190404113204071_7635.jpg)
+
+```sql
+SELECT
+	< select_list >
+FROM
+	Table_A A
+FULL OUTER JOIN Table_B B ON A. KEY = B. KEY
+WHERE
+	A. KEY IS NULL
+OR B. KEY IS NULL
+```
+
+## 14. 自连接
+
+### 14.1. 自连接的概念
+
+- 一张表自己连接自己，不是表连接的一种。
+- 本质还是使用到内连接或左连接或右连接。
+
+### 14.2. 自连接的格式
+
+1. 先创建自关联表
+2. 使用内连接(左连接、右连接)
+
+```sql
+-- 自连接
+-- 创建新员工表emp(员工工号,员工姓名,上级编号)
+CREATE TABLE emp (
+	id INT PRIMARY KEY,
+	NAME VARCHAR (20),
+	parent_id INT, -- 上级id
+	CONSTRAINT FOREIGN KEY (parent_id) REFERENCES emp (id)
+);
+
+-- 使用显式内连接
+SELECT
+	e. NAME 员工姓名,
+	b. NAME 上司姓名
+FROM
+	emp e
+INNER JOIN emp b ON e.parent_id = b.id;
+
+-- 连接条件
+-- 查询员工姓名和对应的上司姓名，没有上司的员工姓名也要显示出来。
+-- 左外连接
+SELECT
+	e. NAME 员工姓名,
+	b. NAME 上司姓名
+FROM
+	emp e
+LEFT JOIN emp b ON e.parent_id = b.id;  -- 连接条件
+```
+
+## 15. 子查询
+### 15.1. 子查询概述
+
+- 一条 SQL 语句(子查询)的查询结果做为另一条查询语句(父查询)的条件或查询结果，这种操作则称为子查询。
+- 多条 SQL 语句嵌套使用，内部的 SQL 查询语句称为子查询。
+
+### 15.2. 子查询的注意事项
+
+子查询语句一定要使用括号括起来，否则无法确定子查询语句什么时候结束。
+
+### 15.3. 子查询三种分类
+#### 15.3.1. 单行子查询
+
+- 查询结果是一个单行单列的值。
+- 父查询可以使用 `=`、 `<`、 `>` 等比较运算符
+
+```sql
+-- 先查询平均工资的值（单行子查询）
+SELECT
+	AVG(salary)
+FROM
+	employee;
+
+-- 再使用父查询判断小于平均值的员工
+SELECT
+	NAME 姓名, salary 工资
+FROM
+	employee
+WHERE
+	salary < (
+		SELECT
+			AVG(salary)
+		FROM
+			employee
+	);
+```
+
+#### 15.3.2. 多行子查询
+
+- 多行子查询查询结果是多行单列的值，类似于一个数组
+- 父查询使用 in 关键字的使用结果
+
+```sql
+-- 3) 查询大于 5000 的员工，来至于哪些部门，输出部门的名字
+-- 先查询大于5000的员工名单（多行子查询）
+SELECT
+	NAME 姓名
+FROM
+	employee
+WHERE
+	salary > 5000;
+
+-- 查询大于5000的员工的部门名字
+SELECT
+	d. NAME 部门名称
+FROM
+	dept d
+WHERE
+	d.id IN (
+		SELECT
+			e.dept_id
+		FROM
+			employee e
+		WHERE
+			salary > 5000
+	);
+
+-- 第2种方法使用内连接
+SELECT
+	e. NAME 员工姓名, e.salary 工资, d. NAME 部门名称
+FROM
+	employee e
+INNER JOIN dept d ON e.dept_id = d.id
+AND e.salary > 5000;
+
+-- 4) 查询开发部与财务部所有的员工信息，分别使用子查询和表连接实现
+-- 使用多行子查询。查询开发部与财务部的部门ID
+SELECT
+	d.id
+FROM
+	dept d
+WHERE
+	d. NAME IN ('开发部', '财务部');
+
+-- 使用多行子查询
+SELECT
+	*
+FROM
+	employee e
+WHERE
+	e.dept_id IN (
+		SELECT
+			d.id
+		FROM
+			dept d
+		WHERE
+			d. NAME IN ('开发部', '财务部')
+	);
+
+-- 使用表连接查询
+SELECT
+	e.*, d. NAME
+FROM
+	employee e
+INNER JOIN dept d ON e.dept_id = d.id
+WHERE
+	d. NAME IN ('开发部', '财务部');
+```
+
+**注：需要注意，如果在子查询定义过的别名，出了括号后，父查询就无法使用该别名，需要自己重新定义一个别名，如下例：**
+
+```sql
+-- 先找到上过关羽课的学生id，当子查询结果，再查找不在结果内的学生
+SELECT
+	s.sid 学号, s.sname 姓名
+FROM
+	stu s
+WHERE
+	s.sid NOT IN (
+		SELECT
+			s.sid
+		FROM
+			stu s
+		INNER JOIN stu_cou sc
+		INNER JOIN course c
+		INNER JOIN teacher t ON s.sid = sc.sid
+		AND sc.cid = c.cid
+		AND c.cid = t.cid
+		WHERE
+			t.tname = '关羽'
+	);
+```
+
+#### 15.3.3. 多列子查询
+
+- 多列子查询返回结果是一个多行多列的值，类似于一张虚拟表。
+- 不能用于 where 条件，用于 select 子句中做为子表
+
+**注意事项：如果子查询和表连接可以同时实现结果时，子查询的效率低于表连接查询，优先考虑使用表连接。**
+
+```sql
+-- 5) 查询 2011 年以后入职的员工信息和部门信息，分别使用子查询和表连接实现
+-- 使用多列子查询。查询2011年后入职人员的全部信息
+SELECT
+	*
+FROM
+	employee e
+WHERE
+	e.join_date > '2011-01-01';
+
+-- 使用多列子查询
+SELECT
+	e.*, d. NAME
+FROM
+	dept d,
+	(
+		SELECT
+			*
+		FROM
+			employee e
+		WHERE
+			e.join_date > '2011-01-01'
+	) e
+WHERE
+	d.id = e.dept_id;
+
+-- 使用内连接查询
+SELECT
+	e.*, d. NAME
+FROM
+	employee e
+INNER JOIN dept d ON e.dept_id = d.id
+WHERE
+	e.join_date > '2011-01-01';
+```
 
 # MySQL 约束与多表关系操作
+
 ## 1. DCL语句使用(了解)
+
 ### 1.1. DCL概述
 
 用于创建用户，删除用户，给用户分配权限等
 
 ### 1.2. 2、常用操作
+
 #### 1.2.1. 创建用户
 
 - 语句格式：`create user 用户名@xxx identified by '密码';`
@@ -1501,6 +2367,304 @@ select stu.*,course.cname as '学科名',stu_tea_cou.score as '得分',teacher.t
 
 ![n:n表关系图（三个）](images/20190404102946118_1242.jpg)
 
+# 事务和事务的隔离级别
+
+## 1. 事务管理的概念
+
+在实际的业务开发中，有些业务操作要多次访问数据库。一个业务要发送多条 SQL 语句给数据库执行。需要将多次访问数据库的操作视为一个整体来执行，要么全部执行成功。要么全部执行失败。
+
+事务就是数据库管理系统（DBMS）执行过程中的一个逻辑单位（不可再进行分割），由一个有限的数据库操作序列构成（多个 DML 语句，`select` 语句不包含事务），要不全部成功，要不全部不成功。如果其中有一条 SQL 语句执行失败，那么之前已经成功的SQL语句都要进行事务的回滚（撤销）。
+
+## 2. 事务特性
+
+事务应该具有4个属性：原子性、一致性、隔离性、持久性。这四个属性通常称为 ACID 特性。
+
+### 2.1. 原子性（Atomicity）
+
+原子性：事务操作中的所有SQL语句不可再分割，要么全部执行成功，要么全部执行失败。对于一个事务来说，不能只执行其中的一部分操作。
+
+```
+示例：
+A卡扣除500元
+B卡增加500元
+在整个事务操作中，A卡与B卡要同时成功或者同时失败，不能只出现扣除或者只出现增加的情况
+```
+
+### 2.2. 一致性（Consistency）
+
+一致性：事务将数据库从一种一致性转换到另外一种一致性状态，事务开始之前和事务结束之后的数据要保持一致。
+
+```
+示例：
+A卡扣除500元
+B卡增加500元
+在整个事务操作前后，A卡与B卡的总和前后一致
+```
+
+### 2.3. 隔离性（Isolation）
+
+多个事务的操作是互不干扰的，一个事务的执行不能被其他事务干扰。即一个事务内部的操作及使用的数据对并发的其他事务是隔离的，并发执行的各个事务之间不能互相干扰。
+
+```
+示例：
+A卡余额为1200元、B卡余额为300元
+A卡两次转入B卡，分别都是500元
+从理论上完成以上两次转账后，A卡余额为200元，B卡的余额为1300元
+
+如果将A卡两次转入B卡的操作分别称为T1和T2，在现实世界中T1和T2应该是没有关系的两次操作，但在真实的数据库操作中，可能会出现T1与T2的操作是交替执行的。
+此时，T1与T2都先读取了A卡的余额，然后T1基于原来A卡的余额去减操作并分别更新A、B卡，而T2因为某些原因，读取余额后等待了一段时间才继续操作，此时T2的减操作还是基于A卡最原来的余额。所以两次减操作后，其实相当于A卡只减了一次，而B卡却加了两次。
+```
+
+![](images/20210418120627041_17119.jpg)
+
+> 对于现实世界中状态转换对应的某些数据库操作来说，不仅要保证这些操作以原子性的方式执行完成，而且要保证其它的状态转换不会影响到本次状态转换，这个规则被称之为隔离性。
+
+### 2.4. 持久性（Durability）
+
+事务一旦提交，则其所做的修改就会永久保存到数据库中，是不可逆的。此时即使系统崩溃，已经提交的修改数据也不会丢失。
+
+## 3. 事务隔离级别
+
+### 3.1. 事务并发引发的3个问题
+
+MySQL 是一个客户端/服务器架构的软件，对于同一个服务器来说，可以有若干个客户端与之连接，每个客户端与服务器连接上之后，就可以称之为一个会话（Session）。每个客户端都可以在自己的会话中向服务器发出请求语句，一个请求语句可能是某个事务的一部分，也就是对于服务器来说可能同时处理多个事务。
+
+事务有一个称之为隔离性的特性，理论上在某个事务对某个数据进行访问时，其他事务应该进行排队，当该事务提交之后，其他事务才可以继续访问这个数据，这样的话并发事务的执行就变成了串行化执行。但是对串行化执行性能影响太大，既想保持事务的一定的隔离性，又想让服务器在处理访问同一数据的多个事务时性能尽量高些，当舍弃隔离性的时候，可能会带来以下一些数据问题。
+
+#### 3.1.1. 脏读
+
+一个事务读取到了另一个事务中修改但未提交的数据。
+
+#### 3.1.2. 不可重复读
+
+一个事务多次读取的数据内容不一致。要求是同一个事务中多次读取时数据，结果都应该是一致的。一般是由于另一个事务 `update` 语句修改数据后并提交后引发。
+
+#### 3.1.3. 幻读
+
+一个事务中多次查询的数据的记录数不一致。要求在一个事务多次读取的数据的数量是一致的，一般是由另一个事务的 `insert` 或 `delete` 引发。
+
+> 有一点值得注意：
+>
+> 如果事务2是删除了符合的记录而不是插入新记录，事务1之后再根据相同的条件读取的记录变少了，这种现象算不算幻读呢？
+>
+> 在SQL92标准中，这个上面的示例是属于幻读，但在 MySQL 中规定这种现象不属于“幻读”，而是被归纳到“不可重复读”，幻读强调的是一个事务按照某个相同条件多次读取记录时，后读取时读到了之前没有读到的记录。
+
+### 3.2. 隔离级别的作用
+
+隔离级别就用来解决并发访问存在的问题。隔离级别越低，越严重的问题就越可能发生。在 SQL 标准中设立了4个隔离级别。
+
+> 并发事务问题按严重性排序：`脏读 > 不可重复读 > 幻读`
+
+#### 3.2.1. SQL92标准的隔离级别分类
+
+| 级别 |   名字   |     隔离级别      | 脏读  | 不可重复读 | 幻读  |                 概述                 |
+| :--: | -------- | ---------------- | :---: | :-------: | :---: | ------------------------------------ |
+|  1   | 读未提交 | read uncommitted | **√** |   **√**   | **√** | 一个事务读取到了另一个事务未提交的数据。 |
+|  2   | 读已提交 | read committed   |   ×   |   **√**   | **√** | 一个事务读取到另一个事务已经提交的数据。 |
+|  3   | 可重复读 | repeatable read  |   ×   |     ×     | **√** | 同一个事务中多次读取数据内容一致。       |
+|  4   | 串行化   | serializable     |   ×   |     ×     |   ×   | 同时只能有一个事务执行。相当于单线程     |
+
+> 注：√ 代表存在的问题。**一般只要求使用到级别3可重复读即可**
+>
+> <font color=red>**MySQL的隔离级别与SQL92标准有点差别，MySQL的可重复读级别基本上已经解决了“幻读”的问题**</font>
+
+#### 3.2.2. 常用数据库支持与默认的隔离级别
+
+不同的数据库厂商对 SQL 标准中规定的四种隔离级别支持不一样。
+
+- Oracle 就只支持 READ COMMITTED 和 SERIALIZABLE 隔离级别。
+- MySQL 虽然支持 4 种隔离级别，但与 SQL 标准中所规定的各级隔离级别允许发生的问题却有些出入，MySQL 在 REPEATABLE READ 隔离级别下，是可以禁止幻读问题的发生的。
+
+不同数据库厂商默认的隔离级别
+
+- MySQL: 可重复读（REPEATABLE READ）
+- Qracle、SQL Server: 读已提交（READ COMMITTED）
+
+#### 3.2.3. 设置事务的隔离级别
+
+修改事务的隔离级别的命令：
+
+```sql
+SET [GLOBAL|SESSION] TRANSACTION ISOLATION LEVEL level;
+```
+
+其中的`level`可选值有4个：`REPEATABLE READ`、`READ COMMITTED`、`READ UNCOMMITTED`、`SERIALIZABLE`
+
+设置事务的隔离级别的语句中，在`SET`关键字后可以放置`GLOBAL`关键字、`SESSION`关键字或者什么都不放，这样会对不同范围的事务产生不同的影响，具体如下：
+
+- **使用 `GLOBAL` 关键字（在全局范围影响）**：
+
+```sql
+-- 示例：只对执行完该语句之后产生的会话起作用。当前已经存在的会话无效。
+SET GLOBAL TRANSACTION ISOLATION LEVEL SERIALIZABLE;
+```
+
+- **使用 `SESSION` 关键字（在会话范围影响）**：
+
+```sql
+-- 对当前会话的所有后续的事务有效。该语句可以在已经开启的事务中间执行，但不会影响当前正在执行的事务。如果在事务之间执行，则对后续的事务有效。
+SET SESSION TRANSACTION ISOLATION LEVEL SERIALIZABLE;
+```
+
+- **上述两个关键字都不用（只对执行语句后的下一个事务产生影响）**：
+
+```sql
+-- 只对当前会话中下一个即将开启的事务有效。下一个事务执行完后，后续事务将恢复到之前的隔离级别。该语句不能在已经开启的事务中间执行，会报错的。
+SET TRANSACTION ISOLATION LEVEL SERIALIZABLE;
+```
+
+- **在服务器启动时想改变事务的默认隔离级别，修改启动参数`transaction-isolation`的值。**
+
+```
+# 默认隔离级别就从原来的REPEATABLE READ 变成了 SERIALIZABLE。
+--transaction-isolation=SERIALIZABLE
+```
+
+#### 3.2.4. MySQL数据库查看当前事务的隔离级别的命令
+
+想要查看当前会话默认的隔离级别可以通过查看系统变量`transaction_isolation`的值
+
+```sql
+-- 传统写法
+SHOW VARIABLES LIKE 'transaction_isolation';
+
+-- 简便的写法：5.7.20版本后
+SELECT @@transaction_isolation;
+
+-- 简便的写法：在 MySQL 5.7.20 的版本中引入来替换tx_isolation的，以前的版本将上述用到系统变量transaction_isolation 的地方替换为 tx_isolation。
+SELECT @@tx_isolation;
+```
+
+## 4. MySQL 事务操作
+
+### 4.1. 事务基础语法
+
+- 开启事务。<font color=red>**注意：开了一个新的事务，之前的事务会自动提交**</font>
+
+```sql
+start transaction;
+```
+
+- 提交事务，一旦事务提交了，无法通过回滚撤消
+
+```sql
+commit;
+```
+
+- 回滚事务
+
+```sql
+rollback;
+```
+
+### 4.2. 保存点
+
+如果你开启了一个事务，执行了很多语句，忽然发现某条语句有点问题，使用 `ROLLBACK` 语句来让数据库状态恢复到事务执行之前的样子，然后一切从头再来，但是可能根据业务和数据的变化，不需要全部回滚。所以 MySQL 里提出了一个保存点（英文：savepoint）的概念，就是在事务对应的数据库语句中打几个点，在调用 `ROLLBACK` 语句时可以指定会滚到哪个点，而不是回到最初的原点。
+
+#### 4.2.1. 基础语法
+
+定义保存点的语法如下：
+
+```sql
+SAVEPOINT 保存点名称;
+```
+
+当想回滚到某个保存点时，可以使用下边这个语句（下边语句中的单词WORK 和 SAVEPOINT 是可有可无的）：
+
+```sql
+ROLLBACK TO [SAVEPOINT] 保存点名称;
+```
+
+删除某个保存点语句：
+
+```sql
+RELEASE SAVEPOINT 保存点名称;
+```
+
+> *注：很少会使用，通常在存储过程中有可能会用到*
+
+#### 4.2.2. 保存点示例
+
+```sql
+-- 自动提交事务是开启的
+show variables like '%autocommit%';
+set autocommit=0;
+insert into testdemo values(5,5,5);
+savepoint order_exp;
+insert into testdemo values(6,6,6);
+savepoint order_exp_2;
+insert into testdemo values(7,7,7);
+savepoint s3;
+select * from testdemo;
+rollback to savepoint order_exp_2;
+rollback;
+```
+
+## 5. 事务提交模式分类
+
+### 5.1. 自动提交模式（MySQL 默认）
+
+MySQL 默认是每一条 DML(增删改)语句都是一个单独的事务，每条语句都会自动开启一个事务，执行完毕后自动提交事务。
+
+### 5.2. 显示提交模式
+
+- 开启事务方式1：
+    - MySQL中全局变量`autocommit`默认值是1，自动提交事务
+    - 执行sql语句`set @@autocommit = 0;`（0 关闭，1 开启），禁止自动提交事务。关闭自动提交后，需求手动提交事务
+    - 查询当前事务的提交方式参数值：`select @@autocommit;`
+- 开启事务方式2：
+    - 自动开启事务：`start transaction;`
+    - 一旦开启事务，接下来的所有的SQL语句都是在同一个事务中，直到提交或回滚，该事务才会结束。
+- 提交事务：当所有的SQL语句成功执行后提交
+- 回滚事务：当某一条SQL语句执行失败则进行回滚。
+
+### 5.3. 隐式提交模式
+
+当使用`START TRANSACTION`或者`BEGIN`语句开启了一个事务，或者把系统变量`autocommit`的值设置为`OFF`时，事务就不会进行自动提交，但是如果期间输入了某些语句之后就会MySQL会自动将事务提交，像输入了`COMMIT`语句一样，这种因为某些特殊的语句而导致事务提交的情况称为隐式提交。
+
+#### 5.3.1. 执行DDL语句
+
+执行了定义或修改数据库对象的数据定义语言（DDL），所谓的数据库对象，指的就是数据库、表、视图、存储过程等等这些东西。当使用`CREATE`、`ALTER`、`DROP`等语句去修改数据库对象时，就会隐式的提交前边语句所属于的事务
+
+```sql
+BEGIN;
+SELECT ... # 事务中的一条语句
+UPDATE ... # 事务中的一条语句
+... # 事务中的其它语句
+CREATE TABLE ... # 此语句会隐式的提交前边语句所属于的事务
+```
+
+#### 5.3.2. 隐式使用或修改 mysql 数据库中的表
+
+当使用 `ALTER USER`、`CREATE USER`、`DROP USER`、`GRANT`、`RENAME USER`、`REVOKE`、`SET PASSWORD`等语句时也会隐式的提交前边语句所属于的事务。
+
+#### 5.3.3. 事务控制或关于锁定的语句
+
+- 在一个会话里，一个事务还没提交或者回滚时又使用 `START TRANSACTION` 或者 `BEGIN` 语句开启了另一个事务时，会隐式的提交上一个事务。
+
+```sql
+BEGIN;
+SELECT ... # 事务中的一条语句
+UPDATE ... # 事务中的一条语句
+... # 事务中的其它语句
+BEGIN; # 此语句会隐式的提交前边语句所属于的事务
+```
+
+- 当前的`autocommit`系统变量的值为`OFF`，然后手动把它修改为`ON`时，也会隐式的提交前边语句所属的事务。
+- 使用`LOCK TABLES`、`UNLOCK TABLES` 等关于锁定的语句也会隐式的提交前边语句所属的事务。
+
+#### 5.3.4. 加载数据的语句
+
+使用 `LOAD DATA` 语句来批量往数据库中导入数据时，也会隐式的提交前边语句所属的事务。
+
+#### 5.3.5. 关于 MySQL 复制的一些语句
+
+使用`START SLAVE`、`STOP SLAVE`、`RESET SLAVE`、`CHANGE MASTER TO`等语句时也会隐式的提交前边语句所属的事务。
+
+#### 5.3.6. 其它的相关语句
+
+使用`ANALYZE TABLE`、`CACHE INDEX`、`CHECK TABLE`、`FLUSH`、`LOAD INDEX INTOCACHE`、`OPTIMIZE TABLE`、`REPAIR TABLE、RESET`等语句也会隐式的提交前边语句所属的事务。
+
 # 数据库索引
 
 ## 1. 索引概述
@@ -1508,6 +2672,9 @@ select stu.*,course.cname as '学科名',stu_tea_cou.score as '得分',teacher.t
 ### 1.1. 什么是索引
 
 MySQL官方对索引的定义为：索引（index）是帮助MySQL高效获取数据的数据结构（有序）。在数据之外，数据库系统还维护者满足特定查找算法的**数据结构**，这些数据结构以某种方式引用（指向）数据， 这样就可以在这些数据结构上实现高级查找算法，**这种数据结构就是索引**。如下面的示意图所示：
+
+- <font color=red>**索引的本质是：一种数据结构**</font>
+- <font color=red>**索引的作用是：高效获取数据**</font>
 
 ![](images/20201201105423150_3788.png)
 
@@ -1620,614 +2787,6 @@ MySQL中的 B+Tree 索引结构示意图：
 1. **单值索引**：即一个索引只包含单个列，一个表可以有多个单列索引
 2. **唯一索引**：索引列的值必须唯一，但允许有空值
 3. **复合索引**：即一个索引包含多个列
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# MySQL 数据库多表查询
-
-## 1. 自关联
-
-### 1.1. 自关联概述
-
-一张表，自关联一对多，数据表的外键列引用自身的主键列，自关联一般针对多级关系的使用
-
-> 省 --> 市 --> 区(县) --> 镇(街道)  
-> 老板 --> 总经理 --> 部门经理 --> 主管 --> 组长 --> 员工
-
-### 1.2. 自关联格式
-
-**创建表同时自关联主外键：**
-
-```sql
-create table 表名(
-	主键名 int primary key auto_increment,
-	其他列,
-	外键名(parent_主键名，一般这么写) int,
-	constraint foreign key(parent_主键名) references 表名(主键名);
-);
-```
-
-**创建表后再关联主外键的格式：**
-
-```sql
-alter table 表名 add constraint foreign key(主键名) references 表名(parent_主键名);
-```
-
-**注：最顶层的 parent_id 是 null**
-
-![](images/20190404104905271_11375.jpg)
-
-```sql
--- Code Dome:一张表，自关联一对多
-CREATE TABLE AREA(
-	id int PRIMARY KEY auto_increment,
-	NAME VARCHAR(50),
-	description VARCHAR(100),
-	parent_id int
-);
-
--- 自关联一对多
-ALTER TABLE AREA ADD CONSTRAINT FOREIGN KEY (parent_id) REFERENCES AREA(id);
-```
-
-## 2. 多表连接查询
-### 2.1. 多表连接查询概述
-
-- 单表查询：从一张表中查询数据
-- 多表查询：从多张有关联的表中查询数据。
-
-### 2.2. 多表连接类型
-
-- 交叉连接查询
-- 内连接查询
-- 左(内)连接查询
-- 右(外)连接查询
-- 全表连接查询（MySql 不支持，Oracle 支持）
-
-### 2.3. 多表连接查询的步骤
-
-1. 首先确定要查询的数据有哪些
-2. 再确定要查询的数据来自哪些表
-3. 最后确定表之间的连接条件
-
-**多表连接查询必须使用表名(或表别名).列名才进行查询，因为需要区分该列是属于哪个表的，一旦设置了别名后，就必须用别名.列名，用原来表名.列名会报错。**
-
-## 3. 交叉连接查询（笛卡尔积）
-### 3.1. 交叉查询概述
-
-- 当查询记录数等于多个表的记录数乘积时，该查询则称为交叉查询。
-- 交叉查询的结果称为笛卡尔积，即多张表记录的乘积
-- 在实际开发中，笛卡尔积的结果一般没有任何意义，一般都会在笛卡尔积基础上加上过滤条件，得出的结果才会有意义。
-
-### 3.2. 交叉查询格式
-
-- 语法格式：`select 表名1.*,表名2.*,…… from 表名1,表名2,…… where 控制条件;`
-    - 这种查询会产生笛卡尔积，就是两个表的所有记录的乘积
-    - eg: `SELECT e.*, d.* FROM employee e, dept d;`
-
-图例：有 2 张表，1 张 R、1 张 S
-
-- R 表有 ABC 三列，表中有三条记录。
-
-|  A   |  B   |  C   |
-| :--: | :--: | :--: |
-|  a1  |  b1  |  c1  |
-|  a2  |  b2  |  c2  |
-|  a3  |  b3  |  c3  |
-
-- S 表有 CD 两列，表中有三条记录。
-
-|  C   |  D   |
-| :--: | :--: |
-|  c1  |  d1  |
-|  c2  |  d2  |
-|  c4  |  d3  |
-
-- **交叉连接(笛卡尔积):` select r.*,s.* from r,s;`**
-
-|  A   |  B   |  C   |  C   |  D   |
-| :--: | :--: | :--: | :--: | :--: |
-|  a1  |  b1  |  c1  |  c1  |  d1  |
-|  a2  |  b2  |  c2  |  c1  |  d1  |
-|  a3  |  b3  |  c3  |  c1  |  d1  |
-|  a1  |  b1  |  c1  |  c2  |  d2  |
-|  a2  |  b2  |  c2  |  c2  |  d2  |
-|  a3  |  b3  |  c3  |  c2  |  d2  |
-|  a1  |  b1  |  c1  |  c4  |  d3  |
-|  a2  |  b2  |  c2  |  c4  |  d3  |
-|  a3  |  b3  |  c3  |  c4  |  d3  |
-
-## 4. 内连接查询( inner join …… on )
-### 4.1. 内连接概述
-
-- 只有满足连接条件的记录才会被查询出来，实际开发使用频率最高
-- 连接条件：主表的主键与从表的外键值进行相等匹配查询
-
-**内连接查询的分类**
-
-- 隐式内连接：使用where语句(在笛卡尔积的基础上使用)
-- 显式内连接：使用语法格式 `inner join …… on`（inner 可以省略）
-
-### 4.2. 显式内连接：使用 `inner join ... on`
-
-- 显式内连接格式：`select 表名1.*,表名2.* from 表名1 inner join 表名2 on 表名1.列名=表名2.列名;`
-    - 显式内连接，上面的列名分别是主从表的主键与从键，表名后面可以跟表别名，通常用表的首字母，后面使用**表别名.列名**
-
-```sql
-select s.sname,c.sub from student s inner join class c on s.class_id=c.cid;
-```
-
-图例：**内连接：`select r.*,s.* from r inner join s on r.c=s.c;`**
-
-|  A   |  B   |  C   |  C   |  D   |
-| :--: | :--: | :--: | :--: | :--: |
-|  a1  |  b1  |  c1  |  c1  |  d1  |
-|  a2  |  b2  |  c2  |  c2  |  d2  |
-
-### 4.3. 隐式内连接：使用 where 子句（笛卡尔积再过滤）
-
-- 隐式内连接格式：`select表名1.*,表名2.* from 表名1,表名2 where 表名1.列名=表名2.列名;`
-    - 隐式内连接，上面的列名分别是主从表的主键与从键，表名后面可以跟表别名，通常用表的首字母，后面使用**表别名.列名**
-
-```sql
-select s.sname,c.sub from student s,class c where s.class_id=c.cid;
-```
-
-### 4.4. 【扩展】内连接3个以上数据表
-
-- **INNER JOIN 连接三个数据表的用法：**
-
-```sql
--- 方式1：
-SELECT
-	*
-FROM
-	表1
-INNER JOIN 表2
-INNER JOIN 表3 ON 表1.字段号 = 表2.字段号
-AND 表1.字段号 = 表3.字段号;
-
--- 方式2：
-SELECT
-	*
-FROM
-	(表1 INNER JOIN 表2 ON 表1.字段号 = 表2.字段号)
-INNER JOIN 表3 ON 表1.字段号 = 表3.字段号;
-
--- 以上两种写法一样的效果。
-```
-
-- **INNER JOIN 连接四个数据表的用法：**
-
-```sql
-SELECT
-	*
-FROM
-	表1
-INNER JOIN 表2
-INNER JOIN 表3
-INNER JOIN 表4 ON 表1.字段号 = 表2.字段号
-AND 表1.字段号 = 表3.字段号
-AND Member.字段号 = 表4.字段号;
-```
-
-- **INNER JOIN 连接五个数据表的用法：**
-
-```sql
-SELECT
-	*
-FROM
-	表1
-INNER JOIN 表2
-INNER JOIN 表3
-INNER JOIN 表4
-INNER JOIN 表5 ON 表1.字段号 = 表2.字段号
-AND 表1.字段号 = 表3.字段号
-AND Member.字段号 = 表4.字段号
-AND Member.字段号 = 表5.字段号;
-```
-
-*上面的表号根据实际情况确定，连接六个数据表的用法，根据上面类推*
-
-**注意事项：**
-
-- **如果连接n张表，其连接条件就是n-1个。**
-- **使用内连接前，搞清楚需要输出那些字段，字段在那些表中，各自表的主外键的关系。**
-- 在建立数据表时，如果一个表与多个表联接，那么这一个表中的字段必须是“数字”数据类型，而多个表中的相同字段必须是主键，而且是“自动编号”数据类型。否则，很难联接成功。
-
-## 5. 左(外)连接( left join …… on )
-### 5.1. 左外连接概述
-
-- **定义**：用左表的记录去匹配右表的记录，如果条件满足，则右边显示右表的记录；否则右表显示 null。**（左表和右表取决于定义在实际语句的位置）**
-- **格式**：`left outer join …… on ……`（outer 可以省略）
-- **特点**：左边的表的记录一定会全部显示完整
-
-### 5.2. 左外连接格式
-
-语法格式：`select 表名1.*,表名2.* from 表名1 left join 表名2 on 表名1.列名=表名2.列名;`
-
-```sql
-select s.sname,c.sub from student s left join class c on s.class_id=c.cid;
-```
-
-图例：**左连接：`select r.*,s.* from r left join s on r.c=s.c;`**
-
-|  A   |  B   |  C   |  C   |  D   |
-| :--: | :--: | :--: | :--: | :--: |
-|  a1  |  b1  |  c1  |  c1  |  d1  |
-|  a2  |  b2  |  c2  |  c2  |  d2  |
-|  a3  |  b3  |  c3  |      | null |
-
-## 6. 右(外)连接( right join …… on )
-### 6.1. 右外连接概述（outer 可以省略）
-
-- **定义**：用右表的记录去匹配左表的记录，如果条件满足，则左边显示左表的记录；否则左边显示 null。**（左表和右表取决于定义在实际语句的位置）**
-- **格式**：`right outer join …… on ……`（outer 可以省略）
-- **特点**：如果右外连接，右边的表的记录一定会全部显示完整
-
-### 6.2. 右外连接格式
-
-语法格式：`select 表名1.*,表名2.* from 表名1 right join 表名2 on 表名1.列名=表名2.列名;`
-
-```sql
-select s.sname,c.sub from student s right join class c on s.class_id=c.cid;
-```
-
-图例：**右外连接：`select r.*,s.* from r right join s on r.c=s.c;`**
-
-|  A   |  B   |  C   |  C   |  D   |
-| :--: | :--: | :--: | :--: | :--: |
-|  a1  |  b1  |  c1  |  c1  |  d1  |
-|  a2  |  b2  |  c2  |  c2  |  d2  |
-| null | null |      |  c4  |  d3  |
-
-## 7. 全表连接的结果（MySql 不支持，Oracle 支持、了解）
-
-```sql
-select r.*,s.* from r full join s on r.c=s.c
-```
-
-|  A   |  B   |  C   |  C   |  D   |
-| :--: | :--: | :--: | :--: | :--: |
-|  a1  |  b1  |  c1  |  c1  |  d1  |
-|  a2  |  b2  |  c2  |  c2  |  d2  |
-|  a3  |  b3  |  c3  |      | null |
-| null | null |      |  c4  |  d3  |
-
-## 8. SQL 的各种 join 用法(网上资料)
-
-下图展示了 LEFT JOIN、RIGHT JOIN、INNER JOIN、OUTER JOIN 相关的 7 种用法
-
-![表连接查询图1](images/20190404112841616_605.jpg)
-
-### 8.1. INNER JOIN（内连接）
-
-![表连接查询图2](images/20190404113056054_7740.jpg)
-
-```sql
-SELECT
-	< select_list >
-FROM
-	Table_A A
-INNER JOIN Table_B B ON A. KEY = B. KEY
-```
-
-### 8.2. LEFT JOIN（左连接）
-
-![表连接查询图3](images/20190404113103136_9879.jpg)
-
-```sql
-SELECT
-	< select_list >
-FROM
-	Table_A A
-LEFT JOIN Table_B B ON A. KEY = B. KEY
-```
-
-### 8.3. RIGHT JOIN（右连接）
-
-![表连接查询图4](images/20190404113111224_6867.jpg)
-
-```sql
-SELECT
-	< select_list >
-FROM
-	Table_A A
-RIGHT JOIN Table_B B ON A. KEY = B. KEY
-```
-
-### 8.4. OUTER JOIN（外连接）
-
-![表连接查询图5](images/20190404113125064_29354.jpg)
-
-```sql
-SELECT
-	< select_list >
-FROM
-	Table_A A
-FULL OUTER JOIN Table_B B ON A. KEY = B. KEY
-```
-
-### 8.5. LEFT JOIN EXCLUDING INNER JOIN（左连接-内连接）
-
-![表连接查询图6](images/20190404113134408_30772.jpg)
-
-```sql
-SELECT
-	< select_list >
-FROM
-	Table_A A
-LEFT JOIN Table_B B ON A. KEY = B. KEY
-WHERE
-	B. KEY IS NULL
-```
-
-### 8.6. RIGHT JOIN EXCLUDING INNER JOIN（右连接-内连接）
-
-![表连接查询图7](images/20190404113146671_88.jpg)
-
-```sql
-SELECT
-	< select_list >
-FROM
-	Table_A A
-RIGHT JOIN Table_B B ON A. KEY = B. KEY
-WHERE
-	A. KEY IS NULL
-```
-
-### 8.7. OUTER JOIN EXCLUDING INNER JOIN（外连接-内连接）
-
-![表连接查询图8](images/20190404113204071_7635.jpg)
-
-```sql
-SELECT
-	< select_list >
-FROM
-	Table_A A
-FULL OUTER JOIN Table_B B ON A. KEY = B. KEY
-WHERE
-	A. KEY IS NULL
-OR B. KEY IS NULL
-```
-
-## 9. 自连接
-### 9.1. 自连接的概念
-
-- 一张表自己连接自己，不是表连接的一种。
-- 本质还是使用到内连接或左连接或右连接。
-
-### 9.2. 自连接的格式
-
-1. 先创建自关联表
-2. 使用内连接(左连接、右连接)
-
-```sql
--- 自连接
--- 创建新员工表emp(员工工号,员工姓名,上级编号)
-CREATE TABLE emp (
-	id INT PRIMARY KEY,
-	NAME VARCHAR (20),
-	parent_id INT, -- 上级id
-	CONSTRAINT FOREIGN KEY (parent_id) REFERENCES emp (id)
-);
-
--- 使用显式内连接
-SELECT
-	e. NAME 员工姓名,
-	b. NAME 上司姓名
-FROM
-	emp e
-INNER JOIN emp b ON e.parent_id = b.id;
-
--- 连接条件
--- 查询员工姓名和对应的上司姓名，没有上司的员工姓名也要显示出来。
--- 左外连接
-SELECT
-	e. NAME 员工姓名,
-	b. NAME 上司姓名
-FROM
-	emp e
-LEFT JOIN emp b ON e.parent_id = b.id;  -- 连接条件
-```
-
-## 10. 子查询
-### 10.1. 子查询概述
-
-- 一条 SQL 语句(子查询)的查询结果做为另一条查询语句(父查询)的条件或查询结果，这种操作则称为子查询。
-- 多条 SQL 语句嵌套使用，内部的 SQL 查询语句称为子查询。
-
-### 10.2. 子查询的注意事项
-
-子查询语句一定要使用括号括起来，否则无法确定子查询语句什么时候结束。
-
-### 10.3. 子查询三种分类
-#### 10.3.1. 单行子查询
-
-- 查询结果是一个单行单列的值。
-- 父查询可以使用 `=`、 `<`、 `>` 等比较运算符
-
-```sql
--- 先查询平均工资的值（单行子查询）
-SELECT
-	AVG(salary)
-FROM
-	employee;
-
--- 再使用父查询判断小于平均值的员工
-SELECT
-	NAME 姓名, salary 工资
-FROM
-	employee
-WHERE
-	salary < (
-		SELECT
-			AVG(salary)
-		FROM
-			employee
-	);
-```
-
-#### 10.3.2. 多行子查询
-
-- 多行子查询查询结果是多行单列的值，类似于一个数组
-- 父查询使用 in 关键字的使用结果
-
-```sql
--- 3) 查询大于 5000 的员工，来至于哪些部门，输出部门的名字
--- 先查询大于5000的员工名单（多行子查询）
-SELECT
-	NAME 姓名
-FROM
-	employee
-WHERE
-	salary > 5000;
-
--- 查询大于5000的员工的部门名字
-SELECT
-	d. NAME 部门名称
-FROM
-	dept d
-WHERE
-	d.id IN (
-		SELECT
-			e.dept_id
-		FROM
-			employee e
-		WHERE
-			salary > 5000
-	);
-
--- 第2种方法使用内连接
-SELECT
-	e. NAME 员工姓名, e.salary 工资, d. NAME 部门名称
-FROM
-	employee e
-INNER JOIN dept d ON e.dept_id = d.id
-AND e.salary > 5000;
-
--- 4) 查询开发部与财务部所有的员工信息，分别使用子查询和表连接实现
--- 使用多行子查询。查询开发部与财务部的部门ID
-SELECT
-	d.id
-FROM
-	dept d
-WHERE
-	d. NAME IN ('开发部', '财务部');
-
--- 使用多行子查询
-SELECT
-	*
-FROM
-	employee e
-WHERE
-	e.dept_id IN (
-		SELECT
-			d.id
-		FROM
-			dept d
-		WHERE
-			d. NAME IN ('开发部', '财务部')
-	);
-
--- 使用表连接查询
-SELECT
-	e.*, d. NAME
-FROM
-	employee e
-INNER JOIN dept d ON e.dept_id = d.id
-WHERE
-	d. NAME IN ('开发部', '财务部');
-```
-
-**注：需要注意，如果在子查询定义过的别名，出了括号后，父查询就无法使用该别名，需要自己重新定义一个别名，如下例：**
-
-```sql
--- 先找到上过关羽课的学生id，当子查询结果，再查找不在结果内的学生
-SELECT
-	s.sid 学号, s.sname 姓名
-FROM
-	stu s
-WHERE
-	s.sid NOT IN (
-		SELECT
-			s.sid
-		FROM
-			stu s
-		INNER JOIN stu_cou sc
-		INNER JOIN course c
-		INNER JOIN teacher t ON s.sid = sc.sid
-		AND sc.cid = c.cid
-		AND c.cid = t.cid
-		WHERE
-			t.tname = '关羽'
-	);
-```
-
-#### 10.3.3. 多列子查询
-
-- 多列子查询返回结果是一个多行多列的值，类似于一张虚拟表。
-- 不能用于 where 条件，用于 select 子句中做为子表
-
-**注意事项：如果子查询和表连接可以同时实现结果时，子查询的效率低于表连接查询，优先考虑使用表连接。**
-
-```sql
--- 5) 查询 2011 年以后入职的员工信息和部门信息，分别使用子查询和表连接实现
--- 使用多列子查询。查询2011年后入职人员的全部信息
-SELECT
-	*
-FROM
-	employee e
-WHERE
-	e.join_date > '2011-01-01';
-
--- 使用多列子查询
-SELECT
-	e.*, d. NAME
-FROM
-	dept d,
-	(
-		SELECT
-			*
-		FROM
-			employee e
-		WHERE
-			e.join_date > '2011-01-01'
-	) e
-WHERE
-	d.id = e.dept_id;
-
--- 使用内连接查询
-SELECT
-	e.*, d. NAME
-FROM
-	employee e
-INNER JOIN dept d ON e.dept_id = d.id
-WHERE
-	e.join_date > '2011-01-01';
-```
 
 # MySQL 数据库进阶知识笔记
 
@@ -2547,354 +3106,3 @@ mysql提供了1个数据类型：decimal，这种数据类型可以轻松解决�
 ### 4.5. MySQL数据库的伪表DUAL
 
 与Oracle数据库的伪表DUAL一样的用法
-
----
-
-# 数据库设计
-## 1. 数据库设计步骤
-
-1. 收集信息：与该系统有关人员进行交流、座谈，充分了解用户需求，理解数据库需要完成的任务
-2. 标识实体（Entity）：标识数据库要管理的关键对象或实体，实体一般是名词
-3. 标识每个实体的属性（Attribute）
-4. 标识实体之间的关系（Relationship）
-
-## 2. 数据规范化
-### 2.1. 什么是范式(NF)
-
-一套用来设计数据库的规则。
-
-好的数据库设计对数据的存储性能和后期的程序开发，都会产生重要的影响。建立科学的，规范的数据库就需要满足一些规则来优化数据的设计和存储。在关系型数据库中这些规则就称为范式。
-
-### 2.2. 范式分类
-
-目前关系数据库有六种范式：第一范式（1NF）、第二范式（2NF）、第三范式（3NF）、巴斯-科德范式（BCNF）、第四范式(4NF）和第五范式（5NF，又称完美范式）。
-
-满足最低要求的范式是第一范式（1NF）。在第一范式的基础上进一步满足更多规范要求的称为第二范式（2NF），其余范式以次类推。**一般说来，数据库只需满足第三范式(3NF）就行了**。
-
-### 2.3. 第一范式
-
-- 第一范式是数据库设计最基本的要求。
-- 要求数据库表的每一列都是不可再分割的原子性数据项。
-- **第一范式每一列不可再拆分，称为原子性**。
-
-不能是集合、数组、记录等非原子数据项。即实体中的某个属性有多个值时，必须拆分为不同的属性。在符合第一范式（1NF）表中每个列的值只能是表的一个属性或一个属性的一部分。
-
-### 2.4. 第二范式
-
-要先满足第一范式前提下，表中必须有主键，其他非主键列要完全依赖于主键，而不能只依赖于一部分。
-
-简单来说，**一张表只描述一件事情**。
-
-第二范式（2NF）要求数据库表中的每个实例或记录必须可以被唯一地区分。选取一个能区分每个实体的属性或属性组，作为实体的唯一标识。例如在员工表中的身份证号码即可实现每个员工的区分，该身份证号码即为候选键，任何一个候选键都可以被选作主键。在找不到候选键时，可额外增加属性以实现区分。
-
-第二范式（2NF）要求实体的属性完全依赖于主关键字。所谓完全依赖是指不能存在仅依赖主关键字一部分的属性。如果存在，那么这个属性和主关键字的这一部分应该分离出来形成一个新的实体，新实体与原实体之间是一对多的关系。为实现区分通常需要为表加上一个列，以存储各个实例的唯一标识。**简而言之，第二范式就是在第一范式的基础上属性完全依赖于主键**。
-
-### 2.5. 第三范式
-
-**在满足第二范式的前提下，表中的每一列都直接依赖于主键，而不是通过其它的列来间接依赖于主键（不存在传递依赖）**。
-
-所谓传递依赖是指如果存在“A(主键字段) --> B(非主键字段) --> C(非主键字段)”的决定关系，则C依赖A。
-
-**第三范式（3NF）是第二范式（2NF）的一个子集，即满足第三范式（3NF）必须满足第二范式（2NF）。**
-
-例如：存在一个部门信息表，其中每个部门有部门编号（dept_id）、部门名称、部门简介等信息。那么在员工信息表中列出部门编号后就不能再将部门名称、部门简介等与部门有关的信息再加入员工信息表中。如果不存在部门信息表，则根据第三范式（3NF）也应该构建它，否则就会有大量的数据冗余。
-
-**简而言之，第三范式就是属性不依赖于其它非主键属性，也就是在满足 2NF 的基础上，任何非主属性不得传递依赖于主属性**。
-
-像：a --> b --> c  属性之间含有这样的关系，是不符合第三范式的。
-
-## 3. 数据库设计小结
-
-三大范式只是一般设计数据库的基本理念，可以建立冗余较小、结构合理的数据库。
-
-如果有特殊情况，当然要特殊对待，数据库设计最重要的是看需求跟性能，需求 > 性能 > 表结构。所以不能一味的去追求范式建立数据库。
-
-- 1NF:字段不可分;
-- 2NF:有主键，非主键字段依赖主键;
-- 3NF:非主键字段不能相互依赖;
-- 解释:
-    - 1NF:原子性 字段不可再分;
-    - 2NF:唯一性 一个表只说明一个事物;
-    - 3NF:每列都与主键有直接关系，不存在传递依赖;
-
-## 4. 数据库设计 - 数据库，数据表和字段等的命名总结
-### 4.1. 数据库命名规则
-
-根据项目的实际意思来命名。
-
-### 4.2. 数据表命名规则
-
-1. 数据表的命名大部分都是以名词的复数形式并且都为小写；
-2. 尽量使用前缀"table_"；
-3. 如果数据表的表名是由多个单词组成，则尽量用下划线连接起来；但是不要超过30个字符，一旦超过30个字符，则使用缩写来缩短表名的长度；
-4. 具备统一前缀，对相关功能的表应当使用相同前缀，如acl_xxx，house_xxx,ppc_xxx；其中前缀通常为这个表的模块或依赖主实体对象的名字，通常来讲表名为：业务_动作_类型，或是业务_类型；
-5. 数据表必须有主键，且建议均使用auto_increment的id作为主键（与业务无关）,和业务相关的要做为唯一索引；
-
-
-### 4.3. 字段命名规则
-
-1. 首先命名字段尽量采用小写，并且是采用有意义的单词；
-2. 使用前缀，前缀尽量用表的"前四个字母+下划线组成"；
-3. 如果字段名由多个单词组成，则使用下划线来进行连接，一旦超过30个字符，则用缩写来缩短字段名的长度；
-
-### 4.4. 视图命名规则
-
-1. 尽量使用前缀"view_"；
-2. 如果创建的视图牵扯多张数据表，则一定列出所有表名，如果长度超过30个字符时可以简化表名，中间用下划线来连接；
-
-### 4.5. 主键命名规则
-
-1. 主键用"pk_"开头，后面跟上该主键所在的表名；
-2. 不能超过30个字符，尽量使用小写英文单词；
-
-# MySQL 体系架构
-
-## 1. 官方资料
-
-- 下载地址：https://downloads.mysql.com/archives/community/
-- 官方文档地址：
-    - https://dev.mysql.com/doc/refman/5.7/en/
-    - https://dev.mysql.com/doc/mysql-errors/5.7/en/
-
-## 2. 体系架构
-
-![](images/20210414222957073_28904.png)
-
-从上图可以看出，MySQL 最上层是连接组件。<font color=red>**服务器层是由连接池、管理工具和服务、SQL 接口、解析器、优化器、缓存、存储引擎、文件系统组成**</font>
-
-- 连接池：由于每次建立建立需要消耗很多时间，连接池的作用就是将这些连接缓存下来，下次可以直接用已经建立好的连接，提升服务器性能。
-- 管理工具和服务：系统管理和控制工具，例如备份恢复、Mysql 复制、集群等
-- SQL 接口：接受用户的 SQL 命令，并且返回用户需要查询的结果。比如 `select from xx` 语句就是调用 SQL Interface
-- 解析器: SQL 命令传递到解析器的时候会被解析器验证和解析。解析器主要功能：
-    - 将 SQL 语句分解成数据结构，并将这个结构传递到后续步骤，以后 SQL 语句的传递和处理就是基于这个结构的
-    - 如果在分解构成中遇到错误，那么就说明这个 sql 语句是不合理的
-- 优化器：查询优化器，SQL 语句在查询之前会使用查询优化器对查询进行优化
-- 缓存器：查询缓存，如果查询缓存有命中的查询结果，查询语句就可以直接去查询缓存中取数据。这个缓存机制是由一系列小缓存组成的。比如表缓存，记录缓存，key 缓存，权限缓存等。
-- 存储引擎：存储引擎是底层物理结构和实际文件读写的实现。MySQL 数据库其中一个特点就是其**插件式的表存储引擎**。
-- 文件系统：即存储数据的地方
-
-### 2.1. 连接层
-
-
-
-### 2.2. Server 层(SQL 处理层)（待补充）
-
-
-### 2.3. 存储引擎层（待补充）
-
-
-
-## 3. 启动选项和参数
-
-### 3.1. 配置参数文件
-
-当 MySQL 实例启动时，数据库会先去读一个配置参数文件，用来寻找数据库的各种文件所在位置以及指定某些初始化参数。在默认情况下，MySQL 实例会在按一定的顺序中的指定位置读取配置，用户只需通过命令即可查看到相应的配置位置读取顺序。
-
-```bash
-mysql --help | grep my.cnf
-```
-
-![](images/20210414104315884_5048.png)
-
-> <font color=red>**注：都是后面配置文件中的配置项会覆盖前面配置文件中的相同的配置项**</font>
-
-MySQL 实例可以不需要参数文件，这时所有的参数值取决于编译 MySQL 时指定的默认值和源代码中指定参数的默认值。MySQL 数据库的参数文件是以文本方式进行存储的。通过文本编辑软件即可进行参数的修改
-
-### 3.2. 参数的查看和修改
-
-在命令行中输入以下命令可查看数据库中的所有参数。
-
-```sql
--- 查询数据库中的所有参数
-SHOW VARIABLES;
-
--- 模糊查询数据库参数
-SHOW VARIABLES LIKE '%xxx%';
-```
-
-> 从 MySQL 5.1 版本开始，还可以通过 information_schema 架构下的 `GLOBAL_VARIABLES` 视图来进行查找，推荐使用命令`show variables`，使用更为简单，且各版本的 MySQL 数据库都支持。
-
-#### 3.2.1. MySQL 数据库中的参数的分类
-
-从不同的角度来说，主要分成两类
-
-- 从类型上：动态(dynamic)参数和静态(static)参数
-    - 动态参数意味着可以在 MySQL 实例运行中进行更改
-    - 静态参数说明在整个实例生命周期内都不得进行更改，即只读(read only)
-- 从作用范围上：全局变量(GLOBAL)和会话变量(SESSION/LOCAL)
-    - 全局变量（GLOBAL）影响服务器的整体操作。
-    - 会话变量（SESSION/LOCAL）影响某个客户端连接的操作。
-
-用 default_storage_engine 来作为示例说明，在服务器启动时会初始化一个名为 default_storage_engine，作用范围为 `GLOBAL` 的系统变量。之后每当有一个客户端连接到该服务器时，服务器都会单独为该客户端分配一个名为`default_storage_engine`，作用范围为`SESSION`的系统变量，该作用范围为`SESSION`的系统变量值按照当前作用范围为`GLOBAL`的同名系统变量值进行初始化。
-
-#### 3.2.2. 动态参数值的修改
-
-通过 `SET` 命令对动态的参数值进行修改。语法如下：
-
-```bash
-SET [global | session ] system_var_name= expr
-SET [@@global. | @@session.] system_var_name= expr
-```
-
-示例：
-
-```bash
-SET read_ buffer_size=524288;
-SET @@global.read_ buffer_size=524288;
-```
-
-### 3.3. MySQL官方手册（系统参数部分）
-
-网址（5.7版本）：https://dev.mysql.com/doc/refman/5.7/en/server-system-variables.html
-
-## 4. MySQL 数据目录结构分析
-
-像 InnoDB、MyIASM 这样的存储引擎都是把表存储在磁盘上。
-
-### 4.1. 数据目录的位置
-
-通过以下命令可以查看当前MySql的存储数据的目录位置
-
-```sql
--- 查询数据库的数据目录
-show variables like 'datadir';
-```
-
-![](images/20210414165101686_20230.png)
-
-这个目录位置可以通过配置文件进行修改。
-
-### 4.2. 数据目录的文件
-
-**数据目录中包含创建的数据库、表、视图和触发器等用户数据**，除了这些用户数据，为了程序更好的运行，MySQL 也会创建一些其他的额外数据
-
-#### 4.2.1. 数据库的存储
-
-在使用 `CREATE DATABASE` 语句创建一个数据库时，MySQL会进行以下的处理：
-
-1. 在数据目录下创建一个和数据库名同名的子目录（文件夹)
-2. 在该与数据库名同名的子目录下创建一个名为`db.opt`的文件，这个文件中包含了该数据库的各种属性，例如该数据库的字符集和比较规则等等。
-
-![](images/20210414165446088_14244.png)
-
-进入`datadir`数据目录查看，除了 `information_schema` 这个系统数据库（*比较特殊*）外，其他的数据库在数据目录下都有对应的子目录。
-
-#### 4.2.2. 表的存储
-
-MySQL数据库表的信息可以分成：
-
-1. **表结构的定义**：是定义了表每列的数据类型、约束条件、索引、字符集等等信息。InnoDB 和 MyIASM 这两种存储引擎都在数据目录下对应的数据库子目录下创建了一个专门用于存储描述表结构信息的文件，其文件名是：`表名.frm`
-2. **表中的数据**：就是实际每个表的存储的数据。而不同的存储引擎保存的文件格式、数量也不一样。
-
-#### 4.2.3. InnoDB 表数据的存储
-
-InnoDB 的数据会放在一个表空间或者文件空间（英文名: table space 或者 filespace)的概念，这个表空间是一个抽象的概念，它可以对应文件系统上一个或多个真实文件〈不同表空间对应的文件数量可能不同)。每一个表空间可以被划分为很多个页，表数据就存放在某个表空间下的某些页里。表空间有好几种类型。
-
-- **系统表空间(system tablespace)**
-
-系统表空间可以对应文件系统上一个或多个实际的文件，默认情况下，InnoDB 会在数据目录下创建一个名为 ibdata1(在数据目录下)、大小为 12M 的文件，这个文件就是对应的系纳表空间在文件系统上的表示。
-
-![](images/20210414171418088_247.png)
-
-此文件是自扩展文件，即存储空间不够用时，它会自己增加文件大小。如果想让系统表空间对应文件系统上多个实际文件，可以在 MySQL 启动时配置对应的文件路径以及它们的大小，也可以把系统表空间对应的文件路径不配置到数据目录下，甚至可以配置到单独的磁盘分区上
-
-<font color=red>**需要注意的一点是：在一个 MySQL 服务器中，系统表空间只有一份。从 MySQL5.5.7 到 MySQL5.6.6 之间的各个版本中，表中的数据都会被默认存储到这个系统表空间。**</font>
-
-- **独立表空间(file-per-table tablespace)**
-
-在 MySQL5.6.6 以及之后的版本中，InnoB 并不会默认的把各个表的数据存储到系统表空间中，而是为<font color=red>**每一个表建立一个独立表空间**</font>，也就是说用户创建了多少个表，就有多少个独立表空间。
-
-使用独立表空间来存储表数据的话，会在该表所属数据库对应的子目录下创建一个表示该独立表空间的文件，文件名和表名相同，文件的扩展名是`.ibd`，即：`表名.ibd`
-
-![](images/20210414215622619_11464.png)
-
-如上例，`consult_content.ibd`文件就用来存储`consult_content`表中的数据和索引。也可以指定使用系统表空间还是独立表空间来存储数据，这个功能由启动参数`innodb_file_per_table`控制。配置示例如下：
-
-```
-[server]
-innodb_file_per_table=0
-```
-
-上面的配置意思是：当`imodb_file_per table`的值为0时，代表使用系统表空间；当`innodb_file pertable`的值为1时，代表使用独立表空间。需要注意的是`inmodb_file_per_table`参数只对新建的表起作用，对于已经分配了表空间的表并不起作用。
-
-- **其他类型的表空间**
-
-随着 MySQL 的发展，除了上述两种老牌表空间之外，现在还新提出了一些不同类型的表空间，比如通用表空间(general tablespace)，undo 表空间(undotablespace)、临时表空间（temporary tablespace)等。
-
-#### 4.2.4. MyIASM 表数据的存储
-
-在 MyISAM 存储引擎表中的数据和索引是分开存放的。所以在文件系统中也是使用不同的文件来存储数据文件和索引文件。与 InnoDB 不同的是，MyISAM 并没有表空间的概念，表数据都存放到对应的数据库子目录下。
-
-```sql
--- 创建不同的是，MyISAM的表
-create table a_myisam(c1 int) engine=MyISAM;
-```
-
-![](images/20210414222629075_25947.png)
-
-如上例所示：`a_myisam.MYD`是表的数据文件；`a_myisam.MYI`是表的索引文件。
-
-### 4.3. 日志文件
-
-MySQL常见的日志文件有：错误日志（error log）、慢查询日志（slow query log）、查询日志（query log）、二进制文件（bin log）。
-
-#### 4.3.1. 错误日志
-
-错误日志文件对 MySQL 的启动、运行、关闭过程进行了记录。遇到问题时应该首先查看该文件以便定位问题。该文件不仅记录了所有的错误信息，也记录一些警告信息或正确的信息。通过下面命令来查看错误日志文件的位置：
-
-```sql
-show variables like 'log_error';
-```
-
-日志文件名称：`主机名.err`
-
-> 当 MySQL 不能正常启动时，第一个必须查找的文件应该就是错误日志文件
-
-#### 4.3.2. 慢查询日志
-
-慢查询日志可以帮助定位可能存在问题的 SQL 语句，从而进行 SQL 语句层面的优化。
-
-日志文件名称：`主机名-slow.log`
-
-#### 4.3.3. 查询日志
-
-查询日志记录了所有对 MySQL 数据库请求的信息，无论这些请求是否正确的执行。
-
-日志文件名称：`主机名.log`
-
-从 MySQL 5.1 开始，可以将查询日志的记录放入 mysql 架构下的 `general_log` 表中
-
-```sql
-SELECT * FROM general_log;
-```
-
-#### 4.3.4. 二进制日志（binlog）
-
-二进制日志记录了对 MySQL 数据库执行更改的所有操作，若操作本身没有导致数据库发生变化，该操作可能也会写入二进制文件。但是不包括 `select` 和 `show` 这类操作（因为这些操作对数据本身不会进行修改）
-
-##### 4.3.4.1. 二进制日志的几种作用
-
-- 恢复（recovery）：某些数据的恢复需要二进制日志，例如，在一个数据库全备文件恢复后，用户可以通过二进制文件进行 point-in-time 的恢复
-- 复制（replication）：其原理与恢复类似，通过复制和执行二进制日志使一台远程的 MySQL 数据库（一般称为 slave 或 standby）与一台 MySQL 数据库（一般称为 master 或 primary）进行实时同步
-- 审计（audit）：用户可以通过二进制日志中的信息来进行审计，判断是否有对数据库进行注入的攻击
-
-##### 4.3.4.2. log-bin 参数
-
-该参数用来控制是否开启二进制日志，默认为关闭。如果想要开启二进制日志的功能，可以在 MySQL 的配置文件中指定如下的格式：
-
-```
--- 启用/设置二进制日志文件(name 可省略)
-log-bin=name;
-```
-
-> 配置说明：
->
-> “name”为二进制日志文件的名称。如果不提供 name，那么数据库会使用默认的日志文件名（文件名为主机名，后缀名为二进制日志的序列号），且文件保存在数据库所在的目录（datadir下）
-
-配置以后，就会在数据目录下产生类似于：
-
-bin_log.00001 即为二进制日志文件；bin_log.index 为二进制的索引文件，用来存储过往产生的二进制日志序号，通常情况下，不建议手动修改这个文件。
-
-二进制日志文件在默认情况下并没有启动，需要手动指定参数来启动。开启这个选项会对 MySQL 的性能造成影响，但是性能损失十分有限。根据 MySQL 官方手册中的测试指明，开启二进制日志会使性能下降 1%。
-
-
