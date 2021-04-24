@@ -748,6 +748,23 @@ public class MapperBuilderAssistant extends BaseBuilder {
 }
 ```
 
+#### 2.5.3. 扩展细节：javaType与jdbcType的配置推导
+
+通过`<resultMap>`标签可以不配置`javaType`与`jdbcType`，MyBatis框架会根据绑定的对象类型来推导出相应的`javaType`，即使`jdbcType`为空（没有配置），可以配置到相应的类型处理器`TypeHandler`，具体源码的处理位置在解析Mapper映射文件中的`<resultMap>`子标签时：
+
+![](images/20210405105042160_993.png)
+
+`XMLMapperBuilder.buildResultMappingFromContext`方法中，如果xml映射文件都没有配置`javaType`与`jdbcType`，此时调用`MapperBuilderAssistant`类的`buildResultMapping`方法中，会根据`<resultMap>`所配置的对象属性来推导出`javaType`。需要注意的是，此时的`TypeHandler`还是为null，在最后的`ResultMapping.Builder.build()`方法中，会获取到相应的类型处理器实例
+
+![](images/20210405110635923_9696.png)
+
+![](images/20210405111042616_8475.png)
+
+此时，就是算`jdbcType`没有配置为null，根据`javaType`也可以从类型处理器的注册中心获取到相应的`TypeHandler`
+
+![](images/20210405111014659_19053.png)
+
+
 ### 2.6. 解析xml映射文件操作语句相关节点（XMLStatmentBuilder）
 
 #### 2.6.1. xml映射配置的 select、insert、update、delete 节点解析
@@ -1903,6 +1920,7 @@ public <E> List<E> doQuery(MappedStatement ms, Object parameter, RowBounds rowBo
     StatementHandler handler = configuration.newStatementHandler(wrapper, ms, parameter, rowBounds, resultHandler, boundSql);
     // 通过StatementHandler来获取Statement对象
     stmt = prepareStatement(handler, ms.getStatementLog());
+    // 执行查询
     return handler.query(stmt, resultHandler);
   } finally {
     closeStatement(stmt);
@@ -2080,7 +2098,7 @@ public interface ParameterHandler {
 
 #### 4.5.2. ParameterHandler 的创建
 
-在`PreparedStatementHandler`中会调用`ParameterHandler`来对SQL语句的占位符进行处理，所以在其抽象父类的构造方法中，有`ParameterHandler`的初始化
+在`PreparedStatementHandler`中会调用`ParameterHandler`来对SQL语句的占位符进行处理，所以在其抽象父类的构造方法中会进行`ParameterHandler`的初始化
 
 ![](images/20210328210251666_30215.png)
 
@@ -2131,7 +2149,53 @@ public void parameterize(Statement statement) throws SQLException {
 调用参数处理器接口默认实现类`DefaultParameterHandler`的`setParameters`方法来处理SQL占位符转换成参数值
 
 ```java
-
+/**
+ * 为语句设置参数，
+ * setParameters 方法的实现逻辑也很简单，就是依次取出每个参数的值，然后根据参数类型调用 PreparedStatement中的赋值方法完成赋值。
+ * @param ps 语句
+ */
+@Override
+public void setParameters(PreparedStatement ps) {
+  ErrorContext.instance().activity("setting parameters").object(mappedStatement.getParameterMap().getId());
+  // 取出参数列表，ParameterMapping 就是对 #{} 或者 ${} 里面参数的封装
+  List<ParameterMapping> parameterMappings = boundSql.getParameterMappings();
+  if (parameterMappings != null) {
+    for (int i = 0; i < parameterMappings.size(); i++) {
+      ParameterMapping parameterMapping = parameterMappings.get(i);
+      // ParameterMode.OUT是 CallableStatement的输出参数，已经单独注册，故忽略
+      if (parameterMapping.getMode() != ParameterMode.OUT) {
+        Object value;
+        // 取出参数名称
+        String propertyName = parameterMapping.getProperty();
+        if (boundSql.hasAdditionalParameter(propertyName)) { // issue #448 ask first for additional params
+          // 从附加参数中读取属性
+          value = boundSql.getAdditionalParameter(propertyName);
+        } else if (parameterObject == null) {
+          value = null;
+        } else if (typeHandlerRegistry.hasTypeHandler(parameterObject.getClass())) {
+          // 参数对象是基本类型，则参数对象即为参数值
+          value = parameterObject;
+        } else {
+          // 参数对象是复杂类型，取出参数对象的该属性值
+          MetaObject metaObject = configuration.newMetaObject(parameterObject);
+          value = metaObject.getValue(propertyName);
+        }
+        // 获取该参数相应的处理器（注：策略设计模式的应用）
+        TypeHandler typeHandler = parameterMapping.getTypeHandler();
+        JdbcType jdbcType = parameterMapping.getJdbcType();
+        if (value == null && jdbcType == null) {
+          jdbcType = configuration.getJdbcTypeForNull();
+        }
+        try {
+          // 此方法最终根据参数类型，调用java.sql.PreparedStatement类中的参数赋值方法，对SQL语句中的参数赋值
+          typeHandler.setParameter(ps, i + 1, value, jdbcType);
+        } catch (TypeException | SQLException e) {
+          throw new TypeException("Could not set parameters for mapping: " + parameterMapping + ". Cause: " + e, e);
+        }
+      }
+    }
+  }
+}
 ```
 
 ##### 4.5.3.2. ParameterMapping 对SQL中的#{}或者${}的封装
@@ -2190,13 +2254,318 @@ public SqlSource parse(String originalSql, Class<?> parameterType, Map<String, O
 
 ![](images/20210328225448999_16962.png)
 
+##### 4.5.3.3. 参数类型处理器
+
+在`DefaultParameterHandler.setParameters()`方法中，会调用相应参数类型的处理类，*会首先调用抽象父类`BaseTypeHandler`中的`setParameter`*
+
+```java
+try {
+  // 此方法最终根据参数类型，调用java.sql.PreparedStatement类中的参数赋值方法，对SQL语句中的参数赋值
+  typeHandler.setParameter(ps, i + 1, value, jdbcType);
+} catch (TypeException | SQLException e) {
+  throw new TypeException("Could not set parameters for mapping: " + parameterMapping + ". Cause: " + e, e);
+}
+```
+
+上面的示例，全局映射文件中没有`<typeHandlers>`配置类型处理类，则会调用`UnknownTypeHandler`的实现来完成参数转换，
+
+```java
+@Override
+public void setNonNullParameter(PreparedStatement ps, int i, Object parameter, JdbcType jdbcType)
+    throws SQLException {
+  // 通过实际的参数类型去获取相应的类型处理器
+  TypeHandler handler = resolveTypeHandler(parameter, jdbcType);
+  handler.setParameter(ps, i, parameter, jdbcType);
+}
+
+private TypeHandler<?> resolveTypeHandler(Object parameter, JdbcType jdbcType) {
+  TypeHandler<?> handler;
+  if (parameter == null) {
+    handler = OBJECT_TYPE_HANDLER;
+  } else {
+    // 根据参数的类型来获取相应的TypeHandler（类型处理类）
+    handler = typeHandlerRegistry.getTypeHandler(parameter.getClass(), jdbcType);
+    // check if handler is null (issue #270)
+    if (handler == null || handler instanceof UnknownTypeHandler) {
+      handler = OBJECT_TYPE_HANDLER;
+    }
+  }
+  return handler;
+}
+```
+
+`resolveTypeHandler`方法就是根据参数的类型来寻找相应的`*TypeHandler`处理类，如`StringTypeHandler`字符串类型处理类，具体的逻辑就是`PreparedStatement`实例的`setString`方法，给预编译的占位符赋值
+
+![](images/20210403172535817_23783.png)
+
 ### 4.6. ResultSetHandler 组件
 
+#### 4.6.1. 组件功能简介（待补充流程图）
+
+在`StatementHandler`组件的执行过程中，通过`ParameterHandler`组件对预编译的sql占位符进行赋值后，就会执行相应的sql操作，此时就会通过`ResultSetHandler`组件来将sql操作结果进行封装处理
+
+`ResultSetHandler` 将从数据库查询得到的结果按照映射配置文件的映射规则，映射成相应的结果集对象。<font color=red>**在 `ResultSetHandler` 内部实际是做三个步骤：找到映射匹配规则 -> 反射实例化目标对象 -> 根据规则填充属性值**</font>，具体步骤内部调用的流程图如下：
+
+![ResultSetHandler组件执行流程图.drawio](images/20210405164021237_8354.jpg)
+
+#### 4.6.2. ResultSetHandler 的创建
+
+与`ParameterHandler`组件一样，在`PreparedStatementHandler`中会调用`ResultSetHandler`来对SQL语句的结果集进行处理，所以在其抽象父类`BaseStatementHandler`的构造方法中会进行`ResultSetHandler`的初始化。这里如果有配置代理则生成代理对象，如果没有，则生成`DefaultResultSetHandler`实例
+
+![](images/20210404082300110_24475.png)
+
+#### 4.6.3. 组件源码处理流程分析（DefaultResultSetHandler 结果集处理器默认实现）
+
+以上面查询为例，在`SimpleExecutor`执行`doQuery`操作时，会通过`StatementHandler`组件调用其`query`查询方法（*示例的sql语句会调用`PreparedStatementHandler`实现*）
+
+```java
+@Override
+public <E> List<E> query(Statement statement, ResultHandler resultHandler) throws SQLException {
+  PreparedStatement ps = (PreparedStatement) statement;
+  // 执行sql语句
+  ps.execute();
+  // 使用resultSetHandler处理查询结果
+  return resultSetHandler.handleResultSets(ps);
+}
+```
+
+此时会调用默认实现`DefaultResultSetHandler`
+
+```java
+/**
+ * 处理statement得到的多结果集（也可能是单结果集，这是多结果集的一种简化形式），最终得到结果列表
+ *
+ * handleResultSets 方法完成了对多结果集的处理。但是对于每一个结果集的处理是由handleResultSet子方法实现的
+ * @param stmt Statement语句
+ * @return 结果列表
+ * @throws SQLException
+ */
+@Override
+public List<Object> handleResultSets(Statement stmt) throws SQLException {
+  ErrorContext.instance().activity("handling results").object(mappedStatement.getId());
+
+  // 用以存储处理结果的列表
+  final List<Object> multipleResults = new ArrayList<>();
+
+  // 可能会有多个结果集，该变量用来对结果集进行计数
+  int resultSetCount = 0;
+  // 取出第一个结果集（如果是存储过程，可能是会有多个结果集），并包装成ResultSetWrapper对象
+  ResultSetWrapper rsw = getFirstResultSet(stmt);
+
+  // 查询语句对应的resultMap节点，可能含有多个
+  List<ResultMap> resultMaps = mappedStatement.getResultMaps();
+  int resultMapCount = resultMaps.size();
+  // 合法性校验（存在输出结果集的情况下，resultMapCount不能为0）
+  validateResultMapsCount(rsw, resultMapCount);
+  // 循环遍历每一个设置了resultMap的结果集
+  while (rsw != null && resultMapCount > resultSetCount) {
+    // 获得当前结果集对应的ResultMap
+    ResultMap resultMap = resultMaps.get(resultSetCount);
+    // 进行结果集的处理，根据映射规则（resultMap）对结果集进行转化，转换成目标对象以后放入multipleResults中
+    handleResultSet(rsw, resultMap, multipleResults, null);
+    // 获取下一结果集
+    rsw = getNextResultSet(stmt);
+    // 清理上一条结果集的环境
+    cleanUpAfterHandlingResultSet();
+    resultSetCount++;
+  }
+
+  // 获取多结果集中所有结果集的名称。多结果集一般出现在存储过程的执行，存储过程返回多个resultset，
+  // mappedStatement.resultSets属性列出多个结果集的名称，用逗号分割。多结果集的处理不是重点，暂时不分析
+  String[] resultSets = mappedStatement.getResultSets();
+  if (resultSets != null) {
+    // 循环遍历每一个设置resultMap的结果集
+    while (rsw != null && resultSetCount < resultSets.length) {
+      // 获取该结果集对应的父级resultMap中的resultMapping(注：resultMapping用来描述对象属性的映射关系)
+      ResultMapping parentMapping = nextResultMaps.get(resultSets[resultSetCount]);
+      if (parentMapping != null) {
+        // 获取被嵌套的resultMap编号
+        String nestedResultMapId = parentMapping.getNestedResultMapId();
+        ResultMap resultMap = configuration.getResultMap(nestedResultMapId);
+        // 处理嵌套映射
+        handleResultSet(rsw, resultMap, null, parentMapping);
+      }
+      rsw = getNextResultSet(stmt);
+      cleanUpAfterHandlingResultSet();
+      resultSetCount++;
+    }
+  }
+
+  // 判断是否为单结果集：如果是，则返回结果列表；如果不是则返回结果集列表
+  return collapseSingleResultList(multipleResults);
+}
+```
+
+结果集的处理流程如下：
+
+![](images/20210404103240721_19626.png)
+
+校验后，将结果集每一行记录进行映射处理
+
+![](images/20210404103509041_27130.png)
+
+![](images/20210404103442128_24149.png)
+
+![](images/20210404115232188_25486.png)
+
+`applyPropertyMappings`方法中获取结果集中相应的字段值与待封装的对象属性值，再通过反射将结果赋值到相应的对象属性中
+
+![](images/20210404121449686_17917.png)
+
+上面循环处理每条记录后，最后将转化后的对象保存到相应的容器中。其中相应的处理类如下
+
+- `DefaultResultHandler`类负责将`DefaultResultContext`类中的结果对象聚合成一个`List`返回
+- `DefaultMapResultHandler`类负责将`DefaultResultContext`类中的结果对象聚合成一个`Map`返回
+
+```java
+// 把这一行记录转化出的对象存起来
+storeObject(resultHandler, resultContext, rowValue, parentMapping, resultSet);
+```
+
+![](images/20210404124212240_795.png)
+
+![](images/20210404124240256_26796.png)
+
+最后将结果集返回
+
+#### 4.6.4. ${} 拼接符的赋值
+
+> 这里先回忆之前知识，如果是使用`${}`字符串拼接符，此时会将sql包装成`DynamicSqlSource`对象；如果使用`#{}`占位符，会将sql包装成`RawSqlSource`对象（*注：sql语句没有使用相关的动态标签的情况下*）
+
+![](images/20210405122651326_18638.png)
+
+![](images/20210405122814289_18160.png)
+
+在`MappedStatement.getBoundSql`方法中，会获取待执行的sql语句。所以这里如果是解析`${}`拼接符的sql，就会调用到`DynamicSqlSource`类的实现
+
+![](images/20210405120634752_25659.png)
+
+![](images/20210405123645055_26600.png)
+
+<font color=red>**这里做的操作就是直接将`${}`先设置为`null`做为占位，然后再将相应的参数值原样替换。所以`${}`拼接符是不会加上引号`''`**</font>
+
+![](images/20210405124045395_5651.png)
+
+![](images/20210405124226737_28362.png)
+
+## 5. MyBatis 懒加载原理
+
+### 5.1. 正常情况下非懒加载查询测试
+
+- 实体类
+
+```java
+@Alias("consultContractCardInfo") // 设置mybatis的类型别名
+@Data
+public class ConsultContractCardInfo implements Serializable {
+    private static final long serialVersionUID = 5898926697727427877L;
+    private Integer contractId;
+    private String psptId;
+    private String contractCode;
+    private String activeTime;
+    private Integer state;
+    private List<ConsultIdCardInfo> infos;
+}
+```
+
+```java
+@Alias("consultIdCardInfo") // 设置mybatis的类型别名
+@Data
+public class ConsultIdCardInfo implements Serializable {
+    private static final long serialVersionUID = -3509992727837716565L;
+    public Integer innerId;
+    public String psptId;
+    public String name;
+    public String sex;
+    public String birthday;
+    public String address;
+    public String picture;
+    public String activeTime;
+    public String nation;
+}
+```
+
+- 配置xml映射文件，创建两个单表查询
+
+```xml
+<!-- 单表查询，使用 collection 标签 select 属性进行嵌套查询 -->
+<select id="queryAllConsultContract" resultMap="ContractResultMapWithIdCardInfo">
+    SELECT * FROM consult_contract
+</select>
+
+<!-- 单表查询，用于测试 collection 标签 select 属性的嵌套查询 -->
+<select id="queryUserByPsptId" parameterType="java.util.Map" resultMap="CardIdInfoResultMap">
+    select * from consult_idcardinfo where psptId = #{psptId,jdbcType=VARCHAR}
+</select>
+```
+
+- 配置xml映射文件，使用`<collection>`标签配置嵌套查询
+
+```xml
+<!-- resultMap 子标签 collection 使用 select 与 column 属性进行嵌套查询 -->
+<resultMap id="ContractResultMapWithIdCardInfo" type="com.moon.mybatis.pojo.ConsultContractCardInfo">
+    <id column="CONTRACT_ID" property="contractId"/>
+    <result column="PSPTID" property="psptId"/>
+    <result column="CONTRACT_CODE" property="contractCode"/>
+    <result column="ACTIVETIME" property="activeTime"/>
+    <result column="STATE" property="state"/>
+    <!-- 关联的嵌套 Select 查询
+        column：数据库中的列名，或者是列的别名。一般情况下，这和传递给 resultSet.getString(columnName) 方法的参数一样。
+                注意：在使用复合主键的时候，你可以使用 column="{prop1=col1,prop2=col2}"
+                这样的语法来指定多个传递给嵌套 Select 查询语句的列名。这会使得 prop1 和 prop2 作为参数对象，被设置为对应嵌套 Select 语句的参数。
+        select：用于加载复杂类型属性的映射语句的 ID，它会从 column 属性指定的列中检索数据，作为参数传递给目标 select 语句。 具体请参考下面的例子。
+                注意：在使用复合主键的时候，你可以使用 column="{prop1=col1,prop2=col2}" 这样的语法来指定多个传递给嵌套 Select 查询语句的列名。
+                这会使得 prop1 和 prop2 作为参数对象，被设置为对应嵌套 Select 语句的参数。
+     -->
+    <collection property="infos" javaType="java.util.List" column="PSPTID" select="queryUserByPsptId"/>
+</resultMap>
+
+<!-- 基础结果集映射，使用类型别名的方式指定type -->
+<resultMap id="CardIdInfoResultMap" type="consultIdCardInfo">
+    <id column="innerId" property="innerId"/>
+    <result column="PSPTID" property="psptId" jdbcType="VARCHAR"/>
+    <result column="NAME" property="name"/>
+    <result column="Birthday" property="birthday"/>
+    <result column="Sex" property="sex"/>
+    <result column="Address" property="address"/>
+    <result column="activeTime" property="activeTime"/>
+    <result column="picture" property="picture"/>
+    <result column="nation" property="nation"/>
+</resultMap>
+```
+
+- 测试代码
+
+```java
+public interface CommonMapper {
+    List<ConsultContractCardInfo> queryAllConsultContract();
+}
+```
+
+```java
+@Test
+public void testSingleTableCollection() throws Exception {
+    InputStream inputStream = Resources.getResourceAsStream("mybatis-config.xml");
+    SqlSessionFactory sqlSessionFactory = new SqlSessionFactoryBuilder().build(inputStream);
+    SqlSession sqlSession = sqlSessionFactory.openSession();
+    CommonMapper mapper = sqlSession.getMapper(CommonMapper.class);
+    List<ConsultContractCardInfo> contracts = mapper.queryAllConsultContract();
+    for (ConsultContractCardInfo contract : contracts) {
+        System.out.println(contract.getContractCode() + " :: " + contract.getInfos());
+    }
+}
+```
+
+- 测试结果
+
+![](images/20210405231714998_2157.png)
+
+### 5.2. 嵌套查询
+
+在MyBatis框架中，如果一个查询语句中，通过在`<resultMap>`中使用`<collection>`配置，触发了其中一些字段的再次查询。
 
 
-
-
-
+## 6. MyBatis 缓存原理
 
 
 
