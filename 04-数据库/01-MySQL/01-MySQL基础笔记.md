@@ -519,11 +519,35 @@ MySQL 的 `performance_schema` 系统库是运行在较低级别的用于监控 
   </tr>
 </table>
 
-> 注：  
+> 注：
+>
 > 1. char、varchar和text等字符串类型都可以存储路径，但使用“\”会被过滤，所以路径中用“/”或“\\”来代替，MySQL就会不会自动过滤路径的分隔字符，完整的表示路径  
 > 2. 一般情况下，数据库中不直接存储图片和音频文件，而是存储图片与文件的路径。如果存储文件，则选择blob类型
 
-### 1.2. MySQL 中的三种注释
+### 1.2. 关于 Null 类型的特别说明
+
+MySQL对Null值的处理，有以下三种：
+
+1. NULL 值代表一个未确定的值，每个null都是独一无二。MySQL 认为任何和 NULL 值做比较的表达式的值都为 NULL，包括 `select null = null` 和 `select null != null;`
+
+![](images/20210427192910488_31457.png)
+
+2. NULL 值在业务上就是代表没有，所有的 NULL 值和起来算一份
+3. NULL 完全没有意义，所以在统计数量不会将其算进去
+
+> 假设一个表中某个列 c1 的记录为(2, 1000, null, null)，在第一种情况下，表中 c1 的记录数为4，第二种表中 c1 的记录数为3，第三种表中 c1 的记录数为2。
+
+MySQL 专门提供了一个 `innodb_stats_method` 的系统变量，专门针对统计索引列不重复值的数量时如何对待 NULL 值。此系统变量有三个候选值：
+
+- `nulls_equal`：认为所有 NULL 值都是相等的。这个值也是 `innodb_stats_method` 的默认值。如果某个索引列中 NULL 值特别多的话，这种统计方式会让优化器认为某个列中平均一个值重复次数特别多，所以倾向于不使用索引进行访问。
+- `nulls_unequal`：认为所有 NULL 值都是不相等的。如果某个索引列中 NULL 值特别多的话，这种统计方式会让优化器认为某个列中平均一个值重复次数特别少，所以倾向于使用索引进行访问。
+- `nulls_ignored`：直接把 NULL 值忽略掉。
+
+> 详见官网：https://dev.mysql.com/doc/refman/5.7/en/innodb-parameters.html#sysvar_innodb_stats_method
+>
+> 有迹象表明，在 MySQL5.7.22 以后的版本，对这个`innodb_stats_method`的修改不起作用，MySQL 把这个值在代码里写死为`nulls_equal`。也就是说 MySQL在进行索引列的数据统计行为又把 null 视为第二种情况（NULL 值在业务上就是代表没有，所有的 NULL 值和起来算一份），MySQL 对 Null 值的处理比较飘忽。所以总的来说，对于列的声明尽可能的不要允许为null。
+
+### 1.3. MySQL 中的三种注释
 
 - 单行注释
     - 格式：`# 注释内容` (MySQL特有)
@@ -3017,6 +3041,24 @@ MyISAM 将表中的记录按照记录的插入顺序单独存储在一个文件�
 
 如有需要，也可以对其它的列分别建立索引或者建立联合索引，原理和 InnoDB 中的索引差不多，不过在叶子节点处存储的是相应的列+行号。这些索引也全部都是二级索引。
 
+## 8. 索引其他相关
+
+### 8.1. 复合主键
+
+复合主键是指表的主键含有一个以上的字段组成，不使用无业务含义的自增id作为主键。
+
+举个例子，在表中创建了一个ID字段，自动增长，并设为主键，这个是没有问题的，因为“主键是唯一的索引”，ID自动增长保证了唯一性，所以可以。
+
+此时，再创建一个字段name，类型为varchar，也设置为主键，就会发现，在表的多行中是可以填写相同的name值的
+
+**当表中只有一个主键时，它是唯一的索引；当表中有多个主键时，称为复合主键，复合主键联合保证唯一索引。某几个主键字段值出现重复是没有问题的，只要不是有多条记录的所有主键值完全一样，就不算重复。**
+
+### 8.2. 联合主键
+
+联合主键就是多个主键联合形成一个主键组合
+
+联合主键的意义：用2个字段(或者多个字段)来确定一条记录，说明，这2个字段都不是唯一的，2个字段可以分别重复。***联合就在于主键A跟主键B形成的联合主键是唯一的。***
+
 # MySQL 数据库进阶知识笔记
 
 ## 1. MySQL 数据库运行流程图
@@ -3288,24 +3330,160 @@ on条件后面`(length(t.actor_ids) - length(replace(t.actor_ids,',',''))+1)`这
 
 提示：mysql.help_topic这张表只用到了它的help_topic_id，可以看到这个help_topic_id是从0开始一直连续的，join这张表只是为了确定数据行数。现在假设mysql.help_topic只有5条数据，那么最多可转成5行数据，若果现在主演的名字有6个就不能用mysql.help_topic这张表了。由此看出我们完全可以找其他表来替代mysql.help_topic，只要满足表的id是连续的，且数据条数超过了你要转换的行数即可。
 
-## 4. MySQL 其他知识
-### 4.1. 复合主键
+## 4. 分区表(了解)
 
-复合主键是指表的主键含有一个以上的字段组成，不使用无业务含义的自增id作为主键。
+> 此知识点只需要了解，实际项目的应用极少
 
-举个例子，在表中创建了一个ID字段，自动增长，并设为主键，这个是没有问题的，因为“主键是唯一的索引”，ID自动增长保证了唯一性，所以可以。
+### 4.1. 简介
 
-此时，再创建一个字段name，类型为varchar，也设置为主键，就会发现，在表的多行中是可以填写相同的name值的
+分区是指根据一定的规则，数据库把一个表分解成多个更小的、更容易管理的部分。就访问数据库的应用而言，逻辑上只有一个表或一个索引，但是实际上这个表可能由数 10 个物理分区对象组成，每个分区都是一个独立的对象，可以独自处理，可以作为表的一部分进行处理。
 
-**当表中只有一个主键时，它是唯一的索引；当表中有多个主键时，称为复合主键，复合主键联合保证唯一索引。某几个主键字段值出现重复是没有问题的，只要不是有多条记录的所有主键值完全一样，就不算重复。**
+分区表是一个独立的逻辑表，但是底层由多个物理子表组成。实现分区的代码实际上是对一组底层表的的封装。对分区表的请求，都会转化成对存储引擎的接口调用。**分区对于 SQL 层来说是一个完全封装底层实现的黑盒子，对应用是透明的**。
 
-### 4.2. 联合主键
+从底层的文件系统可以看出，每一个分区表都有一个使用`#`分隔命名的表文件。
 
-联合主键就是多个主键联合形成一个主键组合
+MySQL 在创建表时使用`PARTITION BY`子句定义每个分区存放的数据。在执行查询的时候，优化器根据分区定义过滤那些数据不在的分区，这样查询就无须扫描所有分区。
 
-联合主键的意义：用2个字段(或者多个字段)来确定一条记录，说明，这2个字段都不是唯一的，2个字段可以分别重复。***联合就在于主键A跟主键B形成的联合主键是唯一的。***
+分区的一个主要目的是将数据按照一个较粗的粒度分在不同的表中。另外，也方便一次批量删除整个分区的数据。分区表作用如下：
 
-### 4.3. MySQL中Decimal类型和Float Double等区别
+- 表非常大以至于无法全部都放在内存中，或者只在表的最后部分有热点数据，其他均是历史数据。
+- 分区表的数据更容易维护。例如，想批量删除大量数据可以使用清除整个分区的方式。另外，还可以对一个独立分区进行优化、检查、修复等操作。
+- 分区表的数据可以分布在不同的物理设备上，从而高效地利用多个硬件设备。可以使用分区表来避免某些特殊的瓶颈，例如 InnoDB 的单个索引的互斥访问、ext3 文件系统的 inode 锁竞争等。
+- 如果需要,还可以备份和恢复独立的分区,这在非常大的数据集的场景下效果非常好。
+
+分区表的限制：
+
+- 一个表最多只能有 1024 个分区
+- 如果分区字段中有主键或者唯一索引的列，那么所有主键列和唯一索引列都必须包含进来
+- 分区表中无法使用外键约束
+
+### 4.2. 分区表的原理
+
+分区表由多个相关的底层表实现，这些底层表也是由句柄对象（Handlerobject)表示，所以也可以直接访问各个分区。存储引擎管理分区的各个底层表和管理普通表一样（所有的底层表都必须使用相同的存储引擎)，分区表的索引只是在各个底层表上各自加上一个完全相同的索引。从存储引擎的角度来看，底层表和一个普通表没有任何不同，存储引擎也无须知道这是一个普通表还是一个分区表的一部分。分区表上的操作按照下面的操作逻辑进行:
+
+虽然每个操作都会“先打开并锁住所有的底层表”，但这并不是说分区表在处理过程中是锁住全表的。如果存储引擎能够自己实现行级锁，例如 InnoDB，则会在分区层释放对应表锁。这个加锁和解锁过程与普通 InnoDB 上的查询类似。
+
+### 4.3. 分区表的类型
+
+#### 4.3.1. MySQL 支持的分区表
+
+- RANGE 分区：基于属于一个给定连续区间的列值，把多行分配给分区。
+- LIST 分区：类似于按 RANGE 分区，区别在于 LIST 分区是基于列值匹配一个离散值集合中的某个值来进行选择。
+- HASH 分区：基于用户定义的表达式的返回值来进行选择的分区，该表达式使用将要插入到表中的这些行的列值进行计算。这个函数可以包含 MySQL 中有效的、产生非负整数值的任何表达式。
+- KEY 分区：类似于按 HASH 分区，区别在于 KEY 分区只支持计算一列或多列，且 MySQL 服务器提供其自身的哈希函数。必须有一列或多列包含整数值。
+- 复合分区/子分区：目前只支持 RANGE 和 LIST 的子分区，且子分区的类型只能为 HASH 和 KEY。
+
+#### 4.3.2. 分区的基本语法
+
+- RANGE 分区
+
+```sql
+CREATE TABLE test (
+    order_date DATETIME NOT NULL,
+）ENGINE=InnoDB
+PARTITION BY RANGE(YEAR(order_date))(
+PARTITION p_0 VALUES LESS THAN (2010) ,
+PARTITION p_1 VALUES LESS THAN (2011),
+PARTITION p_2 VALUES LESS THAN (2012),
+PARTITION p_other VALUES LESS THAN MAXVALUE);
+```
+
+- LIST 分区(类似枚举)
+
+```sql
+CREATE TABLE h2 (
+    c1 INT,
+    c2 INT
+PARTITION BY LIST(c1) (
+PARTITION p0 VALUES IN (1, 4, 7),
+PARTITION p1 VALUES IN (2, 5, 8));
+```
+
+- range 和 List 都是整数类型分区，其实 range 和 List 也支持非整数分区，但是要结合 COLUMN 分区，支持整形、日期、字符串
+
+```sql
+CREATE TABLE emp_date(
+    id INT NOT NULL,
+    ename VARCHAR (30),
+    hired DATE NOT NULL DEFAULT '1970-01-01',
+    separated DATE NOT NULL DEFAULT '9999-12-31',
+    job VARCHAR(30) NOT NULL,
+    store_id INT NOT NULL)
+PARTITION BY RANGE COLUMNS (separated)(
+PARTITION pO VALUES LESS THAN ('1996-01-01'),
+PARTITION p1 VALUES LESS THAN ('2001-01-01'),
+PARTITION p2 VALUES LESS THAN ('2006-01-01'));
+
+CREATE TABLE expenses (
+    expense_date DATE NOT NULL,
+    category VARCHAR(30),
+    amount DECIMAL (10,3)
+)
+PARTITION BY LIST COLUMNS (category)(
+PARTITION p0 VALUES IN ('a','b') ,
+PARTITION p1 VALUES IN('c','d'),
+PARTITION p2 VALUES IN('e','f'),
+PARTITION p3 VALUES IN('g'),
+PARTITION p4 VALUES IN('h'));
+
+-- 在结合 COLUMN 分区时还支持多列
+CREATE TABLE rc3(
+    a INT,
+    b INT)
+PARTITION BY RANGE COLUMNS(a,b)(
+PARTITION p01 VALUES LESS THAN (0,10),
+PARTITION p02 VALUES LESS THAN (10,10),
+PARTITION p03 VALUES LESS THAN (10,20),
+PARTITION p04 VALUES LESS THAN (10,35),
+PARTITION p05 VALUES LESS THAN (10,MAXVALUE),
+PARTITION p06 VALUES LESS THAN (MAXVALUE,MAXVALUE));
+```
+
+- Hash 分区
+
+```sql
+CREATE TABLE emp (
+    id INT NOT NULL,
+    ename VARCHAR(30),
+    hired DATE NOT NULL DEFAULT '1970-01-01'
+    separated DATENOT NULL DEFAULT '9999-12-31',
+    job VARCHAR(30) NOT NULL,
+    store_id INT NOT NULL
+)
+PARTITION BY HASH (store_id) PARTITIONS 4;
+```
+
+> 以上示例创建了一个基于 store_id 列 HASH 分区的表，表被分成了 4 个分区，如果我们插入的记录`store_id=234`，则 `234 mod 4 = 2`，这条记录就会保存到第二个分区。虽然在HASH()中直接使用的 store_id 列，但是 MySQL 是允许基于某列值返回一个整数值的表达式或者 MySQL 中有效的任何函数或者其他表达式都是可以的。
+
+- key分区
+
+```sql
+- 创建了一个基于 job 字段进行 Key 分区的表，表被分成了 4 个分区。KEY ()里只允许出现表中的字段。
+CREATE TABLE emp (
+    id INT NOT NULL,
+    ename VARCHAR(30),
+    hired DATE NOT NULL DEFAULT '1970-01-01'
+    separated DATENOT NULL DEFAULT '9999-12-31',
+    job VARCHAR(30) NOT NULL,
+    store_id INT NOT NULL
+)
+PARTITION BY KEY (job) PARTITIONS 4;
+```
+
+### 4.4. 不建议使用 mysql 分区表
+
+在实际互联网项目中，MySQL分区表用的极少，更多的是分库分表。
+
+分库分表除了支持 MySQL 分区表的水平切分以外，还支持垂直切分，把一个很大的库（表）的数据分到几个库（表）中，每个库（表）的结构都相同，但他们可能分布在不同的 mysql 实例，甚至不同的物理机器上，以达到降低单库（表）数据量，提高访问性能的目的。两者对比如下：
+
+- 分区表，分区键设计不太灵活，如果不走分区键，很容易出现全表锁
+- 一旦数据量并发量上来，如果在分区表实施关联，就是一个灾难
+- 分库分表，使用者来掌控业务场景与访问模式，可控。分区表，由 mysql 本身来实现，不太可控
+- 分区表无论怎么分，都是在一台机器上，天然就有性能的上限
+
+## 5. MySQL 其他知识
+
+### 5.1. MySQL中Decimal类型和Float Double等区别
 
 MySQL中存在float,double等非标准数据类型，也有decimal这种标准数据类型。
 
@@ -3315,8 +3493,8 @@ float，double类型是可以存浮点数（即小数类型），但是float有�
 
 mysql提供了1个数据类型：decimal，这种数据类型可以轻松解决上面的问题：decimal类型被 MySQL 以同样的类型实现，这在 SQL92 标准中是允许的。他们用于保存对准确精度有重要要求的值，例如与金钱有关的数据。
 
-### 4.4. 数据库锁表
-#### 4.4.1. 锁表的原因分析
+### 5.2. 数据库锁表
+#### 5.2.1. 锁表的原因分析
 
 1. 锁表发生在insert、update、delete 中
 2. 锁表的原理是 数据库使用独占式封锁机制，当执行上面的语句时，对表进行锁住，直到发生commit 或者 回滚 或者退出数据库用户
@@ -3327,12 +3505,12 @@ mysql提供了1个数据类型：decimal，这种数据类型可以轻松解决�
 	1. 减少insert 、update 、delete 语句执行 到 commit 之间的时间。具体点批量执行改为单个执行、优化sql自身的非执行速度
 	2. 如果异常对事物进行回滚
 
-#### 4.4.2. 如何判断数据库表已经锁表
+#### 5.2.2. 如何判断数据库表已经锁表
 
 查询语法：`select * from v$locked_object;`
 
 可以获得被锁的对象的object_id及产生锁的会话sid。
 
-### 4.5. MySQL数据库的伪表DUAL
+### 5.3. MySQL数据库的伪表DUAL
 
 与Oracle数据库的伪表DUAL一样的用法
