@@ -1379,14 +1379,16 @@ CREATE TABLE AREA(
 ALTER TABLE AREA ADD CONSTRAINT FOREIGN KEY (parent_id) REFERENCES AREA(id);
 ```
 
-## 7. 多表连接查询
+## 7. 连接查询
 
-### 7.1. 多表连接查询概述
+### 7.1. 多表连接查询
+
+#### 7.1.1. 多表连接查询概述
 
 - 单表查询：从一张表中查询数据
 - 多表查询：从多张有关联的表中查询数据。
 
-### 7.2. 多表连接类型
+#### 7.1.2. 多表连接类型
 
 - 交叉连接查询
 - 内连接查询
@@ -1394,7 +1396,7 @@ ALTER TABLE AREA ADD CONSTRAINT FOREIGN KEY (parent_id) REFERENCES AREA(id);
 - 右(外)连接查询
 - 全表连接查询（MySql 不支持，Oracle 支持）
 
-### 7.3. 多表连接查询的步骤
+#### 7.1.3. 多表连接查询的步骤
 
 1. 首先确定要查询的数据有哪些
 2. 再确定要查询的数据来自哪些表
@@ -1402,14 +1404,15 @@ ALTER TABLE AREA ADD CONSTRAINT FOREIGN KEY (parent_id) REFERENCES AREA(id);
 
 **多表连接查询必须使用表名(或表别名).列名才进行查询，因为需要区分该列是属于哪个表的，一旦设置了别名后，就必须用别名.列名，用原来表名.列名会报错。**
 
-## 8. 交叉连接查询（笛卡尔积）
-### 8.1. 交叉查询概述
+### 7.2. 交叉连接查询（笛卡尔积）
+
+#### 7.2.1. 交叉查询概述
 
 - 当查询记录数等于多个表的记录数乘积时，该查询则称为交叉查询。
 - 交叉查询的结果称为笛卡尔积，即多张表记录的乘积
 - 在实际开发中，笛卡尔积的结果一般没有任何意义，一般都会在笛卡尔积基础上加上过滤条件，得出的结果才会有意义。
 
-### 8.2. 交叉查询格式
+#### 7.2.2. 交叉查询格式
 
 - 语法格式：`select 表名1.*,表名2.*,…… from 表名1,表名2,…… where 控制条件;`
     - 这种查询会产生笛卡尔积，就是两个表的所有记录的乘积
@@ -1447,21 +1450,117 @@ ALTER TABLE AREA ADD CONSTRAINT FOREIGN KEY (parent_id) REFERENCES AREA(id);
 |  a2  |  b2  |  c2  |  c4  |  d3  |
 |  a3  |  b3  |  c3  |  c4  |  d3  |
 
-## 9. 内连接查询( inner join …… on )
-### 9.1. 内连接概述
+### 7.3. 左(外)连接( left join …… on )
+
+#### 7.3.1. 左外连接概述
+
+- **定义**：用左表的记录去匹配右表的记录，如果条件满足，则右边显示右表的记录；否则右表显示 null。**（左表和右表取决于定义在实际语句的位置）**
+- **格式**：`left outer join …… on ……`（outer 可以省略）
+- **特点**：左边的表的记录一定会全部显示完整
+- **驱动表**：选取语句左侧的表
+
+#### 7.3.2. 左外连接格式
+
+- 语法格式
+
+```sql
+SELECT * FROM 表1 LEFT [OUTER] JOIN 表2 ON 连接条件 [WHERE 普通过滤条件];
+```
+
+> 其中中括号里的`OUTER`关键字是可以省略的。
+
+- 示例
+
+```sql
+select s.sname,c.sub from student s left join class c on s.class_id=c.cid;
+```
+
+图例：**左连接：`select r.*,s.* from r left join s on r.c=s.c;`**
+
+|  A   |  B   |  C   |  C   |  D   |
+| :--: | :--: | :--: | :--: | :--: |
+|  a1  |  b1  |  c1  |  c1  |  d1  |
+|  a2  |  b2  |  c2  |  c2  |  d2  |
+|  a3  |  b3  |  c3  |      | null |
+
+### 7.4. 右(外)连接( right join …… on )
+
+#### 7.4.1. 右外连接概述（outer 可以省略）
+
+- **定义**：用右表的记录去匹配左表的记录，如果条件满足，则左边显示左表的记录；否则左边显示 null。**（左表和右表取决于定义在实际语句的位置）**
+- **格式**：`right outer join …… on ……`（outer 可以省略）
+- **特点**：如果右外连接，右边的表的记录一定会全部显示完整
+- **驱动表**：选取语句右侧的表
+
+#### 7.4.2. 右外连接格式
+
+- 语法格式：
+
+```sql
+SELECT * FROM 表1 RIGHT [OUTER] JOIN 表2 ON 连接条件 [WHERE 普通过滤条件];
+```
+
+> 其中中括号里的`OUTER`关键字是可以省略的。
+
+- 示例：
+
+```sql
+select s.sname,c.sub from student s right join class c on s.class_id=c.cid;
+```
+
+图例：**右外连接：`select r.*,s.* from r right join s on r.c=s.c;`**
+
+|  A   |  B   |  C  |  C  |  D  |
+| :--: | :--: | :-: | :-: | :-: |
+|  a1  |  b1  | c1  | c1  | d1  |
+|  a2  |  b2  | c2  | c2  | d2  |
+| null | null |     | c4  | d3  |
+
+### 7.5. 内连接查询( inner join …… on )
+
+#### 7.5.1. 内连接概述
 
 - 只有满足连接条件的记录才会被查询出来，实际开发使用频率最高
 - 连接条件：主表的主键与从表的外键值进行相等匹配查询
 
-**内连接查询的分类**
+#### 7.5.2. 内连接语法格式
+
+```sql
+SELECT * FROM 表1 [INNER | CROSS] JOIN 表2 [ON 连接条件] [WHERE 普通过滤条件];
+```
+
+#### 7.5.3. 内连接查询的分类
 
 - 隐式内连接：使用where语句(在笛卡尔积的基础上使用)
 - 显式内连接：使用语法格式 `inner join …… on`（inner 可以省略）
 
-### 9.2. 显式内连接：使用 `inner join ... on`
+在 MySQL 中，下边这几种内连接的写法都是等价的：
 
-- 显式内连接格式：`select 表名1.*,表名2.* from 表名1 inner join 表名2 on 表名1.列名=表名2.列名;`
-    - 显式内连接，上面的列名分别是主从表的主键与从键，表名后面可以跟表别名，通常用表的首字母，后面使用**表别名.列名**
+```sql
+SELECT * FROM t1 JOIN t2;
+SELECT * FROM t1 INNER JOIN t2;
+SELECT * FROM t1 CROSS JOIN t2;
+-- 上边的这些写法和直接把需要连接的表名放到 FROM 语句之后，用逗号,分隔开的写法是等价的
+SELECT * FROM t1, t2;
+```
+
+> <font color=red>**注：在内连接查询中，`on`子语句与`where`子语句的作用是一样的。**</font>
+
+#### 7.5.4. 内连接的驱动表与被驱动表
+
+对于内连接来说，由于凡是不符合`ON`子句或`WHERE`子句中的条件的记录都会被过滤掉，其实也就相当于从两表连接的笛卡尔积中过滤了不符合条件的记录，所以对于内连接来说，驱动表和被驱动表是可以互换的，并不会影响最后的查询结果。
+
+但是对于外连接来说，由于驱动表中的记录即使在被驱动表中找不到符合`ON`子句条件的记录时也要将其加入到结果集，所以此时驱动表和被驱动表的关系就很重要了，也就是说左外连接和右外连接的驱动表和被驱动表不能轻易互换。
+
+#### 7.5.5. 显式内连接：使用 `inner join ... on`
+
+- 显式内连接格式：
+
+```sql
+select 表名1.*,表名2.* from 表名1 inner join 表名2 on 表名1.列名=表名2.列名;
+```
+
+- 显式内连接，上面的列名分别是主从表的主键与从键，表名后面可以跟表别名，通常用表的首字母，后面使用**表别名.列名**
 
 ```sql
 select s.sname,c.sub from student s inner join class c on s.class_id=c.cid;
@@ -1474,7 +1573,7 @@ select s.sname,c.sub from student s inner join class c on s.class_id=c.cid;
 |  a1  |  b1  |  c1  |  c1  |  d1  |
 |  a2  |  b2  |  c2  |  c2  |  d2  |
 
-### 9.3. 隐式内连接：使用 where 子句（笛卡尔积再过滤）
+#### 7.5.6. 隐式内连接：使用 where 子句（笛卡尔积再过滤）
 
 - 隐式内连接格式：`select表名1.*,表名2.* from 表名1,表名2 where 表名1.列名=表名2.列名;`
     - 隐式内连接，上面的列名分别是主从表的主键与从键，表名后面可以跟表别名，通常用表的首字母，后面使用**表别名.列名**
@@ -1483,7 +1582,7 @@ select s.sname,c.sub from student s inner join class c on s.class_id=c.cid;
 select s.sname,c.sub from student s,class c where s.class_id=c.cid;
 ```
 
-### 9.4. 【扩展】内连接3个以上数据表
+#### 7.5.7. 扩展：内连接3个以上数据表
 
 - **INNER JOIN 连接三个数据表的用法：**
 
@@ -1545,53 +1644,18 @@ AND Member.字段号 = 表5.字段号;
 - **使用内连接前，搞清楚需要输出那些字段，字段在那些表中，各自表的主外键的关系。**
 - 在建立数据表时，如果一个表与多个表联接，那么这一个表中的字段必须是“数字”数据类型，而多个表中的相同字段必须是主键，而且是“自动编号”数据类型。否则，很难联接成功。
 
-## 10. 左(外)连接( left join …… on )
-### 10.1. 左外连接概述
+### 7.6. 连接查询的过滤条件写法小结
 
-- **定义**：用左表的记录去匹配右表的记录，如果条件满足，则右边显示右表的记录；否则右表显示 null。**（左表和右表取决于定义在实际语句的位置）**
-- **格式**：`left outer join …… on ……`（outer 可以省略）
-- **特点**：左边的表的记录一定会全部显示完整
+在连接查询中，过滤条件分为两种`on`与`where`，根据过滤条件使用的不同的关键字有不同的语义
 
-### 10.2. 左外连接格式
+- **WHERE 子句中的过滤条件**：不论是内连接还是外连接，凡是不符合 `WHERE` 子句中的过滤条件的记录都不会被加入最后的结果集。
+- **ON 子句中的过滤条件**：
+    - 对于外连接的驱动表的记录来说，如果无法在被驱动表中找到匹配`ON`子句中的过滤条件的记录，那么该记录仍然会被加入到结果集中，对应的被驱动表记录的各个字段使用`NULL`值填充。
+    - 对于内连接来说，MySQL 会把它和`WHERE`子句一样对待，也就是说：内连接中的`WHERE`子句和`ON`子句是等价的。
 
-语法格式：`select 表名1.*,表名2.* from 表名1 left join 表名2 on 表名1.列名=表名2.列名;`
+<font color=red>*一般情况下，都把只涉及单表的过滤条件放到`WHERE`子句中，把涉及两表的过滤条件都放到`ON`子句中，也一般把放到`ON`子句中的过滤条件也称之为连接条件。*</font>
 
-```sql
-select s.sname,c.sub from student s left join class c on s.class_id=c.cid;
-```
-
-图例：**左连接：`select r.*,s.* from r left join s on r.c=s.c;`**
-
-|  A   |  B   |  C   |  C   |  D   |
-| :--: | :--: | :--: | :--: | :--: |
-|  a1  |  b1  |  c1  |  c1  |  d1  |
-|  a2  |  b2  |  c2  |  c2  |  d2  |
-|  a3  |  b3  |  c3  |      | null |
-
-## 11. 右(外)连接( right join …… on )
-### 11.1. 右外连接概述（outer 可以省略）
-
-- **定义**：用右表的记录去匹配左表的记录，如果条件满足，则左边显示左表的记录；否则左边显示 null。**（左表和右表取决于定义在实际语句的位置）**
-- **格式**：`right outer join …… on ……`（outer 可以省略）
-- **特点**：如果右外连接，右边的表的记录一定会全部显示完整
-
-### 11.2. 右外连接格式
-
-语法格式：`select 表名1.*,表名2.* from 表名1 right join 表名2 on 表名1.列名=表名2.列名;`
-
-```sql
-select s.sname,c.sub from student s right join class c on s.class_id=c.cid;
-```
-
-图例：**右外连接：`select r.*,s.* from r right join s on r.c=s.c;`**
-
-|  A   |  B   |  C   |  C   |  D   |
-| :--: | :--: | :--: | :--: | :--: |
-|  a1  |  b1  |  c1  |  c1  |  d1  |
-|  a2  |  b2  |  c2  |  c2  |  d2  |
-| null | null |      |  c4  |  d3  |
-
-## 12. 全表连接的结果（MySql 不支持，Oracle 支持、了解）
+### 7.7. 全表连接的结果（MySql 不支持，Oracle 支持、了解）
 
 ```sql
 select r.*,s.* from r full join s on r.c=s.c
@@ -1604,13 +1668,13 @@ select r.*,s.* from r full join s on r.c=s.c
 |  a3  |  b3  |  c3  |      | null |
 | null | null |      |  c4  |  d3  |
 
-## 13. SQL 的各种 join 用法(网上资料)
+### 7.8. SQL 的各种 join 用法(网上资料)
 
 下图展示了 LEFT JOIN、RIGHT JOIN、INNER JOIN、OUTER JOIN 相关的 7 种用法
 
 ![表连接查询图1](images/20190404112841616_605.jpg)
 
-### 13.1. INNER JOIN（内连接）
+#### 7.8.1. INNER JOIN（内连接）
 
 ![表连接查询图2](images/20190404113056054_7740.jpg)
 
@@ -1622,7 +1686,7 @@ FROM
 INNER JOIN Table_B B ON A. KEY = B. KEY
 ```
 
-### 13.2. LEFT JOIN（左连接）
+#### 7.8.2. LEFT JOIN（左连接）
 
 ![表连接查询图3](images/20190404113103136_9879.jpg)
 
@@ -1634,7 +1698,7 @@ FROM
 LEFT JOIN Table_B B ON A. KEY = B. KEY
 ```
 
-### 13.3. RIGHT JOIN（右连接）
+#### 7.8.3. RIGHT JOIN（右连接）
 
 ![表连接查询图4](images/20190404113111224_6867.jpg)
 
@@ -1646,7 +1710,7 @@ FROM
 RIGHT JOIN Table_B B ON A. KEY = B. KEY
 ```
 
-### 13.4. OUTER JOIN（外连接）
+#### 7.8.4. OUTER JOIN（外连接）
 
 ![表连接查询图5](images/20190404113125064_29354.jpg)
 
@@ -1658,7 +1722,7 @@ FROM
 FULL OUTER JOIN Table_B B ON A. KEY = B. KEY
 ```
 
-### 13.5. LEFT JOIN EXCLUDING INNER JOIN（左连接-内连接）
+#### 7.8.5. LEFT JOIN EXCLUDING INNER JOIN（左连接-内连接）
 
 ![表连接查询图6](images/20190404113134408_30772.jpg)
 
@@ -1672,7 +1736,7 @@ WHERE
 	B. KEY IS NULL
 ```
 
-### 13.6. RIGHT JOIN EXCLUDING INNER JOIN（右连接-内连接）
+#### 7.8.6. RIGHT JOIN EXCLUDING INNER JOIN（右连接-内连接）
 
 ![表连接查询图7](images/20190404113146671_88.jpg)
 
@@ -1686,7 +1750,7 @@ WHERE
 	A. KEY IS NULL
 ```
 
-### 13.7. OUTER JOIN EXCLUDING INNER JOIN（外连接-内连接）
+#### 7.8.7. OUTER JOIN EXCLUDING INNER JOIN（外连接-内连接）
 
 ![表连接查询图8](images/20190404113204071_7635.jpg)
 
@@ -1701,14 +1765,14 @@ WHERE
 OR B. KEY IS NULL
 ```
 
-## 14. 自连接
+### 7.9. 自连接
 
-### 14.1. 自连接的概念
+#### 7.9.1. 自连接的概念
 
 - 一张表自己连接自己，不是表连接的一种。
 - 本质还是使用到内连接或左连接或右连接。
 
-### 14.2. 自连接的格式
+#### 7.9.2. 自连接的格式
 
 1. 先创建自关联表
 2. 使用内连接(左连接、右连接)
@@ -1742,18 +1806,20 @@ FROM
 LEFT JOIN emp b ON e.parent_id = b.id;  -- 连接条件
 ```
 
-## 15. 子查询
-### 15.1. 子查询概述
+## 8. 子查询
+
+### 8.1. 子查询概述
 
 - 一条 SQL 语句(子查询)的查询结果做为另一条查询语句(父查询)的条件或查询结果，这种操作则称为子查询。
 - 多条 SQL 语句嵌套使用，内部的 SQL 查询语句称为子查询。
 
-### 15.2. 子查询的注意事项
+### 8.2. 子查询的注意事项
 
 子查询语句一定要使用括号括起来，否则无法确定子查询语句什么时候结束。
 
-### 15.3. 子查询三种分类
-#### 15.3.1. 单行子查询
+### 8.3. 子查询三种分类
+
+#### 8.3.1. 单行子查询
 
 - 查询结果是一个单行单列的值。
 - 父查询可以使用 `=`、 `<`、 `>` 等比较运算符
@@ -1779,7 +1845,7 @@ WHERE
 	);
 ```
 
-#### 15.3.2. 多行子查询
+#### 8.3.2. 多行子查询
 
 - 多行子查询查询结果是多行单列的值，类似于一个数组
 - 父查询使用 in 关键字的使用结果
@@ -1875,7 +1941,7 @@ WHERE
 	);
 ```
 
-#### 15.3.3. 多列子查询
+#### 8.3.3. 多列子查询
 
 - 多列子查询返回结果是一个多行多列的值，类似于一张虚拟表。
 - 不能用于 where 条件，用于 select 子句中做为子表
@@ -3065,8 +3131,14 @@ MyISAM 将表中的记录按照记录的插入顺序单独存储在一个文件�
 
 ![MySQl数据库运行流程图](images/20190515100151703_21672.jpg)
 
-## 2. MySQL 存储过程
-### 2.1. 游标的使用取每行记录(多字段)
+## 2. MySQL 的执行原理（待补充）
+
+### 2.1. 单表访问之索引合并
+
+
+## 3. MySQL 存储过程
+
+### 3.1. 游标的使用取每行记录(多字段)
 
 ```sql
 delimiter $
@@ -3102,9 +3174,9 @@ END $
 
 ***注意：delimiter关键字后面必须有空格，否则在某些环境或某些情况下使用shell脚本调用执行会出现问题***
 
-## 3. MySQL 函数
+## 4. MySQL 函数
 
-### 3.1. select user() 语句
+### 4.1. select user() 语句
 
 - `user()` 这个函数，是取得当前登陆的用户。
 - 在存储过程中使用，获取值。
@@ -3113,11 +3185,11 @@ END $
 select user() into 变量名;
 ```
 
-### 3.2. 字符串截取相关函数
+### 4.2. 字符串截取相关函数
 
 MySQL 字符串截取函数：`left()`, `right()`, `substring()`, `substring_index()`, `mid()`, `substr()`。其中，`mid()`, `substr()` 等价于 `substring()` 函数
 
-#### 3.2.1. 从左开始截取字符串
+#### 4.2.1. 从左开始截取字符串
 
 - 语法：`left（str, length）`
     - 参数str：被截取字段
@@ -3127,7 +3199,7 @@ MySQL 字符串截取函数：`left()`, `right()`, `substring()`, `substring_ind
 select left（content,200） as abstract from my_content_t
 ```
 
-#### 3.2.2. 从右开始截取字符串
+#### 4.2.2. 从右开始截取字符串
 
 - 语法：`right（str, length）`
 	- 参数str：被截取字段
@@ -3137,7 +3209,7 @@ select left（content,200） as abstract from my_content_t
 select right（content,200） as abstract from my_content_t
 ```
 
-#### 3.2.3. 截取字符串
+#### 4.2.3. 截取字符串
 
 - 语法1：`substring（str, pos）`
     - 参数str：被截取字段
@@ -3154,7 +3226,7 @@ select substring（content,5,200） as abstract from my_content_t
 
 **注：如果位数是负数 如-5则是从后倒数位数，到字符串结束或截取的长度**
 
-#### 3.2.4. 按关键字截取字符串
+#### 4.2.4. 按关键字截取字符串
 
 - 语法：`substring_index（str, delim, count）`
     - 参数str：被截取字段
@@ -3188,7 +3260,7 @@ substring_index(str, '.', -2)
 substring_index(substring_index(str, '.', -2), ‘.’, 1);
 ```
 
-### 3.3. last_insert_id() 查询最后插入的数据的id
+### 4.3. last_insert_id() 查询最后插入的数据的id
 
 此函数可以获得刚插入的数据的id值，这个是session 级的，并发没有问题。
 
@@ -3198,25 +3270,25 @@ select last_insert_id() into 变量名;
 -- 上面语句可以将最近插入的数据id赋值给变量，后面可以进行对应的逻辑处理
 ```
 
-### 3.4. LPAD()、RPAD()对字段内容补位(补零为例)
+### 4.4. LPAD()、RPAD()对字段内容补位(补零为例)
 
 语法：`LPAD/RPAD(需要补充的原数据, 补充后字符的总位数, 补充的内容)`
 
-#### 3.4.1. 前补内容(LPAD)
+#### 4.4.1. 前补内容(LPAD)
 
 ```sql
 select LPAD(uid, 8, 0),username from uc_members where uid = '100015'
 -- 结果：uid: 00100015   username:guxiaochuan
 ```
 
-#### 3.4.2. 后补内容(RPAD)
+#### 4.4.2. 后补内容(RPAD)
 
 ```sql
 select RPAD(uid, 8, 0),username from uc_members where uid = '100015'
 -- 结果：uid: 10001500   username:guxiaochuan
 ```
 
-### 3.5. length()函数获取某个字段数据长度
+### 4.5. length()函数获取某个字段数据长度
 
 - length：是计算字段的长度一个汉字是算三个字符,一个数字或字母算一个字符
 - `CHAR_LENGTH(str)`：返回值为字符串str 的长度，长度的单位为字符。一个多字节字符算作一个单字符。对于一个包含五个二字节字符集, LENGTH()返回值为 10,而CHAR_LENGTH()的返回值为5。
@@ -3227,7 +3299,7 @@ select RPAD(uid, 8, 0),username from uc_members where uid = '100015'
 SELECT * FROM admin WHERE LENGTH(username) < 6
 ```
 
-### 3.6. 查询某一个字段是否包含中文字符（使用到length函数）
+### 4.6. 查询某一个字段是否包含中文字符（使用到length函数）
 
 在使用mysql时候，某些字段会存储中文字符，或是包含中文字符的串，查询出来的方法是：
 
@@ -3239,7 +3311,7 @@ SELECT col FROM table WHERE length(col) != char_length(col)
     - `length()`：计算字段的长度，一个汉字算3个字符，一个数字或者字母按1个字符
     - `char_length()`：计算字段的长度，不论是汉字、数字还是字母，均按1个字符来算
 
-### 3.7. 插入当前时间的函数
+### 4.7. 插入当前时间的函数
 
 - `NOW()`函数以'YYYY-MM-DD HH:MM:SS'返回当前的日期时间，可以直接存到DATETIME字段中。
 - `CURDATE()`以'YYYY-MM-DD'的格式返回今天的日期，可以直接存到DATE字段中。
@@ -3249,7 +3321,7 @@ SELECT col FROM table WHERE length(col) != char_length(col)
 insert into tablename (fieldname) values (now())
 ```
 
-### 3.8. 将小数转换成百分比格式
+### 4.8. 将小数转换成百分比格式
 
 - `TRUNCATE(X, D)`
     - 作用：返回被舍去至小数点后D位的数字X
@@ -3262,7 +3334,7 @@ concat(truncate(royalties * 100,2),'%')
 
 *注：concat()为mysql的系统函数，连接两个字符串*
 
-### 3.9. 将数值转成金额格式
+### 4.9. 将数值转成金额格式
 
 - `FORMAT(X, D)`
     - 作用：将number X设置为格式 '#,###,###.##'，以四舍五入的方式保留到小数点后D位，而返回结果为一个字符串。
@@ -3280,7 +3352,7 @@ convert(字段, decimal(12,2)) AS bb
 
 *经测试，如果FORMAT函数的参数X如果数据库表字段类型是Bigint或者其他数字类型，内容长度超过17位是不会出现精度丢失；如果参数X是字符类型（varchar）的话，使用FORMAT函数后，超出17位后会进行四舍五入，精度丢失。*
 
-### 3.10. `case... when ... end` 控制流程函数
+### 4.10. `case... when ... end` 控制流程函数
 
 - 语法：
 
@@ -3292,8 +3364,8 @@ CASE value WHEN [compare-value] THEN result [WHEN [compare-value] THEN result ..
     - 在第一个方案的返回结果中，value=compare-value。而第二个方案的返回结果是第一种情况的真实结果。如果没有匹配的结果值，则返回结果为ELSE后的结果，如果没有ELSE 部分，则返回值为 NULL。
     - 一个CASE表达式的默认返回值类型是任何返回值的相容集合类型，但具体情况视其所在语境而定。如果用在字符串语境中，则返回结果味字符串。如果用在数字语境中，则返回结果为十进制值、实值或整数值。
 
-### 3.11. RAND()函数
-#### 3.11.1. RAND()与RAND(N)
+### 4.11. RAND()函数
+#### 4.11.1. RAND()与RAND(N)
 
 - 作用：返回一个随机浮点值 v ，范围在 0 到1 之间 (即其范围为 0 ≤ v ≤ 1.0)。若已指定一个整数参数 N ，则它被用作种子值，用来产生重复序列。
 - 注：在ORDER BY语句中，不能使用一个带有RAND()值的列，原因是 ORDER BY 会计算列的多重时间。然而，可按照如下的随机顺序检索数据行：
@@ -3304,13 +3376,13 @@ SELECT * FROM tbl_name ORDER BY RAND();
 
 `ORDER BY RAND()`同 LIMIT 的结合从一组列中选择随机样本很有用：
 
-#### 3.11.2. ROUND(X)与ROUND(X,D)
+#### 4.11.2. ROUND(X)与ROUND(X,D)
 
 - 返回参数X，其值接近于最近似的整数。在有两个参数的情况下，返回 X ，其值保留到小数点后D位，而第D位的保留方式为四舍五入。若要接保留X值小数点左边的D 位，可将 D 设为负值。
 - MYSQL的随机抽取实现方法。如：要从tablename表中随机提取一条记录，一般的写法就是：`SELECT * FROM tablename ORDER BY RAND() LIMIT 1`
 - 此方式效率不高，不推荐使用。
 
-### 3.12. 将字符串按指定的分隔符转成多行数据
+### 4.12. 将字符串按指定的分隔符转成多行数据
 
 SQL案例：
 
@@ -3330,11 +3402,11 @@ on条件后面`(length(t.actor_ids) - length(replace(t.actor_ids,',',''))+1)`这
 
 提示：mysql.help_topic这张表只用到了它的help_topic_id，可以看到这个help_topic_id是从0开始一直连续的，join这张表只是为了确定数据行数。现在假设mysql.help_topic只有5条数据，那么最多可转成5行数据，若果现在主演的名字有6个就不能用mysql.help_topic这张表了。由此看出我们完全可以找其他表来替代mysql.help_topic，只要满足表的id是连续的，且数据条数超过了你要转换的行数即可。
 
-## 4. 分区表(了解)
+## 5. 分区表(了解)
 
 > 此知识点只需要了解，实际项目的应用极少
 
-### 4.1. 简介
+### 5.1. 简介
 
 分区是指根据一定的规则，数据库把一个表分解成多个更小的、更容易管理的部分。就访问数据库的应用而言，逻辑上只有一个表或一个索引，但是实际上这个表可能由数 10 个物理分区对象组成，每个分区都是一个独立的对象，可以独自处理，可以作为表的一部分进行处理。
 
@@ -3357,15 +3429,15 @@ MySQL 在创建表时使用`PARTITION BY`子句定义每个分区存放的数据
 - 如果分区字段中有主键或者唯一索引的列，那么所有主键列和唯一索引列都必须包含进来
 - 分区表中无法使用外键约束
 
-### 4.2. 分区表的原理
+### 5.2. 分区表的原理
 
 分区表由多个相关的底层表实现，这些底层表也是由句柄对象（Handlerobject)表示，所以也可以直接访问各个分区。存储引擎管理分区的各个底层表和管理普通表一样（所有的底层表都必须使用相同的存储引擎)，分区表的索引只是在各个底层表上各自加上一个完全相同的索引。从存储引擎的角度来看，底层表和一个普通表没有任何不同，存储引擎也无须知道这是一个普通表还是一个分区表的一部分。分区表上的操作按照下面的操作逻辑进行:
 
 虽然每个操作都会“先打开并锁住所有的底层表”，但这并不是说分区表在处理过程中是锁住全表的。如果存储引擎能够自己实现行级锁，例如 InnoDB，则会在分区层释放对应表锁。这个加锁和解锁过程与普通 InnoDB 上的查询类似。
 
-### 4.3. 分区表的类型
+### 5.3. 分区表的类型
 
-#### 4.3.1. MySQL 支持的分区表
+#### 5.3.1. MySQL 支持的分区表
 
 - RANGE 分区：基于属于一个给定连续区间的列值，把多行分配给分区。
 - LIST 分区：类似于按 RANGE 分区，区别在于 LIST 分区是基于列值匹配一个离散值集合中的某个值来进行选择。
@@ -3373,7 +3445,7 @@ MySQL 在创建表时使用`PARTITION BY`子句定义每个分区存放的数据
 - KEY 分区：类似于按 HASH 分区，区别在于 KEY 分区只支持计算一列或多列，且 MySQL 服务器提供其自身的哈希函数。必须有一列或多列包含整数值。
 - 复合分区/子分区：目前只支持 RANGE 和 LIST 的子分区，且子分区的类型只能为 HASH 和 KEY。
 
-#### 4.3.2. 分区的基本语法
+#### 5.3.2. 分区的基本语法
 
 - RANGE 分区
 
@@ -3470,7 +3542,7 @@ CREATE TABLE emp (
 PARTITION BY KEY (job) PARTITIONS 4;
 ```
 
-### 4.4. 不建议使用 mysql 分区表
+### 5.4. 不建议使用 mysql 分区表
 
 在实际互联网项目中，MySQL分区表用的极少，更多的是分库分表。
 
@@ -3481,9 +3553,9 @@ PARTITION BY KEY (job) PARTITIONS 4;
 - 分库分表，使用者来掌控业务场景与访问模式，可控。分区表，由 mysql 本身来实现，不太可控
 - 分区表无论怎么分，都是在一台机器上，天然就有性能的上限
 
-## 5. MySQL 其他知识
+## 6. MySQL 其他知识
 
-### 5.1. MySQL中Decimal类型和Float Double等区别
+### 6.1. MySQL中Decimal类型和Float Double等区别
 
 MySQL中存在float,double等非标准数据类型，也有decimal这种标准数据类型。
 
@@ -3493,8 +3565,8 @@ float，double类型是可以存浮点数（即小数类型），但是float有�
 
 mysql提供了1个数据类型：decimal，这种数据类型可以轻松解决上面的问题：decimal类型被 MySQL 以同样的类型实现，这在 SQL92 标准中是允许的。他们用于保存对准确精度有重要要求的值，例如与金钱有关的数据。
 
-### 5.2. 数据库锁表
-#### 5.2.1. 锁表的原因分析
+### 6.2. 数据库锁表
+#### 6.2.1. 锁表的原因分析
 
 1. 锁表发生在insert、update、delete 中
 2. 锁表的原理是 数据库使用独占式封锁机制，当执行上面的语句时，对表进行锁住，直到发生commit 或者 回滚 或者退出数据库用户
@@ -3505,12 +3577,12 @@ mysql提供了1个数据类型：decimal，这种数据类型可以轻松解决�
 	1. 减少insert 、update 、delete 语句执行 到 commit 之间的时间。具体点批量执行改为单个执行、优化sql自身的非执行速度
 	2. 如果异常对事物进行回滚
 
-#### 5.2.2. 如何判断数据库表已经锁表
+#### 6.2.2. 如何判断数据库表已经锁表
 
 查询语法：`select * from v$locked_object;`
 
 可以获得被锁的对象的object_id及产生锁的会话sid。
 
-### 5.3. MySQL数据库的伪表DUAL
+### 6.3. MySQL数据库的伪表DUAL
 
 与Oracle数据库的伪表DUAL一样的用法
