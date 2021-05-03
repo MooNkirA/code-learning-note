@@ -1824,7 +1824,64 @@ mysql 在使用不等于(`!=`或者`<>`)的时候无法使用索引会导致全�
 
 子查询的执行效率不高。子查询时，MySQL需要为内层查询语句的查询结果建立一个临时表。然后外层查询语句再临时表中查询记录。查询完毕后，MySQL需要撤销这些临时表。所以子查询的速度会受到一定的影响。如果查询的数据量比较大，影响速度就会随之增大。在MySQL中可以使用连接查询来代替子查询，连接查询不需要建立临时表，其速度比子查询要快。
 
-## 5. MySQL 的查询成本(TODO mark: 待补充)
+## 5. MySQL 的查询成本
+
+### 5.1. 成本的概念
+
+MySQL 执行一个查询可以有不同的执行方案，它会选择其中成本最低，或者说代价最低的那种方案去真正的执行查询。在 MySQL 中一条查询语句的执行成本是由下边这两个方面组成的：
+
+- **I/O 成本**：数据库的表经常使用的 MyISAM、InnoDB 存储引擎都是将数据和索引都存储到磁盘上的，当查询表中的记录时，需要先把数据或者索引加载到内存中然后再操作。这个从磁盘到内存这个加载的过程损耗的时间称之为 I/O 成本。
+- **CPU 成本**：读取以及检测记录是否满足对应的搜索条件、对结果集进行排序等这些操作损耗的时间称之为 CPU 成本
+
+对于 InnoDB 存储引擎来说，页是磁盘和内存之间交互的基本单位，MySQL 规定读取一个页面花费的成本默认是1.0，读取以及检测一条记录是否符合搜索条件的成本默认是0.2。1.0、0.2 这些数字称之为成本常数，这两个成本常数最常用到，当然还有其他的成本常数。
+
+注意，不管读取记录时需不需要检测是否满足搜索条件，其成本都算是0.2。
+
+### 5.2. 单表查询的成本 - 基于成本的优化步骤（TODO mark: 待补充）
+
+在一条单表查询语句真正执行之前，MySQL 的查询优化器会找出执行该语句所有可能使用的方案，对比之后找出成本最低的方案，这个成本最低的方案就是所谓的执行计划，之后才会调用存储引擎提供的接口真正的执行查询，这个过程主要是：
+
+1. 根据搜索条件，找出所有可能使用的索引
+2. 计算全表扫描的代价
+3. 计算使用不同索引执行查询的代价
+4. 对比各种执行方案的代价，找出成本最低的那一个
+
+示例成本分析sql
+
+```sql
+SELECT
+	*
+FROM
+	order_exp
+WHERE
+	order_no IN ( 'DD00_6S', 'DD00_9S', 'DD00_10S' )
+	AND expire_time > '2021-03-22 18:28:28'
+	AND expire_time <= '2021-03-22 18:35:09' AND insert_time > expire_time
+	AND order_note LIKE '%7 排 1%'
+	AND order_status = 0;
+```
+
+#### 5.2.1. 根据搜索条件，找出所有可能使用的索引
+
+对于 B+树索引来说，只要索引列和常数使用`=`、`<=>`、`IN`、`NOT IN`、`IS NULL`、`IS NOT NULL`、`>`、`<`、`>=`、`<=`、`BETWEEN`、`!=`（不等于也可以写成`<>`）或者 `LIKE` 操作符连接起来，就可以产生一个所谓的范围区间（`LIKE`匹配字符串前缀也行），MySQL 把一个查询中可能使用到的索引称之为 possible keys。
+
+
+
+
+### 5.3. 单表查询的成本 - 基于索引统计数据的成本计算
+
+
+
+
+### 5.4. EXPLAIN 输出成本
+
+### 5.5. Optimizer Trace
+
+### 5.6. 连接查询的成本
+
+
+### 5.7. 调节成本常数
+
 
 ## 6. 全局考虑性能优化
 
@@ -2000,9 +2057,219 @@ show profile all for query 1\G;
 
 能够发现 Sending data 状态下，时间主要消耗在 CPU 上了。所以`show profile`能够在做SQL优化时帮助了解时间都耗费到哪里去了，同时如果 MySQL 源码感兴趣，还可以通过 `show profile source for query` 查看 SQL 解析执行过程中每个步骤对应的源码的文件、函数名以及具体的源文件行数。
 
-## 7. 主从复制、读写分离
+## 7. InnoDB 引擎底层解析
+
+### 7.1. InnoDB 中的统计数据
+
+查询成本的时候经常用到一些统计数据，比如通过 `SHOW TABLE STATUS` 可以看到关于表的统计数据，通过 `SHOW INDEX` 可以看到关于索引的统计数据。这些统计都是相应的存储引擎来实现。
+
+#### 7.1.1. 统计数据存储方式
+
+InnoDB 提供了两种存储统计数据的方式：
+
+- 永久性的统计数据，这种统计数据存储在磁盘上，也就是服务器重启之后这些统计数据还在。
+- 非永久性的统计数据，这种统计数据存储在内存中，当服务器关闭时这些这些统计数据就都被清除掉了，等到服务器重启之后，在某些适当的场景下才会重新收集这些统计数据。
+
+MySQL提供了系统变量`innodb_stats_persistent`来控制到底采用哪种方式去存储统计数据。在 MySQL 5.6.6 之前，`innodb_stats_persistent`的值默认是`OFF`，也就是说 InnoDB 的统计数据默认是存储到内存的，之后的版本中`innodb_stats_persistent`的值默认是`ON`，也就是统计数据默认被存储到磁盘中。
+
+查询当前存储统计数据的方式
+
+```sql
+SHOW VARIABLES LIKE 'innodb_stats_persistent';
+```
+
+![](images/20210503110821558_30994.png)
+
+InnoDB 默认是以表为单位来收集和存储统计数据的，也就是说可以把某些表的统计数据（以及该表的索引统计数据）存储在磁盘上，把另一些表的统计数据存储在内存中。
+
+在创建和修改表的时候通过指定 `STATS_PERSISTENT` 属性来指明该表的统计数据存储方式：
+
+```sql
+CREATE TABLE 表名 (...) Engine=InnoDB, STATS_PERSISTENT = (1|0);
+ALTER TABLE 表名 Engine=InnoDB, STATS_PERSISTENT = (1|0);
+```
+
+> - 当`STATS_PERSISTENT=1`时，表明我们想把该表的统计数据永久的存储到磁盘上
+> - 当`STATS_PERSISTENT=0`时，表明我们想把该表的统计数据临时的存储到内存中
+> - 如果在创建表时未指定`STATS_PERSISTENT`属性，那默认采用系统变量`innodb_stats_persistent`的值作为该属性的值
+
+#### 7.1.2. 基于磁盘的永久性统计数据
+
+当选择把某个表以及该表索引的统计数据存放到磁盘上时，实际上是把这些统计数据存储到了两个表里：
+
+```sql
+mysql> SHOW TABLES FROM mysql LIKE 'innodb%';
++---------------------------+
+| Tables_in_mysql (innodb%) |
++---------------------------+
+| innodb_index_stats        |
+| innodb_table_stats        |
++---------------------------+
+2 rows in set (0.01 sec)
+```
+
+这两个表都位于 mysql 系统数据库下。
+
+- `innodb_table_stats` 存储了关于表的统计数据，每一条记录对应着一个表的统计数据。
+- `innodb_index_stats` 存储了关于索引的统计数据，每一条记录对应着一个索引的一个统计项的统计数据。
+
+##### 7.1.2.1. innodb_table_stats
+
+**innodb_table_stats 表结构与字段的作用**
+
+![](images/20210503112213503_16694.png)
+
+- database_name 数据库名
+- table_name 表名
+- last_update 本条记录最后更新时间
+- n_rows 表中记录的条数
+- clustered_index_size 表的聚簇索引占用的页面数量
+- sum_of_other_index_sizes 表的其他索引占用的页面数量
+
+**innodb_table_stats 表内容分析**，几个重要统计信息项的值如下：
+
+![](images/20210503112452647_6805.png)
+
+- `n_rows` 的值是10311，表明order_exp表中大约有10350条记录，注意这个数据是估计值。
+- `clustered_index_size` 的值是97，表明order_exp表的聚簇索引占用97个页面，这个值是也是一个估计值。
+- `sum_of_other_index_sizes` 的值是74，表明order_exp表的其他索引一共占用81个页面，这个值是也是一个估计值。
+
+**n_rows 统计项的收集**，InnoDB 统计一个表中有多少行记录的执行流程如下：
+
+按照一定算法（并不是纯粹随机的）选取几个叶子节点页面，计算每个页面中主键值记录数量，然后计算平均一个页面中主键值的记录数量乘以全部叶子节点的数量就算是该表的 n_rows 值
+
+这个 n_rows 值精确与否取决于统计时采样的页面数量，MySQL 用名为 innodb_stats_persistent_sample_pages 的系统变量来控制使用永久性的统计数据时，计算统计数据时采样的页面数量。该值设置的越大，统计出的 n_rows值越精确，但是统计耗时也就最久；该值设置的越小，统计出的 n_rows 值越不精确，但是统计耗时特别少。所以在实际使用是需要我们去权衡利弊，该系统变量的默认值是 20。
+
+InnoDB 默认是以表为单位来收集和存储统计数据的，也可以单独设置某个表的采样页面的数量，设置方式就是在创建或修改表的时候通过指定`STATS_SAMPLE_PAGES`属性来指明该表的统计数据存储方式：
+
+```sql
+CREATE TABLE 表名 (...) Engine=InnoDB, STATS_SAMPLE_PAGES = 具体的采样页面数量;
+ALTER TABLE 表名 Engine=InnoDB, STATS_SAMPLE_PAGES = 具体的采样页面数量;
+```
+
+如果在创建表的语句中并没有指定`STATS_SAMPLE_PAGES`属性的话，将默认使用系统变量`innodb_stats_persistent_sample_pages`的值作为该属性的值。`clustered_index_size`和`sum_of_other_index_sizes` 统计项的收集牵涉到很具体的 InnoDB 表空间的知识和存储页面数据的细节
+
+##### 7.1.2.2. innodb_index_stats
+
+**innodb_index_stats 表结构与字段的作用**
+
+![](images/20210503113341758_4484.png)
+
+- database_name 数据库名
+- table_name 表名
+- index_name 索引名
+- last_update 本条记录最后更新时间
+- stat_name 统计项的名称
+- stat_value 对应的统计项的值
+- sample_size 为生成统计数据而采样的页面数量
+- stat_description 对应的统计项的描述
+
+**innodb_index_stats 表的每条记录代表着一个索引的一个统计项**，几个重要统计信息项的值如下：
+
+![](images/20210503113519207_6718.png)
+
+- `index_name`：说明该记录是哪个索引的统计信息
+    - 从示例结果中可以看出来，PRIMARY 索引（也就是主键）占了3条记录，idx_expire_time 索引占了6条记录。
+- `stat_name`：表示针对该索引的统计项名称
+    - `n_leaf_pages`：表示该索引的叶子节点占用多少页面。
+    - `size`：表示该索引共占用多少页面。
+    - `n_diff_pfxNN`：表示对应的索引列不重复的值有多少。（其中“NN”可以被替换为01、02、03...的数字）
+- `stat_value`：该索引在该统计项上的值
+- `sample_size`：表明了采样的页面数量是多少
+    - 对于有多个列的联合索引来说，采样的页面数量是：`innodb_stats_persistent_sample_pages × 索引列的个数`。
+    - 当需要采样的页面数量大于该索引的叶子节点数量的话，就直接采用全表扫描来统计索引列的不重复值数量了。所以可以在查询结果中看到不同索引对应的size列的值可能是不同的。
+- `stat_description`：指的是来描述该统计项的含义的
+
+以`u_idx_day_status`索引为例。
+
+- n_diff_pfx01 表示的是统计 insert_time 这单单一个列不重复的值有多少。
+- n_diff_pfx02 表示的是统计 insert_time,order_status 这两个列组合起来不重复的值有多少。
+- n_diff_pfx03 表示的是统计 insert_time,order_status,expire_time 这三个列组合起来不重复的值有多少。
+- n_diff_pfx04 表示的是统计 key_pare1、key_pare2、expire_time、id 这四个列组合起来不重复的值有多少。
 
 
-## 8. 数据库分库分表
+> 查询`innodb_stats_persistent_sample_pages`值
+
+![](images/20210503114335784_4974.png)
+
+##### 7.1.2.3. 定期更新统计数据
+
+随着不断的对表进行增删改操作，表中的数据也一直在变化，innodb_table_stats 和 innodb_index_stats 表里的统计数据也在变化。MySQL 提供了如下两种更新统计数据的方式：
+
+**开启 innodb_stats_auto_recalc**
+
+系统变量 innodb_stats_auto_recalc 决定着服务器是否自动重新计算统计数据，它的默认值是 ON，也就是该功能默认是开启的。每个表都维护了一个变量，该变量记录着对该表进行增删改的记录条数，如果发生变动的记录数量超过了表大小的 10%，并且自动重新计算统计数据的功能是打开的，那么服务器会重新进行一次统计数据的计算，并且更新 innodb_table_stats 和 innodb_index_stats 表。
+
+自动重新计算统计数据的过程是异步发生的，也就是即使表中变动的记录数超过了 10%，自动重新计算统计数据也不会立即发生，可能会延迟几秒才会进行计算。
+
+InnoDB 默认是以表为单位来收集和存储统计数据的，所以也可以单独为某个表设置是否自动重新计算统计数的属性，设置方式就是在创建或修改表的时候通过指定`STATS_AUTO_RECALC`属性来指明该表的统计数据存储方式：
+
+```sql
+CREATE TABLE 表名 (...) Engine=InnoDB, STATS_AUTO_RECALC = (1|0);
+ALTER TABLE 表名 Engine=InnoDB, STATS_AUTO_RECALC = (1|0)
+```
+
+- 当`STATS_AUTO_RECALC=1`时，表明想让该表自动重新计算统计数据
+- 当`STATS_AUTO_RECALC=0`时，表明不想让该表自动重新计算统计数据
+- 如果在创建表时未指定`STATS_AUTO_RECALC`属性，那默认采用系统变量`innodb_stats_auto_recalc`的值作为该属性的值。
+
+**手动调用 ANALYZE TABLE 语句来更新统计信息**
+
+如果 innodb_stats_auto_recalc 系统变量的值为 OFF 的话。也可以手动调用 ANALYZE TABLE 语句来重新计算统计数据
+
+```sql
+ANALYZE TABLE 表名;
+```
+
+ANALYZE TABLE 语句会立即重新计算统计数据，也就是这个过程是同步的，在表中索引多或者采样页面特别多时这个过程可能会特别慢最好在业务不是很繁忙的时候再运行。
+
+#### 7.1.3. 手动更新 innodb_table_stats 和 innodb_index_stats 表
+
+innodb_table_stats 和 innodb_index_stats 表就相当于一个普通的表一样，能对它们做增删改查操作。这也就意味着可以手动更新某个表或者索引的统计数据。
+
+- 步骤一：更新 innodb_table_stats 表
+- 步骤二：让 MySQL 查询优化器重新加载更改过的数据
+
+更新完 innodb_table_stats 只是单纯的修改了一个表的数据，需要让 MySQL 查询优化器重新加载我们更改过的数据，运行以下的命令即可：
+
+```sql
+FLUSH TABLE 表名;
+```
+
+### 7.2. InnoDB 记录存储结构和索引页结构(TODO mark: 整理中)
+
+InnoDB 是一个将表中的数据存储到磁盘上的存储引擎，所以即使关机后重启，数据还是存在的。而真正处理数据的过程是发生在内存中的，所以需要把磁盘中的数据加载到内存中，如果是处理写入或修改请求的话，还需要把内存中的内容刷新到磁盘上。
+
+当从表中获取某些记录时，InnoDB 采取的方式是：将数据划分为若干个页，以页作为磁盘和内存之间交互的基本单位，InnoDB 中页的大小一般为 16 KB。也就是在一般情况下，一次最少从磁盘中读取 16KB 的内容到内存中，一次最少把内存中的 16KB 内容刷新到磁盘中。
+
+以记录为单位来向表中插入数据的，这些记录在磁盘上的存放方式也被称为行格式或者记录格式。InnoDB 存储引擎设计了4种不同类型的行格式，分别是 Compact、Redundant、Dynamic 和 Compressed 行格式。
+
+#### 7.2.1. 行格式
+
+创建或修改表的语句中指定行格式：
+
+```sql
+CREATE TABLE 表名 (列的信息) ROW_FORMAT=行格式名称;
+```
+
+#### 7.2.2. COMPACT
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+## 8. 主从复制、读写分离
+
+
+## 9. 数据库分库分表
 
 
