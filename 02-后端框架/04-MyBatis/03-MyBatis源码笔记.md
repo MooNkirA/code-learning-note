@@ -2610,6 +2610,25 @@ public void testSingleTableCollection() throws Exception {
 
 尽管嵌套查询大量的简化了存在关联关系的查询，但它存在N+1的问题。关联的嵌套查询显示得到一个结果集，然后根据这个结果集的每一条记录进行关联查询。现在假设嵌套查询就一个（即resultMap 内部就一个association标签），现查询的结果集返回条数为N，那么关联查询语句将会被执行N次，加上自身返回结果集查询1次，共需要访问数据库N+1次，进而有可能影响到性能。
 
+#### 5.2.3. 嵌套查询的N+1问题解决方案
+
+解决“N+1 查询问题”的办法就是开启懒加载、按需加载数据，开启懒加载配置：
+
+- 方式一：配置MyBatis总核心配置，配置全局懒加载。即所有关联对象的查询语句都会延迟加载
+
+```xml
+<!-- 延迟加载的全局开关。当开启时，所有关联对象都会延迟加载。 特定关联关系中可通过设置 fetchType 属性来覆盖该项的开关状态。默认值false -->
+<setting name="aggressiveLazyLoading" value="true"/>
+```
+
+- 方式二：对关联的嵌套`<select>`查询节点，在`<association>`标签上配置`fetchType`属性。注：此配置会全局配置参数 `lazyLoadingEnabled`，并以此属性配置为准。
+
+```xml
+<resultMap id="blogResult" type="Blog">
+  <association property="author" column="author_id" javaType="Author" select="selectAuthor" fetchType="lazy"/>
+</resultMap>
+```
+
 ## 6. MyBatis 懒加载原理
 
 ### 6.1. 懒加载情况下的嵌套查询测试
@@ -2646,7 +2665,43 @@ resultMap id="ContractResultMapWithIdCardInfo" type="com.moon.mybatis.pojo.Consu
 
 ![](images/20210503231500807_16757.png)
 
+`DefaultResultSetHandler`类的`handleResultSet` -> `handleRowValues` -> `handleRowValuesForSimpleResultMap` -> `getRowValue`的方法中，会将数据库表的行记录封装成对象
 
+![](images/20210505123008071_17458.png)
+
+获取配置中生成代理的类型实例，调用相应类型的代理生成
+
+![](images/20210505123715632_23094.png)
+
+![](images/20210505125903565_27366.png)
+
+以`CGLIB`的类型代理来说，在`CglibProxyFactory`的静态私有类`EnhancedResultObjectProxyImpl`的`createProxy`来生成代理对象
+
+![](images/20210505163647965_20628.png)
+
+![](images/20210505163208975_17943.png)
+
+创建完代理对象后，`getRowValue`方法继续执行。然后在`applyPropertyMappings`方法给对象赋值，但注意此时是给代理对象赋值，然后那些非懒加载的属性，都是按原样处理赋值。赋值就是调用`setXxx`的方法，所以调用`CglibProxyFactory$EnhancedResultObjectProxyImpl`的`intercept`方法
+
+![](images/20210505172209886_1943.png)
+
+如果是懒加载的属性，在循环主查询语句的结果集时，与正常的嵌套查询处理一样，最后的执行到`DefaultResultSetHandler.getNestedQueryMappingValue`方法，只是懒加载的情况下，不会调用`resultLoader.loadResult()`方法去调用`selectList`的处理。而是调用`lazyLoader.addLoader(property, metaResultObject, resultLoader)`方法
+
+![](images/20210505172352952_32267.png)
+
+被代理对象可能会有多个属性可以被懒加载，这里会将这些尚未完成加载的属性是在`ResultLoaderMap`类的实例中存储的。当获取被代理类懒加载的属性时，就会调调用`CglibProxyFactory$EnhancedResultObjectProxyImpl`的`intercept`方法（*示例使用CGLIB的类型代理*）
+
+![](images/20210505230238474_16240.png)
+
+调用`ResultLoaderMap`类的`load`方法
+
+![](images/20210505230830210_19915.png)
+
+![](images/20210505231057707_18962.png)
+
+通过`this.resultLoader.loadResult()`，又重新调用`ResultLoader.loadResult`方法，方法去调用`selectList`方法，通过执行器`BaseExecutor`调用`query`方法，即重新发送sql查询。
+
+![](images/20210505231325296_26213.png)
 
 
 
