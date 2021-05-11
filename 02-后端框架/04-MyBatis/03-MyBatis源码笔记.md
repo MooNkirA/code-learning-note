@@ -2300,7 +2300,7 @@ private TypeHandler<?> resolveTypeHandler(Object parameter, JdbcType jdbcType) {
 
 ### 4.6. ResultSetHandler 组件
 
-#### 4.6.1. 组件功能简介（待补充流程图）
+#### 4.6.1. 组件功能简介
 
 在`StatementHandler`组件的执行过程中，通过`ParameterHandler`组件对预编译的sql占位符进行赋值后，就会执行相应的sql操作，此时就会通过`ResultSetHandler`组件来将sql操作结果进行封装处理
 
@@ -2448,7 +2448,7 @@ storeObject(resultHandler, resultContext, rowValue, parentMapping, resultSet);
 
 ![](images/20210405124226737_28362.png)
 
-## 5. MyBatis 懒加载原理
+## 5. MyBatis 嵌套查询分析
 
 ### 5.1. 正常情况下非懒加载查询测试
 
@@ -2562,10 +2562,150 @@ public void testSingleTableCollection() throws Exception {
 
 ### 5.2. 嵌套查询
 
-在MyBatis框架中，如果一个查询语句中，通过在`<resultMap>`中使用`<collection>`配置，触发了其中一些字段的再次查询。
+在MyBatis框架中，如果一个查询语句中，通过在`<resultMap>`中使用`<collection>`配置，触发了其中一些字段的再次查询，称为“嵌套查询”。
+
+嵌套查询的处理就在MyBatis源码中的`ResultSet`的处理属性的映射时，会触发嵌套查询的`selectList`操作
+
+#### 5.2.1. 源码分析
+
+首先会执行主查询语句的查询逻辑，通过`BaseExecutor`执行器的`query`方法进行查询
+
+![](images/20210503222500114_27392.png)
+
+![](images/20210503222525246_27506.png)
+
+定位在查询处理结果的源码位置`PreparedStatementHandler.query`方法，`resultSetHandler.handleResultSets(ps);`处理查询结果
+
+![](images/20210503212958933_21710.png)
+
+在`DefaultResultSetHandler.handleResultSets`方法中，根据自身的查询结果集，处理嵌套映射
+
+![](images/20210503213351089_18052.png)
+
+![](images/20210503213517462_24111.png)
+
+![](images/20210503213559176_13563.png)
+
+![](images/20210503213735625_27294.png)
+
+`applyPropertyMappings`方法来处理结果集的映射
+
+![](images/20210503213821200_8532.png)
+
+![](images/20210503213956175_9541.png)
+
+判断是否有嵌套查询的id，如有，则走嵌套查询的处理逻辑
+
+![](images/20210503214014128_21608.png)
+
+![](images/20210503223331989_16634.png)
+
+![](images/20210503221046586_15498.png)
+
+最后又重新调用了`Executor`执行器的`query`方法，即会执行嵌套查询的语句
+
+![](images/20210503221104383_28722.png)
+
+#### 5.2.2. 嵌套查询的N+1问题
+
+尽管嵌套查询大量的简化了存在关联关系的查询，但它存在N+1的问题。关联的嵌套查询显示得到一个结果集，然后根据这个结果集的每一条记录进行关联查询。现在假设嵌套查询就一个（即resultMap 内部就一个association标签），现查询的结果集返回条数为N，那么关联查询语句将会被执行N次，加上自身返回结果集查询1次，共需要访问数据库N+1次，进而有可能影响到性能。
+
+#### 5.2.3. 嵌套查询的N+1问题解决方案
+
+解决“N+1 查询问题”的办法就是开启懒加载、按需加载数据，开启懒加载配置：
+
+- 方式一：配置MyBatis总核心配置，配置全局懒加载。即所有关联对象的查询语句都会延迟加载
+
+```xml
+<!-- 延迟加载的全局开关。当开启时，所有关联对象都会延迟加载。 特定关联关系中可通过设置 fetchType 属性来覆盖该项的开关状态。默认值false -->
+<setting name="aggressiveLazyLoading" value="true"/>
+```
+
+- 方式二：对关联的嵌套`<select>`查询节点，在`<association>`标签上配置`fetchType`属性。注：此配置会全局配置参数 `lazyLoadingEnabled`，并以此属性配置为准。
+
+```xml
+<resultMap id="blogResult" type="Blog">
+  <association property="author" column="author_id" javaType="Author" select="selectAuthor" fetchType="lazy"/>
+</resultMap>
+```
+
+## 6. MyBatis 懒加载原理
+
+### 6.1. 懒加载情况下的嵌套查询测试
+
+在`collection`标签中加上`fetchType="lazy"`即可
+
+```xml
+resultMap id="ContractResultMapWithIdCardInfo" type="com.moon.mybatis.pojo.ConsultContractCardInfo">
+    <id column="CONTRACT_ID" property="contractId"/>
+    <result column="PSPTID" property="psptId"/>
+    <result column="CONTRACT_CODE" property="contractCode"/>
+    <result column="ACTIVETIME" property="activeTime"/>
+    <result column="STATE" property="state"/>
+    <!-- 关联的嵌套 Select 查询
+        fetchType：设置获取映射属性的值的方式，lazy-代表懒加载，将对象属性被调用时再触发相应的映射语句
+     -->
+    <collection property="infos" javaType="java.util.List" column="PSPTID" select="queryUserByPsptId" fetchType="lazy"/>
+</resultMap>
+```
+
+此时再次运行测试用例，此时只执行了主查询语句，并没有执行嵌套查询语句
+
+![](images/20210503225217402_31645.png)
+
+如果调用获取`<collection>`标签映射的属性值时，就会触发相应的嵌套查询语句的执行。
+
+![](images/20210503225149463_32635.png)
+
+### 6.2. 懒加载的逻辑处理源码分析
+
+与非懒加载的情况不一样，如果是懒加载的情况，在`ResultSetHandler`组件循环处理结果封装时，不是直接返回结果对象，而是返回结果的代理对象，从而在调用相应获取属性的方法时，就会触发嵌套查询的语句。
+
+所以懒加载的逻辑处理源码位置肯定会在`ResultSetHandler`组件处理结果集的位置
+
+![](images/20210503231500807_16757.png)
+
+`DefaultResultSetHandler`类的`handleResultSet` -> `handleRowValues` -> `handleRowValuesForSimpleResultMap` -> `getRowValue`的方法中，会将数据库表的行记录封装成对象
+
+![](images/20210505123008071_17458.png)
+
+获取配置中生成代理的类型实例，调用相应类型的代理生成
+
+![](images/20210505123715632_23094.png)
+
+![](images/20210505125903565_27366.png)
+
+以`CGLIB`的类型代理来说，在`CglibProxyFactory`的静态私有类`EnhancedResultObjectProxyImpl`的`createProxy`来生成代理对象
+
+![](images/20210505163647965_20628.png)
+
+![](images/20210505163208975_17943.png)
+
+创建完代理对象后，`getRowValue`方法继续执行。然后在`applyPropertyMappings`方法给对象赋值，但注意此时是给代理对象赋值，然后那些非懒加载的属性，都是按原样处理赋值。赋值就是调用`setXxx`的方法，所以调用`CglibProxyFactory$EnhancedResultObjectProxyImpl`的`intercept`方法
+
+![](images/20210505172209886_1943.png)
+
+如果是懒加载的属性，在循环主查询语句的结果集时，与正常的嵌套查询处理一样，最后的执行到`DefaultResultSetHandler.getNestedQueryMappingValue`方法，只是懒加载的情况下，不会调用`resultLoader.loadResult()`方法去调用`selectList`的处理。而是调用`lazyLoader.addLoader(property, metaResultObject, resultLoader)`方法
+
+![](images/20210505172352952_32267.png)
+
+被代理对象可能会有多个属性可以被懒加载，这里会将这些尚未完成加载的属性是在`ResultLoaderMap`类的实例中存储的。当获取被代理类懒加载的属性时，就会调调用`CglibProxyFactory$EnhancedResultObjectProxyImpl`的`intercept`方法（*示例使用CGLIB的类型代理*）
+
+![](images/20210505230238474_16240.png)
+
+调用`ResultLoaderMap`类的`load`方法
+
+![](images/20210505230830210_19915.png)
+
+![](images/20210505231057707_18962.png)
+
+通过`this.resultLoader.loadResult()`，又重新调用`ResultLoader.loadResult`方法，方法去调用`selectList`方法，通过执行器`BaseExecutor`调用`query`方法，即重新发送sql查询。
+
+![](images/20210505231325296_26213.png)
 
 
-## 6. MyBatis 缓存原理
+
+## 7. MyBatis 缓存原理
 
 
 

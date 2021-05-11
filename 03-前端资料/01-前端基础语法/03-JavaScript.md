@@ -3,6 +3,7 @@
 ## 1. JavaScript 语法( ECMA Script )
 
 ### 1.1. JavaScript 数据类型
+
 #### 1.1.1. 5种基本数据类型
 
 |   关键字   |                   数据类型                   |
@@ -3137,9 +3138,51 @@ umi dev
 
 *注：转码器的使用，可以参考《在职加薪课程 --> 阶段四 --> 4-1 ES6新特性以及ReactJS入门 --> 16.ES6新特性之转码器（UmiJS入门）.mp4》*
 
+# ES2020
+
+## 1. 表达式和运算符
+
+### 1.1. 可选链操作符
+
+可选链操作符(`?.`)允许读取位于连接对象链深处的属性的值，而不必明确验证链中的每个引用是否有效。`?.`操作符的功能类似于`.`链式操作符，不同之处在于，在引用为空(`nullish`) (`null`或者`undefined`) 的情况下不会引起错误，该表达式短路返回值是`undefined`。与函数调用一起使用时，如果给定的函数不存在，则返回`undefined`。
+
+当尝试访问可能不存在的对象属性时，可选链操作符将会使表达式更短、更简明。
+
+```js
+const adventurer = {
+  name: "Alice",
+  cat: {
+    name: "Dinah",
+  },
+};
+
+const dogName = adventurer.dog?.name;
+console.log(dogName);
+// expected output: undefined
+
+const catName = adventurer.cat?.name;
+console.log(catName);
+// expected output: Dinah
+
+console.log(adventurer.someNonExistentMethod?.());
+// expected output: undefined
+```
+
+#### 1.1.1. 语法
+
+```js
+obj?.prop
+obj?.[expr]
+arr?.[index]
+func?.(args)
+```
+
+参考：https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Operators/Optional_chaining
+
 # 其他
 
 ## 1. 收集的资料
+
 ### 1.1. 返回一个图形键盘
 
 ```js
