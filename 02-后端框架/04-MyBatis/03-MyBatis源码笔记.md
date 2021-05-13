@@ -2703,9 +2703,37 @@ resultMap id="ContractResultMapWithIdCardInfo" type="com.moon.mybatis.pojo.Consu
 
 ![](images/20210505231325296_26213.png)
 
-
-
 ## 7. MyBatis 缓存原理
+
+查询缓存，肯定是在发起sql查询前去判断是否存在缓存，如果存在则直接返回缓存的结果。
+
+![](images/20210506221944285_20894.png)
+
+每次查询都创建新的缓存键对象
+
+![](images/20210506223402715_23402.png)
+
+通过每次都创建的key在map容器获取对应的值，必须要重写`CacheKey`对象的`equals`和`hashCode`方法。从上面可以看到创建`CacheKey`，都会`CacheKey.update`方法来更新相关的参数，这些参数都是用于比较是否是相同的语句
+
+```java
+cacheKey.update(ms.getId());
+cacheKey.update(rowBounds.getOffset());
+cacheKey.update(rowBounds.getLimit());
+cacheKey.update(boundSql.getSql());
+cacheKey.update(value); // 更新 SQL 中占位符的属性值
+cacheKey.update(configuration.getEnvironment().getId());
+```
+
+
+
+
+
+
+
+
+
+
+
 
 
 
