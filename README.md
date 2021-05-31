@@ -133,8 +133,12 @@
 ### ✨ MySQL ✨
 
 <ul class="docs">
-  <li><a href="#/04-数据库/01-MySQL/01-MySQL基础笔记">MySQL基础笔记</a></li>
-  <li><a href="#/04-数据库/01-MySQL/02-MySQL数据库规范与性能优化">MySQL数据库规范与性能优化</a></li>
+  <li><a href="#/04-数据库/01-MySQL/01-MySQL数据库01-体系架构">MySQL数据库01-体系架构</a></li>
+  <li><a href="#/04-数据库/01-MySQL/01-MySQL数据库02-SQL基础">MySQL数据库02-SQL基础</a></li>
+  <li><a href="#/04-数据库/01-MySQL/01-MySQL数据库03-事务">MySQL数据库03-事务</a></li>
+  <li><a href="#/04-数据库/01-MySQL/01-MySQL数据库04-索引">MySQL数据库04-索引</a></li>
+  <li><a href="#/04-数据库/01-MySQL/01-MySQL数据库05-锁">MySQL数据库05-锁</a></li>
+  <li><a href="#/04-数据库/01-MySQL/02-MySQL进阶01-数据库规范与性能优化">MySQL进阶01-数据库规范与性能优化</a></li>
   <li><a href="#/04-数据库/01-MySQL/03-MySQL安装与部署">MySQL安装与部署</a></li>
 </ul>
 

@@ -1,4 +1,4 @@
-# MySQL 数据库设计规范
+# MySQL进阶-数据库规范与性能优化
 
 ## 1. 数据库表设计
 
@@ -2326,3 +2326,706 @@ Redundant 行格式是 MySQL5.0 之前用的一种行格式
 ## 9. 数据库分库分表
 
 
+# MySQL 数据库进阶知识笔记
+
+## 1. MySQL 数据库运行流程图
+
+![MySQl数据库运行流程图](images/20190515100151703_21672.jpg)
+
+## 2. MySQL 的执行原理
+
+### 2.1. 单表访问之索引合并
+
+MySQL 在一般情况下执行一个查询时最多只会用到单个二级索引，但存在有特殊情况，在这些特殊情况下也可能在一个查询中使用到多个二级索引，MySQL 中这种使用到多个索引来完成一次查询的执行方法称之为：索引合并（index merge），具体的索引合并算法有以下的3种：
+
+#### 2.1.1. 并集（Intersection）合并
+
+某个查询可以使用多个二级索引，将从多个二级索引中查询到的结果取交集。
+
+```sql
+SELECT * FROM table WHERE index1 = 'a' AND index2 = 'b';
+```
+
+假设这个查询使用 Intersection 合并的方式执行的话，那执行过程是：
+
+- 从`index1`相应的二级索引对应的B+树中取出`index1 = 'a'`的相关记录。
+- 从`index2`相应的二级索引对应的B+树中取出`index2 = 'b'`的相关记录。
+
+因为二级索引的组成结构都是由索引列+主键构成，所以可以计算出这两个结果集中主键的交集。然后再根据这个主键的交集去进行回表操作，也就是从聚簇索引中把指定的主键的完整行记录返回。
+
+【问题】：不同的查询方式的执行成本比较
+
+- **只读取一个二级索引的成本**：按照某个搜索条件读取一个二级索引，根据从该二级索引得到的主键值进行回表操作，然后再过滤其他的搜索条件
+- **读取多个二级索引之后取交集成本**：按照不同的搜索条件分别读取不同的二级索引，将从多个二级索引得到的主键值取交集，然后进行回表操作
+
+【解释】：虽然读取多个二级索引比读取一个二级索引消耗性能，但是大部分情况下读取二级索引的操作是顺序I/O，而回表操作是随机I/O，所以如果只读取一个二级索引时需要回表的记录数特别多，而读取多个二级索引之后取交集的记录数非常少，当节省的因为回表而造成的性能损耗比访问多个二级索引带来的性能损耗更高时，读取多个二级索引后取交集比只读取一个二级索引的成本更低。
+
+MySQL 在以下特定的情况下才可能会使用到 Intersection 索引合并
+
+##### 2.1.1.1. 情况一：等值匹配
+
+- 二级索引列是等值匹配的情况
+- 对于联合索引来说，在联合索引中的每个列都必须等值匹配，不能出现只匹配部分列的情况。
+
+满足以上的情况，才可能会使用到索引合并
+
+##### 2.1.1.2. 情况二：主键列可以是范围匹配
+
+```sql
+SELECT * FROM 表 WHERE 主键列 > 100 AND 索引列 = 'a';
+```
+
+对于 InnoDB 的二级索引来说，记录先是按照索引列进行排序，如果该二级索引是一个联合索引，那么会按照联合索引中的各个列依次排序。而二级索引的用户记录是由索引列 + 主键构成的，二级索引列的值相同的记录可能会有好多条，这些索引列的值相同的记录又是按照主键的值进行排序的
+
+<font color=red>**之所以在二级索引列都是等值匹配的情况下才可能使用Intersection 索引合并，是因为在这种情况下根据二级索引查询出的结果集是按照主键值排序的**</font>。因为各个二级索引中查询的到的结果集按主键排好序，取交集的过程比较容易。按照有序的主键值去回表取记录有个专有名词，叫：Rowid Ordered Retrieval，简称 ROR。
+
+如果从各个二级索引中查询出的结果集并不是按照主键排序的话，那就要先把结果集中的主键值排序完再来做上边的那个过程，就比较耗时了。
+
+<font color=red>****不仅是多个二级索引之间可以采用 Intersection 索引合并，索引合并也可以有聚簇索引。在搜索条件中有主键的范围匹配的情况下也可以使用 Intersection 索引合并索引合并</font>。如上例，通过二级索引查询到相应的主键值集合，因为主键已经排序，所以很容易就匹配主键范围条件，取最终的结果集
+
+##### 2.1.1.3. 索引并集合并小结
+
+上边的情况一和情况二只是发生 Intersection 索引合并的必要条件，不是充分条件。也就是说即使情况一、情况二成立，也不一定发生 Intersection索引合并，这得看优化器的具体分析。优化器只有在单独根据搜索条件从某个二级索引中获取的记录数太多，导致回表开销太大，而通过 Intersection 索引合并后需要回表的记录数大大减少时才会使用 Intersection 索引合并。
+
+#### 2.1.2. Union 合并
+
+查询时经常会把既符合某个搜索条件的记录取出来，也把符合另外的某个搜索条件的记录取出来，然后这些不同的搜索条件之间是`OR`关系。有时候`OR`关系的不同搜索条件会使用到不同的索引，如：
+
+```sql
+SELECT * FROM 表 WHERE 索引列1 = 'a' OR 索引列2 = 'b';
+```
+
+Union 是并集的意思，适用于使用不同索引的搜索条件之间使用`OR`连接起来的情况。与 Intersection 索引合并类似，MySQL 在某些特定的情况下才可能会使用到 Union 索引合并：
+
+##### 2.1.2.1. 情况一：等值匹配
+
+分析与Intersection 合并同理
+
+##### 2.1.2.2. 情况二：主键列可以是范围匹配
+
+分析与 Intersection 合并同理
+
+##### 2.1.2.3. 情况三：使用 Intersection 索引合并的搜索条件
+
+此情况是，搜索条件的某些部分使用 Intersection 索引合并的方式得到的主键集合和其他方式得到的主键集合取交集。比如：
+
+```sql
+SELECT * FROM order_exp WHERE insert_time = 'a' AND order_status = 'b' AND expire_time = 'c' OR (order_no = 'a' AND expire_time = 'b');
+```
+
+优化器可能采用这样的方式来执行这个查询：
+
+- 先按照搜索条件 order_no = 'a' AND expire_time = 'b'从索引 idx_order_no 和 idx_expire_time 中使用 Intersection 索引合并的方式得到一个主键集合。
+- 再按照搜索条件 insert_time = 'a' AND order_status = 'b' AND expire_time = 'c' 从联合索引 u_idx_day_status 中得到另一个主键集合。
+- 采用 Union 索引合并的方式把上述两个主键集合取并集，然后进行回表操作，将结果返回给客户端。
+
+##### 2.1.2.4. 索引并集合并小结
+
+查询条件符合了以上情况也不一定就会采用 Union 索引合并，也得看优化器的具体分析。优化器只有在单独根据搜索条件从某个二级索引中获取的记录数比较少，通过 Union 索引合并后进行访问的代价比全表扫描更小时才会使用Union 索引合并。
+
+#### 2.1.3. Sort-Union 合并
+
+Union 索引合并的使用条件必须保证各个二级索引列在进行等值匹配的条件下才可能被用到。有一些情况：
+
+```sql
+SELECT * FROM 表 WHERE 索引列1 < 'a' OR 索引列2 > 'z';
+```
+
+- 先根据索引列1从二级索引中获取到记录，并将记录上的主键进行排序
+- 同样操作索引列2
+- 两个二级索引主键值都是排好序后，后续的操作和 Union 索引合并方式就一样了
+
+上述这种先按照二级索引记录的主键值进行排序，之后按照 Union 索引合并方式执行的方式称之为 Sort-Union 索引合并，很显然，这种 Sort-Union 索引合并比单纯的 Union 索引合并多了一步对二级索引记录的主键值排序的过程。
+
+#### 2.1.4. 联合索引替代 Intersection 索引合并
+
+在使用 Intersection 索引合并的方式来处理的查询语句，是因为查询条件的列分别是索引，并且是各个单独的B+树。可以直接将其各个二级索引合并成一个联合索引
+
+### 2.2. 连接查询的实现原理
+
+> 连接查询的基础知识详见前面《连接查询》的章节
+
+#### 2.2.1. 嵌套循环连接（Nested-Loop Join）
+
+- 两表连接查询：驱动表只会被访问一次，但被驱动表具体访问次数取决于对驱动表执行单表查询后的结果集中的记录条数。
+- 内连接查询：选取哪个表为驱动表都没关系
+- 外连接查询：驱动表是固定的，也就是说左（外）连接的驱动表就是左边的那个表，右（外）连接的驱动表就是右边的那个表。
+- 3个表连接查询：那么首先两表连接得到的结果集作为新的驱动表，然后第三个表作为被驱动表
+
+从上面可以看出，连接查询这个过程就像是一个嵌套的循环，所以这种驱动表只访问一次，但被驱动表却可能被多次访问，访问次数取决于对驱动表执行单表查询后的结果集中的记录条数的连接执行方式称之为嵌套循环连接（Nested-Loop Join），这是最简单，也是最笨拙的一种连接查询算法，时间复杂度是`O(N*M*L)`。
+
+#### 2.2.2. 使用索引加快连接速度
+
+被驱动表其实就相当于一次单表查询，假设查询驱动表后的结果集中有N条记录，根据嵌套循环连接算法需要对被驱动表查询N次。
+
+```sql
+SELECT * FROM e1, e2 WHERE e1.m1 > 1 AND e1.m1 = e2.m2 AND e2.n2 < 'd';
+```
+
+如上示例，如果给被驱动表的连接列（即上例的m2列）建立索引，因为m2列的条件是等值查找，所以可能使用到`ref`类型的访问方法； 如果m2列是e2表的主键或者唯一二级索引列，那么使用`e2.m2 = 常数值`这样的条件从 e2 表中查找记录的过程的代价就是常数级别的。在单表中使用主键值或者唯一二级索引列的值进行等值查找的方式称之为`const`，而 MySQL 把在连接查询中对被驱动表使用主键值或者唯一二级索引列的值进行等值查找的查询执行方式称之为：`eq_ref`。
+
+如果连接查询条件列与其他条件列都存在索引，需要从所有索引中选一个代价更低的去执行对被驱动表的查询。当然，建立了索引不一定使用索引，只有在二级索引+回表的代价比全表扫描的代价更低时才会使用索引。
+
+有时候连接查询的查询列表和过滤条件中可能只涉及被驱动表的部分列，而这些列都是某个索引的一部分，这种情况下即使不能使用`eq_ref`、`ref`、`ref_or_null`或者`range`这些访问方法执行对被驱动表的查询的话，也可以使用索引扫描，也就是index(索引覆盖)的访问方法来查询被驱动表。
+
+#### 2.2.3. 基于块的嵌套循环连接（Block Nested-Loop Join）
+
+扫描一个表的过程其实是先把这个表从磁盘上加载到内存中，然后从内存中比较匹配条件是否满足。当表数据量很大的时候，每次访问被驱动表，被驱动表的记录会被加载到内存中，在内存中的每一条记录只会和驱动表结果集的一条记录做匹配，之后就会被从内存中清除掉。然后再从驱动表结果集中拿出另一条记录，再一次把被驱动表的记录加载到内存中一遍，驱动表结果集中有多少条记录，就得把被驱动表从磁盘上加载到内存中多少次。这个 I/O 代价就非常大了，所以需想办法：尽量减少访问被驱动表的次数。
+
+MySQL 提出了一个 join buffer 的概念，join buffer 就是执行连接查询前申请的一块固定大小的内存，先把若干条驱动表结果集中的记录装在这个 join buffer 中，然后**开始扫描被驱动表，每一条被驱动表的记录一次性和 join buffer 中的多条驱动表记录做匹配，**因为匹配的过程都是在内存中完成的，所以这样可以显著减少被驱动表的 I/O 代价。使用 join buffer 的过程如下图所示：
+
+![](images/20210430231135472_30785.png)
+
+其中最好的情况是 join buffer 足够大，能容纳驱动表结果集中的所有记录。这种加入了 join buffer 的嵌套循环连接算法称之为**基于块的嵌套连接（Block Nested-Loop Join）算法**。
+
+这个 join buffer 的大小是可以通过启动参数或者系统变量`join_buffer_size`进行配置，默认大小为 262144 字节（也就是 256KB），最小可以设置为 128 字节。
+
+```sql
+show variables like 'join_buffer_size' ;
+```
+
+![](images/20210430231129468_23965.png)
+
+对于优化被驱动表的查询来说，最好是为被驱动表加上效率高的索引，如果实在不能使用索引，并且自己的机器的内存也比较大可以尝试调大`join_buffer_size`的值来对连接查询进行优化。
+
+需要注意的是，驱动表的记录并不是所有列都会被放到 join buffer 中，只有查询列表中的列和过滤条件中的列才会被放到 join buffer 中，所以最好不要把`*`作为查询列表，只将需要的列放到查询列表就好了，这样还可以在 join buffer 中放置更多的记录。
+
+## 3. MySQL 的查询重写规则（了解）
+
+### 3.1. 条件化简
+
+查询语句的搜索条件本质上是一个表达式，MySQL 的查询优化器会简化这些表达式。
+
+#### 3.1.1. 移除不必要的括号
+
+表达式里有许多无用的括号，如：
+
+```sql
+((a = 5 AND b = c) OR ((a > c) AND (c < 5)))
+```
+
+优化器会把那些用不到的括号移除
+
+```sql
+(a = 5 and b = c) OR (a > c AND c < 5)
+```
+
+#### 3.1.2. 常量传递（constant_propagation）
+
+当表达式是某个列和某个常量做等值匹配（`a=5`），当这个表达式和其他涉及列a的表达式使用`AND`连接起来时，可以将其他表达式中的a的值替换为5
+
+```sql
+a = 5 AND b > a
+-- 替换成
+a = 5 AND b > 5
+
+-- 多个列之间存在等值匹配的关系
+a = b and b = c and c = 5
+-- 替换成
+a = 5 and b = 5 and c = 5
+```
+
+#### 3.1.3. 移除没用的条件（trivial_condition_removal）
+
+对于一些永远为`TRUE`或者`FALSE`的表达式，优化器会将其移除。
+
+```sql
+(a < 1 and b = b) OR (a = 6 OR 5 != 5)
+-- 简化后
+(a < 1 and TRUE) OR (a = 6 OR FALSE)
+-- 最终的表达式
+a < 1 OR a = 6
+```
+
+#### 3.1.4. 表达式计算
+
+在查询开始执行之前，如果表达式中只包含常量的话，它的值会被先计算出来。
+
+```sql
+a = 5 + 1
+-- 简化
+a = 6
+```
+
+需要注意的是，如果某个列并不是以单独的形式作为表达式的操作数时，比如出现在函数中，出现在某个更复杂表达式中，优化器是不会尝试对这些表达式进行化简的。如：
+
+```sql
+ABS(a) > 5
+-a < -8
+```
+
+所以只有搜索条件中索引列和常数使用某些运算符连接起来才可能使用到索引，以上会示例可能会使索引失效
+
+#### 3.1.5. 常量表检测
+
+使用主键等值匹配或者唯一二级索引列等值匹配作为搜索条件来查询某个表。MySQL把通过这两种方式查询的表称之为常量表（英文名：constant tables）。
+
+```sql
+SELECT * FROM table1 INNER JOIN table2
+    ON table1.column1 = table2.column2
+    WHERE table1.primary_key = 1;
+```
+
+优化器在分析以上查询语句时，先首先执行常量表查询，然后把查询中涉及到该表的条件全部替换成常数，最后再分析其余表的查询成本。所以这个查询可以使用主键和常量值的等值匹配来查询 table1 表，也就是在这个查询中 table1 表相当于常量表，在分析对 table2 表的查询成本之前，就会执行对 table1 表的查询，并把查询中涉及 table1 表的条件都替换掉，也就是上边的语句会被转换成：
+
+```sql
+SELECT table1 表记录的各个字段的常量值, table2.* 
+FROM table1 INNER JOIN table2 ON table1 表 column1 列的常量值 = table2.column2;
+```
+
+### 3.2. 外连接消除
+
+外连接和内连接的本质区别就是：对于外连接的驱动表的记录来说，如果无法在被驱动表中找到匹配`ON`子句中的过滤条件的记录，那么该记录仍然会被加入到结果集中，对应的被驱动表记录的各个字段使用`NULL`值填充；而内连接的驱动表的记录如果无法在被驱动表中找到匹配`ON`子句中的过滤条件的记录，那么该记录会被舍弃。
+
+只要在搜索条件中指定关于被驱动表相关列的值不为`NULL`，那么外连接中在被驱动表中找不到符合`ON`子句条件的驱动表记录也就被排除出最后的结果集了，也就是说：在这种情况下：外连接和内连接也就没有什么区别了！
+
+```sql
+SELECT * FROM e1 LEFT JOIN e2 ON e1.m1 = e2.m2 WHERE e2.n2 IS NOT NULL;
+-- 或者
+SELECT * FROM e1 LEFT JOIN e2 ON e1.m1 = e2.m2 WHERE e2.m2 = 2;
+```
+
+这种在外连接查询中，指定的`WHERE`子句中包含被驱动表中的列不为 NULL 值的条件称之为空值拒绝（英文名：reject-NULL）。在被驱动表的`WHERE`子句符合空值拒绝的条件后，外连接和内连接可以相互转换。这种转换带来的好处就是查询优化器可以通过评估表的不同连接顺序的成本，选出成本最低的那种连接顺序来执行查询。
+
+### 3.3. 子查询优化（TODO mark: 待补充）
+
+#### 3.3.1. 子查询的执行方式
+
+#### 3.3.2. 标量子查询、行子查询的执行方式
+
+#### 3.3.3. MySQL 对 IN 子查询的优化
+
+#### 3.3.4. 物化表转连接
+
+## 4. MySQL 存储过程
+
+### 4.1. 游标的使用取每行记录(多字段)
+
+```sql
+delimiter $
+create PROCEDURE phoneDeal()
+
+BEGIN
+	DECLARE  id varchar(64);   -- id
+	DECLARE  phone1  varchar(16); -- phone
+	DECLARE  password1  varchar(32); -- 密码
+	DECLARE  name1 varchar(64);   -- id
+	-- 遍历数据结束标志
+	DECLARE done INT DEFAULT FALSE;
+	-- 游标
+	DECLARE cur_account CURSOR FOR select phone,password,name from account_temp;
+	-- 将结束标志绑定到游标
+	DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
+
+	-- 打开游标
+	OPEN  cur_account;
+	-- 遍历
+	read_loop: LOOP
+		-- 取值 取多个字段
+		FETCH  NEXT from cur_account INTO phone1,password1,name1;
+			IF done THEN
+				LEAVE read_loop;
+			END IF;
+		-- 你自己想做的操作
+		insert into account(id,phone,password,name) value(UUID(),phone1,password1,CONCAT(name1,'的家长'));
+	END LOOP;
+	CLOSE cur_account;
+END $
+```
+
+***注意：delimiter关键字后面必须有空格，否则在某些环境或某些情况下使用shell脚本调用执行会出现问题***
+
+## 5. MySQL 函数
+
+### 5.1. select user() 语句
+
+- `user()` 这个函数，是取得当前登陆的用户。
+- 在存储过程中使用，获取值。
+
+```sql
+select user() into 变量名;
+```
+
+### 5.2. 字符串截取相关函数
+
+MySQL 字符串截取函数：`left()`, `right()`, `substring()`, `substring_index()`, `mid()`, `substr()`。其中，`mid()`, `substr()` 等价于 `substring()` 函数
+
+#### 5.2.1. 从左开始截取字符串
+
+- 语法：`left（str, length）`
+    - 参数str：被截取字段
+    - 参数length：截取长度
+
+```sql
+select left（content,200） as abstract from my_content_t
+```
+
+#### 5.2.2. 从右开始截取字符串
+
+- 语法：`right（str, length）`
+	- 参数str：被截取字段
+    - 参数length：截取长度
+
+```sql
+select right（content,200） as abstract from my_content_t
+```
+
+#### 5.2.3. 截取字符串
+
+- 语法1：`substring（str, pos）`
+    - 参数str：被截取字段
+    - 参数pos：从第几位开始截取
+- 语法2：`substring（str, pos, length）`
+    - 参数str：被截取字段
+    - 参数pos：从第几位开始截取
+    - 参数length：截取长度
+
+```sql
+select substring（content,5） as abstract from my_content_t
+select substring（content,5,200） as abstract from my_content_t
+```
+
+**注：如果位数是负数 如-5则是从后倒数位数，到字符串结束或截取的长度**
+
+#### 5.2.4. 按关键字截取字符串
+
+- 语法：`substring_index（str, delim, count）`
+    - 参数str：被截取字段
+    - 参数delim：关键字（分隔符）
+    - 参数count：关键字出现的次数
+
+```sql
+select substring_index（"blog.jb51.net", ".", 2） as abstract from my_content_t
+```
+
+注：如果在字符串中找不到 delim 参数指定的值，就返回整个字符串，count是正数时，是截取第几次出现的关键字**前**的字符；count是负数时，是截取第几次出现的关键字**后**的字符
+
+```sql
+-- str=www.baidu.com
+substring_index(str, '.', 1)
+-- 结果是：www
+substring_index(str, '.', 2)
+-- 结果是：www.baidu
+
+/*
+    也就是说，如果count是正数，那么就是从左往右数，第N个分隔符的左边的全部内容
+    相反，如果是负数，那么就是从右边开始数，第N个分隔符右边的所有内容，如：
+*/
+substring_index(str, '.', -2)
+-- 结果为：baidu.com
+
+/*
+    如果要中间的的baidu？则有两个方向：
+    从右数第二个分隔符的右边全部，再从左数的第一个分隔符的左边：
+/*
+substring_index(substring_index(str, '.', -2), ‘.’, 1);
+```
+
+### 5.3. last_insert_id() 查询最后插入的数据的id
+
+此函数可以获得刚插入的数据的id值，这个是session 级的，并发没有问题。
+
+```sql
+insert xxxxx....;
+select last_insert_id() into 变量名;
+-- 上面语句可以将最近插入的数据id赋值给变量，后面可以进行对应的逻辑处理
+```
+
+### 5.4. LPAD()、RPAD()对字段内容补位(补零为例)
+
+语法：`LPAD/RPAD(需要补充的原数据, 补充后字符的总位数, 补充的内容)`
+
+#### 5.4.1. 前补内容(LPAD)
+
+```sql
+select LPAD(uid, 8, 0),username from uc_members where uid = '100015'
+-- 结果：uid: 00100015   username:guxiaochuan
+```
+
+#### 5.4.2. 后补内容(RPAD)
+
+```sql
+select RPAD(uid, 8, 0),username from uc_members where uid = '100015'
+-- 结果：uid: 10001500   username:guxiaochuan
+```
+
+### 5.5. length()函数获取某个字段数据长度
+
+- length：是计算字段的长度一个汉字是算三个字符,一个数字或字母算一个字符
+- `CHAR_LENGTH(str)`：返回值为字符串str 的长度，长度的单位为字符。一个多字节字符算作一个单字符。对于一个包含五个二字节字符集, LENGTH()返回值为 10,而CHAR_LENGTH()的返回值为5。
+- `CHARACTER_LENGTH(str)`：CHARACTER_LENGTH()是CHAR_LENGTH()的同义词。
+- `BIT_LENGTH(str)`：返回2进制长度.
+
+```sql
+SELECT * FROM admin WHERE LENGTH(username) < 6
+```
+
+### 5.6. 查询某一个字段是否包含中文字符（使用到length函数）
+
+在使用mysql时候，某些字段会存储中文字符，或是包含中文字符的串，查询出来的方法是：
+
+```sql
+SELECT col FROM table WHERE length(col) != char_length(col)
+```
+
+- 此现实原理：当字符集为UTF-8，并且字符为中文时，length() 和 char_length() 两个方法返回的结果是不相同的。
+    - `length()`：计算字段的长度，一个汉字算3个字符，一个数字或者字母按1个字符
+    - `char_length()`：计算字段的长度，不论是汉字、数字还是字母，均按1个字符来算
+
+### 5.7. 插入当前时间的函数
+
+- `NOW()`函数以'YYYY-MM-DD HH:MM:SS'返回当前的日期时间，可以直接存到DATETIME字段中。
+- `CURDATE()`以'YYYY-MM-DD'的格式返回今天的日期，可以直接存到DATE字段中。
+- `CURTIME()`以'HH:MM:SS'的格式返回当前的时间，可以直接存到TIME字段中。
+
+```sql
+insert into tablename (fieldname) values (now())
+```
+
+### 5.8. 将小数转换成百分比格式
+
+- `TRUNCATE(X, D)`
+    - 作用：返回被舍去至小数点后D位的数字X
+    - 若D 的值为 0, 则结果不带有小数点或不带有小数部分。
+    - 可以将D设为负数,若要截去(归零) X小数点左起第D位开始后面所有低位的值.
+
+```sql
+concat(truncate(royalties * 100,2),'%')
+```
+
+*注：concat()为mysql的系统函数，连接两个字符串*
+
+### 5.9. 将数值转成金额格式
+
+- `FORMAT(X, D)`
+    - 作用：将number X设置为格式 '#,###,###.##'，以四舍五入的方式保留到小数点后D位，而返回结果为一个字符串。
+
+```sql
+select Format(123456789.12345, 2) A;
+```
+
+注：使用mysql format函数的时候数字超过以前之后得到的查询结果会以逗号分割，此时如果你程序接收还是数字类型将会转换异常。所以如果你的就收属性是数字类型那么就使用这两个个函数
+
+```sql
+select cast(字段, decimal(12,2)) AS aa
+convert(字段, decimal(12,2)) AS bb
+```
+
+*经测试，如果FORMAT函数的参数X如果数据库表字段类型是Bigint或者其他数字类型，内容长度超过17位是不会出现精度丢失；如果参数X是字符类型（varchar）的话，使用FORMAT函数后，超出17位后会进行四舍五入，精度丢失。*
+
+### 5.10. `case... when ... end` 控制流程函数
+
+- 语法：
+
+```sql
+CASE value WHEN [compare-value] THEN result [WHEN [compare-value] THEN result ...] [ELSE result] END CASE WHEN [condition] THEN result [WHEN [condition] THEN result ...] [ELSE result] END
+```
+
+- 说明：
+    - 在第一个方案的返回结果中，value=compare-value。而第二个方案的返回结果是第一种情况的真实结果。如果没有匹配的结果值，则返回结果为ELSE后的结果，如果没有ELSE 部分，则返回值为 NULL。
+    - 一个CASE表达式的默认返回值类型是任何返回值的相容集合类型，但具体情况视其所在语境而定。如果用在字符串语境中，则返回结果味字符串。如果用在数字语境中，则返回结果为十进制值、实值或整数值。
+
+### 5.11. RAND()函数
+#### 5.11.1. RAND()与RAND(N)
+
+- 作用：返回一个随机浮点值 v ，范围在 0 到1 之间 (即其范围为 0 ≤ v ≤ 1.0)。若已指定一个整数参数 N ，则它被用作种子值，用来产生重复序列。
+- 注：在ORDER BY语句中，不能使用一个带有RAND()值的列，原因是 ORDER BY 会计算列的多重时间。然而，可按照如下的随机顺序检索数据行：
+
+```sql
+SELECT * FROM tbl_name ORDER BY RAND();
+```
+
+`ORDER BY RAND()`同 LIMIT 的结合从一组列中选择随机样本很有用：
+
+#### 5.11.2. ROUND(X)与ROUND(X,D)
+
+- 返回参数X，其值接近于最近似的整数。在有两个参数的情况下，返回 X ，其值保留到小数点后D位，而第D位的保留方式为四舍五入。若要接保留X值小数点左边的D 位，可将 D 设为负值。
+- MYSQL的随机抽取实现方法。如：要从tablename表中随机提取一条记录，一般的写法就是：`SELECT * FROM tablename ORDER BY RAND() LIMIT 1`
+- 此方式效率不高，不推荐使用。
+
+### 5.12. 将字符串按指定的分隔符转成多行数据
+
+SQL案例：
+
+```sql
+-- 查询影片与主演（如果出演者Id定义为“A00001,A00002,..”这种形式，则前端查询列表则需要以下语句才能查询到对应的出演者信息）
+SELECT * FROM jav_actor ta WHERE ta.id in (
+SELECT
+	SUBSTRING_INDEX(SUBSTRING_INDEX(t.actor_ids, ',', b.help_topic_id + 1), ',', -1)
+FROM
+	jav_main t
+JOIN mysql.help_topic b ON b.help_topic_id < (
+	LENGTH(t.actor_ids) - LENGTH(REPLACE(t.actor_ids, ',', '')) + 1
+) WHERE t.id = '124');
+```
+
+on条件后面`(length(t.actor_ids) - length(replace(t.actor_ids,',',''))+1)`这个语法是得到被逗号分隔的字段一共有几个。为什么后面加1？可以这样理解，就是如果有3个逗号（分隔符），那个转换的内容就必然有4个，即确认了要转成的行数
+
+提示：mysql.help_topic这张表只用到了它的help_topic_id，可以看到这个help_topic_id是从0开始一直连续的，join这张表只是为了确定数据行数。现在假设mysql.help_topic只有5条数据，那么最多可转成5行数据，若果现在主演的名字有6个就不能用mysql.help_topic这张表了。由此看出我们完全可以找其他表来替代mysql.help_topic，只要满足表的id是连续的，且数据条数超过了你要转换的行数即可。
+
+## 6. 分区表(了解)
+
+> 此知识点只需要了解，实际项目的应用极少
+
+### 6.1. 简介
+
+分区是指根据一定的规则，数据库把一个表分解成多个更小的、更容易管理的部分。就访问数据库的应用而言，逻辑上只有一个表或一个索引，但是实际上这个表可能由数 10 个物理分区对象组成，每个分区都是一个独立的对象，可以独自处理，可以作为表的一部分进行处理。
+
+分区表是一个独立的逻辑表，但是底层由多个物理子表组成。实现分区的代码实际上是对一组底层表的的封装。对分区表的请求，都会转化成对存储引擎的接口调用。**分区对于 SQL 层来说是一个完全封装底层实现的黑盒子，对应用是透明的**。
+
+从底层的文件系统可以看出，每一个分区表都有一个使用`#`分隔命名的表文件。
+
+MySQL 在创建表时使用`PARTITION BY`子句定义每个分区存放的数据。在执行查询的时候，优化器根据分区定义过滤那些数据不在的分区，这样查询就无须扫描所有分区。
+
+分区的一个主要目的是将数据按照一个较粗的粒度分在不同的表中。另外，也方便一次批量删除整个分区的数据。分区表作用如下：
+
+- 表非常大以至于无法全部都放在内存中，或者只在表的最后部分有热点数据，其他均是历史数据。
+- 分区表的数据更容易维护。例如，想批量删除大量数据可以使用清除整个分区的方式。另外，还可以对一个独立分区进行优化、检查、修复等操作。
+- 分区表的数据可以分布在不同的物理设备上，从而高效地利用多个硬件设备。可以使用分区表来避免某些特殊的瓶颈，例如 InnoDB 的单个索引的互斥访问、ext3 文件系统的 inode 锁竞争等。
+- 如果需要,还可以备份和恢复独立的分区,这在非常大的数据集的场景下效果非常好。
+
+分区表的限制：
+
+- 一个表最多只能有 1024 个分区
+- 如果分区字段中有主键或者唯一索引的列，那么所有主键列和唯一索引列都必须包含进来
+- 分区表中无法使用外键约束
+
+### 6.2. 分区表的原理
+
+分区表由多个相关的底层表实现，这些底层表也是由句柄对象（Handlerobject)表示，所以也可以直接访问各个分区。存储引擎管理分区的各个底层表和管理普通表一样（所有的底层表都必须使用相同的存储引擎)，分区表的索引只是在各个底层表上各自加上一个完全相同的索引。从存储引擎的角度来看，底层表和一个普通表没有任何不同，存储引擎也无须知道这是一个普通表还是一个分区表的一部分。分区表上的操作按照下面的操作逻辑进行:
+
+虽然每个操作都会“先打开并锁住所有的底层表”，但这并不是说分区表在处理过程中是锁住全表的。如果存储引擎能够自己实现行级锁，例如 InnoDB，则会在分区层释放对应表锁。这个加锁和解锁过程与普通 InnoDB 上的查询类似。
+
+### 6.3. 分区表的类型
+
+#### 6.3.1. MySQL 支持的分区表
+
+- RANGE 分区：基于属于一个给定连续区间的列值，把多行分配给分区。
+- LIST 分区：类似于按 RANGE 分区，区别在于 LIST 分区是基于列值匹配一个离散值集合中的某个值来进行选择。
+- HASH 分区：基于用户定义的表达式的返回值来进行选择的分区，该表达式使用将要插入到表中的这些行的列值进行计算。这个函数可以包含 MySQL 中有效的、产生非负整数值的任何表达式。
+- KEY 分区：类似于按 HASH 分区，区别在于 KEY 分区只支持计算一列或多列，且 MySQL 服务器提供其自身的哈希函数。必须有一列或多列包含整数值。
+- 复合分区/子分区：目前只支持 RANGE 和 LIST 的子分区，且子分区的类型只能为 HASH 和 KEY。
+
+#### 6.3.2. 分区的基本语法
+
+- RANGE 分区
+
+```sql
+CREATE TABLE test (
+    order_date DATETIME NOT NULL,
+）ENGINE=InnoDB
+PARTITION BY RANGE(YEAR(order_date))(
+PARTITION p_0 VALUES LESS THAN (2010) ,
+PARTITION p_1 VALUES LESS THAN (2011),
+PARTITION p_2 VALUES LESS THAN (2012),
+PARTITION p_other VALUES LESS THAN MAXVALUE);
+```
+
+- LIST 分区(类似枚举)
+
+```sql
+CREATE TABLE h2 (
+    c1 INT,
+    c2 INT
+PARTITION BY LIST(c1) (
+PARTITION p0 VALUES IN (1, 4, 7),
+PARTITION p1 VALUES IN (2, 5, 8));
+```
+
+- range 和 List 都是整数类型分区，其实 range 和 List 也支持非整数分区，但是要结合 COLUMN 分区，支持整形、日期、字符串
+
+```sql
+CREATE TABLE emp_date(
+    id INT NOT NULL,
+    ename VARCHAR (30),
+    hired DATE NOT NULL DEFAULT '1970-01-01',
+    separated DATE NOT NULL DEFAULT '9999-12-31',
+    job VARCHAR(30) NOT NULL,
+    store_id INT NOT NULL)
+PARTITION BY RANGE COLUMNS (separated)(
+PARTITION pO VALUES LESS THAN ('1996-01-01'),
+PARTITION p1 VALUES LESS THAN ('2001-01-01'),
+PARTITION p2 VALUES LESS THAN ('2006-01-01'));
+
+CREATE TABLE expenses (
+    expense_date DATE NOT NULL,
+    category VARCHAR(30),
+    amount DECIMAL (10,3)
+)
+PARTITION BY LIST COLUMNS (category)(
+PARTITION p0 VALUES IN ('a','b') ,
+PARTITION p1 VALUES IN('c','d'),
+PARTITION p2 VALUES IN('e','f'),
+PARTITION p3 VALUES IN('g'),
+PARTITION p4 VALUES IN('h'));
+
+-- 在结合 COLUMN 分区时还支持多列
+CREATE TABLE rc3(
+    a INT,
+    b INT)
+PARTITION BY RANGE COLUMNS(a,b)(
+PARTITION p01 VALUES LESS THAN (0,10),
+PARTITION p02 VALUES LESS THAN (10,10),
+PARTITION p03 VALUES LESS THAN (10,20),
+PARTITION p04 VALUES LESS THAN (10,35),
+PARTITION p05 VALUES LESS THAN (10,MAXVALUE),
+PARTITION p06 VALUES LESS THAN (MAXVALUE,MAXVALUE));
+```
+
+- Hash 分区
+
+```sql
+CREATE TABLE emp (
+    id INT NOT NULL,
+    ename VARCHAR(30),
+    hired DATE NOT NULL DEFAULT '1970-01-01'
+    separated DATENOT NULL DEFAULT '9999-12-31',
+    job VARCHAR(30) NOT NULL,
+    store_id INT NOT NULL
+)
+PARTITION BY HASH (store_id) PARTITIONS 4;
+```
+
+> 以上示例创建了一个基于 store_id 列 HASH 分区的表，表被分成了 4 个分区，如果我们插入的记录`store_id=234`，则 `234 mod 4 = 2`，这条记录就会保存到第二个分区。虽然在HASH()中直接使用的 store_id 列，但是 MySQL 是允许基于某列值返回一个整数值的表达式或者 MySQL 中有效的任何函数或者其他表达式都是可以的。
+
+- key分区
+
+```sql
+- 创建了一个基于 job 字段进行 Key 分区的表，表被分成了 4 个分区。KEY ()里只允许出现表中的字段。
+CREATE TABLE emp (
+    id INT NOT NULL,
+    ename VARCHAR(30),
+    hired DATE NOT NULL DEFAULT '1970-01-01'
+    separated DATENOT NULL DEFAULT '9999-12-31',
+    job VARCHAR(30) NOT NULL,
+    store_id INT NOT NULL
+)
+PARTITION BY KEY (job) PARTITIONS 4;
+```
+
+### 6.4. 不建议使用 mysql 分区表
+
+在实际互联网项目中，MySQL分区表用的极少，更多的是分库分表。
+
+分库分表除了支持 MySQL 分区表的水平切分以外，还支持垂直切分，把一个很大的库（表）的数据分到几个库（表）中，每个库（表）的结构都相同，但他们可能分布在不同的 mysql 实例，甚至不同的物理机器上，以达到降低单库（表）数据量，提高访问性能的目的。两者对比如下：
+
+- 分区表，分区键设计不太灵活，如果不走分区键，很容易出现全表锁
+- 一旦数据量并发量上来，如果在分区表实施关联，就是一个灾难
+- 分库分表，使用者来掌控业务场景与访问模式，可控。分区表，由 mysql 本身来实现，不太可控
+- 分区表无论怎么分，都是在一台机器上，天然就有性能的上限
+
+## 7. MySQL 其他知识
+
+### 7.1. MySQL中Decimal类型和Float Double等区别
+
+MySQL中存在float,double等非标准数据类型，也有decimal这种标准数据类型。
+
+其区别在于，float，double等非标准类型，在DB中保存的是近似值，而Decimal则以字符串的形式保存数值。
+
+float，double类型是可以存浮点数（即小数类型），但是float有个坏处，当你给定的数据是整数的时候，那么它就以整数给你处理。这样我们在存取货币值的时候自然遇到问题，我的default值为：0.00而实际存储是0，同样我存取货币为12.00，实际存储是12。
+
+mysql提供了1个数据类型：decimal，这种数据类型可以轻松解决上面的问题：decimal类型被 MySQL 以同样的类型实现，这在 SQL92 标准中是允许的。他们用于保存对准确精度有重要要求的值，例如与金钱有关的数据。
+
+### 7.2. MySQL数据库的伪表DUAL
+
+与Oracle数据库的伪表DUAL一样的用法
