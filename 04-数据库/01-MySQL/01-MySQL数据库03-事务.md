@@ -731,6 +731,33 @@ Multi-Version Concurrency Control，即多版本并发控制，主要是为了�
 
 ### 3.3. ReadView
 
+- 对于使用 READ UNCOMMITTED 隔离级别的事务来说，由于可以读到未提交事务修改过的记录，所以直接读取记录的最新版本就好了。
+- 对于使用 SERIALIZABLE 隔离级别的事务来说，InnoDB 使用加锁的方式来访问记录。
+- 对于使用 READ COMMITTED 和 REPEATABLE READ 隔离级别的事务来说，都必须保证读到已经提交了的事务修改过的记录，也就是说假如另一个事务已经修改了记录但是尚未提交，是不能直接读取最新版本的记录的
+
+**所以，READ COMMITTED 和 REPEATABLE READ 这两种隔离级别关键是需要判断一下版本链中的哪个版本是当前事务可见的**。为此，InnoDB 提出了一个 ReadView 的概念，这个 ReadView 中主要包含4个比较重要的内容：
+
+- `m_ids`：表示在生成 ReadView 时当前系统中活跃的读写事务的事务 id 列表。
+- `min_trx_id`：表示在生成 ReadView 时当前系统中活跃的读写事务中最小的事务 id，也就是 m_ids 中的最小值。
+- `max_trx_id`：表示生成 ReadView 时系统中应该分配给下一个事务的 id 值。注意 `max_trx_id` 并不是 `m_ids` 中的最大值，事务 id 是递增分配的。比方说现在有 id 为 1，2，3 这三个事务，之后 id 为 3 的事务提交了。那么一个新的读事务在生成 ReadView 时，`m_ids` 就包括 1 和 2，`min_trx_id` 的值就是 1，`max_trx_id`的值就是 4。
+- `creator_trx_id`：表示生成该 ReadView 的事务的事务 id。
+
+有了这个 ReadView，在访问某条记录时，只需要按照以下步骤判断记录的某个版本是否可见：
+
+1. 如果被访问版本的 trx_id 属性值与 ReadView 中的 creator_trx_id 值相同，意味着当前事务在访问它自己修改过的记录，所以该版本可以被当前事务访问。
+2. 如果被访问版本的 trx_id 属性值小于 ReadView 中的 min_trx_id 值，表明生成该版本的事务在当前事务生成 ReadView 前已经提交，所以该版本可以被当前事务访问。
+3. 如果被访问版本的 trx_id 属性值大于或等于 ReadView 中的 max_trx_id 值，表明生成该版本的事务在当前事务生成 ReadView 后才开启，所以该版本不可以被当前事务访问。
+4. 如果被访问版本的 trx_id 属性值在 ReadView 的 min_trx_id 和 max_trx_id 之间(`min_trx_id < trx_id < max_trx_id`)，那就需要判断一下 trx_id 属性值是不是在 m_ids 列表中，如果在，说明创建 ReadView 时生成该版本的事务还是活跃的，该版本不可以被访问；如果不在，说明创建 ReadView 时生成该版本的事务已经被提交，该版本可以被访问。
+5. 如果某个版本的数据对当前事务不可见的话，那就顺着版本链找到下一个版本的数据，继续按照上边的步骤判断可见性，依此类推，直到版本链中的最后一个版本。如果最后一个版本也不可见的话，那么就意味着该条记录对该事务完全不可见，查询结果就不包含该记录
+
+在 MySQL 中，READ COMMITTED 和 REPEATABLE READ 隔离级别的的一个非常大的区别就是它们生成 ReadView 的时机不同。
+
+#### 3.3.1. READ COMMITTED - 每次读取数据前都生成一个 ReadView
+
+
+
+#### 3.3.2. REPEATABLE READ - 在第一次读取数据时生成一个 ReadView
+
 
 ### 3.4. MVCC 下的幻读解决和幻读现象
 
@@ -738,13 +765,13 @@ Multi-Version Concurrency Control，即多版本并发控制，主要是为了�
 
 ### 3.5. MVCC 小结
 
+MVCC（Multi-Version Concurrency Control ，多版本并发控制）指的就是在使用 READ COMMITTD、REPEATABLE READ 这两种隔离级别的事务在执行普通的 SELECT 操作时访问记录的版本链的过程，这样子可以使不同事务的读-写、写-读操作并发执行，从而提升系统性能。
 
+READ COMMITTD、REPEATABLE READ 这两个隔离级别的一个很大不同就是：生成 ReadView 的时机不同
 
+- READ COMMITTD 在每一次进行普通 SELECT 操作前都会生成一个 ReadView，
+- REPEATABLE READ 只在第一次进行普通 SELECT 操作前生成一个 ReadView，之后的查询操作都重复使用这个ReadView，从而基本上可以避免幻读现象。
 
+执行 DELETE 语句或者更新主键的 UPDATE 语句并不会立即把对应的记录完全从页面中删除，而是执行一个所谓的 delete mark 操作，相当于只是对记录打上了一个删除标志位，这主要就是为MVCC服务。
 
-
-
-
-
-
-
+MVCC 只是在进行**普通的 SEELCT 查询**时才生效
