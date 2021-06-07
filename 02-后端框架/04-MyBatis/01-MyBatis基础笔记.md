@@ -2690,6 +2690,10 @@ public void testCustomCacheDiffSqlSessionFactory() throws IOException {
 
 鉴于上面的配置都是默认值，所以不应该再显式配置上述的默认属性。当想改变默认的行为，才需要设置 `flushCache` 和 `useCache` 属性。比如，某些情况下可能希望特定`select`语句的结果排除于缓存之外，或希望一条select语句清空缓存。类似地，也可能希望某些update语句执行时不要刷新缓存。
 
+## 10. 插件开发
+
+
+
 # 其他
 
 ## 1. MyBatis和Hibernate本质区别和应用场景（了解）

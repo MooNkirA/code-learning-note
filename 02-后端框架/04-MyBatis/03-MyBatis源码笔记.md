@@ -132,6 +132,53 @@ MyBatis 源码共 16 个模块，可以分成三层
 
 **应用场景**：遇到由一系列步骤构成的过程需要执行，这个过程从高层次上看是相同的，但是有些步骤的实现可能不同，这个时候就需要考虑用模板模式了
 
+### 2.6. 装饰器模式
+
+#### 2.6.1. 模式的结构
+
+装饰器模式是一种用于代替继承的技术，无需通过继承增加子类就能扩展对象的新功能。使用对象的关联关系代替继承关系，更加灵活，同时避免类型体系的快速膨胀。装饰器 UML 类图如下：
+
+![](images/20210606093942220_12979.gif)
+
+- **组件（Component）**：组件接口定义了全部组件类和装饰器实现的行为
+- **组件实现类（ConcreteComponent）**：实现Component接口，组件实现类就是被装饰器装饰的原始对象，新功能或者附加功能都是通过装饰器添加到该类的对象上的
+- **装饰器抽象类（Decorator）**：实现Component接口的抽象类，在其中封装了一个Component对象，也就是被装饰的对象
+- **具体装饰器类（ConcreteDecorator）**：该实现类要向被装饰的对象添加某些功能
+
+#### 2.6.2. 装饰器与继承的区别
+
+装饰器相对于继承，装饰器模式灵活性更强，扩展性更强：
+
+- 灵活性：装饰器模式将功能切分成一个个独立的装饰器，在运行期可以根据需要动态的添加功能，甚至对添加的新功能进行自由的组合
+- 扩展性：当有新功能要添加的时候，只需要添加新的装饰器实现类，然后通过组合方式添加这个新装饰器，无需修改已有代码，符合开闭原则
+
+#### 2.6.3. 装饰器模式使用举例
+
+- IO 中输入流和输出流的设计
+
+```java
+BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(new FileInputStream("c://a.txt")));
+```
+
+- 对网络爬虫的自定义增强，可增强的功能包括：多线程能力、缓存、自动生成报表、黑白名单、random 触发等
+
+### 2.7. 责任链模式
+
+责任链模式：就是把一件工作分别经过链上的各个节点，让这些节点依次处理这个工作。和装饰器模式不同，每个节点都知道后继者是谁；适合为完成同一个请求需要多个处理类的场景。责任链模式类图如下：
+
+![](images/20210606225836842_26381.gif)
+
+- Handler：定义了一个处理请求的标准接口
+- ConcreteHandler：具体的处理者，处理它负责的部分，根据业务可结束处理流程，也可将请求转发给它的后继者
+- client：发送者，发起请求的客户端
+
+责任链模式优点：
+
+1. 降低耦合度：它将请求的发送者和接收者解耦
+2. 简化了对象：使得对象不需要知道链的结构
+3. 增强给对象指派职责的灵活性。通过改变链内的成员或者调动它们的次序，允许动态地新增或者删除责任
+4. 增加新的请求处理类很方便
+
 ## 3. 日志模块分析
 
 ### 3.1. 日志模块需求分析
@@ -1349,13 +1396,70 @@ public Executor newExecutor(Transaction transaction, ExecutorType executorType) 
 ![](images/20210325101254008_25584.png)
 
 - `BaseExecutor`：抽象类，实现了`Executor`接口的大部分方法，主要提供了缓存管理和事务管理的能力，其他子类需要实现的抽象方法为：`doUpdate`、`doQuery`等方法
-    - `BatchExecutor`：批量执行所有更新语句，基于 jdbc 的 batch 操作实现批处理
-    - `SimpleExecutor`：默认执行器，每次执行都会创建一个`statement`对象，用完后关闭
-    - `ReuseExecutor`：可重用执行器，将`statement`对象存入缓存的 map 中，操作 map 中的`statement`而不会重复创建
-
-- `CacheingExecutor`：使用装饰器模式，对真正提供数据库查询的`Executor`增强了二级缓存的能力，具体生成此增加的位置在`DefaultSqlSessionFactory.openSessionFromDataSource`方法中，会判断是否开启了`<settings>`节点`cacheEnabled`配置，如开启则将原`Executor`实例包装成`CacheingExecutor`
+    - `BatchExecutor`：批量执行所有更新语句，基于 jdbc 的 batch 操作实现批处理。不建议使用，效率不高。如果涉及批量操作，推荐使用原生的JDBC的`clearbatch`的API
+    - `SimpleExecutor`：默认执行器，每次执行都会创建一个`statement`对象，用完后关闭。比较鸡肋。
+    - `ReuseExecutor`：可重用执行器，将`statement`对象存入缓存的Map中，操作Map中的`statement`而不会重复创建。在不做大量的更新/新增操作的情况下，推荐使用。
+- `CachingExecutor`：使用装饰器模式，对真正提供数据库查询的`Executor`增强了二级缓存的能力，具体生成此增加的位置在`DefaultSqlSessionFactory.openSessionFromDataSource`方法中，会判断是否开启了`<settings>`节点`cacheEnabled`配置，如开启则将原`Executor`实例包装成`CacheingExecutor`
 
 ![](images/20210325102521004_25881.png)
+
+##### 3.3.3.1. ReuseExecutor
+
+不同类型的执行器使用了模板模式。以查询操作为例：
+
+在`BaseExecutor`类的`query`方法，在此方法中去做查询时会调用钩子方法`doQuery`，具体的实现在相应的子类重写的方法中
+
+![](images/20210606212649980_11597.png)
+
+```java
+@Override
+public <E> List<E> doQuery(MappedStatement ms, Object parameter, RowBounds rowBounds, ResultHandler resultHandler, BoundSql boundSql) throws SQLException {
+  // 获取configuration对象
+  Configuration configuration = ms.getConfiguration();
+  // 创建StatementHandler对象
+  StatementHandler handler = configuration.newStatementHandler(wrapper, ms, parameter, rowBounds, resultHandler, boundSql);
+  // StatementHandler对象创建stmt,并使用parameterHandler对占位符进行处理
+  Statement stmt = prepareStatement(handler, ms.getStatementLog());
+  // 通过statementHandler对象调用ResultSetHandler将结果集转化为指定对象返回
+  return handler.query(stmt, resultHandler);
+}
+```
+
+在`prepareStatement`方法中会根据sql语句，从`Map<String, Statement> statementMap`容器中获取缓存的`Statement`实例
+
+![](images/20210606213214703_2987.png)
+
+![](images/20210606213240949_2302.png)
+
+![](images/20210606213252654_21296.png)
+
+##### 3.3.3.2. BatchExecutor
+
+`BatchExecutor`执行器需要注意的是，这个主要用于增删改的操作中，下面以修改操作为例：
+
+在`BaseExecutor`类中的`update`方法中，会调用钩子方法`doUpdate`，具体的实现在相应的子类重写的方法中
+
+![](images/20210606213734606_19400.png)
+
+具体的操作就是调用了原生JDBC的批量API
+
+![](images/20210606215704494_17256.png)
+
+![](images/20210606215743372_17277.png)
+
+##### 3.3.3.3. CachingExecutor
+
+`CachingExecutor`执行器没有继承抽象模板类`BaseExecutor`，直接实现了`Executor`接口。在创建执行器时候，会将用户配置的执行器实例通过构造函数传入，因此`CachingExecutor`实例中持有其他执行器的实例。
+
+![](images/20210606220900951_11473.png)
+
+以查询操作为例，会先从二级缓存中获取数据，如果缓存中没有结果，就交给包装类去执行。此时就走相应执行器的逻辑
+
+![](images/20210606221137230_6353.png)
+
+##### 3.3.3.4. SimpleExecutor
+
+在源码分析中一直此类型的执行器，具体详见源码分析的流程
 
 ### 3.4. MapperProxyFactory 代理工厂的映射建立
 
@@ -2705,6 +2809,23 @@ resultMap id="ContractResultMapWithIdCardInfo" type="com.moon.mybatis.pojo.Consu
 
 ## 7. MyBatis 缓存原理
 
+### 7.1. 缓存模块需求分析
+
+1. MyBatis 缓存的实现是基于 Map 的，从缓存里面读写数据是缓存模块的核心基础功能
+2. 除核心功能之外，有很多额外的附加功能，如：防止缓存击穿，添加缓存清空策略（fifo、lru）、序列化功能、日志能力、定时清空能力等
+3. 附加功能可以以任意的组合附加到核心基础功能之上
+
+基于Map核心缓存能力，将阻塞、清空策略、序列化、日志等等能力以任意组合的方式优雅的增强是MyBatis缓存模块实现最大的难题，用动态代理或者继承的方式扩展多种附加能力的传统方式存在以下问题：
+
+- 这些方式是静态的，用户不能控制增加行为的方式和时机
+- 新功能的存在多种组合，使用继承可能导致大量子类存在
+
+所以MyBatis缓存模块采用了装饰器模式实现了缓存模块
+
+### 7.2. 缓存源码分析
+
+#### 7.2.1. 一级缓存的实现原理
+
 查询缓存，肯定是在发起sql查询前去判断是否存在缓存，如果存在则直接返回缓存的结果。
 
 ![](images/20210506221944285_20894.png)
@@ -2724,17 +2845,126 @@ cacheKey.update(value); // 更新 SQL 中占位符的属性值
 cacheKey.update(configuration.getEnvironment().getId());
 ```
 
+创建与更新`CacheKey`后，在`query`方法中，根据`CacheKey`从`PerpetualCache`对象中获取缓存。如果缓存中有结果，则再根据`CacheKey`从另一个`PerpetualCache`对象中获取Callable查询的输出参数；如果缓存没有，则去查询数据库，并将查询结果写入缓存。
 
+![](images/20210606115613780_14769.png)
 
+至此就是一级缓存的实现流程
 
+需要注意的是，一级缓存多个`SqlSession`之间不能共享，原因是在每次通过`SqlSessionFactory.openSession()`开启新的session时，都会创建一个新的`Executor`对象，所以对应的每个对象中的`PerpetualCache`实例都不一样，所以一级缓存不能在`SqlSession`之间共享。
 
+![](images/20210606154512487_30776.png)
 
+#### 7.2.2. 二级缓存的实现原理
 
+二级缓存是`SqlSessionFactory`级别缓存，不同的`SqlSession`之间共享，因为在创建`SqlSessionFactory`时，同时会创建`Configuration`，相应的缓存是存储在`Configuration`实例中，而该实例是唯一，所以缓存是可以跨不同的`SqlSession`
 
+![](images/20210606163304778_8976.png)
 
+![](images/20210606163345710_7870.png)
 
+### 7.3. 装饰器在缓存模块的使用
 
+MyBatis 缓存模块是一个经典的使用装饰器实现的模块。结构如下：
 
+- Cache：Cache 接口是缓存模块的核心接口，定义了缓存的基本操作；
+- PerpetualCache：在缓存模块中扮演ConcreteComponent角色，使用HashMap来实现 cache 的相关操作；
+- BlockingCache：阻塞版本的缓存装饰器，保证只有一个线程到数据库去查找指定的 key 对应的数据；
+
+`BlockingCache` 是阻塞版本的缓存装饰器，这个装饰器通过 `ConcurrentHashMap` 对锁的粒度进行了控制，提高加锁后系统代码运行的效率（注：缓存雪崩的问题可以使用细粒度锁的方式提升锁性能）。*具体详见源码*
+
+除了 `BlockingCache` 之外，缓存模块还有其他的装饰器如：
+
+1. `LoggingCache`：日志能力的缓存；
+2. `ScheduledCache`：定时清空的缓存；
+3. `BlockingCache`：阻塞式缓存；
+4. `SerializedCache`：序列化能力的缓存；
+5. `SynchronizedCache`：进行同步控制的缓存；
+
+思考：Mybatis 的缓存功能使用 HashMap 实现会不会出现并发安全的问题？
+
+答：MyBati的缓存分为一级缓存、二级缓存。二级缓存是多个会话共享的缓存，确实会出现并发安全的问题，因此MyBatis在初始化二级缓存时，会给二级缓存默认加上SynchronizedCache装饰器的增强，在对共享数据HashMap操作时进行同步控制，所以二级缓存不会出现并发安全问题；而一级缓存是会话独享的，不会出现多个线程同时操作缓存数据的场景，因此一级缓存也不会出现并发安全的问题；
+
+### 7.4. 缓存的唯一标识 CacheKey
+
+MyBatis 中涉及到动态 SQL 的原因，缓存项的 key 不能仅仅通过一个 String 来表示，所以通过 CacheKey 来封装缓存的 Key 值，CacheKey可以封装多个影响缓存项的因素；判断两个CacheKey是否相同关键是比较两个对象的 hash 值是否一致；构成 CacheKey 对象的要素包括：
+
+1. mappedStatment 的 id
+2. 指定查询结果集的范围（分页信息）
+3. 查询所使用的SQL语句
+4. 用户传递给SQL语句的实际参数值
+
+CacheKey 中`update`方法和`equals`方法是进行比较时非常重要的两个方法：
+
+- `update`方法：用于添加构成CacheKey对象的要素，每添加一个元素会对hashcode、checksum、count 以及 updateList 进行更新；
+
+```java
+public void update(Object object) {
+  // 获取object的hash值
+  int baseHashCode = object == null ? 1 : ArrayUtil.hashCode(object);
+  // 更新count、checksum以及hashcode的值
+  count++;
+  checksum += baseHashCode;
+  baseHashCode *= count;
+  hashcode = multiplier * hashcode + baseHashCode;
+  //将对象添加到updateList中
+  updateList.add(object);
+}
+```
+
+- `equals` 方法：用于比较两个元素是否相等。首先比较 hashcode、checksum、count 是否相等，如果这三个值相等，会循环比较 updateList 中每个元素的 hashCode 是否一致；按照这种方式判断两个对象是否相等，一方面能很严格的判断是否一致避免出现误判，另外一方面能提高比较的效率；
+
+```java
+@Override
+public boolean equals(Object object) {
+  // 比较是不是同一个对象
+  if (this == object) {
+    return true;
+  }
+  // 是否类型相同
+  if (!(object instanceof CacheKey)) {
+    return false;
+  }
+
+  final CacheKey cacheKey = (CacheKey) object;
+
+  // hashcode是否相同
+  if (hashcode != cacheKey.hashcode) {
+    return false;
+  }
+  // checksum是否相同
+  if (checksum != cacheKey.checksum) {
+    return false;
+  }
+  // count是否相同
+  if (count != cacheKey.count) {
+    return false;
+  }
+
+  // 详细比较变更历史中的每次变更。以上都不相同，才按顺序比较updateList中元素的hash值是否一致
+  for (int i = 0; i < updateList.size(); i++) {
+    Object thisObject = updateList.get(i);
+    Object thatObject = cacheKey.updateList.get(i);
+    if (!ArrayUtil.equals(thisObject, thatObject)) {
+      return false;
+    }
+  }
+  return true;
+}
+```
+
+## 8. 插件模块源码分析
+
+### 8.1. 插件的理解
+
+插件是用来改变或者扩展MyBatis的原有的功能，MyBatis的插件就是通过继承`Interceptor`拦截器实现的。注意：在没有完全理解插件之前禁止使用插件对MyBatis进行扩展，有可能会导致严重的问题。MyBatis中能使用插件进行拦截的接口和方法如下：
+
+- Executor（update、query、flushStatment、commit、rollback、getTransaction、close、isClose）
+- StatementHandler（prepare、paramterize、batch、update 、query）
+- ParameterHandler（getParameterObject 、setParameters）
+- ResultSetHandler（handleResultSets、handleCursorResultSets 、handleOutputParameters）
+
+### 8.2. 源码分析
 
 
 # 框架核心组件
