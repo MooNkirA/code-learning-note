@@ -2966,6 +2966,252 @@ public boolean equals(Object object) {
 
 ### 8.2. 源码分析
 
+插件模块的源码分析主要搞清楚初始化、插件加载以及插件如何调用等三个问题。**MyBatis 的插件是通过动态代理对原有的对象进行增强的。**
+
+#### 8.2.1.  Interceptor 接口
+
+自定义MyBatis插件必须实现`Interceptor`接口。该接口有如下三个方法：
+
+```java
+public interface Interceptor {
+  /**
+   * 拦截器类必须实现该方法。
+   * 执行拦截逻辑，是插件对业务进行增强的核心方法
+   *
+   * @param invocation 拦截到的目标方法
+   * @return
+   * @throws Throwable
+   */
+  Object intercept(Invocation invocation) throws Throwable;
+
+  /**
+   * 拦截器类可以选择实现该方法。该方法中可以输出一个对象来替换输入参数传入的目标对象。
+   * 即给被拦截的对象生成一个代理对象
+   *
+   * @param target 是被拦截的对象
+   * @return
+   */
+  default Object plugin(Object target) {
+    return Plugin.wrap(target, this);
+  }
+
+  /**
+   * 拦截器类可以选择实现该方法。该方法用来为拦截器设置属性。
+   * 读取在plugin中设置的参数
+   *
+   * @param properties
+   */
+  default void setProperties(Properties properties) {
+    // NOP
+  }
+}
+```
+
+#### 8.2.2. Plugin 类
+
+`Plugin`类实现`InvocationHandler`接口，该类提供了几个核心方法
+
+- 给Interceptor拦截器生成动态代理
+
+```java
+/**
+ * 用于帮助Interceptor生成动态代理，会根据拦截器的配置来生成一个对象用来替换被代理对象。
+ * 因此，如果一个目标类需要被某个拦截器拦截的话，那么这个类的对象已经在 warp方法中被替换成了代理对象，即 Plugin对象。
+ * @param target 被代理对象
+ * @param interceptor 拦截器
+ * @return 用来替换被代理对象的对象
+ */
+public static Object wrap(Object target, Interceptor interceptor) {
+  // 解析拦截器Interceptor上@Intercepts注解得到的signature信息，即要拦截的类型与方法
+  Map<Class<?>, Set<Method>> signatureMap = getSignatureMap(interceptor);
+  // 获取目标对象（被代理对象）的类型
+  Class<?> type = target.getClass();
+  // 获取目标对象实现的接口（拦截器可以拦截4大对象实现的接口）。逐级寻找被代理对象类型的父类，将父类中需要被拦截的全部找出
+  Class<?>[] interfaces = getAllInterfaces(type, signatureMap);
+  if (interfaces.length > 0) {
+    // 使用jdk的方式创建动态代理对象，是Plugin类的实例
+    return Proxy.newProxyInstance(
+        type.getClassLoader(),
+        interfaces,
+        new Plugin(target, interceptor, signatureMap));
+  }
+  // 直接返回原有被代理对象，这意味着被代理对象的方法不需要被拦截
+  return target;
+}
+```
+
+- 拦截器所配置方法签名，获取需要拦截的所有类和类中的方法的信息
+
+```java
+/**
+ * 获取拦截器所配置需要拦截的所有类和类中的方法的信息
+ * @param interceptor 拦截器
+ * @return
+ */
+private static Map<Class<?>, Set<Method>> getSignatureMap(Interceptor interceptor) {
+  // 获取拦截器中的@Intercepts注解实例
+  Intercepts interceptsAnnotation = interceptor.getClass().getAnnotation(Intercepts.class);
+  // issue #251
+  if (interceptsAnnotation == null) {
+    throw new PluginException("No @Intercepts annotation was found in interceptor " + interceptor.getClass().getName());
+  }
+  // 将 Intercepts 注解的value信息取出来，是一个 Signature 数组。获取其中@Signature实例，并将里面的method信息添加至signatureMap中
+  Signature[] sigs = interceptsAnnotation.value();
+  // 将 Signature 数组放入一个Map中，键为 Signature 注解的type类型，值为该类型下的方法集合
+  Map<Class<?>, Set<Method>> signatureMap = new HashMap<>();
+  for (Signature sig : sigs) {
+    Set<Method> methods = signatureMap.computeIfAbsent(sig.type(), k -> new HashSet<>());
+    try {
+      Method method = sig.type().getMethod(sig.method(), sig.args());
+      methods.add(method);
+    } catch (NoSuchMethodException e) {
+      throw new PluginException("Could not find method on " + sig.type() + " named " + sig.method() + ". Cause: " + e, e);
+    }
+  }
+  return signatureMap;
+}
+```
+
+- 逐级寻找判断目标类是否有父类需要被拦截器拦截
+
+```java
+/**
+ * 逐级寻找目标类的父类，判断是否有父类需要被拦截器拦截
+ * @param type 目标类类型
+ * @param signatureMap 拦截器要拦截的所有类和类中的方法
+ * @return 拦截器要拦截的所有父类的列表
+ */
+private static Class<?>[] getAllInterfaces(Class<?> type, Map<Class<?>, Set<Method>> signatureMap) {
+  Set<Class<?>> interfaces = new HashSet<>();
+  while (type != null) {
+    for (Class<?> c : type.getInterfaces()) {
+      if (signatureMap.containsKey(c)) {
+        interfaces.add(c);
+      }
+    }
+    type = type.getSuperclass();
+  }
+  return interfaces.toArray(new Class<?>[interfaces.size()]);
+}
+```
+
+- 被代理对象方法被调用时触发`invoke`的方法（*详见下面《插件的调用》章节*）
+
+#### 8.2.3. 插件初始化
+
+插件的初始化实际是在 Mybatis 第一个阶段初始化的过程中，解析总配置xml文件中的`<plugins>`插件标签时加载到`Configuration`对象中的，具体代码位置：`XMLConfigBuilder.pluginElement`
+
+```java
+private void pluginElement(XNode parent) throws Exception {
+  // 如配置中有 <plugins> 节点
+  if (parent != null) {
+    // 依次取出<plugins>节点下的每个<plugin>节点
+    for (XNode child : parent.getChildren()) {
+      // 读取拦截器名称
+      String interceptor = child.getStringAttribute("interceptor");
+      // 读取拦截器属性
+      Properties properties = child.getChildrenAsProperties();
+      // 实例化拦截器类，resolveClass方法会根据配置中的interceptor属性去匹配相应的别名，获取Class对象，再反射获取类实例
+      Interceptor interceptorInstance = (Interceptor) resolveClass(interceptor).newInstance();
+      // 设置拦截器属性
+      interceptorInstance.setProperties(properties);
+      // 将当前拦截器加入到拦截器链中（存储在Configuration类）
+      configuration.addInterceptor(interceptorInstance);
+    }
+  }
+}
+```
+
+从上面的源码可知，在解析`<plugins>`插件标签时，读取配置中的类全限定名称，然后通过反射生成类实例，再设置标签设置的相应属性值`Properties`到`Interceptor`实现类中。
+
+在`Configuration`对象中，使用`InterceptorChain`类属性保存所有的插件，该类中有个List用于顺序保存所有的插件。
+
+![](images/20210607223524272_3536.png)
+
+![](images/20210607223836105_19585.png)
+
+![](images/20210607223859468_14661.png)
+
+#### 8.2.4. 插件的加载
+
+插件可以拦截`Executor`、`StatementHandler`、`ParameterHandler`、`ResultSetHandler`四个接口指定的方法。都通过`Configuration`对象创建这四大对象时，通过责任链模式按插件的顺序对四大对象进行了反复装饰（增强）
+
+##### 8.2.4.1. 加载 Executor 的增强插件
+
+`Executor`的加载时机是在`DefaultSqlSessionFactory`开启`SqlSession`的时候，通过`Configuration.newExecutor`方法加载
+
+![](images/20210608223251042_9517.png)
+
+![](images/20210608223312160_5233.png)
+
+这里会调用`InterceptorChain.pluginAll`方法，会循环所有拦截器，调用`plugin`方法。此方法是默认方法，有默认的实现是调用`Plugin.wrap`方法生成代理对象。
+
+```java
+public Object pluginAll(Object target) {
+  // 依次交给每个拦截器完成目标对象的替换工作
+  for (Interceptor interceptor : interceptors) {
+    target = interceptor.plugin(target);
+  }
+  return target;
+}
+```
+
+`wrap`方法的源码详见《Plugin 类》章节，此方法的主要逻辑是拦截器`Interceptor`相关实现类上的`@Intercepts`注解配置签名信息，里面是配置需要拦截的类与方法。根据签名信息获取需要拦截的目标类所有实现的接口，再使用JDK动态代理的方式生成代理对象（即`Plugin`类的实例）；如果不需要拦截，即直接返回原对象。
+
+> 注：其余类型对象增强的逻辑是一样，只是各个加载的插件的位置不一样
+
+##### 8.2.4.2. 加载 StatementHandler 的增强插件
+
+`StatementHandler`加载增强插件的位置是在执行增删改查时，通过`Configuration.newStatementHandler`方法加载
+
+![](images/20210608225102441_11017.png)
+
+![](images/20210608225117458_20294.png)
+
+##### 8.2.4.3. 加载 ParameterHandler 与 ResultSetHandler 的增强插件
+
+`ParameterHandler`与`ResultSetHandler`加载增强插件的位置是创建`RoutingStatementHandler`时，其构造函数会调用父类的`BaseStatementHandler`构造器时
+
+![](images/20210608225335772_10991.png)
+
+分别通过`Configuration.newParameterHandler`与`Configuration.newResultSetHandler`方法加载
+
+![](images/20210608225452962_32132.png)
+
+![](images/20210608225510682_22790.png)
+
+#### 8.2.5. 插件的调用
+
+上面已经分别初始化了插件与加载了插件，即已经生成相应四大对象的代理实例（有配置才会生代理，否则使用原对象）。如果有生成代理，当调用代理的方法时，即会调用`Plugin`类的`invoke`方法
+
+```java
+/**
+ * 代理对象的拦截方法，当被代理对象中方法被触发时会进入这里
+ * @param proxy 代理类
+ * @param method 被触发的方法
+ * @param args 被触发的方法的参数
+ * @return 被触发的方法的返回结果
+ * @throws Throwable
+ */
+@Override
+public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+  try {
+    // 获取当前接口所有需要拦截的方法
+    Set<Method> methods = signatureMap.get(method.getDeclaringClass());
+    // 如果当前方法需要被拦截，则调用interceptor.intercept方法进行拦截处理
+    if (methods != null && methods.contains(method)) {
+      // 该方法确实需要被拦截器拦截，因此交给拦截器处理
+      return interceptor.intercept(new Invocation(target, method, args));
+    }
+    // 如果当前方法不需要被拦截，则调用对象自身的方法（被代理对象处理）
+    return method.invoke(target, args);
+  } catch (Exception e) {
+    throw ExceptionUtil.unwrapThrowable(e);
+  }
+}
+```
+
+该方法的主要处理逻辑是，先从之前解析`@Intercepts`注解得到的signature信息，包含拦截器要拦截的所有类，以及类中的方法的Map集合中，获取当前接口需要拦截的方法，如果存在需要拦截的方法，则调用`Interceptor`接口的`intercept`方法，即由自定义拦截器类来实现；如果不需要拦截，即直接通过反射调用该对象原生的方法。
 
 # 框架核心组件
 
