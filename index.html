@@ -10,7 +10,7 @@
       content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0"
     />
     <!-- 配置主题（官方提供，在线） -->
-    <!-- <link rel="stylesheet" href="//unpkg.com/docsify/lib/themes/vue.css" /> -->
+    <link rel="stylesheet" href="//unpkg.com/docsify/lib/themes/vue.css" />
     <!-- docsify-themeable 一个用于docsify的，简单到令人愉悦的主题系统.  -->
     <!-- Theme: Defaults -->
     <!-- <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/docsify-themeable@0/dist/css/theme-defaults.css"> -->
@@ -27,17 +27,17 @@
     <!-- <link rel="stylesheet" href="css/dolphin.css" type="text/css" /> -->
     <!-- <link rel="stylesheet" href="css/pure.css" type="text/css" /> -->
     <!-- docsify-themeable@0.8.4 -->
-    <link
+    <!-- <link
       rel="stylesheet"
       href="./css/docsify-themeable@0.8.4/theme-simple.css"
       type="text/css"
-    />
+    /> -->
 
     <!-- docsify-themeable 自定义主题属性，抽取成文件引入 -->
-    <link rel="stylesheet" href="./css/theme-custom.css" />
+    <!-- <link rel="stylesheet" href="./css/theme-custom.css" /> -->
 
     <!-- PrismJS theme 代码块高亮主题 -->
-    <link rel="stylesheet" href="./css/prismjs@1.22.0/prism-funky.css" />
+    <!-- <link rel="stylesheet" href="./css/prismjs@1.22.0/prism-funky.css" /> -->
     <!-- <link rel="stylesheet" href="./css/prismjs@1.22.0/prism-okaidia.css"> -->
     <!-- <link rel="stylesheet" href="./css/prismjs@1.22.0/prism-tomorrow.css"> -->
   </head>
@@ -52,8 +52,9 @@
     <script>
       window.$docsify = {
         // logo: './css/svg/086-determined-face.svg',
-        name:
-          "<div class='moon-logo'><a class='app-name-link' data-nosearch='' href='/code-learning-note'><img alt='MooNkirA' src='./css/svg/086-determined-face.svg'>月の哀傷</a></div>",
+        // name:
+        //   "<div class='moon-logo'><a class='app-name-link' data-nosearch='' href='/code-learning-note'><img alt='MooNkirA' src='./css/svg/086-determined-face.svg'>月の哀傷</a></div>",
+        name: "MooNkirA",
         // repo: 'https://github.com/MooNkirA/code-learning-note',
         maxLevel: 6, // 最大支持渲染的标题层级
         // subMaxLevel: 5,
@@ -69,7 +70,7 @@
         // }, // 配置 alias 避免不必要的回退过程
 
         mergeNavbar: true, // 在较小的屏幕上，导航栏将与边栏合并。
-        <!-- loadNavbar: true, // 添加导航栏 load from _navbar.md -->
+        loadNavbar: true, // 添加导航栏 load from _navbar.md -->
         auto2top: true, // 切换页面后是否自动跳转到页面顶部
         // 全文搜索
         search: {
@@ -92,8 +93,8 @@
 
         // 开启
         themeable: {
-          // readyTransition: true, // default: true
-          responsiveTables: false, // default: true
+          readyTransition: true, // default: true
+          // responsiveTables: false, // default: true
         },
       }
     </script>
@@ -124,6 +125,6 @@
     <script src="https://unpkg.com/docsify-copy-code"></script>
 
     <!-- docsify-themeable 插件 -->
-    <script src="./js/docsify-themeable@0.8.4/docsify-themeable.min.js"></script>
+    <!-- <script src="./js/docsify-themeable@0.8.4/docsify-themeable.min.js"></script> -->
   </body>
 </html>

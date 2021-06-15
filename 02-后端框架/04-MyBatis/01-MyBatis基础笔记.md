@@ -2690,9 +2690,403 @@ public void testCustomCacheDiffSqlSessionFactory() throws IOException {
 
 鉴于上面的配置都是默认值，所以不应该再显式配置上述的默认属性。当想改变默认的行为，才需要设置 `flushCache` 和 `useCache` 属性。比如，某些情况下可能希望特定`select`语句的结果排除于缓存之外，或希望一条select语句清空缓存。类似地，也可能希望某些update语句执行时不要刷新缓存。
 
-## 10. 插件开发
+## 10. MyBatis 插件开发快速入门
 
+### 10.1. 示例需求
 
+此示例需求：开发一个记录慢查询的插件。通过该插件定义一个阈值，当查询操作运行时间超过这个阈值记录日志供运维人员定位慢查询。
+
+### 10.2. 插件实现步骤
+
+- 创建插件类实现 `Interceptor` 接口方法。MyBatis 的插件必须实现 `Interceptor` 接口， 该接口有如下三个方法：
+    - `Object intercept(Invocation invocation)`：插件对业务进行增强的核心方法
+    - `Object plugin(Object target)`：target 是被拦截的对象，此方法的作用就是给被拦截的对象生成一个代理对象
+    - `void setProperties(Properties properties)`：读取在 plugin 中标签（属性）中设置的参数
+- 插件实现类，需要确定拦截的签名。`@Intercepts`和`@Signature`就是用于标识插件拦截的位置。
+    - `@Intercepts`：其值是一个`@Signature`数组。`@Intercepts`用于表明当前的对象是一个`Interceptor`
+    - `@Signature`：则表明要拦截的接口、方法以及对应的参数类型
+
+```java
+@Intercepts({@Signature(type = StatementHandler.class, method = "query", args = {Statement.class, ResultHandler.class})})
+public class ThresholdInterceptor implements Interceptor {
+
+    // 查询操作超时阈值
+    private long threshold;
+
+    /**
+     * 插件对业务进行增强的核心方法
+     *
+     * @param invocation 拦截到的目标方法
+     * @return
+     * @throws Throwable
+     */
+    @Override
+    public Object intercept(Invocation invocation) throws Throwable {
+        // 记录开始时间
+        long begin = System.currentTimeMillis();
+        // 执行sql操作
+        Object result = invocation.proceed();
+        // 记录结果时间
+        long end = System.currentTimeMillis();
+        // 执行时间
+        long runTime = end - begin;
+        if (runTime > this.threshold) {
+            // 获取sql的参数
+            Object[] args = invocation.getArgs();
+            Statement statement = (Statement) args[0];
+            MetaObject metaObjectStat = SystemMetaObject.forObject(statement);
+            PreparedStatementLogger statementLogger = (PreparedStatementLogger) metaObjectStat.getValue("h");
+            PreparedStatement preparedStatement = statementLogger.getPreparedStatement();
+            System.out.println("sql语句：“" + preparedStatement.toString() + "”执行时间为：" + runTime + "毫秒，已经超过阈值！");
+        }
+
+        return result;
+    }
+
+    /**
+     * target 是被拦截的对象，此方法的作用是给被拦截的对象生成一个代理对象
+     *
+     * @param target 是被拦截的对象
+     * @return
+     */
+    @Override
+    public Object plugin(Object target) {
+        return Plugin.wrap(target, this);
+    }
+
+    /**
+     * 读取在 plugin 中设置的参数
+     *
+     * @param properties
+     */
+    @Override
+    public void setProperties(Properties properties) {
+        // 读取配置的超时阈值
+        this.threshold = Long.valueOf(properties.getProperty("threshold"));
+    }
+}
+```
+
+- 在MyBatis核心配置文件中`<plugins>`标签配置自定义的插件实现类
+
+![](images/20210612173116186_20244.png)
+
+- 测试代码与结果
+
+```java
+@Test
+public void testMyBatisPlugins() throws IOException {
+    // 从 XML 文件中构建 SqlSessionFactory 的实例
+    InputStream inputStream = Resources.getResourceAsStream("mybatis-config.xml");
+    // 读取配置文件，创建SqlSessionFactory
+    SqlSessionFactory sqlSessionFactory = new SqlSessionFactoryBuilder().build(inputStream);
+    // 通过SqlSessionFactory开启一个SqlSession
+    SqlSession sqlSession = sqlSessionFactory.openSession();
+    // 通过SqlSession获取指定的mapper映射器（其实是Mapper接口的代理）
+    UserMapper mapper = sqlSession.getMapper(UserMapper.class);
+    // 通过代理实例调用相应Mapper接口中的方法
+    System.out.println(mapper.queryAllUser());
+}
+```
+
+![](images/20210612172212891_23237.png)
+
+## 11. MyBatis 与 Spring 整合
+
+### 11.1. 官方资源
+
+- 官方说明文档：http://mybatis.org/spring/zh/
+
+### 11.2. MyBatis-Spring 简介
+
+Mybatis-Spring 用于将 MyBatis 代码无缝地整合到 Spring 中，集成过程中的增强主要包括：
+
+- Spring 将会加载必要的 MyBatis 工厂类和 Session 类
+- 提供一个简单的方式来注入 MyBatis 数据映射器和 SqlSession 到业务层的 bean 中
+- 方便集成 Spring 事务
+- 将 MyBatis 的异常转换到 Spring 的 `DataAccessException` 异常(数据访问异常)中
+
+在使用 Mybatis-Spring 的过程中，需注意版本的兼容性
+
+| MyBatis-Spring | MyBatis | Spring Framework | Spring Batch | Java    |
+| :------------- | :------ | :--------------- | :----------- | :------ |
+| **2.0**        | 3.5+    | 5.0+             | 4.0+         | Java 8+ |
+| **1.3**        | 3.4+    | 3.2.2+           | 2.1+         | Java 6+ |
+
+### 11.3. MyBatis-Spring 集成配置最佳实践
+
+#### 11.3.1. 引入依赖
+
+创建maven项目，配置pom.xml文件，引入相关依赖
+
+```xml
+<dependencies>
+    <!-- mybatis 核心依赖 -->
+    <dependency>
+        <groupId>org.mybatis</groupId>
+        <artifactId>mybatis</artifactId>
+        <version>3.5.2</version>
+    </dependency>
+    <!-- mysql 驱动 -->
+    <dependency>
+        <groupId>mysql</groupId>
+        <artifactId>mysql-connector-java</artifactId>
+        <version>5.1.45</version>
+    </dependency>
+    <!-- druid 数据源 -->
+    <dependency>
+        <groupId>com.alibaba</groupId>
+        <artifactId>druid</artifactId>
+        <version>1.2.4</version>
+    </dependency>
+
+    <!-- MyBatis 与 Spring 整合的核心包 -->
+    <dependency>
+        <groupId>org.mybatis</groupId>
+        <artifactId>mybatis-spring</artifactId>
+        <version>2.0.2</version>
+    </dependency>
+    <!-- spring 核心依赖 -->
+    <dependency>
+        <groupId>org.springframework</groupId>
+        <artifactId>spring-context</artifactId>
+        <version>5.2.8.RELEASE</version>
+    </dependency>
+    <dependency>
+        <groupId>org.springframework</groupId>
+        <artifactId>spring-jdbc</artifactId>
+        <version>5.2.8.RELEASE</version>
+    </dependency>
+    <!-- 使用批量时需要依赖 -->
+    <!-- <dependency>
+        <groupId>org.springframework.batch</groupId>
+        <artifactId>spring-batch-core</artifactId>
+        <version>4.2.1.RELEASE</version>
+    </dependency> -->
+</dependencies>
+```
+
+#### 11.3.2. 基于xml配置方式
+
+- 创建spring的总配置文件，主要配置包扫描与引入mybatis基础配置
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+       http://www.springframework.org/schema/beans/spring-beans.xsd
+       http://www.springframework.org/schema/context
+       http://www.springframework.org/schema/context/spring-context.xsd">
+
+    <!-- 引入整合 Mybatis 配置文件 -->
+    <import resource="spring-jdbc.xml"/>
+    <!-- 配置包扫描 -->
+    <context:component-scan base-package="com.moon.mybatis"/>
+
+</beans>
+```
+
+- 创建spring整合MyBatis的xml配置文件
+
+```xml
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans.xsd"
+       default-lazy-init="false">
+
+    <!-- 配置读取properties配置文件 -->
+    <bean id="propertyConfigurerForProject"
+          class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+        <property name="order" value="1"/>
+        <property name="ignoreUnresolvablePlaceholders" value="true"/>
+        <property name="location" value="classpath:db.properties"/>
+    </bean>
+
+    <!-- 配置数据源，使用阿里druid数据源 -->
+    <bean id="dataSource" class="com.alibaba.druid.pool.DruidDataSource" destroy-method="close" primary="true">
+        <property name="driverClassName" value="${mybatis.driverClassName}"/>
+        <property name="url" value="${mybatis.url}"/>
+        <property name="username" value="${mybatis.username}"/>
+        <property name="password" value="${mybatis.password}"/>
+    </bean>
+
+    <!-- 配置 SqlSessionFactoryBean -->
+    <bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+        <!-- 用于配置数据源，该属性为必选项 -->
+        <property name="dataSource" ref="dataSource"/>
+        <!-- 配置扫描 XML 映射文件的路径 -->
+        <!--<property name="mapperLocations">
+            <value>classpath:xml/*Mapper.xml</value>
+        </property>-->
+        <!-- 配置 mybatis config XML 的路径，，除了数据源外，可以通过此方式对 MyBatis 的各种进行配置 -->
+        <property name="configLocation" value="mybatis-config.xml"/>
+    </bean>
+
+    <!-- 配置 MapperScannerConfigurer，扫描mapper接口，对dao生成代理并且交给spring管理 -->
+    <bean id="mapperScannerConfigurer" class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+        <!-- 用于过滤被扫描的接口，如果设置了该属性，那么 MyBatis 的接口只有包含该注解才会被扫描进去 -->
+        <!--<property name="annotationClass" value="org.springframework.stereotype.Repository"/>-->
+        <!-- 用于配置基本的包路径。可以使用分号或逗号作为分隔符设置多于一个的包路径，每个映射器将会在指定的包路径中递归地被扫描 -->
+        <property name="basePackage" value="com.moon.mybatis.dao"/>
+    </bean>
+
+    <!-- 配置 MapperFactoryBean 对应一个映射器注册到 Spring 中（一般不会使用此方式注册Mapper接口） -->
+    <!--<bean id="userMapper" class="org.mybatis.spring.mapper.MapperFactoryBean">
+        <property name="mapperInterface" value="com.moon.mybatis.dao.UserMapper" />
+        <property name="sqlSessionFactory" ref="sqlSessionFactory" />
+    </bean>-->
+
+    <!-- 配置事务管理器，集成spring的事务 -->
+    <bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+        <property name="dataSource" ref="dataSource"/>
+    </bean>
+
+</beans>
+```
+
+spring整合MyBatis的配置主要包含以下几点：
+
+1. 配置数据源。（可以使用阿里druid或者apache等第三方数据源）
+2. 配置`SqlSessionFactoryBean`。在 MyBatis-Spring 中，`SqlSessionFactoryBean`是用于创建`SqlSessionFactory`对象
+3. 配置`MapperScannerConfigurer`，通过`MapperScannerConfigurer`类自动扫描所有的Mapper接口，使用时可以直接通过Spring自动注入接口。常用配置有以下两个属性
+    - `dataSource`：用于配置数据源，该属性为必选项，必须通过这个属性配置数据源。
+    - `mapperLocations`：配置`SqlSessionFactoryBean`扫描 XML 映射文件的路径，可以使用 Ant 风格的路径进行配置。
+    - `configLocation`：用于总配置 mybatis config XML 的路径，除了数据源外，其他都可以使用此方式对 MyBatis 的进行各种配置，并且配置 MyBatis settings 时只能使用这种方式。但配置文件中任意环境，数据源和 MyBatis 的事务管理器都会被忽略
+    - `typeAliasesPackage`：配置包中类的别名，包中的类在XML映射文件中使用时可以省略包名部分，直接使用类名。这个配置不支持Ant风格的路径，当需要配置多个包路径时可以使用分号或逗号进行分隔
+4. 配置事务管理器，一般都会配置Mybatis集成Spring的事务管理器，不会使用MyBatis原生的事务
+
+- 创建MyBatis总配置文件mybatis-config.xml，参考示例或者官网
+- 测试
+
+```java
+@Test
+public void testMyBatisSpringBasic() {
+    // 1. 基于xml配置，创建spring容器
+    ClassPathXmlApplicationContext context = new ClassPathXmlApplicationContext("spring.xml");
+    // 2. 从spring容器中，获取SqlSessionFactory实例
+    SqlSessionFactory sqlSessionFactory = context.getBean(SqlSessionFactory.class);
+    // 3. 通过SqlSessionFactory开启一个SqlSession
+    SqlSession sqlSession = sqlSessionFactory.openSession();
+    // 4. 通过SqlSession获取指定的mapper映射器
+    UserMapper mapper = sqlSession.getMapper(UserMapper.class);
+    // 5. 通过代理实例调用相应Mapper接口中的方法
+    List<User> users = mapper.queryAllUser();
+    System.out.println(users);
+}
+```
+
+#### 11.3.3. 基于纯注解配置方式
+
+- 创建数据源配置类（*随意写在那个配置类中都可以*）
+
+```java
+@PropertySource("classpath:db.properties") // 获取配置文件
+public class DruidConfig {
+
+    @Value("${mybatis.url}")
+    private String jdbcUrl;
+    @Value("${mybatis.driverClassName}")
+    private String driverClassName;
+    @Value("${mybatis.username}")
+    private String username;
+    @Value("${mybatis.password}")
+    private String password;
+
+    @Bean("dataSource")
+    public DataSource createDataSource() {
+        // 1. 创建Druid数据源
+        DruidDataSource druidDataSource = new DruidDataSource();
+        // 2. 配置数据源相关参数
+        druidDataSource.setDriverClassName(this.driverClassName);
+        druidDataSource.setUrl(this.jdbcUrl);
+        druidDataSource.setUsername(this.username);
+        druidDataSource.setPassword(this.password);
+        return druidDataSource;
+    }
+}
+```
+
+- 创建MyBatis核心配置类
+
+```java
+/*
+ * 配置Mapper接口的包扫描，相当于xml方式的配置：
+ * <bean id="mapperScannerConfigurer" class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+ */
+@MapperScan("com.moon.mybatis.dao")
+public class MyBatisConfig {
+
+    @Autowired
+    private ApplicationContext context;
+
+    /*
+     * 配置 SqlSessionFactoryBean，相当于xml方式的配置：
+     * <bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+     */
+    @Bean
+    public SqlSessionFactoryBean sqlSessionFactoryBean(DataSource dataSource) throws IOException {
+        // 创建 SqlSessionFactoryBean
+        SqlSessionFactoryBean sqlSessionFactoryBean = new SqlSessionFactoryBean();
+        /* 配置SqlSessionFactoryBean对象相应属性值 */
+        // 设置数据源
+        sqlSessionFactoryBean.setDataSource(dataSource);
+        // 创建 MyBatis 的“大管家”类
+        Configuration configuration = new Configuration();
+        // 将手动创建的 Configuration 实例设置到 SqlSessionFactoryBean 对象中
+        sqlSessionFactoryBean.setConfiguration(configuration);
+        // 设置日志的具体实现
+        configuration.setLogImpl(Log4jImpl.class);
+        // 设置读取mybatis总配置文件（此示例使用纯注解方式，所以没有此配置文件）
+        // sqlSessionFactoryBean.setConfigLocation(context.getResource("classpath:mybatis-config.xml"));
+        // 设置读取映射器xml配置文件
+        sqlSessionFactoryBean.setMapperLocations(context.getResources("classpath:xml/*Mapper.xml"));
+        // 设置别名
+        sqlSessionFactoryBean.setTypeAliasesPackage("com.moon.mybatis.pojo");
+        // 设置数据库厂商标识
+        VendorDatabaseIdProvider databaseIdProvider = new VendorDatabaseIdProvider();
+        Properties properties = new Properties();
+        properties.setProperty("MySQL", "mysql");
+        databaseIdProvider.setProperties(properties);
+        sqlSessionFactoryBean.setDatabaseIdProvider(databaseIdProvider);
+        /* 其他配置也可以按上面的方式进行配置 */
+        return sqlSessionFactoryBean;
+    }
+}
+```
+
+- 创建Spring核心配置类，引入MyBatis相关的配置类
+
+```java
+@Configuration
+@Import({MyBatisConfig.class, DruidConfig.class}) // 导入MyBatis的配置类、Druid数据源配置类（基于@PropertySource注解读取properties配置）
+@ComponentScan("com.moon.mybatis") // 配置spring的包扫描
+// @EnableTransactionManagement // 配置是否开启事务管理器
+@PropertySource("classpath:log4j.properties") // 引入日志配置文件
+public class SpringConfig {
+}
+```
+
+- 准备相关的Mapper接口与映射文件，测试
+
+```java
+@Test
+public void testMyBatisSpringAnnoBasic() {
+    // 1. 基于xml配置，创建spring容器
+    AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(SpringConfig.class);
+    // 2. 从spring容器中，获取SqlSessionFactory实例
+    SqlSessionFactory sqlSessionFactory = context.getBean(SqlSessionFactory.class);
+    // 3. 通过SqlSessionFactory开启一个SqlSession
+    SqlSession sqlSession = sqlSessionFactory.openSession();
+    // 4. 通过SqlSession获取指定的mapper映射器
+    UserMapper mapper = sqlSession.getMapper(UserMapper.class);
+    // 5. 通过代理实例调用相应Mapper接口中的方法
+    List<User> users = mapper.queryAllUser();
+    System.out.println(users);
+}
+```
 
 # 其他
 

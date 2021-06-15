@@ -3213,6 +3213,208 @@ public Object invoke(Object proxy, Method method, Object[] args) throws Throwabl
 
 该方法的主要处理逻辑是，先从之前解析`@Intercepts`注解得到的signature信息，包含拦截器要拦截的所有类，以及类中的方法的Map集合中，获取当前接口需要拦截的方法，如果存在需要拦截的方法，则调用`Interceptor`接口的`intercept`方法，即由自定义拦截器类来实现；如果不需要拦截，即直接通过反射调用该对象原生的方法。
 
+## 9. MyBatis-Spring 集成原理分析（流程分析不太清晰，待完善）
+
+### 9.1. 官方资源
+
+- 代码仓库：https://github.com/mybatis/spring
+- 官方说明文档：http://mybatis.org/spring/zh/
+
+> mybatis-spring 源码安装过程和 mybatis 源码的安装过程一样
+
+### 9.2. SqlSessionFactoryBean 源码分析
+
+通过Spring整合的MyBatis的基础示例可知，无论基础xml配置还是注解配置方式，都需要创建`SqlSessionFactoryBean`对象。
+
+在基础的 MyBatis 用法中，是通过`SqlSessionFactoryBuilder`来创建`SqlSessionFactory`的。而在 MyBatis-Spring 整合后中，则使用`SqlSessionFactoryBean`来创建。
+
+```java
+public class SqlSessionFactoryBean
+    implements FactoryBean<SqlSessionFactory>, InitializingBean, ApplicationListener<ApplicationEvent>
+```
+
+看`SqlSessionFactoryBean`的继承关系，该类实现了`InitializingBean`接口，那么容器在初始化完成`SqlSessionFactoryBean`之后必然会调用`afterPropertiesSet()`方法。在此方法中，会在Spring容器中创建全局唯一的`SqlSessionFactory`对象。其中调用的`buildSqlSessionFactory()`方法实际是对MyBatis初始化加载配置阶段的封装
+
+```java
+@Override
+// 在spring容器中创建全局唯一的SqlSessionFactory
+public void afterPropertiesSet() throws Exception {
+  notNull(dataSource, "Property 'dataSource' is required");
+  notNull(sqlSessionFactoryBuilder, "Property 'sqlSessionFactoryBuilder' is required");
+  state((configuration == null && configLocation == null) || !(configuration != null && configLocation != null),
+      "Property 'configuration' and 'configLocation' can not specified with together");
+  // 创建SqlSessionFactory对象，封装了MyBatis的初始化阶段
+  this.sqlSessionFactory = buildSqlSessionFactory();
+}
+```
+
+![](images/20210612223533787_22357.png)
+
+![](images/20210613082810038_31651.png)
+
+`SqlSessionFactoryBean`还实现了`FactoryBean`接口，当在Spring容器中配置`FactoryBean`的实现类时，并不是将该`FactoryBean`实现类实例注入到容器，而是调用`FactoryBean`的`getObject`方法产生的实例对象注入容器。
+
+```java
+/**
+ * 将SqlSessionFactory对象注入spring容器
+ * {@inheritDoc}
+ */
+@Override
+public SqlSessionFactory getObject() throws Exception {
+  if (this.sqlSessionFactory == null) {
+    afterPropertiesSet();
+  }
+  return this.sqlSessionFactory;
+}
+```
+
+所以根据源码可知，`SqlSessionFactoryBean`类最终作用是将通过使用`SqlSessionFactoryBuilder`创建的`SqlSessionFactory`实例注入到Spring容器中。IOC容器中的其他类就能通过`SqlSessionFactory`获取到`SqlSession`实例了，进行相关的SQL执行任务了
+
+### 9.3. MapperFactoryBean 源码分析
+
+在XML配置中，可以通过加入`MapperFactoryBean`来将Mapper映射器注册到 Spring 容器中。
+
+```java
+<!-- 配置 MapperFactoryBean 对应一个映射器注册到 Spring 中（一般不会使用此方式注册Mapper接口） -->
+<bean id="userMapper" class="org.mybatis.spring.mapper.MapperFactoryBean">
+    <property name="mapperInterface" value="com.moon.mybatis.dao.UserMapper" />
+    <property name="sqlSessionFactory" ref="sqlSessionFactory" />
+</bean>
+```
+
+`MapperFactoryBean`作用是真正帮助Spring生成Mapper接口实现类。`MapperFactoryBean`实现了`FactoryBean`接口，`getObject`方法实际是封装了MyBatis的第二阶段，注入容器的是`SqlSession`实例化的Mapper接口的实现类
+
+```java
+public class MapperFactoryBean<T> extends SqlSessionDaoSupport implements FactoryBean<T> {
+  // 当前处理的Mapper接口
+  private Class<T> mapperInterface;
+  // ...省略
+  @Override
+  // MapperFactoryBean在容器初始化时，要确保mapper接口被注册到mapperRegistry
+  protected void checkDaoConfig() {
+    super.checkDaoConfig();
+
+    notNull(this.mapperInterface, "Property 'mapperInterface' is required");
+    // 通过SqlSession从容器中拿到configuration
+    Configuration configuration = getSqlSession().getConfiguration();
+    if (this.addToConfig && !configuration.hasMapper(this.mapperInterface)) {
+      try {
+    	  // 如果mapperRegistry中不包含当前接口的动态代理工厂，则添加一个
+        configuration.addMapper(this.mapperInterface);
+      } catch (Exception e) {
+        logger.error("Error while adding the mapper '" + this.mapperInterface + "' to configuration.", e);
+        throw new IllegalArgumentException(e);
+      } finally {
+        ErrorContext.instance().reset();
+      }
+    }
+  }
+
+  /**
+   * 通过在容器中的mapperRegistry，返回当前mapper接口的动态代理
+   *
+   * {@inheritDoc}
+   */
+  @Override
+  public T getObject() throws Exception {
+    return getSqlSession().getMapper(this.mapperInterface);
+  }
+  // ...省略
+}
+```
+
+需要注意：<font color=red>**每一个Mapper接口对应一个MapperFactoryBean对象**</font>
+
+### 9.4. SqlSessionTemplate 源码分析
+
+`MapperFactoryBean`类继承了`SqlSessionDaoSupport`抽象父类，该类中一个`SqlSessionTemplate`对象属性。
+
+```java
+public abstract class SqlSessionDaoSupport extends DaoSupport {
+  private SqlSessionTemplate sqlSessionTemplate;
+  // ...省略
+}
+```
+
+在`MapperFactoryBean.getObject`方法中会生成Mapper接口的代理，但需要注意此方法中的`getSqlSession()`方法获取的是mybatis-spring包中的`SqlSessionTemplate`对象，不是原生的`SqlSession`对象
+
+```java
+public SqlSession getSqlSession() {
+  return this.sqlSessionTemplate;
+}
+```
+
+在`SqlSessionTemplate`的构造函数中创建了JDK的动态代理，具体的代理类型是`SqlSessionInterceptor`（`SqlSessionTemplate`的内部类）
+
+```java
+public SqlSessionTemplate(SqlSessionFactory sqlSessionFactory, ExecutorType executorType,
+    PersistenceExceptionTranslator exceptionTranslator) {
+
+  notNull(sqlSessionFactory, "Property 'sqlSessionFactory' is required");
+  notNull(executorType, "Property 'executorType' is required");
+
+  this.sqlSessionFactory = sqlSessionFactory;
+  this.executorType = executorType;
+  this.exceptionTranslator = exceptionTranslator;
+  this.sqlSessionProxy = (SqlSession) newProxyInstance(SqlSessionFactory.class.getClassLoader(),
+      new Class[] { SqlSession.class }, new SqlSessionInterceptor());
+}
+```
+
+通过`SqlSessionTemplate`调用`getMapper`方法时，实际就会调用到`SqlSessionInterceptor`的`invoke`方法
+
+![](images/20210613105430051_13510.png)
+
+`getSqlSession`方法是通Spring的`TransactionSynchronizationManager`中获取`SqlSessionHolder`，再从`SqlSessionHolder`获取缓存的`SqlSession`，如果缓存存在`SqlSession`实例，则直接返回；如果没有，则开启新的`SqlSession`，然后再判断相应执行的方法上是否`@Transactional`事务注解并且在同一个线程中，才会将`SqlSession`注册到`TransactionSynchronizationManager`中
+
+![](images/20210613105741360_8716.png)
+
+`isSqlSessionTransactional`方法是用于判断当前执行的方法是否有加Spring的`@Transactional`事务注解并且同一个`SqlSession`，则不会进入if代码块，不会将事务提交。
+
+```java
+public static boolean isSqlSessionTransactional(SqlSession session, SqlSessionFactory sessionFactory) {
+  notNull(session, NO_SQL_SESSION_SPECIFIED);
+  notNull(sessionFactory, NO_SQL_SESSION_FACTORY_SPECIFIED);
+  SqlSessionHolder holder = (SqlSessionHolder) TransactionSynchronizationManager.getResource(sessionFactory);
+  return (holder != null) && (holder.getSqlSession() == session);
+}
+```
+
+### 9.5. MapperScannerConfigurer 源码分析
+
+在xml配置中，会在Spring容器中配置`MapperScannerConfigurer`实例。一般情况下项目的Mapper接口的数量很多，此时就通过`MapperScannerConfigurer`类扫描每个 Mapper 接口一对一的生成 `MapperFactoryBean`实例
+
+```java
+public class MapperScannerConfigurer
+    implements BeanDefinitionRegistryPostProcessor, InitializingBean, ApplicationContextAware, BeanNameAware
+```
+
+`MapperScannerConfigurer`实现了`BeanDefinitionRegistryPostProcessor`接口，Spring在Bean实例化前，`BeanDefinitionRegistry`与`BeanFactory`初始化后，会实例`BeanDefinitionRegistryPostProcessor`接口实现类并且调用`postProcessBeanDefinitionRegistry()`方法
+
+因此可以此方法中，对 BeanDefinition 的结构调整之后再注入容器。
+
+![](images/20210613113701299_17845.png)
+
+`MapperScannerConfigurer`会创建`ClassPathMapperScanner`扫描器，该类继承了Spring框架的`ClassPathBeanDefinitionScanner`扫描器。重写了`TypeFilter`的`match`方法，直接返回true，即会默认扫描到包中所有的类型
+
+![](images/20210613113844017_2748.png)
+
+在调用父类`ClassPathBeanDefinitionScanner`的`scan`方法，其中`doScan`就会调用子类重写的方法
+
+![](images/20210613114023423_5202.png)
+
+`ClassPathMapperScanner`的`doScan`方法，先调用了父类的`doScan`方法进行包扫描，然后再调用`processBeanDefinitions`方法对已经扫描并封装成BeanDefinition对象进行再次处理，主要是将 Mapper 接口的BeanDefinition对象中的`beanClass`一个个的转换成 `MapperFactoryBean` 类型再注入容器
+
+![](images/20210613114507513_29573.png)
+
+### 9.6. Connection 连接对象
+
+MyBatis与Spring整合后，连接对象其实是从Spring的TheadLocal中获取。然后使用了Spring的事务，MyBatis里面的连接对象，就是Spring的连接对象
+
+![](images/20210613115333365_4153.png)
+
+![](images/20210613115518040_16546.png)
+
 # 框架核心组件
 
 ## 1. Configuration 类

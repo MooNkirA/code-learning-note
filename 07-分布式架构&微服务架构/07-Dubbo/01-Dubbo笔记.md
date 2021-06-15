@@ -1,6 +1,7 @@
 # Dubbo 笔记
 
 ## 1. RPC 场景和过程
+
 ### 1.1. RPC场景
 
 在微服务环境下，会存在大量的跨 JVM （不同服务器之间）进行方法调用的场景，服务结构如下图：
@@ -413,7 +414,7 @@ public class ConsumerApplication {
 ## 2. Dubbo简介
 
 - Apache Dubbo™ 是一款高性能Java RPC框架
-- 官网：http://dubbo.apache.org/zh-cn/index.html
+- 官网：https://dubbo.apache.org/zh/
 
 ### 2.1. Dubbo 实现RPC框架
 
