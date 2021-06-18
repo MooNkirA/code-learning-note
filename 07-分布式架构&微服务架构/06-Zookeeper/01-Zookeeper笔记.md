@@ -96,7 +96,620 @@ ZAB 提交事务并不像 2PC 一样需要全部 follower 都 ACK，**只需要�
 ## 4. Znode 有四种形式的目录节点
 
 1. **PERSISTENT**：持久的节点。
-2. **EPHEMERAL**：暂时的节点。
+2. **EPHEMERAL**：暂时的节点。（与Session有关，如果Session销毁，则节点数据销毁）
 3. **PERSISTENT_SEQUENTIAL**：持久化顺序编号目录节点。
 4. **EPHEMERAL_SEQUENTIAL**：暂时化顺序编号目录节点。
+
+## 5. Zookeeper 安装
+
+### 5.1. 安装包方式
+
+#### 5.1.1. 安装
+
+- zookeeper底层依赖于jdk，zookeeper用户登录后，根目录下先进行jdk的安装，jdk使用jdk-8u131-linux-x64.tar.gz版本，上传并解压jdk
+
+```bash
+# 解压jdk
+tar -xzvf jdk-8u131-linux-x64.tar.gz
+```
+
+- 配置jdk环境变量
+
+```bash
+# vim打开 .bash_profile文件
+vi .bash_profile
+
+# 文件中加入如下内容
+JAVA_HOME=/home/zookeeper/jdk1.8.0_131
+export JAVA_HOME
+​
+PATH=$JAVA_HOME/bin:$PATH
+export PATH
+​
+# 使环境变量生效
+. .bash_profile
+
+# 检测jdk安装
+java -version
+```
+
+- zookeeper使用zookeeper-x.x.x.tar.gz，上传并解压
+
+```bash
+tar -xzvf zookeeper-3.4.10.tar.gz
+```
+
+- 为zookeeper准备配置文件
+
+```bash
+# 进入conf目录
+cd /home/zookeeper/zookeeper-x.x.x/conf
+# 复制配置文件
+cp zoo_sample.cfg zoo.cfg
+# zookeeper根目录下新建data目录
+mkdir data
+# vi 修改配置文件中的dataDir
+# 此路径用于存储zookeeper中数据的内存快照、及事物日志文件
+dataDir=/home/zookeeper/zookeeper-x.x.x/data
+```
+
+### 5.2. docker 方式（待整理）
+
+整理中...
+
+## 6. Zookeeper 服务端常用命令
+
+修改了相应的配置之后，可以直接通过 zkServer.sh 这个脚本进行服务的相关操作
+
+```bash
+# 进入zookeeper的bin目录
+cd /home/zookeeper/zookeeper-3.x.x/bin
+
+# 启动 ZK 服务
+sh bin/zkServer.sh start
+# 查看 ZK 服务状态
+sh bin/zkServer.sh status
+# 停止 ZK 服务
+sh bin/zkServer.sh stop
+# 重启 ZK 服务
+sh bin/zkServer.sh restart
+```
+
+## 7. Zookeeper 常用操作命令
+
+### 7.1. 新增节点
+
+命令格式：
+
+```bash
+# 其中-s 为有序节点，-e 临时节点
+create [-s] [-e] path data
+```
+
+- 创建持久化节点并写入数据。**不带任何参数，默认是新增持久节点**
+
+```bash
+create /hadoop "123456"
+```
+
+- 创建持久化有序节点，此时创建的节点名为`指定节点名 + 自增序号`
+
+```bash
+[zk: localhost:2181(CONNECTED) 2] create -s /a "aaa"
+Created /a0000000000
+[zk: localhost:2181(CONNECTED) 3] create -s /b "bbb"
+Created /b0000000001
+[zk: localhost:2181(CONNECTED) 4] create -s /c "ccc"
+Created /c0000000002
+```
+
+- 创建临时节点，临时节点会在会话过期后被删除
+
+```bash
+[zk: localhost:2181(CONNECTED) 5] create -e /tmp "tmp"
+Created /tmp
+```
+
+- 创建临时有序节点，临时节点会在会话过期后被删除
+
+```bash
+[zk: localhost:2181(CONNECTED) 6] create -s -e /aa 'aaa'
+Created /aa0000000004
+[zk: localhost:2181(CONNECTED) 7] create -s -e /bb 'bbb'
+Created /bb0000000005
+[zk: localhost:2181(CONNECTED) 8] create -s -e /cc 'ccc'
+Created /cc0000000006
+```
+
+> 注意：临时节点不能创建子节点
+
+```bash
+[zk: localhost:2181(CONNECTED) 19] create /test/test1
+Ephemerals cannot have children: /test/test1
+```
+
+### 7.2. 更新节点
+
+更新节点的命令是`set`，语法如下：
+
+```bash
+set [-s] [-v version] path data
+```
+
+可以直接进行修改
+
+```bash
+[zk: localhost:2181(CONNECTED) 3] set /hadoop "345"
+cZxid = 0x4
+ctime = Thu Dec 12 14:55:53 CST 2019
+mZxid = 0x5
+mtime = Thu Dec 12 15:01:59 CST 2019
+pZxid = 0x4
+cversion = 0
+dataVersion = 1
+aclVersion = 0
+ephemeralOwner = 0x0
+dataLength = 3
+numChildren = 0
+```
+
+也可以基于版本号进行更改，此时类似于乐观锁机制，当传入的数据版本号 (dataVersion) 和当前节点的数据版本号不符合时，zookeeper 会拒绝本次修改：
+
+```bash
+[zk: localhost:2181(CONNECTED) 12] set -v 1 /hadoop "asss"
+version No is not valid : /hadoop
+```
+
+### 7.3. 删除节点
+
+删除节点的语法：
+
+```bash
+# 删除单个节点，该节点下不能有子节点，否则拒绝删除
+delete [-v version] path
+# 级联删除，包含删除该节点下所有子节点
+deleteall path [-b batch size]
+```
+
+和更新节点数据一样，也可以传入版本号，当传入的数据版本号 (dataVersion) 和当前节点的数据版本号不符合时，zookeeper 不会执行删除操作。
+
+```bash
+[zk: localhost:2181(CONNECTED) 21] delete -v 1 /hadoop
+version No is not valid : /hadoop
+```
+
+如果某个节点下有子节点，使用`delete`命令无法删除该节点，需要使用`deleteall`命令
+
+```java
+[zk: localhost:2181(CONNECTED) 30] delete /moon
+Node not empty: /moon
+[zk: localhost:2181(CONNECTED) 31] deleteall /moon
+```
+
+### 7.4. 查看节点
+
+查看节点语法：
+
+```bash
+get [-s] [-w] path
+```
+
+- 参数 `-s` 列举出节点详情
+- 参数 `-w` 添加一个 watch（监视器）
+
+查询某个节点详细信息
+
+```bash
+[zk: localhost:2181(CONNECTED) 4] get -s /hadoop
+345
+cZxid = 0x6a
+ctime = Thu Jun 17 22:37:55 CST 2021
+mZxid = 0x6c
+mtime = Thu Jun 17 22:38:12 CST 2021
+pZxid = 0x6a
+cversion = 0
+dataVersion = 2
+aclVersion = 0
+ephemeralOwner = 0x0
+dataLength = 3
+numChildren = 0
+```
+
+节点各个属性如下表。其中一个重要的概念是 Zxid(ZooKeeper Transaction Id)，ZooKeeper 节点的每一次更改都具有唯一的 Zxid，如果 Zxid1 小于 Zxid2，则 Zxid1 的更改发生在 Zxid2 更改之前。
+
+|                状态属性                 |                                        说明                                        |
+| -------------------------------------- | --------------------------------------------------------------------------------- |
+| cZxid                                  | 数据节点创建时的事务 ID                                                              |
+| ctime                                  | 数据节点创建时的时间                                                                 |
+| <font color=red>**mZxid**</font>       | 数据节点最后一次更新时的事务 ID                                                      |
+| <font color=red>**mtime**</font>       | 数据节点最后一次更新时的时间                                                         |
+| pZxid                                  | 数据节点的子节点最后一次被修改时的事务 ID                                              |
+| cversion                               | 子节点的更改次数                                                                    |
+| <font color=red>**dataVersion**</font> | 节点数据的更改次数                                                                  |
+| aclVersion                             | 节点的 ACL 的更改次数                                                               |
+| ephemeralOwner                         | 如果节点是临时节点，则表示创建该节点的会话的 SessionID；如果节点是持久节点，则该属性值为 0 |
+| dataLength                             | 数据内容的长度                                                                      |
+| numChildren                            | 数据节点当前的子节点个数                                                             |
+
+> 注：重点关注红色加粗的属性值
+
+### 7.5. 查看节点状态
+
+查看节点状态语法：
+
+```bash
+stat [-w] path
+```
+
+- 参数 `-w` 添加一个 watch（监视器）
+
+注：`stat` 命令查看节点状态，它的返回值和 `get` 命令类似，但不会返回节点数据
+
+```bash
+[zk: localhost:2181(CONNECTED) 5] stat /hadoop
+cZxid = 0x6a
+ctime = Thu Jun 17 22:37:55 CST 2021
+mZxid = 0x6c
+mtime = Thu Jun 17 22:38:12 CST 2021
+pZxid = 0x6a
+cversion = 0
+dataVersion = 2
+aclVersion = 0
+ephemeralOwner = 0x0
+dataLength = 3
+numChildren = 0
+```
+
+### 7.6. 查看节点列表
+
+查看节点列表语法：
+
+```bash
+ls [-s] [-w] [-R] path
+```
+
+- 参数 `-s` 列举出节点详情
+- 参数 `-w` 添加一个 watch（监视器）
+- 参数 `-R` 列举出节点的级联节点（需要注意：参数必须大写）
+
+```bash
+[zk: localhost:2181(CONNECTED) 2] ls /
+[dubbo, hadoop, moon0000000004, zero0000000005, zookeeper]
+```
+
+### 7.7. 监听器
+
+注册的监听器能够在节点内容发生改变的时候，向客户端发出通知。<font color=red>**需要注意的是 zookeeper 的触发器是一次性的 (One-time trigger)，即触发一次后就会立即失效**</font>。
+
+可以注册监听器的操作分别有：查询节点（`get`）、查询节点状态（`stat`）、查询节点列表（`ls`）
+
+#### 7.7.1. 查看节点时注册监听器
+
+使用`get -w path`命令注册的监听器能够在节点内容发生改变的时候，会向客户端发出一次通知
+
+```bash
+[zk: localhost:2181(CONNECTED) 4] get -w /hadoop
+[zk: localhost:2181(CONNECTED) 5] set /hadoop 888
+WATCHER::
+WatchedEvent state:SyncConnected type:NodeDataChanged path:/hadoop
+```
+
+#### 7.7.2. 查看节点状态时注册监听器
+
+使用`stat -w path`命令注册的监听器能够在节点状态发生改变的时候，会向客户端发出一次通知
+
+```bash
+[zk: localhost:2181(CONNECTED) 6] stat -w /hadoop
+[zk: localhost:2181(CONNECTED) 7] set /hadoop 2020
+WATCHER::
+WatchedEvent state:SyncConnected type:NodeDataChanged path:/hadoop
+```
+
+#### 7.7.3. 查看节点列表时注册监听器
+
+使用`ls -w path`命令注册的监听器能够<font color=red>**监听该节点下所有子节点的增加和删除等操作**</font>，会向客户端发出一次通知
+
+```bash
+[zk: localhost:2181(CONNECTED) 11] ls -R /hadoop
+/hadoop
+/hadoop/moon
+/hadoop/moon/zero
+[zk: localhost:2181(CONNECTED) 12] ls -w /hadoop
+[moon]
+[zk: localhost:2181(CONNECTED) 13] deleteall /hadoop/moon
+WATCHER::
+WatchedEvent state:SyncConnected type:NodeChildrenChanged path:/hadoop
+```
+
+## 8. Zookeeper的ACL权限控制
+
+### 8.1. ACL 概述
+
+zookeeper 类似文件系统，client 可以创建节点、更新节点、删除节点。Zookeeper的ACL（access control list 访问控制列表）就是实现对节点的权限的控制
+
+ACL 权限控制的基础语法：
+
+```
+scheme:id:permission
+```
+
+主要涵盖3个维度：
+
+- 权限模式（`scheme`）：授权的策略
+- 授权对象（`id`）：授权的对象
+- 权限（`permission`）：授予的权限
+
+其特性：
+
+- zooKeeper的权限控制是基于每个znode节点的，需要对每个节点设置权限
+- 每个znode支持设置多种权限控制方案和多个权限
+- 子节点不会继承父节点的权限，客户端无权访问某节点，但可能可以访问它的子节点
+
+示例：
+
+```bash
+# 将节点权限设置为IP:192.168.60.130的客户端可以对节点进行增、删、改、查、管理权限
+setAcl /test2 ip:192.168.60.130:crwda
+```
+
+### 8.2. scheme 权限模式
+
+定义采用何种方式授权
+
+| 方案值  |                       描述                       |
+| :----: | ------------------------------------------------ |
+| world  | 只有一个用户：anyone，代表登录zokeeper所有人（默认） |
+|   ip   | 对客户端使用IP地址认证                             |
+|  auth  | 使用已添加认证的用户认证                           |
+| digest | 使用“用户名:密码”方式认证                          |
+
+
+### 8.3. id 授权的对象
+
+授权对象ID是指，权限赋予的实体，即给谁授予权限。例如：IP 地址或用户。
+
+### 8.4. permission 权限
+
+permission 用于指定授予什么类型的权限
+
+create、delete、read、writer、admin也就是 增、删、改、查、管理权限，这5种权限简写为`cdrwa`。**注意：这5种权限中，delete是指对子节点的删除权限，其它4种权限指对自身节点的操作权限**
+
+|  权限  | ACL简写 |             描述              |
+| :----: | :-----: | ---------------------------- |
+| create |    c    | 可以创建子节点                 |
+| delete |    d    | 可以删除子节点（仅下一级节点）   |
+|  read  |    r    | 可以读取节点数据及显示子节点列表 |
+| write  |    w    | 可以设置节点数据               |
+| admin  |    a    | 可以设置节点访问控制列表权限     |
+
+### 8.5. ACL 授权命令
+
+|  命令   |    描述     |
+| :-----: | ----------- |
+| getAcl  | 读取ACL权限  |
+| setAcl  | 设置ACL权限  |
+| addauth | 添加认证用户 |
+
+### 8.6. ACL 权限控制案例
+
+#### 8.6.1. world 授权模式
+
+命令
+
+```bash
+setAcl <path> world:anyone:<acl>
+```
+
+案例
+
+```bash
+[zk: localhost:2181(CONNECTED) 1] create /node1 "node1"
+Created /node1
+[zk: localhost:2181(CONNECTED) 2] getAcl /node1
+'world,'anyone   # world方式对所有用户进行授权
+: cdrwa          # 增、删、改、查、管理
+[zk: localhost:2181(CONNECTED) 3] setAcl /node1 world:anyone:cdrwa
+cZxid = 0x2
+ctime = Fri Dec 13 22:25:24 CST 2021
+mZxid = 0x2
+mtime = Fri Dec 13 22:25:24 CST 2021
+pZxid = 0x2
+cversion = 0
+dataVersion = 0
+aclVersion = 1
+ephemeralOwner = 0x0
+dataLength = 5
+numChildren = 0
+```
+
+#### 8.6.2. IP授权模式
+
+命令
+
+```bash
+setAcl <path> ip:<ip>:<acl>
+```
+
+案例
+
+```bash
+[zk: localhost:2181(CONNECTED) 18] create /node2 "node2"
+Created /node2
+​
+[zk: localhost:2181(CONNECTED) 23] setAcl /node2 ip:192.168.60.129:cdrwa
+cZxid = 0xe
+ctime = Fri Dec 13 22:30:29 CST 2021
+mZxid = 0x10
+mtime = Fri Dec 13 22:33:36 CST 2021
+pZxid = 0xe
+cversion = 0
+dataVersion = 2
+aclVersion = 1
+ephemeralOwner = 0x0
+dataLength = 20
+numChildren = 0
+​
+[zk: localhost:2181(CONNECTED) 25] getAcl /node2
+'ip,'192.168.60.129
+: cdrwa
+​
+# 使用IP非 192.168.60.129 的机器
+[zk: localhost:2181(CONNECTED) 0] get /node2
+Authentication is not valid : /node2 # 提示没有权限
+```
+
+> 注意：远程登录zookeeper命令是：`./zkCli.sh -server ip`
+
+#### 8.6.3. Auth授权模式
+
+命令
+
+```bash
+addauth digest <user>:<password> # 添加认证用户
+setAcl <path> auth:<user>:<acl>
+```
+
+案例
+
+```bash
+zk: localhost:2181(CONNECTED) 2] create /node3 "node3"
+Created /node3
+​
+# 添加认证用户
+[zk: localhost:2181(CONNECTED) 4] addauth digest MooN:123456
+[zk: localhost:2181(CONNECTED) 1] setAcl /node3 auth:MooN:cdrwa
+cZxid = 0x15
+ctime = Fri Dec 13 22:41:04 CST 2021
+mZxid = 0x15
+mtime = Fri Dec 13 22:41:04 CST 2021
+pZxid = 0x15
+cversion = 0
+dataVersion = 0
+aclVersion = 1
+ephemeralOwner = 0x0
+dataLength = 5
+numChildren = 0
+
+[zk: localhost:2181(CONNECTED) 0] getAcl /node3
+'digest,'MooN:673OfZhUE8JEFMcu0l64qI8e5ek=
+: cdrwa
+
+# 添加认证用户后可以访问
+[zk: localhost:2181(CONNECTED) 3] get /node3
+node3
+cZxid = 0x15
+ctime = Fri Dec 13 22:41:04 CST 2021
+mZxid = 0x15
+mtime = Fri Dec 13 22:41:04 CST 2021
+pZxid = 0x15
+cversion = 0
+dataVersion = 0
+aclVersion = 1
+ephemeralOwner = 0x0
+dataLength = 5
+numChildren = 0
+```
+
+#### 8.6.4. Digest 授权模式
+
+命令
+
+```bash
+setAcl <path> digest:<user>:<password>:<acl>
+```
+
+这里密码是经过SHA1及BASE64处理的密文，在SHELL中可以通过以下命令计算：
+
+```bash
+echo -n <user>:<password> | openssl dgst -binary -sha1 | openssl base64
+```
+
+案例
+
+```bash
+[zk: localhost:2181(CONNECTED) 4] create /node4 "node4"
+Created /node4
+
+# 使用是上面算好的密文密码添加权限：
+[zk: localhost:2181(CONNECTED) 5] setAcl /node4 digest:MooN:qlzQzCLKhBROghkooLvb+Mlwv4A=:cdrwa
+cZxid = 0x1c
+ctime = Fri Dec 13 22:52:21 CST 2021
+mZxid = 0x1c
+mtime = Fri Dec 13 22:52:21 CST 2021
+pZxid = 0x1c
+cversion = 0
+dataVersion = 0
+aclVersion = 1
+ephemeralOwner = 0x0
+dataLength = 5
+numChildren = 0
+​
+[zk: localhost:2181(CONNECTED) 6] getAcl /node4
+'digest,'MooN:qlzQzCLKhBROghkooLvb+Mlwv4A=
+: cdrwa
+​
+[zk: localhost:2181(CONNECTED) 3] get /node4
+Authentication is not valid : /node4 # 没有权限
+[zk: localhost:2181(CONNECTED) 4] addauth digest MooN:123456 # 添加认证用户
+[zk: localhost:2181(CONNECTED) 5] get /node4
+1 # 成功读取数据
+cZxid = 0x1c
+ctime = Fri Dec 13 22:52:21 CST 2019
+mZxid = 0x1c
+mtime = Fri Dec 13 22:52:21 CST 2019
+pZxid = 0x1c
+cversion = 0
+dataVersion = 0
+aclVersion = 1
+ephemeralOwner = 0x0
+dataLength = 5
+numChildren = 0
+```
+
+#### 8.6.5. 多种模式授权
+
+同一个节点可以同时使用多种模式授权
+
+```bash
+[zk: localhost:2181(CONNECTED) 0] create /node5 "node5"
+Created /node5
+[zk: localhost:2181(CONNECTED) 1] addauth digest MooN:123456 # 添加认证用户
+[zk: localhost:2181(CONNECTED) 2] setAcl /node5 ip:192.168.60.129:cdra,auth:MooN:cdrwa,digest:MooN:qlzQzCLKhBROghkooLvb+Mlwv4A=:cdrwa
+```
+
+### 8.7. ACL 超级管理员
+
+zookeeper的权限管理模式有一种叫做super，该模式提供一个超管可以方便的访问任何权限的节点。通过以下步骤
+
+1. 假设这个超管是：super:admin，需要先为超管生成密码的密文
+
+```bash
+echo -n super:admin | openssl dgst -binary -sha1 | openssl base64
+```
+
+2. 打开zookeeper目录下的`/bin/zkServer.sh`服务器脚本文件，找到如下一行：
+
+```shell
+nohup $JAVA "-Dzookeeper.log.dir=${ZOO_LOG_DIR}" "-Dzookeeper.root.logger=${ZOO_LOG4J_PROP}"
+```
+
+该脚本中启动zookeeper的命令，默认只有以上两个配置项，需要加一个超管的配置项
+
+```shell
+"-Dzookeeper.DigestAuthenticationProvider.superDigest=super:xQJmxLMiHGwaqBvst5y6rkB6HQs="
+```
+
+3. 修改以后这条完整命令变成
+
+```bash
+nohup $JAVA "-Dzookeeper.log.dir=${ZOO_LOG_DIR}" "-Dzookeeper.root.logger=${ZOO_LOG4J_PROP}" "-Dzookeeper.DigestAuthenticationProvider.superDigest=super:xQJmxLMiHGwaqBvst5y6rkB6HQs="\ -cp "$CLASSPATH" $JVMFLAGS $ZOOMAIN "$ZOOCFG" > "$_ZOO_DAEMON_OUT" 2>&1 < /dev/null &
+```
+
+4. 启动zookeeper服务，输入如下命令添加认证用户权限
+
+```bash
+addauth digest super:admin
+```
+
+
 
