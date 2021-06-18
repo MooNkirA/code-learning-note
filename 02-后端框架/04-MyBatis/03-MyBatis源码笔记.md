@@ -132,6 +132,53 @@ MyBatis 源码共 16 个模块，可以分成三层
 
 **应用场景**：遇到由一系列步骤构成的过程需要执行，这个过程从高层次上看是相同的，但是有些步骤的实现可能不同，这个时候就需要考虑用模板模式了
 
+### 2.6. 装饰器模式
+
+#### 2.6.1. 模式的结构
+
+装饰器模式是一种用于代替继承的技术，无需通过继承增加子类就能扩展对象的新功能。使用对象的关联关系代替继承关系，更加灵活，同时避免类型体系的快速膨胀。装饰器 UML 类图如下：
+
+![](images/20210606093942220_12979.gif)
+
+- **组件（Component）**：组件接口定义了全部组件类和装饰器实现的行为
+- **组件实现类（ConcreteComponent）**：实现Component接口，组件实现类就是被装饰器装饰的原始对象，新功能或者附加功能都是通过装饰器添加到该类的对象上的
+- **装饰器抽象类（Decorator）**：实现Component接口的抽象类，在其中封装了一个Component对象，也就是被装饰的对象
+- **具体装饰器类（ConcreteDecorator）**：该实现类要向被装饰的对象添加某些功能
+
+#### 2.6.2. 装饰器与继承的区别
+
+装饰器相对于继承，装饰器模式灵活性更强，扩展性更强：
+
+- 灵活性：装饰器模式将功能切分成一个个独立的装饰器，在运行期可以根据需要动态的添加功能，甚至对添加的新功能进行自由的组合
+- 扩展性：当有新功能要添加的时候，只需要添加新的装饰器实现类，然后通过组合方式添加这个新装饰器，无需修改已有代码，符合开闭原则
+
+#### 2.6.3. 装饰器模式使用举例
+
+- IO 中输入流和输出流的设计
+
+```java
+BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(new FileInputStream("c://a.txt")));
+```
+
+- 对网络爬虫的自定义增强，可增强的功能包括：多线程能力、缓存、自动生成报表、黑白名单、random 触发等
+
+### 2.7. 责任链模式
+
+责任链模式：就是把一件工作分别经过链上的各个节点，让这些节点依次处理这个工作。和装饰器模式不同，每个节点都知道后继者是谁；适合为完成同一个请求需要多个处理类的场景。责任链模式类图如下：
+
+![](images/20210606225836842_26381.gif)
+
+- Handler：定义了一个处理请求的标准接口
+- ConcreteHandler：具体的处理者，处理它负责的部分，根据业务可结束处理流程，也可将请求转发给它的后继者
+- client：发送者，发起请求的客户端
+
+责任链模式优点：
+
+1. 降低耦合度：它将请求的发送者和接收者解耦
+2. 简化了对象：使得对象不需要知道链的结构
+3. 增强给对象指派职责的灵活性。通过改变链内的成员或者调动它们的次序，允许动态地新增或者删除责任
+4. 增加新的请求处理类很方便
+
 ## 3. 日志模块分析
 
 ### 3.1. 日志模块需求分析
@@ -1349,13 +1396,70 @@ public Executor newExecutor(Transaction transaction, ExecutorType executorType) 
 ![](images/20210325101254008_25584.png)
 
 - `BaseExecutor`：抽象类，实现了`Executor`接口的大部分方法，主要提供了缓存管理和事务管理的能力，其他子类需要实现的抽象方法为：`doUpdate`、`doQuery`等方法
-    - `BatchExecutor`：批量执行所有更新语句，基于 jdbc 的 batch 操作实现批处理
-    - `SimpleExecutor`：默认执行器，每次执行都会创建一个`statement`对象，用完后关闭
-    - `ReuseExecutor`：可重用执行器，将`statement`对象存入缓存的 map 中，操作 map 中的`statement`而不会重复创建
-
-- `CacheingExecutor`：使用装饰器模式，对真正提供数据库查询的`Executor`增强了二级缓存的能力，具体生成此增加的位置在`DefaultSqlSessionFactory.openSessionFromDataSource`方法中，会判断是否开启了`<settings>`节点`cacheEnabled`配置，如开启则将原`Executor`实例包装成`CacheingExecutor`
+    - `BatchExecutor`：批量执行所有更新语句，基于 jdbc 的 batch 操作实现批处理。不建议使用，效率不高。如果涉及批量操作，推荐使用原生的JDBC的`clearbatch`的API
+    - `SimpleExecutor`：默认执行器，每次执行都会创建一个`statement`对象，用完后关闭。比较鸡肋。
+    - `ReuseExecutor`：可重用执行器，将`statement`对象存入缓存的Map中，操作Map中的`statement`而不会重复创建。在不做大量的更新/新增操作的情况下，推荐使用。
+- `CachingExecutor`：使用装饰器模式，对真正提供数据库查询的`Executor`增强了二级缓存的能力，具体生成此增加的位置在`DefaultSqlSessionFactory.openSessionFromDataSource`方法中，会判断是否开启了`<settings>`节点`cacheEnabled`配置，如开启则将原`Executor`实例包装成`CacheingExecutor`
 
 ![](images/20210325102521004_25881.png)
+
+##### 3.3.3.1. ReuseExecutor
+
+不同类型的执行器使用了模板模式。以查询操作为例：
+
+在`BaseExecutor`类的`query`方法，在此方法中去做查询时会调用钩子方法`doQuery`，具体的实现在相应的子类重写的方法中
+
+![](images/20210606212649980_11597.png)
+
+```java
+@Override
+public <E> List<E> doQuery(MappedStatement ms, Object parameter, RowBounds rowBounds, ResultHandler resultHandler, BoundSql boundSql) throws SQLException {
+  // 获取configuration对象
+  Configuration configuration = ms.getConfiguration();
+  // 创建StatementHandler对象
+  StatementHandler handler = configuration.newStatementHandler(wrapper, ms, parameter, rowBounds, resultHandler, boundSql);
+  // StatementHandler对象创建stmt,并使用parameterHandler对占位符进行处理
+  Statement stmt = prepareStatement(handler, ms.getStatementLog());
+  // 通过statementHandler对象调用ResultSetHandler将结果集转化为指定对象返回
+  return handler.query(stmt, resultHandler);
+}
+```
+
+在`prepareStatement`方法中会根据sql语句，从`Map<String, Statement> statementMap`容器中获取缓存的`Statement`实例
+
+![](images/20210606213214703_2987.png)
+
+![](images/20210606213240949_2302.png)
+
+![](images/20210606213252654_21296.png)
+
+##### 3.3.3.2. BatchExecutor
+
+`BatchExecutor`执行器需要注意的是，这个主要用于增删改的操作中，下面以修改操作为例：
+
+在`BaseExecutor`类中的`update`方法中，会调用钩子方法`doUpdate`，具体的实现在相应的子类重写的方法中
+
+![](images/20210606213734606_19400.png)
+
+具体的操作就是调用了原生JDBC的批量API
+
+![](images/20210606215704494_17256.png)
+
+![](images/20210606215743372_17277.png)
+
+##### 3.3.3.3. CachingExecutor
+
+`CachingExecutor`执行器没有继承抽象模板类`BaseExecutor`，直接实现了`Executor`接口。在创建执行器时候，会将用户配置的执行器实例通过构造函数传入，因此`CachingExecutor`实例中持有其他执行器的实例。
+
+![](images/20210606220900951_11473.png)
+
+以查询操作为例，会先从二级缓存中获取数据，如果缓存中没有结果，就交给包装类去执行。此时就走相应执行器的逻辑
+
+![](images/20210606221137230_6353.png)
+
+##### 3.3.3.4. SimpleExecutor
+
+在源码分析中一直此类型的执行器，具体详见源码分析的流程
 
 ### 3.4. MapperProxyFactory 代理工厂的映射建立
 
@@ -2705,6 +2809,23 @@ resultMap id="ContractResultMapWithIdCardInfo" type="com.moon.mybatis.pojo.Consu
 
 ## 7. MyBatis 缓存原理
 
+### 7.1. 缓存模块需求分析
+
+1. MyBatis 缓存的实现是基于 Map 的，从缓存里面读写数据是缓存模块的核心基础功能
+2. 除核心功能之外，有很多额外的附加功能，如：防止缓存击穿，添加缓存清空策略（fifo、lru）、序列化功能、日志能力、定时清空能力等
+3. 附加功能可以以任意的组合附加到核心基础功能之上
+
+基于Map核心缓存能力，将阻塞、清空策略、序列化、日志等等能力以任意组合的方式优雅的增强是MyBatis缓存模块实现最大的难题，用动态代理或者继承的方式扩展多种附加能力的传统方式存在以下问题：
+
+- 这些方式是静态的，用户不能控制增加行为的方式和时机
+- 新功能的存在多种组合，使用继承可能导致大量子类存在
+
+所以MyBatis缓存模块采用了装饰器模式实现了缓存模块
+
+### 7.2. 缓存源码分析
+
+#### 7.2.1. 一级缓存的实现原理
+
 查询缓存，肯定是在发起sql查询前去判断是否存在缓存，如果存在则直接返回缓存的结果。
 
 ![](images/20210506221944285_20894.png)
@@ -2724,18 +2845,575 @@ cacheKey.update(value); // 更新 SQL 中占位符的属性值
 cacheKey.update(configuration.getEnvironment().getId());
 ```
 
+创建与更新`CacheKey`后，在`query`方法中，根据`CacheKey`从`PerpetualCache`对象中获取缓存。如果缓存中有结果，则再根据`CacheKey`从另一个`PerpetualCache`对象中获取Callable查询的输出参数；如果缓存没有，则去查询数据库，并将查询结果写入缓存。
 
+![](images/20210606115613780_14769.png)
 
+至此就是一级缓存的实现流程
 
+需要注意的是，一级缓存多个`SqlSession`之间不能共享，原因是在每次通过`SqlSessionFactory.openSession()`开启新的session时，都会创建一个新的`Executor`对象，所以对应的每个对象中的`PerpetualCache`实例都不一样，所以一级缓存不能在`SqlSession`之间共享。
 
+![](images/20210606154512487_30776.png)
 
+#### 7.2.2. 二级缓存的实现原理
 
+二级缓存是`SqlSessionFactory`级别缓存，不同的`SqlSession`之间共享，因为在创建`SqlSessionFactory`时，同时会创建`Configuration`，相应的缓存是存储在`Configuration`实例中，而该实例是唯一，所以缓存是可以跨不同的`SqlSession`
 
+![](images/20210606163304778_8976.png)
 
+![](images/20210606163345710_7870.png)
 
+### 7.3. 装饰器在缓存模块的使用
 
+MyBatis 缓存模块是一个经典的使用装饰器实现的模块。结构如下：
 
+- Cache：Cache 接口是缓存模块的核心接口，定义了缓存的基本操作；
+- PerpetualCache：在缓存模块中扮演ConcreteComponent角色，使用HashMap来实现 cache 的相关操作；
+- BlockingCache：阻塞版本的缓存装饰器，保证只有一个线程到数据库去查找指定的 key 对应的数据；
 
+`BlockingCache` 是阻塞版本的缓存装饰器，这个装饰器通过 `ConcurrentHashMap` 对锁的粒度进行了控制，提高加锁后系统代码运行的效率（注：缓存雪崩的问题可以使用细粒度锁的方式提升锁性能）。*具体详见源码*
+
+除了 `BlockingCache` 之外，缓存模块还有其他的装饰器如：
+
+1. `LoggingCache`：日志能力的缓存；
+2. `ScheduledCache`：定时清空的缓存；
+3. `BlockingCache`：阻塞式缓存；
+4. `SerializedCache`：序列化能力的缓存；
+5. `SynchronizedCache`：进行同步控制的缓存；
+
+思考：Mybatis 的缓存功能使用 HashMap 实现会不会出现并发安全的问题？
+
+答：MyBati的缓存分为一级缓存、二级缓存。二级缓存是多个会话共享的缓存，确实会出现并发安全的问题，因此MyBatis在初始化二级缓存时，会给二级缓存默认加上SynchronizedCache装饰器的增强，在对共享数据HashMap操作时进行同步控制，所以二级缓存不会出现并发安全问题；而一级缓存是会话独享的，不会出现多个线程同时操作缓存数据的场景，因此一级缓存也不会出现并发安全的问题；
+
+### 7.4. 缓存的唯一标识 CacheKey
+
+MyBatis 中涉及到动态 SQL 的原因，缓存项的 key 不能仅仅通过一个 String 来表示，所以通过 CacheKey 来封装缓存的 Key 值，CacheKey可以封装多个影响缓存项的因素；判断两个CacheKey是否相同关键是比较两个对象的 hash 值是否一致；构成 CacheKey 对象的要素包括：
+
+1. mappedStatment 的 id
+2. 指定查询结果集的范围（分页信息）
+3. 查询所使用的SQL语句
+4. 用户传递给SQL语句的实际参数值
+
+CacheKey 中`update`方法和`equals`方法是进行比较时非常重要的两个方法：
+
+- `update`方法：用于添加构成CacheKey对象的要素，每添加一个元素会对hashcode、checksum、count 以及 updateList 进行更新；
+
+```java
+public void update(Object object) {
+  // 获取object的hash值
+  int baseHashCode = object == null ? 1 : ArrayUtil.hashCode(object);
+  // 更新count、checksum以及hashcode的值
+  count++;
+  checksum += baseHashCode;
+  baseHashCode *= count;
+  hashcode = multiplier * hashcode + baseHashCode;
+  //将对象添加到updateList中
+  updateList.add(object);
+}
+```
+
+- `equals` 方法：用于比较两个元素是否相等。首先比较 hashcode、checksum、count 是否相等，如果这三个值相等，会循环比较 updateList 中每个元素的 hashCode 是否一致；按照这种方式判断两个对象是否相等，一方面能很严格的判断是否一致避免出现误判，另外一方面能提高比较的效率；
+
+```java
+@Override
+public boolean equals(Object object) {
+  // 比较是不是同一个对象
+  if (this == object) {
+    return true;
+  }
+  // 是否类型相同
+  if (!(object instanceof CacheKey)) {
+    return false;
+  }
+
+  final CacheKey cacheKey = (CacheKey) object;
+
+  // hashcode是否相同
+  if (hashcode != cacheKey.hashcode) {
+    return false;
+  }
+  // checksum是否相同
+  if (checksum != cacheKey.checksum) {
+    return false;
+  }
+  // count是否相同
+  if (count != cacheKey.count) {
+    return false;
+  }
+
+  // 详细比较变更历史中的每次变更。以上都不相同，才按顺序比较updateList中元素的hash值是否一致
+  for (int i = 0; i < updateList.size(); i++) {
+    Object thisObject = updateList.get(i);
+    Object thatObject = cacheKey.updateList.get(i);
+    if (!ArrayUtil.equals(thisObject, thatObject)) {
+      return false;
+    }
+  }
+  return true;
+}
+```
+
+## 8. 插件模块源码分析
+
+### 8.1. 插件的理解
+
+插件是用来改变或者扩展MyBatis的原有的功能，MyBatis的插件就是通过继承`Interceptor`拦截器实现的。注意：在没有完全理解插件之前禁止使用插件对MyBatis进行扩展，有可能会导致严重的问题。MyBatis中能使用插件进行拦截的接口和方法如下：
+
+- Executor（update、query、flushStatment、commit、rollback、getTransaction、close、isClose）
+- StatementHandler（prepare、paramterize、batch、update 、query）
+- ParameterHandler（getParameterObject 、setParameters）
+- ResultSetHandler（handleResultSets、handleCursorResultSets 、handleOutputParameters）
+
+### 8.2. 源码分析
+
+插件模块的源码分析主要搞清楚初始化、插件加载以及插件如何调用等三个问题。**MyBatis 的插件是通过动态代理对原有的对象进行增强的。**
+
+#### 8.2.1.  Interceptor 接口
+
+自定义MyBatis插件必须实现`Interceptor`接口。该接口有如下三个方法：
+
+```java
+public interface Interceptor {
+  /**
+   * 拦截器类必须实现该方法。
+   * 执行拦截逻辑，是插件对业务进行增强的核心方法
+   *
+   * @param invocation 拦截到的目标方法
+   * @return
+   * @throws Throwable
+   */
+  Object intercept(Invocation invocation) throws Throwable;
+
+  /**
+   * 拦截器类可以选择实现该方法。该方法中可以输出一个对象来替换输入参数传入的目标对象。
+   * 即给被拦截的对象生成一个代理对象
+   *
+   * @param target 是被拦截的对象
+   * @return
+   */
+  default Object plugin(Object target) {
+    return Plugin.wrap(target, this);
+  }
+
+  /**
+   * 拦截器类可以选择实现该方法。该方法用来为拦截器设置属性。
+   * 读取在plugin中设置的参数
+   *
+   * @param properties
+   */
+  default void setProperties(Properties properties) {
+    // NOP
+  }
+}
+```
+
+#### 8.2.2. Plugin 类
+
+`Plugin`类实现`InvocationHandler`接口，该类提供了几个核心方法
+
+- 给Interceptor拦截器生成动态代理
+
+```java
+/**
+ * 用于帮助Interceptor生成动态代理，会根据拦截器的配置来生成一个对象用来替换被代理对象。
+ * 因此，如果一个目标类需要被某个拦截器拦截的话，那么这个类的对象已经在 warp方法中被替换成了代理对象，即 Plugin对象。
+ * @param target 被代理对象
+ * @param interceptor 拦截器
+ * @return 用来替换被代理对象的对象
+ */
+public static Object wrap(Object target, Interceptor interceptor) {
+  // 解析拦截器Interceptor上@Intercepts注解得到的signature信息，即要拦截的类型与方法
+  Map<Class<?>, Set<Method>> signatureMap = getSignatureMap(interceptor);
+  // 获取目标对象（被代理对象）的类型
+  Class<?> type = target.getClass();
+  // 获取目标对象实现的接口（拦截器可以拦截4大对象实现的接口）。逐级寻找被代理对象类型的父类，将父类中需要被拦截的全部找出
+  Class<?>[] interfaces = getAllInterfaces(type, signatureMap);
+  if (interfaces.length > 0) {
+    // 使用jdk的方式创建动态代理对象，是Plugin类的实例
+    return Proxy.newProxyInstance(
+        type.getClassLoader(),
+        interfaces,
+        new Plugin(target, interceptor, signatureMap));
+  }
+  // 直接返回原有被代理对象，这意味着被代理对象的方法不需要被拦截
+  return target;
+}
+```
+
+- 拦截器所配置方法签名，获取需要拦截的所有类和类中的方法的信息
+
+```java
+/**
+ * 获取拦截器所配置需要拦截的所有类和类中的方法的信息
+ * @param interceptor 拦截器
+ * @return
+ */
+private static Map<Class<?>, Set<Method>> getSignatureMap(Interceptor interceptor) {
+  // 获取拦截器中的@Intercepts注解实例
+  Intercepts interceptsAnnotation = interceptor.getClass().getAnnotation(Intercepts.class);
+  // issue #251
+  if (interceptsAnnotation == null) {
+    throw new PluginException("No @Intercepts annotation was found in interceptor " + interceptor.getClass().getName());
+  }
+  // 将 Intercepts 注解的value信息取出来，是一个 Signature 数组。获取其中@Signature实例，并将里面的method信息添加至signatureMap中
+  Signature[] sigs = interceptsAnnotation.value();
+  // 将 Signature 数组放入一个Map中，键为 Signature 注解的type类型，值为该类型下的方法集合
+  Map<Class<?>, Set<Method>> signatureMap = new HashMap<>();
+  for (Signature sig : sigs) {
+    Set<Method> methods = signatureMap.computeIfAbsent(sig.type(), k -> new HashSet<>());
+    try {
+      Method method = sig.type().getMethod(sig.method(), sig.args());
+      methods.add(method);
+    } catch (NoSuchMethodException e) {
+      throw new PluginException("Could not find method on " + sig.type() + " named " + sig.method() + ". Cause: " + e, e);
+    }
+  }
+  return signatureMap;
+}
+```
+
+- 逐级寻找判断目标类是否有父类需要被拦截器拦截
+
+```java
+/**
+ * 逐级寻找目标类的父类，判断是否有父类需要被拦截器拦截
+ * @param type 目标类类型
+ * @param signatureMap 拦截器要拦截的所有类和类中的方法
+ * @return 拦截器要拦截的所有父类的列表
+ */
+private static Class<?>[] getAllInterfaces(Class<?> type, Map<Class<?>, Set<Method>> signatureMap) {
+  Set<Class<?>> interfaces = new HashSet<>();
+  while (type != null) {
+    for (Class<?> c : type.getInterfaces()) {
+      if (signatureMap.containsKey(c)) {
+        interfaces.add(c);
+      }
+    }
+    type = type.getSuperclass();
+  }
+  return interfaces.toArray(new Class<?>[interfaces.size()]);
+}
+```
+
+- 被代理对象方法被调用时触发`invoke`的方法（*详见下面《插件的调用》章节*）
+
+#### 8.2.3. 插件初始化
+
+插件的初始化实际是在 Mybatis 第一个阶段初始化的过程中，解析总配置xml文件中的`<plugins>`插件标签时加载到`Configuration`对象中的，具体代码位置：`XMLConfigBuilder.pluginElement`
+
+```java
+private void pluginElement(XNode parent) throws Exception {
+  // 如配置中有 <plugins> 节点
+  if (parent != null) {
+    // 依次取出<plugins>节点下的每个<plugin>节点
+    for (XNode child : parent.getChildren()) {
+      // 读取拦截器名称
+      String interceptor = child.getStringAttribute("interceptor");
+      // 读取拦截器属性
+      Properties properties = child.getChildrenAsProperties();
+      // 实例化拦截器类，resolveClass方法会根据配置中的interceptor属性去匹配相应的别名，获取Class对象，再反射获取类实例
+      Interceptor interceptorInstance = (Interceptor) resolveClass(interceptor).newInstance();
+      // 设置拦截器属性
+      interceptorInstance.setProperties(properties);
+      // 将当前拦截器加入到拦截器链中（存储在Configuration类）
+      configuration.addInterceptor(interceptorInstance);
+    }
+  }
+}
+```
+
+从上面的源码可知，在解析`<plugins>`插件标签时，读取配置中的类全限定名称，然后通过反射生成类实例，再设置标签设置的相应属性值`Properties`到`Interceptor`实现类中。
+
+在`Configuration`对象中，使用`InterceptorChain`类属性保存所有的插件，该类中有个List用于顺序保存所有的插件。
+
+![](images/20210607223524272_3536.png)
+
+![](images/20210607223836105_19585.png)
+
+![](images/20210607223859468_14661.png)
+
+#### 8.2.4. 插件的加载
+
+插件可以拦截`Executor`、`StatementHandler`、`ParameterHandler`、`ResultSetHandler`四个接口指定的方法。都通过`Configuration`对象创建这四大对象时，通过责任链模式按插件的顺序对四大对象进行了反复装饰（增强）
+
+##### 8.2.4.1. 加载 Executor 的增强插件
+
+`Executor`的加载时机是在`DefaultSqlSessionFactory`开启`SqlSession`的时候，通过`Configuration.newExecutor`方法加载
+
+![](images/20210608223251042_9517.png)
+
+![](images/20210608223312160_5233.png)
+
+这里会调用`InterceptorChain.pluginAll`方法，会循环所有拦截器，调用`plugin`方法。此方法是默认方法，有默认的实现是调用`Plugin.wrap`方法生成代理对象。
+
+```java
+public Object pluginAll(Object target) {
+  // 依次交给每个拦截器完成目标对象的替换工作
+  for (Interceptor interceptor : interceptors) {
+    target = interceptor.plugin(target);
+  }
+  return target;
+}
+```
+
+`wrap`方法的源码详见《Plugin 类》章节，此方法的主要逻辑是拦截器`Interceptor`相关实现类上的`@Intercepts`注解配置签名信息，里面是配置需要拦截的类与方法。根据签名信息获取需要拦截的目标类所有实现的接口，再使用JDK动态代理的方式生成代理对象（即`Plugin`类的实例）；如果不需要拦截，即直接返回原对象。
+
+> 注：其余类型对象增强的逻辑是一样，只是各个加载的插件的位置不一样
+
+##### 8.2.4.2. 加载 StatementHandler 的增强插件
+
+`StatementHandler`加载增强插件的位置是在执行增删改查时，通过`Configuration.newStatementHandler`方法加载
+
+![](images/20210608225102441_11017.png)
+
+![](images/20210608225117458_20294.png)
+
+##### 8.2.4.3. 加载 ParameterHandler 与 ResultSetHandler 的增强插件
+
+`ParameterHandler`与`ResultSetHandler`加载增强插件的位置是创建`RoutingStatementHandler`时，其构造函数会调用父类的`BaseStatementHandler`构造器时
+
+![](images/20210608225335772_10991.png)
+
+分别通过`Configuration.newParameterHandler`与`Configuration.newResultSetHandler`方法加载
+
+![](images/20210608225452962_32132.png)
+
+![](images/20210608225510682_22790.png)
+
+#### 8.2.5. 插件的调用
+
+上面已经分别初始化了插件与加载了插件，即已经生成相应四大对象的代理实例（有配置才会生代理，否则使用原对象）。如果有生成代理，当调用代理的方法时，即会调用`Plugin`类的`invoke`方法
+
+```java
+/**
+ * 代理对象的拦截方法，当被代理对象中方法被触发时会进入这里
+ * @param proxy 代理类
+ * @param method 被触发的方法
+ * @param args 被触发的方法的参数
+ * @return 被触发的方法的返回结果
+ * @throws Throwable
+ */
+@Override
+public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+  try {
+    // 获取当前接口所有需要拦截的方法
+    Set<Method> methods = signatureMap.get(method.getDeclaringClass());
+    // 如果当前方法需要被拦截，则调用interceptor.intercept方法进行拦截处理
+    if (methods != null && methods.contains(method)) {
+      // 该方法确实需要被拦截器拦截，因此交给拦截器处理
+      return interceptor.intercept(new Invocation(target, method, args));
+    }
+    // 如果当前方法不需要被拦截，则调用对象自身的方法（被代理对象处理）
+    return method.invoke(target, args);
+  } catch (Exception e) {
+    throw ExceptionUtil.unwrapThrowable(e);
+  }
+}
+```
+
+该方法的主要处理逻辑是，先从之前解析`@Intercepts`注解得到的signature信息，包含拦截器要拦截的所有类，以及类中的方法的Map集合中，获取当前接口需要拦截的方法，如果存在需要拦截的方法，则调用`Interceptor`接口的`intercept`方法，即由自定义拦截器类来实现；如果不需要拦截，即直接通过反射调用该对象原生的方法。
+
+## 9. MyBatis-Spring 集成原理分析（流程分析不太清晰，待完善）
+
+### 9.1. 官方资源
+
+- 代码仓库：https://github.com/mybatis/spring
+- 官方说明文档：http://mybatis.org/spring/zh/
+
+> mybatis-spring 源码安装过程和 mybatis 源码的安装过程一样
+
+### 9.2. SqlSessionFactoryBean 源码分析
+
+通过Spring整合的MyBatis的基础示例可知，无论基础xml配置还是注解配置方式，都需要创建`SqlSessionFactoryBean`对象。
+
+在基础的 MyBatis 用法中，是通过`SqlSessionFactoryBuilder`来创建`SqlSessionFactory`的。而在 MyBatis-Spring 整合后中，则使用`SqlSessionFactoryBean`来创建。
+
+```java
+public class SqlSessionFactoryBean
+    implements FactoryBean<SqlSessionFactory>, InitializingBean, ApplicationListener<ApplicationEvent>
+```
+
+看`SqlSessionFactoryBean`的继承关系，该类实现了`InitializingBean`接口，那么容器在初始化完成`SqlSessionFactoryBean`之后必然会调用`afterPropertiesSet()`方法。在此方法中，会在Spring容器中创建全局唯一的`SqlSessionFactory`对象。其中调用的`buildSqlSessionFactory()`方法实际是对MyBatis初始化加载配置阶段的封装
+
+```java
+@Override
+// 在spring容器中创建全局唯一的SqlSessionFactory
+public void afterPropertiesSet() throws Exception {
+  notNull(dataSource, "Property 'dataSource' is required");
+  notNull(sqlSessionFactoryBuilder, "Property 'sqlSessionFactoryBuilder' is required");
+  state((configuration == null && configLocation == null) || !(configuration != null && configLocation != null),
+      "Property 'configuration' and 'configLocation' can not specified with together");
+  // 创建SqlSessionFactory对象，封装了MyBatis的初始化阶段
+  this.sqlSessionFactory = buildSqlSessionFactory();
+}
+```
+
+![](images/20210612223533787_22357.png)
+
+![](images/20210613082810038_31651.png)
+
+`SqlSessionFactoryBean`还实现了`FactoryBean`接口，当在Spring容器中配置`FactoryBean`的实现类时，并不是将该`FactoryBean`实现类实例注入到容器，而是调用`FactoryBean`的`getObject`方法产生的实例对象注入容器。
+
+```java
+/**
+ * 将SqlSessionFactory对象注入spring容器
+ * {@inheritDoc}
+ */
+@Override
+public SqlSessionFactory getObject() throws Exception {
+  if (this.sqlSessionFactory == null) {
+    afterPropertiesSet();
+  }
+  return this.sqlSessionFactory;
+}
+```
+
+所以根据源码可知，`SqlSessionFactoryBean`类最终作用是将通过使用`SqlSessionFactoryBuilder`创建的`SqlSessionFactory`实例注入到Spring容器中。IOC容器中的其他类就能通过`SqlSessionFactory`获取到`SqlSession`实例了，进行相关的SQL执行任务了
+
+### 9.3. MapperFactoryBean 源码分析
+
+在XML配置中，可以通过加入`MapperFactoryBean`来将Mapper映射器注册到 Spring 容器中。
+
+```java
+<!-- 配置 MapperFactoryBean 对应一个映射器注册到 Spring 中（一般不会使用此方式注册Mapper接口） -->
+<bean id="userMapper" class="org.mybatis.spring.mapper.MapperFactoryBean">
+    <property name="mapperInterface" value="com.moon.mybatis.dao.UserMapper" />
+    <property name="sqlSessionFactory" ref="sqlSessionFactory" />
+</bean>
+```
+
+`MapperFactoryBean`作用是真正帮助Spring生成Mapper接口实现类。`MapperFactoryBean`实现了`FactoryBean`接口，`getObject`方法实际是封装了MyBatis的第二阶段，注入容器的是`SqlSession`实例化的Mapper接口的实现类
+
+```java
+public class MapperFactoryBean<T> extends SqlSessionDaoSupport implements FactoryBean<T> {
+  // 当前处理的Mapper接口
+  private Class<T> mapperInterface;
+  // ...省略
+  @Override
+  // MapperFactoryBean在容器初始化时，要确保mapper接口被注册到mapperRegistry
+  protected void checkDaoConfig() {
+    super.checkDaoConfig();
+
+    notNull(this.mapperInterface, "Property 'mapperInterface' is required");
+    // 通过SqlSession从容器中拿到configuration
+    Configuration configuration = getSqlSession().getConfiguration();
+    if (this.addToConfig && !configuration.hasMapper(this.mapperInterface)) {
+      try {
+    	  // 如果mapperRegistry中不包含当前接口的动态代理工厂，则添加一个
+        configuration.addMapper(this.mapperInterface);
+      } catch (Exception e) {
+        logger.error("Error while adding the mapper '" + this.mapperInterface + "' to configuration.", e);
+        throw new IllegalArgumentException(e);
+      } finally {
+        ErrorContext.instance().reset();
+      }
+    }
+  }
+
+  /**
+   * 通过在容器中的mapperRegistry，返回当前mapper接口的动态代理
+   *
+   * {@inheritDoc}
+   */
+  @Override
+  public T getObject() throws Exception {
+    return getSqlSession().getMapper(this.mapperInterface);
+  }
+  // ...省略
+}
+```
+
+需要注意：<font color=red>**每一个Mapper接口对应一个MapperFactoryBean对象**</font>
+
+### 9.4. SqlSessionTemplate 源码分析
+
+`MapperFactoryBean`类继承了`SqlSessionDaoSupport`抽象父类，该类中一个`SqlSessionTemplate`对象属性。
+
+```java
+public abstract class SqlSessionDaoSupport extends DaoSupport {
+  private SqlSessionTemplate sqlSessionTemplate;
+  // ...省略
+}
+```
+
+在`MapperFactoryBean.getObject`方法中会生成Mapper接口的代理，但需要注意此方法中的`getSqlSession()`方法获取的是mybatis-spring包中的`SqlSessionTemplate`对象，不是原生的`SqlSession`对象
+
+```java
+public SqlSession getSqlSession() {
+  return this.sqlSessionTemplate;
+}
+```
+
+在`SqlSessionTemplate`的构造函数中创建了JDK的动态代理，具体的代理类型是`SqlSessionInterceptor`（`SqlSessionTemplate`的内部类）
+
+```java
+public SqlSessionTemplate(SqlSessionFactory sqlSessionFactory, ExecutorType executorType,
+    PersistenceExceptionTranslator exceptionTranslator) {
+
+  notNull(sqlSessionFactory, "Property 'sqlSessionFactory' is required");
+  notNull(executorType, "Property 'executorType' is required");
+
+  this.sqlSessionFactory = sqlSessionFactory;
+  this.executorType = executorType;
+  this.exceptionTranslator = exceptionTranslator;
+  this.sqlSessionProxy = (SqlSession) newProxyInstance(SqlSessionFactory.class.getClassLoader(),
+      new Class[] { SqlSession.class }, new SqlSessionInterceptor());
+}
+```
+
+通过`SqlSessionTemplate`调用`getMapper`方法时，实际就会调用到`SqlSessionInterceptor`的`invoke`方法
+
+![](images/20210613105430051_13510.png)
+
+`getSqlSession`方法是通Spring的`TransactionSynchronizationManager`中获取`SqlSessionHolder`，再从`SqlSessionHolder`获取缓存的`SqlSession`，如果缓存存在`SqlSession`实例，则直接返回；如果没有，则开启新的`SqlSession`，然后再判断相应执行的方法上是否`@Transactional`事务注解并且在同一个线程中，才会将`SqlSession`注册到`TransactionSynchronizationManager`中
+
+![](images/20210613105741360_8716.png)
+
+`isSqlSessionTransactional`方法是用于判断当前执行的方法是否有加Spring的`@Transactional`事务注解并且同一个`SqlSession`，则不会进入if代码块，不会将事务提交。
+
+```java
+public static boolean isSqlSessionTransactional(SqlSession session, SqlSessionFactory sessionFactory) {
+  notNull(session, NO_SQL_SESSION_SPECIFIED);
+  notNull(sessionFactory, NO_SQL_SESSION_FACTORY_SPECIFIED);
+  SqlSessionHolder holder = (SqlSessionHolder) TransactionSynchronizationManager.getResource(sessionFactory);
+  return (holder != null) && (holder.getSqlSession() == session);
+}
+```
+
+### 9.5. MapperScannerConfigurer 源码分析
+
+在xml配置中，会在Spring容器中配置`MapperScannerConfigurer`实例。一般情况下项目的Mapper接口的数量很多，此时就通过`MapperScannerConfigurer`类扫描每个 Mapper 接口一对一的生成 `MapperFactoryBean`实例
+
+```java
+public class MapperScannerConfigurer
+    implements BeanDefinitionRegistryPostProcessor, InitializingBean, ApplicationContextAware, BeanNameAware
+```
+
+`MapperScannerConfigurer`实现了`BeanDefinitionRegistryPostProcessor`接口，Spring在Bean实例化前，`BeanDefinitionRegistry`与`BeanFactory`初始化后，会实例`BeanDefinitionRegistryPostProcessor`接口实现类并且调用`postProcessBeanDefinitionRegistry()`方法
+
+因此可以此方法中，对 BeanDefinition 的结构调整之后再注入容器。
+
+![](images/20210613113701299_17845.png)
+
+`MapperScannerConfigurer`会创建`ClassPathMapperScanner`扫描器，该类继承了Spring框架的`ClassPathBeanDefinitionScanner`扫描器。重写了`TypeFilter`的`match`方法，直接返回true，即会默认扫描到包中所有的类型
+
+![](images/20210613113844017_2748.png)
+
+在调用父类`ClassPathBeanDefinitionScanner`的`scan`方法，其中`doScan`就会调用子类重写的方法
+
+![](images/20210613114023423_5202.png)
+
+`ClassPathMapperScanner`的`doScan`方法，先调用了父类的`doScan`方法进行包扫描，然后再调用`processBeanDefinitions`方法对已经扫描并封装成BeanDefinition对象进行再次处理，主要是将 Mapper 接口的BeanDefinition对象中的`beanClass`一个个的转换成 `MapperFactoryBean` 类型再注入容器
+
+![](images/20210613114507513_29573.png)
+
+### 9.6. Connection 连接对象
+
+MyBatis与Spring整合后，连接对象其实是从Spring的TheadLocal中获取。然后使用了Spring的事务，MyBatis里面的连接对象，就是Spring的连接对象
+
+![](images/20210613115333365_4153.png)
+
+![](images/20210613115518040_16546.png)
 
 # 框架核心组件
 
