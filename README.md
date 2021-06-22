@@ -246,6 +246,13 @@
   <li><a href="#/07-分布式架构&微服务架构/08-分布式配置中心/01-Apollo">Apollo 分布式配置中心</a></li>
 </ul>
 
+### ✨ ZooKeeper ✨
+
+<ul class="docs">
+  <li><a href="#/07-分布式架构&微服务架构/06-Zookeeper/01-Zookeeper笔记">Zookeeper 基础笔记</a></li>
+  <li><a href="#/07-分布式架构&微服务架构/06-Zookeeper/02-Zookeeper应用场景">Zookeeper 应用场景</a></li>
+</ul>
+
 ### ✨ 其他 ✨
 
 <ul class="docs">
