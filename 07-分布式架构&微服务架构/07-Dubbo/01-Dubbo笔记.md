@@ -124,7 +124,7 @@ public class InvokeUtils {
 /* 通过反射调用本地接口 */
 LOGGER.info("============ 反射调用本地接口 ==============");
 Map<String, String> info = new HashMap<>();
-info.put("target", "com.moon.service.OrderService");
+info.put("target", "com.moon.dubbo.service.OrderService");
 info.put("methodName", "getDetail");
 info.put("arg", "1");
 Object result = InvokeUtils.call(info, context);
@@ -355,7 +355,7 @@ public class ConsumerApplication {
         /* 2. 测试远程服务反射调用实现 */
         // 封装需要网络传输的反射调用信息
         Map<String, String> info = new HashMap<>();
-        info.put("target", "com.moon.service.OrderService");
+        info.put("target", "com.moon.dubbo.service.OrderService");
         info.put("methodName", "getDetail");
         info.put("arg", "1");
         // 调用传输数据方法
@@ -392,7 +392,7 @@ public class ConsumerApplication {
             public OrderEntiry getDetail(String id) {
                 Map<String, String> info = new HashMap<>();
                 // 因为知道反射的目标与参数，使用静态代理直接封装相应参数
-                info.put("target", "com.moon.service.OrderService"); // 调用对象
+                info.put("target", "com.moon.dubbo.service.OrderService"); // 调用对象
                 info.put("methodName", "getDetail"); // 调用方法
                 info.put("arg", id); // 调用参数
 
@@ -480,28 +480,31 @@ Dubbo总体架构设计一共划分了10层，而最上面的Service层是留给
 ## 3. Dubbo 基础配置使用
 
 ### 3.1. xml 文件配置方式
-#### 3.1.1. dubbo 功能标签集
 
-![Dubbo标签关系图](images/20200126122444209_30129.jpg)
+#### 3.1.1. dubbo 标签关系图
+
+![](images/20200126122444209_30129.jpg)
 
 > 1. 标签属性有继承关系，即：下层有设置则使用，未配置则沿用上一级的设置
 > 2. timeout/retries/loadbalance消费方未设置，则沿用服务方的设置
 
-**Dubbo 各标签作用**
+#### 3.1.2. dubbo 各标签作用汇总表
 
-- `<dubbo:service/>` 服务配置，用于暴露一个服务，定义服务的元信息，一个服务可以用多个协议暴露，一个服务也可以注册到多个注册中心。
-- `<dubbo:reference/>` 引用配置，用于创建一个远程服务代理，一个引用可以指向多个注册中心。
-- `<dubbo:protocol/>` 协议配置，用于配置提供服务的协议信息，协议由提供方指定，消费方被动接受。
-- `<dubbo:application/>` 应用配置，用于配置当前应用信息，不管该应用是提供者还是消费者。
-- `<dubbo:registry/>` 注册中心配置，用于配置连接注册中心相关信息。
-- `<dubbo:module/>` 模块配置，用于配置当前模块信息，可选。
-- `<dubbo:monitor/>` 监控中心配置，用于配置连接监控中心相关信息，可选。
-- `<dubbo:provider/>` 提供方的缺省值，当ProtocolConfig和ServiceConfig某属性没有配置时，采用此缺省值，可选。
-- `<dubbo:consumer/>` 消费方缺省配置，当ReferenceConfig某属性没有配置时，采用此缺省值，可选。
-- `<dubbo:method/>` 方法配置，用于ServiceConfig和ReferenceConfig指定方法级的配置信息。
-- `<dubbo:argument/>` 用于指定方法参数配置。
+|          标签          |    用途     |                                          解释                                          |
+| ---------------------- | ----------- | ------------------------------------------------------------------------------------- |
+| `<dubbo:service/>`     | 服务配置     | 用于暴露一个服务，定义服务的元信息，一个服务可以用多个协议暴露，一个服务也可以注册到多个注册中心 |
+| `<dubbo:reference/>`   | 引用配置     | 用于创建一个远程服务代理，一个引用可以指向多个注册中心                                      |
+| `<dubbo:protocol/>`    | 协议配置     | 用于配置提供服务的协议信息，协议由提供方指定，消费方被动接受                                 |
+| `<dubbo:application/>` | 应用配置     | 用于配置当前应用信息，不管该应用是提供者还是消费者                                          |
+| `<dubbo:module/>`      | 模块配置     | 用于配置当前模块信息，可选                                                               |
+| `<dubbo:registry/>`    | 注册中心配置 | 用于配置连接注册中心相关信息                                                             |
+| `<dubbo:monitor/>`     | 监控中心配置 | 用于配置连接监控中心相关信息，可选                                                        |
+| `<dubbo:provider/>`    | 提供方配置   | 当 `ProtocolConfig` 和 `ServiceConfig` 某属性没有配置时，采用此缺省值，可选                |
+| `<dubbo:consumer/>`    | 消费方配置   | 当 `ReferenceConfig` 某属性没有配置时，采用此缺省值，可选                                  |
+| `<dubbo:method/>`      | 方法配置     | 用于 `ServiceConfig` 和 `ReferenceConfig` 指定方法级的配置信息                           |
+| `<dubbo:argument/>`    | 参数配置     | 用于指定方法参数配置                                                                     |
 
-#### 3.1.2. 标签详解
+#### 3.1.3. 标签详解
 
 所有配置项分为三大类，参见以下各个标签作用表中的"作用"一列
 
@@ -516,18 +519,21 @@ Dubbo总体架构设计一共划分了10层，而最上面的Service层是留给
 
 > **各个标签详细属性配置参考官网：http://dubbo.apache.org/zh-cn/docs/user/references/xml/introduction.html**
 
-##### 3.1.2.1. dubbo:service【常用】
+##### 3.1.3.1. dubbo:service【常用】
 
 服务提供者暴露服务配置。对应的配置类：`org.apache.dubbo.config.ServiceConfig`。常用属性如下：
 
-|   属性    | 对应URL参数 |  类型  | 是否必填 | 缺省值 |   作用   |                                        描述                                         |    兼容性     |
-| --------- | ---------- | ------ | ------- | ----- | ------- | ---------------------------------------------------------------------------------- | ------------ |
-| interface |            | class  | **必填**     |       | 服务发现 | 服务接口名                                                                          | 1.0.0以上版本 |
-| ref       |            | object | **必填**     |       | 服务发现 | 服务对象实现引用                                                                     | 1.0.0以上版本 |
-| version   | version    | string | 可选     | 0.0.0 | 服务发现 | 服务版本，建议使用两位数字版本，如：1.0，通常在接口不兼容时版本号才需要升级                | 1.0.0以上版本 |
-| rotocol   |            | string | 可选     |       | 配置关联 | 使用指定的协议暴露服务，在多协议时使用，值为<dubbo:protocol>的id属性，多个协议ID用逗号分隔 | 2.0.5以上版本 |
+|   属性    | 对应URL参数 |  类型  | 是否必填  | 缺省值 |   作用   |                                         描述                                          | 兼容性  |
+| --------- | ---------- | ------ | -------- | ----- | ------- | ------------------------------------------------------------------------------------ | ------ |
+| interface |            | class  | **必填** |       | 服务发现 | 服务接口名                                                                            | 1.0.0+ |
+| ref       |            | object | **必填** |       | 服务发现 | 服务对象实现引用                                                                       | 1.0.0+ |
+| version   | version    | string | 可选     | 0.0.0 | 服务发现 | 服务版本，建议使用两位数字版本，如：1.0，通常在接口不兼容时版本号才需要升级                  | 1.0.0+ |
+| timeout   | timeout    | int    | 可选     | 1000  | 性能调优 | 远程服务调用超时时间(毫秒)                                                              | 2.0.0+ |
+| protocol  |            | string | 可选     |       | 配置关联 | 使用指定的协议暴露服务，在多协议时使用，值为`<dubbo:protocol>`的id属性，多个协议ID用逗号分隔 | 2.0.5+ |
 
-##### 3.1.2.2. dubbo:reference【常用】
+> 全部属性列表详见官方文档（2.7版本）：https://dubbo.apache.org/zh/docs/v2.7/user/references/xml/dubbo-service/
+
+##### 3.1.3.2. dubbo:reference【常用】
 
 服务消费者引用服务配置。对应的配置类：`org.apache.dubbo.config.ReferenceConfig`。常用属性如下：
 
@@ -536,7 +542,7 @@ Dubbo总体架构设计一共划分了10层，而最上面的Service层是留给
 | id        |             | string | **必填**     |       | 配置关联 | 服务引用BeanId | 1.0.0以上版本 |
 | interface |             | class  | **必填**     |       | 服务发现 | 服务接口名     | 1.0.0以上版本 |
 
-##### 3.1.2.3. dubbo:protocol【常用】
+##### 3.1.3.3. dubbo:protocol【常用】
 
 服务提供者协议配置。对应的配置类：`org.apache.dubbo.config.ProtocolConfig`。同时，如果需要支持多协议，可以声明多个 `<dubbo:protocol>` 标签，并在 `<dubbo:service>` 中通过 protocol 属性指定使用的协议。常用属性如下：
 
@@ -547,7 +553,7 @@ Dubbo总体架构设计一共划分了10层，而最上面的Service层是留给
 | port | `<port>`     | int    | 可选     | dubbo协议缺省端口为20880，rmi协议缺省端口为1099，http和hessian协议缺省端口为80；如果没有配置port，则自动采用默认端口，如果配置为-1，则会分配一个没有被占用的端口。Dubbo 2.4.0+，分配的端口在协议缺省端口的基础上增长，确保端口段可控。 | 服务发现 | 服务端口                                                                                                     | 2.0.5以上版本 |
 | host | `<host>`     | string | 可选     | 自动查找本机IP                                                                                                                                                                                                      | 服务发现 | -服务主机名，多网卡选择或指定VIP及域名时使用，为空则自动查找本机IP，-**建议不要配置，让Dubbo自动获取本机IP**         | 2.0.5以上版本 |
 
-##### 3.1.2.4. dubbo:registry【常用】
+##### 3.1.3.4. dubbo:registry【常用】
 
 注册中心配置。对应的配置类：`org.apache.dubbo.config.RegistryConfig`。同时如果有多个不同的注册中心，可以声明多个 `<dubbo:registry>` 标签，并在 `<dubbo:service>` 或 `<dubbo:reference>` 的 registry 属性指定使用的注册中心。常用属性如下：
 
@@ -558,11 +564,11 @@ Dubbo总体架构设计一共划分了10层，而最上面的Service层是留给
 | protocol | `<protocol>`  | string | 可选     | dubbo | 服务发现 | 注册中心地址协议，支持dubbo, multicast, zookeeper, redis, consul(2.7.1), sofa(2.7.2), etcd(2.7.2), nacos(2.7.2)等协议                             | 2.0.0以上版本  |
 
 
-##### 3.1.2.5. dubbo:monitor
+##### 3.1.3.5. dubbo:monitor
 
 监控中心配置。对应的配置类：`org.apache.dubbo.config.MonitorConfig`
 
-##### 3.1.2.6. dubbo:application【常用】
+##### 3.1.3.6. dubbo:application【常用】
 
 应用信息配置。对应的配置类：`org.apache.dubbo.config.ApplicationConfig`。常用属性如下：
 
@@ -571,19 +577,19 @@ Dubbo总体架构设计一共划分了10层，而最上面的Service层是留给
 | name | application | string | **必填** |       | 服务治理 | 当前应用名称，用于注册中心计算应用间依赖关系，**注意：消费者和提供者应用名不要一样，此参数不是匹配条件**，你当前项目叫什么名字就填什么，和提供者消费者角色无关，比如：kylin应用调用了morgan应用的服务，则kylin项目配成kylin，morgan项目配成morgan，可能kylin也提供其它服务给别人使用，但kylin项目永远配成kylin，这样注册中心将显示kylin依赖于morgan | 1.0.16以上版本 |
 
 
-##### 3.1.2.7. dubbo:module
+##### 3.1.3.7. dubbo:module
 
 模块信息配置。对应的配置类：`org.apache.dubbo.config.ModuleConfig`
 
-##### 3.1.2.8. dubbo:provider
+##### 3.1.3.8. dubbo:provider
 
 服务提供者缺省值配置。对应的配置类：`org.apache.dubbo.config.ProviderConfig`。同时该标签为 `<dubbo:service>` 和 `<dubbo:protocol>` 标签的缺省值设置
 
-##### 3.1.2.9. dubbo:consumer
+##### 3.1.3.9. dubbo:consumer
 
 服务消费者缺省值配置。配置类：`org.apache.dubbo.config.ConsumerConfig`。同时该标签为 `<dubbo:reference>` 标签的缺省值设置
 
-##### 3.1.2.10. dubbo:method
+##### 3.1.3.10. dubbo:method
 
 方法级配置。对应的配置类：`org.apache.dubbo.config.MethodConfig`。同时该标签为 `<dubbo:service>` 或 `<dubbo:reference>` 的子标签，用于控制到方法级。如下例：
 
@@ -593,7 +599,7 @@ Dubbo总体架构设计一共划分了10层，而最上面的Service层是留给
 </dubbo:reference>
 ```
 
-##### 3.1.2.11. dubbo:argument
+##### 3.1.3.11. dubbo:argument
 
 方法参数配置。对应的配置类：`org.apache.dubbo.config.ArgumentConfig`。该标签为 `<dubbo:method>` 的子标签，用于方法参数的特征描述。如下例：
 
@@ -603,7 +609,7 @@ Dubbo总体架构设计一共划分了10层，而最上面的Service层是留给
 </dubbo:method>
 ```
 
-##### 3.1.2.12. dubbo:parameter
+##### 3.1.3.12. dubbo:parameter
 
 选项参数配置。对应的配置类：`java.util.Map`。同时该标签为`<dubbo:protocol>`或`<dubbo:service>`或`<dubbo:provider>`或`<dubbo:reference>`或`<dubbo:consumer>`的子标签，用于配置自定义参数，该配置项将作为扩展点设置自定义参数使用。如下例：
 
@@ -619,18 +625,18 @@ Dubbo总体架构设计一共划分了10层，而最上面的Service层是留给
 <dubbo:protocol name="jms" p:queue="xxx" />
 ```
 
-##### 3.1.2.13. dubbo:config-center
+##### 3.1.3.13. dubbo:config-center
 
 配置中心。对应的配置类：`org.apache.dubbo.config.ConfigCenterConfig`
 
-#### 3.1.3. xml配置使用示例
+#### 3.1.4. xml配置使用示例
 
-> - xml的配置使用示例。详细参考busi-xml-server与busi-xml-client工程
+> - xml的配置使用示例。详细参考dubbo-sample-xml工程
 > - Springmvc的集成Dubbo的使用示例，详细参考busi-mvc工程
 
 ### 3.2. 注解配置方式
 
-> 详细示例参考：busi-annotation-consumer与busi-annotation-provider工程
+> 详细示例参考：dubbo-sample-annotation工程
 
 - 注解方式的底层与XML一致，只是表现形式上的不同。
 - 目标都是配置Dubbo基础信息，主要涉及以下五个必不可少的信息：`ApplicationConfig`、`ProtocolConfig`、`RegistryConfig`、`service`、`reference`
@@ -684,7 +690,7 @@ public class ProviderConfiguration {
     @Bean
     public ApplicationConfig applicationConfig() {
         ApplicationConfig applicationConfig = new ApplicationConfig();
-        applicationConfig.setName("busi-annotation-provider");
+        applicationConfig.setName("dubbo-annotation-provider");
         return applicationConfig;
     }
 
@@ -726,7 +732,7 @@ public class ProviderConfiguration {
 1. 创建dubbo-provider.properties文件
 
 ```properties
-dubbo.application.name=busi-annotation-property-provider
+dubbo.application.name=dubbo-annotation-property-provider
 dubbo.registry.address=zookeeper://127.0.0.1:2181
 dubbo.protocol.name=dubbo
 dubbo.protocol.port=20880
@@ -754,9 +760,11 @@ public class ProviderPropertyConfiguration {
 
 ### 3.3. API 配置方式
 
-> 详细示例参考：busi-api-consumer与busi-api-provider工程
+以API 配置的方式来配置你的 Dubbo 应用
 
-API 属性与配置项一对一，各属性含义。详情参考官网：http://dubbo.apache.org/zh-cn/docs/user/configuration/api.html
+> 详细示例参考：dubbo-sample-api工程
+
+API 属性与xml配置项一对一，各属性含义。详情参考官网：https://dubbo.apache.org/zh/docs/v2.7/user/configuration/api/
 
 ![提供者](images/20200127123511449_27286.png)
 
@@ -782,14 +790,14 @@ public class ApiProvider {
         SpringApplication.run(ApiProvider.class, args);
         // 服务提供者暴露服务配置
         ServiceConfig<OrderService> config = new ServiceConfig<>(); // 此实例很重，封装了与注册中心的连接，请自行缓存，否则可能造成内存和连接泄漏
-        config.setApplication(new ApplicationConfig("busi-api-provider"));
+        config.setApplication(new ApplicationConfig("dubbo-api-provider"));
         // 设置注册中心，多个注册中心可以用setRegistries()
         config.setRegistry(new RegistryConfig("zookeeper://127.0.0.1:2181"));
         config.setInterface(OrderService.class);
         config.setRef(new OrderServiceImpl());
         // 暴露及注册服务
         config.export();
-        System.out.println("busi-api-provider is running...");
+        System.out.println("dubbo-api-provider is running...");
     }
 }
 ```
@@ -819,11 +827,11 @@ public class ApiConsumer {
         // 注意：ReferenceConfig为重对象，内部封装了与注册中心的连接，以及与服务提供方的连接
         // 引用远程服务
         ReferenceConfig<OrderService> reference = new ReferenceConfig<>(); // 此实例很重，封装了与注册中心的连接以及与提供者的连接，请自行缓存，否则可能造成内存和连接泄漏
-        reference.setApplication(new ApplicationConfig("busi-api-consumer"));
+        reference.setApplication(new ApplicationConfig("dubbo-api-consumer"));
         // 设置注册中心，多个注册中心可以用setRegistries()
         reference.setRegistry(new RegistryConfig("zookeeper://127.0.0.1:2181"));
         reference.setInterface(OrderService.class);
-        System.out.println("busi-api-consumer is running...");
+        System.out.println("dubbo-api-consumer is running...");
         // 和本地bean一样使用xxxService
         OrderService orderService = reference.get();
         OrderEntiry entiry = orderService.getDetail("2");
@@ -913,6 +921,7 @@ dubbo.metadata-report.address=zookeeper://127.0.0.1:2181
 > 详细用法参考官网：http://dubbo.apache.org/zh-cn/docs/admin/serviceGovernance.html
 
 ## 5. Dubbo 高级特性进阶 - 常用配置策略用法
+
 ### 5.1. 启动时检查
 
 - Dubbo缺省会在启动时检查依赖的服务是否可用，不可用时会抛出异常，阻止Spring初始化完成，以便上线时，能及早发现问题，默认`check="true"`
@@ -974,9 +983,17 @@ Dubbo消费端在发出请求后，需要有一个临界时间界限来判断服
 
 ### 5.3. 集群容错
 
-当消费端某次调用失败是一些环境偶然因素造成的（如网络抖动），dubbo还给予了容错补救机会。在集群调用失败时，Dubbo 提供了多种容错方案，缺省为 `failover` 重试
+当消费端某次调用失败是一些环境偶然因素造成的（如网络抖动），dubbo还给予了容错补救机会。在集群调用失败时，Dubbo 提供了多种容错方案，缺省为 `failover` 重试。容错方案关系图如下：
 
-![容错方案关系图](images/20200129162636712_10255.png)
+![](images/20200129162636712_10255.png)
+
+各节点关系：
+
+- 这里的 `Invoker` 是 `Provider` 的一个可调用 `Service` 的抽象，`Invoker` 封装了 `Provider` 地址及 `Service` 接口信息
+- `Directory` 代表多个` Invoker`，可以把它看成 `List<Invoker>` ，但与 `List` 不同的是，它的值可能是动态变化的，比如注册中心推送变更
+- `Cluster` 将 `Directory` 中的多个 `Invoker` 伪装成一个 `Invoker`，对上层透明，伪装过程包含了容错逻辑，调用失败后，重试另一个
+- `Router` 负责从多个 `Invoker` 中按路由规则选出子集，比如读写分离，应用隔离等
+- `LoadBalance` 负责从多个 `Invoker` 中选出具体的一个用于本次调用，选的过程包含了负载均衡算法，调用失败后，需要重选
 
 #### 5.3.1. 集群容错模式
 
@@ -1150,8 +1167,24 @@ Dubbo消费端在发出请求后，需要有一个临界时间界限来判断服
 
 > **服务方配置方法与消费端完全一样**
 
+### 5.9. 泛化调用
 
-### 5.9. 异步调用(Consumer端调用)
+#### 5.9.1. 使用泛化调用
+
+实现一个通用的服务测试框架，可通过 `GenericService` 调用所有服务实现。
+
+泛化接口调用方式主要用于客户端没有 API 接口及模型类元的情况，参数及返回值中的所有 POJO 均用 Map 表示，通常用于框架集成，比如：实现一个通用的服务测试框架，可通过 `GenericService` 调用所有服务实现。
+
+> 注：此功能一般只是用于开发/测试阶段。
+
+#### 5.9.2. 实现泛化调用
+
+实现一个通用的远程服务 Mock 框架，可通过实现 `GenericService` 接口处理所有服务请求
+
+
+
+
+### 5.10. 异步调用(Consumer端调用)
 
 > 从v2.7.0开始，Dubbo的所有异步编程接口开始以CompletableFuture为基础
 
@@ -1165,7 +1198,7 @@ Dubbo的异步调用是非阻塞的NIO调用，一个线程可同时并发调用
 
 > 详细案例参考busi-mall工程中的dubbo.xml与IndexController
 
-#### 5.9.1. 在消费端配置
+#### 5.10.1. 在消费端配置
 
 ```xml
 <dubbo:reference id="asyncService" interface="org.apache.dubbo.samples.governance.api.AsyncService">
@@ -1187,7 +1220,7 @@ Dubbo的异步调用是非阻塞的NIO调用，一个线程可同时并发调用
 <dubbo:method name="findFoo" async="true" return="false" />
 ```
 
-#### 5.9.2. 调用代码
+#### 5.10.2. 调用代码
 
 ```java
 // 此调用会立即返回null
@@ -1218,11 +1251,11 @@ future.get();
 
 > 注意：如果xml配置文件中没有对消费标签配置`async="true"`属性，则以上示例代码不生效，还是同步调用。获取到的Future对象为null
 
-### 5.10. 事件通知
+### 5.11. 事件通知
 
 在调用之前、调用之后、出现异常时，会触发 oninvoke、onreturn、onthrow 三个事件，可以配置当事件发生时，通知哪个类的哪个方法。在Consumer端，可以为三个事件指定事件处理方法
 
-#### 5.10.1. 服务消费者 Callback 接口
+#### 5.11.1. 服务消费者 Callback 接口
 
 ```java
 interface Notify {
@@ -1231,7 +1264,7 @@ interface Notify {
 }
 ```
 
-#### 5.10.2. 服务消费者 Callback 实现
+#### 5.11.2. 服务消费者 Callback 实现
 
 ```java
 class NotifyImpl implements Notify {
@@ -1261,7 +1294,7 @@ class NotifyImpl implements Notify {
 }
 ```
 
-#### 5.10.3. 服务消费者 Callback 配置
+#### 5.11.3. 服务消费者 Callback 配置
 
 ```xml
 <bean id ="demoCallback" class = "org.apache.dubbo.callback.implicit.NofifyImpl" />
@@ -1270,7 +1303,7 @@ class NotifyImpl implements Notify {
 </dubbo:reference>
 ```
 
-#### 5.10.4. 配置几种组合情况
+#### 5.11.4. 配置几种组合情况
 
 - callback 与 async 功能正交分解，async=true 表示结果是否马上返回，onreturn 表示是否需要回调。两者叠加存在以下几种组合情况
     - 异步回调模式：`async=true onreturn="xxx"`
