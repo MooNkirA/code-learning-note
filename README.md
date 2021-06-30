@@ -231,19 +231,11 @@
   <li><a href="#/07-分布式架构&微服务架构/02-SpringCloud/08-Spring-Cloud-Stream">Spring Cloud Stream 事件驱动型消息传递组件</a></li>
 </ul>
 
-### ✨ 分布式消息中件间 ✨
+### ✨ Dubbo ✨
 
 <ul class="docs">
-  <li><a href="#/07-分布式架构&微服务架构/03-分布式消息中件间/01-JMS-消息中件间">JMS 消息中间件</a></li>
-  <li><a href="#/07-分布式架构&微服务架构/03-分布式消息中件间/02-ActiveMQ">ActiveMQ</a></li>
-  <li><a href="#/07-分布式架构&微服务架构/03-分布式消息中件间/03-RabbitMQ">RabbitMQ</a></li>
-</ul>
-
-### ✨ 分布式配置中心 ✨
-
-<ul class="docs">
-  <li><a href="#/07-分布式架构&微服务架构/08-分布式配置中心/00-Distributed-Configuration-Center-Overview">分布式配置中心综述</a></li>
-  <li><a href="#/07-分布式架构&微服务架构/08-分布式配置中心/01-Apollo">Apollo 分布式配置中心</a></li>
+  <li><a href="#/07-分布式架构&微服务架构/03-dubbo/01-Dubbo笔记">Dubbo 基础</a></li>
+  <li><a href="#/07-分布式架构&微服务架构/03-dubbo/02-Dubbo源码分析">Dubbo 源码分析</a></li>
 </ul>
 
 ### ✨ ZooKeeper ✨
@@ -251,6 +243,21 @@
 <ul class="docs">
   <li><a href="#/07-分布式架构&微服务架构/06-Zookeeper/01-Zookeeper笔记">Zookeeper 基础笔记</a></li>
   <li><a href="#/07-分布式架构&微服务架构/06-Zookeeper/02-Zookeeper应用场景">Zookeeper 应用场景</a></li>
+</ul>
+
+### ✨ 分布式消息中件间 ✨
+
+<ul class="docs">
+  <li><a href="#/07-分布式架构&微服务架构/07-分布式消息中件间/01-JMS-消息中件间">JMS 消息中间件</a></li>
+  <li><a href="#/07-分布式架构&微服务架构/07-分布式消息中件间/02-ActiveMQ">ActiveMQ</a></li>
+  <li><a href="#/07-分布式架构&微服务架构/07-分布式消息中件间/03-RabbitMQ">RabbitMQ</a></li>
+</ul>
+
+### ✨ 分布式配置中心 ✨
+
+<ul class="docs">
+  <li><a href="#/07-分布式架构&微服务架构/08-分布式配置中心/00-Distributed-Configuration-Center-Overview">分布式配置中心综述</a></li>
+  <li><a href="#/07-分布式架构&微服务架构/08-分布式配置中心/01-Apollo">Apollo 分布式配置中心</a></li>
 </ul>
 
 ### ✨ 其他 ✨
