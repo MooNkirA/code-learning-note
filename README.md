@@ -234,8 +234,8 @@
 ### ✨ Dubbo ✨
 
 <ul class="docs">
-  <li><a href="#/07-分布式架构&微服务架构/03-dubbo/01-Dubbo笔记">Dubbo 基础</a></li>
-  <li><a href="#/07-分布式架构&微服务架构/03-dubbo/02-Dubbo源码分析">Dubbo 源码分析</a></li>
+  <li><a href="#/07-分布式架构&微服务架构/03-Dubbo/01-Dubbo笔记">Dubbo 基础</a></li>
+  <li><a href="#/07-分布式架构&微服务架构/03-Dubbo/02-Dubbo源码分析">Dubbo 源码分析</a></li>
 </ul>
 
 ### ✨ ZooKeeper ✨

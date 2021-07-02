@@ -974,6 +974,7 @@ java -Ddubbo.registry.check=false
 ```
 
 ### 5.2. Dubbo超时重连
+
 #### 5.2.1. 超时
 
 Dubbo消费端在发出请求后，需要有一个临界时间界限来判断服务端是否正常。这样消费端达到超时时间，那么Dubbo会进行重试机制，不合理的重试在一些特殊的业务场景下可能会引发很多问题，需要合理设置接口超时时间。Dubbo超时和重试配置示例如下：
@@ -1327,6 +1328,14 @@ class NotifyImpl implements Notify {
     - 同步回调模式：`async=false onreturn="xxx"`
     - 异步无回调：`async=true`
     - 同步无回调：`async=false`
+
+### 5.13. 本地存根
+
+
+### 5.14. 本地伪装
+
+
+
 
 ## 6. 服务化最佳实践
 
