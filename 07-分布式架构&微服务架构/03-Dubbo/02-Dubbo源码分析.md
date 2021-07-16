@@ -18,6 +18,10 @@ mvn clean source:jar install -Dmaven.test.skip
 
 并且修改样例项目中的 dubbo 依赖为本地仓库的 SANPSHOT 版本，然后使用远程 debug 来调试 dubbo。
 
+> 注：依赖源码项目时，需要修改maven配置中的`<optional>`属性，防止阻断依赖的传递，导致demo工程直接依赖此源码项目时无法依赖这些包
+>
+> ![](images/20210710212114868_3589.png)
+
 ## 2. Dubbo 启动过程源码分析
 
 ### 2.1. Spring 框架知识回顾 - BeanDefinition
