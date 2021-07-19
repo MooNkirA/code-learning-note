@@ -1332,47 +1332,238 @@ dubbo:application name="world" />
 
 ### 5.10. 服务分组
 
+**使用服务分组区分服务接口的不同实现**
+
 如果想在测试、开发环境等多套环境中共用同一个注册中心。或者当一个接口有多种实现时，可以用 group 区分
 
+- 服务提供方
+
 ```xml
-<!-- 服务提供方 -->
 <dubbo:service group="feedback" interface="com.xxx.IndexService" />
 <dubbo:service group="member" interface="com.xxx.IndexService" />
-<!-- 引用消费方 -->
+```
+
+- 引用消费方
+
+```xml
 <dubbo:reference id="feedbackIndexService" group="feedback" interface="com.xxx.IndexService" />
 <dubbo:reference id="memberIndexService" group="member" interface="com.xxx.IndexService" />
+```
 
-<!-- 2.2.0 以上版本支持，总是只调一个可用组的实现 -->
+- 任意组：2.2.0 以上版本支持，总是只调一个可用组的实现
+
+```xml
 <dubbo:reference id="barService" interface="com.foo.BarService" group="*" />
 ```
 
-### 5.11. 多版本
+### 5.11. 分组聚合
+
+dubbo提供了通过分组对结果进行聚合并返回聚合后的结果的功能。用`group`区分同一接口的多种实现，现在消费方需从每种`group`中调用一次并返回结果，对结果进行合并之后返回
+
+dubbo提供了以下类型的合并的实现，是根据服务接口的返回值的类型去找相应的实现
+
+> <font color=red>**值得注意：这个服务返回值合并只是一次PRC调用，如果其中某个服务执行失败，则调用结果失败。**</font>
+
+![](images/20210717095903124_3599.png)
+
+#### 5.11.1. 配置示例
+
+- 搜索所有分组
+
+```xml
+<dubbo:reference interface="com.xxx.MenuService" group="*" merger="true" />
+```
+
+- 合并指定分组
+
+```xml
+<dubbo:reference interface="com.xxx.MenuService" group="aaa,bbb" merger="true" />
+```
+
+- 指定方法合并结果，其它未指定的方法，将只调用一个 Group
+
+```xml
+<dubbo:reference interface="com.xxx.MenuService" group="*">
+    <dubbo:method name="getMenuItems" merger="true" />
+</dubbo:reference>
+```
+
+- 某个方法不合并结果，其它都合并结果
+
+```xml
+<dubbo:reference interface="com.xxx.MenuService" group="*" merger="true">
+    <dubbo:method name="getMenuItems" merger="false" />
+</dubbo:reference>
+```
+
+- 指定合并策略，缺省根据返回值类型自动匹配，如果同一类型有两个合并器时，需指定合并器的名称
+
+```xml
+<dubbo:reference interface="com.xxx.MenuService" group="*">
+    <dubbo:method name="getMenuItems" merger="mymerge" />
+</dubbo:reference>
+```
+
+- 指定合并方法，将调用返回结果的指定方法进行合并，合并方法的参数类型必须是返回结果类型本身
+
+```xml
+<dubbo:reference interface="com.xxx.MenuService" group="*">
+    <dubbo:method name="getMenuItems" merger=".addAll" />
+</dubbo:reference>
+```
+
+#### 5.11.2. 聚合实现示例
+
+官方没有提供`String`类型的实现，如合并字符串类型，需要自己实现。具体的实现步骤如下：
+
+- 根据dubbo的SPI机制（参考`com.alibaba.dubbo.rpc.cluster.Merger`文件），在创建与官方一样的文件`com.alibaba.dubbo.rpc.cluster.Merger`，定义字符串合并与实现类的映射
+
+![](images/20210717101939101_13028.png)
+
+- 编写合并逻辑的实现类，需要实现dubbo的`Merger<T>`接口。
+
+```java
+public class StringMerger implements Merger<String> {
+
+    /**
+     * 定义了所有group实现类返回值的合并规则。
+     * 注：此示例简单实现
+     *
+     * @param items
+     * @return
+     */
+    @Override
+    public String merge(String... items) {
+        if (items.length == 0) {
+            return null;
+        }
+        StringJoiner joiner = new StringJoiner("|", "[", "]");
+        for (String s : items) {
+            joiner.add(s);
+        }
+        return joiner.toString();
+    }
+}
+```
+
+- 服务引用配置`group`属性，通过 parameters 属性修改为 `{"merger", "true"}`，开启返回结果合并
+
+```java
+@RestController
+@RequestMapping("group")
+public class GroupController {
+
+    /*
+     * group属性：指定相应的服务接口的实现
+     *          如果取值为"*"，则代表任意组，是随机调用不同的实现
+     * 如果需要将服务分组的返回结果进行合并，只需修改 parameters 属性，{"merger", "true"}
+     */
+    // @Reference(group = "groupB")
+    @Reference(group = "*", parameters = {"merger", "true"})
+    private GroupService groupService;
+
+    @GetMapping
+    public List<String> testGroup() {
+        return groupService.queryGroupData();
+    }
+
+    @GetMapping("mergerString")
+    public String testMergerString() {
+        return groupService.getGroupMessage();
+    }
+
+}
+```
+
+测试结果
+
+![](images/20210717103446097_9776.png)
+
+### 5.12. 静态服务
+
+**将 Dubbo 服务标识为非动态管理模式**。如希望人工管理服务提供者的上线和下线，此时需将注册中心标识为非动态管理模式。
+
+```xml
+<dubbo:registry address="10.20.141.150:9090" dynamic="false" />
+<!-- 或者 -->
+<dubbo:registry address="10.20.141.150:9090?dynamic=false" />
+```
+
+服务提供者初次注册时为禁用状态，需人工启用。断线时，将不会被自动删除，需人工禁用。（*通过代码调用接口的方式去操作`Registry`注册服务*）
+
+如果是一个第三方服务提供者，比如 memcached，可以直接向注册中心写入提供者地址信息，消费者正常使用：
+
+```java
+RegistryFactory registryFactory = ExtensionLoader.getExtensionLoader(RegistryFactory.class).getAdaptiveExtension();
+Registry registry = registryFactory.getRegistry(URL.valueOf("zookeeper://10.20.153.10:2181"));
+registry.register(URL.valueOf("memcached://10.20.153.11/com.foo.BarService?category=providers&dynamic=false&application=foo"));
+```
+
+### 5.13. 多版本
 
 - 当一个接口实现，出现不兼容升级时，可以用版本号过渡，版本号不同的服务相互间不引用
 - 服务端提供接口的实现升级时，可由dubbo的版本号操作进行过渡。如果上线上测试新版本接口有缺陷，为了不影响业务，要迅速切回原版本接口，最大程度减少损失。
 
-```xml
-<!-- 服务方 -->
-<!--版本1接口-->
-<dubbo:service interface="com.xxx.XxxServices" ref="xxxService" version="1.0"/>
-<!--版本2接口-->
-<dubbo:service interface="com.xxx.XxxServices" ref="xxxService2" version="2.0"/>
+版本迁移步骤：
 
-<!-- 消费方 -->
-<dubbo:reference id="xxxService1.0" interface="com.xxx.XxxServices" version="2.0"/>
+1. 在低压力时间段，先升级一半提供者为新版本
+2. 再将所有消费者升级为新版本
+3. 然后将剩下的一半提供者升级为新版本
+
+- 提供者配置
+
+```xml
+<!-- 版本1接口 -->
+<dubbo:service interface="com.xxx.XxxServices" ref="xxxService" version="1.0.0"/>
+<!-- 版本2接口 -->
+<dubbo:service interface="com.xxx.XxxServices" ref="xxxService2" version="2.0.0"/>
 ```
 
-### 5.12. 结果缓存
+- 服务消费者配置
+
+```xml
+<!-- 指定版本 -->
+<dubbo:reference id="xxxService1.0" interface="com.xxx.XxxServices" version="2.0.0"/>
+<!-- 不区分版本 -->
+<dubbo:reference id="xxxService" interface="com.xxx.XxxServices" version="*"/>
+```
+
+### 5.14. 参数校验
+
+dubbo的参数验证功能是基于 JSR303 实现的，用户只需标识 JSR303 标准的验证 annotation，并通过声明 filter 来实现验证。
+
+#### 5.14.1. Maven 依赖
+
+```xml
+<dependency>
+    <groupId>javax.validation</groupId>
+    <artifactId>validation-api</artifactId>
+    <version>2.0.1.Final</version>
+</dependency>
+<dependency>
+    <groupId>org.hibernate</groupId>
+    <artifactId>hibernate-validator</artifactId>
+    <version>7.0.0.Final</version>
+</dependency>
+```
+
+#### 5.14.2. 参数校验示例
+
+
+
+
+
+### 5.15. 结果缓存
 
 结果缓存（*2.1.0 以上版本支持*），用于加速热门数据的访问速度，Dubbo 提供声明式缓存，以减少用户加缓存的工作量
 
-#### 5.12.1. 缓存类型
+#### 5.15.1. 缓存类型
 
 - `lru`：基于最近最少使用原则删除多余缓存，保持最热的数据被缓存。
 - `threadlocal`：当前线程缓存，比如一个页面渲染，用到很多 portal，每个 portal 都要去查用户信息，通过线程缓存，可以减少这种多余访问。
 - `jcache`：与 JSR107 集成，可以桥接各种缓存实现
 
-#### 5.12.2. 配置示例
+#### 5.15.2. 配置示例
 
 ```xml
 <!-- 以消费方为例，可以配置全局缓存策略，这样所有服务引用都启动缓存 -->
@@ -1389,9 +1580,9 @@ dubbo:application name="world" />
 
 > **服务方配置方法与消费端完全一样**
 
-### 5.13. 泛化调用
+### 5.16. 泛化调用
 
-#### 5.13.1. 使用泛化调用
+#### 5.16.1. 使用泛化调用
 
 实现一个通用的服务测试框架，可通过 `GenericService` 调用所有服务实现。
 
@@ -1399,19 +1590,53 @@ dubbo:application name="world" />
 
 > 注：此功能一般只是用于开发/测试阶段。
 
-#### 5.13.2. 实现泛化调用
+#### 5.16.2. 实现泛化调用示例（基于注解方式）
 
-实现一个通用的远程服务 Mock 框架，可通过实现 `GenericService` 接口处理所有服务请求
+实现一个通用的远程服务 Mock 框架，在服务提供方，通过实现 `GenericService` 接口处理所有服务请求。通过dubbo的注解`@Service`暴露泛化实现
+
+```java
+@Service
+public class MyGenericService implements GenericService {
+    /**
+     * Generic invocation
+     *
+     * @param method         Method name, e.g. findPerson. If there are overridden methods, parameter info is
+     *                       required, e.g. findPerson(java.lang.String)
+     * @param parameterTypes Parameter types
+     * @param args           Arguments
+     * @return invocation return value
+     * @throws Throwable potential exception thrown from the invocation
+     */
+    @Override
+    public Object $invoke(String method, String[] parameterTypes, Object[] args) throws GenericException {
+        StringJoiner joiner = new StringJoiner("; ", "[ ", " ]");
+        joiner.add("method name is " + method);
+        if (parameterTypes.length > 0) {
+            for (int i = 0; i < parameterTypes.length; i++) {
+                joiner.add("parameterType[" + i + "] is " + parameterTypes[i]);
+            }
+        }
+        if (args.length > 0) {
+            for (int i = 0; i < args.length; i++) {
+                joiner.add("args[" + i + "] is " + args[i]);
+            }
+        }
+        System.out.println("泛化调用 MyGenericService 实现==> " + joiner.toString());
+        return "泛化调用方法==> " + joiner.toString();
+    }
+}
+```
 
 
-### 5.14. 异步
 
-#### 5.14.1. 异步执行
+
+### 5.17. 异步
+
+#### 5.17.1. 异步执行
 
 Dubbo 服务提供方的异步执行。Provider端异步执行将阻塞的业务从Dubbo内部线程池切换到业务自定义线程，避免Dubbo线程池的过度占用，有助于避免不同服务间的互相影响。<font color=red>**异步执行无益于节省资源或提升RPC响应性能**</font>，因为如果业务执行需要阻塞，则始终还是要有线程来负责执行。
 
-
-#### 5.14.2. 异步调用(Consumer端调用)
+#### 5.17.2. 异步调用(Consumer端调用)
 
 > 从v2.7.0开始，Dubbo的所有异步编程接口开始以CompletableFuture为基础
 
@@ -1425,7 +1650,7 @@ Dubbo的异步调用是非阻塞的NIO调用，一个线程可同时并发调用
 
 > 详细案例参考busi-mall工程中的dubbo.xml与IndexController
 
-##### 5.14.2.1. 在消费端配置
+##### 5.17.2.1. 在消费端配置
 
 ```xml
 <dubbo:reference id="asyncService" interface="org.apache.dubbo.samples.governance.api.AsyncService">
@@ -1447,7 +1672,7 @@ Dubbo的异步调用是非阻塞的NIO调用，一个线程可同时并发调用
 <dubbo:method name="findFoo" async="true" return="false" />
 ```
 
-##### 5.14.2.2. 调用代码
+##### 5.17.2.2. 调用代码
 
 ```java
 // 此调用会立即返回null
@@ -1478,16 +1703,16 @@ future.get();
 
 > 注意：如果xml配置文件中没有对消费标签配置`async="true"`属性，则以上示例代码不生效，还是同步调用。获取到的Future对象为null
 
-### 5.15. 参数回调
+### 5.18. 参数回调
 
 
 
 
-### 5.16. 事件通知
+### 5.19. 事件通知
 
 在调用之前、调用之后、出现异常时，会触发 oninvoke、onreturn、onthrow 三个事件，可以配置当事件发生时，通知哪个类的哪个方法。在Consumer端，可以为三个事件指定事件处理方法
 
-#### 5.16.1. 服务消费者 Callback 接口
+#### 5.19.1. 服务消费者 Callback 接口
 
 ```java
 interface Notify {
@@ -1496,7 +1721,7 @@ interface Notify {
 }
 ```
 
-#### 5.16.2. 服务消费者 Callback 实现
+#### 5.19.2. 服务消费者 Callback 实现
 
 ```java
 class NotifyImpl implements Notify {
@@ -1526,7 +1751,7 @@ class NotifyImpl implements Notify {
 }
 ```
 
-#### 5.16.3. 服务消费者 Callback 配置
+#### 5.19.3. 服务消费者 Callback 配置
 
 ```xml
 <bean id ="demoCallback" class = "org.apache.dubbo.callback.implicit.NofifyImpl" />
@@ -1535,7 +1760,7 @@ class NotifyImpl implements Notify {
 </dubbo:reference>
 ```
 
-#### 5.16.4. 配置几种组合情况
+#### 5.19.4. 配置几种组合情况
 
 - callback 与 async 功能正交分解，async=true 表示结果是否马上返回，onreturn 表示是否需要回调。两者叠加存在以下几种组合情况
     - 异步回调模式：`async=true onreturn="xxx"`
@@ -1543,10 +1768,10 @@ class NotifyImpl implements Notify {
     - 异步无回调：`async=true`
     - 同步无回调：`async=false`
 
-### 5.17. 本地存根
+### 5.20. 本地存根
 
 
-### 5.18. 本地伪装
+### 5.21. 本地伪装
 
 
 
