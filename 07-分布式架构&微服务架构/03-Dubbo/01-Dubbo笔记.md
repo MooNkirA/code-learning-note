@@ -1586,17 +1586,97 @@ dubbo的参数验证功能是基于 JSR303 实现的，用户只需标识 JSR303
 
 实现一个通用的服务测试框架，可通过 `GenericService` 调用所有服务实现。
 
-泛化接口调用方式主要用于客户端没有 API 接口及模型类元的情况，参数及返回值中的所有 POJO 均用 Map 表示，通常用于框架集成，比如：实现一个通用的服务测试框架，可通过 `GenericService` 调用所有服务实现。
+泛化接口调用方式主要用于客户端没有 API 接口及模型类元的情况，参数及返回值中的所有 POJO 均用 `Map` 表示，通常用于框架集成，比如：实现一个通用的服务测试框架，可通过 `GenericService` 调用所有服务实现。
 
 > 注：此功能一般只是用于开发/测试阶段。
 
-#### 5.16.2. 实现泛化调用示例（基于注解方式）
+##### 5.16.1.1. 通过 Spring 使用泛化调用
 
-实现一个通用的远程服务 Mock 框架，在服务提供方，通过实现 `GenericService` 接口处理所有服务请求。通过dubbo的注解`@Service`暴露泛化实现
+在 Spring 配置申明 `generic="true"`：
+
+```xml
+<dubbo:reference id="barService" interface="com.foo.BarService" generic="true" />
+```
+
+在 Java 代码获取 barService 并开始泛化调用：
+
+```java
+GenericService barService = (GenericService) applicationContext.getBean("barService");
+Object result = barService.$invoke("sayHello", new String[] { "java.lang.String" }, new Object[] { "World" });
+```
+
+##### 5.16.1.2. 通过 API 方式使用泛化调用
+
+```java
+import org.apache.dubbo.rpc.service.GenericService;
+...
+
+// 引用远程服务
+// 该实例很重量，里面封装了所有与注册中心及服务提供方连接，请缓存
+ReferenceConfig<GenericService> reference = new ReferenceConfig<GenericService>();
+// 弱类型接口名
+reference.setInterface("com.xxx.XxxService");
+reference.setVersion("1.0.0");
+// 声明为泛化接口
+reference.setGeneric(true);
+
+// 用org.apache.dubbo.rpc.service.GenericService可以替代所有接口引用
+GenericService genericService = reference.get();
+
+// 基本类型以及Date,List,Map等不需要转换，直接调用
+Object result = genericService.$invoke("sayHello", new String[] {"java.lang.String"}, new Object[] {"world"});
+
+// 用Map表示POJO参数，如果返回值为POJO也将自动转成Map
+Map<String, Object> person = new HashMap<String, Object>();
+person.put("name", "xxx");
+person.put("password", "yyy");
+// 如果返回POJO将自动转成Map
+Object result = genericService.$invoke("findPerson", new String[]{"com.xxx.Person"}, new Object[]{person});
+...
+```
+
+POJO
+
+```java
+@Data
+public class PersonImpl implements Person {
+    private String name;
+    private String password;
+}
+```
+
+则 POJO 请求数据：
+
+```java
+Person person = new PersonImpl();
+person.setName("xxx");
+person.setPassword("yyy");
+```
+
+请求时可用下面 Map 表示：
+
+```java
+Map<String, Object> map = new HashMap<String, Object>();
+// 注意：如果参数类型是接口，或者List等丢失泛型，可通过class属性指定类型。
+map.put("class", "com.xxx.PersonImpl");
+map.put("name", "xxx");
+map.put("password", "yyy");
+```
+
+#### 5.16.2. 实现泛化调用示例
+
+通过实现 `GenericService` 接口处理所有服务请求
+
+泛接口实现方式主要用于服务器端没有 API 接口及模型类元的情况，参数及返回值中的所有 POJO 均用 Map 表示，通常用于框架集成，比如：实现一个通用的远程服务 Mock 框架，可通过实现 `GenericService` 接口处理所有服务请求。
+
+以下是一个实现调用其他业务层方法的简单思路。
 
 ```java
 @Service
-public class MyGenericService implements GenericService {
+public class MyGenericService implements GenericService, ApplicationContextAware {
+
+    private ApplicationContext context;
+
     /**
      * Generic invocation
      *
@@ -1621,22 +1701,129 @@ public class MyGenericService implements GenericService {
                 joiner.add("args[" + i + "] is " + args[i]);
             }
         }
-        System.out.println("泛化调用 MyGenericService 实现==> " + joiner.toString());
-        return "泛化调用方法==> " + joiner.toString();
+        String result = joiner.toString();
+        System.out.println("泛化调用 MyGenericService 实现==> " + result);
+
+        /*
+         * 这里做简单的判断，直接调用spring容器中的实例方法。
+         * 注：这是写死的调用，实际项目中的应用是通过反射或者从spring容器去调用相应的方法
+         */
+        if ("getResult".equals(method)) {
+            GenericCallService genericCallService = context.getBean(GenericCallService.class);
+            result = genericCallService.getResult((String) args[0]);
+        }
+
+        return result;
+    }
+
+    @Override
+    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+        this.context = applicationContext;
+    }
+
+}
+```
+
+##### 5.16.2.1. 通过 Spring 暴露泛化实现
+
+在 Spring 配置申明服务的实现：
+
+```xml
+<bean id="genericService" class="com.foo.MyGenericService" />
+<dubbo:service interface="com.foo.BarService" ref="genericService" />
+```
+
+##### 5.16.2.2. 通过 API 方式暴露泛化实现
+
+```java
+...
+// 用org.apache.dubbo.rpc.service.GenericService可以替代所有接口实现
+GenericService xxxService = new XxxGenericService();
+
+// 该实例很重量，里面封装了所有与注册中心及服务提供方连接，请缓存
+ServiceConfig<GenericService> service = new ServiceConfig<GenericService>();
+// 弱类型接口名
+service.setInterface("com.xxx.XxxService");
+service.setVersion("1.0.0");
+// 指向一个通用服务实现
+service.setRef(xxxService);
+
+// 暴露及注册服务
+service.export();
+```
+
+### 5.17. 回声测试
+
+回声测试用于检测服务是否可用，回声测试按照正常请求流程执行，能够测试整个调用是否通畅，可用于监控。
+
+所有服务自动实现 `EchoService` 接口，只需将任意服务引用强制转型为 `EchoService`，即可使用。
+
+Spring 配置：
+
+```xml
+<dubbo:reference id="memberService" interface="com.xxx.MemberService" />
+```
+
+代码：
+
+```java
+// 远程服务引用
+MemberService memberService = ctx.getBean("memberService");
+EchoService echoService = (EchoService) memberService; // 强制转型为EchoService
+// 回声测试可用性
+String status = echoService.$echo("OK");
+assert(status.equals("OK"));
+```
+
+### 5.18. 上下文信息
+
+上下文中存放的是当前调用过程中所需的环境信息。所有配置信息都将转换为 URL 的参数。
+
+`RpcContext` 是一个 `ThreadLocal` 的临时状态记录器，当接收到 RPC 请求，或发起 RPC 请求时，`RpcContext` 的状态都会变化。比如：A 调 B，B 再调 C，则 B 机器上，在 B 调 C 之前，`RpcContext` 记录的是 A 调 B 的信息，在 B 调 C 之后，`RpcContext` 记录的是 B 调 C 的信息。
+
+> <font color=red>**注：每一次RPC调用的上下文信息对象都不一样。**</font>
+
+#### 5.18.1. 服务消费方
+
+```java
+// 远程调用
+xxxService.xxx();
+// 本端是否为消费端，这里会返回true
+boolean isConsumerSide = RpcContext.getContext().isConsumerSide();
+// 获取最后一次调用的提供方IP地址
+String serverIP = RpcContext.getContext().getRemoteHost();
+// 获取当前服务配置信息，所有配置信息都将转换为URL的参数
+String application = RpcContext.getContext().getUrl().getParameter("application");
+// 注意：每发起RPC调用，上下文状态会变化
+yyyService.yyy();
+```
+
+#### 5.18.2. 服务提供方
+
+```java
+public class XxxServiceImpl implements XxxService {
+    public void xxx() {
+        // 本端是否为提供端，这里会返回true
+        boolean isProviderSide = RpcContext.getContext().isProviderSide();
+        // 获取调用方IP地址
+        String clientIP = RpcContext.getContext().getRemoteHost();
+        // 获取当前服务配置信息，所有配置信息都将转换为URL的参数
+        String application = RpcContext.getContext().getUrl().getParameter("application");
+        // 注意：每发起RPC调用，上下文状态会变化
+        yyyService.yyy();
+        // 此时本端变成消费端，这里会返回false
+        boolean isProviderSide = RpcContext.getContext().isProviderSide();
     }
 }
 ```
 
+### 5.19. 异步
 
-
-
-### 5.17. 异步
-
-#### 5.17.1. 异步执行
+#### 5.19.1. 异步执行
 
 Dubbo 服务提供方的异步执行。Provider端异步执行将阻塞的业务从Dubbo内部线程池切换到业务自定义线程，避免Dubbo线程池的过度占用，有助于避免不同服务间的互相影响。<font color=red>**异步执行无益于节省资源或提升RPC响应性能**</font>，因为如果业务执行需要阻塞，则始终还是要有线程来负责执行。
 
-#### 5.17.2. 异步调用(Consumer端调用)
+#### 5.19.2. 异步调用(Consumer端调用)
 
 > 从v2.7.0开始，Dubbo的所有异步编程接口开始以CompletableFuture为基础
 
@@ -1650,7 +1837,7 @@ Dubbo的异步调用是非阻塞的NIO调用，一个线程可同时并发调用
 
 > 详细案例参考busi-mall工程中的dubbo.xml与IndexController
 
-##### 5.17.2.1. 在消费端配置
+##### 5.19.2.1. 在消费端配置
 
 ```xml
 <dubbo:reference id="asyncService" interface="org.apache.dubbo.samples.governance.api.AsyncService">
@@ -1672,7 +1859,7 @@ Dubbo的异步调用是非阻塞的NIO调用，一个线程可同时并发调用
 <dubbo:method name="findFoo" async="true" return="false" />
 ```
 
-##### 5.17.2.2. 调用代码
+##### 5.19.2.2. 调用代码
 
 ```java
 // 此调用会立即返回null
@@ -1703,16 +1890,16 @@ future.get();
 
 > 注意：如果xml配置文件中没有对消费标签配置`async="true"`属性，则以上示例代码不生效，还是同步调用。获取到的Future对象为null
 
-### 5.18. 参数回调
+### 5.20. 参数回调
 
 
 
 
-### 5.19. 事件通知
+### 5.21. 事件通知
 
 在调用之前、调用之后、出现异常时，会触发 oninvoke、onreturn、onthrow 三个事件，可以配置当事件发生时，通知哪个类的哪个方法。在Consumer端，可以为三个事件指定事件处理方法
 
-#### 5.19.1. 服务消费者 Callback 接口
+#### 5.21.1. 服务消费者 Callback 接口
 
 ```java
 interface Notify {
@@ -1721,7 +1908,7 @@ interface Notify {
 }
 ```
 
-#### 5.19.2. 服务消费者 Callback 实现
+#### 5.21.2. 服务消费者 Callback 实现
 
 ```java
 class NotifyImpl implements Notify {
@@ -1751,7 +1938,7 @@ class NotifyImpl implements Notify {
 }
 ```
 
-#### 5.19.3. 服务消费者 Callback 配置
+#### 5.21.3. 服务消费者 Callback 配置
 
 ```xml
 <bean id ="demoCallback" class = "org.apache.dubbo.callback.implicit.NofifyImpl" />
@@ -1760,7 +1947,7 @@ class NotifyImpl implements Notify {
 </dubbo:reference>
 ```
 
-#### 5.19.4. 配置几种组合情况
+#### 5.21.4. 配置几种组合情况
 
 - callback 与 async 功能正交分解，async=true 表示结果是否马上返回，onreturn 表示是否需要回调。两者叠加存在以下几种组合情况
     - 异步回调模式：`async=true onreturn="xxx"`
@@ -1768,10 +1955,10 @@ class NotifyImpl implements Notify {
     - 异步无回调：`async=true`
     - 同步无回调：`async=false`
 
-### 5.20. 本地存根
+### 5.22. 本地存根
 
 
-### 5.21. 本地伪装
+### 5.23. 本地伪装
 
 
 
