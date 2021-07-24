@@ -281,9 +281,9 @@ public class HelloController {
 }
 ```
 
-- @RestController注解:其实就是@Controller和@ResponseBody注解加在一起
+- `@RestController`注解:其实就是`@Controller`和`@ResponseBody`注解加在一起
 - 启动方式一：启动编写的引导类即可
-- 启动方式二：使用Maven命令spring-boot:run执行即可
+- 启动方式二：使用Maven命令`spring-boot:run`执行即可
   - 选择 Maven Build
 
 ![Spring Boot启动方式二1](images/_springboot_1536463255_21573.jpg)

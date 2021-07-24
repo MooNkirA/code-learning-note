@@ -1817,13 +1817,148 @@ public class XxxServiceImpl implements XxxService {
 }
 ```
 
-### 5.19. 异步
+### 5.19. 上下文信息 - 隐式参数
 
-#### 5.19.1. 异步执行
+在 Dubbo 中，可以通过 `RpcContext` 上的 `setAttachment` 和 `getAttachment` 来设置在服务消费方和提供方之间隐式传递参数。
 
-Dubbo 服务提供方的异步执行。Provider端异步执行将阻塞的业务从Dubbo内部线程池切换到业务自定义线程，避免Dubbo线程池的过度占用，有助于避免不同服务间的互相影响。<font color=red>**异步执行无益于节省资源或提升RPC响应性能**</font>，因为如果业务执行需要阻塞，则始终还是要有线程来负责执行。
+> 注意：path, group, version, dubbo, token, timeout 几个 key 是保留字段，请使用其它值。
 
-#### 5.19.2. 异步调用(Consumer端调用)
+![](images/20210721222611679_8883.png)
+
+#### 5.19.1. 在服务消费方端设置隐式参数
+
+`setAttachment` 设置的 KV 对，在完成下面一次远程调用会被清空，即多次远程调用要多次设置。
+
+```java
+RpcContext.getContext().setAttachment("index", "1"); // 隐式传参，后面的远程调用都会隐式将这些参数发送到服务器端，类似cookie，用于框架集成，不建议常规业务使用
+xxxService.xxx(); // 远程调用
+// ...
+```
+
+#### 5.19.2. 在服务提供方端获取隐式参数
+
+```java
+public class XxxServiceImpl implements XxxService {
+    public void xxx() {
+        // 获取客户端隐式传入的参数，用于框架集成，不建议常规业务使用
+        String index = RpcContext.getContext().getAttachment("index");
+    }
+}
+```
+
+### 5.20. 异步
+
+> 注意：
+>
+> Provider 端异步执行和 Consumer 端异步调用是相互独立的，你可以任意正交组合两端配置
+>
+> - Consumer同步 - Provider同步
+> - Consumer异步 - Provider同步
+> - Consumer同步 - Provider异步
+> - Consumer异步 - Provider异步
+
+#### 5.20.1. 异步执行
+
+Dubbo 服务提供方的异步执行。Provider端异步执行将阻塞的业务从Dubbo内部线程池切换到业务自定义线程，避免Dubbo线程池的过度占用，有助于避免不同服务间的互相影响。<font color=red>**异步执行无益于节省资源或提升RPC响应性能（只是提高了应用的吞量）**</font>，因为如果业务执行需要阻塞，则始终还是要有线程来负责执行。
+
+##### 5.20.1.1. 定义 CompletableFuture 签名的接口
+
+服务接口定义
+
+```java
+public interface AsyncService {
+    CompletableFuture<String> doAsync(String name);
+}
+```
+
+服务实现
+
+```java
+@Service
+public class AsyncServiceImpl implements AsyncService {
+    /**
+     * 定义 CompletableFuture 签名的接口.
+     * 通过 return CompletableFuture.supplyAsync() ，
+     * 业务执行已从 Dubbo 线程切换到业务线程，避免了对 Dubbo 线程池的阻塞。
+     *
+     * @param name
+     * @return
+     */
+    @Override
+    public CompletableFuture<String> doAsync(String name) {
+        System.out.println("[annotation provider] AsyncService 接口实现 doAsync 方法执行...");
+        RpcContext savedContext = RpcContext.getContext();
+        // 建议为supplyAsync提供自定义线程池，避免使用JDK公用线程池。
+        // 业务执行已从 Dubbo 线程切换到业务线程，避免了对 Dubbo 线程池的阻塞。
+        return CompletableFuture.supplyAsync(() -> {
+            System.out.println("receive form consumer: " + savedContext.getAttachment("consumer-key"));
+            try {
+                Thread.sleep(30000); // 休眠，模拟处理复杂业务
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            return "async response from annotation provider doAsync: " + name;
+        });
+    }
+}
+```
+
+注：通过 `return CompletableFuture.supplyAsync()`，业务执行已从 Dubbo 线程切换到业务线程，避免了对 Dubbo 线程池的阻塞。
+
+##### 5.20.1.2. 使用AsyncContext（2.7.0版本后）
+
+Dubbo 在2.7.0版本后提供了一个类似 Serverlet 3.0 的异步接口`AsyncContext`，在没有 `CompletableFuture` 签名接口的情况下，也可以实现 Provider 端的异步执行。
+
+服务接口定义：
+
+```java
+public interface AsyncService {
+    String doAsyncOther(String name);
+}
+```
+
+服务暴露，和普通服务完全一致：
+
+```java
+<bean id="asyncService" class="org.apache.dubbo.samples.governance.impl.AsyncServiceImpl"/>
+<dubbo:service interface="org.apache.dubbo.samples.governance.api.AsyncService" ref="asyncService"/>
+```
+
+服务实现：
+
+```java
+@Service
+public class AsyncServiceImpl implements AsyncService {
+    /**
+     * 2.7.0版本 使用AsyncContext
+     * Dubbo 提供了一个类似 Serverlet 3.0 的异步接口AsyncContext，
+     * 在没有 CompletableFuture 签名接口的情况下，也可以实现 Provider 端的异步执行。
+     *
+     * @param name
+     * @return
+     */
+    @Override
+    public String doAsyncOther(String name) {
+        System.out.println("[annotation provider] AsyncService 接口实现 doAsyncOther 方法执行...");
+        // 以下方式是 dubbo 2.7.0 版本后的全异步编程
+        final AsyncContext asyncContext = RpcContext.startAsync();
+        new Thread(() -> {
+            // 如果要使用上下文，则必须要放在第一句执行
+            asyncContext.signalContextSwitch();
+            try {
+                Thread.sleep(15000); // 休眠，模拟处理复杂业务
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            // 写回响应
+            asyncContext.write("Hello " + name + ", async response from annotation provider.");
+        }).start();
+        return "async response from annotation provider doAsyncOther: " + name;
+    }
+}
+```
+
+#### 5.20.2. 异步调用(Consumer端调用)
 
 > 从v2.7.0开始，Dubbo的所有异步编程接口开始以CompletableFuture为基础
 
@@ -1837,7 +1972,7 @@ Dubbo的异步调用是非阻塞的NIO调用，一个线程可同时并发调用
 
 > 详细案例参考busi-mall工程中的dubbo.xml与IndexController
 
-##### 5.19.2.1. 在消费端配置
+##### 5.20.2.1. 在消费端配置
 
 ```xml
 <dubbo:reference id="asyncService" interface="org.apache.dubbo.samples.governance.api.AsyncService">
@@ -1859,7 +1994,7 @@ Dubbo的异步调用是非阻塞的NIO调用，一个线程可同时并发调用
 <dubbo:method name="findFoo" async="true" return="false" />
 ```
 
-##### 5.19.2.2. 调用代码
+##### 5.20.2.2. 调用代码
 
 ```java
 // 此调用会立即返回null
@@ -1890,16 +2025,16 @@ future.get();
 
 > 注意：如果xml配置文件中没有对消费标签配置`async="true"`属性，则以上示例代码不生效，还是同步调用。获取到的Future对象为null
 
-### 5.20. 参数回调
+### 5.21. 参数回调
 
 
 
 
-### 5.21. 事件通知
+### 5.22. 事件通知
 
 在调用之前、调用之后、出现异常时，会触发 oninvoke、onreturn、onthrow 三个事件，可以配置当事件发生时，通知哪个类的哪个方法。在Consumer端，可以为三个事件指定事件处理方法
 
-#### 5.21.1. 服务消费者 Callback 接口
+#### 5.22.1. 服务消费者 Callback 接口
 
 ```java
 interface Notify {
@@ -1908,7 +2043,7 @@ interface Notify {
 }
 ```
 
-#### 5.21.2. 服务消费者 Callback 实现
+#### 5.22.2. 服务消费者 Callback 实现
 
 ```java
 class NotifyImpl implements Notify {
@@ -1938,7 +2073,7 @@ class NotifyImpl implements Notify {
 }
 ```
 
-#### 5.21.3. 服务消费者 Callback 配置
+#### 5.22.3. 服务消费者 Callback 配置
 
 ```xml
 <bean id ="demoCallback" class = "org.apache.dubbo.callback.implicit.NofifyImpl" />
@@ -1947,7 +2082,7 @@ class NotifyImpl implements Notify {
 </dubbo:reference>
 ```
 
-#### 5.21.4. 配置几种组合情况
+#### 5.22.4. 配置几种组合情况
 
 - callback 与 async 功能正交分解，async=true 表示结果是否马上返回，onreturn 表示是否需要回调。两者叠加存在以下几种组合情况
     - 异步回调模式：`async=true onreturn="xxx"`
@@ -1955,10 +2090,10 @@ class NotifyImpl implements Notify {
     - 异步无回调：`async=true`
     - 同步无回调：`async=false`
 
-### 5.22. 本地存根
+### 5.23. 本地存根
 
 
-### 5.23. 本地伪装
+### 5.24. 本地伪装
 
 
 
