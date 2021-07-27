@@ -12,8 +12,8 @@
 
 ![服务调用](images/20200122134326828_23754.png)
 
-
 ### 1.2. RPC 的逐步实现过程
+
 #### 1.2.1. 服务接口的本地调用
 
 从本质上来讲，某个 JVM 内的对象方法，是无法在 JVM 外部被调用的，如下例：
@@ -2025,16 +2025,135 @@ future.get();
 
 > 注意：如果xml配置文件中没有对消费标签配置`async="true"`属性，则以上示例代码不生效，还是同步调用。获取到的Future对象为null
 
-### 5.21. 参数回调
+### 5.21. 本地调用
+
+在 Dubbo 中进行本地调用。本地调用使用了 injvm 协议，是一个伪协议，它不开启端口，不发起远程调用，只在 JVM 内直接关联，但执行 Dubbo 的 Filter 链。
+
+#### 5.21.1. 配置
+
+定义 injvm 协议
+
+```xml
+<dubbo:protocol name="injvm" />
+```
+
+设置默认协议
+
+```xml
+<dubbo:provider protocol="injvm" />
+```
+
+设置服务协议
+
+```xml
+<dubbo:service protocol="injvm" />
+```
+
+优先使用 injvm
+
+```xml
+<dubbo:consumer injvm="true" .../>
+<dubbo:provider injvm="true" .../>
+```
+
+或
+
+```xml
+<dubbo:reference injvm="true" .../>
+<dubbo:service injvm="true" .../>
+```
+
+> 注：Dubbo 从 2.2.0 每个服务默认都会在本地暴露，无需进行任何配置即可进行本地引用，如果不希望服务进行远程暴露，只需要在 provider 将 protocol 设置成 injvm 即可
+
+#### 5.21.2. 自动暴露、引用本地服务
+
+从 2.2.0 开始，每个服务默认都会在本地暴露。在引用服务的时候，默认优先引用本地服务。如果希望引用远程服务可以使用一下配置强制引用远程服务。
+
+```xml
+<dubbo:reference ... scope="remote" />
+```
+
+### 5.22. 参数回调
+
+通过参数回调从服务器端调用客户端逻辑。参数回调方式与调用本地 `callback` 或 `listener` 相同，只需要在 Spring 的配置文件中声明哪个参数是 `callback` 类型即可。Dubbo 将基于长连接生成反向代理，这样就可以从服务器端调用客户端逻辑。
+
+#### 5.22.1. 服务接口示例
+
+- 定义回调的接口
+
+```java
+public interface CallbackParameterService {
+    void addListener(String key, CallbackListener listener);
+    String doSomething(String param);
+}
+```
+
+```java
+public interface CallbackListener {
+    void changed(String msg);
+}
+```
+
+- 服务提供示例
+
+```java
+/*
+ * @Method 指定方法的名称
+ * @Argument 指定回调参数的信息。
+ *      index属性：设置回调的参数位置
+ *      callback属性：是否为回调的方法，设置true则定义回调方法
+ */
+@Service(methods = {@Method(name = "addListener", arguments = {@Argument(index = 1, callback = true)})})
+public class CallbackParameterServiceImpl implements CallbackParameterService {
+    @Override
+    public void addListener(String key, CallbackListener listener) {
+        // CallbackListener 是消费端去实现的回调方法
+        listener.changed(doSomething(key));
+    }
+
+    /* 与回调无关的其他方法 */
+    @Override
+    public String doSomething(String param) {
+        return param + new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
+    }
+}
+```
+
+#### 5.22.2. 服务消费者
+
+- 配置示例
+
+```xml
+<dubbo:reference id="callbackService" interface="com.moon.dubbo.service.callback.CallbackParameterService" />
+```
+
+- 调用示例
+
+```java
+@Reference(check = false)
+private CallbackParameterService callbackParameterService;
+
+@GetMapping
+public String testCallbackParameter() {
+    callbackParameterService.addListener("MooN", new CallbackListener() {
+        // 此方法会在服务端回调
+        @Override
+        public void changed(String msg) {
+            System.out.println("consumer callbackParameter: " + msg);
+        }
+    });
+    return "success!";
+}
+```
+
+### 5.23. 事件通知
+
+在调用之前、调用之后、出现异常时，会触发 `oninvoke`、`onreturn`、`onthrow` 三个事件，可以配置当事件发生时，通知哪个类的哪个方法。在Consumer端，可以为三个事件指定事件处理方法
 
 
 
 
-### 5.22. 事件通知
-
-在调用之前、调用之后、出现异常时，会触发 oninvoke、onreturn、onthrow 三个事件，可以配置当事件发生时，通知哪个类的哪个方法。在Consumer端，可以为三个事件指定事件处理方法
-
-#### 5.22.1. 服务消费者 Callback 接口
+#### 5.23.1. 服务消费者 Callback 接口
 
 ```java
 interface Notify {
@@ -2043,7 +2162,7 @@ interface Notify {
 }
 ```
 
-#### 5.22.2. 服务消费者 Callback 实现
+#### 5.23.2. 服务消费者 Callback 实现
 
 ```java
 class NotifyImpl implements Notify {
@@ -2073,7 +2192,7 @@ class NotifyImpl implements Notify {
 }
 ```
 
-#### 5.22.3. 服务消费者 Callback 配置
+#### 5.23.3. 服务消费者 Callback 配置
 
 ```xml
 <bean id ="demoCallback" class = "org.apache.dubbo.callback.implicit.NofifyImpl" />
@@ -2082,7 +2201,7 @@ class NotifyImpl implements Notify {
 </dubbo:reference>
 ```
 
-#### 5.22.4. 配置几种组合情况
+#### 5.23.4. 配置几种组合情况
 
 - callback 与 async 功能正交分解，async=true 表示结果是否马上返回，onreturn 表示是否需要回调。两者叠加存在以下几种组合情况
     - 异步回调模式：`async=true onreturn="xxx"`
@@ -2090,10 +2209,10 @@ class NotifyImpl implements Notify {
     - 异步无回调：`async=true`
     - 同步无回调：`async=false`
 
-### 5.23. 本地存根
+### 5.24. 本地存根
 
 
-### 5.24. 本地伪装
+### 5.25. 本地伪装
 
 
 
