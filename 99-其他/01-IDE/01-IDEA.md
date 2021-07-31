@@ -537,14 +537,16 @@ Postfix Completion其实就是关于代码补全的一些模板。在【Settings
 
 ![](images/20201009221615940_7973.jpg)
 
-方式三：在项目`.idea`目录中的`workspace.xml`中找到 RunDashboard 的 component 接点内增加以下代码
+方式三：在项目`.idea`目录中的`workspace.xml`中找到 RunDashboard 的 component 节点内增加以下代码
 
 ```xml
-<option name="configurationTypes">
-	<set>
-		<option value="SpringBootApplicationConfigurationType" />
-	</set>
-</option>
+<component name="RunDashboard">
+    <option name="configurationTypes">
+      <set>
+        <option value="SpringBootApplicationConfigurationType" />
+      </set>
+    </option>
+</component>
 ```
 
 ### 10.2. 禁用 Run Dashboard
@@ -807,6 +809,14 @@ spring-boot项目中引入如下依赖
 选择相应需要加载的/不加载的模块
 
 ![](images/20201105160248817_9448.jpg)
+
+### 20.1. Http Client 无法请求本地接口
+
+![](images/20210714214823612_1633.png)
+
+原因是 IDEA 的代理出了问题，准确说是 IDEA 的代理没有忽略本地地址，导致 IDEA 访问不到本地。修改 IDEA 代理或者直接关闭代理
+
+![](images/20210714214518425_30883.png)
 
 ## 21. 常用操作
 
