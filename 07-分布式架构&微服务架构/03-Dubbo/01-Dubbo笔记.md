@@ -2146,12 +2146,9 @@ public String testCallbackParameter() {
 }
 ```
 
-### 5.23. 事件通知
+### 5.23. 事件通知(未整理)
 
 在调用之前、调用之后、出现异常时，会触发 `oninvoke`、`onreturn`、`onthrow` 三个事件，可以配置当事件发生时，通知哪个类的哪个方法。在Consumer端，可以为三个事件指定事件处理方法
-
-
-
 
 #### 5.23.1. 服务消费者 Callback 接口
 
@@ -2211,10 +2208,406 @@ class NotifyImpl implements Notify {
 
 ### 5.24. 本地存根
 
+在 Dubbo 中利用本地存根在客户端执行部分逻辑
+
+远程服务后，客户端通常只剩下接口，而实现全在服务器端，但提供方有些时候想在客户端也执行部分逻辑，比如：做 ThreadLocal 缓存，提前验证参数，调用失败后伪造容错数据等等，此时就需要在 API 中带上 Stub，客户端生成 Proxy 实例，会把 Proxy 通过构造函数传给 Stub，然后把 Stub 暴露给用户，Stub 可以决定要不要去调 Proxy。
+
+![](images/20210727223739272_31076.png)
+
+#### 5.24.1. 服务端示例
+
+在 spring 配置文件中按以下方式配置：
+
+```xml
+<dubbo:service interface="com.foo.BarService" stub="true" />
+```
+
+或
+
+```xml
+<dubbo:service interface="com.foo.BarService" stub="com.foo.BarServiceStub" />
+```
+
+使用注解方式的示例，使用`@Service`注解暴露服务
+
+```java
+// Stub接口
+public interface LocalStubService {
+    String execute(String params);
+}
+
+// 服务端Stub接口实现
+@Service
+public class LocalStubServiceImpl implements LocalStubService {
+    @Override
+    public String execute(String params) {
+        System.out.println("[annotation provider] LocalStubService 接口实现 execute 方法执行...");
+        return "Annotation provider LocalStubServiceImpl execute: " + params;
+    }
+}
+```
+
+#### 5.24.2. 客户端示例
+
+在客户端创建与服务提供者同一个接口的实现类，此类会接管服务提供者的接口调用。通过此代理可以实现要不要远程调用服务提供方
+
+```java
+public class LocalStubProxy implements LocalStubService {
+
+    private final LocalStubService localStubService;
+
+    // 注意，此构造函数必须定义，用于传入真正的远程代理对象
+    public LocalStubProxy(LocalStubService localStubService) {
+        this.localStubService = localStubService;
+    }
+
+    @Override
+    public String execute(String params) {
+        System.out.println("[annotation consumer] LocalStubService 接口实现 execute 方法执行...");
+
+        // 此代码在客户端执行, 你可以在客户端做ThreadLocal本地缓存，或预先验证参数是否合法，等等
+        try {
+            if ("local".equalsIgnoreCase(params)) {
+                // 模拟业务，不调用远程接口
+                return "Annotation consumer LocalStubProxy execute: " + params;
+            } else if ("remote".equalsIgnoreCase(params)) {
+                // 模拟业务，调用远程服务
+                return localStubService.execute(params);
+            }
+        } catch (Exception e) {
+            // 可以容错，可以做任何AOP拦截事项
+            e.printStackTrace();
+            return "服务器出错了";
+        }
+        return null;
+    }
+}
+```
+
+> 注：
+>
+> 1. Stub （即上示例`LocalStubProxy`类）必须有可传入 Proxy 的构造函数。
+> 2. 在 interface 本地 Stub 实现，它与服务端实现同一个接口，并有一个传入远程接口实现实例的构造函数
+> 3. 如果引入服务接口时配置属性`stub = "true"`，则需要本地的实现类与接口在同一个包路径下，并且类名必须是`接口名+Stub`结尾，如`LocalStubServiceStub`
+
+使用`@Reference`注解方式引入测试接口，其中`stub`属性用于指定测试接口的本地实现类。
+
+```java
+@Reference(check = false, stub = "com.moon.dubbo.annotation.stub.LocalStubProxy")
+private LocalStubService localStubService;
+
+@GetMapping
+public String testLocalStub(@RequestParam("params") String params) {
+    return localStubService.execute(params);
+}
+```
 
 ### 5.25. 本地伪装
 
+本地伪装通常用于服务降级，比如某验权服务，当服务提供方全部挂掉后，客户端不抛出异常，而是通过 Mock 数据返回授权失败。
 
+#### 5.25.1. 配置
+
+在 spring 配置文件中按以下方式配置：
+
+```xml
+<dubbo:reference interface="com.foo.BarService" mock="true" />
+```
+
+或
+
+```xml
+<dubbo:reference interface="com.foo.BarService" mock="com.foo.BarServiceMock" />
+```
+
+> 注：
+>
+> 1. `Mock` 是 `Stub` 的一个子集，便于服务提供方在客户端执行容错逻辑，因经常需要在出现 `RpcException` (比如网络失败，超时等)时进行容错，而在出现业务异常(比如登录用户名密码错误)时不需要容错，如果用 `Stub`，可能就需要捕获并依赖 `RpcException` 类，而用 `Mock` 就可以不依赖 `RpcException`，因为它的约定就是只有出现 `RpcException` 时才执行。
+> 2. 在 interface 本地 Mock 实现，它与服务端实现同一个接口，并提供一个无参构造函数
+> 3. 如果引入服务接口时配置属性`mock = "true"`，则需要本地的实现类与接口在同一个包路径下，并且类名必须是`接口名+Mock`，如`LocalMockServiceMock`
+
+#### 5.25.2. 基础示例
+
+- 编写一个测试接口
+- 在服务提供者工程中，编写一个测试接口的实现，并在相应的方法中模拟出现异常（如通过`Thread.sleep`模拟超时）
+- 在服务消费者工程中，提供 Mock 实现
+
+```java
+/**
+ * 消费者，本地伪装降级类。
+ * <p>
+ * 这个是配置 mock="true"时默认加载的降级类，其名称必须是 “接口名 + Mock”。
+ * 这个类中方法调用的前提是出现了远程调用异常（RpcException），此时才会调用此类其中的方法
+ */
+public class LocalMockServiceMock implements LocalMockService {
+    @Override
+    public String mock(String params) {
+        System.out.println("[annotation consumer] LocalMockService 接口实现 mock 方法执行...");
+        // 返回伪造容错数据，此方法只在远程调用出现 RpcException 时被执行
+        return "[annotation consumer] LocalMockServiceMock: " + params;
+    }
+}
+```
+
+- 在消费者工程
+
+```java
+/*
+ * mock属性：用于配置本地伪装
+ *  mock = "true"，默认加载的降级类，其名称必须是 “接口名 + Mock”，并且与接口在同一个包下
+ *  mock = "类全限定名"，指定降级类，此类可以在任意包下，名称也没有固定限制
+ */
+// @Reference(check = false, mock = "true")
+@Reference(check = false, mock = "com.moon.dubbo.service.LocalMockServiceMock")
+private LocalMockService localMockService;
+
+@GetMapping
+public String testLocalMock(@RequestParam("params") String params) {
+    return localMockService.mock(params);
+}
+```
+
+#### 5.25.3. 进阶用法
+
+##### 5.25.3.1. return
+
+使用 `return` 来返回一个字符串表示的对象，作为 Mock 的返回值。合法的字符串可以是：
+
+- empty: 代表空，基本类型的默认值，或者集合类的空值
+- null: `null`
+- true: `true`
+- false: `false`
+- JSON 格式: 反序列化 JSON 所得到的对象
+
+```java
+@Reference(check = false, mock = "return null")
+@Reference(check = false, mock = "return true")
+@Reference(check = false, mock = "return MooN")
+```
+
+##### 5.25.3.2. throw
+
+使用 `throw` 来返回一个 `Exception` 对象，作为 Mock 的返回值。当调用出错时，抛出一个默认的 `RPCException`:
+
+```xml
+<dubbo:reference interface="com.foo.BarService" mock="throw" />
+```
+
+当调用出错时，抛出指定的 `Exception`：
+
+```xml
+<dubbo:reference interface="com.foo.BarService" mock="throw com.foo.MockException" />
+```
+
+##### 5.25.3.3. force 和 fail
+
+在 2.6.6 以上的版本，可以开始在 Spring XML 配置文件中使用 `fail:` 和 `force:`。
+
+- `force:` 代表强制使用 Mock 行为，在这种情况下不会走远程调用。
+- `fail:` 与默认行为一致，只有当远程调用发生错误时才使用 Mock 行为。
+
+注：`force:` 和 `fail:` 都支持与 `throw` 或者 `return` 组合使用。
+
+强制返回指定值：
+
+```xml
+<dubbo:reference interface="com.foo.BarService" mock="force:return fake" />
+```
+
+强制抛出指定异常：
+
+```xml
+<dubbo:reference interface="com.foo.BarService" mock="force:throw com.foo.MockException" />
+```
+
+##### 5.25.3.4. 在方法级别配置 Mock
+
+Mock 可以在方法级别上指定，假定 `com.foo.BarService` 上有好几个方法，可以单独为 `sayHello()` 方法指定 Mock 行为。具体配置如下所示，在本例中，只要 `sayHello()` 被调用到时，强制返回 “fake”:
+
+
+```xml
+<dubbo:reference id="demoService" check="false" interface="com.foo.BarService">
+    <dubbo:parameter key="sayHello.mock" value="force:return fake"/>
+</dubbo:reference>
+```
+
+### 5.26. 延迟暴露
+
+如果服务需要预热时间，比如初始化缓存，等待相关资源就位等，可以使用 `delay` 进行延迟暴露。在 Dubbo 2.6.5 版本中对服务延迟暴露逻辑进行了细微的调整，将需要延迟暴露（`delay > 0`）服务的倒计时动作推迟到了 Spring 初始化完成后进行。在使用 Dubbo 的过程中，并不会感知到此变化。
+
+#### 5.26.1. Dubbo 2.6.5 之前版本
+
+延迟到 Spring 初始化完成后，再暴露服务（基于 Spring 的 `ContextRefreshedEvent` 事件触发暴露 ）
+
+```xml
+<dubbo:service delay="-1" />
+```
+
+延迟 5 秒暴露服务
+
+```xml
+<dubbo:service delay="5000" />
+```
+
+#### 5.26.2. Dubbo 2.6.5 及以后版本
+
+所有服务都将在 Spring 初始化完成后进行暴露，如果不需要延迟暴露服务，无需配置 `delay`。如：延迟 5 秒暴露服务
+
+```xml
+<dubbo:service delay="5000" />
+```
+
+#### 5.26.3. Spring 2.x 初始化死锁问题
+
+**触发条件**：在 Spring 解析到 `<dubbo:service />` 时，就已经向外暴露了服务，而 Spring 还在接着初始化其它 Bean。如果这时有请求进来，并且服务的实现类里有调用 `applicationContext.getBean()` 的用法。
+
+1. 请求线程的 `applicationContext.getBean()` 调用，先同步 `singletonObjects` 判断 Bean 是否存在，不存在就同步 `beanDefinitionMap` 进行初始化，并再次同步 `singletonObjects` 写入 Bean 实例缓存。
+
+![](images/20210801170323412_19834.jpg)
+
+2. 而 Spring 初始化线程，因不需要判断 Bean 的存在，直接同步 `beanDefinitionMap` 进行初始化，并同步 `singletonObjects` 写入 Bean 实例缓存。
+
+![](images/20210801170338894_11770.jpg)
+
+这样就导致 `getBean` 线程，先锁 `singletonObjects`，再锁 `beanDefinitionMap`，再次锁 `singletonObjects`。而 Spring 初始化线程，先锁 `beanDefinitionMap`，再锁 `singletonObjects`。反向锁导致线程死锁，不能提供服务，启动不了。
+
+**规避办法**：
+
+1. 强烈建议不要在服务的实现类中有 `applicationContext.getBean()` 的调用，全部采用 IoC 注入的方式使用 Spring的Bean。
+2. 如果实在要调 `getBean()`，可以将 Dubbo 的配置放在 Spring 的最后加载。
+3. 如果不想依赖配置顺序，可以使用 `<dubbo:provider delay=”-1” />`，使 Dubbo 在 Spring 容器初始化完后，再暴露服务。
+4. 如果大量使用 `getBean()`，相当于已经把 Spring 退化为工厂模式在用，可以将 Dubbo 的服务隔离单独的 Spring 容器。
+
+### 5.27. 并发控制
+
+#### 5.27.1. 配置示例
+
+- 限制 `com.foo.BarService` 的每个方法，服务器端并发执行（或占用线程池线程数）不能超过 10 个：
+
+```xml
+<dubbo:service interface="com.foo.BarService" executes="10" />
+```
+
+- 限制 `com.foo.BarService` 的 `sayHello` 方法，服务器端并发执行（或占用线程池线程数）不能超过 10 个：
+
+```xml
+<dubbo:service interface="com.foo.BarService">
+    <dubbo:method name="sayHello" executes="10" />
+</dubbo:service>
+```
+
+- 限制 `com.foo.BarService` 的每个方法，每客户端并发执行（或占用连接的请求数）不能超过 10 个：
+
+```xml
+<dubbo:service interface="com.foo.BarService" actives="10" />
+<!-- 或者 -->
+<dubbo:reference interface="com.foo.BarService" actives="10" />
+```
+
+- 限制 `com.foo.BarService` 的 `sayHello` 方法，每客户端并发执行（或占用连接的请求数）不能超过 10 个：
+
+```xml
+<dubbo:service interface="com.foo.BarService">
+    <dubbo:method name="sayHello" actives="10" />
+</dubbo:service>
+<!-- 或者 -->
+<dubbo:reference interface="com.foo.BarService">
+    <dubbo:method name="sayHello" actives="10" />
+</dubbo:service>
+```
+
+> 注：如果 `<dubbo:service>` 和 `<dubbo:reference>` 都配置`actives`属性，则以`<dubbo:reference>` 优先。详见：
+
+
+#### 5.27.2. Load Balance 均衡
+
+配置服务的客户端的 `loadbalance` 属性为 `leastactive`，此 `Loadbalance` 会调用并发数最小的 Provider（Consumer端并发数）。
+
+```xml
+<dubbo:reference interface="com.foo.BarService" loadbalance="leastactive" />
+<!-- 或者 -->
+<dubbo:service interface="com.foo.BarService" loadbalance="leastactive" />
+```
+
+### 5.28. 连接控制（未整理示例代码）
+
+#### 5.28.1. 服务端连接控制
+
+限制服务器端接受的连接不能超过指定的数量
+
+```xml
+<dubbo:provider protocol="dubbo" accepts="10" />
+<!-- 或者 -->
+<dubbo:protocol name="dubbo" accepts="10" />
+```
+
+#### 5.28.2. 客户端连接控制
+
+限制客户端服务使用连接不能超过指定的数量
+
+```xml
+<dubbo:reference interface="com.foo.BarService" connections="10" />
+<!-- 或者 -->
+<dubbo:service interface="com.foo.BarService" connections="10" />
+```
+
+> 注：
+>
+> 1. 如果 `<dubbo:service>` 和 `<dubbo:reference>` 都配置了`connections`属性，则以`<dubbo:reference>`优先
+> 2. 因为连接是在服务提供者Server上，所以配置在 Provider 上
+> 3. 如果是长连接，比如 Dubbo 协议，connections 表示该服务对每个提供者建立的长连接数
+
+### 5.29. 延迟连接（未整理示例代码）
+
+在 Dubbo 中配置延迟连接用于减少长连接数。当有调用发起时，再创建长连接。
+
+```xml
+用于减少长连接数。当有调用发起时，再创建长连接。
+```
+
+> **提示**：该配置只对使用长连接的 dubbo 协议生效。
+
+### 5.30. 粘滞连接（未整理示例代码）
+
+粘滞连接用于有状态服务，尽可能让客户端总是向同一提供者发起调用，除非该提供者挂了，再连另一台。粘滞连接将自动开启**延迟连接**，以减少长连接数。
+
+```xml
+<dubbo:reference id="xxxService" interface="com.xxx.XxxService" sticky="true" />
+```
+
+Dubbo 支持方法级别的粘滞连接，如果想进行更细粒度的控制，还可以这样配置。
+
+```xml
+<dubbo:reference id="xxxService" interface="com.xxx.XxxService">
+    <dubbo:mothod name="sayHello" sticky="true" />
+</dubbo:reference>
+```
+
+### 5.31. 令牌验证（未整理示例代码）
+
+通过令牌验证在注册中心控制权限，以决定要不要下发令牌给消费者，可以防止消费者绕过注册中心访问提供者，另外通过注册中心可灵活改变授权方式，而不需修改或升级提供者
+
+![](images/20210803220649659_32538.jpg)
+
+全局设置开启令牌验证：
+
+```xml
+<!--随机token令牌，使用UUID生成-->
+<dubbo:provider interface="com.foo.BarService" token="true" />
+<!-- 或者 -->
+<!--固定token令牌，相当于密码-->
+<dubbo:provider interface="com.foo.BarService" token="123456" />
+```
+
+服务级别设置开启令牌验证：
+
+```xml
+<!--随机token令牌，使用UUID生成-->
+<dubbo:service interface="com.foo.BarService" token="true" />
+<!-- 或者 -->
+<!--固定token令牌，相当于密码-->
+<dubbo:service interface="com.foo.BarService" token="123456" />
+```
 
 
 ## 6. 服务化最佳实践
