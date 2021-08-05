@@ -1,4 +1,4 @@
-# Dubbo 笔记
+# Dubbo 基础笔记
 
 ## 1. RPC 场景和过程
 
@@ -925,9 +925,9 @@ dubbo.metadata-report.address=zookeeper://127.0.0.1:2181
 
 > 详细用法参考官网：http://dubbo.apache.org/zh-cn/docs/admin/serviceGovernance.html
 
-## 5. Dubbo 高级特性进阶 - 常用配置策略用法
+# Dubbo 高级特性进阶 - 常用配置策略用法
 
-### 5.1. 启动时检查
+## 1. 启动时检查
 
 Dubbo缺省会在启动时检查依赖的服务是否可用，不可用时会抛出异常，阻止Spring初始化完成，以便上线时，能及早发现问题，默认`check="true"`
 
@@ -935,7 +935,7 @@ Dubbo缺省会在启动时检查依赖的服务是否可用，不可用时会抛
 
 另外，如果Spring容器是懒加载的，或者通过API编程延迟引用服务，也需要关闭`check`属性，否则服务临时不可用时，会抛出异常，拿到null引用，如果`check="false"`，总是会返回引用，当服务恢复时，能自动连上
 
-#### 5.1.1. 通过 spring 配置文件
+### 1.1. 通过 spring 配置文件
 
 - 关闭某个服务的启动时检查 (没有提供者时报错)：
 
@@ -955,7 +955,7 @@ Dubbo缺省会在启动时检查依赖的服务是否可用，不可用时会抛
 <dubbo:registry check="false" />
 ```
 
-#### 5.1.2. 通过 dubbo.properties
+### 1.2. 通过 dubbo.properties
 
 ```properties
 dubbo.reference.com.foo.BarService.check=false
@@ -964,7 +964,7 @@ dubbo.consumer.check=false # 是设置 check 的缺省值，如果配置中有�
 dubbo.registry.check=false # 前面两个都是指订阅成功，但提供者列表是否为空是否报错，如果注册订阅失败时，也允许启动，需使用此选项，将在后台定时重试
 ```
 
-#### 5.1.3. 通过 -D 参数
+### 1.3. 通过 -D 参数
 
 ```bash
 java -Ddubbo.reference.com.foo.BarService.check=false
@@ -973,20 +973,20 @@ java -Ddubbo.consumer.check=false
 java -Ddubbo.registry.check=false
 ```
 
-#### 5.1.4. 配置的含义
+### 1.4. 配置的含义
 
 - `dubbo.reference.check=false`，强制改变所有 reference 的 check 值，就算配置中有声明，也会被覆盖。
 - `dubbo.consumer.check=false`，是设置 check 的缺省值，如果配置中有显式的声明，如：`<dubbo:reference check="true"/>`，不会受影响。
 - `dubbo.registry.check=false`，前面两个都是指订阅成功，但提供者列表是否为空是否报错，如果注册订阅失败时，也允许启动，需使用此选项，将在后台定时重试。
 
-### 5.2. Dubbo超时重连
+## 2. Dubbo超时重连
 
 Dubbo 服务在尝试调用一次之后，如出现非业务异常(服务突然不可用、超时等)，Dubbo 默认会进行额外的最多2次重试。重试次数支持两种自定义配置：
 
 1. 通过注解或者xml配置进行固定配置
 2. 通过上下文进行运行时动态配置
 
-#### 5.2.1. 重试次数配置
+### 2.1. 重试次数配置
 
 Dubbo消费端在发出请求后，需要有一个临界时间界限来判断服务端是否正常。这样消费端达到超时时间，那么Dubbo会进行重试机制，不合理的重试在一些特殊的业务场景下可能会引发很多问题，需要合理设置接口超时时间。Dubbo超时和重试配置示例如下：
 
@@ -1012,12 +1012,12 @@ RpcContext rpcContext = RpcContext.getContext();
 rpcContext.setAttachment("retries", 5);
 ```
 
-#### 5.2.2. 重试机制注意点
+### 2.2. 重试机制注意点
 
 - Dubbo在调用服务不成功时，*默认会重试2次，即`retries="2"`*。通过设置`<dubbo:reference>`标签中`retries="0"`属性控制重试次数
 - Dubbo的路由机制，会把超时的请求路由到其他机器上，而不是本机尝试，所以Dubbo的重试机制也能一定程度的保证服务的质量
 
-### 5.3. 集群容错
+## 3. 集群容错
 
 当消费端某次调用失败是一些环境偶然因素造成的（如网络抖动），dubbo还给予了容错补救机会。在集群调用失败时，Dubbo 提供了多种容错方案，缺省为 `failover` 重试。容错方案关系图如下：
 
@@ -1031,9 +1031,9 @@ rpcContext.setAttachment("retries", 5);
 - `Router` 负责从多个 `Invoker` 中按路由规则选出子集，比如读写分离，应用隔离等
 - `LoadBalance` 负责从多个 `Invoker` 中选出具体的一个用于本次调用，选的过程包含了负载均衡算法，调用失败后，需要重选
 
-#### 5.3.1. 集群容错模式
+### 3.1. 集群容错模式
 
-##### 5.3.1.1. Failover Cluster
+#### 3.1.1. Failover Cluster
 
 失败自动切换，当出现失败，重试其它服务器。通常用于读操作，但重试会带来更长延迟。可通过 `retries="2"` 来设置重试次数(不含第一次)。
 
@@ -1053,27 +1053,27 @@ rpcContext.setAttachment("retries", 5);
 
 > <font color=red>**注：如果服务提供方与消费方都设置了重试次数，最终与消费方的重试次数为准**</font>
 
-##### 5.3.1.2. Failfast Cluster
+#### 3.1.2. Failfast Cluster
 
 快速失败，只发起一次调用，失败立即报错。通常用于非幂等性的写操作，比如新增记录
 
-##### 5.3.1.3. Failsafe Cluster
+#### 3.1.3. Failsafe Cluster
 
 失败安全，出现异常时，直接忽略。通常用于写入审计日志等操作。
 
-##### 5.3.1.4. Failback Cluster
+#### 3.1.4. Failback Cluster
 
 失败自动恢复，后台记录失败请求，定时重发。通常用于消息通知操作。
 
-##### 5.3.1.5. Forking Cluster
+#### 3.1.5. Forking Cluster
 
 并行调用多个服务器，只要一个成功即返回。通常用于实时性要求较高的读操作，但需要浪费更多服务资源。可通过 `forks="2"` 来设置最大并行数。
 
-##### 5.3.1.6. Broadcast Cluster
+#### 3.1.6. Broadcast Cluster
 
 广播调用所有提供者，逐个调用，任意一台报错则报错。通常用于通知所有提供者更新缓存或日志等本地资源信息
 
-#### 5.3.2. 集群模式配置
+### 3.2. 集群模式配置
 
 按照以下示例在服务提供方和消费方配置集群模式
 
@@ -1082,11 +1082,11 @@ rpcContext.setAttachment("retries", 5);
 <dubbo:reference cluster="failsafe" />
 ```
 
-### 5.4. 负载均衡
+## 4. 负载均衡
 
 在集群负载均衡时，Dubbo 提供了多种均衡策略，缺省为 `random` 随机调用
 
-#### 5.4.1. 负载均衡策略
+### 4.1. 负载均衡策略
 
 - Random LoadBalance
     - 随机，按权重设置随机概率。
@@ -1105,7 +1105,7 @@ rpcContext.setAttachment("retries", 5);
 
 > 注意：配置时负载均衡策略的单词都是**全小写**，如果出现大写会报错
 
-#### 5.4.2. 配置示例
+### 4.2. 配置示例
 
 - 服务端服务级别
 
@@ -1135,9 +1135,9 @@ rpcContext.setAttachment("retries", 5);
 </dubbo:reference>
 ```
 
-### 5.5. 线程模型
+## 5. 线程模型
 
-#### 5.5.1. 配置 Dubbo 中的线程模型
+### 5.1. 配置 Dubbo 中的线程模型
 
 如果事件处理的逻辑能迅速完成，并且不会发起新的 IO 请求，比如只是在内存中记个标识，则直接在 IO 线程上处理更快，因为减少了线程池调度。
 
@@ -1153,7 +1153,7 @@ rpcContext.setAttachment("retries", 5);
 <dubbo:protocol name="dubbo" dispatcher="all" threadpool="fixed" threads="100" />
 ```
 
-#### 5.5.2. Dispatcher 属性
+### 5.2. Dispatcher 属性
 
 - `all` 所有消息都派发到线程池，包括请求，响应，连接事件，断开事件，心跳等。
 - `direct` 所有消息都不派发到线程池，全部在 IO 线程上直接执行。
@@ -1161,20 +1161,20 @@ rpcContext.setAttachment("retries", 5);
 - `execution` 只有请求消息派发到线程池，不含响应，响应和其它连接断开事件，心跳等消息，直接在 IO 线程上执行。
 - `connection` 在 IO 线程上，将连接断开事件放入队列，有序逐个执行，其它消息派发到线程池。
 
-#### 5.5.3. ThreadPool 属性
+### 5.3. ThreadPool 属性
 
 - `fixed` 固定大小线程池，启动时建立线程，不关闭，一直持有。(缺省)
 - `cached` 缓存线程池，空闲一分钟自动删除，需要时重建。
 - `limited` 可伸缩线程池，但池中的线程数只会增长不会收缩。只增长不收缩的目的是为了避免收缩时突然来了大流量引起的性能问题。
 - `eager` 优先创建Worker线程池。在任务数量大于`corePoolSize`但是小于`maximumPoolSize`时，优先创建Worker来处理任务。当任务数量大于`maximumPoolSize`时，将任务放入阻塞队列中。阻塞队列充满时抛出`RejectedExecutionException`。(相比于`cached`:`cached`在任务数量超过`maximumPoolSize`时直接抛出异常而不是将任务放入阻塞队列)
 
-### 5.6. 直连提供者
+## 6. 直连提供者
 
 在开发及测试环境下，经常需要绕过注册中心，只测试指定服务提供者，这时候可能需要点对点直连，点对点直连方式，将以服务接口为单位，忽略注册中心的提供者列表，A 接口配置点对点，不影响 B 接口从注册中心获取列表。
 
 > <font color=red>**为了避免复杂化线上环境，不要在线上使用这个功能，只应在测试阶段使用。**</font>
 
-#### 5.6.1. 通过 XML 配置
+### 6.1. 通过 XML 配置
 
 如果是线上需求需要点对点，可在 `<dubbo:reference>` 中配置 url 指向提供者，将绕过注册中心，多个地址用分号隔开，配置如下：
 
@@ -1182,7 +1182,7 @@ rpcContext.setAttachment("retries", 5);
 <dubbo:reference id="xxxService" interface="com.alibaba.xxx.XxxService" url="dubbo://localhost:20890" />
 ```
 
-#### 5.6.2. 通过 -D 参数指定
+### 6.2. 通过 -D 参数指定
 
 在JVM启动参数中加入`-D`参数映射服务地址，如：
 
@@ -1192,7 +1192,7 @@ java -Dcom.alibaba.xxx.XxxService=dubbo://localhost:20890
 
 > key 为服务名，value 为服务提供者 url，此配置优先级最高
 
-#### 5.6.3. 通过文件映射
+### 6.3. 通过文件映射
 
 如果服务比较多，也可以用文件映射，用 `-Ddubbo.resolve.file` 指定映射文件路径，此配置优先级高于 `<dubbo:reference>` 中的配置，如：
 
@@ -1208,9 +1208,9 @@ com.alibaba.xxx.XxxService=dubbo://localhost:20890
 
 > 1.0.15 及以上版本支持，2.0 以上版本自动加载`${user.home}/dubbo-resolve.properties`文件，不需要配置
 
-### 5.7. 只订阅
+## 7. 只订阅
 
-#### 5.7.1. 只订阅不注册
+### 7.1. 只订阅不注册
 
 场景：在本地开发的时候，不能把自己机器的未开发好的服务注册到开发环境，但是又需要使用注册中心的其他服务。服务提供者配置禁止注册`register="false"`
 
@@ -1226,7 +1226,7 @@ com.alibaba.xxx.XxxService=dubbo://localhost:20890
 <dubbo:registry address="10.20.153.10:9090?register=false" />
 ```
 
-#### 5.7.2. 只注册(已废弃？)
+### 7.2. 只注册(已废弃？)
 
 如果有两个镜像环境，两个注册中心，有一个服务只在其中一个注册中心有部署，另一个注册中心还没来得及部署，而两个注册中心的其它应用都需要依赖此服务。这个时候，可以让服务提供者方只注册服务到另一注册中心，而不从另一注册中心订阅服务
 
@@ -1241,11 +1241,11 @@ com.alibaba.xxx.XxxService=dubbo://localhost:20890
 <dubbo:registry id="qdRegistry" address="10.20.141.150:9090?subscribe=false" />
 ```
 
-### 5.8. 多协议
+## 8. 多协议
 
 Dubbo 允许配置多协议，在不同服务上支持不同协议或者同一服务上同时支持多种协议。
 
-#### 5.8.1. 不同服务不同协议
+### 8.1. 不同服务不同协议
 
 不同服务在性能上适用不同协议进行传输，比如大数据用短连接协议，小数据大并发用长连接协议
 
@@ -1261,7 +1261,7 @@ Dubbo 允许配置多协议，在不同服务上支持不同协议或者同一�
 <dubbo:service interface="com.alibaba.hello.api.DemoService" version="1.0.0" ref="demoService" protocol="rmi" />
 ```
 
-#### 5.8.2. 多协议暴露服务
+### 8.2. 多协议暴露服务
 
 同一个服务，使用多个协议暴露
 
@@ -1273,11 +1273,11 @@ Dubbo 允许配置多协议，在不同服务上支持不同协议或者同一�
 <dubbo:service id="helloService" interface="com.alibaba.hello.api.HelloService" version="1.0.0" protocol="dubbo,hessian" />
 ```
 
-### 5.9. 多注册中心
+## 9. 多注册中心
 
 Dubbo 支持同一服务向多注册中心同时注册，或者不同服务分别注册到不同的注册中心上去，甚至可以同时引用注册在不同注册中心上的同名服务。另外，注册中心是支持自定义扩展的。
 
-#### 5.9.1. 多注册中心注册
+### 9.1. 多注册中心注册
 
 比如：中文站有些服务来不及在青岛部署，只在杭州部署，而青岛的其它应用需要引用此服务，就可以将服务同时注册到两个注册中心。
 
@@ -1290,7 +1290,7 @@ dubbo:application name="world" />
 <dubbo:service interface="com.alibaba.hello.api.HelloService" version="1.0.0" ref="helloService" registry="hangzhouRegistry,qingdaoRegistry" />
 ```
 
-#### 5.9.2. 不同服务使用不同注册中心
+### 9.2. 不同服务使用不同注册中心
 
 比如：CRM 有些服务是专门为国际站设计的，有些服务是专门为中文站设计的。
 
@@ -1305,7 +1305,7 @@ dubbo:application name="world" />
 <dubbo:service interface="com.alibaba.hello.api.DemoService" version="1.0.0" ref="demoService" registry="intlRegistry" />
 ```
 
-#### 5.9.3. 多注册中心引用
+### 9.3. 多注册中心引用
 
 比如：CRM 需同时调用中文站和国际站的 PC2 服务，PC2 在中文站和国际站均有部署，接口及版本号都一样，但连的数据库不一样。
 
@@ -1330,7 +1330,7 @@ dubbo:application name="world" />
 <dubbo:reference id="helloService" interface="com.alibaba.hello.api.HelloService" version="1.0.0" />
 ```
 
-### 5.10. 服务分组
+## 10. 服务分组
 
 **使用服务分组区分服务接口的不同实现**
 
@@ -1356,7 +1356,7 @@ dubbo:application name="world" />
 <dubbo:reference id="barService" interface="com.foo.BarService" group="*" />
 ```
 
-### 5.11. 分组聚合
+## 11. 分组聚合
 
 dubbo提供了通过分组对结果进行聚合并返回聚合后的结果的功能。用`group`区分同一接口的多种实现，现在消费方需从每种`group`中调用一次并返回结果，对结果进行合并之后返回
 
@@ -1366,7 +1366,7 @@ dubbo提供了以下类型的合并的实现，是根据服务接口的返回值
 
 ![](images/20210717095903124_3599.png)
 
-#### 5.11.1. 配置示例
+### 11.1. 配置示例
 
 - 搜索所有分组
 
@@ -1412,7 +1412,7 @@ dubbo提供了以下类型的合并的实现，是根据服务接口的返回值
 </dubbo:reference>
 ```
 
-#### 5.11.2. 聚合实现示例
+### 11.2. 聚合实现示例
 
 官方没有提供`String`类型的实现，如合并字符串类型，需要自己实现。具体的实现步骤如下：
 
@@ -1479,7 +1479,7 @@ public class GroupController {
 
 ![](images/20210717103446097_9776.png)
 
-### 5.12. 静态服务
+## 12. 静态服务
 
 **将 Dubbo 服务标识为非动态管理模式**。如希望人工管理服务提供者的上线和下线，此时需将注册中心标识为非动态管理模式。
 
@@ -1499,7 +1499,7 @@ Registry registry = registryFactory.getRegistry(URL.valueOf("zookeeper://10.20.1
 registry.register(URL.valueOf("memcached://10.20.153.11/com.foo.BarService?category=providers&dynamic=false&application=foo"));
 ```
 
-### 5.13. 多版本
+## 13. 多版本
 
 - 当一个接口实现，出现不兼容升级时，可以用版本号过渡，版本号不同的服务相互间不引用
 - 服务端提供接口的实现升级时，可由dubbo的版本号操作进行过渡。如果上线上测试新版本接口有缺陷，为了不影响业务，要迅速切回原版本接口，最大程度减少损失。
@@ -1528,11 +1528,11 @@ registry.register(URL.valueOf("memcached://10.20.153.11/com.foo.BarService?categ
 <dubbo:reference id="xxxService" interface="com.xxx.XxxServices" version="*"/>
 ```
 
-### 5.14. 参数校验
+## 14. 参数校验
 
 dubbo的参数验证功能是基于 JSR303 实现的，用户只需标识 JSR303 标准的验证 annotation，并通过声明 filter 来实现验证。
 
-#### 5.14.1. Maven 依赖
+### 14.1. Maven 依赖
 
 ```xml
 <dependency>
@@ -1547,23 +1547,23 @@ dubbo的参数验证功能是基于 JSR303 实现的，用户只需标识 JSR303
 </dependency>
 ```
 
-#### 5.14.2. 参数校验示例
+### 14.2. 参数校验示例
 
 
 
 
 
-### 5.15. 结果缓存
+## 15. 结果缓存
 
 结果缓存（*2.1.0 以上版本支持*），用于加速热门数据的访问速度，Dubbo 提供声明式缓存，以减少用户加缓存的工作量
 
-#### 5.15.1. 缓存类型
+### 15.1. 缓存类型
 
 - `lru`：基于最近最少使用原则删除多余缓存，保持最热的数据被缓存。
 - `threadlocal`：当前线程缓存，比如一个页面渲染，用到很多 portal，每个 portal 都要去查用户信息，通过线程缓存，可以减少这种多余访问。
 - `jcache`：与 JSR107 集成，可以桥接各种缓存实现
 
-#### 5.15.2. 配置示例
+### 15.2. 配置示例
 
 ```xml
 <!-- 以消费方为例，可以配置全局缓存策略，这样所有服务引用都启动缓存 -->
@@ -1580,9 +1580,9 @@ dubbo的参数验证功能是基于 JSR303 实现的，用户只需标识 JSR303
 
 > **服务方配置方法与消费端完全一样**
 
-### 5.16. 泛化调用
+## 16. 泛化调用
 
-#### 5.16.1. 使用泛化调用
+### 16.1. 使用泛化调用
 
 实现一个通用的服务测试框架，可通过 `GenericService` 调用所有服务实现。
 
@@ -1590,7 +1590,7 @@ dubbo的参数验证功能是基于 JSR303 实现的，用户只需标识 JSR303
 
 > 注：此功能一般只是用于开发/测试阶段。
 
-##### 5.16.1.1. 通过 Spring 使用泛化调用
+#### 16.1.1. 通过 Spring 使用泛化调用
 
 在 Spring 配置申明 `generic="true"`：
 
@@ -1605,7 +1605,7 @@ GenericService barService = (GenericService) applicationContext.getBean("barServ
 Object result = barService.$invoke("sayHello", new String[] { "java.lang.String" }, new Object[] { "World" });
 ```
 
-##### 5.16.1.2. 通过 API 方式使用泛化调用
+#### 16.1.2. 通过 API 方式使用泛化调用
 
 ```java
 import org.apache.dubbo.rpc.service.GenericService;
@@ -1663,7 +1663,7 @@ map.put("name", "xxx");
 map.put("password", "yyy");
 ```
 
-#### 5.16.2. 实现泛化调用示例
+### 16.2. 实现泛化调用示例
 
 通过实现 `GenericService` 接口处理所有服务请求
 
@@ -1724,7 +1724,7 @@ public class MyGenericService implements GenericService, ApplicationContextAware
 }
 ```
 
-##### 5.16.2.1. 通过 Spring 暴露泛化实现
+#### 16.2.1. 通过 Spring 暴露泛化实现
 
 在 Spring 配置申明服务的实现：
 
@@ -1733,7 +1733,7 @@ public class MyGenericService implements GenericService, ApplicationContextAware
 <dubbo:service interface="com.foo.BarService" ref="genericService" />
 ```
 
-##### 5.16.2.2. 通过 API 方式暴露泛化实现
+#### 16.2.2. 通过 API 方式暴露泛化实现
 
 ```java
 ...
@@ -1752,7 +1752,7 @@ service.setRef(xxxService);
 service.export();
 ```
 
-### 5.17. 回声测试
+## 17. 回声测试
 
 回声测试用于检测服务是否可用，回声测试按照正常请求流程执行，能够测试整个调用是否通畅，可用于监控。
 
@@ -1775,7 +1775,7 @@ String status = echoService.$echo("OK");
 assert(status.equals("OK"));
 ```
 
-### 5.18. 上下文信息
+## 18. 上下文信息
 
 上下文中存放的是当前调用过程中所需的环境信息。所有配置信息都将转换为 URL 的参数。
 
@@ -1783,7 +1783,7 @@ assert(status.equals("OK"));
 
 > <font color=red>**注：每一次RPC调用的上下文信息对象都不一样。**</font>
 
-#### 5.18.1. 服务消费方
+### 18.1. 服务消费方
 
 ```java
 // 远程调用
@@ -1798,7 +1798,7 @@ String application = RpcContext.getContext().getUrl().getParameter("application"
 yyyService.yyy();
 ```
 
-#### 5.18.2. 服务提供方
+### 18.2. 服务提供方
 
 ```java
 public class XxxServiceImpl implements XxxService {
@@ -1817,7 +1817,7 @@ public class XxxServiceImpl implements XxxService {
 }
 ```
 
-### 5.19. 上下文信息 - 隐式参数
+## 19. 上下文信息 - 隐式参数
 
 在 Dubbo 中，可以通过 `RpcContext` 上的 `setAttachment` 和 `getAttachment` 来设置在服务消费方和提供方之间隐式传递参数。
 
@@ -1825,7 +1825,7 @@ public class XxxServiceImpl implements XxxService {
 
 ![](images/20210721222611679_8883.png)
 
-#### 5.19.1. 在服务消费方端设置隐式参数
+### 19.1. 在服务消费方端设置隐式参数
 
 `setAttachment` 设置的 KV 对，在完成下面一次远程调用会被清空，即多次远程调用要多次设置。
 
@@ -1835,7 +1835,7 @@ xxxService.xxx(); // 远程调用
 // ...
 ```
 
-#### 5.19.2. 在服务提供方端获取隐式参数
+### 19.2. 在服务提供方端获取隐式参数
 
 ```java
 public class XxxServiceImpl implements XxxService {
@@ -1846,7 +1846,7 @@ public class XxxServiceImpl implements XxxService {
 }
 ```
 
-### 5.20. 异步
+## 20. 异步
 
 > 注意：
 >
@@ -1857,11 +1857,11 @@ public class XxxServiceImpl implements XxxService {
 > - Consumer同步 - Provider异步
 > - Consumer异步 - Provider异步
 
-#### 5.20.1. 异步执行
+### 20.1. 异步执行
 
 Dubbo 服务提供方的异步执行。Provider端异步执行将阻塞的业务从Dubbo内部线程池切换到业务自定义线程，避免Dubbo线程池的过度占用，有助于避免不同服务间的互相影响。<font color=red>**异步执行无益于节省资源或提升RPC响应性能（只是提高了应用的吞量）**</font>，因为如果业务执行需要阻塞，则始终还是要有线程来负责执行。
 
-##### 5.20.1.1. 定义 CompletableFuture 签名的接口
+#### 20.1.1. 定义 CompletableFuture 签名的接口
 
 服务接口定义
 
@@ -1905,7 +1905,7 @@ public class AsyncServiceImpl implements AsyncService {
 
 注：通过 `return CompletableFuture.supplyAsync()`，业务执行已从 Dubbo 线程切换到业务线程，避免了对 Dubbo 线程池的阻塞。
 
-##### 5.20.1.2. 使用AsyncContext（2.7.0版本后）
+#### 20.1.2. 使用AsyncContext（2.7.0版本后）
 
 Dubbo 在2.7.0版本后提供了一个类似 Serverlet 3.0 的异步接口`AsyncContext`，在没有 `CompletableFuture` 签名接口的情况下，也可以实现 Provider 端的异步执行。
 
@@ -1958,7 +1958,7 @@ public class AsyncServiceImpl implements AsyncService {
 }
 ```
 
-#### 5.20.2. 异步调用(Consumer端调用)
+### 20.2. 异步调用(Consumer端调用)
 
 > 从v2.7.0开始，Dubbo的所有异步编程接口开始以CompletableFuture为基础
 
@@ -1972,7 +1972,7 @@ Dubbo的异步调用是非阻塞的NIO调用，一个线程可同时并发调用
 
 > 详细案例参考busi-mall工程中的dubbo.xml与IndexController
 
-##### 5.20.2.1. 在消费端配置
+#### 20.2.1. 在消费端配置
 
 ```xml
 <dubbo:reference id="asyncService" interface="org.apache.dubbo.samples.governance.api.AsyncService">
@@ -1994,7 +1994,7 @@ Dubbo的异步调用是非阻塞的NIO调用，一个线程可同时并发调用
 <dubbo:method name="findFoo" async="true" return="false" />
 ```
 
-##### 5.20.2.2. 调用代码
+#### 20.2.2. 调用代码
 
 ```java
 // 此调用会立即返回null
@@ -2025,11 +2025,11 @@ future.get();
 
 > 注意：如果xml配置文件中没有对消费标签配置`async="true"`属性，则以上示例代码不生效，还是同步调用。获取到的Future对象为null
 
-### 5.21. 本地调用
+## 21. 本地调用
 
 在 Dubbo 中进行本地调用。本地调用使用了 injvm 协议，是一个伪协议，它不开启端口，不发起远程调用，只在 JVM 内直接关联，但执行 Dubbo 的 Filter 链。
 
-#### 5.21.1. 配置
+### 21.1. 配置
 
 定义 injvm 协议
 
@@ -2065,7 +2065,7 @@ future.get();
 
 > 注：Dubbo 从 2.2.0 每个服务默认都会在本地暴露，无需进行任何配置即可进行本地引用，如果不希望服务进行远程暴露，只需要在 provider 将 protocol 设置成 injvm 即可
 
-#### 5.21.2. 自动暴露、引用本地服务
+### 21.2. 自动暴露、引用本地服务
 
 从 2.2.0 开始，每个服务默认都会在本地暴露。在引用服务的时候，默认优先引用本地服务。如果希望引用远程服务可以使用一下配置强制引用远程服务。
 
@@ -2073,11 +2073,11 @@ future.get();
 <dubbo:reference ... scope="remote" />
 ```
 
-### 5.22. 参数回调
+## 22. 参数回调
 
 通过参数回调从服务器端调用客户端逻辑。参数回调方式与调用本地 `callback` 或 `listener` 相同，只需要在 Spring 的配置文件中声明哪个参数是 `callback` 类型即可。Dubbo 将基于长连接生成反向代理，这样就可以从服务器端调用客户端逻辑。
 
-#### 5.22.1. 服务接口示例
+### 22.1. 服务接口示例
 
 - 定义回调的接口
 
@@ -2119,7 +2119,7 @@ public class CallbackParameterServiceImpl implements CallbackParameterService {
 }
 ```
 
-#### 5.22.2. 服务消费者
+### 22.2. 服务消费者
 
 - 配置示例
 
@@ -2146,11 +2146,11 @@ public String testCallbackParameter() {
 }
 ```
 
-### 5.23. 事件通知(未整理)
+## 23. 事件通知(未整理)
 
 在调用之前、调用之后、出现异常时，会触发 `oninvoke`、`onreturn`、`onthrow` 三个事件，可以配置当事件发生时，通知哪个类的哪个方法。在Consumer端，可以为三个事件指定事件处理方法
 
-#### 5.23.1. 服务消费者 Callback 接口
+### 23.1. 服务消费者 Callback 接口
 
 ```java
 interface Notify {
@@ -2159,7 +2159,7 @@ interface Notify {
 }
 ```
 
-#### 5.23.2. 服务消费者 Callback 实现
+### 23.2. 服务消费者 Callback 实现
 
 ```java
 class NotifyImpl implements Notify {
@@ -2189,7 +2189,7 @@ class NotifyImpl implements Notify {
 }
 ```
 
-#### 5.23.3. 服务消费者 Callback 配置
+### 23.3. 服务消费者 Callback 配置
 
 ```xml
 <bean id ="demoCallback" class = "org.apache.dubbo.callback.implicit.NofifyImpl" />
@@ -2198,7 +2198,7 @@ class NotifyImpl implements Notify {
 </dubbo:reference>
 ```
 
-#### 5.23.4. 配置几种组合情况
+### 23.4. 配置几种组合情况
 
 - callback 与 async 功能正交分解，async=true 表示结果是否马上返回，onreturn 表示是否需要回调。两者叠加存在以下几种组合情况
     - 异步回调模式：`async=true onreturn="xxx"`
@@ -2206,7 +2206,7 @@ class NotifyImpl implements Notify {
     - 异步无回调：`async=true`
     - 同步无回调：`async=false`
 
-### 5.24. 本地存根
+## 24. 本地存根
 
 在 Dubbo 中利用本地存根在客户端执行部分逻辑
 
@@ -2214,7 +2214,7 @@ class NotifyImpl implements Notify {
 
 ![](images/20210727223739272_31076.png)
 
-#### 5.24.1. 服务端示例
+### 24.1. 服务端示例
 
 在 spring 配置文件中按以下方式配置：
 
@@ -2247,7 +2247,7 @@ public class LocalStubServiceImpl implements LocalStubService {
 }
 ```
 
-#### 5.24.2. 客户端示例
+### 24.2. 客户端示例
 
 在客户端创建与服务提供者同一个接口的实现类，此类会接管服务提供者的接口调用。通过此代理可以实现要不要远程调用服务提供方
 
@@ -2302,11 +2302,11 @@ public String testLocalStub(@RequestParam("params") String params) {
 }
 ```
 
-### 5.25. 本地伪装
+## 25. 本地伪装
 
 本地伪装通常用于服务降级，比如某验权服务，当服务提供方全部挂掉后，客户端不抛出异常，而是通过 Mock 数据返回授权失败。
 
-#### 5.25.1. 配置
+### 25.1. 配置
 
 在 spring 配置文件中按以下方式配置：
 
@@ -2326,7 +2326,7 @@ public String testLocalStub(@RequestParam("params") String params) {
 > 2. 在 interface 本地 Mock 实现，它与服务端实现同一个接口，并提供一个无参构造函数
 > 3. 如果引入服务接口时配置属性`mock = "true"`，则需要本地的实现类与接口在同一个包路径下，并且类名必须是`接口名+Mock`，如`LocalMockServiceMock`
 
-#### 5.25.2. 基础示例
+### 25.2. 基础示例
 
 - 编写一个测试接口
 - 在服务提供者工程中，编写一个测试接口的实现，并在相应的方法中模拟出现异常（如通过`Thread.sleep`模拟超时）
@@ -2367,9 +2367,9 @@ public String testLocalMock(@RequestParam("params") String params) {
 }
 ```
 
-#### 5.25.3. 进阶用法
+### 25.3. 进阶用法
 
-##### 5.25.3.1. return
+#### 25.3.1. return
 
 使用 `return` 来返回一个字符串表示的对象，作为 Mock 的返回值。合法的字符串可以是：
 
@@ -2385,7 +2385,7 @@ public String testLocalMock(@RequestParam("params") String params) {
 @Reference(check = false, mock = "return MooN")
 ```
 
-##### 5.25.3.2. throw
+#### 25.3.2. throw
 
 使用 `throw` 来返回一个 `Exception` 对象，作为 Mock 的返回值。当调用出错时，抛出一个默认的 `RPCException`:
 
@@ -2399,7 +2399,7 @@ public String testLocalMock(@RequestParam("params") String params) {
 <dubbo:reference interface="com.foo.BarService" mock="throw com.foo.MockException" />
 ```
 
-##### 5.25.3.3. force 和 fail
+#### 25.3.3. force 和 fail
 
 在 2.6.6 以上的版本，可以开始在 Spring XML 配置文件中使用 `fail:` 和 `force:`。
 
@@ -2420,7 +2420,7 @@ public String testLocalMock(@RequestParam("params") String params) {
 <dubbo:reference interface="com.foo.BarService" mock="force:throw com.foo.MockException" />
 ```
 
-##### 5.25.3.4. 在方法级别配置 Mock
+#### 25.3.4. 在方法级别配置 Mock
 
 Mock 可以在方法级别上指定，假定 `com.foo.BarService` 上有好几个方法，可以单独为 `sayHello()` 方法指定 Mock 行为。具体配置如下所示，在本例中，只要 `sayHello()` 被调用到时，强制返回 “fake”:
 
@@ -2431,11 +2431,11 @@ Mock 可以在方法级别上指定，假定 `com.foo.BarService` 上有好几�
 </dubbo:reference>
 ```
 
-### 5.26. 延迟暴露
+## 26. 延迟暴露
 
 如果服务需要预热时间，比如初始化缓存，等待相关资源就位等，可以使用 `delay` 进行延迟暴露。在 Dubbo 2.6.5 版本中对服务延迟暴露逻辑进行了细微的调整，将需要延迟暴露（`delay > 0`）服务的倒计时动作推迟到了 Spring 初始化完成后进行。在使用 Dubbo 的过程中，并不会感知到此变化。
 
-#### 5.26.1. Dubbo 2.6.5 之前版本
+### 26.1. Dubbo 2.6.5 之前版本
 
 延迟到 Spring 初始化完成后，再暴露服务（基于 Spring 的 `ContextRefreshedEvent` 事件触发暴露 ）
 
@@ -2449,7 +2449,7 @@ Mock 可以在方法级别上指定，假定 `com.foo.BarService` 上有好几�
 <dubbo:service delay="5000" />
 ```
 
-#### 5.26.2. Dubbo 2.6.5 及以后版本
+### 26.2. Dubbo 2.6.5 及以后版本
 
 所有服务都将在 Spring 初始化完成后进行暴露，如果不需要延迟暴露服务，无需配置 `delay`。如：延迟 5 秒暴露服务
 
@@ -2457,7 +2457,7 @@ Mock 可以在方法级别上指定，假定 `com.foo.BarService` 上有好几�
 <dubbo:service delay="5000" />
 ```
 
-#### 5.26.3. Spring 2.x 初始化死锁问题
+### 26.3. Spring 2.x 初始化死锁问题
 
 **触发条件**：在 Spring 解析到 `<dubbo:service />` 时，就已经向外暴露了服务，而 Spring 还在接着初始化其它 Bean。如果这时有请求进来，并且服务的实现类里有调用 `applicationContext.getBean()` 的用法。
 
@@ -2478,9 +2478,9 @@ Mock 可以在方法级别上指定，假定 `com.foo.BarService` 上有好几�
 3. 如果不想依赖配置顺序，可以使用 `<dubbo:provider delay=”-1” />`，使 Dubbo 在 Spring 容器初始化完后，再暴露服务。
 4. 如果大量使用 `getBean()`，相当于已经把 Spring 退化为工厂模式在用，可以将 Dubbo 的服务隔离单独的 Spring 容器。
 
-### 5.27. 并发控制
+## 27. 并发控制
 
-#### 5.27.1. 配置示例
+### 27.1. 配置示例
 
 - 限制 `com.foo.BarService` 的每个方法，服务器端并发执行（或占用线程池线程数）不能超过 10 个：
 
@@ -2519,7 +2519,7 @@ Mock 可以在方法级别上指定，假定 `com.foo.BarService` 上有好几�
 > 注：如果 `<dubbo:service>` 和 `<dubbo:reference>` 都配置`actives`属性，则以`<dubbo:reference>` 优先。详见：
 
 
-#### 5.27.2. Load Balance 均衡
+### 27.2. Load Balance 均衡
 
 配置服务的客户端的 `loadbalance` 属性为 `leastactive`，此 `Loadbalance` 会调用并发数最小的 Provider（Consumer端并发数）。
 
@@ -2529,9 +2529,9 @@ Mock 可以在方法级别上指定，假定 `com.foo.BarService` 上有好几�
 <dubbo:service interface="com.foo.BarService" loadbalance="leastactive" />
 ```
 
-### 5.28. 连接控制（未整理示例代码）
+## 28. 连接控制（未整理示例代码）
 
-#### 5.28.1. 服务端连接控制
+### 28.1. 服务端连接控制
 
 限制服务器端接受的连接不能超过指定的数量
 
@@ -2541,7 +2541,7 @@ Mock 可以在方法级别上指定，假定 `com.foo.BarService` 上有好几�
 <dubbo:protocol name="dubbo" accepts="10" />
 ```
 
-#### 5.28.2. 客户端连接控制
+### 28.2. 客户端连接控制
 
 限制客户端服务使用连接不能超过指定的数量
 
@@ -2557,7 +2557,7 @@ Mock 可以在方法级别上指定，假定 `com.foo.BarService` 上有好几�
 > 2. 因为连接是在服务提供者Server上，所以配置在 Provider 上
 > 3. 如果是长连接，比如 Dubbo 协议，connections 表示该服务对每个提供者建立的长连接数
 
-### 5.29. 延迟连接（未整理示例代码）
+## 29. 延迟连接（未整理示例代码）
 
 在 Dubbo 中配置延迟连接用于减少长连接数。当有调用发起时，再创建长连接。
 
@@ -2567,7 +2567,7 @@ Mock 可以在方法级别上指定，假定 `com.foo.BarService` 上有好几�
 
 > **提示**：该配置只对使用长连接的 dubbo 协议生效。
 
-### 5.30. 粘滞连接（未整理示例代码）
+## 30. 粘滞连接（未整理示例代码）
 
 粘滞连接用于有状态服务，尽可能让客户端总是向同一提供者发起调用，除非该提供者挂了，再连另一台。粘滞连接将自动开启**延迟连接**，以减少长连接数。
 
@@ -2583,7 +2583,7 @@ Dubbo 支持方法级别的粘滞连接，如果想进行更细粒度的控制�
 </dubbo:reference>
 ```
 
-### 5.31. 令牌验证（未整理示例代码）
+## 31. 令牌验证（未整理示例代码）
 
 通过令牌验证在注册中心控制权限，以决定要不要下发令牌给消费者，可以防止消费者绕过注册中心访问提供者，另外通过注册中心可灵活改变授权方式，而不需修改或升级提供者
 
@@ -2609,12 +2609,73 @@ Dubbo 支持方法级别的粘滞连接，如果想进行更细粒度的控制�
 <dubbo:service interface="com.foo.BarService" token="123456" />
 ```
 
+## 32. 配置规则
 
-## 6. 服务化最佳实践
+在 Dubbo 中配置应用级治理规则和服务级治理规则
+
+### 32.1. 旧版本的规则配置方式
+
+2.2.0 以上版本支持，向注册中心写入动态配置覆盖规则。该功能通常由监控中心或治理中心的页面完成。
+
+```java
+RegistryFactory registryFactory = ExtensionLoader.getExtensionLoader(RegistryFactory.class).getAdaptiveExtension();
+Registry registry = registryFactory.getRegistry(URL.valueOf("zookeeper://10.20.153.10:2181"));
+registry.register(URL.valueOf("override://0.0.0.0/com.foo.BarService?category=configurators&dynamic=false&application=foo&timeout=1000"));
+```
+
+URL分解说明
+
+- `override://` 表示数据采用覆盖方式，支持 `override` 和 `absent`，可扩展，**必填**。
+- `0.0.0.0` 表示对所有 IP 地址生效，如果只想覆盖某个 IP 的数据，请填入具体 IP，**必填**。
+- `com.foo.BarService` 表示只对指定服务生效，**必填**。
+- `category=configurators` 表示该数据为动态配置类型，**必填**。
+- `dynamic=false` 表示该数据为持久数据，当注册方退出时，数据依然保存在注册中心，**必填**。
+- `enabled=true` 覆盖规则是否生效，可不填，缺省生效。
+- `application=foo` 表示只对指定应用生效，可不填，表示对所有应用生效。
+- `timeout=1000` 表示将满足以上条件的 `timeout` 参数的值覆盖为 `1000`。如果想覆盖其它参数，直接加在 `override` 的 URL 参数上。
+
+其他示例：
+
+- 禁用提供者：(通常用于临时踢除某台提供者机器，相似的，禁止消费者访问请使用路由规则)
+
+```
+override://10.20.153.10/com.foo.BarService?category=configurators&dynamic=false&disbaled=true
+```
+
+- 调整权重：(通常用于容量评估，缺省权重为 100)
+
+```
+override://10.20.153.10/com.foo.BarService?category=configurators&dynamic=false&weight=200
+```
+
+- 调整负载均衡策略：(缺省负载均衡策略为 random)
+
+```
+override://10.20.153.10/com.foo.BarService?category=configurators&dynamic=false&loadbalance=leastactive
+```
+
+- 服务降级：(通常用于临时屏蔽某个出错的非关键服务)
+
+```
+override://0.0.0.0/com.foo.BarService?category=configurators&dynamic=false&application=foo&mock=force:return+null
+```
+
+### 32.2. 新版本规则配置
+
+覆盖规则是 Dubbo 设计的在无需重启应用的情况下，动态调整 RPC 调用行为的一种能力。2.7.0 版本开始，支持从服务和应用两个粒度来调整动态配置。
+
+#### 32.2.1. 概览
+
+
+
+
+
+
+# 服务化最佳实践
 
 > 详情参考官网：http://dubbo.apache.org/zh-cn/docs/user/best-practice.html
 
-### 6.1. 在 Provider 端应尽量配置的属性
+## 1. 在 Provider 端应尽量配置的属性
 
 Dubbo的属性配置优先度上，遵循顺序：`reference属性 --> service属性 --> Consumer 属性`
 
@@ -2622,7 +2683,7 @@ Dubbo的属性配置优先度上，遵循顺序：`reference属性 --> service�
 
 而对于服务调用的超时时间、重试次数等属性，服务的提供方比消费方更了解服务性能，因此我们应该在 Provider 端尽量多配置 Consumer 端属性，让其漫游到消费端发挥作用
 
-#### 6.1.1. 在 Provider 端尽量多配置 Consumer 端属性
+### 1.1. 在 Provider 端尽量多配置 Consumer 端属性
 
 - Provider 端尽量多配置 Consumer 端的属性，让 Provider 的实现者一开始就思考 Provider 端的服务特点和服务质量等问题
 
@@ -2642,7 +2703,7 @@ Dubbo的属性配置优先度上，遵循顺序：`reference属性 --> service�
     3. `loadbalance`：负载均衡算法，缺省是随机 random。还可以配置轮询 roundrobin、最不活跃优先 leastactive 和一致性哈希 consistenthash 等
     4. `actives`：消费者端的最大并发调用限制，即当 Consumer 对一个服务的并发调用到上限后，新调用会阻塞直到超时，在方法上配置 dubbo:method 则针对该方法进行并发限制，在接口上配置 dubbo:service，则针对该服务进行并发限制
 
-#### 6.1.2. 在 Provider 端配置合理的 Provider 端属性
+### 1.2. 在 Provider 端配置合理的 Provider 端属性
 
 ```xml
 <dubbo:protocol threads="200" /> 
@@ -2656,14 +2717,15 @@ Dubbo的属性配置优先度上，遵循顺序：`reference属性 --> service�
     1. `threads`：服务线程池大小
     2. `executes`：一个服务提供者并行执行请求上限，即当 Provider 对一个服务的并发调用达到上限后，新调用会阻塞，此时 Consumer 可能会超时。在方法上配置 `dubbo:method` 则针对该方法进行并发限制，在接口上配置 `dubbo:service`，则针对该服务进行并发限制
 
-### 6.2. 服务拆分最佳实现
-#### 6.2.1. 分包
+## 2. 服务拆分最佳实现
+
+### 2.1. 分包
 
 建议将服务接口、服务模型、服务异常等均放在 API 包中，因为服务模型和异常也是 API 的一部分，这样做也符合分包原则：重用发布等价原则(REP)，共同重用原则(CRP)。
 
 如果需要，也可以考虑在 API 包中放置一份 Spring 的引用配置，这样使用方只需在 Spring 加载过程中引用此配置即可。配置建议放在模块的包目录下，以免冲突，如：com/alibaba/china/xxx/dubbo-reference.xml。
 
-#### 6.2.2. 粒度
+### 2.2. 粒度
 
 服务接口尽可能大粒度，每个服务方法应代表一个功能，而不是某功能的一个步骤，否则将面临分布式事务问题，Dubbo 暂未提供分布式事务支持。
 
@@ -2671,7 +2733,7 @@ Dubbo的属性配置优先度上，遵循顺序：`reference属性 --> service�
 
 不建议使用过于抽象的通用接口，如：Map query(Map)，这样的接口没有明确语义，会给后期维护带来不便。
 
-#### 6.2.3. 版本
+### 2.3. 版本
 
 每个接口都应定义版本号，为后续不兼容升级提供可能，如：`<dubbo:service interface="com.xxx.XxxService" version="1.0" />`
 
@@ -2679,7 +2741,7 @@ Dubbo的属性配置优先度上，遵循顺序：`reference属性 --> service�
 
 当不兼容时，先升级一半提供者为新版本，再将消费者全部升为新版本，然后将剩下的一半提供者升为新版本。
 
-#### 6.2.4. 异常
+### 2.4. 异常
 
 建议使用异常汇报错误，而不是返回错误码，异常信息能携带更多信息，并且语义更友好。
 
@@ -2689,13 +2751,13 @@ Dubbo的属性配置优先度上，遵循顺序：`reference属性 --> service�
 
 服务提供方不应将 DAO 或 SQL 等异常抛给消费方，应在服务实现中对消费方不关心的异常进行包装，否则可能出现消费方无法反序列化相应异常。
 
-## 7. SPI机制原理
+## 3. SPI机制原理
 
 Dubbo框架是建立的SPI机制之上
 
-### 7.1. Java SPI 机制
+### 3.1. Java SPI 机制
 
-#### 7.1.1. SPI 简述
+#### 3.1.1. SPI 简述
 
 SPI全称Service Provider Interface，是Java提供的一套用来被第三方实现或者扩展的API，它可以用来启用框架扩展和替换组件
 
@@ -2710,7 +2772,7 @@ SPI全称Service Provider Interface，是Java提供的一套用来被第三方�
     - 日志门面接口实现类加载，SLF4J加载不同提供商的日志实现类
     - Spring中大量使用了SPI，比如：对servlet3.0规范对ServletContainerInitializer的实现、自动类型转换Type Conversion SPI(Converter SPI、Formatter SPI)等
 
-#### 7.1.2. 基础使用
+#### 3.1.2. 基础使用
 
 - 要使用Java SPI，需要遵循如下约定：
     1. 当服务提供者提供了接口的一种具体实现后，在jar包的`META-INF/services`目录下创建一个以“接口全限定名”为命名的文件，内容为实现类的全限定名
@@ -2771,20 +2833,20 @@ public void testBaseSpi() {
 }
 ```
 
-#### 7.1.3. 核心功能类
+#### 3.1.3. 核心功能类
 
 需要指出的是，java之所以能够顺利根据配置加载这个实现类，完全依赖于jdk内的一个核心类：
 
 ![SPI的核心类](images/20200130231835343_15049.jpg)
 
-### 7.2. Dubbo SPI机制
+### 3.2. Dubbo SPI机制
 
 - Java SPI机制非常简单，就是读取指定的配置文件，将所有的类都加载到程序中。而这种机制，存在很多缺陷，比如：
     1. 所有实现类无论是否使用，直接被加载，可能存在浪费
     2. 不能够灵活控制什么时候什么时机，匹配什么实现，功能太弱
 - Dubbo框架就基于自己的需要，对JAVA的SPI机制进行增强
 
-#### 7.2.1. @SPI 注解
+#### 3.2.1. @SPI 注解
 
 与 Java SPI 实现类配置不同，Dubbo SPI 是通过键值对的方式进行配置，这样就可以按需加载指定的实现类。另外，需要在接口上标注 `@SPI` 注解。表明此接口是SPI的扩展点：
 
@@ -2842,7 +2904,7 @@ AAAA,你好，调通了A实现！
 I'm default,你好，调通了B实现！
 ```
 
-#### 7.2.2. @Activate 注解
+#### 3.2.2. @Activate 注解
 
 Dubbo的Spi机制虽然对原生SPI有了增强，但功能还远远不够。
 
@@ -2864,7 +2926,7 @@ public class testActivate2 implements Filter {
 
 > 详细示例参考dubbo-thought项目的base-spi和busi-logic工程
 
-#### 7.2.3. Javassist动态编译
+#### 3.2.3. Javassist动态编译
 
 - 在SPI寻找实现类的过程中，`getAdaptiveExtension`方法得到的对象，只是个接口代理对象，此代理对象是由临时编译的类来实现的。
 - javassist动态编译类有两种方式，此动态编译生成类是没有class文件
@@ -2942,7 +3004,7 @@ public void createClassByCompile() throws IllegalAccessException, InstantiationE
 }
 ```
 
-#### 7.2.4. @Adaptive 注解
+#### 3.2.4. @Adaptive 注解
 
 扩展点对应的实现类不能在程序运行时动态指定，就是`extensionLoader.getExtension`方法写死了扩展点对应的实现类，不能在程序运行期间根据运行时参数进行动态改变。而在程序使用时会希望对实现类进行懒加载，并且能根据运行时情况来决定，应该启用哪个扩展类。为了解决这个问题，dubbo引入了`@Adaptive`注解，也就是dubbo的自适应机制
 
@@ -2997,7 +3059,7 @@ adaptiveExtension.passInfo("moon", url)
 
 > 详细示例参考dubbo-thought项目
 
-#### 7.2.5. Dubbo SPI的依赖注入
+#### 3.2.5. Dubbo SPI的依赖注入
 
 Dubbo SPI的核心实现类为ExtensionLoader，此类的使用几乎遍及Dubbo的整个源码体系
 
@@ -3007,7 +3069,7 @@ Dubbo SPI的核心实现类为ExtensionLoader，此类的使用几乎遍及Dubbo
     - `getAdaptiveExtension`方法，对应解析加载`@Adaptive`注解对应的实现
 - 其中，`@Adaptive`注解作的自适应功能，还涉及到了代理对象（而Dubbo的代理机制，有两种选择，jdk动态代理和javassist动态编译类）
 
-##### 7.2.5.1. Dubbo SPI 依赖注入场景
+##### 3.2.5.1. Dubbo SPI 依赖注入场景
 
 Dubbo的SPI机制，除上以上三种注解的用法外，还有一个重要的功能依赖注入，下面是依赖注入的一个示例：
 
@@ -3056,7 +3118,7 @@ public void iocSPI() {
 
 > 最后dubbo调用了InfoService的B实现
 
-##### 7.2.5.2. Dubbo依赖注入的过程分析
+##### 3.2.5.2. Dubbo依赖注入的过程分析
 
 从`loader.getDefaultExtension();`开始，通过`getExtensionClasses();`方法获取所有扩展类Class对象，如果第一次创建，则参过`instance = createExtension(name);`创建实例
 
@@ -3084,13 +3146,13 @@ public interface ExtensionFactory {
 
 ExtensionFactory接口有两个实现类，一个适配类（adaptive，接口的默认实现）。AdaptiveExtensionFactory在内部持有了所有的factory实现工厂，即`SpiExtensionFactory`与`SpringExtensionFactory`两个实现类。一个为SPI工厂（依赖类是扩展接口时发挥作用），一个为Spring工厂（依赖的是springbean时发挥作用）。于是，当需要为某个生成的对象注入依赖时，直接调用此对象即可。从而实现Dubbo SPI的IOC功能
 
-## 8. 其他
+## 4. 其他
 
-### 8.1. dubbo框架使用示例
+### 4.1. dubbo框架使用示例
 
 dubbo框架使用示例项目参考：D:\code\dubbo-note\dubbo-sample\
 
-### 8.2. 相关RPC服务框架（HSF） -- 网络资料
+### 4.2. 相关RPC服务框架（HSF） -- 网络资料
 
 高速服务框架 HSF (High-speed Service Framework)，是在阿里巴巴内部广泛使用的分布式 RPC 服务框架。
 
