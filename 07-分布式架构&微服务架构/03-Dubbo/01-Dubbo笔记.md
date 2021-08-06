@@ -2666,9 +2666,74 @@ override://0.0.0.0/com.foo.BarService?category=configurators&dynamic=false&appli
 
 #### 32.2.1. 概览
 
+一般在**服务治理控制台**查看或修改覆盖规则。
+
+应用粒度
+
+```yml
+# 将应用demo（key:demo）在20880端口上提供（side:provider）的所有服务（scope:application）的权重修改为1000（weight:1000）。
+---
+configVersion: v2.7
+scope: application
+key: demo
+enabled: true
+configs:
+- addresses: ["0.0.0.0:20880"]
+  side: provider
+  parameters:
+  weight: 1000
+  ...
+```
+
+服务粒度
+
+```yml
+# 所有消费（side:consumer）DemoService服务（key:org.apache.dubbo.samples.governance.api.DemoService）的应用实例（addresses:[0.0.0.0]），超时时间修改为6000ms
+---
+configVersion: v2.7
+scope: service
+key: org.apache.dubbo.samples.governance.api.DemoService
+enabled: true
+configs:
+- addresses: [0.0.0.0]
+  side: consumer
+  parameters:
+  timeout: 6000
+  ...
+```
+
+#### 32.2.2. 规则配置模板详解
+
+```yml
+---
+configVersion: v2.7
+scope: application/service
+key: app-name/group+service+version
+enabled: true
+configs:
+- addresses: ["0.0.0.0"]
+  providerAddresses: ["1.1.1.1:20880", "2.2.2.2:20881"]
+  side: consumer
+  applications/services: []
+  parameters:
+    timeout: 1000
+    cluster: failfase
+    loadbalance: random
+- addresses: ["0.0.0.0:20880"]
+  side: provider
+  applications/services: []
+  parameters:
+    threadpool: fixed
+    threads: 200
+    iothreads: 4
+    dispatcher: all
+    weight: 200
+...
+```
 
 
 
+#### 32.2.3. 规则配置示例
 
 
 # 服务化最佳实践

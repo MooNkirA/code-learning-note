@@ -66,6 +66,7 @@ NoSQL数据库的四大分类如下：
 
 
 ## 2. Redis 基础入门
+
 ### 2.1. Redis 介绍
 
 redis 是一种基于键值对（key-value）数据库，其中 value 可以为 string、hash、list、set、zset 等多种数据结构，可以满足很多应用场景。还提供了键过期，发布订阅，事务，流水线等附加功能
@@ -717,6 +718,8 @@ redisson官网：https://redisson.org/
 
 ## 6. Redis 相关网站
 
-- [Redis 命令参考文档](http://redisdoc.com/)
 - [Redis 官网](https://redis.io/)
+- [Redis 官方文档](https://redis.io/documentation)
+- [Redis 官网国内中文翻译版](http://redis.cn/)
+- [Redis 命令参考文档](http://redisdoc.com/)
 - [Redisson 官网](https://redisson.org/)
