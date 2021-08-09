@@ -2731,10 +2731,83 @@ configs:
 ...
 ```
 
-
+- `configVersion` 表示 dubbo 的版本
+- `scope` 表示配置作用范围，分别是应用（application）或服务（service）粒度。**必填**。
+- `key` 指定规则体作用在哪个服务或应用。**必填**。
+- `scope=service`时，key取值为`[{group}:]{service}[:{version}]`的组合
+- `scope=application`时，key取值为application名称
+- `enabled=true` 覆盖规则是否生效，可不填，缺省生效。
+- `configs` 定义具体的覆盖规则内容，可以指定`n（n>=1）`个规则体。**必填**。
+    - side
+    - applications
+    - services
+    - parameters
+    - addresses
+    - providerAddresses
 
 #### 32.2.3. 规则配置示例
 
+- 禁用提供者：(通常用于临时踢除某台提供者机器，相似的，禁止消费者访问请使用路由规则)
+
+```yml
+---
+configVersion: v2.7
+scope: application
+key: demo-provider
+enabled: true
+configs:
+- addresses: ["10.20.153.10:20880"]
+  side: provider
+  parameters:
+    disabled: true
+...
+```
+
+- 调整权重：(通常用于容量评估，缺省权重为 200)
+
+```yml
+---
+configVersion: v2.7
+scope: application
+key: demo-provider
+enabled: true
+configs:
+- addresses: ["10.20.153.10:20880"]
+  side: provider
+  parameters:
+    weight: 200
+...
+```
+
+- 调整负载均衡策略：(缺省负载均衡策略为 random)
+
+```yml
+---
+configVersion: v2.7
+scope: application
+key: demo-consumer
+enabled: true
+configs:
+- side: consumer
+  parameters:
+    loadbalance: random
+...
+```
+
+- 服务降级：(通常用于临时屏蔽某个出错的非关键服务)
+
+```yml
+---
+configVersion: v2.7
+scope: service
+key: org.apache.dubbo.samples.governance.api.DemoService
+enabled: true
+configs:
+- side: consumer
+ parameters:
+   force: return null
+...
+```
 
 # 服务化最佳实践
 
