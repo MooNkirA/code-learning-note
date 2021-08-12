@@ -151,9 +151,10 @@
 ### ✨ Redis ✨
 
 <ul class="docs">
-  <li><a href="#/04-数据库/03-Redis/01-Redis笔记">Redis笔记</a></li>
-  <li><a href="#/04-数据库/03-Redis/02-Redis安装">Redis安装</a></li>
-  <li><a href="#/04-数据库/03-Redis/03-Redis场景应用设计">Redis场景应用设计</a></li>
+  <li><a href="#/04-数据库/03-Redis/01-Redis笔记">Redis 笔记</a></li>
+  <li><a href="#/04-数据库/03-Redis/02-Redis安装">Redis 安装</a></li>
+  <li><a href="#/04-数据库/03-Redis/03-Redis场景应用设计">Redis 场景应用设计</a></li>
+  <li><a href="#/04-数据库/03-Redis/04-Redis操作命令">Redis 操作命令</a></li>
 </ul>
 
 ### ✨ MongoDb ✨
