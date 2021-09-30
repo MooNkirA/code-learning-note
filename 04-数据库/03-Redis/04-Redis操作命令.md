@@ -721,20 +721,222 @@ redis> GET page_view    # 数字值在 Redis 中以字符串的形式保存
 "21"
 ```
 
-### 2.10. 删除
+### 2.10. DECR 数字递减
 
-`del key`：删除指定key
+```bash
+DECR key
+```
 
-### 2.11. 数值增减
+为键 `key` 储存的数字值减1。`DECR` 命令会返回键 `key` 在执行减1操作之后的值。存在以下3种情况：
 
-- `incr key`：将指定的key的value原子性的递增1.如果该key不存在，其初始值为0，在incr之后其值为1。如果value的值不能转成整型，如hello，该操作将执行失败并返回相应的错误信息。
-- `decr key`：将指定的key的value原子性的递减1.如果该key不存在，其初始值为0，在incr之后其值为-1。如果value的值不能转成整型，如hello，该操作将执行失败并返回相应的错误信息。
+- 如果键 `key` 不存在，那么它的值会先被初始化为`0`，然后再执行 `DECR` 命令。
+- 如果键 `key` 存在并且储存的值为数字，则在原数值减1后替换原来的值，并返回减1后的结果
+- 如果键 `key` 储存的值不能被解释为数字，那么 `DECR` 命令将返回一个错误。
 
-### 2.12. 扩展命令（了解）
+> note: 本操作的值限制在 64 位(bit)有符号数字表示之内。
 
-- `incrby key increment`：将指定的key的value原子性增加increment，如果该key不存在，器初始值为0，在incrby之后，该值为increment。如果该值不能转成整型，如hello则失败并返回错误信息
-- `decrby key decrement`：将指定的key的value原子性减少decrement，如果该key不存在，器初始值为0，在decrby之后，该值为decrement。如果该值不能转成整型，如hello则失败并返回错误信息
-- `append key value`：拼凑字符串。如果该key存在，则在原有的value后追加该值；如果该key不存在，则重新创建一个key/value
+```bash
+# 对储存数字值的键 key 执行 DECR 命令：
+redis> SET failure_times 10
+OK
+redis> DECR failure_times
+(integer) 9
+
+# 对不存在的键执行 DECR 命令：
+redis> EXISTS count
+(integer) 0
+redis> DECR count
+(integer) -1
+```
+
+### 2.11. INCRBY/DECRBY  数字递增/递减指定指定值
+
+```bash
+# 递增指定值
+INCRBY key increment
+# 递减指定值
+DECRBY key decrement
+```
+
+为键 `key` 储存的数字值加上增量 `increment`/减去减量`decrement`，并返回该值。存在以下3种情况：
+
+- 如果键 `key` 不存在，那么它的值会先被初始化为`0`，然后再执行 `INCRBY`/`DECRBY` 命令。
+- 如果键 `key` 存在并且储存的值为数字，则在原数值加上`increment`值/减去`decrement`值后替换原来的值，并返回结果
+- 如果键 `key` 储存的值不能被解释为数字，那么 `INCRBY`/`DECRBY` 命令将返回一个错误。
+
+> note: 本操作的值限制在 64 位(bit)有符号数字表示之内。
+
+```bash
+# 键存在，并且值为数字：
+redis> SET rank 50
+OK
+redis> INCRBY rank 20
+(integer) 70
+redis> GET rank
+"70"
+
+# 键不存在：
+redis> EXISTS counter
+(integer) 0
+redis> INCRBY counter 30
+(integer) 30
+redis> GET counter
+"30"
+
+# 键存在，但值无法被解释为数字：
+redis> SET book "long long ago..."
+OK
+redis> INCRBY book 200
+(error) ERR value is not an integer or out of range
+
+# 对已经存在的键执行 DECRBY 命令：
+redis> SET count 100
+OK
+redis> DECRBY count 20
+(integer) 80
+
+# 对不存在的键执行 DECRBY 命令：
+redis> EXISTS pages
+(integer) 0
+redis> DECRBY pages 10
+(integer) -10
+```
+
+### 2.12. APPEND 字符追加
+
+```bash
+APPEND key value
+```
+
+`append` 指令可以向字符串尾部追加值。返回值为追加 `value` 之后，键 `key` 的值的长度。
+
+- 如果键 `key` 已经存在并且它的值是一个字符串，`APPEND` 命令将把 `value` 追加到键 `key` 现有值的末尾。
+- 如果键 `key` 不存在，`APPEND` 就简单地将键 `key` 的值设为 `value`，就像执行 `SET key value` 一样。
+
+```bash
+# 对不存在的 key 执行 APPEND ：
+redis> EXISTS myphone               # 确保 myphone 不存在
+(integer) 0
+redis> APPEND myphone "nokia"       # 对不存在的 key 进行 APPEND ，等同于 SET myphone "nokia"
+(integer) 5                         # 字符长度
+
+# 对已存在的字符串进行 APPEND ：
+redis> APPEND myphone " - 1110"     # 长度从 5 个字符增加到 12 个字符
+(integer) 12
+redis> GET myphone
+"nokia - 1110"
+```
+
+### 2.13. STRLEN 字符串长度
+
+```bash
+STRLEN key
+```
+
+返回键 `key` 储存的字符串值的长度。当键 `key` 不存在时，命令返回0。当 `key` 储存的不是字符串值时，返回一个错误。
+
+```bash
+# 获取字符串值的长度：
+redis> SET mykey "Hello world"
+OK
+redis> STRLEN mykey
+(integer) 11
+
+# 不存在的键的长度为 0 ：
+redis> STRLEN nonexisting
+(integer) 0
+
+# 中文字符串
+redis> SET chinese "中文"
+OK
+redis> STRLEN chinese
+(integer) 6
+```
+
+> <font color=red>**注意：每个中文占 3 个字节**</font>
+
+### 2.14. GETSET 设置并返回原值
+
+```bash
+GETSET key value
+```
+
+`getset` 和 `set` 一样会设置值，将键 `key` 的值设为 `value`，但 `GETSET` 命令会返回键 `key` 在被设置之前的旧值。存在以下特殊情况：
+
+- 当键 `key` 在被设置之前并不存在，返回 `nil`
+- 当键 `key` 存在但不是字符串类型时，返回一个错误
+
+```bash
+redis> GETSET db mongodb    # 没有旧值，返回 nil
+(nil)
+redis> GET db
+"mongodb"
+redis> GETSET db redis      # 返回旧值 mongodb
+"mongodb"
+redis> GET db
+"redis"
+```
+
+### 2.15. SETRANGE 设置指定位置的字符
+
+```bash
+SETRANGE key offset value
+```
+
+从偏移量 `offset` 开始， 用 `value` 参数覆写(overwrite)键 `key` 储存的字符串值，并返回被修改之后，字符串值的长度。不存在的键 `key` 当作空白字符串处理。**值的下标是从0开始计算**。
+
+`SETRANGE` 命令会确保字符串足够长以便将 `value` 设置到指定的偏移量上， 如果键 `key` 原来储存的字符串长度比偏移量小(比如字符串只有`5`个字符长，但设置的`offset`是`10`)，那么原字符和偏移量之间的空白将用零字节(zerobytes, `"\x00"`)进行填充。
+
+> Warning: 当生成一个很长的字符串时， Redis 需要分配内存空间， 该操作有时候可能会造成服务器阻塞(block)。
+
+```bash
+# 对非空字符串执行 SETRANGE 命令：
+redis> SET greeting "hello world"
+OK
+redis> SETRANGE greeting 6 "Redis"
+(integer) 11
+redis> GET greeting
+"hello Redis"
+
+# 对空字符串/不存在的键执行 SETRANGE 命令：
+redis> EXISTS empty_string
+(integer) 0
+redis> SETRANGE empty_string 5 "Redis!"   # 对不存在的 key 使用 SETRANGE
+(integer) 11
+redis> GET empty_string                   # 空白处被"\x00"填充
+"\x00\x00\x00\x00\x00Redis!"
+```
+
+### 2.16. GETRANGE 截取字符串
+
+```bash
+GETRANGE key start end
+```
+
+返回键 `key` 储存的字符串值的指定部分，字符串的截取范围由 `start` 和 `end` 两个偏移量决定(包括 `start` 和 `end` 在内)。负数偏移量表示从字符串的末尾开始计数，`-1` 表示最后一个字符，`-2` 表示倒数第二个字符，以此类推。
+
+`GETRANGE` 通过保证子字符串的值域(range)不超过实际字符串的值域来处理超出范围的值域请求。
+
+> note: `GETRANGE` 命令在 Redis 2.0 之前的版本里面被称为 `SUBSTR` 命令
+
+```bash
+redis> SET greeting "hello, my friend"
+OK
+redis> GETRANGE greeting 0 4          # 返回索引0-4的字符，包括4。
+"hello"
+redis> GETRANGE greeting -1 -5        # 不支持回绕操作
+""
+redis> GETRANGE greeting -3 -1        # 负数索引
+"end"
+redis> GETRANGE greeting 0 -1         # 从第一个到最后一个
+"hello, my friend"
+redis> GETRANGE greeting 0 1008611    # 值域范围不超过实际字符串，超过部分自动被符略
+"hello, my friend"
+```
+
+### 2.17. 命令的时间复杂度
+
+字符串这些命令中，除了`del`、`mset`、`mget`支持多个键的批量操作，时间复杂度和键的个数相关，为`O(n)`，`getrange`和字符串长度相关，也是`O(n)`，其余的命令基本上都是`O(1)`的时间复杂度，所以操作速度非常快
 
 ## 3. 存储hash（了解）
 
