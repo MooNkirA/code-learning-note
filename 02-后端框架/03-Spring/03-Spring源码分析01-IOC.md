@@ -915,7 +915,7 @@ parsePropertyElements(ele, bd);
 
 **解析过程重点记忆：`MutablePropertyValues`属性**。如果想要设置类的属性值，那么就需要往这个对象中添加 `PropertyValue` 对象
 
-## 6. Spring 中的 BeanFactory
+## 6. Spring 框架中的 BeanFactory
 
 BeanFactory是一个接口，Spring框架中，所有对Bean相关操作，都可以在BeanFactory里实现
 
@@ -1000,7 +1000,7 @@ public interface ApplicationContext extends EnvironmentCapable, ListableBeanFact
 		MessageSource, ApplicationEventPublisher, ResourcePatternResolver
 ```
 
-`ApplicationContext` 是 Spring 为开发者提供的高级容器形式，也是初始化 Spring 容器的常用方式，除了简单容器所具备的功能（*即继承了ListableBeanFactory, HierarchicalBeanFactory接口*）外，`ApplicationContext` 还提供了许多额外功能，这些额外的功能主要包括：
+`ApplicationContext` 是 Spring 为开发者提供的高级容器形式，也是初始化 Spring 容器的常用方式，实际上也是一个BeanFactory，除了简单容器所具备的功能（*即继承了ListableBeanFactory, HierarchicalBeanFactory接口*）外，`ApplicationContext` 还提供了许多额外功能，这些额外的功能主要包括：
 
 - 国际化支持：`ApplicationContext` 实现了 `org.springframework.context.MessageSource` 接口，该接口为容器提供国际化消息访问功能，支持具备多语言版本需求的应用开发，并提供了多种实现来简化国际化资源文件的装载和获取。
 - 发布应用上下文事件：`ApplicationContext` 实现了 `org.springframework.context.ApplicationEventPublisher` 接口，该接口让容器拥有发布应用上下文事件的功能，包括容器启动、关闭事件等，如果一个 bean 需要接收容器事件，则只需要实现 ApplicationListener 接口即可，Spring 会自动扫描对应的监听器配置，并注册成为主题的观察者。
@@ -1309,6 +1309,24 @@ public interface BeanNameGenerator {
 - `AnnotationBeanNameGenerator`是为了处理注解生成beanName的情况。
 
 > `DefaultBeanNameGenerator`与`AnnotationBeanNameGenerator`详见代码工程的注释
+
+## 10. BeanDefinitionReader（BeanDefinition读取器）
+
+Spring源码中提供了BeanDefinition读取器（BeanDefinitionReader），这些BeanDefinitionReader在实际使用Spring时用得少，但在Spring源码中用得多，相当于Spring源码的基础设施。
+
+### 10.1. AnnotatedBeanDefinitionReader（整理中）
+
+
+
+> <font color=red>**注：该BeanDefinition读取器能解析的注解如`@Conditional`，`@Scope`、`@Lazy`、`@Primary`、`@DependsOn`、`@Role`、`@Description`**</font>
+
+### 10.2. XmlBeanDefinitionReader（整理中）
+
+
+
+### 10.3. ClassPathBeanDefinitionScanner（整理中）
+
+## 11. Spring 框架的类型转化（整理中）
 
 
 
