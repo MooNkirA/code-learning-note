@@ -46,6 +46,7 @@
   <li><a href="#/02-后端框架/03-Spring/03-Spring源码分析02-AOP">Spring源码分析02 AOP(面向切面编程)</a></li>
   <li><a href="#/02-后端框架/03-Spring/03-Spring源码分析03-Transaction">Spring源码分析03 Transaction(事务)</a></li>
   <li><a href="#/02-后端框架/03-Spring/04-Spring案例">Spring案例</a></li>
+  <li><a href="#/02-后端框架/03-Spring/05-Spring源码编译教程">Spring源码编译教程</a></li>
   <li><a href="#/02-后端框架/03-Spring/网络资料-Spring事务管理（一）快速入门">网络资料-Spring事务管理（一）快速入门</a></li>
 </ul>
 
