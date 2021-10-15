@@ -14,7 +14,7 @@ Gradle官网：https://gradle.org/
 
 - 配置gradle环境变量
 
-![](images/20211010211007926_11479.png)
+![](images/20211014232348796_30090.png)
 
 ![](images/20211010211146535_1926.png)
 
@@ -24,13 +24,48 @@ Gradle官网：https://gradle.org/
 
 - 通过cmd查看是否配置成功
 
-
+![](images/20211014232323625_6637.png)
 
 ### 1.3. 修改gradle.bat批处理脚本
 
 - 修改Gradle的`\gradle-x.x\bin\`目录下的`gradle.bat`脚本，增加设置用户配置路径变量
 
 ![](images/20211008225605200_31766.png)
+
+### 1.4. 配置 Gradle 仓库源
+
+在Gradle安装目录下的 `init.d` 文件夹下，新建一个 `init.gradle` 文件，添加如下配置
+
+```
+allprojects {
+    repositories {
+        maven { url 'file:///D:/Java/maven_repository'}
+        mavenLocal()
+        maven { name "Alibaba" ; url "https://maven.aliyun.com/repository/public" }
+        maven { name "Bstek" ; url "http://nexus.bsdn.org/content/groups/public/" }
+        mavenCentral()
+    }
+
+    buildscript {
+        repositories {
+            maven { name "Alibaba" ; url 'https://maven.aliyun.com/repository/public' }
+            maven { name "Bstek" ; url 'http://nexus.bsdn.org/content/groups/public/' }
+            maven { name "M2" ; url 'https://plugins.gradle.org/m2/' }
+        }
+    }
+}
+```
+
+repositories 是配置获取 jar 包的顺序。以上配置是先是本地的 Maven 仓库路径；接着的 `mavenLocal()` 是获取 Maven 本地仓库的路径，是和第一条一样，但是不冲突；第三条和第四条是从国内和国外的网络上仓库获取；最后的 `mavenCentral()` 是从Apache提供的中央仓库获取 jar 包。
+
+### 1.5. IDEA 配置 Gradle
+
+![](images/20211013220001891_18953.png)
+
+- 将【Use Gradle From】选项改为【Specified location】，然后右侧就会出现一个框，选择Gradle安装目录（即将 `%GRADLE_HOME%` 的路径复制到这里即可）。如果是多模块项目，需要将每个模块都修改才可以。
+- 修改【Gradle user home】，填写jar包保存路径（即复制环境变量中的【GRADLE_USER_HOME】的值）
+
+这样 IDEA 的 Gradle 就配置好了。如果要更改 IDEA 的全局配置，在【Settings for New Projects】中配置即可，和 【Settings】的相似。
 
 ## 2. Spring 5.3.10
 
