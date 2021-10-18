@@ -2,70 +2,11 @@
 
 ## 1. Gradle 项目构建工具
 
-### 1.1. 下载
-
 Spring 源码是使用Gradle进行构建，需要下载与安装Gradle。
 
 Gradle官网：https://gradle.org/
 
-下载 gradle，需要 JDK8 及以上的版本。解压Gradle压缩包到无中文与空格的目录
-
-### 1.2. 配置环境变量
-
-- 配置gradle环境变量
-
-![](images/20211014232348796_30090.png)
-
-![](images/20211010211146535_1926.png)
-
-- 配置环境变量`GRADLE_USER_HOME`，用于指定本地仓库的位置
-
-![](images/20211010211036911_5048.png)
-
-- 通过cmd查看是否配置成功
-
-![](images/20211014232323625_6637.png)
-
-### 1.3. 修改gradle.bat批处理脚本
-
-- 修改Gradle的`\gradle-x.x\bin\`目录下的`gradle.bat`脚本，增加设置用户配置路径变量
-
-![](images/20211008225605200_31766.png)
-
-### 1.4. 配置 Gradle 仓库源
-
-在Gradle安装目录下的 `init.d` 文件夹下，新建一个 `init.gradle` 文件，添加如下配置
-
-```
-allprojects {
-    repositories {
-        maven { url 'file:///D:/Java/maven_repository'}
-        mavenLocal()
-        maven { name "Alibaba" ; url "https://maven.aliyun.com/repository/public" }
-        maven { name "Bstek" ; url "http://nexus.bsdn.org/content/groups/public/" }
-        mavenCentral()
-    }
-
-    buildscript {
-        repositories {
-            maven { name "Alibaba" ; url 'https://maven.aliyun.com/repository/public' }
-            maven { name "Bstek" ; url 'http://nexus.bsdn.org/content/groups/public/' }
-            maven { name "M2" ; url 'https://plugins.gradle.org/m2/' }
-        }
-    }
-}
-```
-
-repositories 是配置获取 jar 包的顺序。以上配置是先是本地的 Maven 仓库路径；接着的 `mavenLocal()` 是获取 Maven 本地仓库的路径，是和第一条一样，但是不冲突；第三条和第四条是从国内和国外的网络上仓库获取；最后的 `mavenCentral()` 是从Apache提供的中央仓库获取 jar 包。
-
-### 1.5. IDEA 配置 Gradle
-
-![](images/20211013220001891_18953.png)
-
-- 将【Use Gradle From】选项改为【Specified location】，然后右侧就会出现一个框，选择Gradle安装目录（即将 `%GRADLE_HOME%` 的路径复制到这里即可）。如果是多模块项目，需要将每个模块都修改才可以。
-- 修改【Gradle user home】，填写jar包保存路径（即复制环境变量中的【GRADLE_USER_HOME】的值）
-
-这样 IDEA 的 Gradle 就配置好了。如果要更改 IDEA 的全局配置，在【Settings for New Projects】中配置即可，和 【Settings】的相似。
+> 具体 Gradle 安装详见[《Gradle基础笔记》](/05-DevOps工具/01-项目构建工具/03-Gradle基础笔记)
 
 ## 2. Spring 5.3.10
 
@@ -80,18 +21,56 @@ git clone的地址为：
 - 源码：https://gitee.com/mirrors/Spring-Framework/tree/v5.3.10
 - 个人注释版：https://github.com/MooNkirA/spring-note
 
-### 2.2. 修改Gradle配置
+### 2.2. 修改源码项目配置与编译
 
-使用IDEA导入Spring源码，idea就会自动下载gradle，下载完gradle就会开始下载Spring源码依赖，因为使用自己下载的gradle，所以可以直接取消这个过程。
+1. 修改源码项目的`settings.gradle`文件，增加阿里云仓库
+
+```gradle
+pluginManagement {
+	repositories {
+		gradlePluginPortal()
+        maven { url 'https://maven.aliyun.com/repository/public' }
+		maven { url 'https://repo.spring.io/plugins-release' }
+	}
+}
+```
+
+2. 修改源码项目的`gradle.properties`文件，修改一些参数配置
+
+```properties
+version=5.3.10
+#org.gradle.jvmargs=-Xmx1536M
+org.gradle.jvmargs=-Xmx2048M
+org.gradle.caching=true
+org.gradle.parallel=true
+kotlin.stdlib.default.dependency=false
+```
+
+3. 修改源码项目的`build.gradle`文件，增加阿里云仓库
+
+```gradle
+repositories {
+    maven { url 'https://maven.aliyun.com/nexus/content/groups/public/' }
+    maven { url 'https://maven.aliyun.com/nexus/content/repositories/jcenter'}
+	mavenCentral()
+    maven { url "https://repo.spring.io/libs-spring-framework-build" }
+}
+```
+
+### 2.3. IDEA 导入源码时修改 Gradle 配置
+
+1. 到下载的 Spring 源码路径下载执行 `gradle` 命令，`gradlew :spring-oxm:compileTestJava`。编译spring-oxm模块，编译成功后会有`BUILD SUCCESSFUL`的提示。
+2. 导入IDEA (File -> New -> Project from Existing Sources -> Navigate to directory -> Select build.gradle)
+3. 使用IDEA导入Spring源码，idea就会自动下载gradle，下载完gradle就会开始下载Spring源码依赖，因为使用自己下载的gradle，所以可以直接取消这个过程。
 
 ![](images/20211010161333988_21107.png)
 
-- 设置`Gradle user home`、`Use Gradle from`的配置
+设置`Gradle user home`、`Use Gradle from`的配置
 
 - 修改`gradle user home`为.gradle压缩包的解压之后的文件路径，比如D:\.gradle
-- 将`Build and run suing`和`Run tests using`都改为`IntelliJ IDEA`
+- ~~将`Build and run suing`和`Run tests using`都改为`IntelliJ IDEA`~~
 
-![](images/20211010212101721_21370.png)
+![](images/20211017141206871_19426.png)
 
 保存修改后，会自动触发gradle的重新编译。
 
@@ -105,13 +84,13 @@ git clone的地址为：
 
 ![](images/20211010172758571_9328.png)
 
-### 2.3. 测试运行代码
+### 2.4. 测试运行代码
 
 编译成功后，编写一个基础的spring测试代码
 
 
 
-### 2.4. 相关问题
+### 2.5. 相关问题
 
 
 
