@@ -102,8 +102,6 @@
   <li><a href="#/03-前端资料/01-前端基础语法/03-JavaScript">JavaScript</a></li>
   <li><a href="#/03-前端资料/01-前端基础语法/04-JavaScript-正则表达式">JavaScript 正则表达式</a></li>
   <li><a href="#/03-前端资料/01-前端基础语法/05-JavaScript-工具函数">JavaScript 工具函数</a></li>
-  <li><a href="#/03-前端资料/01-前端基础语法/06-Moment.js-轻量级时间工具库">Moment.js 轻量级时间工具库</a></li>
-  <li><a href="#/03-前端资料/01-前端基础语法/07-Lodash-工具函数库">Lodash 工具函数库</a></li>
   <li><a href="#/03-前端资料/01-前端基础语法/99-前端其他相关资料">前端其他相关资料</a></li>
   <li><a href="#/03-前端资料/01-前端基础语法/网络资料-JavaScript代码简洁之道">网络资料-JavaScript代码简洁之道</a></li>
 </ul>
@@ -131,9 +129,20 @@
   <li><a href="#/03-前端资料/05-Node&Webpack/02-webpack笔记">Webpack 笔记</a></li>
 </ul>
 
+### 📱  移动端Web
+
+整理中...
+
+### 📱  前端工具类库
+
+<ul class="docs">
+  <li><a href="#/03-前端资料/07-工具类库/01-Lodash-工具函数库">Lodash 工具函数库</a></li>
+  <li><a href="#/03-前端资料/07-工具类库/02-Moment.js-轻量级时间工具库">Moment.js 轻量级时间工具库</a></li>
+</ul>
+
 ## 数据库
 
-### ✨ MySQL ✨
+### 🔢 MySQL
 
 <ul class="docs">
   <li><a href="#/04-数据库/01-MySQL/01-MySQL数据库01-体系架构">MySQL数据库01-体系架构</a></li>
