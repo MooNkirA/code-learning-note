@@ -117,10 +117,179 @@ content 属性相应的名称/值含义
 
 > 对于一张 50px×50px 的图片，在手机 Retina 屏中打开，按照刚才的物理像素比会放大倍数，这样会造成图片模糊。通常使用二倍图，因为iPhone 6\7\8 的影响,但是现在还存在3倍图4倍图的情况，这个看实际开发项目的需求
 
-### 3.3. 背景缩放 background-size
+### 3.3. 扩展 - 多倍图切图 cutterman
 
+Photoshop的插件
 
+![](images/20211103102747399_29402.png)
 
+## 4. 移动端技术解决方案
 
+### 4.1. 移动端开发选择方案
+
+1. 单独制作**移动端页面**（主流）。如京东商城手机版、淘宝触屏版、...
+    - 通常情况下，网址域名前面加 m(mobile) 可以打开移动端。通过判断当前用户的设备，如果是移动设备时，打开页面则跳到移动端页面。
+2. **响应式页面**兼容移动端（其次）。如三星手机官网、...
+    - 通过判断屏幕宽度来改变样式，以适应不同终端。缺点：制作麻烦，需要花很大精力去调兼容性问题
+
+总结：市场是常见的移动端开发有**单独制作移动端页面**和**响应式页面**两种方案，现在市场主流的选择还是单独制作移动端页面
+
+### 4.2. 移动端浏览器
+
+移动端浏览器基本以 webkit 内核为主，因此只需考虑webkit兼容性问题。同时浏览器的私有前缀也只需要考虑添加 webkit 即可
+
+### 4.3. 移动端CSS初始化 normalize.css
+
+移动端 CSS 初始化推荐使用 normalize.css
+
+- Normalize.css：保护了有价值的默认值
+- Normalize.css：修复了浏览器的bug
+- Normalize.css：是模块化的
+- Normalize.css：拥有详细的文档
+
+官网地址： http://necolas.github.io/normalize.css/
+
+### 4.4. 移动特殊样式处理
+
+```css
+xxx {
+    /* CSS3盒子模型 */
+    box-sizing: border-box;
+    -webkit-box-sizing: border-box;
+    /* 点击会出现高亮，需要清除清除 设置为transparent 完成透明 */
+    -webkit-tap-highlight-color: transparent;
+    /* 在移动端浏览器默认的外观在iOS上加上这个属性才能给按钮和输入框自定义样式 */
+    -webkit-appearance: none;
+    /* 禁用长按页面时的弹出菜单 */
+    -webkit-touch-callout: none;
+}
+```
+
+# 移动端常见布局
+
+1. 单独制作移动端页面
+    - 流式布局（百分比布局）
+    - flex 弹性布局（强烈推荐）
+    - less+rem+媒体查询布局
+    - 混合布局
+2. 响应式页面兼容移动端
+    - 媒体查询
+    - bootstarp
+
+## 1. 流式布局（百分比布局）
+
+### 1.1. 定义
+
+- 流式布局，就是百分比布局，也称非固定像素布局。
+- 通过盒子的宽度设置成百分比来根据屏幕的宽度来进行伸缩，不受固定像素的限制，内容向两侧填充。
+- 流式布局方式是移动web开发使用的比较常见的布局方式。
+
+如果只根据屏幕的大小去改变盒子的宽度（高度），那里面的内容就可能变得混乱，所以一般需要设置盒子的最大/最小的宽度（高度）
+
+- `max-width`/`max-height` 最大宽/高度
+- `min-width`/`min-height` 最小宽/高度
+
+示例：
+
+```html
+<section>
+    <div></div>
+    <div></div>
+</section>
+```
+
+```css
+* {
+    margin: 0;
+    padding: 0;
+}
+
+section {
+    width: 100%;
+    max-width: 980px; /* 最大宽度 */
+    min-width: 320px; /* 最小宽度 */
+    margin: 0 auto;
+}
+
+section div {
+    float: left;
+    width: 50%;
+    height: 400px;
+}
+
+section div:nth-child(1) {
+    background-color: pink;
+}
+
+section div:nth-child(2) {
+    background-color: purple;
+}
+```
+
+### 1.2. 仿京东移动端首页案例
+
+案例需求：模拟京东移动端首页。案例代码详见：`html-css-js-sample\css-composite-sample\H5-jd-portal`
+
+#### 1.2.1. 确定技术选型
+
+- 方案：采取单独制作移动页面方案
+- 技术：布局采取流式布局
+
+#### 1.2.2. 搭建项目目录结构
+
+```
+-- css        项目样式文件
+-- images     项目图片
+-- upload     项目图片
+-- indx.html  首页
+```
+
+#### 1.2.3. 设置视口标签以及引入初始化样式
+
+```html
+<!-- 设置视口标签以及引入初始化样式 -->
+<meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0, minimum-scale=1.0"
+/>
+
+<!-- 引入css初始化文件 -->
+<link rel="stylesheet" href="css/normalize.css" />
+<!-- 引入首页的css -->
+<link rel="stylesheet" href="css/index.css" />
+```
+
+#### 1.2.4. 常用初始化样式
+
+```css
+body {
+    width: 100%;
+    min-width: 320px;
+    max-width: 640px;
+    margin: 0 auto;
+    font-size: 14px;
+    font-family: -apple-system, Helvetica, sans-serif;
+    color: #666;
+    line-height: 1.5;
+}
+```
+
+#### 1.2.5. 二倍精灵图做法
+
+因为是二倍图的缘故，如果直接测量所需图标的位置是有问题的。正常的操作如下：
+
+- 在firework里面把精灵图等比例缩放为原来的一半
+- 之后根据大小测量坐标
+- 注意代码里面`background-size`，设置精灵图原来宽度的一半
+
+#### 1.2.6. 图片格式
+
+**DPG图片压缩技术**
+
+京东自主研发推出DPG图片压缩技术，经测试该技术，可直接节省用户近50%的浏览流量，极大的提升了用户的网页打开速度。能够兼容jpeg，实现全平台、全部浏览器的兼容支持，经过内部和外部上万张图片的人眼浏览测试后发现，压缩后的图片和webp的清晰度对比没有差距。
+
+**webp 图片格式**
+
+谷歌开发的一种旨在加快图片加载速度的图片格式。图片压缩体积大约只有JPEG的2/3，并能节省大量的服务器宽带资源和数据空间
 
 
