@@ -241,13 +241,13 @@ section div:nth-child(2) {
 -- css        项目样式文件
 -- images     项目图片
 -- upload     项目图片
--- indx.html  首页
+-- index.html  首页
 ```
 
 #### 1.2.3. 设置视口标签以及引入初始化样式
 
 ```html
-<!-- 设置视口标签以及引入初始化样式 -->
+<!-- 设置视口标签 -->
 <meta
     name="viewport"
     content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0, minimum-scale=1.0"
@@ -291,5 +291,64 @@ body {
 **webp 图片格式**
 
 谷歌开发的一种旨在加快图片加载速度的图片格式。图片压缩体积大约只有JPEG的2/3，并能节省大量的服务器宽带资源和数据空间
+
+## 2. flex 布局
+
+flex 布局是一种"弹性布局"，特别适用于移动端
+
+> 关于flex布局详见《CSS 基础知识》中的 [flex 伸缩布局](/03-前端资料/01-前端基础语法/02-CSS-01-基础知识?id=_8-伸缩布局css3)
+
+## 3. rem适配布局
+
+流式布局和flex布局主要针对于宽度布局，无法适配高度。如果需要随着屏幕大小变化，页面布局文字变化、元素高度和宽度等比例缩放，此时需要用到**rem适配布局**
+
+### 3.1. rem 单位
+
+rem (root em)是一个相对单位，类似于em，em是父元素字体大小。不同的是<font color=red>**rem的基准是相对于html元素的字体大小，与父元素无关**</font>。
+
+rem的优势：父元素文字大小可能不一致，但是整个页面只有一个html，可以很好来控制整个页面的元素大小
+
+比如，根元素（html）设置`font-size=12px;`，非根元素设置`width:2rem;`，则换成px表示就是24px。
+
+```html
+/* 根 html 为 12px */
+html {
+    font-size: 12px;
+}
+/* 此时 div 的字体大小就是 24px */
+div {
+    font-size: 2rem;
+}
+```
+
+### 3.2. 媒体查询 (CSS3)
+
+#### 3.2.1. 什么是媒体查询
+
+媒体查询（Media Query）是CSS3新语法。
+
+- 使用 `@media` 查询，可以针对不同的媒体类型定义不同的样式
+- `@media` 可以针对不同的屏幕尺寸设置不同的样式
+- 当在重置浏览器大小的过程中，页面也会根据浏览器的宽度和高度重新渲染页面
+- 目前针对很多苹果手机、Android手机，平板等设备都用得到多媒体查询
+
+#### 3.2.2. 语法规范
+
+```css
+@media mediatype and|not|only (media feature) {
+    CSS-Code;
+}
+```
+
+- `@media`：用于定义媒体查询的标识，注意`@`符号
+- `mediatype`：媒体类型
+- `and`、`not`、`only`：连接符
+- `media feature`：媒体特性，必须有小括号包含
+
+
+
+
+
+
 
 
