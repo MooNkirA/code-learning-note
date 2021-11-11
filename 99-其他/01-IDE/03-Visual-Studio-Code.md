@@ -10,7 +10,7 @@
 
 中文汉化包
 
-### 2.2. Eclipse Keymap
+### 2.2. Eclipse Keymap（弃用）
 
 配置与eclipse差不多一致的快捷键
 
@@ -291,7 +291,11 @@ module.exports = {
 
 修改 html 标签，自动帮你完成尾部闭合标签的同步修改，不过有些bug。
 
-### 2.12. IntelliSense for CSS class names in HTML 或 HTML CSS Support
+### 2.12. Highlight Matching Tag
+
+高亮显示选中匹配标签
+
+### 2.13. IntelliSense for CSS class names in HTML 或 HTML CSS Support
 
 **IntelliSense for CSS class names in HTML**
 
@@ -301,7 +305,20 @@ module.exports = {
 
 让 html 标签上写class 智能提示当前项目所支持的样式。新版已经支持scss文件检索
 
-### 2.13. 待整理
+### 2.14. Vscode-element-helper
+
+使用element-ui库的可以安装这个插件，编写标签时自动提示element标签名称。
+
+### 2.15. cssrem
+
+此插件的功能是实现 px 转换 rem
+
+1. 安装插件
+2. 打开【设置】（快捷键是 `ctrl + 逗号`）
+3. 设置html字体大小基准值，默认是16px
+4. 使用时只需要将光标停留在一些px单位的值上，再按`Alt+z`，就可以换算成 rem 单位的值
+
+### 2.16. 待整理
 
 - HTML Snippets
     - 超级实用且初级的 H5代码片段以及提示

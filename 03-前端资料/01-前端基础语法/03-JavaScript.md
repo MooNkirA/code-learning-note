@@ -3257,3 +3257,35 @@ func?.(args)
   </body>
 </html>
 ```
+
+### 1.3. 最快获取dom的方法
+
+HTML中带有 `id` 属性的元素，都会被全局的 ID 同名变量所引用，实际就是保存到`window`对象中
+
+```html
+<div id="zero"></div>
+```
+
+原本获取 dom 的方式
+
+```js
+const el = document.getElementById('zero')
+console.log(el) // <div id="zero"></div>
+```
+
+可直接通过与id一样的变量获取
+
+```java
+console.log(zero) // <div id="zero"></div>
+```
+
+### 1.4. 一行代码生成随机生成字符串
+
+主要是用ASCII码来实现。
+
+```js
+const str = Math.random().toString(36).substr(2, 10);
+console.log(str); // 'w5jetivt7e'
+```
+
+以上可获得了一个10位数的随机字符串。先是 `Math.random()` 生成 `[0, 1)` 的数，也就是 0.123312、0.982931之类的，然后调用 `number` 的 `toString`方法将其转换成36进制的，按照MDN的说法，36进制的转换应该是包含了字母 a~z 和数字0~9的，因为这样生成的是`0.89kjna21sa`类似这样的，所以要截取一下小数部分，即从索引 2 开始截取10个字符就是随机字符串了。很多开源库都使用此方式为DOM元素创建随机ID。

@@ -34,79 +34,11 @@
 > - 1：一般重要，可看可不看
 > - 5：非常重要，一定要看
 
-### 2.1. Spring 源码下载
+### 2.1. 源码的下载与编译
 
-1. 到github下载源码
-    - 源码下载地址：https://github.com/spring-projects/spring-framework
-    - 国内镜像：https://gitee.com/mirrors/spring-framework
-    - 目前源码学习的笔记更新至spring-framework 5.2.8.RELEASE，下载地址：https://gitee.com/mirrors/Spring-Framework/tree/v5.2.8.RELEASE
-2. 下载 gradle，需要 JDK8 及以上的版本。解压Gradle压缩包到无中文与空格的目录，然后配置gradle环境变量
+详见[《Spring 源码编译教程》](/02-后端框架/03-Spring/05-Spring源码编译教程)
 
-![](images/20201213174420466_14560.png)
-
-![](images/20201213174502507_749.png)
-
-3. 修改源码项目的`settings.gradle`文件，增加阿里云仓库
-
-```gradle
-pluginManagement {
-	repositories {
-		gradlePluginPortal()
-        maven { url 'https://maven.aliyun.com/repository/public' }
-		maven { url 'https://repo.spring.io/plugins-release' }
-	}
-}
-```
-
-4. 修改源码项目的`gradle.properties`文件，修改一些参数配置
-
-```properties
-version=5.2.8.RELEASE
-org.gradle.jvmargs=-Xmx2048M
-org.gradle.caching=true
-org.gradle.parallel=true
-org.gradle.configureondemand=true
-org.gradle.daemon=true
-```
-
-5. 修改源码项目的`build.gradle`文件，增加阿里云仓库
-
-```gradle
-repositories {
-    maven { url 'https://maven.aliyun.com/nexus/content/groups/public/' }
-    maven { url 'https://maven.aliyun.com/nexus/content/repositories/jcenter'}
-	mavenCentral()
-    maven { url "https://repo.spring.io/libs-spring-framework-build" }
-}
-```
-
-6. 到下载的 spring 源码路径执行 gradle 命令，`gradlew :spring-oxm:compileTestJava`。编译spring-oxm模块，编译成功后会有`BUILD SUCCESSFUL`的提示。
-7. 用 idea 打开 spring 源码工程，在 idea 中安装插件 kotlin，重启 idea
-8. 把编译好的源码导入到工程中，这样可以在源码中写注释并且断点调试源码了。
-
-### 2.2. 把源码导入到工程
-
-1. 使用gradle在将相关模块的源码打成jar
-
-![](images/20201226100102742_32136.png)
-
-2. 在Project侧边栏中的External Libraries，选择源码测试工程所依赖的spring相应的版本，右键选择【Open Library Settings】
-
-![](images/20201226101626229_17268.png)
-
-3. 选择Libraries里的spring源码包，在Classes、Sources、Annotations中增加编译好的源码
-
-![](images/20201226102200321_32128.png)
-
-4. 选择Classes、Sources，删除原来maven仓库的jar，改成使用源码编译后jar包
-
-![](images/20201226102458984_31395.png)
-
-![](images/20201226102637109_31955.png)
-
-![](images/20201226102647171_22314.png)
-
-### 2.3. 创建 Spring 最基础示例项目
+### 2.2. 创建 Spring 最基础示例项目
 
 - 创建maven项目，修改pom.xml导入 spring 依赖。其中 spring 中最核心的4个jar如下
     - spring-beans
@@ -915,7 +847,7 @@ parsePropertyElements(ele, bd);
 
 **解析过程重点记忆：`MutablePropertyValues`属性**。如果想要设置类的属性值，那么就需要往这个对象中添加 `PropertyValue` 对象
 
-## 6. Spring 中的 BeanFactory
+## 6. Spring 框架中的 BeanFactory
 
 BeanFactory是一个接口，Spring框架中，所有对Bean相关操作，都可以在BeanFactory里实现
 
@@ -1000,7 +932,7 @@ public interface ApplicationContext extends EnvironmentCapable, ListableBeanFact
 		MessageSource, ApplicationEventPublisher, ResourcePatternResolver
 ```
 
-`ApplicationContext` 是 Spring 为开发者提供的高级容器形式，也是初始化 Spring 容器的常用方式，除了简单容器所具备的功能（*即继承了ListableBeanFactory, HierarchicalBeanFactory接口*）外，`ApplicationContext` 还提供了许多额外功能，这些额外的功能主要包括：
+`ApplicationContext` 是 Spring 为开发者提供的高级容器形式，也是初始化 Spring 容器的常用方式，实际上也是一个BeanFactory，除了简单容器所具备的功能（*即继承了ListableBeanFactory, HierarchicalBeanFactory接口*）外，`ApplicationContext` 还提供了许多额外功能，这些额外的功能主要包括：
 
 - 国际化支持：`ApplicationContext` 实现了 `org.springframework.context.MessageSource` 接口，该接口为容器提供国际化消息访问功能，支持具备多语言版本需求的应用开发，并提供了多种实现来简化国际化资源文件的装载和获取。
 - 发布应用上下文事件：`ApplicationContext` 实现了 `org.springframework.context.ApplicationEventPublisher` 接口，该接口让容器拥有发布应用上下文事件的功能，包括容器启动、关闭事件等，如果一个 bean 需要接收容器事件，则只需要实现 ApplicationListener 接口即可，Spring 会自动扫描对应的监听器配置，并注册成为主题的观察者。
@@ -1309,6 +1241,59 @@ public interface BeanNameGenerator {
 - `AnnotationBeanNameGenerator`是为了处理注解生成beanName的情况。
 
 > `DefaultBeanNameGenerator`与`AnnotationBeanNameGenerator`详见代码工程的注释
+
+## 10. BeanDefinitionReader（BeanDefinition读取器）
+
+Spring源码中提供了BeanDefinition读取器（BeanDefinitionReader），这些BeanDefinitionReader在实际使用Spring时用得少，但在Spring源码中用得多，相当于Spring源码的基础设施。
+
+### 10.1. AnnotatedBeanDefinitionReader（整理中）
+
+可以直接把某个类转换为BeanDefinition，并且会解析该类上的注解，具体使用案例如下：*注：以下案例没有配置包扫描与bean上没有任何`@Component`注解*
+
+```java
+@Scope
+@Lazy
+@Primary
+@DependsOn
+@Role(BeanDefinition.ROLE_APPLICATION)
+@Description("这是一个类的描述")
+@Data
+public class AnnotatedBean {
+
+    private String name;
+    private int score;
+
+}
+```
+
+```java
+@Test
+public void testAnnotatedBeanDefinitionReader() {
+    AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(SpringConfiguration.class);
+    // 通过spring上下文对象，创建注解的BeanDefinition读取器
+    AnnotatedBeanDefinitionReader annotatedBeanDefinitionReader = new AnnotatedBeanDefinitionReader(context);
+    // 可以直接把某个类转换为BeanDefinition，并且会解析该类上的注解。注解包括：
+    // @Conditional、@Scope、@Lazy、@Primary、@DependsOn、@Role、@Description
+    annotatedBeanDefinitionReader.register(AnnotatedBean.class);
+    // 注：如果使用AnnotationConfigApplicationContext无参构造创建spring容器，在手动加入BeanDefinition后需要调用refresh()方法刷新容器。
+    // context.refresh();
+
+    BeanDefinition bd = context.getBeanDefinition("annotatedBean");
+    System.out.println(bd);
+    AnnotatedBean annotatedBean = context.getBean("annotatedBean", AnnotatedBean.class);
+    System.out.println(annotatedBean);
+}
+```
+
+> <font color=red>**注：该BeanDefinition读取器能解析的注解如`@Conditional`，`@Scope`、`@Lazy`、`@Primary`、`@DependsOn`、`@Role`、`@Description`**</font>
+
+### 10.2. XmlBeanDefinitionReader（整理中）
+
+
+
+### 10.3. ClassPathBeanDefinitionScanner（整理中）
+
+## 11. Spring 框架的类型转化（整理中）
 
 
 
