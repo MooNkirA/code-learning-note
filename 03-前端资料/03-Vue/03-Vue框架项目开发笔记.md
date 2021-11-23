@@ -1,48 +1,86 @@
 # vue.js框架项目开发笔记
 
-## 1. 使用vue脚手架工具(CLI)
+## 1. vue 脚手架工具(vue-cli)
 
-### 1.1. 安装命令
+### 1.1. 什么是 vue-cli
 
-- 如果程序运行的环境（电脑）第一次使用vue的脚手架工具，需要运行`npm install -g @vue/cli`命令，安装脚手架
+vue-cli 是 Vue.js 开发的标准工具。它简化了程序员基于 webpack 创建工程化的 Vue 项目的过程。
+
+- 官网：https://cli.vuejs.org/
+- 中文官网：https://cli.vuejs.org/zh/
+
+### 1.2. 安装命令
+
+- vue-cli 是 npm 上的一个全局包。如果程序运行的环境（电脑）第一次使用vue的脚手架工具，需要运行以下命令，安装脚手架到本地
+
+```bash
+npm install -g @vue/cli
+```
 
 ![安装初始化脚手架命令](images/_安装初始化脚手架命令_1530929898_27492.png)
 
-- 安装之后的地址：
+- 安装之后的地址（默认值）：
 
 > 例子：C:\Users\MoonZero\AppData\Roaming\npm\node_modules\@vue\cli\bin
+>
+> 可以通过配置npm来设置全局安装的默认位置
 
-### 1.2. 创建模版
+### 1.3. 创建模版
 
 > 注意:如果环境第一次使用CLI脚手架，必须进行了上一步操作后再可以创建模版
 
-- 命令：` vue init webpack 项目名称 `
+- 基于 vue-cli 快速生成工程化的 Vue 项目：
+
+```bash
+vue create 项目的名称
+```
+
 - 运行创建模版的命令后，需要设置
-	- ?Project name ---- 项目名称，init命令时也填了个project-name，如果无需更改，直接回车即可；
-	- ?Project description ---- 项目描述，按需填写。无需填写可以直接回车；
-	- ?Author ---- 作者
-	- ?Vue build ---- 构建模式，一般默认第一个；
-	- ?Install vue-router? ---- 是否安装vue-router。选Y。后边构建项目会用到。
-	- ?Use ESLint to lint yout code? ---- 格式校验，按需；
-	- ?Set up unit tests ---- 测试相关，按需；
-	- ?Setup e2e tests with Nightwatch? ---- 测试相关，按需；
-	- ?Should we run 'npm install' for you after the project has been created? 
-	    - 按需，这里我选Yes, use NPM。如果选No，后续自己在目标目录下执行npm install即可。
+
+```
+- ?Project name ---- 项目名称，init命令时也填了个project-name，如果无需更改，直接回车即可；
+- ?Project description ---- 项目描述，按需填写。无需填写可以直接回车；
+- ?Author ---- 作者
+- ?Vue build ---- 构建模式，一般默认第一个；
+- ?Install vue-router? ---- 是否安装vue-router。选Y。后边构建项目会用到。
+- ?Use ESLint to lint yout code? ---- 格式校验，按需；
+- ?Set up unit tests ---- 测试相关，按需；
+- ?Setup e2e tests with Nightwatch? ---- 测试相关，按需；
+- ?Should we run 'npm install' for you after the project has been created? ---- 按需，这里选Yes, use NPM。如果选No，后续在目标目录下执行npm install即可。
+```
 
 > 注：创建模版后，项目的位置可以移动
 
-### 1.3. 安装与运行命令
+![](images/20211122195716320_4575.jpg)
+
+![](images/20211122195741013_4969.jpg)
+
+![](images/20211122195748369_5804.jpg)
+
+![](images/20211122195755080_4028.jpg)
+
+![](images/20211122195801529_10355.jpg)
+
+### 1.4. 项目安装与运行命令
 
 > 注：如果创建时没有选择创建后执行运行【npm install】命令，需要手动进行安装
 
 - 安装：`npm install`
 - 运行项目：`npm run dev`
 
-### 1.4. 安装依赖的命令
+### 1.5. 安装依赖的命令
 
 使用命令：`npm install 依赖的名字`。或者一次安装多个的命令：`npm install 依赖的名字1 依赖的名字2 ...`
 
 如何安装在是devDependencies中，使用命令：`npm install 依赖的名字 --save-dev`
+
+### 1.6. vue 项目的运行流程
+
+在工程化的项目中，vue 要做的事情很单纯：通过 `main.js` 把 `App.vue` 渲染到 `index.html` 的指定区域中。核心文件说明如下：
+
+- `App.vue` 用来编写待渲染的模板结构
+- `index.html` 中需要预留一个 `el` 区域
+- `main.js` 把 `App.vue` 渲染到了 `index.html` 所预留的区域中
 
 ## 2. 项目的目录设计
 
