@@ -32,7 +32,11 @@
 
 自动路劲补全，默认不带这个功能的（必备）
 
-### 2.6. 推荐主题
+### 2.6. Path Autocomplete
+
+地址补全插件
+
+### 2.7. 推荐主题
 
 One Monokai Theme
 
@@ -54,7 +58,7 @@ Material Palenight Theme
 
 ![](images/20201106084601911_5155.jpg)
 
-### 2.7. eslint插件
+### 2.8. eslint插件
 
 ![](images/20201106084622737_26552.jpg)
 
@@ -274,28 +278,28 @@ module.exports = {
 }
 ```
 
-### 2.8. beautify 与 Prettier - Code formatter
+### 2.9. beautify 与 Prettier - Code formatter
 
 - beautify：格式化代码的工具，可以格式化JSON|JS|HTML|CSS|SCSS,比内置格式化好用；但是react工程的jsx文件用beautify插件格式化会乱掉，建议不要用
 - Prettier - Code formatter：格式化代码的工具，可以支持react
 
-### 2.9. Bracket Pair Colorizer 或 Bracket Pair Colorizer2
+### 2.10. Bracket Pair Colorizer 或 Bracket Pair Colorizer2
 
 此扩展允许使用颜色标识匹配的括号
 
-### 2.10. Auto Close Tag
+### 2.11. Auto Close Tag
 
 自动添加HTML / XML关闭标签
 
-### 2.11. Atuo Rename Tag
+### 2.12. Atuo Rename Tag
 
 修改 html 标签，自动帮你完成尾部闭合标签的同步修改，不过有些bug。
 
-### 2.12. Highlight Matching Tag
+### 2.13. Highlight Matching Tag
 
 高亮显示选中匹配标签
 
-### 2.13. IntelliSense for CSS class names in HTML 或 HTML CSS Support
+### 2.14. IntelliSense for CSS class names in HTML 或 HTML CSS Support
 
 **IntelliSense for CSS class names in HTML**
 
@@ -305,11 +309,11 @@ module.exports = {
 
 让 html 标签上写class 智能提示当前项目所支持的样式。新版已经支持scss文件检索
 
-### 2.14. Vscode-element-helper
+### 2.15. Vscode-element-helper
 
 使用element-ui库的可以安装这个插件，编写标签时自动提示element标签名称。
 
-### 2.15. cssrem
+### 2.16. cssrem
 
 此插件的功能是实现 px 转换 rem
 
@@ -318,7 +322,7 @@ module.exports = {
 3. 设置html字体大小基准值，默认是16px
 4. 使用时只需要将光标停留在一些px单位的值上，再按`Alt+z`，就可以换算成 rem 单位的值
 
-### 2.16. 待整理
+### 2.17. 待整理
 
 - HTML Snippets
     - 超级实用且初级的 H5代码片段以及提示
