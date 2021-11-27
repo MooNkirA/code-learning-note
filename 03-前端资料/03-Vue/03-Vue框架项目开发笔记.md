@@ -1949,14 +1949,19 @@ table回显图片也是很简单的，仅需要在列中增加一列
 网站：`https://icomoon.io/` 可以上传自定义的图标字体
 
 ## 10. 参考资料
+
 Vue.js高仿饿了么外卖App课程源码 `https://github.com/ustbhuangyi/vue-sell`
 
 ## 11. 相关框架
+
 ### 11.1. v-page：vue.js的分页组件
+
 官网：https://terryz.gitee.io/vue/#/page
 
 ### 11.2. Element 基于 Vue 2.0 的桌面端组件库
+
 官网：http://element-cn.eleme.io/#/zh-CN
 
 ### 11.3. iView 基于Vue.js的UI组件库
+
 官网：https://www.iviewui.com/
