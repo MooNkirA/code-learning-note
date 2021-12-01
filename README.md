@@ -117,6 +117,7 @@
   <li><a href="#/03-前端资料/03-Vue/01-Vue2.x-笔记"> Vue2.x 基础笔记</a></li>
   <li><a href="#/03-前端资料/03-Vue/02-Vue2.x-API笔记">Vue2.x API</a></li>
   <li><a href="#/03-前端资料/03-Vue/03-Vue框架项目开发笔记">Vue 框架项目开发笔记</a></li>
+  <li><a href="#/03-前端资料/03-Vue/04-Vue-Router">Vue Router 路由库</a></li>
 </ul>
 
 ### ✨ React.js ✨
@@ -133,12 +134,13 @@
   <li><a href="#/03-前端资料/05-Bootstrap/01-Bootstrap基础">Bootstrap 基础入门</a></li>
 </ul>
 
-### ✨ Node.js & Webpack ✨
+### ✨ 前端工程化工具 ✨
 
 <ul class="docs">
-  <li><a href="#/03-前端资料/06-Node&Webpack/01-node笔记">node.js 笔记</a></li>
-  <li><a href="#/03-前端资料/06-Node&Webpack/02-webpack笔记">Webpack 笔记</a></li>
+  <li><a href="#/03-前端资料/06-Node&Webpack/01-node">node.js 笔记</a></li>
+  <li><a href="#/03-前端资料/06-Node&Webpack/02-webpack">Webpack 笔记</a></li>
 </ul>
+
 
 ### 📱  移动端Web
 
