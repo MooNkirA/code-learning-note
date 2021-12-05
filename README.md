@@ -137,8 +137,9 @@
 ### ✨ 前端工程化工具 ✨
 
 <ul class="docs">
-  <li><a href="#/03-前端资料/06-Node&Webpack/01-node">node.js 笔记</a></li>
-  <li><a href="#/03-前端资料/06-Node&Webpack/02-webpack">Webpack 笔记</a></li>
+  <li><a href="#/03-前端资料/06-前端工程化工具/01-node">node.js 笔记</a></li>
+  <li><a href="#/03-前端资料/06-前端工程化工具/02-webpack">Webpack 笔记</a></li>
+  <li><a href="#/03-前端资料/06-前端工程化工具/03-ESLint">ESLint 笔记</a></li>
 </ul>
 
 

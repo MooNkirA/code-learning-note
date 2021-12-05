@@ -6,13 +6,13 @@
 
 #### 1.1.1. 5种基本数据类型
 
-|   关键字   |                   数据类型                   |
-| --------- | ------------------------------------------- |
-| Number    | 数值型（整数和浮点数）                        |
-| String    | 字符串类型(字符和字符串)，可以使用单引号或双引号 |
-| Boolean   | 布尔类型(true/false)                         |
-| Object    | 对象类型，对象类型格式：(定义对象，称为JSON对象<br/>(JavaScript Object Notation, JS对象标记)是一种轻量级的数据交换格式  |
-| undefined | 未初始化的类型，如果一个变量没有赋值它的类型是不确定的                                            |
+|    关键字    |                                                    数据类型                                                    |
+| :---------: | -------------------------------------------------------------------------------------------------------------- |
+|  `Number`   | 数值型（整数和浮点数）                                                                                           |
+|  `String`   | 字符串类型(字符和字符串)，可以使用单引号或双引号                                                                    |
+|  `Boolean`  | 布尔类型(true/false)                                                                                           |
+|  `Object`   | 对象类型，对象类型格式：(定义对象，称为JSON对象<br/>(JavaScript Object Notation, JS对象标记)是一种轻量级的数据交换格式 |
+| `undefined` | 未初始化的类型，如果一个变量没有赋值它的类型是不确定的                                                               |
 
 - Object 示例
 
@@ -23,9 +23,10 @@ const obj = {
 }
 ```
 
-- **`null`与`undefined`的区别**
-    - `null`：其实是Object对象类型，这个对象只是没有值，为空
-    - `undefined`：没有初始化的类型，并不知道是什么数据类型
+**`null`与`undefined`的区别**
+
+- `null`：其实是Object对象类型，这个对象只是没有值，为空
+- `undefined`：没有初始化的类型，并不知道是什么数据类型
 
 #### 1.1.2. typeof操作符
 
@@ -2492,13 +2493,16 @@ console.log([...'hello']) // ["h", "e", "l", "l", "o"]
 ```
 
 ## 8. Promise 对象
-### 8.1. Promise简述
 
-所谓Promise，简单说就是一个容器，里面保存着某个未来才会结束的事件（通常是一个异步操作）的结果。从语法上说，Promise 是一个对象，从它可以获取异步操作的消息。Promise 提供统一的 API，各种异步操作都可以用同样的方法进行处理。
+### 8.1. Promise 简述
+
+Promise 是异步编程的一种解决方案。所谓Promise，简单说就是一个容器，里面保存着某个未来才会结束的事件（通常是一个异步操作）的结果。从语法上说，Promise 是一个对象，从它可以获取异步操作的消息。Promise 提供统一的 API，各种异步操作都可以用同样的方法进行处理。
 
 可以通过Promise的构造函数来创建Promise对象，并在内部封装一个异步执行的结果。
 
-### 8.2. Promise语法
+### 8.2. Promise 语法
+
+ES6 规定，`Promise` 对象是一个构造函数，用来生成 `Promise` 实例。
 
 ```js
 const promise = new Promise(function (resolve, reject) {
@@ -2511,11 +2515,18 @@ const promise = new Promise(function (resolve, reject) {
 });
 ```
 
-在promise中就封装了一段异步执行的结果。如果想要等待异步执行完成，做一些事情，可以通过promise对象的then方法来实现接收resolve方法返回的结果。语法：
+`Promise`构造函数接受一个函数作为参数，该函数的两个参数分别是`resolve`和`reject`。它们是两个函数，由 JavaScript 引擎提供，不用开发者定义。
+
+- `resolve` 函数的作用是，将 `Promise` 对象的状态从“未完成”变为“成功”（即从 pending 变为 resolved），在异步操作成功时调用，并将异步操作的结果，作为参数传递出去；
+- `reject` 函数的作用是，将 `Promise` 对象的状态从“未完成”变为“失败”（即从 pending 变为 rejected），在异步操作失败时调用，并将异步操作报出的错误，作为参数传递出去。
+
+在promise中就封装了一段异步执行的结果。如果想要等待异步执行完成，做一些事情，可以通过promise对象的then方法来实现接收 `resolved` 状态和 `rejected` 状态的回调函数。其中，`rejected` 函数是可选的，不一定要提供。语法如下：
 
 ```js
 promise.then(function (value) {
   // 异步执行成功后的回调
+}, function(error) {
+  // 异步执行失败后的回调
 });
 ```
 
@@ -2529,7 +2540,7 @@ promise.then(function (value) {
 })
 ```
 
-### 8.3. Promise使用示例
+### 8.3. Promise 基础使用示例
 
 ```js
 const p = new Promise(function (resolve, reject) {
@@ -2557,7 +2568,86 @@ console.log('异步请求结束!');
 
 ![promise使用示例](images/20190421110058157_24233.png)
 
+### 8.4. Promise.prototype.then()
+
+`then` 方法是定义在原型对象 `Promise.prototype` 上的。它的作用是为 `Promise` 实例添加状态改变时的回调函数。`then` 方法的参数如下：
+
+- 第一个参数是 `resolved` 状态的回调函数
+- 第二个参数（可选）是 `rejected` 状态的回调函数。
+
+`then` 方法返回的是一个新的 `Promise` 实例（*注意，不是原来那个 `Promise` 实例*），因此可以采用链式写法。第一个回调函数完成以后，会将返回结果作为参数，传入第二个回调函数，以此类推。
+
+```js
+getJSON("/posts.json").then(function(json) {
+  return json.post;
+}).then(function(post) {
+  // ...
+});
+```
+
+采用链式的`then`，可以指定一组按照次序调用的回调函数。如前一个回调函数，有可能返回的还是一个`Promise`对象（即有异步操作），这时后一个回调函数，就会等待该`Promise`对象的状态发生变化，才会被调用。
+
+```js
+getJSON("/post/1.json").then(function(post) {
+  return getJSON(post.commentURL);
+}).then(function (comments) {
+  console.log("resolved: ", comments);
+}, function (err){
+  console.log("rejected: ", err);
+});
+
+// 箭头函数写法
+getJSON("/post/1.json").then(
+  post => getJSON(post.commentURL)
+).then(
+  comments => console.log("resolved: ", comments),
+  err => console.log("rejected: ", err)
+);
+```
+
+### 8.5. Promise.all()
+
+`Promise.all()` 方法用于将多个 `Promise` 实例，包装成一个新的 `Promise` 实例。方法接受一个数组作为参数，但参数也可以不是数组，但必须具有 `Iterator` 接口，且返回的每个成员都是 `Promise` 实例。
+
+`Promise.all()` 方法会发起并行的 `Promise` 异步操作，等所有的异步操作全部结束后才会执行下一步的 `.then` 操作（等待机制）。**注意：参数数组中 `Promise` 实例的顺序，就是最终结果的顺序！**
+
+```js
+const databasePromise = connectDatabase();
+
+const booksPromise = databasePromise
+  .then(findAllBooks);
+const userPromise = databasePromise
+  .then(getCurrentUser);
+
+Promise.all([
+  booksPromise,
+  userPromise
+]).then(([books, user]) => pickTopRecommendations(books, user));
+```
+
+> *上面代码中，`booksPromise`和`userPromise`是两个异步操作，只有等到它们的结果都返回了，才会触发`pickTopRecommendations`这个回调函数。*
+
+### 8.6. Promise.race()
+
+`Promise.race()` 方法同样是将多个 `Promise` 实例，包装成一个新的 `Promise` 实例。方法的参数与 `Promise.all()` 方法参数一样，不同的地方在于，`Promise.race()` 方法会发起并行的 `Promise` 异步操作，只要任何一个异步操作完成，就立即执行下一步的 `.then` 操作（赛跑机制）
+
+```js
+const p = Promise.race([
+  fetch('/resource-that-may-take-a-while'),
+  new Promise(function (resolve, reject) {
+    setTimeout(() => reject(new Error('request timeout')), 5000)
+  })
+]);
+
+p
+.then(console.log)
+.catch(console.error);
+```
+
+> *上面代码中，如果 5 秒之内`fetch`方法无法返回结果，变量`p`的状态就会变为`rejected`，从而触发`catch`方法指定的回调函数。*
+
 ## 9. Generator函数
+
 ### 9.1. Generator函数简介
 
 - Generator函数是ES6提供的一种异步编程解决方案，语法行为与传统函数完全不同。
@@ -2942,45 +3032,257 @@ console.log(shiyuan.__proto__ === Star.prototype)
 ```
 
 ## 11. 模块化
+
 ### 11.1. 什么是模块化
+
+在 ES6 模块化规范诞生之前，JavaScript 社区已经尝试并提出了 AMD、CMD、CommonJS 等模块化规范。但是，这些由社区提出的模块化标准，还是存在一定的差异性与局限性、并不是浏览器与服务器通用的模块化标准，例如：
+
+- AMD 和 CMD 适用于浏览器端的 Javascript 模块化
+- CommonJS 适用于服务器端的 Javascript 模块化
+
+为了统一规范，推出了 ES6 模块化规范
 
 - 模块化就是把代码进行拆分，方便重复利用。类似java中的导包：要使用一个包，必须先导包。
 - 而JS中没有包的概念，换来的是模块。
-- 模块功能主要由两个命令构成： `export` 和 `import` 。
-    - `export` 命令用于规定模块的对外接口，
-    - `import` 命令用于导入其他模块提供的功能。
 
 ### 11.2. ES6的模块化的基本规则或特点
 
+ES6 模块化规范是浏览器端与服务器端通用的模块化开发规范。ES6 模块化规范中定义：
+
+- 每个 js 文件都是一个独立的模块
+- 导入其它模块成员使用 `import` 关键字
+- 向外共享模块成员使用 `export` 关键字
+
+模块化的特点：
+
 1. 每一个模块只加载一次，每一个JS只执行一次，如果下次再去加载同目录下同文件，直接从内存中读取。一个模块就是一个单例，或者说就是一个对象；
 2. 每一个模块内声明的变量都是局部变量，不会污染全局作用域；
-3. 模块内部的变量或者函数可以通过export导出；
+3. 模块内部的变量或者函数可以通过 `export` 导出；
 4. 一个模块可以导入别的模块
 
-### 11.3. export 用法
+> node.js 中默认**仅支持 CommonJS 模块化规范**，基于 node.js 使用 ES6 的模块化语法的配置详见[《node.js 笔记》](#/03-前端资料/06-前端工程化工具/01-node?id=_41-在-nodejs-中体验-es6-模块化)
 
-比如定义一个js文件：Util.js，里面有一个Util类。使用`export`关键字导出该类
+### 11.3. ES6 模块化的基本语法与用法
+
+模块功能主要由两个命令构成：`export` 和 `import`。
+
+- `export` 命令用于规定模块的对外接口
+- `import` 命令用于输入其他模块提供的功能
+
+ES6 的模块化主要包含如下 3 种用法：
+
+1. 默认导出与默认导入
+2. 按需导出与按需导入
+3. 直接导入并执行模块中的代码
+
+### 11.4. export 用法
+
+一个模块就是一个独立的文件。该文件内部的所有变量，外部无法获取。如果希望外部能够读取模块内部的某个变量，就必须使用 `export` 关键字输出该变量。
+
+#### 11.4.1. 单独导入多个变量
+
+```js
+// profile.js
+export const firstName = 'MooN';
+export const lastName = 'Zero';
+export const age = 23;
+```
+
+除以上示例写法，还有另外一种写法：使用大括号`{}`指定所要导出的一组变量。它与前一种写法（`export`直接放在变量前）是等价的。应该优先考虑使用此写法，因为相对比较清晰导出哪些变量。
+
+```js
+// profile.js
+const firstName = 'MooN';
+const lastName = 'Zero';
+const age = 23;
+
+export { firstName, lastName, age }
+```
+
+`export` 命令除了导出变量，还可以导出函数或类（class）。
+
+```js
+// 对外输出一个函数multiply
+export function multiply(x, y) {
+  return x * y;
+};
+```
+
+#### 11.4.2. 导出变量重命名
+
+通常情况下，`export` 导出的变量就是原文件中的变量名称，但是可以使用 `as` 关键字重命名。
+
+```js
+const firstName = 'MooN';
+function v1() { ... }
+function v2() { ... }
+
+// 使用as关键字重命名了函数v1和v2的对外接口。重命名后，v2可以用不同的名字输出两次。
+export {
+  firstName as fName,
+  v1 as streamV1,
+  v2 as streamV2,
+  v2 as streamLatestVersion
+};
+```
+
+#### 11.4.3. export default （默认导出）
+
+使用 `export default` 命令，为模块指定默认导出。<font color=red>**一个模块只能有一个默认输出，因此 export default 命令只能使用一次**</font>。所以当使用 `import` 命令导入时，是不用加大括号，因为只可能唯一对应 `export default` 命令。
+
+比如定义一个js文件：Util.js，里面有一个Util类。
 
 ```js
 class Util {
   static sum = (a, b) => a + b;
 }
-// 导出该类
+// 对外默认导出Util类
 export default Util;
 ```
 
-### 11.4. import 用法
+默认导出函数
+
+```js
+// export-default.js
+export default function () {
+  console.log('foo');
+}
+
+// 或者写成
+function foo() {
+  console.log('foo');
+}
+export default foo;
+```
+
+本质上，`export default` 就是输出一个名叫 `default` 的变量或方法，然后也允许为它取任意名字。所以，下面的写法是有效的。
+
+```js
+// modules.js
+function add(x, y) {
+  return x * y;
+}
+export {add as default};
+// 等同于
+// export default add;
+
+// app.js
+import { default as foo } from 'modules';
+// 等同于
+// import foo from 'modules';
+```
+
+`export default` 与 单独的 `export` 可以混合使用
+
+```js
+export default function (obj) {
+  // ···
+}
+export function each(obj, iterator, context) {
+  // ···
+}
+export { each as forEach };
+```
+
+> 以上示例就是导出一个默认的函数，然后单独导出 `forEach` 与 `each` 函数，然后 `forEach` 函数默认指向 `each` 函数。所以 `forEach` 和 `each` 指向同一个方法。
+
+#### 11.4.4. 导出的注意事项
+
+- `export` 命令可以出现在模块（js文件）的任何位置，只要处于模块顶层即可。如果处于块级作用域内，就会报错
+
+```js
+function foo() {
+  export default 'bar' // SyntaxError
+}
+foo()
+```
+
+- 每个模块中，只允许使用唯一的一次 `export default`，否则会报错！
+- 单独导出可以和默认导出一起使用
+
+### 11.5. import 用法
 
 使用 `export` 命令定义了模块的对外接口以后，其他 JS 文件就可以通过 `import` 命令加载这个模块。
 
+#### 11.5.1. 导入单独变量
+
+`import` 命令用于加载模块文件，并导入指定的变量。`import` 命令接受一对大括号`{}`，里面指定要从其他模块导入的变量名。大括号里面的变量名，必须与被导入模块对外导出的变量名称相同。
+
 ```js
-/* 在Index.js文件中，导入Util类 */
-import Util from './Util'
-// 使用Util中的sum方法
-console.log(Util.sum(1, 2));
+import { firstName, lastName, age } from './export.js'
 ```
 
-### 11.5. ES6 中 export 及 export default 的区别
+`import` 后面的 `from` 指定模块文件的位置，可以是相对路径，也可以是绝对路径，并且 `.js` 后缀可以省略。如果只是模块名，不带有路径，那么必须有配置文件，告诉 JavaScript 引擎该模块的位置。
+
+```js
+// 相对路径导入
+import {myMethod} from './xxxx';
+// 不带路径导入
+import {myMethod} from 'util';
+```
+
+#### 11.5.2. 导入变量重命名
+
+`import` 命令可以使用 `as` 关键字，将导入的变量重命名。
+
+```js
+import { str as string, sum } from './export.js'
+```
+
+#### 11.5.3. 默认导入
+
+在导入默认导出的内容时，`import` 命令可以为该匿名内容指定任意名字。需要注意的是，这时 `import` 命令后面，不使用大括号`{}`。
+
+```js
+// import-default.js
+import customName from './export-default';
+customName(); // 'foo'
+```
+
+本质上，`export default` 就是输出一个叫做 `default` 的变量或方法，导入时其实就是导入 `default` 的变量，并且使用 `as` 关键字重命名
+
+```js
+// modules.js
+function add(x, y) {
+  return x * y;
+}
+export default add;
+
+// app.js
+import { default as foo } from 'modules';
+// 等同于
+// import foo from 'modules';
+```
+
+#### 11.5.4. 直接导入并执行模块中的代码
+
+如果只想单纯地执行某个模块中的代码，并不需要得到模块中向外共享的成员。此时，可以直接导入并执行模块代码
+
+```js
+// 某个只有执行逻辑的js
+for (let i = 0; i < 3; i++) {
+  console.log(i)
+}
+
+/* 直接导入并执行模块代码 */
+import './no-export.js'
+```
+
+#### 11.5.5. 导入的注意事项
+
+- `import` 命令**导入的变量都是只读的**，因为它的本质是导入变量。即不允许在加载模块的脚本里面，改写变量相应的内容。<font color=red>**但如果导入的变量是指定一个对象，改写该对象的属性是允许的。不过，这种写法很难查错，建议凡是输入的变量，都当作完全只读，不要轻易改变它的属性。**</font>
+
+```js
+import {a} from './xxx.js'
+a = {}; // Syntax Error : 'a' is read-only;
+
+import {a} from './xxx.js'
+a.foo = 'hello'; // 合法操作。不过，这种写法很难查错，建议凡是输入的变量，都当作完全只读，不要轻易改变它的属性。
+```
+
+- 如果多次重复执行同一句 `import` 语句，那么只会执行一次，而不会执行多次。
+
+### 11.6. ES6 中 export 及 export default 的区别
 
 `export const` 与 `export default` 均可用于导出常量、函数、文件、模块等，可以在其它文件或模块中通过`import+(常量 | 函数 | 文件 | 模块名)`的方式将其导入，以便能够对其进行使用，但在一个文件或模块中，export、import可以有多个，export default仅有一个。
 
@@ -3002,7 +3304,7 @@ export default const str = 'hello world'
 import str from 'demo1' // 导入的时候没有花括号
 ```
 
-**总结：其中`export`和`export default`最大的区别就是export不限变量数可以一直写，而export default只输出一次 而且export导出的变量要使用时，必须使用`{}`来定义接收的变量，而`export default`不需要`{}`，只要import任意一个名字来接收对象即可。**
+**总结：其中`export`和`export default`最大的区别就是`export`不限变量数可以一直写，而`export default`只输出一次 而且`export`导出的变量要使用时，必须使用`{}`来定义接收的变量，而`export default`不需要`{}`，只要`import`任意一个名字来接收对象即可。**
 
 `export default`可以跟在非匿名函数之前，也可以跟在匿名函数之前，同时也可以是一个对象之前。
 
