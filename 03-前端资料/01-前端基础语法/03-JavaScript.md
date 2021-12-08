@@ -1962,65 +1962,263 @@ console.log(obj);
 
 ## 8. 其他
 
-### 8.1. console对象使用
-#### 8.1.1. 常用方法
+### 8.1. EventLoop
 
-1. console.log()
+#### 8.1.1. JavaScript 是单线程的语言
+
+JavaScript 是一门单线程执行的编程语言。也就是说，同一时间只能做一件事情。
+
+![](images/20211205104054852_26007.png)
+
+> 单线程执行任务队列的问题：如果前一个任务非常耗时，则后续的任务就不得不一直等待，从而导致程序假死的问题。
+
+#### 8.1.2. 同步任务和异步任务
+
+JavaScript 把待执行的任务分为了两类：
+
+1. 同步任务（synchronous）
+    - 又称为**非耗时任务**，指的是在主线程上排队执行的那些任务
+    - 只有前一个任务执行完毕，才能执行后一个任务
+2. 异步任务（asynchronous）
+    - 又称为**耗时任务**，异步任务由 JavaScript 委托给宿主环境进行执行
+    - 当异步任务执行完成后，会通知 JavaScript 主线程执行异步任务的回调函数
+
+#### 8.1.3. EventLoop 的基本概念
+
+**同步任务和异步任务的执行过程**
+
+![](images/20211205104342254_17359.png)
+
+1. 同步任务由 JavaScript 主线程次序执行
+2. 异步任务委托给宿主环境执行
+3. 已完成的异步任务对应的回调函数，会被加入到任务队列中等待执行
+4. JavaScript **主线程的执行栈被清空后，会读取任务队列中的回调函数，次序执行**
+5. JavaScript **主线程不断重复上面的第 4 步**
+
+<font color=red>**JavaScript 主线程从“任务队列”中读取异步任务的回调函数，放到执行栈中依次执行。这个过程是循环不断的，所以整个的这种运行机制又称为 EventLoop（事件循环）。**</font>
+
+#### 8.1.4. 结合 EventLoop 分析输出的顺序案例（面试题）
 
 ```js
-// 用于输出普通信息，最常用
-console.log("%c%s", "color:red;font-size:20px", "结果是：这样的哟");
+import { getResult } from '../utils/util.js'
+
+console.log('A')
+
+// 模拟请求获取数据
+getResult(3).then(res => console.log('B'))
+
+setTimeout(() => console.log('C'), 0)
+
+console.log('D')
 ```
 
-2. console.info()
+上面示例最终的输出结果是：ADCB
+
+- A 和 D 属于同步任务。会根据代码的先后顺序依次被执行
+- C 和 B 属于异步任务。它们的回调函数会被加入到任务队列中，等待主线程空闲时再执行
+
+### 8.2. 宏任务和微任务
+
+#### 8.2.1. 什么是宏任务和微任务
+
+JavaScript 把异步任务又做了进一步的划分，异步任务又分为两类，分别是：
+
+![](images/20211205110318506_26479.png)
+
+1. 宏任务（macrotask）：异步 Ajax 请求、`setTimeout`、`setInterval`、文件操作等
+2. 微任务（microtask）：`Promise.then`、`Promise.catch`、`Promise.finally`、`process.nextTick` 等
+
+#### 8.2.2. 宏任务和微任务的执行顺序
+
+![](images/20211205110505881_9639.png)
+
+每一个宏任务执行完之后，都会**检查是否存在待执行的微任务**。如果有，则执行完所有微任务之后，再继续执行下一个宏任务。
+
+#### 8.2.3. 宏任务和微任务执行顺序分析案例（面试题）
+
+##### 8.2.3.1. 案例1
 
 ```js
-// 用于输出提示性信息
-console.info("%s", "color:red;这是结果哟");
+setTimeout(() => console.log('1'))
+
+new Promise(resolve => {
+  console.log('2')
+  resolve()
+}).then(res => console.log('3'))
+
+console.log('4')
 ```
 
-3. console.error()
+最终结果输出是：2431
+
+1. 先执行所有的同步任务输出：2、4
+2. 再执行微任务输出：3
+3. 再执行下一个宏任务输出：1
+
+##### 8.2.3.2. 案例2
 
 ```js
-// 用于输出错误信息
-console.error("错误");
+console.log('1')
+
+setTimeout(() => {
+  console.log('2')
+  new Promise(resolve => {
+    console.log('3')
+    resolve()
+  }).then(() => console.log('4'))
+})
+
+new Promise(resolve => {
+  console.log('5')
+  resolve()
+}).then(() => console.log('6'))
+
+setTimeout(() => {
+  console.log('7')
+  new Promise(resolve => {
+    console.log('8')
+    resolve()
+  }).then(() => console.log('9'))
+})
 ```
 
-4. console.warn()
-    - 用于输出警示信息
-5. console.count()
-    - 统计代码被执行的次数
-6. console.assert()
-    - 对输入的表达式进行断言，只有表达式为false时，才输出相应的信息到控制台
-7. console.group()
-    - 输出一组信息的开头
-8. console.groupEnd()
-    - 结束一组输出信息
-9. console.dir()
-    - 直接将该DOM结点以DOM树的结构进行输出，可以详细查对象的方法发展等等
-10. console.time()
-    - 计时开始
-11. console.timeEnd()
-    - 计时结束
-12. console.profile() 和 console.profileEnd()
-    - 一起使用来查看CPU使用相关信息
-13. console.timeLine() 和 console.timeLineEnd()
-    - 一起使用记录一段时间轴
-14. console.trace()
-    - 堆栈跟踪相关的调试
+最终结果输出是：156234789
 
-#### 8.1.2. 格式化符号
+1. 先执行所有的同步任务输出：1、5
+2. 再执行第1个宏任务中的同步任务输出：2、3
+3. 再执行第1个宏任务的微任务输出：4
+4. 再执行第2个宏任务中的同步任务输出：7、8
+5. 再执行第2个宏任务的微任务输出：9
 
-| **格式化符号** | **实现的功能**                       |
-| :------------: | ------------------------------------ |
-|      `%s`      | 格式化成字符串输出                   |
-|  `%d` or `%i`  | 格式化成数值输出                     |
-|      `%f`      | 格式化成浮点数输出                   |
-|      `%o`      | 转化成展开的DOM元素输出              |
-|      `%O`      | 转化成JavaScript对象输出             |
-|      `%c`      | 把字符串按照你提供的样式格式化后输入 |
+### 8.3. API 接口案例
 
----
+#### 8.3.1. 案例需求
+
+基于 MySQL 数据库 + Express 对外提供用户列表的 API 接口服务。用到的技术点如下：
+
+- 第三方包 express 和 mysql2
+- ES6 模块化
+- Promise
+- async/await
+
+#### 8.3.2. 搭建项目的基本结构
+
+1. 启用 ES6 模块化支持，在 package.json 中声明 `"type": "module"`
+2. 安装第三方依赖包。`npm install express@4.17.1 mysql2@2.2.5 -S`
+
+#### 8.3.3. 创建基本的服务器
+
+在项目的根目录下创建 app.js 入口文件，创建基础的服务器
+
+```js
+import express from 'express'
+
+const app = express()
+
+app.listen(80, () => {
+  console.log('server running at http://127.0.0.1')
+})
+```
+
+运行以下命令测试是否能开启服务
+
+```bash
+nodemon app.js
+```
+
+如 nodemon 没有安装，先运行全局安装命令
+
+```bash
+npm install -g nodemon
+```
+
+卸载则运行
+
+```bash
+npm uninstall -g nodemon
+```
+
+#### 8.3.4. 创建 db 数据库操作模块
+
+创建`db/index.js`，配置数据库的连接信息
+
+```js
+import mysql from 'mysql2'
+
+const pool = mysql.createPool({
+  host: '127.0.0.1',
+  port: 3306,
+  database: 'tempdb',
+  user: 'root',
+  password: '123456',
+})
+
+export default pool.promise()
+```
+
+#### 8.3.5. 创建请求的处理方法
+
+```js
+import db from '../db/index.js'
+
+// 使用 ES6 的按需导出语法，将 getAllUser 方法导出
+export async function getAllUser(req, res) {
+  try {
+    // db.query() 函数的返回值是 Promise 实例对象。所以可以使用 async/await 进行异步处理简化
+    const [rows] = await db.query('select id, name, gender from user')
+    res.send({
+      status: 0,
+      message: '获取用户列表数据成功！',
+      data: rows,
+    })
+  } catch (err) {
+    res.send({
+      status: 1,
+      message: '获取用户列表数据失败！',
+      desc: err.message,
+    })
+  }
+}
+```
+
+#### 8.3.6. 配置路由
+
+```js
+import express from 'express'
+import { getAllUser } from '../controller/UserController.js'
+
+// 创建路由对象
+const router = new express.Router()
+
+// 挂载路由规则
+router.get('/user', getAllUser)
+
+// 使用 ES6 默认导出语法，将路由对象导出
+export default router
+```
+
+#### 8.3.7. 导入并挂载路由模块
+
+在 app.js 文件中导入并挂载路由模块
+
+```js
+import express from 'express'
+// 默认导入路由对象
+import userRouter from './router/user_router.js'
+
+const app = express()
+
+// 挂载用户路由模块
+app.use('/api', userRouter)
+
+app.listen(80, () => {
+  console.log('server running at http://127.0.0.1')
+})
+```
+
+#### 8.3.8. 测试
+
+使用postman等请求工具，请求`http://127.0.0.1/api/user`，获取返回数据
 
 # ECMAScript 6(ES6)
 
@@ -2605,7 +2803,43 @@ getJSON("/post/1.json").then(
 );
 ```
 
-### 8.5. Promise.all()
+### 8.5. Promise.prototype.catch()
+
+`Promise.prototype.catch()` 方法是 `.then(null, rejection)` 或 `.then(undefined, rejection)` 的别名，用于指定发生错误时的回调函数。
+
+```js
+getJSON('/posts.json').then(function(posts) {
+  // ...
+}).catch(function(error) {
+  // 处理 getJSON 和 前一个回调函数运行时发生的错误
+  console.log('发生错误！', error);
+});
+```
+
+上述示例中，方法返回一个 `Promise` 对象，如果该对象状态变为`resolved`，则会调用`then()`方法指定的回调函数；如果异步操作抛出错误，状态就会变为`rejected`，就会调用`catch()`方法指定的回调函数，处理这个错误。另外，`then()`方法指定的回调函数，如果运行中抛出错误，也会被`catch()`方法捕获。
+
+一般总是建议，`Promise` 对象后面要跟`catch()`方法，这样可以处理 `Promise` 内部发生的错误。`catch()`方法返回的还是一个 `Promise` 对象，因此后面还可以接着调用`then()`方法。
+
+```js
+const someAsyncThing = function() {
+  return new Promise(function(resolve, reject) {
+    // 下面一行会报错，因为x没有声明
+    resolve(x + 2);
+  });
+};
+
+someAsyncThing()
+.catch(function(error) {
+  console.log('oh no', error);
+})
+.then(function() {
+  console.log('carry on');
+});
+// oh no [ReferenceError: x is not defined]
+// carry on
+```
+
+### 8.6. Promise.all()
 
 `Promise.all()` 方法用于将多个 `Promise` 实例，包装成一个新的 `Promise` 实例。方法接受一个数组作为参数，但参数也可以不是数组，但必须具有 `Iterator` 接口，且返回的每个成员都是 `Promise` 实例。
 
@@ -2627,7 +2861,7 @@ Promise.all([
 
 > *上面代码中，`booksPromise`和`userPromise`是两个异步操作，只有等到它们的结果都返回了，才会触发`pickTopRecommendations`这个回调函数。*
 
-### 8.6. Promise.race()
+### 8.7. Promise.race()
 
 `Promise.race()` 方法同样是将多个 `Promise` 实例，包装成一个新的 `Promise` 实例。方法的参数与 `Promise.all()` 方法参数一样，不同的地方在于，`Promise.race()` 方法会发起并行的 `Promise` 异步操作，只要任何一个异步操作完成，就立即执行下一步的 `.then` 操作（赛跑机制）
 
@@ -2706,13 +2940,112 @@ for (let obj of h) {
  */
 ```
 
-## 10. class（类）的基本语法
+## 10. async/await
+
+### 10.1. 简介
+
+ES2017 标准引入了 `async` 函数，使得异步操作变得更加方便。`async` 是 `Generator` 函数的语法糖。`async` 函数就是将 `Generator` 函数的星号（`*`）替换成 `async`，将 `yield` 替换成`await`。
+
+`async`/`await` 是 ES8（ECMAScript 2017）引入的新语法，用来简化 `Promise` 异步操作。在 `async`/`await` 出现之前，开发者只能通过链式 `.then()` 的方式处理 `Promise` 异步操作。
+
+### 10.2. 基础用法
+
+`async` 函数返回一个 `Promise` 对象，可以使用 `then` 方法添加回调函数。当函数执行的时候，一旦遇到 `await` 就会先返回，等到异步操作完成，再接着执行函数体内后面的语句。
+
+```js
+function timeout(ms) {
+  return new Promise((resolve) => {
+    setTimeout(resolve, ms);
+  });
+}
+
+async function asyncPrint(value, ms) {
+  await timeout(ms);
+  console.log(value);
+}
+
+asyncPrint('hello world', 50);
+```
+
+**async 函数有多种使用形式**
+
+```js
+// 函数声明
+async function foo() {}
+
+// 函数表达式
+const foo = async function () {};
+
+// 对象的方法
+let obj = { async foo() {} };
+obj.foo().then(...)
+
+// Class 的方法
+class Storage {
+  constructor() {
+    this.cachePromise = caches.open('avatars');
+  }
+  async getAvatar(name) {
+    const cache = await this.cachePromise;
+    return cache.match(`/avatars/${name}.jpg`);
+  }
+}
+
+const storage = new Storage();
+storage.getAvatar('jake').then(…);
+
+// 箭头函数
+const foo = async () => {};
+```
+
+### 10.3. async/await 使用注意事项
+
+1. 如果在 function 中使用了 `await`，则 function 必须被 `async` 修饰
+2. 在 `async` 方法中，第一个 `await` 之前的代码会同步执行，`await` 之后的代码会异步执行
+
+```js
+console.log('A')
+
+/*
+  1. 如果在 function 中使用了 await，则 function 必须被 async 修饰
+  2. 在 async 方法中，第一个 await 之前的代码是同步执行，await 之后的代码会异步执行
+    即下面示例中，getAllResult 方法调用后会马上console.log('B')，然后是异步执行getResult方法，
+    虽然 getAllResult 方法内的多个 await 修饰的方法是同步执行，但会先 getAllResult 方法外的逻辑
+*/
+async function getAllResult() {
+  console.log('B')
+  const r1 = await getResult(2)
+  console.log(r1)
+  const r2 = await getResult(3)
+  console.log(r2)
+  console.log('D')
+}
+
+getAllResult()
+
+console.log('C')
+
+/*
+  最终的输出的结果：
+
+  A
+  B
+  84ms后 getResult(2) 将返回数据
+  C
+  延迟84ms后 getResult(2) 返回的数据
+  679ms后 getResult(3) 将返回数据
+  延迟679ms后 getResult(3) 返回的数据
+  D
+*/
+```
+
+## 11. class（类）的基本语法
 
 JavaScript 语言的传统方法是通过构造函数定义井生成新对象。ES6中引入了class的概念，通过class关键字自定义类。
 
-### 10.1. 基本用法
+### 11.1. 基本用法
 
-#### 10.1.1. 创建类
+#### 11.1.1. 创建类
 
 - 语法：
 
@@ -2756,7 +3089,7 @@ console.log(user.sayHello()); // hello
 console.log(User.isAdult(20)); // 成年人
 ```
 
-#### 10.1.2. constructor 类的构造函数
+#### 11.1.2. constructor 类的构造函数
 
 `constructor()`是类的构造函数(默认方法)，<font color=red>**用于传递参数，返回实例对象**</font>，通过 `new` 关键字生成对象实例时，自动调用该方法。如果没有显示定义，类内部会自动给创建一个无参的构造函数`constructor()`
 
@@ -2785,7 +3118,7 @@ var shiyuan = new Star("石原里美", 18);
 console.log(shiyuan);
 ```
 
-#### 10.1.3. 定义类的方法
+#### 11.1.3. 定义类的方法
 
 - 语法：
 
@@ -2838,9 +3171,9 @@ ldh.sing("冰雨")
 zxy.sing("李香兰")
 ```
 
-### 10.2. 类的继承
+### 11.2. 类的继承
 
-#### 10.2.1. 创建类的继承
+#### 11.2.1. 创建类的继承
 
 - 语法：
 
@@ -2887,7 +3220,7 @@ console.log(zs.sayHello());         // 输出结果：hello
 console.log(ZhangSan.isAdult(20));  // 输出结果：成年人
 ```
 
-#### 10.2.2. super 关键字
+#### 11.2.2. super 关键字
 
 `super` 关键字用于访问和调用对象父类上的函数。<font color=red>**可以调用父类的构造函数，也可以调用父类的普通函数**</font>。语法如下：
 
@@ -2957,7 +3290,7 @@ son.say()
 */
 ```
 
-#### 10.2.3. 子类扩展自己的方法
+#### 11.2.3. 子类扩展自己的方法
 
 ```js
 // 父类有加法方法
@@ -2987,17 +3320,17 @@ son.subtract() // 调用子类扩展的方法
 son.sum() // 调用父类方法
 ```
 
-### 10.3. 类与对象的注意点
+### 11.3. 类与对象的注意点
 
 1. 在 ES6 中类没有变量提升，所以必须先定义类，才能通过类实例化对象
 2. 类里面的共有属性和方法一定要加`this`使用
 3. 类里面的`this`指向问题：`constructor`函数里面的`this`指向实例对象，方法里面的`this`指向这个方法的调用者
 
-### 10.4. 面向对象综合案例
+### 11.4. 面向对象综合案例
 
 项目代码详见：【html-css-js-sample\javascript-sample\07-面向对象案例\】
 
-### 10.5. 类的本质
+### 11.5. 类的本质
 
 1. class本质还是function
 2. 类的所有方法都定义在类的`prototype`属性上
@@ -3031,9 +3364,9 @@ console.dir(shiyuan)
 console.log(shiyuan.__proto__ === Star.prototype)
 ```
 
-## 11. 模块化
+## 12. 模块化
 
-### 11.1. 什么是模块化
+### 12.1. 什么是模块化
 
 在 ES6 模块化规范诞生之前，JavaScript 社区已经尝试并提出了 AMD、CMD、CommonJS 等模块化规范。但是，这些由社区提出的模块化标准，还是存在一定的差异性与局限性、并不是浏览器与服务器通用的模块化标准，例如：
 
@@ -3045,7 +3378,7 @@ console.log(shiyuan.__proto__ === Star.prototype)
 - 模块化就是把代码进行拆分，方便重复利用。类似java中的导包：要使用一个包，必须先导包。
 - 而JS中没有包的概念，换来的是模块。
 
-### 11.2. ES6的模块化的基本规则或特点
+### 12.2. ES6的模块化的基本规则或特点
 
 ES6 模块化规范是浏览器端与服务器端通用的模块化开发规范。ES6 模块化规范中定义：
 
@@ -3062,7 +3395,7 @@ ES6 模块化规范是浏览器端与服务器端通用的模块化开发规范�
 
 > node.js 中默认**仅支持 CommonJS 模块化规范**，基于 node.js 使用 ES6 的模块化语法的配置详见[《node.js 笔记》](#/03-前端资料/06-前端工程化工具/01-node?id=_41-在-nodejs-中体验-es6-模块化)
 
-### 11.3. ES6 模块化的基本语法与用法
+### 12.3. ES6 模块化的基本语法与用法
 
 模块功能主要由两个命令构成：`export` 和 `import`。
 
@@ -3075,11 +3408,11 @@ ES6 的模块化主要包含如下 3 种用法：
 2. 按需导出与按需导入
 3. 直接导入并执行模块中的代码
 
-### 11.4. export 用法
+### 12.4. export 用法
 
 一个模块就是一个独立的文件。该文件内部的所有变量，外部无法获取。如果希望外部能够读取模块内部的某个变量，就必须使用 `export` 关键字输出该变量。
 
-#### 11.4.1. 单独导入多个变量
+#### 12.4.1. 单独导入多个变量
 
 ```js
 // profile.js
@@ -3108,7 +3441,7 @@ export function multiply(x, y) {
 };
 ```
 
-#### 11.4.2. 导出变量重命名
+#### 12.4.2. 导出变量重命名
 
 通常情况下，`export` 导出的变量就是原文件中的变量名称，但是可以使用 `as` 关键字重命名。
 
@@ -3126,7 +3459,7 @@ export {
 };
 ```
 
-#### 11.4.3. export default （默认导出）
+#### 12.4.3. export default （默认导出）
 
 使用 `export default` 命令，为模块指定默认导出。<font color=red>**一个模块只能有一个默认输出，因此 export default 命令只能使用一次**</font>。所以当使用 `import` 命令导入时，是不用加大括号，因为只可能唯一对应 `export default` 命令。
 
@@ -3186,7 +3519,7 @@ export { each as forEach };
 
 > 以上示例就是导出一个默认的函数，然后单独导出 `forEach` 与 `each` 函数，然后 `forEach` 函数默认指向 `each` 函数。所以 `forEach` 和 `each` 指向同一个方法。
 
-#### 11.4.4. 导出的注意事项
+#### 12.4.4. 导出的注意事项
 
 - `export` 命令可以出现在模块（js文件）的任何位置，只要处于模块顶层即可。如果处于块级作用域内，就会报错
 
@@ -3200,11 +3533,11 @@ foo()
 - 每个模块中，只允许使用唯一的一次 `export default`，否则会报错！
 - 单独导出可以和默认导出一起使用
 
-### 11.5. import 用法
+### 12.5. import 用法
 
 使用 `export` 命令定义了模块的对外接口以后，其他 JS 文件就可以通过 `import` 命令加载这个模块。
 
-#### 11.5.1. 导入单独变量
+#### 12.5.1. 导入单独变量
 
 `import` 命令用于加载模块文件，并导入指定的变量。`import` 命令接受一对大括号`{}`，里面指定要从其他模块导入的变量名。大括号里面的变量名，必须与被导入模块对外导出的变量名称相同。
 
@@ -3221,7 +3554,7 @@ import {myMethod} from './xxxx';
 import {myMethod} from 'util';
 ```
 
-#### 11.5.2. 导入变量重命名
+#### 12.5.2. 导入变量重命名
 
 `import` 命令可以使用 `as` 关键字，将导入的变量重命名。
 
@@ -3229,7 +3562,7 @@ import {myMethod} from 'util';
 import { str as string, sum } from './export.js'
 ```
 
-#### 11.5.3. 默认导入
+#### 12.5.3. 默认导入
 
 在导入默认导出的内容时，`import` 命令可以为该匿名内容指定任意名字。需要注意的是，这时 `import` 命令后面，不使用大括号`{}`。
 
@@ -3254,7 +3587,7 @@ import { default as foo } from 'modules';
 // import foo from 'modules';
 ```
 
-#### 11.5.4. 直接导入并执行模块中的代码
+#### 12.5.4. 直接导入并执行模块中的代码
 
 如果只想单纯地执行某个模块中的代码，并不需要得到模块中向外共享的成员。此时，可以直接导入并执行模块代码
 
@@ -3268,7 +3601,7 @@ for (let i = 0; i < 3; i++) {
 import './no-export.js'
 ```
 
-#### 11.5.5. 导入的注意事项
+#### 12.5.5. 导入的注意事项
 
 - `import` 命令**导入的变量都是只读的**，因为它的本质是导入变量。即不允许在加载模块的脚本里面，改写变量相应的内容。<font color=red>**但如果导入的变量是指定一个对象，改写该对象的属性是允许的。不过，这种写法很难查错，建议凡是输入的变量，都当作完全只读，不要轻易改变它的属性。**</font>
 
@@ -3282,7 +3615,7 @@ a.foo = 'hello'; // 合法操作。不过，这种写法很难查错，建议凡
 
 - 如果多次重复执行同一句 `import` 语句，那么只会执行一次，而不会执行多次。
 
-### 11.6. ES6 中 export 及 export default 的区别
+### 12.6. ES6 中 export 及 export default 的区别
 
 `export const` 与 `export default` 均可用于导出常量、函数、文件、模块等，可以在其它文件或模块中通过`import+(常量 | 函数 | 文件 | 模块名)`的方式将其导入，以便能够对其进行使用，但在一个文件或模块中，export、import可以有多个，export default仅有一个。
 
@@ -3308,11 +3641,11 @@ import str from 'demo1' // 导入的时候没有花括号
 
 `export default`可以跟在非匿名函数之前，也可以跟在匿名函数之前，同时也可以是一个对象之前。
 
-## 12. 修饰器(Decorator)
+## 13. 修饰器(Decorator)
 
 修饰器(Decorator)是一个函数，用来修改类的行为。ES2017 引入了这项功能，目前 Babel 转码器己经支持。
 
-### 12.1. 使用方法
+### 13.1. 使用方法
 
 ```js
 @T // 通过@符号进行引用该方法，类似java中的注解
@@ -3330,7 +3663,7 @@ function T(target) { // 定义一个普通的方法
 console.log(User.country); // 打印出country属性值
 ```
 
-### 12.2. 运行出现报错
+### 13.2. 运行出现报错
 
 ![修饰器运行报错](images/20190421114634357_14041.png)
 
@@ -3347,14 +3680,14 @@ input.map(function (item) {
 })
 ```
 
-### 12.3. 转码器
+### 13.3. 转码器
 
 - Babel (babeljs.io) 是一个广为使用的 ES6 转码器，可以将 ES6 代码转为 ES5 代码，从而在浏览器或其他环境执行。
 - Google 公司的 Traceur 转码器 (github.com/google/traceur-compiler)， 也可以将 ES6 代码转为ES5的代码。
 
 这2款都是非常优秀的转码工具，后面的案例项目是使用阿里的开源企业级react框架：UmiJS。
 
-#### 12.3.1. 了解UmiJS
+#### 13.3.1. 了解UmiJS
 
 官网： https://umijs.org/zh/
 
@@ -3367,7 +3700,7 @@ UmiJS 读音：（Omi）。其特点如下：
 - 约定式路由
     - 类 next.js 的约定式路由，无需再维护一份冗余的路由配置，支持权限、动态路由、嵌套路由等等。
 
-#### 12.3.2. 部署安装
+#### 13.3.2. 部署安装
 
 1. 确认是否安装node.js
 
@@ -3398,7 +3731,7 @@ umi
 
 ![配置umi环境变量](images/20190421174111766_31187.png)
 
-#### 12.3.3. 快速入门
+#### 13.3.3. 快速入门
 
 ```shell
 # 进入测试工程的文件夹中，通过初始化命令将生成package.json文件，它是 NodeJS 约定的用来存放项目的信息和配置等信息的文件。
@@ -3591,3 +3924,62 @@ console.log(str); // 'w5jetivt7e'
 ```
 
 以上可获得了一个10位数的随机字符串。先是 `Math.random()` 生成 `[0, 1)` 的数，也就是 0.123312、0.982931之类的，然后调用 `number` 的 `toString`方法将其转换成36进制的，按照MDN的说法，36进制的转换应该是包含了字母 a~z 和数字0~9的，因为这样生成的是`0.89kjna21sa`类似这样的，所以要截取一下小数部分，即从索引 2 开始截取10个字符就是随机字符串了。很多开源库都使用此方式为DOM元素创建随机ID。
+
+## 2. console对象使用
+
+### 2.1. 常用方法
+
+1. console.log()
+
+```js
+// 用于输出普通信息，最常用
+console.log("%c%s", "color:red;font-size:20px", "结果是：这样的哟");
+```
+
+2. console.info()
+
+```js
+// 用于输出提示性信息
+console.info("%s", "color:red;这是结果哟");
+```
+
+3. console.error()
+
+```js
+// 用于输出错误信息
+console.error("错误");
+```
+
+4. console.warn()
+    - 用于输出警示信息
+5. console.count()
+    - 统计代码被执行的次数
+6. console.assert()
+    - 对输入的表达式进行断言，只有表达式为false时，才输出相应的信息到控制台
+7. console.group()
+    - 输出一组信息的开头
+8. console.groupEnd()
+    - 结束一组输出信息
+9. console.dir()
+    - 直接将该DOM结点以DOM树的结构进行输出，可以详细查对象的方法发展等等
+10. console.time()
+    - 计时开始
+11. console.timeEnd()
+    - 计时结束
+12. console.profile() 和 console.profileEnd()
+    - 一起使用来查看CPU使用相关信息
+13. console.timeLine() 和 console.timeLineEnd()
+    - 一起使用记录一段时间轴
+14. console.trace()
+    - 堆栈跟踪相关的调试
+
+### 2.2. 格式化符号
+
+| **格式化符号** |          **实现的功能**           |
+| :------------: | -------------------------------- |
+|      `%s`      | 格式化成字符串输出                 |
+|  `%d` or `%i`  | 格式化成数值输出                   |
+|      `%f`      | 格式化成浮点数输出                 |
+|      `%o`      | 转化成展开的DOM元素输出            |
+|      `%O`      | 转化成JavaScript对象输出           |
+|      `%c`      | 把字符串按照你提供的样式格式化后输入 |

@@ -1,8 +1,19 @@
 # vue.js框架项目开发笔记
 
-## 1. vue 脚手架工具(vue-cli)
+## 1. 创建工程化 VUE 项目的方式
 
-### 1.1. 什么是 vue-cli
+vue 官方提供了两种快速创建工程化的 SPA 项目的方式：
+
+1. 基于 vite 创建 SPA 项目
+2. 基于 vue-cli 创建 SPA 项目
+
+两种方式的区别：
+
+![](images/20211205143138888_21429.png)
+
+## 2. vue 脚手架工具(vue-cli)
+
+### 2.1. 什么是 vue-cli
 
 vue-cli 是 Vue.js 开发的标准工具。它简化了程序员基于 webpack 创建工程化的 Vue 项目的过程。
 
@@ -13,7 +24,7 @@ vue-cli 是 Vue.js 开发的标准工具。它简化了程序员基于 webpack �
 >
 > Vue CLI 的包名称由 `vue-cli` 改成了 `@vue/cli`。 如果你已经全局安装了旧版本的 `vue-cli` (1.x 或 2.x)，你需要先通过 `npm uninstall vue-cli -g` 或 `yarn global remove vue-cli` 卸载它。
 
-### 1.2. 安装命令
+### 2.2. 安装命令
 
 - vue-cli 是 npm 上的一个全局包。如果程序运行的环境（电脑）第一次使用vue的脚手架工具，需要运行以下命令，安装脚手架到本地
 
@@ -44,9 +55,9 @@ npm update -g @vue/cli
 yarn global upgrade --latest @vue/cli
 ```
 
-### 1.3. 创建模版
+### 2.3. 创建模版
 
-#### 1.3.1. 语法格式
+#### 2.3.1. 语法格式
 
 > 注意:如果环境第一次使用CLI脚手架，必须进行了上一步操作后再可以创建模版
 
@@ -72,7 +83,7 @@ vue create 项目的名称
 
 > 注：创建模版后，项目的位置可以移动
 
-#### 1.3.2. 创建项目选择项解析
+#### 2.3.2. 创建项目选择项解析
 
 选择【Manuallly select features】
 
@@ -110,20 +121,20 @@ vue create 项目的名称
 
 ![](images/20211203154444554_24626.png)
 
-### 1.4. 项目安装与运行命令
+### 2.4. 项目安装与运行命令
 
 > 注：如果创建时没有选择创建后执行运行【npm install】命令，需要手动进行安装
 
 - 安装：`npm install`
 - 运行项目：`npm run dev`
 
-### 1.5. 安装依赖的命令
+### 2.5. 安装依赖的命令
 
 使用命令：`npm install 依赖的名字`。或者一次安装多个的命令：`npm install 依赖的名字1 依赖的名字2 ...`
 
 如何安装在是devDependencies中，使用命令：`npm install 依赖的名字 --save-dev`
 
-### 1.6. vue 项目的运行流程
+### 2.6. vue 项目的运行流程
 
 在工程化的项目中，vue 要做的事情很单纯：通过 `main.js` 把 `App.vue` 渲染到 `index.html` 的指定区域中。核心文件说明如下：
 
@@ -131,7 +142,64 @@ vue create 项目的名称
 - `index.html` 中需要预留一个 `el` 区域
 - `main.js` 把 `App.vue` 渲染到了 `index.html` 所预留的区域中
 
-## 2. 项目的目录设计
+## 3. vite 的基本使用
+
+### 3.1. 创建 vite 的项目
+
+按照顺序执行如下的命令，即可基于 vite 创建 vue 3.x 的工程化项目：
+
+```bash
+npm init vite-app 项目名称
+
+cd 项目名称
+npm install
+npm run dev
+```
+
+### 3.2. vite 项目结构
+
+使用 vite 创建的项目结构如下：
+
+![](images/20211205143348372_14890.png)
+
+- `node_modules` 目录用来存放第三方依赖包
+- `public` 是公共的静态资源目录
+- `src` 是项目的源代码目录（程序员写的所有代码都要放在此目录下）
+- `.gitignore` 是 Git 的忽略文件
+- `index.html` 是 SPA 单页面应用程序中唯一的 HTML 页面
+- `package.json` 是项目的包管理配置文件
+
+在 src 这个项目源代码目录之下，包含了如下的文件和文件夹：
+
+![](images/20211205143422834_30111.png)
+
+- `assets` 目录用来存放项目中所有的静态资源文件（css、fonts等）
+- `components` 目录用来存放项目中所有的自定义组件
+- `App.vue` 是项目的根组件
+- `index.css` 是项目的全局样式表文件
+- `main.js` 是整个项目的打包入口文件
+
+### 3.3. vite 项目的运行流程
+
+在工程化的项目中，vue 要做的事情很单纯：通过 main.js 把 App.vue 渲染到 index.html 的指定区域中。
+
+其中：
+
+1. App.vue 用来编写待渲染的模板结构
+
+![](images/20211205143609511_3382.png)
+
+2. index.html 中需要预留一个 el 区域
+
+![](images/20211205143647016_19138.png)
+
+3. 按照 vue 3.x 的标准用法，在 main.js 把 App.vue 渲染到了 index.html 所预留的 el 区域中
+
+![](images/20211205143746264_13219.png)
+
+## 4. 项目的目录设计
+
+### 4.1. 通常项目目录结构
 
 一般项目的目录都会创建公用部分目录【common】，组件目录会按页面不能的组件分开目录
 
@@ -147,9 +215,13 @@ vue create 项目的名称
 - 【router】：配置路由的js文件
 - 【store】：仓库文件
 
-## 3. 项目的相关配置
+### 4.2. vue-cli 创建的 vue2 项目目录结构
 
-### 3.1. 配置文件.eslintrc.js，检查eslin语法
+![](images/20211207213428263_5106.png)
+
+## 5. 项目的相关配置
+
+### 5.1. 配置文件.eslintrc.js，检查eslin语法
 
 - 配置检查eslin语法，设置rules属性里的'semi'属性
 - .eslintrc.js文件中配置不检查一些语法规则，在rules属性中，将规则名称做为属性，设置为“0”即可
@@ -169,7 +241,7 @@ rules: {
 }
 ```
 
-### 3.2. 部署时出现无法加载vue-style-loader
+### 5.2. 部署时出现无法加载vue-style-loader
 
 ![无法加载vue-style-loader-1](images/_无法加载vuesty_1530959576_2600.png)
 
@@ -191,7 +263,7 @@ rules: {
 
 ![stylus无法加载的问题](images/_stylus无法加载_1531019884_16286.png)
 
-### 3.3. 设置相关路径的别名
+### 5.3. 设置相关路径的别名
 
 如果配置后还出现错误
 
@@ -228,7 +300,7 @@ module.exports = {
 }
 ```
 
-### 3.4. 项目开发需要新增的依赖
+### 5.4. 项目开发需要新增的依赖
 
 - "babel-runtime": "^6.26.0"
     - 会ES语法进行转义
@@ -958,6 +1030,7 @@ const Foo = _import('Foo');
 受前面所讲的浏览器同源策略的影响，不是同源的脚本不能操作其他源下面的对象。想要操作另一个源下的对象就需要跨域。 在同源策略的限制下，非同源的网站之间不能发送 AJAX 请求。
 
 #### 6.2.2. Spring Boot 配置 CORS
+
 ##### 6.2.2.1. 使用`@CrossOrigin`注解实现
 
 1. 如果想要对某一接口配置CORS，可以在方法上添加 `@CrossOrigin` 注解
@@ -2009,8 +2082,17 @@ Vue.js高仿饿了么外卖App课程源码 `https://github.com/ustbhuangyi/vue-s
 
 ### 11.2. Element 基于 Vue 2.0 的桌面端组件库
 
-官网：http://element-cn.eleme.io/#/zh-CN
+官网：https://element.eleme.cn/#/zh-CN
 
 ### 11.3. iView 基于Vue.js的UI组件库
 
-官网：https://www.iviewui.com/
+官网：http://v1.iviewui.com/
+
+### 11.4. Mint UI 移动端组件库
+
+官网：http://mint-ui.github.io/#!/zh-cn
+
+### 11.5. Vant 移动端组件库
+
+官网：https://vant-contrib.gitee.io/vant/#/zh-CN/
+

@@ -8,9 +8,19 @@ vue-router 的官方文档地址：https://router.vuejs.org/
 
 vue-router 是 vue.js 官方推荐的路由解决方案。它只能结合 vue 项目进行使用，能够轻松的管理 SPA 项目中组件的切换。
 
-### 1.2. vue-router 安装
+### 1.2. vue-router 的版本
 
-#### 1.2.1. 直接下载 / CDN
+vue-router 目前有 3.x 的版本和 4.x 的版本。其中：
+
+- vue-router 3.x 只能结合 vue2 进行使用
+- vue-router 4.x 只能结合 vue3 进行使用
+
+- vue-router 3.x 的官方文档地址：https://router.vuejs.org/zh/
+- vue-router 4.x 的官方文档地址：https://next.router.vuejs.org/zh/
+
+### 1.3. vue-router 安装
+
+#### 1.3.1. 直接下载 / CDN
 
 下载地址：https://unpkg.com/vue-router/dist/vue-router.js
 
@@ -21,7 +31,7 @@ vue-router 是 vue.js 官方推荐的路由解决方案。它只能结合 vue �
 <script src="/path/to/vue-router.js"></script>
 ```
 
-#### 1.2.2. NPM 安装方式
+#### 1.3.2. NPM 安装方式
 
 ```shell
 npm install vue-router -S
@@ -38,11 +48,11 @@ Vue.use(VueRouter)
 
 > 如果使用全局的 script 标签，则无须如此 (手动安装)。
 
-### 1.3. vue-router 基础使用步骤
+### 1.4. vue-router 基础使用步骤
 
 用 Vue.js + Vue Router 创建单页应用，然后将组件 (components) 映射到路由 (routes)，配置 Vue Router 在哪里渲染它们。
 
-#### 1.3.1. 路由实例的创建和配置
+#### 1.4.1. 路由实例的创建和配置
 
 ```js
 // 1. 如果使用模块化机制编程，导入Vue和VueRouter，用于调用 Vue.use(VueRouter)
@@ -74,7 +84,7 @@ const app = new Vue({
 
 > 注：正常的项目中，**路由对象的创建和配置都会独立到一个文件中（或一个模块中）**，建议在项目的src目录下创建router文件，在此目录下创建js文件，创建与配置路由实例并导出
 
-#### 1.3.2. 路由组件的渲染
+#### 1.4.2. 路由组件的渲染
 
 只要在项目中安装和配置了 vue-router，即可使用内置组件 `<router-view>`，该组件用于 html 或 vue 文件中的模板页面中，该标签是路由出口，路由匹配到的组件将渲染此标签中，相当于页面渲染区域的“占位符”
 
@@ -425,9 +435,37 @@ router.go(100)
 - `$router.back()` : 在历史记录中，后退到上一个页面
 - `$router.forward()` : 在历史记录中，前进到上一个页面
 
-### 2.5. 重定向和别名
+### 2.5. 命名路由
 
-#### 2.5.1. 路由重定向
+通过一个名称来标识一个路由称为命名路由。在创建 `Router` 实例的时候，在 `routes` 配置中给某个路由设置名称。
+
+```js
+const router = new VueRouter({
+  routes: [
+    {
+      path: '/user/:userId',
+      name: 'user',
+      component: User
+    }
+  ]
+})
+```
+
+声明式导航跳转命名路由，给 `router-link` 的 `to` 属性传一个对象：
+
+```html
+<router-link :to="{ name: 'user', params: { userId: 123 }}">User</router-link>
+```
+
+编程式导航跳转命名路由，在 `push` 方法中传入一个对象
+
+```js
+router.push({ name: 'user', params: { userId: 123 } })
+```
+
+### 2.6. 重定向和别名
+
+#### 2.6.1. 路由重定向
 
 路由重定向指的是：用户在访问地址 `/A` 的时候，强制用户跳转到地址 `/B`，从而展示特定的组件页面。
 
@@ -466,7 +504,7 @@ const router = new VueRouter({
 
 > 注意：导航守卫并没有应用在跳转路由上，而仅仅应用在其目标上。
 
-#### 2.5.2. 别名
+#### 2.6.2. 别名
 
 `/a` 的别名是 `/b`，意味着，当用户访问 `/b` 时，URL 会保持为 `/b`，但是路由匹配则为 `/a`，就像用户访问 `/a` 一样。具体的路由配置是：
 
@@ -480,7 +518,7 @@ const router = new VueRouter({
 
 “别名”的功能让你可以自由地将 UI 结构映射到任意的 URL，而不是受限于配置的嵌套路由结构。
 
-### 2.6. 嵌套路由
+### 2.7. 嵌套路由
 
 通过路由实现组件的嵌套展示，叫做嵌套路由。
 
@@ -587,7 +625,7 @@ const router = new VueRouter({
 })
 ```
 
-### 2.7. 动态路由匹配
+### 2.8. 动态路由匹配
 
 动态路由指的是：把 Hash 地址中可变的部分定义为参数项，从而提高路由规则的复用性。
 
@@ -623,7 +661,7 @@ const User = {
 
 除了 `$route.params` 外，`$route` 对象还提供了其它有用的信息，例如，`$route.query` (如果 URL 中有查询参数)、`$route.hash` 等等。
 
-#### 2.7.1. 开启 props 传参
+#### 2.8.1. 开启 props 传参
 
 为了简化路由参数的获取形式，vue-router 允许在路由规则中开启 `props` 传参。在理由配置规则中增加 `props: true` 属性，直接将路径参数绑定到组件的 `props` 中
 
@@ -645,7 +683,7 @@ const User = {
 }
 ```
 
-#### 2.7.2. 响应路由参数的变化
+#### 2.8.2. 响应路由参数的变化
 
 当使用路由参数时，例如从 /user/foo 导航到 /user/bar，原来的组件实例会被复用。因为两个路由都渲染同个组件，比起销毁再创建，复用则显得更加高效。不过，这也意味着组件的生命周期钩子不会再被调用。
 
@@ -674,7 +712,7 @@ const User = {
 }
 ```
 
-#### 2.7.3. 捕获所有路由或 404 Not found 路由
+#### 2.8.3. 捕获所有路由或 404 Not found 路由
 
 常规参数只会匹配被 `/` 分隔的 URL 片段中的字符。如果想匹配任意路径，可以使用通配符 (`*`)：
 
