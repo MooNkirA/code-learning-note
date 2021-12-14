@@ -465,6 +465,65 @@ Editor -> Reader Mode -> 取消勾选 【Enable Reader mode】
 
 ![](images/20210223210345370_19141.png)
 
+### 6.25. UI Options(界面设置)
+
+设置位置：Appearance & Behavior -> Appearance -> UI Options
+
+![](images/20211213085455885_5559.png)
+
+#### 6.25.1. 显示树状缩进级别垂直线
+
+【Show tree indent guides】，开启效果如下：
+
+![](images/20211213085707826_3253.png)
+
+#### 6.25.2. 平滑移动
+
+【Smooth scrolling】，开启后用鼠标中键上下滑动更流畅
+
+#### 6.25.3. 树状菜单更小的缩进
+
+【Smooth scrolling】，开启效果如下：
+
+![](images/20211213085819741_11053.png)
+
+#### 6.25.4. 按Alt进行拖动
+
+【Drag-n-Drop with Alt pressed only】，启用后，按住该Alt键才可移动内容。避免意外移动文件，编辑器选项卡，工具窗口按钮和其他UI组件。
+
+#### 6.25.5. 合并IDEA主菜单到window标题
+
+【Merge main menu with window title】，将IDEA主菜单合并到window栏
+
+#### 6.25.6. 始终在窗口标题中显示完整路径
+
+【Always show full path in window header】，始终在窗口标题中显示完整路径
+
+#### 6.25.7. 在菜单项中显示图标
+
+【Display icons in menu items】，在主菜单和上下文菜单中，在项目左侧显示图标。
+
+### 6.26. Antialiasing (抗锯齿设置)
+
+IDE: 选择要应用于IDE的哪种抗锯齿模式（包括菜单，工具窗口等）
+
+- Subpixel(子像素): 用于LCD显示器，并利用彩色LCD上的每个像素都由红色，绿色和蓝色子像素组成
+- Greyscale(灰度): 建议此选项用于非LCD显示器或垂直放置的显示器。它在像素级别处理文本。
+- No antialiasing(无抗锯齿): 此选项可用于高分辨率的显示，其中非抗锯齿的字体渲染速度更快，并且外观可能更好。
+
+Editor: 选择要应用于编辑器的抗锯齿模式：
+
+- Subpixel(子像素): 用于LCD显示器，并利用彩色LCD上的每个像素都由红色，绿色和蓝色子像素组成
+- Greyscale(灰度): 建议此选项用于非LCD显示器或垂直放置的显示器。它在像素级别处理文本。
+- No antialiasing(无抗锯齿): 此选项可用于高分辨率的显示，其中非抗锯齿的字体渲染速度更快，并且外观可能更好。
+
+### 6.27. Tool Windows(工具栏设置)
+
+设置位置：Appearance & Behavior -> Appearance -> Tool Windows
+
+- 【Show tool window bars】，在主窗口的边缘周围显示工具窗口栏
+- 【Show tool window numbers】，工具栏显示数字，并且可以按Alt键加数字键快捷打开菜单
+
 ## 7. 配置代码模板（Live Templates）
 
 ![](images/20201104164947850_3828.jpg)

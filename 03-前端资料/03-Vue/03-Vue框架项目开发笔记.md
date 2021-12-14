@@ -311,6 +311,706 @@ module.exports = {
 - "jsonp": "^0.2.1"
     - 用于抓取网络数据
 
+## 6. axios 网络请求工具
+
+### 6.1. 为什么要全局配置 axios
+
+在实际项目开发中，几乎每个组件中都会用到 axios 发起数据请求。此时会遇到如下两个问题：
+
+1. 每个组件中都需要导入 axios（代码臃肿）
+2. 每次发请求都需要填写完整的请求路径（不利于后期的维护）
+
+### 6.2. vue 项目配置全局的 axios
+
+#### 6.2.1. vue3 的项目中全局配置 axios（有问题，待确认）
+
+在 main.js 入口文件中，通过 `app.config.globalProperties` 全局挂载 `axios`
+
+```js
+/*
+  1. 单独导入vue相关需要的函数或类，如：createApp 函数
+      createApp 函数的作用是：创建 vue 的“单页面应用程序实例”
+*/
+import { createApp } from 'vue'
+import axios from 'axios'
+
+// 2. 导入待渲染的组件，如：App.vue
+import App from './App.vue'
+
+/*
+  3. 调用 createApp 函数，创建 SPA 应用的实例，函数返回值是“单页面应用程序的实例”
+      可以用一个常量进行接收，以为后续可以给vue实例增加注册其他插件
+*/
+const vueApp = createApp(App)
+
+// 为 axios 配置请求的根路径
+axios.defaults.baseURL = 'https://www.xxx.com'
+/*
+  将 axios 挂载为 vue 的全局自定义属性
+  每个组件可以通过 this 直接访问到全局挂载的自定义属性
+*/
+vueApp.config.globalProperties.$http = axios
+
+// 4. 调用 mount() 把 App 组件的模板结构，渲染到指定的 el 区域中，即指定 vue 实际要控制的区域
+vueApp.mount('#app')
+```
+
+> TODO: 注：axios 0.24.0以上的版本，在配置时提示 axios 没有 `defaults.baseURL`的属性，问题待解决
+
+#### 6.2.2. vue2 的项目中全局配置 axios
+
+需要在 main.js 入口文件中，通过 Vue 构造函数的 `prototype` 原型对象全局配置 axios：
+
+```js
+import Vue from 'vue'
+import App from './App'
+
+import axios from 'axios'
+
+// 全局配置 axios 的请求根路径
+axios.defaults.baseURL = 'http://xxxxxxxx'
+// 将 axios 挂载到 Vue.prototype 上，可以使每个 .vue 组件的实例通过 this.$http 来发起请求
+Vue.prototype.$http = axios
+// 不过通常不使用此种方式，一般都会封装一个专门发送http的js文件，然后在一些api文件中定义多种请求方法，
+// 组件使用时引用不同的请求方法，从而达到 API 接口的复用
+
+new Vue({
+  render: h => h(App),
+}).$mount('#app')
+```
+
+> 注：通常会将一些工具类库的配置按模块独立成一个文件
+
+
+### 6.3. 使用axios发送post请求，后端@RequestBody无法接收参数
+
+springboot会报错`Content type 'application/x-www-form-urlencoded;charset=UTF-8' not supported`。将`@RequestBody`换成`@RequestParam`就可以，这个暂时还搞不懂是什么回事？
+
+```java
+/* 多条件查询影片资源信息 */
+@PostMapping("/findByCondition")
+public PageResult<JavMain> findByCondition(@RequestBody Map<String, Object> params) {
+    ......
+}
+
+// 改成以下方式
+@PostMapping("/findByCondition")
+public PageResult<JavMain> findByCondition(@RequestParam Map<String, Object> params) {
+    ......
+}
+```
+
+### 6.4. Axios 请求配置参数详解
+
+#### 6.4.1. axios API
+
+##### 6.4.1.1. axios 传递相关配置来创建请求
+
+- `axios(config)`
+
+```js
+// 发送 POST 请求
+axios({
+  method: 'post',
+  url: '/user/12345',
+  data: {
+    firstName: 'Fred',
+    lastName: 'Flintstone'
+  }
+});
+```
+
+- `axios(url[, config])`
+
+```js
+// 发送 GET 请求（默认的方法）
+axios('/user/12345');
+```
+
+##### 6.4.1.2. 为所有支持的请求方法提供了别名
+
+- `axios.request(config)`
+- `axios.get(url[, config])`
+- `axios.delete(url[, config])`
+- `axios.head(url[, config])`
+- `axios.post(url[, data[, config]])`
+- `axios.put(url[, data[, config]])`
+- `axios.patch(url[, data[, config]])`
+
+**注：在使用别名方法时， url、method、data这些属性都不必在配置中指定。**
+
+##### 6.4.1.3. 处理并发请求的助手函数
+
+- `axios.all(iterable)`
+- `axios.spread(callback)`
+
+#### 6.4.2. 创建axios实例（用来创建自定义请求）
+
+可以使用自定义配置新建一个 axios 实例
+
+```js
+axios.create([config])
+var instance = axios.create({
+  baseURL: 'https://some-domain.com/api/',
+  timeout: 1000,
+  headers: {'X-Custom-Header': 'foobar'}
+});
+```
+
+#### 6.4.3. 实例方法
+
+以下是可用的实例方法。指定的配置将与实例的配置合并
+
+- `axios#request(config)`
+- `axios#get(url[, config])`
+- `axios#delete(url[, config])`
+- `axios#head(url[, config])`
+- `axios#post(url[, data[, config]])`
+- `axios#put(url[, data[, config]])`
+- `axios#patch(url[, data[, config]])`
+
+#### 6.4.4. 请求配置
+
+这些是创建请求时可以用的配置选项。只有 url 是必需的。如果没有指定 method，请求将默认使用 get 方法。
+
+```js
+{
+  // `url` 是用于请求的服务器 URL
+  url: '/user',
+
+  // `method` 是创建请求时使用的方法
+  method: 'get', // 默认是 get
+
+  // `baseURL` 将自动加在 `url` 前面，除非 `url` 是一个绝对 URL。
+  // 它可以通过设置一个 `baseURL` 便于为 axios 实例的方法传递相对 URL
+  baseURL: 'https://some-domain.com/api/',
+
+  // `transformRequest` 允许在向服务器发送前，修改请求数据
+  // 只能用在 'PUT', 'POST' 和 'PATCH' 这几个请求方法
+  // 后面数组中的函数必须返回一个字符串，或 ArrayBuffer，或 Stream
+  transformRequest: [function (data) {
+    // 对 data 进行任意转换处理
+
+    return data;
+  }],
+
+  // `transformResponse` 在传递给 then/catch 前，允许修改响应数据
+  transformResponse: [function (data) {
+    // 对 data 进行任意转换处理
+
+    return data;
+  }],
+
+  // `headers` 是即将被发送的自定义请求头
+  headers: {'X-Requested-With': 'XMLHttpRequest'},
+
+  // `params` 是即将与请求一起发送的 URL 参数
+  // 必须是一个无格式对象(plain object)或 URLSearchParams 对象
+  params: {
+    ID: 12345
+  },
+
+  // `paramsSerializer` 是一个负责 `params` 序列化的函数
+  // (e.g. https://www.npmjs.com/package/qs, http://api.jquery.com/jquery.param/)
+  paramsSerializer: function(params) {
+    return Qs.stringify(params, {arrayFormat: 'brackets'})
+  },
+
+  // `data` 是作为请求主体被发送的数据
+  // 只适用于这些请求方法 'PUT', 'POST', 和 'PATCH'
+  // 在没有设置 `transformRequest` 时，必须是以下类型之一：
+  // - string, plain object, ArrayBuffer, ArrayBufferView, URLSearchParams
+  // - 浏览器专属：FormData, File, Blob
+  // - Node 专属： Stream
+  data: {
+    firstName: 'Fred'
+  },
+
+  // `timeout` 指定请求超时的毫秒数(0 表示无超时时间)
+  // 如果请求话费了超过 `timeout` 的时间，请求将被中断
+  timeout: 1000,
+
+  // `withCredentials` 表示跨域请求时是否需要使用凭证
+  withCredentials: false, // 默认的
+
+  // `adapter` 允许自定义处理请求，以使测试更轻松
+  // 返回一个 promise 并应用一个有效的响应 (查阅 [response docs](#response-api)).
+  adapter: function (config) {
+    /* ... */
+  },
+
+  // `auth` 表示应该使用 HTTP 基础验证，并提供凭据
+  // 这将设置一个 `Authorization` 头，覆写掉现有的任意使用 `headers` 设置的自定义 `Authorization`头
+  auth: {
+    username: 'janedoe',
+    password: 's00pers3cret'
+  },
+
+  // `responseType` 表示服务器响应的数据类型，可以是 'arraybuffer', 'blob', 'document', 'json', 'text', 'stream'
+  responseType: 'json', // 默认的
+
+  // `xsrfCookieName` 是用作 xsrf token 的值的cookie的名称
+  xsrfCookieName: 'XSRF-TOKEN', // default
+
+  // `xsrfHeaderName` 是承载 xsrf token 的值的 HTTP 头的名称
+  xsrfHeaderName: 'X-XSRF-TOKEN', // 默认的
+
+  // `onUploadProgress` 允许为上传处理进度事件
+  onUploadProgress: function (progressEvent) {
+    // 对原生进度事件的处理
+  },
+
+  // `onDownloadProgress` 允许为下载处理进度事件
+  onDownloadProgress: function (progressEvent) {
+    // 对原生进度事件的处理
+  },
+
+  // `maxContentLength` 定义允许的响应内容的最大尺寸
+  maxContentLength: 2000,
+
+  // `validateStatus` 定义对于给定的HTTP 响应状态码是 resolve 或 reject  promise 。如果 `validateStatus` 返回 `true` (或者设置为 `null` 或 `undefined`)，promise 将被 resolve; 否则，promise 将被 rejecte
+  validateStatus: function (status) {
+    return status >= 200 && status < 300; // 默认的
+  },
+  // `maxRedirects` 定义在 node.js 中 follow 的最大重定向数目
+  // 如果设置为0，将不会 follow 任何重定向
+  maxRedirects: 5, // 默认的
+  // `httpAgent` 和 `httpsAgent` 分别在 node.js 中用于定义在执行 http 和 https 时使用的自定义代理。允许像这样配置选项：
+  // `keepAlive` 默认没有启用
+  httpAgent: new http.Agent({ keepAlive: true }),
+  httpsAgent: new https.Agent({ keepAlive: true }),
+  // 'proxy' 定义代理服务器的主机名称和端口
+  // `auth` 表示 HTTP 基础验证应当用于连接代理，并提供凭据
+  // 这将会设置一个 `Proxy-Authorization` 头，覆写掉已有的通过使用 `header` 设置的自定义 `Proxy-Authorization` 头。
+  proxy: {
+    host: '127.0.0.1',
+    port: 9000,
+    auth: : {
+      username: 'mikeymike',
+      password: 'rapunz3l'
+    }
+  },
+  // `cancelToken` 指定用于取消请求的 cancel token
+  // （查看后面的 Cancellation 这节了解更多）
+  cancelToken: new CancelToken(function (cancel) {
+  })
+}
+```
+
+#### 6.4.5. 响应结构
+
+某个请求的响应包含以下信息
+
+```js
+{
+  // `data` 由服务器提供的响应
+  data: {},
+
+  // `status` 来自服务器响应的 HTTP 状态码
+  status: 200,
+
+  // `statusText` 来自服务器响应的 HTTP 状态信息
+  statusText: 'OK',
+
+  // `headers` 服务器响应的头
+  headers: {},
+
+  // `config` 是为请求提供的配置信息
+  config: {}
+}
+```
+
+使用 `then` 时，将接收下面这样的响应
+
+```js
+axios.get('/user/12345')
+  .then(function(response) {
+    console.log(response.data);
+    console.log(response.status);
+    console.log(response.statusText);
+    console.log(response.headers);
+    console.log(response.config);
+});
+```
+
+在使用 `catch` 时，或传递 `rejection` `callback` 作为 `then` 的第二个参数时，响应可以通过 `error` 对象可被使用
+
+### 6.5. 配置的默认值
+
+可以指定将被用在各个请求的配置默认值
+
+#### 6.5.1. 全局的 axios 默认值
+
+```js
+axios.defaults.baseURL = 'https://api.example.com';
+axios.defaults.headers.common['Authorization'] = AUTH_TOKEN;
+axios.defaults.headers.post['Content-Type'] = 'application/x-www-form-urlencoded';
+```
+
+#### 6.5.2. 自定义实例默认值
+
+```js
+// 创建实例时设置配置的默认值
+var instance = axios.create({
+  baseURL: 'https://api.example.com'
+});
+
+// 在实例已创建后修改默认值
+instance.defaults.headers.common['Authorization'] = AUTH_TOKEN;
+```
+
+#### 6.5.3. 配置的优先顺序
+
+配置会以一个优先顺序进行合并。这个顺序是：在 lib/defaults.js 找到的库的默认值，然后是实例的 defaults 属性，最后是请求的 config 参数。后者将优先于前者。这里是一个例子：
+
+```js
+// 使用由库提供的配置的默认值来创建实例
+// 此时超时配置的默认值是 `0`
+var instance = axios.create();
+
+// 覆写库的超时默认值
+// 现在，在超时前，所有请求都会等待 2.5 秒
+instance.defaults.timeout = 2500;
+
+// 为已知需要花费很长时间的请求覆写超时设置
+instance.get('/longRequest', {
+  timeout: 5000
+});
+```
+
+### 6.6. 拦截器
+
+#### 6.6.1. 什么是拦截器
+
+拦截器（英文：Interceptors）会在每次发起 ajax 请求和得到响应的时候自动被触发。
+
+![](images/20211208100501486_1167.png)
+
+> 应用场景：Token 身份认证、请求时 Loading 效果、等等。。。
+
+#### 6.6.2. 配置请求拦截器
+
+在请求或响应被 `then` 或 `catch` 处理前拦截它们
+
+```js
+// 添加请求拦截器
+axios.interceptors.request.use(function (config) {
+    // 在发送请求之前做些什么
+    return config;
+  }, function (error) {
+    // 对请求错误做些什么
+    return Promise.reject(error);
+  });
+```
+
+#### 6.6.3. 配置响应拦截器
+
+```js
+// 添加响应拦截器
+axios.interceptors.response.use(function (response) {
+    // 超出 2xx 范围的状态码都会触发该函数。
+    // 对响应数据做点什么
+    return response;
+  }, function (error) {
+    // 超出 2xx 范围的状态码都会触发该函数。
+    // 对响应错误做点什么
+    return Promise.reject(error);
+  });
+```
+
+#### 6.6.4. 移除与添加拦截器
+
+如果想在稍后移除拦截器，可以这样
+
+```js
+const myInterceptor = axios.interceptors.request.use(function () {/*...*/});
+axios.interceptors.request.eject(myInterceptor);
+```
+
+可以为自定义 axios 实例添加拦截器
+
+```js
+const instance = axios.create();
+instance.interceptors.request.use(function () {/*...*/});
+```
+
+### 6.7. 错误处理
+
+```js
+axios.get('/user/12345')
+  .catch(function (error) {
+    if (error.response) {
+      // 请求成功发出且服务器也响应了状态码，但状态代码超出了 2xx 的范围
+      console.log(error.response.data);
+      console.log(error.response.status);
+      console.log(error.response.headers);
+    } else if (error.request) {
+      // 请求已经成功发起，但没有收到响应
+      // `error.request` 在浏览器中是 XMLHttpRequest 的实例，
+      // 而在node.js中是 http.ClientRequest 的实例
+      console.log(error.request);
+    } else {
+      // 发送请求时出了点问题
+      console.log('Error', error.message);
+    }
+    console.log(error.config);
+  });
+```
+
+可以使用 `validateStatus` 配置选项，自定义抛出错误的 HTTP 状态码的错误范围
+
+```js
+axios.get('/user/12345', {
+  validateStatus: function (status) {
+    return status < 500; // 状态码在大于或等于500时才会 reject
+  }
+})
+```
+
+使用 `toJSON` 可以获取更多关于HTTP错误的信息。
+
+```js
+axios.get('/user/12345')
+  .catch(function (error) {
+    console.log(error.toJSON());
+  });
+```
+
+### 6.8. 自定义封装axios请求示例
+
+#### 6.8.1. 示例1
+
+```js
+/* 封闭axios的请求，此封装方式后端可以使用@RequestBody注解对象接收参数 */
+import axios from 'axios'
+import store from '../store'
+import { getToken } from '@/utils/auth'
+
+export default function (url, method, payload) {
+  // 判断是get请求还是post请求(请求时的参数名不一样)
+  let data = method.toLocaleLowerCase() === 'get' ? 'params' : 'data'
+  // 合并请求参数
+  let params = {
+    ...{
+      token: getToken()
+    },
+    ...payload
+  }
+  // 处理url
+  if (url.substring(0, 1) !== '/') {
+    url = '/' + url
+  }
+  // 返回发送请求数据
+  return axios({
+    method: method,
+    url: process.env.BASE_API + url,
+    [data]: params
+  }).then(response => {
+    return Promise.resolve(response.data)
+  }).catch(error => {
+    return Promise.reject(error)
+  })
+}
+```
+
+#### 6.8.2. 示例2
+
+在vue的后台管理开发中，应需求，需要对信息做一个校验，需要将参数传递两份过去，一份防止在body中，一份防止在formdata中，axios请求会默认将参数放在formdata中进行发送。
+
+对前端而言其实都一样，无非就是参数的格式问题。
+
+对后端而言
+
+（form data）可以用request.getParameter(接收参数名)
+
+（request payload）用request.getParameter是接收不到值，必须用输入流获取，得到字符串在转json
+
+应需求有的接口是需要放在body中有的要放在formdata中，所以前端需要做一个灵活的处理，因为就算只是更改headers中的字段也会让人时时刻刻记得。所以最终将请求文件封装如下：
+
+```js
+/**
+ * @description 配置网络请求
+ */
+import axios                from 'axios'
+import { Message} from 'element-ui'
+import router               from '../router/permission'
+import Vue from 'vue'
+import VueCookies from 'vue-cookies'
+const moment = require('moment');
+const Base64 = require('js-base64').Base64;
+// loading框设置局部刷新，且所有请求完成后关闭loading框
+var loading;
+function startLoading() {
+  loading = Vue.prototype.$loading({
+    lock: true,
+    text: "Loading...",
+    target: document.querySelector('.loading-area')//设置加载动画区域
+  });
+}
+function endLoading() {
+  loading.close();
+}
+// 声明一个对象用于存储请求个数
+var needLoadingRequestCount = 0;
+function showFullScreenLoading() {
+  if (needLoadingRequestCount === 0) {
+    startLoading();
+  }
+  needLoadingRequestCount++;
+};
+function tryHideFullScreenLoading() {
+  if (needLoadingRequestCount <= 0) return;
+    needLoadingRequestCount--;
+  if (needLoadingRequestCount === 0) {
+    endLoading();
+  }
+};
+// 请求拦截
+axios.interceptors.request.use(config => {
+  let token = "";
+  showFullScreenLoading();
+  if(VueCookies.isKey('userinfo')) { 
+    const USERINFO = VueCookies.get('userinfo');
+    if(config.method == 'get') {
+      token = Base64.encode(USERINFO.token + '|' + moment().utc().format('YYY-MM-DD HH:mm:ss' + '|' + JSON.stringify(config.params)));
+      config.params.hospitalId = USERINFO.hospitalId;
+    } else {
+      token = Base64.encode(USERINFO.token + '|' + moment().utc().format('YYY-MM-DD HH:mm:ss' + '|' + JSON.stringify(config.data)));
+      config.data.hospitalId = USERINFO.hospitalId;
+    }
+    let TOKENSTART = token.slice(0,10),
+        TOKENEND = token.slice(10);
+    token = TOKENEND + TOKENSTART;
+    config.headers['token'] = token;
+  }
+  return config;
+}, err => {
+  tryHideFullScreenLoading();
+  Message.error({ message: '请求超时!' });
+  return Promise.resolve(err);
+})
+// 响应拦截
+axios.interceptors.response.use(res => {
+  tryHideFullScreenLoading();
+  switch(res.data.code) {
+    case 200:
+    return res.data.result;
+    case 401:
+    router.push('/login');
+    VueCookies.remove('userinfo');
+    return Promise.reject(res);
+    case 201:
+    Message.error({ message: res.data.msg });
+    return Promise.reject(res);
+    default :
+    return Promise.reject(res);
+  }
+}, err => {
+  tryHideFullScreenLoading();
+  if(!err.response.status) {
+    return false;
+  }
+  switch(err.response.status) {
+    case 504:
+    Message.error({ message: '服务器被吃了⊙﹏⊙∥' });
+    break;
+    case 404:
+    Message.error({ message: '服务器被吃了⊙﹏⊙∥' });
+    break;
+    case 403:
+    Message.error({ message: '权限不足,请联系管理员!' });
+    break;
+    default:
+    return Promise.reject(err);
+  }
+})
+axios.defaults.timeout = 300000;// 请求超时5fen
+// RequestBody
+export const postJsonRequest = (url, params) => {
+  return axios({
+    method: 'post',
+    url: url,
+    data: params,
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  });
+}
+// formData
+export const postRequest = (url, params) => {
+  return axios({
+    method: 'post',
+    url: url,
+    data: params,
+    transformRequest: [function (data) {
+      let ret = ''
+      for (let it in data) {
+        ret += encodeURIComponent(it) + '=' + encodeURIComponent(data[it]) + '&'
+      }
+      return ret
+    }],
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded'
+    }
+  });
+}
+export const getRequest = (url, data = '') => {
+  return axios({
+    method: 'get',
+    params: data,
+    url: url,
+  });
+}
+```
+
+Get请求的话是不需要进行设置的，因为get请求回默认将参数放在params中，post请求的话会有两个，所以这里post请求封装了两份。
+
+## 7. proxy 跨域代理
+
+如果项目的 API 接口没有开启 CORS 跨域资源共享，因此默认情况下，前端请求后端服务的接口无法请求成功！
+
+![](images/20211208104512244_6177.png)
+
+### 7.1. 通过代理解决接口的跨域问题
+
+通过 vue-cli 创建的项目在遇到接口跨域问题时，可以通过代理的方式来解决：
+
+![](images/20211208104649119_11387.png)
+
+1. 把 `axios` 的请求根路径设置为 vue 项目的运行地址（接口请求不再跨域）
+2. vue 项目发现请求的接口不存在，把请求转交给 `proxy` 代理
+3. 代理把请求根路径替换为 `devServer.proxy` 属性的值，发起真正的数据请求
+4. 代理把请求到的数据，转发给 `axios`
+
+### 7.2. vue 项目中配置 proxy 代理
+
+步骤1：在 main.js 入口文件中，把 axios 的请求根路径改造为当前 web 项目的根路径：
+
+```js
+import axios from 'axios'
+
+// 全局配置 axios 的请求根路径
+axios.defaults.baseURL = 'http://localhost:38080'
+```
+
+步骤2：在项目根目录下创建 vue.config.js 的配置文件，并声明如下的配置：
+
+```js
+module.exports = {
+  devServer: {
+    // 此配置在项目的开发调试阶段生效。
+    // 会将所有未知请求（非匹配到静态文件的请求）代理转发到相应的域名。示例是：https://www.moon.com
+    proxy: 'https://www.moon.com',
+  },
+}
+```
+
+> 注意：
+>
+> 1. `devServer.proxy` 提供的代理功能，仅在开发调试阶段生效
+> 2. 项目上线发布时，依旧需要 API 接口服务器开启 CORS 跨域资源共享
+> 3. 另外，如果是旧版本的vue-cli中，是在 `webpack.dev.conf.js` 文件中配置
+
 # 扩展知识
 
 ## 1. 框架常用知识点
@@ -662,7 +1362,7 @@ export default [{
 
 ## 4. vue框架7个技术分享
 
-### 4.1. 一、善用watch的immediate属性
+### 4.1. 善用watch的immediate属性
 
 例如有请求需要再也没初始化的时候就执行一次，然后监听他的变化，很多人这么写：
 
@@ -688,7 +1388,7 @@ watch: {
 }
 ```
 
-### 4.2. 二、组件注册，值得借鉴
+### 4.2. 组件注册，值得借鉴
 
 一般情况下，我们组件如下写：
 
@@ -751,7 +1451,7 @@ requireComponent.keys().forEach(fileName => {
 </BaseButton>
 ```
 
-### 4.3. 三、精简vuex的modules引入
+### 4.3. 精简vuex的modules引入
 
 对于vuex，我们输出store如下写：
 
@@ -803,7 +1503,7 @@ export default new Vuex.Store({
 })
 ```
 
-### 4.4. 四、路由的延迟加载
+### 4.4. 路由的延迟加载
 
 这一点，关于vue的引入，我之前在 vue项目重构技术要点和总结 中也提及过，可以通过require方式或者import()方式动态加载组件。
 
@@ -827,7 +1527,7 @@ export default new Vuex.Store({
 
 加载路由。
 
-### 4.5. 五、router key组件刷新
+### 4.5. router key组件刷新
 
 下面这个场景真的是伤透了很多程序员的心...先默认大家用的是Vue-router来实现路由的控制。 假设我们在写一个博客网站，需求是从/post-haorooms/a，跳转到/post-haorooms/b。然后我们惊人的发现，页面跳转后数据竟然没更新？！原因是vue-router"智能地"发现这是同一个组件，然后它就决定要复用这个组件，所以你在created函数里写的方法压根就没执行。通常的解决方案是监听$route的变化来初始化数据，如下：
 
@@ -885,7 +1585,7 @@ methods () {
 
 注：个人经验，这个一般应用在子路由里面，这样才可以不避免大量重绘，假设app.vue根目录添加这个属性，那么每次点击改变地址都会重绘，还是得不偿失的！
 
-### 4.6. 六、唯一组件根元素
+### 4.6. 唯一组件根元素
 
 场景如下：
 
@@ -926,7 +1626,7 @@ render(h, { props }) {
 }
 ```
 
-### 4.7. 七、组件包装、事件属性穿透问题
+### 4.7. 组件包装、事件属性穿透问题
 
 当我们写组件的时候，通常我们都需要从父组件传递一系列的props到子组件，同时父组件监听子组件emit过来的一系列事件。举例子：
 
@@ -992,8 +1692,8 @@ const Foo = _import('Foo');
 总结：
 
 | 开发环境 | 生产环境 |
-| :--------: | :--------: |
-|   cors   |   cors   |
+| :-----: | :-----: |
+|   cors   |  cors   |
 |  proxy   |  nginx   |
 
 
@@ -1144,558 +1844,11 @@ http://www.xxx.com/Index/Test/crossDomain?callback=jQuery331015214102388989237_1
 - JSONP只支持GET请求。无法提交表单
 - 它只支持跨域HTTP请求
 
-## 7. axios 请求发送插件
-### 7.1. 使用axios发送post请求，后端@RequestBody无法接收参数
+## 7. 开发过程的问题
 
-springboot会报错`Content type 'application/x-www-form-urlencoded;charset=UTF-8' not supported`。将`@RequestBody`换成`@RequestParam`就可以，这个暂时还搞不懂是什么回事？
+### 7.1. 使用 vue 实现拖拽效果
 
-```java
-/* 多条件查询影片资源信息 */
-@PostMapping("/findByCondition")
-public PageResult<JavMain> findByCondition(@RequestBody Map<String, Object> params) {
-    ......
-}
-
-// 改成以下方式
-@PostMapping("/findByCondition")
-public PageResult<JavMain> findByCondition(@RequestParam Map<String, Object> params) {
-    ......
-}
-```
-
-### 7.2. Axios 请求配置参数详解
-#### 7.2.1. axios API
-##### 7.2.1.1. axios 传递相关配置来创建请求
-
-- `axios(config)`
-
-```js
-// 发送 POST 请求
-axios({
-  method: 'post',
-  url: '/user/12345',
-  data: {
-    firstName: 'Fred',
-    lastName: 'Flintstone'
-  }
-});
-```
-
-- `axios(url[, config])`
-
-```js
-// 发送 GET 请求（默认的方法）
-axios('/user/12345');
-```
-
-##### 7.2.1.2. 为所有支持的请求方法提供了别名
-
-- `axios.request(config)`
-- `axios.get(url[, config])`
-- `axios.delete(url[, config])`
-- `axios.head(url[, config])`
-- `axios.post(url[, data[, config]])`
-- `axios.put(url[, data[, config]])`
-- `axios.patch(url[, data[, config]])`
-
-**注：在使用别名方法时， url、method、data这些属性都不必在配置中指定。**
-
-##### 7.2.1.3. 处理并发请求的助手函数
-
-- `axios.all(iterable)`
-- `axios.spread(callback)`
-
-#### 7.2.2. 创建axios实例（用来创建自定义请求）
-
-可以使用自定义配置新建一个 axios 实例
-
-```js
-axios.create([config])
-var instance = axios.create({
-  baseURL: 'https://some-domain.com/api/',
-  timeout: 1000,
-  headers: {'X-Custom-Header': 'foobar'}
-});
-```
-
-#### 7.2.3. 实例方法
-
-以下是可用的实例方法。指定的配置将与实例的配置合并
-
-- `axios#request(config)`
-- `axios#get(url[, config])`
-- `axios#delete(url[, config])`
-- `axios#head(url[, config])`
-- `axios#post(url[, data[, config]])`
-- `axios#put(url[, data[, config]])`
-- `axios#patch(url[, data[, config]])`
-
-#### 7.2.4. 请求配置
-
-这些是创建请求时可以用的配置选项。只有 url 是必需的。如果没有指定 method，请求将默认使用 get 方法。
-
-```js
-{
-  // `url` 是用于请求的服务器 URL
-  url: '/user',
-
-  // `method` 是创建请求时使用的方法
-  method: 'get', // 默认是 get
-
-  // `baseURL` 将自动加在 `url` 前面，除非 `url` 是一个绝对 URL。
-  // 它可以通过设置一个 `baseURL` 便于为 axios 实例的方法传递相对 URL
-  baseURL: 'https://some-domain.com/api/',
-
-  // `transformRequest` 允许在向服务器发送前，修改请求数据
-  // 只能用在 'PUT', 'POST' 和 'PATCH' 这几个请求方法
-  // 后面数组中的函数必须返回一个字符串，或 ArrayBuffer，或 Stream
-  transformRequest: [function (data) {
-    // 对 data 进行任意转换处理
-
-    return data;
-  }],
-
-  // `transformResponse` 在传递给 then/catch 前，允许修改响应数据
-  transformResponse: [function (data) {
-    // 对 data 进行任意转换处理
-
-    return data;
-  }],
-
-  // `headers` 是即将被发送的自定义请求头
-  headers: {'X-Requested-With': 'XMLHttpRequest'},
-
-  // `params` 是即将与请求一起发送的 URL 参数
-  // 必须是一个无格式对象(plain object)或 URLSearchParams 对象
-  params: {
-    ID: 12345
-  },
-
-  // `paramsSerializer` 是一个负责 `params` 序列化的函数
-  // (e.g. https://www.npmjs.com/package/qs, http://api.jquery.com/jquery.param/)
-  paramsSerializer: function(params) {
-    return Qs.stringify(params, {arrayFormat: 'brackets'})
-  },
-
-  // `data` 是作为请求主体被发送的数据
-  // 只适用于这些请求方法 'PUT', 'POST', 和 'PATCH'
-  // 在没有设置 `transformRequest` 时，必须是以下类型之一：
-  // - string, plain object, ArrayBuffer, ArrayBufferView, URLSearchParams
-  // - 浏览器专属：FormData, File, Blob
-  // - Node 专属： Stream
-  data: {
-    firstName: 'Fred'
-  },
-
-  // `timeout` 指定请求超时的毫秒数(0 表示无超时时间)
-  // 如果请求话费了超过 `timeout` 的时间，请求将被中断
-  timeout: 1000,
-
-  // `withCredentials` 表示跨域请求时是否需要使用凭证
-  withCredentials: false, // 默认的
-
-  // `adapter` 允许自定义处理请求，以使测试更轻松
-  // 返回一个 promise 并应用一个有效的响应 (查阅 [response docs](#response-api)).
-  adapter: function (config) {
-    /* ... */
-  },
-
-  // `auth` 表示应该使用 HTTP 基础验证，并提供凭据
-  // 这将设置一个 `Authorization` 头，覆写掉现有的任意使用 `headers` 设置的自定义 `Authorization`头
-  auth: {
-    username: 'janedoe',
-    password: 's00pers3cret'
-  },
-
-  // `responseType` 表示服务器响应的数据类型，可以是 'arraybuffer', 'blob', 'document', 'json', 'text', 'stream'
-  responseType: 'json', // 默认的
-
-  // `xsrfCookieName` 是用作 xsrf token 的值的cookie的名称
-  xsrfCookieName: 'XSRF-TOKEN', // default
-
-  // `xsrfHeaderName` 是承载 xsrf token 的值的 HTTP 头的名称
-  xsrfHeaderName: 'X-XSRF-TOKEN', // 默认的
-
-  // `onUploadProgress` 允许为上传处理进度事件
-  onUploadProgress: function (progressEvent) {
-    // 对原生进度事件的处理
-  },
-
-  // `onDownloadProgress` 允许为下载处理进度事件
-  onDownloadProgress: function (progressEvent) {
-    // 对原生进度事件的处理
-  },
-
-  // `maxContentLength` 定义允许的响应内容的最大尺寸
-  maxContentLength: 2000,
-
-  // `validateStatus` 定义对于给定的HTTP 响应状态码是 resolve 或 reject  promise 。如果 `validateStatus` 返回 `true` (或者设置为 `null` 或 `undefined`)，promise 将被 resolve; 否则，promise 将被 rejecte
-  validateStatus: function (status) {
-    return status >= 200 && status < 300; // 默认的
-  },
-  // `maxRedirects` 定义在 node.js 中 follow 的最大重定向数目
-  // 如果设置为0，将不会 follow 任何重定向
-  maxRedirects: 5, // 默认的
-  // `httpAgent` 和 `httpsAgent` 分别在 node.js 中用于定义在执行 http 和 https 时使用的自定义代理。允许像这样配置选项：
-  // `keepAlive` 默认没有启用
-  httpAgent: new http.Agent({ keepAlive: true }),
-  httpsAgent: new https.Agent({ keepAlive: true }),
-  // 'proxy' 定义代理服务器的主机名称和端口
-  // `auth` 表示 HTTP 基础验证应当用于连接代理，并提供凭据
-  // 这将会设置一个 `Proxy-Authorization` 头，覆写掉已有的通过使用 `header` 设置的自定义 `Proxy-Authorization` 头。
-  proxy: {
-    host: '127.0.0.1',
-    port: 9000,
-    auth: : {
-      username: 'mikeymike',
-      password: 'rapunz3l'
-    }
-  },
-  // `cancelToken` 指定用于取消请求的 cancel token
-  // （查看后面的 Cancellation 这节了解更多）
-  cancelToken: new CancelToken(function (cancel) {
-  })
-}
-```
-
-#### 7.2.5. 响应结构
-
-某个请求的响应包含以下信息
-
-```js
-{
-  // `data` 由服务器提供的响应
-  data: {},
-
-  // `status` 来自服务器响应的 HTTP 状态码
-  status: 200,
-
-  // `statusText` 来自服务器响应的 HTTP 状态信息
-  statusText: 'OK',
-
-  // `headers` 服务器响应的头
-  headers: {},
-
-  // `config` 是为请求提供的配置信息
-  config: {}
-}
-```
-
-使用 `then` 时，将接收下面这样的响应
-
-```js
-axios.get('/user/12345')
-  .then(function(response) {
-    console.log(response.data);
-    console.log(response.status);
-    console.log(response.statusText);
-    console.log(response.headers);
-    console.log(response.config);
-});
-```
-
-在使用 `catch` 时，或传递 `rejection` `callback` 作为 `then` 的第二个参数时，响应可以通过 `error` 对象可被使用
-
-#### 7.2.6. 配置的默认值`/defaults`
-
-可以指定将被用在各个请求的配置默认值
-
-##### 7.2.6.1. 全局的 axios 默认值
-
-```js
-axios.defaults.baseURL = 'https://api.example.com';
-axios.defaults.headers.common['Authorization'] = AUTH_TOKEN;
-axios.defaults.headers.post['Content-Type'] = 'application/x-www-form-urlencoded';
-```
-
-##### 7.2.6.2. 自定义实例默认值
-
-```js
-// 创建实例时设置配置的默认值
-var instance = axios.create({
-  baseURL: 'https://api.example.com'
-});
-
-// 在实例已创建后修改默认值
-instance.defaults.headers.common['Authorization'] = AUTH_TOKEN;
-```
-
-##### 7.2.6.3. 配置的优先顺序
-
-配置会以一个优先顺序进行合并。这个顺序是：在 lib/defaults.js 找到的库的默认值，然后是实例的 defaults 属性，最后是请求的 config 参数。后者将优先于前者。这里是一个例子：
-
-```js
-// 使用由库提供的配置的默认值来创建实例
-// 此时超时配置的默认值是 `0`
-var instance = axios.create();
-
-// 覆写库的超时默认值
-// 现在，在超时前，所有请求都会等待 2.5 秒
-instance.defaults.timeout = 2500;
-
-// 为已知需要花费很长时间的请求覆写超时设置
-instance.get('/longRequest', {
-  timeout: 5000
-});
-```
-
-#### 7.2.7. 拦截器
-
-在请求或响应被 `then` 或 `catch` 处理前拦截它们
-
-```js
-// 添加请求拦截器
-axios.interceptors.request.use(function (config) {
-    // 在发送请求之前做些什么
-    return config;
-  }, function (error) {
-    // 对请求错误做些什么
-    return Promise.reject(error);
-  });
-
-// 添加响应拦截器
-axios.interceptors.response.use(function (response) {
-    // 对响应数据做点什么
-    return response;
-  }, function (error) {
-    // 对响应错误做点什么
-    return Promise.reject(error);
-  });
-```
-
-如果想在稍后移除拦截器，可以这样
-
-```js
-var myInterceptor = axios.interceptors.request.use(function () {/*...*/});
-axios.interceptors.request.eject(myInterceptor);
-```
-
-可以为自定义 axios 实例添加拦截器
-
-```js
-var instance = axios.create();
-instance.interceptors.request.use(function () {/*...*/});
-```
-
-#### 7.2.8. 错误处理
-
-```js
-axios.get('/user/12345')
-  .catch(function (error) {
-    if (error.response) {
-      // 请求已发出，但服务器响应的状态码不在 2xx 范围内
-      console.log(error.response.data);
-      console.log(error.response.status);
-      console.log(error.response.headers);
-    } else {
-      // Something happened in setting up the request that triggered an Error
-      console.log('Error', error.message);
-    }
-    console.log(error.config);
-  });
-```
-
-可以使用 `validateStatus` 配置选项定义一个自定义 HTTP 状态码的错误范围
-
-```js
-axios.get('/user/12345', {
-  validateStatus: function (status) {
-    return status < 500; // 状态码在大于或等于500时才会 reject
-  }
-})
-```
-
-### 7.3. 自定义封装axios请求示例
-#### 7.3.1. 示例1
-
-```js
-/* 封闭axios的请求，此封装方式后端可以使用@RequestBody注解对象接收参数 */
-import axios from 'axios'
-import store from '../store'
-import { getToken } from '@/utils/auth'
-
-export default function (url, method, payload) {
-  // 判断是get请求还是post请求(请求时的参数名不一样)
-  let data = method.toLocaleLowerCase() === 'get' ? 'params' : 'data'
-  // 合并请求参数
-  let params = {
-    ...{
-      token: getToken()
-    },
-    ...payload
-  }
-  // 处理url
-  if (url.substring(0, 1) !== '/') {
-    url = '/' + url
-  }
-  // 返回发送请求数据
-  return axios({
-    method: method,
-    url: process.env.BASE_API + url,
-    [data]: params
-  }).then(response => {
-    return Promise.resolve(response.data)
-  }).catch(error => {
-    return Promise.reject(error)
-  })
-}
-```
-
-#### 7.3.2. 示例2
-
-在vue的后台管理开发中，应需求，需要对信息做一个校验，需要将参数传递两份过去，一份防止在body中，一份防止在formdata中，axios请求会默认将参数放在formdata中进行发送。
-
-对前端而言其实都一样，无非就是参数的格式问题。
-
-对后端而言
-
-（form data）可以用request.getParameter(接收参数名)
-（
-request payload）用request.getParameter是接收不到值，必须用输入流获取，得到字符串在转json
-
-应需求有的接口是需要放在body中有的要放在formdata中，所以前端需要做一个灵活的处理，因为就算只是更改headers中的字段也会让人时时刻刻记得。所以最终将请求文件封装如下：
-
-```js
-/**
- * @description 配置网络请求
- */
-import axios                from 'axios'
-import { Message} from 'element-ui'
-import router               from '../router/permission'
-import Vue from 'vue'
-import VueCookies from 'vue-cookies'
-const moment = require('moment');
-const Base64 = require('js-base64').Base64;
-// loading框设置局部刷新，且所有请求完成后关闭loading框
-var loading;
-function startLoading() {
-  loading = Vue.prototype.$loading({
-    lock: true,
-    text: "Loading...",
-    target: document.querySelector('.loading-area')//设置加载动画区域
-  });
-}
-function endLoading() {
-  loading.close();
-}
-// 声明一个对象用于存储请求个数
-var needLoadingRequestCount = 0;
-function showFullScreenLoading() {
-  if (needLoadingRequestCount === 0) {
-    startLoading();
-  }
-  needLoadingRequestCount++;
-};
-function tryHideFullScreenLoading() {
-  if (needLoadingRequestCount <= 0) return;
-    needLoadingRequestCount--;
-  if (needLoadingRequestCount === 0) {
-    endLoading();
-  }
-};
-// 请求拦截
-axios.interceptors.request.use(config => {
-  let token = "";
-  showFullScreenLoading();
-  if(VueCookies.isKey('userinfo')) { 
-    const USERINFO = VueCookies.get('userinfo');
-    if(config.method == 'get') {
-      token = Base64.encode(USERINFO.token + '|' + moment().utc().format('YYY-MM-DD HH:mm:ss' + '|' + JSON.stringify(config.params)));
-      config.params.hospitalId = USERINFO.hospitalId;
-    } else {
-      token = Base64.encode(USERINFO.token + '|' + moment().utc().format('YYY-MM-DD HH:mm:ss' + '|' + JSON.stringify(config.data)));
-      config.data.hospitalId = USERINFO.hospitalId;
-    }
-    let TOKENSTART = token.slice(0,10),
-        TOKENEND = token.slice(10);
-    token = TOKENEND + TOKENSTART;
-    config.headers['token'] = token;
-  }
-  return config;
-}, err => {
-  tryHideFullScreenLoading();
-  Message.error({ message: '请求超时!' });
-  return Promise.resolve(err);
-})
-// 响应拦截
-axios.interceptors.response.use(res => {
-  tryHideFullScreenLoading();
-  switch(res.data.code) {
-    case 200:
-    return res.data.result;
-    case 401:
-    router.push('/login');
-    VueCookies.remove('userinfo');
-    return Promise.reject(res);
-    case 201:
-    Message.error({ message: res.data.msg });
-    return Promise.reject(res);
-    default :
-    return Promise.reject(res);
-  }
-}, err => {
-  tryHideFullScreenLoading();
-  if(!err.response.status) {
-    return false;
-  }
-  switch(err.response.status) {
-    case 504:
-    Message.error({ message: '服务器被吃了⊙﹏⊙∥' });
-    break;
-    case 404:
-    Message.error({ message: '服务器被吃了⊙﹏⊙∥' });
-    break;
-    case 403:
-    Message.error({ message: '权限不足,请联系管理员!' });
-    break;
-    default:
-    return Promise.reject(err);
-  }
-})
-axios.defaults.timeout = 300000;// 请求超时5fen
-// RequestBody
-export const postJsonRequest = (url, params) => {
-  return axios({
-    method: 'post',
-    url: url,
-    data: params,
-    headers: {
-      'Content-Type': 'application/json',
-    },
-  });
-}
-// formData
-export const postRequest = (url, params) => {
-  return axios({
-    method: 'post',
-    url: url,
-    data: params,
-    transformRequest: [function (data) {
-      let ret = ''
-      for (let it in data) {
-        ret += encodeURIComponent(it) + '=' + encodeURIComponent(data[it]) + '&'
-      }
-      return ret
-    }],
-    headers: {
-      'Content-Type': 'application/x-www-form-urlencoded'
-    }
-  });
-}
-export const getRequest = (url, data = '') => {
-  return axios({
-    method: 'get',
-    params: data,
-    url: url,
-  });
-}
-```
-
-Get请求的话是不需要进行设置的，因为get请求回默认将参数放在params中，post请求的话会有两个，所以这里post请求封装了两份。
-
-## 8. 开发过程的问题
-### 8.1. 使用 vue 实现拖拽效果
-#### 8.1.1. 拖拽几个相关的概念
+#### 7.1.1. 拖拽几个相关的概念
 
 这两种获取鼠标坐标的方法，区别在于基于的对象不同：
 
@@ -1708,7 +1861,7 @@ Get请求的话是不需要进行设置的，因为get请求回默认将参数�
     5. `document.documentElement.clientHeight`：屏幕的可视高度
     6. `document.documentElement.clientWidth`：屏幕的可视高度
 
-#### 8.1.2. 实现使用Vue.js的自定义指令功能简介
+#### 7.1.2. 实现使用Vue.js的自定义指令功能简介
 
 Vue支持自己开发一些使用方法类似内置指令（如v-show、v-for等）的自定义指令，通常用在一些对底层DOM操作的地方。简单介绍一下自定义指令的基本用法，并实现一个指令v-drag实现悬浮框拖动功能。
 
@@ -1735,15 +1888,15 @@ Vue支持自己开发一些使用方法类似内置指令（如v-show、v-for等
 - vnode： Vue 编译生成的虚拟节点。
 - oldVnode：上一个虚拟节点，仅在 update 和 componentUpdated 钩子中可用。
 
-### 8.2. vue + element + Spring mvc 文件上传案例（网络资源）
-#### 8.2.1. 需求
+### 7.2. vue + element + Spring mvc 文件上传案例（网络资源）
+#### 7.2.1. 需求
 
 Vue+ElementUI+SpringMVC实现图片上传和table回显
 
 ![效果](images/20190226124427974_27440.png)
 
-#### 8.2.2. 思路分析
-##### 8.2.2.1. 图片上传和表单提交
+#### 7.2.2. 思路分析
+##### 7.2.2.1. 图片上传和表单提交
 
 要明白图片上传和表单提交是两个功能，其对应不同的接口，表单中并不是保存了这个图片，而仅仅是保存了储存图片的路径地址。需要分析以下几点：
 
@@ -1755,12 +1908,12 @@ Vue+ElementUI+SpringMVC实现图片上传和table回显
 3. 如何提交表单
     - 说如何提交表单，这就显得很简单了，因为上面我们已经完成了：1、图片成功上传；2、获取到了图片在服务器上的储存地址。利用Vue的双向绑定思想，在图片成功上传的回调函数`on-success`中获取到后端返回的图片储存地址，将这个地址赋值给Vue实例`data(){}`中定义的表单对象。这样在提交表单的时候仅需要将这个表单对象发送给后端，保存到数据库就行了。
 
-##### 8.2.2.2. 图片在table的回显
+##### 7.2.2.2. 图片在table的回显
 
 想要将图片回显到table表格中其实很简单，前提只要你在数据库中保存了正确的图片储存地址；在table表格中我们仅需要在`<td>`列中新定义一列`<td><img src="图片的地址"/></td>`即可完成图片回显。渲染table数据的时候循环给`<img>`中的src赋值数据库中保存的图片url即可。
 
-#### 8.2.3. 后端实现
-##### 8.2.3.1. 图片上传接口
+#### 7.2.3. 后端实现
+##### 7.2.3.1. 图片上传接口
 
 这里将文件上传和下载接口单独抽离在一个Controller类中
 
@@ -1848,7 +2001,7 @@ public class Result implements Serializable {
 }
 ```
 
-##### 8.2.3.2. 表单提交接口
+##### 7.2.3.2. 表单提交接口
 
 表单提交，配合图片上传，仅仅是在实体类中多了一个字段存放图片的URL地址
 
@@ -1886,8 +2039,8 @@ public class InstrumentController {
 
 写Controller的时候定义了全局的`@RestController`注解，和`@Controller`注解的区别是，前者多了`@ResponseBod`y注解，这样整合Controller类返回的数据都将给自动转换成JSON格式。
 
-#### 8.2.4. 前端实现
-##### 8.2.4.1. 实现图片上传
+#### 7.2.4. 前端实现
+##### 7.2.4.1. 实现图片上传
 
 配合ElementUI的上传组件，我们会这样定义(这是form表单中的一部分)：
 
@@ -1929,7 +2082,7 @@ public class InstrumentController {
 - `:on-remove` 文件列表移除时的钩子函数
 - `:src` 图片上传的URL。
 
-##### 8.2.4.2. js部分
+##### 7.2.4.2. js部分
 
 ```js
 //设置全局表单提交格式
@@ -2015,13 +2168,13 @@ new Vue({
 7. 如果点击图片中的删除按钮，就会触发`handleRemove()`函数，并删除此图片。
 8. 如果点击了已上传的文件列表，就会触发`handlePreview()`函数。
 
-##### 8.2.4.3. 实现表单提交
+##### 7.2.4.3. 实现表单提交
 
 表单提交就比较简单了，就是触发对应的click事件，触发其中定义的函数，将已在`data(){}`中定义的表单数据发送给后端接口：
 
 ![提交表单](images/20190226133513581_24838.png)
 
-##### 8.2.4.4. 后端接口
+##### 7.2.4.4. 后端接口
 
 ```java
 @RequestMapping("/save")
@@ -2038,7 +2191,7 @@ public Result save(Instrument instrument) {
 }
 ```
 
-#### 8.2.5. 实现table回显图片
+#### 7.2.5. 实现table回显图片
 
 table回显图片也是很简单的，仅需要在列中增加一列
 
@@ -2066,33 +2219,33 @@ table回显图片也是很简单的，仅需要在列中增加一列
 
 后端就是正常的查询数据库数据即可了
 
-## 9. 图标字体制作
+## 8. 图标字体制作
 
 网站：`https://icomoon.io/` 可以上传自定义的图标字体
 
-## 10. 参考资料
+## 9. 参考资料
 
 Vue.js高仿饿了么外卖App课程源码 `https://github.com/ustbhuangyi/vue-sell`
 
-## 11. 相关框架
+## 10. 相关框架
 
-### 11.1. v-page：vue.js的分页组件
+### 10.1. v-page：vue.js的分页组件
 
 官网：https://terryz.gitee.io/vue/#/page
 
-### 11.2. Element 基于 Vue 2.0 的桌面端组件库
+### 10.2. Element 基于 Vue 2.0 的桌面端组件库
 
 官网：https://element.eleme.cn/#/zh-CN
 
-### 11.3. iView 基于Vue.js的UI组件库
+### 10.3. iView 基于Vue.js的UI组件库
 
 官网：http://v1.iviewui.com/
 
-### 11.4. Mint UI 移动端组件库
+### 10.4. Mint UI 移动端组件库
 
 官网：http://mint-ui.github.io/#!/zh-cn
 
-### 11.5. Vant 移动端组件库
+### 10.5. Vant 移动端组件库
 
 官网：https://vant-contrib.gitee.io/vant/#/zh-CN/
 
