@@ -175,7 +175,17 @@ public static native void yield();
 
 提示线程调度器让出当前线程对CPU的使用，并执行其他线程。*主要是为了测试和调试*
 
-## 2. FutureTask
+```java
+public final void setDaemon(boolean on)
+```
+
+将该线程标记为守护线程或用户线程。**注意：该方法必须在启动线程前调用。**
+
+**参数**：
+
+- `on`：设置为 `true`，则将该线程标记为守护线程。
+
+## 2. FutureTask 类
 
 ### 2.1. 简介
 
