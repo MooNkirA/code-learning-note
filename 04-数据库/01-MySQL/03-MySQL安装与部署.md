@@ -1,12 +1,40 @@
 # MySQL安装与部署
 
-## 1. MySQL目录结构
+## 1. MySQL 的版本
 
-### 1.1. Linux版本（待补充）
+### 1.1. 版本分类
+
+MySQL 提供了以下版本：
+
+- MySQL Community Server：社区版本，免费，但是MySQL不提供官方技术支持。
+- MySQL Enterprise Edition：商业版，该版本是收费版本，可以试用30天，官方提供技术支持
+- MySQL Cluster：集群版，开源免费，可将几个MySQL Server封装成一个Server。
+- MySQL Cluster CGE：高级集群版，需付费。
+
+MySQL 的图形化客户端
+
+- MySQL Workbench（GUI TOOL）：一款专为MySQL设计的ER/数据库建模工具。MySQL Workbench又分为两个版本：
+    - 社区版（MySQL Workbench OSS）
+    - 商用版（MySQL Workbench SE）
+
+### 1.2. 版本号
+
+MySQL的命名机制使用由3个数字和一个后缀组成的版本号。例如，mysql-8.0.26的版本号的含义如下：
+
+- 第1个数字(8)是主版本号，描述了文件格式。所有版本5的发行都有相同的文件格式。
+- 第2个数字(0)是发行级别。主版本号和发行级别组合到一起便构成了发行序列号。
+- 第3个数字(26)是在此发行系列的版本号，随每个新分发版递增。
+
+> 目前，MySQL的最新版本为MySQL 8.0。
+
+
+## 2. MySQL目录结构
+
+### 2.1. Linux版本（待补充）
 
 
 
-### 1.2. windows版本
+### 2.2. windows版本
 
 - bin：存放可执行文件，比如MySQL.exe
 - data：存储的是MySQL默认的数据库
@@ -14,20 +42,20 @@
 - lib：存放的C++的动态链接库
 - my.ini：数据库的配置文件
 
-## 2. 启动 MySQL 服务器程序的相关可执行文件
+## 3. 启动 MySQL 服务器程序的相关可执行文件
 
 启动 MySOL 服务器程序的可执行文件有很多，大多在 MySQL 安装目录的 bin 目录下。
 
-### 2.1. mysqld（不常用）
+### 3.1. mysqld（不常用）
 
 - `mysqld` 这个可执行文件就代表着 MySOL 服务器程序，运行这个可执行文件就可以直接启动一个服务器进程。
 
-### 2.2. mysqld_safe
+### 3.2. mysqld_safe
 
 - `mysqld_safe`是一个启动脚本，它会间接的调用`mysqld`，而且还顺便启动了另外一个监控进程，这个监控进程在服务器进程挂了的时候，可以帮助重启它。
 - 除外，使用`mysqld_safe`启动服务器程序时，它会将服务器程序的出错信息和其他诊断信息重定向到某个文件中，产生出错日志，方便找出发生错误的原因。
 
-### 2.3. mysql.server
+### 3.3. mysql.server
 
 `mysql.server`也是一个启动脚本，它会间接的调用`mysqld_safe`。需要注意的是，这个`mysql.server`文件其实是一个链接文件，它的实际文件位置是`support-files/mysql.server`，所以如果在 bin 目录找不到，则到`support-files`去找，也可以自行用 `ln` 命令在 bin 创建一个链接。
 
@@ -40,17 +68,17 @@ mysql.server start
 mysql.server stop
 ```
 
-### 2.4. mysqld_multi
+### 3.4. mysqld_multi
 
 `mysqld_multi`可以一台计算机上也可以运行多个服务器实例（*即运行了多个MySQL服务器进程*）。此可执行文件可以对每一个服务器进程的启动或停止进行监控。
 
-## 3. Linux 系统安装MySQL
+## 4. Linux 系统安装MySQL
 
-### 3.1. 下载 Linux 安装包
+### 4.1. 下载 Linux 安装包
 
 下载地址：https://dev.mysql.com/downloads/mysql/5.7.html#downloads
 
-### 3.2. 安装 MySQL
+### 4.2. 安装 MySQL
 
 1. 卸载 centos 中预安装的 mysql
 
@@ -91,7 +119,7 @@ rpm -ivh MySQL-client-5.6.22-1.el6.i686.rpm
 rpm -ivh MySQL-server-5.6.22-1.el6.i686.rpm
 ```
 
-### 3.3. 启动 MySQL 服务
+### 4.3. 启动 MySQL 服务
 
 ```bash
 service mysql start
@@ -103,7 +131,7 @@ service mysql status
 service mysql restart
 ```
 
-### 3.4. 登录 MySQL
+### 4.4. 登录 MySQL
 
 mysql 安装完成之后, 会自动生成一个随机的密码, 并且保存在一个密码文件中：`/root/.mysql_secret`
 
@@ -134,9 +162,9 @@ service iptables status
 service iptables stop
 ```
 
-## 4. CentOS 7.4 安装与配置MySql 5.7.21（项目B安装）
+## 5. CentOS 7.4 安装与配置MySql 5.7.21（项目B安装）
 
-### 4.1. 环境
+### 5.1. 环境
 
 - **系统环境**：centos-7.4 64位
 - **安装方式**：rpm安装
@@ -148,7 +176,7 @@ service iptables stop
 
 ![](images/20201201085630998_10120.jpg)
 
-### 4.2. 系统原mariadb版本
+### 5.2. 系统原mariadb版本
 
 ```bash
 # 查看MySql与mariadb安装情况
@@ -162,7 +190,7 @@ rpm -e --nodeps mariadb-libs-5.5.56-2.el7.x86_64
 
 ![](images/20201201085723353_1572.jpg)
 
-### 4.3. 安装新MySQL
+### 5.3. 安装新MySQL
 
 使用winSCP将下载的“`mysql-5.7.21-1.el7.x86_64.rpm-bundle.tar`”传到虚拟机系统的/root目录下：
 
@@ -206,9 +234,9 @@ rpm -ivh mysql-community-devel-5.7.21-1.el7.x86_64.rpm
 /etc/my.cnf        # 核心配置文件
 ```
 
-### 4.4. 配置MySQL
+### 5.4. 配置MySQL
 
-#### 4.4.1. 启动mysql
+#### 5.4.1. 启动mysql
 
 ```bash
 #启动mysql
@@ -227,7 +255,7 @@ systemctl enable mysqld
 systemctl disable mysqld
 ```
 
-#### 4.4.2. 修改root密码
+#### 5.4.2. 修改root密码
 
 MySQL安装成功后，会生成一个临时密码，第一次登录需要输入这个密码，所以查看该临时密码，然后修改密码。
 
@@ -246,7 +274,7 @@ set password = password('Root_123');
 
 ![](images/20201201090151187_1048.jpg)
 
-#### 4.4.3. 设置允许远程访问
+#### 5.4.3. 设置允许远程访问
 
 ```bash
 #登录，密码为新修改的密码Root_123
@@ -257,7 +285,7 @@ mysql> grant all privileges on  *.*  to  'root' @'%'  identified by 'Root_123';
 mysql> flush privileges;
 ```
 
-#### 4.4.4. 设置3306端口可以被访问
+#### 5.4.4. 设置3306端口可以被访问
 
 ```bash
 # 退出mysql，防火墙中打开3306端口
@@ -284,9 +312,100 @@ systemctl start firewalld.service
 systemctl disable firewalld.service
 ```
 
-## 5. MySQL的安装与运行（Windows版本）
+## 6. MySQl 安装（Windows 免安装版）
 
-### 5.1. 启动MySQL服务方式1
+### 6.1. 解压与创建配置文件
+
+- 将MySQL软件包解压在没有中文和空格的目录下
+- 在解压目录创建my.ini文件并添加内容如下：
+
+![](images/20211217093346507_32325.png)
+
+### 6.2. 配置环境变量
+
+- 在【我的电脑】右键 -> 选择【高级系统设置】 -> 选择【高级】 -> 【环境变量】。设置环境变量将【`MYSQL_HOME`】添加到`PATH`环境变量
+
+![](images/20211217093608617_7862.png)
+
+![](images/20211217093705460_28294.png)
+
+### 6.3. 配置系统开启服务
+
+使用管理员权限进入DOS，在cmd中，进入解压目录下的bin目录依次执行以下命令：
+
+1. 对mysql进行初始化。*请注意，这里会生成一个临时密码，后边要使用这个临时密码*
+
+```bash
+mysqld --initialize --user=mysql --console
+```
+
+2. 安装mysql服务
+
+```bash
+mysqld --install
+```
+
+3. 启动mysql服务
+
+```bash
+net start mysql
+```
+
+4. 登录mysql，*这里需要使用之前生成的临时密码。如果窗口关了没有记录临时密码，可以将mysql目录下的data目录删除，然后再进行初始化*
+
+```bash
+mysql -uroot –p
+```
+
+5. 修改root用户密码
+
+```bash
+ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY '123456';
+```
+
+6. 修改root用户权限
+
+```bash
+create user 'root'@'%' IDENTIFIED WITH mysql_native_password BY '123456';
+```
+
+## 7. 安装 MySQL 8.0（Windows版本）
+
+### 7.1. 安装包下载
+
+下载地址：https://downloads.mysql.com/archives/installer/
+
+![](images/20211217095226925_13596.png)
+
+### 7.2. 安装步骤（截图，不完整，日后优化）
+
+![](images/20211217095520602_8953.png)
+
+![](images/20211217095541834_10609.png)
+
+![](images/20211217095550711_9997.png)
+
+当所有的状态都变成Complete之后，点击 Next
+
+![](images/20211217095603573_14238.png)
+
+![](images/20211217095626696_29810.png)
+
+![](images/20211217095634392_4688.png)
+
+![](images/20211217095641040_7125.png)
+
+![](images/20211217095646944_30035.png)
+
+> 设置密码，用于登陆数据，建议使用学习的设置简单的密码
+
+### 7.3. 配置环境变量
+
+配置环境变量与windows免安装版一样
+
+## 8. 开启服务与登陆数据库（Windows版本）
+
+### 8.1. 启动MySQL服务方式1
 
 MySQL会以windows服务的方式为我们提供数据存储功能。开启和关闭服务的操作：
 
@@ -297,7 +416,7 @@ MySQL会以windows服务的方式为我们提供数据存储功能。开启和�
 
 ![mysql服务](images/20190403145741573_20104.jpg)
 
-### 5.2. 启动MySQL服务方式2
+### 8.2. 启动MySQL服务方式2
 
 在DOS窗口，通过命令完成MySQL服务的启动和停止（必须以管理员身份运行cmd命令窗口）
 
@@ -306,7 +425,7 @@ MySQL会以windows服务的方式为我们提供数据存储功能。开启和�
 
 ![mysql服务](images/20190403145927600_25084.jpg)
 
-### 5.3. 登录MySQL数据库
+### 8.3. 登录MySQL数据库
 
 MySQL是一个需要账户名密码登录的数据库，登陆后使用，它提供了一个默认的root账号，使用安装时设置的密码即可登录。
 
@@ -324,9 +443,34 @@ MySQL是一个需要账户名密码登录的数据库，登陆后使用，它提
 2. 通过第三方图形化界面操作
 3. 通过Java代码操作
 
-## 6. MySQL 图形化开发工具
+## 9. 卸载MySQL（Windows版本）
 
-### 6.1. SQLyog
+1. 先停止MySQL服务
+    - 方式1：输入命令行`net stop mysql`。*注：命令中的`mysql`是服务名称，需要输入根据实际的名称*
+    - 方式2：【win+r】打开“运行”面板，输入`services.msc`，进行服务窗口中关闭mysql服务
+2. 卸载程序。到【控制面板】中的【程序和功能】中卸载，或者使用第三方的卸载工具，如：Geek Uninstaller
+3. 删除根文件夹。进入sql安装位置，手动删除mysql的解压（安装）的文件夹
+4. 删除C盘隐藏的数据文件夹（可选）：”C:\ProgramData\MySQL“。*注：如果安装或者改了配置文件，此数据文件夹目录可能不一样*
+5. 删除注册表信息。【win+r】打开“运行”面板，输入`regedit`命令打开注册表窗口，删除以下文件：
+
+![](images/20211217101232541_26723.png)
+
+6. 删除环境变量的配置。进行【高级系统设置】中的【环境变量】，删除安装后配置`MYSQL_HOME`变量和删除path变量中的mysql路径
+7. 删除MySQL服务。使用管理员方式打开cmd命令行窗口，输入命令`sc delete Mysql服务名称`
+
+## 10. MySQL 常用图形管理工具
+
+### 10.1. Navicat
+
+Navicat是一套快速、可靠的数据库管理工具，Navicat 是以直觉化的图形用户界面而建的，可以兼容多种数据库，支持多种操作系统。
+
+官网：http://www.navicat.com.cn/download/navicat-premium
+
+### 10.2. SQLyog
+
+SQLyog 是一个快速而简洁的图形化管理MySQL数据库的工具，它能够在任何地点有效地管理你的数据库，由业界著名的Webyog公司出品。
+
+官网：https://sqlyog.en.softonic.com/
 
 安装：提供的SQLyog软件为免安装版，可直接使用
 
@@ -337,4 +481,19 @@ MySQL是一个需要账户名密码登录的数据库，登陆后使用，它提
 在Query窗口中，输入SQL代码，选中要执行的SQL代码，按F8键运行，或按执行按钮运行。
 
 ![SQLyog工具2](images/20190403150517229_19216.jpg)
+
+### 10.3. MySQL Workbench
+
+MySQL Workbench MySQL 是官方提供的图形化管理工具，分为社区版和商业版，社区版完全免费，而商业版则是按年收费。支持数据库的创建、设计、迁移、备份、导出和导入等功能，并且支持 Windows、Linux 和 mac 等主流操作系统。
+
+### 10.4. DataGrip
+
+DataGrip 是一款由JetBrains公司出品的数据库管理客户端工具，方便连接到数据库服务器，执行sql、创建表、创建索引以及导出数据等
+
+### 10.5. 其他工具
+
+- phpMyAdmin
+- MySQLDumper
+- MySQL GUI Tools
+- MySQL ODBC Connector
 
