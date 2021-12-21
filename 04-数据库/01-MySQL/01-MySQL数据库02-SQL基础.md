@@ -541,7 +541,21 @@ INSERT INTO student(id,NAME,age,remark) VALUES(3,'jacky',27,'佛山人');
 4. **字符和日期型数据应包含在单引号中。双引号也可以但不推荐**。
 5. 不指定列或使用 `null`，表示插入空值。
 
-#### 5.1.2. 高级语法 - INSERT ... ON DUPLICATE KEY 数据存在时更新操作，不存在时进行插入操作
+#### 5.1.2. INSERT INTO SELECT 语句
+
+将一张表的数据导入到另一张表中，可以使用 `INSERT INTO SELECT` 语句。语法：
+
+```sql
+insert into Table2(field1,field2,…) select value1,value2,… from Table1;
+
+-- 或者
+insert into Table2 select * from Table1;
+```
+
+> 注：上述语法要求保证目标表`Table2`必须存在。
+
+
+#### 5.1.3. 高级语法 - INSERT ... ON DUPLICATE KEY 数据存在时更新操作，不存在时进行插入操作
 
 `INSERT ... ON DUPLICATE KEY UPDATE`这个语法的目的是为了解决重复性，当数据库中存在某个记录时，执行这条语句会更新它，而不存在这条记录时，会插入它。
 
@@ -578,7 +592,7 @@ CREATE TABLE `t_stock_chg` (
 
 *注：这里的字段f_updatetime每次在更新数据时会自动更新，但是如果记录中存在某条数据，后来又更新它，而更新的数据和原数据一模一样，那么这个字段也不会更新，仍然是上一次的时间。此时`INSERT ... ON DUPLICATE KEY UPDATE`影响行数是0*。
 
-#### 5.1.3. 高级语法 - replace into 插入数据
+#### 5.1.4. 高级语法 - replace into 插入数据
 
 `replace into` 跟 `insert` 功能类似，不同点在于：`replace into`首先尝试插入数据到表中
 
@@ -599,7 +613,7 @@ MySQL replace into 有三种形式：
 
 前两种形式用的多些。其中“into”关键字可以省略，不过最好加上“into”，这样意思更加直观。另外，对于那些没有给予值的列，MySQL将自动为这些列赋上默认值。
 
-#### 5.1.4. 高级语法 - insert ignore into 插入数据
+#### 5.1.5. 高级语法 - insert ignore into 插入数据
 
 `INSERT IGNORE` 与 `INSERT INTO` 的区别就是`INSERT IGNORE`会忽略数据库中已经存在的数据，如果数据库没有数据，就插入新的数据；如果有数据的话就跳过这条数据（即执行这条插入语句时不会报错，只有警告，数据实际没有插入）。这样就可以保留数据库中已经存在数据，达到在间隙中插入数据的目的。
 
@@ -1148,11 +1162,27 @@ select avg(price) from product where category_id = 'c002';
 
 ### 6.6. 分页查询 limit
 
-- 语法：`select * from 表名 limit 起始行号，查询行数。`
-- 作用：用来分页查询数据
-- 注：
-    - **起始行数是从 0 开始**
-    - **如果分页同时要进行排序，limit语句要放在order by的后面。**
+`limit` 关键字，用于分页查询数据。语法：
+
+```sql
+-- 方式1: 显示前n条
+select * from 表名 limit n;
+-- 方式2: 分页显示，从第m条索引开始，查询n条数据
+select * from 表名 limit m, n;
+```
+
+参数解析：
+
+- `m`：整数，表示从第几条索引开始，计算公式：`(当前页-1)*每页显示条数`
+- `n`：整数，表示查询多少条数据
+
+
+注意事项：
+
+- **起始行数是从 0 开始**
+- **如果分页同时要进行排序，limit语句要放在order by的后面。**
+
+示例：
 
 ```sql
 SELECT * FROM student;
@@ -1211,23 +1241,6 @@ GROUP BY
 	c.`NAME`
 ```
 
-##### 6.7.1.1. GROUP_CONCAT() 函数
-
-- GROUP_CONCAT()函数会把每个分组中指定字段值都显示出现
-
-```sql
-SELECT t.spec_id, GROUP_CONCAT(t.option_name) FROM tb_specification_option t GROUP BY t.spec_id;
-```
-
-表数据：
-
-![](images/20190404092625696_10122.jpg)
-
-查询结果：
-
-![](images/20190404092723963_31844.jpg)
-
-
 #### 6.7.2. 分组条件筛选 (having)
 
 - `having` 关键字作用：用来对分组信息进行过滤，用法与`where`一样。
@@ -1281,38 +1294,722 @@ mysql> SELECT sex, GROUP_CONCAT(name) FROM employee GROUP BY sex WITH ROLLUP;
 
 最后一条记录是上面记录的总和
 
-### 6.8. DOS 命令行下汉字乱码的问题（了解）
-#### 6.8.1. 查看字符集
+### 6.8. 正则表达式
 
-- 语法：`show variables like 'character%';`
-    - `show variables` 显示所有的全局变量，`%`代表通配符
+正则表达式(regular expression)描述了一种字符串匹配的规则，正则表达式本身就是一个字符串，使用这个字符串来描述、用来定义匹配规则，匹配一系列符合某个句法规则的字符串。在开发中，正则表达式通常被用来检索、替换那些符合某个规则的文本。
 
-![查看字符集](images/20190404083401020_12924.jpg)
+MySQL通过 `REGEXP` 关键字支持正则表达式进行字符串匹配。
 
-#### 6.8.2. 修改字符集
+#### 6.8.1. 语法规则
 
-DOS命令行默认的字符集是GBK，而数据库的字符集是UTF-8，要将数据库中下列三项的字符集也改成GBK。在命令行插入数据之前输入: `set names gbk;` 则等同于
+|    模式    |                                                描述                                                |
+| :--------: | -------------------------------------------------------------------------------------------------- |
+|    `^`     | 匹配输入字符串的开始位置。                                                                            |
+|    `$`     | 匹配输入字符串的结束位置。                                                                            |
+|    `.`     | 匹配除 "`\n`" 之外的任何单个字符。                                                                    |
+|  `[...]`   | 字符集合。匹配所包含的任意一个字符。例如，'`[abc]`' 可以匹配  "plain" 中的  'a'。                        |
+|  `[^...]`  | 负值字符集合。匹配未包含的任意字符。例如，'`[^abc]`' 可以匹配  "plain" 中的 'p'。                        |
+| `p1|p2|p3` | 匹配 p1 或 p2 或 p3。例如，'`z|food`' 能匹配 "z" 或 "food"。'`(z|f)ood`' 则匹配 "zood" 或  "food"。   |
+|    `*`     | 匹配前面的子表达式零次或多次。例如，`zo*` 能匹配 "z" 以及 "zoo"。`*` 等价于`{0,}`。                     |
+|    `+`     | 匹配前面的子表达式一次或多次。例如，'`zo+`' 能匹配   "zo" 以及 "zoo"，但不能匹配 "z"。`+` 等价于 `{1,}`。 |
+|   `{n}`    | n 是一个非负整数。匹配确定的 n 次。例如，'`o{2}`' 不能匹配 "Bob" 中的 'o'，但是能匹配 "food" 中的两个 o。 |
+|  `{n,m}`   | m 和 n 均为非负整数，其中`n <= m`。最少匹配 n 次且最多匹配 m 次。                                       |
+
+#### 6.8.2. 示例
 
 ```sql
-set character_set_connection=gbk; -- 设置数据库连接使用的字符集
-set character_set_results=gbk; -- 设置查询结果的字符集
-set character_set_client=gbk; -- 设置客户端的字符集
+-- ^ 在字符串开始处进行匹配
+SELECT  'abc' REGEXP '^a';
+
+-- $ 在字符串末尾开始匹配
+SELECT  'abc' REGEXP 'a$';
+SELECT  'abc' REGEXP 'c$’;
+
+-- . 匹配任意字符
+SELECT  'abc' REGEXP '.b';
+SELECT  'abc' REGEXP '.c';
+SELECT  'abc' REGEXP 'a.';
+
+-- [...] 匹配括号内的任意单个字符
+SELECT  'abc' REGEXP '[xyz]';
+SELECT  'abc' REGEXP '[xaz]';
+
+-- [^...] 注意^符合只有在[]内才是取反的意思，在别的地方都是表示开始处匹配
+SELECT  'a' REGEXP '[^abc]';
+SELECT  'x' REGEXP '[^abc]';
+SELECT  'abc' REGEXP '[^a]';
+
+-- a* 匹配0个或多个a,包括空字符串。 可以作为占位符使用.有没有指定字符都可以匹配到数据
+SELECT 'stab' REGEXP '.ta*b';
+SELECT 'stb' REGEXP '.ta*b';
+SELECT '' REGEXP 'a*';
+
+-- a+  匹配1个或者多个a,但是不包括空字符
+SELECT 'stab' REGEXP '.ta+b';
+SELECT 'stb' REGEXP '.ta+b';
+
+-- a?  匹配0个或者1个a
+SELECT 'stb' REGEXP '.ta?b';
+SELECT 'stab' REGEXP '.ta?b';
+SELECT 'staab' REGEXP '.ta?b';
+
+-- a1|a2  匹配a1或者a2，
+SELECT 'a' REGEXP 'a|b';
+SELECT 'b' REGEXP 'a|b';
+SELECT 'b' REGEXP '^(a|b)';
+SELECT 'a' REGEXP '^(a|b)';
+SELECT 'c' REGEXP '^(a|b)';
+
+-- a{m} 匹配m个a
+SELECT 'auuuuc' REGEXP 'au{4}c';
+SELECT 'auuuuc' REGEXP 'au{3}c';
+
+-- a{m,n} 匹配m到n个a,包含m和n
+SELECT 'auuuuc' REGEXP 'au{3,5}c';
+SELECT 'auuuuc' REGEXP 'au{4,5}c';
+SELECT 'auuuuc' REGEXP 'au{5,10}c';
+
+-- (abc) abc作为一个序列匹配，不用括号括起来都是用单个字符去匹配，如果要把多个字符作为一个整体去匹配就需要用到括号，所以括号适合上面的所有情况。
+SELECT 'xababy' REGEXP 'x(abab)y';
+SELECT 'xababy' REGEXP 'x(ab)*y';
+SELECT 'xababy' REGEXP 'x(ab){1,2}y';
 ```
 
-![修改字符集](images/20190404083532484_32038.jpg)
+## 7. MySQL 的多表操作
 
-注：上面只改变了本次运行时的数据库局部的字符集，重启后也会变回原来的模式。
+实际开发中，一个项目通常需要很多张表才能完成，且这些表的数据之间存在一定的关系。
 
-## 7. 自关联
+### 7.1. 多表关系
 
-### 7.1. 自关联概述
+MySQL多表之间的关系可以概括为：一对一、一对多/多对一关系，多对多
+
+#### 7.1.1. 一对一(1:1)
+
+在实际的开发中应用不多，因为一对一可以创建成一张表。有两种建表原则：
+
+1. 外键唯一：主表的主键和从表的外键（唯一），形成主外键关系，外键唯一，这其实是一种特殊的多对一的关系。
+    - 注：如果是外键唯一这种方式，则需要外键的约束条件和主表的主键一致
+2. 外键是主键：主表的主键和从表的主键，形成主外键关系
+
+```sql
+-- 一对一关系： 外键唯一
+-- 简历表
+create table jl(
+	id int primary key,
+	content varchar(200)
+);
+-- 学生表
+create table s7(
+	id int primary key,
+	name varchar(20),
+	jl_id int unique, -- 外键唯一
+	constraint foreign key(jl_id) references jl(id)
+);
+
+-- 一对一关系：主键又是外键
+-- 简历表：主表
+create table jl(
+	id int primary key,
+	content varchar(200)
+);
+-- 学生表：从表
+create table s7(
+	id int primary key,
+	name varchar(20),
+	constraint foreign key(id) references jl(id)
+);
+```
+
+#### 7.1.2. 一对多(1:n)(重点)
+
+- 常见实例：客户和订单，分类和商品，部门和员工。
+- 一对多建表原则
+    - 在从表(多方)创建一个字段，字段作为外键指向主表(一方)的主键。
+
+```sql
+-- 创建学科表格 主表
+create table class(
+	cid int,
+	sub varchar(10) not null unique
+)
+-- 创建表完成之后添加主键
+alter table class modify cid int primary key;
+
+-- 创建学生表格 从表
+create table student(
+	sid int primary key auto_increment,
+	sname varchar(10) not null,
+	gender varchar(2) not null,
+	class_id int,
+	constraint foreign key(class_id) references class(cid) on update cascade
+);
+
+-- 创建后查看表清单
+show tables;
+desc class;
+desc student;
+
+-- 插入数据
+insert into class values(001, 'java'), (002, 'iso'),(003, 'php');
+select * from class;
+insert into student(sname, gender, class_id) values
+	('敌法师','男',2),
+	('主宰','男',1),
+	('痛苦女王','女',3),
+	('露娜','女',1);
+select * from student;
+```
+
+- 1:n表关系图：
+
+![1:n表关系图](images/20190404102511245_26673.jpg)
+
+#### 7.1.3. 多对多(n:n)
+
+- 常见实例：学生和课程、用户和角色。
+- 多对多关系建表原则
+    - 需要创建第三张表，中间表中至少两个字段，这两个字段分别作为外键指向各自一方的主键。
+- 多对多设计的关系表的关键：
+    - 单独设置一张关系表(设置为联合主键)
+- 语法例子
+
+```sql
+constraint primary key(s_id, c_id)
+```
+
+示例：
+
+```sql
+create table goods(
+	gid int primary key auto_increment,
+	gname varchar(20) not null unique
+);
+
+-- 插入商品
+insert into goods(gname) values ('椅子'),('床'),('桌子'),
+		('苹果'),('香蕉'),('汽水'),('饼干');
+
+-- 查看商品表
+select * from goods;
+
+-- 创建购买人表 主表
+create table person(
+	pid int primary key auto_increment,
+	pname varchar(10) not null,
+	age int not null
+);
+
+-- 插入购买人信息
+insert into person(pname, age) values ('剑圣',28),('敌法师',26),('痛苦女王',23),
+	('西门吹水',34),('潘银莲',21),('东施',23);
+
+-- 查看购买人表
+select * from person;
+
+-- 创建关系表 从表
+create table person_goods(
+	p_id int,
+	g_id int,
+	constraint primary key (p_id,g_id),
+	constraint foreign key(p_id) references person(pid),
+	constraint foreign key(g_id) references goods(gid)
+);
+
+insert into person_goods values (1,2),(1,6),(2,4),(3,4),(3,5),(4,6),(5,7),(6,6),(5,6);
+
+-- 查看关系表
+select * from person_goods;
+
+-- 修改关系表数据
+delete from person_goods where p_id=2 and g_id=4;
+update person_goods set p_id=2 where p_id=5 and g_id=6;
+```
+
+- n:n表关系图：
+
+![n:n表关系图](images/20190404102741613_29288.jpg)
+
+```sql
+/*
+  关卡2训练案例2
+   1:完成学员 student 和 老师 teacher 表和课程表的设计
+   2:多对多设计原则,引入中间表.
+   操作步骤
+	1: 完成学员和老师,课程以及中间表设计
+	2: 使用 sql 脚本完成中间表设计以及联合主键,外键的引入.
+	3: 录入相关数据.
+*/
+-- 创建学生表 stu
+create table stu(
+	sid int(4) zerofill primary key auto_increment,
+	sname varchar(6) not null,
+	age int
+);
+-- 创建老师表
+create table teacher(
+	tid int(4) zerofill primary key auto_increment,
+	tname varchar(6) not null,
+	age int
+);
+-- 创建课程表course
+create table course(
+	cid int(2) zerofill primary key auto_increment,
+	cname varchar(20) not null unique
+);
+
+-- 创建关系表
+create table stu_tea_cou(
+	sid int(4) zerofill,
+	tid int(4) zerofill,
+	cid int(2) zerofill,
+	-- 定义联合主键
+	constraint primary key(sid,tid,cid),
+	-- 定义主键对应各个表的主键
+	constraint foreign key(sid) references stu(sid),
+	constraint foreign key(tid) references teacher(tid),
+	constraint foreign key(cid) references course(cid)
+);
+
+-- 使用内连接查询全部学生内容
+-- SELECT * FROM ((表1 INNER JOIN 表2 ON 表1.字段号=表2.字段号)
+-- 	INNER JOIN 表3 ON 表1.字段号=表3.字段号) INNER JOIN 表4 ON Member.字段号=表4.字段号;
+select stu.*,course.cname as '学科名',stu_tea_cou.score as '得分',teacher.tname as '老师' from ((stu inner join stu_tea_cou on stu.sid=stu_tea_cou.sid)
+	inner join course on course.cid=stu_tea_cou.cid)
+	inner join teacher on teacher.tid=stu_tea_cou.tid;
+```
+
+- n:n表关系图（三个）
+
+![n:n表关系图（三个）](images/20190404102946118_1242.jpg)
+
+### 7.2. 多表连接查询
+
+#### 7.2.1. 多表连接查询概述
+
+- 单表查询：从一张表中查询数据
+- 多表查询：从多张有关联的表中查询数据。
+
+#### 7.2.2. 多表连接类型
+
+- 交叉连接查询[产生笛卡尔积，了解]
+- 内连接查询
+- 左右(外)连接查询
+- 子查询
+- 表自关联
+- 全表连接查询（MySql 不支持，Oracle 支持）
+
+#### 7.2.3. 多表连接查询的步骤
+
+1. 首先确定要查询的数据有哪些
+2. 再确定要查询的数据来自哪些表
+3. 最后确定表之间的连接条件
+
+**多表连接查询必须使用表名(或表别名).列名才进行查询，因为需要区分该列是属于哪个表的，一旦设置了别名后，就必须用别名.列名，用原来表名.列名会报错。**
+
+### 7.3. 交叉连接查询（笛卡尔积）
+
+#### 7.3.1. 交叉查询概述
+
+- 当查询记录数等于多个表的记录数乘积时，该查询则称为交叉查询。
+- 交叉查询的结果称为笛卡尔积，即多张表记录的乘积
+- 在实际开发中，笛卡尔积的结果一般没有任何意义，一般都会在笛卡尔积基础上加上过滤条件，得出的结果才会有意义。
+
+#### 7.3.2. 交叉查询格式
+
+这种查询会产生笛卡尔积，就是两个表的所有记录的乘积。语法格式：
+
+```sql
+select 表名1.*,表名2.*,…… from 表名1,表名2,…… where 控制条件;
+```
+
+示例：
+
+```sql
+SELECT e.*, d.* FROM employee e, dept d;
+```
+
+图例：有 2 张表，1 张 R、1 张 S
+
+- R 表有 ABC 三列，表中有三条记录。
+
+|  A   |  B   |  C   |
+| :--: | :--: | :--: |
+|  a1  |  b1  |  c1  |
+|  a2  |  b2  |  c2  |
+|  a3  |  b3  |  c3  |
+
+- S 表有 CD 两列，表中有三条记录。
+
+|  C   |  D   |
+| :--: | :--: |
+|  c1  |  d1  |
+|  c2  |  d2  |
+|  c4  |  d3  |
+
+- **交叉连接(笛卡尔积):` select r.*,s.* from r,s;`**
+
+|  A   |  B   |  C   |  C   |  D   |
+| :--: | :--: | :--: | :--: | :--: |
+|  a1  |  b1  |  c1  |  c1  |  d1  |
+|  a2  |  b2  |  c2  |  c1  |  d1  |
+|  a3  |  b3  |  c3  |  c1  |  d1  |
+|  a1  |  b1  |  c1  |  c2  |  d2  |
+|  a2  |  b2  |  c2  |  c2  |  d2  |
+|  a3  |  b3  |  c3  |  c2  |  d2  |
+|  a1  |  b1  |  c1  |  c4  |  d3  |
+|  a2  |  b2  |  c2  |  c4  |  d3  |
+|  a3  |  b3  |  c3  |  c4  |  d3  |
+
+### 7.4. 内连接查询( inner join …… on )
+
+#### 7.4.1. 内连接概述
+
+- 只有满足连接条件的记录才会被查询出来，实际开发使用频率最高
+- 连接条件：主表的主键与从表的外键值进行相等匹配查询
+
+#### 7.4.2. 内连接语法格式
+
+```sql
+SELECT * FROM 表1 [INNER | CROSS] JOIN 表2 [ON 连接条件] [WHERE 普通过滤条件];
+```
+
+#### 7.4.3. 内连接查询的分类
+
+- 隐式内连接：使用where语句(在笛卡尔积的基础上使用)
+- 显式内连接：使用语法格式 `inner join …… on`（inner 可以省略）
+
+在 MySQL 中，下边这几种内连接的写法都是等价的：
+
+```sql
+SELECT * FROM t1 JOIN t2;
+SELECT * FROM t1 INNER JOIN t2;
+SELECT * FROM t1 CROSS JOIN t2;
+-- 上边的这些写法和直接把需要连接的表名放到 FROM 语句之后，用逗号,分隔开的写法是等价的
+SELECT * FROM t1, t2;
+```
+
+> <font color=red>**注：在内连接查询中，`on`子语句与`where`子语句的作用是一样的。**</font>
+
+#### 7.4.4. 内连接的驱动表与被驱动表
+
+对于内连接来说，由于凡是不符合`ON`子句或`WHERE`子句中的条件的记录都会被过滤掉，其实也就相当于从两表连接的笛卡尔积中过滤了不符合条件的记录，所以对于内连接来说，驱动表和被驱动表是可以互换的，并不会影响最后的查询结果。
+
+但是对于外连接来说，由于驱动表中的记录即使在被驱动表中找不到符合`ON`子句条件的记录时也要将其加入到结果集，所以此时驱动表和被驱动表的关系就很重要了，也就是说左外连接和右外连接的驱动表和被驱动表不能轻易互换。
+
+#### 7.4.5. 显式内连接：使用 inner join ... on
+
+- 显式内连接格式：
+
+```sql
+select 表名1.*,表名2.* from 表名1 inner join 表名2 on 表名1.列名=表名2.列名;
+```
+
+- 显式内连接，上面的列名分别是主从表的主键与从键，表名后面可以跟表别名，通常用表的首字母，后面使用**表别名.列名**
+
+```sql
+select s.sname,c.sub from student s inner join class c on s.class_id=c.cid;
+```
+
+图例：**内连接：`select r.*,s.* from r inner join s on r.c=s.c;`**
+
+|  A   |  B   |  C   |  C   |  D   |
+| :--: | :--: | :--: | :--: | :--: |
+|  a1  |  b1  |  c1  |  c1  |  d1  |
+|  a2  |  b2  |  c2  |  c2  |  d2  |
+
+#### 7.4.6. 隐式内连接：使用 where 子句（笛卡尔积再过滤）
+
+隐式内连接格式：
+
+```sql
+select 表名1.*,表名2.* from 表名1,表名2 where 表名1.列名=表名2.列名;
+```
+
+隐式内连接，上面的列名分别是主从表的主键与从键，表名后面可以跟表别名，通常用表的首字母，后面使用**表别名.列名**
+
+```sql
+select s.sname,c.sub from student s,class c where s.class_id=c.cid;
+```
+
+#### 7.4.7. 扩展：内连接3个以上数据表
+
+- **INNER JOIN 连接三个数据表的用法：**
+
+```sql
+-- 方式1：
+SELECT
+	*
+FROM
+	表1
+INNER JOIN 表2
+INNER JOIN 表3 ON 表1.字段号 = 表2.字段号
+AND 表1.字段号 = 表3.字段号;
+
+-- 方式2：
+SELECT
+	*
+FROM
+	(表1 INNER JOIN 表2 ON 表1.字段号 = 表2.字段号)
+INNER JOIN 表3 ON 表1.字段号 = 表3.字段号;
+
+-- 以上两种写法一样的效果。
+```
+
+- **INNER JOIN 连接四个数据表的用法：**
+
+```sql
+SELECT
+	*
+FROM
+	表1
+INNER JOIN 表2
+INNER JOIN 表3
+INNER JOIN 表4 ON 表1.字段号 = 表2.字段号
+AND 表1.字段号 = 表3.字段号
+AND 表1.字段号 = 表4.字段号;
+```
+
+- **INNER JOIN 连接五个数据表的用法：**
+
+```sql
+SELECT
+	*
+FROM
+	表1
+INNER JOIN 表2
+INNER JOIN 表3
+INNER JOIN 表4
+INNER JOIN 表5 ON 表1.字段号 = 表2.字段号
+AND 表1.字段号 = 表3.字段号
+AND 表1.字段号 = 表4.字段号
+AND 表1.字段号 = 表5.字段号;
+```
+
+*上面的表号根据实际情况确定，连接六个数据表的用法，根据上面类推*
+
+**注意事项：**
+
+- **如果连接n张表，其连接条件就是n-1个。**
+- **使用内连接前，搞清楚需要输出那些字段，字段在那些表中，各自表的主外键的关系。**
+- 在建立数据表时，如果一个表与多个表联接，那么这一个表中的字段必须是“数字”数据类型，而多个表中的相同字段必须是主键，而且是“自动编号”数据类型。否则，很难联接成功。
+
+### 7.5. 左(外)连接( left join …… on )
+
+#### 7.5.1. 左外连接概述
+
+- **定义**：用左表的记录去匹配右表的记录，如果条件满足，则右边显示右表的记录；否则右表显示 `null`。**（左表和右表取决于定义在实际语句的位置）**
+- **格式**：`left outer join …… on ……`（`outer` 可以省略）
+- **特点**：左边的表的记录一定会全部显示完整
+- **驱动表**：选取语句左侧的表
+
+#### 7.5.2. 左外连接格式
+
+- 语法格式
+
+```sql
+SELECT * FROM 表1 LEFT [OUTER] JOIN 表2 ON 连接条件 [WHERE 普通过滤条件];
+```
+
+> 其中中括号里的`OUTER`关键字是可以省略的。
+
+- 示例
+
+```sql
+select s.sname,c.sub from student s left join class c on s.class_id=c.cid;
+```
+
+图例：**左连接：`select r.*,s.* from r left join s on r.c=s.c;`**
+
+|  A   |  B   |  C   |  C   |  D   |
+| :--: | :--: | :--: | :--: | :--: |
+|  a1  |  b1  |  c1  |  c1  |  d1  |
+|  a2  |  b2  |  c2  |  c2  |  d2  |
+|  a3  |  b3  |  c3  |      | null |
+
+### 7.6. 右(外)连接( right join …… on )
+
+#### 7.6.1. 右外连接概述（outer 可以省略）
+
+- **定义**：用右表的记录去匹配左表的记录，如果条件满足，则左边显示左表的记录；否则左边显示 null。**（左表和右表取决于定义在实际语句的位置）**
+- **格式**：`right outer join …… on ……`（outer 可以省略）
+- **特点**：如果右外连接，右边的表的记录一定会全部显示完整
+- **驱动表**：选取语句右侧的表
+
+#### 7.6.2. 右外连接格式
+
+- 语法格式：
+
+```sql
+SELECT * FROM 表1 RIGHT [OUTER] JOIN 表2 ON 连接条件 [WHERE 普通过滤条件];
+```
+
+> 其中中括号里的`OUTER`关键字是可以省略的。
+
+- 示例：
+
+```sql
+select s.sname,c.sub from student s right join class c on s.class_id=c.cid;
+```
+
+图例：**右外连接：`select r.*,s.* from r right join s on r.c=s.c;`**
+
+|  A   |  B   |  C  |  C  |  D  |
+| :--: | :--: | :-: | :-: | :-: |
+|  a1  |  b1  | c1  | c1  | d1  |
+|  a2  |  b2  | c2  | c2  | d2  |
+| null | null |     | c4  | d3  |
+
+### 7.7. 连接查询的过滤条件写法小结
+
+在连接查询中，过滤条件分为两种`on`与`where`，根据过滤条件使用的不同的关键字有不同的语义
+
+- **WHERE 子句中的过滤条件**：不论是内连接还是外连接，凡是不符合 `WHERE` 子句中的过滤条件的记录都不会被加入最后的结果集。
+- **ON 子句中的过滤条件**：
+    - 对于外连接的驱动表的记录来说，如果无法在被驱动表中找到匹配`ON`子句中的过滤条件的记录，那么该记录仍然会被加入到结果集中，对应的被驱动表记录的各个字段使用`NULL`值填充。
+    - 对于内连接来说，MySQL 会把它和`WHERE`子句一样对待，也就是说：内连接中的`WHERE`子句和`ON`子句是等价的。
+
+<font color=red>*一般情况下，都把只涉及单表的过滤条件放到`WHERE`子句中，把涉及两表的过滤条件都放到`ON`子句中，也一般把放到`ON`子句中的过滤条件也称之为连接条件。*</font>
+
+### 7.8. 全表连接的结果（MySql 不支持，Oracle 支持、了解）
+
+#### 7.8.1. full join 语法定义
+
+```sql
+select r.*,s.* from r full join s on r.c=s.c
+```
+
+|  A   |  B   |  C   |  C   |  D   |
+| :--: | :--: | :--: | :--: | :--: |
+|  a1  |  b1  |  c1  |  c1  |  d1  |
+|  a2  |  b2  |  c2  |  c2  |  d2  |
+|  a3  |  b3  |  c3  |      | null |
+| null | null |      |  c4  |  d3  |
+
+#### 7.8.2. 使用 union 关键字实现全表连接查询
+
+语法格式：
+
+```sql
+select * from 表1 left outer join 表2 on 表1.字段名 = 表2.字段名
+union
+select * from 表2 right outer join 表1 on 表2.字段名 = 表1.字段名;
+```
+
+> 注：`union` 关键字会去掉两个结果集的重复记录
+
+#### 7.8.3. union 与 union all 区别
+
+- `union all`：直接合并多个结果集，不会去除重复记录。
+- `union`：合并多个结果集，去除重复，所以执行效率会较差。
+
+### 7.9. SQL 的各种 join 用法(网上资料)
+
+下图展示了 LEFT JOIN、RIGHT JOIN、INNER JOIN、OUTER JOIN 相关的 7 种用法
+
+![表连接查询图1](images/20190404112841616_605.jpg)
+
+#### 7.9.1. INNER JOIN（内连接）
+
+![表连接查询图2](images/20190404113056054_7740.jpg)
+
+```sql
+SELECT
+	< select_list >
+FROM
+	Table_A A
+INNER JOIN Table_B B ON A. KEY = B. KEY
+```
+
+#### 7.9.2. LEFT JOIN（左连接）
+
+![表连接查询图3](images/20190404113103136_9879.jpg)
+
+```sql
+SELECT
+	< select_list >
+FROM
+	Table_A A
+LEFT JOIN Table_B B ON A. KEY = B. KEY
+```
+
+#### 7.9.3. RIGHT JOIN（右连接）
+
+![表连接查询图4](images/20190404113111224_6867.jpg)
+
+```sql
+SELECT
+	< select_list >
+FROM
+	Table_A A
+RIGHT JOIN Table_B B ON A. KEY = B. KEY
+```
+
+#### 7.9.4. OUTER JOIN（外连接）
+
+![表连接查询图5](images/20190404113125064_29354.jpg)
+
+```sql
+SELECT
+	< select_list >
+FROM
+	Table_A A
+FULL OUTER JOIN Table_B B ON A. KEY = B. KEY
+```
+
+#### 7.9.5. LEFT JOIN EXCLUDING INNER JOIN（左连接-内连接）
+
+![表连接查询图6](images/20190404113134408_30772.jpg)
+
+```sql
+SELECT
+	< select_list >
+FROM
+	Table_A A
+LEFT JOIN Table_B B ON A. KEY = B. KEY
+WHERE
+	B. KEY IS NULL
+```
+
+#### 7.9.6. RIGHT JOIN EXCLUDING INNER JOIN（右连接-内连接）
+
+![表连接查询图7](images/20190404113146671_88.jpg)
+
+```sql
+SELECT
+	< select_list >
+FROM
+	Table_A A
+RIGHT JOIN Table_B B ON A. KEY = B. KEY
+WHERE
+	A. KEY IS NULL
+```
+
+#### 7.9.7. OUTER JOIN EXCLUDING INNER JOIN（外连接-内连接）
+
+![表连接查询图8](images/20190404113204071_7635.jpg)
+
+```sql
+SELECT
+	< select_list >
+FROM
+	Table_A A
+FULL OUTER JOIN Table_B B ON A. KEY = B. KEY
+WHERE
+	A. KEY IS NULL
+OR B. KEY IS NULL
+```
+
+### 7.10. 自关联查询
+
+#### 7.10.1. 自关联表概述
 
 一张表，自关联一对多，数据表的外键列引用自身的主键列，自关联一般针对多级关系的使用
 
 > 省 --> 市 --> 区(县) --> 镇(街道)
+>
 > 老板 --> 总经理 --> 部门经理 --> 主管 --> 组长 --> 员工
 
-### 7.2. 自关联格式
+#### 7.10.2. 自关联表格式（创建外键）
 
 **创建表同时自关联主外键：**
 
@@ -1348,400 +2045,17 @@ CREATE TABLE AREA(
 ALTER TABLE AREA ADD CONSTRAINT FOREIGN KEY (parent_id) REFERENCES AREA(id);
 ```
 
-## 8. 连接查询
+#### 7.10.3. 自连接查询的概念
 
-### 8.1. 多表连接查询
+自连接查询：在数据查询时需要进行对表自身进行关联查询，即一张表自己和自己关联，一张表当成多张表来用。
 
-#### 8.1.1. 多表连接查询概述
+> 注意：
+>
+> - 自连接查询，本质还是使用到内连接或左连接或右连接。
+> - <font color=red>**自连接查询其实不需要依赖自关联表的外键约束的创建，无自关联外键约束也是可以进行自连接查询**</font>
+> - <font color=red>**注意自关联时表必须给表起别名。**</font>
 
-- 单表查询：从一张表中查询数据
-- 多表查询：从多张有关联的表中查询数据。
-
-#### 8.1.2. 多表连接类型
-
-- 交叉连接查询
-- 内连接查询
-- 左(内)连接查询
-- 右(外)连接查询
-- 全表连接查询（MySql 不支持，Oracle 支持）
-
-#### 8.1.3. 多表连接查询的步骤
-
-1. 首先确定要查询的数据有哪些
-2. 再确定要查询的数据来自哪些表
-3. 最后确定表之间的连接条件
-
-**多表连接查询必须使用表名(或表别名).列名才进行查询，因为需要区分该列是属于哪个表的，一旦设置了别名后，就必须用别名.列名，用原来表名.列名会报错。**
-
-### 8.2. 交叉连接查询（笛卡尔积）
-
-#### 8.2.1. 交叉查询概述
-
-- 当查询记录数等于多个表的记录数乘积时，该查询则称为交叉查询。
-- 交叉查询的结果称为笛卡尔积，即多张表记录的乘积
-- 在实际开发中，笛卡尔积的结果一般没有任何意义，一般都会在笛卡尔积基础上加上过滤条件，得出的结果才会有意义。
-
-#### 8.2.2. 交叉查询格式
-
-- 语法格式：`select 表名1.*,表名2.*,…… from 表名1,表名2,…… where 控制条件;`
-    - 这种查询会产生笛卡尔积，就是两个表的所有记录的乘积
-    - eg: `SELECT e.*, d.* FROM employee e, dept d;`
-
-图例：有 2 张表，1 张 R、1 张 S
-
-- R 表有 ABC 三列，表中有三条记录。
-
-|  A   |  B   |  C   |
-| :--: | :--: | :--: |
-|  a1  |  b1  |  c1  |
-|  a2  |  b2  |  c2  |
-|  a3  |  b3  |  c3  |
-
-- S 表有 CD 两列，表中有三条记录。
-
-|  C   |  D   |
-| :--: | :--: |
-|  c1  |  d1  |
-|  c2  |  d2  |
-|  c4  |  d3  |
-
-- **交叉连接(笛卡尔积):` select r.*,s.* from r,s;`**
-
-|  A   |  B   |  C   |  C   |  D   |
-| :--: | :--: | :--: | :--: | :--: |
-|  a1  |  b1  |  c1  |  c1  |  d1  |
-|  a2  |  b2  |  c2  |  c1  |  d1  |
-|  a3  |  b3  |  c3  |  c1  |  d1  |
-|  a1  |  b1  |  c1  |  c2  |  d2  |
-|  a2  |  b2  |  c2  |  c2  |  d2  |
-|  a3  |  b3  |  c3  |  c2  |  d2  |
-|  a1  |  b1  |  c1  |  c4  |  d3  |
-|  a2  |  b2  |  c2  |  c4  |  d3  |
-|  a3  |  b3  |  c3  |  c4  |  d3  |
-
-### 8.3. 左(外)连接( left join …… on )
-
-#### 8.3.1. 左外连接概述
-
-- **定义**：用左表的记录去匹配右表的记录，如果条件满足，则右边显示右表的记录；否则右表显示 null。**（左表和右表取决于定义在实际语句的位置）**
-- **格式**：`left outer join …… on ……`（outer 可以省略）
-- **特点**：左边的表的记录一定会全部显示完整
-- **驱动表**：选取语句左侧的表
-
-#### 8.3.2. 左外连接格式
-
-- 语法格式
-
-```sql
-SELECT * FROM 表1 LEFT [OUTER] JOIN 表2 ON 连接条件 [WHERE 普通过滤条件];
-```
-
-> 其中中括号里的`OUTER`关键字是可以省略的。
-
-- 示例
-
-```sql
-select s.sname,c.sub from student s left join class c on s.class_id=c.cid;
-```
-
-图例：**左连接：`select r.*,s.* from r left join s on r.c=s.c;`**
-
-|  A   |  B   |  C   |  C   |  D   |
-| :--: | :--: | :--: | :--: | :--: |
-|  a1  |  b1  |  c1  |  c1  |  d1  |
-|  a2  |  b2  |  c2  |  c2  |  d2  |
-|  a3  |  b3  |  c3  |      | null |
-
-### 8.4. 右(外)连接( right join …… on )
-
-#### 8.4.1. 右外连接概述（outer 可以省略）
-
-- **定义**：用右表的记录去匹配左表的记录，如果条件满足，则左边显示左表的记录；否则左边显示 null。**（左表和右表取决于定义在实际语句的位置）**
-- **格式**：`right outer join …… on ……`（outer 可以省略）
-- **特点**：如果右外连接，右边的表的记录一定会全部显示完整
-- **驱动表**：选取语句右侧的表
-
-#### 8.4.2. 右外连接格式
-
-- 语法格式：
-
-```sql
-SELECT * FROM 表1 RIGHT [OUTER] JOIN 表2 ON 连接条件 [WHERE 普通过滤条件];
-```
-
-> 其中中括号里的`OUTER`关键字是可以省略的。
-
-- 示例：
-
-```sql
-select s.sname,c.sub from student s right join class c on s.class_id=c.cid;
-```
-
-图例：**右外连接：`select r.*,s.* from r right join s on r.c=s.c;`**
-
-|  A   |  B   |  C  |  C  |  D  |
-| :--: | :--: | :-: | :-: | :-: |
-|  a1  |  b1  | c1  | c1  | d1  |
-|  a2  |  b2  | c2  | c2  | d2  |
-| null | null |     | c4  | d3  |
-
-### 8.5. 内连接查询( inner join …… on )
-
-#### 8.5.1. 内连接概述
-
-- 只有满足连接条件的记录才会被查询出来，实际开发使用频率最高
-- 连接条件：主表的主键与从表的外键值进行相等匹配查询
-
-#### 8.5.2. 内连接语法格式
-
-```sql
-SELECT * FROM 表1 [INNER | CROSS] JOIN 表2 [ON 连接条件] [WHERE 普通过滤条件];
-```
-
-#### 8.5.3. 内连接查询的分类
-
-- 隐式内连接：使用where语句(在笛卡尔积的基础上使用)
-- 显式内连接：使用语法格式 `inner join …… on`（inner 可以省略）
-
-在 MySQL 中，下边这几种内连接的写法都是等价的：
-
-```sql
-SELECT * FROM t1 JOIN t2;
-SELECT * FROM t1 INNER JOIN t2;
-SELECT * FROM t1 CROSS JOIN t2;
--- 上边的这些写法和直接把需要连接的表名放到 FROM 语句之后，用逗号,分隔开的写法是等价的
-SELECT * FROM t1, t2;
-```
-
-> <font color=red>**注：在内连接查询中，`on`子语句与`where`子语句的作用是一样的。**</font>
-
-#### 8.5.4. 内连接的驱动表与被驱动表
-
-对于内连接来说，由于凡是不符合`ON`子句或`WHERE`子句中的条件的记录都会被过滤掉，其实也就相当于从两表连接的笛卡尔积中过滤了不符合条件的记录，所以对于内连接来说，驱动表和被驱动表是可以互换的，并不会影响最后的查询结果。
-
-但是对于外连接来说，由于驱动表中的记录即使在被驱动表中找不到符合`ON`子句条件的记录时也要将其加入到结果集，所以此时驱动表和被驱动表的关系就很重要了，也就是说左外连接和右外连接的驱动表和被驱动表不能轻易互换。
-
-#### 8.5.5. 显式内连接：使用 `inner join ... on`
-
-- 显式内连接格式：
-
-```sql
-select 表名1.*,表名2.* from 表名1 inner join 表名2 on 表名1.列名=表名2.列名;
-```
-
-- 显式内连接，上面的列名分别是主从表的主键与从键，表名后面可以跟表别名，通常用表的首字母，后面使用**表别名.列名**
-
-```sql
-select s.sname,c.sub from student s inner join class c on s.class_id=c.cid;
-```
-
-图例：**内连接：`select r.*,s.* from r inner join s on r.c=s.c;`**
-
-|  A   |  B   |  C   |  C   |  D   |
-| :--: | :--: | :--: | :--: | :--: |
-|  a1  |  b1  |  c1  |  c1  |  d1  |
-|  a2  |  b2  |  c2  |  c2  |  d2  |
-
-#### 8.5.6. 隐式内连接：使用 where 子句（笛卡尔积再过滤）
-
-- 隐式内连接格式：`select表名1.*,表名2.* from 表名1,表名2 where 表名1.列名=表名2.列名;`
-    - 隐式内连接，上面的列名分别是主从表的主键与从键，表名后面可以跟表别名，通常用表的首字母，后面使用**表别名.列名**
-
-```sql
-select s.sname,c.sub from student s,class c where s.class_id=c.cid;
-```
-
-#### 8.5.7. 扩展：内连接3个以上数据表
-
-- **INNER JOIN 连接三个数据表的用法：**
-
-```sql
--- 方式1：
-SELECT
-	*
-FROM
-	表1
-INNER JOIN 表2
-INNER JOIN 表3 ON 表1.字段号 = 表2.字段号
-AND 表1.字段号 = 表3.字段号;
-
--- 方式2：
-SELECT
-	*
-FROM
-	(表1 INNER JOIN 表2 ON 表1.字段号 = 表2.字段号)
-INNER JOIN 表3 ON 表1.字段号 = 表3.字段号;
-
--- 以上两种写法一样的效果。
-```
-
-- **INNER JOIN 连接四个数据表的用法：**
-
-```sql
-SELECT
-	*
-FROM
-	表1
-INNER JOIN 表2
-INNER JOIN 表3
-INNER JOIN 表4 ON 表1.字段号 = 表2.字段号
-AND 表1.字段号 = 表3.字段号
-AND Member.字段号 = 表4.字段号;
-```
-
-- **INNER JOIN 连接五个数据表的用法：**
-
-```sql
-SELECT
-	*
-FROM
-	表1
-INNER JOIN 表2
-INNER JOIN 表3
-INNER JOIN 表4
-INNER JOIN 表5 ON 表1.字段号 = 表2.字段号
-AND 表1.字段号 = 表3.字段号
-AND Member.字段号 = 表4.字段号
-AND Member.字段号 = 表5.字段号;
-```
-
-*上面的表号根据实际情况确定，连接六个数据表的用法，根据上面类推*
-
-**注意事项：**
-
-- **如果连接n张表，其连接条件就是n-1个。**
-- **使用内连接前，搞清楚需要输出那些字段，字段在那些表中，各自表的主外键的关系。**
-- 在建立数据表时，如果一个表与多个表联接，那么这一个表中的字段必须是“数字”数据类型，而多个表中的相同字段必须是主键，而且是“自动编号”数据类型。否则，很难联接成功。
-
-### 8.6. 连接查询的过滤条件写法小结
-
-在连接查询中，过滤条件分为两种`on`与`where`，根据过滤条件使用的不同的关键字有不同的语义
-
-- **WHERE 子句中的过滤条件**：不论是内连接还是外连接，凡是不符合 `WHERE` 子句中的过滤条件的记录都不会被加入最后的结果集。
-- **ON 子句中的过滤条件**：
-    - 对于外连接的驱动表的记录来说，如果无法在被驱动表中找到匹配`ON`子句中的过滤条件的记录，那么该记录仍然会被加入到结果集中，对应的被驱动表记录的各个字段使用`NULL`值填充。
-    - 对于内连接来说，MySQL 会把它和`WHERE`子句一样对待，也就是说：内连接中的`WHERE`子句和`ON`子句是等价的。
-
-<font color=red>*一般情况下，都把只涉及单表的过滤条件放到`WHERE`子句中，把涉及两表的过滤条件都放到`ON`子句中，也一般把放到`ON`子句中的过滤条件也称之为连接条件。*</font>
-
-### 8.7. 全表连接的结果（MySql 不支持，Oracle 支持、了解）
-
-```sql
-select r.*,s.* from r full join s on r.c=s.c
-```
-
-|  A   |  B   |  C   |  C   |  D   |
-| :--: | :--: | :--: | :--: | :--: |
-|  a1  |  b1  |  c1  |  c1  |  d1  |
-|  a2  |  b2  |  c2  |  c2  |  d2  |
-|  a3  |  b3  |  c3  |      | null |
-| null | null |      |  c4  |  d3  |
-
-### 8.8. SQL 的各种 join 用法(网上资料)
-
-下图展示了 LEFT JOIN、RIGHT JOIN、INNER JOIN、OUTER JOIN 相关的 7 种用法
-
-![表连接查询图1](images/20190404112841616_605.jpg)
-
-#### 8.8.1. INNER JOIN（内连接）
-
-![表连接查询图2](images/20190404113056054_7740.jpg)
-
-```sql
-SELECT
-	< select_list >
-FROM
-	Table_A A
-INNER JOIN Table_B B ON A. KEY = B. KEY
-```
-
-#### 8.8.2. LEFT JOIN（左连接）
-
-![表连接查询图3](images/20190404113103136_9879.jpg)
-
-```sql
-SELECT
-	< select_list >
-FROM
-	Table_A A
-LEFT JOIN Table_B B ON A. KEY = B. KEY
-```
-
-#### 8.8.3. RIGHT JOIN（右连接）
-
-![表连接查询图4](images/20190404113111224_6867.jpg)
-
-```sql
-SELECT
-	< select_list >
-FROM
-	Table_A A
-RIGHT JOIN Table_B B ON A. KEY = B. KEY
-```
-
-#### 8.8.4. OUTER JOIN（外连接）
-
-![表连接查询图5](images/20190404113125064_29354.jpg)
-
-```sql
-SELECT
-	< select_list >
-FROM
-	Table_A A
-FULL OUTER JOIN Table_B B ON A. KEY = B. KEY
-```
-
-#### 8.8.5. LEFT JOIN EXCLUDING INNER JOIN（左连接-内连接）
-
-![表连接查询图6](images/20190404113134408_30772.jpg)
-
-```sql
-SELECT
-	< select_list >
-FROM
-	Table_A A
-LEFT JOIN Table_B B ON A. KEY = B. KEY
-WHERE
-	B. KEY IS NULL
-```
-
-#### 8.8.6. RIGHT JOIN EXCLUDING INNER JOIN（右连接-内连接）
-
-![表连接查询图7](images/20190404113146671_88.jpg)
-
-```sql
-SELECT
-	< select_list >
-FROM
-	Table_A A
-RIGHT JOIN Table_B B ON A. KEY = B. KEY
-WHERE
-	A. KEY IS NULL
-```
-
-#### 8.8.7. OUTER JOIN EXCLUDING INNER JOIN（外连接-内连接）
-
-![表连接查询图8](images/20190404113204071_7635.jpg)
-
-```sql
-SELECT
-	< select_list >
-FROM
-	Table_A A
-FULL OUTER JOIN Table_B B ON A. KEY = B. KEY
-WHERE
-	A. KEY IS NULL
-OR B. KEY IS NULL
-```
-
-### 8.9. 自连接
-
-#### 8.9.1. 自连接的概念
-
-- 一张表自己连接自己，不是表连接的一种。
-- 本质还是使用到内连接或左连接或右连接。
-
-#### 8.9.2. 自连接的格式
+#### 7.10.4. 自连接查询的格式
 
 1. 先创建自关联表
 2. 使用内连接(左连接、右连接)
@@ -1758,8 +2072,8 @@ CREATE TABLE emp (
 
 -- 使用显式内连接
 SELECT
-	e. NAME 员工姓名,
-	b. NAME 上司姓名
+	e.NAME 员工姓名,
+	b.NAME 上司姓名
 FROM
 	emp e
 INNER JOIN emp b ON e.parent_id = b.id;
@@ -1775,17 +2089,26 @@ FROM
 LEFT JOIN emp b ON e.parent_id = b.id;  -- 连接条件
 ```
 
-## 9. 子查询
+## 8. 子查询
 
-### 9.1. 子查询概述
+### 8.1. 子查询概述
 
 - 一条 SQL 语句(子查询)的查询结果做为另一条查询语句(父查询)的条件或查询结果，这种操作则称为子查询。
 - 多条 SQL 语句嵌套使用，内部的 SQL 查询语句称为子查询。
 - 在一个查询语句 A 里的某个位置也可以有另一个查询语句 B，这个出现在 A 语句的某个位置中的查询 B 就被称为**子查询**，A 也被称之为**外层查询**。子查询可以在一个外层查询的各种位置出现
 
-### 9.2. 子查询语法使用位置
+简单理解就是*包含select嵌套的查询*。
 
-#### 9.2.1. SELECT 子句
+子查询可以返回的数据类型一共分为四种：
+
+- 单行单列：返回的是一个具体列的内容，可以理解为一个单值数据；
+- 单行多列：返回一行数据中多个列的内容；
+- 多行单列：返回多行记录之中同一列的内容，相当于给出了一个操作范围；
+- 多行多列：查询返回的结果是一张临时表
+
+### 8.2. 子查询语法使用位置
+
+#### 8.2.1. SELECT 子句
 
 出现在`select`语句中
 
@@ -1793,7 +2116,7 @@ LEFT JOIN emp b ON e.parent_id = b.id;  -- 连接条件
 SELECT (SELECT col FROM table LIMIT 1);
 ```
 
-#### 9.2.2. FROM 子句
+#### 8.2.2. FROM 子句
 
 出现在`from`子句中，可以把子查询的查询结果当作是一个表，但这种表与正常的创建的表不一样，MySQL 把这种由子查询结果集组成的表称之为**派生表**。
 
@@ -1801,7 +2124,7 @@ SELECT (SELECT col FROM table LIMIT 1);
 SELECT m, n FROM (SELECT m2 + 1 AS m, n2 AS n FROM table2 WHERE m2 > 2) AS t;
 ```
 
-#### 9.2.3. WHERE 或 ON 子句
+#### 8.2.3. WHERE 或 ON 子句
 
 子查询可放在外层查询的`WHERE`子句或者`ON`子句中
 
@@ -1811,16 +2134,15 @@ SELECT * FROM table1 WHERE m1 IN (SELECT m2 FROM table2);
 
 > 示例查询表明想要将`(SELECT m2 FROM table2)`这个子查询的结果作为外层查询的`IN`语句参数，整个查询语句逻辑是找table1表中的某些记录，这些记录的 m1 列的值能在 table2 表的 m2 列找到匹配的值。
 
-
-#### 9.2.4. ORDER BY 子句、GROUP BY 子句
+#### 8.2.4. ORDER BY 子句、GROUP BY 子句
 
 子查询也可以出现ORDER BY 子句、GROUP BY 子句中。虽然语法支持，但没有意义。
 
-### 9.3. 按返回的结果集区分子查询类型
+### 8.3. 按返回的结果集区分子查询类型
 
 子查询本身也算是一个查询，所以可以按照它们返回的不同结果集类型，可以把这些子查询分为不同的类型：
 
-#### 9.3.1. 标量子查询
+#### 8.3.1. 标量子查询
 
 只返回一个单一值的子查询称之为标量子查询。这些标量子查询可以作为一个单一值或者表达式的一部分出现在查询语句的各个地方。父查询可以使用 `=`、 `<`、 `>` 等比较运算符
 
@@ -1850,7 +2172,7 @@ WHERE
 	);
 ```
 
-#### 9.3.2. 单行（多列）子查询
+#### 8.3.2. 单行（多列）子查询
 
 返回一条记录的子查询，不过这条记录需要包含多个列（只包含一个列就成了标量子查询了）
 
@@ -1860,9 +2182,9 @@ SELECT * FROM e1 WHERE (m1, n1) = (SELECT m2, n2 FROM e2 LIMIT 1);
 
 > sql语句的含义就是要从 e1 表中找一些记录，这些记录的 m1 和 n1 列分别等于子查询结果中的m2 和 n2 列。
 
-#### 9.3.3. 单列（多行）子查询
+#### 8.3.3. 单列（多行）子查询
 
-多行子查询查询结果是多行单列的值，类似于一个数组（只包含一条记录就成了标量子查询了）。父查询使用 in 关键字的使用结果
+多行子查询查询结果是多行单列的值，类似于一个数组（只包含一条记录就成了标量子查询了）。父查询使用 `in` 关键字的使用结果
 
 ```sql
 -- 3) 查询大于 5000 的员工，来至于哪些部门，输出部门的名字
@@ -1955,7 +2277,7 @@ WHERE
 	);
 ```
 
-#### 9.3.4. 表（多行多列）子查询
+#### 8.3.4. 表（多行多列）子查询
 
 表子查询返回结果是一个多行多列的值，类似于一张虚拟表。不能用于 where 条件，用于 select 子句中做为子表。
 
@@ -2001,13 +2323,13 @@ WHERE
 	e.join_date > '2011-01-01';
 ```
 
-### 9.4. 按与外层查询关系来区分子查询类型
+### 8.4. 按与外层查询关系来区分子查询类型
 
-#### 9.4.1. 不相关子查询
+#### 8.4.1. 不相关子查询
 
 如果子查询可以单独运行出结果，而不依赖于外层查询的值，就可以把这个子查询称之为不相关子查询。*上面示例基本上都是不相关子查询*
 
-#### 9.4.2. 相关子查询
+#### 8.4.2. 相关子查询
 
 如果子查询的执行需要依赖于外层查询的值，就可以把这个子查询称之为相关子查询。
 
@@ -2017,16 +2339,22 @@ SELECT * FROM e1 WHERE m1 IN (SELECT m2 FROM e2 WHERE n1 = n2);
 
 > 其中子查询`(SELECT m2 FROM e2 WHERE n1 = n2)`的查询条件n1是外层查询的列。也就是说子查询的执行需要依赖于外层查询的值，所以这个子查询就是一个相关子查询。
 
-### 9.5. `[NOT] IN/ANY/SOME/ALL` 子查询
+### 8.5. `[NOT] IN/ANY/SOME/ALL/EXISTS` 子查询
 
 对于列子查询和表子查询来说，它们的结果集中包含很多条记录，这些记录相当于是一个集合，所以就不能单纯的和另外一个操作数使用操作符来组成布尔表达式了，MySQL 通过下面的语法来支持某个操作数和一个集合组成一个布尔表达式：
 
-#### 9.5.1. IN 或者 NOT IN
+- `ALL` 关键字
+- `ANY` 关键字
+- `SOME` 关键字
+- `IN`/`NOT IN` 关键字
+- `EXISTS` 关键字
+
+#### 8.5.1. IN 或者 NOT IN
 
 语法格式：
 
 ```sql
-操作数 [NOT] IN (子查询);
+select * from 表 where 字段名 [NOT] IN (子查询);
 ```
 
 用来判断某个操作数在不在由子查询结果集组成的集合中
@@ -2035,15 +2363,20 @@ SELECT * FROM e1 WHERE m1 IN (SELECT m2 FROM e2 WHERE n1 = n2);
 SELECT * FROM e1 WHERE (m1, n1) IN (SELECT m2, n2 FROM e2);
 ```
 
-#### 9.5.2. ANY/SOME（ANY 和 SOME 是同义词）
+#### 8.5.2. ANY/SOME（ANY 和 SOME 是同义词）
 
 语法格式：
 
 ```sql
-操作数 比较符 ANY/SOME(子查询);
+select * from 表 where 字段名 比较操作符 ANY/SOME(子查询);
 ```
 
-只要子查询结果集中存在某个值和给定的操作数做比较操作，比较结果为`TRUE`，那么整个表达式的结果就为`TRUE`，否则整个表达式的结果就为`FALSE`
+- `ANY`/`SOME` 关键字的作用是，只要子查询结果集中存在某个值和给定的操作数做比较操作，比较结果为`TRUE`，那么整个表达式的结果就为`TRUE`，否则整个表达式的结果就为`FALSE`
+- `ANY`/`SOME` 可以与`=`、`>`、`>=`、`<`、`<=`、`<>`结合是来使用，分别表示等于、大于、大于等于、小于、小于等于、不等于其中的其中的任何一个数据。
+- 表示制定列中的值要大于子查询中的任意一个值，即必须要大于子查询集中的最小值。同理可以推出其它的比较运算符的情况。
+- `SOME`和`ANY`的作用一样，`SOME`可以理解为`ANY`的别名
+
+示例：
 
 ```sql
 SELECT * FROM e1 WHERE m1 > ANY(SELECT m2 FROM e2);
@@ -2057,15 +2390,19 @@ SELECT * FROM e1 WHERE m1 > (SELECT MIN(m2) FROM e2);
 
 另外，`=ANY`相当于判断子查询结果集中是否存在某个值和给定的操作数相等，它的含义和`IN`是相同的。
 
-#### 9.5.3. ALL
+#### 8.5.3. ALL
 
 语法格式：
 
 ```sql
-操作数 比较操作 ALL(子查询)
+select * from 表 where 字段名 比较操作符 ALL(子查询);
 ```
 
-子查询结果集中所有的值和给定的操作数做比较操作比较结果为TRUE，那么整个表达式的结果就为TRUE，否则整个表达式的结果就为FALSE。
+- `ALL`关键字作用是，子查询结果集中所有的值和给定的操作数做比较操作比较结果为TRUE，那么整个表达式的结果就为TRUE，否则整个表达式的结果就为FALSE。
+- `ALL` 可以与`=`、`>`、`>=`、`<`、`<=`、`<>`结合是来使用，分别表示等于、大于、大于等于、小于、小于等于、不等于其中的其中的所有数据。
+- `ALL` 表示指定列中的值必须要大于子查询集的每一个值，即必须要大于子查询集的最大值；如果是小于号即小于子查询集的最小值。同理可以推出其它的比较运算符的情况。
+
+示例：
 
 ```sql
 SELECT * FROM e1 WHERE m1 > ALL(SELECT m2 FROM e2);
@@ -2077,22 +2414,533 @@ SELECT * FROM e1 WHERE m1 > ALL(SELECT m2 FROM e2);
 SELECT * FROM e1 WHERE m1 > (SELECT MAX(m2) FROM e2);
 ```
 
-#### 9.5.4. EXISTS 子查询
+#### 8.5.4. EXISTS 子查询
+
+语法：
+
+```sql
+select * from 表 where exists(子查询语句);
+```
 
 如果仅仅需要判断子查询的结果集中是否有记录，而不在乎它的记录具体值，可以使用把 `EXISTS` 或者 `NOT EXISTS` 放在子查询语句前边
 
+- 该子查询如果“有数据结果”(至少返回一行数据)， 则该`EXISTS()`的结果为“`true`”，外层查询执行
+- 该子查询如果“没有数据结果”（没有任何数据返回），则该`EXISTS()`的结果为“`false`”，外层查询不执行
+- `EXISTS`后面的子查询不返回任何实际数据，只返回真或假，当返回真时 `where` 条件成立
+
+> 注意，`EXISTS` 关键字，比 `IN` 关键字的运算效率高，因此，在实际开发中，特别是大数据量时，推荐使用 `EXISTS` 关键字
+
 ```sql
 SELECT * FROM e1 WHERE EXISTS (SELECT 1 FROM e2);
+
+-- 查询公司是否有大于60岁的员工，有则输出
+select * from emp3 a where exists(select * from emp3 b where a.age > 60);
+
+-- 查询有所属部门的员工信息
+select * from emp3 a where exists(select * from dept3 b where a.dept_id = b.deptno);
 ```
 
 对于子查询`(SELECT 1 FROM e2)`来说，如果并不关心这个子查询最后到底查询出的结果是什么，所以查询列表里填`*`、某个列名，或者其他内容都无所谓，真正关心的是子查询的结果集中是否存在记录。也就是说只要`(SELECT 1 FROM e2)`这个查询中有记录，那么整个`EXISTS`表达式的结果就为TRUE。
 
-### 9.6. 子查询的注意事项
+### 8.6. 子查询的注意事项
 
 - 子查询语句一定要使用括号括起来，否则无法确定子查询语句什么时候结束。
 - 在`SELECT`子句中的子查询必须是标量子查询，如果子查询结果集中有多个列或者多个行，都不允许放在`SELECT`子句中，在想要得到标量子查询或者行子查询，但又不能保证子查询的结果集只有一条记录时，应该使用`LIMIT 1`语句来限制记录数量。
 - 对于`[NOT] IN/ANY/SOME/ALL`子查询来说，子查询中不允许有`LIMIT`语句，而且这类子查询中`ORDER BY`子句、`DISTINCT`语句、没有聚集函数以及`HAVING`子句的`GROUP BY`子句没有什么意义。因为子查询的结果其实就相当于一个集合，集合里的值排不排序等一点儿都不重要。
 - 不允许在一条语句中增删改某个表的记录时同时还对该表进行子查询。
+
+## 9. 函数
+
+### 9.1. 概述
+
+在MySQL中，为了提高代码重用性和隐藏实现细节，MySQL提供了很多函数。函数可以理解为封装好的模板代码。
+
+在MySQL中，内置函数的非常多，主要可以分为以下几类:
+
+- 聚合函数
+- 数学函数
+- 字符串函数
+- 日期函数
+- 控制流函数
+- 窗口函数
+
+### 9.2. 聚合函数
+
+#### 9.2.1. GROUP_CONCAT() 函数
+
+`GROUP_CONCAT()`首先根据`group by`指定的列进行分组，并且用分隔符分隔，将同一个分组中的非NULL的值连接起来，返回一个字符串结果。语法：
+
+```sql
+group_concat([distinct] 字段名 [order by 排序字段 asc/desc] [separator '分隔符'])
+```
+
+参数说明：
+
+- 使用 `distinct` 可以排除重复值
+- 如果需要对结果中的值进行排序，可以使用 `order by` 子句
+- `separator` 是一个字符串值，指定返回结果拼接的分隔符，默认为逗号
+
+示例：
+
+```sql
+SELECT t.spec_id, GROUP_CONCAT(t.option_name) FROM tb_specification_option t GROUP BY t.spec_id;
+
+-- 将所有员工的名字合并成一行
+select group_concat(emp_name) from emp;
+-- 指定分隔符合并
+select department,group_concat(emp_name separator ';' ) from emp group by department;
+-- 指定排序方式和分隔符
+select department,group_concat(emp_name order by salary desc separator ';' ) from emp group by department;
+```
+
+表数据：
+
+![](images/20190404092625696_10122.jpg)
+
+查询结果：
+
+![](images/20190404092723963_31844.jpg)
+
+### 9.3. 数学函数
+
+MySQL中，数学函数如果发生错误，都会返回 `NULL`
+
+#### 9.3.1. ABS
+
+```sql
+ABS(X)
+```
+
+返回 X 的绝对值。
+
+```sql
+SELECT ABS(2); -- 返回 2
+SELECT ABS(-32); -- 返回 32
+```
+
+#### 9.3.2. CEIL
+
+```sql
+CEIL(X)
+-- 或者
+CEILING(X)
+```
+
+返回大于或等于 x 的最小整数
+
+```sql
+SELECT CEILING(1.23); -- 返回 2
+SELECT CEIL(-1.23); -- 返回 -1
+```
+
+#### 9.3.3. FLOOR
+
+```sql
+FLOOR(X)
+```
+
+返回不大于X的最大整数值
+
+```sql
+SELECT FLOOR(1.23); -- 返回 1
+SELECT FLOOR(-1.23); -- 返回 -2
+```
+
+#### 9.3.4. GREATEST
+
+```sql
+GREATEST(value1, value2,...)
+```
+
+当有2或多个参数时，返回值列表中最大值
+
+```sql
+SELECT GREATEST(34.0,3.0,5.0,767.0); -- 返回 767.0
+SELECT GREATEST('B','A','C'); -- 返回 C
+```
+
+#### 9.3.5. LEAST
+
+```sql
+LEAST(value1, value2,...)
+```
+
+在有两个或多个参数的情况下， 返回值为最小(最小值)参数
+
+- 假如返回值被用在一个 INTEGER 语境中，或是所有参数均为整数值，则将其作为整数值进行比较。
+- 假如返回值被用在一个 REAL 语境中，或所有参数均为实值，则将其作为实值进行比较。
+- 假如任意一个参数是一个区分大小写的字符串，则将参数按照区分大小写的字符串进行比较。
+- 在其它情况下，将参数作为区分大小写的字符串进行比较
+
+```sql
+SELECT LEAST(2,0); -- 返回 0
+SELECT LEAST(34.0,3.0,5.0,767.0); -- 返回 3.0
+SELECT LEAST('B','A','C'); -- 返回 'A'
+```
+
+#### 9.3.6. MAX / MIN
+
+```sql
+-- 获取最大值
+MAX([DISTINCT] expr)
+-- 获取最小值
+MIN([DISTINCT] expr)
+```
+
+返回字段 expression 中的最大值/最小值。
+
+- `MIN()` 和 `MAX()` 的取值可以是一个字符串参数，返回的是最小或最大字符串值
+- `DISTINCT`关键词可以被用来查找 expr 的不同值的最小或最大值，可以省略不写
+- 若找不到匹配的行，`MIN()`和`MAX()`返回 `NULL`
+
+```sql
+SELECT student_name, MIN(test_score), MAX(test_score)
+    FROM student
+    GROUP BY student_name;
+```
+
+#### 9.3.7. MOD
+
+```sql
+MOD(N,M)
+-- 等价于
+N % M
+-- 等价于
+N MOD M
+```
+
+模操作。返回 N 被 M 除后的余数。
+
+```sql
+SELECT MOD(234, 10); -- 返回 4
+SELECT 253 % 7; -- 返回 1
+SELECT MOD(29,9); -- 返回 2
+SELECT 29 MOD 9; -- 返回 2
+```
+
+#### 9.3.8. PI
+
+```sql
+PI()
+```
+
+返回圆周率(3.141593)，默认的显示小数位数是7位
+
+```sql
+SELECT PI(); -- 返回 3.141593
+```
+
+#### 9.3.9. POW
+
+```sql
+POW(X,Y)
+-- 或者
+POWER(X,Y)
+```
+
+返回 X 的 Y 次方的结果值。
+
+```sql
+SELECT POW(2,2); -- 返回 4
+SELECT POW(2,-2); -- 返回 0.25
+```
+
+#### 9.3.10. RAND
+
+```sql
+RAND()
+-- 指定一个整数参数 N ，则它被用作种子值，用来产生重复序列。
+RAND(N)
+```
+
+返回 0 到 1 的随机数。
+
+```sql
+SELECT RAND(); -- 返回 0.9233482386203 (随便)
+SELECT RAND(20); -- 返回 0.15888261251047
+```
+
+#### 9.3.11. ROUND
+
+```sql
+ROUND(X)
+ROUND(X,D)
+```
+
+返回离 x 最近的整数（遵循四舍五入）。有两个参数的情况时，返回 X ，其值保留到小数点后D位，而第D位的保留方式为四舍五入。若要接保留X值小数点左边的D 位，可将 D 设为负值。
+
+```sql
+SELECT ROUND(-1.23); -- 返回 -1
+SELECT ROUND(1.58); -- 返回 2
+SELECT ROUND(1.298, 1); -- 返回 1.3
+SELECT ROUND(23.298, -1); -- 返回 20
+```
+
+#### 9.3.12. TRUNCATE
+
+```sql
+TRUNCATE(X,D)
+```
+
+返回数值 X 保留到小数点后 D 位的值。若D 的值为 0，则结果不带有小数点或不带有小数部分。可以将D设为负数，若要截去(归零) X小数点左起第D位开始后面所有低位的值。（与 `ROUND` 最大的区别是不会进行四舍五入）
+
+```sql
+SELECT TRUNCATE(1.223,1); -- 返回 1.2
+SELECT TRUNCATE(1.999,0); -- 返回 1
+SELECT TRUNCATE(-1.999,1); -- 返回 -1.9
+SELECT TRUNCATE(122,-2); -- 返回 100
+```
+
+### 9.4. 字符串函数
+
+#### 9.4.1. CHAR_LENGTH/CHARACTER_LENGTH
+
+```sql
+CHAR_LENGTH(str)
+-- 或
+CHARACTER_LENGTH(str)
+```
+
+返回值为字符串 str 的长度，长度的单位为字符。
+
+```sql
+SELECT CHAR_LENGTH("RUNOOB") -- 返回 6
+SELECT CHARACTER_LENGTH("RUNOOB") -- 返回 6
+```
+
+#### 9.4.2. CONCAT
+
+```sql
+CONCAT(str1, str2,...)
+```
+
+将参数列表中的字符串合并为一个字符串。如有任何一个参数为NULL ，则返回值为 NULL。
+
+```sql
+SELECT CONCAT('My', 'S', 'QL'); -- 返回 'MySQL'
+SELECT CONCAT('My', NULL, 'QL'); -- 返回 NULL
+SELECT CONCAT(14.3); -- 返回 '14.3'
+```
+
+#### 9.4.3. CONCAT_WS
+
+```sql
+CONCAT_WS(separator, str1, str2,...)
+```
+
+与`CONCAT`函数一样，用于拼接字符串，第一个参数是指定分隔符。分隔符的位置放在要连接的两个字符串之间。分隔符可以是一个字符串，也可以是其它参数。如果分隔符为 NULL，则结果为 NULL。
+
+```sql
+SELECT CONCAT_WS(',','First name','Second name','Last Name'); -- 返回  'First name,Second name,Last Name'
+SELECT CONCAT_WS(',','First name',NULL,'Last Name'); -- 返回 'First name,Last Name'
+SELECT CONCAT_WS(NULL,'First name','Second name','Last Name'); -- 返回 NULL
+```
+
+#### 9.4.4. FIELD
+
+```sql
+FIELD(str, str1, str2, str3,...)
+```
+
+返回第一个字符串 str 在字符串列表(str1,str2,str3...)中的位置。在找不到 str 的情况下，返回值为0。
+
+```sql
+SELECT FIELD('ej', 'Hej', 'ej', 'Heja', 'hej', 'foo'); -- 返回 2
+SELECT FIELD('fo', 'Hej', 'ej', 'Heja', 'hej', 'foo'); -- 返回 0
+```
+
+#### 9.4.5. LTRIM
+
+```sql
+LTRIM(str)
+```
+
+去掉字符串 str 开始处的空格
+
+```sql
+SELECT LTRIM('  barbar'); -- 返回 'barbar'
+```
+
+#### 9.4.6. RTRIM
+
+```sql
+RTRIM(str)
+```
+
+去掉字符串 str 结尾处的空格。
+
+```sql
+SELECT RTRIM('barbar   '); -- 返回 'barbar'
+```
+
+#### 9.4.7. TRIM
+
+```sql
+TRIM(str)
+```
+
+去掉字符串 str 开始和结尾处的空格
+
+```sql
+SELECT TRIM('  bar   '); -- 返回 'bar'
+SELECT TRIM(LEADING 'x' FROM 'xxxbarxxx'); -- 返回 'barxxx'
+SELECT TRIM(BOTH 'x' FROM 'xxxbarxxx'); -- 返回 'bar'
+SELECT TRIM(TRAILING 'xyz' FROM 'barxxyz'); -- 返回 'barx'
+```
+
+#### 9.4.8. SUBSTRING / SUBSTR / MID
+
+```sql
+SUBSTRING(str, pos, len)
+-- 或
+SUBSTR(str, pos, len)
+-- 或
+MID(str, pos, len)
+```
+
+返回从字符串 str 的 pos 位置截取长度为 len 的子字符串。
+
+```sql
+SELECT SUBSTRING('Quadratically',5); -- 返回 'ratically'
+SELECT SUBSTRING('foobarbar' FROM 4); -- 返回 'barbar'
+SELECT SUBSTRING('Quadratically',5,6); -- 返回 'ratica'
+SELECT SUBSTRING('Sakila', -3); -- 返回 'ila'
+SELECT SUBSTRING('Sakila', -5, 3); -- 返回 'aki'
+SELECT SUBSTRING('Sakila' FROM -4 FOR 2); -- 返回 'ki'
+```
+
+#### 9.4.9. POSITION
+
+```sql
+POSITION(substr IN str)
+```
+
+从字符串 str 中获取 substr 的第一次出现的位置。如若 substr 不在 str 中，则返回值为0。
+
+```sql
+SELECT POSITION('b' in 'abc'); -- 返回 2
+SELECT POSITION('e' in 'abc'); -- 返回 0
+```
+
+#### 9.4.10. REPLACE
+
+```sql
+REPLACE(str, from_str, to_str)
+```
+
+将字符串 str 中的字符串 to_str 替代成字符串 from_str，并返回
+
+```sql
+SELECT REPLACE('www.mysql.com', 'w', 'Ww'); -- 返回 'WwWwWw.mysql.com'
+```
+
+#### 9.4.11. REVERSE
+
+```sql
+REVERSE(str)
+```
+
+返回字符串 str 的反转顺序
+
+```sql
+SELECT REVERSE('abc'); -- 返回 'cba'
+```
+
+#### 9.4.12. RIGHT
+
+```sql
+RIGHT(str,len)
+```
+
+返回字符串 str 的后 len 个字符
+
+```sql
+SELECT RIGHT('foobarbar', 4); -- 返回 'rbar'
+```
+
+#### 9.4.13. STRCMP
+
+```sql
+STRCMP(expr1, expr2)
+```
+
+比较字符串 expr1 和 expr2，如果 expr1 与 expr2 相等返回0，如果 expr1 > expr2 返回 1，如果 expr1 < expr2 返回 -1
+
+```sql
+SELECT STRCMP('text', 'text2'); -- 返回 -1
+SELECT STRCMP('text2', 'text'); -- 返回 1
+SELECT STRCMP('text', 'text'); -- 返回 0
+```
+
+#### 9.4.14. UCASE / UPPER
+
+```sql
+UPPER(str)
+-- 或
+UCASE(str)
+```
+
+将字符串 str 所有字母转换为大写
+
+```sql
+SELECT UPPER('Hej'); -- 返回 'HEJ'
+```
+
+#### 9.4.15. LCASE / LOWER
+
+```sql
+LOWER(str)
+-- 或
+LCASE(str)
+```
+
+将字符串 str 的所有字母变成小写字母
+
+```sql
+SELECT LOWER('QUADRATICALLY'); -- 返回 'quadratically'
+```
+
+### 9.5. 日期函数（整理中）
+
+### 9.6. 控制流程函数
+
+#### 9.6.1. IF
+
+```sql
+IF(expr1, expr2, expr3)
+```
+
+如果expr1为true，则返回expr2，否则返回expr3
+
+```sql
+SELECT IF(1>2,2,3); -- 返回 3
+SELECT IF(1<2,'yes ','no'); -- 返回 'yes'
+SELECT IF(STRCMP('test','test1'),'no','yes'); -- 返回 'no'
+```
+
+#### 9.6.2. IFNULL
+
+```sql
+IFNULL(expr1, expr2)
+```
+
+`IFNULL` 函数作用是，假如 `expr1` 不为 `NULL`，则返回值为 `expr1`，否则其返回值为 `expr2`。`IFNULL()` 函数的返回值是数字或是字符串取决于实际的sql
+
+示例：
+
+```sql
+SELECT IFNULL(1, 0); -- 返回 1
+SELECT IFNULL(NULL, 10); -- 返回 10
+SELECT IFNULL(1/0, 10); -- 返回 10
+SELECT IFNULL(1/0, 'yes'); -- 返回 'yes'
+```
+
+
+
+
+
+
+
 
 # MySQL 约束与多表关系操作
 
@@ -2489,21 +3337,37 @@ create table 表名 (
 
 ### 3.8. 外键约束
 
-#### 3.8.1. 外键约束
+#### 3.8.1. 定义
+
+MySQL 外键约束（FOREIGN KEY）是表的一个特殊字段，经常与主键约束一起使用。对于两个具有关联关系的表而言，相关联字段中主键所在的表就是主表（父表），外键所在的表就是从表（子表）。
+
+外键用来建立主表与从表的关联关系，为两个表的数据建立连接，约束两个表中数据的一致性和完整性。
+
+#### 3.8.2. 特点
+
+定义一个外键时，需要遵守下列规则：
 
 - 为了避免大量重复的数据出现，数据冗余。就需要使用到外键约束。
 - 从表的某一列值(外键列)和主表的主键值相关关联，外键列的值必须来源于主表的主键值
-- 主表：约束别人，表结构不变
-- 副表/从表：被别人约束
+- 主表：约束别人，表结构不变；副表/从表：被别人约束
+- 主表必须已经存在于数据库中，或者是当前正在创建的表。
+- 主表必须定义主键。
+- 主键不能包含空值，但允许在外键中出现空值。也就是说，只要外键的每个非空值出现在指定的主键中，这 个外键的内容就是正确的。
+- 在主表的表名后面指定列名或列名的组合。这个列或列的组合必须是主表的主键或候选键。
+- 外键中列的数目必须和主表的主键中列的数目相同。
+- 外键中列的数据类型必须和主表主键中对应列的数据类型相同。
 
 **注：定义外键的时候，外键的约束比较和主键完全一致才能成功关联**
 
-- 外键约束语法格式1(创建表时定义)：`constraint foreign key(外键名) references 主表(主键名);`
-- 外键约束语法格式2(创建表后再定义)：`alter table 表名 add constraint foreign key(外键名) references 主表(主键名);`
+#### 3.8.3. 外键约束语法格式1(创建表时定义)
 
-- **外键约束设计插入数据的顺序**：	先插入主表、再插入副表
-- **外键约束设计更新数据的顺序**：	先修改从表的外键数据，再修改主表的主键数据。
-- **外键约束设计删除数据的顺序**：	先修改从表的外键数据，再修改主表的主键数据。
+在 `create table` 语句中，通过 `foreign key` 关键字来指定外键，具体的语法格式如下：
+
+```sql
+constraint [外键名] foreign key(外键列名1, 外键列名2, ....) references 主表(主键列名1, 主键名列2, ...);
+```
+
+示例：
 
 ```sql
 create table employee(
@@ -2524,7 +3388,55 @@ create table employee (
 )
 ```
 
-#### 3.8.2. 级联操作
+#### 3.8.4. 外键约束语法格式2(创建表后再定义)
+
+外键约束也可以在修改表时添加，但是添加外键约束的前提是：从表中外键列中的数据必须与主表中主键列中的数据一致或者是没有数据。
+
+```sql
+alter table 表名 add constraint foreign key(外键名) references 主表(主键名);
+```
+
+示例：
+
+```sql
+-- 创建部门表
+create table if not exists dept2(
+  deptno varchar(20) primary key ,  -- 部门号
+  name varchar(20) -- 部门名字
+);
+-- 创建员工表
+create table if not exists emp2(
+  eid varchar(20) primary key , -- 员工编号
+  ename varchar(20), -- 员工名字
+  age int,  -- 员工年龄
+  dept_id varchar(20)  -- 员工所属部门
+
+);
+-- 创建外键约束
+alter table emp2 add constraint dept_id_fk foreign key(dept_id) references dept2 (deptno);
+```
+
+#### 3.8.5. 在外键约束下的数据操作
+
+- **外键约束设计插入数据的顺序**：先插入主表、再插入副表
+- **外键约束设计更新数据的顺序**：先修改从表的外键数据，再修改主表的主键数据。
+- **外键约束设计删除数据的顺序**：先修改从表的外键数据，再修改主表的主键数据。
+
+#### 3.8.6. 删除外键约束
+
+当一个表中不需要外键约束时，就需要从表中将其删除。外键一旦删除，就会解除主表和从表间的关联关系。语法：
+
+```sql
+alter table 表名 drop foreign key 外键约束名;
+```
+
+示例：
+
+```sql
+alter table emp2 drop foreign key dept_id_fk;
+```
+
+#### 3.8.7. 级联操作
 
 - 定义：在修改和删除主表的主键值时，同时更新或删除从表的外键值，称为级联操作。
 - **级联更新**：更新主表的主键值时自动更新从表的相关的外键值
@@ -2538,196 +3450,35 @@ create table employee (
 constraint foreign key(外键名) references 主表(主键名) on update cascade on delete cascade;
 ```
 
-## 4. 表与表的关系
-### 4.1. 一对一(1:1)
+# MySQL 扩展内容
 
-- 在实际的开发中应用不多，因为一对一可以创建成一张表。
-- 有两种建表原则：
-    1. 外键唯一：主表的主键和从表的外键（唯一），形成主外键关系，外键唯一，这其实是一种特殊的多对一的关系。
-        - 注：如果是外键唯一这种方式，则需要外键的约束条件和主表的主键一致
-    2. 外键是主键：主表的主键和从表的主键，形成主外键关系
+## 1. DOS 命令行下汉字乱码的问题（了解）
 
-```sql
--- 一对一关系： 外键唯一
--- 简历表
-create table jl(
-	id int primary key,
-	content varchar(200)
-);
--- 学生表
-create table s7(
-	id int primary key,
-	name varchar(20),
-	jl_id int unique, -- 外键唯一
-	constraint foreign key(jl_id) references jl(id)
-);
+### 1.1. 查看字符集
 
--- 一对一关系：主键又是外键
--- 简历表：主表
-create table jl(
-	id int primary key,
-	content varchar(200)
-);
--- 学生表：从表
-create table s7(
-	id int primary key,
-	name varchar(20),
-	constraint foreign key(id) references jl(id)
-);
-```
-
-### 4.2. 一对多(1:n)(重点)
-
-- 常见实例：客户和订单，分类和商品，部门和员工。
-- 一对多建表原则
-    - 在从表(多方)创建一个字段，字段作为外键指向主表(一方)的主键。
+语法：
 
 ```sql
--- 创建学科表格 主表
-create table class(
-	cid int,
-	sub varchar(10) not null unique
-)
--- 创建表完成之后添加主键
-alter table class modify cid int primary key;
-
--- 创建学生表格 从表
-create table student(
-	sid int primary key auto_increment,
-	sname varchar(10) not null,
-	gender varchar(2) not null,
-	class_id int,
-	constraint foreign key(class_id) references class(cid) on update cascade
-);
-
--- 创建后查看表清单
-show tables;
-desc class;
-desc student;
-
--- 插入数据
-insert into class values(001, 'java'), (002, 'iso'),(003, 'php');
-select * from class;
-insert into student(sname, gender, class_id) values
-	('敌法师','男',2),
-	('主宰','男',1),
-	('痛苦女王','女',3),
-	('露娜','女',1);
-select * from student;
+show variables like 'character%';
 ```
 
-- 1:n表关系图：
+参数解释：
 
-![1:n表关系图](images/20190404102511245_26673.jpg)
+- `show variables` 显示所有的全局变量
+- `%` 代表通配符
 
-### 4.3. 多对多(n:n)
+![](images/20190404083401020_12924.jpg)
 
-- 常见实例：学生和课程、用户和角色。
-- 多对多关系建表原则
-    - 需要创建第三张表，中间表中至少两个字段，这两个字段分别作为外键指向各自一方的主键。
-- 多对多设计的关系表的关键：
-    - 单独设置一张关系表(设置为联合主键)
-- 语法例子：`constraint primary key(s_id, c_id)`
+### 1.2. 修改字符集
+
+DOS命令行默认的字符集是GBK，而数据库的字符集是UTF-8，要将数据库中下列三项的字符集也改成GBK。在命令行插入数据之前输入: `set names gbk;` 则等同于
 
 ```sql
-create table goods(
-	gid int primary key auto_increment,
-	gname varchar(20) not null unique
-);
-
--- 插入商品
-insert into goods(gname) values ('椅子'),('床'),('桌子'),
-		('苹果'),('香蕉'),('汽水'),('饼干');
-
--- 查看商品表
-select * from goods;
-
--- 创建购买人表 主表
-create table person(
-	pid int primary key auto_increment,
-	pname varchar(10) not null,
-	age int not null
-);
-
--- 插入购买人信息
-insert into person(pname, age) values ('剑圣',28),('敌法师',26),('痛苦女王',23),
-	('西门吹水',34),('潘银莲',21),('东施',23);
-
--- 查看购买人表
-select * from person;
-
--- 创建关系表 从表
-create table person_goods(
-	p_id int,
-	g_id int,
-	constraint primary key (p_id,g_id),
-	constraint foreign key(p_id) references person(pid),
-	constraint foreign key(g_id) references goods(gid)
-);
-
-insert into person_goods values (1,2),(1,6),(2,4),(3,4),(3,5),(4,6),(5,7),(6,6),(5,6);
-
--- 查看关系表
-select * from person_goods;
-
--- 修改关系表数据
-delete from person_goods where p_id=2 and g_id=4;
-update person_goods set p_id=2 where p_id=5 and g_id=6;
+set character_set_connection=gbk; -- 设置数据库连接使用的字符集
+set character_set_results=gbk; -- 设置查询结果的字符集
+set character_set_client=gbk; -- 设置客户端的字符集
 ```
 
-- n:n表关系图：
+![修改字符集](images/20190404083532484_32038.jpg)
 
-![n:n表关系图](images/20190404102741613_29288.jpg)
-
-```sql
-/*
-  关卡2训练案例2
-   1:完成学员 student 和 老师 teacher 表和课程表的设计
-   2:多对多设计原则,引入中间表.
-   操作步骤
-	1: 完成学员和老师,课程以及中间表设计
-	2: 使用 sql 脚本完成中间表设计以及联合主键,外键的引入.
-	3: 录入相关数据.
-*/
--- 创建学生表 stu
-create table stu(
-	sid int(4) zerofill primary key auto_increment,
-	sname varchar(6) not null,
-	age int
-);
--- 创建老师表
-create table teacher(
-	tid int(4) zerofill primary key auto_increment,
-	tname varchar(6) not null,
-	age int
-);
--- 创建课程表course
-create table course(
-	cid int(2) zerofill primary key auto_increment,
-	cname varchar(20) not null unique
-);
-
--- 创建关系表
-create table stu_tea_cou(
-	sid int(4) zerofill,
-	tid int(4) zerofill,
-	cid int(2) zerofill,
-	-- 定义联合主键
-	constraint primary key(sid,tid,cid),
-	-- 定义主键对应各个表的主键
-	constraint foreign key(sid) references stu(sid),
-	constraint foreign key(tid) references teacher(tid),
-	constraint foreign key(cid) references course(cid)
-);
-
--- 使用内连接查询全部学生内容
--- SELECT * FROM ((表1 INNER JOIN 表2 ON 表1.字段号=表2.字段号)
--- 	INNER JOIN 表3 ON 表1.字段号=表3.字段号) INNER JOIN 表4 ON Member.字段号=表4.字段号;
-select stu.*,course.cname as '学科名',stu_tea_cou.score as '得分',teacher.tname as '老师' from ((stu inner join stu_tea_cou on stu.sid=stu_tea_cou.sid)
-	inner join course on course.cid=stu_tea_cou.cid)
-	inner join teacher on teacher.tid=stu_tea_cou.tid;
-```
-
-- n:n表关系图（三个）
-
-![n:n表关系图（三个）](images/20190404102946118_1242.jpg)
+注：上面只改变了本次运行时的数据库局部的字符集，重启后也会变回原来的模式。
