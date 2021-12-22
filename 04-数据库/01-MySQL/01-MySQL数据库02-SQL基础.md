@@ -2449,540 +2449,69 @@ select * from emp3 a where exists(select * from dept3 b where a.dept_id = b.dept
 - 对于`[NOT] IN/ANY/SOME/ALL`子查询来说，子查询中不允许有`LIMIT`语句，而且这类子查询中`ORDER BY`子句、`DISTINCT`语句、没有聚集函数以及`HAVING`子句的`GROUP BY`子句没有什么意义。因为子查询的结果其实就相当于一个集合，集合里的值排不排序等一点儿都不重要。
 - 不允许在一条语句中增删改某个表的记录时同时还对该表进行子查询。
 
-## 9. 函数
+## 9. DCL语句使用(了解)
 
-### 9.1. 概述
-
-在MySQL中，为了提高代码重用性和隐藏实现细节，MySQL提供了很多函数。函数可以理解为封装好的模板代码。
-
-在MySQL中，内置函数的非常多，主要可以分为以下几类:
-
-- 聚合函数
-- 数学函数
-- 字符串函数
-- 日期函数
-- 控制流函数
-- 窗口函数
-
-### 9.2. 聚合函数
-
-#### 9.2.1. GROUP_CONCAT() 函数
-
-`GROUP_CONCAT()`首先根据`group by`指定的列进行分组，并且用分隔符分隔，将同一个分组中的非NULL的值连接起来，返回一个字符串结果。语法：
-
-```sql
-group_concat([distinct] 字段名 [order by 排序字段 asc/desc] [separator '分隔符'])
-```
-
-参数说明：
-
-- 使用 `distinct` 可以排除重复值
-- 如果需要对结果中的值进行排序，可以使用 `order by` 子句
-- `separator` 是一个字符串值，指定返回结果拼接的分隔符，默认为逗号
-
-示例：
-
-```sql
-SELECT t.spec_id, GROUP_CONCAT(t.option_name) FROM tb_specification_option t GROUP BY t.spec_id;
-
--- 将所有员工的名字合并成一行
-select group_concat(emp_name) from emp;
--- 指定分隔符合并
-select department,group_concat(emp_name separator ';' ) from emp group by department;
--- 指定排序方式和分隔符
-select department,group_concat(emp_name order by salary desc separator ';' ) from emp group by department;
-```
-
-表数据：
-
-![](images/20190404092625696_10122.jpg)
-
-查询结果：
-
-![](images/20190404092723963_31844.jpg)
-
-### 9.3. 数学函数
-
-MySQL中，数学函数如果发生错误，都会返回 `NULL`
-
-#### 9.3.1. ABS
-
-```sql
-ABS(X)
-```
-
-返回 X 的绝对值。
-
-```sql
-SELECT ABS(2); -- 返回 2
-SELECT ABS(-32); -- 返回 32
-```
-
-#### 9.3.2. CEIL
-
-```sql
-CEIL(X)
--- 或者
-CEILING(X)
-```
-
-返回大于或等于 x 的最小整数
-
-```sql
-SELECT CEILING(1.23); -- 返回 2
-SELECT CEIL(-1.23); -- 返回 -1
-```
-
-#### 9.3.3. FLOOR
-
-```sql
-FLOOR(X)
-```
-
-返回不大于X的最大整数值
-
-```sql
-SELECT FLOOR(1.23); -- 返回 1
-SELECT FLOOR(-1.23); -- 返回 -2
-```
-
-#### 9.3.4. GREATEST
-
-```sql
-GREATEST(value1, value2,...)
-```
-
-当有2或多个参数时，返回值列表中最大值
-
-```sql
-SELECT GREATEST(34.0,3.0,5.0,767.0); -- 返回 767.0
-SELECT GREATEST('B','A','C'); -- 返回 C
-```
-
-#### 9.3.5. LEAST
-
-```sql
-LEAST(value1, value2,...)
-```
-
-在有两个或多个参数的情况下， 返回值为最小(最小值)参数
-
-- 假如返回值被用在一个 INTEGER 语境中，或是所有参数均为整数值，则将其作为整数值进行比较。
-- 假如返回值被用在一个 REAL 语境中，或所有参数均为实值，则将其作为实值进行比较。
-- 假如任意一个参数是一个区分大小写的字符串，则将参数按照区分大小写的字符串进行比较。
-- 在其它情况下，将参数作为区分大小写的字符串进行比较
-
-```sql
-SELECT LEAST(2,0); -- 返回 0
-SELECT LEAST(34.0,3.0,5.0,767.0); -- 返回 3.0
-SELECT LEAST('B','A','C'); -- 返回 'A'
-```
-
-#### 9.3.6. MAX / MIN
-
-```sql
--- 获取最大值
-MAX([DISTINCT] expr)
--- 获取最小值
-MIN([DISTINCT] expr)
-```
-
-返回字段 expression 中的最大值/最小值。
-
-- `MIN()` 和 `MAX()` 的取值可以是一个字符串参数，返回的是最小或最大字符串值
-- `DISTINCT`关键词可以被用来查找 expr 的不同值的最小或最大值，可以省略不写
-- 若找不到匹配的行，`MIN()`和`MAX()`返回 `NULL`
-
-```sql
-SELECT student_name, MIN(test_score), MAX(test_score)
-    FROM student
-    GROUP BY student_name;
-```
-
-#### 9.3.7. MOD
-
-```sql
-MOD(N,M)
--- 等价于
-N % M
--- 等价于
-N MOD M
-```
-
-模操作。返回 N 被 M 除后的余数。
-
-```sql
-SELECT MOD(234, 10); -- 返回 4
-SELECT 253 % 7; -- 返回 1
-SELECT MOD(29,9); -- 返回 2
-SELECT 29 MOD 9; -- 返回 2
-```
-
-#### 9.3.8. PI
-
-```sql
-PI()
-```
-
-返回圆周率(3.141593)，默认的显示小数位数是7位
-
-```sql
-SELECT PI(); -- 返回 3.141593
-```
-
-#### 9.3.9. POW
-
-```sql
-POW(X,Y)
--- 或者
-POWER(X,Y)
-```
-
-返回 X 的 Y 次方的结果值。
-
-```sql
-SELECT POW(2,2); -- 返回 4
-SELECT POW(2,-2); -- 返回 0.25
-```
-
-#### 9.3.10. RAND
-
-```sql
-RAND()
--- 指定一个整数参数 N ，则它被用作种子值，用来产生重复序列。
-RAND(N)
-```
-
-返回 0 到 1 的随机数。
-
-```sql
-SELECT RAND(); -- 返回 0.9233482386203 (随便)
-SELECT RAND(20); -- 返回 0.15888261251047
-```
-
-#### 9.3.11. ROUND
-
-```sql
-ROUND(X)
-ROUND(X,D)
-```
-
-返回离 x 最近的整数（遵循四舍五入）。有两个参数的情况时，返回 X ，其值保留到小数点后D位，而第D位的保留方式为四舍五入。若要接保留X值小数点左边的D 位，可将 D 设为负值。
-
-```sql
-SELECT ROUND(-1.23); -- 返回 -1
-SELECT ROUND(1.58); -- 返回 2
-SELECT ROUND(1.298, 1); -- 返回 1.3
-SELECT ROUND(23.298, -1); -- 返回 20
-```
-
-#### 9.3.12. TRUNCATE
-
-```sql
-TRUNCATE(X,D)
-```
-
-返回数值 X 保留到小数点后 D 位的值。若D 的值为 0，则结果不带有小数点或不带有小数部分。可以将D设为负数，若要截去(归零) X小数点左起第D位开始后面所有低位的值。（与 `ROUND` 最大的区别是不会进行四舍五入）
-
-```sql
-SELECT TRUNCATE(1.223,1); -- 返回 1.2
-SELECT TRUNCATE(1.999,0); -- 返回 1
-SELECT TRUNCATE(-1.999,1); -- 返回 -1.9
-SELECT TRUNCATE(122,-2); -- 返回 100
-```
-
-### 9.4. 字符串函数
-
-#### 9.4.1. CHAR_LENGTH/CHARACTER_LENGTH
-
-```sql
-CHAR_LENGTH(str)
--- 或
-CHARACTER_LENGTH(str)
-```
-
-返回值为字符串 str 的长度，长度的单位为字符。
-
-```sql
-SELECT CHAR_LENGTH("RUNOOB") -- 返回 6
-SELECT CHARACTER_LENGTH("RUNOOB") -- 返回 6
-```
-
-#### 9.4.2. CONCAT
-
-```sql
-CONCAT(str1, str2,...)
-```
-
-将参数列表中的字符串合并为一个字符串。如有任何一个参数为NULL ，则返回值为 NULL。
-
-```sql
-SELECT CONCAT('My', 'S', 'QL'); -- 返回 'MySQL'
-SELECT CONCAT('My', NULL, 'QL'); -- 返回 NULL
-SELECT CONCAT(14.3); -- 返回 '14.3'
-```
-
-#### 9.4.3. CONCAT_WS
-
-```sql
-CONCAT_WS(separator, str1, str2,...)
-```
-
-与`CONCAT`函数一样，用于拼接字符串，第一个参数是指定分隔符。分隔符的位置放在要连接的两个字符串之间。分隔符可以是一个字符串，也可以是其它参数。如果分隔符为 NULL，则结果为 NULL。
-
-```sql
-SELECT CONCAT_WS(',','First name','Second name','Last Name'); -- 返回  'First name,Second name,Last Name'
-SELECT CONCAT_WS(',','First name',NULL,'Last Name'); -- 返回 'First name,Last Name'
-SELECT CONCAT_WS(NULL,'First name','Second name','Last Name'); -- 返回 NULL
-```
-
-#### 9.4.4. FIELD
-
-```sql
-FIELD(str, str1, str2, str3,...)
-```
-
-返回第一个字符串 str 在字符串列表(str1,str2,str3...)中的位置。在找不到 str 的情况下，返回值为0。
-
-```sql
-SELECT FIELD('ej', 'Hej', 'ej', 'Heja', 'hej', 'foo'); -- 返回 2
-SELECT FIELD('fo', 'Hej', 'ej', 'Heja', 'hej', 'foo'); -- 返回 0
-```
-
-#### 9.4.5. LTRIM
-
-```sql
-LTRIM(str)
-```
-
-去掉字符串 str 开始处的空格
-
-```sql
-SELECT LTRIM('  barbar'); -- 返回 'barbar'
-```
-
-#### 9.4.6. RTRIM
-
-```sql
-RTRIM(str)
-```
-
-去掉字符串 str 结尾处的空格。
-
-```sql
-SELECT RTRIM('barbar   '); -- 返回 'barbar'
-```
-
-#### 9.4.7. TRIM
-
-```sql
-TRIM(str)
-```
-
-去掉字符串 str 开始和结尾处的空格
-
-```sql
-SELECT TRIM('  bar   '); -- 返回 'bar'
-SELECT TRIM(LEADING 'x' FROM 'xxxbarxxx'); -- 返回 'barxxx'
-SELECT TRIM(BOTH 'x' FROM 'xxxbarxxx'); -- 返回 'bar'
-SELECT TRIM(TRAILING 'xyz' FROM 'barxxyz'); -- 返回 'barx'
-```
-
-#### 9.4.8. SUBSTRING / SUBSTR / MID
-
-```sql
-SUBSTRING(str, pos, len)
--- 或
-SUBSTR(str, pos, len)
--- 或
-MID(str, pos, len)
-```
-
-返回从字符串 str 的 pos 位置截取长度为 len 的子字符串。
-
-```sql
-SELECT SUBSTRING('Quadratically',5); -- 返回 'ratically'
-SELECT SUBSTRING('foobarbar' FROM 4); -- 返回 'barbar'
-SELECT SUBSTRING('Quadratically',5,6); -- 返回 'ratica'
-SELECT SUBSTRING('Sakila', -3); -- 返回 'ila'
-SELECT SUBSTRING('Sakila', -5, 3); -- 返回 'aki'
-SELECT SUBSTRING('Sakila' FROM -4 FOR 2); -- 返回 'ki'
-```
-
-#### 9.4.9. POSITION
-
-```sql
-POSITION(substr IN str)
-```
-
-从字符串 str 中获取 substr 的第一次出现的位置。如若 substr 不在 str 中，则返回值为0。
-
-```sql
-SELECT POSITION('b' in 'abc'); -- 返回 2
-SELECT POSITION('e' in 'abc'); -- 返回 0
-```
-
-#### 9.4.10. REPLACE
-
-```sql
-REPLACE(str, from_str, to_str)
-```
-
-将字符串 str 中的字符串 to_str 替代成字符串 from_str，并返回
-
-```sql
-SELECT REPLACE('www.mysql.com', 'w', 'Ww'); -- 返回 'WwWwWw.mysql.com'
-```
-
-#### 9.4.11. REVERSE
-
-```sql
-REVERSE(str)
-```
-
-返回字符串 str 的反转顺序
-
-```sql
-SELECT REVERSE('abc'); -- 返回 'cba'
-```
-
-#### 9.4.12. RIGHT
-
-```sql
-RIGHT(str,len)
-```
-
-返回字符串 str 的后 len 个字符
-
-```sql
-SELECT RIGHT('foobarbar', 4); -- 返回 'rbar'
-```
-
-#### 9.4.13. STRCMP
-
-```sql
-STRCMP(expr1, expr2)
-```
-
-比较字符串 expr1 和 expr2，如果 expr1 与 expr2 相等返回0，如果 expr1 > expr2 返回 1，如果 expr1 < expr2 返回 -1
-
-```sql
-SELECT STRCMP('text', 'text2'); -- 返回 -1
-SELECT STRCMP('text2', 'text'); -- 返回 1
-SELECT STRCMP('text', 'text'); -- 返回 0
-```
-
-#### 9.4.14. UCASE / UPPER
-
-```sql
-UPPER(str)
--- 或
-UCASE(str)
-```
-
-将字符串 str 所有字母转换为大写
-
-```sql
-SELECT UPPER('Hej'); -- 返回 'HEJ'
-```
-
-#### 9.4.15. LCASE / LOWER
-
-```sql
-LOWER(str)
--- 或
-LCASE(str)
-```
-
-将字符串 str 的所有字母变成小写字母
-
-```sql
-SELECT LOWER('QUADRATICALLY'); -- 返回 'quadratically'
-```
-
-### 9.5. 日期函数（整理中）
-
-### 9.6. 控制流程函数
-
-#### 9.6.1. IF
-
-```sql
-IF(expr1, expr2, expr3)
-```
-
-如果expr1为true，则返回expr2，否则返回expr3
-
-```sql
-SELECT IF(1>2,2,3); -- 返回 3
-SELECT IF(1<2,'yes ','no'); -- 返回 'yes'
-SELECT IF(STRCMP('test','test1'),'no','yes'); -- 返回 'no'
-```
-
-#### 9.6.2. IFNULL
-
-```sql
-IFNULL(expr1, expr2)
-```
-
-`IFNULL` 函数作用是，假如 `expr1` 不为 `NULL`，则返回值为 `expr1`，否则其返回值为 `expr2`。`IFNULL()` 函数的返回值是数字或是字符串取决于实际的sql
-
-示例：
-
-```sql
-SELECT IFNULL(1, 0); -- 返回 1
-SELECT IFNULL(NULL, 10); -- 返回 10
-SELECT IFNULL(1/0, 10); -- 返回 10
-SELECT IFNULL(1/0, 'yes'); -- 返回 'yes'
-```
-
-
-
-
-
-
-
-
-# MySQL 约束与多表关系操作
-
-## 1. DCL语句使用(了解)
-
-### 1.1. DCL概述
+### 9.1. DCL概述
 
 用于创建用户，删除用户，给用户分配权限等
 
-### 1.2. 2、常用操作
+### 9.2. 2、常用操作
 
-#### 1.2.1. 创建用户
+#### 9.2.1. 创建用户
 
-- 语句格式：`create user 用户名@xxx identified by '密码';`
-    - 其中xxx表示创建的用户使用的IP地址，可以设置为localhost(代表本机)或者`'%'`（代表允许所有IP地址登录）
+语法：
 
-#### 1.2.2. 用户授权
+```sql
+create user 用户名@xxx identified by '密码';
+```
 
-- 创建用户之后，可以使用新用户进行登录，查看数据库只有系统自带的数据库，想要操作自己创建的数据库还需要root用户对新用户进行授权
-- 语句格式：
-    - `grant 权限1,权限2,........,权限n on 数据库名.* to 用户名@IP;`
-        - 将数据库的n个权限授予用户。
-    - `grant all on 数据库名.* to 用户名@IP;`
-        - 将操作数据库的所有的权限授予用户。
+其中xxx表示创建的用户使用的IP地址，可以设置为localhost(代表本机)或者`'%'`（代表允许所有IP地址登录）
 
-#### 1.2.3. 撤销权限
+#### 9.2.2. 用户授权
 
-- 当需要限制新用户操作数据库的权限时,root用户可以撤销已授予用户的某些权限
-- 语句格式：`revoke 权限1,权限2,........,权限n on 数据库名.* from 用户名@IP;`
-    - 例如：`revoke delete on day21.* from pkxing@IP;`
+创建用户之后，可以使用新用户进行登录，查看数据库只有系统自带的数据库，想要操作自己创建的数据库还需要root用户对新用户进行授权。语法：
 
-#### 1.2.4. 删除用户
+```sql
+grant 权限1,权限2,...,权限n on 数据库名.* to 用户名@IP;
+```
 
-语法：`drop user 用户名@'%';`
+将数据库的n个权限授予用户。
 
-## 2. 数据库的备份与恢复
-### 2.1. dos命令行备份与恢复
-#### 2.1.1. 备份数据库（导出数据库中所有的表和数据）
+```sql
+grant all on 数据库名.* to 用户名@IP;
+```
+
+将操作数据库的所有的权限授予用户。
+
+#### 9.2.3. 撤销权限
+
+当需要限制新用户操作数据库的权限时,root用户可以撤销已授予用户的某些权限。语法：
+
+```sql
+revoke 权限1,权限2,........,权限n on 数据库名.* from 用户名@IP;
+```
+
+示例：
+
+```sql
+revoke delete on day21.* from pkxing@IP;
+```
+
+#### 9.2.4. 删除用户
+
+```sql
+drop user 用户名@'%';
+```
+
+## 10. 数据库的备份与恢复
+
+### 10.1. dos命令行备份与恢复
+
+#### 10.1.1. 备份数据库（导出数据库中所有的表和数据）
 
 语法格式：`mysqldump –u用户名 –p密码 数据库名 > 备份到的文件路径`
 
-#### 2.1.2. 还原数据库（导入）
+#### 10.1.2. 还原数据库（导入）
 
 - 方式1：在 Windows 命令行中使用 mysql 命令
 
@@ -2997,24 +2526,24 @@ SELECT IFNULL(1/0, 'yes'); -- 返回 'yes'
 
 	- **注：这种方式要先选择数据库**
 
-### 2.2. SQLyog工具备份与恢复
-#### 2.2.1. SQL备份（导出）
+### 10.2. SQLyog工具备份与恢复
+#### 10.2.1. SQL备份（导出）
 
 选中数据库，右键 --> “备份/导出” --> 以SQL转储文件备份数据库，指定导出路径，保存成 `.sql` 文件即可。
 
-#### 2.2.2. SQL恢复（导入）
+#### 10.2.2. SQL恢复（导入）
 
 数据库列表区域右键“从 SQL 转储文件导入数据库”， 指定要执行的 SQL 文件，执行即可
 
-## 3. 数据的约束
+## 11. 数据的约束
 
-### 3.1. 数据约束概述
+### 11.1. 数据约束概述
 
-#### 3.1.1. 数据约束的作用
+#### 11.1.1. 数据约束的作用
 
 约束（constraint），实质就是对表中数据的进行限制，表在设计和创建的时候加入约束的目的就是为了保证表中的记录完整性、有效性和准确性
 
-#### 3.1.2. 约束种类
+#### 11.1.2. 约束种类
 
 - 默认约束(`default`)
 - 主键约束(`primary key`) 简称：PK
@@ -3026,16 +2555,16 @@ SELECT IFNULL(1/0, 'yes'); -- 返回 'yes'
 
 > 扩展：还有一种叫“检查约束”，但 MySQL 不支持，Oracle 支持
 
-#### 3.1.3. 约束添加时机
+#### 11.1.3. 约束添加时机
 
 - 创建表结构的同时添加约束（推荐）
 - 创建完表结构之后添加（不推荐）。如果创建完之后再添加约束，可能会添加失败。因为已有的数据可能不符合即将要添加的约束。
 
-### 3.2. 默认值约束 (default)
+### 11.2. 默认值约束 (default)
 
 默认约束，如果这个字段没有输入任何的值，则数据库使用默认的值
 
-#### 3.2.1. 定义与语法
+#### 11.2.1. 定义与语法
 
 - 在创建表时，指定默认约束，关键字：`default`
 
@@ -3071,7 +2600,7 @@ insert into st1 values (10, '小猪', '珠海');
 insert into st1 values (10, '小猪', null);
 ```
 
-#### 3.2.2. 删除默认约束
+#### 11.2.2. 删除默认约束
 
 删除默认约束只需要将默认值修改为`null`即可
 
@@ -3079,9 +2608,9 @@ insert into st1 values (10, '小猪', null);
 alter table 表名 modify column 字段名 数据类型(长度) default null;
 ```
 
-### 3.3. 非空约束 (not null)
+### 11.3. 非空约束 (not null)
 
-#### 3.3.1. 定义非空约束
+#### 11.3.1. 定义非空约束
 
 非空约束：约束某一列的值不能为空(`null`)，**必须有值，但可以插入空字符**。对于使用了非空约束的字段，如果用户在添加数据时没有指定值，数据库系统就会报错。
 
@@ -3115,11 +2644,11 @@ insert into s2 (id,gender) values (1,'女');
 select * from s2;
 ```
 
-#### 3.3.2. 删除非空约束
+#### 11.3.2. 删除非空约束
 
 删除非空约束，其实就是使用`alter`关键字修改字段的约束，去掉`not null`即可
 
-#### 3.3.3. Mysql 允许 null 与 default 值
+#### 11.3.3. Mysql 允许 null 与 default 值
 
 分为下面4种情况：
 
@@ -3128,9 +2657,9 @@ select * from s2;
 3. 不允许`null`，指定`default`值，不能指定`default`值为`null`，否则报错 `Invalid default value for xxx`
 4. 不允许`null`，不指定`default`值。这种情况，新增的时候，必须指定值。否则报错 `Field xxx doesn't have a default value`
 
-### 3.4. 唯一约束 (unique)
+### 11.4. 唯一约束 (unique)
 
-#### 3.4.1. 定义与语法
+#### 11.4.1. 定义与语法
 
 唯一约束，是指所有记录中某一列的数据不允许出现重复值
 
@@ -3165,7 +2694,7 @@ insert into s3 values(3,null);
 insert into s3 values(4,null);
 ```
 
-#### 3.4.2. 删除唯一约束
+#### 11.4.2. 删除唯一约束
 
 删除唯一约束的语法：
 
@@ -3175,14 +2704,14 @@ alter table 表名 drop index 唯一约束名;
 
 > 注：如果创建唯一约束时没有指定名称，则字段名就是唯一约束名称。
 
-#### 3.4.3. 注意事项
+#### 11.4.3. 注意事项
 
 - 可以出现多个`null`，因为`null`是表示没有任何内容，就没有重复的说法
 - 不可以出现多个空字符，因为空字符也是有内容，所以不能同时出现多个空字符
 
-### 3.5. 主键约束 (primary key)
+### 11.5. 主键约束 (primary key)
 
-#### 3.5.1. 概念
+#### 11.5.1. 概念
 
 - MySQL主键约束是一个列或者多个列的组合，用于唯一标识表中的一条数据，方便在RDBMS中尽快的找到某一行。
 - 每一张表都最多只能允许有一个主键。
@@ -3198,7 +2727,7 @@ alter table 表名 drop index 唯一约束名;
 - 主键列的值一般是由数据库或计算机生成。
 - 主键值生成后，一般不建议修改
 
-#### 3.5.2. 创建单列主键
+#### 11.5.2. 创建单列主键
 
 创建单列主键有两种方式，一种是在定义字段的同时指定主键，一种是定义完字段之后指定主键
 
@@ -3222,7 +2751,7 @@ create table tablename(
 
 > 注：上面语法中 `constraint 主键名称` 是可以省略
 
-#### 3.5.3. 添加多列主键(联合主键）
+#### 11.5.3. 添加多列主键(联合主键）
 
 联合主键，是由一张表中多个字段组成的。注意事项：
 
@@ -3239,7 +2768,7 @@ create table 表名(
 
 > 注：上面语法中 `constraint 主键名称` 是可以省略
 
-#### 3.5.4. 通过修改表结构添加主键
+#### 11.5.4. 通过修改表结构添加主键
 
 主键约束不仅可以在创建表的同时创建，也可以在修改表结构时添加。
 
@@ -3247,7 +2776,7 @@ create table 表名(
 alter table 表名 add primary key(字段1, 字段2, ....);
 ```
 
-#### 3.5.5. 删除主键
+#### 11.5.5. 删除主键
 
 一个表中不需要主键约束时，可以从表中将其删除。删除指定表格的主键语法：
 
@@ -3264,7 +2793,7 @@ alter table sort drop primary key;
 
 > 注：因为表只有一个主键，所以删除时不需要指定主键名
 
-#### 3.5.6. 设置主键自动增长
+#### 11.5.6. 设置主键自动增长
 
 在 MySQL 中，当主键定义为自增长后，由数据库系统根据定义自动赋值。每增加一条记录，主键会自动以相同的步长进行增长。
 
@@ -3279,9 +2808,9 @@ CREATE TABLE sort (
 );
 ```
 
-### 3.6. 自增长字段 ( auto_increment )
+### 11.6. 自增长字段 ( auto_increment )
 
-#### 3.6.1. 自增长约束
+#### 11.6.1. 自增长约束
 
 - 创建表时，指定自增长约束的语法：
 
@@ -3307,7 +2836,7 @@ create table 表名 (
 alter table 表名 AUTO_INCREMENT = 新的起始值;
 ```
 
-#### 3.6.2. 自增长约束特点
+#### 11.6.2. 自增长约束特点
 
 - 默认情况下，`auto_increment` 的初始值是 1，每新增一条记录，字段值自动加 1。
 - 一个表中只能有一个字段使用 `auto_increment` 约束，且该字段必须有唯一索引，以避免序号重复（即为主键或主键的一部分）。
@@ -3315,12 +2844,12 @@ alter table 表名 AUTO_INCREMENT = 新的起始值;
 - `auto_increment` 约束的字段只能是整数类型（`TINYINT`、`SMALLINT`、`INT`、`BIGINT` 等。
 - `auto_increment` 约束字段的最大值受该字段的数据类型约束，如果达到上限，`auto_increment` 就会失效。
 
-#### 3.6.3. delete 和 truncate 删除后自增列的变化
+#### 11.6.3. delete 和 truncate 删除后自增列的变化
 
 - `delete` 数据之后自动增长从断点开始
 - `truncate` 数据之后自动增长从默认起始值开始
 
-### 3.7. 零填充
+### 11.7. 零填充
 
 如果某一数值列的值不满指定的位数，可以设置在列的值前面使用零填充。在数据类型的后面使用 `zerofill` 关键字：
 
@@ -3335,15 +2864,15 @@ create table 表名 (
 
 > 注：当使用 `zerofill` 时，默认会自动加`unsigned`（无符号）属性，使用`unsigned`属性后，数值范围是原值的2倍，例如，有符号为-128~+127，无符号为0~256。
 
-### 3.8. 外键约束
+### 11.8. 外键约束
 
-#### 3.8.1. 定义
+#### 11.8.1. 定义
 
 MySQL 外键约束（FOREIGN KEY）是表的一个特殊字段，经常与主键约束一起使用。对于两个具有关联关系的表而言，相关联字段中主键所在的表就是主表（父表），外键所在的表就是从表（子表）。
 
 外键用来建立主表与从表的关联关系，为两个表的数据建立连接，约束两个表中数据的一致性和完整性。
 
-#### 3.8.2. 特点
+#### 11.8.2. 特点
 
 定义一个外键时，需要遵守下列规则：
 
@@ -3359,7 +2888,7 @@ MySQL 外键约束（FOREIGN KEY）是表的一个特殊字段，经常与主键
 
 **注：定义外键的时候，外键的约束比较和主键完全一致才能成功关联**
 
-#### 3.8.3. 外键约束语法格式1(创建表时定义)
+#### 11.8.3. 外键约束语法格式1(创建表时定义)
 
 在 `create table` 语句中，通过 `foreign key` 关键字来指定外键，具体的语法格式如下：
 
@@ -3388,7 +2917,7 @@ create table employee (
 )
 ```
 
-#### 3.8.4. 外键约束语法格式2(创建表后再定义)
+#### 11.8.4. 外键约束语法格式2(创建表后再定义)
 
 外键约束也可以在修改表时添加，但是添加外键约束的前提是：从表中外键列中的数据必须与主表中主键列中的数据一致或者是没有数据。
 
@@ -3416,13 +2945,13 @@ create table if not exists emp2(
 alter table emp2 add constraint dept_id_fk foreign key(dept_id) references dept2 (deptno);
 ```
 
-#### 3.8.5. 在外键约束下的数据操作
+#### 11.8.5. 在外键约束下的数据操作
 
 - **外键约束设计插入数据的顺序**：先插入主表、再插入副表
 - **外键约束设计更新数据的顺序**：先修改从表的外键数据，再修改主表的主键数据。
 - **外键约束设计删除数据的顺序**：先修改从表的外键数据，再修改主表的主键数据。
 
-#### 3.8.6. 删除外键约束
+#### 11.8.6. 删除外键约束
 
 当一个表中不需要外键约束时，就需要从表中将其删除。外键一旦删除，就会解除主表和从表间的关联关系。语法：
 
@@ -3436,7 +2965,7 @@ alter table 表名 drop foreign key 外键约束名;
 alter table emp2 drop foreign key dept_id_fk;
 ```
 
-#### 3.8.7. 级联操作
+#### 11.8.7. 级联操作
 
 - 定义：在修改和删除主表的主键值时，同时更新或删除从表的外键值，称为级联操作。
 - **级联更新**：更新主表的主键值时自动更新从表的相关的外键值
@@ -3449,6 +2978,1075 @@ alter table emp2 drop foreign key dept_id_fk;
 ```sql
 constraint foreign key(外键名) references 主表(主键名) on update cascade on delete cascade;
 ```
+
+## 12. 函数
+
+### 12.1. 概述
+
+在MySQL中，为了提高代码重用性和隐藏实现细节，MySQL提供了很多函数。函数可以理解为封装好的模板代码。
+
+在MySQL中，内置函数的非常多，主要可以分为以下几类:
+
+- 聚合函数
+- 数学函数
+- 字符串函数
+- 日期函数
+- 控制流函数
+- 窗口函数
+
+### 12.2. 聚合函数
+
+#### 12.2.1. GROUP_CONCAT() 函数
+
+`GROUP_CONCAT()`首先根据`group by`指定的列进行分组，并且用分隔符分隔，将同一个分组中的非NULL的值连接起来，返回一个字符串结果。语法：
+
+```sql
+group_concat([distinct] 字段名 [order by 排序字段 asc/desc] [separator '分隔符'])
+```
+
+参数说明：
+
+- 使用 `distinct` 可以排除重复值
+- 如果需要对结果中的值进行排序，可以使用 `order by` 子句
+- `separator` 是一个字符串值，指定返回结果拼接的分隔符，默认为逗号
+
+示例：
+
+```sql
+SELECT t.spec_id, GROUP_CONCAT(t.option_name) FROM tb_specification_option t GROUP BY t.spec_id;
+
+-- 将所有员工的名字合并成一行
+select group_concat(emp_name) from emp;
+-- 指定分隔符合并
+select department,group_concat(emp_name separator ';' ) from emp group by department;
+-- 指定排序方式和分隔符
+select department,group_concat(emp_name order by salary desc separator ';' ) from emp group by department;
+```
+
+表数据：
+
+![](images/20190404092625696_10122.jpg)
+
+查询结果：
+
+![](images/20190404092723963_31844.jpg)
+
+### 12.3. 数学函数
+
+MySQL中，数学函数如果发生错误，都会返回 `NULL`
+
+#### 12.3.1. ABS
+
+```sql
+ABS(X)
+```
+
+返回 X 的绝对值。
+
+```sql
+SELECT ABS(2); -- 返回 2
+SELECT ABS(-32); -- 返回 32
+```
+
+#### 12.3.2. CEIL
+
+```sql
+CEIL(X)
+-- 或者
+CEILING(X)
+```
+
+返回大于或等于 x 的最小整数
+
+```sql
+SELECT CEILING(1.23); -- 返回 2
+SELECT CEIL(-1.23); -- 返回 -1
+```
+
+#### 12.3.3. FLOOR
+
+```sql
+FLOOR(X)
+```
+
+返回不大于X的最大整数值
+
+```sql
+SELECT FLOOR(1.23); -- 返回 1
+SELECT FLOOR(-1.23); -- 返回 -2
+```
+
+#### 12.3.4. GREATEST
+
+```sql
+GREATEST(value1, value2,...)
+```
+
+当有2或多个参数时，返回值列表中最大值
+
+```sql
+SELECT GREATEST(34.0,3.0,5.0,767.0); -- 返回 767.0
+SELECT GREATEST('B','A','C'); -- 返回 C
+```
+
+#### 12.3.5. LEAST
+
+```sql
+LEAST(value1, value2,...)
+```
+
+在有两个或多个参数的情况下， 返回值为最小(最小值)参数
+
+- 假如返回值被用在一个 INTEGER 语境中，或是所有参数均为整数值，则将其作为整数值进行比较。
+- 假如返回值被用在一个 REAL 语境中，或所有参数均为实值，则将其作为实值进行比较。
+- 假如任意一个参数是一个区分大小写的字符串，则将参数按照区分大小写的字符串进行比较。
+- 在其它情况下，将参数作为区分大小写的字符串进行比较
+
+```sql
+SELECT LEAST(2,0); -- 返回 0
+SELECT LEAST(34.0,3.0,5.0,767.0); -- 返回 3.0
+SELECT LEAST('B','A','C'); -- 返回 'A'
+```
+
+#### 12.3.6. MAX / MIN
+
+```sql
+-- 获取最大值
+MAX([DISTINCT] expr)
+-- 获取最小值
+MIN([DISTINCT] expr)
+```
+
+返回字段 expression 中的最大值/最小值。
+
+- `MIN()` 和 `MAX()` 的取值可以是一个字符串参数，返回的是最小或最大字符串值
+- `DISTINCT`关键词可以被用来查找 expr 的不同值的最小或最大值，可以省略不写
+- 若找不到匹配的行，`MIN()`和`MAX()`返回 `NULL`
+
+```sql
+SELECT student_name, MIN(test_score), MAX(test_score)
+    FROM student
+    GROUP BY student_name;
+```
+
+#### 12.3.7. MOD
+
+```sql
+MOD(N,M)
+-- 等价于
+N % M
+-- 等价于
+N MOD M
+```
+
+模操作。返回 N 被 M 除后的余数。
+
+```sql
+SELECT MOD(234, 10); -- 返回 4
+SELECT 253 % 7; -- 返回 1
+SELECT MOD(29,9); -- 返回 2
+SELECT 29 MOD 9; -- 返回 2
+```
+
+#### 12.3.8. PI
+
+```sql
+PI()
+```
+
+返回圆周率(3.141593)，默认的显示小数位数是7位
+
+```sql
+SELECT PI(); -- 返回 3.141593
+```
+
+#### 12.3.9. POW
+
+```sql
+POW(X,Y)
+-- 或者
+POWER(X,Y)
+```
+
+返回 X 的 Y 次方的结果值。
+
+```sql
+SELECT POW(2,2); -- 返回 4
+SELECT POW(2,-2); -- 返回 0.25
+```
+
+#### 12.3.10. RAND
+
+```sql
+RAND()
+-- 指定一个整数参数 N ，则它被用作种子值，用来产生重复序列。
+RAND(N)
+```
+
+返回 0 到 1 的随机数。
+
+```sql
+SELECT RAND(); -- 返回 0.9233482386203 (随便)
+SELECT RAND(20); -- 返回 0.15888261251047
+```
+
+#### 12.3.11. ROUND
+
+```sql
+ROUND(X)
+ROUND(X,D)
+```
+
+返回离 x 最近的整数（遵循四舍五入）。有两个参数的情况时，返回 X ，其值保留到小数点后D位，而第D位的保留方式为四舍五入。若要接保留X值小数点左边的D 位，可将 D 设为负值。
+
+```sql
+SELECT ROUND(-1.23); -- 返回 -1
+SELECT ROUND(1.58); -- 返回 2
+SELECT ROUND(1.298, 1); -- 返回 1.3
+SELECT ROUND(23.298, -1); -- 返回 20
+```
+
+#### 12.3.12. TRUNCATE
+
+```sql
+TRUNCATE(X,D)
+```
+
+返回数值 X 保留到小数点后 D 位的值。若D 的值为 0，则结果不带有小数点或不带有小数部分。可以将D设为负数，若要截去(归零) X小数点左起第D位开始后面所有低位的值。（与 `ROUND` 最大的区别是不会进行四舍五入）
+
+```sql
+SELECT TRUNCATE(1.223,1); -- 返回 1.2
+SELECT TRUNCATE(1.999,0); -- 返回 1
+SELECT TRUNCATE(-1.999,1); -- 返回 -1.9
+SELECT TRUNCATE(122,-2); -- 返回 100
+```
+
+### 12.4. 字符串函数
+
+#### 12.4.1. CHAR_LENGTH/CHARACTER_LENGTH
+
+```sql
+CHAR_LENGTH(str)
+-- 或
+CHARACTER_LENGTH(str)
+```
+
+返回值为字符串 str 的长度，长度的单位为字符。
+
+```sql
+SELECT CHAR_LENGTH("RUNOOB") -- 返回 6
+SELECT CHARACTER_LENGTH("RUNOOB") -- 返回 6
+```
+
+#### 12.4.2. CONCAT
+
+```sql
+CONCAT(str1, str2,...)
+```
+
+将参数列表中的字符串合并为一个字符串。如有任何一个参数为NULL ，则返回值为 NULL。
+
+```sql
+SELECT CONCAT('My', 'S', 'QL'); -- 返回 'MySQL'
+SELECT CONCAT('My', NULL, 'QL'); -- 返回 NULL
+SELECT CONCAT(14.3); -- 返回 '14.3'
+```
+
+#### 12.4.3. CONCAT_WS
+
+```sql
+CONCAT_WS(separator, str1, str2,...)
+```
+
+与`CONCAT`函数一样，用于拼接字符串，第一个参数是指定分隔符。分隔符的位置放在要连接的两个字符串之间。分隔符可以是一个字符串，也可以是其它参数。如果分隔符为 NULL，则结果为 NULL。
+
+```sql
+SELECT CONCAT_WS(',','First name','Second name','Last Name'); -- 返回  'First name,Second name,Last Name'
+SELECT CONCAT_WS(',','First name',NULL,'Last Name'); -- 返回 'First name,Last Name'
+SELECT CONCAT_WS(NULL,'First name','Second name','Last Name'); -- 返回 NULL
+```
+
+#### 12.4.4. FIELD
+
+```sql
+FIELD(str, str1, str2, str3,...)
+```
+
+返回第一个字符串 str 在字符串列表(str1,str2,str3...)中的位置。在找不到 str 的情况下，返回值为0。
+
+```sql
+SELECT FIELD('ej', 'Hej', 'ej', 'Heja', 'hej', 'foo'); -- 返回 2
+SELECT FIELD('fo', 'Hej', 'ej', 'Heja', 'hej', 'foo'); -- 返回 0
+```
+
+#### 12.4.5. LTRIM
+
+```sql
+LTRIM(str)
+```
+
+去掉字符串 str 开始处的空格
+
+```sql
+SELECT LTRIM('  barbar'); -- 返回 'barbar'
+```
+
+#### 12.4.6. RTRIM
+
+```sql
+RTRIM(str)
+```
+
+去掉字符串 str 结尾处的空格。
+
+```sql
+SELECT RTRIM('barbar   '); -- 返回 'barbar'
+```
+
+#### 12.4.7. TRIM
+
+```sql
+TRIM(str)
+```
+
+去掉字符串 str 开始和结尾处的空格
+
+```sql
+SELECT TRIM('  bar   '); -- 返回 'bar'
+SELECT TRIM(LEADING 'x' FROM 'xxxbarxxx'); -- 返回 'barxxx'
+SELECT TRIM(BOTH 'x' FROM 'xxxbarxxx'); -- 返回 'bar'
+SELECT TRIM(TRAILING 'xyz' FROM 'barxxyz'); -- 返回 'barx'
+```
+
+#### 12.4.8. SUBSTRING / SUBSTR / MID
+
+```sql
+SUBSTRING(str, pos, len)
+-- 或
+SUBSTR(str, pos, len)
+-- 或
+MID(str, pos, len)
+```
+
+返回从字符串 str 的 pos 位置截取长度为 len 的子字符串。
+
+```sql
+SELECT SUBSTRING('Quadratically',5); -- 返回 'ratically'
+SELECT SUBSTRING('foobarbar' FROM 4); -- 返回 'barbar'
+SELECT SUBSTRING('Quadratically',5,6); -- 返回 'ratica'
+SELECT SUBSTRING('Sakila', -3); -- 返回 'ila'
+SELECT SUBSTRING('Sakila', -5, 3); -- 返回 'aki'
+SELECT SUBSTRING('Sakila' FROM -4 FOR 2); -- 返回 'ki'
+```
+
+#### 12.4.9. POSITION
+
+```sql
+POSITION(substr IN str)
+```
+
+从字符串 str 中获取 substr 的第一次出现的位置。如若 substr 不在 str 中，则返回值为0。
+
+```sql
+SELECT POSITION('b' in 'abc'); -- 返回 2
+SELECT POSITION('e' in 'abc'); -- 返回 0
+```
+
+#### 12.4.10. REPLACE
+
+```sql
+REPLACE(str, from_str, to_str)
+```
+
+将字符串 str 中的字符串 to_str 替代成字符串 from_str，并返回
+
+```sql
+SELECT REPLACE('www.mysql.com', 'w', 'Ww'); -- 返回 'WwWwWw.mysql.com'
+```
+
+#### 12.4.11. REVERSE
+
+```sql
+REVERSE(str)
+```
+
+返回字符串 str 的反转顺序
+
+```sql
+SELECT REVERSE('abc'); -- 返回 'cba'
+```
+
+#### 12.4.12. RIGHT
+
+```sql
+RIGHT(str,len)
+```
+
+返回字符串 str 的后 len 个字符
+
+```sql
+SELECT RIGHT('foobarbar', 4); -- 返回 'rbar'
+```
+
+#### 12.4.13. STRCMP
+
+```sql
+STRCMP(expr1, expr2)
+```
+
+比较字符串 expr1 和 expr2，如果 expr1 与 expr2 相等返回0，如果 expr1 > expr2 返回 1，如果 expr1 < expr2 返回 -1
+
+```sql
+SELECT STRCMP('text', 'text2'); -- 返回 -1
+SELECT STRCMP('text2', 'text'); -- 返回 1
+SELECT STRCMP('text', 'text'); -- 返回 0
+```
+
+#### 12.4.14. UCASE / UPPER
+
+```sql
+UPPER(str)
+-- 或
+UCASE(str)
+```
+
+将字符串 str 所有字母转换为大写
+
+```sql
+SELECT UPPER('Hej'); -- 返回 'HEJ'
+```
+
+#### 12.4.15. LCASE / LOWER
+
+```sql
+LOWER(str)
+-- 或
+LCASE(str)
+```
+
+将字符串 str 的所有字母变成小写字母
+
+```sql
+SELECT LOWER('QUADRATICALLY'); -- 返回 'quadratically'
+```
+
+### 12.5. 日期函数（使用时再整理）
+
+#### 12.5.1. NOW
+
+```sql
+NOW()
+```
+
+返回当前日期和时间值，其格式为 'YYYY-MM-DD HH:MM:SS' 或YYYYMMDDHHMMSS
+
+```sql
+```
+
+### 12.6. 控制流程函数
+
+#### 12.6.1. IF
+
+```sql
+IF(expr1, expr2, expr3)
+```
+
+如果expr1为true，则返回expr2，否则返回expr3
+
+```sql
+SELECT IF(1>2,2,3); -- 返回 3
+SELECT IF(1<2,'yes ','no'); -- 返回 'yes'
+SELECT IF(STRCMP('test','test1'),'no','yes'); -- 返回 'no'
+```
+
+#### 12.6.2. IFNULL
+
+```sql
+IFNULL(expr1, expr2)
+```
+
+`IFNULL` 函数作用是，假如 `expr1` 不为 `NULL`，则返回值为 `expr1`，否则其返回值为 `expr2`。`IFNULL()` 函数的返回值是数字或是字符串取决于实际的sql
+
+```sql
+SELECT IFNULL(1, 0); -- 返回 1
+SELECT IFNULL(NULL, 10); -- 返回 10
+SELECT IFNULL(1/0, 10); -- 返回 10
+SELECT IFNULL(1/0, 'yes'); -- 返回 'yes'
+```
+
+#### 12.6.3. ISNULL
+
+```sql
+ISNULL(expr)
+```
+
+如 expr 为 `NULL`，那么 `ISNULL()` 的返回值为 1，否则返回值为 0。
+
+```sql
+SELECT ISNULL(1+1); -- 返回 0
+SELECT ISNULL(1/0); -- 返回 1
+```
+
+#### 12.6.4. NULLIF
+
+```sql
+NULLIF(expr1, expr2)
+-- 效果等价于
+CASE WHEN expr1 = expr2 THEN NULL ELSE expr1 END
+```
+
+如果 expr1 = expr2，则返回 NULL，否则返回 expr1。等价于下面的：
+
+```sql
+SELECT NULLIF(1,1); -- 返回 NULL
+SELECT NULLIF(1,2); -- 返回 1
+```
+
+#### 12.6.5. case when 语句
+
+```sql
+方式1:
+CASE value
+    WHEN compare-value1 THEN result1
+    [WHEN compare-value2 THEN result2]
+   ...
+    [WHEN compare-valueN THEN resultN]
+    [ELSE result]
+END
+
+-- 方式2:
+CASE
+    WHEN [condition1] THEN result1
+    [WHEN [condition2] THEN result2]
+    ...
+    [WHEN [conditionN] THEN resultN]
+    [ELSE result]
+END
+```
+
+`CASE` 表示函数开始，`END` 表示函数结束。
+
+- 方式1中，如果 value = compare-value1，则返回result1，如果 value = compare-value2，则返回result2，....
+- 方式2中，如果 condition1 成立，则返回result1，如果 condition2 成立，则返回result2，....
+
+如果没有匹配的结果值，则返回结果为 `ELSE` 后的结果，如果没有 `ELSE` 部分，则返回值为 `NULL`。而当有一个成立条件之后，后面的就不再执行了。
+
+```sql
+SELECT CASE 1 WHEN 1 THEN 'one'
+    WHEN 2 THEN 'two' ELSE 'more' END; -- 返回 'one'
+SELECT CASE WHEN 1>0 THEN 'true' ELSE 'false' END; -- 返回 'true'
+SELECT CASE BINARY 'B'
+    WHEN 'a' THEN 1 WHEN 'b' THEN 2 END; -- 返回 NULL
+
+-- 方式1：值比较方式
+SELECT
+	*,
+    CASE
+    	payType
+    	WHEN 1 THEN '微信支付'
+    	WHEN 2 THEN '支付宝支付'
+    	WHEN 3 THEN '银行卡支付'
+    	ELSE '其他支付方式'
+    END AS payTypeStr
+FROM
+	orders;
+-- 方式2：条件表达式
+SELECT
+	*,
+    CASE
+    	WHEN payType = 1 THEN '微信支付'
+    	WHEN payType = 2 THEN '支付宝支付'
+    	WHEN payType = 3 THEN '银行卡支付'
+    	ELSE '其他支付方式'
+    END AS payTypeStr
+FROM
+	orders;
+```
+
+### 12.7. 窗口函数（8.0版本新增）
+
+#### 12.7.1. 简述
+
+MySQL 8.0 新增窗口函数，窗口函数又被称为开窗函数，与Oracle 窗口函数类似，属于MySQL的一大特点。非聚合窗口函数是相对于聚合函数来说的。
+
+- 聚合函数是对一组数据计算后返回单个值（即分组）
+- 非聚合函数一次只会处理一行数据。
+- 窗口聚合函数在行记录上计算某个字段的结果时，可将窗口范围内的数据输入到聚合函数中，并不改变行数。
+
+![](images/20211221110800548_4313.png)
+
+#### 12.7.2. 窗口函数分类
+
+![](images/20211221111108808_30522.png)
+
+另外还有开窗聚合函数: `SUM`, `AVG`, `MIN`, `MAX`
+
+#### 12.7.3. 窗口函数定义语法(通用)
+
+**语法结构**：
+
+```sql
+window_function (expr) OVER (
+  PARTITION BY ...
+  ORDER BY ...
+  frame_clause
+)
+```
+
+**参数解析**：
+
+- `window_function` 是窗口函数的名称；
+- `expr` 是函数的参数，有些函数不需要参数；
+- `OVER` 子句包含三个选项：
+    - `PARTITION BY`：分区选项。用于将数据行拆分成多个分区（组），它的作用类似于`GROUP BY`分组。如果省略了 `PARTITION BY`，所有的数据作为一个组进行计算
+    - `ORDER BY`：排序选项。用于指定分区内的排序方式，与 `ORDER BY` 子句的作用类似
+    - `frame_clause`：窗口大小选项。用于在当前分区内指定一个计算窗口，也就是一个与当前行相关的数据子集。
+
+#### 12.7.4. 序号函数（ROW_NUMBER,RANK,DENSE_RANK）
+
+序号函数有三个：`ROW_NUMBER()`、`RANK()`、`DENSE_RANK()`，可以用来实现分组排序，并添加序号。
+
+**语法格式**：
+
+```sql
+row_number()|rank()|dense_rank() over (
+  partition by ...
+  order by ...
+)
+```
+
+示例：
+
+```sql
+SELECT
+	dname, ename, salary,
+	-- row_number() 按指定的列表排序并添加序号，相同的值也按顺序给序号
+	row_number() over ( PARTITION BY dname ORDER BY salary DESC ) AS 'rn1',
+	-- rank() 按指定的列表排序并添加序号，相同的值给相同的序号，后面的值接相同序号的个数+1 继续给序号
+	rank() over ( PARTITION BY dname ORDER BY salary DESC ) AS 'rn2',
+	-- dense_rank() 按指定的列表排序并添加序号，相同的值给相同的序号，后面的值按序号+1 继续给序号
+	dense_rank() over ( PARTITION BY dname ORDER BY salary DESC ) AS 'rn3'
+FROM
+	employee;
+```
+
+![](images/20211221113039809_22717.png)
+
+使用子查询的方式，获取分组的前3的记录
+
+```sql
+SELECT
+	*
+FROM
+	( SELECT
+		dname, ename, salary,
+		dense_rank() over ( PARTITION BY dname ORDER BY salary DESC ) AS rn
+	  FROM
+		employee ) t
+WHERE
+	t.rn <= 3;
+```
+
+![](images/20211221143121485_25946.png)
+
+不加`partition by`表示全局排序
+
+```sql
+select
+    dname, ename, salary,
+    dense_rank() over(order by salary desc) as rn
+from
+    employee;
+```
+
+![](images/20211221143328575_18701.png)
+
+#### 12.7.5. 开窗聚合函数（SUM,AVG,MIN,MAX）
+
+在窗口中每条记录动态地应用聚合函数 `SUM()`、`AVG()`、`MAX()`、`MIN()`、`COUNT()`，可以动态计算在指定的窗口内的各种聚合函数值。
+
+示例：
+
+```sql
+SELECT
+	dname, ename, salary,
+	sum( salary ) over ( PARTITION BY dname ORDER BY hiredate ) AS pv1
+FROM
+	employee;
+
+SELECT
+	dname, ename, salary,
+	sum( salary ) over ( PARTITION BY dname ORDER BY hiredate rows BETWEEN unbounded preceding AND current ROW ) AS c1
+FROM
+	employee;
+
+SELECT
+	dname, ename, salary,
+	sum( salary ) over ( PARTITION BY dname ORDER BY hiredate rows BETWEEN 3 preceding AND current ROW ) AS c1
+FROM
+	employee;
+
+SELECT
+	dname, ename, salary,
+	sum( salary ) over ( PARTITION BY dname ORDER BY hiredate rows BETWEEN 3 preceding AND 1 following ) AS c1
+FROM
+	employee;
+
+SELECT
+	dname, ename, salary,
+	sum( salary ) over ( PARTITION BY dname ORDER BY hiredate rows BETWEEN current ROW AND unbounded following ) AS c1
+FROM
+	employee;
+```
+
+#### 12.7.6. 分布函数（CUME_DIST,PERCENT_RANK）
+
+##### 12.7.6.1. CUME_DIST
+
+`CUME_DIST` 函数用途：分组内小于、等于当前(rank值的行数/分组内总行数)
+
+示例应用场景：查询小于等于当前薪资（salary）的比例
+
+```sql
+/*
+	rn1: 没有partition,所有数据均为1组，总行数为12，
+     第一行：小于等于3000的行数为3，因此，3/12=0.25
+     第二行：小于等于4000的行数为5，因此，5/12=0.4166666666666667
+	rn2: 按照部门分组，dname='研发部'的行数为6,
+     第一行：研发部小于等于3000的行数为1，因此，1/6=0.16666666666666666
+*/
+SELECT
+	dname, ename, salary,
+	cume_dist() over ( ORDER BY salary ) AS rn1,-- 没有partition语句 所有的数据位于一组
+	cume_dist() over ( PARTITION BY dept ORDER BY salary ) AS rn2
+FROM
+	employee;
+```
+
+![](images/20211221152049950_11761.png)
+
+##### 12.7.6.2. PERCENT_RANK
+
+`PERCENT_RANK` 函数用途：每行按照公式 `(rank-1) / (rows-1)` 进行计算。其中，`rank`为`RANK()`函数产生的序号，`rows`为当前窗口的记录总行数。
+
+> 此函数很少应用场景
+
+```sql
+/*
+ rn2:
+  第一行: (1 - 1) / (6 - 1) = 0
+  第二行: (1 - 1) / (6 - 1) = 0
+  第三行: (3 - 1) / (6 - 1) = 0.4
+*/
+SELECT
+	dname, ename, salary,
+	rank() over ( PARTITION BY dname ORDER BY salary DESC ) AS rn,
+	percent_rank() over ( PARTITION BY dname ORDER BY salary DESC ) AS rn2
+FROM
+	employee;
+```
+
+![](images/20211221152439242_5538.png)
+
+#### 12.7.7. 前后函数（LAG,LEAD）
+
+前后函数用途：返回位于当前行的前 n 行（`LAG(expr, n)`）或后 n 行（`LEAD(expr, n)`）的 `expr` 的值
+
+示例应用场景：查询前1名同学的成绩和当前同学成绩的差值
+
+```sql
+-- lag 函数的用法
+/*
+last_1_time: 指定了往上第1行的值，default为'2000-01-01'
+							 第一行，往上1行为null,因此取默认值 '2000-01-01'
+							 第二行，往上1行值为第一行值，2021-11-01
+							 第三行，往上1行值为第二行值，2021-11-02
+last_2_time: 指定了往上第2行的值，为指定默认值
+							 第一行，往上2行为null
+							 第二行，往上2行为null
+							 第四行，往上2行为第二行值，2021-11-01
+							 第七行，往上2行为第五行值，2021-11-02
+*/
+SELECT
+	dname, ename, hiredate, salary,
+	lag( hiredate, 1, '2000-01-01' ) over ( PARTITION BY dname ORDER BY hiredate ) AS last_1_time,
+	lag( hiredate, 2 ) over ( PARTITION BY dname ORDER BY hiredate ) AS last_2_time
+FROM
+	employee;
+```
+
+![](images/20211221152730721_16264.png)
+
+```sql
+-- lead 函数的用法
+SELECT
+	dname, ename, hiredate, salary,
+	lead( hiredate, 1, '2000-01-01' ) over ( PARTITION BY dname ORDER BY hiredate ) AS last_1_time,
+	lead( hiredate, 2 ) over ( PARTITION BY dname ORDER BY hiredate ) AS last_2_time
+FROM
+	employee;
+```
+
+![](images/20211221152826295_5829.png)
+
+#### 12.7.8. 头尾函数（FIRST_VALUE,LAST_VALUE）
+
+头尾函数用途：返回第一个（`FIRST_VALUE(expr)`）或最后一个（`LAST_VALUE(expr)`）`expr` 的值
+
+示例应用场景：截止到当前，按照日期排序查询第1个入职和最后1个入职员工的薪资
+
+```sql
+-- 注意,  如果不指定ORDER BY，则进行排序混乱，会出现错误的结果
+SELECT
+	dname, ename, hiredate, salary,
+	first_value( salary ) over ( PARTITION BY dname ORDER BY hiredate ) AS FIRST,
+	last_value( salary ) over ( PARTITION BY dname ORDER BY hiredate ) AS last
+FROM
+	employee;
+```
+
+![](images/20211221153725059_7666.png)
+
+#### 12.7.9. 其他函数（NTH_VALUE,NTILE）
+
+##### 12.7.9.1. NTH_VALUE
+
+`NTH_VALUE(expr,n)` 函数用途：返回窗口中第n个expr的值。expr可以是表达式，也可以是列名
+
+示例应用场景：截止到当前薪资，显示每个员工的薪资中排名第2或者第3的薪资
+
+```sql
+SELECT
+	dname, ename, hiredate, salary,
+	nth_value( salary, 2 ) over ( PARTITION BY dname ORDER BY hiredate ) AS second_score,
+	nth_value( salary, 3 ) over ( PARTITION BY dname ORDER BY hiredate ) AS third_score
+FROM
+	employee
+```
+
+![](images/20211221161721961_32435.png)
+
+##### 12.7.9.2. NTILE
+
+`NTILE(n)` 函数用途：将分区中的有序数据分为n个等级，记录等级数
+
+应用场景：将每个部门员工按照入职日期分成3组
+
+```sql
+SELECT
+	dname, ename, hiredate, salary,
+	ntile( 3 ) over ( PARTITION BY dname ORDER BY hiredate ) AS rn
+FROM
+	employee;
+```
+
+![](images/20211221161919693_25285.png)
+
+## 13. MySQL 的视图
+
+### 13.1. 简述
+
+视图（view）是一个虚拟表，非真实存在，其本质是根据SQL语句获取动态的数据集，并为其命名，用户使用时只需使用视图名称即可获取结果集，并可以将其当作表来使用。
+
+数据库中只存放了视图的定义，而并没有存放视图中的数据。这些数据存放在原来的表中。
+
+使用视图查询数据时，数据库系统会从原来的表中取出对应的数据。因此，视图中的数据是依赖于原来的表中的数据的。一旦表中的数据发生改变，显示在视图中的数据也会发生改变。
+
+### 13.2. 视图的作用
+
+- 简化代码，可以把重复使用的查询封装成视图重复使用，同时可以使复杂的查询易于理解和使用。
+- 安全原因，如果一张表中有很多数据，很多信息不希望让所有人看到，此时可以使用视图视，如：社会保险基金表，可以用视图只显示姓名，地址，而不显示社会保险号和工资数等，可以对不同的用户，设定不同的视图。
+
+### 13.3. 视图的创建语法
+
+```sql
+create [or replace] [algorithm = {undefined | merge | temptable}]
+view view_name [(column_list)]
+as select_statement
+[with [cascaded | local] check option]
+```
+
+参数说明：
+
+- `algorithm`：可选项，表示视图选择的算法。
+- `view_name`：表示要创建的视图名称。
+- `column_list`：可选项，指定视图中各个属性的名词，默认情况下与 `SELECT` 语句中的查询的属性相同。
+- `select_statement`：表示一个完整的查询语句，将查询记录导入视图中。
+- `[with [cascaded | local] check option]`：可选项，表示更新视图时要保证在该视图的权限范围之内。
+
+示例：
+
+```sql
+-- 创建视图测试相关的表与数据
+CREATE OR REPLACE VIEW view1_emp
+AS
+	SELECT
+		ename,
+		job
+	FROM
+		emp;
+
+-- 查看表和视图，通过以下命令，可以区分开真实的表与视图
+SHOW FULL TABLES;
+```
+
+### 13.4. 修改视图
+
+修改视图是指修改数据库中已存在的表的定义。当基本表的某些字段发生改变时，可以通过修改视图来保持视图和基本表之间一致。MySQL中通过 `CREATE OR REPLACE VIEW` 语句和 `ALTER VIEW` 语句来修改视图。语法：
+
+```sql
+alter view 视图名 as select语句;
+```
+
+示例：
+
+```sql
+ALTER VIEW view1_emp
+AS
+	SELECT
+		a.deptno,a.dname,a.loc,b.ename,b.sal
+	FROM
+		dept a,
+		emp b
+	WHERE
+		a.deptno = b.deptno;
+```
+
+### 13.5. 更新视图
+
+某些视图是可更新的。也就是说，可以在 `UPDATE`、`DELETE` 或 `INSERT` 等语句中使用它们，以更新基表的内容。对于可更新的视图，在视图中的行和基表中的行之间必须具有一对一的关系。
+
+如果视图包含下述结构中的任何一种，那么它就是不可更新的：
+
+- 聚合函数（SUM(), MIN(), MAX(), COUNT()等）
+- DISTINCT
+- GROUP BY
+- HAVING
+- UNION 或 UNION ALL
+- 位于选择列表中的子查询
+- JOIN
+- FROM 子句中的不可更新视图
+- WHERE 子句中的子查询，引用 FROM 子句中的表。
+- 仅引用文字值（在该情况下，没有要更新的基本表）
+
+> <font color=red>**视图中虽然可以更新数据，但是有很多的限制。一般情况下，最好将视图作为查询数据的虚拟表，而不要通过视图更新数据。因为，使用视图更新数据时，如果没有全面考虑在视图中更新数据的限制，就可能会造成数据更新失败。**</font>
+
+示例：
+
+```sql
+--  ---------更新视图-------
+create or replace view view1_emp
+as
+select ename,job from emp;
+
+update view1_emp set ename = '周瑜' where ename = '鲁肃';  -- 可以修改
+insert into view1_emp values('孙权','文员');  -- 不可以插入
+
+-- ----------视图包含聚合函数不可更新--------------
+create or replace view view2_emp
+as
+select count(*) cnt from emp;
+
+insert into view2_emp values(100);
+update view2_emp set cnt = 100;
+
+-- ----------视图包含distinct不可更新---------
+create or replace view view3_emp
+as
+select distinct job from emp;
+
+insert into view3_emp values('财务');
+
+-- ----------视图包含goup by 、having不可更新------------------
+create or replace view view4_emp
+as
+select deptno ,count(*) cnt from emp group by deptno having  cnt > 2;
+
+insert into view4_emp values(30,100);
+
+-- ----------------视图包含union或者union all不可更新----------------
+create or replace view view5_emp
+as
+select empno,ename from emp where empno <= 1005
+union
+select empno,ename from emp where empno > 1005;
+
+insert into view5_emp values(1015,'韦小宝');
+
+-- -------------------视图包含子查询不可更新--------------------
+create or replace view view6_emp
+as
+select empno,ename,sal from emp where sal = (select max(sal) from emp);
+
+insert into view6_emp values(1015,'韦小宝',30000);
+
+-- ----------------------视图包含join不可更新-----------------
+create or replace view view7_emp
+as
+select dname,ename,sal from emp a join  dept b  on a.deptno = b.deptno;
+
+insert into view7_emp(dname,ename,sal) values('行政部','韦小宝',30000);
+
+-- --------------------视图包含常量文字值不可更新-------------------
+create or replace view view8_emp
+as
+select '行政部' dname,'杨过'  ename;
+
+insert into view8_emp values('行政部','韦小宝');
+```
+
+### 13.6. 重命名视图
+
+语法：
+
+```sql
+rename table 视图名 to 新视图名;
+```
+
+示例：
+
+```sql
+rename table view1_emp to my_view1;
+```
+
+### 13.7. 删除视图
+
+语法：
+
+```sql
+drop view 视图名[, 视图名, ...];
+```
+
+> <font color=red>**注：删除视图时，只能删除视图的定义，不会删除数据。**</font>
+
+示例：
+
+```sql
+drop view if exists view_student;
+```
+
+## 14. 存储过程
+
+### 14.1. 简述
+
+MySQL 5.0 版本开始支持存储过程。存储过程就是一组SQL语句集，功能强大，可以实现一些比较复杂的逻辑功能，类似于JAVA语言中的方法；
+
+**存储过程就是数据库 SQL 语言层面的代码封装与重用。**
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 # MySQL 扩展内容
 
