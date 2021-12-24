@@ -119,7 +119,7 @@ MySQL 是一个客户端/服务器架构的软件，对于同一个服务器来�
 SET [GLOBAL|SESSION] TRANSACTION ISOLATION LEVEL level;
 ```
 
-其中的`level`可选值有4个：`REPEATABLE READ`、`READ COMMITTED`、`READ UNCOMMITTED`、`SERIALIZABLE`
+其中的`level`可选值有4个：`REPEATABLE READ` | `READ COMMITTED` | `READ UNCOMMITTED` | `SERIALIZABLE`
 
 设置事务的隔离级别的语句中，在`SET`关键字后可以放置`GLOBAL`关键字、`SESSION`关键字或者什么都不放，这样会对不同范围的事务产生不同的影响，具体如下：
 
@@ -171,18 +171,21 @@ SELECT @@tx_isolation;
 ### 4.1. 事务基础语法
 
 - 开启事务。<font color=red>**注意：开了一个新的事务，之前的事务会自动提交**</font>
+    - 任何一条DML语句(insert、update、delete)执行，标志事务的开启
 
 ```sql
 start transaction;
 ```
 
 - 提交事务，一旦事务提交了，无法通过回滚撤消
+    - 成功的结束，将所有的DML语句操作历史记录和底层硬盘数据来一次同步
 
 ```sql
 commit;
 ```
 
 - 回滚事务
+    - 失败的结束，将所有的DML语句操作历史记录全部清空
 
 ```sql
 rollback;
