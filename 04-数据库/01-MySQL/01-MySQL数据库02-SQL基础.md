@@ -3430,6 +3430,36 @@ LCASE(str)
 SELECT LOWER('QUADRATICALLY'); -- 返回 'quadratically'
 ```
 
+#### 12.4.16. LPAD / RPAD 前后补位
+
+LPAD / RPAD 函数是用于对字段内容补位(补零为例)，语法结构：
+
+```sql
+LPAD(str, len, padstr)
+RPAD(str, len, padstr)
+```
+
+参数说明：
+
+- str：需要补充的原数据
+- len：补充后字符的总位数
+- padstr：补充的内容
+
+注意：如果字符串 str 的长度大于 len，则返回值被缩短成 len 长度的字符串返回。
+
+示例
+
+```sql
+-- 前补内容(LPAD)
+select LPAD(uid, 8, 0),username from uc_members where uid = '100015'; -- 结果：uid: 00100015   username:MooN
+
+-- 后补内容(RPAD)
+select RPAD(uid, 8, 0),username from uc_members where uid = '100015'; -- 结果：uid: 10001500   username:MooN
+
+-- 原字符串被压缩
+SELECT RPAD('hi',1,'?'); -- 返回结果：'h'
+```
+
 ### 12.5. 日期函数（使用时再整理）
 
 #### 12.5.1. NOW
@@ -3530,6 +3560,8 @@ END
 - 方式2中，如果 condition1 成立，则返回result1，如果 condition2 成立，则返回result2，....
 
 如果没有匹配的结果值，则返回结果为 `ELSE` 后的结果，如果没有 `ELSE` 部分，则返回值为 `NULL`。而当有一个成立条件之后，后面的就不再执行了。
+
+一个`CASE`表达式的默认返回值类型是任何返回值的相容集合类型，但具体情况视其所在语境而定。如果用在字符串语境中，则返回结果味字符串。如果用在数字语境中，则返回结果为十进制值、实值或整数值。
 
 ```sql
 SELECT CASE 1 WHEN 1 THEN 'one'
@@ -5018,4 +5050,68 @@ select @@session.auto_increment_increment;
 -- 修改会话变量的值
 set session sort_buffer_size = 50000;
 set @@session.sort_buffer_size = 50000;
+```
+
+## 3. MySQL 的 pymysql 操作
+
+PyMySQL 是一个纯 Python 实现的 MySQL 客户端库，支持兼容 Python 3，用于代替 MySQLdb。
+
+### 3.1. 查询示例
+
+```python
+import pymysql
+
+# 获取MySQL连接
+conn = pymysql.connect(host='localhost', port=3306, user='root',password='123456',database='mydb17_pymysql', charset='utf8')
+# 获取游标
+cursor = conn.cursor()
+
+# 执行SQL语句，返回值就是SQL语句在执行过程中影响的行数
+sql = "select * from student;"
+
+row_count = cursor.execute(sql)
+print("SQL 语句执行影响的行数%d" % row_count)
+
+# 取出结果集中一行,返回的结果是一行
+# print(cursor.fetchone())
+
+# 取出结果集中的所有数据,返回一行数据
+for line in cursor.fetchall():
+    print(line)
+# 关闭游标
+cursor.close()
+# 关闭连接
+conn.close()
+```
+
+### 3.2. 增删改示例
+
+```python
+import pymysql
+
+#获取MySQL连接
+conn = pymysql.connect(host='localhost', port=3306, user='root',password='123456',database='mydb17_pymysql', charset='utf8')
+# 获取游标
+cursor = conn.cursor()
+
+#插入数据
+# sql = "insert into student values(%s,%s,%s)"
+# data = (4, '晁盖', 34)
+# cursor.execute(sql, data)  #sql和data之间以","隔开
+
+# 修改数据
+# sql = "update student set sname=%s where sid=%s"
+# data = ('李逵', 4)
+# cursor.execute(sql, data)
+
+# 删除数据
+sql = "delete from student where sid=%s"
+data = (4)
+cursor.execute(sql, data)
+
+conn.commit()   # 提交，不然无法保存插入或者修改的数据(这个一定不要忘记加上)
+# 关闭游标
+cursor.close()
+# 关闭连接
+conn.close()
 ```

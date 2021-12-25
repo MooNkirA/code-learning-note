@@ -2319,6 +2319,656 @@ public class TCPServerThread extends Thread {
 }
 ```
 
+# JDBC（Java数据库连接）
+
+## 1. JDBC 概述
+
+JDBC（Java DataBase Connectivity,java数据库连接）是一种用于执行 SQL 语句的 Java API。JDBC 是 Java访问数据库的标准规范，作用是可以为不同的关系型数据库提供统一访问方式，它由一组用Java语言编写的接口和类组成。具体的实现类由各大数据库厂商来编写。
+
+JDBC需要连接驱动，驱动是两个设备要进行通信，满足一定通信数据格式，数据格式由设备提供商规定，设备提供商为设备提供驱动软件，通过软件可以与该设备进行通信。
+
+![](images/20211224190630913_6149.png)
+
+## 2. JDBC 开发
+
+### 2.1. JDBC 执行流程
+
+![](images/20211224191654104_27445.png)
+
+使用 JDBC 连接数据库的四个参数：
+
+- 用户名: xxx
+- 密码: xxx
+- 连接字符串：jdbc:mysql://localhost:3306/数据库?参数名=参数值
+- 数据库驱动类：com.mysql.jdbc.Driver
+
+### 2.2. JDBC 开发步骤
+
+1. 加载并注册数据库驱动，即告知JVM使用的是哪一个数据库的驱动，通常使用反射技术 `Class.forName()` 方法将驱动类加入到内存中。
+    ```java
+    Class.forName("com.mysql.jdbc.Driver")
+    ```
+2. 通过 `DriverManager` 连接数据库并获得连接对象 `Connection`
+    ```java
+    Connection conn = DriverManager.getConnection(url, user, password);
+    ```
+    - 使用JDBC中的类，完成对MySQL数据库的连接
+3. 获得语句执行平台，通过 `Connection` 对象的 `createStatement()` 方法获得 `Statement` 对象
+    - `Statement` 对象就是对SQL语句的执行者对象
+4. 调用 `Statement` 对象的 `excuteXxx(String sql)` 方法发送要执行的SQL语句，并获得执行后数据库返回结果。
+5. 处理结果，通过 `ResultSet` 的 `next()` 和 `getXxx(索引/字段名)` 方法获得数据库返回的结果集。
+6. 必须关闭释放数据库资源，使用 `close()` 方法
+    - <font color=red>**关闭原则：后开的先关(`ResultSet` -> `Statement` -> `Connection`)**</font>
+
+> <font color=purple>**注：一般开发会使用 `PreparedStatement` 来代替父类 `Statement`，使用效率和安全性都更高。**</font>
+>
+> <font color=red>JDBC 访问数据库的基础包，在 JavaSE 中的包。导包注意要选择java.sql包</font>
+
+### 2.3. 项目（程序）引入驱动 jar 包（MySQL 的驱动）
+
+- MySQL 相关jar包：mysql-connector-java-x.x.xx-bin.jar
+    - MySQL驱动相关文件夹mysql-connector-java-x.x.xx
+    - src文件夹是源代码，docs文件夹是API
+- MySQL 官方驱动下载地址：https://dev.mysql.com/downloads/connector/j/
+- MySQL maven 依赖
+    ```xml
+    <!-- https://mvnrepository.com/artifact/mysql/mysql-connector-java -->
+    <dependency>
+        <groupId>mysql</groupId>
+        <artifactId>mysql-connector-java</artifactId>
+        <version>x.x.xx</version>
+    </dependency>
+    ```
+
+## 3. JDBC 的核心 API 使用
+
+### 3.1. 核心 API 概述
+
+- `Driver` 接口：数据库驱动的接口，由数据库的厂商实现。
+- `DriverManager` 类：用来管理和注册数据库驱动的类
+- `Connection` 接口：数据库连接对象。
+- `Statement`/`PrepareStatement` 接口：操作数据库 SQL 语句的对象
+- `ResultSet` 接口：用来封装数据库返回符合查询条件的结果集
+
+### 3.2. Driver 接口
+
+每个驱动程序都应该提供一个实现 Driver 接口的类。`DriverManager` 会试着加载尽可能多的它可以找到的驱动程序，这意味着用户可以通过调用以下程序加载和注册一个驱动程序类对象。
+
+```java
+Class.forName("foo.bah.Driver");
+```
+
+### 3.3. DriverManager 类
+
+#### 3.3.1. 类作用
+
+管理和注册驱动一组 JDBC 驱动程序的基本服务。
+
+#### 3.3.2. 注册驱动程序方法
+
+```java
+public static void registerDriver(new Driver());
+```
+
+注册数据库驱动的静态方法
+
+```java
+DriverManager.registerDriver(new com.mysql.jdbc.Driver());
+```
+
+使用该方法注册驱动会触发驱动注册两次，一般不推荐使用
+
+<font color=red>**正确的注册驱动使用下面的方式：一般使用 `Class` 类的 `forName("类全名")` 注册驱动，可以解决注册两次的问题**</font>
+
+```java
+Class.forName("com.mysql.jdbc.Driver");
+```
+
+> <font color=red>**注：从JDK1.6开始，JDBC的版本是4.0版本后，可以不用写注册驱动的代码了，但是为了兼容之前的版本，注册驱动的代码一般都会保留。**</font>
+
+#### 3.3.3. 类常用方法
+
+获取连接对象方式1：通过指定 url（需要连接的数据库地址），用户名和密码得到一个 `Connection` 接口的实现类。用于连接数据库并获得连接对象。
+
+```java
+public static Connection getConnection(String url, String user, String password) throws SQLException;
+```
+
+参数说明：
+
+- `url`: 连接数据库字符串 url
+- `user`: 用户名，比如：root
+- `password`: 密码，注册时候的密码。比如：123456
+
+获取连接对象方式2：通过一个属性集和 URL，得到一个数据库的连接。实际开发中比较常用
+
+```java
+public static Connection getConnection(String url, Properties info) throws SQLException
+```
+
+参数说明：
+
+- `url`: 连接数据库字符串url
+- `info`: 属性集合，用来存储用户名和密码
+
+> 一般 properties 属性文件存放在 src 文件夹中，先获取当前类的 `Class` 对象，再使用 `Class` 类的 `getResourceAsStream("/文件名")` 得到输入流对象，再使用 `load()` 读取文件
+
+Code Demo: 使用 `Properties` 属性文件获取 `Connection` 对象
+
+```java
+// 创建Properties集合
+Properties info = new Properties();
+// 加载文件数据到info中
+info.load(ConnectionDemo.class.getResourceAsStream("/jdbc.properties"));
+// 连接数据库获得连接对象
+Connection conn = DriverManager.getConnection("jdbc:mysql://10.211.55.3:3306/tempDb", info);
+```
+
+#### 3.3.4. 连接数据库的 URL 地址格式
+
+URL用于标识数据库的位置，程序员通过URL地址告诉JDBC程序连接哪个数据库，URL的写法为：
+
+##### 3.3.4.1. url地址格式
+
+格式：
+
+```
+jdbc协议名:子协议://数据库服务器地址或 IP 地址:端口号/数据库名
+```
+
+示例：
+
+```java
+jdbc:mysql: [] //localhost:3306/test? 参数名:参数值
+```
+
+```java
+// MySQL写法：
+jdbc:mysql://localhost:3306/temp
+
+// 简写格式（前提：数据库服务器地址是本机，端口号默认是3306）
+jdbc:mysql:///temp
+```
+
+##### 3.3.4.2. 各类数据库连接字符串
+
+JDBC的URL = 协议名 + 子协议名 + 数据源名
+
+- 协议名总是`jdbc`。
+- 子协议名由JDBC驱动程序的编写者决定。
+- 数据源名也可能包含用户与口令等信息；这些信息也可单独提供。
+
+##### 3.3.4.3. 几种常见的数据库连接
+
+**Oracle**
+
+- 驱动：`oracle.jdbc.driver.OracleDriver`
+- URL：`jdbc:oracle:thin:@machine_name:port:dbname`
+    - `machine_name`：数据库所在的机器的名称；
+    - `port`：端口号，默认是1521
+
+**MySQL**
+
+- 驱动：`com.mysql.jdbc.Driver`
+- URL：`jdbc:mysql://machine_name:port/dbname`
+    - `machine_name`：数据库所在的机器的名称；
+    - `port`：端口号，默认3306
+
+**SQL Server**
+
+- 驱动：`com.microsoft.jdbc.sqlserver.SQLServerDriver`
+- URL：`jdbc:microsoft:sqlserver://<machine_name><:port>;DatabaseName=<dbname>`
+    - `machine_name`：数据库所在的机器的名称；
+    - `port`：端口号，默认是1433
+
+**DB2**
+
+- 驱动：`com.ibm.db2.jdbc.app.DB2Driver`
+- URL：`jdbc:db2://<machine_name><:port>/dbname`
+    - `machine_name`：数据库所在的机器的名称；
+    - `port`：端口号，默认是5000
+
+#### 3.3.5. 解决JDBC无法连接MySQL数据库的问题
+
+MySQL数据连接时只能使用localhost连接，但不能用IP连接问题的解决方案
+
+1. 打开cmd窗口，进入MySQL安装的bin目录
+2. 执行命令登录数据库,之后会出现一行要你输入密码的 `mysql -u root -p`
+3. 执行以下命令分配新用户：
+    ```bash
+    # (%) 表示所有ip
+    grant all privileges on *.* to 'root'@'%' identified by 'root';
+    ```
+4. 执行完上述命令后用下面的命令刷新权限
+    ```bash
+    flush privileges;
+    ```
+5. 之后关闭mysql服务，然后启动mysql服务，大功告成
+
+### 3.4. Connection 接口
+
+#### 3.4.1. 接口作用
+
+用来和数据库建立连接，和获取 `Statement` 对象
+
+#### 3.4.2. 常用方法
+
+```java
+Statement createStatement() throws SQLException;
+```
+
+- 创建一个 `Statement` 接口现实类对象来将 SQL 语句发送到数据库。
+
+```java
+PreparedStatement prepareStatement(String sql);
+```
+
+- 创建一个 `PreparedStatement` 对象来将参数化的 SQL 语句发送到数据库。
+    - `sql`：需要执行的SQL语句，获取 `PreparedStatement` 对象后直接使用方法 `executeUpdate()` 或 `executeQuery()` 进行操作。
+
+```java
+void close() throws SQLException
+```
+
+- 立即释放此 `Connection` 对象的数据库和 JDBC 资源，建议最好在调用 `close` 方法之前，应用程序显式提交或回滚一个活动事务。
+
+### 3.5. Statement 接口（操作数据库）
+
+#### 3.5.1. 接口概述
+
+用来发送SQL语句给数据库执行，对数据库进行增删改查操作。通过 `Connection` 对象的 `createStatement()` 方法获取 `Statement` 对象。
+
+CRUD(增删改查操作):
+
+- C: `Create`
+- R: `Read`
+- U: `Update`
+- D: `Delete`
+
+#### 3.5.2. 常用方法
+
+```java
+int executeUpdate(String sql) throws SQLException;
+```
+
+只能执行数据库的SQL语句中的：`insert`、`delete`、`update`、`drop`、`create`用于数据库的增删改的操作。参数如下：
+
+- `sql`：表示语句，返回执行成功的数据表行数。
+
+> - 可以执行数据定义语言：简称DDL(Data Definition Language)。用来创建，修改，删除：数据库，表，列等。`create`，`alter`，`drop`等
+>     - **但使用DDL语句不影响行数，即返回值为0**
+> - 可以数据操作语言：简称DML(Data Manipulation Language)。用来修改、删除、添加数据。`insert`、`delete`、`update`
+>     - **使用DML语句会影响行数，会返回影响行数**
+>
+> 建议：一般使用操作数据库的语句，先在图形化客户端运行判断是否有错，再写到 IDE
+
+```java
+ResultSet executeQuery(String sql) throws SQLException;
+```
+
+用于数据库SQL语句中的`select`查询操作，返回一个符合条件的结果集，是 `ResultSet` 接口的现实类。
+
+```java
+void close() throws SQLException;
+```
+
+立即释放此 `Statement` 对象的数据库和 JDBC 资源，而不是等待该对象自动关闭时发生此操作。一般来说，使用完后立即释放资源是一个好习惯，这样可以避免对数据库资源的占用。
+
+> 注：关闭 `Statement` 对象时，还将同时关闭其当前的 `ResultSet` 对象（如果有）。
+
+#### 3.5.3. 释放资源
+
+1. 需要释放的对象和顺序：`ResultSet` -> `Statement` -> `Connection`
+2. `Connection` 对象释放原则：尽可能晚的打开，尽可能早的释放。因为 `Connection` 资源比较占用内存的，而且使用频率高。公共的，稀缺的资源。
+3. 放在 `finally` 语句块中
+
+### 3.6. ResultSet 接口（查询/处理结果）
+
+#### 3.6.1. 接口概述
+
+**作用**：
+
+- 用来封装符合查询条件的记录
+- 可以将 `ResultSet` 理解成一根指针，默认位置在执行查询记录的第一行之前
+- 提供用于从当前行获取列值的方法，可以指定列的索引编号或列的名称。
+
+**如何获取对象**：通过 `Statement` 的 `executeQuery()` 方法获取。
+
+#### 3.6.2. 常用方法
+
+```java
+boolean next() throws SQLException;
+```
+
+`ResultSet` 光标最初位于第一行之前；第一次调用 `next` 方法使第一行成为当前行；第二次调用使第二行成为当前行，依此类推。如果新的当前行有效，则返回 `true`；如果不存在下一行，则返回 `false`。
+
+```java
+Xxx getXxx(列索引号或列字段名称);
+```
+
+可以指定列的索引编号或列的名称，XXX 表示数据类型。**列号默认从1开始**。如：`getString(1);`、`getInt("name");`
+
+```java
+void close() throws SQLException;
+```
+
+即释放此 `ResultSet` 对象的数据库和 JDBC 资源
+
+
+#### 3.6.3. getXxx 方法注意事项
+
+1. 如果指针在指向结果集第一行前面时调用 `rs.getXX()` 获取列值，会抛出异常：`Before start of result set`
+2. 如果指针在指向结果集最后一行后面时，调用 `rs.getXX()` 获取列值，会抛出异常：`After end of result set`
+3. 如果查询结果集为空，还调用 `rs.getXX()` 获取列值，会抛出异常：`Illegal operation on empty result set`
+4. 使用完毕以后要关闭结果集 `ResultSet`，再关闭 `Statement`，再关闭 `Connection`
+
+#### 3.6.4. 常用数据类型转换表
+
+|         SQL 类型         |     JDBC  对应方法     |      返回类型       |
+| ------------------------ | --------------------- | ------------------ |
+| BIT(1) bit(n)            | getBoolean getBytes() | Boolean byte[]     |
+| TINYINT                  | getByte()             | Byte               |
+| SMALLINT                 | getShort()            | Short              |
+| Int                      | getInt()              | Int                |
+| BIGINT                   | getLong()             | Long               |
+| CHAR,VARCHAR,LONGVARCHAR | getString()           | String             |
+| Text(clob) Blob          | getClob getBlob()     | Clob Blob          |
+| DATE                     | getDate()             | java.sql.Date      |
+| TIME                     | getTime()             | java.sql.Time      |
+| TIMESTAMP                | getTimestamp()        | java.sql.Timestamp |
+
+**查询乱码的问题**：
+
+如果汉字查询出现乱码，要将数据库的字符集设置成 UTF-8，因为多数 IDE 默认使用 utf-8 的编码
+
+### 3.7. PreparedStatement 接口
+
+#### 3.7.1. 接口概述
+
+用于 SQL 语句的发送，是继承 `Statement` 的子接口，拥有父类所有的功能。可以防止SQL注入的问题，比父类更安全。然后可以使用此对象多次高效地执行该语句。
+
+在使用 `Connection` 的方法得到 `PreparedStatement` 对象时，已经定义数据库操作的语句。
+
+> 实际开发时使用 `PreparedStatement` 比较多
+
+#### 3.7.2. 常用方法
+
+```java
+int executeUpdate() throws SQLException;
+```
+
+用于增删改的操作，返回影响的行数
+在此 PreparedStatement 对象中执行 SQL 语句
+
+```java
+ResultSet executeQuery() throws SQLException;
+```
+
+用于查询，返回结果集。在此 `PreparedStatement` 对象中执行 SQL 查询，并返回该查询结果集封装成的 `ResultSet` 对象。
+
+```java
+void setXxx(int index, Xxx xxx);
+```
+
+将指定参数值 `xxx` 赋值给第 `index` 个占位符 `?` 。再将此值发送到数据库时，驱动程序将它转换成一个 SQL Xxx类型值。
+
+#### 3.7.3. SQL注入的概念
+
+用户输入的内容作为了SQL语法的一部分，改变了原有SQL语句的含义。
+
+
+
+
+
+
+
+
+
+
+
+### 3.8. API 示例
+
+#### 3.8.1. 使用 executeUpdate 执行 DML 操作数据库练习代码
+
+Code Demo: 给数据库insert、update、delete create、drop等操作
+
+```java
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
+import java.sql.Statement;
+
+/*
+ * 3.1 使用 JDBC 的开发步骤：
+	 	* 1. 注册并加载数据库驱动 Class.forName()
+	 	* 2. 连接数据库，获取连接对象 Connection con = DriverManager.getConnection();
+	 	* 3. 创建 Statement对象  Statement stmt = conn.createStatement();
+	 	* 4. 使用 Statement对象发送 SQL
+	 	* 5. 处理结果
+	 	* 6. 关闭连接，后开的先关。
+ */
+public class MoonZero {
+	public static void main(String[] args) throws Exception {
+		// 注册数据库驱动
+		Class.forName("com.mysql.jdbc.Driver");
+
+		// 准备连接数据库字符串
+		String url = "jdbc:mysql://localhost:3306/tempDb";
+		String uName = "root";
+		String pwd = "123456";
+
+		// 连接数据库，获取Connection对象
+		Connection con = DriverManager.getConnection(url, uName, pwd);
+
+		// 获取Statement对象
+		Statement sta = con.createStatement();
+
+		// 使用Statement对象进行DDL和DML操作,定义一个sql操作语句字符串
+		String sql;
+		// 创建表
+		// sql = "create table testss(id int primary key,tname varchar(20) not null);";
+		// 执行后line=0
+
+		// 删除数据表
+		// sql = "drop table testss;";
+		// 执行后line=0
+
+		// 进行insert操作
+		// sql = "insert into testss values(1,'试试');";
+		// 执行后line=1
+		// sql = "insert into testss values(2,'再试试'), (3,'最后一插');";
+		// 执行后line=2
+
+		// 进行delete操作
+		// sql = "delete from testss where id = 1;";
+		// 执行后line=1
+
+		// 进行update操作
+		sql = "update testss set tname='用eclipse改一下' where id = 3;";
+		// 执行后line=1
+
+		operateTable(sta, sql);
+		// 关闭资源，先开后关
+		sta.close();
+		con.close();
+	}
+
+	// 测试创建数据表方法
+	public static void operateTable(Statement sta, String sql) throws SQLException {
+		// 执行后line=0
+		int line = sta.executeUpdate(sql);
+		System.out.println(line);
+	}
+}
+```
+
+#### 3.8.2. 解析 executeQuery 返回的数据库结果集练习代码
+
+Code Demo: 解析 executeQuery 返回的数据库结果集(执行 DQL 操作)
+
+```java
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.Statement;
+
+public class MoonZero {
+	public static void main(String[] args) throws Exception {
+		// 数据库注册
+		Class.forName("com.mysql.jdbc.Driver");
+
+		// 获取数据库Connetion对象
+		String url = "jdbc:mysql://localhost:3306/tempDb";
+		String user = "root";
+		String pwd = "123456";
+		Connection conn = DriverManager.getConnection(url, user, pwd);
+
+		// 获得语句执行平台，通过数据库连接对象，获取到SQL语句执行者对象
+		Statement stat = conn.createStatement();
+
+		// 准备sql语句
+		String sql = "select * from dept";
+
+		// 获取查询返回的select查询结果集
+		ResultSet rs = stat.executeQuery(sql);
+
+		// 使用循环解析返回的所有内容
+		while (rs.next()) {
+			System.out.print(rs.getInt("id") + " ");
+			System.out.println(rs.getString("name"));
+		}
+
+		// 关闭资源
+		rs.close();
+		stat.close();
+		conn.close();
+	}
+}
+```
+
+#### 3.8.3. 自定义数据库工具类练习
+
+Code Demo: 自定义原生JDBC数据库工具类，用来创建连接和关闭资源，用户名和密码使用读取 properties 属性文件的方式
+
+```java
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.Properties;
+
+/**
+ * 获取数据连接、关闭等操作的工具类
+ */
+public class MooNJDBCUtils {
+	// 数据库驱动字符串
+	private static final String DRIVER_CLASS = "com.mysql.jdbc.Driver";
+
+	// 使用静态代码块，用来加载类时就运行注册的动作
+	static {
+		try {
+			Class.forName(DRIVER_CLASS);
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
+		}
+	}
+
+	/**
+	 * 获取数据库连接对象
+	 *
+	 * @param url  需要连接的数据库地址url字符串
+	 * @return 连接数据库对象
+	 */
+	public static Connection getConnection(String url) {
+		// 读取jdbc.properties配置文件，获取用户名和密码
+		Properties pro = new Properties();
+
+		try {
+			pro.load(MooNJDBCUtils.class.getResourceAsStream("/jdbc.properties"));
+			Connection conn = DriverManager.getConnection(url, pro);
+			return conn;
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	public static void close(ResultSet rs, Statement stmt, Connection conn) {
+		if (rs != null) {
+			try {
+				rs.close();
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}
+		close(stmt, conn);
+	}
+
+	/**
+	 * 关闭数据库资源方法
+	 *
+	 * @param stmt  数据库操作对象(子类PreparedStatement也可以关闭)
+	 * @param conn  数据库的连接对象
+	 */
+	public static void close(Statement stmt, Connection conn) {
+		if (stmt != null) {
+			try {
+				stmt.close();
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}
+		close(conn);
+	}
+
+	/**
+	 * 关闭数据库连接对象方法
+	 *
+	 * @param conn  数据库的连接对象
+	 */
+	public static void close(Connection conn) {
+		if (conn != null) {
+			try {
+				conn.close();
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}
+	}
+}
+```
+
+保存用户名和密码的 properties 属性文件 jdbc.properties:
+
+```properties
+user=root
+password=123456
+```
+
+
+## 4. JDBC 连接池
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 # 其他综合内容
 
 ## 1. Open JDK 与 Open JDK
