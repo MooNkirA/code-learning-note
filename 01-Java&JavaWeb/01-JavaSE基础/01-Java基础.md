@@ -2716,15 +2716,29 @@ void setXxx(int index, Xxx xxx);
 
 用户输入的内容作为了SQL语法的一部分，改变了原有SQL语句的含义。
 
+#### 3.7.4. Statement 和 PreparedStatement 的区别
 
+1. 安全性
+    - `PreparedStatement` 可以防止SQL注入问题，安全
+    - `Statement` 有SQL注入的隐患问题，不安全
+2. 预编译功能
+    - `PreparedStatement` 有预编译的功能，在创建对象的时候就提供了 SQL 语句并存储在 `PreparedStatement` 对象中。在真正执行前，才把参数传递给 SQL 语句，并且可以反复执行。
+    - `Statement` 没有预编译的功能，创建的时候没有 SQL 语句，执行的时候才提供 SQL 语句
+3. 缓存
+    - `PreparedStatement` 有缓存功能，使用缓存可以提升运行速度。
+    - `Statement` 没有缓存功能
+4. 效率
+    - `PreparedStatement` 效率高
+    - `Statement` 效率低
 
+#### 3.7.5. PreparedStatement 使用步骤
 
+1. 准备要执行的SQL语句，使用 `?` 临时代替真实的参数
+2. 调用 `Connection` 对象的 `preparedStatement()` 方法创建 `PreparedStatement` 对象，并传递SQL语句
+3. 调用 `PreparedStatement` 对象的 `setXxx(int index, Xxx value)` 给占位符 `?` 使用真实的参数赋值，<font color=red>**`?` 参数序号，从 1 开始**</font>
+4. 调用 `PreparedStatement` 对象的 `executeUpdate()`/`executeQuery()` 方法，执行SQL语句，不需要再次传递SQL语句。
 
-
-
-
-
-
+<font color=red>**注：要先使用 `setXxx()` 方法给占位符 `?` 赋值后再调用 `executeXxx()` 方法**</font>
 
 ### 3.8. API 示例
 
@@ -2948,26 +2962,1126 @@ password=123456
 
 ## 4. JDBC 连接池
 
+### 4.1. 连接池概述
+
+#### 4.1.1. 什么是连接池
+
+一个用来创建和管理数据连接对象的容器。
+
+<font color=red>**连接池的核心思想：连接复用**</font>
+
+#### 4.1.2. JDBC 中连接数据的问题
+
+获取连接对象需要消耗比较多的资源，而每次操作都要重新获取新的连接对象，执行一次操作就把连接关闭，这样连接对象的使用率低。而数据库创建连接通常需要消耗相对较多的资源，创建时间也较长。
+
+使用连接池技术可以避免频繁创建数据库连接对象和销毁连接对象带来的开销。
+
+#### 4.1.3. 连接池的使用步骤
+
+- 创建：程序启动时创建连接池(容器)并初始化连接对象。放在一块内存中，这块内存称为连接池。
+- 获取(使用)：直接从连接池中获得一个已经创建好的连接对象来操作数据库
+- 关闭：关闭的时候不是真正关闭连接，而是将连接对象再次放回到连接池中，等待复用。
+
+### 4.2. DataSource 数据库连接池 API
+
+#### 4.2.1. 数据源(连接池)接口
+
+javax.sql.DataSource 接口表示数据源。只要是实现类实现了该接口的类，就是一个连接池类。
+
+#### 4.2.2. 连接池接口常用方法
+
+```java
+Connection getConnection() throws SQLException;
+```
+
+从数据源（连接池）中获取一个连接对象
+
+#### 4.2.3. 连接池相关参数
+
+1. 初始连接数：一开始连接池中创建多少个连接对象。
+2. 最大连接数：连接池中最多可以有多少个连接对象。
+3. 最长等待时间：当一个会话要从连接池中得到连接对象的时候，最长等待多久。
+4. 最长空闲时间：当一个连接对象在指定时间内没有被使用时，则回收该连接对象。
+
+#### 4.2.4. 常用数据库连接池（第三方工具）
+
+- C3P0连接池
+- DBCP连接池
+
+### 4.3. C3P0 连接池技术
+
+#### 4.3.1. C3P0 连接池概述
+
+C3P0是一个开源的JDBC连接池第三方工具，它实现了数据源和JNDI绑定，支持JDBC3规范和JDBC2的标准扩展。目前使用它的开源项目有Hibernate，Spring等。
+
+#### 4.3.2. C3P0 连接池的特点
+
+1. 免费开源的连接池技术
+2. 很多主流的第三方框架都是使用该连接池技术。比如：Spring 和 Hibernate 框架，默认推荐使用 C3P0 作为连接池实现
+
+#### 4.3.3. c3p0 与 DBCP 区别
+
+- dbcp 没有自动回收空闲连接的功能
+- c3p0 有自动回收空闲连接功能
+
+#### 4.3.4. C3P0 的使用步骤
+
+1. 导入 jar 库 c3p0-0.9.5.2.jar 和 mchange-commons-java-0.2.11.jar。（*注：数据库驱动mysql-connector-java-5.1.37-bin.jar也不能少*）
+2. 创建连接池对象 ComboPooledDataSource 对象
+    ```java
+    ComboPooledDataSource ds = new ComboPooledDataSource();
+    ```
+3. 设置数据库连接参数（jdbcUrl，user，password，driverClass）
+    - 数据库连接url字符串：`ds.setJdbcUrl("jdbc:mysql://localhost:3306/tempDb");`
+    - 用户名：`ds.setUser("root");`
+    - 密码：`ds.setPassword("123456");`
+    - 驱动类全名：`ds.setDriverClass("com.mysql.jdbc.Driver");`
+4. 设置连接池参数
+    - 初始连接数：一开始获得多少个数据连接对象(默认值：3)，如果设置值少于3，也是默认是3。
+    ```java
+    setInitialPoolSize(int num)
+    ```
+    - 最大连接数：连接池中最多有多少个连接对象可以使用(默认值：15)
+    ```java
+    setMaxPoolSize(int num)
+    ```
+    - 最大等待时间：当某个纯种要获得连接对象时，如果没有可用的连接对象时需要等待的时间，如果超过时间还没有获得，则抛出异常。(默认值：0，就是无限等待)
+    ```java
+    setCheckoutTimeout(毫秒值)
+    ```
+    - 最大空闲回收时间：连接对象空间时长，如果在指定的时长内没有被再次使用，会被真正关闭。(默认值：0，就是无限等待)
+    ```java
+    setMaxIdleTime(秒值)
+    ```
+5. 调用 `getConnection()` 方法，获取连接对象。
+    ```java
+    Connection conn = ds.getConnection();
+    ```
+6. 关闭连接对象。不是真正关闭，而是将连接对象放回连接池中。
+
+Code Demo: C3P0创建连接池步骤练习
+
+```java
+import java.sql.Connection;
+
+import com.mchange.v2.c3p0.ComboPooledDataSource;
+
+public class MoonZero {
+	public static void main(String[] args) {
+		// 创建连接池对象
+		ComboPooledDataSource ds = new ComboPooledDataSource();
+
+		try {
+			// 设置连接参数
+			ds.setDriverClass("com.mysql.jdbc.Driver");
+			ds.setJdbcUrl("jdbc:mysql://localhost:3306/tempDb");
+			ds.setUser("root");
+			ds.setPassword("123456");
+
+			// 设置连接池参数
+			// 初始化连接数
+			ds.setInitialPoolSize(5);
+			// 最大连接数
+			ds.setMaxPoolSize(10);
+			// 最大等待时间
+			ds.setCheckoutTimeout(3000);
+			// 最大空余等待时间
+			ds.setMaxIdleTime(3);
+
+			// 获取连接
+			for (int i = 1; i <= 11; i++) {
+				Connection conn = ds.getConnection();
+				System.out.println(conn);
+				if (i == 5) {
+					// 不是真正关闭，将连接对象放回连接池
+					conn.close();
+				}
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+}
+```
+
+#### 4.3.5. C3P0 连接池(使用 xml 配置文件加载)
+
+##### 4.3.5.1. 使用配置文件的好处
+
+1. 配置信息和操作数据库代码分离，降低了程序的耦合性。
+2. 配置信息不是硬编码到 Java 源码中，后期维护更加方便。
+3. 可以使用不同的连接池参数。如：`maxPoolSize=10`,`maxPoolSize=8`
+4. 可以连接不同的数据库。如：db1,db2
+5. 可以连接不同厂商的数据库。如：Oracle 或 MySQL
+
+##### 4.3.5.2. 配置文件的要求
+
+1. 文件名命名要求：`c3p0-config.xml`
+2. 位置要求：放在类路径下，源代码即 src 目录下。
+
+##### 4.3.5.3. C3P0 配置文件的使用方式
+
+方式1： 使用默认配置（default-config）
+
+```java
+ComboPooledDataSource ds = new ComboPooledDataSource();
+```
+
+方式2： 使用命名配置（`named-config：name="配置名"`）
+
+```java
+ComboPooledDataSource ds = new ComboPooledDataSource("配置名");
+```
+
+<font color=red>**配置文件的各个属性名，都是以设置方法去掉`set`后的名字。**</font>
+
+Code Demo : C3P0 配置文件
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<c3p0-config>
+	<!-- 默认配置 -->
+	<default-config>
+		<!-- 数据库连接信息 -->
+		<property name="driverClass">com.mysql.jdbc.Driver</property>
+		<property name="jdbcUrl">jdbc:mysql://localhost:3306/tempDb</property>
+		<property name="user">root</property>
+		<property name="password">123456</property>
+
+		<!-- 连接池的配置 -->
+		<!-- 连接池初始化连接数 -->
+		<property name="initialPoolSize">5</property>
+		<!-- 连接池最大连接数 -->
+		<property name="maxPoolSize">10</property>
+		<!-- 连接池最大等待时间 -->
+		<property name="checkoutTimeout">3000</property>
+		<!-- 连接池最大空闲时间 -->
+		<property name="maxIdleTime">3</property>
+	</default-config>
+
+	<!-- 其它的命名配置 -->
+	<named-config name="MoonZero-config">
+		<!-- 数据库连接信息 -->
+		<property name="driverClass">com.mysql.jdbc.Driver</property>
+		<property name="jdbcUrl">jdbc:mysql://127.0.0.1:3306/tempDb</property>
+		<property name="user">root</property>
+		<property name="password">123456</property>
+
+		<!-- 连接池的配置 -->
+		<!-- 连接池初始化连接数 -->
+		<property name="initialPoolSize">5</property>
+		<!-- 连接池最大连接数 -->
+		<property name="maxPoolSize">9</property>
+		<!-- 连接池最大等待时间 -->
+		<property name="checkoutTimeout">3000</property>
+		<!-- 连接池最大空闲时间 -->
+		<property name="maxIdleTime">3</property>
+	</named-config>
+</c3p0-config>
+```
+
+Code Demo : C3P0 使用配置文件创建连接池
+
+```java
+import java.sql.Connection;
+import java.sql.SQLException;
+
+import com.mchange.v2.c3p0.ComboPooledDataSource;
+
+/*
+ * 关卡1训练案例2
+ * 1.C3P0 连接池的使用
+ 	* 要求：连接池参数和初始化连接数通过配置文件配置。
+ * 使用 C3P0连接池获得 10个连接对象。
+ 	* 要求：分别使用默认配置和命名配置创建连接池对象。再通过连接池对象获得连接对象。
+ */
+public class MoonZero {
+	public static void main(String[] args) {
+		// 使用配置文件创建连接池对象(方式1：使用默认配置(default-config))
+		// ComboPooledDataSource ds = new ComboPooledDataSource();
+
+		// 使用配置文件创建连接池对象(方式2：使用命名配置(named-config:MoonZero-config))
+		ComboPooledDataSource ds = new ComboPooledDataSource("MoonZero-config");
+
+		// 使用循环获取连接对象
+		for (int i = 1; i <= 11; i++) {
+			try {
+				Connection conn = ds.getConnection();
+				System.out.println(i + " = " + conn);
+				// 测试最大连接数，不是真正的关闭，只是放回去连接池
+				if (i == 5 || i == 9) {
+					conn.close();
+				}
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}
+	}
+}
+```
+
+#### 4.3.6. 自定义 C3P0 连接池工具类
+
+Code Demo: 自定义C3P0工具类
+
+```java
+import java.sql.Connection;
+import java.sql.SQLException;
+
+import javax.sql.DataSource;
+
+import com.mchange.v2.c3p0.ComboPooledDataSource;
+
+public class C3P0Utils {
+	// 创建私有静态数据源(连接池对象)成员变量
+	// src文件夹下有xml配置文件，所以不需要进行数据库设置与连接池设置
+	private static DataSource ds = new ComboPooledDataSource();
+
+	// 创建公有的得到数据源(连接池对象)的方法
+	public static DataSource getDataSource() {
+		return ds;
+	}
+
+	// 创建共有的得到连接对象的方法
+	public static Connection getConnection() {
+		try {
+			return ds.getConnection();
+		} catch (SQLException e) {
+			throw new RuntimeException(e);
+		}
+	}
+}
+```
+
+### 4.4. DBCP 连接池技术
+
+#### 4.4.1. DBCP 连接池概述
+
+DBCP: DataBase Connection Pool 数据库连接池。
+
+DBCP 是 Apache 旗下组织开发的一款产品，免费开源的，也是 Tomcat 服务器的默认使用连接池
+
+#### 4.4.2. DBCP 使用步骤
+
+1. 导入 dbcp 相关的 jar 包
+		目前使用版本
+			commons-dbcp-1.4.jar	核心包
+			commons-pool-1.6.jar	支持包
+		注：DBCP 2 compiles and runs under Java 7 only (JDBC 4.1)
+			DBCP 1.4 compiles and runs under Java 6 only (JDBC 4)
+2. 创建连接池对象 `BasicDataSource` 对象
+    ```java
+    BasicDataSource ds = new BasicDataSource();
+    ```
+3. 设置连接参数（url，username，password，driverClassName）
+    - 数据库连接url字符串：`ds.setUrl("jdbc:mysql://localhost:3306/tempDb");`
+    - 用户名：`ds.setUsername("root");`
+    - 密码：`ds.setPassword("xxx");`
+    - 驱动类全名：`ds.setDriverClassName("com.mysql.jdbc.Driver");`
+    > **注：与C3P0设置连接参数的方法名有不同**
+4. 设置连接池参数（初始连接数，最大连接数，最大等待时间，最大空闲数）
+    - 初始化连接数：`setInitialSize(int num)`
+    - 最大连接数：`setMaxActive(int num)`
+    - 超过最大连接数时，最大等待时间：`setMaxWait(毫秒值)`
+    - 最大空闲数：`setMaxIdle(int num)` 连接池中最多只有指定个数的连接对象空闲。
+    > **注：与C3P0设置连接池参数的方法名有不同**
+5. 调用 `getConnection()` 方法，获取连接对象
+    ```java
+    Connection conn = ds.getConnection();
+    ```
+6. 关闭连接对象。不是真正关闭，而是将连接对象放回连接池中
+
+Code Demo: DBCP连接池技术
+
+```java
+import java.sql.Connection;
+
+import org.apache.commons.dbcp.BasicDataSource;
+
+public class MoonZero {
+	public static void main(String[] args) {
+		try {
+			// 创建连接池对象
+			BasicDataSource ds = new BasicDataSource();
+			// 设置连接参数
+			ds.setDriverClassName("com.mysql.jdbc.Driver");
+			ds.setUrl("jdbc:mysql://localhost:3306/tempDb");
+			ds.setUsername("root");
+			ds.setPassword("123456");
+
+			// 设置连接池参数
+			// 初始化连接数
+			ds.setInitialSize(5);
+			// 最大连接数
+			ds.setMaxActive(10);
+			// 超过最大连接数时，最大等待时间
+			ds.setMaxWait(3000);
+			// 最大空闲连接数
+			ds.setMaxIdle(3);
+
+			// 获取连接
+			for (int i = 1; i <= 10; i++) {
+				Connection conn = ds.getConnection();
+				// 因为 DBCP 返回的 Connection 对象已经重写了 toString()方法，
+				// 为了看到不同的对象，输出 hashCode()方法。
+				System.out.println(i + " : " + conn.hashCode());
+				if (i == 5) {
+					// 释放连接(不是真正的关闭连接对象，而是把连接对象放回连接池)
+					conn.close();
+				}
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+}
+```
+
+```
+输出结果：
+1 : 1327763628
+2 : 1915503092
+3 : 1535128843
+4 : 2027961269
+5 : 458209687
+6 : 458209687
+7 : 254413710
+8 : 1789447862
+9 : 1688376486
+10 : 445884362
+```
+
+#### 4.4.3. 使用 Properties 配置文件加载 DBCP 连接池
+
+##### 4.4.3.1. DBCP配置文件要求
+
+1. 文件名命名要求：xxx.properties，一般使用 dbcp.properties
+2. 位置要求：放在类路径下，源代码即 src 目录下。
+3. 键名：配置文件的键与方法名去掉 set 相同，首字母小写。
+
+> 注：写键值对时，在"="左右尽量不要有空格
+
+dbcp.properties : DBCP配置文件示例
+
+```properties
+# 数据库的连接信息
+url=jdbc:mysql://localhost:3306/tempDb
+username=root
+password=123456
+driverClassName=com.mysql.jdbc.Driver
+#连接池的配置信息
+initailSize=5
+maxActive=10
+maxWait=3000
+maxIdle=7
+```
+
+##### 4.4.3.2. DBCP 使用配置文件加载连接池步骤
+
+1. 创建 `Properties` 属性文件，配置相关参数
+2. 通过类对象的 `getResourceAsStream("/dbcp.properties")` 方法，从类路径下加载文件，以字节流的方式加载。
+3. 通过 `properties.load(InputStream in)` 加载属性文件
+4. 通过 `BasicDataSourceFactory.createDataSource(Properties prop)`，得到 `DataSource` 连接池对象
+5. 通过 `DataSource` 类对象调用 `getConnection()` 方法得到连接对象
+6. 关闭连接对象
+
+Code Demo: DBCP使用配置文件加载连接池
+
+```java
+import java.sql.Connection;
+import java.util.Properties;
+
+import org.apache.commons.dbcp.BasicDataSource;
+import org.apache.commons.dbcp.BasicDataSourceFactory;
+
+public class MoonZero {
+	public static void main(String[] args) {
+		try {
+			// 创建Properties类对象读取属性文件
+			Properties pro = new Properties();
+			pro.load(MoonZero.class.getResourceAsStream("/dbcp.properties"));
+
+			// 创建连接池对象
+			DataSource ds = BasicDataSourceFactory.createDataSource(pro);
+
+			// 获取连接
+			for (int i = 1; i <= 11; i++) {
+				Connection conn = ds.getConnection();
+				// 因为 DBCP 返回的 Connection 对象已经重写了 toString()方法，
+				// 为了看到不同的对象，输出 hashCode()方法。
+				System.out.println(i + " : " + conn.hashCode());
+				if (i == 5) {
+					// 释放连接(不是真正的关闭连接对象，而是把连接对象放回连接池)
+					conn.close();
+				}
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+}
+```
+
+## 5. DBUtils 工具
+
+### 5.1. DbUtils 工具概述
+
+`DbUtils` 是 Apache 组织开发的一个开源 JDBC 工具类库。是一款方便操作数据库的工具。
+
+使用 DBUtils 能简化 JDBC 操作数据库复杂的代码，同时也不会影响程序的性能。使用需要导入 jar 包：
+
+- commons-dbutils-x.x.jar  核心包
+- commons-logging-x.x.x.jar  日志记录包
+
+目前使用的是：commons-dbutils-1.7.jar
+
+### 5.2. DbUtils 工具的核心类
+
+#### 5.2.1. DbUtils 类
+
+提供了装载 JDBC 驱动程序、关闭资源和处理事务的相关静态方法
+
+```java
+public static void close(…) throws java.sql.SQLException;
+```
+
+DbUtils 类提供了三个重载的关闭方法。这些方法检查所提供的参数是不是 `NULL`，如果不是的话，它们就关闭 `Connection`、`Statement` 和 `ResultSet`。
+
+```java
+public static void closeQuietly(…);
+```
+
+这一类方法不仅能在 `Connection`、`Statement` 和 `ResultSet` 为 `NULL` 情况下避免关闭，还能隐藏一些在程序中抛出的 `SQLException`。
+
+#### 5.2.2. QueryRunner 类
+
+用来对数据库执行CRUD(增删改查)操作
+
+##### 5.2.2.1. QueryRunner 增删改操作方式1：传入数据源对象
+
+**构造方法**
+
+```java
+QueryRunner(DataSource ds);
+```
+
+根据数据源创建查询器对象，方法参数：
+
+- `ds`: 连接池对象，数据源
+
+**增删改的方法**
+
+```java
+int update(String sql);
+int update(String sql, Object param);
+int update(String sql, Object...params);
+```
+
+执行增删改操作，返回影响的行数。
+
+方法参数：
+
+- `sql`：需要执行的sql语句
+- `params`：实际参数(真实参数)，给sql语句中的占位符赋值
+
+> 注：以上方法在内部都有释放资源的代码，所以<font color=red>**无需关闭连接**</font>等操作
 
 
+##### 5.2.2.2. QueryRunner 增删改操作方式2：没有传入任何对象
+
+**构造方法**
+
+```java
+QueryRunner();
+```
+
+创建查询器对象
+
+**增删改的方法，在方法中指定 `Connection` 对象**
+
+```java
+int update(Connection conn, String sql);
+int update(Connection conn, String sql, Object...params);
+```
+
+参数说明：
+
+- `conn`: 数据库连接对象
+- `sql`: 需要执行的sql语句
+- `params`: 实际参数(真实参数)，给sql语句中的占位符赋值
+
+> 注：以上方法没有释放资源的代码，<font color=red>**需要操作者手动关闭连接**</font>
+
+##### 5.2.2.3. QueryRunner 查询操作方式1：没有连接对象
+
+构造方法
+
+```java
+QueryRunner(DataSource ds);
+```
+
+根据数据源创建查询器对象。
+
+参数说明：
+
+- `ds`: 连接池对象，数据源
+
+```java
+Object query(String sql, ResultSetHandler rsh)
+Object query(String sql, ResultSetHandler rsh, Object... params)
+```
+
+> 注：以上方法在内部都有释放资源的代码，所以<font color=red>**无需关闭连接**</font>等操作
+
+##### 5.2.2.4. QueryRunner 查询操作方式2：有连接对象，需要手动关闭资源
+
+构造方法
+
+```java
+QueryRunner();
+```
+
+创建查询器对象
+
+```java
+Object query(Connection conn, String sql, ResultSetHandler rsh)
+Object query(Connection conn, String sql, ResultSetHandler rsh, Object... params)
+```
+
+> 注：以上方法没有释放资源的代码，<font color=red>**需要操作者手动关闭连接**</font>
+
+##### 5.2.2.5. QureyRunner 的操作多个数据方法
+
+```java
+int[] batch(String sql, Object[][] params)
+```
+
+用于同一个sql语句进行执行多次的方法。
+
+参数说明：
+
+- `params`：二维数组
+    - 一维：sql语句要执行多次
+    - 二维：就是每条sql语句中`?`存储的占位符的参数，二维长度是`?`参数的个数
+
+> <font color=red>**注：批量处理，是访问数据库一次，一次性执行重复多个sql语句处理，这样可以减少数据库访问次数的压力(如果使用逐条删除的方式，每次删除都访问数据库一次)。**</font>
+
+示例：
+
+```java
+/**
+ * 批量删除商品
+ *
+ * @param pids 商品id数组
+ */
+public void delProductBatch(String[] pids) {
+	// 删除数据的sql语句，只需要将删除单个数据的语句执行多次，每次根据不同的id删除即可
+	String sql = "delete from product where pid=?;";
+
+	// DBUtils.runner.batch(sql, params),用于同一个sql语句进行执行多次的方法
+	// params 二维数组
+	// 一维：sql语句要执行多少次
+	// 二维：就是每个sql语句中？存储的占位符的值
+
+	// 创建二维数组,长度是传入数组的长度，每个元素数组长度是1
+	Object[][] params = new Object[pids.length][1];
+	// 使用循环给二维数组赋值
+	for (int i = 0; i < params.length; i++) {
+		params[i][0] = pids[i];
+	}
+
+	// 使用查询器方法操作多次操作
+	try {
+		qr.batch(sql, params);
+	} catch (SQLException e) {
+		e.printStackTrace();
+		throw new RuntimeException(e);
+	}
+}
+```
 
 
+#### 5.2.3. ResultSetHandler 接口
 
+用来定义如何封装查询结果集
 
+##### 5.2.3.1. 接口的方法
 
+```java
+Object handle(ResultSet rs);
+```
 
+方法调用时机：调用`query(String sql, ResultSetHandler rsh);`方法查询到结果之后会触发结果集处理器对象的该方法，按需要重写方法返回自定义的结果。
 
+方法内如何处理由操作者定义。当`DbUtils`提供的常用实现类不能满足要求的时，再定义匿名内部类重写该方法
 
+Code Demo: 实现 `ResultSetHandler` 接口，重写 `handle` 方法
 
+```java
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 
+import javax.sql.DataSource;
 
+import org.apache.commons.dbutils.QueryRunner;
+import org.apache.commons.dbutils.ResultSetHandler;
 
+import jdbc.C3P0Utils;
 
+/*
+ * 关卡1训练案例10
+ 	* 查询用户表的所有用户数据，要求如下：
+ 	* 1.只查询用户名和性别两个字段信息。
+ 	* 2.查询结果是一个集合，集合中存放所有的用户对象。
+	 	* 操作步骤
+	 	* 1. 通过 C3P0Utils 工具类获得数据源对象
+	 	* 2. 根据数据源对象创建 QueryRunner 对象
+	 	* 3. 编写查询的 SQL 语句。
+	 	* 4. 调用 QueryRunner 的对象的 query 方法进行查询
+	 	* 5. 获得查询结果。
+ */
+public class QueryRunnerTest {
+	public static void main(String[] args) {
+		// 使用c3p0工具类获取数据源对象
+		DataSource ds = C3P0Utils.getDataSource();
 
+		// 获取QueryRunner对象
+		QueryRunner qr = new QueryRunner(ds);
 
+		// 准备sql语句
+		String sql = "select name,gender from users;";
 
+		// 调用query文件进行查询，重写handle方法，返回一个对象集合
+		try {
+			List<User> list = qr.query(sql, new ResultSetHandler<List<User>>() {
 
+				@Override
+				public List<User> handle(ResultSet rs) throws SQLException {
+					// 创建集合用来存放对象
+					List<User> list = new ArrayList<>();
+					// 使用循环记取数据库返回的结果集
+					while (rs.next()) {
+						// 创建用户对象
+						User u = new User();
+						u.setName(rs.getString("name"));
+						u.setGender(rs.getString("gender"));
+						list.add(u);
+					}
+					return list;
+				}
+			});
 
+			// 遍历集合
+			for (User u : list) {
+				System.out.println(u);
+			}
+
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+	}
+}
+```
+
+#### 5.2.4. 常用的 ResultSetHandler 接口的实现类
+
+##### 5.2.4.1. 封装成 JavaBean (BeanHandler / BeanListHandler)
+
+<font color=red>**前提：表的列名与 JavaBean 属性名要相同**</font>
+
+```java
+T BeanHandler<T>(Class clazz);
+```
+
+把结果集的一行数据封装成 JavaBean。常用于查询一条记录的情况。如果SQL语句是查询多个记录，则返回查询到的第一行记录。
+
+```java
+List<T> BeanListHandler<T>(Class clazz);
+```
+
+把结果集的每一行数据封装成 JavaBean，把这个 JavaBean 放入 `List` 中返回
+
+Code Demo:
+
+```java
+import java.sql.SQLException;
+
+import org.apache.commons.dbutils.QueryRunner;
+import org.apache.commons.dbutils.handlers.BeanHandler;
+
+import day25.level01.User;
+import jdbc.DBCPUtils;
+
+/*
+ * 关卡2训练案例3
+ 	* 查询用户表中的第一条用户记录并将该记录封装成一个 JavaBean 对象。
+ 	* 注意事项：JavaBean 属性名和用户表的列名要相同。
+ */
+public class Test02_03 {
+	public static void main(String[] args) throws SQLException {
+		// 使用工具类得到数据源对象,并创建QueryRunner对象
+		QueryRunner qr = new QueryRunner(DBCPUtils.getDataSource());
+
+		// 准备sql语句
+		String sql = "select * from users";
+
+		// 准备好bean对象，属性名与用户表列相同，调用query方法封装JavaBean对象
+		User u = qr.query(sql, new BeanHandler<>(User.class));
+
+		// 输入bean对象
+		System.out.println(u);
+	}
+}
+
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.util.List;
+
+import org.apache.commons.dbutils.DbUtils;
+import org.apache.commons.dbutils.QueryRunner;
+import org.apache.commons.dbutils.handlers.BeanListHandler;
+
+import day25.level01.User;
+import jdbc.DBCPUtils;
+
+/*
+ * 关卡2训练案例4
+ 	* 1.查询用户表的所有用户记录并将每一条记录封装成 JavaBean 对象存放到集合中。
+*/
+public class Test02_04 {
+	public static void main(String[] args) throws SQLException {
+		// 创建无参QueryRunner对象
+		QueryRunner qr = new QueryRunner();
+
+		// 准备sql语句 查询用户表全部记录
+		String sql = "select * from users;";
+
+		// 使用工具类获取连接对象，创建BeanListHandler对象，执行sql语句
+		Connection conn = DBCPUtils.getConnection();
+		List<User> list = qr.query(conn, sql, new BeanListHandler<>(User.class));
+
+		// 遍历集合将Bean对象输出
+		for (User u : list) {
+			System.out.println(u);
+		}
+
+		// 使用DbUtils工具类关闭资源
+		DbUtils.closeQuietly(conn);
+	}
+}
+```
+
+##### 5.2.4.2. 封装成 Map (MapHandler / MapListHandler)
+
+<font color=red>**可用于表连接查询的时候**</font>
+
+```java
+Map<String, Object> MapHandler();
+```
+
+将结果集中的第一行数据封装到一个 `Map` 里，`key` 是列名，`value` 就是对应的值。
+
+```java
+List<Map<String, Object>> MapListHandler();
+```
+
+将结果集中的每一行数据都封装到一个 `Map` 里，然后再存放到 `List`
+
+Code Demo:
+
+```java
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import org.apache.commons.dbutils.DbUtils;
+import org.apache.commons.dbutils.QueryRunner;
+import org.apache.commons.dbutils.handlers.MapHandler;
+import org.apache.commons.dbutils.handlers.MapListHandler;
+
+import jdbc.DBCPUtils;
+
+/*
+ * 关卡2训练案例6
+ 	* 1.定义一个方法：查询用户表获取第一条用户记录并封装成 Map 集合(key 是字段名称，value是字段值)。
+ 	* 2.定义一个方法：查询用户表获取所有用户记录并返回一个集合，集合中存放的都是 Map 对象，
+ 		* 一个 Map 对象封装对应一个用户记录。
+ */
+public class Test02_06 {
+	public static void main(String[] args) throws SQLException {
+		// 创建无参的QueryRunner对象
+		QueryRunner qr = new QueryRunner();
+
+		// 定义执行的sql操作语句
+		String sql = "select * from users";
+
+		// 查询用户表第一个用户记录并封装成map集合
+		testMapHandler(qr, sql);
+		System.out.println("**********************");
+
+		// 查询用户表获取所有用户记录并返回一个集合，集合中存放的都是 Map对象
+		testMapListHandler(qr, sql);
+	}
+
+	public static void testMapListHandler(QueryRunner qr, String sql) throws SQLException {
+		// 使用工具类获取Connection对象
+		Connection conn = DBCPUtils.getConnection();
+		// 创建MapHandler对象，执行sql语句
+		List<Map<String, Object>> list = qr.query(conn, sql, new MapListHandler());
+
+		// 遍历List集合
+		for (Map<String, Object> map : list) {
+			Set<String> key = map.keySet();
+			for (String k : key) {
+				System.out.println(k + " = " + map.get(k));
+			}
+			System.out.println("==========");
+		}
+		// 使用DbUtils工具类关闭资源
+		DbUtils.closeQuietly(conn);
+	}
+
+	public static void testMapHandler(QueryRunner qr, String sql) throws SQLException {
+		// 使用工具类获取Connection对象
+		Connection conn = DBCPUtils.getConnection();
+		// 创建MapHandler对象，执行sql语句
+		Map<String, Object> map = qr.query(conn, sql, new MapHandler());
+
+		// 遍历Map集合
+		Set<String> keySet = map.keySet();
+		for (String key : keySet) {
+			System.out.println(key + " = " + map.get(key));
+		}
+		// 使用DbUtils工具类关闭资源
+		DbUtils.closeQuietly(conn);
+	}
+}
+```
+
+##### 5.2.4.3. 封装成数组(ArrayHandler / ArrayListHandler)
+
+```java
+Object[] ArrayHandler();
+```
+
+把结果集的第一行数据封装成对象数组。(常用于只有一条记录的情况)
+
+```java
+List<Object[]> ArrayListHandler();
+```
+
+把结果集的每一行数据封装对象数组，把这个对象数组放入 `List` 中
+
+Code Demo:
+
+```java
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.util.Arrays;
+import java.util.List;
+
+import org.apache.commons.dbutils.DbUtils;
+import org.apache.commons.dbutils.QueryRunner;
+import org.apache.commons.dbutils.handlers.ArrayHandler;
+import org.apache.commons.dbutils.handlers.ArrayListHandler;
+
+import jdbc.DBCPUtils;
+
+/*
+ * 关卡2训练案例1
+ 	* 查询用户表中的第一条数据。并将数据封装成对象数组
+ 		* 操作步骤
+	 	* 1.通过 C3P0Utils 工具类获得数据源对象
+	 	* 2.创建 QueryRunner 对象
+	 	* 3.编写 SQL 语句
+	 	* 4.调用 QueryRunner 对象的 query 方法传入 SQL 语句和 ArrayHandler 对象
+	 	* 5.接收方法返回值即对象数组。
+ */
+public class Test02_01 {
+	public static void main(String[] args) throws SQLException {
+		// 准备sql语句
+		String sql = "select * from users";
+
+		// 使用DBCP工具类获取数据源，并创建QueryRunner对象
+		QueryRunner qr = new QueryRunner(DBCPUtils.getDataSource());
+		// 使用ArrayHandler获取第一行数据并封装成对象数组
+		Object[] arr = qr.query(sql, new ArrayHandler());
+
+		// 直接输出数组
+		System.out.println(Arrays.toString(arr));
+
+		System.out.println("================");
+		// 使用无参构造方法创建QueryRunner对象
+		QueryRunner qr2 = new QueryRunner();
+		// 使用工具类获取Connection对象，传入query方法执行sql语句,
+		Connection conn = DBCPUtils.getConnection();
+		// 使用ArrayListHandler返回一个对象数组集合
+		List<Object[]> arr2 = qr2.query(conn, sql, new ArrayListHandler());
+
+		// 使用DbUtils方法关闭资源
+		DbUtils.closeQuietly(conn);
+
+		// 遍历对象数组集合
+		for (Object[] objs : arr2) {
+			System.out.println(Arrays.toString(objs));
+		}
+
+	}
+}
+```
+
+##### 5.2.4.4. 封装单行单列数据 (ScalarHandler)
+
+```java
+T ScalarHandler<T>();
+```
+
+把结果集的第一行第一列取出。通常用于只有单行单列的聚合函数查询查询结果集。
+
+> <font color=red>*注：用来统计数量是时返回的数据类型是`long`*</font>
+
+Code Demo:
+
+```java
+import java.sql.Connection;
+import java.sql.SQLException;
+
+import org.apache.commons.dbutils.DbUtils;
+import org.apache.commons.dbutils.QueryRunner;
+import org.apache.commons.dbutils.handlers.ScalarHandler;
+
+import jdbc.DBCPUtils;
+
+/*
+ * 关卡2训练案例4
+ 	* 查询用户表中用户记录的数量。
+ */
+public class Test02_04 {
+	public static void main(String[] args) throws SQLException {
+		// 创建无参QueryRunner对象
+		QueryRunner qr = new QueryRunner();
+
+		// 准备sql语句 查询用户表全部记录
+		String sql = "select COUNT(*) from users;";
+
+		// 使用工具类获取连接对象，创建ScalarHandler对象统计用户数量，执行sql语句
+		Connection conn = DBCPUtils.getConnection();
+		long count = qr.query(conn, sql, new ScalarHandler<Long>());
+		System.out.println("用户数量是：" + count);
+		// 使用DbUtils工具类关闭资源
+		DbUtils.closeQuietly(conn);
+	}
+}
+```
+
+##### 5.2.4.5. 封装多行单列数据 (ColumnListHandler)
+
+```java
+List<T> ColumnListHandler<T>();
+```
+
+只封装一列的时候，将这一列的数据封装成 `List` 集合，集合中的元素类型与列的类型相同。其中 `new ColumnListHandler<String>("列名")`。通常用于多行单列的查询结果集。
+
+如果查询多列的话，只默认返回第一列
+
+Code Demo:
+
+```java
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.util.List;
+
+import org.apache.commons.dbutils.DbUtils;
+import org.apache.commons.dbutils.QueryRunner;
+import org.apache.commons.dbutils.handlers.ColumnListHandler;
+
+import jdbc.C3P0Utils;
+
+/*
+ * 关卡2训练案例5
+ 	* 1.定义一个方法，查询用户表，获得所有用户的名字存放到集合中。(ColumnListHandler)
+*/
+public class Test02_05 {
+	public static void main(String[] args) throws SQLException {
+		// 创建QueryRunner无参对象
+		QueryRunner qr = new QueryRunner();
+
+		// 准备sql语句
+		// 查询用户表中所有用户名
+		String sql = "select name from users;";
+
+		// 使用工具类获取连接对象，创建ColumnListHandler，获取所有用户名集合
+		Connection conn = C3P0Utils.getConnection();
+		List<String> list = qr.query(conn, sql, new ColumnListHandler<String>());
+
+		// 遍历集合
+		for (String s : list) {
+			System.out.println(s);
+		}
+
+		// 使用DbUtils工具类关闭资源
+		DbUtils.closeQuietly(conn);
+	}
+}
+```
+
+##### 5.2.4.6. KeyedHandler
+
+```java
+Map<String, Map<String, Object>> KeyedHandler<K>(String s);
+```
+
+将多条记录封装成一个 `Map`，取其中的一列做为键，记录本身做为值，这个值是 `Map` 集合，封装这一条记录。即：`Map<某列类型,Map<字段名,字段值>>`，其中 `KeyedHandler` 指定为`<某列的类型>(列名)`。
+
+不指定，默认以第1列的值做为键。一般指定唯一的值的列做为列
+
+示例：
+
+```java
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.util.Map;
+import java.util.Set;
+
+import org.apache.commons.dbutils.DbUtils;
+import org.apache.commons.dbutils.QueryRunner;
+import org.apache.commons.dbutils.handlers.KeyedHandler;
+
+import jdbc.C3P0Utils;
+
+/*
+ * 关卡2训练案例5
+ 	* 2.定义一个方法，查询用户表，获得所有用户的所有信息，返回一个 Map 集合(Map 集合的
+ 		* key 是用户 id，value 是每一个用户的信息，也是一个 Map 集合。)
+ */
+public class Test02_05 {
+	public static void main(String[] args) throws SQLException {
+		// 创建QueryRunner无参对象
+		QueryRunner qr = new QueryRunner();
+
+		// 准备sql语句
+		// 查询用户表中所有用户,封装成一个Map集合
+		String sql = "select * from users;";
+
+		// 使用工具类获取连接对象，创建KeyedHandler，获取所有用户Map集合
+		Connection conn = C3P0Utils.getConnection();
+		Map<Integer, Map<String, Object>> map = qr.query(conn, sql, new KeyedHandler<Integer>("id"));
+
+		// 遍历Map集合
+		Set<Integer> set = map.keySet();
+		for (Integer key : set) {
+			System.out.println(key + " = " + map.get(key));
+		}
+
+		// 使用DbUtils工具类关闭资源
+		DbUtils.closeQuietly(conn);
+	}
+}
+```
 
 # 其他综合内容
 
@@ -3018,7 +4132,77 @@ Oracle JDK是基于Open JDK源代码的商业版本。要学习Java新技术可�
 
 递归方法是一个直接或间接调用自己的方法。要终止一个递归方法，必须有一个或多个基础情况（程序出口）。
 
+## 4. 分层开发思想
 
+### 4.1. 三层开发结构
 
+什么是分层：开发中，常使用分层思想。不同的层解决不同的问题，层与层之间组成严密的封闭系统，<font color=red>不同层级结构彼此平等。不能出现跨层访问</font>。
 
+- 表示层(View)：直接跟用户打交道，展示数据给用户查看或收集用户输入的信息。
+- 业务逻辑层(service)：对数据进行处理，比如筛选数据、判断数据准确性……
+- 数据访问层(dao)：直接对数据库进行增删改查操作。
 
+### 4.2. 分层的好处
+
+- 提高代码的复用性：不同层之间进行功能调用时，相同的功能可以重复使用。
+- 提高代码的维护性：提高软件的可维护性，对现有的功能进行修改和更新时不会影响原有的功能。
+- 提高代码的扩展性：提升软件的可扩展性，添加新的功能的时候不会影响到现有的功能。
+- 降低代码的耦合性：降低层与层之间的耦合性。
+
+### 4.3. 如何分层
+
+**不同的层使用不同的包**，例如：
+
+- 表现层：`com.xxx.view`
+- 业务逻辑层：`com.xxx.service`
+- 数据访问层：`com.xxx.dao`
+- 工具包：`com.xxx.utils`。一般用来存放工具类，不属于任何一层，可以被所有层调用
+- 测试包：`com.xxx.test`
+- 实体包：`com.xxx.entity`、`com.xxx.domain`等。用于存放一些自定义的JavaBean类
+
+### 4.4. 访问顺序
+
+用户 -> 表现层 -> 业务层 -> 数据访问层 -> 数据库
+
+### 4.5. 开发流程
+
+一般从下向上开发：dao 数据访问层 -> service 业务逻辑层 -> view 表示层
+
+## 5. 层污染
+
+### 5.1. 什么是层污染
+
+某一层中使用到了本不应该出现在该层的代码，则称为层污染。如：`Connection` 对象，应该出现在 DAO 层，而不应该出现在业务层。所以想办法把 `Connection` 对象从业务层中移出。
+
+如果调用工具类的方法，不存在层污染，因为工具类属于每个层可以使用的。
+
+### 5.2. 如何解决层污染的问题
+
+以事务处理为例：
+
+1. 数据库工具类添加开启事务，提交事务，回滚事务的方法
+2. 提交事务或回滚事务以后，关闭连接，并且从当前线程中删除 `Connection` 对象。
+3. 业务层调用工具类中的方法操作事务，如果没有异常则提交事务，出现异常则事务回滚。并且抛出运行时异常给表示层。
+
+## 6. GUI 图形用户界面 (了解)
+
+Graphical User Interface，简称 GUI
+
+```java
+JOptionPane.showMessageDialog(null, x);
+```
+x就是要显示的文本字符串，如："Welcome to Java."	用于弹出消息对话框，需要导包
+
+```java
+JOptionPane.showMessageDialog(null, x, y, JOptionPane.INFORMATION_MESSAGE);
+```
+
+X是显示的文本字符串，y是表示消息对话框标题的字符串。第四个参数可以是 `JOptionPane.INFORMATION_MESSAGE` (它是为了让消息框能够显示图标(`!`))
+
+如果是 `JOptionPane.QUESTION_MESSAGE` 让消息框能够显示图标(`?`)
+
+从输入对话框获取输入
+
+```java
+JOptionPane.showInputDialog("xxx")
+```
