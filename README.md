@@ -115,6 +115,7 @@
 
 <ul class="docs">
   <li><a href="#/03-前端资料/03-Vue/01-Vue2.x-笔记"> Vue2.x 基础笔记</a></li>
+  <li><a href="#/03-前端资料/03-Vue/01-Vue3.x-笔记"> Vue3.x 基础笔记</a></li>
   <li><a href="#/03-前端资料/03-Vue/02-Vue2.x-API笔记">Vue2.x API</a></li>
   <li><a href="#/03-前端资料/03-Vue/03-Vue框架项目开发笔记">Vue 框架项目开发笔记</a></li>
   <li><a href="#/03-前端资料/03-Vue/04-Vue-Router">Vue Router 路由库</a></li>
@@ -316,10 +317,6 @@
 
 ## 其他
 
-<ul class="docs">
-  <li><a href="#/99-其他/编程资源收集">编程资源收集</a></li>
-</ul>
-
 ### 💻 IDE
 
 <ul class="docs">
@@ -327,6 +324,15 @@
   <li><a href="#/99-其他/01-IDE/02-eclipse">Eclipse 常用配置</a></li>
   <li><a href="#/99-其他/01-IDE/03-Visual-Studio-Code">Visual Studio Code 常用配置</a></li>
   <li><a href="#/99-其他/01-IDE/99-DevelopmentTool">其它开发工具常用配置与使用</a></li>
+</ul>
+
+### 相关编程资料
+
+<ul class="docs">
+  <li><a href="#/99-其他/编程资源收集">编程资源收集</a></li>
+  <li><a href="#/99-其他/其它资料">其它资料</a></li>
+  <li><a href="#/99-其他/Hexo-blog搭建工具">Hexo 博客 搭建工具</a></li>
+  <li><a href="#/99-其他/docsify-文档类型网站搭建工具">docsify 文档类型网站搭建工具</a></li>
 </ul>
 
 ## 收集的项目实战资料
