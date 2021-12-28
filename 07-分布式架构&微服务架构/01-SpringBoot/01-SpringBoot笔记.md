@@ -350,25 +350,41 @@ application-freemarker.properties
 spring.profiles.active=database,jpa,freemarker
 ```
 
-### 3.3. application.yml
+### 3.3. YAML 文件
 
-#### 3.3.1. yml配置文件简介
+#### 3.3.1. yml 配置文件简介
 
-YML文件格式是YAML (YAML Aint Markup Language)层级树键值对格式文件。YAML是一种直观的能够被电脑识别的的数据数据序列化格式，并且容易被人类阅读，容易和脚本语言交互的，可以被支持YAML库的不同的编程语言程序导入，比如： C/C++, Ruby, Python, Java, Perl, C#, PHP等。YML文件是以数据为核心的，比传统的xml方式更加简洁。
+YML 文件格式是YAML (YAML Aint Markup Language)层级树键值对格式文件。YAML是一种直观的能够被电脑识别的的数据数据序列化格式，并且容易被人类阅读，容易和脚本语言交互的，可以被支持YAML库的不同的编程语言程序导入，比如： C/C++, Ruby, Python, Java, Perl, C#, PHP等。YML文件是以数据为核心的，比传统的xml方式更加简洁。
 
-YML文件的扩展名可以使用.yml或者.yaml。
+YML 文件的扩展名可以使用 `.yml` 或者 `.yaml`
 
-#### 3.3.2. yml配置文件的语法
+#### 3.3.2. YAML 基本语法
 
-##### 3.3.2.1. 配置普通数据
+- 大小写敏感
+- 数据值前边必须有空格，作为分隔符
+- 使用缩进表示层级关系
+- 缩进时不允许使用 Tab 键，只允许使用空格（各个系统 Tab 对应的 空格数目可能不同，导致层次混乱）。
+- 缩进的空格数目不重要，只要相同层级的元素左侧对齐即可
+- `#` 表示注释，从这个字符一直到行尾，都会被解析器忽略。
 
-语法： `key: value`。注意：value之前有一个空格
+#### 3.3.3. YAML 数据语法格式
+
+##### 3.3.3.1. 配置普通数据
+
+语法：`key: value`。注意：value之前有一个空格
 
 ```yml
 name: haohao
 ```
 
-##### 3.3.2.2. 配置对象数据
+还有一种比较特殊的常量，使用单引号与双引号包裹
+
+```yml
+msg1: 'hello \n world'  # 单引号忽略转义字符
+msg2: "hello \n world"  # 双引号识别转义字符
+```
+
+##### 3.3.3.2. 配置对象数据
 
 - 语法：
 
@@ -395,11 +411,11 @@ person: {name: haohao,age: 31,addr: beijing}
 
 - <font color=red>**注意：key1前面的空格个数不限定，在yml语法中，相同缩进代表同一个级别**</font>
 
-##### 3.3.2.3. 配置Map数据
+##### 3.3.3.3. 配置Map数据
 
 **同上面的对象写法**
 
-##### 3.3.2.4. 配置数组（List、Set）数据
+##### 3.3.3.4. 配置数组（List、Set）数据
 
 - 语法：
 
@@ -435,9 +451,21 @@ student:
       score: 90
 ```
 
-- **注意：value1与之间的“-”之间存在一个空格**
+- **注意：value1与之间的“`-`”之间存在一个空格**
 
-#### 3.3.3. 单配置文件
+##### 3.3.3.5. 参数引用
+
+通过`${}`可以引用yml内容定义的其他参数的值
+
+```yml
+name: MooN
+person:
+    name: ${name} # 引用上边定义的name值
+```
+
+### 3.4. application.yml 项目配置文件
+
+#### 3.4.1. 单配置文件
 
 ```yml
 # 配置数据源
@@ -450,11 +478,11 @@ spring:
     type: com.mchange.v2.c3p0.ComboPooledDataSource
 ```
 
-其实application.yml配置文件就是将原来application.properties使用（.）分割的方式，改为树状结构，使用（:）分割。
+其实 application.yml 配置文件就是将原来 application.properties 使用（`.`）分割的方式，改为树状结构，使用（`:`）分割。
 
-**注意：最后key的字段与值之间的冒号（:）后面一定要有一个空格。**
+**注意：最后key的字段与值之间的冒号（`:`）后面一定要有一个空格。**
 
-#### 3.3.4. 多配置文件
+#### 3.4.2. 多配置文件
 
 - 第一步：在application.yml配置文件下，增加多个application-xxx.yml文件名的配置文件，其中xxx是一个任意的字符串。
 
@@ -472,7 +500,7 @@ spring:
     active: database,jpa,freemarker
 ```
 
-### 3.4. 使用xml配置
+### 3.5. 使用xml配置
 
 Spring Boot推荐无xml配置，但实际项目中，可能有一些特殊要求必须使用xml配置，在引导类中通过Spring提供的`@ImportResource`来加载xml配置
 
@@ -486,8 +514,9 @@ public class SpringbootdemoApplication {
 }
 ```
 
-### 3.5. 读取配置文件
-#### 3.5.1. 读取核心配置文件方式一：Environment 对象
+### 3.6. 读取配置文件
+
+#### 3.6.1. 读取核心配置文件方式一：Environment 对象
 
 - 在工程的src/main/resources 下修改核心配置文件
 - application.properties, 添加内容如下
@@ -520,7 +549,7 @@ public class HelloController {
 
 就可以直接把配置文件信息打印出来。注意包名是：`org.springframework.core.env.Environment`
 
-#### 3.5.2. 读取核心配置文件方式二：@value 注解
+#### 3.6.2. 读取核心配置文件方式二：@value 注解
 
 还是上面的例子，我们只需要是一个`@value`注解即可获取配置文件内容
 
@@ -552,10 +581,10 @@ public class HelloController {
 
 > *注：使用`@Value`注解，只能映射配置文件的字符串类型的值，不能映射对象与数组*
 
-#### 3.5.3. 读取自定义配置文件方式三：@ConfigurationProperties 注解
+#### 3.6.3. 读取自定义配置文件方式三：@ConfigurationProperties 注解
 
 - 通过注解`@ConfigurationProperties(prefix="配置文件中的key的前缀")`可以将配置文件中的配置自动与实体进行映射
-- 在application.properties或者application.yml配置以下
+- 在 application.properties 或者 application.yml 配置以下
 
 ```properties
 person.name=zhangsan
@@ -592,7 +621,7 @@ public class QuickStartController {
 
 > **注意：使用`@ConfigurationProperties`方式可以进行配置文件与实体字段的自动映射，但需要字段必须提供set方法才可以，而使用`@Value`注解修饰的字段不需要提供set方法**
 
-#### 3.5.4. 控制方法定义在引导类中
+#### 3.6.4. 控制方法定义在引导类中
 
 引导类可以定义引导入口与视图跳转的控制方法
 
@@ -616,7 +645,7 @@ public class SpringbootdemoApplication {
 }
 ```
 
-#### 3.5.5. 将配置文件的属性赋给实体类（基于properties与yml文件）
+#### 3.6.5. 将配置文件的属性赋给实体类（基于properties与yml文件）
 
 1. **方式1：读取默认配置文件**
     - 在自定义配置类中，加上注解`@ConfigurationProperties`，表明该类为配置类，并加上属性prefix，配置前缀
@@ -626,7 +655,7 @@ public class SpringbootdemoApplication {
     - 需要在自定义配置类上加`@Configuration、@PropertySource、@ConfigurationProperties`的3个注解。*需要注意，如果在Spring Boot版本为1.4或1.4之前，则需要@PropertySource注解上加location属性，并指明该配置文件的路径*
     - 在引导类中（或者本身自定义配置类），加上`@EnableConfigurationProperties`注解，并指明需要引用的JavaBean类
 
-##### 3.5.5.1. 方式1：读取默认配置文件(yml与properties格式均可用)
+##### 3.6.5.1. 方式1：读取默认配置文件(yml与properties格式均可用)
 
 - 上面使用`@Value`注入每个配置在实际项目中麻烦。通过注解`@ConfigurationProperties(prefix="配置文件中的key的前缀")`可以将配置文件中的配置自动与实体进行映射
 - Spring Boot将此方式称为：基于类型安全的配置方式，通过@ConfigurationProperties将properties属性和一个Bean及其属性关联，从而实现类型安全的配置
@@ -681,7 +710,7 @@ public class SpringbootdemoApplication {
 }
 ```
 
-##### 3.5.5.2. 方式2：读取自定义的配置文件(只能读取properties格式，该注解并不支持加载yml！)
+##### 3.6.5.2. 方式2：读取自定义的配置文件(只能读取properties格式，该注解并不支持加载yml！)
 
 - 上面方式1是写在默认配置文件application.properties中，如果属性太多，实际项目中不合适，需要自定义配置文件
 - **注：方式1的读取默认配置文件的方式，此方式也可以实现。省略@PropertySource注解即可**
@@ -730,7 +759,7 @@ public class SpringbootdemoApplication {
 }
 ```
 
-### 3.6. 自定义配置类
+### 3.7. 自定义配置类
 
 使用`@Configuration`和`@Bean`方式
 
@@ -746,13 +775,116 @@ public class MyConfig {
 }
 ```
 
-### 3.7. SpringBoot配置信息的查询
+### 3.8. SpringBoot 配置信息的查询
 
 - SpringBoot的配置文件，主要的目的就是对配置信息进行修改的，但在配置时的key从哪里去查询呢？我们可以查阅SpringBoot的官方文档
 - 文档URL：https://docs.spring.io/spring-boot/docs/2.1.4.RELEASE/reference/htmlsingle/#common-application-properties
 
-### 3.8. 启动时使用命令行注入参数到配置文件
-#### 3.8.1. SpringBoot属性加载顺序
+### 3.9. profile
+
+开发Spring Boot应用时，通常同一套程序会被安装到不同环境，比如：开发、测试、生产等。其中数据库地址、服务器端口等等配置都不同，profile 功能就是来进行根据不同环境进行动态配置切换的。
+
+#### 3.9.1. 多环境配置文件命名规则
+
+`application-xxx.properties`或者`application-xxx.yml`，“`xxx`”代表不同环境的名称。示例如下：
+
+- application-dev.properties/yml 开发环境
+- application-test.properties/yml 测试环境
+- application-pro.properties/yml 生产环境
+
+#### 3.9.2. 同一个 yml 文档中配置多环境规则
+
+在同一个yml文档中，可以直接使用 “`---`” 来分隔不同环境的配置。
+
+<font color=red>**特别注意，分隔不同环境配置的分隔符必须的3个`-`，不能多不能少**</font>
+
+```yml
+---
+
+server:
+  port: 8081
+
+spring:
+  profiles: dev
+---
+
+server:
+  port: 8082
+
+spring:
+  profiles: test
+---
+server:
+  port: 8083
+
+spring:
+  profiles: pro
+---
+# 指定当前激活那个 profile
+spring:
+  profiles:
+    active: dev
+```
+
+#### 3.9.3. profile 的激活方式
+
+1. 通过在主配置文件中，`spring.profiles.active`来指定当前激活的配置
+
+```properties
+spring.profiles.active=profiles的名称
+```
+
+```yml
+spring:
+  profiles:
+    active: profiles的名称
+```
+
+2. 在IDE里配置虚拟机的参数，通过 VM options 选项，指定当前激活的配置。
+
+```
+-Dspring.profiles.active=profiles的名称
+```
+
+3. 通过命令行启动时的参数指定当前激活的配置
+
+```bash
+java –jar xxx.jar --spring.profiles.active=profiles的名称
+```
+
+### 3.10. Spring Boot 配置文件的加载顺序
+
+SpringBoot 程序启动时，会从以下位置加载配置文件：
+
+1. `file:./config/`：当前项目下的/config目录下
+2. `file:./`：当前项目的根目录
+3. `classpath:/config/`：classpath的/config目录
+4. `classpath:/`：classpath的根目录
+
+加载顺序为上文的排列顺序，高优先级配置的属性会生效。
+
+而外部属性加载顺序，详情查询[官方文档](https://docs.spring.io/spring-boot/docs/current/reference/html/boot-features-external-config.html)：
+
+Spring Boot uses a very particular `PropertySource` order that is designed to allow sensible overriding of values. Properties are considered in the following order (with values from lower items overriding earlier ones):
+
+1. Default properties (specified by setting `SpringApplication.setDefaultProperties`).
+2. `@PropertySource` annotations on your `@Configuration` classes. Please note that such property sources are not added to the `Environment` until the application context is being refreshed. This is too late to configure certain properties such as `logging.*` and `spring.main.*` which are read before refresh begins.
+3. Config data (such as `application.properties` files).
+4. A `RandomValuePropertySource` that has properties only in `random.*`.
+5. OS environment variables.
+6. Java System properties (`System.getProperties()`).
+7. JNDI attributes from `java:comp/env`.
+8. `ServletContext` init parameters.
+9. `ServletConfig` init parameters.
+10. Properties from `SPRING_APPLICATION_JSON` (inline JSON embedded in an environment variable or system property).
+11. Command line arguments.
+12. `properties` attribute on your tests. Available on `@SpringBootTest`  and the test annotations for testing a particular slice of your application.
+13. `@TestPropertySource` annotations on your tests.
+14. Devtools global settings properties in the `$HOME/.config/spring-boot` directory when devtools is active.
+
+### 3.11. 启动时使用命令行注入参数到配置文件
+
+#### 3.11.1. SpringBoot 属性加载顺序
 
 1. 在命令行中传入的参数
 2. SPRING_APPLICATION_JSON中的属性。SPRING_APPLICATION_JSON是以JSON的格式配置在系统环境变量中的内容
@@ -765,9 +897,9 @@ public class MyConfig {
 9. 位于当前应用jar包之外的application.properties和YAML配置内容
 10. 位于当前应用jar包之内的application.properties和YAML配置内容
 11. 在`@Configuration`注解修改的类中，通过`@PropertySource`注解定义的属性
-12. 应用默认属性，使用SpringApplication.setDefaultProperties定义的内容
+12. 应用默认属性，使用`SpringApplication.setDefaultProperties`定义的内容
 
-#### 3.8.2. 项目启动示例
+#### 3.11.2. 项目启动示例
 
 - 准备两套环境的配置文件，application-dev.yml和application-pro.yml
 - 设置总的配置文件，application.yml
@@ -788,7 +920,7 @@ java -jar moon-project.jar --spring.profiles.active=dev
 java -jar moon-project.jar --spring.profiles.active=pro
 ```
 
-#### 3.8.3. 使用idea启动示例
+#### 3.11.3. 使用 idea 启动示例
 
 点击项目下拉按钮后选择"Edit Configurations"，在"Configuration"下的VM options中填入需要的属性值，填写的格式如下：
 
@@ -797,9 +929,9 @@ java -jar moon-project.jar --spring.profiles.active=pro
 -Dserver.port=8888 -Dspring.redis.port=6378 -D"你想配置的参数名"="参数值"
 ```
 
-#### 3.8.4. 使用junit测试配置启动参数示例
+#### 3.11.4. 使用 junit 测试配置启动参数示例
 
-可以通过@SpringBootTest注解的properties属性向Environment中设置新的属性，也可以通过使用EnvironmentTestUtils工具类来向ConfigurableEnvironment中添加新的属性。
+可以通过 @`SpringBootTest` 注解的 `properties` 属性向 `Environment` 中设置新的属性，也可以通过使用 `EnvironmentTestUtils` 工具类来向 `ConfigurableEnvironment` 中添加新的属性。
 
 ```java
 @SpringBootTest(properties = {"activeName=dev"})
@@ -808,8 +940,9 @@ public class JavMainTest {
 }
 ```
 
-#### 3.8.5. 个人项目实践示例
-##### 3.8.5.1. 打包项目赋值参数命令
+#### 3.11.5. 个人项目实践示例
+
+##### 3.11.5.1. 打包项目赋值参数命令
 
 - 因为配置开发与正式版本的两套配置文件，所以开发时运行需要修改`Environment`的`VM options`的参数为：`-DactiveName=dev`，切换到开发环境的配置，再运行main方法启动
     - **注意：此方式只适用于`${}`占位符情况，如果使用`@@`，则不能使用**
@@ -838,7 +971,7 @@ spring-boot:run -DactiveName=pro -Dmaven.test.skip=true
 </properties>
 ```
 
-若项目使用了 spring-boot-starter-parent 做项目版本管理，替换resource.delimiter属性
+若项目使用了 spring-boot-starter-parent 做项目版本管理，替换 `resource.delimiter` 属性
 
 ```xml
 <!-- 使用spring-boot-starter-parent管理jar包版本 -->
@@ -856,7 +989,7 @@ spring-boot:run -DactiveName=pro -Dmaven.test.skip=true
 
 **注意：使用些方式后，使用mvn命令打包时，不使用默认值方式`${参数名:默认值}`**
 
-##### 3.8.5.2. 项目打包命令
+##### 3.11.5.2. 项目打包命令
 
 - 需要将依赖的公共包安装到本地仓库，到时需要依赖打包到war包中
 - 项目打包：参考5.1将前端部署后，因为配置了开发环境与正式版本环境的两套配置文件，使用maven命令打包时，需要输入配置文件的参数，进行打包即可，完成后将war包放到tomcat运行部署
@@ -869,8 +1002,9 @@ mvn clean install -DactiveName=pro -Dmaven.test.skip=true
 mvn clean package -DactiveName=pro -Dmaven.test.skip=true
 ```
 
-### 3.9. 实现SpringBoot配置文件放在jar外部的方式
-#### 3.9.1. 通过命令行指定
+### 3.12. 实现 SpringBoot 配置文件放在 jar 外部的方式
+
+#### 3.12.1. 通过命令行指定
 
 SpringApplication会默认将命令行选项参数转换为配置信息。例如，启动时命令参数指定：
 
@@ -884,16 +1018,11 @@ java -jar myproject.jar --server.port=9000
 SpringApplication.setAddCommandLineProperties(false)
 ```
 
-#### 3.9.2. 外置配置文件
+#### 3.12.2. 外置配置文件
 
-- Spring程序会按优先级从下面这些路径来加载application.properties配置文件
-    - 当前目录下的`/config`目录
-    - 当前目录
-    - classpath里的`/config`目录
-    - classpath根目录
-- 因此，要外置配置文件就很简单了，在jar所在目录新建config文件夹，然后放入配置文件，或者直接放在配置文件在jar目录
+参考《Spring Boot 配置文件的加载顺序》章节。可以得知，要外置配置文件，只需要在jar所在目录新建config文件夹，然后放入配置文件，或者直接将配置文件放在jar包同一级目录
 
-#### 3.9.3. 自定义配置文件
+#### 3.12.3. 自定义配置文件
 
 如果不想使用application.properties作为配置文件，输入以下命令
 
@@ -919,24 +1048,8 @@ public class SpringbootrestdemoApplication {
 }
 ```
 
-#### 3.9.4. 按Profile不同环境读取不同配置
-
-- 不同环境的配置设置一个配置文件，例如：
-    - dev环境下的配置配置在application-dev.properties中
-    - prod环境下的配置配置在application-prod.properties中
-- 在application.properties中指定使用哪一个文件
-
-```properties
-spring.profiles.active=dev
-```
-
-- 也可以在运行的时候手动指定：
-
-```bash
-java -jar myproject.jar --spring.profiles.active=prod
-```
-
 ## 4. 热部署
+
 ### 4.1. 热部署配置
 
 在开发中反复修改类、页面等资源，每次修改后都是需要重新启动才生效，这样每次启动都很麻烦，浪费了大量的时间。
@@ -1061,15 +1174,109 @@ spring.devtools.restart.trigger-file=
 
 由于Spring Boot应用只是普通的Java应用，所以JVM热交换（hot-swapping）也能开箱即用。不过JVM热交换能替换的字节码有限制，想要更**彻底的解决方案可以使用Spring Loaded项目或JRebel**。spring-boot-devtools 模块也支持应用快速重启(restart)。
 
-## 5. 运行状态监控Actuator（待学习）
+## 5. 运行状态监控 Actuator（待学习）
 
-Spring Boot的Actuator 提供了运行状态监控的功能。Actuator的监控数据可以通过Rest、运程shell和JMX方式获得
+### 5.1. 简述
 
-## 6. Spring Boot 自动配置原理分析
+Spring Boot 的 Actuator 提供了运行状态监控的功能，可以实现对程序内部运行情况监控，比如监控状况、Bean加载情况、配置属性、日志信息等。Actuator的监控数据可以通过Rest、运程shell和JMX方式获得。
+
+状态监控的数据都是以json格式返回，分析数据不太方便，*推荐使用基于 Actuator 开发的 Spring Boot Admin 状态监控开源项目*
+
+### 5.2. 基础使用步骤
+
+1. 导入依赖
+
+```xml
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-actuator</artifactId>
+</dependency>
+```
+
+2. 访问 `http://项目应用的地址:端口号/acruator`，可以查看监控数据
+
+### 5.3. Actuator 监控使用
+
+通过访问以下路径，可以查看到相关的监控信息
+
+|      路径       |                            描述                            |
+| --------------- | --------------------------------------------------------- |
+| /beans          | 描述应用程序上下文里全部的Bean，以及它们的关系                 |
+| /env            | 获取全部环境属性                                            |
+| /env/{name}     | 根据名称获取特定的环境属性值                                  |
+| /health         | 报告应用程序的健康指标，这些值由HealthIndicator的实现类提供    |
+| /info           | 获取应用程序的定制信息，这些信息由info打头的属性提供            |
+| /mappings       | 描述全部的URI路径，以及它们和控制器(包含Actuator端点)的映射关系 |
+| /metrics        | 报告各种应用程序度量信息，比如内存用量和HTTP请求计数            |
+| /metrics/{name} | 报告指定名称的应用程序度量值                                  |
+| /trace          | 提供基本的HTTP请求跟踪信息(时间戳、HTTP头等)                  |
+
+## 6. SpringBoot 监听机制（整理中）
+
+SpringBoot 在项目启动时，会对几个内置的监听器进行回调，开发者可以实现这些监听器接口，在项目启动时完成一些操作。
+
+### 6.1. ApplicationContextInitializer(补充示例)
+
+如果想让这些监听器自动注册，不管应用程序是如何创建的，可以在项目中添加一个`META-INF/spring.plants`文件，并通过使用 `org.springframework.context.ApplicationListener` 键来指定相应的自定义监听器(`ApplicationContextInitializer`的实现类)，如下例：
+
+```properties
+org.springframework.context.ApplicationContextInitializer=com.moon.springboot.listener.MyApplicationContextInitializer
+```
+
+### 6.2. SpringApplicationRunListener（补充示例）
+
+```properties
+org.springframework.boot.SpringApplicationRunListener=com.moon.springboot.listener.MySpringApplicationRunListener
+```
+
+### 6.3. CommandLineRunner 与 ApplicationRunner
+
+#### 6.3.1. 简介
+
+如果需要在 `SpringApplication` 启动后运行一些特定的代码，可以实现 SpringBoot 提供的 `ApplicationRunner` 或 `CommandLineRunner` 接口。这两个接口的工作方式相同，并提供一个单一的运行方法，该方法会在 `SpringApplication.run(...)` 完成之前被调用。
+
+> 注：这两个监听回调接口，适合运用在项目应用启动后做一些数据的预处理等工作。如：将读取一些数据库的数据到Redis缓存中，完成数据的预热。
+
+#### 6.3.2. 基础使用
+
+`CommandLineRunner` 接口的 `run` 方法入参是字符串数组，是应用程序的相关参数
+
+```java
+@Component
+public class MyCommandLineRunner implements CommandLineRunner {
+
+    @Override
+    public void run(String... args) {
+        // Do something...
+    }
+
+}
+```
+
+而 `ApplicationRunner` 接口的`run`方法是入参是 `ApplicationArguments` 接口，此接口提供了对应用原始的 `String[]` 参数以及经过解析的选项和非选项参数的访问。
+
+```java
+@Component
+public class MyApplicationRunner implements ApplicationRunner {
+
+    @Override
+    public void run(ApplicationArguments args) throws Exception {
+        // Do something...
+    }
+
+}
+```
+
+#### 6.3.3. 使用注意事项
+
+- 如果项目中定义多个 `CommandLineRunner` 与 `ApplicationRunner` 接口的实现。那需要注意它们这些实现的调用顺序，以免发现不可预测的问题。另外，可以通过实现 `org.springframework.core.Ordered` 接口或使用 `org.springframework.core.annotation.Order` 注解来指定实现类调用的顺序。
+- `CommandLineRunner` 与 `ApplicationRunner` 接口的实现不需要到`META-INF/spring.plants`进行配置相关映射。
+
+## 7. Spring Boot 自动配置原理分析
 
 Spring Boot框架是一个将整合框架的整合代码都写好了的框架。所以要知道它的工作原理才能够，找到各种整合框架可以配置的属性，以及属性对应的属性名。
 
-### 6.1. spring-boot-starter-parent 父工程依赖管理原理
+### 7.1. spring-boot-starter-parent 父工程依赖管理原理
 
 创建SpringBoot项目，继承了SpringBoot的父工程`spring-boot-starter-parent`后，查看工程的依赖关系，父工程依赖了`spring-boot-dependencies`工程，`spring-boot-denpendencies`的pom管理所有公共Starter依赖的版本，并且通过`<dependencyManagement>`标签实现jar版本管理
 
@@ -1077,7 +1284,7 @@ Spring Boot框架是一个将整合框架的整合代码都写好了的框架。
 
 ![](images/20201006095224766_3600.png)
 
-#### 6.1.1. starters的原理
+#### 7.1.1. starters的原理
 
 starters是依赖关系的整理和封装，是一套依赖坐标的整合。只要导入相关的starter即可该功能及其相关必需的依赖
 
@@ -1094,7 +1301,7 @@ starters是依赖关系的整理和封装，是一套依赖坐标的整合。只
 
 官方提供的Starter详见官方文档：https://docs.spring.io/spring-boot/docs/2.3.3.RELEASE/reference/html/using-spring-boot.html#using-boot-starter
 
-### 6.2. 自动配置信息位置说明
+### 7.2. 自动配置信息位置说明
 
 每个Starter基本都会有自动配置`AutoConfiguration`，`AutoConfiguration`的jar包定义了约定的默认配置信息。SpringBoot采用约定大于配置设计思想。
 
@@ -1118,7 +1325,7 @@ starters是依赖关系的整理和封装，是一套依赖坐标的整合。只
 
 ![](images/20201006150503441_32641.png)
 
-### 6.3. 配置流程说明
+### 7.3. 配置流程说明
 
 - 第一步：配置一个内置整合框架的参数，先到`spring-boot-autoconfigure-x.x.x.RELEASE.jar`找到对应的模块。
 - 第二步：如果该框架有可以配置的参数，那么对应的整合模块中一定有一个XxxProperties类，在里面可以找可以设置的参数。
@@ -1126,7 +1333,7 @@ starters是依赖关系的整理和封装，是一套依赖坐标的整合。只
 
 ![配置流程说明](images/_配置流程说明_1537025667_9599.jpg)
 
-### 6.4. 自动配置流程分析
+### 7.4. 自动配置流程分析
 
 查看启动类注解`@SpringBootApplication`，可以跟踪加载的步骤
 
@@ -1137,9 +1344,9 @@ starters是依赖关系的整理和封装，是一套依赖坐标的整合。只
 
 ![](images/20201006152054124_172.png)
 
-## 7. Spring Boot 视图
+## 8. Spring Boot 视图
 
-### 7.1. 静态资源html视图
+### 8.1. 静态资源html视图
 
 - SpringBoot默认有四个静态资源文件夹：
   - classpath:/static/
@@ -1204,7 +1411,7 @@ public class HelloController {
 }
 ```
 
-### 7.2. Jsp视图(不推荐)
+### 8.2. Jsp视图(不推荐)
 - 第一步：创建Maven项目(war包)
 - 第二步：配置依赖
 
@@ -1322,13 +1529,13 @@ public class Application {
 
 访问地址：http://localhost:8080/item
 
-### 7.3. FreeMarker视图
+### 8.3. FreeMarker视图
 
 详见Spring Boot整合FreeMarker部分。
 
-## 8. Spring Boot 部署
+## 9. Spring Boot 部署
 
-### 8.1. 配置 SpringBoot 构建插件
+### 9.1. 配置 SpringBoot 构建插件
 
 SpringBoot项目打包都需要配置spring-boot-maven-plugin插件：
 
@@ -1345,7 +1552,9 @@ SpringBoot项目打包都需要配置spring-boot-maven-plugin插件：
 </build>
 ```
 
-### 8.2. 打成jar包部署
+### 9.2. 打成 jar 包部署（官方推荐）
+
+#### 9.2.1. 打包步骤
 
 - 修改项目pom.xml文件中的打包类型，默认是jar
 
@@ -1376,7 +1585,22 @@ java -Xmx80m -Xms20m -jar target/springboot_demo.jar
 
 ![](images/20201006160709959_2233.png)
 
-### 8.3. 打war包
+#### 9.2.2. 内嵌tomcat参数
+
+在 application.properties 设置相关参数即可，如：
+
+```properties
+# 设置tomcat端口
+server.port=8080
+# 设置服务地址
+server.address=127.0.0.1
+# 设置超时时间
+server.connection-timeout=1000
+# 设置上下文路径
+server.contextPath=/boot
+```
+
+### 9.3. 打war包
 
 spring-boot默认提供内嵌的tomcat，所以打包直接生成jar包，用`java -jar`命令就可以启动。但是有时候更希望一个tomcat来管理多个项目，这种情况下就需要项目是war格式的包而不是jar格式的包。
 
@@ -1439,24 +1663,9 @@ public class ServletInitializer extends SpringBootServletInitializer {
 
 ![生成war包](images/20190829142838873_3136.png)
 
-### 8.4. 内嵌tomcat参数
-在application.properties设置相关参数即可，如：
+## 10. 其他
 
-```properties
-# 设置tomcat端口
-server.port=8080
-# 设置服务地址
-server.address=127.0.0.1
-# 设置超时时间
-server.connection-timeout=1000
-# 设置上下文路径
-server.contextPath=/boot
-```
-请求地址：http://127.0.0.2/boot/findAll
-
-## 9. 其他
-
-### 9.1. SpingBoot项目在windows环境中运行时命令行窗口及日志中文乱码
+### 10.1. SpingBoot项目在windows环境中运行时命令行窗口及日志中文乱码
 
 1. 配置日志的xml文件中，`<appender name="CONSOLE">`与`appender name="FILE">`的标签中都要指定`<encoder>`标签内的`<charset>utf8</charset>`
 2. 由于指定的编码与windows系统默认编码不符，此时命令行窗口将会出现日志输出乱码，需要将系统默认编码改为utf-8。cmd命令窗口在启动jar包之前增加命令`chcp 65001`
@@ -1759,9 +1968,10 @@ spring.jpa.showSql=true
 spring.jpa.properties.hibernate.format_sql=true
 ```
 
-- 注：
-    - 其中，数据源（原生的datasource也可以，将c3p0去掉即可）配置包括driverClass(驱动类)、url(数据库地址)、user\password (用户名与密码)、其它数据源的相关参数(如：maxPoolSize等等)
-    - JPA的配置包括：如showSql(是否显示sql语句)、format_sql(是否格式式sql)、hibernate.ddl-auto(配置为create时，程序启动时会在MySQ数据库中建表；配置为update时，在程序启动时不会在MySQL数据库中建表)等等
+注：
+
+- 其中，数据源（原生的datasource也可以，将c3p0去掉即可）配置包括driverClass(驱动类)、url(数据库地址)、user\password (用户名与密码)、其它数据源的相关参数(如：maxPoolSize等等)
+- JPA的配置包括：如showSql(是否显示sql语句)、format_sql(是否格式式sql)、hibernate.ddl-auto(配置为create时，程序启动时会在MySQ数据库中建表；配置为update时，在程序启动时不会在MySQL数据库中建表)等等
 
 
 **将application.properties文件修改成application.yml文件**

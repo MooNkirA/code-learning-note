@@ -27,7 +27,11 @@ mvn -Dmaven.test.skip=true clean install
 
 2. 如果出现报错找不到spring-javaformat插件 执行`mvn spring-javaformat:apply`命令即可。命令执行成功后，再次执行指令：`mvnw clean install -DskipTests -Pfast`
 
+## 2. SpringBoot 项目启动流程
 
+### 2.1. SpringBoot 应用启动流程图
+
+![](images/20211227162258538_26216.png)
 
 
 

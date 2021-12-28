@@ -86,23 +86,17 @@ idea.system.path=D:/development/JetBrains/.IntelliJIdea/system
 
 ![](images/20201105144437320_21147.jpg)
 
-### 5.3. 解决Maven创建项目慢的问题
-
-Maven --> Runner --> `-DarchetypeCatalog=internal`
-
-![](images/20201105144746524_23890.jpg)
-
-### 5.4. 勾选自动导入依赖、下载源码与文档说明
+### 5.3. 勾选自动导入依赖、下载源码与文档说明
 
 ![](images/20201105144821815_27336.jpg)
 
-### 5.5. 更新本地仓库和远程仓库
+### 5.4. 更新本地仓库和远程仓库
 
 在pom.xml文件中添加依赖jar包的坐标时就可以很好的提示出来
 
 ![](images/20201105144858228_5957.jpg)
 
-### 5.6. IntelliJ 强制更新 Maven Dependencies
+### 5.5. IntelliJ 强制更新 Maven Dependencies
 
 Intellj 自动载入Mave依赖的功能很好用，但有时候会碰到问题，导致pom文件修改却没有触发自动重新载入的动作，此时需要手动强制更新依赖
 
@@ -110,15 +104,15 @@ Intellj 自动载入Mave依赖的功能很好用，但有时候会碰到问题�
 2. 在 Maven Project 的试图里 clean 一下，删除之前编译过的文件；
 3. 项目右键 --> Maven --> Reimport
 
-### 5.7. 解决idea创建maven项目速度慢问题的三种方法
+### 5.6. 解决idea创建maven项目速度慢问题的三种方法
 
 idea创建maven项目时，速度很慢，主要原因是创建maven项目时默认是下载求网络上的一个文件archetype-catalog.xml，该文件的大小有5-6M，下载的速度很慢，导致创建过程也变得很慢。
 
 解决办法有三种，并且都需要对maven的VM Options参数做配置。
 
-#### 5.7.1. 方式一
+#### 5.6.1. 方式一
 
-在maven的VM Options加上`-DarchetypeCatalog=internal`参数，步骤如下：
+在maven的VM Options加上 `-DarchetypeCatalog=internal` 或者 `-DarchetypeCatalog=local` 参数，步骤如下：
 
 1. 打开idea的启动界面，进入全局设置
 
@@ -130,7 +124,7 @@ idea创建maven项目时，速度很慢，主要原因是创建maven项目时默
 
 确定后，再新建maven项目，就能发现项目很快就创建完成。
 
-#### 5.7.2. 方式二
+#### 5.6.2. 方式二
 
 下载archetype-catalog.xml文件，在maven的VM Options加上`-DarchetypeCatalog=local`。默认情况下，创建maven项目是从网络下载catalog文件，我们可以将catalog文件下到本地，然后通过设置archetype的使用方式为local，这样就不用每次都从网络上下载了。
 
@@ -147,7 +141,7 @@ idea创建maven项目时，速度很慢，主要原因是创建maven项目时默
 
 3. 修改maven的VM Options参数。跟之前方法的步骤一样，打开全局设置中的maven设置栏，然后在VM Options输入框中填入`-DarchetypeCatalog=local`。这样maven每次就会从本地获取catalog文件，创建项目时就不用等那么久了。
 
-#### 5.7.3. 方式三
+#### 5.6.3. 方式三
 
 在maven的VM Options加上`-Dmaven.multiModuleProjectDictory=$MAVEN_HOME`参数，MAVEN_HOME是你环境变量中配置maven环境的名称
 
@@ -158,6 +152,21 @@ idea创建maven项目时，速度很慢，主要原因是创建maven项目时默
 ![](images/20201105161258484_26119.jpg)
 
 确定之后，maven项目就能很快的建成了。
+
+#### 5.6.4. 方式四
+
+修改下载下来的 maven 目录下面 conf/settings.xml 文件，修改镜像源使用国内阿里巴巴的镜像源
+
+```xml
+<mirror>
+    <id>alimaven</id>
+    <name>aliyun maven</name>
+    <url>http://maven.aliyun.com/nexus/content/groups/public/</url>
+    <mirrorOf>central</mirrorOf>
+</mirror>
+```
+
+![](images/20211227215818216_1738.png)
 
 ## 6. 常用配置
 
