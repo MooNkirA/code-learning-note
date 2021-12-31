@@ -30,7 +30,7 @@ MySQL官方对索引的定义为：索引（index）是帮助MySQL高效获取�
 
 #### 1.3.2. 时间上的代价
 
-虽然索引大大提高了查询效率，同时却也降低更新表的速度，如对表进行INSERT、UPDATE、DELETE等操作。因为更新表时，MySQL 不仅要保存数据，还要保存索引文件因每次更新添加了索引列的字段，都会调整因为更新所带来的键值变化后的索引信息，即需要修改各个B+树索引。
+虽然索引大大提高了查询效率，同时却也降低更新表的速度，如对表进行`INSERT`、`UPDATE`、`DELETE`等操作。因为更新表时，MySQL 不仅要保存数据，还要保存索引文件因每次更新添加了索引列的字段，都会调整因为更新所带来的键值变化后的索引信息，即需要修改各个B+树索引。
 
 B+树每层节点都是按照索引列的值从小到大的顺序排序而组成了双向链表。不论是叶子节点中的记录，还是非叶子内节点中的记录都是按照索引列的值从小到大的顺序而形成了一个单向链表。而增、删、改操作可能会对节点和记录的排序造成破坏，所以存储引擎需要额外的时间进行一些记录移位，页面分裂、页面回收的操作来维护好节点和记录的排序。如果我们建了许多索引，每个索引对应的 B+树都要进行相关的维护操作，这必然会对性能造成影响。
 
@@ -64,6 +64,50 @@ CREATE [UNIQUE] INDEX indexName ON mytable(columnname(length));
 
 ```sql
 ALTER TABLE 表名 ADD [UNIQUE] INDEX [indexName] ON (columnname(length));
+```
+
+示例：
+
+```sql
+-- 普通索引方式1-创建表的时候直接指定
+create  table student(
+    sid int primary key,
+    card_id varchar(20),
+    name varchar(20),
+    gender varchar(20),
+    age int,
+    birth date,
+    phone_num varchar(20),
+    score double,
+    index index_name(name) -- 给name列创建索引
+);
+-- 普通索引方式2-直接创建
+create index index_gender on student(gender);
+
+-- 普通索引方式3-修改表结构(添加索引)
+alter table student add index index_age(age);
+
+-- 唯一索引方式1-创建表的时候直接指定
+create  table student2(
+    sid int primary key,
+    card_id varchar(20),
+    name varchar(20),
+    gender varchar(20),
+    age int,
+    birth date,
+    phone_num varchar(20),
+    score double,
+    unique index_card_id(card_id) -- 给card_id列创建索引
+);
+-- 唯一索引方式2-直接创建
+create unique index index_card_id on student2(card_id);
+
+-- 唯一索引方式3-修改表结构(添加索引)
+alter table student2 add unique index_phone_num(phone_num)
+
+
+-- 创建索引的基本语法
+create index indexname on table_name(column1(length),column2(length)); 
 ```
 
 ### 2.3. 删除索引
@@ -212,9 +256,138 @@ MySQL中的 B+Tree 索引结构示意图：
 
 ## 4. 索引分类
 
-1. **单值索引**：即一个索引只包含单个列，一个表可以有多个单列索引
-2. **唯一索引**：索引列的值必须唯一，但允许有空值
-3. **复合索引**：即一个索引包含多个列
+- **单值（列）索引**：即一个索引只包含单个列，一个表可以有多个单列索引
+    - **普通索引**
+    - **唯一索引**
+    - **主键索引**
+- **复合（组合）索引**
+- **全文索引**
+- **空间索引**
+
+### 4.1. 普通索引
+
+MySQL中基本索引类型，没有什么限制，允许在定义索引的列中插入重复值和空值
+
+### 4.2. 唯一索引
+
+唯一索引与前面的普通索引类似，不同的就是：**索引列的值必须唯一，但允许有空值**。如果是组合索引，则列值的组合必须唯一。
+
+### 4.3. 主键索引
+
+每张表一般都会有自己的主键，在创建表时，MySQL会自动在主键列上建立一个索引，这就是主键索引。主键是具有唯一性并且不允许为NULL，所以主键索引是一种特殊的唯一索引。
+
+### 4.4. 复合（组合）索引
+
+组合索引也叫复合索引，指的是在建立索引的时候使用多个字段（*例如同时使用身份证和手机号建立索引*），同样的可以建立为普通索引或者是唯一索引。
+
+注：复合索引在使用时，需要符合最左原则。
+
+### 4.5. 全文索引
+
+#### 4.5.1. 概述
+
+全文索引的关键字是 `fulltext`。全文索引主要用来查找文本中的关键字，而不是直接与索引中的值相比较，它更像是一个搜索引擎，基于相似度的查询，而不是简单的`where`语句的参数匹配。
+
+用 `like + %` 就可以实现模糊匹配了，为什么还要全文索引？`like + %` 在文本比较少时是合适的，但是对于大量的文本数据检索，是不可想象的。全文索引在大量的数据面前，能比 `like + %` 快 N 倍，速度不是一个数量级，但是全文索引可能存在精度问题。
+
+#### 4.5.2. 注意事项
+
+- MySQL 5.6 以前的版本，只有 MyISAM 存储引擎支持全文索引
+- MySQL 5.6 及以后的版本，MyISAM 和 InnoDB 存储引擎均支持全文索引
+- 只有字段的数据类型为 `char`、`varchar`、`text` 及其系列才可以建全文索引
+- 在数据量较大时候，现将数据放入一个没有全局索引的表中，然后再用 `create index` 创建 `fulltext` 索引，要比先为一张表建立 `fulltext` 然后再将数据写入的速度快很多；
+
+#### 4.5.3. 最小搜索长度和最大搜索长度
+
+MySQL 中的全文索引，有两个变量，最小搜索长度和最大搜索长度，对于长度小于最小搜索长度和大于最大搜索长度的词语，都不会被索引。通俗点就是说，想对一个词语使用全文索引搜索，那么这个词语的长度必须在以上两个变量的区间内。这两个的默认值可以使用以下命令查看:
+
+```sql
+show variables like '%ft%';
+```
+
+部分参数解析
+
+|         参数名称         | 默认值 | 最小值 | 最大值 |                             作用                              |
+| :----------------------: | :----: | :----: | :----: | ------------------------------------------------------------ |
+|     ft_min_word_len      |   4    |   1    |  3600  | MyISAM  引擎表全文索引包含的最小词长度                           |
+| ft_query_expansion_limit |   20   |   0    |  1000  | MyISAM引擎表使用  with  query expansion 进行全文搜索的最大匹配数 |
+| innodb_ft_min_token_size |   3    |   0    |   16   | InnoDB  引擎表全文索引包含的最小词长度                           |
+| innodb_ft_max_token_size |   84   |   10   |   84   | InnoDB  引擎表全文索引包含的最大词长度                           |
+
+
+#### 4.5.4. 全文索引创建语法
+
+语法格式：
+
+```sql
+-- 创建表的时候添加全文索引
+create table 表名 (
+     ...
+     fulltext (字段名) -- 创建全文检索
+);
+
+-- 修改表结构添加全文索引
+alter table 表名 add fulltext index_content(字段名)
+
+-- 直接添加全文索引
+create fulltext index index_content on 表名(字段名);
+```
+
+示例：
+
+```sql
+create table t_article (
+     id int primary key auto_increment ,
+     title varchar(255) ,
+     content varchar(1000) ,
+     writing_date date,
+     fulltext (content) -- 创建全文检索
+);
+
+alter table t_article add fulltext index_content(content)
+
+create fulltext index index_content on t_article(content);
+```
+
+#### 4.5.5. 使用全文索引
+
+使用全文索引和常用的模糊匹配使用 `like + %` 不同，全文索引有自己的语法格式，使用 `match` 和 `against` 关键字，格式:
+
+```sql
+match (col1,col2,...)  against(expr [search_modifier])
+```
+
+示例：
+
+```sql
+select * from t_article where match(content) against('yo’); -- 没有结果 单词数需要大于等于3 
+select * from t_article where match(content) against('you'); -- 有结果
+```
+
+### 4.6. 空间索引(少用，了解)
+
+- MySQL在5.7之后的版本支持了空间索引，而且支持OpenGIS几何数据模型
+- 空间索引是对空间数据类型的字段建立的索引，MYSQL中的空间数据类型有4种，分别是GEOMETRY、POINT、LINESTRING、POLYGON。
+
+|    类型    |   含义   |       说明       |
+| ---------- | -------- | ---------------- |
+| Geometry   | 空间数据 | 任何一种空间类型   |
+| Point      | 点       | 坐标值            |
+| LineString | 线       | 有一系列点连接而成 |
+| Polygon    | 多边形   | 由多条线组成       |
+
+- MYSQL使用SPATIAL关键字进行扩展，使得能够用于创建正规索引类型的语法创建空间索引。
+- 创建空间索引的列，必须将其声明为NOT NULL。
+
+语法：
+
+```sql
+create table 表名 (
+  ...
+  spatial key geom_index(列名)
+);
+```
+
 
 ## 5. InnoDB 中的索引
 

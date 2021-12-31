@@ -86,23 +86,17 @@ idea.system.path=D:/development/JetBrains/.IntelliJIdea/system
 
 ![](images/20201105144437320_21147.jpg)
 
-### 5.3. 解决Maven创建项目慢的问题
-
-Maven --> Runner --> `-DarchetypeCatalog=internal`
-
-![](images/20201105144746524_23890.jpg)
-
-### 5.4. 勾选自动导入依赖、下载源码与文档说明
+### 5.3. 勾选自动导入依赖、下载源码与文档说明
 
 ![](images/20201105144821815_27336.jpg)
 
-### 5.5. 更新本地仓库和远程仓库
+### 5.4. 更新本地仓库和远程仓库
 
 在pom.xml文件中添加依赖jar包的坐标时就可以很好的提示出来
 
 ![](images/20201105144858228_5957.jpg)
 
-### 5.6. IntelliJ 强制更新 Maven Dependencies
+### 5.5. IntelliJ 强制更新 Maven Dependencies
 
 Intellj 自动载入Mave依赖的功能很好用，但有时候会碰到问题，导致pom文件修改却没有触发自动重新载入的动作，此时需要手动强制更新依赖
 
@@ -110,15 +104,15 @@ Intellj 自动载入Mave依赖的功能很好用，但有时候会碰到问题�
 2. 在 Maven Project 的试图里 clean 一下，删除之前编译过的文件；
 3. 项目右键 --> Maven --> Reimport
 
-### 5.7. 解决idea创建maven项目速度慢问题的三种方法
+### 5.6. 解决idea创建maven项目速度慢问题的三种方法
 
 idea创建maven项目时，速度很慢，主要原因是创建maven项目时默认是下载求网络上的一个文件archetype-catalog.xml，该文件的大小有5-6M，下载的速度很慢，导致创建过程也变得很慢。
 
 解决办法有三种，并且都需要对maven的VM Options参数做配置。
 
-#### 5.7.1. 方式一
+#### 5.6.1. 方式一
 
-在maven的VM Options加上`-DarchetypeCatalog=internal`参数，步骤如下：
+在maven的VM Options加上 `-DarchetypeCatalog=internal` 或者 `-DarchetypeCatalog=local` 参数，步骤如下：
 
 1. 打开idea的启动界面，进入全局设置
 
@@ -130,7 +124,7 @@ idea创建maven项目时，速度很慢，主要原因是创建maven项目时默
 
 确定后，再新建maven项目，就能发现项目很快就创建完成。
 
-#### 5.7.2. 方式二
+#### 5.6.2. 方式二
 
 下载archetype-catalog.xml文件，在maven的VM Options加上`-DarchetypeCatalog=local`。默认情况下，创建maven项目是从网络下载catalog文件，我们可以将catalog文件下到本地，然后通过设置archetype的使用方式为local，这样就不用每次都从网络上下载了。
 
@@ -147,7 +141,7 @@ idea创建maven项目时，速度很慢，主要原因是创建maven项目时默
 
 3. 修改maven的VM Options参数。跟之前方法的步骤一样，打开全局设置中的maven设置栏，然后在VM Options输入框中填入`-DarchetypeCatalog=local`。这样maven每次就会从本地获取catalog文件，创建项目时就不用等那么久了。
 
-#### 5.7.3. 方式三
+#### 5.6.3. 方式三
 
 在maven的VM Options加上`-Dmaven.multiModuleProjectDictory=$MAVEN_HOME`参数，MAVEN_HOME是你环境变量中配置maven环境的名称
 
@@ -158,6 +152,21 @@ idea创建maven项目时，速度很慢，主要原因是创建maven项目时默
 ![](images/20201105161258484_26119.jpg)
 
 确定之后，maven项目就能很快的建成了。
+
+#### 5.6.4. 方式四
+
+修改下载下来的 maven 目录下面 conf/settings.xml 文件，修改镜像源使用国内阿里巴巴的镜像源
+
+```xml
+<mirror>
+    <id>alimaven</id>
+    <name>aliyun maven</name>
+    <url>http://maven.aliyun.com/nexus/content/groups/public/</url>
+    <mirrorOf>central</mirrorOf>
+</mirror>
+```
+
+![](images/20211227215818216_1738.png)
 
 ## 6. 常用配置
 
@@ -464,6 +473,65 @@ idea对代码进行了审查，在开发的时候也会经常对变量在未使�
 Editor -> Reader Mode -> 取消勾选 【Enable Reader mode】
 
 ![](images/20210223210345370_19141.png)
+
+### 6.25. UI Options(界面设置)
+
+设置位置：Appearance & Behavior -> Appearance -> UI Options
+
+![](images/20211213085455885_5559.png)
+
+#### 6.25.1. 显示树状缩进级别垂直线
+
+【Show tree indent guides】，开启效果如下：
+
+![](images/20211213085707826_3253.png)
+
+#### 6.25.2. 平滑移动
+
+【Smooth scrolling】，开启后用鼠标中键上下滑动更流畅
+
+#### 6.25.3. 树状菜单更小的缩进
+
+【Smooth scrolling】，开启效果如下：
+
+![](images/20211213085819741_11053.png)
+
+#### 6.25.4. 按Alt进行拖动
+
+【Drag-n-Drop with Alt pressed only】，启用后，按住该Alt键才可移动内容。避免意外移动文件，编辑器选项卡，工具窗口按钮和其他UI组件。
+
+#### 6.25.5. 合并IDEA主菜单到window标题
+
+【Merge main menu with window title】，将IDEA主菜单合并到window栏
+
+#### 6.25.6. 始终在窗口标题中显示完整路径
+
+【Always show full path in window header】，始终在窗口标题中显示完整路径
+
+#### 6.25.7. 在菜单项中显示图标
+
+【Display icons in menu items】，在主菜单和上下文菜单中，在项目左侧显示图标。
+
+### 6.26. Antialiasing (抗锯齿设置)
+
+IDE: 选择要应用于IDE的哪种抗锯齿模式（包括菜单，工具窗口等）
+
+- Subpixel(子像素): 用于LCD显示器，并利用彩色LCD上的每个像素都由红色，绿色和蓝色子像素组成
+- Greyscale(灰度): 建议此选项用于非LCD显示器或垂直放置的显示器。它在像素级别处理文本。
+- No antialiasing(无抗锯齿): 此选项可用于高分辨率的显示，其中非抗锯齿的字体渲染速度更快，并且外观可能更好。
+
+Editor: 选择要应用于编辑器的抗锯齿模式：
+
+- Subpixel(子像素): 用于LCD显示器，并利用彩色LCD上的每个像素都由红色，绿色和蓝色子像素组成
+- Greyscale(灰度): 建议此选项用于非LCD显示器或垂直放置的显示器。它在像素级别处理文本。
+- No antialiasing(无抗锯齿): 此选项可用于高分辨率的显示，其中非抗锯齿的字体渲染速度更快，并且外观可能更好。
+
+### 6.27. Tool Windows(工具栏设置)
+
+设置位置：Appearance & Behavior -> Appearance -> Tool Windows
+
+- 【Show tool window bars】，在主窗口的边缘周围显示工具窗口栏
+- 【Show tool window numbers】，工具栏显示数字，并且可以按Alt键加数字键快捷打开菜单
 
 ## 7. 配置代码模板（Live Templates）
 

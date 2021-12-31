@@ -113,7 +113,13 @@
 
 ### ✨ Vue.js ✨
 
-待整理....
+<ul class="docs">
+  <li><a href="#/03-前端资料/03-Vue/01-Vue2.x-笔记"> Vue2.x 基础笔记</a></li>
+  <li><a href="#/03-前端资料/03-Vue/01-Vue3.x-笔记"> Vue3.x 基础笔记</a></li>
+  <li><a href="#/03-前端资料/03-Vue/02-Vue2.x-API笔记">Vue2.x API</a></li>
+  <li><a href="#/03-前端资料/03-Vue/03-Vue框架项目开发笔记">Vue 框架项目开发笔记</a></li>
+  <li><a href="#/03-前端资料/03-Vue/04-Vue-Router">Vue Router 路由库</a></li>
+</ul>
 
 ### ✨ React.js ✨
 
@@ -129,12 +135,14 @@
   <li><a href="#/03-前端资料/05-Bootstrap/01-Bootstrap基础">Bootstrap 基础入门</a></li>
 </ul>
 
-### ✨ Node.js & Webpack ✨
+### ✨ 前端工程化工具 ✨
 
 <ul class="docs">
-  <li><a href="#/03-前端资料/06-Node&Webpack/01-node笔记">node.js 笔记</a></li>
-  <li><a href="#/03-前端资料/06-Node&Webpack/02-webpack笔记">Webpack 笔记</a></li>
+  <li><a href="#/03-前端资料/06-前端工程化工具/01-node">node.js 笔记</a></li>
+  <li><a href="#/03-前端资料/06-前端工程化工具/02-webpack">Webpack 笔记</a></li>
+  <li><a href="#/03-前端资料/06-前端工程化工具/03-ESLint">ESLint 笔记</a></li>
 </ul>
+
 
 ### 📱  移动端Web
 
@@ -235,6 +243,7 @@
   <li><a href="#/07-分布式架构&微服务架构/01-SpringBoot/04-SpringBoot整合Servlet、Filter、Listener">SpringBoot 整合 Servlet、Filter、Listener</a></li>
   <li><a href="#/07-分布式架构&微服务架构/01-SpringBoot/05-SpringBoot整合MyBatis">SpringBoot 整合 MyBatis</a></li>
   <li><a href="#/07-分布式架构&微服务架构/01-SpringBoot/06-SpringBoot整合Druid-数据库连接池">SpringBoot 整合 Druid-数据库连接池</a></li>
+  <li><a href="#/07-分布式架构&微服务架构/01-SpringBoot/07-Spring-Boot-Admin">Spring Boot Admin 监控工具</a></li>
   <li><a href="#/07-分布式架构&微服务架构/01-SpringBoot/12-SpringBoot整合JavaMail">SpringBoot 整合 JavaMail</a></li>
   <li><a href="#/07-分布式架构&微服务架构/01-SpringBoot/13-SpringBoot整合javax.validation">SpringBoot 整合 javax.validatio</a></li>
   <li><a href="#/07-分布式架构&微服务架构/01-SpringBoot/99-SpringBoot笔记-其他相关内容">SpringBoot 笔记-其他相关内容</a></li>
@@ -293,7 +302,10 @@
 ## 并发编程
 
 <ul class="docs">
-  <li><a href="#/08-并发编程/01-并发基础-多线程">并发基础-多线程</a></li>
+  <li><a href="#/08-并发编程/01-并发基础-多线程">并发基础</a></li>
+  <li><a href="#/08-并发编程/02-Java并发编程-常用API">Java并发编程 常用API</a></li>
+  <li><a href="#/08-并发编程/03-并发编程-应用篇">并发编程 应用篇</a></li>
+  <li><a href="#/08-并发编程/04-并发编程-原理篇">并发编程 原理篇</a></li>
 </ul>
 
 ## 性能调优
@@ -306,10 +318,6 @@
 
 ## 其他
 
-<ul class="docs">
-  <li><a href="#/99-其他/编程资源收集">编程资源收集</a></li>
-</ul>
-
 ### 💻 IDE
 
 <ul class="docs">
@@ -317,6 +325,15 @@
   <li><a href="#/99-其他/01-IDE/02-eclipse">Eclipse 常用配置</a></li>
   <li><a href="#/99-其他/01-IDE/03-Visual-Studio-Code">Visual Studio Code 常用配置</a></li>
   <li><a href="#/99-其他/01-IDE/99-DevelopmentTool">其它开发工具常用配置与使用</a></li>
+</ul>
+
+### 相关编程资料
+
+<ul class="docs">
+  <li><a href="#/99-其他/编程资源收集">编程资源收集</a></li>
+  <li><a href="#/99-其他/其它资料">其它资料</a></li>
+  <li><a href="#/99-其他/Hexo-blog搭建工具">Hexo 博客 搭建工具</a></li>
+  <li><a href="#/99-其他/docsify-文档类型网站搭建工具">docsify 文档类型网站搭建工具</a></li>
 </ul>
 
 ## 收集的项目实战资料

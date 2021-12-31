@@ -1283,40 +1283,822 @@ public void testSelect() {
 }
 ```
 
-
-
-
-
-
 ## 7. ActiveRecord
 
+### 7.1. 什么是 ActiveRecord
 
+ActiveRecord 也属于ORM（对象关系映射）层，由Rails最早提出，遵循标准的ORM模型：表映射到记录，记录映射到对象，字段映射到对象属性。配合遵循的命名和配置惯例，能够很大程度的快速实现模型的操作，而且简洁易懂。
 
+ActiveRecord 的主要思想是：
 
+- 每一个数据库表对应创建一个类，类的每一个对象实例对应于数据库中表的一行记录；通常表的每个字段在类中都有相应的Field
+- ActiveRecord 同时负责把自己持久化，在 ActiveRecord 中封装了对数据库的访问，即CURD
+- ActiveRecord 是一种领域模型(Domain Model)，封装了部分业务逻辑
 
+### 7.2. 开启 ActiveRecord
 
+在 MP 中，使用 ActiveRecord 只需要将相应的表实体类继承 `com.baomidou.mybatisplus.extension.activerecord.Model` 类即可。如：
 
+```java
+/*
+ *  MybatisPlus 要实现 ActiveRecord 的功能，
+ *  需要继承 com.baomidou.mybatisplus.extension.activerecord.Model
+ */
+@EqualsAndHashCode(callSuper = true)
+@Data
+@Accessors(chain = true)
+public class User extends Model<User> {
 
+    private static final long serialVersionUID = 5734014396574993178L;
 
+    // 配置主键生成策略
+    @TableId(value = "id", type = IdType.AUTO)
+    private Long id;
+    private String name;
+    private Integer age;
+    private String email;
+    private Long roleId;
 
+    /**
+     * 主键值。重写此方法
+     * AR 模式这个必须有，否则 xxById 的方法都将失效！
+     * 另外 UserMapper 也必须 AR 依赖该层注入，有可无 XML
+     */
+    @Override
+    public Serializable pkVal() {
+        return id;
+    }
+}
+```
 
+> *值得注意是：官方示例中，AR 模式必须需要有 `pkVal` 方法，否则原 xxById 等方法会失效。*
 
+### 7.3. 使用 ActiveRecord 示例
 
+```java
+/**
+ * ActiveRecord 新增
+ */
+@Test
+public void testActiveRecordInsert() {
+    User user = new User();
+    user.setName("sunny")
+            .setAge(25)
+            .setEmail("miemie@moon.com")
+            .setRoleId(1L);
 
+    // 测试使用 ActiveRecord 新增数据
+    Assertions.assertTrue(user.insert());
+    // 新增成功后，可以直接成实体对象中获取主键 ID
+    System.err.println("\n插入成功 ID 为：" + user.getId());
+}
 
+/**
+ * ActiveRecord 根据 id 删除
+ */
+@Test
+public void testActiveRecordDeleteById() {
+    User user = new User();
+    user.setId(7L);
 
+    // 测试使用 ActiveRecord 根据id删除数据
+    Assertions.assertTrue(user.deleteById());
+}
 
+/**
+ * ActiveRecord 条件删除
+ */
+@Test
+public void testActiveRecordDeleteByWrapper() {
+    // 创建查询条件
+    Wrapper<User> wrapper = new QueryWrapper<User>()
+            .lambda()
+            .eq(User::getName, "sunny");
 
+    // 测试使用 ActiveRecord 根据条件删除数据
+    Assertions.assertTrue(new User().delete(wrapper));
+}
 
+/**
+ * ActiveRecord 根据 id 更新
+ */
+@Test
+public void testActiveRecordUpdateById() {
+    User user = new User();
+    user.setId(11L).setName("长泽雅美").setRoleId(2L);
 
+    // 测试使用 ActiveRecord 根据id更新数据
+    Assertions.assertTrue(user.updateById());
+}
 
-## 8. 代码生成器
+/**
+ * ActiveRecord 条件更新
+ */
+@Test
+public void testActiveRecordUpdateByWrapper() {
+    // 创建查询条件
+    Wrapper<User> wrapper = new UpdateWrapper<User>()
+            .lambda()
+            .set(User::getAge, 18)
+            .eq(User::getId, 11L);
 
-### 8.1. 代码生成器（历史版本）-待整理
+    // 测试使用 ActiveRecord 根据条件删除数据
+    Assertions.assertTrue(new User().update(wrapper));
+}
+
+/**
+ * ActiveRecord 查询
+ */
+@Test
+public void testActiveRecordQuery() {
+    /* 根据id查询 */
+    User user = new User().setId(11L);
+    System.out.println(user.selectById());
+
+    /* 根据条件查询 */
+    Wrapper<User> wrapper = new QueryWrapper<User>().lambda().gt(User::getAge, 20);
+    List<User> users = user.selectList(wrapper);
+    users.forEach(System.out::println);
+}
+```
+
+> 注：测试时可观察控制台中的最终生成的sql语句
+
+## 8. Oracle 主键 Sequence
+
+在 Oracle 数据库中，主键不能使用自增长了，需要使用 Sequence 序列生成 id 值
+
+### 8.1. Oracle 数据库环境搭建
+
+#### 8.1.1. 部署 Oracle 测试环境
+
+使用 Docker 环境进行部署安装 Oracle
+
+```bash
+#拉取镜像
+docker pull sath89/oracle-12c
+
+#创建容器
+docker create --name oracle -p 1521:1521 sath89/oracle-12c
+
+#启动
+docker start oracle && docker logs -f oracle
+```
+
+> *连接 Oracle 数据库图形化客户端推荐使用 navicat12的oracle版本，或者 PLSQL Developer*
+>
+> 需要注意的是：由于安装的Oracle是64位版本，所以navicat也是需要使用64为版本，否则连接不成功。
+
+#### 8.1.2. 创建表以及序列
+
+```sql
+--创建表，表名以及字段名都要大写
+CREATE TABLE "TB_USER" (
+    "ID" NUMBER(20) VISIBLE NOT NULL ,
+    "USER_NAME" VARCHAR2(255 BYTE) VISIBLE ,
+    "PASSWORD" VARCHAR2(255 BYTE) VISIBLE ,
+    "NAME" VARCHAR2(255 BYTE) VISIBLE ,
+    "AGE" NUMBER(10) VISIBLE ,
+    "EMAIL" VARCHAR2(255 BYTE) VISIBLE
+)
+
+--创建序列
+CREATE SEQUENCE SEQ_USER START WITH 1 INCREMENT BY 1
+```
+
+#### 8.1.3. 安装 Oracle 驱动包到 maven 本地仓库
+
+由于版权原因，不能直接通过maven的中央仓库下载oracle数据库的jdbc驱动包，所以手动需要将驱动包安装到本地仓库。maven安装命令如下：
+
+```bash
+mvn install:install-file -DgroupId=com.oracle -DartifactId=ojdbc8 -Dversion=12.1.0.1 -Dpackaging=jar -Dfile=ojdbc8.jar
+```
+
+> *安装包在本地 [数据库驱动-oracle] 目录中*
+
+安装完成后的相应的maven坐标：
+
+```xml
+<dependency>
+    <groupId>com.oracle</groupId>
+    <artifactId>ojdbc8</artifactId>
+    <version>12.1.0.1</version>
+</dependency>
+```
+
+### 8.2. 修改数据库连接配置
+
+```yml
+spring:
+  datasource: # DataSource Config
+    driver-class-name: oracle.jdbc.OracleDriver
+    url: jdbc:oracle:thin:@192.168.96.111:1521:orcl
+    username: root
+    password: 123456
+```
+
+### 8.3. 修改主键的生成策略
+
+<font color=red>**主键生成策略必须使用`INPUT`**</font>
+
+- 修改全局配置（application.yml），增加主键生成策略
+
+```yml
+mybatis-plus:
+  # 配置 id 的生成策略
+  global-config:
+    db-config:
+      id-type: input
+```
+
+```properties
+#id生成策略
+mybatis-plus.global-config.db-config.id-type=input
+```
+
+- 也可以单独相应的表实体类，通过 `@TableId` 注解指定主键生成策略
+
+```java
+@KeySequence(value = "SEQ_ORACLE_STRING_KEY", clazz = String.class)
+public class YourEntity {
+
+    @TableId(value = "ID_STR", type = IdType.INPUT)
+    private String idStr;
+
+}
+```
+
+### 8.4. 配置序列生成器
+
+在项目中，配置MP的序列生成器，并添加到Spring容器中。MP 内置支持：
+
+- `DB2KeyGenerator`
+- `H2KeyGenerator`
+- `KingbaseKeyGenerator`
+- `OracleKeyGenerator`
+- `PostgreKeyGenerator`
+
+如果内置支持不满足你的需求，可实现`IKeyGenerator`接口来进行扩展
+
+#### 8.4.1. 方式1: Spring xml 配置
+
+```xml
+<bean id="globalConfig" class="com.baomidou.mybatisplus.core.config.GlobalConfig">
+   <property name="dbConfig" ref="dbConfig"/>
+</bean>
+
+<bean id="dbConfig" class="com.baomidou.mybatisplus.core.config.GlobalConfig.DbConfig">
+   <property name="keyGenerator" ref="keyGenerator"/>
+</bean>
+
+<bean id="keyGenerator" class="com.baomidou.mybatisplus.extension.incrementer.H2KeyGenerator"/>
+```
+
+#### 8.4.2. 方式2: 使用配置类
+
+```java
+@Configuration
+public class MybatisPlusConfig {
+    /**
+     * sequence主键，需要配置一个主键生成器
+     * 配合实体类注解 {@link KeySequence} + {@link TableId} type=INPUT
+     * @return
+     */
+    @Bean
+    public OracleKeyGenerator oracleKeyGenerator(){
+        return new OracleKeyGenerator();
+    }
+}
+```
+
+#### 8.4.3. 方式3: 通过 MybatisPlusPropertiesCustomizer 自定义
+
+```java
+@Bean
+public MybatisPlusPropertiesCustomizer plusPropertiesCustomizer() {
+    return plusProperties -> plusProperties.getGlobalConfig().getDbConfig().setKeyGenerator(new OracleKeyGenerator());
+}
+```
+
+### 8.5. 配置 @KeySequence 注解指定序列名称
+
+实体类配置主键Sequence名称。
+
+```java
+@TableName("TB_USER")
+@Data
+/*
+ * @KeySequence 注解用于指定序列的名称
+ * 3.1.2 版本后， clazz 属性自动匹配,无需指定，后面也移除了该属性
+ *      @KeySequence(value = "SEQ_USER", clazz = String.class)
+ */
+@KeySequence(value = "SEQ_USER")
+public class User {
+    // 配置主键生成策略，必须使用 INPUT
+    @TableId(value = "id", type = IdType.INPUT)
+    private Long id;
+    ....
+}
+```
+
+注意事项：
+
+- 支持父类定义 `@KeySequence`，子类使用，这样就可以几个表共用一个 Sequence。如果主键是`String`类型的，也可以使用
+- oracle的sequence返回的是`Long`类型，如果主键类型是`Integer`，可能会引起`ClassCastException`
+
+### 8.6. 测试
+
+```java
+@Test
+public void testSequenceGenerate() {
+    User user = new User();
+    user.setAge(18);
+    user.setEmail("test@moon.com");
+    user.setName("sequence");
+    userMapper.insert(user);
+    Long id1 = user.getId();
+    System.out.println(id1);
+    Assertions.assertTrue(id1 >= 1000, "sequence start with 1000");
+
+    user = new User();
+    user.setAge(19);
+    user.setEmail("test2@moon.com");
+    user.setName("sequence2");
+    userMapper.insert(user);
+    Long id2 = user.getId();
+    Assertions.assertTrue(id2 - id1 == 1, "squence increment by 1");
+}
+```
+
+### 8.7. 底层实现（了解）
+
+mybatis 原生提供了接口。MP 提供的现实类 `com.baomidou.mybatisplus.core.metadata.TableInfoHelper`
+
+```java
+/**
+ * 自定义 KEY 生成器
+ */
+public static KeyGenerator genKeyGenerator(TableInfo tableInfo, MapperBuilderAssistant builderAssistant,
+                                           String baseStatementId, LanguageDriver languageDriver) {
+    IKeyGenerator keyGenerator = GlobalConfigUtils.getKeyGenerator(builderAssistant.getConfiguration());
+    if (null == keyGenerator) {
+        throw new IllegalArgumentException("not configure IKeyGenerator implementation class.");
+    }
+    String id = baseStatementId + SelectKeyGenerator.SELECT_KEY_SUFFIX;
+    Class<?> resultTypeClass = tableInfo.getKeySequence().clazz();
+    StatementType statementType = StatementType.PREPARED;
+    String keyProperty = tableInfo.getKeyProperty();
+    String keyColumn = tableInfo.getKeyColumn();
+    SqlSource sqlSource = languageDriver.createSqlSource(builderAssistant.getConfiguration(),
+        keyGenerator.executeSql(tableInfo.getKeySequence().value()), null);
+    builderAssistant.addMappedStatement(id, sqlSource, statementType, SqlCommandType.SELECT, null, null, null,
+        null, null, resultTypeClass, null, false, false, false,
+        new NoKeyGenerator(), keyProperty, keyColumn, null, languageDriver, null);
+    id = builderAssistant.applyCurrentNamespace(id, false);
+    MappedStatement keyStatement = builderAssistant.getConfiguration().getMappedStatement(id, false);
+    SelectKeyGenerator selectKeyGenerator = new SelectKeyGenerator(keyStatement, true);
+    builderAssistant.getConfiguration().addKeyGenerator(id, selectKeyGenerator);
+    return selectKeyGenerator;
+}
+```
+
+1. 通过反射获取到实体的`@KeySequence`注解，继而能拿到定义的`Sequence`序列名
+2. 然后产生`SelectKeyGenerator`对象，这个对象是mybatis原生的主键生成器
+3. 将`SelectKeyGenerator`绑定到`insert`/`insertBatch`的`statement`上面
+4. 通过上述3步，就完成了自动注入主键生成的SQL
+
+> `SelectKeyGenerator`对象是mybatis原生的主键生成器, 会在：执行sql之前调用主键生成器的方法获取主键结果，插入到insert语句中；在执行成功之后把主键的值回塞到实体对象中，这样我们只需通过对象的getId()方法就可以获取到主键值
+
+## 9. Sql 注入器
+
+在MP中，通过 `AbstractSqlInjector` 将 `BaseMapper` 中的方法注入到了 Mybatis 容器，基础的增删改查方法才可以正常执行。
+
+如果想扩展 `BaseMapper` 中的方法，有以下两个步骤：
+
+1. 编写自定义的`Mapper`接口，继承`BaseMapper`接口，在此自定义接口中新增一些方法，然后其他的`Mapper`接口都继承这个自定义`Mapper`接口即可，这样实现了统一的扩展。
+2. 编写自定义方法的逻辑处理类，继承抽象类`AbstractMethod`，实现`injectMappedStatement`方法，此方法就是自定义方法处理逻辑
+3. 继承MP框架的`ISqlInjector`接口默认实现类`DefaultSqlInjector`，重写`getMethodList`方法，增加扩展自定义的方法。
+
+### 9.1. SQL 自动注入器接口 ISqlInjector
+
+```java
+public interface ISqlInjector {
+    /**
+     * <p>
+     * 检查SQL是否注入(已经注入过不再注入)
+     * </p>
+     *
+     * @param builderAssistant mapper 信息
+     * @param mapperClass      mapper 接口的 class 对象
+     */
+    void inspectInject(MapperBuilderAssistant builderAssistant, Class<?> mapperClass);
+}
+```
+
+自定义自己的通用方法可以实现接口 `ISqlInjector` 也可以继承抽象类 `AbstractSqlInjector` 注入通用方法 SQL 语句，然后继承 `BaseMapper` 添加自定义方法，全局配置 `sqlInjector` 注入 MP 会自动将类所有方法注入到 mybatis 容器中。
+
+### 9.2. 编写接口继承 BaseMapper
+
+编写 `MyBaseMapper` 接口（*名称自取*），此接口继承`BaseMapper`接口，相应扩展的方法都定义在此接口中。其他的Mapper接口都可以继承此Mapper接口，这样实现了统一的扩展。
+
+```java
+/**
+ * 扩展 BaseMapper 方法，在此接口中定义相应扩展的方法。
+ * 其他 Mapper 继承此接口，也能获取相应的扩展
+ */
+public interface MyBaseMapper<T> extends BaseMapper<T> {
+
+    List<T> findAll();
+
+    int truncateAll();
+}
+```
+
+### 9.3. 编写自定义方法实现
+
+自定义的 SQL 处理方法，需要继承MP框架的 `AbstractMethod` 抽象类，重写 `injectMappedStatement` 抽象方法，在方法中对SQL做自定义的处理。
+
+```java
+public class FindAll extends AbstractMethod {
+    /**
+     * 注入自定义 MappedStatement
+     *
+     * @param mapperClass mapper 接口
+     * @param modelClass  mapper 泛型
+     * @param tableInfo   数据库表反射信息
+     * @return MappedStatement
+     */
+    @Override
+    public MappedStatement injectMappedStatement(Class<?> mapperClass, Class<?> modelClass, TableInfo tableInfo) {
+        /* 组装待执行的 SQL ，动态 SQL 参考类 SqlMethod */
+        // 1. 获取表名
+        String tableName = tableInfo.getTableName();
+        // 2. 拼接 sql
+        String sql = "select * from " + tableName;
+        // 3. 定义方法名称，与 mapper 接口方法名一致
+        String sqlMethod = "findAll";
+        // 4. 获取 sql数据源
+        SqlSource sqlSource = languageDriver.createSqlSource(configuration, sql, modelClass);
+
+        /*
+         * 5. 返回查询的 MappedStatement
+         * 方法参数：
+         * Class<?> mapperClass : mapper 接口
+         * String id : 方法名
+         * SqlSource sqlSource : sql数据源
+         * TableInfo table : 表信息
+         */
+        return this.addSelectMappedStatementForTable(mapperClass, sqlMethod, sqlSource, tableInfo);
+    }
+}
+```
+
+### 9.4. 编写 SqlInjector 的实现
+
+自定义通用方法可以实现接口 `ISqlInjector`，也可以继承抽象类 `AbstractSqlInjector` 来注入自定义通用方法。值得注意的是，如果直接继承 `AbstractSqlInjector` 的话，原有的 `BaseMapper` 中的方法将失效，所以一般选择继承MP的框架提供的默认实现 `DefaultSqlInjector` 进行扩展。
+
+```java
+// 将自定义 SQL 注入器加入 Spring 容器中
+@Component
+/*
+ * 如果自定义Injector是继承 AbstractSqlInjector，原有的 BaseMapper 中的方法将失效。
+ * 所以选择继承默认实现 DefaultSqlInjector，在其基础上进行扩展
+ */
+public class MySqlInjector extends DefaultSqlInjector {
+    /**
+     * 在此方法中加入扩展的自定义方法
+     *
+     * @param mapperClass
+     * @param tableInfo
+     * @return
+     */
+    @Override
+    public List<AbstractMethod> getMethodList(Class<?> mapperClass, TableInfo tableInfo) {
+        // 1. 获取原有 BaseMapper 中的所有方法
+        List<AbstractMethod> methodList = super.getMethodList(mapperClass, tableInfo);
+
+        // 2. 增加自定义方法
+        methodList.add(new FindAll());
+        methodList.add(new TruncateAll());
+
+        return methodList;
+    }
+}
+```
+
+> 注：此类需要注册到spring容器中
+
+### 9.5. 测试
+
+编写mapper接口，继承自定义的 `MyBaseMapper` 接口
+
+```java
+public interface UserMapper extends MyBaseMapper<User>
+```
+
+测试接口调用自定义方法。
+
+## 10. 自动填充功能
+
+在MP中提供了实现自动填充的功能，插入或者更新数据时，自动填充一些字段的数据。
+
+### 10.1. @TableField 注解的 fill 属性
+
+在实体类中，给需要自动填充的字段添加 `@TableField` 注解，`fill` 属性指定生成器的策略
+
+```java
+public class User {
+    // 注意！这里需要标记为填充字段
+    @TableField(.. fill = FieldFill.INSERT)
+    private String fillField;
+    ....
+}
+```
+
+`fill` 属性的取值是 `FieldFill` 枚举
+
+```java
+public enum FieldFill {
+    /**
+     * 默认不处理
+     */
+    DEFAULT,
+    /**
+     * 插入时填充字段
+     */
+    INSERT,
+    /**
+     * 更新时填充字段
+     */
+    UPDATE,
+    /**
+     * 插入和更新时填充字段
+     */
+    INSERT_UPDATE
+}
+```
+
+### 10.2. 编写 MetaObjectHandler 的实现
+
+自定义元对象处理器接口 `com.baomidou.mybatisplus.core.handlers.MetaObjectHandler` 的实现类。
+
+```java
+@Slf4j
+@Component
+public class MyMetaObjectHandler implements MetaObjectHandler {
+
+    @Override
+    public void insertFill(MetaObject metaObject) {
+        log.info("start insert fill ....");
+        this.strictInsertFill(metaObject, "createTime", LocalDateTime.class, LocalDateTime.now()); // 起始版本 3.3.0(推荐使用)
+        // 或者
+        this.strictInsertFill(metaObject, "createTime", () -> LocalDateTime.now(), LocalDateTime.class); // 起始版本 3.3.3(推荐)
+        // 或者
+        this.fillStrategy(metaObject, "createTime", LocalDateTime.now()); // 也可以使用(3.3.0 该方法有bug)
+    }
+
+    @Override
+    public void updateFill(MetaObject metaObject) {
+        log.info("start update fill ....");
+        this.strictUpdateFill(metaObject, "updateTime", LocalDateTime.class, LocalDateTime.now()); // 起始版本 3.3.0(推荐)
+        // 或者
+        this.strictUpdateFill(metaObject, "updateTime", () -> LocalDateTime.now(), LocalDateTime.class); // 起始版本 3.3.3(推荐)
+        // 或者
+        this.fillStrategy(metaObject, "updateTime", LocalDateTime.now()); // 也可以使用(3.3.0 该方法有bug)
+    }
+}
+```
+
+> 注：自定义处理器需要声明 `@Component` 或 `@Bean` 注入 spring 容器中
+
+### 10.3. 注意事项
+
+- 填充原理是直接给实体对象的属性设置值!!!
+- 注解则是指定该属性在对应情况下必有值,如果无值则入库会是 `null`
+- `MetaObjectHandler` 提供的默认方法的策略均为：如果属性有值则不覆盖，如果填充值为 `null` 则不填充
+- 自动填充的字段必须声明 `@TableField` 注解，属性`fill`选择对应策略，该声明告知Mybatis-Plus需要预留注入SQL字段
+- 填充处理器 `MyMetaObjectHandler` 在 Spring Boot 中需要声明 `@Component` 或 `@Bean` 注入
+- 要想根据注解 `FieldFill.xxx` 和字段名以及字段类型来区分必须使用父类的 `strictInsertFill` 或者 `strictUpdateFill` 方法
+- 不需要根据任何来区分可以使用父类的 `fillStrategy` 方法
+
+## 11. 逻辑删除
+
+逻辑删除就是将数据标记为删除，而并非真正的物理删除（非`DELETE`操作），查询时需要携带状态条件，确保被标记的数据不被查询到。这样做的目的就是避免数据被真正的删除。
+
+### 11.1. 修改全局配置 DbConfig
+
+修改`com.baomidou.mybatisplus.core.config.GlobalConfig$DbConfig`的配置。例：application.yml
+
+```yml
+mybatis-plus:
+  global-config:
+    db-config:
+      logic-delete-field: flag  # 全局逻辑删除的实体字段名(since 3.3.0,配置后可以忽略不配置步骤2)
+      logic-delete-value: 1 # 逻辑已删除值(默认为 1)
+      logic-not-delete-value: 0 # 逻辑未删除值(默认为 0)
+```
+
+> 注：MP的逻辑删除默认值为：1-已删除 0-未删除。如果表的代表逻辑删除的值与默认值一致，则可以不用修改`GlobalConfig$DbConfig`的配置
+
+### 11.2. 添加 @TableLogic 注解
+
+mp 实现逻辑删除，需要实体类相应的字段上加上 `@TableLogic` 注解
+
+```java
+@TableLogic
+private Integer deleted;
+```
+
+> *配置以上后，可以调用 `BaseMapper` 接口的删除方法，测试是否实现逻辑删除。*
+
+### 11.3. 特别说明
+
+<font color=red>**MP的逻辑删除功能只对自动注入的sql起效**</font>，*即原`BaseMapper`的方法与自定义的SQL注入器的方法才有效*。
+
+- 插入: 不作限制
+- 查找: 追加`where`条件过滤掉已删除数据，且使用 `wrapper.entity` 生成的`where`条件会忽略该字段
+- 更新: 追加`where`条件防止更新到已删除数据，且使用 `wrapper.entity` 生成的`where`条件会忽略该字段
+- 删除: 转变为 更新操作
+
+例如:
+
+- 删除: `update user set deleted=1 where id = 1 and deleted=0`
+- 查找: `select id,name,deleted from user where deleted=0`
+
+字段类型支持说明:
+
+- 支持所有数据类型(推荐使用`Integer`、`Boolean`、`LocalDateTime`)
+- 如果数据库字段使用 `datetime`，逻辑未删除值和已删除值支持配置为字符串 `null`，另一个值支持配置为函数来获取值如 `now()`
+
+> 扩展：逻辑删除实质还是代表删除数据，只是为了保存有价值的数据的一种方案。如果经常需要查询这些“已删除”的数据，建议使用一个字段用于表示该记录的状态会更加合理。
+
+## 12. 通用枚举
+
+MP 提供通用枚举的功能，让sql的操作（新增、更新、查询）时，自动将转换相应的枚举值。
+
+### 12.1. 声明通用枚举属性
+
+- 方式一：使用 `@EnumValue` 注解枚举属性
+
+```java
+@Getter
+public enum RoleEnum {
+    ADMIN(1L, "管理员"),
+    CONSUMER(2L, "用户"),
+    PROGRAMMER(3L, "程序猿");
+
+    RoleEnum(Long code, String descp) {
+        this.code = code;
+        this.descp = descp;
+    }
+
+    // 标识此属性是数据库相应要转换的
+    @EnumValue
+    private final Long code;
+    private final String descp;
+
+    /**
+     * 重写toString，输出的时显示相应的字段描述
+     */
+    @Override
+    public String toString() {
+        return this.descp;
+    }
+}
+```
+
+- 方式二：枚举属性，实现 `IEnum` 接口，需要实现`getValue`抽象方法
+
+```java
+@Getter
+public enum AgeEnum implements IEnum<Integer> {
+    SIXTEEN(16, "十六岁"),
+    EIGHTTEEN(18, "十八岁"),
+    TWENTY(20, "二十岁");
+
+    private final Integer value;
+    private final String desc;
+
+    AgeEnum(final Integer value, final String desc) {
+        this.value = value;
+        this.desc = desc;
+    }
+
+    /**
+     * 枚举数据库存储值
+     */
+    @Override
+    public Integer getValue() {
+        return this.value;
+    }
+
+    /**
+     * 重写toString，输出的时显示相应的字段描述
+     */
+    @Override
+    public String toString() {
+        return this.desc;
+    }
+}
+```
+
+### 12.2. 实体属性使用枚举类型
+
+将实体类相应需要转换的属性改成使用枚举
+
+```java
+@TableName("user")
+@Data
+public class User {
+    @TableId(value = "id", type = IdType.AUTO)
+    private Long id;
+    private String name;
+
+    /**
+     * IEnum接口的枚举处理
+     * 数据库字段：age INT(11)
+     */
+    private AgeEnum age;
+    private String email;
+
+    /**
+     * 原生枚举（带{@link com.baomidou.mybatisplus.annotation.EnumValue} 注解)
+     * 数据库的值对应该注解对应的属性
+     * 数据库字段：role_id BIGINT(20)
+     */
+    private RoleEnum roleId;
+}
+```
+
+### 12.3. 配置扫描通用枚举
+
+配置`typeEnumsPackage`项，扫描通过枚举包的路径
+
+```yml
+mybatis-plus:
+  # 配置扫描通过枚举的包路径。支持统配符 * 或者 ; 分割
+  type-enums-package: com.moon.mybatisplus.samples.enums.enums
+  configuration:
+    # 3.0.8之前版本问题默认将枚举注册为EnumOrdinalTypeHandler,这是错误的方式,默认是 org.apache.ibatis.type.EnumTypeHandler
+    # 如果项目之中实体统一使用IEnum或注解的方式,可配置成 com.baomidou.mybatisplus.extension.handlers.EnumTypeHandler,也可省略上面的type-enums-package配置
+    # 配置type-enums-package只对注解方式的枚举处理能提前加载缓存.
+    default-enum-type-handler: org.apache.ibatis.type.EnumOrdinalTypeHandler
+```
+
+### 12.4. 测试
+
+```java
+/**
+ * 测试插入数据时，通用枚举进行替换。
+ * 查询数据时，根据值转换成相应枚举。
+ */
+@Test
+public void testInsert() {
+    User user = new User();
+    user.setName("我是N");
+    user.setAge(AgeEnum.EIGHTTEEN);
+    user.setRoleId(RoleEnum.PROGRAMMER);
+
+    /*
+     * 测试新增，相应的枚举会替换成相应的数值。示例sql如下：
+     *   Preparing: INSERT INTO user ( name, age, role_id ) VALUES ( ?, ?, ? )
+     *   Parameters: 我是N(String), 18(Integer), 3(Long)
+     */
+    userMapper.insert(user);
+    // 获取新增的记录id，查询刚刚新增的记录
+    User userDb = userMapper.selectById(user.getId());
+    // 查询时 MP 也会根据数据值替换成相应的枚举
+    System.out.println("新增的用户记录：" + userDb);
+}
+
+/**
+ * 测试查询时，查询条件的通用枚举转换
+ */
+@Test
+public void testQueryWrapper() {
+    // 创建查询条件
+    LambdaQueryWrapper<User> wrapper = new QueryWrapper<User>()
+            .lambda()
+            .ge(User::getAge, AgeEnum.EIGHTTEEN)
+            .eq(User::getRoleId, RoleEnum.CONSUMER);
+
+    /*
+     * 测试查询，查询条件会替换成相应的枚举值。示例sql如下：
+     *   Preparing: SELECT id,name,age,email,role_id FROM user WHERE (age >= ? AND role_id = ?)
+     *   Parameters: 18(Integer), 2(Long)
+     */
+    List<User> users = userMapper.selectList(wrapper);
+    users.forEach(System.out::println);
+}
+```
+
+## 13. 代码生成器
+
+### 13.1. 代码生成器（历史版本）-待整理
 
 示例代码位置：`\mybatis-note\mybatis-plus-samples\03-mybatis-plus-generator\mp-generator-previous\`
 
-#### 8.1.1. 添加依赖
+#### 13.1.1. 添加依赖
 
 ```xml
 <dependencies>
@@ -1360,7 +2142,7 @@ public void testSelect() {
 </dependencies>
 ```
 
-#### 8.1.2. 编写配置
+#### 13.1.2. 编写配置
 
 ```java
 /**
@@ -1496,11 +2278,11 @@ public class CodeGenerator {
 }
 ```
 
-### 8.2. 代码生成器（3.5.1+版本）
+### 13.2. 代码生成器（3.5.1+版本）
 
 示例代码位置：`\mybatis-note\mybatis-plus-samples\03-mybatis-plus-generator\mp-generator-latest\`
 
-#### 8.2.1. 添加依赖
+#### 13.2.1. 添加依赖
 
 ```xml
 <dependencies>
@@ -1550,7 +2332,7 @@ public class CodeGenerator {
 </dependencies>
 ```
 
-#### 8.2.2. 编写配置
+#### 13.2.2. 编写配置
 
 ```java
 /**
@@ -1610,7 +2392,7 @@ public class MpFastAutoGenerator {
 
 # MyBatis 插件
 
-## 1. mybatis的插件机制
+## 1. mybatis 的插件机制
 
 MyBatis 允许在已映射语句执行过程中的某一点进行拦截调用。默认情况下，MyBatis 允许使用插件来拦截的方法调用包括：
 
@@ -2025,6 +2807,258 @@ public void testDoSelectPageInfo() {
     System.out.println("总页数pages：" + users.getPages());
     System.out.println("总记录数total：" + users.getTotal());
     users.getList().forEach(System.out::println);
+}
+```
+
+## 4. 执行 SQL 分析插件
+
+在MP中提供了对SQL执行的分析的插件`SqlExplainInterceptor`，可用作阻断全表更新、删除的操作。
+
+> *注意：该插件仅适用于开发环境，不适用于生产环境*。
+
+在项目配置类中创建相应的插件（拦截器）：
+
+```java
+@Bean
+public SqlExplainInterceptor sqlExplainInterceptor(){
+    SqlExplainInterceptor sqlExplainInterceptor = new SqlExplainInterceptor();
+    List<ISqlParser> sqlParserList = new ArrayList<>();
+    // 攻击 SQL 阻断解析器、加入解析链
+    sqlParserList.add(new BlockAttackSqlParser());
+    sqlExplainInterceptor.setSqlParserList(sqlParserList);
+    return sqlExplainInterceptor;
+}
+```
+
+官方示例所配置的插件`BlockAttackInnerInterceptor`，此插件针对 `update` 和 `delete` 语句。作用：阻止恶意的全表更新删除。
+
+```java
+/**
+ * 增加 MP 内置的执行分析插件 BlockAttackInnerInterceptor（攻击 SQL 阻断解析器），防止全表更新与删除
+ *
+ * @return
+ */
+@Bean
+public MybatisPlusInterceptor mybatisPlusInterceptor() {
+    MybatisPlusInterceptor interceptor = new MybatisPlusInterceptor();
+    interceptor.addInnerInterceptor(new BlockAttackInnerInterceptor());
+    return interceptor;
+}
+```
+
+测试时进行一些全表的操作，观察是否被阻断。
+
+## 5. 性能分析插件
+
+性能分析拦截器，用于输出每条 SQL 语句及其执行时间，可以设置最大执行时间，超过时间会抛出异常。
+
+> 该插件只用于开发环境，不建议生产环境使用。
+
+在全局配置文件中配置增加拦截器：
+
+```xml
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE configuration
+    PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-config.dtd">
+<configuration>
+    <plugins>
+        <!-- SQL 执行性能分析，开发环境使用，线上不推荐。 maxTime 指的是 sql 最大执行时长 -->
+        <plugin interceptor="com.baomidou.mybatisplus.extension.plugins.PerformanceInterceptor">
+            <property name="maxTime" value="100" />
+            <!--SQL是否格式化 默认false-->
+            <property name="format" value="true" />
+        </plugin>
+    </plugins>
+</configuration>
+```
+
+以上示例中，如果sql执行时间为11ms。那将`maxTime`设置为1，那么，该操作会抛出异常。
+
+> 注意：以上插件在3.1.1版本中生效，3.4.3.4版本已无此插件
+
+## 6. 乐观锁插件
+
+### 6.1. 乐观锁实现方式
+
+1. 取出记录时，获取当前version字段值
+2. 执行更新时，使用版本做为条件。 `set version = newVersion where version = oldVersion`
+3. 如果version不对，就更新失败
+
+### 6.2. 乐观锁插件配置
+
+spring xml方式:
+
+```xml
+<bean class="com.baomidou.mybatisplus.extension.plugins.inner.OptimisticLockerInnerInterceptor" id="optimisticLockerInnerInterceptor"/>
+
+<bean id="mybatisPlusInterceptor" class="com.baomidou.mybatisplus.extension.plugins.MybatisPlusInterceptor">
+    <property name="interceptors">
+        <list>
+            <ref bean="optimisticLockerInnerInterceptor"/>
+        </list>
+    </property>
+</bean>
+```
+
+spring boot 注解方式:
+
+```java
+@Configuration
+public class MybatisPlusConfig {
+    /**
+     * 旧版配置乐观锁插件 OptimisticLockerInterceptor
+     */
+    /*@Bean
+    public OptimisticLockerInterceptor optimisticLockerInterceptor() {
+        return new OptimisticLockerInterceptor();
+    }*/
+
+    /**
+     * 新版，配置乐观锁插件 OptimisticLockerInnerInterceptor
+     */
+    @Bean
+    public MybatisPlusInterceptor mybatisPlusInterceptor() {
+        MybatisPlusInterceptor mybatisPlusInterceptor = new MybatisPlusInterceptor();
+        mybatisPlusInterceptor.addInnerInterceptor(new OptimisticLockerInnerInterceptor());
+        return mybatisPlusInterceptor;
+    }
+}
+```
+
+### 6.3. 在实体类的字段上加上@Version注解
+
+给实体类相应版本字段添加 `@Version` 注解
+
+```java
+@Version
+private Integer version;
+```
+
+特别说明:
+
+- 支持的数据类型只有：`int`、`Integer`、`long`、`Long`、`Date`、`Timestamp`、`LocalDateTime`
+- 整数类型下 `newVersion = oldVersion + 1`
+- `newVersion` 会回写到 `entity` 中
+- 仅支持 `updateById(id)` 与 `update(entity, wrapper)` 方法
+- 在 `update(entity, wrapper)` 方法下, `wrapper` 不能复用!!!
+
+### 6.4. 测试示例
+
+```java
+/**
+ * 更新版本号
+ */
+@Test
+public void testUpdateByIdSucc() {
+    // 新增记录
+    Goods goods = new Goods();
+    goods.setName("篮球");
+    goods.setVersion(1);
+    goodsMapper.insert(goods);
+    // 获取新增后 id
+    Long id = goods.getId();
+
+    Goods goodsUpdate = new Goods();
+    goodsUpdate.setId(id);
+    goodsUpdate.setName("衣服");
+    goodsUpdate.setVersion(1);
+
+    // 版本号一致，更新成功
+    System.out.println("更新操作数：" + goodsMapper.updateById(goodsUpdate));
+    // 更新后 newVersion 会回写到 entity 中
+    System.out.println("new version：" + goodsUpdate.getVersion());
+}
+
+/**
+ * 测试更新后，版本号更新写回原对象中。
+ */
+@Test
+public void testUpdateByIdSuccVersion() {
+    Goods goods = goodsMapper.selectById(1);
+    int oldVersion = goods.getVersion();
+    System.out.println("old version: " + oldVersion);
+    int i = goodsMapper.updateById(goods);
+    // 更新后 newVersion 会回写到 entity 中
+    System.out.println("version: " + goods.getVersion());
+}
+
+/**
+ * 不带版本号更新数据，更新后版本号不会改变
+ */
+@Test
+public void testUpdateByIdSuccWithNoVersion() {
+    // 新增记录
+    Goods goods = new Goods();
+    goods.setName("篮球");
+    goods.setVersion(1);
+    goodsMapper.insert(goods);
+    // 获取新增后 id
+    Long id = goods.getId();
+
+    Goods goodsUpdate = new Goods();
+    goodsUpdate.setId(id);
+    goodsUpdate.setName("衣服");
+    goodsUpdate.setVersion(null);
+    // Should update success as no version passed in
+    System.out.println("更新操作成功数量：" + goodsMapper.updateById(goodsUpdate));
+    Goods updated = goodsMapper.selectById(id);
+    // Version not changed
+    System.out.println("更新后版本号：" + updated.getVersion());
+    // Age updated
+    System.out.println("商品的名称已经更新为：" + updated.getName());
+}
+
+/**
+ * 测试不正确版本号，更新失败
+ */
+@Test
+public void testUpdateByIdFail() {
+    // 新增记录
+    Goods goods = new Goods();
+    goods.setName("篮球");
+    goods.setVersion(1);
+    goodsMapper.insert(goods);
+    // 获取新增后 id
+    Long id = goods.getId();
+
+    Goods goodsUpdate = new Goods();
+    goodsUpdate.setId(id);
+    goodsUpdate.setName("排球");
+    // 设置不正确的版本号
+    goodsUpdate.setVersion(3);
+    // 没有更新到数据
+    System.out.println("操作的记录数: " + goodsMapper.updateById(goodsUpdate));
+}
+
+/**
+ * 批量更新带乐观锁
+ * <p>
+ * update(et,ew) et:必须带上version的值才会触发乐观锁
+ */
+@Test
+public void testUpdateByEntitySucc() {
+    QueryWrapper<Goods> ew = new QueryWrapper<>();
+    ew.eq("version", 1);
+    long count = goodsMapper.selectCount(ew);
+    System.out.println("版本号是1的记录数：" + count);
+
+    Goods entity = new Goods();
+    entity.setName("篮球");
+    entity.setVersion(1);
+
+    // updated records should be same
+    Assertions.assertEquals(count, goodsMapper.update(entity, null));
+
+    ew = new QueryWrapper<>();
+    ew.eq("version", 1);
+    // No records found with version=1
+    System.out.println("批量更新后版本号是1的记录数：" + goodsMapper.selectCount(ew));
+
+    ew = new QueryWrapper<>();
+    ew.eq("version", 2);
+    // All records with version=1 should be updated to version=2
+    System.out.println("批量更新后版本号是2的记录数：" + goodsMapper.selectCount(ew));
 }
 ```
 
