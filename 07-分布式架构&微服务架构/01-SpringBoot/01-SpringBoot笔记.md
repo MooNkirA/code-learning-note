@@ -2001,7 +2001,8 @@ spring:
 - **第一步：创建entity**
 
 ```java
-@Entity @Table(name="notice")
+@Entity
+@Table(name="notice")
 public class Notice implements Serializable {
     private static final long serialVersionUID = 5679176319867604937L;
     @Id @GeneratedValue(strategy=GenerationType.IDENTITY)
