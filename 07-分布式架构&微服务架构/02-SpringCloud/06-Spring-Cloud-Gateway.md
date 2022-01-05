@@ -2,15 +2,11 @@
 
 Spring Cloud Netflix Zuul 1.x 是一个基于阻塞 IO 的 API Gateway 以及 Servlet；直到2018年5月，Zuul 2.x（基于Netty，也是非阻塞的，支持长连接）才发布，但 Spring Cloud 暂时还没有整合计划。Spring Cloud Gateway 比 Zuul 1.x 系列的性能和功能整体要好。
 
-## 1. Spring Cloud Gateway 简介
+## 1. Spring Cloud Gateway 是什么
 
-### 1.1. 简介
+### 1.1. 简述
 
-Spring Cloud Gateway 是 Spring 官方基于 Spring 5.0，Spring Boot 2.0 和 Project Reactor 等技术开
-发的网关，旨在为微服务架构提供一种简单而有效的统一的 API 路由管理方式，统一访问接口。Spring
-Cloud Gateway 作为 Spring Cloud 生态系中的网关，目标是替代 Netflix ZUUL，其不仅提供统一的路
-由方式，并且基于 Filter 链的方式提供了网关基本的功能，例如：安全，监控/埋点，和限流等。它是基
-于Nttey的响应式开发模式。
+Spring Cloud Gateway 是 Spring 官方基于 Spring 5.0，Spring Boot 2.0 和 Project Reactor 等技术开发的网关，旨在为微服务架构提供一种简单而有效的统一的 API 路由管理方式，统一访问接口。Spring Cloud Gateway 作为 Spring Cloud 生态系中的网关，目标是替代 Netflix ZUUL，其不仅提供统一的路由方式，并且基于 Filter 链的方式提供了网关基本的功能，例如：安全，监控/埋点，限流等。它是基于Nttey的响应式开发模式。
 
 > Spring Cloud Gateway官方文档：https://spring.io/projects/spring-cloud-gateway#overview
 
@@ -21,13 +17,31 @@ Cloud Gateway 作为 Spring Cloud 生态系中的网关，目标是替代 Netfli
 
 上表为Spring Cloud Gateway与Zuul的性能对比，从结果可知，Spring Cloud Gateway的RPS是Zuul的1.6倍
 
-### 1.2. 核心概念
+### 1.2. 优缺点
+
+优点：
+
+- 性能强劲：是第一代网关Zuul的1.6倍
+- 功能强大：内置了很多实用的功能，例如转发、监控、限流等
+- 设计优雅，容易扩展
+
+缺点：
+
+- 其实现依赖Netty与WebFlux，不是传统的Servlet编程模型，学习成本高
+- 不能将其部署在Tomcat、Jetty等Servlet容器里，只能打成jar包执行
+- 需要Spring Boot 2.0及以上的版本，才支持
+
+### 1.3. 核心概念
+
+**路由（route）**：路由是网关最基础的部分，表示一个具体的路由信息载体。路由信息由一个ID、一个目的地URI、排序order、一组断言工厂和一组Filter组成。如果断言为真，则说明请求URL和配置的路由匹配。
 
 ![](images/20201024155248894_3162.png)
 
-- **路由（route）**：路由是网关最基础的部分，路由信息由一个ID、一个目的URL、一组断言工厂和一组Filter组成。如果断言为真，则说明请求URL和配置的路由匹配。
-- **断言（predicates）**：Java8中的断言函数，Spring Cloud Gateway中的断言函数输入类型是Spring5.0框架中的`ServerWebExchange`。Spring Cloud Gateway中的断言函数允许开发者去定义匹配来自Http Request中的任何信息，比如请求头和参数等。
-- **过滤器（filter）**：一个标准的Spring WebFilter，Spring Cloud Gateway中的Filter分为两种类型，分别是`Gateway Filter`和`Global Filter`。过滤器`Filter`可以对请求和响应进行处理。
+- id，路由标识符，区别于其他 Route。
+- uri，路由指向的目的地 uri，即客户端请求最终被转发到的微服务。
+- order，用于多个 Route 之间的排序，数值越小排序越靠前，匹配优先级越高。
+- **predicates（断言）**：Java8中的断言函数，断言的作用是进行条件判断，只有断言都返回真，才会真正的执行路由。Spring Cloud Gateway中的断言函数输入类型是Spring5.0框架中的`ServerWebExchange`。Spring Cloud Gateway中的断言函数允许开发者去定义匹配来自Http Request中的任何信息，比如请求头和参数等。
+- **filter（过滤器）**：一个标准的Spring WebFilter，Spring Cloud Gateway中的Filter分为两种类型，分别是`Gateway Filter`和`Global Filter`。过滤器`Filter`可以对请求和响应进行处理。
 
 ## 2. Spring Cloud Gateway 基础入门案例
 
@@ -285,9 +299,11 @@ spring:
 
 ### 3.2. 动态路由
 
-和zuul网关类似，在Spring Cloud GateWay组件也支持动态路由：即自动的从注册中心中获取服务列表并访问
+和 zuul 网关类似，在 Spring Cloud GateWay 组件也支持动态路由：即自动的从注册中心中获取服务列表并访问
 
-#### 3.2.1. 添加注册中心依赖
+#### 3.2.1. 基于 Eureka 注册中心动态获取路由
+
+##### 3.2.1.1. 添加注册中心依赖（Eureka）
 
 在`12-springcloud-gateway`工程的pom文件中添加注册中心的客户端依赖（此示例以Eureka做为注册中心）
 
@@ -298,7 +314,7 @@ spring:
 </dependency>
 ```
 
-#### 3.2.2. 配置动态路由
+##### 3.2.1.2. 配置动态路由
 
 修改 `application.yml` 配置文件，添加eureka注册中心的相关配置，并修改访问映射的URL为服务名称
 
@@ -329,6 +345,72 @@ eureka:
 <font color=red>**配置动态路由要点：配置uri属性以`lb://`开头（lb代表从注册中心获取服务），后面接的就是需要转发到的服务名称**</font>
 
 测试访问网关请求地址以`product`开头时，会通过注册中心获取转发的地址，自动转发到地址：`http://127.0.0.1:9001/product/xxx`。配置完成启动项目即可在浏览器访问进行测试
+
+#### 3.2.2. 基于 Nacos 注册中心动态获取路由
+
+##### 3.2.2.1. 添加注册中心依赖（Nacos）
+
+在`spring-cloud-alibaba-2.1.x-sample\api-gateway`工程的 pom 文件中添加注册中心的客户端依赖（此示例以 Nacos 做为注册中心）
+
+```xml
+<!-- nacos 客户端 -->
+<dependency>
+    <groupId>com.alibaba.cloud</groupId>
+    <artifactId>spring-cloud-starter-alibaba-nacos-discovery</artifactId>
+</dependency>
+```
+
+##### 3.2.2.2. 开启 nacos 客户端
+
+在项目启动类或者配置上添加注解 `@EnableDiscoveryClient`，开启 nacos 客户端
+
+```java
+@SpringBootApplication
+@EnableDiscoveryClient
+public class ApiGatewayApplication {
+    public static void main(String[] args) {
+        SpringApplication.run(ApiGatewayApplication.class, args);
+    }
+}
+```
+
+##### 3.2.2.3. 配置动态路由
+
+修改项目的 `application.yml` 配置文件，具体修改内容如下：
+
+1. 添加 nacos 注册中心的相关配置，将网关服务注册到 nacos 中，
+2. 修改访问映射的uri，改为注册中心上相应的服务名称
+
+```yml
+server:
+  port: 7000 # 项目端口
+spring:
+  application:
+    name: api-gateway # 服务名称
+  cloud:
+    # Spring Cloud Gateway 配置
+    gateway:
+      discovery:
+        locator:
+          enabled: true # 配置开启让 gateway 从 nacos 注册中心中获取服务信息列表
+      # 配置路由数组（包含的元素：路由id、路由到微服务的uri，断言【判断条件】）
+      routes:
+        # 路由配置都是多个，所以此处是一个数组
+        - id: service-product # 路由id
+          # 方式二：根据微服务名称从注册中心拉取服务的地址与端口，格式： lb://服务名称（服务在注册中心上注册的名称）。
+          # lb 是 Load Balance 的缩写，gateway 遵循实现了负载均衡策略
+          uri: lb://service-product
+          order: 1 # 路由的优先级,数字越小级别越高
+          predicates: # 断言(就是路由转发要满足的条件)
+            # 注意此path属性与zuul的path属性不一样，zuul只会将/**部分拼接到uri后面，而gateway会将全部拼接到uri后面
+            # 断言，此处访问 http://127.0.0.1:7000/api-product/product/1 就会路由到 http://127.0.0.1:8081/api-product/product/1(在未配置RewritePath属性前、StripPrefix 过滤器之前)
+            - Path=/api-product/**
+          filters: # 过滤器，请求在传递过程中可以通过过滤器对其进行一定的修改
+            - StripPrefix=1 # 此过滤器配置的作用是，在请求转发之前去掉第1层路径，即以上请求转化路径会变成 http://127.0.0.1:8081/product/1
+    nacos:
+      discovery:
+        server-addr: 127.0.0.1:8848 # 配置 Nacos server 的地址，将网关服务注册到 nacos 中
+```
 
 ### 3.3. 重写转发路径
 
@@ -793,7 +875,7 @@ Spring Cloud Gateway目前提供的限流还是相对比较简单的，在实际
 
 这些可以通过自定义RedisRateLimiter来实现自己的限流策略
 
-### 5.3. 基于Sentinel的限流
+### 5.3. 基于 Sentinel 的限流
 
 Sentinel 支持对 Spring Cloud Gateway、Zuul 等主流的 API Gateway 进行限流。
 
@@ -1102,7 +1184,7 @@ location / {
 
 Spring Cloud Gateway 核心处理流程如上图所示
 
-1. Gateway的客户端向 Spring Cloud Gateway 发送请求，请求首先被 `HttpWebHandlerAdapter` 进行提取组装成网关上下文，然后网关的上下文会传递到`DispatcherHandler`。
+1. Gateway 的客户端向 Spring Cloud Gateway 发送请求，请求首先被 `HttpWebHandlerAdapter` 进行提取组装成网关上下文，然后网关的上下文会传递到`DispatcherHandler`。
 2. `DispatcherHandler` 是所有请求的分发处理器，`DispatcherHandler`主要负责分发请求对应的处理器。比如请求分发到对应的 `RoutePredicateHandlerMapping` （路由断言处理映射器）。
-3. 路由断言处理映射器主要作用用于路由查找，以及找到路由后返回对应的`FilterWebHandler`。
-4. `FilterWebHandler` 主要负责组装Filter链并调用Filter执行一系列的Filter处理，然后再把请求转到后端对应的代理服务处理，处理完毕之后将`Response`返回到Gateway客户端。
+3. `RoutePredicateHandlerMapping` 路由断言处理映射器主要作用用于路由查找，根据路由断言判断路由是否可用，以及找到路由后返回对应的`FilterWebHandler`。
+4. `FilterWebHandler` 主要负责组装 Filter 链，先调用执行一系列的 PreFilter 处理，然后再把请求转到后端对应的代理服务处理，处理完毕之后再执行一系列的 Post Filter，最后将`Response`返回到 Gateway 客户端。

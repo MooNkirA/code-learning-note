@@ -216,10 +216,12 @@ Spring Cloud Alibaba BOM 包含了它所使用的所有依赖的版本（RELEASE
 |           service-user            |  807x   | 用户微服务             |
 |          service-product          |  808x   | 商品微服务             |
 |           service-order           |  809x   | 订单微服务             |
+|            api-gateway            |  7000   | 网关服务               |
 
-| 第三方应用服务 | 部署端口 |       说明        |
-| :----------: | :-----: | ----------------- |
-| Nacos server |  8848   | nacos 服务注册中心 |
+|  第三方应用服务   | 部署端口 |        说明        |
+| :-------------: | :-----: | ----------------- |
+|  Nacos server   |  8848   | nacos 服务注册中心  |
+| Sentinel server |  8080   | Sentinel 微服务容错 |
 
 ### 6.2. 示例项目初始化
 
@@ -1486,6 +1488,8 @@ Sentinel 系统自适应保护从整体维度对应用入口流量进行控制�
 
 - 实现 `com.alibaba.csp.sentinel.adapter.servlet.callback.UrlBlockHandler` 接口，在 Sentinel 进行规则拦截时，会调用到接口的 `blocked` 方法。所以在此方法中，根据不同的异常类型自定义相应的返回内容。
 
+#### 6.7.1. 旧版本（1.8以前版本）实现 UrlBlockHandler 的接口
+
 ```java
 @Component
 public class ExceptionPageHandler implements UrlBlockHandler {
@@ -1524,30 +1528,372 @@ public class ExceptionPageHandler implements UrlBlockHandler {
 }
 ```
 
-- 测试
+#### 6.7.2. 新版本（1.8版本）实现 BlockExceptionHandler 的接口
 
+```java
+@Component
+public class ExceptionPageHandler implements BlockExceptionHandler {
+    /**
+     * Handle the request when blocked.
+     *
+     * @param request  Servlet request
+     * @param response Servlet response
+     * @param e        the block exception
+     * @throws Exception users may throw out the BlockException or other error occurs
+     */
+    @Override
+    public void handle(HttpServletRequest request, HttpServletResponse response, BlockException e) throws Exception {
+        response.setContentType("application/json;charset=utf-8");
 
+        CommonResult responseData = null;
+        // BlockException 是 Sentinel 异常接口,包含 Sentinel 的五种异常
+        if (e instanceof FlowException) {
+            // FlowException  限流异常
+            responseData = CommonResult.failed(ResultCode.SENTINEL_FLOW);
+        } else if (e instanceof DegradeException) {
+            // DegradeException  降级异常
+            responseData = CommonResult.failed(ResultCode.SENTINEL_DEGRADE);
+        } else if (e instanceof ParamFlowException) {
+            // ParamFlowException  参数限流异常
+            responseData = CommonResult.failed(ResultCode.SENTINEL_PARAM_FLOW);
+        } else if (e instanceof AuthorityException) {
+            // AuthorityException  授权异常
+            responseData = CommonResult.failed(ResultCode.SENTINEL_AUTHORITY);
+        } else if (e instanceof SystemBlockException) {
+            // SystemBlockException  系统负载异常
+            responseData = CommonResult.failed(ResultCode.SENTINEL_SYSTEM_BLOCK);
+        }
+        response.getWriter().write(JSON.toJSONString(responseData));
+    }
+}
+```
 
+### 6.8. Sentinel 规则持久化
 
+#### 6.8.1. 概述
 
+上面的规则配置，都是存在内存中的。即如果应用重启，这个规则就会失效。Sentinel 提供了开放的接口，可以通过实现 DataSource 接口的方式，来自定义规则的存储数据源。通常的建议有：
 
+- 整合动态配置系统，如 ZooKeeper、Nacos 等，动态地实时刷新配置规则
+- 结合 RDBMS、NoSQL、VCS 等来实现该规则
+- 配合 Sentinel Dashboard 使用
 
+#### 6.8.2. 规则推送原理
 
+本地文件数据源会定时轮询文件的变更，读取规则。这样既可以在应用本地直接修改文件来更新规则，也可以通过 Sentinel 控制台推送规则。以本地文件数据源为例，推送过程如下图所示：
 
+![](images/20220104113637133_22401.png)
 
+首先 Sentinel 控制台通过 API 将规则推送至客户端并更新到内存中，接着注册的写数据源会将新的规则保存到本地的文件中。
 
+#### 6.8.3. 实现规则持久化步骤
 
-## 7. 基于 Sentinel 的服务保护
+注册数据源。可以借助 Sentinel 的 InitFunc SPI 扩展接口。只需要实现自己的 `InitFunc` 接口，在 `init` 方法中编写注册数据源的逻辑。
 
-### 7.1. Sentinel 对通用资源保护
+```java
+public class DataSourceInitFunc implements InitFunc {
+    /* 此处初始化时，是无法读取配置文件 */
+    @Value("${spring.application.name}")
+    private String appcationName;
 
-#### 7.1.1. 基础说明
+    @Override
+    public void init() throws Exception {
+        // String ruleDir = System.getProperty("user.home") + "/sentinel-rules/" + appcationName;
+        String ruleDir = "D:/deployment-environment/sentinel/sentinel-rules/service-order/";
+        String flowRulePath = ruleDir + "/flow-rule.json";
+        String degradeRulePath = ruleDir + "/degrade-rule.json";
+        String systemRulePath = ruleDir + "/system-rule.json";
+        String authorityRulePath = ruleDir + "/authority-rule.json";
+        String paramFlowRulePath = ruleDir + "/param-flow-rule.json";
+
+        this.mkdirIfNotExits(ruleDir);
+        this.createFileIfNotExits(flowRulePath);
+        this.createFileIfNotExits(degradeRulePath);
+        this.createFileIfNotExits(systemRulePath);
+        this.createFileIfNotExits(authorityRulePath);
+        this.createFileIfNotExits(paramFlowRulePath);
+
+        // 流控规则
+        ReadableDataSource<String, List<FlowRule>> flowRuleRDS = new FileRefreshableDataSource<>(
+                flowRulePath,
+                flowRuleListParser
+        );
+        FlowRuleManager.register2Property(flowRuleRDS.getProperty());
+        WritableDataSource<List<FlowRule>> flowRuleWDS = new FileWritableDataSource<>(
+                flowRulePath,
+                this::encodeJson
+        );
+        WritableDataSourceRegistry.registerFlowDataSource(flowRuleWDS);
+
+        // 降级规则
+        ReadableDataSource<String, List<DegradeRule>> degradeRuleRDS = new FileRefreshableDataSource<>(
+                degradeRulePath,
+                degradeRuleListParser
+        );
+        DegradeRuleManager.register2Property(degradeRuleRDS.getProperty());
+        WritableDataSource<List<DegradeRule>> degradeRuleWDS = new FileWritableDataSource<>(
+                degradeRulePath,
+                this::encodeJson
+        );
+        WritableDataSourceRegistry.registerDegradeDataSource(degradeRuleWDS);
+
+        // 系统规则
+        ReadableDataSource<String, List<SystemRule>> systemRuleRDS = new FileRefreshableDataSource<>(
+                systemRulePath,
+                systemRuleListParser
+        );
+        SystemRuleManager.register2Property(systemRuleRDS.getProperty());
+        WritableDataSource<List<SystemRule>> systemRuleWDS = new FileWritableDataSource<>(
+                systemRulePath,
+                this::encodeJson
+        );
+        WritableDataSourceRegistry.registerSystemDataSource(systemRuleWDS);
+
+        // 授权规则
+        ReadableDataSource<String, List<AuthorityRule>> authorityRuleRDS = new FileRefreshableDataSource<>(
+                authorityRulePath,
+                authorityRuleListParser
+        );
+        AuthorityRuleManager.register2Property(authorityRuleRDS.getProperty());
+        WritableDataSource<List<AuthorityRule>> authorityRuleWDS = new FileWritableDataSource<>(
+                authorityRulePath,
+                this::encodeJson
+        );
+        WritableDataSourceRegistry.registerAuthorityDataSource(authorityRuleWDS);
+
+        // 热点参数规则
+        ReadableDataSource<String, List<ParamFlowRule>> paramFlowRuleRDS = new FileRefreshableDataSource<>(
+                paramFlowRulePath,
+                paramFlowRuleListParser
+        );
+        ParamFlowRuleManager.register2Property(paramFlowRuleRDS.getProperty());
+        WritableDataSource<List<ParamFlowRule>> paramFlowRuleWDS = new FileWritableDataSource<>(
+                paramFlowRulePath,
+                this::encodeJson
+        );
+        ModifyParamFlowRulesCommandHandler.setWritableDataSource(paramFlowRuleWDS);
+    }
+
+    private Converter<String, List<FlowRule>> flowRuleListParser = source -> JSON.parseObject(
+            source,
+            new TypeReference<List<FlowRule>>() {
+            }
+    );
+    private Converter<String, List<DegradeRule>> degradeRuleListParser = source -> JSON.parseObject(
+            source,
+            new TypeReference<List<DegradeRule>>() {
+            }
+    );
+    private Converter<String, List<SystemRule>> systemRuleListParser = source -> JSON.parseObject(
+            source,
+            new TypeReference<List<SystemRule>>() {
+            }
+    );
+
+    private Converter<String, List<AuthorityRule>> authorityRuleListParser = source -> JSON.parseObject(
+            source,
+            new TypeReference<List<AuthorityRule>>() {
+            }
+    );
+
+    private Converter<String, List<ParamFlowRule>> paramFlowRuleListParser = source -> JSON.parseObject(
+            source,
+            new TypeReference<List<ParamFlowRule>>() {
+            }
+    );
+
+    private void mkdirIfNotExits(String filePath) throws IOException {
+        File file = new File(filePath);
+        if (!file.exists()) {
+            file.mkdirs();
+        }
+    }
+
+    private void createFileIfNotExits(String filePath) throws IOException {
+        File file = new File(filePath);
+        if (!file.exists()) {
+            file.createNewFile();
+        }
+    }
+
+    private <T> String encodeJson(T t) {
+        return JSON.toJSONString(t);
+    }
+
+}
+```
+
+在对应的类名添加到位于资源目录（通常是 resource 目录）下的 `META-INF/services` 目录下的 `com.alibaba.csp.sentinel.init.InitFunc` 文件中，添加自定义 `InitFunc` 接口实现类全限定名
+
+```
+com.moon.order.config.DataSourceInitFunc
+```
+
+当初次访问任意资源的时候，Sentinel 就可以自动去注册对应的数据源了。
+
+## 7. @SentinelResource 注解
+
+### 7.1. 定义
+
+Sentinel 提供了 `@SentinelResource` 注解用于定义资源，并提供了 AspectJ 的扩展用于自动定义资源、处理 `BlockException` 等。
+
+### 7.2. 注解属性
+
+`@SentinelResource` 用于定义资源，并提供可选的异常处理和 `fallback` 配置项。 `@SentinelResource` 注解包含以下属性：
+
+- `value`：资源名称，必需项（不能为空）
+- `entryType`：entry 类型，标记流量的方向，可选项 `EntryType.IN`/`EntryType.OUT`（默认为 `EntryType.OUT`）
+- `blockHandler` / `blockHandlerClass`: `blockHandler` 对应处理 `BlockException` 的函数名称，可选项。函数签名和位置要求：
+    - `blockHandler` 函数访问范围需要是 `public`
+    - 返回类型需要与原方法相匹配，参数类型需要和原方法相匹配并且最后加一个额外的参数，类型为 `BlockException`。
+    - `blockHandler` 函数默认需要和原方法在同一个类中。若希望使用其他类的函数，则可以指定 `blockHandlerClass` 为对应的类的 `Class` 对象，注意对应的函数必需为 `static` 函数，否则无法解析。
+- `fallback`/`fallbackClass`：`fallback` 函数名称，可选项，用于在抛出异常的时候提供 `fallback` 处理逻辑。`fallback` 函数可以针对所有类型的异常（除了 `exceptionsToIgnore`  里面排除掉的异常类型）进行处理。`fallback` 函数签名和位置要求：
+  - 返回值类型必须与原函数返回值类型一致；
+  - 方法参数列表需要和原函数一致，或者可以额外多一个 `Throwable` 类型的参数用于接收对应的异常。
+  - `fallback` 函数默认需要和原方法在同一个类中。若希望使用其他类的函数，则可以指定 `fallbackClass` 为对应的类的 `Class` 对象，注意对应的函数必需为 `static` 函数，否则无法解析。
+- `defaultFallback`（since 1.6.0）：默认的 `fallback` 函数名称，可选项，通常用于通用的 `fallback` 逻辑（即可以用于很多服务或方法）。默认 `fallback` 函数可以针对所有类型的异常（除了`exceptionsToIgnore`里面排除掉的异常类型）进行处理。若同时配置了 `fallback` 和 `defaultFallback`，则只有 `fallback` `会生效。defaultFallback` 函数签名要求：
+  - 返回值类型必须与原函数返回值类型一致；
+  - 方法参数列表需要为空，或者可以额外多一个 `Throwable` 类型的参数用于接收对应的异常。
+  - `defaultFallback` 函数默认需要和原方法在同一个类中。若希望使用其他类的函数，则可以指定 `fallbackClass` 为对应的类的 `Class` 对象，注意对应的函数必需为 `static` 函数，否则无法解析。
+- `exceptionsToIgnore`（since 1.6.0）：用于指定哪些异常被排除掉，不会计入异常统计中，也不会进入 `fallback` 逻辑中，而是会原样抛出。
+- `exceptionsToTrace`：需要trace的异常。
+- `resourceType`（since 1.7.0）：分类
+
+> 注：
+>
+> - 1.8.0 版本开始，`defaultFallback` 支持在类级别进行配置。
+> - 1.6.0 之前的版本 `fallback` 函数只针对降级异常（`DegradeException`）进行处理，**不能针对业务异常进行处理**。
+
+特别地，若 `blockHandler` 和 `fallback` 都进行了配置，则被限流降级而抛出 `BlockException` 时只会进入 `blockHandler` 处理逻辑。若未配置 `blockHandler`、`fallback` 和 `defaultFallback`，则被限流降级时会将 `BlockException` **直接抛出**（若方法本身未定义 throws BlockException 则会被 JVM 包装一层 `UndeclaredThrowableException`）。
+
+### 7.3. 定义限流和降级后的处理方法
+
+#### 7.3.1. 保护方法与处理方法定义在同一类中
+
+```java
+@Service
+@Slf4j
+public class SentinelDemoServiceImpl implements SentinelDemoService {
+
+    private static int count = 0;
+
+    /*
+     * @SentinelResource 注解是用于指定需要 Sentinel 保护的方法上
+     *  blockHandler属性：声明熔断时调用的降级方法
+     *  fallback属性：声明抛出异常时执行的降级方法
+     *  value属性：设置自定义的资源名称，如不设置，默认值是“当前全类名.方法名”
+     */
+    @SentinelResource(value = "sentinelResourceBlockHandler", blockHandler = "blockHandler")
+    @Override
+    public String sentinelResourceBlockHandler(String text) {
+        return "BlockException 异常处理测试方法。函数默认需要和原方法在同一个类中";
+    }
+
+    @SentinelResource(value = "sentinelResourceFallback", fallback = "fallback")
+    @Override
+    public String sentinelResourceFallback(String text) {
+        count++;
+        if (count % 3 == 0) {
+            throw new RuntimeException("发生异常了。");
+        }
+
+        return "抛出异常处理测试方法。函数默认需要和原方法在同一个类中";
+    }
+
+    /*
+     * 定义@SentinelResource注解相应的熔断降级方法，函数的要求：
+     *  1.必须是public修饰
+     *  2.返回类型与原方法一致
+     *  3.参数类型需要和原方法相匹配，并在最后加BlockException类型的参数
+     *  4.默认需和原方法在同一个类中。若希望使用其他类的函数，可配置blockHandlerClass属性，并指定blockHandlerClass里面的方法，注意函数必需为 `static` 修饰的
+     */
+    public String blockHandler(String text, BlockException e) {
+        log.info("当前方法入参text: {}", text);
+        e.printStackTrace();
+        return "触发本类内熔断的降级方法";
+    }
+
+    /*
+     * 定义@SentinelResource注解相应的抛出异常的降级方法，函数的要求：
+     *  1.返回类型与原方法一致
+     *  2.参数类型需要和原方法相匹配，Sentinel 1.6开始，也可在方法最后加Throwable类型的参数
+     *  3.默认需和原方法在同一个类中。若希望使用其他类的函数，可配置fallbackClass，并指定fallbackClass里面的方法，注意函数必需为 `static` 修饰的
+     */
+    public String fallback(String text, Throwable throwable) {
+        log.info("当前方法入参text: {}", text);
+        throwable.printStackTrace();
+        return "触发本类内抛出异常执行的降级方法";
+    }
+}
+```
+
+#### 7.3.2. 处理方法定义在外部类中
+
+定义需要保护的方法
+
+```java
+@Service
+@Slf4j
+public class SentinelDemoServiceImpl implements SentinelDemoService {
+
+    private static int count = 0;
+
+    @SentinelResource(value = "sentinelResourceBlockHandlerOut",
+            blockHandlerClass = BlockHandlerOutDemo.class,
+            blockHandler = "blockHandler")
+    @Override
+    public String sentinelResourceBlockHandlerOut(String text) {
+        return "外部类方式处理 BlockException 异常的测试方法";
+    }
+
+    @SentinelResource(value = "sentinelResourceFallbackOut",
+            fallbackClass = FallbackOutDemo.class,
+            fallback = "fallback")
+    @Override
+    public String sentinelResourceFallbackOut(String text) {
+        count++;
+        if (count % 3 == 0) {
+            throw new RuntimeException("发生异常了。");
+        }
+        return "外部类方式处理抛出异常处理的测试方法";
+    }
+
+}
+```
+
+在其它的类分别定义处理方法，注意：**对应的函数必需为 `static` 函数**
+
+```java
+@Slf4j
+public class BlockHandlerOutDemo {
+    public static String blockHandler(String text, BlockException e) {
+        log.info("当前方法入参text: {}", text);
+        e.printStackTrace();
+        return "外部类方式处理 BlockException 异常";
+    }
+}
+
+@Slf4j
+public class FallbackOutDemo {
+    public static String fallback(String text, Throwable throwable) {
+        log.info("当前方法入参text: {}", text);
+        throwable.printStackTrace();
+        return "外部类方式处理抛出异常处理";
+    }
+}
+```
+
+## 8. 基于 Sentinel 的服务保护
+
+### 8.1. Sentinel 对通用资源保护
+
+#### 8.1.1. 基础说明
 
 通用资源保护是指，无论是使用哪种远程调用的技术，只在需要被保护的方法上使用`@SentinelResource`注解进行熔断配置即可。与Hystrix不同的是，Sentinel对抛出异常和熔断降级做了更加细致的区分，通过`blockHandler`属性指定熔断降级方法；通过`fallback`属性指定触发异常执行的降级方法。
 
 <font color=red>**特别注意：若`blockHandler`和`fallback`都进行了配置，则被限流降级而抛出`BlockException`时只会进入`blockHandler`处理逻辑。若未配置`blockHandler`、`fallback`和`defaultFallback`，则被限流降级时会将`BlockException`直接抛出。**</font>
 
-#### 7.1.2. 使用示例
+#### 8.1.2. 使用示例
 
 修改`shop-service-order-resttemplate`工程的`OrderController`，在方法上使用`@SentinelResource`注解增加熔断保护配置，并编写熔断、异常的降级方法
 
@@ -1604,24 +1950,7 @@ public class OrderController {
 }
 ```
 
-#### 7.1.3. @SentinelResource注解的相关属性
-
-|        属性名         |                                                                                                                                                                                            作用                                                                                                                                                                                             |              取值              |
-| :------------------: | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------ |
-|       `value`        | 资源名称                                                                                                                                                                                                                                                                                                                                                                                    |                                |
-|     `entryType`      | entry类型，标记流量的方向，默认值是`EntryType.OUT`                                                                                                                                                                                                                                                                                                                                             | `EntryType.IN`/`EntryType.OUT` |
-|    `resourceType`    | 1.7版本属性                                                                                                                                                                                                                                                                                                                                                                                 |                                |
-|    `blockHandler`    | 处理BlockException的函数名称。函数要求：<br/>1.必须是`public`修饰<br/>2.返回类型与原方法一致<br/>3.参数类型需要和原方法相匹配，并在最后加`BlockException`类型的参数<br/>4.默认需和原方法在同一个类中。若希望使用其他类的函数，可配置`blockHandlerClass`属性，并指定`blockHandlerClass`里面的方法                                                                                                                |                                |
-| `blockHandlerClass`  | 存放`blockHandler`的类。对应的处理函数必须`static`修饰，否则无法解析，其他要求同见`blockHandler`                                                                                                                                                                                                                                                                                                  | `Class<?>[]`                   |
-|      `fallback`      | 用于在抛出异常的时候提供fallback处理逻辑。`fallback`函数可以针对所有类型的异常（除了`exceptionsToIgnore`里面排除掉的异常类型）进行处理。函数要求：<br/>1.返回类型与原方法一致<br/>2.参数类型需要和原方法相匹配，Sentinel 1.6开始，也可在方法最后加`Throwable`类型的参数<br/>3.默认需和原方法在同一个类中。若希望使用其他类的函数，可配置`fallbackClass`，并指定`fallbackClass`里面的方法                                 |                                |
-|  `defaultFallback`   | 1.6版本属性。用于通用的`fallback`逻辑。默认`fallback`函数可以针对所有类型的异常（除了`exceptionsToIgnore`里面排除掉的异常类型）进行处理。若同时配置了`fallback`和`defaultFallback`，以`fallback`为准。函数要求：<br/>1.返回类型与原方法一致<br/>2.方法参数列表为空，或者有一个`Throwable`类型的参数<br/>3.默认需要和原方法在同一个类中。若希望使用其他类的函数，可配置`fallbackClass`，并指定`fallbackClass`里面的方法。 |                                |
-|   `fallbackClass`    | 1.6版本属性。存放`fallback`的类。对应的处理函数必须`static`修饰，否则无法解析，其他要求同见`fallback`                                                                                                                                                                                                                                                                                              | `Class<?>[]`                   |
-| `exceptionsToTrace`  | 需要trace的异常                                                                                                                                                                                                                                                                                                                                                                              | `Class<? extends Throwable>[]` |
-| `exceptionsToIgnore` | 1.6版本属性。指定排除掉哪些异常。排除的异常不会计入异常统计，也不会进入fallback逻辑，而是原样抛出                                                                                                                                                                                                                                                                                                    | `Class<? extends Throwable>[]` |
-
-> 注：1.6.0之前的版本`fallback`函数只针对降级异常（`DegradeException`）进行处理，<font color=red>**不能针对业务异常进行处理**</font>。
-
-#### 7.1.4. 测试
+#### 8.1.3. 测试
 
 直接通过控制台方式添加/修改降级规则如下：
 
@@ -1631,7 +1960,7 @@ public class OrderController {
 
 ![](images/20201022091446319_28012.png)
 
-#### 7.1.5. Sentinel 加载本地配置
+#### 8.1.4. Sentinel 加载本地配置
 
 **一条限流规则主要由下面几个因素组成**：
 
@@ -1694,9 +2023,9 @@ spring:
 
 ![](images/20201022103834045_8987.png)
 
-### 7.2. RestTemplate 基于 Sentinel 实现熔断
+### 8.2. RestTemplate 基于 Sentinel 实现熔断
 
-#### 7.2.1. 基础说明
+#### 8.2.1. 基础说明
 
 Spring Cloud Alibaba Sentinel 支持对 `RestTemplate` 的服务调用使用 Sentinel 进行保护，在构造`RestTemplate`对象的时候需要加上 `@SentinelRestTemplate` 注解即可
 
@@ -1722,7 +2051,7 @@ public class ExceptionUtil {
 }
 ```
 
-#### 7.2.2. 使用示例
+#### 8.2.2. 使用示例
 
 1. 修改`shop-service-order-resttemplate`工程的配置类`HttpConfig`，在创建`RestTemplate`对象方法上增加``@SentinelRestTemplate`注解
 
@@ -1795,7 +2124,7 @@ public class ExceptionUtil {
 
 ![](images/20201022141019674_1083.png)
 
-#### 7.2.3. @SentinelRestTemplate 相关属性
+#### 8.2.3. @SentinelRestTemplate 相关属性
 
 |        属性名        |       作用       |    取值    |
 | :-----------------: | ---------------- | ---------- |
@@ -1806,11 +2135,11 @@ public class ExceptionUtil {
 |    `urlCleaner`     |                  |            |
 |  `urlCleanerClass`  |                  | `Class<?>` |
 
-### 7.3. Feign 基于 Sentinel 实现熔断
+### 8.3. Feign 基于 Sentinel 实现熔断
 
-#### 7.3.1. 基础说明
+#### 8.3.1. 基础说明
 
-Sentinel适配了`OpenFeign`组件。如果想使用，除了引入 `sentinel-starter` 的依赖外还需要2个步骤：
+Sentinel 适配了`OpenFeign`组件。如果想使用，除了引入 `sentinel-starter` 的依赖外还需要2个步骤：
 
 - 配置文件打开sentinel对feign的支持：`feign.sentinel.enabled=true`
 - 加入 `openfeign starter` 依赖使 `sentinel starter` 中的自动化配置类生效：
@@ -1819,7 +2148,7 @@ Sentinel适配了`OpenFeign`组件。如果想使用，除了引入 `sentinel-st
 >
 > 下面示例的`ProductFeginClient`接口中方法 `findById` 对应的资源名为 `GET:http://shop-service-product/product/{str}`
 
-#### 7.3.2. 使用示例
+#### 8.3.2. 使用示例
 
 1. 引入依赖`openfeign`与`sentinel`的依赖
 
@@ -1839,22 +2168,13 @@ Sentinel适配了`OpenFeign`组件。如果想使用，除了引入 `sentinel-st
 2. 在工程的`application.yml`中开启 sentinel 对 feign 的支持
 
 ```yml
-# feign 配置
+# 开启 feign 对 sentinel 的支持
 feign:
   sentinel:
     enabled: true # 激活sentinel的支持
 ```
 
-3. 和使用Hystrix的方式基本一致，配置FeignClientr接口，在接口标识`@FeignClient`注解，通过`name`属性指定服务名称以及通过`fallback`属性指定处理熔断降级实现类
-
-```java
-@FeignClient(name = "shop-service-product", fallback = ProductFeignClientCallBack.class)
-public interface ProductFeignClient {
-    ....
-}
-```
-
-4. 和使用Hystrix一样，编写熔断处理类
+3. 和使用 Hystrix 一样，编写熔断容错处理类。此类需要实现相应的 FeignClient 的接口。当 FeignClient 接口调用出错后，会调用到当前容错实现类中同名的方法
 
 ```java
 @Component
@@ -1878,18 +2198,80 @@ public class ProductFeignClientCallBack implements ProductFeignClient {
 }
 ```
 
-5. 测试，修改资源相应的降级规则，测试的结果与Hystrix一样
+4. 和使用 Hystrix 的方式基本一致，配置 FeignClient 的接口，在接口标识`@FeignClient`注解，通过`name`属性指定服务名称以及通过`fallback`属性指定处理熔断降级实现类
+
+```java
+@FeignClient(name = "shop-service-product", fallback = ProductFeignClientCallBack.class)
+public interface ProductFeignClient {
+    ....
+}
+```
+
+5. 测试，修改资源相应的降级规则，测试的结果与 Hystrix 一样
 
 ![](images/20201022152754030_3953.png)
 
-### 7.4. 示例项目
+#### 8.3.3. 从容错类中获取具体的错误信息
 
-#### 7.4.1. spring-cloud-greenwich-sample 项目中的示例
+上面章节的容错方式在出现异常时，不能获取到异常的信息。如果需要获取容错发生时的具体的异常信息。则需要实现 Feign 提供的 `feign.hystrix.FallbackFactory` 接口。具体实现步骤如下：
+
+- 创建容错处理类，实现 `FallbackFactory` 接口。此接口的泛型 `T` 为需要容错的 Feign 接口类型
+
+```java
+/**
+ * 商品服务 Feign 调用容错处理类。
+ * 与直接实现 Feign 接口的方式不同的地点在于，在此接口的 create 方法，可以获取到容错时发生的异常的信息。
+ * `FallbackFactory<T>` 的泛型为容错的 Feign 的接口
+ */
+@Slf4j
+@Service
+public class ProductFeignClientFallBackFactory implements FallbackFactory<ProductFeignClient> {
+    /**
+     * Returns an instance of the fallback appropriate for the given cause.
+     * 此方法返回相应的 Feign 接口实现类。所以直接创建 Feign 接口的实现类，在重写里面所有方法，
+     * 执行的效果与容错类直接实现 Feign 接口一样
+     *
+     * @param cause 这就是 fegin 在调用过程中产生异常
+     */
+    @Override
+    public ProductFeignClient create(Throwable cause) {
+        return new ProductFeignClient() {
+            @Override
+            public Product findById(Long id) {
+                // 此处就可以获取到异常发生的具体信息，做相应的处理和分析
+                log.error("ProductFeignClientFallBackFactory 容错获取到的异常信息是：{}", cause);
+                // 调用报错时的处理逻辑
+                Product product = new Product();
+                product.setId(Long.parseLong("-1"));
+                product.setProductName("查询产品出错了");
+                return product;
+            }
+        };
+    }
+}
+```
+
+- 修改接口的 `@FeignClient` 注解，通过 `fallbackFactory` 属性指定相应的容错处理类。
+
+```java
+@FeignClient(value = "service-product", fallbackFactory = ProductFeignClientFallBackFactory.class)
+public interface ProductFeignClient {
+    ....
+}
+```
+
+- 测试效果
+
+<font color=red>**需要注意：`fallback` 和 `fallbackFactory` 只能使用其中一种方式**</font>
+
+### 8.4. 示例项目
+
+#### 8.4.1. spring-cloud-greenwich-sample 项目中的示例
 
 参考`08-springcloud-hystrix-resttemplate`与`09-springcloud-hystrix-feign`工程，创建`10-springcloud-alibaba-sentinel`，删除hystrix组件部分内容，创建两个order服务，一个使用`RestTemplate`一个使用`Feign`
 
 具体项目代码参考`spring-cloud-note\spring-cloud-greenwich-sample\10-springcloud-alibaba-sentinel`
 
-#### 7.4.2. spring-cloud-alibaba-2.1.x-sample 项目中示例
+#### 8.4.2. spring-cloud-alibaba-2.1.x-sample 项目中示例
 
 具体项目代码参考`spring-cloud-note\spring-cloud-alibaba-2.1.x-sample\service-order`
