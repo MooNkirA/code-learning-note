@@ -8,15 +8,16 @@
 
 ### 1.1. 简介
 
-Spring Cloud Sleuth 主要功能就是在分布式系统中提供追踪解决方案，并且兼容支持了zipkin，只需要在pom文件中引入相应的依赖即可
+Spring Cloud Sleuth 主要功能就是在分布式系统中提供追踪解决方案，它大量借用了Google Dapper的设计，并且兼容支持了zipkin，只需要在pom文件中引入相应的依赖即可
 
 ### 1.2. 相关概念
 
 Spring Cloud Sleuth 为Spring Cloud提供了分布式根据的解决方案。它大量借用了Google Dapper的设计。以下是Sleuth中的术语和相关概念：
 
-- **Span**：基本工作单元，例如，在一个新建的span中发送一个RPC等同于发送一个回应请求给RPC，span通过一个64位ID唯一标识，trace以另一个64位ID表示，span还有其他数据信息，比如摘要、时间戳事件、关键值注释(tags)、span的ID、以及进度ID(通常是IP地址)span在不断的启动和停止，同时记录了时间信息，当创建了一个span，必须在未来的某个时刻停止它。
-- **Trace**：一系列spans组成的一个树状结构，例如，如果正在跑一个分布式大数据工程，可能需要创建一个trace。
-- **Annotation**：用来及时记录一个事件的存在，一些核心annotations用来定义一个请求的开始和结束
+- **Trace**：由一组Trace Id相同的Span串联形成一个树状结构。为了实现请求跟踪，当请求到达分布式系统的入口端点时，只需要服务跟踪框架为该请求创建一个唯一的标识（即TraceId），同时在分布式系统内部流转的时候，框架始终保持传递该唯一值，直到整个请求的返回。那么我们就可以使用该唯一标识将所有的请求串联起来，形成一条完整的请求链路。例如，如果正在跑一个分布式大数据工程，可能需要创建一个trace。
+- **Span**：代表一组基本工作单元，为了统计各处理单元的延迟，当请求到达各个服务组件的时候，也通过一个唯一标识（SpanId）来标记它的开始、具体过程和结束。通过SpanId的开始和结束时间戳，就能统计该span的调用时间，除此之外，还可以获取如事件的名称、请求信息等元数据。
+    - 例如，在一个新建的span中发送一个RPC等同于发送一个回应请求给RPC，span通过一个64位ID唯一标识，trace以另一个64位ID表示，span还有其他数据信息，比如摘要、时间戳事件、关键值注释(tags)、span的ID、以及进度ID(通常是IP地址)span在不断的启动和停止，同时记录了时间信息，当创建了一个span，必须在未来的某个时刻停止它。
+- **Annotation**：用来及时记录一个事件的存在，一些核心annotations用来定义一个请求的开始和结束，内部使用的重要注释：
     - cs - Client Sent：客户端发起一个请求，这个annotion描述了这个span的开始
     - sr - Server Received：服务端获得请求并准备开始处理它，如果将其sr减去cs时间戳便可得到网络延迟
     - ss - Server Sent：注解表明请求处理的完成(当请求返回客户端)，如果ss减去sr时间戳便可得到服务端需要的处理请求时间
@@ -99,7 +100,7 @@ logging:
 
 ### 3.1. 简介
 
-Zipkin 是 Twitter 的一个开源项目，它基于 Google Dapper 实现，它致力于收集服务的定时数据，以解决微服务架构中的延迟问题，包括数据的收集、存储、查找和展现。
+Zipkin 是 Twitter 的一个开源项目，它基于 Google Dapper 实现，它致力于收集服务的定时数据，以解决微服务架构中的延迟问题，包括**数据的收集、存储、查找和展现**。
 
 Zipkin 可以用来收集各个服务器上请求链路的跟踪数据，并通过它提供的 REST API 接口来辅助查询跟踪数据以实现对分布式系统的监控程序，从而及时地发现系统中出现的延迟升高问题并找出系统性能瓶颈的根源。
 
@@ -118,13 +119,9 @@ Zipkin 可以用来收集各个服务器上请求链路的跟踪数据，并通�
 - **RESTful API**：API 组件，它主要用来提供外部访问接口。比如给客户端展示跟踪信息，或是外接系统访问以实现监控等。
 - **Web UI**：UI 组件，基于 API 组件实现的上层应用。通过 UI 组件用户可以方便而有直观地查询和分析跟踪信息。
 
-Zipkin 分为两端，一个是 Zipkin 服务端，一个是 Zipkin 客户端，客户端也就是微服务的应用。
+Zipkin 分为两端，一个是 Zipkin 服务端，一个是 Zipkin 客户端，客户端也就是微服务的应用。客户端会配置服务端的 URL 地址，一旦发生服务间的调用的时候，会被配置在微服务里面的 Sleuth 的监听器监听，并生成相应的 Trace 和 Span 信息发送给服务端。
 
-客户端会配置服务端的 URL 地址，一旦发生服务间的调用的时候，会被配置在微服务里面的 Sleuth 的监听器监听，并生成相应的 Trace 和 Span 信息发送给服务端。
-
-发送的方式主要有两种，一种是 HTTP 报文的方式，还有一种是消息总线的方式如 RabbitMQ。
-
-不论哪种方式，使用zipkin实现链路追踪的日志收集都需要：
+发送的方式主要有两种，一种是 HTTP 报文的方式，还有一种是消息总线的方式如 RabbitMQ。不论哪种方式，使用zipkin实现链路追踪的日志收集都需要：
 
 - 一个服务注册中心，*示例项目使用之前的 eureka 项目来当注册中心*。
 - 一个 Zipkin 服务端。
@@ -142,7 +139,7 @@ Zipkin 分为两端，一个是 Zipkin 服务端，一个是 Zipkin 客户端，
 
 ### 4.2. 启动
 
-使用命令行直接启动Zipkin Server
+进行jar所在目录，使用命令行直接启动 Zipkin Server
 
 ```bash
 java -jar zipkin-server-2.22.0-exec.jar
@@ -153,11 +150,11 @@ java -jar zipkin-server-2.22.0-exec.jar
 - 默认 Zipkin Server 的请求端口为 9411
 - Zipkin Server 的启动参数可以通过官方提供的yml配置文件查找
     - 配置文件地址：https://github.com/openzipkin/zipkin/blob/master/zipkin-server/src/main/resources/zipkin-server-shared.yml
-- 在浏览器输入 `http://127.0.0.1:9411` 即可进入到Zipkin Server的管理后台
+- 在浏览器输入 `http://127.0.0.1:9411` 即可进入到 Zipkin Server 的管理后台
 
 ## 5. 客户端 Zipkin + Sleuth 整合（基于http方式收集数据）
 
-结合zipkin可以很直观地显示微服务之间的调用关系。
+结合 zipkin 可以很直观地显示微服务之间的调用关系。ZipKin 客户端和 Sleuth 的集成非常简单，只需要在微服务中添加其依赖和配置即可。
 
 ### 5.1. 客户端添加依赖
 
@@ -173,7 +170,7 @@ java -jar zipkin-server-2.22.0-exec.jar
 
 ### 5.2. 修改客户端配置文件
 
-修改需要被追踪的微服务的application.yml配置文件。*所以示例项目的网关、订单、商品服务都需要修改配置文件*
+修改需要被追踪的微服务的 application.ym l配置文件。*所有示例项目的网关、订单、商品服务都需要修改配置文件*
 
 ```yml
 spring:
@@ -181,8 +178,9 @@ spring:
   # 配置 zipkin
   zipkin:
     base-url: http://127.0.0.1:9411/ # 设置 zipkin server的请求地址
+    discoveryClientEnabled: false # 让nacos把它当成一个URL，而不要当做服务名
     sender:
-      type: web # 设置数据的传输方式 , 以 http 的形式向server端发送数据
+      type: web # 设置数据的传输方式 , 以 http 的形式向 server 端发送数据
   sleuth:
     sampler:
       probability: 1 # 配置采样的百分比，默认是 0.1（即10%）
@@ -208,8 +206,8 @@ spring:
 
 在默认情况下，zipkin数据采集有如下特点：
 
-1. zipkin采集到的数据是保存在内存中
-2. Zipkin客户端和Server之间是使用HTTP请求的方式进行通信（即同步的请求方式，会拖慢核心业务的处理时间）
+1. zipkin 采集到的数据是保存在内存中
+2. Zipkin 客户端和 Server 之间是使用 HTTP 请求的方式进行通信（即同步的请求方式，会拖慢核心业务的处理时间）
 
 存在的问题：
 
@@ -218,15 +216,82 @@ spring:
 
 ## 6. 跟踪数据的存储
 
-Zipkin Server默认时间追踪数据信息保存到内存，这种方式不适合生产环境。因为一旦Service关闭重启或者服务崩溃，就会导致历史数据消失。Zipkin支持将追踪数据持久化到mysql数据库或者存储到elasticsearch中。*这里示例以mysql为例*
+Zipkin Server 默认时间追踪数据信息保存到内存，这种方式不适合生产环境。因为一旦 Service 关闭重启或者服务崩溃，就会导致历史数据消失。Zipkin 支持将追踪数据持久化到 mysql 数据库或者存储到 elasticsearch 中。*这里示例以mysql为例*
 
-### 6.1. 准备存储跟踪数据的数据库
+### 6.1. 追踪数据存储到 MySQL 数据库
+
+#### 6.1.1. 准备存储跟踪数据的数据库
 
 创建zipkin持久化相应数据库表sql脚本位置：`spring-cloud-note\spring-cloud-greenwich-sample\document\sql\zipkin_db.sql`
 
 > 可以从官网找到Zipkin Server持久mysql的数据库脚本。脚本地址：https://github.com/openzipkin/zipkin/blob/master/zipkin-storage/mysql-v1/src/main/resources/mysql.sql
 
-### 6.2. 配置启动服务端
+```sql
+--
+-- Copyright 2015-2019 The OpenZipkin Authors
+--
+-- Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
+-- in compliance with the License. You may obtain a copy of the License at
+--
+-- http://www.apache.org/licenses/LICENSE-2.0
+--
+-- Unless required by applicable law or agreed to in writing, software distributed under the License
+-- is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+-- or implied. See the License for the specific language governing permissions and limitations under
+-- the License.
+--
+
+CREATE TABLE IF NOT EXISTS zipkin_spans (
+  `trace_id_high` BIGINT NOT NULL DEFAULT 0 COMMENT 'If non zero, this means the trace uses 128 bit traceIds instead of 64 bit',
+  `trace_id` BIGINT NOT NULL,
+  `id` BIGINT NOT NULL,
+  `name` VARCHAR(255) NOT NULL,
+  `remote_service_name` VARCHAR(255),
+  `parent_id` BIGINT,
+  `debug` BIT(1),
+  `start_ts` BIGINT COMMENT 'Span.timestamp(): epoch micros used for endTs query and to implement TTL',
+  `duration` BIGINT COMMENT 'Span.duration(): micros used for minDuration and maxDuration query',
+  PRIMARY KEY (`trace_id_high`, `trace_id`, `id`)
+) ENGINE=InnoDB ROW_FORMAT=COMPRESSED CHARACTER SET=utf8 COLLATE utf8_general_ci;
+
+ALTER TABLE zipkin_spans ADD INDEX(`trace_id_high`, `trace_id`) COMMENT 'for getTracesByIds';
+ALTER TABLE zipkin_spans ADD INDEX(`name`) COMMENT 'for getTraces and getSpanNames';
+ALTER TABLE zipkin_spans ADD INDEX(`remote_service_name`) COMMENT 'for getTraces and getRemoteServiceNames';
+ALTER TABLE zipkin_spans ADD INDEX(`start_ts`) COMMENT 'for getTraces ordering and range';
+
+CREATE TABLE IF NOT EXISTS zipkin_annotations (
+  `trace_id_high` BIGINT NOT NULL DEFAULT 0 COMMENT 'If non zero, this means the trace uses 128 bit traceIds instead of 64 bit',
+  `trace_id` BIGINT NOT NULL COMMENT 'coincides with zipkin_spans.trace_id',
+  `span_id` BIGINT NOT NULL COMMENT 'coincides with zipkin_spans.id',
+  `a_key` VARCHAR(255) NOT NULL COMMENT 'BinaryAnnotation.key or Annotation.value if type == -1',
+  `a_value` BLOB COMMENT 'BinaryAnnotation.value(), which must be smaller than 64KB',
+  `a_type` INT NOT NULL COMMENT 'BinaryAnnotation.type() or -1 if Annotation',
+  `a_timestamp` BIGINT COMMENT 'Used to implement TTL; Annotation.timestamp or zipkin_spans.timestamp',
+  `endpoint_ipv4` INT COMMENT 'Null when Binary/Annotation.endpoint is null',
+  `endpoint_ipv6` BINARY(16) COMMENT 'Null when Binary/Annotation.endpoint is null, or no IPv6 address',
+  `endpoint_port` SMALLINT COMMENT 'Null when Binary/Annotation.endpoint is null',
+  `endpoint_service_name` VARCHAR(255) COMMENT 'Null when Binary/Annotation.endpoint is null'
+) ENGINE=InnoDB ROW_FORMAT=COMPRESSED CHARACTER SET=utf8 COLLATE utf8_general_ci;
+
+ALTER TABLE zipkin_annotations ADD UNIQUE KEY(`trace_id_high`, `trace_id`, `span_id`, `a_key`, `a_timestamp`) COMMENT 'Ignore insert on duplicate';
+ALTER TABLE zipkin_annotations ADD INDEX(`trace_id_high`, `trace_id`, `span_id`) COMMENT 'for joining with zipkin_spans';
+ALTER TABLE zipkin_annotations ADD INDEX(`trace_id_high`, `trace_id`) COMMENT 'for getTraces/ByIds';
+ALTER TABLE zipkin_annotations ADD INDEX(`endpoint_service_name`) COMMENT 'for getTraces and getServiceNames';
+ALTER TABLE zipkin_annotations ADD INDEX(`a_type`) COMMENT 'for getTraces and autocomplete values';
+ALTER TABLE zipkin_annotations ADD INDEX(`a_key`) COMMENT 'for getTraces and autocomplete values';
+ALTER TABLE zipkin_annotations ADD INDEX(`trace_id`, `span_id`, `a_key`) COMMENT 'for dependencies job';
+
+CREATE TABLE IF NOT EXISTS zipkin_dependencies (
+  `day` DATE NOT NULL,
+  `parent` VARCHAR(255) NOT NULL,
+  `child` VARCHAR(255) NOT NULL,
+  `call_count` BIGINT,
+  `error_count` BIGINT,
+  PRIMARY KEY (`day`, `parent`, `child`)
+) ENGINE=InnoDB ROW_FORMAT=COMPRESSED CHARACTER SET=utf8 COLLATE utf8_general_ci;
+```
+
+#### 6.1.2. 配置启动服务端
 
 在启动zipkin服务端时增加相关数据库参数即可，启动脚本如下：
 
@@ -249,13 +314,26 @@ java -jar zipkin-server-2.22.0-exec.jar --STORAGE_TYPE=mysql --MYSQL_HOST=127.0.
 
 配置好服务端之后，可以在浏览器请求几次。在数据库查看会发现数据已经持久化到mysql中
 
+### 6.2. 追踪数据存储到 ElasticSearch
+
+- 下载 elasticsearch。[下载地址](https://www.elastic.co/cn/downloads/past-releases/elasticsearch-6-8-4)
+- 启动 elasticsearch
+
+![](images/20220105224357656_3122.png)
+
+- 在启动 ZipKin Server 的时候，指定数据保存的elasticsearch的信息
+
+```bash
+java -jar zipkin-server-2.22.0-exec.jar --STORAGE_TYPE=elasticsearch --ES-HOST=localhost:9200
+```
+
 ## 7. 基于消息中间件收集数据
 
 Zipkin支持与rabbitMQ整合完成异步消息传输。加了MQ之后，通信过程如下图所示：
 
 ![](images/20201113091547938_16673.png)
 
-### 7.1. RabbitMQ的安装与启动
+### 7.1. RabbitMQ 的安装与启动
 
 要使用消息中间件实现收集数据传输，需要准备MQ的服务。*此示例使用RabbitMQ*
 
