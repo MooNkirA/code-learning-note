@@ -324,7 +324,7 @@ Consumer消费的一种类型，该模式下Broker收到数据后会主动推送
 
 为消息设置的标志，用于同一主题下区分不同类型的消息。来自同一业务单元的消息，可以根据不同业务目的在同一主题下设置不同标签。标签能够有效地保持代码的清晰度和连贯性，并优化RocketMQ提供的查询系统。消费者可以根据Tag实现对不同子主题的不同消费逻辑，实现更好的扩展性。
 
-## 4. 基础消息发送和接收快速开始
+## 4. RocketMQ 快速开始
 
 ### 4.1. 相关依赖
 
@@ -359,9 +359,11 @@ Consumer消费的一种类型，该模式下Broker收到数据后会主动推送
 </dependencies>
 ```
 
+### 4.2. RocketMQ 相关的配置
+
 修改项目application.yml配置文件，增加 RocketMQ 相关的配置
 
-消息发送者配置：
+- 消息发送者配置：
 
 ```yml
 # RocketMQ 配置
@@ -371,7 +373,7 @@ rocketmq:
     group: producer-example # 生产者组名称(按实际命名)
 ```
 
-消息消费者配置：
+- 消息消费者配置：
 
 ```yml
 # RocketMQ 配置
@@ -379,7 +381,9 @@ rocketmq:
   name-server: 127.0.0.1:9876 # RocketMQ 服务的地址
 ```
 
-### 4.2. 发送消息
+### 4.3. 使用 RocketMQ 原生的 API 方式
+
+#### 4.3.1. 发送消息
 
 使用 RocketMQ 发送消息步骤如下：
 
@@ -428,7 +432,7 @@ public void basicTest() throws Exception {
 }
 ```
 
-### 4.3. 接收消息
+#### 4.3.2. 接收消息
 
 使用 RocketMQ 接收消息步骤：
 
@@ -480,6 +484,70 @@ public void basicTest() throws Exception {
     consumer.start();
     System.out.println("启动消费者成功了");
     System.in.read();
+}
+```
+
+### 4.4. Spring Boot 方式
+
+#### 4.4.1. 发送消息
+
+使用 `RocketMQTemplate` 对象发送消息
+
+```java
+@RestController
+public class ProducerController {
+    private final static Logger logger = LoggerFactory.getLogger(ProducerController.class);
+
+    @Autowired
+    private RocketMQTemplate rocketMQTemplate;
+
+    @GetMapping("sendMessage/{msg}")
+    public String sendMessage(@PathVariable String msg) {
+        logger.info("开始发送消息");
+        // 发送异步消息
+        rocketMQTemplate.asyncSend("spring-boot-test-topic", msg, new SendCallback() {
+            @Override
+            public void onSuccess(SendResult sendResult) {
+                logger.info("发送消息成功，结果：{}", sendResult);
+            }
+
+            @Override
+            public void onException(Throwable e) {
+                logger.error("发送消息异常：{}", e);
+            }
+        });
+        return "send message success!" + msg;
+    }
+}
+```
+
+#### 4.4.2. 接收消息
+
+RocketMQ 支持两种消息模式：
+
+- 广播消费：每个消费者实例都会收到消息，也就是一条消息可以被每个消费者实例处理；
+- 集群消费：一条消息只能被一个消费者实例消费
+
+```java
+/**
+ * Spring Boot 方式接收消息。
+ * 消息消费者需要 实现 RocketMQListener<T> 接口。泛型 T 是消息的类型
+ */
+@Service
+// @RocketMQMessageListener 注解用于配置消费者相关信息
+@RocketMQMessageListener(
+        consumerGroup = "consume-example",      // 消费者分组
+        topic = "spring-boot-test-topic",       // 要消费的主题
+        consumeMode = ConsumeMode.CONCURRENTLY, // 消费模式:无序和有序，默认是无序
+        messageModel = MessageModel.CLUSTERING  // 消息模式:广播和集群，默认是集群
+)
+public class ConsumeService implements RocketMQListener<String> {
+    private final static Logger logger = LoggerFactory.getLogger(ConsumeService.class);
+
+    @Override
+    public void onMessage(String message) {
+        logger.info("消息消费者接收到的信息：{}", message);
+    }
 }
 ```
 
@@ -593,11 +661,299 @@ public void testOneWay() {
 }
 ```
 
+#### 5.1.4. 三种发送方式的对比
+
+| 发送方式 | 发送 TPS | 发送结果反馈 | 可靠性  |
+| :-----: | :------: | :---------: | :-----: |
+| 同步发送 |    快    |     有      | 不丢失  |
+| 异步发送 |    快    |     有      | 不丢失  |
+| 单向发送 |   最快   |     无      | 可能丢失 |
+
 ### 5.2. 顺序消息
 
+顺序消息是消息队列提供的一种严格按照顺序来发布和消费的消息类型。
 
+![](images/20220107093611691_28724.png)
+
+**RocketMQ 默认发送是分布同一个主题中不同的队列中**
+
+```java
+// 顺序消息测试
+@Test
+public void testSendOrderly() throws InterruptedException {
+    /*
+     * public SendResult syncSendOrderly(String destination, Message<?> message, String hashKey, long timeout)
+     *  发送同步顺序消息，在等待消息发送结果的返回之前，会一直阻塞
+     *  String destination  消息主题和标签。格式：`topicName:tags`
+     *  Object payload      消息体
+     *  String hashKey      用于选择队列的 hashkey。
+     *  long timeout        超时时间，单位ms
+     */
+    SendResult result =
+            rocketMQTemplate.syncSendOrderly("MessageType-test-topic:sync", "这是一条同步消息", "hk", 10000);
+    System.out.println(result);
+    /*
+     * public void asyncSendOrderly(String destination, Object payload, String hashKey, SendCallback sendCallback)
+     *  发送异步顺序消息，发送消息之后，程序会继续往下执行，不会等待结果的返回
+     *  String destination          消息主题和标签。格式：`topicName:tags`
+     *  Object payload              消息体
+     *  String hashKey              用于选择队列的 hashkey。
+     *  SendCallback sendCallback   异步消息发送成功的回调函数
+     */
+    rocketMQTemplate.asyncSendOrderly("MessageType-test-topic:async", "这是一条异步消息", "hk", new SendCallback() {
+        // 成功响应的回调
+        @Override
+        public void onSuccess(SendResult result) {
+            System.out.println(result);
+        }
+
+        // 异常响应的回调
+        @Override
+        public void onException(Throwable throwable) {
+            System.out.println(throwable);
+        }
+    });
+
+    /*
+     * public void sendOneWayOrderly(String destination, Object payload, String hashKey)
+     *  发送单向顺序消息，不等待服务器回应且没有回调函数触发
+     *  String destination  消息主题和标签。格式：`topicName:tags`
+     *  Object payload      消息体
+     *  String hashKey      用于选择队列的 hashkey。
+     */
+    rocketMQTemplate.sendOneWayOrderly("MessageType-test-topic:oneway", "这是一条单向消息", "hk");
+    // 线程睡眠，目的等待异步消息发送成功后的回调函数
+    Thread.sleep(30000);
+}
+```
 
 ### 5.3. 事务消息
 
+RocketMQ 提供了事务消息，通过事务消息就能达到分布式事务的最终一致。
 
+#### 5.3.1. 事务消息交互流程
+
+![](images/20220107101823197_5114.png)
+
+**相关概念**：
+
+- 半事务消息：暂不能投递的消息，发送方已经成功地将消息发送到了 RocketMQ 服务端，但是服务端未收到生产者对该消息的二次确认，此时该消息被标记成“暂不能投递”状态，处于该种状态下的消息即半事务消息。
+- 消息回查：由于网络闪断、生产者应用重启等原因，导致某条事务消息的二次确认丢失，RocketMQ 服务端通过扫描发现某条消息长期处于“半事务消息”时，需要主动向消息生产者询问该消息的最终状态（`Commit` 或是 `Rollback`），该询问过程即消息回查。
+
+**事务消息发送步骤**：
+
+1. 发送方将半事务消息发送至 RocketMQ 服务端。
+2. RocketMQ 服务端将消息持久化之后，向发送方返回 Ack 确认消息已经发送成功，此时消息为半事务消息。
+3. 发送方开始执行本地事务逻辑。
+4. 发送方根据本地事务执行结果向服务端提交二次确认（`Commit` 或是 `Rollback`），服务端收到 `Commit` 状态则将半事务消息标记为可投递，订阅方最终将收到该消息；服务端收到 `Rollback` 状态则删除半事务消息，订阅方将不会接受该消息。
+
+**事务消息回查步骤**：
+
+1. 在断网或者是应用重启的特殊情况下，上述步骤4提交的二次确认最终未到达服务端，经过固定时间后服务端将对该消息发起消息回查。
+2. 发送方收到消息回查后，需要检查对应消息的本地事务执行的最终结果。
+3. 发送方根据检查得到的本地事务的最终状态再次提交二次确认，服务端仍按照步骤4对半事务消息进行操作。
+
+#### 5.3.2. 基础使用示例
+
+```java
+@RestController
+public class TxMessageController {
+
+    @Autowired
+    private RocketMQTemplate rocketMQTemplate;
+
+    @GetMapping("tx_message_example")
+    public String txMessageExample() {
+        System.out.println("======= 程序开始 =======");
+
+        Product product = new Product();
+        product.setId("001");
+        product.setProductName("秋天的兰花");
+        product.setPrice(BigDecimal.TEN);
+        product.setProductDesc("オータム オーキッド");
+
+        /*
+         * public TransactionSendResult sendMessageInTransaction(final String destination, final Message<?> message, final Object arg)
+         *  发送半事务消息。
+         *      final String destination    消息主题和标签。格式：`topicName:tags`
+         *      final Message<?> message    消息内容
+         *      final Object arg            在执行本地事务方法中传入的参数
+         */
+        rocketMQTemplate.sendMessageInTransaction(
+                "tx_topic",
+                MessageBuilder.withPayload(product).setHeader("tx_id", "tx-id-001").build(),
+                product
+        );
+
+        return product.getProductName();
+    }
+
+}
+```
+
+创建事务消息监听实现类。需要继承 RocketMQLocalTransactionListener 接口，实现 executeLocalTransaction 与 checkLocalTransaction 方法。
+
+```java
+@Service
+@RocketMQTransactionListener
+public class TxMessageServiceListener implements RocketMQLocalTransactionListener {
+    /**
+     * 执行本地事务
+     *
+     * @param msg
+     * @param arg
+     * @return
+     */
+    @Override
+    public RocketMQLocalTransactionState executeLocalTransaction(Message msg, Object arg) {
+        System.out.println("executeLocalTransaction 方法调用，执行本地事务...");
+        String txId = (String) msg.getHeaders().get("tx_id");
+        Product product = (Product) arg;
+        System.out.println("executeLocalTransaction 方法获取到的消息体：" + txId);
+        System.out.println("executeLocalTransaction 方法获取到的参数：" + product);
+
+        // 模拟本地一些业务逻辑(30s)
+        try {
+            Thread.sleep(30000);
+            return RocketMQLocalTransactionState.COMMIT;
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+            return RocketMQLocalTransactionState.ROLLBACK;
+        }
+    }
+
+    /**
+     * 消息回查
+     *
+     * @param msg
+     * @return
+     */
+    @Override
+    public RocketMQLocalTransactionState checkLocalTransaction(Message msg) {
+        System.out.println("checkLocalTransaction 方法调用，进行消息回查...");
+        String txId = (String) msg.getHeaders().get("tx_id");
+        System.out.println("checkLocalTransaction 方法获取到的消息体：" + txId);
+
+        // 模拟本地一些业务逻辑(10s)，如：查询本地数据库，是否已经操作成功 orderDao.findById(txId)
+        try {
+            Thread.sleep(10000);
+            // 如果确认本地事务成功，则提交
+            return RocketMQLocalTransactionState.COMMIT;
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+            return RocketMQLocalTransactionState.ROLLBACK;
+        }
+    }
+}
+```
+
+#### 5.3.3. @RocketMQTransactionListener 注解与 sendMessageInTransaction 在版本升级的变化
+
+依赖：
+
+```xml
+<dependency>
+    <groupId>org.apache.rocketmq</groupId>
+    <artifactId>rocketmq-spring-boot-starter</artifactId>
+    <!-- <version>2.0.2</version> -->
+    <!--
+        2.0.2对应rocketmq 4.4.0
+        2.1.0对应rocketmq 4.6.0
+    -->
+    <version>2.1.0</version>
+</dependency>
+```
+
+- 从 2.0.2 升级 2.1.0 版本，发送事务消息的 `sendMessageInTransaction` 方法参数个数从4个变成3个
+
+```java
+// *********** 2.0.2 版本 ***********
+/**
+ * Send Spring Message in Transaction
+ *
+ * @param txProducerGroup the validate txProducerGroup name, set null if using the default name
+ * @param destination     destination formats: `topicName:tags`
+ * @param message         message {@link org.springframework.messaging.Message}
+ * @param arg             ext arg
+ * @return TransactionSendResult
+ * @throws MessagingException
+ */
+public TransactionSendResult sendMessageInTransaction(final String txProducerGroup, final String destination, final Message<?> message, final Object arg) throws MessagingException {
+    try {
+        TransactionMQProducer txProducer = this.stageMQProducer(txProducerGroup);
+        org.apache.rocketmq.common.message.Message rocketMsg = RocketMQUtil.convertToRocketMessage(objectMapper,
+            charset, destination, message);
+        return txProducer.sendMessageInTransaction(rocketMsg, arg);
+    } catch (MQClientException e) {
+        throw RocketMQUtil.convert(e);
+    }
+}
+
+// *********** 2.1.0 版本 ***********
+/**
+ * Send Spring Message in Transaction
+ *
+ * @param destination destination formats: `topicName:tags`
+ * @param message message {@link org.springframework.messaging.Message}
+ * @param arg ext arg
+ * @return TransactionSendResult
+ * @throws MessagingException
+ */
+public TransactionSendResult sendMessageInTransaction(final String destination,
+    final Message<?> message, final Object arg) throws MessagingException {
+    try {
+        if (((TransactionMQProducer) producer).getTransactionListener() == null) {
+            throw new IllegalStateException("The rocketMQTemplate does not exist TransactionListener");
+        }
+        org.apache.rocketmq.common.message.Message rocketMsg = this.createRocketMqMessage(destination, message);
+        return producer.sendMessageInTransaction(rocketMsg, arg);
+    } catch (MQClientException e) {
+        throw RocketMQUtil.convert(e);
+    }
+}
+```
+
+- 从 2.0.2 升级 2.1.0 版本，`@RocketMQTransactionListener` 注解移除了 `txProducerGroup` 属性
+
+```java
+@Target({ElementType.TYPE, ElementType.ANNOTATION_TYPE})
+@Retention(RetentionPolicy.RUNTIME)
+@Documented
+@Component
+public @interface RocketMQTransactionListener {
+    /**
+     * Set ExecutorService params -- corePoolSize
+     */
+    int corePoolSize() default 1;
+
+    /**
+     * Set ExecutorService params -- maximumPoolSize
+     */
+    int maximumPoolSize() default 1;
+
+    /**
+     * Set ExecutorService params -- keepAliveTime
+     */
+    long keepAliveTime() default 1000 * 60; //60ms
+
+    /**
+     * Set ExecutorService params -- blockingQueueSize
+     */
+    int blockingQueueSize() default 2000;
+
+    /**
+     * Set rocketMQTemplate bean name, the default is rocketMQTemplate.
+     * if use ExtRocketMQTemplate, can set ExtRocketMQTemplate bean name.
+     */
+    String rocketMQTemplateBeanName() default "rocketMQTemplate";
+}
+```
+
+在 rocketmq-spring-boot-starter 低于 2.1.0 以前的项目中，可以用多个 `@RocketMQTransactionListener` 来监听不同的 `txProducerGroup` 来发送不同类型的事务消息到topic，但是现在在一个项目中，如果在一个项目中写了多个 `@RocketMQTransactionListener`，项目将不能启动，启动会报
+
+```
+java.lang.IllegalStateException: rocketMQTemplate already exists RocketMQLocalTransactionListener
+```
+
+所以发送事务消息：在客户端，首先用户需要实现 `RocketMQLocalTransactionListener` 接口，并在接口类上注解声明 `@RocketMQTransactionListener`，实现确认和回查方法；然后再使用资源模板 `RocketMQTemplate`，调用方法 `sendMessageInTransaction()` 来进行消息的发布。注意：从 RocketMQ-Spring 2.1.0 版本之后，注解 `@RocketMQTransactionListener` 不能设置 `txProducerGroup`、`ak`、`sk`，这些值均与对应的 `RocketMQTemplate` 保持一致。
 

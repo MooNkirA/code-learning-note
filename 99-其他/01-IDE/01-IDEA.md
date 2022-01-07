@@ -104,13 +104,23 @@ Intellj 自动载入Mave依赖的功能很好用，但有时候会碰到问题�
 2. 在 Maven Project 的试图里 clean 一下，删除之前编译过的文件；
 3. 项目右键 --> Maven --> Reimport
 
-### 5.6. 解决idea创建maven项目速度慢问题的三种方法
+### 5.6. IDEA2020 版 Maven 依赖成功导入但任然报错找不到包解决方案
+
+有时 pom.xml 中的依赖正确，点击运行按钮，报错找不到包。但ctrl+鼠标左键却能定位到jar包（说明jar成功导入）
+
+- 原因：IDEA启动程序按钮和maven的build使用的jar包环境不一样
+- 解决方案：设置idea构建/运行操作委托给maven就行了。
+- 具体设置：Settings搜索Runner,勾选delegate ide build/run actions to maven
+
+![](images/20220107203255434_25967.png)
+
+### 5.7. 解决idea创建maven项目速度慢问题的三种方法
 
 idea创建maven项目时，速度很慢，主要原因是创建maven项目时默认是下载求网络上的一个文件archetype-catalog.xml，该文件的大小有5-6M，下载的速度很慢，导致创建过程也变得很慢。
 
 解决办法有三种，并且都需要对maven的VM Options参数做配置。
 
-#### 5.6.1. 方式一
+#### 5.7.1. 方式一
 
 在maven的VM Options加上 `-DarchetypeCatalog=internal` 或者 `-DarchetypeCatalog=local` 参数，步骤如下：
 
@@ -124,7 +134,7 @@ idea创建maven项目时，速度很慢，主要原因是创建maven项目时默
 
 确定后，再新建maven项目，就能发现项目很快就创建完成。
 
-#### 5.6.2. 方式二
+#### 5.7.2. 方式二
 
 下载archetype-catalog.xml文件，在maven的VM Options加上`-DarchetypeCatalog=local`。默认情况下，创建maven项目是从网络下载catalog文件，我们可以将catalog文件下到本地，然后通过设置archetype的使用方式为local，这样就不用每次都从网络上下载了。
 
@@ -141,7 +151,7 @@ idea创建maven项目时，速度很慢，主要原因是创建maven项目时默
 
 3. 修改maven的VM Options参数。跟之前方法的步骤一样，打开全局设置中的maven设置栏，然后在VM Options输入框中填入`-DarchetypeCatalog=local`。这样maven每次就会从本地获取catalog文件，创建项目时就不用等那么久了。
 
-#### 5.6.3. 方式三
+#### 5.7.3. 方式三
 
 在maven的VM Options加上`-Dmaven.multiModuleProjectDictory=$MAVEN_HOME`参数，MAVEN_HOME是你环境变量中配置maven环境的名称
 
@@ -153,7 +163,7 @@ idea创建maven项目时，速度很慢，主要原因是创建maven项目时默
 
 确定之后，maven项目就能很快的建成了。
 
-#### 5.6.4. 方式四
+#### 5.7.4. 方式四
 
 修改下载下来的 maven 目录下面 conf/settings.xml 文件，修改镜像源使用国内阿里巴巴的镜像源
 
