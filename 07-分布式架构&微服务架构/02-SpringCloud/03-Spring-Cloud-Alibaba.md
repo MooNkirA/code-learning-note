@@ -2275,3 +2275,33 @@ public interface ProductFeignClient {
 #### 8.4.2. spring-cloud-alibaba-2.1.x-sample 项目中示例
 
 具体项目代码参考`spring-cloud-note\spring-cloud-alibaba-2.1.x-sample\service-order`
+
+# 番外
+
+## 1. 消息中间件 RocketMQ 案例
+
+案例需求：模拟场景，下单成功之后，向下单用户发送短信。设计图如下：
+
+![](images/20220106213121261_11258.png)
+
+### 1.1. 订单微服务发送信息
+
+- 在订单微服务中添加 rocketmq 的依赖
+
+```xml
+
+```
+
+
+
+
+
+
+
+
+
+### 1.2. 用户微服务接收信息
+
+
+
+

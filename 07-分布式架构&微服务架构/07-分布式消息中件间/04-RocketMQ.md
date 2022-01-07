@@ -1,1 +1,603 @@
 # RocketMQ
+
+RocketMQ 是阿里巴巴开源的分布式消息中间件，现在是 Apache 的一个顶级项目。
+
+## 1. RocketMQ 介绍
+
+RocketMQ 是一款开源的分布式消息系统，基于高可用分布式集群技术，提供低延时的、高可靠的消息发布与订阅服务。同时，广泛应用于多个领域，包括异步通信解耦、企业解决方案、金融支付、电信、电子商务、快递物流、广告营销、社交、即时通信、移动应用、手游、视频、物联网、车联网等。
+
+具有以下特点：
+
+- 能够保证严格的消息顺序
+- 提供丰富的消息拉取模式
+- 高效的订阅者水平扩展能力
+- 实时的消息订阅机制
+- 亿级消息堆积能力
+
+## 2. RocketMQ 环境搭建
+
+RocketMQ 学习示例是在 linux 环境下安装
+
+### 2.1. 资源下载
+
+> 最新版本 4.9.2（2021.10.18）
+
+RocketMQ 下载地址：https://rocketmq.apache.org/release_notes/release-notes-4.9.2/
+
+解压后的目录结构如下：
+
+```
+apache-rocketmq
+├── LICENSE
+├── NOTICE
+├── README.md
+├── benchmark
+├── bin
+├── conf
+└── lib
+```
+
+### 2.2. Linux 环境安装
+
+#### 2.2.1. 环境要求
+
+- Linux 64位操作系统
+- 64bit JDK 1.8+
+
+#### 2.2.2. 安装
+
+1. 上传文件到Linux系统
+
+```bash
+# 上传
+rz
+```
+
+2. 解压到安装目录
+
+```bash
+# 解压
+unzip rocketmq-all-4.4.0-bin-release.zip
+
+# 移动到指定的目录（如需要）
+mv rocketmq-all-4.4.0-bin-release /xx/xxx
+```
+
+#### 2.2.3. 启动服务
+
+- 进入 rocketmq 的安装目录下的bin目录
+
+```bash
+cd ./xxx/rocketmq-all-4.4.0-bin-release/bin
+```
+
+##### 2.2.3.1. 启动 NameServer
+
+```bash
+nohup ./mqnamesrv &
+```
+
+只要进程不报错，就应该是启动成功了，可以查看一下日志或者查看进程来确认是否成功启动
+
+```bash
+# 查看日志
+tail -f /root/logs/rocketmqlogs/namesrv.log
+
+# 查看进程
+netstat -an | grep 9876
+```
+
+![](images/20220106095659154_18638.png)
+
+##### 2.2.3.2. 启动 Broker
+
+启动前，需要修改两个配置文件。修改服务占用的内存
+
+```bash
+vim runbroker.sh
+# JAVA_OPT="${JAVA_OPT} -server -Xms8g -Xmx8g -Xmn4g"
+# 修改为JAVA_OPT="${JAVA_OPT} -server -Xms256m -Xmx256m -Xmn128m"
+
+vim runserver.sh
+# JAVA_OPT="${JAVA_OPT} -server -Xms4g -Xmx2g -Xmn -XX:MetaspaceSize=128m -XX:MaxMetaspaceSize=320m"
+# 修改为 JAVA_OPT="${JAVA_OPT} -server -Xms256m -Xmx128m -Xmn -XX:MetaspaceSize=128m -XX:MaxMetaspaceSize=320m"
+```
+
+启动 Broker，需要指定一下 NameServer 的地址和端口
+
+```bash
+nohup ./mqbroker -n localhost:9876 &
+```
+
+只要进程不报错，就应该是启动成功了，可以查看一下日志或者查看进程来确认是否成功启动
+
+```bash
+tail -f /root/logs/rocketmqlogs/broker.log
+```
+
+![](images/20220106105736976_27327.png)
+
+#### 2.2.4. 测试
+
+官方文档提供了一个测试脚本。*注：以下命令是在RocketMQ根目录执行*
+
+发送消息：
+
+```bash
+export NAMESRV_ADDR=localhost:9876
+bin/tools.sh org.apache.rocketmq.example.quickstart.Producer
+```
+
+发送成功后显示：SendResult [sendStatus=SEND_OK, msgId= …​
+
+接收消息：
+
+```bash
+export NAMESRV_ADDR=localhost:9876
+bin/tools.sh org.apache.rocketmq.example.quickstart.Consumer
+```
+
+接收成功后显示：ConsumeMessageThread_%d Receive New Messages: [MessageExt…​
+
+#### 2.2.5. 关闭服务
+
+在 RocketMQ 根目录执行以下命令，关闭 RocketMQ
+
+```bash
+bin/mqshutdown broker
+bin/mqshutdown namesrv
+```
+
+### 2.3. windows 环境安装
+
+#### 2.3.1. 安装
+
+- 将下载的 rocketmq-all-4.9.2-bin-release.zip 到无中文无空格的目录下
+- 新增环境变量 `ROCKETMQ_HOME`，指定 rocketmq 解压的根目录
+
+![](images/20220106140222376_32572.png)
+
+> 注意：RocketMQ 的环境变量名称必须是 `ROCKETMQ_HOME`，因为启动的脚本是用此名称。
+
+![](images/20220106140415853_2542.png)
+
+- 修改 `根目录/conf/broker.conf` 配置文件，添加如下配置：
+
+```properties
+enablePropertyFilter=true
+# 指定 NameServer 的地址，把 borker 与 NameServer 关联起来
+namesrvAddr=127.0.0.1:9876
+```
+
+![](images/20220106140735203_1753.png)
+
+![](images/20220106141213858_12615.png)
+
+#### 2.3.2. 启动服务
+
+##### 2.3.2.1. 启动 NameServer
+
+- 方式一：直接进入`/根目录/bin/`，双击 mqnamesrv.cmd 启动
+- 方式二：命令行启动
+
+```bash
+cd /d E:\deployment-environment\RocketMQ\rocketmq-4.9.2\bin
+mqnamesrv.cmd
+```
+
+![](images/20220106141603810_9695.png)
+
+##### 2.3.2.2. 启动 Broker
+
+进入 `/根目录/bin/` 目录，通过命令行启动 broker
+
+```bash
+cd /d E:\deployment-environment\RocketMQ\rocketmq-4.9.2\bin
+mqbroker.cmd -c ../conf/broker.conf
+```
+
+![](images/20220106141809993_9760.png)
+
+#### 2.3.3. 关闭服务
+
+
+### 2.4. RocketMQ 控制台安装（windows环境）
+
+RocketMQ 控制台 的 github 仓库地址：https://github.com/apache/rocketmq-externals
+
+原下载地址：~~https://github.com/apache/rocketmq-externals/releases~~（已失效）
+
+> 没有打包好的版本下载，在github仓库中，选择`release-rocketmq-console`的分支，然后克隆或者打包下载到本地即可
+
+- 修改项目的配置
+
+```properties
+# 修改配置文件 rocketmq-console\src\main\resources\application.properties
+server.port=7777 # 项目部署端口号
+rocketmq.config.namesrvAddr=192.168.12.132:9876 # nameserv的地址，注意防火墙要开启9876端口
+```
+
+- 将工程打成jar包后，再启动项目
+
+```bash
+# 进入控制台项目根目录，将工程打成jar包
+mvn clean package -Dmaven.test.skip=true
+# 启动控制台
+java -jar target/rocketmq-console-ng-1.0.0.jar
+```
+
+> 注：也可以不修改原配置文件，在启动命令中，指定项目部署端口号和NameServer的地址
+
+```bash
+cd /d E:\deployment-environment\RocketMQ\rocketmq-console\target\
+# 启动控制台
+java -jar rocketmq-console-ng-1.0.0.jar --server.port=7777 --rocketmq.config.namesrvAddr=127.0.0.1:9876
+```
+
+- 根据配置的端口号，访问控制台
+
+![](images/20220106154521415_7732.png)
+
+## 3. RocketMQ 的架构及概念
+
+### 3.1. 技术架构
+
+![](images/20220106111459581_10004.png)
+
+RocketMQ架构上主要分为四部分，如上图所示:
+
+- roducer：消息发布的角色，支持分布式集群方式部署。Producer通过MQ的负载均衡模块选择相应的Broker集群队列进行消息投递，投递的过程支持快速失败并且低延迟。
+- Consumer：消息消费的角色，支持分布式集群方式部署。支持以push推，pull拉两种模式对消息进行消费。同时也支持集群方式和广播方式的消费，它提供实时消息订阅机制，可以满足大多数用户的需求。
+- NameServer：NameServer是一个非常简单的Topic路由注册中心，其角色类似Dubbo中的zookeeper，支持Broker的动态注册与发现。主要包括两个功能：Broker管理，NameServer接受Broker集群的注册信息并且保存下来作为路由信息的基本数据。然后提供心跳检测机制，检查Broker是否还存活；路由信息管理，每个NameServer将保存关于Broker集群的整个路由信息和用于客户端查询的队列信息。然后Producer和Conumser通过NameServer就可以知道整个Broker集群的路由信息，从而进行消息的投递和消费。NameServer通常也是集群的方式部署，各实例间相互不进行信息通讯。Broker是向每一台NameServer注册自己的路由信息，所以每一个NameServer实例上面都保存一份完整的路由信息。当某个NameServer因某种原因下线了，Broker仍然可以向其它NameServer同步其路由信息，Producer,Consumer仍然可以动态感知Broker的路由的信息。
+- BrokerServer：Broker主要负责消息的存储、投递和查询以及服务高可用保证，为了实现这些功能，Broker包含了以下几个重要子模块。
+  1. Remoting Module：整个Broker的实体，负责处理来自clients端的请求。
+  2. Client Manager：负责管理客户端(Producer/Consumer)和维护Consumer的Topic订阅信息
+  3. Store Service：提供方便简单的API接口处理消息存储到物理硬盘和查询功能。
+  4. HA Service：高可用服务，提供Master Broker 和 Slave Broker之间的数据同步功能。
+  5. Index Service：根据特定的Message key对投递到Broker的消息进行索引服务，以提供消息的快速查询。
+
+![](images/20220106111617801_5835.png)
+
+### 3.2. 基本概念
+
+- 消息模型（Message Model）
+
+RocketMQ主要由 Producer、Broker、Consumer 三部分组成，其中Producer 负责生产消息，Consumer 负责消费消息，Broker 负责存储消息。Broker 在实际部署过程中对应一台服务器，每个 Broker 可以存储多个Topic的消息，每个Topic的消息也可以分片存储于不同的 Broker。Message Queue 用于存储消息的物理地址，每个Topic中的消息地址存储于多个 Message Queue 中。ConsumerGroup 由多个Consumer 实例构成。
+
+- 消息生产者（Producer）
+
+负责生产消息，一般由业务系统负责生产消息。一个消息生产者会把业务应用系统里产生的消息发送到broker服务器。RocketMQ提供多种发送方式，同步发送、异步发送、顺序发送、单向发送。同步和异步方式均需要Broker返回确认信息，单向发送不需要。
+
+- 消息消费者（Consumer）
+
+负责消费消息，一般是后台系统负责异步消费。一个消息消费者会从Broker服务器拉取消息、并将其提供给应用程序。从用户应用的角度而言提供了两种消费形式：拉取式消费、推动式消费。
+
+- 主题（Topic）
+
+表示一类消息的集合，每个主题包含若干条消息，每条消息只能属于一个主题，是RocketMQ进行消息订阅的基本单位。
+
+- 代理服务器（Broker Server）
+
+消息中转角色，负责存储消息、转发消息。代理服务器在RocketMQ系统中负责接收从生产者发送来的消息并存储、同时为消费者的拉取请求作准备。代理服务器也存储消息相关的元数据，包括消费者组、消费进度偏移和主题和队列消息等。
+
+- 名字服务（Name Server）
+
+名称服务充当路由消息的提供者。生产者或消费者能够通过名字服务查找各主题相应的Broker IP列表。多个Namesrv实例组成集群，但相互独立，没有信息交换。
+
+- 拉取式消费（Pull Consumer）
+
+Consumer消费的一种类型，应用通常主动调用Consumer的拉消息方法从Broker服务器拉消息、主动权由应用控制。一旦获取了批量消息，应用就会启动消费过程。
+
+- 推动式消费（Push Consumer）
+
+Consumer消费的一种类型，该模式下Broker收到数据后会主动推送给消费端，该消费模式一般实时性较高。
+
+- 生产者组（Producer Group）
+
+同一类Producer的集合，这类Producer发送同一类消息且发送逻辑一致。如果发送的是事务消息且原始生产者在发送之后崩溃，则Broker服务器会联系同一生产者组的其他生产者实例以提交或回溯消费。
+
+- 消费者组（Consumer Group）
+
+同一类Consumer的集合，这类Consumer通常消费同一类消息且消费逻辑一致。消费者组使得在消息消费方面，实现负载均衡和容错的目标变得非常容易。要注意的是，消费者组的消费者实例必须订阅完全相同的Topic。RocketMQ 支持两种消息模式：集群消费（Clustering）和广播消费（Broadcasting）。
+
+- 集群消费（Clustering）
+
+集群消费模式下,相同Consumer Group的每个Consumer实例平均分摊消息。
+
+- 广播消费（Broadcasting）
+
+广播消费模式下，相同Consumer Group的每个Consumer实例都接收全量的消息。
+
+- 普通顺序消息（Normal Ordered Message）
+
+普通顺序消费模式下，消费者通过同一个消息队列（ Topic 分区，称作 Message Queue） 收到的消息是有顺序的，不同消息队列收到的消息则可能是无顺序的。
+
+- 严格顺序消息（Strictly Ordered Message）
+
+严格顺序消息模式下，消费者收到的所有消息均是有顺序的。
+
+- 消息（Message）
+
+消息系统所传输信息的物理载体，生产和消费数据的最小单位，每条消息必须属于一个主题。RocketMQ中每个消息拥有唯一的Message ID，且可以携带具有业务标识的Key。系统提供了通过Message ID和Key查询消息的功能。
+
+- 标签（Tag）
+
+为消息设置的标志，用于同一主题下区分不同类型的消息。来自同一业务单元的消息，可以根据不同业务目的在同一主题下设置不同标签。标签能够有效地保持代码的清晰度和连贯性，并优化RocketMQ提供的查询系统。消费者可以根据Tag实现对不同子主题的不同消费逻辑，实现更好的扩展性。
+
+## 4. 基础消息发送和接收快速开始
+
+### 4.1. 相关依赖
+
+示例使用 SpringBoot 项目
+
+```xml
+<!-- Spring Boot 父项目依赖 -->
+<parent>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-parent</artifactId>
+    <version>2.1.13.RELEASE</version>
+</parent>
+
+<dependencies>
+    <dependency>
+        <groupId>org.apache.rocketmq</groupId>
+        <artifactId>rocketmq-spring-boot-starter</artifactId>
+        <!--<version>2.0.2</version>-->
+        <!--
+            采用客户端调用的时候，可能会相对高频的出现的 No route info of this topic这个异常问题
+            配置 autoCreateTopicEnable=true，如果这个属性没有配置，且没有手动创建topic，就会出现上面的异常
+            注：这个属性在高版本已经默认配置了
+        -->
+        <version>2.1.1</version>
+    </dependency>
+    <!-- 测试相关依赖 -->
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-test</artifactId>
+        <scope>test</scope>
+    </dependency>
+</dependencies>
+```
+
+修改项目application.yml配置文件，增加 RocketMQ 相关的配置
+
+消息发送者配置：
+
+```yml
+# RocketMQ 配置
+rocketmq:
+  name-server: 127.0.0.1:9876 # RocketMQ 服务的地址
+  producer:
+    group: producer-example # 生产者组名称(按实际命名)
+```
+
+消息消费者配置：
+
+```yml
+# RocketMQ 配置
+rocketmq:
+  name-server: 127.0.0.1:9876 # RocketMQ 服务的地址
+```
+
+### 4.2. 发送消息
+
+使用 RocketMQ 发送消息步骤如下：
+
+1. 创建消息生产者，指定生产者所属的组名
+2. 指定 Nameserver 地址
+3. 启动生产者
+4. 创建消息对象，指定主题、标签和消息体
+5. 发送消息
+6. 关闭生产者
+
+```java
+import org.apache.rocketmq.client.producer.DefaultMQProducer;
+import org.apache.rocketmq.client.producer.SendResult;
+import org.apache.rocketmq.common.message.Message;
+import org.junit.Test;
+
+@Test
+public void basicTest() throws Exception {
+    // 1. 创建消息生产者，并且设置生产组名
+    DefaultMQProducer producer = new DefaultMQProducer("my-producer-group");
+
+    // 2. 为生产者设置 NameServer 的地址
+    producer.setNamesrvAddr("127.0.0.1:9876");
+
+    // 3. 启动生产者
+    producer.start();
+
+    /*
+     * 4. 构建消息对象
+     *  String topic 消息的主题名
+     *  String tags  消息的标签名
+     *  byte[] body  消息的内容，字节数组
+     */
+    Message message = new Message("myTopic", "myTag", ("Test RocketMQ Message").getBytes());
+
+    /*
+     * 5. 发送消息
+     *  Message msg     消息对象
+     *  long timeout    超时时间
+     */
+    SendResult result = producer.send(message, 10000);
+    System.out.println(result);
+
+    // 6. 关闭生产者
+    producer.shutdown();
+}
+```
+
+### 4.3. 接收消息
+
+使用 RocketMQ 接收消息步骤：
+
+1. 创建消息消费者，指定消费者所属的组名
+2. 指定 Nameserver 地址
+3. 指定消费者订阅的主题和标签
+4. 设置回调函数，编写处理消息的方法
+5. 启动消息消费者
+
+```java
+import org.apache.rocketmq.client.consumer.DefaultMQPushConsumer;
+import org.apache.rocketmq.client.consumer.listener.ConsumeConcurrentlyContext;
+import org.apache.rocketmq.client.consumer.listener.ConsumeConcurrentlyStatus;
+import org.apache.rocketmq.client.consumer.listener.MessageListenerConcurrently;
+import org.apache.rocketmq.common.message.MessageExt;
+import org.junit.Test;
+
+import java.util.List;
+
+@Test
+public void basicTest() throws Exception {
+    // 1. 创建消费者，并且为其指定消费者组名
+    DefaultMQPushConsumer consumer = new DefaultMQPushConsumer("my-consumer-group");
+
+    // 2. 为消费者设置 NameServer 的地址
+    consumer.setNamesrvAddr("127.0.0.1:9876");
+
+    /*
+     * 3. 指定消费者订阅的主题和标签
+     *  String topic            消息主题名称
+     *  String subExpression    消息标签名称（`*`代表所有标签）
+     */
+    consumer.subscribe("myTopic", "*");
+
+    // 4. 设置一个回调函数,并在函数中编写接收到消息之后的处理方法
+    consumer.registerMessageListener(new MessageListenerConcurrently() {
+        // 处理获取到的消息
+        @Override
+        public ConsumeConcurrentlyStatus consumeMessage(List<MessageExt> list, ConsumeConcurrentlyContext consumeConcurrentlyContext) {
+            // 消费逻辑
+            System.out.println("Message ===> " + list);
+
+            // 返回消费成功状态
+            return ConsumeConcurrentlyStatus.CONSUME_SUCCESS;
+        }
+    });
+
+    // 5. 启动消费者
+    consumer.start();
+    System.out.println("启动消费者成功了");
+    System.in.read();
+}
+```
+
+## 5. 不同类型的消息
+
+引入 RocketMQ 依赖
+
+```xml
+<dependency>
+    <groupId>org.apache.rocketmq</groupId>
+    <artifactId>rocketmq-spring-boot-starter</artifactId>
+    <!--<version>2.0.2</version>-->
+    <!--
+        采用客户端调用的时候，可能会相对高频的出现的 No route info of this topic这个异常问题
+        配置 autoCreateTopicEnable=true，如果这个属性没有配置，且没有手动创建topic，就会出现上面的异常
+        注：这个属性在高版本已经默认配置了
+    -->
+    <version>2.1.1</version>
+</dependency>
+```
+
+> 注：示例依赖 rocketmq-starter 2.0.2 版本时，发送消息时如果当前topic不存在，会报No route info of this topic这个异常问题。高版本默认自动创建topic。
+
+注入 `RocketMQTemplate`
+
+```java
+@Autowired
+private RocketMQTemplate rocketMQTemplate;
+```
+
+### 5.1. 普通消息
+
+RocketMQ 提供三种方式来发送普通消息：可靠同步发送、可靠异步发送和单向发送。
+
+#### 5.1.1. 可靠同步发送
+
+同步发送是指消息发送方发出数据后，会在收到接收方发回响应之后才发下一个数据包的通讯方式。
+
+此种方式应用场景非常广泛，例如重要通知邮件、报名短信通知、营销短信系统等。
+
+```java
+// 同步消息测试
+@Test
+public void testSyncSend() {
+    /*
+     * public SendResult syncSend(String destination, Object payload, long timeout)
+     *  发送同步消息，在等待消息发送结果的返回之前，会一直阻塞
+     *  String destination  消息主题和标签。格式：`topicName:tags`
+     *  Object payload      消息体
+     *  long timeout        超时时间，单位ms
+     */
+    SendResult result =
+            rocketMQTemplate.syncSend("MessageType-test-topic:sync", "这是一条同步消息", 10000);
+    System.out.println(result);
+}
+```
+
+#### 5.1.2. 可靠异步发送
+
+异步发送是指发送方发出数据后，不等接收方发回响应，接着发送下个数据包的通讯方式。发送方通过回调接口接收服务器响应，并对响应结果进行处理。
+
+异步发送一般用于链路耗时较长，对 RT 响应时间较为敏感的业务场景，例如用户视频上传后通知启动转码服务，转码完成后通知推送转码结果等。
+
+```java
+// 异步消息测试
+@Test
+public void testAsyncSend() throws InterruptedException {
+    /*
+     * public void asyncSend(String destination, Object payload, SendCallback sendCallback)
+     *  发送异步消息，发送消息之后，程序会继续往下执行，不会等待结果的返回
+     *  String destination          消息主题和标签。格式：`topicName:tags`
+     *  Object payload              消息体
+     *  SendCallback sendCallback   异步消息发送成功的回调函数
+     */
+    rocketMQTemplate.asyncSend("MessageType-test-topic:async", "这是一条异步消息", new SendCallback() {
+        // 成功响应的回调
+        @Override
+        public void onSuccess(SendResult result) {
+            System.out.println(result);
+        }
+
+        // 异常响应的回调
+        @Override
+        public void onException(Throwable throwable) {
+            System.out.println(throwable);
+        }
+    });
+    System.out.println("异步消息发送成功");
+    // 线程睡眠，目的等待异步消息发送成功后的回调函数
+    Thread.sleep(30000);
+}
+```
+
+#### 5.1.3. 单向发送
+
+单向发送是指发送方只负责发送消息，不等待服务器回应且没有回调函数触发，即只发送请求不等待应答。
+
+适用于某些耗时非常短，但对可靠性要求并不高的场景，例如日志收集。
+
+```java
+// 单向消息
+@Test
+public void testOneWay() {
+    /*
+     * public void sendOneWay(String destination, Object payload)
+     *  发送消息，不等待服务器回应且没有回调函数触发
+     *  String destination  消息主题和标签。格式：`topicName:tags`
+     *  Object payload      消息体
+     */
+    rocketMQTemplate.sendOneWay("MessageType-test-topic:oneway", "这是一条单向消息");
+}
+```
+
+### 5.2. 顺序消息
+
+
+
+### 5.3. 事务消息
+
+
+
