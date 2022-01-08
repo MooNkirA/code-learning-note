@@ -755,6 +755,247 @@ public class OrderFeignController {
 | 接入点         | `spring.cloud.nacos.discovery.endpoint`          | UTF-8                     | 地域的某个服务的入口域名，通过此域名可以动态地拿到服务端地址                                 |
 | 是否集成Ribbon | `ribbon.nacos.enabled`                           | true                      |                                                                                       |
 
+# Spring Cloud Alibaba Nacos Config
+
+## 1. Nacos Config 概述
+
+### 1.1. 简介
+
+Nacos 提供用于存储配置和其他元数据的 key/value 存储，为分布式系统中的外部化配置提供服务器端和客户端支持。使用 Spring Cloud Alibaba Nacos Config 可以在 Nacos Server 集中管理 Spring Cloud 应用的外部属性配置。
+
+Spring Cloud Alibaba Nacos Config 是 Config Server 和 Client 的替代方案，客户端和服务器上的概念与 Spring Environment 和 PropertySource 有着一致的抽象，在特殊的 bootstrap 阶段，配置被加载到 Spring 环境中。当应用程序通过部署管道从开发到测试再到生产时，可以管理这些环境之间的配置，并确保应用程序具有迁移时需要运行的所有内容。
+
+### 1.2. nacos config 相关概念
+
+![](images/20220108214758067_5476.png)
+
+- **命名空间(Namespace)**：命名空间可用于进行不同环境的配置隔离。一般一个环境划分到一个命名空间
+
+![](images/20220108175545845_6946.png)
+
+- **配置分组(Group)**：配置分组用于将不同的服务可以归类到同一分组。一般将一个项目的配置分到一组
+
+![](images/20220108175635513_13524.png)
+
+- **配置集(Data ID)**：在系统中，一个配置文件通常就是一个配置集。一般微服务的配置就是一个配置集
+
+## 2. Nacos Config 快速开始
+
+使用 nacos 作为配置中心，其实就是将 nacos 当做一个服务端，将各个微服务看成是客户端，将各个微服务的配置文件统一存放在 nacos 服务器上，然后各个微服务从 nacos 上拉取配置即可。*下面以商品服务做为示例*
+
+### 2.1.  Nacos 服务端搭建
+
+> 此部分详见 Nacos Discovery 章节
+
+### 2.2. 修改微服务工程
+
+- 修改项目 pom.xml 文件，引入 Nacos Config Starter 依赖
+
+```xml
+<!-- nacos 配置中心客户端 -->
+<dependency>
+    <groupId>com.alibaba.cloud</groupId>
+    <artifactId>spring-cloud-starter-alibaba-nacos-config</artifactId>
+</dependency>
+```
+
+- 在应用的 `/src/main/resources/` 目录下，创建 bootstrap.properties/bootstrap.yml 配置文件，并配置 Nacos Config 元数据
+
+```yml
+# 配置一些必需项，其他的从注册中心获取
+spring:
+  application:
+    name: service-product
+  cloud:
+    nacos:
+      config:
+        server-addr: 127.0.0.1:8848 # nacos 的服务端地址
+        file-extension: yaml # dataID后缀及内容文件格式，默认值是 properties
+  profiles:
+    active: dev # 环境标识
+```
+
+> 更多配置项详见《Nacos Config 相关配置项》章节或者项目示例代码
+>
+> 注意事项：
+>
+> - **注意：不能使用原来的 application.yml 作为配置文件，必须新建一个 bootstrap.properties/bootstrap.yml 作为配置文件**
+> - **配置文件优先级(由高到低)**：bootstrap.properties -> bootstrap.yml -> application.properties -> application.yml
+> 注意当使用域名的方式来访问 Nacos 时，`spring.cloud.nacos.config.server-addr` 配置的方式为 `域名:port`。 例如 Nacos 的域名为`abc.com.nacos`，监听的端口为 `80`，则 `spring.cloud.nacos.config.server-addr=abc.com.nacos:80`。 注意 `80` 端口不能省略。
+
+- 完成上述两步后，应用会从 Nacos Config 中获取相应的配置，并添加在 Spring Environment 的 `PropertySources` 中。现在可以使用 `@Value` 注解来将对应的配置注入到 Spring 容器的相关实例中。示例创建 `NacosConfigSampleController` 类，定义 userName 和 age 字段用于读取配置中心设置的值，并添加 `@RefreshScope` 注解打开动态刷新功能。
+
+```java
+@RestController
+@RequestMapping("nacos-config")
+@RefreshScope // Spring Cloud 原生注解，实现配置文件的动态加载。
+public class NacosConfigSampleController implements EnvironmentAware {
+
+    @Value("${user.name}") // 动态注入配置中心相应的配置项
+    private String userName;
+
+    @Value("${user.age}")
+    private int age;
+
+    private Environment environment;
+
+    @GetMapping("value-annotation")
+    public String getByValueAnnotation() {
+        return String.format("通过@Value注解获取配置值，name: %s, age: %d", userName, age);
+    }
+
+
+    @GetMapping("environment")
+    public String getByEnvironment() {
+        String userName = environment.getProperty("name");
+        String age = environment.getProperty("age");
+        return String.format("通过 Environment 对象获取配置值，name: %s, age: %s", userName, age);
+    }
+
+    /**
+     * Set the {@code Environment} that this component runs in.
+     *
+     * @param environment
+     */
+    @Override
+    public void setEnvironment(Environment environment) {
+        this.environment = environment;
+    }
+}
+```
+
+### 2.3. 在 nacos 控制台配置并测试
+
+- 点击配置列表，点击右边 + 号，新建配置。
+
+![](images/20220108171021072_10404.png)
+
+- 配置内容注意下面的细节
+    - 注意 DataID 与 bootstrap 配置文件相应关系
+    - 配置文件格式要跟配置文件的格式对应，且目前仅仅支持YAML和Properties
+    - 配置内容按照上面选定的格式书写
+
+![](images/20220108173812062_26625.png)
+
+![](images/20220108171931119_31604.png)
+
+- 删除本地项目的 application.yml 配置，启动程序进行测试。项目能成功启动，说明 nacos 的配置中心功能已经实现。
+
+## 3. Nacos Config 高级使用
+
+### 3.1. 配置动态刷新
+
+通过项目的配置项 `spring.cloud.nacos.config.refresh-enabled` 来控制是否开启监听和自动刷新，默认是true（开启）。程序中动态获取最新配置的方法如下：
+
+#### 3.1.1. 方式一：硬编码方式
+
+通过 `org.springframework.context.ConfigurableApplicationContext` 对象获取 `Environment` 实例，可以根据key值获取到相应的配置值
+
+```java
+@Autowired
+private ConfigurableApplicationContext applicationContext;
+
+@GetMapping("configurableApplicationContext")
+public String getByConfigurableApplicationContext() {
+    String userName = applicationContext.getEnvironment().getProperty("user.name");
+    String age = applicationContext.getEnvironment().getProperty("user.age");
+    return String.format("通过 ConfigurableApplicationContext.getEnvironment() 获取 Environment对象，获取配置值，name: %s, age: %s", userName, age);
+}
+```
+
+> 注：此方式与快速开始示例中的实现 `EnvironmentAware` 接口获取 `Environment` 实例的效果一样。
+
+#### 3.1.2. 方式二：注解方式(推荐)
+
+```java
+@RestController
+@RequestMapping("nacos-config")
+@RefreshScope // Spring Cloud 原生注解，实现配置文件的动态加载。。只需要在需要动态读取配置的类上添加此注解即可。
+public class NacosConfigSampleController implements EnvironmentAware {
+    @Value("${user.name}") // 动态注入配置中心相应的配置项
+    private String userName;
+
+    @Value("${user.age}")
+    private int age;
+
+    @GetMapping("value-annotation")
+    public String getByValueAnnotation() {
+        return String.format("通过@Value注解获取配置值，name: %s, age: %d", userName, age);
+    }
+}
+```
+
+### 3.2. 配置共享
+
+配置共享，即将公共配置的部分抽取出来，在其他配置文件中引入。
+
+#### 3.2.1. 同一个微服务的不同环境配置文件之间共享配置
+
+在同一个微服务的不同环境之间实现配置共享，只需要提取一个以 `spring.application.name` 命名的配置文件，然后将其所有环境的公共配置放在里面即可。*以商品微服务为例*
+
+- 新建一个名为 `service-product.yaml` 配置商品微服务的公共配置项
+
+![](images/20220108182242453_13869.png)
+
+- 新建一个名为 `service-product-test.yaml` 配置测试环境的配置项
+
+![](images/20220108182708074_20425.png)
+
+- 删除 `service-product-dev.yaml` 原来公共部分的配置
+- 修改本地的 `spring.profiles.active` 配置项的，切换不同的环境的配置文件进行测试。
+
+![](images/20220108183138237_20271.png)
+
+#### 3.2.2. 不同微服务之间共享配置
+
+不同为服务之间实现配置共享的原理类似于文件引入，就是定义一个公共配置，然后在不同的服务的配置中引入。*下面以商品微服务为例*
+
+- 在 nacos 配置中心中定义一个 DataID 为 all-service.yaml 的配置，用于所有微服务共享
+
+![](images/20220108183519723_15552.png)
+
+- 在配置中心中，将商品服务的公共配置项删除
+
+![](images/20220108183653748_32626.png)
+
+- 修改商品服务本地的 bootstrap.yml/bootstrap.properties 配置文件，配置引入公共配置
+
+```yml
+# 配置一些必需项，其他的从注册中心获取
+spring:
+  application:
+    name: service-product
+  cloud:
+    nacos:
+      config:
+        server-addr: 127.0.0.1:8848 # nacos 的服务端地址
+        file-extension: yaml # dataID后缀及内容文件格式，默认值是 properties
+        # 引入公共配置，已经过时
+        shared-dataids: all-service.yaml # 配置要引入的配置
+        refreshable-dataids: all-service.yaml # 配置要实现动态配置刷新的配置
+  profiles:
+    active: dev # 环境标识
+```
+
+- 启动商品微服务进行测试
+
+## 4. Nacos Config 相关配置项
+
+|         配置项          |                     key                     |           默认值           |                                   说明                                   |
+| ---------------------- | ------------------------------------------- | ------------------------- | ----------------------------------------------------------------------- |
+| 服务端地址               | `spring.cloud.nacos.config.server-addr`     |                           |                                                                         |
+| DataId前缀             | `spring.cloud.nacos.config.prefix`          | `spring.application.name` |                                                                         |
+| Group                  | `spring.cloud.nacos.config.group`           | DEFAULT_GROUP             |                                                                         |
+| dataID后缀及内容文件格式 | `spring.cloud.nacos.config.file-extension`  | properties                | dataId 的后缀，同时也是配置内容的文件格式，目前只支持 properties             |
+| 配置内容的编码方式       | `spring.cloud.nacos.config.encode`          | UTF-8                     | 配置的编码                                                               |
+| 获取配置的超时时间       | `spring.cloud.nacos.config.timeout`         | 3000                      | 单位为 ms                                                                |
+| 配置的命名空间           | `spring.cloud.nacos.config.namespace`       |                           | 常用场景之一是不同环境的配置的区分隔离，例如开发测试环境和生产环境的资源隔离等。 |
+| AccessKey              | `spring.cloud.nacos.config.access-key`      |                           |                                                                         |
+| SecretKey              | `spring.cloud.nacos.config.secret-key`      |                           |                                                                         |
+| 相对路径                | `spring.cloud.nacos.config.context-path`    |                           | 服务端 API 的相对路径                                                     |
+| 接入点                  | `spring.cloud.nacos.config.endpoint`        | UTF-8                     | 地域的某个服务的入口域名，通过此域名可以动态地拿到服务端地址                   |
+| 是否开启监听和自动刷新   | `spring.cloud.nacos.config.refresh-enabled` | true                      |                                                                         |
+
 # Spring Cloud Alibaba Sentinel
 
 ## 1. Sentinel 概述
@@ -2624,6 +2865,9 @@ public class SmsService implements RocketMQListener<Order> {
     }
 }
 ```
+
+# Seata
+
 
 
 

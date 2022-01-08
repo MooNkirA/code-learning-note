@@ -104,13 +104,14 @@ Intellj 自动载入Mave依赖的功能很好用，但有时候会碰到问题�
 2. 在 Maven Project 的试图里 clean 一下，删除之前编译过的文件；
 3. 项目右键 --> Maven --> Reimport
 
-### 5.6. IDEA2020 版 Maven 依赖成功导入但任然报错找不到包解决方案
+### 5.6. IDEA 2020 版 Maven 依赖成功导入但任然报错找不到包解决方案
 
 有时 pom.xml 中的依赖正确，点击运行按钮，报错找不到包。但ctrl+鼠标左键却能定位到jar包（说明jar成功导入）
 
 - 原因：IDEA启动程序按钮和maven的build使用的jar包环境不一样
 - 解决方案：设置idea构建/运行操作委托给maven就行了。
 - 具体设置：Settings搜索Runner,勾选delegate ide build/run actions to maven
+- 存在问题：如果勾选之后，在本项目中一些依赖模块（如：项目的公共依赖模块），需要安装到本地仓库，不然会提示说无法找到相应的依赖。
 
 ![](images/20220107203255434_25967.png)
 

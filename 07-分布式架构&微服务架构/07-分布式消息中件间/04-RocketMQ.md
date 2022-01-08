@@ -71,7 +71,21 @@ mv rocketmq-all-4.4.0-bin-release /xx/xxx
 cd ./xxx/rocketmq-all-4.4.0-bin-release/bin
 ```
 
-##### 2.2.3.1. 启动 NameServer
+##### 2.2.3.1. 修改配置文件
+
+启动前，需要修改两个配置文件。修改服务占用的内存
+
+```bash
+vim runbroker.sh
+# JAVA_OPT="${JAVA_OPT} -server -Xms8g -Xmx8g -Xmn4g"
+# 修改为JAVA_OPT="${JAVA_OPT} -server -Xms256m -Xmx256m -Xmn128m"
+
+vim runserver.sh
+# JAVA_OPT="${JAVA_OPT} -server -Xms4g -Xmx2g -Xmn -XX:MetaspaceSize=128m -XX:MaxMetaspaceSize=320m"
+# 修改为 JAVA_OPT="${JAVA_OPT} -server -Xms256m -Xmx128m -Xmn -XX:MetaspaceSize=128m -XX:MaxMetaspaceSize=320m"
+```
+
+##### 2.2.3.2. 启动 NameServer
 
 ```bash
 nohup ./mqnamesrv &
@@ -89,19 +103,7 @@ netstat -an | grep 9876
 
 ![](images/20220106095659154_18638.png)
 
-##### 2.2.3.2. 启动 Broker
-
-启动前，需要修改两个配置文件。修改服务占用的内存
-
-```bash
-vim runbroker.sh
-# JAVA_OPT="${JAVA_OPT} -server -Xms8g -Xmx8g -Xmn4g"
-# 修改为JAVA_OPT="${JAVA_OPT} -server -Xms256m -Xmx256m -Xmn128m"
-
-vim runserver.sh
-# JAVA_OPT="${JAVA_OPT} -server -Xms4g -Xmx2g -Xmn -XX:MetaspaceSize=128m -XX:MaxMetaspaceSize=320m"
-# 修改为 JAVA_OPT="${JAVA_OPT} -server -Xms256m -Xmx128m -Xmn -XX:MetaspaceSize=128m -XX:MaxMetaspaceSize=320m"
-```
+##### 2.2.3.3. 启动 Broker
 
 启动 Broker，需要指定一下 NameServer 的地址和端口
 
@@ -175,7 +177,27 @@ namesrvAddr=127.0.0.1:9876
 
 #### 2.3.2. 启动服务
 
-##### 2.3.2.1. 启动 NameServer
+先进入 RocketMQ 的 bin 目录下
+
+##### 2.3.2.1. 修改配置文件
+
+启动前，需要修改两个配置文件。修改服务占用的内存
+
+- 修改 runbroker.cmd
+
+```
+# set "JAVA_OPT=%JAVA_OPT% -server -Xms2g -Xmx2g"
+# 修改为 set "JAVA_OPT=%JAVA_OPT% -server -Xms256m -Xmx256m"
+```
+
+- 修改 runserver.cmd
+
+```
+# set "JAVA_OPT=%JAVA_OPT% -server -Xms2g -Xmx2g -Xmn1g -XX:MetaspaceSize=128m -XX:MaxMetaspaceSize=320m"
+# 修改为 set "JAVA_OPT=%JAVA_OPT% -server -Xms512m -Xmx320m -Xmn320m -XX:MetaspaceSize=128m -XX:MaxMetaspaceSize=320m"
+```
+
+##### 2.3.2.2. 启动 NameServer
 
 - 方式一：直接进入`/根目录/bin/`，双击 mqnamesrv.cmd 启动
 - 方式二：命令行启动
@@ -187,7 +209,7 @@ mqnamesrv.cmd
 
 ![](images/20220106141603810_9695.png)
 
-##### 2.3.2.2. 启动 Broker
+##### 2.3.2.3. 启动 Broker
 
 进入 `/根目录/bin/` 目录，通过命令行启动 broker
 
@@ -200,6 +222,7 @@ mqbroker.cmd -c ../conf/broker.conf
 
 #### 2.3.3. 关闭服务
 
+直接关闭命令行窗口即可
 
 ### 2.4. RocketMQ 控制台安装（windows环境）
 
