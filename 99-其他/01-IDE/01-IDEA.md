@@ -220,7 +220,7 @@ Transparent native-to-ascii conversion的意思是：自动转换ASCII编码。�
 
 ### 6.6. 设置忽略显示，隐藏文件或者文件夹（类似eclipse的filter功能）
 
-Editor --> File Types --> Ignore files and folders 设置内容：
+【Editor】 --> 】File Types】 --> 【Ignore files and folders】 设置内容：
 
 ```
 *.hprof;*.pyc;*.pyo;*.rbc;*.yarb;*~;.DS_Store;.git;.hg;.svn;CVS;__pycache__;_svn;vssver.scc;vssver2.scc;.idea;*.iml;

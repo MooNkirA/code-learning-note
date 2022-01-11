@@ -2922,7 +2922,7 @@ Seata 的设计目标是对业务无侵入，因此从业务无侵入的 2PC 方
 
 此部分详见案例项目 `spring-cloud-note\spring-cloud-alibaba-2.1.x-sample\examples\spring-cloud-alibaba-seata-example\`
 
-### 2.2. 启动 Seata 服务(0.9.0 版本)
+### 2.2. 启动 Seata 服务(0.9.0 版服务端)
 
 #### 2.2.1. 下载 Seata
 
@@ -2997,7 +2997,7 @@ seata-server.bat -p 9000 -m file
 
 ![](images/20220109214919700_31871.png)
 
-### 2.3. 微服务使用 Seata 实现事务控制
+### 2.3. 微服务使用 Seata 实现事务控制(0.7.1 版客户端)
 
 #### 2.3.1. 添加依赖
 
@@ -3131,6 +3131,8 @@ public Order createOrder(Long pid)  {
 ```
 
 ## 3. Seata 运行流程分析
+
+![](images/20220110084705489_32530.jpg)
 
 要点说明：
 
