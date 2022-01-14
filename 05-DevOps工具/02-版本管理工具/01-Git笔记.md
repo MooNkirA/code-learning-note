@@ -604,7 +604,7 @@ issue #?
 - 关于commit时类别，一般通用的如下
     - feat：新功能（feature）
     - fix：修复bug
-    - docs：文档（documentation）发动
+    - docs：文档（documentation）变动
     - style：格式（不影响代码运行的变动），如格式化，缺失分号等，但不包括生产时紧急的bug修复
     - refactor：重构（即不是新增功能，也不是修改bug的代码变动）
     - perf：代码优化

@@ -240,10 +240,11 @@
   <li><a href="#/07-分布式架构&微服务架构/01-SpringBoot/01-SpringBoot笔记">SpringBoot 笔记</a></li>
   <li><a href="#/07-分布式架构&微服务架构/01-SpringBoot/02-SpringBoot注解汇总">SpringBoot 注解汇总</a></li>
   <li><a href="#/07-分布式架构&微服务架构/01-SpringBoot/03-SpringBoot源码分析">SpringBoot 源码分析</a></li>
-  <li><a href="#/07-分布式架构&微服务架构/01-SpringBoot/04-SpringBoot整合Servlet、Filter、Listener">SpringBoot 整合 Servlet、Filter、Listener</a></li>
-  <li><a href="#/07-分布式架构&微服务架构/01-SpringBoot/05-SpringBoot整合MyBatis">SpringBoot 整合 MyBatis</a></li>
-  <li><a href="#/07-分布式架构&微服务架构/01-SpringBoot/06-SpringBoot整合Druid-数据库连接池">SpringBoot 整合 Druid-数据库连接池</a></li>
-  <li><a href="#/07-分布式架构&微服务架构/01-SpringBoot/07-Spring-Boot-Admin">Spring Boot Admin 监控工具</a></li>
+  <li><a href="#/07-分布式架构&微服务架构/01-SpringBoot/04-SpringBoot整合Junit">SpringBoot 整合 Junit</a></li>
+  <li><a href="#/07-分布式架构&微服务架构/01-SpringBoot/05-SpringBoot整合Servlet、Filter、Listener">SpringBoot 整合 Servlet、Filter、Listener</a></li>
+  <li><a href="#/07-分布式架构&微服务架构/01-SpringBoot/06-SpringBoot整合MyBatis">SpringBoot 整合 MyBatis</a></li>
+  <li><a href="#/07-分布式架构&微服务架构/01-SpringBoot/07-SpringBoot整合Druid-数据库连接池">SpringBoot 整合 Druid-数据库连接池</a></li>
+  <li><a href="#/07-分布式架构&微服务架构/01-SpringBoot/08-Spring-Boot-Admin">Spring Boot Admin 监控工具</a></li>
   <li><a href="#/07-分布式架构&微服务架构/01-SpringBoot/12-SpringBoot整合JavaMail">SpringBoot 整合 JavaMail</a></li>
   <li><a href="#/07-分布式架构&微服务架构/01-SpringBoot/13-SpringBoot整合javax.validation">SpringBoot 整合 javax.validatio</a></li>
   <li><a href="#/07-分布式架构&微服务架构/01-SpringBoot/99-SpringBoot笔记-其他相关内容">SpringBoot 笔记-其他相关内容</a></li>
