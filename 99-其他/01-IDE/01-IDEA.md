@@ -63,7 +63,7 @@ idea.system.path=D:/development/JetBrains/.IntelliJIdea/system
 
 示例：根据下图步骤设置JDK目录，最后点击OK保存。
 
-![](images/20201105145054730_14886.jpg)
+![](images/20220114150927664_8644.png)
 
 当前项目在 Project Structure 可为工程和各模块设置喜欢的JDK版本。
 

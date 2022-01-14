@@ -40,6 +40,10 @@ Spring Boot其设计目的是用来简化Spring应用的初始搭建以及开发
 - 构建工具版本：Maven ，版本要求是3.3及以上
 - SpringBoot 支持如下的嵌入式Servlet容器，Spring Boot应用程序最低支持到Servlet 3.1的容器。
 
+### 1.3. 项目构建
+
+强烈推荐选择一个支持依赖管理的构建系统，可以使用它将 artifact 发布到 Maven Central 仓库。所以建议选择 Maven 或者 Gradle。
+
 ## 2. Spring Boot 入门
 
 ### 2.1. 环境准备
@@ -544,16 +548,9 @@ SpringBoot 提供了3款内置的服务器
 2. 内嵌 Tomcat 工作原理是将 Tomcat 服务器作为对象运行，并将该对象交给 Spring 容器管理
 3. Spring Boot 提供可以配置替换默认 tomcat 内嵌服务器的功能
 
-### 3.2. 项目构建
+### 3.2. 引入 SpringBoot 父工程依赖的方式
 
-强烈推荐选择一个支持依赖管理的构建系统，可以使用它将 artifact 发布到 Maven Central 仓库。所以建议选择 Maven 或者 Gradle。
-
-#### 3.2.1. 依赖管理
-
-
-### 3.3. 引入 SpringBoot 父工程依赖的方式
-
-#### 3.3.1. 方式1 - 使用 `<parent>` 标签
+#### 3.2.1. 方式1 - 使用 `<parent>` 标签
 
 在pom.xml中添加依赖，效果如下：
 
@@ -598,7 +595,7 @@ SpringBoot 提供了3款内置的服务器
 
 这些jar包被刚才加入的 spring-boot-starter-web 所引用了，所以添加 spring-boot-starter-web 后会自动把依赖传递过来。
 
-#### 3.3.2. 方式2 - 定义范围 `<scope>` 为 import
+#### 3.2.2. 方式2 - 定义范围 `<scope>` 为 import
 
 在 SpringBoot 项目的 POM 文件中，可以通过在 POM 文件中继承 Spring-boot-starter-parent 来引用 Srping boot 默认依赖的 jar 包。但使用 parent 这种继承的方式，只能继承一个 spring-boot-start-parent。实际开发中，很可能需要继承自己公司的标准 parent 配置，此时可以使用 `<scope>import</scope>` 来实现多继承。如下例：
 
@@ -624,7 +621,15 @@ SpringBoot 提供了3款内置的服务器
 </dependencyManagement>
 ```
 
+### 3.3. 使用 Gradle 构建 Spring Boot 项目
 
+要了解如何使用 Spring Boot 和 Gradle，请参阅 Spring Boot 的 Gradle 插件文档：
+
+- 参考文档（HTML 与 PDF）
+- [最新API文档](https://docs.spring.io/spring-boot/docs/current/api/)
+
+- 参考文档 ([HTML](https://docs.spring.io/spring-boot/docs/2.5.8/gradle-plugin/reference/htmlsingle/) and [PDF](https://docs.spring.io/spring-boot/docs/2.5.8/gradle-plugin/reference/pdf/spring-boot-gradle-plugin-reference.pdf))
+- [API](https://docs.spring.io/spring-boot/docs/2.5.8/gradle-plugin/api/)
 
 ## 4. Spring Boot 配置文件
 
@@ -1149,13 +1154,151 @@ public class DemoController {
 
 ![](images/20220111233645435_29706.png)
 
-## 5. 热部署
+## 5. Spring Boot 日志配置
 
-### 5.1. 热部署配置
+### 5.1. 日志格式
+
+Spring Boot 默认日志输出类似于以下示例：
+
+![](images/20220114191052453_2832.png)
+
+输出以下项：
+
+- 日期和时间：毫秒精度，易于排序。
+- 日志级别：`ERROR`、`WARN`、`INFO`、`DEBUG` 或 `TRACE`。
+- PID：进程 ID。用于表明当前操作所处的进程，当多服务同时记录日志时，该值可用于协助程序员调试程序
+- 一个 `---` 分隔符，用于区分实际日志内容的开始。
+- 线程名称：在方括号中（可能会截断控制台输出）。
+- 日志记录器名称：这通常是源类名称（通常为缩写）。
+- 日志内容。
+
+> 注意：Logback 没有 `FATAL` 级别。该级别映射到 `ERROR`。
+
+### 5.2. 设置日志输出级别
+
+Spring Boot 默认日志配置会在写入时将消息回显到控制台。默认情况下，会记录 ERROR、WARN 和 INFO 级别的日志。
+
+#### 5.2.1. 命令行开启调试模式
+
+通过命令参数 `--debug` 来调整应用程序日志输出级别为调试模式
+
+```bash
+java -jar springboot-demo.jar --debug
+```
+
+> 注：以上命令行方式相当在 application.properties 文件中指定 `debug=true`。
+
+还可以通过使用 `--trace` 标志（或在 application.properties 中的设置 `trace=true`）启动应用程序来启用跟踪模式。这样做可以为选择的核心日志记录器（内嵌容器、Hibernate 模式生成和整个 Spring 组合）启用日志追踪。
+
+#### 5.2.2. 配置文件设置日志输出级别
+
+通过项目的配置文件来指定日志输出级别
+
+- 开启 debug 模式，输出调试信息，常用于检查系统运行状况
+
+```yml
+debug: true # 开启debug模式
+```
+
+```properties
+debug=true # 开启debug模式
+```
+
+- 对 root 根节点设置日志级别，即整体应用日志级别
+
+```yml
+logging:
+  level:
+    root: debug # 设置日志级别，root表示根节点，即整体应用日志级别
+```
+
+```properties
+logging.level.root=debug # 设置日志级别，root表示根节点，即整体应用日志级别
+```
+
+- 对包级别节点设置日志级别，即指定的包内的日志级别
+
+```yml
+logging:
+  level:
+    com.moon.foo: debug # 对指定的包设置日志输出级别
+```
+
+```properties
+logging.level.com.moon.foo=debug
+```
+
+- 设置日志组，分别对组内所有包设置日志输出级别
+
+```yml
+logging:
+  group: # 设置日志组
+    # 自定义组名，设置当前组中所包含的包
+    fooGroup: com.moon.foo,com.moon.bar
+    barGroup: com.zero.foo,com.zero.bar
+  level:
+    fooGroup: debug # 设置指定的组的日志级别
+    barGroup: warn
+```
+
+```properties
+# 设置日志组
+logging.group.fooGroup=com.moon.foo,com.moon.bar
+logging.group.barGroup=com.zero.foo,com.zero.bar
+# 设置指定的组的日志级别
+logging.level.fooGroup=debug
+logging.level.barGroup=warn
+```
+
+### 5.3. 自定义日志输出格式
+
+`logging.pattern.console` 可以配置日志输出的格式，示例如下：
+
+```yml
+logging:
+  pattern:
+    console: "%d %clr(%p) --- [%16t] %clr(%-40.40c){cyan} : %m %n"
+```
+
+> 上面参数的意思是 `%d`：日期；`%m`：消息；`%n`：换行。。。
+
+### 5.4. 日志文件输出
+
+Spring Boot 对于日志文件的使用存在各种各样的策略，例如每日记录，分类记录，报警后记录等。需要设置 `logging.file` 或 `logging.path` 属性
+
+- `logging.file.name`：用于指定日志保存的文件名称，配置此属性后，即可将程序运行的日志都会追加到此日志文件中
+- `logging.file.path`：用于指定日志文件保存的位置。*如果不指定，日志文件默认保存路径在项目同级目录下*
+- ~~`logging.file.max-history`：用于限制日志文件的大小，否则会无限期归档到文件中。~~（已过时）
+
+```yml
+logging:
+  file:
+    name: server.log # 写入指定的日志文件。名称可以是绝对位置或相对于当前目录。
+    path: /log # 将日志文件写入指定的目录。名称可以是绝对位置或相对于当前目录。
+```
+
+- 设置分文件存储日志，并限制每个日志文件的大小。下面以logback日志框架配置为例，常用配置如下：
+
+```yml
+logging:
+  file:
+    name: server.log # 指定日志的文件名称
+    path: /log # 指定日志文件的保存地址
+  logback: # logback 配置
+    rollingpolicy:
+      max-file-size: 3kb
+      file-name-pattern: server.%d{yyyy-MM-dd}.%i.log
+```
+
+## 6. 热部署
+
+### 6.1. 热部署配置
 
 在开发中反复修改类、页面等资源，每次修改后都是需要重新启动才生效，这样每次启动都很麻烦，浪费了大量的时间。
 
-1. 可以设置在修改代码后不重启就能生效，在pom.xml 中添加如下配置就可以实现这样的功能，称为热部署
+在修改程序代码后，不需要重启程序就能让修改的内容生效，称为热部署
+
+1. 可以在 pom.xml 配置文件中添加 `spring-boot-devtools` 工具，就可以实现热部署功能
 
 ```xml
 <!-- 使用spring-boot-devtools提供的开发者工具，配置devtools开启热部署 -->
@@ -1172,7 +1315,7 @@ public class DemoController {
 </dependency>
 ```
 
-2. 仅仅加入devtools在我们的eclipse中还不起作用，这时候还需要添加的spring-boot-maven-plugin
+2. 仅仅加入 devtools 后，idea 还是不起作用，这时候还需要添加的 `spring-boot-maven-plugin` 插件
 
 ```xml
 <build>
@@ -1195,9 +1338,9 @@ public class DemoController {
 
 > 将依赖关系标记为可选`<optional>true</optional>`是一种最佳做法，可以防止使用项目将devtools传递性地应用于其他模块。
 
-注意：IDEA进行SpringBoot热部署失败原因
+### 6.2. IDEA 进行 SpringBoot 热部署失败原因
 
-出现这种情况，并不是热部署配置问题，其根本原因是因为Intellij IEDA默认情况下不会自动编译，需要对IDEA进行自动编译的设置，如下：
+出现这种情况，并不是热部署配置问题，其根本原因是因为 Intellij IEDA 默认情况下不会自动编译，需要对IDEA进行自动编译的设置，如下：
 
 ![](images/20190501093352875_18330.png)
 
@@ -1205,22 +1348,31 @@ public class DemoController {
 
 ![](images/20190501093422694_17866.png)
 
-### 5.2. 排除静态资源文件
+### 6.3. 排除静态资源文件
 
-- 静态资源文件在改变之后有时候没必要触发应用程序重启，例如thymeleaf模板文件就可以实时编辑，默认情况下，更改/META-INF/maven, /META-INF/resources ,/resources ,/static ,/public 或/templates下的资源不会触发重启，而是触发live reload（devtools内嵌了一个LiveReload server，当资源发生改变时，浏览器刷新）
-- 但是如果想完成静态文件变化后，要应用重启那么可以配置如下
+在 Spring Boot 项目中某些资源在更改时不一定需要触发重启程序。例如 Thymeleaf 模板文件就可以实时编辑等。默认情况下，有些资源是不会触发重启，而是触发live reload（devtools内嵌了一个LiveReload server，当资源发生改变时，浏览器刷新）。如下：
+
+- /META-INF/maven
+- /META-INF/resources
+- /resources
+- /static
+- /public
+- /templates
+
+如果自定义排除触发重启的资源，可以配置 `spring.devtools.restart.exclude` 属性。示例如下：
 
 ```properties
+# 仅排除 /static 和 /public 的内容
 spring.devtools.restart.exclude=static/**,public/**
 # 如果想保留默认配置，同时增加新的配置，则可使用
 # spring.devtools.restart.additional-exclude属性
 ```
 
-### 5.3. 使用一个触发文件
+### 6.4. 使用一个触发文件
 
 若不想每次修改都触发自动重启，可以在application.xml设置`spring.devtools.restart.trigger-file`指向某个文件，只有更改这个文件时才触发自动重启。示例如下：
 
-![文件位置](images/20190913082207240_30019.png)
+![](images/20190913082207240_30019.png)
 
 ```yml
 spring:
@@ -1229,7 +1381,7 @@ spring:
       trigger-file: .trigger  # 文件所在路径是 /resources/META-INF/.trigger
 ```
 
-### 5.4. 全局设置
+### 6.5. 全局设置
 
 可以通过向`$HOME`文件夹添加名为`.spring-boot-devtools.properties`的文件来配置全局devtools设置（请注意，文件名以“`.`”开头）。 添加到此文件的任何属性将适用于计算机上使用devtools的所有 Spring Boot应用程序。 例如，要配置重启始终使用触发器文件 ，可以添加以下内容：
 
@@ -1237,7 +1389,7 @@ spring:
 〜/ .spring-boot-devtools.properties
 ```
 
-### 5.5. Devtools 在 Spring Boot 中的可选配置
+### 6.6. Devtools 在 Spring Boot 中的可选配置
 
 ```properties
 # Whether to enable a livereload.com-compatible server.
@@ -1271,19 +1423,19 @@ spring.devtools.restart.quiet-period=400ms
 spring.devtools.restart.trigger-file=
 ```
 
-### 5.6. 其他热部署工具
+### 6.7. 其他热部署工具
 
 由于Spring Boot应用只是普通的Java应用，所以JVM热交换（hot-swapping）也能开箱即用。不过JVM热交换能替换的字节码有限制，想要更**彻底的解决方案可以使用Spring Loaded项目或JRebel**。spring-boot-devtools 模块也支持应用快速重启(restart)。
 
-## 6. 运行状态监控 Actuator
+## 7. 运行状态监控 Actuator
 
-### 6.1. 简述
+### 7.1. 简述
 
 Spring Boot 的 Actuator 提供了运行状态监控的功能，可以实现对程序内部运行情况监控，比如监控状况、Bean加载情况、配置属性、日志信息等。Actuator的监控数据可以通过Rest、运程shell和JMX方式获得。
 
 状态监控的数据都是以json格式返回，分析数据不太方便，*推荐使用基于 Actuator 开发的 Spring Boot Admin 状态监控开源项目*
 
-### 6.2. 基础使用步骤
+### 7.2. 基础使用步骤
 
 1. 导入依赖
 
@@ -1296,7 +1448,7 @@ Spring Boot 的 Actuator 提供了运行状态监控的功能，可以实现对�
 
 2. 访问 `http://项目应用的地址:端口号/acruator`，可以查看监控数据
 
-### 6.3. Actuator 监控使用
+### 7.3. Actuator 监控使用
 
 通过访问以下路径，可以查看到相关的监控信息
 
@@ -1312,11 +1464,11 @@ Spring Boot 的 Actuator 提供了运行状态监控的功能，可以实现对�
 | /metrics/{name} | 报告指定名称的应用程序度量值                                  |
 | /trace          | 提供基本的HTTP请求跟踪信息(时间戳、HTTP头等)                  |
 
-## 7. SpringBoot 监听机制（整理中）
+## 8. SpringBoot 监听机制（整理中）
 
 SpringBoot 在项目启动时，会对几个内置的监听器进行回调，开发者可以实现这些监听器接口，在项目启动时完成一些操作。
 
-### 7.1. ApplicationContextInitializer(补充示例)
+### 8.1. ApplicationContextInitializer(补充示例)
 
 如果想让这些监听器自动注册，不管应用程序是如何创建的，可以在项目中添加一个`META-INF/spring.plants`文件，并通过使用 `org.springframework.context.ApplicationListener` 键来指定相应的自定义监听器(`ApplicationContextInitializer`的实现类)，如下例：
 
@@ -1324,21 +1476,21 @@ SpringBoot 在项目启动时，会对几个内置的监听器进行回调，开
 org.springframework.context.ApplicationContextInitializer=com.moon.springboot.listener.MyApplicationContextInitializer
 ```
 
-### 7.2. SpringApplicationRunListener（补充示例）
+### 8.2. SpringApplicationRunListener（补充示例）
 
 ```properties
 org.springframework.boot.SpringApplicationRunListener=com.moon.springboot.listener.MySpringApplicationRunListener
 ```
 
-### 7.3. CommandLineRunner 与 ApplicationRunner
+### 8.3. CommandLineRunner 与 ApplicationRunner
 
-#### 7.3.1. 简介
+#### 8.3.1. 简介
 
 如果需要在 `SpringApplication` 启动后运行一些特定的代码，可以实现 SpringBoot 提供的 `ApplicationRunner` 或 `CommandLineRunner` 接口。这两个接口的工作方式相同，并提供一个单一的运行方法，该方法会在 `SpringApplication.run(...)` 完成之前被调用。
 
 > 注：这两个监听回调接口，适合运用在项目应用启动后做一些数据的预处理等工作。如：将读取一些数据库的数据到Redis缓存中，完成数据的预热。
 
-#### 7.3.2. 基础使用
+#### 8.3.2. 基础使用
 
 `CommandLineRunner` 接口的 `run` 方法入参是字符串数组，是应用程序的相关参数
 
@@ -1368,16 +1520,16 @@ public class MyApplicationRunner implements ApplicationRunner {
 }
 ```
 
-#### 7.3.3. 使用注意事项
+#### 8.3.3. 使用注意事项
 
 - 如果项目中定义多个 `CommandLineRunner` 与 `ApplicationRunner` 接口的实现。那需要注意它们这些实现的调用顺序，以免发现不可预测的问题。另外，可以通过实现 `org.springframework.core.Ordered` 接口或使用 `org.springframework.core.annotation.Order` 注解来指定实现类调用的顺序。
 - `CommandLineRunner` 与 `ApplicationRunner` 接口的实现不需要到`META-INF/spring.plants`进行配置相关映射。
 
-## 8. Spring Boot 自动配置原理分析
+## 9. Spring Boot 自动配置原理分析
 
 Spring Boot框架是一个将整合框架的整合代码都写好了的框架。所以要知道它的工作原理才能够，找到各种整合框架可以配置的属性，以及属性对应的属性名。
 
-### 8.1. spring-boot-starter-parent 父工程依赖管理原理
+### 9.1. spring-boot-starter-parent 父工程依赖管理原理
 
 创建SpringBoot项目，继承了SpringBoot的父工程`spring-boot-starter-parent`后，查看工程的依赖关系，父工程依赖了`spring-boot-dependencies`工程，`spring-boot-denpendencies`的pom管理所有公共Starter依赖的版本，并且通过`<dependencyManagement>`标签实现jar版本管理
 
@@ -1385,7 +1537,7 @@ Spring Boot框架是一个将整合框架的整合代码都写好了的框架。
 
 ![](images/20201006095224766_3600.png)
 
-#### 8.1.1. starters的原理
+#### 9.1.1. starters的原理
 
 starters是依赖关系的整理和封装，是一套依赖坐标的整合。只要导入相关的starter即可该功能及其相关必需的依赖
 
@@ -1402,7 +1554,7 @@ starters是依赖关系的整理和封装，是一套依赖坐标的整合。只
 
 官方提供的Starter详见官方文档：https://docs.spring.io/spring-boot/docs/2.3.3.RELEASE/reference/html/using-spring-boot.html#using-boot-starter
 
-### 8.2. 自动配置信息位置说明
+### 9.2. 自动配置信息位置说明
 
 每个Starter基本都会有自动配置`AutoConfiguration`，`AutoConfiguration`的jar包定义了约定的默认配置信息。SpringBoot采用约定大于配置设计思想。
 
@@ -1426,7 +1578,7 @@ starters是依赖关系的整理和封装，是一套依赖坐标的整合。只
 
 ![](images/20201006150503441_32641.png)
 
-### 8.3. 配置流程说明
+### 9.3. 配置流程说明
 
 - 第一步：配置一个内置整合框架的参数，先到`spring-boot-autoconfigure-x.x.x.RELEASE.jar`找到对应的模块。
 - 第二步：如果该框架有可以配置的参数，那么对应的整合模块中一定有一个XxxProperties类，在里面可以找可以设置的参数。
@@ -1434,7 +1586,7 @@ starters是依赖关系的整理和封装，是一套依赖坐标的整合。只
 
 ![配置流程说明](images/_配置流程说明_1537025667_9599.jpg)
 
-### 8.4. 自动配置流程分析
+### 9.4. 自动配置流程分析
 
 查看启动类注解`@SpringBootApplication`，可以跟踪加载的步骤
 
@@ -1445,9 +1597,9 @@ starters是依赖关系的整理和封装，是一套依赖坐标的整合。只
 
 ![](images/20201006152054124_172.png)
 
-## 9. Spring Boot 视图
+## 10. Spring Boot 视图
 
-### 9.1. 静态资源html视图
+### 10.1. 静态资源html视图
 
 - SpringBoot默认有四个静态资源文件夹：
   - classpath:/static/
@@ -1512,7 +1664,7 @@ public class HelloController {
 }
 ```
 
-### 9.2. Jsp视图(不推荐)
+### 10.2. Jsp视图(不推荐)
 - 第一步：创建Maven项目(war包)
 - 第二步：配置依赖
 
@@ -1630,7 +1782,7 @@ public class Application {
 
 访问地址：http://localhost:8080/item
 
-### 9.3. FreeMarker视图
+### 10.3. FreeMarker视图
 
 详见Spring Boot整合FreeMarker部分。
 
@@ -1885,12 +2037,18 @@ SpringBoot 提供了灵活的配置方式，如果项目中有个别配置属性
 
 ### 3.1. 命令行配置启动参数
 
-在使用 `java -jar` 命令启动 SpringBoot 程序包的命令时，在最后空一格，然后输入两个`-`号，紧接着按`属性名=属性值`的形式添加对应参数就可以了。注意，这里的格式不是yaml中的书写格式，当属性存在多级名称时，中间使用`.`分隔，和 properties 文件中的属性格式完全相同。
+在使用 `java -jar` 命令启动 SpringBoot 程序包的命令时，在最后空一格，然后输入两个`-`号，紧接着按`属性名=属性值`的形式添加对应参数就可以了。注意，这里的格式不是yaml中的书写格式，当属性存在多级名称时，中间使用`.`分隔，和 properties 文件中的属性格式完全相同。也可以同时配置多个属性，不同属性之间使用空格分隔。
 
-也可以同时配置多个属性，不同属性之间使用空格分隔。
+SpringApplication 会默认将命令行选项参数转换为配置信息。例如：
 
 ```bash
 java –jar springboot-demo.jar –-server.port=80 --logging.level.root=debug
+```
+
+从命令行指定配置项的比较配置文件优先级高，不过可以通过 `setAddCommandLineProperties` 来禁用
+
+```java
+SpringApplication.setAddCommandLineProperties(false)
 ```
 
 ### 3.2. 使用 idea 配置启动参数
@@ -1929,13 +2087,143 @@ public class JavMainTest {
 }
 ```
 
-## 4. profile 切换多环境
+### 3.4. 启动传递参数的原理
+
+启动程序时配置的参数，是在通过运行 Spring Boot 启动类的 `main` 方法的形参 `args` 的传递的。如：
+
+```bash
+java –jar springboot-demo.jar –-user.name=MooNkirA
+```
+
+```java
+@SpringBootApplication
+public class Application {
+    public static void main(String[] args) {
+        // 输出：--user.name=MooNkirA
+        for (String arg : args) {
+            System.out.println(arg);
+        }
+        SpringApplication.run(Application.class, args);
+    }
+}
+```
+
+通过上面示例可知，命令行参数是通过main方法的形参，再从 run 方法的形参中传递到 Spring Boot 程序的。
+
+## 4. 属性加载优先级
+
+配置读取的优先顺序，详情查询[官方文档](https://docs.spring.io/spring-boot/docs/current/reference/html/boot-features-external-config.html)，优先级由低到高：
+
+Spring Boot uses a very particular `PropertySource` order that is designed to allow sensible overriding of values. Properties are considered in the following order (with values from lower items overriding earlier ones):
+
+1. Default properties (specified by setting `SpringApplication.setDefaultProperties`).
+    > 应用默认属性，使用 `SpringApplication.setDefaultProperties` 定义的内容
+2. `@PropertySource` annotations on your `@Configuration` classes. Please note that such property sources are not added to the `Environment` until the application context is being refreshed. This is too late to configure certain properties such as `logging.*` and `spring.main.*` which are read before refresh begins.
+    > 在 `@Configuration` 注解修改的类中，通过 `@PropertySource` 注解定义的属性
+3. Config data (such as `application.properties` files).
+    > - 位于当前应用jar包之外，针对不同`{profile}`环境的配置文件内容，例如`application-{profile}.properties`或是YAML定义的配置文件
+    > - 位于当前应用jar包之内，针对不同`{profile}`环境的配置文件内容，例如`application-{profile}.properties`或是YAML定义的配置文件
+    > - 位于当前应用jar包之外的application.properties和YAML配置内容
+    > - 位于当前应用jar包之内的application.properties和YAML配置内容
+4. A `RandomValuePropertySource` that has properties only in `random.*`.
+    > 通过`random.*`配置的随机属性
+5. OS environment variables.
+    > 操作系统的环境变量
+6. Java System properties (`System.getProperties()`).
+    > Java的系统属性，可以通过`System.getProperties()`获得的内容
+7. JNDI attributes from `java:comp/env`.
+    > `java:comp/env` 中的JNDI属性
+8. `ServletContext` init parameters.
+9. `ServletConfig` init parameters.
+10. Properties from `SPRING_APPLICATION_JSON` (inline JSON embedded in an environment variable or system property).
+    > SPRING_APPLICATION_JSON 中的属性。SPRING_APPLICATION_JSON 是以 JSON 的格式配置在系统环境变量中的内容
+11. Command line arguments.
+    > 在命令行中传入的参数
+12. `properties` attribute on your tests. Available on `@SpringBootTest`  and the test annotations for testing a particular slice of your application.
+13. `@TestPropertySource` annotations on your tests.
+14. Devtools global settings properties in the `$HOME/.config/spring-boot` directory when devtools is active.
+
+## 5. Spring Boot 加载不同位置的配置文件的顺序
+
+### 5.1. 配置文件分类（按位置不同）
+
+SpringBoot 提供的4种不同位置的配置文件。
+
+- 类路径下配置文件（一直使用的是这个，也就是resources目录中的application.yml文件）
+- 类路径下config目录下配置文件
+- 程序包所在目录中配置文件
+- 程序包所在目录中config目录下配置文件
+
+### 5.2. 配置文件加载优先级顺序
+
+SpringBoot 程序启动时，会按以下位置的从上往下的优先级加载配置文件：
+
+1. `file:./config/application.properties`：当前项目下的/config目录下。*【优先级最高】*
+2. `file:./application.properties`：当前项目的根目录
+3. `classpath:/config/application.properties`：classpath的/config目录
+4. `classpath:/application.properties`：classpath的根目录。*【优先级最低】*
+
+加载顺序为上文的排列顺序，高优先级配置的属性会生效。
+
+### 5.3. 总结
+
+1. 配置文件分为4种
+   - 项目类路径配置文件：服务于开发人员本机开发与测试
+   - 项目类路径config目录中配置文件：服务于项目经理整体调控
+   - 工程路径配置文件：服务于运维人员配置涉密线上环境
+   - 工程路径config目录中配置文件：服务于运维经理整体调控
+2. 多层级配置文件间的属性采用叠加并覆盖的形式作用于程序。*即不同配置文件不同的配置会叠加一起生效，不同配置文件相同的配置会高级别配置覆盖低级别配置*。
+
+## 6. 自定义配置文件
+
+如果不想使用 application.properties 作为配置文件，可以通过启动程序时使用参数来指定配置文件。自定义配置文件方式有如下几种：
+
+> <font color=purple>温馨提示</font>：这种方式仅适用于Spring Boot单体项目，实际企业开发的项目都基于微服务，部署到多个服务器上，所有的服务器将不再各自设置自己的配置文件，而是通过配置中心获取配置，动态加载配置信息。
+
+### 6.1. 程序启动参数设置配置文件名
+
+通过启动参数 `--spring.config.name` 来指定配置文件的名称。<font color=violet>**注意：仅仅是名称，不要带扩展名**</font>
+
+```bash
+java -jar springboot-demo.jar --spring.config.location=classpath:/default.properties,classpath:/override.properties
+```
+
+### 6.2. 程序启动参数设置配置文件路径
+
+通过启动参数 `--spring.config.location` 来指定配置文件的所在路径。<font color=violet>**注意：是全路径名**</font>
+
+```bash
+java -jar springboot-demo.jar --spring.config.location=classpath:/default.properties,classpath:/override.properties
+# 或者
+java -jar springboot-demo.jar -Dspring.config.location=D:\config\config.properties
+```
+
+也可以设置加载多个自定义配置文件，不同配置文件路径之间使用“`,`”号分隔
+
+```bash
+java -jar springboot-demo.jar -Dspring.config.location=D:\config\config.properties,D:\config\confg-dev.properties
+```
+
+
+### 6.3. 在代码中指定自定义配置文件
+
+```java
+@SpringBootApplication
+@PropertySource(value={"file:config.properties"})
+public class SpringbootrestdemoApplication {
+    public static void main(String[] args) {
+        SpringApplication.run(SpringbootrestdemoApplication.class, args);
+    }
+}
+```
+
+## 7. profile 切换多环境
 
 开发 Spring Boot 应用时，通常同一套程序会被安装到不同环境，比如：开发、测试、生产等。其中数据库地址、服务器端口等等配置都不同，profile 功能就是来进行根据不同环境进行动态配置切换的。
 
 > profile 就是用于指定那些配置文件生效。
 
-### 4.1. 单个配置文件
+### 7.1. 单个配置文件
 
 单个 applicationproperties 配置文件
 
@@ -1965,48 +2253,7 @@ spring:
 
 **注意：最后key的字段与值之间的冒号（`:`）后面一定要有一个空格。**
 
-### 4.2. 多个配置文件
-
-**多个 `*.properties` 配置文件**
-
-- 第一步：在项目的 resources 目录创建 application.properties 及多个文件名为 application-xxx.properties 的配置文件，其中xxx是一个任意的字符串。
-
-![](images/20220111230520202_18882.png)
-
-- 第二步：在 application.properties 总配置文件指定，加载的其它（多个）配置文件。
-
-```properties
-spring.profiles.active=database,jpa,freemarker
-```
-
-![](images/20220111230702253_23023.png)
-
-**多个 `*.yml` 配置文件**
-
-- 第一步：在项目的 resources 目录创建 application.yml 以及多个名为 application-xxx.yml 的配置文件，其中xxx是一个任意的字符串。
-
-![](images/20220111230851283_11166.png)
-
-- 第二步：在application.yml总配置文件指定，加载的多个配置文件。**需要在application.yml中指定其它配置文件：**
-
-```yml
-spring:
-  profiles:
-    active: database,jpa,freemarker
-```
-
-![](images/20220111230937024_6690.png)
-
-
-### 4.3. 多环境配置文件命名规则
-
-`application-xxx.properties`或者`application-xxx.yml`，“`xxx`”代表不同环境的名称。示例如下：
-
-- application-dev.properties/yml 开发环境
-- application-test.properties/yml 测试环境
-- application-pro.properties/yml 生产环境
-
-### 4.4. 同一个 yml 文档中配置多环境规则
+### 7.2. 同一个 yml 文档中配置多环境规则
 
 在同一个yml文档中，可以直接使用 “`---`” 来分隔不同环境的配置。
 
@@ -2017,30 +2264,135 @@ spring:
 spring:
   profiles:
     active: dev
-
 ---
-server:
-  port: 8081
-
 spring:
   profiles: dev
+
+server:
+  port: 8081
 ---
+spring:
+  profiles: test
 
 server:
   port: 8082
-
-spring:
-  profiles: test
 ---
-server:
-  port: 8083
-
 spring:
   profiles: pro
+
+server:
+  port: 8083
 ---
 ```
 
-### 4.5. profile 的激活方式
+> 值得注意：在比较高版本的Spring Boot中，`spring.profiles` 这个配置项已经过时，最新的配置是 `spring.config.active.on-profile`。过时与最新的配置都是可以使用的。
+
+### 7.3. 多环境配置文件命名与引用规则
+
+创建多个`application-xxx.properties`或者`application-xxx.yml`，文件的后缀“`xxx`”代表不同环境的名称。示例如下：
+
+- application-dev.properties/yml 开发环境
+- application-test.properties/yml 测试环境
+- application-pro.properties/yml 生产环境
+
+在主配置文件中，指定当前环境的配置文件的后缀名称即可。如：
+
+```yml
+# application.yml
+spring:
+  profiles:
+    active: dev
+```
+
+```properties
+# application.properties
+spring.profiles.active=dev
+```
+
+### 7.4. 按功能拆分多个配置文件
+
+#### 7.4.1. spring.profiles.include 加载多配置文件
+
+**多个 `*.properties` 配置文件**
+
+- 第一步：在项目的 resources 目录创建 application.properties 及多个文件名为 application-xxx.properties 的配置文件，其中xxx是一个任意的字符串。
+
+![](images/20220111230520202_18882.png)
+
+- 第二步：在 application.properties 总配置文件（或者其他配置文件，但确保此文件最终会被引用）指定，加载的其它（多个）配置文件。通过 `active` 或者 `include` 均可引入。推荐使用`include`，因为`active` 一般用于指定不同环境的配置文件
+
+```properties
+spring.profiles.active=database,jpa,freemarker
+# 或者
+spring.profiles.include=database,freemarker,jpa
+```
+
+**多个 `*.yml` 配置文件**
+
+- 第一步：在项目的 resources 目录创建 application.yml 以及多个名为 application-xxx.yml 的配置文件，其中xxx是一个任意的字符串。
+
+![](images/20220111230851283_11166.png)
+
+- 第二步：在application.yml总配置文件（或者其他配置文件，但确保此文件最终会被引用）指定，加载的多个配置文件。通过 `active` 或者 `include` 均可引入。推荐使用`include`，因为`active` 一般用于指定不同环境的配置文件
+
+```yml
+spring:
+  profiles:
+    active: database,jpa,freemarker
+# 或者
+spring:
+  profiles:
+    include: database,freemarker,jpa
+```
+
+> <font color=red>值得注意：使用`include`引入的多个配置文件，如果有相同属性的，是后面的配置文件覆盖前端的</font>
+
+#### 7.4.2. spring.profiles.group 引入多配置文件（2.4版本后）
+
+上面使用 `spring.profiles.include` 引入按功能拆分的配置文件，但实现项目中可能会再细分到按不同环境不同功能拆分，如下：
+
+![](images/20220114112731252_31967.png)
+
+此时，如果使用 `spring.profiles.include` 引入就出现，如果切换环境后，`incloude`属性的值也需要一起修改。
+
+```yml
+spring:
+  profiles:
+    # 指定当前激活环境的配置文件
+    active: dev
+    # 使用include引入不同环境中按功能拆分的配置。但有缺点就是每次环境修改都要同时修改include的值
+    include: devDatabase,devFreemarker,devJpa
+```
+
+```properties
+# 指定当前激活的环境配置文件
+spring.profiles.active=dev
+# 使用include引入不同环境中按功能拆分的配置。但有缺点就是每次环境修改都要同时修改include的值
+spring.profiles.include=devdatabase,devfreemarker,dvejpa
+```
+
+所以 SpringBoot 从 2.4 版本开始引入新的 `group` 属性替代 `include` 属性，可以将配置设置为不同的分组，定义不同环境对应的不同功能的配置，在切换环境时，只需要修改环境名称即可，从而降低了配置书写量。
+
+```yml
+spring:
+  profiles:
+    # 指定当前激活环境的配置文件
+    active: dev
+    # spring boot 2.4 版本后新增一个 group 属性，可以将配置文件分组
+    group:
+      "dev": devDatabase,devFreemarker,devJpa
+      "prod": prodDatabase,prodFreemarker,prodJpa
+```
+
+```properties
+# 指定当前激活的环境配置文件
+spring.profiles.active=dev
+# spring boot 2.4 版本后新增一个 group 属性，可以将配置文件分组
+spring.profiles.group.dev=devDatabase,devFreemarker,devJpa
+spring.profiles.group.prod=prodDatabase,prodFreemarker,prodJpa
+```
+
+### 7.5. profile 的激活方式
 
 1. 通过在主配置文件中，`spring.profiles.active`来指定当前激活的配置
 
@@ -2066,56 +2418,54 @@ spring:
 java –jar xxx.jar --spring.profiles.active=profiles的名称
 ```
 
-## 5. Spring Boot 加载不同位置的配置文件的顺序
+## 8. Maven 与 SpringBoot 多环境兼容
 
-SpringBoot 程序启动时，会从以下位置加载配置文件：
+### 8.1. 概述
 
-1. `file:./config/`：当前项目下的/config目录下
-2. `file:./`：当前项目的根目录
-3. `classpath:/config/`：classpath的/config目录
-4. `classpath:/`：classpath的根目录
+在多环境开发中，maven和SpringBoot都可以同时设置多环境的配置。maven 是用于项目构建管理，最终由它生成程序包。所以SpringBoot应该是根据Maven的配置来决定最终的环境。
 
-加载顺序为上文的排列顺序，高优先级配置的属性会生效。
+1. 主要在 maven 中配置具体使用什么的环境
+2. 然后在 SpringBoot 项目中读取 maven 设置的环境即可
 
-## 6. 属性加载优先级
+### 8.2. 实现步骤
 
-详情查询[官方文档](https://docs.spring.io/spring-boot/docs/current/reference/html/boot-features-external-config.html)：
+- **maven中设置多环境（使用属性方式区分环境）**
 
-Spring Boot uses a very particular `PropertySource` order that is designed to allow sensible overriding of values. Properties are considered in the following order (with values from lower items overriding earlier ones):
+```xml
+<profiles>
+    <profile>
+        <id>env_dev</id>
+        <properties>
+            <profile.active>dev</profile.active>
+        </properties>
+        <activation>
+            <activeByDefault>true</activeByDefault>		<!--默认启动环境-->
+        </activation>
+    </profile>
+    <profile>
+        <id>env_pro</id>
+        <properties>
+            <profile.active>prod</profile.active>
+        </properties>
+    </profile>
+</profiles>
+```
 
-1. Default properties (specified by setting `SpringApplication.setDefaultProperties`).
-2. `@PropertySource` annotations on your `@Configuration` classes. Please note that such property sources are not added to the `Environment` until the application context is being refreshed. This is too late to configure certain properties such as `logging.*` and `spring.main.*` which are read before refresh begins.
-3. Config data (such as `application.properties` files).
-4. A `RandomValuePropertySource` that has properties only in `random.*`.
-5. OS environment variables.
-6. Java System properties (`System.getProperties()`).
-7. JNDI attributes from `java:comp/env`.
-8. `ServletContext` init parameters.
-9. `ServletConfig` init parameters.
-10. Properties from `SPRING_APPLICATION_JSON` (inline JSON embedded in an environment variable or system property).
-11. Command line arguments.
-12. `properties` attribute on your tests. Available on `@SpringBootTest`  and the test annotations for testing a particular slice of your application.
-13. `@TestPropertySource` annotations on your tests.
-14. Devtools global settings properties in the `$HOME/.config/spring-boot` directory when devtools is active.
+- 在 SpringBoot 的配置文件中，需要使用`@@`占位符读取 Maven 对应的配置属性值
 
-## 7. 启动项目时注入配置参数
+```yml
+spring:
+  profiles:
+    active: @profile.active@
+```
 
-### 7.1. SpringBoot 属性加载顺序
+- 执行 Maven 打包指令，并在生成的 boot 打包文件 .jar 文件中查看对应信息
 
-1. 在命令行中传入的参数
-2. SPRING_APPLICATION_JSON中的属性。SPRING_APPLICATION_JSON是以JSON的格式配置在系统环境变量中的内容
-3. `java:comp/env`中的JNDI属性
-4. Java的系统属性，可以通过`System.getProperties()`获得的内容
-5. 操作系统的环境变量
-6. 通过`random.*`配置的随机属性
-7. 位于当前应用jar包之外，针对不同`{profile}`环境的配置文件内容，例如`application-{profile}.properties`或是YAML定义的配置文件
-8. 位于当前应用jar包之内，针对不同`{profile}`环境的配置文件内容，例如`application-{profile}.properties`或是YAML定义的配置文件
-9. 位于当前应用jar包之外的application.properties和YAML配置内容
-10. 位于当前应用jar包之内的application.properties和YAML配置内容
-11. 在`@Configuration`注解修改的类中，通过`@PropertySource`注解定义的属性
-12. 应用默认属性，使用`SpringApplication.setDefaultProperties`定义的内容
+> 注意：基于 SpringBoot 读取 Maven 配置属性的前提下，如果在 IDEA 下测试工程时 pom.xml 每次更新需要手动 compile 方可生效
 
-### 7.2. 使用命令行启动项目
+## 9. 启动项目时注入配置参数
+
+### 9.1. 使用命令行启动项目
 
 - 准备两套环境的配置文件，application-dev.yml和application-pro.yml
 - 设置总的配置文件，application.yml
@@ -2136,11 +2486,9 @@ java -jar moon-project.jar --spring.profiles.active=dev
 java -jar moon-project.jar --spring.profiles.active=pro
 ```
 
+### 9.2. 个人项目实践示例
 
-
-### 7.3. 个人项目实践示例
-
-#### 7.3.1. 打包项目赋值参数命令
+#### 9.2.1. 打包项目赋值参数命令
 
 - 因为配置开发与正式版本的两套配置文件，所以开发时运行需要修改`Environment`的`VM options`的参数为：`-DactiveName=dev`，切换到开发环境的配置，再运行main方法启动
     - **注意：此方式只适用于`${}`占位符情况，如果使用`@@`，则不能使用**
@@ -2187,7 +2535,7 @@ spring-boot:run -DactiveName=pro -Dmaven.test.skip=true
 
 **注意：使用些方式后，使用mvn命令打包时，不使用默认值方式`${参数名:默认值}`**
 
-#### 7.3.2. 项目打包命令
+#### 9.2.2. 项目打包命令
 
 - 需要将依赖的公共包安装到本地仓库，到时需要依赖打包到war包中
 - 项目打包：参考5.1将前端部署后，因为配置了开发环境与正式版本环境的两套配置文件，使用maven命令打包时，需要输入配置文件的参数，进行打包即可，完成后将war包放到tomcat运行部署
@@ -2200,55 +2548,9 @@ mvn clean install -DactiveName=pro -Dmaven.test.skip=true
 mvn clean package -DactiveName=pro -Dmaven.test.skip=true
 ```
 
-## 8. 实现 SpringBoot 配置文件放在 jar 外部的方式
+## 10. 其他
 
-### 8.1. 通过命令行指定
-
-SpringApplication会默认将命令行选项参数转换为配置信息。例如，启动时命令参数指定：
-
-```bash
-java -jar myproject.jar --server.port=9000
-```
-
-从命令行指定配置项的优先级最高，不过可以通过 `setAddCommandLineProperties` 来禁用
-
-```java
-SpringApplication.setAddCommandLineProperties(false)
-```
-
-### 8.2. 外置配置文件
-
-参考《Spring Boot 配置文件的加载顺序》章节。可以得知，要外置配置文件，只需要在jar所在目录新建config文件夹，然后放入配置文件，或者直接将配置文件放在jar包同一级目录
-
-### 8.3. 自定义配置文件
-
-如果不想使用application.properties作为配置文件，输入以下命令
-
-```bash
-java -jar myproject.jar --spring.config.location=classpath:/default.properties,classpath:/override.properties
-```
-
-或者
-
-```bash
-java -jar -Dspring.config.location=D:\config\config.properties springbootrestdemo-0.0.1-SNAPSHOT.jar
-```
-
-也可以直接在代码里指定
-
-```java
-@SpringBootApplication
-@PropertySource(value={"file:config.properties"})
-public class SpringbootrestdemoApplication {
-    public static void main(String[] args) {
-        SpringApplication.run(SpringbootrestdemoApplication.class, args);
-    }
-}
-```
-
-## 9. 其他
-
-### 9.1. SpingBoot 项目在 windows 环境中运行时命令行窗口及日志中文乱码
+### 10.1. SpingBoot 项目在 windows 环境中运行时命令行窗口及日志中文乱码
 
 1. 配置日志的xml文件中，`<appender name="CONSOLE">`与`appender name="FILE">`的标签中都要指定`<encoder>`标签内的`<charset>utf8</charset>`
 2. 由于指定的编码与windows系统默认编码不符，此时命令行窗口将会出现日志输出乱码，需要将系统默认编码改为utf-8。cmd命令窗口在启动jar包之前增加命令`chcp 65001`
@@ -2258,7 +2560,7 @@ $ chcp 65001
 $ java -Dxxxx=xxxx -jar .\app.jar
 ```
 
-### 9.2. Windows 系统常用命令
+### 10.2. Windows 系统常用命令
 
 ```bash
 # 查询端口
