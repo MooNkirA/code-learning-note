@@ -4,19 +4,65 @@
 
 ### 1.1. Maven 是什么
 
-Maven 的 Apache 公司开源项目，是项目管理、构建工具。用来依赖管理
-
-Maven 采用 Project Object Modle（POM、项目对象模型）概念来管理项目，即将项目开发和管理过程抽象成一个项目对象模型(POM)，所有的项目配置信息都定义在 pom.xml 文件中。
-
-![](images/20220115153602269_5827.png)
+Maven 的 Apache 公司开源项目，是项目管理、构建工具。用来依赖管理。
 
 Maven 是用于建立 jar 包仓库，使用依赖管理，就是对 jar 包统一管理，maven 项目中如果需要使用一个 jar 包，只需要在 maven 项目中配置需要 jar 包坐标信息，maven 程序根据 jar 包坐标的信息去 jar 包仓库中查找 jar 包
 
-### 1.2. 什么是项目构建
+Maven 采用 Project Object Modle（POM、项目对象模型）概念来管理项目，即将项目开发和管理过程抽象成一个项目对象模型(POM)，所有的项目配置信息都定义在 pom.xml 文件中。
+
+### 1.2. Maven 的概念模型
+
+Maven包含了一个项目对象模型(Project Object Model)，一组标准集合，一个项目生命周期(Project Lifecycle)，一个依赖管理系统(Dependency Management System)，和用来运行定义在生命周期阶段(phase)中插件(plugin)目标(goal)的逻辑
+
+![](images/20220115153602269_5827.png)
+
+#### 1.2.1. 项目对象模型 (Project Object Model)
+
+一个maven工程都有一个pom.xml文件，通过pom.xml文件定义项目的坐标、项目依赖、项目信息、插件目标等。
+
+#### 1.2.2. 依赖管理系统(Dependency Management System)
+
+通过maven的依赖管理对项目所依赖的jar包进行统一管理。比如：项目依赖junit4.9，通过在pom.xml中定义junit4.9的依赖即使用junit4.9，如下所示是junit4.9的依赖定义：
+
+```xml
+<!-- 依赖关系 -->
+<dependencies>
+	<!-- 此项目运行使用junit，所以此项目依赖junit -->
+	<dependency>
+		<!-- junit的项目名称 -->
+		<groupId>junit</groupId>
+		<!-- junit的模块名称 -->
+		<artifactId>junit</artifactId>
+		<!-- junit版本 -->
+		<version>4.9</version>
+		<!-- 依赖范围：单元测试时使用junit -->
+		<scope>test</scope>
+	</dependency>
+</dependencies>
+```
+
+#### 1.2.3. 一个项目生命周期(Project Lifecycle)
+
+使用maven完成项目的构建，项目构建包括：清理、编译、测试、部署等过程，maven将这些过程规范为一个生命周期，如下所示是生命周期的各各阶段：
+
+![](images/20220115223548069_27553.jpg)
+
+maven通过执行一些简单命令即可实现上边生命周期的各各过程，比如执行mvn compile执行编译、执行mvn clean执行清理
+
+#### 1.2.4. 一组标准集合
+
+maven将整个项目管理过程定义一组标准，比如：通过maven构建工程有标准的目录结构，有标准的生命周期阶段、依赖管理有标准的坐标定义等。
+
+#### 1.2.5. 插件(plugin)目标(goal)
+
+maven管理项目生命周期过程都是基于插件完成的。
+
+
+### 1.3. 什么是项目构建
 
 项目构建是一个项目从编写源代码到编译、测试、运行、打包、部署、运行的过程
 
-#### 1.2.1. 传统项目构建过程
+#### 1.3.1. 传统项目构建过程
 
 传统的使用 IDE 构建项目过程如下：
 
@@ -26,7 +72,7 @@ Maven 是用于建立 jar 包仓库，使用依赖管理，就是对 jar 包统�
 4. 执行 Junit 单元测试
 5. 将工程打成 war 包部署至 tomcat 运行
 
-#### 1.2.2. maven 项目构建过程
+#### 1.3.2. maven 项目构建过程
 
 maven 将项目构建的过程进行标准化，每个阶段使用一个命令完成
 
@@ -45,13 +91,13 @@ maven 将项目构建的过程进行标准化，每个阶段使用一个命令�
 2. 使用maven可以分模块化的构建项目
 3. maven对每个构建阶段进行规范，非常有利于大型团队协作开发。
 
-### 1.3. 什么是依赖管理
+### 1.4. 什么是依赖管理
 
 依赖：一个 java 项目可能要使用一些第三方的 jar 包才可以运行，那么我们说这个 java 项目依赖了这些第三方的jar包
 
 依赖管理：对项目所有依赖的 jar 包进行规范化管理
 
-#### 1.3.1. 传统项目的依赖管理
+#### 1.4.1. 传统项目的依赖管理
 
 传统的项目工程要管理所依赖的jar包完全靠人工进行，程序员从网上下载jar包添加到项目工程中
 
@@ -65,7 +111,7 @@ maven 将项目构建的过程进行标准化，每个阶段使用一个命令�
 2. 从网上找jar包非常不方便，有些jar找不到。
 3. jar包添加到工程中导致工程过大。
 
-#### 1.3.2. maven 项目的依赖管理
+#### 1.4.2. maven 项目的依赖管理
 
 maven 项目管理所依赖的 jar 包不需要手动向工程添加 jar 包，只需要在 pom.xml（maven工程的配置文件）添加 jar 包的坐标，自动从 maven 仓库中下载 jar 包、运行
 
@@ -76,27 +122,12 @@ maven 项目管理所依赖的 jar 包不需要手动向工程添加 jar 包，�
 1. 通过pom.xml文件对jar包的版本进行统一管理，可避免版本冲突。
 2. maven团队维护了一个非常全的maven仓库，里边包括了当前使用的jar包，maven工程可以自动从maven仓库下载jar包，非常方便。
 
-### 1.4. 使用maven的好处
+### 1.5. 使用maven的好处
 
 1. 一步构建。maven对项目构建的过程进行标准化，通过一个命令即可完成构建过程
 2. 依赖管理。maven工程不用手动导jar包，通过在pom.xml中定义坐标从maven仓库自动下载，方便且不易出错
 3. maven的跨平台，可在window、linux上使用
 4. maven遵循规范开发有利于提高大型团队的开发效率，降低项目的维护成本，大公司都会考虑使用maven来构建项目
-
-### 1.5. Maven 的坐标
-
-#### 1.5.1. 定义
-
-坐标(GAV)：作为查找定位jar包（项目/组件）的唯一依据。例如：`struts2-core-2.3.24.jar`
-
-坐标的规则：`Apache(公司名称)+struts2(项目名称)+2.3.24(版本信息)`
-
-#### 1.5.2. Maven 坐标主要组成
-
-- `groupId`：定义当前Maven项目隶属项目、组织
-- `artifactId`：定义实际项目中的一个模块
-- `version`：定义当前项目的当前版本
-- `packaging`：定义该项目的打包方式(pom/jar/war，默认是jar包)
 
 ### 1.6. Maven 的两大核心
 
@@ -164,9 +195,12 @@ mvn -v
 
 ![](images/20220115153032526_25105.jpg)
 
-## 3. maven 仓库
+## 3. Maven 项目的核心概念
 
-### 3.1. 仓库的类型
+
+### 3.1. Maven 仓库
+
+#### 3.1.1. 仓库的类型
 
 <font color=red>本地仓库</font>
 
@@ -181,11 +215,38 @@ mvn -v
 
 <font color=red>中央仓库</font>
 
-在maven软件中内置一个远程仓库地址 http://repo1.maven.org/maven2，它是中央仓库，服务于整个互联网，它是由Maven团队自己维护，里面存储了非常全的jar包，它包含了世界上大部分流行的开源项目构件
+在maven软件中内置一个远程仓库地址，它是[中央仓库](https://repo1.maven.org/maven2)，服务于整个互联网，它是由Maven团队自己维护，里面存储了非常全的jar包，它包含了世界上大部分流行的开源项目构件
+
+#### 3.1.2. 相关仓库服务器网址
+
+- 中央仓库的地址：https://repo1.maven.org/maven2/
+- maven坐标查找的网站：https://mvnrepository.com/
+
+#### 3.1.3. 项目查找jar顺序
+
+1. 先查找本地仓库
+2. 再查找私服或者外网中央仓库
+3. 如果在私服查找不到，再到中央仓库查找
+
 
 ![](images/20220115231724050_11833.png)
 
-### 3.2. 配置阿里云远程仓库
+**过程详解**：
+
+maven的工作需要从仓库下载一些jar包，如下图所示，本地的项目A、项目B等都会通过maven软件从远程仓库（可以理解为互联网上的仓库）下载jar包并存在本地仓库，本地仓库就是本地文件夹，当第二次需要此jar包时则不再从远程仓库下载，因为本地仓库已经存在了，可以将本地仓库理解为缓存，有了本地仓库就不用每次从远程仓库下载了。
+
+#### 3.1.4. 配置本地仓库
+
+配置本地仓库目的：让maven程序知道仓库具体位置
+
+1. 修改 apache-maven-x.x.x\conf\settings.xml 文件
+2. 打开文件修改【`<localRepository>/path/to/local/repo</localRepository>`】路径内容，注意：内容在注释里，需要将内容复制到外面进行修改
+
+```xml
+<localRepository>D:\development\maven\repository</localRepository>
+```
+
+#### 3.1.5. 配置阿里云远程仓库
 
 因为中央仓库的服务是在国外，访问中央仓库比较慢，所以可以修改配置，当访问阿里云的公共库。中央库里面有的jar包，阿里云仓库几乎都有
 
@@ -216,17 +277,467 @@ mvn -v
 
 ![](images/20220115233136704_31857.png)
 
+#### 3.1.6. 全局setting与用户setting
+
+maven仓库地址、私服等配置信息需要在 setting.xml 文件中配置，分为<font color=red>全局配置</font>和<font color=red>用户配置</font>。
+
+- 在maven安装目录下的有 `conf/setting.xml` 文件，此 setting.xml 文件用于maven的所有project项目，它作为maven的全局配置。
+- 如需要个性配置则需要在用户配置中设置，用户配置的 setting.xml 文件默认的位置在：`${user.dir}/.m2/settings.xml` 目录中，`${user.dir}` 指windows中的用户目录。
+
+maven 会先找用户配置，如果找到则以用户配置文件为准，否则使用全局配置文件。
+
+![](images/20220116171359145_19781.jpg)
+
+### 3.2. Maven 的坐标
+
+#### 3.2.1. 定义
+
+坐标(GAV)：是 Maven 作为查找定位jar包（项目/组件）的唯一依据。例如：`struts2-core-2.3.24.jar`
+
+坐标的规则：`Apache(公司名称)+struts2(项目名称)+2.3.24(版本信息)`
+
+官方中央仓库网址：https://repo1.maven.org/maven2/
+
+#### 3.2.2. Maven 坐标主要组成
+
+- `groupId`：定义当前Maven项目隶属项目、组织（通常是域名反转，如：org.mybatis）
+- `artifactId`：定义实际项目中的一个项目（模块）名称
+- `version`：定义当前项目的当前版本
+- `packaging`：定义该项目的打包方式(pom/jar/war，默认是jar包)
+
+## 4. maven的常用命令（应用）
+
+进入项目根目录，通过（cmd）命令行界面进行操作
+
+### 4.1. clean（清理）
+
+```bash
+mvn clean
+```
+
+将项目根目录下target目录清理掉，即将编译后的class文件清理掉
+
+### 4.2. compile（编译）
+
+```bash
+mvn compile
+```
+
+maven工程的编译命令，作用是将src/main/java下的文件编译为class文件输出到target目录下
+
+### 4.3. test(单元测试)
+
+```bash
+mvn test
+```
+
+单元测试类名有要求：XxxxTest.java，如果不是以Test结尾，则无法执行
+
+将项目根目录下src/test/java目录下的单元测试类都会执行
+
+
+### 4.4. package(打包)
+
+```bash
+mvn package
+```
+
+程序会根据项目的不同类型，打包成不同类型的包:
+
+- web project  --> war包
+- java project  --> jar包
+
+将项目打包，打包后文件存在项目根目录下taget目录
+
+### 4.5. install(安装)
+
+```bash
+mvn install
+```
+
+执行 install 将maven打成jar包或war包发布到本地仓库。解决本地多个项目公用一个jar包。
+
+### 4.6. deploy(部署)
+
+```bash
+mvn deploy
+```
+
+将项目部署到私服上
+
+## 5. Maven 项目的构建
+
+### 5.1. Maven 项目工程标准目录结构约定
+
+使用 maven 创建的工程称它为 maven 工程，maven 工程具有一定的目录规范，如下：
+
+#### 5.1.1. 目录结构
+
+```
+MavenProject
+|
+|-- src
+|    ├── main
+|    |    ├── java       # 存放项目的.java文件
+|    |    |-- resources  # 存放项目资源文件，如spring,mybatis配置文件（此两个 java 与 resources 源码包，会打入jar包或war包，实现运行有效）
+|    |    └── webapp     # webapp 目录是 web 工程的主目录
+|    |          └── WEB-INF
+|    |                 └── web.xml
+|    └── test
+|         ├── java       # 存放所有单元测试.java文件，如JUnit测试类
+|         └── resources  # 测试资源文件（以上 java 与 resources 两个测试包，不会打包，测试有效，实现运行无效）
+|
+├── target      # 项目输出位置，编译后的 .class、.jar、.war 文件会输出到此目录
+└── pom.xml     # 项目对象模型 —— maven项目核心配置文件
+```
+
+![](images/20220116181003944_17077.png)
+
+#### 5.1.2. pom.xml文件
+
+- project：任何要build的事物，Maven都认为它们是工程。这些工程被定义为工程对象模型（POM，Poject Object Model）。一个工程可以依赖其它工程，一个工程也可以由多个子工程构成。
+- POM：pom(pom.xml)是Maven的核心文件，它是指示Maven如何工作的元数据文件，类似于Ant的build.xml文件。pom.xml文件位于每个工程的根目录下。
+- Plug-in：Maven 是由插件组织的，它的每一个功能都由插件提供。插件提供goal，并根据在pom中找到元数据去完成工作
+
+### 5.2. 使用命令方式创建 maven 项目
+
+直接通过命令行使用 maven 提供的插件创建 maven项目。语法如下：
+
+```bash
+mvn archetype:generate
+    -DgroupId={项目包名称}
+    -DartifactId={项目名称}
+    -DarchetypeArtifactId={模块名称，取值：maven-archetype-quickstart | maven-archetype-webapp 等}
+    -Dversion={项目版本号}
+    -DinteractiveMode=false
+```
+
+- 创建 java 工程示例：
+
+```bash
+mvn archetype:generate -DgroupId=com.moon -DartifactId=java-project-demo -DarchetypeArtifactId=maven-archetype-quickstart -Dversion=1.0.0-SNAPSHOT -DinteractiveMode=false
+```
+
+- 创建 web 工程示例：
+
+```bash
+mvn archetype:generate -DgroupId=com.moon -DartifactId=web-project-demo -DarchetypeArtifactId=maven-archetype-webapp -Dversion=1.0.0-SNAPSHOT -DinteractiveMode=false
+```
+
+> *注：最好在空的目录下创建，目录中不能有pom.xml文件*
+
+示例创建的工程的效果（下面有些目录是自己手动补全，使用骨架命令生成的目录结构不全）：
+
+![](images/20220116183910279_803.png)
+
+### 5.3. 使用 IDEA 创建 maven 项目
+
+#### 5.3.1. 配置 idea 中的 maven 环境
+
+- 指定maven的安装目录与仓库目录
+
+![](images/20220116182132974_1508.jpg)
+
+- 构建索引。	在 【Settings】 -> 【Maven】 -> 【Repositories】，点击 update 按钮，更新索引
+
+![](images/20220116182142569_1677.jpg)
+
+#### 5.3.2. 创建 maven 项目
+
+选择 【File】 -> 【New】 -> 【Project...】/【Module...】 创建项目/模块
+
+![](images/20220116221246107_11348.png)
+
+1. 可以勾选【Create from archetype】，再选择相应的骨架创建即可
+2. 也可以不勾选骨架，直接创建空的 Maven 项目
+
+![](images/20220116221152757_17049.png)
+
+### 5.4. 使用 eclipse 创建 maven 项目（待整理）
 
 
 
+## 6. Maven私服
 
+### 6.1. 私服使用场景
 
+项目组编写了一个通用的工具类，其它项目组将类拷贝过去使用，当工具类修改bug后通过邮件发送给各各项目组，这种分发机制不规范可能导致工具类版本不统一。
 
+**解决方案：项目组将写的工具类通过maven构建，打成jar，将jar包发布到公司的maven仓库中，公司其它项目通过maven依赖管理从仓库自动下载jar包**。
 
+公司在自己的局域网内搭建自己的远程仓库服务器，称为私服，私服服务器即是公司内部的maven远程仓库，每个员工的电脑上安装maven软件并且连接私服服务器，员工将自己开发的项目打成jar并发布到私服服务器，其它项目组从私服服务器下载所依赖的构件（jar）。
 
+私服还充当一个代理服务器，当私服上没有jar包会从互联网中央仓库自动下载
 
+![](images/20220116221705223_24381.jpg)
 
+### 6.2. 关于中央仓库使用的注意事项
 
+- **地址**:
+
+目前来说，http://repo1.maven.org/maven2/是真正的Maven中央仓库的地址，该地址内置在Maven的源码中其他的都是镜像。
+
+如果仓库X可以提供仓库Y存储的所有内容，那么就可以认为X是Y的一个镜像，某些情况下使用镜像可以提高项目构建效率。
+
+- **索引**:
+
+中央仓库带有索引文件以方便用户对其进行搜索，索引每周更新一次
+
+- **黑名单**:
+
+如果某个IP地址恶意的下载中央仓库内容，例如全公司100台机器使用同一个IP反复下载，这个IP（甚至是IP段）会进入黑名单，因此稍有规模的使用Maven时，应该用Nexus架设私服
+
+### 6.3. 搭建私服环境
+
+#### 6.3.1. 下载 nexus
+
+Nexus 是 Maven 仓库管理器，通过 nexus 可以搭建 maven 仓库，同时 nexus 还提供强大的仓库管理功能，构件搜索功能等。
+
+- 下载地址：https://help.sonatype.com/repomanager3/product-information/download
+- 下载文件：nexus-x.x.x-xx-bundle.zip
+
+> 以下使用 nexus-2.12.0-01-bundle.zip 为示例
+
+#### 6.3.2. 安装 nexus
+
+解压nexus-2.12.0-01-bundle.zip，解压在不含中文和空格的目录下，解压完成后进入bin目录
+
+以管理员身份运行【命令提示符】
+
+![](images/20220116222803368_6696.jpg)
+
+在cmd中进入bin目录，执行 `nexus.bat install`
+
+![](images/20220116222811126_17056.jpg)
+
+安装成功在服务中查看有nexus服务，启动服务【可以设置不自动开启】
+
+![](images/20220116222816996_250.jpg)
+
+#### 6.3.3. 卸载 nexus
+
+cmd进入nexus的bin目录，执行：`nexus.bat uninstall`
+
+![](images/20220116223034973_26948.jpg)
+
+#### 6.3.4. 启动 nexus
+
+方法 1：cmd进入bin目录，执行：`nexus.bat start`
+
+![](images/20220116223042591_5458.jpg)
+
+方法 2：直接启动nexus服务
+
+![](images/20220116223049263_21442.jpg)
+
+查看nexus的配置文件，位置：conf/nexus.properties
+
+![](images/20220116223104119_23190.jpg)
+
+```properties
+# Jetty section
+application-port=8081						#nexus的访问端口配置
+application-host=0.0.0.0					#nexus主机监听配置(不用修改)
+nexus-webapp=${bundleBasedir}/nexus		#nexus工程目录
+nexus-webapp-context-path=/nexus		#nexus的web访问路径
+# Nexus section
+nexus-work=${bundleBasedir}/../sonatype-work/nexus	# nexus 仓库目录
+runtime=${bundleBasedir}/nexus/WEB-INF					# nexus 运行程序目录
+```
+
+#### 6.3.5. 直接使用快捷方式安装、卸载、启动 nexus
+
+进入安装目录 \nexus-2.12.0-01\bin\jsw\windows-x86-64，里面都相关的脚本。
+
+![](images/20220116223212753_8674.jpg)
+
+console-nexus.bat：不需要安装成服务，点击一次运行一次，关闭后不再运行。
+
+#### 6.3.6. 登陆nexus
+
+访问：http://localhost:8081/nexus/
+
+点击右上角的Log in，使用Nexus内置账户`admin`/`admin123`登陆
+
+#### 6.3.7. nexus 的仓库有4种类型（了解）
+
+![](images/20220116223337032_4630.jpg)
+
+1. `hosted`：宿主仓库，部署自己的jar到这个类型的仓库，包括releases和snapshot两部分，Releases公司内部发布版本仓库、Snapshots公司内部测试版本仓库
+2. `proxy`：代理仓库，用于代理远程的公共仓库，如maven中央仓库，用户连接私服，私服自动去中央仓库下载jar包或者插件。
+3. `group`：仓库组，用来合并多个hosted/proxy仓库，通常我们配置自己的maven连接仓库组。
+4. `virtual`(虚拟)：兼容Maven1版本的jar或者插件
+
+> *注：nexus 仓库默认在 根目录\sonatype-work\nexus\storage 文件夹中*
+
+central：代理仓库，代理中央仓库
+
+![](images/20220116223449795_8927.jpg)
+
+apache-snapshots：代理仓库。存储snapshots构件，代理地址https://repository.apache.org/snapshots/
+
+- central-m1：virtual类型仓库，兼容Maven1版本的jar或者插件
+- releases：本地仓库，存储releases构件。
+- snapshots：本地仓库，存储snapshots构件。
+- thirdparty：第三方仓库
+- public：仓库组
+
+![](images/20220116223522656_28998.jpg)
+
+#### 6.3.8. 修改本地仓库（snapshots）允许重复部署
+
+![](images/20220116223547534_21755.jpg)
+
+### 6.4. 将项目发布到私服
+
+#### 6.4.1. 第一步：配置settings.xml(maven的安装文件的conf目录下)
+
+需要在客户端即部署dao工程的电脑上配置maven环境，并修改settings.xml文件，配置连接私服的用户和密码。
+
+此用户名和密码用于私服校验，因为私服需要知道上传都的账号和密码是否和私服中的账号和密码一致。
+
+```xml
+<!-- 配置连接私服的用户和密码 -->
+<server>
+	<id>releases</id>
+	<username>admin</username>
+	<password>admin123</password>
+</server>
+<server>
+	<id>snapshots</id>
+	<username>deployment</username>
+	<password>deployment123</password>
+</server>
+```
+
+不需要记，复制即可
+
+- releases 连接发布版本项目仓库
+- snapshots 连接测试版本项目仓库
+
+![](images/20220116223725078_2451.jpg)
+
+#### 6.4.2. 第二步：配置pom.xml
+
+配置私服仓库的地址，本公司的自己的jar包会上传到私服的宿主仓库，根据工程的版本号决定上传到哪个宿主仓库，如果版本为release则上传到私服的release仓库，如果版本为snapshot则上传到私服的snapshot仓库
+
+```xml
+<!-- 配置上传资源到私服 -->
+<distributionManagement>
+	<repository>
+		<id>releases</id>
+		<url>http://localhost:8081/nexus/content/repositories/releases/</url>
+	</repository>
+	<snapshotRepository>
+		<id>snapshots</id>
+		<url>http://localhost:8081/nexus/content/repositories/snapshots/</url>
+	</snapshotRepository>
+</distributionManagement>
+```
+
+> <font color=red>**注意：pom.xml这里`<id>`和 settings.xml 配置 `<id>` 对应！**</font>
+
+![](images/20220116223834359_10069.jpg)
+
+没有配置pomx.xml私服地址前
+
+![](images/20220116223852135_19294.jpg)
+
+配置pom.xml私服地址后
+
+![](images/20220116223910032_6022.jpg)
+
+#### 6.4.3. 第三步：测试使用 deploy 命令上传组件(项目)到私服
+
+根据本项目pom.xml中version定义决定发布到哪个仓库，如果version定义为snapshot，执行deploy后查看nexus的snapshot仓库，如果version定义为release则项目将发布到nexus的release仓库，本项目将发布到snapshot仓库
+
+![](images/20220116224006969_14767.jpg)
+
+查看上传到私服的结果，在私服查看/http方式查看/到本地查看
+
+![](images/20220116224019622_28931.jpg)
+
+![](images/20220116224025642_7310.jpg)
+
+![](images/20220116224033293_25739.jpg)
+
+### 6.5. 从私服下载资源(项目)
+
+#### 6.5.1. 管理仓库组
+
+nexus中包括很多仓库，hosted中存放的是企业自己发布的jar包及第三方公司的jar包，proxy中存放的是中央仓库的jar，为了方便从私服下载jar包可以将多个仓库组成一个仓库组，每个工程需要连接私服的仓库组下载jar包
+
+打开nexus配置仓库组，<font color=red>将右边的选项拖到左边</font>，组成仓库组。仓库组包括了本地仓库、代理仓库等
+
+![](images/20220116224151293_12074.jpg)
+
+#### 6.5.2. 在setting.xml中配置仓库
+
+在客户端的 setting.xml 中配置私服的仓库，由于 setting.xml 中没有 `repositories` 的配置标签需要使用 `profile` 定义仓库
+
+```xml
+<profile>
+	<!--profile 的 id-->
+	<id>dev</id>
+	<repositories>
+		<repository>
+			<!--仓库 id，repositories 可以配置多个仓库，保证 id 不重复-->
+			<id>nexus</id>
+			<!--仓库地址，即 nexus 仓库组的地址-->
+			<url>http://localhost:8081/nexus/content/groups/public/</url>
+			<!--是否下载 releases 构件-->
+			<releases>
+				<enabled>true</enabled>
+			</releases>
+			<!--是否下载 snapshots 构件-->
+			<snapshots>
+				<enabled>true</enabled>
+			</snapshots>
+		</repository>
+	</repositories>
+	<pluginRepositories>
+		<!-- 插件仓库，maven 的运行依赖插件，也需要从私服下载插件 -->
+		<pluginRepository>
+			<!-- 插件仓库的 id 不允许重复，如果重复后边配置会覆盖前边 -->
+			<id>public</id>
+			<name>Public Repositories</name>
+			<url>http://localhost:8081/nexus/content/groups/public/</url>
+		</pluginRepository>
+	</pluginRepositories>
+</profile>
+
+<!-- 使用 profile 定义仓库需要激活才可生效 -->
+<!-- 激活模板 -->
+<activeProfiles>
+	<activeProfile>dev</activeProfile>
+</activeProfiles>
+```
+
+<font color=purple>*需要从私服下载资源，只需要配置settings.xml*</font>
+
+配置成功后，右键 -> update project,通过eclipse查看Effective pom，有效pom是maven软件最终使用的pom内容，程序员不直接编辑有效pom
+
+有效pom内容如下：
+
+下边的pom内容中有两个仓库地址，maven会先从前边的仓库的找，如果找不到jar包再从下边的找，从而就实现了从私服下载jar包
+
+![](images/20220116224312519_8249.jpg)
+
+#### 6.5.3. 测试从私服下载 jar 包(待测试)
+
+删除工作区间的已经上传到私服的项目，删除本地库安装。
+
+![](images/20220116224406406_28728.jpg)
+
+![](images/20220116224414815_5357.jpg)
+
+在任意一个项目添加依赖，就是刚才上传到私服的项目的依赖
+
+![](images/20220116224430766_11812.jpg)
+
+![](images/20220116224440659_15399.jpg)
+
+![](images/20220116224449162_30232.jpg)
 
 
 
