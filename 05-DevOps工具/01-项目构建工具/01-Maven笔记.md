@@ -455,11 +455,372 @@ mvn archetype:generate -DgroupId=com.moon -DartifactId=web-project-demo -Darchet
 
 ### 5.4. 使用 eclipse 创建 maven 项目（待整理）
 
+待整理！
 
+## 6. 依赖管理
 
-## 6. Maven私服
+### 6.1. 依赖配置（添加依赖）
 
-### 6.1. 私服使用场景
+依赖是指当前项目运行所需的 jar 包，一个项目可以设置多个依赖。
+
+在 pom.xml 中添加 `<dependency>` 标签，语法格式如下：
+
+```xml
+<!-- 设置具体的依赖 -->
+<dependency>
+    <!-- 依赖所属群组id -->
+    <groupId>xx.xx<groupId>
+    <!-- 依赖所属项目id -->
+    <artifactId>xx</artifactId>
+    <!-- 依赖版本号 -->
+    <version>xx.xx.xx</version>
+</dependency>
+```
+
+### 6.2. 查找坐标
+
+添加依赖需要指定依赖jar包的坐标，但是很多情况是不知道jar包的的坐标，可以通过如下方式查询：
+
+- **方法一：从互联网搜索**
+    - 网址：http://search.maven.org/
+    - 网址：http://mvnrepository.com/
+
+![](images/20220117220609765_4126.jpg)
+
+- **方法二：使用maven插件的索引功能**
+
+如果在本地仓库有我们要的jar包，可以在pom.xml中右键添加依赖
+
+### 6.3. 依赖范围
+
+#### 6.3.1. 依赖范围语法格式
+
+如果A依赖B，需要在A的pom.xml文件中添加B的坐标，添加坐标时可以通过 `<scope>` 标签来指定依赖范围，依赖范围决定jar包的可用的范围。语法格式如下：
+
+```xml
+<dependency>
+    <groupId>xx.xx<groupId>
+    <artifactId>xx</artifactId>
+    <version>xx.xx.xx</version>
+    <!-- 配置依赖范围。可选值：compile | runtime | test | system | provided -->
+    <scope>runtime</scope>
+</dependency>
+```
+
+#### 6.3.2. 依赖范围取值
+
+- `compile`：编译范围，指A在编译时依赖B，此范围为默认依赖范围。<font color=violet>*编译范围的依赖会用在编译、测试、运行，由于运行时需要。所以编译范围的依赖会被打包到war包中*</font>。**添加依赖范围默认值是compile**
+- `provided`：容器已经提供范围。provided依赖只有在当JDK或者一个容器已提供该依赖之后才使用，provided依赖<font color=violet>*在编译和测试时需要，在运行时不需要，不会打包到war包中*</font>，比如：servlet-api/jsp-api被tomcat容器提供，全用默认依赖范围，在package后jsp-api和servlet-api是存在war包中；使用provided后，打包后是不存在的
+    - ![](images/20220117224108310_3609.jpg)
+- `runtime`：运行时期有效范围。runtime依赖<font color=violet>*在运行和测试系统的时候需要，但在编译的时候不需要*</font>。比如：jdbc的数据库驱动包。由于运行时需要所以<font color=violet>*runtime范围的依赖会被打包至war包*</font>。
+- `test`：test范围依赖在编译和运行时都不需要，它们<font color=violet>*只有在测试编译和测试运行阶段可用*</font>，比如：junit。由于运行时不需要所以<font color=violet>*test范围依赖不会被打包到war包中*</font>。
+- `system`：system范围依赖与provided类似，但是你必须显式的提供一个对于本地系统中JAR文件的路径，<font color=violet>*需要指定systemPath磁盘路径，system依赖不推荐使用*</font>。
+
+![](images/20220117224207913_1121.jpg)
+
+#### 6.3.3. 依赖范围使用例子
+
+如果将servlet-api.jar设置为compile,打包后包含serlvet-api.jar，war包部署到tomcat跟tomcat中存在servlet-api.jar包冲突。导致运行失败
+
+![](images/20220117224311131_21070.jpg)
+
+解决方法：
+
+![](images/20220117224332847_20139.jpg)
+
+<font color=red>**总结：如果使用到tomcat自带jar包，将项目中依赖作用范围设置为：provided,其他可以默认**</font>
+
+![](images/20220117224357919_32210.jpg)
+
+**测试总结**
+
+- 默认引入的jar包 -> compile【默认范围可以不写】（编译、测试、运行都有效）
+- servlet-api/jsp-api -> provided（编译、测试有效，运行时无效防止和tomcat下jar冲突）
+- jdbc驱动jar包 -> runtime（测试、运行有效）
+- junit -> test（测试有效）
+
+依赖范围由强到弱的顺序是：compile > provided > runtime > test
+
+### 6.4. 传递依赖
+
+#### 6.4.1. 什么是传递依赖
+
+依赖具有传递性。当A依赖B、B依赖C，在A中导入B后会自动导入C，<font color=red>B是A的直接依赖，C是A的传递依赖</font>，如果C依赖D则D也可能是A的传递依赖
+
+- **直接依赖**：在当前项目中通过依赖配置建立的依赖关系
+- **间接依赖**：在当前项目中引入的依赖，如果该被引入的资源依赖其他资源，那么当前项目就间接依赖其他资源
+
+#### 6.4.2. 依赖范围对传递依赖的影响（了解）
+
+依赖会有依赖范围，依赖范围对传递依赖也有影响，有A、B、C，A依赖B、B依赖C，C可能是A的传递依赖
+
+| 直接依赖\传递依赖 | compile  | provided | runtime  | test |
+| :-------------: | :------: | :------: | :------: | :--: |
+|     compile     | compile  |    -     | runtime  |  -   |
+|    provided     | provided | provided | provided |  -   |
+|     runtime     | runtime  |    -     | runtime  |  -   |
+|      test       |   test   |    -     |   test   |  -   |
+
+最左边一列为直接依赖，理解为A依赖B的范围，最顶层一行为传递依赖，理解为B依赖C的范围，行与列的交叉即为A传递依赖C的范围。
+
+> 举例：比如A对B有compile依赖，B对C有runtime依赖，那么根据表格所示A对C有runtime依赖
+
+![](images/20220117222559292_26547.jpg)
+
+### 6.5. 可选依赖
+
+配置可选依赖：在 `<dependency>` 标签体中使用 `<optional>` 标签，可以设置当前依赖的组件不向下传递。默认值为false，表示依赖会向下传递；如果设置为true，依赖不会向下传递
+
+可选依赖作用：**控制依赖是否能向下传递**
+
+```xml
+<!-- 可选依赖 -->
+<dependency>
+	<groupId>log4j</groupId>
+	<artifactId>log4j</artifactId>
+	<version>1.2.14</version>
+	<!-- 配置可选依赖：默认值为false，表示依赖会向下传递；如果设置为true，依赖不会向下传递 -->
+	<optional>true</optional>
+</dependency>
+```
+
+### 6.6. 依赖版本冲突解决
+
+当一个项目依赖的构件比较多时，它们相互之前存在依赖，会出现依赖版本的冲突。如：
+
+```xml
+<dependencies>
+	<!-- struts2-spring-plugin依赖spirng-beans-3.0.5 -->
+	<dependency>
+		<groupId>org.apache.struts</groupId>
+		<artifactId>struts2-spring-plugin</artifactId>
+		<version>2.3.24</version>
+	</dependency>
+	<!-- spring-context依赖spring-beans-4.2.4 -->
+	<dependency>
+		<groupId>org.springframework</groupId>
+		<artifactId>spring-context</artifactId>
+		<version>4.2.4.RELEASE</version>
+	</dependency>
+</dependencies>
+```
+
+#### 6.6.1. Maven自动依赖调解原则：在两个直接依赖中,以后面声明者优先
+
+在pom文件定义依赖，以后面声明的依赖为准
+
+```xml
+<!-- 可选依赖 -->
+<dependency>
+	<groupId>log4j</groupId>
+	<artifactId>log4j</artifactId>
+	<!-- 版本1.2.14 -->
+	<version>1.2.14</version>
+</dependency>
+<dependency>
+	<groupId>log4j</groupId>
+	<artifactId>log4j</artifactId>
+	<!-- 版本1.2.12:两个直接依赖中,以后面声明者优先 -->
+	<version>1.2.12</version>
+</dependency>
+```
+
+#### 6.6.2. Maven自动依赖调解原则：在两个传递(间接)依赖中,以先声明者优先
+
+在pom文件定义依赖，以先声明的依赖为准
+
+```xml
+<!-- 两个间接依赖中，依赖了同一个坐标不同版本的组件，以配置顺序上方为主 -->
+<!-- 依赖struts-spring整合插件包 (间接依赖spring-core-3.0.5)-->
+<dependency>
+	<groupId>org.apache.struts</groupId>
+	<artifactId>struts2-spring-plugin</artifactId>
+	<version>2.3.24</version>
+</dependency>
+<!-- 依赖spring-aop包(间接依赖spring-core-5.0.0) -->
+<dependency>
+	<groupId>org.springframework</groupId>
+	<artifactId>spring-aop</artifactId>
+	<version>5.0.0.RELEASE</version>
+</dependency>
+```
+
+#### 6.6.3. Maven自动依赖调解原则：直接依赖级别高于传递(间接)依赖
+
+例如：A依赖spirng-beans-4.2.4，A依赖B依赖spirng-beans-3.0.5，则spring-beans-4.2.4优先被依赖在A中，因为spring-beans-4.2.4相对spirng-beans-3.0.5被A依赖的路径最近
+
+```xml
+<!-- 路径近者优先原则:直接依赖高于传递依赖 -->
+<dependency>
+	<groupId>org.springframework</groupId>
+	<artifactId>spring-beans</artifactId>
+	<version>4.2.4.RELEASE</version>
+</dependency>
+```
+
+#### 6.6.4. Maven手动解决依赖冲突：排除依赖
+
+版本的冲突可以通过排除依赖方法辅助依赖调解。比如在依赖struts2-spring-plugin的设置中添加排除依赖，排除spring-beans
+
+![](images/20220117225549095_16275.jpg)
+
+![](images/20220117225556743_6369.jpg)
+
+<font color=red>**直接使用 `<exclusion>` 标签**</font>:
+
+```xml
+<!-- struts2-spring-plugin依赖spirng-beans-3.0.5 -->
+<dependency>
+	<groupId>org.apache.struts</groupId>
+	<artifactId>struts2-spring-plugin</artifactId>
+	<version>2.3.24</version>
+	<exclusions>
+		<!-- 排除 spring-beans-->
+		<exclusion>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-beans</artifactId>
+		</exclusion>
+	</exclusions>
+</dependency>
+```
+
+#### 6.6.5. Maven手动解决依赖冲突：锁定版本（推荐使用）
+
+面对众多的依赖，有一种方法不用考虑依赖路径、声明优化等因素可以采用直接锁定版本的方法确定依赖构件的版本，版本锁定后则不考虑依赖的声明顺序或依赖的路径，<font color=red>**以锁定的版本为准添加到工程中，此方法在企业开发中常用**</font>
+
+在pom.xml文件中，通过使用 `<dependencyManagement>` 标签来锁定依赖的版本。注意点如下：
+
+1. 在工程中锁定依赖的版本并不代表在工程中添加了依赖，如果工程需要添加锁定版本的依赖则需要单独添加 `<dependencies></dependencies>` 标签
+2. 如果在 `<dependencyManagement>` 中锁定了版本，那么在 `<dependency>` 下不需要再指定版本
+
+**使用工具依赖选项卡添加锁定版本**
+
+![](images/20220117225820874_19639.jpg)
+
+**手动添加锁定版本**:
+
+```xml
+<!--锁定版本为 4.2.4 -->
+<dependencyManagement>
+	<dependencies>
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-beans</artifactId>
+			<version>4.2.4.RELEASE</version>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-context</artifactId>
+			<version>4.2.4.RELEASE</version>
+		</dependency>
+	</dependencies>
+</dependencyManagement>
+
+<dependencies>
+	<!-- struts2-spring-plugin依赖spirng-beans-3.0.5 -->
+	<dependency>
+		<groupId>org.apache.struts</groupId>
+		<artifactId>struts2-spring-plugin</artifactId>
+		<version>2.3.24</version>
+	</dependency>
+	<!-- spring-context依赖spring-beans-4.2.4 -->
+	<!-- 这里可以不指定版本，因为上面已锁定版本 -->
+	<dependency>
+		<groupId>org.springframework</groupId>
+		<artifactId>spring-context</artifactId>
+	</dependency>
+</dependencies>
+```
+
+## 7. maven项目的生命周期
+
+### 7.1. 三套生命周期
+
+在maven中存在“三套”生命周期，每一套生命周期相互<font color=red>**独立**</font>，互不影响。<font color=red>**在一套生命周期内，执行后面的命令前面操作会自动执行**</font>
+
+三套生命周期分别是：
+
+- Clean LifeCycle：在进行真正的构建之前进行一些清理工作。包括的命令：`clean`
+- Default LifeCycle：默认生命周期，构建核心部分，编译，测试，打包，部署等等。包括的命令：`compile`,`test`,`package`,`install`,`deploy`
+- site LifeCycle：站点生命周期，生成项目报告，站点，发布站点。包括的命令：`site`
+
+### 7.2. 生命周期的阶段
+
+每个生命周期都有很多阶段，每个阶段对应一个执行命令
+
+#### 7.2.1. clean 生命周期的阶段
+
+clean 生命周期每套生命周期都由一组阶段(Phase)组成，我们平时在命令行输入的命令总会对应于一个特定的阶段。比如，运行`mvn clean`，这个的 clean 是 clean 生命周期的一个阶段。有 clean 生命周期，也有 clean 阶段。clean 生命周期一共包含了三个阶段：
+
+- `pre-clean`：执行一些需要在 clean 之前完成的工作
+- `clean`：移除所有上一次构建生成的文件，（删除 target 目录）
+- `post-clean`：执行一些需要在 clean 之后立刻完成的工作
+
+`mvn clean` 命令中的 clean 就是上面的 clean，在一个生命周期中，运行某个阶段的时候，它之前的所有阶段都会被运行，也就是说，`mvn clean`等同于 `mvn pre-clean clean`，如果运行 `mvn post-clean`，那么 pre-clean，clean 都会被运行。这是 Maven 很重要的一个规则，可以大大简化命令行的输入
+
+#### 7.2.2. default 生命周期（重点）
+
+default 生命周期 default 生命周期是 Maven 生命周期中最重要的一个，绝大部分工作都发生在这个生命周期中。比较重要和常用的阶段如下
+
+```
+validate
+generate-sources
+process-sources
+generate-resources
+process-resources 复制并处理资源文件，至目标目录，准备打包。
+compile 编译项目的源代码。
+process-classes
+generate-test-sources
+process-test-sources
+generate-test-resources
+process-test-resources 复制并处理资源文件，至目标测试目录。
+test-compile 编译测试源代码。
+process-test-classes
+test 使用合适的单元测试框架运行测试。这些测试代码不会被打包或部署。
+prepare-package
+package 接受编译好的代码，打包成可发布的格式，如 JAR 。
+pre-integration-test
+integration-test
+post-integration-test
+verify
+install 将包安装至本地仓库，以让其它项目依赖。
+deploy 将最终的包复制到远程的仓库，以让其它开发人员与项目共享。
+```
+
+运行任何一个阶段的时候，它前面的所有阶段都会被运行，这也就是为什么运行 `mvn install` 的时候，代码会被编译，测试，打包。此外，Maven的插件机制是完全依赖Maven的生命周期的
+
+#### 7.2.3. site 生命周期
+
+site 生命周期包含如下 4 个阶段：
+
+- `pre-site`：执行一些需要在生成站点文档之前完成的工作
+- `site`：生成项目的站点文档
+- `post-site`：执行一些需要在生成站点文档之后完成的工作，并且为部署做准备
+- `site-deploy`：将生成的站点文档部署到特定的服务器上
+
+注：这里经常用到的是 site 阶段和 site-deploy 阶段，用以生成和发布 Maven 站点，这是 Maven 相当强大的功能，文档及统计数据自动生成
+
+执行命令：`site`，就会在target目录下生成站点目录：
+
+![](images/20220117231532881_24485.jpg)
+
+![](images/20220117231538997_4730.jpg)
+
+![](images/20220117231549358_4691.jpg)
+
+### 7.3. 命令与生命周期的阶段
+
+每个maven命令对应生命周期的某个阶段，例如：`mvn clean`命令对应 clean 生命周期的clean阶段，`mvn test`命令对应default生命周期的test阶段。
+
+执行命令会将该命令在的在生命周期当中之前的阶段自动执行，比如：执行 `mvn clean` 命令会自动执行pre-clean和clean两个阶段，`mvn test`命令会自动执行validate、compile、test等阶段。
+
+<font color=red>**注意：执行某个生命周期的某个阶段不会影响其它的生命周期！**</font>
+
+如果要同时执行多个生命周期的阶段可在命令行输入多个命令，中间以空格隔开，例如：`clean package` 该命令执行 clean 生命周期的 clean 阶段和 default 生命周期的 package 阶段。
+
+## 8. Maven私服
+
+### 8.1. 私服使用场景
 
 项目组编写了一个通用的工具类，其它项目组将类拷贝过去使用，当工具类修改bug后通过邮件发送给各各项目组，这种分发机制不规范可能导致工具类版本不统一。
 
@@ -471,7 +832,7 @@ mvn archetype:generate -DgroupId=com.moon -DartifactId=web-project-demo -Darchet
 
 ![](images/20220116221705223_24381.jpg)
 
-### 6.2. 关于中央仓库使用的注意事项
+### 8.2. 关于中央仓库使用的注意事项
 
 - **地址**:
 
@@ -487,9 +848,9 @@ mvn archetype:generate -DgroupId=com.moon -DartifactId=web-project-demo -Darchet
 
 如果某个IP地址恶意的下载中央仓库内容，例如全公司100台机器使用同一个IP反复下载，这个IP（甚至是IP段）会进入黑名单，因此稍有规模的使用Maven时，应该用Nexus架设私服
 
-### 6.3. 搭建私服环境
+### 8.3. 搭建私服环境
 
-#### 6.3.1. 下载 nexus
+#### 8.3.1. 下载 nexus
 
 Nexus 是 Maven 仓库管理器，通过 nexus 可以搭建 maven 仓库，同时 nexus 还提供强大的仓库管理功能，构件搜索功能等。
 
@@ -498,7 +859,7 @@ Nexus 是 Maven 仓库管理器，通过 nexus 可以搭建 maven 仓库，同�
 
 > 以下使用 nexus-2.12.0-01-bundle.zip 为示例
 
-#### 6.3.2. 安装 nexus
+#### 8.3.2. 安装 nexus
 
 解压nexus-2.12.0-01-bundle.zip，解压在不含中文和空格的目录下，解压完成后进入bin目录
 
@@ -514,13 +875,13 @@ Nexus 是 Maven 仓库管理器，通过 nexus 可以搭建 maven 仓库，同�
 
 ![](images/20220116222816996_250.jpg)
 
-#### 6.3.3. 卸载 nexus
+#### 8.3.3. 卸载 nexus
 
 cmd进入nexus的bin目录，执行：`nexus.bat uninstall`
 
 ![](images/20220116223034973_26948.jpg)
 
-#### 6.3.4. 启动 nexus
+#### 8.3.4. 启动 nexus
 
 方法 1：cmd进入bin目录，执行：`nexus.bat start`
 
@@ -545,7 +906,7 @@ nexus-work=${bundleBasedir}/../sonatype-work/nexus	# nexus 仓库目录
 runtime=${bundleBasedir}/nexus/WEB-INF					# nexus 运行程序目录
 ```
 
-#### 6.3.5. 直接使用快捷方式安装、卸载、启动 nexus
+#### 8.3.5. 直接使用快捷方式安装、卸载、启动 nexus
 
 进入安装目录 \nexus-2.12.0-01\bin\jsw\windows-x86-64，里面都相关的脚本。
 
@@ -553,13 +914,13 @@ runtime=${bundleBasedir}/nexus/WEB-INF					# nexus 运行程序目录
 
 console-nexus.bat：不需要安装成服务，点击一次运行一次，关闭后不再运行。
 
-#### 6.3.6. 登陆nexus
+#### 8.3.6. 登陆nexus
 
 访问：http://localhost:8081/nexus/
 
 点击右上角的Log in，使用Nexus内置账户`admin`/`admin123`登陆
 
-#### 6.3.7. nexus 的仓库有4种类型（了解）
+#### 8.3.7. nexus 的仓库有4种类型（了解）
 
 ![](images/20220116223337032_4630.jpg)
 
@@ -584,13 +945,13 @@ apache-snapshots：代理仓库。存储snapshots构件，代理地址https://re
 
 ![](images/20220116223522656_28998.jpg)
 
-#### 6.3.8. 修改本地仓库（snapshots）允许重复部署
+#### 8.3.8. 修改本地仓库（snapshots）允许重复部署
 
 ![](images/20220116223547534_21755.jpg)
 
-### 6.4. 将项目发布到私服
+### 8.4. 将项目发布到私服
 
-#### 6.4.1. 第一步：配置settings.xml(maven的安装文件的conf目录下)
+#### 8.4.1. 第一步：配置settings.xml(maven的安装文件的conf目录下)
 
 需要在客户端即部署dao工程的电脑上配置maven环境，并修改settings.xml文件，配置连接私服的用户和密码。
 
@@ -617,7 +978,7 @@ apache-snapshots：代理仓库。存储snapshots构件，代理地址https://re
 
 ![](images/20220116223725078_2451.jpg)
 
-#### 6.4.2. 第二步：配置pom.xml
+#### 8.4.2. 第二步：配置pom.xml
 
 配置私服仓库的地址，本公司的自己的jar包会上传到私服的宿主仓库，根据工程的版本号决定上传到哪个宿主仓库，如果版本为release则上传到私服的release仓库，如果版本为snapshot则上传到私服的snapshot仓库
 
@@ -647,7 +1008,7 @@ apache-snapshots：代理仓库。存储snapshots构件，代理地址https://re
 
 ![](images/20220116223910032_6022.jpg)
 
-#### 6.4.3. 第三步：测试使用 deploy 命令上传组件(项目)到私服
+#### 8.4.3. 第三步：测试使用 deploy 命令上传组件(项目)到私服
 
 根据本项目pom.xml中version定义决定发布到哪个仓库，如果version定义为snapshot，执行deploy后查看nexus的snapshot仓库，如果version定义为release则项目将发布到nexus的release仓库，本项目将发布到snapshot仓库
 
@@ -661,9 +1022,9 @@ apache-snapshots：代理仓库。存储snapshots构件，代理地址https://re
 
 ![](images/20220116224033293_25739.jpg)
 
-### 6.5. 从私服下载资源(项目)
+### 8.5. 从私服下载资源(项目)
 
-#### 6.5.1. 管理仓库组
+#### 8.5.1. 管理仓库组
 
 nexus中包括很多仓库，hosted中存放的是企业自己发布的jar包及第三方公司的jar包，proxy中存放的是中央仓库的jar，为了方便从私服下载jar包可以将多个仓库组成一个仓库组，每个工程需要连接私服的仓库组下载jar包
 
@@ -671,7 +1032,7 @@ nexus中包括很多仓库，hosted中存放的是企业自己发布的jar包及
 
 ![](images/20220116224151293_12074.jpg)
 
-#### 6.5.2. 在setting.xml中配置仓库
+#### 8.5.2. 在setting.xml中配置仓库
 
 在客户端的 setting.xml 中配置私服的仓库，由于 setting.xml 中没有 `repositories` 的配置标签需要使用 `profile` 定义仓库
 
@@ -723,7 +1084,7 @@ nexus中包括很多仓库，hosted中存放的是企业自己发布的jar包及
 
 ![](images/20220116224312519_8249.jpg)
 
-#### 6.5.3. 测试从私服下载 jar 包(待测试)
+#### 8.5.3. 测试从私服下载 jar 包(待测试)
 
 删除工作区间的已经上传到私服的项目，删除本地库安装。
 
