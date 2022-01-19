@@ -1,6 +1,7 @@
 # RabbitMQ
 
 ## 1. 介绍
+
 ### 1.1. RabbitMQ 简介
 
 MQ全称为Message Queue，即消息队列， RabbitMQ是由erlang语言开发，基于AMQP（Advanced Message Queue 高级消息队列协议）协议实现的消息队列，它是一种应用程序之间的通信方法，消息队列在分布式系统开发中应用非常广泛。RabbitMQ官方地址：http://www.rabbitmq.com/
@@ -21,6 +22,7 @@ MQ全称为Message Queue，即消息队列， RabbitMQ是由erlang语言开发�
 5. Spring Boot默认已集成RabbitMQ
 
 ### 1.2. 其它相关知识
+
 #### 1.2.1. AMQP
 
 AMQP是一套公开的消息队列协议，最早在2003年被提出，它旨在从协议层定义消息通信数据的标准格式，为的就是解决MQ市场上协议不统一的问题。RabbitMQ就是遵循AMQP标准协议开发的MQ服务。官网：http://www.amqp.org/
@@ -32,8 +34,8 @@ JMS是java提供的一套消息服务API标准，其目的是为所有的java应
 - jms是java语言专属的消息服务标准，它是在api层定义标准，并且只能用于java应用。
 - AMQP是在协议层定义的标准，是跨语言的。
 
-
 ## 2. RabbitMQ 快速入门
+
 ### 2.1. RabbitMQ 的工作原理
 
 下图是RabbitMQ的基本结构
@@ -63,6 +65,7 @@ JMS是java提供的一套消息服务API标准，其目的是为所有的java应
     5. 消费者接收到消息
 
 ### 2.2. window版安装
+
 #### 2.2.1. 下载
 
 RabbitMQ由Erlang语言开发，Erlang语言用于并发及分布式系统的开发，在电信领域应用广泛，OTP（Open Telecom Platform）作为Erlang语言的一部分，包含了很多基于Erlang开发的中间件及工具库，安装RabbitMQ需要安装Erlang/OTP，并保持版本匹配，如下图
@@ -106,6 +109,7 @@ RabbitMQ的下载地址：http://www.rabbitmq.com/download.html
 2. 当卸载重新安装时会出现RabbitMQ服务注册失败，此时需要进入注册表清理erlang，搜索RabbitMQ、ErlSrv，将对应的项全部删除。
 
 ### 2.3. Linux版安装
+
 #### 2.3.1. 使用Docker安装部署RabbitMQ
 
 1. `docker search rabbitmq:management`：查询RabbitMQ的镜像
@@ -148,6 +152,7 @@ systemctl disable firewalld.service
 按照官方教程(http://www.rabbitmq.com/getstarted.html) 测试hello world:
 
 #### 2.4.1. 搭建环境
+
 ##### 2.4.1.1. Java client
 
 - 生产者和消费者都属于客户端，rabbitMQ 的 java 客户端参考：https://github.com/rabbitmq/rabbitmq-java-client/

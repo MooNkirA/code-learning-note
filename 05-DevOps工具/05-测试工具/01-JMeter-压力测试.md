@@ -14,6 +14,8 @@ JMeter安装十分简单，在官网下载最新的压缩包`apache-jmeter-5.3.z
 
 ![](images/20201017103942923_117.png)
 
+进入bin目录，修改 jmeter.properties 文件中的默认语言支持为 `language=zh_CN`
+
 ### 2.2. JMeter 使用配置
 
 1. 创建新的测试计划

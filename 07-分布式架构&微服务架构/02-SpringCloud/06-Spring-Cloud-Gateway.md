@@ -2,15 +2,11 @@
 
 Spring Cloud Netflix Zuul 1.x 是一个基于阻塞 IO 的 API Gateway 以及 Servlet；直到2018年5月，Zuul 2.x（基于Netty，也是非阻塞的，支持长连接）才发布，但 Spring Cloud 暂时还没有整合计划。Spring Cloud Gateway 比 Zuul 1.x 系列的性能和功能整体要好。
 
-## 1. Spring Cloud Gateway 简介
+## 1. Spring Cloud Gateway 是什么
 
-### 1.1. 简介
+### 1.1. 简述
 
-Spring Cloud Gateway 是 Spring 官方基于 Spring 5.0，Spring Boot 2.0 和 Project Reactor 等技术开
-发的网关，旨在为微服务架构提供一种简单而有效的统一的 API 路由管理方式，统一访问接口。Spring
-Cloud Gateway 作为 Spring Cloud 生态系中的网关，目标是替代 Netflix ZUUL，其不仅提供统一的路
-由方式，并且基于 Filter 链的方式提供了网关基本的功能，例如：安全，监控/埋点，和限流等。它是基
-于Nttey的响应式开发模式。
+Spring Cloud Gateway 是 Spring 官方基于 Spring 5.0，Spring Boot 2.0 和 Project Reactor 等技术开发的网关，旨在为微服务架构提供一种简单而有效的统一的 API 路由管理方式，统一访问接口。Spring Cloud Gateway 作为 Spring Cloud 生态系中的网关，目标是替代 Netflix ZUUL，其不仅提供统一的路由方式，并且基于 Filter 链的方式提供了网关基本的功能，例如：安全，监控/埋点，限流等。它是基于Nttey的响应式开发模式。
 
 > Spring Cloud Gateway官方文档：https://spring.io/projects/spring-cloud-gateway#overview
 
@@ -21,13 +17,31 @@ Cloud Gateway 作为 Spring Cloud 生态系中的网关，目标是替代 Netfli
 
 上表为Spring Cloud Gateway与Zuul的性能对比，从结果可知，Spring Cloud Gateway的RPS是Zuul的1.6倍
 
-### 1.2. 核心概念
+### 1.2. 优缺点
+
+优点：
+
+- 性能强劲：是第一代网关Zuul的1.6倍
+- 功能强大：内置了很多实用的功能，例如转发、监控、限流等
+- 设计优雅，容易扩展
+
+缺点：
+
+- 其实现依赖Netty与WebFlux，不是传统的Servlet编程模型，学习成本高
+- 不能将其部署在Tomcat、Jetty等Servlet容器里，只能打成jar包执行
+- 需要Spring Boot 2.0及以上的版本，才支持
+
+### 1.3. 核心概念
+
+**路由（route）**：路由是网关最基础的部分，表示一个具体的路由信息载体。路由信息由一个ID、一个目的地URI、排序order、一组断言工厂和一组Filter组成。如果断言为真，则说明请求URL和配置的路由匹配。
 
 ![](images/20201024155248894_3162.png)
 
-- **路由（route）**：路由是网关最基础的部分，路由信息由一个ID、一个目的URL、一组断言工厂和一组Filter组成。如果断言为真，则说明请求URL和配置的路由匹配。
-- **断言（predicates）**：Java8中的断言函数，Spring Cloud Gateway中的断言函数输入类型是Spring5.0框架中的`ServerWebExchange`。Spring Cloud Gateway中的断言函数允许开发者去定义匹配来自Http Request中的任何信息，比如请求头和参数等。
-- **过滤器（filter）**：一个标准的Spring WebFilter，Spring Cloud Gateway中的Filter分为两种类型，分别是`Gateway Filter`和`Global Filter`。过滤器`Filter`可以对请求和响应进行处理。
+- id，路由标识符，区别于其他 Route。
+- uri，路由指向的目的地 uri，即客户端请求最终被转发到的微服务。
+- order，用于多个 Route 之间的排序，数值越小排序越靠前，匹配优先级越高。
+- **predicates（断言）**：Java8中的断言函数，断言的作用是进行条件判断，只有断言都返回真，才会真正的执行路由。Spring Cloud Gateway中的断言函数输入类型是Spring5.0框架中的`ServerWebExchange`。Spring Cloud Gateway中的断言函数允许开发者去定义匹配来自Http Request中的任何信息，比如请求头和参数等。
+- **filter（过滤器）**：一个标准的Spring WebFilter，Spring Cloud Gateway中的Filter分为两种类型，分别是`Gateway Filter`和`Global Filter`。过滤器`Filter`可以对请求和响应进行处理。
 
 ## 2. Spring Cloud Gateway 基础入门案例
 
@@ -103,7 +117,11 @@ Spring Cloud Gateway 的功能很强大，其内置了很多 `Predicates` 功能
 
 ![](images/20201025121213735_25442.png)
 
+Spring Cloud Gateway 包括许多内置路由断言工厂，所有这些断言都与 HTTP 请求的不同属性匹配。具体如下：
+
 #### 3.1.1. 路由断言 - After
+
+基于Datetime类型的断言工厂 `AfterRoutePredicateFactory`：接收一个日期参数，判断请求日期是否晚于指定日期
 
 `After`的路由判断规则，用于匹配在指定日期时间之后发生的请求
 
@@ -121,6 +139,8 @@ spring:
 
 #### 3.1.2. 路由断言 - Before
 
+基于Datetime类型的断言工厂 `BeforeRoutePredicateFactory`：接收一个日期参数，判断请求日期是否早于指定日期
+
 `Before`的路由判断规则，用于匹配在指定日期时间之前发生的请求
 
 ```yml
@@ -135,8 +155,9 @@ spring:
         - Before=2017-01-20T17:42:47.789-07:00[America/Denver]
 ```
 
-
 #### 3.1.3. 路由断言 - Between
+
+基于Datetime类型的断言工厂 `BetweenRoutePredicateFactory`：接收两个日期参数，判断请求日期是否在指定时间段内
 
 `Between`的路由判断规则，用于两个指定日期时间之间发生的请求
 
@@ -154,6 +175,8 @@ spring:
 
 #### 3.1.4. 路由断言 - Cookie
 
+基于Cookie的断言工厂 `CookieRoutePredicateFactory`：接收两个参数，cookie 名字和一个正则表达式。判断请求cookie是否具有给定名称且值与正则表达式匹配。
+
 `Cookie`的路由判断规则，用于Cookie匹配，此predicate匹配给定名称(`chocolate`)和正则表达式(`ch.p`)
 
 ```yml
@@ -168,6 +191,8 @@ spring:
 ```
 
 #### 3.1.5. 路由断言 - Header
+
+基于Header的断言工厂 `HeaderRoutePredicateFactory`：接收两个参数，标题名称和正则表达式。判断请求Header是否具有给定名称且值与正则表达式匹配。
 
 `Header`的路由判断规则，用于Header匹配，header名称匹配`X-Request-Id`，且正则表达式匹配`\d+`
 
@@ -184,6 +209,8 @@ spring:
 
 #### 3.1.6. 路由断言 - Host
 
+基于Host的断言工厂 `HostRoutePredicateFactory`：接收一个参数，主机名模式。判断请求的 Host 是否满足匹配规则。
+
 `Host`的路由判断规则，用于Host匹配，匹配指定的Host主机列表，`**`代表可变参数
 
 ```yml
@@ -198,6 +225,8 @@ spring:
 ```
 
 #### 3.1.7. 路由断言 - Method
+
+基于Method请求方法的断言工厂 `MethodRoutePredicateFactory`：接收一个参数，判断请求类型是否跟指定的类型匹配。
 
 `Method`的路由判断规则，用于请求Method匹配，匹配的是请求的HTTP方法
 
@@ -215,6 +244,8 @@ spring:
 
 #### 3.1.8. 路由断言 - Path
 
+基于 Path 请求路径的断言工厂 `PathRoutePredicateFactory`：接收一个参数，判断请求的URI部分是否满足路径规则。
+
 `Path`的路由判断规则，用于请求url匹配，`{segment}`为可变参数
 
 ```yml
@@ -229,6 +260,8 @@ spring:
 ```
 
 #### 3.1.9. 路由断言 - Query
+
+基于 Query 请求参数的断言工厂 `QueryRoutePredicateFactory`：接收两个参数，请求 param 和正则表达式， 判断请求参数是否具有给定名称且值与正则表达式匹配。
 
 `Query`的路由判断规则，用于匹配请求参数，将请求的参数`param(green)`进行匹配，也可以进行regexp正则表达式匹配 (参数包含`red`，并且`red`的值匹配`green`或者`greet`都可以 )
 
@@ -248,6 +281,8 @@ spring:
 
 #### 3.1.10. 路由断言 - RemoteAddr
 
+基于远程地址的断言工厂 `RemoteAddrRoutePredicateFactory`：接收一个IP地址段，判断请求主机地址是否在地址段中
+
 `RemoteAddr`的路由判断规则，用于远程IP地址匹配，将匹配`192.168.1.1`~`192.168.1.254`之间的ip地址，其中`24`为子网掩码位数即`255.255.255.0`
 
 ```yml
@@ -263,6 +298,8 @@ spring:
 ```
 
 #### 3.1.11. 路由断言 - Weight
+
+基于路由权重的断言工厂 `WeightRoutePredicateFactory`：接收一个[组名,权重], 然后对于同一个组内的路由按照权重转发
 
 `Weight`的路由判断规则，用于请求权重匹配。其中有两个参数`group`和`weight`，均为int数值类型，用于计算权重
 
@@ -285,9 +322,11 @@ spring:
 
 ### 3.2. 动态路由
 
-和zuul网关类似，在Spring Cloud GateWay组件也支持动态路由：即自动的从注册中心中获取服务列表并访问
+和 zuul 网关类似，在 Spring Cloud GateWay 组件也支持动态路由：即自动的从注册中心中获取服务列表并访问
 
-#### 3.2.1. 添加注册中心依赖
+#### 3.2.1. 基于 Eureka 注册中心动态获取路由
+
+##### 3.2.1.1. 添加注册中心依赖（Eureka）
 
 在`12-springcloud-gateway`工程的pom文件中添加注册中心的客户端依赖（此示例以Eureka做为注册中心）
 
@@ -298,7 +337,7 @@ spring:
 </dependency>
 ```
 
-#### 3.2.2. 配置动态路由
+##### 3.2.1.2. 配置动态路由
 
 修改 `application.yml` 配置文件，添加eureka注册中心的相关配置，并修改访问映射的URL为服务名称
 
@@ -330,9 +369,115 @@ eureka:
 
 测试访问网关请求地址以`product`开头时，会通过注册中心获取转发的地址，自动转发到地址：`http://127.0.0.1:9001/product/xxx`。配置完成启动项目即可在浏览器访问进行测试
 
+#### 3.2.2. 基于 Nacos 注册中心动态获取路由
+
+##### 3.2.2.1. 添加注册中心依赖（Nacos）
+
+在`spring-cloud-alibaba-2.1.x-sample\api-gateway`工程的 pom 文件中添加注册中心的客户端依赖（此示例以 Nacos 做为注册中心）
+
+```xml
+<!-- nacos 客户端 -->
+<dependency>
+    <groupId>com.alibaba.cloud</groupId>
+    <artifactId>spring-cloud-starter-alibaba-nacos-discovery</artifactId>
+</dependency>
+```
+
+##### 3.2.2.2. 开启 nacos 客户端
+
+在项目启动类或者配置上添加注解 `@EnableDiscoveryClient`，开启 nacos 客户端
+
+```java
+@SpringBootApplication
+@EnableDiscoveryClient
+public class ApiGatewayApplication {
+    public static void main(String[] args) {
+        SpringApplication.run(ApiGatewayApplication.class, args);
+    }
+}
+```
+
+##### 3.2.2.3. 配置动态路由
+
+修改项目的 `application.yml` 配置文件，具体修改内容如下：
+
+1. 添加 nacos 注册中心的相关配置，将网关服务注册到 nacos 中，
+2. 修改访问映射的uri，改为注册中心上相应的服务名称
+
+```yml
+server:
+  port: 7000 # 项目端口
+spring:
+  application:
+    name: api-gateway # 服务名称
+  cloud:
+    # Spring Cloud Gateway 配置
+    gateway:
+      discovery:
+        locator:
+          enabled: true # 配置开启让 gateway 从 nacos 注册中心中获取服务信息列表
+      # 配置路由数组（包含的元素：路由id、路由到微服务的uri，断言【判断条件】）
+      routes:
+        # 路由配置都是多个，所以此处是一个数组
+        - id: service-product # 路由id
+          # 方式二：根据微服务名称从注册中心拉取服务的地址与端口，格式： lb://服务名称（服务在注册中心上注册的名称）。
+          # lb 是 Load Balance 的缩写，gateway 遵循实现了负载均衡策略
+          uri: lb://service-product
+          order: 1 # 路由的优先级,数字越小级别越高
+          predicates: # 断言(就是路由转发要满足的条件)
+            # 注意此path属性与zuul的path属性不一样，zuul只会将/**部分拼接到uri后面，而gateway会将全部拼接到uri后面
+            # 断言，此处访问 http://127.0.0.1:7000/api-product/product/1 就会路由到 http://127.0.0.1:8081/api-product/product/1(在未配置RewritePath属性前、StripPrefix 过滤器之前)
+            - Path=/api-product/**
+          filters: # 过滤器，请求在传递过程中可以通过过滤器对其进行一定的修改
+            - StripPrefix=1 # 此过滤器配置的作用是，在请求转发之前去掉第1层路径，即以上请求转化路径会变成 http://127.0.0.1:8081/product/1
+    nacos:
+      discovery:
+        server-addr: 127.0.0.1:8848 # 配置 Nacos server 的地址，将网关服务注册到 nacos 中
+```
+
+测试访问网关请求地址以`api-product`开头时，会通过注册中心获取转发的地址，自动转发到地址：`http://127.0.0.1:8081/product/xxx`。配置完成启动项目即可在浏览器访问进行测试
+
+#### 3.2.3. 动态路由简写版
+
+当路由配置时，直接通过服务注册的名称来请求，则可以省略 `routes` 的相关的配置。如下：
+
+```yml
+server:
+  port: 7000 # 项目端口
+spring:
+  application:
+    name: api-gateway # 服务名称
+  cloud:
+    # Spring Cloud Gateway 配置
+    gateway:
+      discovery:
+        locator:
+          enabled: true # 配置开启让 gateway 从 nacos 注册中心中获取服务信息列表
+      # 通过服务注册的名称请求，则可以省略不配置。即 http://127.0.0.1:7000/service-product/product/xx
+#      routes:
+#        - id: service-product # 路由id
+#          uri: lb://service-product
+#          order: 1
+#          predicates:
+#            - Path=/api-product/**
+#          filters:
+#            - StripPrefix=1
+    nacos:
+      discovery:
+        server-addr: 127.0.0.1:8848 # 配置 Nacos server 的地址，将网关服务注册到 nacos 中
+```
+
+测试，原来的请求路径已经无效了。
+
+![](images/20220105102635258_11205.png)
+
+测试通过服务注册的名称，按照`网关地址/微服务/接口`的格式去访问，路由可以成功转发。即`http://127.0.0.1:7000/service-product/product/xx` 默认相当于转发 `http://127.0.0.1:8081/product/xx`。如果请求服务集群，也是能生效。
+
+![](images/20220105102718532_5629.png)
+
 ### 3.3. 重写转发路径
 
-在Spring Cloud Gateway中，路由转发是直接将匹配的路由（path）直接拼接到映射路径（uri）之后，那么在微服务开发中一般会通过RewritePath机制来进行路径重写。
+在 Spring Cloud Gateway 中，路由转发是直接将匹配的路由（path）直接拼接到映射路径（uri）之后，那么在微服务开发中一般会通过 `RewritePath` 机制来进行路径重写。
 
 #### 3.3.1. 官方文档示例
 
@@ -414,11 +559,131 @@ spring:
 
 ![](images/20201030094951563_21178.png)
 
+### 3.5. 自定义路由断言工厂
+
+Spring Cloud GateWay 内置的断言基本上已经满足大部分的需要，但有些可能还是需要自定义一些路由断言逻辑。
+
+案例需求：仅仅让请求参数 `range` 在 `(min,max)` 之间的人来访问。具体实现步骤如下：
+
+- 修改网关项目的 application.yml 配置文件，添加自定义的断言：
+
+```yml
+server:
+  port: 7000
+spring:
+  application:
+    name: api-gateway
+  cloud:
+    gateway:
+      discovery:
+        locator:
+          enabled: true
+      routes:
+        - id: service-product # 路由id
+          uri: lb://service-product
+          predicates: # 断言
+            - Path=/api-product/**
+            # 自定义路由断言，具体实现range限制范围只有在18到26岁之间请求能访问
+            - Custom=18,26
+          filters:
+            - StripPrefix=1
+    nacos:
+      discovery:
+        server-addr: 127.0.0.1:8848 # 配置 Nacos server 的地址，将网关服务注册到 nacos 中
+```
+
+- 自定义一个路由断言工厂类，实现断言判断逻辑。断言工厂类实现需要满足以下两个要求：
+    1. 类的名称必须是以`RoutePredicateFactory`结尾。即`自定义断言配置名称+RoutePredicateFactory`
+    2. 类必须继承 `AbstractRoutePredicateFactory<配置类>` 抽象类
+    - > 技巧提示：如不知道如何实现这些接口，可以通过参考框架自身内置的实现来进行改造^_^
+
+```java
+// AbstractRoutePredicateFactory 的泛型 C 是一个配置类，配置类用于接收中在配置文件（properties/yml）中的配置值
+@Component
+public class CustomRoutePredicateFactory extends AbstractRoutePredicateFactory<CustomRoutePredicateFactory.Config> {
+
+    // 构造函数，调用父类构造器，并传入配置类
+    public CustomRoutePredicateFactory() {
+        super(CustomRoutePredicateFactory.Config.class);
+    }
+
+    /*
+     * 读取配置文件的中参数值，赋值到配置类中的属性上
+     */
+    @Override
+    public List<String> shortcutFieldOrder() {
+        // 注意，定义返回集合中元素的位置的顺序，必须跟配置文件中的参数值的顺序相对应
+        return Arrays.asList("min", "max");
+    }
+
+    /**
+     * 断言核心的处理逻辑
+     *
+     * @param config
+     * @return
+     */
+    @Override
+    public Predicate<ServerWebExchange> apply(CustomRoutePredicateFactory.Config config) {
+        // Predicate<T> 是 jdk8 的函数式接口，可以直接使用 lambda 表达式
+        return serverWebExchange -> {
+            // 获取请求传的参数 range 的值
+            String range = serverWebExchange.getRequest().getQueryParams().getFirst("range");
+            // 对范围参数进行判断
+            if (StringUtils.hasText(range)) {
+                // 非空，则进行范围的判断
+                int num = Integer.parseInt(range);
+                return num >= config.getMin() && num <= config.getMax();
+            }
+            return false;
+        };
+    }
+
+    /**
+     * 配置类，用于接收在配置文件中的对应参数值
+     */
+    public static class Config {
+        private int min;
+        private int max;
+
+        public Config() {
+        }
+
+        public int getMin() {
+            return min;
+        }
+
+        public void setMin(int min) {
+            this.min = min;
+        }
+
+        public int getMax() {
+            return max;
+        }
+
+        public void setMax(int max) {
+            this.max = max;
+        }
+    }
+}
+```
+
+- 测试，请求带上参数`range`，如果超出范围，则请求转发失败
+
+```
+http://127.0.0.1:7000/api-product/product/2
+http://127.0.0.1:7000/api-product/product/2?range=19
+http://127.0.0.1:7000/api-product/product/2?range=33
+```
+
+![](images/20220105113251508_24769.png)
+
 ## 4. 过滤器
 
-Spring Cloud Gateway除了具备请求路由功能之外，也支持对请求的过滤。通过Zuul网关类似，也是通过过滤器的形式来实现的
+Spring Cloud Gateway 除了具备请求路由功能之外，也支持对请求的过滤。通过 Zuul 网关类似，也是通过过滤器的形式来实现的
 
 ### 4.1. 过滤器基础概述
+
+过滤器就是在请求的传递过程中，对 **转发请求服务之前** 和 **获取响应之后返回结果之前** 做一些处理
 
 #### 4.1.1. 过滤器的生命周期
 
@@ -431,7 +696,7 @@ Spring Cloud Gateway 的 `Filter` 的生命周期不像 Zuul 的那么丰富，�
 
 #### 4.1.2. 过滤器类型
 
-Spring Cloud Gateway 的 Filter 从作用范围可分为另外两种`GatewayFilter` 与 `GlobalFilter`。
+Spring Cloud Gateway 的 Filter 从作用范围可分为另外两种 `GatewayFilter` 与 `GlobalFilter`。
 
 - `GatewayFilter`（局部过滤器）：应用到单个路由或者一个分组的路由上。*如上面基础入门配置重写转发路径的示例，就是使用了`GatewayFilter`，只作用指定的路由配置上*
 - `GlobalFilter`（全局过滤器）：应用到所有的路由上
@@ -440,9 +705,9 @@ Spring Cloud Gateway 的 Filter 从作用范围可分为另外两种`GatewayFilt
 
 #### 4.2.1. 简介
 
-局部过滤器（`GatewayFilter`），是针对单个路由的过滤器。可以对访问的URL过滤，进行切面处理。在Spring Cloud Gateway中通过`GatewayFilter`的形式内置了很多不同类型的局部过滤器。
+局部过滤器（`GatewayFilter`），是针对单个路由的过滤器。可以对访问的 URL 过滤，进行切面处理。在 Spring Cloud Gateway 中通过`GatewayFilter`的形式内置了很多不同类型的局部过滤器。
 
-*注：一般在配置局部过滤器针对单个路由设置一些过滤规则时，都会使用Spring Cloud Gateway内置的过滤器*
+*注：一般在配置局部过滤器针对单个路由设置一些过滤规则时，都会使用 Spring Cloud Gateway 内置的过滤器*
 
 #### 4.2.2. Spring Cloud Gateway 内置局部过滤器
 
@@ -474,9 +739,119 @@ Spring Cloud Gateway 的 Filter 从作用范围可分为另外两种`GatewayFilt
 |      ModifyRequestBody      | 在转发请求之前修改原始请求体内容                                                            | 修改后的请求体内容                                                  |
 |     ModifyResponseBody      | 修改原始响应体的内容                                                                       | 修改后的响应体内容                                                  |
 
-以上每个过滤器工厂都对应一个实现类，并且这些类的名称必须以`GatewayFilterFactory`结尾，这是Spring Cloud Gateway的一个约定，例如`AddRequestHeader`对应的实现类为`AddRequestHeaderGatewayFilterFactory`。对于这些过滤器的使用方式可以参考官方文档
+以上每个过滤器工厂都对应一个实现类，并且这些类的名称必须以 `GatewayFilterFactory` 结尾，这是 Spring Cloud Gateway 的一个约定，例如 `AddRequestHeader` 对应的实现类为 `AddRequestHeaderGatewayFilterFactory`。对于这些过滤器的使用方式可以参考官方文档
 
 > 官方内置过滤器参考(2.2.5.RELEASE版本)：https://docs.spring.io/spring-cloud-gateway/docs/2.2.5.RELEASE/reference/html/#gatewayfilter-factories
+
+#### 4.2.3. 自定义局部过滤器
+
+> 自定义局部过滤器与自定义路由断言工厂的步骤一样
+
+案例需求：给请求增加一个是否开启日志记录的操作。具体步骤如下
+
+- 修改网关项目的 application.yml 配置文件，添加自定义的局部过滤器：
+
+```yml
+server:
+  port: 7000
+spring:
+  application:
+    name: api-gateway
+  cloud:
+    gateway:
+      discovery:
+        locator:
+          enabled: true
+      routes:
+        - id: service-product # 路由id
+          uri: lb://service-product
+          predicates: # 断言
+            - Path=/api-product/**
+          filters:
+            - StripPrefix=1
+            - Log=true,false # 自定义局部过滤器，具体示例实现是否开启日志记录
+    nacos:
+      discovery:
+        server-addr: 127.0.0.1:8848 # 配置 Nacos server 的地址，将网关服务注册到 nacos 中
+```
+
+- 自定义一个自定义局部过滤器，实现相关功能处理逻辑。自定义局部过滤器实现需要满足以下两个要求：
+    1. 类的名称必须是以`GatewayFilterFactory`结尾。即`自定义局部过滤器名称+GatewayFilterFactory`
+    2. 类必须继承 `AbstractGatewayFilterFactory<配置类>` 抽象类
+
+```java
+// AbstractGatewayFilterFactory 的泛型 C 是一个配置类，配置类用于接收中在配置文件（properties/yml）中的配置值
+@Component
+public class LogGatewayFilterFactory extends AbstractGatewayFilterFactory<LogGatewayFilterFactory.Config> {
+
+    // 构造函数，调用父类构造器，并传入配置类
+    public LogGatewayFilterFactory() {
+        super(LogGatewayFilterFactory.Config.class);
+    }
+
+    /**
+     * 读取配置文件的中参数值，赋值到配置类中的属性上
+     *
+     * @return
+     */
+    @Override
+    public List<String> shortcutFieldOrder() {
+        return Arrays.asList("consoleLog", "cacheLog");
+    }
+
+    /**
+     * 过滤器的核心处理逻辑
+     *
+     * @param config
+     * @return
+     */
+    @Override
+    public GatewayFilter apply(LogGatewayFilterFactory.Config config) {
+        return (exchange, chain) -> {
+            // 对配置的参数判断
+            if (config.isCacheLog()) {
+                System.out.println("cacheLog已经开启了....");
+            }
+            if (config.isConsoleLog()) {
+                System.out.println("consoleLog已经开启了....");
+            }
+            // 传递过滤器链
+            return chain.filter(exchange);
+        };
+    }
+
+    /**
+     * 配置类，用于接收在配置文件中的对应参数值
+     */
+    public static class Config {
+        private boolean consoleLog;
+        private boolean cacheLog;
+
+        public Config() {
+        }
+
+        public boolean isConsoleLog() {
+            return consoleLog;
+        }
+
+        public void setConsoleLog(boolean consoleLog) {
+            this.consoleLog = consoleLog;
+        }
+
+        public boolean isCacheLog() {
+            return cacheLog;
+        }
+
+        public void setCacheLog(boolean cacheLog) {
+            this.cacheLog = cacheLog;
+        }
+    }
+}
+```
+
+- 测试
+
+![](images/20220105144335849_22685.png)
 
 ### 4.3. 全局过滤器
 
@@ -486,13 +861,13 @@ Spring Cloud Gateway 的 Filter 从作用范围可分为另外两种`GatewayFilt
 
 #### 4.3.2. Spring Cloud Gateway 内置全局过滤器
 
-Spring Cloud Gateway内部也是通过一系列的内置全局过滤器对整个路由转发进行处理如下：
+Spring Cloud Gateway 内部也是通过一系列的内置全局过滤器对整个路由转发进行处理如下：
 
 ![](images/20201030105155813_18563.png)
 
 #### 4.3.3. 自定义全局过滤器案例 - 统一鉴权
 
-Spring Cloud Gateway内置的过滤器已经可以完成大部分的功能，但是对于企业开发的一些业务功能处理，还是需要自己编写过滤器来实现的，下面示例通过自定义一个全局过滤器，完成统一的权限校验。
+Spring Cloud Gateway 内置的过滤器已经可以完成大部分的功能，但是对于企业开发的一些业务功能处理，还是需要自己编写过滤器来实现的，下面示例通过自定义一个全局过滤器，完成统一的权限校验。
 
 ##### 4.3.3.1. 鉴权逻辑
 
@@ -646,7 +1021,7 @@ public class RequestRateLimiterGatewayFilterFactory extends AbstractGatewayFilte
 
 ![](images/20201106162619033_23547.png)
 
-#### 5.2.2. 添加redis的reactive依赖
+#### 5.2.2. 添加 redis 的 reactive 依赖
 
 在`shop-server-gateway`工程的pom文件中引入SpringBoot监控平台的起步依赖和redis的reactive依赖，代码如下：
 
@@ -791,9 +1166,9 @@ Spring Cloud Gateway目前提供的限流还是相对比较简单的，在实际
 - 对不同接口的限流
 - 被限流后的友好提示
 
-这些可以通过自定义RedisRateLimiter来实现自己的限流策略
+这些可以通过自定义 RedisRateLimiter 来实现自己的限流策略
 
-### 5.3. 基于Sentinel的限流
+### 5.3. 基于 Sentinel 的限流
 
 Sentinel 支持对 Spring Cloud Gateway、Zuul 等主流的 API Gateway 进行限流。
 
@@ -808,7 +1183,7 @@ Sentinel 支持对 Spring Cloud Gateway、Zuul 等主流的 API Gateway 进行�
 
 复用`12-springcloud-gateway`工程的代码创建`13-springcloud-gateway-sentinel`项目，移除不需要的依赖，导入 Sentinel 的相关依赖
 
-1. 在父聚合项目中引入Spring Cloud Alibaba的依赖版本管理
+1. 在父聚合项目中引入 Spring Cloud Alibaba 的依赖版本管理
 
 ```xml
 <!-- Spring Cloud Alibaba 相应 Spring Cloud Greenwich 版本的依赖 -->
@@ -821,7 +1196,7 @@ Sentinel 支持对 Spring Cloud Gateway、Zuul 等主流的 API Gateway 进行�
 </dependency>
 ```
 
-2. 在`shop-server-gateway`工程中引入sentinel的限流依赖
+2. 在`shop-server-gateway`网关工程中引入sentinel的限流依赖
 
 ```xml
 <!-- sentinel限流 -->
@@ -897,7 +1272,7 @@ public class SentinelConfiguration {
     }
 
     /**
-     * 配置限流过滤器：GlobalFilter
+     * 配置初始化限流过滤器：GlobalFilter
      */
     @Bean
     @Order(Ordered.HIGHEST_PRECEDENCE)
@@ -932,7 +1307,7 @@ public class SentinelConfiguration {
 
 #### 5.3.3. 网关限流配置
 
-修改`shop-server-gateway`的`application.yml`配置文件，删除基于Spring Cloud Gateway的Filter的限流配置，只保留路由断言与路由重写的配置即可
+修改 `shop-server-gateway` 的 `application.yml` 配置文件，删除基于 Spring Cloud Gateway 的 Filter 的限流配置，只保留路由断言与路由重写的配置即可。**注：路由ID需要与限流设置的一致**
 
 ```yml
 server:
@@ -1022,7 +1397,57 @@ public void initGatewayRules() {
 
 #### 5.3.7. 自定义API分组
 
-自定义API分组的限流规则，就是用户定义针对不同的请求实现限流的规则。*示例实现的限流效果与上面一样*
+自定义API分组的限流规则，就是用户定义针对不同的请求实现限流的规则，是一种更细粒度的限流规则定义。*示例实现的限流效果与上面一样*
+
+- 在商品微服务定义以下测试接口
+
+![](images/20220105164856178_27240.png)
+
+- 以下代码是 `spring-cloud-alibaba-2.1.x-sample` 项目的示例代码。
+
+```java
+/**
+ * 配置初始化的限流参数，用于指定资源的限流规则，需要的配置项如下：
+ * 1. 资源名称 (路由id)
+ * 2. 配置统计时间
+ * 3. 配置限流阈值
+ */
+@PostConstruct
+public void initGatewayRules() {
+    // 创建限流规则 GatewayFlowRule 实例的 set 集合（因为可以指定多个规则）
+    Set<GatewayFlowRule> rules = new HashSet<>();
+    /* 创建以下自定义的API限流分组规则，并注册到限流规则管理器中 */
+    rules.add(new GatewayFlowRule("product_group1").setCount(1).setIntervalSec(1));
+    rules.add(new GatewayFlowRule("product_group2").setCount(1).setIntervalSec(1));
+    // 添加限流规则到 GatewayRuleManager 管理器
+    GatewayRuleManager.loadRules(rules);
+}
+
+/*
+ * 自定义API限流分组，
+ *      1.定义分组
+ *      2.对小组配置限流规则
+ */
+@PostConstruct
+private void initCustomizedApis() {
+    Set<ApiDefinition> definitions = new HashSet<>();
+    ApiDefinition api1 = new ApiDefinition("product_group1")
+            .setPredicateItems(new HashSet<ApiPredicateItem>() {{
+                add(new ApiPathPredicateItem().setPattern("/api-product/product/group1/**"). // 以 /product/group1/ 开头都的所有url
+                        setMatchStrategy(SentinelGatewayConstants.URL_MATCH_STRATEGY_PREFIX));
+            }});
+    ApiDefinition api2 = new ApiDefinition("product_group2")
+            .setPredicateItems(new HashSet<ApiPredicateItem>() {{
+                add(new ApiPathPredicateItem().setPattern("/api-product/product/group2/flowlimit1")); // 完全匹配 /product/group2/flowlimit1 的url
+            }});
+    definitions.add(api1);
+    definitions.add(api2);
+    // 添加到 GatewayApiDefinitionManager 接口定义管理器
+    GatewayApiDefinitionManager.loadApiDefinitions(definitions);
+}
+```
+
+- 以下代码 `spring-cloud-greenwich-sample` 项目的示例代码。
 
 ```java
 @PostConstruct
@@ -1102,7 +1527,7 @@ location / {
 
 Spring Cloud Gateway 核心处理流程如上图所示
 
-1. Gateway的客户端向 Spring Cloud Gateway 发送请求，请求首先被 `HttpWebHandlerAdapter` 进行提取组装成网关上下文，然后网关的上下文会传递到`DispatcherHandler`。
+1. Gateway 的客户端向 Spring Cloud Gateway 发送请求，请求首先被 `HttpWebHandlerAdapter` 进行提取组装成网关上下文，然后网关的上下文会传递到`DispatcherHandler`。
 2. `DispatcherHandler` 是所有请求的分发处理器，`DispatcherHandler`主要负责分发请求对应的处理器。比如请求分发到对应的 `RoutePredicateHandlerMapping` （路由断言处理映射器）。
-3. 路由断言处理映射器主要作用用于路由查找，以及找到路由后返回对应的`FilterWebHandler`。
-4. `FilterWebHandler` 主要负责组装Filter链并调用Filter执行一系列的Filter处理，然后再把请求转到后端对应的代理服务处理，处理完毕之后将`Response`返回到Gateway客户端。
+3. `RoutePredicateHandlerMapping` 路由断言处理映射器主要作用用于路由查找，根据路由断言判断路由是否可用，以及找到路由后返回对应的`FilterWebHandler`。
+4. `FilterWebHandler` 主要负责组装 Filter 链，先调用执行一系列的 PreFilter 处理，然后再把请求转到后端对应的代理服务处理，处理完毕之后再执行一系列的 Post Filter，最后将`Response`返回到 Gateway 客户端。

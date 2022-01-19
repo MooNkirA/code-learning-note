@@ -61,6 +61,7 @@ public interface ProductFeignClient {
      *  在使用的两个注意点：
      *  1. FeignClient 接口有参数时，必须在参数加@PathVariable("XXX")和@RequestParam("XXX")注解，并且必须要指定对应的参数值（原来SpringMVC是可以省略）
      *  2. feignClient 返回值为复杂对象时，其对象类型必须有无参构造函数
+     *  3. 方法的名称不需要与被调用的服务接口名称一致
      */
     @GetMapping("/product/{id}")
     Product findById(@PathVariable("id") Long id);
