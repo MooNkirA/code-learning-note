@@ -818,6 +818,32 @@ site 生命周期包含如下 4 个阶段：
 
 如果要同时执行多个生命周期的阶段可在命令行输入多个命令，中间以空格隔开，例如：`clean package` 该命令执行 clean 生命周期的 clean 阶段和 default 生命周期的 package 阶段。
 
+### 7.4. 生命周期插件
+
+插件与生命周期内的阶段绑定，在执行到对应生命周期时执行对应的插件功能。
+
+修改 pom.xml 文件，在 `<build>` 配置相关插件，如：
+
+```xml
+<build>
+    <plugins>
+        <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-source-plugin</artifactId>
+            <version>3.2.1</version>
+            <executions>
+                <execution>
+                    <goals>
+                        <goal>jar</goal>
+                    </goals>
+                    <phase>generate-test-resources</phase>
+                </execution>
+            </executions>
+        </plugin>
+    </plugins>
+</build>
+```
+
 ## 8. Maven私服
 
 ### 8.1. 私服使用场景

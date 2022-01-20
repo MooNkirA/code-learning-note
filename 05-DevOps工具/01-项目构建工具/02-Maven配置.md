@@ -1531,7 +1531,7 @@ xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/ma
 
             <!-- 项目贡献者所在时区， -11到12范围内的整数。 --> 
             <timezone></timezone>
-            
+
             <!-- 项目贡献者属性，如即时消息如何处理等 --> 
             <properties> 
                 <dept> No </dept> 
@@ -2260,11 +2260,11 @@ xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/ma
     </distributionManagement> 
 
     <!-- 以值替代名称，Properties可以在整个POM中使用，也可以作为触发条件（见settings.xml配置文件里
-         activation元素的说明）。格式是<name>value</name>。 --> 
+         activation元素的说明）。格式是<name>value</name>。 -->
     <properties>
         <name>value</name>
-    </properties> 
-</project> 
+    </properties>
+</project>
 ```
 
 
