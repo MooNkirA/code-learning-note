@@ -1472,7 +1472,7 @@ xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/ma
         <developer> 
             <!-- SCM里项目开发者的唯一标识符 --> 
             <id> HELLO WORLD </id>
-            
+
             <!-- 项目开发者的全名 --> 
             <name> banseon </name> 
 

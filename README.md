@@ -67,27 +67,38 @@
   <li><a href="#/02-后端框架/05-SpringMVC/03-SpringMVC源码分析">SpringMVC源码分析</a></li>
 </ul>
 
+### Spring Data
+
+整理中...
+
+### 授权认证框架专题
+
+- 授权认证概述
+- Spring Security
+- Spring Security OAuth
+- Shiro
+
 ### ✨ Hibernate ✨
 
-待整理....
+待整理，技术已过时，优先级低....
 
 ### ✨ Struts2 ✨
 
-待整理....
+待整理，技术已过时，优先级低....
 
 ### ✨ 工具框架 ✨
 
 <ul class="docs">
-  <li><a href="#/02-后端框架/06-工具框架/01-Gson（JSON处理工具类库）">Gson（JSON处理工具类库）</a></li>
-  <li><a href="#/02-后端框架/06-工具框架/02-iTextPdf（PDF操作工具类库）">iTextPdf（PDF操作工具类库）</a></li>
-  <li><a href="#/02-后端框架/06-工具框架/03-BloomFilter（布隆过滤器）">BloomFilter（布隆过滤器）</a></li>
-  <li><a href="#/02-后端框架/06-工具框架/04-Java日志工具类库">Java日志工具类库</a></li>
-  <li><a href="#/02-后端框架/06-工具框架/05-Guava（Google基于Java类库扩展）">Guava（Google基于Java类库扩展）</a></li>
-  <li><a href="#/02-后端框架/06-工具框架/06-Netty（网络应用程序框架）">Netty（网络应用程序框架）</a></li>
-  <li><a href="#/02-后端框架/06-工具框架/07-Lombok工具插件">Lombok工具插件</a></li>
-  <li><a href="#/02-后端框架/06-工具框架/08-Apache-Commons-IO">Apache Commons IO（IO操作工具类库）</a></li>
-  <li><a href="#/02-后端框架/06-工具框架/08-Apache-Commons-Lang">Apache Commons Lang（Java基础API增强的工具包）</a></li>
-  <li><a href="#/02-后端框架/06-工具框架/09-PowerMock">PowerMock (单元测试模拟框架)</a></li>
+  <li><a href="#/02-后端框架/99-工具框架/01-Gson（JSON处理工具类库）">Gson（JSON处理工具类库）</a></li>
+  <li><a href="#/02-后端框架/99-工具框架/02-iTextPdf（PDF操作工具类库）">iTextPdf（PDF操作工具类库）</a></li>
+  <li><a href="#/02-后端框架/99-工具框架/03-BloomFilter（布隆过滤器）">BloomFilter（布隆过滤器）</a></li>
+  <li><a href="#/02-后端框架/99-工具框架/04-Java日志工具类库">Java日志工具类库</a></li>
+  <li><a href="#/02-后端框架/99-工具框架/05-Guava（Google基于Java类库扩展）">Guava（Google基于Java类库扩展）</a></li>
+  <li><a href="#/02-后端框架/99-工具框架/06-Netty（网络应用程序框架）">Netty（网络应用程序框架）</a></li>
+  <li><a href="#/02-后端框架/99-工具框架/07-Lombok工具插件">Lombok工具插件</a></li>
+  <li><a href="#/02-后端框架/99-工具框架/08-Apache-Commons-IO">Apache Commons IO（IO操作工具类库）</a></li>
+  <li><a href="#/02-后端框架/99-工具框架/08-Apache-Commons-Lang">Apache Commons Lang（Java基础API增强的工具包）</a></li>
+  <li><a href="#/02-后端框架/99-工具框架/09-PowerMock">PowerMock (单元测试模拟框架)</a></li>
 </ul>
 
 ## 前端资料

@@ -844,9 +844,364 @@ site 生命周期包含如下 4 个阶段：
 </build>
 ```
 
-## 8. Maven私服
+### 7.5. 跳过测试
 
-### 8.1. 私服使用场景
+#### 7.5.1. 应用场景
+
+- 整体模块功能未开发
+- 模块中某个功能未开发完毕
+- 单个功能更新调试导致其他功能失败
+- 快速打包
+
+实现项目上线打包部署时是不被允许跳过测试，这只是用于在本地开发时，为了能快速构建项目才使用。
+
+#### 7.5.2. 命令行跳转测试
+
+命令语法格式：
+
+```bash
+mvn 指令 –D skipTests
+```
+
+**注意事项：执行的指令生命周期必须包含测试环节**
+
+#### 7.5.3. IDEA 操作跳过测试
+
+![](images/20220121191757343_20033.png)
+
+#### 7.5.4. 通过配置文件跳过测试
+
+mavan 执行每个生命周期都是通过插件来完成，所以对相应的插件配置跳过测试即可。也可以指定执行哪些测试用例，或者指定排除不执行哪些测试用例。配置示例如下：
+
+```xml
+<build>
+    <plugins>
+        <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-surefire-plugin</artifactId>
+            <version>2.22.2</version>
+            <!-- 对某个生命周期插件进行相关配置 -->
+            <configuration>
+                <!-- 设置跳过测试 -->
+                <skipTests>true</skipTests>
+                <!-- 配置执行指定的测试用例 -->
+                <includes>
+                    <include>**/Product*Test.java</include>
+                </includes>
+                <!-- 配置排除不执行指定的测试用例 -->
+                <excludes>
+                    <exclude>**/**Test.java</exclude>
+                </excludes>
+            </configuration>
+        </plugin>
+    </plugins>
+</build>
+```
+
+
+## 8. 继承和聚合
+
+通常继承和聚合同时使用
+
+### 8.1. 聚合
+
+#### 8.1.1. 概述
+
+项目开发通常是分组分模块开发，每个模块开发完成要运行整个工程需要将每个模块聚合在一起运行，比如：dao、service、web三个工程最终会打一个独立的war运行
+
+聚合的作用：用于快速构建maven工程，一次性构建多个项目/模块
+
+#### 8.1.2. 聚合的配置语法
+
+- 创建一个空的maven项目，修改 pom.xml 文件，将打包类型定义为 `pom` 类型
+
+```xml
+<packaging>pom</packaging>
+```
+
+- 在 pom.xml 文件中，通过 `<modules>` 标签配置需要聚合的子工程
+
+```xml
+<!-- 父工程通过配置 modulesm，聚合子工程 -->
+<modules>
+    <!-- 在modules中配置相对路径，相对父工程pom.xml的路径找到子工程的pom.xml -->
+    <module>xxx-controller</module>
+    <module>xxx-service</module>
+    <module>../xxx-config</module>
+    <module>xxx-dao</module>
+</modules>
+```
+
+> <font color=red>**需要注意：参与聚合操作的模块最终执行顺序与模块间的依赖关系有关，与配置顺序无关**</font>
+
+#### 8.1.3. 在聚合父工程中定义依赖管理
+
+- 在聚合父工程 pom 文件中，使用 `<dependencyManagement>` 标签定义依赖管理
+
+```xml
+<!--
+    声明此处进行的依赖管理
+    继承自该项目的所有子项目的默认依赖信息。这部分的依赖信息不会被立即解析，
+    而是当子项目声明一个依赖（必须描述 groupID 和 artifactID 信息），
+    如果 groupID 和 artifactID 以外的一些信息没有描述，则通过 groupID 和 artifactID 匹配到这里的依赖，并使用这里的依赖信息。
+ -->
+<dependencyManagement>
+    <!-- 参见dependencies/dependency元素 -->
+    <dependencies>
+        <dependency>
+            <groupId>xx.xx.xx</groupId>
+            <artifactId>xxx</artifactId>
+            <version>xx.xx.xx</version>
+        </dependency>
+    </dependencies>
+</dependencyManagement>
+```
+
+- 在子工程定义依赖关系，无需声明依赖版本，版本参照父工程中依赖的版本
+
+```xml
+<dependency>
+    <groupId>xx.xx.xx</groupId>
+    <artifactId>xxx</artifactId>
+</dependency>
+```
+
+
+
+
+### 8.2. 继承
+
+#### 8.2.1. 概述
+
+继承的作用是，可以实现在子工程中沿用父工程的配置。
+
+继承是为了消除重复，如果将dao、service、web分开创建独立的工程则每个工程的pom.xml文件中的内容存在重复，比如：设置编译版本、锁定spring的版本的等，可以将这些重复的配置提取出来在父工程的pom.xml中定义
+
+#### 8.2.2. 继承的配置语法
+
+只需在子工程 pom.xml 文件中，通过 `<parent>` 标签声明继承的父工程坐标与对应的位置即可
+
+```xml
+<!-- 父工程的定义坐标信息 -->
+<parent>
+    <groupId>包名</groupId>
+    <artifactId>项目/模块名称</artifactId>
+    <version>版本号</version>
+    <!-- 父工程的 pom.xml 文件位置，如果子工程在父工程的根目录下，则可以省略不配置 -->
+    <relativePath/> <!-- lookup parent from repository -->
+    <!-- 如配置，使用相对路径即可 -->
+    <!-- <relativePath>../pom.xml</relativePath> -->
+</parent>
+```
+
+### 8.3. 继承和聚合总结
+
+- 继承主要是为了消除重复
+- 聚合主要是为了快速构建运行项目
+
+#### 8.3.1. 项目继承
+
+maven项目继承的作用：抽取所有项目公共的配置：
+
+1. 依赖
+2. 公用的插件配置
+
+maven项目继承：
+
+- 父项目：抽取所有项目的公共的依赖、插件。最好在父项目中统一控制组件的版本
+- 子项目：继承父项目，就可以具有父项目已经提供的依赖、公用的插件
+
+#### 8.3.2. 通过父项目锁定依赖组件版本
+
+- 为什么需要版本锁定？
+    - 通过父项目锁定版本，然后子项目继承父项目就不能够再修改版本号（不推荐修改。）
+    - 因为项目的开发，团队开发，通过父项目统一维护版本号，其他子项目不允许修改版本，更易于后期的项目维护。
+- 父项目实现锁定版本：
+    - 通过 `<dependencyManagement>` 标签进行版本锁定
+    - 父项目锁定版本 + 抽取公用依赖配置 + 抽取公用的插件配置
+
+#### 8.3.3. maven 聚合项目
+
+无论是继承还是聚合，项目类型都是pom。无论是继承还是聚合，父项目或聚合项目都不需要写代码
+
+#### 8.3.4. 总结
+
+- 作用
+    - 聚合用于快速构建项目
+    - 继承用于快速配置
+- 相同点
+    - 聚合与继承的 pom. xml 文件打包方式均为 pom，可以将两种关系制作到同一个 pom 文件中
+    - 聚合与继承均属于设计型模块，并无实际的模块内容
+- 不同点
+    - 聚合是在当前模块中配置关系，聚合可以感知到参与聚合的模块有哪些
+    - 继承是在子模块中配置关系，父模块无法感知哪些子模块继承了自己
+
+## 9. 属性管理
+
+### 9.1. 自定义属性
+
+- 作用：相当于定义变量，方便统一管理
+- 使用 `<properties>` 标签定义：
+
+```xml
+<properties>
+    <java.version>1.8</java.version>
+    <xxx.version>xxxx</xxx.version>
+</properties>
+```
+
+- 使用 `${}` 调用：
+
+```xml
+<dependency>
+    <groupId>xx.xxx</groupId>
+    <artifactId>xxxx</artifactId>
+    <version>${xxx.version}</version>
+</dependency>
+```
+
+### 9.2. 内置属性
+
+- 使用maven内置的属性，获取内置一些配置值
+- 调用格式：
+
+```xml
+${basedir}
+${version}
+```
+
+### 9.3. Setting 属性
+
+- 使用 maven 配置文件 setting 中的标签属性，用于动态配置
+- 调用格式
+
+```xml
+${settings.localRepository}
+```
+
+### 9.4. Java 系统属性
+
+- 读取 Java 系统属性
+- 调用格式：
+
+```xml
+${user.home}
+```
+
+- 通过以下命令，可以查询系统属性
+
+```bash
+mvn help:system
+```
+
+### 9.5. 环境变量属性
+
+- 读取 Java 系统属性
+- 调用格式：
+
+```xml
+${env.JAVA_HOME}
+```
+
+- 通过以下命令，可以查询环境变量属性
+
+```bash
+mvn help:system
+```
+
+### 9.6. 资源配置文件引用 pom 文件
+
+maven 可以在任意配置文件中加载 pom 文件中定义的属性，步骤如下：
+
+- 在项目的 pom 文件中配置
+
+```xml
+<properties>
+    <jdbc.url>jdbc:mysql://localhost:3306/xxx</jdbc.url>
+</properties>
+```
+
+- 在 pom 文件中配置开启加载 pom 文件
+
+```xml
+<build>
+    <!-- 这个元素描述了项目相关的所有资源路径列表，例如和项目相关的属性文件，这些资源被包含在最终的打包文件里。 -->
+    <resources>
+        <!-- 这个元素描述了项目相关或测试相关的所有资源路径 -->
+        <resource>
+            <!-- 是否使用参数值代替参数名。参数值取自properties元素或者文件里配置的属性，文件在filters元素里列出。 -->
+            <filtering>true</filtering>
+            <!-- 设定配置文件对应的位置目录，该路径相对POM路径。支持使用属性动态设定路径 -->
+            <directory>${project.basedir}/src/main/resources</directory>
+            <!-- 包含的模式列表，例如**/*.xml. -->
+            <includes>
+                <include></include>
+            </includes>
+            <!-- 排除的模式列表，例如**/*.xml -->
+            <excludes>
+                <exclude></exclude>
+            </excludes>
+        </resource>
+    </resources>
+</build>
+```
+
+- 在 properties 或者 xml 等文件调用：
+
+```properties
+jdbc.url=${jdbc.url}
+```
+
+## 10. 多环境配置
+
+### 10.1. 定义语法
+
+```xml
+<!--
+    项目构建profile，创建多环境
+    根据环境参数或命令行参数激活某个构建处理
+ -->
+<profiles>
+    <!-- 定义不同环境 -->
+    <profile>
+        <!-- 定义环境的唯一标识 -->
+        <id>dev_env</id>
+        <!-- 定义此环境下的专用的属性值、内容等 -->
+        <properties>
+            <xxx.xxx>xxxxxx</xxx.xxx>
+        </properties>
+        <!-- 设置默认启动 -->
+        <activation>
+            <activeByDefault>true</activeByDefault>
+        </activation>
+    </profile>
+    <!-- 定义不同环境 -->
+    <profile>
+        <id>prod_env</id>
+        <properties>
+            <xxx.xxx>xxxxxx</xxx.xxx>
+        </properties>
+    </profile>
+</profiles>
+```
+
+### 10.2. 加载指定环境
+
+加载指定环境配置，通过命令运行时指定相应的环境，语法以下：
+
+```bash
+mvn 指令 –P 环境定义id
+```
+
+示例：
+
+```bash
+mvn install -P prod_env
+```
+
+## 11. Maven私服
+
+### 11.1. 私服使用场景
 
 项目组编写了一个通用的工具类，其它项目组将类拷贝过去使用，当工具类修改bug后通过邮件发送给各各项目组，这种分发机制不规范可能导致工具类版本不统一。
 
@@ -858,7 +1213,7 @@ site 生命周期包含如下 4 个阶段：
 
 ![](images/20220116221705223_24381.jpg)
 
-### 8.2. 关于中央仓库使用的注意事项
+### 11.2. 关于中央仓库使用的注意事项
 
 - **地址**:
 
@@ -874,18 +1229,19 @@ site 生命周期包含如下 4 个阶段：
 
 如果某个IP地址恶意的下载中央仓库内容，例如全公司100台机器使用同一个IP反复下载，这个IP（甚至是IP段）会进入黑名单，因此稍有规模的使用Maven时，应该用Nexus架设私服
 
-### 8.3. 搭建私服环境
+### 11.3. 搭建私服环境
 
-#### 8.3.1. 下载 nexus
+#### 11.3.1. 下载 nexus
 
 Nexus 是 Maven 仓库管理器，通过 nexus 可以搭建 maven 仓库，同时 nexus 还提供强大的仓库管理功能，构件搜索功能等。
 
-- 下载地址：https://help.sonatype.com/repomanager3/product-information/download
+- ~~下载地址：https://help.sonatype.com/repomanager3/product-information/download~~
+- 下载地址：https://help.sonatype.com/repomanager3/download
 - 下载文件：nexus-x.x.x-xx-bundle.zip
 
 > 以下使用 nexus-2.12.0-01-bundle.zip 为示例
 
-#### 8.3.2. 安装 nexus
+#### 11.3.2. 安装 nexus
 
 解压nexus-2.12.0-01-bundle.zip，解压在不含中文和空格的目录下，解压完成后进入bin目录
 
@@ -901,13 +1257,13 @@ Nexus 是 Maven 仓库管理器，通过 nexus 可以搭建 maven 仓库，同�
 
 ![](images/20220116222816996_250.jpg)
 
-#### 8.3.3. 卸载 nexus
+#### 11.3.3. 卸载 nexus
 
 cmd进入nexus的bin目录，执行：`nexus.bat uninstall`
 
 ![](images/20220116223034973_26948.jpg)
 
-#### 8.3.4. 启动 nexus
+#### 11.3.4. 启动 nexus
 
 方法 1：cmd进入bin目录，执行：`nexus.bat start`
 
@@ -932,7 +1288,7 @@ nexus-work=${bundleBasedir}/../sonatype-work/nexus	# nexus 仓库目录
 runtime=${bundleBasedir}/nexus/WEB-INF					# nexus 运行程序目录
 ```
 
-#### 8.3.5. 直接使用快捷方式安装、卸载、启动 nexus
+#### 11.3.5. 直接使用快捷方式安装、卸载、启动 nexus
 
 进入安装目录 \nexus-2.12.0-01\bin\jsw\windows-x86-64，里面都相关的脚本。
 
@@ -940,13 +1296,13 @@ runtime=${bundleBasedir}/nexus/WEB-INF					# nexus 运行程序目录
 
 console-nexus.bat：不需要安装成服务，点击一次运行一次，关闭后不再运行。
 
-#### 8.3.6. 登陆nexus
+#### 11.3.6. 登陆nexus
 
 访问：http://localhost:8081/nexus/
 
 点击右上角的Log in，使用Nexus内置账户`admin`/`admin123`登陆
 
-#### 8.3.7. nexus 的仓库有4种类型（了解）
+#### 11.3.7. nexus 的仓库有4种类型（了解）
 
 ![](images/20220116223337032_4630.jpg)
 
@@ -971,13 +1327,13 @@ apache-snapshots：代理仓库。存储snapshots构件，代理地址https://re
 
 ![](images/20220116223522656_28998.jpg)
 
-#### 8.3.8. 修改本地仓库（snapshots）允许重复部署
+#### 11.3.8. 修改本地仓库（snapshots）允许重复部署
 
 ![](images/20220116223547534_21755.jpg)
 
-### 8.4. 将项目发布到私服
+### 11.4. 将项目发布到私服
 
-#### 8.4.1. 第一步：配置settings.xml(maven的安装文件的conf目录下)
+#### 11.4.1. 第一步：配置settings.xml(maven的安装文件的conf目录下)
 
 需要在客户端即部署dao工程的电脑上配置maven环境，并修改settings.xml文件，配置连接私服的用户和密码。
 
@@ -1004,7 +1360,7 @@ apache-snapshots：代理仓库。存储snapshots构件，代理地址https://re
 
 ![](images/20220116223725078_2451.jpg)
 
-#### 8.4.2. 第二步：配置pom.xml
+#### 11.4.2. 第二步：配置pom.xml
 
 配置私服仓库的地址，本公司的自己的jar包会上传到私服的宿主仓库，根据工程的版本号决定上传到哪个宿主仓库，如果版本为release则上传到私服的release仓库，如果版本为snapshot则上传到私服的snapshot仓库
 
@@ -1034,7 +1390,7 @@ apache-snapshots：代理仓库。存储snapshots构件，代理地址https://re
 
 ![](images/20220116223910032_6022.jpg)
 
-#### 8.4.3. 第三步：测试使用 deploy 命令上传组件(项目)到私服
+#### 11.4.3. 第三步：测试使用 deploy 命令上传组件(项目)到私服
 
 根据本项目pom.xml中version定义决定发布到哪个仓库，如果version定义为snapshot，执行deploy后查看nexus的snapshot仓库，如果version定义为release则项目将发布到nexus的release仓库，本项目将发布到snapshot仓库
 
@@ -1048,9 +1404,9 @@ apache-snapshots：代理仓库。存储snapshots构件，代理地址https://re
 
 ![](images/20220116224033293_25739.jpg)
 
-### 8.5. 从私服下载资源(项目)
+### 11.5. 从私服下载资源(项目)
 
-#### 8.5.1. 管理仓库组
+#### 11.5.1. 管理仓库组
 
 nexus中包括很多仓库，hosted中存放的是企业自己发布的jar包及第三方公司的jar包，proxy中存放的是中央仓库的jar，为了方便从私服下载jar包可以将多个仓库组成一个仓库组，每个工程需要连接私服的仓库组下载jar包
 
@@ -1058,7 +1414,7 @@ nexus中包括很多仓库，hosted中存放的是企业自己发布的jar包及
 
 ![](images/20220116224151293_12074.jpg)
 
-#### 8.5.2. 在setting.xml中配置仓库
+#### 11.5.2. 在setting.xml中配置仓库
 
 在客户端的 setting.xml 中配置私服的仓库，由于 setting.xml 中没有 `repositories` 的配置标签需要使用 `profile` 定义仓库
 
@@ -1110,7 +1466,7 @@ nexus中包括很多仓库，hosted中存放的是企业自己发布的jar包及
 
 ![](images/20220116224312519_8249.jpg)
 
-#### 8.5.3. 测试从私服下载 jar 包(待测试)
+#### 11.5.3. 测试从私服下载 jar 包(待测试)
 
 删除工作区间的已经上传到私服的项目，删除本地库安装。
 
@@ -1256,4 +1612,3 @@ pause
 ```
 
 复制以上代码，保存批处理命令`cleanLastUpdated.bat`文件
-
