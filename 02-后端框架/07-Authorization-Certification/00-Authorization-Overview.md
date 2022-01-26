@@ -116,6 +116,8 @@ RBAC 基于资源的访问控制（Resource-Based Access Control）是按资源�
 
 创建 maven 工程：security-session-sample。最终项目结构如下：
 
+![](images/307784215223120.png)
+
 引入如下依赖如下，注意：
 
 1. 由于示例项目是web工程，所以 `packaging` 设置为 `war`
@@ -640,18 +642,120 @@ public String checkSession2(HttpSession session) {
 
 #### 2.5.3. 授权拦截器
 
+在 interceptor 包下创建 `AuthenticationInterceptor` 拦截器，需要实现 `org.springframework.web.servlet.HandlerInterceptor` 接口，实现简单授权拦截，主要处理的逻辑如下：
 
+1. 校验用户是否登录
+2. 校验用户是否拥有操作权限
 
+```java
+@Component
+public class AuthenticationInterceptor implements HandlerInterceptor {
+    /**
+     * 请求前置拦截逻辑。在此方法中校验用户请求的url是否在用户的权限范围内
+     *
+     * @param request
+     * @param response
+     * @param handler
+     * @return
+     * @throws Exception
+     */
+    @Override
+    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
+        // 获取用户身份信息
+        Object object = request.getSession().getAttribute(UserDto.SESSION_USER_KEY);
 
+        if (object == null) {
+            // 用户无登陆
+            responseContent(response, "请登录");
+            return false;
+        }
+
+        UserDto userDto = (UserDto) object;
+        // 请求的url
+        String requestURI = request.getRequestURI();
+        if (userDto.getAuthorities().contains("p1") && requestURI.contains("/check/p1")) {
+            return true;
+        }
+        if (userDto.getAuthorities().contains("p2") && requestURI.contains("/check/p2")) {
+            return true;
+        }
+        responseContent(response, "没有权限，拒绝访问");
+
+        return false;
+    }
+
+    /**
+     * 响应处理
+     *
+     * @param response
+     * @param msg
+     */
+    private void responseContent(HttpServletResponse response, String msg) throws IOException {
+        response.setContentType("text/html;charset=utf-8");
+        PrintWriter writer = response.getWriter();
+        writer.print(msg);
+        writer.close();
+    }
+}
+```
+
+#### 2.5.4. 配置拦截器
+
+在 `WebConfig` 配置类中，重写 `addInterceptors` 方法，配置自定义的授权拦截器，匹配 `/check/**` 的资源为受保护的系统资源，访问该资源的请求进入 `AuthenticationInterceptor` 拦截器。
+
+```java
+@Configuration
+@EnableWebMvc
+@ComponentScan(basePackages = "com.moon.security.session",
+        includeFilters = {@ComponentScan.Filter(type = FilterType.ANNOTATION, value = Controller.class)})
+public class WebConfig implements WebMvcConfigurer {
+
+    @Autowired
+    private AuthenticationInterceptor authenticationInterceptor;
+
+    // 视图解析器
+    @Bean
+    public InternalResourceViewResolver viewResolver() {
+        InternalResourceViewResolver viewResolver = new InternalResourceViewResolver();
+        viewResolver.setPrefix("/WEB-INF/view/");
+        viewResolver.setSuffix(".jsp");
+        return viewResolver;
+    }
+
+    /**
+     * 配置 url 的与页面的映射关系
+     *
+     * @param registry
+     */
+    @Override
+    public void addViewControllers(ViewControllerRegistry registry) {
+        // 增加 url 为 '/' 时，映射到 login.jsp 页面
+        registry.addViewController("/").setViewName("login");
+    }
+
+    /**
+     * 增加自定义的授权拦截器
+     *
+     * @param registry
+     */
+    @Override
+    public void addInterceptors(InterceptorRegistry registry) {
+        registry.addInterceptor(authenticationInterceptor).addPathPatterns("/check/**");
+    }
+}
+```
+
+#### 2.5.5. 测试
+
+- 未登陆情况：访问 `/check/p1` 与 `/check/p2`，均提示先登陆
+- 登陆 admin 账号，测试可以访问 `/check/p1`，无权限访问 `/check/p2`
+- 登陆 moon 账号，测试可以访问 `/check/p2`，无权限访问 `/check/p1`
+
+![](images/427563923238591.png)
 
 ### 2.6. 小结
 
 基于 Session 的认证方式是一种常见的认证方式，至今还有非常多的系统在使用。以上示例使用 Spring MVC 技术对它进行简单实现，通过此示例可能了解用户认证、授权以及会话的功能意义及实现套路。
 
 而在正式生产项目中，往往会考虑使用第三方安全框架（如 spring security，shiro 等安全框架）来实现认证授权功能，因为使用这些成熟框架在一定程度提高生产力，提高软件标准化程度，另外往往这些框架的可扩展性考虑的非常全面。但是缺点也非常明显，这些通用化组件为了提高支持范围会增加很多可能不需要的功能，结构上也会比较抽象，如果不够了解它，一旦出现问题，将会很难定位。
-
-
-
-
-
 
