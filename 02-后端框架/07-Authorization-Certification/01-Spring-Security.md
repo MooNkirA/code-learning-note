@@ -979,34 +979,455 @@ public PasswordEncoder passwordEncoder() {
 
 用户认证通过后，为了避免用户的每次操作都进行认证可将用户的信息保存在会话中。Spring Security 提供会话管理，认证通过后将身份信息放入 `SecurityContextHolder` 上下文，`SecurityContext` 与当前线程进行绑定，方便获取用户身份。
 
+#### 4.3.1. 获取用户身份
+
+修改 `LoginController` 类，增加 `getUsername` 方法，通过 Spring Security 框架的 `SecurityContextHolder.getContext().getAuthentication()` 方法获取当前登录用户信息
+
+```java
+@RestController
+public class LoginController {
+    /**
+     * 登陆成功后跳转的请求url
+     */
+    @RequestMapping(value = "/login-success", produces = {"text/plain;charset=UTF-8"})
+    public String loginSuccess() {
+        return getUsername() + "登录成功";
+    }
+
+    /**
+     * 通过 Spring Security 框架的 SecurityContext 对象获取当前用户信息
+     */
+    private String getUsername() {
+        String username = null;
+        // 获取当前认证通过的用户身份信息
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        // 用户身份
+        Object principal = authentication.getPrincipal();
+
+        if (principal == null) {
+            username = "匿名";
+        }
+
+        if (principal instanceof UserDetails) {
+            UserDetails userDetails = (UserDetails) principal;
+            username = userDetails.getUsername();
+        } else {
+            username = principal.toString();
+        }
+
+        return username;
+    }
+}
+```
+
+启动项目测试，登陆成功看是否返回当前登陆用户
+
+#### 4.3.2. 会话控制
+
+可以通过以下选项准确控制会话何时创建以及 Spring Security 如何与之交互：
+
+|     机制      |                                                描述                                                 |
+| :----------: | -------------------------------------------------------------------------------------------------- |
+|   `always`   | 如果没有 session 存在就创建一个                                                                       |
+| `ifRequired` | 如果需要就创建一个 Session（默认）登录时                                                              |
+|   `never`    | SpringSecurity 将不会创建 Session，但是如果应用中其他地方创建了 Session，那么 Spring Security 将会使用它 |
+| `stateless`  | SpringSecurity 将绝对不会创建 Session，也不使用 Session                                               |
+
+通过 Spring Security 安全配置，对会话选项进行配置：
+
+```java
+@Override
+protected void configure(HttpSecurity http) throws Exception {
+    http.csrf().disable() // 屏蔽 CSRF（Cross-site request forgery跨站请求伪造）控制
+            ....
+            .and()
+            .sessionManagement()
+            .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED); // 会话控制配置
+}
+```
+
+默认情况下，Spring Security 会为每个登录成功的用户会新建一个 Session，就是 `ifRequired`
+
+若选用 `never`，则指示 Spring Security 对登录成功的用户不创建 Session 了，但若你的应用程序在某地方新建了 session，那么 Spring Security 会用它的。
+
+若使用 `stateless`，则说明 Spring Security 对登录成功的用户不会创建 Session 了，你的应用程序也不会允许新建 session。并且它会暗示不使用 cookie，所以每个请求都需要重新进行身份验证。这种无状态架构适用于 REST API 及其无状态认证机制。
+
+#### 4.3.3. 会话超时
+
+可以在 sevlet 容器中设置 Session 的超时时间，修改 spring boot 项目配置文件，例如设置 Session 有效期为 3600s：
+
+```properties
+server.servlet.session.timeout=3600s
+```
+
+```yml
+server:
+  servlet:
+    session:
+      timeout: 3m # 默认值是30m(30分钟)
+```
+
+session 超时之后，可以通过 Spring Security 安全配置，设置超时后跳转的路径：
+
+```java
+@Override
+protected void configure(HttpSecurity http) throws Exception {
+    http.sessionManagement()
+        .invalidSessionUrl("/login‐view?error=INVALID_SESSION"); // 配置会话失效后的跳转url
+}
+```
+
+#### 4.3.4. 安全会话 cookie
+
+可以使用 `httpOnly` 和 `secure` 配置来保护会话 cookie：
+
+- `httpOnly`：如果为 true，那么浏览器脚本将无法访问 cookie
+- `secure`：如果为 true，则 cookie 将仅通过 HTTPS 连接发送
+
+修改 spring boot 项目配置文件：
+
+```properties
+server.servlet.session.cookie.http‐only=true
+server.servlet.session.cookie.secure=true
+```
+
+```yml
+server:
+  servlet:
+    session:
+      cookie:
+        http-only: true
+        secure: true
+```
+
+### 4.4. 自定义退出
+
+#### 4.4.1. 默认退出
+
+Spring security 默认实现了 logout（退出）功能，默认url是：`/logout`
+ 
+![](images/481523809220170.png)
+
+点击“Log Out”退出 成功。退出后访问其它 url 判断是否成功退出。
+
+当退出后，会进行以下操作：
+
+- 使 HTTP Session 无效
+- 清除 `SecurityContextHolder`
+- 跳转到 `/login-view?logout`
+
+#### 4.4.2. 自定义退出配置
+
+Spring Security 可以自定义退出成功的页面，可以通过安全配置类，进一步配置自定义退出功能：
+
+```java
+@Override
+protected void configure(HttpSecurity http) throws Exception {
+    http
+        .authorizeRequests()
+        ....
+        .and()
+        .logout() // 提供系统退出支持，使用 WebSecurityConfigurerAdapter 会自动被应用
+        .logoutUrl("/logout") // 设置触发退出操作的URL, 默认是 /logout
+        .logoutSuccessUrl("/login‐view?logout") // 退出之后跳转的URL。默认是 /login?logout
+        .logoutSuccessHandler(logoutSuccessHandler) // 定制的 LogoutSuccessHandler，用于实现用户退出成功时的处理。如果指定了这个选项那么 logoutSuccessUrl() 的设置会被忽略。
+        .addLogoutHandler(logoutHandler) // 添加一个 LogoutHandler，用于实现用户退出时的清理工作。默认 SecurityContextLogoutHandler 会被添加为最后一个 LogoutHandler
+        .invalidateHttpSession(true); // 指定是否在退出时让 HttpSession 无效。默认设置为 true
+}
+```
+
+- `logout()` 提供系统退出支持，使用 `WebSecurityConfigurerAdapter` 会自动被应用
+- `logoutUrl("/logout")` 设置触发退出操作的URL ，默认是 `/logout`
+- `logoutSuccessUrl("/login‐view?logout")` 退出之后跳转的URL。默认是 `/login?logout `
+- `logoutSuccessHandler(logoutSuccessHandler)` 定制的 `LogoutSuccessHandler`，用于实现用户退出成功时的处理。如果指定了这个选项那么 `logoutSuccessUrl()` 的设置会被忽略
+- `addLogoutHandler(logoutHandler)` 添加一个 `LogoutHandler`，用于实现用户退出时的清理工作。默认 `SecurityContextLogoutHandler` 会被添加为最后一个 `LogoutHandler`
+- `invalidateHttpSession(true)` 指定是否在退出时让 HttpSession 无效。 默认设置为 true
+
+> <font color=red>**注意：如果想让在 GET 请求下退出，必须关闭防止 CSRF 攻击 `csrf().disable()`。如果开启了 CSRF，必须使用 post 方式请求 `/logout`**</font>
+
+#### 4.4.3. LogoutHandler
+
+一般来说，`LogoutHandler` 的实现类被用来执行必要的清理，因而他们不应该抛出异常。下面是 Spring Security 提供的一些实现：
+
+- `PersistentTokenBasedRememberMeServices` 基于持久化 token 的 RememberMe 功能的相关清理
+- `TokenBasedRememberMeService` 基于 token 的 RememberMe 功能的相关清理
+- `CookieClearingLogoutHandler` 退出时 Cookie 的相关清理
+- `CsrfLogoutHandler` 负责在退出时移除 csrfToken
+- `SecurityContextLogoutHandler` 退出时 `SecurityContext` 的相关清理
+
+链式 API 提供了调用相应的 `LogoutHandler` 实现的快捷方式，比如 `deleteCookies()`
+
+### 4.5. 授权
+
+#### 4.5.1. 概述
+
+授权的方式包括  web 授权和方法授权，web 授权是通过 url 拦截进行授权，方法授权是通过方法拦截进行授权。他们都会调用 `accessDecisionManager` 进行授权决策，若为 web 授权则拦截器为 `FilterSecurityInterceptor`；若为方法授权则拦截器为 `MethodSecurityInterceptor`。如果同时通过 web 授权和方法授权则先执行 web 授权，再执行方法授权，最后决策通过，则允许访问资源，否则将禁止访问。
+
+类关系如下：
+
+![](images/17470710238596.png)
+
+#### 4.5.2. 示例环境准备
+
+在 user_db 数据库创建如下表：
+
+- 角色表：
+
+```sql
+DROP TABLE IF EXISTS `t_role`;
+CREATE TABLE `t_role` (
+	`id` VARCHAR ( 32 ) NOT NULL,
+	`role_name` VARCHAR ( 255 ) DEFAULT NULL,
+	`description` VARCHAR ( 255 ) DEFAULT NULL,
+	`create_time` datetime DEFAULT NULL,
+	`update_time` datetime DEFAULT NULL,
+	`status` CHAR ( 1 ) NOT NULL,
+	PRIMARY KEY ( `id` ),
+	UNIQUE KEY `unique_role_name` ( `role_name` ) 
+) ENGINE = INNODB DEFAULT CHARSET = utf8;
+
+TRUNCATE TABLE `t_role`;
+INSERT INTO `t_role` ( `id`, `role_name`, `description`, `create_time`, `update_time`, `status` ) VALUES( '1', '管理员', NULL, NULL, NULL, '' );
+```
+
+- 用户角色关系表：
+
+```sql
+DROP TABLE IF EXISTS `t_user_role`;
+CREATE TABLE `t_user_role` (
+	`user_id` VARCHAR ( 32 ) NOT NULL,
+	`role_id` VARCHAR ( 32 ) NOT NULL,
+	`create_time` datetime DEFAULT NULL,
+	`creator` VARCHAR ( 255 ) DEFAULT NULL,
+	PRIMARY KEY ( `user_id`, `role_id` ) 
+) ENGINE = INNODB DEFAULT CHARSET = utf8;
+
+TRUNCATE TABLE `t_user_role`;
+INSERT INTO `t_user_role` ( `user_id`, `role_id`, `create_time`, `creator` ) VALUES ( '1', '1', NULL, NULL );
+```
+
+- 权限表：
+
+```sql
+DROP TABLE IF EXISTS `t_permission`;
+CREATE TABLE `t_permission` (
+`id` varchar(32) NOT NULL,
+`code` varchar(32) NOT NULL COMMENT '权限标识符',
+`description` varchar(64) DEFAULT NULL COMMENT '描述',
+`url` varchar(128) DEFAULT NULL COMMENT '请求地址',
+PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+TRUNCATE TABLE `t_permission`;
+INSERT INTO `t_permission`(`id`,`code`,`description`,`url`) VALUES ('1','p1','测试资源1','/check/p1'),('2','p3','测试资源2','/check/p2');
+```
+
+- 角色权限关系表：
+
+```sql
+DROP TABLE IF EXISTS `t_role_permission`;
+CREATE TABLE `t_role_permission` (
+	`role_id` varchar(32) NOT NULL,
+	`permission_id` varchar(32) NOT NULL,
+	PRIMARY KEY (`role_id`,`permission_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+TRUNCATE TABLE `t_role_permission`;
+INSERT INTO `t_role_permission` ( `role_id`, `permission_id` ) VALUES ( '1', '1' ),( '1', '2' );
+```
+
+#### 4.5.3. 修改自定义 UserDetailService 接口实现
+
+- 创建权限表相应的实体类
+
+```java
+@Data
+public class PermissionDO {
+    private String id;
+    private String code;
+    private String description;
+    private String url;
+}
+```
+
+- 修改用户 dao 接口，增加根据 id 查询用户权限的方法
+
+```java
+/**
+ * 根据用户id查询用户权限
+ */
+public List<String> findPermissionsByUserId(String userId) {
+    String sql = "SELECT * FROM t_permission WHERE id IN(\n" +
+            "\n" +
+            "SELECT permission_id FROM t_role_permission WHERE role_id IN(\n" +
+            "  SELECT role_id FROM t_user_role WHERE user_id = ? \n" +
+            ")\n" +
+            ")\n";
+
+    List<PermissionDO> list = jdbcTemplate.query(sql, new Object[]{userId}, new BeanPropertyRowMapper<>(PermissionDO.class));
+    List<String> permissions = new ArrayList<>();
+    list.forEach(c -> permissions.add(c.getCode()));
+    return permissions;
+}
+```
+
+- 修改 `UserDetailService` 实现类 `CustomUserDetailsService` 中的 `loadUserByUsername` 方法，增加查询数据库获取用户权限
+
+```java
+@Override
+public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+    // 根据账号查询数据库
+    UserDO user = userDao.getUserByUsername(username);
+
+    if (user == null) {
+        // 如果用户查不到，返回 null，由 Spring Security 框架 provider 来抛出异常
+        return null;
+    }
+
+    // 根据用户id查询用户权限
+    List<String> permissions = userDao.findPermissionsByUserId(user.getId());
+    // 权限集合转数组
+    String[] permissionArray = permissions.toArray(new String[permissions.size()]);
+
+    return User.withUsername(user.getUsername())
+            .password(user.getPassword()) // 设置密码
+            .authorities(permissionArray) // 设置权限
+            .build();
+}
+```
+
+最后启动项目进行测试
+
+#### 4.5.4. web 授权
+
+##### 4.5.4.1. 配置不同 url 权限
+
+在 Spring Security 的安全配置中，通过给 `http.authorizeRequests()` 添加多个子节点来定制不同需求的URL权限。如：
+
+```java
+@Override
+protected void configure(HttpSecurity http) throws Exception {
+    http
+        .authorizeRequests()
+        .antMatchers("/check/p1").hasAuthority("p1") // 设置拥有p1权限访问的url
+        .antMatchers("/check/p2").hasAuthority("p2") // 设置拥有p2权限访问的url
+        .antMatchers("/check/p3").access("hasAuthority('p1') and hasAuthority('p2')") // 设置同时拥有p1、p2权限访问的url
+        .antMatchers("/check/**").authenticated() // 设置所有 /check/** 的请求必须认证通过
+        .anyRequest().permitAll()  // 设置除了上面配置的 /check/**，其它的请求可以访问
+        .and()
+        ....
+}
+```
+
+`http.authorizeRequests()` 方法有多个子节点，每个 `antMatchers` 按照它们的声明顺序执行。示例配置说明如下：
+
+- `antMatchers("/check/p1").hasAuthority("p1")` 指定拥有p1权限才能访问 `/check/p1`
+- `antMatchers("/check/p2").hasAuthority("p2")` 指定拥有p2权限才能访问 `/check/p2`
+- `antMatchers("/check/p3").access("hasAuthority('p1') and hasAuthority('p2')")` 指定同时拥有p1、p2权限才能访问 `/check/p3`
+- `antMatchers("/check/**").authenticated()` 指定除了上面 p1、p2、p3等url之外的 `/check/` 开头的资源，同时通过身份认证就能够访问。*这里使用SpEL（Spring Expression Language）表达式*
+- `anyRequest().permitAll()` 剩余的尚未匹配的资源，不做保护
+
+##### 4.5.4.2. 配置注意事项
+
+<font color=red>**规则的顺序是重要的，更具体、细粒度更小的规则应该先写**</font>。否则大范围的规则会覆盖后面小范围的规则，从而导致权限保护失效
+
+如现在以 `/admin` 开始的所有内容都需要具有 ADMIN 角色的身份验证用户，即使是 `/admin/login` 路径(因为 `/admin/login` 已经被 `/admin/**` 规则匹配,因此第二个规则被忽略).
+
+```java
+.antMatchers("/admin/**").hasRole("ADMIN")
+.antMatchers("/admin/login").permitAll()
+```
+
+因此，登录页面的规则应该在 `/admin/**` 规则之前。例如：
+
+```java
+.antMatchers("/admin/login").permitAll()
+.antMatchers("/admin/**").hasRole("ADMIN")
+```
+
+##### 4.5.4.3. 保护 URL 常用的方法
+
+- `authenticated()` 保护URL，需要用户登录
+- `permitAll()` 指定URL无需保护，一般应用与静态资源文件
+- `hasRole(String role)` 限制单个角色访问，角色将被增加“`ROLE_`”。所以“`ADMIN`”将和“`ROLE_ADMIN`”进行比较
+- `hasAuthority(String authority)` 限制单个权限访问
+- `hasAnyRole(String… roles)` 允许多个角色访问
+- `hasAnyAuthority(String… authorities)` 允许多个权限访问
+- `access(String attribute)` 该方法使用 SpEL表达式，所以可以创建复杂的限制
+- `hasIpAddress(String ipaddressExpression)` 限制IP地址或子网
+
+#### 4.5.5. 方法授权
+
+从 Spring Security 2.0版本开始，它支持服务层方法的安全性的支持。主要有 `@PreAuthorize`，`@PostAuthorize`，`@Secured `三类注解
+
+可以在任何标识 `@Configuration` 注解的项目配置类上，使用 `@EnableGlobalMethodSecurity` 注释来启用基于注解的安全权限控制。
+
+```java
+@Configuration
+/*
+ * @EnableGlobalMethodSecurity 注解配置启用基于注解的安全权限控制
+ *  securedEnabled 为 true，代表启用 @Secured 注解
+ *  prePostEnabled 为 true，代表启动 @PreAuthorize/@PostAuthorize 注解
+ */
+@EnableGlobalMethodSecurity(securedEnabled = true, prePostEnabled = true)
+public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
+    ....
+}
+```
+
+然后在方法（在类或接口上）添加相应的注解即可限制对该方法的访问权限控制。 Spring Security 的原生注释支持为该方法定义了一组属性。 这些将被传递给 `AccessDecisionManager` 以供它作出实际的决定：
+
+##### 4.5.5.1. @Secured 注解
+
+```java
+public interface BankService {
+    @Secured("IS_AUTHENTICATED_ANONYMOUSLY")
+    public Account readAccount(Long id);
+    
+    @Secured("IS_AUTHENTICATED_ANONYMOUSLY")
+    public Account[] findAccounts();
+   
+    @Secured("ROLE_TELLER")
+    public Account post(Account account, double amount);
+}
+```
+
+> 以上配置标明 `readAccount`、`findAccounts` 方法可匿名访问，底层使用 `WebExpressionVoter` 投票器，可从 `AffirmativeBased` 第23行代码跟踪
+>
+> post 方法需要有 TELLER 角色才能访问，底层使用 RoleVoter 投票器。
+
+##### 4.5.5.2. prePost 注解
 
 
+```java
+@GetMapping(value = "/check/p1", produces = {"text/plain;charset=UTF-8"})
+@PreAuthorize("hasAuthority('p1')") // 拥有p1权限才可以访问
+public String checkPrivilege1() {
+    return getUsername() + "访问资源p1";
+}
 
+@GetMapping(value = "/check/p2", produces = {"text/plain;charset=UTF-8"})
+@PreAuthorize("hasAuthority('p2')") // 拥有p2权限才可以访问
+public String checkPrivilege2() {
+    return getUsername() + "访问资源p2";
+}
 
+@GetMapping(value = "/check/p3", produces = {"text/plain;charset=UTF-8"})
+@PreAuthorize("hasAuthority('p1') and hasAuthority('p3')") // 拥有p1和p3权限才可以访问
+public String checkPrivilege3() {
+    return getUsername() + "访问资源p3";
+}
 
+@GetMapping(value = "/check/p4", produces = {"text/plain;charset=UTF-8"})
+@PreAuthorize("isAnonymous()") // 代表方法可匿名访问
+public String checkPrivilege4() {
+    return getUsername() + "访问资源p4";
+}
+```
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+> 以上配置标明 `checkPrivilege4` 方法可匿名访问，底层使用 `WebExpressionVoter` 投票器，可从 `AffirmativeBased` 第23行代码跟踪
+>
+> ![](images/139874011246629.png)
 
 ## 5. Spring Security 工作原理
 
@@ -1014,7 +1435,7 @@ public PasswordEncoder passwordEncoder() {
 
 Spring Security 构架的作用是**安全访问控制**，而安全访问控制功能其实就是对所有进入系统的请求进行拦截，校验每个请求是否能够访问它所期望的资源。可以通过 Filter 或 AOP 等技术来实现，Spring Security 对 Web 资源的保护是靠 Filter 链实现的
 
-当初始化 Spring Security 时，会创建一个名为 `SpringSecurityFilterChain` 的 Servlet 过滤器，类型为 `org.springframework.security.web.FilterChainProxy`，它实现了 `javax.servlet.Filter`，因此外部的请求会经过此类，下图是Spring Security过虑器链结构图：
+当初始化 Spring Security 时，会创建一个名为 `SpringSecurityFilterChain` 的 Servlet 过滤器，类型为 `org.springframework.security.web.FilterChainProxy`，它实现了 `javax.servlet.Filter`，因此外部的请求会经过此类，下图是 Spring Security 过虑器链结构图：
 
 ![](images/446013511226461.png)
 

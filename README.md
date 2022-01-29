@@ -275,6 +275,8 @@
   <li><a href="#/07-分布式架构&微服务架构/02-SpringCloud/06-Spring-Cloud-Gateway">Spring Cloud Gateway 服务网关</a></li>
   <li><a href="#/07-分布式架构&微服务架构/02-SpringCloud/07-Spring-Cloud-Sleuth">Spring Cloud Sleuth 链路跟踪</a></li>
   <li><a href="#/07-分布式架构&微服务架构/02-SpringCloud/08-Spring-Cloud-Stream">Spring Cloud Stream 事件驱动型消息传递组件</a></li>
+  <li><a href="#/07-分布式架构&微服务架构/02-SpringCloud/09-Spring-Cloud-Config">Spring Cloud Config 分布式系统的配置管理方案</a></li>
+  <li><a href="#/07-分布式架构&微服务架构/02-SpringCloud/10-Spring-Cloud-Security">Spring Cloud Security 分布式系统认证授权解决方案</a></li>
 </ul>
 
 ### ✨ Dubbo ✨
