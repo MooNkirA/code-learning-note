@@ -75,10 +75,11 @@
 
 <ul class="docs">
   <li><a href="#/02-后端框架/07-Authorization-Certification/00-Authorization-Overview">授权认证概述</a></li>
-  <li><a href="#/02-后端框架/07-Authorization-Certification/01-Spring-Security">Spring Security（整理中...）</a></li>
-  <li><a href="#/02-后端框架/07-Authorization-Certification/02-Spring-Security-OAuth">Spring Security OAuth（整理中...）</a></li>
+  <li><a href="#/02-后端框架/07-Authorization-Certification/01-Spring-Security">Spring Security</a></li>
+  <li><a href="#/02-后端框架/07-Authorization-Certification/02-Spring-Security-OAuth">Spring Security OAuth</a></li>
   <li><a href="#/02-后端框架/07-Authorization-Certification/03-Shiro">Shiro（整理中...）</a></li>
 </ul>
+
 
 ### ✨ Hibernate ✨
 

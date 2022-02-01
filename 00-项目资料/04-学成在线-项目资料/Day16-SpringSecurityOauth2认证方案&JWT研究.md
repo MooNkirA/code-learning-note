@@ -386,6 +386,7 @@ public void testVerify() {
 ```
 
 ## 4. Spring Security Oauth2 研究
+
 ### 4.1. 实现目标
 
 本项目认证服务基于Spring Security Oauth2进行构建，并在其基础上作了一些扩展，采用JWT令牌机制，并自定义了用户身份信息的内容。在项目中集成Spring Security Oauth2的方法和流程，通过

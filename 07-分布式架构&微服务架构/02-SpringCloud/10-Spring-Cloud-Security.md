@@ -323,7 +323,7 @@ spring:
     name: uaa-service
   datasource:
     driver-class-name: com.mysql.jdbc.Driver
-    url: jdbc:mysql://localhost:3306/user_db?useUnicode=true
+    url: jdbc:mysql://localhost:3306/user_db?useUnicode=true&useSSL=false&characterEncoding=UTF-8
     username: root
     password: 123456
   freemarker:
@@ -545,7 +545,7 @@ public class OrderServer {
 
 在授权服务工程中，使用 `@EnableAuthorizationServer` 注解并继承 `AuthorizationServerConfigurerAdapter` 来配置 OAuth2.0 授权服务器。
 
-在 uaa 工程中的 config 包下，创建 `AuthorizationServerConfig` 类。
+在 uaa 工程中的 config 包下，创建 `AuthorizationServerConfig` 授权配置类。
 
 ```java
 @Configuration
@@ -832,6 +832,7 @@ public void configure(AuthorizationServerSecurityConfigurer security) throws Exc
 ```java
 @Configuration
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
+
     /**
      * 创建认证管理器实例
      */
@@ -867,7 +868,15 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
 > 上面配置令牌访问端点的 `AuthenticationManager` 认证管理器，是在此安全配置类中初始化。因为为了使用 `WebSecurityConfigurerAdapter` 父类的 `authenticationManagerBean` 方法，所以配置在此类中。
 
-### 3.8. 授权服务配置总结
+### 3.8. 自定义连接数据库认证  UserDetailService 接口实现
+
+授权服务需要
+
+此部分参考[《Spring Security》笔记的《自定义连接数据库认证》章节](/02-后端框架/07-Authorization-Certification/01-Spring-Security?id=_42-自定义连接数据库认证)
+
+> 将 `spring-security-boot-2.1.x` 项目中的 dao、model、service 的代码复制到 uaa 项目中
+
+### 3.9. 授权服务配置总结
 
 授权服务配置分成三大块，可以关联记忆。
 
@@ -875,23 +884,543 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 - 要颁发 token，那必须得定义 token 的相关 endpoint，以及 token 如何存取，以及客户端支持哪些类型的 token。
 - 暴露除了一些 endpoint，那对这些 endpoint 可以定义一些安全上的约束等。
 
-## 4. 授权码模式
+至此，授权服务器已经搭建完成。
 
-### 4.1. 授权码模式介绍
+## 4. OAuth2.0 支持的授权模式种类
 
-授权码模式交互图：
+OAuth2.0 提供了4种授权模式，分别是：
+
+- 授权码模式（Authorization Code）
+- 隐式授权模式（Implicit）
+- 密码模式（Resource Owner Password Credentials）
+- 客户端模式（Client Credentials）
+
+> 其中**授权码模式**和**密码模式**应用较多，本次暂时使用授权码模式
+
+### 4.1. 授权码模式
+
+#### 4.1.1. 授权码模式交互图
 
 ![](images/124084522220171.png)
 
+#### 4.1.2. 授权码授权流程
 
+1. **资源拥有者打开客户端，客户端要求资源拥有者给予授权，它将浏览器被重定向到授权服务器，重定向时会附加客户端的身份信息**。请求认证服务获取授权码(GET请求)，如上示例：
 
+```
+http://授权服务地址/uaa/oauth/authorize?client_id=客户端准入id&response_type=code&scope=客户端权限范围&redirect_uri=授权码申请成功后会跳转地址
+```
 
+参数列表如下：
 
+- `client_id`：客户端准入id，和授权配置类（*示例中的`AuthorizationServerConfig`*）中设置的客户端id一致。
+- `response_type`：授权码模式固定为code
+- `scop`：客户端权限范围，和授权配置类（*示例中的`AuthorizationServerConfig`*）中设置的 `scop` 一致。
+- `redirect_uri`：跳转uri，当授权码申请成功后会跳转到此地址，并在后边带上code参数（授权码）
 
+2. **登陆成功后，浏览器会出现向授权服务器授权页面，之后将用户同意授权**。
+3. **点击“Authorize”按钮后，授权服务器将授权码（AuthorizationCode）转经浏览器发送给 client (通过 redirect_uri)，url 后边会带上code参数（授权码）**。
+4. **客户端拿着授权码向授权服务器索要访问 access_token 令牌**，post请求如下：
 
+```
+http://授权服务地址/uaa/oauth/token
+```
 
+请求参数列表如下
 
+- `client_id`：客户端准入标识。
+- `client_secret`：客户端秘钥，和授权配置类（*示例中的`AuthorizationServerConfig`*）中设置的 `secret` 一致。
+- `grant_type`：授权类型，填写 `authorization_code`，表示授权码模式
+- `code`：授权码，就是刚刚上一步获取的授权码，<font color=red>**注意：授权码只使用一次就无效了，需要重新申请**</font>
+- `redirect_uri`：申请授权码时的跳转url，<font color=red>**一定和申请授权码时用的redirect_uri一致**</font>
 
+5. **授权服务器返回令牌(access_token)**
 
+#### 4.1.3. 适用场景
 
+这种模式是四种模式中最安全的一种模式。一般用于 client 是 Web 服务器端应用或第三方的原生 App 调用资源服务的时候。因为在这种模式中 access_token 不会经过浏览器或移动端的 App，而是直接从服务端去交换，这样就最大限度的减小了令牌泄漏的风险。
 
+#### 4.1.4. 测试
+
+浏览器访问认证页面：
+
+```
+http://127.0.0.1:53020/uaa/oauth/authorize?client_id=c1&response_type=code&scope=all&redirect_uri=http://www.baidu.com
+```
+
+然后输入模拟的账号和密码点登陆之后进入授权页面：
+
+![](images/33495613220172.png)
+
+确认授权后，浏览器会重定向到指定路径（如果连接数据库的话，会是oauth_client_details表中的web_server_redirect_uri）并附加验证码 `?code=SvCnr4`（每次登陆都不一样），最后使用该验证码获取 token。
+
+![](images/595831416231609.png)
+
+使用 postman 发送 post 请求
+
+```
+POST http://localhost:53020/uaa/oauth/token
+```
+
+![](images/341241716249489.png)
+
+响应数据示例如下：
+
+```json
+{
+    "access_token": "68b0c24d-1b2d-4981-bbd1-328820daf0b3",
+    "token_type": "bearer",
+    "refresh_token": "624c193b-240e-488d-8a13-6cd7bca5d57f",
+    "expires_in": 7199,
+    "scope": "all"
+}
+```
+
+### 4.2. 简化模式
+
+#### 4.2.1. 简化模式交互图
+
+![](images/449202114235855.png)
+
+#### 4.2.2. 简化模式授权流程
+
+1. **资源拥有者打开客户端，客户端要求资源拥有者给予授权，它将浏览器被重定向到授权服务器，重定向时会附加客户端的身份信息**
+
+```
+http://授权服务地址/uaa/oauth/authorize?client_id=客户端准入id&response_type=token&scope=客户端权限范围&redirect_uri=授权码申请成功后会跳转地址
+```
+
+> 参数描述同授权码模式 ，注意`response_type=token`，说明是简化模式。
+
+2. **登陆成功后，浏览器出现向授权服务器授权页面，之后将用户同意授权**
+3. **授权服务器将授权码将令牌（access_token）以Hash的形式存放在重定向uri的fargment中发送给浏览器**
+
+> 注：fragment 主要是用来标识 URI 所标识资源里的某个资源，在 URI 的末尾通过 （`#`）作为 fragment 的开头，其中 `#` 不属于 fragment 的值。如 `https://domain/index#L18` 这个 URI 中 `L18` 就是 fragment 的值。使用者只需要知道 js 通过响应浏览器地址栏变化的方式能获取到 fragment 就行了。
+
+#### 4.2.3. 适用场景
+
+一般来说，简化模式用于没有服务器端的第三方单页面应用，因为没有服务器端就无法接收授权码。
+
+#### 4.2.4. 测试
+
+浏览器访问认证页面：
+
+```
+http://127.0.0.1:53020/uaa/oauth/authorize?client_id=c1&response_type=token&scope=all&redirect_uri=http://www.baidu.com
+```
+
+然后输入模拟的账号和密码点登陆之后进入授权页面。
+
+确认授权后，浏览器会重定向到指定路径（oauth_client_details表中的web_server_redirect_uri）并以 Hash 的形式存放在重定向 uri 的 fargment 中,如：
+
+![](images/80633716247093.png)
+
+### 4.3. 密码模式
+
+#### 4.3.1. 密码模式交互图
+
+![](images/569983716244595.png)
+
+#### 4.3.2. 密码模式授权流程
+
+1. **资源拥有者将用户名、密码发送给客户端**
+2. **客户端拿着资源拥有者的用户名、密码向授权服务器请求令牌（access_token）**，post 请求请求如下：
+
+```
+http://授权服务地址/uaa/oauth/token
+```
+
+请求 body 参数列表如下：
+
+- `client_id`：客户端准入标识
+- `client_secret`：客户端秘钥。和授权配置类（*示例中的`AuthorizationServerConfig`*）中设置的 `secret` 一致
+- `grant_type`：授权类型，填写 `password` 表示密码模式
+- `username`：资源拥有者用户名
+- `password`：资源拥有者密码
+
+3. **授权服务器将令牌（access_token）发送给client**
+
+#### 4.3.3. 适用场景
+
+这种模式十分简单，但是却意味着直接将用户敏感信息泄漏给了 client 端，因此密码模式一般用于自己开发的 client 端，第一方原生App或第一方单页面应用。
+
+#### 4.3.4. 测试
+
+使用 postman 发送 post 请求
+
+```
+POST http://127.0.0.1:53020/uaa/oauth/token
+```
+
+请求参数与响应结果：
+
+![](images/540295516225836.png)
+
+### 4.4. 客户端模式
+
+#### 4.4.1. 客户端模式交互图
+
+![](images/529535616248276.png)
+
+#### 4.4.2. 客户端模式授权流程
+
+1. **客户端向授权服务器发送自己的身份信息，并请求令牌（access_token）**
+2. **确认客户端身份无误后，将令牌（access_token）发送给client**，请求如下：
+
+```
+http://授权服务地址/uaa/oauth/token
+```
+
+请求 body 参数列表如下：
+
+- `client_id`：客户端准入标识。
+- `client_secret`：客户端秘钥。
+- `grant_type`：授权类型，填写 `client_credentials` 表示客户端模式
+
+#### 4.4.3. 适用场景
+
+这种模式是最方便但最不安全的模式。因此这就要求对 client 完全的信任，而 client 本身也是安全的。因此这种模式一般用来提供给完全信任的服务器端服务。比如，合作方系统对接，拉取一组用户信息。
+
+#### 4.4.4. 测试
+
+使用 postman 发送 post 请求
+
+```
+POST http://127.0.0.1:53020/uaa/oauth/token
+```
+
+请求参数与响应结果：
+
+![](images/36370417243412.png)
+
+## 5. 资源服务接入授权
+
+> 此示例的资源服务是指 order 服务工程
+
+### 5.1. 资源服务器配置
+
+在 `spring-security-order` 工程中的 config 包下，创建资源服务的配置类
+
+#### 5.1.1. @EnableResourceServer 注解
+
+使用 `@EnableResourceServer` 注解标识在有 `@Configuration` 的配置类上，并且必须实现 `ResourceServerConfigurer` 接口来进行资源服务的配置，也可以选择继承自 `ResourceServerConfigurerAdapter` 抽象类，然后重写其中接口的方法，参数就是这个对象的实例
+
+```java
+@Configuration
+@EnableResourceServer
+public class ResouceServerConfig extends ResourceServerConfigurerAdapter { 
+}
+```
+
+#### 5.1.2. ResourceServerConfigurer 接口
+
+此接口是定义了资源服务的配置文件，源码如下：
+
+```java
+public interface ResourceServerConfigurer {
+	/**
+	 * Add resource-server specific properties (like a resource id). The defaults should work for many applications, but
+	 * you might want to change at least the resource id.
+	 * 
+	 * @param resources configurer for the resource server
+	 * @throws Exception if there is a problem
+	 */
+	void configure(ResourceServerSecurityConfigurer resources) throws Exception;
+
+	/**
+	 * Use this to configure the access rules for secure resources. By default all resources <i>not</i> in "/oauth/**"
+	 * are protected (but no specific rules about scopes are given, for instance). You also get an
+	 * {@link OAuth2WebSecurityExpressionHandler} by default.
+	 * 
+	 * @param http the current http filter configuration
+	 * @throws Exception if there is a problem
+	 */
+	void configure(HttpSecurity http) throws Exception;
+}
+```
+
+#### 5.1.3. ResourceServerConfigurerAdapter 抽象实现类
+
+此抽象类实现了 `ResourceServerConfigurer` 接口，通常资源服务的配置类都可以选择继承此抽象类
+
+```java
+public class ResourceServerConfigurerAdapter implements ResourceServerConfigurer {
+	@Override
+	public void configure(ResourceServerSecurityConfigurer resources) throws Exception {
+	}
+
+	@Override
+	public void configure(HttpSecurity http) throws Exception {
+		http.authorizeRequests().anyRequest().authenticated();
+	}
+}
+```
+
+#### 5.1.4. 资源服务相关配置
+
+`ResourceServerSecurityConfigurer` 对象可以配置的属性：
+
+- `tokenServices`：`ResourceServerTokenServices` 类的实例，用来实现令牌服务。
+- `tokenStore`：`TokenStore` 类的实例，指定令牌如何访问，与 `tokenServices` 配置可选
+- `resourceId`：这个资源服务的ID，这个属性是可选的，但是推荐设置并在授权服务中进行验证。
+- 其他的拓展属性例如 `tokenExtractor` 令牌提取器用来提取请求中的令牌。
+
+`HttpSecurity` 配置与 Spring Security 类似：
+
+- 请求匹配器，用来设置需要进行保护的资源路径，默认的情况下是保护资源服务的全部路径。
+- 通过 `http.authorizeRequests()` 来设置受保护资源的访问规则
+- 其他的自定义权限保护规则通过 `HttpSecurity` 来进行配置。
+
+```java
+@Configuration
+@EnableResourceServer
+public class ResouceServerConfig extends ResourceServerConfigurerAdapter {
+    /**
+     * 服务资源id，与授权服务器中配置类的 clients.resourceIds("res1") 值一致
+     */
+    public static final String RESOURCE_ID = "res1";
+
+    @Override
+    public void configure(ResourceServerSecurityConfigurer resources) throws Exception {
+        resources.resourceId(RESOURCE_ID) // 配置资源id
+                .tokenServices(tokenService()) // 验证令牌的服务
+                .stateless(true);
+    }
+
+    @Override
+    public void configure(HttpSecurity http) throws Exception {
+        http.authorizeRequests()
+                .antMatchers("/**").access("#oauth2.hasScope('all')") // 配置访问的限制规则
+                .and()
+                .csrf().disable() // 设置不再限制 CSRF
+                .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS); // 配置不生成本地 session
+    }
+
+    /**
+     * 资源服务令牌解析服务
+     *
+     * @return
+     */
+    @Bean
+    public ResourceServerTokenServices tokenService() {
+        //使 用远程服务请求授权服务器校验token,必须指定校验token 的url、client_id，client_secret
+        RemoteTokenServices service = new RemoteTokenServices();
+        service.setCheckTokenEndpointUrl("http://localhost:53020/uaa/oauth/check_token");
+        service.setClientId("c1");
+        service.setClientSecret("secret");
+        return service;
+    }
+}
+```
+
+> *其中 `ResourceServerTokenServices` 对象的配置说明详见下节*
+
+### 5.2. 验证token
+
+`ResourceServerTokenServices` 是组成授权服务的另一半，如果授权服务和资源服务在同一个应用程序上的话，可以直接使用 `DefaultTokenServices`，这样的话，就不用考虑关于实现所有必要的接口的一致性问题。但如果资源服务器是分离开的，那么就必须要确保能够有匹配授权服务提供的 `ResourceServerTokenServices`，它知道如何对令牌进行解码。
+
+令牌解析方法：使用 `DefaultTokenServices` 在资源服务器本地配置令牌存储、解码、解析方式 使用 `RemoteTokenServices` 资源服务器通过 HTTP 请求来解码令牌，每次都请求授权服务器端点 `/oauth/check_token`
+
+使用授权服务的 `/oauth/check_token` 端点需要在授权服务将这个端点暴露出去，以便资源服务可以进行访问，这个已经在示例的授权服务中配置。在示例中，授权服务中配置了 `/oauth/check_token` 和 `/oauth/token_key` 这两个端点：
+
+![](images/435431018236958.png)
+
+所以在资源服务中配置 `RemoteTokenServices`，相应的 `ResouceServerConfig` 中配置如下：
+
+![](images/263201218230092.png)
+
+### 5.3. 编写资源
+
+在 controller 包下编写 `OrderController` 类，此类表示订单资源的访问类：
+
+```java
+@RestController
+public class OrderController {
+    @GetMapping(value = "/check/p1")
+    @PreAuthorize("hasAuthority('p1')") // 使用方法授权配置，拥有 p1 权限方可访问此url
+    public String p1() {
+        return "访问资源1";
+    }
+}
+```
+
+### 5.4. 添加安全访问控制
+ 
+在 config 包下创建 Spring Security 的安全配置类 `WebSecurityConfig`，添加如下配置：
+
+```java
+@Configuration
+@EnableGlobalMethodSecurity(prePostEnabled = true)
+public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
+    /**
+     * 安全拦截机制（最重要）
+     *
+     * @param http
+     * @throws Exception
+     */
+    @Override
+    protected void configure(HttpSecurity http) throws Exception {
+        http.csrf().disable() // 屏蔽 CSRF（Cross-site request forgery跨站请求伪造）控制
+                .authorizeRequests()
+                .antMatchers("/check/**").authenticated() // 设置所有 /check/** 的请求必须认证通过
+                .anyRequest().permitAll();  // 设置除了上面配置的 /check/**，其它的请求可以访问
+    }
+}
+```
+
+> *注：此安全配置类可以参考授权服务的配置*
+
+### 5.5. 测试
+
+启动 uaa 授权服务与 order 资源服务
+
+#### 5.5.1. 申请令牌
+
+本测试使用密码模式申请令牌。发送 post 请求
+
+```
+http://127.0.0.1:53020/uaa/oauth/token
+```
+
+![](images/410613418220622.png)
+
+响应的结果是：
+
+```json
+{
+    "access_token": "2304c571-60ce-4461-8686-e995373d5fbb",
+    "token_type": "bearer",
+    "refresh_token": "091f4a41-52d4-4a56-85f4-6a1979c73f72",
+    "expires_in": 7199,
+    "scope": "all"
+}
+```
+
+#### 5.5.2. 请求资源
+
+按照 oauth2.0 协议要求，请求资源需要携带token，请求 url 如下：
+
+```
+http://127.0.0.1:53021/order/check/p1
+```
+
+如果不携带 token 或者 token 错误的，就请求授权失败，如下：
+
+![](images/6663818223126.png)
+
+在请求的 Headers 中设置，token 的参数名称为：`Authorization`，值为：`Bearer token值`。（*注：Bearer 与 token 值之间使用空格隔开*）。此时请求成功。
+
+![](images/510754118232073.png)
+
+## 6. JWT令牌
+
+通过前面的测试可发现，当资源服务和授权服务不在一起时，资源服务使用 `RemoteTokenServices` 远程请求授权服务验证 token，如果访问量较大将会影响系统的性能 。
+
+上面问题的解决方法：
+
+令牌可以采用 JWT 格式即可解决前面的问题，用户认证通过会得到一个 JWT 令牌，JWT令牌中已经包括了用户相关的信息，客户端只需要携带 JWT 访问资源服务，资源服务根据事先约定的算法自行完成令牌校验，无需每次都请求认证服务完成授权。
+
+### 6.1. 配置JWT令牌服务
+
+在 uaa 工程中配置 jwt 令牌服务，即可实现生成 jwt 格式的令牌。
+
+- 修改 token 配置类 `TokenConfig`，创建 JWT 令牌存储方式
+
+```java
+@Configuration
+public class TokenConfig {
+    // 定义生成 token 的秘钥
+    private final String SIGNING_KEY = "uaa123";
+
+    /**
+     * 创建令牌的存储策略实例
+     */
+    @Bean
+    public TokenStore tokenStore() {
+        // 使用 JWT 令牌存储方案
+        return new JwtTokenStore(accessTokenConverter());
+    }
+
+    @Bean
+    public JwtAccessTokenConverter accessTokenConverter() {
+        JwtAccessTokenConverter converter = new JwtAccessTokenConverter();
+        converter.setSigningKey(SIGNING_KEY); // 对称秘钥，资源服务器也使用该秘钥来验证
+        return converter;
+    }
+}
+```
+
+- 修改授权服务配置类 `AuthorizationServerConfig`，修改创建令牌管理服务对象的方法，增加 JWT 令牌增强部分
+
+```java
+@Autowired
+private JwtAccessTokenConverter jwtAccessTokenConverter;
+
+@Bean
+public AuthorizationServerTokenServices tokenService() {
+    DefaultTokenServices service = new DefaultTokenServices();
+    service.setClientDetailsService(clientDetailsService); // 客户端详情服务
+    service.setSupportRefreshToken(true); // 支持刷新令牌
+    service.setTokenStore(tokenStore); // 令牌存储策略
+
+    /* JWT 令牌增强 */
+    TokenEnhancerChain tokenEnhancerChain = new TokenEnhancerChain();
+    tokenEnhancerChain.setTokenEnhancers(Arrays.asList(jwtAccessTokenConverter));
+    service.setTokenEnhancer(tokenEnhancerChain);
+
+    service.setAccessTokenValiditySeconds(7200); // 令牌默认有效期2小时
+    service.setRefreshTokenValiditySeconds(259200); // 刷新令牌默认有效期3天
+    return service;
+}
+```
+
+### 6.2. 生成 jwt 令牌测试
+
+启动 uaa 授权服务，使用密码模式请求测试生成 jwt 令牌
+
+![](images/299980923220172.png)
+
+生成的令牌与前面的示例不一样
+
+### 6.3. 校验 jwt 令牌
+
+资源服务需要和授权服务拥有一致的签字、令牌服务等：
+
+- 将 uaa 授权服务中的 token 配置类 `TokenConfig` 拷贝到 order 资源服务中
+- 删除资源服务配置中原来的远程令牌服务类，注入本地令牌的存储实例，修改为使用本地验证令牌的服务
+
+```java
+@Configuration
+@EnableResourceServer
+public class ResouceServerConfig extends ResourceServerConfigurerAdapter {
+
+    /**
+     * 服务资源id，与授权服务器中配置类的 clients.resourceIds("res1") 值一致
+     */
+    public static final String RESOURCE_ID = "res1";
+
+    // 令牌的存储策略实例
+    @Autowired
+    private TokenStore tokenStore;
+
+    @Override
+    public void configure(ResourceServerSecurityConfigurer resources) throws Exception {
+        resources.resourceId(RESOURCE_ID) // 配置资源id
+                // .tokenServices(tokenService()) // 验证令牌的服务(远程请求)
+                .tokenStore(tokenStore) // 验证令牌的服务（本地验证）
+                .stateless(true);
+    }
+
+    @Override
+    public void configure(HttpSecurity http) throws Exception {
+        http.authorizeRequests()
+                .antMatchers("/**").access("#oauth2.hasScope('all')") // 配置访问的限制规则
+                .and()
+                .csrf().disable() // 设置不再限制 CSRF
+                .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS); // 配置不生成本地 session
+    }
+
+}
+```
+
+- 测试
