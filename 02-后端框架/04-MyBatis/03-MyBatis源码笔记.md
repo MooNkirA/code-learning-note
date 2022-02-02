@@ -456,7 +456,7 @@ SqlSessionFactory build(Configuration config)
 进入`XMLConfigBuilder`的`parseConfiguration`方法，对MyBatis核心配置文件的各个元素进行解析，读取元素信息后填充到`Configuration`对象。重点关注以下的几个解析方法：
 
 - 在`XMLConfigBuilder`的`typeAliasesElement()`方法中会解析总配置文件中`<typeAliases>`别名标签，进行别名的注册（**重点关注一下Mybatis扫描类的逻辑，比较与spring的不同点**）
-    - 在指定包扫描的处理逻辑中，有`VFS.getInstance()`的方法获取`VFS`单例实例的方法，这里**使用静态内部类来创建外部类实例的方式来实现单例模式**，因为静态内部在jvm加载的时候就会初始化，并且内存中只会存在一份，jvm的初始化时是线程互斥的（*此处值得关注，具体这种单例实现的方式说明详见 \01-Java&JavaWeb\01-JavaSE基础\20-设计模式.md*）
+    - 在指定包扫描的处理逻辑中，有`VFS.getInstance()`的方法获取`VFS`单例实例的方法，这里**使用静态内部类来创建外部类实例的方式来实现单例模式**，因为静态内部在jvm加载的时候就会初始化，并且内存中只会存在一份，jvm的初始化时是线程互斥的（*此处值得关注，具体这种单例实现的方式说明详见 \01-Java\20-设计模式.md*）
 - 在`XMLConfigBuilder`的`mapperElement()`方法中通过`XMLMapperBuilder`对象读取所有 mapper.xml 映射文件
 
 ```java
