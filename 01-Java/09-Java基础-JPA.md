@@ -14,7 +14,7 @@ JPA（Java Persistence API）Java 持久化 API。是一套 Sun Java 官方制�
 public static EntityManagerFactory createEntityManagerFactory(String persistenceUnitName)
 ```
 
-- 获得实体管理工厂。参数列表解释如下：
+- 获得实体管理工厂。
     - `String persistenceUnitName`：配置文件中的 `persistenceUnitName`
 
 示例：
@@ -92,19 +92,131 @@ public <T> TypedQuery<T> createQuery(String qlString, Class<T> resultClass);
 
 - 获取 JPQL 操作对象，用于查询操作
 
-### 2.4. EntityTransaction
+### 2.4. EntityTransaction 接口
 
+用于管理事务（开始，提交，回滚）。获取事务（没有开启事务）：
 
+```java
+EntityManagerFactory emf = Persistence.createEntityManagerFactory("crm");
+EntityManager em = emf.createEntityManager();
+EntityTransaction transaction = em.getTransaction();
+```
 
+常用方法如下所示：
 
-### 2.5. TypeQuery
+```java
+public void begin();
+```
 
+- 开启事务
 
+```java
+public void commit();
+```
 
+- 提交事务
 
-### 2.6. Query
+```java
+public void rollback();
+```
 
+- 回滚事务
 
+### 2.5. TypedQuery 接口
+
+`TypedQuery` 接口继承 `Query` 接口。用于操作 JPQL 的查询的。JPQL 和 HQL 一样。为什么 JPA 的标准，查询需要指定类型，目的就是为了让返回的数据没有没有警告
+
+获取 `TypedQuery` 实例：
+
+```java
+EntityManager em = xxx;
+TypedQuery<Xxx> query = em.createQuery("xxx", Xxx.class);
+```
+
+常用方法如下所示：
+
+```java
+int executeUpdate();
+```
+
+- 执行查询操作（好像不用）。此方法继承于 `Query` 接口
+
+```java
+TypedQuery<X> setParameter(int position, Object value);
+```
+
+- 设置 `?` 参数的值。
+    - `int position`：是 `?` 占位符后面指定的下标
+    - `Object value`：占位符的值
+
+```java
+TypedQuery<X> setParameter(String name, Object value);
+```
+
+- 设置命名参数的值。
+    - `String name`：命名参数的名字，不带 `:` 号
+    - `Object value`：命名参数的值
+
+```java
+TypedQuery<X> setFirstResult(int startPosition);
+```
+
+- 设置分页查询的起始数
+    - `int startPosition`：查询语句 `limit` 的起始数
+
+```java
+TypedQuery<X> setMaxResults(int maxResult);
+```
+
+- 设置分页查询的数量
+    - `int maxResult`：分页查询每页大小
+
+```java
+List<X> getResultList();
+```
+
+- 返回查询的结果List集合（查询所有的数据）
+
+```java
+X getSingleResult();
+```
+
+- 返回查询的结果是一条数据，常用聚合函数 `count()`，相当于 `uniqueResult()`
+
+### 2.6. Query 接口
+
+用于操作SQL的查询接口，执行没有返回数据的JPQL（增删改），<font color=red>**用于删除和更新**</font>
+
+获取 `Query` 实例：
+
+```java
+EntityManager em = xxx;
+Query query = em.createQuery("xxx");
+```
+
+常用方法如下所示：
+
+```java
+int executeUpdate();
+```
+
+- 执行删除和修改的操作
+
+```java
+Query setParameter(int position, Object value);
+```
+
+- 设置 `?` 参数的值。
+    - `int position`：是 `?` 占位符后面指定的下标
+    - `Object value`：占位符的值
+
+```java
+Query setParameter(String name, Object value);
+```
+
+- 设置命名参数的值。
+    - `String name`：命名参数的名字，不带 `:` 号
+    - `Object value`：命名参数的值
 
 ### 2.7. CriteriaBuilder 接口
 

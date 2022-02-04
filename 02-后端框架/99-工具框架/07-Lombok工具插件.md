@@ -430,7 +430,7 @@ public class EqualsAndHashCodeDemo {
 
 ### 3.4. @ToString 注解
 
-使用 `@ToString` 注解可以为指定类生成 toString 方法，`@ToString` 注解的源码定义如下
+使用 `@ToString` 注解可以为指定类生成 `toString` 方法，`@ToString` 注解的源码定义如下
 
 ```java
 @Target(ElementType.TYPE)
@@ -502,7 +502,7 @@ public class ToStringDemo {
 
 ### 3.5. @Data 注解
 
-- `@Data` 注解与同时使用以下的注解的效果是一样的，@Data 注解的源码定义如下
+- `@Data` 注解与同时使用以下的注解的效果是一样的，`@Data` 注解的源码定义如下
     - `@ToString`
     - `@Getter`
     - `@Setter`

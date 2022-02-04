@@ -70,7 +70,7 @@
 </ul>
 
 
-### 🔑 授权认证框架专题
+### 🔑 授权认证框架
 
 <ul class="docs">
   <li><a href="#/02-后端框架/07-Authorization-Certification/00-Authorization-Overview">授权认证概述</a></li>
