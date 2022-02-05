@@ -31,3 +31,16 @@ Spring Data 支持的持久层技术非常多，以下是几个常见的：
 
 - [Spring Data JPA](/02-后端框架/06-Spring-Data/01-Spring-Data-JPA)
 - [Spring Data Redis](/02-后端框架/06-Spring-Data/02-Spring-Data-Redis)
+
+## 4. SpringData 扩展内容
+
+### 4.1. Repository 和 Template 的选用
+
+在 Spring Data 的模块中，使用 Spring Data Jpa 的时候，采用了继承 Spring Data 提供的一个接口的形式，即继承 `JpaRepository<T, ID>, JpaSpecificationExecutor<T>` ，而使用 Sping Data Redis 的时候，通常是在实现类中注入一个 `RedisTemplate` 的方式。
+
+其实 Spring Data 这两种方式都可以完成对持久层的操作，此两种方式的对比如下：
+
+- 第一种方式，直接继承 `xxxRepository` 接口，可以不需要写实现类，而轻松实现简单的增删改查、分页、排序操作，但是对于非常复杂的查询，用起来就比较的费力了；
+- 第二种方式，直接使用 `xxxTemplate` 模板接口，就需要编写实现类，但是这样增删改查可以自由控制，对于复杂查询来说，用起来更加得心应手。
+
+两种方式在企业开发中都可能用到，甚至有的项目开发中会同时使用两种方式。对于简单的操作，直接继承 `Repository` 接口，对于复杂操作，使用 `Template` 完成。
