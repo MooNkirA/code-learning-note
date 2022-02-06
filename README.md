@@ -359,6 +359,7 @@
   <li><a href="#/catalog-project-training?id=projectb-项目资料">ProjectB 项目资料</a></li>
   <li><a href="#/catalog-project-training?id=学成在线-项目资料">学成在线 项目资料</a></li>
   <li><a href="#/catalog-project-training?id=好客租房-项目资料">好客租房 项目资料</a></li>
+  <li><a href="#/catalog-project-training?id=红包雨场景案例-项目资料">红包雨场景案例 项目资料</a></li>
 </ul>
 
 # 在线阅读地址
