@@ -2486,25 +2486,9 @@ java -jar moon-project.jar --spring.profiles.active=dev
 java -jar moon-project.jar --spring.profiles.active=pro
 ```
 
-### 9.2. 个人项目实践示例
+### 9.2. 使用 ${} 作为动态参数的解决
 
-#### 9.2.1. 打包项目赋值参数命令
-
-- 因为配置开发与正式版本的两套配置文件，所以开发时运行需要修改`Environment`的`VM options`的参数为：`-DactiveName=dev`，切换到开发环境的配置，再运行main方法启动
-    - **注意：此方式只适用于`${}`占位符情况，如果使用`@@`，则不能使用**
-- 为了兼容项目打包，配置文件是使用`@@`作为占位符，所以启动需要使用命令`spring-boot:run`
-
-```shell
-# 以开发环境配置启动
-spring-boot:run -DactiveName=dev -Dmaven.test.skip=true
-
-# 以正式环境配置启动
-spring-boot:run -DactiveName=pro -Dmaven.test.skip=true
-```
-
-**使用`${}`作为动态参数的解决方案**
-
-从spring-boot-starter-parent的pom.xml文件中查看 `delimiter that doesn't clash with Spring ${}`
+从 spring-boot-starter-parent 的 pom.xml 文件中可以查看  `delimiter that doesn't clash with Spring ${}`
 
 ```xml
 <properties>
@@ -2516,6 +2500,51 @@ spring-boot:run -DactiveName=pro -Dmaven.test.skip=true
     <maven.compiler.target>${java.version}</maven.compiler.target>
 </properties>
 ```
+
+spring boot 默认是使用 `@@` 占位符来读取maven的配置属性值，如需要修改使用 `${}` 作为动态参数读取配置值，可以有以下处理方案。
+
+#### 9.2.1. 方案一
+
+手动配置 maven 的插件来实现使用 `${}` 读取配置值，具体配置如下：
+
+1. 指定配置文件的 `filtering` 属性为 true
+2. 配置 maven 的源码插件，配置 `delimiter` 为 `${*}`
+
+```xml
+<build>
+    <resources>
+        <resource>
+            <directory>src/main/resources/</directory>
+            <!-- 指定以下配置中可填充不同 profile 中变量值 -->
+            <filtering>true</filtering>
+            <includes>
+                <include>**/*.properties</include>
+                <include>**/*.lua</include>
+            </includes>
+        </resource>
+    </resources>
+
+    <plugins>
+        <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-resources-plugin</artifactId>
+            <configuration>
+                <useDefaultDelimiters>false</useDefaultDelimiters>
+                <!-- 配置替换配置文件的占位符
+                    在新的 spring boot 版本中，是使用 @@ 作为占位符，
+                    为了兼容旧的写法，所以这些配置使用 ${} 作为占位符
+                    -->
+                <delimiters>
+                    <delimiter>${*}</delimiter>
+                </delimiters>
+                <encoding>UTF-8</encoding>
+            </configuration>
+        </plugin>
+    </plugins>
+</build>
+```
+
+#### 9.2.2. 方案二
 
 若项目使用了 spring-boot-starter-parent 做项目版本管理，替换 `resource.delimiter` 属性
 
@@ -2533,12 +2562,27 @@ spring-boot:run -DactiveName=pro -Dmaven.test.skip=true
 </properties>
 ```
 
-**注意：使用些方式后，使用mvn命令打包时，不使用默认值方式`${参数名:默认值}`**
+<font color=red>**注意：使用些方式后，使用mvn命令打包时，不使用默认值方式`${参数名:默认值}`**</font>
 
-#### 9.2.2. 项目打包命令
+### 9.3. 个人项目实践示例
 
-- 需要将依赖的公共包安装到本地仓库，到时需要依赖打包到war包中
-- 项目打包：参考5.1将前端部署后，因为配置了开发环境与正式版本环境的两套配置文件，使用maven命令打包时，需要输入配置文件的参数，进行打包即可，完成后将war包放到tomcat运行部署
+#### 9.3.1. 打包项目赋值参数命令
+
+ - 因为配置开发与正式版本的两套配置文件，所以开发时运行需要修改`Environment`的`VM options`的参数为：`-DactiveName=dev`，切换到开发环境的配置，再运行main方法启动
+    - **注意：使用 mvn 命令启动的方式只适用于`${}`占位符情况，如果使用`@@`，则不能使用**
+- 为了兼容项目打包，配置文件是使用`@@`作为占位符，所以启动需要使用命令`spring-boot:run`
+
+```shell
+# 以开发环境配置启动
+spring-boot:run -DactiveName=dev -Dmaven.test.skip=true
+
+# 以正式环境配置启动
+spring-boot:run -DactiveName=pro -Dmaven.test.skip=true
+```
+
+#### 9.3.2. 项目打包命令
+
+- 需要将依赖的公共包安装到本地仓库，到时需要依赖打包到war包中9.3.2. - 项目打包：参考5.1将前端部署后，因为配置了开发环境与正式版本环境的两套配置文件，使用maven命令打包时，需要输入配置文件的参数，进行打包即可，完成后将war包放到tomcat运行部署
 
 ```shell
 # 项目安装

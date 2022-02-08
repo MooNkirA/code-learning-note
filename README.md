@@ -242,7 +242,9 @@
 <ul class="docs">
   <li><a href="#/06-Linux/01-Linux笔记">Linux 笔记</a></li>
   <li><a href="#/06-Linux/02-Linux安装">Linux 安装</a></li>
+  <li><a href="#/06-Linux/03-Linux命令">Linux 命令</a></li>
 </ul>
+
 
 ## 分布式架构 & 微服务架构
 
