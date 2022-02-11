@@ -940,7 +940,7 @@ public class HelloController {
 
 ##### 4.4.3.1. 方式1：读取默认配置文件(yml 与 properties 格式均可用)
 
-- ~~在pom.xml文件引入configuration-processor的依赖~~（可能旧版本的 Spring Boot 需要）
+- 在pom.xml文件引入configuration-processor的依赖（注：此依赖非必须，不依赖也能实现）
 
 ```xml
 <!-- @ConfigurationProperties执行器的配置 -->
@@ -1027,6 +1027,27 @@ public class DemoController {
         return company;
     }
 }
+```
+
+！补充说明：其实 spring-boot-configuration-processor 工具只是给实体类的属性注入时开启提示，即在定义需要注入的实体后，在编写 application.properties 和 application.yml 中给相应实体类注入属性时会出现提示，仅此而已，其实用处不大。还有就是如果依赖此工具后，在打包时最好在 build 的标签中排除对该工具的打包，从而减少打成jar包的大小
+
+```xml
+<build>
+    <plugins>
+        <plugin>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-maven-plugin</artifactId>
+            <configuration>
+                <excludes>
+                    <exclude>
+                        <groupId>org.springframework.boot</groupId>
+                        <artifactId>spring-boot-configuration-processor</artifactId>
+                    </exclude>
+                </excludes>
+            </configuration>
+        </plugin>
+    </plugins>
+</build>
 ```
 
 ##### 4.4.3.2. 方式2：读取自定义的配置文件(只能读取properties格式，该注解并不支持加载yml！)
