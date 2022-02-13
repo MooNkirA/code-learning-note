@@ -229,7 +229,9 @@
 
 ### ✨ 持续集成工具
 
-- Jenkins（整理中....）
+<ul class="docs">
+  <li><a href="#/05-DevOps工具/04-持续集成工具/01-Jenkins">Jenkins 持续集成工具</a></li>
+</ul>
 
 ### ✨ 测试工具
 
@@ -285,6 +287,12 @@
 <ul class="docs">
   <li><a href="#/07-分布式架构&微服务架构/03-Dubbo/01-Dubbo笔记">Dubbo 基础</a></li>
   <li><a href="#/07-分布式架构&微服务架构/03-Dubbo/02-Dubbo源码分析">Dubbo 源码分析</a></li>
+</ul>
+
+### ✨ Nginx
+
+<ul class="docs">
+  <li><a href="#/07-分布式架构&微服务架构/05-Nginx/01-Nginx笔记">Nginx 基础笔记</a></li>
 </ul>
 
 ### ✨ ZooKeeper
@@ -358,11 +366,13 @@
 ## 收集的项目实战资料
 
 <ul class="docs">
-  <li><a href="#/catalog-project-training?id=projectb-项目资料">ProjectB 项目资料</a></li>
-  <li><a href="#/catalog-project-training?id=学成在线-项目资料">学成在线 项目资料</a></li>
-  <li><a href="#/catalog-project-training?id=好客租房-项目资料">好客租房 项目资料</a></li>
-  <li><a href="#/catalog-project-training?id=红包雨场景案例-项目资料">红包雨场景案例 项目资料</a></li>
+  <li><a href="#/00-项目资料/02-品优购/">品优购 项目资料</a></li>
+  <li><a href="#/00-项目资料/04-学成在线/">学成在线 项目资料</a></li>
+  <li><a href="#/00-项目资料/05-好客租房/">好客租房 项目资料</a></li>
+  <li><a href="#/00-项目资料/06-红包雨场景案例/">红包雨场景案例 项目资料</a></li>
+  <li><a href="#/00-项目资料/07-万信金融/">万信金融 项目资料</a></li>
 </ul>
+
 
 # 在线阅读地址
 
