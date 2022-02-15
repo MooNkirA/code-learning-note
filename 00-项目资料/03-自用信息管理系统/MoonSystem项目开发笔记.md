@@ -45,11 +45,11 @@ moonzero-system
 
 ### 2.3. 涉及技术
 
-|   技术框架   |     版本      |       说明       |
+|   技术框架    |     版本      |       说明       |
 | ------------ | ------------- | ---------------- |
 | Spring Boot  | 2.1.7.RELEASE | 容器+MVC框架      |
 | Spring Cloud | Greenwich.SR2 | 微服务全套解决方案 |
-| Swagger-UI   | 2.7.0         | 文档生产工具      |
+| Swagger-UI   | 2.7.0         | 接口文档生成工具   |
 | Lombok       | 1.18.8        | 简化对象封装工具   |
 | MyBatis      | 3.1.2         | ORM框架          |
 | mybatis-plus | 3.1.2         | MyBatis增强插件   |
