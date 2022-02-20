@@ -1807,6 +1807,30 @@ public class Application {
 
 详见Spring Boot整合FreeMarker部分。
 
+## 11. Spring Boot 异常处理
+
+### 11.1. Spring MVC no handler 异常处理
+
+当请求不存在时，Spring MVC 在处理 404 异常时，会自动返回如下内容：
+
+```json
+{
+    "timestamp": "2022-02-19T01:01:10.907+0000",
+    "status": 404,
+    "error": "Not Found",
+    "message": "No message available",
+    "path": "/account/sms1/13800000000"
+}
+```
+
+但通常程序都需要由开发者来进行异常处理，所以需要在 Spring Boot 中修改 application.properties 中的配置：
+
+```properties
+spring.mvc.throw-exception-if-no-handler-found=true
+```
+
+配置 `spring.mvc.throw-exception-if-no-handler-found` 为 true，Spring MVC 在 404 时就会抛出 `DispatcherServlet` 中的 `throwExceptionIfNoHandlerFound`。此时开发者可以在全局异常处理中利用`@ExceptionHandler` 注解捕获 `NoHandlerFoundException` 异常，再做自定义处理即可
+
 # Spring Boot 项目部署运维篇
 
 ## 1. Spring Boot 打包与部署运行（Windows 篇）

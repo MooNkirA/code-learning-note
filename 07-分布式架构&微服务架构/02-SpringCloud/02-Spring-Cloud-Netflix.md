@@ -2812,7 +2812,7 @@ Zuul是Netflix开源的微服务网关，它可以和Eureka、Ribbon、Hystrix�
 
 创建zuul网关工程 `shop-server-zuul` ，并添加zuul组件的依赖
 
-```java
+```xml
 <!-- spring cloud netflix zuul 组件核心依赖 -->
 <dependency>
     <groupId>org.springframework.cloud</groupId>
@@ -3403,7 +3403,6 @@ Zuul2.x版本是对zuul的升级版，但并没有被Spring Cloud收录
 Spring Cloud Gateway 是 Spring Cloud 单独推出的微服务网关组件，比 Zuul 1.x 系列的性能和功能整体要好
 
 > 详细的Spring Cloud Gateway说明与使用详见`code-learning-note\07-分布式架构&微服务架构\02-SpringCloud\06-Spring-Cloud-Gateway.md`
-
 
 
 
