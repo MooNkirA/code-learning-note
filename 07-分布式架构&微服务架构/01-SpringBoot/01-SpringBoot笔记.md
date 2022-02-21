@@ -511,7 +511,7 @@ starter 其中有引入 `spring-boot-starter-tomcat` 的依赖，具体如下：
 
 其中有一个核心的坐标，`tomcat-embed-core` 叫做tomcat内嵌核心。就是此依赖把tomcat功能引入到了程序中。而 tomcat 服务器运行其实是以对象的形式保存到 Spring 容器，并在 SpringBoot 程序启动时运行起来。
 
-##### 3.1.4.2. 更换内嵌默认内嵌 web 服务
+##### 3.1.4.2. 更换内嵌默认内嵌 web 服务器
 
 SpringBoot 提供了3款内置的服务器
 
@@ -2162,8 +2162,10 @@ public class Application {
 Spring Boot uses a very particular `PropertySource` order that is designed to allow sensible overriding of values. Properties are considered in the following order (with values from lower items overriding earlier ones):
 
 1. Default properties (specified by setting `SpringApplication.setDefaultProperties`).
+    
     > 应用默认属性，使用 `SpringApplication.setDefaultProperties` 定义的内容
 2. `@PropertySource` annotations on your `@Configuration` classes. Please note that such property sources are not added to the `Environment` until the application context is being refreshed. This is too late to configure certain properties such as `logging.*` and `spring.main.*` which are read before refresh begins.
+    
     > 在 `@Configuration` 注解修改的类中，通过 `@PropertySource` 注解定义的属性
 3. Config data (such as `application.properties` files).
     > - 位于当前应用jar包之外，针对不同`{profile}`环境的配置文件内容，例如`application-{profile}.properties`或是YAML定义的配置文件
@@ -2171,18 +2173,24 @@ Spring Boot uses a very particular `PropertySource` order that is designed to al
     > - 位于当前应用jar包之外的application.properties和YAML配置内容
     > - 位于当前应用jar包之内的application.properties和YAML配置内容
 4. A `RandomValuePropertySource` that has properties only in `random.*`.
+    
     > 通过`random.*`配置的随机属性
 5. OS environment variables.
+    
     > 操作系统的环境变量
 6. Java System properties (`System.getProperties()`).
+    
     > Java的系统属性，可以通过`System.getProperties()`获得的内容
 7. JNDI attributes from `java:comp/env`.
+    
     > `java:comp/env` 中的JNDI属性
 8. `ServletContext` init parameters.
 9. `ServletConfig` init parameters.
 10. Properties from `SPRING_APPLICATION_JSON` (inline JSON embedded in an environment variable or system property).
+    
     > SPRING_APPLICATION_JSON 中的属性。SPRING_APPLICATION_JSON 是以 JSON 的格式配置在系统环境变量中的内容
 11. Command line arguments.
+    
     > 在命令行中传入的参数
 12. `properties` attribute on your tests. Available on `@SpringBootTest`  and the test annotations for testing a particular slice of your application.
 13. `@TestPropertySource` annotations on your tests.

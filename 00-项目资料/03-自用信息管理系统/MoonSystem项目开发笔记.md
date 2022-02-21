@@ -85,6 +85,7 @@ moonzero-system
 ## 5. 项目部署
 
 ### 5.1. 前面vue项目与后端Spring boot项目整合部署
+
 #### 5.1.1. 方式一：spring boot+vue部署（无使用thymleaf）
 
 1. 配置前端vue项目的config/prod.env.js文件。修改生产环境的请求`BASE_API`，这里配置为域名是为了后面使用nginx反向代理，不必因为后端部署到不同的服务器或者不同的端口而每次都要重新打包
