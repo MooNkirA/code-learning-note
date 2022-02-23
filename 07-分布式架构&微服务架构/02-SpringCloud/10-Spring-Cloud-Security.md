@@ -584,7 +584,7 @@ public class AuthorizationServerConfigurerAdapter implements AuthorizationServer
 
 ### 3.3. 配置客户端详细信息（ClientDetailsServiceConfigurer）
 
-`ClientDetailsServiceConfigurer` 类能够使用内存或者 JDBC 来实现客户端详情服务（ClientDetailsService），`ClientDetailsService` 负责查找 `ClientDetails`，而 `ClientDetails` 有几个重要的属性如下列表：
+`ClientDetailsServiceConfigurer` 类能够使用内存或者 JDBC 来实现客户端详情服务（`ClientDetailsService`），`ClientDetailsService` 负责查找 `ClientDetails`，而 `ClientDetails` 有几个重要的属性如下列表：
 
 |         属性名          |                                 描述                                 |
 | :--------------------: | -------------------------------------------------------------------- |
@@ -1245,7 +1245,7 @@ public class OrderController {
 ```
 
 ### 5.4. 添加安全访问控制
- 
+
 在 config 包下创建 Spring Security 的安全配置类 `WebSecurityConfig`，添加如下配置：
 
 ```java
@@ -2168,7 +2168,7 @@ POST http://127.0.0.1:53010/uaa/oauth/token
 相比较而言，方案二比较简单并不用破坏 `UserDetails` 的结构，因此采用方案二。
 
 #### 8.7.1. 修改自定义 UserDetailService 接口实现
- 
+
 修改 uaa 工程中的 `CustomUserDetailsService.loadUserByUsername` 方法，将原来从数据库查询到用户的信息后，将整个用户对象转成 json 存入 `UserDetails` 对象。
 
 ```java
