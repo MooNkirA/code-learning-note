@@ -2,7 +2,9 @@
 
 > 个人编程笔记文档网站，持续更新中...
 
-## JavaSE 基础
+## <img src="./images/java-logo.png" width="90px"><span style="display: none">JavaSE</span>
+
+### JavaSE
 
 <ul class="docs">
   <li><a href="#/01-Java/01-Java基础">Java基础</a></li>
@@ -21,7 +23,7 @@
   <li><a href="#/01-Java/网络资料-Java中的枚举的治理">网络资料-Java中的枚举的治理</a></li>
 </ul>
 
-## JavaWeb
+### JavaWeb
 
 <ul class="docs">
   <li><a href="#/01-JavaWeb/01-JavaWeb基础笔记">JavaWeb 基础笔记</a></li>
@@ -186,13 +188,13 @@
   <li><a href="#/04-数据库/01-MySQL/03-MySQL安装与部署">MySQL安装与部署</a></li>
 </ul>
 
-### ✨ Oracle
+### <img src="./images/oracle-logo.png" width="100px"><span style="display: none">Oracle</span>
 
 <ul class="docs">
   <li><a href="#/04-数据库/02-Oracle/01-Oracle基础笔记">Oracle基础笔记</a></li>
 </ul>
 
-### ✨ Redis
+### <img src="./images/redis-logo.png" width="25px"> Redis
 
 <ul class="docs">
   <li><a href="#/04-数据库/03-Redis/01-Redis笔记">Redis 笔记</a></li>
@@ -201,7 +203,7 @@
   <li><a href="#/04-数据库/03-Redis/04-Redis操作命令">Redis 操作命令</a></li>
 </ul>
 
-### ✨ MongoDb
+### <img src="./images/mongodb-logo.svg" width="100px"><span style="display: none">MongoDb</span>
 
 <ul class="docs">
   <li><a href="#/04-数据库/04-MongoDb/01-MongoDB笔记">MongoDB笔记</a></li>
@@ -269,7 +271,7 @@
   <li><a href="#/07-分布式架构&微服务架构/01-SpringBoot/99-SpringBoot笔记-其他相关内容">SpringBoot 笔记-其他相关内容</a></li>
 </ul>
 
-### ☁ SpringCloud
+### <img src="./images/springcloud-logo.png" width="150px"><span style="display: none">SpringCloud</span>
 
 <ul class="docs">
   <li><a href="#/07-分布式架构&微服务架构/02-SpringCloud/00-Microservices-Overview">微服务概述</a></li>
@@ -292,13 +294,13 @@
   <li><a href="#/07-分布式架构&微服务架构/03-Dubbo/02-Dubbo源码分析">Dubbo 源码分析</a></li>
 </ul>
 
-### 🕹 Nginx
+### <img src="./images/nginx-logo.png" width="100px"><span style="display: none">Nginx</span>
 
 <ul class="docs">
   <li><a href="#/07-分布式架构&微服务架构/05-Nginx/01-Nginx笔记">Nginx 基础笔记</a></li>
 </ul>
 
-### 🟢 ZooKeeper
+### <img src="./images/zookeeper-logo.gif" width="30px"> ZooKeeper
 
 <ul class="docs">
   <li><a href="#/07-分布式架构&微服务架构/06-Zookeeper/01-Zookeeper笔记">Zookeeper 基础笔记</a></li>
@@ -319,6 +321,14 @@
 <ul class="docs">
   <li><a href="#/07-分布式架构&微服务架构/08-分布式配置中心/00-Distributed-Configuration-Center-Overview">分布式配置中心综述</a></li>
   <li><a href="#/07-分布式架构&微服务架构/08-分布式配置中心/01-Apollo">Apollo 分布式配置中心</a></li>
+</ul>
+
+### ✨ 分布式事务控制解决方案
+
+<ul class="docs">
+  <li><a href="#/07-分布式架构&微服务架构/09-分布式事务控制解决方案/01-分布式事务基础理论">分布式事务基础理论</a></li>
+  <li><a href="#/07-分布式架构&微服务架构/09-分布式事务控制解决方案/02-Seata-2PC分布式事务解决方案">Seata - 2PC 分布式事务解决方案</a></li>
+  <li><a href="#/07-分布式架构&微服务架构/09-分布式事务控制解决方案/03-Hmily-TCC分布式事务解决方案">Hmily - TCC 分布式事务解决方案</a></li>
 </ul>
 
 ### ✨ 其他
