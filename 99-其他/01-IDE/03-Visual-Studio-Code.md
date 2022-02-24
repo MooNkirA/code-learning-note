@@ -285,7 +285,14 @@ module.exports = {
 
 ### 2.10. Bracket Pair Colorizer 或 Bracket Pair Colorizer2
 
-此扩展允许使用颜色标识匹配的括号
+此扩展允许使用颜色标识匹配的括号。此扩展已经成为VSCode的一个本地功能(可以不安装)。直接修改 settings.json 文件开启即可
+
+```json
+{
+    "editor.bracketPairColorization.enabled": true,
+    "editor.guides.bracketPairs":"active"
+}
+```
 
 ### 2.11. Auto Close Tag
 

@@ -511,7 +511,7 @@ starter 其中有引入 `spring-boot-starter-tomcat` 的依赖，具体如下：
 
 其中有一个核心的坐标，`tomcat-embed-core` 叫做tomcat内嵌核心。就是此依赖把tomcat功能引入到了程序中。而 tomcat 服务器运行其实是以对象的形式保存到 Spring 容器，并在 SpringBoot 程序启动时运行起来。
 
-##### 3.1.4.2. 更换内嵌默认内嵌 web 服务
+##### 3.1.4.2. 更换内嵌默认内嵌 web 服务器
 
 SpringBoot 提供了3款内置的服务器
 
@@ -940,7 +940,7 @@ public class HelloController {
 
 ##### 4.4.3.1. 方式1：读取默认配置文件(yml 与 properties 格式均可用)
 
-- ~~在pom.xml文件引入configuration-processor的依赖~~（可能旧版本的 Spring Boot 需要）
+- 在pom.xml文件引入configuration-processor的依赖（注：此依赖非必须，不依赖也能实现）
 
 ```xml
 <!-- @ConfigurationProperties执行器的配置 -->
@@ -1027,6 +1027,27 @@ public class DemoController {
         return company;
     }
 }
+```
+
+！补充说明：其实 spring-boot-configuration-processor 工具只是给实体类的属性注入时开启提示，即在定义需要注入的实体后，在编写 application.properties 和 application.yml 中给相应实体类注入属性时会出现提示，仅此而已，其实用处不大。还有就是如果依赖此工具后，在打包时最好在 build 的标签中排除对该工具的打包，从而减少打成jar包的大小
+
+```xml
+<build>
+    <plugins>
+        <plugin>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-maven-plugin</artifactId>
+            <configuration>
+                <excludes>
+                    <exclude>
+                        <groupId>org.springframework.boot</groupId>
+                        <artifactId>spring-boot-configuration-processor</artifactId>
+                    </exclude>
+                </excludes>
+            </configuration>
+        </plugin>
+    </plugins>
+</build>
 ```
 
 ##### 4.4.3.2. 方式2：读取自定义的配置文件(只能读取properties格式，该注解并不支持加载yml！)
@@ -1786,6 +1807,30 @@ public class Application {
 
 详见Spring Boot整合FreeMarker部分。
 
+## 11. Spring Boot 异常处理
+
+### 11.1. Spring MVC no handler 异常处理
+
+当请求不存在时，Spring MVC 在处理 404 异常时，会自动返回如下内容：
+
+```json
+{
+    "timestamp": "2022-02-19T01:01:10.907+0000",
+    "status": 404,
+    "error": "Not Found",
+    "message": "No message available",
+    "path": "/account/sms1/13800000000"
+}
+```
+
+但通常程序都需要由开发者来进行异常处理，所以需要在 Spring Boot 中修改 application.properties 中的配置：
+
+```properties
+spring.mvc.throw-exception-if-no-handler-found=true
+```
+
+配置 `spring.mvc.throw-exception-if-no-handler-found` 为 true，Spring MVC 在 404 时就会抛出 `DispatcherServlet` 中的 `throwExceptionIfNoHandlerFound`。此时开发者可以在全局异常处理中利用`@ExceptionHandler` 注解捕获 `NoHandlerFoundException` 异常，再做自定义处理即可
+
 # Spring Boot 项目部署运维篇
 
 ## 1. Spring Boot 打包与部署运行（Windows 篇）
@@ -2117,8 +2162,10 @@ public class Application {
 Spring Boot uses a very particular `PropertySource` order that is designed to allow sensible overriding of values. Properties are considered in the following order (with values from lower items overriding earlier ones):
 
 1. Default properties (specified by setting `SpringApplication.setDefaultProperties`).
+    
     > 应用默认属性，使用 `SpringApplication.setDefaultProperties` 定义的内容
 2. `@PropertySource` annotations on your `@Configuration` classes. Please note that such property sources are not added to the `Environment` until the application context is being refreshed. This is too late to configure certain properties such as `logging.*` and `spring.main.*` which are read before refresh begins.
+    
     > 在 `@Configuration` 注解修改的类中，通过 `@PropertySource` 注解定义的属性
 3. Config data (such as `application.properties` files).
     > - 位于当前应用jar包之外，针对不同`{profile}`环境的配置文件内容，例如`application-{profile}.properties`或是YAML定义的配置文件
@@ -2126,18 +2173,24 @@ Spring Boot uses a very particular `PropertySource` order that is designed to al
     > - 位于当前应用jar包之外的application.properties和YAML配置内容
     > - 位于当前应用jar包之内的application.properties和YAML配置内容
 4. A `RandomValuePropertySource` that has properties only in `random.*`.
+    
     > 通过`random.*`配置的随机属性
 5. OS environment variables.
+    
     > 操作系统的环境变量
 6. Java System properties (`System.getProperties()`).
+    
     > Java的系统属性，可以通过`System.getProperties()`获得的内容
 7. JNDI attributes from `java:comp/env`.
+    
     > `java:comp/env` 中的JNDI属性
 8. `ServletContext` init parameters.
 9. `ServletConfig` init parameters.
 10. Properties from `SPRING_APPLICATION_JSON` (inline JSON embedded in an environment variable or system property).
+    
     > SPRING_APPLICATION_JSON 中的属性。SPRING_APPLICATION_JSON 是以 JSON 的格式配置在系统环境变量中的内容
 11. Command line arguments.
+    
     > 在命令行中传入的参数
 12. `properties` attribute on your tests. Available on `@SpringBootTest`  and the test annotations for testing a particular slice of your application.
 13. `@TestPropertySource` annotations on your tests.
@@ -2486,25 +2539,9 @@ java -jar moon-project.jar --spring.profiles.active=dev
 java -jar moon-project.jar --spring.profiles.active=pro
 ```
 
-### 9.2. 个人项目实践示例
+### 9.2. 使用 ${} 作为动态参数的解决
 
-#### 9.2.1. 打包项目赋值参数命令
-
-- 因为配置开发与正式版本的两套配置文件，所以开发时运行需要修改`Environment`的`VM options`的参数为：`-DactiveName=dev`，切换到开发环境的配置，再运行main方法启动
-    - **注意：此方式只适用于`${}`占位符情况，如果使用`@@`，则不能使用**
-- 为了兼容项目打包，配置文件是使用`@@`作为占位符，所以启动需要使用命令`spring-boot:run`
-
-```shell
-# 以开发环境配置启动
-spring-boot:run -DactiveName=dev -Dmaven.test.skip=true
-
-# 以正式环境配置启动
-spring-boot:run -DactiveName=pro -Dmaven.test.skip=true
-```
-
-**使用`${}`作为动态参数的解决方案**
-
-从spring-boot-starter-parent的pom.xml文件中查看 `delimiter that doesn't clash with Spring ${}`
+从 spring-boot-starter-parent 的 pom.xml 文件中可以查看  `delimiter that doesn't clash with Spring ${}`
 
 ```xml
 <properties>
@@ -2516,6 +2553,51 @@ spring-boot:run -DactiveName=pro -Dmaven.test.skip=true
     <maven.compiler.target>${java.version}</maven.compiler.target>
 </properties>
 ```
+
+spring boot 默认是使用 `@@` 占位符来读取maven的配置属性值，如需要修改使用 `${}` 作为动态参数读取配置值，可以有以下处理方案。
+
+#### 9.2.1. 方案一
+
+手动配置 maven 的插件来实现使用 `${}` 读取配置值，具体配置如下：
+
+1. 指定配置文件的 `filtering` 属性为 true
+2. 配置 maven 的源码插件，配置 `delimiter` 为 `${*}`
+
+```xml
+<build>
+    <resources>
+        <resource>
+            <directory>src/main/resources/</directory>
+            <!-- 指定以下配置中可填充不同 profile 中变量值 -->
+            <filtering>true</filtering>
+            <includes>
+                <include>**/*.properties</include>
+                <include>**/*.lua</include>
+            </includes>
+        </resource>
+    </resources>
+
+    <plugins>
+        <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-resources-plugin</artifactId>
+            <configuration>
+                <useDefaultDelimiters>false</useDefaultDelimiters>
+                <!-- 配置替换配置文件的占位符
+                    在新的 spring boot 版本中，是使用 @@ 作为占位符，
+                    为了兼容旧的写法，所以这些配置使用 ${} 作为占位符
+                    -->
+                <delimiters>
+                    <delimiter>${*}</delimiter>
+                </delimiters>
+                <encoding>UTF-8</encoding>
+            </configuration>
+        </plugin>
+    </plugins>
+</build>
+```
+
+#### 9.2.2. 方案二
 
 若项目使用了 spring-boot-starter-parent 做项目版本管理，替换 `resource.delimiter` 属性
 
@@ -2533,12 +2615,27 @@ spring-boot:run -DactiveName=pro -Dmaven.test.skip=true
 </properties>
 ```
 
-**注意：使用些方式后，使用mvn命令打包时，不使用默认值方式`${参数名:默认值}`**
+<font color=red>**注意：使用些方式后，使用mvn命令打包时，不使用默认值方式`${参数名:默认值}`**</font>
 
-#### 9.2.2. 项目打包命令
+### 9.3. 个人项目实践示例
 
-- 需要将依赖的公共包安装到本地仓库，到时需要依赖打包到war包中
-- 项目打包：参考5.1将前端部署后，因为配置了开发环境与正式版本环境的两套配置文件，使用maven命令打包时，需要输入配置文件的参数，进行打包即可，完成后将war包放到tomcat运行部署
+#### 9.3.1. 打包项目赋值参数命令
+
+ - 因为配置开发与正式版本的两套配置文件，所以开发时运行需要修改`Environment`的`VM options`的参数为：`-DactiveName=dev`，切换到开发环境的配置，再运行main方法启动
+    - **注意：使用 mvn 命令启动的方式只适用于`${}`占位符情况，如果使用`@@`，则不能使用**
+- 为了兼容项目打包，配置文件是使用`@@`作为占位符，所以启动需要使用命令`spring-boot:run`
+
+```shell
+# 以开发环境配置启动
+spring-boot:run -DactiveName=dev -Dmaven.test.skip=true
+
+# 以正式环境配置启动
+spring-boot:run -DactiveName=pro -Dmaven.test.skip=true
+```
+
+#### 9.3.2. 项目打包命令
+
+- 需要将依赖的公共包安装到本地仓库，到时需要依赖打包到war包中9.3.2. - 项目打包：参考5.1将前端部署后，因为配置了开发环境与正式版本环境的两套配置文件，使用maven命令打包时，需要输入配置文件的参数，进行打包即可，完成后将war包放到tomcat运行部署
 
 ```shell
 # 项目安装

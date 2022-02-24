@@ -1,11 +1,12 @@
 # Redis 安装
 
 ## 1. windows 版本
+
 ### 1.1. 直接运行Redis服务
 
-- 下载Windows版本的redis：https://github.com/MicrosoftArchive/redis/tags
-- 下载 Redis-x64-3.2.100版本，解压Redis-x64-3.2.100.zip。
-- 进入cmd命令行，进入Redis-x64-3.2.100目录，运行以下命令。（*注：如果使用powershell打开，需要在命令前增加“./”*）
+- 下载 Windows 版本的 redis：https://github.com/MicrosoftArchive/redis/tags
+- 下载 Redis-x64-3.2.100 版本，解压 Redis-x64-3.2.100.zip。
+- 进入 cmd 命令行，进入 Redis-x64-3.2.100 目录，运行以下命令。（*注：如果使用powershell打开，需要在命令前增加“`./`”*）
 
 ```bash
 redis-server redis.windows.conf
@@ -36,6 +37,7 @@ redis-server.exe --service-stop    # 停止服务
 ```
 
 ## 2. windows图形化操作界面
+
 ### 2.1. redis-desktop-manager
 
 - windows版本的redis客户端官网：https://redisdesktop.com/download
@@ -44,11 +46,82 @@ redis-server.exe --service-stop    # 停止服务
 
 ## 3. linux 版本
 
-### 3.1. 安装
+### 3.1. 安装（压缩包安装）
 
-- 参考文档：
-    - G:\Java编程工具资料\数据库\Redis\Redis安装和使用.docx
-    - G:\Java编程工具资料\数据库\Redis\Redis安装.doc
+> - 参考文档：
+>    - E:\07-编程工具资料\04-数据库\Redis\Redis安装和使用.docx
+>   - E:\07-编程工具资料\04-数据库\Redis\Redis安装.doc
+
+1. **安装 redis 的依赖环境**
+
+```bash
+[root@localhost src]# yum -y install gcc automake autoconf libtool make
+```
+
+2. **上传安装包**
+
+获取到安装包，使用 `rz` 命令（需要系统支持）并将它上传到 linux 的 `/usr/local/src/` 目录下
+
+```bash
+[root@localhost src]# ls
+redis-5.0.4.tar.gz
+```
+
+3. **解压**
+
+解压安装包，得到一个redis-5.0.4目录
+
+```bash
+[root@localhost src]# tar -zxvf redis-5.0.4.tar.gz
+[root@localhost src]# ls
+redis-5.0.4 redis-5.0.4.tar.gz
+```
+
+4. **编译**
+
+进入 redis 目录，在目录下执行 `make` 命令
+
+```bash
+[root@localhost src]# cd redis-5.0.4
+[root@localhost redis-5.0.4]# make
+```
+
+5. **安装**
+
+执行安装命令，注意此处指定了安装目录为 `/usr/local/redis`
+
+```bash
+[root@localhost redis-5.0.4]# make PREFIX=/usr/local/redis install
+```
+
+6. **复制配置文件**
+
+将配置文件复制到 redis 的安装目录的bin目录下
+
+```bash
+[root@localhost redis-5.0.4]# cd /usr/local/redis/bin/
+[root@localhost bin]# ls
+redis-benchmark redis-check-aof redis-check-rdb redis-cli redis-sentinelredis-server
+[root@localhost bin]# cp /usr/local/src/redis-5.0.4/redis.conf ./
+[root@localhost bin]# ls
+redis-benchmark redis-check-aof redis-check-rdb redis-cli redis.conf redis-sentinel redis-server
+```
+
+7. **修改redis的配置文件**
+
+修改 redis 的配置文件，将注解绑定和保护模式关闭，方便从客户端连接测试
+
+```bash
+[root@localhost bin]# vim redis.conf
+```
+
+![](images/213420718231681.png)
+
+8. **启动redis服务**
+
+```bash
+[root@localhost bin]# ./src/redis-server redis.conf &
+```
 
 ### 3.2. 执行相关文件
 
@@ -62,14 +135,14 @@ redis-server.exe --service-stop    # 停止服务
 | redis-sentinel   | 启动哨兵                  |
 
 ### 3.3. 启动
+
 #### 3.3.1. redis-server 服务端启动
 
 1. 默认配置：redis-server，日志输出版本信息，端口：6379
 
 - 启动方式1：`redis-server --port 6380`（不建议）
-- 启动方式2：` redis-server /opt/redis/redis.conf`。以配置文件方式启动
-- 启动方式3：后端模式
-    - 修改redis.conf配置文件，`daemonize yes`，以后端模式启动
+- 启动方式2：`redis-server /opt/redis/redis.conf`。以配置文件方式启动
+- 启动方式3：修改 redis.conf 配置文件，`daemonize yes`，以后端模式启动
 
     ![配置后端模式](images/20191110233242803_14088.jpg)
 

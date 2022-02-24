@@ -1,5 +1,9 @@
 # Apollo 分布式配置中心(服务中间件)
 
+- Apollo 官方仓库：https://github.com/ctripcorp/apollo
+- Apollo 官方文档：https://www.apolloconfig.com/#/
+- 官方参考文档：https://github.com/ctripcorp/apollo/wiki
+
 ## 1. 概念简介
 
 ### 1.1. 什么是配置
@@ -19,25 +23,35 @@
 
 ### 1.2. 什么是配置中心
 
+#### 1.2.1. 传统配置形式存在的问题
+
 传统单体应用存在一些潜在缺陷，如随着规模的扩大，部署效率降低，团队协作效率差，系统可靠性变差，维护困难，新功能上线周期长等，所以迫切需要一种新的架构去解决这些问题，而微服务（ microservices ）架构正是当下一种流行的解法。
 
-不过，解决一个问题的同时，往往会诞生出很多新的问题，所以微服务化的过程中伴随着很多的挑战，其中一个挑战就是有关服务（应用）配置的。当系统从一个单体应用，被拆分成分布式系统上一个个服务节点后，配置文件也必须跟着迁移（分割），这样配置就分散了，不仅如此，分散中还包含着冗余，如下图：
+不过，解决一个问题的同时，往往会诞生出很多新的问题，所以微服务化的过程中伴随着很多的挑战，其中一个挑战就是有关服务（应用）配置的。传统配置存在的问题如下：
+
+1. 缺少权限控制：由于配置能改变程序的行为，不正确的配置甚至能引起灾难，所以对配置的修改必须有比较完善的权限控制
+2. 缺少版本控制：在整个开发过程中，配置会经常发生修改，版本控制非常必要
+3. 缺少实时控制：配置发生变化后，需要重启才能生效，费时费力，迫切需要实时生效(热发布)
 
 ![](images/20200704103640838_6991.png)
 
-配置中心将配置从应用中剥离出来，统一管理，优雅的解决了配置的动态变更、持久化、运维成本等问题。
+当系统从一个单体应用，被拆分成分布式系统上一个个服务节点后，配置文件也必须跟着迁移（分割），这样配置就变得分散了，造成使用和管理难度变大。不仅如此，各个节点服务的配置中难免会包含很多冗余代码。
 
-应用自身既不需要去添加管理配置接口，也不需要自己去实现配置的持久化，更不需要引入“定时任务”以便降低运维成本。
+同一个应用程序在不同的环境（开发，测试，生产）和不同的集群经常需要有不同的配置，需要能方便得进行动态切换。
 
-总得来说，<font color=red>**配置中心就是一种统一管理各种应用配置的基础服务组件**</font>。
+#### 1.2.2. 配置中心的作用
+
+配置中心将配置从应用中剥离出来，对所有的配置进行单独的统一管理，优雅的解决了配置的动态变更、持久化、运维成本等问题。应用自身既不需要去添加管理配置接口，也不需要自己去实现配置的持久化，更不需要引入“定时任务”以便降低运维成本。总得来说，<font color=red>**配置中心就是一种统一管理各种应用配置的基础服务组件**</font>。
 
 在系统架构中，配置中心是整个微服务基础架构体系中的一个组件，它的功能就是**配置的管理和存取**，但它也是整个微服务架构中不可或缺的一环。如下图，
 
-![](images/20200704104014355_26317.png)
+![](images/553642023220255.png)
 
 集中管理配置，那么就要将应用的配置作为一个单独的服务抽离出来了，所以也需要解决一些新的问题，比如：版本管理（为了支持回滚），权限管理等。
 
-总结：在传统巨型单体应用纷纷转向细粒度微服务架构的历史进程中，配置中心是微服务化不可缺少的一个系统组件，在这种背景下中心化的配置服务即配置中心应运而生，一个合格的配置中心需要具备以下几点：
+#### 1.2.3. 小结
+
+在传统巨型单体应用纷纷转向细粒度微服务架构的历史进程中，配置中心是微服务化不可缺少的一个系统组件，在这种背景下中心化的配置服务即配置中心应运而生，一个合格的配置中心需要具备以下几点：
 
 - 配置项容易读取和修改
 - 添加新配置简单直接
@@ -55,8 +69,6 @@ Apollo包括服务端和客户端两部分：
 
 - 服务端基于Spring Boot和Spring Cloud开发，打包后可以直接运行，不需要额外安装Tomcat等应用容器。
 - 客户端（Java）不依赖任何框架，能够运行于所有Java运行时环境，同时对Spring/Spring Boot环境也有较好的支持。
-
-> 官网：https://github.com/ctripcorp/apollo
 
 ### 2.2. Apollo 特性
 
@@ -93,13 +105,30 @@ Apollo包括服务端和客户端两部分：
 
 由于Disconf不再维护，下面主要对比一下Spring Cloud Config、Apollo和Nacos。
 
-![](images/20200704110318314_10929.png)
+|    功能点    |  Spring Cloud Config   |         Apollo          |          Nacos          |
+| ----------- | ---------------------- | ----------------------- | ----------------------- |
+| 配置实时推送  | 支持(Spring Cloud Bus) | 支持(HTTP长轮询1s内)     | 支持(HTTP长轮询1s内)     |
+| 版本管理     | 支持(Git)              | 支持                    | 支持                    |
+| 配置回滚     | 支持(Git)              | 支持                    | 支持                    |
+| 灰度发布     | 支持                   | 支持                    | 不支持                  |
+| 权限管理     | 支持(依赖Git)          | 支持                    | 不支持                  |
+| 多集群       | 支持                   | 支持                    | 支持                    |
+| 多环境       | 支持                   | 支持                    | 支持                    |
+| 监听查询     | 支持                   | 支持                    | 支持                    |
+| 多语言       | 只支持Java              | 主流语言，提供了Open API | 主流语言，提供了Open API |
+| 配置格式校验  | 不支持                 | 支持                    | 支持                    |
+| 单机读(QPS)  | 7(限流所致)             | 9000                    | 15000                   |
+| 单机读(QPS)  | 5(限流所致)             | 1100                    | 1800                    |
+| 3节点读(QPS) | 21(限流所致)            | 27000                   | 45000                   |
+| 3节点写(QPS) | 5(限流所致)             | 3300                    | 5600                    |
 
-总的来看，Apollo和Nacos相对于Spring Cloud Config的生态支持更广，在配置管理流程上做的更好。Apollo相对于Nacos在配置管理做的更加全面，Nacos则使用起来相对比较简洁，在对性能要求比较高的大规模场景更适合。但对于一个开源项目的选型，项目上的人力投入（迭代进度、文档的完整性）、社区的活跃度（issue的数量和解决速度、Contributor数量、社群的交流频次等），这些因素也比较关键，考虑到Nacos开源时间不长和社区活跃度，所以从目前来看Apollo应该是最合适的配置中心选型。
+总的来看，Apollo 和 Nacos 相对于 Spring Cloud Config 的生态支持更广，在配置管理流程上做的更好。Apollo 相对于 Nacos 在配置管理做的更加全面，Nacos 则使用起来相对比较简洁，在对性能要求比较高的大规模场景更适合。但对于一个开源项目的选型，项目上的人力投入（迭代进度、文档的完整性）、社区的活跃度（issue的数量和解决速度、Contributor 数量、社群的交流频次等），这些因素也比较关键，考虑到 Nacos 开源时间不长和社区活跃度，所以从目前来看 Apollo 应该是最合适的配置中心选型。
 
 ## 3. Apollo 快速入门
 
-> 官方参考文档：https://github.com/ctripcorp/apollo/wiki
+此快速入门示例的版本是 v1.6.1
+
+> 快速入门官方文档：https://www.apolloconfig.com/#/zh/deployment/quick-start
 
 ### 3.1. Apollo 执行流程
 
@@ -123,7 +152,7 @@ Apollo客户端的实现原理如下：
 - 一种是Apollo配置中心会向客户端推送最新的配置；
 - 另外一种是Apollo客户端会定时从Apollo配置中心拉取最新的配置，通过以上两种机制共同来保证应用程序能及时获取到配置。
 
-### 3.2. Apollo 安装
+### 3.2. Apollo 安装（v1.6.1）
 
 > 官方参考文档：https://github.com/ctripcorp/apollo/wiki/Quick-Start
 
@@ -132,7 +161,7 @@ Apollo客户端的实现原理如下：
 - Apollo服务端：Java 1.8+
 - Apollo客户端：Java 1.7+
 
-> 由于需要同时运行服务端和客户端，所以建议安装Java 1.8+。
+> 由于需要同时运行服务端和客户端，所以建议安装Java 1.8+，<font color=red>**需要配置 `JAVA_HOME` 环境变量**</font>。
 
 - MySQL版本要求：5.6.5+
 
@@ -148,7 +177,7 @@ Apollo客户端的实现原理如下：
 
 ![](images/20200704134621040_14358.png)
 
-3. 解压安装包后将apollo-configservice-1.x.x.jar, apollo-adminservice-1.x.x.jar, apollo-portal-1.x.x.jar放置于apollo目录下
+3. 解压安装包后将 apollo-configservice-1.x.x.jar, apollo-adminservice-1.x.x.jar, apollo-portal-1.x.x.jar 放置于自定的 apollo 部署目录下
 
 #### 3.2.3. 创建 apollo 涉及的数据库
 
@@ -156,11 +185,13 @@ Apollo服务端共需要两个数据库：`ApolloPortalDB` 和 `ApolloConfigDB`
 
 <font color=red>**`ApolloPortalDB`只需要在生产环境部署一个即可，而`ApolloConfigDB`需要在每个环境部署一套。**</font>
 
+> 本地脚本备份位置：`E:\07-编程工具资料\14-配置中心\apollo\sql scripts\`
+
 ##### 3.2.3.1. ApolloPortalDB
 
 1. 创建ApolloPortalDB
 
-通过各种MySQL客户端导入apolloportaldb.sql即可。sql脚本下载地址：https://github.com/ctripcorp/apollo/blob/v1.6.1/scripts/sql/apolloportaldb.sql
+通过各种 MySQL 客户端导入 apolloportaldb.sql 即可。sql 脚本下载地址：https://github.com/ctripcorp/apollo/blob/v1.6.1/scripts/sql/apolloportaldb.sql
 
 以MySQL原生客户端为例：
 
@@ -203,6 +234,14 @@ select `Id`, `Key`, `Value`, `Comment` from `ApolloConfigDB`.`ServerConfig` limi
 ![](images/20200704152821505_30081.png)
 
 > 相关sql脚本汇总位置：https://github.com/MooNkirA/java-technology-stack/tree/master/java-stack-apollo/scripts/sql
+
+##### 3.2.3.3. 如何获取相应版本的 sql 脚本
+
+根据下载的 apollo 版本，切换到相应版本的分支，在 `apollo/scripts/sql/` 目录下可以找到相应的脚本
+
+![](images/8195215220257.png)
+
+如 v1.9.1 版本，相应的数据库表 sql 脚本地址是：https://github.com/apolloconfig/apollo/tree/1.9.1/scripts/sql
 
 ### 3.3. Apollo 启动
 
@@ -257,17 +296,22 @@ java -Xms256m -Xmx256m -Dapollo_profile=github,auth -Ddev_meta=http://localhost:
 
 > 相关运行脚本汇总位置：https://github.com/MooNkirA/java-technology-stack/tree/master/java-stack-apollo/scripts/run
 
-运行runApollo.bat即可启动Apollo相关服务
+运行 runApollo.bat 即可启动 Apollo 相关服务
 
 ![](images/20200704155423435_19406.png)
 
 5. 待启动成功后，访问管理页面
-    - 本地访问url：http://localhost:8070/signin
+    - 本地访问url：http://localhost:8070/
     - 账号/密码：apollo/admin
 
 ![](images/20200704162720179_22940.png)
 
+- 输入 `http://localhost:8080/` 可以访问 apollo 内部启动的 eureka 服务
+
+![](images/271764616238683.png)
+
 ### 3.4. Apollo 基础使用项目示例
+
 #### 3.4.1. 发布配置
 
 1. 打开apollo服务，创建项目apollo-quickstart
@@ -476,32 +520,45 @@ Apollo的总体设计各模块职责如下：
 ### 4.2. 核心概念
 
 - **application (应用)**
-    - 就是实际使用配置的应用，Apollo客户端在运行时需要知道当前是哪个应用，从而可以去获取对应的配置
+    - 就是实际使用 Apollo 配置的应用，该应用一般指的就是自己的微服务工程，Apollo 客户端在运行时需要知道当前是哪个应用，从而可以去获取对应的配置
     - **关键字：`appId`**
+
+![](images/473430317246716.png)
+
 - **environment (环境)**
-    - 配置对应的环境，Apollo客户端在运行时需要知道当前应用处于哪个环境，从而可以去获取应用的配置
+    - 配置对应的环境，Apollo 客户端在运行时需要知道当前应用处于哪个环境，从而可以去获取应用的配置
     - **关键字：`env`**
+
+![](images/365120417239385.png)
+
 - **cluster (集群)**
-    - 一个应用下不同实例的分组，比如典型的可以按照数据中心分，把上海机房的应用实例分为一个集群，把北京机房的应用实例分为另一个集群。
+    - 一个应用下不同实例的分组，典型的应用就是不同应用实例按照数据中心进行划分，比如把上海机房的应用实例分为一个集群，把北京机房的应用实例分为另一个集群。
     - **关键字：`cluster`**
+
+![](images/182480517235940.png)
+
 - **namespace (命名空间)**
-    - 一个应用下不同配置的分组，可以简单地把namespace类比为文件，不同类型的配置存放在不同的文件中，如数据库配置文件，RPC配置文件，应用自身的配置文件等
+    - 一个应用下不同配置的分组，可以简单地把namespace类比为文件，不同类型的配置存放在不同的文件中，如数据库配置文件，RPC 配置文  件，应用自身的配置文件等
     - **关键字：`namespaces`**
 
-相应的关系图
+![](images/331590517231694.png)
+
+**相应的关系图**：
 
 ![](images/20200705112352443_29683.png)
 
-### 4.3. 项目管理（Apollo Portal管理界面）
+### 4.3. 基础设置
 
-#### 4.3.1. 基础设置
+在右上角的【管理员工具】中可以进行一些基础的设置
 
-##### 4.3.1.1. 部门管理
+![](images/344165616226550.png)
+
+#### 4.3.1. 部门管理
 
 apollo 默认部门有两个。要增加自己的部门，可在系统参数中修改
 
 1. 点击【管理员工具】-->【系统参数】
-2. 在key输入框中输入`organizations`，查询已存在的部门设置
+2. 在key输入框中输入`organizations`（*注：固定值*），查询已存在的部门设置
 
 ![](images/20200705155707591_17313.png)
 
@@ -515,13 +572,15 @@ apollo 默认部门有两个。要增加自己的部门，可在系统参数中�
 
 ![](images/20200705160039219_3277.png)
 
-##### 4.3.1.2. 添加用户
+#### 4.3.2. 用户管理
 
 apollo默认提供一个超级管理员：`apollo`，点击【管理员工具】-->【用户管理】，可以添加用户
 
 ![](images/20200705160252219_26666.png)
 
-#### 4.3.2. 创建项目
+### 4.4. 项目管理（Apollo Portal管理界面）
+
+#### 4.4.1. 创建项目
 
 1. 打开apollo-portal主页：http://localhost:8070/
 2. 点击【创建项目】，创建名为account-service的项目
@@ -534,27 +593,27 @@ apollo默认提供一个超级管理员：`apollo`，点击【管理员工具】
 ![](images/20200705162314852_21871.png)
 
 4. 点击提交后，创建成功则会自动跳转到项目首页
-5. 在项目管理页面，使用管理员apollo将指定项目授权给之前添加的用户“moon”，管理account-service服务的权限
+5. 在项目管理页面，使用管理员 apollo 将指定项目授权给之前添加的用户“moon”，管理 account-service 服务的权限
 
 ![](images/20200705163101527_9647.png)
 
 ![](images/20200705163859779_28566.png)
 
-6. 使用“mono”登录，查看项目配置
+6. 使用“moon”登录，查看项目配置
 
 ![](images/20200705164521166_31552.png)
 
-#### 4.3.3. 删除项目
+#### 4.4.2. 删除项目
 
 如删除整个项目，点击【管理员工具】-->【删除应用、集群、AppNamespace】。先查询出要删除的项目，再点击【删除应用】
 
 ![](images/20200705162240719_1525.png)
 
-### 4.4. 配置管理（Apollo Portal管理界面）
+### 4.5. 配置管理（Apollo Portal管理界面）
 
 以下示例操作在account-service项目中进行配置
 
-#### 4.4.1. 添加发布配置项
+#### 4.5.1. 添加发布配置项
 
 方式一：通过表格模式添加配置，在项目信息页面，点击【表格】标签（*默认的*）-->【新增配置】
 
@@ -564,13 +623,13 @@ apollo默认提供一个超级管理员：`apollo`，点击【管理员工具】
 
 ![](images/20200705171230412_461.png)
 
-#### 4.4.2. 修改配置
+#### 4.5.2. 修改配置
 
 1. 找到对应的配置项，点击修改
 2. 修改为需要的值，点击提交
 3. 发布配置
 
-#### 4.4.3. 删除配置
+#### 4.5.3. 删除配置
 
 1. 找到需要删除的配置项，点击删除按钮
 
@@ -578,9 +637,11 @@ apollo默认提供一个超级管理员：`apollo`，点击【管理员工具】
 
 2. 确认删除后，点击发布
 
-#### 4.4.4. 添加Namespace
+### 4.6. 命名空间（Namespace）
 
-Namespace作为配置的分类，可当成一个配置文件。下面以添加rocketmq配置为例，添加名叫“spring-rocketmq”的`Namespace`配置rocketmq相关信息
+#### 4.6.1. 添加 Namespace
+
+Namespace 作为配置的分类，可当成一个配置文件。下面以添加rocketmq配置为例，添加名叫“spring-rocketmq”的`Namespace`配置rocketmq相关信息
 
 1. 添加项目私有Namespace：`spring-rocketmq`。进入项目首页，点击左下角的【添加Namespace】，共包括两项：【关联公共Namespace】和【创建Namespace】，这里选择【创建Namespace】
 
@@ -597,7 +658,7 @@ rocketmq.producer.group = PID_ACCOUNT
 
 3. 发布配置
 
-#### 4.4.5. 客户端获取Namespace的配置
+#### 4.6.2. 客户端获取Namespace的配置
 
 修改VM options：`-Dapp.id=account-service -Denv=DEV -Ddev_meta=http://localhost:8080`，运行以下测试程序
 
@@ -618,13 +679,13 @@ public void getNamespaceConfigTest() throws InterruptedException {
 }
 ```
 
-#### 4.4.6. 公共配置
+#### 4.6.3. 公共配置
 
-##### 4.4.6.1. 添加公共Namespace
+##### 4.6.3.1. 添加公共Namespace
 
-在项目开发中，有一些配置可能是通用的，可以通过把这些通用的配置放到公共的Namespace中，这样其他项目要使用时可以直接添加需要的公共Namespace
+在项目开发中，有一些配置可能是通用的，可以通过把这些通用的配置放到公共的Namespace中，这样其他项目要使用时可以直接添加需要的公共 Namespace
 
-1. 新建common-template项目，用于存放公共配置项
+1. 新建 common-template 项目，用于存放公共配置项
 
 ![](images/20200705173553080_11646.png)
 
@@ -646,11 +707,11 @@ server.servlet.context‐path = /
 
 ![](images/20200705174512560_30311.png)
 
-##### 4.4.6.2. 关联公共Namespace
+##### 4.6.3.2. 关联公共Namespace
 
-1. 打开已有的account-service项目
-2. 点击左侧的添加Namespace
-3. 选择关联公共Namespace，选择公共的namespace
+1. 打开已有的 account-service 项目
+2. 点击左侧的添加 Namespace
+3. 选择关联公共 Namespace，选择公共的 namespace
 
 ![](images/20200705175153676_10671.png)
 
@@ -662,7 +723,7 @@ server.servlet.context‐path = /
 
 ![](images/20200705175630955_19755.png)
 
-### 4.5. 多项目配置（Apollo Portal管理界面）
+### 4.7. 多项目配置（Apollo Portal管理界面）
 
 通常一个分布式系统包括多个项目，所以需要配置多个项目，下面以一个P2P金融的项目为例，添加交易中心微服务`transaction-service`。*详细操作以上章节已有*，步骤如下：
 
@@ -671,11 +732,11 @@ server.servlet.context‐path = /
 3. 覆盖配置，修改交易中心微服务的context-path为：`/transaction`
 4. 发布修改后的配置
 
-### 4.6. 集群管理
+### 4.8. 集群管理
 
-在有些情况下，应用有需求对不同的集群做不同的配置，比如部署在A机房的应用连接的RocketMQ服务器地址和部署在B机房的应用连接的RocketMQ服务器地址不一样。另外在项目开发过程中，也可为不同的开发人员创建不同的集群来满足开发人员的自定义配置
+在有些情况下，应用有需求对不同的集群做不同的配置，比如部署在A机房的应用连接的 RocketMQ 服务器地址和部署在B机房的应用连接的 RocketMQ 服务器地址不一样。另外在项目开发过程中，也可为不同的开发人员创建不同的集群来满足开发人员的自定义配置
 
-#### 4.6.1. 创建集群
+#### 4.8.1. 创建集群
 
 1. 进入项目信息页面，点击页面左下角的【添加集群】按钮
 
@@ -691,7 +752,7 @@ server.servlet.context‐path = /
 
 > <font color=red>**注：每个环境下都有一个`default`集群，通常创建项目后，添加的配置都是在此集群中。所以创建新的集群后，相应的配置都是空**</font>
 
-#### 4.6.2. 同步集群配置
+#### 4.8.2. 同步集群配置
 
 同步集群的配置是指在同一个应用中拷贝某个环境下的集群的配置到目标环境下的目标集群。
 
@@ -710,7 +771,7 @@ server.servlet.context‐path = /
 
 ![](images/20200705181815330_7834.png)
 
-#### 4.6.3. 读取指定集群配置
+#### 4.8.3. 读取指定集群配置
 
 读取某个集群的配置，需要启动应用时指定具体的应用、环境和集群。
 
@@ -757,11 +818,11 @@ Spring Boot支持通过`application.properties`/`bootstrap.properties`来配置�
 
 下面示例以集成统一账户服务(account-service)为例
 
-#### 6.2.1. 导入工程
+#### 6.2.1. 导入 Apollo 客户端
 
 > 注：参考网上资料account-service、transaction-service、uaa-service、consumer-service工程，手动创建这几个微服务
 
-每个工程必须添加依赖：
+每个工程必须在 pom.xml 添加 Apollo 客户端依赖：
 
 ```xml
 <dependency>
@@ -828,7 +889,9 @@ Spring Boot支持通过`application.properties`/`bootstrap.properties`来配置�
 
 #### 6.2.2. 整合 apollo 必选配置
 
-1. **AppId**：对应apollo项目的配置。在Spring Boot项目的`application.properties`或`application.yml`中配置
+在 Spring Boot 项目的 `application.properties` 或 `application.yml` 中配置以下必需项：
+
+1. `app.id`：对应 apollo 项目的 **AppId** 配置。
 
 ```properties
 app.id=account-service
@@ -839,7 +902,7 @@ app:
   id: account-service
 ```
 
-2. **`apollo.bootstrap`**：用于集成springboot，开启apollo.bootstrap，指定namespace，主要配置以下内容：
+2. `apollo.bootstrap`：用于集成 springboot，开启 apollo.bootstrap，指定 namespace，主要配置以下内容：
 
 ```properties
 apollo.bootstrap.enabled = true
@@ -853,39 +916,39 @@ apollo:
     namespaces: application,micro_service.spring-boot-http,spring-rocketmq,micro_service.spring-boot-druid
 ```
 
-3. **Apollo Meta Server**：有以下两种配置方式：
-    - 第一种：通过Java System Property的apollo.meta：`-Dapollo.meta=http://localhost:8080`
-    - 第二种：在resources目录下新建apollo-env.properties文件
+3. `xxx.meta`：**Apollo Meta Server** 的配置，主要有以下两种配置方式：
+    - 第一种：通过 Java System Property 方式，设置 apollo.meta：`-Dapollo.meta=http://localhost:8080`
+    - 第二种：在 resources 目录下新建 `apollo-env.properties` 文件，添加以下配置
 
-    ```properties
-    dev.meta=http://localhost:8080
-    pro.meta=http://localhost:8081
-    ```
+```properties
+# 开发环境
+dev.meta=http://localhost:8080
+# 生产环境
+pro.meta=http://localhost:8081
+# 功能验收测试环境
+fat.meta=http://apollo.fat.xxx.com  
+# 用户验收测试环境
+uat.meta=http://apollo.uat.xxx.com 
+```
 
 4. 本地缓存路径
 
-Apollo客户端会把从服务端获取到的配置在本地文件系统缓存一份，用于在遇到服务不可用，或网络不通的时候，依然能从本地恢复配置，不影响应用正常运行。本地配置文件会以下面的文件名格式放置于配置的本地缓存路径下：`{appId}+{cluster}+{namespace}.properties`
+Apollo 客户端会把从服务端获取到的配置在本地文件系统缓存一份，用于在遇到服务不可用，或网络不通的时候，依然能从本地恢复配置，不影响应用正常运行。本地配置文件会以下面的文件名格式放置于配置的本地缓存路径下：`{appId}+{cluster}+{namespace}.properties`
 
 ![](images/20200706111034922_18910.png)
 
-可以通过如下方式指定缓存路径，通过Java System Property的`apollo.cacheDir`：
+可以通过如下方式指定缓存路径，通过 Java System Property 的 `apollo.cacheDir`：
 
 ```bash
 -Dapollo.cacheDir=/opt/data/apollo-config
 ```
 
-5. **Environment**：Apollo配置环境。通过Java System Property的env来指定环境：`-Denv=DEV`
-6. **Cluster（集群）**：通过Java System Property的`apollo.cluste`来指定集群：`-Dapollo.cluster=DEFAULT`，或者选择使用之前新建的SHAJQ集群：`-Dapollo.cluster=SHAJQ`
+5. `env`：Apollo 配置环境(**Environment**)。通过 Java System Property 的 env 来指定环境：`-Denv=DEV`
+6. `apollo.cluste`：**Cluster（集群）**配置项，通过 Java System Property 的来指定集群：`-Dapollo.cluster=DEFAULT`，或者选择使用之前新建的SHAJQ集群：`-Dapollo.cluster=SHAJQ`
 
-**项目启动完整的VM options配置如下：**
+#### 6.2.3. 开启 apollo 配置
 
-```bash
--Denv=DEV -Dapollo.cacheDir=/opt/data/apollo-config -Dapollo.cluster=DEFAULT
-```
-
-#### 6.2.3. 启用配置
-
-创建项目的启动类，在启动类上增加`@EnableApolloConfig`注解开启Apollo配置
+创建项目的启动类，在启动类上增加 `@EnableApolloConfig` 注解开启Apollo配置
 
 ```java
 package com.moon.apollo.account;
@@ -993,9 +1056,17 @@ apollo:
     namespaces: application,micro_service.spring-boot-http,spring-rocketmq,micro_service.spring-boot-druid
 ```
 
-#### 6.2.5. 读取配置测试
+#### 6.2.5. 完整 VM options 配置
 
-1. 配置好VM options，启动项目
+<font color=red>**为了保持灵活，都通过vm options 来匹配环境、集群、缓存路径等。项目启动完整的 VM options 配置如下：**</font>
+
+```bash
+-Denv=DEV -Dapollo.cacheDir=/opt/data/apollo-config -Dapollo.cluster=DEFAULT
+```
+
+#### 6.2.6. 读取配置测试
+
+1. 配置好 VM options，启动项目
 2. 访问：`http://127.0.0.1:63000/account-service/hi`，确认Spring Boot中配置的context-path是否生效。如果通过`/account-service`能正常访问，说明apollo的配置已生效
 
 ![](images/20200706142700672_22845.png)
@@ -1015,7 +1086,7 @@ public String getDBConfig(@Value("${spring.datasource.url}") String url) {
 
 ![](images/20200706143307644_10012.png)
 
-#### 6.2.6. 创建其它服务项目（未完成）
+#### 6.2.7. 创建其它服务项目（未完成）
 
 参考account-service项目，创建其它微服务项目。
 

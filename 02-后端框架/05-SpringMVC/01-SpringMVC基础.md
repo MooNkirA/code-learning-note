@@ -205,7 +205,7 @@ mvc是一种设计模式。模型（model） --> 视图（view） --> 控制器�
 	<servlet-name>dispatcherServlet</servlet-name>
 	<!-- 配置拦截的url，说明：
 		1.*.do，表示以.do结尾的请求，进入前端控制器
-			2./，表示所有请求都进入前端控制器
+		2./，表示所有请求都进入前端控制器
 	 -->
 	<url-pattern>*.do</url-pattern>
 </servlet-mapping>
@@ -596,7 +596,6 @@ public boolean preHandle(HttpServletRequest request, HttpServletResponse respons
     - struts2基于类开发的。
 4.	与spring整合不一样。
     - springmvc框架本身就是spring框架的一部分，不需要整合。
-
 
 
 

@@ -164,7 +164,25 @@ create database haoke default character set utf8;
 - 创建相关数据库表与测试数据
 
 ```sql
+SET NAMES utf8mb4;
+SET FOREIGN_KEY_CHECKS = 0;
 
+DROP TABLE IF EXISTS `user`;
+CREATE TABLE `user`  (
+  `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT '主键ID',
+  `name` varchar(30) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '姓名',
+  `age` int(11) NULL DEFAULT NULL COMMENT '年龄',
+  `email` varchar(50) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '邮箱',
+  PRIMARY KEY (`id`) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = Dynamic;
+
+INSERT INTO `user` VALUES (1, 'Jone', 18, 'test1@baomidou.com');
+INSERT INTO `user` VALUES (2, 'Jack', 20, 'test2@baomidou.com');
+INSERT INTO `user` VALUES (3, 'Tom', 28, 'test3@baomidou.com');
+INSERT INTO `user` VALUES (4, 'Sandy', 21, 'test4@baomidou.com');
+INSERT INTO `user` VALUES (5, 'Billie', 24, 'test5@baomidou.com');
+
+SET FOREIGN_KEY_CHECKS = 1;
 ```
 
 #### 2.3.2. 创建工程以及导入依赖
@@ -759,11 +777,440 @@ public void testSelectPage() {
 }
 ```
 
-## 4. 注解(!整理中)
+## 4. 通用 Service CRUD 封装
+
+Mybatis-Plus 为了开发更加快捷，对业务层也进行了封装，直接提供了相关的接口和实现类。在进行业务层开发时，可以继承MP提供的接口和实现类，使得编码更加高效。
+
+### 4.1. IService 接口概述
+
+`com.baomidou.mybatisplus.extension.service.IService`，该接口是一个泛型接口，里面提供了很多方法，包括基本的增删改查。
+
+![](images/282631011226553.png)
+
+说明:
+
+- 通用 Service CRUD 封装 `IService` 接口，进一步封装 CRUD 采用 `get 查询单行`、`remove 删除`、`list 查询集合`、`page 分页`。**前缀命名方式区分 `Mapper` 层避免混淆**
+- 泛型 `T` 为任意实体对象
+- 建议如果存在自定义通用 `Service` 方法的可能，请创建自己的 `IBaseService` 继承 Mybatis-Plus 提供的基类
+- 对象 `Wrapper` 为条件构造器
+
+#### 4.1.1. ServiceImpl 实现类
+
+`com.baomidou.mybatisplus.extension.service.impl.ServiceImpl` 类是 MP 提供的 `IService` 接口实现类，该类实现了上面接口中的所有方法
+
+### 4.2. 接口方法
+
+#### 4.2.1. 新增操作 （Save）
+
+```java
+// 插入一条记录（选择字段，策略插入）
+boolean save(T entity);
+// 插入（批量）
+boolean saveBatch(Collection<T> entityList);
+// 插入（批量）
+boolean saveBatch(Collection<T> entityList, int batchSize);
+```
+
+参数说明：
+
+|       类型       |   参数名    |    参数名    |
+| :-------------: | ---------- | ----------- |
+|       `T`       | entity     | 实体对象     |
+| `Collection<T>` | entityList | 实体对象集合 |
+|      `int`      | batchSize  | 插入批次数量 |
+
+#### 4.2.2. 新增或更新操作 （SaveOrUpdate）
+
+```java
+// TableId 注解存在更新记录，否插入一条记录
+boolean saveOrUpdate(T entity);
+// 根据updateWrapper尝试更新，否继续执行saveOrUpdate(T)方法
+boolean saveOrUpdate(T entity, Wrapper<T> updateWrapper);
+// 批量修改插入
+boolean saveOrUpdateBatch(Collection<T> entityList);
+// 批量修改插入
+boolean saveOrUpdateBatch(Collection<T> entityList, int batchSize);
+```
+
+参数说明：
+
+|       类型       |     参数名     |              参数名               |
+| :-------------: | ------------- | -------------------------------- |
+|       `T`       | entity        | 实体对象                          |
+|  `Wrapper<T>`   | updateWrapper | 实体对象封装操作类 `UpdateWrapper` |
+| `Collection<T>` | entityList    | 实体对象集合                       |
+|      `int`      | batchSize     | 插入批次数量                       |
+
+#### 4.2.3. 更新操作 （Update）
+
+```java
+// 根据 UpdateWrapper 条件，更新记录 需要设置sqlset
+boolean update(Wrapper<T> updateWrapper);
+// 根据 whereWrapper 条件，更新记录
+boolean update(T updateEntity, Wrapper<T> whereWrapper);
+// 根据 ID 选择修改
+boolean updateById(T entity);
+// 根据ID 批量更新
+boolean updateBatchById(Collection<T> entityList);
+// 根据ID 批量更新
+boolean updateBatchById(Collection<T> entityList, int batchSize);
+```
+
+参数说明：
+
+|       类型       |     参数名     |              参数名               |
+| :-------------: | ------------- | -------------------------------- |
+|  `Wrapper<T>`   | updateWrapper | 实体对象封装操作类 `UpdateWrapper` |
+|       `T`       | entity        | 实体对象                          |
+| `Collection<T>` | entityList    | 实体对象集合                       |
+|      `int`      | batchSize     | 插入批次数量                       |
+
+#### 4.2.4. 删除操作 （Remove）
+
+```java
+// 根据 entity 条件，删除记录
+boolean remove(Wrapper<T> queryWrapper);
+// 根据 ID 删除
+boolean removeById(Serializable id);
+// 根据 columnMap 条件，删除记录
+boolean removeByMap(Map<String, Object> columnMap);
+// 删除（根据ID 批量删除）
+boolean removeByIds(Collection<? extends Serializable> idList);
+```
+
+参数说明：
+
+|                 类型                  |    参数名     |          参数名           |
+| :----------------------------------: | ------------ | ------------------------ |
+|             `Wrapper<T>`             | queryWrapper | 实体包装类 `QueryWrapper` |
+|            `Serializable`            | id           | 主键 ID                   |
+|        `Map<String, Object>`         | columnMap    | 表字段 map 对象           |
+| `Collection<? extends Serializable>` | idList       | 主键 ID 列表              |
+
+#### 4.2.5. 查询单个操作 （Get）
+
+```java
+// 根据 ID 查询
+T getById(Serializable id);
+// 根据 Wrapper，查询一条记录。结果集，如果是多个会抛出异常，随机取一条加上限制条件 wrapper.last("LIMIT 1")
+T getOne(Wrapper<T> queryWrapper);
+// 根据 Wrapper，查询一条记录
+T getOne(Wrapper<T> queryWrapper, boolean throwEx);
+// 根据 Wrapper，查询一条记录
+Map<String, Object> getMap(Wrapper<T> queryWrapper);
+// 根据 Wrapper，查询一条记录
+<V> V getObj(Wrapper<T> queryWrapper, Function<? super Object, V> mapper);
+```
+
+参数说明：
+
+|              类型              |    参数名     |          参数名           |
+| :---------------------------: | ------------ | ------------------------ |
+|        `Serializable`         | id           | 主键 ID                   |
+|         `Wrapper<T>`          | queryWrapper | 实体包装类 `QueryWrapper` |
+|         `boolean`             | throwEx      | 有多个 result 是否抛出异常 |
+|              `T`              | entity       | 实体对象                  |
+| `Function<? super Object, V>` | mapper       | 转换函数                  |
+
+#### 4.2.6. 查询多个操作 （List）
+
+```java
+// 查询所有
+List<T> list();
+// 查询列表
+List<T> list(Wrapper<T> queryWrapper);
+// 查询（根据ID 批量查询）
+Collection<T> listByIds(Collection<? extends Serializable> idList);
+// 查询（根据 columnMap 条件）
+Collection<T> listByMap(Map<String, Object> columnMap);
+// 查询所有列表
+List<Map<String, Object>> listMaps();
+// 查询列表
+List<Map<String, Object>> listMaps(Wrapper<T> queryWrapper);
+// 查询全部记录
+List<Object> listObjs();
+// 查询全部记录
+<V> List<V> listObjs(Function<? super Object, V> mapper);
+// 根据 Wrapper 条件，查询全部记录
+List<Object> listObjs(Wrapper<T> queryWrapper);
+// 根据 Wrapper 条件，查询全部记录
+<V> List<V> listObjs(Wrapper<T> queryWrapper, Function<? super Object, V> mapper);
+```
+
+参数说明：
+
+|                 类型                  |    参数名     |              参数名              |
+| :----------------------------------: | ------------ | ------------------------------- |
+|             `Wrapper<T>`             | queryWrapper | 实体对象封装操作类 `QueryWrapper` |
+| `Collection<? extends Serializable>` | idList       | 主键 ID 列表                     |
+|        `Map<String, Object>`         | columnMap    | 表字段 map 对象                   |
+|    `Function<? super Object, V>`     | mapper       | 转换函数                         |
+
+#### 4.2.7. 分页操作 （Page）
+
+```java
+// 无条件分页查询
+IPage<T> page(IPage<T> page);
+// 条件分页查询
+IPage<T> page(IPage<T> page, Wrapper<T> queryWrapper);
+// 无条件分页查询
+IPage<Map<String, Object>> pageMaps(IPage<T> page);
+// 条件分页查询
+IPage<Map<String, Object>> pageMaps(IPage<T> page, Wrapper<T> queryWrapper);
+```
+
+参数说明：
+
+|     类型      |    参数名     |              参数名              |
+| :----------: | ------------ | ------------------------------- |
+|  `IPage<T>`  | page         | 翻页对象                         |
+| `Wrapper<T>` | queryWrapper | 实体对象封装操作类 `QueryWrapper` |
+
+#### 4.2.8. 聚合统计操作 （Count）
+
+```java
+// 查询总记录数
+int count();
+// 根据 Wrapper 条件，查询总记录数
+int count(Wrapper<T> queryWrapper);
+```
+
+参数说明：
+
+|     类型      |    参数名     |              参数名              |
+| :----------: | ------------ | ------------------------------- |
+| `Wrapper<T>` | queryWrapper | 实体对象封装操作类 `QueryWrapper` |
+
+#### 4.2.9. 链式操作（Chain）
+
+**query 查询**
+
+```java
+// 链式查询 普通
+QueryChainWrapper<T> query();
+// 链式查询 lambda 式。注意：不支持 Kotlin
+LambdaQueryChainWrapper<T> lambdaQuery();
+```
+
+示例：
+
+```java
+query().eq("column", value).one();
+lambdaQuery().eq(Entity::getId, value).list();
+```
+
+**update 更新**
+
+```java
+// 链式更改 普通
+UpdateChainWrapper<T> update();
+// 链式更改 lambda 式。注意：不支持 Kotlin
+LambdaUpdateChainWrapper<T> lambdaUpdate();
+```
+
+示例：
+
+```java
+update().eq("column", value).remove();
+lambdaUpdate().eq(Entity::getId, value).update(entity);
+```
+
+### 4.3. 基础使用测试
+
+> 以用户表为示例
+
+- 创建 mapper 接口，继承 MP 的 `BaseMapper` 接口
+
+```java
+public interface UserMapper extends BaseMapper<User> {
+}
+```
+
+- 自定义业务层接口，继承 `IService<T>` 接口
+
+```java
+// 此接口需要继承 IService 接口，否则使用接口注入的时候就无法调用相关基础方法
+public interface IUserService extends IService<User> {
+    // 此接口中可以自定义相关的业务方法...
+}
+```
+
+- 创建业务层实现类，继承 `ServiceImpl<M extends BaseMapper<T>, T>` 类
+
+```java
+@Service
+public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IUserService {
+}
+```
+
+- 测试
+
+```java
+@SpringBootTest
+public class ServiceCrudTest {
+
+    @Autowired
+    private IUserService userService;
+
+    /* 新增操作 */
+    @Test
+    public void testSave() {
+        User user = new User();
+        user.setName("石原里美");
+        user.setAge(24);
+        user.setEmail("aaaa@moon.com");
+        user.setRoleId(1L);
+
+        // 方法返回是否成功布尔值
+        boolean result = userService.save(user);
+        System.out.println("是否新增成功：" + result);
+    }
+
+    /* 批量新增操作 */
+    @Test
+    public void testSaveBatch() {
+        List<User> list = new ArrayList<>();
+        for (int i = 1; i < 11; i++) {
+            User user = new User();
+            user.setName("石原里美" + i);
+            user.setAge(24 + i);
+            user.setEmail("aaaa@moon.com");
+            user.setRoleId(1L);
+            list.add(user);
+        }
+
+        // 方法返回是否成功布尔值
+        boolean result = userService.saveBatch(list);
+        System.out.println("是否批量新增成功：" + result);
+    }
+
+    /* 新增或者更新操作 */
+    @Test
+    public void testSaveOrUpdate() {
+        User user = new User();
+        user.setId(101L);
+        user.setName("天锁斩月");
+        user.setAge(25);
+        user.setEmail("moon@moon.com");
+        user.setRoleId(1L);
+
+        // 方法返回是否成功布尔值
+        boolean result = userService.saveOrUpdate(user);
+        System.out.println("是否新增/更新成功：" + result);
+    }
+
+    /* 根据id更新操作 */
+    @Test
+    public void testUpdateById() {
+        User user = new User();
+        user.setId(20L);
+        user.setName("香风智乃");
+        user.setRoleId(3L);
+
+        // 方法返回是否成功布尔值
+        boolean result = userService.updateById(user);
+        System.out.println("是否更新成功：" + result);
+    }
+
+    /* 根据 id 删除操作 */
+    @Test
+    public void testRemoveById() {
+        User user = new User();
+        user.setId(13L);
+
+        // 方法返回是否成功布尔值
+        boolean result = userService.removeById(user);
+        System.out.println("是否删除成功：" + result);
+    }
+
+    /* 根据条件删除操作 */
+    @Test
+    public void testRemove() {
+        QueryWrapper<User> wrapper = new QueryWrapper<>();
+        wrapper.ge("age", 27);
+
+        // 方法返回是否成功布尔值
+        boolean result = userService.remove(wrapper);
+        System.out.println("是否删除成功：" + result);
+    }
+
+    /* 查询单个操作 */
+    @Test
+    public void testGetById() {
+        User user = new User();
+        user.setId(11L);
+
+        // 方法返回查询对象
+        User result = userService.getById(user);
+        System.out.println(result);
+    }
+
+    /* 根据条件查询单个操作 */
+    @Test
+    public void testGetOne() {
+        QueryWrapper<User> wrapper = new QueryWrapper<>();
+        wrapper.eq("id", 102L);
+
+        // 查询一条记录。结果集，如果是多个会抛出异常，随机取一条加上限制条件 wrapper.last("LIMIT 1")
+        User result = userService.getOne(wrapper);
+        System.out.println(result);
+    }
+
+    /* 根据条件查询多个操作 */
+    @Test
+    public void testList() {
+        QueryWrapper<User> wrapper = new QueryWrapper<>();
+        wrapper.le("age", 23);
+
+        // 返回多条记录
+        List<User> list = userService.list(wrapper);
+        if (!CollectionUtils.isEmpty(list)) {
+            list.forEach(System.out::println);
+        }
+    }
+
+    /* 根据条件分页查询多个操作 */
+    @Test
+    public void testPage() {
+        QueryWrapper<User> wrapper = new QueryWrapper<>();
+        wrapper.le("age", 23);
+
+        Page<User> page = new Page<>(1, 2);
+
+        // 返回分页多条记录
+        IPage<User> list = userService.page(page, wrapper);
+        if (!CollectionUtils.isEmpty(list.getRecords())) {
+            list.getRecords().forEach(System.out::println);
+        }
+    }
+
+    /* 聚合统计操作 */
+    @Test
+    public void testCount() {
+        QueryWrapper<User> wrapper = new QueryWrapper<>();
+        wrapper.le("age", 23);
+
+        // 返回记录数
+        long count = userService.count(wrapper);
+        System.out.println("记录数：" + count);
+    }
+
+    /* 链式查询操作 */
+    @Test
+    public void testQuery() {
+        List<User> list = userService.query().le("age", 24).list();
+        if (!CollectionUtils.isEmpty(list)) {
+            list.forEach(System.out::println);
+        }
+    }
+}
+```
+
+## 5. 注解(!整理中)
 
 > 此章节介绍 MybatisPlus 注解包相关类详解(注解类包：mybatis-plus-annotation)
 
-### 4.1. @TableName
+### 5.1. @TableName
 
 描述：表名注解，用于实体类上
 
@@ -776,7 +1223,7 @@ public void testSelectPage() {
 |  `autoResultMap`   | `boolean`  |    否    | `false` | 是否自动构建 `resultMap` 并使用(如果设置 `resultMap` 则不会进行 `resultMap` 的自动构建并注入) |
 | `excludeProperty`  | `String[]` |    否    |  `{}`   | 需要排除的属性名(@since 3.3.1)                                                            |
 
-### 4.2. @TableField
+### 5.2. @TableField
 
 描述：实体类字段注解(非主键)
 
@@ -801,23 +1248,23 @@ public void testSelectPage() {
 >
 > `numericScale`只生效于 update 的sql。`jdbcType`和`typeHandler`如果不配合`@TableName#autoResultMap = true`一起使用，也只生效于 update 的sql。对于`typeHandler`如果你的字段类型和set进去的类型为`equals`关系，则只需要让你的`typeHandler`让Mybatis加载到即可，不需要使用注解
 
-### 4.3. @Version(opens new window)
+### 5.3. @Version(opens new window)
 
 描述：乐观锁注解、标记 `@Verison` 在字段上
 
-### 4.4. @EnumValue(opens new window)
+### 5.4. @EnumValue(opens new window)
 
 描述：通枚举类注解(注解在枚举字段上)
 
-## 5. 配置
+## 6. 配置
 
 虽然在MybatisPlus中可以实现零配置，但是有些时候需要自定义一些配置，就需要使用Mybatis原生的一些配置文件方式了。在MyBatis-Plus中有大量的配置，其中有一部分是Mybatis原生的配置，另一部分是MyBatis-Plus的配置。
 
 > 更详细配置参考官方文档：https://baomidou.com/config/
 
-### 5.1. 基本配置
+### 6.1. 基本配置
 
-#### 5.1.1. configLocation
+#### 6.1.1. configLocation
 
 MyBatis 配置文件位置，如果您有单独的 MyBatis 配置，请将其路径配置到 configLocation 中。 *MyBatis Configuration 的具体内容请参考MyBatis 官方文档*
 
@@ -835,7 +1282,7 @@ mybatis-plus.config-location = classpath:mybatis-config.xml
 </bean>
 ```
 
-#### 5.1.2. mapperLocations
+#### 6.1.2. mapperLocations
 
 - 类型：`String[]`
 - 默认值：`["classpath*:/mapper/**/*.xml"]`
@@ -905,7 +1352,7 @@ public class UserMapperTest {
 }
 ```
 
-#### 5.1.3. typeAliasesPackage
+#### 6.1.3. typeAliasesPackage
 
 MyBaits 别名包扫描路径，通过该属性可以给包中的类注册别名，注册后在 Mapper 对应的 XML 文件中可以直接使用类名，而不用使用全限定的类名（即 XML 中调用的时候不用包含包名）。
 
@@ -923,11 +1370,11 @@ Spring MVC：
 </bean>
 ```
 
-### 5.2. Configuration
+### 6.2. Configuration
 
 本部分（Configuration）的配置大都为 MyBatis 原生支持的配置，这意味着您可以通过 MyBatis XML 配置文件的形式进行配置。
 
-#### 5.2.1. mapUnderscoreToCamelCase
+#### 6.2.1. mapUnderscoreToCamelCase
 
 - 类型：`boolean`
 - 默认值：`true`
@@ -947,7 +1394,7 @@ Spring MVC：
 mybatis-plus.configuration.map-underscore-to-camel-case=false
 ```
 
-#### 5.2.2. cacheEnabled
+#### 6.2.2. cacheEnabled
 
 - 类型：`boolean`
 - 默认值：`true`
@@ -960,9 +1407,9 @@ mybatis-plus.configuration.map-underscore-to-camel-case=false
 mybatis-plus.configuration.cache-enabled=false
 ```
 
-### 5.3. DbConfig（DB 策略配置）
+### 6.3. DbConfig（DB 策略配置）
 
-#### 5.3.1. idType
+#### 6.3.1. idType
 
 - 类型：`com.baomidou.mybatisplus.annotation.IdType`
 - 默认值：`ASSIGN_ID`
@@ -993,7 +1440,7 @@ mybatis-plus.global-config.db-config.id-type=auto
 </bean>
 ```
 
-#### 5.3.2. tablePrefix
+#### 6.3.2. tablePrefix
 
 - 类型：`String`
 - 默认值：`null`
@@ -1024,7 +1471,7 @@ mybatis-plus.global-config.db-config.table-prefix=tb_
 </bean>
 ```
 
-## 6. Wrapper 条件构造器
+## 7. Wrapper 条件构造器
 
 在MP中，`Wrapper`接口的实现类`AbstractWrapper`和`AbstractChainWrapper`，其关系如下：
 
@@ -1040,7 +1487,7 @@ mybatis-plus.global-config.db-config.table-prefix=tb_
 > - 以下举例均为使用普通wrapper，入参为Map和List的均以json形式表现!
 > - 使用中如果入参的Map或者List为空，则不会加入最后生成的sql中!!!
 
-### 6.1. AbstractWrapper
+### 7.1. AbstractWrapper
 
 **注意：**
 
@@ -1049,7 +1496,7 @@ mybatis-plus.global-config.db-config.table-prefix=tb_
 
 官方文档地址：https://baomidou.com/guide/wrapper.html#abstractwrapper
 
-#### 6.1.1. 全匹配 allEq
+#### 7.1.1. 全匹配 allEq
 
 `allEq`方法定义：
 
@@ -1108,7 +1555,7 @@ public void testAllEq() {
 }
 ```
 
-#### 6.1.2. 基本比较操作
+#### 7.1.2. 基本比较操作
 
 |   方法定义    |            含义             |                           示例                           |
 | :----------: | :------------------------: | -------------------------------------------------------- |
@@ -1177,7 +1624,7 @@ public void testBasicQuery() {
 }
 ```
 
-#### 6.1.3. 模糊查询
+#### 7.1.3. 模糊查询
 
 |   方法定义   |      含义       |                      示例                       |
 | :---------: | :-------------: | ----------------------------------------------- |
@@ -1192,7 +1639,7 @@ public void testBasicQuery() {
 
 ```
 
-#### 6.1.4. 排序
+#### 7.1.4. 排序
 
 |   方法定义    |          含义           |                              示例                               |
 | :-----------: | :--------------------: | --------------------------------------------------------------- |
@@ -1219,7 +1666,7 @@ public void testOrderQuery() {
 }
 ```
 
-#### 6.1.5. 逻辑查询
+#### 7.1.5. 逻辑查询
 
 | 方法定义 |        含义         |                                                                               示例                                                                               |
 | :-----: | :----------------: | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -1255,11 +1702,11 @@ public void testAndQuery() {
 }
 ```
 
-### 6.2. QueryWrapper
+### 7.2. QueryWrapper
 
 说明：继承自`AbstractWrapper`，自身的内部属性 `entity` 也用于生成 `where` 条件及 `LambdaQueryWrapper`，可以通过 `new QueryWrapper().lambda()` 方法获取
 
-#### 6.2.1. select 设置查询字段
+#### 7.2.1. select 设置查询字段
 
 ```java
 select(String... sqlSelect)
@@ -1283,9 +1730,9 @@ public void testSelect() {
 }
 ```
 
-## 7. ActiveRecord
+## 8. ActiveRecord
 
-### 7.1. 什么是 ActiveRecord
+### 8.1. 什么是 ActiveRecord
 
 ActiveRecord 也属于ORM（对象关系映射）层，由Rails最早提出，遵循标准的ORM模型：表映射到记录，记录映射到对象，字段映射到对象属性。配合遵循的命名和配置惯例，能够很大程度的快速实现模型的操作，而且简洁易懂。
 
@@ -1295,7 +1742,7 @@ ActiveRecord 的主要思想是：
 - ActiveRecord 同时负责把自己持久化，在 ActiveRecord 中封装了对数据库的访问，即CURD
 - ActiveRecord 是一种领域模型(Domain Model)，封装了部分业务逻辑
 
-### 7.2. 开启 ActiveRecord
+### 8.2. 开启 ActiveRecord
 
 在 MP 中，使用 ActiveRecord 只需要将相应的表实体类继承 `com.baomidou.mybatisplus.extension.activerecord.Model` 类即可。如：
 
@@ -1333,7 +1780,7 @@ public class User extends Model<User> {
 
 > *值得注意是：官方示例中，AR 模式必须需要有 `pkVal` 方法，否则原 xxById 等方法会失效。*
 
-### 7.3. 使用 ActiveRecord 示例
+### 8.3. 使用 ActiveRecord 示例
 
 ```java
 /**
@@ -1424,13 +1871,13 @@ public void testActiveRecordQuery() {
 
 > 注：测试时可观察控制台中的最终生成的sql语句
 
-## 8. Oracle 主键 Sequence
+## 9. Oracle 主键 Sequence
 
 在 Oracle 数据库中，主键不能使用自增长了，需要使用 Sequence 序列生成 id 值
 
-### 8.1. Oracle 数据库环境搭建
+### 9.1. Oracle 数据库环境搭建
 
-#### 8.1.1. 部署 Oracle 测试环境
+#### 9.1.1. 部署 Oracle 测试环境
 
 使用 Docker 环境进行部署安装 Oracle
 
@@ -1449,7 +1896,7 @@ docker start oracle && docker logs -f oracle
 >
 > 需要注意的是：由于安装的Oracle是64位版本，所以navicat也是需要使用64为版本，否则连接不成功。
 
-#### 8.1.2. 创建表以及序列
+#### 9.1.2. 创建表以及序列
 
 ```sql
 --创建表，表名以及字段名都要大写
@@ -1466,7 +1913,7 @@ CREATE TABLE "TB_USER" (
 CREATE SEQUENCE SEQ_USER START WITH 1 INCREMENT BY 1
 ```
 
-#### 8.1.3. 安装 Oracle 驱动包到 maven 本地仓库
+#### 9.1.3. 安装 Oracle 驱动包到 maven 本地仓库
 
 由于版权原因，不能直接通过maven的中央仓库下载oracle数据库的jdbc驱动包，所以手动需要将驱动包安装到本地仓库。maven安装命令如下：
 
@@ -1486,7 +1933,7 @@ mvn install:install-file -DgroupId=com.oracle -DartifactId=ojdbc8 -Dversion=12.1
 </dependency>
 ```
 
-### 8.2. 修改数据库连接配置
+### 9.2. 修改数据库连接配置
 
 ```yml
 spring:
@@ -1497,7 +1944,7 @@ spring:
     password: 123456
 ```
 
-### 8.3. 修改主键的生成策略
+### 9.3. 修改主键的生成策略
 
 <font color=red>**主键生成策略必须使用`INPUT`**</font>
 
@@ -1528,7 +1975,7 @@ public class YourEntity {
 }
 ```
 
-### 8.4. 配置序列生成器
+### 9.4. 配置序列生成器
 
 在项目中，配置MP的序列生成器，并添加到Spring容器中。MP 内置支持：
 
@@ -1540,7 +1987,7 @@ public class YourEntity {
 
 如果内置支持不满足你的需求，可实现`IKeyGenerator`接口来进行扩展
 
-#### 8.4.1. 方式1: Spring xml 配置
+#### 9.4.1. 方式1: Spring xml 配置
 
 ```xml
 <bean id="globalConfig" class="com.baomidou.mybatisplus.core.config.GlobalConfig">
@@ -1554,7 +2001,7 @@ public class YourEntity {
 <bean id="keyGenerator" class="com.baomidou.mybatisplus.extension.incrementer.H2KeyGenerator"/>
 ```
 
-#### 8.4.2. 方式2: 使用配置类
+#### 9.4.2. 方式2: 使用配置类
 
 ```java
 @Configuration
@@ -1571,7 +2018,7 @@ public class MybatisPlusConfig {
 }
 ```
 
-#### 8.4.3. 方式3: 通过 MybatisPlusPropertiesCustomizer 自定义
+#### 9.4.3. 方式3: 通过 MybatisPlusPropertiesCustomizer 自定义
 
 ```java
 @Bean
@@ -1580,7 +2027,7 @@ public MybatisPlusPropertiesCustomizer plusPropertiesCustomizer() {
 }
 ```
 
-### 8.5. 配置 @KeySequence 注解指定序列名称
+### 9.5. 配置 @KeySequence 注解指定序列名称
 
 实体类配置主键Sequence名称。
 
@@ -1606,7 +2053,7 @@ public class User {
 - 支持父类定义 `@KeySequence`，子类使用，这样就可以几个表共用一个 Sequence。如果主键是`String`类型的，也可以使用
 - oracle的sequence返回的是`Long`类型，如果主键类型是`Integer`，可能会引起`ClassCastException`
 
-### 8.6. 测试
+### 9.6. 测试
 
 ```java
 @Test
@@ -1630,7 +2077,7 @@ public void testSequenceGenerate() {
 }
 ```
 
-### 8.7. 底层实现（了解）
+### 9.7. 底层实现（了解）
 
 mybatis 原生提供了接口。MP 提供的现实类 `com.baomidou.mybatisplus.core.metadata.TableInfoHelper`
 
@@ -1669,7 +2116,7 @@ public static KeyGenerator genKeyGenerator(TableInfo tableInfo, MapperBuilderAss
 
 > `SelectKeyGenerator`对象是mybatis原生的主键生成器, 会在：执行sql之前调用主键生成器的方法获取主键结果，插入到insert语句中；在执行成功之后把主键的值回塞到实体对象中，这样我们只需通过对象的getId()方法就可以获取到主键值
 
-## 9. Sql 注入器
+## 10. Sql 注入器
 
 在MP中，通过 `AbstractSqlInjector` 将 `BaseMapper` 中的方法注入到了 Mybatis 容器，基础的增删改查方法才可以正常执行。
 
@@ -1679,7 +2126,7 @@ public static KeyGenerator genKeyGenerator(TableInfo tableInfo, MapperBuilderAss
 2. 编写自定义方法的逻辑处理类，继承抽象类`AbstractMethod`，实现`injectMappedStatement`方法，此方法就是自定义方法处理逻辑
 3. 继承MP框架的`ISqlInjector`接口默认实现类`DefaultSqlInjector`，重写`getMethodList`方法，增加扩展自定义的方法。
 
-### 9.1. SQL 自动注入器接口 ISqlInjector
+### 10.1. SQL 自动注入器接口 ISqlInjector
 
 ```java
 public interface ISqlInjector {
@@ -1697,7 +2144,7 @@ public interface ISqlInjector {
 
 自定义自己的通用方法可以实现接口 `ISqlInjector` 也可以继承抽象类 `AbstractSqlInjector` 注入通用方法 SQL 语句，然后继承 `BaseMapper` 添加自定义方法，全局配置 `sqlInjector` 注入 MP 会自动将类所有方法注入到 mybatis 容器中。
 
-### 9.2. 编写接口继承 BaseMapper
+### 10.2. 编写接口继承 BaseMapper
 
 编写 `MyBaseMapper` 接口（*名称自取*），此接口继承`BaseMapper`接口，相应扩展的方法都定义在此接口中。其他的Mapper接口都可以继承此Mapper接口，这样实现了统一的扩展。
 
@@ -1714,7 +2161,7 @@ public interface MyBaseMapper<T> extends BaseMapper<T> {
 }
 ```
 
-### 9.3. 编写自定义方法实现
+### 10.3. 编写自定义方法实现
 
 自定义的 SQL 处理方法，需要继承MP框架的 `AbstractMethod` 抽象类，重写 `injectMappedStatement` 抽象方法，在方法中对SQL做自定义的处理。
 
@@ -1753,7 +2200,7 @@ public class FindAll extends AbstractMethod {
 }
 ```
 
-### 9.4. 编写 SqlInjector 的实现
+### 10.4. 编写 SqlInjector 的实现
 
 自定义通用方法可以实现接口 `ISqlInjector`，也可以继承抽象类 `AbstractSqlInjector` 来注入自定义通用方法。值得注意的是，如果直接继承 `AbstractSqlInjector` 的话，原有的 `BaseMapper` 中的方法将失效，所以一般选择继承MP的框架提供的默认实现 `DefaultSqlInjector` 进行扩展。
 
@@ -1788,7 +2235,7 @@ public class MySqlInjector extends DefaultSqlInjector {
 
 > 注：此类需要注册到spring容器中
 
-### 9.5. 测试
+### 10.5. 测试
 
 编写mapper接口，继承自定义的 `MyBaseMapper` 接口
 
@@ -1798,11 +2245,11 @@ public interface UserMapper extends MyBaseMapper<User>
 
 测试接口调用自定义方法。
 
-## 10. 自动填充功能
+## 11. 自动填充功能
 
 在MP中提供了实现自动填充的功能，插入或者更新数据时，自动填充一些字段的数据。
 
-### 10.1. @TableField 注解的 fill 属性
+### 11.1. @TableField 注解的 fill 属性
 
 在实体类中，给需要自动填充的字段添加 `@TableField` 注解，`fill` 属性指定生成器的策略
 
@@ -1838,7 +2285,7 @@ public enum FieldFill {
 }
 ```
 
-### 10.2. 编写 MetaObjectHandler 的实现
+### 11.2. 编写 MetaObjectHandler 的实现
 
 自定义元对象处理器接口 `com.baomidou.mybatisplus.core.handlers.MetaObjectHandler` 的实现类。
 
@@ -1871,7 +2318,7 @@ public class MyMetaObjectHandler implements MetaObjectHandler {
 
 > 注：自定义处理器需要声明 `@Component` 或 `@Bean` 注入 spring 容器中
 
-### 10.3. 注意事项
+### 11.3. 注意事项
 
 - 填充原理是直接给实体对象的属性设置值!!!
 - 注解则是指定该属性在对应情况下必有值,如果无值则入库会是 `null`
@@ -1881,11 +2328,11 @@ public class MyMetaObjectHandler implements MetaObjectHandler {
 - 要想根据注解 `FieldFill.xxx` 和字段名以及字段类型来区分必须使用父类的 `strictInsertFill` 或者 `strictUpdateFill` 方法
 - 不需要根据任何来区分可以使用父类的 `fillStrategy` 方法
 
-## 11. 逻辑删除
+## 12. 逻辑删除
 
 逻辑删除就是将数据标记为删除，而并非真正的物理删除（非`DELETE`操作），查询时需要携带状态条件，确保被标记的数据不被查询到。这样做的目的就是避免数据被真正的删除。
 
-### 11.1. 修改全局配置 DbConfig
+### 12.1. 修改全局配置 DbConfig
 
 修改`com.baomidou.mybatisplus.core.config.GlobalConfig$DbConfig`的配置。例：application.yml
 
@@ -1900,7 +2347,7 @@ mybatis-plus:
 
 > 注：MP的逻辑删除默认值为：1-已删除 0-未删除。如果表的代表逻辑删除的值与默认值一致，则可以不用修改`GlobalConfig$DbConfig`的配置
 
-### 11.2. 添加 @TableLogic 注解
+### 12.2. 添加 @TableLogic 注解
 
 mp 实现逻辑删除，需要实体类相应的字段上加上 `@TableLogic` 注解
 
@@ -1911,7 +2358,7 @@ private Integer deleted;
 
 > *配置以上后，可以调用 `BaseMapper` 接口的删除方法，测试是否实现逻辑删除。*
 
-### 11.3. 特别说明
+### 12.3. 特别说明
 
 <font color=red>**MP的逻辑删除功能只对自动注入的sql起效**</font>，*即原`BaseMapper`的方法与自定义的SQL注入器的方法才有效*。
 
@@ -1932,11 +2379,11 @@ private Integer deleted;
 
 > 扩展：逻辑删除实质还是代表删除数据，只是为了保存有价值的数据的一种方案。如果经常需要查询这些“已删除”的数据，建议使用一个字段用于表示该记录的状态会更加合理。
 
-## 12. 通用枚举
+## 13. 通用枚举
 
 MP 提供通用枚举的功能，让sql的操作（新增、更新、查询）时，自动将转换相应的枚举值。
 
-### 12.1. 声明通用枚举属性
+### 13.1. 声明通用枚举属性
 
 - 方式一：使用 `@EnumValue` 注解枚举属性
 
@@ -2002,7 +2449,7 @@ public enum AgeEnum implements IEnum<Integer> {
 }
 ```
 
-### 12.2. 实体属性使用枚举类型
+### 13.2. 实体属性使用枚举类型
 
 将实体类相应需要转换的属性改成使用枚举
 
@@ -2030,7 +2477,7 @@ public class User {
 }
 ```
 
-### 12.3. 配置扫描通用枚举
+### 13.3. 配置扫描通用枚举
 
 配置`typeEnumsPackage`项，扫描通过枚举包的路径
 
@@ -2045,7 +2492,7 @@ mybatis-plus:
     default-enum-type-handler: org.apache.ibatis.type.EnumOrdinalTypeHandler
 ```
 
-### 12.4. 测试
+### 13.4. 测试
 
 ```java
 /**
@@ -2092,13 +2539,13 @@ public void testQueryWrapper() {
 }
 ```
 
-## 13. 代码生成器
+## 14. 代码生成器
 
-### 13.1. 代码生成器（历史版本）-待整理
+### 14.1. 代码生成器（历史版本）-待整理
 
 示例代码位置：`\mybatis-note\mybatis-plus-samples\03-mybatis-plus-generator\mp-generator-previous\`
 
-#### 13.1.1. 添加依赖
+#### 14.1.1. 添加依赖
 
 ```xml
 <dependencies>
@@ -2142,7 +2589,7 @@ public void testQueryWrapper() {
 </dependencies>
 ```
 
-#### 13.1.2. 编写配置
+#### 14.1.2. 编写配置
 
 ```java
 /**
@@ -2278,11 +2725,11 @@ public class CodeGenerator {
 }
 ```
 
-### 13.2. 代码生成器（3.5.1+版本）
+### 14.2. 代码生成器（3.5.1+版本）
 
 示例代码位置：`\mybatis-note\mybatis-plus-samples\03-mybatis-plus-generator\mp-generator-latest\`
 
-#### 13.2.1. 添加依赖
+#### 14.2.1. 添加依赖
 
 ```xml
 <dependencies>
@@ -2332,7 +2779,7 @@ public class CodeGenerator {
 </dependencies>
 ```
 
-#### 13.2.2. 编写配置
+#### 14.2.2. 编写配置
 
 ```java
 /**
