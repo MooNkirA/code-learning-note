@@ -358,14 +358,368 @@ public class DiscoveryServer {
 
 ### 2.4. 功能实现
 
+此部分两个微服务工程的具体实现
+
 #### 2.4.1. hmily-demo-bank1 转出操作工程
 
-- 项目配置 application.yml
+##### 2.4.1.1. 项目配置文件
+
+- 项目配置 application.yml，*重点关注 hmily 部分的配置*
 
 ```yml
+server:
+  servlet:
+    context-path: /bank1
+  port: 56081
 
+eureka:
+  instance:
+    preferIpAddress: true
+    instance-id: ${spring.application.name}:${spring.cloud.client.ip-address}:${spring.application.instance_id:${server.port}}
+    lease-renewal-interval-in-seconds: 5    # 续约更新时间间隔（默认30秒）
+    lease-expiration-duration-in-seconds: 10 # 续约到期时间（默认90秒）
+  client:
+    registry-fetch-interval-seconds: 5 # 抓取服务列表
+    serviceUrl:
+      defaultZone: http://localhost:56080/eureka/
+
+spring:
+  application:
+    name: hmily-demo-bank1
+  datasource:
+    url: jdbc:mysql://localhost:3306/bank1?useUnicode=true&useSSL=true
+    username: root
+    password: 123456
+    type: com.alibaba.druid.pool.DruidDataSource
+    driver-class-name: com.mysql.cj.jdbc.Driver
+# hmily 配置
+org:
+  dromara:
+    hmily:
+      serializer: kryo # 序列化工具
+      retryMax: 2 # 最大重试次数
+      repositorySupport: db # 持久化方式
+      started: true # 是否事务发起方
+      hmilyDbConfig:
+        driverClassName: com.mysql.jdbc.Driver
+        url: jdbc:mysql://localhost:3306/bank1?useUnicode=true&useSSL=true
+        username: root
+        password: 123456
+
+ribbon:
+  ConnectTimeout: 60000 # 设置连接超时时间 default 2000
+  ReadTimeout: 60000   # 设置读取超时时间  default 5000
+  OkToRetryOnAllOperations: true # 对所有操作请求都进行重试  default false
+  MaxAutoRetriesNextServer: 2    # 切换实例的重试次数  default 1
+  MaxAutoRetries: 1     # 对当前实例的重试次数 default 0
 ```
 
+##### 2.4.1.2. 持久层相关接口与实体类
 
+- 创建数据库表实体
 
+```java
+@Data
+public class AccountInfo implements Serializable {
+    private Long id;
+    private String accountName;
+    private String accountNo;
+    private String accountPassword;
+    private Double accountBalance;
+}
+```
 
+- 创建数据库持久接口，分别定义增加、减少账户余额的方法，直接使用注解的方式定义sql语句
+
+```java
+@Mapper
+@Repository
+public interface AccountInfoDao {
+
+    @Update("update account_info set account_balance = account_balance + #{amount} where account_no = #{accountNo}")
+    int addAccountBalance(@Param("accountNo") String accountNo, @Param("amount") Double amount);
+
+    @Update("update account_info set account_balance = account_balance - #{amount} where account_no = #{accountNo}")
+    int subtractAccountBalance(@Param("accountNo") String accountNo, @Param("amount") Double amount);
+}
+```
+
+##### 2.4.1.3. feign 远程调用接口
+
+- 创建 feign 远程调用接口 `Bank2Client`，使用分布式事务的接口需要标识 `@Hmily` 注解
+
+```java
+@FeignClient(value = "hmily-demo-bank2") // 调用的服务id
+public interface Bank2Client {
+
+    @GetMapping("/bank2/transfer")
+    // @Hmily 注解为hmily分布式事务接口标识，表示该接口参与hmily分布式事务
+    @Hmily
+    Boolean transfer(@RequestParam("amount") Double amount);
+}
+```
+
+##### 2.4.1.4. Hmily 配置类
+
+- 创建 Hmily 配置类 `HmilyConfig`，创建 `HmilyTransactionBootstrap` 实例，设置配置文件中相关内容
+
+```java
+@Configuration
+@EnableAspectJAutoProxy(proxyTargetClass = true)
+public class HmilyConfig {
+
+    @Autowired
+    private Environment env;
+
+    @Bean
+    public HmilyTransactionBootstrap hmilyTransactionBootstrap(HmilyInitService hmilyInitService) {
+        HmilyTransactionBootstrap hmilyTransactionBootstrap = new HmilyTransactionBootstrap(hmilyInitService);
+        hmilyTransactionBootstrap.setSerializer(env.getProperty("org.dromara.hmily.serializer"));
+        hmilyTransactionBootstrap.setRetryMax(Integer.parseInt(env.getProperty("org.dromara.hmily.retryMax")));
+        hmilyTransactionBootstrap.setRepositorySupport(env.getProperty("org.dromara.hmily.repositorySupport"));
+        hmilyTransactionBootstrap.setStarted(Boolean.parseBoolean(env.getProperty("org.dromara.hmily.started")));
+        HmilyDbConfig hmilyDbConfig = new HmilyDbConfig();
+        hmilyDbConfig.setDriverClassName(env.getProperty("org.dromara.hmily.hmilyDbConfig.driverClassName"));
+        hmilyDbConfig.setUrl(env.getProperty("org.dromara.hmily.hmilyDbConfig.url"));
+        hmilyDbConfig.setUsername(env.getProperty("org.dromara.hmily.hmilyDbConfig.username"));
+        hmilyDbConfig.setPassword(env.getProperty("org.dromara.hmily.hmilyDbConfig.password"));
+        hmilyTransactionBootstrap.setHmilyDbConfig(hmilyDbConfig);
+        return hmilyTransactionBootstrap;
+    }
+}
+```
+
+##### 2.4.1.5. 付款业务的 try、confirm、cancel 各个阶段实现
+
+- 创建业务接口，分别实现转账业务功能 `try` 方法、成功提交 `confirm` 方法、失败回滚 `cancel` 方法
+
+```java
+@Service
+public class AccountInfoTccServiceImpl implements AccountInfoTccService {
+
+    @Autowired
+    private AccountInfoDao accountInfoDao;
+
+    @Autowired
+    private Bank2Client bank2Client;
+
+    /**
+     * 业务方法，相当于 TCC 中的 try 阶段。
+     * 在此方法上需要标识 @Hmily 注解，指定成功提交与失败回滚的方法
+     */
+    @Override
+    @Hmily(confirmMethod = "commit", cancelMethod = "rollback")
+    public void transfer(String accountNo, double amount) {
+        System.out.println("******** Bank1 Service transfer begin...  ");
+        // 执行账户扣减方法
+        accountInfoDao.subtractAccountBalance(accountNo, amount);
+
+        // 远程调用 bank2 收款方法
+        if (!bank2Client.transfer(amount)) {
+            throw new RuntimeException("bank2 exception");
+        }
+    }
+
+    /**
+     * 成功确认方法，在 try 阶段成功后执行
+     */
+    @Override
+    public void commit(String accountNo, double amount) {
+        System.out.println("******** Bank1 Service commit...");
+    }
+
+    /**
+     * 失败回滚方法，在 try 阶段出现异常后执行
+     */
+    @Override
+    public void rollback(String accountNo, double amount) {
+        // 转账失败，调用账户增加方法
+        accountInfoDao.addAccountBalance(accountNo, amount);
+        System.out.println("******** Bank1 Service rollback...  ");
+    }
+}
+```
+
+> <font color=red>**注意：Try、Confirm、Cancel 的方法参数必须保持一致。**</font>
+
+##### 2.4.1.6. 请求控制类与启动类
+
+- 创建 bank1 的请求控制类，调用转账业务接口
+
+```java
+@RestController
+public class Bank1Controller {
+
+    @Autowired
+    private AccountInfoTccService accountInfoTccService;
+
+    @RequestMapping("/transfer")
+    public String test(@RequestParam("amount") Double amount) {
+        accountInfoTccService.transfer("1", amount);
+        return "bank1向bank2转账:" + amount;
+    }
+
+}
+```
+
+> 只作测试，硬编码写死账号
+
+- 创建项目启动类，在类中标识开启eureka与feign支持的注解，配置扫描 hmily 的包路径
+
+```java
+@SpringBootApplication(exclude = MongoAutoConfiguration.class, scanBasePackages = {"com.moon.hmilydemo.bank1", "org.dromara.hmily"})
+@EnableDiscoveryClient
+@EnableFeignClients(basePackages = {"com.moon.hmilydemo.bank1.feignClient"})
+public class Bank1HmilyServer {
+    public static void main(String[] args) {
+        SpringApplication.run(Bank1HmilyServer.class, args);
+    }
+}
+```
+
+#### 2.4.2. hmily-demo-bank2 转入操作工程
+
+##### 2.4.2.1. 项目配置文件
+
+- 项目配置 application.yml，*重点关注 hmily 部分的配置*
+
+```yml
+server:
+  servlet:
+    context-path: /bank2
+  port: 56082
+
+eureka:
+  instance:
+    preferIpAddress: true
+    instance-id: ${spring.application.name}:${spring.cloud.client.ip-address}:${spring.application.instance_id:${server.port}}
+    lease-renewal-interval-in-seconds: 5    # 续约更新时间间隔（默认30秒）
+    lease-expiration-duration-in-seconds: 10 # 续约到期时间（默认90秒）
+  client:
+    registry-fetch-interval-seconds: 5 # 抓取服务列表
+    serviceUrl:
+      defaultZone: http://localhost:56080/eureka/
+
+spring:
+  application:
+    name: hmily-demo-bank2
+  datasource:
+    url: jdbc:mysql://localhost:3306/bank2?useUnicode=true&useSSL=true
+    username: root
+    password: 123456
+    type: com.alibaba.druid.pool.DruidDataSource
+    driver-class-name: com.mysql.cj.jdbc.Driver
+# hmily 配置
+org:
+  dromara:
+    hmily:
+      serializer: kryo # 序列化工具
+      retryMax: 2 # 最大重试次数
+      repositorySupport: db # 持久化方式
+      started: false # 是否事务发起方，因为被调用方，所以不是事务的发起方
+      hmilyDbConfig:
+        driverClassName: com.mysql.jdbc.Driver
+        url: jdbc:mysql://localhost:3306/bank2?useUnicode=true&useSSL=true
+        username: root
+        password: 123456
+```
+
+##### 2.4.2.2. 持久层相关接口与实体类
+
+- 创建数据库表实体与数据库持久接口。*与 hmily-demo-bank1 工程一样*
+
+##### 2.4.2.3. Hmily 配置类
+
+- 创建 Hmily 配置类 `HmilyConfig`，创建 `HmilyTransactionBootstrap` 实例，设置配置文件中相关内容。*与 hmily-demo-bank1 工程一样*
+
+##### 2.4.2.4. 收款业务实现
+
+- 创建业务接口，分别实现转账业务功能 `try` 方法、成功提交 `confirm` 方法、失败回滚 `cancel` 方法
+
+```java
+@Service
+public class AccountInfoTccServiceImpl implements AccountInfoTccService {
+
+    @Autowired
+    private AccountInfoDao accountInfoDao;
+
+    /**
+     * 业务方法，相当于 TCC 中的 try 阶段。
+     * 在此方法上需要标识 @Hmily 注解，指定成功提交与失败回滚的方法
+     */
+    @Override
+    @Transactional  // 本地事务，hmily 只会回滚远程调用时发现异常的事务。这里还是要处理本地事务
+    @Hmily(confirmMethod = "commit", cancelMethod = "rollback")
+    public Boolean updateAccountBalance(String accountNo, double amount) {
+        System.out.println("******** Bank2 Service updateAccountBalance begin...  ");
+        // 执行账户增加方法
+        accountInfoDao.addAccountBalance(accountNo, amount);
+
+        // 模拟出现异常
+        if (Double.compare(amount, 44) == 0) {
+            throw new RuntimeException("模拟异常！！！");
+        }
+
+        return true;
+    }
+
+    /**
+     * 成功确认方法，在 try 阶段成功后执行
+     */
+    @Override
+    public Boolean commit(String accountNo, double amount) {
+        System.out.println("******** Bank2 Service commit...");
+        return true;
+    }
+
+    /**
+     * 失败回滚方法，在 try 阶段出现异常后执行
+     */
+    @Override
+    public Boolean rollback(String accountNo, double amount) {
+        // 在更新后失败，调用账户扣减方法
+        accountInfoDao.subtractAccountBalance(accountNo, amount);
+        System.out.println("******** Bank2 Service rollback...  ");
+        return true;
+    }
+}
+```
+
+> <font color=red>**注意：这里的业务方法加入 `@Transactional` 注解是为了解决本地更新数据后可能会出现的异常，让本地事务回滚，因为 hmily 只会回滚远程调用服务时出现的异常**</font>
+
+##### 2.4.2.5. 请求控制类与启动类
+
+- 创建 bank2 的请求控制类，调用业务接口
+
+```java
+@RestController
+public class Bank2Controller {
+
+    @Autowired
+    private AccountInfoTccService accountInfoTccService;
+
+    @RequestMapping("/transfer")
+    public Boolean transfer(@RequestParam("amount") Double amount) {
+        return accountInfoTccService.updateAccountBalance("2", amount);
+    }
+}
+```
+
+> 只作测试，硬编码写死账号
+
+- 创建项目启动类，在类中标识开启 eureka 支持的注解，配置扫描 hmily 的包路径
+
+```java
+@SpringBootApplication(exclude = MongoAutoConfiguration.class, scanBasePackages = {"com.moon.hmilydemo.bank2", "org.dromara.hmily"})
+@EnableDiscoveryClient
+public class Bank2HmilyServer {
+    public static void main(String[] args) {
+        SpringApplication.run(Bank2HmilyServer.class, args);
+    }
+}
+```
+
+### 2.5. 功能测试场景
+
+- bank1与bank2都执行成功
+- bank1执行成功，bank2出现异常，此时bank1回滚

@@ -120,7 +120,7 @@ public class OrderController {
 
 ## 4. Feign 的负载均衡
 
-Feign中本身已经集成了Ribbon依赖和自动配置，因此不需要额外引入依赖，也不需要再注册 `RestTemplate` 对象。x
+Feign中本身已经集成了Ribbon依赖和自动配置，因此不需要额外引入依赖，也不需要再注册 `RestTemplate` 对象。
 
 配置负载均衡的方式与使用Ribbon的配置方式一致，即也可以通过修改项目配置文件中 `ribbon.xx` 来进行全局配置。也可以通过`服务名.ribbon.xx` 来对指定服务配置
 

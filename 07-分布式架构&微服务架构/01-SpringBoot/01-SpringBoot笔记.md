@@ -433,7 +433,7 @@ public class Application {
 }
 ```
 
-也可以通过 `scanBasePackages` 属性来指定扫描的基础包
+也可以通过 `scanBasePackages` 属性来指定扫描的基础包，<font color=red>**值得注意的是：如果指定扫描基础包后，原来默认扫描当前引导类所在包及其子包的值就会被覆盖**</font>
 
 ```java
 // SpringBoot 应用启动类
