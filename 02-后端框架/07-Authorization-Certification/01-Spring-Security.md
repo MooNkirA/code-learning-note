@@ -371,7 +371,7 @@ public String loginSuccess() {
 #### 2.3.1. 新增不同权限访问的 url 控制方法
 
 在 `LoginController` 添加 `/check/p1` 与 `/check/p2`
- 
+
 ```java
 @GetMapping(value = "/check/p1", produces = {"text/plain;charset=UTF-8"})
 public String checkPrivilege1() {
@@ -1105,7 +1105,7 @@ server:
 #### 4.4.1. 默认退出
 
 Spring security 默认实现了 logout（退出）功能，默认url是：`/logout`
- 
+
 ![](images/481523809220170.png)
 
 点击“Log Out”退出 成功。退出后访问其它 url 判断是否成功退出。
@@ -1396,7 +1396,7 @@ public interface BankService {
 >
 > post 方法需要有 TELLER 角色才能访问，底层使用 RoleVoter 投票器。
 
-##### 4.5.5.2. prePost 注解
+##### 4.5.5.2. @PreAuthorize 注解
 
 
 ```java
@@ -1453,7 +1453,7 @@ Spring Security 功能的实现主要是由一系列过滤器链相互配合完�
 - `UsernamePasswordAuthenticationFilter` 用于处理来自表单提交的认证。该表单必须提供对应的用户名和密码，其内部还有登录成功或失败后进行处理的 `AuthenticationSuccessHandler` 和 `AuthenticationFailureHandler`，这些都可以根据需求做相关改变；
 - `FilterSecurityInterceptor` 是用于保护web资源的，使用 `AccessDecisionManager` 对当前用户进行授权访问，前面已经详细介绍过了；5.2. - `ExceptionTranslationFilter` 能够捕获来自 FilterChain 所有的异常，并进行处理。但是它只会处理两类异常：`AuthenticationException` 和 `AccessDeniedException`，其它的异常它会继续抛出。
 
-### 5.2. 认证流程5.2.1. 
+### 5.2. 认证流程
 #### 5.2.1. 整体流程概述
 
 ![](images/86020414220168.png)
@@ -1784,7 +1784,6 @@ Spring Security 内置了三个基于投票的 `AccessDecisionManager` 实现类
 #### 5.3.6. 内置投票者实现类（未整理）
 
 Spring Security 也内置一些投票者实现类，如 `RoleVoter`、`AuthenticatedVoter` 和 `WebExpressionVoter` 等，待查阅资料学习
-
 
 
 

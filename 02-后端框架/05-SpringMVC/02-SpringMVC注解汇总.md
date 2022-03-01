@@ -263,12 +263,11 @@ public class WebConfig extends AbstractDispatcherServletInitializer {
 - **用法**：
     - **标识在类上**：请求URL的第一级访问目录。此处不写的话，就相当于应用的根目录。它出现的目的是为了使我们的URL可以按照模块化管理，使我们的URL更加精细
     - **标识在方法上**：请求URL的第二级访问目录
+- 例如：
+    - 账户模块：/account/add、/account/update、/account/delete、...
+    - 订单模块：/order/add、/order/update、/order/delete、...
 
-```
-例如：
-    账户模块：/account/add、/account/update、/account/delete、...
-    订单模块：/order/add、/order/update、/order/delete、...
-
+```java
 @Controller
 @RequesetMapping("account")
 public class AccountController {
