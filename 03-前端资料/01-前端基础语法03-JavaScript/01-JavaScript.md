@@ -2220,6 +2220,65 @@ app.listen(80, () => {
 
 使用postman等请求工具，请求`http://127.0.0.1/api/user`，获取返回数据
 
+## 9. console 对象使用
+
+### 9.1. 常用方法
+
+1. `console.log()`
+
+```js
+// 用于输出普通信息，最常用
+console.log("%c%s", "color:red;font-size:20px", "结果是：这样的哟");
+```
+
+2. `console.info()`
+
+```js
+// 用于输出提示性信息
+console.info("%s", "color:red;这是结果哟");
+```
+
+3. `console.error()`
+
+```js
+// 用于输出错误信息
+console.error("错误");
+```
+
+4. `console.warn()`
+    - 用于输出警示信息
+5. `console.count()`
+    - 统计代码被执行的次数
+6. `console.assert()`
+    - 对输入的表达式进行断言，只有表达式为false时，才输出相应的信息到控制台
+7. `console.group()`
+    - 输出一组信息的开头
+8. `console.groupEnd()`
+    - 结束一组输出信息
+9. `console.dir()`
+    - 直接将该DOM结点以DOM树的结构进行输出，可以详细查对象的方法发展等等
+10. `console.time()`
+    - 计时开始
+11. `console.timeEnd()`
+    - 计时结束
+12. `console.profile()` 和 `console.profileEnd()`
+    - 一起使用来查看CPU使用相关信息
+13. `console.timeLine()` 和 `console.timeLineEnd()`
+    - 一起使用记录一段时间轴
+14. `console.trace()`
+    - 堆栈跟踪相关的调试
+
+### 9.2. 格式化符号
+
+| **格式化符号** |          **实现的功能**           |
+| :-----------: | -------------------------------- |
+|     `%s`      | 格式化成字符串输出                 |
+| `%d` or `%i`  | 格式化成数值输出                   |
+|     `%f`      | 格式化成浮点数输出                 |
+|     `%o`      | 转化成展开的DOM元素输出            |
+|     `%O`      | 转化成JavaScript对象输出           |
+|     `%c`      | 把字符串按照你提供的样式格式化后输入 |
+
 # ECMAScript 6(ES6)
 
 现在使用主流的前端框架中，如ReactJS、Vue.js、angularjs等，都会使用到ES6的新特性
@@ -3813,173 +3872,3 @@ func?.(args)
 ```
 
 参考：https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Operators/Optional_chaining
-
-# 其他
-
-## 1. 收集的资料
-
-### 1.1. 返回一个图形键盘
-
-```js
-(_=>[..."`1234567890-=~~QWERTYUIOP[]~ASDFGHJKL;'~~ZXCVBNM,./~"].map(x=>(o+=`/${b='_'.repeat(w=x<y?2:' 667699'[x=["BS","TAB","CAPS","ENTER"][p++]||'SHIFT',p])}|`,m+=y+(x+'    ').slice(0,w)+y+y,n+=y+b+y+y,l+=' __'+b)[73]&&(k.push(l,m,n,o),l='',m=n=o=y),m=n=o=y='|',p=l=k=[])&&k.join`
-`)()
-```
-
-运行效果：
-
-![运行效果图](images/20191104172347775_380.jpg)
-
-### 1.2. JS实现浏览器：加入收藏、设为首页、保存到桌面的方法功能
-
-使用js实现在一些网页的“设置为首页”和“ 收藏本站”，以及“保存到桌面”等功能，完美兼容IE,chrome,ff等浏览器。
-
-```html
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>设置为首页、加入收藏、保存到桌面等功能实现测试</title>
-    <script type="text/JavaScript">
-      //设为首页
-      function SetHome(obj, url) {
-        try {
-          obj.style.behavior = 'url(#default#homepage)';
-          obj.setHomePage(url);
-        } catch(e) {
-          if (window.netscape) {
-            try {
-              netscape.security.PrivilegeManager.enablePrivilege("UniversalXPConnect");
-            } catch(e) {
-              alert("抱歉，此操作被浏览器拒绝！\n\n请在浏览器地址栏输入“about:config”并回车然后将[signed.applets.codebase_principal_support]设置为'true'");
-            }
-          } else {
-            alert("抱歉，您所使用的浏览器无法完成此操作。\n\n您需要手动将【"+url+"】设置为首页。");
-          }
-        }
-      }
-      //收藏本站
-      function AddFavorite(title, url) {
-        try {
-          window.external.addFavorite(url, title);
-        } catch (e) {
-          try {
-            window.sidebar.addPanel(title, url, "");
-          } catch (e) {
-            alert("抱歉，您所使用的浏览器无法完成此操作。\n\n加入收藏失败，请使用Ctrl+D进行添加");
-          }
-        }
-      }
-      //保存到桌面
-      function toDesktop(sUrl,sName){
-        try {
-          var WshShell = new ActiveXObject("WScript.Shell");
-          var oUrlLink = WshShell.CreateShortcut(WshShell.SpecialFolders("Desktop") + "\\" + sName + ".url");
-          oUrlLink.TargetPath = sUrl;
-          oUrlLink.Save();
-        } catch(e) {
-          alert("当前IE安全级别不允许操作！");
-        }
-      }
-    </script>
-  </head>
-  <body>
-    <a href="JavaScript:void(0);" onclick="SetHome(this, 'http://www.moon.com');">设为首页</a>
-    <hr />
-    <a href="JavaScript:void(0);" onclick="AddFavorite('我的网站', location.href)">收藏本站</a>
-    <hr />
-    <a href="JavaScript:void(0);" onclick=" toDesktop(location.href, '我的网站')">保存到桌面</a>
-  </body>
-</html>
-```
-
-### 1.3. 最快获取dom的方法
-
-HTML中带有 `id` 属性的元素，都会被全局的 ID 同名变量所引用，实际就是保存到`window`对象中
-
-```html
-<div id="zero"></div>
-```
-
-原本获取 dom 的方式
-
-```js
-const el = document.getElementById('zero')
-console.log(el) // <div id="zero"></div>
-```
-
-可直接通过与id一样的变量获取
-
-```java
-console.log(zero) // <div id="zero"></div>
-```
-
-### 1.4. 一行代码生成随机生成字符串
-
-主要是用ASCII码来实现。
-
-```js
-const str = Math.random().toString(36).substr(2, 10);
-console.log(str); // 'w5jetivt7e'
-```
-
-以上可获得了一个10位数的随机字符串。先是 `Math.random()` 生成 `[0, 1)` 的数，也就是 0.123312、0.982931之类的，然后调用 `number` 的 `toString`方法将其转换成36进制的，按照MDN的说法，36进制的转换应该是包含了字母 a~z 和数字0~9的，因为这样生成的是`0.89kjna21sa`类似这样的，所以要截取一下小数部分，即从索引 2 开始截取10个字符就是随机字符串了。很多开源库都使用此方式为DOM元素创建随机ID。
-
-## 2. console对象使用
-
-### 2.1. 常用方法
-
-1. console.log()
-
-```js
-// 用于输出普通信息，最常用
-console.log("%c%s", "color:red;font-size:20px", "结果是：这样的哟");
-```
-
-2. console.info()
-
-```js
-// 用于输出提示性信息
-console.info("%s", "color:red;这是结果哟");
-```
-
-3. console.error()
-
-```js
-// 用于输出错误信息
-console.error("错误");
-```
-
-4. console.warn()
-    - 用于输出警示信息
-5. console.count()
-    - 统计代码被执行的次数
-6. console.assert()
-    - 对输入的表达式进行断言，只有表达式为false时，才输出相应的信息到控制台
-7. console.group()
-    - 输出一组信息的开头
-8. console.groupEnd()
-    - 结束一组输出信息
-9. console.dir()
-    - 直接将该DOM结点以DOM树的结构进行输出，可以详细查对象的方法发展等等
-10. console.time()
-    - 计时开始
-11. console.timeEnd()
-    - 计时结束
-12. console.profile() 和 console.profileEnd()
-    - 一起使用来查看CPU使用相关信息
-13. console.timeLine() 和 console.timeLineEnd()
-    - 一起使用记录一段时间轴
-14. console.trace()
-    - 堆栈跟踪相关的调试
-
-### 2.2. 格式化符号
-
-| **格式化符号** |          **实现的功能**           |
-| :------------: | -------------------------------- |
-|      `%s`      | 格式化成字符串输出                 |
-|  `%d` or `%i`  | 格式化成数值输出                   |
-|      `%f`      | 格式化成浮点数输出                 |
-|      `%o`      | 转化成展开的DOM元素输出            |
-|      `%O`      | 转化成JavaScript对象输出           |
-|      `%c`      | 把字符串按照你提供的样式格式化后输入 |
