@@ -1,5 +1,3 @@
-# Code Learning Note
-
 > 个人编程笔记文档网站，持续更新中...
 
 ## <img src="./images/java-logo.png" width="90px"><span style="display: none">JavaSE</span>

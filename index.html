@@ -43,11 +43,11 @@
   </head>
   <body>
     <!-- 如果你需要定制导航栏，可以用 HTML 创建一个导航栏。 -->
-    <!-- <nav>
-      <a href="#/">EN</a>
+    <nav>
+      <a href="https://moonkira.github.io/">月のblog</a>
       |
-      <a href="#/zh-cn/">中文</a>
-    </nav> -->
+      <a href="https://www.yuque.com/moonkira/code-note">语雀</a>
+    </nav>
     <div id="app"></div>
     <script>
       window.$docsify = {
@@ -59,8 +59,8 @@
         maxLevel: 6, // 最大支持渲染的标题层级
         // subMaxLevel: 5,
         homepage: "README.md",
-        // coverpage: true, // 添加一个封面
-        // loadSidebar: true, // 添加侧边栏文件，默认名称
+        coverpage: true, // 添加一个封面
+        loadSidebar: false, // 添加侧边栏文件，默认名称
         // _sidebar.md 的加载逻辑是从每层目录下获取文件，如果当前目录不存在该文件则回退到上一级目录。
         // 例如当前路径为 /zh-cn/more-pages 则从 /zh-cn/_sidebar.md 获取文件，如果不存在则从 /_sidebar.md 获取。
         // autoHeader: true,  // 同时设置 loadSidebar 和 autoHeader 后，可以根据 _sidebar.md 的内容自动为每个页面增加标题。
@@ -70,7 +70,7 @@
         // }, // 配置 alias 避免不必要的回退过程
 
         mergeNavbar: true, // 在较小的屏幕上，导航栏将与边栏合并。
-        loadNavbar: true, // 添加导航栏 load from _navbar.md -->
+        loadNavbar: false, // 添加导航栏 load from _navbar.md
         auto2top: true, // 切换页面后是否自动跳转到页面顶部
         // 全文搜索
         search: {
