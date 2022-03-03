@@ -83,9 +83,447 @@
 
 一般来说，在系统设计阶段就应该根据业务耦合松紧来确定垂直分库，垂直分表方案，在数据量及访问压力不是特别大的情况，首先考虑缓存、读写分离、索引技术等方案。若数据量极大，且持续增长，再考虑水平分库分表方案。
 
-## 3. Sharding-JDBC
+## 3. 分库分表存在问题
+
+分库分表有效的缓解了大数据、高并发带来的性能和压力，也能突破网络IO、硬件资源、连接数的瓶颈，但同时也带来了一些问题。
+
+
+### 3.1. 事务一致性问题
+
+由于分库分表把数据分布在不同库甚至不同服务器，不可避免会带来**分布式事务**问题，需要额外编程解决该问题。
+
+### 3.2. 跨节点 join
+
+在没有进行分库分表前，检索商品时可以通过以下 SQL 对店铺信息进行关联查询：
+
+```sql
+SELECT
+	p.*,s.[店铺名称],s.[信誉] 
+FROM
+	[商品信息表] p
+	LEFT JOIN [店铺信息表] s ON p.id = s.[所属店铺] 
+WHERE
+	...
+ORDER BY
+	...
+LIMIT...
+```
+
+但经过分库分表后，<u>商品信息表</u>和<u>店铺信息表</u>不在一个数据库或一个表中，甚至不在一台服务器上，无法通过 sql 语句进行关联查询，需要额外编程解决该问题。
+
+### 3.3. 跨节点分页、排序和聚合函数
+
+跨节点多库进行查询时，`limit` 分页、`order by` 排序以及聚合函数等问题，就变得比较复杂了。需要先在不同的分片节点中将数据进行排序并返回，然后将不同分片返回的结果集进行汇总和再次排序。例如，进行水平分库后的商品库，按 ID 倒序排序分页，取第一页：
+
+![](images/475315909220343.png)
+
+以上流程是取第一页的数据，性能影响不大，但由于商品信息的分布在各数据库的数据可能是随机的，如果是取第 N 页，需要将所有节点前 N 页数据都取出来合并，再进行整体的排序，操作效率可想而知，所以请求页数越大，系统的性能也会越差。
+
+在使用 `Max`、`Min`、`Sum`、`Count` 之类的函数进行计算的时候，与排序分页同理，也需要先在每个分片上执行相应的函数，然后将各个分片的结果集进行汇总和再次计算，最终将结果返回。
+
+### 3.4. 主键避重
+
+在分库分表环境中，由于表中数据同时存在不同数据库中，主键值无法使用自增长，某个分区数据库生成的ID无法保证全局唯一。因此需要单独设计全局主键，以避免跨库主键重复问题。
+
+![](images/226870110238769.png)
+
+由于分库分表之后，数据被分散在不同的服务器、数据库和表中。因此，对数据的操作也就无法通过常规方式完成，并且它还带来了一系列的问题。在开发过程中需要通过一些中间件解决这些问题，市面上有很多中间件可供选择，其中 Sharding-JDBC 较为流行。
+
+## 4. Sharding-JDBC
 
 > 官网地址：https://shardingsphere.apache.org/document/legacy/4.x/document/cn/manual/sharding-jdbc/
+
+### 4.1. 概述
+
+**Sharding-JDBC**是当当网研发的开源分布式数据库中间件。从 3.0 开始，Sharding-JDBC 更名为 Sharding-Sphere，之后该项目进入 Apache 孵化器，4.0 之后的版本为 Apache 版本。
+
+**ShardingSphere**是一套开源的分布式数据库中间件解决方案组成的生态圈，它由 Sharding-JDBC、Sharding-Proxy 和 Sharding-Sidecar（计划中）这3款相互独立的产品组成。 它们均提供标准化的数据分片、分布式事务和数据库治理功能，可适用于 Java 同构、异构语言、容器、云原生等各种多样化的应用场景。
+
+目前只需关注 Sharding-JDBC，它定位为轻量级Java框架，在 Java 的 JDBC 层提供额外服务。 它使用客户端直连数据库，以jar包形式提供服务，无需额外部署和依赖，可理解为增强版的 JDBC 驱动，完全兼容 JDBC 和各种 ORM 框架。
+
+- 适用于任何基于 Java 的 ORM 框架，如：JPA, Hibernate, Mybatis, Spring JDBC Template 或直接使用 JDBC。
+- 适用于任何第三方的数据库连接池，如：DBCP, C3P0, BoneCP, Druid, HikariCP 等。
+- 适用于任意支持 JDBC 规范的数据库，如：MySQL，Oracle，SQLServer 和 PostgreSQL。
+
+![](images/275671010226636.png)
+
+### 4.2. 功能介绍
+
+Sharding-JDBC 可以进行分库分表，同时又可以解决分库分表带来的问题，它的核心功能是：**数据分片**和**读写分离**。
+
+#### 4.2.1. 数据分片
+
+**数据分片**是 Sharding-JDBC 核心功能，它是指按照某个维度将存放在单一数据库中的数据分散存放至多个数据库或表中，以达到提升性能瓶颈以及可用性的效果。 数据分片的有效手段是对关系型数据库进行分库和分表。在使用 Sharding-JDBC 进行数据分片前，需要了解以下概念：
+
+- **逻辑表**
+
+水平拆分的数据库（表）的相同逻辑和数据结构表的总称。例：订单数据根据主键尾数拆分为10张表，分别是`t_order_0`到`t_order_9`，他们的逻辑表名为`t_order`。
+
+- **真实表**
+
+在分片的数据库中真实存在的物理表。即上个示例中的`t_order_0`到`t_order_9`。
+
+- **数据节点**
+
+数据分片的最小单元。由数据源名称和数据表组成，例：`ds_0.t_order_0`。
+
+- **分片键**
+
+用于分片的数据库字段，是将数据库(表)水平拆分的关键字段。例：将订单表中的订单主键的尾数取模分片，则订单主键为分片字段。 SQL 中如果无分片字段，将执行全路由，性能较差。 除了对单分片字段的支持，ShardingSphere 也支持根据多个字段进行分片。
+
+- **自增主键生成策略**
+
+通过在客户端生成自增主键替换以数据库原生自增主键的方式，做到分布式全局主键无重复。
+
+- **绑定表**
+
+![](images/451972010239471.png)
+
+指分片规则一致的主表和子表。例如：`商品信息表`表和`商品描述`表，均按照`商品id`分片，则此两张表互为绑定表关系。绑定表之间的多表关联查询不会出现笛卡尔积，关联查询效率将大大提升。以上图为例，如果SQL为：
+
+```sql
+select p1.*,p2.商品描述 from 商品信息 p1 inner join 商品描述  p2 on  p1.id=p2.商品id；
+```
+
+在不配置绑定表关系时，那么最终执行的 SQL 应该为 4 条，它们呈现为笛卡尔积：
+
+```sql
+select p1.*,p2.商品描述 from 商品信息1 p1 inner join 商品描述1  p2 on  p1.id=p2.商品id;
+select p1.*,p2.商品描述 from 商品信息2 p1 inner join 商品描述2  p2 on  p1.id=p2.商品id;
+select p1.*,p2.商品描述 from 商品信息1 p1 inner join 商品描述2  p2 on  p1.id=p2.商品id;
+select p1.*,p2.商品描述 from 商品信息2 p1 inner join 商品描述1  p2 on  p1.id=p2.商品id; 
+```
+
+在配置绑定表关系后，最终执行的 SQL 应该为 2 条：
+
+```sql
+select p1.*,p2.商品描述 from 商品信息1 p1 inner join 商品描述1  p2 on  p1.id=p2.商品id;
+select p1.*,p2.商品描述 from 商品信息2 p1 inner join 商品描述2  p2 on  p1.id=p2.商品id;
+```
+
+> 注意：绑定表之间的分片键要完全相同。
+
+#### 4.2.2. 读写分离
+
+面对日益增加的系统访问量以及高并发的情况，数据库的性能面临着巨大瓶颈。 数据库的“写”操作是比较耗时的(例如：写10000条数据到oracle可能要3分钟)，而数据库的“读”操作相对较快(例如：从oracle读10000条数据可能只要5秒钟)。在高并发的情况下，写操作会严重拖累读操作，这是单纯分库分表无法解决的。
+
+可以将数据库拆分为主库和从库，主库只负责处理增删改操作，从库只负责处理查询操作，这就是读写分离。它能够有效的避免由数据更新导致的行锁，使得整个系统的查询性能得到极大的改善。
+
+![](images/506853010236026.png)
+
+还可以搞一主多从，这样就可以将查询请求均匀的分散到多个从库，能够进一步的提升系统的处理能力。 使用多主多从的方式，不但能够提升系统的吞吐量，还能够提升系统的可用性，可以达到在任何一个数据库宕机，甚至磁盘物理损坏的情况下仍然不影响系统的正常运行。
+
+![](images/175403110231780.png)
+
+读写分离的数据节点中的数据内容是一致的，所以在采用读写分离时，要注意解决主从数据同步的问题。**Sharding-JDBC读写分离则是根据SQL语义的分析，将读操作和写操作分别路由至主库与从库**。它提供透明化读写分离，让使用方尽量像使用一个数据库一样进行读写分离操作。Sharding-JDBC 不提供主从数据库的数据同步功能，需要采用其他机制支持。
+
+![](images/331333110249660.png)
+
+## 5. Sharding-JDBC 入门案例
+
+### 5.1. 案例需求描述
+
+使用 Sharding-JDBC 实现电商平台的商品列表展示，每个列表项中除了包含商品基本信息、商品描述信息之外，还包括了商品所属的店铺信息，如下所示：
+
+![](images/212673510247264.png)
+
+### 5.2. 开发环境
+
+- 数据库：MySQL-5.7.25
+- JDK：1.8.0_201
+- 应用框架：spring-boot-2.1.3.RELEASE，Mybatis 3.5.0
+- Sharding-JDBC：sharding-jdbc-spring-boot-starter-4.0.0-RC1
+
+### 5.3. 案例数据库设计
+
+商品与店铺信息之间进行了**垂直分库**，拆分为了 PRODUCT_DB (商品库)和STORE_DB(店铺库)；商品信息还进行了**垂直分表**，拆分为了商品基本信息(store_info)和商品描述信息(product_info)：
+
+![](images/61465810244766.png)
+
+考虑到商品信息的数据增长性，对PRODUCT_DB(商品库)进行了**水平分库**，**分片键**使用店铺id，**分片策略**为店铺ID%2 + 1，对商品基本信息(product_info)和商品描述信息(product_descript)进行**水平分表**，**分片键**使用商品id，**分片策略**为商品ID%2 + 1,并将这两个表设置为**绑定表**。为避免主键冲突，ID生成策略采用雪花算法来生成全局唯一ID，雪花算法类似于UUID，但是它能生成有序的ID，有利于提高数据库性能。最终数据库设计如下图所示：
+
+![](images/301785810226007.png)
+
+### 5.4. MySQL 主从数据库搭建（windows）
+
+本示例使用 MySQL 数据库，并在 windows 环境中搭建主从架构。
+
+#### 5.4.1. MySQL 配置主从同步配置
+
+因为个人本地安装了 5.7.25 版本的 MySQL，如果搭建第二个 MySQL 数据库，可以复制原来本地的 mysql 到其它目录，也可以使用免安装版本的压缩包的方式，现在选择使用免安装的方式
+
+- 主库：`D:\development\MySQL\MySQL Server 5.7\`
+- 从库：`D:\development\MySQL\mysql-5.7.25-winx64\` 
+
+> **注意：如果配置了MySQL的环境变量，可能会影响安装第二个MySQL，所以建议暂时移除MySQL的环境变量**
+
+分别修改主、从数据库的配置文件 my.ini。
+
+> 注：my.ini 配置文件不一定在安装目录中，可能会在系统用户目录中
+
+主库 my.ini 配置：
+
+```properties
+[mysqld]
+# 开启日志
+log-bin=mysql-bin
+# 设置服务id，主从不能相同即可
+server-id=1
+# 设置需要同步的数据库
+binlog-do-db=store_db
+binlog-do-db=product_db_1
+binlog-do-db=product_db_2
+# 屏蔽系统库同步
+binlog-ignore-db=mysql
+binlog-ignore-db=information_schema 
+binlog-ignore-db=performance_schema
+```
+
+从库 my.ini 配置（*免安装版本没有my.ini文件，复制安装版的即可*）：
+
+```properties
+[mysqld]
+# 设置3307端口
+port=3307
+basedir="D:/development/MySQL/mysql-5.7.25-winx64/"
+# 设置mysql数据库的数据的存放目录(该目录不一定在mysql安装目录下)
+datadir=D:/development/MySQL/mysql-5.7.25-winx64/Data
+# 开启日志
+log-bin=mysql-bin
+# 设置服务id，主从不能相同即可
+server-id=2
+# 设置需要同步的数据库
+replicate_wild_do_table=store_db.%
+replicate_wild_do_table=product_db_1.%
+replicate_wild_do_table=product_db_2.%
+# 屏蔽系统库同步
+replicate_wild_ignore_table=mysql.%
+replicate_wild_ignore_table=information_schema.%
+replicate_wild_ignore_table=performance_schema.%
+```
+
+#### 5.4.2. 安装 mysql 服务
+
+进入从库所在位置的 bin 目录， 以<font color=red>**管理员身份**</font>运行命令行窗口，执行以下命令将从库安装为 windows 服务，<font color=red>**注意配置文件位置**</font>：
+
+```bash
+# 初始化
+mysqld --initialize --user=mysql --console
+# 安装服务
+mysqld install mysqls --defaults-file="D:\development\MySQL\mysql-5.7.25-winx64\my.ini"
+```
+
+安装成功后在【服务】中可以看到
+
+![](images/4740317220343.png)
+
+> 注意：当时搭建的时候遇到一个小坑，就是复制本地安装版本的配置文件 my.ini 到免安装版的根目录下，因为此配置中有配置 `secure-file-priv`，然后所配置的目录原本是不存在，导致一直服务都无法启动，需要手动创建目录才能正常启动。
+
+在 bin 目录，输入命令登录mysql，修改root用户密码。*这里需要使用之前生成的临时密码。如果窗口关了没有记录临时密码，可以将mysql目录下的data目录删除，然后再进行初始化*
+
+```bash
+# 登陆
+mysql -uroot –p
+
+# 修改root用户密码
+ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY '123456';
+```
+
+> <font color=red>**请注意，如果使用复制的方式来搭建从库数据，在 data 目录下有个文件 auto.cnf，也要与主库不一样，建议直接删除掉，重启服务后将会重新生成。由于从库是从主库复制过来的，因此里面的数据完全一致，可使用原来的账号、密码登录。最后重启主库和从库即可使用**</font>
+
+#### 5.4.3. 授权主从复制专用账号
+
+```bash
+# 切换至主库bin目录，登录主库
+mysql -h localhost -uroot -p123456
+# 授权主从复制专用账号
+GRANT REPLICATION SLAVE ON *.* TO 'db_sync'@'%' IDENTIFIED BY 'db_sync';
+# 刷新权限
+FLUSH PRIVILEGES;
+# 确认位点 记录下文件名以及位点
+show master status;
+```
+
+![](images/289063722239471.png)
+
+> 注意：此文件名与位点每套环境安装部署都不一样，上图仅供参考。
+
+#### 5.4.4. 从库同步主库数据
+
+设置从库向主库同步数据、并检查链路
+
+```bash
+# 切换至从库bin目录，登录从库
+mysql -h localhost -P3307 -uroot -p123456
+# 修改从库指向到主库，注意：master_log_file 与 master_log_pos 的值是分别使用上一步记录的文件名以及位点
+CHANGE MASTER TO 
+ master_host = 'localhost',
+ master_user = 'db_sync',
+ master_password = 'db_sync',
+ master_log_file = 'mysql-bin.000008',
+ master_log_pos = 592;
+```
+
+重启主库和从库服务，然后执行以下命令。（<font color=red>**一定要先重启主从数据库**</font>）
+
+```bash
+show slave status\G
+```
+
+执行该命令后，确认 `Slave_IO_Runing` 以及 `Slave_SQL_Runing` 两个状态位是否为 “Yes”，如果不为 Yes，请检查 error_log，然后排查相关异常。
+
+![](images/471554422236026.png)
+
+<font color=purple>**注意：如果之前此从库已有主库指向，需要先执行以下命令清空**</font>
+
+```bash
+STOP SLAVE IO_THREAD FOR CHANNEL '';
+reset slave all;
+```
+
+#### 5.4.5. 初始化数据库
+
+登录并连接主库，然后执行如下脚本：
+
+1. 执行 store_db.sql 创建 store 数据库和 store_info 表
+
+```sql
+DROP DATABASE IF EXISTS `store_db`;
+CREATE DATABASE `store_db` CHARACTER SET 'utf8' COLLATE 'utf8_general_ci';
+USE `store_db`;
+
+DROP TABLE IF EXISTS `store_info`;
+CREATE TABLE `store_info` (
+    `id` BIGINT(20) NOT NULL COMMENT 'id',
+    `store_name` VARCHAR(100) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '店铺名称',
+    `reputation` INT(11) NULL DEFAULT NULL COMMENT '信誉等级',
+    `region_code` VARCHAR(50) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '店铺所在地',
+    PRIMARY KEY (`id`) USING BTREE
+) ENGINE = INNODB CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = DYNAMIC;
+
+INSERT INTO `store_info` VALUES (1, '斩月铺子', 4, '110100');
+INSERT INTO `store_info` VALUES (2, '斩月超市', 3, '410100');
+```
+
+2. 执行 product_db_1.sql 创建 product_db_1 数据库和其中的四张表
+
+```sql
+DROP DATABASE IF EXISTS `product_db_1`;
+CREATE DATABASE `product_db_1` CHARACTER SET 'utf8' COLLATE 'utf8_general_ci';
+USE `product_db_1`;
+
+DROP TABLE IF EXISTS `product_descript_1`;
+CREATE TABLE `product_descript_1` (
+	`id` BIGINT(20) NOT NULL COMMENT 'id',
+	`product_info_id` BIGINT(20) NULL DEFAULT NULL COMMENT '所属商品id',
+	`descript` LONGTEXT CHARACTER SET utf8 COLLATE utf8_general_ci NULL COMMENT '商品描述',
+	`store_info_id` BIGINT(20) NULL DEFAULT NULL COMMENT '所属店铺id',
+	PRIMARY KEY (`id`) USING BTREE,
+	INDEX `FK_Reference_2`(`product_info_id`) USING BTREE
+) ENGINE = INNODB CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = DYNAMIC;
+
+DROP TABLE IF EXISTS `product_descript_2`;
+CREATE TABLE `product_descript_2` (
+	`id` BIGINT(20) NOT NULL COMMENT 'id',
+	`product_info_id` BIGINT(20) NULL DEFAULT NULL COMMENT '所属商品id',
+	`descript` LONGTEXT CHARACTER SET utf8 COLLATE utf8_general_ci NULL COMMENT '商品描述',
+	`store_info_id` BIGINT(20) NULL DEFAULT NULL COMMENT '所属店铺id',
+	INDEX `FK_Reference_2`(`product_info_id`) USING BTREE
+) ENGINE = INNODB CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = DYNAMIC;
+
+DROP TABLE IF EXISTS `product_info_1`;
+CREATE TABLE `product_info_1` (
+	`product_info_id` BIGINT(20) NOT NULL COMMENT 'id',
+	`store_info_id` BIGINT(20) NULL DEFAULT NULL COMMENT '所属店铺id',
+	`product_name` VARCHAR(100) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '商品名称',
+	`spec` VARCHAR(50) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '规格',
+	`region_code` VARCHAR(50) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '产地',
+	`price` DECIMAL(10, 0) NULL DEFAULT NULL COMMENT '商品价格',
+	`image_url` VARCHAR(100) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '商品图片',
+	PRIMARY KEY (`product_info_id`) USING BTREE,
+	INDEX `FK_Reference_1`(`store_info_id`) USING BTREE
+) ENGINE = INNODB CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = DYNAMIC;
+
+DROP TABLE IF EXISTS `product_info_2`;
+CREATE TABLE `product_info_2` (
+	`product_info_id` BIGINT(20) NOT NULL COMMENT 'id',
+	`store_info_id` BIGINT(20) NULL DEFAULT NULL COMMENT '所属店铺id',
+	`product_name` VARCHAR(100) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '商品名称',
+	`spec` VARCHAR(50) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '规格',
+	`region_code` VARCHAR(50) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '产地',
+	`price` DECIMAL(10, 0) NULL DEFAULT NULL COMMENT '商品价格',
+	`image_url` VARCHAR(100) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '商品图片',
+	PRIMARY KEY (`product_info_id`) USING BTREE,
+	INDEX `FK_Reference_1`(`store_info_id`) USING BTREE
+) ENGINE = INNODB CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = DYNAMIC;
+```
+
+3. 执行 product_db_2.sql 创建 product_db_2 数据库和其中的四张表
+
+```sql
+DROP DATABASE IF EXISTS `product_db_2`;
+CREATE DATABASE `product_db_2` CHARACTER SET 'utf8' COLLATE 'utf8_general_ci';
+USE `product_db_2`;
+
+DROP TABLE IF EXISTS `product_descript_1`;
+CREATE TABLE `product_descript_1` (
+	`id` BIGINT(20) NOT NULL COMMENT 'id',
+	`product_info_id` BIGINT(20) NULL DEFAULT NULL COMMENT '所属商品id',
+	`descript` LONGTEXT CHARACTER SET utf8 COLLATE utf8_general_ci NULL COMMENT '商品描述',
+	`store_info_id` BIGINT(20) NULL DEFAULT NULL COMMENT '所属店铺id',
+	PRIMARY KEY (`id`) USING BTREE,
+	INDEX `FK_Reference_2`(`product_info_id`) USING BTREE
+) ENGINE = INNODB CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = DYNAMIC;
+
+DROP TABLE IF EXISTS `product_descript_2`;
+CREATE TABLE `product_descript_2` (
+	`id` BIGINT(20) NOT NULL COMMENT 'id',
+	`product_info_id` BIGINT(20) NULL DEFAULT NULL COMMENT '所属商品id',
+	`descript` LONGTEXT CHARACTER SET utf8 COLLATE utf8_general_ci NULL COMMENT '商品描述',
+	`store_info_id` BIGINT(20) NULL DEFAULT NULL COMMENT '所属店铺id',
+	INDEX `FK_Reference_2`(`product_info_id`) USING BTREE
+) ENGINE = INNODB CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = DYNAMIC;
+
+DROP TABLE IF EXISTS `product_info_1`;
+CREATE TABLE `product_info_1` (
+	`product_info_id` BIGINT(20) NOT NULL COMMENT 'id',
+	`store_info_id` BIGINT(20) NULL DEFAULT NULL COMMENT '所属店铺id',
+	`product_name` VARCHAR(100) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '商品名称',
+	`spec` VARCHAR(50) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '规格',
+	`region_code` VARCHAR(50) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '产地',
+	`price` DECIMAL(10, 0) NULL DEFAULT NULL COMMENT '商品价格',
+	`image_url` VARCHAR(100) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '商品图片',
+	PRIMARY KEY (`product_info_id`) USING BTREE,
+	INDEX `FK_Reference_1`(`store_info_id`) USING BTREE
+) ENGINE = INNODB CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = DYNAMIC;
+
+DROP TABLE IF EXISTS `product_info_2`;
+CREATE TABLE `product_info_2` (
+	`product_info_id` BIGINT(20) NOT NULL COMMENT 'id',
+	`store_info_id` BIGINT(20) NULL DEFAULT NULL COMMENT '所属店铺id',
+	`product_name` VARCHAR(100) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '商品名称',
+	`spec` VARCHAR(50) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '规格',
+	`region_code` VARCHAR(50) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '产地',
+	`price` DECIMAL(10, 0) NULL DEFAULT NULL COMMENT '商品价格',
+	`image_url` VARCHAR(100) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL COMMENT '商品图片',
+	PRIMARY KEY (`product_info_id`) USING BTREE,
+	INDEX `FK_Reference_1`(`store_info_id`) USING BTREE
+) ENGINE = INNODB CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = DYNAMIC;
+```
+
+此时观察从库，会发现从库中已经存在上述数据库和表，说明主从数据同步已经发挥了作用。
+
+![](images/190524722231780.png)
+
+### 5.5. 分库分表功能实现
+
+
+
+
+
+### 5.6. 功能测试
+
+
 
 
 

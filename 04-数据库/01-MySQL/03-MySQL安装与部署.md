@@ -369,6 +369,20 @@ ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY '123456';
 create user 'root'@'%' IDENTIFIED WITH mysql_native_password BY '123456';
 ```
 
+### 6.4. mysql 服务启动时报“某些服务在未由其他服务或程序使用时将自动停止”
+
+在配置文件中有 `secure-file-priv` 的配置，如果设置了此目录，本来解压后是没有此目录的，如果不手动创建，启动时会报错。
+
+![](images/331451322220343.png)
+
+当时排查很久都不知道是什么原因，后来查询资料，发现 `mysqld --console` 命令可以将错误信息输出到控制台上，然后就看到具体的无法启动的报错日志
+
+![](images/362281622238769.png)
+
+然后在配置的位置手动创建相应的目录，问题就解决了。
+
+![](images/146971922246802.png)
+
 ## 7. 安装 MySQL 8.0（Windows版本）
 
 ### 7.1. 安装包下载

@@ -823,6 +823,47 @@ const req = newRequestModule;
 inventoryTracker('apples', req, 'www.inventory-awesome.io');
 ```
 
+### 2.19. 判断数组长度是否为零
+
+```js
+// bad
+if (arr.length !== 0) {
+    // todo
+}
+
+// good
+if (arr.length) {
+    // todo
+}
+
+// bad
+if (arr.length === 0) {
+    // todo
+}
+
+// good
+if (!arr.length) {
+    // todo
+}
+```
+
+### 2.20. 函数参数校验
+
+```js
+// bad
+let findStudentByAge = (arr, age) => {
+    if (!age) throw new Error('参数不能为空')
+    return arr.filter(num => num === age)
+}
+
+// good
+let checkoutType = () => {
+    throw new Error('参数不能为空')
+}
+let findStudentByAge = (arr, age = checkoutType()) =>
+    arr.filter(num => num === age)
+```
+
 ## 3. 对象和数据结构
 
 ### 3.1. 用 get、set 方法操作数据
