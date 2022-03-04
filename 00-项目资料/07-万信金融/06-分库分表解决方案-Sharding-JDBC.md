@@ -359,11 +359,23 @@ show master status;
 
 #### 5.4.4. 从库同步主库数据
 
+切换至从库bin目录，登录从库
+
+```bash
+mysql -h localhost -P3307 -uroot -p123456
+```
+
+<font color=purple>**注意：如果之前此从库已有主库指向，需要先执行以下命令清空**</font>
+
+```bash
+STOP SLAVE IO_THREAD FOR CHANNEL '';
+STOP SLAVE SQL_THREAD FOR CHANNEL '';
+reset slave all;
+```
+
 设置从库向主库同步数据、并检查链路
 
 ```bash
-# 切换至从库bin目录，登录从库
-mysql -h localhost -P3307 -uroot -p123456
 # 修改从库指向到主库，注意：master_log_file 与 master_log_pos 的值是分别使用上一步记录的文件名以及位点
 CHANGE MASTER TO 
  master_host = 'localhost',
@@ -379,16 +391,23 @@ CHANGE MASTER TO
 show slave status\G
 ```
 
-执行该命令后，确认 `Slave_IO_Runing` 以及 `Slave_SQL_Runing` 两个状态位是否为 “Yes”，如果不为 Yes，请检查 error_log，然后排查相关异常。
+执行该命令后，确认 `Slave_IO_Runing` 以及 `Slave_SQL_Runing` 两个状态位是否为 “Yes”，如果不为 Yes，请检查 error_log，然后排查相关异常。或者执行 `START SLAVE;` 命令
 
 ![](images/471554422236026.png)
 
-<font color=purple>**注意：如果之前此从库已有主库指向，需要先执行以下命令清空**</font>
+切换到主库，输入 `show slave hosts;` 命令，可以查询从库的连接情况：
 
 ```bash
-STOP SLAVE IO_THREAD FOR CHANNEL '';
-reset slave all;
+mysql> show slave hosts;
++-----------+------+------+-----------+--------------------------------------+
+| Server_id | Host | Port | Master_id | Slave_UUID                           |
++-----------+------+------+-----------+--------------------------------------+
+|         2 |      | 3307 |         1 | dff98aa4-9b5d-11ec-a778-3c7c3f5a58c8 |
++-----------+------+------+-----------+--------------------------------------+
+1 row in set (0.03 sec)
 ```
+
+> *注：通过以上配置后可能会发现从库比没有同步，主从同步的原理是从库开启一个线程去读取主库的bin-log 日志，此时因为要同步的数据库表没有发生变化，所以没有写入到 bin-log 日志中，所以从库没有进行同步。只需要让待同步的数据库发生变化即可，如：重新建库建表*
 
 #### 5.4.5. 初始化数据库
 

@@ -469,7 +469,7 @@ show variables like 'log_error';
 
 慢查询日志相关配置
 
-```
+```properties
 # 该参数用来控制慢查询日志是否开启，可取值：1|0，1 代表开启， 0 代表关闭
 slow_query_log=1
 
@@ -486,7 +486,7 @@ long_query_time=10
 
 默认情况下， 查询日志是未开启的。如果需要开启查询日志，可以设置以下配置：
 
-```
+```properties
 # 该选项用来开启查询日志，可选值：0|1；0代表关闭，1代表开启
 general_log=1
 
@@ -520,8 +520,8 @@ SELECT * FROM general_log;
 
 该参数用来控制是否开启二进制日志，默认为关闭。如果想要开启二进制日志的功能，可以在 MySQL 的配置文件中指定如下的格式：
 
-```
--- 启用/设置二进制日志文件(name 可省略)
+```properties
+# 启用/设置二进制日志文件(name 可省略)
 log-bin=name;
 ```
 

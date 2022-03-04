@@ -146,7 +146,8 @@ Canvas是由HTML代码配合高度和宽度属性而定义出的可绘制区域�
 Mozilla 程序从 Gecko 1.8 (Firefox 1.5)开始支持`<canvas>`, Internet Explorer 从IE9开始`<canvas>` 。Chrome和Opera 9+也支持`<canvas>`。
 
 ### 2.2. Canvas基本使用
-#### 2.2.1. <canvas>元素
+
+#### 2.2.1. canvas 元素
 
 ```html
 <canvas id="tutorial" width="300" height="300"></canvas>
