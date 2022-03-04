@@ -76,7 +76,7 @@ mysql.server stop
 
 ### 4.1. 下载 Linux 安装包
 
-下载地址：https://dev.mysql.com/downloads/mysql/5.7.html#downloads
+下载地址：https://dev.mysql.com/downloads/mysql/
 
 ### 4.2. 安装 MySQL
 

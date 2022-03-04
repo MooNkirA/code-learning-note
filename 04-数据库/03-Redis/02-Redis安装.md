@@ -146,7 +146,7 @@ redis-benchmark redis-check-aof redis-check-rdb redis-cli redis.conf redis-senti
 
     ![配置后端模式](images/20191110233242803_14088.jpg)
 
-    - 启动时，指定配置文件。`,/redis-server redis.conf`
+    - 启动时，指定配置文件。`./redis-server redis.conf`
 
 #### 3.3.2. redis-cli 客户端启动与停止
 
@@ -167,5 +167,5 @@ redis-benchmark redis-check-aof redis-check-rdb redis-cli redis.conf redis-senti
 打开redis-cli 客户端后，输入以下命令打开redis服务的数据监控
 
 ```bash
-127.0.0.1:6379> monitor
+monitor
 ```

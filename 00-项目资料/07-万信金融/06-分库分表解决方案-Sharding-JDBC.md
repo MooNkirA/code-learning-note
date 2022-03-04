@@ -153,7 +153,7 @@ Sharding-JDBC 可以进行分库分表，同时又可以解决分库分表带来
 
 #### 4.2.1. 数据分片
 
-**数据分片**是 Sharding-JDBC 核心功能，它是指按照某个维度将存放在单一数据库中的数据分散存放至多个数据库或表中，以达到提升性能瓶颈以及可用性的效果。 数据分片的有效手段是对关系型数据库进行分库和分表。在使用 Sharding-JDBC 进行数据分片前，需要了解以下概念：
+**数据分片**是 Sharding-JDBC 核心功能，它是指<u>按照某个维度将存放在单一数据库中的数据分散存放至多个数据库或表中</u>，以达到提升性能瓶颈以及可用性的效果。 数据分片的有效手段是对关系型数据库进行分库和分表。在使用 Sharding-JDBC 进行数据分片前，需要了解以下概念：
 
 - **逻辑表**
 
@@ -236,13 +236,21 @@ select p1.*,p2.商品描述 from 商品信息2 p1 inner join 商品描述2  p2 o
 
 ### 5.3. 案例数据库设计
 
-商品与店铺信息之间进行了**垂直分库**，拆分为了 PRODUCT_DB (商品库)和STORE_DB(店铺库)；商品信息还进行了**垂直分表**，拆分为了商品基本信息(store_info)和商品描述信息(product_info)：
+此案例主体是商品表，按以下原则先做**垂直拆分**：
 
 ![](images/61465810244766.png)
 
-考虑到商品信息的数据增长性，对PRODUCT_DB(商品库)进行了**水平分库**，**分片键**使用店铺id，**分片策略**为店铺ID%2 + 1，对商品基本信息(product_info)和商品描述信息(product_descript)进行**水平分表**，**分片键**使用商品id，**分片策略**为商品ID%2 + 1,并将这两个表设置为**绑定表**。为避免主键冲突，ID生成策略采用雪花算法来生成全局唯一ID，雪花算法类似于UUID，但是它能生成有序的ID，有利于提高数据库性能。最终数据库设计如下图所示：
+- 商品与店铺信息之间进行了**垂直分库**，拆分为了 PRODUCT_DB (商品库)和 STORE_DB (店铺库)
+- 商品信息还进行了**垂直分表**，拆分为了商品基本信息 (store_info) 和商品描述信息 (product_info)
+
+考虑到商品信息的数据增长性，针对商品模块再进行**水平拆分**，最终数据库设计如下图所示：
 
 ![](images/301785810226007.png)
+
+- 对 PRODUCT_DB (商品库)进行了**水平分库**，**分片键**使用店铺id，**分片策略**为`店铺ID%2 + 1`
+- 对每个 PRODUCT_DB (商品库) 的商品基本信息(product_info)和商品描述信息(product_descript)进行**水平分表**，**分片键**使用商品id，**分片策略**为`商品ID%2 + 1`，并将这两个表设置为**绑定表**。
+
+为避免主键冲突，ID生成策略采用雪花算法来生成全局唯一ID，雪花算法类似于UUID，但是它能生成有序的ID，有利于提高数据库性能。
 
 ### 5.4. MySQL 主从数据库搭建（windows）
 
@@ -255,11 +263,12 @@ select p1.*,p2.商品描述 from 商品信息2 p1 inner join 商品描述2  p2 o
 - 主库：`D:\development\MySQL\MySQL Server 5.7\`
 - 从库：`D:\development\MySQL\mysql-5.7.25-winx64\` 
 
-> **注意：如果配置了MySQL的环境变量，可能会影响安装第二个MySQL，所以建议暂时移除MySQL的环境变量**
+> 注意：
+>
+> - **如果配置了MySQL的环境变量，可能会影响安装第二个MySQL，所以建议暂时移除MySQL的环境变量**
+> - my.ini 配置文件不一定在安装目录中，可能会在系统用户目录中
 
 分别修改主、从数据库的配置文件 my.ini。
-
-> 注：my.ini 配置文件不一定在安装目录中，可能会在系统用户目录中
 
 主库 my.ini 配置：
 
@@ -517,13 +526,301 @@ CREATE TABLE `product_info_2` (
 
 ### 5.5. 分库分表功能实现
 
+#### 5.5.1. 工程依赖
 
+创建 maven 工程 sharding-jdbc-demo，在 pom 中引入相关依赖：
 
+```xml
+<dependencyManagement>
+    <dependencies>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-dependencies</artifactId>
+            <version>2.2.4.RELEASE</version>
+            <type>pom</type>
+            <scope>import</scope>
+        </dependency>
+    </dependencies>
+</dependencyManagement>
 
+<dependencies>
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-web</artifactId>
+    </dependency>
+
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-actuator</artifactId>
+    </dependency>
+
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-configuration-processor</artifactId>
+        <optional>true</optional>
+    </dependency>
+
+    <dependency>
+        <groupId>javax.interceptor</groupId>
+        <artifactId>javax.interceptor-api</artifactId>
+        <version>1.2</version>
+    </dependency>
+
+    <dependency>
+        <groupId>mysql</groupId>
+        <artifactId>mysql-connector-java</artifactId>
+        <version>5.1.48</version>
+    </dependency>
+
+    <dependency>
+        <groupId>org.mybatis.spring.boot</groupId>
+        <artifactId>mybatis-spring-boot-starter</artifactId>
+        <version>2.0.0</version>
+    </dependency>
+
+    <dependency>
+        <groupId>com.alibaba</groupId>
+        <artifactId>druid-spring-boot-starter</artifactId>
+        <version>1.1.16</version>
+    </dependency>
+
+    <!-- sharding-jdbc 依赖 -->
+    <dependency>
+        <groupId>org.apache.shardingsphere</groupId>
+        <artifactId>sharding-jdbc-spring-boot-starter</artifactId>
+        <version>4.0.0-RC1</version>
+    </dependency>
+
+    <dependency>
+        <groupId>org.projectlombok</groupId>
+        <artifactId>lombok</artifactId>
+        <version>1.18.0</version>
+    </dependency>
+</dependencies>
+
+<build>
+    <finalName>${project.name}</finalName>
+    <resources>
+        <resource>
+            <directory>src/main/resources</directory>
+            <filtering>true</filtering>
+            <includes>
+                <include>**/*</include>
+            </includes>
+        </resource>
+        <resource>
+            <directory>src/main/java</directory>
+            <includes>
+                <include>**/*.xml</include>
+            </includes>
+        </resource>
+    </resources>
+    <plugins>
+        <plugin>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-maven-plugin</artifactId>
+        </plugin>
+
+        <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-compiler-plugin</artifactId>
+            <configuration>
+                <source>1.8</source>
+                <target>1.8</target>
+            </configuration>
+        </plugin>
+
+        <plugin>
+            <artifactId>maven-resources-plugin</artifactId>
+            <configuration>
+                <encoding>utf-8</encoding>
+                <useDefaultDelimiters>true</useDefaultDelimiters>
+            </configuration>
+        </plugin>
+    </plugins>
+</build>
+```
+
+#### 5.5.2. 项目配置
+
+在 resources 目录创建 application.properties 配置文件，配置内容如下：
+
+- 基础配置部分
+
+```properties
+server.port=56081
+spring.application.name=sharding-jdbc-demo
+server.servlet.context-path=/sharding-jdbc-demo
+spring.http.encoding.enabled=true
+spring.http.encoding.charset=UTF-8
+spring.http.encoding.force=true
+
+# 同名bean允许覆盖
+spring.main.allow-bean-definition-overriding=true
+
+# 将带有下划线的表字段映射为驼峰格式的实体类属性
+mybatis.configuration.map-underscore-to-camel-case=true
+```
+
+- sharding-jdbc 配置部分。sharding-jdbc 的使用主要是配置，代码的逻辑跟以往的数据库操作一样
+
+```properties
+# 真实数据源定义（本示例共6个库），指定涉及的数据库名称（名称自定）
+spring.shardingsphere.datasource.names=m0,m1,m2,s0,s1,s2
+# 指定名称相关的数据库信息
+spring.shardingsphere.datasource.m0.type=com.alibaba.druid.pool.DruidDataSource
+spring.shardingsphere.datasource.m0.driver-class-name=com.mysql.jdbc.Driver
+spring.shardingsphere.datasource.m0.url=jdbc:mysql://localhost:3306/store_db?useUnicode=true&useSSL=false&characterEncoding=utf8
+spring.shardingsphere.datasource.m0.username=root
+spring.shardingsphere.datasource.m0.password=123456
+spring.shardingsphere.datasource.m1.type=com.alibaba.druid.pool.DruidDataSource
+spring.shardingsphere.datasource.m1.driver-class-name=com.mysql.jdbc.Driver
+spring.shardingsphere.datasource.m1.url=jdbc:mysql://localhost:3306/product_db_1?useUnicode=true&useSSL=false&characterEncoding=utf8
+spring.shardingsphere.datasource.m1.username=root
+spring.shardingsphere.datasource.m1.password=123456
+spring.shardingsphere.datasource.m2.type=com.alibaba.druid.pool.DruidDataSource
+spring.shardingsphere.datasource.m2.driver-class-name=com.mysql.jdbc.Driver
+spring.shardingsphere.datasource.m2.url=jdbc:mysql://localhost:3306/product_db_2?useUnicode=true&useSSL=false&characterEncoding=utf8
+spring.shardingsphere.datasource.m2.username=root
+spring.shardingsphere.datasource.m2.password=123456
+spring.shardingsphere.datasource.s0.type=com.alibaba.druid.pool.DruidDataSource
+spring.shardingsphere.datasource.s0.driver-class-name=com.mysql.jdbc.Driver
+spring.shardingsphere.datasource.s0.url=jdbc:mysql://localhost:3307/store_db?useUnicode=true&useSSL=false&characterEncoding=utf8
+spring.shardingsphere.datasource.s0.username=root
+spring.shardingsphere.datasource.s0.password=123456
+spring.shardingsphere.datasource.s1.type=com.alibaba.druid.pool.DruidDataSource
+spring.shardingsphere.datasource.s1.driver-class-name=com.mysql.jdbc.Driver
+spring.shardingsphere.datasource.s1.url=jdbc:mysql://localhost:3307/product_db_1?useUnicode=true&useSSL=false&characterEncoding=utf8
+spring.shardingsphere.datasource.s1.username=root
+spring.shardingsphere.datasource.s1.password=123456
+spring.shardingsphere.datasource.s2.type=com.alibaba.druid.pool.DruidDataSource
+spring.shardingsphere.datasource.s2.driver-class-name=com.mysql.jdbc.Driver
+spring.shardingsphere.datasource.s2.url=jdbc:mysql://localhost:3307/product_db_2?useUnicode=true&useSSL=false&characterEncoding=utf8
+spring.shardingsphere.datasource.s2.username=root
+spring.shardingsphere.datasource.s2.password=123456
+
+# =============================================
+# 定义逻辑数据源(主从对应关系)
+# =============================================
+# 以下的配置含义是：ds0 数据源的主库是 m0，从库是 s0；ds1 数据源的主库是 m1，从库是 s1；...
+spring.shardingsphere.sharding.master-slave-rules.ds0.master-data-source-name=m0
+spring.shardingsphere.sharding.master-slave-rules.ds0.slave-data-source-names=s0
+spring.shardingsphere.sharding.master-slave-rules.ds1.master-data-source-name=m1
+spring.shardingsphere.sharding.master-slave-rules.ds1.slave-data-source-names=s1
+spring.shardingsphere.sharding.master-slave-rules.ds2.master-data-source-name=m2
+spring.shardingsphere.sharding.master-slave-rules.ds2.slave-data-source-names=s2
+
+# =============================================
+# 定义分库策略
+# 即插入数据时按什么逻辑策略去决定具体保存到哪个数据库。此示例的分库策略是按“店铺id”字段奇偶数来决定，奇数时保存到 product_db_1；偶数时保存到 product_db_2。配置如下：
+# =============================================
+# 分片键
+spring.shardingsphere.sharding.default-database-strategy.inline.sharding-column=store_info_id
+# 分片策略（算法行表达式，需符合groovy语法）
+spring.shardingsphere.sharding.default-database-strategy.inline.algorithm-expression=ds$->{store_info_id % 2+1}
+
+# =============================================
+# 定义分表策略。示例共有3张表需要拆分
+# =============================================
+# store_info 分表配置
+# 指定真实的数据节点。由数据源名 + 表名组成，以小数点分隔。多个表以逗号分隔，支持inline表达式。
+spring.shardingsphere.sharding.tables.store_info.actual-data-nodes=ds$->{0}.store_info
+# 分片键
+spring.shardingsphere.sharding.tables.store_info.table-strategy.inline.sharding-column=id
+# 分片策略为固定分配至 ds0 的 store_info 真实表
+spring.shardingsphere.sharding.tables.store_info.table-strategy.inline.algorithm-expression=store_info
+
+# product_info 分表配置
+# 指定真实的数据节点（由数据源名 + 表名组成，以小数点分隔。多个表以逗号分隔，支持inline表达式）。分布在 ds1,ds2 的 product_info_1 和 product_info_2 表
+spring.shardingsphere.sharding.tables.product_info.actual-data-nodes=ds$->{1..2}.product_info_$->{1..2}
+# 分片键
+spring.shardingsphere.sharding.tables.product_info.table-strategy.inline.sharding-column=product_info_id
+# 分片策略为 product_info_id % 2+1
+spring.shardingsphere.sharding.tables.product_info.table-strategy.inline.algorithm-expression=product_info_$->{product_info_id % 2+1}
+# 自增列名称，缺省表示不使用自增主键生成器
+spring.shardingsphere.sharding.tables.product_info.key-generator.column=product_info_id
+# 自增列 product_info_id 采用雪花算法
+spring.shardingsphere.sharding.tables.product_info.key-generator.type=SNOWFLAKE
+
+# product_descript 分表配置
+# 指定真实的数据节点。分布在 ds1,ds2 的 product_descript_1 和 product_descript_2 表
+spring.shardingsphere.sharding.tables.product_descript.actual-data-nodes=ds$->{1..2}.product_descript_$->{1..2}
+# 分片键
+spring.shardingsphere.sharding.tables.product_descript.table-strategy.inline.sharding-column=product_info_id
+# 分片策略为 product_info_id % 2+1
+spring.shardingsphere.sharding.tables.product_descript.table-strategy.inline.algorithm-expression=product_descript_$->{product_info_id %2+1}
+# 自增列名称，缺省表示不使用自增主键生成器
+spring.shardingsphere.sharding.tables.product_descript.key-generator.column=id
+# 自增列 id 采用雪花算法
+spring.shardingsphere.sharding.tables.product_descript.key-generator.type=SNOWFLAKE
+
+# 设置绑定表规则，商品表与商品描述表，配置值是逻辑表（简单理解是表名没有尾数的）
+spring.shardingsphere.sharding.binding-tables=product_info,product_descript
+
+# 是否开启SQL输出日志显示，默认值: false
+spring.shardingsphere.props.sql.show=true
+```
+
+以上配置相应梳理，如下图所示：
+
+![sharding-jdbc入门案例配置解](images/229231311220344.png)
+
+#### 5.5.3. 持久层接口与业务功能
+
+此部分代码与平常的单数据库单表操作一样。具体代码详见：`wanxinp2p-project\wanxinp2p\technology-stack-demo\sharding-jdbc-demo\`。
+
+![](images/290074315238770.png)
+
+以下是 mapper 接口部分代码
+
+```java
+@Mapper
+public interface ProductMapper {
+
+    @Insert("insert into product_info(store_info_id,product_name,spec,region_code,price,image_url) value (#{storeInfoId},#{productName},#{spec},#{regionCode},#{price},#{imageUrl})")
+    @Options(useGeneratedKeys = true, keyProperty = "id", keyColumn = "product_info_id")
+    int insertProductInfo(ProductInfo productInfo);
+
+    @Insert("insert into product_descript(product_info_id,descript,store_info_id) value (#{productInfoId},#{descript},#{storeInfoId})")
+    @Options(useGeneratedKeys = true, keyProperty = "id", keyColumn = "id")
+    int insertProductDescript(ProductDescript productDescript);
+
+    @Select("select i.*, d.descript from product_info i inner join product_descript d on i.product_info_id = d.product_info_id")
+    List<ProductInfo> selectProductList();
+}
+```
+
+> 值得注意的是：在编号SQL语句时，<font color=red>**表名均为<u>逻辑表</u>的名称**</font>，非数据库真实存在的表，此处就是通过sql操作逻辑表，由 Sharding-JDBC 根据配置来决定具体操作哪些库、哪些真实表
 
 ### 5.6. 功能测试
 
+启动两个 MySQL 服务，启动 sharding-jdbc-demo 工程，通过 postman 请求进行测试
 
+- 通过**创建商品接口**新增商品进行分库验证，`store_info_id` 为奇数的数据在 product_db_1，为偶数的数据在 product_db_2
+- 通过**创建商品接口**新增商品进行分表验证，`product_id` 为奇数的数据在 product_info_1、product_descript_1，为偶数的数据在 product_info_2、product_descript_2
 
+```
+POST http://localhost:56081/sharding-jdbc-demo/products
+```
 
+请求参数，注：通过 `storeInfoId` 改变来测试数据是否保存到正确的数据库中，其取值要根据 store_db 库的 store_info 表
+
+```json
+{
+    "descript": "商品描述",
+    "imageUrl": "商品图片",
+    "price": 3,
+    "productName": "可乐饮料",
+    "regionCode": 410100,
+    "spec": "500ml",
+    "storeInfoId": 2
+}
+```
+
+- 主从数据同步验证，观察数据是否同步到从库即可
+- 通过**商品查询接口**进行商品数据查询，验证读写分离
+
+```
+GET http://localhost:56081/sharding-jdbc-demo/products
+```
 
