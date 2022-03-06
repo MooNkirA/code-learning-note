@@ -723,3 +723,9 @@ public class Bank2HmilyServer {
 
 - bank1与bank2都执行成功
 - bank1执行成功，bank2出现异常，此时bank1回滚
+
+## 3. 其他
+
+### 3.1. 与 feign 框架冲突的问题
+
+这个问题在万信金融项目实战中发现，在项目中使用了 Hmily 保证分布式事务的一致性，但其他不需要使用 Hmily 的 Feign 接口调用时会报 NullPointerException，具体问题与解决方案详见 [《第05章 用户开户》笔记](/00-项目资料/07-万信金融/05-用户开户)

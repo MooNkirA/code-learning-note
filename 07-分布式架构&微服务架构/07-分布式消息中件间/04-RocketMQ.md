@@ -194,7 +194,7 @@ namesrvAddr=127.0.0.1:9876
 
 ```
 # set "JAVA_OPT=%JAVA_OPT% -server -Xms2g -Xmx2g -Xmn1g -XX:MetaspaceSize=128m -XX:MaxMetaspaceSize=320m"
-# 修改为 set "JAVA_OPT=%JAVA_OPT% -server -Xms512m -Xmx320m -Xmn320m -XX:MetaspaceSize=128m -XX:MaxMetaspaceSize=320m"
+# 修改为 set "JAVA_OPT=%JAVA_OPT% -server -Xms256m -Xmx320m -Xmn256m -XX:MetaspaceSize=128m -XX:MaxMetaspaceSize=320m"
 ```
 
 ##### 2.3.2.2. 启动 NameServer
