@@ -17,7 +17,7 @@
 - **ElasticSearch**
     - Elasticsearch 基于java，是个开源分布式搜索引擎，它的特点有：分布式，零配置，自动发现，索引自动分片，索引副本机制，restful风格接口，多数据源，自动搜索负载等
 - **Logstash**
-    - Logstash 基于java，是一个开源的用于收集,分析和存储日志的工具
+    - Logstash 基于java，是一个开源的用于收集，分析和存储日志的工具
 - **Kibana**
     - Kibana 基于nodejs，也是一个开源和免费的工具，Kibana可以为 Logstash 和 ElasticSearch 提供的日志分析友好的 Web 界面，可以汇总、分析和搜索重要数据日志
 - **Beats**
@@ -27,5 +27,4 @@
         - Filebeat：用于监控、收集服务器日志文件，其已取代 logstash forwarder；
         - Metricbeat：可定期获取外部系统的监控指标信息，其可以监控、收集 Apache、HAProxy、MongoDB、MySQL、Nginx、PostgreSQL、Redis、System、Zookeeper等服务；
         - Winlogbeat：用于监控、收集Windows系统的日志信息
-
 
