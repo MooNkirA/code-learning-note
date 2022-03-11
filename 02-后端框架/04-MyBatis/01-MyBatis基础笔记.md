@@ -366,7 +366,7 @@ mybatis官方推荐使用mapper代理方法开发mapper接口，程序员不用�
 2. 编写数据层接口，命名规则一般为`XxxMapper.java`。与MyBatis原始dao开发接口一样
 3. 在MyBatis总配置文件（SqlMapConfig.xml）中，加载mapper代理配置文件（UserMapper.xml）
 
-```java
+```xml
 <!-- 加载映射文件 -->
 <mappers>
 	<!-- resource属性：加载的映射文件路径 -->
@@ -382,7 +382,7 @@ mybatis官方推荐使用mapper代理方法开发mapper接口，程序员不用�
 
 1. 前提是mapper代理开发方法
 2. 要求mapper映射文件，与mapper接口要放在同一目录
-3 .要求mapper映射文件的名称，与mapper接口的名称要一致
+3. 要求mapper映射文件的名称，与mapper接口的名称要一致
 
 
 #### 4.3.3. Mapper动态代理方式开发数据层demo
@@ -839,7 +839,7 @@ url引用的完全限定名（包括`file:///URLs`）
 ### 6.1. 映射文件编写注意问题
 
 - 映射文件中，`<select>`标签体内的sql语句不能出现“`;`”结尾
-- namespace属性：namespace命名空间，作用就是对sql进行分类化管理，理解为sql隔离；<font color=red>**注意：！！使用mapper代理方法开发，namespace必须和Mapper代理接口的全限定名称一致**</font>
+- `namespace`属性：namespace 命名空间，作用就是对 sql 进行分类化管理，理解为 sql 隔离；<font color=red>**注意：！！使用 mapper 代理方法开发，namespace 必须和 Mapper 代理接口的全限定名称一致**</font>
 
 ### 6.2. 查询映射`<select>`
 

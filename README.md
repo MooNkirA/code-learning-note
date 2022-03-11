@@ -1,10 +1,8 @@
-# Code Learning Note
-
 > 个人编程笔记文档网站，持续更新中...
 
-## <img src="./images/java-logo.png" width="90px"><span style="display: none">JavaSE</span>
+## Java 核心技术
 
-### JavaSE
+### ☕ JavaSE
 
 <ul class="docs">
   <li><a href="#/01-Java/01-Java基础">Java基础</a></li>
@@ -23,7 +21,7 @@
   <li><a href="#/01-Java/网络资料-Java中的枚举的治理">网络资料-Java中的枚举的治理</a></li>
 </ul>
 
-### JavaWeb
+### 🥃 JavaWeb
 
 <ul class="docs">
   <li><a href="#/01-JavaWeb/01-JavaWeb基础笔记">JavaWeb 基础笔记</a></li>
@@ -31,7 +29,7 @@
 
 ## 后端框架
 
-### <img src="./images/spring-logo.svg" width="100px"><span style="display: none">spring</span>
+### 🍀 Spring
 
 <ul class="docs">
   <li><a href="#/02-后端框架/03-Spring/01-Spring笔记01-IOC">Spring 使用笔记-IOC</a></li>
@@ -47,7 +45,7 @@
 </ul>
 
 
-### <img src="./images/mybatis-logo.png" width="100px"><span style="display: none">MyBatis</span>
+### 🐦 MyBatis
 
 <ul class="docs">
   <li><a href="#/02-后端框架/04-MyBatis/01-MyBatis基础笔记">MyBatis 基础笔记</a></li>
@@ -57,7 +55,7 @@
 </ul>
 
 
-### 🎈 SpringMVC
+### 🧰 SpringMVC
 
 <ul class="docs">
   <li><a href="#/02-后端框架/05-SpringMVC/01-SpringMVC基础">Spring MVC 基础</a></li>
@@ -66,7 +64,7 @@
 </ul>
 
 
-### ⚙ Spring Data
+### 💾 Spring Data
 
 <ul class="docs">
   <li><a href="#/02-后端框架/06-Spring-Data/00-Spring-Data">Spring Data 概述</a></li>
@@ -84,15 +82,15 @@
   <li><a href="#/02-后端框架/07-Authorization-Certification/03-Shiro">Shiro（整理中...）</a></li>
 </ul>
 
-### ✨ Hibernate
+### 📚 Hibernate
 
 待整理，技术已过时，优先级低....
 
-### ✨ Struts2
+### 🎏 Struts2
 
 待整理，技术已过时，优先级低....
 
-### 🛠 工具框架
+### 🔧 工具框架
 
 <ul class="docs">
   <li><a href="#/02-后端框架/99-工具框架/01-Gson（JSON处理工具类库）">Gson（JSON处理工具类库）</a></li>
@@ -109,26 +107,39 @@
 
 ## 前端资料
 
-### 🎨 前端基础语法
+### 🎬 前端基础语法 - HTML
 
 <ul class="docs">
-  <li><a href="#/03-前端资料/01-前端基础语法/01-HTML-超文本标签语言">HTML-超文本标签语言</a></li>
-  <li><a href="#/03-前端资料/01-前端基础语法/02-CSS-01-基础知识">CSS 基础知识</a></li>
-  <li><a href="#/03-前端资料/01-前端基础语法/02-CSS-02-常用样式手册">CSS 常用样式手册</a></li>
-  <li><a href="#/03-前端资料/01-前端基础语法/02-CSS-03-其他相关知识">CSS 其他相关知识</a></li>
-  <li><a href="#/03-前端资料/01-前端基础语法/03-JavaScript">JavaScript</a></li>
-  <li><a href="#/03-前端资料/01-前端基础语法/04-JavaScript-正则表达式">JavaScript 正则表达式</a></li>
-  <li><a href="#/03-前端资料/01-前端基础语法/05-JavaScript-工具函数">JavaScript 工具函数</a></li>
-  <li><a href="#/03-前端资料/01-前端基础语法/06-Less-语法基础">Less 语法基础</a></li>
-  <li><a href="#/03-前端资料/01-前端基础语法/99-前端其他相关资料">前端其他相关资料</a></li>
-  <li><a href="#/03-前端资料/01-前端基础语法/网络资料-JavaScript代码简洁之道">网络资料-JavaScript代码简洁之道</a></li>
+  <li><a href="#/03-前端资料/01-前端基础语法01-HTML/01-HTML-基础语法">HTML 基础语法</a></li>
+  <li><a href="#/03-前端资料/01-前端基础语法01-HTML/02-HTML5-基础语法">HTML5 下一代 HTML 标准</a></li>
+  <li><a href="#/03-前端资料/01-前端基础语法01-HTML/99-前端其他相关资料">前端其他相关资料</a></li>
 </ul>
 
-### <img src="./images/angular-logo.svg" width="22px"> Angular.js
+
+### 🎨 前端基础语法 - 层叠样式表
+
+<ul class="docs">
+  <li><a href="#/03-前端资料/01-前端基础语法02-层叠样式表/01-CSS-基础知识">CSS 基础知识</a></li>
+  <li><a href="#/03-前端资料/01-前端基础语法02-层叠样式表/02-CSS-常用样式手册">CSS 常用样式手册</a></li>
+  <li><a href="#/03-前端资料/01-前端基础语法02-层叠样式表/03-CSS-其他相关知识">CSS 其他相关知识</a></li>
+  <li><a href="#/03-前端资料/01-前端基础语法02-层叠样式表/04-Less-语法基础">Less 语法基础</a></li>
+</ul>
+
+
+### 🎥 JavaScript
+
+<ul class="docs">
+  <li><a href="#/03-前端资料/01-前端基础语法03-JavaScript/01-JavaScript">JavaScript 基础知识</a></li>
+  <li><a href="#/03-前端资料/01-前端基础语法03-JavaScript/02-JavaScript-正则表达式">JavaScript 正则表达式</a></li>
+  <li><a href="#/03-前端资料/01-前端基础语法03-JavaScript/03-JavaScript-工具函数">JavaScript 工具函数</a></li>
+  <li><a href="#/03-前端资料/01-前端基础语法03-JavaScript/04-JavaScript-代码简洁之道">JavaScript 代码简洁之道</a></li>
+</ul>
+
+### 🅰 Angular.js
 
 待整理....
 
-### <img src="./images/vue-logo.svg" width="20px"> Vue.js
+### ✅ Vue.js
 
 <ul class="docs">
   <li><a href="#/03-前端资料/03-Vue/01-Vue2.x-笔记"> Vue2.x 基础笔记</a></li>
@@ -138,7 +149,7 @@
   <li><a href="#/03-前端资料/03-Vue/04-Vue-Router">Vue Router 路由库</a></li>
 </ul>
 
-### <img src="./images/react-logo.svg" width="20px"> React.js
+### 💫 React.js
 
 <ul class="docs">
   <li><a href="#/03-前端资料/04-React/01-ReactJs笔记">React.js 笔记</a></li>
@@ -146,7 +157,7 @@
   <li><a href="#/03-前端资料/04-React/03-AntDesignMobile">Ant Design Mobile 笔记</a></li>
 </ul>
 
-### <img src="./images/bootstrap-logo.png" width="25px"> Bootstrap
+### 🅱 Bootstrap
 
 <ul class="docs">
   <li><a href="#/03-前端资料/05-Bootstrap/01-Bootstrap基础">Bootstrap 基础入门</a></li>
@@ -167,7 +178,7 @@
   <li><a href="#/03-前端资料/07-移动端Web/01-移动端Web-基础笔记">移动端Web基础笔记</a></li>
 </ul>
 
-### 🔶  前端工具类库
+### 🔶 前端工具类库
 
 <ul class="docs">
   <li><a href="#/03-前端资料/99-工具类库/01-Lodash-工具函数库">Lodash 工具函数库</a></li>
@@ -188,13 +199,13 @@
   <li><a href="#/04-数据库/01-MySQL/03-MySQL安装与部署">MySQL安装与部署</a></li>
 </ul>
 
-### <img src="./images/oracle-logo.png" width="100px"><span style="display: none">Oracle</span>
+### 🅾 Oracle
 
 <ul class="docs">
   <li><a href="#/04-数据库/02-Oracle/01-Oracle基础笔记">Oracle基础笔记</a></li>
 </ul>
 
-### <img src="./images/redis-logo.png" width="25px"> Redis
+### 🪐 Redis
 
 <ul class="docs">
   <li><a href="#/04-数据库/03-Redis/01-Redis笔记">Redis 笔记</a></li>
@@ -203,7 +214,7 @@
   <li><a href="#/04-数据库/03-Redis/04-Redis操作命令">Redis 操作命令</a></li>
 </ul>
 
-### <img src="./images/mongodb-logo.svg" width="100px"><span style="display: none">MongoDb</span>
+### 🥭 MongoDb
 
 <ul class="docs">
   <li><a href="#/04-数据库/04-MongoDb/01-MongoDB笔记">MongoDB笔记</a></li>
@@ -211,7 +222,7 @@
 
 ## DevOps工具
 
-### 🛠 项目构建工具
+### 🪒 项目构建工具
 
 <ul class="docs">
   <li><a href="#/05-DevOps工具/01-项目构建工具/01-Maven笔记">Maven笔记</a></li>
@@ -238,7 +249,7 @@
   <li><a href="#/05-DevOps工具/04-持续集成工具/01-Jenkins">Jenkins 持续集成工具</a></li>
 </ul>
 
-### 🎚 测试工具
+### ⭕ 测试工具
 
 <ul class="docs">
   <li><a href="#/05-DevOps工具/05-测试工具/01-JMeter-压力测试">JMeter 压力测试</a></li>
@@ -251,7 +262,6 @@
   <li><a href="#/06-Linux/02-Linux安装">Linux 安装</a></li>
   <li><a href="#/06-Linux/03-Linux命令">Linux 命令</a></li>
 </ul>
-
 
 ## 分布式架构 & 微服务架构
 
@@ -271,7 +281,7 @@
   <li><a href="#/07-分布式架构&微服务架构/01-SpringBoot/99-SpringBoot笔记-其他相关内容">SpringBoot 笔记-其他相关内容</a></li>
 </ul>
 
-### <img src="./images/springcloud-logo.png" width="150px"><span style="display: none">SpringCloud</span>
+### ⛅ SpringCloud
 
 <ul class="docs">
   <li><a href="#/07-分布式架构&微服务架构/02-SpringCloud/00-Microservices-Overview">微服务概述</a></li>
@@ -294,13 +304,20 @@
   <li><a href="#/07-分布式架构&微服务架构/03-Dubbo/02-Dubbo源码分析">Dubbo 源码分析</a></li>
 </ul>
 
-### <img src="./images/nginx-logo.png" width="100px"><span style="display: none">Nginx</span>
+### 🔎 ElasticStack
+
+<ul class="docs">
+  <li><a href="#/07-分布式架构&微服务架构/04-ElasticStack/01-ElasticStack基础笔记">ElasticStack 基础笔记</a></li>
+  <li><a href="#/07-分布式架构&微服务架构/04-ElasticStack/02-ElasticSearch-分布式全文搜索引擎">ElasticSearch 分布式全文搜索引擎</a></li>
+</ul>
+
+### 🔄 Nginx
 
 <ul class="docs">
   <li><a href="#/07-分布式架构&微服务架构/05-Nginx/01-Nginx笔记">Nginx 基础笔记</a></li>
 </ul>
 
-### <img src="./images/zookeeper-logo.gif" width="30px"> ZooKeeper
+### 🐒 ZooKeeper
 
 <ul class="docs">
   <li><a href="#/07-分布式架构&微服务架构/06-Zookeeper/01-Zookeeper笔记">Zookeeper 基础笔记</a></li>
@@ -316,14 +333,14 @@
   <li><a href="#/07-分布式架构&微服务架构/07-分布式消息中件间/04-RocketMQ">RocketMQ</a></li>
 </ul>
 
-### ✨ 分布式配置中心
+### 🧾 分布式配置中心
 
 <ul class="docs">
   <li><a href="#/07-分布式架构&微服务架构/08-分布式配置中心/00-Distributed-Configuration-Center-Overview">分布式配置中心综述</a></li>
   <li><a href="#/07-分布式架构&微服务架构/08-分布式配置中心/01-Apollo">Apollo 分布式配置中心</a></li>
 </ul>
 
-### ✨ 分布式事务控制解决方案
+### 📝 分布式事务控制解决方案
 
 <ul class="docs">
   <li><a href="#/07-分布式架构&微服务架构/09-分布式事务控制解决方案/01-分布式事务基础理论">分布式事务基础理论</a></li>
@@ -401,6 +418,4 @@ Gitee Pages 在线阅读地址：[点击进入](https://moonzero.gitee.io/code-l
 
 如果本项目对你有帮助，今天可以喝杯咖啡吗？😁
 
-![](images/wechat_pay.jpg)
-
-![](images/ali_pay.jpg)
+![](images/money-QRCode.png)
