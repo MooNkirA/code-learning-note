@@ -35,6 +35,9 @@
 
     <!-- docsify-themeable 自定义主题属性，抽取成文件引入 -->
     <!-- <link rel="stylesheet" href="./css/theme-custom.css" /> -->
+	
+	<!-- 自定义样式 -->
+    <link rel="stylesheet" href="./css/custom.css" />
 
     <!-- PrismJS theme 代码块高亮主题 -->
     <!-- <link rel="stylesheet" href="./css/prismjs@1.22.0/prism-funky.css" /> -->
@@ -52,9 +55,7 @@
     <script>
       window.$docsify = {
         // logo: './css/svg/086-determined-face.svg',
-        // name:
-        //   "<div class='moon-logo'><a class='app-name-link' data-nosearch='' href='/code-learning-note'><img alt='MooNkirA' src='./css/svg/086-determined-face.svg'>月の哀傷</a></div>",
-        name: "MooNkirA",
+        name: "<a class='app-name-link' data-nosearch='' href='/code-learning-note'><div class='moon-logo'></div></a>",
         // repo: 'https://github.com/MooNkirA/code-learning-note',
         maxLevel: 6, // 最大支持渲染的标题层级
         // subMaxLevel: 5,
@@ -76,9 +77,8 @@
         search: {
           maxAge: 86400000, // 过期时间，单位毫秒，默认一天
           paths: "auto",
-          // placeholder: "🔍 搜索",
-          placeholder: "搜索...",
-          noData: "找不到结果",
+          placeholder: "🔍 搜索...",
+          noData: "😅 找不到结果...",
           // 搜索标题的最大程级, 1 - 6
           depth: 6,
         },

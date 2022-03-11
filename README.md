@@ -418,43 +418,4 @@ Gitee Pages 在线阅读地址：[点击进入](https://moonzero.gitee.io/code-l
 
 如果本项目对你有帮助，今天可以喝杯咖啡吗？😁
 
-![](images/wechat_pay.jpg)
-
-![](images/ali_pay.jpg)
-
-<style>
-/* 自定义首页按钮 */
-.docs {
-  margin: 1em 0;
-  font-size: 1.1em;
-  color: red;
-}
-.docs a {
-  text-decoration: none;
-}
-.docs a:hover {
-  color: yellow;
-  text-decoration: none;
-  padding: 0.3em 0.5em;
-  background-image: linear-gradient(
-    to right,
-    rgb(50, 153, 210),
-    rgb(239, 189, 181)
-  );
-  background-position: initial;
-  background-size: initial;
-  background-repeat: initial;
-  background-attachment: initial;
-  background-origin: initial;
-  background-clip: initial;
-  display: inline-block;
-  border-radius: 0.4em;
-  margin-right: 2px;
-  margin-left: 2px;
-  letter-spacing: 1px;
-  box-shadow: 10px 10px 10px -4px rgba(0, 0, 0, 0.3);
-}
-.docs li {
-  margin: 0.8em 0;
-}
-</style>
+![](images/money-QRCode.png)
