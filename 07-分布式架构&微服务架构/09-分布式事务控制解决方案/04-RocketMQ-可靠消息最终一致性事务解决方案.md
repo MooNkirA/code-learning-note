@@ -10,7 +10,7 @@ RocketMQ 事务消息设计则主要是为了解决 Producer 端的消息发送�
 
 ### 1.1. 事务消息执行流程图
 
-![406519583666](images/485341713249678.bmp)
+![406519583666](images/485341713249678.jpg)
 
 事务消息执行流程如下：
 
@@ -309,22 +309,445 @@ java -jar rocketmq-console-ng-1.0.0.jar --server.port=7777 --rocketmq.config.nam
             </plugin>
         </plugins>
     </build>
-
 </project>
+```
+
+#### 2.3.2. 创建微服务
+
+- 创建 ensure-message-demo-bank1 工程，负责张三账户操作；创建 ensure-message-demo-bank2 工程，负责李四账户操作。同样引入以下依赖：
+
+```xml
+<dependencies>
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-web</artifactId>
+    </dependency>
+
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-actuator</artifactId>
+    </dependency>
+
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-configuration-processor</artifactId>
+        <optional>true</optional>
+    </dependency>
+
+    <dependency>
+        <groupId>org.mybatis.spring.boot</groupId>
+        <artifactId>mybatis-spring-boot-starter</artifactId>
+    </dependency>
+
+    <dependency>
+        <groupId>com.alibaba</groupId>
+        <artifactId>druid-spring-boot-starter</artifactId>
+    </dependency>
+
+    <dependency>
+        <groupId>mysql</groupId>
+        <artifactId>mysql-connector-java</artifactId>
+    </dependency>
+
+    <dependency>
+        <groupId>javax.interceptor</groupId>
+        <artifactId>javax.interceptor-api</artifactId>
+    </dependency>
+
+    <dependency>
+        <groupId>org.projectlombok</groupId>
+        <artifactId>lombok</artifactId>
+    </dependency>
+
+    <dependency>
+        <groupId>org.apache.rocketmq</groupId>
+        <artifactId>rocketmq-spring-boot-starter</artifactId>
+    </dependency>
+</dependencies>
 ```
 
 ### 2.4. 案例功能实现
 
+此部分两个微服务工程的具体实现
+
+#### 2.4.1. ensure-message-demo-bank1 消息发送方工程
+
+##### 2.4.1.1. 项目配置文件
+
+- 项目配置 application.properties
+
+```properties
+spring.application.name=ensure-message-demo-bank1
+
+server.port=56081
+server.servlet.context-path=/bank1
+spring.http.encoding.enabled=true
+spring.http.encoding.charset=UTF-8
+spring.mvc.throw-exception-if-no-handler-found=true
+
+spring.datasource.type=com.alibaba.druid.pool.DruidDataSource
+spring.datasource.driver-class-name=com.mysql.jdbc.Driver
+spring.datasource.url=jdbc:mysql://localhost:3306/bank1?useUnicode=true&useSSL=false
+spring.datasource.username=root
+spring.datasource.password=123456
+
+rocketmq.producer.group=producer_ensure_bank1
+rocketmq.name-server=127.0.0.1:9876
+```
+
+##### 2.4.1.2. 实体类
+
+- 定义封装转账消息的实体类
+
+```java
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+public class AccountChangeEvent implements Serializable {
+    private static final long serialVersionUID = 7726052118200407735L;
+    /**
+     * 账号
+     */
+    private String accountNo;
+    /**
+     * 变动金额
+     */
+    private double amount;
+    /**
+     * 事务号，时间戳
+     */
+    private long txNo;
+}
+```
+
+##### 2.4.1.3. 持久层相关接口
+
+创建持久层接口，定义扣减账户余额、查询账户信息、查询事务记录、保存事务记录等4个方法
+
+```java
+@Mapper
+@Component
+public interface AccountInfoDao {
+    /**
+     * 扣减某账号的余额
+     *
+     * @param accountNo 账号
+     * @param amount    变动金额
+     * @return
+     */
+    @Update("update account_info set account_balance=account_balance-#{amount} where account_no=#{accountNo}")
+    int subtractAccountBalance(@Param("accountNo") String accountNo, @Param("amount") Double amount);
 
 
+    /**
+     * 查询某账号信息
+     *
+     * @param accountNo 账号
+     * @return
+     */
+    @Select("select * from account_info where where account_no=#{accountNo}")
+    AccountInfo findByIdAccountNo(@Param("accountNo") String accountNo);
+
+    /**
+     * 查询某事务记录是否已执行
+     *
+     * @param txNo 事务编号
+     * @return
+     */
+    @Select("select count(1) from de_duplication where tx_no = #{txNo}")
+    int isExistTx(long txNo);
+
+    /**
+     * 保存某事务执行记录
+     *
+     * @param txNo 事务编号
+     * @return
+     */
+    @Insert("insert into de_duplication values(#{txNo},now());")
+    int addTx(long txNo);
+}
+```
+
+##### 2.4.1.4. 实现发送转账消息
+
+封装 RocketMQ 发送消息处理类，定义通过 `RocketMQTemplate` 发送转账消息的方法
+
+```java
+@Component
+public class BankMessageProducer {
+    @Resource
+    private RocketMQTemplate rocketMQTemplate;
+
+    public void sendAccountChangeEvent(AccountChangeEvent accountChangeEvent) {
+        // 构造消息
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("accountChange", accountChangeEvent);
+        // 转成 json 字符串
+        Message<String> msg = MessageBuilder.withPayload(jsonObject.toJSONString()).build();
+
+        // 发送消息
+        rocketMQTemplate.sendMessageInTransaction("producer_ensure_transfer", "topic_ensure_transfer", msg, null);
+    }
+}
+```
+
+##### 2.4.1.5. 业务层接口与实现
+
+业务层接口，分别定义发送事务消息(`sendUpdateAccountBalanceMsg`)与本地事务扣减金额(`doUpdateAccountBalance`)方法
+
+```java
+public interface AccountInfoService {
+
+    /**
+     * 更新帐号余额-发送消息
+     *
+     * @param accountChange
+     */
+    void sendUpdateAccountBalanceMsg(AccountChangeEvent accountChange);
+
+    /**
+     * 更新帐号余额-本地事务
+     *
+     * @param accountChange
+     */
+    void doUpdateAccountBalance(AccountChangeEvent accountChange);
+}
+```
+
+业务实现类。注意：`doUpdateAccountBalance` 方法中的本地事务若执行成功，就会在交易记录去重表（de_duplication）保存一条数据。
+
+```java
+@Service
+public class AccountInfoServiceImpl implements AccountInfoService {
+
+    @Autowired
+    private BankMessageProducer bankMessageProducer;
+
+    @Autowired
+    private AccountInfoDao accountInfoDao;
+
+    /**
+     * 更新帐号余额-发送消息
+     *
+     * @param accountChange
+     */
+    @Override
+    public void sendUpdateAccountBalanceMsg(AccountChangeEvent accountChange) {
+        bankMessageProducer.sendAccountChangeEvent(accountChange);
+    }
+
+    /**
+     * 更新帐号余额-本地事务
+     *
+     * @param accountChange
+     */
+    @Override
+    @Transactional(isolation = Isolation.SERIALIZABLE)
+    public void doUpdateAccountBalance(AccountChangeEvent accountChange) {
+        // 扣减余额
+        accountInfoDao.subtractAccountBalance(accountChange.getAccountNo(), accountChange.getAmount());
+        // 新增交易记录（与扣减余额操作在同一个事务中）
+        accountInfoDao.addTx(accountChange.getTxNo());
+    }
+}
+```
+
+##### 2.4.1.6. RocketMQ 事务消息监听器
+
+创建 RocketMQ 事务消息监听器，需要实现 `org.apache.rocketmq.spring.core.RocketMQLocalTransactionListener` 接口，并在类上标识 `@RocketMQTransactionListener` 注解，其中 `txProducerGroup` 属性是用于指定监听的消息分组名称
+
+实现接口中的方法，功能分别是：
+
+- `executeLocalTransaction`：该方法执行本地事务，会在发送半消息后，被 RocketMQ 自动调用
+- `checkLocalTransaction`：该方法实现事务回查，利用了交易记录去重表（de_duplication），会在无法收到确认消息时，被 RocketMQ 自动调用
 
 
+```java
+@Component
+@Slf4j
+@RocketMQTransactionListener(txProducerGroup = "producer_ensure_transfer")
+public class TransferTransactionListenerImpl implements RocketMQLocalTransactionListener {
+
+    @Autowired
+    private AccountInfoService accountInfoService;
+
+    @Autowired
+    private AccountInfoDao accountInfoDao;
+
+    /**
+     * 执行本地事务
+     *
+     * @param msg
+     * @param arg
+     * @return
+     */
+    @Override
+    public RocketMQLocalTransactionState executeLocalTransaction(Message msg, Object arg) {
+        // 1.接收并解析消息
+        final JSONObject jsonObject = JSON.parseObject(new String((byte[]) msg.getPayload()));
+        AccountChangeEvent accountChangeEvent = JSONObject
+                .parseObject(jsonObject.getString("accountChange"), AccountChangeEvent.class);
+
+        try {
+            // 2.执行本地事务
+            accountInfoService.doUpdateAccountBalance(accountChangeEvent);
+            // 3.返回执行结果
+            return RocketMQLocalTransactionState.COMMIT;
+        } catch (Exception e) {
+            return RocketMQLocalTransactionState.ROLLBACK;
+        }
+    }
 
 
+    /**
+     * 事务回查
+     *
+     * @param msg
+     * @return
+     */
+    @Override
+    public RocketMQLocalTransactionState checkLocalTransaction(Message msg) {
+        log.info("TransferTransactionListenerImpl 执行事务回查");
+        // 1.接收并解析消息
+        final JSONObject jsonObject = JSON.parseObject(new String((byte[]) msg.getPayload()));
+        AccountChangeEvent accountChangeEvent = JSONObject
+                .parseObject(jsonObject.getString("accountChange"), AccountChangeEvent.class);
+
+        // 2.查询de_duplication表
+        int isExistTx = accountInfoDao.isExistTx(accountChangeEvent.getTxNo());
+
+        // 3.根据查询结果返回值。（交易记录表存在记录，则说明本地事务成功）
+        return isExistTx > 0 ? RocketMQLocalTransactionState.COMMIT : RocketMQLocalTransactionState.ROLLBACK;
+    }
+}
+```
+
+##### 2.4.1.7. 控制层
+
+定义请求控制层方法，发送事务消息
+
+```java
+@RestController
+public class AccountInfoController {
+
+    @Autowired
+    private AccountInfoService accountInfoService;
+
+    @GetMapping("/transfer")
+    public String transfer() {
+        accountInfoService.sendUpdateAccountBalanceMsg(new AccountChangeEvent("1", 100, System.currentTimeMillis()));
+        return "转账成功";
+    }
+}
+```
+
+#### 2.4.2. ensure-message-demo-bank2 消息接收方工程
+
+##### 2.4.2.1. 项目配置文件
+
+- 项目配置 application.properties
+
+```properties
+spring.application.name=ensure-message-demo-bank2
+
+server.port=56082
+server.servlet.context-path=/bank2
+spring.http.encoding.enabled=true
+spring.http.encoding.charset=UTF-8
+spring.mvc.throw-exception-if-no-handler-found=true
+
+spring.datasource.type=com.alibaba.druid.pool.DruidDataSource
+spring.datasource.driver-class-name=com.mysql.jdbc.Driver
+spring.datasource.url=jdbc:mysql://localhost:3306/bank2?useUnicode=true&useSSL=false
+spring.datasource.username=root
+spring.datasource.password=123456
+
+rocketmq.producer.group=producer_ensure_bank2
+rocketmq.name-server=127.0.0.1:9876
+```
+
+##### 2.4.2.2. 持久层与实体类
+
+持久层接口、数据库表实体、消息实体均与 ensure-message-demo-bank1 工程几乎一样，只修改了增加账户余额方法名称与sql
+
+```java
+@Update("update account_info set account_balance=account_balance+#{amount} where account_no=#{accountNo}")
+int addAccountBalance(@Param("accountNo") String accountNo, @Param("amount") Double amount);
+```
+
+##### 2.4.2.3. 业务层接口与实现
+
+业务层接口定义增加账户余额方法
+
+```java
+public interface AccountInfoService {
+    /**
+     * 更新帐号余额
+     *
+     * @param accountChange
+     */
+    void updateAccountBalance(AccountChangeEvent accountChange);
+}
+```
+
+值得注意的是：在实现类方法中使用交易记录去重表（de_duplication）来实现幂等性控制
 
 
+```java
+@Service
+@Slf4j
+public class AccountInfoServiceImpl implements AccountInfoService {
 
+    @Autowired
+    private AccountInfoDao accountInfoDao;
 
+    @Override
+    @Transactional(isolation = Isolation.SERIALIZABLE)
+    public void updateAccountBalance(AccountChangeEvent accountChange) {
+        log.info("bank2 工程 AccountInfoServiceImpl 执行本地事务");
+        int isExistsTx = accountInfoDao.isExistTx(accountChange.getTxNo());
+        if (isExistsTx == 0) {
+            // 当交易记录表没有记录，才新增
+            accountInfoDao.addAccountBalance(accountChange.getAccountNo(), accountChange.getAmount());
+            accountInfoDao.addTx(accountChange.getTxNo());
+        }
+    }
+}
+```
+
+##### 2.4.2.4. RocketMQ 事务消息监听器
+
+创建消费 RocketMQ 事务消息监听器，需要实现 `org.apache.rocketmq.spring.core.RocketMQListener<T>` 接口，泛型 T 是消息的数据类型。在类上标识 `@RocketMQMessageListener` 注解，`topic` 属性指定消息的主题；`consumerGroup` 属性指定消息的分组
+
+```java
+@Component
+@Slf4j
+@RocketMQMessageListener(topic = "topic_ensure_transfer", consumerGroup = "consumer_ensure_transfer")
+public class EnsureMessageConsumer implements RocketMQListener<String> {
+
+    @Autowired
+    private AccountInfoService accountInfoService;
+
+    @Override
+    public void onMessage(String message) {
+        log.info("EnsureMessageConsumer 消费消息：{}", message);
+        // 1.解析消息
+        final JSONObject jsonObject = JSON.parseObject(message);
+        AccountChangeEvent accountChangeEvent = JSONObject
+                .parseObject(jsonObject.getString("accountChange"), AccountChangeEvent.class);
+        // 2.执行本地事务
+        accountChangeEvent.setAccountNo("2");
+        accountInfoService.updateAccountBalance(accountChangeEvent);
+    }
+}
+```
+
+### 2.5. 功能测试
+
+- bank1 和 bank2 都成功
+- bank1 执行本地事务失败，则 bank2 接收不到转账消息。（在`AccountInfoServiceImpl.doUpdateAccountBalance`方法中模拟异常）
+- bank1 执行完本地事务后，不返回任何信息，则 Broker 会进行事务回查。（在`TransferTransactionListenerImpl.executeLocalTransaction`方法返回结果前模拟异常）
+- bank2 执行本地事务失败，会进行重试消费。（在 bank2 工程 `AccountInfoServiceImpl.updateAccountBalance`方法中模拟异常）
 
 ## 3. 总结
 
