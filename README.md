@@ -24,7 +24,10 @@
 ### 🥃 JavaWeb
 
 <ul class="docs">
-  <li><a href="#/01-JavaWeb/01-JavaWeb基础笔记">JavaWeb 基础笔记</a></li>
+  <li><a href="#/01-JavaWeb/01-HTTP协议">HTTP 协议</a></li>
+  <li><a href="#/01-JavaWeb/02-Web服务器">Web 服务器</a></li>
+  <li><a href="#/01-JavaWeb/03-Servlet">Servlet 基础笔记</a></li>
+  <li><a href="#/01-JavaWeb/04-JSP">JSP 基础笔记</a></li>
 </ul>
 
 ## 后端框架
