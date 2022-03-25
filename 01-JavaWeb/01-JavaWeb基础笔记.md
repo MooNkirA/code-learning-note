@@ -1,4 +1,17 @@
-# Java Web 基础笔记
+# HTTP 协议
+
+## 1. 概述
+
+- HTTP全称：Hyper Text Transfer Procotol 超文本传输协议
+- HTML全称：Hyper Text Markup Language 超文本标记语言
+
+HTTP 就是用来传输 HTML 的。用来规定浏览器与服务器之间网页数据传输的格式。
+
+应用层的协议，基于 TCP/IP 协议。
+
+
+
+
 
 # 扩展知识
 

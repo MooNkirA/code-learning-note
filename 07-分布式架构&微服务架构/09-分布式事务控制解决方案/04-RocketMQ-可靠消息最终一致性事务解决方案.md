@@ -600,7 +600,7 @@ public class TransferTransactionListenerImpl implements RocketMQLocalTransaction
 
 
     /**
-     * 事务回查
+     * 执行事务回查
      *
      * @param msg
      * @return
