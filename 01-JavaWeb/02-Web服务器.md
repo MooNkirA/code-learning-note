@@ -110,4 +110,127 @@ Web 服务器：由 Java 语言编写。就是实现了JavaEE 规范的 Java 程
 
 ## 3. Tomcat
 
+### 3.1. Tomcat 的下载和安装
+
+官网：https://tomcat.apache.org/
+
+![](images/157621808220817.png)
+
+Apache Tomcat Versions 一览表（2022.03.26 更新）
+
+| Servlet Spec | JSP Spec | EL Spec | WebSocket Spec | Authentication (JASPIC) Spec | Apache Tomcat Version | Latest Released Version |         Supported Java Versions         |
+| ------------ | -------- | ------- | -------------- | ---------------------------- | --------------------- | ----------------------- | --------------------------------------- |
+| 6.0          | 3.1      | 5.0     | 2.1            | 3.0                          | 10.1.x                | 10.1.0-M12 (alpha)      | 11 and later                            |
+| 5.0          | 3.0      | 4.0     | 2.0            | 2.0                          | 10.0.x                | 10.0.18                 | 8 and later                             |
+| 4.0          | 2.3      | 3.0     | 1.1            | 1.1                          | 9.0.x                 | 9.0.60                  | 8 and later                             |
+| 3.1          | 2.3      | 3.0     | 1.1            | 1.1                          | 8.5.x                 | 8.5.77                  | 7 and later                             |
+| 3.1          | 2.3      | 3.0     | 1.1            | N/A                          | 8.0.x (superseded)    | 8.0.53 (superseded)     | 7 and later                             |
+| 3.0          | 2.2      | 2.2     | 1.1            | N/A                          | 7.0.x (archived)      | 7.0.109 (archived)      | 6 and later (7 and later for WebSocket) |
+| 2.5          | 2.1      | 2.1     | N/A            | N/A                          | 6.0.x (archived)      | 6.0.53 (archived)       | 5 and later                             |
+| 2.4          | 2.0      | N/A     | N/A            | N/A                          | 5.5.x (archived)      | 5.5.36 (archived)       | 1.4 and later                           |
+| 2.3          | 1.2      | N/A     | N/A            | N/A                          | 4.1.x (archived)      | 4.1.40 (archived)       | 1.3 and later                           |
+| 2.2          | 1.1      | N/A     | N/A            | N/A                          | 3.3.x (archived)      | 3.3.2 (archived)        | 1.1 and later                           |
+
+### 3.2. 安装包的类别
+
+![](images/542942108232268.jpg)
+
+使用 zip 版本，直接解压到任意的文件夹便可使用。
+
+### 3.3. 启动与关闭 - 命令行方式
+
+#### 3.3.1. 启动
+
+1. 解压 zip 文件到目录，*目录名称最好是没有空格与中文*
+2. 在 window 的添加环境变量，即可以直接运行 tomcat\bin 目录下的可执行文件
+
+```
+# 新增的环境变量
+CATALINA_HOME = %tomcat安装目录%
+
+# 指定运行路径
+Path = %CATALINA_HOME%\bin 
+```
+
+3. 使用 cmd 命令行，运行 `startup.bat`。*注：前提是配置了tomcat的环境变量，否则需要 `全路径名称\tomcat\bin\startup.bat`*
+
+![](images/143982408225153.jpg)
+
+4. 启动成功，访问默认地址 `http://localhost:8080`，打开欢迎界面
+
+![](images/209182808225762.jpg)
+
+#### 3.3.2. 关闭
+
+启动 cmd 命令行，输入以下命令
+
+```bash
+# 配置了环境变量
+shutdown.bat
+
+# 直接进入目录路径进行关闭
+全路径名称\tomcat\bin\shutdown.bat
+```
+
+### 3.4. Tomcat目录结构
+
+|    目录名     |                                                                                              作用                                                                                              |
+| :---------: | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+|   **bin**   | tomcat的可执行的程序，bat批处理文件，启动或关闭tomcat                                                                                                                                                 |
+|  **conf**   | tomcat服务器的配置文件夹，常用的配置文件都在这里，如：<br/>web.xml：Web服务器的部署描述文件<br/>server.xml：服务器启动读取配置的文件，如果文件有错误，tomcat启动会失败<br/>tomcat-users.xml：用于配置tomcat管理员的配置文件 |
+|   **lib**   | tomcat启动的时候必须的jar库，第三方支持库也可以放在这里                                                                                                                                                |
+|  **logs**   | 日志记录，服务器启动和关闭或运行过程中记录的信息，扩展名.log，文本文件                                                                                                                                     |
+|  **temp**   | 用于存放服务器运行过程中的临时文件，垃圾文件                                                                                                                                                           |
+| **webapps** | 开发的Java项目发布文件夹，所有的项目都要复制到这个目录下，才可以给客户端浏览器使用。如：<br/>文件：/webapps/hello/1.html  访问：`http://localhost:8080/hello/1.html`                                             |
+|  **work**   | tomcat 的工作目录，存放 jsp 生成的 servlet 代码地方                                                                                                                                                 |
+
+webapps 目录下原有文件
+
+![](images/152673508252717.jpg)
+
+### 3.5. Tomcat 项目的发布方式
+
+#### 3.5.1. 方式一(最常用)
+
+直接将网页复制（或新建）到【webapps\工程名】目录下
+
+- 服务器地址：`c:\apache-tomcat-7.0.70\webapps\javaee\a.html`
+- 浏览器上URL：`http://localhost:8080/javaee/a.html`
+
+#### 3.5.2. 方式二
+
+将网页复制到 ROOT 文件夹。
+
+- 将项目复制到 ROOT 下
+- 修改 WEB-INF/web.xml
+
+此时 tomcat 欢迎页面，即：http://localhost:8080，其实就是 ROOT\index.jsp
+
+### 3.6. Tomcat的启动常见的问题
+
+#### 3.6.1. 未设置 JAVA_HOME 环境变量
+
+出错信息：
+
+![](images/40273908234930.jpg)
+
+解决办法：安装好 JDK，至少要配置 `JAVA_HOME` 或 `JRE_HOME` 这两环境变量中的一个
+
+#### 3.6.2. 端口被占用
+
+如果占用了 8080 端口，再启动 Tomcat，启动会失败
+
+出错信息不仅在屏幕上显示，同时也会记录到日志文件中。
+
+![](images/222374008224228.jpg)
+
+解决方法一：把占用端口的程序退出，不再占用 8080 端口。*使用软件 cports.exe 可以查看目前电脑端口的使用状态*
+
+![](images/383864108220479.jpg)
+
+解决方法二：找到 conf\server.xml 修改 tomcat 的端口号，并且重新启动web容器
+
+![](images/393884208220618.jpg)
+
+![](images/475124208232708.jpg)
 
