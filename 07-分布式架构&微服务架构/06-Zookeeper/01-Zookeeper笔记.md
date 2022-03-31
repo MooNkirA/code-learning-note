@@ -159,6 +159,54 @@ dataDir=/home/zookeeper/zookeeper-x.x.x/data
 
 整理中...
 
+### 5.3. Zookeeper 配置
+
+修改 conf 目录的 zoo.cfg 文件，可以设置 zk 相关配置。如下是本人配置参考：
+
+```properties
+# The number of milliseconds of each tick
+tickTime=2000
+# The number of ticks that the initial 
+# synchronization phase can take
+initLimit=10
+# The number of ticks that can pass between 
+# sending a request and getting an acknowledgement
+syncLimit=5
+# the directory where the snapshot is stored.
+# do not use /tmp for storage, /tmp here is just 
+# example sakes.
+dataDir=E:/deployment-environment/apache-zookeeper-3.6.3-bin/data
+# the port at which the clients will connect
+clientPort=2181
+# the maximum number of client connections.
+# increase this if you need to handle more clients
+#maxClientCnxns=60
+#
+# Be sure to read the maintenance section of the 
+# administrator guide before turning on autopurge.
+#
+# http://zookeeper.apache.org/doc/current/zookeeperAdmin.html#sc_maintenance
+#
+# The number of snapshots to retain in dataDir
+#autopurge.snapRetainCount=3
+# Purge task interval in hours
+# Set to "0" to disable auto purge feature
+#autopurge.purgeInterval=1
+# Zookeeper AdminServer port
+admin.serverPort=9999
+
+## Metrics Providers
+#
+# https://prometheus.io Metrics Exporter
+#metricsProvider.className=org.apache.zookeeper.metrics.prometheus.PrometheusMetricsProvider
+#metricsProvider.httpPort=7000
+#metricsProvider.exportJvmInfo=true
+# 日志文件
+dataLogDir=E:/deployment-environment/apache-zookeeper-3.6.3-bin/log
+```
+
+> 注：Zookeeper3.5的新特性：会启动 Zookeeper AdminServer，默认使用 8080 端口。可以通过配置文件的 `admin.serverPort=8888` 修改 AdminServer 的端口
+
 ## 6. Zookeeper 服务端常用命令
 
 修改了相应的配置之后，可以直接通过 zkServer.sh 这个脚本进行服务的相关操作

@@ -352,21 +352,271 @@ SET FOREIGN_KEY_CHECKS = 1;
 
 ### 4.2. Elastic-job 集成 Spring Boot
 
-> 此 Elastic-job 快速入门示例使用 spring boot 集成方式。
+> 此 Elastic-job 快速入门示例使用 spring boot 集成方式。示例代码位置如下：
 >
-> 示例代码位置：https://github.com/MooNkirA/java-technology-stack/tree/master/java-stack-elastic-job
+> - 代码仓库：https://github.com/MooNkirA/java-technology-stack/tree/master/java-stack-elastic-job
+> - 本地：\code\java-technology-stack\java-stack-elastic-job\elastic-job-springboot
 
 #### 4.2.1. 导入 maven 依赖
 
 ```xml
+<parent>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-parent</artifactId>
+    <version>2.2.2.RELEASE</version>
+</parent>
 
+<dependencies>
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter</artifactId>
+    </dependency>
+
+    <dependency>
+        <groupId>com.dangdang</groupId>
+        <artifactId>elastic-job-lite-spring</artifactId>
+        <version>2.1.5</version>
+    </dependency>
+
+    <!-- 配置MyBatis启动器 -->
+    <dependency>
+        <groupId>org.mybatis.spring.boot</groupId>
+        <artifactId>mybatis-spring-boot-starter</artifactId>
+        <version>2.1.4</version>
+    </dependency>
+
+    <dependency>
+        <groupId>mysql</groupId>
+        <artifactId>mysql-connector-java</artifactId>
+        <version>5.1.48</version>
+    </dependency>
+    
+    <dependency>
+        <groupId>org.projectlombok</groupId>
+        <artifactId>lombok</artifactId>
+        <optional>true</optional>
+    </dependency>
+</dependencies>
 ```
 
+#### 4.2.2. 编写 spring boot 配置文件及启动类
 
+spring boot 配置文件：
 
+```yml
+server:
+  port: ${PORT:57081}
+spring:
+  application:
+    name: elastic-job-springboot
+  datasource:
+    driver-class-name: com.mysql.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/elastic_job_demo?useUnicode=true&characterEncoding=utf8&autoReconnect=true&allowMultiQueries=true&useSSL=false
+    username: root
+    password: 123456
 
+mybatis:
+  mapper-locations: classpath*:xml/*.xml
+  type-aliases-package: com.moon.elasticjobdemo.pojo
+  # 开启驼峰映射
+  configuration:
+    map-underscore-to-camel-case: true
 
+# zookeeper服务地址
+zookeeper:
+  server: localhost:2181
 
+myjob:
+  # 名称空间
+  namespace: elastic-job-example
+  # 分片总数
+  count: 3
+  # cron表达式(定时策略)
+  cron: 0/5 * * * * ?
+
+logging:
+  level:
+    root: info
+```
+
+springBoot 启动类：
+
+```java
+@MapperScan("com.moon.elasticjobdemo.dao")
+@SpringBootApplication
+public class ElasticJobApp {
+    public static void main(String[] args) {
+        SpringApplication.run(ElasticJobApp.class, args);
+    }
+}
+```
+
+#### 4.2.3. 实体类与数据访问层
+
+用户表实体类
+
+```java
+@Data
+public class User {
+    private Long id;
+    private String name;
+    private Integer age;
+    private String email;
+}
+```
+
+数据访问层接口。注意：此处为了方便测试分片作业，将查询语句进行改造，根据分片数据与当前作业程序编号进行查询，策略是根据用户id与分片数取模，是否为当前作业服务的编号
+
+```java
+public interface UserMapper {
+    /**
+     * 根据分片查询
+     *
+     * @param shardingTotalCount
+     * @param shardingItem
+     * @return
+     */
+    List<User> queryUserById(@Param("shardingTotalCount") int shardingTotalCount, @Param("shardingItem") int shardingItem);
+}
+```
+
+mapper 映射文件
+
+```xml
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.moon.elasticjobdemo.dao.UserMapper">
+
+    <select id="queryUserById" resultType="com.moon.elasticjobdemo.pojo.User">
+        SELECT
+            *
+        FROM
+            `user`
+        WHERE
+            MOD (id, #{shardingTotalCount})=#{shardingItem}
+    </select>
+
+</mapper>
+```
+
+#### 4.2.4. Elastic-Job 任务类
+
+编写 Elastic-Job 任务类，需要实现 `com.dangdang.ddframe.job.api.simple.SimpleJob` 接口，其中 `execute` 方法在定时任务被调度时执行
+
+```java
+@Component
+@Slf4j
+public class MyJob implements SimpleJob {
+
+    @Autowired
+    private UserMapper userMapper;
+
+    /**
+     * 执行作业的主要业务逻辑
+     *
+     * @param shardingContext 分片上下文
+     */
+    @Override
+    public void execute(ShardingContext shardingContext) {
+        // 从 Elastic-Job 分片上下文中，获取分片总数
+        int shardingTotalCount = shardingContext.getShardingTotalCount();
+        // 获取当前分片项
+        int shardingItem = shardingContext.getShardingItem();
+
+        // 查询结果
+        List<User> users = userMapper.queryUserById(shardingTotalCount, shardingItem);
+        for (User user : users) {
+            log.info("作业分片: {} ---> {}", shardingItem, user);
+        }
+    }
+}
+```
+
+#### 4.2.5. zookeeper 注册中心配置
+
+在 config 包中，创建 zookeeper 的配置类 `ZKRegistryCenterConfig`。
+
+```java
+@Configuration
+public class ZKRegistryCenterConfig {
+
+    // 读取配置 zookeeper 服务器地址
+    @Value("${zookeeper.server}")
+    private String ZOOKEEPER_SERVER;
+
+    // 定时任务的名称空间
+    @Value("${myjob.namespace}")
+    private String JOB_NAMESPACE;
+
+    /**
+     * zk的配置及创建注册中心
+     *
+     * @return
+     */
+    @Bean(initMethod = "init")
+    public ZookeeperRegistryCenter createRegistryCenter() {
+        // zk配置
+        ZookeeperConfiguration zookeeperConfiguration = new ZookeeperConfiguration(ZOOKEEPER_SERVER, JOB_NAMESPACE);
+        // 创建注册中心
+        return new ZookeeperRegistryCenter(zookeeperConfiguration);
+    }
+}
+```
+
+#### 4.2.6. elastic-job 配置类
+
+在 config 包中，创建 elastic-job 配置类，配置任务详细信息，包括：指定任务执行类、任务的执行策略等等
+
+```java
+@Configuration
+public class ElasticJobConfig {
+
+    @Autowired
+    private MyJob myJob;
+
+    @Autowired
+    private ZookeeperRegistryCenter zkRegistryCenterConfig;
+
+    // 读取配置文件：分片数量
+    @Value("${myjob.count}")
+    private int shardingCount;
+    // 读取配置文件：cron 表达式(定时策略)
+    @Value("${myjob.cron}")
+    private String cron;
+
+    @Bean(initMethod = "init")
+    public SpringJobScheduler initSimpleElasticJob() {
+        // 创建作业核心配置 JobCoreConfiguration.Builder
+        JobCoreConfiguration.Builder jobCoreConfigurationBuilder = JobCoreConfiguration.newBuilder(MyJob.class.getName(), cron, shardingCount);
+        JobCoreConfiguration jobCoreConfiguration = jobCoreConfigurationBuilder.build();
+
+        // 创建 SIMPLE 类型配置 SimpleJobConfiguration
+        SimpleJobConfiguration simpleJobConfiguration = new SimpleJobConfiguration(jobCoreConfiguration, MyJob.class.getCanonicalName());
+
+        // 创建 Lite 作业根配置 LiteJobConfiguration
+        LiteJobConfiguration liteJobConfiguration = LiteJobConfiguration
+                .newBuilder(simpleJobConfiguration)
+                .jobShardingStrategyClass("com.dangdang.ddframe.job.lite.api.strategy.impl.AverageAllocationJobShardingStrategy") // 配置作业分片策略：平均分配策略
+                .overwrite(true)
+                .build();
+
+        // 创建 SpringJobScheduler 任务调度器，由它来启动执行任务
+        return new SpringJobScheduler(myJob, zkRegistryCenterConfig, liteJobConfiguration);
+    }
+}
+```
+
+#### 4.2.7. 功能测试
+
+启动 zookeeper 服务。由于在配置文件中设置的分片数量为3，所以这里启动了三个微服务，各个服务启动过程中会向 zookeeper 进行注册。配置以下 VM options 参数，启动服务，服务的端口是 57081(默认)、57082、57083
+
+```bash
+-Dserver.port=57082
+```
+
+运行起来后，测试发现三个服务微每隔5秒钟就执行一次数据查询，并且进行了分片(平均分配)。运行效果如下。
+
+![](images/390624910220371.png)
 
 ## 5. Elastic-Job 工作原理（待整理）
 
