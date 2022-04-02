@@ -112,33 +112,37 @@
 
 ## 前端资料
 
-### 🎬 前端基础语法 - HTML
+### 🎬 基础语法 - HTML
 
 <ul class="docs">
-  <li><a href="#/03-前端资料/01-前端基础语法01-HTML/01-HTML-基础语法">HTML 基础语法</a></li>
-  <li><a href="#/03-前端资料/01-前端基础语法01-HTML/02-HTML5-基础语法">HTML5 下一代 HTML 标准</a></li>
-  <li><a href="#/03-前端资料/01-前端基础语法01-HTML/99-前端其他相关资料">前端其他相关资料</a></li>
+  <li><a href="#/03-前端资料/01-基础语法01-HTML/01-HTML-基础语法">HTML 基础语法</a></li>
+  <li><a href="#/03-前端资料/01-基础语法01-HTML/02-HTML5-基础语法">HTML5 下一代 HTML 标准</a></li>
+  <li><a href="#/03-前端资料/01-基础语法01-HTML/99-前端其他相关资料">前端其他相关资料</a></li>
 </ul>
 
 
-### 🎨 前端基础语法 - 层叠样式表
+
+### 🎨 基础语法 - 层叠样式表
 
 <ul class="docs">
-  <li><a href="#/03-前端资料/01-前端基础语法02-层叠样式表/01-CSS-基础知识">CSS 基础知识</a></li>
-  <li><a href="#/03-前端资料/01-前端基础语法02-层叠样式表/02-CSS-常用样式手册">CSS 常用样式手册</a></li>
-  <li><a href="#/03-前端资料/01-前端基础语法02-层叠样式表/03-CSS-其他相关知识">CSS 其他相关知识</a></li>
-  <li><a href="#/03-前端资料/01-前端基础语法02-层叠样式表/04-Less-语法基础">Less 语法基础</a></li>
+  <li><a href="#/03-前端资料/01-基础语法02-CSS/01-CSS-基础知识">CSS 基础知识</a></li>
+  <li><a href="#/03-前端资料/01-基础语法02-CSS/02-CSS-常用样式手册">CSS 常用样式手册</a></li>
+  <li><a href="#/03-前端资料/01-基础语法02-CSS/03-CSS-其他相关知识">CSS 其他相关知识</a></li>
+  <li><a href="#/03-前端资料/01-基础语法02-CSS/04-Less-语法基础">Less 语法基础</a></li>
 </ul>
 
 
-### 🎥 JavaScript
+
+### 🎥 基础语法 - JavaScript
 
 <ul class="docs">
-  <li><a href="#/03-前端资料/01-前端基础语法03-JavaScript/01-JavaScript">JavaScript 基础知识</a></li>
-  <li><a href="#/03-前端资料/01-前端基础语法03-JavaScript/02-JavaScript-正则表达式">JavaScript 正则表达式</a></li>
-  <li><a href="#/03-前端资料/01-前端基础语法03-JavaScript/03-JavaScript-工具函数">JavaScript 工具函数</a></li>
-  <li><a href="#/03-前端资料/01-前端基础语法03-JavaScript/04-JavaScript-代码简洁之道">JavaScript 代码简洁之道</a></li>
+  <li><a href="#/03-前端资料/01-基础语法03-JavaScript/01-JavaScript">JavaScript 基础知识</a></li>
+  <li><a href="#/03-前端资料/01-基础语法03-JavaScript/02-ECMAScript6">ECMAScript6 (ES6) 基础知识</a></li>
+  <li><a href="#/03-前端资料/01-基础语法03-JavaScript/03-JavaScript-正则表达式">JavaScript 正则表达式</a></li>
+  <li><a href="#/03-前端资料/01-基础语法03-JavaScript/04-JavaScript-工具函数">JavaScript 工具函数</a></li>
+  <li><a href="#/03-前端资料/01-基础语法03-JavaScript/05-JavaScript-代码简洁之道">JavaScript 代码简洁之道</a></li>
 </ul>
+
 
 ### 🅰 Angular.js
 
