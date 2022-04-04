@@ -101,7 +101,7 @@ wanxinp2p-project
 | wanxinp2p-depository-agent-service | 存管代理微服务         | 53070 |
 | wanxinp2p-repayment-service        | 还款微服务             | 53080 |
 | wanxinp2p-content-search-service   | 内容搜索微服务         | 53090 |
-| wanxinp2p-ﬁle-service              | 文件微服务             | 56082 |
+| wanxinp2p-file-service             | 文件微服务             | 56082 |
 | wanxindepository                   | 银行存管系统           | 55010 |
 
 #### 5.2.2. 后端服务部署
