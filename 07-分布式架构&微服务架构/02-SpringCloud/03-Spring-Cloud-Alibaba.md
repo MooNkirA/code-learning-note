@@ -1230,11 +1230,10 @@ public class SentinelDemoController {
     public String message1() {
         return "message1";
     }
-
 }
 ```
 
-在引入 Sentinel 客户端后，以上定义的这些请求方法，都会
+在引入 Sentinel 客户端后，以上定义的这些请求方法，都会被保护起来
 
 ### 4.3. 配置启动参数
 
@@ -2382,7 +2381,7 @@ public class ExceptionUtil {
 
 Sentinel 适配了`OpenFeign`组件。如果想使用，除了引入 `sentinel-starter` 的依赖外还需要2个步骤：
 
-- 配置文件打开sentinel对feign的支持：`feign.sentinel.enabled=true`
+- 配置文件打开 sentinel 对 feign 的支持：`feign.sentinel.enabled=true`
 - 加入 `openfeign starter` 依赖使 `sentinel starter` 中的自动化配置类生效：
 
 > 注：Feign 对应的接口中的资源名策略定义：`httpmethod:protocol://requesturl`。`@FeignClient` 注解中的所有属性，Sentinel 都做了兼容。

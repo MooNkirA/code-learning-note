@@ -109,7 +109,7 @@ wanxinp2p-project
 
 ### 5.3. 第三方组件服务
 
-|     组件服务名称      |            描述             |   Port    |
+|     组件服务名称      |             描述             |   Port    |
 | -------------------- | ---------------------------- | :-------: |
 | apollo-portal        | apollo 配置中心              |   8070    |
 | apollo-configservice | apollo 配置中心              |   8080    |
@@ -121,6 +121,7 @@ wanxinp2p-project
 | ElasticSearch        | 全文检索工具                 |   9200    |
 | ElasticSearch-head   | ElasticSearch 图形化管理工具 |   9200    |
 | ZooKeeper            | Elastic-job                  | 2181/9999 |
+| zipkin               | 日志采集工具                 |   9411    |
 
 ### 5.4. 前端工程
 
