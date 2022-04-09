@@ -2307,9 +2307,9 @@ SpringCloud Fegin 默认已整合了 hystrix，所以添加Feign依赖后就不�
 
 复用`06-springcloud-feign`工程的代码，创建新的工程`09-springcloud-hystrix-feign`。整理删除一些无用的依赖与代码
 
-### 5.2. 开启hystrix
+### 5.2. 开启 hystrix
 
-在Feign中已经内置了hystrix，但是默认是关闭的。修改项目的`application.yml`配置文件开启对hystrix的支持
+在 Feign 中已经内置了 hystrix，但是默认是关闭的。修改项目的 application.yml 配置文件开启对 hystrix 的支持
 
 ```yml
 feign:
@@ -2344,7 +2344,7 @@ public class ProductFeignClientCallBack implements ProductFeignClient {
 }
 ```
 
-### 5.4. FeignClient接口指定hystrix熔断方法
+### 5.4. FeignClient 接口指定 hystrix 熔断方法
 
 在接口上的`@FeignClient`注解，添加`fallback`属性，声明降级方法（接口的实现类）
 

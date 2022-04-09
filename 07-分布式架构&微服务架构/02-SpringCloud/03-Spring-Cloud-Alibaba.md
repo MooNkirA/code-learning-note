@@ -73,13 +73,16 @@ Example 列表：
 
 ## 5. 版本说明(2021.12.22日更新)
 
+> 官方说明地址：https://github.com/alibaba/spring-cloud-alibaba/wiki/%E7%89%88%E6%9C%AC%E8%AF%B4%E6%98%8E
+
 ### 5.1. 组件版本关系
 
-每个 Spring Cloud Alibaba 版本及其自身所适配的各组件对应版本（经过验证，自行搭配各组件版本不保证可用）如下表所示：
+每个 Spring Cloud Alibaba 版本及其自身所适配的各组件对应版本（经过验证，自行搭配各组件版本不保证可用）如下表所示（最新版本用`*`标记）：
 
 |               Spring Cloud Alibaba Version                | Sentinel Version | Nacos Version | RocketMQ Version | Dubbo Version | Seata Version |
 | --------------------------------------------------------- | ---------------- | ------------- | ---------------- | ------------- | ------------- |
-| 2.2.7.RELEASE(最新版本)                                    | 1.8.1            | 2.0.3         | 4.6.1            | 2.7.13        | 1.3.0         |
+| 2021.0.1.0`*`                                             | 1.8.3            | 1.4.2         | 4.9.2            | 2.7.15        | 1.4.2         |
+| 2.2.7.RELEASE                                             | 1.8.1            | 2.0.3         | 4.6.1            | 2.7.13        | 1.3.0         |
 | 2.2.6.RELEASE                                             | 1.8.1            | 1.4.2         | 4.4.0            | 2.7.8         | 1.3.0         |
 | 2021.1 or 2.2.5.RELEASE or 2.1.4.RELEASE or 2.0.4.RELEASE | 1.8.0            | 1.4.1         | 4.4.0            | 2.7.8         | 1.3.0         |
 | 2.2.3.RELEASE or 2.1.3.RELEASE or 2.0.3.RELEASE           | 1.8.0            | 1.3.3         | 4.4.0            | 2.7.8         | 1.3.0         |
@@ -92,18 +95,18 @@ Example 列表：
 
 下表为按时间顺序发布的 Spring Cloud Alibaba 以及对应的适配 Spring Cloud 和 Spring Boot 版本关系（由于 Spring Cloud 版本命名有调整，所以对应的 Spring Cloud Alibaba 版本号也做了对应变化）
 
-|  Spring Cloud Alibaba Version   |    Spring Cloud Version     | Spring Boot Version |
-| ------------------------------- | --------------------------- | ------------------- |
-| 2.2.7.RELEASE                   | Spring Cloud Hoxton.SR12    | 2.3.12.RELEASE      |
-| 2021.1                          | Spring Cloud 2020.0.1       | 2.4.2               |
-| 2.2.6.RELEASE                   | Spring Cloud Hoxton.SR9     | 2.3.2.RELEASE       |
-| 2.1.4.RELEASE                   | Spring Cloud Greenwich.SR6  | 2.1.13.RELEASE      |
-| 2.2.1.RELEASE                   | Spring Cloud Hoxton.SR3     | 2.2.5.RELEASE       |
-| 2.2.0.RELEASE                   | Spring Cloud Hoxton.RELEASE | 2.2.X.RELEASE       |
-| 2.1.2.RELEASE                   | Spring Cloud Greenwich      | 2.1.X.RELEASE       |
+|   Spring Cloud Alibaba Version   |    Spring Cloud Version     | Spring Boot Version |
+| -------------------------------- | --------------------------- | ------------------- |
+| 2021.0.1.0                       | Spring Cloud 2021.0.1       | 2.6.3               |
+| 2.2.7.RELEASE                    | Spring Cloud Hoxton.SR12    | 2.3.12.RELEASE      |
+| 2021.1                           | Spring Cloud 2020.0.1       | 2.4.2               |
+| 2.2.6.RELEASE                    | Spring Cloud Hoxton.SR9     | 2.3.2.RELEASE       |
+| 2.1.4.RELEASE                    | Spring Cloud Greenwich.SR6  | 2.1.13.RELEASE      |
+| 2.2.1.RELEASE                    | Spring Cloud Hoxton.SR3     | 2.2.5.RELEASE       |
+| 2.2.0.RELEASE                    | Spring Cloud Hoxton.RELEASE | 2.2.X.RELEASE       |
+| 2.1.2.RELEASE                    | Spring Cloud Greenwich      | 2.1.X.RELEASE       |
 | 2.0.4.RELEASE(停止维护，建议升级) | Spring Cloud Finchley       | 2.0.X.RELEASE       |
 | 1.5.1.RELEASE(停止维护，建议升级) | Spring Cloud Edgware        | 1.5.X.RELEASE       |
-
 ### 5.3. 依赖管理
 
 Spring Cloud Alibaba BOM 包含了它所使用的所有依赖的版本（RELEASE 版本）。
@@ -1083,7 +1086,7 @@ Sentinel 的设计理念是让开发者自由选择控制的角度，并进行�
 
 除了流量控制以外，降低调用链路中的不稳定资源也是 Sentinel 的使命之一。由于调用关系的复杂性，如果调用链路中的某个资源出现了不稳定，最终会导致请求发生堆积。
 
-![](images/20220102113225803_12823.png)
+![](images/20220102113225803_12823.jpg)
 
 Sentinel 和 Hystrix 的原则是一致的：当调用链路中某个资源出现不稳定，例如，表现为请求时长超时（timeout），异常比例升高的时候，则对这个资源的调用进行限制，并让请求快速失败，避免影响到其它的资源，最终产生雪崩的效果。
 
@@ -1959,7 +1962,6 @@ public class DataSourceInitFunc implements InitFunc {
     private <T> String encodeJson(T t) {
         return JSON.toJSONString(t);
     }
-
 }
 ```
 

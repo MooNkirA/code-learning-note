@@ -21,6 +21,8 @@
   <li><a href="#/00-项目资料/07-万信金融/14-用户身份认证">第14章 用户身份认证</a></li>
   <li><a href="#/00-项目资料/07-万信金融/15-项目部署">第15章 项目部署</a></li>
   <li><a href="#/00-项目资料/07-万信金融/16-服务调用链路追踪">第16章 服务调用链路追踪</a></li>
+  <li><a href="#/00-项目资料/07-万信金融/17-Sentinel限流">第17章 Sentinel 限流</a></li>
+  <li><a href="#/00-项目资料/07-万信金融/18-Hystrix服务熔断">第18章 Hystrix 服务熔断</a></li>
 </ul>
 
 ## 2. 项目git库与分支管理
@@ -122,6 +124,7 @@ wanxinp2p-project
 | ElasticSearch-head   | ElasticSearch 图形化管理工具 |   9200    |
 | ZooKeeper            | Elastic-job                  | 2181/9999 |
 | zipkin               | 日志采集工具                 |   9411    |
+| sentinel-dashboard   | sentinel 控制台              |   9898    |
 
 ### 5.4. 前端工程
 
