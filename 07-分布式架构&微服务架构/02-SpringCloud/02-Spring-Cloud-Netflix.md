@@ -2133,9 +2133,9 @@ Hystrix是由Netflix开源的一个延迟和容错库，用于隔离访问远程
 
 复用`04-springcloud-ribbon`工程的代码，创建新的工程`08-springcloud-hystrix-resttemplate`。整理删除一些无用的依赖与代码
 
-### 4.2. 配置hystrix依赖
+### 4.2. 配置 hystrix 依赖
 
-在 `shop-service-order` 模块中添加Hystrix的相关依赖
+在 `shop-service-order` 模块中添加 Hystrix 的相关依赖
 
 ```xml
 <!--引入hystrix依赖-->
@@ -2361,19 +2361,19 @@ public interface ProductFeignClient {
 }
 ```
 
-## 6. Hystrix的监控平台
+## 6. Hystrix 的监控平台
 
 ### 6.1. Hystrix 的设置实时监控
 
 **注意细节**：当请求失败，被拒绝，超时的时候，都会进入到降级方法中。但进入降级方法并不意味着断路器已经被打开。
 
-除了实现容错功能，Hystrix还提供了近乎实时的监控，`HystrixCommand`和`HystrixObservableCommand`在执行时，会生成执行结果和运行指标。比如每秒的请求数量，成功数量等。
+除了实现容错功能，Hystrix 还提供了近乎实时的监控，`HystrixCommand` 和 `HystrixObservableCommand` 在执行时，会生成执行结果和运行指标。比如每秒的请求数量，成功数量等。
 
-这些状态会暴露在`Actuator`提供的`/health`端点中。只需为项目添加 `spring-boot-actuator` 依赖，重启项目，访问`http://localhost:9002/actuator/hystrix.stream`，即可看到实时的监控数据。
+这些状态会暴露在 `Actuator` 提供的 `/health` 端点中。只需为项目添加 `spring-boot-actuator` 依赖，重启项目，访问 `http://localhost:9002/actuator/hystrix.stream`，即可看到实时的监控数据。
 
 #### 6.1.1. 引入依赖
 
-在`09-springcloud-hystrix-feign`示例中，修改`shop-service-order`工程maven依赖
+在 `09-springcloud-hystrix-feign` 示例中，修改 `shop-service-order` 工程 maven 依赖
 
 ```xml
 <!-- 引入hystrix的监控信息 -->
@@ -2388,9 +2388,9 @@ public interface ProductFeignClient {
 </dependency>
 ```
 
-#### 6.1.2. 配置开启Hystrix支持
+#### 6.1.2. 配置开启 Hystrix 支持
 
-在`shop-service-order`工程启动类中，标识`@EnableCircuitBreaker`开启Hystrix支持
+在 `shop-service-order` 工程启动类中，标识 `@EnableCircuitBreaker` 开启 Hystrix 支持
 
 ```javas
 @SpringBootApplication(scanBasePackages = "com.moon.order")
