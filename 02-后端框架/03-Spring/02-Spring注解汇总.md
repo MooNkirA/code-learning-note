@@ -998,7 +998,7 @@ public class SpringConfiguration {
 |       `value`       | 此属性是在4.3.3版本之后加入的。它和name属性的作用是一样的。当前`@Bean`注解没有设置其他属性值时，value可以省略                                |            |
 |     `autowire`      | 5.1版本后该属性已过期，使用`autowireCandidate`属性代替                                                                                 |            |
 | `autowireCandidate` | 用于指定是否支持自动按类型注入到其他bean中。只影响`@Autowired`注解的使用。不影响`@Resource`注解注入。默认值为true，意为允许使用自动按类型注入。 | true/false |
-|    `initMethod`     | 用于指定初始化方法。*注：一般比较少，建议使用编程式试直接在创建对象的同时做初始化的工作*                                                     |            |
+|    `initMethod`     | 用于指定初始化方法。*注：一般比较少，建议使用编程式方式直接在创建对象的同时做初始化的工作*                                             |            |
 |   `destroyMethod`   | 用于指定销毁方法。*注意：该方法不能有入参*                                                                                              |            |
 
 

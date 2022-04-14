@@ -66,11 +66,11 @@ spring:
 </dependency>
 ```
 
-> 注：在需要进行链路追踪的所有微服务上都要加上Sleuth的依赖
+> 注：在需要进行链路追踪的所有微服务上都要加上 Sleuth 的依赖
 
 ### 2.3. 添加日志配置
 
-修改网关、订单、商品微服务工程的application.yml配置文件，添加日志级别
+修改网关、订单、商品微服务工程的 application.yml 配置文件，添加日志级别
 
 ```yml
 logging:
@@ -84,7 +84,7 @@ logging:
 
 ### 2.4. 测试结果
 
-启动微服务，调用之后，我们可以在控制台观察到sleuth的日志输出。
+启动微服务，调用之后，我们可以在控制台观察到 sleuth 的日志输出。
 
 ![](images/20201112153121712_16510.png)
 
@@ -92,9 +92,18 @@ logging:
 
 ![](images/20201112153202301_27356.png)
 
-其中 `eb73eff57266ff20` 是TraceId，后面跟着的是SpanId，依次调用有一个全局的TraceId，将调用链路串起来。仔细分析每个微服务的日志，不难看出请求的具体过程。
+其中 `eb73eff57266ff20` 是 TraceId，后面跟着的是 SpanId，依次调用有一个全局的 TraceId，将调用链路串起来，调用过程的每个步骤有不同的 SpanId。仔细分析每个微服务的日志，不难看出请求的具体过程。
 
-查看日志文件并不是一个很好的方法，当微服务越来越多日志文件也会越来越多，通过Zipkin可以将日志聚合，并进行可视化展示和全文检索。
+查看日志文件并不是一个很好的方法，当微服务越来越多日志文件也会越来越多，通过 Zipkin 可以将日志聚合，并进行可视化展示和全文检索。
+
+### 2.5. Sleuth 日志格式解析
+
+从上面日志输出可知，Sleuth 的日志的格式为：`[applicationName, traceId, spanId, export]`
+
+- `applicationName`：应用的名称，也就是 `application.properties` 配置文件中的 `spring.application.name` 属性的值。
+- `traceId`：一个请求分配的 ID 号，用来标识一条请求链路。
+- `spanId`：表示一个基本的工作单元，一个请求可以包含多个步骤，每个步骤都拥有自己的 spanId。
+- `export`：布尔类型。表示是否要将该信息输出到类似 Zipkin 这样的追踪服务端进行收集和展示。
 
 ## 3. Zipkin 的概述
 
@@ -131,11 +140,11 @@ Zipkin 分为两端，一个是 Zipkin 服务端，一个是 Zipkin 客户端，
 
 ### 4.1. Zipkin Server 下载
 
-从spring boot 2.0开始，官方就不再支持使用自建Zipkin Server的方式进行服务链路追踪，而是直接提供了编译好的 jar 包来使用。可以从官方网站下载先下载Zipkin的web UI，
+从 spring boot 2.0 开始，官方就不再支持使用自建 Zipkin Server 的方式进行服务链路追踪，而是直接提供了编译好的 jar 包来使用。可以从官方网站下载先下载 Zipkin 的 web UI
 
 > - Zipkin 源码下载地址：https://github.com/openzipkin/zipkin/releases
-> - Zipkin Server 编译后jar下载地址：https://search.maven.org/artifact/io.zipkin/zipkin-server
-> - 此次示例下载的是zipkin-server-2.20.0-exec.jar
+> - Zipkin Server 编译后 jar 下载地址：https://search.maven.org/artifact/io.zipkin/zipkin-server
+> - 此次示例下载的是 zipkin-server-2.20.0-exec.jar
 
 ### 4.2. 启动
 
@@ -194,7 +203,7 @@ spring:
 
 ### 5.3. 测试
 
-启动Zipkin Service，并启动每个微服务。通过浏览器发送一次微服务请求。打开 Zipkin Service 控制台，我们可以根据条件追踪每次请求调用过程
+启动 Zipkin Service，并启动每个微服务。通过浏览器发送一次微服务请求。打开 Zipkin Service 控制台，我们可以根据条件追踪每次请求调用过程
 
 ![](images/20201113090901957_21895.png)
 
@@ -212,7 +221,7 @@ spring:
 存在的问题：
 
 1. 当服务出现异常或者宕机的情况，存储在内存的数据就会出现丢失
-2. 在出现网络波动时，Server端异常等情况下可能存在信息收集不及时的问题。
+2. 在出现网络波动时，Server 端异常等情况下可能存在信息收集不及时的问题。
 
 ## 6. 跟踪数据的存储
 
@@ -321,11 +330,33 @@ java -jar zipkin-server-2.22.0-exec.jar --STORAGE_TYPE=mysql --MYSQL_HOST=127.0.
 
 ![](images/20220105224357656_3122.png)
 
-- 在启动 ZipKin Server 的时候，指定数据保存的elasticsearch的信息
+- 在启动 ZipKin Server 的时候，指定数据保存的 elasticsearch 的信息
 
 ```bash
-java -jar zipkin-server-2.22.0-exec.jar --STORAGE_TYPE=elasticsearch --ES-HOST=localhost:9200
+java -jar zipkin-server-2.23.16-exec.jar --STORAGE_TYPE=elasticsearch --ES_HOST=http://localhost:9200
 ```
+
+- 发送请求测试后，通过 head 界面观察是否产生相关索引
+
+![](images/111214719231886.png)
+  
+### 6.3. 依赖分析
+
+在 zipkin 图形化界面，点击下图中的【依赖】菜单，即可让 Zipkin 以图形化方式进行微服务之间的依赖关系分析。
+
+![](images/25450720249766.png)
+
+但是当把追踪日志存储到ES（或者其他存储源）中后，依赖分析功能就无法使用了，因为它默认是从内存中读取数据并进行依赖分析的，而如果数据被存储到了ES中。此时需要通过 zipkin-dependencies 工具包，从数据源(例如：ES)读取数据，然后进行依赖分析。
+
+zipkin-dependencies 下载地址：https://github.com/openzipkin/zipkin-dependencies/releases
+
+通过如下命令运行 zipkin-dependencies：
+
+```bash
+java -DSTORAGE_TYPE=elasticsearch -DES_HOSTS=http://localhost:9200 -jar zipkin-dependencies-x.x.x.jar
+```
+
+**值得注意的是：zipkin-dependencies 不是服务而是一个程序，不会持续运行，运行一次即结束。若想让它能够持续运行，需要自己编写定时脚本或定时任务实现。**
 
 ## 7. 基于消息中间件收集数据
 

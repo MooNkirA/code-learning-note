@@ -138,33 +138,56 @@ redis-benchmark redis-check-aof redis-check-rdb redis-cli redis.conf redis-senti
 
 #### 3.3.1. redis-server 服务端启动
 
-1. 默认配置：redis-server，日志输出版本信息，端口：6379
+默认配置：redis-server，日志输出版本信息，端口：6379
 
-- 启动方式1：`redis-server --port 6380`（不建议）
-- 启动方式2：`redis-server /opt/redis/redis.conf`。以配置文件方式启动
-- 启动方式3：修改 redis.conf 配置文件，`daemonize yes`，以后端模式启动
+- 启动方式1（不建议），`--port` 指定端口号
 
-    ![配置后端模式](images/20191110233242803_14088.jpg)
+```bash
+redis-server --port 6380
+```
 
-    - 启动时，指定配置文件。`./redis-server redis.conf`
+- 启动方式2，以配置文件方式启动
+
+```bash
+redis-server /opt/redis/redis.conf
+```
+
+- 启动方式3：修改 redis.conf 配置文件，增加 `daemonize yes` 配置以后端模式启动。启动时，指定配置文件。
+
+![](images/20191110233242803_14088.jpg)
+
+```bash
+./redis-server redis.conf
+```
 
 #### 3.3.2. redis-cli 客户端启动与停止
 
-1. 交互式启动
-    - `redis-cli -h {host} -p {prot} -a {password} `
-    - 没有指定`-h`，默认是`127.0.0.1`；没有指定`-p`，默认是6379；如果有配置密码，`-a`可以指定密码
-2. 命令式启动（）
-    - `redis-cli -h 127.0.0.1 -p 6379 get hello`
-    - 直接连接并且操作
+1. 交互式启动。`-h`用于指定服务器ip，默认是`127.0.0.1`；`-p`用于指定服务的端口，默认是 6379；`-a`用于指定密码
+
+```bash
+redis-cli -h {host} -p {prot} -a {password}
+```
+
+2. 命令式启动，直接连接并且操作
+
+```bash
+redis-cli -h 127.0.0.1 -p 6379 get hello
+```
+
 3. 停止 redis 服务
-    - `redis-cli shutdown`
-    - 关闭时：断开连接，持久化文件生成，相对安全
-    - 还可以用 `kill` 命令关闭，此方式不会做持久化，还会造成缓冲区非法关闭，可能会造成 AOF 和丢失数据
-    - 关闭前生成持久化文件：使用 `redis-cli -a 123456` 登录进去，再 `shutdown nosave|save`
+
+```bash
+# 使用客户端登陆
+redis-cli -a 123456
+# 关闭前生成持久化文件
+shutdown nosave|save
+```
+
+使用以上命令断开连接，持久化文件生成，相对安全。还可以用 `kill -9 pid` 命令关闭，但此方式不会做持久化，还会造成缓冲区非法关闭，可能会造成 AOF 和丢失数据，所以不推荐。
 
 #### 3.3.3. redis-cli 客户端监控命令
 
-打开redis-cli 客户端后，输入以下命令打开redis服务的数据监控
+打开 redis-cli 客户端后，输入以下命令打开 redis 服务的数据监控
 
 ```bash
 monitor

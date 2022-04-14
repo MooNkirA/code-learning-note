@@ -2,28 +2,31 @@
 
 ## 1. Eclipse各版本号
 
-- Eclipse 2021-12 (4.22)
-- Eclipse 2021-09 (4.21)
-- Eclipse 2021-06 (4.20)
-- Eclipse 2021-03 (4.19)
-- Eclipse 2020-12 (4.18)
-- Eclipse 2020-09 (4.17)
-- Eclipse 2020-06-R (4.16)
-- Eclipse 2020-03-R (4.15)
-- Eclipse 2019-12-R (4.14)
-- Eclipse 2019-09-R (4.13)
-- Eclipse 2019-06-R (4.12)
-- Eclipse 2019-03-R (4.11)
-- Eclipse 2018-12 (4.10)
-- Eclipse 2018-09 (2018 - 4.9)
-- Eclipse Photon (2018 - v4.8)
-- Eclipse Oxygen (2017 - v4.7)
-- Eclipse Neon (2016 - v4.6)
-- Eclipse Mars (2015 - v4.5) ---> 必须要jdk1.7以上
-- Eclipse Luna (2014 - v4.4)
-- Eclipse Kepler (2013 - v4.3)
-- Eclipse Juno (2012 - v4.2)
-- Eclipse Indigo (2011 - v3.7)
+|        名称        | 版本号 |             备注              |
+| :---------------: | :---: | ---------------------------- |
+|  Eclipse 2022-03  | 4.23  |                              |
+|  Eclipse 2021-12  | 4.22  |                              |
+|  Eclipse 2021-09  | 4.21  |                              |
+|  Eclipse 2021-06  | 4.20  |                              |
+|  Eclipse 2021-03  | 4.19  |                              |
+|  Eclipse 2020-12  | 4.18  |                              |
+|  Eclipse 2020-09  | 4.17  |                              |
+| Eclipse 2020-06-R | 4.16  |                              |
+| Eclipse 2020-03-R | 4.15  |                              |
+| Eclipse 2019-12-R | 4.14  |                              |
+| Eclipse 2019-09-R | 4.13  |                              |
+| Eclipse 2019-06-R | 4.12  |                              |
+| Eclipse 2019-03-R | 4.11  |                              |
+|  Eclipse 2018-12  | 4.10  |                              |
+|  Eclipse 2018-09  |  4.9  | 2018年                       |
+|  Eclipse Photon   |  4.8  | 2018年                       |
+|  Eclipse Oxygen   |  4.7  | 2017年                       |
+|   Eclipse Neon    |  4.6  | 2016年                       |
+|   Eclipse Mars    |  4.5  | 2015年，往后版本必须要jdk1.7以上 |
+|   Eclipse Luna    |  4.4  | 2014年                       |
+|  Eclipse Kepler   |  4.3  | 2013年                       |
+|   Eclipse Juno    |  4.2  | 2012年                       |
+|  Eclipse Indigo   |  3.7  | 2011年                       |
 
 ## 2. Eclipse的主题颜色
 

@@ -852,6 +852,14 @@ person:
     name: ${name} # 引用上边定义的name值
 ```
 
+#### 4.3.4. YAML 文件缺点
+
+值得注意的是：YAML 文件中的属性不能通过 `@PropertySource` 注解来导入。所以，如果项目中使用了一些自定义属性文件，建议不要用 YAML，改用 properties 类型文件。
+
+如果需要自定义属性存放在yaml文件中，可以使用 `spring.profiles.active` 属性指定多个后缀名的配置文件的方式来引入
+
+![](images/245284218220361.png)
+
 ### 4.4. 读取项目配置文件
 
 > 注：以下读取的方法 properties 与 yml 文件通用。
@@ -940,7 +948,7 @@ public class HelloController {
 
 ##### 4.4.3.1. 方式1：读取默认配置文件(yml 与 properties 格式均可用)
 
-- 在pom.xml文件引入configuration-processor的依赖（注：此依赖非必须，不依赖也能实现）
+- 在 pom.xml 文件引入 configuration-processor 的依赖（注：此依赖非必须，不依赖也能实现）
 
 ```xml
 <!-- @ConfigurationProperties执行器的配置 -->
@@ -2471,11 +2479,17 @@ spring:
 java –jar xxx.jar --spring.profiles.active=profiles的名称
 ```
 
+4. 使用 SpringBoot 插件激活 profile
+
+```bash
+spring-boot:run -Drun.profiles=prod
+```
+
 ## 8. Maven 与 SpringBoot 多环境兼容
 
 ### 8.1. 概述
 
-在多环境开发中，maven和SpringBoot都可以同时设置多环境的配置。maven 是用于项目构建管理，最终由它生成程序包。所以SpringBoot应该是根据Maven的配置来决定最终的环境。
+在多环境开发中，Maven 和 SpringBoot 都可以同时设置多环境的配置。maven 是用于项目构建管理，最终由它生成程序包。所以 SpringBoot 应该是根据 Maven 的配置来决定最终的环境。
 
 1. 主要在 maven 中配置具体使用什么的环境
 2. 然后在 SpringBoot 项目中读取 maven 设置的环境即可

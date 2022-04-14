@@ -31,40 +31,40 @@
     ```java
     @ConfigurationProperties(prefix = "spring.datasource")
     public class DataSourceProperties implements BeanClassLoaderAware, InitializingBean {
-
+    
     	private ClassLoader classLoader;
-
+    
     	/**
     	 * Name of the datasource. Default to "testdb" when using an embedded database.
     	 */
     	private String name;
-
+    
     	/**
     	 * Whether to generate a random datasource name.
     	 */
     	private boolean generateUniqueName;
-
+    
     	/**
     	 * Fully qualified name of the connection pool implementation to use. By default, it
     	 * is auto-detected from the classpath.
     	 */
     	private Class<? extends DataSource> type;
-
+    
     	/**
     	 * Fully qualified name of the JDBC driver. Auto-detected based on the URL by default.
     	 */
     	private String driverClassName;
-
+    
     	/**
     	 * JDBC URL of the database.
     	 */
     	private String url;
-
+    
     	/**
     	 * Login username of the database.
     	 */
     	private String username;
-
+    
     	/**
     	 * Login password of the database.
     	 */
@@ -78,44 +78,44 @@
     ```java
     @ConfigurationProperties(prefix = MybatisProperties.MYBATIS_PREFIX)
     public class MybatisProperties {
-
+    
       public static final String MYBATIS_PREFIX = "mybatis";
-
+    
       /**
        * Location of MyBatis xml config file.
        */
       private String configLocation;
-
+    
       /**
        * Locations of MyBatis mapper files.
        */
       private String[] mapperLocations;
-
+    
       /**
        * Packages to search type aliases. (Package delimiters are ",; \t\n")
        */
       private String typeAliasesPackage;
-
+    
       /**
        * Packages to search for type handlers. (Package delimiters are ",; \t\n")
        */
       private String typeHandlersPackage;
-
+    
       /**
        * Indicates whether perform presence check of the MyBatis xml config file.
        */
       private boolean checkConfigLocation = false;
-
+    
       /**
        * Execution mode for {@link org.mybatis.spring.SqlSessionTemplate}.
        */
       private ExecutorType executorType;
-
+    
       /**
        * Externalized properties for MyBatis configuration.
        */
       private Properties configurationProperties;
-
+    
       /**
        * A Configuration object for customize default settings. If {@link #configLocation}
        * is specified, this property is not used.
@@ -150,7 +150,7 @@ mybatis.configLocation=classpath:mybatis-config.xml
 ```yml
 mybatis:
     mapper-locations: classpath:mappers/**/*.xml
-    type-aliases-package: com.moon.jav.pojo
+    type-aliases-package: com.moon.demo.pojo
     # 开启驼峰映射
     configuration:
         map-underscore-to-camel-case: true

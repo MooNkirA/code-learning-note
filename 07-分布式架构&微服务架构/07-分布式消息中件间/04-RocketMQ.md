@@ -197,6 +197,8 @@ namesrvAddr=127.0.0.1:9876
 # 修改为 set "JAVA_OPT=%JAVA_OPT% -server -Xms256m -Xmx320m -Xmn256m -XX:MetaspaceSize=128m -XX:MaxMetaspaceSize=320m"
 ```
 
+- 修改服务的日志保存位置（可选），日志的配置文件位置是：rocketmq-4.9.2\conf\logback_xxx.xml，共3个文件
+
 ##### 2.3.2.2. 启动 NameServer
 
 - 方式一：直接进入`/根目录/bin/`，双击 mqnamesrv.cmd 启动
@@ -238,8 +240,10 @@ RocketMQ 控制台 的 github 仓库地址：https://github.com/apache/rocketmq-
 # 修改配置文件 rocketmq-console\src\main\resources\application.properties
 server.port=7777 # 项目部署端口号
 rocketmq.config.namesrvAddr=192.168.12.132:9876 # nameserv的地址，注意防火墙要开启9876端口
+rocketmq.config.dataPath=E:/logs/tmp/rocketmq-console/data # 项目的临时配置文件
 ```
 
+- 修改 \src\main\resources\logback.xml 中日志保存位置，默认保存在`${user.dir}`
 - 将工程打成jar包后，再启动项目
 
 ```bash

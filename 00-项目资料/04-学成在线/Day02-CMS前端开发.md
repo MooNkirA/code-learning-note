@@ -3,10 +3,11 @@
 ## 1. Vue.js 与Webpack研究
 
 - 参考资料：学成在线-Vue.js与Webpack.pdf
-- Vue框架的资料笔记：未整理
-- Webpack知识参考自己整理的笔记：03-前端资料/05-node.js webpack/02-webpack 笔记.md，（暂时不全）
+- Vue 框架相关内容详见[《Vue2.x 笔记》](/03-前端资料/03-Vue/01-Vue2.x-笔记)
+- Webpack 相关知识详见[《Webpack 笔记》](/03-前端资料/06-前端工程化工具/02-webpack)
 
 ## 2. CMS 前端工程创建
+
 ### 2.1. 导入系统管理前端工程
 
 - CMS系统使用Vue-cli脚手架创建， Vue-cli是Vue官方提供的快速构建单页应用的脚手架，github地址：https://github.com/vuejs/vue-cli
