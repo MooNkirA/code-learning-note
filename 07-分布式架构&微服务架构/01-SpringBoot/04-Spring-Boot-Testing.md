@@ -1,4 +1,9 @@
-# SpringBoot 整合 Junit
+# Spring Boot Testing
+
+Spring Boot 提供了一些实用程序和注解来帮助测试应用程序。测试支持由两个模块提供：
+
+- Spring-boot-test 包含核心项目
+- Spring-boot-test-autoconfigure 支持测试的自动配置
 
 ## 1. 关于 Spring Boot 中 Junit 的概述
 
@@ -6,7 +11,7 @@ Spring Boot 2.2.x 往后版本开始引入 JUnit 5 作为单元测试默认库�
 
 ## 2. 添加 spring-boot-starter-test 依赖
 
-在 Spring Boot 工程，直接添加 `spring-boot-starter-test` 依赖即可使用 Junit。
+在 Spring Boot 工程，直接添加 `spring-boot-starter-test` 依赖即可使用 Junit
 
 ```xml
 <!-- spring boot 依赖 -->
@@ -22,7 +27,7 @@ Spring Boot 2.2.x 往后版本开始引入 JUnit 5 作为单元测试默认库�
 </dependency>
 ```
 
-> 注意：Spring Boot 2.2.x 以前版本默认的测试库是 Junit4，在 2.2.x 其更高版本中，默认的测试库是 Junit5。如果工程是非web工程，则至少需要引入 `spring-boot-starter` 的依赖。
+> 注意：Spring Boot 2.2.x 以前版本默认的测试库是 Junit4，在 2.2.x 其更高版本中，默认的测试库是 Junit5。如果工程是非 web 工程，则至少需要引入 `spring-boot-starter` 的依赖。
 
 ## 3. 使用步骤
 
@@ -135,7 +140,7 @@ public class MapperTest {
 }
 ```
 
-注：SpringRunner继承自SpringJUnit4ClassRunner，使用哪一个Spring提供的测试测试引擎都可以
+注：`SpringRunner` 继承自 `SpringJUnit4ClassRunner`，使用哪一个 Spring 提供的测试测试引擎都可以
 
 ```java
 public final class SpringRunner extends SpringJUnit4ClassRunner

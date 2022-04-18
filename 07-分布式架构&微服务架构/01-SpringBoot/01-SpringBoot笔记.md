@@ -725,7 +725,7 @@ YML 文件的扩展名可以使用 `.yml` 或者 `.yaml`
 - 缩进的空格数目不重要，只要相同层级的元素左侧对齐即可
 - `#` 表示注释，从这个字符一直到行尾，都会被解析器忽略。
 
-**常见的数据书写格式**：
+##### 4.3.2.1. 常见的数据书写格式
 
 ```yml
 boolean: TRUE  						 # TRUE,true,True,FALSE,false，False均可
@@ -737,6 +737,11 @@ string2: "Hello World"  			 # 可以使用双引号包裹特殊字符
 date: 2018-02-17        			 # 日期必须使用yyyy-MM-dd格式
 datetime: 2018-02-17T15:02:31+08:00  # 时间和日期之间使用T连接，最后使用+代表时区
 ```
+
+##### 4.3.2.2. 数据类型转换
+
+
+
 
 #### 4.3.3. YAML 数据语法格式
 
@@ -946,9 +951,9 @@ public class HelloController {
 
 **值得注意的是，要实现配置与实体类映射的前提条件是：该映射的类需要交 Spring 容器管理**。
 
-##### 4.4.3.1. 方式1：读取默认配置文件(yml 与 properties 格式均可用)
+##### 4.4.3.1. 读取默认配置文件(yml 与 properties 格式均可用)
 
-- 在 pom.xml 文件引入 configuration-processor 的依赖（注：此依赖非必须，不依赖也能实现）
+- 在 pom.xml 文件引入 configuration-processor 的依赖
 
 ```xml
 <!-- @ConfigurationProperties执行器的配置 -->
@@ -958,6 +963,10 @@ public class HelloController {
     <optional>true</optional>
 </dependency>
 ```
+
+> 注：此依赖非必须，不依赖也能实现属性映射功能，但 IDEA 会在使用了 `@ConfigurationProperties` 注解的类文件中出现以下提示信息
+
+![](images/380275216220457.png)
 
 - 在 yml 中定义一个对象类型的配置
 
@@ -972,9 +981,9 @@ company:
     - Big data
 ```
 
-- 在自定义配置映射类中，加上注解`@ConfigurationProperties`，表明该类为配置映射类，并通过属性 `prefix` 指定默认配置文件（application.properties/application.yml）中某个指定前缀的，从而实现配置自动与实体进行映射。其中有如下两种方式让配置映射对象交给 Spring 容器管理：
+- 在自定义配置映射类中，加上注解 `@ConfigurationProperties`，表明该类为配置映射类，并通过属性 `prefix` 指定默认配置文件（application.properties/application.yml）中某个指定前缀的，从而实现配置自动与实体进行映射。其中有如下**两种方式**让配置映射对象交给 Spring 容器管理：
 
-1. 直接在配置映射类上标识 `@Component` 等注解，让 Spring boot 在启动时通过包扫描将该类作为一个 Bean 注入 IOC 容器。如：
+**方式1**：直接在配置映射类上标识 `@Component` 等注解，让 Spring boot 在启动时通过包扫描将该类作为一个 Bean 注入 IOC 容器。如：
 
 ```java
 @Component
@@ -993,10 +1002,10 @@ public class Company {
 }
 ```
 
-2. 在引导类中（或者本身自定义配置类），加上`@EnableConfigurationProperties`注解，并指明需要映射的JavaBean类。此时配置映射类就不需要标识 `@Component` 等注解，如：
+**方式2**：在引导类中（或者本身自定义配置类），加上 `@EnableConfigurationProperties` 注解，并指明需要映射的 JavaBean 类。当使用 `@EnableConfigurationProperties` 注解时，spring 会默认将其标注的类定义为 bean，因此配置映射类就无需再次标识 `@Component` 注解，如：
 
 ```java
-@ConfigurationProperties("company")
+@ConfigurationProperties("company") // 直接使用 @ConfigurationProperties 进行属性绑定
 @Data
 public class Company {
     private String name;
@@ -1007,13 +1016,14 @@ public class Company {
 
 
 @SpringBootApplication
+// 在配置类上开启 @EnableConfigurationProperties 注解，并标注要使用 @ConfigurationProperties 注解绑定属性的类
 @EnableConfigurationProperties({Company.class})
 public class Application {
     ....
 }
 ```
 
-> **注意事项**：使用`@ConfigurationProperties`方式可以进行配置文件与实体字段的自动映射，但需要字段必须提供`set`方法才可以，而使用`@Value`注解修饰的字段不需要提供`set`方法
+> <font color=purple>**注意事项：使用`@ConfigurationProperties`方式可以进行配置文件与实体字段的自动映射，但需要字段必须提供`set`方法才可以，而使用`@Value`注解修饰的字段不需要提供`set`方法**</font>
 
 **读取 yml 类型示例映射示意图**
 
@@ -1037,7 +1047,7 @@ public class DemoController {
 }
 ```
 
-！补充说明：其实 spring-boot-configuration-processor 工具只是给实体类的属性注入时开启提示，即在定义需要注入的实体后，在编写 application.properties 和 application.yml 中给相应实体类注入属性时会出现提示，仅此而已，其实用处不大。还有就是如果依赖此工具后，在打包时最好在 build 的标签中排除对该工具的打包，从而减少打成jar包的大小
+**补充说明**：其实 spring-boot-configuration-processor 工具只是给实体类的属性注入时开启提示，即在定义需要注入的实体后，在编写 application.properties 和 application.yml 中给相应实体类注入属性时会出现提示，仅此而已，其实用处不大。还有就是如果依赖此工具后，在打包时最好在 build 的标签中排除对该工具的打包，从而减少打成jar包的大小
 
 ```xml
 <build>
@@ -1058,13 +1068,13 @@ public class DemoController {
 </build>
 ```
 
-##### 4.4.3.2. 方式2：读取自定义的配置文件(只能读取properties格式，该注解并不支持加载yml！)
+##### 4.4.3.2. 读取自定义的配置文件(只能读取properties格式，该注解并不支持加载yml！)
 
 上面方式1是写在默认配置文件 application.properties 中，如果属性太多，实际项目可能会根据模块去拆分一些配置，并配置在不同的自定义配置文件中。
 
 **方式2：读取自定义的配置文件**的具体步骤如下：
 
-- ~~在pom.xml文件中引入configuration-processor依赖~~（可能旧版本的 Spring Boot 需要）
+- 在 pom.xml 文件中引入 configuration-processor 依赖
 
 ```xml
 <dependency>
@@ -1154,8 +1164,150 @@ public class DemoController {
 ```
 
 > **注：方式1的读取默认配置文件的方式，此方式也可以实现。省略`@PropertySource`注解即可**
+>
+> `@EnableConfigurationProperties` 与 `@Component` 注解不能同时使用
 
-### 4.5. 解决 IDEA 对 SpringBoot 配置文件无自动提示的问题
+##### 4.4.3.3. 第三方 jar 包中 bean 加载配置属性值
+
+上面都自定义的 bean 加载配置属性值，`@ConfigurationProperties` 注解是标识在类定义的上，而又不可能到第三方 jar 包中开发的 bean 源代码中去添加 `@ConfigurationProperties` 注解，那如何解决第三方 bean 加载配置属性值的问题？
+
+- 步骤1：在配置类中，使用 `@Bean` 注解创建第三方 bean 实例
+
+```java
+@Configuration
+public class DruidConfig {
+    /* 1. 使用 @Bean 注解创建第三方 bean 实例 */
+    @Bean
+    public DruidDataSource datasource() {
+        return new DruidDataSource();
+    }
+}
+```
+
+- 步骤2：在 application.yml/application.properties 中定义要绑定的属性，<font color=red>**注意：示例配置中 `datasource` 是全小写，非 spring boot 原生 `spring.datasource.driver-class-name` 的配置**</font>
+
+```yml
+datasource:
+  driverClassName: com.mysql.jdbc.Driver
+```
+
+- 步骤3：使用 `@ConfigurationProperties` 注解标识在创建第三方 bean 实例的方法，进行属性绑定，<font color=red>**注意前缀是全小写的datasource**</font>
+
+```java
+@Bean
+/* 2. 使用 @ConfigurationProperties 注解标识在创建第三方 bean 实例的方法，进行属性绑定，注意前缀是全小写的 datasource */
+@ConfigurationProperties(prefix = "datasource")
+public DruidDataSource datasource(){
+    DruidDataSource ds = new DruidDataSource();
+    return ds;
+}
+```
+
+### 4.5. @ConfigurationProperties 属性绑定的规则
+
+#### 4.5.1. 宽松绑定/松散绑定
+
+在进行属性绑定时，可能会遇到如下情况，为了进行标准命名，开发者会将属性名严格按照驼峰命名法书写，在 yml 配置文件中将 `datasource` 修改为 `dataSource`，如下：
+
+```yml
+dataSource:
+  driverClassName: com.mysql.jdbc.Driver
+```
+
+此时程序可以正常运行，然后又将代码中 `@ConfigurationProperties` 的前缀 `datasource` 修改为 `dataSource`
+
+```java
+@Bean
+@ConfigurationProperties(prefix = "dataSource")
+public DruidDataSource datasource(){
+    DruidDataSource ds = new DruidDataSource();
+    return ds;
+}
+```
+
+此时就会发生编译错误，提示配置属性名 `dataSource` 是无效的，报错信息如下：
+
+```bash
+Configuration property name 'dataSource' is not valid:
+
+    Invalid characters: 'S'
+    Bean: datasource
+    Reason: Canonical names should be kebab-case ('-' separated), lowercase alpha-numeric characters and must start with a letter
+
+Action:
+Modify 'dataSource' so that it conforms to the canonical names requirements.
+```
+
+spring boot 进行属性绑定时，进行编程时人性化设计，几乎主流的命名格式都支持，称为**属性名称的宽松绑定**，也可以称为**宽松绑定**。即配置文件中的命名格式与变量名的命名格式可以进行格式上的最大化兼容，例如，在 `ServerConfig` 中有的 `ipAddress` 属性名
+
+```java
+@Component
+@Data
+@ConfigurationProperties(prefix = "servers")
+public class ServerConfig {
+    private String ipAddress;
+}
+```
+
+其中 `ipAddress` 属性与下面的配置属性名规则全兼容
+
+```yml
+servers:
+  ipAddress: 192.168.0.2       # 驼峰模式
+  ip_address: 192.168.0.2      # 下划线模式
+  ip-address: 192.168.0.2      # 烤肉串模式
+  IP_ADDRESS: 192.168.0.2      # 常量模式
+```
+
+也可以说，以上 4 种配置名称模式，最终都可以匹配到 `ipAddress` 这个属性名。其中原因就是在进行匹配时，配置中的名称要去掉中划线和下划线后，忽略大小写的情况下去与 java 代码中的属性名进行忽略大小写的等值匹配，而以上 4 种命名去掉下划线中划线忽略大小写后都是一个词 `ipaddress`，java 代码中的属性名忽略大小写后也是 `ipaddress`，因此就可以进行等值匹配了，这就是为什么这4种格式都能匹配成功的原因。不过<font color=red>**spring boot 官方推荐配置名称使用烤肉串模式，也就是中划线模式**</font>。
+
+分析上面报错信息，其中 Reason 描述了报错的原因，规范的名称应该是烤肉串(kebab)模式(case)，即使用`-`分隔，使用小写字母数字作为标准字符，且必须以字母开头。所以当配置 `@ConfigurationProperties` 的前缀为 `dataSource` 时，会出现问题。
+
+> <font color=red>**值得注意：以上规则仅针对 springboot 中 `@ConfigurationProperties` 注解进行属性绑定时有效，对 `@Value` 注解进行属性映射无效。**</font>
+
+#### 4.5.2. 常用计量单位绑定
+
+在项目的配置中，经常需要一些数值类型配置值，但就会造成有些人理解的偏差，就这些数值的配置值单位是什么？比如线上服务器完成一次主从备份，配置超时时间240，这个240如果单位是秒就是超时时间4分钟，如果单位是分钟就是超时时间4小时。
+
+为了消除每个人对配置理解的偏差，除了加强约定之外，springboot 充分利用了 JDK8 中提供的全新的用来表示计量单位的新数据类型，从根本上解决这个问题。以下模型类中添加了两个 JDK8 中新增的类，分别是 `Duration` 和 `DataSize`，使用此两个单位就可以有效避免因沟通不同步或文档不健全导致的配置信息不对称问题，从根本上解决了问题，避免产生误读。
+
+```yml
+servers:
+  ip-address: 192.168.0.2       # 官方推荐配置名称使用烤肉串模式，也就是中划线模式
+  serverTimeOut: 3    # 使用常用计量单位绑定
+  dataSize: 10        # 使用常用计量单位绑定
+```
+
+```java
+@Data
+@ConfigurationProperties("servers")
+public class ServerConfig {
+    private String ipAddress;
+    // Duration 时间类型，@DurationUnit 指定单位为 hour
+    @DurationUnit(ChronoUnit.HOURS)
+    private Duration serverTimeOut;
+    // DataSize 数据大小类型，@DataSizeUnit 指定单位为 MB
+    @DataSizeUnit(DataUnit.MEGABYTES)
+    private DataSize dataSize;
+}
+```
+
+- `org.springframework.boot.convert.DurationUnit`：表示时间间隔，可以通过 `@DurationUnit` 注解描述时间单位，例如上例中描述的单位为小时（`ChronoUnit.HOURS`）
+- `org.springframework.util.unit.DataSize`：表示存储空间，可以通过 `@DataSizeUnit` 注解描述存储空间单位，例如上例中描述的单位为 MB（`DataUnit.MEGABYTES`）
+
+`Druation` 常用单位如下：
+
+![](images/377804117220458.png)
+
+`DataSize` 常用单位如下：
+
+![](images/572044117238884.png)
+
+测试：
+
+![](images/576414717226751.png)
+
+### 4.6. 解决 IDEA 对 SpringBoot 配置文件无自动提示的问题
 
 无自动提示的原因是：IDEA 没有识别此文件是 SpringBoot 的配置文件
 
@@ -1321,11 +1473,20 @@ logging:
 
 ## 6. 热部署
 
-### 6.1. 热部署配置
+在开发中反复修改类、页面等资源，每次修改后都是需要重新启动才生效，这样每次启动都很麻烦，浪费了大量的时间。在修改程序代码后，不需要重启程序就能让修改的内容生效，称为热部署
 
-在开发中反复修改类、页面等资源，每次修改后都是需要重新启动才生效，这样每次启动都很麻烦，浪费了大量的时间。
+### 6.1. 热部署底层工作原理 - 重启与重载
 
-在修改程序代码后，不需要重启程序就能让修改的内容生效，称为热部署
+一个 springboot 项目在运行时实际上是分两个过程进行的，根据加载的东西不同，划分成 **base 类加载器**与 **restart 类加载器**。
+
+- base 类加载器：用来加载 jar 包中的类，jar 包中的类和配置文件由于不会发生变化，因此不管加载多少次，加载的内容不会发生变化
+- restart 类加载器：用来加载开发者自己开发的类、配置文件、页面等信息，这一类文件受开发者影响
+
+当 springboot 项目启动时，base 类加载器执行，加载 jar 包中的信息后，restart 类加载器执行，加载开发者制作的内容。当执行构建项目后，由于 jar 中的信息不会变化，因此 base 类加载器无需再次执行，所以仅仅运行 restart 类加载即可，也就是将开发者自己制作的内容重新加载就行了，这就完成了一次热部署的过程，也可以说热部署的过程实际上是重新加载 restart 类加载器中的信息。
+
+### 6.2. 热部署配置
+
+#### 6.2.1. 引入依赖
 
 1. 可以在 pom.xml 配置文件中添加 `spring-boot-devtools` 工具，就可以实现热部署功能
 
@@ -1367,19 +1528,25 @@ logging:
 
 > 将依赖关系标记为可选`<optional>true</optional>`是一种最佳做法，可以防止使用项目将devtools传递性地应用于其他模块。
 
-### 6.2. IDEA 进行 SpringBoot 热部署失败原因
+#### 6.2.2. IDEA 配置自动启动热部署
+
+在引入 spring-boot-devtools 依赖，此时修改代码后，项目是不会自动重启，需要手动点击菜单【Build】 -> 【Build Project】（或者使用快捷键 CTRL+F9）
+
+![](images/412130523238881.png)
 
 出现这种情况，并不是热部署配置问题，其根本原因是因为 Intellij IEDA 默认情况下不会自动编译，需要对IDEA进行自动编译的设置，如下：
 
 ![](images/20190501093352875_18330.png)
 
-然后`Shift+Ctrl+Alt+/`，选择Registry
+然后使用快捷键 `Shift + Ctrl + Alt + /`，选择【Registry】，勾选【compiler.automake.allow.when.app.running】
 
 ![](images/20190501093422694_17866.png)
 
+这样程序在运行的时候就可以进行自动构建了，实现了热部署的效果。但值得注意的是：IDEA 不会在每次修改都马上进行构建，<font color=red>**只在 IDEA 失去焦点5秒后进行热部署**</font>，即从 idea 切换到其他软件时进行热部署，比如改完程序需要到浏览器上去调试，这个时候 idea 就自动进行热部署操作。
+
 ### 6.3. 排除静态资源文件
 
-在 Spring Boot 项目中某些资源在更改时不一定需要触发重启程序。例如 Thymeleaf 模板文件就可以实时编辑等。默认情况下，有些资源是不会触发重启，而是触发live reload（devtools内嵌了一个LiveReload server，当资源发生改变时，浏览器刷新）。如下：
+在 Spring Boot 项目中某些资源在更改时不一定需要触发重启程序。例如 Thymeleaf 模板文件就可以实时编辑等。默认情况下，有些资源是不会触发重启，而是触发live reload（devtools内嵌了一个 LiveReload server，当资源发生改变时，浏览器刷新）。如下：
 
 - /META-INF/maven
 - /META-INF/resources
@@ -1388,7 +1555,7 @@ logging:
 - /public
 - /templates
 
-如果自定义排除触发重启的资源，可以配置 `spring.devtools.restart.exclude` 属性。示例如下：
+如果自定义排除触发热部署的资源，可以设置 `spring.devtools.restart.exclude` 配置项。示例如下：
 
 ```properties
 # 仅排除 /static 和 /public 的内容
@@ -1397,7 +1564,15 @@ spring.devtools.restart.exclude=static/**,public/**
 # spring.devtools.restart.additional-exclude属性
 ```
 
-### 6.4. 使用一个触发文件
+```yml
+spring:
+  devtools:
+    restart:
+      # 设置不参与热部署的文件或文件夹
+      exclude: static/**,public/**,config/application.yml
+```
+
+### 6.4. 设置触发热部署的文件
 
 若不想每次修改都触发自动重启，可以在application.xml设置`spring.devtools.restart.trigger-file`指向某个文件，只有更改这个文件时才触发自动重启。示例如下：
 
@@ -1452,7 +1627,32 @@ spring.devtools.restart.quiet-period=400ms
 spring.devtools.restart.trigger-file=
 ```
 
-### 6.7. 其他热部署工具
+### 6.7. 关闭热部署
+
+线上环境运行时是不可能使用热部署功能的，所以需要强制关闭此功能。可通过 Spring Boot 配置文件来关闭此功能，修改 application.yml 如下配置即可：
+
+```yml
+spring:
+  devtools:
+    restart:
+      enabled: false
+```
+
+扩展：在项目开发过程中，有可能别的开发人员配置文件层级过高导致相符覆盖最终引起配置失效，此时可以提高配置的层级，在更高层级中配置关闭热部署。例如在启动容器前通过系统属性设置关闭热部署功能：
+
+```java
+@SpringBootApplication
+public class DemoApplication {
+    public static void main(String[] args) {
+        System.setProperty("spring.devtools.restart.enabled", "false");
+        SpringApplication.run(DemoApplication.class);
+    }
+}
+```
+
+**总结：线上环境的维护是不可能出现修改代码的操作，配置关闭热部署功能，最终的目的是降低线上程序的资源消耗**
+
+### 6.8. 其他热部署工具
 
 由于Spring Boot应用只是普通的Java应用，所以JVM热交换（hot-swapping）也能开箱即用。不过JVM热交换能替换的字节码有限制，想要更**彻底的解决方案可以使用Spring Loaded项目或JRebel**。spring-boot-devtools 模块也支持应用快速重启(restart)。
 
