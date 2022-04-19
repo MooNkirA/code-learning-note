@@ -740,8 +740,26 @@ datetime: 2018-02-17T15:02:31+08:00  # 时间和日期之间使用T连接，最�
 
 ##### 4.3.2.2. 数据类型转换
 
+某项目数据库配置如下：
 
+```yml
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/ssm_db?serverTimezone=UTC
+    username: root
+    password: 0127
+```
 
+当程序运行时出现问题，一直显示报错信息是密码错误，但使用客户端连接数据库正常操作
+
+```bash
+java.sql.SQLException: Access denied for user 'root'@'localhost' (using password: YES)
+```
+
+在 yml 配置中是支持二进制，八进制，十六进制。这个问题就出在这里了，因为 0127 在开发者眼中是一个字符串 "0127"，但是在 spring boot 眼中却认作一个数字，而且是一个八进制的数字。当后台使用 String 类型接收数据时，如果配置文件中配置了一个整数值，它是先安装整数进行处理，读取后再转换成字符串。刚好 0127 又是八进制的格式，所以最终以十进制数字 87 的结果存在了。
+
+<font color=red>**总结两个注意点：第一，字符串标准书写加上引号包裹，养成习惯；第二，遇到 0 开头的数据多注意**</font>
 
 #### 4.3.3. YAML 数据语法格式
 
