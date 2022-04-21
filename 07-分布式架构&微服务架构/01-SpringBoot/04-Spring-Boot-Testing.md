@@ -93,9 +93,209 @@ public class JunitTest2 {
 
 > 注：如下示例，在 Spring Boot 2.2.x 以前版本使用 Junit4，需要添加`@RunWith(SpringRunner.class)`注解，但在 2.2.x 后更高版本中，则不需要。
 
-### 4.1. 指定 web 测试环境的端口
+### 4.1. 指定启动类
 
-`@SpringBootTest `注解的 `webEnvironment` 属性，用于设置 web 测试环境的端口，如：`SpringBootTest.WebEnvironment.RANDOM_PORT`为随机端口
+`@SpringBootTest` 注解的 `classes` 属性，用于指定的是引导类的字节码对象，如：`@SpringBootTest(classes = Application.class)`。*其中 `Application.java` 是Spring boot的引导类*
+
+```java
+@RunWith(SpringRunner.class)
+// 方式2：设置classes属性，指定SpringBoot启动类
+@SpringBootTest(classes = Application.class)
+public class MapperTest {
+    @Autowired
+    private UserMapper userMapper;
+    @Test
+    public void test() {
+        List<User> users = userMapper.queryUserList();
+        System.out.println(users);
+    }
+}
+```
+
+注：`SpringRunner` 继承自 `SpringJUnit4ClassRunner`，使用哪一个 Spring 提供的测试测试引擎都可以
+
+```java
+public final class SpringRunner extends SpringJUnit4ClassRunner
+```
+
+### 4.2. 加载测试专用属性
+
+很多情况下测试时需要模拟一些线上情况，或者模拟一些特殊情况。此时可以每次测试的时候都去修改源码 application.yml 中的配置进行测试。但每次测试前进行修改，测试后又需要改回去，这种做法太麻烦了。于是 Spring Boot 提供了在测试环境中创建一组临时属性，去覆盖源码中设定的属性，这样测试用例就相当于是一个独立的环境，能够独立测试，
+
+#### 4.2.1. 测试准备
+
+创建项目 application.yml 配置文件，设置 `test.message` 属性值
+
+```yml
+test:
+  message: testValueInApplicationYml
+```
+
+#### 4.2.2. 临时属性
+
+使用注解 `@SpringBootTest` 的 `properties` 属性，可以为当前测试用例添加临时的属性，覆盖源码配置文件中对应的属性值进行测试。具体使用示例如下：
+
+```java
+/*
+ * properties 属性可以为当前测试用例添加临时的属性配置
+ *  与 value 属性一样的作用，如果没有其他属性，则可以省略不写 "value="
+ */
+// @SpringBootTest("test.prop=testValue1")
+// 或者
+@SpringBootTest(properties = "test.message=testValueInProperties")
+public class PropertiesAndArgsTest {
+
+    @Value("${test.message}")
+    private String message;
+
+    @Test
+    public void testProperties() {
+        System.out.println(message); // 输出：testValueInProperties
+    }
+}
+```
+
+#### 4.2.3. 临时参数
+
+使用命令行启动 springboot 程序时，通过命令行参数也可以设置属性值。线上启动程序时，通常都会添加一些专用的配置信息。使用注解 `@SpringBootTest` 的 `args` 属性可以为当前测试用例模拟命令行参数并进行测试。
+
+```java
+/* args属性可以为当前测试用例添加临时的命令行参数 */
+// @SpringBootTest(args={"--test.message=testValueInArgs"})
+/*
+ * 如果同时设置 properties 与 args 属性，则由 spring boot 规定的属性加载优先级来决定
+ *  所以最终会加载 args 属性的设置
+ */
+@SpringBootTest(properties = {"test.message=testValueInProperties"}, args = {"--test.message=testValueInArgs"})
+public class PropertiesAndArgsTest {
+
+    @Value("${test.message}")
+    private String message;
+
+    @Test
+    public void testProperties() {
+        System.out.println(message); // 输出：testValueInArgs
+    }
+}
+```
+
+如果同时设置了 `properties` 与 `args` 属性，在 Spring Boot 属性加载的优先级设定中，明确规定了命令行参数的优先级排序是11，而配置属性的优先级是3，所以 `args` 属性配置优先于 `properties` 属性配置加载
+
+### 4.3. 加载测试专用配置
+
+在项目测试过程中，有时会需要临时配置一些专用于测试环境的 bean 对象。一个 Spring 环境中可以设置若干个配置文件或配置类，这些配置信息可以同时生效。在测试环境中增加一个测试专用的配置类，其实现方式与平常 Spring 环境中加载多个配置信息的方式完全一样。具体操作步骤如下：
+
+- 在测试 test 包中创建专用的测试环境配置类
+
+```java
+@Configuration
+public class MockConfig {
+    // 此处为了不引入其他第三方 jar 包，直接创建一个 String 对象用来测试
+    @Bean
+    public String mock(){
+        return "mock bean";
+    }
+}
+```
+
+> 上述配置仅用于演示当前实验效果，实际开发是不能这么注入 `String` 类型的数据
+
+- 在启动测试环境时，使用 `@Import` 注解导入测试环境专用的配置类即可
+
+```java
+@SpringBootTest
+@Import({MockConfig.class})
+public class ImportConfigTest {
+
+    @Autowired
+    private String msg;
+
+    @Test
+    void testConfiguration(){
+        System.out.println(msg); // 输出：mock bean
+    }
+}
+```
+
+通过 `@Import` 注解实现了基于开发环境的配置基础上，对配置进行测试环境的追加操作。这样就可以实现每个不同的测试用例加载不同的 bean 的效果，同时不影响原开发环境的配置。
+
+### 4.4. web 环境测试
+
+在测试中对表现层功能进行测试，运行测试程序时，必须启动 web 环境，还需要在测试程序中具备发送 web 请求的能力，否则无法实现 web 功能的测试。
+
+#### 4.4.1. 测试前准备工作
+
+- 测试工程引入 web 依赖
+
+```xml
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-web</artifactId>
+</dependency>
+```
+
+- 创建实体类与控制层
+
+```java
+public class Book {
+    private int id;
+    private String name;
+    private String type;
+    private String description;
+    // ...省略 setter/getter
+}
+```
+
+```java
+@RestController
+@RequestMapping("/books")
+public class MockController {
+
+    @GetMapping("msg")
+    public String getMsg() {
+        System.out.println("getMsg is running .....");
+        return "book msg";
+    }
+
+    @GetMapping("info")
+    public Book getBookInfo() {
+        System.out.println("getBookInfo is running .....");
+
+        Book book = new Book();
+        book.setId(1);
+        book.setName("Spring Boot 快速入门");
+        book.setType("计算机");
+        book.setDescription("这是一本好书");
+
+        return book;
+    }
+}
+```
+
+#### 4.4.2. 指定 web 测试环境的端口
+
+`@SpringBootTest `注解的 `webEnvironment` 属性，用于在测试用例中设置启动 web 测试环境，spring boot 提供了4种的枚举：
+
+- `SpringBootTest.WebEnvironment.MOCK`：根据当前设置确认是否启动 web 环境，例如使用了 Servlet 的 API 就启动 web 环境，属于适配性的配置
+- `SpringBootTest.WebEnvironment.DEFINED_PORT`：使用自定义的端口作为 web 服务器端口
+- `SpringBootTest.WebEnvironment.RANDOM_PORT`：使用随机端口作为 web 服务器端口
+- `SpringBootTest.WebEnvironment.NONE`：不启动 web 环境（默认值）
+
+建议测试时使用 `RANDOM_PORT` 模式，避免代码中因为写死端口引发线上功能打包测试时，由于端口冲突导致意外现象的出现。即程序中使用 8080 端口，结果线上环境 8080 端口被占用了，使用随机端口就可以测试出来有没有这种问题的隐患。
+
+示例1
+
+```java
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+public class WebEnvironmentTest {
+    // 测试 web 启动
+    @Test
+    public void testWebStart() {
+    }
+}
+```
+
+示例2
 
 ```java
 @RunWith(SpringRunner.class)
@@ -123,38 +323,45 @@ public class SpringbootdemoApplicationTests {
 }
 ```
 
-### 4.2. 指定启动类
+#### 4.4.3. 测试类中发送请求
 
-`@SpringBootTest` 注解的 `classes` 属性，用于指定的是引导类的字节码对象，如：`@SpringBootTest(classes = Application.class)`。*其中 `Application.java` 是Spring boot的引导类*
+Java 提供了 API 用于测试类中发送请求，spring boot 对其又进行了包装，简化了开发步骤，具体操作如下：
+
+1. 在测试类中，标识 `@AutoConfigureMockMvc` 注解，开启 web 虚拟调用功能
+2. 定义发起虚拟调用的 `MockMVC` 对象 ，通过自动装配的形式初始化对象。通过类属性或测试方法形参的两种方式注入均可
+3. 创建一个虚拟请求对象，封装请求的路径，并使用 `MockMVC` 对象发送对应请求
 
 ```java
-@RunWith(SpringRunner.class)
-// 方式2：设置classes属性，指定SpringBoot启动类
-@SpringBootTest(classes = Application.class)
-public class MapperTest {
-    @Autowired
-    private UserMapper userMapper;
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@AutoConfigureMockMvc // 开启虚拟MVC调用
+public class WebEnvironmentTest {
+
+    // 测试发起请求
     @Test
-    public void test() {
-        List<User> users = userMapper.queryUserList();
-        System.out.println(users);
+    void testWeb(@Autowired MockMvc mockMvc) throws Exception {
+        // 创建虚拟请求，设置当前访问地址 /books，注意访问路径不要写成 http://localhost:8080/books
+        // 因为前面的服务器IP地址和端口使用的是当前虚拟的web环境，无需指定，仅指定请求的具体路径即可。
+        MockHttpServletRequestBuilder builder = MockMvcRequestBuilders.get("/books");
+        // 执行对应的请求
+        mockMvc.perform(builder);
     }
 }
 ```
 
-注：`SpringRunner` 继承自 `SpringJUnit4ClassRunner`，使用哪一个 Spring 提供的测试测试引擎都可以
+#### 4.4.4. web 环境请求结果比对
 
-```java
-public final class SpringRunner extends SpringJUnit4ClassRunner
-```
+> 注意：Spring Boot 在结果比对中，如果成功的话，控制台不会有任何提示输出，只有比对失败时，就会出现所有请求相关的内容，测试时可以通过制造比对失败来观察相关日志
 
-### 4.3. 加载测试专用属性
+- 响应状态匹配
+- 响应体匹配（非json数据格式）
+- 响应体匹配（json数据格式，开发中的主流使用方式）
+- 响应头信息匹配
 
-很多情况下测试时需要模拟一些线上情况，或者模拟一些特殊情况。此时可以每次测试的时候都去修改源码 application.yml 中的配置进行测试。但每次测试前进行修改，测试后又需要改回去，这种做法太麻烦了。于是 Spring Boot 提供了在测试环境中创建一组临时属性，去覆盖源码中设定的属性，这样测试用例就相当于是一个独立的环境，能够独立测试，
 
-#### 4.3.1. 临时属性
 
-使用注解 `@SpringBootTest` 的 `properties` 属性，可以为当前测试用例添加临时的属性，覆盖源码配置文件中对应的属性值进行测试。具体使用示例如下：
+
+
+
 
 
 
