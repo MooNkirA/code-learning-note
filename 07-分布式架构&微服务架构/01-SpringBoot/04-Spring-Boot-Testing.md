@@ -353,15 +353,100 @@ public class WebEnvironmentTest {
 > 注意：Spring Boot 在结果比对中，如果成功的话，控制台不会有任何提示输出，只有比对失败时，就会出现所有请求相关的内容，测试时可以通过制造比对失败来观察相关日志
 
 - 响应状态匹配
+
+```java
+@Test
+public void testStatus(@Autowired MockMvc mvc) throws Exception {
+    MockHttpServletRequestBuilder builder = MockMvcRequestBuilders.get("/books/msg");
+    ResultActions action = mvc.perform(builder);
+
+    // 设定预期值 与真实值进行比较，成功测试通过，失败测试失败
+    // 定义本次调用的预期值
+    StatusResultMatchers status = MockMvcResultMatchers.status();
+    // 预计本次调用时成功的：状态200
+    ResultMatcher ok = status.isOk();
+    // 添加预计值到本次调用过程中进行匹配
+    action.andExpect(ok);
+}
+```
+
 - 响应体匹配（非json数据格式）
+
+```java
+@Test
+public void testBody(@Autowired MockMvc mvc) throws Exception {
+    MockHttpServletRequestBuilder builder = MockMvcRequestBuilders.get("/books/msg");
+    ResultActions action = mvc.perform(builder);
+
+    // 定义本次调用的预期值
+    ContentResultMatchers content = MockMvcResultMatchers.content();
+    ResultMatcher result = content.string("book msg");
+    // 添加预计值到本次调用过程中进行匹配
+    action.andExpect(result);
+}
+```
+
 - 响应体匹配（json数据格式，开发中的主流使用方式）
+
+```java
+@Test
+public void testJson(@Autowired MockMvc mvc) throws Exception {
+    MockHttpServletRequestBuilder builder = MockMvcRequestBuilders.get("/books/info");
+    ResultActions action = mvc.perform(builder);
+
+    // 定义本次调用的预期值
+    ContentResultMatchers content = MockMvcResultMatchers.content();
+    ResultMatcher result = content.json("{\"id\":1,\"name\":\"Spring Boot 快速入门\",\"type\":\"计算机\",\"description\":\"这是一本好书\"}");
+    // 添加预计值到本次调用过程中进行匹配
+    action.andExpect(result);
+}
+```
+
 - 响应头信息匹配
 
+```java
+@Test
+public void testHeaderContentType(@Autowired MockMvc mvc) throws Exception {
+    MockHttpServletRequestBuilder builder = MockMvcRequestBuilders.get("/books/info");
+    ResultActions action = mvc.perform(builder);
 
+    // 定义本次调用的预期值
+    HeaderResultMatchers header = MockMvcResultMatchers.header();
+    ResultMatcher contentType = header.string("Content-Type", "application/json");
+    // 添加预计值到本次调用过程中进行匹配
+    action.andExpect(contentType);
+}
+```
 
+一般正常的 web 调用测试，是组合以上几种的比对，分别对头信息，正文信息，状态信息等三种信息同时进行匹配校验，也是一个完整的信息匹配过程。
 
+### 4.5. 数据层测试回滚
 
+测试用例开发完成后，在打包的阶段由于 test 生命周期属于必须被运行的生命周期，如果跳过会给系统带来极高的安全隐患，所以测试用例必须执行。测试用例如果测试时产生了事务提交就会在测试过程中对数据库数据产生影响，进而产生垃圾数据。
 
+对于上述问题，Spring Boot 提供解决方案，在原始测试用例中添加注解 `@Transactional` 即可实现当前测试用例的事务不提交。当测试程序运行时，只要 标识 `@SpringBootTest` 注解的类上出现 `@Transactional` 注解，Spring Boot 就会认为这是一个测试程序，无需提交事务，从而就可以避免事务的提交。
 
+如果开发者想当前测试用例提交事务，则在测试类上再添加一个 `@RollBack` 注解，设置回滚状态为 `false` 即可正常提交事务。（默认是`@RollBack(true)`）<font color=red>**注意：需要配合注解 `@Transactional` 使用**</font>
 
+```java
+@SpringBootTest
+@Transactional // 标识测试程序不需要提交事务
+@Rollback(true) // 设置回滚状态（默认值为 true，不提交事务）
+public class TransactionalRollbackTest {
+
+    @Autowired
+    private AccountService accountService;
+
+    @Test
+    public void testRollback() {
+        Account account = new Account();
+        account.setName("MooNkira");
+        account.setMoney(new BigDecimal("1098.82"));
+
+        System.out.println(accountService.save(account));
+    }
+}
+```
+
+> 自行准备最简单的 mybatis 环境测试即可
 
