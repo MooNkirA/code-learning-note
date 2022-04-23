@@ -450,3 +450,45 @@ public class TransactionalRollbackTest {
 
 > 自行准备最简单的 mybatis 环境测试即可
 
+### 4.6. 测试用例数据设定
+
+Spring Boot 提供了在配置中使用随机值的机制，确保每次运行程序加载的数据都是随机的，提高测试用例中的测试数据有效性。对于随机值的产生，还有一些小的限定规则，比如给数值类型的数据设置范围等。具体示例如下：
+
+```yml
+# 测试随机值的机制
+testcase:
+  book:
+    id: ${random.int}             # 设置随机整数
+    id2: ${random.int(10)}        # 设置生成随机数的范围。10以内的随机整数
+    type: ${random.int!5,10!}     # 使用任意字符串做为分割符均可。5到10之间的随机整数
+    name: ${random.value}         # 随机字符串，MD5字符串，32位
+    uuid: ${random.uuid}          # 随机uuid
+    publishTime: ${random.long}   # 随机整数（Long 范围）
+```
+
+配置解析：
+
+- `${random.int}`表示随机整数
+- `${random.int(10)}`表示10以内的随机数
+- `${random.int(10,20)}`表示10到20的随机数
+    - 其中`()`可以是任意字符，例如`[]`，`!!`均可
+
+以上配置实现了每次运行程序时，都会创建一组随机数据，有助于测试功能的进行。数据的加载按照之前加载数据的形式，下面是使用 `@ConfigurationProperties` 注解注入值
+
+```java
+@Component
+@Data
+@ConfigurationProperties(prefix = "testcase.book")
+public class BookCase {
+    private int id;
+    private int id2;
+    private int type;
+    private String name;
+    private String uuid;
+    private long publishTime;
+}
+```
+
+测试结果：
+
+![](images/475362122220463.png)
