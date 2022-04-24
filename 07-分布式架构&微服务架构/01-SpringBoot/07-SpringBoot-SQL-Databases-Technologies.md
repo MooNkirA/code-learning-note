@@ -1,3 +1,16 @@
+# Spring Boot 整合 SQL 关系型数据库持久化技术框架
+
+此部分内容主要介绍 Spring Boot 与一些关系型数据库持久化技术框架的整合
+
+# Spring Boot 整合 Jdbc
+
+Spring Boot 除可以整合行业内常用的关系型数据库持久化技术框架之外，还内置了一套现成的数据层技术，此技术是是由 Spring 提供的 `JdbcTemplate`，此技术其实就是回归到 jdbc 最原始的编程形式来进行数据层的开发
+
+## 1. 环境准备
+
+
+
+
 # Spring Boot 整合 MyBatis
 
 ## 1. 环境准备
@@ -25,106 +38,105 @@
 </dependency>
 ```
 
-- **第三步：加入配置文件**
-    - 参考spring-boot-autoconfigure-1.5.6.RELEASE.jar中jdbc包中属性文件类**DataSourceProperties**
+- **第三步：加入配置文件**：参考 spring-boot-autoconfigure-1.5.6.RELEASE.jar 中 jdbc 包中属性文件类 **DataSourceProperties**
 
-    ```java
-    @ConfigurationProperties(prefix = "spring.datasource")
-    public class DataSourceProperties implements BeanClassLoaderAware, InitializingBean {
-    
-    	private ClassLoader classLoader;
-    
-    	/**
-    	 * Name of the datasource. Default to "testdb" when using an embedded database.
-    	 */
-    	private String name;
-    
-    	/**
-    	 * Whether to generate a random datasource name.
-    	 */
-    	private boolean generateUniqueName;
-    
-    	/**
-    	 * Fully qualified name of the connection pool implementation to use. By default, it
-    	 * is auto-detected from the classpath.
-    	 */
-    	private Class<? extends DataSource> type;
-    
-    	/**
-    	 * Fully qualified name of the JDBC driver. Auto-detected based on the URL by default.
-    	 */
-    	private String driverClassName;
-    
-    	/**
-    	 * JDBC URL of the database.
-    	 */
-    	private String url;
-    
-    	/**
-    	 * Login username of the database.
-    	 */
-    	private String username;
-    
-    	/**
-    	 * Login password of the database.
-    	 */
-    	private String password;
-       ......
-    }
-    ```
+```java
+@ConfigurationProperties(prefix = "spring.datasource")
+public class DataSourceProperties implements BeanClassLoaderAware, InitializingBean {
 
-    - 参考mybatis-spring-boot-autoconfigure-1.3.0.jar中属性文件类**MybatisProperties**
+    private ClassLoader classLoader;
 
-    ```java
-    @ConfigurationProperties(prefix = MybatisProperties.MYBATIS_PREFIX)
-    public class MybatisProperties {
-    
-      public static final String MYBATIS_PREFIX = "mybatis";
-    
-      /**
-       * Location of MyBatis xml config file.
-       */
-      private String configLocation;
-    
-      /**
-       * Locations of MyBatis mapper files.
-       */
-      private String[] mapperLocations;
-    
-      /**
-       * Packages to search type aliases. (Package delimiters are ",; \t\n")
-       */
-      private String typeAliasesPackage;
-    
-      /**
-       * Packages to search for type handlers. (Package delimiters are ",; \t\n")
-       */
-      private String typeHandlersPackage;
-    
-      /**
-       * Indicates whether perform presence check of the MyBatis xml config file.
-       */
-      private boolean checkConfigLocation = false;
-    
-      /**
-       * Execution mode for {@link org.mybatis.spring.SqlSessionTemplate}.
-       */
-      private ExecutorType executorType;
-    
-      /**
-       * Externalized properties for MyBatis configuration.
-       */
-      private Properties configurationProperties;
-    
-      /**
-       * A Configuration object for customize default settings. If {@link #configLocation}
-       * is specified, this property is not used.
-       */
-      @NestedConfigurationProperty
-      private Configuration configuration;
-      ......
-    }
-    ```
+    /**
+    	* Name of the datasource. Default to "testdb" when using an embedded database.
+    	*/
+    private String name;
+
+    /**
+    	* Whether to generate a random datasource name.
+    	*/
+    private boolean generateUniqueName;
+
+    /**
+    	* Fully qualified name of the connection pool implementation to use. By default, it
+    	* is auto-detected from the classpath.
+    	*/
+    private Class<? extends DataSource> type;
+
+    /**
+    	* Fully qualified name of the JDBC driver. Auto-detected based on the URL by default.
+    	*/
+    private String driverClassName;
+
+    /**
+    	* JDBC URL of the database.
+    	*/
+    private String url;
+
+    /**
+    	* Login username of the database.
+    	*/
+    private String username;
+
+    /**
+    	* Login password of the database.
+    	*/
+    private String password;
+    ......
+}
+```
+
+参考mybatis-spring-boot-autoconfigure-1.3.0.jar中属性文件类**MybatisProperties**
+
+```java
+@ConfigurationProperties(prefix = MybatisProperties.MYBATIS_PREFIX)
+public class MybatisProperties {
+
+    public static final String MYBATIS_PREFIX = "mybatis";
+
+    /**
+    * Location of MyBatis xml config file.
+    */
+    private String configLocation;
+
+    /**
+    * Locations of MyBatis mapper files.
+    */
+    private String[] mapperLocations;
+
+    /**
+    * Packages to search type aliases. (Package delimiters are ",; \t\n")
+    */
+    private String typeAliasesPackage;
+
+    /**
+    * Packages to search for type handlers. (Package delimiters are ",; \t\n")
+    */
+    private String typeHandlersPackage;
+
+    /**
+    * Indicates whether perform presence check of the MyBatis xml config file.
+    */
+    private boolean checkConfigLocation = false;
+
+    /**
+    * Execution mode for {@link org.mybatis.spring.SqlSessionTemplate}.
+    */
+    private ExecutorType executorType;
+
+    /**
+    * Externalized properties for MyBatis configuration.
+    */
+    private Properties configurationProperties;
+
+    /**
+    * A Configuration object for customize default settings. If {@link #configLocation}
+    * is specified, this property is not used.
+    */
+    @NestedConfigurationProperty
+    private Configuration configuration;
+    ......
+}
+```
 
 在src/main/resources下添加application.properties（或application.yml）配置文件，内容如下：
 
@@ -165,15 +177,15 @@ mybatis:
 
 ### 2.1. 可用的属性
 
-|         **属性**         |                                                                                                                **描述**                                                                                                                 |
-| :----------------------: | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-|     config-location      | MyBatis xml配置文件的位置                                                                                                                                                                                                        |
-|  check-config-location   | 指示是否执行MyBatis xml配置文件的状态检查                                                                                                                                                                                   |
-|     mapper-locations     | Mapper xml映射文件的位置                                                                                                                                                                                                          |
-|   type-aliases-package   | 用于搜索类型别名的包。 （包分隔符是“，; \ t \ n”）                                                                                                                                                                      |
-|  type-handlers-package   | 用于搜索类型处理程序的包。 （包分隔符是“，; \ t \ n”）                                                                                                                                                                 |
-|      executor-type       | 执行者类型：SIMPLE，REUSE，BATCH。                                                                                                                                                                                          |
-| configuration-properties | MyBatis配置的外部化属性。指定的属性可以用作MyBatis配置文件和Mapper文件的占位符                                                                                                                              |
+|         **属性**         |                                                            **描述**                                                            |
+| :----------------------: | ------------------------------------------------------------------------------------------------------------------------------ |
+|     config-location      | MyBatis xml配置文件的位置                                                                                                      |
+|  check-config-location   | 指示是否执行MyBatis xml配置文件的状态检查                                                                                       |
+|     mapper-locations     | Mapper xml映射文件的位置                                                                                                       |
+|   type-aliases-package   | 用于搜索类型别名的包。 （包分隔符是 `,`、`;`、`\t`、`\n`）                                                                       |
+|  type-handlers-package   | 用于搜索类型处理程序的包。 （包分隔符是 `,`、`;`、`\t`、`\n`）                                                                   |
+|      executor-type       | 执行者类型：SIMPLE，REUSE，BATCH。                                                                                              |
+| configuration-properties | MyBatis配置的外部化属性。指定的属性可以用作MyBatis配置文件和Mapper文件的占位符                                                    |
 |      configuration       | MyBatis相关配置bean。关于可用属性，与mybatis-config.xml配置文件的settings配置属性一致。**注意此属性不能config-location同时使用** |
 
 ### 2.2. 配置案例
