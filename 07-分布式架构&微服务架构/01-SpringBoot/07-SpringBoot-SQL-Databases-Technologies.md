@@ -8,8 +8,141 @@ Spring Boot 除可以整合行业内常用的关系型数据库持久化技术�
 
 ## 1. 环境准备
 
+> 为了方便测试，直接使用 Spring Boot 内嵌 H2 数据库内存模式
 
+### 1.1. 引入依赖
 
+Spring Boot 整合 Jdbc 引入的核心依赖是 spring-boot-starter-jdbc
+
+```xml
+ <dependencies>
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter</artifactId>
+    </dependency>
+
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-test</artifactId>
+        <scope>test</scope>
+    </dependency>
+
+    <dependency>
+        <groupId>com.h2database</groupId>
+        <artifactId>h2</artifactId>
+    </dependency>
+
+    <!-- JDBC 依赖 -->
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-jdbc</artifactId>
+    </dependency>
+
+    <dependency>
+        <groupId>org.projectlombok</groupId>
+        <artifactId>lombok</artifactId>
+    </dependency>
+</dependencies>
+```
+
+### 1.2. 项目配置
+
+- 创建 spring boot 项目配置文件 application.yml
+
+```yml
+spring:
+  datasource:
+    url: jdbc:h2:mem:h2_test;MODE=MySQL;DATABASE_TO_LOWER=TRUE
+    # driver-class-name: org.h2.Driver # 可省略，Spring boot 会根据数据库的类型去选择相应的数据库连接驱动
+    username: root
+    password: 123456
+    schema: classpath:db/schema-h2.sql # H2 初始化表结构
+    data: classpath:db/data-h2.sql # H2 初始化数据
+  jdbc: # JdbcTemplate 相关配置
+    template:
+      query-timeout: -1   # 查询超时时间
+      max-rows: 500       # 最大行数
+      fetch-size: -1      # 缓存行数
+```
+
+- 数据库表结构初始化脚本 schema-h2.sql
+
+```sql
+DROP TABLE IF EXISTS `tb_book`;
+CREATE TABLE `tb_book`(
+    `id`          BIGINT (20),
+    `name`        VARCHAR(30),
+    `type`        VARCHAR(10),
+    `description` VARCHAR(200),
+    PRIMARY KEY (`id`)
+);
+```
+
+### 1.3. 工程基础代码
+
+- 创建数据库表相应的实体类
+
+```java
+@Data
+public class Book {
+    private int id;
+    private String name;
+    private String type;
+    private String description;
+}
+```
+
+- 项目启动类
+
+```java
+@SpringBootApplication
+public class JdbcApplication {
+    public static void main(String[] args) {
+        SpringApplication.run(JdbcApplication.class, args);
+    }
+}
+```
+
+## 2. 整合功能测试
+
+编写测试用例，分别测试插入数据与查询数据
+
+```java
+@SpringBootTest
+public class JdbcTemplateTest {
+
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
+
+    // 测试保存数据
+    @Test
+    public void testJdbcTemplateSave() {
+        String sql = "insert into tb_book values(4,'springboot','IT','这是一本好书')";
+        jdbcTemplate.update(sql);
+    }
+
+    // 测试查询数据
+    @Test
+    void testJdbcTemplateQuery(@Autowired JdbcTemplate jdbcTemplate) {
+
+        String sql = "select * from tb_book";
+        RowMapper<Book> rm = new RowMapper<Book>() {
+            @Override
+            public Book mapRow(ResultSet rs, int rowNum) throws SQLException {
+                Book temp = new Book();
+                temp.setId(rs.getInt("id"));
+                temp.setName(rs.getString("name"));
+                temp.setType(rs.getString("type"));
+                temp.setDescription(rs.getString("description"));
+                return temp;
+            }
+        };
+        List<Book> list = jdbcTemplate.query(sql, rm);
+        System.out.println(list);
+    }
+
+}
+```
 
 # Spring Boot 整合 MyBatis
 
