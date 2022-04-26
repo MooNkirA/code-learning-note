@@ -105,7 +105,7 @@ public class JdbcApplication {
 
 ## 2. 整合功能测试
 
-编写测试用例，分别测试插入数据与查询数据
+编写测试用例，分别测试使用 JdbcTepmlate 进行增删改查。*这里只作最基础的使用示例，更详细用法详见其他笔记*
 
 ```java
 @SpringBootTest
@@ -121,10 +121,27 @@ public class JdbcTemplateTest {
         jdbcTemplate.update(sql);
     }
 
+    // 测试更新数据
+    @Test
+    public void testJdbcTemplateUpdate() {
+        String sql = "update tb_book set name = ? where id = ?";
+        Object[] args = {"修改后的书名", 2};
+        int[] argTypes = {Types.VARCHAR, Types.INTEGER};
+        jdbcTemplate.update(sql, args, argTypes);
+    }
+
+    // 测试删除数据
+    @Test
+    public void testJdbcTemplateDelete() {
+        String sql = "delete from tb_book where id = ?";
+        Object[] args = {3};
+        int[] argTypes = {Types.INTEGER};
+        jdbcTemplate.update(sql, args, argTypes);
+    }
+
     // 测试查询数据
     @Test
-    void testJdbcTemplateQuery(@Autowired JdbcTemplate jdbcTemplate) {
-
+    void testJdbcTemplateQuery() {
         String sql = "select * from tb_book";
         RowMapper<Book> rm = new RowMapper<Book>() {
             @Override

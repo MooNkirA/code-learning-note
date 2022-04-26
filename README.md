@@ -283,13 +283,15 @@
   <li><a href="#/07-分布式架构&微服务架构/01-SpringBoot/03-SpringBoot源码分析">Spring Boot 源码分析</a></li>
   <li><a href="#/07-分布式架构&微服务架构/01-SpringBoot/04-Spring-Boot-Testing">Spring Boot 测试与整合 Junit</a></li>
   <li><a href="#/07-分布式架构&微服务架构/01-SpringBoot/05-SpringBoot整合Servlet、Filter、Listener">SpringBoot 整合 Servlet、Filter、Listener</a></li>
-  <li><a href="#/07-分布式架构&微服务架构/01-SpringBoot/06-SpringBoot-SQL-Databases">Spring Boot 对 SQL 关系型数据库技术支持（内置数据源技术、内置数据库）</a></li>
-  <li><a href="#/07-分布式架构&微服务架构/01-SpringBoot/07-SpringBoot-SQL-Databases-Technologies">Spring Boot 整合 SQL 关系型数据库持久技术框架</a></li>
+  <li><a href="#/07-分布式架构&微服务架构/01-SpringBoot/06-SpringBoot-SQL-Databases">Spring Boot 对关系型数据库技术支持（内置数据源技术、内置数据库）</a></li>
+  <li><a href="#/07-分布式架构&微服务架构/01-SpringBoot/07-SpringBoot-SQL-Databases-Technologies">Spring Boot 整合关系型数据库持久技术框架(JdbcTemplate、MyBatis、MyBatis-Plus)</a></li>
   <li><a href="#/07-分布式架构&微服务架构/01-SpringBoot/08-Spring-Boot-Admin">Spring Boot Admin 监控工具</a></li>
+  <li><a href="#/07-分布式架构&微服务架构/01-SpringBoot/09-Spring-Boot-Redis">Spring Boot 整合 Redis</a></li>
   <li><a href="#/07-分布式架构&微服务架构/01-SpringBoot/12-SpringBoot整合JavaMail">Spring Boot 整合 JavaMail</a></li>
   <li><a href="#/07-分布式架构&微服务架构/01-SpringBoot/13-SpringBoot整合javax.validation">Spring Boot 整合 javax.validation</a></li>
   <li><a href="#/07-分布式架构&微服务架构/01-SpringBoot/99-SpringBoot笔记-其他相关内容">Spring Boot 笔记-其他相关内容</a></li>
 </ul>
+
 
 
 
