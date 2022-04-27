@@ -287,6 +287,7 @@
   <li><a href="#/07-分布式架构&微服务架构/01-SpringBoot/07-SpringBoot-SQL-Databases-Technologies">Spring Boot 整合关系型数据库持久技术框架(JdbcTemplate、MyBatis、MyBatis-Plus)</a></li>
   <li><a href="#/07-分布式架构&微服务架构/01-SpringBoot/08-Spring-Boot-Admin">Spring Boot Admin 监控工具</a></li>
   <li><a href="#/07-分布式架构&微服务架构/01-SpringBoot/09-Spring-Boot-Redis">Spring Boot 整合 Redis</a></li>
+  <li><a href="#/07-分布式架构&微服务架构/01-SpringBoot/10-Spring-Boot-MongoDB">Spring Boot 整合 MongoDB</a></li>
   <li><a href="#/07-分布式架构&微服务架构/01-SpringBoot/12-SpringBoot整合JavaMail">Spring Boot 整合 JavaMail</a></li>
   <li><a href="#/07-分布式架构&微服务架构/01-SpringBoot/13-SpringBoot整合javax.validation">Spring Boot 整合 javax.validation</a></li>
   <li><a href="#/07-分布式架构&微服务架构/01-SpringBoot/99-SpringBoot笔记-其他相关内容">Spring Boot 笔记-其他相关内容</a></li>

@@ -166,7 +166,8 @@ spring-boot-starter-log4j2
 使用Log4j2进行日志记录。 spring-boot-starter-logging的替代方法
 ```
 
-## 2. 附录2. Spring-Boot的application.properties
+## 2. 附录2. Spring-Boot 的 application.properties
+
 - (摘自Spring-boot 1.5.6官方文档)
 - http://docs.spring.io/spring-boot/docs/1.5.6.RELEASE/reference/htmlsingle/#appendix
 

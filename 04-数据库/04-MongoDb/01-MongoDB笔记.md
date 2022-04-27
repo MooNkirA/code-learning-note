@@ -14,7 +14,7 @@ MongoDB的下载地址：http://dl.mongodb.org/dl/win32/x86_64
 ## 3. MongoDB（windows版）
 ### 3.1. 安装 MongoDB
 
-在win7系统安装mongodb需要vc++运行库，如果没有则会提示“无法启动此程序，因为计算机中丢失“VCRUNTIME140.dll”。上网查找安装
+在 win7 系统安装 mongodb 需要 vc++ 运行库，如果没有则会提示“无法启动此程序，因为计算机中丢失“VCRUNTIME140.dll”。上网查找安装
 
 运行 mongodb-win32-x86_64-2008plus-ssl-4.0.8-signed.msi 安装
 

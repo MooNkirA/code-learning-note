@@ -12,11 +12,9 @@ Redis 有它的数据持久化方案，分别是 RDB 和 AOF，但是 Redis 自�
 
 ### 1.2. 安装
 
-> 为了测试方便，使用了 window 版 Redis
+> 为了测试方便，使用了 window 版 Redis。windows 版安装包下载地址：https://github.com/tporadowski/redis/releases
 
-windows 版安装包下载地址：https://github.com/tporadowski/redis/releases。下载的安装包有两种形式，一种是一键安装的 msi 文件，还有一种是解压缩即可使用的 zip 文件
-
-个人使用的是免安装版本 Redis-x64-3.2.100，压缩后目录如下：
+下载的安装包有两种形式，一种是一键安装的 msi 文件，还有一种是解压缩即可使用的 zip 文件。个人使用的是免安装版本 Redis-x64-3.2.100，压缩后目录如下：
 
 ![](images/489264222238892.png)
 
@@ -78,4 +76,118 @@ spring:
 
 ### 2.3. 基础使用示例
 
+使用 Spring Boot 整合 redis 的专用客户端接口 RedisTemplate 执行相应的操作
 
+#### 2.3.1. RedisTemplate
+
+```java
+@SpringBootTest
+public class RedisTemplateTest {
+    /*
+     * 注入 Redis 模版操作对象 RedisTemplate<K, V>
+     *  如果不指定 k 值，则默认是对象类型的key
+     */
+    @Autowired
+    private RedisTemplate redisTemplate;
+
+    @Test
+    public void testSet() {
+        ValueOperations ops = redisTemplate.opsForValue();
+        ops.set("test:age", 41);
+    }
+
+    @Test
+    public void testGet() {
+        ValueOperations ops = redisTemplate.opsForValue();
+        Object age = ops.get("test:age");
+        System.out.println(age);
+    }
+
+    @Test
+    public void testHset() {
+        HashOperations ops = redisTemplate.opsForHash();
+        ops.put("test:person", "name", "Moon");
+    }
+
+    @Test
+    public void testHget() {
+        HashOperations ops = redisTemplate.opsForHash();
+        Object val = ops.get("test:person", "name");
+        System.out.println(val);
+    }
+}
+```
+
+值得注意的是：`RedisTemplate` 不指定泛型时，默认的存储的键是对象类型，会进行转码。因此使用图形化界面客户端查看时效果如下图：
+
+![](images/94051722220467.png)
+
+#### 2.3.2. StringRedisTemplate
+
+由于 redis 内部不提供 java 对象的存储格式，因此当操作的数据以对象的形式存在时，会进行转码，转换成字符串格式后进行操作。为了方便开发者使用基于字符串为数据的操作，Spring Boot 整合 redis 时提供了专用的 API 接口 `StringRedisTemplate`，可以理解为这是 `RedisTemplate` 的一种指定数据泛型的操作 API，相当于 `RedisTemplate<String, String>`
+
+```java
+@SpringBootTest
+public class StringRedisTemplateTest {
+
+    /* StringRedisTemplate 模版操作对象，相当于 RedisTemplate<String, String> */
+    @Autowired
+    private StringRedisTemplate redisTemplate;
+
+    @Test
+    public void testSet() {
+        ValueOperations<String, String> ops = redisTemplate.opsForValue();
+        ops.set("test:name", "MooN");
+    }
+
+    @Test
+    public void testGet() {
+        ValueOperations<String, String> ops = redisTemplate.opsForValue();
+        String age = ops.get("test:name");
+        System.out.println(age);
+    }
+}
+```
+
+## 3. redis 客户端选择
+
+Spring Boot 整合 redis 技术提供了多种客户端兼容模式，默认提供的是 lettucs 客户端，也可以根据需要切换成指定客户端技术，例如 jedis 客户端。切换成 jedis 客户端操作步骤如下：
+
+### 3.1. 切换客户端步骤
+
+#### 3.1.1. 引入依赖
+
+切换到 jedis 客户端，需要在项目的 pom.xml 文件中导入 jedis 坐标。注：jedis 坐标已在 Spring Boot 父项目中进行了版本管理，无需提供版本号
+
+```xml
+<dependency>
+    <groupId>redis.clients</groupId>
+    <artifactId>jedis</artifactId>
+</dependency>
+```
+
+#### 3.1.2. 基础配置
+
+修改 application.yml 项目配置文件，通过 `spring.redis.client-type` 属性指定使用的客户端类型。并且根据对应的客户端面设置相关的配置
+
+```yml
+spring:
+  redis:
+    host: localhost # redis 服务地址，默认是 localhost
+    port: 6379 # redis 服务端口，默认是 6379
+    # Spring Boot 默认的客户端是 lettuce，使用 client-type 属性来指定客户端的类型
+    client-type: jedis
+#    lettuce: # 根据客户端的类型，设置对应的配置。默认是 lettuce 客户端
+#      pool:
+#        max-active: 16
+    jedis: # 根据客户端的类型，设置对应的配置。示例使用 jedis 客户端
+      pool:
+        max-active: 16
+```
+
+配置完成后，按原来的使用方式即可，Spring Boot 底层已经切换成指定的客户端类型
+
+### 3.2. lettcus 客户端与 jedis 客户端区别
+
+- jedis 连接 Redis 服务器是直连模式，当多线程模式下使用 jedis 会存在线程安全问题，解决方案可以通过配置连接池使每个连接专用，这样整体性能就大受影响
+- lettcus 基于 Netty 框架进行与 Redis 服务器连接，底层设计中采用 StatefulRedisConnection。 StatefulRedisConnection 自身是线程安全的，可以保障并发访问安全问题，所以一个连接可以被多线程复用。当然 lettcus 也支持多连接实例一起工作
