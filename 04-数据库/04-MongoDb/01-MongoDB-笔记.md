@@ -1,269 +1,9 @@
-# MongoDB 安装与使用
-
-## 1. MongoDB 介绍
-
-MongoDB 是一个跨平台的，面向文档的数据库，是当前 NoSQL 数据库产品中最热门的一种。它介于关系数据库和非关系数据库之间，是非关系数据库当中功能最丰富，最像关系数据库的产品。它支持的数据结构非常松散，是类似 JSON 的 BSON 格式，因此可以存储比较复杂的数据类型。
-
-## 2. MongoDB 官网与下载
-
-MongoDB的官方网站地址：https://www.mongodb.com/
-
-MongoDB的下载地址：http://dl.mongodb.org/dl/win32/x86_64
-
-
-## 3. MongoDB（windows版）
-### 3.1. 安装 MongoDB
-
-在 win7 系统安装 mongodb 需要 vc++ 运行库，如果没有则会提示“无法启动此程序，因为计算机中丢失“VCRUNTIME140.dll”。上网查找安装
-
-运行 mongodb-win32-x86_64-2008plus-ssl-4.0.8-signed.msi 安装
-
-![安装MongoDB](images/20190408115140944_32544.png)
-
-![安装MongoDB](images/20190408115318126_10187.png)
-
-![安装MongoDB](images/20190408123145139_2442.png)
-
-直接默认即可，点击next
-
-![安装MongoDB](images/20190408123313179_30135.png)
-
-取消勾选，不安装图形化工具，否则时间非常非常长。
-
-![安装MongoDB](images/20190408123431914_20189.png)
-
-### 3.2. 启动 MongoDB
-
-#### 3.2.1. 进入MongoDB的安装目录，创建相关文件
-
-有几个文件夹具体如下（如果安装的版本没有，则手动创建）
-
-- 数据库路径（data目录）
-- 日志路径（log目录）
-- 日志文件（log目录下，创建mongo.log文件）
-
-![MongoDB目录结构](images/20190408123816591_13462.png)
-
-#### 3.2.2. 创建配置文件mongo.conf
-
-增加如下内容
-
-```conf
-# 数据库路径
-dbpath=D:\development\MongoDB\Server\4.0\data
-# 日志输出文件路径
-logpath=D:\development\MongoDB\Server\4.0\log\mongo.log
-# 错误日志采用追加模式
-logappend=true
-# 启用日志文件，默认启用
-journal=true
-# 这个选项可以过滤掉一些无用的日志信息，若需要调试使用请设置为false
-quiet=true
-# 端口号 默认为27017
-port=27017
-```
-
-#### 3.2.3. 安装 MongoDB服务
-
-通过执行`bin/mongod.exe`，使用`--install`选项来安装服务，使用`--config`选项来指定之前创建的配置文件。cmd进入D:\development\MongoDB\Server\4.0\bin
-
-```shell
-mongod.exe --config "D:\development\MongoDB\Server\4.0\mongo.conf" --install
-```
-
-#### 3.2.4. 启动MongoDB服务（需要使用管理员打开）
-
-```shell
-# 使用显示名称
-net start "MongoDB Server"
-# 或者使用服务名称
-net start MongoDB
-```
-
-#### 3.2.5. 关闭MongoDB服务（需要使用管理员打开）
-
-```shell
-# 使用显示名称
-net stop "MongoDB Server"
-# 或者使用服务名称
-net start MongoDB
-```
-
-#### 3.2.6. 移除MongoDB服务
-
-```shell
-"d:\MongoDB\Server\3.4\bin\mongod.exe" --remove
-```
-
-#### 3.2.7. 测试是否启动成功
-
-启动mongodb服务，命令执行后，浏览器中输入http://127.0.0.1:27017看到如下界面即说明启动成功
-
-![](images/20190408130442382_5581.png)
-
-也可以通过bin目录下的mongo.exe连接mongodb
-
-## 4. MongoDB（docker版）
-### 4.1. 查看可用的 MongoDB 版本
-
-访问 MongoDB 镜像库地址： https://hub.docker.com/_/mongo?tab=tags&page=1。
-
-### 4.2. 安装dokcer版本MongoDB
-
-- 创建MongoDB容器
-
-```bash
-# 搜索镜像
-docker search mongo
-# 拉取镜像
-docker pull mongo:4.0.18
-# 查看本地的镜像
-docker images
-
-# 创建容器运行挂载的目录
-mkdir -pv /usr/local/software/mongodb/data/db
-mkdir -pv /usr/local/software/mongodb/log
-
-# 运行容器。--auth：需要密码才能访问容器服务。
-docker run -id --name mongo -v /usr/local/software/mongodb/data/db:/usr/local/software/mongodb/data/db -v /usr/local/software/mongodb/log:/usr/local/software/mongodb/log -p 27017:27017 mongo:4.0.18 --auth
-```
-
-- 查看容器运行情况
-
-```bash
-docker ps -a
-```
-
-![](images/20200419085029850_6991.png)
-
-### 4.3. 进入容器
-
-- 连接容器
-
-```bash
-# 登陆容器
-docker exec -it mongo /bin/bash
-```
-
-![](images/20200419085440761_14675.png)
-
-- 修改配置文件
-
-```bash
-# docker版本的mongoDb配置文件位置 /etc/mongod.conf.orig
-cd /etc
-# 更新源
-apt-get update
-# 安装 vim(因为容器没有vim)
-apt-get install vim
-# 修改mongoDb的配置文件
-vim /etc/mongod.conf.orig
-```
-
-**修改注意点**
-
-```
-1.确保注释掉`# bindIp: 127.0.0.1` 或者改成`bindIp: 0.0.0.0` 即可开启远程连接
-2.开启权限认证
-security：
-  authorization: enabled # 注意缩进，参照其他的值来改，若是缩进不对可能导致后面服务不能重启
-```
-
-> 注：以下配置文件的格式是v4.0版本以后的配置
-
-![](images/20200419093039481_3503.png)
-
-- 重启容器
-
-```bash
-docker restart mongo
-```
-
-### 4.4. 进入mongoDB
-
-- 启动容器之后，使用admin进入
-
-```bash
-docker exec -it mongo mongo admin
-```
-
-- 创建管理员用户
-
-```bash
-# 切换数据库
-use admin
-# 创建一个名为 root，密码为 123 的用户。
-db.createUser({ user:'root',pwd:'123',roles:[ { role:'root', db: 'admin'}]});
-# 尝试使用上面创建的用户信息进行连接。
-db.auth('root', '123')
-# 退出
-exit
-```
-
-![](images/20200419122053157_3366.png)
-
-- 开放27017端口
-
-```bash
-firewall-cmd --zone=public --add-port=27017/tcp --permanent
-```
-
-### 4.5. 测试docker容器是否已经对外开放服务
-
-![](images/20200419094225020_23794.png)
-
-### 4.6. 使用Navicat连接测试（连接有问题，暂未解决）
-
-![](images/20200419095323556_12399.png)
-
-如果连接时报以下错误
-
-![](images/20200419103130479_29841.png)
-
-- 出错的原因：操作系统开启了ipv6支持，但是mongodb未开启ipv6支持
-- 解决办法有2个内
-1. 删除操作系统中ipv6解析（注意是mongoDB容器的系统中的hosts）
-
-删除`/etc/hosts`中 `::1 localhost` 这一行的内容
-
-![](images/20200419104013816_713.png)
-
-2. 开启mongod的ipv6支持，修改参数如下：
-
-```
-A、
-    ./bin/mongod --filePermissions 0777 --ipv6
-B、
-    filePermissions=0777
-    ipv6=true
-```
-
-> <font color="red">**注：按网上的方法暂时无法解决，但使用studio3t是可以连接**</font>
-
-
-## 5. studio3t
-
-- studio3t是mongodb优秀的客户端工具。官方网站：https://studio3t.com/
-- 下载安装后运行程序，创建一个新连接：
-
-![](images/20190408142406535_26007.png)
-
-![](images/20190408142504574_1493.png)
-
-- 填写连接信息：
-
-![](images/20190408142716469_10071.png)
-
-![](images/20190408142802612_7888.png)
-
-- 修改字体：默认Studio3t的字体太小，需要修改字体。点击菜单：Edit --> Preferences
-
-![](images/20190408142622245_12800.png)
-
-
 # MongoDb 基础笔记
 
 ## 1. MongoDb 入门
+
+MongoDB 是一个跨平台的，面向文档的数据库，是当前 NoSQL 数据库产品中最热门的一种。它介于关系数据库和非关系数据库之间，是非关系数据库当中功能最丰富，最像关系数据库的产品。它支持的数据结构非常松散，是类似 JSON 的 BSON 格式，因此可以存储比较复杂的数据类型。
+
 ### 1.1. MongoDB 特点
 
 MongoDB 最大的特点是他支持的查询语言非常强大，其语法有点类似于面向对象的查询语言，几乎可以实现类似关系数据库单表查询的绝大部分功能，而且还支持对数据建立索引。它是一个面向集合的，模式自由的文档型数据库，具体特点总结如下：
@@ -307,7 +47,7 @@ MongoDB 的逻辑结构是一种层次结构。主要由：数据库(database)�
 2. 一个数据库可以创建多个集合
 3. 一个集合可以包括多个文档。
 
-## 2. 连接mongodb
+## 2. 连接 mongodb
 
 mongodb的使用方式是客户服务器模式，即使用一个客户端连接mongodb数据库（服务端）。
 
@@ -334,7 +74,7 @@ mongodb://root:itcast@localhost     # 使用用户名root密码为itcast连接�
 mongodb://localhost,localhost:27018,localhost:27019    # 连接三台主从服务器，端口为27017、27018、27019
 ```
 
-### 2.2. 使用mongodb自带的javascript shell（mongo.exe）连接
+### 2.2. 使用 mongodb 自带的 javascript shell（mongo.exe）连接
 
 - windows 版本的mongodb安装成功，在安装目录下的bin目录有mongo.exe客户端程序
 - cmd状态执行mongo.exe：
@@ -344,11 +84,11 @@ mongodb://localhost,localhost:27018,localhost:27019    # 连接三台主从服�
 - 此时就可以输入命令来操作mongodb数据库了，javascript shell可以运行javascript程序。
 
 
-### 2.3. 使用studio3T连接
+### 2.3. 使用 studio3T 连接
 
-内容参考本笔记的 《5.studio3t》
+内容参考本笔记的[《MongoDB 安装与使用》 的 《studio3t》 章节](/04-数据库/04-MongoDb/02-MongoDB-安装与使用)
 
-### 2.4. 使用java程序连接
+### 2.4. 使用 java 程序连接
 
 - 详细参数：http://mongodb.github.io/mongo-java-driver/3.4/driver/tutorials/connect-to-mongodb/
 - 添加依赖：
@@ -385,6 +125,7 @@ public void testConnection() {
 ```
 
 ## 3. 数据库操作
+
 ### 3.1. 查询数据库
 
 - 查询全部数据库
@@ -484,6 +225,7 @@ show tables
 ![](images/20200420231441375_4007.png)
 
 ## 5. 文档操作
+
 ### 5.1. 插入文档
 
 - mongodb中文档的格式是json格式，下边就是一个文档，包括两个key：_id主键和name
@@ -501,15 +243,15 @@ show tables
 db.COLLECTION_NAME.insert(document)
 ```
 
-**注：每个文档默认以_id作为主键，主键默认类型为ObjectId（对象类型），mongodb会自动生成主键值。**
+**注：每个文档默认以 `_id` 作为主键，主键默认类型为 `ObjectId`（对象类型），mongodb 会自动生成主键值。**
 
-- 例子：往student集合中插入一条文档
+- 例子：往 student 集合中插入一条文档
 
 ```
 db.student.insert({"name":"moon","age":10})
 ```
 
-**注意：同一个集合中的文档的key名称与个数可以不相同！但是建议设置为相同的。**
+**注意：同一个集合中的文档的 key 名称与个数可以不相同！但是建议设置为相同的。**
 
 ### 5.2. 更新文档
 
@@ -524,7 +266,7 @@ db.COLLECTION_NAME.update(<query>, <update>, <options>)
 
 #### 5.2.1. 替换文档
 
-将符合条件 "name":"moon"的第一个文档替换为{"name":"斩月","age":10}。
+将符合条件 `"name":"moon"` 的第一个文档替换为 `{"name":"斩月","age":10}`。
 
 ```
 db.student.update({"name":"moon"},{"name":"斩月","age":10})
@@ -532,7 +274,7 @@ db.student.update({"name":"moon"},{"name":"斩月","age":10})
 
 #### 5.2.2. $set修改器
 
-- 使用$set修改器指定要更新的key，key不存在则创建，存在则更新。
+- 使用 `$set` 修改器指定要更新的key，key不存在则创建，存在则更新。
 - 将符合条件 "name":"斩月" 的所有文档更新name和age的值。
 
 ```

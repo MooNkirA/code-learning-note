@@ -226,8 +226,11 @@
 ### 🥭 MongoDb
 
 <ul class="docs">
-  <li><a href="#/04-数据库/04-MongoDb/01-MongoDB笔记">MongoDB笔记</a></li>
+  <li><a href="#/04-数据库/04-MongoDb/01-MongoDB-笔记">MongoDB 基础笔记</a></li>
+  <li><a href="#/04-数据库/04-MongoDb/02-MongoDB-安装与使用">MongoDB 安装与使用</a></li>
 </ul>
+
+
 
 ## DevOps工具
 
@@ -288,10 +291,12 @@
   <li><a href="#/07-分布式架构&微服务架构/01-SpringBoot/08-Spring-Boot-Admin">Spring Boot Admin 监控工具</a></li>
   <li><a href="#/07-分布式架构&微服务架构/01-SpringBoot/09-Spring-Boot-Redis">Spring Boot 整合 Redis</a></li>
   <li><a href="#/07-分布式架构&微服务架构/01-SpringBoot/10-Spring-Boot-MongoDB">Spring Boot 整合 MongoDB</a></li>
+  <li><a href="#/07-分布式架构&微服务架构/01-SpringBoot/11-Spring-Boot-Elasticsearch">Spring Boot 整合 Elasticsearch</a></li>
   <li><a href="#/07-分布式架构&微服务架构/01-SpringBoot/12-SpringBoot整合JavaMail">Spring Boot 整合 JavaMail</a></li>
   <li><a href="#/07-分布式架构&微服务架构/01-SpringBoot/13-SpringBoot整合javax.validation">Spring Boot 整合 javax.validation</a></li>
   <li><a href="#/07-分布式架构&微服务架构/01-SpringBoot/99-SpringBoot笔记-其他相关内容">Spring Boot 笔记-其他相关内容</a></li>
 </ul>
+
 
 
 
