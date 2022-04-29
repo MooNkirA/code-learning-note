@@ -63,9 +63,11 @@ redis-cli.exe
 
 ![](images/425922423226759.png)
 
-### 2.2. 基础配置
+### 2.2. 基础配置连接 Redis
 
 在 Spring Boot 项目配置文件 application.yml 中，设置 Redis 相关配置
+
+- 配置 Redis 单机版
 
 ```yml
 spring:
@@ -74,9 +76,22 @@ spring:
     port: 6379 # redis 服务端口，默认是 6379
 ```
 
+- 配置 Redis 集群版
+
+```yml
+spring:
+  redis:
+    cluster:
+      nodes: 192.168.12.128:7001,192.168.12.128:7002,192.168.12.128:7003,192.168.12.128:7004,192.168.12.128:7005,192.168.12.128:7006
+```
+
+**说明：切换到集群版，注释掉单机版配置信息即可。**
+
 ### 2.3. 基础使用示例
 
-使用 Spring Boot 整合 redis 的专用客户端接口 RedisTemplate 执行相应的操作
+使用 Spring Boot 整合 redis 的专用客户端接口 RedisTemplate 执行相应的操作，通过以下方法操作 redis 的五种不同的数据类型
+
+![](images/317345514220469.png)
 
 #### 2.3.1. RedisTemplate
 
@@ -191,3 +206,45 @@ spring:
 
 - jedis 连接 Redis 服务器是直连模式，当多线程模式下使用 jedis 会存在线程安全问题，解决方案可以通过配置连接池使每个连接专用，这样整体性能就大受影响
 - lettcus 基于 Netty 框架进行与 Redis 服务器连接，底层设计中采用 StatefulRedisConnection。 StatefulRedisConnection 自身是线程安全的，可以保障并发访问安全问题，所以一个连接可以被多线程复用。当然 lettcus 也支持多连接实例一起工作
+
+## 4. 整合Redis
+
+
+### 4.1. 配置连接Redis
+
+
+
+### 4.2. 注入RedisTemplate测试redis操作
+
+
+
+```java
+@RunWith(SpringRunner.class)
+@SpringBootTest(classes = Application.class)
+public class RedisTest {
+    @Autowired
+    private UserRepository userRepository;
+    @Autowired
+    private RedisTemplate<String, String> redisTemplate;
+
+    @Test
+    public void test() throws JsonProcessingException {
+        // 从redis缓存中获得指定的数据
+        String userListData = redisTemplate.boundValueOps("user.findAll").get();
+        // 如果redis中没有数据的话
+        if (null == userListData) {
+            //查询数据库获得数据
+            List<User> all = userRepository.findAll();
+            // 转换成json格式字符串
+            ObjectMapper om = new ObjectMapper();
+            userListData = om.writeValueAsString(all);
+            // 将数据存储到redis中，下次在查询直接从redis中获得数据，不用在查询数据库
+            redisTemplate.boundValueOps("user.findAll").set(userListData);
+            System.out.println("===============从数据库获得数据===============");
+        } else {
+            System.out.println("===============从redis缓存中获得数据===============");
+        }
+        System.out.println(userListData);
+    }
+}
+```

@@ -290,86 +290,326 @@ PUT http://localhost:9200/books
 
 目前我们已经有了索引了，但是索引中还没有数据，所以要先添加数据，ES中称数据为文档，下面进行文档操作。
 
-- 添加文档，有三种方式
+- 添加文档发送 POST 类型请求，有以下三种方式
 
-```json
-POST请求	http://localhost:9200/books/_doc		#使用系统生成id
-POST请求	http://localhost:9200/books/_create/1	#使用指定id
-POST请求	http://localhost:9200/books/_doc/1		#使用指定id，不存在创建，存在更新（版本递增）
-
-文档通过请求参数传递，数据格式json
-{
-      "name":"springboot",
-      "type":"springboot",
-      "description":"springboot"
-}  
+```bash
+POST http://localhost:9200/books/_doc		# 使用系统生成id
+POST http://localhost:9200/books/_create/1	# 使用指定id
+POST http://localhost:9200/books/_doc/1		# 使用指定id，不存在创建，存在更新（版本递增）
 ```
 
-- 查询文档
+文档通过请求参数传递，数据格式json
 
 ```json
-GET请求	http://localhost:9200/books/_doc/1		 #查询单个文档 		
-GET请求	http://localhost:9200/books/_search		 #查询全部文档
+{
+    "name": "springboot",
+    "type": "springboot",
+    "description": "springboot"
+}
+```
+
+#### 1.4.6. 查询文档
+
+查询文档发送 GET 请求
+
+```bash
+GET http://localhost:9200/books/_doc/1		 # 查询单个文档 		
+GET http://localhost:9200/books/_search		 # 查询全部文档
 ```
 
 - 条件查询
 
-```json
-GET请求	http://localhost:9200/books/_search?q=name:springboot	# q=查询属性名:查询属性值
+```bash
+GET http://localhost:9200/books/_search?q=name:springboot	# q=查询属性名:查询属性值
 ```
 
-- 删除文档
+#### 1.4.7. 删除文档
 
-```json
-DELETE请求	http://localhost:9200/books/_doc/1
+删除文档发送 DELETE 请求
+
+```bash
+DELETE http://localhost:9200/books/_doc/1
 ```
+
+#### 1.4.8. 修改文档
+
+修改文档发送 PUT 请求
 
 - 修改文档（全量更新）
 
-```json
-PUT请求	http://localhost:9200/books/_doc/1
+```bash
+PUT http://localhost:9200/books/_doc/1
+```
 
 文档通过请求参数传递，数据格式json
+
+```json
 {
-      "name":"springboot",
-      "type":"springboot",
-      "description":"springboot"
+    "name": "springboot",
+    "type": "springboot",
+    "description": "springboot"
 }
 ```
 
 - 修改文档（部分更新）
 
-```json
-POST请求	http://localhost:9200/books/_update/1
+```bash
+POST http://localhost:9200/books/_update/1
+```
 
 文档通过请求参数传递，数据格式json
-{			
-    "doc":{						#部分更新并不是对原始文档进行更新，而是对原始文档对象中的doc属性中的指定属性更新
-      "name":"springboot"		#仅更新提供的属性值，未提供的属性值不参与更新操作
+
+```json
+{
+    "doc": {                    # 部分更新并不是对原始文档进行更新，而是对原始文档对象中的doc属性中的指定属性更新
+        "name": "springboot"    # 仅更新提供的属性值，未提供的属性值不参与更新操作
     }
 }
 ```
 
+## 2. 整合 Elasticsearch 低级别客户端
 
-
-## 2. 整合 Elasticsearch 示例
-
-Spring Boot 整合 Elasticsearch 操作步骤如下：
-
-
+以下是整合 ES 早期操作使用的客户端，被称为 Low Level Client，这种客户端操作方式性能方面略显不足
 
 ### 2.1. 引入依赖
 
-导入 Spring Boot 整合 Elasticsearch 的坐标
+导入 Spring Boot 整合 Elasticsearch 低级别客户端的坐标
 
 ```xml
-
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-data-elasticsearch</artifactId>
+</dependency>
 ```
+
+
+### 2.2. 项目配置
+
+在 Spring Boot 项目配置文件 application.yml 中，设置 Elasticsearch 相关配置，主要配置 ES 服务器地址，端口 9200
+
+```yml
+spring:
+  elasticsearch:
+    rest:
+      uris: http://localhost:9200
+```
+
+### 2.3. 操作客户端
+
+使用 Spring Boot 整合 ES 的专用客户端接口 `ElasticsearchRestTemplate` 来进行操作
+
+```java
+@SpringBootTest
+public class ElasticsearchTest {
+    /* ES 早期低版本的客户操作对象 ElasticsearchRestTemplate，不推荐使用 */
+    @Autowired
+    private ElasticsearchRestTemplate template;
+}
+```
+
+## 3. 整合 Elasticsearch 高级别客户端
+
+上述示例操作形式是 ES 早期的 Low Level Client，后面 ES 开发了全新的客户端操作方式，称为 High Level Client。高级别客户端与 ES 版本同步更新，但是 Spring Boot 最初整合 ES 的时候使用的是低级别客户端，所以企业开发需要更换成高级别的客户端模式。
+
+### 3.1. 引入依赖
+
+导入 Spring Boot 整合 Elasticsearch 高级别客户端的坐标
+
+```xml
+ <!-- ES 全新的客户端操作方式，称为 High Level Client。推荐使用 -->
+<dependency>
+    <groupId>org.elasticsearch.client</groupId>
+    <artifactId>elasticsearch-rest-high-level-client</artifactId>
+</dependency>
+<!-- ES 高级别客户没有整合 starter -->
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter</artifactId>
+</dependency>
+```
+
+> 注：因为 Spring Boot 整合 ES 高级别客户端的坐标，此种形式目前没有对应的 starter，所以如果不是 Spring Boot web 应用的话，需要导入 spring-boot-starter 依赖
 
 也可以直接使用 idea 的 Spring Initializr 创建 Spring Boot 项目，在创建模块的时候勾选相应的依赖，归属 NoSQL 分类中
 
 ![](images/215443423238894.png)
 
+### 3.2. 项目配置
 
+ES 高级别客户可以不需要与低级别客户一样，在 Spring Boot 项目配置文件 application.yml 中，设置 Elasticsearch 相关基础配置，因为在创建客户端时会指定服务器ip地址与端口
 
+### 3.3. 操作客户端示例
 
+#### 3.3.1. 创建客户端对象
+
+使用编程的形式设置连接的 ES 服务器，并获取客户端对象。配置 ES 服务器地址与端口9200（*可以将地址与端口等写到配置文件中，再读取配置文件*），记得客户端使用完毕需要手工关闭。由于当前客户端是手工维护的，因此不能通过自动装配的形式加载对象。
+
+```java
+@SpringBootTest
+public class ElasticsearchTest {
+
+    /* ES 早期低级别的客户操作对象 ElasticsearchRestTemplate，不推荐使用 */
+    // @Autowired
+    // private ElasticsearchRestTemplate template;
+
+    /* ES 高级别客户操作对象 */
+    private RestHighLevelClient client;
+
+    @BeforeEach
+    public void init() {
+        // 指定 es 服务器地址，创建 HttpHost 连接对象。（可以修改成读取配置文件）
+        HttpHost host = HttpHost.create("http://localhost:9200");
+        // 创建高级别客户端操作对象
+        RestClientBuilder builder = RestClient.builder(host);
+        client = new RestHighLevelClient(builder);
+    }
+
+    @AfterEach
+    public void shutdown() throws IOException {
+        client.close();
+    }
+}
+```
+
+#### 3.3.2. 创建索引
+
+高级别客户端操作是通过发送请求的方式完成所有操作的，ES 针对各种不同的操作，设定了各式各样的请求对象，在创建索引的对象是 `CreateIndexRequest`，其他操作也会有自己专用的 Request 对象。
+
+- 创建普通索引
+
+```java
+@Test
+public void testCreateIndex() throws IOException {
+    // 创建索引专用的请求对象 CreateIndexRequest
+    CreateIndexRequest request = new CreateIndexRequest("books");
+    client.indices().create(request, RequestOptions.DEFAULT);
+}
+```
+
+- 创建索引（IK分词器）。	IK 分词器是通过请求参数的形式进行设置的，设置请求参数使用 `CreateIndexRequest` 对象中的 `source` 方法进行设置，根据操作种类来决定相应的参数。当请求中需要参数时，均可使用当前形式进行参数设置。	
+
+```java
+@Test
+public void testCreateIndexByIK() throws IOException {
+    CreateIndexRequest request = new CreateIndexRequest("books");
+    String json = "{\n" +
+            "    \"mappings\":{\n" +
+            "        \"properties\":{\n" +
+            "            \"id\":{\n" +
+            "                \"type\":\"keyword\"\n" +
+            "            },\n" +
+            "            \"name\":{\n" +
+            "                \"type\":\"text\",\n" +
+            "                \"analyzer\":\"ik_max_word\",\n" +
+            "                \"copy_to\":\"all\"\n" +
+            "            },\n" +
+            "            \"type\":{\n" +
+            "                \"type\":\"keyword\"\n" +
+            "            },\n" +
+            "            \"description\":{\n" +
+            "                \"type\":\"text\",\n" +
+            "                \"analyzer\":\"ik_max_word\",\n" +
+            "                \"copy_to\":\"all\"\n" +
+            "            },\n" +
+            "            \"all\":{\n" +
+            "                \"type\":\"text\",\n" +
+            "                \"analyzer\":\"ik_max_word\"\n" +
+            "            }\n" +
+            "        }\n" +
+            "    }\n" +
+            "}";
+    // 设置请求中的参数
+    request.source(json, XContentType.JSON);
+    client.indices().create(request, RequestOptions.DEFAULT);
+}
+```
+
+#### 3.3.3. 添加文档
+
+添加文档使用的请求对象是 `IndexRequest`
+
+```java
+@Test
+public void testCreateDoc() throws IOException {
+    Book book = new Book();
+    book.setId(1);
+    book.setName("金田一少年之事件薄");
+    book.setType("漫画");
+    book.setDescription("推理迷不能错过");
+    // 创建新增的专用请求对象 IndexRequest
+    IndexRequest request = new IndexRequest("books").id(book.getId().toString());
+    String json = JSON.toJSONString(book);
+    request.source(json, XContentType.JSON);
+    client.index(request, RequestOptions.DEFAULT);
+}
+```
+
+#### 3.3.4. 批量添加文档
+
+批量添加文档时，先创建一个 `BulkRequest` 的对象，可以将该对象理解为是一个保存 `IndexRequest` 对象的容器，将所有的请求都初始化好后，添加到 `BulkRequest` 对象中，再使用 `BulkRequest` 对象的 `bulk` 方法，一次性执行完毕。
+
+```java
+@Test
+public void testCreateDocBatch() throws IOException {
+    // 创建批量请求对象容器 BulkRequest
+    BulkRequest bulk = new BulkRequest();
+
+    for (int i = 2; i < 6; i++) {
+        Book book = new Book();
+        book.setId(i);
+        book.setName("金田一少年之事件薄第" + i + "集");
+        book.setType("漫画");
+        book.setDescription("推理迷不能错过" + i);
+
+        // 创建新增的专用请求对象 IndexRequest
+        IndexRequest request = new IndexRequest("books").id(book.getId().toString());
+        String json = JSON.toJSONString(book);
+        request.source(json, XContentType.JSON);
+        // 将 IndexRequest 请求对象加入到 BulkRequest 容器中
+        bulk.add(request);
+    }
+    // 批量新增
+    client.bulk(bulk, RequestOptions.DEFAULT);
+}
+```
+
+#### 3.3.5. 按id查询文档
+
+根据 id 查询文档的请求对象是 `GetRequest`
+
+```java
+@Test
+public void testGet() throws IOException {
+    // 创建根据 id 查询文档专用请求对象 GetRequest
+    GetRequest request = new GetRequest("books", "2");
+    GetResponse response = client.get(request, RequestOptions.DEFAULT);
+    String json = response.getSourceAsString();
+    System.out.println(json);
+}
+```
+
+#### 3.3.6. 按条件查询文档
+
+按条件查询文档的请求对象是 `SearchRequest`，查询时调用 `SearchRequest` 对象的 `termQuery` 方法，指定查询的属性名，此处支持使用合并字段，也就是前面定义索引属性时添加的 `all` 属性。
+
+```java
+@Test
+public void testSearch() throws IOException {
+    // 创建条件查询文档专用请求对象 SearchRequest
+    SearchRequest request = new SearchRequest("books");
+    // 指定查询条件（根据哪些属性查询）
+    SearchSourceBuilder builder = new SearchSourceBuilder();
+    builder.query(QueryBuilders.termQuery("all", "金田一"));
+    request.source(builder);
+    // 查询
+    SearchResponse response = client.search(request, RequestOptions.DEFAULT);
+    // 获取查询命中的数据
+    SearchHits hits = response.getHits();
+    for (SearchHit hit : hits) {
+        String source = hit.getSourceAsString();
+        System.out.println("source: " + source);
+        Book book = JSON.parseObject(source, Book.class);
+        System.out.println(book);
+    }
+}
+```

@@ -2,15 +2,15 @@
 
 此部分内容主要介绍 Spring Boot 与一些关系型数据库持久化技术框架的整合
 
-# Spring Boot 整合 Jdbc
+## 1. Spring Boot 整合 Jdbc
 
 Spring Boot 除可以整合行业内常用的关系型数据库持久化技术框架之外，还内置了一套现成的数据层技术，此技术是是由 Spring 提供的 `JdbcTemplate`，此技术其实就是回归到 jdbc 最原始的编程形式来进行数据层的开发
 
-## 1. 环境准备
+### 1.1. 环境准备
 
 > 为了方便测试，直接使用 Spring Boot 内嵌 H2 数据库内存模式
 
-### 1.1. 引入依赖
+#### 1.1.1. 引入依赖
 
 Spring Boot 整合 Jdbc 引入的核心依赖是 spring-boot-starter-jdbc
 
@@ -45,7 +45,7 @@ Spring Boot 整合 Jdbc 引入的核心依赖是 spring-boot-starter-jdbc
 </dependencies>
 ```
 
-### 1.2. 项目配置
+#### 1.1.2. 项目配置
 
 - 创建 spring boot 项目配置文件 application.yml
 
@@ -78,7 +78,7 @@ CREATE TABLE `tb_book`(
 );
 ```
 
-### 1.3. 工程基础代码
+#### 1.1.3. 工程基础代码
 
 - 创建数据库表相应的实体类
 
@@ -103,7 +103,7 @@ public class JdbcApplication {
 }
 ```
 
-## 2. 整合功能测试
+### 1.2. 整合功能测试
 
 编写测试用例，分别测试使用 JdbcTepmlate 进行增删改查。*这里只作最基础的使用示例，更详细用法详见其他笔记*
 
@@ -161,9 +161,9 @@ public class JdbcTemplateTest {
 }
 ```
 
-# Spring Boot 整合 MyBatis
+## 2. Spring Boot 整合 MyBatis（待整理更新）
 
-## 1. 环境准备
+### 2.1. 环境准备
 
 - **第一步：导入数据库表**
 - **第二步：加入MyBatis的启动器依赖**
@@ -320,12 +320,12 @@ mybatis:
 
 **注：传统的ssm框架中，mybatis的总配置文件是mybatis-config.xml，但spring boot推荐少用配置文件，所以，可以将mybatis-config.xml的相关配置写在application.properties(或 application.yml)中**
 
-## 2. application文件相关配置
+### 2.2. application文件相关配置
 
 - 任何其他Spring Boot应用程序一样，MyBatis-Spring-Boot-Application配置参数存储在application.properties（或application.yml）中。
 - MyBatis使用前缀mybatis作为其属性
 
-### 2.1. 可用的属性
+#### 2.2.1. 可用的属性
 
 |         **属性**         |                                                            **描述**                                                            |
 | :----------------------: | ------------------------------------------------------------------------------------------------------------------------------ |
@@ -338,7 +338,7 @@ mybatis:
 | configuration-properties | MyBatis配置的外部化属性。指定的属性可以用作MyBatis配置文件和Mapper文件的占位符                                                    |
 |      configuration       | MyBatis相关配置bean。关于可用属性，与mybatis-config.xml配置文件的settings配置属性一致。**注意此属性不能config-location同时使用** |
 
-### 2.2. 配置案例
+#### 2.2.2. 配置案例
 
 ```properties
 # application.properties
@@ -362,7 +362,7 @@ mybatis:
 ...
 ```
 
-## 3. 整合开发Demo
+### 2.3. 整合开发 Demo
 
 - 使用Spring Boot + Spring MVC + MyBatis实现查询所有公告
 - 使用Spring Boot + Spring MVC + MyBatis + EasyUI 实现公告分页查询
@@ -509,5 +509,168 @@ src/main/resources/static/images
     - 浏览器地址栏输入：http://localhost:8080/findAll
     - 浏览器地址栏输入：http://localhost:8080/show
 
+## 3. Spring Boot 整合 JPA（待整理更新）
+
+### 3.1. 环境准备
+
+- **第一步：导入数据库表**：运行SpringBoot\准备资料\springboot.sql文件创建数据库表及表中数据
+- **第二步：加入Spring-Data-JPA的启动器**
+
+```xml
+<!-- 配置web启动器(spring mvc) -->
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-web</artifactId>
+</dependency>
+<!-- 配置devtools实现热部署 -->
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-devtools</artifactId>
+</dependency>
+
+<!-- 配置Spring-Data-JPA启动器 -->
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-data-jpa</artifactId>
+</dependency>
+<!-- 配置mysql驱动 -->
+<dependency>
+    <groupId>mysql</groupId>
+    <artifactId>mysql-connector-java</artifactId>
+</dependency>
+<!-- 配置c3p0连接池 -->
+<dependency>
+    <groupId>com.mchange</groupId>
+    <artifactId>c3p0</artifactId>
+    <version>0.9.5.2</version>
+</dependency>
+```
+
+- **第三步：application.properties配置文件**。参考 spring-boot-autoconfigure-1.5.6.RELEASE.jar 中 orm.jpa 包中属性文件类 `JpaProperties` 或者官方文档
+
+```properties
+# 配置自定义的c3p0数据源
+spring.datasource.c3p0.driverClass=com.mysql.jdbc.Driver
+spring.datasource.c3p0.jdbcUrl=jdbc:mysql://localhost:3306/springboot_db
+spring.datasource.c3p0.user=root
+spring.datasource.c3p0.password=123456
+spring.datasource.c3p0.maxPoolSize=20
+spring.datasource.c3p0.minPoolSize=10
+spring.datasource.c3p0.initialPoolSize=10
+
+# JPA
+spring.jpa.showSql=true
+spring.jpa.properties.hibernate.format_sql=true
+```
+
+注：
+
+- 其中，数据源（原生的datasource也可以，将c3p0去掉即可）配置包括driverClass(驱动类)、url(数据库地址)、user\password (用户名与密码)、其它数据源的相关参数(如：maxPoolSize等等)
+- JPA的配置包括：如showSql(是否显示sql语句)、format_sql(是否格式式sql)、hibernate.ddl-auto(配置为create时，程序启动时会在MySQ数据库中建表；配置为update时，在程序启动时不会在MySQL数据库中建表)等等
 
 
+application.yml 方式配置：
+
+```yml
+spring:
+    datasource:
+        c3p0:
+            driverClass: com.mysql.jdbc.Driver
+            jdbcUrl: jdbc:mysql://localhost:3306/springboot_db
+            user: root
+            password: 123456
+            maxPoolSize: 20
+            minPoolSize: 10
+            initialPoolSize: 10
+    jpa:
+        showSql: false
+        properties:
+            hibernate:
+                format_sql: true
+```
+
+### 3.2. 整合开发
+
+案例：使用Spring Boot + Spring MVC + Spring Data JPA 查询所有公告
+
+- **第一步：创建entity**
+
+```java
+@Entity
+@Table(name="notice")
+public class Notice implements Serializable {
+    private static final long serialVersionUID = 5679176319867604937L;
+    @Id @GeneratedValue(strategy=GenerationType.IDENTITY)
+    @Column(name="id")
+    private Long id;
+    @Column(name="title")
+    private String title;
+    @Column(name="content")
+    private String content;
+    /** setter and getter method */
+    public Long getId() {
+        return id;
+    }
+    public void setId(Long id) {
+        this.id = id;
+    }
+    public String getTitle() {
+        return title;
+    }
+    public void setTitle(String title) {
+        this.title = title;
+    }
+    public String getContent() {
+        return content;
+    }
+    public void setContent(String content) {
+        this.content = content;
+    }
+}
+```
+
+- **第二步：创建数据访问Dao**
+
+```java
+@Repository
+public interface NoticeDao extends JpaRepository<Notice, Long>{
+}
+```
+
+- **第三步：创建业务处理**
+
+```java
+public interface NoticeService {
+    /** 查询所有的公告 */
+    public List<Notice> findAll();
+}
+
+@Service
+@Transactional
+public class NoticeServiceImpl implements NoticeService {
+    @Autowired
+    private NoticeDao noticeDao;
+    /** 查询所有的公告 */
+    public List<Notice> findAll(){
+        return noticeDao.findAll();
+    }
+}
+```
+
+- **第四步：创建处理器**
+
+```java
+@RestController
+public class NoticeController {
+    @Autowired
+    private NoticeService noticeService;
+    /** 查询全部公告 */
+    @GetMapping("/findAll")
+    public List<Notice> findAll(Model model){
+        return noticeService.findAll();
+    }
+}
+```
+
+- **第五步：编写启动类**
+- **第六步：测试**。浏览器地址栏输入：http://localhost:8080/findAll

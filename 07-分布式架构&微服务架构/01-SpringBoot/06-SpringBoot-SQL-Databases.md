@@ -209,17 +209,53 @@ INSERT INTO `user`(`id`, `name`, `age`) VALUES (1, 'Jone', 18),(2, 'Jack', 20),(
 
 当程序运行起来后，就可以正常对数据库进行 CRUD 操作，而当程序停止运行后，所有数据都从内存中移除。
 
-# Spring Boot 整合 Druid 数据源
+## 3. Spring Boot 整合 C3P0 数据源
 
-## 1. Druid 简介
+### 3.1. 创建数据源实例
+
+创建自定义配置类 `DataSourceConfiguration`，在类使用 `@Bean` 注解创建 `DataSource` 数据源实例
+
+```java
+@Configuration // 定义配置信息类
+public class DataSourceConfiguration {
+    /** 定义创建数据源方法 */
+    @Bean(name="dataSource") // 定义Bean
+    @Primary // 主要的候选者
+    @ConfigurationProperties(prefix="spring.datasource.c3p0") // 配置属性
+    public DataSource getDataSource(){
+        return DataSourceBuilder.create() // 创建数据源构建对象
+               .type(ComboPooledDataSource.class) // 设置数据源类型
+               .build(); // 构建数据源对象
+    }
+}
+```
+
+### 3.2. c3p0 配置
+
+在项目的 application.properties 文件中，配置 c3p0 相关属性
+
+```properties
+# 配置c3p0
+spring.datasource.c3p0.driverClass=com.mysql.jdbc.Driver
+spring.datasource.c3p0.jdbcUrl=jdbc:mysql://localhost:3306/springboot_db
+spring.datasource.c3p0.user=root
+spring.datasource.c3p0.password=123456
+spring.datasource.c3p0.maxPoolSize=30
+spring.datasource.c3p0.minPoolSize=10
+spring.datasource.c3p0.initialPoolSize=10
+```
+
+## 4. Spring Boot 整合 Druid 数据源（待整理）
+
+### 4.1. Druid 简介
 
 Druid 是一个非常优秀的连接池，非常好的管理了数据库连接，可以实时监控数据库连接对象和应用程序的数据库操作记录
 
 [Druid常见问题](https://github.com/alibaba/druid/wiki/%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98)
 
-## 2. 项目准备
+### 4.2. 项目准备
 
-### 2.1. 项目依赖
+#### 4.2.1. 项目依赖
 
 修改pom.xml文件，引入相关依赖
 

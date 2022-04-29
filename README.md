@@ -292,10 +292,12 @@
   <li><a href="#/07-分布式架构&微服务架构/01-SpringBoot/09-Spring-Boot-Redis">Spring Boot 整合 Redis</a></li>
   <li><a href="#/07-分布式架构&微服务架构/01-SpringBoot/10-Spring-Boot-MongoDB">Spring Boot 整合 MongoDB</a></li>
   <li><a href="#/07-分布式架构&微服务架构/01-SpringBoot/11-Spring-Boot-Elasticsearch">Spring Boot 整合 Elasticsearch</a></li>
+  <li><a href="#/07-分布式架构&微服务架构/01-SpringBoot/12-Spring-Boot-Caching">Spring Boot 实现缓存功能</a></li>
   <li><a href="#/07-分布式架构&微服务架构/01-SpringBoot/12-SpringBoot整合JavaMail">Spring Boot 整合 JavaMail</a></li>
   <li><a href="#/07-分布式架构&微服务架构/01-SpringBoot/13-SpringBoot整合javax.validation">Spring Boot 整合 javax.validation</a></li>
   <li><a href="#/07-分布式架构&微服务架构/01-SpringBoot/99-SpringBoot笔记-其他相关内容">Spring Boot 笔记-其他相关内容</a></li>
 </ul>
+
 
 
 

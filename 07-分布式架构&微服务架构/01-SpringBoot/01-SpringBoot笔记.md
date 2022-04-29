@@ -3039,209 +3039,9 @@ RestTemplate定义了36个与REST资源交互的方法，其中的大多数都�
 - **postForLocation()** POST 数据到一个URL，返回新创建资源的URL
 - **put()** PUT 资源到特定的URL
 
-## 2. 整合c3p0
+## 2. 整合FreeMarker
 
-### 2.1. 自定义DataSourceConfiguration
-
-```java
-@Configuration // 定义配置信息类
-public class DataSourceConfiguration {
-    /** 定义创建数据源方法 */
-    @Bean(name="dataSource") // 定义Bean
-    @Primary // 主要的候选者
-    @ConfigurationProperties(prefix="spring.datasource.c3p0") // 配置属性
-    public DataSource getDataSource(){
-        return DataSourceBuilder.create() // 创建数据源构建对象
-               .type(ComboPooledDataSource.class) // 设置数据源类型
-               .build(); // 构建数据源对象
-    }
-}
-```
-
-### 2.2. 在application.properties配置c3p0
-
-```properties
-# 配置c3p0
-spring.datasource.c3p0.driverClass=com.mysql.jdbc.Driver
-spring.datasource.c3p0.jdbcUrl=jdbc:mysql://localhost:3306/springboot_db
-spring.datasource.c3p0.user=root
-spring.datasource.c3p0.password=123456
-spring.datasource.c3p0.maxPoolSize=30
-spring.datasource.c3p0.minPoolSize=10
-spring.datasource.c3p0.initialPoolSize=10
-```
-
-## 3. 整合Spring-Data-JPA
-### 3.1. 环境准备
-
-- **第一步：导入数据库表**
-    - 运行SpringBoot\准备资料\springboot.sql文件创建数据库表及表中数据
-- **第二步：加入Spring-Data-JPA的启动器**
-
-```xml
-<!-- 配置web启动器(spring mvc) -->
-<dependency>
-    <groupId>org.springframework.boot</groupId>
-    <artifactId>spring-boot-starter-web</artifactId>
-</dependency>
-<!-- 配置devtools实现热部署 -->
-<dependency>
-    <groupId>org.springframework.boot</groupId>
-    <artifactId>spring-boot-devtools</artifactId>
-</dependency>
-
-<!-- 配置Spring-Data-JPA启动器 -->
-<dependency>
-    <groupId>org.springframework.boot</groupId>
-    <artifactId>spring-boot-starter-data-jpa</artifactId>
-</dependency>
-<!-- 配置mysql驱动 -->
-<dependency>
-    <groupId>mysql</groupId>
-    <artifactId>mysql-connector-java</artifactId>
-</dependency>
-<!-- 配置c3p0连接池 -->
-<dependency>
-    <groupId>com.mchange</groupId>
-    <artifactId>c3p0</artifactId>
-    <version>0.9.5.2</version>
-</dependency>
-```
-
-- **第三步：application.properties配置文件**
-    - 参考spring-boot-autoconfigure-1.5.6.RELEASE.jar中orm.jpa包中属性文件类**JpaProperties**
-    - 官方文档
-
-```properties
-# 配置自定义的c3p0数据源
-spring.datasource.c3p0.driverClass=com.mysql.jdbc.Driver
-spring.datasource.c3p0.jdbcUrl=jdbc:mysql://localhost:3306/springboot_db
-spring.datasource.c3p0.user=root
-spring.datasource.c3p0.password=123456
-spring.datasource.c3p0.maxPoolSize=20
-spring.datasource.c3p0.minPoolSize=10
-spring.datasource.c3p0.initialPoolSize=10
-
-# JPA
-spring.jpa.showSql=true
-spring.jpa.properties.hibernate.format_sql=true
-```
-
-注：
-
-- 其中，数据源（原生的datasource也可以，将c3p0去掉即可）配置包括driverClass(驱动类)、url(数据库地址)、user\password (用户名与密码)、其它数据源的相关参数(如：maxPoolSize等等)
-- JPA的配置包括：如showSql(是否显示sql语句)、format_sql(是否格式式sql)、hibernate.ddl-auto(配置为create时，程序启动时会在MySQ数据库中建表；配置为update时，在程序启动时不会在MySQL数据库中建表)等等
-
-
-**将application.properties文件修改成application.yml文件**
-
-```yml
-spring:
-    datasource:
-        c3p0:
-            driverClass: com.mysql.jdbc.Driver
-            jdbcUrl: jdbc:mysql://localhost:3306/springboot_db
-            user: root
-            password: 123456
-            maxPoolSize: 20
-            minPoolSize: 10
-            initialPoolSize: 10
-    jpa:
-        showSql: false
-        properties:
-            hibernate:
-                format_sql: true
-```
-
-### 3.2. 整合开发
-
-案例：使用Spring Boot + Spring MVC + Spring Data JPA 查询所有公告
-
-- **第一步：创建entity**
-
-```java
-@Entity
-@Table(name="notice")
-public class Notice implements Serializable {
-    private static final long serialVersionUID = 5679176319867604937L;
-    @Id @GeneratedValue(strategy=GenerationType.IDENTITY)
-    @Column(name="id")
-    private Long id;
-    @Column(name="title")
-    private String title;
-    @Column(name="content")
-    private String content;
-    /** setter and getter method */
-    public Long getId() {
-        return id;
-    }
-    public void setId(Long id) {
-        this.id = id;
-    }
-    public String getTitle() {
-        return title;
-    }
-    public void setTitle(String title) {
-        this.title = title;
-    }
-    public String getContent() {
-        return content;
-    }
-    public void setContent(String content) {
-        this.content = content;
-    }
-}
-```
-
-- **第二步：创建数据访问Dao**
-
-```java
-@Repository
-public interface NoticeDao extends JpaRepository<Notice, Long>{
-}
-```
-
-- **第三步：创建业务处理**
-
-```java
-public interface NoticeService {
-    /** 查询所有的公告 */
-    public List<Notice> findAll();
-}
-
-@Service
-@Transactional
-public class NoticeServiceImpl implements NoticeService {
-    @Autowired
-    private NoticeDao noticeDao;
-    /** 查询所有的公告 */
-    public List<Notice> findAll(){
-        return noticeDao.findAll();
-    }
-}
-```
-
-- **第四步：创建处理器**
-
-```java
-@RestController
-public class NoticeController {
-    @Autowired
-    private NoticeService noticeService;
-    /** 查询全部公告 */
-    @GetMapping("/findAll")
-    public List<Notice> findAll(Model model){
-        return noticeService.findAll();
-    }
-}
-```
-
-- **第五步：第六步：编写启动类**
-- **第六步：测试**
-    - 浏览器地址栏输入：http://localhost:8080/findAll
-
-## 4. 整合FreeMarker
-### 4.1. 加入依赖
+### 2.1. 加入依赖
 
 ```xml
 <!-- FreeMarker启动器 -->
@@ -3251,7 +3051,7 @@ public class NoticeController {
 </dependency>
 ```
 
-### 4.2. 编写处理器
+### 2.2. 编写处理器
 
 ```java
 @Controller
@@ -3267,7 +3067,7 @@ public class UserController {
 }
 ```
 
-### 4.3. 编写模板
+### 2.3. 编写模板
 
 在src\main\resources\templates路径下创建user.ftl模板，内容如下。最后运行启动类测试效果
 
@@ -3284,7 +3084,7 @@ public class UserController {
 </html>
 ```
 
-### 4.4. 属性配置
+### 2.4. 属性配置
 
 参考spring-boot-autoconfigure-1.5.6.RELEASE.jar中freemarker包中属性文件类**FreeMarkerProperties**
 
@@ -3302,74 +3102,9 @@ spring.freemarker.cache=true
 
 **注意：也可以直接注入FreeMarkerConfigurer操作FreeMarker。**
 
-## 5. 整合Redis
-### 5.1. 加入依赖
+## 3. 整合Solr
 
-在pom.xml中加入依赖
-
-```xml
-<!-- 配置redis启动器 -->
-<dependency>
-    <groupId>org.springframework.boot</groupId>
-    <artifactId>spring-boot-starter-redis</artifactId>
-    <version>1.4.7.RELEASE</version>
-</dependency>
-```
-
-### 5.2. 配置连接Redis
-
-在application.properties文件中添加相关配置。
-
-```properties
-# 配置Redis单机版
-spring.redis.host=192.168.12.128
-spring.redis.port=6379
-
-# 配置Redis集群版
-#spring.redis.cluster.nodes=192.168.12.128:7001,192.168.12.128:7002,192.168.12.128:7003,192.168.12.128:7004,192.168.12.128:7005,192.168.12.128:7006
-```
-
-**说明：切换到集群版，注释掉单机版配置信息即可。**
-
-### 5.3. 注入RedisTemplate测试redis操作
-
-只需要直接注入RedisTemplate即可使用以下方法操作redis的五种不同的数据类型
-
-![RedisTemplate操作对象](images/20190501085255786_31692.jpg)
-
-```java
-@RunWith(SpringRunner.class)
-@SpringBootTest(classes = Application.class)
-public class RedisTest {
-    @Autowired
-    private UserRepository userRepository;
-    @Autowired
-    private RedisTemplate<String, String> redisTemplate;
-
-    @Test
-    public void test() throws JsonProcessingException {
-        // 从redis缓存中获得指定的数据
-        String userListData = redisTemplate.boundValueOps("user.findAll").get();
-        // 如果redis中没有数据的话
-        if (null == userListData) {
-            //查询数据库获得数据
-            List<User> all = userRepository.findAll();
-            // 转换成json格式字符串
-            ObjectMapper om = new ObjectMapper();
-            userListData = om.writeValueAsString(all);
-            // 将数据存储到redis中，下次在查询直接从redis中获得数据，不用在查询数据库
-            redisTemplate.boundValueOps("user.findAll").set(userListData);
-            System.out.println("===============从数据库获得数据===============");
-        } else {
-            System.out.println("===============从redis缓存中获得数据===============");
-        }
-        System.out.println(userListData);
-    }
-}
-```
-
-## 6. 整合Solr
-### 6.1. 加入依赖
+### 3.1. 加入依赖
 
 在pom.xml中加入依赖：
 
@@ -3383,7 +3118,7 @@ public class RedisTest {
 
 **注意：solr-solrj的版本必须为5.0以上才可以用。**
 
-### 6.2. 配置连接Solr
+### 3.2. 配置连接Solr
 
 在application.properties中配置
 
@@ -3397,14 +3132,14 @@ spring.data.solr.zkHost=192.168.12.128:3181,192.168.12.128:3182,192.168.12.128:3
 
 **说明：切换到单机版，注释掉集群版配置信息即可。**
 
-### 6.3. SolrClient操作Solr
+### 3.3. SolrClient操作Solr
 
 只需要直接注入SolrClient即可使用以下方法操Solr
 
 ![操作SolrClient](images/20190501085740120_19316.jpg)
 
-## 7. 整合ActiveMQ
-### 7.1. 加入依赖
+## 4. 整合ActiveMQ
+### 4.1. 加入依赖
 
 在pom.xml中加入依赖
 
@@ -3416,7 +3151,7 @@ spring.data.solr.zkHost=192.168.12.128:3181,192.168.12.128:3182,192.168.12.128:3
 </dependency>
 ```
 
-### 7.2. 配置连接ActiveMQ
+### 4.2. 配置连接ActiveMQ
 
 在application.properties文件中添加
 
@@ -3427,7 +3162,7 @@ spring.activemq.brokerUrl=tcp://192.168.12.128:61616
 spring.jms.pubSubDomain=true
 ```
 
-### 7.3. 创建队列
+### 4.3. 创建队列
 
 在启动类中添加以下方法，创建队列
 
@@ -3445,7 +3180,7 @@ public class Application {
 }
 ```
 
-### 7.4. 发送消息
+### 4.4. 发送消息
 
 编写Controller，注入JmsTemplate发送消息
 
@@ -3470,7 +3205,7 @@ public class QueueController {
 }
 ```
 
-### 7.5. 接收消息
+### 4.5. 接收消息
 
 编写bean，在类上加@Component注解让spring管理这个bean。消费消息方法：加@JmsListener注解
 
@@ -3485,7 +3220,7 @@ public class ItemMessageListener {
 }
 ```
 
-## 8. !!整合Swagger2(使用的时再总结，在深入理解spring cloud书中4.7章节)
+## 5. !!整合Swagger2(使用的时再总结，在深入理解spring cloud书中4.7章节)
 
 Swagger2是一个功能强大的在线API文档的框架，目前版本为2.x，Swagger2提供了在线文档的查阅和测试功能。利用Swagger2很容易构建RESTful风格的API
 

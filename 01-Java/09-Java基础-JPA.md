@@ -1,12 +1,10 @@
 # Java基础-JPA
 
-## 1. JPA 概述
+## 1. 概述
 
 JPA 是 Java Persistence API 的简称，中文名 Java 持久层 API，是 JDK 5.0 注解或 XML 描述对象－关系表的映射关系，并将运行期的实体对象持久化到数据库中。
 
-Sun 引入新的J PA ORM 规范出于两个原因：其一，简化现有 Java EE 和 Java SE 应用开发工作；其二，Sun 想统一行业内 ORM 技术
-
-## 2. JPA 常用 API
+## 2. 常用 API
 
 ### 2.1. Persistence 类
 

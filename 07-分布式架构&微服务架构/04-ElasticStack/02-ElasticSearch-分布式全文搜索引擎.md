@@ -1000,7 +1000,7 @@ ES提供多种不同的客户端：
 </project>
 ```
 
-2. 创建application.yml配置文件
+2. 创建 application.yml 配置文件
 
 ```yml
 server:
@@ -1015,7 +1015,7 @@ xuecheng:
 
 3. 创建配置类
 
-在`com.xuecheng.search.config`包下创建配置类`ElasticsearchConfig`，配置初始化`RestHighLevelClient`和`RestClient`
+在 `com.xuecheng.search.config` 包下创建配置类 `ElasticsearchConfig`，配置初始化 `RestHighLevelClient` 和 `RestClient`
 
 ```java
 package com.xuecheng.search.config;
