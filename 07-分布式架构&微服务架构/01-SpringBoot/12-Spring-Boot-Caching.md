@@ -944,7 +944,6 @@ jetcache 与 spring cache 一样，提供了方法缓存方案，在方法上标
 
 ```java
 jetcache:
-#  statIntervalMinutes: 1 # 统计间隔，0 表示不统计
   local: # 设置本地缓存方案
     default: # 方案名称为 default，默认的
       type: linkedhashmap # 配置本地缓存的类型是 linkedhashmap
@@ -966,6 +965,451 @@ jetcache:
 - 注意如果需要缓存的方法返回是对象类型时，为了保证 `Object` 类型的值能存到 redis 中，`Object` 类型的数据必须实现序列化接口。
 
 ```java
+public class Book implements Serializable {
+    // ...省略
+}
 ```
 
+- 启用缓存的同时，使用 `@EnableMethodCache` 注解开启方法缓存功能，配置 `basePackages` 属性指定哪些包开启方法缓存。<font color=red>**注意：`@EnableCreateCacheAnnotation` 与 `@EnableMethodCache` 需要同时使用才能开启方法缓存功能，因为方法缓存也是基于注解的方式来实现**</font>
 
+```java
+@SpringBootApplication
+@EnableCreateCacheAnnotation // jetcache 启用缓存支持
+@EnableMethodCache(basePackages = "com.moon.springboot.caching") // 开启方法注解缓存支持，basePackages 指定扫描方法缓存注解的包路径
+public class JetcacheApplication {
+    // ...省略
+}
+```
+
+- 在需要使用缓存的方法上，标识 `@Cached` 注解
+
+```java
+@Service
+public class BookServiceImpl implements BookService {
+
+    @Autowired
+    private BookMapper bookMapper;
+
+    /*
+     * @Cached 注解标识的方法代表该方法使用缓存功能
+     *      name 属性：缓存键的前缀名称
+     *      key 属性：缓存键的取值
+     *      expire 属性：缓存键的过期时间，单位默认是秒
+     *      cacheType 属性：缓存的类型，是远程、本地或者两者均使用
+     */
+    @Cached(name = "book_", key = "#id", expire = 300, cacheType = CacheType.REMOTE)
+    @Override
+    public Book getById(Integer id) {
+        return bookMapper.selectById(id);
+    }
+}
+```
+
+#### 6.3.7. 远程方案的数据同步
+
+由于远程方案中 redis 保存的数据可以被多个客户端共享，这就存在了数据同步问题。jetcache 提供了3个注解解决此问题，分别在更新、删除操作时同步缓存数据，和读取缓存时定时刷新数据
+
+- 更新缓存
+
+```java
+/*
+ * @CacheUpdate 注解用于更新缓存
+ *      name 属性：缓存键的前缀名称
+ *      key 属性：缓存键的取值
+ *      value 属性：更新的值
+ */
+@CacheUpdate(name = "book_", key = "#book.id", value = "#book")
+@Override
+public boolean update(Book book) {
+    return bookMapper.updateById(book) > 0;
+}
+```
+
+- 删除缓存
+
+```java
+/*
+ * @CacheInvalidate 注解用于删除缓存
+ *      name 属性：缓存键的前缀名称
+ *      key 属性：缓存键的取值
+ */
+@CacheInvalidate(name = "book_", key = "#id")
+@Override
+public boolean delete(Integer id) {
+    return bookMapper.deleteById(id) > 0;
+}
+```
+
+- 定时刷新缓存
+
+```java
+@Cached(name = "book_", key = "#id", expire = 60, cacheType = CacheType.REMOTE)
+@CacheRefresh(refresh = 5) // 定时刷新缓存，refresh 属性指定刷新的间隔时间，单位默认是秒
+@Override
+public Book getById(Integer id) {
+    return bookMapper.selectById(id);
+}
+```
+
+#### 6.3.8. 数据报表
+
+jetcache 还提供有简单的数据报表功能，帮助开发者快速查看缓存命中信息，只需要在配置 `jetcache.statIntervalMinutes` 选项即可，单位是分钟
+
+```java
+jetcache:
+  statIntervalMinutes: 1 # 统计间隔，0 表示不统计
+  ...省略
+```
+
+上述设置后，每1分钟在控制台输出缓存数据命中信息
+
+```bash
+[DefaultExecutor] c.alicp.jetcache.support.StatInfoLogger  : jetcache stat from 2022-05-01 09:32:15,892 to 2022-05-01 09:33:00,003
+cache    |    qps|   rate|   get|    hit|   fail|   expire|   avgLoadTime|   maxLoadTime
+---------+-------+-------+------+-------+-------+---------+--------------+--------------
+book_    |   0.66| 75.86%|    29|     22|      0|        0|          28.0|           188
+---------+-------+-------+------+-------+-------+---------+--------------+--------------
+```
+
+## 7. Spring Boot 整合 j2cache 缓存
+
+jetcache 可以在限定范围内构建多级缓存，但是灵活性不足，不能随意搭配缓存方案。而 j2cache 则是一种可以随意搭配缓存解决方案的缓存整合框架。
+
+### 7.1. j2cache 概述
+
+J2Cache 是开源的两级缓存框架（要求至少 Java 8）。J2Cache 的两级缓存结构如下：
+
+- 第一级缓存 L1：进程内缓存(同时支持 Ehcache 2.x、Ehcache 3.x 和 Caffeine)
+- L2：Redis(推荐)/Memcached 集中式缓存
+
+由于大量的缓存读取会导致 L2 的网络成为整个系统的瓶颈，因此 L1 的目标是降低对 L2 的读取次数。该缓存框架主要用于集群环境中。单机也可使用，用于避免应用重启导致的缓存冷启动后对后端业务的冲击。
+
+J2Cache 从 1.3.0 版本开始支持 JGroups 和 Redis Pub/Sub 两种方式进行缓存事件的通知。在某些云平台上可能无法使用 JGroups 组播方式，可以采用 Redis 发布订阅的方式。
+
+### 7.2. 整合示例
+
+下面的示例是 j2cache 整合 Ehcache 与 redis 为例：
+
+#### 7.2.1. 基础示例工程准备
+
+> 直接使用上面内置缓存的示例工程代码（只保留手机验证码功能，移除相关依赖）
+
+#### 7.2.2. 引入相关依赖
+
+在项目的 pom.xml 文件中引入 j2cache、redis、ehcache 等坐标
+
+```xml
+<!-- j2cache 核心依赖 -->
+<dependency>
+    <groupId>net.oschina.j2cache</groupId>
+    <artifactId>j2cache-core</artifactId>
+    <version>2.8.4-release</version>
+</dependency>
+<!-- j2cache 与 Spring Boot 整合依赖 -->
+<dependency>
+    <groupId>net.oschina.j2cache</groupId>
+    <artifactId>j2cache-spring-boot2-starter</artifactId>
+    <version>2.8.0-release</version>
+</dependency>
+<!-- ehcache 缓存技术依赖 -->
+<dependency>
+    <groupId>net.sf.ehcache</groupId>
+    <artifactId>ehcache</artifactId>
+</dependency>
+```
+
+> j2cache 的 starter 中默认包含了 redis 坐标，官方也推荐使用 redis 作为二级缓存，因此无需导入 redis 坐标
+
+#### 7.2.3. j2cache 配置
+
+- 因为 j2cache 有其独立的配置文件格式，所以在项目 application.yml 文件中，只需要配置 j2cache 独立配置文件的位置即可
+
+```yml
+j2cache: # j2cache 配置
+  config-location: j2cache.properties # j2cache 配置文件
+```
+
+- 编写 j2cache 独立的配置文件，文件名称是 j2cache.properties（*参考 j2cache-core-x.x.x-release.jar 包里的配置示例文件*）。主要配置一级与二级缓存，和一二级缓存间数据传递方式
+
+```properties
+# 配置1级缓存
+j2cache.L1.provider_class = ehcache
+ehcache.configXml = ehcache.xml
+
+# 配置是否打开2级缓存，true 表示启用，false 表示不启用
+j2cache.l2-cache-open = false
+
+# 配置2级缓存
+j2cache.L2.provider_class = net.oschina.j2cache.cache.support.redis.SpringRedisProvider
+j2cache.L2.config_section = redis
+redis.hosts = localhost:6379
+
+# 配置1级缓存中的数据如何加载到二级缓存中
+j2cache.broadcast = net.oschina.j2cache.cache.support.redis.SpringRedisPubSubPolicy
+
+# 配置 redis 模式（默认值为 single），不配置启动时控制会有警告
+redis.mode = single
+# 配置 redis
+redis.namespace = j2cache
+```
+
+> 上述配置需要参照官方给出的配置说明进行配置。例如1级供应商选择 ehcache，供应商名称仅仅是一个 ehcache，但是2级供应商选择 redis 时要写专用的 Spring 整合 Redis 的供应商全类名 `net.oschina.j2cache.cache.support.redis.SpringRedisProvider`，而且这个名称并不是所有的 redis 包中能提供的，也不是 spring 包中提供的。因此配置 j2cache 必须参照官方文档配置，而且还要去找专用的整合包，导入对应坐标才可以使用。
+>
+> 同理一级与二级缓存最重要的一个配置就是两者之间的数据交互方式，此类配置也不是随意配置的，并且不同的缓存解决方案提供的数据沟通方式差异化很大，需要查询官方文档进行设置。
+
+- 另外，如果使用 ehcache 还需要单独添加其配置文件，配置内容参考上面整合 ehcache 章节
+
+#### 7.2.4. 缓存功能实现
+
+j2cache 的使用和 jetcache 比较类似，但是无需开启，直接定义缓存对象即可使用，缓存对象名 `CacheChannel`。在业务类中编写缓存的处理代码：
+
+```java
+@Service
+public class SMSCodeServiceImpl implements SMSCodeService {
+
+    /* 注入 j2cache 缓存操作对象 CacheChannel */
+    @Autowired
+    private CacheChannel cacheChannel;
+
+    /** 获取短信验证码 */
+    @Override
+    public String sendSMSCode(String tel) {
+        // 生成验证码
+        String code = generateGode(tel);
+        /*
+         * CacheChannel 类的 set(String region, String key, Object value) 方法，将数据存入缓存
+         *      region 参数：缓存键的前缀
+         *      key 参数：缓存的键
+         *      value 参数：缓存的值
+         */
+        cacheChannel.set("sms", tel, code);
+        // 返回验证码
+        return code;
+    }
+
+    /** 校验短信验证码 */
+    @Override
+    public boolean checkCode(SMSCode smsCode) {
+        String code = smsCode.getCode();
+        /*
+         * CacheChannel 类的 get(String region, String key, boolean...cacheNullObject) 方法，从缓存中获取数据
+         * 用户无需判断返回的对象是否为空
+         *      region 参数：缓存键的前缀
+         *      key 参数：缓存的键
+         */
+        String codeCache = cacheChannel.get("sms", smsCode.getTel()).asString();
+        // 取出缓存中的验证码与接收的验证码比对，如果相同，返回true
+        return code.equals(codeCache);
+    }
+    // ...省略
+}
+```
+
+### 7.3. j2cache 配置示例
+
+因为 j2cache 是一个整合型的缓存框架，配置是 j2cache 的核心。缓存相关的配置很，可以查阅 j2cache-core 核心包中的 j2cache.properties 示例文件中的说明。如下：
+
+```properties
+#J2Cache configuration
+#########################################
+# Cache Broadcast Method
+# values:
+# jgroups -> use jgroups's multicast
+# redis -> use redis publish/subscribe mechanism (using jedis)
+# lettuce -> use redis publish/subscribe mechanism (using lettuce, Recommend)
+# rabbitmq -> use RabbitMQ publisher/consumer mechanism
+# rocketmq -> use RocketMQ publisher/consumer mechanism
+# none -> don't notify the other nodes in cluster
+# xx.xxxx.xxxx.Xxxxx your own cache broadcast policy classname that implement net.oschina.j2cache.cluster.ClusterPolicy
+#########################################
+
+j2cache.broadcast = redis
+
+# jgroups properties
+jgroups.channel.name = j2cache
+jgroups.configXml = /network.xml
+
+# RabbitMQ properties
+rabbitmq.exchange = j2cache
+rabbitmq.host = localhost
+rabbitmq.port = 5672
+rabbitmq.username = guest
+rabbitmq.password = guest
+
+# RocketMQ properties
+rocketmq.name = j2cache
+rocketmq.topic = j2cache
+# use ; to split multi hosts
+rocketmq.hosts = 127.0.0.1:9876
+
+#########################################
+# Level 1&2 provider
+# values:
+# none -> disable this level cache
+# ehcache -> use ehcache2 as level 1 cache
+# ehcache3 -> use ehcache3 as level 1 cache
+# caffeine -> use caffeine as level 1 cache(only in memory)
+# redis -> use redis as level 2 cache (using jedis)
+# lettuce -> use redis as level 2 cache (using lettuce)
+# readonly-redis -> use redis as level 2 cache ,but never write data to it. if use this provider, you must uncomment `j2cache.L2.config_section` to make the redis configurations available.
+# memcached -> use memcached as level 2 cache (xmemcached),
+# [classname] -> use custom provider
+#########################################
+
+j2cache.L1.provider_class = caffeine
+j2cache.L2.provider_class = redis
+
+# When L2 provider isn't `redis`, using `L2.config_section = redis` to read redis configurations
+# j2cache.L2.config_section = redis
+
+# Enable/Disable ttl in redis cache data (if disabled, the object in redis will never expire, default:true)
+# NOTICE: redis hash mode (redis.storage = hash) do not support this feature)
+j2cache.sync_ttl_to_redis = true
+
+# Whether to cache null objects by default (default false)
+j2cache.default_cache_null_object = true
+
+#########################################
+# Cache Serialization Provider
+# values:
+# fst -> using fast-serialization (recommend)
+# kryo -> using kryo serialization
+# json -> using fst's json serialization (testing)
+# fastjson -> using fastjson serialization (embed non-static class not support)
+# java -> java standard
+# fse -> using fse serialization
+# [classname implements Serializer]
+#########################################
+
+j2cache.serialization = json
+#json.map.person = net.oschina.j2cache.demo.Person
+
+#########################################
+# Ehcache configuration
+#########################################
+
+# ehcache.configXml = /ehcache.xml
+
+# ehcache3.configXml = /ehcache3.xml
+# ehcache3.defaultHeapSize = 1000
+
+#########################################
+# Caffeine configuration
+# caffeine.region.[name] = size, xxxx[s|m|h|d]
+#
+#########################################
+caffeine.properties = /caffeine.properties
+
+#########################################
+# Redis connection configuration
+#########################################
+
+#########################################
+# Redis Cluster Mode
+#
+# single -> single redis server
+# sentinel -> master-slaves servers
+# cluster -> cluster servers (\u6570\u636e\u5e93\u914d\u7f6e\u65e0\u6548\uff0c\u4f7f\u7528 database = 0\uff09
+# sharded -> sharded servers  (\u5bc6\u7801\u3001\u6570\u636e\u5e93\u5fc5\u987b\u5728 hosts \u4e2d\u6307\u5b9a\uff0c\u4e14\u8fde\u63a5\u6c60\u914d\u7f6e\u65e0\u6548 ; redis://user:password@127.0.0.1:6379/0\uff09
+#
+#########################################
+
+redis.mode = single
+
+#redis storage mode (generic|hash)
+redis.storage = generic
+
+## redis pub/sub channel name
+redis.channel = j2cache
+## redis pub/sub server (using redis.hosts when empty)
+redis.channel.host =
+
+#cluster name just for sharded
+redis.cluster_name = j2cache
+
+## redis cache namespace optional, default[empty]
+redis.namespace =
+
+## redis command scan parameter count, default[1000]
+#redis.scanCount = 1000
+
+## connection
+# Separate multiple redis nodes with commas, such as 192.168.0.10:6379,192.168.0.11:6379,192.168.0.12:6379
+
+redis.hosts = 127.0.0.1:6379
+redis.timeout = 2000
+redis.password =
+redis.database = 0
+redis.ssl = false
+
+## redis pool properties
+redis.maxTotal = 100
+redis.maxIdle = 10
+redis.maxWaitMillis = 5000
+redis.minEvictableIdleTimeMillis = 60000
+redis.minIdle = 1
+redis.numTestsPerEvictionRun = 10
+redis.lifo = false
+redis.softMinEvictableIdleTimeMillis = 10
+redis.testOnBorrow = true
+redis.testOnReturn = false
+redis.testWhileIdle = true
+redis.timeBetweenEvictionRunsMillis = 300000
+redis.blockWhenExhausted = false
+redis.jmxEnabled = false
+
+#########################################
+# Lettuce scheme
+#
+# redis -> single redis server
+# rediss -> single redis server with ssl
+# redis-sentinel -> redis sentinel
+# redis-cluster -> cluster servers
+#
+#########################################
+
+#########################################
+# Lettuce Mode
+#
+# single -> single redis server
+# sentinel -> master-slaves servers
+# cluster -> cluster servers (\u6570\u636e\u5e93\u914d\u7f6e\u65e0\u6548\uff0c\u4f7f\u7528 database = 0\uff09
+# sharded -> sharded servers  (\u5bc6\u7801\u3001\u6570\u636e\u5e93\u5fc5\u987b\u5728 hosts \u4e2d\u6307\u5b9a\uff0c\u4e14\u8fde\u63a5\u6c60\u914d\u7f6e\u65e0\u6548 ; redis://user:password@127.0.0.1:6379/0\uff09
+#
+#########################################
+
+## redis command scan parameter count, default[1000]
+#lettuce.scanCount = 1000
+lettuce.mode = single
+lettuce.namespace =
+lettuce.storage = hash
+lettuce.channel = j2cache
+lettuce.scheme = redis
+lettuce.hosts = 127.0.0.1:6379
+lettuce.password =
+lettuce.database = 0
+lettuce.sentinelMasterId =
+lettuce.maxTotal = 100
+lettuce.maxIdle = 10
+lettuce.minIdle = 10
+# timeout in milliseconds
+lettuce.timeout = 10000
+# redis cluster topology refresh interval in milliseconds
+lettuce.clusterTopologyRefresh = 3000
+
+#########################################
+# memcached server configurations
+# refer to https://gitee.com/mirrors/XMemcached
+#########################################
+
+memcached.servers = 127.0.0.1:11211
+memcached.username =
+memcached.password =
+memcached.connectionPoolSize = 10
+memcached.connectTimeout = 1000
+memcached.failureMode = false
+memcached.healSessionInterval = 1000
+memcached.maxQueuedNoReplyOperations = 100
+memcached.opTimeout = 100
+memcached.sanitizeKeys = false
+```
