@@ -539,7 +539,7 @@ memcached目录路径\memcached.exe -d install
 
 > 注：使用实际的路径替代 `memcached目录路径\`
 
-- 服务安装完毕后，可以使用以下命令启动和停止 memcached 服务
+- 服务安装完毕后，可以使用以下命令启动和停止 memcached 服务，memcached 默认对外服务端口11211。或者在运行中输入 `services.msc` 命令打开【服务】窗口，直接手动启动或者停止服务
 
 ```bash
 memcached目录路径\memcached.exe -d start # 启动服务
@@ -547,8 +547,6 @@ memcached目录路径\memcached.exe -d stop  # 停止服务
 ```
 
 ![](images/547344423220470.png)
-
-或者在运行中输入 `services.msc` 命令打开【服务】窗口，直接手动启动或者停止服务
 
 - 如果要修改 memcached 的配置项，可以运行中执行 `regedit` 命令，打开注册表并找到 "HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\memcached" 来进行修改。如：要提供 memcached 使用的缓存配置可以修改 `ImagePath` 为：
 
@@ -564,13 +562,410 @@ memcached目录路径\memcached.exe -d stop  # 停止服务
 memcached目录路径\memcached.exe -d uninstall
 ```
 
-### 整合 Memcached 缓存技术
+### 5.3. 整合 Memcached 缓存技术
 
+与前面章节中整合的其他缓存技术不同，由于 Memcached 未被 Spring Boot 收录为缓存解决方案，因此整合 Memcached 需要通过手工硬编码的方式来实现。
 
+Memcached 目前提供有三种客户端技术，分别是 Memcached Client for Java、SpyMemcached 和 Xmemcached，其中性能指标各方面最好的客户端是 Xmemcached，所以下面整合示例使用其作为客户端实现技术了。
 
+#### 5.3.1. 基础示例工程准备
 
+> 直接使用上面内置缓存的示例工程代码（只保留手机验证码功能，移除相关依赖）
 
+#### 5.3.2. 引入 Xmemcached 客户端依赖
 
+在项目的 pom.xml 文件中引入 Xmemcached 的依赖坐标，需要指定版本。在 [MavenRepository](https://mvnrepository.com/) 上查询
 
+```xml
+<dependency>
+    <groupId>com.googlecode.xmemcached</groupId>
+    <artifactId>xmemcached</artifactId>
+    <version>2.4.7</version>
+</dependency>
+```
+
+#### 5.3.3. 配置 memcached
+
+- Spring Boot 并没有收录管理 memcached，因此配置文件中没有相关的设置项。但 Memcached 的使用也有必需的配置，所以在项目的 application.yml 文件定义 memcached 节点信息
+
+```yml
+# 自定义的 Memcached 配置，用于配置类读取
+memcached:
+  servers: localhost:11211
+  poolSize: 10
+  opTimeout: 3000
+```
+
+- 定义配置类，读取项目文件加载配置文件中 memcached 节点配置属性
+
+```java
+@Data
+@Configuration
+@ConfigurationProperties(prefix = "memcached")
+public class XMemcachedProperties {
+    private String servers;
+    private int poolSize;
+    private long opTimeout;
+}
+```
+
+- 创建 memcached 的配置类，通过上面配置文件映射类，获取节点配置值，创建 Memcached 客户端实例 MemcachedClient
+
+```java
+@Configuration
+public class XMemcachedConfig {
+
+    // 注入配置文件映射类
+    @Autowired
+    private XMemcachedProperties memcachedProperties;
+
+    /**
+     * 创建 Memcached 客户端实例 MemcachedClient
+     *
+     * @return
+     * @throws IOException
+     */
+    @Bean
+    public MemcachedClient getMemcachedClient() throws IOException {
+        // 创建 MemcachedClientBuilder，设置配置文件的节点信息
+        MemcachedClientBuilder memcachedClientBuilder = new XMemcachedClientBuilder(memcachedProperties.getServers());
+        memcachedClientBuilder.setConnectionPoolSize(memcachedProperties.getPoolSize());
+        memcachedClientBuilder.setOpTimeout(memcachedProperties.getOpTimeout());
+        return memcachedClientBuilder.build();
+    }
+}
+```
+
+#### 5.3.4. xmemcached 客户端的使用
+
+在业务类中注入 `MemcachedClient` 对象，编写 xmemcached 客户端操作缓存代码，`MemcachedClient` 对象的 `set` 方法实现设置值到缓存中，再通过 `get` 方法来从缓存中获取值
+
+```java
+@Autowired
+private MemcachedClient memcachedClient;
+
+/**
+ * 获取短信验证码
+ */
+@Override
+public String sendSMSCode(String tel) {
+    // 生成验证码
+    String code = generateGode(tel);
+    try {
+        /*
+         * 通过 set 方法，将验证保存到缓存中
+         *  set(final String key, final int exp, final Object value)
+         *      key 参数：保存在缓存中键名称
+         *      exp 参数：缓存中过期时间，单位：秒
+         *      value 参数：保存的值
+         */
+        memcachedClient.set(tel, 10, code);
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+    // 返回验证码
+    return code;
+}
+
+/**
+ * 校验短信验证码
+ */
+@Override
+public boolean checkCode(SMSCode smsCode) {
+    String code = smsCode.getCode();
+    String codeCache = null;
+    try {
+        // 根据键获取缓存中的验证码
+        codeCache = memcachedClient.get(smsCode.getTel());
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+    // 取出缓存中的验证码与接收的验证码比对，如果相同，返回true
+    return code.equals(codeCache);
+}
+```
+
+#### 5.3.5. 功能测试
+
+1. 启动 Memcached 服务后，再启动示例项目
+2. 发送 GET 请求 http://localhost/sms?tel=13865845254 ，获取短信验证码。
+3. 根据上一步返回值，发送 POST 请求校验接口，上送手机号与验证码
+
+```json
+POST http://localhost/sms
+
+{
+    "tel": "13865845254",
+    "code": "199786"
+}
+```
+
+4. 观察返回结果，正常返回 `true`，继续发送多次请求，但10秒后，缓存失效，此时请求返回 `false`
+
+## 6. Spring Boot 整合 Jetcache 缓存技术
+
+### 6.1. 目前缓解方案存在的问题分析
+
+上面章节中的缓存解决方案中，Redis 需要安装独立的服务器，连接时需要输入对应的服务器地址，属于**远程缓存**；而 Ehcache 是一个典型的内存级缓存，启动后导入 jar 包即有缓存功能，属于**本地缓存**。
+
+Spring Boot 目前针对缓存技术的整合仅仅停留在使用缓存，因为目前整合的缓存技术，都不能同时支持远程缓存和本地缓存。
+
+### 6.2. Jetcache 概述
+
+> JetCache 官网：https://github.com/alibaba/jetcache
+
+JetCache 是由阿里巴巴开源的一款通用缓存访问框架。它实现把别的缓存技术放到 jetcache 中管理，从而实现了既支持远程缓存，也支持本地缓存。
+
+需要明确一点，Jetcache 并不是随意的缓存都能进行管理。目前 jetcache 支持的缓存方案有两款本地缓存，有两款远程缓存，分别如下：
+
+- 本地缓存（Local）
+  - LinkedHashMap
+  - Caffeine
+- 远程缓存（Remote）
+  - Redis
+  - Tair
+
+### 6.3. 整合 Jetcache 示例
+
+#### 6.3.1. 基础示例工程准备
+
+> 直接使用上面内置缓存的示例工程代码（分别有临时数据与数据库数据的案例），将原有的缓存注解等相关代码移除
+
+#### 6.3.2. 纯远程缓存方案
+
+- 导入 Spring Boot 整合 jetcache 对应的坐标 starter，当前坐标默认使用的远程方案是 redis
+
+```xml
+<dependency>
+    <groupId>com.alicp.jetcache</groupId>
+    <artifactId>jetcache-starter-redis</artifactId>
+    <version>2.6.2</version>
+</dependency>
+```
+
+- 在 application.yml 文件中，配置远程缓存方案基本信息
+
+```yml
+jetcache:
+  remote: # 设置远程缓存方案
+    default: # 方案名称为 default，默认的
+      type: redis # 缓存实现类型
+      host: localhost
+      port: 6379
+      poolConfig:
+        maxTotal: 50
+```
+
+> 注意：其中 `poolConfig` 是必配项，否则程序启动时会报错
+
+- 在启动类或者配置类上标识 `@EnableCreateCacheAnnotation` 注解，配置 Spring Boot 程序中可以使用注解的形式创建缓存
+
+```java
+@SpringBootApplication
+@EnableCreateCacheAnnotation // jetcache 启用缓存支持
+public class JetcacheApplication {
+    public static void main(String[] args) {
+        SpringApplication.run((JetcacheApplication.class), args);
+    }
+}
+```
+
+- 在业务类中创建缓存对象 `Cache` 的属性，在该属性上标识 `@CreateCache` 注解，配置当前缓存对象的信息，然后使用 `Cache` 对象的 API 操作缓存，`put`方法用于写入缓存，`get`方法用于读缓存。
+
+```java
+@Service
+public class SMSCodeServiceImpl implements SMSCodeService {
+
+    /*
+     *  Cache 类是 jetCache 的缓存对象
+     *  @CreateCache 注解用于配置当前缓存对象的信息
+     *      area 属性：设置选择配置文件中哪个缓存方案，默认值是 default
+     *      name 属性：设置缓存键的前缀
+     *      expire 属性：设置缓存的过期时间，默认单位是秒
+     *      timeUnit 属性：设置过期时间的单位，默认值是秒，即 TimeUnit.SECONDS
+     */
+    @CreateCache(area = "default", name = "jetCache_", expire = 10, timeUnit = TimeUnit.SECONDS)
+    private Cache<String, String> jetCache;
+
+    /**
+     * 获取短信验证码
+     */
+    @Override
+    public String sendSMSCode(String tel) {
+        // 生成验证码
+        String code = generateGode(tel);
+        // 使用 Cache 类的 put 方法，将数据加入缓存
+        jetCache.put(tel, code);
+        return code;
+    }
+
+    /**
+     * 校验短信验证码
+     */
+    @Override
+    public boolean checkCode(SMSCode smsCode) {
+        String code = smsCode.getCode();
+        // 使用 Cache 类的 get 方法，根据键从缓存获取数据
+        String codeCache = jetCache.get(smsCode.getTel());
+        return code.equals(codeCache);
+    }
+
+    // ...省略验证码生成方法部分代码
+}
+```
+
+> 注：如果 `@CreateCache` 注解的 `area` 与 `timeUnit` 的值为默认值，则可以省略
+
+启动程序进行测试，以上配置最终在 redis 生成的键结构如下：
+
+![](images/178113422220471.png)
+
+上述方案中使用的是配置中定义的 default 名称的缓存方案，default 这名称是 jetCache 在 `@CreateCache` 注解没有配置 `area` 属性时，默认使用的名称。因此使用者可以添加多个不同名称的缓存方案，参照如下配置进行：
+
+```yml
+jetcache:
+  remote: # 设置远程缓存方案
+    default: # 方案名称为 default，默认的
+      type: redis # 缓存实现类型
+      host: localhost
+      port: 6379
+      poolConfig:
+        maxTotal: 50
+    sms: # 可以设置多套缓存方案
+      type: redis
+      host: localhost
+      port: 6379
+      poolConfig:
+        maxTotal: 50
+```
+
+如果想使用名称为 sms 的缓存方案，需要通过缓存对象属性的 `@CreateCache` 注解配置 `area` 属性，指定使用的缓存方案名称即可
+
+```java
+@Service
+public class SMSCodeServiceImpl implements SMSCodeService {
+
+    @CreateCache(area = "default", name = "jetCache_", expire = 10, timeUnit = TimeUnit.SECONDS)
+    private Cache<String, String> jetCache;
+    // 可以创建多套不同的缓存方案，其中 area 属性指定使用的缓存方案名称即可
+    @CreateCache(area = "sms", name = "jetCache_", expire = 2, timeUnit = TimeUnit.MINUTES)
+    private Cache<String, String> smsCache;
+    
+    // ...省略代码
+}
+```
+
+#### 6.3.3. 纯本地缓存方案
+
+纯本地缓存方案与远程方案的使用大致一致，只是配置从 `remote` 节点换成 `local` 节点，并且 `type` 属性缓存类型不相同
+
+- 导入 Spring Boot 整合 jetcache 对应的坐标 starter（与纯远程缓存方案时一样）
+- 在 application.yml 文件中，在 `jetcache.local` 节点中配置本地缓存方案基本信息
+
+```yml
+jetcache:
+  local: # 设置本地缓存方案
+    default: # 方案名称为 default，默认的
+      type: linkedhashmap # 配置本地缓存的类型是 linkedhashmap
+      keyConvertor: fastjson # 配置键类型转换器，推荐使用 fastjson
+```
+
+注：上述配置中，为了加速数据获取时 key 的匹配速度，jetcache 要求指定 key 的类型转换器(`keyConvertor`)。原因是假如给了一个 `Object` 类型作为 key 的话，则使用 key 的类型转换器将对象转换成字符串，然后再保存。等到获取数据时，仍然是先使用给定的 `Object` 类型转换成字符串，然后根据字符串匹配。由于 jetcache 是阿里的技术，因此推荐 key 的类型转换器使用阿里的 fastjson
+
+- 在启动类或者配置类上标识 `@EnableCreateCacheAnnotation` 注解，开启使用注解的形式创建缓存的支持
+- 与纯远程缓存方案一样，在业务类中缓存对象 `Cache` 的属性上标识 `@CreateCache` 注解，通过注解的 `cacheType` 属性来指定使用远程缓存还是本地缓存，默认是使用远程缓存（`CacheType.REMOTE`）。配置 `cacheType = CacheType.LOCAL` 即使用本地缓存。
+
+```java
+@Service
+public class SMSCodeServiceImpl implements SMSCodeService {
+
+    // cacheType 属性用于指定使用远程缓存还是本地缓存，默认是远程缓存(CacheType.REMOTE)
+    @CreateCache(area = "default", name = "jetCache_", expire = 10, timeUnit = TimeUnit.SECONDS, cacheType = CacheType.LOCAL)
+    private Cache<String, String> jetCache;
+    
+    // ...省略代码
+}
+```
+
+#### 6.3.4. 本地+远程方案
+
+- 如果本地缓存与远程缓存同时存在时，可以配置文件中，同时配置两种缓存
+
+```yml
+jetcache:
+  local: # 设置本地缓存方案
+    default: # 方案名称为 default，默认的
+      type: linkedhashmap # 配置本地缓存的类型是 linkedhashmap
+      keyConvertor: fastjson # 配置键类型转换器，推荐使用 fastjson
+  remote: # 设置远程缓存方案
+    default: # 方案名称为 default，默认的
+      type: redis # 缓存实现类型
+      host: localhost
+      port: 6379
+      poolConfig:
+        maxTotal: 50
+    sms: # 可以设置多套缓存方案
+      type: redis
+      host: localhost
+      port: 6379
+      poolConfig:
+        maxTotal: 50
+```
+
+- 在业务类中缓存对象 `Cache` 的属性的 `@CreateCache` 注解，配置 `cacheType = CacheType.BOTH`，即本地缓存与远程缓存同时使用。
+
+```java
+// cacheType = CacheType.BOTH 配置同时使用本地缓存和远程缓存
+    @CreateCache(area = "default", name = "jetCache_", expire = 10, cacheType = CacheType.BOTH)
+```
+
+> 注意：`@CreateCache` 注解的 `cacheType` 属性如果不进行配置，默认值是 `CacheType.REMOTE`，即仅使用远程缓存方案
+
+#### 6.3.5. jetcache 的相关配置
+
+|                             属性                             | 默认值 |                              说明                               |
+| ----------------------------------------------------------- | ------ | -------------------------------------------------------------- |
+| `jetcache.statIntervalMinutes`                              | 0      | 统计间隔，0 表示不统计                                           |
+| `jetcache.hiddenPackages`                                   | 无     | 自动生成 name 时，隐藏指定的包名前缀                             |
+| `jetcache.[local\|remote].${area}.type`                     | 无     | 缓存类型，本地支持 linkedhashmap、caffeine，远程支持 redis、tair |
+| `jetcache.[local\|remote].${area}.keyConvertor`             | 无     | key 转换器，当前仅支持 fastjson                                  |
+| `jetcache.[local\|remote].${area}.valueEncoder`             | java   | 仅 remote 类型的缓存需要指定，可选 java 和 kryo                  |
+| `jetcache.[local\|remote].${area}.valueDecoder`             | java   | 仅 remote 类型的缓存需要指定，可选 java 和 kryo                  |
+| `jetcache.[local\|remote].${area}.limit`                    | 100    | 仅 local 类型的缓存需要指定，缓存实例最大元素数                   |
+| `jetcache.[local\|remote].${area}.expireAfterWriteInMillis` | 无穷大 | 默认过期时间，毫秒单位                                           |
+| `jetcache.local.${area}.expireAfterAccessInMillis`          | 0      | 仅 local 类型的缓存有效，毫秒单位，最大不活动间隔                 |
+
+#### 6.3.6. 方法缓存
+
+jetcache 与 spring cache 一样，提供了方法缓存方案，在方法上标识注解，方法即自动使用缓存，只是两者的注解的名称不一样。在对应的操作接口方法上使用注解 `@Cached` 即可
+
+- 导入 Spring Boot 整合 jetcache 对应的坐标 starter（与上述缓存方案一样）
+- 在 application.yml 文件中，同时本地缓存与远程缓存。
+
+```java
+jetcache:
+#  statIntervalMinutes: 1 # 统计间隔，0 表示不统计
+  local: # 设置本地缓存方案
+    default: # 方案名称为 default，默认的
+      type: linkedhashmap # 配置本地缓存的类型是 linkedhashmap
+      keyConvertor: fastjson # 配置键类型转换器，当前仅支持 fastjson
+  remote: # 设置远程缓存方案
+    default: # 方案名称为 default，默认的
+      type: redis # 缓存实现类型
+      host: localhost
+      port: 6379
+      keyConvertor: fastjson # 配置键类型转换器，当前仅支持 fastjson
+      valueEncode: java # 配置值转码类型，此配置仅在 remote 类型时配置，可选 java 和 kryo
+      valueDecode: java
+      poolConfig:
+        maxTotal: 50
+```
+
+<font color=purple>**值得注意的是：因为示例中方法的返回结果是对象，由于 redis 缓存中不支持保存对象，因此需要对 redis 设置当 `Object` 类型数据进入到 redis 中时如何进行类型转换。需要配置 `keyConvertor` 指定 key 的类型转换方式，同时标注 value 的转换类型方式，值进入 redis 时是 java 类型，标注 `valueEncode` 为 java，值从 redis 中读取时转换成java，标注 `valueDecode` 为 java。**</font>
+
+- 注意如果需要缓存的方法返回是对象类型时，为了保证 `Object` 类型的值能存到 redis 中，`Object` 类型的数据必须实现序列化接口。
+
+```java
+```
 
 
