@@ -1,10 +1,10 @@
 # Java基础-JPA
 
-## 1. JPA 概述
+## 1. 概述
 
-JPA（Java Persistence API）Java 持久化 API。是一套 Sun Java 官方制定的ORM标准
+JPA 是 Java Persistence API 的简称，中文名 Java 持久层 API，是 JDK 5.0 注解或 XML 描述对象－关系表的映射关系，并将运行期的实体对象持久化到数据库中。
 
-## 2. JPA 常用 API
+## 2. 常用 API
 
 ### 2.1. Persistence 类
 
@@ -14,8 +14,7 @@ JPA（Java Persistence API）Java 持久化 API。是一套 Sun Java 官方制�
 public static EntityManagerFactory createEntityManagerFactory(String persistenceUnitName)
 ```
 
-- 获得实体管理工厂。
-    - `String persistenceUnitName`：配置文件中的 `persistenceUnitName`
+- 获得实体管理工厂。参数 `String persistenceUnitName`：配置文件中的 `persistenceUnitName`
 
 示例：
 
@@ -94,6 +93,8 @@ public <T> TypedQuery<T> createQuery(String qlString, Class<T> resultClass);
 
 ### 2.4. EntityTransaction 接口
 
+#### 2.4.1. 获取 `EntityTransaction` 实例
+
 用于管理事务（开始，提交，回滚）。获取事务（没有开启事务）：
 
 ```java
@@ -102,7 +103,7 @@ EntityManager em = emf.createEntityManager();
 EntityTransaction transaction = em.getTransaction();
 ```
 
-常用方法如下所示：
+#### 2.4.2. 常用方法
 
 ```java
 public void begin();
@@ -126,14 +127,14 @@ public void rollback();
 
 `TypedQuery` 接口继承 `Query` 接口。用于操作 JPQL 的查询的。JPQL 和 HQL 一样。为什么 JPA 的标准，查询需要指定类型，目的就是为了让返回的数据没有没有警告
 
-获取 `TypedQuery` 实例：
+#### 2.5.1. 获取 `TypedQuery` 实例
 
 ```java
 EntityManager em = xxx;
 TypedQuery<Xxx> query = em.createQuery("xxx", Xxx.class);
 ```
 
-常用方法如下所示：
+#### 2.5.2. 常用方法
 
 ```java
 int executeUpdate();
@@ -187,14 +188,14 @@ X getSingleResult();
 
 用于操作SQL的查询接口，执行没有返回数据的JPQL（增删改），<font color=red>**用于删除和更新**</font>
 
-获取 `Query` 实例：
+#### 2.6.1. 获取 `Query` 实例
 
 ```java
 EntityManager em = xxx;
 Query query = em.createQuery("xxx");
 ```
 
-常用方法如下所示：
+#### 2.6.2. 常用方法
 
 ```java
 int executeUpdate();

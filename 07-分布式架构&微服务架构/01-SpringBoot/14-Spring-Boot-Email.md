@@ -1,48 +1,61 @@
 # Spring Boot 整合 JavaMail
 
-## 1. 简述
+本笔记基于 Spring Boot 2.5.8 版本进行开发
 
-本笔记基于Spring Boot 2.1.2 版本进行开发
+## 1. 简述
 
 发送邮件应该是网站的必备功能之一，什么注册验证，忘记密码或者是给用户发送营销信息。最早期的时候会使用 JavaMail 相关 api 来写发送邮件的相关代码，后来 Spring 推出了 JavaMailSender 更加简化了邮件发送的过程，在之后 Spring Boot 对此进行了封装就有了现在的 spring-boot-starter-mail
 
+邮件发送的3个概念，这些概念规范了邮件操作过程中的标准。
+
+- SMTP（Simple Mail Transfer Protocol）：简单邮件传输协议，用于**发送**电子邮件的传输协议
+- POP3（Post Office Protocol - Version 3）：用于**接收**电子邮件的标准协议
+- IMAP（Internet Mail Access Protocol）：互联网消息协议，是 POP3 的替代协议
+
+简单说就是 SMPT 是发邮件的标准，POP3 是收邮件的标准，IMAP 是对 POP3 的升级。在开发程序中操作邮件，通常是发邮件，所以 SMTP 是使用的重点，收邮件大部分都是通过邮件客户端完成，所以开发收邮件的代码极少。除非要读取邮件内容，然后解析，做邮件功能的统一处理。例如 HR 的邮箱收到求职者的简历，可以读取后统一处理。但是还不如直接开发独立的投递简历的系统，因为要想收邮件就要规范发邮件的人的书写格式，有点强人所难，并且极易收到外部攻击，不可能使用白名单来收邮件。如果能使用白名单来收邮件然后解析邮件，还不如开发个系统给白名单中的人专用呢，更安全。
+
 ## 2. 基础整合使用
+
 ### 2.1. 引入依赖
 
-在Spring Boot中发送邮件，在 pom.xml 文件里面添加 spring-boot-starter-mail 包引用
+在 Spring Boot 中发送邮件，在 pom.xml 文件里面引入整合 javamail 的依赖 spring-boot-starter-mail
 
 ```xml
-<dependencies>
-    <dependency>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-starter-mail</artifactId>
-    </dependency>
-</dependencies>
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-mail</artifactId>
+</dependency>
 ```
 
 ### 2.2. 邮件参数配置
 
-- 在 application.yml 中添加邮箱配置参数
+- 在 application.yml 中添加邮箱配置参数。*`username`与`password`通过系统参数传递*
 
 ```yml
 spring:
-  # 配置邮箱
-  mail:
+  mail: # 配置邮件功能
     host: smtp.126.com # 邮箱服务器地址
-    username: lje888@126.com # 邮箱账号
-    password: ************** # 密码
-    default-encoding: utf-8 # 默认编码
-
-# 发送邮件相关参数
-mail:
-  fromMail:
-    address: lje888@126.com
+    username: ${uname} # 邮箱账号
+    password: ${pwd} # 密码
+    default-encoding: UTF-8 # 默认编码，默认值是 UTF-8
 ```
 
-- application.properties 配置（日后补充）
+- application.properties 配置
 
 ```properties
+spring.mail.host=smtp.126.com
+spring.mail.username=${uname}
+spring.mail.password=${pwd}
+spring.mail.default-encoding=UTF-8
 ```
+
+java 程序仅用于发送邮件，邮件的功能还是邮件供应商提供的，因为要配置对应信息才能用邮件服务。
+
+host 配置的是提供邮件服务的主机协议，当前程序仅用于发送邮件，因此配置的是smtp的协议。
+
+password 并不是邮箱账号的登录密码，是邮件供应商提供的一个加密后的密码，也是为了保障系统安全性。不然外部人员通过地址访问下载了配置文件，直接获取到了邮件密码就会有极大的安全隐患。有关该密码的获取每个邮件供应商提供的方式都不一样，此处略过。可以到邮件供应商的设置页面找 POP3 或 IMAP 这些关键词找到对应的获取位置。下面以 QQ 邮箱为例仅供参考：
+
+![](images/449895521238968.png)
 
 ### 2.3. 编写接口与测试
 
@@ -70,7 +83,7 @@ public class MailServiceImpl implements MailService {
     private JavaMailSender javaMailSender;
 
     /* 读取配置文件邮件发送地址 */
-    @Value("${mail.fromMail.address}")
+    @Value("${spring.mail.username}")
     private String from;
 
     /**
@@ -101,7 +114,6 @@ public class MailServiceImpl implements MailService {
 2. 编写 test 类测试
 
 ```java
-@RunWith(SpringRunner.class)
 @SpringBootTest(properties = {"activeName=dev"})
 public class MailSendTest {
 
@@ -111,7 +123,7 @@ public class MailSendTest {
 
     @Test
     public void testSendSimpleMail() {
-        mailService.sendSimpleMail("lje888@126.com", "测试发送邮件", "hello JavaMail for Spring boot");
+        mailService.sendSimpleMail("moon@126.com", "测试发送邮件", "hello JavaMail for Spring boot");
     }
 
 }
@@ -164,7 +176,7 @@ public void testHtmlMail() {
             "    <h3>hello world ! 这是一封Html邮件!</h3>\n" +
             "</body>\n" +
             "</html>";
-    mailService.sendHtmlMail("lje888@126.com", "测试发送Html邮件", content);
+    mailService.sendHtmlMail("moon@126.com", "测试发送Html邮件", content);
 }
 ```
 
@@ -176,9 +188,7 @@ public void testHtmlMail() {
 ```yml
 # 发送邮件相关参数
 mail:
-  fromMail:
-    address: eric_ending@126.com
-  uploadPath: E:\\01-暂存处理区\\風雲漫畫\\不同步\\待上传\\autoUpload\\
+  uploadPath: E:\\autoUpload\\
 ```
 
 3. 编写上传附件的邮件接口与实现类
@@ -256,7 +266,7 @@ public void sendAttachmentsMail() {
     if (file.isDirectory()) {
         // 获取文件夹所有文件名称
         File[] fileList = file.listFiles();
-        mailService.sendAttachmentsMail("eric_ending@126.com", fileList);
+        mailService.sendAttachmentsMail("moon@126.com", fileList);
     }
 }
 ```

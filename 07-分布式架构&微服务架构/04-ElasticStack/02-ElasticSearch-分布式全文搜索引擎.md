@@ -52,46 +52,57 @@ Elasticsearch 提供 RESTful Api 接口进行索引、搜索，并且支持多�
 ![es在项目中的应用方式](images/20191016133125901_32405.jpg)
 
 1. 用户在前端搜索关键字
-2. 项目前端通过http方式请求项目服务端
-3. 项目服务端通过Http RESTful方式请求ES集群进行搜索
+2. 项目前端通过 http 方式请求项目服务端
+3. 项目服务端通过 Http RESTful 方式请求 ES 集群进行搜索
 4. ES集群从索引库检索数据
 
 ## 2. ElasticaSearch 安装
-### 2.1. 安装说明
 
-- 安装配置：
-1. 新版本要求至少jdk1.8以上。
-2. 支持tar、zip、rpm等多种安装方式。在windows下开发建议使用ZIP安装方式。
-3. 支持docker方式安装
-    - 详细参见：https://www.elastic.co/guide/en/elasticsearch/reference/current/install-elasticsearch.html
+### 2.1. 下载地址
 
-- 下载 ES: Elasticsearch 6.2.1
-    - 更多版本：https://www.elastic.co/cn/downloads/past-releases
-    - 最新版本：https://www.elastic.co/cn/downloads/elasticsearch
-    - > JDK8 只支持到 7.15.x 版本
-- 解压 elasticsearch-6.2.1.zip，目录结构如下
-    - bin：脚本目录，包括：启动、停止等可执行脚本
-    - config：配置文件目录
-    - data：索引目录，存放索引文件的地方
-    - logs：日志目录
-    - modules：模块目录，包括了es的功能模块
-    - plugins：插件目录，es支持插件机制
+下载 ES: Elasticsearch 6.2.1
+
+- ES 更多版本：https://www.elastic.co/cn/downloads/past-releases
+- ES 最新版本：https://www.elastic.co/cn/downloads/elasticsearch
+
+> JDK8 只支持到 7.15.x 版本
+
+### 2.2. 安装说明
+
+#### 2.2.1. 安装配置
+
+1. 新版本要求至少 jdk1.8 以上。
+2. 支持 tar、zip、rpm 等多种安装方式。在 windows 下开发建议使用 ZIP 安装方式。
+3. 支持 docker 方式安装。更多详情参见：https://www.elastic.co/guide/en/elasticsearch/reference/current/install-elasticsearch.html
+
+#### 2.2.2. 目录结构
+
+解压 elasticsearch-6.2.1.zip，目录结构如下：
+
+- bin：脚本目录，包括：启动、停止等可执行脚本
+- config：配置文件目录，包括 ES 服务器所有使用的配置文件
+- jdk：此目录中包含了一个完整的 JDK 工具包，版本17，当 ES 升级时，使用最新版本的 JDK 
+- lib：包含 ES 运行的依赖 jar 文件
+- data：索引目录，存放索引文件的地方
+- logs：日志目录，包含 ES 运行后产生的所有日志文件
+- modules：模块目录，包括了 ES 的所有功能模块。里面的内容也是 jar 包。和 jar 目录不同，jar 目录是 ES 运行期间依赖的 jar 包，modules 是 ES 软件自己的功能 jar 包
+- plugins：插件目录，ES 支持插件机制，默认为空
 
 ![elasticsearch目录结构](images/20191016141816955_19555.png)
 
 > Elasticsearch 版本和支持 JVM 版本关系详见：https://www.elastic.co/cn/support/matrix#matrix_jvm
 
-### 2.2. 配置文件
+### 2.3. 配置文件
 
-#### 2.2.1. 三个配置文件
+#### 2.3.1. 三个配置文件
 
 ES的配置文件的地址根据安装形式的不同而不同：
 
-- 使用zip、tar安装，配置文件的地址在安装目录的config下
-- 使用RPM安装，配置文件在`/etc/elasticsearch`下
-- 使用MSI安装，配置文件的地址在安装目录的config下，并且会自动将config目录地址写入环境变量`ES_PATH_CONF`
+- 使用 zip、tar 安装，配置文件的地址在安装目录的 config 下
+- 使用 RPM 安装，配置文件在 `/etc/elasticsearch` 下
+- 使用 MSI 安装，配置文件的地址在安装目录的 config 下，并且会自动将 config 目录地址写入环境变量 `ES_PATH_CONF`
 
-> 本ES研究使用的zip包安装，配置文件在ES安装目录的config下
+> 本 ES 研究使用的 zip 包安装，配置文件在 ES 安装目录的 config 下
 
 相关配置文件如下：
 
@@ -99,9 +110,9 @@ ES的配置文件的地址根据安装形式的不同而不同：
 - **jvm.options**：用于配置 Elasticsearch JVM 设置
 - **log4j2.properties**：用于配置 Elasticsearch 日志
 
-#### 2.2.2. elasticsearch.yml
+#### 2.3.2. elasticsearch.yml
 
-##### 2.2.2.1. 配置格式说明
+##### 2.3.2.1. 配置格式说明
 
 配置格式是YAML，可以采用如下两种方式
 
@@ -133,7 +144,7 @@ http.cors.allow-origin: /.*/
 
 > 注意`path.data`和`path.logs`路径配置正确
 
-##### 2.2.2.2. 常用的配置项说明
+##### 2.3.2.2. 常用的配置项说明
 
 - `cluster.name`：配置elasticsearch的集群名称，默认是elasticsearch。建议修改成一个有意义的名称
 - `node.name`：节点名，通常一台物理服务器就是一个节点，es会默认随机指定一个名字，建议指定一个有意义的名称，方便管理。一个或多个节点组成一个cluster集群，集群是一个逻辑的概念，节点是物理概念
@@ -154,17 +165,17 @@ http.cors.allow-origin: /.*/
 - `http.cors.enabled`：开启 cors 跨域访问支持，默认为false
 - `http.cors.allow-origin`：跨域访问允许的域名地址，可以使用正则，如，允许所有域名 `/.*/`
 
-#### 2.2.3. jvm.options
+#### 2.3.3. jvm.options
 
 - 设置最小及最大的JVM堆内存大小，修改jvm.options，设置`-Xms`和`-Xmx`：
 1. 两个值设置为相等
 2. 将 `Xmx` 设置为不超过物理内存的一半
 
-#### 2.2.4. log4j2.properties
+#### 2.3.4. log4j2.properties
 
 日志文件设置，ES使用log4j，注意日志级别的配置
 
-#### 2.2.5. 系统配置(Linux系统)
+#### 2.3.5. 系统配置(Linux系统)
 
 在linux上根据系统资源情况，可将每个进程最多允许打开的文件数设置大些
 
@@ -190,9 +201,13 @@ su elasticsearch
 elasticsearch ‐ nofile 65536
 ```
 
-### 2.3. 启动ES
+### 2.4. 启动 ES
 
-进入ElasticSearch根目录，进入bin目录，在cmd下运行：elasticsearch.bat
+进入 ElasticSearch 根目录，进入 bin 目录，在 cmd 命令行中运行
+
+```bash
+elasticsearch.bat
+```
 
 浏览器输入：http://localhost:9200
 
@@ -218,9 +233,9 @@ elasticsearch ‐ nofile 65536
 }
 ```
 
-### 2.4. head 插件安装
+### 2.5. head 插件安装
 
-head插件是ES的一个可视化管理插件，用来监视ES的状态，并通过head客户端和ES服务进行交互，比如创建映射、创建索引等，head的项目地址在`https://github.com/mobz/elasticsearch-head`
+head 插件是 ES 的一个可视化管理插件，用来监视 ES 的状态，并通过 head 客户端和 ES 服务进行交互，比如创建映射、创建索引等，head 的项目地址在`https://github.com/mobz/elasticsearch-head`
 
 从ES6.0开始，head插件支持使得node.js运行
 
@@ -281,23 +296,23 @@ ES作为一个索引及搜索服务，对外提供丰富的REST接口，此部�
 
 #### 3.1.1. 索引库概念
 
-ES的索引库是一个逻辑概念，它包括了分词列表及文档列表，同一个索引库中存储了相同类型的文档。它就相当于MySQL中的表，或相当于Mongodb中的集合
+ES 的索引库是一个逻辑概念，它包括了分词列表及文档列表，同一个索引库中存储了相同类型的文档。它就相当于 MySQL 中的表，或相当于 Mongodb 中的集合
 
 关于索引这个词语解释：
 
-- 索引（名词）：ES是基于Lucene构建的一个搜索服务，它要从索引库搜索符合条件索引数据。
+- 索引（名词）：ES 是基于 Lucene 构建的一个搜索服务，它要从索引库搜索符合条件索引数据。
 - 索引（动词）：索引库刚创建起来是空的，将数据添加到索引库的过程称为索引。
 
 上边讲的创建索引库相当于关系数据库中的数据库还是表？
 
-1. 如果相当于数据库就表示一个索引库可以创建很多不同类型的文档，这在ES中也是允许的。
-2. 如果相当于表就表示一个索引库只能存储相同类型的文档，ES官方建议在一个索引库中只存储相同类型的文档。
+1. 如果相当于数据库就表示一个索引库可以创建很多不同类型的文档，这在 ES 中也是允许的。
+2. 如果相当于表就表示一个索引库只能存储相同类型的文档，ES 官方建议在一个索引库中只存储相同类型的文档。
 
 #### 3.1.2. 创建方式
 
-1. 方式一：使用postman或curl这样的工具创建
+1. 方式一：使用 postman 或 curl 这样的工具创建
 
-使用postman发送put请求，`http://localhost:9200/索引库名称`。请求参数如下
+使用 postman 发送 put 请求，`http://localhost:9200/索引库名称`。请求参数如下
 
 ```json
 {
@@ -596,6 +611,7 @@ iK分词器插件的config目录下有一个`main.dic`的文件，此文件为�
 如果在索引和搜索时去使用ik分词器呢？如何指定其它类型的field，比如日期类型、数值类型等
 
 ### 5.1. 映射维护方法
+
 #### 5.1.1. 查询所有索引的映射
 
 发送GET请求：http://localhost:9200/xc_course/_mapping
@@ -984,7 +1000,7 @@ ES提供多种不同的客户端：
 </project>
 ```
 
-2. 创建application.yml配置文件
+2. 创建 application.yml 配置文件
 
 ```yml
 server:
@@ -999,7 +1015,7 @@ xuecheng:
 
 3. 创建配置类
 
-在`com.xuecheng.search.config`包下创建配置类`ElasticsearchConfig`，配置初始化`RestHighLevelClient`和`RestClient`
+在 `com.xuecheng.search.config` 包下创建配置类 `ElasticsearchConfig`，配置初始化 `RestHighLevelClient` 和 `RestClient`
 
 ```java
 package com.xuecheng.search.config;
@@ -1313,6 +1329,7 @@ public void testGetDoc() throws IOException {
 ```
 
 ### 2.4. 更新文档
+
 #### 2.4.1. API
 
 ES更新文档的顺序是：先检索到文档、将原来的文档标记为删除、创建新文档、删除旧文档，创建新文档就会重建索引
