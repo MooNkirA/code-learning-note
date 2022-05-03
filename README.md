@@ -296,8 +296,10 @@
   <li><a href="#/07-分布式架构&微服务架构/01-SpringBoot/13-Spring-Boot-Validation">Spring Boot Validation 参数校验</a></li>
   <li><a href="#/07-分布式架构&微服务架构/01-SpringBoot/14-Spring-Boot-Email">Spring Boot 发送邮件</a></li>
   <li><a href="#/07-分布式架构&微服务架构/01-SpringBoot/15-Spring-Boot-Task-Scheduling">Spring Boot 定时任务调度</a></li>
+  <li><a href="#/07-分布式架构&微服务架构/01-SpringBoot/16-Spring-Boot-Messaging">Spring Boot 消息系统</a></li>
   <li><a href="#/07-分布式架构&微服务架构/01-SpringBoot/99-SpringBoot笔记-其他相关内容">Spring Boot 笔记-其他相关内容</a></li>
 </ul>
+
 
 
 
@@ -351,11 +353,13 @@
 ### 📬 分布式消息中件间
 
 <ul class="docs">
-  <li><a href="#/07-分布式架构&微服务架构/07-分布式消息中件间/01-JMS-消息中件间">JMS 消息中间件</a></li>
+  <li><a href="#/07-分布式架构&微服务架构/07-分布式消息中件间/01-消息中件间">消息中间件概述</a></li>
   <li><a href="#/07-分布式架构&微服务架构/07-分布式消息中件间/02-ActiveMQ">ActiveMQ</a></li>
   <li><a href="#/07-分布式架构&微服务架构/07-分布式消息中件间/03-RabbitMQ">RabbitMQ</a></li>
   <li><a href="#/07-分布式架构&微服务架构/07-分布式消息中件间/04-RocketMQ">RocketMQ</a></li>
+  <li><a href="#/07-分布式架构&微服务架构/07-分布式消息中件间/05-Kafka">Kafka</a></li>
 </ul>
+
 
 ### 🧾 分布式配置中心
 

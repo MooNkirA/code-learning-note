@@ -1,10 +1,12 @@
 # RabbitMQ
 
+RabbitMQ 官方地址：http://www.rabbitmq.com/
+
 ## 1. 介绍
 
 ### 1.1. RabbitMQ 简介
 
-MQ全称为Message Queue，即消息队列， RabbitMQ是由erlang语言开发，基于AMQP（Advanced Message Queue 高级消息队列协议）协议实现的消息队列，它是一种应用程序之间的通信方法，消息队列在分布式系统开发中应用非常广泛。RabbitMQ官方地址：http://www.rabbitmq.com/
+MQ全称为Message Queue，即消息队列， RabbitMQ是由erlang语言开发，基于AMQP（Advanced Message Queue 高级消息队列协议）协议实现的消息队列，它是一种应用程序之间的通信方法，消息队列在分布式系统开发中应用非常广泛。
 
 开发中消息队列通常有如下应用场景
 
@@ -25,14 +27,16 @@ MQ全称为Message Queue，即消息队列， RabbitMQ是由erlang语言开发�
 
 #### 1.2.1. AMQP
 
-AMQP是一套公开的消息队列协议，最早在2003年被提出，它旨在从协议层定义消息通信数据的标准格式，为的就是解决MQ市场上协议不统一的问题。RabbitMQ就是遵循AMQP标准协议开发的MQ服务。官网：http://www.amqp.org/
+AMQP 是一套公开的消息队列协议，最早在 2003 年被提出，它旨在从协议层定义消息通信数据的标准格式，为的就是解决 MQ 市场上协议不统一的问题。RabbitMQ 就是遵循 AMQP 标准协议开发的 MQ 服务。
+
+官网：http://www.amqp.org/
 
 #### 1.2.2. JMS
 
-JMS是java提供的一套消息服务API标准，其目的是为所有的java应用程序提供统一的消息通信的标准，类似java的jdbc，只要遵循jms标准的应用程序之间都可以进行消息通信。它和AMQP有以下区别：
+JMS 是 java 提供的一套消息服务 API 标准，其目的是为所有的 java 应用程序提供统一的消息通信的标准，类似 java 的 jdbc，只要遵循 jms 标准的应用程序之间都可以进行消息通信。它和 AMQP 有以下区别：
 
-- jms是java语言专属的消息服务标准，它是在api层定义标准，并且只能用于java应用。
-- AMQP是在协议层定义的标准，是跨语言的。
+- jms 是 java 语言专属的消息服务标准，它是在 api 层定义标准，并且只能用于 java 应用。
+- AMQP 是在协议层定义的标准，是跨语言的。
 
 ## 2. RabbitMQ 快速入门
 
@@ -64,53 +68,91 @@ JMS是java提供的一套消息服务API标准，其目的是为所有的java应
     4. 当有消息到达Queue时Broker默认将消息推送给消费者
     5. 消费者接收到消息
 
-### 2.2. window版安装
+### 2.2. window版 安装
 
-#### 2.2.1. 下载
+#### 2.2.1. 说明
 
-RabbitMQ由Erlang语言开发，Erlang语言用于并发及分布式系统的开发，在电信领域应用广泛，OTP（Open Telecom Platform）作为Erlang语言的一部分，包含了很多基于Erlang开发的中间件及工具库，安装RabbitMQ需要安装Erlang/OTP，并保持版本匹配，如下图
+RabbitMQ 由 Erlang 语言开发，Erlang 语言用于并发及分布式系统的开发，在电信领域应用广泛，OTP（Open Telecom Platform）作为 Erlang 语言的一部分，包含了很多基于 Erlang 开发的中间件及工具库，安装 RabbitMQ 需要安装 Erlang/OTP，并保持版本匹配，如下图
 
 ![Erlang/OTP与RebbitMQ的版本关系图](images/20190526170510214_26417.png)
 
-RabbitMQ的下载地址：http://www.rabbitmq.com/download.html
+本次测试使用 Erlang/OTP 22.0 版本和 RabbitMQ 3.7.15 版本。
 
-本次测试使用Erlang/OTP 22.0版本和RabbitMQ 3.7.15版本。
+#### 2.2.2. Erlang 下载与安装
 
-1. 下载erlang。地址：http://www.erlang.org/downloads
-    - **以管理员方式运行安装**。erlang安装完成需要配置erlang环境变量：`ERLANG_HOME=D:\development\erl10.4`，在path中添加`%ERLANG_HOME%\bin;`
-2. **以管理员方式运行RabbitMQ安装文件**。地址：https://www.rabbitmq.com/install-windows.html
+erlang 下载地址：http://www.erlang.org/downloads
 
-#### 2.2.2. 启动
+![](images/413642522220543.png)
 
-安装成功后会自动创建RabbitMQ服务并且启动
+下载安装包后，<font color=red>**以管理员方式运行安装**</font>。安装的过程中可能会出现依赖 Windows 组件的提示，根据提示下载安装即可，都是自动执行的，如下：
 
-1. 从开始菜单启动RabbitMQ
+![](images/96503522226836.png)
+
+erlang 安装完成后，需要配置 erlang 的环境变量，否则 RabbitMQ 将无法找到安装的 Erlang
+
+```
+ERLANG_HOME=D:\development\erl10.4
+```
+
+在 path 变量中添加
+
+```
+%ERLANG_HOME%\bin;
+```
+
+#### 2.2.3. RabbitMQ 下载与安装
+
+RabbitMQ 的下载地址：http://www.rabbitmq.com/download.html
+
+安装包下载完成后，<font color=red>**以管理员方式运行 RabbitMQ 安装文件**</font>。
+
+官方安装说明文档：https://www.rabbitmq.com/install-windows.html
+
+#### 2.2.4. 启动
+
+安装成功后会自动创建 RabbitMQ 服务并且启动，默认对外服务端口是 5672
+
+1. 从开始菜单启动 RabbitMQ
 
 ![RabbitMQ安装后效果](images/20190526232720985_13171.png)
 
-2. 如果没有开始菜单则进入安装目录下sbin目录手动启动
+2. 如果没有开始菜单则进入安装目录下 sbin 目录手动启动
 
-    ![RabbitMQ安装后效果](images/20190526232845048_30077.png)
+![RabbitMQ安装后效果](images/20190526232845048_30077.png)
 
-    1. 安装并运行服务
-        - `rabbitmq-service.bat install`：安装服务
-        - `rabbitmq-service.bat stop`：停止服务
-        - `rabbitmq-service.bat start`：启动服务
-    2. 安装管理插件
-        - 安装rabbitMQ的管理插件，方便在浏览器端管理RabbitMQ
-        - 管理员身份运行 `./rabbitmq-plugins.bat enable rabbitmq_management`
-3. 安装管理插件启动成功后，登录RabbitMQ
-    - 进入浏览器，输入：http://localhost:15672
-    - 初始账号和密码：guest/guest
+- 安装并运行服务
 
-#### 2.2.3. 注意事项
+```shell
+rabbitmq-service.bat install # 安装服务
+rabbitmq-service.bat stop # 停止服务
+rabbitmq-service.bat start # 启动服务
+```
 
-1. 安装erlang和rabbitMQ以管理员身份运行。
-2. 当卸载重新安装时会出现RabbitMQ服务注册失败，此时需要进入注册表清理erlang，搜索RabbitMQ、ErlSrv，将对应的项全部删除。
+#### 2.2.5. 安装管理插件
+
+RabbitMQ 也提供有 web 控制台服务，但是此功能是一个插件，需要先启用才可以使用。安装 rabbitMQ 的管理插件，方便在浏览器端管理 RabbitMQ。以管理员身份运行 cmd 命令行，执行以下命令：
+
+```shell
+./rabbitmq-plugins.bat list                          # 查看当前所有插件的运行状态
+./rabbitmq-plugins.bat enable rabbitmq_management    # 启动rabbitmq_management插件
+```
+
+安装管理插件启动成功后，打开浏览器访问：http://localhost:15672
+
+![](images/55334322239671.png)
+
+初始化用户名和密码均为：guest，成功登录后进入管理后台界面，如下：
+
+![](images/13724222247002.png)
+
+#### 2.2.6. 注意事项
+
+1. 安装 erlang 和 rabbitMQ 都以管理员身份运行。
+2. 当卸载重新安装时会出现 RabbitMQ 服务注册失败，此时需要进入注册表清理 erlang，搜索 RabbitMQ、ErlSrv，将对应的项全部删除。
 
 ### 2.3. Linux版安装
 
-#### 2.3.1. 使用Docker安装部署RabbitMQ
+#### 2.3.1. 使用 Docker 安装部署 RabbitMQ
 
 1. `docker search rabbitmq:management`：查询RabbitMQ的镜像
 2. `docker pull rabbitmq:management`：拉取RabbitMQ镜像，**注意：如果docker pull rabbitmq 后面不带management，启动rabbitmq后是无法打开管理界面的，所以我们要下载带management插件的rabbitmq.**
@@ -149,7 +191,7 @@ systemctl disable firewalld.service
 
 ### 2.4. 测试使用
 
-按照官方教程(http://www.rabbitmq.com/getstarted.html) 测试hello world:
+按照[官方教程文档](http://www.rabbitmq.com/getstarted.html)，测试 hello world
 
 #### 2.4.1. 搭建环境
 
@@ -376,21 +418,21 @@ public class Consumer01 {
 
 ### 3.1. Work queues 工作队列
 
-![Work queues工作原理](images/20190528152156647_10560.png)
+![](images/20190528152156647_10560.png)
 
-- Work queues与入门程序相比，多了一个消费端，两个消费端共同消费同一个队列中的消息。
+- Work queues 与入门程序相比，多了一个消费端，两个消费端共同消费同一个队列中的消息。
 - 应用场景：对于任务过重或任务较多情况使用工作队列可以提高任务处理的速度。
 - 测试：
     1. 使用入门程序，启动多个消费者
     2. 生产者发送多个消息
 - 结果：
     1. 一条消息只会被一个消费者接收；
-    2. rabbit采用轮询的方式将消息是平均发送给消费者的；
+    2. rabbitmq 采用轮询的方式将消息是平均发送给消费者的；
     3. 消费者在处理完某条消息后，才会收到下一条消息
 
 ### 3.2. Publish/subscribe 发布订阅工作模式
 
-![Publish/subscribe工作原理](images/20190528152234400_13754.png)
+![](images/20190528152234400_13754.png)
 
 - 发布订阅模式：
     1. 每个消费者监听自己的队列。
@@ -605,13 +647,15 @@ channel.basicConsume(QUEUE_INFORM_SMS, true, consumer);
 
 ### 3.3. Routing 路由工作模式
 
-![Routing工作原理](images/20190528152355813_18719.png)
+![](images/20190528152355813_18719.png)
 
-- 路由模式：
-    1. 每个消费者监听自己的队列，并且设置routingkey
-    2. 生产者将消息发给交换机，由交换机根据routingkey来转发消息到指定的队列
+**路由模式**：
+
+1. 每个消费者监听自己的队列，并且设置 routingkey
+2. 生产者将消息发给交换机，由交换机根据 routingkey来转发消息到指定的队列
 
 #### 3.3.1. 案例代码
+
 ##### 3.3.1.1. 生产者
 
 - 声明exchange_routing_inform交换机。
@@ -834,23 +878,26 @@ channel.basicConsume(QUEUE_INFORM_SMS, true, consumer);
 
 ### 3.4. Topics 主题工作模式
 
-![Topics工作原理](images/20190528152429252_4069.png)
+![](images/20190528152429252_4069.png)
 
-- 主题模式：
-    1. 一个交换机可以绑定多个队列，每个队列可以设置一个或多个带统配符的routingKey
-    2. 生产者将消息发给交换机，交换机根据routingKey的值来匹配队列，匹配时采用统配符方式，匹配成功的将消息转发到指定的队列
-    3. 每个消费者监听自己的队列，并且设置带统配符的routingkey。
-    4. 生产者将消息发给broker，由交换机根据routingkey来转发消息到指定的队列。
-- **Topics 与 Routin 的区别**
-    - Topics 与 Routin 的基本原理相同，即：生产者将消息发给交换机，交换机根据routingKey将消息转发给与routingKey匹配的队列
-    - 不同之处是：routingKey的匹配方式，Routing模式是相等匹配，topics模式是统配符匹配
+**主题模式：**
+
+1. 一个交换机可以绑定多个队列，每个队列可以设置一个或多个带统配符的 routingKey
+2. 生产者将消息发给交换机，交换机根据 routingKey 的值来匹配队列，匹配时采用统配符方式，匹配成功的将消息转发到指定的队列
+3. 每个消费者监听自己的队列，并且设置带统配符的 routingkey。
+4. 生产者将消息发给 broker，由交换机根据 routingkey 来转发消息到指定的队列。
+
+**Topics 与 Routing 的区别**
+
+- Topics 与 Routing 的基本原理相同，即：生产者将消息发给交换机，交换机根据 routingKey 将消息转发给与 routingKey 匹配的队列
+- 不同之处是：routingKey 的匹配方式，Routing 模式是相等匹配，topics 模式是统配符匹配
 
 > 符号`#`：匹配一个或者多个词，比如`inform.#`可以匹配inform.sms、inform.email、inform.email.sms  
 > 符号`*`：只能匹配一个词，比如`inform.*`可以匹配inform.sms、inform.email
 
 #### 3.4.1. 案例代码
 
-案例：根据用户的通知设置去通知用户，设置接收Email的用户只接收Email，设置接收sms的用户只接收sms，设置两种通知类型都接收的则两种通知都有效。
+案例：根据用户的通知设置去通知用户，设置接收 Email 的用户只接收 Email，设置接收 sms 的用户只接收 sms，设置两种通知类型都接收的则两种通知都有效。
 
 ##### 3.4.1.1. 生产者
 
@@ -1126,6 +1173,7 @@ channel.basicConsume(QUEUE_INFORM_EMAIL, true, consumer);
     4. 客户端（RPC调用方）监听RPC响应队列，接收到RPC调用结果。
 
 ## 4. Spring 整合 RibbitMQ
+
 ### 4.1. 搭建SpringBoot环境
 
 - 基于Spring-Rabbit去操作RabbitMQ，参考：https://github.com/spring-projects/spring-amqp
@@ -1157,6 +1205,7 @@ channel.basicConsume(QUEUE_INFORM_EMAIL, true, consumer);
 ```
 
 ### 4.2. 配置
+
 #### 4.2.1. 配置application.yml
 
 配置连接rabbitmq的参数
