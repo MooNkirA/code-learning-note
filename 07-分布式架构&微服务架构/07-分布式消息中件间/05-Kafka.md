@@ -73,9 +73,9 @@ syncLimit=5
 
 # the directory where the snapshot is stored.
 # 数据目录
-dataDir=../temp/zookeeper
+dataDir=./temp/zookeeper
 # 日志目录
-dataLogDir=../temp/zookeeper/log
+dataLogDir=./temp/zookeeper/log
 # the port at which the clients will connect
 # Zookeeper对外服务端口，保持默认
 clientPort=2181
@@ -90,8 +90,12 @@ admin.enableServer=false
 - 运行 `\bin\windows` 目录下的 `zookeeper-server-start.bat` 命令脚本即可启动注册中心，默认对外服务端口 2181
 
 ```shell
-# 启动zookeeper
-zookeeper-server-start.bat ..\..\config\zookeeper.properties
+# 进入根目录
+cd /d E:\kafka_2.13-2.8.1\
+
+# 启动 zk
+.\bin\windows\zookeeper-server-start.bat .\config\zookeeper.properties
+
 ```
 
 ##### 3.1.2.2. kafka 服务配置与启动
@@ -104,7 +108,7 @@ broker.id=0
 # broker 对外提供的服务入口地址，注：原配置文件中是注释的
 listeners=PLAINTEXT://:9092
 # 设置存放消息日志文件的地址
-log.dirs=../temp/kafka-logs
+log.dirs=./temp/kafka-logs
 # kafka 所需 zookeeper 集群地址
 zookeeper.connect=localhost:2181
 ```
@@ -112,13 +116,25 @@ zookeeper.connect=localhost:2181
 - 运行 `\bin\windows` 目录下的 `kafka-server-start.bat` 命令脚本即可启动 kafka 服务器，默认对外服务端口 9092
 
 ```shell
+# 进入根目录
+cd /d E:\kafka_2.13-2.8.1\
 # 启动kafka
-kafka-server-start.bat ..\..\config\server.properties
+.\bin\windows\kafka-server-start.bat .\config\server.properties
 ```
 
-#### 3.1.3. Kafka 测试消息生产与消费 
+#### 3.1.3. 启动可能出现的问题
 
-##### 3.1.3.1. 创建主题
+可能在启动服务的时候，会出现 Windows CMD 命令行解释器【输入行太长。 命令语法不正确】
+
+![](images/184893310220546.png)
+
+参考微软的官方文档：**使用较短的文件夹和文件的名称；减少文件夹树的深度**
+
+所以目前将 kafka 的安装目录直接移动到 E 盘的根目录中
+
+#### 3.1.4. Kafka 测试消息生产与消费 
+
+##### 3.1.4.1. 创建主题
 
 和之前操作其他 MQ 产品相似，kakfa 也是基于主题操作，操作之前需要先初始化 topic。
 
@@ -131,7 +147,7 @@ kafka-topics.bat --zookeeper 127.0.0.1:2181 --list
 kafka-topics.bat --delete --zookeeper localhost:2181 --topic moon
 ```
 
-##### 3.1.3.2. 测试服务器启动状态
+##### 3.1.4.2. 测试服务器启动状态
 
 Kafka 提供有一套测试服务器功能的测试程序，运行 `bin\windows` 目录下的命令即可使用
 

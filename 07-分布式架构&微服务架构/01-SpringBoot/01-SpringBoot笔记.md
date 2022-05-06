@@ -1674,48 +1674,11 @@ public class DemoApplication {
 
 由于Spring Boot应用只是普通的Java应用，所以JVM热交换（hot-swapping）也能开箱即用。不过JVM热交换能替换的字节码有限制，想要更**彻底的解决方案可以使用Spring Loaded项目或JRebel**。spring-boot-devtools 模块也支持应用快速重启(restart)。
 
-## 7. 运行状态监控 Actuator
-
-### 7.1. 简述
-
-Spring Boot 的 Actuator 提供了运行状态监控的功能，可以实现对程序内部运行情况监控，比如监控状况、Bean加载情况、配置属性、日志信息等。Actuator的监控数据可以通过Rest、运程shell和JMX方式获得。
-
-状态监控的数据都是以json格式返回，分析数据不太方便，*推荐使用基于 Actuator 开发的 Spring Boot Admin 状态监控开源项目*
-
-### 7.2. 基础使用步骤
-
-1. 导入依赖
-
-```xml
-<dependency>
-    <groupId>org.springframework.boot</groupId>
-    <artifactId>spring-boot-starter-actuator</artifactId>
-</dependency>
-```
-
-2. 访问 `http://项目应用的地址:端口号/acruator`，可以查看监控数据
-
-### 7.3. Actuator 监控使用
-
-通过访问以下路径，可以查看到相关的监控信息
-
-|      路径       |                            描述                            |
-| --------------- | --------------------------------------------------------- |
-| /beans          | 描述应用程序上下文里全部的Bean，以及它们的关系                 |
-| /env            | 获取全部环境属性                                            |
-| /env/{name}     | 根据名称获取特定的环境属性值                                  |
-| /health         | 报告应用程序的健康指标，这些值由HealthIndicator的实现类提供    |
-| /info           | 获取应用程序的定制信息，这些信息由info打头的属性提供            |
-| /mappings       | 描述全部的URI路径，以及它们和控制器(包含Actuator端点)的映射关系 |
-| /metrics        | 报告各种应用程序度量信息，比如内存用量和HTTP请求计数            |
-| /metrics/{name} | 报告指定名称的应用程序度量值                                  |
-| /trace          | 提供基本的HTTP请求跟踪信息(时间戳、HTTP头等)                  |
-
-## 8. SpringBoot 监听机制（整理中）
+## 7. SpringBoot 监听机制（整理中）
 
 SpringBoot 在项目启动时，会对几个内置的监听器进行回调，开发者可以实现这些监听器接口，在项目启动时完成一些操作。
 
-### 8.1. ApplicationContextInitializer(补充示例)
+### 7.1. ApplicationContextInitializer(补充示例)
 
 如果想让这些监听器自动注册，不管应用程序是如何创建的，可以在项目中添加一个`META-INF/spring.plants`文件，并通过使用 `org.springframework.context.ApplicationListener` 键来指定相应的自定义监听器(`ApplicationContextInitializer`的实现类)，如下例：
 
@@ -1723,21 +1686,21 @@ SpringBoot 在项目启动时，会对几个内置的监听器进行回调，开
 org.springframework.context.ApplicationContextInitializer=com.moon.springboot.listener.MyApplicationContextInitializer
 ```
 
-### 8.2. SpringApplicationRunListener（补充示例）
+### 7.2. SpringApplicationRunListener（补充示例）
 
 ```properties
 org.springframework.boot.SpringApplicationRunListener=com.moon.springboot.listener.MySpringApplicationRunListener
 ```
 
-### 8.3. CommandLineRunner 与 ApplicationRunner
+### 7.3. CommandLineRunner 与 ApplicationRunner
 
-#### 8.3.1. 简介
+#### 7.3.1. 简介
 
 如果需要在 `SpringApplication` 启动后运行一些特定的代码，可以实现 SpringBoot 提供的 `ApplicationRunner` 或 `CommandLineRunner` 接口。这两个接口的工作方式相同，并提供一个单一的运行方法，该方法会在 `SpringApplication.run(...)` 完成之前被调用。
 
 > 注：这两个监听回调接口，适合运用在项目应用启动后做一些数据的预处理等工作。如：将读取一些数据库的数据到Redis缓存中，完成数据的预热。
 
-#### 8.3.2. 基础使用
+#### 7.3.2. 基础使用
 
 `CommandLineRunner` 接口的 `run` 方法入参是字符串数组，是应用程序的相关参数
 
@@ -1767,16 +1730,16 @@ public class MyApplicationRunner implements ApplicationRunner {
 }
 ```
 
-#### 8.3.3. 使用注意事项
+#### 7.3.3. 使用注意事项
 
 - 如果项目中定义多个 `CommandLineRunner` 与 `ApplicationRunner` 接口的实现。那需要注意它们这些实现的调用顺序，以免发现不可预测的问题。另外，可以通过实现 `org.springframework.core.Ordered` 接口或使用 `org.springframework.core.annotation.Order` 注解来指定实现类调用的顺序。
 - `CommandLineRunner` 与 `ApplicationRunner` 接口的实现不需要到`META-INF/spring.plants`进行配置相关映射。
 
-## 9. Spring Boot 自动配置原理分析
+## 8. Spring Boot 自动配置原理分析
 
 Spring Boot框架是一个将整合框架的整合代码都写好了的框架。所以要知道它的工作原理才能够，找到各种整合框架可以配置的属性，以及属性对应的属性名。
 
-### 9.1. spring-boot-starter-parent 父工程依赖管理原理
+### 8.1. spring-boot-starter-parent 父工程依赖管理原理
 
 创建SpringBoot项目，继承了SpringBoot的父工程`spring-boot-starter-parent`后，查看工程的依赖关系，父工程依赖了`spring-boot-dependencies`工程，`spring-boot-denpendencies`的pom管理所有公共Starter依赖的版本，并且通过`<dependencyManagement>`标签实现jar版本管理
 
@@ -1784,7 +1747,7 @@ Spring Boot框架是一个将整合框架的整合代码都写好了的框架。
 
 ![](images/20201006095224766_3600.png)
 
-#### 9.1.1. starters的原理
+#### 8.1.1. starters的原理
 
 starters是依赖关系的整理和封装，是一套依赖坐标的整合。只要导入相关的starter即可该功能及其相关必需的依赖
 
@@ -1801,7 +1764,7 @@ starters是依赖关系的整理和封装，是一套依赖坐标的整合。只
 
 官方提供的Starter详见官方文档：https://docs.spring.io/spring-boot/docs/2.3.3.RELEASE/reference/html/using-spring-boot.html#using-boot-starter
 
-### 9.2. 自动配置信息位置说明
+### 8.2. 自动配置信息位置说明
 
 每个Starter基本都会有自动配置`AutoConfiguration`，`AutoConfiguration`的jar包定义了约定的默认配置信息。SpringBoot采用约定大于配置设计思想。
 
@@ -1825,7 +1788,7 @@ starters是依赖关系的整理和封装，是一套依赖坐标的整合。只
 
 ![](images/20201006150503441_32641.png)
 
-### 9.3. 配置流程说明
+### 8.3. 配置流程说明
 
 - 第一步：配置一个内置整合框架的参数，先到`spring-boot-autoconfigure-x.x.x.RELEASE.jar`找到对应的模块。
 - 第二步：如果该框架有可以配置的参数，那么对应的整合模块中一定有一个XxxProperties类，在里面可以找可以设置的参数。
@@ -1833,7 +1796,7 @@ starters是依赖关系的整理和封装，是一套依赖坐标的整合。只
 
 ![配置流程说明](images/_配置流程说明_1537025667_9599.jpg)
 
-### 9.4. 自动配置流程分析
+### 8.4. 自动配置流程分析
 
 查看启动类注解`@SpringBootApplication`，可以跟踪加载的步骤
 
@@ -1844,9 +1807,9 @@ starters是依赖关系的整理和封装，是一套依赖坐标的整合。只
 
 ![](images/20201006152054124_172.png)
 
-## 10. Spring Boot 视图
+## 9. Spring Boot 视图
 
-### 10.1. 静态资源html视图
+### 9.1. 静态资源html视图
 
 - SpringBoot默认有四个静态资源文件夹：
   - classpath:/static/
@@ -1911,7 +1874,7 @@ public class HelloController {
 }
 ```
 
-### 10.2. Jsp视图(不推荐)
+### 9.2. Jsp视图(不推荐)
 - 第一步：创建Maven项目(war包)
 - 第二步：配置依赖
 
@@ -2029,13 +1992,13 @@ public class Application {
 
 访问地址：http://localhost:8080/item
 
-### 10.3. FreeMarker视图
+### 9.3. FreeMarker视图
 
 详见Spring Boot整合FreeMarker部分。
 
-## 11. Spring Boot 异常处理
+## 10. Spring Boot 异常处理
 
-### 11.1. Spring MVC no handler 异常处理
+### 10.1. Spring MVC no handler 异常处理
 
 当请求不存在时，Spring MVC 在处理 404 异常时，会自动返回如下内容：
 

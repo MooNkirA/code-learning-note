@@ -288,7 +288,7 @@
   <li><a href="#/07-分布式架构&微服务架构/01-SpringBoot/05-SpringBoot整合Servlet、Filter、Listener">SpringBoot 整合 Servlet、Filter、Listener</a></li>
   <li><a href="#/07-分布式架构&微服务架构/01-SpringBoot/06-SpringBoot-SQL-Databases">Spring Boot 关系型数据库技术（内置数据源技术、内置数据库）</a></li>
   <li><a href="#/07-分布式架构&微服务架构/01-SpringBoot/07-SpringBoot-SQL-Databases-Technologies">Spring Boot 关系型数据库持久技术框架(JdbcTemplate、MyBatis、MyBatis-Plus)</a></li>
-  <li><a href="#/07-分布式架构&微服务架构/01-SpringBoot/08-Spring-Boot-Admin">Spring Boot Admin 监控工具</a></li>
+  <li><a href="#/07-分布式架构&微服务架构/01-SpringBoot/08-Spring-Boot-Actuator">Spring Boot Actuator 应用运行状态监控与 Spring Boot Admin 监控工具</a></li>
   <li><a href="#/07-分布式架构&微服务架构/01-SpringBoot/09-Spring-Boot-Redis">Spring Boot 整合 Redis</a></li>
   <li><a href="#/07-分布式架构&微服务架构/01-SpringBoot/10-Spring-Boot-MongoDB">Spring Boot 整合 MongoDB</a></li>
   <li><a href="#/07-分布式架构&微服务架构/01-SpringBoot/11-Spring-Boot-Elasticsearch">Spring Boot 整合 Elasticsearch</a></li>
@@ -299,13 +299,6 @@
   <li><a href="#/07-分布式架构&微服务架构/01-SpringBoot/16-Spring-Boot-Messaging">Spring Boot 消息系统</a></li>
   <li><a href="#/07-分布式架构&微服务架构/01-SpringBoot/99-SpringBoot笔记-其他相关内容">Spring Boot 笔记-其他相关内容</a></li>
 </ul>
-
-
-
-
-
-
-
 
 ### ⛅ SpringCloud
 
@@ -353,12 +346,13 @@
 ### 📬 分布式消息中件间
 
 <ul class="docs">
-  <li><a href="#/07-分布式架构&微服务架构/07-分布式消息中件间/01-消息中件间">消息中间件概述</a></li>
+  <li><a href="#/07-分布式架构&微服务架构/07-分布式消息中件间/01-消息中间件">消息中间件概述</a></li>
   <li><a href="#/07-分布式架构&微服务架构/07-分布式消息中件间/02-ActiveMQ">ActiveMQ</a></li>
   <li><a href="#/07-分布式架构&微服务架构/07-分布式消息中件间/03-RabbitMQ">RabbitMQ</a></li>
   <li><a href="#/07-分布式架构&微服务架构/07-分布式消息中件间/04-RocketMQ">RocketMQ</a></li>
   <li><a href="#/07-分布式架构&微服务架构/07-分布式消息中件间/05-Kafka">Kafka</a></li>
 </ul>
+
 
 
 ### 🧾 分布式配置中心

@@ -4,7 +4,7 @@ Spring Boot 为集成消息系统提供了广泛的支持，从使用 JmsTemplat
 
 ## 1. Java处理消息的标准规范概述
 
-> 此部分内容详见[《消息中间件》笔记](/07-分布式架构&微服务架构/07-分布式消息中件间/01-消息中件间)
+> 此部分内容详见[《消息中间件》笔记](/07-分布式架构&微服务架构/07-分布式消息中件间/01-消息中间件)
 
 ## 2. Spring Boot 整合 ActiveMQ
 
@@ -622,15 +622,85 @@ public class MessageListener implements RocketMQListener<String> {
 
 > 本章节主要是 Spring Boot 整合 Kafka，关于 Kafka 更多介绍与使用详见[《Kafka》笔记](/07-分布式架构&微服务架构/07-分布式消息中件间/05-Kafka)
 
-### 4.1. 环境准备
+### 5.1. 环境准备
 
-RocketMQ 的下载、安装、启动服务等参考《RocketMQ》笔记。
+Kafka 的下载、安装、启动服务等参考《Kafka》笔记。
 
-### 4.2. 基础整合示例
+### 5.2. 基础整合示例
 
+#### 5.2.1. 基础示例工程准备
 
+> 直接使用前面示例工程代码（移除相关发送消息与监听消息的代码、与相关依赖）
 
+#### 5.2.2. 引入 Kafka 依赖
 
+在项目的 pom.xml 文件中引入 Spring Boot 整合 Kafka 的依赖，名称不是以 starter 命名，Spring Boot 父工程已进行版本管理，无需指定版本。
 
+```xml
+<dependency>
+    <groupId>org.springframework.kafka</groupId>
+    <artifactId>spring-kafka</artifactId>
+</dependency>
+```
 
+#### 5.2.3. 配置 Kafka
 
+修改 application.yml 文件，配置 Kafka 的服务器地址
+
+```yml
+spring:
+  kafka: # kafka 配置
+    bootstrap-servers: localhost:9092 # 服务地址
+    consumer:
+      group-id: order # 设置默认的生产者/消费者所属组 id
+```
+
+#### 5.2.4. 消息生产者
+
+在发送的消息的业务接口 `MessageServiceImpl` 中，使用 `KafkaTemplate` 操作对象向 Kafka 发送消息。
+
+```java
+@Service
+public class MessageServiceImpl implements MessageService {
+
+    @Autowired
+    private KafkaTemplate<String, String> kafkaTemplate;
+
+    @Override
+    public void sendMessage(String id) {
+        System.out.println("接收到 id：" + id + " 的订单，准备给用户发送短信通知...");
+        /*
+         * 调用 JmsMessagingTemplate.send(String topic, @Nullable V data) 方法，向 Kafka 服务发送消息
+         *      topic 参数：消息发往的主题名称
+         *      data 参数：发送的消息体内容
+         */
+        kafkaTemplate.send("spring.kafka", id);
+    }
+}
+```
+
+#### 5.2.5. 消息消费者
+
+创建消息监听器 `MessageListener` 类，类中定义消费消息的方法，在该方法上标识 `@KafkaListener` 注解，通过 `topics` 属性设置当前方法监听 Kafka 服务中指定主题的消息队列。接收到的消息封装成对象 `ConsumerRecord<K, V>` 中，通过方法的形参获取，获取数据从 `ConsumerRecord` 对象中获取即可。在服务器启动后，监听指定主题，当有消息出现后，立即调用此消费方法。
+
+```java
+@Component
+public class MessageListener {
+
+    /*
+     * @KafkaListener 注解用于标识方法，通过 topics 属性指定监听的主题名称
+     * 当该主题的消息队列出现消息后，此方法就会被调用，方法形参为接收消息的内容
+     * 消息会包装在 ConsumerRecord<K, V> 对象
+     */
+    @KafkaListener(topics = "spring.kafka")
+    public void receive(ConsumerRecord<String, String> record) {
+        System.out.println("已完成短信发送业务，id：" + record.value());
+    }
+}
+```
+
+#### 5.2.6. 功能测试
+
+启动工程与 Kafka 服务，在浏览器访问 http://localhost/order/S1838323
+
+观察项目控制台日志输出，会输出相关消息相关的日志
