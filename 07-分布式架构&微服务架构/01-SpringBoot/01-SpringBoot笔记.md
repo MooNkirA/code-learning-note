@@ -1735,81 +1735,9 @@ public class MyApplicationRunner implements ApplicationRunner {
 - 如果项目中定义多个 `CommandLineRunner` 与 `ApplicationRunner` 接口的实现。那需要注意它们这些实现的调用顺序，以免发现不可预测的问题。另外，可以通过实现 `org.springframework.core.Ordered` 接口或使用 `org.springframework.core.annotation.Order` 注解来指定实现类调用的顺序。
 - `CommandLineRunner` 与 `ApplicationRunner` 接口的实现不需要到`META-INF/spring.plants`进行配置相关映射。
 
-## 8. Spring Boot 自动配置原理分析
+## 8. Spring Boot 视图
 
-Spring Boot框架是一个将整合框架的整合代码都写好了的框架。所以要知道它的工作原理才能够，找到各种整合框架可以配置的属性，以及属性对应的属性名。
-
-### 8.1. spring-boot-starter-parent 父工程依赖管理原理
-
-创建SpringBoot项目，继承了SpringBoot的父工程`spring-boot-starter-parent`后，查看工程的依赖关系，父工程依赖了`spring-boot-dependencies`工程，`spring-boot-denpendencies`的pom管理所有公共Starter依赖的版本，并且通过`<dependencyManagement>`标签实现jar版本管理
-
-因为继承父工程`spring-boot-starter-parent`后，可以根据需要，直接引用相应的starter即可，不需要配置版本号
-
-![](images/20201006095224766_3600.png)
-
-#### 8.1.1. starters的原理
-
-starters是依赖关系的整理和封装，是一套依赖坐标的整合。只要导入相关的starter即可该功能及其相关必需的依赖
-
-> 举例：JPA or Web开发，只需要导入 `spring-boot-starter-data-jpa` 或 `spring-boot-starter-web` 即可
-
-每个Starter包含了当前功能下的许多必备依赖坐标，这些依赖坐标是项目开发，上线和运行必须的。同时这些依赖也支持依赖传递。例如：`spring-boot-starter-web` 包含了所有web开发必须的依赖坐标
-
-![](images/20201006100215636_11014.png)
-
-**starter的命名规范**：
-
-- 官方的starter命名：`spring-boot-starter-*`
-- 非官方的starter命名：`thirdpartyproject-spring-boot-starter`
-
-官方提供的Starter详见官方文档：https://docs.spring.io/spring-boot/docs/2.3.3.RELEASE/reference/html/using-spring-boot.html#using-boot-starter
-
-### 8.2. 自动配置信息位置说明
-
-每个Starter基本都会有自动配置`AutoConfiguration`，`AutoConfiguration`的jar包定义了约定的默认配置信息。SpringBoot采用约定大于配置设计思想。
-
-- SpringBoot的`spring-boot-autoconfigure-x.x.x.RELEASE.jar`中编写了所有内置支持的框架的相关的默认配置
-    - `additional-spring-configuration-metadata.json`：默认配置
-    - `spring.factories`：定义了自动配置相关的处理类的映射关系。在项目启动的时候会将相关映射的处理类加载到spring容器中
-
-![](images/20201006141108089_25191.png)
-
-![](images/20201006143251521_21845.png)
-
-- 所有支持的框架根据功能类型来划分包，每个包都有一个`XxxAutoConfiguration`配置类，都是一个基于纯注解的配置类，是各种框架整合的代码。如图所示：
-
-![](images/20201006145254228_20074.png)
-
-- 如果配置的框架有默认的配置参数，都放在一个命名为`XxxProperties`的属性类，如图所示：
-
-![](images/20201006145402145_17341.png)
-
-- 通过项目的resources下的`application.properties`或`application.yml`文件可以修改每个整合框架的默认属性，从而实现了快速整合的目的。
-
-![](images/20201006150503441_32641.png)
-
-### 8.3. 配置流程说明
-
-- 第一步：配置一个内置整合框架的参数，先到`spring-boot-autoconfigure-x.x.x.RELEASE.jar`找到对应的模块。
-- 第二步：如果该框架有可以配置的参数，那么对应的整合模块中一定有一个XxxProperties类，在里面可以找可以设置的参数。
-- 第三步：在resources源目录下的`application.properties`文件里面可以修改XxxProperties类中默认的参数。
-
-![配置流程说明](images/_配置流程说明_1537025667_9599.jpg)
-
-### 8.4. 自动配置流程分析
-
-查看启动类注解`@SpringBootApplication`，可以跟踪加载的步骤
-
-1. 需要标识`@EnableAutoConfiguration`注解
-2. 该注解会使用`@Import(AutoConfigurationImportSelector.class)`注解引入自动配置处理类
-3. 自动配置会读取`spring-boot-autoconfigure-x.x.x.RELEASE.jar`包下的`spring.factories`文件，获取需要加载的处理类
-4. 比如内置web容器的处理类`EmbeddedWebServerFactoryCustomizerAutoConfiguration`，类上引入`@EnableConfigurationProperties({ServerProperties.class})`注解，用于加载默认配置类的参数
-
-![](images/20201006152054124_172.png)
-
-## 9. Spring Boot 视图
-
-### 9.1. 静态资源html视图
+### 8.1. 静态资源html视图
 
 - SpringBoot默认有四个静态资源文件夹：
   - classpath:/static/
@@ -1874,7 +1802,7 @@ public class HelloController {
 }
 ```
 
-### 9.2. Jsp视图(不推荐)
+### 8.2. Jsp视图(不推荐)
 - 第一步：创建Maven项目(war包)
 - 第二步：配置依赖
 
@@ -1992,13 +1920,13 @@ public class Application {
 
 访问地址：http://localhost:8080/item
 
-### 9.3. FreeMarker视图
+### 8.3. FreeMarker视图
 
 详见Spring Boot整合FreeMarker部分。
 
-## 10. Spring Boot 异常处理
+## 9. Spring Boot 异常处理
 
-### 10.1. Spring MVC no handler 异常处理
+### 9.1. Spring MVC no handler 异常处理
 
 当请求不存在时，Spring MVC 在处理 404 异常时，会自动返回如下内容：
 
@@ -2099,7 +2027,7 @@ server.contextPath=/boot
 
 #### 1.3.2. 使用插件打包与无插件打包的区别
 
-下面分别比较一下使用插件和不使用插件打包后的jar包有什么区别。观察两种打包后的程序包的差别，共有3处比较明显的特征：
+下面分别比较一下使用插件和不使用插件打包后的 jar 包有什么区别。观察两种打包后的程序包的差别，共有3处比较明显的特征：
 
 - 打包后文件的大小不同
 
@@ -2109,13 +2037,13 @@ server.contextPath=/boot
 
 ![](images/20220113155746207_4695.png)
 
-发现内容也完全不一样，仅有一个叫做META-INF目录是一样的。打开容量大的程序包中的BOOT-INF目录下的classes目录，可以发现其中的内容居然和容量小的程序包中的内容完全一样。其中lib目录下有很jar文件
+发现内容也完全不一样，仅有一个叫做 META-INF 目录是一样的。打开容量大的程序包中的 BOOT-INF 目录下的 classes 目录，可以发现其中的内容居然和容量小的程序包中的内容完全一样。其中 lib 目录下有很 jar 文件
 
 ![](images/20220113160050860_17092.png)
 
 ![](images/20220113160148464_23741.png)
 
-这些jar文件都是此 Spring Boot 工程时导入的坐标对应的文件，甚至还有 tomcat。这种包含有 jar 包的 jar 包，称之为fatJAR(胖jar包)。SpringBoot 程序为了让自己打包生成的jar包可以独立运行，不仅将项目中开发的内容进行了打包，还把当前工程运行需要使用的jar包全部打包进来了，所以不依赖程序包外部的任何资源，直接通过 `java –jar` 命令即可以独立运行当前程序。
+这些 jar 文件都是此 Spring Boot 工程时导入的坐标对应的文件，甚至还有 tomcat。这种包含有 jar 包的 jar 包，称之为fatJAR(胖jar包)。SpringBoot 程序为了让自己打包生成的 jar 包可以独立运行，不仅将项目中开发的内容进行了打包，还把当前工程运行需要使用的 jar 包全部打包进来了，所以不依赖程序包外部的任何资源，直接通过 `java –jar` 命令即可以独立运行当前程序。
 
 - META-INF 目录下的 MANIFEST.MF 文件内容不一样
 
@@ -2144,7 +2072,7 @@ Created-By: Maven Jar Plugin 3.2.0
 Main-Class: org.springframework.boot.loader.JarLauncher
 ```
 
-大jar包中明显比小jar包中多了几行信息，其中最后一行信息是 `Main-Class: org.springframework.boot.loader.JarLauncher`。如果使用 `java -jar` 执行此程序包，将执行 `Main-Class` 属性配置的类，这个类就是上面所提及的 `JarLauncher.class`。原来 SpringBoot 打包程序中出现 Spring 框架的东西是为这里服务的。而这个 `org.springframework.boot.loader.JarLauncher` 类内部要查找 `Start-Class` 属性中配置的类，并执行对应的类。这个属性在当前配置中也存在，对应的就是 Spring Boot 项目中的引导类类名。
+大 jar 包中明显比小 jar 包中多了几行信息，其中最后一行信息是 `Main-Class: org.springframework.boot.loader.JarLauncher`。如果使用 `java -jar` 执行此程序包，将执行 `Main-Class` 属性配置的类，这个类就是上面所提及的 `JarLauncher.class`。原来 SpringBoot 打包程序中出现 Spring 框架的东西是为这里服务的。而这个 `org.springframework.boot.loader.JarLauncher` 类内部要查找 `Start-Class` 属性中配置的类，并执行对应的类。这个属性在当前配置中也存在，对应的就是 Spring Boot 项目中的引导类类名。
 
 #### 1.3.3. jar 运行流程梳理与问题解析
 
@@ -2342,7 +2270,7 @@ public class Application {
 }
 ```
 
-通过上面示例可知，命令行参数是通过main方法的形参，再从 run 方法的形参中传递到 Spring Boot 程序的。
+通过上面示例可知，命令行参数是通过 `main` 方法的形参，再从 `run` 方法的形参中传递到 Spring Boot 程序的。
 
 ## 4. 属性加载优先级
 
@@ -2351,35 +2279,27 @@ public class Application {
 Spring Boot uses a very particular `PropertySource` order that is designed to allow sensible overriding of values. Properties are considered in the following order (with values from lower items overriding earlier ones):
 
 1. Default properties (specified by setting `SpringApplication.setDefaultProperties`).
-    
     > 应用默认属性，使用 `SpringApplication.setDefaultProperties` 定义的内容
 2. `@PropertySource` annotations on your `@Configuration` classes. Please note that such property sources are not added to the `Environment` until the application context is being refreshed. This is too late to configure certain properties such as `logging.*` and `spring.main.*` which are read before refresh begins.
-    
     > 在 `@Configuration` 注解修改的类中，通过 `@PropertySource` 注解定义的属性
 3. Config data (such as `application.properties` files).
-    > - 位于当前应用jar包之外，针对不同`{profile}`环境的配置文件内容，例如`application-{profile}.properties`或是YAML定义的配置文件
-    > - 位于当前应用jar包之内，针对不同`{profile}`环境的配置文件内容，例如`application-{profile}.properties`或是YAML定义的配置文件
-    > - 位于当前应用jar包之外的application.properties和YAML配置内容
-    > - 位于当前应用jar包之内的application.properties和YAML配置内容
+    > - 位于当前应用 jar 包之外，针对不同`{profile}`环境的配置文件内容，例如`application-{profile}.properties`或是 YAML 定义的配置文件
+    > - 位于当前应用 jar 包之内，针对不同`{profile}`环境的配置文件内容，例如`application-{profile}.properties`或是 YAML 定义的配置文件
+    > - 位于当前应用 jar 包之外的 application.properties 和 YAML 配置内容
+    > - 位于当前应用 jar 包之内的 application.properties 和 YAML 配置内容
 4. A `RandomValuePropertySource` that has properties only in `random.*`.
-    
     > 通过`random.*`配置的随机属性
 5. OS environment variables.
-    
     > 操作系统的环境变量
 6. Java System properties (`System.getProperties()`).
-    
     > Java的系统属性，可以通过`System.getProperties()`获得的内容
 7. JNDI attributes from `java:comp/env`.
-    
     > `java:comp/env` 中的JNDI属性
 8. `ServletContext` init parameters.
 9. `ServletConfig` init parameters.
 10. Properties from `SPRING_APPLICATION_JSON` (inline JSON embedded in an environment variable or system property).
-    
     > SPRING_APPLICATION_JSON 中的属性。SPRING_APPLICATION_JSON 是以 JSON 的格式配置在系统环境变量中的内容
 11. Command line arguments.
-    
     > 在命令行中传入的参数
 12. `properties` attribute on your tests. Available on `@SpringBootTest`  and the test annotations for testing a particular slice of your application.
 13. `@TestPropertySource` annotations on your tests.

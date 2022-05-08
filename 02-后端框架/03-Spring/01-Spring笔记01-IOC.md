@@ -1,6 +1,175 @@
-# Spring IOC
+# Spring
 
-## 1. IOC（控制反转）
+> - Spring 官网：https://spring.io/
+> - Spring 框架：https://spring.io/projects/spring-framework
+
+~~jar 包下载地址：repo.springsource.org/libs-release-local/org/springframework/spring/~~
+
+## 1. 工厂模式
+
+### 1.1. 程序的耦合与解耦
+
+以往在三层架构中，都使用 `new` 关键字来创建层与层之间的关系。`new` 关系字有很强的耦合性问题。以后在三层架构中创建依赖关系时不使用 `new` 对象。
+
+实际开发中，理想状态应该是：<font color=red>**在编译时不依赖，在运行时才依赖**</font>
+
+原来获取对象都是使得 `new` 方式，是主动；使用工厂为查找或者创建对象，是被动；这种被动接收方式获取对象的思想就是控制反转，是 spring 框架核心之一。它的作用只有一个：削减计算机程序的耦合。
+
+### 1.2. 使用工厂模式解耦
+
+使用工厂模式，是通过反射来解决耦合性的问题。工厂模式的特点：方法返回类型都是 `Object`，调用时按需进行强转。一般将一些参数写到配置文件中：xml和Properties
+
+选择 xml 类型原因是其能够描述类的层级关系
+
+### 1.3. 工厂模式创建对象示例
+
+- 创建实例工厂类，解析 xml 配置，根据配置值通过反射来创建对象实例，并存储到工厂类中一个 `Map` 类型容器中。
+
+```java
+public class BeanFactory {
+	// 通过一个全局变量接收解析后的xml信息,使用map取值比较方便
+	private static Map<String, Object> beans = new HashMap<String, Object>();
+
+	// 使用静态代码块在，在创建类的时候读取xml配置文件
+	static {
+		// 获取dom4j的SAXReader对象
+		SAXReader sax = new SAXReader();
+		try {
+			// 获取Document对象
+			Document document = sax.read(BeanFactory.class.getResourceAsStream("/mySpring.xml"));
+			// 获取根标签
+			Element root = document.getRootElement();
+			// 获取子标签的集合
+			List<Element> elements = root.elements();
+			// 遍历集合
+			for (Element e : elements) {
+				String id = e.attributeValue("id");
+				String className = e.attributeValue("class");
+				// 使用反射创建对象
+				Object bean = Class.forName(className).newInstance();
+				// 将id和对象放到全局变量map集合中
+				beans.put(id, bean);
+			}
+			System.out.println(beans);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	/**
+	 * 获取反射创建的对象
+	 */
+	public static Object getBean(String id) {
+		return beans.get(id);
+	}
+}
+```
+
+- 创建 xml 配置文件，配置待实例化的类全限定名称
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<beans>
+	<!-- 注意解析的顺序 -->
+	<bean id="userDao" class="com.moonzero.dao.impl.UserDaoImpl"></bean>
+	<bean id="userService" class="com.moonzero.service.impl.UserServiceImpl"></bean>
+</beans>
+```
+
+- 创建示例业务层与持久层实现，通过对象工厂类获取相应的实例
+
+```java
+// =====模拟三层架构=====
+public class FactoryTest {
+	public static void main(String[] args) {
+		// 获取业务逻辑层对象
+		IUserService us = (IUserService) BeanFactory.getBean("userService");
+		// 调用业务层方法
+		us.add("工厂模式解耦~~");
+	}
+}
+
+public class UserServiceImpl implements IUserService {
+	// 获取数据访问层对象
+	private IUserDao dao = (IUserDao) BeanFactory.getBean("userDao");
+	@Override
+	public void add(String name) {
+		// 调用数据访问层方法
+		dao.add(name);
+	}
+
+}
+
+public class UserDaoImpl implements IUserDao {
+	@Override
+	public void add(String name) {
+		System.out.println(name + "===被执行了。");
+	}
+}
+```
+
+#### 1.3.1. 示例编写时注意问题
+
+在编写代码时，出现的错误。具体错误描述：创建一个工厂类去读取自己写的xml配置文件，在view层使用工厂类创建service层对象时，可以创建。但service层使用工厂类获取dao层的对象时却是null
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<beans>
+	<bean id="userDao" class="com.moonzero.dao.impl.UserDaoImpl"></bean>
+	<bean id="userService" class="com.moonzero.service.impl.UserServiceImpl"></bean>
+</beans>
+```
+
+错误原因分析：当时配置文件顺序错误。
+
+当测试层调用工具类创建 service 层对象时，工厂类开始读取 xml 文件，但当时 xml 文本顺序是 service 标签在 dao 标签上面，<font color=red>xml 的解析是有层级关系的。但 xml 解析第一行时，userService 标签已经读取了，程序就开始创建 userService 对象，创建 service 层对象的同时，也开始创建 dao 层对象，但现在 xml 只是解析第一行，map 集合中没有 userDao 标签的类全名，所有此时 userDao 无法创建，对象为 null。</font>
+
+当 xml 继续解析，但 dao 层对象已经创建，所以在后台使用 debug 查看解析 xml 后的 map 集合是有数据，但 userDao 对象却是 null
+
+所以需要<font color=red>将 userDao 标签放到上面，才确保创建 userService 层时，xml 全部解析完。因为如果工厂类没有读取到 map 集合有对应的 id 时，是不会去创建对象的。</font>
+
+## 2. Spring 概述
+
+Spring 是一个开放源代码的设计层面框架
+
+Spring 是分层的 Java SE/EE 应用 full-stack 轻量级开源框架，<font color=red>**以 IoC（Inverse Of Control：反转控制）和 AOP（Aspect Oriented Programming：面向切面编程）为内核**</font>，提供了展现层 SpringMVC 和持久层 Spring JDBC 以及业务层事务管理等众多的企业级应用技术，还能整合开源世界众多著名的第三方框架和类库，逐渐成为使用最多的 Java EE 企业应用开源框架。
+
+spring 是一站式框架
+
+- Spring 在 javaee 三层结构中，每一层都提供不同的解决技术
+- web 层：springMVC
+- service 层：spring 的 ioc
+- dao 层：spring 的 jdbcTemplate
+
+### 2.1. Spring 核心部分
+
+Spring 核心主要分成两部分：
+
+- **控制反转（IOC）** - 将对象的创建交给 Spring，通过使用配置等方式创建类对象，Spring 通过一种称作控制反转（IoC）的技术促进了低耦合。当应用了 IoC，一个对象依赖的其它对象会通过被动的方式传递进来，而不是这个对象自己创建或者查找依赖对象。可以认为IoC与JNDI相反，不是对象从容器中查找依赖，而是容器在对象初始化时不等对象请求就主动将依赖传递给它。
+- **面向切面编程（AOP）** - Spring 提供了面向切面编程的丰富支持，可以不通过修改源代码来实现扩展功能，允许通过分离应用的业务逻辑与系统级服务（例如审计（auditing）和事务（transaction）管理）进行内聚性的开发。应用对象只实现它们应该做的“完成业务逻辑”仅此而已。它们并不负责（甚至是意识）其它的系统级关注点，例如日志或事务支持。
+
+### 2.2. Spring 容器高层视图
+
+Spring 启动时读取应用程序提供的 Bean 配置信息，并在 Spring 容器中生成一份相应的 Bean 配置注册表，然后根据这张注册表实例化 Bean，装配好 Bean 之间的依赖关系，为上层应用提供准备就绪的运行环境。其中 Bean 缓存池为 `HashMap` 实现
+
+![](images/418180516236231.jpg)
+
+### 2.3. Spring 运行环境要求
+
+Minimum requirements
+
+- JDK 8+ for Spring Framework 5.x
+- JDK 6+ for Spring Framework 4.x
+- JDK 5+ for Spring Framework 3.x
+
+# Spring IOC（控制反转）
+
+## 1. Spring Bean 的加载方式
+
+### 1.1. xml 配置文件的 `<bean />` 标签
+
+
+
 
 ## 2. Spring bean 的作用范围和生命周期
 
@@ -17,7 +186,7 @@
 
 - **多例对象：`scope="prototype"`**
 
-一般使用在管理struts2/Spring MVC中的action/controller的创建
+一般使用在管理 struts2/Spring MVC 中的 action/controller 的创建
 
 每次访问对象时，都会重新创建对象实例。每次通过 Spring 容器获取 prototype 定义的 bean 时，容器都将创建一个新的 Bean 实例，每个 Bean 实例都有自己的属性和状态。根据经验，对有状态的bean使用prototype作用域，而对无状态的bean使用singleton 作用域。
 
@@ -55,8 +224,7 @@ Bean对象在 spring 框架的上下文中的生命周期图（网络资料）
     - 注：以上工作完成以后就可以应用这个 Bean 了，那这个 Bean 是一个 Singleton 的，所以一般情况下我们调用同一个 id 的 Bean 会是在内容地址相同的实例，当然在 Spring 配置文件中也可以配置非 Singleton。
 9. Destroy 过期自动清理阶段：当 Bean 不再需要时，会经过清理阶段，如果 Bean 实现了 DisposableBean 这个接口，会调用那个其实现的 destroy()方法；
 10. destroy-method 自配置清理：最后，如果这个 Bean 的 Spring 配置中配置了 destroy-method 属性，会自动调用其配置的销毁方法
-11. bean 标签有两个重要的属性（init-method 和 destroy-method）。用它们你可以自己定制初始化和注销方法。它们也有相应的注解（@PostConstruct 和@PreDestroy）。
-    - `<bean id="" class="" init-method="初始化方法" destroy-method="销毁方法">`
+11. bean 标签有两个重要的属性（init-method 和 destroy-method）。`<bean id="" class="" init-method="初始化方法" destroy-method="销毁方法">`，用它们你可以自己定制初始化和注销方法。它们也有相应的注解（`@PostConstruct` 和 `@PreDestroy`）。
 
 ## 3. Bean的初始化和销毁方法
 
