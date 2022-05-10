@@ -35,7 +35,7 @@ mvn -Dmaven.test.skip=true clean install
 
 ## 3. Spring Boot 自动配置原理分析
 
-Spring Boot框架是一个将整合框架的整合代码都写好了的框架。所以要知道它的工作原理才能够，找到各种整合框架可以配置的属性，以及属性对应的属性名。
+Spring Boot 框架是一个将整合框架的整合代码都写好了的框架。所以要知道它的工作原理才能够，找到各种整合框架可以配置的属性，以及属性对应的属性名。
 
 ### 3.1. spring-boot-starter-parent 父工程依赖管理原理
 
@@ -64,7 +64,7 @@ starters 是依赖关系的整理和封装，是一套依赖坐标的整合。�
 
 ### 3.2. 自动配置信息位置说明
 
-每个Starter基本都会有自动配置`AutoConfiguration`，`AutoConfiguration`的jar包定义了约定的默认配置信息。SpringBoot采用约定大于配置设计思想。
+每个 Starter 基本都会有自动配置 `AutoConfiguration`，`AutoConfiguration` 的 jar 包定义了约定的默认配置信息。SpringBoot 采用约定大于配置设计思想。
 
 - SpringBoot的`spring-boot-autoconfigure-x.x.x.RELEASE.jar`中编写了所有内置支持的框架的相关的默认配置
     - `additional-spring-configuration-metadata.json`：默认配置

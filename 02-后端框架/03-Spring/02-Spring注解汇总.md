@@ -148,9 +148,9 @@ public static void main(String[] args) {
 
 #### 2.1.1. 作用
 
-它是在spring3.0版本之后加入的。此注解是Spring支持注解驱动开发的一个标志。表示当前类是Spring的一个配置类，作用是替代传统主Spring的`applicationContext.xml`配置文件。
+它是在 Spring 3.0 版本之后加入的。此注解是 Spring 支持注解驱动开发的一个标志。表示当前类是 Spring 的一个配置类，作用是替代传统主 Spring 的 applicationContext.xml 配置文件。
 
-从它的源码可以看出，其本质就是`@Component`注解，被此注解修饰的类，也会被存入spring的ioc容器。
+从它的源码可以看出，其本质就是 `@Component` 注解，被此注解修饰的类，也会被存入 spring 的 ioc 容器。
 
 #### 2.1.2. 相关属性
 
@@ -175,7 +175,7 @@ public class SpringConfiguration {
 }
 ```
 
-但是如果使用基础包扫描的构造函数创建`AnnotationConfigApplicationContext`，则配置类中的`@Configuration `注解则不能省略。
+但是如果使用基础包扫描的构造函数创建 `AnnotationConfigApplicationContext`，则配置类中的 `@Configuration` 注解则不能省略。
 
 ```java
 ApplicationContext context = new AnnotationConfigApplicationContext("com.moon.springsample");
@@ -1136,9 +1136,9 @@ public class SpringBeanTest {
 
 #### 2.4.2. 相关属性
 
-| 属性名  | 作用                                                         | 取值               |
-| :-----: | ------------------------------------------------------------ | ------------------ |
-| `value` | 用于导入其他配置类，其值类型为类的字节码。它支持指定多个配置类。 | `Class<?>`对象数组 |
+| 属性名  |                            作用                             |        取值        |
+| :-----: | ----------------------------------------------------------- | ------------------ |
+| `value` | 用于导入其他配置类，其值类型为类的字节码。它支持指定多个配置类 | `Class<?>`对象数组 |
 
 #### 2.4.3. 基础使用示例
 
@@ -1240,9 +1240,9 @@ public void getBeanDefinitionNamesTest() {
 
 > 扩展：
 >
-> 在SpringBoot中，类似`@EnableXXX`这样的注解，绝大多数都借助了`ImportSelector`或者`ImportBeanDefinitionRegistrar`来实现。例如：在spring中，`@EnableTransactionManagement`就是借助了ImportSelector，而`@EnableAspectJAutoProxy`就是借助了`ImportBeanDefinitionRegistrar`。
+> 在 SpringBoot 中，类似 `@EnableXXX` 这样的注解，绝大多数都借助了 `ImportSelector` 或者 `ImportBeanDefinitionRegistrar` 来实现。例如：在 spring 中，`@EnableTransactionManagement` 就是借助了 ImportSelector，而 `@EnableAspectJAutoProxy` 就是借助了 `ImportBeanDefinitionRegistrar`。
 >
-> 同理，如果开发一个自定义功能，可以使用这种方式，自定义一个注解，通过`@Import`注解导入相关`ImportSelector`或者`ImportBeanDefinitionRegistrar`实现，最后将项目打成jar包，再通过依赖的方式引入到相关工程，再使用自定义注解将相关的类导入到spring容器即可
+> 同理，如果开发一个自定义功能，可以使用这种方式，自定义一个注解，通过 `@Import` 注解导入相关 `ImportSelector` 或者 `ImportBeanDefinitionRegistrar` 实现，最后将项目打成 jar 包，再通过依赖的方式引入到相关工程，再使用自定义注解将相关的类导入到 spring 容器即可
 
 ##### 2.5.1.2. 共同点、区别、注意事项
 
@@ -2163,20 +2163,20 @@ public void lazyBasicTest() {
 
 #### 3.3.1. 作用与使用场景
 
-- **作用**：根据条件选择注入的bean对象。该注解可以作用在类、方法上
-- **使用场景**：在开发时，可能会使用多平台来测试，例如测试数据库分别部署到了linux和windows两个操作系统上面，现在根据工程运行环境来选择连接的数据库。此时就可以使用此注解。同时基于此注解引出的`@Profile`注解，就是根据不同的环境，加载不同的配置信息，*详情请参考后面章节的`@Profile`的使用*。
+- **作用**：根据条件选择注入的 bean 对象。该注解可以作用在类、方法上
+- **使用场景**：在开发时，可能会使用多平台来测试，例如测试数据库分别部署到了 linux 和 windows两 个操作系统上面，现在根据工程运行环境来选择连接的数据库。此时就可以使用此注解。同时基于此注解引出的`@Profile`注解，就是根据不同的环境，加载不同的配置信息，*详情请参考后面章节的 `@Profile` 的使用*。
 
 #### 3.3.2. 相关属性
 
-| 属性名  |                                       作用                                       | 取值 |
-| :-----: | -------------------------------------------------------------------------------- | ---- |
-| `value` | 提供一个或者多个Condition接口的实现类，实现类中需要编写具体代码实现注册到ioc容器的条件。 |      |
+| 属性名  |                                        作用                                         | 取值 |
+| :-----: | ---------------------------------------------------------------------------------- | ---- |
+| `value` | 提供一个或者多个Condition接口的实现类，实现类中需要编写具体代码实现注册到ioc容器的条件 |      |
 
 #### 3.3.3. 基础使用示例
 
 示例场景说明：本示例模拟在不同操作系统平台上，项目根据工程运行的环境来选择连接不同的数据库。
 
-##### 3.3.3.1. 不使用@Conditional注解前存在的问题
+##### 3.3.3.1. 不使用 @Conditional 注解前存在的问题
 
 - 创建两套配置文件
 
@@ -2275,11 +2275,11 @@ createLinuxDataSource()方法执行，Linux URL is: jdbc:mysql://localhost:3306/
 org.springframework.jdbc.datasource.DriverManagerDataSource@7ee955a8
 ```
 
-以上结果明显不符合项目的需求，当前`@Bean`注解存在方法重载时，spring的默认规则是以最后定义的方法的返回对象，注入到spring ioc容器中。需要使用`@Conditional`注解去控制加载哪个bean的到ioc容器中
+以上结果明显不符合项目的需求，当前`@Bean`注解存在方法重载时，spring 的默认规则是以最后定义的方法的返回对象，注入到 spring ioc 容器中。需要使用 `@Conditional` 注解去控制加载哪个 bean 到 ioc 容器中
 
-##### 3.3.3.2. 使用@Conditional注解改造程序
+##### 3.3.3.2. 使用 @Conditional 注解改造程序
 
-- 分别创建两套自定义注册条件类，需要实现Spring框架的`Condition`接口
+- 分别创建两套自定义注册条件类，需要实现 Spring 框架的`Condition`接口
 
 ```java
 /**
@@ -2399,9 +2399,9 @@ org.springframework.jdbc.datasource.DriverManagerDataSource@647fd8ce
 
 #### 3.4.1. 作用与使用场景
 
-`@Profile`注解是spring提供的一个用来标明当前运行环境的注解。正常开发的过程中经常分成多套环境的配置，开发环境是一套环境，测试是一套环境，线上部署又是一套环境。为了解决此的问题，一般会使用一种方法，就是针对不同的环境进行不同的配置，从而在不同的场景中正常运行程序。
+`@Profile` 注解是 spring 提供的一个用来标明当前运行环境的注解。正常开发的过程中经常分成多套环境的配置，开发环境是一套环境，测试是一套环境，线上部署又是一套环境。为了解决此的问题，一般会使用一种方法，就是针对不同的环境进行不同的配置，从而在不同的场景中正常运行程序。
 
-而spring中的`@Profile`注解的作用就体现在：在spring使用DI来注入的时候，能够根据当前制定的运行环境来注入相应的bean。最常见的就是使用不同的DataSource了。
+而 spring 中的 `@Profile` 注解的作用就体现在：在 spring 使用 DI 来注入的时候，能够根据当前制定的运行环境来注入相应的 bean。最常见的就是使用不同的 DataSource 了。
 
 #### 3.4.2. 基础使用示例
 
@@ -2570,11 +2570,11 @@ public class SpringProfileTest {
 
 #### 4.1.2. 相关属性
 
-| 属性名  |                                作用                                 | 取值 |
-| :-----: | ------------------------------------------------------------------ | ---- |
-| `value` | 用于指定存入容器时bean的ID。当不指定时，默认值为当前类的名称，首字母小写。 |      |
+| 属性名  |                                 作用                                  | 取值 |
+| :-----: | --------------------------------------------------------------------- | ---- |
+| `value` | 用于指定存入容器时bean的ID。当不指定时，默认值为当前类的名称，首字母小写 |      |
 
-#### 4.1.3. 基于@Component等注解综合使用示例
+#### 4.1.3. 基于 @Component 等注解综合使用示例
 
 综合示例代码详见：
 
@@ -2591,16 +2591,17 @@ public class SpringProfileTest {
 - **作用**：自动按照类型注入。当ioc容器中有且只有一个类型匹配时可以直接注入成功。
 - **使用场景**：通常情况下自己写的类中注入依赖bean对象时，都可以采用此注解。
 
-- 注意事项：
-    - 当`@Autowired`注解属性值`required`为true时，代表必须注入成功，如果当前IOC容器无可匹配的类型时，会报找到类型对象的错误
-    - 当`@Autowired`注解属性值`required`为false时，代表不必须注入成功，如果当前IOC容器无可匹配的类型时，不会报错，但对应标识此注解的变量为null
-    - 当IOC容器有超过一个匹配时，则使用变量名称（如写在方法上就是方法名称）作为bean的id，在符合类型的bean中再次匹配，能匹配上就可以注入成功。找不到匹配时根据`required`属性的取值决定是否报错
+注意事项：
+
+- 当 `@Autowired` 注解属性值 `required` 为 true 时，代表必须注入成功，如果当前 IOC 容器无可匹配的类型时，会报找到类型对象的错误
+- 当 `@Autowired` 注解属性值 `required` 为 false 时，代表不必须注入成功，如果当前 IOC 容器无可匹配的类型时，不会报错，但对应标识此注解的变量为 null
+- 当 IOC 容器有超过一个匹配时，则使用变量名称（如写在方法上就是方法名称）作为 bean 的 id，在符合类型的 bean 中再次匹配，能匹配上就可以注入成功。找不到匹配时根据 `required` 属性的取值决定是否报错
 
 #### 5.1.2. 相关属性
 
-|   属性名    |                                      作用                                      |    取值    |
-| :--------: | ----------------------------------------------------------------------------- | ---------- |
-| `required` | 是否必须注入成功。默认值是true，表示必须注入成功。当取值为true的时候，注入不成功会报错 | true/false |
+|   属性名    |                                 作用                                 |    取值    |
+| :--------: | -------------------------------------------------------------------- | ---------- |
+| `required` | 是否必须注入成功。默认值是 true，表示必须注入成功，如果注入不成功会报错 | true/false |
 
 #### 5.1.3. 基础使用示例
 

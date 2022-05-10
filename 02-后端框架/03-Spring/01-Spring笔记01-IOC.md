@@ -21,7 +21,9 @@
 
 选择 xml 类型原因是其能够描述类的层级关系
 
-### 1.3. 工厂模式创建对象示例
+### 1.3. 工厂模式创建对象
+
+#### 1.3.1. 示例代码
 
 - 创建实例工厂类，解析 xml 配置，根据配置值通过反射来创建对象实例，并存储到工厂类中一个 `Map` 类型容器中。
 
@@ -108,7 +110,7 @@ public class UserDaoImpl implements IUserDao {
 }
 ```
 
-#### 1.3.1. 示例编写时注意问题
+#### 1.3.2. 示例编写时注意问题
 
 在编写代码时，出现的错误。具体错误描述：创建一个工厂类去读取自己写的xml配置文件，在view层使用工厂类创建service层对象时，可以创建。但service层使用工厂类获取dao层的对象时却是null
 
@@ -162,18 +164,130 @@ Minimum requirements
 - JDK 6+ for Spring Framework 4.x
 - JDK 5+ for Spring Framework 3.x
 
+### 2.4. Spring 包结构
+
+Spring 系统的 lib 包中都是以基本 jar 包、文档、源代码三种结构存在，只需要导入基本包
+
+![](images/463053822220549.png)
+
+4个核心 jar 包分别是 Beans、Core、Context、ExpressionLanguage
+
+- spring-beans-x.x.x.RELEASE.jar
+- spring-context-x.x.x.RELEASE.jar
+- spring-core-x.x.x.RELEASE.jar
+- spring-expression-x.x.x.RELEASE.jar
+
+2 个支撑 jar 包
+
+- commons-logging-1.2.jar
+- dom4j-1.6.1.jar
+
+> <font color=red>**注：要使用 spring，其实只需要导入 spring-context-x.x.x.RELEASE 即可**</font>
+
 # Spring IOC（控制反转）
 
-## 1. Spring Bean 的加载方式
+## 1. IOC底层原理
 
-### 1.1. xml 配置文件的 `<bean />` 标签
+1. xml 配置文件（老旧）、注解
+2. dom4j 解决 xml（老旧）、解析注解
+3. 工厂设计模式
+4. 反射创建实例
+
+## 2. Spring Bean 的加载方式
+
+### 2.1. 方式1：基于 xml 配置的 `<bean>` 标签
+
+Spring 核心配置文件名称和位置不是固定的，只要名字不包含中文和空格即可。建议放到 src 根目录，官方建议：applicationContext.xml，也可以简单命名为 bean.xml
+
+#### 2.1.1. 引入 schema 约束
+
+**导入约束需要导入一个 `beans` 名称空间下的约束，因为是第 1 个约束，可以省略前缀**
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		xsi:schemaLocation="http://www.springframework.org/schema/beans
+				http://www.springframework.org/schema/beans/spring-beans.xsd">
+</beans>
+```
+
+引用的 `beans` 名称约束文件所在路径：spring-beans-x.x.x.jar\org\springframework\beans\factory\xml\spring-beans.dtd
+
+![](images/475965210220550.png)
+
+#### 2.1.2. 配置 `<bean>` 标签
+
+在配置文件中定义 `<bean />` 标签即可创建对象，其中核心属性如下：
+
+- `id` 属性：根据值来获取相应的类的对象
+- `class` 属性：需要创建类的类全名
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="
+        http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+        
+	<!-- 配置资源让 spring 来创建对象 -->
+	<bean id="foo" class="com.moon.entity.Foo"></bean>
+	
+</beans>
+```
+
+#### 2.1.3. 获取 bean 实例
+
+在测试用例中，使用实现类 `ClassPathXmlApplicationContext` 创建 spring 容器对象 `ApplicationContext`，读取 xml 文件，通过 `getBean(String id)` 方法获取配置的对象
+
+```java
+/**
+ * 测试spring配置xml文件创建对象
+ */
+public class BeanBasicTest {
+
+	@Test
+	public void test() {
+		// 创建spring容器ApplicationContext
+		ApplicationContext context = new ClassPathXmlApplicationContext("bean.xml");
+		// 根据bean的id获取对象
+		Foo foo = (Foo) context.getBean("foo");
+		System.out.println(foo);
+	}
+}
+```
+
+## 3. Spring 的依赖注入(DI) - 整理中
+
+### 3.1. 依赖注入的概念
+
+DI (dependcy injection)：依赖注入，Spring 框架核心 IOC 的具体实现方式。即让框架自动把对象传入，不需要使用者自动去获取。
+	
+依赖注入（DI）是一个过程，对象仅通过构造方法的形参、类属性、setter 方法来定义当前类依赖的其他对象。然后 Spring 容器在创建 Bean 时自动注入这些依赖关系的对象实例。这个过程本质是 Bean 本身调用构造方法创建实例时，会到 Spring 容器中查找其依赖的对象，找到的将其依赖的对象引用设置到当前实例化中的 Bean
+
+在 java 代码中属性注入（就是给对象的属性设置值），有三种方式：
+
+1. 使用 set 方法注入
+2. 使用有参构造注入
+3. 使用接口注入
+
+在 spring 框架中，只支持前两种方式
+
+1. set 方法注入
+2. 有参构造方法注入
+
+#### 3.1.1. IOC和DI区别
+
+- IOC：控制反转，把对象创建交给spring进行配置
+- DI：依赖注入，向类里面的属性中设置值
+
+IOC 和 DI 关系：依赖注入不能单独存在，需要在 IOC 基础之上完成操作
 
 
 
+## 4. Spring bean 的作用范围和生命周期
 
-## 2. Spring bean 的作用范围和生命周期
-
-### 2.1. Spring Bean 的作用范围
+### 4.1. Spring Bean 的作用范围
 
 - **单例对象：`scope="singleton"`**
 
@@ -207,7 +321,7 @@ Minimum requirements
 
 在一个全局的 Http Session 中，容器会返回该 Bean 的同一个实例，仅在使用 portlet context 时有效。
 
-### 2.2. Spring Bean 生命周期
+### 4.2. Spring Bean 生命周期
 
 Bean对象在 spring 框架的上下文中的生命周期图（网络资料）
 
@@ -226,13 +340,13 @@ Bean对象在 spring 框架的上下文中的生命周期图（网络资料）
 10. destroy-method 自配置清理：最后，如果这个 Bean 的 Spring 配置中配置了 destroy-method 属性，会自动调用其配置的销毁方法
 11. bean 标签有两个重要的属性（init-method 和 destroy-method）。`<bean id="" class="" init-method="初始化方法" destroy-method="销毁方法">`，用它们你可以自己定制初始化和注销方法。它们也有相应的注解（`@PostConstruct` 和 `@PreDestroy`）。
 
-## 3. Bean的初始化和销毁方法
+## 5. Bean的初始化和销毁方法
 
 在整个生命周期过程中，可以自定义Bean的初始化和销毁钩子函数，当Bean的生命周期到达相应的阶段的时候，Spring会调用自定义的Bean的初始化和销毁方法。自定义Bean初始化和销毁方法有多种方式
 
 参考代码详见：`spring-note\spring-analysis-note\spring-sample-annotation\19-annotation-lifecycle\`
 
-### 3.1. @Bean 注解方式实现
+### 5.1. @Bean 注解方式实现
 
 - 创建自定义Bean
 
@@ -312,7 +426,7 @@ com.moon.springsample.bean.CustomBean@2133814f
 
 > 分析：此情况在多例模式下，IOC容器启动的时候并不会去创建对象，而是在每次获取的时候才会去调用方法创建对象，创建完对象后再调用初始化方法。但在容器关闭后，Spring并没有调用相应的销毁方法，这是因为在多例模式下，容器不会管理这个组件（只负责在你需要的时候创建这个组件），所以容器在关闭的时候并不会调用相应的销毁方法。
 
-### 3.2. InitializingBean & DisposableBean 接口实现
+### 5.2. InitializingBean & DisposableBean 接口实现
 
 除了上面注解方式指定初始化和销毁方法外，Spring还提供了和初始化，销毁相对应的接口
 
@@ -375,7 +489,7 @@ com.moon.springsample.service.UserService@1df82230
 UserService实现DisposableBean接口实现销毁的destroy()方法执行了
 ```
 
-### 3.3. @PostConstruct & @PreDestroy 注解方式实现
+### 5.3. @PostConstruct & @PreDestroy 注解方式实现
 
 还可以使用`@PostConstruct`和`@PreDestroy`注解修饰方法来指定相应的初始化和销毁方法
 
@@ -446,7 +560,7 @@ LogUtil基于@PreDestroy注解销毁前的方法执行了...
 
 <font color=purple>*注：这两个注解并非Spring提供，而是JSR250规范提供*</font>
 
-### 3.4. BeanPostProcessor 接口实现
+### 5.4. BeanPostProcessor 接口实现
 
 Spring提供了一个`BeanPostProcessor`接口，俗称Bean后置通知处理器，它提供了两个方法`postProcessBeforeInitialization`和`postProcessAfterInitialization`。
 
