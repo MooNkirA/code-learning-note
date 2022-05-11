@@ -116,7 +116,7 @@ public class CheckApiApplication {
 
 Spring Boot 最最最核心的注解，用在 Spring Boot 主类上，标识这是一个 Spring Boot 应用，用来开启 Spring Boot 的各项能力
 
-实际上这个注解就是 `@SpringBootConfiguration`、`@EnableAutoConfiguration`、`@ComponentScan` 这三个注解的组合，也可以用这三个注解来代替 `@SpringBootApplication` 注解。由于这些注解一般都是一起使用，所以Spring Boot提供了一个统一的注解@SpringBootApplication。
+实际上这个注解就是 `@SpringBootConfiguration`、`@EnableAutoConfiguration`、`@ComponentScan` 这三个注解的组合，也可以用这三个注解来代替 `@SpringBootApplication` 注解。由于这些注解一般都是一起使用，所以 Spring Boot 提供了一个统一的注解 `@SpringBootApplication`
 
 ```java
 package com.moon.test;
@@ -349,7 +349,7 @@ enum Type {
 
 ### 4.7. @ConditionalOnProperty
 
-当指定的属性有指定的值时才开启配置。具体操作是通过其两个属性name以及havingValue来实现的，其中name用来从`application.properties`中读取某个属性值，如果该值为空，则返回false；如果值不为空，则将该值与havingValue指定的值进行比较，如果一样则返回true，否则返回false。如果返回值为false，则该configuration不生效；为true则生效。
+当指定的属性有指定的值时才开启配置。具体操作是通过其两个属性 `name` 以及 `havingValue` 来实现的，其中 `name` 用来从 `application.properties` 文件中读取某个属性值，如果该值为空，则返回 false；如果值不为空，则将该值与 `havingValue` 指定的值进行比较，如果一样则返回 true，否则返回 false。如果返回值为 false，则该 configuration 不生效；为 true 则生效。
 
 ```java
 // 匹配属性rocketmq.producer.enabled值是否为true，完全匹配后创建RocketMQProducer对象
