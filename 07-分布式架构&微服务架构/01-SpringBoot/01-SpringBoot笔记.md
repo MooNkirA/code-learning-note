@@ -2343,21 +2343,111 @@ public class SpringMvcConfig implements WebMvcConfigurer {
 }
 ```
 
-### 10.6. 最终效果测试
+- 步骤三：设置包扫描。值得注意的是，目前整个 starter 工程都没有设置包扫描，所以上面配置的 `@Configuration` 注解不会生效。因为自动配置类上标识 `@ComponentScan` 注解进行包扫描
 
-在web程序端导入对应的starter后功能开启，去掉坐标后功能消失，实现自定义starter的效果。
+```java
+@EnableScheduling // 开启 Spring Task 定时任务
+@Import({IpCountProperties.class})
+@ComponentScan("com.tool")
+public class IpCountAutoConfiguration {
+    ...
+}
+```
 
-到此当前案例全部完成，自定义stater的开发其实在第一轮开发中就已经完成了，就是创建独立模块导出独立功能，需要使用的位置导入对应的starter即可。如果是在企业中开发，记得不仅需要将开发完成的starter模块install到自己的本地仓库中，开发完毕后还要deploy到私服上，否则别人就无法使用了。
+> 使用拦截器实现统计后，可以移除上面测试中硬编码调用统计业务功能接口的代码
 
+### 10.6. 功能优化 - 开启 yml/properties 配置文件提示功能
 
+#### 10.6.1. 提示信息功能配置
 
+在 Spring Boot 配置属性时，IDE 都会出现配置相关提示，Spring Boot 提供有专用的工具实现配置提示的功能，仅需要导入下列坐标。
 
+```xml
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-configuration-processor</artifactId>
+    <optional>true</optional>
+</dependency>
+```
 
+程序重新编译后，在 META-INF 目录中会生成对应的提示文件，然后拷贝生成出的文件到工程源码的 META-INF 目录中，并对其进行编辑。
 
+![](images/333234021220552.png)
 
+打开生成的文件，可以看到如下信息。
 
+```json
+{
+  "groups": [
+    {
+      "name": "tools.ip",
+      "type": "com.tool.autoconfigure.IpCountProperties",
+      "sourceType": "com.tool.autoconfigure.IpCountProperties"
+    }
+  ],
+  "properties": [
+    {
+      "name": "tools.ip.cycle",
+      "type": "java.lang.Long",
+      "description": "日志显示周期",
+      "sourceType": "com.tool.autoconfigure.IpCountProperties"
+    },
+    {
+      "name": "tools.ip.cycle-reset",
+      "type": "java.lang.Boolean",
+      "description": "是否周期内重置数据",
+      "sourceType": "com.tool.autoconfigure.IpCountProperties"
+    },
+    {
+      "name": "tools.ip.model",
+      "type": "java.lang.String",
+      "description": "日志输出模式  detail：详细模式  simple：极简模式",
+      "sourceType": "com.tool.autoconfigure.IpCountProperties"
+    }
+  ],
+  "hints": [
+    {
+      "name": "tools.ip.model",
+      "values": [
+        {
+          "value": "detail",
+          "description": "详细模式."
+        },
+        {
+          "value": "simple",
+          "description": "极简模式."
+        }
+      ]
+    }
+  ]
+}
+```
 
+- `groups` 属性定义了当前配置的提示信息总体描述，当前配置属于哪一个属性封装类
+- `properties` 属性描述了当前配置中每一个属性的具体设置，包含名称、类型、描述、默认值等信息。<font color=red>**注意：这些提示信息都是来自配置属性类中的文档注释**</font>
+- `hints` 属性默认是空白的，用于设置指定属性，取值的提示信息。（可以参考 Spring Boot 源码中的写法，上面是）
 
+配置信息提示：
+
+![](images/189434921226845.png)
+
+`model` 属性的取值提示：
+
+![](images/262564921247011.png)
+
+#### 10.6.2. 注意问题
+
+上述配置完成后，会出现提示信息重复的问题：
+
+![](images/255485421239680.png)
+
+这是因为打包时也生成一个 `spring-configuration-metadata.json` 文件，只需要打包发布是移除 `spring-boot-configuration-processor` 依赖即可。
+
+### 10.7. 最终效果测试
+
+在 web 程序端导入自定义 starter 后功能开启，去掉坐标后功能消失。
+
+自定义 stater 的开发其实就是创建独立模块，导出独立功能，在需要使用的工程中导入对应的 starter 即可。如果是在企业中开发，记得不仅需要将开发完成的 starter 模块 `install` 到本地仓库中，开发完毕后还要 `deploy` 到私服上，否则别人就无法使用了。
 
 # Spring Boot 项目部署运维篇
 

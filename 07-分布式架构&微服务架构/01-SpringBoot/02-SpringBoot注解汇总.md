@@ -153,7 +153,7 @@ public class SpringBootApplicationDemo {
 
 > 如：当前类路径下有 Mybatis 这个 JAR 包，MybatisAutoConfiguration 注解就能根据相关参数来配置 Mybatis 的各个 Spring Bean。
 
-`@EnableAutoConfiguration` 实现的关键在于引入了AutoConfigurationImportSelector，其核心逻辑为selectImports方法，逻辑大致如下：
+`@EnableAutoConfiguration` 实现的关键在于引入了 `AutoConfigurationImportSelector`，其核心逻辑为 `selectImports` 方法，逻辑大致如下：
 
 - 从配置文件`META-INF/spring.factories`加载所有可能用到的自动配置类；
 - 去重，并将 exclude 和 excludeName 属性携带的类排除；
