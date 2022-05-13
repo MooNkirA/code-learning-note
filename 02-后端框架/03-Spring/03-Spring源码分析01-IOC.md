@@ -849,9 +849,9 @@ parsePropertyElements(ele, bd);
 
 ## 6. Spring 框架中的 BeanFactory
 
-BeanFactory是一个接口，Spring框架中，所有对Bean相关操作，都可以在BeanFactory里实现
+`BeanFactory` 是一个接口，Spring 框架中，所有对 Bean 相关操作，都可以在 `BeanFactory` 里实现
 
-### 6.1. BeanFactory类视图
+### 6.1. BeanFactory 类视图
 
 ![](images/20200903095250647_20309.png)
 
@@ -867,7 +867,7 @@ BeanFactory 中定义的各种方法其中将近一半是获取 bean 对象的�
 public interface HierarchicalBeanFactory extends BeanFactory
 ```
 
-HierarchicalBeanFactory（译为中文是“分层的”），它相对于 BeanFactory 而言，增加了对父 BeanFactory 的获取，子容器可以通过接口方法访问父容器，让容器的设计具备了层次性。
+`HierarchicalBeanFactory`（译为中文是“分层的”），它相对于 `BeanFactory` 而言，增加了对父 `BeanFactory` 的获取，子容器可以通过接口方法访问父容器，让容器的设计具备了层次性。
 
 这种层次性增强了容器的扩展性和灵活性，可以通过编程的方式为一个已有的容器添加一个或多个子容器，从而实现一些特殊功能。
 
@@ -915,7 +915,7 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 
 `DefaultListableBeanFactory` 是一个非常重要的类，它包含了 IOC 容器所应该具备的重要功能，是容器完整功能的一个基本实现。
 
-其中 `XmlBeanFactory`(已过时)是一个典型的由该类派生出来的 Factory 类，并且只是增加了加载 XML 配置资源的逻辑，而容器相关的特性则全部由 `DefaultListableBeanFactory` 来实现。
+其中 `XmlBeanFactory`(已过时)是一个典型的由该类派生出来的 `Factory` 类，并且只是增加了加载 XML 配置资源的逻辑，而容器相关的特性则全部由 `DefaultListableBeanFactory` 来实现。
 
 ```java
 @Deprecated
@@ -932,7 +932,7 @@ public interface ApplicationContext extends EnvironmentCapable, ListableBeanFact
 		MessageSource, ApplicationEventPublisher, ResourcePatternResolver
 ```
 
-`ApplicationContext` 是 Spring 为开发者提供的高级容器形式，也是初始化 Spring 容器的常用方式，实际上也是一个BeanFactory，除了简单容器所具备的功能（*即继承了ListableBeanFactory, HierarchicalBeanFactory接口*）外，`ApplicationContext` 还提供了许多额外功能，这些额外的功能主要包括：
+`ApplicationContext` 是 Spring 为开发者提供的高级容器形式，也是初始化 Spring 容器的常用方式，实际上也是一个 `BeanFactory`，除了简单容器所具备的功能（*即继承了 `ListableBeanFactory`, `HierarchicalBeanFactory` 接口*）外，`ApplicationContext` 还提供了许多额外功能，这些额外的功能主要包括：
 
 - 国际化支持：`ApplicationContext` 实现了 `org.springframework.context.MessageSource` 接口，该接口为容器提供国际化消息访问功能，支持具备多语言版本需求的应用开发，并提供了多种实现来简化国际化资源文件的装载和获取。
 - 发布应用上下文事件：`ApplicationContext` 实现了 `org.springframework.context.ApplicationEventPublisher` 接口，该接口让容器拥有发布应用上下文事件的功能，包括容器启动、关闭事件等，如果一个 bean 需要接收容器事件，则只需要实现 ApplicationListener 接口即可，Spring 会自动扫描对应的监听器配置，并注册成为主题的观察者。

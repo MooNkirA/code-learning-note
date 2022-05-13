@@ -38,7 +38,6 @@
   <li><a href="#/02-后端框架/03-Spring/01-Spring笔记01-IOC">Spring 使用笔记-IOC</a></li>
   <li><a href="#/02-后端框架/03-Spring/01-Spring笔记02-AOP">Spring 使用笔记-AOP</a></li>
   <li><a href="#/02-后端框架/03-Spring/01-Spring笔记03-Transaction">Spring 使用笔记-Transaction</a></li>
-  <li><a href="#/02-后端框架/03-Spring/02-Spring高级应用">Spring 高级应用</a></li>
   <li><a href="#/02-后端框架/03-Spring/02-Spring注解汇总">Spring 注解汇总</a></li>
   <li><a href="#/02-后端框架/03-Spring/03-Spring源码分析01-IOC">Spring 源码分析01-IOC(控制反转)</a></li>
   <li><a href="#/02-后端框架/03-Spring/03-Spring源码分析02-AOP">Spring 源码分析02-AOP(面向切面编程)</a></li>
