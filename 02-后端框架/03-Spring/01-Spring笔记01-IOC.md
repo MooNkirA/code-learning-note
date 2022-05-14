@@ -191,7 +191,7 @@ Spring 系统的 lib 包中都是以基本 jar 包、文档、源代码三种结
 
 IoC（Inversion of Control）也被称为依赖性注入（DI）。`org.springframework.beans` 和 `org.springframework.context` 包是 Spring Framework 的 IoC 容器的基础。
 
-`BeanFactory` 接口提供了一种高级配置机制，能够管理任何类型的对象，提供了配置框架和基本功能。`ApplicationContext` 是 `BeanFactory` 的一个子接口，完整的超集，它增加了更多的企业级开发的特定功能：
+`BeanFactory` 接口提供了一种高级配置机制，能够管理任何类型的对象，提供了配置框架和基本功能，是 Spring 容器中的顶层接口（*远古版本时使用？实现类 `XmlBeanFactory`，已过时*）。`ApplicationContext` 是 `BeanFactory` 的一个子接口，完整的超集，它增加了更多的企业级开发的特定功能：
 
 - Spring 的 AOP 功能的集成
 - 消息资源处理（用于国际化）
@@ -200,25 +200,153 @@ IoC（Inversion of Control）也被称为依赖性注入（DI）。`org.springfr
 
 在 Spring 构建的应用程序中，Spring IoC 容器管理的对象被称为 Bean。Bean 是一个由 Spring IoC 容器实例化、组装和管理的对象。
 
-#### 2.1.1. IOC 底层原理（待整理或删除）
-
-1. xml 配置文件（老旧）、注解
-2. dom4j 解决 xml（老旧）、解析注解
-3. 工厂设计模式
-4. 反射创建实例
-
 ### 2.2. 容器概述
 
-通常 Spring IoC 容器是指 `org.springframework.context.ApplicationContext` 接口，该接口负责实例化、配置和组装bean。容器通过读取**配置元数据**来获得关于要实例化、配置和组装哪些对象。
+通常 Spring IoC 容器是指 `org.springframework.context.ApplicationContext` 接口，该接口负责实例化、配置和组装 bean。容器通过读取**配置元数据**来获得关于要实例化、配置和组装哪些对象。可以通过 XML 文件、Java 注解或 Java 代码配置元数据，告诉容器要实例化的对象及其依赖关系。在 `ApplicationContext` 被创建和初始化后，就有了一个完全配置好的可执行系统或应用程序。
 
-可以通过 XML 文件、Java 注解或 Java 代码配置元数据，告诉容器要实例化的对象及其依赖关系
+![](images/476884009220554.png)
+
+#### 2.2.1. 配置元数据
+
+Spring IoC 容器通过使用者对 bean 配置元数据，从而知道如何实例化、配置和组装对象。
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans
+        https://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <!-- 
+        id 属性：定义 bean 的唯一标识名称
+        class 属性：指定 bean 的全限定类名称            
+    -->
+    <bean id="..." class="...">  
+        <!-- collaborators and configuration for this bean go here -->
+    </bean>
+
+    <bean id="..." class="...">
+        <!-- collaborators and configuration for this bean go here -->
+    </bean>
+
+    <!-- more bean definitions go here -->
+
+</beans>
+```
+
+#### 2.2.2. IOC 容器创建（ApplicationContext 接口实现类）
+
+IOC 容器的创建，即创建 `ApplicationContext` 接口实现类实例。如：
+
+```xml
+ApplicationContext context = new ClassPathXmlApplicationContext("services.xml", "daos.xml");
+```
+
+Spring 提供几个 `ApplicationContext` 接口的实现类。创建一个 `ClassPathXmlApplicationContext` 或 `FileSystemXmlApplicationContext` 实例对象
+
+- `ClassPathXmlApplicationContext` 从类的根路径下加载配置文件（**此方式已过时**）
+
+```java
+public class ClassPathXmlApplicationContext extends AbstractXmlApplicationContext {
+    // ...省略
+    /**
+     * Create a new ClassPathXmlApplicationContext, loading the definitions
+     * from the given XML file and automatically refreshing the context.
+     * @param configLocation resource location 参数为类根目录，可以加“/”也可以不加
+     * @throws BeansException if context creation failed
+     */
+    public ClassPathXmlApplicationContext(String configLocation) throws BeansException {
+    }
+    // ...省略
+}
+```
+
+- `FileSystemXmlApplicationContext` 从磁盘路径上加载配置文件，配置文件可以在磁盘的任意位置。构造方法中参数文件使用相对路径或绝对路径。
+
+```java
+public class FileSystemXmlApplicationContext extends AbstractXmlApplicationContext {
+    // ...省略
+	/**
+	 * Create a new FileSystemXmlApplicationContext, loading the definitions
+	 * from the given XML file and automatically refreshing the context.
+	 * @param configLocation file path 文件的相对路径或绝对路径
+	 * @throws BeansException if context creation failed
+	 */
+	public FileSystemXmlApplicationContext(String configLocation) throws BeansException {
+	}
+	// ...省略
+}
+```
+
+- `AnnotationConfigApplicationContext` 通过指定包扫描路径或者配置类，创建基于注解的 IOC 容器
+
+```java
+public class AnnotationConfigApplicationContext extends GenericApplicationContext implements AnnotationConfigRegistry {
+    // ...省略
+    /**
+     * Create a new AnnotationConfigApplicationContext, deriving bean definitions
+     * from the given component classes and automatically refreshing the context.
+     * @param componentClasses one or more component classes &mdash; for example,
+     * {@link Configuration @Configuration} classes
+     */
+    public AnnotationConfigApplicationContext(Class<?>... componentClasses) {
+    }
+
+    /**
+     * Create a new AnnotationConfigApplicationContext, scanning for components
+     * in the given packages, registering bean definitions for those components,
+     * and automatically refreshing the context.
+     * @param basePackages the packages to scan for component classes
+     */
+    public AnnotationConfigApplicationContext(String... basePackages) {
+    }
+    // ...省略
+}
+```
+
+#### 2.2.3. ApplicationContext 常用方法（整理中!）
+
+- 继承于 `BeanFactory`，根据 bean 的名称获取实例对象
+
+```java
+Object getBean(String name) throws BeansException;
+```
+
+- 继承于 `BeanFactory`，根据 bean 的名称与指定类型，获取实例对象
+
+```java
+<T> T getBean(String name, Class<T> requiredType) throws BeansException;
+```
+
+#### 2.2.4. BeanFactory 和 ApplicationContext 的区别
+  
+两者创建对象的时间点不一样
+
+- `ApplicationContext`：只要一读取配置文件，默认情况下就会创建对象
+- `BeanFactory`：使用的时候才创建对象
+
 
 
 
 ### 2.3. Bean 概述
 
+JavaBean：是一种 Java 语言写成的可重用组件。一个 Spring IoC 容器管理着一个或多个 Bean。这些 Bean 都根据使用者提供给容器的配置元数据创建的（例如，以 XML 文件 `<bean/>` 标签定义的形式）。
 
+在容器本身中，这些 Bean 会被封装为 `BeanDefinition` 对象，它包含（除其他信息外）以下元数据：
 
+- Bean 实际实现类的全限定名称
+- Bean 在容器中的行为方式（范围、生命周期等）
+- Bean 与其他 Bean 的引用（依赖关系）
+- 在新创建的对象中设置的其他配置。例如，在管理连接池的 Bean 中，连接池的大小限制或使用的连接数。
+
+传统上，配置元数据是以简单直观的 XML 格式实现，Spring 2.5 引入了对基于注解的配置元数据的支持。从 Spring 3.0 开始，Spring JavaConfig 项目提供的许多功能成为 Spring 框架的核心部分。后面建议使用 Java 注解来配置 Bean 的元数据。（*具体详见后面 `@Configuration`、`@Bean`、`@Import` 和 `@DependsOn` 等相关内容*）
+
+### 2.4. IOC 底层原理（待整理或删除）
+
+1. xml 配置文件（老旧）、注解
+2. dom4j 解决 xml（老旧）、解析注解
+3. 工厂设计模式
+4. 反射创建实例
 
 ## 3. Spring Bean 的加载方式
 
@@ -310,11 +438,62 @@ DI (dependcy injection)：依赖注入，Spring 框架核心 IOC 的具体实现
 
 IOC 和 DI 关系：依赖注入不能单独存在，需要在 IOC 基础之上完成操作
 
+## 5. 基于 XML 的 IOC 配置（已过时）
 
 
-## 5. Spring bean 的作用范围和生命周期
 
-### 5.1. Spring Bean 的作用范围
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+## 6. 基于注解的 IOC 配置
+
+注解配置和 xml 配置要实现的功能都是一样的，都是要降低程序间的耦合。只是配置的形式不一样。根据不同公司的使用习惯，两种配置方式都有可能使用。
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+### 6.1. 关于注解和 XML 的配置选择问题
+
+- 注解的优势：配置简单，维护方便（找到类，就相当于找到了对应的配置）
+- XML 的优势：修改时，不用改源码。不涉及重新编译和部署 
+
+> **注：目前已经是全注解配置开发的方式，xml 的方式几乎已经被完全弃用**
+
+## 7. Spring bean 的作用范围和生命周期
+
+### 7.1. Spring Bean 的作用范围
 
 - **单例对象：`scope="singleton"`**
 
@@ -348,7 +527,7 @@ IOC 和 DI 关系：依赖注入不能单独存在，需要在 IOC 基础之上�
 
 在一个全局的 Http Session 中，容器会返回该 Bean 的同一个实例，仅在使用 portlet context 时有效。
 
-### 5.2. Spring Bean 生命周期
+### 7.2. Spring Bean 生命周期
 
 Bean对象在 spring 框架的上下文中的生命周期图（网络资料）
 
@@ -367,13 +546,13 @@ Bean对象在 spring 框架的上下文中的生命周期图（网络资料）
 10. destroy-method 自配置清理：最后，如果这个 Bean 的 Spring 配置中配置了 destroy-method 属性，会自动调用其配置的销毁方法
 11. bean 标签有两个重要的属性（init-method 和 destroy-method）。`<bean id="" class="" init-method="初始化方法" destroy-method="销毁方法">`，用它们你可以自己定制初始化和注销方法。它们也有相应的注解（`@PostConstruct` 和 `@PreDestroy`）。
 
-## 6. Bean的初始化和销毁方法
+## 8. Bean的初始化和销毁方法
 
 在整个生命周期过程中，可以自定义Bean的初始化和销毁钩子函数，当Bean的生命周期到达相应的阶段的时候，Spring会调用自定义的Bean的初始化和销毁方法。自定义Bean初始化和销毁方法有多种方式
 
 参考代码详见：`spring-note\spring-analysis-note\spring-sample-annotation\19-annotation-lifecycle\`
 
-### 6.1. @Bean 注解方式实现
+### 8.1. @Bean 注解方式实现
 
 - 创建自定义Bean
 
@@ -453,7 +632,7 @@ com.moon.springsample.bean.CustomBean@2133814f
 
 > 分析：此情况在多例模式下，IOC容器启动的时候并不会去创建对象，而是在每次获取的时候才会去调用方法创建对象，创建完对象后再调用初始化方法。但在容器关闭后，Spring并没有调用相应的销毁方法，这是因为在多例模式下，容器不会管理这个组件（只负责在你需要的时候创建这个组件），所以容器在关闭的时候并不会调用相应的销毁方法。
 
-### 6.2. InitializingBean & DisposableBean 接口实现
+### 8.2. InitializingBean & DisposableBean 接口实现
 
 除了上面注解方式指定初始化和销毁方法外，Spring还提供了和初始化，销毁相对应的接口
 
@@ -516,7 +695,7 @@ com.moon.springsample.service.UserService@1df82230
 UserService实现DisposableBean接口实现销毁的destroy()方法执行了
 ```
 
-### 6.3. @PostConstruct & @PreDestroy 注解方式实现
+### 8.3. @PostConstruct & @PreDestroy 注解方式实现
 
 还可以使用 `@PostConstruct` 和 `@PreDestroy` 注解修饰方法来指定相应的初始化和销毁方法
 
@@ -587,7 +766,7 @@ LogUtil基于@PreDestroy注解销毁前的方法执行了...
 
 <font color=purple>*注：这两个注解并非Spring提供，而是JSR250规范提供*</font>
 
-### 6.4. BeanPostProcessor 接口实现
+### 8.4. BeanPostProcessor 接口实现
 
 Spring提供了一个`BeanPostProcessor`接口，俗称Bean后置通知处理器，它提供了两个方法`postProcessBeforeInitialization`和`postProcessAfterInitialization`。
 
@@ -672,4 +851,7 @@ UserService实现DisposableBean接口实现销毁的destroy()方法执行了
 ```
 
 <font color=red>**注：BeanPostProcessor对IOC容器中所有组件都生效**</font>
+
+
+
 
