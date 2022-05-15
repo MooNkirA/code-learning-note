@@ -35,7 +35,7 @@
 ### 🍀 Spring
 
 <ul class="docs">
-  <li><a href="#/02-后端框架/03-Spring/01-Spring笔记01-IOC">Spring 笔记-IOC</a></li>
+  <li><a href="#/02-后端框架/03-Spring/01-Spring笔记01">Spring 笔记-核心技术</a></li>
   <li><a href="#/02-后端框架/03-Spring/01-Spring笔记02-AOP">Spring 笔记-AOP</a></li>
   <li><a href="#/02-后端框架/03-Spring/01-Spring笔记03-Transaction">Spring 笔记-Transaction</a></li>
   <li><a href="#/02-后端框架/03-Spring/01-Spring笔记09-其他">Spring 其他相关资料</a></li>
@@ -47,6 +47,7 @@
   <li><a href="#/02-后端框架/03-Spring/05-Spring源码编译教程">Spring 源码编译教程</a></li>
   <li><a href="#/02-后端框架/03-Spring/网络资料-Spring事务管理（一）快速入门">网络资料-Spring事务管理（一）快速入门</a></li>
 </ul>
+
 
 
 

@@ -1,4 +1,4 @@
-# Spring IOC（控制反转）
+# Spring 核心技术笔记
 
 > - Spring 官网：https://spring.io/
 > - Spring 框架：https://spring.io/projects/spring-framework
@@ -187,8 +187,6 @@ Spring 系统的 lib 包中都是以基本 jar 包、文档、源代码三种结
 
 ## 2. Spring IOC 容器
 
-### 2.1. Spring IoC 容器和 Bean 简介
-
 IoC（Inversion of Control）也被称为依赖性注入（DI）。`org.springframework.beans` 和 `org.springframework.context` 包是 Spring Framework 的 IoC 容器的基础。
 
 `BeanFactory` 接口提供了一种高级配置机制，能够管理任何类型的对象，提供了配置框架和基本功能，是 Spring 容器中的顶层接口（*远古版本时使用？实现类 `XmlBeanFactory`，已过时*）。`ApplicationContext` 是 `BeanFactory` 的一个子接口，完整的超集，它增加了更多的企业级开发的特定功能：
@@ -200,13 +198,13 @@ IoC（Inversion of Control）也被称为依赖性注入（DI）。`org.springfr
 
 在 Spring 构建的应用程序中，Spring IoC 容器管理的对象被称为 Bean。Bean 是一个由 Spring IoC 容器实例化、组装和管理的对象。
 
-### 2.2. 容器概述
+### 2.1. 容器概述
 
 通常 Spring IoC 容器是指 `org.springframework.context.ApplicationContext` 接口，该接口负责实例化、配置和组装 bean。容器通过读取**配置元数据**来获得关于要实例化、配置和组装哪些对象。可以通过 XML 文件、Java 注解或 Java 代码配置元数据，告诉容器要实例化的对象及其依赖关系。在 `ApplicationContext` 被创建和初始化后，就有了一个完全配置好的可执行系统或应用程序。
 
 ![](images/476884009220554.png)
 
-#### 2.2.1. 配置元数据
+#### 2.1.1. 配置元数据
 
 Spring IoC 容器通过使用者对 bean 配置元数据，从而知道如何实例化、配置和组装对象。
 
@@ -234,7 +232,7 @@ Spring IoC 容器通过使用者对 bean 配置元数据，从而知道如何实
 </beans>
 ```
 
-#### 2.2.2. IOC 容器创建（ApplicationContext 接口实现类）
+#### 2.1.2. IOC 容器创建（ApplicationContext 接口实现类）
 
 IOC 容器的创建，即创建 `ApplicationContext` 接口实现类实例。如：
 
@@ -304,7 +302,7 @@ public class AnnotationConfigApplicationContext extends GenericApplicationContex
 }
 ```
 
-#### 2.2.3. ApplicationContext 常用方法（整理中!）
+#### 2.1.3. ApplicationContext 常用方法（整理中!）
 
 - 继承于 `BeanFactory`，根据 bean 的名称获取实例对象
 
@@ -318,17 +316,8 @@ Object getBean(String name) throws BeansException;
 <T> T getBean(String name, Class<T> requiredType) throws BeansException;
 ```
 
-#### 2.2.4. BeanFactory 和 ApplicationContext 的区别
-  
-两者创建对象的时间点不一样
 
-- `ApplicationContext`：只要一读取配置文件，默认情况下就会创建对象
-- `BeanFactory`：使用的时候才创建对象
-
-
-
-
-### 2.3. Bean 概述
+### 2.2. Bean 概述
 
 JavaBean：是一种 Java 语言写成的可重用组件。一个 Spring IoC 容器管理着一个或多个 Bean。这些 Bean 都根据使用者提供给容器的配置元数据创建的（例如，以 XML 文件 `<bean/>` 标签定义的形式）。
 
@@ -341,7 +330,7 @@ JavaBean：是一种 Java 语言写成的可重用组件。一个 Spring IoC 容
 
 传统上，配置元数据是以简单直观的 XML 格式实现，Spring 2.5 引入了对基于注解的配置元数据的支持。从 Spring 3.0 开始，Spring JavaConfig 项目提供的许多功能成为 Spring 框架的核心部分。后面建议使用 Java 注解来配置 Bean 的元数据。（*具体详见后面 `@Configuration`、`@Bean`、`@Import` 和 `@DependsOn` 等相关内容*）
 
-### 2.4. IOC 底层原理（待整理或删除）
+### 2.3. IOC 底层原理（待整理或删除）
 
 1. xml 配置文件（老旧）、注解
 2. dom4j 解决 xml（老旧）、解析注解
@@ -852,6 +841,147 @@ UserService实现DisposableBean接口实现销毁的destroy()方法执行了
 
 <font color=red>**注：BeanPostProcessor对IOC容器中所有组件都生效**</font>
 
+## 9. BeanFactory 与 ApplicationContext
+
+### 9.1. BeanFactory
+
+BeanFactory API 为 Spring 的 IoC 功能提供了底层基础。`BeanFactory` 及其相关的接口，例如：`BeanFactoryAware`，`InitializingBean`，`DisposableBean`，仍在 Spring 中保留，目的就是为了让大量的第三方框架和 Spring 集成时保持向后兼容。
 
 
+
+
+### 9.2. ApplicationContext 的额外功能
+
+正如前面章节介绍，`ApplicationContext` 接口继承了 `BeanFactory` 接口，它增加了更多特定功能：
+
+#### 9.2.1. MessageSource 国际化
+
+`ApplicationContext` 接口继承了一个叫做 `MessageSource` 的接口，它也提供了国际化(i18n)的功能。接口定义3个常用获取国际化信息的方法
+
+```java
+public interface MessageSource {
+
+	/**
+	 * 获取国际化信息
+	 * @param code 国际化资源中的属性名称
+	 * @param args 用于传递格式化串占位符所用的运行参数
+	 * @param defaultMessage 当在资源找不到对应的属性时，返回 defaultMessage 参数指定的默认值
+	 * @param locale 本地化对象
+	 */
+	@Nullable
+	String getMessage(String code, @Nullable Object[] args, @Nullable String defaultMessage, Locale locale);
+
+	/**
+	 * 与上面的方法类似，只不过在找不到资源中对应的属性名时，直接抛出 NoSuchMessageException 异常
+	 */
+	String getMessage(String code, @Nullable Object[] args, Locale locale) throws NoSuchMessageException;
+
+	/**
+	 * 它的功能和第一个方法相同
+	 * @param resolvable 将属性名、参数数组以及默认信息封装起来
+	 */
+	String getMessage(MessageSourceResolvable resolvable, Locale locale) throws NoSuchMessageException;
+}
+```
+
+##### 9.2.1.1. MessageSource 常见3个实现类
+
+- `ResourceBundleMessageSource`：这个是基于 Java 的 `ResourceBundle` 基础类实现，允许仅通过资源名加载国际化资源
+- `ReloadableResourceBundleMessageSource`：这个功能和第一个类的功能类似，多了定时刷新功能，允许在不重启系统的情况下，更新资源的信息
+- `StaticMessageSource`：它允许通过编程的方式提供国际化信息
+
+##### 9.2.1.2. 国际化使用步骤
+
+- **步骤一：创建国际化文件**。国际化文件命名格式：`名称_语言_地区.properties`
+
+在 resource 资源目录中分别创建 message.properties（这个文件名称没有指定Local信息，当系统找不到的时候会使用这个默认的）、messages_en.properties、messages_ja.properties、messages_zh.properties
+
+```properties
+# messages_en.properties
+hi=Hello
+# messages_ja.properties
+hi=こんにちは
+# messages_zh.properties
+hi=你好
+```
+
+> 注意编码问题：
+>
+> - 调整 properties 国际化资源文件编码为 UTF-8/GBK，然而 `ResourceBundleMessageSource` 的默认编码 defaultEncoding 是 ISO-8859-1，在配置类创建 `ResourceBundleMessageSource` 实例时，设置 defaultEncoding 属性值为 UTF-8/GBK 即可。
+> - 如果想统一国际化资源文件使用 ISO-8859-1 格式，可以将原本用 UTF-8 写好的中文资源文件使用 jdk 自带的工具 native2ascii 将 UTF-8 文件和内容转为 ISO-8859-1 文件，其中的中文内容会使用 16 进制 unicode 编码为 `\u****` 格式。命令如下：
+>
+> ```bash
+> JAVA_HOME\bin\native2ascii -encoding UTF-8 messages_zh_CN.properties messages_zh_C1N.properties
+> ```
+
+- **步骤二：向容器中注册一个 `MessageSource` 类型的 bean，bean 名称必须为：`messageSource`**
+
+```java
+@Configuration
+@ComponentScan("com.moon.springsample") // 配置包扫描
+public class SpringConfiguration {
+    /**
+     * 注册国际化的 bean，MessageSource 实例，bean名称必须为：messageSource
+     * @return
+     */
+    @Bean
+    public ResourceBundleMessageSource messageSource(){
+        // 创建 MessageSource 的实现类 ResourceBundleMessageSource
+        ResourceBundleMessageSource messageSource = new ResourceBundleMessageSource();
+        /*
+         * 指定国际化配置文件的位置，格式：路径/文件名称，注意文件名称不包含语言后缀这部分。
+         * 即：messages_zh.properties 配置的名称为 messages
+         */
+        messageSource.setBasename("messages");
+        messageSource.setDefaultEncoding("UTF-8");
+        return messageSource;
+    }
+}
+```
+
+- **步骤三：调用 `ApplicationContext` 接口中的 `getMessage` 方法来获取国际化信息，其内部将交给第二步中注册的 `messageSource` 名称的 bean 进行处理**
+
+```java
+@RunWith(SpringJUnit4ClassRunner.class)
+@ContextConfiguration(classes = SpringConfiguration.class)
+public class ApplicationContextTest {
+
+    /* 注入 ApplicationContext */
+    @Autowired
+    private ApplicationContext context;
+
+    /* ApplicationContext 国际化功能测试 */
+    @Test
+    public void testMessageSource() {
+        /*
+         * String getMessage(String code, @Nullable Object[] args, Locale locale)
+         * 	获取国际化信息
+         *      code 参数：国际化资源中的属性名称
+         *      args 参数：用于传递格式化串占位符所用的运行参数
+         *      locale 参数：本地化对象
+         */
+        System.out.println(context.getMessage("hi", null, Locale.CHINA)); // CHINA 对应：messages_zh.properties
+        System.out.println(context.getMessage("hi", null, Locale.ENGLISH)); // ENGLISH 对应：messages_en.properties
+        System.out.println(context.getMessage("hi", null, Locale.JAPANESE)); // JAPANESE 对应：messages_ja.properties
+    }
+}
+```
+
+#### 9.2.2. 访问资源
+
+
+
+
+
+#### 9.2.3. 标准和自定义事件
+
+
+
+
+### 9.3. BeanFactory 和 ApplicationContext 的区别
+  
+两者创建对象的时间点不一样
+
+- `ApplicationContext`：只要一读取配置文件，默认情况下就会创建对象
+- `BeanFactory`：使用的时候才创建对象
 
