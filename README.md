@@ -48,9 +48,6 @@
   <li><a href="#/02-后端框架/03-Spring/网络资料-Spring事务管理（一）快速入门">网络资料-Spring事务管理（一）快速入门</a></li>
 </ul>
 
-
-
-
 ### 🐦 MyBatis
 
 <ul class="docs">
@@ -60,7 +57,6 @@
   <li><a href="#/02-后端框架/04-MyBatis/04-MyBatisPlus">MyBatis-Plus 基础笔记</a></li>
 </ul>
 
-
 ### 🧰 SpringMVC
 
 <ul class="docs">
@@ -69,7 +65,6 @@
   <li><a href="#/02-后端框架/05-SpringMVC/03-SpringMVC源码分析">Spring MVC 源码分析</a></li>
 </ul>
 
-
 ### 💾 Spring Data
 
 <ul class="docs">
@@ -77,7 +72,6 @@
   <li><a href="#/02-后端框架/06-Spring-Data/01-Spring-Data-JPA">Spring Data JPA</a></li>
   <li><a href="#/02-后端框架/06-Spring-Data/02-Spring-Data-Redis">Spring Data Redis</a></li>
 </ul>
-
 
 ### 🔑 授权认证框架
 
@@ -121,8 +115,6 @@
   <li><a href="#/03-前端资料/01-基础语法01-HTML/99-前端其他相关资料">前端其他相关资料</a></li>
 </ul>
 
-
-
 ### 🎨 基础语法 - 层叠样式表
 
 <ul class="docs">
@@ -131,8 +123,6 @@
   <li><a href="#/03-前端资料/01-基础语法02-CSS/03-CSS-其他相关知识">CSS 其他相关知识</a></li>
   <li><a href="#/03-前端资料/01-基础语法02-CSS/04-Less-语法基础">Less 语法基础</a></li>
 </ul>
-
-
 
 ### 🎥 基础语法 - JavaScript
 
@@ -143,7 +133,6 @@
   <li><a href="#/03-前端资料/01-基础语法03-JavaScript/04-JavaScript-工具函数">JavaScript 工具函数</a></li>
   <li><a href="#/03-前端资料/01-基础语法03-JavaScript/05-JavaScript-代码简洁之道">JavaScript 代码简洁之道</a></li>
 </ul>
-
 
 ### 🅰 Angular.js
 
@@ -180,7 +169,6 @@
   <li><a href="#/03-前端资料/06-前端工程化工具/02-webpack">Webpack 笔记</a></li>
   <li><a href="#/03-前端资料/06-前端工程化工具/03-ESLint">ESLint 笔记</a></li>
 </ul>
-
 
 ### 📱  移动端Web
 
@@ -231,8 +219,6 @@
   <li><a href="#/04-数据库/04-MongoDb/02-MongoDB-安装与使用">MongoDB 安装与使用</a></li>
 </ul>
 
-
-
 ## DevOps工具
 
 ### 🪒 项目构建工具
@@ -249,7 +235,6 @@
   <li><a href="#/05-DevOps工具/02-版本管理工具/01-Git笔记">Git 笔记</a></li>
   <li><a href="#/05-DevOps工具/02-版本管理工具/02-GitHub">GitHub 相关资料与常用使用技巧</a></li>
 </ul>
-
 
 ### 📦 应用容器
 
@@ -354,8 +339,6 @@
   <li><a href="#/07-分布式架构&微服务架构/07-分布式消息中件间/05-Kafka">Kafka</a></li>
 </ul>
 
-
-
 ### 🧾 分布式配置中心
 
 <ul class="docs">
@@ -422,6 +405,7 @@
   <li><a href="#/99-其他/其它资料">其它资料</a></li>
   <li><a href="#/99-其他/Hexo-blog搭建工具">Hexo 博客 搭建工具</a></li>
   <li><a href="#/99-其他/docsify-文档类型网站搭建工具">docsify 文档类型网站搭建工具</a></li>
+  <li><a href="#/99-其他/Mermaid-基于Javascript的绘图语法">Mermaid 基于 Javascript 的绘图语法</a></li>
 </ul>
 
 ## 收集的项目实战资料
@@ -433,7 +417,6 @@
   <li><a href="#/00-项目资料/06-红包雨场景案例/">红包雨场景案例 项目资料</a></li>
   <li><a href="#/00-项目资料/07-万信金融/">万信金融 项目资料</a></li>
 </ul>
-
 
 # 在线阅读地址
 

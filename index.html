@@ -5,11 +5,8 @@
     <title>MooNkirA‘s code note</title>
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
     <meta name="description" content="Description" />
-    <meta
-      name="viewport"
-      content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0"
-    />
-	<link rel="icon" href="images/website-icon.jpg" />
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0" />
+    <link rel="icon" href="images/website-icon.jpg" />
     <!-- 配置主题（官方提供，在线） -->
     <link rel="stylesheet" href="//unpkg.com/docsify/lib/themes/vue.css" />
     <!-- docsify-themeable 一个用于docsify的，简单到令人愉悦的主题系统.  -->
@@ -36,69 +33,20 @@
 
     <!-- docsify-themeable 自定义主题属性，抽取成文件引入 -->
     <!-- <link rel="stylesheet" href="./css/theme-custom.css" /> -->
-	
-	<!-- 自定义样式 -->
+
+    <!-- 自定义样式 -->
     <link rel="stylesheet" href="./css/custom.css" />
 
     <!-- PrismJS theme 代码块高亮主题 -->
     <!-- <link rel="stylesheet" href="./css/prismjs@1.22.0/prism-funky.css" /> -->
     <!-- <link rel="stylesheet" href="./css/prismjs@1.22.0/prism-okaidia.css"> -->
     <!-- <link rel="stylesheet" href="./css/prismjs@1.22.0/prism-tomorrow.css"> -->
+
+    <!-- mermaid 图表样式 -->
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.css" />
   </head>
   <body>
-    <!-- 如果你需要定制导航栏，可以用 HTML 创建一个导航栏。 -->
-    <nav>
-      <a href="https://moonkira.github.io/">月のblog</a>
-      |
-      <a href="https://www.yuque.com/moonkira/code-note">语雀</a>
-    </nav>
-    <div id="app"></div>
-    <script>
-      window.$docsify = {
-        // logo: './css/svg/086-determined-face.svg',
-        name: "<a class='app-name-link' data-nosearch='' href='/code-learning-note'><div class='moon-logo'></div></a>",
-        // repo: 'https://github.com/MooNkirA/code-learning-note',
-        maxLevel: 6, // 最大支持渲染的标题层级
-        // subMaxLevel: 5,
-        homepage: "README.md",
-        coverpage: false, // 添加一个封面
-        loadSidebar: false, // 添加侧边栏文件，默认名称
-        // _sidebar.md 的加载逻辑是从每层目录下获取文件，如果当前目录不存在该文件则回退到上一级目录。
-        // 例如当前路径为 /zh-cn/more-pages 则从 /zh-cn/_sidebar.md 获取文件，如果不存在则从 /_sidebar.md 获取。
-        // autoHeader: true,  // 同时设置 loadSidebar 和 autoHeader 后，可以根据 _sidebar.md 的内容自动为每个页面增加标题。
-
-        // alias: {
-        //   "/.*/_sidebar.md": "/_sidebar.md",
-        // }, // 配置 alias 避免不必要的回退过程
-
-        mergeNavbar: true, // 在较小的屏幕上，导航栏将与边栏合并。
-        loadNavbar: false, // 添加导航栏 load from _navbar.md
-        auto2top: true, // 切换页面后是否自动跳转到页面顶部
-        // 全文搜索
-        search: {
-          maxAge: 86400000, // 过期时间，单位毫秒，默认一天
-          paths: "auto",
-          placeholder: "🔍 搜索...",
-          noData: "😅 找不到结果...",
-          // 搜索标题的最大程级, 1 - 6
-          depth: 6,
-        },
-        // externalLinkTarget: '_self' // Target to open external links inside the markdown. Default '_blank' (new window/tab)
-        // themeColor: '#3F51B5'
-        // 复制文本
-        copyCode: {
-          buttonText: "Copy to clipboard",
-          errorText: "Error",
-          successText: "Copied",
-        },
-
-        // 开启
-        themeable: {
-          readyTransition: true, // default: true
-          // responsiveTables: false, // default: true
-        }
-      }
-    </script>
+    <!-- javaScript 脚本 -->
     <script src="//unpkg.com/docsify/lib/docsify.min.js"></script>
     <!--Java代码高亮start-->
     <script src="//unpkg.com/prismjs/components/prism-java.min.js"></script>
@@ -128,5 +76,78 @@
 
     <!-- docsify-themeable 插件 -->
     <!-- <script src="./js/docsify-themeable@0.8.4/docsify-themeable.min.js"></script> -->
+
+    <!-- mermaid 语法生成图表插件 -->
+    <script src="//cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <!-- javaScript 脚本 -->
+
+    <!-- 如果你需要定制导航栏，可以用 HTML 创建一个导航栏。 -->
+    <nav>
+      <a href="https://moonkira.github.io/">月のblog</a>
+      |
+      <a href="https://www.yuque.com/moonkira/code-note">语雀</a>
+    </nav>
+    <div id="app"></div>
+    <script>
+      var num = 0
+      mermaid.initialize({ startOnLoad: false })
+
+      window.$docsify = {
+        // logo: './css/svg/086-determined-face.svg',
+        name: "<a class='app-name-link' data-nosearch='' href='/code-learning-note'><div class='moon-logo'></div></a>",
+        // repo: 'https://github.com/MooNkirA/code-learning-note',
+        maxLevel: 6, // 最大支持渲染的标题层级
+        // subMaxLevel: 5,
+        homepage: 'README.md',
+        coverpage: false, // 添加一个封面
+        loadSidebar: false, // 添加侧边栏文件，默认名称
+        // _sidebar.md 的加载逻辑是从每层目录下获取文件，如果当前目录不存在该文件则回退到上一级目录。
+        // 例如当前路径为 /zh-cn/more-pages 则从 /zh-cn/_sidebar.md 获取文件，如果不存在则从 /_sidebar.md 获取。
+        // autoHeader: true,  // 同时设置 loadSidebar 和 autoHeader 后，可以根据 _sidebar.md 的内容自动为每个页面增加标题。
+
+        // alias: {
+        //   "/.*/_sidebar.md": "/_sidebar.md",
+        // }, // 配置 alias 避免不必要的回退过程
+
+        mergeNavbar: true, // 在较小的屏幕上，导航栏将与边栏合并。
+        loadNavbar: false, // 添加导航栏 load from _navbar.md
+        auto2top: true, // 切换页面后是否自动跳转到页面顶部
+        // 全文搜索
+        search: {
+          maxAge: 86400000, // 过期时间，单位毫秒，默认一天
+          paths: 'auto',
+          placeholder: '🔍 搜索...',
+          noData: '😅 找不到结果...',
+          // 搜索标题的最大程级, 1 - 6
+          depth: 6,
+        },
+        // externalLinkTarget: '_self' // Target to open external links inside the markdown. Default '_blank' (new window/tab)
+        // themeColor: '#3F51B5'
+        // 复制文本
+        copyCode: {
+          buttonText: 'Copy to clipboard',
+          errorText: 'Error',
+          successText: 'Copied',
+        },
+
+        // 开启
+        themeable: {
+          readyTransition: true, // default: true
+          // responsiveTables: false, // default: true
+        },
+
+        // 定制 Markdown 解析规则
+        markdown: {
+          renderer: {
+            code: function (code, lang) {
+              if (lang === 'mermaid') {
+                return '<div class="mermaid">' + mermaid.render('mermaid-svg-' + num++, code) + '</div>'
+              }
+              return this.origin.code.apply(this, arguments)
+            },
+          },
+        },
+      }
+    </script>
   </body>
 </html>

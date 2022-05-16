@@ -847,6 +847,14 @@ UserService实现DisposableBean接口实现销毁的destroy()方法执行了
 
 BeanFactory API 为 Spring 的 IoC 功能提供了底层基础。`BeanFactory` 及其相关的接口，例如：`BeanFactoryAware`，`InitializingBean`，`DisposableBean`，仍在 Spring 中保留，目的就是为了让大量的第三方框架和 Spring 集成时保持向后兼容。
 
+Spring 大量使用了 `BeanPostProcessor` 后置处理器去扩展功能（以便使用代理等）。如果仅仅只使用简单的 `BeanFactory` 接口，很多的支持功能将不会有效
+
+示例如下：
+
+```java
+
+```
+
 
 
 
@@ -942,46 +950,175 @@ public class SpringConfiguration {
 - **步骤三：调用 `ApplicationContext` 接口中的 `getMessage` 方法来获取国际化信息，其内部将交给第二步中注册的 `messageSource` 名称的 bean 进行处理**
 
 ```java
-@RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(classes = SpringConfiguration.class)
-public class ApplicationContextTest {
-
-    /* 注入 ApplicationContext */
-    @Autowired
-    private ApplicationContext context;
-
-    /* ApplicationContext 国际化功能测试 */
-    @Test
-    public void testMessageSource() {
-        /*
-         * String getMessage(String code, @Nullable Object[] args, Locale locale)
-         * 	获取国际化信息
-         *      code 参数：国际化资源中的属性名称
-         *      args 参数：用于传递格式化串占位符所用的运行参数
-         *      locale 参数：本地化对象
-         */
-        System.out.println(context.getMessage("hi", null, Locale.CHINA)); // CHINA 对应：messages_zh.properties
-        System.out.println(context.getMessage("hi", null, Locale.ENGLISH)); // ENGLISH 对应：messages_en.properties
-        System.out.println(context.getMessage("hi", null, Locale.JAPANESE)); // JAPANESE 对应：messages_ja.properties
-    }
+@Test
+public void testMessageSource() {
+    ApplicationContext context = new AnnotationConfigApplicationContext(SpringConfiguration.class);
+    /*
+     * String getMessage(String code, @Nullable Object[] args, Locale locale)
+     * 	获取国际化信息
+     *      code 参数：国际化资源中的属性名称
+     *      args 参数：用于传递格式化串占位符所用的运行参数
+     *      locale 参数：本地化对象
+     */
+    System.out.println(context.getMessage("hi", null, Locale.CHINA)); // CHINA 对应：messages_zh.properties
+    System.out.println(context.getMessage("hi", null, Locale.ENGLISH)); // ENGLISH 对应：messages_en.properties
+    System.out.println(context.getMessage("hi", null, Locale.JAPANESE)); // JAPANESE 对应：messages_ja.properties
 }
 ```
 
 #### 9.2.2. 访问资源
 
+`ApplicationContext` 接口继承了 `ResourceLoader` 接口，提供了用来读取资源的功能。
 
-
-
+```java
+@Test
+public void testGetResources() throws IOException {
+    ApplicationContext context = new AnnotationConfigApplicationContext(SpringConfiguration.class);
+    /*
+     * Resource[] getResources(String locationPattern) throws IOException;
+     *  获取项目的资源文件，Spring 将其封装成 Resource 对象
+     *      locationPattern 参数：资源文件的路径，如果访问依赖的 jar 包的资源目录，使用 classpath*:xxx 即可
+     */
+    Resource[] resources = context.getResources("classpath*:META-INF/spring.factories");
+    for (Resource resource : resources) {
+        System.out.println(resource);
+    }
+}
+```
 
 #### 9.2.3. 标准和自定义事件
 
+`ApplicationContext` 继承 `ApplicationEventPublisher` 接口后具有发布事件的功能。而 `ApplicationEvent` 类和 `ApplicationListener` 接口提供了事件处理。如果一个 bean 实现了 `ApplicationListener` 接口并注册到 Spring 容器中，那么每次 `ApplicationEvent` 发布到 `ApplicationContext` 容器中时，bean 都会收到通知。本质上是观察者模型。
 
+##### 9.2.3.1. 内置事件
 
+Spring 提供了一下的标准内置事件：
+
+- `ContextRefreshedEvent`：当 `ApplicationContext` 容器被初始化或者被刷新的时候发布。在 `ConfigurableApplicationContext` 接口上调用 `refresh()` 方法。
+- `ContextStartedEvent`：当 `ApplicationContext` 启动时发布，在 `ConfigurableApplicationContext` 接口上调用 `start()` 方法时
+- `ContextStoppedEvent`：当 `ApplicationContext` 停止时发布，在 `ConfigurableApplicationContext` 接口上调用 `stop()` 方法。
+- `ContextClosedEvent`：当 `ApplicationContext` 关闭时发布，在 `ConfigurableApplicationContext` 接口上调用 `close()` 方法。
+- `RequestHandledEvent`：接受一个 HTTP 请求的时候，在请求完成后，会通知所有的 bean
+- `ServletRequestHandledEvent`：`RequestHandledEvent` 的一个子类，增加了 Servlet 特定的上下文信息。
+
+##### 9.2.3.2. 自定义事件
+
+- 创建自定义事件类
+
+```java
+@Getter
+@Setter
+@ToString
+public class MyEvent extends ApplicationEvent {
+
+    private final String code;
+    private final String message;
+
+    /**
+     * 创建 ApplicationEvent 对象，后面两个参数是自定义
+     */
+    public MyEvent(Object source, String code, String message) {
+        super(source);
+        this.code = code;
+        this.message = message;
+    }
+}
+```
+
+##### 9.2.3.3. 发送事件
+
+要发送事件，主要是要获取 `ApplicationEventPublisher` 对象。创建类实现 `ApplicationEventPublisherAware` 接口，在接口的 `setApplicationEventPublisher` 方法中获取 `ApplicationEventPublisher` 实例。然后在类中的其他方法中使用该实例发送事件即可
+
+```java
+@Component
+public class MyEventPublisher implements ApplicationEventPublisherAware {
+
+    private ApplicationEventPublisher publisher;
+
+    /**
+     * 获取 ApplicationEventPublisher 实例
+     *
+     * @param applicationEventPublisher
+     */
+    @Override
+    public void setApplicationEventPublisher(ApplicationEventPublisher applicationEventPublisher) {
+        this.publisher = applicationEventPublisher;
+    }
+
+    // 定义方法，发送事件
+    public void doEventPublish(String code, String message) {
+        publisher.publishEvent(new MyEvent(this, code, message));
+    }
+}
+```
+
+##### 9.2.3.4. 事件监听
+
+创建事件监听器，有如下两种方式：
+
+- 创建类实现 `org.springframework.context.ApplicationListener` 接口，接口的泛型
+
+```java
+@Component
+public class MyApplicationListener implements ApplicationListener<MyEvent> {
+
+    /**
+     * 监听事件，当前有事件发布时，执行此方法
+     *
+     * @param event 事件发送的信息
+     */
+    @Override
+    public void onApplicationEvent(MyEvent event) {
+        System.out.println("基于 ApplicationListener 接口实现的事件监听器。获取事件数据：" + event);
+    }
+}
+```
+
+- 基于注解的事件监听器。从 Spring 4.2 开始，在自定义的类中，使用 `@EventListener` 注解标识的方法（*方法名称随意*），并指定监听的事件类型（可以是多个，使用数组指定）。将类注册到 Spring 容器中，当有该类型的事件发布，该方法则会被执行。
+
+```java
+@Component
+public class MyEventListener {
+
+    /*
+     * 使用 @EventListener 标识的方法，并指定监听的事件类型，可以指定监听多个事件
+     * 当有该类型的事件发布，此方法会被执行。（方法的名称随意即可）
+     */
+    @EventListener({MyEvent.class, ContextRefreshedEvent.class})
+    public void listenEvent(Object event) {
+        if (event instanceof MyEvent) {
+            MyEvent myEvent = (MyEvent) event;
+            System.out.println("基于 @EventListener 注解实现的事件监听器。获取事件数据：" + myEvent);
+        }
+    }
+}
+```
+
+##### 9.2.3.5. 测试
+
+测试代码：
+
+```java
+@Test
+public void testEvent() {
+    ApplicationContext context = new AnnotationConfigApplicationContext(SpringConfiguration.class);
+    // 调用自定义的事件发布业务类，发送
+    MyEventPublisher myEventPublisher = context.getBean(MyEventPublisher.class);
+    myEventPublisher.doEventPublish("1", "这是一个事件消息");
+}
+```
+
+输出结果：
+
+```
+基于 @EventListener 注解实现的事件监听器。获取事件数据：MyEvent(code=1, message=这是一个事件消息)
+基于 ApplicationListener 接口实现的事件监听器。获取事件数据：MyEvent(code=1, message=这是一个事件消息)
+```
 
 ### 9.3. BeanFactory 和 ApplicationContext 的区别
   
 两者创建对象的时间点不一样
 
-- `ApplicationContext`：只要一读取配置文件，默认情况下就会创建对象
-- `BeanFactory`：使用的时候才创建对象
+- `ApplicationContext`：只要读取到配置文件，默认情况下就会创建对象
+- `BeanFactory`：不会主动创建对象，当使用的时候才创建
 

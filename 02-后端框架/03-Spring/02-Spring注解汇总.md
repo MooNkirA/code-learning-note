@@ -2864,6 +2864,21 @@ public void resourceBasicTest() {
 }
 ```
 
+#### 5.4.4. 扩展知识
+
+如果在一个对象属性上同时使用 `@Autowired` 与 `@Resource` 注解，假设依赖注入的对象实现有多个，会以哪个注解指定的为准？这个可以根据 Spring 的后置处理器的排序来判断，默认 `@Autowired` 是优先于 `@Resource`。也可以通过修改排序器来改变两个注解的优先级
+
+```java
+beanFactory.getBeansOfType(BeanPostProcessor.class)
+        .values()
+        .stream()
+        .sorted(beanFactory.getDependencyComparator()) // 通过这排序器，改变后置处理器的优先级
+        .forEach(beanPostProcessor -> {
+            System.out.println("BeanPostProcessor 类型实例：" + beanPostProcessor);
+            beanFactory.addBeanPostProcessor(beanPostProcessor);
+        });
+```
+
 ### 5.5. @Inject
 
 #### 5.5.1. 作用与使用场景
