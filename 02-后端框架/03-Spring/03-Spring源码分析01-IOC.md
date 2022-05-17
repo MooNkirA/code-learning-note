@@ -913,7 +913,7 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 		implements ConfigurableListableBeanFactory, BeanDefinitionRegistry, Serializable
 ```
 
-`DefaultListableBeanFactory` 是一个非常重要的类，它包含了 IOC 容器所应该具备的重要功能，是容器完整功能的一个基本实现。
+`DefaultListableBeanFactory` 是一个非常重要的类，它包含了 IOC 容器所应该具备的像**控制反转**和**依赖注入**等重要功能，是容器完整功能的一个基本实现。
 
 其中 `XmlBeanFactory`(已过时)是一个典型的由该类派生出来的 `Factory` 类，并且只是增加了加载 XML 配置资源的逻辑，而容器相关的特性则全部由 `DefaultListableBeanFactory` 来实现。
 
@@ -923,7 +923,7 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 public class XmlBeanFactory extends DefaultListableBeanFactory
 ```
 
-## 7. Spring 框架中的高级容器（*Context）
+## 7. Spring 框架中的高级容器（`*Context`）
 
 ### 7.1. ApplicationContext
 
@@ -962,22 +962,30 @@ String ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE = WebApplicationContext.class.getN
 
 并在初始化应用上下文时以该常量为 key，将 `WebApplicationContext` 实例存放到 ServletContext 的属性列表中，当调用 `WebApplicationContextUtils` 的 `getWebApplicationContext(ServletContext sc)` 方法时，本质上是在调用 ServletContext 的 `getAttribute(String name)` 方法，只不过 Spring 会对获取的结果做一些校验。
 
-
 ### 7.4. 高级容器的一些具体实现类
 
-#### 7.4.1. AnnotationConfigApplicationContext
+注意：<font color=red>**所有后缀为 `*ApplicationContext` 的类都是 `ApplicationContext` 接口的实现，但它们是组合了 `DefaultListableBeanFactory` 的功能，并非继承它**</font>
+
+#### 7.4.1. GenericApplicationContext
 
 ```java
-public class AnnotationConfigWebApplicationContext extends AbstractRefreshableWebApplicationContext
-		implements AnnotationConfigRegistry
+public class GenericApplicationContext extends AbstractApplicationContext implements BeanDefinitionRegistry
 ```
 
-`AnnotationConfigWebApplicationContext` 是基于注解驱动开发的高级容器实现类，该类中提供了`AnnotatedBeanDefinitionReader`和`ClassPathBeanDefinitionScanner`两个成员
+一个比较“纯净”的容器，类中只组合 `DefaultListableBeanFactory`，但没有相关 `BeanPostProcessor` 实现
 
-- `AnnotatedBeanDefinitionReader`：用于读取注解创建Bean的定义信息
-- `ClassPathBeanDefinitionScanner`：负责扫描指定包获取Bean的定义信息
+#### 7.4.2. AnnotationConfigApplicationContext
 
-#### 7.4.2. ClasspathXmlApplicationContext
+```java
+public class AnnotationConfigApplicationContext extends GenericApplicationContext implements AnnotationConfigRegistry
+```
+
+`AnnotationConfigApplicationContext` 是基于注解驱动开发的高级容器实现类，该类中提供了`AnnotatedBeanDefinitionReader`和`ClassPathBeanDefinitionScanner`两个成员。也是 Spring boot 中非 web 环境容器（新）
+
+- `AnnotatedBeanDefinitionReader`：用于读取注解创建 Bean 的定义信息
+- `ClassPathBeanDefinitionScanner`：负责扫描指定包获取 Bean 的定义信息
+
+#### 7.4.3. ClasspathXmlApplicationContext
 
 ```java
 public class ClassPathXmlApplicationContext extends AbstractXmlApplicationContext
@@ -985,7 +993,7 @@ public class ClassPathXmlApplicationContext extends AbstractXmlApplicationContex
 
 `ClasspathXmlApplicationContext` 是基于xml配置的高级容器类，它用于加载类路径下配置文件。
 
-#### 7.4.3. FileSystemXmlApplicationContext
+#### 7.4.4. FileSystemXmlApplicationContext
 
 ```java
 public class FileSystemXmlApplicationContext extends AbstractXmlApplicationContext
@@ -993,7 +1001,7 @@ public class FileSystemXmlApplicationContext extends AbstractXmlApplicationConte
 
 `FileSystemXmlApplicationContext` 是基于xml配置的高级容器类，它用于加载文件系统中的配置文件。
 
-#### 7.4.4. AnnotationConfigWebApplicationContext
+#### 7.4.5. AnnotationConfigWebApplicationContext
 
 ```java
 public class AnnotationConfigWebApplicationContext extends AbstractRefreshableWebApplicationContext
@@ -1002,7 +1010,19 @@ public class AnnotationConfigWebApplicationContext extends AbstractRefreshableWe
 
 `AnnotationConfigWebApplicationContext` 是注解驱动开发web应用的高级容器类。
 
-## 8. 基于注解驱动的Spring执行过程分析
+#### 7.4.6. XmlWebApplicationContext
+
+传统 SSM 整合时，基于 XML 配置文件的容器（旧）
+
+#### 7.4.7. AnnotationConfigServletWebServerApplicationContext
+
+Spring boot 中 servlet web 环境容器（新）
+
+#### 7.4.8. AnnotationConfigReactiveWebServerApplicationContext
+
+Spring boot 中 reactive web 环境容器（新）
+
+## 8. 基于注解驱动的 Spring 执行过程分析
 
 ### 8.1. 使用配置类字节码的构造函数
 
@@ -2779,9 +2799,9 @@ if (ctors != null || mbd.getResolvedAutowireMode() == AUTOWIRE_CONSTRUCTOR ||
 }
 ```
 
-`determineConstructorsFromBeanPostProcessors()`方法源码如下：主要处理逻辑是，获取所有的BeanPostProcessor接口类型的求对象，然后判断是否是`SmartInstantiationAwareBeanPostProcessor`类型的，然后循环调用接口的`determineCandidateConstructors`方法，该方法的作用是获取所有`@Autowired`注解的构造函数
+`determineConstructorsFromBeanPostProcessors()` 方法源码如下：主要处理逻辑是，获取所有的 `BeanPostProcessor` 接口类型的求对象，然后判断是否是`SmartInstantiationAwareBeanPostProcessor` 类型的，然后循环调用接口的 `determineCandidateConstructors` 方法，该方法的作用是获取所有`@Autowired`注解的构造函数
 
-注：此循环中所有`SmartInstantiationAwareBeanPostProcessor`类型的实现类都会进入if判断中，并且执行了`determineCandidateConstructors`方法，但如果不是处理此个功能的实现类只需要返回null即可，所以此处的逻辑只会`AutowiredAnnotationBeanPostProcessor`会起作用
+注：此循环中所有`SmartInstantiationAwareBeanPostProcessor`类型的实现类都会进入if判断中，并且执行了`determineCandidateConstructors`方法，但如果不是处理此个功能的实现类只需要返回 null 即可，所以此处的逻辑只会`AutowiredAnnotationBeanPostProcessor`会起作用
 
 ```java
 @Nullable
@@ -3055,7 +3075,7 @@ private InjectionMetadata findResourceMetadata(String beanName, final Class<?> c
 
 ![](images/20210131091710111_3625.png)
 
-4. 最终把两个 `field` 和 `Method` 封装的对象集合封装到 `InjectionMetadata` 对象中，并加入`injectionMetadataCache`的Map缓存中
+4. 最终把两个 `field` 和 `Method` 封装的对象集合封装到 `InjectionMetadata` 对象中，并加入 `injectionMetadataCache` 的 Map 缓存中
 
 ![](images/20210131091651338_31028.png)
 
@@ -4121,8 +4141,8 @@ public class ContextLoaderListener extends ContextLoader implements ServletConte
 ```java
 /**
  * Spring 框架 FactoryBean 接口使用示例
+ * FactoryBean 是泛型接口，如果不指定泛型，但 getObject() 方法返回值为 Object 类型
  */
-// FactoryBean是泛型接口，如果不指定泛型，但getObject()方法返回值为Object类型
 @Component
 public class FactoryBeanDemo implements FactoryBean<Cat> {
     /*

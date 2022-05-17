@@ -516,9 +516,32 @@ IOC 和 DI 关系：依赖注入不能单独存在，需要在 IOC 基础之上�
 
 在一个全局的 Http Session 中，容器会返回该 Bean 的同一个实例，仅在使用 portlet context 时有效。
 
-### 7.2. Spring Bean 生命周期
 
-Bean对象在 spring 框架的上下文中的生命周期图（网络资料）
+## 8. Spring Bean 的生命周期
+
+### 8.1. 概述
+
+一个受 Spring 管理的 bean，生命周期主要阶段有
+
+1. 创建：根据 bean 的构造方法或者工厂方法来创建 bean 实例对象
+2. 依赖注入：根据 `@Autowired`，`@Value` 或其它一些手段，为 bean 的成员变量填充值、建立关系
+3. 初始化：回调各种 `Aware` 接口，调用对象的各种初始化方法
+4. 销毁：在容器关闭时，会销毁所有单例对象（即调用它们的销毁方法）。prototype （多例）对象也能够销毁，不过需要容器主动调用
+
+```mermaid
+graph LR
+
+创建 --> 依赖注入
+依赖注入 --> 初始化
+初始化 --> 可用
+可用 --> 销毁
+```
+
+在整个生命周期过程中，可以自定义 Bean 的初始化和销毁钩子函数，当 Bean 的生命周期到达相应的阶段的时候，Spring 会调用自定义的 Bean 的初始化和销毁方法。Spring 还提供一种 `BeanPostProcessor` 接口（Bean 后处理器），也可以用于在 bean 的初始化的前后，提供一些扩展逻辑，但不单单只对生命周期有作用（*`BeanPostProcessor` 接口详细说明见后面章节*）
+
+自定义 Bean 初始化和销毁方法有多种方式。参考代码详见：`spring-note\spring-analysis-note\spring-sample-annotation\19-annotation-lifecycle\`
+
+Bean 对象在 spring 框架的上下文中的生命周期图（网络资料）
 
 ![](images/20200902225528606_28556.jpg)
 
@@ -535,13 +558,7 @@ Bean对象在 spring 框架的上下文中的生命周期图（网络资料）
 10. destroy-method 自配置清理：最后，如果这个 Bean 的 Spring 配置中配置了 destroy-method 属性，会自动调用其配置的销毁方法
 11. bean 标签有两个重要的属性（init-method 和 destroy-method）。`<bean id="" class="" init-method="初始化方法" destroy-method="销毁方法">`，用它们你可以自己定制初始化和注销方法。它们也有相应的注解（`@PostConstruct` 和 `@PreDestroy`）。
 
-## 8. Bean的初始化和销毁方法
-
-在整个生命周期过程中，可以自定义Bean的初始化和销毁钩子函数，当Bean的生命周期到达相应的阶段的时候，Spring会调用自定义的Bean的初始化和销毁方法。自定义Bean初始化和销毁方法有多种方式
-
-参考代码详见：`spring-note\spring-analysis-note\spring-sample-annotation\19-annotation-lifecycle\`
-
-### 8.1. @Bean 注解方式实现
+### 8.2. @Bean 注解方式实现生命周期回调
 
 - 创建自定义Bean
 
@@ -569,6 +586,11 @@ public class CustomBean {
 // 配置包扫描
 @ComponentScan("com.moon.springsample")
 public class SpringConfiguration {
+
+    public SpringConfiguration() {
+        System.out.println("SpringConfiguration 类构造方法执行");
+    }
+
     /* 通过@Bean 注解方式创建对象并注册到IOC容器中，实现initMethod与destroyMethod方法 */
     @Bean(value = "customBean", initMethod = "init", destroyMethod = "destory")
     // @Scope("prototype") // 设置多例，用于测试生命周期
@@ -585,14 +607,15 @@ public class SpringConfiguration {
 ```java
 @Test
 public void lifecycleBasicTest() {
-    // 1. 创建注解扫描的容器
+    // 创建容器，观察单例对象的初始化方法
+    System.out.println("************* 容器准备创建 *************");
     AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(SpringConfiguration.class);
     System.out.println("************* 容器创建完毕 *************");
-    // 2. 获取容器中的bean对象，并输出
-    CustomBean customBean = context.getBean("customBean", CustomBean.class);
-    System.out.println(customBean);
-    // 3. 关闭容器，观察单例对象的销毁前的方法
+
+    System.out.println("************* 容器准备关闭 *************");
+    // 关闭容器，观察单例对象的销毁前的方法
     context.close();
+    System.out.println("************* 容器关闭完毕 *************");
 }
 ```
 
@@ -601,32 +624,45 @@ public void lifecycleBasicTest() {
 1. 单例模式
 
 ```
-CustomBean构造方法执行了...
-CustomBean基于@Bean注解initMethod方式实现的初始化方法
+************* 容器准备创建 *************
+SpringConfiguration 类构造方法执行
+CustomBean 构造方法执行了...
+CustomBean 基于 @Bean 注解 initMethod 方式实现的初始化方法
 ************* 容器创建完毕 *************
-com.moon.springsample.bean.CustomBean@7995092a
-CustomBean基于@Bean注解destroyMethod方式实现的销毁方法
+************* 容器准备关闭 *************
+CustomBean 基于 @Bean 注解 destroyMethod 方式实现的销毁方法
+************* 容器关闭完毕 *************
 ```
 
 > 分析：此情况是对于单例，在容器启动之前，先调用对象的无参构造器创建对象，然后调用初始化方法，在容器关闭的时候调用销毁方法。
 
 2. 多例模式
 
+因为是多例对象，在获取 bean 对象时才会创建，所以在测试方法中增加获取对象的操作
+
+```java
+System.out.println(context.getBean(CustomBean.class));
 ```
+
+```
+************* 容器准备创建 *************
+SpringConfiguration 类构造方法执行
 ************* 容器创建完毕 *************
-CustomBean构造方法执行了...
-CustomBean基于@Bean注解initMethod方式实现的初始化方法
-com.moon.springsample.bean.CustomBean@2133814f
+CustomBean 构造方法执行了...
+CustomBean 基于 @Bean 注解 initMethod 方式实现的初始化方法
+com.moon.springsample.bean.CustomBean@6b4a4e18
+************* 容器准备关闭 *************
+************* 容器关闭完毕 *************
 ```
 
-> 分析：此情况在多例模式下，IOC容器启动的时候并不会去创建对象，而是在每次获取的时候才会去调用方法创建对象，创建完对象后再调用初始化方法。但在容器关闭后，Spring并没有调用相应的销毁方法，这是因为在多例模式下，容器不会管理这个组件（只负责在你需要的时候创建这个组件），所以容器在关闭的时候并不会调用相应的销毁方法。
+> 分析：此情况在多例模式下，IOC 容器启动的时候并不会去创建对象，而是在每次获取的时候才会去调用方法创建对象，创建完对象后再调用初始化方法。但在容器关闭后，Spring 并没有调用相应的销毁方法，这是因为在多例模式下，容器不会管理这个组件（只负责在你需要的时候创建这个组件），所以容器在关闭的时候并不会调用相应的销毁方法。
 
-### 8.2. InitializingBean & DisposableBean 接口实现
+### 8.3. InitializingBean & DisposableBean 接口实现生命周期回调
 
-除了上面注解方式指定初始化和销毁方法外，Spring还提供了和初始化，销毁相对应的接口
+除了上面注解方式指定初始化和销毁方法外，Spring 还提供了和初始化，销毁相对应的接口
 
-- `InitializingBean`接口包含一个`afterPropertiesSet`方法，可以通过实现该接口，然后在这个方法中编写初始化逻辑。
-- `DisposableBean`接口包含一个`destory`方法，可以通过实现该接口，然后再这个方法中编写销毁逻辑。
+- `org.springframework.beans.factory.InitializingBean` 接口包含一个 `afterPropertiesSet` 方法，可以通过实现该接口，然后在这个方法中编写初始化逻辑。
+- `org.springframework.beans.factory.DisposableBean` 接口包含一个 `destory` 方法，可以通过实现该接口，然后再这个方法中编写销毁逻辑。
 
 1. 新建一个UserService类，然后实现这两个接口
 
@@ -663,28 +699,32 @@ public class SpringConfiguration {
 ```java
 @Test
 public void lifecycleBasicTest() {
-    // 1. 创建注解扫描的容器
+    // 创建容器，观察单例对象的初始化方法
+    System.out.println("************* 容器准备创建 *************");
     AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(SpringConfiguration.class);
     System.out.println("************* 容器创建完毕 *************");
-    // 2. 获取容器中的bean对象，并输出
-    UserService userService = context.getBean("userService", UserService.class);
-    System.out.println(userService);
-    // 3. 关闭容器，观察单例对象的销毁前的方法
+
+    System.out.println("************* 容器准备关闭 *************");
+    // 关闭容器，观察单例对象的销毁前的方法
     context.close();
+    System.out.println("************* 容器关闭完毕 *************");
 }
 ```
 
 测试结果
 
 ```
-UserService构造方法执行了
-UserService实现InitializingBean接口实现初始化的afterPropertiesSet()方法执行了
+************* 容器准备创建 *************
+SpringConfiguration 类构造方法执行
+UserService 构造方法执行了
+UserService 实现 InitializingBean 接口实现初始化的 afterPropertiesSet() 方法执行了
 ************* 容器创建完毕 *************
-com.moon.springsample.service.UserService@1df82230
-UserService实现DisposableBean接口实现销毁的destroy()方法执行了
+************* 容器准备关闭 *************
+UserService 实现 DisposableBean 接口实现销毁的 destroy() 方法执行了
+************* 容器关闭完毕 *************
 ```
 
-### 8.3. @PostConstruct & @PreDestroy 注解方式实现
+### 8.4. @PostConstruct & @PreDestroy 注解方式实现生命周期回调
 
 还可以使用 `@PostConstruct` 和 `@PreDestroy` 注解修饰方法来指定相应的初始化和销毁方法
 
@@ -701,19 +741,19 @@ UserService实现DisposableBean接口实现销毁的destroy()方法执行了
 public class LogUtil {
     /* 构造方法 */
     public LogUtil() {
-        System.out.println("LogUtil类的无参构造函数执行了...");
+        System.out.println("LogUtil 类的无参构造函数执行了...");
     }
 
     /* @PostConstruct 注解用于指定bean对象的初始化后执行的方法 */
     @PostConstruct
     public void init() {
-        System.out.println("LogUtil基于@PostConstruct注解的初始化后的方法执行了...");
+        System.out.println("LogUtil 基于 @PostConstruct 注解的初始化后的方法执行了...");
     }
 
     /* @PreDestroy 用于指定bean对象的销毁前执行的方法 */
     @PreDestroy
     public void destroy() {
-        System.out.println("LogUtil基于@PreDestroy注解销毁前的方法执行了...");
+        System.out.println("LogUtil 基于 @PreDestroy 注解销毁前的方法执行了...");
     }
 }
 ```
@@ -732,41 +772,45 @@ public class SpringConfiguration {
 ```java
 @Test
 public void lifecycleBasicTest() {
-    // 1. 创建注解扫描的容器
+    // 创建容器，观察单例对象的初始化方法
+    System.out.println("************* 容器准备创建 *************");
     AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(SpringConfiguration.class);
     System.out.println("************* 容器创建完毕 *************");
-    // 2. 获取容器中的bean对象，并输出
-    LogUtil logUtil = context.getBean("logUtil", LogUtil.class);
-    System.out.println(logUtil);
-    // 3. 关闭容器，观察单例对象的销毁前的方法
+
+    System.out.println("************* 容器准备关闭 *************");
+    // 关闭容器，观察单例对象的销毁前的方法
     context.close();
+    System.out.println("************* 容器关闭完毕 *************");
 }
 ```
 
 测试结果
 
 ```
-LogUtil类的无参构造函数执行了...
-LogUtil基于@PostConstruct注解的初始化后的方法执行了...
+************* 容器准备创建 *************
+SpringConfiguration 类构造方法执行
+LogUtil 类的无参构造函数执行了...
+LogUtil 基于 @PostConstruct 注解的初始化后的方法执行了...
 ************* 容器创建完毕 *************
-com.moon.springsample.utils.LogUtil@27c86f2d
-LogUtil基于@PreDestroy注解销毁前的方法执行了...
+************* 容器准备关闭 *************
+LogUtil 基于 @PreDestroy 注解销毁前的方法执行了...
+************* 容器关闭完毕 *************
 ```
 
 <font color=purple>*注：这两个注解并非Spring提供，而是JSR250规范提供*</font>
 
-### 8.4. BeanPostProcessor 接口实现
+### 8.5. BeanPostProcessor 接口实现生命周期回调
 
-Spring提供了一个`BeanPostProcessor`接口，俗称Bean后置通知处理器，它提供了两个方法`postProcessBeforeInitialization`和`postProcessAfterInitialization`。
+Spring 提供了一个 `BeanPostProcessor` 接口，俗称 Bean 后置通知处理器，它提供了两个方法 `postProcessBeforeInitialization` 和 `postProcessAfterInitialization`
 
-其中`postProcessBeforeInitialization`在组件的初始化方法调用之前执行，`postProcessAfterInitialization`在组件的初始化方法调用之后执行。它们都包含两个入参：
+其中 `postProcessBeforeInitialization` 在组件的初始化方法调用之前执行，`postProcessAfterInitialization` 在组件的初始化方法调用之后执行。它们都包含两个入参：
 
 - `bean`：当前组件对象
 - `beanName`：当前组件在容器中的名称。
 
-两个方法都返回一个Object类型，可以直接返回当前组件对象，或者包装后返回。
+两个方法都返回一个 Object 类型，可以直接返回当前组件对象，或者包装后返回。
 
-1. 定义一个BeanPostProcessor接口的实现类MyBeanPostProcessor
+1. 定义一个 `BeanPostProcessor` 接口的实现类 `MyBeanPostProcessor`
 
 ```java
 @Component
@@ -803,66 +847,220 @@ public class SpringConfiguration {
 ```java
 @Test
 public void lifecycleBasicTest() {
-    // 1. 创建注解扫描的容器
+    // 创建容器，观察单例对象的初始化方法
+    System.out.println("************* 容器准备创建 *************");
     AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(SpringConfiguration.class);
     System.out.println("************* 容器创建完毕 *************");
-    // 2. 获取容器中的bean对象，并输出
-    MyBeanPostProcessor myBeanPostProcessor = context.getBean("myBeanPostProcessor", MyBeanPostProcessor.class);
-    System.out.println(myBeanPostProcessor);
-    // 3. 关闭容器，观察单例对象的销毁前的方法
+
+    System.out.println("************* 容器准备关闭 *************");
+    // 关闭容器，观察单例对象的销毁前的方法
     context.close();
+    System.out.println("************* 容器关闭完毕 *************");
+}
+```
+
+多准备一个普通的 `OrdinaryBean` 类并注册到容器中，测试结果
+
+```
+************* 容器准备创建 *************
+MyBeanPostProcessor 类构造方法执行了
+SpringConfiguration 类构造方法执行
+基于实现 BeanPostProcessor 接口 postProcessBeforeInitialization() 方法，springConfiguration初始化之前调用
+基于实现 BeanPostProcessor 接口 postProcessAfterInitialization() 方法，springConfiguration初始化之后调用
+OrdinaryBean 构造方法执行了...
+基于实现 BeanPostProcessor 接口 postProcessBeforeInitialization() 方法，ordinaryBean初始化之前调用
+基于实现 BeanPostProcessor 接口 postProcessAfterInitialization() 方法，ordinaryBean初始化之后调用
+************* 容器创建完毕 *************
+************* 容器准备关闭 *************
+************* 容器关闭完毕 *************
+```
+
+<font color=red>**注：`BeanPostProcessor` 对 IOC 容器中所有组件（对象）都生效**</font>
+
+## 9. 容器扩展点
+
+Spring IoC 容器提供了一些特殊的接口，通过实现此类接口可以对功能进行扩展
+
+### 9.1. BeanPostProcessor 接口扩展 Bean 功能
+
+`BeanPostProcessor` 接口定义了回调方法，可以实现这些方法来提供自定义（或覆盖容器的默认）实例化逻辑、依赖性解决逻辑等。如果想在 Spring 容器完成实例化、配置和初始化 Bean 之后实现一些自定义逻辑，也可以创建一个或多个自定义 `BeanPostProcessor` 实现。
+
+配置多个 `BeanPostProcessor` 实现时，可以通过实现了 `org.springframework.core.Ordered` 接口，在 `getOrder()` 方法返回这些实例的顺序值；或者在实现类上标识 `@Order` 注解并指定顺序值，从而控制这些 `BeanPostProcessor` 实例的运行顺序。**数值越小，优先级越高**。
+
+#### 9.1.1. 基础使用示例
+
+- 创建 bean 与配置类
+
+```java
+@Component
+@Data
+public class Cat {
+    private String name;
+    private int age;
+    private String color;
+}
+```
+
+```java
+@Configuration
+// 配置包扫描
+@ComponentScan("com.moon.springsample")
+public class SpringConfiguration {
+}
+```
+
+- 创建 `BeanPostProcessor` 接口实现类，分别在 `postProcessBeforeInitialization` 与 `postProcessAfterInitialization` 对象指定的 bean 对象做增强、修改等等
+
+```java
+@Component
+public class CustomBeanPostProcessor implements BeanPostProcessor {
+
+    @Override
+    public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
+        if (bean instanceof Cat) {
+            System.out.println("基于实现 BeanPostProcessor 接口 postProcessBeforeInitialization() 方法，" + beanName + "初始化之前调用");
+            Cat cat = (Cat) bean;
+            // 模拟功能增强，这里只是设置属性
+            cat.setName("在 BeanPostProcessor 接口中设置的名称");
+            cat.setAge(1);
+            return cat;
+        }
+        return bean;
+    }
+
+    @Override
+    public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
+        if (bean instanceof Cat) {
+            System.out.println("基于实现 BeanPostProcessor 接口 postProcessAfterInitialization() 方法，" + beanName + "初始化之后调用");
+            Cat cat = (Cat) bean;
+            // 模拟功能增强，这里只是设置属性
+            cat.setColor("pink");
+            cat.setAge(cat.getAge() + 1);
+            return cat;
+        }
+        return bean;
+    }
+}
+```
+
+- 编写测试用例
+
+```java
+@Test
+public void TestBasicBeanPostProcessor() {
+    AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(SpringConfiguration.class);
+    System.out.println(context.getBean(Cat.class));
 }
 ```
 
 测试结果
 
 ```
-MyBeanPostProcessor类构造方法执行了
-基于实现BeanPostProcessor接口postProcessBeforeInitialization()方法，springConfiguration初始化之前调用
-基于实现BeanPostProcessor接口postProcessAfterInitialization()方法springConfiguration初始化之后调用
-UserService构造方法执行了
-基于实现BeanPostProcessor接口postProcessBeforeInitialization()方法，userService初始化之前调用
-UserService实现InitializingBean接口实现初始化的afterPropertiesSet()方法执行了
-基于实现BeanPostProcessor接口postProcessAfterInitialization()方法userService初始化之后调用
-LogUtil类的无参构造函数执行了...
-基于实现BeanPostProcessor接口postProcessBeforeInitialization()方法，logUtil初始化之前调用
-LogUtil基于@PostConstruct注解的初始化后的方法执行了...
-基于实现BeanPostProcessor接口postProcessAfterInitialization()方法logUtil初始化之后调用
-CustomBean构造方法执行了...
-基于实现BeanPostProcessor接口postProcessBeforeInitialization()方法，customBean初始化之前调用
-CustomBean基于@Bean注解initMethod方式实现的初始化方法
-基于实现BeanPostProcessor接口postProcessAfterInitialization()方法customBean初始化之后调用
-************* 容器创建完毕 *************
-com.moon.springsample.processor.MyBeanPostProcessor@1a04f701
-CustomBean基于@Bean注解destroyMethod方式实现的销毁方法
-LogUtil基于@PreDestroy注解销毁前的方法执行了...
-UserService实现DisposableBean接口实现销毁的destroy()方法执行了
+基于实现 BeanPostProcessor 接口 postProcessBeforeInitialization() 方法，cat初始化之前调用
+基于实现 BeanPostProcessor 接口 postProcessAfterInitialization() 方法，cat初始化之后调用
+Cat(name=在 BeanPostProcessor 接口中设置的名称, age=2, color=pink)
 ```
 
-<font color=red>**注：BeanPostProcessor对IOC容器中所有组件都生效**</font>
+#### 9.1.2. 增强接口 InstantiationAwareBeanPostProcessor 示例（待整理）
 
-## 9. BeanFactory 与 ApplicationContext
+`InstantiationAwareBeanPostProcessor` 继承 `BeanPostProcessor` 接口
 
-### 9.1. BeanFactory
+
+#### 9.1.3. 增强接口 DestructionAwareBeanPostProcessor 示例（待整理）
+
+`DestructionAwareBeanPostProcessor` 继承 `BeanPostProcessor` 接口
+
+#### 9.1.4. 内置的 `BeanPostProcessor` 后置处理器实现
+
+Spring 框架通常会将回调接口或注解与自定义 `BeanPostProcessor` 实现结合起来使用，从而扩展 Spring IoC 容器。如 Spring 的内置一些的 `BeanPostProcessor` 实现类，它们会在 Spring 容器创建时初始化，分别具有不同的扩展功能：
+
+- `AutowiredAnnotationBeanPostProcessor` 用于解析 `@Autowired` 与 `@Value`
+- `CommonAnnotationBeanPostProcessor` 用于解析 `@Resource`、`@PostConstruct`、`@PreDestroy`
+- `ConfigurationPropertiesBindingPostProcessor` 用于解析 `@ConfigurationProperties`。（是 Spring Boot 框架）
+
+另外，ContextAnnotationAutowireCandidateResolver 接口负责获取 `@Value` 的值，解析 `@Qualifier`、泛型、`@Lazy` 等
+
+### 9.2. BeanFactoryPostProcessor 接口
+
+
+
+
+
+
+
+
+
+## 10. BeanFactory 与 ApplicationContext
+
+### 10.1. BeanFactory
 
 BeanFactory API 为 Spring 的 IoC 功能提供了底层基础。`BeanFactory` 及其相关的接口，例如：`BeanFactoryAware`，`InitializingBean`，`DisposableBean`，仍在 Spring 中保留，目的就是为了让大量的第三方框架和 Spring 集成时保持向后兼容。
 
-Spring 大量使用了 `BeanPostProcessor` 后置处理器去扩展功能（以便使用代理等）。如果仅仅只使用简单的 `BeanFactory` 接口，很多的支持功能将不会有效
+`BeanFactory` 表面上只有 getBean 方法，实际上控制反转、基本的依赖注入、直至 Bean 的生命周期的各种功能，都由它的实现类提供。Spring 大量使用了 `BeanPostProcessor` 后置处理器去扩展功能（以便使用代理等）。如果仅仅只使用简单的 `BeanFactory` 接口，很多的支持功能将不会有效
 
 示例如下：
 
 ```java
+@Test
+public void test() {
+    // 获取 BeanFactory 实现 DefaultListableBeanFactory
+    DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
+    // BeanFactory 刚创建后，里面是没有任务实例对象
+    for (String bdName : beanFactory.getBeanDefinitionNames()) {
+        System.out.println(bdName);
+    }
+    System.out.println("======================= 分隔线 =====================");
 
+    /*
+     * 当使用一个 BeanFactory 的实现 就要明确的注册一些 BeanFactoryPostProcessor，必须编写类似以下的代码：
+     * 因此使用 ApplicationContext 的各种实现都优于 BeanFactory 实现
+     */
+    // 创建 bean 的定义对象 BeanDefinition（用于封装待创建的类实例的 class, scope, 初始化, 销毁等信息）
+    AbstractBeanDefinition beanDefinition = BeanDefinitionBuilder
+            .genericBeanDefinition(SpringConfiguration.class)
+            .setScope("singleton")
+            .getBeanDefinition();
+    // 注册 bean
+    beanFactory.registerBeanDefinition("springConfiguration", beanDefinition);
+    for (String bdName : beanFactory.getBeanDefinitionNames()) {
+        System.out.println(bdName);
+    }
+    System.out.println("======================= 分隔线 =====================");
+
+    // 使用 AnnotationConfigUtils 工具类，给 BeanFactory 添加一些常用的后处理器，用于扩展功能
+    AnnotationConfigUtils.registerAnnotationConfigProcessors(beanFactory);
+
+    // BeanFactoryPostProcessor 后处理器。主要功能是补充了一些 bean 定义
+    beanFactory.getBeansOfType(BeanFactoryPostProcessor.class).values().forEach(beanFactoryPostProcessor -> {
+        System.out.println("BeanFactoryPostProcessor 类型实例：" + beanFactoryPostProcessor);
+        beanFactoryPostProcessor.postProcessBeanFactory(beanFactory);
+    });
+    // BeanPostProcessor 后处理器, 针对 bean 的生命周期的各个阶段提供扩展, 例如 @Autowired @Resource ...
+    beanFactory.getBeansOfType(BeanPostProcessor.class)
+            .values()
+            .stream()
+            .sorted(beanFactory.getDependencyComparator())
+            .forEach(beanPostProcessor -> {
+                System.out.println("BeanPostProcessor 类型实例：" + beanPostProcessor);
+                beanFactory.addBeanPostProcessor(beanPostProcessor);
+            });
+    System.out.println("======================= 分隔线 =====================");
+    for (String bdName : beanFactory.getBeanDefinitionNames()) {
+        System.out.println(bdName);
+    }
+}
 ```
 
+上述示例中，新创建的 `BeanFactory` 实例不具备 `BeanPostProcessor` 与 `BeanFactoryPostProcessor` 自动注册的功能，需要手动进行注册。
 
+- `BeanPostProcessor`：解析 `@Bean`、`@ComponentScan` 等注解
+- `BeanFactoryPostProcessor`：解析 `@Autowired`、`@Resource` 等注解，并其添加到容器的顺序也影响到解析结果
 
-
-### 9.2. ApplicationContext 的额外功能
+### 10.2. ApplicationContext 的额外功能
 
 正如前面章节介绍，`ApplicationContext` 接口继承了 `BeanFactory` 接口，它增加了更多特定功能：
 
-#### 9.2.1. MessageSource 国际化
+#### 10.2.1. MessageSource 国际化
 
 `ApplicationContext` 接口继承了一个叫做 `MessageSource` 的接口，它也提供了国际化(i18n)的功能。接口定义3个常用获取国际化信息的方法
 
@@ -892,13 +1090,13 @@ public interface MessageSource {
 }
 ```
 
-##### 9.2.1.1. MessageSource 常见3个实现类
+##### 10.2.1.1. MessageSource 常见3个实现类
 
 - `ResourceBundleMessageSource`：这个是基于 Java 的 `ResourceBundle` 基础类实现，允许仅通过资源名加载国际化资源
 - `ReloadableResourceBundleMessageSource`：这个功能和第一个类的功能类似，多了定时刷新功能，允许在不重启系统的情况下，更新资源的信息
 - `StaticMessageSource`：它允许通过编程的方式提供国际化信息
 
-##### 9.2.1.2. 国际化使用步骤
+##### 10.2.1.2. 国际化使用步骤
 
 - **步骤一：创建国际化文件**。国际化文件命名格式：`名称_语言_地区.properties`
 
@@ -966,7 +1164,7 @@ public void testMessageSource() {
 }
 ```
 
-#### 9.2.2. 访问资源
+#### 10.2.2. 访问资源
 
 `ApplicationContext` 接口继承了 `ResourceLoader` 接口，提供了用来读取资源的功能。
 
@@ -986,11 +1184,11 @@ public void testGetResources() throws IOException {
 }
 ```
 
-#### 9.2.3. 标准和自定义事件
+#### 10.2.3. 标准和自定义事件
 
 `ApplicationContext` 继承 `ApplicationEventPublisher` 接口后具有发布事件的功能。而 `ApplicationEvent` 类和 `ApplicationListener` 接口提供了事件处理。如果一个 bean 实现了 `ApplicationListener` 接口并注册到 Spring 容器中，那么每次 `ApplicationEvent` 发布到 `ApplicationContext` 容器中时，bean 都会收到通知。本质上是观察者模型。
 
-##### 9.2.3.1. 内置事件
+##### 10.2.3.1. 内置事件
 
 Spring 提供了一下的标准内置事件：
 
@@ -1001,7 +1199,7 @@ Spring 提供了一下的标准内置事件：
 - `RequestHandledEvent`：接受一个 HTTP 请求的时候，在请求完成后，会通知所有的 bean
 - `ServletRequestHandledEvent`：`RequestHandledEvent` 的一个子类，增加了 Servlet 特定的上下文信息。
 
-##### 9.2.3.2. 自定义事件
+##### 10.2.3.2. 自定义事件
 
 - 创建自定义事件类
 
@@ -1025,7 +1223,7 @@ public class MyEvent extends ApplicationEvent {
 }
 ```
 
-##### 9.2.3.3. 发送事件
+##### 10.2.3.3. 发送事件
 
 要发送事件，主要是要获取 `ApplicationEventPublisher` 对象。创建类实现 `ApplicationEventPublisherAware` 接口，在接口的 `setApplicationEventPublisher` 方法中获取 `ApplicationEventPublisher` 实例。然后在类中的其他方法中使用该实例发送事件即可
 
@@ -1052,7 +1250,7 @@ public class MyEventPublisher implements ApplicationEventPublisherAware {
 }
 ```
 
-##### 9.2.3.4. 事件监听
+##### 10.2.3.4. 事件监听
 
 创建事件监听器，有如下两种方式：
 
@@ -1094,7 +1292,7 @@ public class MyEventListener {
 }
 ```
 
-##### 9.2.3.5. 测试
+##### 10.2.3.5. 测试
 
 测试代码：
 
@@ -1115,7 +1313,11 @@ public void testEvent() {
 基于 ApplicationListener 接口实现的事件监听器。获取事件数据：MyEvent(code=1, message=这是一个事件消息)
 ```
 
-### 9.3. BeanFactory 和 ApplicationContext 的区别
+#### 10.2.4. 异步事件（待整理）
+
+暂未整理，整合 `@EnableAsync`，`@Async` 的用法
+
+### 10.3. BeanFactory 和 ApplicationContext 的区别
   
 两者创建对象的时间点不一样
 
