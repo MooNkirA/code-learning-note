@@ -497,68 +497,235 @@ Spring 创建的 Bean 对象的都有其作用范围。Spring 框架支持6种�
 
 > 注：有些历史资料中提及有 `globalSession` 这种作用范围，目前 Spring 中已废弃
 
-Bean 定义的作用域存在单个 HTTP 请求的生命周期中。即每个 HTTP 请求都有自己的 Bean 实例，这些实例基于单个 Bean 定义的基础上创建的。（只在 Web 环境的 `ApplicationContext` 容器中有效） 
-仅在 Web 识别的 Spring ApplicationContext 的上下文中有效。
-仅在 Web 识别的 Spring ApplicationContext 的上下文中有效。
-仅在 Web 识别的 Spring ApplicationContext 的上下文中有效。
+### 7.2. 各种作用范围说明
 
-### 7.2. singleton 单例对象
+#### 7.2.1. singleton 单例对象
 
-- **单例对象：`scope="singleton"`**
+```java
+@Scope(ConfigurableBeanFactory.SCOPE_SINGLETON) // 直接写 "singleton" 字符或者不写，默认作用范围也是单例
+@Component
+public class SingletonScopeBean {}
+```
 
-一个应用只有一个对象的实例。它的作用范围就是整个引用。<font color=red>**该模式在多线程下是不安全的**</font>。Singleton 作用域是Spring 中的缺省作用域
+一个应用只有一个对象的实例。它的作用范围就是整个引用。<font color=red>**该模式在多线程下是不安全的**</font>。Singleton 作用域是 Spring 中的缺省作用域。**bean 生命周期**如下：
 
-- 生命周期：
-    - 对象创建：当应用加载，创建容器时，对象就被创建了。
-    - 对象存活：只要容器在，对象一直存活
-    - 对象销毁：当应用卸载，销毁容器时，对象就被销毁了。
+- 对象创建：当应用加载，创建容器时，对象就被创建了。
+- 对象存活：只要容器在，对象一直存活
+- 对象销毁：当应用卸载，销毁容器时，对象就被销毁了。
 
-### 7.3. prototype 多例对象
+#### 7.2.2. prototype 多例对象
 
-- **多例对象：`scope="prototype"`**
+```java
+@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE) // 或 "prototype" 字符串
+@Component
+public class PrototypeScopeBean {}
+```
 
 一般使用在管理 struts2/Spring MVC 中的 action/controller 的创建
 
-每次访问对象时，都会重新创建对象实例。每次通过 Spring 容器获取 prototype 定义的 bean 时，容器都将创建一个新的 Bean 实例，每个 Bean 实例都有自己的属性和状态。根据经验，对有状态的bean使用prototype作用域，而对无状态的bean使用singleton 作用域。
+每次访问对象时，都会重新创建对象实例。每次通过 Spring 容器获取 prototype 定义的 bean 时，容器都将创建一个新的 Bean 实例，每个 Bean 实例都有自己的属性和状态。根据经验，对有状态的bean 使用 prototype 作用域，而对无状态的 bean 使用 singleton 作用域。**bean 生命周期**如下：
 
-- 生命周期：
-    - 对象创建：当使用对象时，创建新的对象实例。
-    - 对象存活：只要对象在使用中，就一直存活。
-    - 对象销毁：当对象长时间不用时，被 java 的垃圾回收器回收了。
+- 对象创建：当使用对象时，创建新的对象实例。
+- 对象存活：只要对象在使用中，就一直存活。
+- 对象销毁：当对象长时间不用时，被 java 的垃圾回收器回收了。
 
-### 7.4. request 请求域对象
+#### 7.2.3. request 请求域对象
 
-- **一次request一个实例：`scope="request"`**
+```java
+@Scope(WebApplicationContext.SCOPE_REQUEST) // 或 "request" 字符串
+@Component
+public class RequestScopeBean {}
+```
 
-在一次 Http 请求中，容器会返回该 Bean 的同一实例。而对不同的 Http 请求则会产生新的 Bean，而且该 bean 仅在当前 Http Request 内有效,当前 Http 请求结束，该 bean 实例也将会被销毁。
+在一次 Http 请求中，容器会返回该 Bean 的同一实例。而对不同的 Http 请求则会产生新的 Bean，而且该 bean 仅在当前 Http Request 内有效，当前 Http 请求结束，该 bean 实例也将会被销毁。
 
-### 7.5. session 会话域对象
+#### 7.2.4. session 会话域对象
 
-- **`scope="session"`**
+```java
+@Scope(WebApplicationContext.SCOPE_SESSION) // 或 "session" 字符串
+@Component
+public class SessionScopeBean {}
+```
 
 在一次 Http Session 中，容器会返回该 Bean 的同一实例。而对不同的 Session 请求则会创建新的实例，该 bean 实例仅在当前 Session 内有效。同 Http 请求相同，每一次 session 请求创建新的实例，而不同的实例之间不共享属性，且实例仅在自己的 session 请求内有效，请求结束，则实例将被销毁。
 
-### 7.6. application 应用上下文对象
+#### 7.2.5. application 应用上下文对象
 
-- **`scope="application"`**
+```java
+@Scope(WebApplicationContext.SCOPE_APPLICATION) // 或 "application" 字符串
+@Component
+public class ApplicationScopeBean {}
+```
 
 在一个全局的 Http Session 中，容器会返回该 Bean 的同一个实例，仅在使用 portlet context 时有效。
 
-### singleton 注入其它 scope 失效
+#### 7.2.6. 作用范围测试
 
+- 按上面创建不同作用范围的类，然后在每个类中都创建初始化后与销毁方法。
 
+```java
+@PostConstruct
+public void init() {
+    System.out.println("xxxScopeBean postConstruct...");
+}
+@PreDestroy
+public void destroy() {
+    System.out.println("xxxScopeBean destroy...");
+}
+```
 
+- 创建请求控制层，注入各种作用范围的实例。值得
 
+```java
+@SpringBootApplication
+@RestController
+public class BeanScopesApplication {
 
+    public static void main(String[] args) {
+        SpringApplication.run(BeanScopesApplication.class, args);
+    }
 
+    @Autowired
+    private SingletonScopeBean singletonScopeBean;
 
+    @Lazy
+    @Autowired
+    private PrototypeScopeBean prototypeScopeBean;
 
+    @Lazy
+    @Autowired
+    private RequestScopeBean requestScopeBean;
 
+    @Lazy
+    @Autowired
+    private SessionScopeBean sessionScopeBean;
 
+    @Lazy
+    @Autowired
+    private ApplicationScopeBean applicationScopeBean;
 
+    @GetMapping(value = "/test", produces = "text/html")
+    public String test(HttpServletRequest request, HttpSession session) {
+        ServletContext sc = request.getServletContext();
+        return "<ul>" +
+                "<li>" + "singleton scope:" + singletonScopeBean + "</li>" +
+                "<li>" + "prototype scope:" + prototypeScopeBean + "</li>" +
+                "<li>" + "request scope:" + requestScopeBean + "</li>" +
+                "<li>" + "session scope:" + sessionScopeBean + "</li>" +
+                "<li>" + "application scope:" + applicationScopeBean + "</li>" +
+                "</ul>";
+    }
+}
+```
 
+> 注意：**上例中使用 `@Autowired` 注解自动注入非单例作用域的对象时，需要同时使用 `@Lazy` 注解，否则会出现作用域失效问题**。原因与解决方法详见下面章节内容
 
+- 访问 `http://localhost:8080/test`，观察页面返回的对象地址与后端控制台输出日志。刷新请求再观察变化。也可以设置项目配置 `server.servlet.session.timeout=30s` 观察 session bean 的销毁
 
+![](images/454231914220560.png)
+
+> 测试时需要注意：如果项目环境的 JDK >= 9，以上示例会涉及反射调用 jdk 中方法，程序会报错。此时需要运行时添加参数 `--add-opens java.base/java.lang=ALL-UNNAMED`
+
+### 7.3. singleton 注入其它 scope 失效问题
+
+#### 7.3.1. 问题分析
+
+下面以单例作用域对象注入多例作用域对象为例（其他类型作用域均一样）
+
+- 创建多例作用域类
+
+```java
+@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+@Component
+public class PrototypeScopeBean1 {
+}
+```
+
+- 创建单例作用域类，并直接自动注入多例对象
+
+```java
+@Component
+public class SingletonScopeBean {
+
+    @Autowired
+    private PrototypeScopeBean1 bean1;
+    
+    public PrototypeScopeBean1 getBean1() {
+        return bean1;
+    }
+}
+```
+
+- 测试代码
+
+```java
+@Test
+public void basicTest() {
+    AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(BeanScopesApplication.class);
+    SingletonScopeBean bean = context.getBean(SingletonScopeBean.class);
+    // 多次获取，观察是否为同一个对象
+    System.out.println(bean.getBean1());
+    System.out.println(bean.getBean1());
+    System.out.println(bean.getBean1());
+}
+```
+
+- 运行测试结果：
+
+```
+com.moon.springsample.bean.PrototypeScopeBean1@1bb1fde8
+com.moon.springsample.bean.PrototypeScopeBean1@1bb1fde8
+com.moon.springsample.bean.PrototypeScopeBean1@1bb1fde8
+```
+
+从测试结果可见，期望的是多例对象，但每次获取都是同一个对象。原因其实很简单，就是单例对象只会被初始化一次，依赖注入也只有一次，所有后续每次获取注入的对象都是初始化时注入的对象。解决作用域失效有以下几种方式，<font color=red>**其原理都是推迟其他作用域 bean 的获取时机**</font>
+
+#### 7.3.2. 解决方式1 - @Lazy 注解
+
+在注入的对象上标识 `@Lazy` 注解，此时单例对象实例化是注入的是代理对象，代理对象虽然还是同一个，但当每次使用代理对象的任意方法时，由代理创建新的多例对象
+
+```java
+@Lazy
+@Autowired
+private PrototypeScopeBean1 bean1;
+```
+
+#### 7.3.3. 解决方式2 - 设置 proxyMode 属性
+
+在 `@Scope` 注解中使用 `proxyMode` 属性指定使用代理模式
+
+```java
+@Scope(value = ConfigurableBeanFactory.SCOPE_PROTOTYPE, proxyMode = ScopedProxyMode.TARGET_CLASS)
+@Component
+public class PrototypeScopeBean2 {
+}
+```
+
+#### 7.3.4. 解决方式3 - ObjectFactory 对象
+
+使用 `ObjectFactory` 将注入的多例对象进行包装，获取对象实例时调用其 `getObject` 方法
+
+```java
+@Autowired
+private ObjectFactory<PrototypeScopeBean3> bean3;
+
+public PrototypeScopeBean3 getBean3() {
+    return bean3.getObject();
+}
+```
+
+#### 7.3.5. 解决方式4 - 从容器中获取
+
+注入 Spring 容器，直接从容器中获取实例对象
+
+```java
+@Autowired
+private ApplicationContext bean4;
+
+public PrototypeScopeBean4 getBean4() {
+    return bean4.getBean(PrototypeScopeBean4.class);
+}
+```
 
 ## 8. Spring Bean 的生命周期
 

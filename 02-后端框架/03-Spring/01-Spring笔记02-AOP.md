@@ -2,18 +2,21 @@
 
 ## 1. AOP 概述
 
-### 1.1. AOP 概述与实现原理
+AOP：全称是 Aspect Oriented Programming。即：面向切面编程
 
-AOP：全称是 Aspect Oriented Programming 即：面向切面编程
+### 1.1. AOP 作用与实现原理
 
 它就是把程序重复的代码抽取出来，在需要执行的时候，使用**动态代理**的技术，在不修改源码的基础上，对已有方法进行增强
 
-- **AOP的作用**：在程序运行期间，不修改源码对已有方法进行增强
-- **AOP的优势**：
-    - 减少重复代码
-    - 提高开发效率
-    - 维护方便
-- **AOP实现方式**：基于动态代理技术
+**AOP的作用**：在程序运行期间，不修改源码对已有方法进行增强
+
+**AOP的优势**：
+
+- 减少重复代码
+- 提高开发效率
+- 维护方便
+
+**AOP实现方式**：基于动态代理技术
 
 ### 1.2. 动态代理特点
 
@@ -31,15 +34,28 @@ AOP：全称是 Aspect Oriented Programming 即：面向切面编程
 
 #### 1.3.1. 基于接口的动态代理【推荐】
 
-- 提供者：JDK官方
-- 使用要求：被代理类最少实现一个接口
-- 涉及的类：`Proxy`
-- 创建代理对象的方法：`public static Object newProxyInstance(ClassLoader loader, Class<?>[] interfaces, InvocationHandler h)`
-    - 方法参数`ClassLoader loader`：类加载器，用于加载代理对象的字节码的。和被代理对象使用相同的类加载器即可，固定写法。
-    - 方法参数`Class<?>[] interfaces`：被代理类实现的所有接口的字节码数组，用于给代理对象提供方法，和被代理对象具有相同的方法。也是有以下的固定写法。
-        - 如果被代理类是一个普通类：`被代理类对象.getClass().getInterfaces();`
-        - 如果被代理类是一个接口：`new Class[]{被代理类.class}`。
-    - 方法参数`InvocationHandler h`：要增强的方法。此处是一个接口，需要提供它的实现类。通常写的是匿名内部类，增强的代码谁用谁写。
+JDK 官方有一套动态代理的实现，使用要求是被代理类最少实现一个接口。动态代理主要类是 `Proxy`
+
+```java
+public class Proxy implements java.io.Serializable {
+    ...
+}
+```
+
+创建代理对象的方法：
+
+```java
+@CallerSensitive
+public static Object newProxyInstance(ClassLoader loader, Class<?>[] interfaces, InvocationHandler h) throws IllegalArgumentException
+```
+
+- 方法参数`ClassLoader loader`：类加载器，用于加载代理对象的字节码的。和被代理对象使用相同的类加载器即可，固定写法。
+- 方法参数`Class<?>[] interfaces`：被代理类实现的所有接口的字节码数组，用于给代理对象提供方法，和被代理对象具有相同的方法。也是有以下的固定写法。
+    - 如果被代理类是一个普通类：`被代理类对象.getClass().getInterfaces();`
+    - 如果被代理类是一个接口：`new Class[]{被代理类.class}`。
+- 方法参数`InvocationHandler h`：要增强的方法。此处是一个接口，需要提供它的实现类。通常写的是匿名内部类，增强的代码谁用谁写。
+
+基础使用示例如下：
 
 ```java
 /**
@@ -106,7 +122,6 @@ public class ActorImpl implements IActor {
 	public void wonderfulAct(float money) {
 		System.out.println("拿到 " + money + " 元，开始精彩的表演!!");
 	}
-
 }
 ```
 
