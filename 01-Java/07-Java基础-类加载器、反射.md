@@ -784,8 +784,8 @@ public class MoonZero {
 1. 动态生成代理对象，不用手动编写代理对象
 2. 不需要编写目标对象中所有同名的方法
 
-
 ## 3. 动态代理使用
+
 ### 3.1. Proxy 类 newProxyInstance 方法
 
 ```java
@@ -802,7 +802,7 @@ public static Object newProxyInstance(ClassLoader loader, Class<?>[] interfaces,
 
 <u><font color=purple>**真实对象与代理对象的是实现了共同接口，所以返回的Object代理对象需要转成接口类型**</font></u>
 
-> 引用网络资料的解释：为什么jdk动态代理的对象必须实现一个统一的接口，其实我的理解大致是代理类本身已经extends了TimeHandler,如果传入的是父类，很可能出现这种情况：“public class $Proxy1 extends Proxy extends 传入的父类”；这个明显在java中是不允许的，Java只支持单继承，但是实现接口是完全可以的。
+> 引用网络资料的解释：为什么jdk动态代理的对象必须实现一个统一的接口，其实我的理解大致是代理类本身已经 extends 了 TimeHandler,如果传入的是父类，很可能出现这种情况：“public class $Proxy1 extends Proxy extends 传入的父类”；这个明显在 java 中是不允许的，Java 只支持单继承，但是实现接口是完全可以的。
 
 ### 3.2. InvocationHandler 接口的核心方法
 
@@ -819,7 +819,7 @@ public Object invoke(Object proxy, Method method, Object[] args);
 ```
 
 - 作用：每当通过代理对象调用方法时，都会被该方法拦截。
-- 参数`(Object proxy`：代理对象本身（不一定每次都用得到）。即方法` newProxyInstance()`方法返回的代理对象，该对象一般<font color=red>**不要在 `invoke` 方法中使用，容易出现递归调用**</font>。
+- 参数`Object proxy`：代理对象本身（不一定每次都用得到）。即方法` newProxyInstance()`方法返回的代理对象，该对象一般<font color=red>**不要在 `invoke` 方法中使用，容易出现递归调用**</font>。
 - 参数`Method method`：代理对象调用的方法，被拦截的方法，<font color=red>**真实对象的方法对象**</font>，会进行多次调用，每次调用 method 对象都不同。
 - 参数`Object[] args`：**代理对象调用方法时传递的参数，该参数会传递给真实对象的方法**。
 - 返回值Object：**一般返回真实对象方法执行后的结果**。
@@ -847,17 +847,11 @@ Class[] arr = Demo.class.getInterfaces();
 2. 然后将需要被代理的(功能)方法定义的接口中
 3. 真实对象实现接口重写方法
 4. 创建真实对象，但不通过真实对象直接调用方法
-5. 利用Proxy类创建代理对象
+5. 利用 `Proxy` 类创建代理对象
 	- 真实对象的类加载器
-	- 真实对象现实的所有接口的Class类型数组
+	- 真实对象现实的所有接口的 `Class` 类型数组
 	- 回调处理对象，拦截对代理方法调用
-6. 通过代理对象调用相关方法，方法就会被回调处理对象拦截
-    - 可以在拦截的方法中执行相关的判断。
-
-1.直接创建真实对象
-2.通过 Proxy 类，创建代理对象
-3.调用代理方法，其实是调用 InvocationHandler 接口中的 invoke() 方法
-
+6. 通过代理对象调用相关方法，方法就会被回调处理对象拦截。其实是调用 `InvocationHandler` 接口中的 `invoke()` 方法，值得注意的是，接口中每个方法的调用都会触发 `InvocationHandler.invoke` 方法，可以在拦截的方法中执行相关的判断。
 
 #### 3.4.1. Code Demo 1
 
@@ -1088,8 +1082,120 @@ public class Client {
 }
 ```
 
-### 3.5. Proxy 类 newProxyInstance 生成代理对象的实现原理（待完善）
-#### 3.5.1. InvocationHandler 接口的 invoke 方法的调用
+### 3.5. Proxy 类 newProxyInstance 生成代理对象的实现原理
+
+#### 3.5.1. 模拟 JDK 的动态代理实现示例
+
+定义一个接口
+
+```java
+public interface DemoInterface {
+    void foo();
+
+    int bar();
+}
+```
+
+定义用于测试的被代理类
+
+```java
+public class DemoTarget implements DemoInterface {
+    @Override
+    public void foo() {
+        System.out.println("被代理类 DemoTarget.foo() 方法执行了...");
+    }
+
+    @Override
+    public int bar() {
+        System.out.println("被代理类 DemoTarget.bar() 方法执行了...");
+        return 99;
+    }
+}
+```
+
+**重点：定义模拟 JDK 动态代理生成的代理类 `$Proxy0`。**。
+
+```java
+public class $Proxy0 extends Proxy implements DemoInterface {
+
+    static Method foo;
+    static Method bar;
+
+    static {
+        try {
+            // 反射获取被代理类的中方法对象
+            foo = DemoTarget.class.getMethod("foo");
+            bar = DemoTarget.class.getMethod("bar");
+        } catch (NoSuchMethodException e) {
+            e.printStackTrace();
+            throw new NoSuchMethodError(e.getMessage());
+        }
+    }
+
+    // 继承的 Proxy 类中，有一个 InvocationHandler 类型的属性，调用父类构造，给属性设值
+    public $Proxy0(InvocationHandler h) {
+        super(h);
+    }
+
+    @Override
+    public void foo() {
+        try {
+            // 方法无参数
+            h.invoke(this, foo, new Object[0]);
+        } catch (RuntimeException | Error e) {
+            throw e;
+        } catch (Throwable e) {
+            throw new UndeclaredThrowableException(e);
+        }
+    }
+
+    @Override
+    public int bar() {
+        try {
+            // 获取方法调用的返回值，并返回
+            Object result = h.invoke(this, bar, new Object[0]);
+            return (int) result;
+        } catch (RuntimeException | Error e) {
+            throw e;
+        } catch (Throwable e) {
+            throw new UndeclaredThrowableException(e);
+        }
+    }
+}
+```
+
+测试代码
+
+```java
+@Test
+public void testCustomProxy() {
+    // 创建自己实现的代理对象
+    DemoInterface demo = new $Proxy0(new InvocationHandler() {
+        @Override
+        public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+            // 模拟功能增强
+            System.out.println("代理功能增强...");
+            // 调用目标的方法，并返回
+            return method.invoke(new DemoTarget(), args);
+        }
+    });
+
+    // 调用接口的方法，由代理来实现
+    demo.foo();
+    demo.bar();
+}
+```
+
+测试运行结果
+
+```
+代理功能增强...
+被代理类 DemoTarget.foo() 方法执行了...
+代理功能增强...
+被代理类 DemoTarget.bar() 方法执行了...
+```
+
+#### 3.5.2. InvocationHandler 接口的 invoke 方法的调用
 
 `Proxy.newProxyInstance(ClassLoader loader, Class<?>[] interfaces, InvocationHandler h)`方法，会生成一个代理对象，此代理对象名称叫`$Proxy0@xxx`。此代理对象会拥有一个属性`h`，该属性就是实现了`InvocationHandler`接口的实例（编写增强逻辑的类）。接口实现`h`有一个属性，就是待增强的类的实例。
 
@@ -1101,7 +1207,7 @@ public class Client {
 
 ![](images/20200616231804543_1488.png)
 
-#### 3.5.2. newProxyInstance 方法的执行过程
+#### 3.5.3. newProxyInstance 方法的执行过程
 
 1. 首先会生成一个代理类，通过拼凑字符串的方法生成一个叫`$Proxy0`的类，以`.java`结尾
 2. 使用文件流将拼凑好的字符串生成`$Proxy0.java`文件到本地磁盘中
@@ -1110,3 +1216,10 @@ public class Client {
 5. 在内存中执行，并返回代理实例
 
 
+
+### 3.6. JDK 动态代理注意事项
+
+- JDK 的代理类是由 JDK 直接生成字节码文件，可以用 arthas 的 jad 工具反编译代理类查看源码
+- 代理类会继承 `Proxy` 类，该父类中有一个 `InvocationHandler h` 属性，通过接口回调的方式来实现代理增强的逻辑
+- 在代理实现的接口方法中，通过反射调用相应的目标方法
+- 代理增强是借助多态来实现，因此<font color=red>**成员变量、静态方法、final 方法均不能通过代理实现**</font>
