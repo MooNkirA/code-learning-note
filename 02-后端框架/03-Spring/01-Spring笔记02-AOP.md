@@ -1,10 +1,10 @@
 # Spring AOP（面向切面编程）
 
-## 1. AOP 概述
+## 1. AOP 思想与实现原理
 
-AOP：全称是 Aspect Oriented Programming。即：面向切面编程
+在软件业，AOP 为 Aspect Oriented Programming 的缩写，意为：面向切面编程，通过预编译方式和运行期动态代理实现程序功能的统一维护的一种技术。AOP 是 OOP 的延续，是软件开发中的一个热点，也是 Spring 框架中的一个重要内容，是函数式编程的一种衍生范型。利用 AOP 可以对业务逻辑的各个部分进行隔离，从而使得业务逻辑各部分之间的耦合度降低，提高程序的可重用性，同时提高了开发的效率。
 
-### 1.1. AOP 作用与实现原理
+### 1.1. AOP 概述
 
 它就是把程序重复的代码抽取出来，在需要执行的时候，使用**动态代理**的技术，在不修改源码的基础上，对已有方法进行增强
 
@@ -18,7 +18,24 @@ AOP：全称是 Aspect Oriented Programming。即：面向切面编程
 
 **AOP实现方式**：基于动态代理技术
 
-### 1.2. 动态代理特点
+### 1.2. AOP 实现原理
+
+AOP 实现原理是基于动态代理技术实现的。具体的两种实现方式分别是**基于接口的动态代理**和**基于子类的动态代理**，
+
+#### 1.2.1. 设计模式-代理模式
+
+代理模式：给某一个对象提供一个代理对象，并由代理对象控制对源对象的引用。
+
+代理模式可以并不知道真正的被代理对象，而仅仅持有一个被代理对象的接口，这时候代理对象不能够创建被代理对象，被代理对象必须有系统的其他角色代为创建并传入。
+
+为什么要使用代理模式呢？
+
+1. 它有间接的特点，可以起到中介隔离作用。减少耦合
+2. 它有增强的功能。
+
+> 代理模式示例代码详见：`spring-note\spring-sample\40-spring-aop-proxy\`
+
+#### 1.2.2. 动态代理简述
 
 - **特点**：字节码随用随创建，随用随加载。
 - **分类**：
@@ -26,13 +43,9 @@ AOP：全称是 Aspect Oriented Programming。即：面向切面编程
     2. 基于子类的动态代理
 - **作用**：不修改源码的基础上对方法增强
 
-动态代理与静态代理的区别是：静态代理是字节码一上来就创建好，并完成加载。
+动态代理与静态代理的区别是：静态代理是字节码一上来就创建好，并完成加载。**装饰者模式就是静态代理的一种体现。**
 
-**装饰者模式就是静态代理的一种体现。**
-
-### 1.3. 动态代理常用的有两种方式
-
-#### 1.3.1. 基于接口的动态代理【推荐】
+#### 1.2.3. 基于接口的动态代理【推荐】
 
 JDK 官方有一套动态代理的实现，使用要求是被代理类最少实现一个接口。动态代理主要类是 `Proxy`
 
@@ -125,7 +138,7 @@ public class ActorImpl implements IActor {
 }
 ```
 
-#### 1.3.2. 基于子类的动态代理
+#### 1.2.4. 基于子类的动态代理
 
 - 提供者：第三方的 cglib，在使用时需要先导包(maven工程导入坐标即可)。*如果报 asmxxxx 异常，缺少jar包，需要导入jar包：`asm.jar`和`cglib-2.1.3.jar`。*
 - 使用要求：被代理类不能用 final 修饰的类（最终类）
@@ -219,7 +232,7 @@ public class Actor {
 
 
 
-### 1.4. AOP 相关术语
+### 1.3. AOP 相关术语
 
 - **Joinpoint(连接点)**：是指那些被拦截到的点，即目标对象中所有的方法或者拦截的具体某个方法。在spring中，这些点指的是方法，因为spring只支持方法类型的连接点。
 - **Pointcut(切入点)**：是指要对哪些 Joinpoint 进行拦截的定义。即真正需要增强的方法的集合，也可以理解为连接点（Joinpoint）的集合。
@@ -430,7 +443,9 @@ AjcCompilerDemo 类的静态方法执行了...
 
 
 
-## 3. 基于纯 XML 的 AOP 配置和使用
+## 3. 基于纯 XML 的 AOP
+
+> 具体示例代码详见 `spring-note\spring-sample\10-spring-aop-xml`
 
 ### 3.1. 配置步骤
 
@@ -691,7 +706,9 @@ eg.
         - 在调用目标方法之后有异常的输出的就是异常通知
         - 不管有无异常都会执行的代码是最终通知
 
-## 4. 基于纯注解方式的 AOP 配置和使用
+## 4. 基于纯注解方式的 AOP
+
+> 示例代码详见 `spring-note\spring-sample\12-spring-aop-annotation-noXML` 或者 `spring-note\spring-sample\xx-annotation-aop-xxx` 相关工程
 
 Spring 支持 AspectJ 的注解式切面编程，使用的整体步骤
 
@@ -702,7 +719,7 @@ Spring 支持 AspectJ 的注解式切面编程，使用的整体步骤
 
 ### 4.1. 基于 execution 表达式拦截的使用步骤
 
-#### 4.1.1. 第1步 添加相关的依赖(或拷贝jar包到lib目录)
+#### 4.1.1. 添加相关的依赖(或拷贝jar包到lib目录)
 
 ![](images/20190402104959246_4203.png)
 
@@ -719,7 +736,11 @@ Spring 支持 AspectJ 的注解式切面编程，使用的整体步骤
 </dependency>
 ```
 
-#### 4.1.2. 第2步 创建 spring 的配置文件并导入约束，指定 spring 要扫描的包
+#### 4.1.2. AOP 配置
+
+关于 AOP 配置以下有两种方式
+
+1. 基于 xml 配置文件方式：创建 spring 的配置文件并导入约束，指定 spring 要扫描的包与 `aop:aspectj-autoproxy` 开启 AOP 支持
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
@@ -734,40 +755,79 @@ Spring 支持 AspectJ 的注解式切面编程，使用的整体步骤
 			http://www.springframework.org/schema/context
 			http://www.springframework.org/schema/context/spring-context.xsd">
 	<!-- 配置创建spring容器需要扫描的基础包 -->
-	<context:component-scan base-package="com.moonzero"></context:component-scan>
+	<context:component-scan base-package="com.moon.spring"></context:component-scan>
+	
+    <!-- 开启spring容器对AOP注解的支持 -->
+    <aop:aspectj-autoproxy />
 </beans>
 ```
 
-#### 4.1.3. 第3步 使用注解配置相关资源和通知类给spring来管理
+2. **基于注解配置类的方式（推荐）**：创建 Spring 配置类并标识 `@EnableAspectJAutoProxy` 注解，用于替代传统的 xml 配置文件中的 `<aop:aspectj-autoproxy />` 标签。**其作用都是开启 Spring 容器对 AOP 注解的支持**。（*删除项目的 xml 配置文件*）
 
 ```java
-// 使用注解配置使用spring创建对象
-@Service("customerService")
-public class CustomerServiceImpl implements ICustomerService {
-    ......
+/** 配置开启 Spring 容器的 AOP 注解支持。代替传统的 bean.xml 文件的配置类 */
+@Configuration // 用于指定当前类是一个配置类
+@ComponentScan(basePackages = {"com.moon.spring"}) // 配置包扫描
+/* 注解的方式开启AOP注解支持，相当于xml配置文件中的 <aop:aspectj-autoproxy/> 标签 */
+@EnableAspectJAutoProxy(proxyTargetClass = false, exposeProxy = true)
+public class SpringConfig {
 }
 ```
 
-#### 4.1.4. 第4步 在通知类上使用@Aspect 注解声明为切面
-#### 4.1.5. 第5步 在增强的方法上使用@Before 注解配置前置通知
+#### 4.1.3. 创建待增强资源
+
+准备测试的接口与实现类，使用注解配置相关资源和通知类给 spring 来管理
 
 ```java
-// 配置通知类给spring管理
-@Component("logger")
-// 配置通知类
-@Aspect
-public class Logger {
+public interface LogService {
+    String logErrorMessage(String message);
+}
 
-	// 定义切入点
-	@Pointcut("execution(* *..*.CustomerServiceImpl.saveCustomer())")
-	public void pt1() {
-	}
+@Service
+public class LogServiceImpl implements LogService {
+    @Override
+    public String logErrorMessage(String message) {
+        System.out.println("测试aop增强，LogServiceImpl.logErrorMessage()方法调用，入参message->" + message);
+        return "LogServiceImpl.logErrorMessage()返回：" + message;
+    }
+}
+```
 
-	@Pointcut(value="execution(* *..*.*(..))")
+#### 4.1.4. 创建切面类
+
+编写切面类，在通知类上标识 `@Aspect` 注解，声明该类为切面。在方法上使用 `@Pointcut` 注解定义切入点，在增强通知方法上配置相关通知类型的注解，如 `@Before`、`@Around`
+
+```java
+package com.moon.spring.aop.aspectj;
+
+import org.aspectj.lang.ProceedingJoinPoint;
+import org.aspectj.lang.annotation.Around;
+import org.aspectj.lang.annotation.Aspect;
+import org.aspectj.lang.annotation.Pointcut;
+import org.springframework.stereotype.Component;
+
+/**
+ * 基于注解的方式的AOP使用
+ */
+@Component // 配置通知类给spring管理
+@Aspect // 声明此类是一个切面
+public class AspectOnAnnotation {
+
+    /*
+     * @Pointcut注解标识定义切入点
+     * execution(表达式)：表示拦截的位置（方法）
+     *  表达式语法：execution([修饰符] 返回值类型 包名.类名.方法名(参数))
+     *  例子："execution(* *..*.CustomerServiceImpl.saveCustomer())"
+     */
+    @Pointcut("execution(public * com.moon.spring.service.*.*(..))")
+    public void pc1() {
+    }
+    
+    @Pointcut(value="execution(* *..*.*(..))")
 	public void pt2() {
 	}
 
-	/**
+    /**
 	 * 前置通知 作用：在业务层执行核心方法之前执行此方法记录日志
 	 */
 	// 指定切入点表达式的引用
@@ -806,26 +866,26 @@ public class Logger {
 	 * 环绕通知:
 	 */
 	@Around("pt1()")
-	public Object aroundPrintLog(ProceedingJoinPoint pjp) {
+	public Object aroundPrintLog(ProceedingJoinPoint joinPoint) {
 		// 获取方法参数列表
-		Object[] args = pjp.getArgs();
+		Object[] args = joinPoint.getArgs();
 		// 定义返回变量
 		Object result = null;
 
 		try {
 			// 前置通知
-			System.out.println("前：记录日志。。。");
+			System.out.println("==============AspectOnAnnotation类的 @Around环绕通知的前置通知=========");
 			// 手动调用目标方法
-			result = pjp.proceed(args);
+			result = joinPoint.proceed(args);
 			// 后置通知
-			System.out.println("后：记录日志。。。");
+			System.out.println("==============AspectOnAnnotation类的 @Around环绕通知的后置通知=========");
 		} catch (Throwable e) {
 			e.printStackTrace();
 			// 异常通知
-			System.out.println("异：记录日志。。。");
+			System.out.println("异常通知：记录日志。。。");
 		} finally {
 			// 最终通知
-			System.out.println("终：记录日志。。。");
+			System.out.println("最终通知：记录日志。。。");
 		}
 
 		return result;
@@ -833,28 +893,51 @@ public class Logger {
 }
 ```
 
-#### 4.1.6. 第6步 在 spring 配置文件中开启 spring 对注解 AOP 的支持
+> *注意：为什么切入点表达式是写在通知增加方法上，而不是写在切入点所在的类的方法上？从aop理念就可以理解，如果写在被增强的类上，就是违反原来不修改源代码而得到增强的理念。*
 
-```xml
-<!-- 开启spring容器对AOP注解的支持 -->
-<aop:aspectj-autoproxy />
+#### 4.1.5. 测试
+
+```java
+private final ApplicationContext context = new AnnotationConfigApplicationContext(SpringConfig.class);
+
+/**
+ * 基于注解方式的aop测试 - @Around环绕增强
+ */
+@Test
+public void testAspectOnAnnotationAround() {
+    LogService logService = context.getBean(LogService.class);
+    logService.logErrorMessage("You have an error!");
+}
 ```
 
-*注意：为什么切入点表达式是写在通知增加方法上，而不是写在切入点所在的类的方法上？从aop理念就可以理解，如果写在被增强的类上，就是违反原来不修改源代码而得到增强的理念。*
+![](images/20210225230405111_17836.png)
 
-### 4.2. 常用注解
+### 4.2. AOP 常用注解
 
-|      **注解名**       |                      **属性**                       |        **作用**        |
-| :-------------------: | :-------------------------------------------------: | :-------------------: |
-|     **`@Aspect`**     |                          \                          |   把当前类声明为切面类   |
-|     **`@Before`**     | value：用于指定切入点表达式，还可以指定切入点表达式的引用 | 把当前方法看成是前置通知 |
-| **`@AfterReturning`** |                         同上                         | 把当前方法看成是后置通知 |
-| **`@AfterThrowing`**  |                         同上                         | 把当前方法看成是异常通知 |
-|     **`@After`**      |                         同上                         | 把当前方法看成是最终通知 |
-|     **`@Around`**     |                         同上                         | 把当前方法看成是环绕通知 |
-|    **`@Pointcut`**    |                value：指定表达式的内容                |     指定切入点表达式     |
+|           注解名           |                              属性                               |          作用           |
+| :-----------------------: | --------------------------------------------------------------- | ----------------------- |
+| `@EnableAspectJAutoProxy` | `proxyTargetClass`：指定代理类型<br/>`exposeProxy`：是否暴露代理 | 开启 AOP 注解支持        |
+|         `@Aspect`         | \                                                               | 把当前类声明为切面类     |
+|         `@Before`         | `value`：用于指定切入点表达式，还可以指定切入点表达式的引用        | 把当前方法看成是前置通知 |
+|     `@AfterReturning`     | 同上                                                            | 把当前方法看成是后置通知 |
+|     `@AfterThrowing`      | 同上                                                            | 把当前方法看成是异常通知 |
+|         `@After`          | 同上                                                            | 把当前方法看成是最终通知 |
+|         `@Around`         | 同上                                                            | 把当前方法看成是环绕通知 |
+|        `@Pointcut`        | `value`：指定表达式的内容                                        | 指定切入点表达式         |
 
-**注意：在注解因为定义切入点`@Pointcut`是在成员方法上，所以通知用于指定切入点表达式的引用的值需要写上“()”！！**
+#### 4.2.1. @EnableAspectJAutoProxy
+
+`@EnableAspectJAutoProxy` 注解用于开启 AOP 注解支持，相关属性说明如下：
+
+- `proxyTargetClass` 属性：指定是否采用 cglib 进行代理。默认值是 false。创建代理分以下三种情况：
+    - `proxyTargetClass = false` 时，并且目标实现了接口，则使用 JDK 实现代理（`JdkDynamicAopProxy`）
+    - `proxyTargetClass = false` 时，并且目标没有实现了接口，则使用 CGlib 实现代理（`ObjenesisCglibAopProxy`）
+    - `proxyTargetClass = true` 时，则使用 CGlib 实现代理（`ObjenesisCglibAopProxy`）
+- `exposeProxy` 属性：指定是否暴露代理对象，默认值是 false。如果设置为 `true` 暴露则通过 AopContext 可以进行访问
+
+#### 4.2.2. @Pointcut
+
+`@Pointcut` 注解标识在方法上，用于配置切入点
 
 ```java
 @Pointcut("execution(* *..*.*(..))")
@@ -866,6 +949,8 @@ public void beforePrintLog() {
     xxx;
 }
 ```
+
+> **注意：在注解因为定义切入点 `@Pointcut` 是在成员方法上，所以通知用于指定切入点表达式的引用的值需要写上“`()`”！！**
 
 ### 4.3. 基于自定义注解拦截的使用步骤
 
@@ -912,62 +997,42 @@ public List<SysRole> selectRoleList(SysRole role) {
 
 **注：注解式拦截与方法规则拦截的用法是一样的，使用方法规则拦截不需要定义注解。区别在于定义切入点（@PointCut）注解时的参数不一样，使用注解式拦截的参数是：`"@annotation(自定义的注解全类名)"`，使用方法规则拦截的参数是：`"execution(* *..*.*(..))"`**
 
-## 5. 基于注解的 AOP 配置（不使用xml）
+### 4.4. 移除配置类的 @Configuration 注解
 
-将 xml 配置删除，换成配置类 SpringConfiguration.java
+以下测试如果移除配置类中的 `@Configuration` 注解，该类没有给spring管理，即 `@EnableAspectJAutoProxy` 注解不生效。此时测试方法可以看到从 Spring 容器中拿到的是接口实现类实例本身
 
-```java
-/**
- * 代替bean.xml文件的配置类
- */
-// 用于指定当前类是一个配置类
-@Configuration
-// 用于指定spring在初始化容器时要扫描的包
-@ComponentScan("com.moonzero")
-// 开启spring对象注解aop的支持
-@EnableAspectJAutoProxy
-public class SpringConfiguration {
-}
+![](images/20210225230537796_17829.png)
 
-/**
- * 配置测试
- */
-public class ClientTest {
-	public static void main(String[] args) {
-		// 获取spring容器操作对象（纯注解方式）
-		ApplicationContext context = new AnnotationConfigApplicationContext(SpringConfiguration.class);
-		// 根据id获取对象
-		ICustomerService cs = (ICustomerService) context.getBean("customerService");
-		// 调用方法
-		cs.saveCustomer();
-	}
-}
-```
+![](images/20210225230657743_26.png)
 
-## 6. Spring AOP 建言的执行顺序
+如果配置类上有的 `@Configuration` 注解，即 `@EnableAspectJAutoProxy` 注解生效。此时测试方法从 spring 容器中拿到的是接口的代理实例
 
-### 6.1. 当方法正常执行时的执行顺序
+![](images/20210225230817181_13262.png)
 
-![1](images/20190402140837769_19036.png)
+## 5. Spring AOP 建言的执行顺序
 
-### 6.2. 当方法出现异常时的执行顺序
+### 5.1. 当方法正常执行时的执行顺序
 
-![2](images/20190402140843555_2239.png)
+![](images/20190402140837769_19036.png)
 
-### 6.3. 当同一个方法被多个注解`@Aspect`类拦截时
+### 5.2. 当方法出现异常时的执行顺序
+
+![](images/20190402140843555_2239.png)
+
+### 5.3. 当同一个方法被多个注解`@Aspect`类拦截时
 
 可以通过在为上注解`@Order`指定Aspect类的执行顺序。例如Aspect1上注解了Order(1)，Aspect2上注解了Order(2)，则建言的执行顺序为：
 
-![3](images/20190402140848492_31445.jpg)
+![](images/20190402140848492_31445.jpg)
 
-## 7. 切入点表达式
+## 6. 切入点表达式
 
-### 7.1. 切入点表达式概念及作用
+### 6.1. 切入点表达式概念及作用
 
 - 概念：指的是遵循特定的语法用于捕获每一个种类的可使用连接点的语法。
 - 作用：用于对符合语法格式的连接点进行增强。
 
-### 7.2. 按照用途分类
+### 6.2. 按照用途分类
 
 - 方法执行：`execution(MethodSignature)`
 - 方法调用：`call(MethodSignature)`
@@ -982,7 +1047,7 @@ public class ClientTest {
 
 > **在spring aop主要只支持方法的增强，所以只用到`execution(MethodSignature)`**
 
-### 7.3. 切入点表达式的关键字
+### 6.3. 切入点表达式的关键字
 
 支持的 AspectJ 切入点指示符如下：
 
@@ -998,7 +1063,7 @@ public class ClientTest {
 - `bean`：Spring AOP 扩展的，AspectJ 没有对于指示符，用于匹配特定名称的 Bean 对象的执行方法；
 - `reference pointcut`：表示引用其他命名切入点，只有 `@ApectJ` 风格支持，Schema 风格不支持。
 
-### 7.4. 切入点表达式的通配符
+### 6.4. 切入点表达式的通配符
 
 AspectJ类型匹配的通配符：
 
@@ -1014,13 +1079,13 @@ AspectJ类型匹配的通配符：
 - `java.lang.*ing`：匹配任何java.lang包下的以ing结尾的类型
 - `java.lang.Number+`：匹配java.lang包下的任何Number的子类型。如匹配java.lang.Integer，也匹配java.math.BigInteger
 
-### 7.5. 切入点表达式的逻辑条件
+### 6.5. 切入点表达式的逻辑条件
 
 - `&&`：与（and）
 - `||`：或（or）
 - `!`：非（not）
 
-### 7.6. 使用说明
+### 6.6. 使用说明
 
 execution 表达式，用于匹配方法的执行(常用)。**表达式语法**如下：
 

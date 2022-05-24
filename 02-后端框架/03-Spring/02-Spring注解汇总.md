@@ -3237,21 +3237,21 @@ UserServiceImpl.saveUser()执行了保存用户User[id='1', username='石原里�
 后置通知(@AfterReturning)：执行切入点方法后...记录日志
 ```
 
-## 2. 用于开启注解AOP支持的、配置切面、配置切入点表达式
+## 2. 用于开启注解 AOP 支持的、配置切面、配置切入点表达式
 
 ### 2.1. @EnableAspectJAutoProxy
 
 #### 2.1.1. 作用与使用场景
 
-- **作用**：表示开启spring对注解aop的支持，只能标识有类或接口上。它有两个属性，分别是指定采用的代理方式和是否暴露代理对象，通过AopContext可以进行访问。从定义可以看得出，它引入`AspectJAutoProxyRegister.class`对象，该对象是基于注解`@EnableAspectJAutoProxy`注册一个`AnnotationAwareAspectJAutoProxyCreator`，该对象通过调用`AopConfigUtils.registerAspectJAnnotationAutoProxyCreatorIfNecessary(registry);`注册一个aop代理对象生成器。
-- **使用场景**：当注解驱动开发时，在需要使用aop实现某些功能的情况下，都需要用到此注解去开启AOP功能
+- **作用**：表示开启 spring 对注解 AOP 的支持，只能标识有类或接口上。它有两个属性，分别是指定采用的代理方式和是否暴露代理对象，通过 `AopContext` 可以进行访问。从定义可以看得出，它引入 `AspectJAutoProxyRegister.class` 对象，该对象是基于注解 `@EnableAspectJAutoProxy` 注册一个 `AnnotationAwareAspectJAutoProxyCreator`，该对象通过调用 `AopConfigUtils.registerAspectJAnnotationAutoProxyCreatorIfNecessary(registry)` 注册一个 AOP 代理对象生成器。
+- **使用场景**：当注解驱动开发时，在需要使用 AOP 实现某些功能的情况下，都需要用到此注解去开启 AOP 功能
 
 #### 2.1.2. 相关属性
 
-|       属性名        |                                作用                                 |    取值    |
-| :----------------: | ------------------------------------------------------------------- | ---------- |
-| `proxyTargetClass` | 指定是否采用cglib进行代理。默认值是false，表示使用jdk的代理              | true/false |
-|   `exposeProxy`    | 指定是否暴露代理对象，默认值是false。如果暴露则通过AopContext可以进行访问 | true/false |
+|       属性名        |                                                  作用                                                  |    取值    |
+| :----------------: | ------------------------------------------------------------------------------------------------------ | ---------- |
+| `proxyTargetClass` | 指定是否采用 cglib 进行代理。默认值是false，并目标没有实现接口，此时则使用jdk的代理，否则都使用 cglib 代理 | true/false |
+|   `exposeProxy`    | 指定是否暴露代理对象，默认值是 false。如果暴露则通过 AopContext 可以进行访问                              | true/false |
 
 #### 2.1.3. 基础使用示例
 
@@ -3262,8 +3262,11 @@ UserServiceImpl.saveUser()执行了保存用户User[id='1', username='石原里�
 // @EnableAspectJAutoProxy
 /*
  * proxyTargetClass属性，指定代理的方式
- *   默认是false，使用jdk的代理；基于接口生成代理类
- *   如果设置为true，则使用cglib方式是基于子类生成代理，此时业务的实现类不能用final修饰（因为final修饰的类不能被继承）
+ *   默认是false，此时分两种情况
+ *      1. 如果目标实现了接口，则使用 jdk 生成代理
+ *      2. 如果目标没有实现接口，则使用 cglib 生成代理
+ *   如果设置为true，则使用 cglib 方式生成代理。
+ *   因为是基于子类生成代理，此时业务的实现类不能用final修饰（因为final修饰的类不能被继承）
  */
 // @EnableAspectJAutoProxy(proxyTargetClass = true)
 // 指定是否暴露代理对象，默认值是false。如果暴露则通过AopContext可以进行访问
@@ -3350,13 +3353,11 @@ public void enableAspecctJAutoProxyasicTest() {
 
 #### 2.2.2. 相关属性
 
-|  属性名  |                                               作用                                                |                         取值                         |
-| :-----: | ------------------------------------------------------------------------------------------------ | ---------------------------------------------------- |
-| `value` | 默认的切面类应该为单例的。当切面类为一个多例类时，指定预处理的切入点表达式。用法是`perthis(切入点表达式)`。 | Valid values are "" (singleton), "perthis(...)", etc |
+|  属性名  |                                                  作用                                                  |                           取值                            |
+| :-----: | ------------------------------------------------------------------------------------------------------ | -------------------------------------------------------- |
+| `value` | 默认的切面类应该为单例的。当切面类为一个多例类时，指定预处理的切入点表达式。用法是`perthis(切入点表达式)`。 | Valid values are `""` (singleton), `"perthis(...)"`, etc |
 
-> `@Aspect`注解它支持指定切入点表达式，或者在修饰的切面类中，使用`@Pointcut`修饰的方法名称（要求全限定方法名）
->
-> 属性中的`perthis`切入点表达式的优先级比`@Pointcut`高
+> `@Aspect`注解它支持指定切入点表达式，或者在修饰的切面类中，使用`@Pointcut`修饰的方法名称（要求全限定方法名）。属性中的`perthis`切入点表达式的优先级比`@Pointcut`高
 
 #### 2.2.3. 使用示例
 
@@ -4463,13 +4464,13 @@ public class SpringTransactionTest {
 
 #### 2.3.2. 相关属性
 
-|        属性名        |                                 作用                                  |                                                                                                  取值                                                                                                  |
-| :-----------------: | --------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-|       `phase`       | 指定事务监听器的执行是在何时                                             | TransactionPhase.BEFORE_COMMIT 事务提交之前<br/>TransactionPhase.AFTER_COMMIT 事务提交之后（默认值）<br/>TransactionPhase.AFTER_ROLLBACK 事务回滚之后<br/>TransactionPhase.AFTER_COMPLETION 事务执行完成之后 |
-| `fallbackExecution` | 若没有事务的时候，对应的event是否已经执行。默认值为false表示没事务就不执行了 | true/false                                                                                                                                                                                            |
-|       `value`       | 指定事件类的字节码                                                      |                                                                                                                                                                                                       |
-|      `classes`      | 它和value属性的作用是一样，指定事件类的字节码                             |                                                                                                                                                                                                       |
-|     `condition`     | 用于指定执行事件处理器的条件。取值是基于Spring的el表达式编写的              |                                                                                                                                                                                                       |
+|        属性名        |                                    作用                                     |                                                                                                   取值                                                                                                    |
+| :-----------------: | --------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+|       `phase`       | 指定事务监听器的执行是在何时                                                 | TransactionPhase.BEFORE_COMMIT 事务提交之前<br/>TransactionPhase.AFTER_COMMIT 事务提交之后（默认值）<br/>TransactionPhase.AFTER_ROLLBACK 事务回滚之后<br/>TransactionPhase.AFTER_COMPLETION 事务执行完成之后 |
+| `fallbackExecution` | 若没有事务的时候，对应的event是否已经执行。默认值为 false 表示没事务就不执行了 | true/false                                                                                                                                                                                                |
+|       `value`       | 指定事件类的字节码                                                           |                                                                                                                                                                                                           |
+|      `classes`      | 它和value属性的作用是一样，指定事件类的字节码                                 |                                                                                                                                                                                                           |
+|     `condition`     | 用于指定执行事件处理器的条件。取值是基于Spring的el表达式编写的                 |                                                                                                                                                                                                           |
 
 #### 2.3.3. 使用示例
 
