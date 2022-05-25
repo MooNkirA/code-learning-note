@@ -2777,15 +2777,15 @@ public void valueBasicTest(){
 
 #### 5.4.2. 相关属性
 
-|        属性名         |                                              作用                                               | 取值 |
-| :------------------: | ---------------------------------------------------------------------------------------------- | ---- |
-|        `name`        | 资源的JNDI名称。在spring的注入时，指定bean的唯一标识                                               |      |
-|        `type`        | 指定bean的类型                                                                                  |      |
-|       `lookup`       | 引用指向的资源的名称。它可以使用全局JNDI名称链接到任何兼容的资源                                      |      |
+|        属性名         |                                                 作用                                                  | 取值 |
+| :------------------: | ----------------------------------------------------------------------------------------------------- | ---- |
+|        `name`        | 资源的JNDI名称。在 spring 的注入时，指定 bean 的唯一标识                                                |      |
+|        `type`        | 指定bean的类型                                                                                        |      |
+|       `lookup`       | 引用指向的资源的名称。它可以使用全局JNDI名称链接到任何兼容的资源                                         |      |
 | `authenticationType` | 指定资源的身份验证类型。它只能为任何受支持类型的连接工厂的资源指定此选项，而不能为其他类型的资源指定此选项 |      |
-|     `shareable`      | 指定此资源是否可以在此组件和其他组件之间共享                                                        |      |
-|     `mappedName`     | 指定资源的映射名称                                                                               |      |
-|    `description`     | 指定资源的描述                                                                                   |      |
+|     `shareable`      | 指定此资源是否可以在此组件和其他组件之间共享                                                            |      |
+|     `mappedName`     | 指定资源的映射名称                                                                                     |      |
+|    `description`     | 指定资源的描述                                                                                        |      |
 
 #### 5.4.3. 基础使用示例
 
@@ -3065,6 +3065,22 @@ LogUtil基于@PreDestroy注解销毁前的方法执行了...
 ```
 
 <font color=purple>*注：这两个注解并非Spring提供，而是JSR250规范提供*</font>
+
+## 7. 其他注解
+
+### 7.1. @Order
+
+#### 7.1.1. 作用与使用场景
+
+此注解用于指定 Spring 管理的组件的排序顺序。
+
+- **使用场景**：如自定义多个 `BeanPostProcessor` 实现、`BeanFactoryPostProcessor` 实现、AOP 切面等，可以使用此注解控制其组件的作用顺序
+
+#### 7.1.2. 相关属性
+
+|  属性名  |      作用      | 取值 |
+| :-----: | -------------- | ---- |
+| `value` | 指定排序顺序值 |      |
 
 # Spring 基于 AOP 注解汇总
 
@@ -4626,7 +4642,7 @@ public void transfer(String sourceName, String targetName, Double money) {
 
 # 其他暂存
 
-## 1. `@ControllerAdvice` 注解
+## 1. @ControllerAdvice 注解
 
 `@ControllerAdvice`，是spring3.2提供的新注解，大体的作用是控制器增强。还有`@RestControllerAdvice`注解，是`@ControllerAdvice`与`@ResponseBody`的组合体
 
@@ -4634,7 +4650,7 @@ public void transfer(String sourceName, String targetName, Double money) {
 
 官方定义说明
 
-- `@ControllerAdvice`是一个`@Component`，用于定义@`ExceptionHandler`，`@InitBinder`和`@ModelAttribute`方法，适用于所有使用`@RequestMapping`方法。
+- `@ControllerAdvice`是一个`@Component`，用于定义`@ExceptionHandler`，`@InitBinder`和`@ModelAttribute`方法，适用于所有使用`@RequestMapping`方法。
 - Spring4之前，`@ControllerAdvice`在同一调度的Servlet中协助所有控制器。Spring4已经改变：`@ControllerAdvice`支持配置控制器的子集，而默认的行为仍然可以利用。
 - 在Spring4中，` @ControllerAdvice`通过`annotations()`, `basePackageClasses()`, `basePackages()`方法定制用于选择控制器子集。
 

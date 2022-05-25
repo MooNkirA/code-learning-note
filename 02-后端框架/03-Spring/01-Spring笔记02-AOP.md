@@ -1009,30 +1009,258 @@ public List<SysRole> selectRoleList(SysRole role) {
 
 ![](images/20210225230817181_13262.png)
 
-## 5. Spring AOP 建言的执行顺序
+## 5. Spring AOP APIs（了解）
 
-### 5.1. 当方法正常执行时的执行顺序
+前面介绍了 Spring 对 AOP 的支持，使用 `@Aspect` 定义切面。此章节，介绍低级别的 Spring AOP API 创建 Advisor 实现 AOP 功能。对于普通的应用，推荐使用前面使用 AspectJ 的 Spring AOP
+
+### 5.1. 基于编程式实现 AOP
+
+#### 5.1.1. Spring AOP 相关接口调用关系图
+
+```mermaid
+classDiagram
+
+Advised <|-- ProxyFactory
+ProxyFactory o-- Target
+ProxyFactory o-- "多" Advisor
+
+ProxyFactory --> AopProxyFactory : 使用
+AopProxyFactory --> AopProxy
+Advised <|-- 基于CGLIB的Proxy
+基于CGLIB的Proxy <-- ObjenesisCglibAopProxy : 创建
+AopProxy <|-- ObjenesisCglibAopProxy
+AopProxy <|-- JdkDynamicAopProxy
+基于JDK的Proxy <-- JdkDynamicAopProxy : 创建
+Advised <|-- 基于JDK的Proxy
+
+class AopProxy {
+   +getProxy() Object
+}
+
+class ProxyFactory {
+	proxyTargetClass : boolean
+}
+
+class ObjenesisCglibAopProxy {
+	advised : ProxyFactory
+}
+
+class JdkDynamicAopProxy {
+	advised : ProxyFactory
+}
+
+<<interface>> Advised
+<<interface>> AopProxyFactory
+<<interface>> AopProxy
+```
+
+- `AopProxyFactory` 根据 `proxyTargetClass` 等设置选择 `AopProxy` 实现
+- `AopProxy` 通过 `getProxy` 创建代理对象
+- 图中 Proxy 都实现了 `Advised` 接口，能够获得关联的切面集合与目标（其实是从 `ProxyFactory` 取得）
+- 调用代理方法时，会借助 `ProxyFactory` 将通知统一转为环绕通知：`MethodInterceptor`
+
+#### 5.1.2. 基础使用步骤
+
+创建测试的相关接口与实现
+
+```java
+public interface DemoSerivce {
+    void foo();
+    void bar();
+}
+
+public class DemoServiceImpl implements DemoSerivce {
+
+    @Override
+    public void foo() {
+        System.out.println("DemoServiceImpl foo() 方法执行...");
+    }
+
+    @Override
+    public void bar() {
+        System.out.println("DemoServiceImpl bar() 方法执行...");
+    }
+}
+
+public class TestService {
+
+    public void foo() {
+        System.out.println("无实现接口的 TestService foo() 方法执行...");
+    }
+
+    public void bar() {
+        System.out.println("无实现接口的 TestService bar() 方法执行...");
+    }
+}
+```
+
+使用 Spring Aop 相关 API 编写测试程序
+
+```java
+@Test
+public void testAopApis() {
+    // 1. 备好切入点
+    AspectJExpressionPointcut pointcut = new AspectJExpressionPointcut();
+    // 设置切入点 execution 表达式
+    pointcut.setExpression("execution(* foo())"); // 所有类中的 foo 方法
+
+    // 2. 设置增强通知。注意：拦截接口是 org.aopalliance.intercept.MethodInterceptor
+    MethodInterceptor advice = invocation -> {
+        System.out.println("do something before...");
+        Object result = invocation.proceed(); // 调用目标方法
+        System.out.println("do something after...");
+        return result;
+    };
+
+    // 3. 根据切入点和通知，创建切面 Advisor
+    DefaultPointcutAdvisor advisor = new DefaultPointcutAdvisor(pointcut, advice);
+
+    /*
+     * 创建代理，代理的类型分以下三种情况
+     *  a. proxyTargetClass = false, 目标实现了接口, 用 jdk 实现
+     *  b. proxyTargetClass = false,  目标没有实现接口, 用 cglib 实现
+     *  c. proxyTargetClass = true, 总是使用 cglib 实现
+     */
+    // DemoSerivce target = new DemoServiceImpl();
+    TestService target = new TestService();
+    ProxyFactory factory = new ProxyFactory();
+    factory.setTarget(target); // 设置目标对象
+    factory.addAdvisor(advisor); // 设置切面
+    // 如果想使用 jdk 代理，必须在 ProxyFactory 中设置目标的实现了接口
+    factory.setInterfaces(target.getClass().getInterfaces());
+    factory.setProxyTargetClass(false); // 设置是否使用 cglib 实现代理
+    // DemoSerivce proxy = (DemoSerivce) factory.getProxy();
+    TestService proxy = (TestService) factory.getProxy();
+
+    System.out.println(proxy.getClass()); // 用于查询代理的类型
+    // 通过代理执行方法
+    proxy.foo();
+    proxy.bar();
+}
+```
+
+> 注意：要区别 Spring AOP 用于通知的接口 `MethodInterceptor` 与 Cglib 中的方法增加拦截的同名接口
+
+### 5.2. Spring 中 Pointcut（切入点）的 API
+
+#### 5.2.1. 切入点的匹配
+
+Spring 中定义了 `MethodMatcher` 接口，其中 `matches` 方法用于对切入点与类的方法进行判断是否匹配。Spring 提供了相关的实现，用于去查找哪些方法需要被增强。
+
+```java
+public interface MethodMatcher {
+
+    boolean matches(Method m, Class<?> targetClass);
+
+    boolean isRuntime();
+
+    boolean matches(Method m, Class<?> targetClass, Object... args);
+}
+```
+
+#### 5.2.2. 基于 AspectJ 表达式 execution 匹配指定方法
+
+创建切入点对象，设置 `execution` 关键字的 AspectJ 表达式，匹配相应的方法
+
+```java
+@Test
+public void testAspectJExpressionMethod() throws NoSuchMethodException {
+    // 创建切入点
+    AspectJExpressionPointcut pointcut = new AspectJExpressionPointcut();
+    // 设置 AspectJ 表达式
+    pointcut.setExpression("execution(* bar())");
+    // 调用 AspectJExpressionPointcut 类中的 matches 判断指定类中方法是否与切入点匹配
+    Class<?> clazz = DemoServiceImpl.class;
+    System.out.println(pointcut.matches(clazz.getMethod("foo"), clazz));
+    System.out.println(pointcut.matches(clazz.getMethod("bar"), clazz));
+}
+```
+
+#### 5.2.3. 基于 AspectJ 表达式 @annotation 匹配标识指定注解的方法
+
+创建切入点对象，设置 `@annotation` 关键字的 AspectJ 表达式，匹配标识了指定注解的方法
+
+```java
+@Test
+public void testAspectJExpressionAnnotation() throws NoSuchMethodException {
+    // 创建切入点
+    AspectJExpressionPointcut pointcut = new AspectJExpressionPointcut();
+    // 设置 AspectJ 表达式，匹配标识了指定注解的方法
+    pointcut.setExpression("@annotation(com.moon.springsample.annotations.MyAnnotation)");
+    // 调用 AspectJExpressionPointcut 类中的 matches 测试以下情况是否匹配
+    // 情况1：测试普通类中标识了 @MyAnnotation 注解的 foo 方法是否匹配
+    System.out.println(pointcut.matches(DemoServiceImpl.class.getMethod("foo"), DemoServiceImpl.class)); // 结果：true
+    // 情况2：测试普通类中没有标识了 @MyAnnotation 注解的 bar 方法是否匹配
+    System.out.println(pointcut.matches(DemoServiceImpl.class.getMethod("bar"), DemoServiceImpl.class)); // 结果：false
+    // 情况3：测试普通类上标识了 @MyAnnotation 注解，类中的 foo 方法是否匹配
+    System.out.println(pointcut.matches(TestService.class.getMethod("foo"), TestService.class)); // 结果：false
+    // 情况4：测试接口上标识了 @MyAnnotation 注解，其实现类中的 foo 方法是否匹配
+    System.out.println(pointcut.matches(DemoClass1.class.getMethod("foo"), DemoClass1.class)); // 结果：false
+}
+```
+
+> 注：`@annotation` 表达式只能匹配注解直接标识在方法的情况，如注解标识到类上或者接口上，则无法匹配
+
+#### 5.2.4. 自定义切入点匹配规则
+
+Spring 提供了 `StaticMethodMatcherPointcut` 抽象类，实现其 `matches` 方法，可以自定义匹配的规则。下例实现了匹配指定的注解标识在方法上、类、接口等多种情况
+
+```java
+@Test
+public void testStaticMethodMatcherPointcut() throws NoSuchMethodException {
+    // 创建 StaticMethodMatcherPointcut 切入点，自定义匹配规则
+    StaticMethodMatcherPointcut pointcut = new StaticMethodMatcherPointcut() {
+        // 自定义匹配的规则
+        @Override
+        public boolean matches(Method method, Class<?> targetClass) {
+            // 检查方法上是否加了 @MyAnnotation 注解
+            MergedAnnotations annotations = MergedAnnotations.from(method);
+            if (annotations.isPresent(MyAnnotation.class)) {
+                return true;
+            }
+            // 查看类上或者接口上是否加了 @MyAnnotation 注解
+            annotations = MergedAnnotations.from(targetClass, MergedAnnotations.SearchStrategy.TYPE_HIERARCHY);
+            return annotations.isPresent(MyAnnotation.class);
+        }
+    };
+    // 调用 StaticMethodMatcherPointcut 类中的 matches 测试以下情况是否匹配
+    // 情况1：测试普通类中标识了 @MyAnnotation 注解的 foo 方法是否匹配
+    System.out.println(pointcut.matches(DemoServiceImpl.class.getMethod("foo"), DemoServiceImpl.class)); // 结果：true
+    // 情况2：测试普通类中没有标识了 @MyAnnotation 注解的 bar 方法是否匹配
+    System.out.println(pointcut.matches(DemoServiceImpl.class.getMethod("bar"), DemoServiceImpl.class)); // 结果：false
+    // 情况3：测试普通类上标识了 @MyAnnotation 注解，类中的 foo 方法是否匹配
+    System.out.println(pointcut.matches(TestService.class.getMethod("foo"), TestService.class)); // 结果：true
+    // 情况4：测试接口上标识了 @MyAnnotation 注解，其实现类中的 foo 方法是否匹配
+    System.out.println(pointcut.matches(DemoClass1.class.getMethod("foo"), DemoClass1.class)); // 结果：true
+}
+```
+
+## 6. Spring AOP 建言的执行顺序
+
+### 6.1. 当方法正常执行时的执行顺序
 
 ![](images/20190402140837769_19036.png)
 
-### 5.2. 当方法出现异常时的执行顺序
+### 6.2. 当方法出现异常时的执行顺序
 
 ![](images/20190402140843555_2239.png)
 
-### 5.3. 当同一个方法被多个注解`@Aspect`类拦截时
+### 6.3. 当同一个方法被多个注解`@Aspect`类拦截时
 
-可以通过在为上注解`@Order`指定Aspect类的执行顺序。例如Aspect1上注解了Order(1)，Aspect2上注解了Order(2)，则建言的执行顺序为：
+可以通过在为上注解 `@Order` 指定 Aspect 类的执行顺序。例如 Aspect1 上注解了 `@Order(1)`，Aspect2 上注解了 `@Order(2)`，则建言的执行顺序为：
 
 ![](images/20190402140848492_31445.jpg)
 
-## 6. 切入点表达式
+> <font color=red>**注意：`@Order` 注解只能用于切面类上才能生效，标识在方法上无任何效果**</font>
 
-### 6.1. 切入点表达式概念及作用
+## 7. 切入点表达式
+
+### 7.1. 切入点表达式概念及作用
 
 - 概念：指的是遵循特定的语法用于捕获每一个种类的可使用连接点的语法。
 - 作用：用于对符合语法格式的连接点进行增强。
 
-### 6.2. 按照用途分类
+### 7.2. 按照用途分类
 
 - 方法执行：`execution(MethodSignature)`
 - 方法调用：`call(MethodSignature)`
@@ -1045,9 +1273,9 @@ public List<SysRole> selectRoleList(SysRole role) {
 - 对象初始化：`initialization(ConstructorSignature)`
 - 对象预先初始化：`preinitialization(ConstructorSignature)`
 
-> **在spring aop主要只支持方法的增强，所以只用到`execution(MethodSignature)`**
+> **在 spring aop 主要只支持方法的增强，所以只用到 `execution(MethodSignature)`**
 
-### 6.3. 切入点表达式的关键字
+### 7.3. 切入点表达式的关键字
 
 支持的 AspectJ 切入点指示符如下：
 
@@ -1063,7 +1291,7 @@ public List<SysRole> selectRoleList(SysRole role) {
 - `bean`：Spring AOP 扩展的，AspectJ 没有对于指示符，用于匹配特定名称的 Bean 对象的执行方法；
 - `reference pointcut`：表示引用其他命名切入点，只有 `@ApectJ` 风格支持，Schema 风格不支持。
 
-### 6.4. 切入点表达式的通配符
+### 7.4. 切入点表达式的通配符
 
 AspectJ类型匹配的通配符：
 
@@ -1079,13 +1307,13 @@ AspectJ类型匹配的通配符：
 - `java.lang.*ing`：匹配任何java.lang包下的以ing结尾的类型
 - `java.lang.Number+`：匹配java.lang包下的任何Number的子类型。如匹配java.lang.Integer，也匹配java.math.BigInteger
 
-### 6.5. 切入点表达式的逻辑条件
+### 7.5. 切入点表达式的逻辑条件
 
 - `&&`：与（and）
 - `||`：或（or）
 - `!`：非（not）
 
-### 6.6. 使用说明
+### 7.6. 使用说明
 
 execution 表达式，用于匹配方法的执行(常用)。**表达式语法**如下：
 

@@ -70,7 +70,7 @@ PointcutAdvisor o-- "一" Advice
 <<interface>> PointcutAdvisor
 ```
 
-### 1.3. AOP 实现调用流程图
+### 1.3. Spring AOP 相关接口调用关系图
 
 ```mermaid
 classDiagram
@@ -399,7 +399,7 @@ protected Object[] getAdvicesAndAdvisorsForBean(
 
 ### 5.5. findEligibleAdvisors 匹配候选切面封装成Advisor
 
-`findEligibleAdvisors`方法，主要是一个匹配当前实例是否有合格的切面，并且封装成`Advisor`的过程
+`findEligibleAdvisors`方法，主要是一个匹配当前实例是否有合格的切面，并且封装成`Advisor`的过程。包含自定义创建的 Advisor 与 `@Aspect` 注解标识的切面类。
 
 ```java
 protected List<Advisor> findEligibleAdvisors(Class<?> beanClass, String beanName) {
@@ -1519,6 +1519,8 @@ public class AspectJAfterThrowingAdvice extends AbstractAspectJAdvice
 
 ## 7. 代理的提前生成（非重点，有时间再研究）
 
+AOP 代理的正常创建时机是在对象初始化后，但如果出现了循环依赖的场景，依赖一方需要注入另一方的代理对象，此时就会在依赖注入之前生成代理。
+
 ### 7.1. 代理提前生成实现流程
 
 在`AbstractAutowireCapableBeanFactory`的`createBean`方法中，在生成实例方法`doCreateBean`前，会执行`resolveBeforeInstantiation`方法，如果这里有返回值，就会直接返回，不会再执行下面生成实例的代码。又是** `BeanPostProcessor` 接口的运用**
@@ -1771,7 +1773,7 @@ public void testTargetSourceBasic() {
 }
 ```
 
-### 7.3. 代理提前生成一些注意问题
+### 7.3. 代理提前生成需注意的问题
 
 1. 生成的实例是多例，将其设计成多例的用意是，可以加快工程启动的速度
 2. 生成的实例是缓存另一个BeanFactory中，与正常流程创建的实例不一样
