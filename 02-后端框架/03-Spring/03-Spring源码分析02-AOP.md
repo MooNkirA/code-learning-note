@@ -613,9 +613,11 @@ private Advice instantiateAdvice(AspectJExpressionPointcut pointcut) {
 
 ![](images/20210227115519256_16386.png)
 
-`getAdvice`方法往下执行，之前针对单个方法创建的`PointCut`对象，并已经将注解对象中的表达式设置到`PointCut`对象中，此时就根据不同的注解类型创建出不同的`Advice`对象，包括：`AspectJAroundAdvice`、`AspectJMethodBeforeAdvice`、`AspectJAfterAdvice`、`AspectJAfterReturningAdvice`、`AspectJAfterThrowingAdvice`。最终会把注解对应的`Advice`和`PointCut`对象封装成`Advisor`对象，并返回
+`getAdvice`方法往下执行，之前针对单个方法创建的`PointCut`对象，并已经将注解对象中的表达式设置到`PointCut`对象中，此时就根据不同的注解类型创建出不同的`Advice`对象，包括：`AspectJAroundAdvice`（环绕通知）、`AspectJMethodBeforeAdvice`（前置通知）、`AspectJAfterAdvice`（后置通知）、`AspectJAfterReturningAdvice`（最终通知）、`AspectJAfterThrowingAdvice`（异常通知）。最终会把注解对应的`Advice`和`PointCut`对象封装成`Advisor`对象，并返回
 
 ![](images/20210227115720216_24956.png)
+
+> 注：其中 `AspectJAroundAdvice`、`AspectJAfterAdvice`、`AspectJAfterThrowingAdvice` 都实现 `MethodInterceptor` 接口。而 `AspectJMethodBeforeAdvice` 与 `AspectJAfterReturningAdvice` 没有实现，最终都会转成环绕通知类型。这里使用**适配器设计模式（Adapter模式）**
 
 返回`Advisor`切面类
 
@@ -1197,7 +1199,104 @@ CGlig代理
 ### 6.1. JdkDynamicAopProxy 的 invoke 方法
 
 ```java
+public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+	Object oldProxy = null;
+	boolean setProxyContext = false;
 
+	// 从代理工厂中拿到TargetSource对象，该对象包装了被代理实例bean
+	TargetSource targetSource = this.advised.targetSource;
+	Object target = null;
+
+	try {
+		// 被代理对象的equals方法和hashCode方法是不能被代理的，不会走切面
+		if (!this.equalsDefined && AopUtils.isEqualsMethod(method)) {
+			// The target does not implement the equals(Object) method itself.
+			return equals(args[0]);
+		}
+		else if (!this.hashCodeDefined && AopUtils.isHashCodeMethod(method)) {
+			// The target does not implement the hashCode() method itself.
+			return hashCode();
+		}
+		else if (method.getDeclaringClass() == DecoratingProxy.class) {
+			// There is only getDecoratedClass() declared -> dispatch to proxy config.
+			return AopProxyUtils.ultimateTargetClass(this.advised);
+		}
+		else if (!this.advised.opaque && method.getDeclaringClass().isInterface() &&
+				method.getDeclaringClass().isAssignableFrom(Advised.class)) {
+			// Service invocations on ProxyConfig with the proxy config...
+			return AopUtils.invokeJoinpointUsingReflection(this.advised, method, args);
+		}
+
+		Object retVal;
+
+		// 如果该属性设置为true，则把代理对象设置到ThreadLocal中
+		if (this.advised.exposeProxy) {
+			// Make invocation available if necessary.
+			// 就是将代理对象存储到 ThreadLocal<Object> currentProxy
+			oldProxy = AopContext.setCurrentProxy(proxy);
+			setProxyContext = true;
+		}
+
+		// Get as late as possible to minimize the time we "own" the target,
+		// in case it comes from a pool.
+		// 这个target就是被代理实例
+		target = targetSource.getTarget();
+		Class<?> targetClass = (target != null ? target.getClass() : null);
+
+		// Get the interception chain for this method.
+		/*
+		 * 从代理工厂中拿过滤器链 Object是一个MethodInterceptor类型的对象，其实就是一个advice对象
+		 * 过程就是对象当前调用的方法，与所收集的所有切面进行match（匹配），返回匹配的MethodInterceptor拦截器的集合
+		 */
+		List<Object> chain = this.advised.getInterceptorsAndDynamicInterceptionAdvice(method, targetClass);
+
+		// Check whether we have any advice. If we don't, we can fallback on direct
+		// reflective invocation of the target, and avoid creating a MethodInvocation.
+		if (chain.isEmpty()) {
+			// We can skip creating a MethodInvocation: just invoke the target directly
+			// Note that the final invoker must be an InvokerInterceptor so we know it does
+			// nothing but a reflective operation on the target, and no hot swapping or fancy proxying.
+			// 如果该方法没有执行链，则说明这个方法不需要被拦截，则直接反射调用
+			Object[] argsToUse = AopProxyUtils.adaptArgumentsIfNecessary(method, args);
+			retVal = AopUtils.invokeJoinpointUsingReflection(target, method, argsToUse);
+		}
+		else {
+			// We need to create a method invocation...
+			// 将代理、被代理实例、方法、参数、拦截器链等信息再包装成ReflectiveMethodInvocation对象
+			MethodInvocation invocation =
+					new ReflectiveMethodInvocation(proxy, target, method, args, targetClass, chain);
+			// Proceed to the joinpoint through the interceptor chain.
+			// 执行链式调用
+			retVal = invocation.proceed();
+		}
+
+		// Massage return value if necessary.
+		Class<?> returnType = method.getReturnType();
+		if (retVal != null && retVal == target &&
+				returnType != Object.class && returnType.isInstance(proxy) &&
+				!RawTargetAccess.class.isAssignableFrom(method.getDeclaringClass())) {
+			// Special case: it returned "this" and the return type of the method
+			// is type-compatible. Note that we can't help if the target sets
+			// a reference to itself in another returned object.
+			retVal = proxy;
+		}
+		else if (retVal == null && returnType != Void.TYPE && returnType.isPrimitive()) {
+			throw new AopInvocationException(
+					"Null return value from advice does not match primitive return type for: " + method);
+		}
+		return retVal;
+	}
+	finally {
+		if (target != null && !targetSource.isStatic()) {
+			// Must have come from TargetSource.
+			targetSource.releaseTarget(target);
+		}
+		if (setProxyContext) {
+			// Restore old proxy.
+			AopContext.setCurrentProxy(oldProxy);
+		}
+	}
+}
 ```
 
 ### 6.2. getInterceptorsAndDynamicInterceptionAdvice 获取方法拦截器链
@@ -1234,9 +1333,9 @@ public class AdvisedSupport extends ProxyConfig implements Advised {
 }
 ```
 
-调用`DefaultAdvisorChainFactory`类的`getInterceptorsAndDynamicInterceptionAdvice`方法，主要的处理流程如下：
+调用 `DefaultAdvisorChainFactory` 类的 `getInterceptorsAndDynamicInterceptionAdvice` 方法，主要的处理流程如下：
 
-1. `config`是代理工厂对象，从代理工厂中获得该被代理类的所有切面`Advisor`数组，然后遍历
+1. `config` 是代理工厂对象，从代理工厂中获得该被代理类的所有切面 `Advisor` 数组，然后遍历
 2. 从切面`Advisor`的`PointCut`中获取`ClassFilter`，调用`matches`方法与被代理对象`Class`类进行匹配 如果切面的`PointCut`是匹配的，说明被代理对象这个`Class`类是切面要拦截的对象
 3. 类匹配完后，调用`MethodMatcher`的`matches`方法进行方法的匹配，判断匹配的被代理对象中的方法是否是切面`Pointcut`需要拦截的方法
 4. 一个类中包含了多个`Advisor`，遍历每个`Advisor`，通过`registry.getInterceptors(advisor)`获取对应的`Advice`数组，然后添加到拦截器列表，然后返回
@@ -1311,10 +1410,13 @@ public List<Object> getInterceptorsAndDynamicInterceptionAdvice(
 }
 ```
 
-`getInterceptors`此步骤最关键对不同类型的`advice`进行了统一包装，方便后续进行统计的代码调用如下所示：
+`getInterceptors`此步骤最关键对不同类型的`advice`进行了统一包装，体现了适配器设计模式，方便后续进行统计的代码调用如下所示：
 
-- 如果是`MethodInterceptor`类型的，如：`AspectJAroundAdvice`、`AspectJAfterAdvice`、`AspectJAfterThrowingAdvice`直接添加到拦截器数组中
-- 如果是`MethodBeforeAdviceAdapter`、`AfterReturningAdviceAdapter`、`ThrowsAdviceAdapter` 则需要`advice`包装成`MethodInterceptor`类型的`advice`
+- 如果是 `MethodInterceptor` 类型的，如：`AspectJAroundAdvice`、`AspectJAfterAdvice`、`AspectJAfterThrowingAdvice`直接添加到拦截器数组中
+- 如果是`AspectJMethodBeforeAdvice`、`AspectJAfterReturningAdvice`、`ThrowsAdvice` 则包装成 `MethodInterceptor` 类型的 `advice`
+    - `MethodBeforeAdviceAdapter` 类用于将 `AspectJMethodBeforeAdvice` 转换为 `MethodBeforeAdviceInterceptor`
+    - `AfterReturningAdviceAdapter` 类用于将 `AspectJAfterReturningAdvice` 转换为 `AfterReturningAdviceInterceptor`
+    - `ThrowsAdviceAdapter` 类用于将 `ThrowsAdvice` 转换为 `ThrowsAdviceInterceptor`
 
 ```java
 @Override
@@ -1338,7 +1440,7 @@ public MethodInterceptor[] getInterceptors(Advisor advisor) throws UnknownAdvice
 
 ### 6.3. 链式调用 invocation.proceed
 
-在匹配到相应的切面后，会判断拦截器链是否为空。如果为空，则表示方法不需要拦截，直接反射调用；如果不为空，则`MethodInvocation`对象执行链式调用。
+在匹配到相应的切面后，会判断拦截器链是否为空。如果为空，则表示方法不需要拦截，直接反射调用；如果不为空，则 `MethodInvocation` 对象执行链式调用。此处使用了**责任链设计模式**，
 
 ```java
 // Check whether we have any advice. If we don't, we can fallback on direct
@@ -1516,6 +1618,62 @@ public class AspectJAfterThrowingAdvice extends AbstractAspectJAdvice
 	}
 }
 ```
+
+### 6.4. 代理对象调用流程
+
+代理对象调用流程如下（以 JDK 动态代理实现为例）
+
+- 从 `ProxyFactory` 获得 Target 和环绕通知链，根据它们创建 `MethodInvocation`，简称 mi
+- 首次执行 `mi.proceed()` 发现有下一个环绕通知，调用它的 `invoke(mi)`
+- 进入环绕通知1，执行前增强，再次调用 `mi.proceed()` 发现有下一个环绕通知，调用它的 `invoke(mi)`
+- 进入环绕通知2，执行前增强，调用 `mi.proceed()` 发现没有环绕通知，调用 `mi.invokeJoinPoint()` 执行目标方法
+- 目标方法执行结束，将结果返回给环绕通知2，执行环绕通知2 的后增强
+- 环绕通知2继续将结果返回给环绕通知1，执行环绕通知1 的后增强
+- 环绕通知1返回最终的结果
+
+> 下图不同颜色对应一次环绕通知或目标的调用起始至终结
+
+```mermaid
+sequenceDiagram
+participant Proxy
+participant ih as InvocationHandler
+participant mi as MethodInvocation
+participant Factory as ProxyFactory
+participant mi1 as MethodInterceptor1
+participant mi2 as MethodInterceptor2
+participant Target
+
+Proxy ->> +ih : invoke()
+ih ->> +Factory : 获得 Target
+Factory -->> -ih : 
+ih ->> +Factory : 获得 MethodInterceptor 链
+Factory -->> -ih : 
+ih ->> +mi : 创建 mi
+mi -->> -ih : 
+rect rgb(200, 223, 255)
+ih ->> +mi : mi.proceed()
+mi ->> +mi1 : invoke(mi)
+mi1 ->> mi1 : 前增强
+rect rgb(200, 190, 255)
+mi1 ->> mi : mi.proceed()
+mi ->> +mi2 : invoke(mi)
+mi2 ->> mi2 : 前增强
+rect rgb(150, 190, 155)
+mi2 ->> mi : mi.proceed()
+mi ->> +Target : mi.invokeJoinPoint()
+Target ->> Target : 
+Target -->> -mi2 : 结果
+end
+mi2 ->> mi2 : 后增强
+mi2 -->> -mi1 : 结果
+end
+mi1 ->> mi1 : 后增强
+mi1 -->> -mi : 结果
+mi -->> -ih : 
+end
+ih -->> -Proxy : 
+```
+
 
 ## 7. 代理的提前生成（非重点，有时间再研究）
 

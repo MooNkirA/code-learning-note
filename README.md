@@ -82,14 +82,6 @@
   <li><a href="#/02-后端框架/07-Authorization-Certification/03-Shiro">Shiro（整理中...）</a></li>
 </ul>
 
-### 📚 Hibernate
-
-待整理，技术已过时，优先级低....
-
-### 🎏 Struts2
-
-待整理，技术已过时，优先级低....
-
 ### 🔧 工具框架
 
 <ul class="docs">

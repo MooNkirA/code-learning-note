@@ -1,10 +1,24 @@
 # Spring MVC 源码分析
 
-## 1. Spring MVC 执行流程
+> 最新官方文档：https://docs.spring.io/spring-framework/docs/current/reference/html/web.html#spring-web
 
-### 1.1. web项目初始化过程分析
+## 1. 概述
 
-#### 1.1.1. Servlet3.0规范加入的内容
+Spring Web MVC 是建立在 Servlet API 上的原始 Web 框架，包含在 Spring Framework 中 spring-webmvc 模块，可以称为 "Spring MVC"。
+
+与 Spring Web MVC 并行，Spring Framework 5.0 引入了一个新 Web 框架 Spring WebFlux，具体在 spring-webflux 模块。（*此框架本笔记中不涉及，详见其他笔记*）
+
+### 1.1. Spring MVC 时序图
+
+![](images/20200917172707993_20103.png)
+
+### 1.2. 官方流程图
+
+![](images/20200917172659185_21224.png)
+
+## 2. web 项目初始化过程分析
+
+### 2.1. Servlet 3.0 规范加入的内容
 
 - Servlet3.0规范提供的标准接口，在web容器启动的时候，首先触发`ServletContainerInitializer`此接口的实现类的`onStartup()`方法
 
@@ -34,51 +48,60 @@ public @interface HandlesTypes {
 }
 ```
 
-#### 1.1.2. SpringMVC框架使用Servlet3.0规范
+### 2.2. SpringMVC 框架使用 Servlet 3.0 规范
 
 任何要使用Servlet3.0规范且脱离web.xml的配置，在使用时都必须在对应的jar包的`META-INF/services`目录创建一个名为`javax.servlet.ServletContainerInitializer`的文件，文件内容指定具体的`ServletContainerInitializer`实现类，那么，当web容器启动时就会运行这个初始化器做一些组件内的初始化工作。
 
 ![](images/20200917170758911_20768.png)
 
-#### 1.1.3. AbstractDispatcherServletInitializer中的onStartUp方法
+### 2.3. AbstractDispatcherServletInitializer 中的 onStartUp 方法
 
 `AbstractDispatcherServletInitializer`类是Spring MVC提供的`WebApplicationInitializer`接口的实现抽象类。
 
-#### 1.1.4. 注册DisptatcherServlet
-
-### 1.2. 时序图
-
-![](images/20200917172707993_20103.png)
-
-### 1.3. 官方流程图
-
-![](images/20200917172659185_21224.png)
+### 2.4. 注册 DisptatcherServlet
 
 # SpringMVC 中各组件详解及源码分析
 
-## 1. 前端控制器 DispatcherServlet
+## 1. Spring MVC 框架重要组件
 
-### 1.1. 作用
+框架提供组件包含：
 
-用户请求到达前端控制器，它就相当于MVC模式中的C，`DispatcherServlet`是整个流程控制的中心，由它调用其它组件处理用户的请求，`DispatcherServlet`的存在降低了组件之间的耦合性
+- DispatcherServlet：前端控制器
+- HandlerMapping：处理器映射器
+- Handler：处理器
+- HandlerAdapter：处理器适配器
+- ViewResolver：视图解析器
+- View：视图
 
-### 1.2. 执行过程分析
+**在上述的组件中：处理器映射器（HandlerMapping）、处理器适配器（HandlerAdapter）、视图解析器（ViewResolver）称为 Spring MVC 的三大组件**。其中 handler 与 view 组件是由使用者来实现
 
-#### 1.2.1. doService方法
+## 2. 前端控制器 DispatcherServlet
+
+### 2.1. 简介
+
+在 web.xml 中配置，<font color=red>**实质是一个 Servlet**</font>
+
+作用：接收请求，响应结果。相当于转发器，中央处理器
+
+用户请求到达前端控制器，它就相当于 MVC 模式中的 C，`DispatcherServlet` 是整个流程控制的中心，由它调用其它组件处理用户的请求，<font color=red>**`DispatcherServlet`的存在降低了组件之间的耦合性**</font>
+
+### 2.2. 执行过程分析
+
+#### 2.2.1. doService方法
 
 此方法在接收到请求首先执行的方法，通过跟踪源码得知，它重写父类`FrameworkServlet`的，`FrameworkServlet`是继承了`HttpServlet`，所以它就相当于执行了Servlet中的service方法
 
-#### 1.2.2. doDispatche方法
+#### 2.2.2. doDispatche方法
 
 在doService方法执行的逻辑中，会调用doDispatche方法，此方法是处理请求分发的核心方法。它负责通过反射调用控制器方法、执行拦截器和处理结果视图
 
-## 2. 处理器映射器 HandlerMapping
+## 3. 处理器映射器 HandlerMapping
 
-### 2.1. 作用
+### 3.1. 作用
 
 `HandlerMapping`负责根据用户请求找到相应的Handler（即处理器），SpringMVC提供了不同的映射器实现不同的映射方式，例如：配置文件方式，实现接口方式，注解方式等。
 
-### 2.2. RequestMappingHandlerMapping 的执行时机
+### 3.2. RequestMappingHandlerMapping 的执行时机
 
 `RequestMappingHandlerMapping`是`HandlerMapping`接口的实现，是在项目启动的时候就进行
 
@@ -158,20 +181,20 @@ private void initHandlerMappings(ApplicationContext context) {
 }
 ```
 
-## 3. 处理器适配器 HandlerAdapter
+## 4. 处理器适配器 HandlerAdapter
 
-### 3.1. 作用
+### 4.1. 作用
 
-### 3.2. 适配器模式
+### 4.2. 适配器模式
 
 适配器模式就是把一个类的接口变换成客户端所期待的另一种接口，从而使原本因接口原因不匹配而无法一起工作的两个类能够一起工作。适配类可以根据参数返还一个合适的实例给客户端。
 
 通过`HandlerAdapter`对处理器进行执行，这是适配器模式的应用，通过扩展适配器可以对更多类型的处理器进行执行。
 
 
-### 3.3. SpringMVC控制器的三种编写方式
+### 4.3. SpringMVC控制器的三种编写方式
 
-#### 3.3.1. 使用Controller注解
+#### 4.3.1. 使用Controller注解
 
 ```java
 @Controller
@@ -184,7 +207,7 @@ public class BasicController {
 }
 ```
 
-#### 3.3.2. 实现Controller接口（少用）
+#### 4.3.2. 实现Controller接口（少用）
 
 此实现方式的，返回值也是让spring mvc框架来处理后生成的ModelAndView
 
@@ -198,7 +221,7 @@ public interface Controller {
 }
 ```
 
-#### 3.3.3. 实现HttpRequestHandler接口（少用）
+#### 4.3.3. 实现HttpRequestHandler接口（少用）
 
 此实现方式的与实现`Controller`接口方式的区别在于，返回值是让使用者通过response来处理
 
@@ -212,11 +235,11 @@ public interface HttpRequestHandler {
 }
 ```
 
-## 4. 视图解析器 ViewResovler 和 View
+## 5. 视图解析器 ViewResovler 和 View
 
 > 注：现在互联网项目，都不会使用直接响应视图的方式返回。都是前后端分离，将数据以流的方式返回到前端，在html中显示。所以此部分的内容很少用，只作了解即可
 
-### 4.1. View
+### 5.1. View
 
 视图的作用是渲染模型数据，将模型里的数据以某种形式呈现给用户。
 
@@ -233,7 +256,7 @@ public interface HttpRequestHandler {
 | JSON视图   | MappingJackson2JsonView | 将模型数据封装成Json格式数据输出。它需要借助Jackson开源框架                        |
 | XML视图    | MappingJackson2XmlView  | 将模型数据封装成XML格式数据。它是从4.1版本之后才加入的                             |
 
-### 4.2. ViewResolver
+### 5.2. ViewResolver
 
 `ViewResolver`负责将处理结果生成`View`视图，`ViewResolver`首先根据逻辑视图名解析成物理视图名即具体的页面地址，再生成`View`视图对象，最后对`View`进行渲染将处理结果通过页面展示给用户。视图对象是由视图解析器负责实例化。
 
@@ -248,32 +271,32 @@ SpringMVC为逻辑视图名的解析提供了不同的策略，可以在Spring W
 | 解析指定XML文件  | XmlViewResolver              | 解析指定位置的XML文件，默认在/WEB-INF/views.xml                                  |
 | 解析指定属性文件 | ResourceBundleViewResolver   | 解析properties文件                                                             |
 
-## 5. 请求参数封装的源码分析
+## 6. 请求参数封装的源码分析
 
-### 5.1. 传统表单数据封装原理(!待整理)
+### 6.1. 传统表单数据封装原理(!待整理)
 
 ![](images/20200921233526749_10621.png)
 
-### 5.2. @RequestBody注解执行原理(!待整理)
+### 6.2. @RequestBody注解执行原理(!待整理)
 
 ![](images/20200922082020581_18801.png)
 
-### 5.3. @PathVariable注解实现原理(!待整理)
+### 6.3. @PathVariable注解实现原理(!待整理)
 
 ![](images/20200922082144603_21222.png)
 
-## 6. 拦截器的执行时机和调用过程
+## 7. 拦截器的执行时机和调用过程
 
-### 6.1. 拦截器的执行流程图
+### 7.1. 拦截器的执行流程图
 
 ![](images/20200922152943953_20761.jpg)
 
-### 6.2. 拦截器的源码执行过程分析
+### 7.2. 拦截器的源码执行过程分析
 
 ![](images/20200922153214836_27754.png)
 
 
-### 6.3. 拦截器的责任链模式
+### 7.3. 拦截器的责任链模式
 
 责任链模式是一种常见的行为模式。它是使多个对象都有处理请求的机会，从而避免了请求的发送者和接收者之间的耦合关系。将这些对象串成一条链，并沿着这条链一直传递该请求，直到有对象处理它为止。
 
@@ -287,11 +310,11 @@ SpringMVC为逻辑视图名的解析提供了不同的策略，可以在Spring W
     - 责任链路过长时，可能对请求传递处理效率有影响
     - 如果节点对象存在循环引用时，会造成死循环，导致系统崩溃
 
-## 7. SpringMVC中的文件上传
+## 8. SpringMVC中的文件上传
 
-### 7.1. MultipartFile
+### 8.1. MultipartFile
 
-#### 7.1.1. 源码
+#### 8.1.1. 源码
 
 ```java
 /* SpringMVC中对上传文件的封装 */
@@ -335,13 +358,13 @@ public interface MultipartFile extends InputStreamSource {
 }
 ```
 
-#### 7.1.2. commons-fileupload的实现
+#### 8.1.2. commons-fileupload的实现
 
 `MultipartFile`的实现类其中一个实现是`CommonsMultipartFile`，通过导包就看出了，此类是借助apache的commons-fileupload实现的文件上传
 
-### 7.2. MultipartResolver
+### 8.2. MultipartResolver
 
-#### 7.2.1. 源码
+#### 8.2.1. 源码
 
 ```java
 /*
@@ -361,7 +384,7 @@ public interface MultipartResolver {
 }
 ```
 
-#### 7.2.2. CommonsFileUploadResolver
+#### 8.2.2. CommonsFileUploadResolver
 
 `MultipartResolver`的实现类是`CommonsMultipartResolver`，此类继承抽象类`CommonsFileUploadSupport`，解析`CommonsMultipartFile`逻辑在此抽象类
 
