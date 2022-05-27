@@ -108,7 +108,7 @@ public class SpringMvcConfiguration {
 
 - 创建配置类`WebConfig.java`，用于替代web项目的`web.xml`配置文件。初始化Spring和SpringMVC IOC容器的配置类
 
-> 注：Servlet3.0规范提供的标准接口`ServletContainerInitializer`，作用是在启动容器是做一些初始化操作，所以创建`WebConfig`类可以实现`ServletContainerInitializer`接口，或者继承SpringMVC提供的抽象实现`AbstractDispatcherServletInitializer`类，重写里面的`onStartUp()`方法，调用执行父类的`onStartUp()`方法的同时，执行自己项目需要的一些初始化操作
+> 注：Servlet3.0 规范提供的标准接口 `ServletContainerInitializer`，作用是在启动容器是做一些初始化操作，所以创建 `WebConfig` 类可以实现 `ServletContainerInitializer` 接口，或者继承 Spring MVC 提供的抽象实现 `AbstractDispatcherServletInitializer` 类，重写里面的 `onStartUp()` 方法，调用执行父类的 `onStartUp()` 方法的同时，执行自己项目需要的一些初始化操作
 
 ```java
 /**
