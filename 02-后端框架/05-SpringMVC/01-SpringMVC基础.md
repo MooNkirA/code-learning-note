@@ -1,51 +1,197 @@
 # Spring MVC 基础
 
+> 最新官方文档：https://docs.spring.io/spring-framework/docs/current/reference/html/web.html#spring-web
+
 ## 1. Spring MVC 框架介绍
 
-### 1.1. Spring MVC概述
+### 1.1. 概述
 
-Spring MVC是Spring框架的一个模块（一部分），Spring MVC和Spring无需通过中间整合层进行整合。
+Spring Web MVC 是基于 Servlet API 上， MVC 的表现层的 Web 框架，用于 web 项目的开发，也可以称为 "Spring MVC"。是 Spring 框架的一个模块（一部分），包含在 Spring Framework 中 spring-webmvc 模块。Spring MVC 和 Spring 无需通过中间整合层进行整合。
 
-Spring MVC是一个基于MVC的表现层框架，用于web项目的开发
+与 Spring Web MVC 并行，Spring Framework 5.0 引入了一个新 Web 框架 Spring WebFlux，具体在 spring-webflux 模块。（*此框架本笔记中不涉及，详见其他笔记*）
 
-Spring MVC使用的jar包：`spring-webmvc-x.x.x.RELEASE.jar`
+> Spring MVC 的 jar 包：`spring-webmvc-x.x.x.RELEASE.jar` 或者 `spring-webmvc-x.x.x.jar`
 
-#### 1.1.1. Spring MVC 原理
+![](images/359331311220567.png)
+
+
+
+### 1.2. MVC 是什么(b/s系统)
+
+mvc 是一种设计模式。模型（model） --> 视图（view） --> 控制器（controller），三层架构设计模式，主要用于实现前端页面的展现和后端业务数据处理逻辑分离
+
+mvc 设计模式的优点：
+
+1. 它是分层架构的设计，实现业务系统各个组件之间的解耦
+2. 有利于系统的可扩展性，可维护性
+3. 有利于实现系统的并行开发，提升开发效率
+
+## 2. Spring MVC 框架重要组件
+
+框架提供组件包含：
+
+- DispatcherServlet：前端控制器
+- HandlerMapping：处理器映射器
+- Handler：处理器
+- HandlerAdapter：处理器适配器
+- ViewResolver：视图解析器
+- View：视图
+
+**在上述的组件中：处理器映射器（HandlerMapping）、处理器适配器（HandlerAdapter）、视图解析器（ViewResolver）称为 Spring MVC 的三大组件**。其中 handler 与 view 组件是由使用者来实现
+
+### 2.1. 前端控制器 DispatcherServlet
+
+Spring MVC 和其他许多 Web 框架一样，是围绕前端控制器模式设计的，`DispatcherServlet` 就是相当于一个中央处理器、转发器，作用是接收请求，响应结果。
+
+用户请求到达前端控制器，它就相当于 MVC 模式中的 C，`DispatcherServlet` 是整个流程控制的中心，由它调用其它组件处理用户的请求，<font color=red>**`DispatcherServlet`的存在降低了组件之间的耦合性**</font>
+
+### 2.2. 处理器映射器和处理器适配器
+
+#### 2.2.1. 处理器映射器 HandlerMapping
+
+HandlerMapping 是作用是负责根据用户请求 url 找到 Handler（即处理器的方法），Spring MVC 提供了不同的映射器实现不同的映射方式，例如：配置文件方式，实现接口方式，注解方式等
+
+##### 2.2.1.1. 默认的处理器映射器
+
+Spring MVC 提供了默认的处理器映射器，在 org.springframework.web.servlet 包下 DispatcherServlet.properties 文件中可查看相关的配置
+
+![](images/476842014238993.png)
+
+```properties
+org.springframework.web.servlet.HandlerMapping=org.springframework.web.servlet.handler.BeanNameUrlHandlerMapping,\
+	org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping,\
+	org.springframework.web.servlet.function.support.RouterFunctionMapping
+```
+
+> 注意事项：旧版本中的默认的处理器映射器是 `org.springframework.web.servlet.mvc.annotation.DefaultAnnotationHandlerMapping` 已经过时。在企业项目不推荐使用。新的版本已经换成 `RequestMappingHandlerMapping`
+
+##### 2.2.1.2. 配置处理器映射器 (RequestMappingHandlerMapping)
+
+旧版本 Spring MVC 中，需要手动在 xml 文件配置创建其对象实例
+
+```xml
+<!-- 配置处理器映射器(RequestMappingHandlerMapping) -->
+<bean class="org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping" />
+```
+
+> 注意事项：处理器映射器和处理器适配器必须配对使用。
+
+#### 2.2.2. 处理器适配器 HandlerAdapter
+
+按照指定的规则（处理器适配器 HandlerAdapter 设置的特定规则），执行 Handler 处理器的方法，这是适配器模式的应用，通过扩展适配器可以对更多类型的处理器进行执行。
+
+##### 2.2.2.1. 默认的处理器适配器
+
+Spring MVC 提供了默认的处理器适配器，在 org.springframework.web.servlet 包下 DispatcherServlet.properties 文件中可查看相关的配置
+
+```properties
+org.springframework.web.servlet.HandlerAdapter=org.springframework.web.servlet.mvc.HttpRequestHandlerAdapter,\
+	org.springframework.web.servlet.mvc.SimpleControllerHandlerAdapter,\
+	org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter,\
+	org.springframework.web.servlet.function.support.HandlerFunctionAdapter
+```
+
+> 注意事项：旧版本中的默认的处理器映射器是 `org.springframework.web.servlet.mvc.annotation.AnnotationMethodHandlerAdapter` 已经过时。在企业项目不推荐使用。新的版本已经换成 `RequestMappingHandlerAdapter`
+
+##### 2.2.2.2. 配置处理器适配器 (RequestMappingHandlerAdapter)
+
+旧版本 Spring MVC 中，需要手动在 xml 文件配置创建其对象实例
+
+```xml
+<!-- 配置处理器适配器(RequestMappingHandlerAdapter) -->
+<bean class="org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter" />
+```
+
+> 注意事项：处理器映射器和处理器适配器必须配对使用。
+
+#### 2.2.3. 处理器映射器和处理器适配器同时配置方式
+
+在 springmvc.xml 配置文件中，配置 `<mvc:annotation-driven>` 标签，表示基于注解驱动的方式配置处理器映射器、处理器适配器，相当于同时配置了 `RequestMappingHandlerMapping`/`RequestMappingHandlerAdapter`（*企业开发推荐使用*）
+
+```xml
+<mvc:annotation-driven></mvc:annotation-driven>
+```
+
+<font color=red>**注意事项：上面配置中，处理器映射器和处理器适配器必须配对使用**</font>。否则会报【HTTP Status 500 - No adapter for handler】的异常
+
+![](images/204432014220567.jpg)
+
+### 2.3. 处理器 Handler
+
+编写 Handler 时按照 HandlerAdapter 的要求去完成，这样适配器才可以去正确执行 Handler
+
+Handler 是继承 `DispatcherServlet` 前端控制器的**后端控制器**，在 `DispatcherServlet` 的控制下 Handler 对具体的用户请求进行处理。
+
+> 由于 Handler 涉及到具体的用户业务请求，所以一般情况需要程序员根据业务需求开发 Handler。
+
+### 2.4. 视图解析器 ViewResolver
+
+View Resolver 作用是进行视图解析，把逻辑视图（在 controller 中设置的视图名称）解析成物理视图（在浏览器看到的实际页面，即 view）。View Resolver 首先根据逻辑视图名解析成物理视图名即具体的页面地址，再生成 View 视图对象，最后对 View 进行渲染将处理结果通过页面展示给用户。
+
+#### 2.4.1. 默认的视图解析器
+
+Spring MVC 提供了默认的视图解析器，在 org.springframework.web.servlet 包下 DispatcherServlet.properties 文件中可查看相关的配置
+
+```properties
+org.springframework.web.servlet.ViewResolver=org.springframework.web.servlet.view.InternalResourceViewResolver
+```
+
+> 注意事项：需要在 springmvc.xml 中配置两个属性
+
+#### 2.4.2. 配置视图解析器 (InternalResourceViewResolver)
+
+在 springmvc.xml 中配置视图解析器
+
+```xml
+<!-- 配置视图解析(InternalResourceViewResolver)  -->
+<bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+	<!-- 配置视图的公共目录路径(前缀) -->
+	<property name="prefix" value="/WEB-INF/jsp/"></property>
+	<!-- 配置视图的扩展名称(后缀) -->
+	<property name="suffix" value=".jsp"></property>
+</bean>
+```
+
+在 Controller 接口中，直接返回视图的名称即可，会自动拼接上面配置的前后缀
+
+```java
+// 配置视图解析器后只需要设置视图名称即可。（原因是视图解析器进行拼接）
+mav.setViewName("helloSpringMVC");
+```
+
+### 2.5. 视图view
+
+View 是一个接口，实现类支持不同的 View 类型（jsp、freemarker、pdf...）
+
+Spring MVC 框架提供了很多的 View 视图类型的支持，包括：jstlView、freemarkerView、pdfView 等。最常用的视图就是 jsp
+
+一般情况下需要通过页面标签或页面模版技术将模型数据通过页面展示给用户，需要由程序员根据业务需求开发具体的页面。
+
+## 3. Spring MVC 运行流程
 
 Spring 的模型-视图-控制器（MVC）框架是围绕一个 `DispatcherServlet` 来设计的，这个 Servlet 会把请求分发给各个处理器，并支持可配置的处理器映射、视图渲染、本地化、时区与主题渲染等，甚至还能支持文件上传。
 
-#### 1.1.2. MVC流程图
-
-![](images/20200918135212093_9963.jpg)
-
-### 1.2. MVC是什么(b/s系统)
-
-mvc是一种设计模式。模型（model） --> 视图（view） --> 控制器（controller），三层架构设计模式，主要用于实现前端页面的展现和后端业务数据处理逻辑分离
-
-- mvc设计模式的优点：
-	1. 它是分层架构的设计，实现业务系统各个组件之间的解耦
-	2. 有利于系统的可扩展性，可维护性
-	3. 有利于实现系统的并行开发，提升开发效率
-
-### 1.3. Spring MVC框架的执行流程
+- 第1步：客户端发起请求到 `DispatcherServlet`（前端控制器）
+- 第2步：`DispatcherServlet`（前端控制器）请求一个或多个 `HandlerMapping` 查找 Handler，可以根据 xml 配置、注解进行查找处理请求的 Controller
+- 第3步：`HandlerMapping`（处理器映射器）向前端控制器返回 Handler
+- 第4步：`DispatcherServlet`（前端控制器）调用 `HandlerAdapter`（处理器适配器）去执行 Handler
+- 第5步：`HandlerAdapter`（处理器适配器）去执行 Handler
+- 第6步：Handler 调用业务逻辑处理完成后，给 `HandlerAdapter`（处理器适配器）返回 `ModelAndView`
+- 第7步：`HandlerAdapter`（处理器适配器）向 `DispatcherServlet`（前端控制器）返回 `ModelAndView`。`ModelAndView` 是 Spring MVC 框架的一个底层对象，包括 Model 和 View
+- 第8步：`DispatcherServlet`（前端控制器）请求 `ViewResoler`（视图解析器）去进行视图解析，根据逻辑视图名解析成真正的视图(jsp)
+- 第9步：`ViewResoler`（视图解析器）向 `DispatcherServlet`（前端控制器）返回 View
+- 第10步：`DispatcherServlet`（前端控制器）进行视图渲染。视图渲染将模型数据(在 `ModelAndView` 对象中)填充到 request 域中
+- 第11步：`DispatcherServlet`（前端控制器）向用户响应结果
 
 ![](images/20200918135458792_17168.png)
 
-- 第1步：发起请求到前端控制器(DispatcherServlet)
-- 第2步：前端控制器请求HandlerMapping查找Handler，可以根据xml配置、注解进行查找
-- 第3步：处理器映射器HandlerMapping向前端控制器返回Handler
-- 第4步：前端控制器调用处理器适配器去执行Handler
-- 第5步：处理器适配器去执行Handler
-- 第6步：Handler执行完成给适配器返回ModelAndView
-- 第7步：处理器适配器向前端控制器返回ModelAndView。ModelAndView是Spring MVC框架的一个底层对象，包括Model和View
-- 第8步：前端控制器请求视图解析器去进行视图解析，根据逻辑视图名解析成真正的视图(jsp)
-- 第9步：视图解析器向前端控制器返回view
-- 第10步：前端控制器进行视图渲染。视图渲染将模型数据(在ModelAndView对象中)填充到request域中
-- 第11步：前端控制器向用户响应结果
+![](images/63723911226860.jpg)
 
-## 2. Spring MVC 入门程序
+![](images/20200918135212093_9963.jpg)
 
-### 2.1. 编写入门程序步骤
+## 4. Spring MVC 入门程序（基于 xml 配置）
+
+### 4.1. 编写入门程序步骤
 
 1. 导入框架包
 2. 准备主配置文件：springmvc.xml（不是固定，可修改）
@@ -55,61 +201,33 @@ mvc是一种设计模式。模型（model） --> 视图（view） --> 控制器�
 6. 在springmvc.xml中配置组件扫描controller
 7. 启动执行
 
-### 2.2. 快速入门案例
+### 4.2. 快速入门案例
 
-#### 2.2.1. 创建maven项目，配置依赖
+#### 4.2.1. 创建maven项目，配置依赖
 
-创建war类型的maven项目，配置pom.xml文件，加入依赖。除了需要加入springMVC相关依赖外，还需要配置jdk和tomcat7插件
+创建 war 类型的 maven 项目，配置 pom.xml 文件，加入依赖。除了需要加入 Spring MVC 相关依赖外，还需要配置jdk和tomcat7插件(用于打包部署，如果直接使用 idea 运行测试，则也可省略)
+
+> 注：快速入门示例只需要依赖 spring-webmvc 依赖，因为此依赖包含了 Spring 的 aop、beans、context、core、expression、web 等
 
 ```xml
 <modelVersion>4.0.0</modelVersion>
 <groupId>com.moon</groupId>
-<artifactId>springmvc-demo</artifactId>
+<artifactId>01-spring-mvc-quickstart</artifactId>
 <version>0.0.1-SNAPSHOT</version>
 <packaging>war</packaging>
 
 <properties>
 	<!-- spring版本号 -->
-	<spring.version>4.3.8.RELEASE</spring.version>
+	<spring.version>5.3.19</spring.version>
 	<!-- jstl标签版本 -->
 	<jstl.version>1.2</jstl.version>
 </properties>
 
 <dependencies>
-	<!-- springmvc依赖包 -->
-	<dependency>
-		<groupId>org.springframework</groupId>
-		<artifactId>spring-core</artifactId>
-		<version>${spring.version}</version>
-	</dependency>
-	<dependency>
-		<groupId>org.springframework</groupId>
-		<artifactId>spring-web</artifactId>
-		<version>${spring.version}</version>
-	</dependency>
-	<dependency>
-		<groupId>org.springframework</groupId>
-		<artifactId>spring-tx</artifactId>
-		<version>${spring.version}</version>
-	</dependency>
-	<dependency>
-		<groupId>org.springframework</groupId>
-		<artifactId>spring-jdbc</artifactId>
-		<version>${spring.version}</version>
-	</dependency>
+	<!-- springmvc 依赖包 -->
 	<dependency>
 		<groupId>org.springframework</groupId>
 		<artifactId>spring-webmvc</artifactId>
-		<version>${spring.version}</version>
-	</dependency>
-	<dependency>
-		<groupId>org.springframework</groupId>
-		<artifactId>spring-aop</artifactId>
-		<version>${spring.version}</version>
-	</dependency>
-	<dependency>
-		<groupId>org.springframework</groupId>
-		<artifactId>spring-context-support</artifactId>
 		<version>${spring.version}</version>
 	</dependency>
 	<!-- JSTL标签类 -->
@@ -117,12 +235,6 @@ mvc是一种设计模式。模型（model） --> 视图（view） --> 控制器�
 		<groupId>jstl</groupId>
 		<artifactId>jstl</artifactId>
 		<version>${jstl.version}</version>
-	</dependency>
-	<dependency>
-		<groupId>junit</groupId>
-		<artifactId>junit</artifactId>
-		<version>4.12</version>
-		<scope>test</scope>
 	</dependency>
 </dependencies>
 
@@ -158,7 +270,7 @@ mvc是一种设计模式。模型（model） --> 视图（view） --> 控制器�
 </build>
 ```
 
-#### 2.2.2. 创建相关的配置文件
+#### 4.2.2. 创建相关的配置文件
 
 - 创建`springmvc.xml`文件，springmvc框架的主配置文件（文件名称是可以修改的），配置组件扫描controller
 
@@ -211,7 +323,7 @@ mvc是一种设计模式。模型（model） --> 视图（view） --> 控制器�
 </servlet-mapping>
 ```
 
-#### 2.2.3. 创建控制器（controller）
+#### 4.2.3. 创建控制器（controller）
 
 相当于struts2框架中的action
 
@@ -250,7 +362,7 @@ public class DemoController {
 }
 ```
 
-#### 2.2.4. 创建跳转的视图页面
+#### 4.2.4. 创建跳转的视图页面
 
 创建`/WEB-INF/jsp/helloSpringMVC.jsp`文件
 
@@ -261,14 +373,37 @@ public class DemoController {
 
 最后运行项目查看效果
 
+## 5. DispatcherServlet 前端控制器配置
 
-## 3. 拦截器
+DispatcherServlet 和其他 Servlet 一样，<font color=red>**实质是一个 Servlet**</font>。需要通过使用 Java 编程式配置或在 web.xml 中根据 Servlet 规范进行声明和映射。通过配置来绑定请求映射、视图解析、异常处理等方面的组件。
 
-### 3.1. 拦截器介绍
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+## 6. 拦截器
+
+### 6.1. 拦截器介绍
 
 拦截器相当于servlet中过滤器（filter）。可以对处理器方法执行预处理（在处理器方法执行前执行），可以对处理器方法执行后处理（在处理器方法执行后执行）
 
-### 3.2. HandlerInterceptor 接口方法说明
+### 6.2. HandlerInterceptor 接口方法说明
 
 ```java
 public interface HandlerInterceptor {
@@ -291,11 +426,11 @@ public interface HandlerInterceptor {
 - `postHandle`方法：在处理器方法执行后，在响应jsp页面前执行，执行后处理。企业项目中，可以在这个方法设置页面的公共模型数据，比如页面的头部信息，尾部信息。
 - `afterCompletion`方法：在处理器方法执行后，在jsp页面响应后执行，执行后处理。在企业项目中，可以在这个方法实现用户访问日志的记录。
 
-### 3.3. 自定义拦截器（基于xml配置文件）
+### 6.3. 自定义拦截器（基于xml配置文件）
 
 自定义拦截器需要实现`HandlerInterceptor`接口，此接口比较特别有三个方法，都为默认方法，所以自定义拦截器时，可以选择性重写此三个方法即可
 
-#### 3.3.1. 创建拦截器
+#### 6.3.1. 创建拦截器
 
 ```java
 public class MyInterceptor implements HandlerInterceptor {
@@ -321,7 +456,7 @@ public class MyInterceptor implements HandlerInterceptor {
 }
 ```
 
-#### 3.3.2. 配置拦截器
+#### 6.3.2. 配置拦截器
 
 在springmvc.xml总配置文件中配置拦截器步骤：
 
@@ -353,7 +488,7 @@ public class MyInterceptor implements HandlerInterceptor {
 </mvc:interceptors>
 ```
 
-#### 3.3.3. 自定义拦截器执行测试
+#### 6.3.3. 自定义拦截器执行测试
 
 - 测试拦截器方法
 
@@ -384,17 +519,17 @@ public String testInterceptor(Model model){
 
 ![](images/20200922100757124_22779.jpg)
 
-### 3.4. 自定义拦截器（基于纯注解方式）
+### 6.4. 自定义拦截器（基于纯注解方式）
 
 此部分内容详情《02-SpringMVC注解汇总.md》
 
-### 3.5. 自定义多个拦截器
+### 6.5. 自定义多个拦截器
 
 定义多个拦截器，测试拦截器执行的顺序
 
 ![](images/20200922101051530_24002.jpg)
 
-#### 3.5.1. 配置多个拦截器
+#### 6.5.1. 配置多个拦截器
 
 修改springmvc.xml文件
 
@@ -415,7 +550,7 @@ public String testInterceptor(Model model){
 </mvc:interceptors>
 ```
 
-#### 3.5.2. 多个拦截器的执行顺序测试
+#### 6.5.2. 多个拦截器的执行顺序测试
 
 - 测试拦截器1返回true，拦截器2返回true
 
@@ -435,16 +570,16 @@ public String testInterceptor(Model model){
 
 1. 拦截器的afterCompletion方法，只要当前拦截器返回true，就可以得到执行。
 
-### 3.6. 拦截器应用案例
+### 6.6. 拦截器应用案例
 
-#### 3.6.1. 案例需求
+#### 6.6.1. 案例需求
 
 1. 访问商品列表数据，需要判断用户是否登录
 2. 如果用户已经登录，直接让他访问商品列表
 3. 如果用户未登录，先去登录页面进行登录，成功登录以后再访问商品列表
 - 注：本demo只是模拟用户输入用户名和密码，没有进行数据库的校验，没有创建用户对象
 
-#### 3.6.2. 准备用户登录页面login.jsp
+#### 6.6.2. 准备用户登录页面login.jsp
 
 ```jsp
 <form id="userForm"
@@ -467,7 +602,7 @@ public String testInterceptor(Model model){
 </form>
 ```
 
-#### 3.6.3. 用户登陆控制层方法
+#### 6.6.3. 用户登陆控制层方法
 
 UserController.java编写跳转到登陆页面方法与登陆方法
 
@@ -520,7 +655,7 @@ public class UserController {
 }
 ```
 
-#### 3.6.4. 用户登陆拦截器
+#### 6.6.4. 用户登陆拦截器
 
 创建LoginInterceptor拦截器
 
@@ -545,7 +680,7 @@ public boolean preHandle(HttpServletRequest request, HttpServletResponse respons
 }
 ```
 
-#### 3.6.5. 配置登陆拦截器
+#### 6.6.5. 配置登陆拦截器
 
 修改springmvc.xml配置文件
 
@@ -578,7 +713,7 @@ public boolean preHandle(HttpServletRequest request, HttpServletResponse respons
 1. 不加斜杠是相对路径，相对于当前路径，下一步访问的路径：`http://127.0.0.1:8080/ssm/user/+目标url`
 2. 加上斜杠是绝对路径，下一步访问的路径：`http://127.0.0.1:8080/ssm/+目标url`
 
-## 2. SpringMVC与struts2的区别
+## 2. Spring MVC 与 struts2 的区别
 
 **相同点**：都是基于mvc的表现层框架，都用于web项目的开发
 

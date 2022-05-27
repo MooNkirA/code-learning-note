@@ -243,7 +243,7 @@ public class WebConfig extends AbstractDispatcherServletInitializer {
 
 # SpringMVC 常用注解
 
-> 各个注解的详细说明与用法详见源码项目`spring-note\Spring-Framework`，使用示例详见`spring-note\spring-analysis-note\springmvc-sample-annotation\01-annotation-spring-mvc\`
+> 各个注解的详细说明与用法详见源码项目`spring-note\Spring-Framework`，使用示例详见`spring-note\springmvc-sample\05-spring-mvc-annotation\`
 >
 > 一些测试案例需要使用postman或者idea自带的Http Client这种请求工具来测试。示例项目中有idea的Http Client请求文件
 
