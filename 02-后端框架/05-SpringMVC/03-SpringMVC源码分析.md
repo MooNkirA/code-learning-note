@@ -68,13 +68,25 @@ public @interface HandlesTypes {
 
 用户请求到达前端控制器，它就相当于 MVC 模式中的 C，`DispatcherServlet` 是整个流程控制的中心，由它调用其它组件处理用户的请求，<font color=red>**`DispatcherServlet`的存在降低了组件之间的耦合性**</font>
 
-### 1.2. 执行过程分析
+### 1.2. 初始化流程
 
-#### 1.2.1. doService方法
+1. `DispatcherServlet` 是在第一次被访问时执行初始化，也可以通过配置修改为 Tomcat 启动后就初始化
+2. 在初始化时会从 Spring 容器中找一些 Web 需要的组件，如` HandlerMapping`、`HandlerAdapter` 等，并逐一调用它们的初始化
+3. `RequestMappingHandlerMapping` 初始化时，会收集所有 `@RequestMapping` 映射信息，封装为 Map，其中
+   - key 是 `RequestMappingInfo` 类型，包括请求路径、请求方法等信息
+   - value 是 `HandlerMethod` 类型，包括控制器方法对象、控制器对象
+4. 当前端有请求到达时，快速从映射中找到 `HandlerMethod` 并与匹配的拦截器一起返回给 `DispatcherServlet`
+5. `RequestMappingHandlerAdapter` 初始化时，会准备 `HandlerMethod` 调用时需要的各个组件，如：
+   - `HandlerMethodArgumentResolver` 解析控制器方法参数
+   - `HandlerMethodReturnValueHandler` 处理控制器方法返回值
+
+### 1.3. 执行过程分析
+
+#### 1.3.1. doService方法
 
 此方法在接收到请求首先执行的方法，通过跟踪源码得知，它重写父类`FrameworkServlet`的，`FrameworkServlet`是继承了`HttpServlet`，所以它就相当于执行了Servlet中的service方法
 
-#### 1.2.2. doDispatche方法
+#### 1.3.2. doDispatche方法
 
 在doService方法执行的逻辑中，会调用doDispatche方法，此方法是处理请求分发的核心方法。它负责通过反射调用控制器方法、执行拦截器和处理结果视图
 
