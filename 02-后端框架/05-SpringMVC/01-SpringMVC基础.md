@@ -787,7 +787,81 @@ public String queryItemById(Model model, Integer id) {
 
 请求的参数名称需要与方法形参名称一致，才能绑定。如果名称不一致，需要使用 `@RequestParam` 注解并在指定请求参数名称
 
-### 4.7. @RequestParam 注解绑定参数
+### 4.7. 对象参数类型绑定
+
+如果请求提交的参数很多，或者提交的表单中的内容很多的时候，可以使用简单类型接受数据，也可以使用pojo（对象类型）接收数据。
+
+注意：<font color=red>**pojo 对象中的属性名 setter 方法和提交的表单中 input 元素的 `name` 属性一致或是上送的json对象属性名一致。（注：与属性名称无关，set 方法名称去掉 set 后的，首字母改成小写后与请求的参数名称一致即可）**</font>。Spring MVC 框架会自动将请求参数赋值给 pojo 的属性
+
+示例：
+
+```java
+/**
+ * SpringMVC参数绑定：对象类型参数绑定
+ * 	直接返回String类型响应视图
+ * 	使用Item对象，接收请求的商品参数数据
+ */
+@RequestMapping("/updateItem.do")
+public String updateItem(Item item) {
+	try {
+		// 1.调用service层方法，保存商品数据
+		itemService.updateItem(item);
+	} catch (Exception e) {
+		e.printStackTrace();
+		// 保存失败发生异常，设置响应视图，跳转到异常页面
+		return "common/failure";
+	}
+	// 2.保存成功返回字符串，设置响应视图
+	return "common/success";
+}
+```
+
+> 注：提交后会出现中文乱码的问题，解决方式参考后面章节中的 《中文参数传递乱码解决》
+
+### 4.8. 对象包装类型绑定
+
+示例需求：使用pojo包装类型，接收综合查询条件（一个模拟操作）
+
+创建包装类 QueryVo，用于使用 `<input type="text" name="item.name" value=""/>` 提交的参数
+
+```java
+public class QueryVo implements Serializable {
+	private Item item;
+	public Item getItem() {
+		return item;
+	}
+	public void setItem(Item item) {
+		this.item = item;
+	}
+}
+```
+
+测试
+
+```java
+/**
+ * pojo包装类型接收参数
+ * 	形参queryVo，接收请求的综合查询条件
+ */
+@RequestMapping("/queryItem.do")
+public String queryItem(Model model, QueryVo queryVo) {
+	// 1.测试包装类是否有接收数据
+	if (queryVo != null && queryVo.getItem() != null) {
+		System.out.println("页面提交的参数是：" + queryVo.getItem().getName());
+	}
+	// 2.调用service层方法，查询所有商品
+	List<Item> itemList = itemService.queryAllItems();
+	// 3.设置响应商品的数据
+	model.addAttribute("itemList", itemList);
+	// 4.返回字符串,设置响应视图
+	return "item/itemList";
+}
+```
+
+![](images/344493011220571.png)
+
+
+### 4.9. @RequestParam 注解绑定参数
 
 设置请求的参数名称，与方法形参名称匹配。<font color=red>**绑定后传递的请求参数必须是设置的值。注意：注解的使用位置在需要绑定的形参前面**</font>
 
@@ -811,12 +885,68 @@ public String queryItemById(Model model,
 
 > 注：上面示例请求设置了 `@RequestParam` 注解，请求参数的名称必须为 `itemId`，如果请求不带参数，则方法形参 id 会有默认值为 3
 >
-> 关于 `@RequestParam` 注解更多使用说明，详见《Spring MVC 注解汇总.md》文档
+> 关于 `@RequestParam` 注解更多使用说明，详见[《Spring MVC 注解汇总.md》文档](/02-后端框架/05-SpringMVC/02-SpringMVC注解汇总)
+
+### 4.10. （实际使用时再整理）@ModelAttribute 和 @SessionAttributes 传递和保存数据
+
+SpringMVC 支持使用 `@ModelAttribute` 和 `@SessionAttributes` 在不同的模型和控制器之间共享数据。 `@ModelAttribute` 主要有两种使用方式，一种是标注在方法上，一种是标注在 Controller 方法参数上。
+
+当 `@ModelAttribute` 标记在方法上的时候，该方法将在处理器方法执行之前执行，然后把返回的对象存放在 session 或模型属性中，属性名称可以使用 `@ModelAttribute("attributeName")` 在标记方法的时候指定，若未指定，则使用返回类型的类名称（首字母小写）作为属性名称。关于 `@ModelAttribute` 标记在方法上时对应的属性是存放在 session 中还是存放在模型中，我们来做一个实验，看下面一段代码。
+
+`@SessionAttributes` 用于标记需要在 Session 中使用到的数据，包括从 Session 中取数据和存数据。`@SessionAttributes` 一般是标记在 Controller 类上的，可以通过名称、类型或者名称加类型的形式来指定哪些属性是需要存放在 session 中的。
 
 
+### 4.11. 参数解析器
 
+#### 4.11.1. 默认参数解析器
 
-### 4.8. 自定义参数绑定
+Spring MVC 提供了很多默认的参数解析器，用于实现前面各种控制方法形参的解析绑定，具体实现类如下：
+
+```
+org.springframework.web.method.annotation.RequestParamMethodArgumentResolver
+org.springframework.web.method.annotation.RequestParamMapMethodArgumentResolver
+org.springframework.web.servlet.mvc.method.annotation.PathVariableMethodArgumentResolver
+org.springframework.web.servlet.mvc.method.annotation.PathVariableMapMethodArgumentResolver
+org.springframework.web.servlet.mvc.method.annotation.MatrixVariableMethodArgumentResolver
+org.springframework.web.servlet.mvc.method.annotation.MatrixVariableMapMethodArgumentResolver
+org.springframework.web.servlet.mvc.method.annotation.ServletModelAttributeMethodProcessor
+org.springframework.web.servlet.mvc.method.annotation.RequestResponseBodyMethodProcessor
+org.springframework.web.servlet.mvc.method.annotation.RequestPartMethodArgumentResolver
+org.springframework.web.method.annotation.RequestHeaderMethodArgumentResolver
+org.springframework.web.method.annotation.RequestHeaderMapMethodArgumentResolver
+org.springframework.web.servlet.mvc.method.annotation.ServletCookieValueMethodArgumentResolver
+org.springframework.web.method.annotation.ExpressionValueMethodArgumentResolver
+org.springframework.web.servlet.mvc.method.annotation.SessionAttributeMethodArgumentResolver
+org.springframework.web.servlet.mvc.method.annotation.RequestAttributeMethodArgumentResolver
+org.springframework.web.servlet.mvc.method.annotation.ServletRequestMethodArgumentResolver
+org.springframework.web.servlet.mvc.method.annotation.ServletResponseMethodArgumentResolver
+org.springframework.web.servlet.mvc.method.annotation.HttpEntityMethodProcessor
+org.springframework.web.servlet.mvc.method.annotation.RedirectAttributesMethodArgumentResolver
+org.springframework.web.method.annotation.ModelMethodProcessor
+org.springframework.web.method.annotation.MapMethodProcessor
+org.springframework.web.method.annotation.ErrorsMethodArgumentResolver
+org.springframework.web.method.annotation.SessionStatusMethodArgumentResolver
+org.springframework.web.servlet.mvc.method.annotation.UriComponentsBuilderMethodArgumentResolver
+org.springframework.web.servlet.mvc.method.annotation.PrincipalMethodArgumentResolver
+org.springframework.web.method.annotation.RequestParamMethodArgumentResolver
+org.springframework.web.servlet.mvc.method.annotation.ServletModelAttributeMethodProcessor
+```
+
+`RequestMappingHandlerAdapter` 调用过程大概如下：
+
+1. 将控制器方法封装为 `HandlerMethod`
+2. 准备对象绑定与类型转换
+3. 准备 `ModelAndViewContainer` 用来存储中间 Model 结果
+4. 解析方法每个参数值
+
+其中解析参数依赖的上面各种参数解析器，它们都有两个重要方法
+
+- `supportsParameter` 判断是否支持方法参数
+- `resolveArgument` 解析方法参数
+
+> 参考：\spring-note\springmvc-sample\11-argument-resolver 示例代码
+
+#### 4.11.2. 自定义参数解析器
 
 Spring MVC 提供了自定义参数绑定的接口 `org.springframework.web.method.support.HandlerMethodArgumentResolver`，自定义参数绑定只需要实现该接口，实现怎样的参数生效与参数解析的逻辑
 
@@ -979,6 +1109,75 @@ public void testCustomArgumentResolver() throws Exception {
 }
 ```
 
+### 4.12. 参数类型转换
+
+问题分析：有些业务，如商品生成日期类型的数据，格式多不固定，需要根据业务需求来确定。
+
+由于日期数据有很多种格式，Spring mvc 没办法把字符串转换成日期类型。所以需要自定义参数类型转换
+
+![](images/246173311238997.png)
+
+前端控制器接收到请求后，找到注解形式的处理器适配器，对 `@RequestMapping` 注解标记的方法进行适配，并对方法中的形参进行参数绑定。可以在 Spring MVC 处理器适配器上通过自定义转换器`Converter` 转换后再进行参数绑定。一般需要配置开启注解的支持，如下：
+
+- xml 配置方式，则使用 `<mvc:annotation-driven/>` 标签进行配置，开启注解驱动加载处理器适配器
+- 基于纯注解配置，则在配置类中设置包扫描
+
+#### 4.12.1. Converter 接口
+
+String MVC 的 `org.springframework.core.convert.converter.Converter` 接口用于实现数据类型转换，需要重写 `convert` 方法，在方法中做数据转换的逻辑处理
+
+```java
+@FunctionalInterface
+public interface Converter<S, T> {
+
+	@Nullable
+	T convert(S source);
+
+	default <U> Converter<S, U> andThen(Converter<? super T, ? extends U> after) {
+		Assert.notNull(after, "After Converter must not be null");
+		return (S s) -> {
+			T initialResult = convert(s);
+			return (initialResult != null ? after.convert(initialResult) : null);
+		};
+	}
+}
+```
+
+- 参数S（Source）：源，转换前的数据类型
+- 参数T（Target）：目标，转换后的数据类型
+
+#### 4.12.2. 自定义参数转换器
+
+自定义参数转换器，需要实现一个接口(`Converter`)，该接口中是泛型接口
+
+```java
+/**
+ * 自定义参数转换器
+ * 
+ * Converter<S, T>接口
+ * 	S：Source：源，转换前的数据，这里是字符串类型（String）的商品生产日期
+ * 	T:Target：目标，转换后的数据，这里是Date类型的商品生产日期
+ */
+public class DateConverter implements Converter<String, Date> {
+	@Override
+	public Date convert(String source) {
+		try {
+			// 定义日期格式化对象，指定日期的格式:2016-02-03 13:22:53
+			SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+			// 返回格式后的日期对象
+			return format.parse(source);
+		} catch (ParseException e) {
+			e.printStackTrace();
+		}
+		// 转换不成功返回null;
+		return null;
+	}
+}
+```
+
+> 注：自定义参数转换器的配置，详见《Spring MVC 配置》章节
+
+
 ## 5. Spring MVC 配置（整理中！）
 
 Spring MVC 提供了 Java 编程式与 xml 命名空间两种方式对 web 程序进行配置。
@@ -1047,6 +1246,84 @@ public class WebConfig implements WebMvcConfigurer {
     </mvc:interceptor>
 </mvc:interceptors>
 ```
+
+### 5.3. 自定义类型转换器配置
+
+默认情况下，Spring MVC 提供了各种数字和日期类型的格式化器，同时支持通过在对象字段上的 `@NumberFormat` 和 `@DateTimeFormat` 进行自定义。在 Spring MVC 配置自定义参数转换器以如下方式：
+
+- xml 配置方式。配置创建 `org.springframework.format.support.FormattingConversionServiceFactoryBean` 参数转换器服务对象。注入 converters 属性，是 set 集合类型。值是自定义参数转换类的全限定名，可以配置多个自定参数转换类，使用 `<set>` 标签
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:mvc="http://www.springframework.org/schema/mvc"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="
+        http://www.springframework.org/schema/beans
+        https://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/mvc
+        https://www.springframework.org/schema/mvc/spring-mvc.xsd">
+
+    <!-- 注解驱动的方式配置处理器映射器、处理器适配器 -->
+    <mvc:annotation-driven conversion-service="conversionService"/>
+
+    <!-- 配置自定义类型转换器 -->
+    <bean id="conversionService" class="org.springframework.format.support.FormattingConversionServiceFactoryBean">
+        <!-- 注入自定义类型转换类 -->
+        <property name="converters">
+            <set>
+                <bean class="com.moon.ssm.converter.DateConverter"/>
+            </set>
+        </property>
+        <!-- 可注入其他的内容 -->
+        <property name="formatters">
+            <set>
+                <bean class="org.example.MyFormatter"/>
+                <bean class="org.example.MyAnnotationFormatterFactory"/>
+            </set>
+        </property>
+        <property name="formatterRegistrars">
+            <set>
+                <bean class="org.example.MyFormatterRegistrar"/>
+            </set>
+        </property>
+    </bean>
+
+</beans>
+```
+
+- 创建配置类，使用 `@EnableWebMvc` 注解开启 Spring MVC 配置，实现 `WebMvcConfigurer` 接口的 `addFormatters` 方法中进行注册
+
+```java
+@Configuration
+@EnableWebMvc
+public class WebConfig implements WebMvcConfigurer {
+
+    @Override
+    public void addFormatters(FormatterRegistry registry) {
+        // 增加自定义的类型转换类实例
+        registry.addConverter(new DateConverter());
+    }
+}
+```
+
+> 注：默认情况下，Spring MVC 在解析和格式化日期值时，会考虑请求的 Locale。对于"日期"和"时间"表单字段，浏览器使用 HTML 规范中定义的固定格式。在这种情况下，日期和时间的格式化可以按以下方式定制。
+
+```java
+@Configuration
+@EnableWebMvc
+public class WebConfig implements WebMvcConfigurer {
+
+    @Override
+    public void addFormatters(FormatterRegistry registry) {
+        DateTimeFormatterRegistrar registrar = new DateTimeFormatterRegistrar();
+        registrar.setUseIsoFormat(true);
+        registrar.registerFormatters(registry);
+    }
+}
+```
+
+- 使用 `@InitBinder` 的方式配置，详见[《Spring MVC 注解汇总.md》文档](/02-后端框架/05-SpringMVC/02-SpringMVC注解汇总)
 
 ## 6. 拦截器
 
@@ -1405,7 +1682,119 @@ Spring 的模型-视图-控制器（MVC）框架是围绕一个 `DispatcherServl
 4.	与spring整合不一样。
     - springmvc框架本身就是spring框架的一部分，不需要整合。
 
+## 3. Tomcat 服务中文参数传递乱码解决
 
+传递对象后有可能出现的问题：中文乱码的原因是因为使用的 tomcat 服务器，它的默认字符集编码是 ISO-8859-1，不支持中文。
 
+![](images/583854714220571.png)
 
+### 3.1. POST 请求 - 解决中文乱码
 
+Spring 提供了一个字符集编码的过滤器(CharacterEncodingFilter)，解决post请求的中文乱码，它实质相当于一个拦截器
+
+只需要在 web.xml 中配置即可使用，使用 `<filter>` 标签
+
+```xml
+<!-- !配置字符集编码过滤器  -->
+<filter>
+	<filter-name>characterEncodingFilter</filter-name>
+	<filter-class>org.springframework.web.filter.CharacterEncodingFilter</filter-class>
+	
+	<!-- 配置指定的编码-->
+	<init-param>
+		<param-name>encoding</param-name>
+		<param-value>UTF-8</param-value>
+	</init-param>
+</filter>
+
+<!-- 配置拦截的请求url -->
+<filter-mapping>
+	<filter-name>characterEncodingFilter</filter-name>
+	<!-- 配置所有请求都经过字符集编码过滤器处理 -->
+	<url-pattern>/*</url-pattern>
+</filter-mapping>
+```
+
+配置后解决 post 请求的中文乱码问题
+
+![](images/566465414238997.png)
+
+### 3.2. GET 请求 - 解决中文乱码
+
+测试get请求方式中文参数乱码
+
+![](images/264325714226864.png)
+
+或者请求url带中文
+
+```
+localhost:8080/ssm/queryItem.do?item.name=中文乱码哦!
+```
+
+测试结果
+
+![](images/152265814239699.png)
+
+#### 3.2.1. 解决方式1
+
+对请求参数进行重新编码。ISO8859-1 是 tomcat 默认编码，需要将 tomcat 编码后的内容按 utf-8 编码。修改出现乱码的控制方法
+
+```java
+@RequestMapping("/queryItem.do")
+public String queryItem(Model model, QueryVo queryVo) {
+	// 解决get请求中文乱码方式1：解码再编码
+	try {
+		if (queryVo != null && queryVo.getItem() != null) {
+			// 1.获取参数数据
+			String name = queryVo.getItem().getName();
+			// 2.将数据按ISO-8859-1获取字节数组
+			byte[] bytes = name.getBytes("ISO-8859-1");
+			// 3.将字节数组使用UTF-8重新编码
+			name = new String(bytes, "UTF-8");
+			// 4.将编码后的数据重新设置到对象中
+			queryVo.getItem().setName(name);
+		}
+	} catch (Exception e) {
+		e.printStackTrace();
+	}
+	// =========解决end==========
+		....省略
+}
+```
+
+> 这种方式显然不可取，重复编码
+
+#### 3.2.2. 解决方式2
+
+项目开发阶段，可以修改 maven 中 pom.xml，tomcat 插件的配置
+
+```xml
+<!-- 设置maven tomcat插件 -->
+<plugin>
+	<groupId>org.apache.tomcat.maven</groupId>
+	<artifactId>tomcat7-maven-plugin</artifactId>
+	<version>2.2</version>
+	<configuration>
+		<!-- 指定端口号 -->
+		<port>8080</port>
+		<!-- 指定请求路径 -->
+		<path>/ssm</path>
+		<!-- URL按UTF-8进行编码，解决中文参数乱码 -->
+		<uriEncoding>UTF-8</uriEncoding>
+		<!-- tomcat名称 -->
+		<server>tomcat7</server>
+	</configuration>
+</plugin>
+```
+
+项目部署阶段，需要修改 tomcat 配置文件，添加编码与工程编码一致
+
+![](images/58050315236254.png)
+
+```xml
+...
+<Connector URIEncoding="UTF-8" port="8080" protocol="HTTP/1.1"
+               connectionTimeout="20000"
+               redirectPort="8443" />
+...
+```
