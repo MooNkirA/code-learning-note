@@ -666,9 +666,9 @@ public class MyWebAppInitializer extends AbstractAnnotationConfigDispatcherServl
 |  `ServletResponse`  | 响应类型，例如：`ServletResponse`、`HttpServletResponse`                                                                                                                                                       |
 |    `HttpSession`    | 请求会话类型。此类型可保证方法参数永远不会空。值得注意，使用会话类型的方法形参是非线程安全的。如果允许多个请求同时访问一个会话，考虑将 `RequestMappingHandlerAdapter` 实例的 `synchronizeOnSession` 标志设置为 `true` |
 | `Model`, `ModelMap` | 用于访问 HTML 控制器中使用的模型，并作为视图渲染的一部分暴露给模板。                                                                                                                                              |
-|     简单数据类型     | Java 基本数据类型（包装类）（由`BeanUtils#isSimpleProperty`决定，它被解析为`@RequestParam`还是`@ModelAttribute`                                                                                                  |
 |   `@RequestParam`   | 用于获取请求参数（即查询参数或表单数据、上传的文件），绑定到控制器中的方法参数。参数值会被转换为声明的方法形参的类型。注意，对于简单类型的参数值，只要形参名称与请求参数名称一致，该注解可省略。                         |
-
+|      `Map`集合       | key为请求上送的参数名称，value是参数值。需要与`@RequestParam`注解配置使用                                                                                                                                        |
+|   任何其他参数类型   | 控制方法形参是Java基本数据类型、对象、包装类型等，由`BeanUtils#isSimpleProperty`决定，它被解析为`@RequestParam`还是`@ModelAttribute`                                                                              |
 
 > 支持使用 JDK 8 的 `java.util.Optional` 作为方法参数，与具有必填属性的注解相结合（例如，`@RequestParam`、`@RequestHeader` 等），相当于 `required=false`
 
@@ -750,9 +750,62 @@ public String queryItemById(Model model, HttpServletRequest request) {
 }
 ```
 
-### 4.6. 简单数据类型参数绑定
 
-#### 4.6.1. 支持的常用的简单类型
+### 4.6. @RequestParam 注解绑定参数
+
+设置请求的参数名称，与方法形参名称匹配。<font color=red>**绑定后传递的请求参数必须是设置的值。注意：注解的使用位置在需要绑定的形参前面**</font>
+
+示例：使用 `@RequestParam` 注解解决请求参数与方法形参名称不匹配的问题
+
+```java
+/**
+ * SpringMVC参数绑定：3.简单类型参数绑定(使用@RequestParam注解)
+ * 	使用Model封装，可以直接返回String类型响应视图
+ * 	使用简单类型Integer，接收请求的商品itemId参数数据
+ * 
+ * 	@RequestParam注解属性：
+ * 		value：设置请求的参数名称
+ * 		required：设置参数是否必须传递。取值true/false。true必须要传递；false可以传递，也可以不传递。默认是true。
+ * 		defaultValue：设置参数的默认值。如果传递，使用实际传递的参数值；如果不传递使用默认值
+ */
+@RequestMapping("/queryItemById.do")
+public String queryItemById(Model model,
+		@RequestParam(value = "itemId", required = false, defaultValue = "3") Integer id)
+```
+
+> 注：上面示例请求设置了 `@RequestParam` 注解，请求参数的名称必须为 `itemId`，如果请求不带参数，则方法形参 id 会有默认值为 3
+>
+> 关于 `@RequestParam` 注解更多使用说明，详见[《Spring MVC 注解汇总.md》文档](/02-后端框架/05-SpringMVC/02-SpringMVC注解汇总)
+
+### 4.7. Map 类型参数绑定
+
+控制器方法形参可以使用 `Map` 集合实现参数绑定，但<font color=purple>**必须要配合 `@RequestParam` 注解一起使用**</font>
+
+```java
+/**
+ * 高级参数绑定 Map 类型
+ * 	跳转登录页面
+ * 		http://127.0.0.1:8080/ssm/toLogin.do?id=1&name=anan
+ */
+@RequestMapping("/toLogin.do")
+public String toLogin(@RequestParam Map<String, String> map) {
+	System.out.println("id=" + map.get("id"));
+	System.out.println("name=" + map.get("name"));
+	return "common/success";
+}
+```
+
+### 4.8. (实际使用时再整理) @ModelAttribute 和 @SessionAttributes 传递和保存数据
+
+SpringMVC 支持使用 `@ModelAttribute` 和 `@SessionAttributes` 在不同的模型和控制器之间共享数据。 `@ModelAttribute` 主要有两种使用方式，一种是标注在方法上，一种是标注在 Controller 方法参数上。
+
+当 `@ModelAttribute` 标记在方法上的时候，该方法将在处理器方法执行之前执行，然后把返回的对象存放在 session 或模型属性中，属性名称可以使用 `@ModelAttribute("attributeName")` 在标记方法的时候指定，若未指定，则使用返回类型的类名称（首字母小写）作为属性名称。关于 `@ModelAttribute` 标记在方法上时对应的属性是存放在 session 中还是存放在模型中，我们来做一个实验，看下面一段代码。
+
+`@SessionAttributes` 用于标记需要在 Session 中使用到的数据，包括从 Session 中取数据和存数据。`@SessionAttributes` 一般是标记在 Controller 类上的，可以通过名称、类型或者名称加类型的形式来指定哪些属性是需要存放在 session 中的。
+
+### 4.9. 任何其他参数类型
+
+#### 4.9.1. 支持常用的简单类型参数绑定
 
 |   类型名称   | 包装类型 | 基础类型 |
 | ------------ | -------- | -------- |
@@ -781,13 +834,12 @@ public String queryItemById(Model model, Integer id) {
 }
 ```
 
-#### 4.6.2. 使用简单类型绑定注意事项
+**使用简单类型绑定注意事项**：
 
-使用简单类型绑定参数，建议使用简单类型的包装类型（如：`Integer`），不建议使用简单类型的基础类型(如：`int`)。原因是基础类型不能为空值(null)。如果不传递参数会报异常
+- 使用简单类型绑定参数，建议使用简单类型的包装类型（如：`Integer`），不建议使用简单类型的基础类型(如：`int`)。原因是基础类型不能为空值(null)。如果不传递参数会报异常
+- 请求的参数名称需要与方法形参名称一致，才能绑定。如果名称不一致，需要使用 `@RequestParam` 注解并在指定请求参数名称
 
-请求的参数名称需要与方法形参名称一致，才能绑定。如果名称不一致，需要使用 `@RequestParam` 注解并在指定请求参数名称
-
-### 4.7. 对象参数类型绑定
+#### 4.9.2. 对象类型参数绑定
 
 如果请求提交的参数很多，或者提交的表单中的内容很多的时候，可以使用简单类型接受数据，也可以使用pojo（对象类型）接收数据。
 
@@ -818,7 +870,7 @@ public String updateItem(Item item) {
 
 > 注：提交后会出现中文乱码的问题，解决方式参考后面章节中的 《中文参数传递乱码解决》
 
-### 4.8. 对象包装类型绑定
+#### 4.9.3. 对象包装类型绑定
 
 示例需求：使用pojo包装类型，接收综合查询条件（一个模拟操作）
 
@@ -860,45 +912,159 @@ public String queryItem(Model model, QueryVo queryVo) {
 
 ![](images/344493011220571.png)
 
+#### 4.9.4. 数组类型参数绑定
 
-### 4.9. @RequestParam 注解绑定参数
+示例需求：实现商品数据的批量删除
 
-设置请求的参数名称，与方法形参名称匹配。<font color=red>**绑定后传递的请求参数必须是设置的值。注意：注解的使用位置在需要绑定的形参前面**</font>
+- 修改商品列表页面，增加商品id的复选框
 
-示例：使用 `@RequestParam` 注解解决请求参数与方法形参名称不匹配的问题
+```html
+<c:forEach items="${itemList}" var="item" varStatus="vs">
+	<%-- 测试数组类型绑定 时使用 --%>
+	<tr>
+		<td><input type="checkbox" name="ids" value="${item.id}"/></td>
+		<td>${item.name }</td>
+		<td>${item.price }</td>
+		<td><fmt:formatDate value="${item.createtime}"
+				pattern="yyyy-MM-dd HH:mm:ss" /></td>
+		<td>${item.detail }</td>
+		<td><a
+			href="${pageContext.request.contextPath }/queryItemById.do?id=${item.id}">修改</a></td>
+	</tr>
+</c:forEach>
+```
+
+- 后端接口实现方式1：增加数组类型形参，与页面请求的名称一致，用于接收页面传递的值
 
 ```java
 /**
- * SpringMVC参数绑定：3.简单类型参数绑定(使用@RequestParam注解)
- * 	使用Model封装，可以直接返回String类型响应视图
- * 	使用简单类型Integer，接收请求的商品itemId参数数据
- * 
- * 	@RequestParam注解属性：
- * 		value：设置请求的参数名称
- * 		required：设置参数是否必须传递。取值true/false。true必须要传递；false可以传递，也可以不传递。默认是true。
- * 		defaultValue：设置参数的默认值。如果传递，使用实际传递的参数值；如果不传递使用默认值
+ * 数组类型绑定(直接定义数组做为形参)
+ * 	形参ids，用于接收请求的多个商品id
  */
-@RequestMapping("/queryItemById.do")
-public String queryItemById(Model model,
-		@RequestParam(value = "itemId", required = false, defaultValue = "3") Integer id)
+@RequestMapping("/queryItem.do")
+public String queryItem(Model model, Integer[] ids) {
+	// 1.测试数组类型绑定
+	if (ids != null && ids.length > 0) {
+		for (Integer i : ids) {
+			System.out.println("商品的ID：" + i);
+		}
+	}
+	// 2.调用service层方法，查询所有商品
+	List<Item> itemList = itemService.queryAllItems();
+	// 3.设置响应商品的数据
+	model.addAttribute("itemList", itemList);
+	// 4.返回字符串,设置响应视图
+	return "item/itemList";
+}
 ```
 
-> 注：上面示例请求设置了 `@RequestParam` 注解，请求参数的名称必须为 `itemId`，如果请求不带参数，则方法形参 id 会有默认值为 3
->
-> 关于 `@RequestParam` 注解更多使用说明，详见[《Spring MVC 注解汇总.md》文档](/02-后端框架/05-SpringMVC/02-SpringMVC注解汇总)
+- 后端接口实现方式2：增加包装类类型形参，在包装类中增加数组类型的属性，与页面请求的名称一致
 
-### 4.10. （实际使用时再整理）@ModelAttribute 和 @SessionAttributes 传递和保存数据
-
-SpringMVC 支持使用 `@ModelAttribute` 和 `@SessionAttributes` 在不同的模型和控制器之间共享数据。 `@ModelAttribute` 主要有两种使用方式，一种是标注在方法上，一种是标注在 Controller 方法参数上。
-
-当 `@ModelAttribute` 标记在方法上的时候，该方法将在处理器方法执行之前执行，然后把返回的对象存放在 session 或模型属性中，属性名称可以使用 `@ModelAttribute("attributeName")` 在标记方法的时候指定，若未指定，则使用返回类型的类名称（首字母小写）作为属性名称。关于 `@ModelAttribute` 标记在方法上时对应的属性是存放在 session 中还是存放在模型中，我们来做一个实验，看下面一段代码。
-
-`@SessionAttributes` 用于标记需要在 Session 中使用到的数据，包括从 Session 中取数据和存数据。`@SessionAttributes` 一般是标记在 Controller 类上的，可以通过名称、类型或者名称加类型的形式来指定哪些属性是需要存放在 session 中的。
+```java
+// 测试包装类数组类型绑定
+private Integer[] ids;
 
 
-### 4.11. 参数解析器
+/**
+ * 数组类型绑定(形参使用包装类)
+ */
+@RequestMapping(value= {"/queryItem.do"})
+public String queryItem(Model model, QueryVo queryVo) {
+	// 1.测试包装类的数组类型绑定
+	if (queryVo != null && queryVo.getIds() != null) {
+		for (Integer i : queryVo.getIds()) {
+			System.out.println("商品的ID：" + i);
+		}
+	}
+	// 2.调用service层方法，查询所有商品
+	List<Item> itemList = itemService.queryAllItems();
+	// 3.设置响应商品的数据
+	model.addAttribute("itemList", itemList);
+	// 4.返回字符串,设置响应视图
+	return "item/itemList";
+}
+```
 
-#### 4.11.1. 默认参数解析器
+#### 4.9.5. 集合类型参数绑定
+
+示例需求：商品数据的批量修改（使用list接收多个商品对象）
+
+- 修改itemList.jsp页面，增加批量修改
+
+```html
+<form action="${pageContext.request.contextPath }/queryItem.do"
+	method="post">
+	商品列表：
+	<table width="100%" border=1>
+		<tr>
+			<td>商品名称</td>
+			<td>商品价格</td>
+			<td>生产日期</td>
+			<td>商品描述</td>
+		</tr>
+		<c:forEach items="${itemList}" var="item" varStatus="vs">
+			<%-- 测试list集合类型绑定 时使用 --%>
+			<!-- itemList:要绑定的商品集合的属性
+				itemList[0]:商品集合属性中第一个商品对象
+				itemList[0].id：第一个商品对象的id属性
+				
+				varStatus：当前遍历对象的状态
+				vs.index：当前对象的索引 -->
+			<tr>
+				<td><input type="text" name="itemList[${vs.index}].name" value="${item.name}"/></td>
+				<td><input type="text" name="itemList[${vs.index}].price" value="${item.price}"/></td>
+				<td><input type="text" name="itemList[${vs.index}].createtime" 
+				value='<fmt:formatDate value="${item.createtime}"
+						pattern="yyyy-MM-dd HH:mm:ss" />'/></td>
+				<td><input type="text" name="itemList[${vs.index}].detail" value="${item.detail}"/></td>
+			</tr> 
+		</c:forEach>
+		<tr>
+			<!-- 测试list集合类型绑定  -->
+			<td colspan="6">
+				<input type="submit" value="批量修改" />
+			</td> 
+		</tr>
+	</table>
+</form>
+```
+
+- 修改包装类，添加 List 类型的属性
+
+```java
+// 测试list类数组类型
+private List<Item> itemList;
+```
+
+- 在控制器方法上定义包装类形参
+
+```java
+/**
+ * List集合类型绑定
+ */
+@RequestMapping("/queryItem.do")
+public String queryItem(Model model, QueryVo queryVo) {
+	// 1.测试包装类的数组类型绑定
+	if (queryVo != null && queryVo.getItemList() != null && queryVo.getItemList().size() > 0) {
+		for (Item i : queryVo.getItemList()) {
+			System.out.println(i);
+		}
+	}
+	// 2.调用service层方法，查询所有商品
+	List<Item> itemList = itemService.queryAllItems();
+	// 3.设置响应商品的数据
+	model.addAttribute("itemList", itemList);
+	// 4.返回字符串,设置响应视图
+	return "item/itemList";
+}
+```
+
+> <font color=red>**注意事项：使用list类型参数绑定，list需要作为pojo的属性。不能直接在方法的形参中使用list，否则不能完成绑定**</font>
+
+
+### 4.10. 参数解析器
+
+#### 4.10.1. 默认参数解析器
 
 Spring MVC 提供了很多默认的参数解析器，用于实现前面各种控制方法形参的解析绑定，具体实现类如下：
 
@@ -946,7 +1112,7 @@ org.springframework.web.servlet.mvc.method.annotation.ServletModelAttributeMetho
 
 > 参考：\spring-note\springmvc-sample\11-argument-resolver 示例代码
 
-#### 4.11.2. 自定义参数解析器
+#### 4.10.2. 自定义参数解析器
 
 Spring MVC 提供了自定义参数绑定的接口 `org.springframework.web.method.support.HandlerMethodArgumentResolver`，自定义参数绑定只需要实现该接口，实现怎样的参数生效与参数解析的逻辑
 
@@ -1054,7 +1220,7 @@ public class SpringMvcConfig {
     @Bean
     public MyHandlerAdapter requestMappingHandlerAdapter() {
         MyHandlerAdapter handlerAdapter = new MyHandlerAdapter();
-        handlerAdapter.setArgumentResolvers(Arrays.asList(new CustomArgumentResolver()));
+        handlerAdapter.setCustomArgumentResolvers(Arrays.asList(new CustomArgumentResolver()));
         return handlerAdapter;
     }
 
@@ -1109,7 +1275,7 @@ public void testCustomArgumentResolver() throws Exception {
 }
 ```
 
-### 4.12. 参数类型转换
+### 4.11. 参数类型转换
 
 问题分析：有些业务，如商品生成日期类型的数据，格式多不固定，需要根据业务需求来确定。
 
@@ -1122,7 +1288,7 @@ public void testCustomArgumentResolver() throws Exception {
 - xml 配置方式，则使用 `<mvc:annotation-driven/>` 标签进行配置，开启注解驱动加载处理器适配器
 - 基于纯注解配置，则在配置类中设置包扫描
 
-#### 4.12.1. Converter 接口
+#### 4.11.1. Converter 接口
 
 String MVC 的 `org.springframework.core.convert.converter.Converter` 接口用于实现数据类型转换，需要重写 `convert` 方法，在方法中做数据转换的逻辑处理
 
@@ -1146,7 +1312,7 @@ public interface Converter<S, T> {
 - 参数S（Source）：源，转换前的数据类型
 - 参数T（Target）：目标，转换后的数据类型
 
-#### 4.12.2. 自定义参数转换器
+#### 4.11.2. 自定义参数转换器
 
 自定义参数转换器，需要实现一个接口(`Converter`)，该接口中是泛型接口
 
@@ -1798,3 +1964,128 @@ public String queryItem(Model model, QueryVo queryVo) {
                redirectPort="8443" />
 ...
 ```
+
+## 4. 对于 Restful 风格支持
+
+### 4.1. Restful 风格简述
+
+restful，它是一种软件设计风格，指的是表现层资源的状态转换（Representational state transfer）。互联网上的一切都可以看成是资源，比如一张图片，一部电影。restful 根据 HTTP 请求方法：POST/GET/PUT/DELETE，定义了资源的操作方法：新增/查询/修改/删除。这样有什么好处呢？好处是使得请求的URL更加简洁
+
+传统的url：
+
+```
+http://127.0.0.1:8080/springmvc-03/item/queryItem.do?id=1	查询
+http://127.0.0.1:8080/springmvc-03/item/saveItem.do			新增
+http://127.0.0.1:8080/springmvc-03/item/updateItem.do		修改
+http://127.0.0.1:8080/springmvc-03/item/deleteItem.do?id=1	删除
+```
+
+restful风格的url：
+
+```
+http://127.0.0.1:8080/springmvc-03/item/1	查询/删除
+http://127.0.0.1:8080/springmvc-03/item		新增/修改
+```
+
+说明：
+
+1. restful 是一种软件设计风格
+2. restful 指的是表现层资源状态转换，是根据 http 的请求方法：post/get/put/delete，定义了资源的：新增/查询/修改/删除操作
+3. 使用 restful 的优点是使得请求的 url 更加简洁，更加优雅。
+
+### 4.2. restful 的使用示例
+
+需求：使用restful风格实现根据商品id查询数据
+
+#### 4.2.1. 项目配置
+
+修改项目 web.xml 配置中的 `<servlet-mapping>` 标签
+
+如果使用 restful 编程风格，需要修改前端拦截器的拦截 url，因为 restful 风格的 url 不带映射方法的标识，根据请求方式判断执行哪个方法。所以将拦截的url修改为 `/`
+
+```xml
+<!-- 配置拦截的url -->
+<servlet-mapping>
+	<servlet-name>SpringMVC</servlet-name>
+	<!-- 拦截所有.do结尾的请求
+	<url-pattern>*.do</url-pattern>
+	-->
+	<!-- !!配置支持restful风格后，拦截url需要修改配置
+		如果按原来的*.do配置，无法拦截该风格的url
+	-->
+	<url-pattern>/</url-pattern>
+</servlet-mapping>
+```
+
+#### 4.2.2. 修改请求控制器的 url
+
+使用 Reatful 风格的 url，需要配置 `@PathVariable` 注解来使用。
+
+- 作用：把路径变量的值，绑定到方法到形参上。
+- 路径变量格式：`{变量名}`，路径变量（模版参数），用于使用restful风格时传递提交参数
+- 注解写法：
+    > ```java
+    > @PathVariable(name="变量名")
+    > @PathVariable(value="变量名")
+    > @PathVariable("变量名")
+    > // 以下写法的前提是：路径变量的名称，与方法的形参名称一致
+    > @PathVariable
+    > ``` 
+
+测试 restful 风格请求
+
+```java
+/**
+ * restful讲解专用
+ * 		使用restful风格，实现根据商品id查询商品数据。
+ * 		http://127.0.0.1:8080/ssm/item/1 
+ * 
+ * 	{id}：路径变量（模版参数）
+ * 	@PathVariable注解：把路径变量的值，绑定到方法的形参上
+ * 注解写法：
+ * 		@PathVariable(name="id")
+ * 		@PathVariable(value="id")
+ * 		@PathVariable("id")
+ * 
+ * 前提是路径变量的名称，与方法的形参名称一致：
+ * 		@PathVariable() 或者 @PathVariable
+ */
+@RequestMapping("/item/{id}")
+@ResponseBody
+public Item testRestful(@PathVariable Integer id) {
+	// 1.调用业务层方法，根据id查询
+	Item item = itemService.queryItemById(id);
+	// 2.返回查询结果
+	return item;
+}
+
+// 模拟restful风格执行新增方法
+@RequestMapping(value = "/item", method = RequestMethod.POST)
+public String testRestfulInsert(Item item) {
+	System.out.println("执行了新增方法");
+	return "common/success";
+}
+
+// 模拟restful风格执行更新方法
+@RequestMapping(value = "/item", method = RequestMethod.PUT)
+public String testRestfulUpdate(Item item) {
+	System.out.println("执行了修改方法");
+	return "common/success";
+}
+
+// 模拟restful风格执行查询方法
+@RequestMapping(value = "/item/{id}", method = RequestMethod.GET)
+public String testRestfulQuery(@PathVariable Integer id) {
+	System.out.println("执行了查询方法");
+	return "common/success";
+}
+
+// 模拟restful风格执行删除方法
+@RequestMapping(value = "/item/{id}", method = RequestMethod.DELETE)
+public String testRestfulDelete(@PathVariable Integer id) {
+	System.out.println("执行了删除方法");
+	return "common/success";
+}
+```
+
+> 注：更多 `@PathVariable` 注解的说明，详见[《Spring MVC 注解汇总.md》文档](/02-后端框架/05-SpringMVC/02-SpringMVC注解汇总)

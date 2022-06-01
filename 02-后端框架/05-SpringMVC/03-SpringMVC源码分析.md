@@ -280,6 +280,95 @@ SpringMVC为逻辑视图名的解析提供了不同的策略，可以在Spring W
 
 ![](images/20200922082144603_21222.png)
 
+### 5.4. 对象绑定与类型转换（待整理分析）
+
+#### 5.4.1. 底层第一套转换接口与实现
+
+```mermaid
+classDiagram
+
+Formatter --|> Printer
+Formatter --|> Parser
+
+class Converters {
+   Set~GenericConverter~
+}
+class Converter
+
+class ConversionService
+class FormattingConversionService
+
+ConversionService <|-- FormattingConversionService
+FormattingConversionService o-- Converters
+
+Printer --> Adapter1
+Adapter1 --> Converters
+Parser --> Adapter2
+Adapter2 --> Converters
+Converter --> Adapter3
+Adapter3 --> Converters
+
+<<interface>> Formatter
+<<interface>> Printer
+<<interface>> Parser
+<<interface>> Converter
+<<interface>> ConversionService
+```
+
+- Printer 把其它类型转为 String
+- Parser 把 String 转为其它类型
+- Formatter 综合 Printer 与 Parser 功能
+- Converter 把类型 S 转为类型 T
+- Printer、Parser、Converter 经过适配转换成 GenericConverter 放入 Converters 集合
+- FormattingConversionService 利用其它们实现转换
+
+#### 5.4.2. 底层第二套转换接口
+
+```mermaid
+classDiagram
+
+PropertyEditorRegistry o-- "多" PropertyEditor
+
+<<interface>> PropertyEditorRegistry
+<<interface>> PropertyEditor
+```
+
+- PropertyEditor 把 String 与其它类型相互转换
+- PropertyEditorRegistry 可以注册多个 PropertyEditor 对象
+- 与第一套接口直接可以通过 FormatterPropertyEditorAdapter 来进行适配
+
+#### 5.4.3. 高层接口与实现
+
+```mermaid
+classDiagram
+TypeConverter <|-- SimpleTypeConverter
+TypeConverter <|-- BeanWrapperImpl
+TypeConverter <|-- DirectFieldAccessor
+TypeConverter <|-- ServletRequestDataBinder
+
+SimpleTypeConverter --> TypeConverterDelegate
+BeanWrapperImpl --> TypeConverterDelegate
+DirectFieldAccessor --> TypeConverterDelegate
+ServletRequestDataBinder --> TypeConverterDelegate
+
+TypeConverterDelegate --> ConversionService
+TypeConverterDelegate --> PropertyEditorRegistry
+
+<<interface>> TypeConverter
+<<interface>> ConversionService
+<<interface>> PropertyEditorRegistry
+```
+
+- 它们都实现了 TypeConverter 这个高层转换接口，在转换时，会用到 TypeConverter Delegate 委派ConversionService 与 PropertyEditorRegistry 真正执行转换（Facade 门面模式）
+    - 首先看是否有自定义转换器, @InitBinder 添加的即属于这种 (用了适配器模式把 Formatter 转为需要的 PropertyEditor)
+    - 再看有没有 ConversionService 转换
+    - 再利用默认的 PropertyEditor 转换
+    - 最后有一些特殊处理
+- SimpleTypeConverter 仅做类型转换
+- BeanWrapperImpl 为 bean 的属性赋值，当需要时做类型转换，走 Property
+- DirectFieldAccessor 为 bean 的属性赋值，当需要时做类型转换，走 Field
+- ServletRequestDataBinder 为 bean 的属性执行绑定，当需要时做类型转换，根据 directFieldAccess 选择走 Property 还是 Field，具备校验与获取校验结果功能
+
 ## 6. 拦截器的执行时机和调用过程
 
 ### 6.1. 拦截器的执行流程图
@@ -289,7 +378,6 @@ SpringMVC为逻辑视图名的解析提供了不同的策略，可以在Spring W
 ### 6.2. 拦截器的源码执行过程分析
 
 ![](images/20200922153214836_27754.png)
-
 
 ### 6.3. 拦截器的责任链模式
 
