@@ -471,7 +471,7 @@ public class InitBinderController {
 
 #### 1.4.4. 扩展注解 @DateTimeFormat
 
-还一种方法实现上面的效果，在SpringMVC配置类`SpringMvcConfiguration.java`中增加`@EnableWebMvc`注解，开启SpringMVC
+还一种方法实现上面的效果，在 Spring MVC 配置类`SpringMvcConfiguration.java`中增加 `@EnableWebMvc` 注解，开启 Spring MVC 配置
 
 ```java
 @Configuration
@@ -503,19 +503,19 @@ public class User implements Serializable {
 
 #### 1.5.1. 作用与用法
 
-`@ControllerAdvice`用于给控制器提供一个增强的通知。以保证可以在多个控制器之间实现增强共享。它可以配合这些注解来用：`@ExceptionHandler`、`@InitBinder`、`@ModelAttribute`
+`@ControllerAdvice`用于给控制器提供一个增强的通知。以保证可以在多个控制器之间实现增强共享。它可以与 `@ExceptionHandler`、`@InitBinder`、`@ModelAttribute` 等注解配置使用
 
 <font color=red>**注意：只对标识`@Controller`注解的控制类生效**</font>
 
 #### 1.5.2. 相关属性
 
-|        属性名         |                           作用                            | 取值/示例 |
-| :------------------: | -------------------------------------------------------- | -------- |
-|       `value`        | 用于指定对哪些包下的控制器进行增强，与basePackages属性作用一样 |          |
-|    `basePackages`    | 用于指定对哪些包下的控制器进行增强，与value属性作用一样        |          |
-| `basePackageClasses` | 用于指定特定的类型，给该类型所在的包及其子包的所有类提供增强    |          |
-|  `assignableTypes`   | 用于指定特定的类型提供增强                                  |          |
-|    `annotations`     | 用于指定给特定注解提供增强                                  |          |
+|        属性名         |                             作用                             | 取值/示例 |
+| :------------------: | ------------------------------------------------------------ | --------- |
+|       `value`        | 用于指定对哪些包下的控制器进行增强，与basePackages属性作用一样 |           |
+|    `basePackages`    | 用于指定对哪些包下的控制器进行增强，与value属性作用一样        |           |
+| `basePackageClasses` | 用于指定特定的类型，给该类型所在的包及其子包的所有类提供增强    |           |
+|  `assignableTypes`   | 用于指定特定的类型提供增强                                    |           |
+|    `annotations`     | 用于指定给特定注解提供增强                                    |           |
 
 #### 1.5.3. 使用示例
 

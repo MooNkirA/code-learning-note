@@ -1,4 +1,4 @@
-# Spring 核心技术笔记
+# Spring 核心功能笔记
 
 > - Spring 官网：https://spring.io/
 > - Spring 框架：https://spring.io/projects/spring-framework
@@ -2108,4 +2108,12 @@ public void testEvent() {
 
 - `ApplicationContext`：只要读取到配置文件，默认情况下就会创建对象
 - `BeanFactory`：不会主动创建对象，当使用的时候才创建
+
+## 12. Spring 的类型转换
+
+Spring 3.0 后引入了 core.convert 包，提供了一个通用的类型转换模块。该模块定义了一个用于实现类型转换逻辑的 SPI 和一个用于在运行时执行类型转换的 API。在 Spring 容器中，可以使用这套实现作为JDK 原生的 `PropertyEditor` 类型转换器的替换品，将一些配置中字符串类型的属性值转换为 Bean 对象所需的属性类型。
+
+
+
+
 

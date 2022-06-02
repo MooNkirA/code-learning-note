@@ -35,7 +35,7 @@
 ### 🍀 Spring
 
 <ul class="docs">
-  <li><a href="#/02-后端框架/03-Spring/01-Spring笔记01">Spring 笔记-核心技术</a></li>
+  <li><a href="#/02-后端框架/03-Spring/01-Spring笔记01">Spring 笔记-核心功能</a></li>
   <li><a href="#/02-后端框架/03-Spring/01-Spring笔记02-AOP">Spring 笔记-AOP</a></li>
   <li><a href="#/02-后端框架/03-Spring/01-Spring笔记03-Transaction">Spring 笔记-Transaction</a></li>
   <li><a href="#/02-后端框架/03-Spring/01-Spring笔记09-其他">Spring 其他相关资料</a></li>

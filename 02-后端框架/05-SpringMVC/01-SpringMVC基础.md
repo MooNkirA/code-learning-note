@@ -1312,9 +1312,9 @@ public interface Converter<S, T> {
 - 参数S（Source）：源，转换前的数据类型
 - 参数T（Target）：目标，转换后的数据类型
 
-#### 4.11.2. 自定义参数转换器
+#### 4.11.2. 自定义参数类型转换器
 
-自定义参数转换器，需要实现一个接口(`Converter`)，该接口中是泛型接口
+自定义参数类型转换器，需要实现一个接口(`Converter`)，该接口中是泛型接口
 
 ```java
 /**
@@ -2089,3 +2089,306 @@ public String testRestfulDelete(@PathVariable Integer id) {
 ```
 
 > 注：更多 `@PathVariable` 注解的说明，详见[《Spring MVC 注解汇总.md》文档](/02-后端框架/05-SpringMVC/02-SpringMVC注解汇总)
+
+## 5. 扩展：方法参数名获取
+
+### 5.1. 正常编译反射获取方法名
+
+在 src 以外目录，准备一个类和一个接口用于测试。（*注：不在放在 src 目录是避免 idea 自动编译它下面的类*）
+
+```java
+public class Bean1 {
+    public void foo(String name, int age) {
+    }
+}
+
+public interface Bean2 {
+    void foo(String name, int age);
+}
+```
+
+直接编译
+
+```bash
+javac Bean1.java
+```
+
+反编译
+
+```bash
+javap -c -v Bean1.class
+
+public class com.moon.common.model.Bean1
+  minor version: 0
+  major version: 52
+  flags: ACC_PUBLIC, ACC_SUPER
+Constant pool:
+   #1 = Methodref          #3.#12         // java/lang/Object."<init>":()V
+   #2 = Class              #13            // com/moon/common/model/Bean1
+   #3 = Class              #14            // java/lang/Object
+   #4 = Utf8               <init>
+   #5 = Utf8               ()V
+   #6 = Utf8               Code
+   #7 = Utf8               LineNumberTable
+   #8 = Utf8               foo
+   #9 = Utf8               (Ljava/lang/String;I)V
+  #10 = Utf8               SourceFile
+  #11 = Utf8               Bean1.java
+  #12 = NameAndType        #4:#5          // "<init>":()V
+  #13 = Utf8               com/moon/common/model/Bean1
+  #14 = Utf8               java/lang/Object
+{
+  public com.moon.common.model.Bean1();
+    descriptor: ()V
+    flags: ACC_PUBLIC
+    Code:
+      stack=1, locals=1, args_size=1
+         0: aload_0
+         1: invokespecial #1                  // Method java/lang/Object."<init>":()V
+         4: return
+      LineNumberTable:
+        line 3: 0
+
+  public void foo(java.lang.String, int);
+    descriptor: (Ljava/lang/String;I)V
+    flags: ACC_PUBLIC
+    Code:
+      stack=0, locals=3, args_size=3
+         0: return
+      LineNumberTable:
+        line 5: 0
+}
+SourceFile: "Bean1.java"
+```
+
+> 注：因为测试的类在 src 目录下，所有 idea 无法找到此测试类
+
+![](images/480084809226935.png)
+
+通过反射是获取方法形参名称
+
+```java
+@Test
+public void testGetMethodArgumentName() throws Exception {
+    // 1. 反射获取参数名
+    Method foo = Bean1.class.getMethod("foo", String.class, int.class);
+    for (Parameter parameter : foo.getParameters()) {
+        System.out.println(parameter);
+    }
+}
+```
+
+输出结果
+
+```
+java.lang.String arg0
+int arg1
+```
+
+正常编译后反射是无法获取真正的方法参数名称，需要通过以下两种方式：
+
+### 5.2. 生成参数表
+
+如果编译时添加了 `-parameters` 参数，可以生成参数表，通过反射就可以拿到方法参数名（<font color=red>**注：这种方式对象类与接口都同样有效**</font>）
+
+```bash
+javac -parameters Bean1.java
+```
+
+反编译查看
+
+```
+javap -c -v Bean1.class
+
+public class com.moon.common.model.Bean1
+  minor version: 0
+  major version: 52
+  flags: ACC_PUBLIC, ACC_SUPER
+Constant pool:
+   #1 = Methodref          #3.#15         // java/lang/Object."<init>":()V
+   #2 = Class              #16            // com/moon/common/model/Bean1
+   #3 = Class              #17            // java/lang/Object
+   #4 = Utf8               <init>
+   #5 = Utf8               ()V
+   #6 = Utf8               Code
+   #7 = Utf8               LineNumberTable
+   #8 = Utf8               foo
+   #9 = Utf8               (Ljava/lang/String;I)V
+  #10 = Utf8               MethodParameters
+  #11 = Utf8               name
+  #12 = Utf8               age
+  #13 = Utf8               SourceFile
+  #14 = Utf8               Bean1.java
+  #15 = NameAndType        #4:#5          // "<init>":()V
+  #16 = Utf8               com/moon/common/model/Bean1
+  #17 = Utf8               java/lang/Object
+{
+  public com.moon.common.model.Bean1();
+    descriptor: ()V
+    flags: ACC_PUBLIC
+    Code:
+      stack=1, locals=1, args_size=1
+         0: aload_0
+         1: invokespecial #1                  // Method java/lang/Object."<init>":()V
+         4: return
+      LineNumberTable:
+        line 3: 0
+
+  public void foo(java.lang.String, int);
+    descriptor: (Ljava/lang/String;I)V
+    flags: ACC_PUBLIC
+    Code:
+      stack=0, locals=3, args_size=3
+         0: return
+      LineNumberTable:
+        line 5: 0
+    MethodParameters:
+      Name                           Flags
+      name
+      age
+}
+SourceFile: "Bean1.java"
+```
+
+再次运行测试程序，结果如下：
+
+```
+java.lang.String name
+int age
+```
+
+### 5.3. 生成调试信息
+
+如果编译时添加了 `-g` 参数，可以生成调试信息，但分为以下两种情况：
+
+> <font color=red>**注：大部分 IDE 编译时都会自动加 `-g` 参数**</font>
+
+#### 5.3.1. 普通类
+
+对于普通类，使用 `-g` 参数编译，会包含局部变量表，用 asm 技术可以拿到方法参数名
+
+```bash
+javac -g Bean1.java
+```
+
+反编译
+
+```
+javap -c -v Bean1.class
+
+public class com.moon.common.model.Bean1
+  minor version: 0
+  major version: 52
+  flags: ACC_PUBLIC, ACC_SUPER
+Constant pool:
+   #1 = Methodref          #3.#19         // java/lang/Object."<init>":()V
+   #2 = Class              #20            // com/moon/common/model/Bean1
+   #3 = Class              #21            // java/lang/Object
+   #4 = Utf8               <init>
+   #5 = Utf8               ()V
+   #6 = Utf8               Code
+   #7 = Utf8               LineNumberTable
+   #8 = Utf8               LocalVariableTable
+   #9 = Utf8               this
+  #10 = Utf8               Lcom/moon/common/model/Bean1;
+  #11 = Utf8               foo
+  #12 = Utf8               (Ljava/lang/String;I)V
+  #13 = Utf8               name
+  #14 = Utf8               Ljava/lang/String;
+  #15 = Utf8               age
+  #16 = Utf8               I
+  #17 = Utf8               SourceFile
+  #18 = Utf8               Bean1.java
+  #19 = NameAndType        #4:#5          // "<init>":()V
+  #20 = Utf8               com/moon/common/model/Bean1
+  #21 = Utf8               java/lang/Object
+{
+  public com.moon.common.model.Bean1();
+    descriptor: ()V
+    flags: ACC_PUBLIC
+    Code:
+      stack=1, locals=1, args_size=1
+         0: aload_0
+         1: invokespecial #1                  // Method java/lang/Object."<init>":()V
+         4: return
+      LineNumberTable:
+        line 3: 0
+      LocalVariableTable:
+        Start  Length  Slot  Name   Signature
+            0       5     0  this   Lcom/moon/common/model/Bean1;
+
+  public void foo(java.lang.String, int);
+    descriptor: (Ljava/lang/String;I)V
+    flags: ACC_PUBLIC
+    Code:
+      stack=0, locals=3, args_size=3
+         0: return
+      LineNumberTable:
+        line 5: 0
+      LocalVariableTable:
+        Start  Length  Slot  Name   Signature
+            0       1     0  this   Lcom/moon/common/model/Bean1;
+            0       1     1  name   Ljava/lang/String;
+            0       1     2   age   I
+}
+SourceFile: "Bean1.java"
+```
+
+测试程序，此示例没有使用原生的 asm 技术，而使用 Spring 框架中一个工具类来实现
+
+增加 spring 依赖
+
+```xml
+<dependency>
+    <groupId>org.springframework</groupId>
+    <artifactId>spring-context</artifactId>
+    <version>5.3.10</version>
+</dependency>
+```
+
+```java
+@Test
+public void testGetMethodArgumentName2() throws Exception {
+    // 使用 asm 技术获取普通中方法参数名，示例不使用 asm 原生的，而使用 Spring 框架封装好的工具类
+    Method foo = Bean1.class.getMethod("foo", String.class, int.class);
+
+    // 基于 LocalVariableTable 本地变量表
+    LocalVariableTableParameterNameDiscoverer discoverer = new LocalVariableTableParameterNameDiscoverer();
+    String[] parameterNames = discoverer.getParameterNames(foo);
+    System.out.println(Arrays.toString(parameterNames));  // 输出结果 [name, age]
+}
+```
+
+#### 5.3.2. 接口
+
+对于接口，使用 `-g` 参数编译，不会包含局部变量表，无法获取方法参数名。<font color=purple>**扩展：这也是 MyBatis 在实现 Mapper 接口时为何要提供 `@Param` 注解来辅助获得参数名**</font>
+
+```bash
+javac -g Bean2.java
+```
+
+反编译
+
+```
+javap -c -v Bean2.class
+
+public interface com.moon.common.model.Bean2
+  minor version: 0
+  major version: 52
+  flags: ACC_PUBLIC, ACC_INTERFACE, ACC_ABSTRACT
+Constant pool:
+  #1 = Class              #7              // com/moon/common/model/Bean2
+  #2 = Class              #8              // java/lang/Object
+  #3 = Utf8               foo
+  #4 = Utf8               (Ljava/lang/String;I)V
+  #5 = Utf8               SourceFile
+  #6 = Utf8               Bean2.java
+  #7 = Utf8               com/moon/common/model/Bean2
+  #8 = Utf8               java/lang/Object
+{
+  public abstract void foo(java.lang.String, int);
+    descriptor: (Ljava/lang/String;I)V
+    flags: ACC_PUBLIC, ACC_ABSTRACT
+}
+SourceFile: "Bean2.java"
+```

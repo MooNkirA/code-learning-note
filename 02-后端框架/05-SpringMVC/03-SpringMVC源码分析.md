@@ -280,7 +280,7 @@ SpringMVC为逻辑视图名的解析提供了不同的策略，可以在Spring W
 
 ![](images/20200922082144603_21222.png)
 
-### 5.4. 对象绑定与类型转换（待整理分析）
+### 5.4. 对象绑定与类型转换（待理解分析）
 
 #### 5.4.1. 底层第一套转换接口与实现
 
@@ -315,12 +315,14 @@ Adapter3 --> Converters
 <<interface>> ConversionService
 ```
 
-- Printer 把其它类型转为 String
-- Parser 把 String 转为其它类型
-- Formatter 综合 Printer 与 Parser 功能
-- Converter 把类型 S 转为类型 T
-- Printer、Parser、Converter 经过适配转换成 GenericConverter 放入 Converters 集合
-- FormattingConversionService 利用其它们实现转换
+- `Printer` 把其它类型转为 String
+- `Parser` 把 String 转为其它类型
+- `Formatter` 综合 Printer 与 Parser 功能
+- `Converter` 把任意类型 S 转为任意类型 T
+- `Printer`、`Parser`、`Converter` 经过适配转换成 `GenericConverter` 类放入 `org.springframework.core.convert.support.GenericConversionService` 类中的 `Converters` 属性中（`Converters` 是 `GenericConversionService` 定义的内部类）
+- `FormattingConversionService` 继承了 `GenericConversionService` 类，利用其它们实现转换。类关系图如下：
+
+![](images/486334414226935.png)
 
 #### 5.4.2. 底层第二套转换接口
 
@@ -333,9 +335,13 @@ PropertyEditorRegistry o-- "多" PropertyEditor
 <<interface>> PropertyEditor
 ```
 
-- PropertyEditor 把 String 与其它类型相互转换
-- PropertyEditorRegistry 可以注册多个 PropertyEditor 对象
-- 与第一套接口直接可以通过 FormatterPropertyEditorAdapter 来进行适配
+此套接口是 JDK 原生
+
+- `PropertyEditor` 把 String 与其它类型相互转换
+- `PropertyEditorRegistry` 可以注册多个 `PropertyEditor` 对象
+- 与第一套接口直接可以通过 `FormatterPropertyEditorAdapter` 来进行适配
+
+![](images/240375814247101.png)
 
 #### 5.4.3. 高层接口与实现
 
@@ -359,15 +365,19 @@ TypeConverterDelegate --> PropertyEditorRegistry
 <<interface>> PropertyEditorRegistry
 ```
 
-- 它们都实现了 TypeConverter 这个高层转换接口，在转换时，会用到 TypeConverter Delegate 委派ConversionService 与 PropertyEditorRegistry 真正执行转换（Facade 门面模式）
-    - 首先看是否有自定义转换器, @InitBinder 添加的即属于这种 (用了适配器模式把 Formatter 转为需要的 PropertyEditor)
-    - 再看有没有 ConversionService 转换
-    - 再利用默认的 PropertyEditor 转换
-    - 最后有一些特殊处理
-- SimpleTypeConverter 仅做类型转换
-- BeanWrapperImpl 为 bean 的属性赋值，当需要时做类型转换，走 Property
-- DirectFieldAccessor 为 bean 的属性赋值，当需要时做类型转换，走 Field
-- ServletRequestDataBinder 为 bean 的属性执行绑定，当需要时做类型转换，根据 directFieldAccess 选择走 Property 还是 Field，具备校验与获取校验结果功能
+`org.springframework.beans.TypeConverter` 是转换功能的最顶层接口，在转换时，会用到 `TypeConverterDelegate` 委派 `ConversionService` 与 `PropertyEditorRegistry` 真正执行转换（Facade 门面模式）。具体处理逻辑如下：
+
+- 先判断是否有自定义转换器，`@InitBinder` 添加的即属于这种 (用了适配器模式把 Formatter 转为需要的 PropertyEditor)
+- 再判断有没有 `ConversionService` 转换
+- 再利用默认的 `PropertyEditor` 转换
+- 最后进行特殊处理
+
+Spring 中 `TypeConverter` 默认实现有如下：
+
+- `SimpleTypeConverter` 仅做类型转换
+- `BeanWrapperImpl` 为 bean 的属性赋值，当需要时做类型转换，通过 getter/setter 方法来设置 Property
+- `DirectFieldAccessor` 为 bean 的属性赋值，当需要时做类型转换，通过反射来设置 Field（无需提供 setter 方法）
+- `ServletRequestDataBinder` 从配置文件中读取值，为 bean 的属性执行绑定，当需要时做类型转换，根据 directFieldAccess 属性来选择 Property 方式还是 Field 方式，具备校验与获取校验结果功能
 
 ## 6. 拦截器的执行时机和调用过程
 
