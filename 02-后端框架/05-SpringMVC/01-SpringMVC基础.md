@@ -1275,11 +1275,15 @@ public void testCustomArgumentResolver() throws Exception {
 }
 ```
 
-### 4.11. 参数类型转换
+### 4.11. 控制器方法的参数类型转换
 
-问题分析：有些业务，如商品生成日期类型的数据，格式多不固定，需要根据业务需求来确定。
+一些控制器方法参数都基于字符串的请求输入（如 `@RequestParam`、`@RequestHeader`、`@PathVariable`、`@MatrixVariable` 和 `@CookieValue`），如果请求参数非字符串类型，可能需要进行类型转换。
 
-由于日期数据有很多种格式，Spring mvc 没办法把字符串转换成日期类型。所以需要自定义参数类型转换
+对于这种情况，会根据配置的转换器自动进行类型转换。默认情况下，支持简单类型（int、long、Date和其他）。可以通过 `WebDataBinder`（详见下面 `DataBinder` 相关章节）或通过向 `FormattingConversionService` 注册 `Formatters` 来定制类型转换。详见[《Spring 笔记 - 核心技术.md》文档](/02-后端框架/03-Spring/01-Spring笔记01)中的类型转换章节。
+
+#### 4.11.1. 自定义参数类型转换器
+
+例如：有些业务，如商品生成日期类型的数据，格式多不固定，需要根据业务需求来确定。由于日期数据有很多种格式，Spring mvc 没办法把字符串转换成日期类型。所以需要自定义参数类型转换
 
 ![](images/246173311238997.png)
 
@@ -1287,32 +1291,6 @@ public void testCustomArgumentResolver() throws Exception {
 
 - xml 配置方式，则使用 `<mvc:annotation-driven/>` 标签进行配置，开启注解驱动加载处理器适配器
 - 基于纯注解配置，则在配置类中设置包扫描
-
-#### 4.11.1. Converter 接口
-
-String MVC 的 `org.springframework.core.convert.converter.Converter` 接口用于实现数据类型转换，需要重写 `convert` 方法，在方法中做数据转换的逻辑处理
-
-```java
-@FunctionalInterface
-public interface Converter<S, T> {
-
-	@Nullable
-	T convert(S source);
-
-	default <U> Converter<S, U> andThen(Converter<? super T, ? extends U> after) {
-		Assert.notNull(after, "After Converter must not be null");
-		return (S s) -> {
-			T initialResult = convert(s);
-			return (initialResult != null ? after.convert(initialResult) : null);
-		};
-	}
-}
-```
-
-- 参数S（Source）：源，转换前的数据类型
-- 参数T（Target）：目标，转换后的数据类型
-
-#### 4.11.2. 自定义参数类型转换器
 
 自定义参数类型转换器，需要实现一个接口(`Converter`)，该接口中是泛型接口
 
@@ -1341,8 +1319,9 @@ public class DateConverter implements Converter<String, Date> {
 }
 ```
 
-> 注：自定义参数转换器的配置，详见《Spring MVC 配置》章节
+#### 4.11.2. 自定义参数类型转换器的配置
 
+> 注：详见《Spring MVC 配置》章节
 
 ## 5. Spring MVC 配置（整理中！）
 

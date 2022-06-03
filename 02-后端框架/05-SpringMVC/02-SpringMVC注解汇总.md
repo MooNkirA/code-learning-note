@@ -1681,9 +1681,9 @@ public class CustomInterceptorController {
 
 实现类型转换的功能多种方式。如之前的示例中的`@InitBinder`可以进行数据预处理；或者spring mvc提供的内置转换器，如：`@DateTimeFormat`也能实现日期类型的转换
 
-### 4.1. Converter接口
+### 4.1. Converter 接口
 
-`Converter`接口是Spring提供的用于处理类型转换的接口
+`Converter` 接口是 Spring 提供的用于处理类型转换的接口
 
 ```java
 /* 类型转换器接口 */
@@ -1701,7 +1701,7 @@ public interface Converter<S, T> {
 }
 ```
 
-### 4.2. 自定义Converter
+### 4.2. 自定义 Converter
 
 自定义类型转换器需要实现`Converter`接口，实现`convert`方法，在方法中进行相关的类型转换的处理逻辑。
 

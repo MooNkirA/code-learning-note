@@ -2113,6 +2113,38 @@ public void testEvent() {
 
 Spring 3.0 后引入了 core.convert 包，提供了一个通用的类型转换模块。该模块定义了一个用于实现类型转换逻辑的 SPI 和一个用于在运行时执行类型转换的 API。在 Spring 容器中，可以使用这套实现作为JDK 原生的 `PropertyEditor` 类型转换器的替换品，将一些配置中字符串类型的属性值转换为 Bean 对象所需的属性类型。
 
+### 12.1. Converter SPI 接口
+
+Spring 提供了 `org.springframework.core.convert.converter.Converter` 接口用于实现强数据类型转换，只需要重写 `convert` 方法，在方法中做数据转换的逻辑处理
+
+```java
+@FunctionalInterface
+public interface Converter<S, T> {
+
+	@Nullable
+	T convert(S source);
+
+	default <U> Converter<S, U> andThen(Converter<? super T, ? extends U> after) {
+		Assert.notNull(after, "After Converter must not be null");
+		return (S s) -> {
+			T initialResult = convert(s);
+			return (initialResult != null ? after.convert(initialResult) : null);
+		};
+	}
+}
+```
+
+- 参数S（Source）：源，转换前的数据类型
+- 参数T（Target）：目标，转换后的数据类型
+
+值得注意的是：调用 `convert` 方法时需要保证源参数 `source` 不为 null。如果转换失败，可以抛出任何未检查的异常。建议抛出一个 `IllegalArgumentException` 来说明是无效的源参数
+
+在 core.convert.support 包中提供了一些转换器的实现类
+
+![](images/547264222220643.png)
+
+### 12.2. ConverterFactory 实现类型转换
+
 
 
 
