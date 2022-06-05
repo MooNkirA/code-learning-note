@@ -20,7 +20,7 @@ RocketMQ 学习示例是在 linux 环境下安装
 
 ### 2.1. 资源下载
 
-> 最新版本 4.9.2（2021.10.18）
+> 最新版本 4.9.2（截止 2021.10.18）
 
 RocketMQ 下载地址：https://rocketmq.apache.org/release_notes/release-notes-4.9.2/
 
@@ -163,6 +163,7 @@ bin/mqshutdown namesrv
 
 ![](images/20220106140415853_2542.png)
 
+- 可选配置的环境变量：`NAMESRV_ADDR`，值为 `127.0.0.1:9876`。如果不配置，则可以通过命令或者配置文件来设置对应值。（本人不配置环境变量，直接修改配置文件）
 - 修改 `根目录/conf/broker.conf` 配置文件，添加如下配置：
 
 ```properties
@@ -201,6 +202,8 @@ namesrvAddr=127.0.0.1:9876
 
 ##### 2.3.2.2. 启动 NameServer
 
+运行 bin 目录下的 `mqnamesrv` 命令即可启动命名服务器，默认对外服务端口 9876
+
 - 方式一：直接进入`/根目录/bin/`，双击 mqnamesrv.cmd 启动
 - 方式二：命令行启动
 
@@ -221,6 +224,8 @@ mqbroker.cmd -c ../conf/broker.conf
 ```
 
 ![](images/20220106141809993_9760.png)
+
+> 注：如果不配置环境变量 `NAMESRV_ADDR` 或者 `broker.conf` 配置文件，将 borker 与 NameServer 关联起来，则需要在运行 `mqbroker` 指令前通过 `set` 指令设置 `NAMESRV_ADDR` 的值，并且每次开启均需要设置此项。
 
 #### 2.3.3. 关闭服务
 
@@ -271,11 +276,11 @@ java -jar rocketmq-console-ng-1.0.0.jar --server.port=7777 --rocketmq.config.nam
 
 ![](images/20220106111459581_10004.png)
 
-RocketMQ架构上主要分为四部分，如上图所示:
+RocketMQ 架构上主要分为四部分，如上图所示:
 
-- roducer：消息发布的角色，支持分布式集群方式部署。Producer通过MQ的负载均衡模块选择相应的Broker集群队列进行消息投递，投递的过程支持快速失败并且低延迟。
-- Consumer：消息消费的角色，支持分布式集群方式部署。支持以push推，pull拉两种模式对消息进行消费。同时也支持集群方式和广播方式的消费，它提供实时消息订阅机制，可以满足大多数用户的需求。
-- NameServer：NameServer是一个非常简单的Topic路由注册中心，其角色类似Dubbo中的zookeeper，支持Broker的动态注册与发现。主要包括两个功能：Broker管理，NameServer接受Broker集群的注册信息并且保存下来作为路由信息的基本数据。然后提供心跳检测机制，检查Broker是否还存活；路由信息管理，每个NameServer将保存关于Broker集群的整个路由信息和用于客户端查询的队列信息。然后Producer和Conumser通过NameServer就可以知道整个Broker集群的路由信息，从而进行消息的投递和消费。NameServer通常也是集群的方式部署，各实例间相互不进行信息通讯。Broker是向每一台NameServer注册自己的路由信息，所以每一个NameServer实例上面都保存一份完整的路由信息。当某个NameServer因某种原因下线了，Broker仍然可以向其它NameServer同步其路由信息，Producer,Consumer仍然可以动态感知Broker的路由的信息。
+- roducer：消息发布的角色，支持分布式集群方式部署。Producer 通过 MQ 的负载均衡模块选择相应的 Broker 集群队列进行消息投递，投递的过程支持快速失败并且低延迟。
+- Consumer：消息消费的角色，支持分布式集群方式部署。支持以 push（推送），pull（拉取）两种模式对消息进行消费。同时也支持集群方式和广播方式的消费，它提供实时消息订阅机制，可以满足大多数用户的需求。
+- NameServer：NameServer 是一个非常简单的 Topic 路由注册中心，其角色类似 Dubbo 中的 zookeeper，支持 Broker 的动态注册与发现。主要包括两个功能：Broker 管理，NameServer 接受 Broker 集群的注册信息并且保存下来作为路由信息的基本数据。然后提供心跳检测机制，检查 Broker 是否还存活；路由信息管理，每个NameServer将保存关于Broker集群的整个路由信息和用于客户端查询的队列信息。然后Producer和Conumser通过NameServer就可以知道整个Broker集群的路由信息，从而进行消息的投递和消费。NameServer通常也是集群的方式部署，各实例间相互不进行信息通讯。Broker是向每一台NameServer注册自己的路由信息，所以每一个NameServer实例上面都保存一份完整的路由信息。当某个NameServer因某种原因下线了，Broker仍然可以向其它NameServer同步其路由信息，Producer,Consumer仍然可以动态感知Broker的路由的信息。
 - BrokerServer：Broker主要负责消息的存储、投递和查询以及服务高可用保证，为了实现这些功能，Broker包含了以下几个重要子模块。
   1. Remoting Module：整个Broker的实体，负责处理来自clients端的请求。
   2. Client Manager：负责管理客户端(Producer/Consumer)和维护Consumer的Topic订阅信息
@@ -289,7 +294,7 @@ RocketMQ架构上主要分为四部分，如上图所示:
 
 - 消息模型（Message Model）
 
-RocketMQ主要由 Producer、Broker、Consumer 三部分组成，其中Producer 负责生产消息，Consumer 负责消费消息，Broker 负责存储消息。Broker 在实际部署过程中对应一台服务器，每个 Broker 可以存储多个Topic的消息，每个Topic的消息也可以分片存储于不同的 Broker。Message Queue 用于存储消息的物理地址，每个Topic中的消息地址存储于多个 Message Queue 中。ConsumerGroup 由多个Consumer 实例构成。
+RocketMQ 主要由 Producer、Broker、Consumer 三部分组成，其中 Producer 负责生产消息，Consumer 负责消费消息，Broker 负责存储消息。Broker 在实际部署过程中对应一台服务器，每个 Broker 可以存储多个 Topic 的消息，每个 Topic 的消息也可以分片存储于不同的 Broker。Message Queue 用于存储消息的物理地址，每个Topic中的消息地址存储于多个 Message Queue 中。ConsumerGroup 由多个Consumer 实例构成。
 
 - 消息生产者（Producer）
 

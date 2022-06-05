@@ -1,10 +1,20 @@
 # Spring MVC 源码分析
 
-## 1. Spring MVC 执行流程
+> 最新官方文档：https://docs.spring.io/spring-framework/docs/current/reference/html/web.html#spring-web
 
-### 1.1. web项目初始化过程分析
+## 1. 概述
 
-#### 1.1.1. Servlet3.0规范加入的内容
+### 1.1. Spring MVC 时序图
+
+![](images/20200917172707993_20103.png)
+
+### 1.2. 官方流程图
+
+![](images/20200917172659185_21224.png)
+
+## 2. web 项目初始化过程分析
+
+### 2.1. Servlet 3.0 规范加入的内容
 
 - Servlet3.0规范提供的标准接口，在web容器启动的时候，首先触发`ServletContainerInitializer`此接口的实现类的`onStartup()`方法
 
@@ -34,41 +44,49 @@ public @interface HandlesTypes {
 }
 ```
 
-#### 1.1.2. SpringMVC框架使用Servlet3.0规范
+### 2.2. SpringMVC 框架使用 Servlet 3.0 规范
 
 任何要使用Servlet3.0规范且脱离web.xml的配置，在使用时都必须在对应的jar包的`META-INF/services`目录创建一个名为`javax.servlet.ServletContainerInitializer`的文件，文件内容指定具体的`ServletContainerInitializer`实现类，那么，当web容器启动时就会运行这个初始化器做一些组件内的初始化工作。
 
 ![](images/20200917170758911_20768.png)
 
-#### 1.1.3. AbstractDispatcherServletInitializer中的onStartUp方法
+### 2.3. AbstractDispatcherServletInitializer 中的 onStartUp 方法
 
 `AbstractDispatcherServletInitializer`类是Spring MVC提供的`WebApplicationInitializer`接口的实现抽象类。
 
-#### 1.1.4. 注册DisptatcherServlet
-
-### 1.2. 时序图
-
-![](images/20200917172707993_20103.png)
-
-### 1.3. 官方流程图
-
-![](images/20200917172659185_21224.png)
+### 2.4. 注册 DisptatcherServlet
 
 # SpringMVC 中各组件详解及源码分析
 
 ## 1. 前端控制器 DispatcherServlet
 
-### 1.1. 作用
+### 1.1. 简介
 
-用户请求到达前端控制器，它就相当于MVC模式中的C，`DispatcherServlet`是整个流程控制的中心，由它调用其它组件处理用户的请求，`DispatcherServlet`的存在降低了组件之间的耦合性
+在 web.xml 中配置，<font color=red>**实质是一个 Servlet**</font>
 
-### 1.2. 执行过程分析
+作用：接收请求，响应结果。相当于转发器，中央处理器
 
-#### 1.2.1. doService方法
+用户请求到达前端控制器，它就相当于 MVC 模式中的 C，`DispatcherServlet` 是整个流程控制的中心，由它调用其它组件处理用户的请求，<font color=red>**`DispatcherServlet`的存在降低了组件之间的耦合性**</font>
+
+### 1.2. 初始化流程
+
+1. `DispatcherServlet` 是在第一次被访问时执行初始化，也可以通过配置修改为 Tomcat 启动后就初始化
+2. 在初始化时会从 Spring 容器中找一些 Web 需要的组件，如` HandlerMapping`、`HandlerAdapter` 等，并逐一调用它们的初始化
+3. `RequestMappingHandlerMapping` 初始化时，会收集所有 `@RequestMapping` 映射信息，封装为 Map，其中
+   - key 是 `RequestMappingInfo` 类型，包括请求路径、请求方法等信息
+   - value 是 `HandlerMethod` 类型，包括控制器方法对象、控制器对象
+4. 当前端有请求到达时，快速从映射中找到 `HandlerMethod` 并与匹配的拦截器一起返回给 `DispatcherServlet`
+5. `RequestMappingHandlerAdapter` 初始化时，会准备 `HandlerMethod` 调用时需要的各个组件，如：
+   - `HandlerMethodArgumentResolver` 解析控制器方法参数
+   - `HandlerMethodReturnValueHandler` 处理控制器方法返回值
+
+### 1.3. 执行过程分析
+
+#### 1.3.1. doService方法
 
 此方法在接收到请求首先执行的方法，通过跟踪源码得知，它重写父类`FrameworkServlet`的，`FrameworkServlet`是继承了`HttpServlet`，所以它就相当于执行了Servlet中的service方法
 
-#### 1.2.2. doDispatche方法
+#### 1.3.2. doDispatche方法
 
 在doService方法执行的逻辑中，会调用doDispatche方法，此方法是处理请求分发的核心方法。它负责通过反射调用控制器方法、执行拦截器和处理结果视图
 
@@ -262,6 +280,105 @@ SpringMVC为逻辑视图名的解析提供了不同的策略，可以在Spring W
 
 ![](images/20200922082144603_21222.png)
 
+### 5.4. 对象绑定与类型转换（待理解分析）
+
+#### 5.4.1. 底层第一套转换接口与实现
+
+```mermaid
+classDiagram
+
+Formatter --|> Printer
+Formatter --|> Parser
+
+class Converters {
+   Set~GenericConverter~
+}
+class Converter
+
+class ConversionService
+class FormattingConversionService
+
+ConversionService <|-- FormattingConversionService
+FormattingConversionService o-- Converters
+
+Printer --> Adapter1
+Adapter1 --> Converters
+Parser --> Adapter2
+Adapter2 --> Converters
+Converter --> Adapter3
+Adapter3 --> Converters
+
+<<interface>> Formatter
+<<interface>> Printer
+<<interface>> Parser
+<<interface>> Converter
+<<interface>> ConversionService
+```
+
+- `Printer` 把其它类型转为 String
+- `Parser` 把 String 转为其它类型
+- `Formatter` 综合 Printer 与 Parser 功能
+- `Converter` 把任意类型 S 转为任意类型 T
+- `Printer`、`Parser`、`Converter` 经过适配转换成 `GenericConverter` 类放入 `org.springframework.core.convert.support.GenericConversionService` 类中的 `Converters` 属性中（`Converters` 是 `GenericConversionService` 定义的内部类）
+- `FormattingConversionService` 继承了 `GenericConversionService` 类，利用其它们实现转换。类关系图如下：
+
+![](images/486334414226935.png)
+
+#### 5.4.2. 底层第二套转换接口
+
+```mermaid
+classDiagram
+
+PropertyEditorRegistry o-- "多" PropertyEditor
+
+<<interface>> PropertyEditorRegistry
+<<interface>> PropertyEditor
+```
+
+此套接口是 JDK 原生
+
+- `PropertyEditor` 把 String 与其它类型相互转换
+- `PropertyEditorRegistry` 可以注册多个 `PropertyEditor` 对象
+- 与第一套接口直接可以通过 `FormatterPropertyEditorAdapter` 来进行适配
+
+![](images/240375814247101.png)
+
+#### 5.4.3. 高层接口与实现
+
+```mermaid
+classDiagram
+TypeConverter <|-- SimpleTypeConverter
+TypeConverter <|-- BeanWrapperImpl
+TypeConverter <|-- DirectFieldAccessor
+TypeConverter <|-- ServletRequestDataBinder
+
+SimpleTypeConverter --> TypeConverterDelegate
+BeanWrapperImpl --> TypeConverterDelegate
+DirectFieldAccessor --> TypeConverterDelegate
+ServletRequestDataBinder --> TypeConverterDelegate
+
+TypeConverterDelegate --> ConversionService
+TypeConverterDelegate --> PropertyEditorRegistry
+
+<<interface>> TypeConverter
+<<interface>> ConversionService
+<<interface>> PropertyEditorRegistry
+```
+
+`org.springframework.beans.TypeConverter` 是转换功能的最顶层接口，在转换时，会用到 `TypeConverterDelegate` 委派 `ConversionService` 与 `PropertyEditorRegistry` 真正执行转换（Facade 门面模式）。具体处理逻辑如下：
+
+- 先判断是否有自定义转换器，`@InitBinder` 添加的即属于这种 (用了适配器模式把 Formatter 转为需要的 PropertyEditor)
+- 再判断有没有 `ConversionService` 转换
+- 再利用默认的 `PropertyEditor` 转换
+- 最后进行特殊处理
+
+Spring 中 `TypeConverter` 默认实现有如下：
+
+- `SimpleTypeConverter` 仅做类型转换
+- `BeanWrapperImpl` 为 bean 的属性赋值，当需要时做类型转换，通过 getter/setter 方法来设置 Property
+- `DirectFieldAccessor` 为 bean 的属性赋值，当需要时做类型转换，通过反射来设置 Field（无需提供 setter 方法）
+- `ServletRequestDataBinder` 从配置文件中读取值，为 bean 的属性执行绑定，当需要时做类型转换，根据 directFieldAccess 属性来选择 Property 方式还是 Field 方式，具备校验与获取校验结果功能
+
 ## 6. 拦截器的执行时机和调用过程
 
 ### 6.1. 拦截器的执行流程图
@@ -271,7 +388,6 @@ SpringMVC为逻辑视图名的解析提供了不同的策略，可以在Spring W
 ### 6.2. 拦截器的源码执行过程分析
 
 ![](images/20200922153214836_27754.png)
-
 
 ### 6.3. 拦截器的责任链模式
 

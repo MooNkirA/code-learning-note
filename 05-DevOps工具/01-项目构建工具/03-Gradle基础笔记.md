@@ -70,7 +70,7 @@ Gradle 6.0.1
 
 #### 1.2.3. 配置 Gradle 仓库源方式1 - 初始化配置文件
 
-在Gradle安装目录下的 `init.d` 文件夹下，新建一个 `init.gradle` 文件，添加如下配置
+在 Gradle 安装目录下的 `init.d` 文件夹下，新建一个 `init.gradle` 文件，添加如下配置
 
 ```
 allprojects {
@@ -98,7 +98,7 @@ allprojects {
 
 #### 1.2.4. 配置 Gradle 仓库源方式2（Gradle下载的文件/jar包） - 环境变量与方式（推荐）
 
-增加一个环境变量`GRADLE_USER_HOME`，指定为想要存放的地方
+增加一个环境变量 `GRADLE_USER_HOME`，指定为想要存放的地方
 
 ![](images/20200411224820511_18591.png)
 
@@ -188,4 +188,4 @@ gradle.user.home=E:\deployment-environment\.gradle\
 ## 3. 参考资料
 
 - [Gradle 教程 - w3cschool](https://www.w3cschool.cn/gradle/)
-
+- [gradle使用教程，一篇就够](https://www.jianshu.com/p/7ccdca8199b8)

@@ -1041,7 +1041,7 @@ public class Application {
 }
 ```
 
-> <font color=purple>**注意事项：使用`@ConfigurationProperties`方式可以进行配置文件与实体字段的自动映射，但需要字段必须提供`set`方法才可以，而使用`@Value`注解修饰的字段不需要提供`set`方法**</font>
+> <font color=red>**建议使用 `@EnableConfigurationProperties` 声明引入的配置类，如此在不使用此类的时候，就不会出现因为配置类标识了 `@Component` 注解，而加入到 Spring 容器的情况，从而减少 spring 管控的资源数量。**</font>
 
 **读取 yml 类型示例映射示意图**
 
@@ -1220,6 +1220,11 @@ public DruidDataSource datasource(){
     return ds;
 }
 ```
+
+#### 4.4.4. @ConfigurationProperties 与 @Value 读取配置的区别
+
+- 使用 `@ConfigurationProperties` 方式可以进行配置文件与实体字段的自动映射，但需要字段必须提供 `setter` 方法才可以
+- 使用 `@Value` 注解修饰的字段不需要提供 `setter` 方法
 
 ### 4.5. @ConfigurationProperties 属性绑定的规则
 
@@ -1674,48 +1679,11 @@ public class DemoApplication {
 
 由于Spring Boot应用只是普通的Java应用，所以JVM热交换（hot-swapping）也能开箱即用。不过JVM热交换能替换的字节码有限制，想要更**彻底的解决方案可以使用Spring Loaded项目或JRebel**。spring-boot-devtools 模块也支持应用快速重启(restart)。
 
-## 7. 运行状态监控 Actuator
-
-### 7.1. 简述
-
-Spring Boot 的 Actuator 提供了运行状态监控的功能，可以实现对程序内部运行情况监控，比如监控状况、Bean加载情况、配置属性、日志信息等。Actuator的监控数据可以通过Rest、运程shell和JMX方式获得。
-
-状态监控的数据都是以json格式返回，分析数据不太方便，*推荐使用基于 Actuator 开发的 Spring Boot Admin 状态监控开源项目*
-
-### 7.2. 基础使用步骤
-
-1. 导入依赖
-
-```xml
-<dependency>
-    <groupId>org.springframework.boot</groupId>
-    <artifactId>spring-boot-starter-actuator</artifactId>
-</dependency>
-```
-
-2. 访问 `http://项目应用的地址:端口号/acruator`，可以查看监控数据
-
-### 7.3. Actuator 监控使用
-
-通过访问以下路径，可以查看到相关的监控信息
-
-|      路径       |                            描述                            |
-| --------------- | --------------------------------------------------------- |
-| /beans          | 描述应用程序上下文里全部的Bean，以及它们的关系                 |
-| /env            | 获取全部环境属性                                            |
-| /env/{name}     | 根据名称获取特定的环境属性值                                  |
-| /health         | 报告应用程序的健康指标，这些值由HealthIndicator的实现类提供    |
-| /info           | 获取应用程序的定制信息，这些信息由info打头的属性提供            |
-| /mappings       | 描述全部的URI路径，以及它们和控制器(包含Actuator端点)的映射关系 |
-| /metrics        | 报告各种应用程序度量信息，比如内存用量和HTTP请求计数            |
-| /metrics/{name} | 报告指定名称的应用程序度量值                                  |
-| /trace          | 提供基本的HTTP请求跟踪信息(时间戳、HTTP头等)                  |
-
-## 8. SpringBoot 监听机制（整理中）
+## 7. SpringBoot 监听机制（整理中）
 
 SpringBoot 在项目启动时，会对几个内置的监听器进行回调，开发者可以实现这些监听器接口，在项目启动时完成一些操作。
 
-### 8.1. ApplicationContextInitializer(补充示例)
+### 7.1. ApplicationContextInitializer(补充示例)
 
 如果想让这些监听器自动注册，不管应用程序是如何创建的，可以在项目中添加一个`META-INF/spring.plants`文件，并通过使用 `org.springframework.context.ApplicationListener` 键来指定相应的自定义监听器(`ApplicationContextInitializer`的实现类)，如下例：
 
@@ -1723,21 +1691,21 @@ SpringBoot 在项目启动时，会对几个内置的监听器进行回调，开
 org.springframework.context.ApplicationContextInitializer=com.moon.springboot.listener.MyApplicationContextInitializer
 ```
 
-### 8.2. SpringApplicationRunListener（补充示例）
+### 7.2. SpringApplicationRunListener（补充示例）
 
 ```properties
 org.springframework.boot.SpringApplicationRunListener=com.moon.springboot.listener.MySpringApplicationRunListener
 ```
 
-### 8.3. CommandLineRunner 与 ApplicationRunner
+### 7.3. CommandLineRunner 与 ApplicationRunner
 
-#### 8.3.1. 简介
+#### 7.3.1. 简介
 
 如果需要在 `SpringApplication` 启动后运行一些特定的代码，可以实现 SpringBoot 提供的 `ApplicationRunner` 或 `CommandLineRunner` 接口。这两个接口的工作方式相同，并提供一个单一的运行方法，该方法会在 `SpringApplication.run(...)` 完成之前被调用。
 
 > 注：这两个监听回调接口，适合运用在项目应用启动后做一些数据的预处理等工作。如：将读取一些数据库的数据到Redis缓存中，完成数据的预热。
 
-#### 8.3.2. 基础使用
+#### 7.3.2. 基础使用
 
 `CommandLineRunner` 接口的 `run` 方法入参是字符串数组，是应用程序的相关参数
 
@@ -1767,86 +1735,14 @@ public class MyApplicationRunner implements ApplicationRunner {
 }
 ```
 
-#### 8.3.3. 使用注意事项
+#### 7.3.3. 使用注意事项
 
 - 如果项目中定义多个 `CommandLineRunner` 与 `ApplicationRunner` 接口的实现。那需要注意它们这些实现的调用顺序，以免发现不可预测的问题。另外，可以通过实现 `org.springframework.core.Ordered` 接口或使用 `org.springframework.core.annotation.Order` 注解来指定实现类调用的顺序。
 - `CommandLineRunner` 与 `ApplicationRunner` 接口的实现不需要到`META-INF/spring.plants`进行配置相关映射。
 
-## 9. Spring Boot 自动配置原理分析
+## 8. Spring Boot 视图
 
-Spring Boot框架是一个将整合框架的整合代码都写好了的框架。所以要知道它的工作原理才能够，找到各种整合框架可以配置的属性，以及属性对应的属性名。
-
-### 9.1. spring-boot-starter-parent 父工程依赖管理原理
-
-创建SpringBoot项目，继承了SpringBoot的父工程`spring-boot-starter-parent`后，查看工程的依赖关系，父工程依赖了`spring-boot-dependencies`工程，`spring-boot-denpendencies`的pom管理所有公共Starter依赖的版本，并且通过`<dependencyManagement>`标签实现jar版本管理
-
-因为继承父工程`spring-boot-starter-parent`后，可以根据需要，直接引用相应的starter即可，不需要配置版本号
-
-![](images/20201006095224766_3600.png)
-
-#### 9.1.1. starters的原理
-
-starters是依赖关系的整理和封装，是一套依赖坐标的整合。只要导入相关的starter即可该功能及其相关必需的依赖
-
-> 举例：JPA or Web开发，只需要导入 `spring-boot-starter-data-jpa` 或 `spring-boot-starter-web` 即可
-
-每个Starter包含了当前功能下的许多必备依赖坐标，这些依赖坐标是项目开发，上线和运行必须的。同时这些依赖也支持依赖传递。例如：`spring-boot-starter-web` 包含了所有web开发必须的依赖坐标
-
-![](images/20201006100215636_11014.png)
-
-**starter的命名规范**：
-
-- 官方的starter命名：`spring-boot-starter-*`
-- 非官方的starter命名：`thirdpartyproject-spring-boot-starter`
-
-官方提供的Starter详见官方文档：https://docs.spring.io/spring-boot/docs/2.3.3.RELEASE/reference/html/using-spring-boot.html#using-boot-starter
-
-### 9.2. 自动配置信息位置说明
-
-每个Starter基本都会有自动配置`AutoConfiguration`，`AutoConfiguration`的jar包定义了约定的默认配置信息。SpringBoot采用约定大于配置设计思想。
-
-- SpringBoot的`spring-boot-autoconfigure-x.x.x.RELEASE.jar`中编写了所有内置支持的框架的相关的默认配置
-    - `additional-spring-configuration-metadata.json`：默认配置
-    - `spring.factories`：定义了自动配置相关的处理类的映射关系。在项目启动的时候会将相关映射的处理类加载到spring容器中
-
-![](images/20201006141108089_25191.png)
-
-![](images/20201006143251521_21845.png)
-
-- 所有支持的框架根据功能类型来划分包，每个包都有一个`XxxAutoConfiguration`配置类，都是一个基于纯注解的配置类，是各种框架整合的代码。如图所示：
-
-![](images/20201006145254228_20074.png)
-
-- 如果配置的框架有默认的配置参数，都放在一个命名为`XxxProperties`的属性类，如图所示：
-
-![](images/20201006145402145_17341.png)
-
-- 通过项目的resources下的`application.properties`或`application.yml`文件可以修改每个整合框架的默认属性，从而实现了快速整合的目的。
-
-![](images/20201006150503441_32641.png)
-
-### 9.3. 配置流程说明
-
-- 第一步：配置一个内置整合框架的参数，先到`spring-boot-autoconfigure-x.x.x.RELEASE.jar`找到对应的模块。
-- 第二步：如果该框架有可以配置的参数，那么对应的整合模块中一定有一个XxxProperties类，在里面可以找可以设置的参数。
-- 第三步：在resources源目录下的`application.properties`文件里面可以修改XxxProperties类中默认的参数。
-
-![配置流程说明](images/_配置流程说明_1537025667_9599.jpg)
-
-### 9.4. 自动配置流程分析
-
-查看启动类注解`@SpringBootApplication`，可以跟踪加载的步骤
-
-1. 需要标识`@EnableAutoConfiguration`注解
-2. 该注解会使用`@Import(AutoConfigurationImportSelector.class)`注解引入自动配置处理类
-3. 自动配置会读取`spring-boot-autoconfigure-x.x.x.RELEASE.jar`包下的`spring.factories`文件，获取需要加载的处理类
-4. 比如内置web容器的处理类`EmbeddedWebServerFactoryCustomizerAutoConfiguration`，类上引入`@EnableConfigurationProperties({ServerProperties.class})`注解，用于加载默认配置类的参数
-
-![](images/20201006152054124_172.png)
-
-## 10. Spring Boot 视图
-
-### 10.1. 静态资源html视图
+### 8.1. 静态资源html视图
 
 - SpringBoot默认有四个静态资源文件夹：
   - classpath:/static/
@@ -1911,7 +1807,7 @@ public class HelloController {
 }
 ```
 
-### 10.2. Jsp视图(不推荐)
+### 8.2. Jsp视图(不推荐)
 - 第一步：创建Maven项目(war包)
 - 第二步：配置依赖
 
@@ -2029,13 +1925,13 @@ public class Application {
 
 访问地址：http://localhost:8080/item
 
-### 10.3. FreeMarker视图
+### 8.3. FreeMarker视图
 
 详见Spring Boot整合FreeMarker部分。
 
-## 11. Spring Boot 异常处理
+## 9. Spring Boot 异常处理
 
-### 11.1. Spring MVC no handler 异常处理
+### 9.1. Spring MVC no handler 异常处理
 
 当请求不存在时，Spring MVC 在处理 404 异常时，会自动返回如下内容：
 
@@ -2056,6 +1952,502 @@ spring.mvc.throw-exception-if-no-handler-found=true
 ```
 
 配置 `spring.mvc.throw-exception-if-no-handler-found` 为 true，Spring MVC 在 404 时就会抛出 `DispatcherServlet` 中的 `throwExceptionIfNoHandlerFound`。此时开发者可以在全局异常处理中利用`@ExceptionHandler` 注解捕获 `NoHandlerFoundException` 异常，再做自定义处理即可
+
+## 10. 自定义 starter
+
+> 自定义的 starter 开发规范，可以参考官方定义的 starter 或者一些其他框架整合的 starter
+
+### 10.1. starter 工程结构
+
+参考官方 starter 与其他第三方的 starter 会发现，有些第三方的 starter 不一定按约定的规范来命名；还有官方的 starter 依赖与自动配置类是分开两个包，但有些第三方的 starter 是放到同一个包中。因此自定义 starter 的可以参考选择以下的某种方式进行开发即可
+
+![](images/404481116247472.png)
+
+### 10.2. 案例说明
+
+本自定义 starter 案例的功能是统计网站独立 IP 访问次数的功能，并将访问信息在后台持续输出。整体功能是在后台每 10 秒输出一次监控信息（格式：IP+访问次数），当用户访问网站时，对用户的访问行为进行统计。
+
+例如：张三访问网站功能15次，IP地址：192.168.0.135，李四访问网站功能20次，IP地址：61.129.65.248。那么在网站后台就输出如下监控信息，此信息每10秒刷新一次。
+
+```console
+         IP访问监控
++-----ip-address-----+--num--+
+|     192.168.0.135  |   15  |
+|     61.129.65.248  |   20  |
++--------------------+-------+
+```
+
+具体功能实现分析
+
+- 统计的数据存储：最终记录的数据结构是一个字符串（IP地址）对应一个数字（访问次数），可以使用 java 提供的 Map 模型，也就是 key-value 的键值对模型，或者具有 key-value 键值对模型的存储技术，例如 redis 技术。本案例使用 Map 作为实现方案
+- 统计功能触发的位置：因为每次 web 请求都需要进行统计，因此使用拦截器作为实现方案
+- 配置项：为了提升统计数据展示的灵活度，可以通过 Spring Boot 配置项来控制输出频度，输出的数据格式，统计数据的显示模式等
+    - 输出频度，默认 10 秒
+    - 数据特征：累计数据 / 阶段数据，默认累计数据
+    - 输出格式：详细模式 / 极简模式 
+
+### 10.3. starter 功能实现
+
+创建 maven 工程 counter-spring-boot-starter
+
+#### 10.3.1. 添加依赖
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>2.5.8</version>
+        <relativePath/> <!-- lookup parent from repository -->
+    </parent>
+
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>com.tools</groupId>
+    <artifactId>counter-spring-boot-starter</artifactId>
+    <version>1.0-SNAPSHOT</version>
+    <name>${project.artifactId}</name>
+    <description>自定义 starter 示例</description>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+    </dependencies>
+
+</project>
+```
+
+#### 10.3.2. 定义业务功能接口与实现
+
+创建功能接口，分别定义统计与输出数据的问题
+
+```java
+public interface IpCountService {
+
+    /**
+     * 统计
+     */
+    void count();
+
+    /**
+     * 输出统计数据
+     */
+    void print();
+}
+```
+
+创建实现类，声明一个 Map 对象，用于记录 ip 访问次数，key 是 ip 地址，value 是访问次数。值得注意：这里不需要将其设置为静态属性，也能实现在每次请求时进行数据共享，因为使用 Spring 容器的管理的的对象默认都是单例的，不存在多个对象共享变量的问题。
+
+```java
+public class IpCountServiceImpl implements IpCountService {
+
+    private final Map<String, Integer> ipCounter = new HashMap<>();
+
+    @Override
+    public void count() {
+    }
+
+    @Override
+    public void print() {
+    }
+}
+```
+
+#### 10.3.3. 定义自动配置
+
+自定义 starter 需要在导入当前模块的时候就要开启功能，因此需要编写自动配置类，在启动项目时自动加载功能。
+
+- 创建自动配置类，使用 `@Bean` 注解创建ip统计的实现类实例
+
+```java
+public class IpCountAutoConfiguration {
+    @Bean
+    public IpCountService ipCountService() {
+        return new IpCountServiceImpl();
+    }
+}
+```
+
+- 创建 resources 目录中创建 `META-INF/spring.factories` 文件，配置自动配置类的全限定名称映射
+
+```properties
+# Auto Configure
+org.springframework.boot.autoconfigure.EnableAutoConfiguration=com.tool.autoconfigure.IpCountAutoConfiguration
+```
+
+
+#### 10.3.4. 使用配置属性设置功能参数
+
+为了提高 IP 统计报表信息显示的灵活性，可以让调用者通过 yml 配置文件设置一些参数，用于控制报表的显示格式。
+
+- 定义参数格式：设置3个属性，分别用来控制显示周期（cycle），阶段数据是否清空（cycle-reset），数据显示格式（model）
+
+```yml
+tools:
+  ip:
+    cycle: 1
+    cycle-reset: false
+    model: "detail"
+```
+
+> 注：以上配置是由此 starter 导入者配置
+
+- 定义封装参数的配置属性类，读取配置参数。日志输出模式是在若干个类别选项中选择某一项，对于此种分类性数据建议制作枚举定义分类数据
+
+```java
+@ConfigurationProperties("tools.ip")
+public class IpCountProperties {
+
+    /**
+     * 日志显示周期
+     */
+    private Long cycle = 5L;
+
+    /**
+     * 是否周期内重置数据
+     */
+    private Boolean cycleReset = false;
+
+    /**
+     * 日志输出模式  detail：详细模式  simple：极简模式
+     */
+    private String model = LogModel.DETAIL.value;
+
+    // 日志模式枚举
+    public enum LogModel {
+        DETAIL("detail"),
+        SIMPLE("simple");
+
+        private final String value;
+
+        LogModel(String value) {
+            this.value = value;
+        }
+
+        public String getValue() {
+            return value;
+        }
+    }
+    // ...省略 getter/setter
+}
+```
+
+> <font color=purple>**注：为防止项目组定义的参数种类过多，产生冲突，通常设置属性前缀会至少使用两级属性作为前缀进行区分。**</font>
+
+- 在自动配置类中，使用 `@EnableConfigurationProperties` 注解加载属性配置类 `IpCountProperties`
+
+```java
+@EnableConfigurationProperties(IpCountProperties.class)
+public class IpCountAutoConfiguration {
+    ...
+}
+```
+
+#### 10.3.5. 业务功能实现
+
+- 实现统计功能。
+
+实现统计操作对应的方法，每次访问后对应 ip 的记录次数 +1。需要分情况处理，如果当前没有对应 ip 的数据，新增一条数据，否则就修改对应 key 的值 +1 即可。因为当前功能最终会导入到其他 web 项目中，所以可以从容器中直接获取请求对象，因此在此业务类中可以通过自动装配得到 `HttpServletRequest` 请求对象，然后获取对应的访问 IP 地址。
+
+```java
+// 当前的 HttpServletRequest 对象的注入工作由使用当前 starter 的工程提供自动装配
+@Autowired
+private HttpServletRequest httpServletRequest;
+
+@Override
+public void count() {
+    // 1.获取当前操作的IP地址
+    String ip = httpServletRequest.getRemoteAddr();
+    // 2.根据IP地址从Map取值，并递增
+    Integer count = ipCounter.get(ip);
+    ipCounter.put(ip, count == null ? 1 : count + 1);
+}
+```
+
+- 实现显示统计数据的功能。
+
+本案例使用 Spring Boot 内置 task 实现。在自动配置类上标识 `@EnableScheduling` 注解，开启定时任务功能
+
+```java
+@EnableScheduling // 开启 Spring Task 定时任务
+@EnableConfigurationProperties(IpCountProperties.class)
+public class IpCountAutoConfiguration {
+    ...
+}
+```
+
+在 `print()` 方法中实现显示统计功能的操作，并设置定时任务，当前是硬编码设置每 5 秒运行一次统计数据。在应用配置属性的功能类中，使用自动装配加载对应的配置属性类，然后根据配置信息做分支处理。注意：清除数据的功能一定要在输出后运行，否则每次查阅的数据均为空白数据。
+
+```java
+@Scheduled(cron = "0/5 * * * * ?")
+@Override
+public void print() {
+    String model = ipCountProperties.getModel();
+    if (IpCountProperties.LogModel.DETAIL.getValue().equals(model)) {
+        // 日志输出详细模式
+        System.out.println("         IP访问监控");
+        System.out.println("+-----ip-address-----+--num--+");
+        for (Map.Entry<String, Integer> entry : ipCounter.entrySet()) {
+            String key = entry.getKey();
+            Integer value = entry.getValue();
+            System.out.println(String.format("|%18s  |%5d  |", key, value));
+        }
+        System.out.println("+--------------------+-------+");
+    } else if (IpCountProperties.LogModel.SIMPLE.getValue().equals(model)) {
+        // 日志输出极简模式
+        System.out.println("     IP访问监控");
+        System.out.println("+-----ip-address-----+");
+        for (String key : ipCounter.keySet()) {
+            System.out.println(String.format("|%18s  |", key));
+        }
+        System.out.println("+--------------------+");
+    }
+
+    // 判断是否周期内重置数据
+    if (ipCountProperties.getCycleReset()) {
+        ipCounter.clear();
+    }
+}
+```
+
+#### 10.3.6. 功能测试
+
+新建一个或者使用原有的 web 项目，由于当前 starter 的功能需要在对应的调用的工程进行坐标导入，因此必须保证本地仓库中具有当前开发的功能，所以每次原始代码修改后，需要重新编译并安装到仓库中。为防止问题出现，建议每次安装之前先 `clean` 然后 `install`，保障资源进行了更新。
+
+- 在 web 工程中引入自定义 starter 依赖
+
+```xml
+<dependency>
+    <groupId>com.tools</groupId>
+    <artifactId>counter-spring-boot-starter</artifactId>
+    <version>1.0-SNAPSHOT</version>
+</dependency>
+```
+
+- 推荐选择测试工程中调用方便的功能做测试，推荐选择查询操作，当然也可以换其他功能位置进行测试。目前暂时在代码中硬编码调用统计
+
+```java
+@Autowired
+private IpCountService ipCountService;
+
+@GetMapping("{id}")
+public Book get(@PathVariable Integer id) {
+    ipCountService.count();
+    return bookService.getById(id);
+}
+```
+
+- 启动工程，发送数次查询请求后，观察控制台日志
+
+```console
+         IP访问监控
++-----ip-address-----+--num--+
+|   0:0:0:0:0:0:0:1  |   11  |
++--------------------+-------+
+```
+
+- 在测试工程中修改配置文件，选择简单模式日志输出
+
+```yml
+tools:
+  ip:
+    cycle: 1
+    cycle-reset: false
+    model: "simple"
+```
+
+- 重新安装自定义 starter 工程到本地仓库，启动测试工程，发送数次查询请求后，观察控制台日志
+
+```
+     IP访问监控
++-----ip-address-----+
+|   0:0:0:0:0:0:0:1  |
++--------------------+
+```
+
+### 10.4. 功能优化 - 使用配置设置定时器参数
+
+按目前的代码，在使用属性配置中的显示周期数据时会出现问题，在 `@Scheduled` 注解如果要使用直接使用配置数据，则可能通过EL表达式 `#{}` 来读取 bean 属性值，但前提是要知道 bean 在 Spring 容器中的名称。如果不设置 bean 的访问名称，Spring 会使用自己的命名生成器生成bean的长名称(如：`xxx.xx.xx.Xxxx`)，在 `#{}` 中会将第一点开始后面都当成属性，因此无法实现属性的读取。所以，优化方案是放弃使用 `@EnableConfigurationProperties` 注解对应的功能，改成最原始的 bean 定义格式。
+
+- 步骤一：使用 `@Component` 来初始化配置属性类并指定 bean 的访问名称
+
+```java
+@Component("ipCountProperties")
+@ConfigurationProperties("tools.ip")
+public class IpCountProperties {
+    ...
+}
+```
+
+- 步骤二：弃用 `@EnableConfigurationProperties` 注解，改为使用 `@Import` 注解导入 bean 的形式加载配置属性类
+
+```java
+@EnableScheduling // 开启 Spring Task 定时任务
+// @EnableConfigurationProperties(IpCountProperties.class)
+@Import({IpCountProperties.class})
+public class IpCountAutoConfiguration {
+    ...
+}
+```
+
+- 步骤三：修改 `@Scheduled` 注解中的 cron 表达式，使用 `#{}` 读取bean属性值
+
+```java
+@Scheduled(cron = "0/#{ipCountProperties.cycle} * * * * ?")
+@Override
+public void print() {
+    ...
+}
+```
+
+重装安装 starter 工程到仓库，在 web 端程序中通过 yml 文件中的 `tools.ip.cycle` 属性配置参数对统计信息的显示周期进行控制，观察控制台日志输出的间隔
+
+### 10.5. 功能优化 - 使用拦截器进行统计
+
+- 步骤一：编写拦截器，在前置拦截的方法中，调用功能业务类的统计方法
+
+```java
+public class IpCountInterceptor implements HandlerInterceptor {
+
+    @Autowired
+    private IpCountService ipCountService;
+
+    @Override
+    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
+        ipCountService.count();
+        return HandlerInterceptor.super.preHandle(request, response, handler);
+    }
+}
+```
+
+- 步骤二：配置拦截器，设置拦截对应的请求路径。此示例拦截所有请求，用户可以根据使用需求来设置要拦截的请求。还可以加载 `IpCountProperties` 中的属性，根据配置来设置拦截器拦截的请求
+
+```java
+@Configuration
+public class SpringMvcConfig implements WebMvcConfigurer {
+
+    /** 增加拦截器 */
+    @Override
+    public void addInterceptors(InterceptorRegistry registry) {
+        registry.addInterceptor(ipCountInterceptor()).addPathPatterns("/**");
+    }
+
+    @Bean
+    public IpCountInterceptor ipCountInterceptor() {
+        return new IpCountInterceptor();
+    }
+}
+```
+
+- 步骤三：设置包扫描。值得注意的是，目前整个 starter 工程都没有设置包扫描，所以上面配置的 `@Configuration` 注解不会生效。因为自动配置类上标识 `@ComponentScan` 注解进行包扫描
+
+```java
+@EnableScheduling // 开启 Spring Task 定时任务
+@Import({IpCountProperties.class})
+@ComponentScan("com.tool")
+public class IpCountAutoConfiguration {
+    ...
+}
+```
+
+> 使用拦截器实现统计后，可以移除上面测试中硬编码调用统计业务功能接口的代码
+
+### 10.6. 功能优化 - 开启 yml/properties 配置文件提示功能
+
+#### 10.6.1. 提示信息功能配置
+
+在 Spring Boot 配置属性时，IDE 都会出现配置相关提示，Spring Boot 提供有专用的工具实现配置提示的功能，仅需要导入下列坐标。
+
+```xml
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-configuration-processor</artifactId>
+    <optional>true</optional>
+</dependency>
+```
+
+程序重新编译后，在 META-INF 目录中会生成对应的提示文件，然后拷贝生成出的文件到工程源码的 META-INF 目录中，并对其进行编辑。
+
+![](images/333234021220552.png)
+
+打开生成的文件，可以看到如下信息。
+
+```json
+{
+  "groups": [
+    {
+      "name": "tools.ip",
+      "type": "com.tool.autoconfigure.IpCountProperties",
+      "sourceType": "com.tool.autoconfigure.IpCountProperties"
+    }
+  ],
+  "properties": [
+    {
+      "name": "tools.ip.cycle",
+      "type": "java.lang.Long",
+      "description": "日志显示周期",
+      "sourceType": "com.tool.autoconfigure.IpCountProperties"
+    },
+    {
+      "name": "tools.ip.cycle-reset",
+      "type": "java.lang.Boolean",
+      "description": "是否周期内重置数据",
+      "sourceType": "com.tool.autoconfigure.IpCountProperties"
+    },
+    {
+      "name": "tools.ip.model",
+      "type": "java.lang.String",
+      "description": "日志输出模式  detail：详细模式  simple：极简模式",
+      "sourceType": "com.tool.autoconfigure.IpCountProperties"
+    }
+  ],
+  "hints": [
+    {
+      "name": "tools.ip.model",
+      "values": [
+        {
+          "value": "detail",
+          "description": "详细模式."
+        },
+        {
+          "value": "simple",
+          "description": "极简模式."
+        }
+      ]
+    }
+  ]
+}
+```
+
+- `groups` 属性定义了当前配置的提示信息总体描述，当前配置属于哪一个属性封装类
+- `properties` 属性描述了当前配置中每一个属性的具体设置，包含名称、类型、描述、默认值等信息。<font color=red>**注意：这些提示信息都是来自配置属性类中的文档注释**</font>
+- `hints` 属性默认是空白的，用于设置指定属性，取值的提示信息。（可以参考 Spring Boot 源码中的写法，上面是）
+
+配置信息提示：
+
+![](images/189434921226845.png)
+
+`model` 属性的取值提示：
+
+![](images/262564921247011.png)
+
+#### 10.6.2. 注意问题
+
+上述配置完成后，会出现提示信息重复的问题：
+
+![](images/255485421239680.png)
+
+这是因为打包时也生成一个 `spring-configuration-metadata.json` 文件，只需要打包发布是移除 `spring-boot-configuration-processor` 依赖即可。
+
+### 10.7. 最终效果测试
+
+在 web 程序端导入自定义 starter 后功能开启，去掉坐标后功能消失。
+
+自定义 stater 的开发其实就是创建独立模块，导出独立功能，在需要使用的工程中导入对应的 starter 即可。如果是在企业中开发，记得不仅需要将开发完成的 starter 模块 `install` 到本地仓库中，开发完毕后还要 `deploy` 到私服上，否则别人就无法使用了。
 
 # Spring Boot 项目部署运维篇
 
@@ -2136,7 +2528,7 @@ server.contextPath=/boot
 
 #### 1.3.2. 使用插件打包与无插件打包的区别
 
-下面分别比较一下使用插件和不使用插件打包后的jar包有什么区别。观察两种打包后的程序包的差别，共有3处比较明显的特征：
+下面分别比较一下使用插件和不使用插件打包后的 jar 包有什么区别。观察两种打包后的程序包的差别，共有3处比较明显的特征：
 
 - 打包后文件的大小不同
 
@@ -2146,13 +2538,13 @@ server.contextPath=/boot
 
 ![](images/20220113155746207_4695.png)
 
-发现内容也完全不一样，仅有一个叫做META-INF目录是一样的。打开容量大的程序包中的BOOT-INF目录下的classes目录，可以发现其中的内容居然和容量小的程序包中的内容完全一样。其中lib目录下有很jar文件
+发现内容也完全不一样，仅有一个叫做 META-INF 目录是一样的。打开容量大的程序包中的 BOOT-INF 目录下的 classes 目录，可以发现其中的内容居然和容量小的程序包中的内容完全一样。其中 lib 目录下有很 jar 文件
 
 ![](images/20220113160050860_17092.png)
 
 ![](images/20220113160148464_23741.png)
 
-这些jar文件都是此 Spring Boot 工程时导入的坐标对应的文件，甚至还有 tomcat。这种包含有 jar 包的 jar 包，称之为fatJAR(胖jar包)。SpringBoot 程序为了让自己打包生成的jar包可以独立运行，不仅将项目中开发的内容进行了打包，还把当前工程运行需要使用的jar包全部打包进来了，所以不依赖程序包外部的任何资源，直接通过 `java –jar` 命令即可以独立运行当前程序。
+这些 jar 文件都是此 Spring Boot 工程时导入的坐标对应的文件，甚至还有 tomcat。这种包含有 jar 包的 jar 包，称之为fatJAR(胖jar包)。SpringBoot 程序为了让自己打包生成的 jar 包可以独立运行，不仅将项目中开发的内容进行了打包，还把当前工程运行需要使用的 jar 包全部打包进来了，所以不依赖程序包外部的任何资源，直接通过 `java –jar` 命令即可以独立运行当前程序。
 
 - META-INF 目录下的 MANIFEST.MF 文件内容不一样
 
@@ -2181,7 +2573,7 @@ Created-By: Maven Jar Plugin 3.2.0
 Main-Class: org.springframework.boot.loader.JarLauncher
 ```
 
-大jar包中明显比小jar包中多了几行信息，其中最后一行信息是 `Main-Class: org.springframework.boot.loader.JarLauncher`。如果使用 `java -jar` 执行此程序包，将执行 `Main-Class` 属性配置的类，这个类就是上面所提及的 `JarLauncher.class`。原来 SpringBoot 打包程序中出现 Spring 框架的东西是为这里服务的。而这个 `org.springframework.boot.loader.JarLauncher` 类内部要查找 `Start-Class` 属性中配置的类，并执行对应的类。这个属性在当前配置中也存在，对应的就是 Spring Boot 项目中的引导类类名。
+大 jar 包中明显比小 jar 包中多了几行信息，其中最后一行信息是 `Main-Class: org.springframework.boot.loader.JarLauncher`。如果使用 `java -jar` 执行此程序包，将执行 `Main-Class` 属性配置的类，这个类就是上面所提及的 `JarLauncher.class`。原来 SpringBoot 打包程序中出现 Spring 框架的东西是为这里服务的。而这个 `org.springframework.boot.loader.JarLauncher` 类内部要查找 `Start-Class` 属性中配置的类，并执行对应的类。这个属性在当前配置中也存在，对应的就是 Spring Boot 项目中的引导类类名。
 
 #### 1.3.3. jar 运行流程梳理与问题解析
 
@@ -2379,7 +2771,7 @@ public class Application {
 }
 ```
 
-通过上面示例可知，命令行参数是通过main方法的形参，再从 run 方法的形参中传递到 Spring Boot 程序的。
+通过上面示例可知，命令行参数是通过 `main` 方法的形参，再从 `run` 方法的形参中传递到 Spring Boot 程序的。
 
 ## 4. 属性加载优先级
 
@@ -2388,35 +2780,27 @@ public class Application {
 Spring Boot uses a very particular `PropertySource` order that is designed to allow sensible overriding of values. Properties are considered in the following order (with values from lower items overriding earlier ones):
 
 1. Default properties (specified by setting `SpringApplication.setDefaultProperties`).
-    
     > 应用默认属性，使用 `SpringApplication.setDefaultProperties` 定义的内容
 2. `@PropertySource` annotations on your `@Configuration` classes. Please note that such property sources are not added to the `Environment` until the application context is being refreshed. This is too late to configure certain properties such as `logging.*` and `spring.main.*` which are read before refresh begins.
-    
     > 在 `@Configuration` 注解修改的类中，通过 `@PropertySource` 注解定义的属性
 3. Config data (such as `application.properties` files).
-    > - 位于当前应用jar包之外，针对不同`{profile}`环境的配置文件内容，例如`application-{profile}.properties`或是YAML定义的配置文件
-    > - 位于当前应用jar包之内，针对不同`{profile}`环境的配置文件内容，例如`application-{profile}.properties`或是YAML定义的配置文件
-    > - 位于当前应用jar包之外的application.properties和YAML配置内容
-    > - 位于当前应用jar包之内的application.properties和YAML配置内容
+    > - 位于当前应用 jar 包之外，针对不同`{profile}`环境的配置文件内容，例如`application-{profile}.properties`或是 YAML 定义的配置文件
+    > - 位于当前应用 jar 包之内，针对不同`{profile}`环境的配置文件内容，例如`application-{profile}.properties`或是 YAML 定义的配置文件
+    > - 位于当前应用 jar 包之外的 application.properties 和 YAML 配置内容
+    > - 位于当前应用 jar 包之内的 application.properties 和 YAML 配置内容
 4. A `RandomValuePropertySource` that has properties only in `random.*`.
-    
     > 通过`random.*`配置的随机属性
 5. OS environment variables.
-    
     > 操作系统的环境变量
 6. Java System properties (`System.getProperties()`).
-    
     > Java的系统属性，可以通过`System.getProperties()`获得的内容
 7. JNDI attributes from `java:comp/env`.
-    
     > `java:comp/env` 中的JNDI属性
 8. `ServletContext` init parameters.
 9. `ServletConfig` init parameters.
 10. Properties from `SPRING_APPLICATION_JSON` (inline JSON embedded in an environment variable or system property).
-    
     > SPRING_APPLICATION_JSON 中的属性。SPRING_APPLICATION_JSON 是以 JSON 的格式配置在系统环境变量中的内容
 11. Command line arguments.
-    
     > 在命令行中传入的参数
 12. `properties` attribute on your tests. Available on `@SpringBootTest`  and the test annotations for testing a particular slice of your application.
 13. `@TestPropertySource` annotations on your tests.

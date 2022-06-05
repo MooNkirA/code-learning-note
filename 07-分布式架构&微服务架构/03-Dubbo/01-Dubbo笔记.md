@@ -2844,15 +2844,15 @@ Dubbo的属性配置优先度上，遵循顺序：`reference属性 --> service�
 
 ```xml
 <dubbo:protocol threads="200" />
-<dubbo:service interface="com.alibaba.hello.api.HelloService" version="1.0.0" ref="helloService"
-    executes="200" >
+<dubbo:service interface="com.alibaba.hello.api.HelloService" version="1.0.0" ref="helloService" executes="200">
     <dubbo:method name="findAllPerson" executes="50" />
 </dubbo:service>
 ```
 
-- 建议在 Provider 端配置的 Provider 端属性有：
-    1. `threads`：服务线程池大小
-    2. `executes`：一个服务提供者并行执行请求上限，即当 Provider 对一个服务的并发调用达到上限后，新调用会阻塞，此时 Consumer 可能会超时。在方法上配置 `dubbo:method` 则针对该方法进行并发限制，在接口上配置 `dubbo:service`，则针对该服务进行并发限制
+建议在 Provider 端配置的 Provider 端属性有：
+
+1. `threads`：服务线程池大小
+2. `executes`：一个服务提供者并行执行请求上限，即当 Provider 对一个服务的并发调用达到上限后，新调用会阻塞，此时 Consumer 可能会超时。在方法上配置 `dubbo:method` 则针对该方法进行并发限制，在接口上配置 `dubbo:service`，则针对该服务进行并发限制
 
 ## 2. 服务拆分最佳实现
 

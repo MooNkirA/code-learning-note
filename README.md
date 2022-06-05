@@ -1,4 +1,4 @@
-> 个人编程笔记文档网站，持续更新中...
+> 个人编程笔记文档，持续更新中...😉
 
 ## Java 核心技术
 
@@ -35,10 +35,10 @@
 ### 🍀 Spring
 
 <ul class="docs">
-  <li><a href="#/02-后端框架/03-Spring/01-Spring笔记01-IOC">Spring 使用笔记-IOC</a></li>
-  <li><a href="#/02-后端框架/03-Spring/01-Spring笔记02-AOP">Spring 使用笔记-AOP</a></li>
-  <li><a href="#/02-后端框架/03-Spring/01-Spring笔记03-Transaction">Spring 使用笔记-Transaction</a></li>
-  <li><a href="#/02-后端框架/03-Spring/02-Spring高级应用">Spring 高级应用</a></li>
+  <li><a href="#/02-后端框架/03-Spring/01-Spring笔记01">Spring 笔记-核心功能</a></li>
+  <li><a href="#/02-后端框架/03-Spring/01-Spring笔记02-AOP">Spring 笔记-AOP</a></li>
+  <li><a href="#/02-后端框架/03-Spring/01-Spring笔记03-Transaction">Spring 笔记-Transaction</a></li>
+  <li><a href="#/02-后端框架/03-Spring/01-Spring笔记09-其他">Spring 其他相关资料</a></li>
   <li><a href="#/02-后端框架/03-Spring/02-Spring注解汇总">Spring 注解汇总</a></li>
   <li><a href="#/02-后端框架/03-Spring/03-Spring源码分析01-IOC">Spring 源码分析01-IOC(控制反转)</a></li>
   <li><a href="#/02-后端框架/03-Spring/03-Spring源码分析02-AOP">Spring 源码分析02-AOP(面向切面编程)</a></li>
@@ -47,8 +47,6 @@
   <li><a href="#/02-后端框架/03-Spring/05-Spring源码编译教程">Spring 源码编译教程</a></li>
   <li><a href="#/02-后端框架/03-Spring/网络资料-Spring事务管理（一）快速入门">网络资料-Spring事务管理（一）快速入门</a></li>
 </ul>
-
-
 
 ### 🐦 MyBatis
 
@@ -59,7 +57,6 @@
   <li><a href="#/02-后端框架/04-MyBatis/04-MyBatisPlus">MyBatis-Plus 基础笔记</a></li>
 </ul>
 
-
 ### 🧰 SpringMVC
 
 <ul class="docs">
@@ -67,7 +64,6 @@
   <li><a href="#/02-后端框架/05-SpringMVC/02-SpringMVC注解汇总">Spring MVC 注解汇总</a></li>
   <li><a href="#/02-后端框架/05-SpringMVC/03-SpringMVC源码分析">Spring MVC 源码分析</a></li>
 </ul>
-
 
 ### 💾 Spring Data
 
@@ -77,7 +73,6 @@
   <li><a href="#/02-后端框架/06-Spring-Data/02-Spring-Data-Redis">Spring Data Redis</a></li>
 </ul>
 
-
 ### 🔑 授权认证框架
 
 <ul class="docs">
@@ -86,14 +81,6 @@
   <li><a href="#/02-后端框架/07-Authorization-Certification/02-Spring-Security-OAuth">Spring Security OAuth</a></li>
   <li><a href="#/02-后端框架/07-Authorization-Certification/03-Shiro">Shiro（整理中...）</a></li>
 </ul>
-
-### 📚 Hibernate
-
-待整理，技术已过时，优先级低....
-
-### 🎏 Struts2
-
-待整理，技术已过时，优先级低....
 
 ### 🔧 工具框架
 
@@ -120,8 +107,6 @@
   <li><a href="#/03-前端资料/01-基础语法01-HTML/99-前端其他相关资料">前端其他相关资料</a></li>
 </ul>
 
-
-
 ### 🎨 基础语法 - 层叠样式表
 
 <ul class="docs">
@@ -130,8 +115,6 @@
   <li><a href="#/03-前端资料/01-基础语法02-CSS/03-CSS-其他相关知识">CSS 其他相关知识</a></li>
   <li><a href="#/03-前端资料/01-基础语法02-CSS/04-Less-语法基础">Less 语法基础</a></li>
 </ul>
-
-
 
 ### 🎥 基础语法 - JavaScript
 
@@ -142,7 +125,6 @@
   <li><a href="#/03-前端资料/01-基础语法03-JavaScript/04-JavaScript-工具函数">JavaScript 工具函数</a></li>
   <li><a href="#/03-前端资料/01-基础语法03-JavaScript/05-JavaScript-代码简洁之道">JavaScript 代码简洁之道</a></li>
 </ul>
-
 
 ### 🅰 Angular.js
 
@@ -179,7 +161,6 @@
   <li><a href="#/03-前端资料/06-前端工程化工具/02-webpack">Webpack 笔记</a></li>
   <li><a href="#/03-前端资料/06-前端工程化工具/03-ESLint">ESLint 笔记</a></li>
 </ul>
-
 
 ### 📱  移动端Web
 
@@ -230,8 +211,6 @@
   <li><a href="#/04-数据库/04-MongoDb/02-MongoDB-安装与使用">MongoDB 安装与使用</a></li>
 </ul>
 
-
-
 ## DevOps工具
 
 ### 🪒 项目构建工具
@@ -248,7 +227,6 @@
   <li><a href="#/05-DevOps工具/02-版本管理工具/01-Git笔记">Git 笔记</a></li>
   <li><a href="#/05-DevOps工具/02-版本管理工具/02-GitHub">GitHub 相关资料与常用使用技巧</a></li>
 </ul>
-
 
 ### 📦 应用容器
 
@@ -288,7 +266,7 @@
   <li><a href="#/07-分布式架构&微服务架构/01-SpringBoot/05-SpringBoot整合Servlet、Filter、Listener">SpringBoot 整合 Servlet、Filter、Listener</a></li>
   <li><a href="#/07-分布式架构&微服务架构/01-SpringBoot/06-SpringBoot-SQL-Databases">Spring Boot 关系型数据库技术（内置数据源技术、内置数据库）</a></li>
   <li><a href="#/07-分布式架构&微服务架构/01-SpringBoot/07-SpringBoot-SQL-Databases-Technologies">Spring Boot 关系型数据库持久技术框架(JdbcTemplate、MyBatis、MyBatis-Plus)</a></li>
-  <li><a href="#/07-分布式架构&微服务架构/01-SpringBoot/08-Spring-Boot-Admin">Spring Boot Admin 监控工具</a></li>
+  <li><a href="#/07-分布式架构&微服务架构/01-SpringBoot/08-Spring-Boot-Actuator">Spring Boot Actuator 应用运行状态监控与 Spring Boot Admin 监控工具</a></li>
   <li><a href="#/07-分布式架构&微服务架构/01-SpringBoot/09-Spring-Boot-Redis">Spring Boot 整合 Redis</a></li>
   <li><a href="#/07-分布式架构&微服务架构/01-SpringBoot/10-Spring-Boot-MongoDB">Spring Boot 整合 MongoDB</a></li>
   <li><a href="#/07-分布式架构&微服务架构/01-SpringBoot/11-Spring-Boot-Elasticsearch">Spring Boot 整合 Elasticsearch</a></li>
@@ -299,13 +277,6 @@
   <li><a href="#/07-分布式架构&微服务架构/01-SpringBoot/16-Spring-Boot-Messaging">Spring Boot 消息系统</a></li>
   <li><a href="#/07-分布式架构&微服务架构/01-SpringBoot/99-SpringBoot笔记-其他相关内容">Spring Boot 笔记-其他相关内容</a></li>
 </ul>
-
-
-
-
-
-
-
 
 ### ⛅ SpringCloud
 
@@ -353,13 +324,12 @@
 ### 📬 分布式消息中件间
 
 <ul class="docs">
-  <li><a href="#/07-分布式架构&微服务架构/07-分布式消息中件间/01-消息中件间">消息中间件概述</a></li>
+  <li><a href="#/07-分布式架构&微服务架构/07-分布式消息中件间/01-消息中间件">消息中间件概述</a></li>
   <li><a href="#/07-分布式架构&微服务架构/07-分布式消息中件间/02-ActiveMQ">ActiveMQ</a></li>
   <li><a href="#/07-分布式架构&微服务架构/07-分布式消息中件间/03-RabbitMQ">RabbitMQ</a></li>
   <li><a href="#/07-分布式架构&微服务架构/07-分布式消息中件间/04-RocketMQ">RocketMQ</a></li>
   <li><a href="#/07-分布式架构&微服务架构/07-分布式消息中件间/05-Kafka">Kafka</a></li>
 </ul>
-
 
 ### 🧾 分布式配置中心
 
@@ -427,6 +397,7 @@
   <li><a href="#/99-其他/其它资料">其它资料</a></li>
   <li><a href="#/99-其他/Hexo-blog搭建工具">Hexo 博客 搭建工具</a></li>
   <li><a href="#/99-其他/docsify-文档类型网站搭建工具">docsify 文档类型网站搭建工具</a></li>
+  <li><a href="#/99-其他/Mermaid-基于Javascript的绘图语法">Mermaid 基于 Javascript 的绘图语法</a></li>
 </ul>
 
 ## 收集的项目实战资料
@@ -438,7 +409,6 @@
   <li><a href="#/00-项目资料/06-红包雨场景案例/">红包雨场景案例 项目资料</a></li>
   <li><a href="#/00-项目资料/07-万信金融/">万信金融 项目资料</a></li>
 </ul>
-
 
 # 在线阅读地址
 

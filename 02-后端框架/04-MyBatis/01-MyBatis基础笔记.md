@@ -984,16 +984,16 @@ public void findUserByNameTest() throws IOException {
 ##### 6.3.1.1. 定义主键的方式1
 
 - `select LAST_INSERT_ID()`：得到刚刚insert操作添加的记录的主键，只适用与自增主键
--` keyColumn`属性：主键字段名（表）
-- `keyProperty`属性：将查询到主键值设置到`parameterType`指定的对象的哪一个属性中
-- `order`属性：指定`select LAST_INSERT_ID()`执行顺序，相对于insert语句来说的执行顺序
+- `keyColumn` 属性：主键字段名（表）
+- `keyProperty` 属性：将查询到主键值设置到`parameterType`指定的对象的哪一个属性中
+- `order` 属性：指定`select LAST_INSERT_ID()`执行顺序，相对于insert语句来说的执行顺序
     - `BEFORE`：在insert语句执行之前；
     - `AFTER`：在insert语句执行之后；
 
 ##### 6.3.1.2. 定义主键的方式2
 
-- `useGeneratedKeys="true"`,使用数据库的主键生成策略，默认值是true
--` keyColumn`：主键字段（表）
+- `useGeneratedKeys="true"`，使用数据库的主键生成策略，默认值是true
+- `keyColumn`：主键字段（表）
 - `keyProperty`：主键属性（pojo）
 
 oracle数据库中使用BEFORE:
@@ -1183,6 +1183,7 @@ public void updateUserTest() throws IOException {
 ```
 
 ### 6.5. 删除映射`<delete>`
+
 #### 6.5.1. 标签作用与属性
 
 `<delete>`标签的作用是MyBatis对数据库表数据进行删除操作，用于删除映射

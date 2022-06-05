@@ -108,7 +108,7 @@ public class SpringMvcConfiguration {
 
 - 创建配置类`WebConfig.java`，用于替代web项目的`web.xml`配置文件。初始化Spring和SpringMVC IOC容器的配置类
 
-> 注：Servlet3.0规范提供的标准接口`ServletContainerInitializer`，作用是在启动容器是做一些初始化操作，所以创建`WebConfig`类可以实现`ServletContainerInitializer`接口，或者继承SpringMVC提供的抽象实现`AbstractDispatcherServletInitializer`类，重写里面的`onStartUp()`方法，调用执行父类的`onStartUp()`方法的同时，执行自己项目需要的一些初始化操作
+> 注：Servlet3.0 规范提供的标准接口 `ServletContainerInitializer`，作用是在启动容器是做一些初始化操作，所以创建 `WebConfig` 类可以实现 `ServletContainerInitializer` 接口，或者继承 Spring MVC 提供的抽象实现 `AbstractDispatcherServletInitializer` 类，重写里面的 `onStartUp()` 方法，调用执行父类的 `onStartUp()` 方法的同时，执行自己项目需要的一些初始化操作
 
 ```java
 /**
@@ -243,7 +243,7 @@ public class WebConfig extends AbstractDispatcherServletInitializer {
 
 # SpringMVC 常用注解
 
-> 各个注解的详细说明与用法详见源码项目`spring-note\Spring-Framework`，使用示例详见`spring-note\spring-analysis-note\springmvc-sample-annotation\01-annotation-spring-mvc\`
+> 各个注解的详细说明与用法详见源码项目`spring-note\Spring-Framework`，使用示例详见`spring-note\springmvc-sample\05-spring-mvc-annotation\`
 >
 > 一些测试案例需要使用postman或者idea自带的Http Client这种请求工具来测试。示例项目中有idea的Http Client请求文件
 
@@ -358,20 +358,20 @@ public class RequestMappingController {
 
 #### 1.3.1. 作用与用法
 
-`@RequestParam`是从请求正文中获取请求参数，给控制器方法形参赋值的。
+`@RequestParam` 是从请求正文中获取请求参数（包括请求上传文件），给控制器方法形参赋值的。参数值会被转换成声明方法形参的类型。
 
-当请求参数的名称和控制器方法形参变量名称一致时，无须使用此注解。同时，当没有获取到请求参数时，此注解还可以给控制器方法形参提供默认值。
+对于简单类型的参数值，当请求参数的名称和控制器方法形参变量名称一致时，此注解可省略。同时，当没有获取到请求参数时，此注解还可以给控制器方法形参提供默认值。
 
 **注意：此注解只能出现在方法的参数上**
 
 #### 1.3.2. 相关属性
 
-|     属性名      |                             作用                             |  取值/示例  |
-| :------------: | ------------------------------------------------------------ | ---------- |
-|    `value`     | 用于指定获取请求参数的名称。它和name属性的作用一样                |            |
-|     `name`     | 在4.2版本中加入的。和value属性互为引用                          |            |
-|   `required`   | 指定参数是否必须有值。默认值为true，当为true时，参数没有值时会报错 | true/false |
-| `defaultValue` | 在参数没有值时的默认值                                         |            |
+|     属性名      |                                  作用                                   |  取值/示例  |
+| :------------: | ----------------------------------------------------------------------- | ---------- |
+|    `value`     | 用于指定获取请求参数的名称。它和`name`属性的作用一样                      |            |
+|     `name`     | 在4.2版本中加入的。和`value`属性互为引用                                 |            |
+|   `required`   | 指定参数是否请求时必须传递。默认值为true。当为true时，参数没有值时会报错； | true/false |
+| `defaultValue` | 设置请求参数的默认值。如果传递则使用实际的参数值。如果不传递则使用默认值    |            |
 
 #### 1.3.3. 使用示例
 
@@ -471,7 +471,7 @@ public class InitBinderController {
 
 #### 1.4.4. 扩展注解 @DateTimeFormat
 
-还一种方法实现上面的效果，在SpringMVC配置类`SpringMvcConfiguration.java`中增加`@EnableWebMvc`注解，开启SpringMVC
+还一种方法实现上面的效果，在 Spring MVC 配置类`SpringMvcConfiguration.java`中增加 `@EnableWebMvc` 注解，开启 Spring MVC 配置
 
 ```java
 @Configuration
@@ -503,19 +503,19 @@ public class User implements Serializable {
 
 #### 1.5.1. 作用与用法
 
-`@ControllerAdvice`用于给控制器提供一个增强的通知。以保证可以在多个控制器之间实现增强共享。它可以配合这些注解来用：`@ExceptionHandler`、`@InitBinder`、`@ModelAttribute`
+`@ControllerAdvice`用于给控制器提供一个增强的通知。以保证可以在多个控制器之间实现增强共享。它可以与 `@ExceptionHandler`、`@InitBinder`、`@ModelAttribute` 等注解配置使用
 
 <font color=red>**注意：只对标识`@Controller`注解的控制类生效**</font>
 
 #### 1.5.2. 相关属性
 
-|        属性名         |                           作用                            | 取值/示例 |
-| :------------------: | -------------------------------------------------------- | -------- |
-|       `value`        | 用于指定对哪些包下的控制器进行增强，与basePackages属性作用一样 |          |
-|    `basePackages`    | 用于指定对哪些包下的控制器进行增强，与value属性作用一样        |          |
-| `basePackageClasses` | 用于指定特定的类型，给该类型所在的包及其子包的所有类提供增强    |          |
-|  `assignableTypes`   | 用于指定特定的类型提供增强                                  |          |
-|    `annotations`     | 用于指定给特定注解提供增强                                  |          |
+|        属性名         |                             作用                             | 取值/示例 |
+| :------------------: | ------------------------------------------------------------ | --------- |
+|       `value`        | 用于指定对哪些包下的控制器进行增强，与basePackages属性作用一样 |           |
+|    `basePackages`    | 用于指定对哪些包下的控制器进行增强，与value属性作用一样        |           |
+| `basePackageClasses` | 用于指定特定的类型，给该类型所在的包及其子包的所有类提供增强    |           |
+|  `assignableTypes`   | 用于指定特定的类型提供增强                                    |           |
+|    `annotations`     | 用于指定给特定注解提供增强                                    |           |
 
 #### 1.5.3. 使用示例
 
@@ -923,7 +923,9 @@ public class ExceptionHandlerController {
 
 #### 2.1.1. 作用与用法
 
-`@RequestBody`注解用于修饰方法的形参，用于获取全部的请求体数据。<font color=red>**注：此注解主要是获取请求体的数据，并没有将json数据封装到实体对象的功能，具体由第三方的json组件或者自定义json转换来实现。**</font>
+`@RequestBody` 注解用于修饰方法的形参，用于获取全部的请求体数据。<font color=red>**注：此注解主要是获取请求体的数据，并没有将json数据封装到实体对象的功能，具体由第三方的json组件或者自定义json转换来实现。**</font>
+
+GET 请求方式无请求体，所以使用 `@RequestBody` 无法接收数据，前端需要使用 POST 方式进行提交。
 
 #### 2.1.2. 相关属性
 
@@ -979,6 +981,27 @@ public String useRequestBody(@RequestBody User user) {
     return "success";
 }
 ```
+
+#### 2.1.4. @RequestBody 扩展内容
+
+##### 2.1.4.1. @RequestBody 和 @RequestParam 的用法比较
+
+1. 当同时使用 `@RequestParam` 和 `@RequestBody` 时，`@RequestParam` 指定的参数可以是普通元素、数组、集合、对象等等
+	- 接收机制不一样。`@RequestBody` 接收的是**请求体里面的数据**；而 `@RequestParam` 接收的是**key-value 里面的参数**，所以它会被切面进行处理从而可以用普通元素、数组、集合、对象等接收
+	- 如果参数时放在请求体中，传入后台的话，那么后台要用 `@RequestBody` 才能接收到；如果不是放在请求体中的话，那么后台接收前台传过来的参数时，要用 `@RequestParam` 来接收，或则形参前什么也不写也能接收
+2. 如果参数前写了 `@RequestParam(xxx)`，那么前端请求时必须上送对应的xxx名字(不管其是否有值，当然可以通过设置该注解的 `required` 属性来调节是否必须传)的请求参数，如果无上送该名称的参数，请求会报 400 的错误
+3. 如果参数前不写 `@RequestParam(xxx)` 的话，前端上送的参数如果有xxx名的话，那么就会自动匹配；没有的话，请求也能正确发送
+	- 扩展：这里与 feign 消费服务时不同；feign 消费服务时，如果参数前什么也不写，那么会被默认是 `@RequestBody` 的
+4. 在同一个接收请求方法中，`@RequestBody` 与 `@RequestParam` 可以同时使用，此时原 Spring MVC 接收参数的机制不变。`@RequestBody` 最多只能有一个，而 `@RequestParam` 可以有多个
+
+##### 2.1.4.2. @RequestBody 修饰的对象接收数据的注意问题
+
+如果后端参数是一个对象，且该参数前是以 `@RequestBody` 修饰的，那么前端传递 json 参数时，必须满足以下要求
+
+1. `@RequestBody` 注解对应的类在将 HTTP 的输入流(含请求体)装配到目标类(即：`@RequestBody` 后面的类)时，会根据 json 字符串中的 key 来匹配对应实体类的属性，如果匹配一致且 json 中的该 key 对应的值符合(或可转换为)，实体类的对应属性的类型要求时，会调用实体类的 setter 方法将值赋给该属性。
+2. json 字符串中，如果 value 为 `""` 空字符串的话，后端对应属性如果是 `String` 类型的，那么接受到的就是 `""`，如果是后端属性的类型是 `Integer`、`Double` 等类型，那么接收到的值为 null
+3. json 字符串中，如果 value 为 null 的话，后端对应收到的值为 null
+4. 如果某个参数没有 value 的话，在传 json 字符串给后端时，要么干脆就不把该字段写到 json 字符串中；要么写 value 时，必须有值，`null` 或 `""` 均可。千万不能有类似『`"stature":`』的写法
 
 ### 2.2. @ResponseBody
 
@@ -1658,9 +1681,9 @@ public class CustomInterceptorController {
 
 实现类型转换的功能多种方式。如之前的示例中的`@InitBinder`可以进行数据预处理；或者spring mvc提供的内置转换器，如：`@DateTimeFormat`也能实现日期类型的转换
 
-### 4.1. Converter接口
+### 4.1. Converter 接口
 
-`Converter`接口是Spring提供的用于处理类型转换的接口
+`Converter` 接口是 Spring 提供的用于处理类型转换的接口
 
 ```java
 /* 类型转换器接口 */
@@ -1678,7 +1701,7 @@ public interface Converter<S, T> {
 }
 ```
 
-### 4.2. 自定义Converter
+### 4.2. 自定义 Converter
 
 自定义类型转换器需要实现`Converter`接口，实现`convert`方法，在方法中进行相关的类型转换的处理逻辑。
 

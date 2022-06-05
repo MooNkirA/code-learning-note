@@ -4,7 +4,7 @@ Spring Boot 为集成消息系统提供了广泛的支持，从使用 JmsTemplat
 
 ## 1. Java处理消息的标准规范概述
 
-> 此部分内容详见[《消息中间件》笔记](/07-分布式架构&微服务架构/07-分布式消息中件间/01-消息中件间)
+> 此部分内容详见[《消息中间件》笔记](/07-分布式架构&微服务架构/07-分布式消息中件间/01-消息中间件)
 
 ## 2. Spring Boot 整合 ActiveMQ
 
@@ -358,7 +358,7 @@ public class MessageListener {
 
 #### 3.2.7. 功能测试
 
-启动工程与 ActiveMQ 服务，在浏览器访问 http://localhost/order/S1838323
+启动工程与 RabbitMQ 服务，在浏览器访问 http://localhost/order/S1838323
 
 观察项目控制台日志输出，多次请求，则以轮询方式调用多个消费者
 
@@ -368,34 +368,339 @@ public class MessageListener {
 
 #### 3.3.1. 引入依赖与配置
 
+与上面 direct 消息模型示例一样
 
+#### 3.3.2. 初始化主题模式系统设置
+
+由于 RabbitMQ 不同模型要使用不同的交换机，因此创建配置类，先初始化 RabbitMQ 相关的对象，例如队列 `Queue` 与主题交换机 `TopicExchange` 实例创建后，还需要创建 `Binding` 对象并绑定队列与交换机之间的关系，这样才可以通过交换机操作对应队列。
+
+```java
+@Configuration
+public class RabbitTopicConfig {
+
+    /* 创建队列1 */
+    @Bean
+    public Queue topicQueue() {
+        // 指定队列名称
+        return new Queue("topic_queue");
+    }
+
+    /* 以下表示可以创建多个队列，然后同一个交换机可以绑定多个队列 */
+    @Bean
+    public Queue topicQueue2() {
+        return new Queue("topic_queue2");
+    }
+
+    /* 创建主题类型交换机 */
+    @Bean
+    public TopicExchange topicExchange() {
+        // 指定主题类型交换机名称
+        return new TopicExchange("topicExchange");
+    }
+
+    /* 创建 Binding 对象，绑定主题类型交换机与队列 */
+    @Bean
+    public Binding bindingtopic() {
+        // 主题模式支持 routingKey 匹配模式。（* 表示匹配一个单词，# 表示匹配任意内容）
+        return BindingBuilder.bind(topicQueue()).to(topicExchange()).with("topic.*.id");
+    }
+
+    /* 创建另一个 Binding 对象，绑定主题类型交换机与队列2 */
+    @Bean
+    public Binding bindingtopic2() {
+        return BindingBuilder.bind(topicQueue2()).to(topicExchange()).with("topic.orders.*");
+    }
+}
+```
+
+#### 3.3.3. 主题模式的 routingKey 匹配模式
+
+主题模式支持 routingKey 匹配模式(带通配符)，`*` 表示匹配一个单词，`#` 表示匹配任意内容，这样就可以通过主题交换机将消息分发到不同的队列中。匹配示例如下：
+
+|       匹配键       | `topic.*.*` | `topic.#` |
+| ----------------- | ----------- | --------- |
+| topic.order.id    | true        | true      |
+| order.topic.id    | false       | false     |
+| topic.sm.order.id | false       | true      |
+| topic.sm.id       | false       | true      |
+| topic.id.order    | true        | true      |
+| topic.id          | false       | true      |
+| topic.order       | false       | true      |
+
+#### 3.3.4. 消息生产者
+
+复制上面直连类型的消息接口改名为 `TopicMessageService`，再创建该接口实现类 `TopicMessageServiceImpl` 中，同样注入 `AmqpTemplate` 操作对象发送消息。根据当前提供的 routingKey 与绑定交换机时设定的 routingKey 进行匹配，规则匹配成功消息才会进入到对应的队列中。
+
+```java
+public interface TopicMessageService {
+    void sendMessage(String id);
+}
+
+
+@Service
+public class TopicMessageServiceImpl implements TopicMessageService {
+
+    @Autowired
+    private AmqpTemplate amqpTemplate;
+
+    @Override
+    public void sendMessage(String id) {
+        System.out.println("接收到 id：" + id + " 的订单，rabbitmq topic 类型准备给用户发送短信通知...");
+        /*
+         * 调用 AmqpTemplate.convertAndSend(String exchange, String routingKey, final Object object) 方法，
+         * 向 RabbitMQ 服务发送消息，该方法直接将内容进行转换后，再发送
+         *      exchange 参数：指定消息发送到哪个交换机的名称
+         *      routingKey 参数：指定消息发送到交换机与队列绑定的路由名称
+         *      object 参数：发送的消息体内容
+         */
+        // 选择主题类型交换机，根据不同的 routingKey 匹配发送到哪些队列中
+        amqpTemplate.convertAndSend("topicExchange", "topic.orders.id", id);
+    }
+}
+```
+
+#### 3.3.5. 消息消费者
+
+创建消息监听器 `TopicMessageListener` 类，类中定义消费消息的方法，在该方法上标识 `@RabbitListener` 注解，通过 `queues` 属性设置当前方法监听 RabbitMQ 服务中指定名称的消息队列。在服务器启动后，监听指定名称的消息队列，当有消息出现后，立即调用此消费方法。
+
+```java
+@Component
+public class TopicMessageListener {
+    /*
+     * @RabbitListener 注解用于标识方法，通过 queues 属性指定监听的列队名称
+     * 当该队列出现消息后，此方法就会被调用，方法形参为接收消息的内容
+     */
+    @RabbitListener(queues = "topic_queue")
+    public void receive(String id) {
+        System.out.println("topic_queue 队列 已完成短信发送业务，id：" + id);
+    }
+
+    // 如果定义多个监听同一个队列，那么 RabbitMQ 会以轮询的方式让每个消费者平均消费消息
+    @RabbitListener(queues = "topic_queue2")
+    public void receive2(String id) {
+        System.out.println("topic_queue 队列 2 已完成短信发送业务，id：" + id);
+    }
+}
+```
+
+#### 3.3.6. 请求控制层
+
+在示例 `OrderController` 类中，增加新测试请求方法，调用 `TopicMessageService` 业务层
+
+```java
+@Autowired
+private TopicMessageService topicMessageService;
+
+@GetMapping("topic/{id}")
+public String topicDemo(@PathVariable String id) throws InterruptedException {
+    // 模拟调用了N个服务接口，处理很复杂的业务逻辑
+    System.out.println("系统很忙碌地处理 id 为：" + id + " 的订单....");
+    topicMessageService.sendMessage(id); // 发送消息
+    Thread.sleep(2000); // 模拟业务处理时间
+    return "success";
+}
+```
+
+
+#### 3.3.7. 功能测试
+
+启动工程与 RabbitMQ 服务，在浏览器访问 http://localhost/order/topic/876
+
+观察项目控制台日志输出，因为发送消息指定的 routingKey 是 `"topic.orders.id"`，与队列1绑定的 `"topic.*.id"` 和队列2绑定的 `"topic.orders.*"` 均匹配上，所以两个队列都会消费此消息
+
+![](images/572850208220545.png)
 
 ## 4. Spring Boot 整合 RocketMQ
 
+RocketMQ 由阿里研发，后捐赠给 apache 基金会，目前是 apache 基金会顶级项目之一，也是目前市面上的 MQ 产品中较为流行的产品之一，它遵从 AMQP 协议。
+
 > 本章节主要是 Spring Boot 整合 RocketMQ，关于 RocketMQ 更多介绍与使用详见[《RocketMQ》笔记](/07-分布式架构&微服务架构/07-分布式消息中件间/04-RocketMQ)
 
+### 4.1. 环境准备
 
+RocketMQ 的下载、安装、启动服务等参考《RocketMQ》笔记。
 
+### 4.2. 基础整合示例
 
+#### 4.2.1. 基础示例工程准备
 
+> 直接使用前面示例工程代码（移除相关发送消息与监听消息的代码、与相关依赖）
 
+#### 4.2.2. 引入 RocketMQ 依赖
 
+在项目的 pom.xml 文件中引入 Spring Boot 整合 RocketMQ 的 starter 依赖，此坐标 Spring Boot 没有进行版本维护
 
+```xml
+<dependency>
+    <groupId>org.apache.rocketmq</groupId>
+    <artifactId>rocketmq-spring-boot-starter</artifactId>
+    <version>2.2.1</version>
+</dependency>
+```
 
+#### 4.2.3. 配置 RocketMQ
 
+修改 application.yml 文件，配置 RocketMQ 的名称服务器地址。`rocketmq.producer.group` 选项可以设置默认的生产者消费者所属组 group 名称
 
+```yml
+rocketmq:
+  name-server: localhost:9876 # 设置 nameServer(名称服务)地址
+  producer:
+    group: group_rocketmq # 设置默认的生产者消费者所属组 group 名称
+```
 
+#### 4.2.4. 消息生产者
 
+在发送的消息的业务接口 `MessageServiceImpl` 中，使用 `RocketMQTemplate` 操作对象向 RocketMQ 发送消息。通常会使用对象的 `asyncSend` 异步发送消息的方法，该方法最后的形参是传入 `SendCallback` 接口实现，是消息发送成功/失败后执行的回调方法
+
+```java
+@Service
+public class MessageServiceImpl implements MessageService {
+
+    @Autowired
+    private RocketMQTemplate rocketMQTemplate;
+
+    @Override
+    public void sendMessage(String id) {
+        System.out.println("接收到 id：" + id + " 的订单，准备给用户发送短信通知...");
+        /*
+         * RocketMQTemplate 也有 convertAndSend(D destination, Object payload) 方法向 RocketMQ 服务发送消息，但该方法是同步方法
+         * 通常会使用 RocketMQTemplate.asyncSend(String destination, Object payload, SendCallback sendCallback) 方法，向 RocketMQ 服务发送异常消息
+         *      destinationName 参数：消息发往的目的地名称
+         *      payload 参数：发送的消息体内容
+         *      sendCallback 参数：消息发送成功/失败后的回调方法
+         */
+        rocketMQTemplate.asyncSend("order_id", id, new SendCallback() {
+            @Override
+            public void onSuccess(SendResult sendResult) {
+                System.out.println("消息发送成功！");
+            }
+
+            @Override
+            public void onException(Throwable e) {
+                System.out.println("消息发送失败！！");
+            }
+        });
+    }
+}
+```
+
+#### 4.2.5. 消息消费者
+
+创建消息监听器 `MessageListener` 类，类中定义消费消息的方法，RocketMQ 规定所有监听器必须按照标准格式开发，实现 `org.apache.rocketmq.spring.core.RocketMQListener` 接口，泛型为消息的数据类型。在监听类上标识 `@RocketMQMessageListener` 注解，其中 `topic` 属性用于指定当前监听消息队的名称；`consumerGroup` 属性用于指定消费的消息所属分组名称。
+
+```java
+@Component
+// @RocketMQMessageListener 注解用于定义监听的消息队列的名称，与消息所属的分组
+@RocketMQMessageListener(topic = "order_id", consumerGroup = "group_rocketmq")
+// RocketMQ 的监听器规定必须实现 org.apache.rocketmq.spring.core.RocketMQListener 接口，泛型为消息的数据类型
+public class MessageListener implements RocketMQListener<String> {
+
+    /**
+     * 在监听到相关主题的出现消息时，此方法会被调用，方法形参为接收消息的内容
+     *
+     * @param message 传递的消息内容
+     */
+    @Override
+    public void onMessage(String message) {
+        System.out.println("rocketmq 已完成短信发送业务，id：" + message);
+    }
+}
+```
+
+#### 4.2.6. 功能测试
+
+启动工程与 RocketMQ 服务，在浏览器访问 http://localhost/order/S1838323 。观察项目控制台日志输出
+
+```console
+系统很忙碌地处理 id 为：S1838323 的订单....
+接收到 id：S1838323 的订单，准备给用户发送短信通知...
+消息发送成功！
+```
 
 ## 5. Spring Boot 整合 Kafka
 
 > 本章节主要是 Spring Boot 整合 Kafka，关于 Kafka 更多介绍与使用详见[《Kafka》笔记](/07-分布式架构&微服务架构/07-分布式消息中件间/05-Kafka)
 
+### 5.1. 环境准备
 
+Kafka 的下载、安装、启动服务等参考《Kafka》笔记。
 
+### 5.2. 基础整合示例
 
+#### 5.2.1. 基础示例工程准备
 
+> 直接使用前面示例工程代码（移除相关发送消息与监听消息的代码、与相关依赖）
 
+#### 5.2.2. 引入 Kafka 依赖
 
+在项目的 pom.xml 文件中引入 Spring Boot 整合 Kafka 的依赖，名称不是以 starter 命名，Spring Boot 父工程已进行版本管理，无需指定版本。
 
+```xml
+<dependency>
+    <groupId>org.springframework.kafka</groupId>
+    <artifactId>spring-kafka</artifactId>
+</dependency>
+```
 
+#### 5.2.3. 配置 Kafka
+
+修改 application.yml 文件，配置 Kafka 的服务器地址
+
+```yml
+spring:
+  kafka: # kafka 配置
+    bootstrap-servers: localhost:9092 # 服务地址
+    consumer:
+      group-id: order # 设置默认的生产者/消费者所属组 id
+```
+
+#### 5.2.4. 消息生产者
+
+在发送的消息的业务接口 `MessageServiceImpl` 中，使用 `KafkaTemplate` 操作对象向 Kafka 发送消息。
+
+```java
+@Service
+public class MessageServiceImpl implements MessageService {
+
+    @Autowired
+    private KafkaTemplate<String, String> kafkaTemplate;
+
+    @Override
+    public void sendMessage(String id) {
+        System.out.println("接收到 id：" + id + " 的订单，准备给用户发送短信通知...");
+        /*
+         * 调用 JmsMessagingTemplate.send(String topic, @Nullable V data) 方法，向 Kafka 服务发送消息
+         *      topic 参数：消息发往的主题名称
+         *      data 参数：发送的消息体内容
+         */
+        kafkaTemplate.send("spring.kafka", id);
+    }
+}
+```
+
+#### 5.2.5. 消息消费者
+
+创建消息监听器 `MessageListener` 类，类中定义消费消息的方法，在该方法上标识 `@KafkaListener` 注解，通过 `topics` 属性设置当前方法监听 Kafka 服务中指定主题的消息队列。接收到的消息封装成对象 `ConsumerRecord<K, V>` 中，通过方法的形参获取，获取数据从 `ConsumerRecord` 对象中获取即可。在服务器启动后，监听指定主题，当有消息出现后，立即调用此消费方法。
+
+```java
+@Component
+public class MessageListener {
+
+    /*
+     * @KafkaListener 注解用于标识方法，通过 topics 属性指定监听的主题名称
+     * 当该主题的消息队列出现消息后，此方法就会被调用，方法形参为接收消息的内容
+     * 消息会包装在 ConsumerRecord<K, V> 对象
+     */
+    @KafkaListener(topics = "spring.kafka")
+    public void receive(ConsumerRecord<String, String> record) {
+        System.out.println("已完成短信发送业务，id：" + record.value());
+    }
+}
+```
+
+#### 5.2.6. 功能测试
+
+启动工程与 Kafka 服务，在浏览器访问 http://localhost/order/S1838323
+
+观察项目控制台日志输出，会输出相关消息相关的日志
