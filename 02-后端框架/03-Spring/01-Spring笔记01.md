@@ -2145,6 +2145,69 @@ public interface Converter<S, T> {
 
 ### 12.2. ConverterFactory 实现类型转换
 
+Spring 的 `org.springframework.core.convert.converter.ConverterFactory` 接口
+
+```java
+public interface ConverterFactory<S, R> {
+
+	/**
+	 * Get the converter to convert from S to target type T, where T is also an instance of R.
+	 * @param <T> the target type
+	 * @param targetType the target type to convert to
+	 * @return a converter from S to T
+	 */
+	<T extends R> Converter<S, T> getConverter(Class<T> targetType);
+}
+```
+
+- 泛型 S：是要转换的类型
+- 泛型 R：定义可以转换类范围的基本类型
+- 实现 `getConverter(Class<T>)` 方法，返回值为 `Converter` 接口的实现类，其中 T 是 R 的子类
+
+例如 Spring 的提供的实现类 `StringToEnumConverterFactory`
+
+```java
+final class StringToEnumConverterFactory implements ConverterFactory<String, Enum> {
+
+	@Override
+	public <T extends Enum> Converter<String, T> getConverter(Class<T> targetType) {
+		return new StringToEnum(ConversionUtils.getEnumType(targetType));
+	}
+
+
+	private static class StringToEnum<T extends Enum> implements Converter<String, T> {
+
+		private final Class<T> enumType;
+
+		StringToEnum(Class<T> enumType) {
+			this.enumType = enumType;
+		}
+
+		@Override
+		@Nullable
+		public T convert(String source) {
+			if (source.isEmpty()) {
+				// It's an empty enum identifier: reset the enum value to null.
+				return null;
+			}
+			return (T) Enum.valueOf(this.enumType, source.trim());
+		}
+	}
+}
+```
+
+### 12.3. GenericConverter 实现类型转换
+
+当需要一个复杂的转换器时，可以使用 Spring 的 `org.springframework.core.convert.converter.GenericConverter` 接口，该接口支持在多个源类型和目标类型之间进行转换，此外还提供了可用的源字段和目标字段上下文，在实现转换逻辑时，可以使用。`GenericConverter` 的接口定义如下：
+
+```java
+public interface GenericConverter {
+
+    public Set<ConvertiblePair> getConvertibleTypes();
+
+    Object convert(Object source, TypeDescriptor sourceType, TypeDescriptor targetType);
+}
+```
 
 
 
