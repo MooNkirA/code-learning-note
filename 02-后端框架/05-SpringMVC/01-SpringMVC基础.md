@@ -1281,7 +1281,135 @@ public void testCustomArgumentResolver() throws Exception {
 
 对于这种情况，会根据配置的转换器自动进行类型转换。默认情况下，支持简单类型（int、long、Date和其他）。可以通过 `WebDataBinder`（详见下面 `DataBinder` 相关章节）或通过向 `FormattingConversionService` 注册 `Formatters` 来定制类型转换。详见[《Spring 笔记 - 核心技术.md》文档](/02-后端框架/03-Spring/01-Spring笔记01)中的类型转换章节。
 
-#### 4.11.1. 自定义参数类型转换器
+#### 4.11.1. 类型转换与绑定基础使用示例
+
+> 完整示例代码详见 spring-note\springmvc-sample\13-type-conversion-data-binder
+
+- 创建用于测试的 bean 
+
+```java
+@ToString
+@Getter
+public class BeanNoSetter {
+    private int a;
+    private String b;
+    private Date c;
+}
+
+@Data
+public class NormalBean {
+    private int a;
+    private String b;
+    private Date c;
+}
+
+@Data
+public class Address {
+    private String name;
+}
+
+@Data
+public class User {
+    private Date birthday;
+    private Address address;
+}
+```
+
+- `SimpleTypeConverter`、`BeanWrapperImpl`、`DirectFieldAccessor`、`DataBinder`、`ServletRequestDataBinder` 进行数据类型转换与绑定测试
+
+```java
+// SimpleTypeConverter 类实现类型转换测试
+@Test
+public void testSimpleConverter() {
+    // 仅只有类型转换的功能
+    SimpleTypeConverter typeConverter = new SimpleTypeConverter();
+    Integer number = typeConverter.convertIfNecessary("13", int.class);
+    Date date = typeConverter.convertIfNecessary("2022/03/04", Date.class);
+    System.out.println(number);
+    System.out.println(date);
+}
+
+// BeanWrapperImpl 类实现类型转换与数据绑定测试
+@Test
+public void testBeanWrapperImpl() {
+    // 利用反射原理，通过 setter 方法为 bean 的属性赋值
+    NormalBean target = new NormalBean();
+    BeanWrapperImpl wrapper = new BeanWrapperImpl(target);
+    wrapper.setPropertyValue("a", "10");
+    wrapper.setPropertyValue("b", "hello");
+    wrapper.setPropertyValue("c", "2022/03/04");
+    System.out.println(target);
+}
+
+// DirectFieldAccessor 类实现类型转换与数据绑定测试
+@Test
+public void testDirectFieldAccessor() {
+    // 利用反射原理，直接设置 Field 值（无需提供 setter 方法）
+    BeanNoSetter target = new BeanNoSetter();
+    DirectFieldAccessor accessor = new DirectFieldAccessor(target);
+    accessor.setPropertyValue("a", "10");
+    accessor.setPropertyValue("b", "hello");
+    accessor.setPropertyValue("c", "2022/03/04");
+    System.out.println(target);
+}
+
+// DataBinder 类实现类型转换与数据绑定测试
+@Test
+public void testDataBinder() {
+    // 利用反射原理，直接设置 Field 值（无需提供 setter 方法）
+    BeanNoSetter target = new BeanNoSetter();
+    DataBinder dataBinder = new DataBinder(target);
+    /*
+        * 设置 directFieldAccess 属性，用于判断反射时选择 Property 方式还是 Field 方式赋值
+        * 因为 bean 无 setter 方法，设置 directFieldAccess 为 true
+        */
+    dataBinder.initDirectFieldAccess();
+    // 设置属性与值
+    MutablePropertyValues pvs = new MutablePropertyValues();
+    pvs.add("a", "10");
+    pvs.add("b", "hello");
+    pvs.add("c", "2022/03/04");
+    // 绑定属性
+    dataBinder.bind(pvs);
+    System.out.println(target);
+}
+
+// ServletDataBinder 类实现类型转换与数据绑定测试
+@Test
+public void testServletDataBinder() {
+    NormalBean target = new NormalBean();
+    // web 环境下数据绑定
+    ServletRequestDataBinder dataBinder = new ServletRequestDataBinder(target);
+    // 模拟请求对象
+    MockHttpServletRequest request = new MockHttpServletRequest();
+    request.setParameter("a", "10");
+    request.setParameter("b", "hello");
+    request.setParameter("c", "2022/03/04");
+    // 将请求数据封装 java 对象中
+    dataBinder.bind(new ServletRequestParameterPropertyValues(request));
+    System.out.println(target);
+}
+
+// ServletDataBinder 对象特殊格式数据绑定测试
+@Test
+public void testServletDataBinderBySpecialCharacters() {
+    // 创建请求对象
+    MockHttpServletRequest request = new MockHttpServletRequest();
+    // 定义特殊的日期格式
+    request.setParameter("birthday", "2022|01|02");
+    // 定义对象形式的字符串
+    request.setParameter("address.name", "广州");
+    User target = new User();
+    // web 环境下数据绑定
+    ServletRequestDataBinder dataBinder = new ServletRequestDataBinder(target);
+    // 将请求数据封装 java 对象中
+    dataBinder.bind(new ServletRequestParameterPropertyValues(request));
+    // 对于特殊的日期格式是无法实现转换与绑定
+    System.out.println(target);
+}
+```
+
+#### 4.11.2. 自定义参数类型转换器
 
 例如：有些业务，如商品生成日期类型的数据，格式多不固定，需要根据业务需求来确定。由于日期数据有很多种格式，Spring mvc 没办法把字符串转换成日期类型。所以需要自定义参数类型转换
 
@@ -1319,9 +1447,194 @@ public class DateConverter implements Converter<String, Date> {
 }
 ```
 
-#### 4.11.2. 自定义参数类型转换器的配置
+#### 4.11.3. 自定义参数类型转换器的配置
 
 > 注：详见《Spring MVC 配置》章节
+
+### 4.12. ServletRequestDataBinderFactory 数据绑定工厂
+
+对于上面示例中一些比较特殊的字符，默认是无法实现数据绑定，需要自定义一些扩展。通过 `ServletRequestDataBinderFactory` 来创建数据绑定对象，并实现扩展
+
+测试自定义日期转换器，实现 `org.springframework.format.Formatter` 接口
+
+```java
+public class MyDateFormatter implements Formatter<Date> {
+
+    private final String desc; // 用于测试是哪种方式进行转换
+
+    public MyDateFormatter(String desc) {
+        this.desc = desc;
+    }
+
+    @Override
+    public Date parse(String text, Locale locale) throws ParseException {
+        System.out.println(desc + "进入了 MyDateFormatter.parse 方法");
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy|MM|dd");
+        return sdf.parse(text);
+    }
+
+    @Override
+    public String print(Date date, Locale locale) {
+        System.out.println(desc + "进入了 MyDateFormatter.print 方法");
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy|MM|dd");
+        return sdf.format(date);
+    }
+}
+```
+
+#### 4.12.1. @InitBinder 实现数据绑定
+
+- `@InitBinder` 注解需要标识在控制类的方法上，所以创建一个控制类，定义一个方法并标识该注解（方法名随意），在方法中加入自定义的日期转换器对象
+
+```java
+public class InitBinderController {
+    /**
+     * 在某个 Controller 控制类中使用了 @InitBinder 注解进行数据转换绑定，
+     * 只能对当前控制类生效，其他的控制类是不起作用
+     *
+     * @param dataBinder
+     */
+    @InitBinder
+    public void initBinder(WebDataBinder dataBinder) {
+        // 通过 @InitBinder 方式扩展 dataBinder 的转换器
+        dataBinder.addCustomFormatter(new MyDateFormatter("用 @InitBinder 方式扩展的"));
+    }
+}
+```
+
+- 测试，创建 `ServletRequestDataBinderFactory` 时指定 `@InitBinder` 标识的方法对象，
+
+```java
+@Test
+public void testRequestDataBinderByInitBinder() throws Exception {
+    // 创建请求对象
+    MockHttpServletRequest request = new MockHttpServletRequest();
+    // 定义特殊的日期格式
+    request.setParameter("birthday", "2022|01|02");
+    // 定义对象形式的字符串
+    request.setParameter("address.name", "广州");
+    User target = new User();
+    // 指定反射调用的哪个控制类中的那个方法
+    InvocableHandlerMethod method = new InvocableHandlerMethod(new InitBinderController(), InitBinderController.class.getMethod("initBinder", WebDataBinder.class));
+    // 创建 ServletRequestDataBinderFactory，指定回调标识了 @InitBinder 的方法
+    ServletRequestDataBinderFactory factory = new ServletRequestDataBinderFactory(Arrays.asList(method), null);
+    // 通过数据绑定工厂创建数据绑定器
+    WebDataBinder dataBinder = factory.createBinder(new ServletWebRequest(request), target, "user");
+    // 将请求数据封装 java 对象中
+    dataBinder.bind(new ServletRequestParameterPropertyValues(request));
+    // 对特殊的日期格式实现转换与绑定
+    System.out.println(target);
+}
+```
+
+#### 4.12.2. ConversionService 实现数据绑定
+
+使用 `ConversionService` 实现数据绑定
+
+```java
+@Test
+public void testRequestDataBinderByConversionService() throws Exception {
+    // 创建请求对象
+    MockHttpServletRequest request = new MockHttpServletRequest();
+    // 定义特殊的日期格式
+    request.setParameter("birthday", "2022|01|02");
+    // 定义对象形式的字符串
+    request.setParameter("address.name", "广州");
+    User target = new User();
+
+    // 创建 ConversionService 对象
+    FormattingConversionService service = new FormattingConversionService();
+    // 增加自定义转换器
+    service.addFormatter(new MyDateFormatter("用 ConversionService 方式扩展转换功能"));
+    // WebBindingInitializer 实现类
+    ConfigurableWebBindingInitializer webBindingInitializer = new ConfigurableWebBindingInitializer();
+    // 增加自定义 ConversionService 对象
+    webBindingInitializer.setConversionService(service);
+
+    // 创建 ServletRequestDataBinderFactory
+    ServletRequestDataBinderFactory factory = new ServletRequestDataBinderFactory(null, webBindingInitializer);
+    // 通过数据绑定工厂创建数据绑定器
+    WebDataBinder dataBinder = factory.createBinder(new ServletWebRequest(request), target, "user");
+    // 将请求数据封装 java 对象中
+    dataBinder.bind(new ServletRequestParameterPropertyValues(request));
+    // 对特殊的日期格式实现转换与绑定
+    System.out.println(target);
+}
+```
+
+如果同时定义 `@InitBinder` 方式与 `ConversionService` 方式来实现数据转换与绑定，则 `@InitBinder` 注解方式优先级高
+
+```java
+@Test
+public void testRequestDataBinderByInitBinderAndConversionService() throws Exception {
+    // 创建请求对象
+    MockHttpServletRequest request = new MockHttpServletRequest();
+    // 定义特殊的日期格式
+    request.setParameter("birthday", "2022|01|02");
+    // 定义对象形式的字符串
+    request.setParameter("address.name", "广州");
+    User target = new User();
+
+    // 指定反射调用的哪个控制类中的那个方法
+    InvocableHandlerMethod method = new InvocableHandlerMethod(new InitBinderController(), InitBinderController.class.getMethod("initBinder", WebDataBinder.class));
+    // 创建 ConversionService 对象
+    FormattingConversionService service = new FormattingConversionService();
+    // 增加自定义转换器
+    service.addFormatter(new MyDateFormatter("用 ConversionService 方式扩展转换功能"));
+    // WebBindingInitializer 实现类
+    ConfigurableWebBindingInitializer webBindingInitializer = new ConfigurableWebBindingInitializer();
+    // 增加自定义 ConversionService 对象
+    webBindingInitializer.setConversionService(service);
+
+    // 创建 ServletRequestDataBinderFactory，同时指定 @InitBinder 与 ConversionService 来实现数据转换
+    ServletRequestDataBinderFactory factory = new ServletRequestDataBinderFactory(Arrays.asList(method), webBindingInitializer);
+    // 通过数据绑定工厂创建数据绑定器
+    WebDataBinder dataBinder = factory.createBinder(new ServletWebRequest(request), target, "user");
+    // 将请求数据封装 java 对象中
+    dataBinder.bind(new ServletRequestParameterPropertyValues(request));
+    // 对特殊的日期格式实现转换与绑定
+    System.out.println(target);
+}
+```
+
+#### 4.12.3. 使用默认 ConversionService 实现数据绑定
+
+使用 Spring 默认的 `ConversionService` 实现类 `DefaultFormattingConversionService`，配置对象属性上使用 `@DateTimeFormat(pattern = "yyyy|MM|dd")` 注解，完成数据转换与绑定
+
+```java
+@DateTimeFormat(pattern = "yyyy|MM|dd")
+private Date birthday;
+```
+
+```java
+// 测试使用默认 ConversionService 实现数据转换与绑定
+@Test
+public void testRequestDataBinderByDefaultConversionService() throws Exception {
+    // 创建请求对象
+    MockHttpServletRequest request = initRequest();
+    User target = new User();
+
+    /*
+        * 创建默认的 ConversionService 实现 DefaultFormattingConversionService
+        * 如果是 Spring boot 工程，也可以使用 org.springframework.boot.convert.ApplicationConversionService 默认实现
+        */
+    DefaultFormattingConversionService service = new DefaultFormattingConversionService();
+    // WebBindingInitializer 实现类
+    ConfigurableWebBindingInitializer webBindingInitializer = new ConfigurableWebBindingInitializer();
+    // 增加默认的 ConversionService 实现
+    webBindingInitializer.setConversionService(service);
+
+    // 创建 ServletRequestDataBinderFactory
+    ServletRequestDataBinderFactory factory = new ServletRequestDataBinderFactory(null, webBindingInitializer);
+    // 通过数据绑定工厂创建数据绑定器
+    WebDataBinder dataBinder = factory.createBinder(new ServletWebRequest(request), target, "user");
+    // 将请求数据封装 java 对象中
+    dataBinder.bind(new ServletRequestParameterPropertyValues(request));
+    // 对特殊的日期格式实现转换与绑定
+    System.out.println(target);
+}
+```
+
 
 ## 5. Spring MVC 配置（整理中！）
 
