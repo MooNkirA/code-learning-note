@@ -25,7 +25,8 @@
     - 负责加载CLASSPATH指定的jar(包括第三方的库)和bin目录下的自己编写的类。
 
 ## 3. ClassLoader 类
-#### 3.1.1. 如何得到类加载器对象
+
+### 3.1. 如何得到类加载器对象
 
 ```java
 public ClassLoader getClassLoader()
@@ -662,8 +663,8 @@ class StudentDao extends BaseDao<Student> {
 Type type = StudentDao.class.getGenericSuperclass();
 System.out.println(type);
 
-if (type instanceof ParameterizedType parameterizedType) {
-    System.out.println(parameterizedType.getActualTypeArguments()[0]); // 因为示例只是一个泛型，所以直接获取第一个元素
+if (type instanceof ParameterizedType ) {
+    System.out.println(((ParameterizedType)type).getActualTypeArguments()[0]);  // 因为示例只是一个泛型，所以直接获取第一个元素
 }
 ```
 

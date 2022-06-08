@@ -625,9 +625,7 @@ SpringBoot 提供了3款内置的服务器
 
 要了解如何使用 Spring Boot 和 Gradle，请参阅 Spring Boot 的 Gradle 插件文档：
 
-- 参考文档（HTML 与 PDF）
 - [最新API文档](https://docs.spring.io/spring-boot/docs/current/api/)
-
 - 参考文档 ([HTML](https://docs.spring.io/spring-boot/docs/2.5.8/gradle-plugin/reference/htmlsingle/) and [PDF](https://docs.spring.io/spring-boot/docs/2.5.8/gradle-plugin/reference/pdf/spring-boot-gradle-plugin-reference.pdf))
 - [API](https://docs.spring.io/spring-boot/docs/2.5.8/gradle-plugin/api/)
 
