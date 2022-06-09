@@ -652,7 +652,7 @@ public class MyWebAppInitializer extends AbstractAnnotationConfigDispatcherServl
 
 > 注：如果不需要应用上下文层次结构，应用程序可以只配置一个根上下文，并将 contextConfigLocation Servlet 参数留空即可
 
-## 4. Spring MVC 参数绑定
+## 4. Spring MVC 处理器方法 - 参数绑定
 
 ### 4.1. 概念
 
@@ -1114,7 +1114,7 @@ org.springframework.web.servlet.mvc.method.annotation.ServletModelAttributeMetho
 
 #### 4.10.2. 自定义参数解析器
 
-Spring MVC 提供了自定义参数绑定的接口 `org.springframework.web.method.support.HandlerMethodArgumentResolver`，自定义参数绑定只需要实现该接口，实现怎样的参数生效与参数解析的逻辑
+Spring MVC 提供了用于参数绑定的接口 `org.springframework.web.method.support.HandlerMethodArgumentResolver`，自定义参数绑定只需要实现该接口，实现怎样的参数生效与参数解析的逻辑
 
 示例：自定义一个注解 `@Token`，当该接收请求方法形参标识此注解时，则获取请求头中的 `token` 属性值，并绑定到方法形参中。实现步骤如下：
 
@@ -1635,13 +1635,239 @@ public void testRequestDataBinderByDefaultConversionService() throws Exception {
 }
 ```
 
-### 4.13. ReturnValueHandler 返回值处理器
+## 5. Spring MVC 处理器方法 - 返回值
 
-## 5. Spring MVC 配置（整理中！）
+### 5.1. 概念
+
+下表是 Spring MVC 支持的控制器方法返回值类型与方式。（*注：所有的返回值都支持响应式类型*）
+
+| 控制器方法返回值类型 |                    说明                    |
+| :-----------------: | ----------------------------------------- |
+|   `@ResponseBody`   | 返回值会通过`HttpMessageConverter`实现转换 |
+
+### 5.2. ReturnValueHandler 返回值处理器
+
+#### 5.2.1. 默认返回值处理器
+
+Spring MVC 提供了很多默认的返回值处理器，对控制器方法的返回值进行处理，具体实现类如下：
+
+```
+org.springframework.web.servlet.mvc.method.annotation.ModelAndViewMethodReturnValueHandler
+org.springframework.web.method.annotation.ModelMethodProcessor
+org.springframework.web.servlet.mvc.method.annotation.ViewMethodReturnValueHandler
+org.springframework.web.servlet.mvc.method.annotation.ResponseBodyEmitterReturnValueHandler
+org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBodyReturnValueHandler
+org.springframework.web.servlet.mvc.method.annotation.HttpEntityMethodProcessor
+org.springframework.web.servlet.mvc.method.annotation.HttpHeadersReturnValueHandler
+org.springframework.web.servlet.mvc.method.annotation.CallableMethodReturnValueHandler
+org.springframework.web.servlet.mvc.method.annotation.DeferredResultMethodReturnValueHandler
+org.springframework.web.servlet.mvc.method.annotation.AsyncTaskMethodReturnValueHandler
+org.springframework.web.servlet.mvc.method.annotation.ServletModelAttributeMethodProcessor
+org.springframework.web.servlet.mvc.method.annotation.RequestResponseBodyMethodProcessor
+org.springframework.web.servlet.mvc.method.annotation.ViewNameMethodReturnValueHandler
+org.springframework.web.method.annotation.MapMethodProcessor
+org.springframework.web.servlet.mvc.method.annotation.ServletModelAttributeMethodProcessor
+```
+
+常见的返回值处理器如下：
+
+- 返回值类型为：`ModelAndView`，分别获取其模型和视图名，放入 `ModelAndViewContainer`
+- 返回值类型为 `String` 时，把它当做视图名，放入 `ModelAndViewContainer`
+- 返回值添加了 `@ModelAttribute` 注解时，将返回值作为模型，放入 `ModelAndViewContainer`，此时需找到默认视图名
+- 返回值省略 `@ModelAttribute` 注解且返回非简单类型时，将返回值作为模型，放入 `ModelAndViewContainer`，此时需找到默认视图名
+- 返回值类型为 `ResponseEntity` 时，此时走 `MessageConverter`，并设置 `ModelAndViewContainer.requestHandled` 为 true
+- 返回值类型为 `HttpHeaders` 时，会设置 `ModelAndViewContainer.requestHandled` 为 true
+- 返回值添加了 `@ResponseBody` 注解时，此时走 `MessageConverter`，并设置 `ModelAndViewContainer.requestHandled` 为 true
+
+> 示例代码参考：\spring-note\springmvc-sample\12-return-value-handler
+
+#### 5.2.2. 自定义返回值处理器
+
+Spring MVC 提供了返回值处理功能的接口 `org.springframework.web.method.support.HandlerMethodReturnValueHandler`，自定义返回值处理器只需要实现该接口，实现怎样的参数生效与参数解析的逻辑
+
+示例：自定义一个注解 `@Yml`，用于标识方法，将该方法的返回值转换成 yml 的字符串返回。实现步骤如下：
+
+- 创建自定义注解
+
+```java
+@Target({ElementType.METHOD})
+@Retention(RetentionPolicy.RUNTIME)
+@Documented
+public @interface Yml {
+}
+```
+
+- 创建自定义的返回值处理器，并实现 `HandlerMethodReturnValueHandler` 接口。
+
+```java
+public class CustomReturnValueHandler implements HandlerMethodReturnValueHandler {
+
+    /**
+     * 判断是否支持此返回值的类型。示例是判断是否标识了 @Yml 注解
+     *
+     * @param returnType
+     * @return
+     */
+    @Override
+    public boolean supportsReturnType(MethodParameter returnType) {
+        // 判断当前控制器方法上是否有 @Yml 注解
+        Yml annotation = returnType.getMethodAnnotation(Yml.class);
+        return annotation != null;
+    }
+
+    /**
+     * 对象返回值进行处理
+     *
+     * @param returnValue
+     * @param returnType
+     * @param mavContainer
+     * @param webRequest
+     * @throws Exception
+     */
+    @Override
+    public void handleReturnValue(Object returnValue, MethodParameter returnType,
+                                  ModelAndViewContainer mavContainer, NativeWebRequest webRequest) throws Exception {
+        // 1. 转换返回结果为 yaml 字符串
+        String str = new Yaml().dump(returnValue);
+
+        // 2. 将 yaml 字符串写入响应
+        HttpServletResponse response = webRequest.getNativeResponse(HttpServletResponse.class);
+        response.setContentType("text/plain;charset=utf-8");
+        response.getWriter().print(str);
+
+        // 3. 设置请求已经处理完毕
+        mavContainer.setRequestHandled(true);
+    }
+}
+```
+
+- 编写测试的控制方法。
+
+```java
+@Controller
+public class ReturnValueHandlerController {
+
+    @RequestMapping("/customReturnValueHandler")
+    @Yml // 使用自定义注解，测试对返回值处理
+    public User customReturnValueHandler(String name, int age) {
+        User user = new User();
+        user.setName(name);
+        user.setAge(age);
+        return user;
+    }
+}
+```
+
+> 注：此处有一个小坑，因为要返回字符串，如果在控制类上换成`@RestController`或者在方法上增加标识 `@ResponseBody`，则会因为返回值类型而报错  
+>
+> `org.springframework.web.HttpMediaTypeNotAcceptableException: Could not find acceptable representation`
+
+- 此示例为了方便，不想部署到tomcat，使用了 Spring Boot 内置 tomcat 容器，并且因为 Spring MVC 是通过 `RequestMappingHandlerAdapter` 去调用实际的请求方法，而调用的核心方法 `invokeHandlerMethod` 的修饰符是 `protected`，因此编写一个子类继承 `RequestMappingHandlerAdapter`，并将该方法的修饰符修改为 `public`，方法里面直接调用父类的方法，不做其他处理
+
+```java
+public class MyHandlerAdapter extends RequestMappingHandlerAdapter {
+
+    /**
+     * 适配器调用相应请求处理方法。
+     * 注：只修改原方法的修饰符，然后直接调用父类中的方法，不作任何更改
+     */
+    @Override
+    public ModelAndView invokeHandlerMethod(HttpServletRequest request, HttpServletResponse response,
+                                            HandlerMethod handlerMethod) throws Exception {
+        return super.invokeHandlerMethod(request, response, handlerMethod);
+    }
+}
+```
+
+- 在配置类中，配置内置 tomcat 容器，并注册自定义的参数解析器到 `RequestMappingHandlerAdapter` 适配器对象（示例是自定义子类 `MyHandlerAdapter`）
+
+```java
+@Configuration
+@ComponentScan("com.moon.springmvc")
+public class SpringMvcConfig {
+
+    /*
+     * DispatcherServlet 初始化时默认添加 RequestMappingHandlerMapping 组件，但只保存在 DispatcherServlet 类的属性中
+     * 为了方便测试，因此不使用默认创建，手动创建并加入到 Spring 容器
+     */
+    @Bean
+    public RequestMappingHandlerMapping requestMappingHandlerMapping() {
+        return new RequestMappingHandlerMapping();
+    }
+
+    /*
+     * DispatcherServlet 初始化时默认添加 RequestMappingHandlerAdapter 组件，但只保存在 DispatcherServlet 类的属性中
+     * 为了方便测试，因此不使用默认创建，手动创建并加入到 Spring 容器
+     */
+    @Bean
+    public MyHandlerAdapter requestMappingHandlerAdapter() {
+        MyHandlerAdapter handlerAdapter = new MyHandlerAdapter();
+        // 加入自定义返回值处理器
+        handlerAdapter.setCustomReturnValueHandlers(Arrays.asList(new CustomReturnValueHandler()));
+        return handlerAdapter;
+    }
+
+    // 创建内嵌 web 容器工厂
+    @Bean
+    public TomcatServletWebServerFactory tomcatServletWebServerFactory() {
+        return new TomcatServletWebServerFactory(8080);
+    }
+
+    // 创建 DispatcherServlet
+    @Bean
+    public DispatcherServlet dispatcherServlet() {
+        return new DispatcherServlet();
+    }
+
+    // 注册 DispatcherServlet, Spring MVC 的入口
+    @Bean
+    public DispatcherServletRegistrationBean dispatcherServletRegistrationBean(DispatcherServlet dispatcherServlet) {
+        DispatcherServletRegistrationBean registrationBean = new DispatcherServletRegistrationBean(dispatcherServlet, "/");
+        registrationBean.setLoadOnStartup(1);
+        return registrationBean;
+    }
+}
+```
+
+- 测试
+
+```java
+@Test
+public void testCustomReturnValueHandler() throws Exception {
+    // 创建 Spring boot 中 servlet web 环境容器，在配置类中手动创建 tomcat 实例
+    AnnotationConfigServletWebServerApplicationContext context =
+            new AnnotationConfigServletWebServerApplicationContext(SpringMvcConfig.class);
+    // 从容器中获取 RequestMappingHandlerMapping
+    // 该对象用于解析 @RequestMapping 以及派生注解，生成路径与控制器方法的映射关系, 在 web 容器初始化时就生成
+    RequestMappingHandlerMapping handlerMapping = context.getBean(RequestMappingHandlerMapping.class);
+
+    // 模拟的请求
+    MockHttpServletRequest mockRequest = new MockHttpServletRequest("GET", "/customReturnValueHandler");
+    // 设置请求参数
+    mockRequest.setParameter("name", "MoonZero");
+    mockRequest.setParameter("age", "18");
+    // 模拟的响应
+    MockHttpServletResponse mockResponse = new MockHttpServletResponse();
+    // 从映射处理器中，根据请求获取处理链（因为一个请求可能会包含若干个过滤器）
+    HandlerExecutionChain chain = handlerMapping.getHandler(mockRequest);
+    System.out.println("处理器执行链对象: " + chain);
+
+    // 获取 RequestMappingHandlerAdapter
+    MyHandlerAdapter handlerAdapter = context.getBean(MyHandlerAdapter.class);
+    // 通过处理器适配器调用相应的控制器方法
+    handlerAdapter.invokeHandlerMethod(mockRequest, mockResponse, (HandlerMethod) chain.getHandler());
+
+    // 检查响应
+    byte[] content = mockResponse.getContentAsByteArray();
+    System.out.println(new String(content, StandardCharsets.UTF_8));
+}
+```
+
+## 6. Spring MVC 配置（整理中！）
 
 Spring MVC 提供了 Java 编程式与 xml 命名空间两种方式对 web 程序进行配置。
 
-### 5.1. 开启 MVC 配置
+### 6.1. 开启 MVC 配置
 
 在编程式配置中，可以使用 `@EnableWebMvc` 注解来启用 MVC 配置。通过实现 `WebMvcConfigurer` 接口，在各个配置方法中定制相关的配置
 
@@ -1671,7 +1897,7 @@ public class WebConfig implements WebMvcConfigurer {
 </beans>
 ```
 
-### 5.2. 拦截器配置
+### 6.2. 拦截器配置
 
 基于编程式配置，通过 `WebMvcConfigurer` 接口中 `addInterceptors` 来配置拦截器
 
@@ -1706,7 +1932,7 @@ public class WebConfig implements WebMvcConfigurer {
 </mvc:interceptors>
 ```
 
-### 5.3. 自定义类型转换器配置
+### 6.3. 自定义类型转换器配置
 
 默认情况下，Spring MVC 提供了各种数字和日期类型的格式化器，同时支持通过在对象字段上的 `@NumberFormat` 和 `@DateTimeFormat` 进行自定义。在 Spring MVC 配置自定义参数转换器以如下方式：
 
@@ -1784,13 +2010,13 @@ public class WebConfig implements WebMvcConfigurer {
 
 - 使用 `@InitBinder` 的方式配置，详见[《Spring MVC 注解汇总.md》文档](/02-后端框架/05-SpringMVC/02-SpringMVC注解汇总)
 
-## 6. 拦截器
+## 7. 拦截器
 
-### 6.1. 拦截器介绍
+### 7.1. 拦截器介绍
 
 拦截器相当于servlet中过滤器（filter）。可以对处理器方法执行预处理（在处理器方法执行前执行），可以对处理器方法执行后处理（在处理器方法执行后执行）
 
-### 6.2. HandlerInterceptor 接口方法说明
+### 7.2. HandlerInterceptor 接口方法说明
 
 ```java
 public interface HandlerInterceptor {
@@ -1813,11 +2039,11 @@ public interface HandlerInterceptor {
 - `postHandle`方法：在处理器方法执行后，在响应jsp页面前执行，执行后处理。企业项目中，可以在这个方法设置页面的公共模型数据，比如页面的头部信息，尾部信息。
 - `afterCompletion`方法：在处理器方法执行后，在jsp页面响应后执行，执行后处理。在企业项目中，可以在这个方法实现用户访问日志的记录。
 
-### 6.3. 自定义拦截器（基于xml配置文件）
+### 7.3. 自定义拦截器（基于xml配置文件）
 
 自定义拦截器需要实现`HandlerInterceptor`接口，此接口比较特别有三个方法，都为默认方法，所以自定义拦截器时，可以选择性重写此三个方法即可
 
-#### 6.3.1. 创建拦截器
+#### 7.3.1. 创建拦截器
 
 ```java
 public class MyInterceptor implements HandlerInterceptor {
@@ -1843,7 +2069,7 @@ public class MyInterceptor implements HandlerInterceptor {
 }
 ```
 
-#### 6.3.2. 配置拦截器
+#### 7.3.2. 配置拦截器
 
 在springmvc.xml总配置文件中配置拦截器步骤：
 
@@ -1875,7 +2101,7 @@ public class MyInterceptor implements HandlerInterceptor {
 </mvc:interceptors>
 ```
 
-#### 6.3.3. 自定义拦截器执行测试
+#### 7.3.3. 自定义拦截器执行测试
 
 - 测试拦截器方法
 
@@ -1906,17 +2132,17 @@ public String testInterceptor(Model model){
 
 ![](images/20200922100757124_22779.jpg)
 
-### 6.4. 自定义拦截器（基于纯注解方式）
+### 7.4. 自定义拦截器（基于纯注解方式）
 
 此部分内容详情《02-SpringMVC注解汇总.md》
 
-### 6.5. 自定义多个拦截器
+### 7.5. 自定义多个拦截器
 
 定义多个拦截器，测试拦截器执行的顺序
 
 ![](images/20200922101051530_24002.jpg)
 
-#### 6.5.1. 配置多个拦截器
+#### 7.5.1. 配置多个拦截器
 
 修改springmvc.xml文件
 
@@ -1937,7 +2163,7 @@ public String testInterceptor(Model model){
 </mvc:interceptors>
 ```
 
-#### 6.5.2. 多个拦截器的执行顺序测试
+#### 7.5.2. 多个拦截器的执行顺序测试
 
 - 测试拦截器1返回true，拦截器2返回true
 
@@ -1957,16 +2183,16 @@ public String testInterceptor(Model model){
 
 1. 拦截器的afterCompletion方法，只要当前拦截器返回true，就可以得到执行。
 
-### 6.6. 拦截器应用案例
+### 7.6. 拦截器应用案例
 
-#### 6.6.1. 案例需求
+#### 7.6.1. 案例需求
 
 1. 访问商品列表数据，需要判断用户是否登录
 2. 如果用户已经登录，直接让他访问商品列表
 3. 如果用户未登录，先去登录页面进行登录，成功登录以后再访问商品列表
 - 注：本demo只是模拟用户输入用户名和密码，没有进行数据库的校验，没有创建用户对象
 
-#### 6.6.2. 准备用户登录页面login.jsp
+#### 7.6.2. 准备用户登录页面login.jsp
 
 ```jsp
 <form id="userForm"
@@ -1989,7 +2215,7 @@ public String testInterceptor(Model model){
 </form>
 ```
 
-#### 6.6.3. 用户登陆控制层方法
+#### 7.6.3. 用户登陆控制层方法
 
 UserController.java编写跳转到登陆页面方法与登陆方法
 
@@ -2042,7 +2268,7 @@ public class UserController {
 }
 ```
 
-#### 6.6.4. 用户登陆拦截器
+#### 7.6.4. 用户登陆拦截器
 
 创建LoginInterceptor拦截器
 
@@ -2067,7 +2293,7 @@ public boolean preHandle(HttpServletRequest request, HttpServletResponse respons
 }
 ```
 
-#### 6.6.5. 配置登陆拦截器
+#### 7.6.5. 配置登陆拦截器
 
 修改springmvc.xml配置文件
 
@@ -2085,7 +2311,7 @@ public boolean preHandle(HttpServletRequest request, HttpServletResponse respons
 </mvc:interceptors>
 ```
 
-## 7. Spring MVC 运行流程（待更新流程图）
+## 8. Spring MVC 运行流程（待更新流程图）
 
 Spring 的模型-视图-控制器（MVC）框架是围绕一个 `DispatcherServlet` 来设计的，这个 Servlet 会把请求分发给各个处理器，并支持可配置的处理器映射、视图渲染、本地化、时区与主题渲染等，甚至还能支持文件上传。
 

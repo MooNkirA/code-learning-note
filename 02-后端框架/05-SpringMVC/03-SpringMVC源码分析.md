@@ -723,7 +723,7 @@ public class ModelAttributeControllerAdvice {
     }
 }
 
-// @带 ModelAttribute 注解的控制器
+// 带 @ModelAttribute 注解的控制器
 public class ModelAttributeController {
     @ModelAttribute("BB")
     public String foo() {
@@ -741,7 +741,60 @@ public class ModelAttributeController {
 - 测试代码，观察 `@ModelAttribute` 标识的方法与参数相应的值是否加入到 `ModelAndViewContainer` 中
 
 ```java
+public class ControllerAdviceModelAttributeTest {
 
+    @Test
+    public void test() throws Exception {
+        // 创建基于注解的容器
+        AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(SpringConfiguration.class);
+        // 手动创建 RequestMappingHandlerAdapter
+        RequestMappingHandlerAdapter adapter = new RequestMappingHandlerAdapter();
+        adapter.setApplicationContext(context);
+        // 初始化参数处理器(HandlerMethodArgumentResolverComposite)与返回值处理器(HandlerMethodReturnValueHandlerComposite)
+        // 这里会解析标识 @ControllerAdvice 的类中的 @ModelAttribute
+        adapter.afterPropertiesSet();
+
+        MockHttpServletRequest request = new MockHttpServletRequest();
+        request.setParameter("name", "张三");
+        /* 现在可以通过 ServletInvocableHandlerMethod 把这些整合在一起, 并完成控制器方法的调用, 如下 */
+        ServletInvocableHandlerMethod handlerMethod =
+                new ServletInvocableHandlerMethod(new ModelAttributeController(), ModelAttributeController.class.getMethod("bar", User.class));
+
+        ServletRequestDataBinderFactory factory = new ServletRequestDataBinderFactory(null, null);
+
+        handlerMethod.setDataBinderFactory(factory);
+        handlerMethod.setParameterNameDiscoverer(new DefaultParameterNameDiscoverer());
+        HandlerMethodArgumentResolverComposite composite = new HandlerMethodArgumentResolverComposite();
+        composite.addResolvers(
+                new RequestParamMethodArgumentResolver(context.getDefaultListableBeanFactory(), false),
+                new PathVariableMethodArgumentResolver(),
+                new RequestHeaderMethodArgumentResolver(context.getDefaultListableBeanFactory()),
+                new ServletCookieValueMethodArgumentResolver(context.getDefaultListableBeanFactory()),
+                new ExpressionValueMethodArgumentResolver(context.getDefaultListableBeanFactory()),
+                new ServletRequestMethodArgumentResolver(),
+                new ServletModelAttributeMethodProcessor(false),
+                new RequestResponseBodyMethodProcessor(Arrays.asList(new MappingJackson2HttpMessageConverter())),
+                new ServletModelAttributeMethodProcessor(true),
+                new RequestParamMethodArgumentResolver(context.getDefaultListableBeanFactory(), true)
+        );
+        handlerMethod.setHandlerMethodArgumentResolvers(composite);
+        // 初始化 ModelAndViewContainer
+        ModelAndViewContainer container = new ModelAndViewContainer();
+
+        // 获取模型工厂方法，因为 getModelFactory 方法是私有，此处使用反射调用
+        Method getModelFactory = RequestMappingHandlerAdapter.class.getDeclaredMethod("getModelFactory", HandlerMethod.class, WebDataBinderFactory.class);
+        getModelFactory.setAccessible(true);
+        ModelFactory modelFactory = (ModelFactory) getModelFactory.invoke(adapter, handlerMethod, factory);
+
+        // 初始化模型数据，将之前记录的 @ModelAttribute 的方法，反射调用后将返回值保存到 ModelAndView 对象
+        modelFactory.initModel(new ServletWebRequest(request), container, handlerMethod);
+
+        handlerMethod.invokeAndHandle(new ServletWebRequest(request), container);
+
+        System.out.println(container.getModel());
+        context.close();
+    }
+}
 ```
 
 运行结果
@@ -750,7 +803,6 @@ public class ModelAttributeController {
 ModelAttributeController.bar 方法执行了...
 {AA=ModelAttributeControllerAdvice.foo()方法返回值, BB=ModelAttributeController.foo()方法返回值, u=User[name='张三', age=0], org.springframework.validation.BindingResult.u=org.springframework.validation.BeanPropertyBindingResult: 0 errors}
 ```
-
 
 ## 9. 控制器方法执行流程（整理中）
 
