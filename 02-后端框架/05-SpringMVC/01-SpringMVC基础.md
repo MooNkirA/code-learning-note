@@ -1671,7 +1671,7 @@ org.springframework.web.servlet.mvc.method.annotation.ServletModelAttributeMetho
 
 常见的返回值处理器如下：
 
-- 返回值类型为：`ModelAndView`，分别获取其模型和视图名，放入 `ModelAndViewContainer`
+- 返回值类型为 `ModelAndView`，分别获取其模型和视图名，放入 `ModelAndViewContainer`
 - 返回值类型为 `String` 时，把它当做视图名，放入 `ModelAndViewContainer`
 - 返回值添加了 `@ModelAttribute` 注解时，将返回值作为模型，放入 `ModelAndViewContainer`，此时需找到默认视图名
 - 返回值省略 `@ModelAttribute` 注解且返回非简单类型时，将返回值作为模型，放入 `ModelAndViewContainer`，此时需找到默认视图名
@@ -1758,7 +1758,7 @@ public class ReturnValueHandlerController {
 }
 ```
 
-> 注：此处有一个小坑，因为要返回字符串，如果在控制类上换成`@RestController`或者在方法上增加标识 `@ResponseBody`，则会因为返回值类型而报错  
+> 注：此处有一个小坑，因为要返回字符串，如果在控制类上换成 `@RestController` 或者在方法上增加标识 `@ResponseBody`，则会因为返回值类型而报错  
 >
 > `org.springframework.web.HttpMediaTypeNotAcceptableException: Could not find acceptable representation`
 
@@ -1863,11 +1863,111 @@ public void testCustomReturnValueHandler() throws Exception {
 }
 ```
 
-## 6. Spring MVC 配置（整理中！）
+## 6. MessageConverter
+
+### 6.1. 概述
+
+spring-web 模块包含 `HttpMessageConverte` 接口，用于通过 `InputStream` 和 `OutputStream` 读写 HTTP 请求和响应的主体。如给 `@ResponseBody` 标识的方法返回值处理器解析。
+
+请求的 MediaType 的选择顺序如下：
+
+- 首先看控制方法的 `@RequestMapping` 上有没有指定
+- 其次看 request 的 Accept 头有没有指定
+- 最后按 `MessageConverter` 的顺序，谁能谁先转换
+
+### 6.2. HttpMessageConverter 接口默认实现
+
+|           MessageConverter 实现           |                                       说明                                        |
+| :--------------------------------------: | -------------------------------------------------------------------------------- |
+|  `MappingJackson2HttpMessageConverter`   | 通过使用Jackson的`ObjectMapper`来读写JSON格式数据，默认支持HTTP的application/json  |
+| `MappingJackson2XmlHttpMessageConverter` | 通过使用Jackson XML扩展的`XmlMapper`读写XML格式数据，默认支持HTTP的application/xml |
+
+> 注：未整理完
+
+### 6.3. 使用示例
+
+示例是使用 jackson 作为转换的底层实现，所以需要添加 jackson 的相关依赖
+
+```xml
+<dependency>
+    <groupId>com.fasterxml.jackson.dataformat</groupId>
+    <artifactId>jackson-dataformat-xml</artifactId>
+</dependency>
+```
+
+示例代码
+
+```java
+public class MessageConverterTest {
+
+    // MappingJackson2HttpMessageConverter 模拟实现 http 响应对象转 json
+    @Test
+    public void test1() throws IOException {
+        MockHttpOutputMessage message = new MockHttpOutputMessage();
+        MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter();
+        if (converter.canWrite(User.class, MediaType.APPLICATION_JSON)) {
+            converter.write(new User("张三", 18), MediaType.APPLICATION_JSON, message);
+            System.out.println(message.getBodyAsString());
+        }
+    }
+
+    // MappingJackson2XmlHttpMessageConverter 模拟实现 http 响应对象转 xml
+    @Test
+    public void test2() throws IOException {
+        MockHttpOutputMessage message = new MockHttpOutputMessage();
+        MappingJackson2XmlHttpMessageConverter converter = new MappingJackson2XmlHttpMessageConverter();
+        if (converter.canWrite(User.class, MediaType.APPLICATION_XML)) {
+            converter.write(new User("李四", 20), MediaType.APPLICATION_XML, message);
+            System.out.println(message.getBodyAsString());
+        }
+    }
+
+    // MappingJackson2HttpMessageConverter 模拟实现 http 请求中的json，转成对象
+    @Test
+    public void test3() throws IOException {
+        MockHttpInputMessage message = new MockHttpInputMessage("{\"name\":\"MooNkirA\",\"age\":20}".getBytes(StandardCharsets.UTF_8));
+        MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter();
+        if (converter.canRead(User.class, MediaType.APPLICATION_JSON)) {
+            Object read = converter.read(User.class, message);
+            System.out.println(read);
+        }
+    }
+
+    /*
+      请求的 MediaType 的选择顺序如下：
+        - 首先看控制方法的 @RequestMapping 上有没有指定
+        - 其次看 request 的 Accept 头有没有指定
+        - 最后按 MessageConverter 的顺序, 谁能谁先转换
+     */
+    @Test
+    public void test4() throws Exception {
+        MockHttpServletRequest request = new MockHttpServletRequest();
+        MockHttpServletResponse response = new MockHttpServletResponse();
+        ServletWebRequest webRequest = new ServletWebRequest(request, response);
+
+        request.addHeader("Accept", "application/xml"); // 转换优先级其次
+        response.setContentType("application/json"); // 转换优先级最高
+        // 如果请求头与响应类型都没有，则按设置的顺序要决定使用哪个转换
+        RequestResponseBodyMethodProcessor processor = new RequestResponseBodyMethodProcessor(
+                Arrays.asList(new MappingJackson2HttpMessageConverter(), new MappingJackson2XmlHttpMessageConverter())
+        );
+        processor.handleReturnValue(
+                new User("MooNkirA", 18),
+                new MethodParameter(DemoController.class.getMethod("user"), -1),
+                new ModelAndViewContainer(),
+                webRequest
+        );
+        System.out.println(new String(response.getContentAsByteArray(), StandardCharsets.UTF_8));
+    }
+}
+```
+
+
+## 7. Spring MVC 配置（整理中！）
 
 Spring MVC 提供了 Java 编程式与 xml 命名空间两种方式对 web 程序进行配置。
 
-### 6.1. 开启 MVC 配置
+### 7.1. 开启 MVC 配置
 
 在编程式配置中，可以使用 `@EnableWebMvc` 注解来启用 MVC 配置。通过实现 `WebMvcConfigurer` 接口，在各个配置方法中定制相关的配置
 
@@ -1897,7 +1997,7 @@ public class WebConfig implements WebMvcConfigurer {
 </beans>
 ```
 
-### 6.2. 拦截器配置
+### 7.2. 拦截器配置
 
 基于编程式配置，通过 `WebMvcConfigurer` 接口中 `addInterceptors` 来配置拦截器
 
@@ -1932,7 +2032,7 @@ public class WebConfig implements WebMvcConfigurer {
 </mvc:interceptors>
 ```
 
-### 6.3. 自定义类型转换器配置
+### 7.3. 自定义类型转换器配置
 
 默认情况下，Spring MVC 提供了各种数字和日期类型的格式化器，同时支持通过在对象字段上的 `@NumberFormat` 和 `@DateTimeFormat` 进行自定义。在 Spring MVC 配置自定义参数转换器以如下方式：
 
@@ -2010,13 +2110,13 @@ public class WebConfig implements WebMvcConfigurer {
 
 - 使用 `@InitBinder` 的方式配置，详见[《Spring MVC 注解汇总.md》文档](/02-后端框架/05-SpringMVC/02-SpringMVC注解汇总)
 
-## 7. 拦截器
+## 8. 拦截器
 
-### 7.1. 拦截器介绍
+### 8.1. 拦截器介绍
 
 拦截器相当于servlet中过滤器（filter）。可以对处理器方法执行预处理（在处理器方法执行前执行），可以对处理器方法执行后处理（在处理器方法执行后执行）
 
-### 7.2. HandlerInterceptor 接口方法说明
+### 8.2. HandlerInterceptor 接口方法说明
 
 ```java
 public interface HandlerInterceptor {
@@ -2039,11 +2139,11 @@ public interface HandlerInterceptor {
 - `postHandle`方法：在处理器方法执行后，在响应jsp页面前执行，执行后处理。企业项目中，可以在这个方法设置页面的公共模型数据，比如页面的头部信息，尾部信息。
 - `afterCompletion`方法：在处理器方法执行后，在jsp页面响应后执行，执行后处理。在企业项目中，可以在这个方法实现用户访问日志的记录。
 
-### 7.3. 自定义拦截器（基于xml配置文件）
+### 8.3. 自定义拦截器（基于xml配置文件）
 
 自定义拦截器需要实现`HandlerInterceptor`接口，此接口比较特别有三个方法，都为默认方法，所以自定义拦截器时，可以选择性重写此三个方法即可
 
-#### 7.3.1. 创建拦截器
+#### 8.3.1. 创建拦截器
 
 ```java
 public class MyInterceptor implements HandlerInterceptor {
@@ -2069,7 +2169,7 @@ public class MyInterceptor implements HandlerInterceptor {
 }
 ```
 
-#### 7.3.2. 配置拦截器
+#### 8.3.2. 配置拦截器
 
 在springmvc.xml总配置文件中配置拦截器步骤：
 
@@ -2101,7 +2201,7 @@ public class MyInterceptor implements HandlerInterceptor {
 </mvc:interceptors>
 ```
 
-#### 7.3.3. 自定义拦截器执行测试
+#### 8.3.3. 自定义拦截器执行测试
 
 - 测试拦截器方法
 
@@ -2132,17 +2232,17 @@ public String testInterceptor(Model model){
 
 ![](images/20200922100757124_22779.jpg)
 
-### 7.4. 自定义拦截器（基于纯注解方式）
+### 8.4. 自定义拦截器（基于纯注解方式）
 
 此部分内容详情《02-SpringMVC注解汇总.md》
 
-### 7.5. 自定义多个拦截器
+### 8.5. 自定义多个拦截器
 
 定义多个拦截器，测试拦截器执行的顺序
 
 ![](images/20200922101051530_24002.jpg)
 
-#### 7.5.1. 配置多个拦截器
+#### 8.5.1. 配置多个拦截器
 
 修改springmvc.xml文件
 
@@ -2163,7 +2263,7 @@ public String testInterceptor(Model model){
 </mvc:interceptors>
 ```
 
-#### 7.5.2. 多个拦截器的执行顺序测试
+#### 8.5.2. 多个拦截器的执行顺序测试
 
 - 测试拦截器1返回true，拦截器2返回true
 
@@ -2183,16 +2283,16 @@ public String testInterceptor(Model model){
 
 1. 拦截器的afterCompletion方法，只要当前拦截器返回true，就可以得到执行。
 
-### 7.6. 拦截器应用案例
+### 8.6. 拦截器应用案例
 
-#### 7.6.1. 案例需求
+#### 8.6.1. 案例需求
 
 1. 访问商品列表数据，需要判断用户是否登录
 2. 如果用户已经登录，直接让他访问商品列表
 3. 如果用户未登录，先去登录页面进行登录，成功登录以后再访问商品列表
 - 注：本demo只是模拟用户输入用户名和密码，没有进行数据库的校验，没有创建用户对象
 
-#### 7.6.2. 准备用户登录页面login.jsp
+#### 8.6.2. 准备用户登录页面login.jsp
 
 ```jsp
 <form id="userForm"
@@ -2215,7 +2315,7 @@ public String testInterceptor(Model model){
 </form>
 ```
 
-#### 7.6.3. 用户登陆控制层方法
+#### 8.6.3. 用户登陆控制层方法
 
 UserController.java编写跳转到登陆页面方法与登陆方法
 
@@ -2268,7 +2368,7 @@ public class UserController {
 }
 ```
 
-#### 7.6.4. 用户登陆拦截器
+#### 8.6.4. 用户登陆拦截器
 
 创建LoginInterceptor拦截器
 
@@ -2293,7 +2393,7 @@ public boolean preHandle(HttpServletRequest request, HttpServletResponse respons
 }
 ```
 
-#### 7.6.5. 配置登陆拦截器
+#### 8.6.5. 配置登陆拦截器
 
 修改springmvc.xml配置文件
 
@@ -2311,7 +2411,7 @@ public boolean preHandle(HttpServletRequest request, HttpServletResponse respons
 </mvc:interceptors>
 ```
 
-## 8. Spring MVC 运行流程（待更新流程图）
+## 9. Spring MVC 运行流程（待更新流程图）
 
 Spring 的模型-视图-控制器（MVC）框架是围绕一个 `DispatcherServlet` 来设计的，这个 Servlet 会把请求分发给各个处理器，并支持可配置的处理器映射、视图渲染、本地化、时区与主题渲染等，甚至还能支持文件上传。
 
@@ -2332,6 +2432,59 @@ Spring 的模型-视图-控制器（MVC）框架是围绕一个 `DispatcherServl
 ![](images/63723911226860.jpg)
 
 ![](images/20200918135212093_9963.jpg)
+
+## 10. 异常处理器
+
+### 10.1. HandlerExceptionResolver 接口
+
+```java
+/* 异常处理器的根接口 */
+public interface HandlerExceptionResolver {
+	/* 用于提供异常处理的逻辑 */
+	@Nullable
+	ModelAndView resolveException(HttpServletRequest request, HttpServletResponse response, @Nullable Object handler, Exception ex);
+}
+```
+
+### 10.2. 自定义异常处理器
+
+自定义异常处理需要实现`HandlerExceptionResolver`接口，将使用注解注册到容器中
+
+```java
+/**
+ * 自定义异常处理解析器
+ */
+@Component
+public class CustomHandlerExceptionResolver implements HandlerExceptionResolver {
+    /**
+     * 此方法是处理异常的。异常就分为系统异常和业务异常
+     */
+    @Override
+    public ModelAndView resolveException(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex) {
+        // 1. 创建返回值对象
+        ModelAndView mv = new ModelAndView();
+        // 2. 设置错误提示信息
+        String errorMsg;
+        if (ex instanceof CustomException) {
+            errorMsg = ex.getMessage();
+        } else {
+            // 系统异常
+            errorMsg = "服务器内部错误，请联系管理员！";
+        }
+        mv.addObject("errorMsg", errorMsg);
+        // 3. 设置结果视图名称
+        mv.setViewName("error");
+        // 4. 返回
+        return mv;
+    }
+}
+```
+
+### 10.3. 实现接口方式异常处理器总结
+
+实现`HandlerExceptionResolver`接口的异常处理是在控制器方法处理的过程中出现的异常才能捕获，并做处理。所以如果在控制器方法执行前数据绑定时出现的异常，这种方式的异常处理器是无法捕获的。
+
+这种实现方式现在已经被淘汰了，一般都直接`@ControllerAdvice`配合`@ExceptionHandler`使用来完成异常的全局处理
 
 # SpringMVC 其他扩展知识整理
 

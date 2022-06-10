@@ -832,7 +832,7 @@ public class SessionAttributesController {
 
 #### 1.10.1. 作用与用法
 
-`@ExceptionHandler`注解用于修饰方法，表明当前方法是控制器执行产生异常后的处理方法
+`@ExceptionHandler`注解用于修饰方法，表明当前方法是该控制器执行产生异常后的处理方法
 
 #### 1.10.2. 相关属性
 
@@ -840,7 +840,7 @@ public class SessionAttributesController {
 | :-----: | ------------------------- | --------- |
 | `value` | 指定用于需要捕获的异常类型 |           |
 
-#### 1.10.3. 使用示例
+#### 1.10.3. 配合 @ControllerAdvice 全局异常处理示例
 
 - 创建自定义异常类
 
@@ -1764,59 +1764,3 @@ public class InitBinderAdvice {
     }
 }
 ```
-
-## 5. 异常处理器
-
-### 5.1. HandlerExceptionResolver 接口
-
-```java
-/* 异常处理器的根接口 */
-public interface HandlerExceptionResolver {
-	/* 用于提供异常处理的逻辑 */
-	@Nullable
-	ModelAndView resolveException(
-			HttpServletRequest request, HttpServletResponse response, @Nullable Object handler, Exception ex);
-}
-```
-
-### 5.2. 自定义异常处理器
-
-自定义异常处理需要实现`HandlerExceptionResolver`接口，将使用注解注册到容器中
-
-```java
-/**
- * 自定义异常处理解析器
- */
-@Component
-public class CustomHandlerExceptionResolver implements HandlerExceptionResolver {
-    /**
-     * 此方法是处理异常的。异常就分为系统异常和业务异常
-     */
-    @Override
-    public ModelAndView resolveException(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex) {
-        // 1. 创建返回值对象
-        ModelAndView mv = new ModelAndView();
-        // 2. 设置错误提示信息
-        String errorMsg;
-        if (ex instanceof CustomException) {
-            errorMsg = ex.getMessage();
-        } else {
-            // 系统异常
-            errorMsg = "服务器内部错误，请联系管理员！";
-        }
-        mv.addObject("errorMsg", errorMsg);
-        // 3. 设置结果视图名称
-        mv.setViewName("error");
-        // 4. 返回
-        return mv;
-    }
-}
-```
-
-> 注：这种方式的测试结果详见《01-SpringMVC基础.md》
-
-### 5.3. 实现接口方式异常处理器总结
-
-实现`HandlerExceptionResolver`接口的异常处理是在控制器方法处理的过程中出现的异常才能捕获，并做处理。所以如果在控制器方法执行前数据绑定时出现的异常，这种方式的异常处理器是无法捕获的。
-
-这种实现方式现在已经被淘汰了，一般都直接`@ControllerAdvice`配合`@ExceptionHandler`使用来完成异常的全局处理

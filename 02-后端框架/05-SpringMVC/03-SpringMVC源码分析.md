@@ -493,6 +493,8 @@ public class CommonsMultipartResolver extends CommonsFileUploadSupport
 
 ### 8.1. @ControllerAdvice 与 @InitBinder 配合实现流程
 
+#### 8.1.1. 流程图
+
 `@InitBinder` 在整个 `HandlerAdapter` 调用过程中所处的位置
 
 ```mermaid
@@ -542,7 +544,7 @@ container -->> -adapter:
 3. 以上两种情况 `@InitBinder` 的解析结果都会缓存来避免重复解析
 4. 控制器方法调用时，会综合利用本类的 `@InitBinder` 方法和 `@ControllerAdvice` 中的 `@InitBinder` 方法创建绑定工厂
 
-#### 8.1.1. 模拟 @InitBinder 在控制器方法调用示例
+#### 8.1.2. 模拟 @InitBinder 在控制器方法调用示例
 
 源码详见 springmvc-sample 项目中的 10-handleradapter 模块中 `ControllerAdviceInitBinderTest` 测试类
 
@@ -664,6 +666,8 @@ public class ControllerAdviceInitBinderTest {
 
 ### 8.2. @ControllerAdvice 与 @ModelAttribute 配合实现流程
 
+#### 8.2.1. 流程图
+
 `@ModelAttribute` 在整个 `HandlerAdapter` 调用过程中所处的位置
 
 ```mermaid
@@ -707,7 +711,7 @@ container -->> -adapter:
 3. 以上两种 `@ModelAttribute` 的解析结果都会缓存来避免重复解析
 4. 控制器方法调用时，会综合利用本类的 `@ModelAttribute` 方法和 `@ControllerAdvice` 中的 `@ModelAttribute` 方法创建模型工厂
 
-#### 8.2.1. 模拟 @ModelAttribute 在控制器方法调用示例
+#### 8.2.2. 模拟 @ModelAttribute 在控制器方法调用示例
 
 源码详见 springmvc-sample 项目中的 10-handleradapter 模块中 `ControllerAdviceModelAttributeTest` 测试类
 
@@ -804,7 +808,153 @@ ModelAttributeController.bar 方法执行了...
 {AA=ModelAttributeControllerAdvice.foo()方法返回值, BB=ModelAttributeController.foo()方法返回值, u=User[name='张三', age=0], org.springframework.validation.BindingResult.u=org.springframework.validation.BeanPropertyBindingResult: 0 errors}
 ```
 
-## 9. 控制器方法执行流程（整理中）
+### 8.3. @ControllerAdvice 之 ResponseBodyAdvice
+
+#### 8.3.1. 概述
+
+`ResponseBodyAdvice` 接口是用于返回响应体前进行包装处理，一般配置 `@ControllerAdvice` 注解使用。
+
+#### 8.3.2. 流程图
+
+**ResponseBodyAdvice 增强**在整个 `HandlerAdapter` 调用过程中所处的位置
+
+```mermaid
+sequenceDiagram
+participant adapter as HandlerAdapter
+participant bf as WebDataBinderFactory
+participant mf as ModelFactory
+participant ihm as ServletInvocableHandlerMethod
+participant ar as ArgumentResolvers 
+participant rh as ReturnValueHandlers
+participant container as ModelAndViewContainer
+
+adapter ->> +bf: 准备 @InitBinder
+bf -->> -adapter: 
+adapter ->> +mf: 准备 @ModelAttribute
+mf ->> +container: 添加Model数据
+container -->> -mf: 
+mf -->> -adapter: 
+adapter ->> +ihm: invokeAndHandle
+ihm ->> +ar: 获取 args
+ar ->> ar: 有的解析器涉及 RequestBodyAdvice
+ar ->> container: 有的解析器涉及数据绑定生成Model数据
+ar -->> -ihm: args
+ihm ->> ihm: method.invoke(bean,args) 得到 returnValue
+ihm ->> +rh: 处理 returnValue
+rect rgb(200, 150, 255)
+rh ->> rh: 有的处理器涉及 ResponseBodyAdvice
+end
+rh ->> +container: 添加Model数据,处理视图名,是否渲染等
+container -->> -rh: 
+rh -->> -ihm: 
+ihm -->> -adapter: 
+adapter ->> +container: 获取 ModelAndView
+container -->> -adapter: 
+```
+
+#### 8.3.3. ResponseBodyAdvice 返回值增强示例
+
+示例需求：将标识了 `@ResponseBody` 注解的控制器方法的返回值包装成统一响应格式。示例源码详见 springmvc-sample 项目中的 10-handleradapter 模块中 `ControllerAdviceResponseBodyTest` 测试类
+
+- 创建用于测试的控制器
+
+```java
+@RestController
+// @Controller
+// @ResponseBody
+public class ResponseBodyDemoController {
+
+    // @ResponseBody
+    public User user() {
+        return new User("王五", 18);
+    }
+}
+```
+
+- 创建控制器增强类，并实现 `org.springframework.web.servlet.mvc.method.annotation.ResponseBodyAdvice` 接口
+
+```java
+@ControllerAdvice
+public class ResponseBodyControllerAdvice implements ResponseBodyAdvice<Object> {
+
+    /**
+     * 用于指定满足哪些条件才进行转换
+     *
+     * @param returnType    返回的类型
+     * @param converterType 选定转换器的类型
+     * @return 如返回 true 则代表可以进行转换，否则返回 false
+     */
+    @Override
+    public boolean supports(MethodParameter returnType, Class<? extends HttpMessageConverter<?>> converterType) {
+        /*
+         * 这里需要判断三种情况
+         *      1. 在控制器方法上标识 @ResponseBody 注解
+         *      2. 在控制器类上标识 @ResponseBody 注解  可以使用 returnType.getContainingClass().isAnnotationPresent(ResponseBody.class) 来判断
+         *      3. 在控制器类上标识 @RestController 注解
+         * 其中 Spring 提供的 AnnotationUtils 工具类的 findAnnotation 方法，可以判断类上或者类上组合注解是否包含某个注解
+         */
+        if (returnType.getMethodAnnotation(ResponseBody.class) != null ||
+                AnnotationUtils.findAnnotation(returnType.getContainingClass(), ResponseBody.class) != null) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * 响应体转换处理逻辑
+     *
+     * @param body                  响应数据
+     * @return
+     */
+    @Override
+    public Object beforeBodyWrite(Object body, MethodParameter returnType, MediaType selectedContentType,
+                                  Class<? extends HttpMessageConverter<?>> selectedConverterType,
+                                  ServerHttpRequest request, ServerHttpResponse response) {
+        if (body instanceof Result) {
+            // 如果是 Result 统一响应类型，则直接返回
+            return body;
+        }
+        return Result.ok(body);
+    }
+}
+```
+
+- 测试程序
+
+```java
+@Test
+public void test1() throws Exception {
+    AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(SpringConfiguration.class);
+
+    ServletInvocableHandlerMethod handlerMethod = new ServletInvocableHandlerMethod(
+            context.getBean(ResponseBodyDemoController.class),
+            ResponseBodyDemoController.class.getMethod("user")
+    );
+    handlerMethod.setDataBinderFactory(new ServletRequestDataBinderFactory(Collections.emptyList(), null));
+    handlerMethod.setParameterNameDiscoverer(new DefaultParameterNameDiscoverer());
+    // 此示例的控制器方法没有入参数，所以可以不用设置参数解析器
+    // handlerMethod.setHandlerMethodArgumentResolvers(getArgumentResolvers(context));
+    // 添加 advice
+    List<ControllerAdviceBean> annotatedBeans = ControllerAdviceBean.findAnnotatedBeans(context);
+    List<Object> collect = annotatedBeans.stream()
+            .filter(b -> ResponseBodyAdvice.class.isAssignableFrom(b.getBeanType()))
+            .collect(Collectors.toList());
+
+    HandlerMethodReturnValueHandlerComposite composite = new HandlerMethodReturnValueHandlerComposite();
+    // 此示例只测试 @ResponseBody，所以只加 RequestResponseBodyMethodProcessor 返回值处理器
+    composite.addHandler(new RequestResponseBodyMethodProcessor(Arrays.asList(new MappingJackson2HttpMessageConverter()), collect));
+    handlerMethod.setHandlerMethodReturnValueHandlers(composite);
+
+    MockHttpServletRequest request = new MockHttpServletRequest();
+    MockHttpServletResponse response = new MockHttpServletResponse();
+    ModelAndViewContainer container = new ModelAndViewContainer();
+    handlerMethod.invokeAndHandle(new ServletWebRequest(request, response), container);
+
+    System.out.println(new String(response.getContentAsByteArray(), StandardCharsets.UTF_8));
+}
+```
+
+## 9. 控制器方法执行流程
 
 ### 9.1. 方法调用处理类 ServletInvocableHandlerMethod 关系图
 
