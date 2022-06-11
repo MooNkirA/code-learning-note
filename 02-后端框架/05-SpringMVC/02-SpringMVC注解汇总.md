@@ -832,7 +832,7 @@ public class SessionAttributesController {
 
 #### 1.10.1. 作用与用法
 
-`@ExceptionHandler`注解用于修饰方法，表明当前方法是该控制器执行产生异常后的处理方法
+`@ExceptionHandler` 注解用于修饰控制器类的方法，表明当前方法是该控制器执行产生异常后的处理方法
 
 #### 1.10.2. 相关属性
 
@@ -840,7 +840,34 @@ public class SessionAttributesController {
 | :-----: | ------------------------- | --------- |
 | `value` | 指定用于需要捕获的异常类型 |           |
 
-#### 1.10.3. 配合 @ControllerAdvice 全局异常处理示例
+#### 1.10.3. 基础使用示例
+
+- 在控制器类中使用 `@ExceptionHandler` 标识方法（方法名随意），如当前控制器相关请求方法出现异常时，就会触发该注解的方法
+
+```java
+@Controller
+public class SimpleController {
+
+    // ...
+
+    @ExceptionHandler
+    public ResponseEntity<String> handle(IOException ex) {
+        // ...
+    }
+}
+```
+
+- 对于匹配的异常类型，最好将目标异常作为方法参数来声明（如上示例）。当多个异常方法匹配时，一般都是定义其根异常。
+- 可以通过注解的属性，缩小要匹配的异常类型的范围。此时方法的参数也可以使用更大范围通用的异常类型
+
+```java
+@ExceptionHandler({FileSystemException.class, RemoteException.class})
+public ResponseEntity<String> handle(Exception ex) {
+    // ...
+}
+```
+
+#### 1.10.4. 配合 @ControllerAdvice 全局异常处理示例
 
 - 创建自定义异常类
 

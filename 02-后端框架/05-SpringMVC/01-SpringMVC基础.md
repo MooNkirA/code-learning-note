@@ -14,8 +14,6 @@ Spring Web MVC 是基于 Servlet API 上， MVC 的表现层的 Web 框架，用
 
 ![](images/359331311220567.png)
 
-
-
 ### 1.2. MVC 是什么(b/s系统)
 
 mvc 是一种设计模式。模型（model） --> 视图（view） --> 控制器（controller），三层架构设计模式，主要用于实现前端页面的展现和后端业务数据处理逻辑分离
@@ -480,7 +478,9 @@ org.springframework.web.servlet.FlashMapManager=org.springframework.web.servlet.
 
 > <font color=red>**注意：如果没有手动创建的以上接口的自定义实现并加入到Spring，Spring MVC 会去自动创建默认的实现，但只会保存在 `DispatcherServlet` 中相应的属性中，此时 Spring 容器是没有这些实现的实例。**</font>
 
-#### 3.2.1. HandlerMapping（处理器映射器）
+### 3.3. 映射器和适配器
+
+#### 3.3.1. HandlerMapping（处理器映射器）
 
 Spring MVC 提供了一些默认的处理器映射器
 
@@ -506,7 +506,7 @@ public RequestMappingHandlerMapping requestMappingHandlerMapping() {
 
 > 注意事项：处理器映射器和处理器适配器必须配对使用。
 
-#### 3.2.2. HandlerAdapter（处理器适配器）
+#### 3.3.2. HandlerAdapter（处理器适配器）
 
 Spring MVC 提供了一些默认的处理器适配器
 
@@ -532,7 +532,7 @@ public RequestMappingHandlerAdapter requestMappingHandlerAdapter() {
 
 > 注意事项：处理器映射器和处理器适配器必须配对使用。
 
-#### 3.2.3. 处理器映射器和处理器适配器同时配置方式
+#### 3.3.3. 处理器映射器和处理器适配器同时配置方式
 
 如果使用 web.xml 的配置方式，需要在 springmvc.xml 配置文件中，配置 `<mvc:annotation-driven>` 标签，表示基于注解驱动的方式配置处理器映射器、处理器适配器，相当于同时配置了 `RequestMappingHandlerMapping`/`RequestMappingHandlerAdapter`（*企业开发推荐使用*）
 
@@ -544,7 +544,66 @@ public RequestMappingHandlerAdapter requestMappingHandlerAdapter() {
 
 ![](images/204432014220567.jpg)
 
-#### 3.2.4. ViewResolver（视图解析器）
+#### 3.3.4. RequestMappingHandlerMapping 与 RequestMappingHandlerAdapter
+
+`RequestMappingHandlerMapping` 与 `RequestMappingHandlerAdapter` 是一对配合使用
+
+- `RequestMappingHandlerMapping` 用于处理 `@RequestMapping` 映射相应的控制器方法
+- `RequestMappingHandlerAdapter` 用于调用控制器方法、并处理方法参数与方法返回值
+
+初始化流程如下：
+
+1. `DispatcherServlet` 是在第一次被访问时执行初始化，也可以通过配置修改为 Tomcat 启动后就初始化
+2. 在初始化时会从 Spring 容器中找一些 Web 需要的组件，如` HandlerMapping`、`HandlerAdapter` 等，并逐一调用它们的初始化
+3. `RequestMappingHandlerMapping` 初始化时，会收集所有 `@RequestMapping` 映射信息，封装为 Map，其中
+   - key 是 `RequestMappingInfo` 类型，包括请求路径、请求方法等信息
+   - value 是 `HandlerMethod` 类型，包括控制器方法对象、控制器对象
+4. 当前端有请求到达时，快速从映射中找到 `HandlerMethod` 并与匹配的拦截器一起返回给 `DispatcherServlet`
+5. `RequestMappingHandlerAdapter` 初始化时，会准备 `HandlerMethod` 调用时需要的各个组件，如：
+   - `HandlerMethodArgumentResolver` 解析控制器方法参数
+   - `HandlerMethodReturnValueHandler` 处理控制器方法返回值
+
+#### 3.3.5. BeanNameUrlHandlerMapping 与 SimpleControllerHandlerAdapter
+
+`BeanNameUrlHandlerMapping` 与 `SimpleControllerHandlerAdapter` 是一对配合使用
+
+- `BeanNameUrlHandlerMapping` 用于映射相应的控制器方法，但控制器实例在 Spring 容器中的名称必须以`/`开头，将会被当作映射路径。这些 bean 相当于 handler，并且需要实现 `Controller` 接口
+- `SimpleControllerHandlerAdapter` 用于调用其 handler
+
+
+
+
+#### 3.3.6. RouterFunctionMapping 与 HandlerFunctionAdapter
+
+在 Spring 5.2 版本后才出现
+
+#### 3.3.7. SimpleUrlHandlerMapping 与 HttpRequestHandlerAdapter
+
+
+#### 3.3.8. 小结
+
+`HandlerMapping` 负责建立请求与控制器之间的映射关系
+
+- `RequestMappingHandlerMapping`：用于解析 `@RequestMapping` 及其衍生注解标识的控制器方法
+- `WelcomePageHandlerMapping`：用于解析 `/` 根路径
+- `BeanNameUrlHandlerMapping`：用于解析以 bean 的名字匹配路径映射，并且 bean 名称要以 `/` 开头，并实现 `Controller` 接口
+- `RouterFunctionMapping`：用于解析函数式 `RequestPredicate`（定义匹配逻辑与请求路径）、`HandlerFunction`（定义具体的处理逻辑）
+- `SimpleUrlHandlerMapping`：用于映射静态资源，基于通配符，如：`/**`、`/img/**` 等
+
+> <font color=red>**注意：以上的映射器有顺序的限制，不需要顺意调换定义的顺序，否则会出现所有请求只能匹配到一种映射器的情。Spring boot 的默认顺序如上述**</font>
+
+`HandlerAdapter` 负责实现对各种各样的 handler 的适配调用
+
+- `RequestMappingHandlerAdapter` 处理 `@RequestMapping` 及其衍生注解标识的处理器。包括参数解析器、返回值处理器，体现了组合模式
+- `SimpleControllerHandlerAdapter` 处理实现了 `Controller` 接口的处理器
+- `HandlerFunctionAdapter` 处理 `HandlerFunction` 函数式接口的处理器
+- `HttpRequestHandlerAdapter` 处理 `HttpRequestHandler` 接口的处理器(静态资源处理)
+
+> `HandlerAdapter` 是典型适配器模式体现
+
+补充：Spring 的 `ResourceHttpRequestHandler.setResourceResolvers` 是典型责任链模式体现
+
+### 3.4. ViewResolver（视图解析器）
 
 Spring MVC 提供了默认的视图解析器 `InternalResourceViewResolver`，在容器初始化时会创建，也可以手动创建并设置相关属性
 
@@ -586,13 +645,13 @@ public ViewResolver createViewResolver() {
 mav.setViewName("helloSpringMVC");
 ```
 
-### 3.3. WebApplicationContext 上下文层次结构
+### 3.5. WebApplicationContext 上下文层次结构
 
 `WebApplicationContext` 是普通 `ApplicationContext` 的扩展，它会绑定到 `ServletContext` 中。可以使用 `RequestContextUtils` 工具类的静态方法来获取 `WebApplicationContext` 上下文对象。一个根 `WebApplicationContext` 被多个 `DispatcherServlet`（或其他 Servlet）实例共享，每个实例有自己的子 `WebApplicationContext` 配置。结构关系如下图：
 
 ![](images/495684710220568.png)
 
-#### 3.3.1. 编程式配置
+#### 3.5.1. 编程式配置
 
 ```java
 public class MyWebAppInitializer extends AbstractAnnotationConfigDispatcherServletInitializer {
@@ -616,7 +675,7 @@ public class MyWebAppInitializer extends AbstractAnnotationConfigDispatcherServl
 
 > 注：如果不需要应用上下文的层次结构，应用程序可以通过 `getRootConfigClasses()` 方法返回所有配置，而 `getServletConfigClasses()` 方法返回 null
 
-#### 3.3.2. xml 文件配置
+#### 3.5.2. xml 文件配置
 
 也可使用 web.xml 配置 
 
@@ -1877,10 +1936,22 @@ spring-web 模块包含 `HttpMessageConverte` 接口，用于通过 `InputStream
 
 ### 6.2. HttpMessageConverter 接口默认实现
 
-|           MessageConverter 实现           |                                       说明                                        |
-| :--------------------------------------: | -------------------------------------------------------------------------------- |
-|  `MappingJackson2HttpMessageConverter`   | 通过使用Jackson的`ObjectMapper`来读写JSON格式数据，默认支持HTTP的application/json  |
-| `MappingJackson2XmlHttpMessageConverter` | 通过使用Jackson XML扩展的`XmlMapper`读写XML格式数据，默认支持HTTP的application/xml |
+|                        MessageConverter 实现                         |                                       说明                                        |
+| :-----------------------------------------------------------------: | -------------------------------------------------------------------------------- |
+|                    `StringHttpMessageConverter`                     |                                                                                  |
+|                     `FormHttpMessageConverter`                      |                                                                                  |
+|                   `ByteArrayHttpMessageConverter`                   |                                                                                  |
+|                  `MarshallingHttpMessageConverter`                  |                                                                                  |
+|                `MappingJackson2HttpMessageConverter`                | 通过使用Jackson的`ObjectMapper`来读写JSON格式数据，默认支持HTTP的application/json  |
+|              `MappingJackson2XmlHttpMessageConverter`               | 通过使用Jackson XML扩展的`XmlMapper`读写XML格式数据，默认支持HTTP的application/xml |
+|                    `SourceHttpMessageConverter`                     |                                                                                  |
+|                 `BufferedImageHttpMessageConverter`                 |                                                                                  |
+|                               `void`                                |                                                                                  |
+|                         `DeferredResult<V>`                         |                                                                                  |
+|                            `Callable<V>`                            |                                                                                  |
+| `ListenableFuture<V>`, `CompletionStage<V>`, `CompletableFuture<V>` |                                                                                  |
+|                 `ResponseBodyEmitter`, `SseEmitter`                 |                                                                                  |
+|                       `StreamingResponseBody`                       |                                                                                  |
 
 > 注：未整理完
 
@@ -2411,21 +2482,69 @@ public boolean preHandle(HttpServletRequest request, HttpServletResponse respons
 </mvc:interceptors>
 ```
 
-## 9. Spring MVC 运行流程（待更新流程图）
+## 9. Spring MVC 运行流程总结（待更新流程图）
 
 Spring 的模型-视图-控制器（MVC）框架是围绕一个 `DispatcherServlet` 来设计的，这个 Servlet 会把请求分发给各个处理器，并支持可配置的处理器映射、视图渲染、本地化、时区与主题渲染等，甚至还能支持文件上传。
 
-- 第1步：客户端发起请求到 `DispatcherServlet`（前端控制器）
-- 第2步：`DispatcherServlet`（前端控制器）请求一个或多个 `HandlerMapping` 查找 Handler，可以根据 xml 配置、注解进行查找处理请求的 Controller
-- 第3步：`HandlerMapping`（处理器映射器）向前端控制器返回 Handler
-- 第4步：`DispatcherServlet`（前端控制器）调用 `HandlerAdapter`（处理器适配器）去执行 Handler
-- 第5步：`HandlerAdapter`（处理器适配器）去执行 Handler
-- 第6步：Handler 调用业务逻辑处理完成后，给 `HandlerAdapter`（处理器适配器）返回 `ModelAndView`
-- 第7步：`HandlerAdapter`（处理器适配器）向 `DispatcherServlet`（前端控制器）返回 `ModelAndView`。`ModelAndView` 是 Spring MVC 框架的一个底层对象，包括 Model 和 View
-- 第8步：`DispatcherServlet`（前端控制器）请求 `ViewResoler`（视图解析器）去进行视图解析，根据逻辑视图名解析成真正的视图(jsp)
-- 第9步：`ViewResoler`（视图解析器）向 `DispatcherServlet`（前端控制器）返回 View
-- 第10步：`DispatcherServlet`（前端控制器）进行视图渲染。视图渲染将模型数据(在 `ModelAndView` 对象中)填充到 request 域中
-- 第11步：`DispatcherServlet`（前端控制器）向用户响应结果
+- 第1步：客户端发起请求到 `DispatcherServlet`
+- 第2步：`DispatcherServlet` 请求一个或多个 `HandlerMapping` 查找 Handler，可以根据 xml 配置、注解进行查找处理请求的 Controller
+- 第3步：`HandlerMapping` 向前端控制器返回 Handler
+- 第4步：`DispatcherServlet` 调用 `HandlerAdapter` 去执行 Handler
+- 第5步：`HandlerAdapter` 去执行 Handler
+- 第6步：Handler 调用业务逻辑处理完成后，给 `HandlerAdapter` 返回 `ModelAndView`
+- 第7步：`HandlerAdapter` 向 `DispatcherServlet` 返回 `ModelAndView`。
+- 第8步：`DispatcherServlet` 请求 `ViewResoler` 去进行视图解析，根据逻辑视图名解析成真正的视图(jsp)
+- 第9步：`ViewResoler` 向 `DispatcherServlet` 返回 View
+- 第10步：`DispatcherServlet` 进行视图渲染。视图渲染将模型数据(在 `ModelAndView` 对象中)填充到 request 域中
+- 第11步：`DispatcherServlet` 向用户响应结果
+
+> 名词说明：
+>
+> - `DispatcherServlet` 前端控制器
+> - `HandlerMapping` 处理器映射器
+> - `HandlerAdapter` 处理器适配器
+> - `Handler` 处理器
+> - `ViewResoler` 视图解析器
+> - `ModelAndView` 视图模型，是 Spring MVC 框架的一个底层对象，包括 Model 和 View
+
+
+
+当浏览器发送一个请求 `http://localhost:8080/hello` 后，请求到达服务器，其处理流程是：
+
+1. 服务器提供了 DispatcherServlet，它使用的是标准 Servlet 技术
+   - 路径：默认映射路径为 `/`，即会匹配到所有请求 URL，可作为请求的统一入口，也被称之为**前端控制器**
+     - *注：jsp 不会匹配到 DispatcherServlet （了解）*
+     - 其它有路径的 Servlet 匹配优先级也高于 DispatcherServlet
+   - 创建：在 Boot 中，由 DispatcherServletAutoConfiguration 这个自动配置类提供 DispatcherServlet 的 bean
+   - 初始化：DispatcherServlet 初始化时会优先到容器里寻找各种组件，作为它的成员变量
+     - HandlerMapping，初始化时记录映射关系
+     - HandlerAdapter，初始化时准备参数解析器、返回值处理器、消息转换器
+     - HandlerExceptionResolver，初始化时准备参数解析器、返回值处理器、消息转换器
+     - ViewResolver
+2. DispatcherServlet 会利用 RequestMappingHandlerMapping 查找控制器方法
+   - 例如根据 /hello 路径找到 @RequestMapping("/hello") 对应的控制器方法
+   - 控制器方法会被封装为 HandlerMethod 对象，并结合匹配到的拦截器一起返回给 DispatcherServlet 
+   - HandlerMethod 和拦截器合在一起称为 HandlerExecutionChain（调用链）对象
+3. DispatcherServlet 接下来会：
+   1. 调用拦截器的 preHandle 方法，如果返回true，则放行继续执行；如果返回false，则拦截。
+   2. RequestMappingHandlerAdapter 调用 handle 方法，准备数据绑定工厂、模型工厂、ModelAndViewContainer、将 HandlerMethod 完善为 ServletInvocableHandlerMethod
+      - @ControllerAdvice 全局增强点1：补充模型数据
+      - @ControllerAdvice 全局增强点2：补充自定义类型转换器
+      - 使用 HandlerMethodArgumentResolver 准备参数
+        - @ControllerAdvice 全局增强点3：RequestBody 增强
+      - 调用 ServletInvocableHandlerMethod 
+      - 使用 HandlerMethodReturnValueHandler 处理返回值
+        - @ControllerAdvice 全局增强点4：ResponseBody 增强
+      - 根据 ModelAndViewContainer 获取 ModelAndView
+        - 如果返回的 ModelAndView 为 null，不走第 4 步视图解析及渲染流程
+          - 例如，有的返回值处理器调用了 HttpMessageConverter 来将结果转换为 JSON，这时 ModelAndView 就为 null
+        - 如果返回的 ModelAndView 不为 null，会在第 4 步走视图解析及渲染流程
+   3. 调用拦截器的 postHandle 方法
+   4. 处理异常或视图渲染
+      - 如果 1~3 出现异常，走 ExceptionHandlerExceptionResolver 处理异常流程
+        - @ControllerAdvice 全局增强点5：@ExceptionHandler 异常处理
+      - 正常，走视图解析及渲染流程
+   5. 调用拦截器的 afterCompletion 方法
 
 ![](images/20200918135458792_17168.png)
 
@@ -2485,6 +2604,70 @@ public class CustomHandlerExceptionResolver implements HandlerExceptionResolver 
 实现`HandlerExceptionResolver`接口的异常处理是在控制器方法处理的过程中出现的异常才能捕获，并做处理。所以如果在控制器方法执行前数据绑定时出现的异常，这种方式的异常处理器是无法捕获的。
 
 这种实现方式现在已经被淘汰了，一般都直接`@ControllerAdvice`配合`@ExceptionHandler`使用来完成异常的全局处理
+
+### 10.4. @ExceptionHandler 注解
+
+标识 `@Controller` 和 `@ControllerAdvice` 类可以使用 `@ExceptionHandler` 注解标识方法来处理来自控制器方法的异常。
+
+> 详见[《Spring MVC 注解汇总.md》文档](/02-后端框架/05-SpringMVC/02-SpringMVC注解汇总)
+
+### 10.5. 番外 - Tomcat 异常处理
+
+前面的 `@ExceptionHandler` 只能处理发生在 Spring MVC 流程中的异常，例如控制器内、拦截器内，但如果是 Filter 出现了异常，则会由 tomcat(Web 服务器)来处理
+
+#### 10.5.1. Spring Boot 的实现流程
+
+1. 因为内嵌了 Tomcat 容器，因此可以配置 Tomcat 的错误页面，Filter 与 错误页面之间是通过请求转发跳转的
+2. 先通过 `ErrorPageRegistrarBeanPostProcessor` 这个后处理器配置错误页面地址，默认为 `/error` 也可以通过 `${server.error.path}` 进行配置
+3. 当 Filter 发生异常时，不会走 Spring 流程，但会走 Tomcat 的错误处理，于是就会转发至 `/error` 这个地址。如果没有 `@ExceptionHandler`，最终也会走到 Tomcat 的错误处理
+4. Spring Boot 又提供了一个 `BasicErrorController`，它就是一个标准 `@Controller`，`@RequestMapping` 配置为 `/error`，所以处理异常的职责就又回到了 Spring 框架
+5. 异常信息由于会被 Tomcat 放入 `request` 作用域，key的名称固定是 `javax.servlet.error.exception`（Spring 提供了此常量 `RequestDispatcher.ERROR_EXCEPTION`）。因此 `BasicErrorController` 类也能获取到异常的信息
+6. 具体异常信息会由 `DefaultErrorAttributes` 封装好
+7. `BasicErrorController` 通过 Accept 头判断需要生成哪种 MediaType 的响应。如果要的不是 text/html，走 MessageConverter 流程；如果需要 text/html，走 mvc 流程，此时又分两种情况
+    - 配置了 `ErrorViewResolver`，根据状态码去找 View
+    - 没配置或没找到，用 `BeanNameViewResolver` 根据一个固定为 `error` 的名字找到 View，即所谓的 `WhitelabelErrorView`
+
+#### 10.5.2. 配置关键部分
+
+基于注解配置的关键代码
+
+```java
+@Bean // 修改了 Tomcat 服务器默认错误地址。出现错误，会使用请求转发 forward 跳转到 error 地址
+public ErrorPageRegistrar errorPageRegistrar() {
+    return webServerFactory -> webServerFactory.addErrorPages(new ErrorPage("/error"));
+}
+
+@Bean // TomcatServletWebServerFactory 初始化前用它增强，注册所有 ErrorPageRegistrar
+public ErrorPageRegistrarBeanPostProcessor errorPageRegistrarBeanPostProcessor() {
+    return new ErrorPageRegistrarBeanPostProcessor();
+}
+
+@Bean // ErrorProperties 封装环境键值，ErrorAttributes 控制有哪些错误信息
+public BasicErrorController basicErrorController() {
+    ErrorProperties errorProperties = new ErrorProperties();
+    errorProperties.setIncludeException(true);
+    return new BasicErrorController(new DefaultErrorAttributes(), errorProperties);
+}
+
+@Bean // 名称为 error 的视图，作为 BasicErrorController 的 text/html 响应结果
+public View error() {
+    return new View() {
+        @Override
+        public void render(Map<String, ?> model, HttpServletRequest request, HttpServletResponse response) throws Exception {
+            System.out.println(model);
+            response.setContentType("text/html;charset=utf-8");
+            response.getWriter().print("""
+                    <h3>服务器内部错误</h3>
+                    """);
+        }
+    };
+}
+
+@Bean // 收集容器中所有 View 对象，bean 的名字作为视图名
+public ViewResolver viewResolver() {
+    return new BeanNameViewResolver();
+}
+```
 
 # SpringMVC 其他扩展知识整理
 
