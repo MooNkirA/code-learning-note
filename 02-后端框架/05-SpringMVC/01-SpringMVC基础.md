@@ -570,15 +570,272 @@ public RequestMappingHandlerAdapter requestMappingHandlerAdapter() {
 - `BeanNameUrlHandlerMapping` 用于映射相应的控制器方法，但控制器实例在 Spring 容器中的名称必须以`/`开头，将会被当作映射路径。这些 bean 相当于 handler，并且需要实现 `Controller` 接口
 - `SimpleControllerHandlerAdapter` 用于调用其 handler
 
+示例：
 
+- 创建配置类
 
+```java
+@Configuration
+public class WebConfig {
+    @Bean // 内嵌 web 容器工厂
+    public TomcatServletWebServerFactory servletWebServerFactory() {
+        return new TomcatServletWebServerFactory(8080);
+    }
+
+    @Bean // 创建 DispatcherServlet
+    public DispatcherServlet dispatcherServlet() {
+        return new DispatcherServlet();
+    }
+
+    @Bean // 注册 DispatcherServlet, Spring MVC 的入口
+    public DispatcherServletRegistrationBean servletRegistrationBean(DispatcherServlet dispatcherServlet) {
+        return new DispatcherServletRegistrationBean(dispatcherServlet, "/");
+    }
+
+    @Bean
+    public BeanNameUrlHandlerMapping beanNameUrlHandlerMapping() {
+        return new BeanNameUrlHandlerMapping();
+    }
+
+    @Bean
+    public SimpleControllerHandlerAdapter simpleControllerHandlerAdapter() {
+        return new SimpleControllerHandlerAdapter();
+    }
+
+    // 创建控制类，指定bean的名称以“`/`”开头，并实现 `Controller` 接口
+    @Bean("/c3")
+    public Controller controller3() {
+        return (request, response) -> {
+            response.getWriter().print("this is c3");
+            return null;
+        };
+    }
+}
+```
+
+- 创建控制类，指定bean的名称以“`/`”开头，并实现 `Controller` 接口
+
+```java
+@Component("/c1")
+public class Controller1 implements Controller {
+    @Override
+    public ModelAndView handleRequest(HttpServletRequest request, HttpServletResponse response) throws Exception {
+        response.getWriter().print("this is c1");
+        return null;
+    }
+}
+
+@Component("/c2")
+public class Controller2 implements Controller {
+    @Override
+    public ModelAndView handleRequest(HttpServletRequest request, HttpServletResponse response) throws Exception {
+        response.getWriter().print("this is c2");
+        return null;
+    }
+}
+```
+
+- 创建web容器进行测试，是否能成功访问 /c1、/c2、/c3
+
+```java
+ AnnotationConfigServletWebServerApplicationContext context = new AnnotationConfigServletWebServerApplicationContext(WebConfig.class);
+```
 
 #### 3.3.6. RouterFunctionMapping 与 HandlerFunctionAdapter
 
-在 Spring 5.2 版本后才出现
+在 Spring 5.2 版本后才新增的两个实现类，是一对配合使用。
+
+- `RouterFunctionMapping` 用于收集所有 `RouterFunction`，包括 `RequestPredicate`（设置映射条件）与 `HandlerFunction`（处理的逻辑）两部分。请求时，会根据映射条件找到相应的 `HandlerFunction`，即 handler
+- `RouterFunction` 是函数式控制器，handler 要实现 `HandlerFunction` 接口
+- `HandlerFunctionAdapter` 用于调用 handler
+
+示例：
+
+- 创建配置类与定义 `RouterFunction`
+
+```java
+import org.springframework.boot.autoconfigure.web.servlet.DispatcherServletRegistrationBean;
+import org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactory;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.web.servlet.DispatcherServlet;
+import org.springframework.web.servlet.function.*;
+import org.springframework.web.servlet.function.support.HandlerFunctionAdapter;
+import org.springframework.web.servlet.function.support.RouterFunctionMapping;
+
+import static org.springframework.web.servlet.function.RequestPredicates.*;
+import static org.springframework.web.servlet.function.RouterFunctions.*;
+import static org.springframework.web.servlet.function.ServerResponse.*;
+
+@Configuration
+public class WebConfig {
+    @Bean // 内嵌 web 容器工厂
+    public TomcatServletWebServerFactory servletWebServerFactory() {
+        return new TomcatServletWebServerFactory(8080);
+    }
+
+    @Bean // 创建 DispatcherServlet
+    public DispatcherServlet dispatcherServlet() {
+        return new DispatcherServlet();
+    }
+
+    @Bean // 注册 DispatcherServlet, Spring MVC 的入口
+    public DispatcherServletRegistrationBean servletRegistrationBean(DispatcherServlet dispatcherServlet) {
+        return new DispatcherServletRegistrationBean(dispatcherServlet, "/");
+    }
+
+    @Bean
+    public RouterFunctionMapping routerFunctionMapping() {
+        return new RouterFunctionMapping();
+    }
+
+    @Bean
+    public HandlerFunctionAdapter handlerFunctionAdapter() {
+        return new HandlerFunctionAdapter();
+    }
+
+    @Bean
+    public RouterFunction<ServerResponse> r1() {
+        // 参数1：指定映射条件；参数2：handler 要实现 HandlerFunction 接口
+        return route(GET("/r1"), request -> ok().body("this is r1"));
+    }
+
+    @Bean
+    public RouterFunction<ServerResponse> r2() {
+        return route(GET("/r2"), request -> ok().body("this is r2"));
+    }
+}
+```
+
 
 #### 3.3.7. SimpleUrlHandlerMapping 与 HttpRequestHandlerAdapter
 
+`SimpleUrlHandlerMapping` 与 `HttpRequestHandlerAdapter` 是一对配合使用
+
+- `SimpleUrlHandlerMapping` 用于映射静态资源路径，常用通配符的方式进行映射。值得注意，该类不会在初始化时收集映射信息，需要手动配置收集
+- `ResourceHttpRequestHandler` 作为静态资源 handler
+- `HttpRequestHandlerAdapter` 调用此 handler
+
+##### 3.3.7.1. 基础使用示例
+
+创建配置类与静态资源处理器 `ResourceHttpRequestHandler`，并需要配置 `SimpleUrlHandlerMapping` 收集相应的处理器
+
+```java
+@Configuration
+public class WebConfig {
+    @Bean // 内嵌 web 容器工厂
+    public TomcatServletWebServerFactory servletWebServerFactory() {
+        return new TomcatServletWebServerFactory(8080);
+    }
+
+    @Bean // 创建 DispatcherServlet
+    public DispatcherServlet dispatcherServlet() {
+        return new DispatcherServlet();
+    }
+
+    @Bean // 注册 DispatcherServlet, Spring MVC 的入口
+    public DispatcherServletRegistrationBean servletRegistrationBean(DispatcherServlet dispatcherServlet) {
+        return new DispatcherServletRegistrationBean(dispatcherServlet, "/");
+    }
+
+    @Bean // 手动收集
+    public SimpleUrlHandlerMapping simpleUrlHandlerMapping(ApplicationContext context) {
+        SimpleUrlHandlerMapping handlerMapping = new SimpleUrlHandlerMapping();
+        Map<String, ResourceHttpRequestHandler> map = context.getBeansOfType(ResourceHttpRequestHandler.class);
+        handlerMapping.setUrlMap(map);
+        System.out.println(map);
+        return handlerMapping;
+    }
+
+    @Bean
+    public HttpRequestHandlerAdapter httpRequestHandlerAdapter() {
+        return new HttpRequestHandlerAdapter();
+    }
+
+    @Bean("/**") // 配置静态页面的映射，如 /r2.html 相应于项目中 /static/r2.html
+    public ResourceHttpRequestHandler handler1() {
+        ResourceHttpRequestHandler handler = new ResourceHttpRequestHandler();
+        handler.setLocations(Arrays.asList(new ClassPathResource("static/")));
+        return handler;
+    }
+
+    @Bean("/img/**") // 配置图片的映射，如 /img/1.jpg 相应于项目中 /images/1.jpg
+    public ResourceHttpRequestHandler handler2() {
+        ResourceHttpRequestHandler handler = new ResourceHttpRequestHandler();
+        handler.setLocations(Arrays.asList(new ClassPathResource("images/")));
+        return handler;
+    }
+}
+```
+
+##### 3.3.7.2. 静态资源解析优化
+
+在创建的 `ResourceHttpRequestHandler` 对象中通过 `setResourceResolvers` 方法，增加相应的资源处理器
+
+```java
+@Bean("/**") // 配置静态页面的映射，如 /r2.html 相应于项目中 /static/r2.html
+public ResourceHttpRequestHandler handler1() {
+    ResourceHttpRequestHandler handler = new ResourceHttpRequestHandler();
+    handler.setLocations(Arrays.asList(new ClassPathResource("static/")));
+    handler.setResourceResolvers(Arrays.asList(
+        // 缓存优化
+        new CachingResourceResolver(new ConcurrentMapCache("cache1")),
+        // 压缩优化
+        new EncodedResourceResolver(),
+        // 原始资源解析
+        new PathResourceResolver()
+    ));
+    return handler;
+}
+```
+
+值得注意：`EncodedResourceResolver` 并不会生成压缩文件，需要手动生成。参考示例如下：
+
+```java
+// 在配置类中定义
+@PostConstruct
+@SuppressWarnings("all")
+public void initGzip() throws IOException {
+    Resource resource = new ClassPathResource("static");
+    File dir = resource.getFile();
+    for (File file : dir.listFiles(pathname -> pathname.getName().endsWith(".html"))) {
+        System.out.println(file);
+        try (FileInputStream fis = new FileInputStream(file); GZIPOutputStream fos = new GZIPOutputStream(new FileOutputStream(file.getAbsoluteFile() + ".gz"))) {
+            byte[] bytes = new byte[8 * 1024];
+            int len;
+            while ((len = fis.read(bytes)) != -1) {
+                fos.write(bytes, 0, len);
+            }
+        }
+    }
+}
+```
+
+##### 3.3.7.3. 欢迎页
+
+欢迎页支持静态欢迎页与动态欢迎页
+
+- WelcomePageHandlerMapping 映射欢迎页（即只映射 '`/`'）
+   - 它内置的 handler ParameterizableViewController 作用是不执行逻辑，仅根据视图名找视图
+   - 视图名固定为 `forward:index.html`
+- SimpleControllerHandlerAdapter, 调用 handler
+   - 转发至 `/index.html`
+   - 处理 `/index.html` 又会走上面的静态资源处理流程
+
+在配置类中创建 `WelcomePageHandlerMapping` 实例，指定根路径相应的静态资源
+
+```java
+@Bean
+public WelcomePageHandlerMapping welcomePageHandlerMapping(ApplicationContext context) {
+    Resource resource = context.getResource("classpath:static/index.html");
+    return new WelcomePageHandlerMapping(null, context, resource, "/**");
+}
+
+@Bean
+public SimpleControllerHandlerAdapter simpleControllerHandlerAdapter() {
+    return new SimpleControllerHandlerAdapter();
+}
+```
 
 #### 3.3.8. 小结
 
