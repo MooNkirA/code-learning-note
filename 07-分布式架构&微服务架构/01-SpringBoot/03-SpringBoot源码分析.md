@@ -105,7 +105,7 @@ Spring Boot 启动注解 `@SpringBootApplication` 包含若干个注解，其中
 @ComponentScan(excludeFilters = { @Filter(type = FilterType.CUSTOM, classes = TypeExcludeFilter.class),
 		@Filter(type = FilterType.CUSTOM, classes = AutoConfigurationExcludeFilter.class) })
 public @interface SpringBootApplication {
-    ...
+    // ...
 }
 ```
 
@@ -119,7 +119,7 @@ public @interface SpringBootApplication {
 @AutoConfigurationPackage
 @Import(AutoConfigurationImportSelector.class)
 public @interface EnableAutoConfiguration {
-    ...
+    // ...
 }
 ```
 
@@ -134,7 +134,7 @@ public @interface EnableAutoConfiguration {
 @Inherited
 @Import(AutoConfigurationPackages.Registrar.class)
 public @interface AutoConfigurationPackage {
-    
+    // ...
 }
 ```
 
@@ -287,6 +287,182 @@ spring:
 
 > 不过需要值得注意的是，如把 tomcat 排除掉，记得要增加一个新的可以运行的服务器依赖。
 
+### 2.7. Spring Boot 常见的自动配置实现
+
+> 以下常见的自动配置类选自 spring-boot-autoconfigure-x.x.x.jar!\META-INF\spring.factories 文件中
+
+#### 2.7.1. AopAutoConfiguration
+
+Spring Boot 是利用了自动配置类来简化了 aop 相关配置。AOP 自动配置类为 `org.springframework.boot.autoconfigure.aop.AopAutoConfiguration`。但可以通过 `spring.aop.auto=false` 配置，禁用 aop 自动配置
+
+```java
+@Configuration(proxyBeanMethods = false)
+@ConditionalOnProperty(prefix = "spring.aop", name = "auto", havingValue = "true", matchIfMissing = true)
+public class AopAutoConfiguration {
+
+	@Configuration(proxyBeanMethods = false)
+	@ConditionalOnClass(Advice.class)
+	static class AspectJAutoProxyingConfiguration {
+
+		@Configuration(proxyBeanMethods = false)
+		@EnableAspectJAutoProxy(proxyTargetClass = false)
+		@ConditionalOnProperty(prefix = "spring.aop", name = "proxy-target-class", havingValue = "false")
+		static class JdkDynamicAutoProxyConfiguration {
+		}
+
+		@Configuration(proxyBeanMethods = false)
+		@EnableAspectJAutoProxy(proxyTargetClass = true)
+		@ConditionalOnProperty(prefix = "spring.aop", name = "proxy-target-class", havingValue = "true",
+				matchIfMissing = true)
+		static class CglibAutoProxyConfiguration {
+		}
+	}
+
+	@Configuration(proxyBeanMethods = false)
+	@ConditionalOnMissingClass("org.aspectj.weaver.Advice")
+	@ConditionalOnProperty(prefix = "spring.aop", name = "proxy-target-class", havingValue = "true",
+			matchIfMissing = true)
+	static class ClassProxyingConfiguration {
+
+		@Bean
+		static BeanFactoryPostProcessor forceAutoProxyCreatorToUseClassProxying() {
+			return (beanFactory) -> {
+				if (beanFactory instanceof BeanDefinitionRegistry) {
+					BeanDefinitionRegistry registry = (BeanDefinitionRegistry) beanFactory;
+					AopConfigUtils.registerAutoProxyCreatorIfNecessary(registry);
+					AopConfigUtils.forceAutoProxyCreatorToUseClassProxying(registry);
+				}
+			};
+		}
+	}
+}
+```
+
+AOP 自动配置的本质是通过 `@EnableAspectJAutoProxy` 来开启了自动代理，如果在引导类上添加了 `@EnableAspectJAutoProxy` 注解，则使用者添加的为准。该注解的本质是向容器中添加了 `AnnotationAwareAspectJAutoProxyCreator` 这个 bean 后置处理器，它能够找到容器中所有切面，并为匹配切点的目标类创建代理，创建代理的工作一般是在 bean 的初始化阶段完成的
+
+#### 2.7.2. DataSourceAutoConfiguration
+
+对应的自动配置类为：`org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration`。它内部采用了条件装配，通过检查容器的 bean，以及类路径下的 class，来决定该 `@Bean` 是否生效。简单说明一下，Spring Boot 支持两大类数据源：
+
+- `EmbeddedDatabase`：内嵌数据库连接池
+- `PooledDataSource`：非内嵌数据库连接池
+
+而 `PooledDataSource` 又支持如下数据源
+
+- hikari 提供的 `HikariDataSource`
+- tomcat-jdbc 提供的 `DataSource`
+- dbcp2 提供的 `BasicDataSource`
+- oracle 提供的 `PoolDataSourceImpl`
+
+如果知道数据源的实现类类型，即指定了 `spring.datasource.type`，理论上可以支持所有数据源，但这样做的一个最大问题是无法订制每种数据源的详细配置（如最大、最小连接数等）
+
+```java
+@Configuration(proxyBeanMethods = false)
+@ConditionalOnClass({ DataSource.class, EmbeddedDatabaseType.class })
+@ConditionalOnMissingBean(type = "io.r2dbc.spi.ConnectionFactory")
+@EnableConfigurationProperties(DataSourceProperties.class)
+@Import({ DataSourcePoolMetadataProvidersConfiguration.class,
+		DataSourceInitializationConfiguration.InitializationSpecificCredentialsDataSourceInitializationConfiguration.class,
+		DataSourceInitializationConfiguration.SharedCredentialsDataSourceInitializationConfiguration.class })
+public class DataSourceAutoConfiguration {
+
+	@Configuration(proxyBeanMethods = false)
+	@Conditional(EmbeddedDatabaseCondition.class)
+	@ConditionalOnMissingBean({ DataSource.class, XADataSource.class })
+	@Import(EmbeddedDataSourceConfiguration.class)
+	protected static class EmbeddedDatabaseConfiguration {
+	}
+
+	@Configuration(proxyBeanMethods = false)
+	@Conditional(PooledDataSourceCondition.class)
+	@ConditionalOnMissingBean({ DataSource.class, XADataSource.class })
+	@Import({ DataSourceConfiguration.Hikari.class, DataSourceConfiguration.Tomcat.class,
+			DataSourceConfiguration.Dbcp2.class, DataSourceConfiguration.OracleUcp.class,
+			DataSourceConfiguration.Generic.class, DataSourceJmxConfiguration.class })
+	protected static class PooledDataSourceConfiguration {
+	}
+	// ...
+}
+```
+
+#### 2.7.3. MybatisAutoConfiguration
+
+MyBatis 自动配置类为 `org.mybatis.spring.boot.autoconfigure.MybatisAutoConfiguration`，它主要配置了两个 bean
+
+- SqlSessionFactory - MyBatis 核心对象，用来创建 SqlSession
+- SqlSessionTemplate - SqlSession 的实现，此实现会与当前线程绑定
+- 用 ImportBeanDefinitionRegistrar 的方式扫描所有标注了 @Mapper 注解的接口
+- 用 AutoConfigurationPackages 来确定扫描的包
+- 还有一个相关的 bean：MybatisProperties，它会读取配置文件中带 `mybatis.` 前缀的配置项进行定制配置
+
+`@MapperScan` 注解的作用与 `MybatisAutoConfiguration` 类似，会注册 `MapperScannerConfigurer` 有如下区别
+
+- `@MapperScan` 扫描具体包（当然也可以配置关注哪个注解）
+- `@MapperScan` 如果不指定扫描具体包，则会把引导类范围内，所有接口当做 Mapper 接口
+- `MybatisAutoConfiguration` 关注的是所有标注 `@Mapper` 注解的接口，会忽略掉非 `@Mapper` 标注的接口
+
+这里有同学有疑问，之前介绍的都是将具体类交给 Spring 管理，怎么到了 MyBatis 这儿，接口就可以被管理呢？
+
+- 其实并非将接口交给 Spring 管理，而是每个接口会对应一个 MapperFactoryBean，是后者被 Spring 所管理，接口只是作为 MapperFactoryBean 的一个属性来配置
+
+
+
+#### 2.7.4. TransactionAutoConfiguration
+
+- 事务自动配置类有两个：
+  - `org.springframework.boot.autoconfigure.jdbc.DataSourceTransactionManagerAutoConfiguration`
+  - `org.springframework.boot.autoconfigure.transaction.TransactionAutoConfiguration`
+
+- 前者配置了 DataSourceTransactionManager 用来执行事务的提交、回滚操作
+- 后者功能上对标 @EnableTransactionManagement，包含以下三个 bean
+  - BeanFactoryTransactionAttributeSourceAdvisor 事务切面类，包含通知和切点
+  - TransactionInterceptor 事务通知类，由它在目标方法调用前后加入事务操作
+  - AnnotationTransactionAttributeSource 会解析 @Transactional 及事务属性，也包含了切点功能
+- 如果自己配置了 DataSourceTransactionManager 或是在引导类加了 @EnableTransactionManagement，则以自己配置的为准
+
+
+
+#### 2.7.5. ServletWebServerFactoryAutoConfiguration
+
+- 提供 ServletWebServerFactory
+
+
+
+#### 2.7.6. DispatcherServletAutoConfiguration
+
+- 提供 DispatcherServlet
+- 提供 DispatcherServletRegistrationBean
+
+
+
+#### 2.7.7. WebMvcAutoConfiguration
+
+- 配置 DispatcherServlet 的各项组件，提供的 bean 见过的有
+  - 多项 HandlerMapping
+  - 多项 HandlerAdapter
+  - HandlerExceptionResolver
+
+
+
+#### 2.7.8. ErrorMvcAutoConfiguration
+
+- 提供的 bean 有 BasicErrorController
+
+
+
+#### 2.7.9. MultipartAutoConfiguration
+
+- 它提供了 org.springframework.web.multipart.support.StandardServletMultipartResolver
+- 该 bean 用来解析 multipart/form-data 格式的数据
+
+
+
+#### 2.7.10. HttpEncodingAutoConfiguration
+
+- POST 请求参数如果有中文，无需特殊设置，这是因为 Spring Boot 已经配置了 org.springframework.boot.web.servlet.filter.OrderedCharacterEncodingFilter
+- 对应配置 server.servlet.encoding.charset=UTF-8，默认就是 UTF-8
+- 当然，它只影响非 json 格式的数据
+
 
 ## 3. SpringBoot 项目启动流程
 
@@ -299,6 +475,33 @@ Spring Boot 的启动流程，本质就是运行一个 Spring 容器的环境。
 - 环境属性（Environment）
 - 系统配置（spring.factories）
 - 参数（Arguments、application.properties）
+
+#### 3.1.1. 阶段一：SpringApplication 构造
+
+SpringApplication 构造方法中会完成以下的操作：
+
+1. 记录 `BeanDefinition` 源
+2. 推断应用类型
+3. 记录 `ApplicationContext` 初始化器
+4. 记录监听器
+5. 推断主启动类
+
+#### 3.1.2. 阶段二：执行 run 方法
+
+1. 得到 `SpringApplicationRunListeners` 事件发布器，发布 application starting 事件
+2. 封装启动 args 参数
+3. 准备 `Environment` 添加命令行参数，通过 `PropertySource<T>` 抽象类的实现 `SimpleCommandLinePropertySource` 进行解析
+4. `ConfigurationPropertySources` 处理，发布 application environment 已准备事件
+5. 通过 `EnvironmentPostProcessorApplicationListener` 进行 env 后处理，如读取 application.properties（由 `StandardConfigDataLocationResolver` 解析），spring.application.json 等文件
+    - `ConfigurationPropertySources.attach(Environment environment)` 方法用于规范统一解析各种环境键名称格式
+    - `EnvironmentPostProcessor` 后处理增强
+    - 绑定 spring.main 文件前缀的 key-value 至 `SpringApplication` 对象
+6. 打印 banner，由 `SpringApplicationBannerPrinter` 实现
+7. 创建容器
+8. 准备容器，发布 application context 已初始化事件
+9. 加载 bean 定义，发布 application prepared 事件
+10. refresh 容器，发布 application started 事件
+11. 执行 runner，发布 application ready 事件，若发生异常，则发布 application failed 事件
 
 ### 3.2. ConfigurableApplicationContext 
 
@@ -467,7 +670,33 @@ org.springframework.context.ApplicationListener=com.moon.springboot.listener.Cus
 
 ![](images/282950811231990.png)
 
-### 3.4. 初始化 Spring 容器
+### 3.4. 打印 banner
+
+Spring Boot 在控制台输出 banner 具体由 `SpringApplicationBannerPrinter` 实现
+
+#### 3.4.1. 模拟实现示例
+
+banner 的数据是从环境对象中读取，然后 `SpringApplicationBannerPrinter` 的 `print` 方法进行输出打印
+
+```java
+@Test
+public void test() {
+    ApplicationEnvironment env = new ApplicationEnvironment();
+    SpringApplicationBannerPrinter printer = new SpringApplicationBannerPrinter(
+            new DefaultResourceLoader(),
+            new SpringBootBanner()
+    );
+    // 测试文字 banner
+    // env.getPropertySources().addLast(new MapPropertySource("custom", Map.of("spring.banner.location","banner1.txt")));
+    // 测试图片 banner
+    env.getPropertySources().addLast(new MapPropertySource("custom", Map.of("spring.banner.image.location","banner2.png")));
+    // 版本号的获取
+    System.out.println(SpringBootVersion.getVersion());
+    printer.print(env, Step7.class, System.out);
+}
+```
+
+### 3.5. 初始化 Spring 容器
 
 在 `SpringApplication` 对象创建并加载配置信息、初始化各种配置对象后，然后调用对象的 `run(String... args)` 方法，用于初始化容器，并得到 `ConfigurableApplicationContext` 对象，这也是核心部分
 
@@ -535,11 +764,11 @@ public ConfigurableApplicationContext run(String... args) {
 }
 ```
 
-### 3.5. Spring Boot 监听机制
+### 3.6. Spring Boot 监听机制
 
 Spring Boot 启动过程由于存在着不同的处理过程阶段，如果设计接口就要设计十余个标准接口，这样对开发者不友好，同时整体过程管理分散，十余个过程在不同地方调用，管理难度大，过程过于松散。然后 Spring Boot 采用了监听器设计模式来解决此问题
 
-#### 3.5.1. 内置监听器
+#### 3.6.1. 内置监听器
 
 Spring Boot 将自身的启动过程当成一个大的事件，该事件是由若干个小的事件组成的。例如：
 
@@ -562,3 +791,191 @@ Spring Boot 将自身的启动过程当成一个大的事件，该事件是由�
 
 上述列出的仅仅是部分事件，当应用启动后走到某一个过程点时，监听器监听到某个事件触发，就会执行对应的事件。除了系统内置的事件处理，用户还可以根据需要自定义开发当前事件触发时要做的其他动作。
 
+## 4. Spring Boot 内嵌 Tomcat 容器
+
+### 4.1. Tomcat 基本结构
+
+```
+Server
+└───Service
+    ├───Connector (协议，端口)
+    └───Engine
+        └───Host(虚拟主机 localhost)
+            ├───Context1 (应用1，可以设置虚拟路径，“/” 即 url 起始路径；项目磁盘路径，即 docBase )
+            │   │   index.html
+            │   └───WEB-INF
+            │       │   web.xml (servlet, filter, listener) 3.0
+            │       ├───classes (servlet, controller, service ...)
+            │       ├───jsp
+            │       └───lib (第三方 jar 包)
+            └───Context2 (应用2)
+                │   index.html
+                └───WEB-INF
+                        web.xml
+```
+
+### 4.2. 模拟内嵌 Tomcat 容器实现示例
+
+#### 4.2.1. 创建基础 tomcat
+
+- 引入相关依赖
+
+```xml
+<!-- tomcat 依赖 -->
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-tomcat</artifactId>
+</dependency>
+<!-- servlet 支持 (在 spring boot 中依赖管理) -->
+<dependency>
+    <groupId>javax.servlet</groupId>
+    <artifactId>javax.servlet-api</artifactId>
+</dependency>
+```
+
+- 创建测试使用的 Servlet
+
+```java
+public class HelloServlet extends HttpServlet {
+    @Override
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        resp.setContentType("text/html;charset=utf-8");
+        resp.getWriter().print("<h3>hello, servlet</h3>");
+    }
+}
+```
+
+- 创建内嵌 tomcat 核心代码
+
+```java
+public static void main(String[] args) throws LifecycleException, IOException {
+    // 1.创建 Tomcat 对象
+    Tomcat tomcat = new Tomcat();
+    // 设置 tomcat 基础目录，用于保存一些必须的配置与临时文件
+    tomcat.setBaseDir("tomcat");
+
+    // 2.创建项目文件夹, 即 docBase 文件夹
+    File docBase = Files.createTempDirectory("boot.").toFile();
+    docBase.deleteOnExit(); // 在容器关闭时，删除文件夹
+
+    /*
+     * 3.创建 Tomcat 项目, 在 Tomcat 中称为 Context。
+     *  public Context addContext(String contextPath, String docBase)
+     *      contextPath 参数：上下文映射路径，空字符串（""）代表根上下文
+     *      docBase 参数：上下文的基础目录，用于静态文件
+     */
+    Context context = tomcat.addContext("", docBase.getAbsolutePath());
+
+    // 4.编程式添加 Servlet
+    context.addServletContainerInitializer(new ServletContainerInitializer() {
+        @Override
+        public void onStartup(Set<Class<?>> c, ServletContext ctx) throws ServletException {
+            ctx.addServlet("helloServlet", new HelloServlet()).addMapping("/hello");
+        }
+    }, Collections.emptySet());
+
+    // 5.启动 Tomcat
+    tomcat.start();
+
+    // 6.创建连接器，使用 ProtocolHandler 的实现类 Http11Nio2Protocol
+    Connector connector = new Connector(new Http11Nio2Protocol());
+    // 设置监听端口
+    connector.setPort(8080);
+    tomcat.setConnector(connector);
+}
+```
+
+#### 4.2.2. 集成 Spring 容器
+
+- 添加 Spring MVC 相关依赖
+
+```xml
+<!-- Spring MVC 核心依赖 -->
+<dependency>
+    <groupId>org.springframework</groupId>
+    <artifactId>spring-webmvc</artifactId>
+</dependency>
+<!-- spring boot 自动配置依赖，示例用于引入 DispatcherServletRegistrationBean 来注册 DispatcherServlet -->
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-autoconfigure</artifactId>
+</dependency>
+<!-- json 对象转换需要的 jackson 的依赖（参考 spring-boot-starter-web 的依赖）-->
+<dependency>
+    <groupId>com.fasterxml.jackson.core</groupId>
+    <artifactId>jackson-databind</artifactId>
+</dependency>
+```
+
+- 创建测试的控制器
+
+```java
+@RestController
+public class DemoController {
+    @GetMapping("hello2")
+    public Map<String, Object> hello() {
+        Map<String, Object> map = new HashMap<>();
+        map.put("hello2", "hello, spring!");
+        return map;
+    }
+}
+```
+
+- 创建配置类
+
+```java
+@Configuration
+@ComponentScan("com.moon.springboot.tomcat")
+public class SpringConfig {
+
+    @Bean
+    public DispatcherServletRegistrationBean registrationBean(DispatcherServlet dispatcherServlet) {
+        return new DispatcherServletRegistrationBean(dispatcherServlet, "/");
+    }
+
+    // 此例子中必须为 DispatcherServlet 提供 AnnotationConfigWebApplicationContext, 否则会选择 XmlWebApplicationContext 实现
+    @Bean
+    public DispatcherServlet dispatcherServlet(WebApplicationContext applicationContext) {
+        return new DispatcherServlet(applicationContext);
+    }
+
+    @Bean
+    public RequestMappingHandlerAdapter requestMappingHandlerAdapter() {
+        RequestMappingHandlerAdapter handlerAdapter = new RequestMappingHandlerAdapter();
+        handlerAdapter.setMessageConverters(Arrays.asList(new MappingJackson2HttpMessageConverter()));
+        return handlerAdapter;
+    }
+}
+```
+
+- 创建 tomcat 关键代码改造
+
+```java
+public static void main(String[] args) throws LifecycleException, IOException {
+    // ...
+
+    // 创建基于注解的 Spring 容器 AnnotationConfigWebApplicationContext
+    // 弃用 AnnotationConfigServletWebServerApplicationContext 是因为此容器自带内嵌的 web 容器
+    AnnotationConfigWebApplicationContext springContext = new AnnotationConfigWebApplicationContext();
+    springContext.register(SpringConfig.class);
+    springContext.refresh(); // 手动刷新容器
+
+    // 4.编程式添加 Servlet
+    context.addServletContainerInitializer(new ServletContainerInitializer() {
+        @Override
+        public void onStartup(Set<Class<?>> c, ServletContext ctx) throws ServletException {
+            ctx.addServlet("helloServlet", new HelloServlet()).addMapping("/hello");
+            // 可以从 Spring 容器中获取到被管理的 DispatcherServlet，并注册
+            // DispatcherServlet dispatcherServlet = springContext.getBean(DispatcherServlet.class);
+            // ctx.addServlet("dispatcherServlet", dispatcherServlet).addMapping("/");
+
+            // 上面是手动注册一个 DispatcherServlet，为了日后的方便扩展，可以从 Spring 容器中获取所有 ServletRegistrationBean 类型的实例
+            // 调用其对象的 onStartup 方法，完成所有 DispatcherServlet 的注册
+            for (ServletRegistrationBean registrationBean : springContext.getBeansOfType(ServletRegistrationBean.class).values()) {
+                registrationBean.onStartup(ctx);
+            }
+        }
+    }, Collections.emptySet());
+    // ...
+}
+```

@@ -2099,7 +2099,6 @@ public class IpCountAutoConfiguration {
 org.springframework.boot.autoconfigure.EnableAutoConfiguration=com.tool.autoconfigure.IpCountAutoConfiguration
 ```
 
-
 #### 10.3.4. 使用配置属性设置功能参数
 
 为了提高 IP 统计报表信息显示的灵活性，可以让调用者通过 yml 配置文件设置一些参数，用于控制报表的显示格式。
