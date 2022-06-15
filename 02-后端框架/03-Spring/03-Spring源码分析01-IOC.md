@@ -4125,64 +4125,9 @@ public class ContextLoaderListener extends ContextLoader implements ServletConte
 
 ### 3.11. FactoryBean 接口
 
-#### 3.11.1. 接口的作用
+> 接口作用与使用示例详见[《Spring 笔记 - 核心技术.md》文档](/02-后端框架/03-Spring/01-Spring笔记01)
 
-`FactirtBean`接口的作用是：在实例化和 IOC/DI 做完后，就会调用 `FactoryBean` 类型的接口重写的`getObject()`方法，可以返回不同的bean类型，此bean实例会被Spring容器管理
-
-- 如果要获取到 `FactoryBean` 接口实现类实例本身，就必须在beanName前加上`&`符号，比如：`beanFactory.getBean("&beanName")`。
-- `BeanFactory.getBean("beanName")` 只能获取到 `getObject()` 方法返回的实例
-
-> 注：`FactoryBean`类型的类本身与`getObject()`方法返回的实例都会被Spring容器管理
-
-#### 3.11.2. 基础使用示例
-
-示例如下：
-
-```java
-/**
- * Spring 框架 FactoryBean 接口使用示例
- * FactoryBean 是泛型接口，如果不指定泛型，但 getObject() 方法返回值为 Object 类型
- */
-@Component
-public class FactoryBeanDemo implements FactoryBean<Cat> {
-    /*
-     *  此方法可以进行一些其他的逻辑处理，然后返回一个新的bean
-     *   注：此处返回的新的实例与原来实现了FactoryBean接口当前类的实例互不干扰，都会被spring管理
-     */
-    @Override
-    public Cat getObject() throws Exception {
-        System.out.println("FactoryBeanDemo.getObject()方法执行了....");
-        Cat cat = new Cat();
-        cat.setName("I am born form FactoryBeanDemo");
-        cat.setColor("purple");
-        return cat;
-    }
-
-    @Override
-    public Class<?> getObjectType() {
-        return Cat.class;
-    }
-}
-```
-
-- 测试
-
-```java
-private final ApplicationContext context = new AnnotationConfigApplicationContext("com.moon.spring");
-
-@Test
-public void testFactoryBeanBasic() {
-    // 实现了FactoryBean接口的类，通过bean的id只能获取该类实现了getObject()方法返回的对象实例
-    Cat cat = (Cat) context.getBean("factoryBeanDemo");
-    System.out.println(cat); // Cat(name=I am born form FactoryBeanDemo, color=purple)
-
-    // 如果要获取实现了FactoryBean接口的类的实例，只能通过【"&" + beanName】来获取实例
-    FactoryBeanDemo factoryBean = context.getBean("&factoryBeanDemo", FactoryBeanDemo.class);
-    System.out.println(factoryBean); // com.moon.spring.factorybean.FactoryBeanDemo@5c909414
-}
-```
-
-#### 3.11.3. 源码分析
+#### 3.11.1. 源码分析
 
 `FactoryBean` 类型接口触发的位置：`AbstractBeanFactory --> doGetBean()`
 
@@ -4210,7 +4155,7 @@ if (mbd.isSingleton()) {
 
 `FactoryBean`接口调用主要逻辑
 
-- 判断beanName是否以`&`开头，并且是`FactoryBean`接口类型，如果是，直接返回。
+- 判断 beanName 是否以`&`开头，并且是`FactoryBean`接口类型，如果是，直接返回。
 - 判断
 
 ```java
@@ -4380,7 +4325,7 @@ private Object doGetObjectFromFactoryBean(FactoryBean<?> factory, String beanNam
 }
 ```
 
-#### 3.11.4. 小结
+#### 3.11.2. 小结
 
 `FactoryBean`接口类型实例的调用具体调用位置是在`getSingleton`方法之后`getObjectForBeanInstance`的方法中，主要处理的内容如下：
 

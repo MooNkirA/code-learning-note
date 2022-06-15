@@ -1775,6 +1775,171 @@ public class MapperScanPostProcessor implements BeanDefinitionRegistryPostProces
 }
 ```
 
+### 10.3. FactoryBean 接口
+
+#### 10.3.1. 接口概述
+
+`org.springframework.beans.factory.FactoryBean` 接口，是 Spring IoC 容器实例化逻辑的一个可插入点。作用是用于创建相对复杂的 bean，如 `SqlSessionFactory` 等。但使用 `@Bean` 的方式一样可以实现创建
+
+`FactoryBean` 接口调用的时机是在实例化和 IOC/DI 完成后，就会调用此类型接口重写的 `getObject()` 方法，可以返回自定义的 bean 类型，此 bean 实例会被 Spring 容器管理
+
+#### 10.3.2. API 概述
+
+`FactoryBean<T>` 接口提供了以下几个方法
+
+```java
+@Nullable
+T getObject() throws Exception;
+```
+
+- 返回该工厂创建的对象的一个实例。可以是单例也可以是多例对象
+
+```java
+@Nullable
+Class<?> getObjectType();
+```
+
+- 指定 `getObject()` 方法返回对象的类型，如果不确定该返回对象的类型，则返回 null
+
+```java
+default boolean isSingleton() {
+	return true;
+}
+```
+
+- 如果这个 `FactoryBean` 接口中的 `getObject()` 方法返回单例，则返回 true，若返回多例对象，则返回 false。方法的默认实现返回 true
+
+#### 10.3.3. 基础使用示例
+
+示例如下：
+
+- 创建用于测试的 bean 与测试生命周期不同阶段的回调方法
+
+```java
+@Component
+public class Bean2 {
+}
+
+public class Bean1 implements BeanFactoryAware, InitializingBean {
+
+    private Bean2 bean2;
+
+    // 使用 FactoryBean 方式创建实例，不会触发依赖注入
+    @Autowired
+    public void setBean2(Bean2 bean2) {
+        System.out.println("setBean2() 方法注入 bean2: " + bean2);
+        this.bean2 = bean2;
+    }
+
+    public Bean2 getBean2() {
+        return bean2;
+    }
+
+    // 使用 FactoryBean 方式创建实例，不会触发 Aware 系列接口回调
+    @Override
+    public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
+        System.out.println("Bean1 的 setBeanFactory 方法执行了...");
+    }
+
+    // 使用 FactoryBean 方式创建实例，不会触发 InitializingBean 接口的 afterPropertiesSet
+    @Override
+    public void afterPropertiesSet() throws Exception {
+        System.out.println("Bean1 的 afterPropertiesSet 方法执行了...");
+    }
+}
+```
+
+```java
+@Component
+public class MyBeanPostProcessor implements BeanPostProcessor {
+
+    // 使用 FactoryBean 方式创建实例，不会执行 BeanPostProcessor 的实例初始化前回调
+    @Override
+    public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
+        if (beanName.equals("myFactoryBean") && bean instanceof Bean1) {
+            System.out.println(beanName + " postProcessBeforeInitialization");
+        }
+        return bean;
+    }
+
+    // 使用 FactoryBean 方式创建实例，会执行 BeanPostProcessor 的初始化后回调
+    @Override
+    public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
+        if (beanName.equals("myFactoryBean") && bean instanceof Bean1) {
+            System.out.println(beanName + " postProcessAfterInitialization");
+        }
+        return bean;
+    }
+}
+```
+
+- 创建 FactoryBean 接口实现
+
+```java
+/**
+ * Spring 框架 FactoryBean 接口使用示例
+ * FactoryBean 是泛型接口，如果不指定泛型，但 getObject() 方法返回值为 Object 类型
+ */
+@Component("myFactoryBean")
+public class FactoryBeanDemo implements FactoryBean<Bean1> {
+
+    /*
+     * 此方法可以进行一些其他的逻辑处理，然后返回一个新的bean。该 bean 是单例还是多例取决于 isSingleton 方法的返回值
+     *  注：此处返回的新的实例与原来实现了FactoryBean接口当前类的实例互不干扰，都会被spring管理
+     */
+    @Override
+    public Bean1 getObject() throws Exception {
+        Bean1 bean = new Bean1();
+        System.out.println("getObject() create bean: " + bean);
+        return bean;
+    }
+
+    /*
+     * 指定 getObjectType() 方法返回对象的类型，如果不确定该返回对象的类型，则返回 null
+     *  值得注意的是，若返回 null，在使用 getBean 方法根据类型获取此实例时，会报错！
+     */
+    @Override
+    public Class<?> getObjectType() {
+        return Bean1.class;
+    }
+
+    /*
+     * 用于指定 getObject() 方法返回对象是否为单例
+     * 若返回单例，则返回 true，若返回多例，则返回 false。方法的默认实现返回 true
+     */
+    @Override
+    public boolean isSingleton() {
+        return FactoryBean.super.isSingleton();
+    }
+}
+```
+
+- 测试
+
+```java
+@Test
+public void test1() {
+    AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext("com.moon.springsample");
+    // 实现了FactoryBean接口的类，通过bean的id只能获取该类实现了getObject()方法返回的对象实例
+    System.out.println(context.getBean("myFactoryBean"));
+    System.out.println(context.getBean("myFactoryBean")); // 测试多次获取是否为单例
+    System.out.println(context.getBean("myFactoryBean")); // 测试多次获取
+    // 测试若 getObjectType() 方法返回 null，在使用 getBean 方法根据类型获取 getObject 的实例时，会报错！
+    System.out.println(context.getBean(Bean1.class));
+
+    // 如果要获取实现了 FactoryBean 接口的类的实例，只能通过【"&" + beanName】来获取实例
+    FactoryBeanDemo factoryBean = context.getBean("&myFactoryBean", FactoryBeanDemo.class);
+    System.out.println(factoryBean);
+}
+```
+
+#### 10.3.4. 接口使用注意点
+
+- `FactoryBean` 类型的类本身与 `getObject()` 方法返回的实例都会被 Spring 容器管理，可以通过 `BeanFactory` 的 `getBean` 方法来获取相应的实例。因此假设有一个 beanName 为 `myBean` 的 `FactoryBean` 接口实现：
+    - 若获取 `FactoryBean` 接口实现类实例本身，就必须在 beanName 前加上`&`符号，如：`getBean("&myBean")`
+    - 若获取 `getObject()` 方法返回的实例，直接使用 beanName 即可，如：`getBean("myBean")`
+- 使用 `FactoryBean` 接口创建的实例，不会触发 Spring 的依赖注入、Aware 系列接口回调、`InitializingBean` 接口的 `afterPropertiesSet`、`BeanPostProcessor` 接口的 `postProcessBeforeInitialization` 等操作。但会执行 `BeanPostProcessor` 接口的 `postProcessAfterInitialization` 实例初始化后回调，也就是意味着创建的实例可以被代理增强
+
 ## 11. BeanFactory 与 ApplicationContext
 
 ### 11.1. BeanFactory
@@ -2208,5 +2373,3 @@ public interface GenericConverter {
     Object convert(Object source, TypeDescriptor sourceType, TypeDescriptor targetType);
 }
 ```
-
-

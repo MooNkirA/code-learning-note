@@ -299,11 +299,17 @@ aop 相关的 jar 包
 
 #### 2.3.2. Spring AOP 核心要素总结
 
-- 在Spring框架中，**Aspect(切面)会封装成`Advisor`**，并且必须包含`Pointcut`(切入点)和`Advice`(增强)两个要素
+- 在 Spring 框架中，**Aspect(切面)会封装成`Advisor`**，并且必须包含`Pointcut`(切入点)和`Advice`(增强)两个要素
 - **Pointcut(切入点)**的作用是：<font color=red>**匹配、拦截**</font>，`ClassFilter`是用于类的拦截；`MethodMatcher`是用过匹配需要增强的方法。主要是用在以下两个节点：
     1. <font color=red>**初始化时，校验相应的类上是否有切面，并生成代理**</font>
     2. <font color=red>**当代理对象调用方法的时候，进行匹配拦截**</font>
 - **Advice(增强)**就是具体的增强的逻辑
+
+#### 2.3.3. 代理的进一步理解
+
+- Spring 在依赖注入和初始化影响的是原始对象，因此如果**直接读取**代理对象依赖注入的属性是为 null，只能通过代理调用方法去读取属性，才会获取注入后的值
+- Spring 代理与目标是两个对象，二者成员变量并不共用数据
+- 代理的增强是基于方法重写，因此 static 方法、final 方法、private 方法均无法增强
 
 ### 2.4. 扩展 - AOP 其他实现方式
 

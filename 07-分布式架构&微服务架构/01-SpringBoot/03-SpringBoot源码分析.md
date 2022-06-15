@@ -222,7 +222,9 @@ public class RedisAutoConfiguration {
 
 #### 2.5.4. 小结
 
-Spring Boot 启动时先加载 spring.factories 文件中的 `org.springframework.boot.autoconfigure.EnableAutoConfiguration` 配置项，然后根据定义在类上的 `@ConditionalOn*` 条件注解来决定哪些 bean 需要加载。
+自动配置类本质上就是一个配置类而已，只是用 META-INF/spring.factories 管理，与应用配置类解耦。Spring Boot 启动时先加载 spring.factories 文件中的 `org.springframework.boot.autoconfigure.EnableAutoConfiguration` 配置项，循环配置中每个自动配置类，然后根据定义在类上的 `@ConditionalOn*` 条件注解来决定哪些 bean 需要加载。
+
+以 `@Enable` 开头的注解本质是利用了 `@Import` 配合 `DeferredImportSelector` 实现导入，在 `selectImports` 方法的返回值即为要导入的配置类名。值得注意的是，`DeferredImportSelector` 接口的导入会在最后执行，其目的是为了让其它配置优先解析
 
 对于正常加载成 bean 的类，通常会通过 `@EnableConfigurationProperties` 注解初始化对应的配置属性类并加载对应的配置。而配置属性类上通常会通过 `@ConfigurationProperties` 加载指定前缀的配置，并且这些配置通常都有默认值。
 
@@ -338,7 +340,65 @@ public class AopAutoConfiguration {
 }
 ```
 
-AOP 自动配置的本质是通过 `@EnableAspectJAutoProxy` 来开启了自动代理，如果在引导类上添加了 `@EnableAspectJAutoProxy` 注解，则使用者添加的为准。该注解的本质是向容器中添加了 `AnnotationAwareAspectJAutoProxyCreator` 这个 bean 后置处理器，它能够找到容器中所有切面，并为匹配切点的目标类创建代理，创建代理的工作一般是在 bean 的初始化阶段完成的
+AOP 自动配置的本质是通过 `@EnableAspectJAutoProxy` 来开启了自动代理，如果在引导类上添加了 `@EnableAspectJAutoProxy` 注解，则使用者添加的为准。
+  
+```java
+@Target(ElementType.TYPE)
+@Retention(RetentionPolicy.RUNTIME)
+@Documented
+@Import(AspectJAutoProxyRegistrar.class)
+public @interface EnableAspectJAutoProxy {
+    // ...
+}
+```
+
+该注解的本质是向容器中添加了 `AnnotationAwareAspectJAutoProxyCreator` 这个 bean 后置处理器，它能够找到容器中所有切面，并为匹配切点的目标类创建代理，创建代理的工作一般是在 bean 的初始化阶段完成的
+
+```java
+class AspectJAutoProxyRegistrar implements ImportBeanDefinitionRegistrar {
+
+	/**
+	 * Register, escalate, and configure the AspectJ auto proxy creator based on the value
+	 * of the @{@link EnableAspectJAutoProxy#proxyTargetClass()} attribute on the importing
+	 * {@code @Configuration} class.
+	 */
+	@Override
+	public void registerBeanDefinitions(
+			AnnotationMetadata importingClassMetadata, BeanDefinitionRegistry registry) {
+
+		AopConfigUtils.registerAspectJAnnotationAutoProxyCreatorIfNecessary(registry);
+
+		AnnotationAttributes enableAspectJAutoProxy =
+				AnnotationConfigUtils.attributesFor(importingClassMetadata, EnableAspectJAutoProxy.class);
+		if (enableAspectJAutoProxy != null) {
+			if (enableAspectJAutoProxy.getBoolean("proxyTargetClass")) {
+				AopConfigUtils.forceAutoProxyCreatorToUseClassProxying(registry);
+			}
+			if (enableAspectJAutoProxy.getBoolean("exposeProxy")) {
+				AopConfigUtils.forceAutoProxyCreatorToExposeProxy(registry);
+			}
+		}
+	}
+}
+```
+
+```java
+public abstract class AopConfigUtils {  
+    // ...
+    @Nullable
+    public static BeanDefinition registerAspectJAnnotationAutoProxyCreatorIfNecessary(BeanDefinitionRegistry registry) {
+	    return registerAspectJAnnotationAutoProxyCreatorIfNecessary(registry, null);
+    }
+
+    @Nullable
+    public static BeanDefinition registerAspectJAnnotationAutoProxyCreatorIfNecessary(
+		    BeanDefinitionRegistry registry, @Nullable Object source) {
+
+	    return registerOrEscalateApcAsRequired(AnnotationAwareAspectJAutoProxyCreator.class, registry, source);
+    }
+    // ...
+}
+```
 
 #### 2.7.2. DataSourceAutoConfiguration
 
@@ -385,15 +445,31 @@ public class DataSourceAutoConfiguration {
 }
 ```
 
+其中 `@EnableConfigurationProperties(DataSourceProperties.class)` 用于封装 `spring.datasource` 数据源相关的配置
+
 #### 2.7.3. MybatisAutoConfiguration
 
-MyBatis 自动配置类为 `org.mybatis.spring.boot.autoconfigure.MybatisAutoConfiguration`，它主要配置了两个 bean
+MyBatis 自动配置类为 `org.mybatis.spring.boot.autoconfigure.MybatisAutoConfiguration`
 
-- SqlSessionFactory - MyBatis 核心对象，用来创建 SqlSession
-- SqlSessionTemplate - SqlSession 的实现，此实现会与当前线程绑定
-- 用 ImportBeanDefinitionRegistrar 的方式扫描所有标注了 @Mapper 注解的接口
-- 用 AutoConfigurationPackages 来确定扫描的包
-- 还有一个相关的 bean：MybatisProperties，它会读取配置文件中带 `mybatis.` 前缀的配置项进行定制配置
+```java
+@Configuration
+@ConditionalOnClass({ SqlSessionFactory.class, SqlSessionFactoryBean.class }) // 项目中存在此类文件才加载
+@ConditionalOnSingleCandidate(DataSource.class) // 当项目只存在一个 DataSource 实例时加载
+@EnableConfigurationProperties(MybatisProperties.class) // 封装 mybatis 前缀的配置
+@AutoConfigureAfter({ DataSourceAutoConfiguration.class, MybatisLanguageDriverAutoConfiguration.class }) // 在
+public class MybatisAutoConfiguration implements InitializingBean {
+    // ...
+}
+```
+
+它主要配置了两个 bean
+
+- SqlSessionFactory：MyBatis 核心对象，用来创建 SqlSession
+- SqlSessionTemplate：SqlSession 的实现，此实现会与当前线程绑定
+
+- 用 `ImportBeanDefinitionRegistrar` 的方式扫描所有标注了 `@Mapper` 注解的接口
+- 用 `AutoConfigurationPackages` 来确定扫描的包
+- `MybatisProperties`，它会读取配置文件中带 `mybatis.` 前缀的配置项进行定制配置
 
 `@MapperScan` 注解的作用与 `MybatisAutoConfiguration` 类似，会注册 `MapperScannerConfigurer` 有如下区别
 
@@ -401,72 +477,92 @@ MyBatis 自动配置类为 `org.mybatis.spring.boot.autoconfigure.MybatisAutoCon
 - `@MapperScan` 如果不指定扫描具体包，则会把引导类范围内，所有接口当做 Mapper 接口
 - `MybatisAutoConfiguration` 关注的是所有标注 `@Mapper` 注解的接口，会忽略掉非 `@Mapper` 标注的接口
 
-这里有同学有疑问，之前介绍的都是将具体类交给 Spring 管理，怎么到了 MyBatis 这儿，接口就可以被管理呢？
-
-- 其实并非将接口交给 Spring 管理，而是每个接口会对应一个 MapperFactoryBean，是后者被 Spring 所管理，接口只是作为 MapperFactoryBean 的一个属性来配置
-
-
+MyBatis 其实并非将接口交给 Spring 管理，而是每个接口会对应一个 `MapperFactoryBean`，是后者被 Spring 所管理，接口只是作为 `MapperFactoryBean` 的一个属性来配置
 
 #### 2.7.4. TransactionAutoConfiguration
 
-- 事务自动配置类有两个：
-  - `org.springframework.boot.autoconfigure.jdbc.DataSourceTransactionManagerAutoConfiguration`
-  - `org.springframework.boot.autoconfigure.transaction.TransactionAutoConfiguration`
+事务自动配置类有两个：
 
-- 前者配置了 DataSourceTransactionManager 用来执行事务的提交、回滚操作
-- 后者功能上对标 @EnableTransactionManagement，包含以下三个 bean
-  - BeanFactoryTransactionAttributeSourceAdvisor 事务切面类，包含通知和切点
-  - TransactionInterceptor 事务通知类，由它在目标方法调用前后加入事务操作
-  - AnnotationTransactionAttributeSource 会解析 @Transactional 及事务属性，也包含了切点功能
-- 如果自己配置了 DataSourceTransactionManager 或是在引导类加了 @EnableTransactionManagement，则以自己配置的为准
+- `org.springframework.boot.autoconfigure.jdbc.DataSourceTransactionManagerAutoConfiguration`
+- `org.springframework.boot.autoconfigure.transaction.TransactionAutoConfiguration`
 
+`DataSourceTransactionManagerAutoConfiguration` 配置了 `DataSourceTransactionManager`，用来执行事务的提交、回滚操作
 
+`TransactionAutoConfiguration` 功能上对标 `@EnableTransactionManagement`，包含以下三个 bean
+
+- `BeanFactoryTransactionAttributeSourceAdvisor` 事务切面类，包含通知和切点
+- `TransactionInterceptor` 事务通知类，由它在目标方法调用前后加入事务操作
+- `AnnotationTransactionAttributeSource` 会解析 `@Transactional` 及事务属性，也包含了切点功能
+
+> 注：如果使用者配置了 `DataSourceTransactionManager` 或是在引导类加了 `@EnableTransactionManagement`，则以自定义的配置为准
 
 #### 2.7.5. ServletWebServerFactoryAutoConfiguration
 
-- 提供 ServletWebServerFactory
-
-
+用于提供 `ServletWebServerFactory`
 
 #### 2.7.6. DispatcherServletAutoConfiguration
 
-- 提供 DispatcherServlet
-- 提供 DispatcherServletRegistrationBean
-
-
+用于提供 `DispatcherServlet`、`DispatcherServletRegistrationBean`
 
 #### 2.7.7. WebMvcAutoConfiguration
 
-- 配置 DispatcherServlet 的各项组件，提供的 bean 见过的有
-  - 多项 HandlerMapping
-  - 多项 HandlerAdapter
-  - HandlerExceptionResolver
-
-
+用于配置 `DispatcherServlet` 的各项组件，如：多项 `HandlerMapping`、多项 `HandlerAdapter`、`HandlerExceptionResolver`
 
 #### 2.7.8. ErrorMvcAutoConfiguration
 
-- 提供的 bean 有 BasicErrorController
-
-
+用于提供 `BasicErrorController`
 
 #### 2.7.9. MultipartAutoConfiguration
 
-- 它提供了 org.springframework.web.multipart.support.StandardServletMultipartResolver
-- 该 bean 用来解析 multipart/form-data 格式的数据
-
-
+提供了 `org.springframework.web.multipart.support.StandardServletMultipartResolver`，用来解析 `multipart/form-data` 格式的数据
 
 #### 2.7.10. HttpEncodingAutoConfiguration
 
-- POST 请求参数如果有中文，无需特殊设置，这是因为 Spring Boot 已经配置了 org.springframework.boot.web.servlet.filter.OrderedCharacterEncodingFilter
-- 对应配置 server.servlet.encoding.charset=UTF-8，默认就是 UTF-8
-- 当然，它只影响非 json 格式的数据
+Spring Boot 已经提供了 `org.springframework.boot.web.servlet.filter.OrderedCharacterEncodingFilter`，对应配置项为 `server.servlet.encoding.charset=UTF-8`，默认就是 UTF-8，只影响非 json 格式的数据。当 POST 请求参数如果有中文，无需特殊设置
 
+## 3. 条件装配实现原理
 
-## 3. SpringBoot 项目启动流程
+<font color=red>**条件装配的底层是本质上是 `@Conditional` 注解与 `Condition` 接口配合应用**</font>。
 
-### 3.1. SpringBoot 应用启动流程图
+以下是实现原理的小示例，如果项目中引入 druid 依赖则加载指定的 bean，否则不加载。
+
+- 编写条件判断类，实现 `Condition` 接口，在 `matches` 方法中指定条件判断逻辑
+
+```java
+public class MyCondition implements Condition { 
+    // 如果存在 Druid 依赖，条件成立
+    public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
+        return ClassUtils.isPresent("com.alibaba.druid.pool.DruidDataSource", null);
+    }
+}
+```
+
+- 在要导入的自动配置类上添加 `@Conditional(MyCondition.class)`，将来此类被导入时就会做条件检查
+
+```java
+@Configuration // 第三方的配置类
+@Conditional(MyCondition.class) // 加入条件
+static class AutoConfiguration {
+    @Bean
+    public Bean1 bean1() {
+        return new Bean1();
+    }
+}
+```
+
+- 测试，项目加入 druid 依赖后，bean1 存在于容器；移除依赖后，bean2 不存在。
+
+```xml
+<dependency>
+    <groupId>com.alibaba</groupId>
+    <artifactId>druid</artifactId>
+    <version>x.x.x</version>
+</dependency>
+```
+
+## 4. SpringBoot 项目启动流程
+
+### 4.1. SpringBoot 应用启动流程图
 
 ![](images/20211227162258538_26216.png)
 
@@ -476,7 +572,7 @@ Spring Boot 的启动流程，本质就是运行一个 Spring 容器的环境。
 - 系统配置（spring.factories）
 - 参数（Arguments、application.properties）
 
-#### 3.1.1. 阶段一：SpringApplication 构造
+#### 4.1.1. 阶段一：SpringApplication 构造
 
 SpringApplication 构造方法中会完成以下的操作：
 
@@ -486,7 +582,7 @@ SpringApplication 构造方法中会完成以下的操作：
 4. 记录监听器
 5. 推断主启动类
 
-#### 3.1.2. 阶段二：执行 run 方法
+#### 4.1.2. 阶段二：执行 run 方法
 
 1. 得到 `SpringApplicationRunListeners` 事件发布器，发布 application starting 事件
 2. 封装启动 args 参数
@@ -503,7 +599,7 @@ SpringApplication 构造方法中会完成以下的操作：
 10. refresh 容器，发布 application started 事件
 11. 执行 runner，发布 application ready 事件，若发生异常，则发布 application failed 事件
 
-### 3.2. ConfigurableApplicationContext 
+### 4.2. ConfigurableApplicationContext 
 
 添加 Spring Boot 最基础的依赖与编写最基础的入口，启动后用于源码的断点跟踪。
 
@@ -544,7 +640,7 @@ public static ConfigurableApplicationContext run(Class<?>[] primarySources, Stri
 
 ![](images/49300310220553.jpg)
 
-### 3.3. SpringApplication
+### 4.3. SpringApplication
 
 Spring Boot 启动流程的首先是通过 `SpringApplication` 类的构造函数，创建其对象，并加载各种配置信息，初始化各种配置对象；
 
@@ -573,7 +669,7 @@ public SpringApplication(ResourceLoader resourceLoader, Class<?>... primarySourc
 }
 ```
 
-#### 3.3.1. WebApplicationType 加载容器的类型
+#### 4.3.1. WebApplicationType 加载容器的类型
 
 `WebApplicationType` 枚举类，定义 Spring Boot 容器的类型
 
@@ -609,7 +705,7 @@ public enum WebApplicationType {
 
 ![](images/316312610247012.png)
 
-#### 3.3.2. getSpringFactoriesInstances 方法
+#### 4.3.2. getSpringFactoriesInstances 方法
 
 `getSpringFactoriesInstances` 是 `SpringApplication` 类的方法，在加载配置的过程中多次被调用
 
@@ -640,7 +736,7 @@ private <T> Collection<T> getSpringFactoriesInstances(Class<T> type, Class<?>[] 
 
 ![](images/547434610236236.png)
 
-#### 3.3.3. 自定义监听器
+#### 4.3.3. 自定义监听器
 
 从上面的源码可以看到，在创建 `SpringApplication` 对象中的 `setListeners((Collection) getSpringFactoriesInstances(ApplicationListener.class));` 这里会进行初始化监听器，同样是读取 spring.factories 文件中配置的实现，因此使用者可以自定义监听器的实现，并将监听器类全限名称配置到 spring.factories 文件中即可
 
@@ -670,11 +766,11 @@ org.springframework.context.ApplicationListener=com.moon.springboot.listener.Cus
 
 ![](images/282950811231990.png)
 
-### 3.4. 打印 banner
+### 4.4. 打印 banner
 
 Spring Boot 在控制台输出 banner 具体由 `SpringApplicationBannerPrinter` 实现
 
-#### 3.4.1. 模拟实现示例
+#### 4.4.1. 模拟实现示例
 
 banner 的数据是从环境对象中读取，然后 `SpringApplicationBannerPrinter` 的 `print` 方法进行输出打印
 
@@ -696,7 +792,7 @@ public void test() {
 }
 ```
 
-### 3.5. 初始化 Spring 容器
+### 4.5. 初始化 Spring 容器
 
 在 `SpringApplication` 对象创建并加载配置信息、初始化各种配置对象后，然后调用对象的 `run(String... args)` 方法，用于初始化容器，并得到 `ConfigurableApplicationContext` 对象，这也是核心部分
 
@@ -764,11 +860,11 @@ public ConfigurableApplicationContext run(String... args) {
 }
 ```
 
-### 3.6. Spring Boot 监听机制
+### 4.6. Spring Boot 监听机制
 
 Spring Boot 启动过程由于存在着不同的处理过程阶段，如果设计接口就要设计十余个标准接口，这样对开发者不友好，同时整体过程管理分散，十余个过程在不同地方调用，管理难度大，过程过于松散。然后 Spring Boot 采用了监听器设计模式来解决此问题
 
-#### 3.6.1. 内置监听器
+#### 4.6.1. 内置监听器
 
 Spring Boot 将自身的启动过程当成一个大的事件，该事件是由若干个小的事件组成的。例如：
 
@@ -791,9 +887,9 @@ Spring Boot 将自身的启动过程当成一个大的事件，该事件是由�
 
 上述列出的仅仅是部分事件，当应用启动后走到某一个过程点时，监听器监听到某个事件触发，就会执行对应的事件。除了系统内置的事件处理，用户还可以根据需要自定义开发当前事件触发时要做的其他动作。
 
-## 4. Spring Boot 内嵌 Tomcat 容器
+## 5. Spring Boot 内嵌 Tomcat 容器
 
-### 4.1. Tomcat 基本结构
+### 5.1. Tomcat 基本结构
 
 ```
 Server
@@ -814,9 +910,9 @@ Server
                         web.xml
 ```
 
-### 4.2. 模拟内嵌 Tomcat 容器实现示例
+### 5.2. 模拟内嵌 Tomcat 容器实现示例
 
-#### 4.2.1. 创建基础 tomcat
+#### 5.2.1. 创建基础 tomcat
 
 - 引入相关依赖
 
@@ -885,7 +981,7 @@ public static void main(String[] args) throws LifecycleException, IOException {
 }
 ```
 
-#### 4.2.2. 集成 Spring 容器
+#### 5.2.2. 集成 Spring 容器
 
 - 添加 Spring MVC 相关依赖
 

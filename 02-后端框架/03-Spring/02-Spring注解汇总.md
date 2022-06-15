@@ -2578,9 +2578,36 @@ public class SpringProfileTest {
 
 综合示例代码详见：
 
-> [github仓库](https://github.com/MooNkirA/spring-note/tree/master/spring-analysis-note/spring-sample-annotation/14-annotation-component-composite-sample)
+> [github仓库](https://github.com/MooNkirA/spring-note/tree/main/spring-sample/34-annotation-component-composite-sample)
 >
-> 本地：spring-note\spring-analysis-note\spring-sample-annotation\14-annotation-component-composite-sample\
+> 本地：spring-note\spring-sample\34-annotation-component-composite-sample\
+
+
+### 4.2. @Indexed
+
+#### 4.2.1. 作用与原理
+
+Spring 5.0 版本后，增加 `@Indexed` 注解，用于加快扫描类的时间。
+
+实现原理是，在编译时，如果项目中存在 `@Indexed` 注解，就会根据标识该注解的类生成 META-INF/spring.components 文件，里面就是相应类的全路径名。
+
+当 Spring 扫描时，发现 META-INF/spring.components 存在，则以该文件为准，将里面记录的类都加载为 BeanDefinition，从而在编译期就找到 `@Component` 组件，节省运行期间扫描的时间。
+
+如果 spring.components 文件不存在，才会遍历包下所有 class 资源 (包括 jar 包内的 class 资源)
+
+> 注：在 5.0 版本后，`@Component` 已经组合了 `@Indexed` 注解，因此标识 `@Component` 的类相当于也标识 `@Indexed`
+
+#### 4.2.2. 使用示例
+
+需要在项目上添加如下依赖
+
+```xml
+<dependency>
+    <groupId>org.springframework</groupId>
+    <artifactId>spring-context-indexer</artifactId>
+    <optional>true</optional>
+</dependency>
+```
 
 ## 5. 用于注入数据的注解
 
@@ -4720,8 +4747,4 @@ public class GlobalExceptionHandler {
 ```
 
 *注：AjaxResult.error是自定义的一个方法，封装了一个返回的map，用来返回前端是一个json对象*
-
-## 2. 参考资料
-
-1. http://mp.weixin.qq.com/s?__biz=MzI3ODcxMzQzMw==&mid=2247491621&idx=1&sn=332712bcb7146cb9f5f3f280e3bb1c2b&chksm=eb506513dc27ec05d2143663720c1a3b7d9b610954763cb7cea3f8f31a6bad5064d8ef5b13c1&mpshare=1&scene=1&srcid=&sharer_sharetime=1574220624476&sharer_shareid=6087581adbbb79acccd7e873962f1a09#rd
 
