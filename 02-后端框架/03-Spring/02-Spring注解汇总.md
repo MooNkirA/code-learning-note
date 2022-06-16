@@ -2589,7 +2589,12 @@ public class SpringProfileTest {
 
 Spring 5.0 版本后，增加 `@Indexed` 注解，用于加快扫描类的时间。
 
-实现原理是，在编译时，如果项目中存在 `@Indexed` 注解，就会根据标识该注解的类生成 META-INF/spring.components 文件，里面就是相应类的全路径名。
+实现原理是，在编译时，如果项目中存在 `@Indexed` 注解，就会根据标识该注解的类生成 META-INF/spring.components 文件，里面就是相应类的全路径名。示例如下：
+
+```properties
+com.moon.spring.Bean1=org.springframework.stereotype.Component
+com.moon.spring.Bean2=org.springframework.stereotype.Component
+```
 
 当 Spring 扫描时，发现 META-INF/spring.components 存在，则以该文件为准，将里面记录的类都加载为 BeanDefinition，从而在编译期就找到 `@Component` 组件，节省运行期间扫描的时间。
 
