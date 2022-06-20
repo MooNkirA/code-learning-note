@@ -1171,27 +1171,6 @@ SLF4J 不依赖于任何特殊的类装载。实际上，每个 SLF4J 绑定在�
 </dependency>
 ```
 
-```xml
-<!-- log4j-->
-<dependency>
-    <groupId>org.slf4j</groupId>
-    <artifactId>log4j-over-slf4j</artifactId>
-    <version>1.7.36</version>
-</dependency>
-<!-- jul -->
-<dependency>
-    <groupId>org.slf4j</groupId>
-    <artifactId>jul-to-slf4j</artifactId>
-    <version>1.7.36</version>
-</dependency>
-<!--jcl -->
-<dependency>
-    <groupId>org.slf4j</groupId>
-    <artifactId>jcl-over-slf4j</artifactId>
-    <version>1.7.36</version>
-</dependency>
-```
-
 #### 6.4.3. 桥接注意问题
 
 1. jcl-over-slf4j.jar 和 slf4j-jcl.jar 不能同时部署。前一个 jar 文件将导致 JCL 将日志系统的选择委托给 SLF4J，后一个 jar 文件将导致 SLF4J 将日志系统的选择委托给 JCL，从而导致无限循环。
@@ -1220,20 +1199,127 @@ Logback 是由 log4j 创始人 Ceki Gulcu 设计的又一个开源日记组件�
 
 ### 7.2. 基础使用示例
 
-1. 创建 maven 工程，添加 logback-classic 的依赖，会自动将 slf4j-api-1.7.21.jar 和 logback-core-1.0.13.jar 也添加到项目中
+1. 创建 maven 工程，只需要添加 logback-classic 的依赖，该依赖会自动引入 slf4j-api 和 logback-core
 
 ```xml
-
+<dependency>
+    <groupId>ch.qos.logback</groupId>
+    <artifactId>logback-classic</artifactId>
+    <version>1.2.11</version>
+</dependency>
 ```
 
+2. 编写基础使用的程序
 
-### 7.3. Logback 配置
+```java
+public class LogbackTest {
+    // 创建日志记录对象
+    public static final Logger LOGGER = LoggerFactory.getLogger(LogbackTest.class);
 
-### 7.4. 基本配置
+    // 基础使用测试
+    @Test
+    public void testBasic() {
+        // 输出不同级别的日志
+        LOGGER.error("error");
+        LOGGER.warn("wring");
+        LOGGER.info("info");
+        LOGGER.debug("debug"); // 默认级别
+        LOGGER.trace("trace");
+    }
+}
+```
 
-SpringBoot工程自带 logback 和 slf4j 的依赖，所以重点放在编写配置文件上，需要引入什么依赖，日志依赖冲突统统都不需要管
+### 7.3. Logback 组件
 
-logback框架会默认加载 classpath 下命名为 `logback-spring` 或 `logback` 的配置文件。将所有日志都存储在一个文件中文件大小也随着应用的运行越来越大并且不好排查问题，正确的做法应该是将error日志和其他日志分开，并且不同级别的日志根据时间段进行记录存储。
+- Logger：日志的记录器，把它关联到应用的对应的context上后，主要用于存放日志对象，也可以定义日志类型、级别
+- Appender：用于指定日志输出的目的地，目的地可以是控制台、文件、数据库等等
+- Layout：负责把事件转换成字符串，格式化的日志信息的输出。在 logback 中 Layout 对象被封装在 encoder 中
+
+### 7.4. Logback 基本配置
+
+在 Spring Boot 工程中，自带 logback 和 slf4j 的依赖，只需要编写配置文件即可。logback 会默认依次加载 classpath 以下类型配置文件：
+
+1. logback.groovy
+2. logback-test.xml
+3. logback.xml
+
+如果以上文件均不存在，则会采用默认配置。
+
+#### 7.4.1. 配置文件各标签作用
+
+##### 7.4.1.1. configuration
+
+`<configuration>` 是 logback 配置文件的根元素。它有 `<appender>`、`<logger>`、`<root>` 三个子元素。
+
+
+##### 7.4.1.2. property
+
+`<property>` 标签用于配置集中管理属性，当配置文件中多处出现相同的配置时使用，使用时通过 `${name}` 的格式引用即可
+
+标签的属性：
+
+- `name`：在配置文件中引用的名称
+- `value`：配置属性的值
+
+##### 7.4.1.3. appender
+
+`<appender>` 标签是将记录日志的任务委托给名为 appender 的组件，是设置日志的输出位置。可以配置零个或多个；它有 `<file>`、`<filter>`、`<layout>`、`<encoder>` 四个子元素。
+
+标签的属性：
+
+- `name`：设置 appender 名称。
+- `class`：设置具体的实例化类。常用的有以下几个
+    - `ch.qos.logback.core.ConsoleAppender` (控制台)
+    - `ch.qos.logback.core.rolling.RollingFileAppender` (文件大小到达指定大小的时候产生一个新文件)
+    - `ch.qos.logback.core.FileAppender` (文件)
+
+##### 7.4.1.4. file
+
+`<file>` 标签用于设置日志文件路径。
+
+##### 7.4.1.5. filter
+
+`<filter>` 标签用于设置过滤器。通过使用该标签指定过滤策略，可以配置零个或多个。
+
+##### 7.4.1.6. layout
+
+`<layout>` 用于设置 appender。可以配置零个或一个。
+
+标签的属性：
+
+- `class`：设置具体的实例化类。
+
+##### 7.4.1.7. encoder
+
+`<encoder>` 用于设置编码。使用该标签下的标签指定日志输出格式，可以配置零个或多个。
+
+标签的属性：
+
+- `class`：设置具体的实例化类。
+
+##### 7.4.1.8. logger
+
+`<logger>` 用于设置自定义的 logger，可以配置零个或多个。
+
+标签的属性：
+
+- name：自定义的 logger 的名称，一般使用包名称
+- level：设置日志级别。不区分大小写。可选值：TRACE、DEBUG、INFO、WARN、ERROR、ALL、OFF。
+- additivity：设置是否继承 root logger。可选值：true 或 false。
+
+##### 7.4.1.9. appender-ref
+
+`<appender-ref>` 用于设置 appender 引用，可以配置零个或多个。
+
+##### 7.4.1.10. root
+
+`<root>` 用于设置根 logger。必填标签，用来指定最基础的日志输出级别。只能配置一个。该标签只有 level 属性，用于设置日志级别。level 属性和 `<logger>` 中的相同。
+
+有一个子元素 `<appender-ref>`，与 `<logger>` 中的相同。
+
+#### 7.4.2. 基础配置示例
+
+将所有日志都存储在一个文件中文件大小也随着应用的运行越来越大并且不好排查问题，正确的做法应该是将error日志和其他日志分开，并且不同级别的日志根据时间段进行记录存储。
 
 ```xml
 <?xml version="1.0" encoding="utf-8"?>
@@ -1287,66 +1373,252 @@ logback框架会默认加载 classpath 下命名为 `logback-spring` 或 `logbac
 </configuration>
 ```
 
-### 7.5. 配置文件各标签作用
+#### 7.4.3. ConsoleAppender 控制台日志配置
 
-#### 7.5.1. `<configuration>`
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
 
-- 作用：`<configuration>` 是 logback 配置文件的根元素。
-- 要点：它有 `<appender>`、`<logger>`、`<root>` 三个子元素。
+    <!--
+        配置集中管理属性，适合用于配置文件中多处出现相关的配置值。引用格式：${name}
+        这里是配置日志输出的格式，配置格式说明：
+            %-5level                    日志级别，-5 代表从左显示5个字符宽度
+            %d{yyyy-MM-dd HH:mm:ss.SSS} 日期
+            %c                          类的完整名称
+            %M                          当前日志的名称
+            %L                          当前日志所在源码的行号
+            %thread                     线程名称
+            %m 或 %msg                  日志的内容
+            %n                          换行
+    -->
+    <property name="pattern" value="[%-5level] %d{yyyy-MM-dd HH:mm:ss.SSS} %c %M %L [%thread] %m%n"/>
 
-#### 7.5.2. `<appender>`
+    <!--
+        Appender: 设置日志信息的输出位置，常用的有以下几个
+            - ch.qos.logback.core.ConsoleAppender (控制台)
+            - ch.qos.logback.core.rolling.RollingFileAppender (文件大小到达指定大小的时候产生一个新文件)
+            - ch.qos.logback.core.FileAppender (文件)
+    -->
+    <!-- 控制台日志输出的 appender -->
+    <appender name="console" class="ch.qos.logback.core.ConsoleAppender">
+        <!-- 控制输出流对象，默认是 System.out，这里改为 System.err -->
+        <target>System.err</target>
+        <!-- 日志消息格式配置 -->
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <pattern>${pattern}</pattern>
+        </encoder>
+    </appender>
 
-- 作用：将记录日志的任务委托给名为 appender 的组件。
-- 要点：可以配置零个或多个；它有 `<file>`、`<filter>`、`<layout>`、`<encoder>` 四个子元素。
-- 属性：
-    - name：设置 appender 名称。
-    - class：设置具体的实例化类。
+    <!--
+        root logger 配置（必须配置），它是根 logger 对象。默认日志级别是 debug
+            level 属性：用来设置打印级别，大小写无关：TRACE, DEBUG, INFO, WARN, ERROR, ALL 和 OFF
+        <root> 可以包含零个或多个 <appender-ref> 元素，标识这个appender将会添加到这个 logger。
+    -->
+    <root level="ALL">
+        <!-- 配置控制台输出 -->
+        <appender-ref ref="console"/>
+    </root>
 
-#### 7.5.3. `<file>`
+    <!--
+        自定义 looger 对象，仅有一个name属性，一个可选的level和一个可选的addtivity属性
+            name 属性：用来指定受此 logger 约束的某一个包或者具体的某一个类。
+            level 属性：用来设置打印级别，大小写无关：TRACE, DEBUG, INFO, WARN, ERROR, ALL 和 OFF，
+                        如果未设置此属性，那么当前logger将会继承上级的级别。
+            additivity 属性：设置是否继承上级 loger 传递打印信息。默认是true。
+        <logger> 可以包含零个或多个 <appender-ref> 元素，标识这个 appender 将会添加到这个 logger
+    -->
+    <logger name="com.moon.log" level="info" additivity="false">
+        <appender-ref ref="console"/>
+    </logger>
 
-- 作用：设置日志文件路径。
+</configuration>
+```
 
-#### 7.5.4. `<filter>`
+#### 7.4.4. FileAppender 文件日志配置
 
-- 作用：设置过滤器。通过使用该标签指定过滤策略
-- 要点：可以配置零个或多个。
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
 
-#### 7.5.5. `<layout>`
+    <!-- 配置日志输出的格式 -->
+    <property name="pattern" value="[%-5level] %d{yyyy-MM-dd HH:mm:ss.SSS} %c %M %L [%thread] %m%n"/>
+    <!-- 定义日志文件保存路径属性 -->
+    <property name="log_dir" value="E:/logs"/>
 
-- 作用：设置 appender。
-- 要点：可以配置零个或一个。
-- 属性：
-    - class：设置具体的实例化类。
 
-#### 7.5.6. `<encoder>`
+    <!-- 控制台日志输出的 appender -->
+    <appender name="console" class="ch.qos.logback.core.ConsoleAppender">
+        <!-- 控制输出流对象，默认是 System.out，这里改为 System.err -->
+        <target>System.err</target>
+        <!-- 日志消息格式配置 -->
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <pattern>${pattern}</pattern>
+        </encoder>
+    </appender>
 
-- 作用：设置编码。使用该标签下的标签指定日志输出格式
-- 要点：可以配置零个或多个。
-- 属性：
-    - class：设置具体的实例化类。
+    <!-- 日志文件输出的 appender -->
+    <appender name="file" class="ch.qos.logback.core.FileAppender">
+        <!-- 日志文件保存路径 -->
+        <file>${log_dir}/logback.log</file>
+        <!-- 日志消息格式配置 -->
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <pattern>${pattern}</pattern>
+        </encoder>
+    </appender>
 
-#### 7.5.7. `<logger>`
+    <!-- html 格式日志文件输出 appender -->
+    <appender name="htmlFile" class="ch.qos.logback.core.FileAppender">
+        <!-- 日志文件保存路径 -->
+        <file>${log_dir}/logback.html</file>
+        <!-- html 消息格式配置 -->
+        <encoder class="ch.qos.logback.core.encoder.LayoutWrappingEncoder">
+            <layout class="ch.qos.logback.classic.html.HTMLLayout">
+                <pattern>%-5level%d{yyyy-MM-dd HH:mm:ss.SSS}%c%M%L%thread%m</pattern>
+            </layout>
+        </encoder>
+    </appender>
+    
+    <!-- root logger 配置 -->
+    <root level="ALL">
+        <!-- 配置控制台输出 -->
+        <appender-ref ref="console"/>
+        <appender-ref ref="file"/>
+        <appender-ref ref="htmlFile"/>
+    </root>
 
-- 作用：设置 logger。
-- 要点：可以配置零个或多个。
-- 属性：
-    - name
-    - level：设置日志级别。不区分大小写。可选值：TRACE、DEBUG、INFO、WARN、ERROR、ALL、OFF。
-    - additivity：可选值：true 或 false。
+</configuration>
+```
 
-#### 7.5.8. `<appender-ref>`
+#### 7.4.5. RollingFileAppender 拆分追加文件日志配置
 
-- 作用：appender 引用。
-- 要点：可以配置零个或多个。
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
 
-#### 7.5.9. `<root>`
+    <!-- 日志拆分和归档压缩的 appender 对象 -->
+    <appender name="rollFile" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <!-- 日志文件保存路径 -->
+        <file>E:/logs/roll_logback.log</file>
+        <!-- 日志消息格式配置 -->
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <pattern>[%-5level] %d{yyyy-MM-dd HH:mm:ss.SSS} %c %M %L [%thread] %m%n</pattern>
+        </encoder>
+        <!-- 指定拆分规则 -->
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <!-- 按照时间和压缩格式声明拆分的文件名 -->
+            <fileNamePattern>E:/logs/rolling.%d{yyyy-MM-dd}.log%i.gz</fileNamePattern>
+            <!-- 按照文件大小拆分 -->
+            <maxFileSize>1MB</maxFileSize>
+        </rollingPolicy>
+    </appender>
 
-- 作用：设置根 logger。必填标签，用来指定最基础的日志输出级别
-- 要点：只能配置一个；除了 level，不支持任何属性。level 属性和 `<logger>` 中的相同；有一个子元素 `<appender-ref>`，与 `<logger>` 中的相同。
+    <!--
+        root logger 配置（必须配置），它是根 logger 对象。默认日志级别是 debug
+            level 属性：用来设置打印级别，大小写无关：TRACE, DEBUG, INFO, WARN, ERROR, ALL 和 OFF
+        <root> 可以包含零个或多个 <appender-ref> 元素，标识这个appender将会添加到这个 logger。
+    -->
+    <root level="ALL">
+        <appender-ref ref="rollFile"/>
+    </root>
 
-### 7.6. logback 高级特性异步输出日志
+</configuration>
+```
 
-之前的日志配置方式是基于同步的，每次日志输出到文件都会进行一次磁盘IO。采用异步写日志的方式而不让此次写日志发生磁盘IO，阻塞线程从而造成不必要的性能损耗。异步输出日志的方式很简单，添加一个基于异步写日志的appender，并指向原先配置的appender即可
+#### 7.4.6. Filter
+
+在 appender 中使用 filter 子元素来实现过滤器
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+
+    <!-- 日志拆分和归档压缩的 appender 对象 -->
+    <appender name="rollFile" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <!-- 日志文件保存路径 -->
+        <file>E:/logs/roll_logback.log</file>
+        <!-- 日志消息格式配置 -->
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <pattern>[%-5level] %d{yyyy-MM-dd HH:mm:ss.SSS} %c %M %L [%thread] %m%n</pattern>
+        </encoder>
+        <!-- 指定拆分规则 -->
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <!-- 按照时间和压缩格式声明拆分的文件名 -->
+            <fileNamePattern>E:/logs/rolling.%d{yyyy-MM-dd}.log%i.gz</fileNamePattern>
+            <!-- 按照文件大小拆分 -->
+            <maxFileSize>1MB</maxFileSize>
+        </rollingPolicy>
+        <!-- 日志级别过滤器 filter -->
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <!-- 设置日志过滤规则 -->
+            <level>ERROR</level>
+            <onMatch>ACCEPT</onMatch>
+            <onMismatch>DENY</onMismatch>
+        </filter>
+    </appender>
+
+    <!--
+        root logger 配置（必须配置），它是根 logger 对象。默认日志级别是 debug
+            level 属性：用来设置打印级别，大小写无关：TRACE, DEBUG, INFO, WARN, ERROR, ALL 和 OFF
+        <root> 可以包含零个或多个 <appender-ref> 元素，标识这个appender将会添加到这个 logger。
+    -->
+    <root level="ALL">
+        <appender-ref ref="rollFile"/>
+    </root>
+
+</configuration>
+```
+
+#### 7.4.7. logback 高级特性异步输出日志
+
+之前的日志配置方式是基于同步的，每次日志输出到文件都会进行一次磁盘IO。采用异步写日志的方式而不让此次写日志发生磁盘IO，阻塞线程从而造成不必要的性能损耗。异步输出日志的方式很简单，添加一个基于异步写日志的 appender，并指向原先配置的 appender 即可
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+
+    <!-- 日志拆分和归档压缩的 appender 对象 -->
+    <appender name="rollFile" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <!-- 日志文件保存路径 -->
+        <file>E:/logs/roll_logback.log</file>
+        <!-- 日志消息格式配置 -->
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <pattern>[%-5level] %d{yyyy-MM-dd HH:mm:ss.SSS} %c %M %L [%thread] %m%n</pattern>
+        </encoder>
+        <!-- 指定拆分规则 -->
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <!-- 按照时间和压缩格式声明拆分的文件名 -->
+            <fileNamePattern>E:/logs/rolling.%d{yyyy-MM-dd}.log%i.gz</fileNamePattern>
+            <!-- 按照文件大小拆分 -->
+            <maxFileSize>1MB</maxFileSize>
+        </rollingPolicy>
+        <!-- 日志级别过滤器 filter -->
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <!-- 设置日志过滤规则 -->
+            <level>ERROR</level>
+            <onMatch>ACCEPT</onMatch>
+            <onMismatch>DENY</onMismatch>
+        </filter>
+    </appender>
+    
+    <!-- 异步日志 -->
+    <appender name="async" class="ch.qos.logback.classic.AsyncAppender">
+        <!-- 指定某个具体的 appender -->
+        <appender-ref ref="rollFile"/>
+    </appender>
+
+    <!--
+        root logger 配置（必须配置），它是根 logger 对象。默认日志级别是 debug
+            level 属性：用来设置打印级别，大小写无关：TRACE, DEBUG, INFO, WARN, ERROR, ALL 和 OFF
+        <root> 可以包含零个或多个 <appender-ref> 元素，标识这个appender将会添加到这个 logger。
+    -->
+    <root level="ALL">
+        <appender-ref ref="rollFile"/>
+    </root>
+
+</configuration>
+```
+
+示例2
 
 ```xml
 <!-- 异步输出 -->
@@ -1369,11 +1641,16 @@ logback框架会默认加载 classpath 下命名为 `logback-spring` 或 `logbac
 </appender>
 ```
 
-### 7.7. 完整的 logback.xml 参考示例
+### 7.5. logback-access 的使用
 
-在下面的配置文件中，为项目代码（根目录：org.zp.notes.spring）设置了五种等级：TRACE、DEBUG、INFO、WARN、ERROR，优先级依次从低到高。
+> logback-access 官方配置文档：https://logback.qos.ch/access.html#configuration
 
-因为关注 spring 框架本身的一些信息，增加了专门打印 spring WARN 及以上等级的日志。
+
+### 7.6. 完整的 logback.xml 参考示例
+
+> 注：参考示例来源网络
+
+在下面的配置文件中，为项目代码（根目录：org.zp.notes.spring）设置了五种等级：TRACE、DEBUG、INFO、WARN、ERROR，优先级依次从低到高。因为关注 spring 框架本身的一些信息，增加了专门打印 spring WARN 及以上等级的日志。
 
 ```xml
 <?xml version="1.0" encoding="UTF-8" ?>
@@ -1533,21 +1810,11 @@ logback框架会默认加载 classpath 下命名为 `logback-spring` 或 `logbac
 </configuration>
 ```
 
+### 7.7. 其他
 
+Logback 官方提供的 log4j.properties 转换成 logback.xml
 
-
-
-
-
-
-
-
-
-
-
-
-
-
+网址：https://logback.qos.ch/translator/
 
 ## 8. Log4j2
 
