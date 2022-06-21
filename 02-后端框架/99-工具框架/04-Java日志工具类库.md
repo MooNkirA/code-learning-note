@@ -99,7 +99,19 @@ log4j --> JUL --> JCL --> slf4j --> logback --> log4j2
 - Syslog Appender 支持 TCP 和 UDP 并且支持 BSD 系统日志。
 - Log4j2 利用 Java5 并发特性，尽量小粒度的使用锁，减少锁的开销
 
-### 2.4. 小结
+### 2.4.  实施日志解决方案小结
+
+使用以下各种日志解决方案基本可分为三步：
+
+1. 引入 jar 包
+2. 配置
+3. 使用 API
+
+> 常见的各种日志解决方案的第 2 步和第 3 步基本一样，实施上的差别主要在第 1 步，也就是使用不同的库
+
+**首选推荐使用 slf4j + logback 的组合**，也可以选择 common-logging + log4j。强烈建议不要直接使用日志实现组件(logback、log4j、java.util.logging)，因为无法灵活替换日志库
+
+还有一种情况，老项目使用了 common-logging，或是直接使用日志实现组件。如果修改老的代码，工作量太大，需要兼容处理
 
 **综上所述，使用 slf4j + Logback 可谓是目前最理想的日志解决方案了**
 
@@ -383,33 +395,7 @@ logger2 Parent: java.util.logging.LogManager$RootLogger@573fd745 , name:
 
 通过查看源码，默认配置文件路径是：`$JAVAHOME\jre\lib\logging.properties`
 
-参考默认的配置文件，复制到项目的 resources 目录下进行修改，创建 LogManager 并读取自定义的配置文件。
-
-```java
-@Test
-public void testLogProperties() throws IOException {
-    // 读取配置文件，通过类加载器
-    InputStream ins = JULTest.class.getClassLoader().getResourceAsStream("logging.properties");
-    // 创建 LogManager
-    LogManager logManager = LogManager.getLogManager();
-    // 通过 LogManager 加载配置文件
-    logManager.readConfiguration(ins);
-
-    // 1. 创建日志记录器对象
-    Logger logger = Logger.getLogger("com.moon.log");
-
-    // 2. 使用不同日志级别的方法，输出日志记录
-    logger.severe("severe");
-    logger.warning("warning");
-    logger.info("info");
-    logger.config("config");
-    logger.fine("fine");
-    logger.finer("finer");
-    logger.finest("finest");
-}
-```
-
-#### 3.6.1. 配置文件示例
+参考默认的配置文件，复制到项目的 resources 目录下进行修改
 
 ```properties
 # 配置 RootLogger 顶级父元素指定的默认处理器（获取时设置），配置多个处理器则使用 “,” 逗号分隔
@@ -444,6 +430,32 @@ java.util.logging.FileHandler.count=1
 java.util.logging.FileHandler.formatter=java.util.logging.SimpleFormatter
 # 指定以追加方式添加日志内容，默认值是 false，覆盖之前内容
 java.util.logging.FileHandler.append=true
+```
+
+创建 LogManager 并读取自定义的配置文件
+
+```java
+@Test
+public void testLogProperties() throws IOException {
+    // 读取配置文件，通过类加载器
+    InputStream ins = JULTest.class.getClassLoader().getResourceAsStream("logging.properties");
+    // 创建 LogManager
+    LogManager logManager = LogManager.getLogManager();
+    // 通过 LogManager 加载配置文件
+    logManager.readConfiguration(ins);
+
+    // 1. 创建日志记录器对象
+    Logger logger = Logger.getLogger("com.moon.log");
+
+    // 2. 使用不同日志级别的方法，输出日志记录
+    logger.severe("severe");
+    logger.warning("warning");
+    logger.info("info");
+    logger.config("config");
+    logger.fine("fine");
+    logger.finer("finer");
+    logger.finest("finest");
+}
 ```
 
 ### 3.7. 日志原理解析
@@ -852,6 +864,8 @@ JCL 有两个基本的抽象类：Log（基本记录器）和 LogFactory（负�
 
 ### 5.2. JCL 基础使用
 
+#### 5.2.1. 使用默认的实现
+
 1. 创建 maven 工程，添加依赖，导入 commons-logging 的 jar 包
 
 ```xml
@@ -863,7 +877,11 @@ JCL 有两个基本的抽象类：Log（基本记录器）和 LogFactory（负�
 </dependency>
 ```
 
-2. 编写基础使用示例代码，因为目前没有引入具体的日志实现，所以是使用了 commons-logging 默认的 SimpleLog 的简单实现
+2. 编写基础使用示例代码，通过 `org.apache.commons.logging.LogFactory` 获取 `org.apache.commons.logging.Log` 对象，输出不同级别的日志。
+    - common-logging 用法和 slf4j 几乎一样，但是支持的打印等级多了一个更高级别的：fatal
+    - common-logging 不支持`{}`替换参数，只能选择拼接字符串的方式
+
+> 因为目前没有引入具体的日志实现，所以是使用了 commons-logging 默认的 SimpleLog 的简单实现
 
 ```java
 @Test
@@ -882,9 +900,17 @@ public void testBasic() {
 信息: hello jcl
 ```
 
-3. 引入具体的日志实现 log4j
+#### 5.2.2. 使用 log4j 实现
+
+1. 引入具体的日志实现 log4j
 
 ```xml
+<!-- JCL 日志门面 -->
+<dependency>
+    <groupId>commons-logging</groupId>
+    <artifactId>commons-logging</artifactId>
+    <version>1.2</version>
+</dependency>
 <!-- 引入 JCL 的具体实现 log4j -->
 <dependency>
     <groupId>log4j</groupId>
@@ -893,7 +919,7 @@ public void testBasic() {
 </dependency>
 ```
 
-4. 在项目的 resources 目录中创建 log4j.properties，添加一些基础配置
+2. 在项目的 resources 目录中创建 log4j.properties，添加一些基础配置
 
 ```properties
 # 指定 RootLogger 顶级父元素默认配置信息。指定日志级别与使用的 apeender
@@ -996,7 +1022,7 @@ SLF4J 是目前市面上最流行的日志门面。现在的项目中，基本�
 </dependency>
 ```
 
-2. 编写基础使用的程序
+2. 编写基础使用的程序。使用 slf4j 的 API 很简单。使用 `org.slf4j.LoggerFactory` 初始化一个 `org.slf4j.Logger` 实例，然后调用 `Logger` 对应的打印等级函数就行了
 
 ```java
 // 创建日志对象
@@ -1250,7 +1276,6 @@ public class LogbackTest {
 ##### 7.4.1.1. configuration
 
 `<configuration>` 是 logback 配置文件的根元素。它有 `<appender>`、`<logger>`、`<root>` 三个子元素。
-
 
 ##### 7.4.1.2. property
 
@@ -1645,6 +1670,39 @@ public class LogbackTest {
 
 > logback-access 官方配置文档：https://logback.qos.ch/access.html#configuration
 
+logback-access 模块与 Servlet 容器（如Tomcat和Jetty）集成，以提供 HTTP 访问日志功能。可以使用 logback-access 模块来替换 tomcat 的访问日志。具体操作步骤如下：
+
+1. 将 logback-access.jar 与 logback-core.jar 复制到 `$TOMCAT_HOME/lib/` 目录下
+2. 修改 `$TOMCAT_HOME/conf/server.xml` 中的 Host 元素中添加以下内容：
+
+```xml
+<Valve className="ch.qos.logback.access.tomcat.LogbackValve" />
+```
+
+3. logback 默认会在 `$TOMCAT_HOME/conf` 下查找文件 logback-access.xml
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <!-- always a good activate OnConsoleStatusListener -->
+    <statusListener class="ch.qos.logback.core.status.OnConsoleStatusListener"/>
+
+    <property name="LOG_DIR" value="${catalina.base}/logs"/>
+
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_DIR}/access.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>access.%d{yyyy-MM-dd}.log.zip</fileNamePattern>
+        </rollingPolicy>
+        <encoder>
+            <!-- 访问日志的格式 -->
+            <pattern>combined</pattern>
+        </encoder>
+    </appender>
+
+    <appender-ref ref="FILE"/>
+</configuration>
+```
 
 ### 7.6. 完整的 logback.xml 参考示例
 
@@ -1818,138 +1876,127 @@ Logback 官方提供的 log4j.properties 转换成 logback.xml
 
 ## 8. Log4j2
 
-> 官网：http://logging.apache.org/log4j/2.x/
+> 官网：https://logging.apache.org/log4j/2.x/
 
-按照官方的说法，Log4j2 是 Log4j 和 Logback 的替代
+### 8.1. 概述
 
+按照官方的说法，Apache Log4j2 是 Log4j 的升级版和 Logback 的替代。参考了 logback 的一些优秀的设计，并且修复了一些问题，因此带来了一些重大的提升，主要有：
 
+- 异常处理，在 logback 中，Appender 中的异常不会被应用感知到，但是在 log4j2 中，提供了一些异常处理机制
+- 性能提升， log4j2 相较于 log4j 和 logback 都具有很明显的性能提升，后面会有官方测试的数据
+- 自动重载配置，参考了 logback 的设计，当然会提供自动刷新参数配置，最实用的就是我们在生产上可以动态的修改日志的级别而不需要重启应用
+- 无垃圾机制，log4j2 在大部分情况下，都可以使用其设计的一套无垃圾机制，避免频繁的日志收集导致的 jvm gc
 
+### 8.2. 基础入门示例
 
+目前市面上最主流的日志门面是 SLF4J，虽然 Log4j2 也是日志门面，因为它的日志实现功能非常强大，性能优越。所以一般还是将 Log4j2 用作日志的实现，主流还是 Slf4j + Log4j2
 
+#### 8.2.1. Log4j2 日志门面 + Log4j2
 
+此示例以 Log4j2 做日志门面
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-## 9. 实施日志解决方案
-
-- 使用日志解决方案基本可分为三步：
-    1. 引入 jar 包
-    2. 配置
-    3. 使用 API
-- 常见的各种日志解决方案的第 2 步和第 3 步基本一样，实施上的差别主要在第 1 步，也就是使用不同的库
-
-### 9.1. 引入 jar 包（引入依赖）
-
-**首选推荐使用 slf4j + logback 的组合**，也可以选择 common-logging + log4j
-
-强烈建议不要直接使用日志实现组件(logback、log4j、java.util.logging)，因为无法灵活替换日志库
-
-> 还有一种情况，老项目使用了 common-logging，或是直接使用日志实现组件。如果修改老的代码，工作量太大，需要兼容处理
-
-
-### 9.2. spring 集成 slf4j
-
-spring 使用的日志解决方案是 common-logging + log4j。所以，需要一个桥接 jar 包：logback-ext-spring。
+1. 创建 maven 工程，只需要添加 log4j-core 的依赖，该依赖会自动引入 Log4j2 的日志门面 log4j-core
 
 ```xml
 <dependency>
-    <groupId>ch.qos.logback</groupId>
-    <artifactId>logback-classic</artifactId>
-    <version>1.1.3</version>
-</dependency>
-<dependency>
-    <groupId>org.logback-extensions</groupId>
-    <artifactId>logback-ext-spring</artifactId>
-    <version>0.1.2</version>
-</dependency>
-<dependency>
-    <groupId>org.slf4j</groupId>
-    <artifactId>jcl-over-slf4j</artifactId>
-    <version>1.7.12</version>
+    <groupId>org.apache.logging.log4j</groupId>
+    <artifactId>log4j-core</artifactId>
+    <version>2.17.2</version>
 </dependency>
 ```
 
-### 9.3. common-logging 绑定日志组件
-
-pom.xml 添加依赖
-
-```xml
-<dependency>
-    <groupId>commons-logging</groupId>
-    <artifactId>commons-logging</artifactId>
-    <version>1.2</version>
-</dependency>
-<dependency>
-    <groupId>log4j</groupId>
-    <artifactId>log4j</artifactId>
-    <version>1.2.17</version>
-</dependency>
-```
-
-### 9.4. 使用 API
-
-#### 9.4.1. slf4j 用法
-
-使用 slf4j 的 API 很简单。使用LoggerFactory初始化一个Logger实例，然后调用 Logger 对应的打印等级函数就行了
+2. 编写测试程序。*注意导入的包名称*
 
 ```java
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.junit.Test;
+
+/**
+ * 以 Log4j2 自带的日志门面来实现日志功能
+ */
+public class Log4j2Test {
+
+    // 定义日志记录器对象
+    public static final Logger LOGGER = LogManager.getLogger(Log4j2Test.class);
+
+    // 基础使用示例
+    @Test
+    public void testBasic() {
+        // 日志消息输出
+        LOGGER.fatal("fatal");
+        LOGGER.error("error");  // log4j2 默认是级别
+        LOGGER.warn("warn");
+        LOGGER.info("inf");
+        LOGGER.debug("debug");
+        LOGGER.trace("trace");
+    }
+}
+```
+
+3. 测试结果
+
+```
+15:29:39.762 [main] FATAL com.moon.log.Log4j2Test - fatal
+15:29:39.762 [main] ERROR com.moon.log.Log4j2Test - error
+```
+
+#### 8.2.2. Slf4j 日志门面 + Log4j2
+
+此示例以 Slf4j 做日志门面，Log4j2 作为日志功能实现
+
+1. 创建 maven 工程，只需要添加 log4j2 的适配器依赖 log4j-slf4j-impl，该依赖会自动引入 Slf4j 日志门面 slf4j-api、Log4j2 日志门面 log4j-api 、Log4j2 日志实现 `log4j-core` 等相关依赖
+
+```xml
+<dependency>
+    <groupId>org.apache.logging.log4j</groupId>
+    <artifactId>log4j-slf4j-impl</artifactId>
+    <version>2.17.2</version>
+</dependency>
+```
+
+2. 编写测试程序。*注意导入的包名称*
+
+```java
+import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class App {
-    private static final Logger log = LoggerFactory.getLogger(App.class);
-    public static void main(String[] args) {
-        String msg = "print log, current level: {}";
-        log.trace(msg, "trace");
-        log.debug(msg, "debug");
-        log.info(msg, "info");
-        log.warn(msg, "warn");
-        log.error(msg, "error");
+/**
+ * 基于 Slf4j 日志门面，Log4j2 作为实现日志功能测试
+ */
+public class Slf4jLog4j2Test {
+
+    // 创建 Slf4j 的日志记录器对象
+    public static final Logger LOGGER = LoggerFactory.getLogger(Slf4jLog4j2Test.class);
+
+    // Slf4j + Log4j2 基础使用测试
+    @Test
+    public void testBasic() {
+        // 日志输出
+        LOGGER.error("error");  // log4j2 默认是级别
+        LOGGER.warn("wring");
+        LOGGER.info("info");
+        LOGGER.debug("debug");
+        LOGGER.trace("trace");
     }
+
 }
 ```
 
-#### 9.4.2. common-logging 用法
+3. 测试结果
 
-- common-logging 用法和 slf4j 几乎一样，但是支持的打印等级多了一个更高级别的：fatal
-- common-logging 不支持`{}`替换参数，只能选择拼接字符串这种方式了
-
-```java
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
-public class JclTest {
-    private static final Log log = LogFactory.getLog(JclTest.class);
-    public static void main(String[] args) {
-        String msg = "print log, current level: ";
-        log.trace(msg + "trace");
-        log.debug(msg + "debug");
-        log.info(msg + "info");
-        log.warn(msg + "warn");
-        log.error(msg + "error");
-        log.fatal(msg + "fatal");
-    }
-}
+```
+15:48:58.144 [main] ERROR com.moon.log.Slf4jLog4j2Test - error
 ```
 
-## 10. log4j2 配置
+### 8.3. log4j2 配置
 
-### 10.1. log4j2 基本配置形式
+Log4j2 的会默认加载应用的 classpath 下文件名为 `log4j2.xml` 的配置文件。Log4j2 有 XML、JSON、YAML 和 properties 格式的配置文件。以下是 xml 格式的示例：
 
-Log4j 2 的配置文件名 log4j2.xml，需要放在应用的 classpath 中。Log4j 2 有 XML、JSON、YAML 或者 properties 格式的配置文件。以下是 xml 格式的示例：
+#### 8.3.1. log4j2 基本配置形式
+
+因为 log4j2 是借鉴了 logback，所以 xml 配置大致与 logback 的相同
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
@@ -1958,13 +2005,22 @@ Log4j 2 的配置文件名 log4j2.xml，需要放在应用的 classpath 中。Lo
         <Property name="name1">value</Property>>
         <Property name="name2" value="value2"/>
     </Properties>
+   
     <Filter type="type" ... />
+
     <Appenders>
         <Appender type="type" name="name">
             <Filter type="type" ... />
         </Appender>
+        <Console name="Console" target="SYSTEM_ERR">
+            <PatternLayout pattern="%d{HH:mm:ss.SSS} [%t] [%-5level] %c{36}:%L --- %m%n"/>
+        </Console>
+        <File name="file" fileName="${LOG_HOME}/myfile.log">
+            <PatternLayout pattern="[%d{yyyy-MM-dd HH:mm:ss.SSS}] [%-5level] %l %c{36} - %m%n"/>
+        </File>
         ...
     </Appenders>
+
     <Loggers>
         <Logger name="name1">
             <Filter type="type" ... />
@@ -1977,7 +2033,7 @@ Log4j 2 的配置文件名 log4j2.xml，需要放在应用的 classpath 中。Lo
 </Configuration>
 ```
 
-### 10.2. 配置示例
+#### 8.3.2. 配置示例
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
@@ -2025,7 +2081,9 @@ Log4j 2 的配置文件名 log4j2.xml，需要放在应用的 classpath 中。Lo
 </Configuration>
 ```
 
-### 10.3. Log4j2 —— XML配置示例（带详细注释，网络资源）
+#### 8.3.3. Log4j2 XML 配置示例
+
+> 参考示例带详细注释，来源于网络
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
@@ -2037,16 +2095,18 @@ Log4j 2 的配置文件名 log4j2.xml，需要放在应用的 classpath 中。Lo
     <Properties>
         <!-- 变量定义 -->
         <Property name="log_base_dir">/app_data/logs/my_app</Property>
-        <!-- Appender在将日志数据写入目标位置之前，一般会将日志数据通过Layout进行格式化。PatternLayout可以使用与C语言printf函数类似
-        的转换模式来指定输出格式。常见的配置如下：
-        - %d{yyyy-MM-dd HH:mm:ss.SSS} : 日志生成时间，输出格式为“年-月-日 时:分:秒.毫秒”
-        - %p : 日志输出格式
-        - %c : logger的名称
-        - %m : 日志内容，即 logger.info("message")
-        - %n : 换行符
-        - %T : 线程号
-        - %L : 日志输出所在行数
-        - %M : 日志输出所在方法名 -->
+        <!-- 
+            Appender在将日志数据写入目标位置之前，一般会将日志数据通过Layout进行格式化。PatternLayout可以使用与C语言printf函数类似的转换模式来指定输出格式。
+            常见的配置如下：
+                - %d{yyyy-MM-dd HH:mm:ss.SSS} : 日志生成时间，输出格式为“年-月-日 时:分:秒.毫秒”
+                - %p : 日志输出格式
+                - %c : logger的名称
+                - %m : 日志内容，即 logger.info("message")
+                - %n : 换行符
+                - %T : 线程号
+                - %L : 日志输出所在行数
+                - %M : 日志输出所在方法名
+        -->
         <Property name="log_pattern">[%d{yyyy-MM-dd HH:mm:ss.SSS}][%-5p][%T][%c.%M:%L] %msg%xEx%n</Property>
         <!-- 单个日志文件最大大小，单位可以是KB, MB or GB -->
         <Property name="max_single_file_size">1MB</Property>
@@ -2281,94 +2341,246 @@ Log4j 2 的配置文件名 log4j2.xml，需要放在应用的 classpath 中。Lo
 </Configuration>
 ```
 
-## 11. 实践过程需要注意的问题
+### 8.4. Log4j2 异步日志
 
-### 11.1. 案例1
+log4j2 最大的特点就是异步日志，其性能的提升主要也是从异步日志中受益。
 
-在MoonZero个人管理系统项目中，出现在开发环境记录中文日志正常，但到部署到tomcat后，记录的日志就是出现乱码
+Log4j2 提供了两种实现异步日志的方式，一个是通过 AsyncAppender，一个是通过 AsyncLogger，分别对应的 Appender 组件和 Logger 组件
 
-后来查询资料得出结论，因为当时是用tomcat9.0版本，好像tomcat8开始就默认是以nio作为通信模式，所以在配置logback日志时，需要增加`<charset class="java.nio.charset.Charset">UTF-8</charset>`，不然就会出现在开发环境正常，而到生产环境就出现中文乱码的问题
+<font color=red>**注意：配置异步日志需要添加依赖**</font>
 
 ```xml
-<!-- Console 输出设置 -->
-<appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
-    <encoder>
-        <!--格式化输出：%d表示日期，%thread表示线程名，%-5level：级别从左显示5个字符宽度%msg：日志消息，%n是换行符-->
-        <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
-        <charset class="java.nio.charset.Charset">UTF-8</charset>
-    </encoder>
-</appender>
-
-<!-- 按照每天生成日志文件 -->
-<appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-    <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-        <!--日志文件输出的文件名-->
-        <fileNamePattern>${LOG_HOME}/jav.%d{yyyy-MM-dd}.log</fileNamePattern>
-    </rollingPolicy>
-    <encoder>
-        <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
-        <!--
-            注意：使用tomcat9.0版本，因为tomcat只支付nio，所以此处需要指定java.nio.charset.Charset才不会出现中文乱码的问题
-         -->
-        <charset class="java.nio.charset.Charset">UTF-8</charset>
-    </encoder>
-</appender>
+<dependency>
+    <groupId>com.lmax</groupId>
+    <artifactId>disruptor</artifactId>
+    <version>3.4.4</version>
+</dependency>
 ```
 
-### 11.2. 修改日志打印对象为JSON格式
+#### 8.4.1. AsyncAppender 方式实现异步日志
 
-在开发的时候，经常要打印日志，有的时候会在一些代码的关键节点处进行日志输出。
+修改 log4j2 配置文件，在 `<Appenders>` 增加 `<Async>` 子元素并引用某个 appender，在 logger 配置中引用异步的 appender
 
-使用logback/log4j等原生的日志框架，在日志输出的时候可能会遇到一个问题，那就是打印对象的时候，如以下代码：
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="debug" monitorInterval="5">
+
+    <!-- 配置集中管理属性，适合用于配置文件中多处出现相关的配置值。引用格式：${name} -->
+    <properties>
+        <property name="LOG_HOME">E:/logs</property>
+    </properties>
+
+    <!-- 日志处理对象 appender -->
+    <Appenders>
+        <!-- 控制台输出 appender -->
+        <Console name="Console" target="SYSTEM_ERR">
+            <PatternLayout pattern="%d{HH:mm:ss.SSS} [%t] [%-5level] %c{36}:%L --- %m%n"/>
+        </Console>
+
+        <!-- 日志文件输出 appender -->
+        <File name="file" fileName="${LOG_HOME}/myfile.log">
+            <PatternLayout pattern="[%d{yyyy-MM-dd HH:mm:ss.SSS}] [%-5level] %l %c{36} - %m%n"/>
+        </File>
+
+        <!-- AsyncAppender 方式实现异步日志 -->
+        <Async name="Async">
+            <AppenderRef ref="file"/>
+        </Async>
+    </Appenders>
+
+    <!-- logger 定义 -->
+    <Loggers>
+        <!-- 使用 rootLogger 配置，指定日志级别 level="trace" -->
+        <Root level="trace">
+            <!-- 指定日志使用的处理器 -->
+            <AppenderRef ref="Console"/>
+            <!-- 使用异步 appender -->
+            <AppenderRef ref="Async" />
+        </Root>
+    </Loggers>
+</Configuration>
+```
+
+#### 8.4.2. AsyncLogger 方式实现异步日志
+
+AsyncLogger 方式是官方推荐的实现异步日志的方式。可以使得调用 Logger.log 返回的更快。并有两种选择：**全局异步**和**混合异步**
+
+##### 8.4.2.1. 全局异步
+
+**全局异步**即所有的日志都异步的记录，在配置文件上不用做任何改动，只需要在项目的 classpath 添加一个 log4j2.component.properties 配置文件，配置内容如下：
+
+```properties
+Log4jContextSelector=org.apache.logging.log4j.core.async.AsyncLoggerContextSelector
+```
+
+##### 8.4.2.2. 混合异步
+
+**混合异步**即可以在应用中同时使用同步日志和异步日志，这使得日志的配置方式更加灵活。
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="debug" monitorInterval="5">
+
+    <!-- 配置集中管理属性，适合用于配置文件中多处出现相关的配置值。引用格式：${name} -->
+    <properties>
+        <property name="LOG_HOME">E:/logs</property>
+    </properties>
+
+    <!-- 日志处理对象 appender -->
+    <Appenders>
+        <!-- 控制台输出 appender -->
+        <Console name="Console" target="SYSTEM_ERR">
+            <PatternLayout pattern="%d{HH:mm:ss.SSS} [%t] [%-5level] %c{36}:%L --- %m%n"/>
+        </Console>
+    </Appenders>
+
+    <!-- logger 定义 -->
+    <Loggers>
+        <!-- 使用 rootLogger 配置，指定日志级别 level="trace" -->
+        <Root level="trace">
+            <!-- 指定日志使用的处理器 -->
+            <AppenderRef ref="Console"/>
+        </Root>
+
+        <!-- 自定义异步 logger 对象
+            name 属性：用来指定受此 logger 约束的某一个包或者具体的某一个类
+            level 属性：日志的级别
+            includeLocation 属性：是否关闭日志记录的行号信息。设置为 false 则关闭。推荐关闭
+            additivity 属性：是否继承 root logger 对象。设置为 false 代表不继承
+        -->
+        <AsyncLogger name="com.moon.log" level="trace" includeLocation="false" additivity="false">
+            <AppenderRef ref="Console"/>
+        </AsyncLogger>
+    </Loggers>
+
+</Configuration>
+```
+
+> 注：如上配置，`com.moon.log` 日志是异步的，root 日志是同步的。
+
+#### 8.4.3. 异步日志需要注意的问题
+
+1. 如果使用异步日志时，AsyncAppender、AsyncLogger 和全局日志这三种方式不要同时出现。否则性能会和 AsyncAppender 一致，降至最低
+2. 建议在 `<AsyncLogger>` 标签中设置 `includeLocation=false` 关闭打印日志记录的行号信息，因为打印位置信息会急剧降低异步日志的性能，可能比同步日志还要慢
+
+#### 8.4.4. 同步日志与异步日志
+
+- **同步日志流程图**
+
+![](images/284232316220661.png)
+
+- **异步日志流程图**
+
+![](images/243362416239087.png)
+
+### 8.5. 扩展：Log4j2 的性能
+
+#### 8.5.1. 性能对比
+
+Log4j2 最牛的地方在于异步输出日志时的性能表现，Log4j2 在多线程的环境下吞吐量与 Log4j 和 Logback 的比较如下图。图中比较中 Log4j2 有三种模式：
+
+1. 全局使用异步模式
+2. 部分 Logger 采用异步模式
+3. 异步 Appender
+
+![](images/331623816226954.png)
+
+可以看出在前两种模式下，Log4j2 的性能较之 Log4j 和 Logback 有很大的优势。
+
+#### 8.5.2. 无垃圾记录
+
+垃圾收集暂停是延迟峰值的常见原因，并且对于许多系统而言，花费大量精力来控制这些暂停。
+
+许多日志库（包括以前版本的Log4j）在稳态日志记录期间分配临时对象，如日志事件对象，字符串，字符数组，字节数组等。这会对垃圾收集器造成压力并增加 GC 暂停发生的频率。
+
+从版本 2.6 开始，默认情况下 Log4j 以“无垃圾”模式运行，其中重用对象和缓冲区，并且尽可能不分配临时对象。还有一个“低垃圾”模式，它不是完全无垃圾，但不使用 ThreadLocal 字段。
+
+2.6 版本中的无垃圾日志记录部分通过重用 ThreadLocal 字段中的对象来实现，部分通过在将文本转换为字节时重用缓冲区来实现。
+
+- **使用Log4j 2.5：内存分配速率809 MB /秒，141个无效集合**
+
+![](images/464374016247120.png)
+
+- **Log4j 2.6 没有分配临时对象：0（零）垃圾回收**
+
+![](images/37644116239789.png)
+
+有两个单独的系统属性可用于手动控制 Log4j 用于避免创建临时对象的机制：
+
+- `log4j2.enableThreadlocals`：如果为“true”（非Web应用程序的默认值）对象存储在 ThreadLocal 字段中并重新使用，否则将为每个日志事件创建新对象。
+- `log4j2.enableDirectEncoders`：如果将“true”（默认）日志事件转换为文本，则将此文本转换为字节而不创建临时对象。注意：由于共享缓冲区上的同步，在此模式下多线程应用程序的同步日志记录性能可能更差。如果应用程序是多线程的并且日志记录性能很重要，请考虑使用异步记录器。
+
+## 9. Spring Boot 的日志使用
+
+Spring Boot 默认就是使用 SLF4J 作为日志门面，logback 作为日志实现来记录日志
+
+### 9.1. Spring Boot 的日志设计
+
+Spring Boot 的日志需要依赖 logging 启动器
+
+```xml
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-logging</artifactId>   
+</dependency>
+```
+
+但在引入了 spring-boot-starter 或者 spring-boot-starter-web 的依赖时，已经包含了 spring-boot-starter-logging 的依赖。
+
+#### 9.1.1. 依赖关系图
+
+![](images/104644622220661.png)
+
+#### 9.1.2. 总结
+
+1. Spring Boot 底层默认使用 logback 作为日志实现
+2. 使用了 SLF4J 作为日志门面
+3. 将 JUL 也转换成 slf4j
+4. 也可以使用 log4j2 作为日志门面，但是最终也是通过 slf4j 调用 logback
+
+### 9.2. Spring Boot 日志基础使用
+
+1. 创建 maven 工程，spring-boot-starter 依赖即可
+
+```xml
+<parent>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-parent</artifactId>
+    <version>2.5.13.RELEASE</version>
+    <relativePath/> <!-- lookup parent from repository -->
+</parent>
+
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter</artifactId>
+</dependency>
+```
+
+2. 在 Spring Boot 中测试打印日志
 
 ```java
-log.info("req = {}", aRequest);
-```
+@SpringBootApplication
+public class SpringBootLogApplication {
 
-打印结果却是以下形式：
+    public static void main(String[] args) {
+        SpringApplication.run(SpringBootLogApplication.class, args);
 
-```console
-com.hollis.java.ways.ApplyRequest@39ddf169
-```
-
-其实原因比较简单，那就是要打印的对象没有重写toString方法，这样无法将该对象的参数打印出来。所以，为了可以把对象的值都打印出来，一般要求对于自己定义的入参、出参等定义toString方法。
-
-但是有些时候，使用的是外部定义的request和response对象，他们并没有覆盖toString，当对这些对象打印的时候，就会出现以上问题。一般简单的解决办法是，可以通过JSON把对象转成String，如：
-
-```java
-log.info("req = {}", JSON.toJSONString(aRequest));
-```
-
-**借助logback(log4j也有类似的功能)的MessageConverter。无侵入性的解决这个问题**
-
-1. 自定义一个Layout
-
-```java
-/**
- * 参数JSON格式化类
- */
-public class ArgumentJsonFormatLayout extends MessageConverter {
-    @Override
-    public String convert(ILoggingEvent event) {
-        try {
-            return MessageFormatter.arrayFormat(event.getMessage(), Stream.of(event.getArgumentArray())
-                .map(JSON::toJSONString).toArray()).getMessage();
-        } catch (Exception e) {
-            return event.getMessage();
-        }
+        // 声明日志记录器对象(使用 Slf4j 的日志门面)
+        Logger LOGGER = LoggerFactory.getLogger(SpringBootLogApplication.class);
+        // 打印日志信息
+        LOGGER.error("error");
+        LOGGER.warn("warn");
+        LOGGER.info("info"); // 默认日志级别
+        LOGGER.debug("debug");
+        LOGGER.trace("trace");
     }
 }
 ```
 
-2. 在logback中配置上这个Layout
+3. 修改 Spring Boot 配置文件，修改默认日志配置
 
-```xml
-<configuration>
-    <conversionRule conversionWord="m" converterClass="com.moon.java.ways.ArgumentJsonFormatLayout"/>
- </configuration>
 ```
-
-通过以上设置，就可以直接使用`log.info("req = {}", obj)`这样的形式记录日志了
+```
 
 # 日志级别与记录日志规范
 
@@ -2521,3 +2733,92 @@ if (logger.isDebugEnabled()) {
 
 - <font color=gold>**【推荐】**</font>谨慎地记录日志。生产环境禁止输出 debug 日志；有选择地输出 info 日志；如果使用 warn 来记录刚上线时的业务行为信息，一定要注意日志输出量的问题，避免把服务器磁盘撑爆，并记得及时删除这些观察日志。*说明：大量地输出无效日志，不利于系统性能提升，也不利于快速定位错误点。*
 - <font color=gold>**【推荐】**</font>可以使用 warn 日志级别来记录用户输入参数错误的情况，避免用户投诉时，无所适从。如非必要，请不要在此场景打出 error 级别，避免频繁报警。*说明：注意日志输出的级别，error 级别只记录系统逻辑出错、异常或者重要的错误信息。*
+
+## 4. 实践过程需要注意的问题
+
+### 4.1. 案例1
+
+在MoonZero个人管理系统项目中，出现在开发环境记录中文日志正常，但到部署到tomcat后，记录的日志就是出现乱码
+
+后来查询资料得出结论，因为当时是用tomcat9.0版本，好像tomcat8开始就默认是以nio作为通信模式，所以在配置logback日志时，需要增加`<charset class="java.nio.charset.Charset">UTF-8</charset>`，不然就会出现在开发环境正常，而到生产环境就出现中文乱码的问题
+
+```xml
+<!-- Console 输出设置 -->
+<appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+    <encoder>
+        <!--格式化输出：%d表示日期，%thread表示线程名，%-5level：级别从左显示5个字符宽度%msg：日志消息，%n是换行符-->
+        <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        <charset class="java.nio.charset.Charset">UTF-8</charset>
+    </encoder>
+</appender>
+
+<!-- 按照每天生成日志文件 -->
+<appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+        <!--日志文件输出的文件名-->
+        <fileNamePattern>${LOG_HOME}/jav.%d{yyyy-MM-dd}.log</fileNamePattern>
+    </rollingPolicy>
+    <encoder>
+        <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        <!--
+            注意：使用tomcat9.0版本，因为tomcat只支付nio，所以此处需要指定java.nio.charset.Charset才不会出现中文乱码的问题
+         -->
+        <charset class="java.nio.charset.Charset">UTF-8</charset>
+    </encoder>
+</appender>
+```
+
+### 4.2. 修改日志打印对象为JSON格式
+
+在开发的时候，经常要打印日志，有的时候会在一些代码的关键节点处进行日志输出。
+
+使用logback/log4j等原生的日志框架，在日志输出的时候可能会遇到一个问题，那就是打印对象的时候，如以下代码：
+
+```java
+log.info("req = {}", aRequest);
+```
+
+打印结果却是以下形式：
+
+```console
+com.hollis.java.ways.ApplyRequest@39ddf169
+```
+
+其实原因比较简单，那就是要打印的对象没有重写toString方法，这样无法将该对象的参数打印出来。所以，为了可以把对象的值都打印出来，一般要求对于自己定义的入参、出参等定义toString方法。
+
+但是有些时候，使用的是外部定义的request和response对象，他们并没有覆盖toString，当对这些对象打印的时候，就会出现以上问题。一般简单的解决办法是，可以通过JSON把对象转成String，如：
+
+```java
+log.info("req = {}", JSON.toJSONString(aRequest));
+```
+
+**借助logback(log4j也有类似的功能)的MessageConverter。无侵入性的解决这个问题**
+
+1. 自定义一个Layout
+
+```java
+/**
+ * 参数JSON格式化类
+ */
+public class ArgumentJsonFormatLayout extends MessageConverter {
+    @Override
+    public String convert(ILoggingEvent event) {
+        try {
+            return MessageFormatter.arrayFormat(event.getMessage(), Stream.of(event.getArgumentArray())
+                .map(JSON::toJSONString).toArray()).getMessage();
+        } catch (Exception e) {
+            return event.getMessage();
+        }
+    }
+}
+```
+
+2. 在logback中配置上这个Layout
+
+```xml
+<configuration>
+    <conversionRule conversionWord="m" converterClass="com.moon.java.ways.ArgumentJsonFormatLayout"/>
+ </configuration>
+```
+
+通过以上设置，就可以直接使用`log.info("req = {}", obj)`这样的形式记录日志了
