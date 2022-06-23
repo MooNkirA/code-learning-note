@@ -1980,7 +1980,6 @@ public class Slf4jLog4j2Test {
         LOGGER.debug("debug");
         LOGGER.trace("trace");
     }
-
 }
 ```
 
@@ -2577,9 +2576,135 @@ public class SpringBootLogApplication {
 }
 ```
 
-3. 修改 Spring Boot 配置文件，修改默认日志配置
+3. 通过 Spring Boot 配置文件，可修改默认日志配置。*以 application.properties 为例* 
+
+```properties
+# 指定自定义 logger 对象日志级别
+logging.level.com.moon.log=trace
+# 指定控制台输出消息格式
+logging.pattern.console=[%-5level] %d{yyyy-MM-dd HH:mm:ss} %c [%thread]===== %msg %n
+# 指定存放日志文件的具体路径(此配置已过时)
+# logging.file=E:/logs/springboot.log
+# 指定日志文件存放的目录，默认的文件名 spring.log (注意，不能与 logging.file 配置项同时出现)
+logging.file.path=E:/logs/
+# 指定日志文件消息格式
+logging.pattern.file=[%-5level] %d{yyyy-MM-dd HH:mm:ss} %c [%thread]===== %msg %n
+```
+
+> 更多详细的配置项详见 Spring 官方文档
+
+### 9.3. 日志配置文件
+
+#### 9.3.1. 简述
+
+通过 Spring Boot 配置文件来修改日志的配置是有限制的，一般还是需要独立的日志配置文件。只需在类路径下创建各种日志框架相应的配置文件即可，会覆盖 Spring Boot 的默认配置。日志框架相应的配置文件列表如下：
+
+| 日志框架 |              配置文件              |
+| -------- | --------------------------------- |
+| Logback  | logback-spring.xml 或 logback.xml |
+| Log4j2   | log4j2-spring.xml 或 log4j2.xml   |
+| JUL      | logging.properties                |
+
+> 注：logback.xml 直接就被日志框架识别了
+
+#### 9.3.2. 配置文件示例
+
+在类路径下创建 logback-spring.xml，由 Spring Boot 解析日志配置。使用 Spring Boot 还可以通过
+
+- 通过 application.properties 指定 profile
+
+```properties
+# 指定项目使用的具体环境
+spring.profiles.active=pro
+```
+
+- 在配置文件中，可以通过 `<springProfile name="dev">` 来配置不同环境相应的内容
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <!-- 控制台日志输出的 appender -->
+    <appender name="console" class="ch.qos.logback.core.ConsoleAppender">
+        <target>System.err</target>
+        <!-- 日志消息格式配置 -->
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <!-- 设置根据 profile 来选择不同的输出格式 -->
+            <springProfile name="dev">
+                <pattern>[%-5level] %d{yyyy-MM-dd HH:mm:ss.SSS} %c %M %L [%thread] -------- %m %n</pattern>
+            </springProfile>
+            <springProfile name="pro">
+                <pattern>[%-5level] %d{yyyy-MM-dd HH:mm:ss.SSS} %c %M %L [%thread] >>>>>>>>> %m %n</pattern>
+            </springProfile>
+        </encoder>
+    </appender>
+
+    <!-- 自定义 looger 对象 -->
+    <logger name="com.moon.log" level="info" additivity="false">
+        <appender-ref ref="console"/>
+    </logger>
+</configuration>
+```
+
+### 9.4. 更换日志的现实
+
+在 Spring Boot 项目中更换日志的现实，只需要将默认的日志实现 spring-boot-starter-logging 依赖排除后，再添加相应的日志实现即可。下面以 log4j2 为例：
+
+- 修改 pom.xml 项目依赖，排除 logback 依赖，添加 log4j2 的依赖
+
+```xml
+<dependencies>
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter</artifactId>
+        <exclusions>
+            <!-- 排除 logback 日志实现 -->
+            <exclusion>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-starter-logging</artifactId>
+            </exclusion>
+        </exclusions>
+    </dependency>
+
+    <!-- 使用 log4j2 的日志启动器 -->
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-log4j2</artifactId>
+    </dependency>
+</dependencies>
+```
+
+- 在类路径下创建 log4j2.xml 配置文件
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="debug" monitorInterval="5">
+    <!-- 配置日志处理器 -->
+    <Appenders>
+        <!-- 控制台输出 appender -->
+        <Console name="Console" target="SYSTEM_ERR">
+            <PatternLayout pattern="%d{HH:mm:ss.SSS} [%t] [%-5level] %c{36}:%L --- %m%n"/>
+        </Console>
+    </Appenders>
+
+    <!--logger 定义-->
+    <Loggers>
+        <!-- 使用 rootLogger 配置日志级别 trace -->
+        <Root level="trace">
+            <!-- 指定日志使用的处理器 -->
+            <AppenderRef ref="Console"/>
+        </Root>
+    </Loggers>
+</Configuration>
+```
+
+- 运行前面的测试程序，输出结果如下：
 
 ```
+14:51:49.860 [main] [ERROR] com.moon.log.SpringBootLogApplication:25 --- error
+14:51:49.860 [main] [WARN ] com.moon.log.SpringBootLogApplication:26 --- warn
+14:51:49.860 [main] [INFO ] com.moon.log.SpringBootLogApplication:27 --- info
+14:51:49.860 [main] [DEBUG] com.moon.log.SpringBootLogApplication:28 --- debug
+14:51:49.860 [main] [TRACE] com.moon.log.SpringBootLogApplication:29 --- trace
 ```
 
 # 日志级别与记录日志规范
@@ -2772,7 +2897,7 @@ if (logger.isDebugEnabled()) {
 
 在开发的时候，经常要打印日志，有的时候会在一些代码的关键节点处进行日志输出。
 
-使用logback/log4j等原生的日志框架，在日志输出的时候可能会遇到一个问题，那就是打印对象的时候，如以下代码：
+使用 logback/log4j 等原生的日志框架，在日志输出的时候可能会遇到一个问题，那就是打印对象的时候，如以下代码：
 
 ```java
 log.info("req = {}", aRequest);
@@ -2813,7 +2938,7 @@ public class ArgumentJsonFormatLayout extends MessageConverter {
 }
 ```
 
-2. 在logback中配置上这个Layout
+2. 在 logback 中配置上这个 Layout
 
 ```xml
 <configuration>
