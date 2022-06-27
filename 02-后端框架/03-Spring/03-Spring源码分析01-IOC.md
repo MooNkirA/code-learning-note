@@ -2768,7 +2768,7 @@ public BeanWrapper instantiateUsingFactoryMethod(
 
 ### 3.5. createBeanInstance 对不同类型的构造函数处理
 
-#### 3.5.1. 标识`@Autowired`注解的有参构造函数实例化过程
+#### 3.5.1. 标识 @Autowired 注解的有参构造函数实例化过程
 
 测试示例：
 
@@ -2862,7 +2862,7 @@ protected BeanWrapper autowireConstructor(
 
 <font color=red>**总结：由以上源码分析可知，不管是Field，Method、或者是构造函数，凡是使用`@Autowired`注解，如果自动注入的参数是一个引用的类型，就会触发这个引用类型的getBean方法来进行实例化，获取bean实例**</font>
 
-#### 3.5.2. 无`@Autowired`注解的有参构造函数实例化过程
+#### 3.5.2. 无 @Autowired 注解的有参构造函数实例化过程
 
 当实例化的类中有一个无`@Autowired`的有参数构造函数时，spring是可以正常实例化该类；如果多个无标识`@Autowired`的有参构造函数时，实例化时会报错，但报错非spring框架的错误，而是会报实例化时找不到构造函数。因为这种情况下，spring框架实例化会去找无参构造函数。如不让程序报错，增加无参构造函数即可
 
@@ -3337,11 +3337,27 @@ public abstract static class InjectedElement {
 
 <font color=red>**上述过程是对`@Autowired`、`@Resource`以及`@Value`注解修饰的`Field`和`Method`等完成依赖注入**</font>
 
+##### 3.7.3.1. @Autowired 自动匹配小结(待研究分析，补充)
+
+1. @Autowired 本质上是根据成员变量或方法参数的类型进行装配
+2. 如果待装配类型是 `Optional`，需要根据 `Optional` 泛型找到 bean，再封装为 `Optional` 对象装配
+3. 如果待装配的类型是 `ObjectFactory`，需要根据 `ObjectFactory` 泛型创建 `ObjectFactory` 对象装配（此方式可以延迟 bean 的获取）
+4. 如果待装配的成员变量或方法参数上用 `@Lazy` 标注，会创建代理对象装配（此方法可以延迟真实 bean 的获取，并且被装配的代理不作为 bean）
+5. 如果待装配类型是数组，需要获取数组元素类型，根据此类型找到多个 bean 进行装配
+6. 如果待装配类型是 `Collection` 或其子接口，需要获取 `Collection` 泛型，根据此类型找到多个 bean
+7. 如果待装配类型是 `ApplicationContext` 等特殊类型，该实例是保存在 `BeanFactory` 的 `resolvableDependencies` 成员属性中，该属性是 map 集合，key 是特殊类型，value 是其对应对象。装配对象时，不能直接根据 key 进行查找，而是用 `isAssignableFrom` 逐一尝试右边类型是否可以被赋值给左边的 key 类型进行匹配
+8. 如果待装配类型有泛型参数，需要利用 `ContextAnnotationAutowireCandidateResolver` 按泛型参数类型筛选
+9. 如果待装配类型有 `@Qualifier` 注解，需要利用 `ContextAnnotationAutowireCandidateResolver` 按注解提供的 bean 名称筛选
+10. 有 `@Primary` 标注的 `@Component` 或 `@Bean` 的处理
+11. 与成员变量名或方法参数名同名 bean 的处理
+
+##### 3.7.3.2. @Autowird 装配测试示例（待补充！）
+
 #### 3.7.4. @Value 属性值注入
 
-其实`@Value`的属性值注入，与`@Autowired`注解注入流程是一样。在`AbstractAutowireCapableBeanFactory#doCreateBean`的方法，执行到`applyMergedBeanDefinitionPostProcessors(mbd, beanType, beanName);`时，会对`@Value`注解的收集，然后在`populateBean`处理对属性的注入，主要`AutowiredAnnotationBeanPostProcessor`这个BeanPostProcessor实现
+其实`@Value`的属性值注入，与`@Autowired`注解注入流程是一样。在`AbstractAutowireCapableBeanFactory#doCreateBean`的方法，执行到`applyMergedBeanDefinitionPostProcessors(mbd, beanType, beanName);`时，会对`@Value`注解的收集，然后在`populateBean`处理对属性的注入，主要`AutowiredAnnotationBeanPostProcessor`这个 BeanPostProcessor 实现
 
-与`@Autowired`主要的区别就是，`@Value`注入的是非引用类型，所以不会触发getBean的操作
+与`@Autowired`主要的区别就是，`@Value`注入的是非引用类型，所以不会触发 getBean 的操作
 
 ![](images/20210212112142373_1615.png)
 
@@ -3364,6 +3380,147 @@ public abstract static class InjectedElement {
 ![](images/20210212121545198_7115.png)
 
 ![](images/20210212121621247_23021.png)
+
+##### 3.7.4.1. @Value 装配底层 - 按类型装配的步骤小结(待分析)
+
+1. 查看需要的类型是否为 `Optional`，若为是则进行封装（非延迟），否则流程向下走
+2. 查看需要的类型是否为 `ObjectFactory` 或 `ObjectProvider`，若为是则进行封装（延迟），否则流程向下走
+3. 查看需要的类型（成员或参数）上是否用 `@Lazy` 修饰，若为是则返回代理，否则流程向下走
+4. 解析 `@Value` 的值
+   1. 如果需要的值是字符串，先解析 `${ }`，再解析 `#{ }`
+   2. 如果不是字符串，需要用 `TypeConverter` 接口进行转换
+5. 看需要的类型是否为 `Stream`、`Array`、`Collection`、`Map`，若为是则按集合处理，否则流程向下走
+6. 在 `BeanFactory` 的 `resolvableDependencies` 中找有没有类型合适的对象注入，没有找到则流程向下走
+7. 在 `BeanFactory` 及父工厂中找类型匹配的 bean 进行筛选，筛选时会考虑 `@Qualifier` 及泛型
+8. 结果个数为 0 抛出 `NoSuchBeanDefinitionException` 异常 
+9. 如果结果大于 1，再根据 `@Primary` 进行筛选
+10. 如果结果仍大于 1，再根据成员名或变量名进行筛选
+11. 结果仍大于 1，抛出 `NoUniqueBeanDefinitionException` 异常
+
+##### 3.7.4.2. @Value 解析测试示例
+
+> 示例代码：spring-note\spring-sample\36-annotation-value
+
+- 测试 bean，*其中 `SpringConfiguration` 是一个被 Spring 管理的 bean*
+
+```java
+public class ValueBean {
+
+    @Value("${JAVA_HOME}")
+    private String home;
+    @Value("18")
+    private int age;
+
+    // 使用 spEl 表达式(全称 SpringEL)
+    @Value("#{@springConfiguration}")
+    private SpringConfiguration config;
+
+    // 使用
+    @Value("#{'hello, ' + '${JAVA_HOME}'}")
+    private String value;
+}
+```
+
+- 测试代码
+
+```java
+public class SpringValueTest {
+    // 创建注解扫描的容器
+    private final AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(SpringConfiguration.class);
+
+    // 模拟解析流程 - 测试读取系统变量
+    @Test
+    public void test1() throws NoSuchFieldException {
+        DefaultListableBeanFactory beanFactory = context.getDefaultListableBeanFactory();
+
+        ContextAnnotationAutowireCandidateResolver resolver = new ContextAnnotationAutowireCandidateResolver();
+        resolver.setBeanFactory(beanFactory);
+        // 获取 @Value("${JAVA_HOME}") 注解的属性
+        Field field = ValueBean.class.getDeclaredField("home");
+        DependencyDescriptor dependencyDescriptor = new DependencyDescriptor(field, false);
+        // 获取 @Value 的内容
+        String value = resolver.getSuggestedValue(dependencyDescriptor).toString();
+        System.out.println(value);
+
+        // 解析 ${}
+        value = context.getEnvironment().resolvePlaceholders(value);
+        System.out.println(value);
+    }
+
+    // 模拟解析流程 - 测试读取字符串值，然后类型转换
+    @Test
+    public void test2() throws NoSuchFieldException {
+        DefaultListableBeanFactory beanFactory = context.getDefaultListableBeanFactory();
+
+        ContextAnnotationAutowireCandidateResolver resolver = new ContextAnnotationAutowireCandidateResolver();
+        resolver.setBeanFactory(beanFactory);
+        // 获取 @Value("18") 注解的属性
+        Field field = ValueBean.class.getDeclaredField("age");
+        DependencyDescriptor dependencyDescriptor = new DependencyDescriptor(field, false);
+        // 获取 @Value 的内容
+        String value = resolver.getSuggestedValue(dependencyDescriptor).toString();
+        System.out.println(value);
+
+        // 解析 ${}
+        value = context.getEnvironment().resolvePlaceholders(value);
+        // 通过 TypeConverter 接口将字符串类型转成与类对象匹配的数值类型
+        Object age = beanFactory.getTypeConverter()
+                .convertIfNecessary(value, dependencyDescriptor.getDependencyType());
+        System.out.println(age.getClass());
+    }
+
+    // 模拟解析流程 - 测试读取 spEl 表达式
+    @Test
+    public void test3() throws NoSuchFieldException {
+        DefaultListableBeanFactory beanFactory = context.getDefaultListableBeanFactory();
+
+        ContextAnnotationAutowireCandidateResolver resolver = new ContextAnnotationAutowireCandidateResolver();
+        resolver.setBeanFactory(beanFactory);
+        // 获取  @Value("#{@springConfiguration}") 注解的属性
+        Field field = ValueBean.class.getDeclaredField("config");
+        DependencyDescriptor dependencyDescriptor = new DependencyDescriptor(field, false);
+        // 获取 @Value 的内容
+        String value = resolver.getSuggestedValue(dependencyDescriptor).toString();
+        System.out.println(value);
+
+        // 先解析 ${}
+        value = context.getEnvironment().resolvePlaceholders(value);
+
+        // 再解析 #{} @xxx
+        Object configValue = beanFactory.getBeanExpressionResolver().evaluate(value, new BeanExpressionContext(beanFactory, null));
+        // 通过 TypeConverter 转成与类对象匹配的类型
+        Object result = beanFactory.getTypeConverter()
+                .convertIfNecessary(configValue, dependencyDescriptor.getDependencyType());
+        System.out.println(result);
+    }
+
+    // 模拟解析流程 - 测试读取复杂的 spEl 表达式
+    @Test
+    public void test4() throws NoSuchFieldException {
+        DefaultListableBeanFactory beanFactory = context.getDefaultListableBeanFactory();
+
+        ContextAnnotationAutowireCandidateResolver resolver = new ContextAnnotationAutowireCandidateResolver();
+        resolver.setBeanFactory(beanFactory);
+        // 获取  @Value("#{'hello, ' + '${JAVA_HOME}'}") 注解的属性
+        Field field = ValueBean.class.getDeclaredField("value");
+        DependencyDescriptor dependencyDescriptor = new DependencyDescriptor(field, false);
+        // 获取 @Value 的内容
+        String value = resolver.getSuggestedValue(dependencyDescriptor).toString();
+        System.out.println(value);
+
+        // 先解析 ${}
+        value = context.getEnvironment().resolvePlaceholders(value);
+        System.out.println(value);
+
+        // 再解析 #{} @xxx
+        Object configValue = beanFactory.getBeanExpressionResolver().evaluate(value, new BeanExpressionContext(beanFactory, null));
+        // 通过 TypeConverter 转成与类对象匹配的类型
+        Object result = beanFactory.getTypeConverter()
+                .convertIfNecessary(configValue, dependencyDescriptor.getDependencyType());
+        System.out.println(result);
+    }
+}
+```
 
 #### 3.7.5. xml 配置的依赖注入
 
@@ -4125,64 +4282,9 @@ public class ContextLoaderListener extends ContextLoader implements ServletConte
 
 ### 3.11. FactoryBean 接口
 
-#### 3.11.1. 接口的作用
+> 接口作用与使用示例详见[《Spring 笔记 - 核心技术.md》文档](/02-后端框架/03-Spring/01-Spring笔记01)
 
-`FactirtBean`接口的作用是：在实例化和 IOC/DI 做完后，就会调用 `FactoryBean` 类型的接口重写的`getObject()`方法，可以返回不同的bean类型，此bean实例会被Spring容器管理
-
-- 如果要获取到 `FactoryBean` 接口实现类实例本身，就必须在beanName前加上`&`符号，比如：`beanFactory.getBean("&beanName")`。
-- `BeanFactory.getBean("beanName")` 只能获取到 `getObject()` 方法返回的实例
-
-> 注：`FactoryBean`类型的类本身与`getObject()`方法返回的实例都会被Spring容器管理
-
-#### 3.11.2. 基础使用示例
-
-示例如下：
-
-```java
-/**
- * Spring 框架 FactoryBean 接口使用示例
- * FactoryBean 是泛型接口，如果不指定泛型，但 getObject() 方法返回值为 Object 类型
- */
-@Component
-public class FactoryBeanDemo implements FactoryBean<Cat> {
-    /*
-     *  此方法可以进行一些其他的逻辑处理，然后返回一个新的bean
-     *   注：此处返回的新的实例与原来实现了FactoryBean接口当前类的实例互不干扰，都会被spring管理
-     */
-    @Override
-    public Cat getObject() throws Exception {
-        System.out.println("FactoryBeanDemo.getObject()方法执行了....");
-        Cat cat = new Cat();
-        cat.setName("I am born form FactoryBeanDemo");
-        cat.setColor("purple");
-        return cat;
-    }
-
-    @Override
-    public Class<?> getObjectType() {
-        return Cat.class;
-    }
-}
-```
-
-- 测试
-
-```java
-private final ApplicationContext context = new AnnotationConfigApplicationContext("com.moon.spring");
-
-@Test
-public void testFactoryBeanBasic() {
-    // 实现了FactoryBean接口的类，通过bean的id只能获取该类实现了getObject()方法返回的对象实例
-    Cat cat = (Cat) context.getBean("factoryBeanDemo");
-    System.out.println(cat); // Cat(name=I am born form FactoryBeanDemo, color=purple)
-
-    // 如果要获取实现了FactoryBean接口的类的实例，只能通过【"&" + beanName】来获取实例
-    FactoryBeanDemo factoryBean = context.getBean("&factoryBeanDemo", FactoryBeanDemo.class);
-    System.out.println(factoryBean); // com.moon.spring.factorybean.FactoryBeanDemo@5c909414
-}
-```
-
-#### 3.11.3. 源码分析
+#### 3.11.1. 源码分析
 
 `FactoryBean` 类型接口触发的位置：`AbstractBeanFactory --> doGetBean()`
 
@@ -4210,7 +4312,7 @@ if (mbd.isSingleton()) {
 
 `FactoryBean`接口调用主要逻辑
 
-- 判断beanName是否以`&`开头，并且是`FactoryBean`接口类型，如果是，直接返回。
+- 判断 beanName 是否以`&`开头，并且是`FactoryBean`接口类型，如果是，直接返回。
 - 判断
 
 ```java
@@ -4380,7 +4482,7 @@ private Object doGetObjectFromFactoryBean(FactoryBean<?> factory, String beanNam
 }
 ```
 
-#### 3.11.4. 小结
+#### 3.11.2. 小结
 
 `FactoryBean`接口类型实例的调用具体调用位置是在`getSingleton`方法之后`getObjectForBeanInstance`的方法中，主要处理的内容如下：
 
@@ -5831,10 +5933,6 @@ public void testDeferredImportSelectorBasic() {
      */
 }
 ```
-
-
-
-
 
 ##### 2.9.4.2. 源码分析
 

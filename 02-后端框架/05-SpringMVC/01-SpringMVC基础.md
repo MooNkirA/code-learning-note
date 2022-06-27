@@ -14,8 +14,6 @@ Spring Web MVC 是基于 Servlet API 上， MVC 的表现层的 Web 框架，用
 
 ![](images/359331311220567.png)
 
-
-
 ### 1.2. MVC 是什么(b/s系统)
 
 mvc 是一种设计模式。模型（model） --> 视图（view） --> 控制器（controller），三层架构设计模式，主要用于实现前端页面的展现和后端业务数据处理逻辑分离
@@ -480,7 +478,9 @@ org.springframework.web.servlet.FlashMapManager=org.springframework.web.servlet.
 
 > <font color=red>**注意：如果没有手动创建的以上接口的自定义实现并加入到Spring，Spring MVC 会去自动创建默认的实现，但只会保存在 `DispatcherServlet` 中相应的属性中，此时 Spring 容器是没有这些实现的实例。**</font>
 
-#### 3.2.1. HandlerMapping（处理器映射器）
+### 3.3. 映射器和适配器
+
+#### 3.3.1. HandlerMapping（处理器映射器）
 
 Spring MVC 提供了一些默认的处理器映射器
 
@@ -506,7 +506,7 @@ public RequestMappingHandlerMapping requestMappingHandlerMapping() {
 
 > 注意事项：处理器映射器和处理器适配器必须配对使用。
 
-#### 3.2.2. HandlerAdapter（处理器适配器）
+#### 3.3.2. HandlerAdapter（处理器适配器）
 
 Spring MVC 提供了一些默认的处理器适配器
 
@@ -532,7 +532,7 @@ public RequestMappingHandlerAdapter requestMappingHandlerAdapter() {
 
 > 注意事项：处理器映射器和处理器适配器必须配对使用。
 
-#### 3.2.3. 处理器映射器和处理器适配器同时配置方式
+#### 3.3.3. 处理器映射器和处理器适配器同时配置方式
 
 如果使用 web.xml 的配置方式，需要在 springmvc.xml 配置文件中，配置 `<mvc:annotation-driven>` 标签，表示基于注解驱动的方式配置处理器映射器、处理器适配器，相当于同时配置了 `RequestMappingHandlerMapping`/`RequestMappingHandlerAdapter`（*企业开发推荐使用*）
 
@@ -544,7 +544,323 @@ public RequestMappingHandlerAdapter requestMappingHandlerAdapter() {
 
 ![](images/204432014220567.jpg)
 
-#### 3.2.4. ViewResolver（视图解析器）
+#### 3.3.4. RequestMappingHandlerMapping 与 RequestMappingHandlerAdapter
+
+`RequestMappingHandlerMapping` 与 `RequestMappingHandlerAdapter` 是一对配合使用
+
+- `RequestMappingHandlerMapping` 用于处理 `@RequestMapping` 映射相应的控制器方法
+- `RequestMappingHandlerAdapter` 用于调用控制器方法、并处理方法参数与方法返回值
+
+初始化流程如下：
+
+1. `DispatcherServlet` 是在第一次被访问时执行初始化，也可以通过配置修改为 Tomcat 启动后就初始化
+2. 在初始化时会从 Spring 容器中找一些 Web 需要的组件，如` HandlerMapping`、`HandlerAdapter` 等，并逐一调用它们的初始化
+3. `RequestMappingHandlerMapping` 初始化时，会收集所有 `@RequestMapping` 映射信息，封装为 Map，其中
+   - key 是 `RequestMappingInfo` 类型，包括请求路径、请求方法等信息
+   - value 是 `HandlerMethod` 类型，包括控制器方法对象、控制器对象
+4. 当前端有请求到达时，快速从映射中找到 `HandlerMethod` 并与匹配的拦截器一起返回给 `DispatcherServlet`
+5. `RequestMappingHandlerAdapter` 初始化时，会准备 `HandlerMethod` 调用时需要的各个组件，如：
+   - `HandlerMethodArgumentResolver` 解析控制器方法参数
+   - `HandlerMethodReturnValueHandler` 处理控制器方法返回值
+
+#### 3.3.5. BeanNameUrlHandlerMapping 与 SimpleControllerHandlerAdapter
+
+`BeanNameUrlHandlerMapping` 与 `SimpleControllerHandlerAdapter` 是一对配合使用
+
+- `BeanNameUrlHandlerMapping` 用于映射相应的控制器方法，但控制器实例在 Spring 容器中的名称必须以`/`开头，将会被当作映射路径。这些 bean 相当于 handler，并且需要实现 `Controller` 接口
+- `SimpleControllerHandlerAdapter` 用于调用其 handler
+
+示例：
+
+- 创建配置类
+
+```java
+@Configuration
+public class WebConfig {
+    @Bean // 内嵌 web 容器工厂
+    public TomcatServletWebServerFactory servletWebServerFactory() {
+        return new TomcatServletWebServerFactory(8080);
+    }
+
+    @Bean // 创建 DispatcherServlet
+    public DispatcherServlet dispatcherServlet() {
+        return new DispatcherServlet();
+    }
+
+    @Bean // 注册 DispatcherServlet, Spring MVC 的入口
+    public DispatcherServletRegistrationBean servletRegistrationBean(DispatcherServlet dispatcherServlet) {
+        return new DispatcherServletRegistrationBean(dispatcherServlet, "/");
+    }
+
+    @Bean
+    public BeanNameUrlHandlerMapping beanNameUrlHandlerMapping() {
+        return new BeanNameUrlHandlerMapping();
+    }
+
+    @Bean
+    public SimpleControllerHandlerAdapter simpleControllerHandlerAdapter() {
+        return new SimpleControllerHandlerAdapter();
+    }
+
+    // 创建控制类，指定bean的名称以“`/`”开头，并实现 `Controller` 接口
+    @Bean("/c3")
+    public Controller controller3() {
+        return (request, response) -> {
+            response.getWriter().print("this is c3");
+            return null;
+        };
+    }
+}
+```
+
+- 创建控制类，指定bean的名称以“`/`”开头，并实现 `Controller` 接口
+
+```java
+@Component("/c1")
+public class Controller1 implements Controller {
+    @Override
+    public ModelAndView handleRequest(HttpServletRequest request, HttpServletResponse response) throws Exception {
+        response.getWriter().print("this is c1");
+        return null;
+    }
+}
+
+@Component("/c2")
+public class Controller2 implements Controller {
+    @Override
+    public ModelAndView handleRequest(HttpServletRequest request, HttpServletResponse response) throws Exception {
+        response.getWriter().print("this is c2");
+        return null;
+    }
+}
+```
+
+- 创建web容器进行测试，是否能成功访问 /c1、/c2、/c3
+
+```java
+ AnnotationConfigServletWebServerApplicationContext context = new AnnotationConfigServletWebServerApplicationContext(WebConfig.class);
+```
+
+#### 3.3.6. RouterFunctionMapping 与 HandlerFunctionAdapter
+
+在 Spring 5.2 版本后才新增的两个实现类，是一对配合使用。
+
+- `RouterFunctionMapping` 用于收集所有 `RouterFunction`，包括 `RequestPredicate`（设置映射条件）与 `HandlerFunction`（处理的逻辑）两部分。请求时，会根据映射条件找到相应的 `HandlerFunction`，即 handler
+- `RouterFunction` 是函数式控制器，handler 要实现 `HandlerFunction` 接口
+- `HandlerFunctionAdapter` 用于调用 handler
+
+示例：
+
+- 创建配置类与定义 `RouterFunction`
+
+```java
+import org.springframework.boot.autoconfigure.web.servlet.DispatcherServletRegistrationBean;
+import org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactory;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.web.servlet.DispatcherServlet;
+import org.springframework.web.servlet.function.*;
+import org.springframework.web.servlet.function.support.HandlerFunctionAdapter;
+import org.springframework.web.servlet.function.support.RouterFunctionMapping;
+
+import static org.springframework.web.servlet.function.RequestPredicates.*;
+import static org.springframework.web.servlet.function.RouterFunctions.*;
+import static org.springframework.web.servlet.function.ServerResponse.*;
+
+@Configuration
+public class WebConfig {
+    @Bean // 内嵌 web 容器工厂
+    public TomcatServletWebServerFactory servletWebServerFactory() {
+        return new TomcatServletWebServerFactory(8080);
+    }
+
+    @Bean // 创建 DispatcherServlet
+    public DispatcherServlet dispatcherServlet() {
+        return new DispatcherServlet();
+    }
+
+    @Bean // 注册 DispatcherServlet, Spring MVC 的入口
+    public DispatcherServletRegistrationBean servletRegistrationBean(DispatcherServlet dispatcherServlet) {
+        return new DispatcherServletRegistrationBean(dispatcherServlet, "/");
+    }
+
+    @Bean
+    public RouterFunctionMapping routerFunctionMapping() {
+        return new RouterFunctionMapping();
+    }
+
+    @Bean
+    public HandlerFunctionAdapter handlerFunctionAdapter() {
+        return new HandlerFunctionAdapter();
+    }
+
+    @Bean
+    public RouterFunction<ServerResponse> r1() {
+        // 参数1：指定映射条件；参数2：handler 要实现 HandlerFunction 接口
+        return route(GET("/r1"), request -> ok().body("this is r1"));
+    }
+
+    @Bean
+    public RouterFunction<ServerResponse> r2() {
+        return route(GET("/r2"), request -> ok().body("this is r2"));
+    }
+}
+```
+
+
+#### 3.3.7. SimpleUrlHandlerMapping 与 HttpRequestHandlerAdapter
+
+`SimpleUrlHandlerMapping` 与 `HttpRequestHandlerAdapter` 是一对配合使用
+
+- `SimpleUrlHandlerMapping` 用于映射静态资源路径，常用通配符的方式进行映射。值得注意，该类不会在初始化时收集映射信息，需要手动配置收集
+- `ResourceHttpRequestHandler` 作为静态资源 handler
+- `HttpRequestHandlerAdapter` 调用此 handler
+
+##### 3.3.7.1. 基础使用示例
+
+创建配置类与静态资源处理器 `ResourceHttpRequestHandler`，并需要配置 `SimpleUrlHandlerMapping` 收集相应的处理器
+
+```java
+@Configuration
+public class WebConfig {
+    @Bean // 内嵌 web 容器工厂
+    public TomcatServletWebServerFactory servletWebServerFactory() {
+        return new TomcatServletWebServerFactory(8080);
+    }
+
+    @Bean // 创建 DispatcherServlet
+    public DispatcherServlet dispatcherServlet() {
+        return new DispatcherServlet();
+    }
+
+    @Bean // 注册 DispatcherServlet, Spring MVC 的入口
+    public DispatcherServletRegistrationBean servletRegistrationBean(DispatcherServlet dispatcherServlet) {
+        return new DispatcherServletRegistrationBean(dispatcherServlet, "/");
+    }
+
+    @Bean // 手动收集
+    public SimpleUrlHandlerMapping simpleUrlHandlerMapping(ApplicationContext context) {
+        SimpleUrlHandlerMapping handlerMapping = new SimpleUrlHandlerMapping();
+        Map<String, ResourceHttpRequestHandler> map = context.getBeansOfType(ResourceHttpRequestHandler.class);
+        handlerMapping.setUrlMap(map);
+        System.out.println(map);
+        return handlerMapping;
+    }
+
+    @Bean
+    public HttpRequestHandlerAdapter httpRequestHandlerAdapter() {
+        return new HttpRequestHandlerAdapter();
+    }
+
+    @Bean("/**") // 配置静态页面的映射，如 /r2.html 相应于项目中 /static/r2.html
+    public ResourceHttpRequestHandler handler1() {
+        ResourceHttpRequestHandler handler = new ResourceHttpRequestHandler();
+        handler.setLocations(Arrays.asList(new ClassPathResource("static/")));
+        return handler;
+    }
+
+    @Bean("/img/**") // 配置图片的映射，如 /img/1.jpg 相应于项目中 /images/1.jpg
+    public ResourceHttpRequestHandler handler2() {
+        ResourceHttpRequestHandler handler = new ResourceHttpRequestHandler();
+        handler.setLocations(Arrays.asList(new ClassPathResource("images/")));
+        return handler;
+    }
+}
+```
+
+##### 3.3.7.2. 静态资源解析优化
+
+在创建的 `ResourceHttpRequestHandler` 对象中通过 `setResourceResolvers` 方法，增加相应的资源处理器
+
+```java
+@Bean("/**") // 配置静态页面的映射，如 /r2.html 相应于项目中 /static/r2.html
+public ResourceHttpRequestHandler handler1() {
+    ResourceHttpRequestHandler handler = new ResourceHttpRequestHandler();
+    handler.setLocations(Arrays.asList(new ClassPathResource("static/")));
+    handler.setResourceResolvers(Arrays.asList(
+        // 缓存优化
+        new CachingResourceResolver(new ConcurrentMapCache("cache1")),
+        // 压缩优化
+        new EncodedResourceResolver(),
+        // 原始资源解析
+        new PathResourceResolver()
+    ));
+    return handler;
+}
+```
+
+值得注意：`EncodedResourceResolver` 并不会生成压缩文件，需要手动生成。参考示例如下：
+
+```java
+// 在配置类中定义
+@PostConstruct
+@SuppressWarnings("all")
+public void initGzip() throws IOException {
+    Resource resource = new ClassPathResource("static");
+    File dir = resource.getFile();
+    for (File file : dir.listFiles(pathname -> pathname.getName().endsWith(".html"))) {
+        System.out.println(file);
+        try (FileInputStream fis = new FileInputStream(file); GZIPOutputStream fos = new GZIPOutputStream(new FileOutputStream(file.getAbsoluteFile() + ".gz"))) {
+            byte[] bytes = new byte[8 * 1024];
+            int len;
+            while ((len = fis.read(bytes)) != -1) {
+                fos.write(bytes, 0, len);
+            }
+        }
+    }
+}
+```
+
+##### 3.3.7.3. 欢迎页
+
+欢迎页支持静态欢迎页与动态欢迎页
+
+- WelcomePageHandlerMapping 映射欢迎页（即只映射 '`/`'）
+   - 它内置的 handler ParameterizableViewController 作用是不执行逻辑，仅根据视图名找视图
+   - 视图名固定为 `forward:index.html`
+- SimpleControllerHandlerAdapter, 调用 handler
+   - 转发至 `/index.html`
+   - 处理 `/index.html` 又会走上面的静态资源处理流程
+
+在配置类中创建 `WelcomePageHandlerMapping` 实例，指定根路径相应的静态资源
+
+```java
+@Bean
+public WelcomePageHandlerMapping welcomePageHandlerMapping(ApplicationContext context) {
+    Resource resource = context.getResource("classpath:static/index.html");
+    return new WelcomePageHandlerMapping(null, context, resource, "/**");
+}
+
+@Bean
+public SimpleControllerHandlerAdapter simpleControllerHandlerAdapter() {
+    return new SimpleControllerHandlerAdapter();
+}
+```
+
+#### 3.3.8. 小结
+
+`HandlerMapping` 负责建立请求与控制器之间的映射关系
+
+- `RequestMappingHandlerMapping`：用于解析 `@RequestMapping` 及其衍生注解标识的控制器方法
+- `WelcomePageHandlerMapping`：用于解析 `/` 根路径
+- `BeanNameUrlHandlerMapping`：用于解析以 bean 的名字匹配路径映射，并且 bean 名称要以 `/` 开头，并实现 `Controller` 接口
+- `RouterFunctionMapping`：用于解析函数式 `RequestPredicate`（定义匹配逻辑与请求路径）、`HandlerFunction`（定义具体的处理逻辑）
+- `SimpleUrlHandlerMapping`：用于映射静态资源，基于通配符，如：`/**`、`/img/**` 等
+
+> <font color=red>**注意：以上的映射器有顺序的限制，不需要顺意调换定义的顺序，否则会出现所有请求只能匹配到一种映射器的情。Spring boot 的默认顺序如上述**</font>
+
+`HandlerAdapter` 负责实现对各种各样的 handler 的适配调用
+
+- `RequestMappingHandlerAdapter` 处理 `@RequestMapping` 及其衍生注解标识的处理器。包括参数解析器、返回值处理器，体现了组合模式
+- `SimpleControllerHandlerAdapter` 处理实现了 `Controller` 接口的处理器
+- `HandlerFunctionAdapter` 处理 `HandlerFunction` 函数式接口的处理器
+- `HttpRequestHandlerAdapter` 处理 `HttpRequestHandler` 接口的处理器(静态资源处理)
+
+> `HandlerAdapter` 是典型适配器模式体现
+
+补充：Spring 的 `ResourceHttpRequestHandler.setResourceResolvers` 是典型责任链模式体现
+
+### 3.4. ViewResolver（视图解析器）
 
 Spring MVC 提供了默认的视图解析器 `InternalResourceViewResolver`，在容器初始化时会创建，也可以手动创建并设置相关属性
 
@@ -586,13 +902,13 @@ public ViewResolver createViewResolver() {
 mav.setViewName("helloSpringMVC");
 ```
 
-### 3.3. WebApplicationContext 上下文层次结构
+### 3.5. WebApplicationContext 上下文层次结构
 
 `WebApplicationContext` 是普通 `ApplicationContext` 的扩展，它会绑定到 `ServletContext` 中。可以使用 `RequestContextUtils` 工具类的静态方法来获取 `WebApplicationContext` 上下文对象。一个根 `WebApplicationContext` 被多个 `DispatcherServlet`（或其他 Servlet）实例共享，每个实例有自己的子 `WebApplicationContext` 配置。结构关系如下图：
 
 ![](images/495684710220568.png)
 
-#### 3.3.1. 编程式配置
+#### 3.5.1. 编程式配置
 
 ```java
 public class MyWebAppInitializer extends AbstractAnnotationConfigDispatcherServletInitializer {
@@ -616,7 +932,7 @@ public class MyWebAppInitializer extends AbstractAnnotationConfigDispatcherServl
 
 > 注：如果不需要应用上下文的层次结构，应用程序可以通过 `getRootConfigClasses()` 方法返回所有配置，而 `getServletConfigClasses()` 方法返回 null
 
-#### 3.3.2. xml 文件配置
+#### 3.5.2. xml 文件配置
 
 也可使用 web.xml 配置 
 
@@ -652,7 +968,7 @@ public class MyWebAppInitializer extends AbstractAnnotationConfigDispatcherServl
 
 > 注：如果不需要应用上下文层次结构，应用程序可以只配置一个根上下文，并将 contextConfigLocation Servlet 参数留空即可
 
-## 4. Spring MVC 参数绑定
+## 4. Spring MVC 处理器方法 - 参数绑定
 
 ### 4.1. 概念
 
@@ -1114,7 +1430,7 @@ org.springframework.web.servlet.mvc.method.annotation.ServletModelAttributeMetho
 
 #### 4.10.2. 自定义参数解析器
 
-Spring MVC 提供了自定义参数绑定的接口 `org.springframework.web.method.support.HandlerMethodArgumentResolver`，自定义参数绑定只需要实现该接口，实现怎样的参数生效与参数解析的逻辑
+Spring MVC 提供了用于参数绑定的接口 `org.springframework.web.method.support.HandlerMethodArgumentResolver`，自定义参数绑定只需要实现该接口，实现怎样的参数生效与参数解析的逻辑
 
 示例：自定义一个注解 `@Token`，当该接收请求方法形参标识此注解时，则获取请求头中的 `token` 属性值，并绑定到方法形参中。实现步骤如下：
 
@@ -1281,7 +1597,135 @@ public void testCustomArgumentResolver() throws Exception {
 
 对于这种情况，会根据配置的转换器自动进行类型转换。默认情况下，支持简单类型（int、long、Date和其他）。可以通过 `WebDataBinder`（详见下面 `DataBinder` 相关章节）或通过向 `FormattingConversionService` 注册 `Formatters` 来定制类型转换。详见[《Spring 笔记 - 核心技术.md》文档](/02-后端框架/03-Spring/01-Spring笔记01)中的类型转换章节。
 
-#### 4.11.1. 自定义参数类型转换器
+#### 4.11.1. 类型转换与绑定基础使用示例
+
+> 完整示例代码详见 spring-note\springmvc-sample\13-type-conversion-data-binder
+
+- 创建用于测试的 bean 
+
+```java
+@ToString
+@Getter
+public class BeanNoSetter {
+    private int a;
+    private String b;
+    private Date c;
+}
+
+@Data
+public class NormalBean {
+    private int a;
+    private String b;
+    private Date c;
+}
+
+@Data
+public class Address {
+    private String name;
+}
+
+@Data
+public class User {
+    private Date birthday;
+    private Address address;
+}
+```
+
+- `SimpleTypeConverter`、`BeanWrapperImpl`、`DirectFieldAccessor`、`DataBinder`、`ServletRequestDataBinder` 进行数据类型转换与绑定测试
+
+```java
+// SimpleTypeConverter 类实现类型转换测试
+@Test
+public void testSimpleConverter() {
+    // 仅只有类型转换的功能
+    SimpleTypeConverter typeConverter = new SimpleTypeConverter();
+    Integer number = typeConverter.convertIfNecessary("13", int.class);
+    Date date = typeConverter.convertIfNecessary("2022/03/04", Date.class);
+    System.out.println(number);
+    System.out.println(date);
+}
+
+// BeanWrapperImpl 类实现类型转换与数据绑定测试
+@Test
+public void testBeanWrapperImpl() {
+    // 利用反射原理，通过 setter 方法为 bean 的属性赋值
+    NormalBean target = new NormalBean();
+    BeanWrapperImpl wrapper = new BeanWrapperImpl(target);
+    wrapper.setPropertyValue("a", "10");
+    wrapper.setPropertyValue("b", "hello");
+    wrapper.setPropertyValue("c", "2022/03/04");
+    System.out.println(target);
+}
+
+// DirectFieldAccessor 类实现类型转换与数据绑定测试
+@Test
+public void testDirectFieldAccessor() {
+    // 利用反射原理，直接设置 Field 值（无需提供 setter 方法）
+    BeanNoSetter target = new BeanNoSetter();
+    DirectFieldAccessor accessor = new DirectFieldAccessor(target);
+    accessor.setPropertyValue("a", "10");
+    accessor.setPropertyValue("b", "hello");
+    accessor.setPropertyValue("c", "2022/03/04");
+    System.out.println(target);
+}
+
+// DataBinder 类实现类型转换与数据绑定测试
+@Test
+public void testDataBinder() {
+    // 利用反射原理，直接设置 Field 值（无需提供 setter 方法）
+    BeanNoSetter target = new BeanNoSetter();
+    DataBinder dataBinder = new DataBinder(target);
+    /*
+        * 设置 directFieldAccess 属性，用于判断反射时选择 Property 方式还是 Field 方式赋值
+        * 因为 bean 无 setter 方法，设置 directFieldAccess 为 true
+        */
+    dataBinder.initDirectFieldAccess();
+    // 设置属性与值
+    MutablePropertyValues pvs = new MutablePropertyValues();
+    pvs.add("a", "10");
+    pvs.add("b", "hello");
+    pvs.add("c", "2022/03/04");
+    // 绑定属性
+    dataBinder.bind(pvs);
+    System.out.println(target);
+}
+
+// ServletDataBinder 类实现类型转换与数据绑定测试
+@Test
+public void testServletDataBinder() {
+    NormalBean target = new NormalBean();
+    // web 环境下数据绑定
+    ServletRequestDataBinder dataBinder = new ServletRequestDataBinder(target);
+    // 模拟请求对象
+    MockHttpServletRequest request = new MockHttpServletRequest();
+    request.setParameter("a", "10");
+    request.setParameter("b", "hello");
+    request.setParameter("c", "2022/03/04");
+    // 将请求数据封装 java 对象中
+    dataBinder.bind(new ServletRequestParameterPropertyValues(request));
+    System.out.println(target);
+}
+
+// ServletDataBinder 对象特殊格式数据绑定测试
+@Test
+public void testServletDataBinderBySpecialCharacters() {
+    // 创建请求对象
+    MockHttpServletRequest request = new MockHttpServletRequest();
+    // 定义特殊的日期格式
+    request.setParameter("birthday", "2022|01|02");
+    // 定义对象形式的字符串
+    request.setParameter("address.name", "广州");
+    User target = new User();
+    // web 环境下数据绑定
+    ServletRequestDataBinder dataBinder = new ServletRequestDataBinder(target);
+    // 将请求数据封装 java 对象中
+    dataBinder.bind(new ServletRequestParameterPropertyValues(request));
+    // 对于特殊的日期格式是无法实现转换与绑定
+    System.out.println(target);
+}
+```
+
+#### 4.11.2. 自定义参数类型转换器
 
 例如：有些业务，如商品生成日期类型的数据，格式多不固定，需要根据业务需求来确定。由于日期数据有很多种格式，Spring mvc 没办法把字符串转换成日期类型。所以需要自定义参数类型转换
 
@@ -1319,15 +1763,539 @@ public class DateConverter implements Converter<String, Date> {
 }
 ```
 
-#### 4.11.2. 自定义参数类型转换器的配置
+#### 4.11.3. 自定义参数类型转换器的配置
 
 > 注：详见《Spring MVC 配置》章节
 
-## 5. Spring MVC 配置（整理中！）
+### 4.12. ServletRequestDataBinderFactory 数据绑定工厂
+
+对于上面示例中一些比较特殊的字符，默认是无法实现数据绑定，需要自定义一些扩展。通过 `ServletRequestDataBinderFactory` 来创建数据绑定对象，并实现扩展
+
+测试自定义日期转换器，实现 `org.springframework.format.Formatter` 接口
+
+```java
+public class MyDateFormatter implements Formatter<Date> {
+
+    private final String desc; // 用于测试是哪种方式进行转换
+
+    public MyDateFormatter(String desc) {
+        this.desc = desc;
+    }
+
+    @Override
+    public Date parse(String text, Locale locale) throws ParseException {
+        System.out.println(desc + "进入了 MyDateFormatter.parse 方法");
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy|MM|dd");
+        return sdf.parse(text);
+    }
+
+    @Override
+    public String print(Date date, Locale locale) {
+        System.out.println(desc + "进入了 MyDateFormatter.print 方法");
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy|MM|dd");
+        return sdf.format(date);
+    }
+}
+```
+
+#### 4.12.1. @InitBinder 实现数据绑定
+
+- `@InitBinder` 注解需要标识在控制类的方法上，所以创建一个控制类，定义一个方法并标识该注解（方法名随意），在方法中加入自定义的日期转换器对象
+
+```java
+public class InitBinderController {
+    /**
+     * 在某个 Controller 控制类中使用了 @InitBinder 注解进行数据转换绑定，
+     * 只能对当前控制类生效，其他的控制类是不起作用
+     *
+     * @param dataBinder
+     */
+    @InitBinder
+    public void initBinder(WebDataBinder dataBinder) {
+        // 通过 @InitBinder 方式扩展 dataBinder 的转换器
+        dataBinder.addCustomFormatter(new MyDateFormatter("用 @InitBinder 方式扩展的"));
+    }
+}
+```
+
+- 测试，创建 `ServletRequestDataBinderFactory` 时指定 `@InitBinder` 标识的方法对象，
+
+```java
+@Test
+public void testRequestDataBinderByInitBinder() throws Exception {
+    // 创建请求对象
+    MockHttpServletRequest request = new MockHttpServletRequest();
+    // 定义特殊的日期格式
+    request.setParameter("birthday", "2022|01|02");
+    // 定义对象形式的字符串
+    request.setParameter("address.name", "广州");
+    User target = new User();
+    // 指定反射调用的哪个控制类中的那个方法
+    InvocableHandlerMethod method = new InvocableHandlerMethod(new InitBinderController(), InitBinderController.class.getMethod("initBinder", WebDataBinder.class));
+    // 创建 ServletRequestDataBinderFactory，指定回调标识了 @InitBinder 的方法
+    ServletRequestDataBinderFactory factory = new ServletRequestDataBinderFactory(Arrays.asList(method), null);
+    // 通过数据绑定工厂创建数据绑定器
+    WebDataBinder dataBinder = factory.createBinder(new ServletWebRequest(request), target, "user");
+    // 将请求数据封装 java 对象中
+    dataBinder.bind(new ServletRequestParameterPropertyValues(request));
+    // 对特殊的日期格式实现转换与绑定
+    System.out.println(target);
+}
+```
+
+#### 4.12.2. ConversionService 实现数据绑定
+
+使用 `ConversionService` 实现数据绑定
+
+```java
+@Test
+public void testRequestDataBinderByConversionService() throws Exception {
+    // 创建请求对象
+    MockHttpServletRequest request = new MockHttpServletRequest();
+    // 定义特殊的日期格式
+    request.setParameter("birthday", "2022|01|02");
+    // 定义对象形式的字符串
+    request.setParameter("address.name", "广州");
+    User target = new User();
+
+    // 创建 ConversionService 对象
+    FormattingConversionService service = new FormattingConversionService();
+    // 增加自定义转换器
+    service.addFormatter(new MyDateFormatter("用 ConversionService 方式扩展转换功能"));
+    // WebBindingInitializer 实现类
+    ConfigurableWebBindingInitializer webBindingInitializer = new ConfigurableWebBindingInitializer();
+    // 增加自定义 ConversionService 对象
+    webBindingInitializer.setConversionService(service);
+
+    // 创建 ServletRequestDataBinderFactory
+    ServletRequestDataBinderFactory factory = new ServletRequestDataBinderFactory(null, webBindingInitializer);
+    // 通过数据绑定工厂创建数据绑定器
+    WebDataBinder dataBinder = factory.createBinder(new ServletWebRequest(request), target, "user");
+    // 将请求数据封装 java 对象中
+    dataBinder.bind(new ServletRequestParameterPropertyValues(request));
+    // 对特殊的日期格式实现转换与绑定
+    System.out.println(target);
+}
+```
+
+如果同时定义 `@InitBinder` 方式与 `ConversionService` 方式来实现数据转换与绑定，则 `@InitBinder` 注解方式优先级高
+
+```java
+@Test
+public void testRequestDataBinderByInitBinderAndConversionService() throws Exception {
+    // 创建请求对象
+    MockHttpServletRequest request = new MockHttpServletRequest();
+    // 定义特殊的日期格式
+    request.setParameter("birthday", "2022|01|02");
+    // 定义对象形式的字符串
+    request.setParameter("address.name", "广州");
+    User target = new User();
+
+    // 指定反射调用的哪个控制类中的那个方法
+    InvocableHandlerMethod method = new InvocableHandlerMethod(new InitBinderController(), InitBinderController.class.getMethod("initBinder", WebDataBinder.class));
+    // 创建 ConversionService 对象
+    FormattingConversionService service = new FormattingConversionService();
+    // 增加自定义转换器
+    service.addFormatter(new MyDateFormatter("用 ConversionService 方式扩展转换功能"));
+    // WebBindingInitializer 实现类
+    ConfigurableWebBindingInitializer webBindingInitializer = new ConfigurableWebBindingInitializer();
+    // 增加自定义 ConversionService 对象
+    webBindingInitializer.setConversionService(service);
+
+    // 创建 ServletRequestDataBinderFactory，同时指定 @InitBinder 与 ConversionService 来实现数据转换
+    ServletRequestDataBinderFactory factory = new ServletRequestDataBinderFactory(Arrays.asList(method), webBindingInitializer);
+    // 通过数据绑定工厂创建数据绑定器
+    WebDataBinder dataBinder = factory.createBinder(new ServletWebRequest(request), target, "user");
+    // 将请求数据封装 java 对象中
+    dataBinder.bind(new ServletRequestParameterPropertyValues(request));
+    // 对特殊的日期格式实现转换与绑定
+    System.out.println(target);
+}
+```
+
+#### 4.12.3. 使用默认 ConversionService 实现数据绑定
+
+使用 Spring 默认的 `ConversionService` 实现类 `DefaultFormattingConversionService`，配置对象属性上使用 `@DateTimeFormat(pattern = "yyyy|MM|dd")` 注解，完成数据转换与绑定
+
+```java
+@DateTimeFormat(pattern = "yyyy|MM|dd")
+private Date birthday;
+```
+
+```java
+// 测试使用默认 ConversionService 实现数据转换与绑定
+@Test
+public void testRequestDataBinderByDefaultConversionService() throws Exception {
+    // 创建请求对象
+    MockHttpServletRequest request = initRequest();
+    User target = new User();
+
+    /*
+        * 创建默认的 ConversionService 实现 DefaultFormattingConversionService
+        * 如果是 Spring boot 工程，也可以使用 org.springframework.boot.convert.ApplicationConversionService 默认实现
+        */
+    DefaultFormattingConversionService service = new DefaultFormattingConversionService();
+    // WebBindingInitializer 实现类
+    ConfigurableWebBindingInitializer webBindingInitializer = new ConfigurableWebBindingInitializer();
+    // 增加默认的 ConversionService 实现
+    webBindingInitializer.setConversionService(service);
+
+    // 创建 ServletRequestDataBinderFactory
+    ServletRequestDataBinderFactory factory = new ServletRequestDataBinderFactory(null, webBindingInitializer);
+    // 通过数据绑定工厂创建数据绑定器
+    WebDataBinder dataBinder = factory.createBinder(new ServletWebRequest(request), target, "user");
+    // 将请求数据封装 java 对象中
+    dataBinder.bind(new ServletRequestParameterPropertyValues(request));
+    // 对特殊的日期格式实现转换与绑定
+    System.out.println(target);
+}
+```
+
+## 5. Spring MVC 处理器方法 - 返回值
+
+### 5.1. 概念
+
+下表是 Spring MVC 支持的控制器方法返回值类型与方式。（*注：所有的返回值都支持响应式类型*）
+
+| 控制器方法返回值类型 |                    说明                    |
+| :-----------------: | ----------------------------------------- |
+|   `@ResponseBody`   | 返回值会通过`HttpMessageConverter`实现转换 |
+
+### 5.2. ReturnValueHandler 返回值处理器
+
+#### 5.2.1. 默认返回值处理器
+
+Spring MVC 提供了很多默认的返回值处理器，对控制器方法的返回值进行处理，具体实现类如下：
+
+```
+org.springframework.web.servlet.mvc.method.annotation.ModelAndViewMethodReturnValueHandler
+org.springframework.web.method.annotation.ModelMethodProcessor
+org.springframework.web.servlet.mvc.method.annotation.ViewMethodReturnValueHandler
+org.springframework.web.servlet.mvc.method.annotation.ResponseBodyEmitterReturnValueHandler
+org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBodyReturnValueHandler
+org.springframework.web.servlet.mvc.method.annotation.HttpEntityMethodProcessor
+org.springframework.web.servlet.mvc.method.annotation.HttpHeadersReturnValueHandler
+org.springframework.web.servlet.mvc.method.annotation.CallableMethodReturnValueHandler
+org.springframework.web.servlet.mvc.method.annotation.DeferredResultMethodReturnValueHandler
+org.springframework.web.servlet.mvc.method.annotation.AsyncTaskMethodReturnValueHandler
+org.springframework.web.servlet.mvc.method.annotation.ServletModelAttributeMethodProcessor
+org.springframework.web.servlet.mvc.method.annotation.RequestResponseBodyMethodProcessor
+org.springframework.web.servlet.mvc.method.annotation.ViewNameMethodReturnValueHandler
+org.springframework.web.method.annotation.MapMethodProcessor
+org.springframework.web.servlet.mvc.method.annotation.ServletModelAttributeMethodProcessor
+```
+
+常见的返回值处理器如下：
+
+- 返回值类型为 `ModelAndView`，分别获取其模型和视图名，放入 `ModelAndViewContainer`
+- 返回值类型为 `String` 时，把它当做视图名，放入 `ModelAndViewContainer`
+- 返回值添加了 `@ModelAttribute` 注解时，将返回值作为模型，放入 `ModelAndViewContainer`，此时需找到默认视图名
+- 返回值省略 `@ModelAttribute` 注解且返回非简单类型时，将返回值作为模型，放入 `ModelAndViewContainer`，此时需找到默认视图名
+- 返回值类型为 `ResponseEntity` 时，此时走 `MessageConverter`，并设置 `ModelAndViewContainer.requestHandled` 为 true
+- 返回值类型为 `HttpHeaders` 时，会设置 `ModelAndViewContainer.requestHandled` 为 true
+- 返回值添加了 `@ResponseBody` 注解时，此时走 `MessageConverter`，并设置 `ModelAndViewContainer.requestHandled` 为 true
+
+> 示例代码参考：\spring-note\springmvc-sample\12-return-value-handler
+
+#### 5.2.2. 自定义返回值处理器
+
+Spring MVC 提供了返回值处理功能的接口 `org.springframework.web.method.support.HandlerMethodReturnValueHandler`，自定义返回值处理器只需要实现该接口，实现怎样的参数生效与参数解析的逻辑
+
+示例：自定义一个注解 `@Yml`，用于标识方法，将该方法的返回值转换成 yml 的字符串返回。实现步骤如下：
+
+- 创建自定义注解
+
+```java
+@Target({ElementType.METHOD})
+@Retention(RetentionPolicy.RUNTIME)
+@Documented
+public @interface Yml {
+}
+```
+
+- 创建自定义的返回值处理器，并实现 `HandlerMethodReturnValueHandler` 接口。
+
+```java
+public class CustomReturnValueHandler implements HandlerMethodReturnValueHandler {
+
+    /**
+     * 判断是否支持此返回值的类型。示例是判断是否标识了 @Yml 注解
+     *
+     * @param returnType
+     * @return
+     */
+    @Override
+    public boolean supportsReturnType(MethodParameter returnType) {
+        // 判断当前控制器方法上是否有 @Yml 注解
+        Yml annotation = returnType.getMethodAnnotation(Yml.class);
+        return annotation != null;
+    }
+
+    /**
+     * 对象返回值进行处理
+     *
+     * @param returnValue
+     * @param returnType
+     * @param mavContainer
+     * @param webRequest
+     * @throws Exception
+     */
+    @Override
+    public void handleReturnValue(Object returnValue, MethodParameter returnType,
+                                  ModelAndViewContainer mavContainer, NativeWebRequest webRequest) throws Exception {
+        // 1. 转换返回结果为 yaml 字符串
+        String str = new Yaml().dump(returnValue);
+
+        // 2. 将 yaml 字符串写入响应
+        HttpServletResponse response = webRequest.getNativeResponse(HttpServletResponse.class);
+        response.setContentType("text/plain;charset=utf-8");
+        response.getWriter().print(str);
+
+        // 3. 设置请求已经处理完毕
+        mavContainer.setRequestHandled(true);
+    }
+}
+```
+
+- 编写测试的控制方法。
+
+```java
+@Controller
+public class ReturnValueHandlerController {
+
+    @RequestMapping("/customReturnValueHandler")
+    @Yml // 使用自定义注解，测试对返回值处理
+    public User customReturnValueHandler(String name, int age) {
+        User user = new User();
+        user.setName(name);
+        user.setAge(age);
+        return user;
+    }
+}
+```
+
+> 注：此处有一个小坑，因为要返回字符串，如果在控制类上换成 `@RestController` 或者在方法上增加标识 `@ResponseBody`，则会因为返回值类型而报错  
+>
+> `org.springframework.web.HttpMediaTypeNotAcceptableException: Could not find acceptable representation`
+
+- 此示例为了方便，不想部署到tomcat，使用了 Spring Boot 内置 tomcat 容器，并且因为 Spring MVC 是通过 `RequestMappingHandlerAdapter` 去调用实际的请求方法，而调用的核心方法 `invokeHandlerMethod` 的修饰符是 `protected`，因此编写一个子类继承 `RequestMappingHandlerAdapter`，并将该方法的修饰符修改为 `public`，方法里面直接调用父类的方法，不做其他处理
+
+```java
+public class MyHandlerAdapter extends RequestMappingHandlerAdapter {
+
+    /**
+     * 适配器调用相应请求处理方法。
+     * 注：只修改原方法的修饰符，然后直接调用父类中的方法，不作任何更改
+     */
+    @Override
+    public ModelAndView invokeHandlerMethod(HttpServletRequest request, HttpServletResponse response,
+                                            HandlerMethod handlerMethod) throws Exception {
+        return super.invokeHandlerMethod(request, response, handlerMethod);
+    }
+}
+```
+
+- 在配置类中，配置内置 tomcat 容器，并注册自定义的参数解析器到 `RequestMappingHandlerAdapter` 适配器对象（示例是自定义子类 `MyHandlerAdapter`）
+
+```java
+@Configuration
+@ComponentScan("com.moon.springmvc")
+public class SpringMvcConfig {
+
+    /*
+     * DispatcherServlet 初始化时默认添加 RequestMappingHandlerMapping 组件，但只保存在 DispatcherServlet 类的属性中
+     * 为了方便测试，因此不使用默认创建，手动创建并加入到 Spring 容器
+     */
+    @Bean
+    public RequestMappingHandlerMapping requestMappingHandlerMapping() {
+        return new RequestMappingHandlerMapping();
+    }
+
+    /*
+     * DispatcherServlet 初始化时默认添加 RequestMappingHandlerAdapter 组件，但只保存在 DispatcherServlet 类的属性中
+     * 为了方便测试，因此不使用默认创建，手动创建并加入到 Spring 容器
+     */
+    @Bean
+    public MyHandlerAdapter requestMappingHandlerAdapter() {
+        MyHandlerAdapter handlerAdapter = new MyHandlerAdapter();
+        // 加入自定义返回值处理器
+        handlerAdapter.setCustomReturnValueHandlers(Arrays.asList(new CustomReturnValueHandler()));
+        return handlerAdapter;
+    }
+
+    // 创建内嵌 web 容器工厂
+    @Bean
+    public TomcatServletWebServerFactory tomcatServletWebServerFactory() {
+        return new TomcatServletWebServerFactory(8080);
+    }
+
+    // 创建 DispatcherServlet
+    @Bean
+    public DispatcherServlet dispatcherServlet() {
+        return new DispatcherServlet();
+    }
+
+    // 注册 DispatcherServlet, Spring MVC 的入口
+    @Bean
+    public DispatcherServletRegistrationBean dispatcherServletRegistrationBean(DispatcherServlet dispatcherServlet) {
+        DispatcherServletRegistrationBean registrationBean = new DispatcherServletRegistrationBean(dispatcherServlet, "/");
+        registrationBean.setLoadOnStartup(1);
+        return registrationBean;
+    }
+}
+```
+
+- 测试
+
+```java
+@Test
+public void testCustomReturnValueHandler() throws Exception {
+    // 创建 Spring boot 中 servlet web 环境容器，在配置类中手动创建 tomcat 实例
+    AnnotationConfigServletWebServerApplicationContext context =
+            new AnnotationConfigServletWebServerApplicationContext(SpringMvcConfig.class);
+    // 从容器中获取 RequestMappingHandlerMapping
+    // 该对象用于解析 @RequestMapping 以及派生注解，生成路径与控制器方法的映射关系, 在 web 容器初始化时就生成
+    RequestMappingHandlerMapping handlerMapping = context.getBean(RequestMappingHandlerMapping.class);
+
+    // 模拟的请求
+    MockHttpServletRequest mockRequest = new MockHttpServletRequest("GET", "/customReturnValueHandler");
+    // 设置请求参数
+    mockRequest.setParameter("name", "MoonZero");
+    mockRequest.setParameter("age", "18");
+    // 模拟的响应
+    MockHttpServletResponse mockResponse = new MockHttpServletResponse();
+    // 从映射处理器中，根据请求获取处理链（因为一个请求可能会包含若干个过滤器）
+    HandlerExecutionChain chain = handlerMapping.getHandler(mockRequest);
+    System.out.println("处理器执行链对象: " + chain);
+
+    // 获取 RequestMappingHandlerAdapter
+    MyHandlerAdapter handlerAdapter = context.getBean(MyHandlerAdapter.class);
+    // 通过处理器适配器调用相应的控制器方法
+    handlerAdapter.invokeHandlerMethod(mockRequest, mockResponse, (HandlerMethod) chain.getHandler());
+
+    // 检查响应
+    byte[] content = mockResponse.getContentAsByteArray();
+    System.out.println(new String(content, StandardCharsets.UTF_8));
+}
+```
+
+## 6. MessageConverter
+
+### 6.1. 概述
+
+spring-web 模块包含 `HttpMessageConverte` 接口，用于通过 `InputStream` 和 `OutputStream` 读写 HTTP 请求和响应的主体。如给 `@ResponseBody` 标识的方法返回值处理器解析。
+
+请求的 MediaType 的选择顺序如下：
+
+- 首先看控制方法的 `@RequestMapping` 上有没有指定
+- 其次看 request 的 Accept 头有没有指定
+- 最后按 `MessageConverter` 的顺序，谁能谁先转换
+
+### 6.2. HttpMessageConverter 接口默认实现
+
+|                        MessageConverter 实现                         |                                       说明                                        |
+| :-----------------------------------------------------------------: | -------------------------------------------------------------------------------- |
+|                    `StringHttpMessageConverter`                     |                                                                                  |
+|                     `FormHttpMessageConverter`                      |                                                                                  |
+|                   `ByteArrayHttpMessageConverter`                   |                                                                                  |
+|                  `MarshallingHttpMessageConverter`                  |                                                                                  |
+|                `MappingJackson2HttpMessageConverter`                | 通过使用Jackson的`ObjectMapper`来读写JSON格式数据，默认支持HTTP的application/json  |
+|              `MappingJackson2XmlHttpMessageConverter`               | 通过使用Jackson XML扩展的`XmlMapper`读写XML格式数据，默认支持HTTP的application/xml |
+|                    `SourceHttpMessageConverter`                     |                                                                                  |
+|                 `BufferedImageHttpMessageConverter`                 |                                                                                  |
+|                               `void`                                |                                                                                  |
+|                         `DeferredResult<V>`                         |                                                                                  |
+|                            `Callable<V>`                            |                                                                                  |
+| `ListenableFuture<V>`, `CompletionStage<V>`, `CompletableFuture<V>` |                                                                                  |
+|                 `ResponseBodyEmitter`, `SseEmitter`                 |                                                                                  |
+|                       `StreamingResponseBody`                       |                                                                                  |
+
+> 注：未整理完
+
+### 6.3. 使用示例
+
+示例是使用 jackson 作为转换的底层实现，所以需要添加 jackson 的相关依赖
+
+```xml
+<dependency>
+    <groupId>com.fasterxml.jackson.dataformat</groupId>
+    <artifactId>jackson-dataformat-xml</artifactId>
+</dependency>
+```
+
+示例代码
+
+```java
+public class MessageConverterTest {
+
+    // MappingJackson2HttpMessageConverter 模拟实现 http 响应对象转 json
+    @Test
+    public void test1() throws IOException {
+        MockHttpOutputMessage message = new MockHttpOutputMessage();
+        MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter();
+        if (converter.canWrite(User.class, MediaType.APPLICATION_JSON)) {
+            converter.write(new User("张三", 18), MediaType.APPLICATION_JSON, message);
+            System.out.println(message.getBodyAsString());
+        }
+    }
+
+    // MappingJackson2XmlHttpMessageConverter 模拟实现 http 响应对象转 xml
+    @Test
+    public void test2() throws IOException {
+        MockHttpOutputMessage message = new MockHttpOutputMessage();
+        MappingJackson2XmlHttpMessageConverter converter = new MappingJackson2XmlHttpMessageConverter();
+        if (converter.canWrite(User.class, MediaType.APPLICATION_XML)) {
+            converter.write(new User("李四", 20), MediaType.APPLICATION_XML, message);
+            System.out.println(message.getBodyAsString());
+        }
+    }
+
+    // MappingJackson2HttpMessageConverter 模拟实现 http 请求中的json，转成对象
+    @Test
+    public void test3() throws IOException {
+        MockHttpInputMessage message = new MockHttpInputMessage("{\"name\":\"MooNkirA\",\"age\":20}".getBytes(StandardCharsets.UTF_8));
+        MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter();
+        if (converter.canRead(User.class, MediaType.APPLICATION_JSON)) {
+            Object read = converter.read(User.class, message);
+            System.out.println(read);
+        }
+    }
+
+    /*
+      请求的 MediaType 的选择顺序如下：
+        - 首先看控制方法的 @RequestMapping 上有没有指定
+        - 其次看 request 的 Accept 头有没有指定
+        - 最后按 MessageConverter 的顺序, 谁能谁先转换
+     */
+    @Test
+    public void test4() throws Exception {
+        MockHttpServletRequest request = new MockHttpServletRequest();
+        MockHttpServletResponse response = new MockHttpServletResponse();
+        ServletWebRequest webRequest = new ServletWebRequest(request, response);
+
+        request.addHeader("Accept", "application/xml"); // 转换优先级其次
+        response.setContentType("application/json"); // 转换优先级最高
+        // 如果请求头与响应类型都没有，则按设置的顺序要决定使用哪个转换
+        RequestResponseBodyMethodProcessor processor = new RequestResponseBodyMethodProcessor(
+                Arrays.asList(new MappingJackson2HttpMessageConverter(), new MappingJackson2XmlHttpMessageConverter())
+        );
+        processor.handleReturnValue(
+                new User("MooNkirA", 18),
+                new MethodParameter(DemoController.class.getMethod("user"), -1),
+                new ModelAndViewContainer(),
+                webRequest
+        );
+        System.out.println(new String(response.getContentAsByteArray(), StandardCharsets.UTF_8));
+    }
+}
+```
+
+
+## 7. Spring MVC 配置（整理中！）
 
 Spring MVC 提供了 Java 编程式与 xml 命名空间两种方式对 web 程序进行配置。
 
-### 5.1. 开启 MVC 配置
+### 7.1. 开启 MVC 配置
 
 在编程式配置中，可以使用 `@EnableWebMvc` 注解来启用 MVC 配置。通过实现 `WebMvcConfigurer` 接口，在各个配置方法中定制相关的配置
 
@@ -1357,7 +2325,7 @@ public class WebConfig implements WebMvcConfigurer {
 </beans>
 ```
 
-### 5.2. 拦截器配置
+### 7.2. 拦截器配置
 
 基于编程式配置，通过 `WebMvcConfigurer` 接口中 `addInterceptors` 来配置拦截器
 
@@ -1392,7 +2360,7 @@ public class WebConfig implements WebMvcConfigurer {
 </mvc:interceptors>
 ```
 
-### 5.3. 自定义类型转换器配置
+### 7.3. 自定义类型转换器配置
 
 默认情况下，Spring MVC 提供了各种数字和日期类型的格式化器，同时支持通过在对象字段上的 `@NumberFormat` 和 `@DateTimeFormat` 进行自定义。在 Spring MVC 配置自定义参数转换器以如下方式：
 
@@ -1470,13 +2438,13 @@ public class WebConfig implements WebMvcConfigurer {
 
 - 使用 `@InitBinder` 的方式配置，详见[《Spring MVC 注解汇总.md》文档](/02-后端框架/05-SpringMVC/02-SpringMVC注解汇总)
 
-## 6. 拦截器
+## 8. 拦截器
 
-### 6.1. 拦截器介绍
+### 8.1. 拦截器介绍
 
 拦截器相当于servlet中过滤器（filter）。可以对处理器方法执行预处理（在处理器方法执行前执行），可以对处理器方法执行后处理（在处理器方法执行后执行）
 
-### 6.2. HandlerInterceptor 接口方法说明
+### 8.2. HandlerInterceptor 接口方法说明
 
 ```java
 public interface HandlerInterceptor {
@@ -1499,11 +2467,11 @@ public interface HandlerInterceptor {
 - `postHandle`方法：在处理器方法执行后，在响应jsp页面前执行，执行后处理。企业项目中，可以在这个方法设置页面的公共模型数据，比如页面的头部信息，尾部信息。
 - `afterCompletion`方法：在处理器方法执行后，在jsp页面响应后执行，执行后处理。在企业项目中，可以在这个方法实现用户访问日志的记录。
 
-### 6.3. 自定义拦截器（基于xml配置文件）
+### 8.3. 自定义拦截器（基于xml配置文件）
 
 自定义拦截器需要实现`HandlerInterceptor`接口，此接口比较特别有三个方法，都为默认方法，所以自定义拦截器时，可以选择性重写此三个方法即可
 
-#### 6.3.1. 创建拦截器
+#### 8.3.1. 创建拦截器
 
 ```java
 public class MyInterceptor implements HandlerInterceptor {
@@ -1529,7 +2497,7 @@ public class MyInterceptor implements HandlerInterceptor {
 }
 ```
 
-#### 6.3.2. 配置拦截器
+#### 8.3.2. 配置拦截器
 
 在springmvc.xml总配置文件中配置拦截器步骤：
 
@@ -1561,7 +2529,7 @@ public class MyInterceptor implements HandlerInterceptor {
 </mvc:interceptors>
 ```
 
-#### 6.3.3. 自定义拦截器执行测试
+#### 8.3.3. 自定义拦截器执行测试
 
 - 测试拦截器方法
 
@@ -1592,17 +2560,17 @@ public String testInterceptor(Model model){
 
 ![](images/20200922100757124_22779.jpg)
 
-### 6.4. 自定义拦截器（基于纯注解方式）
+### 8.4. 自定义拦截器（基于纯注解方式）
 
 此部分内容详情《02-SpringMVC注解汇总.md》
 
-### 6.5. 自定义多个拦截器
+### 8.5. 自定义多个拦截器
 
 定义多个拦截器，测试拦截器执行的顺序
 
 ![](images/20200922101051530_24002.jpg)
 
-#### 6.5.1. 配置多个拦截器
+#### 8.5.1. 配置多个拦截器
 
 修改springmvc.xml文件
 
@@ -1623,7 +2591,7 @@ public String testInterceptor(Model model){
 </mvc:interceptors>
 ```
 
-#### 6.5.2. 多个拦截器的执行顺序测试
+#### 8.5.2. 多个拦截器的执行顺序测试
 
 - 测试拦截器1返回true，拦截器2返回true
 
@@ -1643,16 +2611,16 @@ public String testInterceptor(Model model){
 
 1. 拦截器的afterCompletion方法，只要当前拦截器返回true，就可以得到执行。
 
-### 6.6. 拦截器应用案例
+### 8.6. 拦截器应用案例
 
-#### 6.6.1. 案例需求
+#### 8.6.1. 案例需求
 
 1. 访问商品列表数据，需要判断用户是否登录
 2. 如果用户已经登录，直接让他访问商品列表
 3. 如果用户未登录，先去登录页面进行登录，成功登录以后再访问商品列表
 - 注：本demo只是模拟用户输入用户名和密码，没有进行数据库的校验，没有创建用户对象
 
-#### 6.6.2. 准备用户登录页面login.jsp
+#### 8.6.2. 准备用户登录页面login.jsp
 
 ```jsp
 <form id="userForm"
@@ -1675,7 +2643,7 @@ public String testInterceptor(Model model){
 </form>
 ```
 
-#### 6.6.3. 用户登陆控制层方法
+#### 8.6.3. 用户登陆控制层方法
 
 UserController.java编写跳转到登陆页面方法与登陆方法
 
@@ -1728,7 +2696,7 @@ public class UserController {
 }
 ```
 
-#### 6.6.4. 用户登陆拦截器
+#### 8.6.4. 用户登陆拦截器
 
 创建LoginInterceptor拦截器
 
@@ -1753,7 +2721,7 @@ public boolean preHandle(HttpServletRequest request, HttpServletResponse respons
 }
 ```
 
-#### 6.6.5. 配置登陆拦截器
+#### 8.6.5. 配置登陆拦截器
 
 修改springmvc.xml配置文件
 
@@ -1771,27 +2739,192 @@ public boolean preHandle(HttpServletRequest request, HttpServletResponse respons
 </mvc:interceptors>
 ```
 
-## 7. Spring MVC 运行流程（待更新流程图）
+## 9. Spring MVC 运行流程总结（待更新流程图）
 
 Spring 的模型-视图-控制器（MVC）框架是围绕一个 `DispatcherServlet` 来设计的，这个 Servlet 会把请求分发给各个处理器，并支持可配置的处理器映射、视图渲染、本地化、时区与主题渲染等，甚至还能支持文件上传。
 
-- 第1步：客户端发起请求到 `DispatcherServlet`（前端控制器）
-- 第2步：`DispatcherServlet`（前端控制器）请求一个或多个 `HandlerMapping` 查找 Handler，可以根据 xml 配置、注解进行查找处理请求的 Controller
-- 第3步：`HandlerMapping`（处理器映射器）向前端控制器返回 Handler
-- 第4步：`DispatcherServlet`（前端控制器）调用 `HandlerAdapter`（处理器适配器）去执行 Handler
-- 第5步：`HandlerAdapter`（处理器适配器）去执行 Handler
-- 第6步：Handler 调用业务逻辑处理完成后，给 `HandlerAdapter`（处理器适配器）返回 `ModelAndView`
-- 第7步：`HandlerAdapter`（处理器适配器）向 `DispatcherServlet`（前端控制器）返回 `ModelAndView`。`ModelAndView` 是 Spring MVC 框架的一个底层对象，包括 Model 和 View
-- 第8步：`DispatcherServlet`（前端控制器）请求 `ViewResoler`（视图解析器）去进行视图解析，根据逻辑视图名解析成真正的视图(jsp)
-- 第9步：`ViewResoler`（视图解析器）向 `DispatcherServlet`（前端控制器）返回 View
-- 第10步：`DispatcherServlet`（前端控制器）进行视图渲染。视图渲染将模型数据(在 `ModelAndView` 对象中)填充到 request 域中
-- 第11步：`DispatcherServlet`（前端控制器）向用户响应结果
+- 第1步：客户端发起请求到 `DispatcherServlet`
+- 第2步：`DispatcherServlet` 请求一个或多个 `HandlerMapping` 查找 Handler，可以根据 xml 配置、注解进行查找处理请求的 Controller
+- 第3步：`HandlerMapping` 向前端控制器返回 Handler
+- 第4步：`DispatcherServlet` 调用 `HandlerAdapter` 去执行 Handler
+- 第5步：`HandlerAdapter` 去执行 Handler
+- 第6步：Handler 调用业务逻辑处理完成后，给 `HandlerAdapter` 返回 `ModelAndView`
+- 第7步：`HandlerAdapter` 向 `DispatcherServlet` 返回 `ModelAndView`。
+- 第8步：`DispatcherServlet` 请求 `ViewResoler` 去进行视图解析，根据逻辑视图名解析成真正的视图(jsp)
+- 第9步：`ViewResoler` 向 `DispatcherServlet` 返回 View
+- 第10步：`DispatcherServlet` 进行视图渲染。视图渲染将模型数据(在 `ModelAndView` 对象中)填充到 request 域中
+- 第11步：`DispatcherServlet` 向用户响应结果
+
+> 名词说明：
+>
+> - `DispatcherServlet` 前端控制器
+> - `HandlerMapping` 处理器映射器
+> - `HandlerAdapter` 处理器适配器
+> - `Handler` 处理器
+> - `ViewResoler` 视图解析器
+> - `ModelAndView` 视图模型，是 Spring MVC 框架的一个底层对象，包括 Model 和 View
+
+
+
+当浏览器发送一个请求 `http://localhost:8080/hello` 后，请求到达服务器，其处理流程是：
+
+1. 服务器提供了 DispatcherServlet，它使用的是标准 Servlet 技术
+   - 路径：默认映射路径为 `/`，即会匹配到所有请求 URL，可作为请求的统一入口，也被称之为**前端控制器**
+     - *注：jsp 不会匹配到 DispatcherServlet （了解）*
+     - 其它有路径的 Servlet 匹配优先级也高于 DispatcherServlet
+   - 创建：在 Boot 中，由 DispatcherServletAutoConfiguration 这个自动配置类提供 DispatcherServlet 的 bean
+   - 初始化：DispatcherServlet 初始化时会优先到容器里寻找各种组件，作为它的成员变量
+     - HandlerMapping，初始化时记录映射关系
+     - HandlerAdapter，初始化时准备参数解析器、返回值处理器、消息转换器
+     - HandlerExceptionResolver，初始化时准备参数解析器、返回值处理器、消息转换器
+     - ViewResolver
+2. DispatcherServlet 会利用 RequestMappingHandlerMapping 查找控制器方法
+   - 例如根据 /hello 路径找到 @RequestMapping("/hello") 对应的控制器方法
+   - 控制器方法会被封装为 HandlerMethod 对象，并结合匹配到的拦截器一起返回给 DispatcherServlet 
+   - HandlerMethod 和拦截器合在一起称为 HandlerExecutionChain（调用链）对象
+3. DispatcherServlet 接下来会：
+   1. 调用拦截器的 preHandle 方法，如果返回true，则放行继续执行；如果返回false，则拦截。
+   2. RequestMappingHandlerAdapter 调用 handle 方法，准备数据绑定工厂、模型工厂、ModelAndViewContainer、将 HandlerMethod 完善为 ServletInvocableHandlerMethod
+      - @ControllerAdvice 全局增强点1：补充模型数据
+      - @ControllerAdvice 全局增强点2：补充自定义类型转换器
+      - 使用 HandlerMethodArgumentResolver 准备参数
+        - @ControllerAdvice 全局增强点3：RequestBody 增强
+      - 调用 ServletInvocableHandlerMethod 
+      - 使用 HandlerMethodReturnValueHandler 处理返回值
+        - @ControllerAdvice 全局增强点4：ResponseBody 增强
+      - 根据 ModelAndViewContainer 获取 ModelAndView
+        - 如果返回的 ModelAndView 为 null，不走第 4 步视图解析及渲染流程
+          - 例如，有的返回值处理器调用了 HttpMessageConverter 来将结果转换为 JSON，这时 ModelAndView 就为 null
+        - 如果返回的 ModelAndView 不为 null，会在第 4 步走视图解析及渲染流程
+   3. 调用拦截器的 postHandle 方法
+   4. 处理异常或视图渲染
+      - 如果 1~3 出现异常，走 ExceptionHandlerExceptionResolver 处理异常流程
+        - @ControllerAdvice 全局增强点5：@ExceptionHandler 异常处理
+      - 正常，走视图解析及渲染流程
+   5. 调用拦截器的 afterCompletion 方法
 
 ![](images/20200918135458792_17168.png)
 
 ![](images/63723911226860.jpg)
 
 ![](images/20200918135212093_9963.jpg)
+
+## 10. 异常处理器
+
+### 10.1. HandlerExceptionResolver 接口
+
+```java
+/* 异常处理器的根接口 */
+public interface HandlerExceptionResolver {
+	/* 用于提供异常处理的逻辑 */
+	@Nullable
+	ModelAndView resolveException(HttpServletRequest request, HttpServletResponse response, @Nullable Object handler, Exception ex);
+}
+```
+
+### 10.2. 自定义异常处理器
+
+自定义异常处理需要实现`HandlerExceptionResolver`接口，将使用注解注册到容器中
+
+```java
+/**
+ * 自定义异常处理解析器
+ */
+@Component
+public class CustomHandlerExceptionResolver implements HandlerExceptionResolver {
+    /**
+     * 此方法是处理异常的。异常就分为系统异常和业务异常
+     */
+    @Override
+    public ModelAndView resolveException(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex) {
+        // 1. 创建返回值对象
+        ModelAndView mv = new ModelAndView();
+        // 2. 设置错误提示信息
+        String errorMsg;
+        if (ex instanceof CustomException) {
+            errorMsg = ex.getMessage();
+        } else {
+            // 系统异常
+            errorMsg = "服务器内部错误，请联系管理员！";
+        }
+        mv.addObject("errorMsg", errorMsg);
+        // 3. 设置结果视图名称
+        mv.setViewName("error");
+        // 4. 返回
+        return mv;
+    }
+}
+```
+
+### 10.3. 实现接口方式异常处理器总结
+
+实现`HandlerExceptionResolver`接口的异常处理是在控制器方法处理的过程中出现的异常才能捕获，并做处理。所以如果在控制器方法执行前数据绑定时出现的异常，这种方式的异常处理器是无法捕获的。
+
+这种实现方式现在已经被淘汰了，一般都直接`@ControllerAdvice`配合`@ExceptionHandler`使用来完成异常的全局处理
+
+### 10.4. @ExceptionHandler 注解
+
+标识 `@Controller` 和 `@ControllerAdvice` 类可以使用 `@ExceptionHandler` 注解标识方法来处理来自控制器方法的异常。
+
+> 详见[《Spring MVC 注解汇总.md》文档](/02-后端框架/05-SpringMVC/02-SpringMVC注解汇总)
+
+### 10.5. 番外 - Tomcat 异常处理
+
+前面的 `@ExceptionHandler` 只能处理发生在 Spring MVC 流程中的异常，例如控制器内、拦截器内，但如果是 Filter 出现了异常，则会由 tomcat(Web 服务器)来处理
+
+#### 10.5.1. Spring Boot 的实现流程
+
+1. 因为内嵌了 Tomcat 容器，因此可以配置 Tomcat 的错误页面，Filter 与 错误页面之间是通过请求转发跳转的
+2. 先通过 `ErrorPageRegistrarBeanPostProcessor` 这个后处理器配置错误页面地址，默认为 `/error` 也可以通过 `${server.error.path}` 进行配置
+3. 当 Filter 发生异常时，不会走 Spring 流程，但会走 Tomcat 的错误处理，于是就会转发至 `/error` 这个地址。如果没有 `@ExceptionHandler`，最终也会走到 Tomcat 的错误处理
+4. Spring Boot 又提供了一个 `BasicErrorController`，它就是一个标准 `@Controller`，`@RequestMapping` 配置为 `/error`，所以处理异常的职责就又回到了 Spring 框架
+5. 异常信息由于会被 Tomcat 放入 `request` 作用域，key的名称固定是 `javax.servlet.error.exception`（Spring 提供了此常量 `RequestDispatcher.ERROR_EXCEPTION`）。因此 `BasicErrorController` 类也能获取到异常的信息
+6. 具体异常信息会由 `DefaultErrorAttributes` 封装好
+7. `BasicErrorController` 通过 Accept 头判断需要生成哪种 MediaType 的响应。如果要的不是 text/html，走 MessageConverter 流程；如果需要 text/html，走 mvc 流程，此时又分两种情况
+    - 配置了 `ErrorViewResolver`，根据状态码去找 View
+    - 没配置或没找到，用 `BeanNameViewResolver` 根据一个固定为 `error` 的名字找到 View，即所谓的 `WhitelabelErrorView`
+
+#### 10.5.2. 配置关键部分
+
+基于注解配置的关键代码
+
+```java
+@Bean // 修改了 Tomcat 服务器默认错误地址。出现错误，会使用请求转发 forward 跳转到 error 地址
+public ErrorPageRegistrar errorPageRegistrar() {
+    return webServerFactory -> webServerFactory.addErrorPages(new ErrorPage("/error"));
+}
+
+@Bean // TomcatServletWebServerFactory 初始化前用它增强，注册所有 ErrorPageRegistrar
+public ErrorPageRegistrarBeanPostProcessor errorPageRegistrarBeanPostProcessor() {
+    return new ErrorPageRegistrarBeanPostProcessor();
+}
+
+@Bean // ErrorProperties 封装环境键值，ErrorAttributes 控制有哪些错误信息
+public BasicErrorController basicErrorController() {
+    ErrorProperties errorProperties = new ErrorProperties();
+    errorProperties.setIncludeException(true);
+    return new BasicErrorController(new DefaultErrorAttributes(), errorProperties);
+}
+
+@Bean // 名称为 error 的视图，作为 BasicErrorController 的 text/html 响应结果
+public View error() {
+    return new View() {
+        @Override
+        public void render(Map<String, ?> model, HttpServletRequest request, HttpServletResponse response) throws Exception {
+            System.out.println(model);
+            response.setContentType("text/html;charset=utf-8");
+            response.getWriter().print("""
+                    <h3>服务器内部错误</h3>
+                    """);
+        }
+    };
+}
+
+@Bean // 收集容器中所有 View 对象，bean 的名字作为视图名
+public ViewResolver viewResolver() {
+    return new BeanNameViewResolver();
+}
+```
 
 # SpringMVC 其他扩展知识整理
 

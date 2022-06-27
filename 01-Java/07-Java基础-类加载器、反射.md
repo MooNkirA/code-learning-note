@@ -25,7 +25,8 @@
     - 负责加载CLASSPATH指定的jar(包括第三方的库)和bin目录下的自己编写的类。
 
 ## 3. ClassLoader 类
-#### 3.1.1. 如何得到类加载器对象
+
+### 3.1. 如何得到类加载器对象
 
 ```java
 public ClassLoader getClassLoader()
@@ -635,13 +636,45 @@ public class Student {
 }
 ```
 
-## 7. Reflections 反射框架(待整理)
+## 7. 反射获取超类
+
+### 7.1. Class 类获取超类的方法
+
+```java
+public Type getGenericSuperclass()
+```
+
+上面 `Class` 类对象的方法，用于获取此 `Class` 所表示的实体（类、接口、基本类型或 void）的直接超类的 Type。如果超类是参数化类型（泛型），则返回的 `Type` 对象能准确反映源代码中所使用的实际类型参数。如果以前未曾创建表示超类的参数化类型，则创建这个类型。有关参数化类型创建过程的语义，请参阅 ParameterizedType 声明。
+
+如果此 `Class` 对象是 `Object` 类、接口、基本类型或 void，则返回 null。如果此对象是一个数组类，则返回表示 `Object` 类的 `Class` 对象。 
+
+### 7.2. 反射获取泛型参数示例
+
+假设某个类继承带泛型的类
+
+```java
+class StudentDao extends BaseDao<Student> {
+}
+```
+
+通过该字节码对象的 `getGenericSuperclass` 方法获取其父类，然后判断返回的 `Type` 类型是否为 `ParameterizedType`，再通过 `ParameterizedType` 类的 `getActualTypeArguments` 获取父类中的实际类型参数的 `Type` 对象的数组。
+
+```java
+Type type = StudentDao.class.getGenericSuperclass();
+System.out.println(type);
+
+if (type instanceof ParameterizedType ) {
+    System.out.println(((ParameterizedType)type).getActualTypeArguments()[0]);  // 因为示例只是一个泛型，所以直接获取第一个元素
+}
+```
+
+## 8. Reflections 反射框架(待整理)
 
 
 
-## 8. 反射与Properties案例
+## 9. 反射与Properties案例
 
-### 8.1. 案例1
+### 9.1. 案例1
 
 ```java
 import java.io.File;

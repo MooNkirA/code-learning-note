@@ -430,9 +430,9 @@ public class RequestParamController {
 
 #### 1.4.2. 相关属性
 
-|  属性名  |           作用           | 取值/示例 |
-| :-----: | ----------------------- | -------- |
-| `value` | 指定给哪些参数进行绑定操作 |          |
+|  属性名  |           作用            | 取值/示例 |
+| :-----: | ------------------------- | --------- |
+| `value` | 指定给哪些参数进行绑定操作 |           |
 
 #### 1.4.3. 使用示例
 
@@ -503,7 +503,7 @@ public class User implements Serializable {
 
 #### 1.5.1. 作用与用法
 
-`@ControllerAdvice`用于给控制器提供一个增强的通知。以保证可以在多个控制器之间实现增强共享。它可以与 `@ExceptionHandler`、`@InitBinder`、`@ModelAttribute` 等注解配置使用
+`@ControllerAdvice`用于给控制器提供一个增强的通知。以保证可以在多个控制器之间实现增强共享。它可以与 `@ExceptionHandler`、`@InitBinder`、`@ModelAttribute` 等注解配合使用
 
 <font color=red>**注意：只对标识`@Controller`注解的控制类生效**</font>
 
@@ -517,7 +517,7 @@ public class User implements Serializable {
 |  `assignableTypes`   | 用于指定特定的类型提供增强                                    |           |
 |    `annotations`     | 用于指定给特定注解提供增强                                    |           |
 
-#### 1.5.3. 使用示例
+#### 1.5.3. 配合 @InitBinder 注解使用示例
 
 示例需求：实现全局所有控制器的请求日期字符串转成日期类型封装到实体类中，*将上面的`@InitBinder`示例的逻辑移动到`@ControllerAdvice`的增强通知类中即可*
 
@@ -585,6 +585,8 @@ public class InitBinderAdvice {
 }
 ```
 
+#### 1.5.4. 配合 @ModelAttribute 注解使用示例（未整理）
+
 ### 1.6. @RequestHeader
 
 #### 1.6.1. 作用与用法
@@ -595,12 +597,12 @@ public class InitBinderAdvice {
 
 #### 1.6.2. 相关属性
 
-|     属性名      |                                  作用                                   |  取值/示例  |
-| :------------: | ---------------------------------------------------------------------- | ---------- |
-|    `value`     | 用于指定请求消息头的名称。它和name属性作用一样                              |            |
-|     `name`     | 在4.2版本中加入的。和value属性互为引用                                     |            |
+|     属性名      |                                    作用                                     |  取值/示例  |
+| :------------: | --------------------------------------------------------------------------- | ---------- |
+|    `value`     | 用于指定请求消息头的名称。它和name属性作用一样                                |            |
+|     `name`     | 在4.2版本中加入的。和value属性互为引用                                       |            |
 |   `required`   | 用于指定是否必须有此消息头。默认值为true，当为true时，请求没有此消息头时会报错 | true/false |
-| `defaultValue` | 用于指定消息头的默认值                                                    |            |
+| `defaultValue` | 用于指定消息头的默认值                                                       |            |
 
 #### 1.6.3. 使用示例
 
@@ -677,11 +679,11 @@ public class CookieValueController {
 
 #### 1.8.2. 相关属性
 
-|   属性名   |                                                                            作用                                                                            |  取值/示例  |
-| :-------: | --------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------- |
-|  `value`  | 指定的是Model存入时的key<br/>当注解写在方法上，则表示存入时的名称。（值是方法的返回值）<br/>当注解写在参数上，可以从ModelMap,Model,Map中的获取数据。（前提是之前存入过） |            |
-|  `name`   | 4.3版本收入，与value属性作用一样                                                                                                                             |            |
-| `binding` | 用于指定是否支持数据绑定，默认值true。它是4.3版本中新加入的属性                                                                                                  | true/false |
+|   属性名   |                                                                                作用                                                                                 |  取值/示例  |
+| :-------: | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------- |
+|  `value`  | 指定的是Model存入时的key<br/>当注解写在方法上，则表示存入时的名称。（值是方法的返回值）<br/>当注解写在参数上，可以从ModelMap、Model、Map中的获取数据。（前提是之前存入过） |            |
+|  `name`   | 4.3版本收入，与value属性作用一样                                                                                                                                     |            |
+| `binding` | 用于指定是否支持数据绑定，默认值true。它是4.3版本中新加入的属性                                                                                                        | true/false |
 
 #### 1.8.3. 使用示例
 
@@ -830,15 +832,42 @@ public class SessionAttributesController {
 
 #### 1.10.1. 作用与用法
 
-`@ExceptionHandler`注解用于修饰方法，表明当前方法是控制器执行产生异常后的处理方法
+`@ExceptionHandler` 注解用于修饰控制器类的方法，表明当前方法是该控制器执行产生异常后的处理方法
 
 #### 1.10.2. 相关属性
 
-|  属性名  |           作用           | 取值/示例 |
-| :-----: | ----------------------- | -------- |
-| `value` | 指定用于需要捕获的异常类型 |          |
+|  属性名  |           作用            | 取值/示例 |
+| :-----: | ------------------------- | --------- |
+| `value` | 指定用于需要捕获的异常类型 |           |
 
-#### 1.10.3. 使用示例
+#### 1.10.3. 基础使用示例
+
+- 在控制器类中使用 `@ExceptionHandler` 标识方法（方法名随意），如当前控制器相关请求方法出现异常时，就会触发该注解的方法
+
+```java
+@Controller
+public class SimpleController {
+
+    // ...
+
+    @ExceptionHandler
+    public ResponseEntity<String> handle(IOException ex) {
+        // ...
+    }
+}
+```
+
+- 对于匹配的异常类型，最好将目标异常作为方法参数来声明（如上示例）。当多个异常方法匹配时，一般都是定义其根异常。
+- 可以通过注解的属性，缩小要匹配的异常类型的范围。此时方法的参数也可以使用更大范围通用的异常类型
+
+```java
+@ExceptionHandler({FileSystemException.class, RemoteException.class})
+public ResponseEntity<String> handle(Exception ex) {
+    // ...
+}
+```
+
+#### 1.10.4. 配合 @ControllerAdvice 全局异常处理示例
 
 - 创建自定义异常类
 
@@ -1675,7 +1704,7 @@ public class CustomInterceptorController {
 
 ![](images/20200922152943953_20761.jpg)
 
-## 4. 类型转换器
+## 4. 类型转换器(整理中)
 
 类型转换器，就是在处理请求前，对象一些数据进行类型的转换处理。
 
@@ -1762,59 +1791,3 @@ public class InitBinderAdvice {
     }
 }
 ```
-
-## 5. 异常处理器
-
-### 5.1. HandlerExceptionResolver 接口
-
-```java
-/* 异常处理器的根接口 */
-public interface HandlerExceptionResolver {
-	/* 用于提供异常处理的逻辑 */
-	@Nullable
-	ModelAndView resolveException(
-			HttpServletRequest request, HttpServletResponse response, @Nullable Object handler, Exception ex);
-}
-```
-
-### 5.2. 自定义异常处理器
-
-自定义异常处理需要实现`HandlerExceptionResolver`接口，将使用注解注册到容器中
-
-```java
-/**
- * 自定义异常处理解析器
- */
-@Component
-public class CustomHandlerExceptionResolver implements HandlerExceptionResolver {
-    /**
-     * 此方法是处理异常的。异常就分为系统异常和业务异常
-     */
-    @Override
-    public ModelAndView resolveException(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex) {
-        // 1. 创建返回值对象
-        ModelAndView mv = new ModelAndView();
-        // 2. 设置错误提示信息
-        String errorMsg;
-        if (ex instanceof CustomException) {
-            errorMsg = ex.getMessage();
-        } else {
-            // 系统异常
-            errorMsg = "服务器内部错误，请联系管理员！";
-        }
-        mv.addObject("errorMsg", errorMsg);
-        // 3. 设置结果视图名称
-        mv.setViewName("error");
-        // 4. 返回
-        return mv;
-    }
-}
-```
-
-> 注：这种方式的测试结果详见《01-SpringMVC基础.md》
-
-### 5.3. 实现接口方式异常处理器总结
-
-实现`HandlerExceptionResolver`接口的异常处理是在控制器方法处理的过程中出现的异常才能捕获，并做处理。所以如果在控制器方法执行前数据绑定时出现的异常，这种方式的异常处理器是无法捕获的。
-
-这种实现方式现在已经被淘汰了，一般都直接`@ControllerAdvice`配合`@ExceptionHandler`使用来完成异常的全局处理

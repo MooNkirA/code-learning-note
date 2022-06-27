@@ -184,7 +184,29 @@ IDEA 可以直接通过 Spring Initializr 创建 Spring boot 项目。（注意�
 
 - 最后就是手动创建项目结构与参照标准 SpringBoot 工程的 pom 文件，编写项目的 pom 文件即可。SpringBoot 重点就是在 pom.xml 引入 `spring-boot-starter-parent` 的依赖，详情参考下一章节。
 
-### 2.4. 添加依赖
+### 2.4. 创建 Spring Boot 项目（远程请求方式）
+
+#### 2.4.1. linux 环境
+
+用以下命令即可获取 spring boot 的干净的骨架 pom.xml
+
+```bash
+curl -G https://start.spring.io/pom.xml -d dependencies=web,mysql,mybatis -o pom.xml
+```
+
+若要获取更多命令、参数及示例等信息，发送以下请求：
+
+```bash
+curl https://start.spring.io/
+```
+
+#### 2.4.2. windows 环境
+
+可以使用 postman 工具请求，命令与参数参考 linux 环境
+
+![](images/457801318220651.png)
+
+### 2.5. 添加依赖
 
 > 注：如果使用 Spring Initializr 创建的 SpringBoot 项目，通常都在 pom.xml 文件已经生成好相关依赖
 
@@ -217,7 +239,7 @@ IDEA 可以直接通过 Spring Initializr 创建 Spring boot 项目。（注意�
 </dependencies>
 ```
 
-### 2.5. 启动类
+### 2.6. 启动类
 
 创建 Application 启动类（类名随意命名）：
 
@@ -251,11 +273,11 @@ public class Application {
 
 参考附录二的banner设置，可以通过修改配置文件制定自己的标识。
 
-### 2.6. 编写入门程序
+### 2.7. 编写入门程序
 
 需求：使用 Spring MVC 实现 Hello World 输出
 
-#### 2.6.1. 原来的 Spring MVC 实现
+#### 2.7.1. 原来的 Spring MVC 实现
 
 现在开始使用spring MVC 框架，实现json 数据的输出。如果按照我们原来的做法，需要在web.xml 中添加一个DispatcherServlet 的配置，还需要添加一个spring的配置文件，配置文件如下配置
 
@@ -288,7 +310,7 @@ web.xml加入配置
 
 还要编写Controller。。。
 
-#### 2.6.2. SpringBoot 的实现
+#### 2.7.2. SpringBoot 的实现
 
 不需要配置文件，直接编写Controller类即可
 
@@ -625,9 +647,7 @@ SpringBoot 提供了3款内置的服务器
 
 要了解如何使用 Spring Boot 和 Gradle，请参阅 Spring Boot 的 Gradle 插件文档：
 
-- 参考文档（HTML 与 PDF）
 - [最新API文档](https://docs.spring.io/spring-boot/docs/current/api/)
-
 - 参考文档 ([HTML](https://docs.spring.io/spring-boot/docs/2.5.8/gradle-plugin/reference/htmlsingle/) and [PDF](https://docs.spring.io/spring-boot/docs/2.5.8/gradle-plugin/reference/pdf/spring-boot-gradle-plugin-reference.pdf))
 - [API](https://docs.spring.io/spring-boot/docs/2.5.8/gradle-plugin/api/)
 
@@ -2079,7 +2099,6 @@ public class IpCountAutoConfiguration {
 org.springframework.boot.autoconfigure.EnableAutoConfiguration=com.tool.autoconfigure.IpCountAutoConfiguration
 ```
 
-
 #### 10.3.4. 使用配置属性设置功能参数
 
 为了提高 IP 统计报表信息显示的灵活性，可以让调用者通过 yml 配置文件设置一些参数，用于控制报表的显示格式。
@@ -2589,6 +2608,8 @@ Main-Class: org.springframework.boot.loader.JarLauncher
 
 spring-boot 默认提供内嵌的 tomcat，所以打包直接生成 jar 包，用`java -jar`命令就可以启动。但是可能有时会想让一个 tomcat 来管理多个项目，这种情况下就需要项目是 war 格式的包而不是jar格式的包。
 
+#### 1.4.1. 创建 Spring Boot War 项目
+
 按照以下步骤完成对工程的改造
 
 - 第一步：修改pom.xml
@@ -2617,7 +2638,7 @@ spring-boot 默认提供内嵌的 tomcat，所以打包直接生成 jar 包，�
 > - 说明：spring-boot-starter-tomcat 是原来被传递过来的依赖，默认会打到包里，所以再次引入此依赖，并指定依赖范围为provided，这样tomcat 相关的jar就不会打包到war 里了。
 > - 目的：用自己tomcat，不用它内嵌的tomcat，这样内嵌的tomcat相关jar包就不需要。
 
-- 第二步：添加ServletInitializer
+- 第二步：创建 `ServletInitializer` 类，继承 `org.springframework.boot.web.servlet.support.SpringBootServletInitializer` 抽象类
 
 ```java
 package com.moon.jav;
@@ -2644,9 +2665,67 @@ public class ServletInitializer extends SpringBootServletInitializer {
 
 > 说明：由于我们采用web3.0 规范，是没有web.xml 的，而此类的作用与web.xml相同。*注意：Application.class是本项目Spring Boot的启动类*
 
-- 第三步：运行`mvn clean package`打包命令，在target目录下生成war包。将生成后将war包放入tomcat，启动tomcat，测试完成的功能是否可以使用。
+- 第三步：创建用于测试的 jsp 视图，在 main 目录中新建 webapp 目录和一个 hello.jsp 文件，注意文件名与控制器方法返回的视图逻辑名一致
+
+![](images/169205018239779.png)
+
+- 第四步：创建 Spring Boot 项目配置文件，配置视图前后缀，项目部署后访问时，“prefix + 控制器方法返回值 + suffix” 即为视图完整路径
+
+```yml
+spring:
+  mvc:
+    view: # 配置视图的前后缀，访问时，“prefix + 控制器方法返回值 + suffix” 即为视图完整路径
+      prefix: /
+      suffix: .jsp
+```
+
+测试一个跳转视图的控制器方法
+
+```java
+@Controller
+public class JspDemoController {
+
+    @RequestMapping("/hello")
+    public String hello() {
+        System.out.println("进入了控制器");
+        return "hello"; // 返回 jsp 名称
+    }
+}
+```
+
+- 第五步：运行`mvn clean package`打包命令，在target目录下生成war包。将生成后将war包放入tomcat，启动tomcat，测试完成的功能是否可以使用。
 
 ![生成war包](images/20190829142838873_3136.png)
+
+> 注：以上是打包后放到 tomcat 中运行，一般开发的过程都是直接使用 IDE 运行调试。具体操作详见下面章节
+
+#### 1.4.2. 使用外置 tomcat 启动测试
+
+- 使用 idea 添加 tomcat server
+
+![](images/178424318239077.png)
+
+![](images/233084518226944.png)
+
+访问测试
+
+![](images/236884618247110.png)
+
+> 注：在使用外置 tomcat 运行测试时，骨架生成的代码中，多了一个 `ServletInitializer`（如原工程中没有手动创建），它的作用就是配置外置 Tomcat 使用的，在外置 Tomcat 启动后，去调用它创建和运行 SpringApplication
+
+#### 1.4.3. 运行 main 方法启动测试 (暂有问题，待排查)
+
+如果用 maven 插件 `mvn spring-boot:run` 或 main 方法运行测试，是无法访问相应的 jsp，因为此时用的是内嵌 tomcat，而内嵌 tomcat 默认不带 jasper（用于解析 jsp），必须添加如下依赖
+
+```xml
+<dependency>
+    <groupId>org.apache.tomcat.embed</groupId>
+    <artifactId>tomcat-embed-jasper</artifactId>
+    <scope>provided</scope>
+</dependency>
+```
+
+> <font color=purple>**番外：对于 jar 项目，若要支持 jsp，也可以在加入 jasper 依赖的前提下，把 jsp 文件置入 META-INF/resources 目录中**</font>
 
 ## 2. Spring Boot 打包与部署运行（Linux 篇）
 

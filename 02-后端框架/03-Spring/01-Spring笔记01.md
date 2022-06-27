@@ -1775,9 +1775,172 @@ public class MapperScanPostProcessor implements BeanDefinitionRegistryPostProces
 }
 ```
 
-## 11. BeanFactory 与 ApplicationContext
+### 10.3. FactoryBean 接口
 
-### 11.1. BeanFactory
+#### 10.3.1. 接口概述
+
+`org.springframework.beans.factory.FactoryBean` 接口，是 Spring IoC 容器实例化逻辑的一个可插入点。作用是用于创建相对复杂的 bean，如 `SqlSessionFactory` 等。但使用 `@Bean` 的方式一样可以实现创建
+
+`FactoryBean` 接口调用的时机是在实例化和 IOC/DI 完成后，就会调用此类型接口重写的 `getObject()` 方法，可以返回自定义的 bean 类型，此 bean 实例会被 Spring 容器管理
+
+#### 10.3.2. API 概述
+
+`FactoryBean<T>` 接口提供了以下几个方法
+
+```java
+@Nullable
+T getObject() throws Exception;
+```
+
+- 返回该工厂创建的对象的一个实例。可以是单例也可以是多例对象
+
+```java
+@Nullable
+Class<?> getObjectType();
+```
+
+- 指定 `getObject()` 方法返回对象的类型，如果不确定该返回对象的类型，则返回 null
+
+```java
+default boolean isSingleton() {
+	return true;
+}
+```
+
+- 如果这个 `FactoryBean` 接口中的 `getObject()` 方法返回单例，则返回 true，若返回多例对象，则返回 false。方法的默认实现返回 true
+
+#### 10.3.3. 基础使用示例
+
+示例如下：
+
+- 创建用于测试的 bean 与测试生命周期不同阶段的回调方法
+
+```java
+@Component
+public class Bean2 {
+}
+
+public class Bean1 implements BeanFactoryAware, InitializingBean {
+
+    private Bean2 bean2;
+
+    // 使用 FactoryBean 方式创建实例，不会触发依赖注入
+    @Autowired
+    public void setBean2(Bean2 bean2) {
+        System.out.println("setBean2() 方法注入 bean2: " + bean2);
+        this.bean2 = bean2;
+    }
+
+    public Bean2 getBean2() {
+        return bean2;
+    }
+
+    // 使用 FactoryBean 方式创建实例，不会触发 Aware 系列接口回调
+    @Override
+    public void setBeanFactory(BeanFactory beanFactory) throws BeansException {
+        System.out.println("Bean1 的 setBeanFactory 方法执行了...");
+    }
+
+    // 使用 FactoryBean 方式创建实例，不会触发 InitializingBean 接口的 afterPropertiesSet
+    @Override
+    public void afterPropertiesSet() throws Exception {
+        System.out.println("Bean1 的 afterPropertiesSet 方法执行了...");
+    }
+}
+```
+
+```java
+@Component
+public class MyBeanPostProcessor implements BeanPostProcessor {
+
+    // 使用 FactoryBean 方式创建实例，不会执行 BeanPostProcessor 的实例初始化前回调
+    @Override
+    public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
+        if (beanName.equals("myFactoryBean") && bean instanceof Bean1) {
+            System.out.println(beanName + " postProcessBeforeInitialization");
+        }
+        return bean;
+    }
+
+    // 使用 FactoryBean 方式创建实例，会执行 BeanPostProcessor 的初始化后回调
+    @Override
+    public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
+        if (beanName.equals("myFactoryBean") && bean instanceof Bean1) {
+            System.out.println(beanName + " postProcessAfterInitialization");
+        }
+        return bean;
+    }
+}
+```
+
+- 创建 FactoryBean 接口实现
+
+```java
+/**
+ * Spring 框架 FactoryBean 接口使用示例
+ * FactoryBean 是泛型接口，如果不指定泛型，但 getObject() 方法返回值为 Object 类型
+ */
+@Component("myFactoryBean")
+public class FactoryBeanDemo implements FactoryBean<Bean1> {
+
+    /*
+     * 此方法可以进行一些其他的逻辑处理，然后返回一个新的bean。该 bean 是单例还是多例取决于 isSingleton 方法的返回值
+     *  注：此处返回的新的实例与原来实现了FactoryBean接口当前类的实例互不干扰，都会被spring管理
+     */
+    @Override
+    public Bean1 getObject() throws Exception {
+        Bean1 bean = new Bean1();
+        System.out.println("getObject() create bean: " + bean);
+        return bean;
+    }
+
+    /*
+     * 指定 getObjectType() 方法返回对象的类型，如果不确定该返回对象的类型，则返回 null
+     *  值得注意的是，若返回 null，在使用 getBean 方法根据类型获取此实例时，会报错！
+     */
+    @Override
+    public Class<?> getObjectType() {
+        return Bean1.class;
+    }
+
+    /*
+     * 用于指定 getObject() 方法返回对象是否为单例
+     * 若返回单例，则返回 true，若返回多例，则返回 false。方法的默认实现返回 true
+     */
+    @Override
+    public boolean isSingleton() {
+        return FactoryBean.super.isSingleton();
+    }
+}
+```
+
+- 测试
+
+```java
+@Test
+public void test1() {
+    AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext("com.moon.springsample");
+    // 实现了FactoryBean接口的类，通过bean的id只能获取该类实现了getObject()方法返回的对象实例
+    System.out.println(context.getBean("myFactoryBean"));
+    System.out.println(context.getBean("myFactoryBean")); // 测试多次获取是否为单例
+    System.out.println(context.getBean("myFactoryBean")); // 测试多次获取
+    // 测试若 getObjectType() 方法返回 null，在使用 getBean 方法根据类型获取 getObject 的实例时，会报错！
+    System.out.println(context.getBean(Bean1.class));
+
+    // 如果要获取实现了 FactoryBean 接口的类的实例，只能通过【"&" + beanName】来获取实例
+    FactoryBeanDemo factoryBean = context.getBean("&myFactoryBean", FactoryBeanDemo.class);
+    System.out.println(factoryBean);
+}
+```
+
+#### 10.3.4. 接口使用注意点
+
+- `FactoryBean` 类型的类本身与 `getObject()` 方法返回的实例都会被 Spring 容器管理，可以通过 `BeanFactory` 的 `getBean` 方法来获取相应的实例。因此假设有一个 beanName 为 `myBean` 的 `FactoryBean` 接口实现：
+    - 若获取 `FactoryBean` 接口实现类实例本身，就必须在 beanName 前加上`&`符号，如：`getBean("&myBean")`
+    - 若获取 `getObject()` 方法返回的实例，直接使用 beanName 即可，如：`getBean("myBean")`
+- 使用 `FactoryBean` 接口创建的实例，不会触发 Spring 的依赖注入、Aware 系列接口回调、`InitializingBean` 接口的 `afterPropertiesSet`、`BeanPostProcessor` 接口的 `postProcessBeforeInitialization` 等操作。但会执行 `BeanPostProcessor` 接口的 `postProcessAfterInitialization` 实例初始化后回调，也就是意味着创建的实例可以被代理增强
+
+## 11. BeanFactory
 
 BeanFactory API 为 Spring 的 IoC 功能提供了底层基础。`BeanFactory` 及其相关的接口，例如：`BeanFactoryAware`，`InitializingBean`，`DisposableBean`，仍在 Spring 中保留，目的就是为了让大量的第三方框架和 Spring 集成时保持向后兼容。
 
@@ -1841,11 +2004,11 @@ public void test() {
 - `BeanPostProcessor`：解析 `@Bean`、`@ComponentScan` 等注解
 - `BeanFactoryPostProcessor`：解析 `@Autowired`、`@Resource` 等注解，并其添加到容器的顺序也影响到解析结果
 
-### 11.2. ApplicationContext 的额外功能
+## 12. ApplicationContext
 
 正如前面章节介绍，`ApplicationContext` 接口继承了 `BeanFactory` 接口，它增加了更多特定功能：
 
-#### 11.2.1. MessageSource 国际化
+### 12.1. MessageSource 国际化
 
 `ApplicationContext` 接口继承了一个叫做 `MessageSource` 的接口，它也提供了国际化(i18n)的功能。接口定义3个常用获取国际化信息的方法
 
@@ -1875,13 +2038,13 @@ public interface MessageSource {
 }
 ```
 
-##### 11.2.1.1. MessageSource 常见3个实现类
+#### 12.1.1. MessageSource 常见3个实现类
 
 - `ResourceBundleMessageSource`：这个是基于 Java 的 `ResourceBundle` 基础类实现，允许仅通过资源名加载国际化资源
 - `ReloadableResourceBundleMessageSource`：这个功能和第一个类的功能类似，多了定时刷新功能，允许在不重启系统的情况下，更新资源的信息
 - `StaticMessageSource`：它允许通过编程的方式提供国际化信息
 
-##### 11.2.1.2. 国际化使用步骤
+#### 12.1.2. 国际化使用步骤
 
 - **步骤一：创建国际化文件**。国际化文件命名格式：`名称_语言_地区.properties`
 
@@ -1949,7 +2112,7 @@ public void testMessageSource() {
 }
 ```
 
-#### 11.2.2. 访问资源
+### 12.2. 访问资源
 
 `ApplicationContext` 接口继承了 `ResourceLoader` 接口，提供了用来读取资源的功能。
 
@@ -1969,11 +2132,11 @@ public void testGetResources() throws IOException {
 }
 ```
 
-#### 11.2.3. 标准和自定义事件
+### 12.3. 标准和自定义事件
 
 `ApplicationContext` 继承 `ApplicationEventPublisher` 接口后具有发布事件的功能。而 `ApplicationEvent` 类和 `ApplicationListener` 接口提供了事件处理。如果一个 bean 实现了 `ApplicationListener` 接口并注册到 Spring 容器中，那么每次 `ApplicationEvent` 发布到 `ApplicationContext` 容器中时，bean 都会收到通知。本质上是观察者模型。
 
-##### 11.2.3.1. 内置事件
+#### 12.3.1. 内置事件
 
 Spring 提供了一下的标准内置事件：
 
@@ -1984,7 +2147,7 @@ Spring 提供了一下的标准内置事件：
 - `RequestHandledEvent`：接受一个 HTTP 请求的时候，在请求完成后，会通知所有的 bean
 - `ServletRequestHandledEvent`：`RequestHandledEvent` 的一个子类，增加了 Servlet 特定的上下文信息。
 
-##### 11.2.3.2. 自定义事件
+#### 12.3.2. 自定义事件
 
 - 创建自定义事件类
 
@@ -2008,7 +2171,7 @@ public class MyEvent extends ApplicationEvent {
 }
 ```
 
-##### 11.2.3.3. 发送事件
+#### 12.3.3. 发送事件
 
 要发送事件，主要是要获取 `ApplicationEventPublisher` 对象。创建类实现 `ApplicationEventPublisherAware` 接口，在接口的 `setApplicationEventPublisher` 方法中获取 `ApplicationEventPublisher` 实例。然后在类中的其他方法中使用该实例发送事件即可
 
@@ -2035,7 +2198,11 @@ public class MyEventPublisher implements ApplicationEventPublisherAware {
 }
 ```
 
-##### 11.2.3.4. 事件监听
+也可以直接使用 `@Autowired` 自动注入事件发布器对象。
+
+<font color=red>**注意：在默认情况下，事件监听器是同步接收事件的。`ApplicationEventPublisher.publishEvent()` 方法会阻塞，直到所有的监听器都完成对事件的处理**</font>。若修改为异步监听事件，详见下面的章节内容
+
+#### 12.3.4. 事件监听
 
 创建事件监听器，有如下两种方式：
 
@@ -2045,6 +2212,8 @@ public class MyEventPublisher implements ApplicationEventPublisherAware {
 @Component
 public class MyApplicationListener implements ApplicationListener<MyEvent> {
 
+    private static final Logger log = LoggerFactory.getLogger(MyApplicationListener.class);
+
     /**
      * 监听事件，当前有事件发布时，执行此方法
      *
@@ -2052,7 +2221,7 @@ public class MyApplicationListener implements ApplicationListener<MyEvent> {
      */
     @Override
     public void onApplicationEvent(MyEvent event) {
-        System.out.println("基于 ApplicationListener 接口实现的事件监听器。获取事件数据：" + event);
+        log.debug("基于 ApplicationListener 接口实现的事件监听器。获取事件数据：{}", event);
     }
 }
 ```
@@ -2063,6 +2232,8 @@ public class MyApplicationListener implements ApplicationListener<MyEvent> {
 @Component
 public class MyEventListener {
 
+    private static final Logger log = LoggerFactory.getLogger(MyEventListener.class);
+
     /*
      * 使用 @EventListener 标识的方法，并指定监听的事件类型，可以指定监听多个事件
      * 当有该类型的事件发布，此方法会被执行。（方法的名称随意即可）
@@ -2071,49 +2242,317 @@ public class MyEventListener {
     public void listenEvent(Object event) {
         if (event instanceof MyEvent) {
             MyEvent myEvent = (MyEvent) event;
-            System.out.println("基于 @EventListener 注解实现的事件监听器。获取事件数据：" + myEvent);
+            log.debug("基于 @EventListener 注解实现的事件监听器。获取事件数据：{}", myEvent);
         }
     }
 }
 ```
 
-##### 11.2.3.5. 测试
+#### 12.3.5. 测试
 
 测试代码：
 
 ```java
-@Test
-public void testEvent() {
-    ApplicationContext context = new AnnotationConfigApplicationContext(SpringConfiguration.class);
-    // 调用自定义的事件发布业务类，发送
-    MyEventPublisher myEventPublisher = context.getBean(MyEventPublisher.class);
-    myEventPublisher.doEventPublish("1", "这是一个事件消息");
+@RunWith(SpringJUnit4ClassRunner.class)
+@ContextConfiguration(classes = SpringConfiguration.class)
+public class SpringEventTest {
+
+    private static final Logger log = LoggerFactory.getLogger(SpringEventTest.class);
+
+    // 注入 Spring 事件发布器
+    @Autowired
+    private ApplicationEventPublisher publisher;
+
+    @Test
+    public void test1() {
+        log.debug("主线业务执行开始...");
+        // 发送事件
+        publisher.publishEvent(new MyEvent("{事件的数据}"));
+        log.debug("主线业务执行结束...");
+    }
 }
 ```
 
-输出结果：
+> *注：为了测试方法，自定义事件类将属性都去掉*
+
+测试结果：
 
 ```
-基于 @EventListener 注解实现的事件监听器。获取事件数据：MyEvent(code=1, message=这是一个事件消息)
-基于 ApplicationListener 接口实现的事件监听器。获取事件数据：MyEvent(code=1, message=这是一个事件消息)
+[DEBUG] 16:03:36.957 [main] c.m.s.test.SpringEventTest - 主线业务执行开始... 
+[DEBUG] 16:03:36.957 [main] c.m.s.l.MyApplicationListener - 基于 ApplicationListener 接口实现的事件监听器。获取事件数据：com.moon.springsample.event.MyEvent[source={事件的数据}] 
+[DEBUG] 16:03:36.957 [main] c.m.s.listener.MyEventListener - 基于 @EventListener 注解实现的事件监听器。获取事件数据：com.moon.springsample.event.MyEvent[source={事件的数据}] 
+[DEBUG] 16:03:36.957 [main] c.m.s.test.SpringEventTest - 主线业务执行结束... 
 ```
 
-#### 11.2.4. 异步事件（待整理）
+### 12.4. 异步事件监听
+
+<font color=red>**值得注意，在默认情况下，事件监听器是同步接收事件的。这意味着上面的 `ApplicationEventPublisher` 事件发布器的 `publishEvent()` 方法会阻塞，直到所有的监听器都完成对事件的处理。**</font>
+
+如果需要将事件监听器改成异步接收事件，只需要在容器中增加 `ApplicationEventMulticaster` 接口的实例即可（默认实现类 `SimpleApplicationEventMulticaster`），在配置类添加如下代码：
+
+```java
+@Configuration
+@ComponentScan("com.moon.springsample")
+public class SpringConfiguration {
+
+    @Bean
+    public ThreadPoolTaskExecutor executor() {
+        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+        executor.setCorePoolSize(3);
+        executor.setMaxPoolSize(10);
+        executor.setQueueCapacity(100);
+        return executor;
+    }
+
+    // 创建 ApplicationEventMulticaster 实现，如果 Spring 容器存在此接口实现，则会自动实现异步的事件监听
+    @Bean
+    public SimpleApplicationEventMulticaster applicationEventMulticaster(ThreadPoolTaskExecutor executor) {
+        SimpleApplicationEventMulticaster multicaster = new SimpleApplicationEventMulticaster();
+        multicaster.setTaskExecutor(executor);
+        return multicaster;
+    }
+}
+```
+
+再测试上个章节的示例，结果如下：
+
+```
+[DEBUG] 15:50:39.239 [main] c.m.s.test.SpringEventTest - 主线业务执行开始... 
+[DEBUG] 15:50:39.239 [main] c.m.s.test.SpringEventTest - 主线业务执行结束... 
+[DEBUG] 15:50:39.239 [executor-2] c.m.s.l.MyApplicationListener - 基于 ApplicationListener 接口实现的事件监听器。获取事件数据：com.moon.springsample.event.MyEvent[source={事件的数据}] 
+[DEBUG] 15:50:39.239 [executor-3] c.m.s.listener.MyEventListener - 基于 @EventListener 注解实现的事件监听器。获取事件数据：com.moon.springsample.event.MyEvent[source={事件的数据}] 
+```
+
+### 12.5. 异步事件（待整理）
 
 暂未整理，整合 `@EnableAsync`，`@Async` 的用法
 
-### 11.3. BeanFactory 和 ApplicationContext 的区别
+### 12.6. 番外：模拟实现事件监听器和事件发布器
+
+#### 12.6.1. 模拟事件监听器
+
+此示例简单模拟 Spring 的 `@EventListener` 注解实现事件监听器
+
+- 创建自定义注解
+
+```java
+@Target({ElementType.METHOD, ElementType.ANNOTATION_TYPE})
+@Retention(RetentionPolicy.RUNTIME)
+@Documented
+public @interface CustomListener {
+}
+```
+
+- 在方法标识该自定义注解，用于后面模拟以该方法生成事件监听器
+
+```java
+@Component
+public class MyCustomEventListener {
+
+    private static final Logger log = LoggerFactory.getLogger(MyCustomEventListener.class);
+
+    /* 模拟使用自定义注解 @CustomListener 标识文件，模拟实现事件监听 */
+    @CustomListener
+    public void listenEvent(Object event) {
+        if (event instanceof MyEvent) {
+            MyEvent myEvent = (MyEvent) event;
+            log.debug("基于自定义注解模拟实现的事件监听器。获取事件数据：{}", myEvent);
+        }
+    }
+}
+```
+
+- 在项目的配置类中，创建 `SmartInitializingSingleton` 实例，该接口的 `afterSingletonsInstantiated` 方法是在容器的所有 bean 都实例化完成后执行的回调。因此在此回调方法中，循环所有容器中的实例并找出标识了自定义注解的方法，然后创建 `ApplicationListener` 监听器，在实现方法中反射调用注解标识的监听方法即可
+
+```java
+@Configuration
+@ComponentScan("com.moon.springsample")
+public class SpringConfiguration {
+
+    @Bean
+    public SmartInitializingSingleton smartInitializingSingleton(ConfigurableApplicationContext context) {
+        return () -> {
+            // 循环所有 bean 的名称
+            for (String name : context.getBeanDefinitionNames()) {
+                Object bean = context.getBean(name);
+                for (Method method : bean.getClass().getMethods()) {
+                    // 判断方法上是否标识了自定义的注解
+                    if (method.isAnnotationPresent(CustomListener.class)) {
+                        // 创建 ApplicationListener 实现，在接口的方法中反射调用注解标识的方法即可
+                        context.addApplicationListener((event) -> {
+                            Class<?> eventType = method.getParameterTypes()[0];// 监听器方法需要的事件类型，此示例为了简单，直接取第一个参数
+                            if (eventType.isAssignableFrom(event.getClass())) {
+                                try {
+                                    method.invoke(bean, event);
+                                } catch (Exception e) {
+                                    e.printStackTrace();
+                                }
+                            }
+                        });
+                    }
+                }
+            }
+        };
+    }
+}
+```
+
+- 运行上面测试示例，结果如下：
+
+```
+[DEBUG] 16:25:41.204 [main] c.m.s.test.SpringEventTest - 主线业务执行开始... 
+[DEBUG] 16:25:41.204 [main] c.m.s.test.SpringEventTest - 主线业务执行结束... 
+[DEBUG] 16:25:41.204 [executor-1] c.m.s.l.MyCustomEventListener - 基于自定义注解模拟实现的事件监听器。获取事件数据：com.moon.springsample.event.MyEvent[source={事件的数据}] 
+```
+
+#### 12.6.2. 模拟事件发布器
+
+此示例简单模拟 Spring 的实现事件发布器，需要实现 `org.springframework.context.event.ApplicationEventMulticaster` 接口
+
+##### 12.6.2.1. 基础实现
+
+- 创建 `ApplicationEventMulticaster` 接口实现，此示例只实现其中两个方法
+    - `addApplicationListenerBean` 负责收集容器中的监听器。方法中监听器会统一转换为 `GenericApplicationListener` 对象，以支持判断事件类型。*注意：此方法传入的都是通过实现 `ApplicationListener` 接口方式的监听器实例（待分析源码时再确认）*
+    - `multicastEvent` 用于遍历监听器集合，发布事件，发布前先通过 `GenericApplicationListener.supportsEventType` 判断支持该事件类型才发事件
+
+```java
+public class MyApplicationEventMulticaster implements ApplicationEventMulticaster {
+
+    // 定义属性，存放收集到的监听器
+    private List<GenericApplicationListener> listeners = new ArrayList<>();
+    // Spring 容器
+    private ConfigurableApplicationContext context;
+
+    public MyApplicationEventMulticaster() {
+    }
+
+    public MyApplicationEventMulticaster(ConfigurableApplicationContext context) {
+        this.context = context;
+    }
+
+    /**
+     * 收集监听器，
+     * 注意：此方法传入的都是通过实现 ApplicationListener 接口方式的监听器实例
+     *
+     * @param listenerBeanName 实例 bean 的名称
+     */
+    @Override
+    public void addApplicationListenerBean(String listenerBeanName) {
+        // 获取监听器实例
+        ApplicationListener listener = context.getBean(listenerBeanName, ApplicationListener.class);
+        // 获取该监听器支持的事件类型，即 ApplicationListener 接口的泛型。示例为了方便，直接取第一个元素
+        ResolvableType type = ResolvableType.forClass(listener.getClass()).getInterfaces()[0].getGeneric();
+        // 将原始的 ApplicationListener 封装为支持事件类型检查的 GenericApplicationListener
+        GenericApplicationListener genericApplicationListener = new GenericApplicationListener(){
+            // 是否支持某事件类型，方法参数的 ResolvableType 是真实的事件类型
+            @Override
+            public boolean supportsEventType(ResolvableType eventType) {
+                // 判断真实的事件类型是否
+                return  type.isAssignableFrom(eventType);
+            }
+
+            // 事件的调用
+            @Override
+            public void onApplicationEvent(ApplicationEvent event) {
+                listener.onApplicationEvent(event);
+            }
+        };
+        // 加入集合
+        listeners.add(genericApplicationListener);
+    }
+
+    /**
+     * 发布事件
+     *
+     * @param event
+     * @param eventType
+     */
+    @Override
+    public void multicastEvent(ApplicationEvent event, ResolvableType eventType) {
+        // 循环所有监听器，调用 onApplicationEvent 方法
+        for (GenericApplicationListener listener : listeners) {
+            // 判断是否支持的事件类型
+            if (listener.supportsEventType(ResolvableType.forClass(event.getClass()))) {
+                listener.onApplicationEvent(event);
+            }
+        }
+    }
+    // ...省略接口的其他方法，均为空实现
+}
+```
+
+> **注意：如果发送的事件对象不是 `ApplicationEvent` 类型，Spring 会把它包装为 `PayloadApplicationEvent` 并用泛型技术解析事件对象的原始类型。**
+
+- 在项目的配置中，将自定义的事件发布器加入容器中。加入自定义事件发布器后，会覆盖 Spring 默认的事件发布器。
+
+```java
+@Bean
+public ApplicationEventMulticaster applicationEventMulticaster(ConfigurableApplicationContext context) {
+    return new MyApplicationEventMulticaster(context);
+}
+```
+
+- 运行上面的测试程序，会使用自定义的事件发布器来发布事件。
+
+##### 12.6.2.2. 利用线程池进行异步事件处理优化
+
+- 修改自定义事件的实现，增加线程池属性，在收集创建监听器的 `onApplicationEvent` 方法，从线程池中获取线程，处理事件
+
+```java
+// 线程池
+private ThreadPoolTaskExecutor executor;
+
+public MyApplicationEventMulticaster(ConfigurableApplicationContext context, ThreadPoolTaskExecutor executor) {
+    this.context = context;
+    this.executor = executor;
+}
+
+// 收集监听器
+@Override
+public void addApplicationListenerBean(String listenerBeanName) {
+    // ...
+    GenericApplicationListener genericApplicationListener = new GenericApplicationListener(){
+        // ...
+        // 事件的调用
+        @Override
+        public void onApplicationEvent(ApplicationEvent event) {
+            executor.submit(() -> listener.onApplicationEvent(event));
+        }
+    };
+    // ...
+}
+```
+
+- 修改配置类，传入线程池对象
+
+```java
+@Bean
+public ThreadPoolTaskExecutor executor() {
+    ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+    executor.setCorePoolSize(3);
+    executor.setMaxPoolSize(10);
+    executor.setQueueCapacity(100);
+    return executor;
+}
+
+@Bean
+public ApplicationEventMulticaster applicationEventMulticaster(ConfigurableApplicationContext context, ThreadPoolTaskExecutor executor) {
+    return new MyApplicationEventMulticaster(context, executor);
+}
+```
+
+### 12.7. BeanFactory 和 ApplicationContext 的区别
   
 两者创建对象的时间点不一样
 
 - `ApplicationContext`：只要读取到配置文件，默认情况下就会创建对象
 - `BeanFactory`：不会主动创建对象，当使用的时候才创建
 
-## 12. Spring 的类型转换
+## 13. Spring 的类型转换
 
 Spring 3.0 后引入了 core.convert 包，提供了一个通用的类型转换模块。该模块定义了一个用于实现类型转换逻辑的 SPI 和一个用于在运行时执行类型转换的 API。在 Spring 容器中，可以使用这套实现作为JDK 原生的 `PropertyEditor` 类型转换器的替换品，将一些配置中字符串类型的属性值转换为 Bean 对象所需的属性类型。
 
-### 12.1. Converter SPI 接口
+### 13.1. Converter SPI 接口
 
 Spring 提供了 `org.springframework.core.convert.converter.Converter` 接口用于实现强数据类型转换，只需要重写 `convert` 方法，在方法中做数据转换的逻辑处理
 
@@ -2143,9 +2582,68 @@ public interface Converter<S, T> {
 
 ![](images/547264222220643.png)
 
-### 12.2. ConverterFactory 实现类型转换
+### 13.2. ConverterFactory 实现类型转换
+
+Spring 的 `org.springframework.core.convert.converter.ConverterFactory` 接口
+
+```java
+public interface ConverterFactory<S, R> {
+
+	/**
+	 * Get the converter to convert from S to target type T, where T is also an instance of R.
+	 * @param <T> the target type
+	 * @param targetType the target type to convert to
+	 * @return a converter from S to T
+	 */
+	<T extends R> Converter<S, T> getConverter(Class<T> targetType);
+}
+```
+
+- 泛型 S：是要转换的类型
+- 泛型 R：定义可以转换类范围的基本类型
+- 实现 `getConverter(Class<T>)` 方法，返回值为 `Converter` 接口的实现类，其中 T 是 R 的子类
+
+例如 Spring 的提供的实现类 `StringToEnumConverterFactory`
+
+```java
+final class StringToEnumConverterFactory implements ConverterFactory<String, Enum> {
+
+	@Override
+	public <T extends Enum> Converter<String, T> getConverter(Class<T> targetType) {
+		return new StringToEnum(ConversionUtils.getEnumType(targetType));
+	}
 
 
+	private static class StringToEnum<T extends Enum> implements Converter<String, T> {
 
+		private final Class<T> enumType;
 
+		StringToEnum(Class<T> enumType) {
+			this.enumType = enumType;
+		}
 
+		@Override
+		@Nullable
+		public T convert(String source) {
+			if (source.isEmpty()) {
+				// It's an empty enum identifier: reset the enum value to null.
+				return null;
+			}
+			return (T) Enum.valueOf(this.enumType, source.trim());
+		}
+	}
+}
+```
+
+### 13.3. GenericConverter 实现类型转换
+
+当需要一个复杂的转换器时，可以使用 Spring 的 `org.springframework.core.convert.converter.GenericConverter` 接口，该接口支持在多个源类型和目标类型之间进行转换，此外还提供了可用的源字段和目标字段上下文，在实现转换逻辑时，可以使用。`GenericConverter` 的接口定义如下：
+
+```java
+public interface GenericConverter {
+
+    public Set<ConvertiblePair> getConvertibleTypes();
+
+    Object convert(Object source, TypeDescriptor sourceType, TypeDescriptor targetType);
+}
+```

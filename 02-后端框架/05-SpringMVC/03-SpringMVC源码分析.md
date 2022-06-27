@@ -68,25 +68,13 @@ public @interface HandlesTypes {
 
 用户请求到达前端控制器，它就相当于 MVC 模式中的 C，`DispatcherServlet` 是整个流程控制的中心，由它调用其它组件处理用户的请求，<font color=red>**`DispatcherServlet`的存在降低了组件之间的耦合性**</font>
 
-### 1.2. 初始化流程
+### 1.2. 执行过程分析
 
-1. `DispatcherServlet` 是在第一次被访问时执行初始化，也可以通过配置修改为 Tomcat 启动后就初始化
-2. 在初始化时会从 Spring 容器中找一些 Web 需要的组件，如` HandlerMapping`、`HandlerAdapter` 等，并逐一调用它们的初始化
-3. `RequestMappingHandlerMapping` 初始化时，会收集所有 `@RequestMapping` 映射信息，封装为 Map，其中
-   - key 是 `RequestMappingInfo` 类型，包括请求路径、请求方法等信息
-   - value 是 `HandlerMethod` 类型，包括控制器方法对象、控制器对象
-4. 当前端有请求到达时，快速从映射中找到 `HandlerMethod` 并与匹配的拦截器一起返回给 `DispatcherServlet`
-5. `RequestMappingHandlerAdapter` 初始化时，会准备 `HandlerMethod` 调用时需要的各个组件，如：
-   - `HandlerMethodArgumentResolver` 解析控制器方法参数
-   - `HandlerMethodReturnValueHandler` 处理控制器方法返回值
-
-### 1.3. 执行过程分析
-
-#### 1.3.1. doService方法
+#### 1.2.1. doService方法
 
 此方法在接收到请求首先执行的方法，通过跟踪源码得知，它重写父类`FrameworkServlet`的，`FrameworkServlet`是继承了`HttpServlet`，所以它就相当于执行了Servlet中的service方法
 
-#### 1.3.2. doDispatche方法
+#### 1.2.2. doDispatche方法
 
 在doService方法执行的逻辑中，会调用doDispatche方法，此方法是处理请求分发的核心方法。它负责通过反射调用控制器方法、执行拦截器和处理结果视图
 
@@ -94,13 +82,13 @@ public @interface HandlesTypes {
 
 ### 2.1. 作用
 
-`HandlerMapping`负责根据用户请求找到相应的Handler（即处理器），SpringMVC提供了不同的映射器实现不同的映射方式，例如：配置文件方式，实现接口方式，注解方式等。
+`HandlerMapping` 负责根据用户请求找到相应的 Handler（即处理器），Spring MVC 提供了不同的映射器实现不同的映射方式，例如：配置文件方式，实现接口方式，注解方式等。
 
 ### 2.2. RequestMappingHandlerMapping 的执行时机
 
-`RequestMappingHandlerMapping`是`HandlerMapping`接口的实现，是在项目启动的时候就进行
+`RequestMappingHandlerMapping` 是 `HandlerMapping` 接口的实现，是在项目启动的时候就进行
 
-因为`DispatcherServlet`本质是一个Servlet，所以在项目启动时必定会触发init方法。通过源码可以看到，`init()`方法的具体实现在定义在`HttpServlet`抽象类中，该方法又调用子类`FrameworkServlet`的`initServletBean()`方法，该中有一个无实现的`onRefresh()`，这个是方法由子类`DispatcherServlet`来实现，方法实现如下：
+因为 `DispatcherServlet` 本质是一个 Servlet，所以在项目启动时必定会触发 `init` 方法。通过源码可以看到，`init()`方法的具体实现在定义在`HttpServlet`抽象类中，该方法又调用子类`FrameworkServlet`的`initServletBean()`方法，该中有一个无实现的`onRefresh()`，这个是方法由子类`DispatcherServlet`来实现，方法实现如下：
 
 ```java
 @Override
@@ -280,7 +268,7 @@ SpringMVC为逻辑视图名的解析提供了不同的策略，可以在Spring W
 
 ![](images/20200922082144603_21222.png)
 
-### 5.4. 对象绑定与类型转换（待理解分析）
+### 5.4. 对象绑定与类型转换
 
 #### 5.4.1. 底层第一套转换接口与实现
 
@@ -489,3 +477,542 @@ public class CommonsMultipartResolver extends CommonsFileUploadSupport
 
 从导包能得知，也是借助apache的commons-fileupload实现的文件上传。具体方法作用，查看源码工程注释
 
+## 8. @ControllerAdvice 注解调用流程
+
+### 8.1. @ControllerAdvice 与 @InitBinder 配合实现流程
+
+#### 8.1.1. 流程图
+
+`@InitBinder` 在整个 `HandlerAdapter` 调用过程中所处的位置
+
+```mermaid
+sequenceDiagram
+participant adapter as HandlerAdapter
+participant bf as WebDataBinderFactory
+participant mf as ModelFactory
+participant ihm as ServletInvocableHandlerMethod
+participant ar as ArgumentResolvers 
+participant rh as ReturnValueHandlers
+participant container as ModelAndViewContainer
+rect rgb(200, 150, 255)
+adapter ->> +bf: 准备 @InitBinder
+bf -->> -adapter: 
+end
+adapter ->> +mf: 准备 @ModelAttribute
+mf ->> +container: 添加Model数据
+container -->> -mf: 
+mf -->> -adapter: 
+
+adapter ->> +ihm: invokeAndHandle
+ihm ->> +ar: 获取 args
+ar ->> ar: 有的解析器涉及 RequestBodyAdvice
+ar ->> container: 有的解析器涉及数据绑定生成Model数据
+ar -->> -ihm: args
+ihm ->> ihm: method.invoke(bean,args) 得到 returnValue
+ihm ->> +rh: 处理 returnValue
+rh ->> rh: 有的处理器涉及 ResponseBodyAdvice
+rh ->> +container: 添加Model数据,处理视图名,是否渲染等
+container -->> -rh: 
+rh -->> -ihm: 
+ihm -->> -adapter: 
+adapter ->> +container: 获取 ModelAndView
+container -->> -adapter: 
+```
+
+> 上图图示解释：
+>
+> - `RequestMappingHandlerAdapter` 在图中缩写为 `HandlerAdapter`
+> - `HandlerMethodArgumentResolverComposite` 在图中缩写为 `ArgumentResolvers`
+> - `HandlerMethodReturnValueHandlerComposite` 在图中缩写为 `ReturnValueHandlers`
+
+调用流程大致如下：
+
+1. `RequestMappingHandlerAdapter` 初始化时会解析 `@ControllerAdvice` 中的 `@InitBinder` 方法
+2. `RequestMappingHandlerAdapter` 会以类为单位，在该类首次使用时，解析此类的 `@InitBinder` 方法
+3. 以上两种情况 `@InitBinder` 的解析结果都会缓存来避免重复解析
+4. 控制器方法调用时，会综合利用本类的 `@InitBinder` 方法和 `@ControllerAdvice` 中的 `@InitBinder` 方法创建绑定工厂
+
+#### 8.1.2. 模拟 @InitBinder 在控制器方法调用示例
+
+源码详见 springmvc-sample 项目中的 10-handleradapter 模块中 `ControllerAdviceInitBinderTest` 测试类
+
+- 准备测试的带 `@InitBinder` 注解的 controller
+
+```java
+// 带 @InitBinder 注解的增强控制器
+@ControllerAdvice
+public class InitBinderControllerAdvice {
+    @InitBinder
+    public void binder(WebDataBinder webDataBinder) {
+        System.out.println("InitBinderControllerAdvice.binder 转换器方法执行了...");
+    }
+}
+
+// 带 @InitBinder 注解的控制器1
+@Controller
+public class InitBinderController1 {
+    @InitBinder
+    public void binder1(WebDataBinder webDataBinder) {
+        System.out.println("InitBinderController1.binder1 转换器方法执行了...");
+    }
+
+    public void foo() {
+    }
+}
+
+// 带 @InitBinder 注解的控制器2
+@Controller
+public class InitBinderController2 {
+    @InitBinder
+    public void binder1(WebDataBinder webDataBinder) {
+        System.out.println("InitBinderController2.binder1 转换器方法执行了...");
+    }
+
+    @InitBinder
+    public void binder2(WebDataBinder webDataBinder) {
+        System.out.println("InitBinderController2.binder2 转换器方法执行了...");
+    }
+
+    public void bar() {
+    }
+}
+```
+
+- 测试代码，观察 `@InitBinder` 标识的方法解析与缓存的时机
+
+```java
+public class ControllerAdviceInitBinderTest {
+
+    private static final Logger log = LoggerFactory.getLogger(ControllerAdviceInitBinderTest.class);
+
+    @Test
+    public void test() throws Exception {
+        /*
+            @InitBinder 的来源有两个
+            1. @ControllerAdvice 中 @InitBinder 标注的方法，由 RequestMappingHandlerAdapter 在初始化时解析并记录
+            2. @Controller 中 @InitBinder 标注的方法，由 RequestMappingHandlerAdapter 会在控制器方法首次执行时解析并记录
+         */
+        AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(SpringConfiguration.class);
+        // 手动创建 RequestMappingHandlerAdapter
+        RequestMappingHandlerAdapter handlerAdapter = new RequestMappingHandlerAdapter();
+        handlerAdapter.setApplicationContext(context);
+        handlerAdapter.afterPropertiesSet();
+
+        log.debug("1. 初始化...");
+        showBindMethods(handlerAdapter); // 打印目前已经绑定的 @InitBinder 标注的方法
+
+        Method getDataBinderFactory = RequestMappingHandlerAdapter.class.getDeclaredMethod("getDataBinderFactory", HandlerMethod.class);
+        getDataBinderFactory.setAccessible(true);
+
+        log.debug("2. 模拟调用 InitBinderController1 的 foo 方法时 ...");
+        getDataBinderFactory.invoke(handlerAdapter, new HandlerMethod(new InitBinderController1(), InitBinderController1.class.getMethod("foo")));
+        showBindMethods(handlerAdapter); // 打印目前已经绑定的 @InitBinder 标注的方法
+
+        log.debug("3. 模拟调用 InitBinderController2 的 bar 方法时 ...");
+        getDataBinderFactory.invoke(handlerAdapter, new HandlerMethod(new InitBinderController2(), InitBinderController2.class.getMethod("bar")));
+        showBindMethods(handlerAdapter); // 打印目前已经绑定的 @InitBinder 标注的方法
+
+        context.close();
+    }
+
+    private void showBindMethods(RequestMappingHandlerAdapter handlerAdapter) throws NoSuchFieldException, IllegalAccessException {
+        // 通过反射查看 RequestMappingHandlerAdapter 对象中的 initBinderAdviceCache 属性，该属性是用于缓存 @ControllerAdvice + @InitBinder 注解的解析结果，避免重复解析
+        Field initBinderAdviceCache = RequestMappingHandlerAdapter.class.getDeclaredField("initBinderAdviceCache");
+        initBinderAdviceCache.setAccessible(true);
+        Map<ControllerAdviceBean, Set<Method>> globalMap = (Map<ControllerAdviceBean, Set<Method>>) initBinderAdviceCache.get(handlerAdapter);
+        log.debug("全局的 @InitBinder 方法 {}",
+                globalMap.values().stream()
+                        .flatMap(ms -> ms.stream().map(Method::getName))
+                        .collect(Collectors.toList())
+        );
+        // 通过反射查看 RequestMappingHandlerAdapter 对象中的 initBinderCache 属性，该属性是用于缓存 @InitBinder 注解的解析结果，避免重复解
+        Field initBinderCache = RequestMappingHandlerAdapter.class.getDeclaredField("initBinderCache");
+        initBinderCache.setAccessible(true);
+        Map<Class<?>, Set<Method>> controllerMap = (Map<Class<?>, Set<Method>>) initBinderCache.get(handlerAdapter);
+        log.debug("控制器的 @InitBinder 方法 {}",
+                controllerMap.entrySet().stream()
+                        .flatMap(e -> e.getValue().stream().map(v -> e.getKey().getSimpleName() + "." + v.getName()))
+                        .collect(Collectors.toList())
+        );
+    }
+}
+```
+
+运行结果
+
+```
+16:24:20.355 [main] DEBUG com.moon.springmvc.test.ControllerAdviceInitBinderTest - 1. 初始化...
+16:24:20.358 [main] DEBUG com.moon.springmvc.test.ControllerAdviceInitBinderTest - 全局的 @InitBinder 方法 [binder]
+16:24:20.359 [main] DEBUG com.moon.springmvc.test.ControllerAdviceInitBinderTest - 控制器的 @InitBinder 方法 []
+16:24:20.361 [main] DEBUG com.moon.springmvc.test.ControllerAdviceInitBinderTest - 2. 模拟调用 InitBinderController1 的 foo 方法时 ...
+16:24:20.367 [main] DEBUG com.moon.springmvc.test.ControllerAdviceInitBinderTest - 全局的 @InitBinder 方法 [binder]
+16:24:20.368 [main] DEBUG com.moon.springmvc.test.ControllerAdviceInitBinderTest - 控制器的 @InitBinder 方法 [InitBinderController1.binder1]
+16:24:20.368 [main] DEBUG com.moon.springmvc.test.ControllerAdviceInitBinderTest - 3. 模拟调用 InitBinderController2 的 bar 方法时 ...
+16:24:20.368 [main] DEBUG com.moon.springmvc.test.ControllerAdviceInitBinderTest - 全局的 @InitBinder 方法 [binder]
+16:24:20.368 [main] DEBUG com.moon.springmvc.test.ControllerAdviceInitBinderTest - 控制器的 @InitBinder 方法 [InitBinderController2.binder1, InitBinderController2.binder2, InitBinderController1.binder1]
+```
+
+### 8.2. @ControllerAdvice 与 @ModelAttribute 配合实现流程
+
+#### 8.2.1. 流程图
+
+`@ModelAttribute` 在整个 `HandlerAdapter` 调用过程中所处的位置
+
+```mermaid
+sequenceDiagram
+participant adapter as HandlerAdapter
+participant bf as WebDataBinderFactory
+participant mf as ModelFactory
+participant ihm as ServletInvocableHandlerMethod
+participant ar as ArgumentResolvers 
+participant rh as ReturnValueHandlers
+participant container as ModelAndViewContainer
+
+adapter ->> +bf: 准备 @InitBinder
+bf -->> -adapter: 
+rect rgb(200, 150, 255)
+adapter ->> +mf: 准备 @ModelAttribute
+mf ->> +container: 添加Model数据
+container -->> -mf: 
+mf -->> -adapter: 
+end
+adapter ->> +ihm: invokeAndHandle
+ihm ->> +ar: 获取 args
+ar ->> ar: 有的解析器涉及 RequestBodyAdvice
+ar ->> container: 有的解析器涉及数据绑定生成Model数据
+ar -->> -ihm: args
+ihm ->> ihm: method.invoke(bean,args) 得到 returnValue
+ihm ->> +rh: 处理 returnValue
+rh ->> rh: 有的处理器涉及 ResponseBodyAdvice
+rh ->> +container: 添加Model数据,处理视图名,是否渲染等
+container -->> -rh: 
+rh -->> -ihm: 
+ihm -->> -adapter: 
+adapter ->> +container: 获取 ModelAndView
+container -->> -adapter: 
+```
+
+调用流程大致如下：
+
+1. `RequestMappingHandlerAdapter` 初始化时会解析 `@ControllerAdvice` 中的 `@ModelAttribute` 方法
+2. `RequestMappingHandlerAdapter` 会以类为单位，在该类首次使用时，解析此类的 `@ModelAttribute` 方法
+3. 以上两种 `@ModelAttribute` 的解析结果都会缓存来避免重复解析
+4. 控制器方法调用时，会综合利用本类的 `@ModelAttribute` 方法和 `@ControllerAdvice` 中的 `@ModelAttribute` 方法创建模型工厂
+
+#### 8.2.2. 模拟 @ModelAttribute 在控制器方法调用示例
+
+源码详见 springmvc-sample 项目中的 10-handleradapter 模块中 `ControllerAdviceModelAttributeTest` 测试类
+
+- 准备测试的带 `@ModelAttribute` 注解的 controller
+
+```java
+// 带 @ModelAttribute 注解的增强控制器
+@ControllerAdvice
+public class ModelAttributeControllerAdvice {
+    @ModelAttribute("AA")
+    public String foo() {
+        return "ModelAttributeControllerAdvice.foo()方法返回值";
+    }
+}
+
+// 带 @ModelAttribute 注解的控制器
+public class ModelAttributeController {
+    @ModelAttribute("BB")
+    public String foo() {
+        return "ModelAttributeController.foo()方法返回值";
+    }
+
+    @ResponseStatus(HttpStatus.OK)
+    public ModelAndView bar(@ModelAttribute("u") User user) {
+        System.out.println("ModelAttributeController.bar 方法执行了...");
+        return null;
+    }
+}
+```
+
+- 测试代码，观察 `@ModelAttribute` 标识的方法与参数相应的值是否加入到 `ModelAndViewContainer` 中
+
+```java
+public class ControllerAdviceModelAttributeTest {
+
+    @Test
+    public void test() throws Exception {
+        // 创建基于注解的容器
+        AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(SpringConfiguration.class);
+        // 手动创建 RequestMappingHandlerAdapter
+        RequestMappingHandlerAdapter adapter = new RequestMappingHandlerAdapter();
+        adapter.setApplicationContext(context);
+        // 初始化参数处理器(HandlerMethodArgumentResolverComposite)与返回值处理器(HandlerMethodReturnValueHandlerComposite)
+        // 这里会解析标识 @ControllerAdvice 的类中的 @ModelAttribute
+        adapter.afterPropertiesSet();
+
+        MockHttpServletRequest request = new MockHttpServletRequest();
+        request.setParameter("name", "张三");
+        /* 现在可以通过 ServletInvocableHandlerMethod 把这些整合在一起, 并完成控制器方法的调用, 如下 */
+        ServletInvocableHandlerMethod handlerMethod =
+                new ServletInvocableHandlerMethod(new ModelAttributeController(), ModelAttributeController.class.getMethod("bar", User.class));
+
+        ServletRequestDataBinderFactory factory = new ServletRequestDataBinderFactory(null, null);
+
+        handlerMethod.setDataBinderFactory(factory);
+        handlerMethod.setParameterNameDiscoverer(new DefaultParameterNameDiscoverer());
+        HandlerMethodArgumentResolverComposite composite = new HandlerMethodArgumentResolverComposite();
+        composite.addResolvers(
+                new RequestParamMethodArgumentResolver(context.getDefaultListableBeanFactory(), false),
+                new PathVariableMethodArgumentResolver(),
+                new RequestHeaderMethodArgumentResolver(context.getDefaultListableBeanFactory()),
+                new ServletCookieValueMethodArgumentResolver(context.getDefaultListableBeanFactory()),
+                new ExpressionValueMethodArgumentResolver(context.getDefaultListableBeanFactory()),
+                new ServletRequestMethodArgumentResolver(),
+                new ServletModelAttributeMethodProcessor(false),
+                new RequestResponseBodyMethodProcessor(Arrays.asList(new MappingJackson2HttpMessageConverter())),
+                new ServletModelAttributeMethodProcessor(true),
+                new RequestParamMethodArgumentResolver(context.getDefaultListableBeanFactory(), true)
+        );
+        handlerMethod.setHandlerMethodArgumentResolvers(composite);
+        // 初始化 ModelAndViewContainer
+        ModelAndViewContainer container = new ModelAndViewContainer();
+
+        // 获取模型工厂方法，因为 getModelFactory 方法是私有，此处使用反射调用
+        Method getModelFactory = RequestMappingHandlerAdapter.class.getDeclaredMethod("getModelFactory", HandlerMethod.class, WebDataBinderFactory.class);
+        getModelFactory.setAccessible(true);
+        ModelFactory modelFactory = (ModelFactory) getModelFactory.invoke(adapter, handlerMethod, factory);
+
+        // 初始化模型数据，将之前记录的 @ModelAttribute 的方法，反射调用后将返回值保存到 ModelAndView 对象
+        modelFactory.initModel(new ServletWebRequest(request), container, handlerMethod);
+
+        handlerMethod.invokeAndHandle(new ServletWebRequest(request), container);
+
+        System.out.println(container.getModel());
+        context.close();
+    }
+}
+```
+
+运行结果
+
+```
+ModelAttributeController.bar 方法执行了...
+{AA=ModelAttributeControllerAdvice.foo()方法返回值, BB=ModelAttributeController.foo()方法返回值, u=User[name='张三', age=0], org.springframework.validation.BindingResult.u=org.springframework.validation.BeanPropertyBindingResult: 0 errors}
+```
+
+### 8.3. @ControllerAdvice 之 ResponseBodyAdvice
+
+#### 8.3.1. 概述
+
+`ResponseBodyAdvice` 接口是用于返回响应体前进行包装处理，一般配置 `@ControllerAdvice` 注解使用。
+
+#### 8.3.2. 流程图
+
+**ResponseBodyAdvice 增强**在整个 `HandlerAdapter` 调用过程中所处的位置
+
+```mermaid
+sequenceDiagram
+participant adapter as HandlerAdapter
+participant bf as WebDataBinderFactory
+participant mf as ModelFactory
+participant ihm as ServletInvocableHandlerMethod
+participant ar as ArgumentResolvers 
+participant rh as ReturnValueHandlers
+participant container as ModelAndViewContainer
+
+adapter ->> +bf: 准备 @InitBinder
+bf -->> -adapter: 
+adapter ->> +mf: 准备 @ModelAttribute
+mf ->> +container: 添加Model数据
+container -->> -mf: 
+mf -->> -adapter: 
+adapter ->> +ihm: invokeAndHandle
+ihm ->> +ar: 获取 args
+ar ->> ar: 有的解析器涉及 RequestBodyAdvice
+ar ->> container: 有的解析器涉及数据绑定生成Model数据
+ar -->> -ihm: args
+ihm ->> ihm: method.invoke(bean,args) 得到 returnValue
+ihm ->> +rh: 处理 returnValue
+rect rgb(200, 150, 255)
+rh ->> rh: 有的处理器涉及 ResponseBodyAdvice
+end
+rh ->> +container: 添加Model数据,处理视图名,是否渲染等
+container -->> -rh: 
+rh -->> -ihm: 
+ihm -->> -adapter: 
+adapter ->> +container: 获取 ModelAndView
+container -->> -adapter: 
+```
+
+#### 8.3.3. ResponseBodyAdvice 返回值增强示例
+
+示例需求：将标识了 `@ResponseBody` 注解的控制器方法的返回值包装成统一响应格式。示例源码详见 springmvc-sample 项目中的 10-handleradapter 模块中 `ControllerAdviceResponseBodyTest` 测试类
+
+- 创建用于测试的控制器
+
+```java
+@RestController
+// @Controller
+// @ResponseBody
+public class ResponseBodyDemoController {
+
+    // @ResponseBody
+    public User user() {
+        return new User("王五", 18);
+    }
+}
+```
+
+- 创建控制器增强类，并实现 `org.springframework.web.servlet.mvc.method.annotation.ResponseBodyAdvice` 接口
+
+```java
+@ControllerAdvice
+public class ResponseBodyControllerAdvice implements ResponseBodyAdvice<Object> {
+
+    /**
+     * 用于指定满足哪些条件才进行转换
+     *
+     * @param returnType    返回的类型
+     * @param converterType 选定转换器的类型
+     * @return 如返回 true 则代表可以进行转换，否则返回 false
+     */
+    @Override
+    public boolean supports(MethodParameter returnType, Class<? extends HttpMessageConverter<?>> converterType) {
+        /*
+         * 这里需要判断三种情况
+         *      1. 在控制器方法上标识 @ResponseBody 注解
+         *      2. 在控制器类上标识 @ResponseBody 注解  可以使用 returnType.getContainingClass().isAnnotationPresent(ResponseBody.class) 来判断
+         *      3. 在控制器类上标识 @RestController 注解
+         * 其中 Spring 提供的 AnnotationUtils 工具类的 findAnnotation 方法，可以判断类上或者类上组合注解是否包含某个注解
+         */
+        if (returnType.getMethodAnnotation(ResponseBody.class) != null ||
+                AnnotationUtils.findAnnotation(returnType.getContainingClass(), ResponseBody.class) != null) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * 响应体转换处理逻辑
+     *
+     * @param body                  响应数据
+     * @return
+     */
+    @Override
+    public Object beforeBodyWrite(Object body, MethodParameter returnType, MediaType selectedContentType,
+                                  Class<? extends HttpMessageConverter<?>> selectedConverterType,
+                                  ServerHttpRequest request, ServerHttpResponse response) {
+        if (body instanceof Result) {
+            // 如果是 Result 统一响应类型，则直接返回
+            return body;
+        }
+        return Result.ok(body);
+    }
+}
+```
+
+- 测试程序
+
+```java
+@Test
+public void test1() throws Exception {
+    AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(SpringConfiguration.class);
+
+    ServletInvocableHandlerMethod handlerMethod = new ServletInvocableHandlerMethod(
+            context.getBean(ResponseBodyDemoController.class),
+            ResponseBodyDemoController.class.getMethod("user")
+    );
+    handlerMethod.setDataBinderFactory(new ServletRequestDataBinderFactory(Collections.emptyList(), null));
+    handlerMethod.setParameterNameDiscoverer(new DefaultParameterNameDiscoverer());
+    // 此示例的控制器方法没有入参数，所以可以不用设置参数解析器
+    // handlerMethod.setHandlerMethodArgumentResolvers(getArgumentResolvers(context));
+    // 添加 advice
+    List<ControllerAdviceBean> annotatedBeans = ControllerAdviceBean.findAnnotatedBeans(context);
+    List<Object> collect = annotatedBeans.stream()
+            .filter(b -> ResponseBodyAdvice.class.isAssignableFrom(b.getBeanType()))
+            .collect(Collectors.toList());
+
+    HandlerMethodReturnValueHandlerComposite composite = new HandlerMethodReturnValueHandlerComposite();
+    // 此示例只测试 @ResponseBody，所以只加 RequestResponseBodyMethodProcessor 返回值处理器
+    composite.addHandler(new RequestResponseBodyMethodProcessor(Arrays.asList(new MappingJackson2HttpMessageConverter()), collect));
+    handlerMethod.setHandlerMethodReturnValueHandlers(composite);
+
+    MockHttpServletRequest request = new MockHttpServletRequest();
+    MockHttpServletResponse response = new MockHttpServletResponse();
+    ModelAndViewContainer container = new ModelAndViewContainer();
+    handlerMethod.invokeAndHandle(new ServletWebRequest(request, response), container);
+
+    System.out.println(new String(response.getContentAsByteArray(), StandardCharsets.UTF_8));
+}
+```
+
+## 9. 控制器方法执行流程
+
+### 9.1. 方法调用处理类 ServletInvocableHandlerMethod 关系图
+
+```mermaid
+classDiagram
+class ServletInvocableHandlerMethod {
+	+invokeAndHandle(ServletWebRequest,ModelAndViewContainer)
+}
+HandlerMethod <|-- ServletInvocableHandlerMethod
+HandlerMethod o-- bean
+HandlerMethod o-- method
+ServletInvocableHandlerMethod o-- WebDataBinderFactory
+ServletInvocableHandlerMethod o-- ParameterNameDiscoverer
+ServletInvocableHandlerMethod o-- HandlerMethodArgumentResolverComposite
+ServletInvocableHandlerMethod o-- HandlerMethodReturnValueHandlerComposite
+```
+
+`HandlerMethod` 方法处理接口有多属性，其中包含：
+
+- `bean` 即是调用哪个 Controller
+- `method` 即是调用 Controller 中的哪个方法
+
+`ServletInvocableHandlerMethod` 对方法调用进行处理，
+
+- `WebDataBinderFactory` 负责对象绑定、类型转换
+- `ParameterNameDiscoverer` 负责参数名解析
+- `HandlerMethodArgumentResolverComposite` 负责解析参数
+- `HandlerMethodReturnValueHandlerComposite` 负责处理返回值
+
+### 9.2. 控制器方法执行流程图
+
+图1：方法调用前准备阶段流程图
+
+```mermaid
+sequenceDiagram
+participant adapter as RequestMappingHandlerAdapter
+participant bf as WebDataBinderFactory
+participant mf as ModelFactory
+participant container as ModelAndViewContainer
+adapter ->> +bf: 准备 @InitBinder
+bf -->> -adapter: 
+adapter ->> +mf: 准备 @ModelAttribute
+mf ->> +container: 添加Model数据
+container -->> -mf: 
+mf -->> -adapter: 
+```
+
+图2：方法调用阶段流程图
+
+```mermaid
+sequenceDiagram
+participant adapter as RequestMappingHandlerAdapter
+participant ihm as ServletInvocableHandlerMethod
+participant ar as ArgumentResolvers
+participant rh as ReturnValueHandlers
+participant container as ModelAndViewContainer
+
+adapter ->> +ihm: invokeAndHandle
+ihm ->> +ar: 获取 args
+ar ->> ar: 有的解析器涉及 RequestBodyAdvice
+ar ->> container: 有的解析器涉及数据绑定生成模型数据
+container -->> ar: 
+ar -->> -ihm: args
+ihm ->> ihm: method.invoke(bean,args) 得到 returnValue
+ihm ->> +rh: 处理 returnValue
+rh ->> rh: 有的处理器涉及 ResponseBodyAdvice
+rh ->> +container: 添加Model数据,处理视图名,是否渲染等
+container -->> -rh: 
+rh -->> -ihm: 
+ihm -->> -adapter: 
+adapter ->> +container: 获取 ModelAndView
+container -->> -adapter: 
+```
