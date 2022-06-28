@@ -1,8 +1,8 @@
-# Spring源码编译教程
+# Spring 源码编译教程
 
 ## 1. Gradle 项目构建工具
 
-Spring 源码是使用Gradle进行构建，需要下载与安装Gradle。
+Spring 源码是使用 Gradle 进行构建，需要下载与安装 Gradle。
 
 Gradle官网：https://gradle.org/
 
