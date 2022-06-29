@@ -1,64 +1,22 @@
 # Visual Studio Code
 
-## 1. 官方网站
+> 官方网站：https://code.visualstudio.com/
 
-官网：https://code.visualstudio.com/
+## 1. 常用插件
 
-## 2. 常用插件
+### 1.1. 通用类
 
-### 2.1. Chinese (Simplified) Language Pack for VS Code
+|                      名称                       |                  说明                  |
+| ---------------------------------------------- | -------------------------------------- |
+| Chinese (Simplified) Language Pack for VS Code | 中文汉化包                              |
+| vscode-icon                                    | vscode资源目录加上图标（必备）           |
+| Material Icon Theme                            | vscode资源目录加上图标（必备）           |
+| eslint                                         | ESLint插件，高亮提示                    |
+| Rainbow Brackets                               | 此扩展允许使用颜色标识匹配的括号         |
+| Path Intellisense                              | 自动路径补全，默认不带这个功能的（必备） |
+| Path Autocomplete                              | 地址补全插件                            |
 
-中文汉化包
-
-### 2.2. Eclipse Keymap（弃用）
-
-配置与eclipse差不多一致的快捷键
-
-### 2.3. Vetur
-
-配置vue文件语法高亮、智能感知、Emmet等。
-
-<font color=red>**注意：VSCode中使用vetur插件格式化vue文件时，js代码会被添加上分号且单引号会转变为双引号。**</font>设置vscode配置文件
-
-```json
-"vetur.format.defaultFormatter.js": "vscode-typescript"
-```
-
-### 2.4. vscode-icon 或 Material Icon Theme
-
-让vscode资源目录加上图标（必备）
-
-### 2.5. Path Intellisense
-
-自动路劲补全，默认不带这个功能的（必备）
-
-### 2.6. Path Autocomplete
-
-地址补全插件
-
-### 2.7. 推荐主题
-
-One Monokai Theme
-
-![](images/20201106084452153_15869.jpg)
-
-One Dark Pro
-
-![](images/20201106084510559_30710.jpg)
-
-Atom One Dark Theme
-
-![](images/20201106084527089_12707.jpg)
-
-Eva Theme
-
-![](images/20201106084544593_30465.jpg)
-
-Material Palenight Theme
-
-![](images/20201106084601911_5155.jpg)
-
-### 2.8. eslint插件
+#### 1.1.1. eslint 插件
 
 ![](images/20201106084622737_26552.jpg)
 
@@ -278,14 +236,9 @@ module.exports = {
 }
 ```
 
-### 2.9. beautify 与 Prettier - Code formatter
+#### 1.1.2. Rainbow Brackets
 
-- beautify：格式化代码的工具，可以格式化JSON|JS|HTML|CSS|SCSS,比内置格式化好用；但是react工程的jsx文件用beautify插件格式化会乱掉，建议不要用
-- Prettier - Code formatter：格式化代码的工具，可以支持react
-
-### 2.10. Bracket Pair Colorizer 或 Bracket Pair Colorizer2
-
-此扩展允许使用颜色标识匹配的括号。此扩展已经成为VSCode的一个本地功能(可以不安装)。直接修改 settings.json 文件开启即可
+此扩展已经成为VSCode的一个本地功能(可以不安装)。直接修改 settings.json 文件开启即可
 
 ```json
 {
@@ -294,19 +247,98 @@ module.exports = {
 }
 ```
 
-### 2.11. Auto Close Tag
+#### 1.1.3. Path Intellisense 配置 @ 路径提示
 
-自动添加HTML / XML关闭标签
+路径提示配置的前提是，在 webpack.config.js 文件中配置 `@` 符号指定的目录位置
 
-### 2.12. Atuo Rename Tag
+```js
+module.exports ={
+  resolve: {
+    alias: {
+      // 告诉 webpack，程序员写的代码中，@ 符号表示 src 这一层目录
+      '@': path.join(__dirname, './src/')
+    }
+  }
+}
+```
 
-修改 html 标签，自动帮你完成尾部闭合标签的同步修改，不过有些bug。
+在项目根目录中新建 jsconfig.json，添加如下配置：
 
-### 2.13. Highlight Matching Tag
+```json
+{
+  "compilerOptions": {
+    "baseUrl": "./",
+    "paths": {
+      "@/*": ["src/*"]
+    }
+  },
+  "exclude": ["node_modules", "dist"]
+}
+```
 
-高亮显示选中匹配标签
+> <font color=red>**注意：需要使用vscode打开项目根目录（即 package.json 所在的目录），否则 `@` 路径提示将失效**</font>
 
-### 2.14. IntelliSense for CSS class names in HTML 或 HTML CSS Support
+#### 1.1.4. Path Autocomplete 配置 @ 路径提示
+
+> 路径提示配置的前提同上
+
+打开 settings.json 配置文件，添加如下配置：
+
+```json
+// 导入文件时是否携带文件的扩展名
+"path-autocomplete.extensionOnlmport": true,
+// 配置@的路径提示
+"path-autocomplete.pathMappings": {
+    "@": "${folder}/src"
+}
+```
+
+重启vscode，`@`路径提示就配置好了
+
+### 1.2. HTML 类
+
+|          名称           |                           说明                            |
+| ---------------------- | --------------------------------------------------------- |
+| Auto Close Tag         | 自动添加HTML / XML关闭标签                                 |
+| Atuo Rename Tag        | 修改 html 标签，自动完成尾部闭合标签的同步修改，不过有些bug |
+| Highlight Matching Tag | 高亮显示选中匹配标签                                       |
+|                        |                                                           |
+
+### 1.3. Vue 相关插件
+
+|              名称              |                                 说明                                  |
+| ----------------------------- | -------------------------------------------------------------------- |
+| Vetur                         | 配置vue文件语法高亮、智能感知、Emmet等                                 |
+| VueHelper                     | Vue2代码段（包括Vue2 api、vue-router2、vuex2）                        |
+| Vue Language Features (Volar) | Vue官方插件，支持Vue3                                                 |
+| Vscode-element-helper         | 使用element-ui库的可以安装这个插件，编写标签时自动提示element标签名称。 |
+
+#### 1.3.1. Vetur 插件配置
+
+<font color=red>**注意：VSCode中使用vetur插件格式化vue文件时，js代码会被添加上分号且单引号会转变为双引号。**</font>设置vscode配置文件
+
+```json
+"vetur.format.defaultFormatter.js": "vscode-typescript"
+```
+
+### 1.4. 推荐主题
+
+|           名称            |                   说明                   |
+| ------------------------ | --------------------------------------- |
+| One Monokai Theme        | ![](images/20201106084452153_15869.jpg) |
+| One Dark Pro             | ![](images/20201106084510559_30710.jpg) |
+| Atom One Dark Theme      | ![](images/20201106084527089_12707.jpg) |
+| Eva Theme                | ![](images/20201106084544593_30465.jpg) |
+| Material Palenight Theme | ![](images/20201106084601911_5155.jpg)  |
+
+
+
+### 1.5. beautify 与 Prettier - Code formatter
+
+- beautify：格式化代码的工具，可以格式化JSON|JS|HTML|CSS|SCSS,比内置格式化好用；但是react工程的jsx文件用beautify插件格式化会乱掉，建议不要用
+- Prettier - Code formatter：格式化代码的工具，可以支持react
+
+### 1.6. IntelliSense for CSS class names in HTML 或 HTML CSS Support
 
 **IntelliSense for CSS class names in HTML**
 
@@ -316,11 +348,8 @@ module.exports = {
 
 让 html 标签上写class 智能提示当前项目所支持的样式。新版已经支持scss文件检索
 
-### 2.15. Vscode-element-helper
 
-使用element-ui库的可以安装这个插件，编写标签时自动提示element标签名称。
-
-### 2.16. cssrem
+### 1.7. cssrem
 
 此插件的功能是实现 px 转换 rem
 
@@ -329,7 +358,7 @@ module.exports = {
 3. 设置html字体大小基准值，默认是16px
 4. 使用时只需要将光标停留在一些px单位的值上，再按`Alt+z`，就可以换算成 rem 单位的值
 
-### 2.17. 待整理
+### 1.8. 待整理
 
 - HTML Snippets
     - 超级实用且初级的 H5代码片段以及提示
@@ -341,14 +370,12 @@ module.exports = {
     - require 时的包提示（最新版的vscode已经集成此功能）
 - Project Manager
     - 在多个项目之前快速切换的工具
-- VueHelper
-    - snippet代码片段
 
 ![](images/20201106085236711_21502.jpg)
 
-## 3. 常用配置
+## 2. 常用配置
 
-### 3.1. 出现CPU 100% 优化的设置
+### 2.1. 出现CPU 100% 优化的设置
 
 有时，vscode会出现CPU利用率100%的情况，两个rg.exe占用了全部的CPU。
 
@@ -358,7 +385,7 @@ module.exports = {
 
 ![](images/20201106085408474_25960.jpg)
 
-### 3.2. 如何配置VSCODE打开文件总是在一个新的标签
+### 2.2. 如何配置VSCODE打开文件总是在一个新的标签
 
 经常搞混单击和双击的区别？这里在左侧资源管理器这边 如果单击文件是打开文件的预览模式，文件所在的标签上显示的文件名是 斜体状态，表明是在 预览模式，会被新打开的文件替换。所以如果是要打开文件进行编辑需要双击文件进行打开
 
@@ -376,7 +403,7 @@ module.exports = {
 
 ![](images/20201106085551962_7405.jpg)
 
-### 3.3. 设置tab为4个空格与格式化时缩进4个空格
+### 2.3. 设置tab为4个空格与格式化时缩进4个空格
 
 tab的宽度设置
 
@@ -386,45 +413,45 @@ tab的宽度设置
 
 ![](images/20201106085641403_18541.jpg)
 
-## 4. 快捷键
+## 3. 快捷键
 
-### 4.1. 官方快捷键列表
+### 3.1. 官方快捷键列表
 
 - 官网地址：https://code.visualstudio.com/shortcuts/keyboard-shortcuts-windows.pdf
 - windows 快捷键
 
 ![](../../note_attachments/99-其他/Visual-Studio-Code/keyboard-shortcuts-windows.jpg)
 
-### 4.2. 常用快捷键
+### 3.2. 常用快捷键
 
 - `ctrl+shift+L` 批量修改变量名称
 
-### 4.3. 多行编辑操作
+### 3.3. 多行编辑操作
 
 VScode对多行编辑有两种模式。
 
-#### 4.3.1. 第一种模式
+#### 3.3.1. 第一种模式
 
 竖列选择：长按`Alt+Shift`，按左键拖动鼠标选择多行。这种模式下只可以选择竖列，不可以随意插入光标。所以只限制于同一列且不间隔的情况下
 
-#### 4.3.2. 第二种模式
+#### 3.3.2. 第二种模式
 
 - 竖列选择：`Shift+Ctrl`
 - 选择多个编辑位点：`Ctrl+光标点击`
 
 这种模式下不仅可以选择竖列，同时还可以在多个地方插入光标
 
-#### 4.3.3. 两种模式的切换
+#### 3.3.3. 两种模式的切换
 
 使用`Ctrl+Shift+p`快捷键调用查询输入栏，输入“cursor”，列表中会出现“切换多行修改键”这个选项。选择这个选项就可以在两种模式下切换
 
-## 5. VSCode拓展推荐（前端开发）【网络资源】
+## 4. VSCode拓展推荐（前端开发）【网络资源】
 
 https://github.com/varHarrie/varharrie.github.io/issues/10
 
-> 最后更新于：2018-08-20 11:13:21
+> 最后更新于：2021-05-31
 
-## 6. 个人首选项配置（网络资源，仅供参考）
+## 5. 个人首选项配置（网络资源，仅供参考）
 
 ```json
 {
