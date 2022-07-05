@@ -174,6 +174,7 @@
 <ul class="docs">
   <li><a href="#/03-前端资料/99-工具类库/01-Lodash-工具函数库">Lodash 工具函数库</a></li>
   <li><a href="#/03-前端资料/99-工具类库/02-Moment.js-轻量级时间工具库">Moment.js 轻量级时间工具库</a></li>
+  <li><a href="#/03-前端资料/99-工具类库/03-Axios-网络请求库">Axios 网络请求库</a></li>
 </ul>
 
 ## 数据库

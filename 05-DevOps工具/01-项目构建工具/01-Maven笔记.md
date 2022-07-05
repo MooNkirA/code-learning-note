@@ -584,6 +584,27 @@ mvn archetype:generate -DgroupId=com.moon -DartifactId=web-project-demo -Darchet
 </dependency>
 ```
 
+> <font color=red>**注意：模块在使用`<parent>`继承中，在父项目中的 optional 配置对子项目并无影响。**</font>
+
+```xml
+<dependencyManagement>
+    <dependencies>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.12</version>
+            <optional>true</optional>
+        </dependency>
+    </dependencies>
+</dependencyManagement>
+```
+
+例如，在 parent 项目中配置统一的依赖版本控制，此时其他子项目需要 Junit 的 jar 包时可以直接在项目中引入，父项目中的optional配置对子项目并无影响。
+
+又例如，在 parent 项目直接通过 `<dependencies>` 引入 Junit 依赖，而 `<optional>true</optional>` 配置只会让各个子模块此依赖不相互传递 Junit 依赖，但所有子模块都会引入 Junit 的 jar 包
+
+因此在 Maven 项目中，恰当的使用 optional 配置，可以在很大程度上减少 jar 包的大小，提升编译和发布速度。
+
 ### 6.6. 依赖版本冲突解决
 
 当一个项目依赖的构件比较多时，它们相互之前存在依赖，会出现依赖版本的冲突。如：
