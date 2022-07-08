@@ -20,16 +20,24 @@ MoonZero 个人管理系统项目（包括资源、将来计划的个人财产�
 
 ```
 moonzero-system
-|-- mz-govern-eureka     # eureka注册中心服务。开发与生产端口：51001和51002(如果做高可用)
-|-- mz-govern-gateway    # zuul网关管理服务。开发与生产端口：51101
-|-- mz-service-jav       # Jav服务模块。开发端口：8080，生产端口：38080
-|-- mz-service-mail      # 邮件服务模块。开发与生产端口：38090
-|-- mz-system-common     # 系统公共模块。
-|-- mz-system-model      # 系统实体类模块
-|-- mz-system-utils      # 系统公共工具模块
-|-- mz-system-api        # 系统接口统一管理模块
-|-- mz-sdk				# 项目sdk包，抽取一些功能做成直接运行的jar包
-└──project-resources    # 项目相关的资源
+|-- mz-system-api             # 系统接口统一管理模块
+|    |--mz-api-common             # 项目通用接口
+|    └──mz-api-jav                # JAV服务接口
+|-- mz-system-common          # 系统公共模块
+|    |--mz-common-bom             # 项目版本统一管理聚合模块
+|    |--mz-common-core            # 公共核心模块
+|    |--mz-common-datasource      # 数据源模块，TODO: 后面研究实现多数据源动态切换
+|    |--mz-common-log             # 日志模块（未实现）
+|    |--mz-common-mybatis         # 数据层操作模块-mybatis-plus
+|    |--mz-common-redis           # 缓存模块-redis
+|    └──mz-common-swagger         # 通用 swagger 接口文档模块
+|-- mz-govern-eureka          # eureka注册中心服务。开发与生产端口：51001和51002(如果做高可用)
+|-- mz-govern-gateway         # zuul网关管理服务。开发与生产端口：51101
+|-- mz-sdk				      # 项目sdk包，抽取一些功能做成直接运行的jar包
+|-- mz-service-jav            # Jav服务模块。开发端口：8080，生产端口：38080
+|-- mz-service-mail           # 邮件服务模块。开发与生产端口：38090
+|-- mz-system-utils           # 系统公共工具模块
+└──project-resources          # 项目相关的资源
 ```
 
 > - 端口规则：
@@ -84,23 +92,146 @@ moonzero-system
     - jav_main
     - jav_storage
 
-## 5. 项目部署
+## 5. 开发环境项目部署
 
-### 5.1. 前面vue项目与后端Spring boot项目整合部署
+### 5.1. 前端工程
 
-#### 5.1.1. 方式一：spring boot+vue部署（无使用thymleaf）
+```bash
+# Install dependencies安装依赖
+npm install
+
+# 构建测试环境（Serve with hot reload at localhost:9528）
+npm run dev
+```
+
+- JAV模块访问地址：http://localhost:9528/#/
+
+
+
+### 5.2. 服务端工程
+
+> 建议按以下顺序启动
+
+#### 5.2.1. Eureka 注册中心服务
+
+- **单机版（默认端口号：51001）**
+
+工程均已配置默认值，直接通过入口类启动即可。也可以修改通过以下配置修改端口号与服务地址
+
+```bash
+# -------- 单机配置，设置VM options --------
+-Dserver.port=51009 -DEUREKA_SERVER=http://127.0.0.1:51009/eureka/
+```
+
+- **高可用版**
+
+1. 放到配置文件中的注释部分
+
+```yml
+eureka:
+  # 高可用版本时配置
+  instance:
+    hostname: ${EUREKA_DOMAIN} # 如果指定EUREKA_DOMAIN的值则使用，如果不指定，则默认为eureka01，需要配置本地host文件映射，如：127.0.0.1 eureka01
+```
+
+2. 分别启动两个实例：127.0.0.1:51001 和 127.0.0.1:51002。（使用idea启动需要配置以下参数）
+
+```bash
+# -------- 高可用配置 --------
+# eureka01设置VM options
+-Dserver.port=51001 -DEUREKA_SERVER=http://eureka02:51002/eureka/ -DEUREKA_DOMAIN=eureka01
+# eureka02设置VM options
+-Dserver.port=51002 -DEUREKA_SERVER=http://eureka01:51001/eureka/ -DEUREKA_DOMAIN=eureka02
+```
+
+#### 5.2.2. Gateway 网关服务
+
+工程均已配置默认值，直接通过入口类启动即可。Gateway 网关服务地址：127.0.0.1:51101/moon-system-api
+
+- eureka 单机版时配置时，也可以修改通过以下配置修改端口号与服务地址
+
+```bash
+# gateway设置VM options启动参数（eureka单机版）
+-Dserver.port=51101 -DEUREKA_SERVER=http://localhost:51001/eureka/ -DIP_ADDRESS=127.0.0.1
+```
+
+- eureka 高可用时配置（必须配置，并且根据 eureka 服务地址进行相应修改）
+
+```bash
+# gateway设置VM options启动参数（eureka高可用版）
+-Dserver.port=51101 -DEUREKA_SERVER=http://localhost:51001/eureka/,http://localhost:51002/eureka/ -DIP_ADDRESS=127.0.0.1
+```
+
+#### 5.2.3. JAV 模块服务
+
+工程均已配置默认值，直接通过入口类启动即可。JAV模块服务地址：127.0.0.1:8080
+
+~~开发swagger文档：http://127.0.0.1:8080/jav/swagger-ui.html~~（暂未引入）
+
+- eureka 单机版时配置时，也可以修改通过以下配置修改端口号与服务地址
+
+```bash
+# 设置VM options启动参数（单Eureka）
+-Dserver.port=8080 -DEUREKA_SERVER=http://localhost:51001/eureka/ -DIP_ADDRESS=127.0.0.1
+```
+
+- eureka 高可用时配置（必须配置，并且根据 eureka 服务地址进行相应修改）
+
+```bash
+# 设置VM options（Eureka集群）
+-Dserver.port=8080 -DEUREKA_SERVER=http://localhost:51001/eureka/,http://localhost:51002/eureka/ -DIP_ADDRESS=127.0.0.1
+```
+
+#### 5.2.4. mail 邮件模块服务
+
+工程均已配置默认值，直接通过入口类启动即可。Mail 模块服务地址：127.0.0.1:38090
+
+- eureka 单机版时配置。必配项：`MAIL_HOST`、`MAIL_USERNAME`、`MAIL_PWD`
+
+```bash
+# 设置VM options启动参数（单Eureka）
+-Dserver.port=38090 -DEUREKA_SERVER=http://localhost:51001/eureka/ -DIP_ADDRESS=127.0.0.1 -DMAIL_HOST=smtp.139.com -DMAIL_USERNAME=xxx@xxx.com -DMAIL_PWD=xxx
+```
+
+- eureka 高可用时配置（必须配置，并且根据 eureka 服务地址进行相应修改）
+
+```bash
+# 设置VM options（Eureka集群）
+-Dserver.port=38090 -DEUREKA_SERVER=http://localhost:51001/eureka/,http://localhost:51002/eureka/ -DMAIL_HOST=smtp.139.com -DMAIL_USERNAME=xxx@xxx.com -DMAIL_PWD=xxx
+```
+
+## 6. 生产环境项目部署
+
+### 6.1. 前端工程
+
+#### 6.1.1. 生产环境打包
+
+```bash
+# 构建生产环境（Build for production with minification）
+npm run build:prod
+
+
+# 构建生产并查看捆绑分析器报告（Build for production and view the bundle analyzer report）
+npm run build --report
+```
+
+打包完成后，将 dist 目录的内容放到没有中文与特殊符号的目录。
+
+#### 6.1.2. 前端vue项目与后端Spring boot项目整合部署
+
+##### 6.1.2.1. 方式一：spring boot+vue部署（无使用thymleaf）
 
 1. 配置前端vue项目的config/prod.env.js文件。修改生产环境的请求`BASE_API`，这里配置为域名是为了后面使用nginx反向代理，不必因为后端部署到不同的服务器或者不同的端口而每次都要重新打包
 
-![spring boot整合vue部署1](images/20190314140244693_27396.png)
+![](images/20190314140244693_27396.png)
 
-2. 使用命令`npm run build`构建vue项目.会打包到dist文件夹，里面生成一个static文件夹和一个index.html文件。直接将vue构建后的文件直接全部放置到resources/static目录下。这样整合后index.html也是作为一个静态资源出现的。
+2. 使用命令`npm run build`构建vue项目.会打包到dist文件夹，里面生成一个static文件夹和一个index.html文件。直接将vue构建后的文件直接全部放置到 resources/static 目录下。这样整合后index.html也是作为一个静态资源出现的。
 
-![spring boot整合vue部署2](images/20190314141118463_1900.png)
+![](images/20190314141118463_1900.png)
 
 3. 修改host文件，增加配置域名映射
 
-![spring boot整合vue部署3](images/20190314141420871_6481.png)
+![](images/20190314141420871_6481.png)
 
 4. 修改nginx配置文件`\conf\nginx.conf`，增加后端项目部署的地址。配置好之后，前端请求`www.jav.com`时由nginx转向请求`http://127.0.0.1:8080`。这样后端项目使用IDE运行或者打包到tomcat部署时，只需要修改nginx.cof文件即可，前端不需要重新编译打包
 
@@ -121,15 +252,17 @@ server {
 }
 ```
 
-#### 5.1.2. 方式二：spring boot+thymeleaf+vue部署（待整理，测试使用）
+##### 6.1.2.2. 方式二：spring boot+thymeleaf+vue部署（待整理，测试使用）
 
 参考资料：https://blog.csdn.net/u014098584/article/details/78912378
 
-#### 5.1.3. 方式三（使用）：前后端分离部署
+##### 6.1.2.3. 方式三（使用）：前后端分离部署
 
-1. 将前端页面工程使用`npm run build:prod`命令，编译打包部署到nginx中，作为静态资源，
+> 以jav模块为例，其他前端项目相同操作
 
-```java
+1. 将前端页面工程使用`npm run build:prod`命令，编译打包部署到 nginx 中，作为静态资源，映射域名 www.jav.com，监控 80 端口
+
+```conf
 server {
 	listen       80;
 	server_name  www.jav.com;
@@ -144,51 +277,31 @@ server {
 	}
 
 	# 配置部署生产环境前端请求后端的服务接口地址
-	location ^~ /moon-system-api/ {
-		   # 配置后，请求http://www.jav.com/moon-system-api/jav/main 相当于请求http://127.0.0.1:8888/jav/main
-		   proxy_pass http://jav_server_pool/;
-		   proxy_connect_timeout 600;
-		   proxy_read_timeout 600;
+	location ^~ /api-jav/ {
+			# 配置后，请求http://www.jav.com/api-jav/jav/main 
+			# 相当于请求http://127.0.0.1:51101/moon-system-api/jav/main 网关服务
+			proxy_pass http://gateway_server_pool/moon-system-api/jav/;
+			proxy_connect_timeout 600;
+			proxy_read_timeout 600;
 	}
+    
+}
+
+# 方便日后配置高可用后端服务，gateway工程
+upstream gateway_server_pool {
+	server 127.0.0.1:51101 weight=10;
 }
 ```
 
-### 5.2. 服务部署相关的脚本与端口
-#### 5.2.1. 前端项目编译&启动
+### 6.2. 服务端工程
 
-```bash
-# Install dependencies安装依赖
-npm install
+#### 6.2.1. ~~项目打包命令（war版本，已弃用）~~
 
-# 构建测试环境（Serve with hot reload at localhost:9528）
-npm run dev
+> 注：此方式已经弃用了
 
-# 构建生产环境（Build for production with minification）
-npm run build:prod
+需要将依赖的公共包安装到本地仓库，到时需要依赖打包到war包中
 
-# 构建生产并查看捆绑分析器报告（Build for production and view the bundle analyzer report）
-npm run build --report
-```
-
-#### 5.2.2. 项目开发启动命令
-
-- 因为配置开发与正式版本的两套配置文件，所以开发时运行需要修改`Environment`的`VM options`的参数为：`-DactiveName=dev`，切换到开发环境的配置，再运行main方法启动
-    - **注意：此方式只适用于`${}`占位符情况，如果使用`@@`，则不能使用**
-- 为了兼容项目打包，配置文件是使用`@@`作为占位符，所以启动需要使用命令`spring-boot:run`
-- 如果使用`${}`，若项目使用了 spring-boot-starter-parent 做项目版本管理，需要在`<properties>`标签中替换resource.delimiter属性为`<resource.delimiter>${}</resource.delimiter>`
-
-```bash
-# 以开发环境配置启动
-spring-boot:run -DactiveName=dev -Dmaven.test.skip=true
-
-# 以正式环境配置启动
-spring-boot:run -DactiveName=pro -Dmaven.test.skip=true
-```
-
-#### 5.2.3. 项目打包命令
-
-- 需要将依赖的公共包安装到本地仓库，到时需要依赖打包到war包中
-- 项目打包：参考5.1将前端部署后，因为配置了开发环境与正式版本环境的两套配置文件，使用maven命令打包时，需要输入配置文件的参数，进行打包即可，完成后将war包放到tomcat运行部署
+项目打包：参考前面将前端部署后，因为配置了开发环境与正式版本环境的两套配置文件，使用maven命令打包时，需要输入配置文件的参数，进行打包即可，完成后将war包放到tomcat运行部署
 
 ```bash
 # 项目安装（更新安装所有依赖的公共模块）
@@ -198,69 +311,125 @@ mvn clean install -DactiveName=pro -Dmaven.test.skip=true
 mvn clean package -DactiveName=pro -Dmaven.test.skip=true
 ```
 
-![项目安装](images/20190609150620625_23271.png)
+![](images/20190609150620625_23271.png)
 
-![项目打包](images/20190609150629662_13808.png)
+![](images/20190609150629662_13808.png)
 
-#### 5.2.4. 开发环境
+#### 6.2.2. 父工程安装
 
-- JAV模块前端页面：127.0.0.1:9528
+在打包其他服务模块之前，需要将相关的公共模块都安装到本地仓库（或者偷懒直接安装父工程）。到父工程根目录，执行以下命令
 
 ```bash
-npm run dev
+mvn clean install -Dmaven.test.skip=true
 ```
 
-- JAV模块服务地址：127.0.0.1:8080
-    - 开发swagger文档：http://127.0.0.1:8080/jav/swagger-ui.html
+> 注：这里安装，没有特别的需求时，最好不要指定环境（如：`-P pro`），使用默认即可。否则在本地开发时可能就会启动了非默认的其它环境
+
+#### 6.2.3. Eureka 注册中心服务
+
+进入 mz-govern-eureka 目录，执行以下命令生成jar包
 
 ```bash
-# 设置VM options（Eureka集群）
--DACTIVE_NAME=dev -DSERVER_PORT=8080 -DEUREKA_SERVER=http://localhost:51001/eureka/,http://localhost:51002/eureka/ -DIP_ADDRESS=127.0.0.1 -Dmaven.test.skip=true
-
-# 设置VM options（单Eureka）
--DACTIVE_NAME=dev -DSERVER_PORT=8080 -DEUREKA_SERVER=http://localhost:51001/eureka/ -DIP_ADDRESS=127.0.0.1 -Dmaven.test.skip=true
+mvn clean package -P pro -Dmaven.test.skip=true
 ```
 
-- Eureka注册中心地址：127.0.0.1:51001 和 127.0.0.1:51002。（使用idea启动需要配置以下参数）
+如果部署是高可用版，先放开配置文件中的注释部分再进行打包
+
+```yml
+eureka:
+  # 高可用版本时配置
+  instance:
+    hostname: ${EUREKA_DOMAIN} # 如果指定EUREKA_DOMAIN的值则使用，如果不指定，则默认为eureka01，需要配置本地host文件映射，如：127.0.0.1 eureka01
+```
+
+打包后，将jar放到某个目录下
+
+- **单机版（默认端口号：51001）**
 
 ```bash
-# -------- 高可用配置 --------
-# eureka01设置VM options
--DACTIVE_NAME=dev -DSERVER_PORT=51001 -DEUREKA_SERVER=http://eureka02:51002/eureka/ -DEUREKA_DOMAIN=eureka01
-# eureka02设置VM options
--DACTIVE_NAME=dev -DSERVER_PORT=51002 -DEUREKA_SERVER=http://eureka01:51001/eureka/ -DEUREKA_DOMAIN=eureka02
+# 默认配置
+java -jar mz-govern-eureka.jar
 
-# -------- 单机配置 --------
--DACTIVE_NAME=dev -DSERVER_PORT=51001 -DEUREKA_SERVER=http://127.0.0.1:51001/eureka/
+# 修改配置
+java -jar mz-govern-eureka.jar --server.port=51001 -DEUREKA_SERVER=http://localhost:51001/eureka/ -DIP_ADDRESS=127.0.0.1
+```
+
+- **高可用版**
+
+```bash
+# eureka01
+java -jar mz-govern-eureka.jar --server.port=51001 -DEUREKA_SERVER=http://eureka02:51002/eureka/ -DEUREKA_DOMAIN=eureka01
+# eureka02
+java -jar mz-govern-eureka.jar --server.port=51002 -DEUREKA_SERVER=http://eureka01:51001/eureka/ -DEUREKA_DOMAIN=eureka02
+```
+
+#### 6.2.4. Gateway 网关服务
+
+工程均已配置默认值，直接通过入口类启动即可。Gateway 网关服务地址：127.0.0.1:51101/moon-system-api
+
+- eureka 单机版时配置时，也可以修改通过以下配置修改端口号与服务地址
+
+```bash
+# gateway设置VM options启动参数（eureka单机版）
+-Dserver.port=51101 -DEUREKA_SERVER=http://localhost:51001/eureka/ -DIP_ADDRESS=127.0.0.1
+```
+
+- eureka 高可用时配置（必须配置，并且根据 eureka 服务地址进行相应修改）
+
+```bash
+# gateway设置VM options启动参数（eureka高可用版）
+-Dserver.port=51101 -DEUREKA_SERVER=http://localhost:51001/eureka/,http://localhost:51002/eureka/ -DIP_ADDRESS=127.0.0.1
 ```
 
 - Gateway网关服务地址：127.0.0.1:51101/moon-system-api
 
-```bash
-# gateway设置VM options启动参数（eureka高可用版）
--DACTIVE_NAME=dev -DSERVER_PORT=51101 -DEUREKA_SERVER=http://localhost:51001/eureka/,http://localhost:51002/eureka/ -DIP_ADDRESS=127.0.0.1 -Dmaven.test.skip=true
-
-# gateway设置VM options启动参数（eureka单机版）
--DACTIVE_NAME=dev -DSERVER_PORT=51101 -DEUREKA_SERVER=http://localhost:51001/eureka/ -DIP_ADDRESS=127.0.0.1 -Dmaven.test.skip=true
-```
-
-- mail邮件模块服务地址：127.0.0.1:38090
+gateway服务打包
 
 ```bash
-# mail邮件模块服务开发启动脚本，设置VM options（eureka高可用版）
--DACTIVE_NAME=dev -DSERVER_PORT=38090 -DEUREKA_SERVER=http://localhost:51001/eureka/,http://localhost:51002/eureka/ -DIP_ADDRESS=127.0.0.1 -Dmaven.test.skip=true
-
-# mail邮件模块服务开发启动脚本，设置VM options（eureka单机版）
--DACTIVE_NAME=dev -DSERVER_PORT=38090 -DEUREKA_SERVER=http://localhost:51001/eureka/ -DIP_ADDRESS=127.0.0.1 -DMAIL_HOST=smtp.139.com -DMAIL_USERNAME=xxx@xxx.com -DMAIL_PWD=xxx -Dmaven.test.skip=true
+mvn clean package -P pro -Dmaven.test.skip=true
 ```
 
-#### 5.2.5. 生产环境
+- 
 
-- JAV模块：部署到ngnix，映射域名www.jav.com，监控80端口
+#### 6.2.5. JAV 模块服务
+
+工程均已配置默认值，直接通过入口类启动即可。JAV模块服务地址：127.0.0.1:8080
+
+~~开发swagger文档：http://127.0.0.1:8080/jav/swagger-ui.html~~（暂未引入）
+
+- eureka 单机版时配置时，也可以修改通过以下配置修改端口号与服务地址
 
 ```bash
-npm run build:prod
+# 设置VM options启动参数（单Eureka）
+-Dserver.port=8080 -DEUREKA_SERVER=http://localhost:51001/eureka/ -DIP_ADDRESS=127.0.0.1
 ```
+
+- eureka 高可用时配置（必须配置，并且根据 eureka 服务地址进行相应修改）
+
+```bash
+# 设置VM options（Eureka集群）
+-Dserver.port=8080 -DEUREKA_SERVER=http://localhost:51001/eureka/,http://localhost:51002/eureka/ -DIP_ADDRESS=127.0.0.1
+```
+
+#### 6.2.6. mail 邮件模块服务
+
+工程均已配置默认值，直接通过入口类启动即可。Mail 模块服务地址：127.0.0.1:38090
+
+- eureka 单机版时配置。必配项：`MAIL_HOST`、`MAIL_USERNAME`、`MAIL_PWD`
+
+```bash
+# 设置VM options启动参数（单Eureka）
+-Dserver.port=38090 -DEUREKA_SERVER=http://localhost:51001/eureka/ -DIP_ADDRESS=127.0.0.1 -DMAIL_HOST=smtp.139.com -DMAIL_USERNAME=xxx@xxx.com -DMAIL_PWD=xxx
+```
+
+- eureka 高可用时配置（必须配置，并且根据 eureka 服务地址进行相应修改）
+
+```bash
+# 设置VM options（Eureka集群）
+-Dserver.port=38090 -DEUREKA_SERVER=http://localhost:51001/eureka/,http://localhost:51002/eureka/ -DMAIL_HOST=smtp.139.com -DMAIL_USERNAME=xxx@xxx.com -DMAIL_PWD=xxx
+```
+
+#### 6.2.7. ----
 
 - JAV模块服务部署地址：127.0.0.1:38080
 
@@ -305,39 +474,16 @@ clean package -DACTIVE_NAME=pro -DSERVER_PORT=38080 -DEUREKA_SERVER=http://local
 </Host>
 ```
 
-- Eureka注册中心部署地址：127.0.0.1:51001 和 127.0.0.1:51002
+## 7. 项目版本修改记录
 
-```bash
-# eureka01打包
-clean package -DACTIVE_NAME=pro -DSERVER_PORTT=51001 -DEUREKA_SERVER=http://eureka02:51002/eureka/ -DEUREKA_DOMAIN=eureka01
-# eureka02打包
-clean package -DACTIVE_NAME=pro -DSERVER_PORT=51002 -DEUREKA_SERVER=http://eureka01:51001/eureka/ -DEUREKA_DOMAIN=eureka02
-
-# -------- 单机配置 --------
-# eureka打包
-clean package -DACTIVE_NAME=pro -DSERVER_PORT=51001 -DEUREKA_SERVER=http://127.0.0.1:51001/eureka/
-```
-
-- Gateway网关服务地址：127.0.0.1:51101/moon-system-api
-
-```bash
-# gateway服务打包（eureka高可用版）
-clean package -DACTIVE_NAME=pro -DSERVER_PORT=51101 -DEUREKA_SERVER=http://localhost:51001/eureka/,http://localhost:51002/eureka/ -DIP_ADDRESS=127.0.0.1 -Dmaven.test.skip=true
-
-# gateway服务打包（eureka单机版）
-clean package -DACTIVE_NAME=pro -DSERVER_PORT=51101 -DEUREKA_SERVER=http://localhost:51001/eureka/ -DIP_ADDRESS=127.0.0.1 -Dmaven.test.skip=true
-```
-
-## 6. 项目版本修改记录
-
-### 6.1. ver2.0.0(开发中)
+### 7.1. ver2.0.0(开发中)
 
 - 后端工程
     - [ ] 重构后端工程模块结构
 - 前端工程
     - [ ] 修改请求处理响应逻辑，调整后端新的返回响应
 
-### 6.2. ver1.0.1
+### 7.2. ver1.0.1
 
 - 后端工程
     - [x] 新增主资源详情查询接口
@@ -351,7 +497,7 @@ clean package -DACTIVE_NAME=pro -DSERVER_PORT=51101 -DEUREKA_SERVER=http://local
     - [x] 增加按钮提交后置灰功能，防止重复提交的问题
     - [x] 前端主资源录入时增加转大写按钮，并在点击转大写按钮后将输入框的内容复制到剪切板中
 
-### 6.3. ver1.0.0
+### 7.3. ver1.0.0
 
 - 后端工程
     - 后端架构改成spring cloud微服务架构，使用nginx实现前后端分离
@@ -368,7 +514,7 @@ clean package -DACTIVE_NAME=pro -DSERVER_PORT=51101 -DEUREKA_SERVER=http://local
     - 优化页面样式与逻辑
     - 增加主资源管理模块中，资源分类与资源存储位置动态查询后端数据库
 
-### 6.4. ver0.2.0
+### 7.4. ver0.2.0
 
 - 后端工程
     - 修改日志中文乱码的问题
@@ -378,7 +524,7 @@ clean package -DACTIVE_NAME=pro -DSERVER_PORT=51101 -DEUREKA_SERVER=http://local
     - 更新请求main模块请求的url
     - 更新main模块列表页面，增加图片显示功能，和更新图片列表与文字列表显示切换的功能。
 
-### 6.5. ver0.1.0
+### 7.5. ver0.1.0
 
 - 后端工程
     - 更新JavMain主资源表中storage_ids字段保存格式，改成只存储位置id，使用“,”分隔
@@ -394,11 +540,11 @@ clean package -DACTIVE_NAME=pro -DSERVER_PORT=51101 -DEUREKA_SERVER=http://local
     - 使用Restful风格请求
     - 修复前端选择每页大小后，不能使用当前每页大小去查询，需要点击翻页或者查询后，第二次请求才生效
 
-### 6.6. ver0.0.1
+### 7.6. ver0.0.1
 
 - 完成JavMain主资源表的新增、修改、删除、多条件查询功能
 
-### 6.7. 项目待实现功能
+### 7.7. 项目待实现功能
 
 - [ ] 图片列表显示的位置需要优化，有时一行只显示一张图片
 - [ ] 修改主资源表数据时，无论新增还是更新，都是重新去查询出演者列表，生成json字符串数据。需要优化成，当修改的时候，如果与数据库原来的出演者数据一致，就不需要去调用转换出演者字符串方法。

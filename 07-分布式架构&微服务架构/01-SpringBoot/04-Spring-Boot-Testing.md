@@ -9,40 +9,81 @@ Spring Boot 提供了一些实用程序和注解来帮助测试应用程序。�
 
 Spring Boot 2.2.x 往后版本开始引入 JUnit 5 作为单元测试默认库，在 Spring Boot 2.2.x 版本之前，`spring-boot-starter-test` 包含了 JUnit 4 的依赖，Spring Boot 2.2.x 版本之后替换成了 Junit Jupiter。
 
-## 2. 添加 spring-boot-starter-test 依赖
+## 2. spring-boot-starter-test 依赖
 
 在 Spring Boot 工程，直接添加 `spring-boot-starter-test` 依赖即可使用 Junit
 
 ```xml
-<!-- spring boot 依赖 -->
-<dependency>
-    <groupId>org.springframework.boot</groupId>
-    <artifactId>spring-boot-starter</artifactId>
-</dependency>
 <!-- 配置测试启动器 -->
 <dependency>
     <groupId>org.springframework.boot</groupId>
     <artifactId>spring-boot-starter-test</artifactId>
-    <scope>test</scope>
+    <scope>test</strcope>
 </dependency>
 ```
 
 > 注意：Spring Boot 2.2.x 以前版本默认的测试库是 Junit4，在 2.2.x 其更高版本中，默认的测试库是 Junit5。如果工程是非 web 工程，则至少需要引入 `spring-boot-starter` 的依赖。
 
+### 2.1. 排除 junit 4
+
+> 引用官方文档：
+>
+> The starter also brings the vintage engine so that you can run both JUnit 4 and JUnit 5 tests. If you have migrated your tests to JUnit 5, you should exclude JUnit 4 support
+> 
+> 翻译：启动器默认自带复古的引擎，这样你就可以同时运行 JUnit 4和JUnit 5 测试。如果你已经将你的测试迁移到 JUnit 5，你应该排除 JUnit 4 的支持
+
+如果只使用 junit 5 并且不需要 junit 4，可以按以下方式进行排除其依赖：
+
+```xml
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-test</artifactId>
+    <scope>test</scope>
+    <!-- 排除 junit 4 -->
+    <exclusions>
+        <exclusion>
+            <groupId>org.junit.vintage</groupId>
+            <artifactId>junit-vintage-engine</artifactId>
+        </exclusion>
+    </exclusions>
+</dependency>
+```
+
 ## 3. 基础使用步骤
 
 ### 3.1. Spring Boot 2.2.x-
 
-在 Spring Boot 2.2.x 版本之前
+在 Spring Boot 2.2.x 版本之前，只是 junit 4
+
+> 引用官方文档：
+>
+> If you are using JUnit 4, don’t forget to also add @RunWith(SpringRunner.class) to your test, otherwise the annotations will be ignored. If you are using JUnit 5, there’s no need to add the equivalent @ExtendWith(SpringExtension.class) as @SpringBootTest and the other @…Test annotations are already annotated with it.
+>
+> 翻译：如果你使用JUnit 4，别忘了在你的测试中也添加 `@RunWith(SpringRunner.class)`，否则注释会被忽略。如果你使用的是 JUnit 5，就不需要添加等效的 `@ExtendWith(SpringExtension.class)`，因为 `@SpringBootTest` 和其他的 `@...Test` 注解已经有了它的注解。
 
 1. 开启 Spring Boot 测试，在测试类加 `@RunWith(SpringRunner.class)`。`@RunWith` 是注解运行的主类
 2. 测试类上添加`@SpringBootTest`注解，`classes` 属性要指定启动类的 class
 
+```java
+@RunWith(SpringRunner.class)
+@SpringBootTest(classes = {引导类.class})
+public class XxxxTest {
+    // 注入需要的 spring 容器的对象
+    @Autowired
+    private Environment environment;
+
+    @Test
+    public void testXxxx() {
+        // 相关的测试代码...
+    }
+}
+```
+
 ### 3.2. Spring Boot 2.2.x+
 
-从 2.2.x 版本开始，Spring Boot 使用 Junit 5 做为单元测试默认库。*与 Jnuit4 有一点不同*
+从 2.2.x 版本开始，Spring Boot 使用 Junit 5 做为单元测试默认库。<font color=red>**与 Jnuit4 有一点不同**</font>
 
-开启 Spring Boot 的测试，只需要在测试类上加上 `@SpringBootTest` 注解即可。*已无 `@RunWith` 注解*
+如果是使用 Junit 5，开启 Spring Boot 的测试时只需要在测试类上加上 `@SpringBootTest` 注解即可。
 
 ```java
 @SpringBootTest(classes = {引导类.class})
@@ -57,6 +98,11 @@ public class XxxxTest {
     }
 }
 ```
+
+> tips:
+>
+> - 在 Spring Boot 2.2.x+ 版本中，还是一样可以使用 junit 4
+> - <font color=red>**使用 Junit 5 已无需 `@RunWith` 注解，但需要注意导包时别导错 junit 4 的包，也可以直接将 junit 4 的依赖排除来防止错导包**</font>
 
 ### 3.3. Spring Boot 测试注意问题
 
@@ -91,7 +137,7 @@ public class JunitTest2 {
 
 ## 4. 进阶使用示例
 
-> 注：如下示例，在 Spring Boot 2.2.x 以前版本使用 Junit4，需要添加`@RunWith(SpringRunner.class)`注解，但在 2.2.x 后更高版本中，则不需要。
+> 注：如下示例，在 Spring Boot 2.2.x 以前版本使用 Junit4，需要添加`@RunWith(SpringRunner.class)`注解，若使用 2.2.x 后更高版本并且使用Junit5，则不需要。
 
 ### 4.1. 指定启动类
 
