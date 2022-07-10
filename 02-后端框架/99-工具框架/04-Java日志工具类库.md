@@ -535,7 +535,7 @@ Log4j 是高度可配置的，并可通过在运行时的外部文件配置。�
     </plugins>
 </build>
 ```
- 
+
 2. 编写 Log4j 基础使用示例代码（注：这里暂时不使用配置文件）
 
 ```java
@@ -1620,7 +1620,9 @@ public class LogbackTest {
         <filter class="ch.qos.logback.classic.filter.LevelFilter">
             <!-- 设置日志过滤规则 -->
             <level>ERROR</level>
+            <!-- 匹配时的操作：接收（记录） -->
             <onMatch>ACCEPT</onMatch>
+            <!-- 不匹配时的操作：拒绝（不记录） -->
             <onMismatch>DENY</onMismatch>
         </filter>
     </appender>
