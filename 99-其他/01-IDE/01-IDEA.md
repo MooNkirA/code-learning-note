@@ -206,6 +206,24 @@ idea创建maven项目时，速度很慢，主要原因是创建maven项目时默
 
 Transparent native-to-ascii conversion的意思是：自动转换ASCII编码。他的工作原理是：在文件中输入文字时他会自动的转换为Unicode编码，然后在idea中发开文件时他会自动转回文字来显示。这样做是为了防止文件乱码。这样properties文件，一般都不会出现中文乱码！
 
+打开 IDEA 安装路径，找到如下的安装目录。根据所安装的版本修改的配置文件（idea64.exe.vmoptions）
+
+![](images/227223209220752.png)
+
+在文件的最后一行追加以下一项配置：
+
+```properties
+-Dfile.encoding=UTF-8 
+```
+
+> notes: 最新版本的idea只有64位的配置文件。<font color=red>**特别注意，不能有空格，否则重启后无法打开 IDEA**</font>
+
+如果以上方法均已配置，还有乱码问题，则需要修改idea数据缓存目录中的 idea64.exe.vmoptions，同样在文件的末尾添加：`-Dfile.encoding=UTF-8`，然后重启idea，如图：
+
+![](images/353063409239178.png)
+
+> 注：默认的idea数据缓存目录在c盘，也可以修改配置来指定缓存目录的位置
+
 ### 5.6. 设置忽略显示，隐藏文件或者文件夹（类似eclipse的filter功能）
 
 【Editor】 --> 】File Types】 --> 【Ignore files and folders】 设置内容：

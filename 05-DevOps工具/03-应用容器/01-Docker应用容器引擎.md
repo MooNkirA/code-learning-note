@@ -1,7 +1,11 @@
 # Docker应用容器引擎 - 容器部署解决方案
 
+> Docker 官网：https://www.docker.com/
+
 ## 1. Docker简介
+
 ### 1.1. 什么是Docker
+
 #### 1.1.1. 容器技术
 
 容器与管理程序虚拟化（hypervisor virtualization，HV）有所不同，
@@ -19,7 +23,6 @@
 下面的图片比较了 Docker 和传统虚拟化方式的不同之处，可见<font color="red">**容器是在操作系统层面上实现虚拟化，直接复用本地主机的操作系统，而传统方式则是在硬件层面实现**</font>。与传统的虚拟机相比，Docker优势体现为启动速度快、占用体积小。
 
 ![容器与虚拟机比较](images/20190405222326753_21073.png)
-
 
 #### 1.1.3. Docker特点
 
@@ -42,6 +45,7 @@ Docker的目标之一就是缩短代码从开发、测试到部署、上线运�
 Docker还鼓励面向服务的体系结构和微服务架构。Docker推荐单个容器只运行一个应用程序或进程，这样就形成了一个分布式的应用程序模型，在这种模型下，应用程序或者服务都可以表示为一系列内部互联的容器，从而使分布式部署应用程序，扩展或调试应用程序都变得非常简单，同时也提高了程序的内省性。（当然，可以在一个容器中运行多个应用程序）
 
 ### 1.2. Docker组件
+
 #### 1.2.1. Docker客户端和服务器
 
 Docker是一个客户端-服务器（C/S）架构程序。Docker客户端只需要向Docker服务器或者守护进程发出请求，服务器或者守护进程将完成所有工作并返回结果。Docker提供了一个命令行工具Docker以及一整套RESTful API。
@@ -77,9 +81,11 @@ Docker也不关心容器在什么环境运行：我们可以在自己的笔记�
 
 - Docker用Registry来保存用户构建的镜像。
 - Registry分为公共和私有两种。Docker公司运营公共的Registry叫做Docker Hub。用户可以在Docker Hub注册账号，分享并保存自己的镜像（说明：在Docker Hub下载镜像巨慢，可以自己构建私有的Registry）。
-    - 公共Registry网址：https://hub.docker.com
+
+> 公共 Registry 网址：https://hub.docker.com
 
 ## 2. Docker安装与启动
+
 ### 2.1. 安装环境说明
 
 Docker官方建议在Ubuntu中安装，因为Docker是基于Ubuntu发布的，而且一般Docker出现的问题Ubuntu是最先更新或者打补丁的。在很多版本的CentOS中是不支持更新最新的一些补丁包的。
@@ -88,13 +94,13 @@ Docker官方建议在Ubuntu中安装，因为Docker是基于Ubuntu发布的，�
 
 ### 2.2. 安装Docker
 
-1. 将linux系统的 yum 包更新到最新
+1. 将 linux 系统的 yum 包更新到最新
 
 ```shell
 sudo yum update
 ```
 
-2. 安装需要的软件包， yum-util提供yum-config-manager功能，另外两个是devicemapper驱动依赖的
+2. 安装需要的软件包， yum-util 提供 yum-config-manager 功能，另外两个是 devicemapper 驱动依赖的
 
 ```shell
 sudo yum install -y yum-utils device-mapper-persistent-data lvm2
@@ -238,6 +244,7 @@ docker search 镜像名称
     - AUTOMATED：自动构建，表示该镜像由Docker Hub自动构建流程创建的
 
 ### 3.4. 拉取镜像
+
 #### 3.4.1. 从Docker Hub拉取
 
 Docker镜像首页，包括官方镜像和其它公开镜像。Docker Hub上最受欢迎的10大镜像（通过Docker registry API获取不了镜像被pull的个数，只能通过镜像的stars数量，来衡量镜像的流行度。毫无疑问，拥有最高stars数量的库都是官方库）。
@@ -256,12 +263,11 @@ docker pull centos:7
 # 说明：docker pull 镜像名称｜镜像名称中一部分
 ```
 
-#### 3.4.2. ustc的镜像
+#### 3.4.2. ustc 镜像的配置
 
-- ustc是老牌的linux镜像服务提供者了，还在遥远的ubuntu 5.04版本的时候就在用。ustc的docker镜像加速器速度很快。ustc docker mirro不需要注册，是真正的公共服务。
-- 网站：https://lug.ustc.edu.cn/wiki/mirrors/help/docker
+> 网站：https://lug.ustc.edu.cn/wiki/mirrors/help/docker
 
-##### 3.4.2.1. 设置ustc的镜像
+ustc 是老牌的 linux 镜像服务提供者了，还在遥远的 ubuntu 5.04 版本的时候就在用。ustc 的 docker 镜像加速器速度很快。ustc docker mirro 不需要注册，是真正的公共服务。
 
 1. 编辑该文件
 
@@ -277,7 +283,7 @@ vim /etc/docker/daemon.json
 }
 ```
 
-3. 注意：一定要重启docker服务`systemctl restart docker`。如果重启docker后无法加速，可以重新启动OS
+> 注意：一定要重启 docker 服务`systemctl restart docker`。如果重启 docker 后无法加速，可以重新启动OS
 
 ### 3.5. 删除镜像
 
@@ -296,6 +302,7 @@ docker rmi `docker images -q`
 <font color="red">**注：删除镜像前，需要将当前镜像所创建的容器删除，否则会警告，不能删除错镜像**</font>
 
 ## 4. Docker容器操作命令
+
 ### 4.1. 查看容器
 
 - 查看正在运行容器（不显示已经停止的容器）
@@ -324,13 +331,14 @@ docker ps -f status=exited`
 
 ### 4.2. 镜像创建启动容器
 
-- 创建容器命令：`docker run`，参数说明如下：
-    - `-i`：表示运行容器
-    - `-t`：表示容器启动后会进入其命令行。加入这两个参数后，容器创建就能登录进去。即分配一个伪终端。
-    - `--name`：为创建的容器命名。
-    - `-v`：表示目录映射关系（前者是宿主机目录，后者是容器的目录），可以使用多个－v做多个目录或文件映射。注意：最好做目录映射，在宿主机上做修改，然后共享到容器上。
-    - `-d`：在run后面加上`-d`参数,则会创建一个守护式容器在后台运行（这样创建容器后不会自动登录容器，如果只加`-i -t`两个参数，创建后就会自动进去容器）。
-    - `-p`：表示端口映射，前者是宿主机端口，后者是容器内的映射端口。可以使用多个-p做多个端口映射
+创建容器命令：`docker run`，参数说明如下：
+
+- `-i`：表示运行容器
+- `-t`：表示容器启动后会进入其命令行。加入这两个参数后，容器创建就能登录进去。即分配一个伪终端。
+- `--name`：为创建的容器命名。
+- `-v`：表示目录映射关系（前者是宿主机目录，后者是容器的目录），可以使用多个`-v`做多个目录或文件映射。注意：最好做目录映射，在宿主机上做修改，然后共享到容器上。
+- `-d`：在run后面加上`-d`参数，则会创建一个守护式容器在后台运行（这样创建容器后不会自动登录容器，如果只加`-i -t`两个参数，创建后就会自动进去容器）。
+- `-p`：表示端口映射，前者是宿主机端口，后者是容器内的映射端口。可以使用多个`-p`做多个端口映射
 
 #### 4.2.1. 交互式容器（exit退出时，容器停止）
 

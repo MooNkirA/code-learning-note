@@ -615,6 +615,8 @@ TaskService taskService = processEngine.getTaskService();
 | HistoryService    | activiti的历史管理类     |
 | ManagerService    | activiti的引擎管理类     |
 
+> tips: 以上这些接口实质都是操作 Activity 各张数据库表
+
 ##### 4.5.2.1. RepositoryService
 
 Activiti 的资源管理类，提供了管理和控制流程发布包和流程定义的操作。使用工作流建模工具设计的业务流程图需要使用此 service 将流程定义文件的内容部署到计算机。
@@ -778,13 +780,374 @@ BPMN 2.0 是业务流程建模符号2.0的缩写。它由 Business Process Manag
 
 ### 5.4. 流程定义部署
 
-#### 5.4.1. 概述
-
 将上面在设计器中定义的流程部署到 activiti 数据库中，就是流程定义部署。
 
 通过调用 activiti 的 api 将流程定义的 bpmn 和 png 两个文件添加部署到 activiti 中，也可以将两个文件打成 zip 包进行部署。
 
-#### 5.4.2. 单个文件部署方式
+#### 5.4.1. 单个文件部署方式
+
+分别将 bpmn 文件和 png 图片文件部署。通过 `RepositoryService` 对象将指定的 bpm 文件和图片文件保存在 activiti 数据库。
+
+```java
+@Test
+public void testDeployment() {
+    // 1、创建 ProcessEngine 流程引擎
+    ProcessEngine processEngine = ProcessEngines.getDefaultProcessEngine();
+    // 2、获取RepositoryServcie
+    RepositoryService repositoryService = processEngine.getRepositoryService();
+    // 3、使用service进行流程的部署，定义一个流程的名字，把bpmn和png部署到数据中
+    Deployment deploy = repositoryService.createDeployment()
+            .name("出差申请流程")
+            .addClasspathResource("bpmn/evection.bpmn")
+            .addClasspathResource("bpmn/evection.png")
+            .deploy();
+    // 4、输出部署信息
+    System.out.println("流程部署id=" + deploy.getId());
+    System.out.println("流程部署名字=" + deploy.getName());
+}
+```
+
+#### 5.4.2. 压缩包部署方式
+
+将 evection.bpmn 和 evection.png 压缩成zip包，通过 `RepositoryService` 对象将指定的 bpm 文件和图片文件保存在 activiti 数据库。
+
+```java
+@Test
+public void testDeployByZip() {
+    // 1、创建 ProcessEngine 流程引擎
+    ProcessEngine processEngine = ProcessEngines.getDefaultProcessEngine();
+    // 2、获取 RepositoryServcie
+    RepositoryService repositoryService = processEngine.getRepositoryService();
+    // 3、读取资源包文件，构造成 InputStream
+    InputStream inputStream = this.getClass().getClassLoader().getResourceAsStream("bpmn/evection.zip");
+    // 将 InputStream 转成 ZipInputStream
+    ZipInputStream zipInputStream = new ZipInputStream(inputStream);
+    // 4、使用 RepositoryService 对压缩包的流进行流程部署
+    Deployment deploy = repositoryService.createDeployment()
+            .name("出差申请流程")
+            .addZipInputStream(zipInputStream)
+            .deploy();
+    // 5、输出部署信息
+    System.out.println("流程部署id=" + deploy.getId());
+    System.out.println("流程部署名字=" + deploy.getName());
+}
+```
+
+#### 5.4.3. 定义部署操作的数据表
+
+流程定义部署后操作 activiti 数据库以下的 3 张表如下：
+
+- act_re_deployment：流程定义部署表，每部署一次增加一条记录
+
+```sql
+SELECT * FROM act_re_deployment # 流程定义部署表，记录流程部署信息
+```
+
+- act_re_procdef：流程定义表，部署每个新的流程定义都会在这张表中增加一条记录
+
+```sql
+SELECT * FROM act_re_procdef # 流程定义表，记录流程定义信息
+```
+
+> tips：注意表中的 KEY 这个字段是用来唯一识别不同流程的关键字
+
+- act_ge_bytearray：流程资源表 
+
+```sql
+SELECT * FROM act_ge_bytearray # 资源表 
+```
+
+**总结**：
+
+act_re_deployment 和 act_re_procdef 一对多关系，一次部署在流程部署表生成一条记录，但一次部署可以部署多个流程定义，每个流程定义在流程定义表生成一条记录。每一个流程定义在 act_ge_bytearray 会存在两个资源记录，bpmn 和 png。
+
+建议：一次部署一个流程，这样部署表和流程定义表是一对一有关系，方便读取流程部署及流程定义信息。
+
+### 5.5. 启动流程实例
+
+流程定义部署在 activiti 之后，就可以通过工作流管理业务流程了。*即前面部署的出差申请流程示例可以使用了*
+
+针对示例的流程，启动一个流程实例即表示发起一个新的出差申请单，类似于java中的类与对象的关系，类定义好后使用 new 关键字创建一个对象后即可使用，也可以 new 多个对象。对于出差申请流程，张三发起一个出差申请单需要启动一个流程实例，出差申请单发起一个出差单也需要启动一个流程实例。
+
+#### 5.5.1. 代码实现
+
+```java
+@Test
+public void testStartProcess() {
+    // 1、创建 ProcessEngine 流程引擎
+    ProcessEngine processEngine = ProcessEngines.getDefaultProcessEngine();
+   // 2、获取 RuntimeService 流程运行管理类
+    RuntimeService runtimeService = processEngine.getRuntimeService();
+    // 3、根据流程定义Id（其实是数据库表 act_re_procdef 的 key 字段），启动流程
+    ProcessInstance instance = runtimeService.startProcessInstanceByKey("myEvection");
+    // 4、输出流程信息
+    System.out.println("流程定义ID：" + instance.getProcessDefinitionId());
+    System.out.println("流程实例ID：" + instance.getId());
+    System.out.println("当前活动的ID：" + instance.getActivityId());
+}
+```
+
+输出的内容：
+
+```
+流程定义ID：myEvection:2:2504
+流程实例ID：5001
+当前活动的ID：null
+```
+
+#### 5.5.2. 启动流程实例涉及操作的数据表
+
+- act_hi_actinst：流程实例执行历史
+- act_hi_identitylink：流程的参与用户历史信息
+- act_hi_procinst：流程实例历史信息
+- act_hi_taskinst：流程任务历史信息
+- act_ru_execution：流程执行信息
+- act_ru_identitylink：流程的参与用户信息
+- act_ru_task：任务信息
+
+### 5.6. 任务查询
+
+流程启动后，任务的负责人就可以查询自己当前需要处理的任务，查询出来的任务都是该用户的待办任务。
+
+#### 5.6.1. 代码实现
+
+```java  
+@Test
+public void testTaskQueryByAssignee() {
+    // 1、创建 ProcessEngine 流程引擎
+    ProcessEngine processEngine = ProcessEngines.getDefaultProcessEngine();
+    // 2、获取 TaskService 任务管理类
+    TaskService taskService = processEngine.getTaskService();
+    // 3、根据流程 key 和 任务的负责人 查询任务
+    List<Task> taskQuery = taskService.createTaskQuery()
+            .processDefinitionKey("myEvection") // 流程Key
+            .taskAssignee("Sam") // 只查询该任务负责人的任务
+            .list();
+    // 4、输出任务信息
+    for (Task task : taskQuery) {
+        System.out.println("流程实例id：" + task.getProcessInstanceId());
+        System.out.println("任务id：" + task.getId());
+        System.out.println("任务负责人：" + task.getAssignee());
+        System.out.println("任务名称：" + task.getName());
+    }
+}
+```
+
+查询结果：
+
+```
+流程实例id：5001
+任务id：5005
+任务负责人：Sam
+任务名称：创建出差申请
+```
+
+#### 5.6.2. 执行流程分析
+
+观察控制台日志的输出，查询关键字：`act_`
+
+![](images/217174510227045.png)
+
+可以看到，任务查询主要根据以下sql语句进行查询，主要查询的是 `ACT_RU_TASK` 表，并且会做 `DISTINCT` 去重的操作
+
+```sql
+SELECT DISTINCT
+	RES.* 
+FROM
+	ACT_RU_TASK RES
+	INNER JOIN ACT_RE_PROCDEF D ON RES.PROC_DEF_ID_ = D.ID_ 
+WHERE
+	RES.ASSIGNEE_ = 'Sam' 
+	AND D.KEY_ = 'myEvection' 
+ORDER BY
+	RES.ID_ ASC 
+	LIMIT 2147483647 OFFSET 0;
+```
+
+### 5.7. 流程任务处理
+
+任务负责人查询待办任务，选择任务进行处理，完成任务。
+
+#### 5.7.1. 代码实现
+
+```java
+@Test
+public void testCompletTask() {
+    // 1、创建 ProcessEngine 流程引擎
+    ProcessEngine processEngine = ProcessEngines.getDefaultProcessEngine();
+    // 2、获取 TaskService 任务管理类
+    TaskService taskService = processEngine.getTaskService();
+    // 3、先根据流程 key 和 任务的负责人 查询当前任务
+    Task task = taskService.createTaskQuery()
+            .processDefinitionKey("myEvection") // 流程Key
+            .taskAssignee("Sam") // 只查询该任务负责人的任务
+            .singleResult();
+    // 4、根据任务id，完成任务
+    taskService.complete(task.getId());
+}
+```
+
+#### 5.7.2. 执行流程分析
+
+同样观察控制台日志的输出，查询关键字：`act_` 来分析任务完成的整个流程
+
+```sql
+-- 根据id查询
+select * from ACT_RU_TASK where ID_ = '5005'
+-- 查询流程实体
+select * from ACT_RE_PROCDEF where ID_ = '2504'
+-- 查询部署信息
+select * from ACT_RE_DEPLOYMENT where ID_ = '2501'
+-- 查询资源信息
+select * from ACT_GE_BYTEARRAY where DEPLOYMENT_ID_ = '2501' order by NAME_ asc
+-- 根据流程key 去查询流程定义
+select * from ACT_RE_PROCDEF where DEPLOYMENT_ID_ = '2501' and KEY_ = 'myEvection' and (TENANT_ID_ = '' or TENANT_ID_ is null)
+
+-- 流程发生变化，都会更新该表
+update ACT_GE_PROPERTY SET REV_ = 5, VALUE_ = '10001' where NAME_ = 'next.dbid' and REV_ = 4
+-- 创建流程的下一步骤的历史记录（示例的“经理审批”步骤）
+INSERT INTO ACT_HI_TASKINST (
+    ID_, PROC_DEF_ID_, PROC_INST_ID_, EXECUTION_ID_, NAME_, PARENT_TASK_ID_, DESCRIPTION_, OWNER_,
+    ASSIGNEE_, START_TIME_, CLAIM_TIME_, END_TIME_, DURATION_, DELETE_REASON_, TASK_DEF_KEY_, FORM_KEY_,
+    PRIORITY_, DUE_DATE_, CATEGORY_, TENANT_ID_ 
+)
+VALUES
+    ('7502', 'myEvection:2:2504', '5001', '5002', '经理审批', null, null, null, 'Jack', 2022-07-11 11:08:43.212, null, null, null, null, 'sid-02', null, 50, null, null, '')
+-- 同样创建下一步骤的记录（示例的“经理审批”步骤）
+INSERT INTO ACT_HI_ACTINST (
+	ID_, PROC_DEF_ID_, PROC_INST_ID_, EXECUTION_ID_, ACT_ID_, TASK_ID_, CALL_PROC_INST_ID_, ACT_NAME_, ACT_TYPE_,
+	ASSIGNEE_, START_TIME_, END_TIME_, DURATION_, DELETE_REASON_, TENANT_ID_ 
+)
+VALUES
+	(...)
+-- 创建历史审批参与者记录（示例的“经理审批”步骤中，审批人“Jack”）
+insert into ACT_HI_IDENTITYLINK (ID_, TYPE_, USER_ID_, GROUP_ID_, TASK_ID_, PROC_INST_ID_) values (?, ?, ?, ?, ?, ?)
+-- 在流程任务表创建下一步骤（当前）的记录（示例的“经理审批”步骤）
+insert into ACT_RU_TASK (
+    ID_, REV_, NAME_, PARENT_TASK_ID_, DESCRIPTION_, PRIORITY_, CREATE_TIME_, OWNER_, ASSIGNEE_, DELEGATION_, EXECUTION_ID_, PROC_INST_ID_, 
+    PROC_DEF_ID_, TASK_DEF_KEY_, DUE_DATE_, CATEGORY_, SUSPENSION_STATE_, TENANT_ID_, FORM_KEY_, CLAIM_TIME_
+) 
+values 
+    (?, 1, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? )
+-- 创建流程运行时审批人身份记录（示例的“经理审批”步骤中，审批人“Jack”）
+insert into ACT_RU_IDENTITYLINK (ID_, REV_, TYPE_, USER_ID_, GROUP_ID_, TASK_ID_, PROC_INST_ID_, PROC_DEF_ID_) values (?, 1, ?, ?, ?, ?, ?, ?)
+-- 更新流程运行时处理记录
+UPDATE ACT_RU_EXECUTION 
+SET REV_ = ?, BUSINESS_KEY_ = ?, PROC_DEF_ID_ = ?, ACT_ID_ = ?, IS_ACTIVE_ = ?, IS_CONCURRENT_ = ?, IS_SCOPE_ = ?,
+IS_EVENT_SCOPE_ = ?, IS_MI_ROOT_ = ?, PARENT_ID_ = ?, SUPER_EXEC_ = ?, ROOT_PROC_INST_ID_ = ?, SUSPENSION_STATE_ = ?,
+NAME_ = ?, IS_COUNT_ENABLED_ = ?, EVT_SUBSCR_COUNT_ = ?, TASK_COUNT_ = ?, JOB_COUNT_ = ?, TIMER_JOB_COUNT_ = ?,
+SUSP_JOB_COUNT_ = ?, DEADLETTER_JOB_COUNT_ = ?, VAR_COUNT_ = ?, ID_LINK_COUNT_ = ? 
+WHERE
+	ID_ = ? 
+	AND REV_ = ?
+-- 更新历史记录（上一步骤已完成的记录，即流程发起步骤，处理人是“Sam”，更新结束记录）
+update ACT_HI_ACTINST set EXECUTION_ID_ = '5002', ASSIGNEE_ = 'Sam', END_TIME_ = (Timestamp), DURATION_ = 3314178, DELETE_REASON_ = null where ID_ = '5004'
+-- 创建流程的上一步骤的历史记录（示例的“创建出差申请”步骤）
+UPDATE ACT_HI_TASKINST 
+SET PROC_DEF_ID_ = ?, EXECUTION_ID_ = ?, NAME_ = ?, PARENT_TASK_ID_ = ?, DESCRIPTION_ = ?, OWNER_ = ?, ASSIGNEE_ = ?, CLAIM_TIME_ = ?, 
+END_TIME_ = ?, DURATION_ = ?, DELETE_REASON_ = ?, TASK_DEF_KEY_ = ?, FORM_KEY_ = ?, PRIORITY_ = ?, DUE_DATE_ = ?, CATEGORY_ = ? 
+WHERE
+	ID_ = ?
+-- 删除流程运行中上一步骤的记录（示例的“创建出差申请”步骤）
+delete from ACT_RU_TASK where ID_ = '5005' and REV_ = 1
+```
+
+### 5.8. 流程定义信息查询
+
+查询流程相关信息，包含流程定义，流程部署，流程定义版本
+
+```java
+@Test
+public void testQueryProcessDefinition() {
+    // 1、创建 ProcessEngine 流程引擎
+    ProcessEngine processEngine = ProcessEngines.getDefaultProcessEngine();
+    // 2、获取 Repositoryservice 资源管理类
+    RepositoryService repositoryService = processEngine.getRepositoryService();
+    // 3、创建 ProcessDifinitionQuery 对象，用于查询
+    ProcessDefinitionQuery processDefinitionQuery = repositoryService.createProcessDefinitionQuery();
+    /*
+     * 查询当前所有的流程定义，返回流程定义信息的集合
+     *   processDefinitionKey 方法是根据流程定义Key 查询
+     *   orderByProcessDefinitionVersion 方法是进行排序
+     */
+    List<ProcessDefinition> processDefinitions = processDefinitionQuery.processDefinitionKey("myEvection")
+            .orderByProcessDefinitionVersion()
+            .desc()
+            .list();
+    // 输出相关信息
+    for (ProcessDefinition processDefinition : processDefinitions) {
+        System.out.println("流程定义ID：" + processDefinition.getId());
+        System.out.println("流程定义名称:" + processDefinition.getName());
+        System.out.println("流程定义Key:" + processDefinition.getKey());
+        System.out.println("流程定义版本:" + processDefinition.getVersion());
+        System.out.println("流程部署ID:" + processDefinition.getDeploymentId());
+    }
+}
+```
+
+输出结果：
+
+```
+流程定义ID：myEvection:2:2504
+流程定义名称:出差申请单
+流程定义Key:myEvection
+流程定义版本:2
+流程部署ID:2501
+```
+
+### 5.9. 流程删除
+
+删除流程部署信息，删除时涉及操作的表如下：
+
+- `act_ge_bytearray`
+- `act_re_deployment`
+- `act_re_procdef`
+
+> <font color=red>**notes: 若当前的流程实例启动并且没有完成，删除时需要使用级联删除，否则会报错**</font>
+
+#### 5.9.1. 代码实现
+
+```java
+@Test
+public void testDeleteDeployMent() {
+    // 1、创建 ProcessEngine 流程引擎
+    ProcessEngine processEngine = ProcessEngines.getDefaultProcessEngine();
+    // 2、获取 Repositoryservice 资源管理类
+    RepositoryService repositoryService = processEngine.getRepositoryService();
+    // 3、通过查询来获取部署id（此处省略，参考上面的查询示例）
+    String deploymentId = "12501";
+    // 4、删除流程部署。值得注意：如果该流程部署已有流程实例启动则删除时会报错
+    repositoryService.deleteDeployment(deploymentId);
+    // 方法第二个参数用于设置是否级联删除流程部署，设置 true 则表示级联删除，否则设置为 false
+    // 级联删除意味着该流程即使有流程实例启动也可以删除
+    // repositoryService.deleteDeployment(deploymentId, true);
+}
+```
+
+#### 5.9.2. 流程删除注意事项
+
+流程删除需要注意几点：
+
+1. 使用 `RepositoryService` 接口删除流程定义，历史表信息不会被删除
+2. 如果该流程定义下没有正在运行的流程，则可以用普通删除。
+3. 如果该流程定义下存在已经运行的流程，使用普通删除报错，可使用级联删除方法将流程及相关记录全部删除。原理是先删除没有完成流程节点，最后就可以完全删除流程定义信息。<u>*项目开发中级联删除操作一般只开放给超级管理员使用*</u>
+
+### 5.10. 流程资源下载
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

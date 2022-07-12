@@ -32,9 +32,9 @@
 public ClassLoader getClassLoader()
 ```
 
-- Class类中的方法，获得当前类的类加载器对象
-- **注：通过类名.class.getClassLoader()获得**
-    - *如果获得的类加载器对象是null，则该类是由引导类加载器加载*
+Class 类中的方法，获得当前类的类加载器对象
+
+**注：通过`类名.class.getClassLoader()`获得，如果获得的类加载器对象是null，则该类是由引导类加载器加载***
 
 ### 3.2. ClassLoader的常用方法
 
@@ -57,9 +57,7 @@ public URL getResource(String name)
 public InputStream getResourceAsStream(String name)
 ```
 
--如果资源文件是在src文件夹下，资源文件路径：不需要加“/”，代表从bin目录查找指定名称的资源文件。
-返回资源文件关联的字节输入流对象。
-
+- 如果资源文件是在src文件夹下，资源文件路径：不需要加“/”，代表从bin目录查找指定名称的资源文件。返回资源文件关联的字节输入流对象。
 
 ## 4. 类加载器的加载机制（双亲委托机制）（理解）
 
@@ -68,11 +66,10 @@ public InputStream getResourceAsStream(String name)
 3. 如果BootStrapClassLoader加载失败（例如在`$JAVA_HOME/jre/lib`里未查找到该class），会使用ExtClassLoader来尝试加载；
 4. 若ExtClassLoader也加载失败，则会使用AppClassLoader来加载，如果AppClassLoader也加载失败，则会报出异常ClassNotFoundException。
 
----
-
 # 反射
 
 ## 1. 类加载的概念与加载时机
+
 ### 1.1. 类加载的概念
 
 当第一次使用该类时，如果该类的字节码文件(class)还没有加载到内存中，则JVM会将该类的字节文件加载到内存中并在内存中创建一个Class对象(字节码文件对象)
@@ -123,6 +120,7 @@ public InputStream getResourceAsStream(String name);
 - 返回与资源文件关联的字节输入流对象（**返回的对象：BufferedInputStream**）。
 
 ## 2. 反射的概述
+
 ### 2.1. 什么是反射
 
 反射是一种机制，利用该机制可以在程序运行过程中对类进行解剖并操作类中所有成员。
@@ -139,12 +137,11 @@ JAVA反射机制是在**运行状态**中，对于任意一个类，都能够知
 
 - 开发IDE（集成开发环境），比如:Eclipse
 - 框架的学习或框架的开发（Struts, Spring, Hibernate）
-- **反射中对象的规律**：
-    - 有 Declared 的可以得到所有声明的方法，没有Declared 的只能得到公共的方法
-- **伪泛型**
-    - 在编译时期的进行限制，但利用反射可以在运行时候进行操作。
+- **反射中对象的规律**：有 Declared 的可以得到所有声明的方法，没有 Declared 的只能得到公共的方法
+- **伪泛型**：在编译时期的进行限制，但利用反射可以在运行时候进行操作。
 
 ## 3. Class 类
+
 ### 3.1. 获取 Class 对象的三种方式
 
 - **方式一: 通过Object类中的`getClass()`方法**
@@ -176,7 +173,7 @@ IDE中获取类全名的方法：右键类名 --> 选择Copy Qualified Name
 
 ![复制类全名](images/20190801112244830_23962.png)
 
-### 3.2. Class 类中的方法
+### 3.2. Class 类常用方法
 
 ```java
 public String getName();
@@ -199,7 +196,7 @@ public T newInstance()
 - 通过无参数构造方法创建对象。之前建议创建类时要提供一个无参构造方法，是为使用反射获取一个无参对象。
 - **使用此方法获取一个空参构造的对象前提**：
     1. 被反射的类，必须具有空参数构造方法
-    2. 构造方法权限必须是public
+    2. 构造方法权限必须是 public
 - 示例：
 
 ```java
@@ -211,7 +208,13 @@ Class<Student> c = (Class<Student>) Class.forName(xx.Student);
 Student s = c.newInstance();
 ```
 
-- > API文档说明: 创建此 Class 对象所表示的类的一个新实例。如同用一个带有一个空参数列表的 new 表达式实例化该类。如果该类尚未初始化，则初始化这个类。
+> API文档说明: 创建此 Class 对象所表示的类的一个新实例。如同用一个带有一个空参数列表的 new 表达式实例化该类。如果该类尚未初始化，则初始化这个类。
+
+```java
+public boolean isAssignableFrom(Class<?> cls)
+```
+
+判定此 `Class` 对象所表示的类或接口与方法参数 `Class<?> cls` 所表示的类或接口是否相同，或者是否为 `cls` 的超类或超接口。如果是则返回 true；否则返回 false。如果该 Class 表示一个基本类型，且指定的 Class 参数正是该 Class 对象，则该方法返回 true；否则返回 false。 
 
 ### 3.3. 综合示例
 
@@ -413,16 +416,25 @@ public Class<?> getType()
 
 - 返回一个 Class 对象，它标识了此 Field 对象所表示字段的声明类型。
 
-### 5.4. 通过反射，创建对象，获取指定的成员变量，进行赋值与获取值操作
+### 5.4. 其他常用方法
 
-- 获取成员变量，步骤如下：
-	1. 获取Class对象
-	2. 获取构造方法
-	3. 通过构造方法，创建对象
-	4. 获取指定的成员变量（私有成员变量，通过setAccessible(boolean flag)方法暴力访问和修改）
-	5. 通过方法，给指定对象的指定成员变量赋值或者获取值
+```java
+public boolean isAnnotationPresent(Class<? extends Annotation> annotationClass)
+```
 
-### 5.5. 案例：通过反射方式，获取成员变量(私有成员变量)，并修改
+继承 `java.lang.reflect.AccessibleObject` 类的方法，判断当前字段对象上是否标识某个注解。是则返回 true，否则返回 false
+
+### 5.5. 通过反射，创建对象，获取指定的成员变量，进行赋值与获取值操作
+
+获取成员变量，步骤如下：
+
+1. 获取 Class 对象
+2. 获取构造方法
+3. 通过构造方法，创建对象
+4. 获取指定的成员变量（私有成员变量，通过 `setAccessible(boolean flag)` 方法暴力访问和修改）
+5. 通过方法，给指定对象的指定成员变量赋值或者获取值
+
+### 5.6. 案例：通过反射方式，获取成员变量(私有成员变量)，并修改
 
 ```java
 import java.lang.reflect.Constructor;
