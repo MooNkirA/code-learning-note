@@ -198,19 +198,25 @@ idea创建maven项目时，速度很慢，主要原因是创建maven项目时默
 
 取消勾选 Use tab character
 
-![](images/20201105152210377_8092.jpg)
+![](images/460514310227046.png)
 
-### 5.5. 修改字符集
+### 5.5. 修改默认字符集
 
-![](images/20201105150028977_30710.jpg)
+1. 打开【Settings】，找到【File Encodings】，把 encoding 相关的选项都选择 UTF-8
+
+![](images/422814610247212.png)
 
 Transparent native-to-ascii conversion的意思是：自动转换ASCII编码。他的工作原理是：在文件中输入文字时他会自动的转换为Unicode编码，然后在idea中发开文件时他会自动转回文字来显示。这样做是为了防止文件乱码。这样properties文件，一般都不会出现中文乱码！
 
-打开 IDEA 安装路径，找到如下的安装目录。根据所安装的版本修改的配置文件（idea64.exe.vmoptions）
+2. 打开 IDEA 安装路径，找到如下的安装目录。根据所安装的版本修改相应的配置文件（idea64.exe.vmoptions）
+
+![](images/183925610236436.png)
+
+2021.2 版本
 
 ![](images/227223209220752.png)
 
-在文件的最后一行追加以下一项配置：
+在文件的最后一行追加以下一项配置，然后重启 IDEA
 
 ```properties
 -Dfile.encoding=UTF-8 
@@ -218,7 +224,7 @@ Transparent native-to-ascii conversion的意思是：自动转换ASCII编码。�
 
 > notes: 最新版本的idea只有64位的配置文件。<font color=red>**特别注意，不能有空格，否则重启后无法打开 IDEA**</font>
 
-如果以上方法均已配置，还有乱码问题，则需要修改idea数据缓存目录中的 idea64.exe.vmoptions，同样在文件的末尾添加：`-Dfile.encoding=UTF-8`，然后重启idea，如图：
+3. 如前面的方法均已配置，还有乱码问题，则需要修改idea数据缓存目录中的 idea64.exe.vmoptions，同样在文件的末尾添加：`-Dfile.encoding=UTF-8`，然后重启idea，如图：
 
 ![](images/353063409239178.png)
 

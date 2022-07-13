@@ -208,18 +208,19 @@ Docker镜像是由文件系统叠加而成（是一种文件的存储形式）�
 
 ### 3.2. 查看当前已有镜像
 
-- 列出本地本机上docker已有的所有镜像
+列出本地本机上docker已有的所有镜像
 
 ```shell
 docker images
 ```
 
-- 查询列表说明
-    - REPOSITORY：镜像所在的仓库名称
-    - TAG：镜像标签
-    - IMAGE ID：镜像ID
-    - CREATED：镜像的创建日期（不是获取该镜像的日期）
-    - SIZE：镜像大小
+查询列表说明：
+
+- REPOSITORY：镜像所在的仓库名称
+- TAG：镜像标签
+- IMAGE ID：镜像ID
+- CREATED：镜像的创建日期（不是获取该镜像的日期）
+- SIZE：镜像大小
 
 <font color="red">**说明：这些镜像都是存储在Docker宿主机的/var/lib/docker目录下**</font>
 
@@ -229,19 +230,20 @@ docker images
 
 ### 3.3. 搜索镜像
 
-- 如果你需要从网络中查找需要的镜像，可以通过以下命令搜索
+如果需要从网络中查找需要的镜像，可以通过以下命令搜索
 
 ```shell
 docker search 镜像名称
 ```
 
-- 查询的结果列说明
-    - INDEX：索引名称
-    - <font color=red>**NAME：镜像名称**</font>
-    - DESCRIPTION：镜像描述
-    - STARS：(星级)用户评价，反应一个镜像的受欢迎程度
-    - OFFICIAL：是否官方
-    - AUTOMATED：自动构建，表示该镜像由Docker Hub自动构建流程创建的
+查询的结果列说明：
+
+- INDEX：索引名称
+- <font color=red>**NAME：镜像名称**</font>
+- DESCRIPTION：镜像描述
+- STARS：(星级)用户评价，反应一个镜像的受欢迎程度
+- OFFICIAL：是否官方
+- AUTOMATED：自动构建，表示该镜像由Docker Hub自动构建流程创建的
 
 ### 3.4. 拉取镜像
 

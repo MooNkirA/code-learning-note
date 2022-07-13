@@ -1,4 +1,4 @@
-# Activiti 工作流引擎
+# Activiti 工作流引擎基础
 
 > 官方网站：https://www.activiti.org/
 
@@ -758,33 +758,15 @@ BPMN 2.0 是业务流程建模符号2.0的缩写。它由 Business Process Manag
 
 ![](images/119075321220668.png)
 
-### 5.3. 番外：解决中文乱码
+> 番外：如果打开的流程图出现中文乱码的问题，解决方案详见[《IntelliJ IDEA 常用配置》](/99-其他/01-IDE/01-IDEA)的“修改默认字符集”章节
 
-如果打开的流程图有中文乱码的问题，可以进行以下设置：
-
-1. 打开【Settings】，找到【File Encodings】，把 encoding 的选项都选择 UTF-8
-
-![](images/382500422239094.png)
-
-2. 打开 IDEA 安装路径，找到如下的安装目录
-
-![](images/355370522226961.png)
-
-根据本地所安装的版本来选择修改的文件，如在 idea64.exe.vmoptions 文件的最后一行追加一条命令：`-Dfile.encoding=UTF-8`，然后重启 IDEA。<font color=red>**值得注意：不能有空格，否则重启后无法打开 IDEA**</font>
-
-3. 如果以上方法均已配置，还有乱码问题，则需要修改idea数据缓存目录中的 idea64.exe.vmoptions，同样在文件的末尾添加：`-Dfile.encoding=UTF-8`，然后重启idea，如图：
-
-![](images/116731022247127.png)
-
-> 注：默认的idea数据缓存目录在c盘，也可以修改配置来指定缓存目录的位置
-
-### 5.4. 流程定义部署
+### 5.3. 流程定义部署
 
 将上面在设计器中定义的流程部署到 activiti 数据库中，就是流程定义部署。
 
 通过调用 activiti 的 api 将流程定义的 bpmn 和 png 两个文件添加部署到 activiti 中，也可以将两个文件打成 zip 包进行部署。
 
-#### 5.4.1. 单个文件部署方式
+#### 5.3.1. 单个文件部署方式
 
 分别将 bpmn 文件和 png 图片文件部署。通过 `RepositoryService` 对象将指定的 bpm 文件和图片文件保存在 activiti 数据库。
 
@@ -807,7 +789,7 @@ public void testDeployment() {
 }
 ```
 
-#### 5.4.2. 压缩包部署方式
+#### 5.3.2. 压缩包部署方式
 
 将 evection.bpmn 和 evection.png 压缩成zip包，通过 `RepositoryService` 对象将指定的 bpm 文件和图片文件保存在 activiti 数据库。
 
@@ -833,7 +815,7 @@ public void testDeployByZip() {
 }
 ```
 
-#### 5.4.3. 定义部署操作的数据表
+#### 5.3.3. 定义部署操作的数据表
 
 流程定义部署后操作 activiti 数据库以下的 3 张表如下：
 
@@ -863,13 +845,13 @@ act_re_deployment 和 act_re_procdef 一对多关系，一次部署在流程部�
 
 建议：一次部署一个流程，这样部署表和流程定义表是一对一有关系，方便读取流程部署及流程定义信息。
 
-### 5.5. 启动流程实例
+### 5.4. 启动流程实例
 
 流程定义部署在 activiti 之后，就可以通过工作流管理业务流程了。*即前面部署的出差申请流程示例可以使用了*
 
 针对示例的流程，启动一个流程实例即表示发起一个新的出差申请单，类似于java中的类与对象的关系，类定义好后使用 new 关键字创建一个对象后即可使用，也可以 new 多个对象。对于出差申请流程，张三发起一个出差申请单需要启动一个流程实例，出差申请单发起一个出差单也需要启动一个流程实例。
 
-#### 5.5.1. 代码实现
+#### 5.4.1. 代码实现
 
 ```java
 @Test
@@ -895,7 +877,7 @@ public void testStartProcess() {
 当前活动的ID：null
 ```
 
-#### 5.5.2. 启动流程实例涉及操作的数据表
+#### 5.4.2. 启动流程实例涉及操作的数据表
 
 - act_hi_actinst：流程实例执行历史
 - act_hi_identitylink：流程的参与用户历史信息
@@ -905,11 +887,11 @@ public void testStartProcess() {
 - act_ru_identitylink：流程的参与用户信息
 - act_ru_task：任务信息
 
-### 5.6. 任务查询
+### 5.5. 任务查询
 
 流程启动后，任务的负责人就可以查询自己当前需要处理的任务，查询出来的任务都是该用户的待办任务。
 
-#### 5.6.1. 代码实现
+#### 5.5.1. 代码实现
 
 ```java  
 @Test
@@ -942,7 +924,7 @@ public void testTaskQueryByAssignee() {
 任务名称：创建出差申请
 ```
 
-#### 5.6.2. 执行流程分析
+#### 5.5.2. 执行流程分析
 
 观察控制台日志的输出，查询关键字：`act_`
 
@@ -964,11 +946,11 @@ ORDER BY
 	LIMIT 2147483647 OFFSET 0;
 ```
 
-### 5.7. 流程任务处理
+### 5.6. 流程任务处理
 
 任务负责人查询待办任务，选择任务进行处理，完成任务。
 
-#### 5.7.1. 代码实现
+#### 5.6.1. 代码实现
 
 ```java
 @Test
@@ -987,7 +969,7 @@ public void testCompletTask() {
 }
 ```
 
-#### 5.7.2. 执行流程分析
+#### 5.6.2. 执行流程分析
 
 同样观察控制台日志的输出，查询关键字：`act_` 来分析任务完成的整个流程
 
@@ -1052,7 +1034,7 @@ WHERE
 delete from ACT_RU_TASK where ID_ = '5005' and REV_ = 1
 ```
 
-### 5.8. 流程定义信息查询
+### 5.7. 流程定义信息查询
 
 查询流程相关信息，包含流程定义，流程部署，流程定义版本
 
@@ -1095,7 +1077,7 @@ public void testQueryProcessDefinition() {
 流程部署ID:2501
 ```
 
-### 5.9. 流程删除
+### 5.8. 流程删除
 
 删除流程部署信息，删除时涉及操作的表如下：
 
@@ -1105,7 +1087,7 @@ public void testQueryProcessDefinition() {
 
 > <font color=red>**notes: 若当前的流程实例启动并且没有完成，删除时需要使用级联删除，否则会报错**</font>
 
-#### 5.9.1. 代码实现
+#### 5.8.1. 代码实现
 
 ```java
 @Test
@@ -1124,7 +1106,7 @@ public void testDeleteDeployMent() {
 }
 ```
 
-#### 5.9.2. 流程删除注意事项
+#### 5.8.2. 流程删除注意事项
 
 流程删除需要注意几点：
 
@@ -1132,16 +1114,101 @@ public void testDeleteDeployMent() {
 2. 如果该流程定义下没有正在运行的流程，则可以用普通删除。
 3. 如果该流程定义下存在已经运行的流程，使用普通删除报错，可使用级联删除方法将流程及相关记录全部删除。原理是先删除没有完成流程节点，最后就可以完全删除流程定义信息。<u>*项目开发中级联删除操作一般只开放给超级管理员使用*</u>
 
-### 5.10. 流程资源下载
+### 5.9. 流程资源下载
 
+在前面流程定义部署时，流程资源文件已经上传到数据库了，如果其他用户想要查看这些资源文件，可以从数据库中把资源文件下载到本地。解决方案有两种：
 
+1. 通过 jdbc 操作数据，将 blob 类型数据读取出来，保存到文件目录
+2. 使用 activiti 的 api 来实现（推荐）
 
+因为涉及到文件IO操作，示例使用 commons-io.jar 解决IO的操作。在示例项目中，引入 commons-io 依赖包：
 
+```xml
+<dependency>
+    <groupId>commons-io</groupId>
+    <artifactId>commons-io</artifactId>
+    <version>2.11.0</version>
+</dependency>
+```
 
+通过流程定义对象获取流程定义资源，获取bpmn和png
 
+```java
+@Test
+public void testGetDeployMentResources() throws Exception {
+    // 1、创建 ProcessEngine 流程引擎
+    ProcessEngine processEngine = ProcessEngines.getDefaultProcessEngine();
+    // 2、获取 Repositoryservice 资源管理类
+    RepositoryService repositoryService = processEngine.getRepositoryService();
+    // 3、获取查询对象 ProcessDefinitionQuery 查询流程定义信息
+    ProcessDefinition processDefinition = repositoryService.createProcessDefinitionQuery()
+            .processDefinitionKey("myEvection")
+            .singleResult();
+    // 4、通过流程定义信息，获取部署ID
+    String deploymentId = processDefinition.getDeploymentId();
+    // 5、通过 RepositoryService 接口根据部署id参数，读取资源信息（png 和 bpmn）
+    // 从流程定义表中，获取png图片的目录和名字
+    String pngName = processDefinition.getDiagramResourceName();
+    // 通过 部署id和 文件名字来获取图片的资源输入流
+    InputStream pngInput = repositoryService.getResourceAsStream(deploymentId, pngName);
+    // 同样的方式获取 bpmn 的输入流
+    String bpmnName = processDefinition.getResourceName();
+    InputStream bpmnInput = repositoryService.getResourceAsStream(deploymentId, bpmnName);
 
+    // 6、构造 OutputStream 流
+    File pngFile = new File("E:/evectionflow01.png");
+    File bpmnFile = new File("E:/evectionflow01.bpmn");
+    FileOutputStream pngOutStream = new FileOutputStream(pngFile);
+    FileOutputStream bpmnOutStream = new FileOutputStream(bpmnFile);
+    // 7、输入流，输出流的转换
+    IOUtils.copy(pngInput, pngOutStream);
+    IOUtils.copy(bpmnInput, bpmnOutStream);
+    // 8、关闭流
+    pngOutStream.close();
+    bpmnOutStream.close();
+    pngInput.close();
+    bpmnInput.close();
+}
+```
 
+说明：
 
+1. `deploymentId` 为流程部署ID
+2. `resource_name` 为 `act_ge_bytearray` 表中 `NAME_` 列的值
+3. 使用 `RepositoryService` 的 `getDeploymentResourceNames` 方法可以获取指定部署下得所有文件的名称
+4. 使用 `RepositoryService` 的 `getResourceAsStream` 方法传入部署ID和资源图片名称可以获取部署下指定名称文件的输入流
+
+最后的将输入流中的图片资源进行输出。
+
+### 5.10. 查看流程历史信息
+
+即使流程定义已经删除了，流程执行的历史信息依然保存在 activiti 的 `act_hi_*` 相关的表中。所以还是可以通过 `HistoryService` 历史管理类来查询流程执行的相关历史信息。
+
+```java
+@Test
+public void testQueryHistoryInfo() {
+    // 1、创建 ProcessEngine 流程引擎
+    ProcessEngine processEngine = ProcessEngines.getDefaultProcessEngine();
+    // 2、获取 HistoryService 历史管理类
+    HistoryService historyService = processEngine.getHistoryService();
+    // 3、获取 act_hi_actinst 表的查询对象
+    HistoricActivityInstanceQuery instanceQuery = historyService.createHistoricActivityInstanceQuery();
+    // 4、设置查询条件进行查询
+    List<HistoricActivityInstance> historicActivityInstances = instanceQuery
+            // .processInstanceId("5001") // 条件：根据 InstanceId 查询
+            .processDefinitionId("myEvection:2:2504") // 条件：根据 InstanceId 查询
+            .orderByHistoricActivityInstanceStartTime().asc() // 排序操作，根据开始时间 asc 升序排序
+            .list(); // 查询所有内容列表
+    // 循环数据
+    for (HistoricActivityInstance instance : historicActivityInstances) {
+        System.out.println(instance.getActivityId());
+        System.out.println(instance.getActivityName());
+        System.out.println(instance.getProcessDefinitionId());
+        System.out.println(instance.getProcessInstanceId());
+        System.out.println("==========================");
+    }
+}
+```
 
 
 
