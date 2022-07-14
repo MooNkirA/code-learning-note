@@ -272,3 +272,382 @@ public void testCompletSuspendTask() {
 ![](images/76665216248857.png)
 
 ## 2. 个人任务
+
+### 2.1. 任务负责人分配方式1 - 固定分配
+
+在进行业务流程建模时，选择相应的任务节点，并在 properties 视图中，填写 Assignee 项指定固定的任务负责人。如图：
+
+![](images/126810209220754.png)
+
+固定分配方式，任务只管一步一步执行任务，执行到每一个任务将按照 bpmn 的配置去分配任务负责人。实际应用中，此方式明显不适用。
+
+### 2.2. 任务负责人分配方式2 - 表达式
+  
+使用表达式分配的方式，可以灵活指定任务负责人。
+
+#### 2.2.1. UEL 表达式
+
+Activiti 使用 UEL 表达式，UEL 是 java EE6 规范的一部分，UEL（Unified Expression Language）即统一表达式语言，Activiti 支持两种 UEL 表达式：**UEL-value** 和 **UEL-method**
+
+UEL 定义语法：
+
+```java
+${变量|对象属性|对象方法}
+```
+
+##### 2.2.1.1. UEL-value 方式定义
+
+例如在 Assignee 配置项中填写 `${assignee0}`，其中 `assignee0` 是 activiti 的一个流程变量
+
+![](images/337182310239180.png)
+
+也可以使用对象属性的方式，如 `${user.assignee}`，其中 user 也是 activiti 的一个流程变量，`user.assignee` 表示通过调用 user 的 getter 方法获取值。
+
+![](images/42492610227047.png)
+
+##### 2.2.1.2. UEL-method 方式定义
+
+UEL-method 方式是通过类调用方法的形式实现
+
+![](images/235564010247213.png)
+
+例如在 Assignee 配置项中填写 `${userBean.getUserId()}`，其中 `userBean` 是 spring 容器管理的一个 bean，表示调用该 bean 的 `getUserId()` 方法。
+
+##### 2.2.1.3. UEL-method 与 UEL-value 结合 
+
+以上两种方式可以组合一起使用。
+
+例如在 Assignee 配置项中填写 `${ldapService.findManagerForEmployee(emp)}`。其中 `ldapService` 是 spring 容器的一个 bean，`findManagerForEmployee` 是该 bean 的一个方法，emp 是 activiti 流程变量，然后 emp 作为参数传到 `ldapService.findManagerForEmployee` 方法中。 
+
+##### 2.2.1.4. 其它方式
+
+表达式支持解析基础类型、bean、list、array 和 map，也可作为条件判断。例如
+
+```java
+${order.price > 100 && order.price < 250}
+```
+
+#### 2.2.2. 编程实现表达式配置负责人
+
+1. 定义新的流程图，任务负责人使用 UEL 表达式来配置，如下图：
+
+![](images/375701611239882.png)
+
+2. 部署流程
+
+```java
+@Test
+public void testDeployment() {
+    // 1、创建 ProcessEngine 流程引擎
+    ProcessEngine processEngine = ProcessEngines.getDefaultProcessEngine();
+    // 2、获取 RepositoryService 资源管理类
+    RepositoryService repositoryService = processEngine.getRepositoryService();
+    // 3、使用 service 进行流程的部署，定义一个流程的名字，把 bpmn 部署到数据库中
+    Deployment deploy = repositoryService.createDeployment()
+            .name("出差申请流程-uel")
+            .addClasspathResource("bpmn/evection-uel.bpmn20.xml")
+            .deploy();
+}
+```
+
+3. 启动流程时设置流程变量
+
+```java
+@Test
+public void testStartProcess() {
+    // 1、创建 ProcessEngine 流程引擎
+    ProcessEngine processEngine = ProcessEngines.getDefaultProcessEngine();
+    // 2、获取 RuntimeService 流程运行管理类
+    RuntimeService runtimeService = processEngine.getRuntimeService();
+    // 3、设定 assignee 的值，用来替换uel表达式
+    Map<String, Object> assigneeMap = new HashMap<>();
+    assigneeMap.put("assignee0", "MooN");
+    assigneeMap.put("assignee1", "李经理");
+    assigneeMap.put("assignee2", "王总经理");
+    assigneeMap.put("assignee3", "赵财务");
+    // 4、根据流程定义Id（其实是数据库表 act_re_procdef 的 key 字段），并设置流程变量，启动流程
+    ProcessInstance instance = runtimeService
+            .startProcessInstanceByKey("myEvection-uel", assigneeMap);
+    // 输出流程信息
+    System.out.println("流程定义ID：" + instance.getProcessDefinitionId());
+    System.out.println("流程实例ID：" + instance.getId());
+    System.out.println("当前活动的ID：" + instance.getActivityId());
+}
+```
+
+启动成功后，观察数据库 act_ru_variable 表，记录示例中设置的流程变量
+
+![](images/359803911236437.png)
+
+流程任务运行表 act_ru_task，也记录任务相应的负责人名称
+
+![](images/327774011232191.png)
+
+#### 2.2.3. 表达式使用注意事项
+
+由于使用了表达式分配，必须保证在任务执行过程表达式执行成功。比如：
+
+某个任务使用了表达式 `${order.price > 100 && order.price < 250}`，当执行该任务时必须保证 order 在流程变量中存在，否则 activiti 抛出异常。 
+
+### 2.3. 任务负责人分配方式3 - 监听器
+
+#### 2.3.1. 任务监听器概述
+
+Activiti 可以使用监听器来完成很多流程的业务。因此也可使用监听器的方式来指定负责人，那么在流程设计时就不需要指定 assignee 选项
+
+**任务监听器**是发生对应的任务相关事件时执行自定义 java 逻辑或表达式。
+
+任务相当事件（此截图来源于idea 2019版本之前的 actiBPM 插件）包括：
+
+![](images/468811115247213.png)
+
+Event的选项包含：
+
+- Create：任务创建后触发
+- Assignment：任务分配后触发
+- Delete：任务完成后触发
+- All：所有事件发生都触发
+
+#### 2.3.2. Camunda Modeler 工具的安装
+
+Activiti BPMN visualizer 插件无法定义监听器，需要使用扩展程序 camunda-modeler。
+
+官网: https://camunda.com
+
+安装步骤（网上资料，未经测试）：
+
+![](images/368105114220754.png)
+
+#### 2.3.3. 监听器分配具体实现
+
+##### 2.3.3.1. 创建监听器类
+
+定义任务监听类，并且必须实现 `org.activiti.engine.delegate.TaskListener` 接口 
+
+```java
+public class MyTaskListener implements TaskListener {
+    /**
+     * 流程启动时，会回调此方法
+     *
+     * @param delegateTask
+     */
+    @Override
+    public void notify(DelegateTask delegateTask) {
+        // 判断当前的任务是“创建申请”并且是“create 事件”
+        if ("创建申请".equals(delegateTask.getName()) &&
+                "create".equals(delegateTask.getEventName())) {
+            delegateTask.setAssignee("天锁斩月");
+        }
+    }
+}
+```
+
+##### 2.3.3.2. 流程图定义监听器
+
+> Notes: 因为插件不能定义，又没有安装前面的扩展程序 camunda-modeler，这里使用手动修改 bpmn xml 文件来解决。
+
+1. 使用 Activiti BPMN visualizer 插件正常的创建 bpmn 流程图，暂不需要填写 Assignee 配置项
+
+![](images/40590415227047.png)
+
+2. 参考其他已定义了监听器的 bpmn 文件，手动增加监听器部分配置即可。如下：
+
+```xml
+...省略
+<startEvent id="sid-8c7b3b1a-a7e7-4ffa-878d-a6575168c436"/>
+<userTask id="sid-12d16fe6-461d-406b-ae4d-27a72fe46aac" name="创建申请">
+    <extensionElements>
+        <activiti:taskListener class="com.moon.activiti.listener.MyTaskListener" event="all"/>
+    </extensionElements>
+</userTask>
+<userTask id="sid-1c8d0716-1c86-45b0-a753-015c4b47e50c" name="审批申请">
+    <extensionElements>
+        <activiti:taskListener class="com.moon.activiti.listener.MyTaskListener" event="all"/>
+    </extensionElements>
+</userTask>
+<endEvent id="sid-4c5596a3-ac8d-4166-b470-710da9ac9365"/>
+...省略
+```
+
+##### 2.3.3.3. 部署与开启流程
+
+```java
+public class ActivitiTaskListenerTest {
+    /**
+     * 流程部署
+     */
+    @Test
+    public void testDeployment() {
+        // 1、创建 ProcessEngine 流程引擎
+        ProcessEngine processEngine = ProcessEngines.getDefaultProcessEngine();
+        // 2、获取 RepositoryService 资源管理类
+        RepositoryService repositoryService = processEngine.getRepositoryService();
+        // 3、使用 service 进行流程的部署，定义一个流程的名字，把 bpmn 部署到数据库中
+        Deployment deploy = repositoryService.createDeployment()
+                .name("测试监听器")
+                .addClasspathResource("bpmn/listener-demo.bpmn20.xml")
+                .deploy();
+    }
+
+    /**
+     * 启动流程
+     */
+    @Test
+    public void testStartProcess() {
+        // 1、创建 ProcessEngine 流程引擎
+        ProcessEngine processEngine = ProcessEngines.getDefaultProcessEngine();
+        // 2、获取 RuntimeService 流程运行管理类
+        RuntimeService runtimeService = processEngine.getRuntimeService();
+        // 3、根据流程定义Id（其实是数据库表 act_re_procdef 的 key 字段）启动流程
+        ProcessInstance instance = runtimeService.startProcessInstanceByKey("listener-demo");
+    }
+}
+```
+
+部署流程
+
+![](images/329382915239882.png)
+
+在 `MyTaskListener` 的 `notify` 的方法打上断点，使用 debug 模式运行启动流程，可查看 `DelegateTask` 对象的内容如下：
+
+![](images/247433015236437.png)
+
+启动流程后，查看 act_ru_task 表，任务负责人名称成功记录
+
+![](images/61823215232191.png)
+
+#### 2.3.4. 监听器使用注意事项 
+
+使用监听器分配方式，按照监听事件去执行监听类的 notify 方法，方法如果不能正常执行也会影响任务的执行。 
+
+### 2.4. 回顾：查询任务
+
+> 此部分内容在基础篇已有简单了解，此处结合前端的任务负责人分配来回顾
+
+#### 2.4.1. 查询任务负责人的待办任务
+
+```java
+@Test
+public void testTaskQueryByAssignee() {
+    // 1、创建 ProcessEngine 流程引擎
+    ProcessEngine processEngine = ProcessEngines.getDefaultProcessEngine();
+    // 2、获取 TaskService 任务管理类
+    TaskService taskService = processEngine.getTaskService();
+    // 3、根据流程 key 和 任务的负责人 查询任务
+    List<Task> tasks = taskService.createTaskQuery()
+            .processDefinitionKey("myEvection") // 流程Key
+            .includeProcessVariables()
+            .taskAssignee("Sam") // 只查询该任务负责人的任务
+            .list();
+    // 4、输出任务信息
+    for (Task task : tasks) {
+        System.out.println("流程实例id：" + task.getProcessInstanceId());
+        System.out.println("任务id：" + task.getId());
+        System.out.println("任务负责人：" + task.getAssignee());
+        System.out.println("任务名称：" + task.getName());
+    }
+}
+```
+
+#### 2.4.2. 关联 businessKey
+
+需求：在 activiti 实际应用时，查询待办任务可能要显示出业务系统的一些相关信息。
+
+比如：查询待审批出差任务列表需要将出差单的日期、 出差天数等信息显示出来。出差天数等信息在业务系统中存在，而并没有在 activiti 数据库中存在，所以是无法通过 activiti 的 api 查询到出差天数等信息。
+
+实现：在查询待办任务时，通过 businessKey（业务标识 ）关联查询业务系统的出差单表，查询出出差天数等信息。 
+
+```java
+@Test
+public void testQueryProcessInstanceByBusinessKey() {
+    // 1、创建 ProcessEngine 流程引擎
+    ProcessEngine processEngine = ProcessEngines.getDefaultProcessEngine();
+    // 2、获取 RuntimeService 流程运行管理类
+    RuntimeService runtimeService = processEngine.getRuntimeService();
+    // 获取 TaskService 任务管理类
+    TaskService taskService = processEngine.getTaskService();
+    // 3、查询流程定义key和任务负责人查询任务对象
+    List<Task> tasks = taskService.createTaskQuery()
+            .processDefinitionKey("myEvection")
+            .taskAssignee("Sam")
+            // .singleResult();
+            .list();// 因为之前测试的原因，数据库有多条记录，如果只有一条记录，可用 singleResult
+
+    // 4、通过 task 对象获取实例id
+    for (Task task : tasks) {
+        ProcessInstance processInstance = runtimeService.createProcessInstanceQuery()
+                .processInstanceId(task.getProcessInstanceId())
+                .singleResult();
+        // 5、通过流程实例 ProcessInstance，得到关联的 businessKey
+        String businessKey = processInstance.getBusinessKey();
+        // 以下可以做相关的业务处理
+        System.out.println("businessKey == " + businessKey);
+    }
+}
+```
+
+### 2.5. 回顾：完成任务
+
+> 此部分内容在基础篇已有简单了解，此处结合前端的任务负责人分配来回顾
+
+<font color=red>**注意：在实际应用中，完成任务前需要校验任务的负责人是否具有该任务的办理权限**</font>。以下示例是根据任务id查询并完成
+
+```java
+@Test
+public void testCompletTaskByTaskId() {
+    // 1、创建 ProcessEngine 流程引擎
+    ProcessEngine processEngine = ProcessEngines.getDefaultProcessEngine();
+    // 2、获取 TaskService 任务管理类
+    TaskService taskService = processEngine.getTaskService();
+    /*
+     * 3、查询任务。完成任务前，需要校验该负责人可以完成当前任务
+     *  校验方法：根据任务id和任务负责人查询当前任务，如果查到该用户有权限，就完成
+     */
+    Task task = taskService.createTaskQuery()
+            .taskId("22505") // 任务ID
+            .taskAssignee("Sam") // 只查询该任务负责人的任务
+            .singleResult();
+    // 4、根据任务id，完成任务
+    if (task != null) {
+        taskService.complete(task.getId());
+        System.out.println("完成任务");
+    }
+}
+```
+
+## 3. 流程变量
+
+### 3.1. 什么是流程变量
+
+流程变量在 Activiti 中是一个非常重要的角色，流程运转有时需要依赖流程变量，业务系统和 Activiti 结合时少不了流程变量，流程变量就是 Activiti 在管理工作流时根据管理需要而设置的变量。
+
+比如：在出差申请流程流转时如果出差天数大于 3 天则由总经理审核，否则由人事直接审核，出差天数就可以设置为流程变量，在流程流转时使用。 
+
+<font color=red>**注意：虽然流程变量中理论上可以存储业务数据，并通过 Activiti 的 api 查询流程变量从而实现查询业务数据，但是不建议这样使用，因为业务数据查询应该是由业务系统负责，Activiti 设置流程变量只是为了流程执行需要而创建**</font>
+
+### 3.2. 流程变量类型
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
