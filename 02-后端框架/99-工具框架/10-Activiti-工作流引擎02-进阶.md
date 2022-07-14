@@ -627,17 +627,474 @@ public void testCompletTaskByTaskId() {
 
 ### 3.2. 流程变量类型
 
+如果将 pojo 对象类型存储到流程变量中，必须实现序列化接口 `Serializable`，为了防止由于新增字段无法反序列化，需要生成 `serialVersionUID`。 
+
+![](images/41793710220755.png)
+
+### 3.3. 流程变量作用域
+
+流程变量的作用域可以是一个流程实例(processInstance)，或一个任务(task)，或一个执行实例(execution)
+
+#### 3.3.1. global 变量
+
+流程变量的默认作用域是流程实例。当一个流程变量的作用域为流程实例时，可以称为 global 变量
+
+<font color=red>**Notes: global 变量中变量名不允许重复，设置相同名称的变量，后设置的值会覆盖前设置的变量值**</font>
+
+#### 3.3.2. local 变量
+
+任务和执行实例仅仅是针对一个任务和一个执行实例范围，范围没有流程实例大， 称为 local 变量。
+
+local 变量由于在不同的任务或不同的执行实例中，作用域互不影响，变量名可以相同没有影响。local 变量名也可以和 global 变量名相同，没有影响。 
+
+### 3.4. 流程变量的使用方法
+
+#### 3.4.1. 在属性上使用 UEL 表达式
+
+可以选择某个任务，在 assignee 项中设置 UEL 表达式，表达式的值为任务的负责人，比如：`${assignee}`，assignee 就是一个流程变量名称。
+
+Activiti 获取 UEL 表达式的值，即流程变量 assignee 的值 ，将 assignee 的值作为任务的负责人进行任务分配
 
 
+#### 3.4.2. 在连线上使用 UEL 表达式
+
+可以在连线上设置 UEL 表达式，决定流程走向。
+
+比如：`${price<10000}`。price 就是一个流程变量名称，uel 表达式结果类型为布尔类型。如果 UEL 表达式是 true，要决定流程执行走向。
+
+### 3.5. 使用 Global 变量控制流程
+
+#### 3.5.1. 需求
+
+示例需求：员工创建出差申请单，由部门经理审核，部门经理审核通过后出差3天及以下由人财务直接审批，3天以上先由总经理审核，总经理审核通过再由财务审批。最终流程图：
+
+![](images/309201911232192.png)
+
+#### 3.5.2. 流程图定义步骤
+
+> 建议在连线上设置 Name 属性，以便在流程图可明显看出分支的条件
+
+1. 设置出差天数大于等于3连线条件
+
+直接使用变量命名，如 `num`：
+
+![](images/319172211247676.png)
+
+也可以使用对象参数命名，如 `evection.num`：
+
+![](images/508192011250072.png)
+
+2. 设置出差天数小于3连线条件（同上）
+
+#### 3.5.3. 程序中设置 global 流程变量
+
+示例中，在部门经理审核前设置流程变量，变量值为出差单信息（包括出差天数），部门经理审核后可以根据流程变量的值决定流程走向。
+
+在设置 global 流程变量时，可以在启动流程时设置，也可以在任务办理时设置
+
+##### 3.5.3.1. 创建 POJO 对象
+
+创建出差申请 pojo 对象，注意需要实现 `Serializable` 接口与生成 `serialVersionUID`
+
+```java
+@Data
+public class Evection implements Serializable {
+    private static final long serialVersionUID = -5791160141505345527L;
+    /**
+     * 主键Id
+     */
+    private Long id;
+    /**
+     * 出差单的名字
+     */
+    private String evectionName;
+    /**
+     * 出差天数
+     */
+    private Double num;
+    /**
+     * 开始时间
+     */
+    private Date beginDate;
+    /**
+     * 出差结束时间
+     */
+    private Date endDate;
+    /**
+     * 目的地
+     */
+    private String destination;
+    /**
+     * 出差原因
+     */
+    private String reson;
+}
+```
+
+##### 3.5.3.2. 部署流程
+
+```java
+@Test
+public void testDeployment() {
+    // 1、创建 ProcessEngine 流程引擎
+    ProcessEngine processEngine = ProcessEngines.getDefaultProcessEngine();
+    // 2、获取 RepositoryService 资源管理类
+    RepositoryService repositoryService = processEngine.getRepositoryService();
+    // 3、使用 service 进行流程的部署，定义一个流程的名字，把 bpmn 部署到数据库中
+    Deployment deploy = repositoryService.createDeployment()
+            .name("出差申请流程-global")
+            .addClasspathResource("bpmn/evection-global.bpmn20.xml")
+            .deploy();
+    // 输出部署信息
+    System.out.println("流程部署id=" + deploy.getId());
+    System.out.println("流程部署名字=" + deploy.getName());
+}
+```
+
+部署成功
+
+![](images/399005414247214.png)
+
+##### 3.5.3.3. 启动流程时设置变量
+
+在启动流程时设置流程变量，变量的作用域是整个流程实例。通过 `Map<key,value>` 设置流程变量，map 中可以设置多个变量，key 为流程变量的名字。
+
+调用 `RuntimeService` 类的 `startProcessInstanceByKey(processDefinitionKey, variables)` 方法时设置，流程变量作用域是一个流程实例，流程变量使用Map存储，同一个流程实例设置变量map中key相同，后者覆盖前者。
+
+示例代码如下：
+
+1. 启动流程，设置流程变量中出差日期为2天
+
+```java
+@Test
+public void testStartProcess() {
+    // 创建 ProcessEngine 流程引擎
+    ProcessEngine processEngine = ProcessEngines.getDefaultProcessEngine();
+    // 获取 RuntimeService 流程运行管理类
+    RuntimeService runtimeService = processEngine.getRuntimeService();
+    // 流程变量的map
+    Map<String, Object> variables = new HashMap<>();
+    // 设置流程变量 Pojo
+    Evection evection = new Evection();
+    // 设置出差日期
+    evection.setNum(2d);
+    // 把流程变量的pojo放入map
+    variables.put("evection", evection);
+    // 设置任务负责人
+    variables.put("assignee0", "king");
+    variables.put("assignee1", "王经理");
+    variables.put("assignee2", "杨总经理");
+    variables.put("assignee3", "张财务");
+    // 根据流程定义Id（其实是数据库表 act_re_procdef 的 key 字段），并设置流程变量，启动流程
+    ProcessInstance instance = runtimeService
+            .startProcessInstanceByKey("evection-global", variables);
+    // 输出流程信息
+    System.out.println("流程定义ID：" + instance.getProcessDefinitionId());
+    System.out.println("流程实例ID：" + instance.getId());
+    System.out.println("当前活动的ID：" + instance.getActivityId());
+}
+```
+
+成功设置流程变量
+
+![](images/35845614239883.png)
+
+![](images/238225614236438.png)
+
+根据每一个任务不同的负责人来完成任务（多次运行，分别修改负责人名称变量即可），观察是否走向预期的分支
+
+```java
+@Test
+public void completTask() {
+    // 任务负责人（根据当前流程的任务来修改相应的名称）
+    String assingee = "king";
+    // String assingee = "王经理";
+    // String assingee = "杨总经理";
+    // String assingee = "张财务";
+    // 获取流程引擎
+    ProcessEngine processEngine = ProcessEngines.getDefaultProcessEngine();
+    // 获取 TaskService 任务管理类
+    TaskService taskService = processEngine.getTaskService();
+    // 根据流程定义key与任务负责人来查询任务
+    Task task = taskService.createTaskQuery()
+            .processDefinitionKey("evection-global")
+            .taskAssignee(assingee)
+            .singleResult();
+    if (task != null) {
+        // 根据任务id来 完成任务
+        taskService.complete(task.getId());
+    }
+}
+```
+
+![](images/223525714232192.png)
+
+> Notes: **当流程全部结束后，相应的流程变量也会删除**
+>
+> ![](images/508370115250072.png)
+
+2. 修改代码启动新流程，设置流程变量中出差日期为5天，同样按上面的流程测试，观察是否走“总经理审批”的分支
+
+![](images/521320315247676.png)
+
+##### 3.5.3.4. 任务办理时设置变量
+
+在完成任务时设置流程变量，该流程变量只有在该任务完成后其它结点才可使用该变量，它的作用域是整个流程实例，如果设置的流程变量的key在流程实例中已存在相同的名字则后设置的变量替换前边设置的变量。
+
+通过当前任务设置流程变量，需要指定当前任务id，如果当前执行的任务id不存在则抛出异常。任务办理时也是通过 `Map<key,value>` 设置流程变量，一次可以设置多个变量。
+
+示例代码如下：
+
+1. 启动流程，这里只设置任务负责人的变量即可（删除设置pojo变量部分代码）
+
+```java
+@Test
+public void testStartProcess() {
+    // 创建 ProcessEngine 流程引擎
+    ProcessEngine processEngine = ProcessEngines.getDefaultProcessEngine();
+    // 获取 RuntimeService 流程运行管理类
+    RuntimeService runtimeService = processEngine.getRuntimeService();
+    // 流程变量的map
+    Map<String, Object> variables = new HashMap<>();
+    // 设置任务负责人
+    variables.put("assignee0", "kitty");
+    variables.put("assignee1", "陈经理");
+    variables.put("assignee2", "欧阳总经理");
+    variables.put("assignee3", "黄财务");
+    // 根据流程定义Id（其实是数据库表 act_re_procdef 的 key 字段），并设置流程变量，启动流程
+    ProcessInstance instance = runtimeService
+            .startProcessInstanceByKey("evection-global", variables);
+    // 输出流程信息
+    System.out.println("流程定义ID：" + instance.getProcessDefinitionId());
+    System.out.println("流程实例ID：" + instance.getId());
+    System.out.println("当前活动的ID：" + instance.getActivityId());
+}
+```
+
+只有任务负责人的流程变量
+
+![](images/446101715245178.png)
+
+2. 完成任务，注意，完成“部门经理审批”的任务，就需要设置相应的pojo流程变量
+
+```java
+@Test
+public void completTask() {
+    // 任务负责人（根据当前流程的任务来修改相应的名称）
+    // String assingee = "kitty";
+    String assingee = "陈经理";
+    // String assingee = "欧阳总经理";
+    // String assingee = "黄财务";
+
+    // 获取流程引擎
+    ProcessEngine processEngine = ProcessEngines.getDefaultProcessEngine();
+    // 获取 TaskService 任务管理类
+    TaskService taskService = processEngine.getTaskService();
+    // 根据流程定义key与任务负责人来查询任务
+    Task task = taskService.createTaskQuery()
+            .processDefinitionKey("evection-global")
+            .taskAssignee(assingee)
+            .singleResult();
+    if (task != null) {
+        // 根据任务id来 完成任务(无设置变量)
+        // taskService.complete(task.getId());
+
+        /* notes: 在完成“部门经理审批”的任务时，需要设置 pojo 的流程变量，用于指定下一任务的分支 */
+        // 流程变量的map
+        Map<String, Object> variables = new HashMap<>();
+        // 设置流程变量 Pojo
+        Evection evection = new Evection();
+        // 设置出差日期(走 “部门经理审批” -> "财务审批" 分支)
+        // evection.setNum(2d);
+        // 设置出差日期(走 “部门经理审批” -> “总经理审批” -> "财务审批" 分支)
+        evection.setNum(5d);
+        // 把流程变量的pojo放入map
+        variables.put("evection", evection);
+        // 根据任务id来 完成任务，并设置流程变量
+        taskService.complete(task.getId(), variables);
+    }
+}
+```
+
+成功设置pojo的流程变量
+
+![](images/474273115226419.png)
+
+流程也走预期的分支
+
+![](images/186273215248859.png)
+
+> Notes: <font color=red>**在完成任务时设置的流程变量也启动流程时设置的一样，变量均在整个流程完成后才销毁**</font>
+
+##### 3.5.3.5. 通过当前流程实例设置
+
+通过流程实例id也设置全局变量，<font color=red>**值得注意的是，该流程实例必须未执行完成**</font>。
+
+```java
+@Test
+public void testSetGlobalVariableByExecutionId() {
+    // 当前流程实例执行 id，通常设置为当前执行的流程实例（注意：必须是未结束的流程实例）
+    String executionId = "xxx";
+    // 创建 ProcessEngine 流程引擎
+    ProcessEngine processEngine = ProcessEngines.getDefaultProcessEngine();
+    // 获取 RuntimeService 流程运行管理类
+    RuntimeService runtimeService = processEngine.getRuntimeService();
+    // 设置流程变量 Pojo
+    Evection evection = new Evection();
+    // 设置出差日期
+    evection.setNum(5d);
+
+    /*
+     * 通过流程运行管理类的方法，给指定id的流程设置单个流程变量
+     * public void setVariable(String executionId, String variableName, Object value)
+     *  executionId 参数：流程实例的ID
+     *  variableName 参数：流程变量的名称
+     *  value 参数：流程变量的值
+     */
+    runtimeService.setVariable(executionId, "evection", evection);
+
+    /*
+     * 通过流程运行管理类的方法，给指定id的流程一次性设置多个流程变量
+     * public void setVariables(String executionId, Map<String, ? extends Object> variables)
+     *  executionId 参数：流程实例的ID
+     *  variables 参数：多个流程变量 k-v 集合
+     */
+    // 流程变量的map
+    Map<String, Object> variables = new HashMap<>();
+    // 把流程变量的pojo放入map
+    variables.put("evection", evection);
+    // 设置其他变量
+    variables.put("name", "MooN");
+    variables.put("time", "12");
+    runtimeService.setVariables(executionId, variables);
+}
+```
+
+> Tips: 示例中 executionId 必须是当前未结束的流程实例的执行id，通常此 id 设置流程实例的id。也可以通 `runtimeService.getVariable()` 获取流程变量。
+
+##### 3.5.3.6. 通过当前任务设置
+
+任务id必须是当前待办任务id(未完成)，在 `act_ru_task` 表中存在。如果该任务已结束，则会报错。也可以通过 `taskService.getVariable()` 获取流程变量。
+
+```java
+@Test
+public void testSetGlobalVariableByTaskId() {
+    // 当前待办任务id（注意：必须是未完成的任务）
+    String taskId = "xxx";
+    // 创建 ProcessEngine 流程引擎
+    ProcessEngine processEngine = ProcessEngines.getDefaultProcessEngine();
+    // 获取 TaskService 任务管理类
+    TaskService taskService = processEngine.getTaskService();
+    // 设置流程变量 Pojo
+    Evection evection = new Evection();
+    // 设置出差日期
+    evection.setNum(5d);
+
+    /*
+     * 通过任务管理类的方法，给指定id的任务设置单个流程变量
+     * public void setVariable(String taskId, String variableName, Object value)
+     *  taskId 参数：未完成的任务ID
+     *  variableName 参数：流程变量的名称
+     *  value 参数：流程变量的值
+     */
+    taskService.setVariable(taskId, "evection", evection);
+
+    /*
+     * 通过任务管理类的方法，给指定id的任务一次性设置多个流程变量
+     * public void setVariables(String taskId, Map<String, ? extends Object> variables)
+     *  executionId 参数：未完成的任务ID
+     *  variables 参数：多个流程变量 k-v 集合
+     */
+    // 流程变量的map
+    Map<String, Object> variables = new HashMap<>();
+    // 把流程变量的pojo放入map
+    variables.put("evection", evection);
+    // 设置其他变量
+    variables.put("name", "MooN");
+    variables.put("time", "12");
+    taskService.setVariables(taskId, variables);
+}
+```
+
+#### 3.5.4. 注意事项
+
+1. 如果 UEL 表达式中流程变量名不存在则报错。
+2. 如果 UEL 表达式中流程变量值为 NULL，流程不按 UEL 表达式去执行，而流程结束
+3. 如果 UEL 表达式都不符合条件，流程结束
+4. 如果连线不设置条件，会走 flow 序号小的那条分支线
+
+#### 3.5.5. 涉及操作的数据库表
+
+设置流程变量会在当前执行流程变量表插入记录，同时也会在历史流程变量表也插入记录。
+
+```sql
+-- 当前流程变量表
+SELECT * FROM act_ru_variable;
+```
+
+记录当前运行流程实例可使用的流程变量，包括 global 和 local 变量。表字段说明如下：
+
+|       字段       |                       说明                        |
+| --------------- | ------------------------------------------------ |
+| `Id_`           | 主键                                              |
+| `Type_`         | 变量类型                                          |
+| `Name_`         | 变量名称                                          |
+| `Execution_id_` | 所属流程实例执行id，global和local变量都存储          |
+| `Proc_inst_id_` | 所属流程实例id，global和local变量都存储             |
+| `Task_id_`      | 所属任务id，local变量存储                          |
+| `Bytearray_`    | serializable类型变量存储对应act_ge_bytearray表的id |
+| `Double_`       | double类型变量值                                  |
+| `Long_`         | long类型变量值                                    |
+| `Text_`         | text类型变量值                                    |
 
 
+```sql
+-- 历史流程变量表
+SELECT * FROM act_hi_varinst;
+```
+
+记录所有已创建的流程变量，包括 global 和 local 变量。*字段意义参考流程变量表。*
+
+#### 3.5.6. 测试说明
+
+正常测试：
+
+- 设置流程变量的值大于等于3天
+- 设计流程变量的值小于3天
+
+异常测试：
+
+- 流程变量不存在
+- 流程变量的值为空 NULL，price 属性为空
+- UEL 表达式都不符合条件  
+- 不设置连线的条件
+
+### 3.6. 设置 local 流程变量
 
 
+## 4. 组任务
 
+### 4.1. 需求分析
 
+在流程定义中在任务结点的 assignee 只能固定设置一个任务负责人，并且在流程定义时将参与者固定设置在 .bpmn 文件中，如果临时任务负责人变更则需要修改流程定义，系统可扩展性差。
 
+针对这种情况可以给任务设置多个候选人，可以从候选人中选择参与者来完成任务。 
 
+### 4.2. 设置任务候选人
 
+在流程图中任务节点的 candidate-users(候选人)配置项中设置，多个候选人之间用逗号(`,`)分开。 
+
+![](images/125245416243995.png)
+
+相应生成的 bpmn 文件
+
+```xml
+<userTask id="sid-1bf63446-bcf6-462a-85c6-88fefb727b49" name="部门经理审批" activiti:candidateUsers="MooN,kirA,Zero"/>
+```
+
+可以看到部门经理的审核人已经设置为 "MooN,kirA,Zero" 这样的一组候选人，可以使用 `activiti:candiateUsers="用户1,用户2,用户3"` 的这种方式来实现设置一组候选人 
+
+### 4.3. 组任务办理流程
 
 
 
