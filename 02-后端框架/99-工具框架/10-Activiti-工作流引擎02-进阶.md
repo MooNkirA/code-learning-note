@@ -1071,6 +1071,109 @@ SELECT * FROM act_hi_varinst;
 
 ### 3.6. 设置 local 流程变量
 
+#### 3.6.1. 任务办理时设置
+
+任务办理时设置 local 流程变量，当前运行的流程实例只能在该任务结束前使用，任务结束后该变量无法再使用，可以通过查询历史任务查询
+
+```java
+@Test
+public void testSetLocalVariableOnCompletTask() {
+    // 任务id
+    String taskId = "1404";
+    // 创建 ProcessEngine 流程引擎
+    ProcessEngine processEngine = ProcessEngines.getDefaultProcessEngine();
+    // 获取 TaskService 任务管理类
+    TaskService taskService = processEngine.getTaskService();
+    // 定义流程变量 map
+    Map<String, Object> variables = new HashMap<>();
+    Evection evection = new Evection();
+    evection.setNum(3d);
+    // 变量名是 evection，变量值是 POJO 对象
+    variables.put("evection", evection);
+    // 设置为 local 变量，作用域为指定ID的任务
+    taskService.setVariablesLocal(taskId, variables);
+    // 完成任务
+    taskService.complete(taskId);
+}
+```
+
+> Tips: <font color=purple>**设置作用域为任务的 local 变量，每个任务可以设置同名的变量，互不影响**</font>
+
+#### 3.6.2. 通过当前任务设置
+
+需要注意，通过当前任务设置 local 流程变量，任务id 必须是当前待办任务，即在 act_ru_task 表中存在
+
+```java
+@Test
+public void testSetLocalVariableByTaskId() {
+    // 当前待办任务id
+    String taskId = "1404";
+    // 创建 ProcessEngine 流程引擎
+    ProcessEngine processEngine = ProcessEngines.getDefaultProcessEngine();
+    // 获取 TaskService 任务管理类
+    TaskService taskService = processEngine.getTaskService();
+    // 设置流程变量 Pojo
+    Evection evection = new Evection();
+    // 设置出差日期
+    evection.setNum(5d);
+
+    /*
+     * 通过任务管理类的方法，给指定id的任务设置单个 local 流程变量
+     * void setVariableLocal(String taskId, String variableName, Object value)
+     *  taskId 参数：未完成的任务ID
+     *  variableName 参数：流程变量的名称
+     *  value 参数：流程变量的值
+     */
+    taskService.setVariableLocal(taskId, "evection", evection);
+
+    /*
+     * 通过任务管理类的方法，给指定id的任务一次性设置多个流程变量
+     * void setVariablesLocal(String taskId, Map<String, ? extends Object> variables)
+     *  executionId 参数：未完成的任务ID
+     *  variables 参数：多个流程变量 k-v 集合
+     */
+    // 流程变量的map
+    Map<String, Object> variables = new HashMap<>();
+    // 把流程变量的pojo放入map
+    variables.put("evection", evection);
+    // 设置其他变量
+    variables.put("name", "MooN");
+    variables.put("time", "12");
+    taskService.setVariablesLocal(taskId, variables);
+}
+```
+
+#### 3.6.3. 查询包含 local 变量的任务历史
+
+示例中，在部门经理审核、总经理审核、财务审核时设置 local 变量，可通过 `HistoryService` 历史管理类查询每个历史任务时将流程变量的值也查询出来。
+
+```java
+@Test
+public void testQueryLocalVariableHistory() {
+    // 创建 ProcessEngine 流程引擎
+    ProcessEngine processEngine = ProcessEngines.getDefaultProcessEngine();
+    // 获取 TaskService 任务管理类
+    HistoryService historyService = processEngine.getHistoryService();
+    // 查询包含有 local 变量的历史任务列表
+    List<HistoricTaskInstance> historicTaskInstances = historyService
+            .createHistoricTaskInstanceQuery() // 创建历史任务查询对象
+            .includeTaskLocalVariables() // 查询结果包括 local 变量
+            .list();
+    // 循环数据
+    for (HistoricTaskInstance historicTaskInstance : historicTaskInstances) {
+        System.out.println("==============================");
+        System.out.println("任务id：" + historicTaskInstance.getId());
+        System.out.println("任务名称：" + historicTaskInstance.getName());
+        System.out.println("任务负责人：" + historicTaskInstance.getAssignee());
+        System.out.println("任务local变量：" + historicTaskInstance.getTaskLocalVariables());
+
+    }
+}
+```
+
+#### 3.6.4. 测试注意事项
+
+如果上边例子中设置 global 变量改为设置 local 变量，有可能会出现问题。因为 Local 变量在任务结束后就无法在当前流程实例执行中使用，如果后续的流程执行需要用到此变量则会报错。
 
 ## 4. 组任务
 
@@ -1096,15 +1199,614 @@ SELECT * FROM act_hi_varinst;
 
 ### 4.3. 组任务办理流程
 
+组任务办理流程主要分成如下几个步骤：
 
+查询组任务 --> 拾取(claim)任务 --> 查询个人任务 --> 办理个人任务
 
+#### 4.3.1. 查询组任务
 
+查询组任务，用于指定候选人，查询该候选人当前的待办任务。此时候选人不能立即办理任务。
 
+```java
+@Test
+public void testQueryTaskCandidateUser() {
+    // 任务候选人
+    String candidateUser = "kirA";
 
+    // 创建 ProcessEngine 流程引擎
+    ProcessEngine processEngine = ProcessEngines.getDefaultProcessEngine();
+    // 获取 TaskService 任务管理类
+    TaskService taskService = processEngine.getTaskService();
+    // 根据候选人查询组任务
+    List<Task> tasks = taskService.createTaskQuery()
+            .processDefinitionKey("evection-candidate")
+            .taskCandidateUser(candidateUser) // 根据候选人查询任务
+            .list();
+    // 循环数据
+    for (Task task : tasks) {
+        System.out.println("========================");
+        System.out.println("流程实例ID=" + task.getProcessInstanceId());
+        System.out.println("任务id=" + task.getId());
+        System.out.println("任务负责人=" + task.getAssignee());
+    }
+}
+```
 
+> Tips: 需要当前流程执行到的任务是有设置了任务候选人才能查询到数据。
 
+#### 4.3.2. 拾取(claim)组任务
 
+拾取任务是指，将候选人的组任务变成个人任务，原来候选人就变成了该任务的负责人。该组任务的所有候选人都能拾取。
 
+> Tips: 
+>
+> - <font color=purple>**即使该用户不是候选人也能拾取，建议拾取时校验是否有资格**</font>
+> - 组任务拾取后，该任务已有负责人，通过候选人将查询不到该任务
 
+示例代码：
 
+```java
+@Test
+public void testClaimTask() {
+    // 当前任务的id
+    String taskId = "82502";
+    // 待拾取任务的候选人
+    String candidateUser = "kirA";
 
+    // 创建 ProcessEngine 流程引擎
+    ProcessEngine processEngine = ProcessEngines.getDefaultProcessEngine();
+    // 获取 TaskService 任务管理类
+    TaskService taskService = processEngine.getTaskService();
+    // 根据候选人查询组任务
+    Task task = taskService.createTaskQuery()
+            .taskId(taskId)
+            .taskCandidateUser(candidateUser) // 根据候选人查询任务
+            .singleResult();
+    if (task != null) {
+        // 根据任务ID，并指定任务候选人，拾取任务
+        taskService.claim(taskId, candidateUser);
+        System.out.println("taskId- " + taskId + " -用户- " + candidateUser + " -拾取任务完成");
+    }
+}
+```
+
+查询数据表流程任务，使用候选人拾取前后：
+
+![](images/90195813239182.png)
+
+#### 4.3.3. 查询个人待办任务
+
+> 查询方式与基础篇个人任务查询相同
+
+```java
+@Test
+public void testQueryAssigneeTask() {
+    // 任务负责人
+    String assignee = "kirA";
+    // 创建 ProcessEngine 流程引擎
+    ProcessEngine processEngine = ProcessEngines.getDefaultProcessEngine();
+    // 获取 TaskService 任务管理类
+    TaskService taskService = processEngine.getTaskService();
+    // 根据负责人查询任务
+    List<Task> tasks = taskService.createTaskQuery()
+            .processDefinitionKey("evection-candidate")
+            .taskAssignee(assignee)
+            .list();
+    // 循环数据
+    for (Task task : tasks) {
+        System.out.println("----------------------------");
+        System.out.println("流程实例id：" + task.getProcessInstanceId());
+        System.out.println("任务id：" + task.getId());
+        System.out.println("任务负责人：" + task.getAssignee());
+        System.out.println("任务名称：" + task.getName());
+    }
+}
+```
+
+#### 4.3.4. 归还组任务
+
+如果个人不想办理该组任务，可以归还组任务，归还后该用户不再是该任务的负责人
+
+> Tips: <font color=red>**建议归还任务前校验该用户是否是该任务的负责人，也可以通过 `setAssignee` 方法将任务委托给其它用户负责，注意被委托的用户可以不是候选人（建议不要这样使用）**</font>
+
+```java
+@Test
+public void testAssigneeToGroupTask() {
+    // 当前任务的id
+    String taskId = "82502";
+    // 任务的负责人
+    String assignee = "kirA";
+
+    // 创建 ProcessEngine 流程引擎
+    ProcessEngine processEngine = ProcessEngines.getDefaultProcessEngine();
+    // 获取 TaskService 任务管理类
+    TaskService taskService = processEngine.getTaskService();
+    // 根据负责人查询组任务
+    Task task = taskService.createTaskQuery()
+            .taskId(taskId)
+            .taskAssignee(assignee)
+            .singleResult();
+    if (task != null) {
+        // 根据任务ID，归还任务，实质就是将负责人 assignee 设置为 null
+        taskService.setAssignee(taskId, null);
+        System.out.println("taskId- " + taskId + " -负责人- " + assignee + " -归还任务完成");
+    }
+}
+```
+
+查询数据表流程任务，归还任务前后：
+
+![](images/152075513220756.png)
+
+#### 4.3.5. 任务交接
+
+任务交接是指，任务负责人将任务交给其它候选人办理该任务
+
+> Tips: <font color=red>**建议交接任务前校验被委托的用户是不是候选人**</font>
+
+```java
+@Test
+public void testAssigneeToCandidateUser() {
+    // 当前任务的id
+    String taskId = "82502";
+    // 任务的负责人
+    String assignee = "kirA";
+    // 待交接的候选人
+    String candidateUser = "Zero";
+
+    // 创建 ProcessEngine 流程引擎
+    ProcessEngine processEngine = ProcessEngines.getDefaultProcessEngine();
+    // 获取 TaskService 任务管理类
+    TaskService taskService = processEngine.getTaskService();
+    // 根据负责人查询组任务
+    Task task = taskService.createTaskQuery()
+            .taskId(taskId)
+            .taskAssignee(assignee)
+            .singleResult();
+    if (task != null) {
+        // 根据任务ID，交接任务，实质就是将负责人 assignee 设置为候选人
+        taskService.setAssignee(taskId, candidateUser);
+        System.out.println("taskId- " + taskId + " -负责人- " + assignee + " -交接任务给候选人- " + candidateUser);
+    }
+}
+```
+
+查询数据表流程任务，任务交接前后：
+
+![](images/352321214227049.png)
+
+#### 4.3.6. 办理个人任务
+
+> 具体操作与基础篇个人任务完成相同
+
+```java
+@Test
+public void completTask() {
+    // 任务负责人（根据当前流程的任务来修改相应的名称）
+    String assingee = "金田一";
+    // 获取流程引擎
+    ProcessEngine processEngine = ProcessEngines.getDefaultProcessEngine();
+    // 获取 TaskService 任务管理类
+    TaskService taskService = processEngine.getTaskService();
+    // 根据流程定义key与任务负责人来查询任务
+    Task task = taskService.createTaskQuery()
+            .processDefinitionKey("evection-candidate")
+            .taskAssignee(assingee)
+            .singleResult();
+    if (task != null) {
+        // 根据任务id来 完成任务
+        taskService.complete(task.getId());
+        System.out.println(task.getAssignee() + " 完成任务");
+    }
+}
+```
+
+### 4.4. 涉及数据库表操作
+
+- 查询当前任务执行表。任务执行表，记录当前执行的任务，若该任务当前是组任务，`ASSIGNEE_` 字段为空，当拾取任务后该字段就是拾取用户的id
+
+```sql
+SELECT * FROM act_ru_task WHERE PROC_INST_ID_ = 'xxx';
+```
+
+- 查询任务参与者。该表记录当前参考任务用户或组，当前任务如果设置了候选人，会向该表插入候选人记录，按候选人数量就插入相应数量的记录
+
+```sql
+SELECT * FROM act_ru_identitylink WHERE TASK_ID_ = 'xxx';
+```
+
+与 act_ru_identitylink 对应的还有一张历史表 act_hi_identitylink，向 act_ru_identitylink 插入记录的同时也会向历史表插入记录。任务完成
+
+## 5. 网关
+
+### 5.1. 概述
+
+网关用来控制流程的流向
+
+**网关类型**，主要分以下4种：
+
+- Exclusive Gateway
+- Parallel Gateway
+- Inclusive Gateway
+- Event Gateway
+
+**流程图定义**
+
+![](images/348933314247215.png)
+
+### 5.2. Exclusive Gateway（排他网关）
+
+#### 5.2.1. 什么是排他网关
+
+排他网关，用来在流程中实现决策。当流程执行到这个网关，所有分支都会判断条件是否为true，如果为true则执行该分支。
+
+> Notes: <font color=red>**排他网关只会选择一个为true的分支执行。如果有两个分支条件都为true，排他网关会选择id值较小的分支去执行**</font>
+
+#### 5.2.2. 排他网关流程定义
+
+使用排他网关实现的流程图如下：
+
+![](images/460004715232193.png)
+
+#### 5.2.3. 排他网关测试
+
+在部门经理审核后，走排他网关，从排他网关出来的分支有两条，一条是判断出差天数是否大于等于3天，另一条是判断出差天数是否小于3天。测试代码如下：
+
+```java
+public class ActivitiGatewayExclusiveTest {
+
+    /**
+     * 流程部署
+     */
+    @Test
+    public void testDeployment() {
+        // 1、创建 ProcessEngine 流程引擎
+        ProcessEngine processEngine = ProcessEngines.getDefaultProcessEngine();
+        // 2、获取 RepositoryService 资源管理类
+        RepositoryService repositoryService = processEngine.getRepositoryService();
+        // 3、使用 service 进行流程的部署，定义一个流程的名字，把 bpmn 部署到数据库中
+        Deployment deploy = repositoryService.createDeployment()
+                .name("出差申请流程-排他网关")
+                .addClasspathResource("bpmn/evection-exclusive-gateway.bpmn20.xml")
+                .deploy();
+    }
+
+    /**
+     * 启动流程，设置相应的流程变量
+     */
+    @Test
+    public void testStartProcess() {
+        // 创建 ProcessEngine 流程引擎
+        ProcessEngine processEngine = ProcessEngines.getDefaultProcessEngine();
+        // 获取 RuntimeService 流程运行管理类
+        RuntimeService runtimeService = processEngine.getRuntimeService();
+        // 流程变量的map
+        Map<String, Object> variables = new HashMap<>();
+        // 设置流程变量 Pojo
+        Evection evection = new Evection();
+        // 设置出差日期(走 “部门经理审批” -> "财务审批" 分支)
+        // evection.setNum(2d);
+        // 设置出差日期(走 “部门经理审批” -> “总经理审批” -> "财务审批" 分支)
+        evection.setNum(5d);
+        // 把流程变量的pojo放入map
+        variables.put("evection", evection);
+        // 根据流程定义Id（其实是数据库表 act_re_procdef 的 key 字段），并设置流程变量，启动流程
+        ProcessInstance instance = runtimeService
+                .startProcessInstanceByKey("evection-exclusive-gateway", variables);
+    }
+
+    /**
+     * 完成个人任务
+     */
+    @Test
+    public void completTask() {
+        // 任务负责人（根据当前流程的任务来修改相应的名称）Tom、Jerry、Jack、Rose
+        String assingee = "Tom";
+        // 获取流程引擎
+        ProcessEngine processEngine = ProcessEngines.getDefaultProcessEngine();
+        // 获取 TaskService 任务管理类
+        TaskService taskService = processEngine.getTaskService();
+        // 根据流程定义key与任务负责人来查询任务
+        Task task = taskService.createTaskQuery()
+                .processDefinitionKey("evection-exclusive-gateway")
+                .taskAssignee(assingee)
+                .singleResult();
+        if (task != null) {
+            // 根据任务id来 完成任务
+            taskService.complete(task.getId());
+        }
+    }
+}
+```
+
+可以调整设置不同分支条件来测试
+
+- 如果所有分支条件都是false，报错
+- 如果所有分支条件都是true，查询默认选择的分支
+
+#### 5.2.4. 为什么要用排他网关
+
+不用排他网关也可以实现分支，如：在连线的 condition 选项上设置分支条件。但在连线设置 condition 条件存在缺陷，如果条件都不满足，流程就结束了(是异常结束)。
+
+如果使用排他网关决定分支的走向，如果从网关出去的线所有条件都不满足则系统抛出异常。
+
+```
+org.activiti.engine.ActivitiException: No outgoing sequence flow of the exclusive gateway 'exclusivegateway1' could be selected for continuing the process
+   at org.activiti.engine.impl.bpmn.behavior.ExclusiveGatewayActivityBehavior.leave(ExclusiveGatewayActivityBehavior.java:85)
+```
+
+### 5.3. Parallel Gateway（并行网关）
+
+#### 5.3.1. 什么是并行网关
+
+并行网关允许将流程分成多条分支，也可以把多条分支汇聚到一起，并行网关的功能是基于进入和外出顺序流的：
+
+- **fork 分支**：并行后的所有外出顺序流，为每个顺序流都创建一个并发分支。
+- **join 汇聚**：所有到达并行网关，在此等待的进入分支， 直到所有进入顺序流的分支都到达以后， 流程就会通过汇聚网关。
+
+> Notes:
+>
+> - 如果同一个并行网关有多个进入和多个外出顺序流，它就同时具有分支和汇聚功能。此时网关会先汇聚所有进入的顺序流，然后再切分成多个并行分支。
+> - <font color=red>**与其他类型网关的主要区别是，并行网关不会解析条件。即使顺序流中定义了条件，也会被忽略**</font>
+
+#### 5.3.2. 并行网关流程定义
+
+使用并行网关实现的流程图如下：
+
+![](images/403850016250073.png)
+
+示例流程图说明：
+
+- 技术经理和项目经理是两个 execution 分支，在 act_ru_execution 表有两条记录分别是技术经理和项目经理，act_ru_execution 还有一条记录表示该流程实例。
+- 待技术经理和项目经理任务全部完成，在汇聚点汇聚，通过 parallelGateway 并行网关。
+- 并行网关在业务应用中常用于会签任务，会签任务即多个参与者共同办理的任务。
+
+#### 5.3.3. 并行网关测试
+
+测试代码如下：
+
+```java
+public class ActivitiGatewayParallelTest {
+
+    /**
+     * 流程部署
+     */
+    @Test
+    public void testDeployment() {
+        // 1、创建 ProcessEngine 流程引擎
+        ProcessEngine processEngine = ProcessEngines.getDefaultProcessEngine();
+        // 2、获取 RepositoryService 资源管理类
+        RepositoryService repositoryService = processEngine.getRepositoryService();
+        // 3、使用 service 进行流程的部署，定义一个流程的名字，把 bpmn 部署到数据库中
+        Deployment deploy = repositoryService.createDeployment()
+                .name("出差申请流程-并行网关")
+                .addClasspathResource("bpmn/evection-parallel-gateway.bpmn20.xml")
+                .deploy();
+    }
+
+    /**
+     * 启动流程，设置相应的流程变量
+     */
+    @Test
+    public void testStartProcess() {
+        // 创建 ProcessEngine 流程引擎
+        ProcessEngine processEngine = ProcessEngines.getDefaultProcessEngine();
+        // 获取 RuntimeService 流程运行管理类
+        RuntimeService runtimeService = processEngine.getRuntimeService();
+        // 流程变量的map
+        Map<String, Object> variables = new HashMap<>();
+        // 设置流程变量 Pojo
+        Evection evection = new Evection();
+        // 设置出差日期(走 “总经理审批” 分支)
+        evection.setNum(5d);
+        // 把流程变量的pojo放入map
+        variables.put("evection", evection);
+        // 根据流程定义Id（其实是数据库表 act_re_procdef 的 key 字段），并设置流程变量，启动流程
+        ProcessInstance instance = runtimeService
+                .startProcessInstanceByKey("evection-parallel-gateway", variables);
+    }
+
+    /**
+     * 完成个人任务
+     */
+    @Test
+    public void completTask() {
+        // 任务负责人（根据当前流程的任务来修改相应的名称）Tom、Jerry、Jack、Rose
+        String assingee = "Tom";
+        // 获取流程引擎
+        ProcessEngine processEngine = ProcessEngines.getDefaultProcessEngine();
+        // 获取 TaskService 任务管理类
+        TaskService taskService = processEngine.getTaskService();
+        // 根据流程定义key与任务负责人来查询任务
+        Task task = taskService.createTaskQuery()
+                .processDefinitionKey("evection-parallel-gateway")
+                .taskAssignee(assingee)
+                .singleResult();
+        if (task != null) {
+            // 根据任务id来 完成任务
+            taskService.complete(task.getId());
+        }
+    }
+}
+```
+
+当执行到并行网关数据库跟踪。查询任务表 act_ru_task，此时会有两个任务在执行中：
+
+![](images/503590916247677.png)
+
+查询流程实例执行表 act_ru_execution，当前流程实例有多个分支(两个)在运行：
+
+![](images/558941216245179.png)
+
+对于并行任务执行是不分前后，由任务的负责人去执行即可。在执行技术经理任务后，再查询任务表 act_ru_task，已完成的技术经理任务记录已被删除：
+
+![](images/411421716226420.png)
+
+查询流程实例执行表 act_ru_execution，有中多个分支存在且有并行网关的汇聚结点。有并行网关的汇聚结点：说明有一个分支已经到汇聚，等待其它的分支到达。
+
+![](images/245302316248860.png)
+
+当所有分支任务都完成，都到达汇聚结点后，再分别查询流程实例执行表 act_ru_execution 与任务表 act_ru_task，执行流程实例已经变为总经理审批，说明流程执行已经通过并行网关
+
+![](images/191512816243996.png)
+
+<font color=red>**总结：所有分支到达汇聚结点，并行网关执行完成**</font>
+
+### 5.4. Inclusive Gateway（包含网关）
+
+#### 5.4.1. 什么是包含网关
+
+**包含网关可以看做是排他网关和并行网关的结合体**。和排他网关一样，你可以在外出顺序流上定义条件，包含网关会解析它们。 但是主要的区别是包含网关可以选择多于一条顺序流，这和并行网关一样。
+
+包含网关的功能是基于进入和外出顺序流的：
+
+- **分支**：所有外出顺序流的条件都会被解析，结果为true的顺序流会以并行方式继续执行，会为每个顺序流创建一个分支。
+- **汇聚**：所有并行分支到达包含网关，会进入等待状态，直到每个包含流程token的进入顺序流的分支都到达。这是与并行网关的最大不同。换句话说，包含网关只会等待被选中执行了的进入顺序流。在汇聚之后，流程会穿过包含网关继续执行。
+
+#### 5.4.2. 包含网关流程定义
+
+出差申请大于等于3天需要由项目经理审批，小于3天由技术经理审批，出差申请必须经过人事经理审批。使用包含网关实现的流程图如下：
+
+![](images/190331317223710.png)
+
+> Notes: 通过包含网关的每个分支的连线上设置 condition 条件，若不设置条件，则代表均会走此分支
+
+#### 5.4.3. 包含网关测试
+
+如果包含网关设置的条件中，流程变量不存在，会报以下的错误：
+
+```java
+org.activiti.engine.ActivitiException: Unknown property used in expression: ${evection.num>=3}
+```
+
+因此需要在流程启动时设置流程变量 `evection.num`
+
+测试代码如下：
+
+```java
+public class ActivitiGatewayInclusiveTest {
+    /**
+     * 流程部署
+     */
+    @Test
+    public void testDeployment() {
+        // 1、创建 ProcessEngine 流程引擎
+        ProcessEngine processEngine = ProcessEngines.getDefaultProcessEngine();
+        // 2、获取 RepositoryService 资源管理类
+        RepositoryService repositoryService = processEngine.getRepositoryService();
+        // 3、使用 service 进行流程的部署，定义一个流程的名字，把 bpmn 部署到数据库中
+        Deployment deploy = repositoryService.createDeployment()
+                .name("出差申请流程-包含网关")
+                .addClasspathResource("bpmn/evection-inclusive-gateway.bpmn20.xml")
+                .deploy();
+    }
+
+    /**
+     * 启动流程，设置相应的流程变量
+     */
+    @Test
+    public void testStartProcess() {
+        // 创建 ProcessEngine 流程引擎
+        ProcessEngine processEngine = ProcessEngines.getDefaultProcessEngine();
+        // 获取 RuntimeService 流程运行管理类
+        RuntimeService runtimeService = processEngine.getRuntimeService();
+        // 流程变量的map
+        Map<String, Object> variables = new HashMap<>();
+        // 设置流程变量 Pojo
+        Evection evection = new Evection();
+        // 设置出差日期(走 “总经理审批” 分支)
+        evection.setNum(5d);
+        // 把流程变量的pojo放入map
+        variables.put("evection", evection);
+        // 根据流程定义Id（其实是数据库表 act_re_procdef 的 key 字段），并设置流程变量，启动流程
+        ProcessInstance instance = runtimeService
+                .startProcessInstanceByKey("evection-inclusive-gateway", variables);
+    }
+
+    /**
+     * 完成个人任务
+     */
+    @Test
+    public void completTask() {
+        // 任务负责人（根据当前流程的任务来修改相应的名称）Tom、Jerry、Kitty、Jack、MooN
+        String assingee = "Tom";
+        // 获取流程引擎
+        ProcessEngine processEngine = ProcessEngines.getDefaultProcessEngine();
+        // 获取 TaskService 任务管理类
+        TaskService taskService = processEngine.getTaskService();
+        // 根据流程定义key与任务负责人来查询任务
+        Task task = taskService.createTaskQuery()
+                .processDefinitionKey("evection-inclusive-gateway")
+                .taskAssignee(assingee)
+                .singleResult();
+        if (task != null) {
+            // 根据任务id来 完成任务
+            taskService.complete(task.getId());
+        }
+    }
+}
+```
+
+1. 当流程执行到第一个包含网关后，会根据条件判断，当前要走哪几个分支。
+
+查询流程实例执行表 act_ru_execution，第一条记录包含网关分支；后两条记录代表两个要执行的分支：“项目经理审批”与“人事经理审批”
+
+![](images/56020718232657.png)
+
+查询任务表 ACT_RU_TASK，项目经理审批、人事经理审批都是当前的任务，在并行执行。
+
+![](images/95320918225542.png)
+
+2. 先执行项目经理审批
+
+查询任务表 ACT_RU_TASK，当前任务还有人事经理审批需要处理。
+
+![](images/499381118226151.png)
+
+查询流程实例执行表 act_ru_execution，发现人事经理的分支还存在，而项目经理分支已经走到第二个包含网关的节点。（比较 ACT_ID_ 字段值与流程图中包含网关的 ID）
+
+![](images/571771518253106.png)
+
+> **Tips: 如果有一个分支执行先走到汇聚结点的分支，要等待其它执行分支走到汇聚。**
+
+3. 执行人事经理审批
+
+查询任务表 ACT_RU_TASK，当前任务表已经已经流转到总经理审批，说明人事经理审批完成后，已经过了第二个包含网关节点。
+
+![](images/526541818235319.png)
+
+查询流程实例执行表 act_ru_execution，包含网关执行完成，分支和汇聚就从 act_ru_execution 表中删除。
+
+![](images/281602118224617.png)
+
+> <font color=red>**Notes: 在分支时，需要判断条件，符合条件的分支，将会执行，符合条件的分支最终才进行汇聚**</font>
+
+### 5.5. Event Gateway（事件网关）--暂无实现示例
+
+#### 5.5.1. 什么是事件网关
+
+事件网关允许根据事件判断流向。网关的每个外出顺序流都要连接到一个中间捕获事件。当流程到达一个基于事件网关，网关会进入等待状态：会暂停执行。与此同时，会为每个外出顺序流创建相对的事件订阅。
+
+事件网关的外出顺序流和普通顺序流不同，这些顺序流不会真的"执行"，相反它们让流程引擎去决定执行到事件网关的流程需要订阅哪些事件。要考虑以下条件：
+
+1. 事件网关必须有两条或以上外出顺序流；
+2. 事件网关后，只能使用 intermediateCatchEvent 类型（activiti不支持基于事件网关后连接 ReceiveTask）
+3. 连接到事件网关的中间捕获事件必须只有一个入口顺序流。 
+
+#### 5.5.2. 事件网关流程定义
+
+事件网关图标，选择 intermediateCatchEvent（红框内）
+
+![](images/83724816237542.png)
+
+intermediateCatchEvent支持的事件类型：
+
+- Message Event：消息事件
+- Singal Event：信号事件
+- Timer Event：定时事件
+
+![](images/419074816230676.png)
+
+使用事件网关定义流程：
+
+![](images/579094916221206.png)
