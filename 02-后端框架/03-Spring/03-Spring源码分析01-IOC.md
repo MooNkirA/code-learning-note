@@ -2,6 +2,8 @@
 
 官方参考文档：https://docs.spring.io/spring-framework/docs/5.2.12.RELEASE/spring-framework-reference/
 
+# Spring 底层架构核心概念解析
+
 ## 1. IOC相关理论
 
 ### 1.1. 设计模式-工厂模式
@@ -24,7 +26,7 @@
 
 ### 1.3. DI（Dependency Injection）依赖注入
 
-依赖注入（DI），是Spring框架核心IOC的具体实现。IOC解耦只是降低他们的依赖关系，但不会消除。比如：业务层需要依赖数据层的方法。
+依赖注入（DI），是 Spring 框架核心 IOC 的具体实现。IOC 解耦只是降低他们的依赖关系，但不会消除。比如：业务层需要依赖数据层的方法。
 
 ## 2. Spring 源码分析准备工作
 
@@ -542,7 +544,7 @@ dubbo在spi的配置文件中，设置为key-value的形式，这样在xml配置
 public interface BeanDefinition extends AttributeAccessor, BeanMetadataElement
 ```
 
-BeanDefinition 在 spring 中贯穿全部，spring 要根据 BeanDefinition 对象来实例化 bean，只要把解析的标签或者扫描的注解类封装成 BeanDefinition 对象，spring 才能实例化 bean
+BeanDefinition 在 spring 中贯穿全部，spring 要根据 BeanDefinition 对象来实例化 bean，只要把解析的标签或者扫描的注解类封装成 BeanDefinition 对象，spring 才能实例化 bean。BeanDefinition 中存在很多属性用来描述一个 Bean 的特点
 
 #### 5.1.1. 作用说明
 
@@ -556,12 +558,44 @@ BeanDefinition 的继承关系如下图，`RootBeanDefinition`、`ChildBeanDefin
 
 ![](images/20200903233604050_18807.png)
 
+### 5.2. Bean 的定义方式
 
-### 5.2. BeanDefinition 接口与实现类
+#### 5.2.1. 申明式定义
 
-#### 5.2.1. AbstractBeanDefinition 抽象类
+在 Spring 中，通常有以下几种方式来定义Bean：
 
-##### 5.2.1.1. 源码分析
+- xml 配置文件中定义 `<bean/>` 标签
+- 在配置类中使用 `@Bean` 注解
+- 在类上标识 `@Component` 注解及其衍生注解（`@Service`, `@Controller` 等）
+
+#### 5.2.2. 编程式定义
+
+也可以直接通过 java 代码创建 BeanDefinition 对象来完成 Bean 的定义
+
+```java
+// 创建容器
+AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(AppConfig.class);
+
+// 生成一个BeanDefinition对象，并设置beanClass为User.class，并注册到ApplicationContext中
+AbstractBeanDefinition beanDefinition = BeanDefinitionBuilder.genericBeanDefinition().getBeanDefinition();
+beanDefinition.setBeanClass(User.class);
+// 还可以通过BeanDefinition设置一个Bean的其他属性
+beanDefinition.setScope("prototype"); // 设置作用域
+beanDefinition.setInitMethodName("init"); // 设置初始化方法
+beanDefinition.setLazyInit(true); // 设置懒加载
+
+// 注册 BeanDefinition
+context.registerBeanDefinition("user", beanDefinition);
+
+// 通过 getBean 方法获取实例
+System.out.println(context.getBean("user"));
+```
+
+### 5.3. BeanDefinition 接口与实现类
+
+#### 5.3.1. AbstractBeanDefinition 抽象类
+
+**源码分析**
 
 ```java
 /*
@@ -658,11 +692,9 @@ public abstract class AbstractBeanDefinition extends BeanMetadataAttributeAccess
 }
 ```
 
-##### 5.2.1.2. 总结
+**总结**：`BeanDefinition` 是容器对于bean配置的内部表示，Spring 将各个 bean 的 `BeanDefinition` 实例注册记录在 `BeanDefinitionRegistry` 中，该接口定义了对 `BeanDefinition` 的各种增删查操作，类似于内存数据库，其实现类 `SimpleBeanDefinitionRegistry` 主要以 Map 作为存储标的。
 
-`BeanDefinition` 是容器对于bean配置的内部表示，Spring 将各个 bean 的 `BeanDefinition` 实例注册记录在 `BeanDefinitionRegistry` 中，该接口定义了对 `BeanDefinition` 的各种增删查操作，类似于内存数据库，其实现类 `SimpleBeanDefinitionRegistry` 主要以 Map 作为存储标的。
-
-#### 5.2.2. RootBeanDefinition 类
+#### 5.3.2. RootBeanDefinition 类
 
 - 一个 RootBeanDefinition 定义表明它是一个可合并的 beanDefinition：即在 spring beanFactory 运行期间，可以返回一个特定的 bean。RootBeanDefinition 可以作为一个重要的通用的 beanDefinition 视图。
 - RootBeanDefinition 用来在配置阶段进行注册 beanDefinition。然后，从 spring 2.5 后，编写注册 beanDefinition 有了更好的的方法：GenericBeanDefinition。GenericBeanDefinition 支持动态定义父类依赖，而非硬编码作为 root bean definition。
@@ -677,19 +709,18 @@ public abstract class AbstractBeanDefinition extends BeanMetadataAttributeAccess
 
 ![](images/20210222225628718_28191.png)
 
-
-#### 5.2.3. ChildBeanDefinition 类
+#### 5.3.3. ChildBeanDefinition 类
 
 - ChildBeanDefinition 是一种 bean definition，它可以继承它父类的设置，即ChildBeanDefinition 对 RootBeanDefinition 有一定的依赖关系
 - ChildBeanDefinition 从父类继承构造参数值，属性值并可以重写父类的方法，同时也可以增加新的属性或者方法。(类同于 java 类的继承关系)。若指定初始化方法，销毁方法或者静态工厂方法，ChildBeanDefinition 将重写相应父类的设置。`depends on`，`autowire mode`，`dependency check`，`sigleton`，`lazy init` 一般由子类自行设定。
 
-#### 5.2.4. GenericBeanDefinition 类（源码分析的重点关注的实现类）
+#### 5.3.4. GenericBeanDefinition 类（源码分析的重点关注的实现类）
 
 - 注意：从 spring 2.5 开始，提供了一个更好的注册 bean definition 类 GenericBeanDefinition，它支持动态定义父依赖，方法是GenericBeanDefinition对象中`public void setParentName(@Nullable String parentName);`，GenericBeanDefinition 可以在绝大分部使用场合有效的替代 ChildBeanDefinition
 - GenericBeanDefinition 是一站式的标准 bean definition，除了具有指定类、可选的构造参数值和属性参数这些其它 bean definition 一样的特性外，它还具有通过 parenetName 属性来灵活设置 parent bean definition
 - 通常，GenericBeanDefinition 用来注册用户可见的 bean definition(可见的bean definition意味着可以在该类bean definition上定义post-processor来对bean进行操作，甚至为配置 parent name 做扩展准备)。RootBeanDefinition / ChildBeanDefinition 用来预定义具有 parent/child 关系的 bean definition。
 
-#### 5.2.5. ScannedGenericBeanDefinition
+#### 5.3.5. ScannedGenericBeanDefinition
 
 ```java
 public class ScannedGenericBeanDefinition extends GenericBeanDefinition implements AnnotatedBeanDefinition
@@ -699,7 +730,7 @@ public class ScannedGenericBeanDefinition extends GenericBeanDefinition implemen
 
 ![](images/20210222223322602_15969.png)
 
-#### 5.2.6. AnnotatedGenericBeanDefinition
+#### 5.3.6. AnnotatedGenericBeanDefinition
 
 ```java
 public class AnnotatedGenericBeanDefinition extends GenericBeanDefinition implements AnnotatedBeanDefinition
@@ -709,7 +740,7 @@ public class AnnotatedGenericBeanDefinition extends GenericBeanDefinition implem
 
 ![](images/20210222223448474_22100.png)
 
-#### 5.2.7. ConfigurationClassBeanDefinition
+#### 5.3.7. ConfigurationClassBeanDefinition
 
 ```java
 class ConfigurationClassBeanDefinitionReader {
@@ -722,15 +753,15 @@ class ConfigurationClassBeanDefinitionReader {
 
 ![](images/20210222223936902_17531.png)
 
-### 5.3. BeanDefinition 中的属性
+### 5.4. BeanDefinition 中的属性
 
-#### 5.3.1. 属性图示
+#### 5.4.1. 属性图示
 
 原文件位置：`\code-learning-note\note attachments\02-后端框架\03-Spring\BeanDefinition属性结构图.xmind`
 
 ![](images/20210102145642637_20396.png)
 
-#### 5.3.2. 属性作用解释
+#### 5.4.2. 属性作用解释
 
 - 【id】：Bean 的唯一标识名。它必须是合法的 XMLID，在整个 XML 文档中唯一
 - 【class】：用来定义类的全限定名（包名+类名）。只有子类 Bean 不用定义该属性
@@ -761,7 +792,7 @@ class ConfigurationClassBeanDefinitionReader {
 - 【ConstructorArgumentValues】：用于封装`<constructor-arg>`标签的信息，其实类里面就是有一个 map，map 中用构造函数的参数顺序作为 key，值作为 value 存储到 map 中
 - 【MethodOverrides】：用于封装 bean 标签下的 lookup-method 和 replaced-method 等子标签的信息，同样的类里面有一个 Set 对象添加 LookupOverride 对象和 ReplaceOverride 对象
 
-### 5.4. GenericBeanDefinition 创建实例测试
+### 5.5. GenericBeanDefinition 创建实例测试
 
 手动创建`BeanDefinition`对象并注册到spring容器中，定义一个被spring容器管理的类，实现`BeanDefinitionRegistryPostProcessor`接口，实现`postProcessBeanDefinitionRegistry`方法，在方法里设置需要实例化的类即可
 
@@ -808,7 +839,7 @@ public class BeanDefinitionTest implements BeanDefinitionRegistryPostProcessor {
 }
 ```
 
-### 5.5. BeanDefinition 创建过程
+### 5.6. BeanDefinition 创建过程
 
 主要在`BeanDefinitionParserDelegate`类的`parseBeanDefinitionElement()`方法中进行对xml配置文件里面的bean标签进行解析，并创建BeanDefinition对象。
 

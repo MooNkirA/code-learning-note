@@ -82,6 +82,14 @@
   <li><a href="#/02-后端框架/07-Authorization-Certification/03-Shiro">Shiro（整理中...）</a></li>
 </ul>
 
+### 📇 Activiti 工作流
+
+<ul class="docs">
+  <li><a href="#/02-后端框架/02-后端框架/08-Activit/01-Activiti-工作流引擎-基础">Activiti 工作流引擎01-基础</a></li>
+  <li><a href="#/02-后端框架/02-后端框架/08-Activit/02-Activiti-工作流引擎-进阶">Activiti 工作流引擎02-进阶</a></li>
+  <li><a href="#/02-后端框架/02-后端框架/08-Activit/03-Activiti-工作流引擎-整合">Activiti 工作流引擎03-整合开发</a></li>
+</ul>
+
 ### 🔧 工具框架
 
 <ul class="docs">
@@ -95,9 +103,6 @@
   <li><a href="#/02-后端框架/99-工具框架/08-Apache-Commons-IO">Apache Commons IO（IO操作工具类库）</a></li>
   <li><a href="#/02-后端框架/99-工具框架/08-Apache-Commons-Lang">Apache Commons Lang（Java基础API增强的工具包）</a></li>
   <li><a href="#/02-后端框架/99-工具框架/09-PowerMock">PowerMock (单元测试模拟框架)</a></li>
-  <li><a href="#/02-后端框架/99-工具框架/10-Activiti-工作流引擎01-基础">Activiti 工作流引擎01-基础</a></li>
-  <li><a href="#/02-后端框架/99-工具框架/10-Activiti-工作流引擎02-进阶">Activiti 工作流引擎02-进阶</a></li>
-  <li><a href="#/02-后端框架/99-工具框架/10-Activiti-工作流引擎03-整合">Activiti 工作流引擎03-整合开发</a></li>
 </ul>
 
 
@@ -413,7 +418,9 @@
   <li><a href="#/00-项目资料/05-好客租房/">好客租房 项目资料</a></li>
   <li><a href="#/00-项目资料/06-红包雨场景案例/">红包雨场景案例 项目资料</a></li>
   <li><a href="#/00-项目资料/07-万信金融/">万信金融 项目资料</a></li>
+  <li><a href="#/00-项目资料/08-品达通用权限系统/">品达通用权限系统 项目资料</a></li>
 </ul>
+
 
 # 在线阅读地址
 
