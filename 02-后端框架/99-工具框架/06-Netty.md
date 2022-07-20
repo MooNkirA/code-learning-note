@@ -2,7 +2,7 @@
 
 ## 1. 相关知识-BIO与NIO编程
 
-此部分内容详见【/Java/编程资料笔记/【01】Java & JavaWeb 资料/【01】Java SE 基础/08-Java基础-IO编程.md】
+此部分内容详见[《Java基础-IO编程》笔记](/01-Java/08-Java基础-IO编程)
 
 ## 2. Netty 概述
 
