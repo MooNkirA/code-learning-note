@@ -8,7 +8,7 @@
 
 在计算机中，日志文件是记录在操作系统或其他软件运行中发生的事件或在通信软件的不同用户之间的消息的文件。记录是保持日志的行为。在最简单的情况下，消息被写入单个日志文件。
 
-许多操作系统，软件框架和程序包括日志系统。广泛使用的日志记录标准是在因特网工程任务组（IETF）RFC5424 中定义的 syslog。 syslog 标准使专用的标准化子系统能够生成，过滤，记录和分析日志消息。
+许多操作系统，软件框架和程序包括日志系统。广泛使用的日志记录标准是在因特网工程任务组（IETF）RFC5424 中定义的 syslog。syslog 标准使专用的标准化子系统能够生成，过滤，记录和分析日志消息。
 
 #### 1.1.1. 调试日志
 
@@ -1217,13 +1217,46 @@ SLF4J 不依赖于任何特殊的类装载。实际上，每个 SLF4J 绑定在�
 
 ### 7.1. 简述
 
-Logback 是由 log4j 创始人 Ceki Gulcu 设计的又一个开源日记组件，目标是替代 log4j。logback 主要分成三个模块：
+Logback 是由 log4j 创始人 Ceki Gulcu 设计的又一个开源日记组件，目标是替代 log4j。Logback 的架构非常的通用，适用于不同的使用场景。
+
+![](images/306230014220762.png)
+
+通过上图可以看到 logback 和 Log4j 都是 slf4j 规范的具体实现，在程序中直接调用的 API 其实都是 slf4j 的 api，底层则是真正的日志实现组件- logback 或者 log4j。
+
+#### 7.1.1. logback 的模块
+
+logback 主要分成三个模块：
 
 - logback-core：是其它两个模块的基础模块
 - logback-classic：是 log4j 的一个改良版本。此外 logback-classic 完整实现 SLF4J API，可以很方便地更换成其它日记系统如 log4j 或 JDK14 Logging 等
 - logback-access：访问模块与 Servlet 容器集成提供通过 Http 来访问日记的功能
 
-### 7.2. 基础使用示例
+#### 7.1.2. Logback 组件
+
+Logback 构建在三个主要的类上：Logger，Appender 和 Layout。这三个不同类型的组件一起作用能够让开发者根据消息的类型以及日志的级别来打印日志。 
+
+- Logger：日志的记录器，把它关联到应用的对应的 context 上后，主要用于存放日志对象，也可以定义日志类型、级别。各个 logger 都被关联到一个 `LoggerContext`，`LoggerContext` 负责制造 logger，也负责以树结构排列各 logger。
+- Appender：用于指定日志输出的目的地，目的地可以是控制台、文件、数据库等等
+- Layout：负责把事件转换成字符串，格式化的日志信息的输出。在 logback 中 Layout 对象被封装在 encoder 中
+
+#### 7.1.3. logback 层级
+
+在 logback 中每一个 logger 都依附在 `LoggerContext` 上，它负责产生 logger，并且通过一个**树状**的层级结构来进行管理。一个 Logger 被当作为一个实体，<font color=red>**它们的命名是大小写敏感的**</font>，并且遵循以下规则：
+
+如果一个 logger 的名字加上一个 `.` 作为另一个 logger 名字的前缀，那么该 logger 就是另一个 logger 的祖先。如果一个 logger 与另一个 logger 之间没有其它的 logger，则该 logger 就是另一个 logger 的父级。例如：
+
+- 名为 `com.moon` 的 logger 是名为 `com.moon.service` 的 logger 的父级
+- 名为 `com` 的 logger 是名为 `com.moon` 的 logger 的父级，是名为 `com.moon.service` 的 logger 的祖先
+
+<font color=red>**在 logback 中有一个 root logger，它是 logger 层次结构的最高层，它是一个特殊的 logger，因为它是每一个层次结构的一部分。**</font>
+
+#### 7.1.4. logback 日志输出等级
+
+logback 的日志输出等级分为：`TRACE`, `DEBUG`, `INFO`, `WARN`, `ERROR`。
+
+如果一个给定的 logger 没有指定一个日志输出等级，那么它就会继承离它最近的一个祖先的层级。为了确保所有的 logger 都有一个日志输出等级，root logger 会有一个默认输出等级：`DEBUG`。
+
+### 7.2. 基础使用示例（无自定义配置）
 
 1. 创建 maven 工程，只需要添加 logback-classic 的依赖，该依赖会自动引入 slf4j-api 和 logback-core
 
@@ -1233,9 +1266,15 @@ Logback 是由 log4j 创始人 Ceki Gulcu 设计的又一个开源日记组件�
     <artifactId>logback-classic</artifactId>
     <version>1.2.11</version>
 </dependency>
+
+<dependency>
+    <groupId>junit</groupId>
+    <artifactId>junit</artifactId>
+    <version>4.12</version>
+</dependency>
 ```
 
-2. 编写基础使用的程序
+2. 编写基础使用的程序，并且不提供配置文件而使用其提供的默认配置。
 
 ```java
 public class LogbackTest {
@@ -1255,42 +1294,42 @@ public class LogbackTest {
 }
 ```
 
-### 7.3. Logback 组件
+### 7.3. Logback 配置
 
-- Logger：日志的记录器，把它关联到应用的对应的context上后，主要用于存放日志对象，也可以定义日志类型、级别
-- Appender：用于指定日志输出的目的地，目的地可以是控制台、文件、数据库等等
-- Layout：负责把事件转换成字符串，格式化的日志信息的输出。在 logback 中 Layout 对象被封装在 encoder 中
-
-### 7.4. Logback 基本配置
+#### 7.3.1. 配置加载步骤
 
 在 Spring Boot 工程中，自带 logback 和 slf4j 的依赖，只需要编写配置文件即可。logback 会默认依次加载 classpath 以下类型配置文件：
 
-1. logback.groovy
-2. logback-test.xml
+1. logback-test.xml
+2. logback.groovy
 3. logback.xml
 
-如果以上文件均不存在，则会采用默认配置。
+如果以上文件均不存在，则会采用默认配置。官方文档对于配置初始化步骤说明如下：
 
-#### 7.4.1. 配置文件各标签作用
+1. logback 会在类路径下寻找名为 logback-test.xml 的文件
+2. 如果没有找到，logback 会继续寻找名为 logback.groovy 的文件
+3. 如果没有找到，logback 会继续寻找名为 logback.xml 的文件
+4. 如果没有找到，将会在类路径下寻找文件 META-INFO/services/ch.qos.logback.classic.spi.Configurator，该文件的内容为实现了 Configurator 接口的实现类的全限定类名
+5. 如果以上都没有成功，logback 会通过 BasicConfigurator 为自己进行配置，并且日志将会全部在控制台打印出来
 
-##### 7.4.1.1. configuration
+最后一步的目的是为了保证在所有的配置文件都没有被找到的情况下，提供一个默认的配置。
+
+#### 7.3.2. 配置文件各标签作用
+
+##### 7.3.2.1. configuration
 
 `<configuration>` 是 logback 配置文件的根元素。它有 `<appender>`、`<logger>`、`<root>` 三个子元素。
 
-##### 7.4.1.2. property
+##### 7.3.2.2. property
 
-`<property>` 标签用于配置集中管理属性，当配置文件中多处出现相同的配置时使用，使用时通过 `${name}` 的格式引用即可
-
-标签的属性：
+`<property>` 标签用于配置集中管理属性，当配置文件中多处出现相同的配置时使用，使用时通过 `${name}` 的格式引用即可。标签的属性如下：
 
 - `name`：在配置文件中引用的名称
 - `value`：配置属性的值
 
-##### 7.4.1.3. appender
+##### 7.3.2.3. appender
 
-`<appender>` 标签是将记录日志的任务委托给名为 appender 的组件，是设置日志的输出位置。可以配置零个或多个；它有 `<file>`、`<filter>`、`<layout>`、`<encoder>` 四个子元素。
-
-标签的属性：
+`<appender>` 标签是将记录日志的任务委托给名为 appender 的组件，是设置日志的输出位置。可以配置零个或多个；它有 `<file>`、`<filter>`、`<layout>`、`<encoder>` 四个子元素。标签的属性如下：
 
 - `name`：设置 appender 名称。
 - `class`：设置具体的实例化类。常用的有以下几个
@@ -1298,15 +1337,15 @@ public class LogbackTest {
     - `ch.qos.logback.core.rolling.RollingFileAppender` (文件大小到达指定大小的时候产生一个新文件)
     - `ch.qos.logback.core.FileAppender` (文件)
 
-##### 7.4.1.4. file
+##### 7.3.2.4. file
 
 `<file>` 标签用于设置日志文件路径。
 
-##### 7.4.1.5. filter
+##### 7.3.2.5. filter
 
 `<filter>` 标签用于设置过滤器。通过使用该标签指定过滤策略，可以配置零个或多个。
 
-##### 7.4.1.6. layout
+##### 7.3.2.6. layout
 
 `<layout>` 用于设置 appender。可以配置零个或一个。
 
@@ -1314,7 +1353,7 @@ public class LogbackTest {
 
 - `class`：设置具体的实例化类。
 
-##### 7.4.1.7. encoder
+##### 7.3.2.7. encoder
 
 `<encoder>` 用于设置编码。使用该标签下的标签指定日志输出格式，可以配置零个或多个。
 
@@ -1322,27 +1361,25 @@ public class LogbackTest {
 
 - `class`：设置具体的实例化类。
 
-##### 7.4.1.8. logger
+##### 7.3.2.8. logger
 
-`<logger>` 用于设置自定义的 logger，可以配置零个或多个。
-
-标签的属性：
+`<logger>` 用于设置自定义的 logger，可以配置零个或多个。标签的属性如下：
 
 - name：自定义的 logger 的名称，一般使用包名称
 - level：设置日志级别。不区分大小写。可选值：TRACE、DEBUG、INFO、WARN、ERROR、ALL、OFF。
 - additivity：设置是否继承 root logger。可选值：true 或 false。
 
-##### 7.4.1.9. appender-ref
+##### 7.3.2.9. appender-ref
 
 `<appender-ref>` 用于设置 appender 引用，可以配置零个或多个。
 
-##### 7.4.1.10. root
+##### 7.3.2.10. root
 
 `<root>` 用于设置根 logger。必填标签，用来指定最基础的日志输出级别。只能配置一个。该标签只有 level 属性，用于设置日志级别。level 属性和 `<logger>` 中的相同。
 
 有一个子元素 `<appender-ref>`，与 `<logger>` 中的相同。
 
-#### 7.4.2. 基础配置示例
+#### 7.3.3. 基础配置示例
 
 将所有日志都存储在一个文件中文件大小也随着应用的运行越来越大并且不好排查问题，正确的做法应该是将error日志和其他日志分开，并且不同级别的日志根据时间段进行记录存储。
 
@@ -1398,7 +1435,7 @@ public class LogbackTest {
 </configuration>
 ```
 
-#### 7.4.3. ConsoleAppender 控制台日志配置
+#### 7.3.4. ConsoleAppender 控制台日志配置
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
@@ -1417,6 +1454,13 @@ public class LogbackTest {
             %n                          换行
     -->
     <property name="pattern" value="[%-5level] %d{yyyy-MM-dd HH:mm:ss.SSS} %c %M %L [%thread] %m%n"/>
+    <!-- 彩色日志依赖的渲染类（应该是非必需） -->
+    <conversionRule conversionWord="clr"
+                    converterClass="org.springframework.boot.logging.logback.ColorConverter"/>
+    <conversionRule conversionWord="wex"
+                    converterClass="org.springframework.boot.logging.logback.WhitespaceThrowableProxyConverter"/>
+    <conversionRule conversionWord="wEx"
+                    converterClass="org.springframework.boot.logging.logback.ExtendedWhitespaceThrowableProxyConverter"/>
 
     <!--
         Appender: 设置日志信息的输出位置，常用的有以下几个
@@ -1459,7 +1503,7 @@ public class LogbackTest {
 </configuration>
 ```
 
-#### 7.4.4. FileAppender 文件日志配置
+#### 7.3.5. FileAppender 文件日志配置
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
@@ -1514,7 +1558,7 @@ public class LogbackTest {
 </configuration>
 ```
 
-#### 7.4.5. RollingFileAppender 拆分追加文件日志配置
+#### 7.3.6. RollingFileAppender 拆分追加文件日志配置
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
@@ -1549,7 +1593,7 @@ public class LogbackTest {
 </configuration>
 ```
 
-#### 7.4.6. Filter
+#### 7.3.7. Filter
 
 在 appender 中使用 filter 子元素来实现过滤器
 
@@ -1593,7 +1637,7 @@ public class LogbackTest {
 </configuration>
 ```
 
-#### 7.4.7. logback 高级特性异步输出日志
+#### 7.3.8. logback 高级特性异步输出日志
 
 之前的日志配置方式是基于同步的，每次日志输出到文件都会进行一次磁盘IO。采用异步写日志的方式而不让此次写日志发生磁盘IO，阻塞线程从而造成不必要的性能损耗。异步输出日志的方式很简单，添加一个基于异步写日志的 appender，并指向原先配置的 appender 即可
 
@@ -1668,7 +1712,7 @@ public class LogbackTest {
 </appender>
 ```
 
-### 7.5. logback-access 的使用
+### 7.4. logback-access 的使用
 
 > logback-access 官方配置文档：https://logback.qos.ch/access.html#configuration
 
@@ -1706,7 +1750,7 @@ logback-access 模块与 Servlet 容器（如Tomcat和Jetty）集成，以提供
 </configuration>
 ```
 
-### 7.6. 完整的 logback.xml 参考示例
+### 7.5. 完整的 logback.xml 参考示例
 
 > 注：参考示例来源网络
 
@@ -1870,7 +1914,7 @@ logback-access 模块与 Servlet 容器（如Tomcat和Jetty）集成，以提供
 </configuration>
 ```
 
-### 7.7. 其他
+### 7.6. 其他
 
 Logback 官方提供的 log4j.properties 转换成 logback.xml
 
@@ -2591,6 +2635,8 @@ logging.pattern.console=[%-5level] %d{yyyy-MM-dd HH:mm:ss} %c [%thread]===== %ms
 logging.file.path=E:/logs/
 # 指定日志文件消息格式
 logging.pattern.file=[%-5level] %d{yyyy-MM-dd HH:mm:ss} %c [%thread]===== %msg %n
+# 在 Spring Boot 项目中默认加载类路径下的 logback-spring.xml 文件，如果非名称或路径的配置，需要通过此属性指定
+logging.config=classpath:logback-spring.xml
 ```
 
 > 更多详细的配置项详见 Spring 官方文档

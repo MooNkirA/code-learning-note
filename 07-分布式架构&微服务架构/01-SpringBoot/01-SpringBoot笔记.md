@@ -1764,14 +1764,16 @@ public class MyApplicationRunner implements ApplicationRunner {
 
 ### 8.1. 静态资源html视图
 
-- SpringBoot默认有四个静态资源文件夹：
-  - classpath:/static/
-  - classpath:/public/
-  - classpath:/resources/
-  - classpath:/META-INF/resources/
-- 在spring-boot-autoconfigure-1.5.6.RELEASE.jar的web包的
+SpringBoot 默认有四个静态资源文件夹：
 
-ResourceProperties类中作了默认的配置：
+- classpath:/static/
+- classpath:/public/
+- classpath:/resources/
+- classpath:/META-INF/resources/
+
+> 在 spring-boot-autoconfigure-x.x.x.RELEASE.jar 的 web 包
+
+`ResourceProperties` 类中作了默认的配置：
 
 ```java
 private static final String[] CLASSPATH_RESOUTCE_LOCATIONS = {
@@ -3690,8 +3692,3 @@ public class ItemMessageListener {
     }
 }
 ```
-
-## 5. !!整合Swagger2(使用的时再总结，在深入理解spring cloud书中4.7章节)
-
-Swagger2是一个功能强大的在线API文档的框架，目前版本为2.x，Swagger2提供了在线文档的查阅和测试功能。利用Swagger2很容易构建RESTful风格的API
-
