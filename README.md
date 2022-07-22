@@ -1,8 +1,8 @@
 > 个人编程笔记文档，持续更新中...😉
 
-## 1. Java 核心技术
+## Java 核心技术
 
-### 1.1. ☕ JavaSE
+### ☕ JavaSE
 
 <ul class="docs">
   <li><a href="#/01-Java/01-Java基础">Java基础</a></li>
@@ -21,7 +21,7 @@
   <li><a href="#/01-Java/网络资料-Java中的枚举的治理">网络资料-Java中的枚举的治理</a></li>
 </ul>
 
-### 1.2. 🥃 JavaWeb
+### 🥃 JavaWeb
 
 <ul class="docs">
   <li><a href="#/01-JavaWeb/01-HTTP协议">HTTP 协议</a></li>
@@ -30,9 +30,9 @@
   <li><a href="#/01-JavaWeb/04-JSP">JSP 基础笔记</a></li>
 </ul>
 
-## 2. 后端框架
+## 后端框架
 
-### 2.1. 🍀 Spring
+### 🍀 Spring
 
 <ul class="docs">
   <li><a href="#/02-后端框架/03-Spring/01-Spring笔记01">Spring 笔记-核心功能</a></li>
@@ -48,7 +48,7 @@
   <li><a href="#/02-后端框架/03-Spring/网络资料-Spring事务管理（一）快速入门">网络资料-Spring事务管理（一）快速入门</a></li>
 </ul>
 
-### 2.2. 🐦 MyBatis
+### 🐦 MyBatis
 
 <ul class="docs">
   <li><a href="#/02-后端框架/04-MyBatis/01-MyBatis基础笔记">MyBatis 基础笔记</a></li>
@@ -57,7 +57,7 @@
   <li><a href="#/02-后端框架/04-MyBatis/04-MyBatisPlus">MyBatis-Plus 基础笔记</a></li>
 </ul>
 
-### 2.3. 🧰 SpringMVC
+### 🧰 SpringMVC
 
 <ul class="docs">
   <li><a href="#/02-后端框架/05-SpringMVC/01-SpringMVC基础">Spring MVC 基础</a></li>
@@ -65,7 +65,7 @@
   <li><a href="#/02-后端框架/05-SpringMVC/03-SpringMVC源码分析">Spring MVC 源码分析</a></li>
 </ul>
 
-### 2.4. 💾 Spring Data
+### 💾 Spring Data
 
 <ul class="docs">
   <li><a href="#/02-后端框架/06-Spring-Data/00-Spring-Data">Spring Data 概述</a></li>
@@ -73,7 +73,7 @@
   <li><a href="#/02-后端框架/06-Spring-Data/02-Spring-Data-Redis">Spring Data Redis</a></li>
 </ul>
 
-### 2.5. 🔑 授权认证框架
+### 🔑 授权认证框架
 
 <ul class="docs">
   <li><a href="#/02-后端框架/07-Authorization-Certification/00-Authorization-Overview">授权认证概述</a></li>
@@ -82,7 +82,7 @@
   <li><a href="#/02-后端框架/07-Authorization-Certification/03-Shiro">Shiro（整理中...）</a></li>
 </ul>
 
-### 2.6. 📇 Activiti 工作流
+### 📇 Activiti 工作流
 
 <ul class="docs">
   <li><a href="#/02-后端框架/02-后端框架/08-Activit/01-Activiti-工作流引擎-基础">Activiti 工作流引擎01-基础</a></li>
@@ -90,7 +90,7 @@
   <li><a href="#/02-后端框架/02-后端框架/08-Activit/03-Activiti-工作流引擎-整合">Activiti 工作流引擎03-整合开发</a></li>
 </ul>
 
-### 2.7. 🔧 工具框架
+### 🔧 工具框架
 
 <ul class="docs">
   <li><a href="#/02-后端框架/99-工具框架/01-Gson">Gson（JSON处理工具类库）</a></li>
@@ -106,9 +106,9 @@
   <li><a href="#/02-后端框架/99-工具框架/10-Swagger">Swagger 接口文档工具(包含 knife4j 增强框架)</a></li>
 </ul>
 
-## 3. 前端资料
+## 前端资料
 
-### 3.1. 🎬 基础语法 - HTML
+### 🎬 基础语法 - HTML
 
 <ul class="docs">
   <li><a href="#/03-前端资料/01-基础语法01-HTML/01-HTML-基础语法">HTML 基础语法</a></li>
@@ -116,7 +116,7 @@
   <li><a href="#/03-前端资料/01-基础语法01-HTML/99-前端其他相关资料">前端其他相关资料</a></li>
 </ul>
 
-### 3.2. 🎨 基础语法 - 层叠样式表
+### 🎨 基础语法 - 层叠样式表
 
 <ul class="docs">
   <li><a href="#/03-前端资料/01-基础语法02-CSS/01-CSS-基础知识">CSS 基础知识</a></li>
@@ -125,7 +125,7 @@
   <li><a href="#/03-前端资料/01-基础语法02-CSS/04-Less-语法基础">Less 语法基础</a></li>
 </ul>
 
-### 3.3. 🎥 基础语法 - JavaScript
+### 🎥 基础语法 - JavaScript
 
 <ul class="docs">
   <li><a href="#/03-前端资料/01-基础语法03-JavaScript/01-JavaScript">JavaScript 基础知识</a></li>
@@ -135,11 +135,11 @@
   <li><a href="#/03-前端资料/01-基础语法03-JavaScript/05-JavaScript-代码简洁之道">JavaScript 代码简洁之道</a></li>
 </ul>
 
-### 3.4. 🅰 Angular.js
+### 🅰 Angular.js
 
 待整理....
 
-### 3.5. ✅ Vue.js
+### ✅ Vue.js
 
 <ul class="docs">
   <li><a href="#/03-前端资料/03-Vue/01-Vue2.x-笔记"> Vue2.x 基础笔记</a></li>
@@ -149,7 +149,7 @@
   <li><a href="#/03-前端资料/03-Vue/04-Vue-Router">Vue Router 路由库</a></li>
 </ul>
 
-### 3.6. 💫 React.js
+### 💫 React.js
 
 <ul class="docs">
   <li><a href="#/03-前端资料/04-React/01-ReactJs笔记">React.js 笔记</a></li>
@@ -157,13 +157,13 @@
   <li><a href="#/03-前端资料/04-React/03-AntDesignMobile">Ant Design Mobile 笔记</a></li>
 </ul>
 
-### 3.7. 🅱 Bootstrap
+### 🅱 Bootstrap
 
 <ul class="docs">
   <li><a href="#/03-前端资料/05-Bootstrap/01-Bootstrap基础">Bootstrap 基础入门</a></li>
 </ul>
 
-### 3.8. 🔍 前端工程化工具
+### 🔍 前端工程化工具
 
 <ul class="docs">
   <li><a href="#/03-前端资料/06-前端工程化工具/01-node">node.js 笔记</a></li>
@@ -171,13 +171,13 @@
   <li><a href="#/03-前端资料/06-前端工程化工具/03-ESLint">ESLint 笔记</a></li>
 </ul>
 
-### 3.9. 📱 移动端Web
+### 📱 移动端Web
 
 <ul class="docs">
   <li><a href="#/03-前端资料/07-移动端Web/01-移动端Web-基础笔记">移动端Web基础笔记</a></li>
 </ul>
 
-### 3.10. 🔶 前端工具类库
+### 🔶 前端工具类库
 
 <ul class="docs">
   <li><a href="#/03-前端资料/99-工具类库/01-Lodash-工具函数库">Lodash 工具函数库</a></li>
@@ -185,9 +185,9 @@
   <li><a href="#/03-前端资料/99-工具类库/03-Axios-网络请求库">Axios 网络请求库</a></li>
 </ul>
 
-## 4. 数据库
+## 数据库
 
-### 4.1. 🔢 MySQL
+### 🔢 MySQL
 
 <ul class="docs">
   <li><a href="#/04-数据库/01-MySQL/01-MySQL数据库01-体系架构">MySQL数据库01-体系架构</a></li>
@@ -199,13 +199,13 @@
   <li><a href="#/04-数据库/01-MySQL/03-MySQL安装与部署">MySQL安装与部署</a></li>
 </ul>
 
-### 4.2. 🅾 Oracle
+### 🅾 Oracle
 
 <ul class="docs">
   <li><a href="#/04-数据库/02-Oracle/01-Oracle基础笔记">Oracle基础笔记</a></li>
 </ul>
 
-### 4.3. 🪐 Redis
+### 🪐 Redis
 
 <ul class="docs">
   <li><a href="#/04-数据库/03-Redis/01-Redis笔记">Redis 笔记</a></li>
@@ -214,16 +214,16 @@
   <li><a href="#/04-数据库/03-Redis/04-Redis操作命令">Redis 操作命令</a></li>
 </ul>
 
-### 4.4. 🥭 MongoDb
+### 🥭 MongoDb
 
 <ul class="docs">
   <li><a href="#/04-数据库/04-MongoDb/01-MongoDB-笔记">MongoDB 基础笔记</a></li>
   <li><a href="#/04-数据库/04-MongoDb/02-MongoDB-安装与使用">MongoDB 安装与使用</a></li>
 </ul>
 
-## 5. DevOps工具
+## DevOps工具
 
-### 5.1. 🪒 项目构建工具
+### 🪒 项目构建工具
 
 <ul class="docs">
   <li><a href="#/05-DevOps工具/01-项目构建工具/01-Maven笔记">Maven笔记</a></li>
@@ -231,33 +231,33 @@
   <li><a href="#/05-DevOps工具/01-项目构建工具/03-Gradle基础笔记">Gradle基础笔记</a></li>
 </ul>
 
-### 5.2. 📐 版本管理工具
+### 📐 版本管理工具
 
 <ul class="docs">
   <li><a href="#/05-DevOps工具/02-版本管理工具/01-Git笔记">Git 笔记</a></li>
   <li><a href="#/05-DevOps工具/02-版本管理工具/02-GitHub">GitHub 相关资料与常用使用技巧</a></li>
 </ul>
 
-### 5.3. 📦 应用容器
+### 📦 应用容器
 
 <ul class="docs">
   <li><a href="#/05-DevOps工具/03-应用容器/01-Docker应用容器引擎">Docker 应用容器引擎</a></li>
 </ul>
 
-### 5.4. 🧩 持续集成工具
+### 🧩 持续集成工具
 
 <ul class="docs">
   <li><a href="#/05-DevOps工具/04-持续集成工具/01-Jenkins">Jenkins 持续集成工具</a></li>
 </ul>
 
-### 5.5. ⭕ 测试工具
+### ⭕ 测试工具
 
 <ul class="docs">
   <li><a href="#/05-DevOps工具/05-测试工具/01-JMeter">JMeter 压力测试</a></li>
   <li><a href="#/05-DevOps工具/05-测试工具/02-Postman">Postman 接口测试工具</a></li>
 </ul>
 
-## 6. Linux
+## Linux
 
 <ul class="docs">
   <li><a href="#/06-Linux/01-Linux笔记">Linux 笔记</a></li>
@@ -265,9 +265,9 @@
   <li><a href="#/06-Linux/03-Linux命令">Linux 命令</a></li>
 </ul>
 
-## 7. 分布式架构 & 微服务架构
+## 分布式架构 & 微服务架构
 
-### 7.1. 🌠 SpringBoot
+### 🌠 SpringBoot
 
 <ul class="docs">
   <li><a href="#/07-分布式架构&微服务架构/01-SpringBoot/01-SpringBoot笔记">Spring Boot 基础笔记</a></li>
@@ -289,7 +289,7 @@
   <li><a href="#/07-分布式架构&微服务架构/01-SpringBoot/99-SpringBoot笔记-其他相关内容">Spring Boot 笔记-其他相关内容</a></li>
 </ul>
 
-### 7.2. ⛅ SpringCloud
+### ⛅ SpringCloud
 
 <ul class="docs">
   <li><a href="#/07-分布式架构&微服务架构/02-SpringCloud/00-Microservices-Overview">微服务概述</a></li>
@@ -305,34 +305,34 @@
   <li><a href="#/07-分布式架构&微服务架构/02-SpringCloud/10-Spring-Cloud-Security">Spring Cloud Security 分布式系统认证授权解决方案</a></li>
 </ul>
 
-### 7.3. 🔥 Dubbo
+### 🔥 Dubbo
 
 <ul class="docs">
   <li><a href="#/07-分布式架构&微服务架构/03-Dubbo/01-Dubbo笔记">Dubbo 基础</a></li>
   <li><a href="#/07-分布式架构&微服务架构/03-Dubbo/02-Dubbo源码分析">Dubbo 源码分析</a></li>
 </ul>
 
-### 7.4. 🔎 ElasticStack
+### 🔎 ElasticStack
 
 <ul class="docs">
   <li><a href="#/07-分布式架构&微服务架构/04-ElasticStack/01-ElasticStack基础笔记">ElasticStack 基础笔记</a></li>
   <li><a href="#/07-分布式架构&微服务架构/04-ElasticStack/02-ElasticSearch-分布式全文搜索引擎">ElasticSearch 分布式全文搜索引擎</a></li>
 </ul>
 
-### 7.5. 🔄 Nginx
+### 🔄 Nginx
 
 <ul class="docs">
   <li><a href="#/07-分布式架构&微服务架构/05-Nginx/01-Nginx笔记">Nginx 基础笔记</a></li>
 </ul>
 
-### 7.6. 🐒 ZooKeeper
+### 🐒 ZooKeeper
 
 <ul class="docs">
   <li><a href="#/07-分布式架构&微服务架构/06-Zookeeper/01-Zookeeper笔记">Zookeeper 基础笔记</a></li>
   <li><a href="#/07-分布式架构&微服务架构/06-Zookeeper/02-Zookeeper应用场景">Zookeeper 应用场景</a></li>
 </ul>
 
-### 7.7. 📬 分布式消息中件间
+### 📬 分布式消息中件间
 
 <ul class="docs">
   <li><a href="#/07-分布式架构&微服务架构/07-分布式消息中件间/01-消息中间件">消息中间件概述</a></li>
@@ -342,14 +342,14 @@
   <li><a href="#/07-分布式架构&微服务架构/07-分布式消息中件间/05-Kafka">Kafka</a></li>
 </ul>
 
-### 7.8. 🧾 分布式配置中心
+### 🧾 分布式配置中心
 
 <ul class="docs">
   <li><a href="#/07-分布式架构&微服务架构/08-分布式配置中心/00-Distributed-Configuration-Center-Overview">分布式配置中心综述</a></li>
   <li><a href="#/07-分布式架构&微服务架构/08-分布式配置中心/01-Apollo">Apollo 分布式配置中心</a></li>
 </ul>
 
-### 7.9. 📝 分布式事务控制解决方案
+### 📝 分布式事务控制解决方案
 
 <ul class="docs">
   <li><a href="#/07-分布式架构&微服务架构/09-分布式事务控制解决方案/01-分布式事务基础理论">分布式事务基础理论</a></li>
@@ -358,14 +358,14 @@
   <li><a href="#/07-分布式架构&微服务架构/09-分布式事务控制解决方案/04-RocketMQ-可靠消息最终一致性事务解决方案">RocketMQ - 可靠消息最终一致性事务解决方案</a></li>
 </ul>
 
-### 7.10. ⏲ 分布式任务调度
+### ⏲ 分布式任务调度
 
 <ul class="docs">
   <li><a href="#/07-分布式架构&微服务架构/10-分布式任务调度/01-Quartz">Quartz 开源作业调度框架</a></li>
   <li><a href="#/07-分布式架构&微服务架构/10-分布式任务调度/02-ElasticJob">Elastic-Job 分布式调度解决方案</a></li>
 </ul>
 
-### 7.11. ✨ 其他
+### ✨ 其他
 
 <ul class="docs">
   <li><a href="#/07-分布式架构&微服务架构/99-其他/00-项目搭建模板">项目搭建模板与规范</a></li>
@@ -373,7 +373,7 @@
   <li><a href="#/07-分布式架构&微服务架构/99-其他/02-FastDFS_分布式文件系统">FastDFS 分布式文件系统</a></li>
 </ul>
 
-## 8. 并发编程
+## 并发编程
 
 <ul class="docs">
   <li><a href="#/08-并发编程/01-并发基础-多线程">并发基础</a></li>
@@ -382,17 +382,17 @@
   <li><a href="#/08-并发编程/04-并发编程-原理篇">并发编程 原理篇</a></li>
 </ul>
 
-## 9. 性能调优
+## 性能调优
 
-### 9.1. 🖥 JVM-Java虚拟机
+### 🖥 JVM-Java虚拟机
 
 <ul class="docs">
   <li><a href="#/09-性能调优/01-JVM-Java虚拟机/01-JVM-基础笔记">JVM 基础笔记</a></li>
 </ul>
 
-## 10. 其他
+## 其他
 
-### 10.1. 💻 IDE
+### 💻 IDE
 
 <ul class="docs">
   <li><a href="#/99-其他/01-IDE/01-IDEA">IntelliJ IDEA 常用配置</a></li>
@@ -401,7 +401,7 @@
   <li><a href="#/99-其他/01-IDE/99-DevelopmentTool">其它开发工具常用配置与使用</a></li>
 </ul>
 
-### 10.2. 相关编程资料
+### 相关编程资料
 
 <ul class="docs">
   <li><a href="#/99-其他/编程资源收集">编程资源收集</a></li>
@@ -411,7 +411,7 @@
   <li><a href="#/99-其他/Mermaid-基于Javascript的绘图语法">Mermaid 基于 Javascript 的绘图语法</a></li>
 </ul>
 
-## 11. 收集的项目实战资料
+## 收集的项目实战资料
 
 <ul class="docs">
   <li><a href="#/00-项目资料/02-品优购/">品优购 项目资料</a></li>

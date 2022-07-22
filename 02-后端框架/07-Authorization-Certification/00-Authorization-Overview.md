@@ -924,31 +924,33 @@ Oauth 协议目前发展到 2.0 版本，1.0 版本过于复杂，2.0 版本已�
 
 ## 5. JWT 令牌
 
-### 5.1. JWT介绍
+### 5.1. JWT 介绍
 
-JSON Web Token（JWT）是一个开放的行业标准（RFC 7519），它定义了一种简介的、自包含的协议格式，用于在通信双方传递 json 对象，传递的信息经过数字签名可以被验证和信任。JWT 可以使用 HMAC 算法或使用 RSA 的公钥/私钥对来签名，防止被篡改。
+JSON Web Token（JWT）是一个开放的行业标准（RFC 7519），是目前最流行的跨域身份验证解决方案。它为了在网络应用环境间传递声明而制定的定义了一种简介的、自包含的协议格式，用于在通信双方传递 json 对象，传递的信息经过数字签名可以被验证和信任。JWT 可以使用 HMAC 算法或使用 RSA 的公钥/私钥对来签名，防止被篡改。
+
+JWT 特别适用于分布式站点的单点登录（SSO）场景。JWT 的声明一般被用来在身份提供者和服务提供者间传递被认证的用户身份信息，以便于从资源服务器获取资源，也可被加密。
 
 - 官网地址：https://jwt.io/
 - JSON Web Token (JWT) 标准：https://tools.ietf.org/html/rfc7519
 
-JWT令牌的优点：
+JWT 令牌的优点：
 
 - jwt 基于 json，非常方便解析。
 - 可以在令牌中自定义丰富的内容，易扩展。
 - 通过非对称加密算法及数字签名技术，JWT 防止篡改，安全性高。
 - 资源服务使用 JWT 可不依赖认证服务即可完成授权。
 
-JWT令牌的缺点：
+JWT 令牌的缺点：
 
 - JWT令牌较长，占存储空间比较大。
 
-### 5.2. JWT 令牌结构
+### 5.2. JWT 令牌数据结构
 
-JWT 令牌由三部分组成，每部分中间使用点（`.`）分隔，比如：`xxxxx.yyyyy.zzzzz`
+JWT 令牌其实是一个很长的字符串，由三部分组成，每部分的字符之间通过点"`.`"分隔符分为三个子串，各字串之间没有换行符。每一个子串表示了一个功能块，总共有三个部分：**JWT头(header)**、**有效载荷(payload)**、**签名(signature)**，比如：`xxxxx.yyyyy.zzzzz`
 
 #### 5.2.1. Header
 
-头部包括令牌的类型（即JWT）及使用的哈希算法（如 HMAC、SHA256 或 RSA）。Heade 部分的内容如下：
+头部是一个描述 JWT 元数据的 JSON 对象，包括令牌的类型（即JWT）及使用的哈希算法（如 HMAC、SHA256 或 RSA）。Header 部分的内容如下：
 
 ```json
 {
@@ -957,11 +959,24 @@ JWT 令牌由三部分组成，每部分中间使用点（`.`）分隔，比如�
 }
 ```
 
-将上边的内容使用 Base64Url 编码，得到一个字符串就是JWT令牌的第一部分。
+- `alg`：表示签名使用的算法，默认为 HMAC SHA256（写为HS256）
+- `typ`：表示令牌的类型，JWT 令牌统一写为 JWT
+
+将上边的内容使用 Base64Url 编码，得到一个字符串就是 JWT 令牌的第一部分。
 
 #### 5.2.2. Payload
 
-第二部分是负载，内容也是一个 json 对象，它是存放有效信息的地方，它可以存放 jwt 提供的现成字段，比如：iss（签发者）, exp（过期时间戳）, sub（面向的用户）等，也可自定义字段。
+第二部分是有效负载，内容也是一个 json 对象，是JWT的主体内容部分，它是存放需要传递的数据。它可以存放 jwt 提供的现成字段，有效载荷部分规定有如下七个默认字段供选择：
+
+- iss：签发者
+- exp：到期时间戳
+- sub：主题
+- aud：用户
+- nbf：在此之前不可用
+- iat：发布时间
+- jti：JWT ID 用于标识该 JWT
+
+除以上默认字段外，还可以自定义私有字段。
 
 ```json
 {
@@ -977,7 +992,9 @@ JWT 令牌由三部分组成，每部分中间使用点（`.`）分隔，比如�
 
 #### 5.2.3. Signature
 
-第三部分是签名，此部分用于防止 jwt 内容被篡改。这个部分使用 base64url 将前两部分进行编码，编码后使用点（`.`）连接组成字符串，最后使用 header 中声明签名算法进行签名。
+第三部分是签名，实际上是一个加密的过程，是对上面两部分数据通过指定的算法生成哈希，以确保 JWT 数据不会被篡改。
+
+这个部分使用 base64url 将前两部分进行编码，编码后使用点（`.`）连接组成字符串，还需要指定一个密码（secret），该密码仅仅保存在服务器中，并且不能向用户公开。然后使用 JWT 头（header）中指定的签名算法（默认情况下为HMAC SHA256）进行签名，根据以下公式生成签名哈希：
 
 ```java
 HMACSHA256(base64UrlEncode(header) + "." + base64UrlEncode(payload), secret)
@@ -985,9 +1002,33 @@ HMACSHA256(base64UrlEncode(header) + "." + base64UrlEncode(payload), secret)
 
 参数说明：
 
-- `base64UrlEncode(header)`：jwt令牌的第一部分。
-- `base64UrlEncode(payload)`：jwt令牌的第二部分。
-- `secret`：签名所使用的密钥。
+- `base64UrlEncode(header)`：JWT 令牌的第一部分
+- `base64UrlEncode(payload)`：JWT 令牌的第二部分
+- `secret`：签名所使用的密钥
+
+在计算出签名哈希后，JWT 头，有效载荷和签名哈希的三个部分组合成一个字符串，每个部分用"`.`"分隔，就构成整个JWT对象。
+
+### 5.3. JWT 签名算法
+
+JWT 签名算法中，一般有两个选择：HS256 和 RS256。
+
+- HS256（带有 SHA-256 的 HMAC）是一种对称加密算法，双方之间仅共享一个密钥。由于使用相同的密钥生成签名和验证签名，因此必须注意确保密钥不被泄密。
+- RS256（采用 SHA-256 的 RSA 签名）是一种非对称加密算法，它使用公共/私钥对：JWT 的提供方采用私钥生成签名，JWT 的使用方获取公钥以验证签名。
+
+### 5.4. jjwt 介绍 
+
+jjwt 是一个提供 JWT 创建和验证的 Java 库。永远免费和开源(Apache License，版本2.0)，JJWT 很容易使用和理解。jjwt 的 maven 坐标如下：
+
+```xml
+<!-- https://mvnrepository.com/artifact/io.jsonwebtoken/jjwt -->
+<dependency>
+    <groupId>io.jsonwebtoken</groupId>
+    <artifactId>jjwt</artifactId>
+    <version>0.9.1</version>
+</dependency>
+```
+
+> 示例项目代码：pinda-authority-project\pinda-authority\pd-examples\jwt-demo\
 
 # 权限校验框架资料
 

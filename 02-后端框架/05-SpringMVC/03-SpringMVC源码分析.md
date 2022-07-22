@@ -260,11 +260,11 @@ SpringMVC为逻辑视图名的解析提供了不同的策略，可以在Spring W
 
 ![](images/20200921233526749_10621.png)
 
-### 5.2. @RequestBody注解执行原理(!待整理)
+### 5.2. @RequestBody 注解执行原理(!待整理)
 
 ![](images/20200922082020581_18801.png)
 
-### 5.3. @PathVariable注解实现原理(!待整理)
+### 5.3. @PathVariable 注解实现原理(!待整理)
 
 ![](images/20200922082144603_21222.png)
 
@@ -391,7 +391,7 @@ Spring 中 `TypeConverter` 默认实现有如下：
     - 责任链路过长时，可能对请求传递处理效率有影响
     - 如果节点对象存在循环引用时，会造成死循环，导致系统崩溃
 
-## 7. SpringMVC中的文件上传
+## 7. SpringMVC 中的文件上传
 
 ### 7.1. MultipartFile
 

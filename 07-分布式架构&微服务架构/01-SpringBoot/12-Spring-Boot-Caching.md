@@ -916,7 +916,7 @@ jetcache:
 
 ```java
 // cacheType = CacheType.BOTH 配置同时使用本地缓存和远程缓存
-    @CreateCache(area = "default", name = "jetCache_", expire = 10, cacheType = CacheType.BOTH)
+@CreateCache(area = "default", name = "jetCache_", expire = 10, cacheType = CacheType.BOTH)
 ```
 
 > 注意：`@CreateCache` 注解的 `cacheType` 属性如果不进行配置，默认值是 `CacheType.REMOTE`，即仅使用远程缓存方案
@@ -1073,16 +1073,18 @@ book_    |   0.66| 75.86%|    29|     22|      0|        0|          28.0|      
 
 ## 7. Spring Boot 整合 j2cache 缓存
 
-jetcache 可以在限定范围内构建多级缓存，但是灵活性不足，不能随意搭配缓存方案。而 j2cache 则是一种可以随意搭配缓存解决方案的缓存整合框架。
+jetcache 可以在限定范围内构建多级缓存，但是灵活性不足，不能随意搭配缓存方案。而 j2cache 则是一种可以随意搭配缓存解决方案的缓存整合框架。即可将 Ehcache、Caffeine、redis、Spring Cache 等进行整合。
 
 ### 7.1. j2cache 概述
 
-J2Cache 是开源的两级缓存框架（要求至少 Java 8）。J2Cache 的两级缓存结构如下：
+J2Cache 是 OSChina 目前正在使用的开源的两级缓存框架（要求至少 Java 8）。J2Cache 的两级缓存结构如下：
 
-- 第一级缓存 L1：进程内缓存(同时支持 Ehcache 2.x、Ehcache 3.x 和 Caffeine)
-- L2：Redis(推荐)/Memcached 集中式缓存
+- 第一级缓存 L1：进程内缓存（同时支持 Ehcache 2.x、Ehcache 3.x 和 Caffeine）
+- 第二级缓存 L2：集中式缓存（支持 Redis(推荐)/Memcached）
 
-由于大量的缓存读取会导致 L2 的网络成为整个系统的瓶颈，因此 L1 的目标是降低对 L2 的读取次数。该缓存框架主要用于集群环境中。单机也可使用，用于避免应用重启导致的缓存冷启动后对后端业务的冲击。
+数据读取顺序是 `L1 -> L2 -> DB`
+
+由于大量的缓存读取会导致 L2 的网络成为整个系统的瓶颈，因此 L1 的目标是降低对 L2 的读取次数。该缓存框架主要用于集群环境中。单机也可使用，用于避免应用重启导致的缓存冷启动后导致的 ehcache 缓存数据丢失，对后端业务的造成冲击。
 
 J2Cache 从 1.3.0 版本开始支持 JGroups 和 Redis Pub/Sub 两种方式进行缓存事件的通知。在某些云平台上可能无法使用 JGroups 组播方式，可以采用 Redis 发布订阅的方式。
 
@@ -1118,7 +1120,7 @@ J2Cache 从 1.3.0 版本开始支持 JGroups 和 Redis Pub/Sub 两种方式进�
 </dependency>
 ```
 
-> j2cache 的 starter 中默认包含了 redis 坐标，官方也推荐使用 redis 作为二级缓存，因此无需导入 redis 坐标
+> Tips: j2cache 的 starter 中默认包含了 redis 坐标，官方也推荐使用 redis 作为二级缓存，因此无需导入 redis 坐标
 
 #### 7.2.3. j2cache 配置
 
@@ -1207,7 +1209,7 @@ public class SMSCodeServiceImpl implements SMSCodeService {
 
 ### 7.3. j2cache 配置示例
 
-因为 j2cache 是一个整合型的缓存框架，配置是 j2cache 的核心。缓存相关的配置很，可以查阅 j2cache-core 核心包中的 j2cache.properties 示例文件中的说明。如下：
+因为 j2cache 是一个整合型的缓存框架，配置是 j2cache 的核心。缓存相关的配置很多，可以查阅 j2cache-core 核心包中的 j2cache.properties 示例文件中的说明。如下：
 
 ```properties
 #J2Cache configuration
