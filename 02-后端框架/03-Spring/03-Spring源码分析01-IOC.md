@@ -1,6 +1,6 @@
 # Spring 源码分析01-IOC（控制反转）
 
-官方参考文档：https://docs.spring.io/spring-framework/docs/5.2.12.RELEASE/spring-framework-reference/
+> 官方参考文档：https://docs.spring.io/spring-framework/docs/5.2.12.RELEASE/spring-framework-reference/
 
 # Spring 底层架构核心概念解析
 

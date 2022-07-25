@@ -1,9 +1,8 @@
 # Spring 核心功能笔记
 
-> - Spring 官网：https://spring.io/
 > - Spring 框架：https://spring.io/projects/spring-framework
-
-~~jar 包下载地址：repo.springsource.org/libs-release-local/org/springframework/spring/~~
+> - Spring 最新版本文档：https://docs.spring.io/spring-framework/docs/current/reference/html/
+> - Spring 5.2.x 官方参考文档：https://docs.spring.io/spring-framework/docs/5.2.12.RELEASE/spring-framework-reference/
 
 ## 1. Spring 概述
 
@@ -1379,7 +1378,7 @@ Cat(name=在 BeanPostProcessor 接口中设置的名称, age=2, color=pink)
 
 `DestructionAwareBeanPostProcessor` 继承 `BeanPostProcessor` 接口
 
-#### 10.1.4. 内置的 `BeanPostProcessor` 后置处理器实现
+#### 10.1.4. 内置的 BeanPostProcessor 后置处理器实现
 
 Spring 框架通常会将回调接口或注解与自定义 `BeanPostProcessor` 实现结合起来使用，从而扩展 Spring IoC 容器。如 Spring 的内置一些的 `BeanPostProcessor` 实现类，它们会在 Spring 容器创建时初始化，分别具有不同的扩展功能：
 
@@ -2114,7 +2113,7 @@ public void testMessageSource() {
 
 ### 12.2. 访问资源
 
-`ApplicationContext` 接口继承了 `ResourceLoader` 接口，提供了用来读取资源的功能。
+`ApplicationContext` 接口继承了 `ResourceLoader` 接口，提供了用来读取资源的功能。比如，可以直接利用 `ApplicationContext` 获取某个文件的内容：
 
 ```java
 @Test
