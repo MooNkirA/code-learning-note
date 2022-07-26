@@ -1513,7 +1513,7 @@ public void TestBeanPostProcessorOrder() {
 
 #### 10.2.1. 内置的 BeanFactoryPostProcessor 实现
 
-Spring 提供了一些内置的 BeanFactoryPostProcessor 实现类
+Spring 提供了一些内置的 `BeanFactoryPostProcessor` 实现类
 
 - `ConfigurationClassPostProcessor` 用于解析 `@ComponentScan`、`@Bean`、`@Import`、`@ImportResource`
 - `MapperScannerConfigurer` 用于解析 Mybatis 的 Mapper 接口
@@ -2113,7 +2113,25 @@ public void testMessageSource() {
 
 ### 12.2. 访问资源
 
-`ApplicationContext` 接口继承了 `ResourceLoader` 接口，提供了用来读取资源的功能。比如，可以直接利用 `ApplicationContext` 获取某个文件的内容：
+`ApplicationContext` 接口继承了 `ResourceLoader` 接口，提供了用来读取资源的功能。比如，可以直接利用 `ApplicationContext` 获取某个文件的内容、一些网络资源、配置文件等：
+
+```java
+AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(AppConfig.class);
+
+Resource resource = context.getResource("file://D:\\code\\src\\main\\java\\com\\moon\\service\\UserService.java");
+System.out.println(resource.contentLength());
+System.out.println(resource.getFilename());
+
+Resource resource1 = context.getResource("https://www.baidu.com");
+System.out.println(resource1.contentLength());
+System.out.println(resource1.getURL());
+
+Resource resource2 = context.getResource("classpath:spring.xml");
+System.out.println(resource2.contentLength());
+System.out.println(resource2.getURL());
+```
+
+还可以一次性获取多个资源：
 
 ```java
 @Test
@@ -2551,7 +2569,64 @@ public ApplicationEventMulticaster applicationEventMulticaster(ConfigurableAppli
 
 Spring 3.0 后引入了 core.convert 包，提供了一个通用的类型转换模块。该模块定义了一个用于实现类型转换逻辑的 SPI 和一个用于在运行时执行类型转换的 API。在 Spring 容器中，可以使用这套实现作为JDK 原生的 `PropertyEditor` 类型转换器的替换品，将一些配置中字符串类型的属性值转换为 Bean 对象所需的属性类型。
 
-### 13.1. Converter SPI 接口
+### 13.1. PropertyEditor
+
+JDK中提供的类型转化工具类 `PropertyEditor`
+
+- 自定义类型转化工具类，需要实现 `java.beans.PropertyEditor` 接口
+
+```java
+public class StringToUserPropertyEditor extends PropertyEditorSupport implements PropertyEditor {
+
+	@Override
+	public void setAsText(String text) throws IllegalArgumentException {
+		User user = new User();
+		user.setName(text);
+		this.setValue(user);
+	}
+}
+```
+
+- 基础使用
+
+```java
+StringToUserPropertyEditor propertyEditor = new StringToUserPropertyEditor();
+propertyEditor.setAsText("1");
+User value = (User) propertyEditor.getValue();
+System.out.println(value);
+```
+
+- 向 Spring 中注册自定义 `PropertyEditor`
+
+```java
+@Bean
+public CustomEditorConfigurer customEditorConfigurer() {
+	CustomEditorConfigurer customEditorConfigurer = new CustomEditorConfigurer();
+	Map<Class<?>, Class<? extends PropertyEditor>> propertyEditorMap = new HashMap<>();
+    
+    // 表示StringToUserPropertyEditor可以将String转化成User类型，在Spring源码中，如果发现当前对象是String，而需要的类型是User，就会使用该PropertyEditor来做类型转化
+	propertyEditorMap.put(User.class, StringToUserPropertyEditor.class);
+	customEditorConfigurer.setCustomEditors(propertyEditorMap);
+	return customEditorConfigurer;
+}
+```
+
+- 注册后，以下bean就可以正常完成属性赋值
+
+```java
+@Component
+public class UserService {
+
+	@Value("xxx")
+	private User user;
+
+	public void test() {
+		System.out.println(user);
+	}
+}
+```
+
+### 13.2. Converter SPI 接口
 
 Spring 提供了 `org.springframework.core.convert.converter.Converter` 接口用于实现强数据类型转换，只需要重写 `convert` 方法，在方法中做数据转换的逻辑处理
 
@@ -2581,7 +2656,7 @@ public interface Converter<S, T> {
 
 ![](images/547264222220643.png)
 
-### 13.2. ConverterFactory 实现类型转换
+### 13.3. ConverterFactory 实现类型转换
 
 Spring 的 `org.springframework.core.convert.converter.ConverterFactory` 接口
 
@@ -2634,7 +2709,7 @@ final class StringToEnumConverterFactory implements ConverterFactory<String, Enu
 }
 ```
 
-### 13.3. GenericConverter 实现类型转换
+### 13.4. GenericConverter 实现类型转换
 
 当需要一个复杂的转换器时，可以使用 Spring 的 `org.springframework.core.convert.converter.GenericConverter` 接口，该接口支持在多个源类型和目标类型之间进行转换，此外还提供了可用的源字段和目标字段上下文，在实现转换逻辑时，可以使用。`GenericConverter` 的接口定义如下：
 
@@ -2645,4 +2720,121 @@ public interface GenericConverter {
 
     Object convert(Object source, TypeDescriptor sourceType, TypeDescriptor targetType);
 }
+```
+
+### 13.5. ConversionService 接口
+
+ConversionService 是 Spring 提供的类型转化服务统一的 API，用于在运行时执行类型转换逻辑。它比PropertyEditor更强大
+
+#### 13.5.1. 接口相关方法
+
+```java
+package org.springframework.core.convert;
+
+public interface ConversionService {
+
+    boolean canConvert(Class<?> sourceType, Class<?> targetType);
+
+    <T> T convert(Object source, Class<T> targetType);
+
+    boolean canConvert(TypeDescriptor sourceType, TypeDescriptor targetType);
+
+    Object convert(Object source, TypeDescriptor sourceType, TypeDescriptor targetType);
+}
+```
+
+#### 13.5.2. 自定义转换器的配置
+
+- xml 配置
+
+```xml
+<bean id="conversionService"
+      class="org.springframework.context.support.ConversionServiceFactoryBean">
+    <property name="converters">
+        <set>
+            <bean class="example.MyCustomConverter"/>
+        </set>
+    </property>
+</bean>
+```
+
+- 注解配置
+
+```java
+@Bean
+public ConversionServiceFactoryBean conversionService() {
+	ConversionServiceFactoryBean conversionServiceFactoryBean = new ConversionServiceFactoryBean();
+	conversionServiceFactoryBean.setConverters(Collections.singleton(new StringToUserConverter()));
+	return conversionServiceFactoryBean;
+}
+```
+
+#### 13.5.3. 基础示例
+
+创建字符串转对象的转换器
+
+```java
+public class StringToUserConverter implements ConditionalGenericConverter {
+
+	@Override
+	public boolean matches(TypeDescriptor sourceType, TypeDescriptor targetType) {
+		return sourceType.getType().equals(String.class) && targetType.getType().equals(User.class);
+	}
+
+	@Override
+	public Set<ConvertiblePair> getConvertibleTypes() {
+		return Collections.singleton(new ConvertiblePair(String.class, User.class));
+	}
+
+	@Override
+	public Object convert(Object source, TypeDescriptor sourceType, TypeDescriptor targetType) {
+		User user = new User();
+		user.setName((String)source);
+		return user;
+	}
+}
+```
+
+使用示例
+
+```java
+DefaultConversionService conversionService = new DefaultConversionService();
+conversionService.addConverter(new StringToUserConverter());
+User value = conversionService.convert("1", User.class);
+System.out.println(value);
+```
+
+### 13.6. TypeConverter 
+
+`org.springframework.beans.TypeConverter` 接口 Spring 底层使用，整合了 `PropertyEditor` 和 `ConversionService` 的功能
+
+```java
+public interface TypeConverter {
+	@Nullable
+	<T> T convertIfNecessary(@Nullable Object value, @Nullable Class<T> requiredType) throws TypeMismatchException;
+
+	@Nullable
+	<T> T convertIfNecessary(@Nullable Object value, @Nullable Class<T> requiredType,
+			@Nullable MethodParameter methodParam) throws TypeMismatchException;
+
+	@Nullable
+	<T> T convertIfNecessary(@Nullable Object value, @Nullable Class<T> requiredType, @Nullable Field field)
+			throws TypeMismatchException;
+
+	@Nullable
+	default <T> T convertIfNecessary(@Nullable Object value, @Nullable Class<T> requiredType,
+			@Nullable TypeDescriptor typeDescriptor) throws TypeMismatchException {
+		throw new UnsupportedOperationException("TypeDescriptor resolution not supported");
+	}
+}
+```
+
+使用示例：
+
+```java
+SimpleTypeConverter typeConverter = new SimpleTypeConverter();
+typeConverter.registerCustomEditor(User.class, new StringToUserPropertyEditor());
+//typeConverter.setConversionService(conversionService);
+User value = typeConverter.convertIfNecessary("1", User.class);
+System.out.println(value);
 ```
