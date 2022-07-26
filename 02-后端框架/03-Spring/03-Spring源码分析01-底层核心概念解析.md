@@ -1125,7 +1125,67 @@ System.out.println(context.getBean("userService"));
 
 ## 9. MetadataReader、ClassMetadata、AnnotationMetadata
 
+在 Spring 中需要去解析类的信息，比如类名、类中的方法、类上的注解，这些称之为类的<font color=red>**元数据**</font>，Spring 对类的元数据做了抽象，并提供了一些工具类。
+
+`MetadataReader` 表示类的元数据读取器，默认实现类为 `SimpleMetadataReader`。`ClassMetadata` 封装了类的元数据、`AnnotationMetadata` 封装注解的元数据
+
+```java
+@Test
+public void test() throws IOException {
+	SimpleMetadataReaderFactory simpleMetadataReaderFactory = new SimpleMetadataReaderFactory();
+	
+    // 构造一个 MetadataReader
+    MetadataReader metadataReader = simpleMetadataReaderFactory.getMetadataReader("com.moon.service.UserService");
+	
+    // 得到一个 ClassMetadata，并获取了类名
+    ClassMetadata classMetadata = metadataReader.getClassMetadata();
+
+    System.out.println(classMetadata.getClassName());
+    
+    // 获取一个AnnotationMetadata，并获取类上的注解信息
+    AnnotationMetadata annotationMetadata = metadataReader.getAnnotationMetadata();
+	for (String annotationType : annotationMetadata.getAnnotationTypes()) {
+		System.out.println(annotationType);
+	}
+}
+```
+
+> Notes: `SimpleMetadataReader` 使用的 ASM 技术去解析类时。因为 Spring 启动的时候需要进行包扫描，如果指定的包路径范围比较大，那么要扫描类的数量非常多，如果在 Spring 启动时就把这些类全部加载进 JVM 会造成资源的浪费与性能差的问题，因此使用了 ASM 技术。
+
 ## 10. ExcludeFilter 和 IncludeFilter
+
+- `ExcludeFilter`：排除过滤器
+- `IncludeFilter`：包含过滤器
+
+以上两个 Filter 是 Spring 扫描过程中用来过滤类是否需要扫描。示例如下：
+
+```java
+@ComponentScan(value = "com.moon",
+        excludeFilters = {@ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = UserService.class)})
+public class AppConfig {
+}
+```
+
+> 以上配置表示扫描 `com.moon` 包下面的所有类时将 `UserService` 类排除，即使该类上标识 `@Component` 注解也不会被扫描成 bean。
+
+```java
+@ComponentScan(value = "com.moon",
+        includeFilters = {@ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = UserService.class)})
+public class AppConfig {
+}
+```
+
+> 以上配置表示扫描 `com.moon` 包下面的所有类时始终会包含 `UserService` 类，即使该类上没有标识 `@Component` 注解也会被扫描成 bean。
+
+在 Spring 的扫描逻辑中，默认会添加一个 `AnnotationTypeFilter` 给 `includeFilters`，表示默认情况下 Spring 扫描过程中会包含标识了 `@Component` 注解的类
+
+### 10.1. FilterType 分类
+
+1. `ANNOTATION`：表示是否包含某个注解
+2. `ASSIGNABLE_TYPE`：表示是否是某个类
+3. `ASPECTJ`：表示否是符合某个 Aspectj 表达式
+4. `REGEX`：表示是否符合某个正则表达式
+5. `CUSTOM`：自定义
 
 
 

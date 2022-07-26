@@ -1810,7 +1810,7 @@ AND 表1.字段号 = 表5.字段号;
 SELECT * FROM 表1 LEFT [OUTER] JOIN 表2 ON 连接条件 [WHERE 普通过滤条件];
 ```
 
-> 其中中括号里的`OUTER`关键字是可以省略的。
+> Tips: 其中中括号里的`OUTER`关键字是可以省略的。
 
 - 示例
 

@@ -79,7 +79,7 @@ public class BasicController {
 public class SpringConfiguration {}
 ```
 
-- 创建SpringMVC配置类`SpringMvcConfiguration.java`，用于替代`springmvc.xml`配置文件
+- 创建 SpringMVC 配置类 `SpringMvcConfiguration.java`，用于替代 `springmvc.xml` 配置文件
 
 ```java
 /**
