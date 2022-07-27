@@ -10,9 +10,9 @@ Gradle官网：https://gradle.org/
 
 ## 2. Spring 5.3.10
 
-此教程是基于个人git库的Spring5.3.10源码编译的，并不是Github原生的Spring5.3.10源码，有一些差别，但都是gradle配置文件的微小改动，比如把某些依赖从optional改成compile级别（主要是为了方便编译），其他都没改动。
+此教程是基于个人 git 库的 Spring 5.3.10 源码编译的，并不是 Github 原生的 Spring 5.3.10 源码，有一些差别，但都是 gradle 配置文件的微小改动，比如把某些依赖从 optional 改成 compile 级别（主要是为了方便编译），其他都没改动。
 
-编译使用的IDEA版本是2021.1.3，用其他IDEA版本可能会遇到各种各样的问题。
+编译使用的 IDEA 版本是 2021.1.3，用其他 IDEA 版本可能会遇到各种各样的问题。
 
 ### 2.1. 源码下载
 
@@ -84,13 +84,68 @@ repositories {
 
 ![](images/20211010172758571_9328.png)
 
-### 2.4. 测试运行代码
+### 2.4. 修改源码的依赖配置
+
+#### 2.4.1. spring-aspects 模块
+
+修改 spring-aspects.gradle 依赖配置
+
+```
+// 原版依赖
+dependencies {
+	api("org.aspectj:aspectjweaver")
+	compileOnly("org.aspectj:aspectjrt")
+	optional(project(":spring-aop"))  // for @Async support
+	optional(project(":spring-beans"))  // for @Configurable support
+	optional(project(":spring-context"))  // for @Enable* support
+	optional(project(":spring-context-support"))  // for JavaMail and JSR-107 support
+	optional(project(":spring-orm"))  // for JPA exception translation support
+	optional(project(":spring-tx"))  // for JPA, @Transactional support
+	optional("javax.cache:cache-api")  // for JCache aspect
+	optional("javax.transaction:javax.transaction-api")  // for @javax.transaction.Transactional support
+	testImplementation(project(":spring-core"))  // for CodeStyleAspect
+	testImplementation(project(":spring-test"))
+	testImplementation(testFixtures(project(":spring-context")))
+	testImplementation(testFixtures(project(":spring-context-support")))
+	testImplementation(testFixtures(project(":spring-core")))
+	testImplementation(testFixtures(project(":spring-tx")))
+	testImplementation("javax.mail:javax.mail-api")
+	testCompileOnly("org.aspectj:aspectjrt")
+}
+
+
+// 修改后
+dependencies {
+	compile("org.aspectj:aspectjweaver")
+	compileOnly("org.aspectj:aspectjrt")
+	optional(project(":spring-aop"))  // for @Async support
+	optional(project(":spring-beans"))  // for @Configurable support
+	optional(project(":spring-context"))  // for @Enable* support
+	optional(project(":spring-context-support"))  // for JavaMail and JSR-107 support
+	optional(project(":spring-orm"))  // for JPA exception translation support
+	optional(project(":spring-tx"))  // for JPA, @Transactional support
+	optional("javax.cache:cache-api")  // for JCache aspect
+	optional("javax.transaction:javax.transaction-api")  // for @javax.transaction.Transactional support
+	testCompile(project(":spring-core"))  // for CodeStyleAspect
+	testCompile(project(":spring-test"))
+	testCompile(testFixtures(project(":spring-context")))
+	testCompile(testFixtures(project(":spring-context-support")))
+	testCompile(testFixtures(project(":spring-core")))
+	testCompile(testFixtures(project(":spring-tx")))
+	testCompile("javax.mail:javax.mail-api")
+	testCompileOnly("org.aspectj:aspectjrt")
+}
+```
+
+
+
+### 2.5. 测试运行代码
 
 编译成功后，编写一个基础的spring测试代码
 
 
 
-### 2.5. 相关问题
+### 2.6. 相关问题
 
 
 
@@ -164,4 +219,3 @@ repositories {
 ![](images/20201226102637109_31955.png)
 
 ![](images/20201226102647171_22314.png)
-
