@@ -99,7 +99,7 @@ Gradle 6.0.1
 ```groovy
 allprojects {
     repositories {
-        maven { url 'file:///D:/development/maven/repository' }
+        // maven { url 'file:///D:/development/maven/repository' } // 此方式配置有问题，后面再研究
         mavenLocal()
         maven { name "Alibaba"; url "https://maven.aliyun.com/repository/public" }
         maven { name "Bstek"; url "http://nexus.bsdn.org/content/groups/public/" }
@@ -388,7 +388,7 @@ dependencies {
 | `archives`        | 由本项目生产的构件（如jar包）                                                                                                                                                                      |
 | `default`         | 本项目上的默认项目依赖配置。包含本项目运行时所需要的构件和依赖                                                                                                                                       |
 
-> tip: 需要注意的是，`provided` 范围内的传递依赖也不会被打包
+> Tips: 需要注意的是，`provided` 范围内的传递依赖也不会被打包
 
 #### 3.4.3. 依赖的分类
 

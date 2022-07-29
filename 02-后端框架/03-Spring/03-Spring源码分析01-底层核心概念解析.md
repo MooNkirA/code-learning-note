@@ -1187,5 +1187,11 @@ public class AppConfig {
 4. `REGEX`：表示是否符合某个正则表达式
 5. `CUSTOM`：自定义
 
+## 11. Spring 源码相关扩展知识
 
+### 11.1. JFR
+
+JFR 是 Java Flight Record （Java飞行记录） 的缩写，是 JVM 内置的基于事件的JDK监控记录框架。Spring 源码有其应用。
+
+> 附带资料JFR介绍：https://zhuanlan.zhihu.com/p/122247741
 

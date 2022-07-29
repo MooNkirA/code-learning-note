@@ -1633,3 +1633,9 @@ pause
 ```
 
 复制以上代码，保存批处理命令`cleanLastUpdated.bat`文件
+
+## 4. 阿里云云效 Maven
+
+阿里云Maven中央仓库为 阿里云云效 提供的公共代理仓库，帮助研发人员提高研发生产效率，使用阿里云Maven中央仓库作为下载源，速度更快更稳定。
+
+官方说明文档：https://developer.aliyun.com/mvn/guide
