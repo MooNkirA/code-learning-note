@@ -2,7 +2,8 @@
 
 ## 1. SQL 的概念
 
-- 结构化查询语言(Structured Query Language)简称 SQL，是结构化查询语言，用于一种访问和处理数据库的标准的计算机语言。
+SQL，全称 Structured Query Language，是结构化查询语言，用于一种访问和处理数据库的标准的计算机语言。是一套操作关系型数据库的统一标准
+
 - 作用：用于存取数据、查询、更新和管理关系数据库系统。
 - 关系型数据库：使用表格存储数据的数据库
 
@@ -15,8 +16,9 @@
 
 ### 1.2. SQL 语法特点
 
-- SQL 对关键字的大小写不敏感
-- SQL语句可以以单行或者多行书写，以分号结束
+- SQL 对关键字的大小写不敏感，但关键字建议使用大写
+- SQL 语句可以以单行或者多行书写，以分号结束
+- SQL 语句可以使用空格/缩进来增强语句的可读性
 
 ### 1.3. SQL和数据库管理系统的关系
 
@@ -53,6 +55,15 @@
 
 ### 1.8. SQL 语言的分类
 
+SQL语句，根据其功能，主要分为四类：DDL、DML、DQL、DCL。
+
+| 分类（简称） |            全称             |                       说明                        |
+| ----------- | -------------------------- | ------------------------------------------------ |
+| DDL         | Data Definition Language   | 数据定义语言，用来定义数据库对象(数据库，表，字段)     |
+| DML         | Data Manipulation Language | 数据操作语言，用来对数据库表中的数据进行增删改         |
+| DQL         | Data Query Language        | 数据查询语言，用来查询数据库中表的记录                |
+| DCL         | Data Control Language      | 数据控制语言，用来创建数据库用户、控制数据库的访问权限 |
+
 #### 1.8.1. 数据定义语言：简称DDL(Data Definition Language)
 
 - 用来创建，修改，删除数据库中的各种对象：数据库，表，列等。
@@ -77,38 +88,41 @@
 
 ### 2.1. MySQL 中的数据类型
 
-详细的数据类型如下(红色字体为常用数据类型)
+MySQL 中的数据类型有很多，主要分为三类：数值类型、字符串类型、日期时间类型。详细的数据类型如下(红色字体为常用数据类型)
 
 #### 2.1.1. 数值类型
 
-|       类型       | 大小(byte) |                                                            说明                                                             |
-| :--------------: | :--------: | -------------------------------------------------------------------------------------------------------------------------- |
+|       类型        | 大小(byte) |                                                            说明                                                             |
+| :--------------: | :--------: | --------------------------------------------------------------------------------------------------------------------------- |
 |    `TINYINT`     |     1      | <font color=red>很小的整数型，默认长度4</font>                                                                                |
-|    `SMALLINT`    |     2      | 小的整型，默认长度6                                                                                                          |
+|    `SMALLINT`    |     2      | 小的整型，默认长度6                                                                                                           |
 |   `MEDIUMINT`    |     3      | 中等大小的整数，默认长度9                                                                                                     |
-| `INT`或`INTEGER` |     4      | <font color=red>普通大小的整数（占4字节），默认长度11</font>                                                                   |
-|     `bigint`     |     8      | 占用的8个字节，默认长度20                                                                                                     |
-|   `float(m,d)`   |     4      | 单精度浮点型小数                                                                                                             |
-|  `double(m,d)`   |     8      | <font color=red>双精度浮点型小数 d代表小数位数，m代表总位数 (整数位=m-d);<br/>比如：DOUBLE(5.2)， 数值共5位，其中小数为2位。</font> |
-|  `decimal(m,d)`  |            | <font color=red>压缩严格的定点数，取值范围与double相同，但有效取值范围由M与D决定</font>                                           |
+| `INT`或`INTEGER` |     4      | <font color=red>普通大小的整数（占4字节），默认长度11</font>                                                                    |
+|     `BIGINT`     |     8      | 占用的8个字节，默认长度20                                                                                                     |
+|   `FLOAT(m,d)`   |     4      | 单精度浮点型小数                                                                                                              |
+|  `DOUBLE(m,d)`   |     8      | <font color=red>双精度浮点型小数 d代表小数位数，m代表总位数 (整数位=m-d);<br/>比如：DOUBLE(5.2)， 数值共5位，其中小数为2位。</font> |
+|  `DECIMAL(m,d)`  |            | <font color=red>压缩严格的定点数，取值范围与double相同，但有效取值范围由M(精度)与D(标度)决定</font>                                |
 
+> Tips: 当字段用记录年龄时，因为不会存在负数与数值的范围不会太大，可以设置为 `age tinyint unsigned`
 
 #### 2.1.2. 字符串类型
 
-|      类型      | 大小(byte) |                                说明                                 |
-| :------------: | :--------: | ------------------------------------------------------------------- |
-|   `CHAR(M)`    |   0-255    | CHAR(x),定长的字符串                                                 |
-|  `VARCHAR(M)`  |  0-65535   | <font color=red>VARCHAR(x)，可变长的字符串，注意数据不能超过X位数</font> |
-|   `TINYBLOB`   |   0-255    | 不超过 255 个字符的二进制字符串                                        |
-|     `BLOB`     |  0-65535   | <font color=red>二进制形式的长文本数据。（图片、视频、音频）</font>     |
-|  `MEDIUMBLOB`  |   0-16M    | 二进制形式的中等长度文本数据                                           |
-|   `LONGBLOB`   |    0-4G    | 二进制形式的长文本数据                                                |
-|   `TINYTEXT`   |   0-255    | 短文本字符串                                                         |
-|     `TEXT`     |  0-65535   | 长文本数据                                                           |
-|  `MEDIUMTEXT`  |   0-16M    | 中等长度文本数据                                                      |
-|   `LONGTEXT`   |    0-4G    | 极大文本数据                                                         |
-| `VARBINARY(M)` |            | 允许长度0~M个字节的变长字节字符串                                      |
-|  `BINARY(M)`   |            | 允许长度0~M个字节的定长字节字符串                                      |
+|      类型       | 大小(byte) |                                      说明                                       |
+| :------------: | :--------: | ------------------------------------------------------------------------------- |
+|   `CHAR(M)`    |   0-255    | CHAR(x),定长的字符串。**性能较好**                                                |
+|  `VARCHAR(M)`  |  0-65535   | <font color=red>VARCHAR(x),可变长的字符串，注意数据不能超过X位数</font>**性能较差** |
+|   `TINYBLOB`   |   0-255    | 不超过 255 个字符的二进制字符串                                                    |
+|     `BLOB`     |  0-65535   | <font color=red>二进制形式的长文本数据。（图片、视频、音频）</font>                  |
+|  `MEDIUMBLOB`  |   0-16M    | 二进制形式的中等长度文本数据                                                       |
+|   `LONGBLOB`   |    0-4G    | 二进制形式的长文本数据                                                            |
+|   `TINYTEXT`   |   0-255    | 短文本字符串                                                                     |
+|     `TEXT`     |  0-65535   | 长文本数据                                                                       |
+|  `MEDIUMTEXT`  |   0-16M    | 中等长度文本数据                                                                  |
+|   `LONGTEXT`   |    0-4G    | 极大文本数据                                                                     |
+| `VARBINARY(M)` |            | 允许长度0~M个字节的变长字节字符串                                                  |
+|  `BINARY(M)`   |            | 允许长度0~M个字节的定长字节字符串                                                  |
+
+> Notes: `char` 与 `varchar` 都可以描述字符串，`char` 是定长字符串，指定长度多长，就占用多少个字符，和字段值的长度无关。而 `varchar` 是变长字符串，指定的长度为最大占用长度。相对来说，`char` 的性能会更高些。当存储的字符串长度是固定时，优先选择 `char` 类型
 
 #### 2.1.3. 日期类型
 
@@ -120,11 +134,7 @@
 | `DATETIME`  |     8      | 1000-01-01 00:00:00~ 9999-12-31 23:59:59       | YYYY-MM-DD HH:MM:SS | <font color=red>混合日期和时间值</font>              |
 | `TIMESTAMP` |     4      | 1970~01~01 00:00:01 UTC~2038-01-19 03:14:07UTC | YYYYMMDD HHMMSS     | <font color=red>混合日期和时间值，时间戳</font>       |
 
-#### 2.1.4. 其他类型
-
-
-
-#### 2.1.5. 注意事项
+#### 2.1.4. 注意事项
 
 1. `char`、`varchar`和`text`等字符串类型都可以存储路径，但使用“`\`”会被过滤，所以路径中用“`/`”或“`\\`”来代替，MySQL就会不会自动过滤路径的分隔字符，完整的表示路径
 2. 一般情况下，数据库中不直接存储图片和音频文件，而是存储图片与文件的路径。如果存储文件，则选择`blob`类型
@@ -178,79 +188,111 @@ MySQL 专门提供了一个 `innodb_stats_method` 的系统变量，专门针对
 
 ### 3.1. 查看数据库
 
+查看所有数据库信息，分号结束。
+
 ```sql
 show databases;
 ```
 
-- 查看所有数据库信息，分号结束。sql 语句就会发送给 MySQL 服务器端执行
+### 3.2. 查看正在使用的数据库
 
-### 3.2. 查看数据库定义
-
-```sql
-show create database 数据库名;
-```
-
-- 查看某个数据库在定义时的信息
-
-```sql
-show create database day21_1;
-```
-
-### 3.3. 创建数据库
-
-```sql
-create database 数据库名;
-```
-- 使用默认的字符集创建数据库
-- 创建数据库，数据库中数据的编码采用的是**安装数据库时指定的默认编码UTF-8**
-- eg: `create database db1;`
-
-```sql
-create database 数据库名 default character set 字符集;
-```
-
-- 使用指定字符创建数据库;
-- eg: `create database db2 default character set utf8;` (**注意：不是utf-8**)
-
-```sql
-CREATE DATABASE IF NOT EXISTS 数据库名;
-```
-
-- 当指定的名称的数据库不存在时，才创建该数据库
-
-### 3.4. 删除数据库
-
-```sql
-drop database 数据库名;
-```
-
-- eg：`drop database day21_2;`
-
-**注：删除没有确认信息，做删除处理时需要小心**
-
-### 3.5. 修改数据库默认字符集
-
-```sql
-alter database 数据库名 default character set 字符集;
-```
-
-- 修改数据库默认字符集
-
-### 3.6. 查看正在使用的数据库
+查看正在使用的数据库(这个命令一般在DOS下操作才需要使用)
 
 ```sql
 select database();
 ```
 
-- 查看正在使用的数据库(这个命令一般在DOS下操作才需要使用)
+### 3.3. 查看数据库定义
+
+查看某个数据库在定义时的信息
+
+```sql
+show create database 数据库名;
+```
+
+示例：
+
+```sql
+show create database day21_1;
+```
+
+### 3.4. 创建数据库
+
+在同一个数据库服务器中，不能创建两个名称相同的数据库，否则将会报错。
+
+#### 3.4.1. 语法
+
+```sql
+create database [ if not exists ] 数据库名 [ default charset 字符集 ] [ collate 排序规则 ] ;
+```
+
+> Tips: 可以通过 `if not exists` 参数来解决创建两个数据库报错的问题，数据库不存在，则创建该数据库；如果存在，则不创建。
+
+#### 3.4.2. 示例
+
+使用默认的字符集创建数据库。创建数据库，数据库中数据的编码采用的是**安装数据库时指定的默认编码UTF-8**
+
+```sql
+create database 数据库名;
+```
+
+示例：
+
+```sql
+create database db1;
+```
+
+使用指定字符创建数据库
+
+```sql
+create database 数据库名 default character set 字符集;
+```
+
+示例：
+
+```sql
+create database db2 default character set utf8;
+```
+
+> Tips: <font color=red>**字符集名称是 `utf8` 而不是 `utf-8`**</font>
+
+当指定的名称的数据库不存在时，才创建该数据库
+
+```sql
+CREATE DATABASE IF NOT EXISTS 数据库名;
+```
+
+### 3.5. 删除数据库
+
+删除指定的数据库
+
+```sql
+drop database [ if exists ] 数据库名;
+```
+
+> Tips: 如果删除一个不存在的数据库，将会报错。此时，可以加上参数 `if exists`，如果数据库存在，再执行删除，否则不执行删除。<font color=red>**值得注意的是，删除没有确认信息，做删除处理时需要小心**</font>
+
+示例：
+
+```sql
+drop database mydb;
+```
+
+### 3.6. 修改数据库默认字符集
+
+修改数据库默认字符集
+
+```sql
+alter database 数据库名 default character set 字符集;
+```
 
 ### 3.7. 切换 (选择要操作的) 数据库
+
+要操作某一个数据库下的表时，需要通过以下指令，切换到指定的数据库，否则是不能操作的。
 
 ```sql
 use 数据库名称;
 ```
-
-- 切换到指定的数据库
 
 ### 3.8. 校对规则（了解）
 
@@ -272,9 +314,11 @@ use 数据库名称;
 > - `show collation like 'utf8\_%';` -- 显示所有 utf-8
 > - `show collation like 'gbk%';` -- 显示所有 GBK
 
-指定数据库的默认字符集为 gbk 和校对规则 gbk_chinese_ci
+指定数据库的默认字符集为 gbk 和校对规则 gbk_chinese_ci。例如：
 
-> eg: `create database db4 default character set gbk collate gbk_chinese_ci;`
+```sql
+create database db4 default character set gbk collate gbk_chinese_ci;
+```
 
 ## 4. MySQL 表的管理（DDL）
 
@@ -282,37 +326,43 @@ use 数据库名称;
 
 #### 4.1.1. 查看数据库所有表格清单
 
+查看当前数据库中的所有表，显示表格的清单
+
 ```sql
 show tables;
 ```
 
-作用：查看当前数据库中的所有表，显示表格的清单
+例如：切换到 sys 这个系统数据库，并查看系统数据库中的所有表结构。
 
-#### 4.1.2. 查看数据库指定表格
+![](images/247390710239196.png)
+
+#### 4.1.2. 查看指定表的建表语句
+
+以sql格式返回，查看指定表格的建表语句。而有部分参数在创建表的时候，并未指定也会查询到，因为这部分是数据库的默认值，如：存储引擎、字符集等。
 
 ```sql
 show create table 表名;
 ```
 
-作用：以sql格式返回，查看指定表格的结构
-
 ![1](images/20190403154958546_26352.jpg)
+
+#### 4.1.3. 查看指定表的结构
+
+以表格格式返回，查看指定表格的结构。可以查看到表的字段，字段的类型、是否可以为NULL，是否存在默认值等信息。
 
 ```sql
 desc 表名;
 ```
 
-作用：以表格格式返回，查看指定表格的结构
+![](images/20190403155005722_23206.jpg)
 
-![2](images/20190403155005722_23206.jpg)
+#### 4.1.4. 查询当前数据库的所有表
 
-#### 4.1.3. 查询当前数据库的所有表
+查询当前数据库下所有表的状态与信息，包括表的引擎（Enginez）
 
 ```sql
 show table status from 查询的数据库名称;
 ```
-
-作用：查询当前数据库下所有表的状态与信息，包括表的引擎（Enginez）
 
 ### 4.2. 创建表
 
@@ -330,8 +380,7 @@ CREATE [TEMPORARY] TABLE [IF NOT EXISTS] tbl_name (
 -- ************************
 UNIQUE：可选。表示索引为唯一性索引。
 FULLTEXT；可选。表示索引为全文索引。
-SPATIAL：可选。表示索引为空间索引。
-	如果不指定索引类型，则为普通索引
+SPATIAL：可选。表示索引为空间索引。	如果不指定索引类型，则为普通索引
 INDEX和KEY：用于指定字段为索引，两者选择其中之一就可以了，作用是一样的。
 索引名：可选。给创建的索引取一个新名称。
 字段名1：指定索引对应的字段的名称，该字段必须是前面定义好的字段。
@@ -340,7 +389,7 @@ ASC：可选。表示升序排列。
 DESC：可选。表示降序排列。
 ```
 
-例：
+示例：
 
 ```sql
 -- 创建分类表
@@ -375,11 +424,13 @@ create table 新表名 as (select * from 要复制的表名);
 
 ### 4.4. 删除表
 
-删除表语法：
+删除一个或者多个表格，语法：
 
 ```sql
-drop table 表名1,表名2,表名3,……;
+DROP TABLE [ IF EXISTS ] 表名1, 表名2, 表名3, ……;
 ```
+
+可选项 `IF EXISTS` 表示只有表名存在时才会删除该表，表名不存在，则不执行删除操作（**如果不加该参数项，删除一张不存在的表，执行将会报错**）。
 
 示例：
 
@@ -389,16 +440,19 @@ drop table sort;
 
 -- 删除多个表格，用逗号分隔可以删除多张表
 drop table s1, s2, s3;
+
+-- 如果tb_user表存在，则删除tb_user表
+DROP TABLE IF EXISTS tb_user;
 ```
 
 ### 4.5. 修改表结构
 
 #### 4.5.1. 添加字段 add
 
-给指定的表添加字段的语法：
+给指定的表添加一个或多个字段的语法：
 
 ```sql
-alter table 表名 add 字段名1 数据类型(长度) 约束, add 字段名2 数据类型(长度) 约束, ……;
+ALTER TABLE 表名 ADD 字段名1 数据类型(长度) [ COMMENT 注释 ] [ 约束 ], ADD 字段名2 数据类型(长度) [ COMMENT 注释 ] [ 约束 ], ……;
 ```
 
 示例：
@@ -409,14 +463,17 @@ alter table student add gender varchar(2);
 
 -- 给指定表格添加多个字段，每个字段都需要有add
 alter table student add a int, add b int;
+
+-- 为emp表增加一个新的字段“昵称”为nickname，类型为varchar(20)
+ALTER TABLE emp ADD nickname varchar(20) COMMENT '昵称';
 ```
 
-#### 4.5.2. 修改字段类型(长度)或约束 modify
+#### 4.5.2. 修改字段的类型(长度)或约束 modify
 
 修改指定表格中的指定字段的类型(长度)或约束，语法：
 
 ```sql
-alter table 表名 modify 字段名 修改后的类型(长度) 约束;
+ALTER TABLE 表名 MODIFY 字段名 修改后的类型(长度) 约束;
 ```
 
 示例：
@@ -434,13 +491,16 @@ ALTER TABLE sort MODIFY sname VARCHAR(50) NOT NULL;
 将指定表格中的旧字段名改成新字段名，类型(长度)与约束也是可以同步修改。语法：
 
 ```sql
-alter table 表名 change 旧字段名 新字段名 类型(长度) 约束;
+ALTER TABLE 表名 CHANGE 旧字段名 新字段名 类型(长度) [ COMMENT 注释 ] [ 约束 ];
 ```
 
 示例：
 
 ```sql
 alter table student change gender sex varchar(2);
+
+-- 将emp表的nickname字段修改为username，类型为varchar(30)
+ALTER TABLE emp CHANGE nickname username varchar(30) COMMENT '昵称';
 ```
 
 #### 4.5.4. 删除字段 drop
@@ -448,7 +508,7 @@ alter table student change gender sex varchar(2);
 删除指定表中的字段。**可以多个，每个字段前都要加 `drop` 关键字**）
 
 ```sql
-alter table 表名 drop 字段名1, drop 字段名2, ……;
+ALTER TABLE 表名 DROP 字段名1, DROP 字段名2, ……;
 ```
 
 示例
@@ -463,10 +523,10 @@ alter table student drop a, drop b;
 
 ```sql
 -- 格式1:
-alter table 旧表名 rename 新表名;
+ALTER TABLE 旧表名 RENAME [ TO ] 新表名;
 
 -- 格式2:
-rename table 旧表名 to 新表名;
+RENAME TABLE 旧表名 TO 新表名;
 ```
 
 示例：
@@ -482,10 +542,10 @@ rename table sutdent to stu;
 修改指定表格的字符集
 
 ```sql
-alter table 表名 character set 新字符集;
+ALTER TABLE 表名 CHARACTER SET 新字符集;
 ```
 
-示例：
+示例： 
 
 ```sql
 alter table student character set gbk;
@@ -501,9 +561,15 @@ alter table 表名 add index(字段名);
 
 ## 5. MySQL 数据的管理与操作 （DML）
 
+DML 英文全称是 Data Manipulation Language(数据操作语言)，用来对数据库中表的数据记录进行增、删、改操作。
+
+- 添加数据（`INSERT`）
+- 修改数据（`UPDATE`）
+- 删除数据（`DELETE`）
+
 ### 5.1. 插入数据 insert
 
-#### 5.1.1. 基础插入语法 insert into
+#### 5.1.1. INSERT INTO 基础插入
 
 - 向表中插入一条数据（可以多条），指定所有列的值，语法：
 
@@ -517,12 +583,6 @@ INSERT [INTO] 表名 VALUES (值1, 值2, 值3 ……), (值1, 值2, 值3 ……)
 INSERT [INTO] 表 (列名1, 列名2, 列名3..) VALUES (值1, 值2, 值3..), (值1, 值2, 值3..),……;
 ```
 
-> 注意事项：
->
-> 1. 语句中的 `INTO` 可以省略
-> 2. 可以一次向表中插多个所有列，每行数据使用逗号分隔
-> 2. **列名和值的顺序、数量、数据类型要保持一致**
-
 示例：
 
 ```sql
@@ -535,11 +595,12 @@ INSERT INTO student(id,NAME,age,remark) VALUES(3,'jacky',27,'佛山人');
 
 **注意事项：**
 
-1. 插入的数据应与字段的数据类型相同
-2. 数据的大小应在列的规定范围内，例如：不能将一个长度为 80 的字符串加入到长度为 40 的列中。
-3. 在 `values` 中列出的数据位置必须与被加入的列的排列位置相对应。
-4. **字符和日期型数据应包含在单引号中。双引号也可以但不推荐**。
-5. 不指定列或使用 `null`，表示插入空值。
+- 语句中的 `INTO` 可以省略
+- 可以一次向表中插多个所有列，每行数据使用逗号分隔
+- **插入的数据时，列名和值的顺序、数量、数据类型要保持一致**。在 `values` 中列出的数据位置必须与被加入的列的排列位置相对应。
+- 数据的大小应在列的规定范围内，例如：不能将一个长度为 80 的字符串加入到长度为 40 的列中。
+- **字符和日期型数据应包含在单引号中。双引号也可以但不推荐**。
+- 不指定列或使用 `null`，表示插入空值。
 
 #### 5.1.2. INSERT INTO SELECT 语句
 
@@ -554,8 +615,7 @@ insert into Table2 select * from Table1;
 
 > 注：上述语法要求保证目标表`Table2`必须存在。
 
-
-#### 5.1.3. 高级语法 - INSERT ... ON DUPLICATE KEY 数据存在时更新操作，不存在时进行插入操作
+#### 5.1.3. INSERT ... ON DUPLICATE KEY 数据存在时更新操作，不存在时进行插入操作
 
 `INSERT ... ON DUPLICATE KEY UPDATE`这个语法的目的是为了解决重复性，当数据库中存在某个记录时，执行这条语句会更新它，而不存在这条记录时，会插入它。
 
@@ -592,7 +652,7 @@ CREATE TABLE `t_stock_chg` (
 
 *注：这里的字段f_updatetime每次在更新数据时会自动更新，但是如果记录中存在某条数据，后来又更新它，而更新的数据和原数据一模一样，那么这个字段也不会更新，仍然是上一次的时间。此时`INSERT ... ON DUPLICATE KEY UPDATE`影响行数是0*。
 
-#### 5.1.4. 高级语法 - replace into 插入数据
+#### 5.1.4. replace into 插入数据
 
 `replace into` 跟 `insert` 功能类似，不同点在于：`replace into`首先尝试插入数据到表中
 
@@ -613,7 +673,7 @@ MySQL replace into 有三种形式：
 
 前两种形式用的多些。其中“into”关键字可以省略，不过最好加上“into”，这样意思更加直观。另外，对于那些没有给予值的列，MySQL将自动为这些列赋上默认值。
 
-#### 5.1.5. 高级语法 - insert ignore into 插入数据
+#### 5.1.5. insert ignore into 插入数据
 
 `INSERT IGNORE` 与 `INSERT INTO` 的区别就是`INSERT IGNORE`会忽略数据库中已经存在的数据，如果数据库没有数据，就插入新的数据；如果有数据的话就跳过这条数据（即执行这条插入语句时不会报错，只有警告，数据实际没有插入）。这样就可以保留数据库中已经存在数据，达到在间隙中插入数据的目的。
 
@@ -650,7 +710,7 @@ update 表名 set 列名1=值, 列名2=值,……;
 - 根据条件修改符合某些条件的一（多）个列数据，语法：
 
 ```sql
-update 表名 set 列名1=值,列名2=值,…… where 条件;
+update 表名 set 列名1=值,列名2=值,…… [ WHERE 条件 ] ;
 ```
 
 **语法的关键字：**
@@ -669,18 +729,20 @@ UPDATE student SET gender='男';
 UPDATE student SET age=28,remark='韶关人' WHERE id=2;
 ```
 
-### 5.3. 删除数据 delete
+### 5.3. 删除数据 delete/truncate
+
+#### 5.3.1. 删除数据 delete
 
 - 删除表的所有记录，相当清空表的内容
 
 ```sql
-delete from 表名;
+DELETE FROM 表名;
 ```
 
-- 删除部分符合条件的行数据，
+- 删除部分符合条件的行数据
 
 ```sql
-delete from 表名 where 条件;
+DELETE FROM 表名 [ WHERE 条件 ] ;
 ```
 
 示例：
@@ -693,15 +755,16 @@ delete from student;
 delete from student where id=3;
 ```
 
-- **注意事项：**
+**注意事项：**
+
 1. 自增长约束：**只删除表中的数据，不会影响表中的自增长约束，即 `auto_increment` 的字段还会在原来基础上增加**
 2. 使用 `delete` 删除的数据，通过事务是可以回滚。
 3. 使用 `where` 子句准备指定删除内容。**正常情况下，严禁执行不带`where`条件的删除语句**
 4. 删除语句不能使用别名，如：`delete from student s where s.id=3;`会报语法错误。如果使用别名，正确的语法是：`delete s from student s where s.id=3;`
 
-### 5.4. 删除所有数据 truncate
+#### 5.3.2. 删除所有数据 truncate
 
-- 删除表的所有数据，与`delete` 不一样的是，`truncate` 相当于先 `drop` 删除原表后，再重新创建一个表，后面不能带条件(`where/having`)
+删除表的所有数据，与 `delete` 删除操作的区别是，`truncate` 相当于先 `drop` 删除原表后，再重新创建一个表，后面不能带条件(`where/having`)
 
 ```sql
 truncate [table] 表名;
@@ -713,70 +776,78 @@ truncate [table] 表名;
 truncate table student;
 ```
 
-- **注意事项：**
+**注意事项：**
+
 1. **既能删除表的数据，也能够把表的自增长约束重置为0**
 2. 使用 `truncate` 删除的数据，不能进行回滚！
 3. 语句后面不能带条件
 4. 语句中的 `table` 关键字可以省略
 
-### 5.5. MySQL 中的 delete 和 truncate 的区别？
+#### 5.3.3. MySQL 中的 delete 和 truncate 的区别？
 
-- **`delete`**
-    - 删除所有数据时，不会影响自增长的值
-    - 可以通过事务回滚数据
-- **`truncate`**
-    - 删除数据时，先直接`drop`表，然后新建一张表，自增长的值从默认值开始
-    - 不可以通过事务回滚数据
+- `delete`：删除所有数据时，不会影响自增长的值；可以通过事务回滚数据
+- `truncate`：删除数据时，先直接`drop`表，然后新建一张表，自增长的值从默认值开始；不可以通过事务回滚数据
 
 ## 6. MySQL 数据查询（DQL）
 
+DQL 英文全称是 Data Query Language(数据查询语言)，数据查询语言，用来查询数据库中表的记录。查询关键字: `SELECT`
+
 数据库管理系统一个重要功能就是数据查询，数据查询不应只是简单返回数据库中存储的数据，还应该根据需要对数据进行筛选以及确定数据以什么样的格式显示。
 
-### 6.1. 数据查询语法总格式
+在一个正常的业务系统中，查询操作的频次是要远高于增删改等操作，而且在查询的过程中，可能还会涉及到条件、排序、分页等操作
 
-mysql查询数据有两种方式
+### 6.1. 查询语法格式
 
-1. 普通的`select`用法，格式如下:
+mysql 查询数据有两种方式
+
+#### 6.1.1. SELECT 语法
+
+语法格式如下：
 
 ```sql
-select [all|distinct] |top 数字[percent]
-	字段as常量,
-	包含字段表达式,
-	函数(Sum,max),
-	常量
-from
+SELECT [all|distinct] |top 数字[percent]
+    [ALL | DISTINCT | DISTINCTROW ]
+    
+	字段 as 常量 | 包含字段表达式 | 函数(如：sum, max) | 常量
+FROM
 	表或结果集
-where
+WHERE
 	条件： 逻辑|空值|多条件|模糊|范围
-group by
+GROUP BY
 	字段
-having
+HAVING
 	筛选条件
-order by
-	字段 desc | asc
-limit 开始索引, 每页大小
+ORDER BY
+	字段 ASC | DESC
+LIMIT
+    开始索引, 每页大小
 ```
 
 **sql的执行顺序：`from -> where -> group by -> having -> select -> order by`**
 
-2. `select into`通常用来把旧表数据插入到新表中，格式如下:
+#### 6.1.2. SELECT INTO 语法
+
+`select into` 通常用来把旧表数据插入到新表中，请求格式如下:
 
 ```sql
-select
+SELECT
 	字段等
-into 表名
-from
+INTO
+    表名
+FROM
 	数据源
 	其他子句
 ```
 
-### 6.2. 查询数据 select（查询不会改变原表的数据）
+### 6.2. 查询数据 select
 
 #### 6.2.1. 查询所有列
 
 ```sql
 SELECT * FROM 表名;
 ```
+
+> <font color=red>**Tips: `*` 号代表查询所有字段，在实际开发中尽量少用（不直观、影响效率）。**</font>
 
 示例：
 
@@ -788,7 +859,7 @@ SELECT * FROM student;
 #### 6.2.2. 查询指定列
 
 ```sql
-select 列名1, 列名2, ……… from 表名;
+SELECT 列名1, 列名2, ……… FROM 表名;
 ```
 
 示例：
@@ -801,10 +872,10 @@ SELECT NAME,gender FROM student;
 #### 6.2.3. 查询时指定列的别名
 
 ```sql
-select 列名1 as 别名1, 列名2 as 别名2,…… from 表名;
+SELECT 列名1 AS 别名1, 列名2 AS 别名2,…… FROM 表名;
 ```
 
-> `as` 关键字可以省略
+> Tips: `AS` 关键字可以省略
 
 示例：
 
@@ -817,14 +888,16 @@ SELECT NAME '姓名',gender '性别' FROM student;
 
 #### 6.2.4. 合并列查询
 
+查询时可以对数值类型的列进行合并运算，并将结果新增一列。
+
 ```sql
 select *,(数值类型的列名1+数值类型的列名2+……) as 别名 from 表名;
 ```
 
-注意：
-
-- 合并列必须是数值类型
-- 合并非数值类型是没有意义，合并后也是输出数据类型的值
+> 注意事项：
+>
+> - 合并列必须是数值类型
+> - 合并非数值类型是没有意义，合并后也是输出数据类型的值
 
 ```sql
 SELECT *, (math+english) '总成绩' FROM student;
@@ -837,9 +910,17 @@ SELECT uname,salary,(salary*12) AS '年薪' FROM users;
 
 #### 6.2.5. 查询时添加常量列
 
-- `select *,'添加的内容' as 别名 from 表名;`
-    - 使用`''`后，单引号里的内容就当成常量列，在查询时新增一列到原表。
-    - eg: `SELECT *, 'JavaEE 就业班' AS '班级' FROM student;`
+使用`''`单引号包裹的内容会当成常量列，在查询时新增一列到原表。语法如下：
+
+```sql
+select *,'添加的内容' as 别名 from 表名;
+```
+
+示例：
+
+```sql
+SELECT *, 'JavaEE 就业班' AS '班级' FROM student;
+```
 
 ```shell
 +----+------+------+------+---------+--------+
@@ -855,12 +936,31 @@ SELECT uname,salary,(salary*12) AS '年薪' FROM users;
 
 #### 6.2.6. 去除重复数据
 
-- `select distinct 列名 from 表名;`
-    - 根据某一列的内容去掉重复的值，只保留其中一个内容。
-    - eg: `SELECT DISTINCT address FROM student;`
-- `select distinct 列名1,列名2,…… from 表名;`
-    - 根据多列的内容去掉重复的值，要多个列的内容同时一致才去掉。
-    - eg: `SELECT DISTINCT(address) FROM student;`
+查询时使用 `DISTINCT` 关键字可以去除重复数据。
+
+- 根据某一列的内容去掉重复的值，只保留其中一个内容
+
+```sql
+select distinct 列名 from 表名;
+```
+
+示例：
+
+```sql
+SELECT DISTINCT address FROM student;
+```
+
+- 根据多列的内容去掉重复的值，要多个列的内容同时一致才去掉。
+
+```sql
+select distinct 列名1,列名2,…… from 表名;
+```
+
+示例：
+
+```sql
+SELECT DISTINCT(address) FROM student;
+```
 
 ### 6.3. 条件查询 where
 
@@ -869,7 +969,7 @@ SELECT uname,salary,(salary*12) AS '年薪' FROM users;
 where语句表条件过滤。满足条件操作，不满足不操作，多用于数据的查询与修改。
 
 ```sql
-select 字段 from 表名 where 条件;
+SELECT 字段列表 FROM 表名 WHERE 条件;
 ```
 
 #### 6.3.2. MySQL支持4种运算符
@@ -908,7 +1008,7 @@ select pname,price * 1.1 as new_price from product;
 | `IS NULL` 或 `ISNULL` | 判断一个值是否为  NULL                                                                       |
 |     `IS NOT NULL`     | 判断一个值是否不为  NULL                                                                     |
 |        `LEAST`        | 当有两个或多个参数时，返回最小值                                                               |
-|      `GREATEST`       | 当有两个或多个参数时，返回最大值                                                               |
+|      `GREATEST`       | 当有两个或多个参数时，返回最大值；若比较值中有一个null值，则返回null                              |
 |  `BETWEEN .. AND ..`  | 判断一个值是否落在两个值之间，显示在某一区间的值(包头包尾)                                        |
 |         `IN`          | 判断一个值是 IN 列表中的任意一个值                                                             |
 |       `NOT IN`        | 判断一个值不是 IN 列表中的任意一个值                                                           |
@@ -968,7 +1068,7 @@ SELECT * FROM student WHERE address IS NOT NULL AND address<>'';
 语法：
 
 ```sql
-select * from 表名 where 列名like 条件;
+select * from 表名 where 列名 like 条件;
 ```
 
 示例：
@@ -1042,21 +1142,23 @@ select ~3;   -- 位取反
 
 ```sql
 select
- 字段名1，字段名2，……
-from 表名
-order by 字段名1 [asc|desc]，字段名2[asc|desc]……
+    字段名1，字段名2，……
+from 
+    表名
+order by 
+    字段名1 [asc|desc]，字段名2[asc|desc]……
 ```
 
-关键字解释：
+**关键字解释**：
 
-- `asc`：顺序（正序：数值：从小到大，字符串：字符 a-z）。不指定时默认`asc**`
+- `asc`：顺序（正序：数值：从小到大，字符串：字符 a-z）。不指定时默认`asc`
 - `desc`：倒序（正序：数值：从大到小，字符串：字符 z-a）
 
-排序查询特点
+**排序查询注意事项**：
 
-- **order by 子句应位于 select 语句的结尾**。LIMIT子句除外
-- order by用于子句中可以支持单个字段，多个字段，表达式，函数，别名
-- **order by 后面指定的列名或别名必须存在，否则查询出错。**
+- **`order by` 子句应位于 `select` 语句的结尾**。`LIMIT` 子句除外
+- `order by`用于子句中可以支持单个字段，多个字段，表达式，函数，别名
+- **`order by` 后面指定的列名或别名必须存在，否则查询出错。**
 
 示例：
 
@@ -1088,7 +1190,7 @@ SELECT *, (math+english) AS 总分 FROM student ORDER BY 总分 DESC;
 
 #### 6.4.2. 以 select 语句后指定的列名排序
 
-按新的列名排序，如果出现`where`条件查询，则 `ORDER BY` 子句应位于 `SELECT` 语句的结尾。
+按新的列名排序，如果出现 `where` 条件查询，则 `ORDER BY` 子句应位于 `SELECT` 语句的结尾。
 
 ```sql
 select *,(列名1+列名2+……) as 别名 from 表名 order by 别名 asc/desc;
@@ -1105,13 +1207,16 @@ SELECT *, (math+english) AS 总分 FROM student WHERE NAME LIKE '张%' ORDER BY 
 
 #### 6.5.1. 定义与语法
 
-聚合函数查询是纵向查询，它是对一列的值进行计算，然后返回一个单一的值；<font color=red>**注意：聚合函数会排除空值(`null`)的数据**</font>。语法：
+聚合函数查询是纵向查询，它是对一列的值进行计算，然后返回一个单一的值。语法：
 
 ```sql
 select 聚合函数名称(数值列名) from 表名;
 ```
 
-> 按聚合函数的结果来查询，列必须是数值列（`COUNT`函数除外），如果不是数值列，则结果为0
+> Notes: 
+>
+> - <font color=red>**聚合函数会排除空值(`null`)的数据**</font>。
+> - 按聚合函数的结果来查询，列必须是数值列（`COUNT`函数除外），如果不是数值列，则结果为0
 
 #### 6.5.2. 常用的聚合函数
 
@@ -1123,7 +1228,7 @@ select 聚合函数名称(数值列名) from 表名;
 |  `min()`  | 计算指定列的最小值，如果指定列是字符串类型，那么使用字符串排序运算； |
 |  `avg()`  | 计算指定列的平均值，如果指定列类型不是数值类型，那么计算结果为0     |
 
-#### 6.5.3. 示例
+#### 6.5.3. 聚合查询示例
 
 ```sql
 -- 1. 需求： 查询所有学生 english 的总分
@@ -1156,33 +1261,36 @@ select avg(price) from product where category_id = 'c002';
 
 #### 6.5.4. 聚合查询对 NULL 值的处理
 
-- `count` 函数对 `null` 值的处理輓是，如果`count`函数的参数为星号（`*`），则统计所有记录的个数。而如果参数为某字段，不统计含`null`值的记录个数。
+- `count` 函数对 `null` 值的处理逻辑是，如果`count`函数的参数为星号（`*`），则统计所有记录的个数。而如果参数为某字段，则统计不为`null`值的记录个数。
 - `sum` 和 `avg` 函数是忽略 `null` 值的存在，就好象该条记录不存在一样。
 - `max` 和 `min` 函数也同样忽略 `null` 值的存在。
 
 ### 6.6. 分页查询 limit
 
+#### 6.6.1. 语法
+
 `limit` 关键字，用于分页查询数据。语法：
 
 ```sql
--- 方式1: 显示前n条
+-- 方式1: 显示前面指定的n条记录
 select * from 表名 limit n;
--- 方式2: 分页显示，从第m条索引开始，查询n条数据
+
+-- 方式2: 分页显示，从起始索引m开始，查询指定n条的记录
 select * from 表名 limit m, n;
 ```
 
-参数解析：
+参数说明：
 
-- `m`：整数，表示从第几条索引开始，计算公式：`(当前页-1)*每页显示条数`
+- `m`：整数，表示从第几条索引开始，
 - `n`：整数，表示查询多少条数据
 
+> Notes：
+>
+> - **起始行数是从 0 开始**，计算公式：`起始索引 = (当前页-1) * 每页显示记录数`
+> - **如果分页同时要进行排序，`limit` 语句要放在 `order by` 的后面。**
+> - <font color=red>**分页查询是数据库的方言，不同的数据库有不同的实现**</font>，MySQL 中是 `LIMIT`
 
-注意事项：
-
-- **起始行数是从 0 开始**
-- **如果分页同时要进行排序，limit语句要放在order by的后面。**
-
-示例：
+#### 6.6.2. 分页查询示例
 
 ```sql
 SELECT * FROM student;
@@ -1194,11 +1302,19 @@ SELECT * FROM student LIMIT 2,2;
 SELECT * FROM student LIMIT 4,2;
 ```
 
-**总结分页计算规律：**
+#### 6.6.3. 分页计算规律总结
 
-- 0,2,4,这是等差数列
-- `startIndex = (curPage-1)*pageSize`
-- 转变：分页实现的前提pageSize每页多少条,curPage当前页，startIndex查询的起始号
+观察分页的开始索引，其实是等差数列。如：`0,2,4`。因此开始索引的计算公式如下：
+
+```
+startIndex = (curPage-1)*pageSize
+```
+
+参数说明：
+
+- `pageSize`：每页多少条
+- `curPage`：当前页
+- `startIndex`：查询的起始号
 
 ### 6.7. 分组查询 group by
 
@@ -1207,17 +1323,20 @@ SELECT * FROM student LIMIT 4,2;
 `group by` 关键字可以将查询结果按某个字段或多个字段进行分组。字段中值相等的为一组。语法：
 
 ```sql
-select 字段1,字段2… from 表名 group by 分组字段名 [having 条件表达式][with rollup];
+SELECT 字段1,字段2… FROM 表名 [ WHERE 条件 ] GROUP BY 分组字段名 [HAVING 条件表达式][with rollup];
 ```
 
-- “分组字段名”是指按照该字段的值进行分组
-- “`having 条件表达式`”用来限制分组后的显示内容，满足条件表达式的结果将显示
-- “`with rollup`”关键字将会在所有记录的最后加上一条记录。该记录是上面所有记录的总和
+参数说明：
 
-> 注意：
+- `GROUP BY 分组字段名`：是指按照该字段的值进行分组。支持多字段分组，如：`group by columnA,columnB`
+- `having 条件表达式`：分组后过滤条件，用来限制分组后的显示内容，满足条件表达式的结果将显示
+- `with rollup`：关键字将会在所有记录的最后加上一条记录。该记录是上面所有记录的总和
+
+> Notes：
 >
-> 如果要进行分组的话，则 `SELECT` 子句之后，只能出现分组的字段和统计函数，其他的字段不能出现：
-> 按照指定的列对象数据进行分组。通常与聚合函数（`COUNT()`、`SUM()`、`AVG()`、`MAX()`、`MIN()`）一起使用。如果 `group by` 不与上述函数一起使用，那么查询结果就是字段聚会的分组情况，字段中取值相同记录为一组，但只显示该组的第一条记录（这种使用意义不大）
+> - 执行顺序: where -> 聚合函数 -> having
+> - 如果要进行分组的话，则 `SELECT` 子句之后，只能出现分组的字段和统计函数，其他的字段不能出现：
+> - 按照指定的列对象数据进行分组，查询的字段一般为分组字段与聚合函数（`COUNT()`、`SUM()`、`AVG()`、`MAX()`、`MIN()`）配合使用。如果 `group by` 不与上述函数一起使用，那么查询结果就是字段聚合的分组情况，字段中取值相同记录为一组，但只显示该组的第一条记录（这种使用意义不大）
 
 示例：
 
@@ -1243,9 +1362,9 @@ GROUP BY
 
 #### 6.7.2. 分组条件筛选 (having)
 
-- `having` 关键字作用：用来对分组信息进行过滤，用法与`where`一样。
-- 分组之后对统计结果进行筛选的话必须使用 `having`，不能使用 `where`
-- `where` 子句用来筛选 `FROM` 子句中指定的操作所产生的行；`group by` 子句用来分组 `WHERE` 子句的输出；`having` 子句用来从分组的结果中筛选行
+`having` 关键字作用：用来对分组信息进行过滤，用法与`where`一样。但分组之后对统计结果进行筛选的话必须使用 `having`，不能使用 `where`
+
+`where` 子句用来筛选 `FROM` 子句中指定的操作所产生的行；`group by` 子句用来分组 `WHERE` 子句的输出；`having` 子句用来从分组的结果中筛选行
 
 ```sql
 select * from 表名 group by 列名 having 筛选条件;
@@ -1263,8 +1382,10 @@ select category_id ,count(*) from product group by category_id having count(*) >
 
 #### 6.7.3. where 和 having 的区别
 
-- where是对行记录进行筛选过滤，where后面**不能跟聚合函数**的(如:`count(*)`)
-- having是对组信息进行筛选过滤，having后面**可以跟聚合函数**的。(如:`count(*)`)
+- 执行时机不同：`where` 是分组之前进行过滤，不满足 `where` 条件，不参与分组；而 `having` 是分组之后对结果进行过滤。
+- 判断条件不同：`where` 不能对聚合函数进行判断，而 `having` 可以。
+    - `where` 是对行记录进行筛选过滤，`where` 后**不能跟聚合函数**的(如:`count(*)`)
+    - `having` 是对组信息进行筛选过滤，`having` 后**可以跟聚合函数**的。(如:`count(*)`)
 
 #### 6.7.4. `with rollup` 关键字
 
@@ -1374,6 +1495,49 @@ SELECT 'xababy' REGEXP 'x(abab)y';
 SELECT 'xababy' REGEXP 'x(ab)*y';
 SELECT 'xababy' REGEXP 'x(ab){1,2}y';
 ```
+
+### 6.9. 查询语句的执行顺序
+
+DQL 语句在执行的顺序如下：
+
+![](images/553203115220770.png)
+
+验证过程：
+
+```sql
+-- 查询年龄大于15的员工姓名、年龄，并根据年龄进行升序排序。
+select name, age from emp where age > 15 order by age asc;
+```
+
+在查询时，给 emp 表起一个别名 e，然后在 select 及 where 中使用该别名。
+
+```sql
+select e.name, e.age from emp e where e.age > 15 order by age asc;
+```
+
+执行上述SQL语句后，可以正常的查询到结果，此时就说明：from 先执行生成了别名，然后 where 和 select 可以使用别名并执行。
+
+若给 select 后面的字段起别名，然后在 where 中使用这个别名，然后看看是否可以执行成功。
+
+```sql
+select e.name ename, e.age eage from emp e where eage > 15 order by age asc;
+```
+
+执行上述SQL报错了：
+
+![](images/453623915239196.png)
+
+由此可以得出结论：from 先执行，然后执行 where，再执行 select
+
+接下来，再执行如下SQL语句，查看执行效果：
+
+```sql
+select e.name ename, e.age eage from emp e where e.age > 15 order by eage asc;
+```
+
+结果执行成功。那么也就验证了：order by 是在 select 语句之后执行的。
+
+综上所述，DQL 语句的执行顺序为：`from -> where -> group by -> having -> select -> order by -> limit`
 
 ## 7. MySQL 的多表操作
 
@@ -2453,54 +2617,149 @@ select * from emp3 a where exists(select * from dept3 b where a.dept_id = b.dept
 
 ### 9.1. DCL概述
 
-用于创建用户，删除用户，给用户分配权限等
+DCL 英文全称是 Data Control Language(数据控制语言)，用来管理数据库用户的创建和删除、控制用户的数据库访问权限。
 
-### 9.2. 2、常用操作
+![](images/207634615227063.png)
 
-#### 9.2.1. 创建用户
+### 9.2. 管理用户
 
-语法：
+#### 9.2.1. 查询用户
 
-```sql
-create user 用户名@xxx identified by '密码';
+mysql的用户信息保存在 `mysql.user`
+
+```
+select * from mysql.user;
 ```
 
-其中xxx表示创建的用户使用的IP地址，可以设置为localhost(代表本机)或者`'%'`（代表允许所有IP地址登录）
+查询的结果如下:
 
-#### 9.2.2. 用户授权
+![](images/442295515247229.png)
 
-创建用户之后，可以使用新用户进行登录，查看数据库只有系统自带的数据库，想要操作自己创建的数据库还需要root用户对新用户进行授权。语法：
+其中 Host 代表当前用户访问的主机，如果为 localhost，仅代表只能够在当前本机访问，是不可以远程访问的。User 代表的是访问该数据库的用户名。在 MySQL 中需要通过 Host 和 User 来唯一标识一个用户。
+
+#### 9.2.2. 创建用户
 
 ```sql
-grant 权限1,权限2,...,权限n on 数据库名.* to 用户名@IP;
+CREATE USER '用户名'@'主机名' IDENTIFIED BY '密码';
 ```
 
-将数据库的n个权限授予用户。
+> Notes: 
+>
+> - 在 MySQL 中需要通过`用户名@主机名`的方式，来唯一标识一个用户。
+> - “主机名”表示创建的用户使用的IP地址，可以设置为localhost(代表仅允许本机)或者`'%'`（代表允许所有IP地址登录）
 
 ```sql
-grant all on 数据库名.* to 用户名@IP;
+-- 创建用户 moon, 只能够在当前主机localhost访问, 密码123456;
+create user 'moon'@'localhost' identified by '123456';
+
+-- 创建用户 zero, 可以在任意主机访问该数据库, 密码123456;
+create user 'zero'@'%' identified by '123456';
 ```
 
-将操作数据库的所有的权限授予用户。
-
-#### 9.2.3. 撤销权限
-
-当需要限制新用户操作数据库的权限时,root用户可以撤销已授予用户的某些权限。语法：
+#### 9.2.3. 修改用户密码
 
 ```sql
-revoke 权限1,权限2,........,权限n on 数据库名.* from 用户名@IP;
+ALTER USER '用户名'@'主机名' IDENTIFIED WITH mysql_native_password BY '新密码';
 ```
 
 示例：
 
 ```sql
-revoke delete on day21.* from pkxing@IP;
+alter user 'moon'@'%' identified with mysql_native_password by '1234';
 ```
 
 #### 9.2.4. 删除用户
 
 ```sql
-drop user 用户名@'%';
+DROP USER '用户名'@'主机名';
+```
+
+示例：
+
+```sql
+drop user 'moon'@'localhost';
+```
+
+### 9.3. 用户权限控制
+
+#### 9.3.1. 常用权限
+
+MySQL 中定义了很多种权限，但是常用的就以下几种：
+
+|         权限         |       说明        |
+| ------------------- | ----------------- |
+| ALL, ALL PRIVILEGES | 所有权限           |
+| SELECT              | 查询数据           |
+| INSERT              | 新增数据           |
+| UPDATE              | 修改数据           |
+| DELETE              | 删除数据           |
+| ALTER               | 修改表            |
+| DROP                | 删除数据库/表/视图 |
+| CREATE              | 创建数据库/表      |
+
+> 上述只是简单罗列了常见的几种权限描述，其他权限描述及含义，可以直接参考[MySQL 8.0 版本官方文档](https://dev.mysql.com/doc/refman/8.0/en/privileges-provided.html)
+
+#### 9.3.2. 查询用户权限
+
+```sql
+SHOW GRANTS FOR '用户名'@'主机名';
+```
+
+示例：
+
+```sql
+-- 查询 'zero'@'%' 用户的权限
+show grants for 'zero'@'%';
+```
+
+#### 9.3.3. 用户授权
+
+创建用户之后，可以使用新用户进行登录，查看数据库只有系统自带的数据库，想要操作自己创建的数据库还需要root用户对新用户进行授权。语法：
+
+```sql
+GRANT 权限列表 ON 数据库名.表名 TO '用户名'@'主机名';
+```
+
+示例：
+
+```sql
+-- 授予zero用户temp_db数据库所有表的多个权限
+grant delete,insert,update on temp_db.* from 'zero'@'*';
+
+-- 授予zero用户temp_db数据库所有表的某个权限
+grant delete on temp_db.* from 'zero'@'*';
+
+-- 授予zero用户temp_db数据库所有表的所有权限
+grant all on temp_db.* from 'zero'@'*';
+
+-- 授予moon用户所有数据库所有表的所有权限
+grant all on *.* from 'moon'@'localhost';
+```
+
+> Notes: 
+>
+> - 多个权限之间，使用英文逗号`,`分隔
+> - 授权时，数据库名和表名均可使用`*`进行通配，代表所有
+
+#### 9.3.4. 撤销权限
+
+当需要限制新用户操作数据库的权限时，root 用户可以撤销已授予用户的某些权限。语法：
+
+```sql
+REVOKE 权限列表 ON 数据库名.表名 FROM '用户名'@'主机名';
+```
+
+示例：
+
+```sql
+-- 撤销zero用户temp_db数据库所有表的多个权限
+revoke delete,insert,update on temp_db.* from 'zero'@'*';
+
+-- 撤销zero用户temp_db数据库所有表的某个权限
+revoke delete on temp_db.* from 'zero'@'*';
+
+-- 撤销zero用户temp_db数据库所有表的所有权限
+revoke all on temp_db.* from 'zero'@'*';
 ```
 
 ## 10. 数据库的备份与恢复
@@ -2539,23 +2798,24 @@ drop user 用户名@'%';
 
 ### 11.1. 数据约束概述
 
-#### 11.1.1. 数据约束的作用
+约束（constraint），是作用于表中字段上的规则，实质就是对表中存储的数据进行限制，表在设计和创建的时候加入约束的目的就是为了保证表中的记录完整性、有效性和准确性
 
-约束（constraint），实质就是对表中数据的进行限制，表在设计和创建的时候加入约束的目的就是为了保证表中的记录完整性、有效性和准确性
+#### 11.1.1. 约束种类
 
-#### 11.1.2. 约束种类
-
-- 默认约束(`default`)
-- 主键约束(`primary key`) 简称：PK
-- 自增长约束(`auto_increment`)
-- 非空约束(`not null`)
-- 唯一性约束(`unique`)
-- 零填充约束(`zerofill`)
-- 外键约束(`foreign key`) 简称：FK
+|    约束    |                        描述                         |      关键字       |
+| --------- | -------------------------------------------------- | ---------------- |
+| 默认约束   | 保存数据时，如果未指定该字段的值，则采用默认值          | `DEFAULT`        |
+| 主键约束   | 主键是一行数据的唯一标识，要求非空且唯一                | `PRIMARY KEY`    |
+| 唯一约束   | 保证该字段的所有数据都是唯一、不重复的                 | `UNIQUE`         |
+| 非空约束   | 限制该字段的数据不能为null                            | `NOT NULL`       |
+| 检查约束   | 8.0.16 版本之后新增，保证字段值满足某一个条件          | `CHECK`          |
+| 外键约束   | 用来让两张表的数据之间建立连接，保证数据的一致性和完整性 | `FOREIGN KEY`    |
+| 自增长约束 |                                                    | `auto_increment` |
+| 零填充约束 |                                                    | `zerofill`       |
 
 > 扩展：还有一种叫“检查约束”，但 MySQL 不支持，Oracle 支持
 
-#### 11.1.3. 约束添加时机
+#### 11.1.2. 约束添加时机
 
 - 创建表结构的同时添加约束（推荐）
 - 创建完表结构之后添加（不推荐）。如果创建完之后再添加约束，可能会添加失败。因为已有的数据可能不符合即将要添加的约束。
@@ -2979,13 +3239,11 @@ alter table emp2 drop foreign key dept_id_fk;
 constraint foreign key(外键名) references 主表(主键名) on update cascade on delete cascade;
 ```
 
-## 12. 函数
+## 12. 函数（实际使用时再追加）
 
 ### 12.1. 概述
 
-在MySQL中，为了提高代码重用性和隐藏实现细节，MySQL提供了很多函数。函数可以理解为封装好的模板代码。
-
-在MySQL中，内置函数的非常多，主要可以分为以下几类:
+在 MySQL 中，为了提高代码重用性和隐藏实现细节，MySQL 提供了很多内置函数。函数可以理解为封装好的模板程序或代码，可以直接被另一段程序调用的。函数主要可以分为以下几类：
 
 - 聚合函数
 - 数学函数
@@ -2998,7 +3256,7 @@ constraint foreign key(外键名) references 主表(主键名) on update cascade
 
 #### 12.2.1. GROUP_CONCAT() 函数
 
-`GROUP_CONCAT()`首先根据`group by`指定的列进行分组，并且用分隔符分隔，将同一个分组中的非NULL的值连接起来，返回一个字符串结果。语法：
+`GROUP_CONCAT()` 首先根据 `group by` 指定的列进行分组，并且用分隔符分隔，将同一个分组中的非 NULL 的值连接起来，返回一个字符串结果。语法：
 
 ```sql
 group_concat([distinct] 字段名 [order by 排序字段 asc/desc] [separator '分隔符'])
@@ -3033,7 +3291,15 @@ select department,group_concat(emp_name order by salary desc separator ';' ) fro
 
 ### 12.3. 数学函数
 
-MySQL中，数学函数如果发生错误，都会返回 `NULL`
+|     函数      |             功能说明             |
+| :----------: | ------------------------------- |
+|  `CEIL(x)`   | 向上取整                         |
+|  `FLOOR(x)`  | 向下取整                         |
+|  `MOD(x,y)`  | 返回`x/y`的模                    |
+|   `RAND()`   | 返回0~1内的随机数                |
+| `ROUND(x,y)` | 求参数x的四舍五入的值，保留y位小数 |
+
+> Notes: MySQL中，数学函数如果发生错误，都会返回 `NULL`
 
 #### 12.3.1. ABS
 
@@ -3186,8 +3452,8 @@ RAND(N)
 返回 0 到 1 的随机数。
 
 ```sql
-SELECT RAND(); -- 返回 0.9233482386203 (随便)
-SELECT RAND(20); -- 返回 0.15888261251047
+SELECT RAND(); -- 返回 0.9233482386203 (随机)
+SELECT RAND(20); -- 返回 0.15888261251047 (随机)
 ```
 
 #### 12.3.11. ROUND
@@ -3223,6 +3489,18 @@ SELECT TRUNCATE(122,-2); -- 返回 100
 
 ### 12.4. 字符串函数
 
+MySQL 中内置了很多字符串函数，常用的几个如下：
+
+|            函数             |                       功能说明                        |
+| :------------------------: | ---------------------------------------------------- |
+|   `CONCAT(S1,S2,...Sn)`    | 字符串拼接，将S1，S2，... Sn拼接成一个字符串             |
+|        `LOWER(str)`        | 将字符串str全部转为小写                                |
+|        `UPPER(str)`        | 将字符串str全部转为大写                                |
+|     `LPAD(str,n,pad)`      | 左填充，用字符串pad对str的左边进行填充，达到n个字符串长度 |
+|     `RPAD(str,n,pad)`      | 右填充，用字符串pad对str的右边进行填充，达到n个字符串长度 |
+|        `TRIM(str)`         | 去掉字符串头部和尾部的空格                              |
+| `SUBSTRING(str,start,len)` | 返回从字符串str从start位置起的len个长度的字符串          |
+
 #### 12.4.1. CHAR_LENGTH/CHARACTER_LENGTH
 
 ```sql
@@ -3247,9 +3525,26 @@ CONCAT(str1, str2,...)
 将参数列表中的字符串合并为一个字符串。如有任何一个参数为NULL ，则返回值为 NULL。
 
 ```sql
-SELECT CONCAT('My', 'S', 'QL'); -- 返回 'MySQL'
-SELECT CONCAT('My', NULL, 'QL'); -- 返回 NULL
-SELECT CONCAT(14.3); -- 返回 '14.3'
+mysql> SELECT CONCAT('My', 'S', 'QL');
++-------------------------+
+| CONCAT('My', 'S', 'QL') |
++-------------------------+
+| MySQL                   |
++-------------------------+
+
+mysql> SELECT CONCAT('My', NULL, 'SQL');
++---------------------------+
+| CONCAT('My', NULL, 'SQL') |
++---------------------------+
+| NULL                      |
++---------------------------+
+
+mysql> SELECT CONCAT(14.3);
++--------------+
+| CONCAT(14.3) |
++--------------+
+| 14.3         |
++--------------+
 ```
 
 #### 12.4.3. CONCAT_WS
@@ -3413,7 +3708,12 @@ UCASE(str)
 将字符串 str 所有字母转换为大写
 
 ```sql
-SELECT UPPER('Hej'); -- 返回 'HEJ'
+mysql> SELECT UPPER('Hej');
++--------------+
+| UPPER('Hej') |
++--------------+
+| HEJ          |
++--------------+
 ```
 
 #### 12.4.15. LCASE / LOWER
@@ -3427,7 +3727,12 @@ LCASE(str)
 将字符串 str 的所有字母变成小写字母
 
 ```sql
-SELECT LOWER('QUADRATICALLY'); -- 返回 'quadratically'
+mysql> SELECT LOWER('QUADRATICALLY');
++------------------------+
+| LOWER('QUADRATICALLY') |
++------------------------+
+| quadratically          |
++------------------------+
 ```
 
 #### 12.4.16. LPAD / RPAD 前后补位
@@ -3458,22 +3763,171 @@ select RPAD(uid, 8, 0),username from uc_members where uid = '100015'; -- 结果�
 
 -- 原字符串被压缩
 SELECT RPAD('hi',1,'?'); -- 返回结果：'h'
+
+-- 修改企业员工的工号统一为5位数，目前不足5位数的全部在前面补0。比如：1号员工的工号应该为00001。
+update emp set workno = lpad(workno, 5, '0');
 ```
 
-### 12.5. 日期函数（使用时再整理）
+### 12.5. 日期函数
 
-#### 12.5.1. NOW
+|                 函数                 |                   功能说明                    |
+| :---------------------------------: | --------------------------------------------- |
+|             `CURDATE()`             | 返回当前日期                                   |
+|             `CURTIME()`             | 返回当前时间                                   |
+|               `NOW()`               | 返回当前日期和时间                              |
+|            `YEAR(date)`             | 获取指定date的年份                             |
+|            `MONTH(date)`            | 获取指定date的月份                             |
+|             `DAY(date)`             | 获取指定date的日期                             |
+| `DATE_ADD(date, INTERVAL exprtype)` | 返回一个日期/时间值加上一个时间间隔expr后的时间值 |
+|       `DATEDIFF(date1,date2)`       | 返回起始时间date1和结束时间date2之间的天数       |
+
+#### 12.5.1. CURDATE
+
+```sql
+CURDATE()
+```
+
+返回当前日期
+
+```bash
+mysql> select curdate();
++------------+
+| curdate()  |
++------------+
+| 2022-07-29 |
++------------+
+```
+
+#### 12.5.2. CURTIME
+
+```sql
+CURTIME()
+```
+
+返回当前时间
+
+```bash
+mysql> select curtime();
++-----------+
+| curtime() |
++-----------+
+| 18:29:21  |
++-----------+
+```
+
+#### 12.5.3. NOW
 
 ```sql
 NOW()
 ```
 
-返回当前日期和时间值，其格式为 'YYYY-MM-DD HH:MM:SS' 或YYYYMMDDHHMMSS
+返回当前日期和时间值，其格式为 'YYYY-MM-DD HH:MM:SS' 或 'YYYYMMDDHHMMSS'
+
+```bash
+mysql> SELECT NOW();
++---------------------+
+| NOW()               |
++---------------------+
+| 2022-07-29 17:24:59 |
++---------------------+
+1 row in set (0.02 sec)
+```
+
+#### 12.5.4. YEAR
 
 ```sql
+YEAR(date)
+```
+
+获取指定date的年份
+
+```bash
+mysql> select YEAR(now());
++-------------+
+| YEAR(now()) |
++-------------+
+|        2022 |
++-------------+
+```
+
+#### 12.5.5. MONTH
+
+```sql
+MONTH(date)
+```
+
+获取指定date的月份
+
+```bash
+mysql> select MONTH(now());
++--------------+
+| MONTH(now()) |
++--------------+
+|            7 |
++--------------+
+```
+
+#### 12.5.6. DAY
+
+```sql
+DAY(date)
+```
+
+获取指定date的日期
+
+```bash
+mysql> select DAY(now());
++------------+
+| DAY(now()) |
++------------+
+|         29 |
++------------+
+```
+
+#### 12.5.7. DATE_ADD
+
+```sql
+DATE_ADD(date, INTERVAL exprtype)
+```
+
+返回一个日期/时间值加上一个时间间隔expr后的时间值
+
+```bash
+mysql> select date_add(now(), INTERVAL 70 YEAR);
++-----------------------------------+
+| date_add(now(), INTERVAL 70 YEAR) |
++-----------------------------------+
+| 2092-07-29 18:35:38               |
++-----------------------------------+
+```
+
+#### 12.5.8. DATEDIFF
+
+```sql
+DATEDIFF(date1,date2)
+```
+
+返回起始时间date1和结束时间date2之间的天数
+
+```bash
+mysql> select datediff('2021-10-01', '2021-12-01');
++--------------------------------------+
+| datediff('2021-10-01', '2021-12-01') |
++--------------------------------------+
+|                                  -61 |
++--------------------------------------+
 ```
 
 ### 12.6. 控制流程函数
+  
+流程函数也是很常用的一类函数，可以在 SQL 语句中实现条件筛选，从而提高语句的效率。
+
+|                               函数                                |                        功能说明                         |
+| :--------------------------------------------------------------: | ------------------------------------------------------ |
+|                       `IF(value , t , f)`                        | 如果value为true，则返回t，否则返回f                      |
+|                    `IFNULL(value1 , value2)`                     | 如果value1不为空，返回value1，否则返回value2              |
+|     `CASE WHEN [ val1 ] THEN [res1] … ELSE [ default ] END`      | 如果val1为true，返回res1，... 否则返回default默认值       |
+| `CASE [ expr ] WHEN [ val1 ] THEN [res1] … ELSE [ default ] END` | 如果expr的值等于val1，返回res1，... 否则返回default默认值 |
 
 #### 12.6.1. IF
 

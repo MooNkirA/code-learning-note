@@ -119,7 +119,7 @@ rpm -ivh MySQL-client-5.6.22-1.el6.i686.rpm
 rpm -ivh MySQL-server-5.6.22-1.el6.i686.rpm
 ```
 
-### 4.3. 启动 MySQL 服务
+### 4.3. 启动/停止 MySQL 服务
 
 ```bash
 service mysql start
@@ -461,14 +461,14 @@ create user 'root'@'%' IDENTIFIED WITH mysql_native_password BY '123456';
 
 配置环境变量与windows免安装版一样
 
-## 8. 开启服务与登陆数据库（Windows版本）
+## 8. 开启/停止 MySQL 服务（Windows版本）
 
 ### 8.1. 启动MySQL服务方式1
 
 MySQL会以windows服务的方式为我们提供数据存储功能。开启和关闭服务的操作：
 
-1. 右键点击我的电脑 --> 管理 --> 服务与应用程序 --> 服务 --> 找到MySQL服务开启或停止。
-2. 或者：开始 --> 搜索 --> services.msc --> 服务 --> 可以找到MySQL服务开启或停止。
+1. 右键点击我的电脑 --> 管理 --> 服务与应用程序 --> 服务 --> 找到 MySQL 服务开启或停止。
+2. 或者：开始 --> 搜索 --> services.msc --> 服务 --> 可以找到 MySQL 服务开启或停止。
 
 <font color="purple">（如果不需要开机时就启动MySQL，右键MySQL --> 属性 --> 启动类型选“手动”）</font>
 
@@ -483,25 +483,53 @@ MySQL会以windows服务的方式为我们提供数据存储功能。开启和�
 
 ![mysql服务](images/20190403145927600_25084.jpg)
 
-### 8.3. 登录MySQL数据库
+> Tips: 上述命令的 `mysql` 是在安装 MySQL 时，默认指定的 mysql 的系统服务名，不是固定的，如果未改动，5.7版本默认是`mysql`，8.0版本默认是`mysql80`。
 
-MySQL是一个需要账户名密码登录的数据库，登陆后使用，它提供了一个默认的root账号，使用安装时设置的密码即可登录。
+## 9. 客户端连接 MySQL
 
-1. 命令行操作登陆与退出数据库
-- 方式1：cmd --> `mysql –u用户名 –p密码`
+MySQL 是一个需要账户名密码登录的数据库，登陆后使用，它提供了一个默认的root账号，使用安装时设置的密码即可登录。
+
+### 9.1. 方式一：使用 MySQL 提供的客户端命令行工具
+
+![](images/469853209220770.png)
+
+### 9.2. 方式二：使用系统自带的命令行工具执行指令
+
+使用 CMD 命令行窗口，可以操作登陆与退出 MySQL，命令语法如下：
+
+```bash
+mysql [-h 127.0.0.1] [-P 3306] -u root -p
+```
+
+参数说明：
+
+- `-h`：MySQL 服务所在的主机 IP
+- `-P`：MySQL 服务端口号，默认3306。<font color=red>**注意：参数是大写**</font>
+- `-u`：MySQL 数据库用户名
+- `-p`：MySQL 数据库用户名对应的密码。<font color=red>**注意：参数是小写**</font>
+
+`[]` 内为可选参数，如果需要连接远程的 MySQL，需要加上这两个参数来指定远程主机 IP、端口，如果连接本地的 MySQL，则无需指定这两个参数。
+
+> **Tips: 使用这种方式进行连接时，需要安装完毕后配置PATH环境变量。**
+
+示例1：使用 cmd 命令行输入 `mysql –u用户名 –p密码`
 
 ![命令行操作登陆库1](images/20190403150111866_8506.jpg)
 
-- 方式2：cmd --> `mysql --user=用户名 --password=密码 --host=ip地址 --port=端口号`（这种方式一般用来登陆别人的数据库）
+示例2：使用 cmd 命令行输入 `mysql --user=用户名 --password=密码 --host=ip地址 --port=端口号`（这种方式一般用来登陆别人的数据库）
 
 ![命令行操作登陆库2](images/20190403150120807_7522.jpg)
 
-- 退出MySQL: exit;
+### 9.3. 退出连接 MySQL
 
-2. 通过第三方图形化界面操作
-3. 通过Java代码操作
+直接使用 `exit` 命令即可退出 MySQL 连接
 
-## 9. 卸载MySQL（Windows版本）
+### 9.4. 其他操作数据库方式
+
+- 通过第三方图形化界面操作
+- 通过Java代码操作
+
+## 10. 卸载MySQL（Windows版本）
 
 1. 先停止MySQL服务
     - 方式1：输入命令行`net stop mysql`。*注：命令中的`mysql`是服务名称，需要输入根据实际的名称*
@@ -516,15 +544,15 @@ MySQL是一个需要账户名密码登录的数据库，登陆后使用，它提
 6. 删除环境变量的配置。进行【高级系统设置】中的【环境变量】，删除安装后配置`MYSQL_HOME`变量和删除path变量中的mysql路径
 7. 删除MySQL服务。使用管理员方式打开cmd命令行窗口，输入命令`sc delete Mysql服务名称`
 
-## 10. MySQL 常用图形管理工具
+## 11. MySQL 常用图形管理工具
 
-### 10.1. Navicat
+### 11.1. Navicat
 
 Navicat是一套快速、可靠的数据库管理工具，Navicat 是以直觉化的图形用户界面而建的，可以兼容多种数据库，支持多种操作系统。
 
 官网：http://www.navicat.com.cn/download/navicat-premium
 
-### 10.2. SQLyog
+### 11.2. SQLyog
 
 SQLyog 是一个快速而简洁的图形化管理MySQL数据库的工具，它能够在任何地点有效地管理你的数据库，由业界著名的Webyog公司出品。
 
@@ -540,15 +568,71 @@ SQLyog 是一个快速而简洁的图形化管理MySQL数据库的工具，它�
 
 ![SQLyog工具2](images/20190403150517229_19216.jpg)
 
-### 10.3. MySQL Workbench
+### 11.3. MySQL Workbench
 
 MySQL Workbench MySQL 是官方提供的图形化管理工具，分为社区版和商业版，社区版完全免费，而商业版则是按年收费。支持数据库的创建、设计、迁移、备份、导出和导入等功能，并且支持 Windows、Linux 和 mac 等主流操作系统。
 
-### 10.4. DataGrip
+### 11.4. DataGrip
 
 DataGrip 是一款由JetBrains公司出品的数据库管理客户端工具，方便连接到数据库服务器，执行sql、创建表、创建索引以及导出数据等
 
-### 10.5. 其他工具
+#### 11.4.1. 安装说明
+
+点击next，一步一步的完成安装即可
+
+![](images/123200911227063.png)
+
+选择DataGrip的安装目录，然后选择下一步
+
+![](images/432910911236453.png) ![](images/319350911239898.png)
+
+![](images/264240911247229.png) ![](images/164951011232207.png)
+
+#### 11.4.2. 使用说明
+
+1. 添加数据源
+
+![](images/49521111250087.png)
+
+配置以及驱动 jar 包下载完毕之后，就可以点击 "Test Connection" 就可以测试，是否可以连接 MySQL，如果出现 "Successed"，就表示连接成功了。
+
+![](images/360901211247691.png)
+
+2. 展示所有数据库。连接上了 MySQL 服务之后，并未展示出所有的数据库，此时，需要设置展示所有的数据库。
+
+![](images/500001511245193.png)
+
+3. 创建数据库
+
+![](images/65221611226434.png)
+
+> 以下两种方式都可以创建数据库：
+>
+> - `create database db01;`
+> - `create schema db01;`
+
+4. 创建表。在指定的数据库上面右键，选择 new -> Table
+
+![](images/83281711248874.png) ![](images/158541711244010.png)
+
+5. 修改表结构。在需要修改的表上，右键选择 "Modify Table..."
+
+![](images/210981811237556.png) ![](images/250731811230690.png)
+
+- 如果想增加字段，直接点击+号，录入字段信息，然后点击Execute即可。
+- 如果想删除字段，直接点击-号，就可以删除字段，然后点击Execute即可。
+- 如果想修改字段，双击对应的字段，修改字段信息，然后点击Execute即可。
+- 如果要修改表名，或表的注释，直接在输入框修改，然后点击Execute即可。
+
+6. 在 DataGrip 中执行 SQL 语句。在指定的数据库上，右键，选择 New -> Query Console
+
+![](images/167371911221220.png)
+
+然后就可以在打开的 Query Console 控制台，并在控制台中编写 SQL，执行 SQL。
+
+![](images/333621911223724.png)
+
+### 11.5. 其他工具
 
 - phpMyAdmin
 - MySQLDumper
