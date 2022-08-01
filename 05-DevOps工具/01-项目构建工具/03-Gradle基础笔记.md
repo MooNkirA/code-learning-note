@@ -102,14 +102,14 @@ allprojects {
         // maven { url 'file:///D:/development/maven/repository' } // 此方式配置有问题，后面再研究
         mavenLocal()
         maven { name "Alibaba"; url "https://maven.aliyun.com/repository/public" }
-        maven { name "Bstek"; url "http://nexus.bsdn.org/content/groups/public/" }
+        maven { name "Bstek"; url "https://nexus.bsdn.org/content/groups/public/" }
         mavenCentral()
     }
 
     buildscript {
         repositories {
             maven { name "Alibaba"; url 'https://maven.aliyun.com/repository/public' }
-            maven { name "Bstek"; url 'http://nexus.bsdn.org/content/groups/public/' }
+            maven { name "Bstek"; url 'https://nexus.bsdn.org/content/groups/public/' }
             maven { name "M2"; url 'https://plugins.gradle.org/m2/' }
         }
     }
@@ -123,7 +123,11 @@ allprojects {
 3. 第三条和第四条是从国内和国外的网络上仓库获取
 4. 最后的 `mavenCentral()` 是从Apache提供的中央仓库获取 jar 包
 
-> <font color=red>**Tips：实际操作方式是 gradle 找到 maven 对应的 jar 包，然后复制到上面配置的环境变量 `GRADLE_USER_HOME` 中，所以当仓库是 gradle 和 maven 混合使用时，大概率会有两份数据冗余**</font>
+<font color=red>**Tips：实际操作方式是 gradle 找到 maven 对应的 jar 包，然后复制到上面配置的环境变量 `GRADLE_USER_HOME` 中，所以当仓库是 gradle 和 maven 混合使用时，大概率会有两份数据冗余**</font>
+
+> Notes: <font color=red>**上面配置的远程仓库的协议注意必须是 https，否则会提示协议错误，不安全**</font>
+>
+> ![](images/363112009220842.png)
 
 #### 2.3.3. 方式3：在 gradle 启动脚本设置本地仓库位置
 
@@ -637,6 +641,8 @@ include 'gradle-multiple-web'
 
 #### 4.4.2. 子模块配置
 
+> 示例工程：java-technology-stack\java-stack-gradle\gradle-multiple-modules
+
 在子模块中，可以将父工程所配置公共部分删除，只需配置该模块独有的配置即可
 
 如果某个子模块需要依赖其他子模块，只需要修改 build.gradle 文件通过 `dependencies` 引入即可，如：
@@ -649,7 +655,7 @@ dependencies {
 
 添加一些简单的业务代码进行测试
 
-> 示例工程：java-technology-stack\java-stack-gradle\gradle-multiple-modules
+> <font color=red>**Notes: 后面比较新的版本中，`compile` 语句已弃用，并已在 Gradle 7.0+ 中删除。新版本需要改用 `implementation` 或 `api`**</font>
 
 ## 5. 其他
 
