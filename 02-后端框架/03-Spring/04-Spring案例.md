@@ -714,3 +714,8 @@ System.out.println(t); // 结果 class com.moon.beans.Address
 Class<?> resolve = ResolvableType.forClass(NormalBean.class).getSuperType().getGeneric().resolve();
 System.out.println(resolve); // 结果 class com.moon.beans.Address
 ```
+
+## 2. 待整理
+
+> [Spring自带常用工具类](https://mp.weixin.qq.com/s/kaM2CrPOcujW-I-3_s8QUg)
+

@@ -1584,11 +1584,12 @@ create table s7(
 );
 ```
 
+> Tips: 其中设置从表的外键为唯一的(`UNIQUE`)是关键
+
 #### 7.1.2. 一对多(1:n)(重点)
 
 - 常见实例：客户和订单，分类和商品，部门和员工。
-- 一对多建表原则
-    - 在从表(多方)创建一个字段，字段作为外键指向主表(一方)的主键。
+- 一对多建表原则：在从表(多方)创建一个字段，字段作为外键指向主表(一方)的主键。
 
 ```sql
 -- 创建学科表格 主表
@@ -1650,8 +1651,7 @@ create table goods(
 );
 
 -- 插入商品
-insert into goods(gname) values ('椅子'),('床'),('桌子'),
-		('苹果'),('香蕉'),('汽水'),('饼干');
+insert into goods(gname) values ('椅子'),('床'),('桌子'),	('苹果'),('香蕉'),('汽水'),('饼干');
 
 -- 查看商品表
 select * from goods;
@@ -1664,8 +1664,7 @@ create table person(
 );
 
 -- 插入购买人信息
-insert into person(pname, age) values ('剑圣',28),('敌法师',26),('痛苦女王',23),
-	('西门吹水',34),('潘银莲',21),('东施',23);
+insert into person(pname, age) values ('剑圣',28),('敌法师',26),('痛苦女王',23),('西门吹水',34),('潘银莲',21),('东施',23);
 
 -- 查看购买人表
 select * from person;
@@ -1762,13 +1761,17 @@ select stu.*,course.cname as '学科名',stu_tea_cou.score as '得分',teacher.t
 - 表自关联
 - 全表连接查询（MySql 不支持，Oracle 支持）
 
+下图展示了 LEFT JOIN、RIGHT JOIN、INNER JOIN、OUTER JOIN 相关的 7 种用法
+
+![](images/20190404112841616_605.jpg)
+
 #### 7.2.3. 多表连接查询的步骤
 
 1. 首先确定要查询的数据有哪些
 2. 再确定要查询的数据来自哪些表
 3. 最后确定表之间的连接条件
 
-**多表连接查询必须使用表名(或表别名).列名才进行查询，因为需要区分该列是属于哪个表的，一旦设置了别名后，就必须用别名.列名，用原来表名.列名会报错。**
+> Tips: **多表连接查询必须使用`表名(或表别名).列名`才进行查询，因为需要区分该列是属于哪个表的，一旦设置了别名后，就必须用`别名.列名`，用原来`表名.列名`会报错。**
 
 ### 7.3. 交叉连接查询（笛卡尔积）
 
@@ -1828,8 +1831,17 @@ SELECT e.*, d.* FROM employee e, dept d;
 
 #### 7.4.1. 内连接概述
 
-- 只有满足连接条件的记录才会被查询出来，实际开发使用频率最高
-- 连接条件：主表的主键与从表的外键值进行相等匹配查询
+只有满足连接条件的记录才会被查询出来，实际开发使用频率最高。连接条件：主表的主键与从表的外键值进行相等匹配查询
+
+![](images/20190404113056054_7740.jpg)
+
+```sql
+SELECT
+	< select_list >
+FROM
+	Table_A A
+INNER JOIN Table_B B ON A. KEY = B. KEY
+```
 
 #### 7.4.2. 内连接语法格式
 
@@ -1966,6 +1978,16 @@ AND 表1.字段号 = 表5.字段号;
 - **特点**：左边的表的记录一定会全部显示完整
 - **驱动表**：选取语句左侧的表
 
+![](images/20190404113103136_9879.jpg)
+
+```sql
+SELECT
+	< select_list >
+FROM
+	Table_A A
+LEFT JOIN Table_B B ON A. KEY = B. KEY
+```
+
 #### 7.5.2. 左外连接格式
 
 - 语法格式
@@ -1992,12 +2014,22 @@ select s.sname,c.sub from student s left join class c on s.class_id=c.cid;
 
 ### 7.6. 右(外)连接( right join …… on )
 
-#### 7.6.1. 右外连接概述（outer 可以省略）
+#### 7.6.1. 右外连接概述
 
 - **定义**：用右表的记录去匹配左表的记录，如果条件满足，则左边显示左表的记录；否则左边显示 null。**（左表和右表取决于定义在实际语句的位置）**
 - **格式**：`right outer join …… on ……`（outer 可以省略）
 - **特点**：如果右外连接，右边的表的记录一定会全部显示完整
 - **驱动表**：选取语句右侧的表
+
+![](images/20190404113111224_6867.jpg)
+
+```sql
+SELECT
+	< select_list >
+FROM
+	Table_A A
+RIGHT JOIN Table_B B ON A. KEY = B. KEY
+```
 
 #### 7.6.2. 右外连接格式
 
@@ -2034,138 +2066,9 @@ select s.sname,c.sub from student s right join class c on s.class_id=c.cid;
 
 <font color=red>*一般情况下，都把只涉及单表的过滤条件放到`WHERE`子句中，把涉及两表的过滤条件都放到`ON`子句中，也一般把放到`ON`子句中的过滤条件也称之为连接条件。*</font>
 
-### 7.8. 全表连接的结果（MySql 不支持，Oracle 支持、了解）
+### 7.8. 自连接查询
 
-#### 7.8.1. full join 语法定义
-
-```sql
-select r.*,s.* from r full join s on r.c=s.c
-```
-
-|  A   |  B   |  C   |  C   |  D   |
-| :--: | :--: | :--: | :--: | :--: |
-|  a1  |  b1  |  c1  |  c1  |  d1  |
-|  a2  |  b2  |  c2  |  c2  |  d2  |
-|  a3  |  b3  |  c3  |      | null |
-| null | null |      |  c4  |  d3  |
-
-#### 7.8.2. 使用 union 关键字实现全表连接查询
-
-语法格式：
-
-```sql
-select * from 表1 left outer join 表2 on 表1.字段名 = 表2.字段名
-union
-select * from 表2 right outer join 表1 on 表2.字段名 = 表1.字段名;
-```
-
-> 注：`union` 关键字会去掉两个结果集的重复记录
-
-#### 7.8.3. union 与 union all 区别
-
-- `union all`：直接合并多个结果集，不会去除重复记录。
-- `union`：合并多个结果集，去除重复，所以执行效率会较差。
-
-### 7.9. SQL 的各种 join 用法(网上资料)
-
-下图展示了 LEFT JOIN、RIGHT JOIN、INNER JOIN、OUTER JOIN 相关的 7 种用法
-
-![表连接查询图1](images/20190404112841616_605.jpg)
-
-#### 7.9.1. INNER JOIN（内连接）
-
-![表连接查询图2](images/20190404113056054_7740.jpg)
-
-```sql
-SELECT
-	< select_list >
-FROM
-	Table_A A
-INNER JOIN Table_B B ON A. KEY = B. KEY
-```
-
-#### 7.9.2. LEFT JOIN（左连接）
-
-![表连接查询图3](images/20190404113103136_9879.jpg)
-
-```sql
-SELECT
-	< select_list >
-FROM
-	Table_A A
-LEFT JOIN Table_B B ON A. KEY = B. KEY
-```
-
-#### 7.9.3. RIGHT JOIN（右连接）
-
-![表连接查询图4](images/20190404113111224_6867.jpg)
-
-```sql
-SELECT
-	< select_list >
-FROM
-	Table_A A
-RIGHT JOIN Table_B B ON A. KEY = B. KEY
-```
-
-#### 7.9.4. OUTER JOIN（外连接）
-
-![表连接查询图5](images/20190404113125064_29354.jpg)
-
-```sql
-SELECT
-	< select_list >
-FROM
-	Table_A A
-FULL OUTER JOIN Table_B B ON A. KEY = B. KEY
-```
-
-#### 7.9.5. LEFT JOIN EXCLUDING INNER JOIN（左连接-内连接）
-
-![表连接查询图6](images/20190404113134408_30772.jpg)
-
-```sql
-SELECT
-	< select_list >
-FROM
-	Table_A A
-LEFT JOIN Table_B B ON A. KEY = B. KEY
-WHERE
-	B. KEY IS NULL
-```
-
-#### 7.9.6. RIGHT JOIN EXCLUDING INNER JOIN（右连接-内连接）
-
-![表连接查询图7](images/20190404113146671_88.jpg)
-
-```sql
-SELECT
-	< select_list >
-FROM
-	Table_A A
-RIGHT JOIN Table_B B ON A. KEY = B. KEY
-WHERE
-	A. KEY IS NULL
-```
-
-#### 7.9.7. OUTER JOIN EXCLUDING INNER JOIN（外连接-内连接）
-
-![表连接查询图8](images/20190404113204071_7635.jpg)
-
-```sql
-SELECT
-	< select_list >
-FROM
-	Table_A A
-FULL OUTER JOIN Table_B B ON A. KEY = B. KEY
-WHERE
-	A. KEY IS NULL
-OR B. KEY IS NULL
-```
-
-### 7.10. 自关联查询
-
-#### 7.10.1. 自关联表概述
+#### 7.8.1. 自关联表概述
 
 一张表，自关联一对多，数据表的外键列引用自身的主键列，自关联一般针对多级关系的使用
 
@@ -2173,7 +2076,7 @@ OR B. KEY IS NULL
 >
 > 老板 --> 总经理 --> 部门经理 --> 主管 --> 组长 --> 员工
 
-#### 7.10.2. 自关联表格式（创建外键）
+#### 7.8.2. 自关联表格式（创建外键）
 
 **创建表同时自关联主外键：**
 
@@ -2209,7 +2112,7 @@ CREATE TABLE AREA(
 ALTER TABLE AREA ADD CONSTRAINT FOREIGN KEY (parent_id) REFERENCES AREA(id);
 ```
 
-#### 7.10.3. 自连接查询的概念
+#### 7.8.3. 自连接查询的概念
 
 自连接查询：在数据查询时需要进行对表自身进行关联查询，即一张表自己和自己关联，一张表当成多张表来用。
 
@@ -2217,9 +2120,9 @@ ALTER TABLE AREA ADD CONSTRAINT FOREIGN KEY (parent_id) REFERENCES AREA(id);
 >
 > - 自连接查询，本质还是使用到内连接或左连接或右连接。
 > - <font color=red>**自连接查询其实不需要依赖自关联表的外键约束的创建，无自关联外键约束也是可以进行自连接查询**</font>
-> - <font color=red>**注意自关联时表必须给表起别名。**</font>
+> - <font color=red>**注意自关联查询表时，必须给表起别名。**</font>
 
-#### 7.10.4. 自连接查询的格式
+#### 7.8.4. 自连接查询的格式
 
 1. 先创建自关联表
 2. 使用内连接(左连接、右连接)
@@ -2253,24 +2156,150 @@ FROM
 LEFT JOIN emp b ON e.parent_id = b.id;  -- 连接条件
 ```
 
+### 7.9. 联合查询 union
+
+对于 union 查询，就是把多次查询的结果合并起来，形成一个新的查询结果集。语法格式如下：
+
+```sql
+SELECT 字段列表 FROM 表A ...
+UNION [ ALL ]
+SELECT 字段列表 FROM 表B ....;
+```
+
+**union 与 union all 区别**：
+
+- `union all`：直接合并多个结果集，不会去除重复记录。
+- `union`：合并多个结果集，去除重复，所以执行效率会较差。
+
+#### 7.9.1. 示例
+
+示例需求：将薪资低于 5000 的员工，和年龄大于 50 岁的员工全部查询出来
+
+对于此需求，可以直接使用多条件查询，使用逻辑运算符 or 连接即可。也可以通过 `union`/`union all` 来联合查询
+
+```sql
+SELECT * FROM emp WHERE salary < 5000
+UNION ALL
+SELECT * FROM emp WHERE age > 50;
+```
+
+![](images/353032616247301.png)
+
+由结果可知，`union all` 查询出来的结果仅仅进行简单的合并，并未去重。
+
+```sql
+SELECT * FROM emp WHERE salary < 5000
+UNION 
+SELECT * FROM emp WHERE age > 50;
+```
+
+![](images/474962916239970.png)
+
+而 `union` 联合查询，会对查询出来的结果进行去重处理。
+
+#### 7.9.2. 联合查询注意事项
+
+对于联合查询的多张表的列数必须保持一致，字段类型也需要保持一致。否则在进行`union`/`union all`联合查询时，将会报错。如：
+
+![](images/263832416227135.png)
+
+### 7.10. 全表连接的结果（MySql 不支持，Oracle 支持、了解）
+
+#### 7.10.1. full join 语法定义
+
+```sql
+select r.*,s.* from r full join s on r.c=s.c
+```
+
+|  A   |  B   |  C   |  C   |  D   |
+| :--: | :--: | :--: | :--: | :--: |
+|  a1  |  b1  |  c1  |  c1  |  d1  |
+|  a2  |  b2  |  c2  |  c2  |  d2  |
+|  a3  |  b3  |  c3  |      | null |
+| null | null |      |  c4  |  d3  |
+
+#### 7.10.2. 使用 union 关键字实现全表连接查询
+
+语法格式：
+
+```sql
+select * from 表1 left outer join 表2 on 表1.字段名 = 表2.字段名
+union
+select * from 表2 right outer join 表1 on 表2.字段名 = 表1.字段名;
+```
+
+> 注：`union` 关键字会去掉两个结果集的重复记录
+
+### 7.11. SQL 的其他 join 用法(网上资料)
+
+#### 7.11.1. OUTER JOIN（外连接）
+
+![表连接查询图5](images/20190404113125064_29354.jpg)
+
+```sql
+SELECT
+	< select_list >
+FROM
+	Table_A A
+FULL OUTER JOIN Table_B B ON A. KEY = B. KEY
+```
+
+#### 7.11.2. LEFT JOIN EXCLUDING INNER JOIN（左连接-内连接）
+
+![表连接查询图6](images/20190404113134408_30772.jpg)
+
+```sql
+SELECT
+	< select_list >
+FROM
+	Table_A A
+LEFT JOIN Table_B B ON A. KEY = B. KEY
+WHERE
+	B. KEY IS NULL
+```
+
+#### 7.11.3. RIGHT JOIN EXCLUDING INNER JOIN（右连接-内连接）
+
+![表连接查询图7](images/20190404113146671_88.jpg)
+
+```sql
+SELECT
+	< select_list >
+FROM
+	Table_A A
+RIGHT JOIN Table_B B ON A. KEY = B. KEY
+WHERE
+	A. KEY IS NULL
+```
+
+#### 7.11.4. OUTER JOIN EXCLUDING INNER JOIN（外连接-内连接）
+
+![表连接查询图8](images/20190404113204071_7635.jpg)
+
+```sql
+SELECT
+	< select_list >
+FROM
+	Table_A A
+FULL OUTER JOIN Table_B B ON A. KEY = B. KEY
+WHERE
+	A. KEY IS NULL
+OR B. KEY IS NULL
+```
+
 ## 8. 子查询
 
 ### 8.1. 子查询概述
 
-- 一条 SQL 语句(子查询)的查询结果做为另一条查询语句(父查询)的条件或查询结果，这种操作则称为子查询。
-- 多条 SQL 语句嵌套使用，内部的 SQL 查询语句称为子查询。
-- 在一个查询语句 A 里的某个位置也可以有另一个查询语句 B，这个出现在 A 语句的某个位置中的查询 B 就被称为**子查询**，A 也被称之为**外层查询**。子查询可以在一个外层查询的各种位置出现
+一条 SQL 语句(子查询)的查询结果做为另一条SQL语句(父语句)的条件或查询结果，这种操作则称为**子查询**。多条 SQL 语句嵌套使用，内部的 SQL 查询语句称为子查询。简单理解就是*包含select嵌套的查询*。
 
-简单理解就是*包含select嵌套的查询*。
+例如：在一个查询语句 A 里的某个位置也可以有另一个查询语句 B，这个出现在 A 语句的某个位置中的查询 B 就被称为**子查询**，A 也被称之为**外层查询**。
 
-子查询可以返回的数据类型一共分为四种：
-
-- 单行单列：返回的是一个具体列的内容，可以理解为一个单值数据；
-- 单行多列：返回一行数据中多个列的内容；
-- 多行单列：返回多行记录之中同一列的内容，相当于给出了一个操作范围；
-- 多行多列：查询返回的结果是一张临时表
+子查询外部的语句可以是`INSERT`/`UPDATE`/`DELETE`/`SELECT`的任何一个。
 
 ### 8.2. 子查询语法使用位置
+
+子查询可以在一个外层查询的各种位置出现。
 
 #### 8.2.1. SELECT 子句
 
@@ -2305,6 +2334,11 @@ SELECT * FROM table1 WHERE m1 IN (SELECT m2 FROM table2);
 ### 8.3. 按返回的结果集区分子查询类型
 
 子查询本身也算是一个查询，所以可以按照它们返回的不同结果集类型，可以把这些子查询分为不同的类型：
+
+- 单行单列（标量子查询）：返回的是一个具体列的内容，可以理解为一个单值数据；
+- 单行多列（行子查询）：返回一行数据中多个列的内容；
+- 多行单列（列子查询）：返回多行记录之中同一列的内容，相当于给出了一个操作范围；
+- 多行多列（表子查询）：查询返回的结果是一张临时表
 
 #### 8.3.1. 标量子查询
 
@@ -2503,7 +2537,7 @@ SELECT * FROM e1 WHERE m1 IN (SELECT m2 FROM e2 WHERE n1 = n2);
 
 > 其中子查询`(SELECT m2 FROM e2 WHERE n1 = n2)`的查询条件n1是外层查询的列。也就是说子查询的执行需要依赖于外层查询的值，所以这个子查询就是一个相关子查询。
 
-### 8.5. `[NOT] IN/ANY/SOME/ALL/EXISTS` 子查询
+### 8.5. [NOT] IN/ANY/SOME/ALL/EXISTS 子查询
 
 对于列子查询和表子查询来说，它们的结果集中包含很多条记录，这些记录相当于是一个集合，所以就不能单纯的和另外一个操作数使用操作符来组成布尔表达式了，MySQL 通过下面的语法来支持某个操作数和一个集合组成一个布尔表达式：
 
