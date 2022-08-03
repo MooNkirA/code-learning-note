@@ -2527,9 +2527,6 @@ Redundant 行格式是 MySQL5.0 之前用的一种行格式
 内存的扩容成本是很昂贵的，一般都是尽可能一次申请合适的内存。如JVM，一般会将堆的最小值与最大值都设置为一样，为了防止在运行过程中出现向cpu重新申请内存的操作。因为一般内存区域都是连续的。所以一般内存的扩容是先向cpu申请新的一块内存区域，然后将原本的内存中的数据再复制到新的内存区域中。这个扩容成本是巨大的。
 
 
-
-
-
 ## 9. 主从复制、读写分离
 
 
@@ -2805,245 +2802,14 @@ SELECT * FROM e1 LEFT JOIN e2 ON e1.m1 = e2.m2 WHERE e2.m2 = 2;
 
 ## 3. MySQL 存储过程
 
-### 3.1. 游标的使用取每行记录(多字段)
 
-```sql
-delimiter $
-create PROCEDURE phoneDeal()
 
-BEGIN
-	DECLARE  id varchar(64);   -- id
-	DECLARE  phone1  varchar(16); -- phone
-	DECLARE  password1  varchar(32); -- 密码
-	DECLARE  name1 varchar(64);   -- id
-	-- 遍历数据结束标志
-	DECLARE done INT DEFAULT FALSE;
-	-- 游标
-	DECLARE cur_account CURSOR FOR select phone,password,name from account_temp;
-	-- 将结束标志绑定到游标
-	DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
 
-	-- 打开游标
-	OPEN  cur_account;
-	-- 遍历
-	read_loop: LOOP
-		-- 取值 取多个字段
-		FETCH  NEXT from cur_account INTO phone1,password1,name1;
-			IF done THEN
-				LEAVE read_loop;
-			END IF;
-		-- 你自己想做的操作
-		insert into account(id,phone,password,name) value(UUID(),phone1,password1,CONCAT(name1,'的家长'));
-	END LOOP;
-	CLOSE cur_account;
-END $
-```
-
-***注意：delimiter关键字后面必须有空格，否则在某些环境或某些情况下使用shell脚本调用执行会出现问题***
-
-## 4. MySQL 函数
-
-### 4.1. select user() 语句
-
-- `user()` 这个函数，是取得当前登陆的用户。
-- 在存储过程中使用，获取值。
-
-```sql
-select user() into 变量名;
-```
-
-### 4.2. 字符串截取相关函数
-
-MySQL 字符串截取函数：`left()`, `right()`, `substring()`, `substring_index()`, `mid()`, `substr()`。其中，`mid()`, `substr()` 等价于 `substring()` 函数
-
-#### 4.2.1. 从左开始截取字符串
-
-- 语法：`left（str, length）`
-    - 参数str：被截取字段
-    - 参数length：截取长度
-
-```sql
-select left（content,200） as abstract from my_content_t
-```
-
-#### 4.2.2. 从右开始截取字符串
-
-- 语法：`right（str, length）`
-	- 参数str：被截取字段
-    - 参数length：截取长度
-
-```sql
-select right（content,200） as abstract from my_content_t
-```
-
-#### 4.2.3. 截取字符串
-
-- 语法1：`substring（str, pos）`
-    - 参数str：被截取字段
-    - 参数pos：从第几位开始截取
-- 语法2：`substring（str, pos, length）`
-    - 参数str：被截取字段
-    - 参数pos：从第几位开始截取
-    - 参数length：截取长度
-
-```sql
-select substring（content,5） as abstract from my_content_t
-select substring（content,5,200） as abstract from my_content_t
-```
-
-**注：如果位数是负数 如-5则是从后倒数位数，到字符串结束或截取的长度**
-
-#### 4.2.4. 按关键字截取字符串
-
-- 语法：`substring_index（str, delim, count）`
-    - 参数str：被截取字段
-    - 参数delim：关键字（分隔符）
-    - 参数count：关键字出现的次数
-
-```sql
-select substring_index（"blog.jb51.net", ".", 2） as abstract from my_content_t
-```
-
-注：如果在字符串中找不到 delim 参数指定的值，就返回整个字符串，count是正数时，是截取第几次出现的关键字**前**的字符；count是负数时，是截取第几次出现的关键字**后**的字符
-
-```sql
--- str=www.baidu.com
-substring_index(str, '.', 1)
--- 结果是：www
-substring_index(str, '.', 2)
--- 结果是：www.baidu
-
-/*
-    也就是说，如果count是正数，那么就是从左往右数，第N个分隔符的左边的全部内容
-    相反，如果是负数，那么就是从右边开始数，第N个分隔符右边的所有内容，如：
-*/
-substring_index(str, '.', -2)
--- 结果为：baidu.com
-
-/*
-    如果要中间的的baidu？则有两个方向：
-    从右数第二个分隔符的右边全部，再从左数的第一个分隔符的左边：
-/*
-substring_index(substring_index(str, '.', -2), ‘.’, 1);
-```
-
-### 4.3. last_insert_id() 查询最后插入的数据的id
-
-此函数可以获得刚插入的数据的id值，这个是session 级的，并发没有问题。
-
-```sql
-insert xxxxx....;
-select last_insert_id() into 变量名;
--- 上面语句可以将最近插入的数据id赋值给变量，后面可以进行对应的逻辑处理
-```
-
-### 4.4. length()函数获取某个字段数据长度
-
-- length：是计算字段的长度一个汉字是算三个字符,一个数字或字母算一个字符
-- `CHAR_LENGTH(str)`：返回值为字符串str 的长度，长度的单位为字符。一个多字节字符算作一个单字符。对于一个包含五个二字节字符集, LENGTH()返回值为 10,而CHAR_LENGTH()的返回值为5。
-- `CHARACTER_LENGTH(str)`：CHARACTER_LENGTH()是CHAR_LENGTH()的同义词。
-- `BIT_LENGTH(str)`：返回2进制长度.
-
-```sql
-SELECT * FROM admin WHERE LENGTH(username) < 6
-```
-
-### 4.5. 查询某一个字段是否包含中文字符（使用到length函数）
-
-在使用mysql时候，某些字段会存储中文字符，或是包含中文字符的串，查询出来的方法是：
-
-```sql
-SELECT col FROM table WHERE length(col) != char_length(col)
-```
-
-- 此现实原理：当字符集为UTF-8，并且字符为中文时，length() 和 char_length() 两个方法返回的结果是不相同的。
-    - `length()`：计算字段的长度，一个汉字算3个字符，一个数字或者字母按1个字符
-    - `char_length()`：计算字段的长度，不论是汉字、数字还是字母，均按1个字符来算
-
-### 4.6. 插入当前时间的函数
-
-- `NOW()`函数以'YYYY-MM-DD HH:MM:SS'返回当前的日期时间，可以直接存到DATETIME字段中。
-- `CURDATE()`以'YYYY-MM-DD'的格式返回今天的日期，可以直接存到DATE字段中。
-- `CURTIME()`以'HH:MM:SS'的格式返回当前的时间，可以直接存到TIME字段中。
-
-```sql
-insert into tablename (fieldname) values (now())
-```
-
-### 4.7. 将小数转换成百分比格式
-
-- `TRUNCATE(X, D)`
-    - 作用：返回被舍去至小数点后D位的数字X
-    - 若D 的值为 0, 则结果不带有小数点或不带有小数部分。
-    - 可以将D设为负数,若要截去(归零) X小数点左起第D位开始后面所有低位的值.
-
-```sql
-concat(truncate(royalties * 100,2),'%')
-```
-
-*注：concat()为mysql的系统函数，连接两个字符串*
-
-### 4.8. 将数值转成金额格式
-
-- `FORMAT(X, D)`
-    - 作用：将number X设置为格式 '#,###,###.##'，以四舍五入的方式保留到小数点后D位，而返回结果为一个字符串。
-
-```sql
-select Format(123456789.12345, 2) A;
-```
-
-注：使用mysql format函数的时候数字超过以前之后得到的查询结果会以逗号分割，此时如果你程序接收还是数字类型将会转换异常。所以如果你的就收属性是数字类型那么就使用这两个个函数
-
-```sql
-select cast(字段, decimal(12,2)) AS aa
-convert(字段, decimal(12,2)) AS bb
-```
-
-*经测试，如果FORMAT函数的参数X如果数据库表字段类型是Bigint或者其他数字类型，内容长度超过17位是不会出现精度丢失；如果参数X是字符类型（varchar）的话，使用FORMAT函数后，超出17位后会进行四舍五入，精度丢失。*
-
-### 4.9. RAND()函数
-#### 4.9.1. RAND()与RAND(N)
-
-- 作用：返回一个随机浮点值 v ，范围在 0 到1 之间 (即其范围为 0 ≤ v ≤ 1.0)。若已指定一个整数参数 N ，则它被用作种子值，用来产生重复序列。
-- 注：在ORDER BY语句中，不能使用一个带有RAND()值的列，原因是 ORDER BY 会计算列的多重时间。然而，可按照如下的随机顺序检索数据行：
-
-```sql
-SELECT * FROM tbl_name ORDER BY RAND();
-```
-
-`ORDER BY RAND()`同 `LIMIT` 的结合从一组列中选择随机样本很有用：
-
-#### 4.9.2. ROUND(X)与ROUND(X,D)
-
-- 返回参数X，其值接近于最近似的整数。在有两个参数的情况下，返回 X ，其值保留到小数点后D位，而第D位的保留方式为四舍五入。若要接保留X值小数点左边的D 位，可将 D 设为负值。
-- MYSQL的随机抽取实现方法。如：要从tablename表中随机提取一条记录，一般的写法就是：`SELECT * FROM tablename ORDER BY RAND() LIMIT 1`
-- 此方式效率不高，不推荐使用。
-
-### 4.10. 将字符串按指定的分隔符转成多行数据
-
-SQL案例：
-
-```sql
--- 查询影片与主演（如果出演者Id定义为“A00001,A00002,..”这种形式，则前端查询列表则需要以下语句才能查询到对应的出演者信息）
-SELECT * FROM jav_actor ta WHERE ta.id in (
-SELECT
-	SUBSTRING_INDEX(SUBSTRING_INDEX(t.actor_ids, ',', b.help_topic_id + 1), ',', -1)
-FROM
-	jav_main t
-JOIN mysql.help_topic b ON b.help_topic_id < (
-	LENGTH(t.actor_ids) - LENGTH(REPLACE(t.actor_ids, ',', '')) + 1
-) WHERE t.id = '124');
-```
-
-on条件后面`(length(t.actor_ids) - length(replace(t.actor_ids,',',''))+1)`这个语法是得到被逗号分隔的字段一共有几个。为什么后面加1？可以这样理解，就是如果有3个逗号（分隔符），那个转换的内容就必然有4个，即确认了要转成的行数
-
-提示：mysql.help_topic这张表只用到了它的help_topic_id，可以看到这个help_topic_id是从0开始一直连续的，join这张表只是为了确定数据行数。现在假设mysql.help_topic只有5条数据，那么最多可转成5行数据，若果现在主演的名字有6个就不能用mysql.help_topic这张表了。由此看出我们完全可以找其他表来替代mysql.help_topic，只要满足表的id是连续的，且数据条数超过了你要转换的行数即可。
-
-## 5. 分区表(了解)
+## 4. 分区表(了解)
 
 > 此知识点只需要了解，实际项目的应用极少
 
-### 5.1. 简介
+### 4.1. 简介
 
 分区是指根据一定的规则，数据库把一个表分解成多个更小的、更容易管理的部分。就访问数据库的应用而言，逻辑上只有一个表或一个索引，但是实际上这个表可能由数 10 个物理分区对象组成，每个分区都是一个独立的对象，可以独自处理，可以作为表的一部分进行处理。
 
@@ -3066,15 +2832,15 @@ MySQL 在创建表时使用`PARTITION BY`子句定义每个分区存放的数据
 - 如果分区字段中有主键或者唯一索引的列，那么所有主键列和唯一索引列都必须包含进来
 - 分区表中无法使用外键约束
 
-### 5.2. 分区表的原理
+### 4.2. 分区表的原理
 
 分区表由多个相关的底层表实现，这些底层表也是由句柄对象（Handlerobject)表示，所以也可以直接访问各个分区。存储引擎管理分区的各个底层表和管理普通表一样（所有的底层表都必须使用相同的存储引擎)，分区表的索引只是在各个底层表上各自加上一个完全相同的索引。从存储引擎的角度来看，底层表和一个普通表没有任何不同，存储引擎也无须知道这是一个普通表还是一个分区表的一部分。分区表上的操作按照下面的操作逻辑进行:
 
 虽然每个操作都会“先打开并锁住所有的底层表”，但这并不是说分区表在处理过程中是锁住全表的。如果存储引擎能够自己实现行级锁，例如 InnoDB，则会在分区层释放对应表锁。这个加锁和解锁过程与普通 InnoDB 上的查询类似。
 
-### 5.3. 分区表的类型
+### 4.3. 分区表的类型
 
-#### 5.3.1. MySQL 支持的分区表
+#### 4.3.1. MySQL 支持的分区表
 
 - RANGE 分区：基于属于一个给定连续区间的列值，把多行分配给分区。
 - LIST 分区：类似于按 RANGE 分区，区别在于 LIST 分区是基于列值匹配一个离散值集合中的某个值来进行选择。
@@ -3082,7 +2848,7 @@ MySQL 在创建表时使用`PARTITION BY`子句定义每个分区存放的数据
 - KEY 分区：类似于按 HASH 分区，区别在于 KEY 分区只支持计算一列或多列，且 MySQL 服务器提供其自身的哈希函数。必须有一列或多列包含整数值。
 - 复合分区/子分区：目前只支持 RANGE 和 LIST 的子分区，且子分区的类型只能为 HASH 和 KEY。
 
-#### 5.3.2. 分区的基本语法
+#### 4.3.2. 分区的基本语法
 
 - RANGE 分区
 
@@ -3179,7 +2945,7 @@ CREATE TABLE emp (
 PARTITION BY KEY (job) PARTITIONS 4;
 ```
 
-### 5.4. 不建议使用 mysql 分区表
+### 4.4. 不建议使用 mysql 分区表
 
 在实际互联网项目中，MySQL分区表用的极少，更多的是分库分表。
 
@@ -3189,19 +2955,3 @@ PARTITION BY KEY (job) PARTITIONS 4;
 - 一旦数据量并发量上来，如果在分区表实施关联，就是一个灾难
 - 分库分表，使用者来掌控业务场景与访问模式，可控。分区表，由 mysql 本身来实现，不太可控
 - 分区表无论怎么分，都是在一台机器上，天然就有性能的上限
-
-## 6. MySQL 其他知识
-
-### 6.1. MySQL中Decimal类型和Float Double等区别
-
-MySQL中存在float,double等非标准数据类型，也有decimal这种标准数据类型。
-
-其区别在于，float，double等非标准类型，在DB中保存的是近似值，而Decimal则以字符串的形式保存数值。
-
-float，double类型是可以存浮点数（即小数类型），但是float有个坏处，当你给定的数据是整数的时候，那么它就以整数给你处理。这样我们在存取货币值的时候自然遇到问题，我的default值为：0.00而实际存储是0，同样我存取货币为12.00，实际存储是12。
-
-mysql提供了1个数据类型：decimal，这种数据类型可以轻松解决上面的问题：decimal类型被 MySQL 以同样的类型实现，这在 SQL92 标准中是允许的。他们用于保存对准确精度有重要要求的值，例如与金钱有关的数据。
-
-### 6.2. MySQL数据库的伪表DUAL
-
-与Oracle数据库的伪表DUAL一样的用法

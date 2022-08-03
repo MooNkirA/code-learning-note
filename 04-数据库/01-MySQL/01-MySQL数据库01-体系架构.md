@@ -74,7 +74,7 @@ MySQL 下载地址：https://downloads.mysql.com/archives/community/
 
 ## 3. MySQL 体系架构
 
-![](images/20210414222957073_28904.png)
+![](images/253261115220843.png)
 
 从上图可以看出，MySQL 最上层是连接组件。<font color=red>**服务器层是由连接池、管理工具和服务、SQL 接口、解析器、优化器、缓存、存储引擎、文件系统组成**</font>
 
@@ -93,25 +93,31 @@ MySQL 下载地址：https://downloads.mysql.com/archives/community/
 
 ![](images/20210502095345589_1572.png)
 
+最上层是一些客户端和链接服务，包含本地 sock 通信和大多数基于客户端/服务端工具实现的类似于 TCP/IP 的通信。主要完成一些类似于连接处理、授权认证、及相关的安全方案。在该层上引入了线程池的概念，为通过认证安全接入的客户端提供线程。同样在该层上可以实现基于 SSL 的安全链接。
+
 当 MySQL 启动（MySQL 服务器就是一个进程），等待客户端连接，每一个客户端连接请求，服务器都会新建一个线程处理（如果是线程池的话，则是分配一个空的线程），每个线程独立，拥有各自的内存处理空间。通过查询系统参数`max_connections`可以知道服务器最大的连接数。
 
 ```sql
-show VARIABLES like '%max_connections%';
+mysql> show VARIABLES like '%max_connections%';
++-----------------+-------+
+| Variable_name   | Value |
++-----------------+-------+
+| max_connections | 151   |
++-----------------+-------+
+1 row in set (0.02 sec)
 ```
-
-![](images/20210502095655303_19313.png)
 
 ![](images/20210502095413361_14766.png)
 
-连接到服务器，服务器需要对其进行验证，也就是用户名、IP、密码验证，一旦连接成功，还要验证是否具有执行某个特定查询的权限（例如，是否允许客户端对某个数据库某个表的某个操作）
+连接到服务器，服务器也会为安全接入的每个客户端验证它所具有的操作权限。即用户名、IP、密码验证，一旦连接成功，还要验证是否具有执行某个特定查询的权限（例如，是否允许客户端对某个数据库某个表的某个操作）
 
 ### 3.2. Server 层(SQL 处理层)
 
-#### 3.2.1. Server层功能作用
+#### 3.2.1. Server 层功能作用
 
 ![](images/20210502095729398_1072.png)
 
-这一层主要功能有：SQL 语句的解析、优化，缓存的查询，MySQL 内置函数的实现，跨存储引擎功能（所谓跨存储引擎就是说每个引擎都需提供的功能（引擎需对外提供接口）），例如：存储过程、触发器、视图等。
+第二层架构（Server 层）主要完成大多数的核心服务功能，如 SQL 接口，并完成缓存的查询，SQL 语句的解析和优化，部分内置函数的执行，所有跨存储引擎的功能（所谓跨存储引擎就是说每个引擎都需提供的功能（引擎需对外提供接口））如：存储过程、函数、触发器、视图等。该层具体的操作如下：
 
 1. 如果是查询语句（`select`语句），首先会查询缓存是否已有相应结果，有则返回结果，无则进行下一步（如果不是查询语句，同样调到下一步）
 2. 解析查询，创建一个内部数据结构（解析树），这个解析树主要用来SQL语句的语义与语法解析；
@@ -146,11 +152,13 @@ SET GLOBAL query_cache_type = 1;
 
 ### 3.3. 存储引擎层
 
-<font color=red>**MySQL 的核心就是存储引擎。需要注意的点：在MySQL中，存储引擎是针对表！！官方建议在同一个数据库中，尽量所有表都使用同一个存储引擎，否则会出现一些奇怪的问题。**</font>
+MySQL 数据库区别于其他数据库的最重要的一个特点就是其插件式的表存储引擎。MySQL 插件式的存储引擎架构提供了一系列标准的管理和服务支持，这些标准与存储引擎本身无关，可能是每个数据库系统本身都必需的，如 SQL 分析器和优化器等，而存储引擎是底层物理结构和实际文件读写的实现，服务器通过API和存储引擎进行通信。
 
-MySQL 数据库区别于其他数据库的最重要的一个特点就是其插件式的表存储引擎。MySQL 插件式的存储引擎架构提供了一系列标准的管理和服务支持，这些标准与存储引擎本身无关，可能是每个数据库系统本身都必需的，如 SQL 分析器和优化器等，而存储引擎是底层物理结构和实际文件读写的实现，每个存储引擎开发者可以按照自己的意愿来进行开发。
+每个存储引擎开发者可以按照自己的意愿来进行开发。不同的存储引擎具有不同的功能，这样使用者也可以根据自己的需要，来选取合适的存储引擎。**数据库中的索引是在存储引擎层实现的**。
 
 插件式存储引擎的好处是，每个存储引擎都有各自的特点，能够根据具体的应用建立不同存储引擎表。由于 MySQL 数据库的开源特性，用户可以根据 MySQL预定义的存储引擎接口编写自己的存储引擎。若用户对某一种存储引擎的性能或功能不满意，可以通过修改源码来得到想要的特性，
+
+> Notes: <font color=red>**MySQL 的核心就是存储引擎。值得注意的是：在MySQL中，存储引擎是针对表！！官方建议在同一个数据库中，尽量所有表都使用同一个存储引擎，否则会出现一些奇怪的问题。**</font>
 
 存储引擎可以分为 MySQL 官方存储引擎和第三方存储引擎
 
@@ -159,6 +167,14 @@ MySQL 数据库区别于其他数据库的最重要的一个特点就是其插�
 ##### 3.3.1.1. InnoDB 存储引擎
 
 InnoDB 是 MySQL 的默认事务型存储引擎，有行级锁定和外键约束。也是最重要、使用最广泛的存储引擎。它被设计用来处理大量的短期(short-lived)事务，短期事务大部分情况是正常提交的，很少会被回滚。InnoDB 的性能和自动崩溃恢复特性，使得它在非事务型存储的需求中也很流行。
+
+在 MySQL 5.5 之后，InnoDB 是默认的 MySQL 存储引擎。
+
+特点：
+
+- DML操作遵循ACID模型，支持事务；
+- 行级锁，提高并发访问性能；
+- 支持外键FOREIGN KEY约束，保证数据的完整性和正确性；
 
 ##### 3.3.1.2. MyISAM 存储引擎
 
@@ -285,26 +301,57 @@ INSERT INTO innodb_table SELECT * FROM myisam_table;
 - 查询 MySQL 已提供哪些存储引擎
 
 ```sql
-show engines;
+mysql> show engines;
++--------------------+---------+----------------------------------------------------------------+--------------+------+------------+
+| Engine             | Support | Comment                                                        | Transactions | XA   | Savepoints |
++--------------------+---------+----------------------------------------------------------------+--------------+------+------------+
+| InnoDB             | DEFAULT | Supports transactions, row-level locking, and foreign keys     | YES          | YES  | YES        |
+| MRG_MYISAM         | YES     | Collection of identical MyISAM tables                          | NO           | NO   | NO         |
+| MEMORY             | YES     | Hash based, stored in memory, useful for temporary tables      | NO           | NO   | NO         |
+| BLACKHOLE          | YES     | /dev/null storage engine (anything you write to it disappears) | NO           | NO   | NO         |
+| MyISAM             | YES     | MyISAM storage engine                                          | NO           | NO   | NO         |
+| CSV                | YES     | CSV storage engine                                             | NO           | NO   | NO         |
+| ARCHIVE            | YES     | Archive storage engine                                         | NO           | NO   | NO         |
+| PERFORMANCE_SCHEMA | YES     | Performance Schema                                             | NO           | NO   | NO         |
+| FEDERATED          | NO      | Federated MySQL storage engine                                 | NULL         | NULL | NULL       |
++--------------------+---------+----------------------------------------------------------------+--------------+------+------------+
+9 rows in set (0.03 sec)
 ```
-
-![](images/20210502104832559_30287.png)
 
 - 查询 MySQL 当前默认的存储引擎
 
 ```sql
-show variables like '%storage_engine%';
+mysql> show variables like '%storage_engine%';
++----------------------------------+--------+
+| Variable_name                    | Value  |
++----------------------------------+--------+
+| default_storage_engine           | InnoDB |
+| default_tmp_storage_engine       | InnoDB |
+| disabled_storage_engines         |        |
+| internal_tmp_disk_storage_engine | InnoDB |
++----------------------------------+--------+
+4 rows in set (0.04 sec)
 ```
 
-![](images/20210502104837049_22415.png)
-
-#### 3.3.7. MyISAM 和 InnoDB 比较
+#### 3.3.7. MyISAM、InnoDB 与 Memory 比较
 
 ![](images/20210502110052347_9959.png)
 
-> 参考资料【mySQL数据库性能优化-讲义.pdf】
-
-![](images/20211223144129861_17584.png)
+|     功能     |     InnoDB      | MyISAM |    Memory    |
+| ----------- | :-------------: | :----: | :----------: |
+| 存储限制     |      64TB       | 256TB  | 依赖RAM的大小 |
+| 事务         |        √        |   -    |      -       |
+| 锁机制       |    行锁/表锁     |  表锁   |     表锁      |
+| B+tree索引   |        √        |   √    |      √       |
+| Hash索引     |        -        |   -    |      √       |
+| 全文索引     | √(5.6版本后支持) |   √    |      -       |
+| 集群索引     |        √        |   -    |      -       |
+| 数据索引     |        √        |   -    |      √       |
+| 数据压缩     |        -        |   √    |      -       |
+| 空间使用率   |        高        |   低    |      -       |
+| 内存使用     |        高        |   低    |     中等      |
+| 批量插入速度 |        低        |   高    |     高        |
+| 支持外键     |        √        |   -    |      -       |
 
 ### 3.4. MySQL 数据库运行流程图
 
@@ -344,12 +391,15 @@ SHOW VARIABLES LIKE '%xxx%';
 
 从不同的角度来说，主要分成两类
 
-- 从类型上：动态(dynamic)参数和静态(static)参数
-    - 动态参数意味着可以在 MySQL 实例运行中进行更改
-    - 静态参数说明在整个实例生命周期内都不得进行更改，即只读(read only)
-- 从作用范围上：全局变量(GLOBAL)和会话变量(SESSION/LOCAL)
-    - 全局变量（GLOBAL）影响服务器的整体操作。
-    - 会话变量（SESSION/LOCAL）影响某个客户端连接的操作。
+从类型上：动态(dynamic)参数和静态(static)参数
+
+- 动态参数意味着可以在 MySQL 实例运行中进行更改
+- 静态参数说明在整个实例生命周期内都不得进行更改，即只读(read only)
+
+从作用范围上：全局变量(GLOBAL)和会话变量(SESSION/LOCAL)
+
+- 全局变量（GLOBAL）影响服务器的整体操作。
+- 会话变量（SESSION/LOCAL）影响某个客户端连接的操作。
 
 用 default_storage_engine 来作为示例说明，在服务器启动时会初始化一个名为 default_storage_engine，作用范围为 `GLOBAL` 的系统变量。之后每当有一个客户端连接到该服务器时，服务器都会单独为该客户端分配一个名为`default_storage_engine`，作用范围为`SESSION`的系统变量，该作用范围为`SESSION`的系统变量值按照当前作用范围为`GLOBAL`的同名系统变量值进行初始化。
 
@@ -371,7 +421,7 @@ SET @@global.read_ buffer_size=524288;
 
 ### 4.3. MySQL官方手册（系统参数部分）
 
-网址（5.7版本）：https://dev.mysql.com/doc/refman/5.7/en/server-system-variables.html
+官方文档（5.7版本）地址：https://dev.mysql.com/doc/refman/5.7/en/server-system-variables.html
 
 ## 5. MySQL 数据目录结构分析
 
@@ -379,16 +429,19 @@ SET @@global.read_ buffer_size=524288;
 
 ### 5.1. 数据目录的位置
 
-通过以下命令可以查看当前MySql的存储数据的目录位置
+通过以下命令可以查看当前 MySql 数据库存储数据的目录位置
 
 ```sql
--- 查询数据库的数据目录
-show variables like 'datadir';
+mysql> show variables like 'datadir';
++---------------+----------------+
+| Variable_name | Value          |
++---------------+----------------+
+| datadir       | /var/lib/mysql |
++---------------+----------------+
+1 row in set (0.04 sec)
 ```
 
-![](images/20210414165101686_20230.png)
-
-这个目录位置可以通过配置文件进行修改。
+> Notes: 存储目录位置可以通过配置文件进行修改。
 
 ### 5.2. 数据目录的文件
 
@@ -443,11 +496,33 @@ innodb_file_per_table=0
 
 上面的配置意思是：当`imodb_file_per table`的值为0时，代表使用系统表空间；当`innodb_file pertable`的值为1时，代表使用独立表空间。需要注意的是`inmodb_file_per_table`参数只对新建的表起作用，对于已经分配了表空间的表并不起作用。
 
+可以直接通过命令查询：
+
+```sql
+mysql> show variables like 'innodb_file_per_table';
++-----------------------+-------+
+| Variable_name         | Value |
++-----------------------+-------+
+| innodb_file_per_table | ON    |
++-----------------------+-------+
+1 row in set (0.04 sec)
+```
+
 - **其他类型的表空间**
 
 随着 MySQL 的发展，除了上述两种老牌表空间之外，现在还新提出了一些不同类型的表空间，比如通用表空间(general tablespace)，undo 表空间(undotablespace)、临时表空间（temporary tablespace)等。
 
-#### 5.2.4. MyIASM 表数据的存储
+#### 5.2.4. InnoDB 逻辑存储结构
+
+![](images/83703016239269.png)
+
+- 表空间：InnoDB 存储引擎逻辑结构的最高层，ibd 文件其实就是表空间文件，在表空间中可以包含多个 Segment 段。
+- 段：表空间是由各个段组成的， 常见的段有数据段、索引段、回滚段等。InnoDB 中对于段的管理，都是引擎自身完成，不需要人为对其控制，一个段中包含多个区。
+- 区：是表空间的单元结构，每个区的大小为 1M。 默认情况下，InnoDB 存储引擎页大小为16K，即一个区中一共有64个连续的页。
+- 页：是组成区的最小单元，页也是 InnoDB 存储引擎磁盘管理的最小单元，每个页的大小默认为 16KB。为了保证页的连续性，InnoDB 存储引擎每次从磁盘申请 4-5 个区。
+- 行：InnoDB 存储引擎是面向行的，也就是说数据是按行进行存放的，在每一行中除了定义表时所指定的字段以外，还包含两个隐藏字段
+
+#### 5.2.5. MyIASM 表数据的存储
 
 在 MyISAM 存储引擎表中的数据和索引是分开存放的。所以在文件系统中也是使用不同的文件来存储数据文件和索引文件。与 InnoDB 不同的是，MyISAM 并没有表空间的概念，表数据都存放到对应的数据库子目录下。
 
