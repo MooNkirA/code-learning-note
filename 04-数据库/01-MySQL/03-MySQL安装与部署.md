@@ -274,7 +274,41 @@ set password = password('Root_123');
 
 ![](images/20201201090151187_1048.jpg)
 
+在 mysql 内置密码校验器，用于校验用户设置的密码复杂度。使用以下命令可以查看密码校验的规则：
+
+```sql
+mysql> SHOW VARIABLES LIKE 'validate_password.%';
++--------------------------------------+--------+
+| Variable_name                        | Value  |
++--------------------------------------+--------+
+| validate_password.check_user_name    | ON     |
+| validate_password.dictionary_file    |        |
+| validate_password.length             | 8      |
+| validate_password.mixed_case_count   | 1      |
+| validate_password.number_count       | 1      |
+| validate_password.policy             | MEDIUM |
+| validate_password.special_char_count | 1      |
++--------------------------------------+--------+
+```
+
+通过以下命令，降低密码的校验规则
+
+```bash
+set global validate_password.policy = 0;
+set global validate_password.length = 4;
+```
+
+设置简单的密码
+
+```sql
+ALTER USER 'root'@'localhost' IDENTIFIED BY '123456';
+```
+
+> Notes: 官方文档地址：https://dev.mysql.com/doc/refman/8.0/en/validate-password-options-variables.html
+
 #### 5.4.3. 设置允许远程访问
+
+因为 root 用户默认的主机是 localhost，为了可以远程访问 mysql 服务，需要将 root 用户的主机地址修改为 `*`。（*或者创建主机地址为 `*` 的其他用户*）
 
 ```bash
 #登录，密码为新修改的密码Root_123

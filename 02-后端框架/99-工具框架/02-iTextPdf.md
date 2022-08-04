@@ -1,14 +1,14 @@
 # PDF操作工具类库-iTextPdf
 
----
-
 ## 1. iText类库简介
 - 官网：https://itextpdf.com/
 - itext5官方例子：https://developers.itextpdf.com/itext-5-examples
 - iText7官方例子：https://developers.itextpdf.com/examples-itext7
 
 ## 2. iText库创建PDF文件使用总结
+
 ### 2.1. iText库概述
+
 好的一面是，iText是开源的API，但是需要注意，虽然iText是开源，如果你出于商业目的使用它，仍然需要购买商业许可证。你可以从http://itextpdf.com上免费获取iText的Java类库，iText库非常强大，支持HTML、RTF、XML以及PDF文件的生产，你可以在文档中使用各种各样的字体，并且，还可以使用同样的代码生成上述不同类型的文件，这真的是一个很棒的特性，不是吗？
 
 iText库包含一系列接口，可以生成不同字体的PDF文件，在PDF中创建表格，添加水印等等功能。当然，iText还有许许多多其它的功能，这将留给读者去探索。
@@ -26,6 +26,7 @@ iText库包含一系列接口，可以生成不同字体的PDF文件，在PDF中
 当然，你也可以自己去下载最新的jar文件，然后添加到工程里，下载地址。
 
 ### 2.2. iText库常用类
+
 - com.itextpdf.text.Document：这是iText库中最常用的类，它代表了一个pdf实例。如果你需要从零开始生成一个PDF文件，你需要使用这个Document类。首先创建（new）该实例，然后打开（open）它，并添加（add）内容，最后关闭（close）该实例，即可生成一个pdf文件。
 - com.itextpdf.text.Paragraph：表示一个缩进的文本段落，在段落中，你可以设置对齐方式，缩进，段落前后间隔等。
 - com.itextpdf.text.Chapter：表示PDF的一个章节，他通过一个Paragraph类型的标题和整形章数创建。
@@ -38,6 +39,7 @@ iText库包含一系列接口，可以生成不同字体的PDF文件，在PDF中
 
 
 ## 3. java使用itext生成pdf文档并直接输出到HttpResponse流中给用户下载
+
 java使用itext生成pdf文档并直接输出到HttpResponse流中给用户下载, 这和将pdf文件生成到文件中的不同之处在于下面两行代码：
 
 ```java
@@ -72,6 +74,7 @@ public class PdfHelloWorldAction extends Action {
 
 
 ## 4. 模板导入，设置导入的form值的样式
+
 1. 通过软件，Adobe Acrobat或者PDF-XChange_Editor等软件，将文本域的相应样式设置好，基本上可以满足导入后数据显示的样式要求。
 2. 使用Acrobat打开制作好的表格PDF文件，制作表单域。注意域名要唯一，同时，注意域的字体、格式、排列等相关属性。
 3. 使用iText的PDFreader来读取模板PDF文件，使用setField(fieldname,value)来填充PDF上的表格域，将完成后的PDF文件输出保存即得到完美的PDF表格文件。
@@ -80,7 +83,9 @@ public class PdfHelloWorldAction extends Action {
 6. 在iText制作中文表格中，使用iTextAsian.jar包，加入import com.lowagie.text.pdf.fonts.*，否则可能报字体错误或PDF文件不正常。调试时注意服务器的JVM可能缓存，不能即时应用java的变更代码
 
 ## 5. iText代码示例
+
 ### 5.1. 关于字体
+
 ```java
 BaseFont.IDENTITY_H, BaseFont.NOT_EMBEDDED);
 // 华文中宋
@@ -113,6 +118,7 @@ catch(IOException ioe) {
 ```
 
 ### 5.2. 导出word、pdf报表
+
 ```java
 /**
 * 导出PDF示例
@@ -153,6 +159,7 @@ public static void main(String[] args) {
 ```
 
 ### 5.3. 通过PdfPCell的方法可以隐藏单元格的边框
+
 ```java
 //新建单元格对象
 PdfPCell cell = new PdfPCell(new Phrase("test"));
@@ -188,14 +195,17 @@ PdfPCell cell = new PdfPCell(new Phrase("test"));
 //cell.disableBorderSide(15);
 ```
 
-## 6. 工行项目案例
+## 6. 个人实际项目案例
+
 ### 6.1. 项目需求概述
+
 浏览器客户端显示pdf的内容，点击下载按钮后，生成pdf文件下载。原来是做成读取pdf模板文件，但因为pdf文件的正文的内容是由通过用户的录入excle表，再导入到区块链中。所有模板导入的方式就出现问题是，无法根据用户录入的内容而进行扩展，会导致当内容过长的时候，显示不全的问题。
 
 所以项目生成PDF的方式改成使用手动设置样式与内容的方式
 
 ### 6.2. 生成PDF文件代码（模拟）
-说明：工行使用的技术是封装了IViewer的接口，用来做为flowc相关逻辑处理后输出的。项目的实现就是实现IViewer接口，重写里面的输出方法，在该方法中就可以获取到request与response等对象。此案例代码只是模拟，直接继承HttpServlet抽象类，重写doPost与doGet方法，模拟项目的实现
+
+说明：原实际项目中，使用的技术是封装了IViewer的接口，用来做为flowc相关逻辑处理后输出的。项目的实现就是实现IViewer接口，重写里面的输出方法，在该方法中就可以获取到request与response等对象。此案例代码只是模拟，直接继承HttpServlet抽象类，重写doPost与doGet方法，模拟项目的实现
 
 ```java
 package com.nantian.util;
@@ -910,6 +920,7 @@ Font subBoldFontChinese = new Font(bfChinese, 8, Font.BOLD); // 币种和租金�
 ```
 
 ### 7.5. 案例5：使用itext生成pdf的，各种布局
+
 jar包为itext.jar，itextAsia.jar，最好都是最新的。最后生成的pdf如下：
 
 ![生成pdf](images/生成pdf_1540222202_29397.png)
@@ -1191,6 +1202,7 @@ public class BaoXiaoDan {
 ```
 
 ### 7.6. 案例6：在linux环境下使用itext生成pdf
+
 项目中需要对订单生成pdf文件，在不断的尝试之后，终于生成了比较满意的pdf文档。
 
 简单介绍一下背景：项目是一个erp项目，docker容器化CentOS 7运行环境，应用打包方式jar,使用itext生成pdf
@@ -1250,13 +1262,13 @@ COPY ./fonts/ /usr/share/fonts/
 
 搜寻资料发现:
 
-我们在将map键值添加到pdf模板的文本域中时，在AcroFields设置完后，关闭PdfReader和PdfStamper之前
+我们在将map键值添加到pdf模板的文本域中时，在AcroFields设置完后，关闭PdfReader和PdfStamper之前。应加上：
 
-应加上:
-
+```java
 stamper.setFormFlattening(true)
+```
 
-大概意思即:将值填充到文本域后即将文本域转换为一般文字对象,这样就避免了某些浏览器不能显示PDF文本域问题
+大概意思即：将值填充到文本域后即将文本域转换为一般文字对象,这样就避免了某些浏览器不能显示PDF文本域问题
 
 但是这样设置后生成的Pdf文档中设置的文本域就不再具有编辑框功能(Pdf编辑器依然能够编辑)
 
@@ -1340,8 +1352,6 @@ document.close();
 
 如果你也换成了这两个版本还是不支持中文(具体的异常信息就不贴了),请注意你的maven依赖中是否有其他组件也内含了itext相关的jar，这个我当时也遇到了，头疼的要死。为什么别人的可以我的不行呢，后来仔细找maven中的依赖发现了问题。
 
-如果你也换成了这两个版本还是不支持中文(具体的异常信息就不贴了),请注意你的maven依赖中是否有其他组件也内含了itext相关的jar，这个我当时也遇到了，头疼的要死。为什么别人的可以我的不行呢，后来仔细找maven中的依赖发现了问题。
-
 ```xml
 <dependency>
     <groupId>com.qumoon</groupId>
@@ -1370,6 +1380,7 @@ document.close();
 因为这个字体文件中可能有一些我们项目中其他配置文件的关键字，所以会被替换掉。这样就导致itext初始化字体失败。但是这个路径可以使用绝对路径，也可以使用相对路径，但是注意不要放在resource目录下。我是放在webapp目录下了。我项目中用的字体文件是黑体，比之前的数字显示会好很多。另外如果你使用第三种方式还报错，请仔细看下错误信息如果是报文件不存在还是资源解析失败。因为itext写死了是从字体文件中取"name"属性(打断点从源码中可以看到)，所以确保你的字体文件是正确的而且没有放到resource目录下。
 
 ### 8.2. 如何使用生成PDF的表格不会因内容过长而另起一页
+
 使用itext的PdfPTable和PdfPCell生成PDF内容。当PdfPCell中的内容过长，页面剩余空白不足以填充时，PdfPCell的整格会自动换到下一页显示，导致上一页尾部一片空白，
 
 是否有什么参数可以设置表格内容无论是否超出页面空白长度，都可以衔接在页面尾部，超出部分自动在下一页显示？
@@ -1377,6 +1388,7 @@ document.close();
 设置table的属性：`table.setSplitLate(false);`
 
 ### 8.3. 关于itext使用的字体格式的问题
+
 1. 如果读取的字体文件是.ttf后缀的，直接通过路径读取就可以
 2. 如果读取的字体文件是.ttc后缀的，需要在路径字体名的字符串后面加",1"
 
@@ -1388,9 +1400,10 @@ yaHeiFontName += ",1";
 Font yaHeiFont = new Font(BaseFont.createFont(yaHeiFontName, BaseFont.IDENTITY_H, BaseFont.EMBEDDED));  //中文简体
 ```
 
-
 ## 9. 官网案例
+
 ### 9.1. 字体使用案例1
+
 ```java
 @WrapToTest
 public class F03_Embedded {

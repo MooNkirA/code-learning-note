@@ -623,17 +623,72 @@ MySQL 内部每秒能够扫描内存中上百万行数据，相比之下，MySQL
 
 ### 2.4. SQL 执行效率查询
 
-通过以下命令查看状态信息可以查看对当前数据库的主要操作类型。
+MySQL 客户端连接成功后，通过 `show [session|global] status` 命令可以查询服务器状态信息，查看当前数据库的 INSERT、UPDATE、DELETE、SELECT 的访问频次：
+
+通过上述指令，可以查看到当前数据库到底是以查询为主，还是以增删改为主，从而为数据库优化提供参考依据。如果是以增删改为主，可以考虑不对其进行索引的优化。如果是以查询为主，那么就要考虑对数据库的索引进行优化了。
+
+#### 2.4.1. 查看当前会话统计结果
 
 ```sql
--- 下面的命令显示了当前 session 中所有统计参数的值
-show session status like 'Com_______';  -- 查看当前会话统计结果
-show global status like 'Com_______';  -- 查看自数据库上次启动至今统计结果
--- 查看针对Innodb引擎的统计结果
-show status like 'Innodb_rows_%';
+mysql> show session status like 'Com_______';
++---------------+-------+
+| Variable_name | Value |
++---------------+-------+
+| Com_binlog    | 0     |
+| Com_commit    | 0     |
+| Com_delete    | 0     |
+| Com_insert    | 0     |
+| Com_repair    | 0     |
+| Com_revoke    | 0     |
+| Com_select    | 7     |
+| Com_signal    | 0     |
+| Com_update    | 0     |
+| Com_xa_end    | 0     |
++---------------+-------+
 ```
 
-### 2.5. 慢查询配置
+重要指标说明：
+
+- Com_delete: 删除次数
+- Com_insert: 插入次数
+- Com_select: 查询次数
+- Com_update: 更新次数
+
+#### 2.4.2. 查看自数据库上次启动至今统计结果
+
+```sql
+mysql> show global status like 'Com_______';
++---------------+-------+
+| Variable_name | Value |
++---------------+-------+
+| Com_binlog    | 0     |
+| Com_commit    | 0     |
+| Com_delete    | 0     |
+| Com_insert    | 0     |
+| Com_repair    | 0     |
+| Com_revoke    | 0     |
+| Com_select    | 18    |
+| Com_signal    | 0     |
+| Com_update    | 0     |
+| Com_xa_end    | 0     |
++---------------+-------+
+```
+
+#### 2.4.3. 查看针对Innodb引擎的统计结果
+
+```sql
+mysql> show status like 'Innodb_rows_%';
++----------------------+-------+
+| Variable_name        | Value |
++----------------------+-------+
+| Innodb_rows_deleted  | 0     |
+| Innodb_rows_inserted | 650   |
+| Innodb_rows_read     | 847   |
+| Innodb_rows_updated  | 0     |
++----------------------+-------+
+```
+
+### 2.5. 慢查询日志配置
 
 #### 2.5.1. 查询慢查询日志相关参数
 
@@ -671,9 +726,9 @@ show variables like '%query%';
 
 #### 2.5.2. 开启慢查询日志方式1 - 修改mysql配置参数
 
-mysql配置文件名称是：`my.ini`（Linux系统下的文件名为`my.cnf`）
+mysql 配置文件名称是：`my.ini`（Linux系统下的文件名为`/etc/my.cnf`）
 
-window下可以通过打开【服务】，右键点击mysql服务，查询【属性】。里面有`--defaults-file="D:\development\MySQL\MySQL Server 5.5\my.ini"`，可以打到mysql配置文件的位置
+window 下可以通过打开【服务】，右键点击mysql服务，查询【属性】。里面有`--defaults-file="D:\development\MySQL\MySQL Server 5.5\my.ini"`，可以打到mysql配置文件的位置
 
 ![查询mysql配置文件位置1](images/20190403094709877_25151.jpg)
 
@@ -681,7 +736,7 @@ window下可以通过打开【服务】，右键点击mysql服务，查询【属
 
 修改配置文件，**1代表on，0做表off**。(*注：如果mysql5.5版本，配置文件是没有慢日志的配置，而5.7版本的配置文件里是默认有慢日志的配置。所以5.5需要自己手动增加*)：
 
-```ini
+```properties
 [mysqld]
 # ====== 5.5版本需要手动增加，5.7以上版本默认有慢日志配置 ======
 
@@ -734,15 +789,19 @@ show variables like '%query%';
 show variables like '%slow%';
 ```
 
+#### 2.5.4. 慢查询日志保存位置
+
+windows 与 linux 系统的慢查询日志默认是和数据文件放一起。linux 系统默认数据文件存储位置是 `/var/lib/mysql/`，可以通过查看 `/etc/my.cnf` 配置文件确认日志与数据的保存位置。
+
 ### 2.6. 查询缓存
 
 #### 2.6.1. 查询缓存状态
 
-Query Cache会缓存select查询，安装mysql时默认是开启。但是如果对表进行了insert, update, delete, truncate, alter table, drop table, or drop database等操作时，之前的缓存会无效并且删除。这样一定程度上会影响数据库的性能。
+Query Cache 会缓存 select 查询，安装 mysql 时默认是开启。但是如果对表进行了 insert, update, delete, truncate, alter table, drop table, or drop database 等操作时，之前的缓存会无效并且删除。这样一定程度上会影响数据库的性能。
 
 所以对一些频繁变动表的情况开启缓存是不明智的。还有一种情况是在测试数据库性能的时候也需要关闭缓存，避免缓存对于测试数据的影响
 
-查询缓存的启用状态，query_cache_type字段是on的时候，代表开启缓存
+查询缓存的启用状态，query_cache_type 字段是  on的时候，代表开启缓存
 
 ```sql
 show variables like '%cache%';
@@ -788,8 +847,9 @@ select sql_cache count(*) from test_table;
 可以通过以下两种方式定位执行效率较低的 SQL 语句。
 
 - 通过慢查询日志定位那些执行效率较低的 SQL 语句。
-- 使用 `show processlist` 命令查看当前MySQL在进行的线程，包括线程的状态、是否锁表等，可以实时地查看 SQL 的执行情况，同时对一些锁表操作进行优化。
 - 通过 `EXPLAIN` 执行计划分析
+- 使用 `show processlist` 命令查看当前MySQL在进行的线程，包括线程的状态、是否锁表等，可以实时地查看 SQL 的执行情况，同时对一些锁表操作进行优化。
+- 使用 profile 详情分析
 
 ### 3.2. 慢查询解读分析
 
@@ -890,12 +950,13 @@ MySQL数据库的`explain`关键字显示了MySQL如何使用索引来处理sele
 在SQL查询语句前加上`EXPLAIN`关键字即可。 **`EXPLAIN`后面即是要分析的SQL语句**。示例如下：
 
 ```sql
-EXPLAIN SELECT * FROM order_exp;
+mysql> EXPLAIN SELECT * FROM order_exp;
++----+-------------+-----------+------------+------+---------------+------+---------+------+-------+----------+-------+
+| id | select_type | table     | partitions | type | possible_keys | key  | key_len | ref  | rows  | filtered | Extra |
++----+-------------+-----------+------------+------+---------------+------+---------+------+-------+----------+-------+
+|  1 | SIMPLE      | order_exp | NULL       | ALL  | NULL          | NULL | NULL    | NULL | 10311 |   100.00 | NULL  |
++----+-------------+-----------+------------+------+---------------+------+---------+------+-------+----------+-------+
 ```
-
-得到结果：
-
-![](images/20210424090359183_9641.png)
 
 > 除了以`SELECT`开头的查询语句，其余的`DELETE`、`INSERT`、`REPLACE`以及`UPDATE` 语句前边都可以加上`EXPLAIN`，用来查看这些语句的执行计划
 
@@ -922,23 +983,54 @@ EXPLAIN SELECT * FROM order_exp;
 
 ##### 3.3.4.1. 单 SELECT 关键字
 
-![](images/20210424092749292_9607.png)
+```sql
+mysql> EXPLAIN SELECT * FROM s1 WHERE order_no = 'a';
++----+-------------+-------+------------+------+---------------+--------------+---------+-------+------+----------+-------+
+| id | select_type | table | partitions | type | possible_keys | key          | key_len | ref   | rows | filtered | Extra |
++----+-------------+-------+------------+------+---------------+--------------+---------+-------+------+----------+-------+
+|  1 | SIMPLE      | s1    | NULL       | ref  | idx_order_no  | idx_order_no | 152     | const |    1 |   100.00 | NULL  |
++----+-------------+-------+------------+------+---------------+--------------+---------+-------+------+----------+-------+
+```
 
 ##### 3.3.4.2. 连接查询
 
 对于连接查询来说，一个`SELECT`关键字后边的`FROM`子句中可以跟随多个表，所以在连接查询的执行计划中，每个表都会对应一条记录，但是这些记录的id 值都是相同的
 
-![](images/20210424092844214_24512.png)
+```sql
+mysql> EXPLAIN SELECT * FROM s1 INNER JOIN s2;
++----+-------------+-------+------------+------+---------------+------+---------+------+------+----------+---------------------------------------+
+| id | select_type | table | partitions | type | possible_keys | key  | key_len | ref  | rows | filtered | Extra                                 |
++----+-------------+-------+------------+------+---------------+------+---------+------+------+----------+---------------------------------------+
+|  1 | SIMPLE      | s1    | NULL       | ALL  | NULL          | NULL | NULL    | NULL |    1 |   100.00 | NULL                                  |
+|  1 | SIMPLE      | s2    | NULL       | ALL  | NULL          | NULL | NULL    | NULL |    1 |   100.00 | Using join buffer (Block Nested Loop) |
++----+-------------+-------+------------+------+---------------+------+---------+------+------+----------+---------------------------------------+
+```
 
 ##### 3.3.4.3. 包含子查询
 
 对于包含子查的查询语句来说，就可能涉及多个`SELECT`关键字，所以在包含子查询的查询语句的执行计划中，每个`SELECT`关键字都会对应一个唯一的id值
 
-![](images/20210424094533292_4107.png)
+```sql
+mysql> EXPLAIN SELECT * FROM s1 WHERE id IN (SELECT id FROM s2) OR order_no = 'a';
++----+--------------------+-------+------------+-----------------+---------------+---------+---------+------+------+----------+-------------+
+| id | select_type        | table | partitions | type            | possible_keys | key     | key_len | ref  | rows | filtered | Extra       |
++----+--------------------+-------+------------+-----------------+---------------+---------+---------+------+------+----------+-------------+
+|  1 | PRIMARY            | s1    | NULL       | ALL             | idx_order_no  | NULL    | NULL    | NULL |    1 |   100.00 | Using where |
+|  2 | DEPENDENT SUBQUERY | s2    | NULL       | unique_subquery | PRIMARY       | PRIMARY | 8       | func |    1 |   100.00 | Using index |
++----+--------------------+-------+------------+-----------------+---------------+---------+---------+------+------+----------+-------------+
+```
 
 需要特别注意，查询优化器可能对涉及子查询的查询语句进行重写，从而转换为连接查询。所以如果想知道查询优化器对某个包含子查询的语句是否进行了重写，直接查看执行计划即可
 
-![](images/20210424094633767_18291.png)
+```sql
+mysql> EXPLAIN SELECT * FROM s1 WHERE id IN (SELECT id FROM s2 WHERE order_no = 'a');
++----+-------------+-------+------------+--------+----------------------+---------+---------+--------------+------+----------+-------------+
+| id | select_type | table | partitions | type   | possible_keys        | key     | key_len | ref          | rows | filtered | Extra       |
++----+-------------+-------+------------+--------+----------------------+---------+---------+--------------+------+----------+-------------+
+|  1 | SIMPLE      | s1    | NULL       | ALL    | PRIMARY              | NULL    | NULL    | NULL         |    1 |   100.00 | NULL        |
+|  1 | SIMPLE      | s2    | NULL       | eq_ref | PRIMARY,idx_order_no | PRIMARY | 8       | tempdb.s1.id |    1 |   100.00 | Using where |
++----+-------------+-------+------------+--------+----------------------+---------+---------+--------------+------+----------+-------------+
+```
 
 > 虽然示例的查询语句是一个子查询，但是执行计划中 s1 和 s2 表对应的记录的 id 值全部是 1，这就表明了查询优化器将子查询转换为了连接查询
 
@@ -946,11 +1038,28 @@ EXPLAIN SELECT * FROM order_exp;
 
 包含`UNION`子句的查询语句，`UNION`子句会把多个查询的结果集合并起来并对结果集中的记录进行去重。MySQL使用的是内部的临时表来实现去重。在查询计划中，在内部创建了一个名为`<union1,2>`的临时表（就是执行计划第三条记录的 table 列的名称)，id 为 NULL 表明这个临时表是为了合并两个查询的结果集而创建的
 
-![](images/20210424094805112_22737.png)
+```sql
+mysql> EXPLAIN SELECT * FROM s1 UNION SELECT * FROM s2;
++------+--------------+------------+------------+------+---------------+------+---------+------+------+----------+-----------------+
+| id   | select_type  | table      | partitions | type | possible_keys | key  | key_len | ref  | rows | filtered | Extra           |
++------+--------------+------------+------------+------+---------------+------+---------+------+------+----------+-----------------+
+|    1 | PRIMARY      | s1         | NULL       | ALL  | NULL          | NULL | NULL    | NULL |    1 |   100.00 | NULL            |
+|    2 | UNION        | s2         | NULL       | ALL  | NULL          | NULL | NULL    | NULL |    1 |   100.00 | NULL            |
+| NULL | UNION RESULT | <union1,2> | NULL       | ALL  | NULL          | NULL | NULL    | NULL | NULL | NULL     | Using temporary |
++------+--------------+------------+------------+------+---------------+------+---------+------+------+----------+-----------------+
+```
 
 跟`UNION`对比起来，`UNION ALL`就不需要为最终的结果集进行去重，它只是单纯的把多个查询的结果集中的记录合并成一个并返回给用户，所以也就不需要使用临时表。所以在包含`UNION ALL`子句的查询的执行计划中，就没有那个id为NULL的记录
 
-![](images/20210424095027372_3242.png)
+```sql
+mysql> EXPLAIN SELECT * FROM s1 UNION ALL SELECT * FROM s2;
++----+-------------+-------+------------+------+---------------+------+---------+------+------+----------+-------+
+| id | select_type | table | partitions | type | possible_keys | key  | key_len | ref  | rows | filtered | Extra |
++----+-------------+-------+------------+------+---------------+------+---------+------+------+----------+-------+
+|  1 | PRIMARY     | s1    | NULL       | ALL  | NULL          | NULL | NULL    | NULL |    1 |   100.00 | NULL  |
+|  2 | UNION       | s2    | NULL       | ALL  | NULL          | NULL | NULL    | NULL |    1 |   100.00 | NULL  |
++----+-------------+-------+------------+------+---------------+------+---------+------+------+----------+-------+
+```
 
 #### 3.3.5. select_type 列
 
@@ -976,17 +1085,41 @@ EXPLAIN SELECT * FROM order_exp;
 
 简单的 select 查询，查询中不包含子查询或者 UNION
 
-![](images/20210424153914418_26618.png)
+```sql
+mysql> EXPLAIN SELECT * FROM s1 WHERE order_no = 'a';
++----+-------------+-------+------------+------+---------------+--------------+---------+-------+------+----------+-------+
+| id | select_type | table | partitions | type | possible_keys | key          | key_len | ref   | rows | filtered | Extra |
++----+-------------+-------+------------+------+---------------+--------------+---------+-------+------+----------+-------+
+|  1 | SIMPLE      | s1    | NULL       | ref  | idx_order_no  | idx_order_no | 152     | const |    1 |   100.00 | NULL  |
++----+-------------+-------+------------+------+---------------+--------------+---------+-------+------+----------+-------+
+```
 
 连接查询也算是 SIMPLE 类型
 
-![](images/20210424153942474_484.png)
+```sql
+mysql> EXPLAIN SELECT * FROM s1 INNER JOIN s2;
++----+-------------+-------+------------+------+---------------+------+---------+------+------+----------+---------------------------------------+
+| id | select_type | table | partitions | type | possible_keys | key  | key_len | ref  | rows | filtered | Extra                                 |
++----+-------------+-------+------------+------+---------------+------+---------+------+------+----------+---------------------------------------+
+|  1 | SIMPLE      | s1    | NULL       | ALL  | NULL          | NULL | NULL    | NULL |    1 |   100.00 | NULL                                  |
+|  1 | SIMPLE      | s2    | NULL       | ALL  | NULL          | NULL | NULL    | NULL |    1 |   100.00 | Using join buffer (Block Nested Loop) |
++----+-------------+-------+------------+------+---------------+------+---------+------+------+----------+---------------------------------------+
+```
 
 ##### 3.3.5.2. PRIMARY 类型
 
 对于包含`UNION`、`UNION ALL`或者子查询的大查询来说，它是由几个小查询组成的，其中最左边的那个查询的`select_type`值就是`PRIMARY`
 
-![](images/20210424161956115_31394.png)
+```sql
+mysql> EXPLAIN SELECT * FROM s1 UNION SELECT * FROM s2;
++------+--------------+------------+------------+------+---------------+------+---------+------+------+----------+-----------------+
+| id   | select_type  | table      | partitions | type | possible_keys | key  | key_len | ref  | rows | filtered | Extra           |
++------+--------------+------------+------------+------+---------------+------+---------+------+------+----------+-----------------+
+|    1 | PRIMARY      | s1         | NULL       | ALL  | NULL          | NULL | NULL    | NULL |    1 |   100.00 | NULL            |
+|    2 | UNION        | s2         | NULL       | ALL  | NULL          | NULL | NULL    | NULL |    1 |   100.00 | NULL            |
+| NULL | UNION RESULT | <union1,2> | NULL       | ALL  | NULL          | NULL | NULL    | NULL | NULL | NULL     | Using temporary |
++------+--------------+------------+------------+------+---------------+------+---------+------+------+----------+-----------------+
+```
 
 ##### 3.3.5.3. UNION 类型
 
@@ -1000,7 +1133,15 @@ MySQL 选择使用临时表来完成`UNION`查询的去重工作，针对该临�
 
 如果包含子查询的查询语句不能够转为对应的`semi-join`的形式，并且该子查询是不相关子查询，并且查询优化器决定采用将该子查询物化的方案来执行该子查询时，该子查询的第一个`SELECT`关键字代表的那个查询的`select_type`就是`SUBQUERY`
 
-![](images/20210424162451265_131.png)
+```sql
+mysql> EXPLAIN SELECT * FROM s1 WHERE id IN (SELECT id FROM s2) OR order_no = 'a';
++----+--------------------+-------+------------+-----------------+---------------+---------+---------+------+------+----------+-------------+
+| id | select_type        | table | partitions | type            | possible_keys | key     | key_len | ref  | rows | filtered | Extra       |
++----+--------------------+-------+------------+-----------------+---------------+---------+---------+------+------+----------+-------------+
+|  1 | PRIMARY            | s1    | NULL       | ALL             | idx_order_no  | NULL    | NULL    | NULL |    1 |   100.00 | Using where |
+|  2 | DEPENDENT SUBQUERY | s2    | NULL       | unique_subquery | PRIMARY       | PRIMARY | 8       | func |    1 |   100.00 | Using index |
++----+--------------------+-------+------------+-----------------+---------------+---------+---------+------+------+----------+-------------+
+```
 
 需要注意的是，由于`select_type`为`SUBQUERY`的子查询由于会被物化，所以只需要执行一遍
 
@@ -1014,9 +1155,19 @@ MySQL 选择使用临时表来完成`UNION`查询的去重工作，针对该临�
 
 在包含`UNION`或者`UNION ALL`的大查询中，如果各个小查询都依赖于外层查询的话，那除了最左边的那个小查询之外，其余的小查询的`select_type`的值就是`DEPENDENT UNION`。例如以下查询：
 
-![](images/20210424163047363_9574.png)
+```sql
+mysql> EXPLAIN SELECT * FROM s1 WHERE id IN (SELECT id FROM s2 WHERE id = 3 UNION SELECT id FROM s1 WHERE id = 1);
++------+--------------------+------------+------------+-------+---------------+---------+---------+-------+------+----------+-----------------+
+| id   | select_type        | table      | partitions | type  | possible_keys | key     | key_len | ref   | rows | filtered | Extra           |
++------+--------------------+------------+------------+-------+---------------+---------+---------+-------+------+----------+-----------------+
+|    1 | PRIMARY            | s1         | NULL       | ALL   | NULL          | NULL    | NULL    | NULL  |    2 |   100.00 | Using where     |
+|    2 | DEPENDENT SUBQUERY | s2         | NULL       | const | PRIMARY       | PRIMARY | 8       | const |    1 |   100.00 | Using index     |
+|    3 | DEPENDENT UNION    | s1         | NULL       | const | PRIMARY       | PRIMARY | 8       | const |    1 |   100.00 | Using index     |
+| NULL | UNION RESULT       | <union2,3> | NULL       | ALL   | NULL          | NULL    | NULL    | NULL  | NULL | NULL     | Using temporary |
++------+--------------------+------------+------------+-------+---------------+---------+---------+-------+------+----------+-----------------+
+```
 
-> 示例查询比较复杂，大查询里包含了一个子查询，子查询里又是由`UNION`连起来的两个小查询。从执行计划中可以看出来，`SELECT id FROM s2 WHERE id = 716`这个小查询由于是子查询中第一个查询，所以它的`select_type`是`OEPENDENTSUBOUERY`，而`SELECT id FROM s1 WHERE id = 718`这个查询的`select_type`就是`DEPENDENT UNION`。
+> 示例查询比较复杂，大查询里包含了一个子查询，子查询里又是由`UNION`连起来的两个小查询。从执行计划中可以看出来，`SELECT id FROM s2 WHERE id = 3`这个小查询由于是子查询中第一个查询，所以它的`select_type`是`OEPENDENTSUBOUERY`，而`SELECT id FROM s1 WHERE id = 1`这个查询的`select_type`就是`DEPENDENT UNION`。
 
 MySQL优化器对`IN`操作符的优化会将`IN`中的非关联子查询优化成一个关联子查询。我们可以在执行上面那个执行计划后，马上执行`show warnings\G`，可以看到MySQL对SQL语句的大致改写情况：
 
@@ -1026,7 +1177,15 @@ MySQL优化器对`IN`操作符的优化会将`IN`中的非关联子查询优化�
 
 对于采用物化的方式执行的包含派生表的查询，该派生表对应的子查询的`select_type`就是`DERIVED`
 
-![](images/20210424164153309_21987.png)
+```sql
+mysql> EXPLAIN SELECT * FROM (SELECT id, count(*) as c FROM s1 GROUP BY id) AS derived_s1 where c >1;
++----+-------------+------------+------------+-------+-------------------------------------------------------+---------+---------+------+------+----------+-------------+
+| id | select_type | table      | partitions | type  | possible_keys                                         | key     | key_len | ref  | rows | filtered | Extra       |
++----+-------------+------------+------------+-------+-------------------------------------------------------+---------+---------+------+------+----------+-------------+
+|  1 | PRIMARY     | <derived2> | NULL       | ALL   | NULL                                                  | NULL    | NULL    | NULL |    2 |    50.00 | Using where |
+|  2 | DERIVED     | s1         | NULL       | index | PRIMARY,u_idx_day_status,idx_order_no,idx_insert_time | PRIMARY | 8       | NULL |    2 |   100.00 | Using index |
++----+-------------+------------+------------+-------+-------------------------------------------------------+---------+---------+------+------+----------+-------------+
+```
 
 上面示例id为2的记录就代表子查询的执行方式，该子查询是以物化的方式执行的。id 为 1 的记录代表外层查询，注意到它的 table 列显示的是`<derived2>`，表示该查询是针对将派生表物化之后的表进行查询的。
 
@@ -1044,7 +1203,15 @@ MySQL优化器对`IN`操作符的优化会将`IN`中的非关联子查询优化�
 
 极少出现，示例如下：
 
-![](images/20210424164012260_18193.png)
+```sql
+mysql> explain select * from s1 where id = ( select id from s2 where order_no=@@sql_log_bin);
++----+----------------------+-------+------------+-------+---------------+--------------+---------+------+------+----------+--------------------------------+
+| id | select_type          | table | partitions | type  | possible_keys | key          | key_len | ref  | rows | filtered | Extra                          |
++----+----------------------+-------+------------+-------+---------------+--------------+---------+------+------+----------+--------------------------------+
+|  1 | PRIMARY              | NULL  | NULL       | NULL  | NULL          | NULL         | NULL    | NULL | NULL | NULL     | no matching row in const table |
+|  2 | UNCACHEABLE SUBQUERY | s2    | NULL       | index | idx_order_no  | idx_order_no | 152     | NULL |    2 |    50.00 | Using where; Using index       |
++----+----------------------+-------+------------+-------+---------------+--------------+---------+------+------+----------+--------------------------------+
+```
 
 #### 3.3.6. table 列
 
@@ -1443,6 +1610,168 @@ EXPLAIN SELECT order_note, COUNT(*) AS amount FROM s1 GROUP BY order_note order 
 
 在将 In 子查询转为 semi-join 时，如果采用的是 FirstMatch 执行策略，则在被驱动表执行计划的 Extra 列就是显示 FirstMatch(tbl_name)提示。
 
+### 3.4. 分析慢 sql 的其他方法
+
+通过应用程序访问 MySQL 服务时，有时候性能不一定全部卡在语句的执行上。常用的手段是通过慢查询日志定位那些执行效率较低的SQL语句。
+
+1. 慢查询日志在查询结束以后才记录，在应用反映执行效率出现问题的时候查询未必执行完成
+2. 有时候问题的产生不一定是语句的执行，有可能是其他原因导致的。慢查询日志并不能定位问题。
+
+#### 3.4.1. 通过 show processlist 分析 SQL
+
+```sql
+show processlist;
+```
+
+![](images/20211224104543121_17316.png)
+
+- id列，用户登录mysql时，系统分配的"connection_id"，可以使用函数`connection_id()`查看
+- user列，显示当前用户。如果不是root，这个命令就只显示用户权限范围的sql语句
+- host列，显示这个语句是从哪个ip的哪个端口上发的，可以用来跟踪出现问题语句的用户
+- db列，显示这个进程目前连接的是哪个数据库
+- command列，显示当前连接的执行的命令，一般取值为休眠（sleep），查询（query），连接（connect）等
+- time列，显示这个状态持续的时间，单位是秒
+- state列，显示使用当前连接的sql语句的状态，很重要的列。state描述的是语句执行中的某一个状态。一个sql语句，以查询为例，可能需要经过copying to tmp table、sorting result、sending data等状态才可以完成
+- info列，显示这个sql语句，是判断问题语句的一个重要依据
+
+通过上面的命令可以查看线程状态。可以了解当前 MySQL 在进行的线程，包括线程的状态、是否锁表等，可以实时地查看SQL的执行情况，同时对一些锁表操作进行优化。在一个繁忙的服务器上，可能会看到大量的不正常的状态，例如 `statistics` 正占用大量的时间。这通常表示，某个地方有异常了。如：
+
+- statistics
+The server is calculating statistics to develop a query execution plan. If a thread is in this state for a long time, the server is probably disk-bound performing other work.
+服务器正在计算统计信息以研究一个查询执行计划。如果线程长时间处于此状态，则服务器可能是磁盘绑定执行其他工作。
+
+- Creating tmp table
+
+The thread is creating a temporary table in memory or on disk. If the table is created in memory but later is converted to an on-disk table, the state during that operation is Copying to tmp table on disk.
+
+该线程正在内存或磁盘上创建临时表。如果表在内存中创建但稍后转换为磁盘表，则该操作期间的状态将为 Copying to tmp table on disk
+
+- Sending data
+
+The thread is reading and processing rows for a SELECT statement, and sending data to the client. Because operations occurring during this state tend to perform large amounts of disk access (reads), it is often the longest-running state over the lifetime of a given query.
+
+线程正在读取和处理 SELECT 语句的行 ，并将数据发送到客户端。由于在此状态期间发生的操作往往会执行大量磁盘访问（读取），因此它通常是给定查询生命周期中运行时间最长的状态。
+
+> 具体状态参数解释参考官网：https://dev.mysql.com/doc/refman/5.7/en/general-thread-states.html
+
+#### 3.4.2. 通过 show profile 分析 SQL
+
+对于每个线程到底时间耗费在哪里，可以通过 `show profile` 来分析。
+
+1. 首先检查当前 MySQL 是否支持 profile
+
+```sql
+mysql> SELECT @@have_profiling;
++------------------+
+| @@have_profiling |
++------------------+
+| YES              |
++------------------+
+```
+
+2. 默认 profiling 是关闭的，执行如下命令可以查看是否开启 profiling。（0-关闭；1-开启）
+
+```sql
+mysql> select @@profiling;
++-------------+
+| @@profiling |
++-------------+
+|           0 |
++-------------+
+```
+
+3. 可以通过 `set` 语句在 Session 级别开启 profiling：
+
+```sql
+set profiling=1;
+```
+
+4. 执行一个 SQL 查询。（*如：`select count(*) from order_exp;`*）
+5. 执行以下系列的语句，可以以不同的方式来查看执行的耗时
+
+- 查看当前 SQL 的 Query ID 和 SQL 语句执行的耗时：
+
+```sql
+mysql> show profiles;
++----------+------------+--------------------------------+
+| Query_ID | Duration   | Query                          |
++----------+------------+--------------------------------+
+|        1 | 0.01082900 | select count(*) from order_exp |
+|        2 | 0.00130800 | select count(*) from order_exp |
+|        3 | 0.00159725 | select count(*) from order_exp |
+|        4 | 0.00131825 | select count(*) from order_exp |
++----------+------------+--------------------------------+
+```
+
+- 通过 `show profile for query query_id` 语句查看指定 query_id 的 SQL 执行过程中每个阶段的状态和消耗的时间
+
+```sql
+mysql> show profile for query 1;
++----------------------+----------+
+| Status               | Duration |
++----------------------+----------+
+| starting             | 0.000035 |
+| checking permissions | 0.000003 |
+| Opening tables       | 0.000010 |
+| init                 | 0.000007 |
+| System lock          | 0.000005 |
+| optimizing           | 0.000002 |
+| statistics           | 0.000007 |
+| preparing            | 0.000006 |
+| executing            | 0.000001 |
+| Sending data         | 0.010714 |
+| end                  | 0.000003 |
+| query end            | 0.000004 |
+| closing tables       | 0.000004 |
+| freeing items        | 0.000023 |
+| cleaning up          | 0.000006 |
++----------------------+----------+
+```
+
+通过仔细检查输出，能够发现在执行`COUNT(*)`的过程中，时间主要消耗在`Sending data`这个状态上。
+
+- 通过 `show profile cpu for query query_id;` 请求，查看指定 query_id 的 SQL 语句 CPU 的使用情况
+
+```sql
+mysql> show profile cpu for query 1;
++----------------------+----------+----------+------------+
+| Status               | Duration | CPU_user | CPU_system |
++----------------------+----------+----------+------------+
+| starting             | 0.000035 | 0.000000 | 0.000000   |
+| checking permissions | 0.000003 | 0.000000 | 0.000000   |
+| Opening tables       | 0.000010 | 0.000000 | 0.000000   |
+| init                 | 0.000007 | 0.000000 | 0.000000   |
+| System lock          | 0.000005 | 0.000000 | 0.000000   |
+| optimizing           | 0.000002 | 0.000000 | 0.000000   |
+| statistics           | 0.000007 | 0.000000 | 0.000000   |
+| preparing            | 0.000006 | 0.000000 | 0.000000   |
+| executing            | 0.000001 | 0.000000 | 0.000000   |
+| Sending data         | 0.010714 | 0.000000 | 0.000000   |
+| end                  | 0.000003 | 0.000000 | 0.000000   |
+| query end            | 0.000004 | 0.000000 | 0.000000   |
+| closing tables       | 0.000004 | 0.000000 | 0.000000   |
+| freeing items        | 0.000023 | 0.000000 | 0.000000   |
+| cleaning up          | 0.000006 | 0.000000 | 0.000000   |
++----------------------+----------+----------+------------+
+```
+
+- 在获取到最消耗时间的线程状态后，MySQL 支持进一步选择 all、cpu、block io、contextswitch、page faults 等明细类型来查看 MySQL 在使用什么资源上耗费了过高的时间:
+
+```sql
+show profile all for query 1\G;
+```
+
+![](images/20210502094844284_25922.png)
+
+能够发现 Sending data 状态下，时间主要消耗在 CPU 上了。所以`show profile`能够在做SQL优化时帮助了解时间都耗费到哪里去了，同时如果 MySQL 源码感兴趣，还可以通过 `show profile source for query` 查看 SQL 解析执行过程中每个步骤对应的源码的文件、函数名以及具体的源文件行数。
+
+|    字段    |            含义             |
+| :--------: | -------------------------- |
+|   Status   | sql语句执行的状态            |
+|  Duration  | sql执行过程中第一个步骤的耗时 |
+|  CPU_user  | 当前用户占有的CPU            |
+| CPU_system | 系统占有的CPU               |
+
 ## 4. SQL 优化最佳实践
 
 ### 4.1. SQL 编写规范
@@ -1452,18 +1781,22 @@ EXPLAIN SELECT order_note, COUNT(*) AS amount FROM s1 GROUP BY order_note order 
 3.	将查询条件中的or关键字转换为UNION ALL，从应用层面处理UNION ALL中的重复数据
 4.	需要使用随机数查询时，不应使用order by rand()。order by rand()会为表增加一个伪列，然后用rand()函数为每一行数据计算出rand()值，然后再基于该行排序，这通常都会生成磁盘上的临时表，因此效率非常低。**建议先使用rand()函数获得随机的主键值，然后通过主键获取数据**
 5.	优先采用批量SQL语句，减少与数据库交互次数。如：
-    ```sql
-    insert ... on duplicate key update
-    replace into
-    insert ignore
-    insert into values(), (), ...
-    ```
-6.	insert 和 update 等语句中以及select嵌套语句的最里面层，应使用明确的字段名，避免使用“*”。这样可减少网络带宽消耗，有效利用覆盖索引（如有），表结构变更对程序基本无影响
+
+```sql
+insert ... on duplicate key update
+replace into
+insert ignore
+insert into values(), (), ...
+```
+
+6.	insert 和 update 等语句中以及select嵌套语句的最里面层，应使用明确的字段名，避免使用“`*`”。这样可减少网络带宽消耗，有效利用覆盖索引（如有），表结构变更对程序基本无影响
 7.	使用group by 的时候，如果确认不需要排序，应使用order by null，避免多余的排序。因为group by默认会进行排序
 8.	进行数据比较时，如果两边的数据类型不一致，应在一方加上类型转换的函数，避免隐式类型转换。日期类型是特例，包换DATE、TIME、DATETIME。例如：
-    ```sql
-    select e.username from employee e where e.birthday >= '1999-12-12 11:11:11'
-    ```
+
+```sql
+select e.username from employee e where e.birthday >= '1999-12-12 11:11:11'
+```
+
 9.	限制表连接操作所涉及的表的个数。参与表连接的表数量不宜超过3个，**若有超过3个表连接的需求，建议从应用层面进行优化**
 10.	限制嵌套查询的层数。过多的嵌套层数，会使用查询语句的复杂度大幅增加而影响执行效率，查询语句的嵌套层数不应该多于3层
 
@@ -2165,108 +2498,6 @@ MySQL 架构由多个层次组成。在服务器层有查询优化器，却没�
 MySQL 将结果集返回客户端是一个增量、逐步返回的过程。一旦服务器开始生成第一条结果时，MySQL 就可以开始向客户端逐步返回结果集了。
 
 这样处理有两个好处﹔服务器端无须存储太多的结果，也就不会因为要返回太多结果而消耗太多内存。另外，这样的处理也让 MySQL 客户端第一时间获得返回的结果。结果集中的每一行都会以一个满足 MySQL 客户端/服务器通信协议的封包发送，再通过 TCP 协议进行传输，在 TCP 传输的过程中，可能对 MySQL 的封包进行缓存然后批量传输。
-
-### 7.8. 分析慢 sql 的其他方法
-
-通过应用程序访问 MySQL 服务时，有时候性能不一定全部卡在语句的执行上。常用的手段是通过慢查询日志定位那些执行效率较低的SQL语句。
-
-1. 慢查询日志在查询结束以后才记录，在应用反映执行效率出现问题的时候查询未必执行完成
-2. 有时候问题的产生不一定是语句的执行，有可能是其他原因导致的。慢查询日志并不能定位问题。
-
-#### 7.8.1. 通过 show processlist 分析 SQL
-
-```sql
-show processlist;
-```
-
-![](images/20211224104543121_17316.png)
-
-- id列，用户登录mysql时，系统分配的"connection_id"，可以使用函数`connection_id()`查看
-- user列，显示当前用户。如果不是root，这个命令就只显示用户权限范围的sql语句
-- host列，显示这个语句是从哪个ip的哪个端口上发的，可以用来跟踪出现问题语句的用户
-- db列，显示这个进程目前连接的是哪个数据库
-- command列，显示当前连接的执行的命令，一般取值为休眠（sleep），查询（query），连接（connect）等
-- time列，显示这个状态持续的时间，单位是秒
-- state列，显示使用当前连接的sql语句的状态，很重要的列。state描述的是语句执行中的某一个状态。一个sql语句，以查询为例，可能需要经过copying to tmp table、sorting result、sending data等状态才可以完成
-- info列，显示这个sql语句，是判断问题语句的一个重要依据
-
-通过上面的命令可以查看线程状态。可以了解当前 MySQL 在进行的线程，包括线程的状态、是否锁表等，可以实时地查看SQL的执行情况，同时对一些锁表操作进行优化。在一个繁忙的服务器上，可能会看到大量的不正常的状态，例如 `statistics` 正占用大量的时间。这通常表示，某个地方有异常了。如：
-
-- statistics
-The server is calculating statistics to develop a query execution plan. If a thread is in this state for a long time, the server is probably disk-bound performing other work.
-服务器正在计算统计信息以研究一个查询执行计划。如果线程长时间处于此状态，则服务器可能是磁盘绑定执行其他工作。
-
-- Creating tmp table
-
-The thread is creating a temporary table in memory or on disk. If the table is created in memory but later is converted to an on-disk table, the state during that operation is Copying to tmp table on disk.
-
-该线程正在内存或磁盘上创建临时表。如果表在内存中创建但稍后转换为磁盘表，则该操作期间的状态将为 Copying to tmp table on disk
-
-- Sending data
-
-The thread is reading and processing rows for a SELECT statement, and sending data to the client. Because operations occurring during this state tend to perform large amounts of disk access (reads), it is often the longest-running state over the lifetime of a given query.
-
-线程正在读取和处理 SELECT 语句的行 ，并将数据发送到客户端。由于在此状态期间发生的操作往往会执行大量磁盘访问（读取），因此它通常是给定查询生命周期中运行时间最长的状态。
-
-> 具体状态参数解释参考官网：https://dev.mysql.com/doc/refman/5.7/en/general-thread-states.html
-
-#### 7.8.2. 通过 show profile 分析 SQL
-
-对于每个线程到底时间花在哪里，可以通过 `show profile` 来分析。
-
-1. 首先检查当前 MySQL 是否支持 profile
-
-```sql
-select @@have_profiling;
-```
-
-![](images/20210502094444900_13784.png)
-
-2. 默认 profiling 是关闭的，可以通过 `set` 语句在 Session 级别开启 profiling：
-
-```sql
-select @@profiling;
-set profiling=1;
-```
-
-![](images/20210502094525388_16888.png)
-
-3. 执行一个 SQL 查询。（*如：`select count(*) from order_exp;`*）
-4. 执行以下语句，可以看到当前 SQL 的 Query ID 和SQL语句执行的耗时：
-
-```sql
-show profiles;
-```
-
-![](images/20210502094654470_3124.png)
-
-5. 通过 `show profile for query query_id` 语句可以查看到该SQL执行过程中每个线程的状态和消耗的时间
-
-```sql
-show profile for query 1;
-```
-
-![](images/20210502094741476_5531.png)
-
-通过仔细检查输出，能够发现在执行`COUNT(*)`的过程中，时间主要消耗在`Sending data`这个状态上。
-
-6. 在获取到最消耗时间的线程状态后，MySQL 支持进一步选择 all、cpu、block io、contextswitch、page faults 等明细类型来查看 MySQL 在使用什么资源上耗费了过高的时间:
-
-```sql
-show profile all for query 1\G;
-```
-
-![](images/20210502094844284_25922.png)
-
-能够发现 Sending data 状态下，时间主要消耗在 CPU 上了。所以`show profile`能够在做SQL优化时帮助了解时间都耗费到哪里去了，同时如果 MySQL 源码感兴趣，还可以通过 `show profile source for query` 查看 SQL 解析执行过程中每个步骤对应的源码的文件、函数名以及具体的源文件行数。
-
-|    字段    |            含义             |
-| :--------: | -------------------------- |
-|   Status   | sql语句执行的状态            |
-|  Duration  | sql执行过程中第一个步骤的耗时 |
-|  CPU_user  | 当前用户占有的CPU            |
-| CPU_system | 系统占有的CPU               |
-
 
 ## 8. InnoDB 引擎底层解析
 
