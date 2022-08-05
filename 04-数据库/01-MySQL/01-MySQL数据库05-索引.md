@@ -746,19 +746,6 @@ SELECT * FROM order_exp WHERE insert_time < '2021-03-22 18:34:57' AND order_stat
 >
 > 使用 u_idx_day_status 索引执行查询的话，可以定位到第一条符合 insert_time 的记录，其实就是u_idx_day_status索引第一个叶子节点的第一条记录，所以在使用u_idx_day_status索引执行查询的过程中，对应的扫描区间其实是`[第一条记录,'2021-03-22 18:34:57')`。
 
-
-
-
-
-
-
-
-
-
-
-
-
-
 ## 7. MyISAM 中的索引（了解）
 
 MyISAM 存储引擎中的索引方案，虽然也使用树形结构，但是却将索引和数据分开存储的。
