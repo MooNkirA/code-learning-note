@@ -6,16 +6,19 @@
 
 视图（view）是一个虚拟表，非真实存在，其本质是根据SQL语句获取动态的数据集，并为其命名，用户使用时只需使用视图名称即可获取结果集，并可以将其当作表来使用。
 
-数据库中只存放了视图的定义，而并没有存放视图中的数据。这些数据存放在原来的表中。
+数据库中只存放了视图的定义，而并没有存放视图中的数据（即只保存了查询的SQL逻辑，不保存查询结果）。这些数据存放在原来的表中。
 
 使用视图查询数据时，数据库系统会从原来的表中取出对应的数据。因此，视图中的数据是依赖于原来的表中的数据的。一旦表中的数据发生改变，显示在视图中的数据也会发生改变。
 
-### 1.2. 视图的作用
+**视图的作用**
 
-- 简化代码，可以把重复使用的查询封装成视图重复使用，同时可以使复杂的查询易于理解和使用。
+- 简化代码，可以把重复使用的查询封装成视图重复使用，同时可以使复杂的查询易于理解和使用。不仅简化用户对数据的理解，也可以简化用户的操作。那些被经常使用的查询可以被定义为视图，从而使得用户不必为以后的操作每次指定全部的条件。
 - 安全原因，如果一张表中有很多数据，很多信息不希望让所有人看到，此时可以使用视图视，如：社会保险基金表，可以用视图只显示姓名，地址，而不显示社会保险号和工资数等，可以对不同的用户，设定不同的视图。
+- 数据独立：视图可帮助用户屏蔽真实表结构变化带来的影响
 
-### 1.3. 视图的创建语法
+### 1.2. 视图的语法
+
+#### 1.2.1. 创建视图
 
 ```sql
 create [or replace] [algorithm = {undefined | merge | temptable}]
@@ -36,45 +39,111 @@ as select_statement
 
 ```sql
 -- 创建视图测试相关的表与数据
-CREATE OR REPLACE VIEW view1_emp
+CREATE OR REPLACE 
+VIEW view_student_1
 AS
-	SELECT
-		ename,
-		job
-	FROM
-		emp;
-
--- 查看表和视图，通过以下命令，可以区分开真实的表与视图
-SHOW FULL TABLES;
+ SELECT	id,`name` FROM student WHERE id <= 10;
 ```
 
-### 1.4. 修改视图
+![](images/598200815239974.png)
 
-修改视图是指修改数据库中已存在的表的定义。当基本表的某些字段发生改变时，可以通过修改视图来保持视图和基本表之间一致。MySQL中通过 `CREATE OR REPLACE VIEW` 语句和 `ALTER VIEW` 语句来修改视图。语法：
+#### 1.2.2. 查询视图
+
+- 查看创建视图语句
 
 ```sql
-alter view 视图名 as select语句;
+SHOW CREATE VIEW 视图名称;
+```
+
+![](images/159621215236529.png)
+
+- 查看视图数据。跟普通的查询语句一样，将视图的名称作为表名即可
+
+```sql
+SELECT * FROM 视图名称 ...;
+```
+
+- 通过以下命令，查看当前数据库所有表和视图，表中会区分开真实的表与视图
+
+```sql
+mysql> SHOW FULL TABLES;
++---------------------+------------+
+| Tables_in_tempdb    | Table_type |
++---------------------+------------+
+| score               | BASE TABLE |
+| student             | BASE TABLE |
+| student_course      | BASE TABLE |
+| view_student_1      | VIEW       |
++---------------------+------------+
+```
+
+#### 1.2.3. 修改视图
+
+修改视图是指修改数据库中已存在的表的定义。当基本表的某些字段发生改变时，可以通过修改视图来保持视图和基本表之间一致。MySQL中可以通过以下两种方式来修改视图。
+
+- 方式一：通过 `CREATE OR REPLACE VIEW` 语句
+
+```sql
+CREATE OR REPLACE VIEW 视图名称[(列名列表)] 
+AS 
+    SELECT 语句 [ WITH [ CASCADED | LOCAL ] CHECK OPTION ]
 ```
 
 示例：
 
 ```sql
-ALTER VIEW view1_emp
+CREATE OR REPLACE 
+VIEW view_student_1
 AS
-	SELECT
-		a.deptno,a.dname,a.loc,b.ename,b.sal
-	FROM
-		dept a,
-		emp b
-	WHERE
-		a.deptno = b.deptno;
+    SELECT id,`name`,`no` FROM student WHERE id <= 10;
 ```
 
-### 1.5. 更新视图
+- 方式二：通过 `ALTER VIEW` 语句
 
-某些视图是可更新的。也就是说，可以在 `UPDATE`、`DELETE` 或 `INSERT` 等语句中使用它们，以更新基表的内容。对于可更新的视图，在视图中的行和基表中的行之间必须具有一对一的关系。
+```sql
+alter view 视图名 as select语句;
+ALTER VIEW 视图名称[(列名列表)] 
+AS 
+    SELECT 语句 [ WITH [ CASCADED | LOCAL ] CHECK OPTION ]
+```
 
-如果视图包含下述结构中的任何一种，那么它就是不可更新的：
+示例：
+
+```sql
+ALTER VIEW view_student_1 
+AS 
+    SELECT id,`name` FROM student WHERE id <= 10;
+```
+
+#### 1.2.4. 重命名视图
+
+```sql
+RENAME TABLE 视图名 TO 新视图名;
+```
+
+示例：
+
+```sql
+rename table view1_emp to my_view1;
+```
+
+#### 1.2.5. 删除视图
+
+```sql
+DROP VIEW [IF EXISTS] 视图名称 [,视图名称] ...;
+```
+
+> Notes: <font color=red>**删除视图时，只能删除视图的定义，不会删除原表中的数据。**</font>
+
+示例：
+
+```sql
+drop view if exists view_student_1;
+```
+
+### 1.3. 更新视图
+
+可以通过 `UPDATE`、`DELETE` 或 `INSERT` 等语句去操作某些视图，从而更新基表的内容。<font color=red>**对于可更新的视图，在视图中的行和基表中的行之间必须具有一对一的关系**</font>。如果视图包含下述结构中的任何一种，那么它就是不可更新的：
 
 - 聚合函数（SUM(), MIN(), MAX(), COUNT()等）
 - DISTINCT
@@ -87,7 +156,7 @@ AS
 - WHERE 子句中的子查询，引用 FROM 子句中的表。
 - 仅引用文字值（在该情况下，没有要更新的基本表）
 
-> <font color=red>**视图中虽然可以更新数据，但是有很多的限制。一般情况下，最好将视图作为查询数据的虚拟表，而不要通过视图更新数据。因为，使用视图更新数据时，如果没有全面考虑在视图中更新数据的限制，就可能会造成数据更新失败。**</font>
+> Notes: <font color=red>**视图中虽然可以更新数据，但是有很多的限制。一般情况下，最好将视图作为查询数据的虚拟表，而不要通过视图更新数据。因为，使用视图更新数据时，如果没有全面考虑在视图中更新数据的限制，就可能会造成数据更新失败。**</font>
 
 示例：
 
@@ -153,60 +222,79 @@ select '行政部' dname,'杨过'  ename;
 insert into view8_emp values('行政部','韦小宝');
 ```
 
-### 1.6. 重命名视图
+其实在定义视图时，可以通过视图的检查选项指定条件，然后在插入、修改、删除数据时，都必须满足条件才能操作。
 
-语法：
+### 1.4. 检查选项
+
+当使用 `WITH CHECK OPTION` 子句创建视图时，MySQL 会通过视图检查正在更改的每条行数据，例如：插入，更新，删除，以使其符合视图的定义。MySQL 允许基于另一个视图创建视图，它还会检查依赖视图中的规则以保持一致性。为了确定检查的范围，mysql 提供了两个选项：`CASCADED` 和 `LOCAL`，默认值为 `CASCADED`
+
+#### 1.4.1. CASCADED
+
+级联操作。比如，v2视图是基于v1视图的，如果在v2视图创建的时候指定了检查选项为 `cascaded`，但是v1视图创建时未指定检查选项。则在执行检查时，不仅会检查v2，还会级联检查v2的关联视图v1。
+
+![](images/323154315232283.png)
+
+#### 1.4.2. LOCAL
+
+本地操作：比如，v2视图是基于v1视图的，如果在v2视图创建的时候指定了检查选项为 `local`，但是v1视图创建时未指定检查选项。则在执行检查时，只会检查v2，不会检查v2的关联视图v1。
+
+![](images/483294415250163.png)
+
+### 1.5. 视图运用案例
+
+1. 为了保证数据库表的安全性，开发人员在操作 tb_user 表时，只能看到的用户的基本字段，屏蔽手机号和邮箱两个字段。
 
 ```sql
-rename table 视图名 to 新视图名;
+create view tb_user_view as select id,`name`,profession,age,gender,`status`,createtime from tb_user;
+-- 查询
+select * from tb_user_view;
 ```
 
-示例：
+2. 查询每个学生所选修的课程（三张表联查），这个功能在很多的业务中都有使用到，为了简化操作，定义一个视图。
 
 ```sql
-rename table view1_emp to my_view1;
-```
-
-### 1.7. 删除视图
-
-语法：
-
-```sql
-drop view 视图名[, 视图名, ...];
-```
-
-> <font color=red>**注：删除视图时，只能删除视图的定义，不会删除数据。**</font>
-
-示例：
-
-```sql
-drop view if exists view_student;
+CREATE VIEW tb_stu_course_view 
+AS 
+	SELECT
+		s.NAME student_name,
+		s.NO student_no,
+		c.NAME course_name 
+	FROM
+		student s,
+		student_course sc,
+		course c 
+	WHERE
+		s.id = sc.studentid 
+	AND sc.courseid = c.id;
+-- 查询
+SELECT * FROM tb_stu_course_view;
 ```
 
 ## 2. 存储过程
 
 ### 2.1. 简述
 
-MySQL 5.0 版本开始支持存储过程。存储过程就是一组SQL语句集，功能强大，可以实现一些比较复杂的逻辑功能，类似于JAVA语言中的方法；
+MySQL 5.0 版本开始支持存储过程。存储过程是经过预编译并存储在数据库中的一段 SQL 语句的集合，功能强大，可以实现一些比较复杂的逻辑功能，类似于JAVA语言中的方法；调用存储过程可以简化应用开发
+人员的很多工作，减少数据在数据库和应用服务器之间的传输，对于提高数据处理的效率是有好处的。
 
-**存储过程就是数据库 SQL 语言层面的代码封装与重用。**
+<font color=red>**存储过程就是数据库 SQL 语言层面的代码封装与重用。**</font>
 
 **特性**：
 
-- 有输入输出参数，可以声明变量，有 if/else, case, while 等控制语句，通过编写存储过程，可以实现复杂的逻辑功能；
-- 函数的普遍特性：模块化，封装，代码复用；
-- 速度快，只有首次执行需经过编译和优化步骤，后续被调用可以直接执行，省去以上步骤；
+- 函数的普遍特性：模块化，封装，代码复用。可以把某一业务SQL封装在存储过程中，需要用到的时候直接调用即可
+- 存储过程可以输入输出参数，可以声明变量，有 if/else, case, while 等控制语句，通过编写存储过程，可以实现复杂的逻辑功能
+- 速度快，只有首次执行需经过编译和优化步骤，后续被调用可以直接执行，省去以上步骤，减少网络交互，效率提升。如果涉及到多条SQL，每执行一次都是一次网络传输。而如果封装在存储过程中，只需要网络交互一次可能就可以了
 
-### 2.2. 存储过程创建语法定义
+### 2.2. 存储过程基础语法
 
-创建语法：
+#### 2.2.1. 创建存储过程
 
 ```sql
 delimiter 自定义结束符号
-create procedure 储存名称([ in, out, inout ] 参数名 数据类型...)
-begin
+CREATE PROCEDURE 储存名称([ in, out, inout ] 参数名 数据类型...)
+BEGIN
   sql语句
-end 自定义的结束符合
+END 自定义的结束符合
 delimiter ;
 ```
 
@@ -220,17 +308,132 @@ begin
 end  $$
 delimiter ;
 
--- 调用存储过程
+-- 调用
 call proc01();
 ```
 
-<font color=red>**特别注意：在语法中，变量声明、游标声明、handler声明是必须按照先后顺序书写的，否则创建存储过程出错。**</font>
+> Notes: 
+>
+> - <font color=red>**特别注意：在语法中，变量声明、游标声明、handler声明是必须按照先后顺序书写的，否则创建存储过程出错。**</font>
+> - 在命令行中，执行创建存储过程的 SQL 时，需要通过关键字 `delimiter` 指定 SQL 语句的结束符。
 
-### 2.3. 局部变量定义
+#### 2.2.2. 调用存储过程
 
-#### 2.3.1. 变量定义语法
+```sql
+CALL 存储过程名称 ([ 参数 ]);
+```
 
-用户可以自定义局部变量，在 begin/end 块内有效。声明变量语法：
+示例：
+
+```sql
+-- 调用
+call proc01();
+```
+
+#### 2.2.3. 查看存储过程
+
+- 查询指定数据库的存储过程及状态信息
+
+```sql
+SELECT * FROM INFORMATION_SCHEMA.ROUTINES WHERE ROUTINE_SCHEMA = '数据库名称';
+```
+
+- 查询某个存储过程的定义
+
+```sql
+SHOW CREATE PROCEDURE 存储过程名称;
+```
+
+#### 2.2.4. 删除存储过程
+
+```sql
+DROP PROCEDURE [ IF EXISTS ] 存储过程名称;
+```
+
+### 2.3. 变量
+
+在 MySQL 中变量分为三种类型：系统变量、用户定义变量、局部变量。
+
+#### 2.3.1. 系统变量
+
+系统变量是 MySQL 服务器提供，不是由用户定义的，属于服务器层面。分为以下两种变量：
+
+- 全局变量(GLOBAL)：全局变量针对于所有的会话
+- 会话变量(SESSION)：会话变量针对于单个会话，在另外一个会话窗口就不生效了
+
+**查看系统变量**
+
+```sql
+-- 查看所有系统变量
+SHOW [ SESSION | GLOBAL ] VARIABLES;
+-- 可以通过LIKE模糊匹配方式查找变量
+SHOW [ SESSION | GLOBAL ] VARIABLES LIKE '......';
+-- 查看指定变量的值
+SELECT @@[SESSION | GLOBAL].系统变量名;
+```
+
+**设置系统变量**
+
+```sql
+SET [ SESSION | GLOBAL ] 系统变量名 = 值;
+SET @@[SESSION | GLOBAL].系统变量名 = 值;
+```
+
+> Notes: 如果没有指定 SESSION/GLOBAL，默认是 SESSION，会话变量。mysql 服务重新启动之后，所设置的全局参数会失效，若永久配置则需要在 `/etc/my.cnf` 文件中配置
+
+#### 2.3.2. 用户（会话）定义变量
+
+用户定义变量是用户自定义的变量，其作用域为当前连接（会话）。用户变量不用提前声明，使用时直接通过 `@变量名称` 声明即可。*类比java的成员变量*。
+
+- **变量赋值方式1：通过 `SET` 关键字**
+
+```sql
+SET @var_name = expr [, @var_name = expr] ... ;
+SET @var_name := expr [, @var_name := expr] ... ;
+```
+
+> Notes: 赋值时，可以使用`=`，也可以使用`:=`。为了区分sql的运算符`=`，推荐使用`:=`
+
+- **变量赋值方式2：通过 `SELECT` 关键字**
+
+```sql
+SELECT @var_name := expr [, @var_name := expr] ... ;
+```
+
+- **变量赋值方式3：通过 `INTO` 关键字查询表数据后赋值**
+
+```sql
+SELECT 字段名 INTO @var_name FROM 表名;
+```
+
+- **变量的使用语法**：
+
+```sql
+SELECT @var_name [,@var_name] ...;
+```
+
+> Notes: 用户定义的变量时无需对其进行声明或初始化，此时获取变量的值为 NULL
+
+使用示例：
+
+```sql
+delimiter $$
+create procedure proc04()
+begin
+    set @var_name01 = 'ZS'; -- 设置用户自定义会话变量
+end $$
+delimiter ;
+call proc04(); -- 调用存储过程
+select @var_name01; -- 可以看到结果
+```
+
+#### 2.3.3. 局部变量
+
+局部变量是根据需要定义的在局部生效的变量，访问之前，需要 `DECLARE` 声明。可用作存储过程内的局部变量和输入参数，局部变量的范围是在其内声明的 `BEGIN ... END` 块。
+
+##### 2.3.3.1. 变量定义语法
+
+自定义局部变量，在 begin/end 块内有效。声明变量语法：
 
 ```sql
 declare var_name type [default var_value];
@@ -239,6 +442,7 @@ declare var_name type [default var_value];
 参数说明：
 
 - `var_name`：变量名称
+- `type`：变量类型，即数据库字段类型：INT、BIGINT、CHAR、VARCHAR、DATE、TIME 等。
 - `var_value`：指定默认值（非必须）
 
 示例：
@@ -259,9 +463,16 @@ delimiter ;
 call proc02();
 ```
 
-#### 2.3.2. 变量赋值语法
+##### 2.3.3.2. 变量赋值语法
 
-MySQL 中还可以使用 `SELECT..INTO` 语句为变量赋值。其基本语法如下：
+- **变量赋值方式1：通过 `SET` 关键字**
+
+```sql
+SET 变量名 = 值;
+SET 变量名 := 值;
+```
+
+- **变量赋值方式2：通过 `SELECT..INTO` 语句为变量赋值**
 
 ```sql
 select
@@ -278,7 +489,7 @@ where condition;
 - `table_name` 参数指表的名称
 - `condition` 参数指查询条件
 
-> <font color=purple>注意：当将查询结果赋值给变量时，该查询语句的返回结果只能是单行单列。</font>
+> Notes: <font color=purple>注意：当将查询结果赋值给变量时，该查询语句的返回结果只能是单行单列！</font>
 
 示例：
 
@@ -295,34 +506,26 @@ delimiter ;
 call proc03();
 ```
 
-### 2.4. 用户（会话）变量定义
+### 2.4. 存储过程的参数
 
-用户自定义变量，当前会话（连接）有效。*类比java的成员变量 *。不需要提前声明，使用即声明。语法：
+存储过程参数的类型，主要分为以下三种：IN、OUT、INOUT。具体的含义如下：
+
+|   类型   |                                       说明                                        |
+| ------- | -------------------------------------------------------------------------------- |
+| `in`    | 输入参数。该值传到存储过程的过程里面去，在存储过程中修改该参数的值不能被返回。不指定时默认 |
+| `out`   | 输出参数。该值可在存储过程内部被改变，并向外输出                                       |
+| `inout` | 输入输出参数。既能作为输入的参数，也可以作为输出参数                                   |
+
+用法：
 
 ```sql
-@变量名称
+CREATE PROCEDURE 存储过程名称 ([ IN/OUT/INOUT 参数名 参数类型 ])
+BEGIN
+    -- SQL语句
+END ;
 ```
 
-示例：
-
-```sql
-delimiter $$
-create procedure proc04()
-begin
-    set @var_name01 = 'ZS'; -- 设置用户自定义会话变量
-end $$
-delimiter ;
-call proc04() ;
-select @var_name01; -- 可以看到结果
-```
-
-### 2.5. 存储过程的参数
-
-- `in` 输入参数：该值传到存储过程的过程里面去，在存储过程中修改该参数的值不能被返回
-- `out` 输出参数：该值可在存储过程内部被改变，并向外输出
-- `inout` 输入输出参数：既能输入一个值又能传出来一个值
-
-#### 2.5.1. in 类型参数
+#### 2.4.1. in 类型参数
 
 `in` 类型表示传入存储过程的参数，可以传入数值或者变量，即使传入变量，并不会更改变量的值，可以内部更改，仅仅作用在函数范围内。
 
@@ -333,7 +536,7 @@ select @var_name01; -- 可以看到结果
 delimiter $$
 create procedure dec_param01(in param_empno varchar(20))
 begin
-        select * from emp where empno = param_empno;
+    select * from emp where empno = param_empno;
 end $$
 
 delimiter ;
@@ -343,14 +546,14 @@ call dec_param01('1001');
 delimiter $$
 create procedure dec_param0x(in dname varchar(50), in sal decimal(7,2))
 begin
-        select * from dept a, emp b where b.sal > sal and a.dname = dname;
+    select * from dept a, emp b where b.sal > sal and a.dname = dname;
 end $$
 
 delimiter ;
 call dec_param0x('学工部',20000);
 ```
 
-#### 2.5.2. out 类型参数
+#### 2.4.2. out 类型参数
 
 `out` 类型的参数表示从存储过程内部传值给调用者
 
@@ -383,7 +586,7 @@ select @o_dname;
 select @o_sal;
 ```
 
-#### 2.5.3. inout 类型参数
+#### 2.4.3. inout 类型参数
 
 `inout` 类型表示从外部传入的参数经过修改后可以返回的变量，既可以使用传入变量的值也可以修改变量的值（即使函数执行完）
 
@@ -406,16 +609,16 @@ select @inout_ename ;
 select @inout_sal ;
 ```
 
-### 2.6. 流程控制 - if 条件判断
+### 2.5. 流程控制 - if 条件判断
 
 `IF` 语句包含多个条件判断，根据结果为 `TRUE`、`FALSE` 执行语句，与编程语言中的`if`、`else if`、`else` 语法类似，其语法格式如下：
 
 ```sql
-if search_condition_1 then statement_list_1
-    [elseif search_condition_2 then statement_list_2]
+IF search_condition_1 THEN statement_list_1
+    [ELSEIF search_condition_2 THEN statement_list_2]
     ...
-    [else statement_list_n]
-end if
+    [ELSE statement_list_n]
+END IF
 ```
 
 示例：
@@ -466,20 +669,24 @@ delimiter ;
 call proc12_if('庞统');
 ```
 
-### 2.7. 流程控制 - case 条件判断
+### 2.6. 流程控制 - case 条件判断
 
 `CASE` 是另一个条件判断的语句，类似于编程语言中的switch语法。语法结构如下：
 
+- 语法1：当 `case_value = when_value` 时，执行相应的 `statement_list` 逻辑
+
 ```sql
--- 语法1（类比java的switch）：
 case case_value
     when when_value then statement_list
     [when when_value then statement_list]
     ...
     [else statement_list]
 end case
+```
 
--- 语法2：
+- 语法2：当 `search_condition` 为 `true` 时，执行相应的 `statement_list` 逻辑
+
+```sql
 case
     when search_condition then statement_list
     [when search_condition then statement_list]
@@ -488,10 +695,7 @@ case
 end case
 ```
 
-说明：
-
-- 语法1：当 `case_value = when_value` 时，执行相应的 `statement_list` 逻辑
-- 语法2：当 `search_condition` 为 `true` 时，执行相应的 `statement_list` 逻辑
+> Tips: 如果判定条件有多个，多个条件之间，可以使用 and 或 or 进行连接。
 
 示例：
 
@@ -529,9 +733,9 @@ delimiter ;
 call proc_15_case(88);
 ```
 
-### 2.8. 流程控制 - 循环
+### 2.7. 流程控制 - 循环
 
-#### 2.8.1. 简述
+#### 2.7.1. 简述
 
 - 循环是一段在程序中只出现一次，但可能会连续运行多次的代码。
 - 循环中的代码会运行特定的次数，或者是运行到特定条件成立时结束循环
@@ -549,7 +753,7 @@ call proc_15_case(88);
 - `leave` 类似于java语言的 `break`，跳出，结束当前所在的循环
 - `iterate` 类似于java语言的 `continue`，继续，结束本次循环，继续下一次
 
-#### 2.8.2. while 循环
+#### 2.7.2. while 循环
 
 语法格式：
 
@@ -613,7 +817,7 @@ delimiter ;
 call proc16_while3(10);
 ```
 
-#### 2.8.3. repeat 循环
+#### 2.7.3. repeat 循环
 
 语法格式：
 
@@ -645,7 +849,7 @@ delimiter ;
 call proc18_repeat(100);
 ```
 
-#### 2.8.4. loop 循环
+#### 2.7.4. loop 循环
 
 语法格式：
 
@@ -684,7 +888,7 @@ delimiter ;
 call proc19_loop(10);
 ```
 
-### 2.9. 游标
+### 2.8. 游标
 
 游标(cursor)是用来存储查询结果集的数据类型，在存储过程和函数中可以使用游标对结果集进行循环的处理，相当于指针，指向一行一行数据。游标的使用包括游标的声明、`OPEN`、`FETCH` 和 `CLOSE`
 
@@ -775,9 +979,9 @@ END $
 
 ***注意：delimiter关键字后面必须有空格，否则在某些环境或某些情况下使用shell脚本调用执行会出现问题***
 
-### 2.10. 异常处理 - HANDLER 句柄
+### 2.9. 异常处理 - HANDLER 句柄
 
-#### 2.10.1. 语法定义
+#### 2.9.1. 语法定义
 
 MySql存储过程也提供了对异常处理的功能：通过定义 `HANDLER` 来完成异常声明的实现。
 
@@ -807,7 +1011,7 @@ condition_value: {
 }
 ```
 
-#### 2.10.2. 存储过程中使用 handler
+#### 2.9.2. 存储过程中使用 handler
 
 示例：
 
@@ -851,7 +1055,7 @@ delimiter ;
 call proc21_cursor_handler('销售部');
 ```
 
-### 2.11. 获取当前登陆用户
+### 2.10. 获取当前登陆用户
 
 `user()` 函数用于是取得当前登陆的用户。一般在存储过程中使用，获取值。
 
@@ -859,7 +1063,7 @@ call proc21_cursor_handler('销售部');
 select user() into 变量名;
 ```
 
-### 2.12. 查询最后插入的数据的id
+### 2.11. 查询最后插入的数据的id
 
 `last_insert_id()` 函数可以获得刚插入的数据的id值，这个是session 级的，并发没有问题。
 
@@ -869,7 +1073,7 @@ select last_insert_id() into 变量名;
 -- 上面语句可以将最近插入的数据id赋值给变量，后面可以进行对应的逻辑处理
 ```
 
-### 2.13. 存储过程综合示例
+### 2.12. 存储过程综合示例
 
 ```sql
 /*

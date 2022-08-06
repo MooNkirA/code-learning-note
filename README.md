@@ -200,6 +200,7 @@
   <li><a href="#/04-数据库/01-MySQL/01-MySQL数据库06-锁">MySQL数据库06-锁</a></li>
   <li><a href="#/04-数据库/01-MySQL/02-MySQL数据库规范与性能优化">MySQL数据库规范与性能优化</a></li>
   <li><a href="#/04-数据库/01-MySQL/03-MySQL安装与部署">MySQL安装与部署</a></li>
+  <li><a href="#/04-数据库/01-MySQL/99-MySQL数据库-SQL示例">SQL 练习示例</a></li>
 </ul>
 
 ### 🅾 Oracle

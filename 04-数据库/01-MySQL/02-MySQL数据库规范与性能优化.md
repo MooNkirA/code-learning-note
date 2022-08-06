@@ -2141,11 +2141,16 @@ mysql> explain select id,age,phone from tb_user order by age asc, phone desc;
 
 #### 4.5.3. order by 优化原则
 
+1. 根据排序字段建立合适的索引，多字段排序时，也遵循最左前缀法则。
+2. 尽量使用覆盖索引。
+3. 多字段排序，一个升序一个降序，此时需要注意联合索引在创建时的规则（ASC/DESC）。
+4. 如果不可避免的出现 filesort，大数据量排序时，可以适当增大排序缓冲区大小 sort_buffer_size(默认256k)。
+
 ### 4.6. 优化 group by 语句
 
 `GROUP BY` 实际上也同样会进行排序操作，而且与 `ORDER BY` 相比，`GROUP BY` 主要只是多了排序之后的分组操作。当然，如果在分组的时候还使用了其他的一些聚合函数，那么还需要一些聚合函数的计算。所以，在 `GROUP BY` 的实现过程中，与 `ORDER BY` 一样也可以利用到索引。
 
-如果查询包含 `group by` 但是用户想要避免排序结果的消耗， 则可以执行 `order by null` 禁止排序。
+如果查询包含 `group by` 但是用户想要避免排序结果的消耗，则可以执行 `order by null` 禁止排序。(*其实通过索引来优化后，本来就已经排序了，这么做有必须吗？*)
 
 ```sql
 explain select age,count(*) from emp group by age;
@@ -2153,7 +2158,139 @@ explain select age,count(*) from emp group by age;
 explain select age,count(*) from emp group by age order by null;
 ```
 
-### 4.7. 优化子查询
+#### 4.6.1. 通过索引优化
+
+无索引的情况进行分组查询
+
+```sql
+mysql> explain select profession, count(*) from tb_user group by profession;
++----+-------------+---------+------------+------+---------------+------+---------+------+------+----------+-----------------+
+| id | select_type | table   | partitions | type | possible_keys | key  | key_len | ref  | rows | filtered | Extra           |
++----+-------------+---------+------------+------+---------------+------+---------+------+------+----------+-----------------+
+|  1 | SIMPLE      | tb_user | NULL       | ALL  | NULL          | NULL | NULL    | NULL |   24 |   100.00 | Using temporary |
++----+-------------+---------+------------+------+---------------+------+---------+------+------+----------+-----------------+
+```
+
+对 profession、age、status 字符创建一个联合索引
+
+```sql
+CREATE INDEX idx_user_pro_age_sta ON tb_user ( profession, age, `status` );
+```
+
+再执行上面的分组查询
+
+```sql
+mysql> explain select profession, count(*) from tb_user group by profession;
++----+-------------+---------+------------+-------+----------------------+----------------------+---------+------+------+----------+-------------+
+| id | select_type | table   | partitions | type  | possible_keys        | key                  | key_len | ref  | rows | filtered | Extra       |
++----+-------------+---------+------------+-------+----------------------+----------------------+---------+------+------+----------+-------------+
+|  1 | SIMPLE      | tb_user | NULL       | index | idx_user_pro_age_sta | idx_user_pro_age_sta | 42      | NULL |   24 |   100.00 | Using index |
++----+-------------+---------+------------+-------+----------------------+----------------------+---------+------+------+----------+-------------+
+```
+
+如果仅仅根据 age 分组，就会出现 Using temporary ；而如果是根据 profession,age 两个字段同时分组，则不会出现 Using temporary。因此可以得到<font color=red>**结论：对于有联合索引的字段进行分组操作，也是符合最左前缀法则的**</font>。
+
+```sql
+mysql> explain select profession, count(*) from tb_user group by age;
++----+-------------+---------+------------+-------+----------------------+----------------------+---------+------+------+----------+------------------------------+
+| id | select_type | table   | partitions | type  | possible_keys        | key                  | key_len | ref  | rows | filtered | Extra                        |
++----+-------------+---------+------------+-------+----------------------+----------------------+---------+------+------+----------+------------------------------+
+|  1 | SIMPLE      | tb_user | NULL       | index | idx_user_pro_age_sta | idx_user_pro_age_sta | 42      | NULL |   24 |   100.00 | Using index; Using temporary |
++----+-------------+---------+------------+-------+----------------------+----------------------+---------+------+------+----------+------------------------------+
+
+mysql> explain select profession, count(*) from tb_user group by profession,age;
++----+-------------+---------+------------+-------+----------------------+----------------------+---------+------+------+----------+-------------+
+| id | select_type | table   | partitions | type  | possible_keys        | key                  | key_len | ref  | rows | filtered | Extra       |
++----+-------------+---------+------------+-------+----------------------+----------------------+---------+------+------+----------+-------------+
+|  1 | SIMPLE      | tb_user | NULL       | index | idx_user_pro_age_sta | idx_user_pro_age_sta | 42      | NULL |   24 |   100.00 | Using index |
++----+-------------+---------+------------+-------+----------------------+----------------------+---------+------+------+----------+-------------+
+
+mysql> explain select profession, count(*) from tb_user where profession = '软件工程' group by age;
++----+-------------+---------+------------+------+----------------------+----------------------+---------+-------+------+----------+-------------+
+| id | select_type | table   | partitions | type | possible_keys        | key                  | key_len | ref   | rows | filtered | Extra       |
++----+-------------+---------+------------+------+----------------------+----------------------+---------+-------+------+----------+-------------+
+|  1 | SIMPLE      | tb_user | NULL       | ref  | idx_user_pro_age_sta | idx_user_pro_age_sta | 36      | const |    4 |   100.00 | Using index |
++----+-------------+---------+------------+------+----------------------+----------------------+---------+-------+------+----------+-------------+
+```
+
+#### 4.6.2. 分组操作原则
+
+1. 在分组操作时，可以通过索引来提高效率
+2. 分组操作时，索引的使用也是满足最左前缀法则的
+
+
+### 4.7. 优化 limit 查询
+
+一般分页查询时，通过创建覆盖索引能够比较好地提高性能。但有些情况，如 `limit 9000000,10`，此时需要 MySQL 排序前 9000010 记录，仅仅返回 9000000 - 9000010 的记录，其他记录丢弃，查询排序的代价非常大。
+
+```sql
+mysql> select count(*) from tb_sku;
++----------+
+| count(*) |
++----------+
+| 10000000 |
++----------+
+
+mysql> select * from tb_sku limit 9000000,10;
+10 rows in set (11.92 sec)
+```
+
+- 优化思路一：在索引上完成排序分页操作，通过创建“覆盖索引”+“子查询”的方式进行优化，最后根据主键关联回表查询所需要的其他列内容
+
+```sql
+mysql> SELECT * FROM tb_sku a, ( SELECT id FROM tb_sku ORDER BY id LIMIT 9000000, 10 ) b WHERE a.id = b.id;
+10 rows in set (6.74 sec)
+```
+
+- 优化思路二：如果是主键自增的表，可以把 `limit` 查询转换成某个位置的查询。*但需要保证 id 必须连续*
+
+```sql
+mysql> SELECT * FROM tb_sku WHERE id > 9000000 LIMIT 10;
+10 rows in set (0.16 sec)
+```
+
+### 4.8. 优化 count 查询
+
+#### 4.8.1. 优化思路
+
+在大数据量的表中执行 `select count(*) from 表;` 的操作时，是非常耗时。不同的存储引擎会有不同的处理：
+
+- MyISAM 引擎把一个表的总行数存在了磁盘上，因此执行 `count(*)` 的时候会直接返回这个数，效率很高；但是如果是带条件的 count 操作，MyISAM 也是非常慢。
+- InnoDB 引擎执行 `count(*)` 的时候，需要把数据一行一行地从引擎里面读出来，然后累积计数，因此效率非常底。
+
+如果说要大幅度提升 InnoDB 表的 count 效率，主要的优化思路：自己进行计数(可以借助于 redis 这样的数据库进行，但是如果是带条件的 count 操作还是比较麻烦了)，新增/删除由自己来维护。
+
+#### 4.8.2. count 的各种用法
+
+`count()` 是一个聚合函数，对于返回的结果集，一行行地判断，如果 count 函数的参数不是 NULL，累计值就加 1，否则不加，最后返回累计值。主要用法有以下几种：
+
+- `count(主键)`：InnoDB 引擎会遍历整张表，把每一行的主键 id 值都取出来，返回给服务层。服务层拿到主键后，直接按行进行累加(主键不可能为null) 
+- `count(字段)`：分以下两种情况
+    - 没有 not null 约束的字段：InnoDB 引擎会遍历整张表把每一行的字段值都取出来，返回给服务层，服务层判断是否为 null，不为 null则计数累加。
+    - 有 not null 约束的字段：InnoDB 引擎会遍历整张表把每一行的字段值都取出来，返回给服务层，直接按行进行累加。
+- `count(数字)`：InnoDB 引擎遍历整张表，但不取值。服务层对于返回的每一行，都赋指定的“数字”的值，直接按行进行累加。
+- `count(*)`：InnoDB 引擎并不会把全部字段取出来，而是专门做了优化，不取值，服务层直接按行进行累加。
+
+> Notes: 综上所述，按照效率的排序是，`count(字段) < count(主键 id) < count(1) ≈ count(*)`，所以尽量使用 `count(*)`。
+
+### 4.9. 优化 update 语句
+
+update 语句执行时的注意事项。当执行根据主键 id 更新的 SQL 语句时，会锁定id所在的一行的数据，然后事务提交之后，行锁释放。
+
+```sql
+update course set name = 'javaEE' where id = 1 ;
+```
+
+但是当执行根据没有索引的字段更新的 SQL 时，行锁会升级为了表锁，导致该 update 语句的性能大大降低。
+
+```sql
+-- name 字段没有建索引
+update course set name = 'SpringBoot' where name = 'PHP';
+```
+
+> Notes: InnoDB 的行锁是针对索引加的锁，不是针对记录加的锁，并且该索引不能失效，否则会从行锁升级为表锁。因此更新数据时最好以索引列做为条件。
+
+### 4.10. 优化子查询
 
 子查询的执行效率不高。子查询时，MySQL需要为内层查询语句的查询结果建立一个临时表。然后外层查询语句再临时表中查询记录。查询完毕后，MySQL需要撤销这些临时表。所以子查询的速度会受到一定的影响。如果查询的数据量比较大，影响速度就会随之增大。在MySQL中可以使用连接查询来代替子查询，连接查询不需要建立临时表，其速度比子查询要快。
 
@@ -2163,31 +2300,12 @@ explain select age,count(*) from emp group by age order by null;
 explain select * from user where uid in (select uid from user_role);
 
 -- 优化
-explain select * from user u ,user_role ur where u.uid = ur.uid;
+explain select * from user u,user_role ur where u.uid = ur.uid;
 ```
 
 连接(join)查询之所以更有效率一些 ，是因为MySQL不需要在内存中创建临时表来完成这个逻辑上需要两个步骤的查询工作。
 
-#### 4.7.1. 优化limit查询
-
-一般分页查询时，通过创建覆盖索引能够比较好地提高性能。但有些情况，如 `limit 900000,10`，此时需要MySQL排序前 900010 记录，仅仅返回 900000 - 900010 的记录，其他记录丢弃，查询排序的代价非常大。
-
-- 优化思路一：在索引上完成排序分页操作，最后根据主键关联回原表查询所需要的其他列内容
-- 优化思路二：如果是主键自增的表，可以把 `limit` 查询转换成某个位置的查询
-
-```sql
-select * from tb_user limit 900000,10;
-
--- 优化方案1：
-SELECT *
-FROM
-	tb_user a, ( SELECT id FROM tb_user ORDER BY id LIMIT 900000, 10 ) b
-WHERE a.id = b.id;
--- 优化方案2：
-SELECT * FROM tb_user WHERE	id > 900000 LIMIT 10;
-```
-
-### 4.8. SQL 语法优化的总结
+### 4.11. SQL 语法优化的总结
 
 1. 使用`EXPLAIN`关键字去查看执行计划
     - `type`列，连接类型。一个好的SQL语句至少要达到range级别。杜绝出现all级别。

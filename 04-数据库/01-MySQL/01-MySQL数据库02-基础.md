@@ -143,9 +143,23 @@ MySQL 中的数据类型有很多，主要分为三类：数值类型、字符�
 
 MySQL对Null值的处理，有以下三种：
 
-1. NULL 值代表一个未确定的值，每个null都是独一无二。MySQL 认为任何和 NULL 值做比较的表达式的值都为 NULL，包括 `select null = null` 和 `select null != null;`
+1. NULL 值代表一个未确定的值，每个null都是独一无二。MySQL 认为任何和 NULL 值做比较的表达式的值都为 NULL，包括 `select null = null;` 和 `select null != null;`
 
-![](images/20210427192910488_31457.png)
+```sql
+mysql> select null = null;
++-------------+
+| null = null |
++-------------+
+| NULL        |
++-------------+
+
+mysql> select null != null;
++--------------+
+| null != null |
++--------------+
+| NULL         |
++--------------+
+```
 
 2. NULL 值在业务上就是代表没有，所有的 NULL 值和起来算一份
 3. NULL 完全没有意义，所以在统计数量不会将其算进去
@@ -1387,7 +1401,7 @@ select category_id ,count(*) from product group by category_id having count(*) >
     - `where` 是对行记录进行筛选过滤，`where` 后**不能跟聚合函数**的(如:`count(*)`)
     - `having` 是对组信息进行筛选过滤，`having` 后**可以跟聚合函数**的。(如:`count(*)`)
 
-#### 6.7.4. `with rollup` 关键字
+#### 6.7.4. with rollup 关键字
 
 在所有记录的最后加上一条记录。该记录是上面所有记录的总和
 
