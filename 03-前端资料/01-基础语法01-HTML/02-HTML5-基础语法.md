@@ -134,7 +134,22 @@ input::placeholder {
 }
 ```
 
+### 1.4. progress 标签
+
+`<progress>` 标签用于定义文档中的进度条。一般用于实现“下载进度条”
+
+```html
+<progress value="22" max="100"></progress>
+```
+
+效果如下：
+
+<progress></progress>
+
+<progress value="22" max="100"></progress>
+
 ## 2. HTML5 Canvas标签详解
+
 ### 2.1. canvas简介
 
 `<canvas>`是HTML5新增的，一个可以使用脚本(通常为JavaScript)在其中绘制图像的 HTML 元素。它可以用来制作照片集或者制作简单(也不是那么简单)的动画，甚至可以进行实时视频处理和渲染。
