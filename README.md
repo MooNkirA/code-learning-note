@@ -411,8 +411,9 @@
   <li><a href="#/99-其他/编程资源收集">编程资源收集</a></li>
   <li><a href="#/99-其他/其它资料">其它资料</a></li>
   <li><a href="#/99-其他/Hexo-blog搭建工具">Hexo 博客 搭建工具</a></li>
-  <li><a href="#/99-其他/docsify-文档类型网站搭建工具">docsify 文档类型网站搭建工具</a></li>
-  <li><a href="#/99-其他/Mermaid-基于Javascript的绘图语法">Mermaid 基于 Javascript 的绘图语法</a></li>
+  <li><a href="#/99-其他/docsify">docsify 文档类型网站搭建工具</a></li>
+  <li><a href="#/99-其他/Mermaid">Mermaid 基于 Javascript 的绘图语法</a></li>
+  <li><a href="#/99-其他/Markdown">Markdown 参考笔记</a></li>
 </ul>
 
 ## 收集的项目实战资料

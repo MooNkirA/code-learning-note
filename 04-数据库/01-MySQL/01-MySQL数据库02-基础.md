@@ -276,6 +276,12 @@ create database db2 default character set utf8;
 CREATE DATABASE IF NOT EXISTS 数据库名;
 ```
 
+#### 3.4.3. 使用图形化客户端创建
+
+![](images/329114008239275.png)
+
+创建数据库时，填写数据库名、选择字符集、排序规则即可。建议字符集选择 `utf8mb4`，因为一些特殊字符（如微信表情等）需要此字符集才能存储
+
 ### 3.5. 删除数据库
 
 删除指定的数据库
