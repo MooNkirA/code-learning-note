@@ -100,7 +100,7 @@ MySQL 中的数据类型有很多，主要分为三类：数值类型、字符�
 | `INT`或`INTEGER` |     4      | <font color=red>普通大小的整数（占4字节），默认长度11</font>                                                                    |
 |     `BIGINT`     |     8      | 占用的8个字节，默认长度20                                                                                                     |
 |   `FLOAT(m,d)`   |     4      | 单精度浮点型小数                                                                                                              |
-|  `DOUBLE(m,d)`   |     8      | <font color=red>双精度浮点型小数 d代表小数位数，m代表总位数 (整数位=m-d);<br/>比如：DOUBLE(5.2)， 数值共5位，其中小数为2位。</font> |
+|  `DOUBLE(m,d)`   |     8      | <font color=red>双精度浮点型小数 d代表小数位数，m代表总位数 (整数位=m-d);</font><br/>比如：DOUBLE(5.2)， 数值共5位，其中小数为2位。 |
 |  `DECIMAL(m,d)`  |            | <font color=red>压缩严格的定点数，取值范围与double相同，但有效取值范围由M(精度)与D(标度)决定</font>                                |
 
 > Tips: 当字段用记录年龄时，因为不会存在负数与数值的范围不会太大，可以设置为 `age tinyint unsigned`

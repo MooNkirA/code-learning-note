@@ -755,7 +755,7 @@ call proc_15_case(88);
 
 #### 2.7.2. while 循环
 
-语法格式：
+while 循环是有条件的循环控制语句。满足条件后，再执行循环体中的SQL语句。语法格式：
 
 ```sql
 [标签名:]
@@ -819,7 +819,7 @@ call proc16_while3(10);
 
 #### 2.7.3. repeat 循环
 
-语法格式：
+repeat 是有条件的循环控制语句，当满足 until 声明的条件的时候，则退出循环。语法格式：
 
 ```sql
 [标签名:]
@@ -850,6 +850,11 @@ call proc18_repeat(100);
 ```
 
 #### 2.7.4. loop 循环
+
+LOOP 实现简单的循环，如果不在 SQL 逻辑中增加退出循环的条件，可以用其来实现简单的死循环。LOOP 可以配合以下两个语句使用：
+
+- LEAVE ：配合循环使用，退出循环。
+- ITERATE：必须用在循环中，作用是跳过当前循环剩下的语句，直接进入下一次循环。
 
 语法格式：
 
@@ -888,9 +893,36 @@ delimiter ;
 call proc19_loop(10);
 ```
 
+示例2：计算从1到n之间的偶数累加的值，n为传入的参数值。
+
+```sql
+create procedure p10(in n int)
+begin
+    declare total int default 0;
+    sum:loop
+        if n<=0 then
+            leave sum;
+        end if;
+
+        if n%2 = 1 then
+            set n := n - 1;
+            iterate sum;
+        end if;
+
+        set total := total + n;
+        set n := n - 1;
+    end loop sum;
+    select total;
+end;
+
+call p10(100);
+```
+
 ### 2.8. 游标
 
 游标(cursor)是用来存储查询结果集的数据类型，在存储过程和函数中可以使用游标对结果集进行循环的处理，相当于指针，指向一行一行数据。游标的使用包括游标的声明、`OPEN`、`FETCH` 和 `CLOSE`
+
+#### 2.8.1. 基础语法
 
 ```sql
 -- 声明语法
@@ -979,13 +1011,13 @@ END $
 
 ***注意：delimiter关键字后面必须有空格，否则在某些环境或某些情况下使用shell脚本调用执行会出现问题***
 
-### 2.9. 异常处理 - HANDLER 句柄
+### 2.9. 异常处理 - HANDLER 条件处理程序
+
+条件处理程序（Handler）可以用来定义在流程控制结构执行过程中遇到问题时相应的处理步骤。具体语法为：
 
 #### 2.9.1. 语法定义
 
 MySql存储过程也提供了对异常处理的功能：通过定义 `HANDLER` 来完成异常声明的实现。
-
-> 官方文档：https://dev.mysql.com/doc/refman/5.7/en/declare-handler.html
 
 语法格式：
 
@@ -1010,6 +1042,23 @@ condition_value: {
   | SQLEXCEPTION
 }
 ```
+
+参数说明：
+
+- handler_action 条件处理程序的名称，取值：
+    - CONTINUE: 继续执行当前程序
+    - EXIT: 终止执行当前程序
+- condition_value 条件的取值：
+    - SQLSTATE sqlstate_value: 状态码，如 02000
+    - SQLWARNING: 所有以01开头的SQLSTATE代码的简写
+    - NOT FOUND: 所有以02开头的SQLSTATE代码的简写
+    - SQLEXCEPTION: 所有没有被SQLWARNING 或 NOT FOUND捕获的SQLSTATE代码的简写
+
+> 具体的错误状态码，可以参考官方文档：
+>
+> - 5.7版本：https://dev.mysql.com/doc/refman/5.7/en/declare-handler.html
+> - https://dev.mysql.com/doc/refman/8.0/en/declare-handler.html
+> - https://dev.mysql.com/doc/mysql-errors/8.0/en/server-error-reference.html
 
 #### 2.9.2. 存储过程中使用 handler
 
@@ -1148,16 +1197,7 @@ call proc22_demo();
 
 MySQL存储函数（自定义函数），函数一般用于计算和返回一个值，可以将经常需要使用的计算或功能写成一个函数。存储函数和存储过程一样，都是在数据库中定义一些 SQL 语句的集合。
 
-### 3.2. 存储函数与存储过程的区别
-
-1. 存储函数有且只有一个返回值，而存储过程可以有多个返回值，也可以没有返回值。
-2. 存储函数只能有输入参数，而且不能带`in`, 而存储过程可以有多个`in`,`out`,`inout`参数。
-3. 存储过程中的语句功能更强大，存储过程可以实现很复杂的业务逻辑，而函数有很多限制，如不能在函数中使用`insert`,`update`,`delete`,`create`等语句；
-4. 存储函数只完成查询的工作，可接受输入参数并返回一个结果，也就是函数实现的功能针对性比较强。
-5. 存储过程可以调用存储函数。但函数不能调用存储过程。
-6. 存储过程一般是作为一个独立的部分来执行(`call`调用)。而函数可以作为查询语句的一个部分来调用.
-
-### 3.3. 创建语法
+### 3.2. 创建语法
 
 在MySQL中，创建存储函数使用 `create function` 关键字，其基本形式如下：
 
@@ -1176,7 +1216,10 @@ end;
 - `param_name type`：可选项，指定存储函数的参数。`type`参数用于指定存储函数的参数类型，该类型可以是MySQL数据库中所有支持的类型。
 - `RETURNS type`：指定返回值的类型。
 - `characteristic`：可选项，指定存储函数的特性。
-- `routine_body`：SQL代码内容。
+    - `DETERMINISTIC`：相同的输入参数总是产生相同的结果
+    - `NO SQL`：不包含 SQL 语句
+    - `READS SQL DATA`：包含读取数据的语句，但不包含写入数据的语句
+- `routine_body`：SQL 代码内容。
 
 示例：
 
@@ -1210,11 +1253,26 @@ delimiter ;
 select myfunc2_emp(1008);
 ```
 
-> 注意：如果创建时出现错误，执行以下命令
->
-> ```sql
-> set global log_bin_trust_function_creators=TRUE; -- 信任子程序的创建者
-> ```
+### 3.3. 注意问题
+
+1. 在 mysql8.0 版本中 binlog 默认是开启的，一旦开启了，mysql 就要求在定义存储过程时，需要指定 `characteristic` 特性，否则就会报如下错误：
+
+![](images/154532610239977.png)
+
+2. 如果创建时出现错误，执行以下命令
+
+```sql
+set global log_bin_trust_function_creators=TRUE; -- 信任子程序的创建者
+```
+
+### 3.4. 存储函数与存储过程的区别
+
+1. 存储函数有且只有一个返回值，而存储过程可以有多个返回值，也可以没有返回值。
+2. 存储函数只能有输入参数，而且不能带`in`，而存储过程可以有多个`in`、`out`、`inout`参数。
+3. 存储过程中的语句功能更强大，存储过程可以实现很复杂的业务逻辑，而函数有很多限制，如不能在函数中使用`insert`、`update`、`delete`、`create`等语句；
+4. 存储函数只完成查询的工作，可接受输入参数并返回一个结果，也就是函数实现的功能针对性比较强。
+5. 存储过程可以调用存储函数。但函数不能调用存储过程。
+6. 存储过程一般是作为一个独立的部分来执行(`call`调用)。而函数可以作为查询语句的一个部分来调用
 
 ## 4. 触发器
 
@@ -1224,7 +1282,7 @@ select myfunc2_emp(1008);
 
 **在MySQL中，只有执行`insert`,`delete`,`update`操作时才能触发触发器的执行**。
 
-触发器的这种特性可以协助应用在数据库端确保数据的完整性，日志记录，数据校验等操作 。
+触发器的这种特性可以协助应用在数据库端确保数据的完整性，日志记录，数据校验等操作。
 
 使用别名 `OLD` 和 `NEW` 来引用触发器中发生变化的记录内容，这与其他的数据库是相似的。现在触发器还只支持行级触发，不支持语句级触发
 
@@ -1237,12 +1295,14 @@ select myfunc2_emp(1008);
 
 ![](images/20211222165042872_30271.png)
 
-### 4.3. 创建触发器的语法
+### 4.3. 触发器语法定义
+
+#### 4.3.1. 创建语法
 
 - 创建只有一个执行语句的触发器
 
 ```sql
-CREATE TRIGGER 触发器名 BEFORE | AFTER 触发事件
+CREATE TRIGGER 触发器名 BEFORE | AFTER 触发事件[ INSERT | UPDATE | DELETE ]
 ON 表名 FOR EACH ROW
 执行语句;
 ```
@@ -1250,7 +1310,7 @@ ON 表名 FOR EACH ROW
 - 创建有多个执行语句的触发器
 
 ```sql
-CREATE TRIGGER 触发器名 BEFORE | AFTER 触发事件
+CREATE TRIGGER 触发器名 BEFORE | AFTER 触发事件[ INSERT | UPDATE | DELETE ]
 ON 表名 FOR EACH ROW
 BEGIN
 	执行语句列表
@@ -1293,7 +1353,7 @@ delimiter ;
 update user set password = '888888' where uid = 1;
 ```
 
-### 4.4. 操作关键字 (NEW|OLD)
+#### 4.3.2. 操作关键字 (NEW|OLD)
 
 MySQL 中定义了 `NEW` 和 `OLD`，用来表示触发器的所在表中，触发了触发器的那一行数据，来引用触发器中发生变化的记录内容。
 
@@ -1318,7 +1378,7 @@ insert into user_logs values(NULL,now(),concat('有新用户添加，信息为:'
 insert into user values(4,'赵六','123456');
 ```
 
-### 4.5. 查看触发器
+#### 4.3.3. 查看触发器
 
 语法：
 
@@ -1326,12 +1386,12 @@ insert into user values(4,'赵六','123456');
 show triggers;
 ```
 
-### 4.6. 删除触发器
+#### 4.3.4. 删除触发器
 
-语法：
+如果没有指定 schema_name，默认为当前数据库。语法：
 
 ```sql
-drop trigger [if exists] trigger_name;
+drop trigger [if exists] [schema_name.]trigger_name;
 ```
 
 示例：
@@ -1340,7 +1400,7 @@ drop trigger [if exists] trigger_name;
 drop trigger if exists trigger_test1;
 ```
 
-### 4.7. 触发器注意事项
+### 4.4. 触发器注意事项
 
 1. MYSQL 中触发器中不能对本表进行 `insert`, `update`, `delete` 操作，以免递归循环触发
 2. 尽量少使用触发器，假设触发器触发每次执行1s，insert table 500条数据，那么就需要触发500次触发器，光是触发器执行的时间就花费了500s，而insert 500条数据一共是1s，那么这个insert的效率就非常低了。

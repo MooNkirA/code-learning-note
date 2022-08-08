@@ -3026,7 +3026,19 @@ mysql> SHOW TABLES FROM mysql LIKE 'innodb%';
 
 **innodb_table_stats 表结构与字段的作用**
 
-![](images/20210503112213503_16694.png)
+```sql
+mysql> desc mysql.innodb_table_stats;
++--------------------------+-----------------+------+-----+-------------------+-----------------------------------------------+
+| Field                    | Type            | Null | Key | Default           | Extra                                         |
++--------------------------+-----------------+------+-----+-------------------+-----------------------------------------------+
+| database_name            | varchar(64)     | NO   | PRI | NULL              |                                               |
+| table_name               | varchar(199)    | NO   | PRI | NULL              |                                               |
+| last_update              | timestamp       | NO   |     | CURRENT_TIMESTAMP | DEFAULT_GENERATED on update CURRENT_TIMESTAMP |
+| n_rows                   | bigint unsigned | NO   |     | NULL              |                                               |
+| clustered_index_size     | bigint unsigned | NO   |     | NULL              |                                               |
+| sum_of_other_index_sizes | bigint unsigned | NO   |     | NULL              |                                               |
++--------------------------+-----------------+------+-----+-------------------+-----------------------------------------------+
+```
 
 - database_name 数据库名
 - table_name 表名
@@ -3037,9 +3049,37 @@ mysql> SHOW TABLES FROM mysql LIKE 'innodb%';
 
 **innodb_table_stats 表内容分析**，几个重要统计信息项的值如下：
 
-![](images/20210503112452647_6805.png)
+```sql
+mysql> SELECT * FROM mysql.innodb_table_stats WHERE database_name = 'tempdb';
++---------------+---------------------+---------------------+---------+----------------------+--------------------------+
+| database_name | table_name          | last_update         | n_rows  | clustered_index_size | sum_of_other_index_sizes |
++---------------+---------------------+---------------------+---------+----------------------+--------------------------+
+| tempdb        | account             | 2022-08-04 22:30:34 |       7 |                    1 |                        0 |
+| tempdb        | article             | 2022-08-04 22:29:42 |      17 |                    1 |                        0 |
+| tempdb        | article_data        | 2022-08-04 22:29:42 |       0 |                    1 |                        1 |
+| tempdb        | article_type        | 2022-08-04 22:29:42 |       4 |                    1 |                        1 |
+| tempdb        | comment             | 2022-08-04 22:29:42 |       2 |                    1 |                        1 |
+| tempdb        | course              | 2022-08-05 14:50:03 |       4 |                    1 |                        0 |
+| tempdb        | dept                | 2022-08-05 14:49:53 |       6 |                    1 |                        0 |
+| tempdb        | emp                 | 2022-08-05 14:50:13 |      17 |                    1 |                        0 |
+| tempdb        | employee            | 2022-08-04 22:29:43 |       6 |                    1 |                        0 |
+| tempdb        | order_exp           | 2022-08-04 22:29:43 |   10625 |                   97 |                       74 |
+| tempdb        | order_exp_cut       | 2022-08-04 22:29:43 |       2 |                    1 |                        2 |
+| tempdb        | s1                  | 2022-08-04 22:29:43 |       3 |                    1 |                        3 |
+| tempdb        | s2                  | 2022-08-04 22:29:43 |       3 |                    1 |                        3 |
+| tempdb        | salgrade            | 2022-08-05 14:49:53 |       8 |                    1 |                        0 |
+| tempdb        | score               | 2022-08-04 22:29:43 |       5 |                    1 |                        0 |
+| tempdb        | student             | 2022-08-05 14:49:53 |       4 |                    1 |                        0 |
+| tempdb        | student_course      | 2022-08-05 14:50:23 |       6 |                    1 |                        2 |
+| tempdb        | tb_sku              | 2022-08-05 11:08:22 | 9214983 |               234496 |                        0 |
+| tempdb        | tb_user             | 2022-08-05 10:39:47 |      24 |                    1 |                        2 |
+| tempdb        | teacher             | 2022-08-04 22:29:54 |       5 |                    1 |                        1 |
+| tempdb        | type                | 2022-08-04 22:30:04 |       2 |                    1 |                        0 |
+| tempdb        | user                | 2022-08-04 22:30:14 |       3 |                    1 |                        0 |
++---------------+---------------------+---------------------+---------+----------------------+--------------------------+
+```
 
-- `n_rows` 的值是10311，表明order_exp表中大约有10350条记录，注意这个数据是估计值。
+- `n_rows` 的值是10625，表明order_exp表中大约有10625条记录，注意这个数据是估计值。
 - `clustered_index_size` 的值是97，表明order_exp表的聚簇索引占用97个页面，这个值是也是一个估计值。
 - `sum_of_other_index_sizes` 的值是74，表明order_exp表的其他索引一共占用81个页面，这个值是也是一个估计值。
 
@@ -3062,7 +3102,19 @@ ALTER TABLE 表名 Engine=InnoDB, STATS_SAMPLE_PAGES = 具体的采样页面数�
 
 **innodb_index_stats 表结构与字段的作用**
 
-![](images/20210503113341758_4484.png)
+```sql
+mysql> desc mysql.innodb_table_stats;
++--------------------------+-----------------+------+-----+-------------------+-----------------------------------------------+
+| Field                    | Type            | Null | Key | Default           | Extra                                         |
++--------------------------+-----------------+------+-----+-------------------+-----------------------------------------------+
+| database_name            | varchar(64)     | NO   | PRI | NULL              |                                               |
+| table_name               | varchar(199)    | NO   | PRI | NULL              |                                               |
+| last_update              | timestamp       | NO   |     | CURRENT_TIMESTAMP | DEFAULT_GENERATED on update CURRENT_TIMESTAMP |
+| n_rows                   | bigint unsigned | NO   |     | NULL              |                                               |
+| clustered_index_size     | bigint unsigned | NO   |     | NULL              |                                               |
+| sum_of_other_index_sizes | bigint unsigned | NO   |     | NULL              |                                               |
++--------------------------+-----------------+------+-----+-------------------+-----------------------------------------------+
+```
 
 - database_name 数据库名
 - table_name 表名
@@ -3096,10 +3148,16 @@ ALTER TABLE 表名 Engine=InnoDB, STATS_SAMPLE_PAGES = 具体的采样页面数�
 - n_diff_pfx03 表示的是统计 insert_time,order_status,expire_time 这三个列组合起来不重复的值有多少。
 - n_diff_pfx04 表示的是统计 key_pare1、key_pare2、expire_time、id 这四个列组合起来不重复的值有多少。
 
-
 > 查询`innodb_stats_persistent_sample_pages`值
 
-![](images/20210503114335784_4974.png)
+```sql
+mysql> show variables like '%innodb_stats_persistent_sample_pages%';
++--------------------------------------+-------+
+| Variable_name                        | Value |
++--------------------------------------+-------+
+| innodb_stats_persistent_sample_pages | 20    |
++--------------------------------------+-------+
+```
 
 ##### 8.1.2.3. 定期更新统计数据
 

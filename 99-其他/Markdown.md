@@ -1,5 +1,7 @@
 # Markdown 参考笔记
 
+> 参考资料：https://www.markdown.xyz/
+
 ## 1. 基础语法
 
 ### 1.1. 标题（Headings）
@@ -474,7 +476,7 @@ See the section on [`code`](#code).
 | Header    | Title       |
 | Paragraph | Text        |
 
-> Tips: 使用连字符（hyphens）和管道符（pipes）创建表格会很乏味。若要加快进度，请试一试 Markdown 表格生成器。使用图形界面生成表格，然后将生成的 Markdown 格式的文本复制粘贴到文件中即可。
+> Tips: 使用连字符（hyphens）和管道符（pipes）创建表格会很乏味。若要加快进度，可使用 [Markdown 表格生成器](https://www.tablesgenerator.com/markdown_tables)。使用图形界面生成表格，然后将生成的 Markdown 格式的文本复制粘贴到文件中即可。
 
 #### 1.13.2. 单元格内容对齐
 
@@ -733,7 +735,9 @@ Markdown可以和HTML的语法兼容，可以通过HTML的标签来实现下划�
 
 渲染效果如下：
 
-<progress max="100" value="60"/>
+<div>
+    <progress max="100" value="60"/>
+</div>
 
 ## 4. 字体、字号与颜色、背景颜色
 
