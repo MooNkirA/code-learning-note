@@ -1007,13 +1007,11 @@ public class Day20Test02_02 {
 
 ### 1.1. JDK1.5之前实现类似枚举的功能（了解）
 
-JDK1.5之前的解决输入非法成员变量值的方法：
-
-重新定义一个成员变量的类，在定义成员变量的时候，使用这个相应的成员变量类。将成员变量的类的构造方法私有，不能让使用者new对象。
+JDK1.5之前的解决输入非法成员变量值的方法：重新定义一个成员变量的类，在定义成员变量的时候，使用这个相应的成员变量类。将成员变量的类的构造方法私有，不能让使用者new对象。
 
 <font color=red>**JKD1.5之后的解决方法：定义一个枚举类，解决调用构造方法创建对象时输入非法成员变量的情况。**</font>
 
-### 1.2. Enum类
+### 1.2. Enum 类
 
 ```java
 public abstract class Enum<E extends Enum<E>> implements Comparable<E>, Serializable
@@ -1081,7 +1079,6 @@ enum 枚举名称 {
 
 <font color=red>**枚举的底层实现，枚举的底层是一个类继承了`Enum`**</font>
 
-
 ### 3.2. 枚举的使用步骤
 
 1. 定义枚举类
@@ -1091,7 +1088,7 @@ enum 枚举名称 {
 
 总结：<font color=red>**枚举的作用是用来表示几个固定的值，可以使用枚举中成员**</font>
 
-### 3.3. 枚举常用方法
+## 4. 枚举常用方法
 
 ```java
 public final String name();
@@ -1103,12 +1100,23 @@ public final String name();
 public static <T extends Enum<T>> T valueOf(Class<T> enumType, String name)
 ```
 
-- 根据枚举名字符串获得枚举值对象
-- 返回带指定名称的指定枚举类型的枚举常量。名称必须与在此类型中声明枚举常量所用的标识符完全匹配。（不允许使用额外的空白字符。）
+- 根据枚举名字符串获得枚举值对象。返回带指定名称的指定枚举类型的枚举常量。名称必须与在此类型中声明枚举常量所用的标识符完全匹配。（不允许使用额外的空白字符。）
+
+```java
+public final int ordinal()
+```
+
+- 返回此枚举常量的顺序（位置在枚举声明，在初始常数是零分序号）。不推荐使用，它被设计用于复杂的基于枚举的数据结构，比如 `EnumSet` 和 `EnumMap`
+
+```java
+public static <T extends Enum<T>> T[] values();
+```
+
+- 枚举中的一个特殊方法，可以将枚举类转变为一个该枚举类型的数组
 
 > <font color=red>*此方法虽然在JDK文档中查找不到，但每个枚举类都具有该方法，它遍历枚举类的所有枚举值非常方便*</font>
 
-### 3.4. 枚举注意事项
+## 5. 枚举注意事项
 
 - 定义枚举类要用关键字 `enum`
 - 所有枚举类都是 `Enum` 的子类（默认是`Enum`的子类，不需要（能）再写`extends Enum`）
@@ -1119,7 +1127,9 @@ public static <T extends Enum<T>> T valueOf(Class<T> enumType, String name)
 
 ![](images/20201105085210521_20886.png)
 
-### 3.5. 枚举使用案例 - 消除if/else
+## 6. 枚举的应用示例
+
+### 6.1. 枚举使用案例 - 消除if/else
 
 假如要写一套加密接口，分别给小程序、app和web端来使用，但是这三种客户端的加密方式不一样。一般情况下我们会传一个类型type来判断来源，然后调用对应的解密方法即可。代码如下：
 
@@ -1192,7 +1202,7 @@ public enum UtilEnum implements Util {
 String decryptMessage = UtilEnum.valueOf(type).decrypt();
 ```
 
-## 4. （扩展）枚举创建线程安全的单例模式
+## 7. （扩展）枚举创建线程安全的单例模式
 
 ```java
 public enum  SingletonEnum {
@@ -1204,15 +1214,16 @@ public enum  SingletonEnum {
     }
 }
 ```
+
 这样一个单例模式就创建好了，通过`SingletonEnum.INSTANCE`来获取对象就可以了。
 
-### 4.1. 序列化造成单例模式不安全
+### 7.1. 序列化造成单例模式不安全
 
 一个类如果如果实现了序列化接口，则可能破坏单例。每次反序列化一个序列化的一个实例对象都会创建一个新的实例。
 
 枚举序列化是由JVM保证的，每一个枚举类型和定义的枚举变量在JVM中都是唯一的，在枚举类型的序列化和反序列化上，Java做了特殊的规定：在序列化时Java仅仅是将枚举对象的name属性输出到结果中，反序列化的时候则是通过`java.lang.Enum`的`valueOf`方法来根据名字查找枚举对象。同时，编译器是不允许任何对这种序列化机制的定制的并禁用了`writeObject`、`readObject`、`readObjectNoData`、`writeReplace`和`readResolve`等方法，从而保证了枚举实例的唯一性。
 
-### 4.2. 反射造成单例模式不安全
+### 7.2. 反射造成单例模式不安全
 
 通过反射强行调用私有构造器来生成实例对象，造成单例模式不安全。
 
@@ -1258,10 +1269,8 @@ IllegalArgumentException, InvocationTargetException
 
 Java序列化技术正是将对象转变成一串由二进制字节组成的数组，可以通过将二进制数据保存到磁盘或者传输网络，磁盘或者网络接收者可以在对象的属类的模板上来反序列化类的对象，达到对象持久化的目的。
 
-- <font color=red>**对象序列化：将自定义对象以流的形式保存到文件中的过程**</font>
-    - 要实现对象的序列化需要使用的流：`ObjectOutputStream` 继承 `OutputStream`
-- <font color=red>**对象反序列化：将文件中的对象以流的形式读取出来的过程**</font>
-    - 要实现对象的反序列化需要使用的流：**ObjectInputStream** 继承 **InputStream**
+- <font color=red>**对象序列化：将自定义对象以流的形式保存到文件中的过程**</font>。要实现对象的序列化需要使用的流：`ObjectOutputStream` 继承 `OutputStream`
+- <font color=red>**对象反序列化：将文件中的对象以流的形式读取出来的过程**</font>。要实现对象的反序列化需要使用的流：`ObjectInputStream` 继承 `InputStream`
 
 ## 2. 对象序列化流 ObjectOutputStream 类
 
@@ -1386,7 +1395,7 @@ public final Object readObject()
 
 ## 5. 序列化对象 - 网上案例
 
-要序列化一个对象，这个对象所在类就必须实现Java序列化的接口：java.io.Serializable。
+要序列化一个对象，这个对象所在类就必须实现Java序列化的接口：`java.io.Serializable`。
 
 ### 5.1. 类添加序列化接口
 

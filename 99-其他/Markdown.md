@@ -743,11 +743,12 @@ Markdown可以和HTML的语法兼容，可以通过HTML的标签来实现下划�
 
 ### 4.1. 常用颜色表
 
-| 颜色名  | 十六进制颜色值 |         RGB值         |                               颜色                               |
-| ------ | ------------- | -------------------- | --------------------------------------------------------------- |
-| red    | `#ff0000`     | `rgb(255, 0, 0)`     | <span style="background-color:red">&nbsp;&nbsp;&nbsp;</span>    |
-| purple | `#800080`     | `rgb(128, 0, 128)`   | <span style="background-color:purple">&nbsp;&nbsp;&nbsp;</span> |
-| violet | `#ee82ee`     | `rgb(238, 130, 238)` | <span style="background-color:violet">&nbsp;&nbsp;&nbsp;</span> |
+|   颜色名   | 十六进制颜色值 |         RGB值         |                               颜色                                |
+| --------- | ------------- | -------------------- | ---------------------------------------------------------------- |
+| red       | `#ff0000`     | `rgb(255, 0, 0)`     | <span style="background-color:red">&nbsp;&nbsp;&nbsp;</span>     |
+| purple    | `#800080`     | `rgb(128, 0, 128)`   | <span style="background-color:purple">&nbsp;&nbsp;&nbsp;</span>  |
+| violet    | `#ee82ee`     | `rgb(238, 130, 238)` | <span style="background-color:violet">&nbsp;&nbsp;&nbsp;</span>  |
+| lightgray | `#c7edcc`     | `rgb(199,237,204)`   | <span style="background-color:#c7edcc">&nbsp;&nbsp;&nbsp;</span> |
 
 > 颜色相关在线工具
 >
@@ -847,3 +848,30 @@ body {
 ### 8.1. Markdown Monster
 
 官网：https://markdownmonster.west-wind.com/
+
+### 8.2. Typora
+
+一款 Markdown 编辑器和阅读器
+
+官网：https://typoraio.cn/
+
+- [Typora 的 Markdown 语法参考手册](https://support.typoraio.cn/zh/Markdown-Reference/)
+
+#### 8.2.1. 主题
+
+官网主题地址：https://theme.typoraio.cn/
+
+个人推荐主题：
+
+- [Typora Docsify](https://github.com/Erimus-Koo/theme_typora_docsify)
+
+![](https://theme.typoraio.cn/media/theme/typora-docsify/typora_docsify_compare.png)
+
+- [See Yue 主题](https://github.com/jinghu-moon/typora-see-yue-theme)
+
+![](https://theme.typoraio.cn/media/theme/see-yue/1.png)
+
+- [Drake](https://github.com/liangjingkanji/DrakeTyporaTheme)
+- [Rainbow](https://github.com/garyzhang2002/typora-theme-rainbow)
+
+![](https://theme.typoraio.cn/media/theme/rainbow/pic1.png)

@@ -10,8 +10,8 @@
 
 ## 2. ReactJS入门
 
-> 此部分内容为前端知识，详见[《ReactJs笔记》](/03-前端资料/04-React/01-ReactJs笔记)
+> 此部分内容为前端知识，详见[《ReactJs笔记》](/03-前端资料/04-React/01-React.js)
 
 在线文档：
 
-[ReactJs 笔记](https://moonzero.gitee.io/code-learning-note/#/03-%E5%89%8D%E7%AB%AF%E8%B5%84%E6%96%99/04-React/01-ReactJs%E7%AC%94%E8%AE%B0)
+[ReactJs 笔记](https://moonzero.gitee.io/code-learning-note/#/03-前端资料/04-React/01-React.js)

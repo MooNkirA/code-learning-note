@@ -776,7 +776,7 @@ body {
 
 ### 4.2. Bootstrap 前端开发框架
 
-Bootstrap 框架笔记详见[《Bootstrap 基础入门》](/03-前端资料/05-Bootstrap/01-Bootstrap基础)章节
+Bootstrap 框架笔记详见[《Bootstrap 基础入门》](/03-前端资料/05-Bootstrap/01-Bootstrap)章节
 
 ### 4.3. 响应式布局案例 - 仿阿里百秀首页
 
