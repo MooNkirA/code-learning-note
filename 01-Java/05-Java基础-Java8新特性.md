@@ -731,7 +731,7 @@ interface Operator {
 
 ### 3.4. 常用内置函数式接口
 
-#### 3.4.1. Supplier接口
+#### 3.4.1. Supplier 接口
 
 ```java
 @FunctionalInterface
@@ -1175,6 +1175,78 @@ public class Demo08PredicateAndOrNegate {
         }
         System.out.println("test()方法执行结束...");
     }
+}
+```
+
+### 3.5. 函数式接口应用示例
+
+#### 3.5.1. 实现对象通用 Builder 链式设置属性值
+
+1. 创建测试实体类
+
+```java
+public class User {
+
+    private String userName;
+    private int age;
+    // ...更多其他的属性
+    // ...省略 setter/getter
+}
+```
+
+2. 利用 `Supplier` 与 `Consumer` 函数式接口特性，实现通用对象 Builder
+
+```java
+public class CommonBuilder<T> {
+
+    private final Supplier<T> instantiator;
+    private List<Consumer<T>> modifiers = new ArrayList<>();
+
+    public CommonBuilder(Supplier<T> instantiator) {
+        this.instantiator = instantiator;
+    }
+
+    public static <T> CommonBuilder<T> of(Supplier<T> instantiator) {
+        return new CommonBuilder<>(instantiator);
+    }
+
+    public <V> CommonBuilder<T> with(ValueConsumer<T, V> consumer, V v) {
+        Consumer<T> c = instance -> consumer.accept(instance, v);
+        modifiers.add(c);
+        return this;
+    }
+
+    public T build() {
+        // 获取创建的对象
+        T value = instantiator.get();
+        // 循环所有消费方法，设置对象属性值
+        modifiers.forEach(modifier -> modifier.accept(value));
+        modifiers.clear();
+        return value;
+    }
+
+    // 自定义消费函数式接口
+    @FunctionalInterface
+    public interface ValueConsumer<T, V> {
+        void accept(T t, V v);
+    }
+}
+```
+
+> Tips: 可以参考示例自定义的函数式接口，按需求支持多个参数的设置属性方法。
+
+3. 测试
+
+```java
+@Test
+public void test() {
+    CommonBuilder<User> builder = CommonBuilder.of(User::new);
+    User user = builder
+            .with(User::setUserName, "MooN")
+            .with(User::setAge, 28)
+            .build();
+
+    System.out.println(user);
 }
 ```
 

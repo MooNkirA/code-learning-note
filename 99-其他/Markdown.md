@@ -875,3 +875,7 @@ body {
 - [Rainbow](https://github.com/garyzhang2002/typora-theme-rainbow)
 
 ![](https://theme.typoraio.cn/media/theme/rainbow/pic1.png)
+
+- [typora-vue-theme](https://github.com/blinkfox/typora-vue-theme)
+
+![](images/503284308220851)

@@ -1364,7 +1364,7 @@ public final Object readObject()
 
 ![](images/20201105141312805_17748.png)
 
-### 4.2. 瞬态关键字 `transient`
+### 4.2. 瞬态关键字 transient
 
 序列化对象时，如果不想保存某一个成员变量的值，该如何处理？
 
@@ -2553,6 +2553,32 @@ MySQL数据连接时只能使用localhost连接，但不能用IP连接问题的�
     flush privileges;
     ```
 5. 之后关闭mysql服务，然后启动mysql服务，大功告成
+
+#### 3.3.6. mysql 8.0+以上版本驱动连接失败
+
+使用 mysql 8.0+ 版本后，一些项目连接数据会报以下的错误：
+
+```
+java.sql.SQLNonTransientConnectionException:Public key Retrieval is not allowed…
+```
+
+此时需要修改数据库的连接，增加如下配置：
+
+1. `useSSL=false` MySQL 8.0 以上版本不需要建立 SSL 连接的，需要显示关闭
+2. `allowPublicKeyRetrieval=true` 允许客户端从服务器获取公钥。
+3. `serverTimezone=UTC` 设置时区，mysql驱动8.0+也要指定时区，不然也会报一些错
+
+```yml
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/test_db?characterEncoding=utf-8&useSSL=false&useUnicode=true&allowPublicKeyRetrieval=true&serverTimezone=UTC
+    driverClassName: com.mysql.cj.jdbc.Driver
+    username: root
+    password: 123456
+    type: com.alibaba.druid.pool.DruidDataSource # 设置使用的数据源类型
+```
+
+> Notes: 如果使用的 mysql 是 8.0+，建议最好把以上三个参数设置下，避免发生一些莫名错误。
 
 ### 3.4. Connection 接口
 
