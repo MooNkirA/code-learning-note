@@ -661,6 +661,7 @@ class Car implements Vehicle, FourWheeler {
 函数式接口在Java中是指：**有且仅有一个抽象方法的接口**
 
 - 函数式接口(FunctionalInterface)就是一个有且仅有一个抽象方法的接口，但可以有多个默认方法，静态方法
+- 接口默认继承 `java.lang.Object`，所以如果接口显示声明覆盖了 `Object` 中方法，那么也不算抽象方法。
 - 函数式接口可以被隐式转换为 lambda 表达式
 - 函数式接口可以现有的函数友好地支持 lambda 表达式
 
