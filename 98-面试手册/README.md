@@ -5,7 +5,8 @@
 ## 1. Java 专题
 
 <ul class="docs">
-  <li><a href="#/98-面试手册/01-Java基础面试题">Java 基础面试题</a></li>
+  <li><a href="#/98-面试手册/Java/面试题-Java基础">Java 基础面试题</a></li>
+  <li><a href="#/98-面试手册/Java/面试题-Java多线程">Java 多线程面试题</a></li>
 </ul>
 
 ## 2. 数据库专题
