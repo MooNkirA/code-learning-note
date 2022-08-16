@@ -10,29 +10,43 @@
 
 ## 2. Github 搜索技巧
 
-### 2.1. 通过in关键词限制搜索范围
+### 2.1. 通过 in 关键词限制搜索范围
 
 - `xxx in:name` ：项目名包含xxx的
 - `xxx in:description` ：项目描述包含xxx的
 - `xxx in:readme` ：项目的readme文件中包含xxx的
 
-当然也可以通过xxx in:name,desciption来组合使用
+当然也可以通过 `xxx in:name,desciption` 来组合使用
 
-### 2.2. 通过 Star 或者 Fork 数去查找项目
+![](images/244232022220857)
 
-通过通配符 `> < =` 即可，区间范围内可通过`num1..num2`，具体操作如下：
+### 2.2. 查找某个用户或组织的项目
 
-- 要查找stars数不小于666的springboot项目，搜索：`springboot  stars:>=666`
+![](images/96072122239283)
+
+### 2.3. 通过辅助限定词查询项目
+
+可以通过限制 `项目大小(size)`、`拥护者数(followers)`、`fork数(forks)`、`stars数(stars)`、`创建时间(created)`、`更新时间(pushed)`、`项目所用语言(language)`、`topic标签(topic)`、`topic标签数(topics)`...来筛选项目
+
+辅助限定词可以多个并用，用空格隔开，可以搭配限定词使用，也可单独使用。通过通配符 `>`、`<`、`=` 指定搜索区间，区间范围内可通过`num1..num2`，具体操作如下：
+
+- 要查找stars数不小于666的springboot项目，搜索：`in:name springboot  stars:>=666`
 - forks大于等于500，搜索：`springboot forks:>500`
 - 查找fork在100到200之间且stars数在80到100之间的springboot项目，搜索：`springboot forks:100..200 stars:80..100`
+- 查出项目大小小于 1MB 的项目，搜索：`size:<=1000`
+- 查出项目名字中有 python 且小于 1MB 的项目，搜索：`in:name python size:<=1000`
 
-### 2.3. awesome + 关键字
+具体限制词如下：
+
+![](images/261402122227150)
+
+### 2.4. awesome + 关键字
 
 搜索和关键字匹配的优秀项目
 
 输入`awesome springboot`，搜索优秀的springboot相关的项目，包括框架、教程等
 
-### 2.4. 分享项目中某一行的代码
+### 2.5. 分享项目中某一行的代码
 
 只需要在具体的网址后面拼接`#Lxx`(xx为行数)
 
@@ -54,7 +68,7 @@ https://github.com/lxy-go/SpringBoot/blob/master/SpringBoot/DataJpaApplication.j
 
 ![分享项目中某一行的代码2](images/20190421130615530_6615.jpg)
 
-### 2.5. 项目内搜索
+### 2.6. 项目内搜索
 
 打开想要搜索的项目，然后按一下【`T`】键。会跳转至一个新的网页，
 
@@ -66,7 +80,7 @@ https://github.com/lxy-go/SpringBoot/blob/master/SpringBoot/DataJpaApplication.j
 
 类似的页面内快捷键还有很多，常用的还有【`L`】, 在文件内跳转到多少行。更多快捷键可以查看官方文档：https://help.github.com/en/articles/using-keyboard-shortcuts
 
-### 2.6. 搜索某个地区内的大佬
+### 2.7. 搜索某个地区内的大佬
 
 可以通过`location:地区`进行检索，在具体可以通过`language:语言`缩小检索范围
 

@@ -13,7 +13,8 @@
   <li><a href="#/01-Java/06-Java基础-JDK常用API">Java基础-JDK常用API</a></li>
   <li><a href="#/01-Java/07-Java基础-类加载器、反射">Java基础-类加载器、反射</a></li>
   <li><a href="#/01-Java/08-Java基础-IO编程">Java基础-IO编程</a></li>
-  <li><a href="#/01-Java/09-Java基础-JPA">Java基础-JPA</a></li>
+  <li><a href="#/01-Java/09-Java基础-JDBC">Java基础-JDBC（JDBC、DBUtils、JPA）</a></li>
+  <li><a href="#/01-Java/10-Java基础-网络编程">Java基础-网络编程</a></li>
   <li><a href="#/01-Java/19-Java基础-排序算法">Java基础-排序算法</a></li>
   <li><a href="#/01-Java/20-设计模式">设计模式</a></li>
   <li><a href="#/01-Java/Java案例">Java案例</a></li>
