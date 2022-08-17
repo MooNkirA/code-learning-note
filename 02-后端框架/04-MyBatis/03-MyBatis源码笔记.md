@@ -32,9 +32,10 @@ MyBatis 源码共 16 个模块，可以分成三层
 
 ![MyBatis源码分层图](images/20191124080724586_23071.png)
 
-- 基础支撑层：技术组件专注于底层技术实现，通用性较强无业务含义；
-- 核心处理层：业务组件专注 MyBatis 的业务流程实现，依赖于基础支撑层；
-- 接口层：MyBatis 对外提供的访问接口，面向 SqlSession 编程；
+
+- 接口层：MyBatis 对外提供的访问接口，面向 SqlSession 编程，开发人员通过这些本地API来操纵数据库。接口层一接收到调用请求就会调用数据处理层来完成具体的数据处理。
+- 核心（数据）处理层：负责具体的SQL查找、SQL解析、SQL执行和执行结果映射处理等。它主要的目的是根据调用的请求完成一次数据库操作。业务组件专注 MyBatis 的业务流程实现，依赖于基础支撑层
+- 基础支撑层：负责最基础的功能支撑，包括连接管理、事务管理、配置加载和缓存处理等等共用的功能，将它们抽取出来作为最基础的组件。为上层的数据处理层提供最基础的支撑。技术组件专注于底层技术实现，通用性较强无业务含义
 
 > 拓展思考问题：系统为什么要分层？
 >
@@ -329,9 +330,9 @@ JDK 中生成代理对象主要涉及两个类/接口
 
 数据源模块重点：数据源的创建和数据库连接池（*池化技术*）的源码分析；数据源创建比较复杂，对于复杂对象的创建，可以考虑使用工厂模式来优化，接下来介绍下简单工厂模式和工厂模式
 
-### 4.1. 简单工厂模式
+### 4.1. 简单工厂模式（未整理）
 
-### 4.2. 工厂模式
+### 4.2. 工厂模式(未整理)
 
 ### 4.3. 数据源的创建
 
@@ -1396,9 +1397,9 @@ public Executor newExecutor(Transaction transaction, ExecutorType executorType) 
 ![](images/20210325101254008_25584.png)
 
 - `BaseExecutor`：抽象类，实现了`Executor`接口的大部分方法，主要提供了缓存管理和事务管理的能力，其他子类需要实现的抽象方法为：`doUpdate`、`doQuery`等方法
-    - `BatchExecutor`：批量执行所有更新语句，基于 jdbc 的 batch 操作实现批处理。不建议使用，效率不高。如果涉及批量操作，推荐使用原生的JDBC的`clearbatch`的API
+    - `BatchExecutor`：基于 jdbc 的 batch 操作实现批处理，批量执行所有更新语句（没有select，JDBC批处理不支持select），将所有 SQL 都添加到批处理中（`addBatch()`），等待统一执行（`executeBatch()`），它缓存了多个 `Statement` 对象，每个 `Statement` 对象都是 `addBatch()` 执行完毕后，等待逐一执行 `executeBatch()` 批处理。不建议使用，效率不高。**如果涉及批量操作，推荐使用原生的JDBC的`clearbatch`的API**
     - `SimpleExecutor`：默认执行器，每次执行都会创建一个`statement`对象，用完后关闭。比较鸡肋。
-    - `ReuseExecutor`：可重用执行器，将`statement`对象存入缓存的Map中，操作Map中的`statement`而不会重复创建。在不做大量的更新/新增操作的情况下，推荐使用。
+    - `ReuseExecutor`：可重用执行器，执行 update 或 select 语句后，以 sql 作为 key 在`Map<String, Statement>`的集合内查找 `Statement` 对象，存在就使用，不存在则创建。使用完后，不关闭 `Statement` 对象，并将 `Statement` 对象存入缓存的 Map 中，以后操作 Map 中的 `Statement` 对象而不会重复创建。在不做大量的更新/新增操作的情况下，推荐使用。
 - `CachingExecutor`：使用装饰器模式，对真正提供数据库查询的`Executor`增强了二级缓存的能力，具体生成此增加的位置在`DefaultSqlSessionFactory.openSessionFromDataSource`方法中，会判断是否开启了`<settings>`节点`cacheEnabled`配置，如开启则将原`Executor`实例包装成`CacheingExecutor`
 
 ![](images/20210325102521004_25881.png)
@@ -2733,9 +2734,19 @@ public void testSingleTableCollection() throws Exception {
 </resultMap>
 ```
 
-## 6. MyBatis 懒加载原理
+## 6. MyBatis 懒加载（延迟加载）原理
 
-### 6.1. 懒加载情况下的嵌套查询测试
+### 6.1. MyBatis 对懒加载的支持
+
+Mybatis 仅支持 association 关联对象（一对一查询）和 collection 关联集合对象（一对多查询）的延迟加载。在 Mybatis 配置文件中，可以配置是否启用延迟加载 `lazyLoadingEnabled=true|false`。
+
+### 6.2. 懒加载实现原理
+
+它的原理是，使用 CGLIB 创建目标对象的代理对象，当调用目标方法时，进入拦截器方法，比如调用 `a.getB().getName()`，拦截器 `invoke()` 方法发现 `a.getB()` 是 null 值，那么就会单独发送事先保存好的查询关联B对象的sql，获取B的查询结果，然后调用 `a.setB(b)`，于是a的对象b属性就有值了，接着完成 `a.getB().getName()` 方法的调用。这就是延迟加载的基本原理。
+
+> Tips: 不光是 Mybatis，几乎所有的持久层框架（包括 Hibernate），支持延迟加载的原理都是一样的。
+
+### 6.3. 懒加载情况下的嵌套查询测试
 
 在`collection`标签中加上`fetchType="lazy"`即可
 
@@ -2761,11 +2772,9 @@ resultMap id="ContractResultMapWithIdCardInfo" type="com.moon.mybatis.pojo.Consu
 
 ![](images/20210503225149463_32635.png)
 
-### 6.2. 懒加载的逻辑处理源码分析
+### 6.4. 懒加载的逻辑处理源码分析
 
-与非懒加载的情况不一样，如果是懒加载的情况，在`ResultSetHandler`组件循环处理结果封装时，不是直接返回结果对象，而是返回结果的代理对象，从而在调用相应获取属性的方法时，就会触发嵌套查询的语句。
-
-所以懒加载的逻辑处理源码位置肯定会在`ResultSetHandler`组件处理结果集的位置
+与非懒加载的情况不一样，如果是懒加载的情况，在`ResultSetHandler`组件循环处理结果封装时，不是直接返回结果对象，而是返回结果的代理对象，从而在调用相应获取属性的方法时，就会触发嵌套查询的语句。所以懒加载的逻辑处理源码位置肯定会在`ResultSetHandler`组件处理结果集的位置
 
 ![](images/20210503231500807_16757.png)
 

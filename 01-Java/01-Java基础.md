@@ -1944,6 +1944,7 @@ public class BaseDao<T> implements Dao<T>{
 - Annatation(注解)是一个接口，程序可以通过反射来获取指定程序中元素的 Annotation 对象，然后通过该 Annotation 对象来获取注解中的元数据信息。
 
 ### 1.2. 注解作用
+
 #### 1.2.1. 注解使用例子
 
 - 编译检查，如`@Override`。
@@ -2070,8 +2071,47 @@ public @interface T_T {
 
 **@Documented作用**：表示该注解会出现在帮忙文档（javadoc）中。描述其它类型的 annotation 应该被作为被标注的程序成员的公共 API，因此可以被例如 javadoc 此类的工具文档化。
 
-## 5. 注解解析
-### 5.1. 解析原则
+## 5. 注解的原理
+
+### 5.1. Annotation 接口
+
+所有注解类型的公共接口，所有注解都是 `java.lang.annotation.Annotation` 的子类(类似所有类都 Object 的子类)
+
+### 5.2. AnnotatedElement 接口
+
+该接口中定义了一系列与注解解析相关的方法。**注：当前对象是指方法调用者**
+
+```java
+boolean isAnnotationPresent(Class<T> annotationClass)
+```
+
+- 判断当前对象是否使用了指定annotationClass的注解。如果使用了，则返回true，否则返回false
+
+```java
+T getAnnotation(Class<T> annotationClass)
+```
+
+- 根据注解的Class类型获得当前对象上指定的注解对象（注解类的对象)。需要向下转型成注解的类型，然后才能调用注解里的属性。
+
+```java
+Annotation[] getAnnotations()
+```
+
+- 获得当前对象及其从父类上继承的所有的注解对象数组
+
+```java
+Annotation[] getDeclaredAnnotations()
+```
+
+- 获得类中所有声明的注解，不包括父类的
+
+### 5.3. 注解原理简述
+
+注解本质是一个继承了 `Annotation` 的特殊接口，其具体实现类是 Java 运行时生成的动态代理类。通过反射获取注解时，返回的是 Java 运行时生成的动态代理对象。通过代理对象调用自定义注解的方法，最终会调用 `AnnotationInvocationHandler` 的 `invoke` 方法。该方法会从 `memberValues` 这个 Map 中索引出对应的值。而 `memberValues` 的来源是 Java 常量池。
+
+## 6. 注解解析
+
+### 6.1. 解析原则
 
 注解作用在哪个成员上，就通过该成员对应的对象获得注解对象。
 
@@ -2084,35 +2124,7 @@ Method method = clazz.getDeclaredMethod("方法名");
 注解类 xx = (注解类) method.getAnnotation(注解类名.class);
 ```
 
-### 5.2. Annotation 接口
-
-所有注解类型的公共接口，所有注释都是Annotation的子类，类似Object
-
-### 5.3. AnnotatedElement 接口
-
-该接口中定义了一系列与注解解析相关的方法。
-
-#### 5.3.1. AnnotatedElement 接口常用方法
-
-```java
-boolean isAnnotationPresent(Class<T> annotationClass)
-    // 判断当前对象是否使用了指定annotationClass的注解。
-    // 如果使用了，则返回true，否则返回false
-
-T getAnnotation(Class<T> annotationClass)
-    // 根据注解的Class类型获得当前对象上指定的注解对象（注解类的对象)。
-    // 需要向下转型成注解的类型，然后才能调用注解里的属性。
-
-Annotation[] getAnnotations()
-    // 获得当前对象及其从父类上继承的所有的注解对象数组
-
-Annotation[] getDeclaredAnnotations()
-    // 获得类中所有声明的注解，不包括父类的
-```
-
-**注：当前对象是指方法调用者**
-
-### 5.4. 注解解析案例
+### 6.2. 注解解析案例
 
 ```java
 package level02.test02;

@@ -12,25 +12,25 @@ MyBatis可以将向preparedStatement中的输入参数自动进行输入映射�
 
 > 下载地址：https://github.com/mybatis/mybatis-3/releases
 >
-> Mybatis中文文档：https://mybatis.org/mybatis-3/zh/
+> Mybatis中文文档：https://mybatis.org/mybatis-3/zh/index.html
 
 ### 1.2. MyBatis框架执行流程
 
 ![MyBatis框架执行流程](images/20200621084037450_14336.jpg)
 
-1. SqlSessionFactoryBuilder：读取配置文件内容。返回框架的核心对象SqlSessionFactory
+1. SqlSessionFactoryBuilder：读取配置文件内容。返回框架的核心对象 SqlSessionFactory
     - `SqlMapConfig.xml`（是mybatis的全局配置文件，名称不固定的）：配置了数据源、事务等mybatis运行环境
     - `mapper1.xml（映射文件）、mapper2.xml、mapperN.xml.....	`：配置映射文件（配置sql语句），相当于每个实体类与数据库映射
-2. SqlSessionFactory（会话工厂），根据配置文件创建工厂。
+2. SqlSessionFactory（会话工厂），根据配置文件创建会话工厂。一旦被创建就应该在应用的运行期间一直存在，是单例。
     - 作用：创建SqlSession
-3. SqlSession（会话），是一个接口，面向用户（程序员）的接口。
-    - 作用：操作数据库（发出sql增、删、改、查）
+3. SqlSession（会话），是一个接口，面向用户（程序员）的接口。由会话工厂 SqlSessionFactory 创建，每个线程都有它自己的 SqlSession 实例。
+    - 作用：该对象中包含了执行 SQL 语句的所有方法。发送 SQL 操作数据库（增、删、改、查）
 4. Executor（执行器），是一个接口（基本执行器、缓存执行器）。
-    - 作用：SqlSession内部通过执行器操作数据库
-5. mappedStatement（底层封装对象，输入输出映射对象，ParameterType参数输入，ResultType）
+    - 作用：根据 SqlSession 传递的参数动态地生成需要执行的 SQL 语句来操作数据库，同时负责查询缓存的维护。
+5. MappedStatement（底层封装对象，输入输出映射对象，ParameterType参数输入，ResultType）：在 Executor 接口的执行方法中有一个 MappedStatement 类型的参数，该参数是对映射信息的封装，用于存储要映射的 SQL 语句的 id、参数等信息。
     - 作用：对操作数据库存储封装，包括 sql语句，**输入参数、输出结果类型**
-    - 输入参数类型（java基本数据类型、HashMap、自定义类）
-    - 输出结果类型（java基本数据类型、HashMap、自定义类）
+    - 输入参数映射：输入参数类型可以是java基本数据类型、Map、List 等集合类型、自定义 POJO 类等。输入参数映射过程类似于 JDBC 对 `PreparedStatement` 对象设置参数的过程
+    - 输出结果映射：输出结果类型可以是java基本数据类型、Map、List 等集合类型、自定义 POJO 类等。输出结果映射过程类似于 JDBC 对结果集的解析过程
 6. 操作数据库
 
 ## 2. MyBatis基本使用
@@ -2029,10 +2029,11 @@ public void queryUsersAndOrdersTest() {
 | `<cache>`     |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | <font color=red>（不使用）</font>配置给定命名空间缓存      | `<mapper>` |
 | `<cache-ref>` |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       | <font color=red>（不使用）</font>从其他命名空间引用缓存配置 | `<mapper>` |
 
-### 6.13. 占位符#{}和字符串拼接符${}的区别总结
+### 6.13. 占位符 #{} 和字符串拼接符 ${} 的区别总结
+
 #### 6.13.1. #{} 占位符
 
-- `#{}`表示一个占位符号，`#{}`接收输入参数，类型可以是简单类型（八种基本类型+字符串String），pojo、hashmap。
+- `#{}`表示一个占位符号，用于预编译处理，`#{}`接收输入参数，类型可以是简单类型（八种基本类型+字符串String），pojo、hashmap。
 - <font color=red>**如果接收简单类型，`#{}`中可以写成value或其它名称**</font>。
 - `#{}`接收pojo对象值，通过OGNL读取对象中的属性值，如果实体类中属性是引用类型，通过`属性.属性.属性...`的方式获取对象属性值
 
@@ -2049,6 +2050,36 @@ public void queryUsersAndOrdersTest() {
 ![](images/20200621114324110_19957.jpg)
 
 ![](images/20200621114336039_6827.jpg)
+
+#### 6.13.4. 应用案例 - 模糊查询like语句
+
+1. 使用`${}`拼接，可能引起SQL注入，不推荐
+
+```sql
+select * from user where username like '%${username}%'
+```
+
+2.  使用`#{}`拼接。 注意：因为`#{…}`解析成sql语句时候，会在变量外侧自动加单引号`''`，所以这里 `%` 需要使用双引号`""`包裹，不能使用单引号`''`，不然会查不到任何结果。
+
+```sql
+select * from user where username like "%"#{username}"%"
+```
+
+3. 使用 `CONCAT` 函数拼接（推荐）
+
+```sql
+select * from user where username like CONCAT('%', #{username}, '%')
+```
+
+4. 使用 `<bind>` 标签
+
+```xml
+<select id="listUserLikeUsername" resultType="com.moon.pojo.User">
+    <bind name="pattern" value="'%' + username + '%'" />
+    select * from user where username like #{pattern}
+</select>
+```
+
 
 ## 7. MyBatis 动态 SQL
 
@@ -2078,7 +2109,7 @@ MyBatis中用于实现动态SQL的元素，主要存放在`<select>`标签中
 
 ![](images/20200621120321367_6088.jpg)
 
-### 7.2. `<if>` 标签
+### 7.2. if 标签
 
 作用：根据判断条件是否拼接标签体内的内容
 
@@ -2103,7 +2134,7 @@ MyBatis中用于实现动态SQL的元素，主要存放在`<select>`标签中
 
 ![](images/20200621120614153_30466.jpg)
 
-### 7.3. `<where>` 标签
+### 7.3. where 标签
 
 为了解决`<if>`标签判断后会出现错误拼接sql语句，使用`<where>`标签，将SQL语句中where替换成`<where>`标签。其作用如下：
 
@@ -2129,7 +2160,7 @@ MyBatis中用于实现动态SQL的元素，主要存放在`<select>`标签中
 </select>
 ```
 
-### 7.4. `<set>` 标签
+### 7.4. set 标签
 
 标签作用：
 
@@ -2159,15 +2190,25 @@ MyBatis中用于实现动态SQL的元素，主要存放在`<select>`标签中
 </update>
 ```
 
-### 7.5. `<sql>` 标签(sql片段)（`<include>` 标签引用）
+### 7.5. sql 标签(sql片段)（include 标签引用）
 
 作用：提取公共的sql语句片段。再使用`<include>`标签进行引用
 
 ![](images/20200621121554299_14871.jpg)
 
-### 7.6. `<foreach>` 标签
+### 7.6. foreach 标签
 
-作用：循环遍历处理参数集合（List、数组）
+`<foreach>` 标签作用是，循环遍历处理参数集合（List、数组）。主要的属性如下：
+
+- `collection`：参数集合（必须指定），但是在不同情况下，该属性的值是不一样的，主要有一下3种情况：
+    - 如果传入的是单参数且参数类型是一个 List 集合，`collection` 属性值为 `list`
+    - 如果传入的是单参数且参数类型是一个 array 数组，`collection` 的属性值为 `array`
+    - 如果传入的是一个Map或者实体类，此时 `collection` 属性值是需要遍历的集合或数组所对应 Map 的 key 值或者实体类的属性名称
+- `item`：表示集合中每一个元素进行迭代时的别名，随便起的变量名；
+- `index`：指定一个名字，用于表示在迭代过程中，每次迭代到的位置，不常用；
+- `open`：表示该语句以什么开始，常用“`(`”；
+- `separator`：表示在每次进行迭代之间以什么符号作为分隔符，常用“`,`”；
+- `close`：表示该语句以什么结束，常用“`)`”。
 
 #### 7.6.1. 示例1：批量新增用户
 
@@ -2283,7 +2324,7 @@ public void batchDeleteUsersTest() {
 
 <font color=purple>*批量删除时需要注意：在foreach标签中，collection的取值只能是array，如果是“list”会报错*</font>
 
-### 7.7. `<choose>`、`<when>`、`<otherwise>`标签
+### 7.7. choose、when、otherwise 标签
 
 `choose` 元素，它有点像 Java 中的 `switch` 语句
 
@@ -2308,7 +2349,7 @@ Code Demo:
 </select>
 ```
 
-### 7.8. `<trim>` 标签
+### 7.8. trim 标签
 
 `<trim>`标签是一个格式化的标记，可以完成`<set>`或者是`<where>`标签的功能，示例代码如下：
 
@@ -2354,7 +2395,7 @@ Code Demo2:
 
 在mybatis的mapper配置文件sql语句中，有时用到大于，小于等等的比较符，直接写在里面就被当做标签的开头来处理了，会报格式不正确的错。有2种解决方法：
 
-#### 7.9.1. `<![CDATA[   ]]>`标识
+#### 7.9.1. `<![CDATA[   ]]>` 标识
 
 ```xml
 <if test="menu.authority != null">
@@ -3411,5 +3452,13 @@ int update(String statement, Object parameter)
 
 注：在动态代理对象调用`selectOne`和`selectList`是根据mapper接口方法的返回值决定，如果返回list则调用`selectList`方法，如果返回单个对象则调用`selectOne`方法。
 
+## 4. 预编译
 
+### 4.1. 定义
+
+SQL 预编译指的是数据库驱动在发送 SQL 语句和参数给 DBMS 之前对 SQL 语句进行编译，这样 DBMS 执行 SQL 时，就不需要重新编译。
+
+### 4.2. 为什么需要预编译
+
+JDBC 中使用对象 `PreparedStatement` 来抽象预编译语句，使用预编译。预编译阶段可以优化 SQL 的执行。预编译之后的 SQL 多数情况下可以直接执行，DBMS 不需要再次编译，越复杂的SQL，编译的复杂度将越大，预编译阶段可以合并多次操作为一个操作。同时预编译语句对象可以重复利用。把一个 SQL 预编译后产生的 `PreparedStatement` 对象缓存下来，下次对于同一个SQL，可以直接使用这个缓存的对象。**Mybatis 默认情况下，将对所有的 SQL 进行预编译**。
 

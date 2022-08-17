@@ -21,7 +21,7 @@ JDBC需要连接驱动，驱动是两个设备要进行通信，满足一定通�
 - 连接字符串：jdbc:mysql://localhost:3306/数据库?参数名=参数值
 - 数据库驱动类：com.mysql.jdbc.Driver
 
-### 2.2. JDBC 开发步骤
+### 2.2. JDBC 开发步骤（以 MySQL 为例）
 
 1. 加载并注册数据库驱动，即告知JVM使用的是哪一个数据库的驱动，通常使用反射技术 `Class.forName()` 方法将驱动类加入到内存中。
     ```java
