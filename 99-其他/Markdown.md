@@ -864,18 +864,7 @@ body {
 个人推荐主题：
 
 - [Typora Docsify](https://github.com/Erimus-Koo/theme_typora_docsify)
-
-![](https://theme.typoraio.cn/media/theme/typora-docsify/typora_docsify_compare.png)
-
 - [See Yue 主题](https://github.com/jinghu-moon/typora-see-yue-theme)
-
-![](https://theme.typoraio.cn/media/theme/see-yue/1.png)
-
 - [Drake](https://github.com/liangjingkanji/DrakeTyporaTheme)
 - [Rainbow](https://github.com/garyzhang2002/typora-theme-rainbow)
-
-![](https://theme.typoraio.cn/media/theme/rainbow/pic1.png)
-
 - [typora-vue-theme](https://github.com/blinkfox/typora-vue-theme)
-
-![](images/503284308220851)
