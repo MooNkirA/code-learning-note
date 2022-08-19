@@ -801,7 +801,7 @@ Size：规定文本的尺寸大小。可能的值：从 1 到 7 的数字。浏�
 - 半方大的空白`&ensp;`或`&#8194;`
 - 全方大的空白`&emsp;`或`&#8195;`
 - 不断行的空白格`&nbsp;`或`&#160;`
-    
+  
 ### 5.2. 方式二
 
 在段落首输入如下代码，实现首行缩进
@@ -868,3 +868,4 @@ body {
 - [Drake](https://github.com/liangjingkanji/DrakeTyporaTheme)
 - [Rainbow](https://github.com/garyzhang2002/typora-theme-rainbow)
 - [typora-vue-theme](https://github.com/blinkfox/typora-vue-theme)
+- [typora-theme-next](https://github.com/BillChen2k/typora-theme-next)

@@ -582,14 +582,28 @@ GC（Gabage Collection）垃圾收集，Java 提供的 GC 功能可以自动监�
 
 > Notes: Java 8 中已经移除了永久代，新加了一个叫做元数据区的 native 内存区
 
+## 6. JVM 调优
 
+### 6.1. 调优的工具
 
+JDK 自带了很多监控工具，都位于 JDK 的 bin 目录下，其中最常用的是jconsole 和 jvisualvm 这两款视图监控工具。
 
+- jconsole：用于对 JVM 中的内存、线程和类等进行监控；
+- jvisualvm：JDK 自带的全能分析工具，可以分析：内存快照、线程快照、程序死锁、监控内存的变化、gc 变化等。
 
+### 6.2. 常用的 JVM 调优的参数
 
+- `-Xms2g`：初始化推大小为 2g；
+- `-Xmx2g`：堆最大内存为 2g；
+- `-XX:NewRatio=4`：设置年轻的和老年代的内存比例为 1:4；
+- `-XX:SurvivorRatio=8`：设置新生代 Eden 和 Survivor 比例为 8:2；
+- `–XX:+UseParNewGC`：指定使用 ParNew + Serial Old 垃圾回收器组合；
+- `-XX:+UseParallelOldGC`：指定使用 ParNew + ParNew Old 垃圾回收器组合；
+- `-XX:+UseConcMarkSweepGC`：指定使用 CMS + Serial Old 垃圾回收器组合；
+- `-XX:+PrintGC`：开启打印 gc 信息；
+- `-XX:+PrintGCDetails`：打印 gc 详细信息。
 
-
-## 6. JVM指令手册（了解）
+## 7. JVM指令手册（了解）
 
 ```
 栈和局部变量操作 
