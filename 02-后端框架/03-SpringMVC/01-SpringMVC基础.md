@@ -8,13 +8,13 @@
 
 Spring Web MVC 是基于 Servlet API 上， MVC 的表现层的 Web 框架，用于 web 项目的开发，也可以称为 "Spring MVC"。是 Spring 框架的一个模块（一部分），包含在 Spring Framework 中 spring-webmvc 模块。Spring MVC 和 Spring 无需通过中间整合层进行整合。
 
-与 Spring Web MVC 并行，Spring Framework 5.0 引入了一个新 Web 框架 Spring WebFlux，具体在 spring-webflux 模块。（*此框架本笔记中不涉及，详见其他笔记*）
+与 Spring Web MVC 并行，Spring Framework 5.0 引入了一个新 Web 框架 Spring WebFlux，具体在 spring-webflux 模块。（_此框架本笔记中不涉及，详见其他笔记_）
 
 > Spring MVC 的 jar 包：`spring-webmvc-x.x.x.RELEASE.jar` 或者 `spring-webmvc-x.x.x.jar`
 
 ![](images/359331311220567.png)
 
-### 1.2. MVC 是什么(b/s系统)
+### 1.2. MVC 是什么(b/s 系统)
 
 mvc 是一种设计模式。模型（model） --> 视图（view） --> 控制器（controller），三层架构设计模式，主要用于实现前端页面的展现和后端业务数据处理逻辑分离
 
@@ -38,9 +38,9 @@ mvc 设计模式的优点：
 
 ### 2.2. 快速入门案例
 
-#### 2.2.1. 创建maven项目，配置依赖
+#### 2.2.1. 创建 maven 项目，配置依赖
 
-创建 war 类型的 maven 项目，配置 pom.xml 文件，加入依赖。除了需要加入 Spring MVC 相关依赖外，还需要配置jdk和tomcat7插件(用于打包部署，如果直接使用 idea 运行测试，则也可省略)
+创建 war 类型的 maven 项目，配置 pom.xml 文件，加入依赖。除了需要加入 Spring MVC 相关依赖外，还需要配置 jdk 和 tomcat7 插件(用于打包部署，如果直接使用 idea 运行测试，则也可省略)
 
 > 注：快速入门示例只需要依赖 spring-webmvc 依赖，因为此依赖包含了 Spring 的 aop、beans、context、core、expression、web 等
 
@@ -107,7 +107,7 @@ mvc 设计模式的优点：
 
 #### 2.2.2. 创建相关的配置文件
 
-- 创建`springmvc.xml`文件，springmvc框架的主配置文件（文件名称是可以修改的），配置组件扫描controller
+- 创建`springmvc.xml`文件，springmvc 框架的主配置文件（文件名称是可以修改的），配置组件扫描 controller
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
@@ -116,18 +116,18 @@ mvc 设计模式的优点：
 	xmlns:p="http://www.springframework.org/schema/p"
 	xmlns:context="http://www.springframework.org/schema/context"
 	xmlns:mvc="http://www.springframework.org/schema/mvc"
-	xsi:schemaLocation="http://www.springframework.org/schema/beans 
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
 		http://www.springframework.org/schema/beans/spring-beans.xsd
-		http://www.springframework.org/schema/mvc 
+		http://www.springframework.org/schema/mvc
 		http://www.springframework.org/schema/mvc/spring-mvc.xsd
-		http://www.springframework.org/schema/context 
+		http://www.springframework.org/schema/context
 		http://www.springframework.org/schema/context/spring-context.xsd">
 	<!-- 配置开启扫描controller -->
 	<context:component-scan base-package="com.moon.controller" />
 </beans>
 ```
 
-- 创建`web.xml`文件，配置前端控制器DispatcherServlet
+- 创建`web.xml`文件，配置前端控制器 DispatcherServlet
 
 ```xml
 <!-- 配置前端控制器DispatcherServlet -->
@@ -160,7 +160,7 @@ mvc 设计模式的优点：
 
 #### 2.2.3. 创建控制器（controller）
 
-相当于struts2框架中的action
+相当于 struts2 框架中的 action
 
 ```java
 // 使用注解让spring容器管理
@@ -169,7 +169,7 @@ public class DemoController {
 	/*
 	 * @RequestMapping：配置请求url，
 	 * 	当请求的url为/hello.do，执行当前方法
-	 * 
+	 *
 	 * ModelAndView：模型和视图。
 	 * 	用于设置响应的模型数据;
 	 * 	用于设置响应的视图
@@ -179,7 +179,7 @@ public class DemoController {
 		// 1.创建ModelAndView对象
 		ModelAndView mav = new ModelAndView();
 		/*
-		 * 2.设置响应的模型与视图 
+		 * 2.设置响应的模型与视图
 		 * addObject方法：设置响应的模型数据
 		 *	attributeName参数：模型的名称
 		 * 	attributeValue参数：模型数据
@@ -212,17 +212,17 @@ public class DemoController {
 
 Spring 的模型-视图-控制器（MVC）框架是围绕一个 `DispatcherServlet` 来设计的，这个 Servlet 会把请求分发给各个处理器，并支持可配置的处理器映射、视图渲染、本地化、时区与主题渲染等，甚至还能支持文件上传。
 
-- 第1步：客户端发起请求到 `DispatcherServlet`
-- 第2步：`DispatcherServlet` 请求一个或多个 `HandlerMapping` 查找 Handler，可以根据 xml 配置、注解进行查找处理请求的 Controller
-- 第3步：`HandlerMapping` 向前端控制器返回 Handler
-- 第4步：`DispatcherServlet` 调用 `HandlerAdapter` 去执行 Handler
-- 第5步：`HandlerAdapter` 去执行 Handler
-- 第6步：Handler 调用业务逻辑处理完成后，给 `HandlerAdapter` 返回 `ModelAndView`
-- 第7步：`HandlerAdapter` 向 `DispatcherServlet` 返回 `ModelAndView`。
-- 第8步：`DispatcherServlet` 请求 `ViewResoler` 去进行视图解析，根据逻辑视图名解析成真正的视图(jsp)
-- 第9步：`ViewResoler` 向 `DispatcherServlet` 返回 View
-- 第10步：`DispatcherServlet` 进行视图渲染。视图渲染将模型数据(在 `ModelAndView` 对象中)填充到 request 域中
-- 第11步：`DispatcherServlet` 向用户响应结果
+- 第 1 步：客户端发起请求到 `DispatcherServlet`
+- 第 2 步：`DispatcherServlet` 请求一个或多个 `HandlerMapping` 查找 Handler，可以根据 xml 配置、注解进行查找处理请求的 Controller
+- 第 3 步：`HandlerMapping` 向前端控制器返回 Handler
+- 第 4 步：`DispatcherServlet` 调用 `HandlerAdapter` 去执行 Handler
+- 第 5 步：`HandlerAdapter` 去执行 Handler
+- 第 6 步：Handler 调用业务逻辑处理完成后，给 `HandlerAdapter` 返回 `ModelAndView`
+- 第 7 步：`HandlerAdapter` 向 `DispatcherServlet` 返回 `ModelAndView`。
+- 第 8 步：`DispatcherServlet` 请求 `ViewResoler` 去进行视图解析，根据逻辑视图名解析成真正的视图(jsp)
+- 第 9 步：`ViewResoler` 向 `DispatcherServlet` 返回 View
+- 第 10 步：`DispatcherServlet` 进行视图渲染。视图渲染将模型数据(在 `ModelAndView` 对象中)填充到 request 域中
+- 第 11 步：`DispatcherServlet` 向用户响应结果
 
 > 名词说明：
 >
@@ -233,13 +233,11 @@ Spring 的模型-视图-控制器（MVC）框架是围绕一个 `DispatcherServl
 > - `ViewResoler` 视图解析器
 > - `ModelAndView` 视图模型，是 Spring MVC 框架的一个底层对象，包括 Model 和 View
 
-
-
 当浏览器发送一个请求 `http://localhost:8080/hello` 后，请求到达服务器，其处理流程是：
 
 1. 服务器提供了 DispatcherServlet，它使用的是标准 Servlet 技术
    - 路径：默认映射路径为 `/`，即会匹配到所有请求 URL，可作为请求的统一入口，也被称之为**前端控制器**
-     - *注：jsp 不会匹配到 DispatcherServlet （了解）*
+     - _注：jsp 不会匹配到 DispatcherServlet （了解）_
      - 其它有路径的 Servlet 匹配优先级也高于 DispatcherServlet
    - 创建：在 Boot 中，由 DispatcherServletAutoConfiguration 这个自动配置类提供 DispatcherServlet 的 bean
    - 初始化：DispatcherServlet 初始化时会优先到容器里寻找各种组件，作为它的成员变量
@@ -249,18 +247,18 @@ Spring 的模型-视图-控制器（MVC）框架是围绕一个 `DispatcherServl
      - ViewResolver
 2. DispatcherServlet 会利用 RequestMappingHandlerMapping 查找控制器方法
    - 例如根据 /hello 路径找到 @RequestMapping("/hello") 对应的控制器方法
-   - 控制器方法会被封装为 HandlerMethod 对象，并结合匹配到的拦截器一起返回给 DispatcherServlet 
+   - 控制器方法会被封装为 HandlerMethod 对象，并结合匹配到的拦截器一起返回给 DispatcherServlet
    - HandlerMethod 和拦截器合在一起称为 HandlerExecutionChain（调用链）对象
 3. DispatcherServlet 接下来会：
-   1. 调用拦截器的 preHandle 方法，如果返回true，则放行继续执行；如果返回false，则拦截。
+   1. 调用拦截器的 preHandle 方法，如果返回 true，则放行继续执行；如果返回 false，则拦截。
    2. RequestMappingHandlerAdapter 调用 handle 方法，准备数据绑定工厂、模型工厂、ModelAndViewContainer、将 HandlerMethod 完善为 ServletInvocableHandlerMethod
-      - @ControllerAdvice 全局增强点1：补充模型数据
-      - @ControllerAdvice 全局增强点2：补充自定义类型转换器
+      - @ControllerAdvice 全局增强点 1：补充模型数据
+      - @ControllerAdvice 全局增强点 2：补充自定义类型转换器
       - 使用 HandlerMethodArgumentResolver 准备参数
-        - @ControllerAdvice 全局增强点3：RequestBody 增强
-      - 调用 ServletInvocableHandlerMethod 
+        - @ControllerAdvice 全局增强点 3：RequestBody 增强
+      - 调用 ServletInvocableHandlerMethod
       - 使用 HandlerMethodReturnValueHandler 处理返回值
-        - @ControllerAdvice 全局增强点4：ResponseBody 增强
+        - @ControllerAdvice 全局增强点 4：ResponseBody 增强
       - 根据 ModelAndViewContainer 获取 ModelAndView
         - 如果返回的 ModelAndView 为 null，不走第 4 步视图解析及渲染流程
           - 例如，有的返回值处理器调用了 HttpMessageConverter 来将结果转换为 JSON，这时 ModelAndView 就为 null
@@ -268,7 +266,7 @@ Spring 的模型-视图-控制器（MVC）框架是围绕一个 `DispatcherServl
    3. 调用拦截器的 postHandle 方法
    4. 处理异常或视图渲染
       - 如果 1~3 出现异常，走 ExceptionHandlerExceptionResolver 处理异常流程
-        - @ControllerAdvice 全局增强点5：@ExceptionHandler 异常处理
+        - @ControllerAdvice 全局增强点 5：@ExceptionHandler 异常处理
       - 正常，走视图解析及渲染流程
    5. 调用拦截器的 afterCompletion 方法
 
@@ -423,7 +421,7 @@ public class WebConfig extends AbstractDispatcherServletInitializer {
         // 如果不需要，返回 null 即可
         return null;
     }
-    
+
     /* 添加自定义过滤器 */
     @Override
     protected Filter[] getServletFilters() {
@@ -496,23 +494,23 @@ public class WebConfig extends AbstractDispatcherServletInitializer {
         相当于同时配置了RequestMappingHandlerMapping/RequestMappingHandlerAdapter
      -->
     <mvc:annotation-driven/>
-</beans> 
+</beans>
 ```
 
 ### 4.2. 前端控制器委托处理接口（整理中）
 
 `DispatcherServlet`（前端控制器）处理请求与响应的工作都会交给以下接口去完成，Spring MVC 都提供这些接口内置实现，但也可以通过自定义这些接口实现来扩展功能。接口列表如下：
 
-|                 接口类型                  |                                 说明                                  |
-| :--------------------------------------: | --------------------------------------------------------------------- |
-|             `HandlerMapping`             | 处理器映射器，将一个请求和前后拦截器列表的按照一定规则建立映射关系       |
+|                 接口类型                 | 说明                                                                    |
+| :--------------------------------------: | ----------------------------------------------------------------------- |
+|             `HandlerMapping`             | 处理器映射器，将一个请求和前后拦截器列表的按照一定规则建立映射关系      |
 |             `HandlerAdapter`             | 处理器适配器，帮助 DispatcherServlet 根据请求的映射，调用相应的处理程序 |
-|        `HandlerExceptionResolver`        |                                                                       |
-|              `ViewResolver`              |                                                                       |
-| `LocaleResolver`/`LocaleContextResolver` |                                                                       |
-|             `ThemeResolver`              |                                                                       |
-|           `MultipartResolver`            |                                                                       |
-|            `FlashMapManager`             |                                                                       |
+|        `HandlerExceptionResolver`        |                                                                         |
+|              `ViewResolver`              |                                                                         |
+| `LocaleResolver`/`LocaleContextResolver` |                                                                         |
+|             `ThemeResolver`              |                                                                         |
+|           `MultipartResolver`            |                                                                         |
+|            `FlashMapManager`             |                                                                         |
 
 `DispatcherServlet` 检查 `WebApplicationContext` 中的以上接口的实现对象。如果没有匹配相关自定义实现，就会使用 `DispatcherServlet.properties` 文件（org.springframework.web.servlet 包）中列出的默认实现
 
@@ -548,7 +546,7 @@ org.springframework.web.servlet.ViewResolver=org.springframework.web.servlet.vie
 org.springframework.web.servlet.FlashMapManager=org.springframework.web.servlet.support.SessionFlashMapManager
 ```
 
-> <font color=red>**注意：如果没有手动创建的以上接口的自定义实现并加入到Spring，Spring MVC 会去自动创建默认的实现，但只会保存在 `DispatcherServlet` 中相应的属性中，此时 Spring 容器是没有这些实现的实例。**</font>
+> <font color=red>**注意：如果没有手动创建的以上接口的自定义实现并加入到 Spring，Spring MVC 会去自动创建默认的实现，但只会保存在 `DispatcherServlet` 中相应的属性中，此时 Spring 容器是没有这些实现的实例。**</font>
 
 ### 4.3. 映射器和适配器
 
@@ -606,7 +604,7 @@ public RequestMappingHandlerAdapter requestMappingHandlerAdapter() {
 
 #### 4.3.3. 处理器映射器和处理器适配器同时配置方式
 
-如果使用 web.xml 的配置方式，需要在 springmvc.xml 配置文件中，配置 `<mvc:annotation-driven>` 标签，表示基于注解驱动的方式配置处理器映射器、处理器适配器，相当于同时配置了 `RequestMappingHandlerMapping`/`RequestMappingHandlerAdapter`（*企业开发推荐使用*）
+如果使用 web.xml 的配置方式，需要在 springmvc.xml 配置文件中，配置 `<mvc:annotation-driven>` 标签，表示基于注解驱动的方式配置处理器映射器、处理器适配器，相当于同时配置了 `RequestMappingHandlerMapping`/`RequestMappingHandlerAdapter`（_企业开发推荐使用_）
 
 ```xml
 <mvc:annotation-driven />
@@ -685,7 +683,7 @@ public class WebConfig {
 }
 ```
 
-- 创建控制类，指定bean的名称以“`/`”开头，并实现 `Controller` 接口
+- 创建控制类，指定 bean 的名称以“`/`”开头，并实现 `Controller` 接口
 
 ```java
 @Component("/c1")
@@ -707,7 +705,7 @@ public class Controller2 implements Controller {
 }
 ```
 
-- 创建web容器进行测试，是否能成功访问 /c1、/c2、/c3
+- 创建 web 容器进行测试，是否能成功访问 /c1、/c2、/c3
 
 ```java
  AnnotationConfigServletWebServerApplicationContext context = new AnnotationConfigServletWebServerApplicationContext(WebConfig.class);
@@ -778,7 +776,6 @@ public class WebConfig {
     }
 }
 ```
-
 
 #### 4.3.7. SimpleUrlHandlerMapping 与 HttpRequestHandlerAdapter
 
@@ -888,11 +885,11 @@ public void initGzip() throws IOException {
 欢迎页支持静态欢迎页与动态欢迎页
 
 - WelcomePageHandlerMapping 映射欢迎页（即只映射 '`/`'）
-   - 它内置的 handler ParameterizableViewController 作用是不执行逻辑，仅根据视图名找视图
-   - 视图名固定为 `forward:index.html`
+  - 它内置的 handler ParameterizableViewController 作用是不执行逻辑，仅根据视图名找视图
+  - 视图名固定为 `forward:index.html`
 - SimpleControllerHandlerAdapter, 调用 handler
-   - 转发至 `/index.html`
-   - 处理 `/index.html` 又会走上面的静态资源处理流程
+  - 转发至 `/index.html`
+  - 处理 `/index.html` 又会走上面的静态资源处理流程
 
 在配置类中创建 `WelcomePageHandlerMapping` 实例，指定根路径相应的静态资源
 
@@ -1006,7 +1003,7 @@ public class MyWebAppInitializer extends AbstractAnnotationConfigDispatcherServl
 
 #### 4.5.2. xml 文件配置
 
-也可使用 web.xml 配置 
+也可使用 web.xml 配置
 
 ```xml
 <web-app>
@@ -1048,15 +1045,15 @@ public class MyWebAppInitializer extends AbstractAnnotationConfigDispatcherServl
 
 下表是控制器方法支持的绑定参数类型
 
-|  控制器方法参数类型  |                                                                                                     说明                                                                                                      |
-| :-----------------: | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-|  `ServletRequest`   | 请求类型，例如：`ServletRequest`、`HttpServletRequest`、Spring 的 `MultipartRequest`、`MultipartHttpServletRequest`                                                                                            |
-|  `ServletResponse`  | 响应类型，例如：`ServletResponse`、`HttpServletResponse`                                                                                                                                                       |
+| 控制器方法参数类型  | 说明                                                                                                                                                                                                                  |
+| :-----------------: | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+|  `ServletRequest`   | 请求类型，例如：`ServletRequest`、`HttpServletRequest`、Spring 的 `MultipartRequest`、`MultipartHttpServletRequest`                                                                                                   |
+|  `ServletResponse`  | 响应类型，例如：`ServletResponse`、`HttpServletResponse`                                                                                                                                                              |
 |    `HttpSession`    | 请求会话类型。此类型可保证方法参数永远不会空。值得注意，使用会话类型的方法形参是非线程安全的。如果允许多个请求同时访问一个会话，考虑将 `RequestMappingHandlerAdapter` 实例的 `synchronizeOnSession` 标志设置为 `true` |
-| `Model`, `ModelMap` | 用于访问 HTML 控制器中使用的模型，并作为视图渲染的一部分暴露给模板。                                                                                                                                              |
-|   `@RequestParam`   | 用于获取请求参数（即查询参数或表单数据、上传的文件），绑定到控制器中的方法参数。参数值会被转换为声明的方法形参的类型。注意，对于简单类型的参数值，只要形参名称与请求参数名称一致，该注解可省略。                         |
-|      `Map`集合       | key为请求上送的参数名称，value是参数值。需要与`@RequestParam`注解配置使用                                                                                                                                        |
-|   任何其他参数类型   | 控制方法形参是Java基本数据类型、对象、包装类型等，由`BeanUtils#isSimpleProperty`决定，它被解析为`@RequestParam`还是`@ModelAttribute`                                                                              |
+| `Model`, `ModelMap` | 用于访问 HTML 控制器中使用的模型，并作为视图渲染的一部分暴露给模板。                                                                                                                                                  |
+|   `@RequestParam`   | 用于获取请求参数（即查询参数或表单数据、上传的文件），绑定到控制器中的方法参数。参数值会被转换为声明的方法形参的类型。注意，对于简单类型的参数值，只要形参名称与请求参数名称一致，该注解可省略。                      |
+|      `Map`集合      | key 为请求上送的参数名称，value 是参数值。需要与`@RequestParam`注解配置使用                                                                                                                                           |
+|  任何其他参数类型   | 控制方法形参是 Java 基本数据类型、对象、包装类型等，由`BeanUtils#isSimpleProperty`决定，它被解析为`@RequestParam`还是`@ModelAttribute`                                                                                |
 
 > 支持使用 JDK 8 的 `java.util.Optional` 作为方法参数，与具有必填属性的注解相结合（例如，`@RequestParam`、`@RequestHeader` 等），相当于 `required=false`
 
@@ -1106,9 +1103,8 @@ Model addAttribute(String attributeName, @Nullable Object attributeValue);
 ```
 
 - 设置响应的模型数据
-    - `attributeName` 参数：设置页面响应的名称(key)
-    - `attributeValue` 参数：设置模型响应的数据
-
+  - `attributeName` 参数：设置页面响应的名称(key)
+  - `attributeValue` 参数：设置模型响应的数据
 
 #### 5.5.2. 示例
 
@@ -1116,7 +1112,7 @@ Model addAttribute(String attributeName, @Nullable Object attributeValue);
 /**
  * SpringMVC参数绑定：2.默认支持绑定的参数(使用Model绑定)
  * 使用Model封装，可以直接返回String类型响应视图
- * 
+ *
  * 	request形参，接收请求的商品id参数数据。
  * 	springmvc在执行这个方法的时候，会把request对象传递过来
  */
@@ -1138,7 +1134,6 @@ public String queryItemById(Model model, HttpServletRequest request) {
 }
 ```
 
-
 ### 5.6. @RequestParam 注解绑定参数
 
 设置请求的参数名称，与方法形参名称匹配。<font color=red>**绑定后传递的请求参数必须是设置的值。注意：注解的使用位置在需要绑定的形参前面**</font>
@@ -1150,7 +1145,7 @@ public String queryItemById(Model model, HttpServletRequest request) {
  * SpringMVC参数绑定：3.简单类型参数绑定(使用@RequestParam注解)
  * 	使用Model封装，可以直接返回String类型响应视图
  * 	使用简单类型Integer，接收请求的商品itemId参数数据
- * 
+ *
  * 	@RequestParam注解属性：
  * 		value：设置请求的参数名称
  * 		required：设置参数是否必须传递。取值true/false。true必须要传递；false可以传递，也可以不传递。默认是true。
@@ -1163,7 +1158,7 @@ public String queryItemById(Model model,
 
 > 注：上面示例请求设置了 `@RequestParam` 注解，请求参数的名称必须为 `itemId`，如果请求不带参数，则方法形参 id 会有默认值为 3
 >
-> 关于 `@RequestParam` 注解更多使用说明，详见[《Spring MVC 注解汇总.md》文档](/02-后端框架/05-SpringMVC/02-SpringMVC注解汇总)
+> 关于 `@RequestParam` 注解更多使用说明，详见[《Spring MVC 注解汇总.md》文档](/02-后端框架/03-SpringMVC/02-SpringMVC注解汇总)
 
 ### 5.7. Map 类型参数绑定
 
@@ -1195,7 +1190,7 @@ SpringMVC 支持使用 `@ModelAttribute` 和 `@SessionAttributes` 在不同的�
 
 #### 5.9.1. 支持常用的简单类型参数绑定
 
-|   类型名称   | 包装类型 | 基础类型 |
+| 类型名称     | 包装类型 | 基础类型 |
 | ------------ | -------- | -------- |
 | 整型         | Integer  | int      |
 | 长整型       | Long     | long     |
@@ -1229,9 +1224,9 @@ public String queryItemById(Model model, Integer id) {
 
 #### 5.9.2. 对象类型参数绑定
 
-如果请求提交的参数很多，或者提交的表单中的内容很多的时候，可以使用简单类型接受数据，也可以使用pojo（对象类型）接收数据。
+如果请求提交的参数很多，或者提交的表单中的内容很多的时候，可以使用简单类型接受数据，也可以使用 pojo（对象类型）接收数据。
 
-注意：<font color=red>**pojo 对象中的属性名 setter 方法和提交的表单中 input 元素的 `name` 属性一致或是上送的json对象属性名一致。（注：与属性名称无关，set 方法名称去掉 set 后的，首字母改成小写后与请求的参数名称一致即可）**</font>。Spring MVC 框架会自动将请求参数赋值给 pojo 的属性
+注意：<font color=red>**pojo 对象中的属性名 setter 方法和提交的表单中 input 元素的 `name` 属性一致或是上送的 json 对象属性名一致。（注：与属性名称无关，set 方法名称去掉 set 后的，首字母改成小写后与请求的参数名称一致即可）**</font>。Spring MVC 框架会自动将请求参数赋值给 pojo 的属性
 
 示例：
 
@@ -1260,7 +1255,7 @@ public String updateItem(Item item) {
 
 #### 5.9.3. 对象包装类型绑定
 
-示例需求：使用pojo包装类型，接收综合查询条件（一个模拟操作）
+示例需求：使用 pojo 包装类型，接收综合查询条件（一个模拟操作）
 
 创建包装类 QueryVo，用于使用 `<input type="text" name="item.name" value=""/>` 提交的参数
 
@@ -1304,25 +1299,23 @@ public String queryItem(Model model, QueryVo queryVo) {
 
 示例需求：实现商品数据的批量删除
 
-- 修改商品列表页面，增加商品id的复选框
+- 修改商品列表页面，增加商品 id 的复选框
 
 ```html
 <c:forEach items="${itemList}" var="item" varStatus="vs">
-	<%-- 测试数组类型绑定 时使用 --%>
-	<tr>
-		<td><input type="checkbox" name="ids" value="${item.id}"/></td>
-		<td>${item.name }</td>
-		<td>${item.price }</td>
-		<td><fmt:formatDate value="${item.createtime}"
-				pattern="yyyy-MM-dd HH:mm:ss" /></td>
-		<td>${item.detail }</td>
-		<td><a
-			href="${pageContext.request.contextPath }/queryItemById.do?id=${item.id}">修改</a></td>
-	</tr>
+  <%-- 测试数组类型绑定 时使用 --%>
+  <tr>
+    <td><input type="checkbox" name="ids" value="${item.id}" /></td>
+    <td>${item.name }</td>
+    <td>${item.price }</td>
+    <td><fmt:formatDate value="${item.createtime}" pattern="yyyy-MM-dd HH:mm:ss" /></td>
+    <td>${item.detail }</td>
+    <td><a href="${pageContext.request.contextPath }/queryItemById.do?id=${item.id}">修改</a></td>
+  </tr>
 </c:forEach>
 ```
 
-- 后端接口实现方式1：增加数组类型形参，与页面请求的名称一致，用于接收页面传递的值
+- 后端接口实现方式 1：增加数组类型形参，与页面请求的名称一致，用于接收页面传递的值
 
 ```java
 /**
@@ -1346,7 +1339,7 @@ public String queryItem(Model model, Integer[] ids) {
 }
 ```
 
-- 后端接口实现方式2：增加包装类类型形参，在包装类中增加数组类型的属性，与页面请求的名称一致
+- 后端接口实现方式 2：增加包装类类型形参，在包装类中增加数组类型的属性，与页面请求的名称一致
 
 ```java
 // 测试包装类数组类型绑定
@@ -1375,45 +1368,49 @@ public String queryItem(Model model, QueryVo queryVo) {
 
 #### 5.9.5. 集合类型参数绑定
 
-示例需求：商品数据的批量修改（使用list接收多个商品对象）
+示例需求：商品数据的批量修改（使用 list 接收多个商品对象）
 
-- 修改itemList.jsp页面，增加批量修改
+- 修改 itemList.jsp 页面，增加批量修改
 
 ```html
-<form action="${pageContext.request.contextPath }/queryItem.do"
-	method="post">
-	商品列表：
-	<table width="100%" border=1>
-		<tr>
-			<td>商品名称</td>
-			<td>商品价格</td>
-			<td>生产日期</td>
-			<td>商品描述</td>
-		</tr>
-		<c:forEach items="${itemList}" var="item" varStatus="vs">
-			<%-- 测试list集合类型绑定 时使用 --%>
-			<!-- itemList:要绑定的商品集合的属性
+<form action="${pageContext.request.contextPath }/queryItem.do" method="post">
+  商品列表：
+  <table width="100%" border="1">
+    <tr>
+      <td>商品名称</td>
+      <td>商品价格</td>
+      <td>生产日期</td>
+      <td>商品描述</td>
+    </tr>
+    <c:forEach items="${itemList}" var="item" varStatus="vs">
+      <%-- 测试list集合类型绑定 时使用 --%>
+      <!-- itemList:要绑定的商品集合的属性
 				itemList[0]:商品集合属性中第一个商品对象
 				itemList[0].id：第一个商品对象的id属性
 				
 				varStatus：当前遍历对象的状态
 				vs.index：当前对象的索引 -->
-			<tr>
-				<td><input type="text" name="itemList[${vs.index}].name" value="${item.name}"/></td>
-				<td><input type="text" name="itemList[${vs.index}].price" value="${item.price}"/></td>
-				<td><input type="text" name="itemList[${vs.index}].createtime" 
-				value='<fmt:formatDate value="${item.createtime}"
-						pattern="yyyy-MM-dd HH:mm:ss" />'/></td>
-				<td><input type="text" name="itemList[${vs.index}].detail" value="${item.detail}"/></td>
-			</tr> 
-		</c:forEach>
-		<tr>
-			<!-- 测试list集合类型绑定  -->
-			<td colspan="6">
-				<input type="submit" value="批量修改" />
-			</td> 
-		</tr>
-	</table>
+      <tr>
+        <td><input type="text" name="itemList[${vs.index}].name" value="${item.name}" /></td>
+        <td><input type="text" name="itemList[${vs.index}].price" value="${item.price}" /></td>
+        <td>
+          <input
+            type="text"
+            name="itemList[${vs.index}].createtime"
+            value='<fmt:formatDate value="${item.createtime}"
+						pattern="yyyy-MM-dd HH:mm:ss" />'
+          />
+        </td>
+        <td><input type="text" name="itemList[${vs.index}].detail" value="${item.detail}" /></td>
+      </tr>
+    </c:forEach>
+    <tr>
+      <!-- 测试list集合类型绑定  -->
+      <td colspan="6">
+        <input type="submit" value="批量修改" />
+      </td>
+    </tr>
+  </table>
 </form>
 ```
 
@@ -1447,8 +1444,7 @@ public String queryItem(Model model, QueryVo queryVo) {
 }
 ```
 
-> <font color=red>**注意事项：使用list类型参数绑定，list需要作为pojo的属性。不能直接在方法的形参中使用list，否则不能完成绑定**</font>
-
+> <font color=red>**注意事项：使用 list 类型参数绑定，list 需要作为 pojo 的属性。不能直接在方法的形参中使用 list，否则不能完成绑定**</font>
 
 ### 5.10. 参数解析器
 
@@ -1568,7 +1564,7 @@ public class ArgumentResolverController {
 }
 ```
 
-- 此示例为了方便，不想部署到tomcat，使用了 Spring Boot 内置 tomcat 容器，并且因为 Spring MVC 是通过 `RequestMappingHandlerAdapter` 去调用实际的请求方法，而调用的核心方法 `invokeHandlerMethod` 的修饰符是 `protected`，因此编写一个子类继承 `RequestMappingHandlerAdapter`，并将该方法的修饰符修改为 `public`，方法里面直接调用父类的方法，不做其他处理
+- 此示例为了方便，不想部署到 tomcat，使用了 Spring Boot 内置 tomcat 容器，并且因为 Spring MVC 是通过 `RequestMappingHandlerAdapter` 去调用实际的请求方法，而调用的核心方法 `invokeHandlerMethod` 的修饰符是 `protected`，因此编写一个子类继承 `RequestMappingHandlerAdapter`，并将该方法的修饰符修改为 `public`，方法里面直接调用父类的方法，不做其他处理
 
 ```java
 public class MyHandlerAdapter extends RequestMappingHandlerAdapter {
@@ -1667,13 +1663,13 @@ public void testCustomArgumentResolver() throws Exception {
 
 一些控制器方法参数都基于字符串的请求输入（如 `@RequestParam`、`@RequestHeader`、`@PathVariable`、`@MatrixVariable` 和 `@CookieValue`），如果请求参数非字符串类型，可能需要进行类型转换。
 
-对于这种情况，会根据配置的转换器自动进行类型转换。默认情况下，支持简单类型（int、long、Date和其他）。可以通过 `WebDataBinder`（详见下面 `DataBinder` 相关章节）或通过向 `FormattingConversionService` 注册 `Formatters` 来定制类型转换。详见[《Spring 笔记 - 核心技术.md》文档](/02-后端框架/03-Spring/01-Spring笔记01)中的类型转换章节。
+对于这种情况，会根据配置的转换器自动进行类型转换。默认情况下，支持简单类型（int、long、Date 和其他）。可以通过 `WebDataBinder`（详见下面 `DataBinder` 相关章节）或通过向 `FormattingConversionService` 注册 `Formatters` 来定制类型转换。详见[《Spring 笔记 - 核心技术.md》文档](/02-后端框架/01-spring/01-Spring笔记01)中的类型转换章节。
 
 #### 5.11.1. 类型转换与绑定基础使用示例
 
 > 完整示例代码详见 spring-note\springmvc-sample\13-type-conversion-data-binder
 
-- 创建用于测试的 bean 
+- 创建用于测试的 bean
 
 ```java
 @ToString
@@ -1813,7 +1809,7 @@ public void testServletDataBinderBySpecialCharacters() {
 ```java
 /**
  * 自定义参数转换器
- * 
+ *
  * Converter<S, T>接口
  * 	S：Source：源，转换前的数据，这里是字符串类型（String）的商品生产日期
  * 	T:Target：目标，转换后的数据，这里是Date类型的商品生产日期
@@ -2027,11 +2023,11 @@ public void testRequestDataBinderByDefaultConversionService() throws Exception {
 
 ### 6.1. 概念
 
-下表是 Spring MVC 支持的控制器方法返回值类型与方式。（*注：所有的返回值都支持响应式类型*）
+下表是 Spring MVC 支持的控制器方法返回值类型与方式。（_注：所有的返回值都支持响应式类型_）
 
-| 控制器方法返回值类型 |                    说明                    |
-| :-----------------: | ----------------------------------------- |
-|   `@ResponseBody`   | 返回值会通过`HttpMessageConverter`实现转换 |
+| 控制器方法返回值类型 | 说明                                       |
+| :------------------: | ------------------------------------------ |
+|   `@ResponseBody`    | 返回值会通过`HttpMessageConverter`实现转换 |
 
 ### 6.2. ReturnValueHandler 返回值处理器
 
@@ -2146,11 +2142,11 @@ public class ReturnValueHandlerController {
 }
 ```
 
-> 注：此处有一个小坑，因为要返回字符串，如果在控制类上换成 `@RestController` 或者在方法上增加标识 `@ResponseBody`，则会因为返回值类型而报错  
+> 注：此处有一个小坑，因为要返回字符串，如果在控制类上换成 `@RestController` 或者在方法上增加标识 `@ResponseBody`，则会因为返回值类型而报错
 >
 > `org.springframework.web.HttpMediaTypeNotAcceptableException: Could not find acceptable representation`
 
-- 此示例为了方便，不想部署到tomcat，使用了 Spring Boot 内置 tomcat 容器，并且因为 Spring MVC 是通过 `RequestMappingHandlerAdapter` 去调用实际的请求方法，而调用的核心方法 `invokeHandlerMethod` 的修饰符是 `protected`，因此编写一个子类继承 `RequestMappingHandlerAdapter`，并将该方法的修饰符修改为 `public`，方法里面直接调用父类的方法，不做其他处理
+- 此示例为了方便，不想部署到 tomcat，使用了 Spring Boot 内置 tomcat 容器，并且因为 Spring MVC 是通过 `RequestMappingHandlerAdapter` 去调用实际的请求方法，而调用的核心方法 `invokeHandlerMethod` 的修饰符是 `protected`，因此编写一个子类继承 `RequestMappingHandlerAdapter`，并将该方法的修饰符修改为 `public`，方法里面直接调用父类的方法，不做其他处理
 
 ```java
 public class MyHandlerAdapter extends RequestMappingHandlerAdapter {
@@ -2265,22 +2261,22 @@ spring-web 模块包含 `HttpMessageConverter` 接口，用于通过 `InputStrea
 
 ### 7.2. HttpMessageConverter 接口默认实现
 
-|                        MessageConverter 实现                         |                                       说明                                        |
-| :-----------------------------------------------------------------: | -------------------------------------------------------------------------------- |
-|                    `StringHttpMessageConverter`                     |                                                                                  |
-|                     `FormHttpMessageConverter`                      |                                                                                  |
-|                   `ByteArrayHttpMessageConverter`                   |                                                                                  |
-|                  `MarshallingHttpMessageConverter`                  |                                                                                  |
-|                `MappingJackson2HttpMessageConverter`                | 通过使用Jackson的`ObjectMapper`来读写JSON格式数据，默认支持HTTP的application/json  |
-|              `MappingJackson2XmlHttpMessageConverter`               | 通过使用Jackson XML扩展的`XmlMapper`读写XML格式数据，默认支持HTTP的application/xml |
-|                    `SourceHttpMessageConverter`                     |                                                                                  |
-|                 `BufferedImageHttpMessageConverter`                 |                                                                                  |
-|                               `void`                                |                                                                                  |
-|                         `DeferredResult<V>`                         |                                                                                  |
-|                            `Callable<V>`                            |                                                                                  |
-| `ListenableFuture<V>`, `CompletionStage<V>`, `CompletableFuture<V>` |                                                                                  |
-|                 `ResponseBodyEmitter`, `SseEmitter`                 |                                                                                  |
-|                       `StreamingResponseBody`                       |                                                                                  |
+|                        MessageConverter 实现                        | 说明                                                                                      |
+| :-----------------------------------------------------------------: | ----------------------------------------------------------------------------------------- |
+|                    `StringHttpMessageConverter`                     |                                                                                           |
+|                     `FormHttpMessageConverter`                      |                                                                                           |
+|                   `ByteArrayHttpMessageConverter`                   |                                                                                           |
+|                  `MarshallingHttpMessageConverter`                  |                                                                                           |
+|                `MappingJackson2HttpMessageConverter`                | 通过使用 Jackson 的`ObjectMapper`来读写 JSON 格式数据，默认支持 HTTP 的 application/json  |
+|              `MappingJackson2XmlHttpMessageConverter`               | 通过使用 Jackson XML 扩展的`XmlMapper`读写 XML 格式数据，默认支持 HTTP 的 application/xml |
+|                    `SourceHttpMessageConverter`                     |                                                                                           |
+|                 `BufferedImageHttpMessageConverter`                 |                                                                                           |
+|                               `void`                                |                                                                                           |
+|                         `DeferredResult<V>`                         |                                                                                           |
+|                            `Callable<V>`                            |                                                                                           |
+| `ListenableFuture<V>`, `CompletionStage<V>`, `CompletableFuture<V>` |                                                                                           |
+|                 `ResponseBodyEmitter`, `SseEmitter`                 |                                                                                           |
+|                       `StreamingResponseBody`                       |                                                                                           |
 
 > 注：未整理完
 
@@ -2361,7 +2357,6 @@ public class MessageConverterTest {
     }
 }
 ```
-
 
 ## 8. Spring MVC 配置（整理中！）
 
@@ -2508,13 +2503,13 @@ public class WebConfig implements WebMvcConfigurer {
 }
 ```
 
-- 使用 `@InitBinder` 的方式配置，详见[《Spring MVC 注解汇总.md》文档](/02-后端框架/05-SpringMVC/02-SpringMVC注解汇总)
+- 使用 `@InitBinder` 的方式配置，详见[《Spring MVC 注解汇总.md》文档](/02-后端框架/03-SpringMVC/02-SpringMVC注解汇总)
 
 ## 9. 拦截器
 
 ### 9.1. 拦截器介绍
 
-拦截器相当于servlet中过滤器（filter）。可以对处理器方法执行预处理（在处理器方法执行前执行），可以对处理器方法执行后处理（在处理器方法执行后执行）
+拦截器相当于 servlet 中过滤器（filter）。可以对处理器方法执行预处理（在处理器方法执行前执行），可以对处理器方法执行后处理（在处理器方法执行后执行）
 
 ### 9.2. HandlerInterceptor 接口方法说明
 
@@ -2535,11 +2530,11 @@ public interface HandlerInterceptor {
 }
 ```
 
-- `preHandle`方法（通常关注此方法）：在处理器方法执行前，在响应jsp页面前执行，执行预处理。返回布尔类型的值，返回true，继续执行；返回false，终止执行。在企业项目中，可以在这个方法实现用户是否登录校验，是否有权限操作的校验。
-- `postHandle`方法：在处理器方法执行后，在响应jsp页面前执行，执行后处理。企业项目中，可以在这个方法设置页面的公共模型数据，比如页面的头部信息，尾部信息。
-- `afterCompletion`方法：在处理器方法执行后，在jsp页面响应后执行，执行后处理。在企业项目中，可以在这个方法实现用户访问日志的记录。
+- `preHandle`方法（通常关注此方法）：在处理器方法执行前，在响应 jsp 页面前执行，执行预处理。返回布尔类型的值，返回 true，继续执行；返回 false，终止执行。在企业项目中，可以在这个方法实现用户是否登录校验，是否有权限操作的校验。
+- `postHandle`方法：在处理器方法执行后，在响应 jsp 页面前执行，执行后处理。企业项目中，可以在这个方法设置页面的公共模型数据，比如页面的头部信息，尾部信息。
+- `afterCompletion`方法：在处理器方法执行后，在 jsp 页面响应后执行，执行后处理。在企业项目中，可以在这个方法实现用户访问日志的记录。
 
-### 9.3. 自定义拦截器（基于xml配置文件）
+### 9.3. 自定义拦截器（基于 xml 配置文件）
 
 自定义拦截器需要实现`HandlerInterceptor`接口，此接口比较特别有三个方法，都为默认方法，所以自定义拦截器时，可以选择性重写此三个方法即可
 
@@ -2571,13 +2566,13 @@ public class MyInterceptor implements HandlerInterceptor {
 
 #### 9.3.2. 配置拦截器
 
-在springmvc.xml总配置文件中配置拦截器步骤：
+在 springmvc.xml 总配置文件中配置拦截器步骤：
 
 1. 配置拦截器使用`<mvc:interceptors>`标签，子标签可以配置多个拦截器
 2. 子标签`<mvc:interceptor>`标签用于配置一个拦截器
-3. 在`<mvc:interceptor>`标签中配置`<mvc:mapping path=""/>`，配置拦截的url规则。
-    - 拦截单个url：`/xxxx.do`
-    - 拦截一组url：`/xxx/**`，表示拦截以`/xxx`开头的所有请求
+3. 在`<mvc:interceptor>`标签中配置`<mvc:mapping path=""/>`，配置拦截的 url 规则。
+   - 拦截单个 url：`/xxxx.do`
+   - 拦截一组 url：`/xxx/**`，表示拦截以`/xxx`开头的所有请求
 4. 在`<mvc:interceptor>`标签中`<bean>`标签，创建自定义拦截器对象
 
 ```xml
@@ -2622,19 +2617,19 @@ public String testInterceptor(Model model){
 
 ![](images/20200922100149890_14095.jpg)
 
-1. 执行拦截器的preHandle方法
-2. 执行处理器的testInterceptor方法
-3. 执行拦截器的postHandle方法
-4. 响应jsp页面
-5. 执行拦截器的afterCompletion方法
+1. 执行拦截器的 preHandle 方法
+2. 执行处理器的 testInterceptor 方法
+3. 执行拦截器的 postHandle 方法
+4. 响应 jsp 页面
+5. 执行拦截器的 afterCompletion 方法
 
-如果设置<font color=red>**preHandle方法返回值为false**</font>，则只会执行preHandle方法，终止执行。请求的方法都被拦截，不再执行
+如果设置<font color=red>**preHandle 方法返回值为 false**</font>，则只会执行 preHandle 方法，终止执行。请求的方法都被拦截，不再执行
 
 ![](images/20200922100757124_22779.jpg)
 
 ### 9.4. 自定义拦截器（基于纯注解方式）
 
-此部分内容详情《02-SpringMVC注解汇总.md》
+此部分内容详情《02-SpringMVC 注解汇总.md》
 
 ### 9.5. 自定义多个拦截器
 
@@ -2644,7 +2639,7 @@ public String testInterceptor(Model model){
 
 #### 9.5.1. 配置多个拦截器
 
-修改springmvc.xml文件
+修改 springmvc.xml 文件
 
 ```xml
 <!-- 6.配置自定义拦截器 -->
@@ -2665,23 +2660,23 @@ public String testInterceptor(Model model){
 
 #### 9.5.2. 多个拦截器的执行顺序测试
 
-- 测试拦截器1返回true，拦截器2返回true
+- 测试拦截器 1 返回 true，拦截器 2 返回 true
 
 ![](images/20200922101340052_27005.jpg)
 
 执行结果说明：
 
-1. 拦截器preHandle方法，按照配置的顺序执行
-2. 拦截器postHandle方法，按照配置的逆序执行
-3. 拦截器afterCompletion方法，按照配置的逆序执行
+1. 拦截器 preHandle 方法，按照配置的顺序执行
+2. 拦截器 postHandle 方法，按照配置的逆序执行
+3. 拦截器 afterCompletion 方法，按照配置的逆序执行
 
-- 测试拦截器1返回true，拦截器2返回false
+- 测试拦截器 1 返回 true，拦截器 2 返回 false
 
 ![](images/20200922101431122_11019.jpg)
 
 执行结果说明：
 
-1. 拦截器的afterCompletion方法，只要当前拦截器返回true，就可以得到执行。
+1. 拦截器的 afterCompletion 方法，只要当前拦截器返回 true，就可以得到执行。
 
 ### 9.6. 拦截器应用案例
 
@@ -2690,9 +2685,10 @@ public String testInterceptor(Model model){
 1. 访问商品列表数据，需要判断用户是否登录
 2. 如果用户已经登录，直接让他访问商品列表
 3. 如果用户未登录，先去登录页面进行登录，成功登录以后再访问商品列表
-- 注：本demo只是模拟用户输入用户名和密码，没有进行数据库的校验，没有创建用户对象
 
-#### 9.6.2. 准备用户登录页面login.jsp
+- 注：本 demo 只是模拟用户输入用户名和密码，没有进行数据库的校验，没有创建用户对象
+
+#### 9.6.2. 准备用户登录页面 login.jsp
 
 ```jsp
 <form id="userForm"
@@ -2717,7 +2713,7 @@ public String testInterceptor(Model model){
 
 #### 9.6.3. 用户登陆控制层方法
 
-UserController.java编写跳转到登陆页面方法与登陆方法
+UserController.java 编写跳转到登陆页面方法与登陆方法
 
 涉及小知识：
 
@@ -2755,7 +2751,7 @@ public class UserController {
 		/*
 		 * 2.成功登陆后，跳转访问商品列表
 		 * 	因为用户名放到session域中，所有重定向即可
-		 * 
+		 *
 		 * 相对路径与绝对路径：
 		 * 		当前路径：http://127.0.0.1:8080/ssm/user/login.do
 		 * 		1.不加斜杠是相对路径，相对于当前路径,下一步访问的路径：
@@ -2770,7 +2766,7 @@ public class UserController {
 
 #### 9.6.4. 用户登陆拦截器
 
-创建LoginInterceptor拦截器
+创建 LoginInterceptor 拦截器
 
 ```java
 /**
@@ -2795,7 +2791,7 @@ public boolean preHandle(HttpServletRequest request, HttpServletResponse respons
 
 #### 9.6.5. 配置登陆拦截器
 
-修改springmvc.xml配置文件
+修改 springmvc.xml 配置文件
 
 ```xml
 <!-- 6.配置自定义拦截器 -->
@@ -2868,7 +2864,7 @@ public class CustomHandlerExceptionResolver implements HandlerExceptionResolver 
 
 标识 `@Controller` 和 `@ControllerAdvice` 类可以使用 `@ExceptionHandler` 注解标识方法来处理来自控制器方法的异常。
 
-> 详见[《Spring MVC 注解汇总.md》文档](/02-后端框架/05-SpringMVC/02-SpringMVC注解汇总)
+> 详见[《Spring MVC 注解汇总.md》文档](/02-后端框架/03-SpringMVC/02-SpringMVC注解汇总)
 
 ### 10.5. 番外 - Tomcat 异常处理
 
@@ -2880,11 +2876,11 @@ public class CustomHandlerExceptionResolver implements HandlerExceptionResolver 
 2. 先通过 `ErrorPageRegistrarBeanPostProcessor` 这个后处理器配置错误页面地址，默认为 `/error` 也可以通过 `${server.error.path}` 进行配置
 3. 当 Filter 发生异常时，不会走 Spring 流程，但会走 Tomcat 的错误处理，于是就会转发至 `/error` 这个地址。如果没有 `@ExceptionHandler`，最终也会走到 Tomcat 的错误处理
 4. Spring Boot 又提供了一个 `BasicErrorController`，它就是一个标准 `@Controller`，`@RequestMapping` 配置为 `/error`，所以处理异常的职责就又回到了 Spring 框架
-5. 异常信息由于会被 Tomcat 放入 `request` 作用域，key的名称固定是 `javax.servlet.error.exception`（Spring 提供了此常量 `RequestDispatcher.ERROR_EXCEPTION`）。因此 `BasicErrorController` 类也能获取到异常的信息
+5. 异常信息由于会被 Tomcat 放入 `request` 作用域，key 的名称固定是 `javax.servlet.error.exception`（Spring 提供了此常量 `RequestDispatcher.ERROR_EXCEPTION`）。因此 `BasicErrorController` 类也能获取到异常的信息
 6. 具体异常信息会由 `DefaultErrorAttributes` 封装好
 7. `BasicErrorController` 通过 Accept 头判断需要生成哪种 MediaType 的响应。如果要的不是 text/html，走 MessageConverter 流程；如果需要 text/html，走 mvc 流程，此时又分两种情况
-    - 配置了 `ErrorViewResolver`，根据状态码去找 View
-    - 没配置或没找到，用 `BeanNameViewResolver` 根据一个固定为 `error` 的名字找到 View，即所谓的 `WhitelabelErrorView`
+   - 配置了 `ErrorViewResolver`，根据状态码去找 View
+   - 没配置或没找到，用 `BeanNameViewResolver` 根据一个固定为 `error` 的名字找到 View，即所谓的 `WhitelabelErrorView`
 
 #### 10.5.2. 配置关键部分
 
@@ -2934,7 +2930,7 @@ public ViewResolver viewResolver() {
 
 ### 1.1. XxxVo 包装类
 
-以Vo结尾的类，一般用于封装值的实体类。(Vo:value Object)
+以 Vo 结尾的类，一般用于封装值的实体类。(Vo:value Object)
 
 ### 1.2. 相对路径与绝对路径
 
@@ -2945,22 +2941,22 @@ public ViewResolver viewResolver() {
 
 ## 2. Spring MVC 与 struts2 的区别
 
-**相同点**：都是基于mvc的表现层框架，都用于web项目的开发
+**相同点**：都是基于 mvc 的表现层框架，都用于 web 项目的开发
 
 **不同点**：
 
-1.	前端控制器不一样。
-    - springmvc的前端控制器是servlet（DispatcherServlet）
-    - struts2的前端控制器是filter（StrutsPrepareAndExecutorFilter）
-2.	请求参数接收方式不一样。
-    - springmvc是使用方法的形参接收请求的参数，基于方法的开发，线程安全，可以设计为单例或者多例模式的开发，推荐使用单例模式的开发，执行效率会更高（默认就是单例模式开发）。
-    - strut2是使用类的成员变量来接收请求的参数数据，基于类的开发，是线程不安全的，只能设计为多例模式的开发。
-    - 原因：springmvc传递参数操作的是方法的形参，多个线程操作不会影响到另一个线程。但strut2传递封装参数操作的是成员变量，但一个线程改变了变量的值，会影响到另一个线程的操作时变量的值。所以会出现线程不安全的问题，所以struts2框架的action都是设计成单例模式
-3.	开发的方式不同
-    - springmvc基于方法开发的。springmvc将url和controller里的方法映射。映射成功后springmvc生成一个Handler对象，对象中只包括了一个method。方法执行结束，形参数据销毁。springmvc的controller开发类似web service开发。
-    - struts2基于类开发的。
-4.	与spring整合不一样。
-    - springmvc框架本身就是spring框架的一部分，不需要整合。
+1. 前端控制器不一样。
+   - springmvc 的前端控制器是 servlet（DispatcherServlet）
+   - struts2 的前端控制器是 filter（StrutsPrepareAndExecutorFilter）
+2. 请求参数接收方式不一样。
+   - springmvc 是使用方法的形参接收请求的参数，基于方法的开发，线程安全，可以设计为单例或者多例模式的开发，推荐使用单例模式的开发，执行效率会更高（默认就是单例模式开发）。
+   - strut2 是使用类的成员变量来接收请求的参数数据，基于类的开发，是线程不安全的，只能设计为多例模式的开发。
+   - 原因：springmvc 传递参数操作的是方法的形参，多个线程操作不会影响到另一个线程。但 strut2 传递封装参数操作的是成员变量，但一个线程改变了变量的值，会影响到另一个线程的操作时变量的值。所以会出现线程不安全的问题，所以 struts2 框架的 action 都是设计成单例模式
+3. 开发的方式不同
+   - springmvc 基于方法开发的。springmvc 将 url 和 controller 里的方法映射。映射成功后 springmvc 生成一个 Handler 对象，对象中只包括了一个 method。方法执行结束，形参数据销毁。springmvc 的 controller 开发类似 web service 开发。
+   - struts2 基于类开发的。
+4. 与 spring 整合不一样。
+   - springmvc 框架本身就是 spring 框架的一部分，不需要整合。
 
 ## 3. Tomcat 服务中文参数传递乱码解决
 
@@ -2970,7 +2966,7 @@ public ViewResolver viewResolver() {
 
 ### 3.1. POST 请求 - 解决中文乱码
 
-Spring 提供了一个字符集编码的过滤器(`CharacterEncodingFilter`)，解决post请求的中文乱码，它实质相当于一个拦截器
+Spring 提供了一个字符集编码的过滤器(`CharacterEncodingFilter`)，解决 post 请求的中文乱码，它实质相当于一个拦截器
 
 只需要在 web.xml 中配置即可使用，使用 `<filter>` 标签
 
@@ -2979,7 +2975,7 @@ Spring 提供了一个字符集编码的过滤器(`CharacterEncodingFilter`)，�
 <filter>
 	<filter-name>characterEncodingFilter</filter-name>
 	<filter-class>org.springframework.web.filter.CharacterEncodingFilter</filter-class>
-	
+
 	<!-- 配置指定的编码-->
 	<init-param>
 		<param-name>encoding</param-name>
@@ -3001,11 +2997,11 @@ Spring 提供了一个字符集编码的过滤器(`CharacterEncodingFilter`)，�
 
 ### 3.2. GET 请求 - 解决中文乱码
 
-测试get请求方式中文参数乱码
+测试 get 请求方式中文参数乱码
 
 ![](images/264325714226864.png)
 
-或者请求url带中文
+或者请求 url 带中文
 
 ```
 localhost:8080/ssm/queryItem.do?item.name=中文乱码哦!
@@ -3015,7 +3011,7 @@ localhost:8080/ssm/queryItem.do?item.name=中文乱码哦!
 
 ![](images/152265814239699.png)
 
-#### 3.2.1. 解决方式1
+#### 3.2.1. 解决方式 1
 
 对请求参数进行重新编码。ISO8859-1 是 tomcat 默认编码，需要将 tomcat 编码后的内容按 utf-8 编码。修改出现乱码的控制方法
 
@@ -3044,7 +3040,7 @@ public String queryItem(Model model, QueryVo queryVo) {
 
 > 这种方式显然不可取，重复编码
 
-#### 3.2.2. 解决方式2
+#### 3.2.2. 解决方式 2
 
 项目开发阶段，可以修改 maven 中 pom.xml，tomcat 插件的配置
 
@@ -3083,9 +3079,9 @@ public String queryItem(Model model, QueryVo queryVo) {
 
 ### 4.1. Restful 风格简述
 
-restful，它是一种软件设计风格，指的是表现层资源的状态转换（Representational state transfer）。互联网上的一切都可以看成是资源，比如一张图片，一部电影。restful 根据 HTTP 请求方法：POST/GET/PUT/DELETE，定义了资源的操作方法：新增/查询/修改/删除。这样有什么好处呢？好处是使得请求的URL更加简洁
+restful，它是一种软件设计风格，指的是表现层资源的状态转换（Representational state transfer）。互联网上的一切都可以看成是资源，比如一张图片，一部电影。restful 根据 HTTP 请求方法：POST/GET/PUT/DELETE，定义了资源的操作方法：新增/查询/修改/删除。这样有什么好处呢？好处是使得请求的 URL 更加简洁
 
-传统的url：
+传统的 url：
 
 ```
 http://127.0.0.1:8080/springmvc-03/item/queryItem.do?id=1	查询
@@ -3094,7 +3090,7 @@ http://127.0.0.1:8080/springmvc-03/item/updateItem.do		修改
 http://127.0.0.1:8080/springmvc-03/item/deleteItem.do?id=1	删除
 ```
 
-restful风格的url：
+restful 风格的 url：
 
 ```
 http://127.0.0.1:8080/springmvc-03/item/1	查询/删除
@@ -3109,13 +3105,13 @@ http://127.0.0.1:8080/springmvc-03/item		新增/修改
 
 ### 4.2. restful 的使用示例
 
-需求：使用restful风格实现根据商品id查询数据
+需求：使用 restful 风格实现根据商品 id 查询数据
 
 #### 4.2.1. 项目配置
 
 修改项目 web.xml 配置中的 `<servlet-mapping>` 标签
 
-如果使用 restful 编程风格，需要修改前端拦截器的拦截 url，因为 restful 风格的 url 不带映射方法的标识，根据请求方式判断执行哪个方法。所以将拦截的url修改为 `/`
+如果使用 restful 编程风格，需要修改前端拦截器的拦截 url，因为 restful 风格的 url 不带映射方法的标识，根据请求方式判断执行哪个方法。所以将拦截的 url 修改为 `/`
 
 ```xml
 <!-- 配置拦截的url -->
@@ -3136,15 +3132,15 @@ http://127.0.0.1:8080/springmvc-03/item		新增/修改
 使用 Reatful 风格的 url，需要配置 `@PathVariable` 注解来使用。
 
 - 作用：把路径变量的值，绑定到方法到形参上。
-- 路径变量格式：`{变量名}`，路径变量（模版参数），用于使用restful风格时传递提交参数
+- 路径变量格式：`{变量名}`，路径变量（模版参数），用于使用 restful 风格时传递提交参数
 - 注解写法：
-    > ```java
-    > @PathVariable(name="变量名")
-    > @PathVariable(value="变量名")
-    > @PathVariable("变量名")
-    > // 以下写法的前提是：路径变量的名称，与方法的形参名称一致
-    > @PathVariable
-    > ``` 
+  > ```java
+  > @PathVariable(name="变量名")
+  > @PathVariable(value="变量名")
+  > @PathVariable("变量名")
+  > // 以下写法的前提是：路径变量的名称，与方法的形参名称一致
+  > @PathVariable
+  > ```
 
 测试 restful 风格请求
 
@@ -3152,15 +3148,15 @@ http://127.0.0.1:8080/springmvc-03/item		新增/修改
 /**
  * restful讲解专用
  * 		使用restful风格，实现根据商品id查询商品数据。
- * 		http://127.0.0.1:8080/ssm/item/1 
- * 
+ * 		http://127.0.0.1:8080/ssm/item/1
+ *
  * 	{id}：路径变量（模版参数）
  * 	@PathVariable注解：把路径变量的值，绑定到方法的形参上
  * 注解写法：
  * 		@PathVariable(name="id")
  * 		@PathVariable(value="id")
  * 		@PathVariable("id")
- * 
+ *
  * 前提是路径变量的名称，与方法的形参名称一致：
  * 		@PathVariable() 或者 @PathVariable
  */
@@ -3202,13 +3198,13 @@ public String testRestfulDelete(@PathVariable Integer id) {
 }
 ```
 
-> 注：更多 `@PathVariable` 注解的说明，详见[《Spring MVC 注解汇总.md》文档](/02-后端框架/05-SpringMVC/02-SpringMVC注解汇总)
+> 注：更多 `@PathVariable` 注解的说明，详见[《Spring MVC 注解汇总.md》文档](/02-后端框架/03-SpringMVC/02-SpringMVC注解汇总)
 
 ## 5. 扩展：方法参数名获取
 
 ### 5.1. 正常编译反射获取方法名
 
-在 src 以外目录，准备一个类和一个接口用于测试。（*注：不在放在 src 目录是避免 idea 自动编译它下面的类*）
+在 src 以外目录，准备一个类和一个接口用于测试。（_注：不在放在 src 目录是避免 idea 自动编译它下面的类_）
 
 ```java
 public class Bean1 {

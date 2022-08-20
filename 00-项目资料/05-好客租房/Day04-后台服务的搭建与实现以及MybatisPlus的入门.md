@@ -1,10 +1,10 @@
-# Day04-后台服务的搭建与实现以及MybatisPlus的入门
+# Day04-后台服务的搭建与实现以及 MybatisPlus 的入门
 
-## 1. 使用Docker安装MySQL
+## 1. 使用 Docker 安装 MySQL
 
-好客租房项目的底层数据库采用MySQL，而MySQL采用衍生版本Percona，并且采用docker容器化的方式进行部署
+好客租房项目的底层数据库采用 MySQL，而 MySQL 采用衍生版本 Percona，并且采用 docker 容器化的方式进行部署
 
-### 1.1. 什么是percona？
+### 1.1. 什么是 percona？
 
 Percona 为 MySQL 数据库服务器进行了改进，在功能和性能上较 MySQL 有着很显著的提升。该版本提升了在高负载情况下的 InnoDB 的性能、为 DBA 提供一些非常有用的性能诊断工具；另外有更多的参数和命令来控制服务器行为。
 
@@ -33,8 +33,8 @@ docker create --name percona -v /usr/haoke/mysql-data:/var/lib/mysql -p 3306:330
 
 - `--name percona`：指定是容器的名称
 - `-v /usr/haoke/mysql-data:/var/lib/mysql`：将主机目录`/usr/haoke/mysql-data`挂载到容器的`/var/lib/mysql`上
-- `-p 3306:3306`：设置端口映射，主机端口是33306，容器内部端口3306
-- `-e MYSQL_ROOT_PASSWORD=123456`：设置容器参数，这里是设置mysql的root用户的密码为123456
+- `-p 3306:3306`：设置端口映射，主机端口是 33306，容器内部端口 3306
+- `-e MYSQL_ROOT_PASSWORD=123456`：设置容器参数，这里是设置 mysql 的 root 用户的密码为 123456
 - `percona:5.7.23`：镜像名:版本号
 
 #### 1.2.3. 启动容器
@@ -47,7 +47,7 @@ docker ps -a
 
 使用数据库的图形化客户端测试是否成功连接
 
-#### 1.2.4. 另一种方式：守护式容器（后台运行。使用exit退出时，容器不会停止）
+#### 1.2.4. 另一种方式：守护式容器（后台运行。使用 exit 退出时，容器不会停止）
 
 ```bash
 docker run -it --name=percona -v /usr/haoke/mysql-data:/var/lib/mysql --privileged=true -p 33306:3306 -e MYSQL_ROOT_PASSWORD=123456 percona:5.7.23
@@ -65,11 +65,11 @@ docker run -it --name=percona -v /usr/haoke/mysql-data:/var/lib/mysql --privileg
 chmod 777 /usr/haoke/mysql-data/
 ```
 
-## 2. MybatisPlus入门
+## 2. MybatisPlus 入门
 
-在后台系统服务的开发过程中，必然要和数据库进行交互，在本项目中，ORM这一层的技术选型采用Mybatis框架作为持久层框架。为了提升开发的效率，所以选用MybatisPlus作为mybatis的插件
+在后台系统服务的开发过程中，必然要和数据库进行交互，在本项目中，ORM 这一层的技术选型采用 Mybatis 框架作为持久层框架。为了提升开发的效率，所以选用 MybatisPlus 作为 mybatis 的插件
 
-> MybatisPlus 快速入门示例与基本使用的笔记，详见[《MyBatis-Plus 基础笔记》](/02-后端框架/04-MyBatis/04-MyBatisPlus)
+> MybatisPlus 快速入门示例与基本使用的笔记，详见[《MyBatis-Plus 基础笔记》](/02-后端框架/02-MyBatis/04-MyBatisPlus)
 
 ## 3. Lombok 工具包
 
@@ -77,7 +77,7 @@ chmod 777 /usr/haoke/mysql-data/
 
 ## 4. 后台服务系统搭建
 
-后台服务系统采用SOA的架构思想，使用dubbo作为服务治理框架进行搭建
+后台服务系统采用 SOA 的架构思想，使用 dubbo 作为服务治理框架进行搭建
 
 ### 4.1. 后台服务系统架构图与工程目录结构
 
@@ -89,9 +89,9 @@ chmod 777 /usr/haoke/mysql-data/
 
 ![](images/20201003112424849_30836.png)
 
-### 4.2. 创建haoke-manage工程
+### 4.2. 创建 haoke-manage 工程
 
-创建pom聚合工程，修改pom.xml文件添加公共的依赖
+创建 pom 聚合工程，修改 pom.xml 文件添加公共的依赖
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
@@ -216,10 +216,9 @@ chmod 777 /usr/haoke/mysql-data/
 </project>
 ```
 
+### 4.3. 创建 haoke-manage-api-server 工程
 
-### 4.3. 创建haoke-manage-api-server工程
-
-创建jar类型项目，添加pom.xml配置文件相关依赖
+创建 jar 类型项目，添加 pom.xml 配置文件相关依赖
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
@@ -248,9 +247,9 @@ chmod 777 /usr/haoke/mysql-data/
 </project>
 ```
 
-### 4.4. 创建haoke-manage-dubbo-server工程
+### 4.4. 创建 haoke-manage-dubbo-server 工程
 
-创建jar类型项目，添加pom.xml配置文件相关依赖
+创建 jar 类型项目，添加 pom.xml 配置文件相关依赖
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
@@ -346,14 +345,14 @@ CREATE TABLE `tb_house_resources` (
 
 ### 5.2. 创建房源服务聚合工程
 
-创建pom类型聚合项目`haoke-manage-server-house-resources`，在此聚合项目中创建两个子工程，其作用如下：
+创建 pom 类型聚合项目`haoke-manage-server-house-resources`，在此聚合项目中创建两个子工程，其作用如下：
 
-- `haoke-manage-server-house-resources-interface`：作为对外提供的sdk包，只提供pojo实体以及接口，不提供实现类
+- `haoke-manage-server-house-resources-interface`：作为对外提供的 sdk 包，只提供 pojo 实体以及接口，不提供实现类
 - `haoke-manage-server-house-resources-service`：对外暴露的接口的具体实现，但不会对外暴露
 
 ![](images/20201003121321082_14633.png)
 
-pom.xml文件配置：
+pom.xml 文件配置：
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
@@ -408,7 +407,7 @@ pom.xml文件配置：
 
 #### 5.3.1. 房源服务的子工程 - 服务接口
 
-创建jar类型的服务接口工程，用于对外暴露接口与实体类。配置`pom.xml`依赖
+创建 jar 类型的服务接口工程，用于对外暴露接口与实体类。配置`pom.xml`依赖
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
@@ -432,7 +431,7 @@ pom.xml文件配置：
 
 #### 5.3.2. 房源服务的子工程 - 服务实现
 
-创建jar类型的服务接口具体实现工程，不会对外暴露。配置`pom.xml`依赖
+创建 jar 类型的服务接口具体实现工程，不会对外暴露。配置`pom.xml`依赖
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
@@ -471,7 +470,7 @@ pom.xml文件配置：
 
 #### 5.4.1. 创建 BasePojo 实体类
 
-编写`BasePojo`类，抽取公共部分的属性。当前工程所有的pojo类都要继承该类，在该类中定义了created、updated字段，表明在每一个表中都需要有这2个字段。
+编写`BasePojo`类，抽取公共部分的属性。当前工程所有的 pojo 类都要继承该类，在该类中定义了 created、updated 字段，表明在每一个表中都需要有这 2 个字段。
 
 ```java
 package com.moon.haoke.dubbo.server.pojo;
@@ -495,7 +494,7 @@ public class BasePojo implements java.io.Serializable {
 
 #### 5.5.1. 创建代码生成服务工程
 
-创建jar类型的代码生成服务工程`haoke-manage-server-generator`，修改`pom.xml`配置相关依赖
+创建 jar 类型的代码生成服务工程`haoke-manage-server-generator`，修改`pom.xml`配置相关依赖
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
@@ -541,7 +540,7 @@ public class BasePojo implements java.io.Serializable {
 </project>
 ```
 
-#### 5.5.2. 编写CodeGenerator
+#### 5.5.2. 编写 CodeGenerator
 
 代码参考官方提供代码实现，修改相关的内容即可
 
@@ -659,7 +658,7 @@ public class CodeGenerator {
 
 ![](images/20201003185335096_14131.png)
 
-自动生成了controller、entity、mapper、service等内容，位置在项目的根目录。一般只需要entity实体类即可。
+自动生成了 controller、entity、mapper、service 等内容，位置在项目的根目录。一般只需要 entity 实体类即可。
 
 ![](images/20201003185709119_19615.png)
 
@@ -674,26 +673,26 @@ public class TbHouseResources extends BasePojo {
 }
 ```
 
-- `@EqualsAndHashCode(callSuper = true)`：这个是自动生成equals和hashCode方法，一般都不需要，所以将该注解去掉
-- `@Accessors(chain = true)`：这个是表示生成的set方法将采用链式编程方式，建议保留。
+- `@EqualsAndHashCode(callSuper = true)`：这个是自动生成 equals 和 hashCode 方法，一般都不需要，所以将该注解去掉
+- `@Accessors(chain = true)`：这个是表示生成的 set 方法将采用链式编程方式，建议保留。
 
 ![](images/20201003190228813_28977.png)
 
-#### 5.5.5. 将整理到pojo文件并且拷贝到工程
+#### 5.5.5. 将整理到 pojo 文件并且拷贝到工程
 
-将整理的pojo文件拷贝到`haoke-manage-server-house-resources-interface`工程中
+将整理的 pojo 文件拷贝到`haoke-manage-server-house-resources-interface`工程中
 
 1. 将生成的实体类中`@EqualsAndHashCode(callSuper = true)`删除
 2. 增加`@TableName("tb_house_resources")`注解，标识当前实体类与数据库表的映射关系
-3. 修改实体类名称，删除开头的TB字母
-4. 增加id主键属性，并设置策略为主增长
+3. 修改实体类名称，删除开头的 TB 字母
+4. 增加 id 主键属性，并设置策略为主增长
 5. 删除继承基础实体类的属性
 
 ![](images/20201003191039466_17515.png)
 
-### 5.6. 定义新增房源的dubbo服务
+### 5.6. 定义新增房源的 dubbo 服务
 
-在`haoke-manage-server-house-resources-interface`工程中，创建新增房源的dubbo服务接口
+在`haoke-manage-server-house-resources-interface`工程中，创建新增房源的 dubbo 服务接口
 
 ```java
 public interface ApiHouseResourcesService {
@@ -711,7 +710,7 @@ public interface ApiHouseResourcesService {
 
 #### 5.7.1. 编写配置文件
 
-编写`haoke-manage-server-house-resources-service`工程springboot的`application.properties`配置文件，修改数据库连接、dubbo等配置
+编写`haoke-manage-server-house-resources-service`工程 springboot 的`application.properties`配置文件，修改数据库连接、dubbo 等配置
 
 ```properties
 # Spring boot application
@@ -733,17 +732,17 @@ dubbo.registry.address=zookeeper://192.168.12.134:2181
 dubbo.registry.client=zkclient
 ```
 
-#### 5.7.2. 编写房源的Mapper接口
+#### 5.7.2. 编写房源的 Mapper 接口
 
-创建房源持久层mapper接口，继承MyBatis-Plus 的`BaseMapper`接口
+创建房源持久层 mapper 接口，继承 MyBatis-Plus 的`BaseMapper`接口
 
 ```java
 public interface HouseResourcesMapper extends BaseMapper<HouseResources> {}
 ```
 
-#### 5.7.3. 编写MybatisPlus配置类
+#### 5.7.3. 编写 MybatisPlus 配置类
 
-创建Mybatis-plus独立的配置类`MybatisConfig`
+创建 Mybatis-plus 独立的配置类`MybatisConfig`
 
 ```java
 package com.moon.haoke.dubbo.server.config;
@@ -761,9 +760,9 @@ public class MybatisConfig {
 }
 ```
 
-#### 5.7.4. 创建BaseService公共实现类
+#### 5.7.4. 创建 BaseService 公共实现类
 
-BaseService公共实现类是对常用的业务逻辑进行封装
+BaseService 公共实现类是对常用的业务逻辑进行封装
 
 ```java
 package com.moon.haoke.dubbo.server.service.impl;
@@ -894,9 +893,9 @@ public abstract class BaseServiceImpl<T extends BasePojo> {
 }
 ```
 
-#### 5.7.5. 编写业务层service
+#### 5.7.5. 编写业务层 service
 
-<font color=red>**注意：此处的Service层是基于Spring框架的service，不是dubbo服务，因为需要控制事务以及一些逻辑。**</font>
+<font color=red>**注意：此处的 Service 层是基于 Spring 框架的 service，不是 dubbo 服务，因为需要控制事务以及一些逻辑。**</font>
 
 - 定义业务接口
 
@@ -954,7 +953,7 @@ public class HouseResourcesServiceImpl extends BaseServiceImpl<HouseResources> i
 }
 ```
 
-#### 5.7.6. 编写dubbo服务接口
+#### 5.7.6. 编写 dubbo 服务接口
 
 在`haoke-manage-server-house-resources-service`工程中编写对外暴露的接口的具体实现
 
@@ -992,7 +991,7 @@ public class ApiHouseResourcesServiceImpl implements ApiHouseResourcesService {
 
 ### 5.8. 编写启动类
 
-编写`haoke-manage-server-house-resources-service`工程的启动类，以非web项目方式启动
+编写`haoke-manage-server-house-resources-service`工程的启动类，以非 web 项目方式启动
 
 ```java
 package com.moon.haoke.dubbo.server;
@@ -1016,17 +1015,17 @@ public class HouseResourcesDubboProvider {
 
 ### 5.9. 测试
 
-启动工程与Dubbo Admin工程，观察是否成功测试到zk注册中心
+启动工程与 Dubbo Admin 工程，观察是否成功测试到 zk 注册中心
 
 ![](images/20201004072121380_9341.png)
 
-## 6. 编写RESTful接口，调用房源服务
+## 6. 编写 RESTful 接口，调用房源服务
 
-`haoke-manage-api-server`工程是为前端系统提供接口服务，是dubbo服务的消费方。
+`haoke-manage-api-server`工程是为前端系统提供接口服务，是 dubbo 服务的消费方。
 
 ### 6.1. 项目依赖
 
-修改项目的`pom.xml`配置文件，添加依赖。因为是dubbo的服务方，需要添加dubbo提供方提供的接口、pojo的依赖。
+修改项目的`pom.xml`配置文件，添加依赖。因为是 dubbo 的服务方，需要添加 dubbo 提供方提供的接口、pojo 的依赖。
 
 ```xml
 <!-- dubbo服务接口的依赖 -->
@@ -1036,9 +1035,9 @@ public class HouseResourcesDubboProvider {
 </dependency>
 ```
 
-### 6.2. 编写service业务层
+### 6.2. 编写 service 业务层
 
-编写业务层`HouseResourcesService`用于调用dubbo服务
+编写业务层`HouseResourcesService`用于调用 dubbo 服务
 
 ```java
 package com.moon.haoke.dubbo.api.service;
@@ -1070,7 +1069,7 @@ public class HouseResourcesService {
 }
 ```
 
-### 6.3. 编写controller控制器
+### 6.3. 编写 controller 控制器
 
 此`Controller`用于提供给前端系统请求调用
 
@@ -1121,7 +1120,7 @@ public class HouseResourcesController {
 
 ### 6.4. 编写项目配置文件
 
-编写springboot项目的application.properties配置文件
+编写 springboot 项目的 application.properties 配置文件
 
 ```properties
 # Spring boot application
@@ -1154,7 +1153,7 @@ public class DubboApiApplication {
 }
 ```
 
-使用idea的http client或者postman等其他http请求工具测试接口，测试数据如下
+使用 idea 的 http client 或者 postman 等其他 http 请求工具测试接口，测试数据如下
 
 ```
 ### 新增房源接口测试
@@ -1192,35 +1191,35 @@ Content-Type: application/json
 修改前端工程中的`haoke-manage-web`的`AddResource.js`，补全缺少的标题一项
 
 ```jsx
-<FormItem {...formItemLayout} label="房源标题">
+<FormItem {...formItemLayout} label='房源标题'>
   {getFieldDecorator('title', { rules: [{ required: true, message: '此项为必填项' }] })(
     <Input style={{ width: '100%' }} />
   )}
 </FormItem>
 ```
 
-### 7.2. 增加请求的services
+### 7.2. 增加请求的 services
 
 创建`services`包下创建`haoke.js`，增加提交房源的方法
 
 ```js
-import request from '@/utils/request';
+import request from '@/utils/request'
 
 export async function addHouseResource(params) {
   return request('/haoke/house/resources', {
     method: 'POST',
     body: params,
-  });
+  })
 }
 ```
 
-### 7.3. 增加modal
+### 7.3. 增加 modal
 
 创建`house\models`包下创建`house.js`，增加提交房源的方法
 
 ```js
-import { message } from 'antd';
-import { addHouseResource } from '@/services/haoke';
+import { message } from 'antd'
+import { addHouseResource } from '@/services/haoke'
 
 export default {
   namespace: 'house',
@@ -1230,13 +1229,13 @@ export default {
   effects: {
     // 提交房源
     *submitHouseForm({ payload }, { call }) {
-      yield call(addHouseResource, payload);
-      message.success('提交成功');
+      yield call(addHouseResource, payload)
+      message.success('提交成功')
     },
   },
 
   reducers: {},
-};
+}
 ```
 
 ### 7.4. 修改新增房源提交逻辑
@@ -1294,11 +1293,11 @@ class AddResource extends PureComponent {
 
 ### 7.5. 前端项目的反向代理解决跨域问题
 
-由于前端系统和后台服务系统的端口不同，会导致跨域问题，可以通过umi提供的反向代理功能解决这个问题
+由于前端系统和后台服务系统的端口不同，会导致跨域问题，可以通过 umi 提供的反向代理功能解决这个问题
 
 > 相关配置参考地址：https://umijs.org/zh/config/#proxy
 
-在`config.js`中进行配置proxy：
+在`config.js`中进行配置 proxy：
 
 ```js
 proxy: {
