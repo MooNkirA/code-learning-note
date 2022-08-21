@@ -23,7 +23,7 @@
 3. 人事管理类：员工培训安排、绩效考评、职位变动处理、员工档案信息管理等。
 4. 财务相关类：付款请求、应收款处理、日常报销处理、出差报销、预算和计划申请等。
 5. 客户服务类：客户信息管理、客户投诉、请求处理、售后服务管理等。
-6. 特殊服务类：ISO系列对应流程、质量管理对应流程、产品数据信息管理、贸易公司报关处理、物流公司货物跟踪处理等各种通过表单逐步手工流转完成的任务均可应用工作流软件自动规范地实施。
+6. 特殊服务类：ISO 系列对应流程、质量管理对应流程、产品数据信息管理、贸易公司报关处理、物流公司货物跟踪处理等各种通过表单逐步手工流转完成的任务均可应用工作流软件自动规范地实施。
 
 ### 1.5. 实现方式
 
@@ -35,13 +35,13 @@
 
 ### 2.1. 简介
 
-Alfresco 软件在2010年5月17日宣布 Activiti 业务流程管理（BPM）开源项目的正式启动，而 jbpm 、activiti 都是工作流引擎。
+Alfresco 软件在 2010 年 5 月 17 日宣布 Activiti 业务流程管理（BPM）开源项目的正式启动，而 jbpm 、activiti 都是工作流引擎。
 
 Activiti 是一个工作流引擎，是轻量级、以 java 为中心的开源 BPMN 引擎，支持目前行业的流程自动化需求， activiti 可以将业务系统中复杂的业务流程抽取出来，使用专门的建模语言 BPMN 2.0 进行定义，业务流程按照预先定义的流程进行执行，实现了系统的流程由 activiti 进行管理，减少业务系统由于流程变更进行系统升级改造的工作量，从而提高系统的健壮性，同时也减少了系统开发维护成本。
 
-Activiti Cloud 是新一代的商业自动化平台，提供了一套云端原生构建模块，旨在运行于分布式基础设施。<u>*截止2022年6月23日最新版本：Activiti Cloud 7.3.0.Beta*</u>
+Activiti Cloud 是新一代的商业自动化平台，提供了一套云端原生构建模块，旨在运行于分布式基础设施。<u>_截止 2022 年 6 月 23 日最新版本：Activiti Cloud 7.3.0.Beta_</u>
 
-经历的版本：Activiti 6.x 与Activiti 5.x
+经历的版本：Activiti 6.x 与 Activiti 5.x
 
 #### 2.1.1. BPM
 
@@ -55,9 +55,9 @@ BPM 软件在企业中应用领域广泛，凡是有业务流程的地方都可�
 
 #### 2.1.3. BPMN
 
-BPMN（Business Process Model AndNotation）业务流程模型和符号，是由 BPMI（BusinessProcess Management Initiative）开发的一套标准的业务流程建模符号，使用 BPMN 提供的符号可以创建业务流程。 
+BPMN（Business Process Model AndNotation）业务流程模型和符号，是由 BPMI（BusinessProcess Management Initiative）开发的一套标准的业务流程建模符号，使用 BPMN 提供的符号可以创建业务流程。
 
-2004年5月发布了 BPMN1.0 规范 .BPMI 于2005年9月并入OMG（The Object Management Group对象管理组织)组织。OMG于2011年1月发布BPMN2.0的最终版本。具体发展历史如下: 
+2004 年 5 月发布了 BPMN1.0 规范 .BPMI 于 2005 年 9 月并入 OMG（The Object Management Group 对象管理组织)组织。OMG 于 2011 年 1 月发布 BPMN2.0 的最终版本。具体发展历史如下:
 
 ![](images/5312423247123.jpg)
 
@@ -70,7 +70,6 @@ BPMN 是目前被各 BPM 厂商广泛接受的 BPM 标准。Activiti 就是使�
 - 活动用圆角矩形表示，一个流程由一个活动或多个活动组成
 
 ![](images/214452523236347.jpg)
-
 
 Bpmn 图形表示业务流程，实质最终是生成 xml 文件，使用文本编辑器打开示例 .bpmn 文件，示例如下：
 
@@ -128,7 +127,7 @@ Bpmn 图形表示业务流程，实质最终是生成 xml 文件，使用文本�
 
 ### 2.2. 使用步骤
 
-#### 2.2.1. 部署activiti
+#### 2.2.1. 部署 activiti
 
 Activiti 是一个工作流引擎本质是由多个 jar 包组成的 API，业务系统访问（操作）activiti 的接口，就可以方便的操作流程相关数据，这样就可以把工作流环境与业务系统的环境集成在一起。
 
@@ -140,7 +139,7 @@ Activiti 是一个工作流引擎本质是由多个 jar 包组成的 API，业�
 
 #### 2.2.3. 流程定义部署
 
-activiti 部署业务流程定义（.bpmn文件）。使用 activiti 提供的 api 把流程定义内容存储起来，在 Activiti 执行过程中可以查询定义的内容。
+activiti 部署业务流程定义（.bpmn 文件）。使用 activiti 提供的 api 把流程定义内容存储起来，在 Activiti 执行过程中可以查询定义的内容。
 
 Activiti 执行会把流程定义内容存储在数据库中
 
@@ -207,9 +206,9 @@ Activiti 执行会把流程定义内容存储在数据库中
 
 ### 3.3. Activiti 的数据库支持
 
-Activiti 在运行时需要数据库的支持，会使用25张表，把流程定义节点内容读取到数据库表中，以供后续使用。activiti  支持的数据库和版本如下：
+Activiti 在运行时需要数据库的支持，会使用 25 张表，把流程定义节点内容读取到数据库表中，以供后续使用。activiti 支持的数据库和版本如下：
 
-| 数据库类型 |          版本           |                       JDBC连接示例                       |                说明                |
+| 数据库类型 | 版本                   | JDBC 连接示例                                           | 说明                               |
 | ---------- | ---------------------- | ------------------------------------------------------- | ---------------------------------- |
 | h2         | 1.3.168                | jdbc:h2:tcp://localhost/activiti                        | 默认配置的数据库                   |
 | mysql      | 5.1.21                 | jdbc:mysql://localhost:3306/activiti?autoReconnect=true | 使用 mysql-connector-java 驱动测试 |
@@ -226,7 +225,7 @@ Activiti 在运行时需要数据库的支持，会使用25张表，把流程定
 
 #### 3.4.1. 创建数据库
 
-创建给 Activiti 使用的 mysql 数据库（*名称随意*）
+创建给 Activiti 使用的 mysql 数据库（_名称随意_）
 
 ```sql
 CREATE DATABASE activiti_sample DEFAULT CHARACTER SET utf8;
@@ -239,7 +238,7 @@ CREATE DATABASE activiti_sample DEFAULT CHARACTER SET utf8;
 1. Activiti 核心包 activiti-engine
 2. activiti 依赖的 jar 包：mybatis、slf4j、log4j2 等
 3. activiti 依赖的 spring 包
-4. mysql数据库驱动
+4. mysql 数据库驱动
 5. 第三方数据连接池 dbcp（可选）
 6. 单元测试 Junit
 
@@ -460,7 +459,7 @@ public void test01() {
 
 ![](images/529481719226958.png)
 
-执行完成后查看数据库，最终会创建 25 张表，结果如下： 
+执行完成后查看数据库，最终会创建 25 张表，结果如下：
 
 ![](images/570082518239091.png)
 
@@ -477,33 +476,33 @@ public void test01() {
 - `ACT_RE`：'RE'表示 repository。这种前缀的表包含了流程定义和流程静态资源（图片、规则等）
 - `ACT_RU`：'RU'表示 runtime。这种前缀的表是在运行时使用，包含流程实例、任务、变量、异步任务等运行中的数据。Activiti 只在流程实例执行过程中保存这些数据，在流程结束时就会删除这些记录。这样运行时表可以一直很小速度很快
 - `ACT_HI`：'HI'表示 history。这种前缀的表包含历史数据，比如历史流程实例、变量、任务等
-- `ACT_GE`：'GE'表示 general。这种前缀的表是存储通用数据，用于不同场景下 
+- `ACT_GE`：'GE'表示 general。这种前缀的表是存储通用数据，用于不同场景下
 
 #### 3.5.2. Activiti 数据表介绍
 
 - 一般数据
 
-|       表名        |          说明           |
-| ---------------- | ----------------------- |
+| 表名             | 说明                     |
+| ---------------- | ------------------------ |
 | ACT_GE_BYTEARRAY | 通用的流程定义和流程资源 |
 | ACT_GE_PROPERTY  | 系统相关属性             |
 
 - 流程历史记录
 
-|         表名         |              说明               |
-| ------------------- | ------------------------------- |
-| ACT_HI_ACTINST      | 历史的流程实例                  |
-| ACT_HI_ATTACHMENT   | 历史的流程附件                  |
-| ACT_HI_COMMENT      | 历史的说明性信息                 |
-| ACT_HI_DETAIL       | 历史的流程运行中的细节信息       |
-| ACT_HI_IDENTITYLINK | 历史的流程运行过程中用户关系     |
-| ACT_HI_PROCINST     | 历史的流程实例                  |
-| ACT_HI_TASKINST     | 历史的任务实例                  |
-| ACT_HI_VARINST      | 历史的流程运行中的变量信息       |
+| 表名                | 说明                         |
+| ------------------- | ---------------------------- |
+| ACT_HI_ACTINST      | 历史的流程实例               |
+| ACT_HI_ATTACHMENT   | 历史的流程附件               |
+| ACT_HI_COMMENT      | 历史的说明性信息             |
+| ACT_HI_DETAIL       | 历史的流程运行中的细节信息   |
+| ACT_HI_IDENTITYLINK | 历史的流程运行过程中用户关系 |
+| ACT_HI_PROCINST     | 历史的流程实例               |
+| ACT_HI_TASKINST     | 历史的任务实例               |
+| ACT_HI_VARINST      | 历史的流程运行中的变量信息   |
 
 - 流程定义表
 
-|        表名        |       说明       |
+| 表名              | 说明             |
 | ----------------- | ---------------- |
 | ACT_RE_DEPLOYMENT | 部署单元信息     |
 | ACT_RE_MODEL      | 模型信息         |
@@ -511,15 +510,14 @@ public void test01() {
 
 - 运行实例表
 
-|         表名         |                       说明                       |
-| ------------------- | ------------------------------------------------ |
-| ACT_RU_EVENT_SUBSCR | 运行时事件                                       |
-| ACT_RU_EXECUTION    | 运行时流程执行实例                                |
+| 表名                | 说明                                               |
+| ------------------- | -------------------------------------------------- |
+| ACT_RU_EVENT_SUBSCR | 运行时事件                                         |
+| ACT_RU_EXECUTION    | 运行时流程执行实例                                 |
 | ACT_RU_IDENTITYLINK | 运行时用户关系信息，存储任务节点与参与者的相关信息 |
-| ACT_RU_JOB          | 运行时作业                                       |
-| ACT_RU_TASK         | 运行时任务                                       |
-| ACT_RU_VARIABLE     | 运行时变量表                                     |
-
+| ACT_RU_JOB          | 运行时作业                                         |
+| ACT_RU_TASK         | 运行时任务                                         |
+| ACT_RU_VARIABLE     | 运行时变量表                                       |
 
 ## 4. Activiti 核心类说明
 
@@ -535,7 +533,7 @@ activiti.cfg.xml 是 Activiti 的引擎配置文件，包括：`ProcessEngineCon
 
 ### 4.3. ProcessEngineConfiguration 流程引擎配置类
 
-通过流程引擎的抽象配置类 `ProcessEngineConfiguration`，可以创建工作流引擎 `ProceccEngine` 实例。有如下两个常用的实现类： 
+通过流程引擎的抽象配置类 `ProcessEngineConfiguration`，可以创建工作流引擎 `ProceccEngine` 实例。有如下两个常用的实现类：
 
 #### 4.3.1. StandaloneProcessEngineConfiguration
 
@@ -543,17 +541,17 @@ activiti.cfg.xml 是 Activiti 的引擎配置文件，包括：`ProcessEngineCon
 
 通常配置文件方式是，在 activiti.cfg.xml 配置文件中定义一个 id 为 `processEngineConfiguration` 的 bean。
 
-> *具体两种配置方式详见基础示例的《activiti 默认配置文件》章节*
+> _具体两种配置方式详见基础示例的《activiti 默认配置文件》章节_
 
 #### 4.3.2. SpringProcessEngineConfiguration
 
 `org.activiti.spring.SpringProcessEngineConfiguration` 实现类是用来与 Spring 进行整合。通过需要创建 spring 与 activiti 的整合配置文件：activity-spring.cfg.xml（名称随意修改）
 
-> *具体配置方式详见《Activiti 与 Spring 整合》章节*
+> _具体配置方式详见《Activiti 与 Spring 整合》章节_
 
 #### 4.3.3. ProcessEngineConfiguration 的创建方式
 
-通过 `ProcessEngineConfiguration` 类的静态方法 `createProcessEngineConfigurationFromResource` 可自定义创建 `ProcessEngineConfiguration` 实例，方法参数分别指定配置文件名称与bean实例的名称，即意味着 activiti 的配置文件名称可以自定义，创建 `processEngineConfiguration` 实例的id也可以自定义
+通过 `ProcessEngineConfiguration` 类的静态方法 `createProcessEngineConfigurationFromResource` 可自定义创建 `ProcessEngineConfiguration` 实例，方法参数分别指定配置文件名称与 bean 实例的名称，即意味着 activiti 的配置文件名称可以自定义，创建 `processEngineConfiguration` 实例的 id 也可以自定义
 
 ```java
 ProcessEngineConfiguration processEngineConfiguration = ProcessEngineConfiguration.
@@ -607,13 +605,13 @@ TaskService taskService = processEngine.getTaskService();
 
 各种 Serivce 接口与作用如下表：
 
-|    service名称     |       service作用        |
-| ----------------- | ------------------------ |
-| RepositoryService | activiti的资源管理类     |
-| RuntimeService    | activiti的流程运行管理类 |
-| TaskService       | activiti的任务管理类     |
-| HistoryService    | activiti的历史管理类     |
-| ManagerService    | activiti的引擎管理类     |
+| service 名称      | service 作用              |
+| ----------------- | ------------------------- |
+| RepositoryService | activiti 的资源管理类     |
+| RuntimeService    | activiti 的流程运行管理类 |
+| TaskService       | activiti 的任务管理类     |
+| HistoryService    | activiti 的历史管理类     |
+| ManagerService    | activiti 的引擎管理类     |
 
 > tips: 以上这些接口实质都是操作 Activity 各张数据库表
 
@@ -653,7 +651,7 @@ Activiti 的引擎管理类，提供了对 Activiti 流程引擎的管理和维�
 
 ### 5.1. 流程符号
 
-BPMN 2.0 是业务流程建模符号2.0的缩写。它由 Business Process Management Initiative 这个非营利协会创建并不断发展。作为一种标识，BPMN 2.0 是使用一些**符号**来明确业务流程设计流程图的一整套符号规范，它能增进业务建模时的沟通效率。
+BPMN 2.0 是业务流程建模符号 2.0 的缩写。它由 Business Process Management Initiative 这个非营利协会创建并不断发展。作为一种标识，BPMN 2.0 是使用一些**符号**来明确业务流程设计流程图的一整套符号规范，它能增进业务建模时的沟通效率。
 
 目前 BPMN 2.0 是最新的版本，它用于在 BPM 上下文中进行布局和可视化的沟通。在流程设计中 BPMN 2.0 常见的**基本符合**主要包含：
 
@@ -673,7 +671,7 @@ BPMN 2.0 是业务流程建模符号2.0的缩写。它由 Business Process Manag
 
 ![](images/485750316226961.png)
 
-##### 5.1.3.1. 排他网关 (x) 
+##### 5.1.3.1. 排他网关 (x)
 
 只有一条路径会被选择。流程执行到该网关时，按照输出流的顺序逐个计算：
 
@@ -683,21 +681,21 @@ BPMN 2.0 是业务流程建模符号2.0的缩写。它由 Business Process Manag
 
 排他网关需要和条件顺序流结合使用，default 属性指定默认顺序流，当所有的条件不满足时会执行默认顺序流。
 
-##### 5.1.3.2. 并行网关 (+) 
+##### 5.1.3.2. 并行网关 (+)
 
 所有路径会被同时选择
 
 - **拆分**：并行执行所有输出顺序流，为每一条顺序流创建一个并行执行线路。
 - **合并**：所有从并行网关拆分并执行完成的线路均在此等候，直到所有的线路都执行完成才继续向下执行。
 
-##### 5.1.3.3. 包容网关 (+) 
+##### 5.1.3.3. 包容网关 (+)
 
 可以同时执行多条线路，也可以在网关上设置条件
 
 - **拆分**：计算每条线路上的表达式，当表达式计算结果为 true 时，创建一个并行线路并继续执行
 - **合并**：所有从并行网关拆分并执行完成的线路均在此等候，直到所有的线路都执行完成才继续向下执行
 
-##### 5.1.3.4. 事件网关 (+) 
+##### 5.1.3.4. 事件网关 (+)
 
 专门为中间捕获事件设置的，允许设置多个输出流指向多个不同的中间捕获事件。当流程执行到事件网关后，流程处于等待状态，需要等待抛出事件才能将等待状态转换为活动状态。
 
@@ -713,7 +711,7 @@ BPMN 2.0 是业务流程建模符号2.0的缩写。它由 Business Process Manag
 
 #### 5.2.1. 新建流程图
 
-在 idea 中安装插件即可使用，在项目目录中右键生成 Activiti BPMN 文件（其实最终是生成一个xml文件）
+在 idea 中安装插件即可使用，在项目目录中右键生成 Activiti BPMN 文件（其实最终是生成一个 xml 文件）
 
 ![](images/153412116236351.png)
 
@@ -748,7 +746,7 @@ BPMN 2.0 是业务流程建模符号2.0的缩写。它由 Business Process Manag
 
 - **指定流程定义 ID**
 
-流程定义key即流程定义的标识，通过左键点击空白处，查看流程定义的信息。在 properties 视图面板中可以修改流程定义的标识，主要是修改 ID 与 Name 属性
+流程定义 key 即流程定义的标识，通过左键点击空白处，查看流程定义的信息。在 properties 视图面板中可以修改流程定义的标识，主要是修改 ID 与 Name 属性
 
 ![](images/111264116247589.png)
 
@@ -758,7 +756,7 @@ BPMN 2.0 是业务流程建模符号2.0的缩写。它由 Business Process Manag
 
 ![](images/119075321220668.png)
 
-> 番外：如果打开的流程图出现中文乱码的问题，解决方案详见[《IntelliJ IDEA 常用配置》](/99-其他/01-IDE/01-IDEA)的“修改默认字符集”章节
+> 番外：如果打开的流程图出现中文乱码的问题，解决方案详见[《IntelliJ IDEA 常用配置》](/99-其他/IDE/01-IDEA)的“修改默认字符集”章节
 
 #### 5.2.4. 注意事项
 
@@ -795,7 +793,7 @@ public void testDeployment() {
 
 #### 5.3.2. 压缩包部署方式
 
-将 evection.bpmn 和 evection.png 压缩成zip包，通过 `RepositoryService` 对象将指定的 bpm 文件和图片文件保存在 activiti 数据库。
+将 evection.bpmn 和 evection.png 压缩成 zip 包，通过 `RepositoryService` 对象将指定的 bpm 文件和图片文件保存在 activiti 数据库。
 
 ```java
 @Test
@@ -837,10 +835,10 @@ SELECT * FROM act_re_procdef # 流程定义表，记录流程定义信息
 
 > tips：注意表中的 KEY 这个字段是用来唯一识别不同流程的关键字
 
-- act_ge_bytearray：流程资源表 
+- act_ge_bytearray：流程资源表
 
 ```sql
-SELECT * FROM act_ge_bytearray # 资源表 
+SELECT * FROM act_ge_bytearray # 资源表
 ```
 
 **总结**：
@@ -851,9 +849,9 @@ act_re_deployment 和 act_re_procdef 一对多关系，一次部署在流程部�
 
 ### 5.4. 启动流程实例
 
-流程定义部署在 activiti 之后，就可以通过工作流管理业务流程了。*即前面部署的出差申请流程示例可以使用了*
+流程定义部署在 activiti 之后，就可以通过工作流管理业务流程了。_即前面部署的出差申请流程示例可以使用了_
 
-针对示例的流程，启动一个流程实例即表示发起一个新的出差申请单，类似于java中的类与对象的关系，类定义好后使用 new 关键字创建一个对象后即可使用，也可以 new 多个对象。对于出差申请流程，张三发起一个出差申请单需要启动一个流程实例，出差申请单发起一个出差单也需要启动一个流程实例。
+针对示例的流程，启动一个流程实例即表示发起一个新的出差申请单，类似于 java 中的类与对象的关系，类定义好后使用 new 关键字创建一个对象后即可使用，也可以 new 多个对象。对于出差申请流程，张三发起一个出差申请单需要启动一个流程实例，出差申请单发起一个出差单也需要启动一个流程实例。
 
 #### 5.4.1. 代码实现
 
@@ -897,7 +895,7 @@ public void testStartProcess() {
 
 #### 5.5.1. 代码实现
 
-```java  
+```java
 @Test
 public void testTaskQueryByAssignee() {
     // 1、创建 ProcessEngine 流程引擎
@@ -934,19 +932,19 @@ public void testTaskQueryByAssignee() {
 
 ![](images/217174510227045.png)
 
-可以看到，任务查询主要根据以下sql语句进行查询，主要查询的是 `ACT_RU_TASK` 表，并且会做 `DISTINCT` 去重的操作
+可以看到，任务查询主要根据以下 sql 语句进行查询，主要查询的是 `ACT_RU_TASK` 表，并且会做 `DISTINCT` 去重的操作
 
 ```sql
 SELECT DISTINCT
-	RES.* 
+	RES.*
 FROM
 	ACT_RU_TASK RES
-	INNER JOIN ACT_RE_PROCDEF D ON RES.PROC_DEF_ID_ = D.ID_ 
+	INNER JOIN ACT_RE_PROCDEF D ON RES.PROC_DEF_ID_ = D.ID_
 WHERE
-	RES.ASSIGNEE_ = 'Sam' 
-	AND D.KEY_ = 'myEvection' 
+	RES.ASSIGNEE_ = 'Sam'
+	AND D.KEY_ = 'myEvection'
 ORDER BY
-	RES.ID_ ASC 
+	RES.ID_ ASC
 	LIMIT 2147483647 OFFSET 0;
 ```
 
@@ -995,14 +993,14 @@ update ACT_GE_PROPERTY SET REV_ = 5, VALUE_ = '10001' where NAME_ = 'next.dbid' 
 INSERT INTO ACT_HI_TASKINST (
     ID_, PROC_DEF_ID_, PROC_INST_ID_, EXECUTION_ID_, NAME_, PARENT_TASK_ID_, DESCRIPTION_, OWNER_,
     ASSIGNEE_, START_TIME_, CLAIM_TIME_, END_TIME_, DURATION_, DELETE_REASON_, TASK_DEF_KEY_, FORM_KEY_,
-    PRIORITY_, DUE_DATE_, CATEGORY_, TENANT_ID_ 
+    PRIORITY_, DUE_DATE_, CATEGORY_, TENANT_ID_
 )
 VALUES
     ('7502', 'myEvection:2:2504', '5001', '5002', '经理审批', null, null, null, 'Jack', 2022-07-11 11:08:43.212, null, null, null, null, 'sid-02', null, 50, null, null, '')
 -- 同样创建下一步骤的记录（示例的“经理审批”步骤）
 INSERT INTO ACT_HI_ACTINST (
 	ID_, PROC_DEF_ID_, PROC_INST_ID_, EXECUTION_ID_, ACT_ID_, TASK_ID_, CALL_PROC_INST_ID_, ACT_NAME_, ACT_TYPE_,
-	ASSIGNEE_, START_TIME_, END_TIME_, DURATION_, DELETE_REASON_, TENANT_ID_ 
+	ASSIGNEE_, START_TIME_, END_TIME_, DURATION_, DELETE_REASON_, TENANT_ID_
 )
 VALUES
 	(...)
@@ -1010,28 +1008,28 @@ VALUES
 insert into ACT_HI_IDENTITYLINK (ID_, TYPE_, USER_ID_, GROUP_ID_, TASK_ID_, PROC_INST_ID_) values (?, ?, ?, ?, ?, ?)
 -- 在流程任务表创建下一步骤（当前）的记录（示例的“经理审批”步骤）
 insert into ACT_RU_TASK (
-    ID_, REV_, NAME_, PARENT_TASK_ID_, DESCRIPTION_, PRIORITY_, CREATE_TIME_, OWNER_, ASSIGNEE_, DELEGATION_, EXECUTION_ID_, PROC_INST_ID_, 
+    ID_, REV_, NAME_, PARENT_TASK_ID_, DESCRIPTION_, PRIORITY_, CREATE_TIME_, OWNER_, ASSIGNEE_, DELEGATION_, EXECUTION_ID_, PROC_INST_ID_,
     PROC_DEF_ID_, TASK_DEF_KEY_, DUE_DATE_, CATEGORY_, SUSPENSION_STATE_, TENANT_ID_, FORM_KEY_, CLAIM_TIME_
-) 
-values 
+)
+values
     (?, 1, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? )
 -- 创建流程运行时审批人身份记录（示例的“经理审批”步骤中，审批人“Jack”）
 insert into ACT_RU_IDENTITYLINK (ID_, REV_, TYPE_, USER_ID_, GROUP_ID_, TASK_ID_, PROC_INST_ID_, PROC_DEF_ID_) values (?, 1, ?, ?, ?, ?, ?, ?)
 -- 更新流程运行时处理记录
-UPDATE ACT_RU_EXECUTION 
+UPDATE ACT_RU_EXECUTION
 SET REV_ = ?, BUSINESS_KEY_ = ?, PROC_DEF_ID_ = ?, ACT_ID_ = ?, IS_ACTIVE_ = ?, IS_CONCURRENT_ = ?, IS_SCOPE_ = ?,
 IS_EVENT_SCOPE_ = ?, IS_MI_ROOT_ = ?, PARENT_ID_ = ?, SUPER_EXEC_ = ?, ROOT_PROC_INST_ID_ = ?, SUSPENSION_STATE_ = ?,
 NAME_ = ?, IS_COUNT_ENABLED_ = ?, EVT_SUBSCR_COUNT_ = ?, TASK_COUNT_ = ?, JOB_COUNT_ = ?, TIMER_JOB_COUNT_ = ?,
-SUSP_JOB_COUNT_ = ?, DEADLETTER_JOB_COUNT_ = ?, VAR_COUNT_ = ?, ID_LINK_COUNT_ = ? 
+SUSP_JOB_COUNT_ = ?, DEADLETTER_JOB_COUNT_ = ?, VAR_COUNT_ = ?, ID_LINK_COUNT_ = ?
 WHERE
-	ID_ = ? 
+	ID_ = ?
 	AND REV_ = ?
 -- 更新历史记录（上一步骤已完成的记录，即流程发起步骤，处理人是“Sam”，更新结束记录）
 update ACT_HI_ACTINST set EXECUTION_ID_ = '5002', ASSIGNEE_ = 'Sam', END_TIME_ = (Timestamp), DURATION_ = 3314178, DELETE_REASON_ = null where ID_ = '5004'
 -- 创建流程的上一步骤的历史记录（示例的“创建出差申请”步骤）
-UPDATE ACT_HI_TASKINST 
-SET PROC_DEF_ID_ = ?, EXECUTION_ID_ = ?, NAME_ = ?, PARENT_TASK_ID_ = ?, DESCRIPTION_ = ?, OWNER_ = ?, ASSIGNEE_ = ?, CLAIM_TIME_ = ?, 
-END_TIME_ = ?, DURATION_ = ?, DELETE_REASON_ = ?, TASK_DEF_KEY_ = ?, FORM_KEY_ = ?, PRIORITY_ = ?, DUE_DATE_ = ?, CATEGORY_ = ? 
+UPDATE ACT_HI_TASKINST
+SET PROC_DEF_ID_ = ?, EXECUTION_ID_ = ?, NAME_ = ?, PARENT_TASK_ID_ = ?, DESCRIPTION_ = ?, OWNER_ = ?, ASSIGNEE_ = ?, CLAIM_TIME_ = ?,
+END_TIME_ = ?, DURATION_ = ?, DELETE_REASON_ = ?, TASK_DEF_KEY_ = ?, FORM_KEY_ = ?, PRIORITY_ = ?, DUE_DATE_ = ?, CATEGORY_ = ?
 WHERE
 	ID_ = ?
 -- 删除流程运行中上一步骤的记录（示例的“创建出差申请”步骤）
@@ -1116,7 +1114,7 @@ public void testDeleteDeployMent() {
 
 1. 使用 `RepositoryService` 接口删除流程定义，历史表信息不会被删除
 2. 如果该流程定义下没有正在运行的流程，则可以用普通删除。
-3. 如果该流程定义下存在已经运行的流程，使用普通删除报错，可使用级联删除方法将流程及相关记录全部删除。原理是先删除没有完成流程节点，最后就可以完全删除流程定义信息。<u>*项目开发中级联删除操作一般只开放给超级管理员使用*</u>
+3. 如果该流程定义下存在已经运行的流程，使用普通删除报错，可使用级联删除方法将流程及相关记录全部删除。原理是先删除没有完成流程节点，最后就可以完全删除流程定义信息。<u>_项目开发中级联删除操作一般只开放给超级管理员使用_</u>
 
 ### 5.9. 流程资源下载
 
@@ -1125,7 +1123,7 @@ public void testDeleteDeployMent() {
 1. 通过 jdbc 操作数据，将 blob 类型数据读取出来，保存到文件目录
 2. 使用 activiti 的 api 来实现（推荐）
 
-因为涉及到文件IO操作，示例使用 commons-io.jar 解决IO的操作。在示例项目中，引入 commons-io 依赖包：
+因为涉及到文件 IO 操作，示例使用 commons-io.jar 解决 IO 的操作。在示例项目中，引入 commons-io 依赖包：
 
 ```xml
 <dependency>
@@ -1135,7 +1133,7 @@ public void testDeleteDeployMent() {
 </dependency>
 ```
 
-通过流程定义对象获取流程定义资源，获取bpmn和png
+通过流程定义对象获取流程定义资源，获取 bpmn 和 png
 
 ```java
 @Test
@@ -1177,10 +1175,10 @@ public void testGetDeployMentResources() throws Exception {
 
 说明：
 
-1. `deploymentId` 为流程部署ID
+1. `deploymentId` 为流程部署 ID
 2. `resource_name` 为 `act_ge_bytearray` 表中 `NAME_` 列的值
 3. 使用 `RepositoryService` 的 `getDeploymentResourceNames` 方法可以获取指定部署下得所有文件的名称
-4. 使用 `RepositoryService` 的 `getResourceAsStream` 方法传入部署ID和资源图片名称可以获取部署下指定名称文件的输入流
+4. 使用 `RepositoryService` 的 `getResourceAsStream` 方法传入部署 ID 和资源图片名称可以获取部署下指定名称文件的输入流
 
 最后的将输入流中的图片资源进行输出。
 
@@ -1213,13 +1211,3 @@ public void testQueryHistoryInfo() {
     }
 }
 ```
-
-
-
-
-
-
-
-
-
-
