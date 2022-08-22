@@ -1285,7 +1285,7 @@ String str = (String) arr[0];
 ```java
 public <T> T[] toArray(T[] a)
 ```
-		
+
 - 将集合中的元素添加至指定的数组中。按适当顺序（从第一个到最后一个元素）返回包含此列表中所有元素的数组；返回数组的运行时类型是指定数组的运行时类型。
     - 如果传入的数组的长度大于等于集合元素的个数时，则方法内部直接将集合中元素添加到指定的数组中，并返回该数组。
     - 如果传入的数组的长度小于集合元素的个数时，则方法内部会创建一个新的数组，新数组的类型与传入的数组类型一致，新数组的长度等于集合元素的个数，并且将集合中的元素添加到新数组中，返回新的数组。
@@ -1420,8 +1420,15 @@ E remove()
 - 检索或移除一个元素的时候，它会等待队列变为非空
 - 添加一个元素时，它会等待队列中的可用空间
 
-`BlockingQueue` 接口是 Java 集合框架的一部分，主要<font color=red>**用于实现生产者-消费者模式**</font>。使用者不需要担心等待生产者是否有可用的空间，或消费者是否有可用的对象，因为它都在 `BlockingQueue` 的实现类中被处理了。Java 提供了 `BlockingQueue` 的实现有：`ArrayBlockingQueue`、`LinkedBlockingQueue`、`PriorityBlockingQueue`、`SynchronousQueue` 等。
+`BlockingQueue` 接口是 Java 集合框架的一部分，主要<font color=red>**用于实现生产者-消费者模式**</font>。使用者不需要担心等待生产者是否有可用的空间，或消费者是否有可用的对象，因为它都在 `BlockingQueue` 的实现类中被处理了。Java 提供了 `BlockingQueue` 的实现有：
 
+- `ArrayBlockingQueue`：一个由数组结构组成的有界阻塞队列。
+- `LinkedBlockingQueue`：一个由链表结构组成的有界阻塞队列。
+- `PriorityBlockingQueue`：一个支持优先级排序的无界阻塞队列。
+- `DelayQueue`：一个使用优先级队列实现的无界阻塞队列。
+- `SynchronousQueue`：一个不存储元素的阻塞队列。
+- `LinkedTransferQueue`：一个由链表结构组成的无界阻塞队列。
+- `LinkedBlockingDeque`：一个由链表结构组成的双向阻塞队列。
 
 # Set 接口
 
@@ -2032,7 +2039,6 @@ public int size()
 ```
 
 - 返回此列表的元素数
-
 
 
 
