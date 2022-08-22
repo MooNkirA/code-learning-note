@@ -1,6 +1,7 @@
 # Day01 CMS接口开发
 
-## 1. 项目的功能构架
+## 1. 项目的功能架构
+
 ### 1.1. 项目背景
 
 学成在线借鉴了MOOC（大型开放式网络课程，即MOOC（massive open online courses））的设计思想，是一个提供IT职业课程在线学习的平台
@@ -919,47 +920,12 @@ Api 定义使用SpringMVC来完成，由于此接口后期将作为微服务远�
 本章节介绍两种接口开发工具，Swagger和Postman。
 
 ### 7.1. Swagger
-#### 7.1.1. Swagger介绍
 
-- OpenAPI规范（OpenAPI Specification 简称OAS）是Linux基金会的一个项目，试图通过定义一种用来描述API格式或API定义的语言，来规范RESTful服务开发过程，目前版本是V3.0，并且已经发布并开源在github上。（https://github.com/OAI/OpenAPI-Specification）
-- Swagger是全球最大的OpenAPI规范（OAS）API开发工具框架，支持从设计和文档到测试和部署的整个API生命周期的开发。 (https://swagger.io/)
-- Spring Boot 可以集成Swagger，生成Swagger接口
+#### 7.1.1. Swagger 介绍
 
-#### 7.1.2. Swagger常用注解
+Swagger 的基础介绍与使用详见[《Swagger 接口文档工具》笔记](/02-后端框架/99-工具框架/10-Swagger)
 
-在Java类中添加Swagger的注解即可生成Swagger接口，常用Swagger注解如下：
-
-- `@Api`：修饰整个类，描述Controller的作用
-- `@ApiOperation`：描述一个类的一个方法，或者说一个接口
-- `@ApiParam`：单个参数描述
-- `@ApiModel`：用对象来接收参数
-- `@ApiModelProperty`：用对象接收参数时，描述对象的一个字段
-- `@ApiResponse`：HTTP响应其中1个描述
-- `@ApiResponses`：HTTP响应整体描述
-- `@ApiIgnore`：使用该注解忽略这个API
-- `@ApiError`：发生错误返回的信息
-- `@ApiImplicitParam`：一个请求参数
-- `@ApiImplicitParams`：多个请求参数
-
-@ApiImplicitParam属性：
-
-- **paramType属性**：查询参数类型
-    - 取值path：以地址的形式提交数据
-    - 取值query：直接跟参数完成自动映射赋值
-    - 取值body：以流的形式提交 仅支持POST
-    - 取值header：参数在request headers里边提交
-    - 取值form：以form表单的形式提交 仅支持POST
-- **dataType属性**：参数的数据类型 只作为标志说明，并没有实际验证
-    - 取值Long
-    - 取值String
-- **name属性**：接收参数名
-- **value属性**：接收参数的意义描述
-- **required属性**：参数是否必填
-    - 取值true：必填
-    - 取值false：非必填
-- **defaultValue属性**：默认值
-
-#### 7.1.3. Swagger接口定义
+#### 7.1.2. Swagger 接口定义
 
 修改接口工程中页面查询接口CmsPageControllerApi，添加Swagger注解
 
@@ -1000,9 +966,9 @@ public class QueryPageRequest extends RequestData {
 }
 ```
 
-#### 7.1.4. Swagger 接口配置类
+#### 7.1.3. Swagger 接口配置类
 
-创建swagger的配置类，配置生成接口文档的设置
+创建 swagger 的配置类，配置生成接口文档的设置
 
 ```java
 @Configuration
@@ -1048,33 +1014,27 @@ public class Swagger2Configuration {
 }
 ```
 
-#### 7.1.5. Swagger接口测试
+#### 7.1.4. Swagger接口测试
 
-- Swagger接口生成工作原理：
-    1. 系统启动，扫描到api工程中的Swagger2Configuration类
-    2. 在此类中指定了包路径com.xuecheng，找到在此包下及子包下标记有@RestController注解的controller类
-    3. 根据controller类中的Swagger注解生成接口文档。
+Swagger 接口生成工作原理：
 
-- 启动cms服务工程，查看接口文档，请求：http://localhost:31001/swagger-ui.html
+1. 系统启动，扫描到api工程中的Swagger2Configuration类
+2. 在此类中指定了包路径com.xuecheng，找到在此包下及子包下标记有@RestController注解的controller类
+3. 根据controller类中的Swagger注解生成接口文档。
+
+启动cms服务工程，查看接口文档，请求：http://localhost:31001/swagger-ui.html
 
 ![Swagger接口测试1](images/20190515145640334_15370.png)
 
-- 点击“分页查询页面列表”，打开接口详情
-- 使用Swagger工具测试服务接口：
-    1. 在cms服务接口中打断点
-    2. 打开接口文档页面，输入请求参数，点击“Try it out”发起请求。
+点击“分页查询页面列表”，打开接口详情。使用Swagger工具测试服务接口：
+
+1. 在cms服务接口中打断点
+2. 打开接口文档页面，输入请求参数，点击“Try it out”发起请求。
 
 ![Swagger接口测试2](images/20190515145931467_12604.png)
 
 ### 7.2. Postman
 
-- Postman是一款功能强大的http接口测试工具，使用postman可以完成http各种请求的功能测试。
-- 官方地址：https://www.getpostman.com/
+Postman 是一款功能强大的http接口测试工具，使用 postman 可以完成http各种请求的功能测试。
 
-- post请求参数设置
-    - form-data：将表单的数据转为键值对，并且可以包括文件
-    - x-www-form-urlencoded: content-type为application/x-www-from-urlencoded，将表单的数据转为键值对
-    - raw：请求text、json、xml、html，比如如果请求json数据则使用此格式
-    - binary：content-type为application/octet-stream，可用于上传文件。
-
-
+Postman 的基础介绍与使用详见[《Postman 接口测试工具》笔记](/05-DevOps工具/05-测试工具/02-Postman)

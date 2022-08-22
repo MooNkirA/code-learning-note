@@ -19,7 +19,7 @@ OAuth2.0 的服务提供方涵盖两个服务，即**授权服务 (Authorization
 - `AuthorizationEndpoint` 服务于认证请求。默认 URL：`/oauth/authorize`
 - `TokenEndpoint` 服务于访问令牌的请求。默认 URL：`/oauth/token`
 
-**资源服务 (Resource Server)**，应包含对资源的保护功能，对非法请求进行拦截，对请求中token进行解析鉴权等，下面的过滤器用于实现 OAuth 2.0 资源服务：
+**资源服务 (Resource Server)**，应包含对资源的保护功能，对非法请求进行拦截，对请求中 token 进行解析鉴权等，下面的过滤器用于实现 OAuth 2.0 资源服务：
 
 - `OAuth2AuthenticationProcessingFilter` 用来对请求给出的身份令牌解析鉴权。
 
@@ -384,7 +384,7 @@ management:
 
 ![](images/341131923238596.png)
 
-#### 2.3.3. 创建Order资源服务工程
+#### 2.3.3. 创建 Order 资源服务工程
 
 本工程为 Order 订单服务工程，访问本工程的资源需要认证通过。此工程的目的主要是测试认证授权的功能，所以不涉及订单管理相关业务。
 
@@ -522,7 +522,6 @@ management:
         include: refresh,health,info,env
 ```
 
-
 - 创建工程启动类，使用注解开启 eureka、hystrix、feign
 
 ```java
@@ -586,13 +585,13 @@ public class AuthorizationServerConfigurerAdapter implements AuthorizationServer
 
 `ClientDetailsServiceConfigurer` 类能够使用内存或者 JDBC 来实现客户端详情服务（`ClientDetailsService`），`ClientDetailsService` 负责查找 `ClientDetails`，而 `ClientDetails` 有几个重要的属性如下列表：
 
-|         属性名          |                                 描述                                 |
-| :--------------------: | -------------------------------------------------------------------- |
-|       `clientId`       | （必须的）用来标识客户的Id                                              |
-|        `secret`        | （需要值得信任的客户端）客户端安全码，如果有的话                          |
+|         属性名         | 描述                                                                         |
+| :--------------------: | ---------------------------------------------------------------------------- |
+|       `clientId`       | （必须的）用来标识客户的 Id                                                  |
+|        `secret`        | （需要值得信任的客户端）客户端安全码，如果有的话                             |
 |        `scope`         | 用来限制客户端的访问范围，如果为空（默认）的话，那么客户端拥有全部的访问范围 |
-| `authorizedGrantTypes` | 此客户端可以使用的授权类型，默认为空                                     |
-|     `authorities`      | 此客户端可以使用的权限（基于Spring Security authorities）               |
+| `authorizedGrantTypes` | 此客户端可以使用的授权类型，默认为空                                         |
+|     `authorities`      | 此客户端可以使用的权限（基于 Spring Security authorities）                   |
 
 客户端详情（Client Details）能够在应用程序运行的时候进行更新，可以通过访问底层的存储服务（例如将客户端详情存储在一个关系数据库的表中，就可以使用 `JdbcClientDetailsService`）或者通过自定义实现 `ClientRegistrationService` 接口（同时也可以实现 `ClientDetailsService` 接口）来进行管理。
 
@@ -640,7 +639,7 @@ public interface AuthorizationServerTokenServices {
 	 * Refresh an access token. The authorization request should be used for 2 things (at least): to validate that the
 	 * client id of the original access token is the same as the one requesting the refresh, and to narrow the scopes
 	 * (if provided).
-	 * 
+	 *
 	 * @param refreshToken The details about the refresh token.
 	 * @param tokenRequest The incoming token request.
 	 * @return The (new) access token.
@@ -651,9 +650,9 @@ public interface AuthorizationServerTokenServices {
 
 	/**
 	 * Retrieve an access token stored against the provided authentication key, if it exists.
-	 * 
+	 *
 	 * @param authentication the authentication key for the access token
-	 * 
+	 *
 	 * @return the access token or null if there was none
 	 */
 	OAuth2AccessToken getAccessToken(OAuth2Authentication authentication);
@@ -678,7 +677,7 @@ public class DefaultTokenServices implements AuthorizationServerTokenServices, R
 ![](images/384035110238597.png)
 
 - `InMemoryTokenStore`：这个版本的实现是被默认采用的，它可以完美的工作在单服务器上（即访问并发量压力不大的情况下，并且它在失败的时候不会进行备份），大多数的项目都可以使用这个版本的实现来进行尝试，可以在开发的时候使用它来进行管理，因为不会被保存到磁盘中，所以更易于调试
-- `JdbcTokenStore`：这是一个基于JDBC的实现版本，令牌会被保存进关系型数据库。使用这个版本的实现时，可以在不同的服务器之间共享令牌信息，使用这个版本的时候请注意把"spring-jdbc"依赖加入到项目中
+- `JdbcTokenStore`：这是一个基于 JDBC 的实现版本，令牌会被保存进关系型数据库。使用这个版本的实现时，可以在不同的服务器之间共享令牌信息，使用这个版本的时候请注意把"spring-jdbc"依赖加入到项目中
 - `JwtTokenStore`：这个版本的全称是 JSON Web Token（JWT），它可以把令牌相关的数据进行编码（因此对于后端服务来说，它不需要进行存储，这将是一个重大优势），但是它有一个缺点，那就是撤销一个已经授权令牌将会非常困难，所以它通常用来处理一个生命周期较短的令牌以及撤销刷新令牌（refresh_token）。另外一个缺点就是这个令牌占用的空间会比较大，如果加入了比较多用户凭证信息。`JwtTokenStore` 不会保存任何数据，但是它在转换令牌值以及授权信息方面与 `DefaultTokenServices` 所扮演的角色是一样的
 
 #### 3.4.3. 令牌管理配置类
@@ -745,10 +744,9 @@ public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdap
 - `implicitGrantService`：这个属性用于设置隐式授权模式，用来管理隐式授权模式的状态。
 - `tokenGranter`：当设置了这个东西（即 TokenGranter 接口实现），那么授权将会交由使用者来完全掌控，并且会忽略掉上面的这几个属性，这个属性一般是用作拓展用途的，即标准的四种授权模式已经满足不了需求的时候，才会考虑使用这个。
 
-#### 3.5.2. 配置授权端点的URL（Endpoint URLs）
+#### 3.5.2. 配置授权端点的 URL（Endpoint URLs）
 
-
-`AuthorizationServerEndpointsConfigurer` 这个配置类中，`pathMapping()` 方法用来配置端点URL链接，它有两个参数：
+`AuthorizationServerEndpointsConfigurer` 这个配置类中，`pathMapping()` 方法用来配置端点 URL 链接，它有两个参数：
 
 ```java
 public AuthorizationServerEndpointsConfigurer pathMapping(String defaultPath, String customPath) {
@@ -757,8 +755,8 @@ public AuthorizationServerEndpointsConfigurer pathMapping(String defaultPath, St
 }
 ```
 
-- `String defaultPath`：这个端点URL的默认链接
-- `String customPath`：要进行替代的URL链接
+- `String defaultPath`：这个端点 URL 的默认链接
+- `String customPath`：要进行替代的 URL 链接
 
 以上的参数值均以 "`/`" 字符为开始的字符串，框架的默认 URL 链接如下列表，可以作为这个 `pathMapping()` 方法的第一个参数：
 
@@ -821,8 +819,8 @@ public void configure(AuthorizationServerSecurityConfigurer security) throws Exc
 }
 ```
 
-- `tokenKeyAccess("permitAll()")`：表示 `oauth/token_key` 这个endpoint当使用JwtToken且使用非对称加密时，资源服务用于获取公钥而开放的，这里指这个endpoint完全公开。
-- `checkTokenAccess("permitAll()")`：表示 `oauth/check_token` 这个endpoint完全公开
+- `tokenKeyAccess("permitAll()")`：表示 `oauth/token_key` 这个 endpoint 当使用 JwtToken 且使用非对称加密时，资源服务用于获取公钥而开放的，这里指这个 endpoint 完全公开。
+- `checkTokenAccess("permitAll()")`：表示 `oauth/check_token` 这个 endpoint 完全公开
 - `allowFormAuthenticationForClients()`：允许表单认证
 
 ### 3.7. Spring Security 安全配置
@@ -868,11 +866,11 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
 > 上面配置令牌访问端点的 `AuthenticationManager` 认证管理器，是在此安全配置类中初始化。因为为了使用 `WebSecurityConfigurerAdapter` 父类的 `authenticationManagerBean` 方法，所以配置在此类中。
 
-### 3.8. 自定义连接数据库认证  UserDetailService 接口实现
+### 3.8. 自定义连接数据库认证 UserDetailService 接口实现
 
 授权服务需要
 
-此部分参考[《Spring Security》笔记的《自定义连接数据库认证》章节](/02-后端框架/07-Authorization-Certification/01-Spring-Security?id=_42-自定义连接数据库认证)
+此部分参考[《Spring Security》笔记的《自定义连接数据库认证》章节](/02-后端框架/05-Authorization-Certification/01-Spring-Security?id=_42-自定义连接数据库认证)
 
 > 将 `spring-security-boot-2.1.x` 项目中的 dao、model、service 的代码复制到 uaa 项目中
 
@@ -888,7 +886,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
 ## 4. OAuth2.0 支持的授权模式种类
 
-OAuth2.0 提供了4种授权模式，分别是：
+OAuth2.0 提供了 4 种授权模式，分别是：
 
 - 授权码模式（Authorization Code）
 - 隐式授权模式（Implicit）
@@ -905,7 +903,7 @@ OAuth2.0 提供了4种授权模式，分别是：
 
 #### 4.1.2. 授权码授权流程
 
-1. **资源拥有者打开客户端，客户端要求资源拥有者给予授权，它将浏览器被重定向到授权服务器，重定向时会附加客户端的身份信息**。请求认证服务获取授权码(GET请求)，如上示例：
+1. **资源拥有者打开客户端，客户端要求资源拥有者给予授权，它将浏览器被重定向到授权服务器，重定向时会附加客户端的身份信息**。请求认证服务获取授权码(GET 请求)，如上示例：
 
 ```
 http://授权服务地址/uaa/oauth/authorize?client_id=客户端准入id&response_type=code&scope=客户端权限范围&redirect_uri=授权码申请成功后会跳转地址
@@ -913,14 +911,14 @@ http://授权服务地址/uaa/oauth/authorize?client_id=客户端准入id&respon
 
 参数列表如下：
 
-- `client_id`：客户端准入id，和授权配置类（*示例中的`AuthorizationServerConfig`*）中设置的客户端id一致。
-- `response_type`：授权码模式固定为code
-- `scop`：客户端权限范围，和授权配置类（*示例中的`AuthorizationServerConfig`*）中设置的 `scop` 一致。
-- `redirect_uri`：跳转uri，当授权码申请成功后会跳转到此地址，并在后边带上code参数（授权码）
+- `client_id`：客户端准入 id，和授权配置类（_示例中的`AuthorizationServerConfig`_）中设置的客户端 id 一致。
+- `response_type`：授权码模式固定为 code
+- `scop`：客户端权限范围，和授权配置类（_示例中的`AuthorizationServerConfig`_）中设置的 `scop` 一致。
+- `redirect_uri`：跳转 uri，当授权码申请成功后会跳转到此地址，并在后边带上 code 参数（授权码）
 
 2. **登陆成功后，浏览器会出现向授权服务器授权页面，之后将用户同意授权**。
-3. **点击“Authorize”按钮后，授权服务器将授权码（AuthorizationCode）转经浏览器发送给 client (通过 redirect_uri)，url 后边会带上code参数（授权码）**。
-4. **客户端拿着授权码向授权服务器索要访问 access_token 令牌**，post请求如下：
+3. **点击“Authorize”按钮后，授权服务器将授权码（AuthorizationCode）转经浏览器发送给 client (通过 redirect_uri)，url 后边会带上 code 参数（授权码）**。
+4. **客户端拿着授权码向授权服务器索要访问 access_token 令牌**，post 请求如下：
 
 ```
 http://授权服务地址/uaa/oauth/token
@@ -929,10 +927,10 @@ http://授权服务地址/uaa/oauth/token
 请求参数列表如下
 
 - `client_id`：客户端准入标识。
-- `client_secret`：客户端秘钥，和授权配置类（*示例中的`AuthorizationServerConfig`*）中设置的 `secret` 一致。
+- `client_secret`：客户端秘钥，和授权配置类（_示例中的`AuthorizationServerConfig`_）中设置的 `secret` 一致。
 - `grant_type`：授权类型，填写 `authorization_code`，表示授权码模式
 - `code`：授权码，就是刚刚上一步获取的授权码，<font color=red>**注意：授权码只使用一次就无效了，需要重新申请**</font>
-- `redirect_uri`：申请授权码时的跳转url，<font color=red>**一定和申请授权码时用的redirect_uri一致**</font>
+- `redirect_uri`：申请授权码时的跳转 url，<font color=red>**一定和申请授权码时用的 redirect_uri 一致**</font>
 
 5. **授权服务器返回令牌(access_token)**
 
@@ -952,7 +950,7 @@ http://127.0.0.1:53020/uaa/oauth/authorize?client_id=c1&response_type=code&scope
 
 ![](images/33495613220172.png)
 
-确认授权后，浏览器会重定向到指定路径（如果连接数据库的话，会是oauth_client_details表中的web_server_redirect_uri）并附加验证码 `?code=SvCnr4`（每次登陆都不一样），最后使用该验证码获取 token。
+确认授权后，浏览器会重定向到指定路径（如果连接数据库的话，会是 oauth_client_details 表中的 web_server_redirect_uri）并附加验证码 `?code=SvCnr4`（每次登陆都不一样），最后使用该验证码获取 token。
 
 ![](images/595831416231609.png)
 
@@ -968,11 +966,11 @@ POST http://localhost:53020/uaa/oauth/token
 
 ```json
 {
-    "access_token": "68b0c24d-1b2d-4981-bbd1-328820daf0b3",
-    "token_type": "bearer",
-    "refresh_token": "624c193b-240e-488d-8a13-6cd7bca5d57f",
-    "expires_in": 7199,
-    "scope": "all"
+  "access_token": "68b0c24d-1b2d-4981-bbd1-328820daf0b3",
+  "token_type": "bearer",
+  "refresh_token": "624c193b-240e-488d-8a13-6cd7bca5d57f",
+  "expires_in": 7199,
+  "scope": "all"
 }
 ```
 
@@ -993,7 +991,7 @@ http://授权服务地址/uaa/oauth/authorize?client_id=客户端准入id&respon
 > 参数描述同授权码模式 ，注意`response_type=token`，说明是简化模式。
 
 2. **登陆成功后，浏览器出现向授权服务器授权页面，之后将用户同意授权**
-3. **授权服务器将授权码将令牌（access_token）以Hash的形式存放在重定向uri的fargment中发送给浏览器**
+3. **授权服务器将授权码将令牌（access_token）以 Hash 的形式存放在重定向 uri 的 fargment 中发送给浏览器**
 
 > 注：fragment 主要是用来标识 URI 所标识资源里的某个资源，在 URI 的末尾通过 （`#`）作为 fragment 的开头，其中 `#` 不属于 fragment 的值。如 `https://domain/index#L18` 这个 URI 中 `L18` 就是 fragment 的值。使用者只需要知道 js 通过响应浏览器地址栏变化的方式能获取到 fragment 就行了。
 
@@ -1011,7 +1009,7 @@ http://127.0.0.1:53020/uaa/oauth/authorize?client_id=c1&response_type=token&scop
 
 然后输入模拟的账号和密码点登陆之后进入授权页面。
 
-确认授权后，浏览器会重定向到指定路径（oauth_client_details表中的web_server_redirect_uri）并以 Hash 的形式存放在重定向 uri 的 fargment 中,如：
+确认授权后，浏览器会重定向到指定路径（oauth_client_details 表中的 web_server_redirect_uri）并以 Hash 的形式存放在重定向 uri 的 fargment 中,如：
 
 ![](images/80633716247093.png)
 
@@ -1033,16 +1031,16 @@ http://授权服务地址/uaa/oauth/token
 请求 body 参数列表如下：
 
 - `client_id`：客户端准入标识
-- `client_secret`：客户端秘钥。和授权配置类（*示例中的`AuthorizationServerConfig`*）中设置的 `secret` 一致
+- `client_secret`：客户端秘钥。和授权配置类（_示例中的`AuthorizationServerConfig`_）中设置的 `secret` 一致
 - `grant_type`：授权类型，填写 `password` 表示密码模式
 - `username`：资源拥有者用户名
 - `password`：资源拥有者密码
 
-3. **授权服务器将令牌（access_token）发送给client**
+3. **授权服务器将令牌（access_token）发送给 client**
 
 #### 4.3.3. 适用场景
 
-这种模式十分简单，但是却意味着直接将用户敏感信息泄漏给了 client 端，因此密码模式一般用于自己开发的 client 端，第一方原生App或第一方单页面应用。
+这种模式十分简单，但是却意味着直接将用户敏感信息泄漏给了 client 端，因此密码模式一般用于自己开发的 client 端，第一方原生 App 或第一方单页面应用。
 
 #### 4.3.4. 测试
 
@@ -1065,7 +1063,7 @@ POST http://127.0.0.1:53020/uaa/oauth/token
 #### 4.4.2. 客户端模式授权流程
 
 1. **客户端向授权服务器发送自己的身份信息，并请求令牌（access_token）**
-2. **确认客户端身份无误后，将令牌（access_token）发送给client**，请求如下：
+2. **确认客户端身份无误后，将令牌（access_token）发送给 client**，请求如下：
 
 ```
 http://授权服务地址/uaa/oauth/token
@@ -1108,7 +1106,7 @@ POST http://127.0.0.1:53020/uaa/oauth/token
 ```java
 @Configuration
 @EnableResourceServer
-public class ResouceServerConfig extends ResourceServerConfigurerAdapter { 
+public class ResouceServerConfig extends ResourceServerConfigurerAdapter {
 }
 ```
 
@@ -1121,7 +1119,7 @@ public interface ResourceServerConfigurer {
 	/**
 	 * Add resource-server specific properties (like a resource id). The defaults should work for many applications, but
 	 * you might want to change at least the resource id.
-	 * 
+	 *
 	 * @param resources configurer for the resource server
 	 * @throws Exception if there is a problem
 	 */
@@ -1131,7 +1129,7 @@ public interface ResourceServerConfigurer {
 	 * Use this to configure the access rules for secure resources. By default all resources <i>not</i> in "/oauth/**"
 	 * are protected (but no specific rules about scopes are given, for instance). You also get an
 	 * {@link OAuth2WebSecurityExpressionHandler} by default.
-	 * 
+	 *
 	 * @param http the current http filter configuration
 	 * @throws Exception if there is a problem
 	 */
@@ -1162,7 +1160,7 @@ public class ResourceServerConfigurerAdapter implements ResourceServerConfigurer
 
 - `tokenServices`：`ResourceServerTokenServices` 类的实例，用来实现令牌服务。
 - `tokenStore`：`TokenStore` 类的实例，指定令牌如何访问，与 `tokenServices` 配置可选
-- `resourceId`：这个资源服务的ID，这个属性是可选的，但是推荐设置并在授权服务中进行验证。
+- `resourceId`：这个资源服务的 ID，这个属性是可选的，但是推荐设置并在授权服务中进行验证。
 - 其他的拓展属性例如 `tokenExtractor` 令牌提取器用来提取请求中的令牌。
 
 `HttpSecurity` 配置与 Spring Security 类似：
@@ -1213,9 +1211,9 @@ public class ResouceServerConfig extends ResourceServerConfigurerAdapter {
 }
 ```
 
-> *其中 `ResourceServerTokenServices` 对象的配置说明详见下节*
+> _其中 `ResourceServerTokenServices` 对象的配置说明详见下节_
 
-### 5.2. 验证token
+### 5.2. 验证 token
 
 `ResourceServerTokenServices` 是组成授权服务的另一半，如果授权服务和资源服务在同一个应用程序上的话，可以直接使用 `DefaultTokenServices`，这样的话，就不用考虑关于实现所有必要的接口的一致性问题。但如果资源服务器是分离开的，那么就必须要确保能够有匹配授权服务提供的 `ResourceServerTokenServices`，它知道如何对令牌进行解码。
 
@@ -1268,7 +1266,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 }
 ```
 
-> *注：此安全配置类可以参考授权服务的配置*
+> _注：此安全配置类可以参考授权服务的配置_
 
 ### 5.5. 测试
 
@@ -1288,17 +1286,17 @@ http://127.0.0.1:53020/uaa/oauth/token
 
 ```json
 {
-    "access_token": "2304c571-60ce-4461-8686-e995373d5fbb",
-    "token_type": "bearer",
-    "refresh_token": "091f4a41-52d4-4a56-85f4-6a1979c73f72",
-    "expires_in": 7199,
-    "scope": "all"
+  "access_token": "2304c571-60ce-4461-8686-e995373d5fbb",
+  "token_type": "bearer",
+  "refresh_token": "091f4a41-52d4-4a56-85f4-6a1979c73f72",
+  "expires_in": 7199,
+  "scope": "all"
 }
 ```
 
 #### 5.5.2. 请求资源
 
-按照 oauth2.0 协议要求，请求资源需要携带token，请求 url 如下：
+按照 oauth2.0 协议要求，请求资源需要携带 token，请求 url 如下：
 
 ```
 http://127.0.0.1:53021/order/check/p1
@@ -1308,17 +1306,17 @@ http://127.0.0.1:53021/order/check/p1
 
 ![](images/6663818223126.png)
 
-在请求的 Headers 中设置，token 的参数名称为：`Authorization`，值为：`Bearer token值`。（*注：Bearer 与 token 值之间使用空格隔开*）。此时请求成功。
+在请求的 Headers 中设置，token 的参数名称为：`Authorization`，值为：`Bearer token值`。（_注：Bearer 与 token 值之间使用空格隔开_）。此时请求成功。
 
 ![](images/510754118232073.png)
 
-## 6. JWT令牌
+## 6. JWT 令牌
 
 通过前面的测试可发现，当资源服务和授权服务不在一起时，资源服务使用 `RemoteTokenServices` 远程请求授权服务验证 token，如果访问量较大将会影响系统的性能 。
 
 上面问题的解决方法：
 
-令牌可以采用 JWT 格式即可解决前面的问题，用户认证通过会得到一个 JWT 令牌，JWT令牌中已经包括了用户相关的信息，客户端只需要携带 JWT 访问资源服务，资源服务根据事先约定的算法自行完成令牌校验，无需每次都请求认证服务完成授权。
+令牌可以采用 JWT 格式即可解决前面的问题，用户认证通过会得到一个 JWT 令牌，JWT 令牌中已经包括了用户相关的信息，客户端只需要携带 JWT 访问资源服务，资源服务根据事先约定的算法自行完成令牌校验，无需每次都请求认证服务完成授权。
 
 ### 6.1. 配置 JWT 令牌服务
 
@@ -1434,7 +1432,7 @@ http://127.0.0.1:53020/uaa/oauth/token
 
 ![](images/320541709220242.png)
 
-番外：令牌申请成功可以请求 `/uaa/oauth/check_token` 来校验令牌的有效性（*GET与POST均可*），并查询令牌的内容，例子如下：
+番外：令牌申请成功可以请求 `/uaa/oauth/check_token` 来校验令牌的有效性（_GET 与 POST 均可_），并查询令牌的内容，例子如下：
 
 ![](images/488972109238668.png)
 
@@ -1463,7 +1461,7 @@ CREATE TABLE `oauth_client_details` (
 	`archived` TINYINT ( 4 ) NULL DEFAULT NULL,
 	`trusted` TINYINT ( 4 ) NULL DEFAULT NULL,
 	`autoapprove` VARCHAR ( 255 ) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL,
-	PRIMARY KEY ( `client_id` ) USING BTREE 
+	PRIMARY KEY ( `client_id` ) USING BTREE
 ) ENGINE = INNODB CHARACTER SET = utf8 COLLATE = utf8_general_ci COMMENT = '接入客户端信息' ROW_FORMAT = Dynamic;
 
 INSERT INTO `oauth_client_details` VALUES ('c1', 'res1', '$2a$10$jq8jJKV/tz0b8k7vodrmPO.WGmhGe1lEjVhoS8DUSY185Puhil9IS', 'ROLE_ADMIN,ROLE_USER,ROLE_API', 'client_credentials,password,authorization_code,implicit,refresh_token', 'http://www.baidu.com', NULL, 7200, 259200, NULL, NOW(), 0, 0, 'false');
@@ -1622,12 +1620,12 @@ server:
 
 eureka:
   server:
-    enable-self-preservation: false    # 关闭服务器自我保护，客户端心跳检测15分钟内错误达到80%服务会保护，导致别人还认为是好用的服务
+    enable-self-preservation: false # 关闭服务器自我保护，客户端心跳检测15分钟内错误达到80%服务会保护，导致别人还认为是好用的服务
     eviction-interval-timer-in-ms: 10000 # 清理间隔（单位毫秒，默认是60*1000）5秒将客户端剔除的服务在服务注册列表中剔除#
     shouldUseReadOnlyResponseCache: true # eureka是CAP理论种基于AP策略，为了保证强一致性关闭此切换CP 默认不关闭 false关闭
   client:
-    register-with-eureka: false  # false: 不作为一个客户端注册到注册中心
-    fetch-registry: false      # 为true时，可以启动，但报异常：Cannot execute request on any known server
+    register-with-eureka: false # false: 不作为一个客户端注册到注册中心
+    fetch-registry: false # 为true时，可以启动，但报异常：Cannot execute request on any known server
     instance-info-replication-interval-seconds: 10
     serviceUrl:
       defaultZone: http://localhost:${server.port}/eureka/
@@ -1940,7 +1938,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
 ### 8.4. zuul 过滤器
 
-通过 Zuul 过滤器的方式实现，目的是让下游微服务能够很方便的获取到当前的登录用户信息（明文token）
+通过 Zuul 过滤器的方式实现，目的是让下游微服务能够很方便的获取到当前的登录用户信息（明文 token）
 
 #### 8.4.1. 实现获取用户信息转发至微服务
 
@@ -2034,7 +2032,7 @@ public class ZuulConfig {
 
 ### 8.5. 微服务用户鉴权拦截
 
-当微服务收到明文token时，需要自定义实现一个过滤器，用于解析明文的 token，增加微服务用户鉴权拦截功能
+当微服务收到明文 token 时，需要自定义实现一个过滤器，用于解析明文的 token，增加微服务用户鉴权拦截功能
 
 #### 8.5.1. Spring Security 资源配置
 
@@ -2124,7 +2122,7 @@ public class OrderController {
 1. 采用 OAuth2.0 的密码模式通过网关从 UAA 获取 token
 2. 使用该 token 通过网关访问订单服务的测试资源
 
-- 通过网关访问 uaa 的授权及获取令牌，获取token。注意端口是53010，网关的端口。
+- 通过网关访问 uaa 的授权及获取令牌，获取 token。注意端口是 53010，网关的端口。
 
 ```
 POST http://127.0.0.1:53010/uaa/oauth/token
@@ -2140,8 +2138,8 @@ POST http://127.0.0.1:53010/uaa/oauth/token
 
 ```json
 {
-    "error": "unauthorized",
-    "error_description": "Full authentication is required to access this resource"
+  "error": "unauthorized",
+  "error_description": "Full authentication is required to access this resource"
 }
 ```
 
@@ -2149,18 +2147,18 @@ POST http://127.0.0.1:53010/uaa/oauth/token
 
 ```json
 {
-    "error": "invalid_token",
-    "error_description": "Cannot convert access token to JSON"
+  "error": "invalid_token",
+  "error_description": "Cannot convert access token to JSON"
 }
 ```
 
 ### 8.7. 扩展用户信息
 
-上面示例 jwt 令牌存储了用户的身份信息、权限信息，网关将 token 明文化转发给微服务使用，目前用户身份信息仅包括了用户的账号，但实现项目中，可能还需要用户的其他重要信息，如用户的ID、手机号等。
+上面示例 jwt 令牌存储了用户的身份信息、权限信息，网关将 token 明文化转发给微服务使用，目前用户身份信息仅包括了用户的账号，但实现项目中，可能还需要用户的其他重要信息，如用户的 ID、手机号等。
 
 本案例将提供扩展用户信息的思路和方法，满足微服务使用用户信息的需求。
 
-在认证阶段 `DaoAuthenticationProvider` 会调用 `UserDetailService` 查询用户的信息，这里是可以获取到完整的用户信息。由于JWT令牌中用户身份信息来源于 `UserDetails`，`UserDetails` 中仅定义了 `username` 为用户的身份信息，因此有两种思路方案来让 JWT 令牌中扩展用户信息：
+在认证阶段 `DaoAuthenticationProvider` 会调用 `UserDetailService` 查询用户的信息，这里是可以获取到完整的用户信息。由于 JWT 令牌中用户身份信息来源于 `UserDetails`，`UserDetails` 中仅定义了 `username` 为用户的身份信息，因此有两种思路方案来让 JWT 令牌中扩展用户信息：
 
 1. 可以继承 `UserDetails` 类，从而扩展让其包括更多的自定义属性
 2. 可以扩展 `username` 属性的内容，比如存入 json 数据内容作为 `username` 的内容。

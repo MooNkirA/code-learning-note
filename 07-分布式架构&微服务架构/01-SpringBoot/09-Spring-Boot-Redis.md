@@ -2,7 +2,7 @@
 
 ## 1. Redis 概述
 
-> Redis 更多详细内容详见[《Redis 笔记》](/04-数据库/03-Redis/01-Redis笔记)
+> Redis 更多详细内容详见[《Redis 笔记》](/04-数据库/03-Redis/01-Redis)
 
 ### 1.1. 简介
 
@@ -38,7 +38,7 @@ redis-cli.exe
 
 ### 1.4. 基本操作
 
-此部分内容详见[《Redis 笔记》](/04-数据库/03-Redis/01-Redis笔记)
+此部分内容详见[《Redis 笔记》](/04-数据库/03-Redis/01-Redis)
 
 ## 2. 整合 Redis 示例
 

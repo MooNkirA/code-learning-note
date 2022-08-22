@@ -1757,21 +1757,23 @@ public class MyApplicationRunner implements ApplicationRunner {
 
 #### 7.3.3. 使用注意事项
 
-- 如果项目中定义多个 `CommandLineRunner` 与 `ApplicationRunner` 接口的实现。那需要注意它们这些实现的调用顺序，以免发现不可预测的问题。另外，可以通过实现 `org.springframework.core.Ordered` 接口或使用 `org.springframework.core.annotation.Order` 注解来指定实现类调用的顺序。
+- 如果项目中定义多个 `CommandLineRunner` 与 `ApplicationRunner` 接口的实现。那需要注意它们这些实现的调用顺序，以免发生不可预测的问题。另外，可以通过实现 `org.springframework.core.Ordered` 接口或使用 `org.springframework.core.annotation.Order` 注解来指定实现类调用的顺序。
 - `CommandLineRunner` 与 `ApplicationRunner` 接口的实现不需要到`META-INF/spring.plants`进行配置相关映射。
 
 ## 8. Spring Boot 视图
 
 ### 8.1. 静态资源html视图
 
-- SpringBoot默认有四个静态资源文件夹：
-  - classpath:/static/
-  - classpath:/public/
-  - classpath:/resources/
-  - classpath:/META-INF/resources/
-- 在spring-boot-autoconfigure-1.5.6.RELEASE.jar的web包的
+SpringBoot 默认有四个静态资源文件夹：
 
-ResourceProperties类中作了默认的配置：
+- classpath:/static/
+- classpath:/public/
+- classpath:/resources/
+- classpath:/META-INF/resources/
+
+> 在 spring-boot-autoconfigure-x.x.x.RELEASE.jar 的 web 包
+
+`ResourceProperties` 类中作了默认的配置：
 
 ```java
 private static final String[] CLASSPATH_RESOUTCE_LOCATIONS = {
@@ -2924,26 +2926,26 @@ SpringBoot 程序启动时，会按以下位置的从上往下的优先级加载
 
 ### 6.1. 程序启动参数设置配置文件名
 
-通过启动参数 `--spring.config.name` 来指定配置文件的名称。<font color=violet>**注意：仅仅是名称，不要带扩展名**</font>
+通过启动参数 `--spring.config.name` 来指定配置文件的名称。<font color=violet>**注意：仅仅是名称，不要带扩展名，多个配置文件之间使用“`,`”号分隔**</font>
 
 ```bash
-java -jar springboot-demo.jar --spring.config.location=classpath:/default.properties,classpath:/override.properties
+java -jar springboot-demo.jar --spring.config.name=default,override
 ```
 
 ### 6.2. 程序启动参数设置配置文件路径
 
-通过启动参数 `--spring.config.location` 来指定配置文件的所在路径。<font color=violet>**注意：是全路径名**</font>
+通过启动参数 `--spring.config.location` 来指定配置文件的所在路径。<font color=violet>**注意：相对路径名、全路径名均可**</font>
 
 ```bash
 java -jar springboot-demo.jar --spring.config.location=classpath:/default.properties,classpath:/override.properties
 # 或者
-java -jar springboot-demo.jar -Dspring.config.location=D:\config\config.properties
+java -jar springboot-demo.jar --spring.config.location=D:\config\config.properties
 ```
 
 也可以设置加载多个自定义配置文件，不同配置文件路径之间使用“`,`”号分隔
 
 ```bash
-java -jar springboot-demo.jar -Dspring.config.location=D:\config\config.properties,D:\config\confg-dev.properties
+java -jar springboot-demo.jar --spring.config.location=D:\config\config.properties,D:\config\confg-dev.properties
 ```
 
 
@@ -3234,7 +3236,7 @@ java -jar moon-project.jar --spring.profiles.active=dev
 java -jar moon-project.jar --spring.profiles.active=pro
 ```
 
-### 9.2. 使用 ${} 作为动态参数的解决
+### 9.2. 使用 ${} 作为动态参数的解决方案
 
 从 spring-boot-starter-parent 的 pom.xml 文件中可以查看  `delimiter that doesn't clash with Spring ${}`
 
@@ -3250,6 +3252,8 @@ java -jar moon-project.jar --spring.profiles.active=pro
 ```
 
 spring boot 默认是使用 `@@` 占位符来读取maven的配置属性值，如需要修改使用 `${}` 作为动态参数读取配置值，可以有以下处理方案。
+
+> 注：使用这种方式是为了在使用maven命令时，可以设置配置中相应的变量值
 
 #### 9.2.1. 方案一
 
@@ -3310,15 +3314,17 @@ spring boot 默认是使用 `@@` 占位符来读取maven的配置属性值，如
 </properties>
 ```
 
-<font color=red>**注意：使用些方式后，使用mvn命令打包时，不使用默认值方式`${参数名:默认值}`**</font>
+<font color=red>**注意：使用些方式后，使用mvn命令打包时，不能使用 `${参数名:默认值}` 这种设置默认值方式**</font>
 
 ### 9.3. 个人项目实践示例
 
-#### 9.3.1. 打包项目赋值参数命令
+#### 9.3.1. 使用 Spring Boot 的插件命令打包项目时进行赋值参数
 
- - 因为配置开发与正式版本的两套配置文件，所以开发时运行需要修改`Environment`的`VM options`的参数为：`-DactiveName=dev`，切换到开发环境的配置，再运行main方法启动
-    - **注意：使用 mvn 命令启动的方式只适用于`${}`占位符情况，如果使用`@@`，则不能使用**
-- 为了兼容项目打包，配置文件是使用`@@`作为占位符，所以启动需要使用命令`spring-boot:run`
+因为配置开发与正式版本的两套配置文件，所以开发时运行需要修改`Environment`的`VM options`的参数为：`-DactiveName=dev`，切换到开发环境的配置，再运行main方法启动
+
+> **注意：使用 mvn 命令启动的方式只适用于`${}`占位符情况，不能使用 `@@`**
+
+当时想在打包时，给配置文件中的占位符设置值。如果配置文件是使用`@@`作为占位符，启动需要使用 Spring Boot 的插件命令：`spring-boot:run`
 
 ```shell
 # 以开发环境配置启动
@@ -3328,9 +3334,11 @@ spring-boot:run -DactiveName=dev -Dmaven.test.skip=true
 spring-boot:run -DactiveName=pro -Dmaven.test.skip=true
 ```
 
-#### 9.3.2. 项目打包命令
+#### 9.3.2. 使用 maven 命令打包项目时进行赋值参数
 
-- 需要将依赖的公共包安装到本地仓库，到时需要依赖打包到war包中9.3.2. - 项目打包：参考5.1将前端部署后，因为配置了开发环境与正式版本环境的两套配置文件，使用maven命令打包时，需要输入配置文件的参数，进行打包即可，完成后将war包放到tomcat运行部署
+需要将依赖的公共包安装到本地仓库，到时需要依赖打包到war包中
+
+项目打包：因为配置了开发环境与正式版本环境的两套配置文件，使用maven命令打包时，需要输入配置文件的参数，进行打包即可，完成后将war包放到tomcat运行部署
 
 ```shell
 # 项目安装
@@ -3339,6 +3347,8 @@ mvn clean install -DactiveName=pro -Dmaven.test.skip=true
 # 项目打包
 mvn clean package -DactiveName=pro -Dmaven.test.skip=true
 ```
+
+> 注：以上是使用了 `<resource.delimiter>` 配置，让配置文件可以使用 `${}` 作为占位符
 
 ## 10. 其他
 
@@ -3682,8 +3692,3 @@ public class ItemMessageListener {
     }
 }
 ```
-
-## 5. !!整合Swagger2(使用的时再总结，在深入理解spring cloud书中4.7章节)
-
-Swagger2是一个功能强大的在线API文档的框架，目前版本为2.x，Swagger2提供了在线文档的查阅和测试功能。利用Swagger2很容易构建RESTful风格的API
-

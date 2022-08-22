@@ -661,6 +661,7 @@ class Car implements Vehicle, FourWheeler {
 函数式接口在Java中是指：**有且仅有一个抽象方法的接口**
 
 - 函数式接口(FunctionalInterface)就是一个有且仅有一个抽象方法的接口，但可以有多个默认方法，静态方法
+- 接口默认继承 `java.lang.Object`，所以如果接口显示声明覆盖了 `Object` 中方法，那么也不算抽象方法。
 - 函数式接口可以被隐式转换为 lambda 表达式
 - 函数式接口可以现有的函数友好地支持 lambda 表达式
 
@@ -731,7 +732,7 @@ interface Operator {
 
 ### 3.4. 常用内置函数式接口
 
-#### 3.4.1. Supplier接口
+#### 3.4.1. Supplier 接口
 
 ```java
 @FunctionalInterface
@@ -1175,6 +1176,78 @@ public class Demo08PredicateAndOrNegate {
         }
         System.out.println("test()方法执行结束...");
     }
+}
+```
+
+### 3.5. 函数式接口应用示例
+
+#### 3.5.1. 实现对象通用 Builder 链式设置属性值
+
+1. 创建测试实体类
+
+```java
+public class User {
+
+    private String userName;
+    private int age;
+    // ...更多其他的属性
+    // ...省略 setter/getter
+}
+```
+
+2. 利用 `Supplier` 与 `Consumer` 函数式接口特性，实现通用对象 Builder
+
+```java
+public class CommonBuilder<T> {
+
+    private final Supplier<T> instantiator;
+    private List<Consumer<T>> modifiers = new ArrayList<>();
+
+    public CommonBuilder(Supplier<T> instantiator) {
+        this.instantiator = instantiator;
+    }
+
+    public static <T> CommonBuilder<T> of(Supplier<T> instantiator) {
+        return new CommonBuilder<>(instantiator);
+    }
+
+    public <V> CommonBuilder<T> with(ValueConsumer<T, V> consumer, V v) {
+        Consumer<T> c = instance -> consumer.accept(instance, v);
+        modifiers.add(c);
+        return this;
+    }
+
+    public T build() {
+        // 获取创建的对象
+        T value = instantiator.get();
+        // 循环所有消费方法，设置对象属性值
+        modifiers.forEach(modifier -> modifier.accept(value));
+        modifiers.clear();
+        return value;
+    }
+
+    // 自定义消费函数式接口
+    @FunctionalInterface
+    public interface ValueConsumer<T, V> {
+        void accept(T t, V v);
+    }
+}
+```
+
+> Tips: 可以参考示例自定义的函数式接口，按需求支持多个参数的设置属性方法。
+
+3. 测试
+
+```java
+@Test
+public void test() {
+    CommonBuilder<User> builder = CommonBuilder.of(User::new);
+    User user = builder
+            .with(User::setUserName, "MooN")
+            .with(User::setAge, 28)
+            .build();
+
+    System.out.println(user);
 }
 ```
 
@@ -3042,11 +3115,12 @@ public void comprehensiveStreamTest02() {
 ```
 
 ## 6. StringJoiner 类（字符拼接）
+
 ### 6.1. 简介
 
-StringJoiner是java.util包中的一个类，用于构造一个由分隔符分隔的字符序列（可选），并且可以从提供的前缀开始并以提供的后缀结尾
+`StringJoiner` 是 `java.util` 包中的一个类，用于构造一个由分隔符分隔的字符序列（可选），并且可以从提供的前缀开始并以提供的后缀结尾
 
-**StringJoiner类共有2个构造函数，5个公有方法。其中最常用的方法就是add方法和toString方法，类似于StringBuilder中的append方法和toString方法**
+**`StringJoiner` 类共有2个构造函数，5个公有方法。其中最常用的方法就是 `add` 方法和 `toString` 方法，类似于 `StringBuilder` 中的 `append` 方法和 `toString` 方法**
 
 ### 6.2. 构造方法
 
@@ -3063,6 +3137,10 @@ public StringJoiner(CharSequence delimiter, CharSequence prefix, CharSequence su
 - 构造一个由分隔符分隔的字符序列，prefix参数设置字符拼接的前缀，参数suffix设置后缀
 
 ### 6.3. 基础用法
+
+#### 6.3.1. StringJoiner 对象
+
+手动创建 `StringJoiner` 对象，实现字符串拼接
 
 ```java
 public class StringJoinerTest {
@@ -3081,7 +3159,36 @@ public class StringJoinerTest {
 }
 ```
 
+#### 6.3.2. Stream 流的 joining 方法
+
+在 Java8 的流操作中的 `Collector.joining`，底层也使用了 `StringJoiner` 进行字符串拼接了，基础用法如下：
+
+```java
+list.stream().collect(Collectors.joining(":"))
+```
+
+#### 6.3.3. String 类的 join 静态方法
+
+JDK 1.8 后，String 类新增两个 `join` 静态方法，底层也使用了 `StringJoiner` 进行字符串拼接了
+
+```java
+public static String join(CharSequence delimiter, CharSequence... elements)
+
+public static String join(CharSequence delimiter, Iterable<? extends CharSequence> elements)
+```
+
+基础用法：
+
+```java
+List<String> list = Arrays.asList("a", "b", "c", "d");
+System.out.println(String.join(",", list)); // a,b,c,d
+```
+
 ### 6.4. 实现原理
+
+#### 6.4.1. StringJoiner
+
+通过查询源码，`StringJoiner` 其实是通过 `StringBuilder` 实现
 
 ```java
 public StringJoiner add(CharSequence newElement) {
@@ -3099,15 +3206,9 @@ private StringBuilder prepareBuilder() {
 }
 ```
 
-通过查询源码，StringJoiner其实是通过StringBuilder实现
+#### 6.4.2. Collector.joining
 
-还有Java8的流操作中的Collector.joining的实现原理就是使用了StringJoiner，如下
-
-```java
-list.stream().collect(Collectors.joining(":"))
-```
-
-Collector.joining的源代码如下：
+还有 Java8 的流操作中的 `Collector.joining` 的实现原理也是使用了 `StringJoiner`，`Collector.joining` 的源代码如下：
 
 ```java
 public static Collector<CharSequence, ?, String> joining(CharSequence delimiter,CharSequence prefix,CharSequence suffix) {
@@ -3118,14 +3219,31 @@ public static Collector<CharSequence, ?, String> joining(CharSequence delimiter,
 }
 ```
 
+#### 6.4.3. String.join
+
+`String.join` 静态方法，底层也是手动创建 `StringJoiner`，通过 `add` 添加拼接的元素，最终调用 `toString` 方法完成字符串拼接
+
+```java
+public static String join(CharSequence delimiter, CharSequence... elements) {
+    Objects.requireNonNull(delimiter);
+    Objects.requireNonNull(elements);
+    // Number of elements not likely worth Arrays.stream overhead.
+    StringJoiner joiner = new StringJoiner(delimiter);
+    for (CharSequence cs: elements) {
+        joiner.add(cs);
+    }
+    return joiner.toString();
+}
+```
+
 ### 6.5. 使用场景总结
 
-StringJoiner其实是通过StringBuilder实现的，所以他的性能和StringBuilder差不多，他也是非线程安全的
+`StringJoiner` 其实是通过 `StringBuilder` 实现的，所以两者性能差不多，都是非线程安全的
 
 1. 如果只是简单的字符串拼接，考虑直接使用`"+"`即可。
-2. 如果是在for循环中进行字符串拼接，考虑使用StringBuilder和StringBuffer。
-3. 如果是通过一个集合（如List）进行字符串拼接，则考虑使用StringJoiner。
-4. 如果是对一组数据进行拼接，则可以考虑将其转换成Stream，并使用StringJoiner处理。
+2. 如果是在 for 循环中进行字符串拼接，考虑使用 `StringBuilder` 和 `StringBuffer`。
+3. 如果是通过一个集合（如List）进行字符串拼接，则考虑使用 `StringJoiner`。
+4. 如果是对一组数据进行拼接，则可以考虑将其转换成 Stream，并使用` StringJoiner` 处理。
 
 ## 7. Optional 类
 

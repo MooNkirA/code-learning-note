@@ -2223,29 +2223,77 @@ table回显图片也是很简单的，仅需要在列中增加一列
 
 网站：`https://icomoon.io/` 可以上传自定义的图标字体
 
-## 9. 参考资料
+## 9. 相关组件库
 
-Vue.js高仿饿了么外卖App课程源码 `https://github.com/ustbhuangyi/vue-sell`
+### 9.1. 开源 Vue2 组件库
 
-## 10. 相关框架
-
-### 10.1. v-page：vue.js的分页组件
+#### 9.1.1. v-page：vue.js的分页组件
 
 官网：https://terryz.gitee.io/vue/#/page
 
-### 10.2. Element 基于 Vue 2.0 的桌面端组件库
+#### 9.1.2. Element 基于 Vue 2.0 的桌面端组件库
 
 官网：https://element.eleme.cn/#/zh-CN
 
-### 10.3. iView 基于Vue.js的UI组件库
+#### 9.1.3. iView 基于Vue.js的UI组件库
 
 官网：http://v1.iviewui.com/
 
-### 10.4. Mint UI 移动端组件库
+#### 9.1.4. Mint UI 移动端组件库
 
 官网：http://mint-ui.github.io/#!/zh-cn
 
-### 10.5. Vant 移动端组件库
+#### 9.1.5. Vant 移动端组件库
 
 官网：https://vant-contrib.gitee.io/vant/#/zh-CN/
+
+### 9.2. 开源的 Vue3 组件库
+
+#### 9.2.1. element-plus
+
+经典中的经典，全面支持 Vue 3
+
+- 官方文档：https://element-plus.gitee.io/zh-CN/
+- github 仓库：https://github.com/element-plus/element-plus
+
+#### 9.2.2. tdesign-vue-next
+
+鹅厂优质 UI 组件，配套工具完满，设计工整，文档清晰
+
+#### 9.2.3. arco-design-vue
+
+字节跳动 UI 组件库开源，大厂逻辑，设计文档完美
+
+#### 9.2.4. ant-design-vue
+
+蚂蚁前端 UI 库，面向企业级中后台
+
+- 官方文档：https://antdv.com/components/overview-cn
+- github 仓库：https://github.com/vueComponent/ant-design-vue
+
+#### 9.2.5. vant
+
+有赞团队开源移动 UI 组件库，全面支持 Vue 3
+
+- 官方文档：https://vant-contrib.gitee.io/vant/#/zh-CN
+- github 仓库：https://github.com/vant-ui/vant
+
+#### 9.2.6. naive-ui
+
+一个 Vue 3 组件库。比较完整，主题可调，使用 TypeScript。宝藏 Vue UI 库，Vue UI 新星，从 Vue 3 起步
+
+- 官方文档：https://www.naiveui.com/zh-CN/os-theme
+- github 仓库：https://github.com/TuSimple/naive-ui
+
+#### 9.2.7. nutui
+
+京东出品，移动端友好，面向电商业务场景
+
+#### 9.2.8. vuetify
+
+老牌 Vue UI ，基于谷歌的 Material Design 样式开发
+
+#### 9.2.9. varlet
+
+Varlet 是一个基于 Vue3 开发的 Material 风格移动端组件库，全面拥抱 Vue3 生态，由社区建立起来的组件库团队进行维护。
 
