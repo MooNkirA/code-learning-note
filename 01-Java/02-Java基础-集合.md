@@ -1942,7 +1942,7 @@ clist.add("y"); // 运行时此行报错
 System.out.println(list.size());
 ```
 
-### 1.2. 创建线程安全的 List 集合
+### 1.2. 创建线程安全的 List、Set、Map 集合
 
 ```java
 public static <T> List<T> synchronizedList(List<T> list)
@@ -1965,6 +1965,11 @@ for (int i = 0; i < synchronizedList.size(); i++) {
     System.out.println(synchronizedList.get(i));
 }
 ```
+
+> Notes: `Collections` 工具类提供的以 `synchronized` 为前缀的方法，可以将 Set、Map 集合类包装成线程安全的集合类，具体用法与 `synchronizedList` 一样。如：
+>
+> - `public static <K,V> Map<K,V> synchronizedMap(Map<K,V> m)`
+> - `public static <T> Set<T> synchronizedSet(Set<T> s) `
 
 ## 2. Arrays 类
 
