@@ -966,7 +966,7 @@ public class JdbcConfig {
 
 此接口是Spring的事务管理器核心接口。Spring本身并不支持事务实现，只是负责提供标准，应用底层支持什么样的事务，需要提供具体实现类。此处也是策略模式的具体应用。
 
-在Spring框架中，也内置了一些具体策略，PlatformTransactionManager接口中常用的实现类如下：
+在Spring框架中，也内置了一些具体策略，`PlatformTransactionManager` 接口中常用的实现类如下：
 
 - `DataSourceTransactionManager`**（重点）**：使用SpringJDBC或iBatis进行持久化数据时使用
 - `HibernateTransactionManager`**（重点）**：使用Hibernate3.0版本以上进行持久化数据时使用
@@ -982,25 +982,29 @@ public class JdbcConfig {
 
 #### 4.3.3. 接口主要方法说明
 
+- 获取事务状态信息
+
 ```java
-/* Spring的事务管理器核心接口 */
-public interface PlatformTransactionManager {
-	/* 获取事务状态信息 */
-	TransactionStatus getTransaction(@Nullable TransactionDefinition definition) throws TransactionException;
+TransactionStatus getTransaction(@Nullable TransactionDefinition definition) throws TransactionException;
+```
 
-	/* 提交事务 */
-	void commit(TransactionStatus status) throws TransactionException;
+- 提交事务
 
-	/* 回滚事务 */
-	void rollback(TransactionStatus status) throws TransactionException;
-}
+```java
+void commit(TransactionStatus status) throws TransactionException;
+```
+
+- 回滚事务
+
+```java
+void rollback(TransactionStatus status) throws TransactionException;
 ```
 
 ### 4.4. TransactionDefinition 接口
 
 #### 4.4.1. 接口作用
 
-此接口是Spring中事务可控属性的顶层接口，里面定义了事务的一些属性以及获取属性的方法。例如：事务的传播行为，事务的隔离级别，事务的只读，事务的超时等等。
+`org.springframework.transaction.TransactionDefinition` 接口是 Spring 中事务可控属性的顶层接口，里面定义了事务的一些属性以及获取属性的方法。例如：事务的传播行为，事务的隔离级别，事务的只读，事务的超时等等。
 
 通常情况下，在开发中都可以配置这些属性，以求达到最佳效果。配置的方式支持xml和注解。
 
@@ -1041,17 +1045,21 @@ boolean isReadOnly();
 String getName();
 ```
 
-#### 4.4.4. 事务的传播行为
+#### 4.4.4. 事务的传播行为（接口的常量属性）
 
-- `REQUIRED`：如果当前没有事务，就新建一个事务，如果已经存在一个事务中，加入到这个事务中。一般的选择（默认值）
-- `SUPPORTS`：支持当前事务，如果当前没有事务，就以非事务方式执行（没有事务）
-- `MANDATORY`：使用当前的事务，如果当前没有事务，就抛出异常
-- `REQUERS_NEW`：新建事务，如果当前在事务中，把当前事务挂起
-- `NOT_SUPPORTED`：以非事务方式执行操作，如果当前存在事务，就把当前事务挂起
-- `NEVER`：以非事务方式运行，如果当前存在事务，抛出异常
-- `NESTED`：如果当前存在事务，则在嵌套事务内执行。如果当前没有事务，则执行 REQUIRED 类似的操作。
+Spring 事务的传播行为是指，当多个事务同时存在的时候，Spring 如何处理这些事务的行为。主要有以下几种：
 
-源码体现
+|         事务传播行为          |                                          说明                                          |
+| :-------------------------: | -------------------------------------------------------------------------------------- |
+|   `PROPAGATION_REQUIRED`    | 如果当前没有事务，就新建一个事务；如果已经存在一个事务中，加入到这个事务中。一般的选择（默认值） |
+|   `PROPAGATION_SUPPORTS`    | 使用当前的事务；如果当前没有事务，就以非事务方式执行（没有事务）                              |
+|   `PROPAGATION_MANDATORY`   | 使用当前的事务，如果当前没有事务，就抛出异常                                                |
+| `PROPAGATION_REQUIRES_NEW`  | 无论当前存不存在事务，都创建新事务。（*如果当前在事务中，把当前事务挂起？待确认*）              |
+| `PROPAGATION_NOT_SUPPORTED` | 以非事务方式执行操作，如果当前存在事务，就把当前事务挂起                                     |
+|     `PROPAGATION_NEVER`     | 以非事务方式运行，如果当前存在事务，抛出异常                                                |
+|    `PROPAGATION_NESTED`     | 如果当前存在事务，则在嵌套事务内执行。如果当前没有事务，则执行 `REQUIRED` 类似的操作           |
+
+源码节选：
 
 ```java
 /* REQUIRED:如果当前没有事务，就新建一个事务，如果已经存在一个事务中，加入到这个事务中。一般的选择（默认值） */
@@ -1072,15 +1080,15 @@ int PROPAGATION_NESTED = 6;
 
 #### 4.4.5. 事务的隔离级别（接口的常量属性）
 
-事务隔离级别反映事务提交并发访问时的处理态度
+事务隔离级别反映事务提交并发访问时的处理态度。Spring 有五大隔离级别，默认值为 `ISOLATION_DEFAULT`（使用数据库的设置），其他四个隔离级别和数据库的隔离级别一致：
 
 |         事务隔离级别          |                                                          说明                                                          |
 | :--------------------------: | --------------------------------------------------------------------------------------------------------------------- |
-|     `ISOLATION_DEFAULT`      | 事务的隔离级别默认值，当取值-1时，会采用下面的4个值其中一个。(不同数据库的默认隔离级别不一样)                                   |
+|     `ISOLATION_DEFAULT`      | 事务的隔离级别默认值，当取值-1时，会采用下面的4个值其中一个。(使用底层数据库的设置隔离级别，不同数据库的默认隔离级别不一样)         |
 | `ISOLATION_READ_UNCOMMITTED` | 事务隔离级别为：读未提交。执行效率最高，但什么错误情况也无法避免                                                             |
-|  `ISOLATION_READ_COMMITTED`  | 事务隔离级别为：读已提交。可以防止脏读的发生，但是无法防住不可重复读和幻读的发生(Oracle默认级别)                                |
+|  `ISOLATION_READ_COMMITTED`  | 事务隔离级别为：读已提交。可以防止脏读的发生，但是无法防止不可重复读和幻读的发生(Oracle默认级别)                                |
 | `ISOLATION_REPEATABLE_READ`  | 事务隔离级别为：可重复读（是否读取其他事务提交修改后的数据）。可以防止脏读和不可重复读的发生，但是无法防住幻读的发生(MySQL默认级别) |
-|   `ISOLATION_SERIALIZABLE`   | 事务隔离级别为：串行化。此时所有错误情况均可防住，但是由于事务变成了独占模式（排他模式），因此效率最低                            |
+|   `ISOLATION_SERIALIZABLE`   | 事务隔离级别为：串行化。此时所有错误情况均可防止，但是由于事务变成了独占模式（排他模式），因此效率最低                            |
 
 #### 4.4.6. 超时时间
 
@@ -1101,7 +1109,11 @@ int TIMEOUT_DEFAULT = -1;
 
 #### 4.5.1. 接口作用
 
-此接口是事务运行状态表示的顶层接口，里面定义着获取事务运行状态的一些方法。包含有6个具体的操作
+`org.springframework.transaction.TransactionStatus` 接口是事务运行状态表示的顶层接口，里面定义着获取事务运行状态的一些方法。包含有6个具体的操作
+
+```java
+public interface TransactionStatus extends TransactionExecution, SavepointManager, Flushable
+```
 
 #### 4.5.2. 类视图
 
@@ -1109,27 +1121,39 @@ int TIMEOUT_DEFAULT = -1;
 
 #### 4.5.3. 接口主要方法说明
 
+- 是否一个新的事务
+
 ```java
-/* 此接口是事务运行状态表示的顶层接口，里面定义着获取事务运行状态的一些方法。 */
-public interface TransactionStatus extends SavepointManager, Flushable {
-	/* 是否一个新的事务 */
-	boolean isNewTransaction();
-
-	/* 是否包含存储点 */
-	boolean hasSavepoint();
-
-	/* 设置事务回滚 */
-	void setRollbackOnly();
-
-	/* 是否是只回滚事务 */
-	boolean isRollbackOnly();
-
-	/* 刷新事务 */
-	@Override
-	void flush();
-
-	/* 事务是否已经完成(标识就是提交或者回滚了) */
-	boolean isCompleted();
-}
+boolean isNewTransaction();
 ```
 
+- 是否包含存储点
+
+```java
+boolean hasSavepoint();
+```
+
+- 设置事务回滚
+
+```java
+void setRollbackOnly();
+```
+
+- 是否是只回滚事务
+
+```java
+boolean isRollbackOnly();
+```
+
+- 刷新事务
+
+```java
+@Override
+void flush();
+```
+
+- 事务是否已经完成(标识就是提交或者回滚了)
+
+```java
+boolean isCompleted();
+```

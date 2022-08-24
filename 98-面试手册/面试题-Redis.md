@@ -126,3 +126,9 @@ Linux的glibc提供了fsync函数,可以将指定文件强制从缓冲区刷到�
 - hash：编码分为ziplist、hashtable两种,其中ziplist底层实现为压缩列表,当键值对数量小于2,并且所有的键值长度都小于64字节时使用这种结构进行存储；hashtable底层实现为字典,当不符合压缩列表存储条件时,使用字典进行存储。
 - set：编码分为inset和hashtable,intset底层实现为整数集合,当所有元素都是整数值且数量不超过2个时使用该结构存储,否则使用字典结构存储。
 - zset：编码分为ziplist和skiplist,当元素数量小于128,并且每个元素长度都小于64字节时,使用ziplist压缩列表结构存储,否则使用skiplist的字典+跳表的结构存储。
+
+## 5. Redis 过期键的删除策略
+
+详见《Redis 基础笔记》
+
+

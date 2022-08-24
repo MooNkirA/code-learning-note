@@ -213,7 +213,7 @@
 ### 🪐 Redis
 
 <ul class="docs">
-  <li><a href="#/04-数据库/03-Redis/01-Redis">Redis 基础笔记</a></li>
+  <li><a href="#/04-数据库/03-Redis/01-Redis-基础">Redis 基础笔记</a></li>
   <li><a href="#/04-数据库/03-Redis/02-Redis-安装">Redis 安装</a></li>
   <li><a href="#/04-数据库/03-Redis/03-Redis-场景应用设计">Redis 场景应用设计</a></li>
   <li><a href="#/04-数据库/03-Redis/04-Redis-操作命令">Redis 操作命令</a></li>
@@ -411,16 +411,10 @@
 <ul class="docs">
   <li><a href="#/99-其他/编程资源收集">编程资源收集</a></li>
   <li><a href="#/99-其他/其它资料">其它资料</a></li>
-  <li><a href="#/99-其他/Hexo-blog搭建工具">Hexo 博客 搭建工具</a></li>
+  <li><a href="#/99-其他/Hexo-blog搭建工具">Hexo 博客搭建工具</a></li>
   <li><a href="#/99-其他/docsify">docsify 文档类型网站搭建工具</a></li>
   <li><a href="#/99-其他/Mermaid">Mermaid 基于 Javascript 的绘图语法</a></li>
   <li><a href="#/99-其他/Markdown">Markdown 参考笔记</a></li>
-</ul>
-
-### 面试系列专题
-
-<ul class="docs">
-  <li><a href="#/98-面试手册/">面试题库</a></li>
 </ul>
 
 ## 收集的项目实战资料

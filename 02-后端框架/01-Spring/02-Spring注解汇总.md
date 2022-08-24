@@ -2713,15 +2713,16 @@ public class SpringAutowiredTest {
 
 #### 5.2.1. 作用与使用场景
 
-- **作用**：当使用自动按类型注入时，遇到有多个类型匹配的时候，就可以使用此注解来明确注入哪个bean对象。注意它通常情况下都必须配置`@Autowired`注解一起使用
+- **作用**：当使用自动按类型注入时，遇到有多个类型匹配的时候，就可以使用此注解来明确注入哪个bean对象。
 - **使用场景**：在项目开发中，很多时候都会用到消息队列，以ActiveMQ为例。当和spring整合之后，Spring框架提供了一个JmsTemplate对象，它既可以用于发送点对点模型消息也可以发送主题模型消息。如果项目中两种消息模型都用上了，那么针对不同的代码，将会注入不同的JmsTemplate，而容器中出现两个之后，就可以使用此注解注入。当然不用也可以，只需要把要注入的变量名称改为和要注入的bean的id一致即可。
+
+> Notes: `@Qualifier` 通常情况下都必须配合 `@Autowired` 注解一起使用
 
 #### 5.2.2. 相关属性
 
 |  属性名  |         作用         | 取值 |
 | :-----: | -------------------- | ---- |
 | `value` | 用于指定bean的唯一标识 |      |
-
 
 #### 5.2.3. 使用示例
 
@@ -2896,7 +2897,7 @@ public void resourceBasicTest() {
 }
 ```
 
-#### 5.4.4. 扩展知识
+#### 5.4.4. 扩展知识 - 同时使用 @Autowired 与 @Resource
 
 如果在一个对象属性上同时使用 `@Autowired` 与 `@Resource` 注解，假设依赖注入的对象实现有多个，会以哪个注解指定的为准？这个可以根据 Spring 的后置处理器的排序来判断，默认 `@Autowired` 是优先于 `@Resource`。也可以通过修改排序器来改变两个注解的优先级
 
@@ -2997,6 +2998,29 @@ public class AccountServiceImpl implements AccountService {
 }
 ```
 
+### 5.7. @Required（已过时）
+
+#### 5.7.1. 作用与使用场景
+
+**作用**：`@Required` 用于标识类的方法上，表示所标识  bean 的属性必须在创建该类时，通过 bean 定义中的显式属性值或通过自动注入来填充。如果受影响的 bean 属性未被设置，容器就会抛出 `BeanInitializationException` 异常。
+
+> Notes: 从 Spring Framework 5.1 开始，`@Required` 注解和 `RequiredAnnotationBeanPostProcessor` 已被正式废弃，转而使用构造器注入来实现所需的设置（或者自定义 `InitializingBean.afterPropertiesSet()` 的实现，或者自定义 `@PostConstruct` 方法以及 Bean 属性设置方法）。
+
+#### 5.7.2. 基础使用示例
+
+```java
+public class SimpleMovieLister {
+
+    private MovieFinder movieFinder;
+
+    @Required
+    public void setMovieFinder(MovieFinder movieFinder) {
+        this.movieFinder = movieFinder;
+    }
+    // ...
+}
+```
+
 ## 6. 和生命周期以及作用范围相关的注解
 
 ### 6.1. @Scope
@@ -3018,12 +3042,15 @@ public class AccountServiceImpl implements AccountService {
 
 #### 6.2.1. 作用与使用场景
 
-- **作用**：
-    - `@PostConstruct`用于指定bean对象的初始化后执行的方法。
-    - `@PreDestroy`用于指定bean对象的销毁前执行的方法。
-- **使用场景**：
-    - `@PostConstruct`可以在bean对象创建完成后，需要对bean中的成员进行一些初始化的操作时，就可以使用此注解配置一个初始化方法，完成一些初始化的操作。
-    - `@PreDestroy`可以在bean对象销毁之前，可以进行一些清理操作。
+**作用**：
+
+- `@PostConstruct`用于指定bean对象的初始化后执行的方法。
+- `@PreDestroy`用于指定bean对象的销毁前执行的方法。
+
+**使用场景**：
+
+- `@PostConstruct`可以在bean对象创建完成后，需要对bean中的成员进行一些初始化的操作时，就可以使用此注解配置一个初始化方法，完成一些初始化的操作。
+- `@PreDestroy`可以在bean对象销毁之前，可以进行一些清理操作。
 
 **注：单例的生命周期与容器的生命周期一致，对象随着容器的创建而创建，随容器的销毁而销毁。如果将作用范围设置为多例，则对象的生命周期会脱离容器，当对象被使用时创建，因为容器不知道对象什么时候会不再使用，所以对象的销毁是GC垃圾回收器决定**
 
@@ -4672,7 +4699,7 @@ public void transfer(String sourceName, String targetName, Double money) {
 
 
 
-# 其他暂存
+# 其他
 
 ## 1. @ControllerAdvice 注解
 
@@ -4752,4 +4779,9 @@ public class GlobalExceptionHandler {
 ```
 
 *注：AjaxResult.error是自定义的一个方法，封装了一个返回的map，用来返回前端是一个json对象*
+
+## 2. @Autowired 和 @Resource 的区别
+
+- `@Autowired` 默认是按照<u>**类型装配**</U>注入的，默认情况下它要求依赖对象必须存在（可以设置 `required` 属性为 false，非必须注入）
+- `@Resource` 默认是按照<u>**名称装配**</u>注入的，只有当找不到与名称匹配的 bean 才会按照类型来装配注入。
 

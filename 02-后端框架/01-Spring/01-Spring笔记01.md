@@ -2340,9 +2340,21 @@ public class SpringConfiguration {
 [DEBUG] 15:50:39.239 [executor-3] c.m.s.listener.MyEventListener - 基于 @EventListener 注解实现的事件监听器。获取事件数据：com.moon.springsample.event.MyEvent[source={事件的数据}] 
 ```
 
-### 12.5. 异步事件（待整理）
+### 12.5. 异步事件（待整理!）
 
 暂未整理，整合 `@EnableAsync`，`@Async` 的用法
+
+> 待参考资料：https://mp.weixin.qq.com/s?__biz=Mzg2MjEwMjI1Mg==&mid=2247492001&idx=3&sn=d755f64a1104034aebe19e8aff9f9c9b&chksm=ce0e5622f979df3491e9775daf23936503213e56cbbd6abf23819f10c589749d3fafe2e20fce&mpshare=1&scene=1&srcid=&sharer_sharetime=1582440241694&sharer_shareid=6087581adbbb79acccd7e873962f1a09#rd
+
+#### 12.5.1. @Async 注解失效的情况
+
+以下情况会使 `@Async` 注解失效
+
+- 异步方法使用 `static` 修饰
+- 异步类没有使用 `@Component` 注解（或其他注解）导致 spring 无法扫描到异步类
+- 异步方法不能与被调用的异步方法在同一个类中
+- 类中需要使用 `@Autowired` 或 `@Resource` 等注解自动注入，不能自己手动 new 对象
+- 如果使用 SpringBoot 框架必须在启动类中增加 `@EnableAsync` 注解
 
 ### 12.6. 番外：模拟实现事件监听器和事件发布器
 
