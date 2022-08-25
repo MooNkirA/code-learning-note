@@ -1,29 +1,28 @@
+# 常量治理
+
 虽然推崇在java中使用枚举（可查看[《Java中的枚举的治理》](http://www.cnblogs.com/shizhanming/p/6564805.html)）来对数据字典及常量进行控制，但是有些时候，我们还是会觉得常量控制更为便捷。
 
 比如，对于数据字典，我们可以使用枚举值来处理；对于一些其他的信息，我们会使用常量保存和使用。
 
-# 一、常量遇到的问题
-
 ## 1. 苗条的常量类
 
-这里使用苗条形容下我们程序中的常量类，别看它宽度，就只看她长度，滚起屏来，那叫一个长啊，修长的身材，令你如痴如醉。（省略号里的东西，我就不贴了！！！）
+这里使用苗条形容下我们程序中的常量类，别看它宽度，就只看她长度，滚起屏来，那叫一个长啊，修长的身材，令你如痴如醉。（省略号里的东西）
 
 例如：
 
 
 ```java
 public class Constants {
-
-        public static final String REAL_NAME1 = "v1";
-        public static final String REAL_NAME2 = "v2";
-        public static final String REAL_NAME3 = "v3";
-        public static final String REAL_NAME4 = "v4";
-        public static final String REAL_NAME5 = "v5";
-        public static final String 6 = "v6";
-        public static final String 7 = "v7";
-        public static final String REAL_NAME8 = "v8";
-        public static final String REAL_NAME9 = "v9";
-        ......
+    public static final String REAL_NAME1 = "v1";
+    public static final String REAL_NAME2 = "v2";
+    public static final String REAL_NAME3 = "v3";
+    public static final String REAL_NAME4 = "v4";
+    public static final String REAL_NAME5 = "v5";
+    public static final String 6 = "v6";
+    public static final String 7 = "v7";
+    public static final String REAL_NAME8 = "v8";
+    public static final String REAL_NAME9 = "v9";
+    ......
 }
 ```
 
@@ -40,9 +39,7 @@ public class Constants {
 
 引用下“代码的坏味道”这个词，我们常能看到一些常量类的坏味道里，假如常量名称如上所示，名称类似的很多；名称不明确的也很多，还没有注释，这样的歧义也是因为代码不好管理造成的。
 
-# 二、常量如何治理
-
-## 1. 初级治理——使用内部类
+## 3. 初级治理——使用内部类
 
 使用java的内部类进行常量的初步治理，代码如下：
 
@@ -76,7 +73,7 @@ public void test(){
 }
 ```
 
-## 2. 中级治理——集中管理
+## 4. 中级治理——集中管理
 
 初级治理中，我们的想法还是不错的，但是看起来比较low，而且当我们希望通过value获取到key时，你却无能为力，于是我们有了中级治理。
 
@@ -137,7 +134,7 @@ public void test1(){
 }
 ```
 
-## 3. 中高级治理——使用注解
+## 5. 中高级治理——使用注解
 
 我们可以通过key获取到value，也可以通过value获取到key了。现在有这么个问题，我们使用常量时，不光要有常量的定义、常量的值，还应该有对常量的描述，而传统的对于常量的定义，往往使我们无从存放对常量的描述。
 
@@ -261,7 +258,7 @@ public class Constants {
     }
 ```
 
-## 4. 综合治理（终极治理）
+## 6. 综合治理（终极治理）
 
 现在我们有了常量的治理，有了注解的描述，有时我们需要通过key获取到value，有时我们需要通过value获取描述，有时我们需要通过key获取到描述，等等。排列组合共6种形式，暂且不说什么时候会用到，我们先给他来个综合治理的实现。代码如下：
 
@@ -344,4 +341,3 @@ public class Constants {
 好了，有了上面这个类，你就啥都不用愁了，用的时候先拿常量的声明，再用对应的map，然后指定内部类名称，想获取什么，获取什么。
 
 ps：枚举治理和常量治理结合使用，可能是我们系统开发时的最佳实践
-

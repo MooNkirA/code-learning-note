@@ -32,6 +32,21 @@
     - 具体命令是，在需要导出结果的命令后方添加“`|`”，再加入导出位置就可以了。比方说“`| clip`”是导出到剪贴板，“`| xxx.txt`”是导出到xxx.txt。
 - `&&` ：将多个命令“连接”起来，一步运行多组命令
 
+### 1.1. windows 常用命令
+
+```bash
+# 查询端口
+netstat -ano
+# 查询指定端口
+netstat -ano |findstr "端口号"
+# 根据进程PID查询进程名称
+tasklist |findstr "进程PID号"
+# 根据PID杀死任务
+taskkill /F /PID "进程PID号"
+# 根据进程名称杀死任务
+taskkill -f -t -im "进程名称"
+```
+
 ## 2. 系统运行命令
 
 > 以下均为运行面板(Win+R)中输入的命令
@@ -126,9 +141,7 @@
 | `rundll32 user32.dll,LockWorkStation` | 表示锁定计算机                            |
 | wt                                    | Microsoft.WindowsTerminal（需要手动安装） |
 
-## 3. windows系统相关资料
-
-### 3.1. windows常用快捷键
+## 3. windows常用快捷键
 
 |     功能      |           快捷键           |
 | ------------- | ------------------------- |
@@ -144,9 +157,25 @@
 | 投影          | Win + P                   |
 | 连智能电视     | Win + K                   |
 
-### 3.2. 开始菜单分组
+## 4. windows 系统相关设置
 
-#### 3.2.1. 分组名称
+### 4.1. C盘可清理内容
+
+1. **PerfLogs**文件夹，系统的信息日志，文件夹可删。
+2. **Windows**文件夹
+    - `C:\Windows\WinSxS`，装载了电脑从新装到现在的所有补丁文件，不能删除。但里面有一个“backup”备份文件夹，是可删的。
+    - `C:\Windows\Help`，帮忙文件，可删
+3. **用户**文件夹：`C:\Users\用户名称\AppData\Local\Temp`。这个是Windows存留安装软件时解压的源文件，方便下次安装直接调取使用，节省解压时间，可删除。
+
+### 4.2. win7 系统的Temporary Internet Files清空问题
+
+1. `cmd.exe`
+2. `cd AppData\Local\Microsoft\Windows\Temporary Internet Files`（或者如果有Content.IE5目录的话，cd Content.IE5）
+3. `del /s/q/f *.*`
+
+### 4.3. 开始菜单分组
+
+#### 4.3.1. 分组名称
 
 - Window Software
 - Images Tool
@@ -157,14 +186,14 @@
 - Tools
 - Java Development Tools
 
-#### 3.2.2. 备份开始菜单的方法
+#### 4.3.2. 备份开始菜单的方法
 
 1. 按下Win+R打开运行窗口，输入命令powershell，然后点击确定按钮
 2. 这时就会打开Windows Powershell窗口，在这里输入命令`Export-startlayout –path E:\start.xml`，可以根据自己实际情况来设置相应的路径
 3. 按下回车键后，就会备份好开始菜单的布局文件
 4. 如果需要恢复开始菜单布局的话，只需要再次打开Windows Powershell命令行窗口，然后输入命令`import-startlayout -layoutpath E:\start.xml -mountpath c:`，按下回车键后，就会马上把其还原回来了
 
-### 3.3. 电脑护眼颜色设置
+### 4.4. 电脑护眼颜色设置
 
 win7系统：
 
@@ -178,7 +207,7 @@ win10系统：
 2. 按照如下顺序找到windows：[HKEY_CURRENT_USER\Control Panel\Colors] windows。双击windows 进入编辑状态 将原本数值删除并输入：`202 234 206`。点击确定退出注册表。
 3. 按照如下顺序找到 window：[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Themes\DefaultColors\Standard]。双击 window 打开编辑窗口，默认是勾选十六进制（若不是请勾选十六进制），将原始数据改为：`caeace`。点击确定退出注册表。
 
-### 3.4. 这个可能与ACHI有关系吧。你先去修改到 compatible（兼容模式）进入系统
+### 4.5. 这个可能与ACHI有关系吧。你先去修改到 compatible（兼容模式）进入系统
 
 AHCI开启方法：
 
@@ -188,30 +217,17 @@ AHCI开启方法：
 4. 然后出来看看BIOS里面的硬盘模式，修改为ACHI后（如果没有就算了）
 5. 然后在把SATA Operation Mode改为 enhanced（增强模式）
 
-### 3.5. C盘可清理内容
 
-1. **PerfLogs**文件夹，系统的信息日志，文件夹可删。
-2. **Windows**文件夹
-    1. `C:\Windows\WinSxS`，装载了电脑从新装到现在的所有补丁文件，不能删除。但里面有一个“backup”备份文件夹，是可删的。
-    2. `C:\Windows\Help`，帮忙文件，可删
-3. **用户**文件夹
-    1. `C:\Users\win10\AppData\Local\Temp`。这个是Windows存留安装软件时解压的源文件，方便下次安装直接调取使用，节省解压时间，可删除。
 
-### 3.6. win7 系统的Temporary Internet Files清空问题
-
-1. `cmd.exe`
-2. `cd AppData\Local\Microsoft\Windows\Temporary Internet Files`（或者如果有Content.IE5目录的话，cd Content.IE5）
-3. `del /s/q/f *.*`
-
-### 3.7. window系统的hosts文件位置
+### 4.6. window系统的hosts文件位置
 
 C:\Windows\System32\drivers\etc
 
-### 3.8. win10锁屏壁纸位置
+### 4.7. win10锁屏壁纸位置
 
 C:\Users\win10\AppData\Local\Packages\Microsoft.Windows.ContentDeliveryManager_cw5n1h2txyewy\LocalState\Assets
 
-### 3.9. NSIS：使用netsh advfirewall屏蔽某程序访问网络
+### 4.8. NSIS：使用netsh advfirewall屏蔽某程序访问网络
 
 - 关闭防火墙
 
@@ -237,12 +253,12 @@ nsExec::Exec 'cmd /c netsh advfirewall firewall Delete rule name="TIM"'
 nsExec::Exec 'cmd /c netsh advfirewall firewall add rule name="TIM" dir=out action=block program="C:\Program Files\TIM Lite\Bin\TIM.exe"'
 ```
 
-### 3.10. 删掉 WIN10 回收站右键菜单的固定到＂开始＂屏幕！
+### 4.9. 删掉 WIN10 回收站右键菜单的固定到＂开始＂屏幕！
 
 - 删除：打开注册表，定位到 HKEY_LOCAL_MACHINE\SOFTWARE\Classes\Folder\shellex\ContextMenuHandlers，删除其子键 PintoStartScreen
 - 恢复：在 HKEY_LOCAL_MACHINE\SOFTWARE\Classes\Folder\shellex\ContextMenuHandlers 上单击右键，新建项 PintoStartScreen，修改其默认值为 {470C0EBD-5D73-4d58-9CED-E91E22E23282}
 
-### 3.11. 限制保留宽带设置
+### 4.10. 限制保留宽带设置
 
 1. 按“WIN+R”，打开【运行】对话框；
 2. 输入“regedit”，回车，打开注册表编辑器；
@@ -251,7 +267,7 @@ nsExec::Exec 'cmd /c netsh advfirewall firewall add rule name="TIM" dir=out acti
 5. 计算机配置－管理模板－网络－qos数据包计划程序－限制保留宽带
 6. 选择已启用。一般默认是20，直接把它改成0。
 
-### 3.12. win10 系统任务栏设置时间显示秒
+### 4.11. win10 系统任务栏设置时间显示秒
 
 1. 按“WIN+R”，打开【运行】对话框；
 2. 输入“regedit”，回车，打开注册表编辑器；
@@ -261,25 +277,28 @@ nsExec::Exec 'cmd /c netsh advfirewall firewall add rule name="TIM" dir=out acti
 
 *如果想恢复不显示秒，则将创建的ShowSecondsInSystemClock删除即可*
 
-### 3.13. Win10系统删除无用的服务
+### 4.12. Win10系统删除无用的服务
 
 1. 运行 --> regedit，打开注册表编辑器
 2. 定位到【计算机\HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services】，选择服务名称，右键删除即可
 
-### 3.14. 修改window默认系统安装目录
+### 4.13. 修改window默认系统安装目录
 
-- Windows10系统更改软件程序默认安装目录的方法
-    1. 运行 --> regedit，打开注册表编辑器
-    2. 进入注册表【HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion】目录下，并左键单击：CurrentVersion；
-    3. 在CurrentVersion对应的右侧窗口，找到ProgramFilesDir，并左键双击ProgramFilesDir打开编辑字符串对话框，把Program Files的数值数据从C:\Program Files更改为D:\Program Files，再点击：确定；
-    4. 如果安装的是Windows10的64位系统，在CurrentVersion对应的右侧窗口，找到ProgramFilesDir（x86），并左键双击ProgramFilesDir（x86）打开编辑字符串对话框，把Program Files（x86）的数值数据从C:\Program Files（x86）更改为D:\Program Files（x86），再点击：确定；
-- 修改系统存储的保存位置
-    1. 左键点击系统桌面左下角的“开始”，在开始菜单中点击：设置
-    2. 在打开的设置窗口，点击：系统 --> 窗口左侧的“存储”
-    3. 在存储对应的右侧窗口，用鼠标左键按住右侧的滑块向下拖动，找到：保存位置，在保存位置下，点击：新的应用将保存到此电脑（C:）后面的小勾
-    4. 修改成D盘。之后打开磁盘(D:\)，可以看到磁盘(D:\)中新增了三个文件夹：MoonZero（用户文件：文档、音乐、图片和视频）、Program Files（程序文件）和Windows Apps（窗口应用程序）；
+Windows10系统更改软件程序默认安装目录的方法
 
-### 3.15. win10一般禁用的服务
+1. 运行 --> regedit，打开注册表编辑器
+2. 进入注册表【HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion】目录下，并左键单击：CurrentVersion；
+3. 在CurrentVersion对应的右侧窗口，找到ProgramFilesDir，并左键双击ProgramFilesDir打开编辑字符串对话框，把Program Files的数值数据从C:\Program Files更改为D:\Program Files，再点击：确定；
+4. 如果安装的是Windows10的64位系统，在CurrentVersion对应的右侧窗口，找到ProgramFilesDir（x86），并左键双击ProgramFilesDir（x86）打开编辑字符串对话框，把Program Files（x86）的数值数据从C:\Program Files（x86）更改为D:\Program Files（x86），再点击：确定；
+
+修改系统存储的保存位置
+
+1. 左键点击系统桌面左下角的“开始”，在开始菜单中点击：设置
+2. 在打开的设置窗口，点击：系统 --> 窗口左侧的“存储”
+3. 在存储对应的右侧窗口，用鼠标左键按住右侧的滑块向下拖动，找到：保存位置，在保存位置下，点击：新的应用将保存到此电脑（C:）后面的小勾
+4. 修改成D盘。之后打开磁盘(D:\)，可以看到磁盘(D:\)中新增了三个文件夹：MoonZero（用户文件：文档、音乐、图片和视频）、Program Files（程序文件）和Windows Apps（窗口应用程序）；
+
+### 4.14. win10一般禁用的服务
 
 1. 运行输入【services.msc】打开服务面板，禁用以下服务
     1. Connected User Experiences and Telemetry
@@ -293,7 +312,7 @@ nsExec::Exec 'cmd /c netsh advfirewall firewall add rule name="TIM" dir=out acti
 3. 点击“设置” --> “更新与安全” --> “Windows预览体验计划”，退出Windows Insider计划。
 4. 右击任务栏空白处选择“任务管理器”，切换到“启动”标签，将没必要的自启动程序全部禁用。
 
-### 3.16. 修复win10右键无新建txt文本文件
+### 4.15. 修复win10右键无新建txt文本文件
 
 ```bat
 Windows Registry Editor Version 5.00
@@ -311,11 +330,11 @@ Windows Registry Editor Version 5.00
 
 打开记事本，复制以上内容，另存为`xxx.reg`。点击文件，确认操作后，重启电脑生效
 
-### 3.17. 关闭cmd命令行窗口的中文输入法
+### 4.16. 关闭cmd命令行窗口的中文输入法
 
 运行`regedit`命令，打开注册表窗口，修改注册表：`HKEY_CURRENT_USER\Console\LoadConIme` 的键值由`1`改为`0`
 
-### 3.18. 修改cmd/powershell命令行窗口默认编码
+### 4.17. 修改cmd/powershell命令行窗口默认编码
 
 **临时修改**
 
@@ -326,22 +345,7 @@ Windows Registry Editor Version 5.00
 - **修改powershell默认编码**：运行`regedit`命令打开注册表，展开注册表`计算机\HKEY_CURRENT_USER\Console`项。选择powershell，点击修改右边窗口中`CodePage`项，选择十进制，修改值为`65001`。修改后就每次启动都默认改成UTF-8的编码
 - **修改cmd编码**：运行`regedit`命令打开注册表，展开注册表`计算机\HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Command Processor`项。如果右边窗口没有`autorun`字符串值，则右键新建字符串值，数值名称：`autorun`，数值数据：`chcp 65001`。修改后就每次启动都默认改成UTF-8的编码
 
-### 3.19. windows 常用命令
-
-```bash
-# 查询端口
-netstat -ano
-# 查询指定端口
-netstat -ano |findstr "端口号"
-# 根据进程PID查询进程名称
-tasklist |findstr "进程PID号"
-# 根据PID杀死任务
-taskkill /F /PID "进程PID号"
-# 根据进程名称杀死任务
-taskkill -f -t -im "进程名称"
-```
-
-### 3.20. 彻底关闭Cortana小娜
+### 4.18. 彻底关闭Cortana小娜
 
 - **关闭Cortana小娜的权限**
 
@@ -359,7 +363,7 @@ Win10的设置菜单 -> "应用" -> 在应用列表中搜索找到Cortana -> 高
 Get-AppxPackage -allusers Microsoft.549981C3F5F10 | Remove-AppxPackage
 ```
 
-### 3.21. 关闭 Win11/ Win 10 内存压缩
+### 4.19. 关闭 Win11/ Win 10 内存压缩
 
 Win11默认开启了内存压缩功能。可以压缩内存中的数据，让内存占用更少，同时减少Swap频次，带来更高的I/O效率。但CPU性能较弱的设备，例如轻薄本，开启内存压缩可能会造成卡顿缓慢。同时，内存压缩需要消耗额外的CPU资源，带来更多耗电发热，这对注重续航的设备来说也是不合适的。
 
@@ -368,15 +372,15 @@ Win11默认开启了内存压缩功能。可以压缩内存中的数据，让内
 - **关闭内存压缩**。使用系统管理员权限，打开PowerShell，然后输入命令 `Disable-MMAgent -mc` 后，重启系统，内存压缩就关闭了。
 - **重新打开内存压缩**。使用系统管理员权限，打开PowerShell，然后输入命令 `Enable-MMAgent -mc` 后，重启系统，内存压缩就重新开启。
 
-### 3.22. 清除电脑的运行记录
+### 4.20. 清除电脑的运行记录
 
 1. win+R 打开运行窗口，输入 `regedit` 打开注册表编辑器
 2. 展开 `HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\RunMRU`在右侧除了默认
 3. 将其他选项都删除掉
 
-## 4. Office资料
+## 5. Office资料
 
-### 4.1. Excel资料
+### 5.1. Excel资料
 
 1. Excel表公式换行
     - 例：`d1=A1&CHAR(10)&A2&CHAR(10)&A3`单元格对齐要设置为“自动换行”
@@ -398,19 +402,19 @@ Win11默认开启了内存压缩功能。可以压缩内存中的数据，让内
     - REPT函数第一个参数是补位的内容
     - REPT函数第二个参数是需要补充的位数，即等于总位数-选择的单元格长度
 
-### 4.2. word资料
+### 5.2. word资料
 
 1. 取消超链接快捷键：Ctrl+Shift+F9
 2. 取消代码模式 Alt+F9
 
-## 5. Chrome 与 Edge浏览器
+## 6. Chrome 与 Edge浏览器
 
-### 5.1. Edge与IE设置隐私模式
+### 6.1. Edge与IE设置隐私模式
 
 - IE：右键 -> 属性 -> 在打开的IE属性窗口中，找到目标文本框，在最后加入` -private`（*注：前面有一个空格*）
 - Edge：右键 -> 属性 -> 在打开的属性窗口中，找到目标文本框，在最后加入` -InPrivate`（*注：前面有一个空格*）
 
-### 5.2. Chrome与Edge常用快捷键
+### 6.2. Chrome与Edge常用快捷键
 
 - Ctrl+T：打开新标签页
 - Ctrl+Shift+T：重新打开上次关闭的标签页
@@ -423,20 +427,20 @@ Win11默认开启了内存压缩功能。可以压缩内存中的数据，让内
 - Alt+D 或者 F6：将光标定位于地址栏
 - 输入地址，按下 Alt + 回车键，可将地址在新标签页中打开
 
-### 5.3. Chrome 设置隐身模式与开启暗黑模式
+### 6.3. Chrome 设置隐身模式与开启暗黑模式
 
 隐身模式：图标右键属性，在“目标”后添加参数“` --incognito`”（注意是双短划线，不包括双引号，双短划线前加一空格）就可以直接以隐身模式启动Chrome浏览器
 
 暗黑模式：右键属性 -> 目标 -> 添加参数“` --force-dark-mode`”（注意双短划线前加一空格），启动时强制打开暗黑模式
 
-### 5.4. 扩展程序管理
+### 6.4. 扩展程序管理
 
 - 地址栏输入`chrome://extensions/`并回车打开扩展程序页，点右上角的开发人员模式，可以看到每一个扩展下面都有个ID，后面跟着一串字母，到浏览器安装目录（`\Chrome\User Data\Default\Extensions\`）下找到一个同名的文件夹，进入，里面有一个以版本号命名的文件夹，把这个文件夹复制出来。
 - 为了方便收藏，以及今后可以再安装，将这个版本号文件夹重新打包成crx文件：
 - 在上述的【扩展程序】页，打开开发人员模式，再点“打包扩展程序”，“扩展程序根目录”选刚才的版本号文件夹，密钥留空，点确定。
 - 会生成一个crx和一个pem，把crx文件珍藏好，pem可以丢掉了。
 
-### 5.5. Chrome / Edge 实验功能
+### 6.5. Chrome / Edge 实验功能
 
 在地址栏输入以下地址进入实验功能页面
 
@@ -462,45 +466,46 @@ chrome://flags/
 
 > 注意：有些设置项的 `edge-` 开头，Chrome 有些不适用
 
-### 5.6. 强制阅读模式
+### 6.6. 强制阅读模式
 
 Edge 是支持阅读模式的，而且效果还相当不错。但阅读模式需要Edge自己判断是否能打开，很多网页无法被Edge识别开启。
 
 在 Edge 地址栏中，为网页URL前面加上一个“`read:`”前缀，然后按下回车键，阅读模式就强制打开了！
 
-### 5.7. 查看版本信息
+### 6.7. 查看版本信息
 
 - Chrome：`chrome://version`
 - Edge：`edge://version`
 
-### 5.8. 缓存位置
+### 6.8. 缓存位置
 
 在**个人资料路径**，如：`C:\Users\win10\AppData\Local\Microsoft\Edge\User Data\Default`。 找到 Cache 和 Code Cache 就是缓存文件目录
 
-## 6. Rime输入法设置
+## 7. Rime输入法设置
 
-- 特殊字符输入
-    - `zzbd`：中文对符号，如：“”、《》、『』
-    - `zzde`：А、
-    - `zzdl`：Ⅰ、Ⅳ
-    - `zzds`：⒈、⒉
-    - `zzdw`：单位符号
-    - `zzdx`：ΔΞΠ
-    - `zzfs`：⑸⒀
-    - `zzhb`：货币
-    - `zzjp` & `zzpj`：日文
-    - `zzpp`：中文部首
-    - `zzpy`：中文拼音
-    - `zzsx`：数学符号
-    - `zzts`：特殊符号
-    - `zzxe`：
-    - `zzxl`：
-    - `zzxx`；
-    - `zzys`
-    - `zzzs`
-    - `zzzy`：台湾注音
+特殊字符输入
 
-## 7. Everything 使用技巧
+- `zzbd`：中文对符号，如：“”、《》、『』
+- `zzde`：А、
+- `zzdl`：Ⅰ、Ⅳ
+- `zzds`：⒈、⒉
+- `zzdw`：单位符号
+- `zzdx`：ΔΞΠ
+- `zzfs`：⑸⒀
+- `zzhb`：货币
+- `zzjp` & `zzpj`：日文
+- `zzpp`：中文部首
+- `zzpy`：中文拼音
+- `zzsx`：数学符号
+- `zzts`：特殊符号
+- `zzxe`：
+- `zzxl`：
+- `zzxx`；
+- `zzys`
+- `zzzs`
+- `zzzy`：台湾注音
+
+## 8. Everything 使用技巧
 
 - 查找空文件夹：`empty:`
 - 查找重复文件：`dupe:`
@@ -529,9 +534,9 @@ $ 文件名结束
 > - 官方帮助(中文)：[Searching - voidtools](https://www.voidtools.com/zh-cn/support/everything/searching/)
 > - [《高效搜索神器Everything最全使用技巧(一篇看全)及详细功能帮助教程》](https://zhuanlan.zhihu.com/p/409783518)
 
-## 8. foobar2000
+## 9. foobar2000
 
-### 8.1. foobar2000不支持APE文件格式的解决方法
+### 9.1. foobar2000不支持APE文件格式的解决方法
 
 这是因为缺少相应的播放插件，需要安装一个插件--monkey's audio(ape)才可以播放。foobar从某个版本起，把原来默认内置的一些插件去掉了，原因不明，可能是为了控制安装包的体积。
 
@@ -539,7 +544,7 @@ $ 文件名结束
 
 点击这个页面的 Download，下载后解开压缩包得到 foo_input_monkey.dll 文件。把这个文件放到foobar安装目录里的 compontents 文件夹里。重新打开foobar后就可以播放APE文件了。	
 
-## 9. 待尝试的软件/系统
+## 10. 待尝试的软件/系统
 
 - unlocker：强力解除后台占用工具。当要删除某个文件或者文件夹是提示"文件被另一个程序打开"，但是却又不知道是哪个程序打开的，只能重启电脑然后才能删除，unlocker就是解决这个问题的一个工具。
 - DropIt：一键分类文件
@@ -558,7 +563,7 @@ $ 文件名结束
 - [MiniBin](https://minibin.e-sushi.net) - 把回收站放到任务栏
 - clean reader - mobi电子书阅读软件
 
-### 9.1. 免费图床
+### 10.1. 免费图床
 
 - [ImgURL](https://imgurl.org/) - mgURL 对游客做出了上传限制。每日仅支持上传 10 张照片，每张照片的大小不能超过 5M，适合上传图片不多的用户。
 - [upload.cc](https://upload.cc/) - upload.cc 对照片大小有限制。单张照片最大 5M，且仅支持常见格式，适合需要频繁分享小图的用户
@@ -569,7 +574,7 @@ $ 文件名结束
 - [鲜咕嘟](http://www.xiangudu.com/) - 鲜咕嘟支持单张最大 20M 的图片，适合需要上传大尺寸图片的用户。但过大尺寸的图片会被压缩到 1800px 的大小。
 - [偶流](https://upload.ouliu.net/) - 偶流是国内的一个老牌图床工具，偶流支持单张最大 10M 的文件，但系统会不定期进行文件清除，比较适合临时使用。
 
-### 9.2. 常用软件大全
+### 10.2. 常用软件大全
 
 - windows GitHub 网址：https://github.com/Awesome-Windows/Awesome/blob/master/README-cn.md
 - Linux GitHub 网址：https://github.com/luong-komorebi/Awesome-Linux-Software/blob/master/README_zh-CN.md

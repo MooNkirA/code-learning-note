@@ -126,12 +126,15 @@ mysqldump --single-transaction -uroot –p123456 temp_db > temp_db.sql
 
 锁定读（Locking Reads）也称当前读，读取的是最新版本，并且对读取的记录加锁，阻塞其他事务同时改动相同记录，避免出现安全问题。以下的情况是当前读：
 
-- select lock in share mode (共享锁)
-- select for update (排他锁)
-- update (排他锁)
-- insert (排他锁)
-- delete (排他锁)
-- 串行化事务隔离级别
+|              SQL              |  行锁类型  |                  说明                   |
+| ----------------------------- | --------- | --------------------------------------- |
+| SELECT ...（正常）             | 不加任何锁 |                                         |
+| SELECT ... LOCK IN SHARE MODE | 共享锁     | 需要手动在SELECT之后加LOCK IN SHARE MODE |
+| SELECT ... FOR UPDATE         | 排他锁     | 需要手动在SELECT之后加FOR UPDATE         |
+| INSERT ...                    | 排他锁     | 自动加锁                                 |
+| UPDATE ...                    | 排他锁     | 自动加锁                                 |
+| INSERT ...                    | 排他锁     | 自动加锁                                 |
+| 串行化事务隔离级别              |           | 串行                                    |
 
 当前读这种实现方式，也可以称之为 LBCC（基于锁的并发控制，Lock-Based Concurrency Control）
 
@@ -142,12 +145,12 @@ mysqldump --single-transaction -uroot –p123456 temp_db > temp_db.sql
 - 共享锁（读锁），英文名：Shared Locks，简称 S 锁。在事务要读取一条记录时，需要先获取该记录的 S 锁。
 - 独占锁（排他锁、写锁），英文名：Exclusive Locks，简称 X 锁。在事务要改动一条记录时，需要先获取该记录的 X 锁。
 
-#### 4.1.1. 两种锁的兼容性
+**两种锁的兼容性**：
 
 > 假如事务 E1 首先获取了一条记录的 S 锁之后，事务 E2 接着也要访问这条记录：
 >
 > 1. 如果事务 E2 想要再获取一个记录的 S 锁，那么事务 E2 也会获得该锁，也就意味着事务 E1 和 E2 在该记录上同时持有 S 锁。
-> 2. 如果事务 E2 想要再获取一个记录的 X 锁，那么此操作会被阻塞，直到事务E1 提交之后将 S 锁释放掉。
+> 2. 如果事务 E2 想要再获取一个记录的 X 锁，那么此操作会被阻塞，直到事务 E1 提交之后将 S 锁释放掉。
 > 3. 如果事务 E1 首先获取了一条记录的 X 锁之后，那么不管事务 E2 接着想获取该记录的 S 锁还是 X 锁都会被阻塞，直到事务 E1 提交。
 
 两种行锁的兼容情况如下:
@@ -155,17 +158,6 @@ mysqldump --single-transaction -uroot –p123456 temp_db > temp_db.sql
 ![](images/567051516230769.png)
 
 **总结：S 锁和 S 锁是兼容的，S 锁和 X 锁是不兼容的，X 锁和 X 锁也是不兼容的**
-
-#### 4.1.2. 常见 SQL 加锁情况
-
-|              SQL              |  行锁类型  |                  说明                   |
-| ----------------------------- | --------- | --------------------------------------- |
-| SELECT ...（正常）             | 不加任何锁 |                                         |
-| SELECT ... LOCK IN SHARE MODE | 共享锁     | 需要手动在SELECT之后加LOCK IN SHARE MODE |
-| SELECT ... FOR UPDATE         | 排他锁     | 需要手动在SELECT之后加FOR UPDATE         |
-| INSERT ...                    | 排他锁     | 自动加锁                                 |
-| UPDATE ...                    | 排他锁     | 自动加锁                                 |
-| INSERT ...                    | 排他锁     | 自动加锁                                 |
 
 ### 4.2. 锁定读的 SELECT 语句
 
@@ -408,7 +400,7 @@ InnoDB 中，行锁也是分成了各种类型。即使对同一条记录加行�
 
 MySQL 在 REPEATABLE READ 隔离级别下是可以解决幻读问题的，解决方案有两种，可以使用 MVCC 方案解决，也可以采用加锁方案解决。但是在使用加锁方案解决时有问题，就是事务在第一次执行读取操作时，那些幻影记录尚不存在，无法给这些幻影记录加上记录锁。
 
-InnoDB 提出了一种名为 Gap Locks 的锁，官方的类型名称为：LOCK_GAP，也可以简称为 gap 锁。间隙锁实质上是对索引前后的间隙上锁，不对索引本身上锁。
+InnoDB 提出了一种名为 Gap Locks 的锁，官方的类型名称为：LOCK_GAP，也可以简称为 gap 锁。<font color=red>**间隙锁实质上是对索引前后的间隙上锁，不对索引本身上锁**</font>。
 
 例如：会话1开启一个事务，执行
 
@@ -440,7 +432,7 @@ insert into `user` values (15, '傷月', 22);
 
 ### 6.4. Next-Key Locks（临键锁）
 
-有些情况，既想锁住某条记录，又想阻止其他事务在该记录前边的间隙插入新记录，所以 InnoDB 就提出了一种名为 Next-Key Locks 的锁，官方的类型名称为：LOCK_ORDINARY，也可以简称为 next-key 锁。next-key 锁的本质就是一个记录锁和一个 gap 锁的合体。
+有些情况，既想锁住某条记录，又想阻止其他事务在该记录前边的间隙插入新记录，所以 InnoDB 就提出了一种名为 Next-Key Locks 的锁，官方的类型名称为：LOCK_ORDINARY，也可以简称为 next-key 锁。<font color=red>**next-key 锁的本质就是一个记录锁和一个 gap 锁的合体**</font>，即包含记录本身。
 
 默认情况下，InnoDB 以 REPEATABLE READ 隔离级别运行。在这种情况下，InnoDB 使用 Next-Key Locks 锁进行搜索和索引扫描，这可以防止幻读的发生。
 

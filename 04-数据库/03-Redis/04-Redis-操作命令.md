@@ -1055,7 +1055,6 @@ sortedset和set类型极为类似，它们都是字符串的集合，都不允�
 
 `zscore key member`：返回指定元素的分数
 
-
 ### 7.5. 获取元素数量
 
 `zcard key`：获取集合中元素数量

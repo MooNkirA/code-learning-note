@@ -134,6 +134,8 @@ MySQL 中的数据类型有很多，主要分为三类：数值类型、字符�
 | `DATETIME`  |     8      | 1000-01-01 00:00:00~ 9999-12-31 23:59:59       | YYYY-MM-DD HH:MM:SS | <font color=red>混合日期和时间值</font>              |
 | `TIMESTAMP` |     4      | 1970~01~01 00:00:01 UTC~2038-01-19 03:14:07UTC | YYYYMMDD HHMMSS     | <font color=red>混合日期和时间值，时间戳</font>       |
 
+> Notes: 尽量使用 timestamp，空间效率高于 datetime，用整数保存时间戳通常不方便处理。若需要存储微秒，可以使用 bigint 存储。
+
 #### 2.1.4. 注意事项
 
 1. `char`、`varchar`和`text`等字符串类型都可以存储路径，但使用“`\`”会被过滤，所以路径中用“`/`”或“`\\`”来代替，MySQL就会不会自动过滤路径的分隔字符，完整的表示路径
@@ -2647,7 +2649,7 @@ select * from 表 where exists(子查询语句);
 - 该子查询如果“没有数据结果”（没有任何数据返回），则该`EXISTS()`的结果为“`false`”，外层查询不执行
 - `EXISTS`后面的子查询不返回任何实际数据，只返回真或假，当返回真时 `where` 条件成立
 
-> 注意，`EXISTS` 关键字，比 `IN` 关键字的运算效率高，因此，在实际开发中，特别是大数据量时，推荐使用 `EXISTS` 关键字
+
 
 ```sql
 SELECT * FROM e1 WHERE EXISTS (SELECT 1 FROM e2);
@@ -2660,6 +2662,16 @@ select * from emp3 a where exists(select * from dept3 b where a.dept_id = b.dept
 ```
 
 对于子查询`(SELECT 1 FROM e2)`来说，如果并不关心这个子查询最后到底查询出的结果是什么，所以查询列表里填`*`、某个列名，或者其他内容都无所谓，真正关心的是子查询的结果集中是否存在记录。也就是说只要`(SELECT 1 FROM e2)`这个查询中有记录，那么整个`EXISTS`表达式的结果就为TRUE。
+
+##### 8.5.4.1. in 和 exists 子查询的区别
+
+mysql 中的 in 语句是把外表和内表作 hash 连接，而 exists 语句是对外表作 loop循环，每次loop循环再对内表进行查询。exists 语句在某些条件下的执行效率比 in 语句高：
+
+1. 如果查询的两个表大小相当，那么用 in 和 exists 差别不大。
+2. 如果两个表中一个较小，一个是大表，则子查询表大的用 exists，子查询表小的用 in。
+3. not in 和 not exists 比较：如果查询语句使用了 not in，那么内外表都进行全表扫描，没有用到索引；而 not extsts 的子查询依然能用到表上的索引。所以无论那个表大，用 not exists 都比 not in 要快。
+
+> Tips: 在实际开发中，特别是大数据量时，推荐使用 `EXISTS` 关键字
 
 ### 8.6. 子查询的注意事项
 
@@ -4161,7 +4173,7 @@ mysql> select datediff('2021-10-01', '2021-12-01');
 ```
 
 ### 12.6. 控制流程函数
-  
+
 流程函数也是很常用的一类函数，可以在 SQL 语句中实现条件筛选，从而提高语句的效率。
 
 |                               函数                                |                        功能说明                         |
