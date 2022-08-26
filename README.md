@@ -18,8 +18,6 @@
   <li><a href="#/01-Java/19-Java基础-排序算法">Java基础-排序算法</a></li>
   <li><a href="#/01-Java/20-设计模式">设计模式</a></li>
   <li><a href="#/01-Java/Java案例">Java案例</a></li>
-  <li><a href="#/01-Java/网络资料-Java中的常量治理">网络资料-Java中的常量治理</a></li>
-  <li><a href="#/01-Java/网络资料-Java中的枚举的治理">网络资料-Java中的枚举的治理</a></li>
 </ul>
 
 ### 🥃 JavaWeb

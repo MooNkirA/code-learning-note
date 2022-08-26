@@ -52,6 +52,13 @@ Java 源程序与编译型运行区别
 |  `transient`   | 短暂                         |
 |   `volatile`   | 易失                         |
 
+实现一些其他的功能，Java 也提供了许多非访问修饰符。
+
+- static 修饰符，用来修饰类方法和类变量。
+- final 修饰符，用来修饰类、方法和变量，final 修饰的类不能够被继承，修饰的方法不能被继承类重新定义，修饰的变量为常量，是不可修改的。
+- abstract 修饰符，用来创建抽象类和抽象方法。
+- synchronized 和 volatile 修饰符，主要用于线程的编程。
+
 ### 1.3. 程序控制语句
 
 |    关键字     |           说明            |
@@ -350,24 +357,15 @@ Java 程序设计语言总是采用按值调用。即：<font color=red>**方法
     - 如果类用 `public` 修饰，则类名必须与文件名相同。一个文件中只能有一个 `public` 修饰的类。
     - Java 中，外部类的修饰符只能是 `public` 或默认 ，类的成员（包括内部类）的修饰符可以是以上四种。
 
-## 5. 类、方法和变量修饰符
+## 5. static 关键字
 
-实现一些其他的功能，Java 也提供了许多非访问修饰符。
-
-- static 修饰符，用来修饰类方法和类变量。
-- final 修饰符，用来修饰类、方法和变量，final 修饰的类不能够被继承，修饰的方法不能被继承类重新定义，修饰的变量为常量，是不可修改的。
-- abstract 修饰符，用来创建抽象类和抽象方法。
-- synchronized 和 volatile 修饰符，主要用于线程的编程。
-
-### 5.1. static 关键字
-
-#### 5.1.1. 概述
+### 5.1. 概述
 
 `static` 是一个修饰符。可以用于修饰成员变量，成员方法以及代码块。
 
 <font color=red>**`static` 关键字的主要意义是，在于创建独立于具体对象的域变量或者方法。以致于即使没有创建对象，也能使用属性和调用方法！还有一个比较关键的作用就是，用来形成静态代码块以优化程序性能。**</font>
 
-#### 5.1.2. static 修饰变量
+### 5.2. static 修饰变量
 
 有 static 修饰的变量，称为静态变量（类变量）。没有 static 修饰的变量，称为成员变量（实例变量）。
 
@@ -381,7 +379,7 @@ private static 类型 变量名称 = 值;
 
 > Notes: <font color=red>**static 修饰的成员变量，在类的加载过程中，JVM只为静态变量分配一次内存空间。而初始化的顺序是按照定义顺序来进行**</font>
 
-#### 5.1.3. static 修饰方法
+### 5.3. static 修饰方法
 
 使用 static 修饰的方法，称为静态方法（类方法）。没有 static 修饰的方法，称为成员方法（实例对象方法）。
 
@@ -395,7 +393,7 @@ public static void foo() {
 
 可以通过类名直接调用静态方法（推荐），即 `类名.静态方法`；也可以使用实例调用（不推荐），即 `对象.静态方法`
 
-#### 5.1.4. static 修饰代码块
+### 5.4. static 修饰代码块
 
 被 `static` 修饰的代码块称为“静态代码块”，可以定义在类中的任意位置，并且可以定义多个。在类初次被加载的时候，会按照定义的顺序来执行每个 static 代码块，并且只会执行一次。静态代码块的执行优先级高于非静态的代码块。
 
@@ -413,17 +411,17 @@ static {
 
 > Tips: 根据静态代码只会在类加载的时候执行一次的特性。因此最常见的应用场景就是，将一些只需要进行一次的初始化操作都放在 static 代码块中进行。
 
-#### 5.1.5. static 修饰类【只能修饰内部类也就是静态内部类】（待整理）
+### 5.5. static 修饰类【只能修饰内部类也就是静态内部类】（待整理）
 
 static 修饰类，只能用于修饰内部类也就是静态内部类
 
-#### 5.1.6. 静态导包（待整理）
+### 5.6. 静态导包（待整理）
 
 TODO: 待整理
 
-#### 5.1.7. 总结
+### 5.7. 总结
 
-##### 5.1.7.1. 静态成员变量和成员变量的区别
+#### 5.7.1. 静态成员变量和成员变量的区别
 
 1. 语法区别
 	- 静态成员变量：有 static 修饰的;
@@ -438,7 +436,7 @@ TODO: 待整理
 	- 静态成员变量：可以通过类名访问(`类.xxx`)，也可以通过对象名访问(不推荐);
 	- 成员变量：只能通过对象名访问(`对象名.xxx`);
 
-##### 5.1.7.2. 静态方法和成员方法的区别
+#### 5.7.2. 静态方法和成员方法的区别
 
 1. 调用方式
     - 静态方法可以通过类名调用(`类.xxx`)，也可以通过对象名调用(不推荐);
@@ -447,11 +445,11 @@ TODO: 待整理
     - 静态方法中不能访问非静态成员(成员变量和成员方法)，只能访问带有 `static` 修饰的静态变量
     - 成员方法则无成员的访问限制。如果在本类中，直接通过成员变量名或方法名来使用，在其他类中，需要(`类名.成员变量名`)或(`类.方法名`)才能使用;
 
-##### 5.1.7.3. static 的注意事项
+#### 5.7.3. static 的注意事项
 
 静态方法中不能使用 `this` 和 `super` 关键字。(因为 `this` 是代表当前对象的引用，如果没有创建对象， `this` 没有任何意义。)
 
-##### 5.1.7.4. static 使用场景
+#### 5.7.4. static 使用场景
 
 **静态变量**
 
@@ -462,19 +460,19 @@ TODO: 待整理
 - 如果方法中没有使用任何非静态成员，就可以将该方法定义为静态方法;(因为静态方法可以直接用类名调用(`类.xxx)`，比较方便)
 - 定义工具类时，如果一个类中的所有方法都是静态方法，则该类可以认为是一个工具类
 
-### 5.2. final 关键字
+## 6. final 关键字
 
-#### 5.2.1. final 概述
+### 6.1. final 概述
 
 final 也是一个修饰符。可以修饰变量、方法、类
 
-#### 5.2.2. final 修饰变量
+### 6.2. final 修饰变量
 
 - 修饰基本数据类型的变量：被它修饰的变量其实是一个常量(常量命名是全部字母大写，多个单词用“_”分隔)，只能赋值一次，不能再修改。
     - 常见格式: `public static final int NUM = 10;`
 - 修饰引用数据类型变量：此时该引用变量就不能再指向其他对象，但可以修改已经指向对象的成员变量的值(只要该成员变量不是使用 final 修饰)。(相当于此引用变量的地址值固定，不能改变)
 
-#### 5.2.3. final 修饰方法
+### 6.3. final 修饰方法
 
 - 该方法不能被子类重写。使用final修饰方法有以下两个原因
     - 第一个原因是把方法锁定，以防任何继承类修改它的含义；
@@ -502,7 +500,7 @@ public static void test(){
 }
 ```
 
-#### 5.2.4. final 修饰类
+### 6.4. final 修饰类
 
 - 使用 final 修饰类的目的简单明确：表明该类不能再被其他类继承。
 - 被 final 修饰的类中，所有成员方法都会被隐式地指定为 final 方法。(就不存在方法重写的情况，只能创建对象和调用。)
@@ -512,17 +510,361 @@ public final class Xxx{
 }
 ```
 
-#### 5.2.5. final 注意事项
+### 6.5. final 注意事项
 
 当引用变量使用 final 修饰时，表示其指向的地址值不能发生改变，但指向对象的成员变量值可以改变。
 
-## 6. volatile 关键字
+### 6.6. 常量治理（待整理）
+
+虽然推崇在java中使用枚举（可查看[《Java中的枚举的治理》](http://www.cnblogs.com/shizhanming/p/6564805.html)）来对数据字典及常量进行控制，但是有些时候，我们还是会觉得常量控制更为便捷。
+
+比如，对于数据字典，我们可以使用枚举值来处理；对于一些其他的信息，我们会使用常量保存和使用。
+
+#### 6.6.1. 苗条的常量类
+
+这里使用苗条形容下我们程序中的常量类，别看它宽度，就只看她长度，滚起屏来，那叫一个长啊，修长的身材，令你如痴如醉。（省略号里的东西）
+
+例如：
+
+
+```java
+public class Constants {
+    public static final String REAL_NAME1 = "v1";
+    public static final String REAL_NAME2 = "v2";
+    public static final String REAL_NAME3 = "v3";
+    public static final String REAL_NAME4 = "v4";
+    public static final String REAL_NAME5 = "v5";
+    public static final String 6 = "v6";
+    public static final String 7 = "v7";
+    public static final String REAL_NAME8 = "v8";
+    public static final String REAL_NAME9 = "v9";
+    ......
+}
+```
+
+一个无穷尽的常量类，设想这个类篇幅巨长，你想加点什么不知道该加在哪；你想改点什么，不知道去哪改；你想骂街也不知道去哪骂！！！
+
+这样的常量管理，带来的问题如下：
+
+1. 不好维护，相关的代码写到一起，此时，常量的篇幅较长导致你找不到对应的常量块进行维护；
+2. 虽然是在不同的业务场景下，但是有些常量的名称还是有可能重复；
+3. 有时为了减少常量的定义，就得共用一些常量，而这样的共用会导致某种业务场景下需要对该常量进行修改，而导致另外一些业务场景下的常量使用产生歧义；
+4. 其他你能想到的骂街的理由
+
+#### 6.6.2. 代码的坏味道
+
+引用下“代码的坏味道”这个词，我们常能看到一些常量类的坏味道里，假如常量名称如上所示，名称类似的很多；名称不明确的也很多，还没有注释，这样的歧义也是因为代码不好管理造成的。
+
+#### 6.6.3. 初级治理 - 使用内部类
+
+使用java的内部类进行常量的初步治理，代码如下：
+
+```java
+/**
+ * Created by SZBright on 2017/3/1.
+ *
+ * @author :
+ */
+public class Constants {
+
+    public static final class TOKEN_FLAG_ONE {
+
+        public static final String REAL_NAME = "v1";
+
+        public static final String CRET = "v2";
+
+        public static final String GUR = "v5";
+
+    }
+
+}
+```
+
+这样的好处是，通过常量的内部类的名称，可以直接获取对应模块的常量的引用信息。使用代码如下：
+
+```java
+@Test
+public void test(){
+	System.out.println(Constants.TOKEN_FLAG_ONE.REAL_NAME);
+}
+```
+
+#### 6.6.4. 中级治理 - 集中管理
+
+初级治理中，我们的想法还是不错的，但是看起来比较low，而且当我们希望通过value获取到key时，你却无能为力，于是我们有了中级治理。
+
+中级治理我们主要是通过map，每个内部类都会存为map中的一个entry，每个entry又都是map类型的集合，集合中包含该内部类的所有常量。
+
+代码如下：
+
+```java
+/**
+ * Created by SZBright on 2017/3/1.
+ *
+ * @author :
+ */
+public class Constants {
+
+    public static final Map<String,Map<String,String>> keyValueMapCons = new LinkedHashMap<String, Map<String, String>>();
+
+    public static final Map<String,Map<String,String>> valueKeyMapCons = new LinkedHashMap<String, Map<String, String>>();
+　　/**
+     * 初始化所有常量
+     */
+    static {
+        try {
+            //获取所有内部类
+            for (Class cls : Constants.class.getClasses()) {
+                Map<String, String> keyValueMap = new LinkedHashMap<String, String>();//存放key和value的map
+                Map<String, String> valueKeyMap = new LinkedHashMap<String, String>();//存放value和key的map//每个内部类-获取所有属性（不包括父类的）
+                for (Field fd : cls.getDeclaredFields()) {
+                    keyValueMap.put(fd.getName(), fd.get(cls).toString());//注解对象空，其值为该field的值
+                    valueKeyMap.put(fd.get(cls).toString(),fd.getName());
+                }
+                keyValueMapCons.put(cls.getSimpleName(),keyValueMap);
+                valueKeyMapCons.put(cls.getSimpleName(),valueKeyMap);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static final class TOKEN_FLAG_ONE {
+		public static final String REAL_NAME = "v1";
+		public static final String CRET = "v2";
+        public static final String GUR = "v5";
+    }
+}
+```
+
+
+好了，我们在Constants中有了两个常量集：一个集keyValueMapCons，按照内部类的名称，把常量的名字作为map的key，值作为map的value；一个集valueKeyMapCons，按照内部类的名称，把常量的值作为map的key，常量的名字作为map的key。
+
+这样一来，我们可以使用常量的这两个集满足我们对常量的使用需求。使用代码如下：
+
+```java
+@Test
+public void test1(){
+    System.out.println(Constants.keyValueMapCons.get("TOKEN_FLAG_ONE").get("REAL_NAME"));//v1
+    System.out.println(Constants.valueKeyMapCons.get("TOKEN_FLAG_ONE").get("v5"));//GUR
+}
+```
+
+#### 6.6.5. 中高级治理 - 使用注解
+
+我们可以通过key获取到value，也可以通过value获取到key了。现在有这么个问题，我们使用常量时，不光要有常量的定义、常量的值，还应该有对常量的描述，而传统的对于常量的定义，往往使我们无从存放对常量的描述。
+
+此时，我们希望通过注解来改变这种情况。
+
+我们来自定义注解类型如下：
+
+```java
+/**
+ * Created by SZBright on 2017/3/1.
+ *
+ * @author :
+ */
+@Retention(RetentionPolicy.RUNTIME)
+@Target({ElementType.FIELD, ElementType.TYPE})
+public @interface ConstantAnnotation {
+    String value();
+}
+```
+
+有了这个注解，我们就可以把描述些到常量的上面了
+
+```java
+/**
+ * Created by SZBright on 2017/3/1.
+ *
+ * @author :
+ */
+public class Constants {
+    private static final String CONSTANT_STRING = "这是一条短信消息";
+
+    public static final class TOKEN_FLAG_ONE {
+
+        @ConstantAnnotation("实名")
+        public static final String REAL_NAME = "v1";
+
+        @ConstantAnnotation("证书")
+        public static final String CRET = "v2";
+
+        @ConstantAnnotation(CONSTANT_STRING)
+        public static final String GUR = "v5";//把描述与注解分开
+
+    }
+}
+```
+
+我们看到，每个常量上面有了对应的中文描述，这样的中文描述可以用来干嘛呢？
+
+比如，我们希望在某个业务场景下，符合gur常量的业务，发送一条短信消息，而这个消息我们就可以定义在我们的自定义注解中。例如GUR这个常量，我们把它的描述声明成一个常量，这个常量可用来存放对应的短信消息。我们的常量类中如果再有一个通过常量获取到描述的map，这是不是就完美了？
+
+于是，我们有了下面的代码：
+
+```java
+/**
+ * Created by SZBright on 2017/3/1.
+ *
+ * @author :
+ */
+public class Constants {
+
+    public static final Map<String,Map<String,String>> keyDescMapCons = new LinkedHashMap<String, Map<String, String>>();
+/**
+     * 初始化所有常量
+     */
+    static {
+        try {
+            //获取所有内部类
+            for (Class cls : Constants.class.getClasses()) {
+                Map<String, String> keyDescMap = new LinkedHashMap<String, String>();//存放key和desc的map
+
+                //每个内部类-获取所有属性（不包括父类的）
+                for (Field fd : cls.getDeclaredFields()) {
+                    //每个属性获取指定的annotation的注解对象
+                    ConstantAnnotation ca = fd.getAnnotation(ConstantAnnotation.class);
+                    if(ca != null){
+                        keyDescMap.put(fd.getName(), ca.value());//注解对象不空，其值为注解对象中的值
+                    }
+                }
+                                keyDescMapCons.put(cls.getSimpleName(),keyDescMap);
+                
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+    /**
+     * key-value-desc
+     *
+     * 常量名-常量值-注解描述
+     *
+     * 实现通过key获取value
+     *
+     * 实现通过key获取desc
+     *
+     * 实现通过value获取desc
+     */
+    private static final String CONSTANT_STRING = "这是一条短消息";
+
+    public static final class TOKEN_FLAG_ONE {
+
+        @ConstantAnnotation("实名")
+        public static final String REAL_NAME = "v1";
+
+        @ConstantAnnotation("证书")
+        public static final String CRET = "v2";
+
+        @ConstantAnnotation(CONSTANT_STRING)
+        public static final String GUR = "v5";//把描述与注解分开
+
+    }
+
+}
+```
+
+现在，我们通过Constants的keyDescMap可以获取到这个常量对应的描述了。使用代码如下：
+
+```java
+    @Test
+    public void test1(){
+        System.out.println(Constants.keyDescMapCons.get("TOKEN_FLAG_ONE").get("GUR"));//打印输出“这是一条短消息”
+    }
+```
+
+#### 6.6.6. 综合治理（终极治理）
+
+现在我们有了常量的治理，有了注解的描述，有时我们需要通过key获取到value，有时我们需要通过value获取描述，有时我们需要通过key获取到描述，等等。排列组合共6种形式，暂且不说什么时候会用到，我们先给他来个综合治理的实现。代码如下：
+
+```java
+/**
+ * Created by SZBright on 2017/3/1.
+ *
+ * @author :
+ */
+public class Constants {
+
+    public static final Map<String,Map<String,String>> keyValueMapCons = new LinkedHashMap<String, Map<String, String>>();
+
+    public static final Map<String,Map<String,String>> keyDescMapCons = new LinkedHashMap<String, Map<String, String>>();
+
+    public static final Map<String,Map<String,String>> descValueMapCons = new LinkedHashMap<String, Map<String, String>>();
+
+    public static final Map<String,Map<String,String>> descKeyMapCons = new LinkedHashMap<String, Map<String, String>>();
+
+    public static final Map<String,Map<String,String>> valueDescMapCons = new LinkedHashMap<String, Map<String, String>>();
+
+    public static final Map<String,Map<String,String>> valueKeyMapCons = new LinkedHashMap<String, Map<String, String>>();
+
+
+    /**
+     * 初始化所有常量
+     */
+    static {
+        try {
+            //获取所有内部类
+            for (Class cls : Constants.class.getClasses()) {
+                Map<String, String> keyDescMap = new LinkedHashMap<String, String>();//存放key和desc的map
+                Map<String, String> keyValueMap = new LinkedHashMap<String, String>();//存放key和value的map
+                Map<String, String> valueKeyMap = new LinkedHashMap<String, String>();//存放value和key的map
+                Map<String, String> valueDescMap = new LinkedHashMap<String, String>();//存放value和desc的map
+                Map<String, String> descValueMap = new LinkedHashMap<String, String>();//存放desc和value的map
+                Map<String, String> descKeyMap = new LinkedHashMap<String, String>();//存放desc和key的map
+                //每个内部类-获取所有属性（不包括父类的）
+                for (Field fd : cls.getDeclaredFields()) {
+                    //每个属性获取指定的annotation的注解对象
+                    ConstantAnnotation ca = fd.getAnnotation(ConstantAnnotation.class);
+                    keyValueMap.put(fd.getName(), fd.get(cls).toString());//注解对象空，其值为该field的值
+                    valueKeyMap.put(fd.get(cls).toString(),fd.getName());
+                    if(ca != null){
+                        keyDescMap.put(fd.getName(), ca.value());//注解对象不空，其值为注解对象中的值
+                        valueDescMap.put(fd.get(cls).toString(),ca.value());
+                        descValueMap.put(ca.value(),fd.get(cls).toString());
+                        descKeyMap.put(ca.value(),fd.getName());
+                    }
+                }
+                keyValueMapCons.put(cls.getSimpleName(),keyValueMap);
+                keyDescMapCons.put(cls.getSimpleName(),keyDescMap);
+                descValueMapCons.put(cls.getSimpleName(),descValueMap);
+                descKeyMapCons.put(cls.getSimpleName(),descKeyMap);
+                valueDescMapCons.put(cls.getSimpleName(),valueDescMap);
+                valueKeyMapCons.put(cls.getSimpleName(),valueKeyMap);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private static final String CONSTANT_STRING = "这是一条短消息";
+
+    public static final class TOKEN_FLAG_ONE {
+
+        @ConstantAnnotation("实名")
+        public static final String REAL_NAME = "v1";
+
+        @ConstantAnnotation("证书")
+        public static final String CRET = "v2";
+
+        @ConstantAnnotation(CONSTANT_STRING)
+        public static final String GUR = "v5";//把描述与注解分开
+
+    }
+}
+```
+
+好了，有了上面这个类，你就啥都不用愁了，用的时候先拿常量的声明，再用对应的map，然后指定内部类名称，想获取什么，获取什么。
+
+ps：枚举治理和常量治理结合使用，可能是我们系统开发时的最佳实践
+
+## 7. volatile 关键字
 
 作用：`volatile` 关键字是用于修饰共享变量，保证**可见性和禁止指令重排**。每个线程要操作变量时会从主内存中将变量拷贝到本地内存作为副本，当线程操作变量副本并写回主内存后，会通过 CPU 总线嗅探机制告知其他线程该变量副本已经失效，需要重新从主内存中读取。
 
 `volatile` 保证了不同线程对共享变量操作的可见性，也就是说一个线程修改了 `volatile` 修饰的变量，当修改后的变量写回主内存时，其他线程能立即看到最新值。
 
-### 6.1. 总结
+### 7.1. 总结
 
 - `volatile` 修饰符适用于以下场景：某个属性被多个线程共享，其中有一个线程修改了此属性，其他线程可以立即得到修改后的值；或者作为状态变量，如 `flag = ture`，实现轻量级同步。
 - `volatile` 属性的读写操作都是无锁的，它不能替代 `synchronized`，因为它没有提供原子性和互斥性。因为无锁，不需要花费时间在获取锁和释放锁上，所以说它是低成本的。
@@ -533,32 +875,32 @@ public final class Xxx{
 - `volatile` 可以在单例双重检查中实现可见性和禁止指令重排序，从而保证安全性。
 - Java 中可以创建 `volatile` 类型数组，不过只是一个指向数组的引用，而不是整个数组。如果改变引用指向的数组，将会受到 `volatile` 的保护，但是如果多个线程同时改变数组的元素，`volatile` 标示符就不能起到之前的保护作用了。
 
-## 7. 包 package
+## 8. 包 package
 
-### 7.1. 包的概述
+### 8.1. 包的概述
 
 包就是文件夹。分包管理是组织软件项目结构的基本方式。将同类功能放到一个包中，方便管理。并且日常项目的分工也是以包作为边界。
 
 包在文件系统中是以文件夹的形式存在的。类中定义的包必须与实际class件所在的文件夹情况相统一，即定义包时类在a包下，则生成的.class 文件必须在a文件夹下，否则找不到类。
 
-### 7.2. 包的作用
+### 8.2. 包的作用
 
 - 避免类命名冲突。
 - 将功能相似或相关的类和接口组织在同一个文件夹，方便类的查找和使用。
 
-### 7.3. 包的定义格式
+### 8.3. 包的定义格式
 
 - 定义格式：`package com.qq.包名1.xxx...;`
 - 规范：一般以公司域名倒着写，最后是功能内容的分类。即 `www.qq.com ===> com.qq.login`
 - 多级包使用“.”分割，包名全部小写英文字母，一般不用数字。
 
-### 7.4. 包的注意事项
+### 8.4. 包的注意事项
 
 - 定义包的语句必须是类中第一行语句。
 - 如果定义多个类，只能有一个是 public 修饰。且文件名一定要与 public 修饰的类名一致。
 - 类和所生成的 class 必须在相同的目录结构下。
 
-### 7.5. 导包格式
+### 8.5. 导包格式
 
 导包位置：**package 的下面，class 的上面**
 
@@ -567,7 +909,7 @@ import 包名.包名.xxx...类名;
 import java.util.*;	// 将指定包下的所有类导入
 ```
 
-### 7.6. 类的访问方式
+### 8.6. 类的访问方式
 
 **带包类全名访问**：
 
@@ -607,7 +949,7 @@ public class Test01 {
 }
 ```
 
-### 7.7. JDK 中常用的包
+### 8.7. JDK 中常用的包
 
 - java.lang：系统的基础类
 - java.io：所有输入输出有关的类，比如文件操作等
@@ -618,14 +960,14 @@ public class Test01 {
 
 > Tips: java 开头的包是较原始的 JavaAPI，javax 开头的包是扩展的 API
 
-## 8. 可变参数
+## 9. 可变参数
 
-### 8.1. 可变参数概述
+### 9.1. 可变参数概述
 
 - **JDK1.5的新特性**，方法的参数类型相同，但是个数变化。
 - **可变参数可以多个，也可以不传值**。
 
-### 8.2. 可变参数格式
+### 9.2. 可变参数格式
 
 - 使用前提：数据类型明确，参数个数任意。
 - 语法定义：`数据类型…` **【注意是3个点(.)】**
@@ -637,16 +979,16 @@ public class Test01 {
 
 与普通方法相比在参数类型后面添加`…`
 
-### 8.3. 可变参数的本质
+### 9.3. 可变参数的本质
 
 可变参数方法本质是数组。所以不可以与数组类型参数重载。
 
-### 8.4. 可变参数注意事项
+### 9.4. 可变参数注意事项
 
 1. 参数列表中只能有一个可变参数
 2. 如果出现不同类型的参数，可变参数必须放在参数列表的最后
 
-## 9. Java类的初始化顺序
+## 10. Java类的初始化顺序
 
 Java类的创建，相应的初始化顺序是：`静态变量` -> `静态代码块` -> `成员变量（全局变量）` -> `初始化代码块` -> `构造函数`。测试示例如下：
 
@@ -699,7 +1041,7 @@ public void testInitializationSequence() {
 }
 ```
 
-## 10. Java 运算符
+## 11. Java 运算符
 
 计算机的最基本用途之一就是执行数学运算，作为一门计算机语言，Java 也提供了一套丰富的运算符来操纵变量。运算符主分成以下几类：
 
@@ -710,7 +1052,7 @@ public void testInitializationSequence() {
 - 赋值运算符
 - 其他运算符
 
-### 10.1. 算术运算符
+### 11.1. 算术运算符
 
 算术运算符用在数学表达式中，它们的作用和在数学中的作用一样。下表列出了所有的算术运算符。
 
@@ -750,7 +1092,7 @@ public class Test {
 } 
 ```
 
-#### 10.1.1. 自增自减运算符
+#### 11.1.1. 自增自减运算符
 
 自增（`++`）自减（`--`）运算符是一种特殊的算术运算符，在算术运算符中需要两个操作数来进行运算，而自增自减运算符是一个操作数。又分以下两种：
 
@@ -768,7 +1110,7 @@ public static void main(String args[]) {
 }
 ```
 
-### 10.2. 关系运算符
+### 11.2. 关系运算符
 
 算术运算符用在数学表达式中，它们的作用和在数学中的作用一样。下表列出了所有的算术运算符。
 
@@ -798,7 +1140,7 @@ public static void main(String args[]) {
 }
 ```
 
-### 10.3. 位运算符
+### 11.3. 位运算符
 
 Java 定义了位运算符，应用于整数类型(int)，长整型(long)，短整型(short)，字符型(char)，和字节型(byte)等类型。
 
@@ -856,7 +1198,7 @@ public static void main(String args[]) {
 }
 ```
 
-### 10.4. 逻辑运算符
+### 11.4. 逻辑运算符
 
 下表列出了逻辑运算符的基本运算，假设布尔变量A为真，变量B为假
 
@@ -878,7 +1220,7 @@ public static void main(String args[]) {
 }
 ```
 
-#### 10.4.1. 短路逻辑运算符
+#### 11.4.1. 短路逻辑运算符
 
 当使用与逻辑运算符时，在两个操作数都为 true 时，结果才为 true，但是当得到第一个操作为 false 时，其结果就必定是 false，这时候就不会再判断第二个操作了。
 
@@ -895,7 +1237,7 @@ public static void main(String args[]) {
 
 > 解析：该程序使用到了短路逻辑运算符(`&&`)，首先判断 `a<4` 的结果为 `false`，则 b 的结果必定是 `false`，所以不再执行第二个操作 `a++ < 10` 的判断，所以 a 的值为 5
 
-### 10.5. 赋值运算符
+### 11.5. 赋值运算符
 
 下面是Java语言支持的赋值运算符：
 
@@ -951,7 +1293,7 @@ public static void main(String args[]) {
 }
 ```
 
-### 10.6. 条件运算符（三元运算符）
+### 11.6. 条件运算符（三元运算符）
 
 条件运算符也被称为三元运算符。该运算符有3个操作数，并且需要判断布尔表达式的值。该运算符的主要是决定哪个值应该赋值给变量。
 
@@ -975,7 +1317,7 @@ public static void main(String args[]) {
 }
 ```
 
-### 10.7. instanceof 运算符
+### 11.7. instanceof 运算符
 
 `instanceof` 运算符用于操作对象实例，检查该对象是否是一个特定类型（类类型或接口类型）。即判断父类引用指定的到底是哪一个子类类型的对象。使用格式如下：
 
@@ -997,11 +1339,11 @@ Vehicle a = new Car();
 boolean result = a instanceof Car; // true
 ```
 
-#### 10.7.1. 注意事项
+#### 11.7.1. 注意事项
 
 毫无关系的两个对象不能进行判断。`instanceof` 关键字前面的对象和后面的类型必须是子父类关系或类实现接口关系
 
-### 10.8. Java 运算符优先级
+### 11.8. Java 运算符优先级
 
 当多个运算符出现在一个表达式中，就涉及到运算符的优先级别的问题。在一个多运算符的表达式中，运算符优先级不同会导致最后得出的结果差别甚大。
 
@@ -1026,9 +1368,9 @@ boolean result = a instanceof Car; // true
 | 赋值     | `=`、`+=`、`-=`、`*=`、`/=`、`%=`、`>>=`、`<<=`、`&=`、`^=`、`|=` | 从右到左 |
 | 逗号     | `,`                                                             | 左到右   |
 
-## 11. Java 包装类（整理中）
+## 12. Java 包装类（整理中）
 
-### 11.1. 概述
+### 12.1. 概述
 
 一般地，当需要使用数字的时候，通常使用内置数据类型，如：byte、int、long、double 等。所有的包装类（Integer、Long、Byte、Double、Float、Short）都是抽象类 Number 的子类。
 
@@ -1036,7 +1378,7 @@ boolean result = a instanceof Car; // true
 
 基本类型包装类的产生原因：其实就是基本类型对应的引用类型(包装类)。在实际开发中，用户输入的内容都是以字符串形式存在，需要参与数学运算时需要将字符串转换成对应的基本数据类型。
 
-### 11.2. 八种基本类型对应的包装类
+### 12.2. 八种基本类型对应的包装类
 
 | 基本类型 | 引用类型(包装类) | 基本类型 | 引用类型(包装类) |
 | -------- | --------------- | -------- | --------------- |
@@ -1053,7 +1395,7 @@ int n = Integer.parseInt(String str);
 double d = Double.parseDouble(String str);
 ```
 
-### 11.3. 自动装箱和自动拆箱
+### 12.3. 自动装箱和自动拆箱
 
 JDK1.5后的新特性: 自动拆装箱
 
@@ -1071,7 +1413,7 @@ int a = i; // 自动拆箱
 
 自动装拆箱的好处：基本数据类型的变量可以直接和对应的包装类引用变量进行数学运算。
 
-#### 11.3.1. 注意事项
+#### 12.3.1. 注意事项
 
 1. 自动拆箱和自动装箱是由编译器自动完成，根据语法来决定是否需要装箱和拆箱。
 2. 如果整型字面量的值在 -128 到 127 之间，那么自动装箱时不会创建新的 `Integer` 对象，而是直接引用常量池中的 `Integer` 对象，若超过范围才会创建新的对象
@@ -2450,6 +2792,262 @@ IllegalArgumentException, InvocationTargetException
 ```
 
 如果是`enum`类型，则直接抛出异常`Cannot reflectively create enum objects`，无法通过反射创建实例对象！
+
+## 8. 枚举的治理（待整理）
+
+### 8.1. 为啥用枚举&为啥要对枚举进行治理
+
+#### 8.1.1. 先来说说为啥用枚举
+
+表中某个字段标识了这条记录的状态，我们往往使用一些code值来标识，例如01成功，00失败。
+
+多状态共性的东西可以常量保存，例如
+
+```java
+class Constants{
+    public static final String success = "01";
+    public static final String failure= "00";
+}
+```
+
+然而，在一些大型项目中，表的数量极多，一些表中需要维护的状态也极多，如果都在如上的Constants中维护，试想如果添加一个状态值，那么需要在整个篇幅中找到对应的块，然后去新增值；修改呢？同样麻烦！！！
+
+所以我们使用枚举，每个枚举类就只负责对一个状态做维护，这样我们方便增删改。例如：
+
+```java
+/**
+ * Created by Bright on 2017/3/13.
+ *
+ * @author :
+ */
+public enum Payment {
+    Payment_WX("010000","微信支付"),
+    Payment_ZFB("010001","支付宝支付"),
+    Payment_YL("010002","银联支付");
+
+    public static Map<String,String> map = new HashMap<String, String>();
+
+    static{
+        Payment[] values = Payment.values();
+        if(values.length > 0){
+            for(Payment product : values){
+                map.put(product.getCode(),product.getName());
+            }
+        }
+    }
+
+    Payment(String code, String name){
+        this.code = code;
+        this.name = name;
+    }
+
+    private String code;
+
+    private String name;
+
+    public String getCode() {
+        return code;
+    }
+
+    public void setCode(String code) {
+        this.code = code;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+}
+```
+
+#### 8.1.2. 为啥要用java反射处理枚举呢？
+
+我们之前看到了，使用Constants很方便，可以直接通过这个类的静态字段拿到值。当我们使用枚举时，当枚举类逐渐增多时，我们会发现，不同的地方我们需要获取不同的类，然后再通过不同的枚举获取到不同的值。这又势必是个头痛的事情。
+
+那么我们想到了改进的方法：
+
+改进一：把每个枚举类中放个map，把其code和name值映射进去，然后调用时通过静态map对象，把code值作为key传入，势必能获取到对应的描述。（如上段代码的map值）
+
+然而，这个改进后，我们依旧需要找到这个类，然后去使用它的静态map，能不能只通过一个类进行统一治理呢？
+
+改进二：通过一个类，把所有枚举在该类中注册，然后通过该类直接获取到相应的枚举值及name描述。
+
+### 8.2. 枚举治理的实现
+
+#### 8.2.1. 先弄清我们使用枚举的场景
+
+##### 8.2.1.1. 通过枚举类中枚举名获取到枚举的code值（使用上面的枚举值定义）
+
+例如：`{"Payment_WX":"010000","Payment_YL":"010002","Payment_ZFB":"010001"}`
+
+```java
+if(param.equals(Payment.Payment_WX.getCode()){}
+```
+
+##### 8.2.1.2. 通过枚举类中枚举的code值获取到对应的name描述（使用上面的枚举值定义）
+
+例如：`{"010002":"银联支付","010001":"支付宝支付","010000":"微信支付"}`
+
+```java
+Payment.map.get(Payment.Payment_WX.getCode());
+```
+
+#### 8.2.2. 枚举治理工具类的实现
+
+```java
+/**
+ * Created by Bright on 2017/3/13.
+ *
+ * @author :
+ */
+public class VelocityEnumTools {
+
+    public static final Logger logger = LoggerFactory.getLogger(VelocityEnumTools.class);
+
+
+    //通过枚举获取枚举code值，例如：{"Payment_WX":"010000","Payment_YL":"010002","Payment_ZFB":"010001"}
+    public static Map<String,Map<String,String>> mapKeyCode = new HashMap<String, Map<String, String>>();
+
+    //通过code值获取枚举name，例如：{"010002":"银联支付","010001":"支付宝支付","010000":"微信支付"}
+    public static Map<String, Map<String, String>> mapCodeName = new HashMap<String, Map<String, String>>();
+
+    /**
+     * 需要在页面控制的enum，如Payment类似添加即可
+     */
+    static {
+        //通过枚举获取code值
+        mapKeyCode.put(Payment.class.getSimpleName(), getEnumMap(Payment.class));
+        //通过code值获取枚举name
+        mapCodeName.put(Payment.class.getSimpleName(),getEnumCodeMap(Payment.class));
+    }
+
+    /**
+     * 通过枚举获取code值
+     * @param enumKey
+     * @return
+     */
+    public static Map<String, String> getKeyCodeMapperInstance(String enumKey) {
+        return mapKeyCode.get(enumKey);
+    }
+
+    /**
+     * 通过code值获取枚举name
+     * @param enumKey
+     * @return
+     */
+    public static Map<String, String> getCodeNameMapperInstance(String enumKey) {
+        return mapCodeName.get(enumKey);
+    }
+
+    public static <T> Map<String, String> getEnumMap(Class<T> clazz) {
+        Map<String, String> map = new HashMap<String, String>();
+        try {
+            if (clazz.isEnum()) {
+                Object[] enumConstants = clazz.getEnumConstants();
+                for (int i = 0; i < enumConstants.length; i++) {
+                    T t = (T) enumConstants[i];
+                    Field code = t.getClass().getDeclaredField("code");
+                    code.setAccessible(true);
+                    map.put(t.getClass().getDeclaredFields()[i].getName(), (String) code.get(t));
+                }
+            }
+        } catch (NoSuchFieldException e) {
+            logger.error("枚举工具启动报错：{}", e);
+        } catch (IllegalAccessException e) {
+            logger.error("枚举工具启动报错：{}", e);
+        }
+        return map;
+    }
+
+    private static <T> Map<String,String> getEnumCodeMap(Class<T> clazz) {
+        Map<String, String> map = new HashMap<String, String>();
+        try {
+            if (clazz.isEnum()) {
+                Object[] enumConstants = clazz.getEnumConstants();
+                for (int i = 0; i < enumConstants.length; i++) {
+                    T t = (T) enumConstants[i];
+                    Field code = t.getClass().getDeclaredField("code");
+                    Field name = t.getClass().getDeclaredField("name");
+                    code.setAccessible(true);
+                    name.setAccessible(true);
+                    map.put((String) code.get(t),(String) name.get(t));
+                }
+            }
+        } catch (NoSuchFieldException e) {
+            logger.error("枚举工具启动报错：{}", e);
+        } catch (IllegalAccessException e) {
+            logger.error("枚举工具启动报错：{}", e);
+        }
+        return map;
+    }
+
+    public static void main(String[] args) throws NoSuchFieldException, IllegalAccessException {
+        Map<String, String> enumMap = getEnumMap(Payment.class);
+        System.out.println(JSON.toJSONString(enumMap));//{"Payment_WX":"010000","Payment_YL":"010002","Payment_ZFB":"010001"}
+        Map<String, String> enumCodeMap = getEnumCodeMap(Payment.class);
+        System.out.println(JSON.toJSONString(enumCodeMap));//{"010002":"银联支付","010001":"支付宝支付","010000":"微信支付"}
+    }
+}
+```
+
+### 8.3. 枚举治理的扩展-velocity中使用枚举
+
+#### 8.3.1. 为什么会在velocity中使用枚举
+
+当涉及与前端的交互时，我们可能需要从前端把三种支付方式对应的code值传到后台。
+
+此时，如果在页面上直接写010000这样的值，那么页面的逻辑就很不直观了，今天写的时候你还能认知，为了防止自己忘了，除了加注释别无办法。
+
+故，为了解决后台可用，且前端页面直观，所以我们希望尝试在页面上直接用枚举来解决问题。
+
+#### 8.3.2. 看看页面如何处理（velocity页面中）
+
+```js
+#set($payment=$enumTool.getCodeNameMapperInstance("Payment"))//直接写明要获取的枚举类型名称
+#if($payment.get("Payment_WX") == $param.code)//通过枚举值获取其code值
+    //做微信支付页面逻辑
+#end
+```
+
+#### 8.3.3. velocity中配置velocity-tools
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<toolbox>
+    <tool>
+        <key>enumTool</key>
+        <class>com.bright.core.enumconstant.VelocityEnumTools</class>
+    </tool>
+    <tool>
+        <key>stringTool</key>
+        <class>org.apache.commons.lang.StringUtils</class>
+    </tool>
+    <tool>
+        <key>dateTool</key>
+        <class>org.apache.velocity.tools.generic.DateTool</class>
+    </tool>
+</toolbox>
+```
+
+这样就可以简单的在页面中应用我们枚举治理工具了。
+
+例如：通过code值获取到相应描述
+
+```js
+$enumTool.getCodeNameMapperInstance("Payment").get($item.orderLoanStatus)//显示“微信支付”
+```
+
+通过枚举获取到对应的code值
+
+```js
+#set($payment=$enumTool.getCodeNameMapperInstance("Payment"))//拿到了Payment的map
+$payment.get("Payment_WX")
+```
+
+就此，我们可以实现系统的中的枚举治理，并且可在前端页面灵活应用。
 
 # 序列化与反序列化
 

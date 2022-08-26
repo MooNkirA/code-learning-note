@@ -97,10 +97,10 @@ ZAB 提交事务并不像 2PC 一样需要全部 follower 都 ACK，**只需要�
 
 ## 4. Znode 有四种形式的目录节点
 
-1. **PERSISTENT**：持久的节点。
-2. **EPHEMERAL**：暂时的节点。（与Session有关，如果Session销毁，则节点数据销毁）
-3. **PERSISTENT_SEQUENTIAL**：持久化顺序编号目录节点。
-4. **EPHEMERAL_SEQUENTIAL**：暂时化顺序编号目录节点。
+1. **PERSISTENT**：持久节点。除非手动删除，否则节点一直存在于 Zookeeper 上
+2. **EPHEMERAL**：临时节点。临时节点的生命周期与客户端会话绑定（与Session有关，如果Session销毁，则这个客户端创建的所有临时节点数据都被销毁）
+3. **PERSISTENT_SEQUENTIAL**：持久化顺序编号目录节点。基本特性同持久节点，只是增加了顺序属性，节点名后边会追加一个由父节点维护的自增整型数字。
+4. **EPHEMERAL_SEQUENTIAL**：临时化顺序编号目录节点。基本特性同临时节点，增加了顺序属性，节点名后边会追加一个由父节点维护的自增整型数字。
 
 ## 5. Zookeeper 安装
 

@@ -455,7 +455,9 @@ systemctl disable firewalld.service
 ```
 
 ## 5. 项目搭建
+
 ### 5.1. 工程结构分析与设计
+
 - 开发工具：IntelliJ IDEA
 - 版本控制：Git
 - 工程说明：
@@ -470,10 +472,9 @@ systemctl disable firewalld.service
 
 ### 5.2. 使用idea创建项目
 
-创建参考步骤day01教学文档。	注意：使用idea创建maven时选择的类型
+创建Maven工程步骤参考《IDEA 笔记》。注意：使用idea创建maven时选择的类型
 
 ![idea创建maven项目](images/20181209130432329_30524.jpg)
-
 
 #### 5.2.1. pinyougou聚合父项目(pom)
 pom.xml文件：【资料\pinyougou-pom.xml】
