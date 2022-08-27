@@ -47,6 +47,121 @@ taskkill /F /PID "进程PID号"
 taskkill -f -t -im "进程名称"
 ```
 
+### 1.2. 系统脚本
+
+#### 1.2.1. 内外网IP切换（适用win10系统）.20171122
+
+```bash
+@echo off
+rem //设置变量 
+set NAME="以太网"
+rem //以下属性值可以根据需要更改
+set ADDR=192.168.14.73
+set MASK=255.255.254.0
+set GATEWAY=192.168.14.1
+set DNS1=10.17.65.13
+set DNS2=10.202.253.28
+rem //以上属性依次为IP地址、子网掩码、网关、首选DNS、备用DNS
+
+
+echo 当前可用操作有：
+echo 1 设置为静态IP
+echo 2 设置为动态IP
+echo 3 退出
+echo 请选择后回车：
+set /p operate=
+if %operate%==1 goto 1
+if %operate%==2 goto 2
+if %operate%==3 goto 3
+
+
+:1
+echo 正在设置静态IP，请稍等...
+rem //可以根据你的需要更改 
+echo IP地址 = %ADDR%
+echo 掩码 = %MASK%
+echo 网关 = %GATEWAY%
+netsh interface ipv4 set address %NAME% static %ADDR% %MASK% %GATEWAY% 
+echo 首选DNS = %DNS1% 
+netsh interface ipv4 set dns %NAME% static %DNS1%
+echo 备用DNS = %DNS2% 
+if "%DNS2%"=="" (echo DNS2为空) else (netsh interface ipv4 add dns %NAME% %DNS2%) 
+echo 静态IP已设置！
+pause
+goto 3
+
+
+:2
+echo 正在设置动态IP，请稍等...
+echo 正在从DHCP自动获取IP地址...
+netsh interface ip set address %NAME% dhcp
+echo 正在从DHCP自动获取DNS地址...
+netsh interface ip set dns %NAME% dhcp 
+echo 动态IP已设置！
+pause
+goto 3
+
+
+:3
+exit
+```
+
+#### 1.2.2. 内外网IP切换（适用win7系统）
+
+```bash
+@echo off
+
+rem //设置变量
+set NAME="本地连接"
+
+rem //以下属性值可以根据需要更改
+set ADDR=192.168.14.73
+set MASK=255.255.254.0
+set GATEWAY=192.168.14.1
+set DNS1=10.17.65.13
+set DNS2=10.202.253.28
+
+rem //以上属性依次为IP地址、子网掩码、网关、首选DNS、备用DNS
+echo 当前可用操作有：
+echo 1 设置为静态IP
+echo 2 设置为动态IP
+echo 3 退出
+echo 请选择后回车：
+
+set /p operate=
+if %operate%==1 goto 1
+if %operate%==2 goto 2
+if %operate%==3 goto 3
+
+:1
+echo 正在设置静态IP,请稍等…
+rem //可以根据你的需要更改
+echo IP地址 = %ADDR%
+echo 掩码 = %MASK%
+echo 网关 = %GATEWAY%
+netsh interface ipv4 set address name=%NAME% source=static addr=%ADDR% mask=%MASK% gateway=%GATEWAY% gwmetric=0 >nul
+echo 首选DNS = %DNS1%
+netsh interface ipv4 set dns name=%NAME% source=static addr=%DNS1% register=PRIMARY >nul
+echo 备用DNS = %DNS2%
+netsh interface ipv4 add dns name=%NAME% addr=%DNS2% index=2 >nul
+echo 静态IP已设置!
+pause
+goto 3
+
+:2
+echo 正在设置动态IP,请稍等…
+echo 正在从DHCP自动获取IP地址…
+netsh interface ip set address "本地连接" dhcp
+echo 正在从DHCP自动获取DNS地址…
+netsh interface ip set dns "本地连接" dhcp
+echo 动态IP已设置!
+pause
+goto 3
+
+:3
+exit
+```
+
 ## 2. 系统运行命令
 
 > 以下均为运行面板(Win+R)中输入的命令

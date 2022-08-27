@@ -28,6 +28,55 @@ Java的反射机制在实际项目中应用广泛,常见的应用场景有：
 - 多数框架都支持注解/XML配置,从配置中解析出来的类是字符串,需要利用反射机制实例化；
 - 面向切面编程（AOP）的实现方案,是在程序运行时创建目标对象的代理类,这必须由反射机制来实现。
 
+## 3. java中四种修饰符的限制范围。
+
+private < 默认 < protected < public
+
+- public: 任意包下任意类都可以访问；
+- protected: 任意包下任意子类都可以访问或同包下的任意类
+- 默认(包权限): 同包下的任意类都可以访问
+- private: 只能在本类中使用
+
+## 4. Object类中的方法。
+
+toString(), equals(), clone(), getClass(), hashCode(), wait(), notify(), notifyAll()
+
+8、接口和抽象类的区别。(注意JDK8的接口可以有实现)
+
+相同点：都不能创建对象，都可以定义抽象方法
+
+不同点：
+
+1. 抽象类可以定义成员变量（和常量）；接口不能定义成员变量，但可以定义常量
+2. 抽象类可以有构造方法，接口不能有构造方法
+3. 抽象类只能单继承，接口是可以多现实
+4. 抽象类的成员没有修饰符，接口中的成员有默认修饰符;
+5. 如果抽象类实现接口，则可以把接口中方法映射到抽象类中作为抽象方法而不必实现，而在抽象类的子类中实现接口中方法；现实接口的类必须实现所有抽象方法
+
+jdk1.8之后，接口可以定义非抽象方法，实现类不需要现实该方法
+
+## 5. 动态代理的两种方式，以及区别。
+
+实现方式有两种，一种是基于接口（使用JDK的Proxy类），一种是基于子类（使用第三方jar包cglib）
+
+- JDK动态接口代理：通过反射去调用目标类的代码，将增加部分的代码。Proxy类利用InvocationHandler动态创建一个接口的实例
+- CGlib动态代理：与JDK的方法主要区别在于，在运行期动态生成新的class
+
+## 6. Java序列化的方式。
+
+- ObjectOutputStream:提供序列化对象并把其写入流的方法
+- ObjectInputStream：读取流并反序列化对象
+- Serializable：一个对象想要被序列化，那么它的类就要实现 此接口，这个对象的所有属性（包括private属性、包括其引用的对象）都可以被序列化和反序列化来保存、传递。
+- Externalizable：他是Serializable接口的子类，有时我们不希望序列化那么多，可以使用这个接口，这个接口的writeExternal()和readExternal()方法可以指定序列化哪些属性;
+
+## 7. 传值和传引用的区别，Java是怎么样的，有没有传值引用。
+
+传值，作为方法的形参，方法中修改值不会影响原来的值
+
+传引用，作为方法的形参，实参与形参都是引用同一个内存地址，所以方法中修改会改变原来的值
+
+传值引用？？
+
 # Java 集合面试题
 
 ## 1. Java集合的快速失败机制 “fail-fast”？
@@ -41,13 +90,25 @@ Java的反射机制在实际项目中应用广泛,常见的应用场景有：
 1. 在遍历过程中，所有涉及到改变 modCount 值得地方全部加上 `synchronized`
 2. 使用 `CopyOnWriteArrayList` 来替换 `ArrayList`
 
-## 2. Iterator 和 ListIterator 的区别
+## 2. 一个ArrayList在循环过程中删除，会不会出问题，为什么。
+
+方式1：如果使用for循环中删除一个元素，因为ArrayList的删除元素是重新复制新的数组，所以原来的数组的size就减1，此时索引+1，就会出现跳过下一个元素遍历的情况
+
+> 注：如果使用倒序遍历时即使发生元素删除也不影响后序元素遍历。
+
+方式2：foreach原理是因为这些集合类都实现了Iterable接口，该接口中定义了Iterator迭代器的产生方法，并且foreach就是通过Iterable接口在序列中进行移动。也就是说：在编译的时候编译器会自动将对for这个关键字的使用转化为对目标的迭代器的使用，forEach循环删除报错
+
+方式3：用Iterator循环删除的时候，调用的是ArrayList里面的remove方法，删除元素后modCount会增加，expectedModCount则不变，这样就造成了expectedModCount ！= modCount，那么就抛出异常了。
+
+总结：Iterator调用ArrayList的删除方法报错，Iterator调用迭代器自己的删除方法，单线程不会报错，多线程会报错。
+
+## 3. Iterator 和 ListIterator 的区别
 
 - Iterator 可以遍历 Set 和 List 集合，而 ListIterator 只能遍历 List。
 - Iterator 只能单向遍历，而 ListIterator 可以双向遍历（向前/后遍历）。
 - ListIterator 实现 Iterator 接口，然后添加了一些额外的功能，比如添加一个元素、替换一个元素、获取前面或后面元素的索引位置
 
-## 3. ArrayList 和 LinkedList 的区别与选择
+## 4. ArrayList 和 LinkedList 的区别与选择
 
 区别：
 
@@ -62,7 +123,7 @@ Java的反射机制在实际项目中应用广泛,常见的应用场景有：
 - 如果需要大量非首尾增删元素，则建议使用 LinkedList
 - 如果只是遍历查询元素，不进行增删操作，则建议使用 ArrayList
 
-## 4. ArrayList 和 Vector 的区别
+## 5. ArrayList 和 Vector 的区别
 
 此两个类都实现了 List 接口（List 接口继承了 Collection 接口），它们都是有序集合
 
@@ -74,23 +135,23 @@ Vector 类的所有方法都是同步的。可以由两个线程安全地访问�
 
 Arraylist 不是同步的，所以在不需要保证线程安全时时建议使用 Arraylist
 
-## 5. Map 的常用实现类 HashMap / LinkedHashMap / TreeMap 的区别
+## 6. Map 的常用实现类 HashMap / LinkedHashMap / TreeMap 的区别
 
 1. HashMap: 基于哈希表的 Map 接口的实现类，并允许使用 null 值和 null 键（<font color=purple>**HashMap 最多只允许一条记录的键为 null，允许多条记录的值为 null。**</font>），<font color=red>**键是唯一，存储和取出没有顺序**</font>。
 2. LinkedHashMap: 基于哈希表的 Map 接口的实现类，并允许使用 null 值和 null 键，<font color=red>**键是唯一，存储和取出有顺序**</font>
 3. TreeMap：从功能上讲，TreeMap 有着比 HashMap 更为强大的功能，它实现了 SortedMap 接口，这意味着它可以对元素进行排序。TreeMap 的性能略微低于 HashMap。如果在开发中需要对元素进行<font color=red>排序</font>，那么使用 HashMap 便无法实现这种功能，使用 TreeMap 的迭代输出将会以元素顺序进行。<font color=red>**LinkedHashMap 是基于元素进入集合的顺序或者被访问的先后顺序排序，TreeMap 则是基于元素的固有顺序 (由 Comparator 或者 Comparable 确定)。即：LinkedHashMap 是根据元素增加或者访问的先后顺序进行排序，而 TreeMap 则根据元素的 Key 进行排序**</font>。
 
-## 6. HashSet 的实现原理？
+## 7. HashSet 的实现原理？
 
 HashSet 是基于 HashMap 实现的，HashSet的值存放于HashMap的key上，HashMap的value统一为PRESENT，因此 HashSet 的实现比较简单，相关 HashSet 的操作，基本上都是直接调用底层 HashMap 的相关方法来完成，HashSet 不允许重复的值
 
-## 7. 为什么 ArrayList 的 elementData 加上 transient 修饰
+## 8. 为什么 ArrayList 的 elementData 加上 transient 修饰
 
 ArrayList 实现了 Serializable 接口，可以支持序列化。transient 的作用是说不希望 elementData 数组被序列化，然后重写了 writeObject 实现。
 
 每次序列化时，先调用 defaultWriteObject() 方法序列化 ArrayList 中的非 transient 元素，然后遍历 elementData，只序列化已存入的元素，这样既加快了序列化的速度，又减小了序列化之后的文件大小。
 
-## 8. HashMap 的实现原理？
+## 9. HashMap 的实现原理？
 
 HashMap是基于哈希表的Map接口的非同步实现。此实现提供所有可选的映射操作，并允许使用null值和null键。此类不保证映射的顺序，特别是它不保证该顺序恒久不变。
 
@@ -112,19 +173,22 @@ HashMap 基于 Hash 算法实现的，具体如下：
 
 > 需要注意Jdk 1.8中对HashMap的实现做了优化，当链表中的节点数据超过八个之后，该链表会转为红黑树来提高查询效率，从原来的 `O(n)` 到 `O(logn)`
 
-### 8.1. JDK1.8之前实现
+### 9.1. JDK1.8之前实现
 
 JDK1.8之前采用的是拉链法。拉链法：将链表和数组相结合。也就是说创建一个链表数组，数组中每一格就是一个链表。若遇到哈希冲突，则将冲突的值加到链表中即可。
 
 ![](images/184312214220852.png)
 
-### 8.2. JDK1.8之后实现
+### 9.2. JDK1.8之后实现
 
 相比于之前的版本，jdk1.8在解决哈希冲突时有了较大的变化，当链表长度大于阈值（默认为8）时，将链表转化为红黑树，以减少搜索时间。
 
 ![](images/13532314239278.png)
 
-### 8.3. JDK1.7 VS JDK1.8
+数组+链表。通过计算key的hashCode的值，再去取模来决定当前Entry对象存储的索引位置，如果当前位置为空，则直接存储；如果当时位置已经存在内容，则将给存储的数据加上next指针，指向之前存在的数据。
+jdk8主要是对HashMap做了红黑树的优化，使树的结构相对平衡，减小链的长度，达到加快查询的速度
+
+### 9.3. JDK1.7 VS JDK1.8
 
 JDK1.8主要解决或优化了一下问题：
 
@@ -141,7 +205,7 @@ JDK1.8主要解决或优化了一下问题：
 | 插入数据方式            | 头插法（先将原位置的数据移到后1位，再插入数据到该位置）                  | 尾插法（直接插入到链表尾部/红黑树）                                                            |
 | 扩容后存储位置的计算方式 | 全部按照原来方法进行计算（即`hashCode ->> 扰动函数 ->> (h&length-1)`） | 按照扩容后的规律计算（即`扩容后的位置=原位置 or 原位置 + 旧容量`）                                |
 
-## 9. (待学习)HashMap 的 put 方法的具体流程
+## 10. (待学习)HashMap 的 put 方法的具体流程
 
 当 put 元素的时候，首先计算 key 的 hash 值，这里调用了 hash 方法，hash 方法实际是让`key.hashCode()`与`key.hashCode()>>>16`进行异或操作，高16bit补0，一个数和0异或不变，所以 hash 函数大概的作用就是：**高16bit不变，低16bit和高16bit做了一个异或，目的是减少碰撞**。按照函数注释，因为bucket数组大小是2的幂，计算下标`index = (table.length - 1) & hash`，如果不做 hash 处理，相当于散列生效的只有几个低 bit 位，为了减少散列的碰撞，设计者综合考虑了速度、作用、质量之后，使用高16bit和低16bit异或来简单处理减少碰撞，而且JDK8中用了复杂度 `O(logn)`的树结构来提升碰撞下的性能。
 
@@ -149,9 +213,9 @@ putVal方法执行流程图
 
 ![](images/10234014227145.png)
 
-## 10. (待学习)HashMap的扩容操作是怎么实现的？
+## 11. (待学习)HashMap的扩容操作是怎么实现的？
 
-## 11. 说说HashMap底层原理？
+## 12. 说说HashMap底层原理？
 
 得分点 数据结构、put()流程、扩容机制
 
@@ -183,7 +247,7 @@ put()方法的执行过程中,主要包含四个步骤：
 
 HashMap是非线程安全的,在多线程环境下,多个线程同时触发HashMap的改变时,有可能会发生冲突。所以,在多线程环境下不建议使用HashMap,可以考虑使用Collections将HashMap转为线程安全的HashMap,更为推荐的方式则是使用ConcurrentHashMap。
 
-## 12. 说说ConcurrentHashMap？
+## 13. 说说ConcurrentHashMap？
 
 得分点 数组+链表+红黑树、锁的粒度
 
@@ -198,12 +262,12 @@ HashMap是非线程安全的,在多线程环境下,多个线程同时触发HashM
 
 ConcurrentHashMap实现线程安全的难点在于多线程并发扩容,即当一个线程在插入数据时,若发现数组正在扩容,那么它就会立即参与扩容操作,完成扩容后再插入数据到新数组。在扩容的时候,多个线程共同分担数据迁移任务,每个线程负责的迁移数量是 `(数组长度 >>> 3) / CPU核心数`。 也就是说,为线程分配的迁移任务,是充分考虑了硬件的处理能力的。多个线程依据硬件的处理能力,平均分摊一部分槽的迁移工作。另外,如果计算出来的迁移数量小于16,则强制将其改为16,这是考虑到目前服务器领域主流的CPU运行速度,每次处理的任务过少,对于CPU的算力也是一种浪费。
 
-## 13. HashMap 、ConcurrentHashMap 和 Hashtable 的区别
+## 14. HashMap 、ConcurrentHashMap 和 Hashtable 的区别
 
 1. 线程安全：HashMap是线程不安全；而ConcurrentHashMap 和 Hashtable是线程安全的。
 2. key是否允许有null值：HashMap允许有null，但只能存在一个；而ConcurrentHashMap 和 Hashtable都不允许。
 
-## 14. 你知道哪些线程安全的集合？
+## 15. 你知道哪些线程安全的集合？
 
 得分点 Collections、java.util.concurrent (JUC)
 
