@@ -15,7 +15,7 @@ Spring Boot 除可以整合行业内常用的关系型数据库持久化技术�
 Spring Boot 整合 Jdbc 引入的核心依赖是 spring-boot-starter-jdbc
 
 ```xml
- <dependencies>
+<dependencies>
     <dependency>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter</artifactId>
@@ -60,9 +60,9 @@ spring:
     data: classpath:db/data-h2.sql # H2 初始化数据
   jdbc: # JdbcTemplate 相关配置
     template:
-      query-timeout: -1   # 查询超时时间
-      max-rows: 500       # 最大行数
-      fetch-size: -1      # 缓存行数
+      query-timeout: -1 # 查询超时时间
+      max-rows: 500 # 最大行数
+      fetch-size: -1 # 缓存行数
 ```
 
 - 数据库表结构初始化脚本 schema-h2.sql
@@ -105,7 +105,7 @@ public class JdbcApplication {
 
 ### 1.2. 整合功能测试
 
-编写测试用例，分别测试使用 JdbcTepmlate 进行增删改查。*这里只作最基础的使用示例，更详细用法详见其他笔记*
+编写测试用例，分别测试使用 JdbcTepmlate 进行增删改查。_这里只作最基础的使用示例，更详细用法详见其他笔记_
 
 ```java
 @SpringBootTest
@@ -166,7 +166,7 @@ public class JdbcTemplateTest {
 ### 2.1. 环境准备
 
 - **第一步：导入数据库表**
-- **第二步：加入MyBatis的启动器依赖**
+- **第二步：加入 MyBatis 的启动器依赖**
 
 ```xml
 <!-- 配置MyBatis启动器 -->
@@ -235,7 +235,7 @@ public class DataSourceProperties implements BeanClassLoaderAware, InitializingB
 }
 ```
 
-参考mybatis-spring-boot-autoconfigure-1.3.0.jar中属性文件类**MybatisProperties**
+参考 mybatis-spring-boot-autoconfigure-1.3.0.jar 中属性文件类**MybatisProperties**
 
 ```java
 @ConfigurationProperties(prefix = MybatisProperties.MYBATIS_PREFIX)
@@ -288,7 +288,7 @@ public class MybatisProperties {
 }
 ```
 
-在src/main/resources下添加application.properties（或application.yml）配置文件，内容如下：
+在 src/main/resources 下添加 application.properties（或 application.yml）配置文件，内容如下：
 
 ```properties
 # 配置数据源
@@ -307,36 +307,36 @@ mybatis.mapperLocations=classpath:mappers/**/*Mapper.xml
 mybatis.configLocation=classpath:mybatis-config.xml
 ```
 
-使用yml配置文件
+使用 yml 配置文件
 
 ```yml
 mybatis:
-    mapper-locations: classpath:mappers/**/*.xml
-    type-aliases-package: com.moon.demo.pojo
-    # 开启驼峰映射
-    configuration:
-        map-underscore-to-camel-case: true
+  mapper-locations: classpath:mappers/**/*.xml
+  type-aliases-package: com.moon.demo.pojo
+  # 开启驼峰映射
+  configuration:
+    map-underscore-to-camel-case: true
 ```
 
-**注：传统的ssm框架中，mybatis的总配置文件是mybatis-config.xml，但spring boot推荐少用配置文件，所以，可以将mybatis-config.xml的相关配置写在application.properties(或 application.yml)中**
+**注：传统的 ssm 框架中，mybatis 的总配置文件是 mybatis-config.xml，但 spring boot 推荐少用配置文件，所以，可以将 mybatis-config.xml 的相关配置写在 application.properties(或 application.yml)中**
 
-### 2.2. application文件相关配置
+### 2.2. application 文件相关配置
 
-- 任何其他Spring Boot应用程序一样，MyBatis-Spring-Boot-Application配置参数存储在application.properties（或application.yml）中。
-- MyBatis使用前缀mybatis作为其属性
+- 任何其他 Spring Boot 应用程序一样，MyBatis-Spring-Boot-Application 配置参数存储在 application.properties（或 application.yml）中。
+- MyBatis 使用前缀 mybatis 作为其属性
 
 #### 2.2.1. 可用的属性
 
-|         **属性**         |                                                            **描述**                                                            |
-| :----------------------: | ------------------------------------------------------------------------------------------------------------------------------ |
-|     config-location      | MyBatis xml配置文件的位置                                                                                                      |
-|  check-config-location   | 指示是否执行MyBatis xml配置文件的状态检查                                                                                       |
-|     mapper-locations     | Mapper xml映射文件的位置                                                                                                       |
-|   type-aliases-package   | 用于搜索类型别名的包。 （包分隔符是 `,`、`;`、`\t`、`\n`）                                                                       |
-|  type-handlers-package   | 用于搜索类型处理程序的包。 （包分隔符是 `,`、`;`、`\t`、`\n`）                                                                   |
-|      executor-type       | 执行者类型：SIMPLE，REUSE，BATCH。                                                                                              |
-| configuration-properties | MyBatis配置的外部化属性。指定的属性可以用作MyBatis配置文件和Mapper文件的占位符                                                    |
-|      configuration       | MyBatis相关配置bean。关于可用属性，与mybatis-config.xml配置文件的settings配置属性一致。**注意此属性不能config-location同时使用** |
+|         **属性**         |                                                              **描述**                                                              |
+| :----------------------: | ---------------------------------------------------------------------------------------------------------------------------------- |
+|     config-location      | MyBatis xml 配置文件的位置                                                                                                          |
+|  check-config-location   | 指示是否执行 MyBatis xml 配置文件的状态检查                                                                                           |
+|     mapper-locations     | Mapper xml 映射文件的位置                                                                                                           |
+|   type-aliases-package   | 用于搜索类型别名的包。 （包分隔符是 `,`、`;`、`\t`、`\n`）                                                                             |
+|  type-handlers-package   | 用于搜索类型处理程序的包。 （包分隔符是 `,`、`;`、`\t`、`\n`）                                                                          |
+|      executor-type       | 执行者类型：SIMPLE，REUSE，BATCH。                                                                                                   |
+| configuration-properties | MyBatis 配置的外部化属性。指定的属性可以用作 MyBatis 配置文件和 Mapper 文件的占位符                                                      |
+|      configuration       | MyBatis 相关配置 bean。关于可用属性，与 mybatis-config.xml 配置文件的 settings 配置属性一致。**注意此属性不能 config-location 同时使用** |
 
 #### 2.2.2. 配置案例
 
@@ -353,21 +353,20 @@ mybatis.configuration.default-statement-timeout=30
 ```yml
 # application.yml
 mybatis:
-    type-aliases-package: com.example.domain.model
-    type-handlers-package: com.example.typehandler
-    configuration:
-        map-underscore-to-camel-case: true
-        default-fetch-size: 100
-        default-statement-timeout: 30
-...
+  type-aliases-package: com.example.domain.model
+  type-handlers-package: com.example.typehandler
+  configuration:
+    map-underscore-to-camel-case: true
+    default-fetch-size: 100
+    default-statement-timeout: 30
 ```
 
 ### 2.3. 整合开发 Demo
 
-- 使用Spring Boot + Spring MVC + MyBatis实现查询所有公告
-- 使用Spring Boot + Spring MVC + MyBatis + EasyUI 实现公告分页查询
+- 使用 Spring Boot + Spring MVC + MyBatis 实现查询所有公告
+- 使用 Spring Boot + Spring MVC + MyBatis + EasyUI 实现公告分页查询
 
-- **第一步：创建domain**
+- **第一步：创建 domain**
 
 ```java
 public class Notice implements Serializable {
@@ -397,8 +396,8 @@ public class Notice implements Serializable {
 }
 ```
 
-- **第二步：编写NoticeMapper接口**。和之前的方式一样，只是多了@Mapper个注解。@Mapper：声明Mapper接口
-    - 注意：`@Mapper`标记该类是一个mybatis的mapper接口，可以被spring boot自动扫描到spring上下文中
+- **第二步：编写 NoticeMapper 接口**。和之前的方式一样，只是多了@Mapper 个注解。@Mapper：声明 Mapper 接口
+  - 注意：`@Mapper`标记该类是一个 mybatis 的 mapper 接口，可以被 spring boot 自动扫描到 spring 上下文中
 
 ```java
 @Mapper
@@ -414,14 +413,14 @@ public interface NoticeMapper {
 }
 ```
 
-- **第三步：编写src/main/resources/mappers/NoticeMapper.xml文件**
+- **第三步：编写 src/main/resources/mappers/NoticeMapper.xml 文件**
 
 ```xml
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="cn.itcast.springboot.mapper.NoticeMapper">
+<mapper namespace="com.moon.springboot.mapper.NoticeMapper">
 
     <!-- 统计查询 -->
     <select id="count" resultType="long">
@@ -435,7 +434,7 @@ public interface NoticeMapper {
 </mapper>
 ```
 
-- **第四步：编写Service与实现类**
+- **第四步：编写 Service 与实现类**
 
 ```java
 public interface NoticeService {
@@ -469,7 +468,7 @@ public class NoticeServiceImpl implements NoticeService {
 }
 ```
 
-- **第五步：编写Controller**
+- **第五步：编写 Controller**
 
 ```java
 @Controller
@@ -513,8 +512,8 @@ src/main/resources/static/images
 
 ### 3.1. 环境准备
 
-- **第一步：导入数据库表**：运行SpringBoot\准备资料\springboot.sql文件创建数据库表及表中数据
-- **第二步：加入Spring-Data-JPA的启动器**
+- **第一步：导入数据库表**：运行 SpringBoot\准备资料\springboot.sql 文件创建数据库表及表中数据
+- **第二步：加入 Spring-Data-JPA 的启动器**
 
 ```xml
 <!-- 配置web启动器(spring mvc) -->
@@ -546,7 +545,7 @@ src/main/resources/static/images
 </dependency>
 ```
 
-- **第三步：application.properties配置文件**。参考 spring-boot-autoconfigure-1.5.6.RELEASE.jar 中 orm.jpa 包中属性文件类 `JpaProperties` 或者官方文档
+- **第三步：application.properties 配置文件**。参考 spring-boot-autoconfigure-1.5.6.RELEASE.jar 中 orm.jpa 包中属性文件类 `JpaProperties` 或者官方文档
 
 ```properties
 # 配置自定义的c3p0数据源
@@ -565,35 +564,34 @@ spring.jpa.properties.hibernate.format_sql=true
 
 注：
 
-- 其中，数据源（原生的datasource也可以，将c3p0去掉即可）配置包括driverClass(驱动类)、url(数据库地址)、user\password (用户名与密码)、其它数据源的相关参数(如：maxPoolSize等等)
-- JPA的配置包括：如showSql(是否显示sql语句)、format_sql(是否格式式sql)、hibernate.ddl-auto(配置为create时，程序启动时会在MySQ数据库中建表；配置为update时，在程序启动时不会在MySQL数据库中建表)等等
-
+- 其中，数据源（原生的 datasource 也可以，将 c3p0 去掉即可）配置包括 driverClass(驱动类)、url(数据库地址)、user\password (用户名与密码)、其它数据源的相关参数(如：maxPoolSize 等等)
+- JPA 的配置包括：如 showSql(是否显示 sql 语句)、format_sql(是否格式式 sql)、hibernate.ddl-auto(配置为 create 时，程序启动时会在 MySQ 数据库中建表；配置为 update 时，在程序启动时不会在 MySQL 数据库中建表)等等
 
 application.yml 方式配置：
 
 ```yml
 spring:
-    datasource:
-        c3p0:
-            driverClass: com.mysql.jdbc.Driver
-            jdbcUrl: jdbc:mysql://localhost:3306/springboot_db
-            user: root
-            password: 123456
-            maxPoolSize: 20
-            minPoolSize: 10
-            initialPoolSize: 10
-    jpa:
-        showSql: false
-        properties:
-            hibernate:
-                format_sql: true
+  datasource:
+    c3p0:
+      driverClass: com.mysql.jdbc.Driver
+      jdbcUrl: jdbc:mysql://localhost:3306/springboot_db
+      user: root
+      password: 123456
+      maxPoolSize: 20
+      minPoolSize: 10
+      initialPoolSize: 10
+  jpa:
+    showSql: false
+    properties:
+      hibernate:
+        format_sql: true
 ```
 
 ### 3.2. 整合开发
 
-案例：使用Spring Boot + Spring MVC + Spring Data JPA 查询所有公告
+案例：使用 Spring Boot + Spring MVC + Spring Data JPA 查询所有公告
 
-- **第一步：创建entity**
+- **第一步：创建 entity**
 
 ```java
 @Entity
@@ -629,7 +627,7 @@ public class Notice implements Serializable {
 }
 ```
 
-- **第二步：创建数据访问Dao**
+- **第二步：创建数据访问 Dao**
 
 ```java
 @Repository

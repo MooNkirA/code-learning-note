@@ -1,4 +1,4 @@
-# Java日志工具类库
+# Java 日志工具类库
 
 ## 1. 日志的概念
 
@@ -56,7 +56,7 @@
 
 **日志门面**就是对不同日志框架提供的一个 API 封装，可以在部署的时候不修改任何配置即可接入一种日志实现方案。常用的日志门面有如下：
 
-- JCL 全称：Jakarta Commons Logging，又称 common-logging 
+- JCL 全称：Jakarta Commons Logging，又称 common-logging
 - slf4j 全称：Simple Logging Facade for Java
 
 JCL 与 slf4j 区别：
@@ -85,7 +85,7 @@ log4j --> JUL --> JCL --> slf4j --> logback --> log4j2
 
 ### 2.3. 各个日志框架比较
 
-按照官方的说法，Log4j2 大大优于 Log4j 和 Logback。Log4j2的优势如下：
+按照官方的说法，Log4j2 大大优于 Log4j 和 Logback。Log4j2 的优势如下：
 
 - Log4j2 旨在用作审计日志记录框架。Log4j 1.x 和 Logback 都会在重新配置时丢失事件。Log4j 2 不会。在 Logback 中，Appender 中的异常永远不会对应用程序可见。在 Log4j 中，可以将 Appender 配置为允许异常渗透到应用程序。
 - Log4j2 在多线程场景中，异步 Loggers 的吞吐量比 Log4j 1.x 和 Logback 高 10 倍，延迟低几个数量级。
@@ -99,7 +99,7 @@ log4j --> JUL --> JCL --> slf4j --> logback --> log4j2
 - Syslog Appender 支持 TCP 和 UDP 并且支持 BSD 系统日志。
 - Log4j2 利用 Java5 并发特性，尽量小粒度的使用锁，减少锁的开销
 
-### 2.4.  实施日志解决方案小结
+### 2.4. 实施日志解决方案小结
 
 使用以下各种日志解决方案基本可分为三步：
 
@@ -124,7 +124,7 @@ JUL 全称 Java util Logging，从 JDK1.4 开始提供的 Java 原生的日志�
 ![](images/314041018239084.jpg)
 
 - Loggers：被称为记录器，应用程序通过获取 `Logger` 对象，调用其 API 来来发布日志信息。`Logger` 通常时应用程序访问日志系统的入口程序。
-- Appenders：也被称为 Handlers，每个Logger 都会关联一组 Handlers，Logger 会将日志交给关联 Handlers 处理，由 Handlers 负责将日志做记录。Handlers 在此是一个抽象，其具体的实现决定了日志记录的位置可以是控制台、文件、网络上的其他日志服务或操作系统日志等。
+- Appenders：也被称为 Handlers，每个 Logger 都会关联一组 Handlers，Logger 会将日志交给关联 Handlers 处理，由 Handlers 负责将日志做记录。Handlers 在此是一个抽象，其具体的实现决定了日志记录的位置可以是控制台、文件、网络上的其他日志服务或操作系统日志等。
 - Layouts：也被称为 Formatters，它负责对日志事件中的数据进行转换和格式化。Layouts 决定了数据在一条日志记录中的最终形式。
 - Level：每条日志消息都有一个关联的日志级别。该级别粗略指导了日志消息的重要性和紧迫，可以将 Level 和 Loggers，Appenders 做关联以便于过滤消息。
 - Filters：过滤器，根据需要定制哪些信息会被记录，哪些信息会被放过。
@@ -378,7 +378,7 @@ public void testLogParent() {
 输出结果：
 
 ```true
-logger2 Parent: java.util.logging.LogManager$RootLogger@573fd745 , name: 
+logger2 Parent: java.util.logging.LogManager$RootLogger@573fd745 , name:
 六月 17, 2022 7:40:56 下午 com.moon.log.JULTest testLogParent
 严重: severe
 六月 17, 2022 7:40:56 下午 com.moon.log.JULTest testLogParent
@@ -461,8 +461,8 @@ public void testLogProperties() throws IOException {
 ### 3.7. 日志原理解析
 
 1. 初始化 LogManager
-    1. LogManager 会加载 logging.properties 配置文件
-    2. 添加 Logger 到 LogManager
+   1. LogManager 会加载 logging.properties 配置文件
+   2. 添加 Logger 到 LogManager
 2. 从单例 LogManager 获取 Logger
 3. 设置级别 Level，并指定日志记录 LogRecord
 4. Filter 提供了日志级别之外更细粒度的控制
@@ -477,7 +477,7 @@ public void testLogProperties() throws IOException {
 
 ### 4.1. 简述
 
-Log4j 是 Apache 下的一款开源的日志框架，是 Java 领域资格最老，应用最广的日志工具。从诞生之日到现在一直广受业界欢迎。但在2015年已经结束生命周期，目前已经不建议使用
+Log4j 是 Apache 下的一款开源的日志框架，是 Java 领域资格最老，应用最广的日志工具。从诞生之日到现在一直广受业界欢迎。但在 2015 年已经结束生命周期，目前已经不建议使用
 
 Log4j 是高度可配置的，并可通过在运行时的外部文件配置。它根据记录的优先级别，并提供机制，控制日志信息输出不同的位置，如：数据库，文件，控制台，UNIX 系统日志等。也可以控制每一条日志的输出格式，通过定义日志的输出级别，可以更灵活的控制日志的输出过程。方便项目的调试。
 
@@ -497,7 +497,7 @@ Log4j 是高度可配置的，并可通过在运行时的外部文件配置。�
 - OFF：可用来关闭日志记录
 - ALL：启用所有消息的日志记录
 
-> **注：一般只使用4个级别，优先级从高到低为 ERROR > WARN > INFO > DEBUG**
+> **注：一般只使用 4 个级别，优先级从高到低为 ERROR > WARN > INFO > DEBUG**
 
 ### 4.3. 基础使用步骤
 
@@ -591,7 +591,7 @@ DEBUG - debug
 TRACE - trace
 ```
 
-> *注：一般情况下，在开发环境下日志级别会设置成 debug，生产环境设置成 info 或 error*
+> _注：一般情况下，在开发环境下日志级别会设置成 debug，生产环境设置成 info 或 error_
 
 ### 4.4. Log4j 组件
 
@@ -605,9 +605,9 @@ Log4J 主要由 Loggers (日志记录器)、Appenders（输出端）和 Layout�
 
 日志记录器，负责收集处理日志记录，实例的命名就是类的 full quailied name（类的全限定名），Logger 的名字大小写敏感，其命名有继承机制：例如：name 为 `org.apache.commons` 的 logger 会继承 name 为 `org.apache` 的 logger。
 
-Log4J 中有一个特殊的 logger 叫做“root”，他是所有logger的根，也就意味着其他所有的logger都会直接或者间接地继承自root。root logger可以用Logger.getRootLogger()方法获取。
+Log4J 中有一个特殊的 logger 叫做“root”，他是所有 logger 的根，也就意味着其他所有的 logger 都会直接或者间接地继承自 root。root logger 可以用 Logger.getRootLogger()方法获取。
 
-但是，自log4j 1.2版以来， Logger 类已经取代了 Category 类。对于熟悉早期版本的log4j的人来说，Logger 类可以被视为 Category 类的别名。
+但是，自 log4j 1.2 版以来， Logger 类已经取代了 Category 类。对于熟悉早期版本的 log4j 的人来说，Logger 类可以被视为 Category 类的别名。
 
 ![](images/43822310220659.jpg)
 
@@ -615,22 +615,22 @@ Log4J 中有一个特殊的 logger 叫做“root”，他是所有logger的根�
 
 Appender 用来指定日志输出到哪个地方，可以同时指定日志的输出目的地。Log4j 常用的输出目的地有以下几种：
 
-|        输出端类型         |                                                     作用                                                     |
-| :----------------------: | ------------------------------------------------------------------------------------------------------------ |
-|     ConsoleAppender      | 将日志输出到控制台                                                                                            |
-|       FileAppender       | 将日志输出到文件中                                                                                            |
-| DailyRollingFileAppender | 将日志输出到一个日志文件，并且每天输出到一个新的文件                                                            |
+|        输出端类型        | 作用                                                                                                               |
+| :----------------------: | ------------------------------------------------------------------------------------------------------------------ |
+|     ConsoleAppender      | 将日志输出到控制台                                                                                                 |
+|       FileAppender       | 将日志输出到文件中                                                                                                 |
+| DailyRollingFileAppender | 将日志输出到一个日志文件，并且每天输出到一个新的文件                                                               |
 |   RollingFileAppender    | 将日志信息输出到一个日志文件，并且指定文件的尺寸，当文件大小达到指定尺寸时，会自动把文件改名，同时产生一个新的文件 |
-|       JDBCAppender       | 把日志信息保存到数据库中                                                                                      |
+|       JDBCAppender       | 把日志信息保存到数据库中                                                                                           |
 
 #### 4.4.3. Layouts
 
 布局器 Layouts 用于控制日志输出内容的格式，可以使用各种需要的格式输出日志。Log4j 常用的 Layout 如下：
 
-|  格式化器类型  |                                         作用                                         |
-| :-----------: | ------------------------------------------------------------------------------------ |
-|  HTMLLayout   | 格式化日志输出为HTML表格形式                                                          |
-| SimpleLayout  | 简单的日志输出格式化，打印的日志格式为（info - message）                               |
+| 格式化器类型  | 作用                                                                                     |
+| :-----------: | ---------------------------------------------------------------------------------------- |
+|  HTMLLayout   | 格式化日志输出为 HTML 表格形式                                                           |
+| SimpleLayout  | 简单的日志输出格式化，打印的日志格式为（info - message）                                 |
 | PatternLayout | 最强大的格式化器，可以根据自定义格式输出日志。如果没有指定转换格式，就是用默认的转换格式 |
 
 ### 4.5. 自定义 Layout 的格式语法示例
@@ -641,7 +641,7 @@ log4j 采用类似 C 语言的 `printf` 函数的打印格式格式化日志信�
 
 - `%m` 输出代码中指定的日志信息
 - `%p` 输出优先级，及 DEBUG、INFO 等
-- `%n` 换行符（Windows平台的换行符为 "`\n`"，Unix 平台为 "`\n`"）
+- `%n` 换行符（Windows 平台的换行符为 "`\n`"，Unix 平台为 "`\n`"）
 - `%r` 输出自应用启动到输出该 log 信息耗费的毫秒数
 - `%c` 输出打印语句所属的类的全名
 - `%t` 输出产生该日志的线程全名
@@ -653,10 +653,10 @@ log4j 采用类似 C 语言的 `printf` 函数的打印格式格式化日志信�
 
 可以在 `%` 与字符之间加上修饰符来控制最小宽度、最大宽度和文本的对其方式。如：
 
-- `%5c` 输出 category 名称，最小宽度是5，category 名称长度小于5，默认的情况下右对齐
-- `%-5c` 输出 category 名称，最小宽度是5，category 名称长度小于5，"`-`"号指定左对齐，会有空格
-- `%.5c` 输出 category 名称，最大宽度是5，category 名称长度大于5，就会将左边多出的字符截掉，名称长度小于5则不会有空格
-- `%20.30c` 输出 category 名称长度小于20补空格，并且右对齐，大于30字符，就从左边交远销出的字符截掉
+- `%5c` 输出 category 名称，最小宽度是 5，category 名称长度小于 5，默认的情况下右对齐
+- `%-5c` 输出 category 名称，最小宽度是 5，category 名称长度小于 5，"`-`"号指定左对齐，会有空格
+- `%.5c` 输出 category 名称，最大宽度是 5，category 名称长度大于 5，就会将左边多出的字符截掉，名称长度小于 5 则不会有空格
+- `%20.30c` 输出 category 名称长度小于 20 补空格，并且右对齐，大于 30 字符，就从左边交远销出的字符截掉
 
 ### 4.6. log4j 完整配置参考示例
 
@@ -705,7 +705,7 @@ log4j.appender.rollingFile.file=E:/logs/log4j.log
 # 指定日志文件的字符集
 log4j.appender.rollingFile.encoding=UTF-8
 # 指定日志文件内容的大小
-log4j.appender.rollingFile.maxFileSize=1MB 
+log4j.appender.rollingFile.maxFileSize=1MB
 # 指定日志文件的数量
 log4j.appender.rollingFile.maxBackupIndex=10
 
@@ -729,7 +729,7 @@ log4j.appender.logDB.Driver=com.mysql.jdbc.Driver
 log4j.appender.logDB.URL=jdbc:mysql://localhost:3306/test
 log4j.appender.logDB.User=root
 log4j.appender.logDB.Password=123456
-log4j.appender.logDB.Sql=INSERT INTO log(project_name,create_date,level,category,file_name,thread_name,line,all_category,message) values('itcast','%d{yyyy-MM-dd HH:mm:ss}','%p','%c','%F','%t','%L','%l','%m')
+log4j.appender.logDB.Sql=INSERT INTO log(project_name,create_date,level,category,file_name,thread_name,line,all_category,message) values('moon-test','%d{yyyy-MM-dd HH:mm:ss}','%p','%c','%F','%t','%L','%l','%m')
 ```
 
 若输出到数据库，需要在数据库中创建日志表
@@ -746,7 +746,7 @@ CREATE TABLE `log` (
 	`line` VARCHAR ( 255 ) DEFAULT NULL COMMENT '号行',
 	`all_category` VARCHAR ( 255 ) DEFAULT NULL COMMENT '日志事件的发生位置',
 	`message` VARCHAR ( 4000 ) DEFAULT NULL COMMENT '输出代码中指定的消息',
-PRIMARY KEY ( `log_id` ) 
+PRIMARY KEY ( `log_id` )
 );
 ```
 
@@ -858,7 +858,7 @@ JCL 全称 Jakarta Commons Logging，又称 common-logging 是 apache 的一个�
 
 JCL 的功能是提供通用日志功能的 API 接口，本身并不提供日志的具体实现（其实内部有一个 SimpleLog 的简单实现，但是功能很弱，所以一般不会单独使用它，直接忽略），而是在运行时动态的绑定日志实现组件来工作（如 log4j、java.util.logging）
 
-JCL 有两个基本的抽象类：Log（基本记录器）和 LogFactory（负责创建Log实例）
+JCL 有两个基本的抽象类：Log（基本记录器）和 LogFactory（负责创建 Log 实例）
 
 ![](images/501843312239085.png)
 
@@ -878,8 +878,8 @@ JCL 有两个基本的抽象类：Log（基本记录器）和 LogFactory（负�
 ```
 
 2. 编写基础使用示例代码，通过 `org.apache.commons.logging.LogFactory` 获取 `org.apache.commons.logging.Log` 对象，输出不同级别的日志。
-    - common-logging 用法和 slf4j 几乎一样，但是支持的打印等级多了一个更高级别的：fatal
-    - common-logging 不支持`{}`替换参数，只能选择拼接字符串的方式
+   - common-logging 用法和 slf4j 几乎一样，但是支持的打印等级多了一个更高级别的：fatal
+   - common-logging 不支持`{}`替换参数，只能选择拼接字符串的方式
 
 > 因为目前没有引入具体的日志实现，所以是使用了 commons-logging 默认的 SimpleLog 的简单实现
 
@@ -1000,12 +1000,12 @@ SLF4J 是目前市面上最流行的日志门面。现在的项目中，基本�
 
 1. 使用 SLF4J 框架，可以在部署时迁移到所需的日志记录框架
 2. SLF4J 提供了对所有流行的日志框架的绑定，例如 log4j，JUL，Simple logging 和 NOP。因此可以在部署时切换到任何这些流行的框架
-3. 无论使用哪种绑定，SLF4J 都支持参数化日志记录消息。由于SLF4J将应用程序和日志记录框架分离，因此可以轻松编写独立于日志记录框架的应用程序。而无需担心用于编写应用程序的日志记录框架
-4. SLF4J 提供了一个简单的 Java 工具，称为迁移器。使用此工具，可以迁移现有项目，这些项目使用日志框架(如Jakarta Commons Logging(JCL)或 log4j 或 Java.util.logging(JUL))到SLF4J
+3. 无论使用哪种绑定，SLF4J 都支持参数化日志记录消息。由于 SLF4J 将应用程序和日志记录框架分离，因此可以轻松编写独立于日志记录框架的应用程序。而无需担心用于编写应用程序的日志记录框架
+4. SLF4J 提供了一个简单的 Java 工具，称为迁移器。使用此工具，可以迁移现有项目，这些项目使用日志框架(如 Jakarta Commons Logging(JCL)或 log4j 或 Java.util.logging(JUL))到 SLF4J
 
 ### 6.2. SLF4J 入门示例
 
-1. 创建 maven 工程，添加 SLF4J 门面与实现相关依赖。（*注：示例使用 slf4j 自带的简单日志实现*）
+1. 创建 maven 工程，添加 SLF4J 门面与实现相关依赖。（_注：示例使用 slf4j 自带的简单日志实现_）
 
 ```xml
 <!-- slf4j 日志门面 -->
@@ -1135,13 +1135,13 @@ pom.xml 添加依赖。slf4j-jdk14 会自动将 slf4j-api 也添加到项目中
 1. 添加 slf4j-api 日志门面的依赖
 2. 使用 slf4j 的 API 在项目中进行统一的日志记录
 3. 绑定具体的日志实现框架，会分如下两种情况
-    1. 绑定已经实现了 slf4j 的日志框架，直接添加对应依赖即可
-    2. 绑定没有实现 slf4j 的日志框架，先添加日志框架相应的适配器，再添加实现类的依赖
+   1. 绑定已经实现了 slf4j 的日志框架，直接添加对应依赖即可
+   2. 绑定没有实现 slf4j 的日志框架，先添加日志框架相应的适配器，再添加实现类的依赖
 4. slf4j 有且仅有一个日志实现框架的绑定（**如果出现多个默认使用第一个依赖日志实现**）
 
 要切换日志框架，只需替换类路径上的 slf4j 绑定。例如，要从 java.util.logging 切换到 log4j，只需将 slf4j-jdk14-1.7.27.jar 替换为 slf4j-log4j12-1.7.27.jar 即可。
 
-SLF4J 不依赖于任何特殊的类装载。实际上，每个 SLF4J 绑定在编译时都是硬连线的，以使用一个且只有一个特定的日志记录框架。例如，slf4j-log4j12-1.7.27.jar 绑定在编译时绑定以使用log4j。在代码中，除了 slf4j-api-1.7.27.jar 之外，只需将选择的一个且只有一个绑定放到相应的类路径位置。不要在类路径上放置多个绑定。以下是一般概念的图解说明：
+SLF4J 不依赖于任何特殊的类装载。实际上，每个 SLF4J 绑定在编译时都是硬连线的，以使用一个且只有一个特定的日志记录框架。例如，slf4j-log4j12-1.7.27.jar 绑定在编译时绑定以使用 log4j。在代码中，除了 slf4j-api-1.7.27.jar 之外，只需将选择的一个且只有一个绑定放到相应的类路径位置。不要在类路径上放置多个绑定。以下是一般概念的图解说明：
 
 ![](images/302603616220659.png)
 
@@ -1149,7 +1149,7 @@ SLF4J 不依赖于任何特殊的类装载。实际上，每个 SLF4J 绑定在�
 
 #### 6.4.1. 桥接的概念
 
-通常项目依赖的某些组件依赖于 SLF4J 以外的日志记录 API。也可以假设这些组件在不久的将来不会切换到 SLF4J。为了解决这种情况，SLF4J 附带了几个桥接模块，这些模块将对 log4j，JCL 和java.util.logging API 的调用重定向，就好像它们是对 SLF4J API 一样。
+通常项目依赖的某些组件依赖于 SLF4J 以外的日志记录 API。也可以假设这些组件在不久的将来不会切换到 SLF4J。为了解决这种情况，SLF4J 附带了几个桥接模块，这些模块将对 log4j，JCL 和 java.util.logging API 的调用重定向，就好像它们是对 SLF4J API 一样。
 
 假如正在开发应用程序所调用的组件当中已经使用了 common-logging，这时需要 jcl-over-slf4j.jar 把日志信息输出重定向到 slf4j-api，slf4j-api 再去调用 slf4j 实际依赖的日志组件。这个过程称为**桥接**
 
@@ -1233,7 +1233,7 @@ logback 主要分成三个模块：
 
 #### 7.1.2. Logback 组件
 
-Logback 构建在三个主要的类上：Logger，Appender 和 Layout。这三个不同类型的组件一起作用能够让开发者根据消息的类型以及日志的级别来打印日志。 
+Logback 构建在三个主要的类上：Logger，Appender 和 Layout。这三个不同类型的组件一起作用能够让开发者根据消息的类型以及日志的级别来打印日志。
 
 - Logger：日志的记录器，把它关联到应用的对应的 context 上后，主要用于存放日志对象，也可以定义日志类型、级别。各个 logger 都被关联到一个 `LoggerContext`，`LoggerContext` 负责制造 logger，也负责以树结构排列各 logger。
 - Appender：用于指定日志输出的目的地，目的地可以是控制台、文件、数据库等等
@@ -1333,9 +1333,9 @@ public class LogbackTest {
 
 - `name`：设置 appender 名称。
 - `class`：设置具体的实例化类。常用的有以下几个
-    - `ch.qos.logback.core.ConsoleAppender` (控制台)
-    - `ch.qos.logback.core.rolling.RollingFileAppender` (文件大小到达指定大小的时候产生一个新文件)
-    - `ch.qos.logback.core.FileAppender` (文件)
+  - `ch.qos.logback.core.ConsoleAppender` (控制台)
+  - `ch.qos.logback.core.rolling.RollingFileAppender` (文件大小到达指定大小的时候产生一个新文件)
+  - `ch.qos.logback.core.FileAppender` (文件)
 
 ##### 7.3.2.4. file
 
@@ -1381,7 +1381,7 @@ public class LogbackTest {
 
 #### 7.3.3. 基础配置示例
 
-将所有日志都存储在一个文件中文件大小也随着应用的运行越来越大并且不好排查问题，正确的做法应该是将error日志和其他日志分开，并且不同级别的日志根据时间段进行记录存储。
+将所有日志都存储在一个文件中文件大小也随着应用的运行越来越大并且不好排查问题，正确的做法应该是将 error 日志和其他日志分开，并且不同级别的日志根据时间段进行记录存储。
 
 ```xml
 <?xml version="1.0" encoding="utf-8"?>
@@ -1546,7 +1546,7 @@ public class LogbackTest {
             </layout>
         </encoder>
     </appender>
-    
+
     <!-- root logger 配置 -->
     <root level="ALL">
         <!-- 配置控制台输出 -->
@@ -1639,7 +1639,7 @@ public class LogbackTest {
 
 #### 7.3.8. logback 高级特性异步输出日志
 
-之前的日志配置方式是基于同步的，每次日志输出到文件都会进行一次磁盘IO。采用异步写日志的方式而不让此次写日志发生磁盘IO，阻塞线程从而造成不必要的性能损耗。异步输出日志的方式很简单，添加一个基于异步写日志的 appender，并指向原先配置的 appender 即可
+之前的日志配置方式是基于同步的，每次日志输出到文件都会进行一次磁盘 IO。采用异步写日志的方式而不让此次写日志发生磁盘 IO，阻塞线程从而造成不必要的性能损耗。异步输出日志的方式很简单，添加一个基于异步写日志的 appender，并指向原先配置的 appender 即可
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
@@ -1670,7 +1670,7 @@ public class LogbackTest {
             <onMismatch>DENY</onMismatch>
         </filter>
     </appender>
-    
+
     <!-- 异步日志 -->
     <appender name="async" class="ch.qos.logback.classic.AsyncAppender">
         <!-- 指定某个具体的 appender -->
@@ -1689,7 +1689,7 @@ public class LogbackTest {
 </configuration>
 ```
 
-示例2
+示例 2
 
 ```xml
 <!-- 异步输出 -->
@@ -1716,7 +1716,7 @@ public class LogbackTest {
 
 > logback-access 官方配置文档：https://logback.qos.ch/access.html#configuration
 
-logback-access 模块与 Servlet 容器（如Tomcat和Jetty）集成，以提供 HTTP 访问日志功能。可以使用 logback-access 模块来替换 tomcat 的访问日志。具体操作步骤如下：
+logback-access 模块与 Servlet 容器（如 Tomcat 和 Jetty）集成，以提供 HTTP 访问日志功能。可以使用 logback-access 模块来替换 tomcat 的访问日志。具体操作步骤如下：
 
 1. 将 logback-access.jar 与 logback-core.jar 复制到 `$TOMCAT_HOME/lib/` 目录下
 2. 修改 `$TOMCAT_HOME/conf/server.xml` 中的 Host 元素中添加以下内容：
@@ -1951,7 +1951,7 @@ Logback 官方提供的 log4j.properties 转换成 logback.xml
 </dependency>
 ```
 
-2. 编写测试程序。*注意导入的包名称*
+2. 编写测试程序。_注意导入的包名称_
 
 ```java
 import org.apache.logging.log4j.LogManager;
@@ -2001,7 +2001,7 @@ public class Log4j2Test {
 </dependency>
 ```
 
-2. 编写测试程序。*注意导入的包名称*
+2. 编写测试程序。_注意导入的包名称_
 
 ```java
 import org.junit.Test;
@@ -2050,7 +2050,7 @@ Log4j2 的会默认加载应用的 classpath 下文件名为 `log4j2.xml` 的配
         <Property name="name1">value</Property>>
         <Property name="name2" value="value2"/>
     </Properties>
-   
+
     <Filter type="type" ... />
 
     <Appenders>
@@ -2140,7 +2140,7 @@ Log4j2 的会默认加载应用的 classpath 下文件名为 `log4j2.xml` 的配
     <Properties>
         <!-- 变量定义 -->
         <Property name="log_base_dir">/app_data/logs/my_app</Property>
-        <!-- 
+        <!--
             Appender在将日志数据写入目标位置之前，一般会将日志数据通过Layout进行格式化。PatternLayout可以使用与C语言printf函数类似的转换模式来指定输出格式。
             常见的配置如下：
                 - %d{yyyy-MM-dd HH:mm:ss.SSS} : 日志生成时间，输出格式为“年-月-日 时:分:秒.毫秒”
@@ -2536,13 +2536,13 @@ Log4j2 最牛的地方在于异步输出日志时的性能表现，Log4j2 在多
 
 垃圾收集暂停是延迟峰值的常见原因，并且对于许多系统而言，花费大量精力来控制这些暂停。
 
-许多日志库（包括以前版本的Log4j）在稳态日志记录期间分配临时对象，如日志事件对象，字符串，字符数组，字节数组等。这会对垃圾收集器造成压力并增加 GC 暂停发生的频率。
+许多日志库（包括以前版本的 Log4j）在稳态日志记录期间分配临时对象，如日志事件对象，字符串，字符数组，字节数组等。这会对垃圾收集器造成压力并增加 GC 暂停发生的频率。
 
 从版本 2.6 开始，默认情况下 Log4j 以“无垃圾”模式运行，其中重用对象和缓冲区，并且尽可能不分配临时对象。还有一个“低垃圾”模式，它不是完全无垃圾，但不使用 ThreadLocal 字段。
 
 2.6 版本中的无垃圾日志记录部分通过重用 ThreadLocal 字段中的对象来实现，部分通过在将文本转换为字节时重用缓冲区来实现。
 
-- **使用Log4j 2.5：内存分配速率809 MB /秒，141个无效集合**
+- **使用 Log4j 2.5：内存分配速率 809 MB /秒，141 个无效集合**
 
 ![](images/464374016247120.png)
 
@@ -2552,7 +2552,7 @@ Log4j2 最牛的地方在于异步输出日志时的性能表现，Log4j2 在多
 
 有两个单独的系统属性可用于手动控制 Log4j 用于避免创建临时对象的机制：
 
-- `log4j2.enableThreadlocals`：如果为“true”（非Web应用程序的默认值）对象存储在 ThreadLocal 字段中并重新使用，否则将为每个日志事件创建新对象。
+- `log4j2.enableThreadlocals`：如果为“true”（非 Web 应用程序的默认值）对象存储在 ThreadLocal 字段中并重新使用，否则将为每个日志事件创建新对象。
 - `log4j2.enableDirectEncoders`：如果将“true”（默认）日志事件转换为文本，则将此文本转换为字节而不创建临时对象。注意：由于共享缓冲区上的同步，在此模式下多线程应用程序的同步日志记录性能可能更差。如果应用程序是多线程的并且日志记录性能很重要，请考虑使用异步记录器。
 
 ## 9. Spring Boot 的日志使用
@@ -2566,7 +2566,7 @@ Spring Boot 的日志需要依赖 logging 启动器
 ```xml
 <dependency>
     <groupId>org.springframework.boot</groupId>
-    <artifactId>spring-boot-starter-logging</artifactId>   
+    <artifactId>spring-boot-starter-logging</artifactId>
 </dependency>
 ```
 
@@ -2622,7 +2622,7 @@ public class SpringBootLogApplication {
 }
 ```
 
-3. 通过 Spring Boot 配置文件，可修改默认日志配置。*以 application.properties 为例* 
+3. 通过 Spring Boot 配置文件，可修改默认日志配置。_以 application.properties 为例_
 
 ```properties
 # 指定自定义 logger 对象日志级别
@@ -2647,7 +2647,7 @@ logging.config=classpath:logback-spring.xml
 
 通过 Spring Boot 配置文件来修改日志的配置是有限制的，一般还是需要独立的日志配置文件。只需在类路径下创建各种日志框架相应的配置文件即可，会覆盖 Spring Boot 的默认配置。日志框架相应的配置文件列表如下：
 
-| 日志框架 |              配置文件              |
+| 日志框架 | 配置文件                          |
 | -------- | --------------------------------- |
 | Logback  | logback-spring.xml 或 logback.xml |
 | Log4j2   | log4j2-spring.xml 或 log4j2.xml   |
@@ -2766,28 +2766,28 @@ spring.profiles.active=pro
 - INFO：记录运维过程数据
 - WARN：记录运维过程报警数据
 - ERROR：记录错误堆栈信息
-- FATAL：灾难信息，合并计入ERROR
+- FATAL：灾难信息，合并计入 ERROR
 
 > TRACE、FATAL 级别基本不会用到
 
 ### 1.1. DEBUG
 
-DEBUG级别的主要输出调试性质的内容，该级别日志主要用于在开发、测试阶段输出。该级别的日志应尽可能地详尽，便于在开发、测试阶段出现问题或者异常时，对其进行分析。
+DEBUG 级别的主要输出调试性质的内容，该级别日志主要用于在开发、测试阶段输出。该级别的日志应尽可能地详尽，便于在开发、测试阶段出现问题或者异常时，对其进行分析。
 
 ### 1.2. INFO
 
 INFO 级别的主要输出提示性质的内容，该级别日志主要用于生产环境的日志输出。该级别或更高级别的日志不要出现在循环中，可以在循环开始或者结束后输出循环的次数，以及一些其他重要的数据。
 
-INFO 级别日志原则是在生产环境中，通过 INFO 和更高级别的日志，可以了解系统的运行状况，以及出现问题或者异常时，能快速地对问题进行定位，还原当时调用的上下文数据，能重现问题,那么INFO级别的日志主要是用于哪些方面呢？
+INFO 级别日志原则是在生产环境中，通过 INFO 和更高级别的日志，可以了解系统的运行状况，以及出现问题或者异常时，能快速地对问题进行定位，还原当时调用的上下文数据，能重现问题,那么 INFO 级别的日志主要是用于哪些方面呢？
 
 1. 应用启动时所加载的配置参数值（比如：连接参数、线程池参数、超时时间等，以及一些与环境相关的配置，或者是整个配置参数）
 2. 一些重要的依赖注入对象的类名
 3. 方法（服务方法）的输入参数值、返回值，由于一些方法入参的值非常多，只在入口处输出一次就可以了，在服务方法内部或者调用非服务方法时就不需要再输出了
 4. 方法中重要的部分，比如：从数据库中所获取较为重要的数据，以及调用第三方接口的输入参数值和接口返回值
 
-这个INFO应该用来反馈系统的当前状态给最终用户的，所以，在这里输出的信息，应该对最终用户具有实际意义，也就是最终用户要能够看得明白是什么意思才行。从某种角度上说，INFO 输出的信息可以看作是软件产品的一部分（就像那些交互界面上的文字一样），所以需要谨慎对待，不可随便。此输出级别常用语业务事件信息。例如某项业务处理完毕，或者业务处理过程中的一些信息。
+这个 INFO 应该用来反馈系统的当前状态给最终用户的，所以，在这里输出的信息，应该对最终用户具有实际意义，也就是最终用户要能够看得明白是什么意思才行。从某种角度上说，INFO 输出的信息可以看作是软件产品的一部分（就像那些交互界面上的文字一样），所以需要谨慎对待，不可随便。此输出级别常用语业务事件信息。例如某项业务处理完毕，或者业务处理过程中的一些信息。
 
-此输出级别也常用于输出一些对系统有比较大的影响的需要被看到的message，例如数据库更新，系统发送了额外的请求等。
+此输出级别也常用于输出一些对系统有比较大的影响的需要被看到的 message，例如数据库更新，系统发送了额外的请求等。
 
 ### 1.3. WARN
 
@@ -2813,19 +2813,19 @@ ERROR 级别主要针对于一些不可预知的信息，诸如：错误、异�
 
 优先级从高到低依次为: ERROR > WARN > INFO > DEBUG
 
-如果将log level设置在某一个级别上，那么比此级别优先级高的log都能打印出来。例如：如果设置优先级为`WARN`那么`ERROR` `WARN` 2个级别的log能正常输出，而`INFO` `DEBUG`级别的log则会被忽略。
+如果将 log level 设置在某一个级别上，那么比此级别优先级高的 log 都能打印出来。例如：如果设置优先级为`WARN`那么`ERROR` `WARN` 2 个级别的 log 能正常输出，而`INFO` `DEBUG`级别的 log 则会被忽略。
 
 ## 3. 基本日志规范
 
 ### 3.1. 一些个人整理的规范
 
-- 在一个对象中通常只使用一个Logger对象，Logger应该是使用`private static final`修饰的，只有在少数需要在构造函数中传递logger的情况下才使用`private final`。
+- 在一个对象中通常只使用一个 Logger 对象，Logger 应该是使用`private static final`修饰的，只有在少数需要在构造函数中传递 logger 的情况下才使用`private final`。
 
 ```java
 private static final Logger_LOG = LoggerFactory.getLogger(Test.class)
 ```
 
-- 输出Exceptions的全部Throwable信息，因为`logger.error(msg)`和`logger.error(msg,e.getMessage())`这样的日志输出方法会丢失掉最重要的StackTrace信息。
+- 输出 Exceptions 的全部 Throwable 信息，因为`logger.error(msg)`和`logger.error(msg,e.getMessage())`这样的日志输出方法会丢失掉最重要的 StackTrace 信息。
 
 ```java
 try {
@@ -2848,9 +2848,9 @@ try {
 
 - 日志性能的考虑，如果代码为核心代码，执行频率非常高，则输出日志建议增加判断，尤其是低级别的输出`debug`、`info`、`warn`。
 
-### 3.2. 阿里巴巴Java开发手册日志规约（节选嵩山版）
+### 3.2. 阿里巴巴 Java 开发手册日志规约（节选嵩山版）
 
-- <font color=red>**【强制】**</font>应用中不可直接使用日志系统（Log4j、Logback）中的 API，而应依赖使用日志框架（SLF4J、JCL--Jakarta Commons Logging）中的 API，使用门面模式的日志框架，有利于维护和各个类的日志处理方式统一。*说明：日志框架（SLF4J、JCL--Jakarta Commons Logging）的使用方式（推荐使用 SLF4J）*
+- <font color=red>**【强制】**</font>应用中不可直接使用日志系统（Log4j、Logback）中的 API，而应依赖使用日志框架（SLF4J、JCL--Jakarta Commons Logging）中的 API，使用门面模式的日志框架，有利于维护和各个类的日志处理方式统一。_说明：日志框架（SLF4J、JCL--Jakarta Commons Logging）的使用方式（推荐使用 SLF4J）_
 
 ```java
 /* 使用 SLF4J：*/
@@ -2869,20 +2869,20 @@ private static final Log log = LogFactory.getLog(Test.class);
 > - 日志保存位置：/home/admin/aapserver/logs/aap.log
 > - 历史日志名称为：aap.log.2016-08-01
 
-- <font color=red>**【强制】**</font>应用中的扩展日志（如打点、临时监控、访问日志等）命名方式：`appName_logType_logName.log`。这种命名的好处：通过文件名就可知道日志文件属于什么应用，什么类型，什么目的，也有利于归类查找。*说明：推荐对日志进行分类，如将错误日志和业务日志分开存放，便于开发人员查看，也便于通过日志对系统进行及时监控。*
+- <font color=red>**【强制】**</font>应用中的扩展日志（如打点、临时监控、访问日志等）命名方式：`appName_logType_logName.log`。这种命名的好处：通过文件名就可知道日志文件属于什么应用，什么类型，什么目的，也有利于归类查找。_说明：推荐对日志进行分类，如将错误日志和业务日志分开存放，便于开发人员查看，也便于通过日志对系统进行及时监控。_
 
 > - `logType`: 日志类型，如 stats/monitor/access 等；
 > - `logName`: 日志描述
 >
 > 示例：mppserver 应用中单独监控时区转换异常，如：`mppserver_monitor_timeZoneConvert.log`
 
-- <font color=red>**【强制】**</font>在日志输出时，字符串变量之间的拼接使用占位符的方式。*说明：因为`String`字符串的拼接会使用`StringBuilder`的`append()`方式，有一定的性能损耗。使用占位符仅是替换动作，可以有效提升性能。*
+- <font color=red>**【强制】**</font>在日志输出时，字符串变量之间的拼接使用占位符的方式。_说明：因为`String`字符串的拼接会使用`StringBuilder`的`append()`方式，有一定的性能损耗。使用占位符仅是替换动作，可以有效提升性能。_
 
 ```java
 logger.debug("Processing trade with id: {} and symbol: {}", id, symbol);
 ```
 
-- <font color=red>**【强制】**</font>对于 trace/debug/info 级别的日志输出，必须进行日志级别的开关判断。*说明：虽然在 `debug(参数)` 的方法体内第一行代码`isDisabled(Level.DEBUG_INT)`为真时（Slf4j 的常见实现 Log4j 和 Logback），就直接return，但是参数可能会进行字符串拼接运算。此外，如果`debug(getName())`这种参数内有`getName()`方法调用，无谓浪费方法调用的开销。*
+- <font color=red>**【强制】**</font>对于 trace/debug/info 级别的日志输出，必须进行日志级别的开关判断。_说明：虽然在 `debug(参数)` 的方法体内第一行代码`isDisabled(Level.DEBUG_INT)`为真时（Slf4j 的常见实现 Log4j 和 Logback），就直接 return，但是参数可能会进行字符串拼接运算。此外，如果`debug(getName())`这种参数内有`getName()`方法调用，无谓浪费方法调用的开销。_
 
 ```java
 // 如果判断为真，那么可以输出 trace 和 debug 级别的日志
@@ -2897,23 +2897,23 @@ if (logger.isDebugEnabled()) {
 <logger name="com.taobao.dubbo.config" additivity="false">
 ```
 
-- <font color=red>**【强制】**</font>生产环境禁止直接使用 `System.out` 或 `System.err` 输出日志或使用 `e.printStackTrace()` 打印异常堆栈。*说明：标准日志输出与标准错误输出文件每次 Jboss 重启时才滚动，如果大量输出送往这两个文件，容易造成文件大小超过操作系统大小限制。*
+- <font color=red>**【强制】**</font>生产环境禁止直接使用 `System.out` 或 `System.err` 输出日志或使用 `e.printStackTrace()` 打印异常堆栈。_说明：标准日志输出与标准错误输出文件每次 Jboss 重启时才滚动，如果大量输出送往这两个文件，容易造成文件大小超过操作系统大小限制。_
 
 - <font color=red>**【强制】**</font>日志打印时禁止直接用 JSON 工具将对象转换成 String。
 
 > - 说明：如果对象里某些 `get` 方法被覆写，存在抛出异常的情况，则可能会因为打印日志而影响正常业务流程的执行。
 > - 正例：打印日志时仅打印出业务相关属性值或者调用其对象的`toString()`方法。
 
-- <font color=gold>**【推荐】**</font>谨慎地记录日志。生产环境禁止输出 debug 日志；有选择地输出 info 日志；如果使用 warn 来记录刚上线时的业务行为信息，一定要注意日志输出量的问题，避免把服务器磁盘撑爆，并记得及时删除这些观察日志。*说明：大量地输出无效日志，不利于系统性能提升，也不利于快速定位错误点。*
-- <font color=gold>**【推荐】**</font>可以使用 warn 日志级别来记录用户输入参数错误的情况，避免用户投诉时，无所适从。如非必要，请不要在此场景打出 error 级别，避免频繁报警。*说明：注意日志输出的级别，error 级别只记录系统逻辑出错、异常或者重要的错误信息。*
+- <font color=gold>**【推荐】**</font>谨慎地记录日志。生产环境禁止输出 debug 日志；有选择地输出 info 日志；如果使用 warn 来记录刚上线时的业务行为信息，一定要注意日志输出量的问题，避免把服务器磁盘撑爆，并记得及时删除这些观察日志。_说明：大量地输出无效日志，不利于系统性能提升，也不利于快速定位错误点。_
+- <font color=gold>**【推荐】**</font>可以使用 warn 日志级别来记录用户输入参数错误的情况，避免用户投诉时，无所适从。如非必要，请不要在此场景打出 error 级别，避免频繁报警。_说明：注意日志输出的级别，error 级别只记录系统逻辑出错、异常或者重要的错误信息。_
 
 ## 4. 实践过程需要注意的问题
 
-### 4.1. 案例1
+### 4.1. 案例 1
 
-在MoonZero个人管理系统项目中，出现在开发环境记录中文日志正常，但到部署到tomcat后，记录的日志就是出现乱码
+在 MoonZero 个人管理系统项目中，出现在开发环境记录中文日志正常，但到部署到 tomcat 后，记录的日志就是出现乱码
 
-后来查询资料得出结论，因为当时是用tomcat9.0版本，好像tomcat8开始就默认是以nio作为通信模式，所以在配置logback日志时，需要增加`<charset class="java.nio.charset.Charset">UTF-8</charset>`，不然就会出现在开发环境正常，而到生产环境就出现中文乱码的问题
+后来查询资料得出结论，因为当时是用 tomcat9.0 版本，好像 tomcat8 开始就默认是以 nio 作为通信模式，所以在配置 logback 日志时，需要增加`<charset class="java.nio.charset.Charset">UTF-8</charset>`，不然就会出现在开发环境正常，而到生产环境就出现中文乱码的问题
 
 ```xml
 <!-- Console 输出设置 -->
@@ -2941,7 +2941,7 @@ if (logger.isDebugEnabled()) {
 </appender>
 ```
 
-### 4.2. 修改日志打印对象为JSON格式
+### 4.2. 修改日志打印对象为 JSON 格式
 
 在开发的时候，经常要打印日志，有的时候会在一些代码的关键节点处进行日志输出。
 
@@ -2957,17 +2957,17 @@ log.info("req = {}", aRequest);
 com.hollis.java.ways.ApplyRequest@39ddf169
 ```
 
-其实原因比较简单，那就是要打印的对象没有重写toString方法，这样无法将该对象的参数打印出来。所以，为了可以把对象的值都打印出来，一般要求对于自己定义的入参、出参等定义toString方法。
+其实原因比较简单，那就是要打印的对象没有重写 toString 方法，这样无法将该对象的参数打印出来。所以，为了可以把对象的值都打印出来，一般要求对于自己定义的入参、出参等定义 toString 方法。
 
-但是有些时候，使用的是外部定义的request和response对象，他们并没有覆盖toString，当对这些对象打印的时候，就会出现以上问题。一般简单的解决办法是，可以通过JSON把对象转成String，如：
+但是有些时候，使用的是外部定义的 request 和 response 对象，他们并没有覆盖 toString，当对这些对象打印的时候，就会出现以上问题。一般简单的解决办法是，可以通过 JSON 把对象转成 String，如：
 
 ```java
 log.info("req = {}", JSON.toJSONString(aRequest));
 ```
 
-**借助logback(log4j也有类似的功能)的MessageConverter。无侵入性的解决这个问题**
+**借助 logback(log4j 也有类似的功能)的 MessageConverter。无侵入性的解决这个问题**
 
-1. 自定义一个Layout
+1. 自定义一个 Layout
 
 ```java
 /**
