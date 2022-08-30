@@ -358,7 +358,41 @@ module.exports ={
 3. 设置html字体大小基准值，默认是16px
 4. 使用时只需要将光标停留在一些px单位的值上，再按`Alt+z`，就可以换算成 rem 单位的值
 
-### 1.8. 待整理
+### 1.8. Markdown 插件
+
+#### 1.8.1. Markdown All in One
+
+集成了撰写 Markdown 时所需要的大部分功能
+
+#### 1.8.2. markdownlint
+
+> 参考：https://github.com/DavidAnson/markdownlint/tree/main/doc
+>
+> https://www.jianshu.com/p/51523a1c6fe1
+
+markdownlint是vscode上一款非常好用的 Markdown 格式检查扩展工具，它规定了许多规则并实时对文档进行检查，防止一些语法错误，同时维持文档风格的统一，使用此工具有助于形成一个良好的写作习惯和规范。
+
+打开全局配置项 setting.json  
+
+```json
+"markdownlint.config": {
+    "MD001": false,
+    "MD013": false,
+    "MD025": false
+},
+```
+
+如果想在另一个地方全局配置，则在所想要的路径创建 `markdownlint.json`文件。如D:\development\VSCode\config\markdownlint.json。则修改 setting.json
+
+```json
+//setting.json
+"markdownlint.config": {
+    "extends": "D:\\development\\VSCode\\config\\markdownlint.json"
+}
+```
+
+
+### 1.9. 待整理
 
 - HTML Snippets
     - 超级实用且初级的 H5代码片段以及提示

@@ -60,19 +60,19 @@
 
 ```java
 public static InetAddress getLocalHost();
-    // 获取本地主机IP地址对象。直接输出：“主机名/ip地址”
+// 获取本地主机IP地址对象。直接输出：“主机名/ip地址”
 
 public static InetAddress getByName(String host);
-    // 依据主机名（IP地址字符串/域名）获取主机IP地址对象。
+// 依据主机名（IP地址字符串/域名）获取主机IP地址对象。
 ```
 
 ##### 1.6.2.2. 非静态方法
 
 ```java
 public String getHostName();
-    // 获取主机名称
+// 获取主机名称
 public String getHostAddress();
-    // 获取主机字符串形式的IP
+// 获取主机字符串形式的IP
 ```
 
 #### 1.6.3. 其他
@@ -157,16 +157,16 @@ public class MoonZero {
 
 ```java
 public InetAddress getAddress()
-    // 返回某台机器的 IP 地址
+// 返回某台机器的 IP 地址
 
 public int getPort()
-    // 返回某台远程主机的端口号
+// 返回某台远程主机的端口号
 
 public byte[] getData()
-    // 返回数据缓冲区。
+// 返回数据缓冲区。
 
 public int getLength()
-    // 返回将要发送或接收到的数据的长度。
+// 返回将要发送或接收到的数据的长度。
 ```
 
 ### 2.3. DatagramSocket 类（数据发送对象）
@@ -187,13 +187,13 @@ public int getLength()
 
 ```java
 public void send(DatagramPacket p) throws IOException
-    // 从此套接字发送数据报包。
+// 从此套接字发送数据报包。
 
 public void receive(DatagramPacket p) throws IOException
-    // 从此套接字接收数据报包。具有线程阻塞效果，运行后等待接收
+// 从此套接字接收数据报包。具有线程阻塞效果，运行后等待接收
 
 public void close()
-    // 关闭此数据报套接字。
+// 关闭此数据报套接字。
 ```
 
 ### 2.4. UDP网络程序实现步骤
@@ -436,13 +436,15 @@ TCP 在传输之前会进行三次沟通，一般称为“三次握手”，传�
 
 ![数据包说明](images/20190508155047901_30106.png)
 
+![](images/220172115220870.png)
+
 #### 3.2.2. 三次握手
 
 - 第一次握手：主机 A 发送位码为 syn＝1,随机产生 seq number=1234567 的数据包到服务器，主机 B 由 SYN=1 知道，A 要求建立联机；
 - 第二次握手：主机 B 收到请求后要确认联机 信息，向 A 发 送 ack number=( 主机 A 的 seq+1),syn=1,ack=1,随机产生 seq=7654321 的包
 - 第三次握手：主机 A 收到后检查 ack number 是否正确，即第一次发送的 seq number+1,以及位码 ack 是否为 1，若正确，主机 A 会再发送 ack number=(主机 B 的 seq+1),ack=1，主机 B 收到后确认 seq 值与 ack=1 则连接建立成功。
 
-![三次握手流程图](images/20190508155229474_2292.png)
+![](images/381192115239296.png)
 
 #### 3.2.3. 四次挥手
 
@@ -453,7 +455,7 @@ TCP 建立连接要进行三次握手，而断开连接要进行四次。这是�
 3. 关闭服务器到客户端的连接：也是发送一个 FIN 给客户端。
 4. 客户段收到 FIN 后，并发回一个 ACK 报文确认，并将确认序号 seq 设置为收到序号加 1。首先进行关闭的一方将执行主动关闭，而另一方执行被动关闭。
 
-![四次挥手流程图](images/20190508155502722_31436.png)
+![](images/264912415227163.png)
 
 主机 A 发送 FIN 后，进入终止等待状态， 服务器 B 收到主机 A 连接释放报文段后，就立即给主机 A 发送确认，然后服务器 B 就进入 close-wait 状态，此时 TCP 服务器进程就通知高层应用进程，因而从 A 到 B 的连接就释放了。此时是“半关闭”状态。即 A 不可以发送给 B，但是 B 可以发送给 A。此时，若 B 没有数据报要发送给 A 了，其应用进程就通知 TCP 释放连接，然后发送给 A 连接释放报文段，并等待确认。A 发送确认后，进入 time-wait，注意，此时 TCP 连接还没有释放掉，然后经过时间等待计时器设置的 2MSL 后，A 才进入到 close 状态。
 
