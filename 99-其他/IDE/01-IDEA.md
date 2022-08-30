@@ -1104,11 +1104,11 @@ Codota 还有一个在线网站，在这个网站上可以根据代码关键字�
 - 官方快捷键：https://resources.jetbrains.com/storage/products/intellij-idea/docs/IntelliJIDEA_ReferenceCard.pdf
 - windows 快捷键
 
-![](./attachments-IntelliJ-IDEA/IntelliJIDEA_ReferenceCard_win.jpg)
+![](../../attachments/IDE/IntelliJIDEA_ReferenceCard_win.jpg)
 
 - macOS 快捷键
 
-![](./attachments-IntelliJ-IDEA/IntelliJIDEA_ReferenceCard_mac.jpg)
+![](../../attachments/IDE/IntelliJIDEA_ReferenceCard_mac.jpg)
 
 ## 4. 主题样式
 

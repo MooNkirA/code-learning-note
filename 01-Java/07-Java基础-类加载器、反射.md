@@ -159,36 +159,50 @@ JAVA反射机制是在**运行状态**中，对于任意一个类，都能够知
 
 ## 4. Class 类
 
-### 4.1. 获取 Class 对象的三种方式
+### 4.1. 获取 Class 对象的四种方式
 
-- **方式一: 通过Object类中的`getClass()`方法**
+- **方式1: 通过对象实例继承 Object 类中的`getClass()`方法**
 
 ```java
 Person p = new Person();
 Class c = p.getClass();
 ```
 
-- **方式二: 通过 `类名.class` 获取到字节码文件对象**
+- **方式2: 通过 `类名.class` 获取到字节码文件对象**
     - 任意数据类型都具备一个class静态属性，**该类要和当前类在同一个项目中**
 
 ```java
 Class c2 = Person.class;
 ```
 
-- **方式三: 通过Class类中的静态方法 `forName(String str)`**
+- **方式3: 通过Class类中的静态方法 `forName(String str)`**
     - 将类名作为字符串传递给Class类中的静态方法forName即可。而类名必须全名：“包名.类名”(**在同一个项目下的类全名，不能跨项目的**)
 
 ```java
-Class c3 = Class.forName("xx.xxx.Person");
+Class c3 = Class.forName("com.moon.Person");
 ```
 
-**注意：第三种和前两种的区别前两种你必须明确Person类型。后面是指定这种类型的字符串即可，这种扩展更强，我不需要知道你的类，我只提供字符串，按照配置文件加载就可以了**
+> Notes: **第三种和前两种的区别前两种你必须明确Person类型。后面是指定这种类型的字符串即可，这种扩展更强，我不需要知道你的类，我只提供字符串，按照配置文件加载就可以了**
 
-**注：三种方式得到的类对象，是同一个对象**
+- **方式4：通过类加载器传入类路径获取**
 
-IDE中获取类全名的方法：右键类名 --> 选择Copy Qualified Name
+```java
+ClassLoader.getSystemClassLoader().loadClass("com.moon.TargetObject");
+```
+
+> Notes: 通过类加载器获取 Class 对象不会进行初始化，意味着不进行包括初始化等一系列步骤，静态代码块和静态对象不会得到执行
+
+> Notes: **4 种方式得到的类对象，是同一个对象**
+
+#### 4.1.1. 番外：通过 IDE 获取类全限定名
+
+eclipse 中获取类全名的方法：右键类名 -> 选择 Copy Qualified Name
 
 ![复制类全名](images/20190801112244830_23962.png)
+
+idea 中获取类全名的方法：右键类文件或者类名 -> 选择 Copy Reference。快捷键：Ctrl+Shift+Alt+C
+
+![](images/293070317247330.png) ![](images/155710417239999.png)
 
 ### 4.2. Class 类常用方法
 

@@ -2,9 +2,70 @@
 
 > 官方网站：https://code.visualstudio.com/
 
-## 1. 常用插件
+## 1. 常用配置
 
-### 1.1. 通用类
+### 1.1. 用户设置和工作区设置的区别
+
+> “用户设置”会应用于用户打开的所有工程；“工作区设置”仅适用于当前目录的 VSCode 的设置。<font color=red>**注：“工作区设置”会覆盖“用户设置”。**</font>
+
+- 用户设置：这种方式进行的设置，会应用于该用户打开的所有工程；
+- 工作空间设置：工作空间是指使用 VSCode 打开的某个文件夹，在该文件夹下会创建一个名为 .vscode 的隐藏文件夹，里面包含着仅适用于当前目录的 VSCode 的设置，工作空间的设置会覆盖用户的设置。
+
+#### 1.1.1. 用户设置与工作空间设置保存目录
+
+VSCode 的设置文件为 setting.json。用户设置的文件保存在如下目录：
+
+- Windows `%APPDATA%\Code\User\settings.json`
+- Linux `$HOME/.config/Code/User/settings.json`
+
+工作空间设置的文件保存在当前目录的 .vscode 文件夹下。
+
+#### 1.1.2. 修改默认设置的两种方式
+
+- 使用编辑器直接打开 setting.json 文件进行设置；
+- 点击 VSCode 的【文件】->【首选项】->【设置】，可以打开设置面板进行设置；
+
+### 1.2. 出现CPU 100% 优化的设置
+
+有时，vscode会出现CPU利用率100%的情况，两个rg.exe占用了全部的CPU。
+
+解决办法：文件>首选项>设置, 搜索设置 `"search.followSymlinks" ：false;`
+
+![](images/20201106085401142_25165.jpg)
+
+![](images/20201106085408474_25960.jpg)
+
+### 1.3. 如何配置VSCODE打开文件总是在一个新的标签
+
+经常搞混单击和双击的区别？这里在左侧资源管理器这边 如果单击文件是打开文件的预览模式，文件所在的标签上显示的文件名是 斜体状态，表明是在 预览模式，会被新打开的文件替换。所以如果是要打开文件进行编辑需要双击文件进行打开
+
+如果要修改这个配置，可以找到以下配置字段进行调整：
+
+如果要一起禁用预览模式，可以通过在设置文件中将“`workbench.editor.enablePreview`”属性设置为`false`来实现。还要注意“`workbench.editor.enablePreviewFromQuickOpen`”选项，以防您只想从快速打开菜单禁用此选项。
+
+在您可以禁用预览模式之前，您需要打开您的Settings File。
+
+专业提示：您可以使用Command Palette打开您的设置文件，只需输入“首选项：打开用户设置”！
+
+打开设置文件(您的设置文件应位于右侧)后，添加“`workbench.editor.enablePreview`”属性，并将其值设置为`false`。
+
+![](images/20201106085545739_7091.jpg)
+
+![](images/20201106085551962_7405.jpg)
+
+### 1.4. 设置tab为4个空格与格式化时缩进4个空格
+
+tab的宽度设置
+
+![](images/20201106085633573_17435.jpg)
+
+格式化缩进
+
+![](images/20201106085641403_18541.jpg)
+
+## 2. 常用插件
+
+### 2.1. 通用类
 
 |                      名称                       |                  说明                  |
 | ---------------------------------------------- | -------------------------------------- |
@@ -16,7 +77,7 @@
 | Path Intellisense                              | 自动路径补全，默认不带这个功能的（必备） |
 | Path Autocomplete                              | 地址补全插件                            |
 
-#### 1.1.1. eslint 插件
+#### 2.1.1. eslint 插件
 
 ![](images/20201106084622737_26552.jpg)
 
@@ -236,7 +297,7 @@ module.exports = {
 }
 ```
 
-#### 1.1.2. Rainbow Brackets
+#### 2.1.2. Rainbow Brackets
 
 此扩展已经成为VSCode的一个本地功能(可以不安装)。直接修改 settings.json 文件开启即可
 
@@ -247,7 +308,7 @@ module.exports = {
 }
 ```
 
-#### 1.1.3. Path Intellisense 配置 @ 路径提示
+#### 2.1.3. Path Intellisense 配置 @ 路径提示
 
 路径提示配置的前提是，在 webpack.config.js 文件中配置 `@` 符号指定的目录位置
 
@@ -278,7 +339,7 @@ module.exports ={
 
 > <font color=red>**注意：需要使用vscode打开项目根目录（即 package.json 所在的目录），否则 `@` 路径提示将失效**</font>
 
-#### 1.1.4. Path Autocomplete 配置 @ 路径提示
+#### 2.1.4. Path Autocomplete 配置 @ 路径提示
 
 > 路径提示配置的前提同上
 
@@ -295,7 +356,7 @@ module.exports ={
 
 重启vscode，`@`路径提示就配置好了
 
-### 1.2. HTML 类
+### 2.2. HTML 类
 
 |          名称           |                           说明                            |
 | ---------------------- | --------------------------------------------------------- |
@@ -304,7 +365,7 @@ module.exports ={
 | Highlight Matching Tag | 高亮显示选中匹配标签                                       |
 |                        |                                                           |
 
-### 1.3. Vue 相关插件
+### 2.3. Vue 相关插件
 
 |              名称              |                                 说明                                  |
 | ----------------------------- | -------------------------------------------------------------------- |
@@ -313,7 +374,7 @@ module.exports ={
 | Vue Language Features (Volar) | Vue官方插件，支持Vue3                                                 |
 | Vscode-element-helper         | 使用element-ui库的可以安装这个插件，编写标签时自动提示element标签名称。 |
 
-#### 1.3.1. Vetur 插件配置
+#### 2.3.1. Vetur 插件配置
 
 <font color=red>**注意：VSCode中使用vetur插件格式化vue文件时，js代码会被添加上分号且单引号会转变为双引号。**</font>设置vscode配置文件
 
@@ -321,7 +382,7 @@ module.exports ={
 "vetur.format.defaultFormatter.js": "vscode-typescript"
 ```
 
-### 1.4. 推荐主题
+### 2.4. 推荐主题
 
 |           名称            |                   说明                   |
 | ------------------------ | --------------------------------------- |
@@ -333,12 +394,12 @@ module.exports ={
 
 
 
-### 1.5. beautify 与 Prettier - Code formatter
+### 2.5. beautify 与 Prettier - Code formatter
 
 - beautify：格式化代码的工具，可以格式化JSON|JS|HTML|CSS|SCSS,比内置格式化好用；但是react工程的jsx文件用beautify插件格式化会乱掉，建议不要用
 - Prettier - Code formatter：格式化代码的工具，可以支持react
 
-### 1.6. IntelliSense for CSS class names in HTML 或 HTML CSS Support
+### 2.6. IntelliSense for CSS class names in HTML 或 HTML CSS Support
 
 **IntelliSense for CSS class names in HTML**
 
@@ -349,7 +410,7 @@ module.exports ={
 让 html 标签上写class 智能提示当前项目所支持的样式。新版已经支持scss文件检索
 
 
-### 1.7. cssrem
+### 2.7. cssrem
 
 此插件的功能是实现 px 转换 rem
 
@@ -358,21 +419,19 @@ module.exports ={
 3. 设置html字体大小基准值，默认是16px
 4. 使用时只需要将光标停留在一些px单位的值上，再按`Alt+z`，就可以换算成 rem 单位的值
 
-### 1.8. Markdown 插件
+### 2.8. Markdown 插件
 
-#### 1.8.1. Markdown All in One
+#### 2.8.1. Markdown All in One
 
 集成了撰写 Markdown 时所需要的大部分功能
 
-#### 1.8.2. markdownlint
+#### 2.8.2. markdownlint
 
 > 参考：https://github.com/DavidAnson/markdownlint/tree/main/doc
->
-> https://www.jianshu.com/p/51523a1c6fe1
 
 markdownlint是vscode上一款非常好用的 Markdown 格式检查扩展工具，它规定了许多规则并实时对文档进行检查，防止一些语法错误，同时维持文档风格的统一，使用此工具有助于形成一个良好的写作习惯和规范。
 
-打开全局配置项 setting.json  
+打开全局配置项 setting.json，直接配置
 
 ```json
 "markdownlint.config": {
@@ -387,12 +446,73 @@ markdownlint是vscode上一款非常好用的 Markdown 格式检查扩展工具�
 ```json
 //setting.json
 "markdownlint.config": {
-    "extends": "D:\\development\\VSCode\\config\\markdownlint.json"
+    "extends": "D:/development/VSCode/config/markdownlint.json"
 }
 ```
 
+在 Prettier 中使用 markdownlint。在大多数情况下，它与 markdownlint 的工作是无缝连接的。markdownlint和Prettier的默认设置是兼容的。如在使用Prettier时，`--tab-width`设置为4，可以使用以下markdownlint配置。
 
-### 1.9. 待整理
+```json
+{
+  "MD007": {
+    "indent": 4
+  },
+  "MD030": {
+    "ul_single": 3,
+    "ul_multi": 3
+  }
+}
+```
+
+**Markdownlint 规范参数表**
+
+| 代码	 |                              描述	                              |                                                                     解释                                                                     |
+| :----: | -------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| MD001  | 	Heading levels should only increment by one level at a time   | 标题级数只能每次扩大一个，也就是说不能隔级创建标题，必须 h1-h2-h3…这样                                                                             |
+| MD002  | 	First heading should be a top level heading                   | 文档的第一个标题必须是最高级的标题                                                                                                              |
+| MD003  | 	Heading style                                                 | 整篇文档的标题格式要统一                                                                                                                       |
+| MD004  | 	Unordered list style                                          | 整篇文档的无序列表的格式要一致                                                                                                                 |
+| MD005  | 	Inconsistent indentation for list items at the same level     | 同一个等级的列表的缩进要一致                                                                                                                   |
+| MD006  | 	Consider starting bulleted lists at the beginning of the line | 一级标题不能够缩进                                                                                                                            |
+| MD007  | 	Unordered list indentation                                    | 无序列表嵌套的时候默认采取两个空格的缩进方式                                                                                                     |
+| MD009  | 	Trailing spaces                                               | 行尾最多可以添加两个空格，超出之后会有警告，最好每次都是两个空格因为两个空格刚好可以用来换行                                                          |
+| MD010  | 	Hard tabs                                                     | 不能使用 tab 来进行缩进，要使用空格                                                                                                            |
+| MD011  | 	Reversed link syntax                                          | 内联形式的链接和创建方式是否错误，中括号和圆括号是否使用正确                                                                                       |
+| MD012  | 	Multiple consecutive blank lines                              | 文档中不能有连续的空行（文档末可以有一个空行），在代码块中这个规则不会生效                                                                          |
+| MD013  | 	Line length                                                   | 默认行的最大长度是 80，对表格代码块标题都起效果                                                                                                  |
+| MD014  | 	Dollar signs used before commands without showing output      | 在代码块中，终端命令前面不需要有美元符号，如果如果代码块中既有终端命令，也有命令的输出，则终端命令前可以有美元符号($)                                    |
+| MD018  | 	No space after hash on atx style heading                      | 标题格式如果是"atx"的话，#号和文字之间需要一个空格隔开                                                                                           |
+| MD019  | 	Multiple spaces after hash on atx style heading               | 标题格式如果是"atx"的话，#号和文字之间只需要一个空格隔开，不需要多个                                                                               |
+| MD020  | 	No space inside hashes on closed atx style heading            | 在 closed_atx 格式的标题中，文字和前后的#号之间都需要一个空格隔开                                                                                 |
+| MD021  | 	Multiple spaces inside hashes on closed atx style heading     | 在 closed_atx 格式的标题中，文字和前后的#号之间只需要一个空格隔开，不能有多余的                                                                    |
+| MD022  | 	Headings should be surrounded by blank lines                  | 标题的上下行必须都是空格                                                                                                                       |
+| MD023  | 	Headings must start at the beginning of the line              | 标题行不能缩进                                                                                                                                |
+| MD024  | 	Multiple headings with the same content                       | 在文档中不能有重复性的标题                                                                                                                     |
+| MD025  | 	Multiple top level headings in the same document              | 同一个文档中，只能有一个最高级的标题，默认也只能有一个一级标题                                                                                     |
+| MD026  | 	Trailing punctuation in heading                               | 标题的末尾不能有". , ; : ! ? "这些符号                                                                                                         |
+| MD027  | 	Multiple spaces after blockquote symbol                       | 在创建引用块的时候，右尖号与文字之间必须有且只有一个空格                                                                                          |
+| MD028  | 	Blank line inside blockquote                                  | 两个引用区块间不能仅用一个空行隔开或者同一引用区块中不能有空行，如果一行中没有内容，则这一行要用>开头                                                  |
+| MD029  | 	Ordered list item prefix                                      | 有序列表的前缀序号格式必须只用 1 或者从 1 开始的加 1 递增数字                                                                                     |
+| MD030  | 	Spaces after list markers                                     | 列表（有序、无序）的前缀符号和文字之间用 1 个空格隔开，在列表嵌套或者同一列表项中有多个段落时，无序列表缩进两个空格，有序列表缩进 3 个空格                 |
+| MD031  | 	Fenced code blocks should be surrounded by blank lines        | 单独的代码块前后需要用空行隔开（除非是在文档开头或末尾），否则有些解释器不会解释为代码块                                                              |
+| MD032  | 	Lists should be surrounded by blank lines                     | 列表（有序、无序）前后需要用空行隔开，否则有些解释器不会解释为列表，列表的缩进必须一致，否则会警告                                                     |
+| MD033  | 	Inline HTML                                                   | 文档中不允许使用 html 语句                                                                                                                    |
+| MD034  | 	Bare URL used                                                 | 单纯的链接地址需要用尖括号 (`<>`) 包裹，否则有些解释器不会解释为链接                                                                               |
+| MD035  | 	Horizontal rule style                                         | 创建水平线时整篇文档要统一，要和文档中第一次创建水平线使用的符号一致                                                                                |
+| MD036  | 	Emphasis used instead of a heading                            | 不能用强调来代替标题 `****`                                                                                                                   |
+| MD037  | 	Spaces inside emphasis markers                                | 强调的符号和文字之间不能有空格                                                                                                                 |
+| MD038  | 	Spaces inside code span elements                              | 当用单反引号创建代码段的时候，单反引号和它们之间的代码不能有空格，如果要把单反引号嵌入到代码段的首尾，创建代码段的单反引号和嵌入的单反引号间要有一个空格隔开 |
+| MD039  | 	Spaces inside link text                                       | 链接名和包围它的中括号之间不能有空格，但链接名中间可以有空格                                                                                       |
+| MD040  | 	Fenced code blocks should have a language specified           | 单独的代码块（此处是指上下用三个反引号包围的代码块）应该指定代码块的编程语言，这一点有助于解释器对代码进行代码高亮                                       |
+| MD041  | 	First line in file should be a top level heading              | 文档的第一个非空行应该是文档最高级的标题，默认是 1 级标题                                                                                         |
+| MD042  | 	No empty links                                                | 链接的地址不能为空                                                                                                                            |
+| MD043  | 	Required heading structure                                    | 要求标题遵循一定的结构，默认是没有规定的结构                                                                                                     |
+| MD044  | 	Proper names should have the correct capitalization           | 指定一些名称，会检查它是否有正确的大写                                                                                                          |
+| MD045  | 	Images should have alternate text (alt text)                  | 图片链接必须包含描述文本                                                                                                                       |
+| MD046  | 	Code block style                                              | 整篇文档采用一致的代码格式                                                                                                                     |
+| MD047  | 	Files should end with a single newline character              | 文档末尾需要一个空行结尾                                                                                                                       |
+
+### 2.9. 待整理
 
 - HTML Snippets
     - 超级实用且初级的 H5代码片段以及提示
@@ -407,46 +527,6 @@ markdownlint是vscode上一款非常好用的 Markdown 格式检查扩展工具�
 
 ![](images/20201106085236711_21502.jpg)
 
-## 2. 常用配置
-
-### 2.1. 出现CPU 100% 优化的设置
-
-有时，vscode会出现CPU利用率100%的情况，两个rg.exe占用了全部的CPU。
-
-解决办法：文件>首选项>设置, 搜索设置 `"search.followSymlinks" ：false;`
-
-![](images/20201106085401142_25165.jpg)
-
-![](images/20201106085408474_25960.jpg)
-
-### 2.2. 如何配置VSCODE打开文件总是在一个新的标签
-
-经常搞混单击和双击的区别？这里在左侧资源管理器这边 如果单击文件是打开文件的预览模式，文件所在的标签上显示的文件名是 斜体状态，表明是在 预览模式，会被新打开的文件替换。所以如果是要打开文件进行编辑需要双击文件进行打开
-
-如果要修改这个配置，可以找到以下配置字段进行调整：
-
-如果要一起禁用预览模式，可以通过在设置文件中将“`workbench.editor.enablePreview`”属性设置为`false`来实现。还要注意“`workbench.editor.enablePreviewFromQuickOpen`”选项，以防您只想从快速打开菜单禁用此选项。
-
-在您可以禁用预览模式之前，您需要打开您的Settings File。
-
-专业提示：您可以使用Command Palette打开您的设置文件，只需输入“首选项：打开用户设置”！
-
-打开设置文件(您的设置文件应位于右侧)后，添加“`workbench.editor.enablePreview`”属性，并将其值设置为`false`。
-
-![](images/20201106085545739_7091.jpg)
-
-![](images/20201106085551962_7405.jpg)
-
-### 2.3. 设置tab为4个空格与格式化时缩进4个空格
-
-tab的宽度设置
-
-![](images/20201106085633573_17435.jpg)
-
-格式化缩进
-
-![](images/20201106085641403_18541.jpg)
-
 ## 3. 快捷键
 
 ### 3.1. 官方快捷键列表
@@ -454,7 +534,7 @@ tab的宽度设置
 - 官网地址：https://code.visualstudio.com/shortcuts/keyboard-shortcuts-windows.pdf
 - windows 快捷键
 
-![](../../note_attachments/99-其他/Visual-Studio-Code/keyboard-shortcuts-windows.jpg)
+![](../../attachments/IDE/Visual-Studio-Code-keyboard-shortcuts-windows.jpg)
 
 ### 3.2. 常用快捷键
 

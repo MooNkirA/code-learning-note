@@ -315,7 +315,33 @@ Java方法是语句的集合，它们在一起执行一个功能。
 
 ![](images/584475916220855.jpg)
 
-#### 3.5.2. 通过值传递参数
+#### 3.5.2. 形参 & 实参
+
+参数在程序语言中分为：
+
+- **实参（实际参数）**：用于传递给函数/方法的参数，必须有确定的值。
+- **形参（形式参数）**：用于定义函数/方法，接收实参，不需要有确定的值。
+
+```java
+String hello = "Hello!";
+// hello 为实参
+sayHello(hello);
+// str 为形参
+void sayHello(String str) {
+    System.out.println(str);
+}
+```
+
+#### 3.5.3. 值传递 & 引用传递
+
+程序设计语言将实参传递给方法（或函数）的方式分为两种：
+
+- **值传递**：指的是在方法调用时，方法接收的是实参值的拷贝，会创建副本，传递后就互不相关了。
+- **引用传递**：指的是在方法调用时，方法接收的直接是实参所引用的对象在堆中的地址，不会创建副本，即传递前和传递后都指向同一个引用（也就是同一个内存空间）。对形参的修改将影响到实参。
+
+很多程序设计语言（比如 C++、 Pascal）提供了两种参数传递的方式，<font color=red>**值得注意的是，在 Java 中只有值传递**</font>。
+
+#### 3.5.4. Java 只有通过值传递参数
 
 调用一个方法时必须按照参数列表指定的顺序提供参数。
 
@@ -323,10 +349,44 @@ Java方法是语句的集合，它们在一起执行一个功能。
 
 Java 程序设计语言总是采用按值调用。即：<font color=red>**方法得到的是所有参数值的一个拷贝，方法不能修改传递给它的任何参数变量的内容**</font>。
 
-#### 3.5.3. 番外 - 值传递和引用传递有什么区别
+案例证明：
 
-- 值传递：指的是在方法调用时，传递的参数是按值的拷贝传递，传递的是值的拷贝，传递后就互不相关了。
-- 引用传递：指的是在方法调用时，传递的参数是按引用进行传递，其实传递的引用的地址，也就是变量所对应的内存空间的地址。传递的是值的引用，即传递前和传递后都指向同一个引用（也就是同一个内存空间）。
+```java
+public class Person {
+    private String name;
+   // 省略构造函数、Getter&Setter方法
+}
+
+public static void main(String[] args) {
+    Person xiaoZhang = new Person("小张");
+    Person xiaoLi = new Person("小李");
+    swap(xiaoZhang, xiaoLi);
+    System.out.println("xiaoZhang:" + xiaoZhang.getName());
+    System.out.println("xiaoLi:" + xiaoLi.getName());
+}
+
+public static void swap(Person person1, Person person2) {
+    Person temp = person1;
+    person1 = person2;
+    person2 = temp;
+    System.out.println("person1:" + person1.getName());
+    System.out.println("person2:" + person2.getName());
+}
+```
+
+输出结果：
+
+```
+person1:小李
+person2:小张
+xiaoZhang:小张
+xiaoLi:小李
+```
+
+解析：两个引用类型的形参互换并没有影响实参啊！因为 swap 方法的参数 person1 和 person2 只是拷贝的实参 xiaoZhang 和 xiaoLi 的地址。因此，person1 和 person2 的互换只是拷贝的两个地址的互换罢了，并不会影响到实参 xiaoZhang 和 xiaoLi。
+
+![](images/409091916220871.png)
+
 
 ## 4. 权限修饰符
 
@@ -3053,20 +3113,64 @@ $payment.get("Payment_WX")
 
 ## 1. 对象的序列化与反序列化概述
 
-什么是序列化？对象并不只是存在内存中，还需要传输网络，或者保存起来下次再加载出来用，所以需要Java序列化技术。
+> 引用维基百科对于“序列化”的介绍：
+>
+> 序列化（serialization）在计算机科学的数据处理中，是指将数据结构或对象状态转换成可取用格式（例如存成文件，存于缓冲，或经由网络中发送），以留待后续在相同或另一台计算机环境中，能恢复原先状态的过程。依照序列化格式重新获取字节的结果时，可以利用它来产生与原始对象相同语义的副本。对于许多对象，像是使用大量引用的复杂对象，这种序列化重建的过程并不容易。面向对象中的对象序列化，并不概括之前原始对象所关系的函数。这种过程也称为对象编组（marshalling）。从一系列字节提取数据结构的反向操作，是反序列化（也称为解编组、deserialization、unmarshalling）。
 
-Java序列化技术正是将对象转变成一串由二进制字节组成的数组，可以通过将二进制数据保存到磁盘或者传输网络，磁盘或者网络接收者可以在对象的属类的模板上来反序列化类的对象，达到对象持久化的目的。
+对象并不只是存在内存中，还需要在传输网络或者持久化到文件，下次再加载出来用，这些场景都需要用到 Java 序列化技术。
 
-- <font color=red>**对象序列化：将自定义对象以流的形式保存到文件中的过程**</font>。要实现对象的序列化需要使用的流：`ObjectOutputStream` 继承 `OutputStream`
-- <font color=red>**对象反序列化：将文件中的对象以流的形式读取出来的过程**</font>。要实现对象的反序列化需要使用的流：`ObjectInputStream` 继承 `InputStream`
+- <font color=red>**序列化：将数据结构或对象转换成二进制字节流的过程**</font>。要实现对象的序列化需要使用的流：`ObjectOutputStream` 继承 `OutputStream`
+- <font color=red>**反序列化：将在序列化过程中所生成的二进制字节流的过程转换成数据结构或者对象的过程**</font>。要实现对象的反序列化需要使用的流：`ObjectInputStream` 继承 `InputStream`
 
-## 2. 对象序列化流 ObjectOutputStream 类
+**Java 序列化技术**正是将对象转变成一串由二进制字节组成的数组，可以通过将二进制数据保存到磁盘或者传输网络，磁盘或者网络接收者可以在对象的属类的模板上来反序列化类的对象，达到对象持久化的目的。
 
-### 2.1. ObjectOutputStream 类作用
+![](images/49242616239297.png)
 
-对象输出流，将Java的对象保存到文件中
+### 1.1. 序列化协议对应于 TCP/IP 四层模型中的层级
 
-### 2.2. 构造方法
+网络通信的双方必须要采用和遵守相同的协议。TCP/IP 四层模型如下：
+
+1. 应用层
+2. 传输层
+3. 网络层
+4. 网络接口层
+
+![](images/146613316227164.png)
+  
+如上图所示，OSI 七层协议模型中，表示层做的事情主要就是对应用层的用户数据进行处理转换为二进制流。反过来的话，就是将二进制流转换成应用层的用户数据。因此，OSI 七层协议模型中的应用层、表示层和会话层对应的都是 TCP/IP 四层模型中的应用层，所以**序列化协议属于 TCP/IP 协议应用层的一部分**。
+
+### 1.2. 实际开发中序列化和反序列化的应用场景
+
+1. 对象在进行网络传输（比如远程方法调用 RPC 的时候）之前需要先被序列化，接收到序列化的对象之后需要再进行反序列化
+2. 将对象存储到文件中的时候需要进行序列化，将对象从文件中读取出来需要进行反序列化
+3. 将对象存储到缓存数据库（如 Redis）时需要用到序列化，将对象从缓存数据库中读取出来需要反序列化
+
+## 2. Serializable - 序列化接口
+
+### 2.1. 概述
+
+```java
+package java.io;
+
+public interface Serializable {
+}
+```
+
+`Serializable`接口，没有任何方法，该接口属于标记性接口。接口的作用是，能够保证实现了该接口的类的对象可以直接被序列化到文件中
+
+> Notes: <font color=red>**被保存的对象要求实现 `Serializable` 接口，否则不能直接保存到文件中。否则会出现`java.io.NotSerializableException`。**</font>
+
+### 2.2. serialVersionUID 概述
+
+序列化号 serialVersionUID 属于版本控制的作用。序列化的时候 serialVersionUID 也会被写入二级制序列，当反序列化时会检查 serialVersionUID 是否和当前类的 serialVersionUID 一致。如果 serialVersionUID 不一致则会抛出 `InvalidClassException` 异常。强烈推荐每个序列化类都手动指定其 serialVersionUID，如果不手动指定，那么编译器会动态生成默认的序列化号
+
+## 3. 对象序列化流 ObjectOutputStream 类
+
+### 3.1. ObjectOutputStream 类作用
+
+对象输出流，将 Java 的对象保存到文件中
+
+### 3.2. 构造方法
 
 ```java
 public ObjectOutputStream(OutputStream out);
@@ -3078,7 +3182,7 @@ public ObjectOutputStream(OutputStream out);
 ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream("stu.txt"));
 ```
 
-### 2.3. 相关方法
+### 3.3. 相关方法
 
 ```java
 public final void writeObject(Object obj)
@@ -3086,21 +3190,7 @@ public final void writeObject(Object obj)
 
 将对象Obj写出到流关联的目标文件中
 
-### 2.4. 序列化接口(Serializable)
-
-```java
-package java.io;
-
-public interface Serializable {
-}
-```
-
-- `Serializable`接口概述：没有任何方法，该接口属于标记性接口。
-- `Serializable`接口作用：能够保证实现了该接口的类的对象可以直接被序列化到文件中
-
-<font color=red>**注：被保存的对象要求实现 `Serializable` 接口，否则不能直接保存到文件中。否则会出现`java.io.NotSerializableException`。**</font>
-
-### 2.5. 序列化步骤
+### 3.4. 序列化步骤
 
 1. 定义类，实现Serializable接口，自定义一个Serializable接口序列号
 
@@ -3113,13 +3203,13 @@ public class Student implements Serializable {}
 4. 调用`writeObject`将对象写入文件中
 5. 关流
 
-## 3. 对象反序列化流ObjectInputStream
+## 4. 对象反序列化流ObjectInputStream
 
-### 3.1. ObjectInputStream作用
+### 4.1. ObjectInputStream作用
 
 将文件中的对象读取到程序中，将对象从文件中读取出来，实现对象的反序列化操作。
 
-### 3.2. 构造方法
+### 4.2. 构造方法
 
 ```java
 ObjectInputStream(InputStream in)
@@ -3127,7 +3217,7 @@ ObjectInputStream(InputStream in)
 
 通过字节输入`InputStream`对象创建`ObjectInputStream`
 
-### 3.3. 普通方法
+### 4.3. 普通方法
 
 ```java
 public final Object readObject()
@@ -3135,15 +3225,15 @@ public final Object readObject()
 
 从流关联的的文件中读取对象
 
-### 3.4. 反序列化步骤
+### 4.4. 反序列化步骤
 
 1. 创建对象输入流
 2. 调用`readObject()`方法读取对象
 3. 关流
 
-## 4. 序列化和反序列化的注意事项
+## 5. 序列化和反序列化的注意事项
 
-### 4.1. InvalidClassException 异常
+### 5.1. InvalidClassException 异常
 
 `java.io.InvalidClassException`: 无效的类异常。此异常是<font color=red>**序列号冲突**</font>。
 
@@ -3152,25 +3242,25 @@ public final Object readObject()
 
 ![](images/20201105141312805_17748.png)
 
-### 4.2. 瞬态关键字 transient
+### 5.2. 瞬态关键字 transient
 
 序列化对象时，如果不想保存某一个成员变量的值，该如何处理？
 
-#### 4.2.1. 关键字 transient 的作用
+#### 5.2.1. 关键字 transient 的作用
 
 `transient`关键字作用是用于指定**序列化对象时不保存某个成员变量的值**
 
 用 `transient` 修饰成员变量，能够保证该成员变量的值不能被序列化到文件中。当对象被反序列化时，被 `transient` 修饰的变量值不会被持久化和恢复
 
-#### 4.2.2. 使用 static 修饰的成员变量（不建议使用）
+#### 5.2.2. 使用 static 修饰的成员变量（不建议使用）
 
 可以将该成员变量定义为静态的成员变量。因为对象序列化只会保存对象自己的信息，静态成员变量是属于类的信息，所有不会被保存
 
-#### 4.2.3. 注意点
+#### 5.2.3. 注意点
 
 `transient` 只能修饰变量，不能修饰类和方法
 
-### 4.3. 其它要点
+### 5.3. 其它要点
 
 - 序列化对象必须实现序列化接口。
 - 序列化对象里面的属性是对象的话也要实现序列化接口。
@@ -3181,11 +3271,20 @@ public final Object readObject()
 - 用Java序列化的二进制字节数据只能由Java反序列化，不能被其他语言反序列化。如果要进行前后端或者不同语言之间的交互一般需要将对象转变成Json/Xml通用格式的数据，再恢复原来的对象。
 - 如果某个字段不想序列化，在该字段前加上`transient`关键字即可
 
-## 5. 序列化对象 - 网上案例
+## 6. 常见序列化协议对比
+
+常见的序列化协议有：JDK 自带的序列化，比较常用第三方的序列化协议：hessian、kyro、protostuff。
+
+其中 JDK 自带的序列化一般很少用，因为序列化效率低并且部分版本有安全漏洞，主要原因有两个：
+
+- 不支持跨语言调用：如果调用的是其他语言开发的服务的时候就不支持了。
+- 性能差：相比于其他序列化框架性能更低，主要原因是序列化之后的字节数组体积较大，导致传输成本加大。
+
+## 7. 序列化对象 - 网上案例
 
 要序列化一个对象，这个对象所在类就必须实现Java序列化的接口：`java.io.Serializable`。
 
-### 5.1. 类添加序列化接口
+### 7.1. 类添加序列化接口
 
 ```java
 import java.io.Serializable;
@@ -3223,7 +3322,7 @@ public class User implements Serializable {
 }
 ```
 
-### 5.2. 序列化/反序列化
+### 7.2. 序列化/反序列化
 
 可以借助commons-lang3工具包里面的类实现对象的序列化及反序列化，无需自己写
 

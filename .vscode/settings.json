@@ -1,0 +1,4 @@
+{
+    "editor.defaultFormatter": "DavidAnson.vscode-markdownlint",
+    "prettier.tabWidth": 4
+}

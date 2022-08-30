@@ -259,6 +259,7 @@ firewall-cmd --zone=public --add-port=27017/tcp --permanent
 
 - 出错的原因：操作系统开启了ipv6支持，但是mongodb未开启ipv6支持
 - 解决办法有2个内
+
 1. 删除操作系统中ipv6解析（注意是mongoDB容器的系统中的hosts）
 
 删除`/etc/hosts`中 `::1 localhost` 这一行的内容
@@ -276,7 +277,6 @@ B、
 ```
 
 > <font color="red">**注：按网上的方法暂时无法解决，但使用studio3t是可以连接**</font>
-
 
 ## 4. studio3t 客户端使用
 

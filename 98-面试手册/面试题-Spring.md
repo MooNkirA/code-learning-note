@@ -39,7 +39,7 @@ AOP 不能增强的类：
 - Spring AOP 只能对 IoC 容器中的 Bean 进行增强,对于不受容器管理的对象不能增强。
 - 由于 CGLib 采用动态创建子类的方式生成代理对象,所以不能对 final 修饰的类进行代理。
 
-## 3. @transactional 注解在什么情况下会失效，为什么。
+## 3. @transactional 注解在什么情况下会失效，为什么？
 
 1. 检查方法是不是 public 的
 2. 异常类型是不是 unchecked 异常。如果想 check 异常也想回滚怎么办，注解上面写明异常类型即可。`@Transactional(rollbackFor=Exception.class)`
