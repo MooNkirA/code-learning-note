@@ -231,13 +231,14 @@ exit
 | ~~ol~~    | ~~欧路词典~~                              |
 | ~~ebook~~ | ~~Icecream Ebook Reader（电子书阅读器）~~ |
 
-### 2.3. 软件内设快捷运行
+### 2.3. 安装第三方软件内设快捷运行
 
-|  快捷键   |      程序       |
-| -------- | --------------- |
-| xshell   | xShell 6        |
-| xftp     | Xftp 6          |
-| snipaste | windows截图工具 |
+|  快捷键   |           程序           |
+| -------- | ------------------------ |
+| xshell   | xShell 6                 |
+| xftp     | Xftp 6                   |
+| snipaste | windows截图工具           |
+| calibre  | calibre 开源电子书管理工具 |
 
 ### 2.4. window 系统常用原生命令
 
