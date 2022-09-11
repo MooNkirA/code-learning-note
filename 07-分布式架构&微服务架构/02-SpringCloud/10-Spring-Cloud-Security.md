@@ -870,7 +870,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
 授权服务需要
 
-此部分参考[《Spring Security》笔记的《自定义连接数据库认证》章节](/02-后端框架/05-Authorization-Certification/01-Spring-Security?id=_42-自定义连接数据库认证)
+此部分参考[《Spring Security》笔记的《自定义连接数据库认证》章节](/后端框架/Authorization-Certification/Spring-Security?id=_42-自定义连接数据库认证)
 
 > 将 `spring-security-boot-2.1.x` 项目中的 dao、model、service 的代码复制到 uaa 项目中
 
