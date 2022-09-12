@@ -1036,7 +1036,7 @@ jjwt 是一个提供 JWT 创建和验证的 Java 库。永远免费和开源(Apa
 
 - [Spring Security 学习笔记](/后端框架/Authorization-Certification/Spring-Security)
 - [Spring Security OAuth 学习笔记](/后端框架/Authorization-Certification/Spring-Security-OAuth)
-- [Spring Cloud Security 学习笔记](/07-分布式架构&微服务架构/02-SpringCloud/10-Spring-Cloud-Security)
+- [Spring Cloud Security 学习笔记](/分布式架构&微服务架构/SpringCloud/Spring-Cloud-Security)
 
 ## 2. 示例源码仓库
 

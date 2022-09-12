@@ -297,11 +297,11 @@ CMS采用MongoDB数据库存储CMS页面信息，CMS选用Mongodb的原因如下
 
 #### 4.3.1. 安装MongoDB
 
-参考笔记【\04-数据库\04-MongoDb\01-MongoDb 笔记.md】 或者 课程资料“mongodb安装及入门”文档安装Mongodb Server及 Studio 3T客户端软件。
+参考[《MongoDb-安装与使用》笔记](/数据库/MongoDb/MongoDb-安装与使用) 或者 课程资料“mongodb安装及入门”文档安装Mongodb Server及 Studio 3T客户端软件。
 
 #### 4.3.2. MongoDB入门
 
-参考笔记【\04-数据库\04-MongoDb\01-MongoDb 笔记.md】 或者 课程资料“mongodb安装及入门”文档
+参考[《MongoDb-基础》笔记](/数据库/MongoDb/MongoDb-基础) 或者 课程资料“mongodb安装及入门”文档
 
 ### 4.4. 导入CMS数据库
 
@@ -1048,4 +1048,4 @@ Swagger 接口生成工作原理：
 
 Postman 是一款功能强大的http接口测试工具，使用 postman 可以完成http各种请求的功能测试。
 
-Postman 的基础介绍与使用详见[《Postman 接口测试工具》笔记](/DevOps工具/05-测试工具/02-Postman)
+Postman 的基础介绍与使用详见[《Postman 接口测试工具》笔记](/DevOps工具/测试工具/Postman)

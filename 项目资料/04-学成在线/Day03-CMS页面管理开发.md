@@ -293,11 +293,12 @@ public CmsPageResult add(CmsPage cmsPage);
 ```
 
 ### 2.2. 新增页面服务端
+
 #### 2.2.1. 页面唯一索引
 
 在cms_page集中上创建页面名称、站点Id、页面webpath为唯一索引
 
-> ps. 使用studio 3T软件去创建唯一索引，详情参考04-数据库/04-MongoDb/01-MongoDB笔记.md
+> ps. 使用studio 3T软件去创建唯一索引，详情参考[《MongoDB 安装与使用》 的 《studio3t》 章节](/数据库/MongoDb/MongoDB-安装与使用)
 
 #### 2.2.2. Dao 层
 

@@ -1,6 +1,6 @@
 # 第17章 Sentinel 限流
 
-> Spring Cloud Alibaba Sentinel 的更多内容详见[《Spring Cloud Alibaba》笔记](/07-分布式架构&微服务架构/02-SpringCloud/03-Spring-Cloud-Alibaba?id=spring-cloud-alibaba-sentinel)
+> Spring Cloud Alibaba Sentinel 的更多内容详见[《Spring Cloud Alibaba》笔记](/分布式架构&微服务架构/SpringCloud/Spring-Cloud-Alibaba?id=spring-cloud-alibaba-sentinel)
 
 ## 1. 限流概述
 

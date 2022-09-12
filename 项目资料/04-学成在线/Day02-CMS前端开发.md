@@ -3,8 +3,8 @@
 ## 1. Vue.js 与Webpack研究
 
 - 参考资料：学成在线-Vue.js与Webpack.pdf
-- Vue 框架相关内容详见[《Vue2.x 笔记》](/03-前端资料/03-Vue/01-Vue2.x-笔记)
-- Webpack 相关知识详见[《Webpack 笔记》](/03-前端资料/06-前端工程化工具/02-webpack)
+- Vue 框架相关内容详见[《Vue2.x 笔记》](/前端资料/Vue/Vue2.x-笔记)
+- Webpack 相关知识详见[《Webpack 笔记》](/前端资料/前端工程化工具/webpack)
 
 ## 2. CMS 前端工程创建
 

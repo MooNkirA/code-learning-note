@@ -12,4 +12,4 @@ Spring Security OAuth2.0 是对 OAuth2.0 协议的一种实现，并且跟 Sprin
 
 Spring Security OAuth2.0 与 Spring Cloud 体系的集成也非常便利
 
-此部分详细内容详见 [《Spring Cloud Security 学习笔记》](/07-分布式架构&微服务架构/02-SpringCloud/10-Spring-Cloud-Security)
+此部分详细内容详见 [《Spring Cloud Security 学习笔记》](/分布式架构&微服务架构/SpringCloud/Spring-Cloud-Security)
