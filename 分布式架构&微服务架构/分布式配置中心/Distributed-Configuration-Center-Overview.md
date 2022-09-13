@@ -1,4 +1,4 @@
-# Distributed Configuration Center Overview（分布式配置中心综述）
+# Distributed Configuration Center Overview 分布式配置中心综述 
 
 ## 1. 服务配置中心介绍
 
