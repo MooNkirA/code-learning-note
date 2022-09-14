@@ -351,7 +351,7 @@
 ### 🧾 分布式配置中心
 
 <ul class="docs">
-  <li><a href="#/分布式架构&微服务架构/分布式配置中心/Distributed-Configuration-Center-Overview">分布式配置中心综述</a></li>
+  <li><a href="#/分布式架构&微服务架构/分布式配置中心/">分布式配置中心综述</a></li>
   <li><a href="#/分布式架构&微服务架构/分布式配置中心/Apollo">Apollo 分布式配置中心</a></li>
 </ul>
 

@@ -1,4 +1,4 @@
-# Distributed Configuration Center Overview 分布式配置中心综述 
+# 分布式配置中心综述
 
 ## 1. 服务配置中心介绍
 
@@ -72,7 +72,7 @@ Sping Cloud Alibaba 技术栈中的一个组件，2018年6月，阿里开源的�
 
 ![](images/20201112104840769_17016.png)
 
-## 3. 配置中心基础使用笔记
+## 3. 各种配置中心笔记
 
 ### 3.1. Apollo
 
@@ -85,3 +85,5 @@ Sping Cloud Alibaba 技术栈中的一个组件，2018年6月，阿里开源的�
 ### 3.3. Nacos Config
 
 具体内容详见：[Spring-Cloud-Alibaba.md](/分布式架构&微服务架构/SpringCloud/Spring-Cloud-Alibaba?id=spring-cloud-alibaba-nacos-config)
+
+
