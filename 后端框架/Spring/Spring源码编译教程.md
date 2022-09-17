@@ -6,7 +6,7 @@ Spring 源码是使用 Gradle 进行构建，需要下载与安装 Gradle。
 
 Gradle官网：https://gradle.org/
 
-> 具体 Gradle 安装详见[《Gradle基础笔记》](/DevOps工具/项目构建工具/Gradle)
+> 具体 Gradle 安装详见[《Gradle基础笔记》](/DevOps/项目构建工具/Gradle)
 
 ## 2. Spring 源码编译流程
 

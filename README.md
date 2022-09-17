@@ -231,36 +231,38 @@
 ### 🪒 项目构建工具
 
 <ul class="docs">
-  <li><a href="#/DevOps工具/项目构建工具/Maven01-基础">Maven 基础笔记</a></li>
-  <li><a href="#/DevOps工具/项目构建工具/Maven02-配置">Maven 配置</a></li>
-  <li><a href="#/DevOps工具/项目构建工具/Gradle">Gradle 基础笔记</a></li>
+  <li><a href="#/DevOps/项目构建工具/Maven01-基础">Maven 基础笔记</a></li>
+  <li><a href="#/DevOps/项目构建工具/Maven02-配置">Maven 配置</a></li>
+  <li><a href="#/DevOps/项目构建工具/Gradle">Gradle 基础笔记</a></li>
 </ul>
 
 ### 📐 版本管理工具
 
 <ul class="docs">
-  <li><a href="#/DevOps工具/版本管理工具/Git">Git 基础笔记</a></li>
-  <li><a href="#/DevOps工具/版本管理工具/GitHub">GitHub 相关资料与常用使用技巧</a></li>
-  <li><a href="#/DevOps工具/版本管理工具/SVN">SVN 文件版本控制软件</a></li>
+  <li><a href="#/DevOps/版本管理工具/Git-01-基础">Git 笔记 - 基础篇</a></li>
+  <li><a href="#/DevOps/版本管理工具/Git-02-安装">Git 笔记 - 安装篇</a></li>
+  <li><a href="#/DevOps/版本管理工具/Git-03-客户端">Git 笔记 - 客户端使用篇</a></li>
+  <li><a href="#/DevOps/版本管理工具/GitHub">GitHub 相关资料与常用使用技巧</a></li>
+  <li><a href="#/DevOps/版本管理工具/SVN">SVN 文件版本控制软件</a></li>
 </ul>
 
 ### 📦 应用容器
 
 <ul class="docs">
-  <li><a href="#/DevOps工具/应用容器/Docker">Docker 应用容器引擎</a></li>
+  <li><a href="#/DevOps/应用容器/Docker">Docker 应用容器引擎</a></li>
 </ul>
 
 ### 🧩 持续集成工具
 
 <ul class="docs">
-  <li><a href="#/DevOps工具/持续集成工具/Jenkins">Jenkins 持续集成工具</a></li>
+  <li><a href="#/DevOps/持续集成工具/Jenkins">Jenkins 持续集成工具</a></li>
 </ul>
 
 ### ⭕ 测试工具
 
 <ul class="docs">
-  <li><a href="#/DevOps工具/测试工具/JMeter">JMeter 压力测试</a></li>
-  <li><a href="#/DevOps工具/测试工具/Postman">Postman 接口测试工具</a></li>
+  <li><a href="#/DevOps/测试工具/JMeter">JMeter 压力测试</a></li>
+  <li><a href="#/DevOps/测试工具/Postman">Postman 接口测试工具</a></li>
 </ul>
 
 ## Linux
@@ -443,4 +445,4 @@ Gitee Pages 在线阅读地址：[点击进入](https://moonzero.gitee.io/code-l
 
 如果本项目对你有帮助，今天可以喝杯咖啡吗？😁
 
-![](images/money-QRCode.png)
+![](resources/images/money-QRCode.png)

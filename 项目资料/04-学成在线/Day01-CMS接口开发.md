@@ -1048,4 +1048,4 @@ Swagger 接口生成工作原理：
 
 Postman 是一款功能强大的http接口测试工具，使用 postman 可以完成http各种请求的功能测试。
 
-Postman 的基础介绍与使用详见[《Postman 接口测试工具》笔记](/DevOps工具/测试工具/Postman)
+Postman 的基础介绍与使用详见[《Postman 接口测试工具》笔记](/DevOps/测试工具/Postman)

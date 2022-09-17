@@ -143,25 +143,38 @@ drools 是一款由 JBoss 组织提供的基于 Java 语言开发的开源规则
 在项目中使用 drools 时，即可以单独使用也可以整合 spring 使用。如果单独使用只需要导入如下 maven 坐标即可：
 
 ```xml
-<!-- https://mvnrepository.com/artifact/org.drools/drools-compiler -->
+<dependencyManagement>
+    <dependencies>
+        <dependency>
+            <groupId>org.drools</groupId>
+            <artifactId>drools-bom</artifactId>
+            <type>pom</type>
+            <version>7.10.0.Final</version>
+            <scope>import</scope>
+        </dependency>
+    </dependencies>
+</dependencyManagement>
+
 <dependency>
     <groupId>org.drools</groupId>
     <artifactId>drools-compiler</artifactId>
-    <version>7.73.0.Final</version>
+    <scope>runtime</scope>
 </dependency>
 ```
+
+*学习使用时，当时使用最新版本 7.73.0.Final，按默认的配置方式没有生效，后面需要排查原因*
 
 > Tips: 如果使用 IDEA/eclipse 开发 drools 应用，需要单独安装 drools 插件。但早期的 IDEA 中会集成 drools 插件，较新版本需要自行安装
 >
 > ![](images/43681217250270.png)
 
-drools API 开发步骤如下：
+### 3.3. drools API 开发步骤
 
 ![](images/65142916232390.png)
 
-### 3.3. 入门案例
+### 3.4. 入门案例
 
-#### 3.3.1. 案例实现的业务场景说明
+#### 3.4.1. 案例实现的业务场景说明
 
 业务场景：消费者在图书商城购买图书，下单后需要根据以下的规则计算优惠后的价格，并在支付页面显示该价格。具体优惠规则如下：
 
@@ -172,7 +185,7 @@ drools API 开发步骤如下：
 |    3     | 规则三   | 所购图书总价在200到300元的优惠50元 |
 |    4     | 规则四   | 所购图书总价在300元以上的优惠100元 |
 
-#### 3.3.2. 引入依赖
+#### 3.4.2. 引入依赖
 
 创建 maven 工程 drools-quickstart 并导入 drools 相关坐标
 
@@ -185,7 +198,7 @@ drools API 开发步骤如下：
 </dependency>
 ```
 
-#### 3.3.3. drools 默认配置
+#### 3.4.3. drools 默认配置
 
 根据 drools 要求，在 resources/META-INF 目录中，创建 kmodule.xml 配置文件
 
@@ -209,7 +222,7 @@ drools API 开发步骤如下：
 
 > Notes: <font color=red>**drools 默认配置文件的名称和位置都是固定写法，不能更改**</font>
 
-#### 3.3.4. 创建数据输入输出的实体类
+#### 3.4.4. 创建数据输入输出的实体类
 
 创建实体类Order，用于 drools 接收数据输入与解释业务规则后返回
 
@@ -245,7 +258,7 @@ public class Order {
 }
 ```
 
-#### 3.3.5. 创建规则文件
+#### 3.4.5. 创建规则文件
 
 在 resources/rules 目录中，创建规则文件 bookDiscount.drl（任意命名）
 
@@ -298,15 +311,46 @@ end
 >
 > ![](images/49980423220953.png)
 
-#### 3.3.6. 测试
+#### 3.4.6. 测试
 
 编写单元测试
 
 ```java
+@Test
+public void test1() {
+    // 获取 KieServices
+    KieServices kieServices = KieServices.Factory.get();
+    // 获得 KieContainer（容器）对象
+    KieContainer kieContainer = kieServices.newKieClasspathContainer();
+    // 从 KieContainer（容器）对象中获取会话对象，用于和规则引擎交互
+    KieSession session = kieContainer.newKieSession();
 
+    // 构造订单对象（Fact对象，事实对象），设置原始价格，由规则引擎根据优惠规则计算优惠后的价格
+    Order order = new Order();
+    order.setOriginalPrice(500d);
+
+    // 将数据提供给规则引擎（放入工作内存中），规则引擎会根据提供的数据进行规则匹配
+    session.insert(order);
+    System.out.println("没有激活规则前，优惠价格属性是：" + order.getRealPrice());
+
+    // 激活规则，由Drools框架自动进行规则匹配，如果规则匹配成功，则执行当前规则
+    session.fireAllRules();
+
+    // 关闭会话
+    session.dispose();
+    System.out.println("优惠后价格：" + order.getRealPrice());
+}
 ```
 
-#### 3.3.7. 小结
+输出结果
+
+```
+没有激活规则前，优惠价格属性是：null
+成功匹配到规则四：所购图书总价在300元以上的优惠100元
+优惠后价格：400.0
+```
+
+#### 3.4.7. 小结
 
 通过上面的入门案例可以发现，使用 drools 规则引擎主要工作就是编写规则文件，在规则文件中定义相关的业务规则（例如入门案例定义的 就是图书优惠规则）。规则定义好后就需要调用drools 提供的 API 将数据提供给规则引擎进行规则模式匹配，规则引擎会执行匹配成功的规则计算的结果并将返回
 
