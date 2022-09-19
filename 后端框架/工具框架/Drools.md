@@ -391,15 +391,190 @@ drools 规则引擎由以下三部分构成：
 
 ### 4.4. KIE 介绍
 
+在操作 Drools 时经常使用的 API 以及它们之间的关系如下图：
 
+![](images/389241208220959.png)
 
+通过上面的核心 API 可以发现，大部分类名都是以 Kie 开头。Kie 全称为 Knowledge Is Everything，即"知识就是一切"的缩写，是 Jboss 一系列项目的总称。如下图所示，Kie 的主要模块有 OptaPlanner、Drools、UberFire、jBPM。
+
+![](images/452491408239385.png)
+
+通过上图可以看到，Drools 是整个 KIE 项目中的一个组件，Drools 中还包括一个 Drools-WB 的模块，它是一个可视化的规则编辑器。
 
 ## 5. Drools 基础语法
 
+### 5.1. 规则文件构成
 
+在使用 Drools 时非常重要的一个工作就是编写规则文件，通常规则文件的后缀为 `.drl`。drl 是 Drools Rule Language 的缩写。在规则文件中编写具体的规则内容。
 
+一套完整的规则文件内容构成如下：
 
+|  关键字   |                            描述                            |
+| :------: | --------------------------------------------------------- |
+| package  | 包名，只限于逻辑上的管理，同一个包名下的查询或者函数可以直接调用 |
+|  import  | 用于导入类或者静态方法                                       |
+|  global  | 全局变量                                                   |
+| function | 自定义函数                                                 |
+|  query   | 查询                                                       |
+| rule end | 规则体                                                     |
 
+<font color=purple>**Drools 支持的规则文件，除了 drl 形式，还有 Excel 文件类型的。**</font>
 
+### 5.2. 规则体语法结构
 
+规则体是规则文件内容中的重要组成部分，是进行业务规则判断、处理业务结果的部分。规则体语法结构如下：
+
+```drl
+rule "ruleName"
+    attributes
+    when
+        LHS
+    then
+        RHS
+end
+```
+
+**关键字与名词解释**：
+
+- `rule`：关键字，表示规则开始，参数为规则的唯一名称。
+- `attributes`：规则属性，是rule与when之间的参数，为可选项。
+- `when`：关键字，后面跟规则的条件部分。
+- `LHS`(Left Hand Side)：是规则的条件部分的通用名称。它由零个或多个条件元素组成。如果LHS为空，则它将被视为始终为true的条件元素。
+- `then`：关键字，后面跟规则的结果部分。
+- `RHS`(Right Hand Side)：是规则的后果或行动部分的通用名称。
+- `end`：关键字，表示一个规则结束
+
+### 5.3. 注释
+
+在 drl 形式的规则文件中使用注释和 Java 类中使用注释一致，分为单行注释和多行注释。
+
+单行注释用"`//`"进行标记，多行注释以"`/*`"开始，以"`*/`"结束。如下示例：
+
+```drl
+// 规则rule1的注释，这是一个单行注释
+rule "rule1"
+    when
+    then
+        System.out.println("rule1触发");
+end
+​
+/*
+  规则rule2的注释，
+  这是一个多行注释
+*/
+rule "rule2"
+    when
+    then
+        System.out.println("rule2触发");
+end
+```
+
+### 5.4. Pattern 模式匹配
+
+Drools 中的匹配器可以将 Rule Base 中的所有规则与 Working Memory 中的 Fact 对象进行模式匹配，那么就需要在规则体的 LHS 部分定义规则并进行模式匹配。LHS 部分由一个或者多个条件组成，条件又称为 pattern。
+
+pattern 的语法结构为：`绑定变量名:Object(Field约束)`
+
+其中绑定变量名可以省略，通常绑定变量名的命名一般建议以`$`开始。如果定义了绑定变量名，就可以在规则体的 RHS 部分使用此绑定变量名来操作相应的 Fact 对象。Field 约束部分是需要返回 true 或者 false 的0个或多个表达式。以快速入门为案例来说明：
+
+```drl
+//规则二：所购图书总价在100到200元的优惠20元
+rule "book_discount_2"
+    when
+        //Order为类型约束，originalPrice为属性约束
+        $order:Order(originalPrice < 200 && originalPrice >= 100)
+    then
+        $order.setRealPrice($order.getOriginalPrice() - 20);
+        System.out.println("成功匹配到规则二：所购图书总价在100到200元的优惠20元");
+end
+```
+
+案例必须同时满足当前规则才有可能被激活，匹配条件为：
+
+1. 工作内存中必须存在 Order 这种类型的 Fact 对象 - 类型约束
+2. Fact 对象的 originalPrice 属性值必须小于 200 - 属性约束
+3. Fact 对象的 originalPrice 属性值必须大于等于 100 - 属性约束
+
+**绑定变量既可以用在对象上，也可以用在对象的属性上**。例如：
+
+```drl
+rule "book_discount_2"
+    when
+        $order:Order($op:originalPrice < 200 && originalPrice >= 100)
+    then
+        System.out.println("$op=" + $op);
+        $order.setRealPrice($order.getOriginalPrice() - 20);
+        System.out.println("成功匹配到规则二：所购图书总价在100到200元的优惠20元");
+end
+```
+
+LHS 部分还可以**定义多个 pattern，之间可以使用 and 或者 or 进行连接，也可以不写，默认连接为 and**。例如：
+
+```drl
+rule "book_discount_2"
+    when
+        $order:Order($op:originalPrice < 200 && originalPrice >= 100) and
+        $customer:Customer(age > 20 && gender=='male')
+    then
+        System.out.println("$op=" + $op);
+        $order.setRealPrice($order.getOriginalPrice() - 20);
+        System.out.println("成功匹配到规则二：所购图书总价在100到200元的优惠20元");
+end
+```
+
+### 5.5. 比较操作符
+
+Drools 提供的比较操作符，如下表：
+
+|     符号     |                            说明                             |
+| :----------: | ---------------------------------------------------------- |
+|     `>`      | 大于                                                        |
+|     `<`      | 小于                                                        |
+|     `>=`     | 大于等于                                                    |
+|     `<=`     | 小于等于                                                    |
+|     `==`     | 等于                                                        |
+|     `!=`     | 不等于                                                      |
+|   contains   | 检查一个Fact对象的某个属性值是否包含一个指定的对象值             |
+| not contains | 检查一个Fact对象的某个属性值是否不包含一个指定的对象值           |
+|   memberOf   | 判断一个Fact对象的某个属性是否在一个或多个集合中                |
+| not memberOf | 判断一个Fact对象的某个属性是否不在一个或多个集合中              |
+|   matches    | 判断一个Fact对象的属性是否与提供的标准的Java正则表达式进行匹配   |
+| not matches  | 判断一个Fact对象的属性是否不与提供的标准的Java正则表达式进行匹配 |
+
+#### 5.5.1. 语法
+
+- contains | not contains 语法结构
+
+```java
+Object(Field[Collection/Array] contains value)
+Object(Field[Collection/Array] not contains value)
+```
+
+- memberOf | not memberOf 语法结构
+
+```java
+Object(field memberOf value[Collection/Array])
+Object(field not memberOf value[Collection/Array])
+```
+
+- matches | not matches 语法结构
+
+```java
+Object(field matches "正则表达式")
+Object(field not matches "正则表达式")
+```
+
+#### 5.5.2. 使用示例
+
+- 创建用于测试比较操作符的实体类
+
+```java
+public class ComparisonOperatorEntity {
+    private String names;
+    private List<String> list;
+    // ...省略getter/setter
+}
+```
+
+- 在 /resources/rules 目录中，创建比较操作符示例使用的规则文件 comparisonOperator.drl
 
