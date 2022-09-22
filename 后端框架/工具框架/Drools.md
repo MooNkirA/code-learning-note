@@ -578,3 +578,92 @@ public class ComparisonOperatorEntity {
 
 - 在 /resources/rules 目录中，创建比较操作符示例使用的规则文件 comparisonOperator.drl
 
+```drl
+package comparisonOperator
+import com.moon.drools.entity.ComparisonOperatorEntity
+
+// 当前规则文件用于测试Drools提供的比较操作符
+// 测试比较操作符contains
+rule "rule_comparison_contains"
+    when
+        ComparisonOperatorEntity(names contains "张三")
+        ComparisonOperatorEntity(list contains names)
+    then
+        System.out.println("规则：rule_comparison_contains触发了...");
+end
+
+// 测试比较操作符not contains
+rule "rule_comparison_notcontains"
+    when
+        ComparisonOperatorEntity(names not contains "张三")
+        ComparisonOperatorEntity(list not contains names)
+    then
+        System.out.println("规则：rule_comparison_notcontains触发了...");
+end
+
+// 测试比较操作符memberOf
+rule "rule_comparison_memberOf"
+    when
+        ComparisonOperatorEntity(names memberOf list)
+    then
+        System.out.println("规则：rule_comparison_memberOf触发了...");
+end
+
+// 测试比较操作符 not memberOf
+rule "rule_comparison_not memberOf"
+    when
+        ComparisonOperatorEntity(names not memberOf list)
+    then
+        System.out.println("规则：rule_comparison_not memberOf触发了...");
+end
+
+// 测试比较操作符 matches
+rule "rule_comparison_matches"
+    when
+        ComparisonOperatorEntity(names matches "王.*")
+    then
+        System.out.println("规则：rule_comparison_matches触发了...");
+end
+
+// 测试比较操作符 not matches
+rule "rule_comparison_not matches"
+    when
+        ComparisonOperatorEntity(names not matches "王.*")
+    then
+        System.out.println("规则：rule_comparison_not matches触发了...");
+end
+```
+
+- 编写单元测试
+
+```java
+@Test
+public void test2() {
+    // 获取 KieServices
+    KieServices kieServices = KieServices.Factory.get();
+    // 获得 KieContainer（容器）对象
+    KieContainer kieContainer = kieServices.newKieClasspathContainer();
+    // 从 KieContainer（容器）对象中获取会话对象，用于和规则引擎交互
+    KieSession session = kieContainer.newKieSession();
+
+    // 构造订单对象（Fact对象，事实对象），设置原始价格，由规则引擎根据优惠规则计算优惠后的价格
+    ComparisonOperatorEntity fact = new ComparisonOperatorEntity();
+    fact.setNames("李四");
+    List<String> list = new ArrayList<>();
+    list.add("张三2");
+    fact.setList(list);
+
+    // 将数据提供给规则引擎（放入工作内存中），规则引擎会根据提供的数据进行规则匹配
+    session.insert(fact);
+
+    // 激活规则，由Drools框架自动进行规则匹配，如果规则匹配成功，则执行当前规则
+    session.fireAllRules();
+
+    // 关闭会话
+    session.dispose();
+}
+```
+
+
+
+
