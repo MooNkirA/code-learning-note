@@ -71,20 +71,21 @@
 
 ### 4.1. 微服务框架
 
-|     |                         课程名                          | 在线链接 |            备注             |
-| :-: | ------------------------------------------------------ | -------- | --------------------------- |
-| ✅  | 2019.09.24-4天从浅入深精通SpringCloud微服务架构体系       |          |                             |
-|     | 2019.11.30-分布式链路追踪skywalking                      |          |                             |
-|     | 2019.08.15-微服务架构的分布式事务控制解决方案              |          |                             |
-|     | 2020.05.07-系统掌握阿里分布式服务架构流量控制组件-Sentinel |          |                             |
-| ✅  | 2019.12.18-超全面讲解Spring Cloud Alibaba技术栈          |          |                             |
-|     | 2019.10.31-Spring Cloud Alibaba Nacos配置中心与服务发现  |          |                             |
-|     | 2019.09.26-带你玩转Zookeeper+Dubbo                      |          |                             |
-|     | 2019.10.05-Elastic-Job分布式任务调度-服务中间件           |          |                             |
-|     | 2019.11.14-nginx项目部署                                |          |                             |
-|     | 1-19 Apache ServiceComb微服务框架课程                    |          | 2019-博学谷-JavaEE在职加薪课 |
-|     | 1-21 华为云PaaS微服务治理课程（CSE Mesher开发）           |          | 2019-博学谷-JavaEE在职加薪课 |
-|     | 2021.04.07-史上最全面的java微服务架构课                   |          | 综合性课程                   |
+|     |                         课程名                          |                                  在线链接                                  |            备注             |
+| :-: | ------------------------------------------------------ | ------------------------------------------------------------------------- | --------------------------- |
+| ✅  | 2019.09.24-4天从浅入深精通SpringCloud微服务架构体系       |                                                                           |                             |
+|     | 2019.11.30-分布式链路追踪skywalking                      |                                                                           |                             |
+|     | 2019.08.15-微服务架构的分布式事务控制解决方案              |                                                                           |                             |
+|     | 2020.05.07-系统掌握阿里分布式服务架构流量控制组件-Sentinel |                                                                           |                             |
+| ✅  | 2019.12.18-超全面讲解Spring Cloud Alibaba技术栈          |                                                                           |                             |
+|     | 2019.10.31-Spring Cloud Alibaba Nacos配置中心与服务发现  |                                                                           |                             |
+|     | 2019.09.26-带你玩转Zookeeper+Dubbo                      |                                                                           |                             |
+|     | 2019.10.05-Elastic-Job分布式任务调度-服务中间件           |                                                                           |                             |
+|     | 2019.11.14-nginx项目部署                                |                                                                           |                             |
+|     | 1-19 Apache ServiceComb微服务框架课程                    |                                                                           | 2019-博学谷-JavaEE在职加薪课 |
+|     | 1-21 华为云PaaS微服务治理课程（CSE Mesher开发）           |                                                                           | 2019-博学谷-JavaEE在职加薪课 |
+|     | 2021.04.07-史上最全面的java微服务架构课                   |                                                                           | 综合性课程                   |
+|     | Spring Cloud Alibaba 微服务架构电商项目实战               | [博学谷](https://xuexi.boxuegu.com/video.html?courseId=2870&courseType=1) | 博学谷在线课程               |
 
 ### 4.2. 消息中间件
 
@@ -112,9 +113,10 @@
 
 ## 6. 并发编程
 
-|     |       课程名        | 在线链接 | 备注 |
-| :-: | ------------------- | -------- | ---- |
-|     | 2019.12.12-并发编程 |          |      |
+|     |         课程名          |                                  在线链接                                  |     备注      |
+| :-: | ---------------------- | ------------------------------------------------------------------------- | ------------- |
+|     | 2019.12.12-并发编程     |                                                                           |               |
+|     | Java并发编程高阶技术实践 | [博学谷](https://xuexi.boxuegu.com/video.html?courseId=1515&courseType=1) | 博学谷在线课程 |
 
 ## 7. 网络编程
 
@@ -162,9 +164,10 @@
 ## 10. 综合专题
 
 
-|     |            课程名            | 在线链接 |      备注       |
-| :-: | ---------------------------- | -------- | --------------- |
-|     | Java加薪派实战课（老学员专属） |          | 博学谷已购课程， |
+|     |              课程名               |                                  在线链接                                  |     备注      |
+| :-: | -------------------------------- | ------------------------------------------------------------------------- | ------------- |
+|     | Java加薪派实战课（老学员专属）      | [博学谷](https://xuexi.boxuegu.com/video.html?courseId=5020&courseType=1) | 博学谷在线课程 |
+|     | WEB开发中常见安全漏洞分析与预防策略 | [博学谷](https://xuexi.boxuegu.com/video.html?courseId=1516&courseType=1) | 博学谷在线课程 |
 
 ## 11. 已删除记录
 
@@ -218,6 +221,31 @@
 |     |           课程名                 | 在线链接 | 备注 |
 | :-: | ------------------------------- | -------- | ---- |
 |     | 2020.03.24-Node.js零基础入门教程 |          |      |
+
+# 博学谷在线课程
+
+- [ ] [MySQL数据库性能优化](https://xuexi.boxuegu.com/video.html?courseId=1251)
+- [ ] [Java进阶大数据开发公开课](https://xuexi.boxuegu.com/video.html?courseId=1200)
+- [ ] [Java秒杀系统实战(上)](https://xuexi.boxuegu.com/video.html?courseId=1292)
+- [ ] [【Java】Java基础全精讲](https://xuexi.boxuegu.com/video.html?courseId=89)
+- [ ] [百度地图API应用开发](https://xuexi.boxuegu.com/video.html?courseId=280)
+- [ ] [HTML5 CSS3视频教程](https://xuexi.boxuegu.com/video.html?courseId=1044)
+- [ ] [利用CSS3实现响应式项目开发](https://xuexi.boxuegu.com/video.html?courseId=1054)
+- [ ] [狂野架构师（前置）](https://xuexi.boxuegu.com/video.html?courseId=3275)
+- [ ] 2022年6月30号直播回放-[JDK源码分析](https://xuexi.boxuegu.com/video.html?courseId=5058)
+- [ ] 2022年7月06号直播回放-[设计模式](https://xuexi.boxuegu.com/video.html?courseId=5087)
+- [ ] 2022年7月07号直播回放-[leetCode必刷](https://xuexi.boxuegu.com/video.html?courseId=5085)
+- [ ] 2022年7月14号直播回放-[高性能MySQL](https://xuexi.boxuegu.com/video.html?courseId=5093)
+- [ ] 2022年7月18号直播回放-[SQL调优硬核面试真题](https://xuexi.boxuegu.com/video.html?courseId=5111)
+- [ ] 2022年7月21号直播回放-[Redis解决高并发场景问题](https://xuexi.boxuegu.com/video.html?courseId=5114)
+- [ ] 2022年7月27号直播回放-[Spring核心源码分析](https://xuexi.boxuegu.com/video.html?courseId=5136)
+- [ ] 2022年8月10号直播回放-[常见数据结构与算法](https://xuexi.boxuegu.com/video.html?courseId=5211)
+- [ ] 2022年8月19号直播回放-[大数据行业深度解读](https://xuexi.boxuegu.com/video.html?courseId=5223)
+- [ ] 2022年8月25号直播回放-[大数据Apache](https://xuexi.boxuegu.com/video.html?courseId=5256)
+- [ ] 2022年9月1号直播回放-[如何利用大数据割韭菜](https://xuexi.boxuegu.com/video.html?courseId=5273)
+- [ ] 2022年9月8号直播回放-[大话网络通信，计算机之间是如何沟通的？](https://xuexi.boxuegu.com/video.html?courseId=5282)
+- [ ] 2022年9月13号直播回放-[搞定MySQL索引底层原理详解，手撕面试官](https://xuexi.boxuegu.com/video.html?courseId=5284)
+
 
 # 尚硅谷-Java学科课程学习清单
 
