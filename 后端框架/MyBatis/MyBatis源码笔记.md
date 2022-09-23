@@ -1,28 +1,28 @@
 # MyBatis 源码笔记
 
-## 1. MyBatis 源码概述
+> MyBatis 源码仓库地址：https://github.com/MyBatis/MyBatis-3
 
-### 1.1. MyBatis 源码获取
+## 1. 概述
 
-MyBatis 源码下载地址：`https://github.com/MyBatis/MyBatis-3`
+### 1.1. MyBatis 源码包导入
 
-> 直接用`mybatis-3-master（注释版）.zip`的源码包，在里面加注释
-
-源码包导入过程：
+目前学习的MyBatis 版本是：3.5.2，源码包导入过程：
 
 1. 下载 MyBatis 的源码
 2. 检查 maven 的版本，必须是 3.25 以上，建议使用 maven 的最新版本
-3. MyBatis 的工程是 maven 工程，在开发工具中导入，工程必须使用 jdk1.8 以上版本；
-4. <font color=red>**把 MyBatis 源码的 pom 文件中`<optional>true</optional>`，全部改为 false或者注释掉，因为这个会阻断依赖的传递，会导致自己做的demo示例无法依赖到mybatis所依赖的第三方的jar包**</font>；
-5. 在工程目录下执行 mvn clean install -Dmaven.test.skip=true,将当前工程安装到本地仓库（pdf 插件报错的话，需要将这个插件屏蔽）；
-    - > 注意：安装过程中会可能会有很多异常信息，只要不中断运行，请耐心等待；
-6. 其他工程依赖此工程
+3. MyBatis 的工程是 maven 工程，在开发工具中导入，工程必须使用 jdk1.8 以上版本
+4. <font color=red>**把 MyBatis 源码的 pom 文件中`<optional>true</optional>`，全部改为 false或者注释掉，因为这个会阻断依赖的传递，会导致自己做的demo示例无法依赖到mybatis所依赖的第三方的jar包**</font>
+5. 在工程目录下执行 `mvn clean install -Dmaven.test.skip=true`,将当前工程安装到本地仓库（pdf 插件报错的话，需要将这个插件屏蔽）
+> 注意：安装过程中会可能会有很多异常信息，只要不中断运行，请耐心等待
+6. 创建测试工程，并依赖此工程
+
+> 直接用`mybatis-3-master（注释版）.zip`的源码包，在里面加注释
 
 ### 1.2. 源码架构分析
 
 #### 1.2.1. 物理分层
 
-![MyBatis源码结构](images/20191124082641659_9996.png)
+![](images/20191124082641659_9996.png)
 
 > 完整思维导图详见：D:\【Moon】\Java\编程资料思维导图\MyBatis源码结构.xmind
 
@@ -51,7 +51,7 @@ MyBatis 源码共 16 个模块，可以分成三层
 
 门面模式定义：提供了一个统一的接口，用来访问子系统中的一群接口。外观模式定义了一个高层接口，让子系统更容易使用。类图如下：
 
-![门面模式](images/20191124084850946_1922.png)
+![](images/20191124084850946_1922.png)
 
 - **Facade 角色**：提供一个外观接口，对外，它提供一个易于客户端访问的接口，对内，它可以访问子系统中的所有功能。
 - **SubSystem（子系统）角色**：子系统在整个系统中可以是一个或多个模块，每个模块都有若干类组成，这些类可能相互之间有着比较复杂的关系

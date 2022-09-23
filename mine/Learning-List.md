@@ -246,7 +246,6 @@
 - [ ] 2022年9月8号直播回放-[大话网络通信，计算机之间是如何沟通的？](https://xuexi.boxuegu.com/video.html?courseId=5282)
 - [ ] 2022年9月13号直播回放-[搞定MySQL索引底层原理详解，手撕面试官](https://xuexi.boxuegu.com/video.html?courseId=5284)
 
-
 # 尚硅谷-Java学科课程学习清单
 
 ## 1. 项目实战
