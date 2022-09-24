@@ -12,7 +12,7 @@
 2. 检查 maven 的版本，必须是 3.25 以上，建议使用 maven 的最新版本
 3. MyBatis 的工程是 maven 工程，在开发工具中导入，工程必须使用 jdk1.8 以上版本
 4. <font color=red>**把 MyBatis 源码的 pom 文件中`<optional>true</optional>`，全部改为 false或者注释掉，因为这个会阻断依赖的传递，会导致自己做的demo示例无法依赖到mybatis所依赖的第三方的jar包**</font>
-5. 在工程目录下执行 `mvn clean install -Dmaven.test.skip=true`,将当前工程安装到本地仓库（pdf 插件报错的话，需要将这个插件屏蔽）
+5. 在工程目录下执行 `mvn clean install -Dmaven.test.skip=true`，将当前工程安装到本地仓库（pdf 插件报错的话，需要将这个插件屏蔽）
 > 注意：安装过程中会可能会有很多异常信息，只要不中断运行，请耐心等待
 6. 创建测试工程，并依赖此工程
 
@@ -24,14 +24,13 @@
 
 ![](images/20191124082641659_9996.png)
 
-> 完整思维导图详见：D:\【Moon】\Java\编程资料思维导图\MyBatis源码结构.xmind
+> 完整思维导图详见附件中的《MyBatis源码结构.xmind》
 
 #### 1.2.2. 逻辑分层
 
 MyBatis 源码共 16 个模块，可以分成三层
 
 ![MyBatis源码分层图](images/20191124080724586_23071.png)
-
 
 - 接口层：MyBatis 对外提供的访问接口，面向 SqlSession 编程，开发人员通过这些本地API来操纵数据库。接口层一接收到调用请求就会调用数据处理层来完成具体的数据处理。
 - 核心（数据）处理层：负责具体的SQL查找、SQL解析、SQL执行和执行结果映射处理等。它主要的目的是根据调用的请求完成一次数据库操作。业务组件专注 MyBatis 的业务流程实现，依赖于基础支撑层

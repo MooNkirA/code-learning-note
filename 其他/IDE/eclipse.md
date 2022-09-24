@@ -289,11 +289,16 @@ MyEclipse的修改方法与Eclipse完全一样，用修改好的jar包替换掉M
 
 ![](images/20201106102222717_31625.png)
 
-上面的SDK不是用来使用，只是为了拿到里面的源代码。只为了获得`org.eclipse.jface.tex`t的源代码去修改取消空格上屏而已
+### 5.3. eclipse SDK 版本
+
+上面的SDK不是用来使用，只是为了拿到里面的源代码。只为了获得`org.eclipse.jface.text`的源代码去修改取消空格上屏而已
 
 - eclipse-SDK-4.3.1-win32-x86_64 对应 MyEclipse2014
-- eclipse-SDK-4.7.1-win32-x86_64 对应 eclipse-jee-oxygen-1-win32-x86_64
-- eclipse-SDK-4.7.2-win32-x86_64 对应 eclipse-jee-oxygen-2-win32-x86_64
+- eclipse-SDK-4.7.3-win32-x86_64 对应 eclipse-jee-oxygen-3-win32-x86_64
+- eclipse-SDK-4.8-win32-x86_64 对应 eclipse-jee-photon-R-win32-x86_64
+- eclipse-SDK-4.10-win32-x86_64 对应 eclipse-jee-2018-12-R-win32-x86_64
+- eclipse-SDK-4.11-win32-x86_64 对应 eclipse-jee-2019-03-R-win32-x86_64
+- eclipse-SDK-4.13-win32-x86_64 对应 eclipse-jee-2019-09-R-win32-x86_64
 
 ## 6. eclipse工作空间配置导出
 
@@ -417,9 +422,13 @@ Eclipse 的首选项 --> 搜索jsp，找到JSP Files 选择指定的编码，如
 - 方法一：Ctrl+h --> file serach --> 输入原包名(类型为`*.java`) --> Replace --> 找到后输入要替换的包名 然后自己选择是全部替换还是部分替换。通过该方法也可以批量修改配置文件。
 - 方法二(推荐)：直接修改出错的类所在的包的名称再改回来，这样就可以统一修改所有出错的类的package包名称
 
-## 16. 常用插件安装与插件卸载
+## 16. 出现 "Repository registry initialization" 问题的解决办法
 
-### 16.1. Spring Tool Suite 4 / 3.9.8
+在更换了 eclipse 版本后，选择之前的工作空间时，可能会出现 An internal error occurred during: "Repository registry initialization". 的问题时，删除`.metadata/.plugins/org.eclipse.m2e.core/nexus/` 的目录，然后再重启 Eclipse，重新编译一下 maven 项目
+
+## 17. 常用插件安装与插件卸载
+
+### 17.1. Spring Tool Suite 4 / 3.9.8
 
 Spring Tool Suite(STS) 是一个基于 Eclipse 针对 Spring 应用量身定制的开发环境。提供了开发 Spring 应用必须的编码、调试、运行和部署功能。STS 在最新的 Eclipse 发布版本基础上集成了 Pivotal tc 服务器、Pivotal Cloud Foundry、Git、Maven、AspectJ 等必要的工具。<font color=red>**两个版本都安装**</font>
 
@@ -449,7 +458,7 @@ File --> new --> other,然后输入spring，选中spring Bean Configuration File
 
 ![](images/20201106104744118_21027.png)
 
-### 16.2. Lombok插件
+### 17.2. Lombok插件
 
 Lombok是一种Java实用工具，可以帮助开发人员消除Java的冗长，具体看lombok的官网：http://projectlombok.org/
 
@@ -467,7 +476,7 @@ Lombok是一种Java实用工具，可以帮助开发人员消除Java的冗长，
 4. 重启myeclipse/eclipse
 5. 右键点击project --> clean 清理项目
 
-### 16.3. 卸载插件
+### 17.3. 卸载插件
 
 在菜单栏中点击【help】-【Eclipse MarketPlace】。点击Installed标签页，选择需要卸载的插件
 
@@ -477,7 +486,7 @@ Lombok是一种Java实用工具，可以帮助开发人员消除Java的冗长，
 
 ![](images/20201106105105562_23741.jpg)
 
-### 16.4. 查看eclipse安装的插件
+### 17.4. 查看eclipse安装的插件
 
 用于查看安装的那些插件与卸载安装
 

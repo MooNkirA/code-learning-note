@@ -646,7 +646,7 @@ public void test2() {
     // 从 KieContainer（容器）对象中获取会话对象，用于和规则引擎交互
     KieSession session = kieContainer.newKieSession();
 
-    // 构造订单对象（Fact对象，事实对象），设置原始价格，由规则引擎根据优惠规则计算优惠后的价格
+    // 构造条件对象（Fact对象，事实对象），设置原始价格，由规则引擎根据优惠规则计算优惠后的价格
     ComparisonOperatorEntity fact = new ComparisonOperatorEntity();
     fact.setNames("李四");
     List<String> list = new ArrayList<>();
@@ -663,6 +663,46 @@ public void test2() {
     session.dispose();
 }
 ```
+
+### 5.6. 执行指定规则
+
+在上面的案例中，调用规则代码时，满足条件的规则都会被执行。Drools 提供了通过<font color=red>**规则过滤器**</font>来实现执行指定某个的规则。对于规则文件不用做任何修改，只需要修改 Java 代码即可，如下：
+
+```java
+KieServices kieServices = KieServices.Factory.get();
+KieContainer kieContainer = kieServices.newKieClasspathContainer();
+KieSession session = kieContainer.newKieSession();
+
+// 构造Fact对象
+ComparisonOperatorEntity fact = new ComparisonOperatorEntity();
+fact.setNames("李四");
+List<String> list = new ArrayList<>();
+list.add("张三2");
+fact.setList(list);
+// 将数据提供给规则引擎（放入工作内存中），规则引擎会根据提供的数据进行规则匹配
+session.insert(fact);
+
+// 使用框架提供的规则过滤器(RuleNameStartsWithAgendaFilter)执行指定的规则
+session.fireAllRules(new RuleNameEqualsAgendaFilter("rule_comparison_notcontains"));
+// session.fireAllRules(new RuleNameStartsWithAgendaFilter("rule_"));
+
+session.dispose();
+```
+
+### 5.7. 关键字
+
+Drools 的关键字分为：**硬关键字(Hard keywords)**和**软关键字(Soft keywords)**。
+
+- 硬关键字是在规则文件中定义包名或者规则名时明确不能使用的，否则程序会报错。包含：`true`、`false`、`null`
+- 软关键字虽然可以使用，但是不建议使用。包括：lock-on-active date-effective date-expires no-loop auto-focus activation-group agenda-group ruleflow-group entry-point duration package import dialect salience enabled attributes rule extend when then template query declare function global eval not in or and exists forall accumulate collect from action reverse result end over init
+
+### 5.8. Drools 内置方法
+
+规则文件的 `RHS` 部分的主要作用是通过插入，删除或修改工作内存中的 Fact 数据，来达到控制规则引擎执行的目的。Drools 提供了一些方法可以用来操作工作内存中的数据，操作完成后规则引擎会重新进行相关规则的匹配，原来没有匹配成功的规则在我们修改数据完成后有可能就会匹配成功了。
+
+
+
+
 
 
 
