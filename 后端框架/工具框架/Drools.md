@@ -682,8 +682,9 @@ fact.setList(list);
 // 将数据提供给规则引擎（放入工作内存中），规则引擎会根据提供的数据进行规则匹配
 session.insert(fact);
 
-// 使用框架提供的规则过滤器(RuleNameStartsWithAgendaFilter)执行指定的规则
+// 使用框架提供的规则过滤器(RuleNameStartsWithAgendaFilter)执行指定某个名称的规则
 session.fireAllRules(new RuleNameEqualsAgendaFilter("rule_comparison_notcontains"));
+// 使用框架提供的规则过滤器(RuleNameStartsWithAgendaFilter)执行指定某个前缀的规则
 // session.fireAllRules(new RuleNameStartsWithAgendaFilter("rule_"));
 
 session.dispose();
@@ -700,7 +701,1079 @@ Drools 的关键字分为：**硬关键字(Hard keywords)**和**软关键字(Sof
 
 规则文件的 `RHS` 部分的主要作用是通过插入，删除或修改工作内存中的 Fact 数据，来达到控制规则引擎执行的目的。Drools 提供了一些方法可以用来操作工作内存中的数据，操作完成后规则引擎会重新进行相关规则的匹配，原来没有匹配成功的规则在我们修改数据完成后有可能就会匹配成功了。
 
+创建用于测试的实体类 `Student`
 
+```java
+public class Student {
+    private int id;
+    private String name;
+    private int age;
+    // ...省略setter/getter
+}
+```
+
+#### 5.8.1. update 方法
+
+update 方法的作用是更新工作内存中的数据，并让相关的规则重新匹配。
+
+- 第一步：编写规则文件 /resources/rules/method-update.drl，文件内容如下：
+
+```drl
+package test.methodupdate
+import com.moon.drools.entity.Student
+
+/* 当前规则文件用于测试Drools提供的内置方法*/
+rule "rule_student_age小于10岁"
+    when
+        $s:Student(age < 10)
+    then
+        $s.setAge(15);
+        update($s); // 更新数据，导致相关的规则会重新匹配
+        System.out.println("规则rule_student_age小于10岁触发");
+end
+
+rule "rule_student_age小于20岁同时大于10岁"
+    when
+        $s:Student(age < 20 && age > 10)
+    then
+        $s.setAge(25);
+        update($s); // 更新数据，导致相关的规则会重新匹配
+        System.out.println("规则rule_student_age小于20岁同时大于10岁触发");
+end
+
+rule "rule_student_age大于20岁"
+    when
+        $s:Student(age > 20)
+    then
+        System.out.println("规则rule_student_age大于20岁触发");
+end
+```
+
+- 第二步：编写单元测试
+
+```java
+KieServices kieServices = KieServices.Factory.get();
+KieContainer kieContainer = kieServices.newKieClasspathContainer();
+KieSession session = kieContainer.newKieSession();
+
+Student student = new Student();
+student.setAge(4);
+// 将数据提供给规则引擎（放入工作内存中），规则引擎会根据提供的数据进行规则匹配
+session.insert(student);
+
+// 激活规则，由Drools框架自动进行规则匹配，如果规则匹配成功，则执行当前规则
+session.fireAllRules();
+session.dispose();
+```
+
+通过控制台的输出可以看到规则文件中定义的三个规则都触发了，因为update方法会再次触发规则的校验。<font color=red>**在更新数据时需要注意防止发生死循环**</font>。
+
+#### 5.8.2. insert 方法
+
+insert 方法的作用是向工作内存中插入数据，并让相关的规则重新匹配。
+
+- 第一步：编写规则文件 /resources/rules/method-insert.drl，文件内容如下：
+
+```drl
+package test.methodinsert
+import com.moon.drools.entity.Student
+
+/* 当前规则文件用于测试Drools提供的内置方法*/
+rule "rule_student_age等于10岁"
+    when
+        $s:Student(age == 10)
+    then
+        Student student = new Student();
+        student.setAge(5);
+        insert(student); // 插入数据，导致相关的规则会重新匹配
+        System.out.println("规则rule_student_age等于10岁触发");
+end
+
+rule "rule_student_age小于10岁"
+    when
+        $s:Student(age < 10)
+    then
+        System.out.println("规则rule_student_age小于10岁触发");
+end
+
+rule "rule_student_age小于20岁同时大于10岁"
+    when
+        $s:Student(age < 20 && age > 10)
+    then
+        System.out.println("规则rule_student_age小于20岁同时大于10岁触发");
+end
+
+rule "rule_student_age大于20岁"
+    when
+        $s:Student(age > 20)
+    then
+        System.out.println("规则rule_student_age大于20岁触发");
+end
+```
+
+- 第二步：编写单元测试
+
+```java
+KieServices kieServices = KieServices.Factory.get();
+KieContainer kieContainer = kieServices.newKieClasspathContainer();
+KieSession session = kieContainer.newKieSession();
+
+Student student = new Student();
+student.setAge(10);
+// 将数据提供给规则引擎（放入工作内存中），规则引擎会根据提供的数据进行规则匹配
+session.insert(student);
+
+// 激活规则，由Drools框架自动进行规则匹配，如果规则匹配成功，则执行当前规则
+session.fireAllRules();
+session.dispose();
+```
+
+通过控制台输出可以发现，两个规则都触发了，这是因为首先进行规则匹配时只有第一个规则可以匹配成功，但是在第一个规则中向工作内存中插入了一个数据导致重新进行规则匹配，此时第二个规则可以匹配成功。
+
+#### 5.8.3. retract 方法
+
+retract 方法的作用是删除工作内存中的数据，并让相关的规则重新匹配。
+
+- 第一步：编写规则文件 /resources/rules/method-insert.drl，文件内容如下：
+
+```drl
+package test.methodretract
+import com.moon.drools.entity.Student
+
+/* 当前规则文件用于测试Drools提供的内置方法*/
+rule "rule_student_age等于10岁时删除数据"
+    /*
+        salience：设置当前规则的执行优先级，数值越大越优先执行，默认值为0.
+        因为当前规则的匹配条件和下面规则的匹配条件相同，为了保证先执行当前规则，需要设置优先级
+    */
+    salience 100
+    when
+        $s:Student(age == 10)
+    then
+        retract($s); // retract方法的作用是删除工作内存中的数据，并让相关的规则重新匹配。
+        System.out.println("规则rule_student_age等于10岁时删除数据触发");
+end
+
+rule "rule_student_age等于10岁"
+    when
+        $s:Student(age == 10)
+    then
+        System.out.println("规则rule_student_age等于10岁触发");
+end
+```
+
+- 第二步：编写单元测试
+
+```java
+KieServices kieServices = KieServices.Factory.get();
+KieContainer kieContainer = kieServices.newKieClasspathContainer();
+KieSession session = kieContainer.newKieSession();
+
+Student student = new Student();
+student.setAge(10);
+// 将数据提供给规则引擎（放入工作内存中），规则引擎会根据提供的数据进行规则匹配
+session.insert(student);
+
+// 激活规则，由Drools框架自动进行规则匹配，如果规则匹配成功，则执行当前规则
+session.fireAllRules();
+session.dispose();
+```
+
+通过控制台输出可以发现，只有第一个规则触发了，因为在第一个规则中将工作内存中的数据删除了导致第二个规则并没有匹配成功。
+
+### 5.9. 规则属性
+
+前面规则体的构成中，`attributes`就是针对规则体的属性部分。Drools中提供的属性如下表(部分属性)：
+
+|      属性名       |                     说明                      |
+| :--------------: | --------------------------------------------- |
+|     salience     | 指定规则执行优先级                              |
+|     dialect      | 指定规则使用的语言类型，取值为java和mvel         |
+|     enabled      | 指定规则是否启用                                |
+|  date-effective  | 指定规则生效时间                                |
+|   date-expires   | 指定规则失效时间                                |
+| activation-group | 激活分组，具有相同分组名称的规则只能有一个规则触发 |
+|   agenda-group   | 议程分组，只有获取焦点的组中的规则才有可能触发     |
+|      timer       | 定时器，指定规则触发的时间                       |
+|    auto-focus    | 自动获取焦点，一般结合agenda-group一起使用       |
+|     no-loop      | 防止死循环                                     |
+
+#### 5.9.1. enabled 属性
+
+enabled 属性对应的取值为true和false，默认值为true。用于指定当前规则是否启用，如果设置的值为 false 则当前规则无论是否匹配成功都不会触发。
+
+- 创建规则文件 attributes-enabled.drl
+
+```drl
+// 当前规则文件用于测试执行 enabled 属性
+package test.attributesenabled
+
+// 定义第一个规则
+rule "enabled_rule_1"
+    enabled false  // 指定当前规则是否可用，默认值为true。当前规则即使匹配也不会触发
+    when
+        eval(true) // 返回true，即当前规则匹配成功
+    then
+        System.out.println("规则：enabled_rule_1 触发了...");
+end
+
+// 定义第二个规则
+rule "enabled_rule_2"
+    when
+        eval(true)
+    then
+        System.out.println("规则：enabled_rule_2 触发了...");
+end
+```
+
+- 编写测试用例
+
+```java
+KieServices kieServices = KieServices.Factory.get();
+KieContainer kieContainer = kieServices.newKieClasspathContainer();
+KieSession session = kieContainer.newKieSession();
+
+// 激活规则，由Drools框架自动进行规则匹配，如果规则匹配成功，则执行当前规则
+session.fireAllRules();
+session.dispose();
+```
+
+#### 5.9.2. dialect 属性
+
+dialect 属性用于指定当前规则使用的语言类型，取值为`java`和`mvel`，默认值为`java`。
+
+> Notes: mvel 是一种基于 java 语法的表达式语言。mvel 像正则表达式一样，有直接支持集合、数组和字符串匹配的操作符，还提供了用来配置和构造字符串的模板语言。mvel 表达式内容包括属性表达式，布尔表达式，方法调用，变量赋值，函数定义等。
+
+```drl
+rule "dialect_rule"
+    dialect "mvel"  // 当前规则使用的语言类型为 mvel
+    when
+        ...
+    then
+        ...
+end
+```
+
+#### 5.9.3. salience 属性
+
+`salience` 属性用于指定规则的执行优先级，取值类型为 `Integer`，<font color=red>**数值越大越优先执行**</font>。每个规则都有一个默认的执行顺序，如果不设置 `salience` 属性（默认值为0），规则体的执行顺序为由上到下。
+
+- 创建规则文件 attributes-salience.drl
+
+```drl
+// 当前规则文件用于测试执行优先级 salience 属性
+package test.attributessalience
+
+// 定义第一个规则
+rule "salience_rule_1"
+    salience 10 // 指定规则执行的优先级，数值越大越优先
+    when
+        eval(true) // 返回true，即当前规则匹配成功
+    then
+        System.out.println("规则：salience_rule_1触发了...");
+end
+
+// 定义第二个规则
+rule "salience_rule_2"
+    salience 11
+    when
+        eval(true)
+    then
+        System.out.println("规则：salience_rule_2触发了...");
+end
+
+// 定义第二个规则
+rule "salience_rule_3"
+    salience 5
+    when
+        eval(true)
+    then
+        System.out.println("规则：salience_rule_3触发了...");
+end
+```
+
+- 编写测试用例
+
+```java
+KieServices kieServices = KieServices.Factory.get();
+KieContainer kieContainer = kieServices.newKieClasspathContainer();
+KieSession session = kieContainer.newKieSession();
+
+// 激活规则，由Drools框架自动进行规则匹配，如果规则匹配成功，则执行当前规则
+session.fireAllRules();
+session.dispose();
+```
+
+通过控制台可以看到，规则文件执行的顺序是按照我们设置的 `salience` 值由大到小顺序执行的。如果不指定 salience 属性（默认值都为0），则执行的顺序是按照规则文件中规则的顺序由上到下执行的。一般建议在编写规则时使用 `salience` 属性明确指定执行优先级。
+
+#### 5.9.4. no-loop 属性
+
+`no-loop` 属性用于防止死循环，当规则通过 update 之类的函数修改了 Fact 对象时，可能使当前规则再次被激活从而导致死循环。取值类型为 Boolean，默认值为 false。测试步骤如下：
+
+- 第一步：编写规则文件 /resource/rules/attributes-noloop.drl
+
+```java
+// 当前规则文件用于测试执行优先级 salience 属性
+package test.attributessalience
+import com.moon.drools.entity.Student
+
+rule "rule_noloop"
+    when
+        $s:Student(age == 50)
+    then
+        update($s); // 调用update方法会导致相关规则重新匹配
+        System.out.println("规则：rule_noloop 触发了...");
+end
+```
+
+- 第二步：编写单元测试
+
+```java
+KieServices kieServices = KieServices.Factory.get();
+KieContainer kieContainer = kieServices.newKieClasspathContainer();
+KieSession session = kieContainer.newKieSession();
+Student student = new Student();
+student.setAge(50);
+session.insert(student);
+
+// 激活规则，由Drools框架自动进行规则匹配，如果规则匹配成功，则执行当前规则
+session.fireAllRules();
+session.dispose();
+```
+
+通过控制台可以看到，由于没有设置 `no-loop` 属性的值，所以发生了死循环。下面设置 `no-loop` 的值为 true 再次测试则不会发生死循环。
+
+```drl
+rule "rule_noloop"
+    no-loop true // 使用no-loop解决死循环问题
+    when
+        $s:Student(age == 50)
+    then
+        update($s); // 调用update方法会导致相关规则重新匹配
+        System.out.println("规则：rule_noloop 触发了...");
+end
+```
+
+#### 5.9.5. activation-group 属性
+
+`activation-group` 属性是指激活分组，取值为 String 类型。具有相同分组名称的规则只能有一个规则被触发。
+
+- 第一步：编写规则文件 /resources/rules/attributes-activationgroup.drl
+
+```drl
+// 当前规则文件用于测试activation-group属性
+package test.attributesactivationgroup
+
+rule "rule_activationgroup_1"
+    activation-group "mygroup" // 对于同一个组内的规则，只能有一个触发
+    salience 5
+    when
+        // 如果条件不写，默认为true，表示规则匹配成功
+    then
+        System.out.println("规则：rule_activationgroup_1触发了...");
+end
+
+rule "rule_activationgroup_2"
+    activation-group "mygroup"
+    salience 10
+    when
+        // 如果条件不写，默认为true，表示规则匹配成功
+    then
+        System.out.println("规则：rule_activationgroup_2触发了...");
+end
+
+rule "rule_activationgroup_3"
+    // 不指定 activation-group 属性
+    when
+        // 如果条件不写，默认为true，表示规则匹配成功
+    then
+        System.out.println("规则：rule_activationgroup_3触发了...");
+end
+```
+
+- 第二步：编写单元测试
+
+```java
+KieServices kieServices = KieServices.Factory.get();
+KieContainer kieContainer = kieServices.newKieClasspathContainer();
+KieSession session = kieContainer.newKieSession();
+
+// 激活规则，由Drools框架自动进行规则匹配，如果规则匹配成功，则执行当前规则
+session.fireAllRules();
+session.dispose();
+```
+
+- 输出结果
+
+```
+规则：rule_activationgroup_2触发了...
+规则：rule_activationgroup_3触发了...
+```
+
+通过控制台可以发现，上面设置了 `activation-group` 属性且值为相同的两个规则因为属于同一个分组，所以只有一个触发了。同一个分组中的多个规则如果都能够匹配成功，具体哪一个最终能够被触发可以通过 `salience` 属性确定。
+
+#### 5.9.6. agenda-group 属性
+
+`agenda-group` 属性为议程分组，属于另一种可控的规则执行方式。用户可以通过设置 `agenda-group` 来控制规则的执行，只有获取焦点的组中的规则才会被触发。
+
+- 第一步：创建规则文件 /resources/rules/attributes-agendagroup.drl
+
+```drl
+// 当前规则文件用于测试 agenda-group 属性
+package test.attributesagendagroup
+
+// 第一个规则
+rule "rule_agendagroup_1"
+    agenda-group "agenda_group_1" // agenda-group 属性为议程分组，只有获得焦点的组中的规则才可以触发
+    when
+    then
+        System.out.println("规则：rule_agendagroup_1触发了...");
+end
+
+// 第二个规则
+rule "rule_agendagroup_2"
+    agenda-group "agenda_group_1"
+    when
+    then
+        System.out.println("规则：rule_agendagroup_2触发了...");
+end
+
+// 第三个规则
+rule "rule_agendagroup_3"
+    agenda-group "agenda_group_2"
+    when
+    then
+        System.out.println("规则：rule_agendagroup_3触发了...");
+end
+
+// 第四个规则
+rule "rule_agendagroup_4"
+    agenda-group "agenda_group_2"
+    when
+    then
+        System.out.println("规则：rule_agendagroup_4触发了...");
+end
+```
+
+- 第二步：编写单元测试
+
+```java
+KieServices kieServices = KieServices.Factory.get();
+KieContainer kieContainer = kieServices.newKieClasspathContainer();
+KieSession session = kieContainer.newKieSession();
+
+// 设置焦点，对应agenda-group分组中的规则才可能被触发
+session.getAgenda().getAgendaGroup("agenda_group_1").setFocus();
+
+// 激活规则，由Drools框架自动进行规则匹配，如果规则匹配成功，则执行当前规则
+session.fireAllRules();
+session.dispose();
+```
+
+- 输出结果
+
+```
+规则：rule_agendagroup_1触发了...
+```
+
+通过控制台可以看到，只有获取焦点的分组中的规则才会触发。与 `activation-group` 属性不同的是，`activation-group` 属性定义的分组中只能够有一个规则可以被触发，而 `agenda-group` 分组中的多个规则都可以被触发(前提是符合条件)。
+
+#### 5.9.7. auto-focus 属性
+
+`auto-focus` 属性为自动获取焦点，取值类型为 Boolean，默认值为 false。一般结合 `agenda-group` 属性使用，当一个议程分组未获取焦点时，可以设置 `auto-focus` 属性来控制。
+
+- 第一步：创建规则文件 /resources/rules/attributes-autofocus.drl
+
+```drl
+// 当前规则文件用于测试 auto-focus 属性（需要配合 agenda-group 属性）
+package test.attributesautofocus
+
+// 第一个规则
+rule "rule_autofocus_1"
+    agenda-group "agenda_group_1" // agenda-group属性为议程分组，只有获得焦点的组中的规则才可以触发
+    when
+    then
+        System.out.println("规则：rule_autofocus_1触发了...");
+end
+
+// 第二个规则
+rule "rule_autofocus_2"
+    agenda-group "agenda_group_1"
+    when
+    then
+        System.out.println("规则：rule_autofocus_2触发了...");
+end
+
+// 第三个规则
+rule "rule_autofocus_3"
+    agenda-group "agenda_group_2"
+    auto-focus true // auto-focus 属性用于指定当前所属组自动获取焦点
+    when
+    then
+        System.out.println("规则：rule_autofocus_3触发了...");
+end
+
+// 第四个规则
+rule "rule_autofocus_4"
+    agenda-group "agenda_group_2"
+    // 如果同一个 agenda-group 议程组中某个规则设置 kauto-focus 属性为 true，则其他的规则均为自动获取焦点
+    auto-focus false
+    when
+    then
+        System.out.println("规则：rule_autofocus_4触发了...");
+end
+```
+
+- 第二步：编写单元测试
+
+```java
+KieServices kieServices = KieServices.Factory.get();
+KieContainer kieContainer = kieServices.newKieClasspathContainer();
+KieSession session = kieContainer.newKieSession();
+
+// 激活规则，由Drools框架自动进行规则匹配，如果规则匹配成功，则执行当前规则
+session.fireAllRules();
+session.dispose();
+```
+
+- 输出结果
+
+```
+规则：rule_autofocus_3触发了...
+规则：rule_autofocus_4触发了...
+```
+
+通过控制台可以看到，设置 `auto-focus` 属性为 true 的规则，不需要通过代码获取焦点，都会触发了。
+
+#### 5.9.8. timer 属性
+
+`timer` 属性可以通过定时器的方式指定规则执行的时间，使用方式有两种：
+
+- 方式一：`timer (int: <initial delay> <repeat interval>?)`。此方式遵循 `java.util.Timer` 对象的使用方式，第一个参数表示几秒后执行，第二个参数表示每隔几秒执行一次，第二个参数为可选
+- 方式二：`timer(cron: <cron expression>)`。此方式使用标准的 unix cron 表达式的使用方式来定义规则执行的时间。
+
+> Tips: 以下单元测试的代码和以前的有所不同，因为规则文件中使用到了 timer 进行定时执行，需要程序能够持续一段时间才能够看到定时器触发的效果。
+
+##### 5.9.8.1. 方式1实现
+
+- 第一步：创建规则文件 /resources/rules/attributes-timer.drl
+
+```drl
+// 当前规则文件用于测试timer属性
+package test.attributestimer
+import java.util.Date
+import java.text.SimpleDateFormat
+
+// timer 第一种用方式
+rule "rule_timer_1"
+    timer (3s 2s) // 当前timer属性用于指定规则触发的时间，当前表达式表示3s后触发，每个2s触发一次
+    when
+    then
+        System.out.println("规则：rule_timer_1触发了...");
+end
+```
+
+- 第二步：编写单元测试。*因为是测试用例，运行后程序就会结束，所以睡眠10秒来观察定时器运行效果*
+
+```java
+KieServices kieServices = KieServices.Factory.get();
+KieContainer kieContainer = kieServices.newKieClasspathContainer();
+final KieSession session = kieContainer.newKieSession();
+
+new Thread(() -> {
+    // 启动规则引擎进行规则匹配，直到调用halt方法才结束规则引擎
+    session.fireUntilHalt();
+}).start();
+
+Thread.sleep(10000);
+// 结束规则引擎
+session.halt();
+// 关闭会话
+session.dispose();
+```
+
+##### 5.9.8.2. 方式2实现
+
+- 第一步：创建规则文件 /resources/rules/attributes-timer.drl
+
+```drl
+// 当前规则文件用于测试 timer 属性
+package test.attributestimer
+import java.util.Date
+import java.text.SimpleDateFormat
+
+// timer 第二种用方式
+rule "rule_timer_2"
+    timer (cron:0/2 * * * * ?) // 基于cron表达式指定规则触发的时间
+    when
+    then
+        System.out.println("规则：rule_timer_2触发了...触发的时间为：" + new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()));
+end
+```
+
+- 第二步：编写单元测试。*因为是测试用例，运行后程序就会结束，所以睡眠10秒来观察定时器运行效果*
+
+```java
+KieServices kieServices = KieServices.Factory.get();
+KieContainer kieContainer = kieServices.newKieClasspathContainer();
+final KieSession session = kieContainer.newKieSession();
+
+new Thread(() -> {
+    // 启动规则引擎进行规则匹配，直到调用halt方法才结束规则引擎
+    session.fireUntilHalt();
+}).start();
+
+Thread.sleep(10000);
+// 结束规则引擎
+session.halt();
+// 关闭会话
+session.dispose();
+```
+
+- 输出结果
+
+```
+规则：rule_timer_2触发了...触发的时间为：2022-09-25 15:10:52
+规则：rule_timer_2触发了...触发的时间为：2022-09-25 15:10:54
+规则：rule_timer_2触发了...触发的时间为：2022-09-25 15:10:56
+规则：rule_timer_2触发了...触发的时间为：2022-09-25 15:10:58
+规则：rule_timer_2触发了...触发的时间为：2022-09-25 15:11:00
+```
+
+#### 5.9.9. date-effective 属性
+
+`date-effective` 属性用于指定规则的生效时间，即只有当前系统时间大于等于设置的时间或者日期规则才有可能触发。默认日期格式为：`dd-MMM-yyyy`。用户也可以自定义日期格式，使用时需要指定自定义的格式，否则会报错。
+
+- 第一步：编写规则文件 /resources/rules/attributes-dateeffective.drl
+
+```drl
+// 当前规则文件用于测试 date-effective 属性
+package test.attributesdateeffective
+import java.text.SimpleDateFormat
+import java.util.Date
+
+rule "rule_dateeffective"
+    date-effective "2022-09-25 10:00" // date-effective属性用于指定当前规则生效时间
+    when
+    then
+        System.out.println("规则：rule_dateeffective触发了，触发的时间为：" + new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()));
+end
+```
+
+- 第二步：编写单元测试
+
+```java
+// 设置日期格式，设置环境变量名称固定为 drools.dateformat
+System.setProperty("drools.dateformat","yyyy-MM-dd HH:mm");
+KieServices kieServices = KieServices.Factory.get();
+KieContainer kieContainer = kieServices.newKieClasspathContainer();
+KieSession session = kieContainer.newKieSession();
+
+// 激活规则，由Drools框架自动进行规则匹配，如果规则匹配成功，则执行当前规则
+session.fireAllRules();
+session.dispose();
+```
+
+注意：上面的代码需要系统环境变量设置日期格式，并且变量名称固定为 `drools.dateformat`，否则在规则文件中写的日期格式和默认的日期格式不匹配程序会报错。
+
+```
+java.lang.RuntimeException: Error while creating KieBase[Message [id=1, kieBase=myKbase1, level=ERROR, path=D:\code\java-technology-stack\java-stack-drools\drools-quickstart\target\classes\rules\attributes-dateeffective.drl, line=6, column=0
+   text=Wrong date-effective value: Invalid date input format: [2022-09-25 10:00] it should follow: [dd-MMM-yyyy]]]
+```
+
+#### 5.9.10. date-expires 属性
+
+date-expires 属性用于指定规则的失效时间，即只有当前系统时间小于设置的时间或者日期规则才有可能触发。默认日期格式为：`dd-MMM-yyyy`。用户也可以自定义日期格式，使用时需要指定自定义的格式，否则会报错。
+
+- 第一步：编写规则文件 /resource/rules/attributes-dateexpires.drl
+
+```drl
+// 当前规则文件用于测试 date-expires 属性
+package test.attributesdateexpires
+
+rule "rule_dateexpires"
+    date-expires "2022-09-25 15:30" // date-expires 属性用于指定当前规则的失效时间
+    when
+    then
+        System.out.println("规则：rule_dateexpires触发了...");
+end
+```
+
+- 第二步：编写单元测试
+
+```java
+// 设置日期格式，设置环境变量名称固定为 drools.dateformat
+System.setProperty("drools.dateformat","yyyy-MM-dd HH:mm");
+KieServices kieServices = KieServices.Factory.get();
+KieContainer kieContainer = kieServices.newKieClasspathContainer();
+KieSession session = kieContainer.newKieSession();
+
+// 激活规则，由Drools框架自动进行规则匹配，如果规则匹配成功，则执行当前规则
+session.fireAllRules();
+session.dispose();
+```
+
+注意：上面的代码需要系统环境变量设置日期格式，并且变量名称固定为 `drools.dateformat`，否则在规则文件中写的日期格式和默认的日期格式不匹配程序会报错。
+
+## 6. Drools 高级语法
+
+前面基础语法已经知道了一套完整的规则文件包含的内容，此章节主要学习 global（全局变量）、function（自定义函数）、query（查询）、rule end（规则体）等关键字的使用
+
+### 6.1. global 全局变量
+
+`global` 关键字用于在规则文件中定义全局变量，它可以让应用程序的对象在规则文件中能够被访问。可以用来为规则文件提供数据或服务。语法结构如下：
+
+```java
+global 对象类型 对象名称
+```
+
+在使用 `global` 定义的全局变量时有两点需要注意：
+
+1. 如果`global`定义的对象类型为包装类型时，在一个规则中改变了 global 的值，那么只针对当前规则有效，对其他规则中的 global 值不会有影响。可以理解为它是当前规则代码中的 global 副本，规则内部修改不会影响全局的使用。
+2. 如果`global`定义的对象类型为集合类型或 JavaBean 时，在一个规则中改变了 global 的值，对 java 代码和所有规则都有效。
+
+使用案例如下：
+
+- 第一步：编写规则文件 /resources/rules/global.drl
+
+```drl
+// 当前规则文件用于测试 global 全局变量
+package testglobal
+import com.moon.drools.entity.Student
+
+global java.lang.Integer count // 定义一个包装类型的全局变量
+global java.util.List globalList // 定义一个集合类型的全局变量
+global Student globalStudent // 定义一个JavaBean类型的全局变量
+
+rule "rule_global_1"
+    when
+    then
+        count += 10; // 对于包装类型的全局变量的修改只针对当前规则生效
+        System.out.println("规则：rule_global_1触发了...");
+        System.out.println("全局变量count计算之后的值为：" + count);
+
+        globalList.add("MooN"); // 修改集合类型的全局变量
+        System.out.println("全局变量globalList的size：" + globalList.size());
+        globalStudent.setName("MooNZero");  // 修改 JavaBean 全局变量中的属性
+        System.out.println("++++++++++ 规则：rule_global_1 修改变量完成 ++++++++++");
+end
+
+rule "rule_global_2"
+    when
+    then
+        System.out.println("规则：rule_global_2触发了...");
+        System.out.println("全局变量的值为：" + count);
+        System.out.println("全局变量globalList的size：" + globalList.size());
+        System.out.println("全局变量globalStudent的name属性：" + globalStudent.getName());
+end
+```
+
+- 第二步：编写单元测试
+
+```java
+KieServices kieServices = KieServices.Factory.get();
+KieContainer kieContainer = kieServices.newKieClasspathContainer();
+KieSession session = kieContainer.newKieSession();
+
+// 设置全局变量，变量名称必须和规则文件中定义的变量名一致
+session.setGlobal("count", 5); // 包装对象的全局变量
+
+List<String> list = new ArrayList<>();
+list.add("N");
+session.setGlobal("globalList", list); // 集合类型的全局变量
+
+Student student = new Student();
+session.setGlobal("globalStudent", student);
+
+System.out.println("执行规则前全局变量globalList的size：" + list.size());
+System.out.println("执行规则前全局变量globalStudent的name属性：" + student.getName());
+System.out.println("--------------------------------------------------------");
+
+// 激活规则，由Drools框架自动进行规则匹配，如果规则匹配成功，则执行当前规则
+session.fireAllRules();
+
+System.out.println("--------------------------------------------------------");
+System.out.println("执行规则后全局变量globalList的size：" + list.size());
+System.out.println("执行规则后全局变量globalStudent的name属性：" + student.getName());
+
+session.dispose();
+```
+
+- 输出结果
+
+```
+执行规则前全局变量globalList的size：1
+执行规则前全局变量globalStudent的name属性：null
+--------------------------------------------------------
+规则：rule_global_1触发了...
+全局变量count计算之后的值为：15
+全局变量globalList的size：2
+++++++++++ 规则：rule_global_1 修改变量完成 ++++++++++
+规则：rule_global_2触发了...
+全局变量的值为：5
+全局变量globalList的size：2
+全局变量globalStudent的name属性：MooNZero
+--------------------------------------------------------
+执行规则后全局变量globalList的size：2
+执行规则后全局变量globalStudent的name属性：MooNZero
+```
+
+### 6.2. query 查询
+
+query 查询提供了一种查询 working memory 中符合约束条件的 Fact 对象的简单方法。它仅包含规则文件中的 LHS 部分，不用指定“when”和“then”部分并且以 end 结束。具体语法结构如下：
+
+```drl
+query 查询的名称(可选参数)
+    LHS
+end
+```
+
+具体操作步骤：
+
+- 第一步：编写规则文件 /resources/rules/query.drl
+
+```drl
+// 当前规则文件用于测试query查询
+package testquery
+import com.moon.drools.entity.Student
+
+// 定义一个不带参数的 Query 查询，可以到工作内存中查询符合条件的Fact对象
+query "rule_query_1"
+    $s:Student(age > 10)
+end
+
+// 定义一个带有参数的 Query 查询，可以到工作内存中查询符合条件的Fact对象
+query "rule_query_2"(String sname)
+    $s:Student(age > 5 && name == sname)
+end
+```
+
+- 第二步：编写单元测试
+
+```java
+KieServices kieServices = KieServices.Factory.get();
+KieContainer kieContainer = kieServices.newKieClasspathContainer();
+KieSession session = kieContainer.newKieSession();
+
+// 创建多个对象，后面加入到working memory(工作内存)中，用于测试
+Student student1 = new Student();
+student1.setName("张三");
+student1.setAge(12);
+Student student2 = new Student();
+student2.setName("李四");
+student2.setAge(8);
+Student student3 = new Student();
+student3.setName("王五");
+student3.setAge(22);
+
+// 将对象插入Working Memory中
+session.insert(student1);
+session.insert(student2);
+session.insert(student3);
+
+// 调用规则文件中的查询（不带参数的查询）
+QueryResults results1 = session.getQueryResults("rule_query_1");
+int size = results1.size();
+System.out.println("size=" + size);
+for (QueryResultsRow row : results1) {
+    Student student = (Student) row.get("$s"); // 与规则文件设置对象的变量名称一致
+    System.out.println(student);
+}
+
+// 调用规则文件中的查询（带有参数的查询）
+QueryResults results2 = session.getQueryResults("rule_query_2", "王五");
+size = results2.size();
+System.out.println("size=" + size);
+for (QueryResultsRow row : results2) {
+    Student student = (Student) row.get("$s");
+    System.out.println(student);
+}
+
+// session.fireAllRules(); // 因为只是测试查询工作内存，不需要激活规则
+// 关闭会话
+session.dispose();
+```
+
+- 输出结果
+
+```
+size=2
+com.moon.drools.entity.Student@39109136
+com.moon.drools.entity.Student@127f9161
+size=1
+com.moon.drools.entity.Student@127f9161
+```
+
+### 6.3. function 函数
+
+`function` 关键字用于在规则文件中定义函数，就相当于 Java 类中的方法一样。可以在规则体中调用定义的函数。使用函数的好处是可以将业务逻辑集中放置在一个地方，根据需要可以对函数进行修改。函数定义的语法结构如下：
+
+```java
+function 返回值类型 函数名(可选参数){
+    // 逻辑代码
+}
+```
+
+具体操作步骤：
+
+- 第一步：编写规则文件 /resources/rules/function.drl
+
+```drl
+// 当前规则文件用于测试function函数
+package testfunction
+import com.moon.drools.entity.Student
+
+// 定义一个函数
+function String sayHello(String name){
+    return "hello " + name;
+}
+
+// 定义一个规则，在规则中调用上面的函数
+rule "rule_function_1"
+    when
+        $s:Student(age > 25)
+    then
+        // 调用定义的函数
+        String ret = sayHello($s.getName());
+        System.out.println("调用sayHello函数，获得返回结果：" + ret);
+end
+```
+
+- 第二步：编写单元测试
+
+```java
+KieServices kieServices = KieServices.Factory.get();
+KieContainer kieContainer = kieServices.newKieClasspathContainer();
+KieSession session = kieContainer.newKieSession();
+
+Student student = new Student();
+student.setName("MooNkirA");
+student.setAge(28);
+// 加入到工作内存中
+session.insert(student);
+
+// 激活规则，由Drools框架自动进行规则匹配，如果规则匹配成功，则执行当前规则
+session.fireAllRules();
+session.dispose();
+```
+
+- 输出结果
+
+```
+调用sayHello函数，获得返回结果：hello MooNkirA
+```
+
+### 6.4. LHS（规则的条件部分）进阶
+
+在规则体中的 LHS 部分是介于 `when` 和 `then` 之间的部分，主要用于模式匹配，只有匹配结果为 true 时，才会触发 RHS 部分的执行。
+
+#### 6.4.1. 复合值限制 in/not in
+
+复合值限制是指超过一种匹配值的限制条件，类似于 SQL 语句中的 `in` 关键字。Drools 规则体中的 LHS 部分可以使用 `in` 或者 `not in` 进行复合值的匹配。具体语法结构如下：
+
+```java
+Object(field in (比较值1,比较值2...))
+```
+
+- 第一步：编写规则文件 /resources/rules/lhs-in-notin.drl
+
+```drl
+// 当前规则文件用于测试LHS部分---in not in
+package testlhs
+import com.moon.drools.entity.Student
+
+// 编写规则，演示in关键字用法
+rule "rule_lhs_1"
+    when
+        $s:Student(name in ("MooNkirA","L","Zero"))
+    then
+        System.out.println("规则：rule_lhs_1触发了...");
+end
+
+// 编写规则，演示 not in 关键字用法
+rule "rule_lhs_2"
+    when
+        $s:Student(name not in ("MooNkirA","L"))
+    then
+        System.out.println("规则：rule_lhs_2触发了...");
+end
+```
+
+- 第二步：编写单元测试
+
+```java
+KieServices kieServices = KieServices.Factory.get();
+KieContainer kieContainer = kieServices.newKieClasspathContainer();
+KieSession session = kieContainer.newKieSession();
+
+Student student = new Student();
+student.setName("Zero");
+// 加入到工作内存中
+session.insert(student);
+
+// 激活规则，由Drools框架自动进行规则匹配，如果规则匹配成功，则执行当前规则
+session.fireAllRules();
+session.dispose();
+```
+
+- 输出结果
+
+```
+规则：rule_lhs_1触发了...
+规则：rule_lhs_2触发了...
+```
+
+#### 6.4.2. 条件元素 eval
+
+`eval` 用于规则体的 LHS 部分，并返回一个 Boolean 类型的值。语法结构如下：
+
+```java
+eval(表达式)
+```
+
+#### 6.4.3. 条件元素 not
+
+`not` 用于判断 Working Memory 中是否存在某个 Fact 对象，如果不存在则返回 true，如果存在则返回 false。语法结构如下：
+
+```java
+not Object(可选属性约束)
+```
+
+#### 6.4.4. 条件元素 exists
+
+`exists` 的作用与 `not` 相反，用于判断 Working Memory 中是否存在某个 Fact 对象，如果存在则返回 true，不存在则返回 false。语法结构如下：
+
+```java
+exists Object(可选属性约束)
+```
+
+扩展：前面在 LHS 部分进行条件编写时并没有使用 `exists` 关键字也可以达到判断 Working Memory 中是否存在某个符合条件的 Fact 元素的目的。两者的区别：当向 Working Memory 中加入多个满足条件的 Fact 对象时，使用了 `exists` 的规则只会执行一次，而不使用 `exists` 的规则会执行多次。
+
+
+
+
+
+
+
+
+
+### 6.5. 规则继承
+
+规则之间可以使用 `extends` 关键字进行规则条件部分的继承，类似于 Java 类之间的继承。
+
+
+
+
+### 6.6. 规则文件编码规范
+
+drl 类型的规则文件编写时尽量遵循如下规范：
+
+- 所有的规则文件(.drl)应统一放在一个规定的文件夹中，如：rules文件夹
+- 书写的每个规则应尽量加上注释。注释要清晰明了，言简意赅
+- 同一类型的对象尽量放在一个规则文件中，如所有 Student 类型的对象尽量放在一个规则文件中
+- 规则结果部分(RHS)尽量不要有条件语句，如`if(...)`，尽量不要有复杂的逻辑和深层次的嵌套语句
+- 每个规则最好都加上 `salience` 属性，明确执行顺序
+- Drools 默认 `dialect` 为"Java"，尽量避免使用 dialect "mvel"
 
 
 

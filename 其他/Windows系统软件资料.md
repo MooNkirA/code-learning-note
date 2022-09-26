@@ -162,15 +162,51 @@ goto 3
 exit
 ```
 
+#### 1.2.3. 一键删除电脑中的空文件夹脚本（未测试！！）
+
+在任意目录中创建“xxx.bat”的批处理文件，复制以下脚本代码再双击运行即可。
+
+- 批量（循环）删除指定目录下所有空文件夹代码，例如删除F:\盘下的所有空文件夹：
+
+```bash
+@echo off
+
+for /f "delims=" %%a in ('dir /ad /b /s F:\^|sort /r') do (
+rd "%%a">nul 2>nul &&echo 空目录"%%a"成功删除！
+)
+
+pause
+```
+
+- 批量删除多个磁盘的空文件夹，例如删除c、d、e、f区中所有的空文件夹：
+
+```bash
+@echo off
+
+for %%i in (c d e f) do (
+if exist %%i:\ (
+for /f "delims=" %%a in ('dir /ad /b /s "%%i:\"^|sort /r') do (
+rd "%%a"
+)
+)
+)
+
+pause
+```
+
+### 1.3. 批处理(bat)脚本命令汇总（待整理）
+
+> 参考：[详细的批处理文件bat脚本命令](https://blog.csdn.net/ankang654321/article/details/103644637)
+
 ## 2. 系统运行命令
 
 > 以下均为运行面板(Win+R)中输入的命令
 
-### 2.1. 如何使用WIN+R运行自定义命令启动程序
+### 2.1. 如何使用 WIN+R 运行自定义命令启动程序
 
 首先在任意盘符下建立一个文件夹，比如在D盘建立名字为shortcut的文件夹
 
-设置环境变量:选择计算机->右键选择属性->选择系统高级设置->选择“环境变量->双击path->添加刚刚建立的文件夹D:\shortcut(如果有多个,记得在每个文件夹路径后面加英文状态下的分号)
+设置环境变量：选择计算机->右键选择属性->选择系统高级设置->选择“环境变量->双击path->添加刚刚建立的文件夹D:\shortcut(如果有多个则在每个文件夹路径后面加英文状态下的分号`;`)
 
 将桌面上所有的快捷方式都剪切到shortcut文件夹即可,以后有快捷方式也直接扔进去
 
@@ -207,7 +243,6 @@ exit
 | bat       | 自己写的批处理命令，用来设置ip、开启服务     |
 | crt       | SecureCRT（远程连接工具）                 |
 | copy      | FastCopy                                 |
-| typora    | Typora                                   |
 | jv        | JsonView(JSON格式化小工具)                |
 | redis     | Redis Desktop Manager                    |
 | fsc       | Faststone Capture 9.2 中文版(截图工具)    |
@@ -239,6 +274,7 @@ exit
 | xftp     | Xftp 6                   |
 | snipaste | windows截图工具           |
 | calibre  | calibre 开源电子书管理工具 |
+| typora   | Typora                   |
 
 ### 2.4. window 系统常用原生命令
 
@@ -530,7 +566,7 @@ Win11默认开启了内存压缩功能。可以压缩内存中的数据，让内
 - IE：右键 -> 属性 -> 在打开的IE属性窗口中，找到目标文本框，在最后加入` -private`（*注：前面有一个空格*）
 - Edge：右键 -> 属性 -> 在打开的属性窗口中，找到目标文本框，在最后加入` -InPrivate`（*注：前面有一个空格*）
 
-### 6.2. Chrome与Edge常用快捷键
+### 6.2. Chrome 与 Edge 常用快捷键
 
 - Ctrl+T：打开新标签页
 - Ctrl+Shift+T：重新打开上次关闭的标签页
@@ -542,6 +578,8 @@ Win11默认开启了内存压缩功能。可以压缩内存中的数据，让内
 - Ctrl+Shift+Delete：打开“清除浏览数据”对话框
 - Alt+D 或者 F6：将光标定位于地址栏
 - 输入地址，按下 Alt + 回车键，可将地址在新标签页中打开
+
+> 参考：[Chrome（谷歌浏览器 ）使用总结（一）——快捷键](https://juejin.cn/post/6844903573717778439)
 
 ### 6.3. Chrome 设置隐身模式与开启暗黑模式
 
