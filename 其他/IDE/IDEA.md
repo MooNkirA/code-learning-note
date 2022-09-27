@@ -927,7 +927,7 @@ IDEA 2021.2 现在可以展示微服务的图表，在这上面可以看到微�
 
 ### 22.1. 个人修改的快捷键
 
-查看附件 `\attachments\IDE\IntelliJ IDEA 快捷键.xlsx`
+查看附件 `IntelliJ IDEA 快捷键.xlsx`
 
 ### 22.2. 查看图形形式的继承链
 
@@ -1107,11 +1107,11 @@ Codota 还有一个在线网站，在这个网站上可以根据代码关键字�
 
 - windows 快捷键
 
-![](../../attachments/IDE/IntelliJIDEA_ReferenceCard_win.jpg)
+![](../../resources/attachments/IDE/IntelliJIDEA_ReferenceCard_win.jpg)
 
 - macOS 快捷键
 
-![](../../attachments/IDE/IntelliJIDEA_ReferenceCard_mac.jpg)
+![](../../resources/attachments/IDE/IntelliJIDEA_ReferenceCard_mac.jpg)
 
 ## 4. 主题样式
 

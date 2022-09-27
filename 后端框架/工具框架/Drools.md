@@ -1679,23 +1679,23 @@ Object(field in (比较值1,比较值2...))
 
 ```drl
 // 当前规则文件用于测试LHS部分---in not in
-package testlhs
+package test.lhsinnotin
 import com.moon.drools.entity.Student
 
 // 编写规则，演示in关键字用法
-rule "rule_lhs_1"
+rule "rule_lhs_in"
     when
         $s:Student(name in ("MooNkirA","L","Zero"))
     then
-        System.out.println("规则：rule_lhs_1触发了...");
+        System.out.println("规则：rule_lhs_in 触发了...");
 end
 
 // 编写规则，演示 not in 关键字用法
-rule "rule_lhs_2"
+rule "rule_lhs_not_in"
     when
         $s:Student(name not in ("MooNkirA","L"))
     then
-        System.out.println("规则：rule_lhs_2触发了...");
+        System.out.println("规则：rule_lhs_not_in 触发了...");
 end
 ```
 
@@ -1731,12 +1731,86 @@ session.dispose();
 eval(表达式)
 ```
 
+- 第一步：编写规则文件 /resources/rules/lhs-eval.drl
+
+```drl
+// 当前规则文件用于测试LHS部分---eval
+package test.lhseval
+
+// 编写规则，演示eval关键字用法
+rule "rule_lhs_eval"
+    when
+        // eval(true) // 必定会触发规则
+        // eval(false) // 永远不触发规则
+        eval(1 == 1)
+    then
+        System.out.println("规则：rule_lhs_eval 触发了...");
+end
+```
+
+- 第二步：编写单元测试
+
+```java
+KieServices kieServices = KieServices.Factory.get();
+KieContainer kieContainer = kieServices.newKieClasspathContainer();
+KieSession session = kieContainer.newKieSession();
+// 激活规则，由Drools框架自动进行规则匹配，如果规则匹配成功，则执行当前规则
+session.fireAllRules();
+session.dispose();
+```
+
+- 输出结果
+
+```
+规则：rule_lhs_eval 触发了...
+```
+
 #### 6.4.3. 条件元素 not
 
 `not` 用于判断 Working Memory 中是否存在某个 Fact 对象，如果不存在则返回 true，如果存在则返回 false。语法结构如下：
 
 ```java
 not Object(可选属性约束)
+```
+
+- 第一步：编写规则文件 /resources/rules/lhs-not.drl
+
+```drl
+// 当前规则文件用于测试LHS部分---not
+package test.lhsnot
+import com.moon.drools.entity.Student
+
+// 编写规则，演示not关键字用法
+rule "rule_lhs_not"
+    when
+        // not Student() // 工作内存中不存在Student对象
+        not Student(age < 20)  // 工作内存中存在的Student对象，但age属性不小于20
+    then
+        System.out.println("规则：rule_lhs_not 触发了...");
+end
+```
+
+- 第二步：编写单元测试
+
+```java
+KieServices kieServices = KieServices.Factory.get();
+KieContainer kieContainer = kieServices.newKieClasspathContainer();
+KieSession session = kieContainer.newKieSession();
+
+Student student = new Student();
+student.setAge(22);
+// 加入到工作内存中
+session.insert(student);
+
+// 激活规则，由Drools框架自动进行规则匹配，如果规则匹配成功，则执行当前规则
+session.fireAllRules();
+session.dispose();
+```
+
+- 输出结果
+
+```
+规则：rule_lhs_not 触发了...
 ```
 
 #### 6.4.4. 条件元素 exists
@@ -1747,20 +1821,95 @@ not Object(可选属性约束)
 exists Object(可选属性约束)
 ```
 
+示例：
+
+```java
+exists Student()
+exists Student(age < 10 && name != null)
+```
+
 扩展：前面在 LHS 部分进行条件编写时并没有使用 `exists` 关键字也可以达到判断 Working Memory 中是否存在某个符合条件的 Fact 元素的目的。两者的区别：当向 Working Memory 中加入多个满足条件的 Fact 对象时，使用了 `exists` 的规则只会执行一次，而不使用 `exists` 的规则会执行多次。
 
+- 第一步：编写规则文件 /resources/rules/lhs-exists.drl
 
+```drl
+// 当前规则文件用于测试LHS部分---exists
+package test.lhsexists
+import com.moon.drools.entity.Student
 
+// 编写规则，演示exists关键字用法
+rule "rule_lhs_exists"
+    when
+        exists Student()
+    then
+        System.out.println("规则：rule_lhs_exists 触发了...");
+end
 
+// 编写规则，演示exists关键字用法----没有使用exists关键字
+rule "rule_lhs_no_exists"
+    when
+        Student()
+    then
+        System.out.println("规则：rule_lhs_no_exists 触发了...");
+end
+```
 
+- 第二步：编写单元测试
 
+```java
+KieServices kieServices = KieServices.Factory.get();
+KieContainer kieContainer = kieServices.newKieClasspathContainer();
+KieSession session = kieContainer.newKieSession();
+// 加入两个对象到工作内存中
+session.insert(new Student());
+session.insert(new Student());
+// 激活规则，由Drools框架自动进行规则匹配，如果规则匹配成功，则执行当前规则
+session.fireAllRules();
+session.dispose();
+```
 
+- 输出结果
 
+```
+规则：rule_lhs_exists 触发了...
+规则：rule_lhs_no_exists 触发了...
+规则：rule_lhs_no_exists 触发了...
+```
+
+> Notes: 从上面示例可知，第一个使用 `exists` 关键字的规则只会执行一次，因为 Working Memory 中存在两个满足条件的 Fact 对象，第二个没有使用 `exists` 的规则会执行两次。
 
 ### 6.5. 规则继承
 
-规则之间可以使用 `extends` 关键字进行规则条件部分的继承，类似于 Java 类之间的继承。
+规则之间可以使用 `extends` 关键字进行规则条件部分的继承，类似于 Java 类之间的继承。例如：
 
+- 第一步：编写规则文件 /resources/rules/lhs-extends.drl
+
+```drl
+
+```
+
+- 第二步：编写单元测试
+
+```java
+KieServices kieServices = KieServices.Factory.get();
+KieContainer kieContainer = kieServices.newKieClasspathContainer();
+KieSession session = kieContainer.newKieSession();
+
+Student student = new Student();
+student.setName("Zero");
+// 加入到工作内存中
+session.insert(student);
+
+// 激活规则，由Drools框架自动进行规则匹配，如果规则匹配成功，则执行当前规则
+session.fireAllRules();
+session.dispose();
+```
+
+- 输出结果
+
+```
+
+```
 
 
 

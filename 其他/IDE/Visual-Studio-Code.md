@@ -534,7 +534,7 @@ markdownlint是vscode上一款非常好用的 Markdown 格式检查扩展工具�
 - 官网地址：https://code.visualstudio.com/shortcuts/keyboard-shortcuts-windows.pdf
 - windows 快捷键
 
-![](../../attachments/IDE/Visual-Studio-Code-keyboard-shortcuts-windows.jpg)
+![](../../resources/attachments/IDE/Visual-Studio-Code-keyboard-shortcuts-windows.jpg)
 
 ### 3.2. 常用快捷键
 

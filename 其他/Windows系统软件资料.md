@@ -530,6 +530,36 @@ Win11默认开启了内存压缩功能。可以压缩内存中的数据，让内
 2. 展开 `HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\RunMRU`在右侧除了默认
 3. 将其他选项都删除掉
 
+### 4.21. 删除资源管理器中“此电脑”下面多余的图标
+
+1. WIN+R 打开运行窗口，输入 `regedit` 打开注册表编辑器
+2. 在注册表中定位到：`HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace` 项
+3. 选中“NameSpace”后，在右键窗口中删除相应的键值
+4. 退出注册表后，此电脑中多余图标消失
+
+也可以保存以下语句为`*.reg`文件，运行即可移除
+
+```reg
+Windows Registry Editor Version 5.00
+
+;如需还原去除上语句前减号即可
+
+;取消我的电脑"视频"文件夹
+[-HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace\{f86fa3ab-70d2-4fc7-9c99-fcbf05467f3a}]
+;取消我的电脑"文档"文件夹
+[-HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace\{d3162b92-9365-467a-956b-92703aca08af}]
+;取消我的电脑"桌面"文件夹
+[-HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace\{B4BFCC3A-DB2C-424C-B029-7FE99A87C641}]
+;取消我的电脑"音乐"文件夹
+[-HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace\{3dfdf296-dbec-4fb4-81d1-6a3438bcf4de}]
+;取消我的电脑"下载"文件夹
+[-HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace\{088e3905-0323-4b02-9826-5d99428e115f}]
+;取消我的电脑"图片"文件夹
+[-HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace\{24ad3ad4-a569-4530-98e1-ab02f9417aa8}]
+;取消我的电脑"3D对象"文件夹
+[-HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace\{0DB7E03F-FC29-4DC6-9020-FF41B59E513A}]
+```
+
 ## 5. Office资料
 
 ### 5.1. Excel资料
