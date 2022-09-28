@@ -1878,14 +1878,36 @@ session.dispose();
 
 > Notes: 从上面示例可知，第一个使用 `exists` 关键字的规则只会执行一次，因为 Working Memory 中存在两个满足条件的 Fact 对象，第二个没有使用 `exists` 的规则会执行两次。
 
-### 6.5. 规则继承
+#### 6.4.5. 规则继承
 
 规则之间可以使用 `extends` 关键字进行规则条件部分的继承，类似于 Java 类之间的继承。例如：
 
 - 第一步：编写规则文件 /resources/rules/lhs-extends.drl
 
 ```drl
+// 当前规则文件用于测试LHS部分---extends
+package test.lhsextends
+import com.moon.drools.entity.Student
 
+// 编写规则，演示extends关键字实现规则的条件部分继承
+rule "rule_lhs_extends_1"
+    when
+        Student(age > 10)
+    then
+        System.out.println("规则：rule_lhs_extends_1 触发了...");
+end
+
+// 编写规则，演示extends关键字实现规则的条件部分继承
+rule "rule_lhs_extends_2" extends "rule_lhs_extends_1"
+    when
+        /*
+            此处的条件虽然只写了一个，但是从上面的规则继承了一个条件，
+            所以当前规则存在两个条件，即Student(age < 20)和Student(age > 10)
+        */
+        Student(age < 20)
+    then
+        System.out.println("规则：rule_lhs_extends_2 触发了...");
+end
 ```
 
 - 第二步：编写单元测试
@@ -1896,7 +1918,7 @@ KieContainer kieContainer = kieServices.newKieClasspathContainer();
 KieSession session = kieContainer.newKieSession();
 
 Student student = new Student();
-student.setName("Zero");
+student.setAge(8);
 // 加入到工作内存中
 session.insert(student);
 
@@ -1905,13 +1927,112 @@ session.fireAllRules();
 session.dispose();
 ```
 
+以上示例无任何输出，因为第二规则继承了第一个规则，即 age 属性需要大于 10 同时小于 20 才能匹配成功。
+
+### 6.5. RHS（规则的行动部分）进阶
+
+RHS 部分是规则体的重要组成部分，当 LHS 部分的条件匹配成功后，对应的 RHS 部分就会触发执行。一般在 RHS 部分中需要进行业务处理。在 RHS 部分 Drools 为提供了一个内置对象，名称是 `drools`。
+
+以下是几个 `drools` 对象提供的方法。
+
+#### 6.5.1. halt 方法
+
+`halt` 方法的作用是立即终止后面所有规则的执行
+
+```drl
+rule "rule_halt_1"
+    when
+    then
+        System.out.println("规则：rule_halt_1触发");
+        drools.halt(); // 立即终止后面所有规则执行
+end
+​
+// 当前规则并不会触发，因为上面的规则调用了halt方法导致后面所有规则都不会执行
+rule "rule_halt_2"
+    when
+    then
+        System.out.println("规则：rule_halt_2触发");
+end
+```
+
+#### 6.5.2. getWorkingMemory 方法
+
+`getWorkingMemory` 方法的作用是返回工作内存对象
+
+```drl
+rule "rule_getWorkingMemory"
+    when
+    then
+        System.out.println(drools.getWorkingMemory());
+end
+```
+
+#### 6.5.3. getRule 方法
+
+`getRule` 方法的作用是返回规则对象
+
+```drl
+rule "rule_getRule"
+    when
+    then
+        System.out.println(drools.getRule());
+end
+```
+
+#### 6.5.4. 综合示例
+
+- 第一步：编写规则文件 /resources/rules/rhs-drools.drl
+
+```drl
+// 当前规则文件用于测试RHS部分drools对象的相关方法
+package test.rhsdrools
+import org.drools.core.WorkingMemory
+
+rule "rule_rhs_1"
+    when
+    then
+        System.out.println("规则：rule_rhs_1 触发了...");
+        // getWorkingMemory 方法用于获得工作内存对象，本质上是一个会话对象
+        WorkingMemory workingMemory = drools.getWorkingMemory();
+        System.out.println(workingMemory);
+        // getRule 方法用于获得当前规则对象
+        org.drools.core.definitions.rule.impl.RuleImpl rule = drools.getRule();
+        System.out.println(rule);
+        System.out.println(rule.getAutoFocus());
+        System.out.println(rule.getId());
+        System.out.println(rule.getDateExpires());
+        // halt方法，用于终止后面所有规则的执行
+        drools.halt();
+end
+
+rule "rule_rhs_2"
+    when
+    then
+        System.out.println("规则：rule_rhs_2 触发了...");
+end
+```
+
+- 第二步：编写单元测试
+
+```java
+KieServices kieServices = KieServices.Factory.get();
+KieContainer kieContainer = kieServices.newKieClasspathContainer();
+KieSession session = kieContainer.newKieSession();
+// 激活规则，由Drools框架自动进行规则匹配，如果规则匹配成功，则执行当前规则
+session.fireAllRules();
+session.dispose();
+```
+
 - 输出结果
 
 ```
-
+规则：rule_rhs_1 触发了...
+KieSession[0]
+[Rule name=rule_rhs_1, agendaGroup=MAIN, salience=0, no-loop=false]
+false
+rule_rhs_1
+null
 ```
-
-
 
 ### 6.6. 规则文件编码规范
 
@@ -1923,6 +2044,8 @@ drl 类型的规则文件编写时尽量遵循如下规范：
 - 规则结果部分(RHS)尽量不要有条件语句，如`if(...)`，尽量不要有复杂的逻辑和深层次的嵌套语句
 - 每个规则最好都加上 `salience` 属性，明确执行顺序
 - Drools 默认 `dialect` 为"Java"，尽量避免使用 dialect "mvel"
+
+## 7. Spring 整合 Drools
 
 
 

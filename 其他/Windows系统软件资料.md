@@ -311,7 +311,18 @@ pause
 
 ## 4. windows 系统相关设置
 
-### 4.1. C盘可清理内容
+### 4.1. 常用默认的 Windows 系统环境变量
+
+- `%SystemRoot%` 或者 `%WINDIR%`：操作系统根目录。如 C:\WINDOWS
+- `%APPDATA%`：列出应用程序数据的默认存放位置。如 C:\Users\用户名\AppData\Roaming
+- `%USERPROFILE%` 或者 `%HOMEPATH%`：用户主目录的完整路径（当前用户的配置文件的位置）。
+
+### 4.2. 常用系统位置
+
+- window 系统的 hosts 文件位置：`%windir%\System32\drivers\etc`
+- win10 锁屏壁纸位置：`C:\Users\win10\AppData\Local\Packages\Microsoft.Windows.ContentDeliveryManager_cw5n1h2txyewy\LocalState\Assets`
+
+### 4.3. C盘可清理内容
 
 1. **PerfLogs**文件夹，系统的信息日志，文件夹可删。
 2. **Windows**文件夹
@@ -319,33 +330,20 @@ pause
     - `C:\Windows\Help`，帮忙文件，可删
 3. **用户**文件夹：`C:\Users\用户名称\AppData\Local\Temp`。这个是Windows存留安装软件时解压的源文件，方便下次安装直接调取使用，节省解压时间，可删除。
 
-### 4.2. win7 系统的Temporary Internet Files清空问题
+### 4.4. win7 系统的Temporary Internet Files清空问题
 
 1. `cmd.exe`
 2. `cd AppData\Local\Microsoft\Windows\Temporary Internet Files`（或者如果有Content.IE5目录的话，cd Content.IE5）
 3. `del /s/q/f *.*`
 
-### 4.3. 开始菜单分组
-
-#### 4.3.1. 分组名称
-
-- Window Software
-- Images Tool
-- Music
-- Translation Tools
-- Network Disk & Download
-- Social Networking Software
-- Tools
-- Java Development Tools
-
-#### 4.3.2. 备份开始菜单的方法
+### 4.5. 备份开始菜单
 
 1. 按下Win+R打开运行窗口，输入命令powershell，然后点击确定按钮
 2. 这时就会打开Windows Powershell窗口，在这里输入命令`Export-startlayout –path E:\start.xml`，可以根据自己实际情况来设置相应的路径
 3. 按下回车键后，就会备份好开始菜单的布局文件
 4. 如果需要恢复开始菜单布局的话，只需要再次打开Windows Powershell命令行窗口，然后输入命令`import-startlayout -layoutpath E:\start.xml -mountpath c:`，按下回车键后，就会马上把其还原回来了
 
-### 4.4. 电脑护眼颜色设置
+### 4.6. 电脑护眼颜色设置
 
 win7系统：
 
@@ -359,7 +357,7 @@ win10系统：
 2. 按照如下顺序找到windows：[HKEY_CURRENT_USER\Control Panel\Colors] windows。双击windows 进入编辑状态 将原本数值删除并输入：`202 234 206`。点击确定退出注册表。
 3. 按照如下顺序找到 window：[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Themes\DefaultColors\Standard]。双击 window 打开编辑窗口，默认是勾选十六进制（若不是请勾选十六进制），将原始数据改为：`caeace`。点击确定退出注册表。
 
-### 4.5. 这个可能与ACHI有关系吧。你先去修改到 compatible（兼容模式）进入系统
+### 4.7. 这个可能与ACHI有关系吧。你先去修改到 compatible（兼容模式）进入系统
 
 AHCI开启方法：
 
@@ -368,16 +366,6 @@ AHCI开启方法：
 3. 关闭“注册表编辑器”窗口，并重新启动电脑。
 4. 然后出来看看BIOS里面的硬盘模式，修改为ACHI后（如果没有就算了）
 5. 然后在把SATA Operation Mode改为 enhanced（增强模式）
-
-
-
-### 4.6. window系统的hosts文件位置
-
-C:\Windows\System32\drivers\etc
-
-### 4.7. win10锁屏壁纸位置
-
-C:\Users\win10\AppData\Local\Packages\Microsoft.Windows.ContentDeliveryManager_cw5n1h2txyewy\LocalState\Assets
 
 ### 4.8. NSIS：使用netsh advfirewall屏蔽某程序访问网络
 
@@ -537,7 +525,7 @@ Win11默认开启了内存压缩功能。可以压缩内存中的数据，让内
 3. 选中“NameSpace”后，在右键窗口中删除相应的键值
 4. 退出注册表后，此电脑中多余图标消失
 
-也可以保存以下语句为`*.reg`文件，运行即可移除
+也可以保存以下语句为`*.reg`文件，运行即可移除。
 
 ```reg
 Windows Registry Editor Version 5.00
