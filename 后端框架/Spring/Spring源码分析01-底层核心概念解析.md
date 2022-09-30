@@ -755,7 +755,7 @@ class ConfigurationClassBeanDefinitionReader {
 
 #### 5.4.1. 属性图示
 
-原文件位置：`\code-learning-note\note attachments\后端框架\03-Spring\BeanDefinition属性结构图.xmind`
+> 原文件：`BeanDefinition属性结构图.xmind`
 
 ![](images/20210102145642637_20396.png)
 

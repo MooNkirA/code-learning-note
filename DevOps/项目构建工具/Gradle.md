@@ -92,9 +92,9 @@ Gradle 6.0.1
 
 > <font color=red>**注：变量的名称必须叫“`GRADLE_USER_HOME`”**</font>
 
-#### 2.3.2. 方式2：初始化配置文件
+#### 2.3.2. 方式2：初始化配置文件并配置镜像
 
-在 Gradle 安装目录下的 `init.d` 文件夹下，新建一个 `init.gradle` 文件，添加如下配置
+在 Gradle 安装目录下的 `init.d` 文件夹下，新建一个 `init.gradle` 文件，在 repositories 节点中可以配置镜像源下载，具体配置如下：
 
 ```groovy
 allprojects {
@@ -567,7 +567,19 @@ sourceSets {
 }
 ```
 
-### 4.3. 创建 web 项目
+### 4.3. gradle wrapper
+
+IDEA 默认会使用 gradle wrapper 来创建项目，其实无需安装 gradle 也可以正常运行。
+
+在 gradle 文件夹和 gradlew 那几个文件就是 gradle wrapper 的文件，而 `.gradle` 后缀名的文件正是 gradle 的配置文件，对应于 Maven 的 pom.xml。
+
+gradle wrapper 的优点之一就是可以自定义下载的 gradle 的版本，如果是团队协作的话，这个功能就非常方便，简单设置即可统一团队的构建工具版本。
+
+下图设定成 gradle 7.1，默认下载安装的是bin版，仅包含二进制。如果使用IDEA的话，它会推荐下载all版，包含源代码，这样IDEA就可以分析源代码，提供更加精确的gradle脚本支持。
+
+![](images/230925522227254.png)
+
+### 4.4. 创建 web 项目
 
 与创建普通 java 项目一样，只需要在 src 目录下多新增一个 webapp 目录，然后再 build.gradle 配置中增加 war 包的插件
 
@@ -600,9 +612,9 @@ test {
 
 > 示例工程：java-technology-stack\java-stack-gradle\gradle-web
 
-### 4.4. 创建多模块项目
+### 4.5. 创建多模块项目
 
-#### 4.4.1. 创建父模块
+#### 4.5.1. 创建父模块
 
 与创建普通的项目一样，为了让其他子模块共享公共的配置，需要将配置放到 `allprojects` 闭包中
 
@@ -639,7 +651,7 @@ include 'gradle-multiple-service'
 include 'gradle-multiple-web'
 ```
 
-#### 4.4.2. 子模块配置
+#### 4.5.2. 子模块配置
 
 > 示例工程：java-technology-stack\java-stack-gradle\gradle-multiple-modules
 
@@ -657,9 +669,21 @@ dependencies {
 
 > <font color=red>**Notes: 后面比较新的版本中，`compile` 语句已弃用，并已在 Gradle 7.0+ 中删除。新版本需要改用 `implementation` 或 `api`**</font>
 
-## 5. 其他
+## 5. Gradle 配置与缓存目录
 
-### 5.1. 查询 gradle 相关命令
+在用户目录的 gradle 文件夹下看到 gradle 的相关配置和缓存。
+
+在创建 Gradle 项目时，在 gradle-wrapper.properties 配置下载的 gradle 也存放在该文件夹下，位置是 wrapper/dists。
+
+![](images/469615922247420.png)
+
+而依赖的本地缓存在 caches\modules-2\files-2.1 文件夹下。目录结构和 Maven 的本地缓存类似，都是`包名+版本号`的方式，但是gradle的目录结构最后一层和Maven不同，这导致它们无法共用本地缓存。
+
+![](images/283560223240089.png)
+
+## 6. 其他
+
+### 6.1. 查询 gradle 相关命令
 
 使用命令`gradle -?`或`gradle -h`或`gradle --help`查询gradle相关命令与说明
 
@@ -711,7 +735,7 @@ dependencies {
 -x, --exclude-task        Specify a task to be excluded from execution.
 ```
 
-### 5.2. 参考资料
+### 6.2. 参考资料
 
 - [Gradle 教程 - w3cschool](https://www.w3cschool.cn/gradle/)
 - [gradle使用教程，一篇就够](https://www.jianshu.com/p/7ccdca8199b8)

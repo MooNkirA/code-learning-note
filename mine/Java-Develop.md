@@ -535,14 +535,46 @@ yum install jenkins
 - web服务：http://www.webxml.com.cn/zh_cn/index.aspx
 	- 天气预报接口：http://ws.webxml.com.cn/WebServices/WeatherWS.asmx?wsdl
 
-# JAVA转义字符
+## 10. 开启服务
 
-```
-\b退格键;\t Tab键;\n换行符号;\f进纸;\r回车键;\\反斜杠;\'单引号;\"双引号;
+- MySQL 手动开启--服务名称：MySQL
+- nexus Maven私服 手动开启--服务名称：nexus-webapp
+- VisualSVN Server 手动开启--服务名称：VisualSVNServer
+
+## 11. maven私服配置(setting.xml)
+
+- 说明：以下两个配置都需要在教室使用。
+
+1. 外网地址是在大家使用学校帐号登录连接外网使用
+2. 内网地址是在大家不能上网的时候使用（建议大家都配置内网地址）
+3. 阿里云仓库地址，可以上外网的情况下使用（大家以后在工作中，可以使用这个，下载速度要比maven中央仓库快）
+
+```xml
+
+外网使用（在教室，使用学校分配的帐号登录上网以后使用）：
+<mirror>
+	<id>nexus</id>
+	<mirrorOf>*</mirrorOf>
+	<url>http://172.16.2.20:8081/nexus/content/repositories/central/</url>
+ </mirror>
+内网使用（在教室，不能上网使用）：
+<mirror>
+	<id>nexus</id>
+	<mirrorOf>*</mirrorOf>
+	<url>http://192.168.50.20:8081/nexus/content/repositories/central/</url>
+ </mirror>
+ 阿里云（只要可以上网，就能使用）：
+<mirror>
+  <id>nexus</id>
+  <mirrorOf>*</mirrorOf>
+  <url>http://maven.aliyun.com/nexus/content/groups/public/</url>
+</mirror>
 ```
 
 # 工具jar包
+
 ## 1. java第三方工具jar包
+
 ### 1.1. BeanUtils 需要导入 jar 包
 
 1. commons-beanutils-1.9.3.jar		工具核心包
@@ -771,267 +803,6 @@ mysql-connector-java-5.1.44
 <script type="text/javascript" src="../../../js/jquery.ztree.excheck-3.5.js"></script>
 ```
 
-# 其他
-
-## 1. maven私服配置(setting.xml)
-
-- 说明：以下两个配置都需要在教室使用。
-
-1. 外网地址是在大家使用学校帐号登录连接外网使用
-2. 内网地址是在大家不能上网的时候使用（建议大家都配置内网地址）
-3. 阿里云仓库地址，可以上外网的情况下使用（大家以后在工作中，可以使用这个，下载速度要比maven中央仓库快）
-
-```xml
-
-外网使用（在教室，使用学校分配的帐号登录上网以后使用）：
-<mirror>
-	<id>nexus</id>
-	<mirrorOf>*</mirrorOf>
-	<url>http://172.16.2.20:8081/nexus/content/repositories/central/</url>
- </mirror>
-内网使用（在教室，不能上网使用）：
-<mirror>
-	<id>nexus</id>
-	<mirrorOf>*</mirrorOf>
-	<url>http://192.168.50.20:8081/nexus/content/repositories/central/</url>
- </mirror>
- 阿里云（只要可以上网，就能使用）：
-<mirror>
-  <id>nexus</id>
-  <mirrorOf>*</mirrorOf>
-  <url>http://maven.aliyun.com/nexus/content/groups/public/</url>
-</mirror>
-```
-
-## 2. 脚本备份
-
-### 2.1. 内外网IP切换（适用win7系统）
-
-```bash
-@echo off
-
-　　rem //设置变量
-
-　　set NAME="本地连接"
-
-　　rem //以下属性值可以根据需要更改
-
-　　set ADDR=192.168.14.73
-
-　　set MASK=255.255.254.0
-
-　　set GATEWAY=192.168.14.1
-
-　　set DNS1=10.17.65.13
-
-　　set DNS2=10.202.253.28
-
-　　rem //以上属性依次为IP地址、子网掩码、网关、首选DNS、备用DNS
-
-　　echo 当前可用操作有：
-
-　　echo 1 设置为静态IP
-
-　　echo 2 设置为动态IP
-
-　　echo 3 退出
-
-　　echo 请选择后回车：
-
-　　set /p operate=
-
-　　if %operate%==1 goto 1
-
-　　if %operate%==2 goto 2
-
-　　if %operate%==3 goto 3
-
-　　:1
-
-　　echo 正在设置静态IP,请稍等…
-
-　　rem //可以根据你的需要更改
-
-　　echo IP地址 = %ADDR%
-
-　　echo 掩码 = %MASK%
-
-　　echo 网关 = %GATEWAY%
-
-　　netsh interface ipv4 set address name=%NAME% source=static addr=%ADDR% mask=%MASK% gateway=%GATEWAY% gwmetric=0 >nul
-
-　　echo 首选DNS = %DNS1%
-
-　　netsh interface ipv4 set dns name=%NAME% source=static addr=%DNS1% register=PRIMARY >nul
-
-　　echo 备用DNS = %DNS2%
-
-　　netsh interface ipv4 add dns name=%NAME% addr=%DNS2% index=2 >nul
-
-　　echo 静态IP已设置!
-
-　　pause
-
-　　goto 3
-
-　　:2
-
-　　echo 正在设置动态IP,请稍等…
-
-　　echo 正在从DHCP自动获取IP地址…
-
-　　netsh interface ip set address "本地连接" dhcp
-
-　　echo 正在从DHCP自动获取DNS地址…
-
-　　netsh interface ip set dns "本地连接" dhcp
-
-　　echo 动态IP已设置!
-
-　　pause
-
-　　goto 3
-
-　　:3
-
-　　exit
-```
-
-### 2.2. 内外网IP切换（适用win10系统）.20171122
-
-```bash
-@echo off
-rem //设置变量 
-set NAME="以太网"
-rem //以下属性值可以根据需要更改
-set ADDR=192.168.14.73
-set MASK=255.255.254.0
-set GATEWAY=192.168.14.1
-set DNS1=10.17.65.13
-set DNS2=10.202.253.28
-rem //以上属性依次为IP地址、子网掩码、网关、首选DNS、备用DNS
-
-
-echo 当前可用操作有：
-echo 1 设置为静态IP
-echo 2 设置为动态IP
-echo 3 退出
-echo 请选择后回车：
-set /p operate=
-if %operate%==1 goto 1
-if %operate%==2 goto 2
-if %operate%==3 goto 3
-
-
-:1
-echo 正在设置静态IP，请稍等...
-rem //可以根据你的需要更改 
-echo IP地址 = %ADDR%
-echo 掩码 = %MASK%
-echo 网关 = %GATEWAY%
-netsh interface ipv4 set address %NAME% static %ADDR% %MASK% %GATEWAY% 
-echo 首选DNS = %DNS1% 
-netsh interface ipv4 set dns %NAME% static %DNS1%
-echo 备用DNS = %DNS2% 
-if "%DNS2%"=="" (echo DNS2为空) else (netsh interface ipv4 add dns %NAME% %DNS2%) 
-echo 静态IP已设置！
-pause
-goto 3
-
-
-:2
-echo 正在设置动态IP，请稍等...
-echo 正在从DHCP自动获取IP地址...
-netsh interface ip set address %NAME% dhcp
-echo 正在从DHCP自动获取DNS地址...
-netsh interface ip set dns %NAME% dhcp 
-echo 动态IP已设置！
-pause
-goto 3
-
-
-:3
-exit
-```
-
-## 3. 一些软件
-
-※宝典1：源代码管理软件-“CODEHELP”
-
-- CodeHelp是专门为我们程序员设计的一款源代码管理软件。它能方便的管理您在编程和学习中有用的源代码，减少经常到处查找资料的劳动，节省您在开发中的时间和精力。网上有很多下载地址，而且有绿色版的，保存数据库为Access格式，可以备份和还原数据库，很方便！
-
-- XML Marker(xml查看编辑工具)
-
-XML Marker是国外的一款非常实用的xml查看编辑工具。软件功能强大，纯文本调试输出和日志文件，你可以有效增加修改你的程序才能产生XML格式他们的作用。你也可以使用XML标记的图形功能，以现场隐藏的趋势，并更快地解决你的错误。更多的功能包括表格排序，语法高亮编辑器和自动缩进，经常编辑XML文件的用户可以下载本软件使用。
-
-- .tar.gz
-
-以.tar.gz为扩展名的是一种压缩文件，在Linux和OSX下常见，Linux和OSX都可以直接解压使用这种压缩文件。windows下的WinRAR也可以使用。相当于常见的RAR和ZIP格式
-.tar只是将文件打包，文件的大小没什么变化，一般用tar -cvf filename.tar filename格式；.tar.gz是加入了gzip的压缩命令，会将文件压缩存放，可以有效压缩文件的大小，以便于缩短传输时间或者释放磁盘空间，一般用tar -czvf filename.tar.gz filename。同样的解包的时候使用 tar -xvf filename.tar和tar -xzvf filename.tar.gz。
-
-
-## 4. 开启服务
-
-- MySQL 手动开启--服务名称：MySQL
-- nexus Maven私服 手动开启--服务名称：nexus-webapp
-- VisualSVN Server 手动开启--服务名称：VisualSVNServer
-
-## 5. 架构师相关推荐书籍
-
-- 领域驱动设计
-- 架构整洁之道
-- 微服务设计
-- 架构即未来：现代企业可扩展的Web架构、流程和组织
-- 淘宝技术这十年（已有，但需要找更好资源替换）
-- 分布式服务框架：原理与实践
-- 大型网站技术架构：核心原理与案例分析（已有）
-- 大型网站系统与Java中间件实践（已有）
-- 企业IT架构转型之道：阿里巴巴中台战略思想与架构实战
-- 尽在双11：阿里巴巴技术演进与超越
-
-# 代码仓库
-## 1. github仓库
-
-### 1.1. java学习阶段练习案例代码备份仓库
-
-clone地址：git@github.com:MooNkirA/java-code-back-up.git
-
-### 1.2. maven仓库备份
-
-clone地址：git@github.com:MooNkirA/maven-repository.git
-
-### 1.3. MoonZero个人管理系统项目
-
-- 前端UI仓库：git@github.com:MooNkirA/jav-project-ui.git
-- 后端管理仓库：git@github.com:MooNkirA/moonzero-system.git
-
-## 2. 开源项目
-
-### 2.1. ngx-admin
-
-- 基于 Angular 2, Bootstrap 4 和 Webpack 的后台管理面板框架
-- Clone地址：it@github.com:akveo/ngx-admin.git
-
-### 2.2. vue-Element-Admin
-
-- 一个基于 vue2.0 和 Eelement 的控制面板 UI 框架。
-- Clone地址：git@github.com:PanJiaChen/vue-element-admin.git
-
-### 2.3. iview-admin
-
-- 基于 iView 的 Vue 2.0 控制面板。
-- Clone地址：git@github.com:iview/iview-admin.git
-
-### 2.4. AdminLTE
-
-- 非常流行的基于 Bootstrap 3.x 的免费的后台 UI 框架。
-- Clone地址：git@github.com:almasaeed2010/AdminLTE.git
-
-### 2.5. alita
-
-- 一套把React Native代码转换成微信小程序代码的转换引擎工具
-- 仓库地址：https://github.com/areslabs/alita
-
 # 【待处理】
 
 ## 1. 学习遗留问题
@@ -1100,7 +871,7 @@ day71-crm系统整合中没有放入此包：commons-beanutils-1.8.3.jar
 
 ## 2. 项目一
 
-### 2.1. 项目一:各系统网址
+### 2.1. 项目一各系统网址
 
 - 后台系统：localhost:8080/ilcps_web
 	- 角色权限树需要开启redis
@@ -1137,7 +908,6 @@ cp.getContract().setState(2);
     2. 同步更新用户权限。在一个浏览器用户A(超级管理员)里面修改另外一个浏览器用户B(普通用户)的权限，在用户B不重新登录的情况下，失去操作的权限。
 9. 整理项目使用过的相关工具类
 
-
 ### 2.3. 项目一实战登陆网址
 
 - 【消息系统】http://localhost:9000/
@@ -1159,40 +929,3 @@ cp.getContract().setState(2);
 	- 04_onlineIpCount.html 页面
 	- StatChartAction.java增加需求4方法、接口、实现类
 	- 增加LoginLog对象对应数据库的表
-
-### 2.5. 其他
-
-"1"经md5加密后是：c4ca4238a0b923820dcc509a6f75849b
-
-## 3. 待处理
-
-### 3.1. 待试用的软件或者插件
-
-- AIXcoder智能编程助手：https://www.aixcoder.com/#/
-
-# 需要学习加强的内容
-
-## 1. 相关知识点
-
-- 数据库表设计
-- 数据库优化
-- solr全文检索
-- vue+springboot项目 有参考价值：https://github.com/lenve/vhr
-- jenkins
-    - Jenkins是一个独立的开源自动化服务器，可用于自动化各种任务，如构建，测试和部署软件。Jenkins可以通过本机系统包Docker安装，甚至可以通过安装Java Runtime Environment的任何机器独立运行。
-
-## 2. 需要整理的学习的java库
-
-1. JUnit
-2. SLF4J
-3. Log4j
-4. Google Guava：Google Guava软件包中的库或多或少是对核心库的对应部分有增强功能，并使编程更加高效和有效。Guava 包括内存缓存、不可变集合、函数类型、图形库和可用于 I/O、散列、并发、原语、字符串处理、反射等等的API实用程序。
-5. XStream：当涉及将对象序列化到XML中时，这时常用XStream库, 开发人员通过XStream库可以轻松地将对象序列化为XML并返回。XStream的功能也很多，比如，大多数对象可以被序列化，并提供特定的映射，提供高性能和低内存占用，信息不重复，可自定义的转换策略，安全的框架，异常情况下的详细诊断等等。
-6. iText：基本Java中创建和操作PDF件的各种操作都能完成
-7. Apache PDF box：Apache PDFBox是另一个可用于操作PDF文件的开源库。PDFBox的主要功能使其成为超级库，其中包括PDF创建、将单个PDF分割为多个PDF文件、合并并提取PDF文本的Unicode文本，填写PDF表单，根据PDF/A标准验证PDF文件，将PDF保存为图像并对PDF进行数字签名。
-8. jsoup：用于处理和解析HTML。Jsoup提供了一个有用的用于提取数据的API。jsoup中实现的标准是WHATWG HTML5。和最新的浏览器作法一样，jsoup将HTML解析为DOM。它允许解析来自任何URL或文件的HTML，清理和操纵HTML元素和属性，以检索用户提交的数据并过滤掉XSS攻击属性，使用jsoup还可以完成更多功能。
-9. Gson
-10. Joda Time：简单但功能强大的库，它节省了大量的开发时间。Joda-Time是一个Java库，作为Java中日期和时间类的一个很好的替代品。Joda Time提供计算日期和时间的功能，并支持几乎所有需要的日期格式，而且肯定难以用简单的JDK方法进行复制
-11. Ok HTTP：用于通过HTTP协议有效地在现代应用程序之间交换数据。Okhttp在断网时恢复连接，在多个基于IP的服务中切换IP地址。okhttp的一个有用的功能是与现代TLS(SNI，ALPN)的自动连接，并且在发生故障时回到TLS 1.0。
-12. Quartz
-

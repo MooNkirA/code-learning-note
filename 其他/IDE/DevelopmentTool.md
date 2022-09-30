@@ -22,3 +22,8 @@
 - Ctrl+Shift+R：删除选中的 SQL 语句
 - Ctrl+Enter：显示所有的提示列表
 
+## 2. AIXcoder 智能编程助手（未使用）
+
+> 官网：https://www.aixcoder.com/#/
+
+aiXcoder 极速本地版，智能编程助手。功能包括：代码智能补全、支持主流IDE、支持多编程语言、本地深度学习模型。支持多种主流IDE，包含 IntelliJ IDEA，Eclipse，PyCharm，Android Studio，PhpStorm，WebStorm、Clion，Visual Studio Code

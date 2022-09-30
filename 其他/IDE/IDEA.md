@@ -1,6 +1,6 @@
 # IDEA
 
-- 官网：https://www.jetbrains.com/idea/
+> 官网：https://www.jetbrains.com/idea/
 
 ## 1. 初次启动 Intellij IDEA 前需进行的配置
 
@@ -927,7 +927,7 @@ IDEA 2021.2 现在可以展示微服务的图表，在这上面可以看到微�
 
 ### 22.1. 个人修改的快捷键
 
-查看附件 `\attachments\IDE\IntelliJ IDEA 快捷键.xlsx`
+查看附件 `IntelliJ IDEA 快捷键.xlsx`
 
 ### 22.2. 查看图形形式的继承链
 
@@ -1065,11 +1065,13 @@ Idea的控制台console输出日志时，往往是一大堆信息一起出现，
 
 ![](images/20201105163130518_28244.jpg)
 
-### 1.17. Codota—代码智能提示
+### 1.17. Tabnine AI Code Completion — 代码智能提示
 
-Codota 这个插件用于智能代码补全，它基于数百万Java程序，能够根据程序上下文提示补全代码。相比于IDEA自带的智能提示来说，Codota 的提示更加全面一些
+> 官网：https://www.tabnine.com/code
 
-Codota 还有一个在线网站，在这个网站上可以根据代码关键字搜索相关代码示例。网站地址：https://www.codota.com/code。作用如下：
+Tabnine AI Code Completion(原名称：Codota) 这个插件用于智能代码补全，它基于数百万Java程序，能够根据程序上下文提示补全代码。相比于IDEA自带的智能提示来说，Codota 的提示更加全面一些
+
+Codota 还有一个在线网站，在这个网站上可以根据代码关键字搜索相关代码示例。作用如下：
 
 1. 智能自动补全。Codota 可以快速的完成智能补全以及高频用法提示
 2. 快速查询相关使用案例，同时可以通过添加关键字进行过滤，查找到更加精确的代码样例。快捷键：ctrl + shift + o
@@ -1101,14 +1103,15 @@ Codota 还有一个在线网站，在这个网站上可以根据代码关键字�
 
 ## 3. 快捷键
 
-- 官方快捷键：https://resources.jetbrains.com/storage/products/intellij-idea/docs/IntelliJIDEA_ReferenceCard.pdf
+> 官方快捷键文档 https://resources.jetbrains.com/storage/products/intellij-idea/docs/IntelliJIDEA_ReferenceCard.pdf
+
 - windows 快捷键
 
-![](../../attachments/IDE/IntelliJIDEA_ReferenceCard_win.jpg)
+![](../../resources/attachments/IDE/IntelliJIDEA_ReferenceCard_win.jpg)
 
 - macOS 快捷键
 
-![](../../attachments/IDE/IntelliJIDEA_ReferenceCard_mac.jpg)
+![](../../resources/attachments/IDE/IntelliJIDEA_ReferenceCard_mac.jpg)
 
 ## 4. 主题样式
 

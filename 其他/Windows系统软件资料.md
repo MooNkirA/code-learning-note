@@ -162,15 +162,51 @@ goto 3
 exit
 ```
 
+#### 1.2.3. 一键删除电脑中的空文件夹脚本（未测试！！）
+
+在任意目录中创建“xxx.bat”的批处理文件，复制以下脚本代码再双击运行即可。
+
+- 批量（循环）删除指定目录下所有空文件夹代码，例如删除F:\盘下的所有空文件夹：
+
+```bash
+@echo off
+
+for /f "delims=" %%a in ('dir /ad /b /s F:\^|sort /r') do (
+rd "%%a">nul 2>nul &&echo 空目录"%%a"成功删除！
+)
+
+pause
+```
+
+- 批量删除多个磁盘的空文件夹，例如删除c、d、e、f区中所有的空文件夹：
+
+```bash
+@echo off
+
+for %%i in (c d e f) do (
+if exist %%i:\ (
+for /f "delims=" %%a in ('dir /ad /b /s "%%i:\"^|sort /r') do (
+rd "%%a"
+)
+)
+)
+
+pause
+```
+
+### 1.3. 批处理(bat)脚本命令汇总（待整理）
+
+> 参考：[详细的批处理文件bat脚本命令](https://blog.csdn.net/ankang654321/article/details/103644637)
+
 ## 2. 系统运行命令
 
 > 以下均为运行面板(Win+R)中输入的命令
 
-### 2.1. 如何使用WIN+R运行自定义命令启动程序
+### 2.1. 如何使用 WIN+R 运行自定义命令启动程序
 
 首先在任意盘符下建立一个文件夹，比如在D盘建立名字为shortcut的文件夹
 
-设置环境变量:选择计算机->右键选择属性->选择系统高级设置->选择“环境变量->双击path->添加刚刚建立的文件夹D:\shortcut(如果有多个,记得在每个文件夹路径后面加英文状态下的分号)
+设置环境变量：选择计算机->右键选择属性->选择系统高级设置->选择“环境变量->双击path->添加刚刚建立的文件夹D:\shortcut(如果有多个则在每个文件夹路径后面加英文状态下的分号`;`)
 
 将桌面上所有的快捷方式都剪切到shortcut文件夹即可,以后有快捷方式也直接扔进去
 
@@ -207,7 +243,6 @@ exit
 | bat       | 自己写的批处理命令，用来设置ip、开启服务     |
 | crt       | SecureCRT（远程连接工具）                 |
 | copy      | FastCopy                                 |
-| typora    | Typora                                   |
 | jv        | JsonView(JSON格式化小工具)                |
 | redis     | Redis Desktop Manager                    |
 | fsc       | Faststone Capture 9.2 中文版(截图工具)    |
@@ -239,6 +274,7 @@ exit
 | xftp     | Xftp 6                   |
 | snipaste | windows截图工具           |
 | calibre  | calibre 开源电子书管理工具 |
+| typora   | Typora                   |
 
 ### 2.4. window 系统常用原生命令
 
@@ -275,7 +311,18 @@ exit
 
 ## 4. windows 系统相关设置
 
-### 4.1. C盘可清理内容
+### 4.1. 常用默认的 Windows 系统环境变量
+
+- `%SystemRoot%` 或者 `%WINDIR%`：操作系统根目录。如 C:\WINDOWS
+- `%APPDATA%`：列出应用程序数据的默认存放位置。如 C:\Users\用户名\AppData\Roaming
+- `%USERPROFILE%` 或者 `%HOMEPATH%`：用户主目录的完整路径（当前用户的配置文件的位置）。
+
+### 4.2. 常用系统位置
+
+- window 系统的 hosts 文件位置：`%windir%\System32\drivers\etc`
+- win10 锁屏壁纸位置：`C:\Users\win10\AppData\Local\Packages\Microsoft.Windows.ContentDeliveryManager_cw5n1h2txyewy\LocalState\Assets`
+
+### 4.3. C盘可清理内容
 
 1. **PerfLogs**文件夹，系统的信息日志，文件夹可删。
 2. **Windows**文件夹
@@ -283,33 +330,20 @@ exit
     - `C:\Windows\Help`，帮忙文件，可删
 3. **用户**文件夹：`C:\Users\用户名称\AppData\Local\Temp`。这个是Windows存留安装软件时解压的源文件，方便下次安装直接调取使用，节省解压时间，可删除。
 
-### 4.2. win7 系统的Temporary Internet Files清空问题
+### 4.4. win7 系统的Temporary Internet Files清空问题
 
 1. `cmd.exe`
 2. `cd AppData\Local\Microsoft\Windows\Temporary Internet Files`（或者如果有Content.IE5目录的话，cd Content.IE5）
 3. `del /s/q/f *.*`
 
-### 4.3. 开始菜单分组
-
-#### 4.3.1. 分组名称
-
-- Window Software
-- Images Tool
-- Music
-- Translation Tools
-- Network Disk & Download
-- Social Networking Software
-- Tools
-- Java Development Tools
-
-#### 4.3.2. 备份开始菜单的方法
+### 4.5. 备份开始菜单
 
 1. 按下Win+R打开运行窗口，输入命令powershell，然后点击确定按钮
 2. 这时就会打开Windows Powershell窗口，在这里输入命令`Export-startlayout –path E:\start.xml`，可以根据自己实际情况来设置相应的路径
 3. 按下回车键后，就会备份好开始菜单的布局文件
 4. 如果需要恢复开始菜单布局的话，只需要再次打开Windows Powershell命令行窗口，然后输入命令`import-startlayout -layoutpath E:\start.xml -mountpath c:`，按下回车键后，就会马上把其还原回来了
 
-### 4.4. 电脑护眼颜色设置
+### 4.6. 电脑护眼颜色设置
 
 win7系统：
 
@@ -323,7 +357,7 @@ win10系统：
 2. 按照如下顺序找到windows：[HKEY_CURRENT_USER\Control Panel\Colors] windows。双击windows 进入编辑状态 将原本数值删除并输入：`202 234 206`。点击确定退出注册表。
 3. 按照如下顺序找到 window：[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Themes\DefaultColors\Standard]。双击 window 打开编辑窗口，默认是勾选十六进制（若不是请勾选十六进制），将原始数据改为：`caeace`。点击确定退出注册表。
 
-### 4.5. 这个可能与ACHI有关系吧。你先去修改到 compatible（兼容模式）进入系统
+### 4.7. 这个可能与ACHI有关系吧。你先去修改到 compatible（兼容模式）进入系统
 
 AHCI开启方法：
 
@@ -332,16 +366,6 @@ AHCI开启方法：
 3. 关闭“注册表编辑器”窗口，并重新启动电脑。
 4. 然后出来看看BIOS里面的硬盘模式，修改为ACHI后（如果没有就算了）
 5. 然后在把SATA Operation Mode改为 enhanced（增强模式）
-
-
-
-### 4.6. window系统的hosts文件位置
-
-C:\Windows\System32\drivers\etc
-
-### 4.7. win10锁屏壁纸位置
-
-C:\Users\win10\AppData\Local\Packages\Microsoft.Windows.ContentDeliveryManager_cw5n1h2txyewy\LocalState\Assets
 
 ### 4.8. NSIS：使用netsh advfirewall屏蔽某程序访问网络
 
@@ -494,6 +518,36 @@ Win11默认开启了内存压缩功能。可以压缩内存中的数据，让内
 2. 展开 `HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\RunMRU`在右侧除了默认
 3. 将其他选项都删除掉
 
+### 4.21. 删除资源管理器中“此电脑”下面多余的图标
+
+1. WIN+R 打开运行窗口，输入 `regedit` 打开注册表编辑器
+2. 在注册表中定位到：`HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace` 项
+3. 选中“NameSpace”后，在右键窗口中删除相应的键值
+4. 退出注册表后，此电脑中多余图标消失
+
+也可以保存以下语句为`*.reg`文件，运行即可移除。
+
+```reg
+Windows Registry Editor Version 5.00
+
+;如需还原去除上语句前减号即可
+
+;取消我的电脑"视频"文件夹
+[-HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace\{f86fa3ab-70d2-4fc7-9c99-fcbf05467f3a}]
+;取消我的电脑"文档"文件夹
+[-HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace\{d3162b92-9365-467a-956b-92703aca08af}]
+;取消我的电脑"桌面"文件夹
+[-HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace\{B4BFCC3A-DB2C-424C-B029-7FE99A87C641}]
+;取消我的电脑"音乐"文件夹
+[-HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace\{3dfdf296-dbec-4fb4-81d1-6a3438bcf4de}]
+;取消我的电脑"下载"文件夹
+[-HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace\{088e3905-0323-4b02-9826-5d99428e115f}]
+;取消我的电脑"图片"文件夹
+[-HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace\{24ad3ad4-a569-4530-98e1-ab02f9417aa8}]
+;取消我的电脑"3D对象"文件夹
+[-HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace\{0DB7E03F-FC29-4DC6-9020-FF41B59E513A}]
+```
+
 ## 5. Office资料
 
 ### 5.1. Excel资料
@@ -530,7 +584,7 @@ Win11默认开启了内存压缩功能。可以压缩内存中的数据，让内
 - IE：右键 -> 属性 -> 在打开的IE属性窗口中，找到目标文本框，在最后加入` -private`（*注：前面有一个空格*）
 - Edge：右键 -> 属性 -> 在打开的属性窗口中，找到目标文本框，在最后加入` -InPrivate`（*注：前面有一个空格*）
 
-### 6.2. Chrome与Edge常用快捷键
+### 6.2. Chrome 与 Edge 常用快捷键
 
 - Ctrl+T：打开新标签页
 - Ctrl+Shift+T：重新打开上次关闭的标签页
@@ -542,6 +596,8 @@ Win11默认开启了内存压缩功能。可以压缩内存中的数据，让内
 - Ctrl+Shift+Delete：打开“清除浏览数据”对话框
 - Alt+D 或者 F6：将光标定位于地址栏
 - 输入地址，按下 Alt + 回车键，可将地址在新标签页中打开
+
+> 参考：[Chrome（谷歌浏览器 ）使用总结（一）——快捷键](https://juejin.cn/post/6844903573717778439)
 
 ### 6.3. Chrome 设置隐身模式与开启暗黑模式
 

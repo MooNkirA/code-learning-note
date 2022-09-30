@@ -1,3 +1,73 @@
+# JDK
+
+## 1. 概述
+
+JDK (Java Development Kit) 是 Java 语言的软件开发工具包(SDK)，主要用于移动设备、嵌入式设备上的 Java 应用程序。JDK 是整个 Java 开发的核心，它包含了 JAVA 的运行环境（JVM+Java 系统类库）和 JAVA 工具。
+
+> JDK 官网：https://www.oracle.com/java/
+
+## 2. windows 系统安装 JDK
+
+### 2.1. JDK变量环境配置
+
+最好的配置方式：将位置切割成两段，一段用`JAVA_HOME`保存，一段用\bin保存。如下例：
+
+```
+JAVA_HOME = C:\Program Files\Java\jdk1.8.0_91
+%JAVA_HOME%\bin  相等于 --> C:\Program Files\Java\jdk1.8.0_91\bin
+```
+
+![](images/20220114141342322_31662.jpg)
+
+### 2.2. 安装多个 JDK
+
+安装过程都一样。只是配置环境变量时改动一下。分别将多个不同版本的jdk设置一个环境变量，然后最终让`JAVA_HOME`指定当前需要使用的版本的变量即可
+
+```
+JAVA_HOME_8 = D:\development\Java\jdk1.8.0_311
+JAVA_HOME_11 = D:\development\Java\jdk-11.0.13
+JAVA_HOME = %JAVA_HOME_8%
+```
+
+![](images/20220114152301619_11430.png)
+
+### 2.3. JDK 11 手动生成 jre 目录
+
+许多java软件的运行需要依赖jre，但是在安装jdk11后，发现jdk11并没有自动安装jre环境。其实 jdk11 的安装包里是自带 jre 的，只不过没有自动安装，手动安装一下就可以了。
+
+使用cmd命令行窗口进入jdk 安装目录输入以下命令，即可生成 jre 目录：
+
+```bash
+bin\jlink.exe --module-path jmods --add-modules java.desktop --output jre
+```
+
+### 2.4. 注意事项
+
+如果是安装版，请务必到以下位置删除这几个文件。(二者其一有)
+
+> - C:\Program Files (x86)\Common Files\Oracle\Java\javapath
+> - C:\Program Files\Common Files\Oracle\Java\javapath
+
+如果不删除上面这些文件，直接到环境变量PATH，将下面这些引用删除即可：
+
+```
+C:\Program Files\Common Files\Oracle\Java\javapath
+C:\Program Files (x86)\Common Files\Oracle\Java\javapath
+C:\ProgramData\Oracle\Java\javapath
+```
+
+## 3. Linux 系统安装 JDK
+
+详见《Linux》相关的笔记
+
+## 4. Oracle JDK 与 Open JDK
+
+Oracle JDK 是基于 Open JDK 源代码的商业版本。要学习 Java 新技术可以去 Open JDK 官网学习。
+
+> Open JDK 官网：http://openjdk.java.net/
+
+JDK Enhancement Proposals(JDK增强建议)。通俗的讲JEP就是JDK的新特性
+
 # Java 基础语法
 
 一个 Java 程序可以认为是一系列对象的集合，而这些对象通过调用彼此的方法来协同工作。一个基础的程序涉及如下的概念：
@@ -3353,74 +3423,18 @@ User{username='Java', address='China'}
 
 # 其他综合内容
 
-## 1. JDK 安装
+## 1. JAVA 转义字符
 
-JDK 官网：https://www.oracle.com/java/
+- 退格键：`\b`
+- Tab键：`\t`
+- 换行符号：`\n`
+- 进纸：`\f`
+- 回车键：`\r`
+- 反斜杠：`\\`
+- 单引号：`\'`
+- 双引号：`\"`
 
-### 1.1. windows 系统安装
-
-#### 1.1.1. JDK变量环境配置
-
-最好的配置方式：将位置切割成两段，一段用`JAVA_HOME`保存，一段用\bin保存。如下例：
-
-```
-JAVA_HOME = C:\Program Files\Java\jdk1.8.0_91
-%JAVA_HOME%\bin  相等于 --> C:\Program Files\Java\jdk1.8.0_91\bin
-```
-
-![](images/20220114141342322_31662.jpg)
-
-#### 1.1.2. 安装多个 JDK
-
-安装过程都一样。只是配置环境变量时改动一下。分别将多个不同版本的jdk设置一个环境变量，然后最终让`JAVA_HOME`指定当前需要使用的版本的变量即可
-
-```
-JAVA_HOME_8 = D:\development\Java\jdk1.8.0_311
-JAVA_HOME_11 = D:\development\Java\jdk-11.0.13
-JAVA_HOME = %JAVA_HOME_8%
-```
-
-![](images/20220114152301619_11430.png)
-
-#### 1.1.3. JDK 11 手动生成 jre 目录
-
-许多java软件的运行需要依赖jre，但是在安装jdk11后，发现jdk11并没有自动安装jre环境。其实 jdk11 的安装包里是自带 jre 的，只不过没有自动安装，手动安装一下就可以了。
-
-使用cmd命令行窗口进入jdk 安装目录输入以下命令，即可生成 jre 目录：
-
-```bash
-bin\jlink.exe --module-path jmods --add-modules java.desktop --output jre
-```
-
-#### 1.1.4. 注意事项
-
-如果是安装版，请务必到以下位置删除这几个文件。(二者其一有)
-
-> - C:\Program Files (x86)\Common Files\Oracle\Java\javapath
-> - C:\Program Files\Common Files\Oracle\Java\javapath
-
-如果不删除上面这些文件，直接到环境变量PATH，将下面这些引用删除即可：
-
-```
-C:\Program Files\Common Files\Oracle\Java\javapath
-C:\Program Files (x86)\Common Files\Oracle\Java\javapath
-C:\ProgramData\Oracle\Java\javapath
-```
-
-### 1.2. Linux 系统安装
-
-详见《Linux》相关的笔记
-
-## 2. Open JDK 与 Open JDK
-
-Oracle JDK是基于Open JDK源代码的商业版本。要学习Java新技术可以去Open JDK 官网学习。
-
-### 2.1. Open JDK 官网介绍
-
-- Open JDK 官网：http://openjdk.java.net/
-- JDK Enhancement Proposals(JDK增强建议)。通俗的讲JEP就是JDK的新特性
-
-## 3. 实体类 VO、PO、DO、DTO、BO、QO、DAO、POJO 的概念
+## 2. 实体类 VO、PO、DO、DTO、BO、QO、DAO、POJO 的概念
 
 - DO（ Data Object）领域对象：与数据库表结构一一对应，通过DAO层向上传输数据源对象。
 - PO（persistant object）持久对象：在 o/r 映射的时候出现的概念，如果没有 o/r 映射，没有这个概念存在了。通常对应数据模型 ( 数据库 ), 本身还有部分业务逻辑的处理。可以看成是与数据库中的表相映射的 java 对象。最简单的 PO 就是对应数据库中某个表中的一条记录，多个记录可以用 PO 的集合。 PO 中应该不包含任何对数据库的操作
@@ -3431,18 +3445,18 @@ Oracle JDK是基于Open JDK源代码的商业版本。要学习Java新技术可�
 - POJO（ Plain Ordinary Java Object）：POJO专指只有setter/getter/toString的简单类，包括DO/DTO/BO/VO等。
 - Query：数据查询对象，各层接收上层的查询请求。注意超过2个参数的查询封装，禁止使用Map类来传输。
 
-## 4. 递归
+## 3. 递归
 
-### 4.1. 递归概念
+### 3.1. 递归概念
 
 递归，指在当前方法内调用自己的这种现象
 
-### 4.2. 递归分类
+### 3.2. 递归分类
 
 - **直接递归**：方法A调用方法A。
 - **间接递归**：A 方法调用 B 方法，B 方法调用 C 方法，C 方法调用 A 方法。（间接递归实际开发中比较少用。）
 
-### 4.3. 递归注意事项
+### 3.3. 递归注意事项
 
 - 递归一定要有出口；要有结束递归的条件。
 - 递归次数不能太多。
@@ -3450,7 +3464,7 @@ Oracle JDK是基于Open JDK源代码的商业版本。要学习Java新技术可�
 
 递归算法：方法自身调用方法自身，<font color=red>**必须有方法出口(可以结束方法的条件)，递归次数不宜过多，会有 stackoverflow (栈内存溢出错误)。**</font>
 
-### 4.4. 递归扩展知识
+### 3.4. 递归扩展知识
 
 **递归是程序控制的另一种形式，实质上就是不用循环控制的重复**
 
@@ -3458,9 +3472,9 @@ Oracle JDK是基于Open JDK源代码的商业版本。要学习Java新技术可�
 
 递归方法是一个直接或间接调用自己的方法。要终止一个递归方法，必须有一个或多个基础情况（程序出口）。
 
-## 5. 分层开发思想
+## 4. 分层开发思想
 
-### 5.1. 三层开发结构
+### 4.1. 三层开发结构
 
 什么是分层：开发中，常使用分层思想。不同的层解决不同的问题，层与层之间组成严密的封闭系统，<font color=red>不同层级结构彼此平等。不能出现跨层访问</font>。
 
@@ -3468,14 +3482,14 @@ Oracle JDK是基于Open JDK源代码的商业版本。要学习Java新技术可�
 - 业务逻辑层(service)：对数据进行处理，比如筛选数据、判断数据准确性……
 - 数据访问层(dao)：直接对数据库进行增删改查操作。
 
-### 5.2. 分层的好处
+### 4.2. 分层的好处
 
 - 提高代码的复用性：不同层之间进行功能调用时，相同的功能可以重复使用。
 - 提高代码的维护性：提高软件的可维护性，对现有的功能进行修改和更新时不会影响原有的功能。
 - 提高代码的扩展性：提升软件的可扩展性，添加新的功能的时候不会影响到现有的功能。
 - 降低代码的耦合性：降低层与层之间的耦合性。
 
-### 5.3. 如何分层
+### 4.3. 如何分层
 
 **不同的层使用不同的包**，例如：
 
@@ -3486,23 +3500,23 @@ Oracle JDK是基于Open JDK源代码的商业版本。要学习Java新技术可�
 - 测试包：`com.xxx.test`
 - 实体包：`com.xxx.entity`、`com.xxx.domain`等。用于存放一些自定义的JavaBean类
 
-### 5.4. 访问顺序
+### 4.4. 访问顺序
 
 用户 -> 表现层 -> 业务层 -> 数据访问层 -> 数据库
 
-### 5.5. 开发流程
+### 4.5. 开发流程
 
 一般从下向上开发：dao 数据访问层 -> service 业务逻辑层 -> view 表示层
 
-## 6. 层污染
+## 5. 层污染
 
-### 6.1. 什么是层污染
+### 5.1. 什么是层污染
 
 某一层中使用到了本不应该出现在该层的代码，则称为层污染。如：`Connection` 对象，应该出现在 DAO 层，而不应该出现在业务层。所以想办法把 `Connection` 对象从业务层中移出。
 
 如果调用工具类的方法，不存在层污染，因为工具类属于每个层可以使用的。
 
-### 6.2. 如何解决层污染的问题
+### 5.2. 如何解决层污染的问题
 
 以事务处理为例：
 
@@ -3510,7 +3524,7 @@ Oracle JDK是基于Open JDK源代码的商业版本。要学习Java新技术可�
 2. 提交事务或回滚事务以后，关闭连接，并且从当前线程中删除 `Connection` 对象。
 3. 业务层调用工具类中的方法操作事务，如果没有异常则提交事务，出现异常则事务回滚。并且抛出运行时异常给表示层。
 
-## 7. GUI 图形用户界面 (了解)
+## 6. GUI 图形用户界面 (了解)
 
 Graphical User Interface，简称 GUI
 

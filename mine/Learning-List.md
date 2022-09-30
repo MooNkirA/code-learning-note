@@ -4,17 +4,17 @@
 
 ## 1. Java 基础
 
-|        |                 课程名                 | 在线链接 |      备注      |
-| :----: | ------------------------------------- | -------- | ------------- |
-| ✅    | 2019.10.25-JavaJDK新特性详解-JDK8&JDK9  |          | 只学完JDK8部分 |
-|        | 2019.10.11-JDK10新特性                 |          |               |
-|        | 2019.10.11-JDK11&JDK12新特性           |          |               |
-|        | Java基础-06-泛型                        |          |               |
-|        | 2020.01.15-JDK8日期API解析              |          |               |
-|        | 2020JAVA基础-深入系统的学习数据结构与算法 |          |               |
-|        | 详细分析LinkedList数据链表的实现原理      |          |               |
-|        | 07-数据结构与算法-【优化精简最终版】      |          |               |
-|        | 2019.06.07-解密JVM                     |          |               |
+|     |                 课程名                 | 在线链接 |      备注      |
+| :-: | ------------------------------------- | -------- | ------------- |
+| ✅  | 2019.10.25-JavaJDK新特性详解-JDK8&JDK9  |          | 只学完JDK8部分 |
+|     | 2019.10.11-JDK10新特性                 |          |               |
+|     | 2019.10.11-JDK11&JDK12新特性           |          |               |
+|     | Java基础-06-泛型                        |          |               |
+|     | 2020.01.15-JDK8日期API解析              |          |               |
+|     | 2020JAVA基础-深入系统的学习数据结构与算法 |          |               |
+|     | 详细分析LinkedList数据链表的实现原理      |          |               |
+|     | 07-数据结构与算法-【优化精简最终版】      |          |               |
+|     | 2019.06.07-解密JVM                     |          |               |
 
 
 ## 2. 框架专题
@@ -30,9 +30,9 @@
 
 ### 2.2. Mybatis
 
-|         |                    课程名                    |                                                 在线链接                                                  |     备注     |
-| :----: | ------------------------------------------- | -------------------------------------------------------------------------------------------------------- | ------------ |
-| ✅     | 2019.05.08-全面学习Mybatis插件之Mybatis-Plus | [官网](http://yun.itheima.com/course/582.html) &#124; [B站](https://www.bilibili.com/video/BV1rE41197jR) | aliyun已备份 |
+|     |                    课程名                    |                                                 在线链接                                                  |     备注     |
+| :-: | ------------------------------------------- | -------------------------------------------------------------------------------------------------------- | ------------ |
+| ✅  | 2019.05.08-全面学习Mybatis插件之Mybatis-Plus | [官网](http://yun.itheima.com/course/582.html) &#124; [B站](https://www.bilibili.com/video/BV1rE41197jR) | aliyun已备份 |
 
 ### 2.3. Spring Boot
 
@@ -71,20 +71,21 @@
 
 ### 4.1. 微服务框架
 
-|     |                         课程名                          | 在线链接 |            备注             |
-| :-: | ------------------------------------------------------ | -------- | --------------------------- |
-| ✅  | 2019.09.24-4天从浅入深精通SpringCloud微服务架构体系       |          |                             |
-|     | 2019.11.30-分布式链路追踪skywalking                      |          |                             |
-|     | 2019.08.15-微服务架构的分布式事务控制解决方案              |          |                             |
-|     | 2020.05.07-系统掌握阿里分布式服务架构流量控制组件-Sentinel |          |                             |
-| ✅  | 2019.12.18-超全面讲解Spring Cloud Alibaba技术栈          |          |                             |
-|     | 2019.10.31-Spring Cloud Alibaba Nacos配置中心与服务发现  |          |                             |
-|     | 2019.09.26-带你玩转Zookeeper+Dubbo                      |          |                             |
-|     | 2019.10.05-Elastic-Job分布式任务调度-服务中间件           |          |                             |
-|     | 2019.11.14-nginx项目部署                                |          |                             |
-|     | 1-19 Apache ServiceComb微服务框架课程                    |          | 2019-博学谷-JavaEE在职加薪课 |
-|     | 1-21 华为云PaaS微服务治理课程（CSE Mesher开发）           |          | 2019-博学谷-JavaEE在职加薪课 |
-|     | 2021.04.07-史上最全面的java微服务架构课                   |          | 综合性课程                   |
+|     |                         课程名                          |                                  在线链接                                  |            备注             |
+| :-: | ------------------------------------------------------ | ------------------------------------------------------------------------- | --------------------------- |
+| ✅  | 2019.09.24-4天从浅入深精通SpringCloud微服务架构体系       |                                                                           |                             |
+|     | 2019.11.30-分布式链路追踪skywalking                      |                                                                           |                             |
+|     | 2019.08.15-微服务架构的分布式事务控制解决方案              |                                                                           |                             |
+|     | 2020.05.07-系统掌握阿里分布式服务架构流量控制组件-Sentinel |                                                                           |                             |
+| ✅  | 2019.12.18-超全面讲解Spring Cloud Alibaba技术栈          |                                                                           |                             |
+|     | 2019.10.31-Spring Cloud Alibaba Nacos配置中心与服务发现  |                                                                           |                             |
+|     | 2019.09.26-带你玩转Zookeeper+Dubbo                      |                                                                           |                             |
+|     | 2019.10.05-Elastic-Job分布式任务调度-服务中间件           |                                                                           |                             |
+|     | 2019.11.14-nginx项目部署                                |                                                                           |                             |
+|     | 1-19 Apache ServiceComb微服务框架课程                    |                                                                           | 2019-博学谷-JavaEE在职加薪课 |
+|     | 1-21 华为云PaaS微服务治理课程（CSE Mesher开发）           |                                                                           | 2019-博学谷-JavaEE在职加薪课 |
+|     | 2021.04.07-史上最全面的java微服务架构课                   |                                                                           | 综合性课程                   |
+|     | Spring Cloud Alibaba 微服务架构电商项目实战               | [博学谷](https://xuexi.boxuegu.com/video.html?courseId=2870&courseType=1) | 博学谷在线课程               |
 
 ### 4.2. 消息中间件
 
@@ -112,9 +113,10 @@
 
 ## 6. 并发编程
 
-|     |       课程名        | 在线链接 | 备注 |
-| :-: | ------------------- | -------- | ---- |
-|     | 2019.12.12-并发编程 |          |      |
+|     |         课程名          |                                  在线链接                                  |     备注      |
+| :-: | ---------------------- | ------------------------------------------------------------------------- | ------------- |
+|     | 2019.12.12-并发编程     |                                                                           |               |
+|     | Java并发编程高阶技术实践 | [博学谷](https://xuexi.boxuegu.com/video.html?courseId=1515&courseType=1) | 博学谷在线课程 |
 
 ## 7. 网络编程
 
@@ -159,12 +161,13 @@
 |     | 2021.06.17-瑞吉外卖平台实战                  | [官网](http://yun.itheima.com/course/999.html) &#124; [B站](https://www.bilibili.com/video/BV13a411q753)  |                                         |
 |     | 2021.08.27-Java百度地图全套教程              | [官网](http://yun.itheima.com/course/1006.html) &#124; [B站](https://www.bilibili.com/video/BV1ue4y1R712) |                                         |
 
-## 10. 其他专题
+## 10. 综合专题
 
 
-|     | 课程名 | 在线链接 | 备注 |
-| :-: | ------ | -------- | ---- |
-|     |        |          |      |
+|     |              课程名               |                                  在线链接                                  |     备注      |
+| :-: | -------------------------------- | ------------------------------------------------------------------------- | ------------- |
+|     | Java加薪派实战课（老学员专属）      | [博学谷](https://xuexi.boxuegu.com/video.html?courseId=5020&courseType=1) | 博学谷在线课程 |
+|     | WEB开发中常见安全漏洞分析与预防策略 | [博学谷](https://xuexi.boxuegu.com/video.html?courseId=1516&courseType=1) | 博学谷在线课程 |
 
 ## 11. 已删除记录
 
@@ -219,6 +222,30 @@
 | :-: | ------------------------------- | -------- | ---- |
 |     | 2020.03.24-Node.js零基础入门教程 |          |      |
 
+# 博学谷在线课程
+
+- [ ] [MySQL数据库性能优化](https://xuexi.boxuegu.com/video.html?courseId=1251)
+- [ ] [Java进阶大数据开发公开课](https://xuexi.boxuegu.com/video.html?courseId=1200)
+- [ ] [Java秒杀系统实战(上)](https://xuexi.boxuegu.com/video.html?courseId=1292)
+- [ ] [【Java】Java基础全精讲](https://xuexi.boxuegu.com/video.html?courseId=89)
+- [ ] [百度地图API应用开发](https://xuexi.boxuegu.com/video.html?courseId=280)
+- [ ] [HTML5 CSS3视频教程](https://xuexi.boxuegu.com/video.html?courseId=1044)
+- [ ] [利用CSS3实现响应式项目开发](https://xuexi.boxuegu.com/video.html?courseId=1054)
+- [ ] [狂野架构师（前置）](https://xuexi.boxuegu.com/video.html?courseId=3275)
+- [ ] 2022年6月30号直播回放-[JDK源码分析](https://xuexi.boxuegu.com/video.html?courseId=5058)
+- [ ] 2022年7月06号直播回放-[设计模式](https://xuexi.boxuegu.com/video.html?courseId=5087)
+- [ ] 2022年7月07号直播回放-[leetCode必刷](https://xuexi.boxuegu.com/video.html?courseId=5085)
+- [ ] 2022年7月14号直播回放-[高性能MySQL](https://xuexi.boxuegu.com/video.html?courseId=5093)
+- [ ] 2022年7月18号直播回放-[SQL调优硬核面试真题](https://xuexi.boxuegu.com/video.html?courseId=5111)
+- [ ] 2022年7月21号直播回放-[Redis解决高并发场景问题](https://xuexi.boxuegu.com/video.html?courseId=5114)
+- [ ] 2022年7月27号直播回放-[Spring核心源码分析](https://xuexi.boxuegu.com/video.html?courseId=5136)
+- [ ] 2022年8月10号直播回放-[常见数据结构与算法](https://xuexi.boxuegu.com/video.html?courseId=5211)
+- [ ] 2022年8月19号直播回放-[大数据行业深度解读](https://xuexi.boxuegu.com/video.html?courseId=5223)
+- [ ] 2022年8月25号直播回放-[大数据Apache](https://xuexi.boxuegu.com/video.html?courseId=5256)
+- [ ] 2022年9月1号直播回放-[如何利用大数据割韭菜](https://xuexi.boxuegu.com/video.html?courseId=5273)
+- [ ] 2022年9月8号直播回放-[大话网络通信，计算机之间是如何沟通的？](https://xuexi.boxuegu.com/video.html?courseId=5282)
+- [ ] 2022年9月13号直播回放-[搞定MySQL索引底层原理详解，手撕面试官](https://xuexi.boxuegu.com/video.html?courseId=5284)
+
 # 尚硅谷-Java学科课程学习清单
 
 ## 1. 项目实战
@@ -226,3 +253,24 @@
 |     |            课程名            | 在线链接 | 备注 |
 | :-: | ---------------------------- | -------- | ---- |
 |     | 2019.09.26-大型电商--谷粒商城 |          |      |
+
+# 零散学习内容
+
+## 1. 相关知识点
+
+- 数据库表设计
+- 数据库优化
+- solr全文检索
+- Jenkins 是一个独立的开源自动化服务器，可用于自动化各种任务，如构建，测试和部署软件。Jenkins可以通过本机系统包Docker安装，甚至可以通过安装Java Runtime Environment的任何机器独立运行。
+
+## 2. 需要整理的学习的java库
+
+- Google Guava：Google Guava软件包中的库或多或少是对核心库的对应部分有增强功能，并使编程更加高效和有效。Guava 包括内存缓存、不可变集合、函数类型、图形库和可用于 I/O、散列、并发、原语、字符串处理、反射等等的API实用程序。
+- XStream：当涉及将对象序列化到XML中时，这时常用XStream库, 开发人员通过XStream库可以轻松地将对象序列化为XML并返回。XStream的功能也很多，比如，大多数对象可以被序列化，并提供特定的映射，提供高性能和低内存占用，信息不重复，可自定义的转换策略，安全的框架，异常情况下的详细诊断等等。
+- iText：基本Java中创建和操作PDF件的各种操作都能完成
+- Apache PDF box：Apache PDFBox是另一个可用于操作PDF文件的开源库。PDFBox的主要功能使其成为超级库，其中包括PDF创建、将单个PDF分割为多个PDF文件、合并并提取PDF文本的Unicode文本，填写PDF表单，根据PDF/A标准验证PDF文件，将PDF保存为图像并对PDF进行数字签名。
+- jsoup：用于处理和解析HTML。Jsoup提供了一个有用的用于提取数据的API。jsoup中实现的标准是WHATWG HTML5。和最新的浏览器作法一样，jsoup将HTML解析为DOM。它允许解析来自任何URL或文件的HTML，清理和操纵HTML元素和属性，以检索用户提交的数据并过滤掉XSS攻击属性，使用jsoup还可以完成更多功能。
+- Gson
+- Joda Time：简单但功能强大的库，它节省了大量的开发时间。Joda-Time是一个Java库，作为Java中日期和时间类的一个很好的替代品。Joda Time提供计算日期和时间的功能，并支持几乎所有需要的日期格式，而且肯定难以用简单的JDK方法进行复制
+- Ok HTTP：用于通过HTTP协议有效地在现代应用程序之间交换数据。Okhttp在断网时恢复连接，在多个基于IP的服务中切换IP地址。okhttp的一个有用的功能是与现代TLS(SNI，ALPN)的自动连接，并且在发生故障时回到TLS 1.0。
+- Quartz
