@@ -2047,7 +2047,314 @@ drl 类型的规则文件编写时尽量遵循如下规范：
 
 ## 7. Spring 整合 Drools
 
+### 7.1. Spring 简单整合 Drools
 
+在项目中使用 Drools 时往往会跟 Spring 整合来使用。具体整合步骤如下：
+
+- 第一步：创建 maven 工程 drools-spring 并配置 pom.xml，引入相关依赖
+
+```xml
+<properties>
+    <drools.version>7.10.0.Final</drools.version>
+    <junit.version>4.13.2</junit.version>
+    <spring.version>5.0.5.RELEASE</spring.version>
+</properties>
+
+<dependencies>
+    <!--
+        spring 整合 drools 依赖包，已包含 spring-context、spring-tx、spring-core、spring-beans 等依赖
+        也包含了 drools-compiler 依赖
+    -->
+    <dependency>
+        <groupId>org.kie</groupId>
+        <artifactId>kie-spring</artifactId>
+        <version>${drools.version}</version>
+        <!--注意：此处必须排除传递过来的依赖，否则会跟导入的Spring jar包产生冲突-->
+        <exclusions>
+            <exclusion>
+                <groupId>org.springframework</groupId>
+                <artifactId>spring-beans</artifactId>
+            </exclusion>
+            <exclusion>
+                <groupId>org.springframework</groupId>
+                <artifactId>spring-core</artifactId>
+            </exclusion>
+            <exclusion>
+                <groupId>org.springframework</groupId>
+                <artifactId>spring-context</artifactId>
+            </exclusion>
+        </exclusions>
+    </dependency>
+
+    <dependency>
+        <groupId>org.springframework</groupId>
+        <artifactId>spring-context</artifactId>
+        <version>${spring.version}</version>
+    </dependency>
+    <dependency>
+        <groupId>org.springframework</groupId>
+        <artifactId>spring-test</artifactId>
+        <version>${spring.version}</version>
+    </dependency>
+
+    <dependency>
+        <groupId>junit</groupId>
+        <artifactId>junit</artifactId>
+        <version>${junit.version}</version>
+        <scope>test</scope>
+    </dependency>
+</dependencies>
+```
+
+- 第二步：创建规则目录 /resources/rules 目录，并创建规则文件 helloworld.drl
+
+```drl
+package helloworld
+
+rule "rule_helloworld"
+    when
+        eval(true)
+    then
+        System.out.println("规则：rule_helloworld触发...");
+end
+```
+
+- 第三步：在 resources 目录中创建 Spring 配置文件 spring.xml，配置 drools 的规则文件位置与相关的 bean
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:kie="http://drools.org/schema/kie-spring"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+                            http://www.springframework.org/schema/beans/spring-beans.xsd
+                            http://drools.org/schema/kie-spring
+                            http://drools.org/schema/kie-spring.xsd">
+    <kie:kmodule id="kmodule">
+        <kie:kbase name="kbase" packages="rules">
+            <kie:ksession name="ksession"/>
+        </kie:kbase>
+    </kie:kmodule>
+
+    <bean class="org.kie.spring.annotations.KModuleAnnotationPostProcessor"/>
+</beans>
+```
+
+- 第四步：编写单元测试
+
+```java
+@RunWith(SpringJUnit4ClassRunner.class)
+@ContextConfiguration(locations = {"classpath:spring.xml"})
+public class DroolsSpringTest {
+
+    @KBase("kbase")
+    private KieBase kieBase; // 注入 KieBase 对象
+
+    @KSession("ksession")
+    private KieSession kieSession; // 不建议直接注入 KieSession 对象
+
+
+    @Test
+    public void test1() {
+        KieSession session = kieBase.newKieSession();
+        session.fireAllRules();
+        session.dispose();
+    }
+
+    @Test
+    public void test2() {
+        kieSession.fireAllRules();
+        kieSession.dispose();
+    }
+}
+```
+
+### 7.2. Spring web 整合 Drools
+
+Drools 和 Spring Web 的整合，具体操作步骤如下：
+
+- 第一步：创建 war 类型的 maven 工程 drools-spring-web，并在 pom.xml 文件中导入相关坐标
+
+```xml
+<artifactId>drools-spring-web</artifactId>
+<packaging>war</packaging>
+
+<dependencies>
+    <!--
+        spring 整合 drools 依赖包，已包含 spring-context、spring-tx、spring-core、spring-beans 等依赖
+        也包含了 drools-compiler 依赖
+    -->
+    <dependency>
+        <groupId>org.kie</groupId>
+        <artifactId>kie-spring</artifactId>
+        <version>7.10.0.Final</version>
+        <!--注意：此处必须排除传递过来的依赖，否则会跟导入的Spring jar包产生冲突-->
+        <exclusions>
+            <exclusion>
+                <groupId>org.springframework</groupId>
+                <artifactId>spring-beans</artifactId>
+            </exclusion>
+            <exclusion>
+                <groupId>org.springframework</groupId>
+                <artifactId>spring-core</artifactId>
+            </exclusion>
+            <exclusion>
+                <groupId>org.springframework</groupId>
+                <artifactId>spring-context</artifactId>
+            </exclusion>
+        </exclusions>
+    </dependency>
+
+    <dependency>
+        <groupId>org.springframework</groupId>
+        <artifactId>spring-webmvc</artifactId>
+        <version>5.0.5.RELEASE</version>
+    </dependency>
+</dependencies>
+
+<build>
+    <plugins>
+        <plugin>
+            <groupId>org.apache.tomcat.maven</groupId>
+            <artifactId>tomcat7-maven-plugin</artifactId>
+            <configuration>
+                <!-- 指定端口 -->
+                <port>8080</port>
+                <!-- 请求路径 -->
+                <path>/</path>
+            </configuration>
+        </plugin>
+    </plugins>
+</build>
+```
+
+- 第二步：配置 web.xml
+
+```xml
+<!DOCTYPE web-app PUBLIC
+        "-//Sun Microsystems, Inc.//DTD Web Application 2.3//EN"
+        "http://java.sun.com/dtd/web-app_2_3.dtd" >
+
+<web-app>
+    <servlet>
+        <servlet-name>springmvc</servlet-name>
+        <servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
+        <!-- 指定加载的配置文件 ，通过参数contextConfigLocation加载 -->
+        <init-param>
+            <param-name>contextConfigLocation</param-name>
+            <param-value>classpath:springmvc.xml</param-value>
+        </init-param>
+        <load-on-startup>1</load-on-startup>
+    </servlet>
+
+    <servlet-mapping>
+        <servlet-name>springmvc</servlet-name>
+        <url-pattern>*.do</url-pattern>
+    </servlet-mapping>
+</web-app>
+
+```
+
+- 第三步：在 resources 目录中创建 Spring 配置文件 springmvc.xml，配置 drools 的规则文件位置与相关的 bean
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:mvc="http://www.springframework.org/schema/mvc"
+       xmlns:kie="http://drools.org/schema/kie-spring"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+       http://www.springframework.org/schema/beans/spring-beans.xsd
+       http://drools.org/schema/kie-spring
+       http://drools.org/schema/kie-spring.xsd
+       http://www.springframework.org/schema/mvc
+	   http://www.springframework.org/schema/mvc/spring-mvc.xsd
+	   http://www.springframework.org/schema/context
+	   http://www.springframework.org/schema/context/spring-context.xsd">
+
+    <kie:kmodule id="kmodule">
+        <kie:kbase name="kbase" packages="rules">
+            <kie:ksession name="ksession"/>
+        </kie:kbase>
+    </kie:kmodule>
+
+    <bean class="org.kie.spring.annotations.KModuleAnnotationPostProcessor"/>
+
+    <!-- 开启 Spring 注解扫描 -->
+    <context:component-scan base-package="com.moon.drools"/>
+    <context:annotation-config/>
+    <!-- SpringMVC 注解驱动 -->
+    <mvc:annotation-driven/>
+</beans>
+```
+
+- 第四步：在 resources/rules 目录中，创建规则文件 helloworld.drl
+
+```drl
+package helloworld
+
+rule "rule_helloworld"
+    when
+        eval(true)
+    then
+        System.out.println("规则：rule_helloworld触发...");
+end
+```
+
+- 第五步：创建规则处理业务类 RuleService
+
+```java
+import org.kie.api.KieBase;
+import org.kie.api.cdi.KBase;
+import org.kie.api.runtime.KieSession;
+import org.springframework.stereotype.Service;
+
+@Service
+public class RuleService {
+    @KBase("kbase") // 注入KieBase对象
+    private KieBase kieBase;
+
+    public void rule() {
+        KieSession kieSession = kieBase.newKieSession();
+        kieSession.fireAllRules();
+        kieSession.dispose();
+    }
+}
+```
+
+- 第六步：创建测试请求控制类 HelloController
+
+```java
+@Controller
+@RequestMapping("/hello")
+public class HelloController {
+    @Autowired
+    private RuleService ruleService;
+
+    @RequestMapping("/rule")
+    public String rule() {
+        ruleService.rule();
+        return "OK";
+    }
+}
+```
+
+- 第七步：使用 tomcat 插件运行项目（`tomcat7:run -f pom.xml`），浏览器请求访问 `http://127.0.0.1:8080/hello/rule.do`。查看控制台输出规则文件内容是否输出。
+
+![](images/442192223220971.png)
+
+### 7.3. Spring Boot 整合 Drools（推荐）
+
+目前企业级开发的主流是使用 Spring Boot 整合 Drools，具体操作步骤如下：
+
+- 第一步：创建 maven 工程 drools-spring-boot，并配置pom.xml
+
+```xml
+
+```
+
+- 
 
 
 
