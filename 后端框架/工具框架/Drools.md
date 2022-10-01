@@ -2057,7 +2057,7 @@ drl 类型的规则文件编写时尽量遵循如下规范：
 <properties>
     <drools.version>7.10.0.Final</drools.version>
     <junit.version>4.13.2</junit.version>
-    <spring.version>5.0.5.RELEASE</spring.version>
+    <spring.version>5.0.10.RELEASE</spring.version>
 </properties>
 
 <dependencies>
@@ -2208,7 +2208,7 @@ Drools 和 Spring Web 的整合，具体操作步骤如下：
     <dependency>
         <groupId>org.springframework</groupId>
         <artifactId>spring-webmvc</artifactId>
-        <version>5.0.5.RELEASE</version>
+        <version>5.0.10.RELEASE</version>
     </dependency>
 </dependencies>
 
@@ -2289,19 +2289,7 @@ Drools 和 Spring Web 的整合，具体操作步骤如下：
 </beans>
 ```
 
-- 第四步：在 resources/rules 目录中，创建规则文件 helloworld.drl
-
-```drl
-package helloworld
-
-rule "rule_helloworld"
-    when
-        eval(true)
-    then
-        System.out.println("规则：rule_helloworld触发...");
-end
-```
-
+- 第四步：在 resources/rules 目录中，创建规则文件 helloworld.drl（复用前面 spring 整合 drools 示例的内容）
 - 第五步：创建规则处理业务类 RuleService
 
 ```java
@@ -2351,11 +2339,785 @@ public class HelloController {
 - 第一步：创建 maven 工程 drools-spring-boot，并配置pom.xml
 
 ```xml
+<parent>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-parent</artifactId>
+    <version>2.0.6.RELEASE</version>
+</parent>
+
+dependencies>
+    <!-- spring web -->
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-web</artifactId>
+    </dependency>
+
+    <!--
+        spring 整合 drools 依赖包，已包含 spring-context、spring-tx、spring-core、spring-beans 等依赖
+        也包含了 drools-compiler 依赖
+    -->
+    <dependency>
+        <groupId>org.kie</groupId>
+        <artifactId>kie-spring</artifactId>
+        <version>7.10.0.Final</version>
+        <!--注意：此处必须排除传递过来的依赖，否则会跟导入的Spring jar包产生冲突-->
+        <exclusions>
+            <exclusion>
+                <groupId>org.springframework</groupId>
+                <artifactId>spring-beans</artifactId>
+            </exclusion>
+            <exclusion>
+                <groupId>org.springframework</groupId>
+                <artifactId>spring-core</artifactId>
+            </exclusion>
+            <exclusion>
+                <groupId>org.springframework</groupId>
+                <artifactId>spring-context</artifactId>
+            </exclusion>
+        </exclusions>
+    </dependency>
+    <dependency>
+        <groupId>org.drools</groupId>
+        <artifactId>drools-templates</artifactId>
+        <version>7.10.0.Final</version>
+    </dependency>
+</dependencies>
+
+<build>
+    <finalName>${project.artifactId}</finalName>
+    <resources>
+        <resource>
+            <directory>src/main/java</directory>
+            <includes>
+                <include>**/*.xml</include>
+            </includes>
+            <filtering>false</filtering>
+        </resource>
+        <resource>
+            <directory>src/main/resources</directory>
+            <includes>
+                <include>**/*.*</include>
+            </includes>
+            <filtering>false</filtering>
+        </resource>
+    </resources>
+    <plugins>
+        <!-- 插件作用：将一个SpringBoot的工程打包成为可执行的jar包 -->
+        <plugin>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-maven-plugin</artifactId>
+            <!-- 直接使用时不需要指定版本，在 spring-boot-starter-parent 已进行依赖管理 -->
+            <!--<version>${spring-boot.version}</version>-->
+            <executions>
+                <execution>
+                    <goals>
+                        <goal>repackage</goal>
+                    </goals>
+                </execution>
+            </executions>
+        </plugin>
+    </plugins>
+</build>
+```
+
+- 第二步：创建项目配置文件 application.yml
+
+```yml
+server:
+  port: 8080
+spring:
+  application:
+    name: drools-spring-boot
+```
+
+- 第三步：在 resources/rules 目录中，创建规则文件 helloworld.drl（复用前面 spring 整合 drools 示例的内容）
+- 第四步：编写规则引擎配置类 DroolsConfig
+
+```java
+import org.kie.api.KieBase;
+import org.kie.api.KieServices;
+import org.kie.api.builder.KieBuilder;
+import org.kie.api.builder.KieFileSystem;
+import org.kie.api.builder.KieRepository;
+import org.kie.api.runtime.KieContainer;
+import org.kie.internal.io.ResourceFactory;
+import org.kie.spring.KModuleBeanFactoryPostProcessor;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
+import org.springframework.core.io.support.ResourcePatternResolver;
+
+import java.io.IOException;
+
+@Configuration
+public class DroolsConfig {
+
+    // 指定规则文件存放的目录
+    private static final String RULES_PATH = "rules/";
+    private final KieServices kieServices = KieServices.Factory.get();
+
+    @Bean
+    @ConditionalOnMissingBean
+    public KieFileSystem kieFileSystem() throws IOException {
+        System.setProperty("drools.dateformat","yyyy-MM-dd");
+        KieFileSystem kieFileSystem = kieServices.newKieFileSystem();
+        ResourcePatternResolver resourcePatternResolver = new PathMatchingResourcePatternResolver();
+        Resource[] files = resourcePatternResolver.getResources("classpath*:" + RULES_PATH + "*.*");
+        String path = null;
+        for (Resource file : files) {
+            path = RULES_PATH + file.getFilename();
+            kieFileSystem.write(ResourceFactory.newClassPathResource(path, "UTF-8"));
+        }
+        return kieFileSystem;
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public KieContainer kieContainer() throws IOException {
+        KieRepository kieRepository = kieServices.getRepository();
+        kieRepository.addKieModule(kieRepository::getDefaultReleaseId);
+        KieBuilder kieBuilder = kieServices.newKieBuilder(kieFileSystem());
+        kieBuilder.buildAll();
+        return kieServices.newKieContainer(kieRepository.getDefaultReleaseId());
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public KieBase kieBase() throws IOException {
+        return kieContainer().getKieBase();
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public KModuleBeanFactoryPostProcessor kiePostProcessor() {
+        return new KModuleBeanFactoryPostProcessor();
+    }
+}
+```
+
+- 第五步：创建规则处理业务类 RuleService
+
+```java
+import org.kie.api.KieBase;
+import org.kie.api.runtime.KieSession;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+@Service
+public class RuleService {
+    // 此处直接注入即可，在配置类中已经创建并且加入到容器中
+    @Autowired
+    private KieBase kieBase;
+
+    public void rule() {
+        KieSession kieSession = kieBase.newKieSession();
+        kieSession.fireAllRules();
+        kieSession.dispose();
+    }
+}
+```
+
+- 第六步：创建测试请求控制类 HelloController
+
+```java
+@RestController
+@RequestMapping("/hello")
+public class HelloController {
+    @Autowired
+    private RuleService ruleService;
+
+    @RequestMapping("/rule")
+    public String rule() {
+        ruleService.rule();
+        return "OK";
+    }
+}
+```
+
+- 第七步：创建启动类 DroolsApplication
+
+```java
+@SpringBootApplication
+public class DroolsApplication {
+    public static void main(String[] args) {
+        SpringApplication.run(DroolsApplication.class, args);
+    }
+}
+```
+
+- 启动服务，访问请求 `http://localhost:8080/hello/rule`，查看控制台日志是否输出规则文件内容
+
+![](images/140582207221042.png)
+
+## 8. Drools 实战1 - 个人所得税计算器
+
+本案例通过 Drools 规则引擎来根据规则计算个人所得税，最终页面效果如下：
+
+![](images/364171809236142.png)
+
+### 8.1. 名词解释
+
+- 税前月收入：即税前工资，指交纳个人所得税之前的总工资
+- 应纳税所得额：指按照税法规定确定纳税人在一定期间所获得的所有应税收入减除在该纳税期间依法允许减除的各种支出后的余额
+- 税率：是对征税对象的征收比例或征收额度
+- 速算扣除数：指为解决超额累进税率分级计算税额的复杂技术问题，而预先计算出的一个数据，可以简化计算过程
+- 扣税额：是指实际缴纳的税额
+- 税后工资：是指扣完税后实际到手的工资收入
+
+### 8.2. 计算规则
+
+要实现个人所得税计算器，需要了解如下计算规则：
+
+| 规则编号 |                  名称                  |                          描述                           |
+| :------: | ------------------------------------- | ------------------------------------------------------ |
+|    1     | 计算应纳税所得额                        | 应纳税所得额为税前工资减去3500                            |
+|    2     | 设置税率，应纳税所得额<=1500             | 税率为0.03，速算扣除数为0                                 |
+|    3     | 设置税率，应纳税所得额在1500至4500之间   | 税率为0.1，速算扣除数为105                                |
+|    4     | 设置税率，应纳税所得额在4500志9000之间   | 税率为0.2，速算扣除数为555                                |
+|    5     | 设置税率，应纳税所得额在9000志35000之间  | 税率为0.25，速算扣除数为1005                              |
+|    6     | 设置税率，应纳税所得额在35000至55000之间 | 税率为0.3，速算扣除数为2755                               |
+|    7     | 设置税率，应纳税所得额在55000至80000之间 | 税率为0.35，速算扣除数为5505                              |
+|    8     | 设置税率，应纳税所得额在80000以上        | 税率为0.45，速算扣除数为13505                             |
+|    9     | 计算税后工资                           | 扣税额=应纳税所得额*税率-速算扣除数 税后工资=税前工资-扣税额 |
+
+### 8.3. 实现步骤
+
+> 本案例基于 pring Boot 整合 Drools 的方式来实现。
+
+- 第一步：创建 maven 工程 drools-demo-calculation 并配置 pom.xml 文件
+
+```xml
+<parent>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-parent</artifactId>
+    <version>2.0.6.RELEASE</version>
+</parent>
+
+dependencies>
+    <!-- spring web -->
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-web</artifactId>
+    </dependency>
+
+    <!-- spring 整合 drools 依赖包 -->
+    <dependency>
+        <groupId>org.kie</groupId>
+        <artifactId>kie-spring</artifactId>
+        <version>7.10.0.Final</version>
+        <exclusions>
+            <exclusion>
+                <groupId>org.springframework</groupId>
+                <artifactId>spring-beans</artifactId>
+            </exclusion>
+            <exclusion>
+                <groupId>org.springframework</groupId>
+                <artifactId>spring-core</artifactId>
+            </exclusion>
+            <exclusion>
+                <groupId>org.springframework</groupId>
+                <artifactId>spring-context</artifactId>
+            </exclusion>
+        </exclusions>
+    </dependency>
+    <dependency>
+        <groupId>org.drools</groupId>
+        <artifactId>drools-templates</artifactId>
+        <version>7.10.0.Final</version>
+    </dependency>
+</dependencies>
+
+<build>
+    <finalName>${project.artifactId}</finalName>
+    <resources>
+        <resource>
+            <directory>src/main/java</directory>
+            <includes>
+                <include>**/*.xml</include>
+            </includes>
+            <filtering>false</filtering>
+        </resource>
+        <resource>
+            <directory>src/main/resources</directory>
+            <includes>
+                <include>**/*.*</include>
+            </includes>
+            <filtering>false</filtering>
+        </resource>
+    </resources>
+    <plugins>
+        <plugin>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-maven-plugin</artifactId>
+            <executions>
+                <execution>
+                    <goals>
+                        <goal>repackage</goal>
+                    </goals>
+                </execution>
+            </executions>
+        </plugin>
+    </plugins>
+</build>
+```
+
+- 第二步：创建项目配置文件 application.yml
+
+```yml
+server:
+  port: 8080
+spring:
+  application:
+    name: drools-demo-calculation
+```
+
+- 第三步：编写规则引擎配置类 DroolsConfig（复用 Spring Boot 整合 Drools 示例的配置类）
+- 第四步：编写实体类 Calculation
+
+```java
+public class Calculation {
+    private double wage; // 税前工资
+    private double wagemore; // 应纳税所得额
+    private double cess; // 税率
+    private double preminus; // 速算扣除数
+    private double wageminus; // 扣税额
+    private double actualwage; // 税后工资
+    // ...省略setter/getter
+}
+```
+
+- 第五步：在 resources/rules 目录中，创建规则文件 calculation.drl
+
+```drl
 
 ```
 
-- 
+- 第六步：创建规则处理业务类 RuleService
+
+```java
+@Service
+public class RuleService {
+
+    @Autowired
+    private KieBase kieBase;
+
+    // 个人所得税计算
+    public Calculation calculate(Calculation calculation) {
+        KieSession kieSession = kieBase.newKieSession();
+        kieSession.insert(calculation);
+        kieSession.fireAllRules();
+        kieSession.dispose();
+        return calculation;
+    }
+}
+```
+
+- 第七步：创建请求控制类 RuleController
+
+```java
+@RestController
+@RequestMapping("/rule")
+public class RuleController {
+
+    @Autowired
+    private RuleService ruleService;
+
+    @RequestMapping("/calculate")
+    public Calculation rule(double wage) {
+        Calculation calculation = new Calculation();
+        calculation.setWage(wage);
+        calculation = ruleService.calculate(calculation);
+        return calculation;
+    }
+}
+```
+
+- 第七步：创建启动类
+
+```java
+@SpringBootApplication
+public class DroolsApplication {
+    public static void main(String[] args) {
+        SpringApplication.run(DroolsApplication.class, args);
+    }
+}
+```
+
+- 启动服务，访问请求 `http://localhost:8080/hello/rule`，查看控制台日志是否输出规则文件内容
+
+
+```java
+@Service
+public class RuleService {
+
+    @Autowired
+    private KieBase kieBase;
+
+    public Calculation calculate(Calculation calculation) {
+        KieSession kieSession = kieBase.newKieSession();
+        kieSession.insert(calculation);
+        kieSession.fireAllRules();
+        kieSession.dispose();
+        return calculation;
+    }
+}
+```
 
 
 
 
+## 9. Drools 实战2 - 信用卡申请
+
+
+
+
+
+
+
+
+## 10. Drools 实战3 - 保险产品准入规则
+
+
+
+## 11. WorkBench（了解）
+
+### 11.1. 简介
+
+WorkBench 是 KIE 组件中的元素，也称为 KIE-WB，是 Drools-WB 与 JBPM-WB 的结合体。它是一个可视化的规则编辑器。WorkBench 其实就是一个 war 包，安装到 tomcat 中就可以运行。使用 WorkBench 可以在浏览器中创建数据对象、创建规则文件、创建测试场景并将规则部署到 maven 仓库供其他应用使用。
+
+下载地址：https://download.jboss.org/drools/release
+
+> Notes: 以下示例使用的是 kie-drools-wb-7.6.0.Final-tomcat8.war。下载的 war 包需要部署到 tomcat8 中。
+
+### 11.2. WorkBench 安装步骤
+
+以下示例使用的软件环境如下：
+
+- 操作系统：Windows 10 64位
+- JDK版本：1.8
+- maven版本：3.5.4
+- Tomcat版本：8.5
+
+**具体安装步骤**：
+
+- 第一步：配置 Tomcat 的环境变量 `CATALINA_HOME`，对应的值为Tomcat安装目录
+- 第二步：在 Tomcat 的 bin 目录下创建 setenv.bat 文件，内容如下：
+
+```bat
+CATALINA_OPTS="-Xmx512M \
+    -Djava.security.auth.login.config=$CATALINA_HOME/webapps/kie-drools-wb/WEB-INF/classes/login.config \
+    -Dorg.jboss.logging.provider=jdk"
+```
+
+- 第三步：将下载的 WorkBench 的 war 包改名为 kie-drools-wb.war 并复制到 Tomcat 的 webapps 目录下
+- 第四步：修改 Tomcat 目录的 conf/tomcat-users.xml 文件
+
+```xml
+<?xml version='1.0' encoding='utf-8'?>
+<tomcat-users xmlns="http://tomcat.apache.org/xml"
+              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xsi:schemaLocation="http://tomcat.apache.org/xml tomcat-users.xsd"
+              version="1.0">
+  <!--定义admin角色-->
+  <role rolename="admin"/>
+  <!--定义一个用户，用户名为kie，密码为kie，对应的角色为admin角色-->
+  <user username="kie" password="kie" roles="admin"/>
+</tomcat-users>
+```
+
+- 第五步：下载以下三个 jar 包并复制到 Tomcat 的 lib 目录下
+    - kie-tomcat-integration-7.10.0.Final.jar
+    - javax.security.jacc-api-1.5.jar
+    - slf4j-api-1.7.25.jar
+- 第六步：修改 Tomcat 的 conf/server.xml 文件，添加 Valve 标签，内容为：
+
+```xml
+<Valve className="org.kie.integration.tomcat.JACCValve"/>
+```
+
+- 第七步：启动 Tomcat 并访问 `http://localhost:8080/kie-drools-wb`，可以看到 WorkBench 的登录页面。使用前面在 tomcat-users.xml 文件中定义的用户进行登录即可
+
+![](images/11512708239468.png)
+
+登录成功后进入系统首页：
+
+![](images/352612708227335.png)
+
+### 11.3. 使用方式
+
+#### 11.3.1. 创建空间、项目
+
+WorkBench 中存在空间和项目的概念。在使用 WorkBench 时首先需要创建空间（Space），在空间中创建项目，在项目中创建数据对象、规则文件等。
+
+##### 11.3.1.1. 创建空间
+
+第一步：登录 WorkBench 后进行系统首页，点击首页中的 Design 区域进入项目列表页面：
+
+![](images/375883108240170.png)
+
+> 如果是第一次登录还没有创建项目则无法看到项目
+
+第二步：点击左上角 Spaces 导航链接进入空间列表页面
+
+![](images/106713408232479.png)
+
+第三步：点击右上角【Add Space】按钮弹出创建添加空间窗口
+
+![](images/599793408250359.png)
+
+录入空间名称，点击【Save】按钮则完成空间的创建，如下图：
+
+![](images/529673508247963.png)
+
+##### 11.3.1.2. 创建项目
+
+在 WorkBench 中需要先创建空间，在空间中才能创建项目。基于上面创建的一个空间中创建项目。
+
+第一步：点击此空间，进入此空间
+
+![](images/259353708245465.png)
+
+> 可以看到当前空间中还没有项目
+
+第二步：点击【Add Project】按钮弹出添加项目窗口
+
+![](images/216373808226706.png)
+
+第三步：在添加项目窗口中录入项目名称（例如项目名称为pro1），点击【Add】按钮完成操作
+
+![](images/94803908249146.png)
+
+可以看到在完成项目创建后，系统直接跳转到了项目页面。要查看当前空间中的所有项目，可以点击左上角空间名称的链接：
+
+![](images/8864008244282.png)
+
+#### 11.3.2. 创建数据对象
+
+数据对象其实就是 JavaBean，一般都是在 drl 规则文件中使用进行规则匹配。
+
+第一步：在空间中点击 pro1 项目，进入此项目页面
+
+![](images/551354008237828.png)
+
+第二步：点击【Create New Asset】按钮选择“数据对象”
+
+![](images/349004108230962.png)
+
+第三步：在弹出的创建数据对象窗口中输入数据对象的名称，点击确定按钮完成操作
+
+![](images/108444208221492.png)
+
+操作完成后可以看到如下：
+
+![](images/27024308223996.png)
+
+第四步：点击“添加字段”按钮弹出新建字段窗口
+
+![](images/484134308232943.png)
+
+第五步：在新建字段窗口中录入字段Id（其实就是属性名），选择类型，点击创建按钮完成操作
+
+![](images/262864408225828.png)
+
+完成操作后可以看到刚才创建的字段：
+
+![](images/82134508226437.png)
+
+可以点击添加字段按钮继续创建其他字段，注意添加完字段后需要点击右上角保存按钮完成保存操作：
+
+![](images/185824608253392.png)
+
+点击源代码按钮可以查看刚才创建的 Person 对象源码：
+
+![](images/489874708235605.png)
+
+点击左上角 pro1 项目链接，可以看到当前 pro1 项目中已经创建的各种类型的对象：
+
+![](images/553894908224903.png)
+
+#### 11.3.3. 创建 DRL 规则文件
+
+第一步：在 pro1 项目页面点击右上角【Create New Asset】按钮，选择【DRL文件】，弹出创建DRL文件窗口
+
+![](images/533675008221154.png)
+
+第二步：在添加DRL文件窗口录入DRL文件名称，点击确定按钮完成操作
+
+![](images/364375108221293.png)
+
+第三步：上面点击确定按钮完成创建DRL文件后，页面会跳转到编辑DRL文件页面
+
+![](images/159025208233383.png)
+
+可以看到DRL规则文件页面分为两个部分：左侧为项目浏览视图、右侧为编辑区域，需要注意的是左侧默认展示的不是项目浏览视图，需要点击上面设置按钮，选择“资料库视图”和“显示为文件夹”，如下图所示：
+
+![](images/106915308238422.png)
+
+第四步：在编辑DRL文件页面右侧区域进行DRL文件的编写，点击右上角保存按钮完成保存操作，点击检验按钮进行规则文件语法检查
+
+![](images/550695308239717.png)
+
+点击左上角 pro1 项目回到项目页面，可以看到此项目下已经存在两个对象，即 person.drl 规则文件和 Person 类：
+
+![](images/299365408240719.png)
+
+#### 11.3.4. 创建测试场景
+
+前面已经创建了Person数据对象和person规则文件，现在需要测试一下规则文件中的规则，可以通过创建测试场景来进行测试。
+
+第一步：在项目页面点击【Create New Asset】按钮选择“测试场景”，弹出创建测试场景窗口
+
+![](images/344305508240896.png)
+
+第二步：在弹出的创建测试场景窗口中录入测试场景的名称，点击确定完成操作
+
+![](images/136785608226448.png)
+
+完成测试场景的创建后，页面会跳转到测试场景编辑页面，如下图：
+
+![](images/179445708242727.png)
+
+第三步：因为编写的规则文件中需要从工作内存中获取Person对象进行规则匹配，所以在测试场景中需要准备Person对象给工作内存，点击“GIVEN”按钮弹出新建数据录入窗口，选择Person类，输入框中输入事实名称（名称任意），如下图
+
+![](images/63105908235772.png)
+
+第四步：录入事实名称后点击后面的添加按钮，可以看到Person对象已经添加成功
+
+![](images/293725908232539.png)
+
+第五步：我们给工作内存提供的Person对象还需要设置age属性的值，点击“添加字段”按钮弹出窗口，选择age属性
+
+![](images/307090009222870.png)
+
+点击确定按钮后可以看到字段已经添加成功：
+
+![](images/58430109240913.png)
+
+第六步：点击age属性后面的编辑按钮，弹出字段值窗口
+
+![](images/391010109246668.png)
+
+第七步：在弹出的窗口中点击字面值按钮，重新回到测试场景页面，可以看到age后面出现输入框，可以为age属性设置值。设置值后点击保存按钮保存测试场景
+
+![](images/220380209247300.png)
+
+第八步：点击右上角“运行测试场景”按钮进行测试
+
+![](images/217610309238036.png)
+
+测试成功后可以查看 WorkBench 部署的 Tomcat 控制台：
+
+![](images/588030309230895.png)
+
+#### 11.3.5. 设置 KieBase 和 KieSession
+
+第一步：在pro1项目页面点击右上角【Settings】按钮进入设置页面
+
+![](images/562510409249704.png)
+
+第二步：在设置页面选择“知识库和会话”选项
+
+![](images/321330509244812.png)
+
+第三步：在弹出的知识库和会话页面点击“添加”按钮进行设置
+
+![](images/303480709252323.png)
+
+第四步：设置完成后点击右上角保存按钮完成设置操作，可以通过左侧浏览视图点击kmodule.xml，查看文件内容
+
+![](images/156430809251334.png)
+
+#### 11.3.6. 编译、构建、部署
+
+前面已经在 WorkBench 中创建了一个空间，并且在此空间中创建了一个项目pro1，在此项目中创建了数据文件、规则文件和测试场景，如下图：
+
+![](images/513571009238674.png)
+
+点击右上角“Compile”按钮可以对项目进行编译，点击“Bulid&Deploy”按钮进行构建和部署。部署成功后可以在本地maven仓库中看到当前项目已经被打成jar包：
+
+![](images/283401109225665.png)
+
+将上面的jar包进行解压，可以看到创建的数据对象Person和规则文件person以及 kmodule.xml 都已经打到 jar 包中了。
+
+#### 11.3.7. 在项目中使用部署的规则
+
+前面已经在 WorkBench 中创建了 pro1 项目，并且在 pro1 项目中创建了数据文件、规则文件等。最后将此项目打成 jar 包部署到了 maven 仓库中。本小节就需要在外部项目中使用自定义的规则。
+
+第一步：在IDEA中创建一个maven项目并在pom.xml文件中导入相关坐标
+
+```xml
+<dependency>
+    <groupId>org.drools</groupId>
+    <artifactId>drools-compiler</artifactId>
+    <version>7.10.0.Final</version>
+</dependency>
+<dependency>
+    <groupId>junit</groupId>
+    <artifactId>junit</artifactId>
+    <version>4.12</version>
+</dependency>
+```
+
+第二步：在项目中创建一个数据对象Person，需要和WorkBench中创建的Person包名、类名完全相同，属性也需要对应
+
+```java
+package com.moon.pro1;
+​
+public class Person implements java.io.Serializable {
+​
+    static final long serialVersionUID = 1L;
+​
+    private java.lang.String id;
+    private java.lang.String name;
+    private int age;
+​    // ...省略getter/setter
+}
+```
+
+第三步：编写单元测试，远程加载maven仓库中的jar包最终完成规则调用
+
+```java
+@Test
+public void test1() throws Exception{
+    // 通过此URL可以访问到maven仓库中的jar包
+    // URL地址构成：http://ip地址:Tomcat端口号/WorkBench工程名/maven2/坐标/版本号/xxx.jar
+    String url = "http://localhost:8080/kie-drools-wb/maven2/com/moon/pro1/1.0.0/pro1-1.0.0.jar";
+    
+    KieServices kieServices = KieServices.Factory.get();
+    
+    // 通过Resource资源对象加载jar包
+    UrlResource resource = (UrlResource) kieServices.getResources().newUrlResource(url);
+    // 通过Workbench提供的服务来访问maven仓库中的jar包资源，需要先进行Workbench的认证
+    resource.setUsername("kie");
+    resource.setPassword("kie");
+    resource.setBasicAuthentication("enabled");
+    
+    // 将资源转换为输入流，通过此输入流可以读取jar包数据
+    InputStream inputStream = resource.getInputStream();
+    
+    // 创建仓库对象，仓库对象中保存Drools的规则信息
+    KieRepository repository = kieServices.getRepository();
+    
+    // 通过输入流读取maven仓库中的jar包数据，包装成KieModule模块添加到仓库中
+    KieModule kieModule = repository.addKieModule(kieServices.getResources().newInputStreamResource(inputStream));
+    
+    // 基于KieModule模块创建容器对象，从容器中可以获取session会话
+    KieContainer kieContainer = kieServices.newKieContainer(kieModule.getReleaseId());
+    KieSession session = kieContainer.newKieSession();
+​
+    Person person = new Person();
+    person.setAge(10);
+    session.insert(person);
+​
+    session.fireAllRules();
+    session.dispose();
+}
+```
+
+执行单元测试可以发现控制台已经输出了相关内容。通过 WorkBench 修改规则输出内容并发布，再次执行单元测试可以发现控制台输出的内容也发生了变化。
+
+### 11.4. 小结
+
+通过上面的案例可以发现，在 IEDA 中开发的项目中并没有编写规则文件，规则文件是通过 WorkBench 开发并安装部署到 maven 仓库中，开发的项目只需要远程加载 maven 仓库中的 jar 包就可以完成规则的调用。这种开发方式的好处是应用可以和业务规则完全分离，同时通过 WorkBench 修改规则后应用不需要任何修改就可以加载到最新的规则从而实现规则的动态变更。
