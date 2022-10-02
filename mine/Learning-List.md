@@ -1,4 +1,105 @@
-> **编程课程学习清单**
+# 🔖 学习计划与遗留内容
+
+## 1. 2020.02.18-Drools业务规则管理系统（BRMS）
+
+待解决问题：
+
+1. 若使用最新的 7.73.0.Final 版的 Drools，按教程的使用默认的配置方式无法进行规则校验？
+
+## 2. 2021.10.07-MySQL数据库从入门到精通
+
+- [x] 已完成基础篇
+- [x] 已完成进阶篇
+    - 待整理事务实现原理相关笔记
+    - 待整理MVCC实现原理相关笔记
+- [ ] 待开始 运维篇-01
+
+## 3. 图灵第5期课程-01-源码框架专题
+
+- [x] 01-Spring底层核心原理解析
+- [x] 02-手写模拟Spring底层原理
+- [x] 03-Spring之底层架构核心概念解析
+- [ ] 04-Spring之Bean生命周期源码解析上 2021-09-08 周三  20:50
+- [ ] 05-Spring之Bean生命周期源码解析下 2021-09-10 周五
+- [ ] 06-Spring之依赖注入源码解析（上）2021-09-12 周日 
+- [ ] 07-Spring之依赖注入源码解析（下）2021-09-15 周三
+- [ ] 08-Spring之循环依赖底层源码解析 2021-09-17 周五
+- [ ] 09-Spring之推断构造方法源码解析 2021-09-22 周三
+
+## 4. 2022.02.17-Spring高级四十九讲
+
+> Sping 官方文档：https://docs.spring.io/spring-framework/docs/current/reference/html/core.html
+
+- [ ] 013 待补充 DestructionAwareBeanPostProcessor 与 InstantiationAwareBeanPostProcessor 两个接口的使用示例
+- [ ] 034 待补充与测试 基于 agent 类加载实现的AOP案例
+- [ ] 050~051 研究 findEligibleAdvisors 与 wrapIfNecessary 解析 Advisor
+- [ ] 054~062 研究通知的调用流程，待整理 Spring MVC 运行流程
+- [ ] 123~138 回头再加深了解 Spring Boot 执行流程内容
+- [ ] 159~166 回头再加深了解 Spring 依赖注入底层实现内容  待补充 autowired 示例
+
+## 5. 2019.09.04-万信金融企业级开发实战
+
+- [ ] 项目实战部分-用户身份识别功能待完成，课程位置：day17-20 身份验证
+- [ ] 排查交易中心服务中，用于控制幂等性存入redis的方法报错问题，《07-用户发标》章节
+- [ ] 实战完成后，使用现在数据覆盖项目初始化的sql脚本
+> ！！！推送代码前记得将wanxinp2p-file-service中的application.yml文件删除七牛云配置；最终项目上传apollo配置数据库删除百度智能云配置（或者不上传到代码仓库，自己私人备份即可）
+
+## 6. 学习mybatis待整理内容
+
+- [ ] day01 待补充 动态sql的示例
+- [ ] day07 梳理与实现基础分页插件的示例与原理
+- [ ] day09 分页插件与MyBatis-plus插件示例与原理
+- [ ] 课外：学习与整理 Dynamic SQL 示例
+
+## 7. 2019.12.12-并发编程 concurrent programming
+
+- [x] Day01
+- [x] Day02
+- [x] Day03
+- [ ] 进行中 Day04-14
+- [ ] Day05
+- [ ] Day06
+- [ ] Day07
+
+> 学习中断间隔很长，估计重新学习时需要回顾前面的内容
+
+## 8. 享学3期-Zookeeper&Dubbo
+
+ZooKeeper
+
+- [ ] Day03(已完成第1节)、Day04 zookeeper应用场景示例
+
+dubbo 待解决问题
+
+- [ ] 1.待测试，多版本下，多次请求会请求到别的版本的服务接口
+- [ ] 2.异步执行与异步调用的示例存在问题，待日后再整理
+
+## 9. 享学3期-Redis
+
+Day01
+
+- [ ] 1.整理Redis命令（String类型/Hash类型/List类型）
+- [ ] 2.记录课程上说的，使用hgetall命令获取某个hash类型中的所有field，因为redis读取与写入是单线程操作，如果该hash类型的field比较多的时候，会导致线程阻塞
+
+Day02
+
+- [ ] 1.整理Redis命令（Set类型/ZSet类型）
+- [ ] 2.整理Redis示例，实现一个简易版消息中件间
+- [ ] 3.Redis 高级数据结构
+
+## 10. 享学3期-MySQL待整理内容
+
+- [ ] Day02 mysql系统库的作用总结
+- [ ] Day03 索引 B+tree 笔记
+- [ ] Day08、Day09、Day10	MySQL 的查询成本计算
+- [ ] Day11
+- [ ] MySQL查询重写规则(子查询在 MySQL 的执行)
+- [ ] InnoDB 引擎底层解析
+- [ ] Day12、Day13	InnoDB 引擎底层解析(InnoDB 记录存储结构和索引页结构)
+
+## 11. 2021.08.30-SpringBoot2全套课程
+
+- [ ] 待排查 Spring Boot 整合 ehcache 缓存技术示例工程启动报错问题
 
 # HM-Java后端课程学习清单
 
@@ -154,7 +255,7 @@
 | ✅  | 2019.11.04-企业年会之红包雨场景实战           | [博学谷](https://xuexi.boxuegu.com/video.html?courseId=2146)                                              |                                         |
 |     | 2019.11.28-闪聚支付项目                     | [博学谷](https://xuexi.boxuegu.com/video.html?courseId=2249)                                              |                                         |
 |     | 2020.02.10-基于Java日志平台的访问链路追踪实战 | [博学谷](https://xuexi.boxuegu.com/video.html?courseId=2252)                                              | 部分视频有问题                            |
-|     | 2020.02.18-Drools业务规则管理系统（BRMS）    | [博学谷](https://xuexi.boxuegu.com/video.html?courseId=2250)                                              |                                         |
+| ✅  | 2020.02.18-Drools业务规则管理系统（BRMS）    | [博学谷](https://xuexi.boxuegu.com/video.html?courseId=2250)                                              |                                         |
 |     | 2020.03.09-黑马电商3.0                      |                                                                                                           |                                         |
 | ✅  | 2020.03.30-品达通用权限系统                  | [官网](http://yun.itheima.com/course/905.html) &#124; [B站](https://www.bilibili.com/video/BV1tw411f79E)  |                                         |
 |     | 2020.12.21-集信达短信平台实战                | [官网](http://yun.itheima.com/course/906.html) &#124; [B站](https://www.bilibili.com/video/BV1Jb4y1d7GY)  |                                         |
@@ -162,7 +263,6 @@
 |     | 2021.08.27-Java百度地图全套教程              | [官网](http://yun.itheima.com/course/1006.html) &#124; [B站](https://www.bilibili.com/video/BV1ue4y1R712) |                                         |
 
 ## 10. 综合专题
-
 
 |     |              课程名               |                                  在线链接                                  |     备注      |
 | :-: | -------------------------------- | ------------------------------------------------------------------------- | ------------- |
@@ -250,9 +350,10 @@
 
 ## 1. 项目实战
 
-|     |            课程名            | 在线链接 | 备注 |
-| :-: | ---------------------------- | -------- | ---- |
-|     | 2019.09.26-大型电商--谷粒商城 |          |      |
+|     |               课程名                | 在线链接 | 备注 |
+| :-: | ---------------------------------- | -------- | ---- |
+|     | 2019.09.26-大型电商--谷粒商城        |          |      |
+|     | 2021.12.01-Java在线支付实战-微信支付 |          |      |
 
 # 零散学习内容
 

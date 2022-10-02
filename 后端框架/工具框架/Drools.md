@@ -2584,7 +2584,7 @@ public class DroolsApplication {
 
 ### 8.3. 实现步骤
 
-> 本案例基于 pring Boot 整合 Drools 的方式来实现。
+> 本案例基于 spring Boot 整合 Drools 的方式来实现。
 
 - 第一步：创建 maven 工程 drools-demo-calculation 并配置 pom.xml 文件
 
@@ -2691,7 +2691,132 @@ public class Calculation {
 - 第五步：在 resources/rules 目录中，创建规则文件 calculation.drl
 
 ```drl
+// 当前规则文件用于计算个人所得税
+package calculation
+import com.moon.drools.entity.Calculation
 
+/**
+    当前规则文件中的规则主要分为三类
+    1、计算应纳税所得额有1个规则
+    2、设置税率、速算扣除数有7个规则
+    3、计算税后工资有1个规则
+**/
+// 计算应纳税所得额
+rule "计算应纳税所得额"
+    salience 100
+    date-effective "2011-09-01"
+    no-loop true
+    when
+        $cal:Calculation(wage > 0)
+    then
+        double wagemore = $cal.getWage() - 3500;
+        $cal.setWagemore(wagemore);
+        update($cal);
+end
+
+// 设置税率、速算扣除数
+rule "设置税率，应纳税所得额<=1500"
+    salience 90
+    no-loop true
+    activation-group "SETCess_Group"
+    when
+        $cal:Calculation(wagemore <= 1500)
+    then
+        $cal.setCess(0.03); // 税率
+        $cal.setPreminus(0); // 速算扣除数
+        update($cal);
+end
+
+rule "设置税率，应纳税所得额在1500至4500之间"
+    salience 90
+    no-loop true
+    activation-group "SETCess_Group"
+    when
+        $cal:Calculation(wagemore <= 4500 && wagemore > 1500)
+    then
+        $cal.setCess(0.1); // 税率
+        $cal.setPreminus(105); // 速算扣除数
+        update($cal);
+end
+
+
+rule "个人所得税：设置税率-->>应纳税所得额在4500志9000之间"
+    salience 90
+    no-loop true
+    activation-group "SETCess_Group"
+    when
+        $cal : Calculation(wagemore > 4500 && wagemore <= 9000)
+    then
+        $cal.setCess(0.2);
+        $cal.setPreminus(555);
+        update($cal);
+end
+
+rule "个人所得税：设置税率-->>应纳税所得额在9000志35000之间"
+    salience 90
+    no-loop true
+    activation-group "SETCess_Group"
+    when
+        $cal : Calculation(wagemore > 9000 && wagemore <= 35000)
+    then
+        $cal.setCess(0.25);
+        $cal.setPreminus(1005);
+        update($cal);
+end
+
+rule "个人所得税：设置税率-->>应纳税所得额在35000至55000之间"
+    salience 90
+    no-loop true
+    activation-group "SETCess_Group"
+    when
+        $cal : Calculation(wagemore > 35000 && wagemore <= 55000)
+    then
+        $cal.setCess(0.3);
+        $cal.setPreminus(2755);
+        update($cal);
+end
+
+rule "个人所得税：设置税率-->>应纳税所得额在55000至80000之间"
+    salience 90
+    no-loop true
+    activation-group "SETCess_Group"
+    when
+        $cal : Calculation(wagemore > 55000 && wagemore <= 80000)
+    then
+        $cal.setCess(0.35);
+        $cal.setPreminus(5505);
+        update($cal);
+end
+
+rule "个人所得税：设置税率-->>应纳税所得额在80000以上"
+    salience 90
+    no-loop true
+    activation-group "SETCess_Group"
+    when
+        $cal : Calculation(wagemore > 80000)
+    then
+        $cal.setCess(0.45);
+        $cal.setPreminus(13505);
+        update($cal);
+end
+
+rule "个人所得税：计算税后工资"
+    salience 80
+    when
+        $cal : Calculation(wage > 0 && wagemore > 0 && cess > 0)
+    then
+        // 扣税额
+        double wageminus = $cal.getWagemore() * $cal.getCess() - $cal.getPreminus();
+        double actualwage = $cal.getWage() - wageminus;
+        $cal.setWageminus(wageminus);
+        $cal.setActualwage(actualwage);
+        System.out.println("-----税前工资："+$cal.getWage());
+        System.out.println("-----应纳税所得额："+$cal.getWagemore());
+        System.out.println("-----税率：" + $cal.getCess());
+        System.out.println("-----速算扣除数：" + $cal.getPreminus());
+        System.out.println("-----扣税额：" + $cal.getWageminus());
+        System.out.println("-----税后工资：" + $cal.getActualwage());
+end
 ```
 
 - 第六步：创建规则处理业务类 RuleService
@@ -2734,19 +2859,213 @@ public class RuleController {
 }
 ```
 
-- 第七步：创建启动类
+- 第八步：创建启动类
+- 第九步：导入测试使用的静态资源文件到 resources/static 目录下
+- 第十步：启动服务，访问请求 `http://127.0.0.1:8080/calculation.html`，输入不同类型数据进行测试
+
+## 9. Drools 实战2 - 信用卡申请
+
+本案例需要通过 Drools 规则引擎来根据规则进行申请人的合法性检查，检查通过后再根据规则确定信用卡额度，最终页面效果如下：
+
+![](images/178963908221043.png)
+
+### 9.1. 计算规则
+
+合法性检查规则如下：
+
+| 规则编号 |           名称           |                                         描述                                          |
+| :------: | ------------------------ | ------------------------------------------------------------------------------------ |
+|    1     | 检查学历与薪水1           | 如果申请人既没房也没车，同时学历为大专以下，并且月薪少于5000，那么不通过                     |
+|    2     | 检查学历与薪水2           | 如果申请人既没房也没车，同时学历为大专或本科，并且月薪少于3000，那么不通过                   |
+|    3     | 检查学历与薪水3           | 如果申请人既没房也没车，同时学历为本科以上，并且月薪少于2000，同时之前没有信用卡的，那么不通过 |
+|    4     | 检查申请人已有的信用卡数量 | 如果申请人现有的信用卡数量大于10，那么不通过                                              |
+
+信用卡额度确定规则：
+
+| 规则编号 | 名称  |                                       描述                                       |
+| :------: | ----- | ------------------------------------------------------------------------------- |
+|    1     | 规则1 | 如果申请人有房有车，或者月收入在20000以上，那么发放的信用卡额度为15000                 |
+|    2     | 规则2 | 如果申请人没房没车，但月收入在10000~20000之间，那么发放的信用卡额度为6000              |
+|    3     | 规则3 | 如果申请人没房没车，月收入在10000以下，那么发放的信用卡额度为3000                      |
+|    4     | 规则4 | 如果申请人有房没车或者没房但有车，月收入在10000以下，那么发放的信用卡额度为5000         |
+|    5     | 规则5 | 如果申请人有房没车或者是没房但有车，月收入在10000~20000之间，那么发放的信用卡额度为8000 |
+
+### 9.2. 实现步骤
+
+> 本案例基于 spring Boot 整合 Drools 的方式来实现。
+
+- 第一步：创建 maven 工程 drools-demo-creditcard-apply 并配置 pom.xml 文件（复用“个人所得税计算器”的配置）
+- 第二步：创建项目配置文件 application.yml
+
+```yml
+server:
+  port: 8080
+spring:
+  application:
+    name: drools-demo-calculation
+```
+
+- 第三步：编写规则引擎配置类 DroolsConfig（复用 Spring Boot 整合 Drools 示例的配置类）
+- 第四步：编写实体类 CreditCardApplyInfo
 
 ```java
-@SpringBootApplication
-public class DroolsApplication {
-    public static void main(String[] args) {
-        SpringApplication.run(DroolsApplication.class, args);
+public class CreditCardApplyInfo {
+
+    public static final String EDUCATION_1 = "专科以下";
+    public static final String EDUCATION_2 = "专科";
+    public static final String EDUCATION_3 = "本科";
+    public static final String EDUCATION_4 = "本科以上";
+
+    private String name;
+    private String sex;
+    private int age;
+    private String education;
+    private String telephone;
+    private double monthlyIncome = 0; // 月收入
+    private String address;
+
+    private boolean hasHouse = false; // 是否有房
+    private boolean hasCar = false; // 是否有车
+    private int hasCreditCardCount = 0; // 现持有信用卡数量
+
+    private boolean checkResult = true; // 审核是否通过
+    private double quota = 0; // 额度
+    
+    public String toString() {
+        if (checkResult) {
+            return "审核通过，信用卡额度为：" + quota;
+        } else {
+            return "审核不通过";
+        }
     }
+
+    // ...省略setter/getter
 }
 ```
 
-- 启动服务，访问请求 `http://localhost:8080/hello/rule`，查看控制台日志是否输出规则文件内容
+- 第五步：在 resources/rules 目录中，创建规则文件 creditCardApply.drl
 
+```drl
+// 当前规则文件负责处理两类规则：用户信息合法性检查、确定信用卡额度规则
+package creditCardApply
+import com.moon.drools.entity.CreditCardApplyInfo
+
+// 用户信息合法性检查---共4个规则
+rule "如果申请人既没房也没车，同时学历为大专以下，并且月薪少于5000，那么不通过"
+    salience 100
+    no-loop true
+    when
+        $c:CreditCardApplyInfo(hasHouse == false && hasCar == false && education == CreditCardApplyInfo.EDUCATION_1 && monthlyIncome < 5000)
+    then
+        $c.setCheckResult(false);//审核不通过
+        drools.halt();
+end
+
+rule "如果申请人既没房也没车，同时学历为大专或本科，并且月薪少于3000，那么不通过"
+    salience 100
+    no-loop true
+    when
+        $c:CreditCardApplyInfo(hasCar == false &&
+                                    hasHouse == false &&
+                                    (education == CreditCardApplyInfo.EDUCATION_2  ||
+                                    education == CreditCardApplyInfo.EDUCATION_3) &&
+                                    monthlyIncome < 3000)
+    then
+        $c.setCheckResult(false); // 审核不通过
+        drools.halt();
+end
+
+rule "如果申请人既没房也没车，同时学历为本科以上，并且月薪少于2000，同时之前没有信用卡的，那么不通过"
+    salience 100
+    no-loop true
+    when
+        $c:CreditCardApplyInfo(hasCar == false &&
+                                        hasHouse == false &&
+                                        education == CreditCardApplyInfo.EDUCATION_4 &&
+                                        monthlyIncome < 2000 &&
+                                        hasCreditCardCount == 0)
+    then
+        $c.setCheckResult(false); // 审核不通过
+        drools.halt();
+end
+
+rule "如果申请人现有的信用卡数量大于10，那么不通过"
+    salience 100
+    no-loop true
+    when
+         $c:CreditCardApplyInfo(hasCreditCardCount > 10)
+    then
+        $c.setCheckResult(false); // 审核不通过
+        drools.halt();
+end
+
+// 确定信用卡额度规则---共5个规则
+rule "如果申请人有房有车，或者月收入在20000以上，那么发放的信用卡额度为15000"
+    salience 10
+    no-loop true
+    activation-group "quota_group"
+    when
+        $c:CreditCardApplyInfo(checkResult == true && (hasCar == true && hasHouse == true) || (monthlyIncome > 20000))
+    then
+        $c.setQuota(15000);
+end
+
+rule "如果申请人没房没车，但月收入在10000~20000之间，那么发放的信用卡额度为6000"
+    salience 10
+    no-loop true
+    activation-group "quota_group"
+    when
+        $c:CreditCardApplyInfo(checkResult == true &&
+                                        hasHouse == false &&
+                                        hasCar == false &&
+                                        monthlyIncome >= 10000 &&
+                                        monthlyIncome <= 20000)
+    then
+        $c.setQuota(6000);
+end
+
+rule "如果申请人没房没车，月收入在10000以下，那么发放的信用卡额度为3000"
+    salience 10
+    no-loop true
+    activation-group "quota_group"
+    when
+        $c:CreditCardApplyInfo(checkResult == true &&
+                                                hasHouse == false &&
+                                                hasCar == false &&
+                                                monthlyIncome < 10000)
+    then
+        $c.setQuota(3000);
+end
+
+rule "如果申请人有房没车或者没房但有车，月收入在10000以下，那么发放的信用卡额度为5000"
+    salience 10
+    no-loop true
+    activation-group "quota_group"
+    when
+        $c:CreditCardApplyInfo(checkResult == true &&
+                                ((hasHouse == true && hasCar == false) ||
+                                (hasHouse == false && hasCar == true)) &&
+                                monthlyIncome < 10000)
+    then
+        $c.setQuota(5000);
+end
+
+rule "如果申请人有房没车或者是没房但有车，月收入在10000~20000之间，那么发放的信用卡额度为8000"
+    salience 10
+    no-loop true
+    activation-group "quota_group"
+    when
+        $c:CreditCardApplyInfo(checkResult == true &&
+                                        ((hasHouse == true && hasCar == false) ||
+                                        (hasHouse == false && hasCar == true)) &&
+                                        monthlyIncome >= 10000 &&
+                                        monthlyIncome <= 20000)
+    then
+        $c.setQuota(8000);
+end
+```
+
+- 第六步：创建规则处理业务类 RuleService
 
 ```java
 @Service
@@ -2755,31 +3074,407 @@ public class RuleService {
     @Autowired
     private KieBase kieBase;
 
-    public Calculation calculate(Calculation calculation) {
-        KieSession kieSession = kieBase.newKieSession();
-        kieSession.insert(calculation);
-        kieSession.fireAllRules();
-        kieSession.dispose();
-        return calculation;
+    // 调用Drools规则引擎实现信用卡申请
+    public CreditCardApplyInfo creditCardApply(CreditCardApplyInfo creditCardApplyInfo) {
+        KieSession session = kieBase.newKieSession();
+        session.insert(creditCardApplyInfo);
+        session.fireAllRules();
+        session.dispose();
+        return creditCardApplyInfo;
     }
 }
 ```
 
+- 第七步：创建请求控制类 RuleController
 
+```java
+@RestController
+@RequestMapping("/rule")
+public class RuleController {
 
+    @Autowired
+    private RuleService ruleService;
 
-## 9. Drools 实战2 - 信用卡申请
+    @RequestMapping("/creditCardApply")
+    public CreditCardApplyInfo rule(@RequestBody CreditCardApplyInfo creditCardApplyInfo) {
+        creditCardApplyInfo = ruleService.creditCardApply(creditCardApplyInfo);
+        return creditCardApplyInfo;
+    }
+}
+```
 
-
-
-
-
-
-
+- 第八步：创建启动类
+- 第九步：导入测试使用的静态资源文件到 resources/static 目录下
+- 第十步：启动服务，访问请求 `http://127.0.0.1:8080/creditCardApply.html`，输入不同类型数据进行测试
 
 ## 10. Drools 实战3 - 保险产品准入规则
 
+### 10.1. 决策表
 
+前面示例编写的规则文件都是 drl 形式的文件，Drools 除了支持 drl 形式的文件外还支持 xls 格式的文件（即Excel文件）。这种 xls 格式的文件通常称为决策表（decision table）。
+
+决策表（decision table）是一个“精确而紧凑的”表示条件逻辑的方式，非常适合商业级别的规则。决策表与现有的 drl 文件可以无缝替换。Drools 提供了相应的 API 可以将 xls 文件编译为 drl 格式的字符串。一个决策表的例子如下：
+
+![](images/356243316221043.png)
+
+#### 10.1.1. 决策表语法
+
+|    关键字     |                                                          说明                                                          |                            是否必须                             |
+| :----------: | --------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------- |
+|   RuleSet    | 相当于drl文件中的package                                                                                                | 必须，只能有一个。如果没有设置RuleSet对应的值则使用默认值rule_table |
+|  Sequential  | 取值为Boolean类型。true表示规则按照表格自上到下的顺序执行，false表示乱序                                                     | 可选                                                           |
+|    Import    | 相当于drl文件中的import，如果引入多个类则类之间用逗号分隔                                                                   | 可选                                                           |
+|  Variables   | 相当于drl文件中的global，用于定义全局变量，如果有多个全局变量则中间用逗号分隔                                                 | 可选                                                           |
+|  RuleTable   | 它指示了后面将会有一批rule，RuleTable的名称将会作为以后生成rule的前缀                                                       | 必须                                                           |
+|  CONDITION   | 规则条件关键字，相当于drl文件中的when。下面两行则表示 LHS 部分，第三行则为注释行，不计为规则部分，从第四行开始，每一行表示一条规则 | 每个规则表至少有一个                                             |
+|    ACTION    | 规则结果关键字，相当于drl文件中的then                                                                                     | 每个规则表至少有一个                                             |
+|   NO-LOOP    | 相当于drl文件中的no-loop                                                                                                | 可选                                                           |
+| AGENDA-GROUP | 相当于drl文件中的agenda-group                                                                                           | 可选                                                           |
+
+在决策表中还经常使用到占位符，语法为`$`后面加数字，用于替换每条规则中设置的具体值。
+
+#### 10.1.2. 决策表转换为 drl 文件示例
+
+上面的决策表例子转换为drl格式的规则文件内容如下：
+
+```drl
+package rules;
+​
+import com.moon.drools.entity.PersonInfoEntity;
+import java.util.List;
+global java.util.List listRules;
+​
+rule "personCheck_10"
+    salience 65535
+    agenda-group "sign"
+    when
+        $person : PersonInfoEntity(sex != "男")
+    then
+        listRules.add("性别不对");
+end
+​
+rule "personCheck_11"
+    salience 65534
+    agenda-group "sign"
+    when
+        $person : PersonInfoEntity(age < 22 || age > 25)
+    then
+        listRules.add("年龄不合适");
+end
+​
+rule "personCheck_12"
+    salience 65533
+    agenda-group "sign"
+    when
+        $person : PersonInfoEntity(salary < 10000)
+    then
+        listRules.add("工资太低了");
+end
+```
+
+#### 10.1.3. 决策表的依赖与 API
+
+要进行决策表相关操作，需要导入如下maven坐标：
+
+```xml
+<dependency>
+    <groupId>org.drools</groupId>
+    <artifactId>drools-decisiontables</artifactId>
+    <version>7.10.0.Final</version>
+</dependency>
+```
+
+通过下图可以发现，由于 maven 的依赖传递特性在导入 drools-decisiontables 坐标后，drools-core 和 drools-compiler 等坐标也被传递了过来
+
+![](images/335793716239469.png)
+
+Drools 提供的将 xls 文件编译为 drl 格式字符串的 API 如下：
+
+```java
+String realPath = "C:\\testRule.xls"; // 指定决策表xls文件的磁盘路径
+File file = new File(realPath);
+InputStream is = new FileInputStream(file);
+SpreadsheetCompiler compiler = new SpreadsheetCompiler();
+String drl = compiler.compile(is, InputType.XLS);
+```
+
+Drools 还提供了基于 drl 格式字符串创建 KieSession 的 API：
+
+```java
+KieHelper kieHelper = new KieHelper();
+kieHelper.addContent(drl, ResourceType.DRL);
+KieSession session = kieHelper.build().newKieSession();
+```
+
+#### 10.1.4. 基于决策表的入门案例
+
+- 第一步：创建 maven 工程 drools-decisiontable-demo 并配置 pom.xml 文件
+
+```xml
+<dependency>
+    <groupId>org.drools</groupId>
+    <artifactId>drools-decisiontables</artifactId>
+    <version>7.10.0.Final</version>
+</dependency>
+<dependency>
+    <groupId>junit</groupId>
+    <artifactId>junit</artifactId>
+    <version>4.12</version>
+</dependency>
+```
+
+- 第二步：创建实体类 PersonInfoEntity
+
+```java
+public class PersonInfoEntity {
+    private String sex;
+    private int age;
+    private double salary;
+    ​// ...省略 setter/getter
+}
+```
+
+- 第三步：创建xls规则文件（可以直接使用资料中提供的 testRule.xls 文件）
+- 第四步：创建单元测试
+
+```java
+@Test
+public void test1() throws Exception{
+    String realPath = "d:\\testRule.xls"; // 指定决策表xls文件的磁盘路径
+    File file = new File(realPath);
+    InputStream is = new FileInputStream(file);
+    SpreadsheetCompiler compiler = new SpreadsheetCompiler();
+    String drl = compiler.compile(is, InputType.XLS);
+​
+    System.out.println(drl);
+    KieHelper kieHelper = new KieHelper();
+    kieHelper.addContent(drl, ResourceType.DRL);
+    KieSession session = kieHelper.build().newKieSession();
+​
+    PersonInfoEntity personInfoEntity = new PersonInfoEntity();
+    personInfoEntity.setSex("男");
+    personInfoEntity.setAge(35);
+    personInfoEntity.setSalary(1000);
+​
+    List<String> list = new ArrayList<String>();
+    session.setGlobal("listRules",list);
+​
+    session.insert(personInfoEntity);
+    
+    session.getAgenda().getAgendaGroup("sign").setFocus();
+    
+    session.fireAllRules();
+​
+    for (String s : list) {
+        System.out.println(s);
+    }
+    session.dispose();
+}
+```
+
+### 10.2. 案例规则介绍
+
+各保险公司针对人身、财产推出了不同的保险产品，作为商业保险公司，筛选出符合公司利益最大化的客户是非常重要的，即各保险产品的准入人群是不同的，也就是说保险公司会针对不同的人群特征，制定不同的产品缴费和赔付规则。
+
+案例是某保险产品准入规则的简化版，当不满足以下规则时，系统模块需要返回准入失败标识和失败原因
+
+- 规则1：保险公司是：PICC
+- 规则2：销售区域是：北京、天津
+- 规则3：投保人年龄：0 ~ 17岁
+- 规则4：保险期间是：20年、25年、30年
+- 规则5：缴费方式是：趸交（一次性交清）或年交
+- 规则6：保险期与交费期规则一：保险期间为20年期交费期间最长10年交且不能选择[趸交]
+- 规则7：保险期与交费期规则二：保险期间为25年期交费期间最长15年交且不能选择[趸交]
+- 规则8：保险期与交费期规则三：保险期间为30年期交费期间最长20年交且不能选择[趸交]
+- 规则9：被保人要求：（投保年龄+保险期间）不得大于40周岁
+- 规则10：保险金额规则：投保时约定，最低为5万元，超过部分必须为1000元的整数倍
+- 规则11：出单基本保额限额规则：线上出单基本保额限额62.5万元，超62.5万元需配合契调转线下出单
+
+在本案例中规则文件是一个 Excel 文件，业务人员可以直接更改这个文件中指标的值，系统不需要做任何变更。
+
+### 10.3. 实现步骤
+
+> 本案例基于 spring Boot 整合 Drools 的方式来实现。
+
+- 第一步：创建 maven 工程 drools-demo-insurance-check 并配置 pom.xml 文件（复用“个人所得税计算器”的配置）
+    > Tips: kie-spring 依赖已包含 drools-decisiontables
+- 第二步：创建项目配置文件 application.yml
+
+```yml
+server:
+  port: 8080
+spring:
+  application:
+    name: drools-demo-insurance-check
+```
+
+- 第三步：编写实体类 CreditCardApplyInfo
+
+```java
+public class InsuranceInfo {
+    private String param1; // 保险公司
+    private String param2; // 方案代码
+    private String param3; // 渠道号
+    private String param4; // 销售区域
+    private String param5; // 投保年龄
+    private String param6; // 保险期间
+    private String param7; // 缴费期间
+    private String param8; // 缴费方式
+    private String param9; // 保障类型
+    private String param10; // 等待期
+    private String param11; // 犹豫期
+    private String param12; // 职业类型
+    private String param13; // 保额限制
+    private String param14; // 免赔额
+    private String param15; // 主险保额
+    private String param16; // 主险保费
+    private String param17; // 附加险保额
+    private String param18; // 附加险保费
+    private String param19; // 与投保人关系
+    private String param20; // 与被保人关系
+    private String param21; // 性别
+    private String param22; // 证件
+    private String param23; // 保费
+    private String param24; // 保额
+    // ...省略setter/getter
+}
+```
+
+- 第四步：在 resources/decisiontables 目录中，创建决策表文件 insuranceInfoCheck.xls 文件。（具体规则内容详见原文件）
+
+![、](images/583425616227336.png)
+
+- 第五步：封装工具类KieSessionUtils
+
+```java
+package com.moon.drools.utils;
+
+import org.drools.decisiontable.InputType;
+import org.drools.decisiontable.SpreadsheetCompiler;
+import org.kie.api.builder.Message;
+import org.kie.api.builder.Results;
+import org.kie.api.io.ResourceType;
+import org.kie.api.runtime.KieSession;
+import org.kie.internal.utils.KieHelper;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.InputStream;
+import java.util.List;
+
+/**
+ * Drools 决策表解析工具类
+ */
+public class KieSessionUtils {
+
+    private KieSessionUtils() {
+    }
+
+    // 把xls文件解析为String
+    public static String getDRL(String realPath) throws FileNotFoundException {
+        File file = new File(realPath); // 例如：C:\\abc.xls
+        InputStream is = new FileInputStream(file);
+        SpreadsheetCompiler compiler = new SpreadsheetCompiler();
+        String drl = compiler.compile(is, InputType.XLS);
+        System.out.println(drl);
+        return drl;
+    }
+
+    // drl为含有内容的字符串
+    public static KieSession createKieSessionFromDRL(String drl) throws Exception {
+        KieHelper kieHelper = new KieHelper();
+        kieHelper.addContent(drl, ResourceType.DRL);
+        Results results = kieHelper.verify();
+        if (results.hasMessages(Message.Level.WARNING, Message.Level.ERROR)) {
+            List<Message> messages = results.getMessages(Message.Level.WARNING, Message.Level.ERROR);
+            for (Message message : messages) {
+                System.out.println("Error: " + message.getText());
+            }
+            // throw new IllegalStateException("Compilation errors were found. Check the logs.");
+        }
+        return kieHelper.build().newKieSession();
+    }
+
+    // realPath为Excel文件绝对路径
+    public static KieSession getKieSessionFromXLS(String realPath) throws Exception {
+        return createKieSessionFromDRL(getDRL(realPath));
+    }
+}
+```
+
+- 第六步：创建规则处理业务类 RuleService
+
+```java
+@Service
+public class RuleService {
+
+    public List<String> insuranceInfoCheck(InsuranceInfo insuranceInfo) throws Exception {
+        // 使用工具类读取决策表
+        KieSession session = KieSessionUtils.getKieSessionFromXLS("D:\\insuranceInfoCheck.xls");
+        session.getAgenda().getAgendaGroup("sign").setFocus();
+
+        session.insert(insuranceInfo);
+
+        List<String> listRules = new ArrayList<>();
+        session.setGlobal("listRules", listRules);
+
+        session.fireAllRules();
+        session.dispose();
+
+        return listRules;
+    }
+}
+
+```
+
+- 第七步：创建请求控制类 RuleController
+
+```java
+@RestController
+@RequestMapping("/rule")
+public class RuleController {
+
+    @Autowired
+    private RuleService ruleService;
+
+    @RequestMapping("/insuranceInfoCheck")
+    public Map<String, Object> insuranceInfoCheck() {
+        Map<String, Object> map = new HashMap<>();
+
+        //模拟数据，实际应为页面传递过来
+        InsuranceInfo insuranceInfo = new InsuranceInfo();
+        insuranceInfo.setParam1("picc");
+        insuranceInfo.setParam4("上海");
+        insuranceInfo.setParam5("101");
+        insuranceInfo.setParam6("12");
+        insuranceInfo.setParam7("222");
+        insuranceInfo.setParam8("1");
+        insuranceInfo.setParam13("3");
+
+        try {
+            List<String> list = ruleService.insuranceInfoCheck(insuranceInfo);
+            if (list != null && list.size() > 0) {
+                map.put("checkResult", false);
+                map.put("msg", "准入失败");
+                map.put("detail", list);
+            } else {
+                map.put("checkResult", true);
+                map.put("msg", "准入成功");
+            }
+            return map;
+        } catch (Exception e) {
+            e.printStackTrace();
+            map.put("checkResult", false);
+            map.put("msg", "未知错误");
+            return map;
+        }
+    }
+}
+```
+
+- 第八步：创建启动类
+- 第九步：启动服务，访问请求 `http://127.0.0.1:8080/rule/insuranceInfoCheck`，查看检查返回结果。可以直接修改代码中的测试值，重启服务后再测试。
 
 ## 11. WorkBench（了解）
 
