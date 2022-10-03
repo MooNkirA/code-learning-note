@@ -1585,7 +1585,7 @@ stringStream.forEach(System.out::println);
 
 ### 5.5. 流的中间操作
 
-#### 5.5.1. Stream流的 map 方法
+#### 5.5.1. map 方法
 
 ```java
 <R> Stream<R> map(Function<? super T, ? extends R> mapper);
@@ -1619,7 +1619,7 @@ public void mapTest() {
 }
 ```
 
-#### 5.5.2. Stream流的 flatMap 方法
+#### 5.5.2. flatMap 方法
 
 ```java
 <R> Stream<R> flatMap(Function<? super T, ? extends Stream<? extends R>> mapper);
@@ -1656,7 +1656,7 @@ Stream<Integer> outputStream = inputStream.flatMap((childList) -> childList.stre
 
 原本的inputStream持有的元素中类型为`List<Integer>`，而在扁平化后的outputStream只想要持有Integer类型的元素，即去除List这层嵌套关系。因此在flapMap中，对每个`List<Integer>`类型的元素执行`childList.stream()`方法，转换成`Stream<Integer>`类型，然后由flatMap进行合并。
 
-#### 5.5.3. Stream流的 filter 方法
+#### 5.5.3. filter 方法
 
 ```java
 Stream<T> filter(Predicate<? super T> predicate);
@@ -1686,7 +1686,7 @@ public void filterTest() {
 }
 ```
 
-#### 5.5.4. Stream流的 limit 方法
+#### 5.5.4. limit 方法
 
 ```java
 Stream<T> limit(long maxSize);
@@ -1708,7 +1708,7 @@ public void limitTest() {
 }
 ```
 
-#### 5.5.5. Stream流的 skip 方法
+#### 5.5.5. skip 方法
 
 ```java
 Stream<T> skip(long n);
@@ -1728,7 +1728,7 @@ public void skipTest() {
 
 > 注：Stream流的`skip(n)`方法配合`limit(n)`方法，可以实现分页的效果
 
-#### 5.5.6. Stream流的 distinct 方法
+#### 5.5.6. distinct 方法
 
 ```java
 Stream<T> distinct();
@@ -1758,7 +1758,7 @@ public void distinctTest() {
 }
 ```
 
-#### 5.5.7. Stream流的 sorted 方法
+#### 5.5.7. sorted 方法
 
 ```java
 Stream<T> sorted();
@@ -1814,7 +1814,7 @@ public void sortedTest() {
 }
 ```
 
-#### 5.5.8. Stream流的 peek 方法
+#### 5.5.8. peek 方法
 
 ```java
 Stream<T> peek(Consumer<? super T> action);
@@ -1838,7 +1838,7 @@ Student{name='bb', age=100}
 
 ### 5.6. 流的终止操作
 
-#### 5.6.1. Stream流的 forEach 方法
+#### 5.6.1. forEach 方法
 
 ```java
 void forEach(Consumer<? super T> action);
@@ -1867,7 +1867,7 @@ public void forEachTest() {
 }
 ```
 
-#### 5.6.2. Stream流的 count 方法
+#### 5.6.2. count 方法
 
 ```java
 long count();
@@ -1886,7 +1886,7 @@ public void countTest() {
 }
 ```
 
-#### 5.6.3. Stream流的 match 相关方法
+#### 5.6.3. match 相关方法
 
 ```java
 boolean anyMatch(Predicate<? super T> predicate);
@@ -1918,7 +1918,7 @@ public void matchTest() {
 }
 ```
 
-#### 5.6.4. Stream流的 find 相关方法
+#### 5.6.4. find 相关方法
 
 ```java
 Optional<T> findFirst();
@@ -1927,7 +1927,7 @@ Optional<T> findAny();
 
 Stream流的 `findFirst`、`findAny` 方法用于查找数据，都是返回流中的第一元素
 
-#### 5.6.5. Stream流的 max 和 min 方法
+#### 5.6.5. max 和 min 方法
 
 ```java
 Optional<T> min(Comparator<? super T> comparator);
@@ -1953,7 +1953,7 @@ public void maxAndMinTest() {
 }
 ```
 
-#### 5.6.6. Stream流的 reduce 方法
+#### 5.6.6. reduce 方法
 
 ##### 5.6.6.1. 功能介绍
 
@@ -2115,7 +2115,7 @@ public void mapAndReduceTest() {
 }
 ```
 
-#### 5.6.7. Stream流的 mapToInt、mapToLong、mapToDouble 方法
+#### 5.6.7. mapToInt、mapToLong、mapToDouble 方法
 
 ```java
 IntStream mapToInt(ToIntFunction<? super T> mapper);
@@ -2149,7 +2149,7 @@ public void mapToIntTest() {
 }
 ```
 
-#### 5.6.8. Stream流的 concat 方法
+#### 5.6.8. concat 方法
 
 ```java
 public static <T> Stream<T> concat(Stream<? extends T> a, Stream<? extends T> b)
@@ -2177,9 +2177,9 @@ public void concatTest() {
 }
 ```
 
-### 5.7. Stream流数据的收集操作
+### 5.7. Stream 流数据的收集操作
 
-#### 5.7.1. Stream流的 collect 方法
+#### 5.7.1. collect 方法
 
 Stream流提供 `collect` 方法，用于将流中元素收集成另外一个数据结构，其参数需要一个 `java.util.stream.Collector<T,A, R>` 接口对象来指定收集到哪种集合中。`java.util.stream.Collectors` 类提供一些方法，可以作为`Collector`接口的实例
 
@@ -2234,7 +2234,7 @@ Set<Characteristics> characteristics()
 
 > *具体常用的API参考以下各个操作的说明与示例*
 
-#### 5.7.4. 收集Stream流中的结果到集合中
+#### 5.7.4. 收集 Stream 流中的结果到集合中
 
 ```java
 public final class Collectors {
@@ -2270,7 +2270,7 @@ public void streamToCollectionTest() {
 }
 ```
 
-#### 5.7.5. 收集Stream流中的结果到数组中
+#### 5.7.5. 收集 Stream 流中的结果到数组中
 
 ```java
 public interface Stream<T> extends BaseStream<T, Stream<T>> {
