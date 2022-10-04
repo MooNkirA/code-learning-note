@@ -46,7 +46,7 @@ public Thread(ThreadGroup group, Runnable target, String name)
 
 > 建议创建线程时，都给线程设置名称，方便日志的追踪
 
-### 1.3. Thread类常用方法
+### 1.3. 常用方法
 
 ```java
 public void run()
