@@ -395,8 +395,8 @@ nsExec::Exec 'cmd /c netsh advfirewall firewall add rule name="TIM" dir=out acti
 
 ### 4.9. 删掉 WIN10 回收站右键菜单的固定到＂开始＂屏幕！
 
-- 删除：打开注册表，定位到 HKEY_LOCAL_MACHINE\SOFTWARE\Classes\Folder\shellex\ContextMenuHandlers，删除其子键 PintoStartScreen
-- 恢复：在 HKEY_LOCAL_MACHINE\SOFTWARE\Classes\Folder\shellex\ContextMenuHandlers 上单击右键，新建项 PintoStartScreen，修改其默认值为 {470C0EBD-5D73-4d58-9CED-E91E22E23282}
+- 删除：打开注册表，定位到 `HKEY_LOCAL_MACHINE\SOFTWARE\Classes\Folder\shellex\ContextMenuHandlers`，删除其子键 `PintoStartScreen`
+- 恢复：在 `HKEY_LOCAL_MACHINE\SOFTWARE\Classes\Folder\shellex\ContextMenuHandlers` 上单击右键，新建项 `PintoStartScreen`，修改其默认值为 `{470C0EBD-5D73-4d58-9CED-E91E22E23282}`
 
 ### 4.10. 限制保留宽带设置
 
@@ -411,15 +411,17 @@ nsExec::Exec 'cmd /c netsh advfirewall firewall add rule name="TIM" dir=out acti
 
 1. 按“WIN+R”，打开【运行】对话框；
 2. 输入“regedit”，回车，打开注册表编辑器；
-3. 在注册表中定位到以下子健：HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced
-4. 后在Advanced上鼠标右键点击呼出菜单，选择 --> 新建（N） --> DWORD(32位)值。也可以左键点击Advanced，在右边区域点击空白处点击鼠标右键呼出菜单选择 --> 新建（N） --> DWORD(32位)值。
-5. 将新建 DWORD(32位)值，命名为ShowSecondsInSystemClock，双击打开将数值数据改为1，并点击确定，关闭注册表。
+3. 在注册表中定位到以下子健：`HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced`
+4. 后在Advanced上鼠标右键点击呼出菜单，选择 -> 新建（N） -> DWORD(32位)值。也可以左键点击Advanced，在右边区域点击空白处点击鼠标右键呼出菜单选择 -> 新建（N） -> DWORD(32位)值。
+5. 将新建 DWORD(32位)值，命名为 `ShowSecondsInSystemClock`，双击打开将数值数据改为1，并点击确定，关闭注册表。
 
-*如果想恢复不显示秒，则将创建的ShowSecondsInSystemClock删除即可*
+*如果想恢复不显示秒，则将创建的`ShowSecondsInSystemClock`删除即可*
+
+> Notes: 微软承认 win 11 系统中，删除了注册表值“`ShowSecondsInSystemClock`”，该值允许任务栏时钟以秒为单位显示时间。如果时间需要显示秒，需要安装第三方软件
 
 ### 4.12. Win10系统删除无用的服务
 
-1. 运行 --> regedit，打开注册表编辑器
+1. 运行 -> `regedit`，打开注册表编辑器
 2. 定位到【计算机\HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services】，选择服务名称，右键删除即可
 
 ### 4.13. 修改window默认系统安装目录
@@ -548,9 +550,42 @@ Windows Registry Editor Version 5.00
 [-HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace\{0DB7E03F-FC29-4DC6-9020-FF41B59E513A}]
 ```
 
-## 5. Office资料
+## 5. Windows 11 系统配置
 
-### 5.1. Excel资料
+### 5.1. 取消显示快速访问中“文档、视频...”等图标
+
+使用快捷键 win+R 打开运行命令窗口，输入`regedit`命令打开注册表。在地址栏定位到以下地址：
+
+```
+计算机\HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\FolderDescriptions
+```
+
+找到文件相应的代码字符串，展开并选择【PropertyBag】，选择右侧窗口中的【ThisPCPolicy】鼠标右键点击修改，将值修改为`Hide`。<font color=red>**注意：首字母`H`必须大写**</font>
+
+- 图片：`{0ddd015d-b06c-45d5-8c4c-f59713854639}`
+- 视频：`{35286a68-3c57-41a1-bbb1-0eae73d76c95}`
+- 下载：`{7d83ee9b-2244-4e70-b1f5-5393042af1e4}`
+- 音乐：`{a0c69a99-21c8-4671-8703-7934162fcf1d}`
+- 文档：`{f42ee2d3-909f-4907-8871-4c22fc0bf756}`
+
+### 5.2. 设置任务栏小图标
+
+1. 使用快捷键 win+R 打开运行命令窗口，输入`regedit`命令打开注册表。在地址栏定位到以下地址：
+
+```
+计算机\HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced
+```
+
+2. 右键新建【DWORD (32位)值】，命名为 `TaskbarSi`
+3. 修改`TaskbarSi`数值数据，`0`表示强制使用小图标；`1`表示使用中等图标；`2`表示使用大图标
+
+> <font color=purple>**但目前 win 11 不支持修改小图标的任务栏，修改后时间日期会出现下沉超出屏幕的问题。**</font>
+
+## 6. Microsoft Office 教程
+
+### 6.1. Microsoft Excel
+
+#### 6.1.1. 常用公式
 
 1. Excel表公式换行
     - 例：`d1=A1&CHAR(10)&A2&CHAR(10)&A3`单元格对齐要设置为“自动换行”
@@ -572,19 +607,300 @@ Windows Registry Editor Version 5.00
     - REPT函数第一个参数是补位的内容
     - REPT函数第二个参数是需要补充的位数，即等于总位数-选择的单元格长度
 
-### 5.2. word资料
+#### 6.1.2. 常用的 Excel 快捷键
+
+> 参考：http://www.dayanzai.me/microsoft-excel-shortcuts.html
+
+![](images/257381622239472.png)
+
+#### 6.1.3. 将数据输入到表格中的 Microsoft Excel 快捷方式
+
+![](images/14971822227339.png)
+
+#### 6.1.4. 功能键 Excel 快捷键
+
+![](images/464591822247505.png)
+
+#### 6.1.5. Office 加载项任务窗格 Excel 快捷方式
+
+![](images/445871322221046.png)
+
+### 6.2. Microsoft Word
 
 1. 取消超链接快捷键：Ctrl+Shift+F9
 2. 取消代码模式 Alt+F9
 
-## 6. Chrome 与 Edge浏览器
+> 快捷键参考：http://www.dayanzai.me/word-shortcuts.html
 
-### 6.1. Edge与IE设置隐私模式
+#### 6.2.1. 常用的 Microsoft Word 快捷键
+
+|          操作          |   windows 快捷键    |        Mac 快捷键         |
+| :--------------------: | :----------------: | :----------------------: |
+|     打开 Word 文档      |    **Ctrl + O**    |     **Command + O**      |
+|     创建一个新文档      |    **Ctrl + N**    |     **Command + N**      |
+|        保存文档         |    **Ctrl + S**    |     **Command + S**      |
+|        关闭文档         |    **Ctrl + W**    |     **Command + F4**     |
+|   所选内容剪切到剪贴板   |    **Ctrl + X**    |     **Command + X**      |
+|   所选内容复制到剪贴板   |    **Ctrl + C**    |     **Command + C**      |
+|     粘贴剪贴板的内容     |    **Ctrl + V**    |     **Command + V**      |
+|     选择所有文档内容     |    **Ctrl + A**    |     **Command + A**      |
+|    对文本应用粗体格式    |    **Ctrl + B**    |     **Command + B**      |
+|    对文本应用斜体格式    |    **Ctrl + I**    |     **Command + I**      |
+|   对文本应用下划线格式   |    **Ctrl + U**    |     **Command + U**      |
+|   将字体大小减小 1 磅    |     `Ctrl + [`     |      `Command + [`       |
+|   将字体大小增加 1 磅    |     `Ctrl + ]`     |      `Command + ]`       |
+|        居中文本         |    **Ctrl + E**    |     **Command + E**      |
+|     将文本向左对齐      |    **Ctrl + L**    |     **Command + L**      |
+|     将文本向右对齐      |    **Ctrl + R**    |     **Command + R**      |
+|        取消命令         |      **Esc**       |         **Esc**          |
+|     撤消之前的操作      |    **Ctrl + Z**    |     **Command + Z**      |
+| 如果可能，重做之前的操作 |    **Ctrl + Y**    |     **Command + Y**      |
+|      调整缩放倍率       |    **Alt + W**     |      **Option + W**      |
+|      拆分文档窗口       | **Ctrl + Alt + S** | **Command + Option + S** |
+
+#### 6.2.2. 功能区面板快捷键
+
+|        操作         | windows 快捷键 |    Mac 快捷键    |
+| :----------------: | :------------: | :-------------: |
+| 移到告诉我或搜索字段 |  **Alt + Q**   | **Command + c** |
+|    打开文件选项卡    |  **Alt + F**   | **Option + F**  |
+|    打开主页选项卡    |  **Alt + H**   | **Command + v** |
+|    打开插入选项卡    |  **Alt + N**   | **Option + N**  |
+|    打开设计选项卡    |  **Alt + G**   | **Option + G**  |
+|    打开布局选项卡    |  **Alt + P**   | **Option + P**  |
+|    打开引用选项卡    |  **Alt + S**   | **Option + S**  |
+|    打开邮件选项卡    |  **Alt + M**   | **Option + M**  |
+|    打开审核选项卡    |  **Alt + R**   | **Option + R**  |
+|    打开视图选项卡    |  **Alt + W**   | **Option + W**  |
+
+#### 6.2.3. 导航文档的快捷键
+
+|                      操作                       |       windows 快捷键        |            Mac 快捷键             |
+| :---------------------------------------------: | :------------------------: | :------------------------------: |
+|               将光标向左移动一个字                |    **Ctrl + 左箭头键**     |      **Command + 左箭头键**      |
+|               将光标向右移动一个字                |    **Ctrl + 右箭头键**     |      **Command + 右箭头键**      |
+|                将光标向上移动一段                 |    **Ctrl + 上箭头键**     |      **Command + 上箭头键**      |
+|                将光标向下移动一段                 |    **Ctrl + 下箭头键**     |      **Command + 下箭头键**      |
+|             将光标移动到当前行的末尾              |          **End**           |             **End**              |
+|             将光标移动到当前行的开头              |          **Home**          |             **Home**             |
+|               将光标移动到屏幕顶部                |  **Ctrl + Alt + Page up**  |  **Command + Option + Page up**  |
+|               将光标移动到屏幕底部                | **Ctrl + Alt + Page down** | **Command + Option + Page down** |
+|        通过将文档视图向上滚动一屏来移动光标         |        **Page up**         |           **Page up**            |
+|        通过将文档视图向下滚动一屏来移动光标         |       **Page down**        |          **Page down**           |
+|             将光标移动到下一页的顶部              |    **Ctrl + Page down**    |     **Command + Page down**      |
+|             将光标移动到上一页的顶部              |     **Ctrl + Page up**     |      **Command + Page up**       |
+|               将光标移动到文档末尾                |       **Ctrl + End**       |        **Command + End**         |
+|              将光标移动到文档的开头               |      **Ctrl + Home**       |        **Command + Home**        |
+|             将光标移动到上一版本的位置             |       **Shift + F5**       |          **Shift + F5**          |
+| 将光标移动到上次关闭文档之前所做的最后一次修订的位置 |       **Shift + F5**       |          **Shift + F5**          |
+|         循环浏览浮动形状，例如文本框或图像         |     **Ctrl + Alt + 5**     |     **Command + Option + 5**     |
+|           退出浮动形状导航，返回正常导航           |          **Esc**           |             **Esc**              |
+|                 显示导航任务窗格                 |        **Ctrl + F**        |         **Command + F**          |
+|                 显示“转到”对话框                 |        **Ctrl + G**        |     **Command + Option + G**     |
+|       循环浏览先前对文档所做的四个更改的位置        |     **Ctrl + Alt + Z**     |     **Command + Option + Z**     |
+
+#### 6.2.4. 选择文字和图形的快捷键
+
+|        操作         |       windows 快捷键       |         Mac 快捷键          |
+| :----------------: | :-----------------------: | :------------------------: |
+|   一次选择一个字符   |    **Shift + 箭头键**     |     **Shift + 箭头键**     |
+|    一次选择一个词    | **Ctrl + Shift + 箭头键** |  **Cmd + Shift + 箭头键**  |
+| 选择从插入点回到行首 |     **Shift + Home**      | **Cmd + Shift + 右箭头键** |
+|  选择从插入点到行尾  |      **Shift + End**      | **Cmd + Shift + 左箭头键** |
+|     进入选择模式     |          **F8**           |           **F8**           |
+|  剪切文本到 Spike   |       **Ctrl + F3**       |      **Command + F3**      |
+|  粘贴文本到 Spike   |   **Ctrl + Shift + F3**   |   **Command + Shift +**    |
+
+
+#### 6.2.5. 对齐和格式化段落的快捷方式
+
+|         操作          |      windows 快捷键       |           Mac 快捷键           |
+| :------------------: | :----------------------: | :---------------------------: |
+|       居中段落        |       **Ctrl + E**       |        **Command + E**        |
+|       对齐段落        |       **Ctrl + J**       |        **Command + J**        |
+|      段落左对齐       |       **Ctrl + L**       |        **Command + L**        |
+|      段落右对齐       |       **Ctrl + R**       |        **Command + R**        |
+|       缩进段落        |       **Ctrl + M**       |    **Command + Shift + M**    |
+|      删除段落缩进      |   **Ctrl + Shift + M**   |    **Command + Shift + M**    |
+|      创建悬挂缩进      |       **Ctrl + T**       |        **Command + T**        |
+|      删除悬挂缩进      |   **Ctrl + Shift + T**   |    **Command + Shift + T**    |
+|      删除段落格式      |       **Ctrl + Q**       |        **Command + Q**        |
+|   对段落应用单个间距   |       **Ctrl + 1**       |        **Command + 1**        |
+|   对段落应用双倍行距   |       **Ctrl + 2**       |        **Command + 2**        |
+| 对段落应用 1.5 行间距  |       **Ctrl + 5**       |        **Command + 5**        |
+| 在段落前添加或删除空格 |       **Ctrl + 0**       |        **Command + 0**        |
+|    启用自动套用格式    |    **Ctrl + Alt + K**    |   **Command + Option + K**    |
+|      应用正常样式      |   **Ctrl + Shift + N**   |    **Command + Shift + N**    |
+|    应用标题 1 样式     |    **Ctrl + Alt + 1**    |   **Command + Option + 1**    |
+|    应用标题 2 样式     |    **Ctrl + Alt + 2**    |   **Command + Option + 2**    |
+|    应用标题 3 样式     |    **Ctrl + Alt + 3**    |   **Command + Option + 3**    |
+| 显示“应用样式”任务窗格 |   **Ctrl + Shift + S**   |    **Command + Shift+ S**     |
+|    显示样式任务窗格    | **Ctrl + Alt +Shift +S** | **Command + Alt + Shift + S** |
+
+#### 6.2.6. 文本格式快捷键
+
+|               操作                |     windows 快捷键      |         Mac 快捷键         |
+| :------------------------------: | :--------------------: | :-----------------------: |
+|           显示字体对话框           |      **Ctrl + D**      |      **Command + D**      |
+|            增加字体大小            | **Ctrl + Shift + (>)** | **Command + Shift + (>)** |
+|            减小字体大小            | **Ctrl + Shift + (<)** | **Command + Shift + (<)** |
+|        将字体大小增加 1 磅         |     **Ctrl + (])**     |     **Command + (])**     |
+|        将字体大小减小 1 磅         |     **Ctrl + ([)**     |     **Command + ([)**     |
+| 在大写、小写和标题大小写之间切换文本 |     **Shift + F3**     |      **Shift + F3**       |
+|        将文本更改为全部大写         |  **Ctrl + Shift + A**  |  **Command + Shift + A**  |
+|            隐藏所选文本            |  **Ctrl + Shift + H**  |  **Command + Shift + H**  |
+|            应用粗体格式            |      **Ctrl + B**      |      **Command + B**      |
+|           应用下划线格式           |      **Ctrl + U**      |      **Command + U**      |
+|  将下划线格式应用于单词，而不是空格  |  **Ctrl + Shift + W**  |  **Command + Shift + W**  |
+|          应用双下划线格式          |  **Ctrl + Shift + D**  |  **Command + Shift + D**  |
+|            应用斜体格式            |      **Ctrl + I**      |      **Command + I**      |
+|        应用小型大写字母格式         |  **Ctrl + Shift + K**  |  **Command + Shift + K**  |
+|            应用下标格式            |     **Ctrl + (=)**     |     **Command + (=)**     |
+|            应用上标格式            | **Ctrl + Shift + (+)** | **Command + Shift + (+)** |
+|          删除手动字符格式          |  **Ctrl + Spacebar**   |  **Command + Spacebar**   |
+|    将所选文本更改为 Symbol 字体     |  **Ctrl + Shift + Q**  |  **Command + Shift + Q**  |
+
+#### 6.2.7. 表格格式化快捷键
+
+|              操作               |         windows 快捷键         |            Mac 快捷键            |
+| :-----------------------------: | :---------------------------: | :-----------------------------: |
+|     选择下一个单元格中的内容      |          **Tab 键**           |           **Tab 键**            |
+|      选择上一个单元格的内容       |        **Shift + Tab**        |         **Shift + Tab**         |
+|      将选区扩展到相邻单元格       |       **Shift + 箭头键**       |       **Shift + 箭头键**        |
+|             选择一列             |  **Shift + 向上或向下箭头键**  |   **Shift + 向上或向下箭头键**   |
+|             选择一行             | **Shift + Alt + End 或 Home** |  **Shift + Alt + End 或 Home**  |
+|           选择整个表格           |          **Alt + 5**          |         **Option + 5**          |
+|     在单元格中插入一个新段落      |           **Enter**           |            **Enter**            |
+|       在单元格中插入制表符        |        **Ctrl + Tab**         |        **Command + Tab**        |
+|     移动到行中的第一个单元格      |        **Alt + Home**         |        **Option + Home**        |
+|     移至行中的最后一个单元格      |         **Alt + End**         |        **Option + End**         |
+|      移至列中的第一个单元格       |       **Alt + Page up**       |      **Option + Page up**       |
+|     移至列中的最后一个单元格      |      **Alt + Page down**      |     **Option + Page down**      |
+|           移动到上一行           |         **向上箭头键**         |         **向上箭头键**          |
+|           移动到下一行           |         **向下箭头键**         |         **向下箭头键**          |
+|           向上移动一行           |  **Alt + Shift + 向上箭头键**  | **Option + Shift + 向上箭头键** |
+|           向下移动一行           |  **Alt + Shift + 向下箭头键**  | **Option + Shift + 向下箭头键** |
+| 移至行中的下一个单元格并选择其内容 |          **Tab 键**           |           **Tab 键**            |
+| 移至行中的上一个单元格并选择其内容 |        **Shift + Tab**        |         **Shift + Tab**         |
+
+### 6.3. Microsoft PowerPoint 快捷键大全
+
+> 参考：http://www.dayanzai.me/powerpoint-shortcut-keys.html
+
+#### 6.3.1. 常用的 PowerPoint 键盘快捷键
+
+|              操作               |        快捷键        |                         |
+| :-----------------------------: | :-----------------: | :---------------------: |
+|       创建一个新的演示文稿        |    **Ctrl + N**     | **Command + Shift + P** |
+|         添加一个新幻灯片         |    **Ctrl + M**     | **Command + Shift + N** |
+|        将所选文本设为粗体         |    **Ctrl + B**     |     **Command + B**     |
+|      更改所选文本的字体大小       | **Alt + H + F + S** | **Option + H + F + S**  |
+|     剪切所选文本、对象或幻灯片     |    **Ctrl + X**     |     **Command + X**     |
+|     复制所选文本、对象或幻灯片     |    **Ctrl + C**     |     **Command + C**     |
+| 粘贴剪切或复制的文本、对象或幻灯片 |    **Ctrl + V**     |     **Command + V**     |
+|           撤消上次操作           |    **Ctrl + Z**     |     **Command + B**     |
+|           保存演示文稿           |    **Ctrl + S**     |     **Command + S**     |
+|           插入一个形状           | **Alt + N + S + H** |  **Option + N + S +H**  |
+|           选择一个主题           |   **Alt + G + H**   |   **Option + G + H**    |
+|          选择幻灯片版式          |   **Alt + G + H**   |   **Option + G + H**    |
+|         转到下一张幻灯片         |    **Page down**    |      **Page down**      |
+|         转到上一张幻灯片         |     **Page up**     |       **Page up**       |
+|          转到主页选项卡          |     **Alt + H**     |     **Option + H**      |
+|          转到插入选项卡          |     **Alt + N**     |     **Option + N**      |
+|          开始幻灯片放映          |       **F5**        |  **Command + return**   |
+|          结束幻灯片放映          |       **Esc**       |         **Esc**         |
+|         关闭 PowerPoint         |    **Ctrl + Q**     |     **Command + Q**     |
+
+#### 6.3.2. 功能区 PowerPoint 快捷方式
+
+|           操作           |      快捷键      |                    |
+| :----------------------: | :-------------: | :----------------: |
+|       打开文件菜单        |   **Alt + F**   |   **Option + F**   |
+|      打开主页选项卡       |   **Alt + H**   |   **Option + H**   |
+|      打开插入选项卡       |   **Alt + N**   |   **Option + N**   |
+|      打开绘图选项卡       | **Alt + J + I** | **Option + J + I** |
+|      打开设计选项卡       |   **Alt + G**   |   **Option + G**   |
+|      打开转场选项卡       |   **Alt + K**   |   **Option + K**   |
+|      打开动画选项卡       |   **Alt + A**   |   **Option + A**   |
+|    打开幻灯片放映选项卡    |   **Alt + S**   |   **Option + S**   |
+|     打开“审核”选项卡      |   **Alt + R**   |   **Option + R**   |
+|      打开视图选项卡       |   **Alt + W**   |   **Option + W**   |
+|      打开录制选项卡       |   **Alt + C**   |   **Option + C**   |
+|      打开帮助选项卡       | **Alt + Y + 2** | **Option + Y + 2** |
+|       打开文件菜单        |   **Alt + F**   |   **Option + F**   |
+|      打开主页选项卡       |   **Alt + H**   |   **Option + H**   |
+|      选择活动选项卡       |   **Alt + N**   |   **Option + N**   |
+|  移动焦点到功能区上的命令  | **Alt + J + I** | **Option + J, I**  |
+|       激活所选按钮        |   **Alt + G**   |   **Option + G**   |
+|     打开所选命令的列表     |   **Alt + K**   |   **Option + K**   |
+|     移动到下一个命令      |   **Alt + A**   |   **Option + A**   |
+|     展开或折叠功能区      |   **Alt + S**   |   **Option + S**   |
+|      打开上下文菜单       |   **Alt + R**   |   **Option + R**   |
+|       移动到子菜单        |   **Alt + W**   |   **Option + W**   |
+| 获取有关当前所选命令的帮助 |   **Alt + C**   |   **Option + C**   |
+
+#### 6.3.3. PowerPoint 文本块快捷键
+
+|           操作           |        快捷键         |                         |
+| :----------------------: | :------------------: | :---------------------: |
+|     删除左边一个字符      |    **Backspace**     |      **Backspace**      |
+|      删除左边一个词       | **Ctrl + Backspace** | **Command + Backspace** |
+|     删除右边一个字符      |      **Delete**      |       **Delete**        |
+|      删除右边一个词       |  **Ctrl + Delete**   |  **Command + Delete**   |
+|     剪切所选对象或文本     |     **Ctrl + X**     |     **Command + X**     |
+|     复制所选对象或文本     |     **Ctrl + C**     |     **Command + C**     |
+| 粘贴剪切或复制的对象或文本 |     **Ctrl + V**     |     **Command + V**     |
+|       复制一个对象        |     **Ctrl + D**     |     **Command + D**     |
+|       撤消上次操作        |     **Ctrl + Z**     |     **Command + Z**     |
+|     重做最后一个操作      |     **Ctrl + Y**     |     **Command + Y**     |
+|        仅复制格式         | **Ctrl + Shift + C** | **Command + Shift + C** |
+|        仅粘贴格式         | **Ctrl + Shift + V** | **Command + Shift + V** |
+|       复制动画画家        | **Alt + Shift + C**  | **Option + Shift + C**  |
+|       粘贴动画画家        | **Alt + Shift + V**  | **Command + Shift + V** |
+|    打开选择性粘贴对话框    |  **Ctrl + Alt + V**  |  **Command + Alt + V**  |
+
+#### 6.3.4. 用于处理表格的 PowerPoint 快捷键
+
+|       操作        |      快捷键      |                   |
+| :--------------: | :-------------: | :---------------: |
+| 移动到下一个单元格 |   **Tab 键**    |     **Tab 键**     |
+| 移动到上一个单元格 | **Shift + Tab** |  **Shift + Tab**  |
+|    移动到下一行    |  **下箭头键**   |   **下箭头键**    |
+|    移动到上一行    |  **上箭头键**   |   **是箭头键**    |
+| 在单元格中插入标签 | **Ctrl + Tab**  | **Command + Tab** |
+|   开始一个新段落   |    **Enter**    |    **Return**     |
+
+#### 6.3.5. 段落对齐键盘快捷键
+
+|     操作     |    快捷键     |                 |
+| :---------: | :----------: | :-------------: |
+| 居中一个段落 | **Ctrl + E** | **Command + E** |
+| 对齐一个段落 | **Ctrl + J** | **Command + J** |
+|  左对齐段落  | **Ctrl + L** | **Command + L** |
+|  右对齐段落  | **Ctrl + R** | **Command + T** |
+
+#### 6.3.6. 幻灯片的 PowerPoint 快捷键
+
+|              操作               |        快捷键        |                                       |
+| :-----------------------------: | :------------------: | :-----------------------------------: |
+|       从头开始播放演示文稿        |        **F5**        |     **Command + Shift + Return**      |
+|     从当前幻灯片播放演示文稿      |    **Shift + F5**    |         **Command + Return**          |
+| 在播放幻灯片时使用钢笔工具进行批注 |     **Ctrl + P**     |            **Command + P**            |
+|    播放幻灯片时移至下一张幻灯片    |  **N 或 Page Down**  | **N 或 Page Down 或 右箭头 或 下箭头** |
+|    播放幻灯片时返回上一张幻灯片    |   **P 或 Page Up**   |  **P 或 Page Up 或 左箭头 或 上箭头**  |
+|       暂停幻灯片并显示黑屏        |        **B**         |                 **B**                 |
+|       暂停幻灯片并显示白屏        |        **W**         |                 **W**                 |
+|            停止幻灯片            | **S (再按一次继续)** |          **S (再按一次继续)**          |
+|            结束幻灯片            |       **Esc**        |         **Esc 或 Command + .**         |
+
+## 7. Chrome 与 Edge浏览器
+
+### 7.1. Edge与IE设置隐私模式
 
 - IE：右键 -> 属性 -> 在打开的IE属性窗口中，找到目标文本框，在最后加入` -private`（*注：前面有一个空格*）
 - Edge：右键 -> 属性 -> 在打开的属性窗口中，找到目标文本框，在最后加入` -InPrivate`（*注：前面有一个空格*）
 
-### 6.2. Chrome 与 Edge 常用快捷键
+### 7.2. Chrome 与 Edge 常用快捷键
 
 - Ctrl+T：打开新标签页
 - Ctrl+Shift+T：重新打开上次关闭的标签页
@@ -599,20 +915,20 @@ Windows Registry Editor Version 5.00
 
 > 参考：[Chrome（谷歌浏览器 ）使用总结（一）——快捷键](https://juejin.cn/post/6844903573717778439)
 
-### 6.3. Chrome 设置隐身模式与开启暗黑模式
+### 7.3. Chrome 设置隐身模式与开启暗黑模式
 
 隐身模式：图标右键属性，在“目标”后添加参数“` --incognito`”（注意是双短划线，不包括双引号，双短划线前加一空格）就可以直接以隐身模式启动Chrome浏览器
 
 暗黑模式：右键属性 -> 目标 -> 添加参数“` --force-dark-mode`”（注意双短划线前加一空格），启动时强制打开暗黑模式
 
-### 6.4. 扩展程序管理
+### 7.4. 扩展程序管理
 
 - 地址栏输入`chrome://extensions/`并回车打开扩展程序页，点右上角的开发人员模式，可以看到每一个扩展下面都有个ID，后面跟着一串字母，到浏览器安装目录（`\Chrome\User Data\Default\Extensions\`）下找到一个同名的文件夹，进入，里面有一个以版本号命名的文件夹，把这个文件夹复制出来。
 - 为了方便收藏，以及今后可以再安装，将这个版本号文件夹重新打包成crx文件：
 - 在上述的【扩展程序】页，打开开发人员模式，再点“打包扩展程序”，“扩展程序根目录”选刚才的版本号文件夹，密钥留空，点确定。
 - 会生成一个crx和一个pem，把crx文件珍藏好，pem可以丢掉了。
 
-### 6.5. Chrome / Edge 实验功能
+### 7.5. Chrome / Edge 实验功能
 
 在地址栏输入以下地址进入实验功能页面
 
@@ -638,22 +954,22 @@ chrome://flags/
 
 > 注意：有些设置项的 `edge-` 开头，Chrome 有些不适用
 
-### 6.6. 强制阅读模式
+### 7.6. 强制阅读模式
 
 Edge 是支持阅读模式的，而且效果还相当不错。但阅读模式需要Edge自己判断是否能打开，很多网页无法被Edge识别开启。
 
 在 Edge 地址栏中，为网页URL前面加上一个“`read:`”前缀，然后按下回车键，阅读模式就强制打开了！
 
-### 6.7. 查看版本信息
+### 7.7. 查看版本信息
 
 - Chrome：`chrome://version`
 - Edge：`edge://version`
 
-### 6.8. 缓存位置
+### 7.8. 缓存位置
 
 在**个人资料路径**，如：`C:\Users\win10\AppData\Local\Microsoft\Edge\User Data\Default`。 找到 Cache 和 Code Cache 就是缓存文件目录
 
-## 7. Rime输入法设置
+## 8. Rime 输入法设置
 
 特殊字符输入
 
@@ -677,7 +993,7 @@ Edge 是支持阅读模式的，而且效果还相当不错。但阅读模式需
 - `zzzs`
 - `zzzy`：台湾注音
 
-## 8. Everything 使用技巧
+## 9. Everything 使用技巧
 
 - 查找空文件夹：`empty:`
 - 查找重复文件：`dupe:`
@@ -706,9 +1022,9 @@ $ 文件名结束
 > - 官方帮助(中文)：[Searching - voidtools](https://www.voidtools.com/zh-cn/support/everything/searching/)
 > - [《高效搜索神器Everything最全使用技巧(一篇看全)及详细功能帮助教程》](https://zhuanlan.zhihu.com/p/409783518)
 
-## 9. foobar2000
+## 10. foobar2000
 
-### 9.1. foobar2000不支持APE文件格式的解决方法
+### 10.1. foobar2000不支持APE文件格式的解决方法
 
 这是因为缺少相应的播放插件，需要安装一个插件--monkey's audio(ape)才可以播放。foobar从某个版本起，把原来默认内置的一些插件去掉了，原因不明，可能是为了控制安装包的体积。
 
@@ -716,7 +1032,7 @@ $ 文件名结束
 
 点击这个页面的 Download，下载后解开压缩包得到 foo_input_monkey.dll 文件。把这个文件放到foobar安装目录里的 compontents 文件夹里。重新打开foobar后就可以播放APE文件了。	
 
-## 10. 待尝试的软件/系统
+## 11. 待尝试的软件/系统
 
 - unlocker：强力解除后台占用工具。当要删除某个文件或者文件夹是提示"文件被另一个程序打开"，但是却又不知道是哪个程序打开的，只能重启电脑然后才能删除，unlocker就是解决这个问题的一个工具。
 - DropIt：一键分类文件
@@ -725,17 +1041,13 @@ $ 文件名结束
 - 代理工具：Shadowsocks
 - 超炫酷的 Docker 终端 UI lazydocker
 - [Cool PDF Reader](http://www.pdf2exe.com/reader.html) 号称最小的PDF阅读器
-- uTools：windows工具插件包
-- 免费开源图像编辑器 GIMP
 - Markdown, Please! 有两种使用方式，直接在官网输入想要转换的网页地址，或者使用小书签放置在书签栏上，当需要转换的时候，点一下就行了
 > 如：`https://markdown.readmorejoy.com/\?url\=https://www.appinn.com/`
 - Recuva：文件恢复工具
 - 免费对比工具 - [Meld](http://meldmerge.org/)
 - 免费梯子：[batternet](https://getintopc.com/softwares/security/betternet-vpn-free-download/)
-- [MiniBin](https://minibin.e-sushi.net) - 把回收站放到任务栏
-- clean reader - mobi电子书阅读软件
 
-### 10.1. 免费图床
+### 11.1. 免费图床
 
 - [ImgURL](https://imgurl.org/) - mgURL 对游客做出了上传限制。每日仅支持上传 10 张照片，每张照片的大小不能超过 5M，适合上传图片不多的用户。
 - [upload.cc](https://upload.cc/) - upload.cc 对照片大小有限制。单张照片最大 5M，且仅支持常见格式，适合需要频繁分享小图的用户
@@ -746,7 +1058,7 @@ $ 文件名结束
 - [鲜咕嘟](http://www.xiangudu.com/) - 鲜咕嘟支持单张最大 20M 的图片，适合需要上传大尺寸图片的用户。但过大尺寸的图片会被压缩到 1800px 的大小。
 - [偶流](https://upload.ouliu.net/) - 偶流是国内的一个老牌图床工具，偶流支持单张最大 10M 的文件，但系统会不定期进行文件清除，比较适合临时使用。
 
-### 10.2. 常用软件大全
+### 11.2. 常用软件大全
 
 - windows GitHub 网址：https://github.com/Awesome-Windows/Awesome/blob/master/README-cn.md
 - Linux GitHub 网址：https://github.com/luong-komorebi/Awesome-Linux-Software/blob/master/README_zh-CN.md

@@ -691,3 +691,18 @@ Agit.ai为开发者提供集成了Tensorflow、Pytorch、Ray等常用AI库的开
 它可以免费提供无限制的私人和公共仓库，可以为最多五个会员使用。它的功能包括，代码搜索、BitBucket 管道、合并请求、智能镜像、问题单跟踪、灵活的部署模式、IP 白名单以及保护工作成果的分支权限。
 
 值得注意的是，它让用户可以使用任何 Git 客户端或 Git 命令行来推送文件。并且 BitBucket 可以部署在云端、数据中心或本地服务器上。
+
+## 4. fatal detected dubious ownership in repository at 解决办法
+
+问题描述：在git仓库中执行 `git pull` 命令时，提示：`fatal: detected dubious ownership in repository`。这是因为 git 担心的权限安全策略导致的报错，可以按提示把某个（或多个）目录添加到信任列表
+
+```shell
+git config --global --add safe.directory D:/www/your-project
+git config --global --add safe.directory D:/www/other-project
+```
+
+也可以通过加通配符为`*`，将所有文件夹都添加到信任列表。需要注意，该处理方法一般适用于只有本人一个用户使用的电脑，确保无其它用户，否则存在安全问题。
+
+```shell
+git config --global --add safe.directory "*"
+```
