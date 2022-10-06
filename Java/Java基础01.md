@@ -2463,14 +2463,14 @@ public class BaseDao<T> implements Dao<T>{
 
 ### 2.3. @SuppressWarnings 注解
 
-- 抑制编译器警告
-- 常用警告名称：
-    1. deprecation 忽略过时
-    2. rawtypes 忽略类型安全
-    3. unused 忽略不使用
-    4. unchecked 忽略安全检查
-    5. null 忽略空指针
-    6. all 忽略所有编译器警告
+`@SuppressWarnings` 注解的作用是抑制编译器警告。常用警告名称：
+
+1. deprecation 忽略过时
+2. rawtypes 忽略类型安全
+3. unused 忽略不使用
+4. unchecked 忽略安全检查
+5. null 忽略空指针
+6. all 忽略所有编译器警告
 
 **注：如果多个警告就使用`{}`将多个警告包括起来，封装成字符串数组**
 
@@ -2521,19 +2521,19 @@ public @interface T_T {
 ![注解使用案例](images/20190507110437937_17647.jpg)
 
 ## 4. 元注解
+
 ### 4.1. 元注解概念
 
-- 用在编写注解时使用的注解，用来约束注解的功能，称为元注解。
-- Java提供的注解。Java所有的内置注解定义都使用了元注解。
-- 元注解的分类，共有4种：
-    - `@Target`
-    - `@Retention`
-    - `@Inherited`
-    - `@Documented`
+Java 默认提供的注解，用于标识在注解上的注解，用来约束注解的功能，称为元注解。Java 所有的内置注解定义都使用了元注解。元注解有以下4种分类：
+
+- `@Target`
+- `@Retention`
+- `@Inherited`
+- `@Documented`
 
 ### 4.2. @Target 元注解
 
-- **@Target作用**：标识注解使用范围【*Annotation可被用于 packages、types（类、接口、枚举、Annotation 类型）、类型成员（方法、构造方法、成员变量、枚举值）、方法参数和本地变量（如循环变量、catch 参数）*】，如果不写默认是任何地方都可以使用。元注解可选的值来自于ElemetnType枚举类。(写在自定义注解的类上)
+- **`@Target` 作用**：标识注解使用范围【*Annotation可被用于 packages、types（类、接口、枚举、Annotation 类型）、类型成员（方法、构造方法、成员变量、枚举值）、方法参数和本地变量（如循环变量、catch 参数）*】，如果不写默认是任何地方都可以使用。元注解可选的值来自于ElemetnType枚举类。(写在自定义注解的类上)
 - **格式**：`@Target({TYPE, FIELD, METHOD, PARAMETER, CONSTRUCTOR, LOCAL_VARIABLE})`
 - **元注解的默认值**：
     - `ElementType.TYPE`: 用在类和接口上
@@ -2545,19 +2545,19 @@ public @interface T_T {
 
 ### 4.3. @Retention 元注解
 
-- **@Retention作用**：用来标识注解的生命周期（有效作用范围），可选取值来自RetentionPolicy枚举类
-- **取值类型**：
-    - `RetentionPolicy.SOURCE`：注解只存在于 Java 源代码中，编译生成字节码文件和程序运行时就不存在了。（即源文件保留）
-    - `RetentionPolicy.CLASS`：注解存在于 Java 源代码、编译以后的字节码文件中，运行的时候内存就不存在，此注解是默认值。（即 class 保留）
-    - `RetentionPolicy.RUNTIME`：注解存在于 Java 源代码中、编译以后的字节码文件中、运行时的内存中，程序可以通过反射获取该注解。（即运行时保留）
+**`@Retention` 作用**：用来标识注解的生命周期（有效作用范围），可选取值来自 `RetentionPolicy` 枚举类：
+
+- `RetentionPolicy.SOURCE`：注解只存在于 Java 源代码中，编译生成字节码文件和程序运行时就不存在了。（即源文件保留）
+- `RetentionPolicy.CLASS`：注解存在于 Java 源代码、编译以后的字节码文件中，运行的时候内存就不存在，此注解是默认值。（即 class 保留）
+- `RetentionPolicy.RUNTIME`：注解存在于 Java 源代码中、编译以后的字节码文件中、运行时的内存中，程序可以通过反射获取该注解。（即运行时保留）
 
 ### 4.4. @Inherited 元注解
 
-**@Inherited作用**：表示该注解可以被子类继承。如果一个使用了 `@Inherited` 修饰的 annotation 类型被用于一个 class，则这个 annotation 将被用于该 class 的子类。
+**`@Inherited` 作用**：表示该注解可以被子类继承。如果一个使用了 `@Inherited` 修饰的 annotation 类型被用于一个 class，则这个 annotation 将被用于该 class 的子类。
 
 ### 4.5. @Documented 元注解
 
-**@Documented作用**：表示该注解会出现在帮忙文档（javadoc）中。描述其它类型的 annotation 应该被作为被标注的程序成员的公共 API，因此可以被例如 javadoc 此类的工具文档化。
+**`@Documented` 作用**：表示该注解会出现在帮忙文档（javadoc）中。描述其它类型的 annotation 应该被作为被标注的程序成员的公共 API，因此可以被例如 javadoc 此类的工具文档化。
 
 ## 5. 注解的原理
 
@@ -2702,9 +2702,132 @@ public abstract class Enum<E extends Enum<E>> implements Comparable<E>, Serializ
 
 当数据类型的值只能在给定的范围内进行选择时(数量不能太多的时候)。比如：性别、季节、月份、星期…
 
-## 2. 枚举底层实现
+## 2. 枚举的基础使用
 
-### 2.1. 枚举编译后的代码
+### 2.1. 枚举类的定义格式
+
+```java
+enum 枚举名称 {
+    成员名称1, 成员名称2, 成员名称3
+}
+```
+
+<font color=red>**枚举的底层实现，枚举的底层是一个类继承了`Enum`**</font>
+
+### 2.2. 枚举的使用步骤
+
+1. 定义枚举类
+2. 在成员变量类型上面使用枚举类型
+3. 设置枚举值(如`WeekDay.FRI`)，语法即`枚举名称.成员`
+4. 可以做枚举比较`e.getResetDay() == WeekDay.STA`
+
+总结：<font color=red>**枚举的作用是用来表示几个固定的值，可以使用枚举中成员**</font>
+
+## 3. 枚举常用方法
+
+```java
+public final String name();
+```
+
+- 获得枚举名，返回此枚举常量的名称
+
+```java
+public static <T extends Enum<T>> T valueOf(Class<T> enumType, String name)
+```
+
+- 根据枚举名字符串获得枚举值对象。返回带指定名称的指定枚举类型的枚举常量。名称必须与在此类型中声明枚举常量所用的标识符完全匹配。（不允许使用额外的空白字符。）*与通过"枚举类名.枚举项名称"去访问指定的枚举项得到相同的枚举对象*
+
+```java
+public final int ordinal()
+```
+
+- 返回此枚举常量的顺序（位置在枚举声明，在初始常数是零分序号）。不推荐使用，它被设计用于复杂的基于枚举的数据结构，比如 `EnumSet` 和 `EnumMap`
+
+```java
+public final int compareTo(E o)
+```
+
+- 比较此枚举与指定对象的顺序(索引值)，返回索引值的差值。在该对象小于、等于或大于指定对象时，分别返回负整数、零或正整数。
+
+```java
+public String toString()
+```
+
+- 返回枚举常量的名称
+
+```java
+public static <T extends Enum<T>> T[] values();
+```
+
+- 枚举中的一个特殊方法，可以将枚举类转变为一个该枚举类型的数组。<font color=red>*此方法虽然在JDK文档中查找不到，但每个枚举类都具有该方法，它遍历枚举类的所有枚举值非常方便*</font>
+
+## 4. 枚举的特点与综合示例
+
+- 定义枚举类要用关键字 `enum`
+- 所有枚举类都是 `Enum` 的子类（默认是`Enum`的子类，不需要（能）再写`extends Enum`）
+- 每一个枚举项其实就是该枚举的一个对象，通过 `枚举类名.枚举项名称` 方式去访问指定的枚举项
+- 枚举也是一个类，也可以去定义成员变量
+- 枚举值必须是枚举类的第一行有效语句。多个枚举值必须要用逗号(`,`)分隔。最后一个枚举项后的分号是可以省略的，但是如果枚举类有其他的东西，这个分号就不能省略。**建议不要省略**
+- 枚举类可以有构造方法，但必须是`private`修饰的，它默认的也是 `private` 的
+- 枚举项的用法比较特殊：可以定义为`枚举名称("xxx")`，但定义构造方法
+- 枚举类也可以有抽象方法，但是枚举项必须重写该方法
+
+```java
+public class EnumDemo {
+
+    // 普通枚举
+    enum ColorEnum {
+        RED, GREEN, BLUE;
+    }
+
+    // 带属性的枚举，示例中的数字就是延伸信息，表示一年中的第几个季节。
+    enum SeasonEnum {
+        SPRING(1), SUMMER(2), AUTUMN(3), WINTER(4);
+
+        private final int seq;
+
+        SeasonEnum(int seq) {
+            this.seq = seq;
+        }
+
+        public int getSeq() {
+            return seq;
+        }
+    }
+
+    // 带抽象方法枚举，示例中的构造方法为类型的中文名称，在定义枚举值时需要实现抽象方法
+    enum PayTypeEnum {
+        WX_PAY("微信支付") {
+            @Override
+            public void doPay(BigDecimal money) {
+                System.out.println("微信支付: " + money);
+            }
+        }, ALI_PAY("支付宝支付") {
+            @Override
+            public void doPay(BigDecimal money) {
+                System.out.println("支付宝支付: " + money);
+            }
+        };
+
+        private final String name;
+
+        PayTypeEnum(String name) {
+            this.name = name;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        // 定义抽象方法
+        public abstract void doPay(BigDecimal money);
+    }
+}
+```
+
+## 5. 枚举底层实现
+
+### 5.1. 枚举编译后的代码
 
 创建一个`ColorEnum`的枚举类，通过编译，再反编译看看它发生了哪些变化。
 
@@ -2732,7 +2855,7 @@ public final class ColorEnum extends Enum{
 }
 ```
 
-### 2.2. 枚举的特点
+### 5.2. 枚举源码特点总结
 
 1. 枚举类被`final`修饰，因此枚举类不能被继承；
 2. 枚举类默认继承了`Enum`类，java不支持多继承，因此枚举类不能继承其他类；
@@ -2740,66 +2863,6 @@ public final class ColorEnum extends Enum{
 4. 枚举类的成员变量是`static`修饰的，可以用`类名.变量`来获取对象；
 5. `values()`方法是获取所有的枚举实例；
 6. `valueOf(java.lang.String)`是根据名称获取对应的实例；
-
-## 3. 枚举的基础使用
-
-### 3.1. 枚举类的定义格式
-
-```java
-enum 枚举名称 {
-    成员名称1, 成员名称2, 成员名称3
-}
-```
-
-<font color=red>**枚举的底层实现，枚举的底层是一个类继承了`Enum`**</font>
-
-### 3.2. 枚举的使用步骤
-
-1. 定义枚举类
-2. 在成员变量类型上面使用枚举类型
-3. 设置枚举值(如`WeekDay.FRI`)，语法即`枚举名称.成员`
-4. 可以做枚举比较`e.getResetDay() == WeekDay.STA`
-
-总结：<font color=red>**枚举的作用是用来表示几个固定的值，可以使用枚举中成员**</font>
-
-## 4. 枚举常用方法
-
-```java
-public final String name();
-```
-
-- 获得枚举名，返回此枚举常量的名称
-
-```java
-public static <T extends Enum<T>> T valueOf(Class<T> enumType, String name)
-```
-
-- 根据枚举名字符串获得枚举值对象。返回带指定名称的指定枚举类型的枚举常量。名称必须与在此类型中声明枚举常量所用的标识符完全匹配。（不允许使用额外的空白字符。）
-
-```java
-public final int ordinal()
-```
-
-- 返回此枚举常量的顺序（位置在枚举声明，在初始常数是零分序号）。不推荐使用，它被设计用于复杂的基于枚举的数据结构，比如 `EnumSet` 和 `EnumMap`
-
-```java
-public static <T extends Enum<T>> T[] values();
-```
-
-- 枚举中的一个特殊方法，可以将枚举类转变为一个该枚举类型的数组
-
-> <font color=red>*此方法虽然在JDK文档中查找不到，但每个枚举类都具有该方法，它遍历枚举类的所有枚举值非常方便*</font>
-
-## 5. 枚举注意事项
-
-- 定义枚举类要用关键字 `enum`
-- 所有枚举类都是 `Enum` 的子类（默认是`Enum`的子类，不需要（能）再写`extends Enum`）
-- 枚举值必须是枚举类的第一行有效语句。
-- 多个枚举值必须要用逗号(`,`)分隔。最后一个枚举项后的分号是可以省略的，但是如果枚举类有其他的东西，这个分号就不能省略。建议不要省略
-- 枚举类可以有构造方法，但必须是`private`修饰的，它默认的也是 `private` 的。
-- 枚举项的用法比较特殊：可以定义为枚举`(" xxx ")`，但定义构造方法。
-
-![](images/20201105085210521_20886.png)
 
 ## 6. 枚举的应用示例
 
@@ -2876,7 +2939,7 @@ public enum UtilEnum implements Util {
 String decryptMessage = UtilEnum.valueOf(type).decrypt();
 ```
 
-## 7. （扩展）枚举创建线程安全的单例模式
+### 6.2. 枚举创建线程安全的单例模式（扩展应用）
 
 ```java
 public enum  SingletonEnum {
@@ -2891,13 +2954,13 @@ public enum  SingletonEnum {
 
 这样一个单例模式就创建好了，通过`SingletonEnum.INSTANCE`来获取对象就可以了。
 
-### 7.1. 序列化造成单例模式不安全
+#### 6.2.1. 序列化造成单例模式不安全
 
 一个类如果如果实现了序列化接口，则可能破坏单例。每次反序列化一个序列化的一个实例对象都会创建一个新的实例。
 
 枚举序列化是由JVM保证的，每一个枚举类型和定义的枚举变量在JVM中都是唯一的，在枚举类型的序列化和反序列化上，Java做了特殊的规定：在序列化时Java仅仅是将枚举对象的name属性输出到结果中，反序列化的时候则是通过`java.lang.Enum`的`valueOf`方法来根据名字查找枚举对象。同时，编译器是不允许任何对这种序列化机制的定制的并禁用了`writeObject`、`readObject`、`readObjectNoData`、`writeReplace`和`readResolve`等方法，从而保证了枚举实例的唯一性。
 
-### 7.2. 反射造成单例模式不安全
+#### 6.2.2. 反射造成单例模式不安全
 
 通过反射强行调用私有构造器来生成实例对象，造成单例模式不安全。
 
@@ -2935,11 +2998,11 @@ IllegalArgumentException, InvocationTargetException
 
 如果是`enum`类型，则直接抛出异常`Cannot reflectively create enum objects`，无法通过反射创建实例对象！
 
-## 8. 枚举的治理（待整理）
+## 7. 枚举的治理（待整理）
 
-### 8.1. 为啥用枚举&为啥要对枚举进行治理
+### 7.1. 为啥用枚举&为啥要对枚举进行治理
 
-#### 8.1.1. 先来说说为啥用枚举
+#### 7.1.1. 先来说说为啥用枚举
 
 表中某个字段标识了这条记录的状态，我们往往使用一些code值来标识，例如01成功，00失败。
 
@@ -3005,7 +3068,7 @@ public enum Payment {
 }
 ```
 
-#### 8.1.2. 为啥要用java反射处理枚举呢？
+#### 7.1.2. 为啥要用java反射处理枚举呢？
 
 我们之前看到了，使用Constants很方便，可以直接通过这个类的静态字段拿到值。当我们使用枚举时，当枚举类逐渐增多时，我们会发现，不同的地方我们需要获取不同的类，然后再通过不同的枚举获取到不同的值。这又势必是个头痛的事情。
 
@@ -3017,11 +3080,11 @@ public enum Payment {
 
 改进二：通过一个类，把所有枚举在该类中注册，然后通过该类直接获取到相应的枚举值及name描述。
 
-### 8.2. 枚举治理的实现
+### 7.2. 枚举治理的实现
 
-#### 8.2.1. 先弄清我们使用枚举的场景
+#### 7.2.1. 先弄清我们使用枚举的场景
 
-##### 8.2.1.1. 通过枚举类中枚举名获取到枚举的code值（使用上面的枚举值定义）
+##### 7.2.1.1. 通过枚举类中枚举名获取到枚举的code值（使用上面的枚举值定义）
 
 例如：`{"Payment_WX":"010000","Payment_YL":"010002","Payment_ZFB":"010001"}`
 
@@ -3029,7 +3092,7 @@ public enum Payment {
 if(param.equals(Payment.Payment_WX.getCode()){}
 ```
 
-##### 8.2.1.2. 通过枚举类中枚举的code值获取到对应的name描述（使用上面的枚举值定义）
+##### 7.2.1.2. 通过枚举类中枚举的code值获取到对应的name描述（使用上面的枚举值定义）
 
 例如：`{"010002":"银联支付","010001":"支付宝支付","010000":"微信支付"}`
 
@@ -3037,7 +3100,7 @@ if(param.equals(Payment.Payment_WX.getCode()){}
 Payment.map.get(Payment.Payment_WX.getCode());
 ```
 
-#### 8.2.2. 枚举治理工具类的实现
+#### 7.2.2. 枚举治理工具类的实现
 
 ```java
 /**
@@ -3135,9 +3198,9 @@ public class VelocityEnumTools {
 }
 ```
 
-### 8.3. 枚举治理的扩展-velocity中使用枚举
+### 7.3. 枚举治理的扩展-velocity中使用枚举
 
-#### 8.3.1. 为什么会在velocity中使用枚举
+#### 7.3.1. 为什么会在velocity中使用枚举
 
 当涉及与前端的交互时，我们可能需要从前端把三种支付方式对应的code值传到后台。
 
@@ -3145,7 +3208,7 @@ public class VelocityEnumTools {
 
 故，为了解决后台可用，且前端页面直观，所以我们希望尝试在页面上直接用枚举来解决问题。
 
-#### 8.3.2. 看看页面如何处理（velocity页面中）
+#### 7.3.2. 看看页面如何处理（velocity页面中）
 
 ```js
 #set($payment=$enumTool.getCodeNameMapperInstance("Payment"))//直接写明要获取的枚举类型名称
@@ -3154,7 +3217,7 @@ public class VelocityEnumTools {
 #end
 ```
 
-#### 8.3.3. velocity中配置velocity-tools
+#### 7.3.3. velocity中配置velocity-tools
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>

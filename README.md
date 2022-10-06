@@ -384,10 +384,10 @@
 ## 并发编程
 
 <ul class="docs">
-  <li><a href="#/并发编程/并发基础-多线程">并发基础 多线程</a></li>
-  <li><a href="#/并发编程/并发编程01-常用API">并发编程 常用API</a></li>
-  <li><a href="#/并发编程/并发编程02-应用篇">并发编程 应用篇</a></li>
-  <li><a href="#/并发编程/并发编程03-原理篇">并发编程 原理篇</a></li>
+  <li><a href="#/并发编程/并发编程01-多线程">并发编程 - 多线程</a></li>
+  <li><a href="#/并发编程/并发编程02-应用篇">并发编程 - 应用篇</a></li>
+  <li><a href="#/并发编程/并发编程03-原理篇">并发编程 - 原理篇</a></li>
+  <li><a href="#/并发编程/并发编程99-常用API">并发编程 - 常用API</a></li>
 </ul>
 
 ## 性能调优
@@ -417,7 +417,6 @@
   <li><a href="#/其他/docsify">docsify 文档类型网站搭建工具</a></li>
   <li><a href="#/其他/Mermaid">Mermaid 基于 Javascript 的绘图语法</a></li>
   <li><a href="#/其他/Markdown">Markdown 参考笔记</a></li>
-  <li><a href="#/其他/Windows系统软件资料">Windows 系统软件资料</a></li>
 </ul>
 
 ## 收集的项目实战资料
