@@ -311,18 +311,84 @@ pause
 
 ## 4. windows 系统相关设置
 
-### 4.1. 常用默认的 Windows 系统环境变量
+### 4.1. 环境变量 (用户变量与系统变量)
 
-- `%SystemRoot%` 或者 `%WINDIR%`：操作系统根目录。如 C:\WINDOWS
-- `%APPDATA%`：列出应用程序数据的默认存放位置。如 C:\Users\用户名\AppData\Roaming
-- `%USERPROFILE%` 或者 `%HOMEPATH%`：用户主目录的完整路径（当前用户的配置文件的位置）。
+- 环境变量 (environment variables) 是在操作系统中用来指定操作系统运行环境的一些参数。环境变量是在操作系统中一个具有特定名字的对象，它包含了一个或者多个应用程序所将使用到的信息。Windows 和 DOS 操作系统中的 `path` 环境变量，当要求系统运行一个程序而没有告诉它程序所在的完整路径时，系统除了在当前目录下面寻找此程序外，还应到 `path` 中指定的路径去找。用户通过设置环境变量，来更好的运行进程。
 
-### 4.2. 常用系统位置
+环境变量可分为**用户变量**与**系统变量**两类，在注册表中都有对应的项。
 
-- window 系统的 hosts 文件位置：`%windir%\System32\drivers\etc`
-- win10 锁屏壁纸位置：`C:\Users\win10\AppData\Local\Packages\Microsoft.Windows.ContentDeliveryManager_cw5n1h2txyewy\LocalState\Assets`
+> Notes: 
+>
+> - <font color=purple>**环境变量不区分大小写**</font>
+> - 系统变量针对所有用户起作用，为了安全一般配置用户环境变量。
+> - 用户变量只对当前用户起作用，不建议为了省事而配置系统环境变量。
+> - 用户环境变量优先级高于系统环境变量。对于环境变量，系统会先检查用户变量，之后再检查系统变量。
 
-### 4.3. C盘可清理内容
+#### 4.1.1. 用户变量
+
+注册表中用户变量所在位置：`HKEY_CURRENT_USER\Environment`
+
+![](images/482504916221048.png)
+
+#### 4.1.2. 系统变量
+
+注册表中系统变量所在位置：`HKEY_LOCAL_MACHINE\SYSTEM\ControlSet001\Control\Session Manager\Environment`
+
+![](images/398395216239474.png)
+
+在原有变量 `Path` 的基础上添加英文状态下的分号，然后添加路径名。*不要删除原先的系统变量，只要用分号隔开，然后添加路径名，最后也要加上分号。*
+
+#### 4.1.3. 常用变量清单
+
+- `%COMMONPROGRAMFILES%` - `C:\Program Files\Common Files`
+- `%COMMONPROGRAMFILES(x86)%` - `C:\Program Files (x86)\Common Files`
+- `%COMSPEC%` - `C:\Windows\System32\cmd.exe`
+- `%HOMEDRIVE%` - `C:`
+- `%HOMEPATH%` 或 `%USERPROFILE%` - 用户主目录的完整路径（当前用户的配置文件的位置），如：`C:\Users\<username>`
+- `%SYSTEMROOT%` 或 `%WINDIR%` - 操作系统根目录。如：`C:\Windows`
+- `%PSMODULEPATH%` - `%SystemRoot%\system32\WindowsPowerShell\v1.0\Modules\`
+- `%TMP%` - `C:\Users\<username>\AppData\Local\Temp`
+- `%TEMP%` - `C:\Users\<username>\AppData\Local\Temp`
+- `%APPDATA%` - 列出应用程序数据的默认存放位置。如：`C:\Users\<username>\AppData\Roaming`
+- `%LOCALAPPDATA%` - `C:\Users\<username>\AppData\Local`
+- `%ALLUSERSPROFILE%` - `C:\ProgramData`
+- `%CD%` - Typing in this command will give you the current directory you are working in.
+- `%CMDEXTVERSION%` - This variable expands to the version of the command-line extensions.
+- `%DATE%` - This variable will give you the current date according to date format preferences.
+- `%ERRORLEVEL%` - Determines the error level set by last executing command.
+- `%LOGONSERVER%` - `\\<domain_logon_server>`
+- `%PATH%` - `C:\Windows\system32;C:\Windows;`
+- `%PATHEXT%` - `.com;.exe;.bat;.cmd;.vbs;.vbe;.js;.jse;.wsf;.wsh;.msc`
+- `%PROGRAMDATA%` - `C:\ProgramData`
+- `%PROGRAMFILES%` - `C:\Program Files`
+- `%PROGRAMW6432%` - `C:\Program Files`
+- `%PROGRAMFILES(X86)%` - `C:\Program Files (x86)`
+- `%PROMPT%` - `$P$G`
+- `%SYSTEMDRIVE%` - `C:`
+- `%TIME%` - Similarly, it gives you current time according to the time format preferences.
+- `%USERNAME%` - 当前系统用户名称
+- `%USERDOMAIN%` - Userdomain associated with current user.
+- `%USERDOMAIN_ROAMINGPROFILE%` - Userdomain associated with roaming profile.
+- `%PUBLIC%` - `C:\Users\Public`
+- `%ONEDRIVE%` - `C:\Users\<username>\OneDrive`
+- `%CMDCMDLINE%` - Outputs command line used to launch the current Command Prompt session.
+- `%COMPUTERNAME%` - Outputs the system name.
+- `%PROCESSOR_REVISION%` - Outputs processor revision.
+- `%PROCESSOR_IDENTIFIER%` - Outputs processor identifier.
+- `%PROCESSOR_LEVEL%` - Outputs processor level.
+- `%RANDOM%` - This variable prints a random number from 0 through 32767
+- `%NUMBER_OF_PROCESSORS%` - Outputs the number of physical and virtual cores.
+- `%OS%` - Windows_NT
+
+### 4.2. hosts 文件
+
+window 系统的 hosts 文件位置：`%windir%\System32\drivers\etc`
+
+### 4.3. win10 锁屏壁纸位置
+
+路径：`%HOMEPATH%\AppData\Local\Packages\Microsoft.Windows.ContentDeliveryManager_cw5n1h2txyewy\LocalState\Assets`
+
+### 4.4. C盘可清理内容
 
 1. **PerfLogs**文件夹，系统的信息日志，文件夹可删。
 2. **Windows**文件夹
@@ -330,20 +396,20 @@ pause
     - `C:\Windows\Help`，帮忙文件，可删
 3. **用户**文件夹：`C:\Users\用户名称\AppData\Local\Temp`。这个是Windows存留安装软件时解压的源文件，方便下次安装直接调取使用，节省解压时间，可删除。
 
-### 4.4. win7 系统的Temporary Internet Files清空问题
+### 4.5. win7 系统的Temporary Internet Files清空问题
 
 1. `cmd.exe`
 2. `cd AppData\Local\Microsoft\Windows\Temporary Internet Files`（或者如果有Content.IE5目录的话，cd Content.IE5）
 3. `del /s/q/f *.*`
 
-### 4.5. 备份开始菜单
+### 4.6. 备份开始菜单
 
 1. 按下Win+R打开运行窗口，输入命令powershell，然后点击确定按钮
 2. 这时就会打开Windows Powershell窗口，在这里输入命令`Export-startlayout –path E:\start.xml`，可以根据自己实际情况来设置相应的路径
 3. 按下回车键后，就会备份好开始菜单的布局文件
 4. 如果需要恢复开始菜单布局的话，只需要再次打开Windows Powershell命令行窗口，然后输入命令`import-startlayout -layoutpath E:\start.xml -mountpath c:`，按下回车键后，就会马上把其还原回来了
 
-### 4.6. 电脑护眼颜色设置
+### 4.7. 电脑护眼颜色设置
 
 win7系统：
 
@@ -357,7 +423,7 @@ win10系统：
 2. 按照如下顺序找到windows：[HKEY_CURRENT_USER\Control Panel\Colors] windows。双击windows 进入编辑状态 将原本数值删除并输入：`202 234 206`。点击确定退出注册表。
 3. 按照如下顺序找到 window：[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Themes\DefaultColors\Standard]。双击 window 打开编辑窗口，默认是勾选十六进制（若不是请勾选十六进制），将原始数据改为：`caeace`。点击确定退出注册表。
 
-### 4.7. 这个可能与ACHI有关系吧。你先去修改到 compatible（兼容模式）进入系统
+### 4.8. 这个可能与ACHI有关系吧。你先去修改到 compatible（兼容模式）进入系统
 
 AHCI开启方法：
 
@@ -367,7 +433,7 @@ AHCI开启方法：
 4. 然后出来看看BIOS里面的硬盘模式，修改为ACHI后（如果没有就算了）
 5. 然后在把SATA Operation Mode改为 enhanced（增强模式）
 
-### 4.8. NSIS：使用netsh advfirewall屏蔽某程序访问网络
+### 4.9. NSIS：使用netsh advfirewall屏蔽某程序访问网络
 
 - 关闭防火墙
 
@@ -393,12 +459,12 @@ nsExec::Exec 'cmd /c netsh advfirewall firewall Delete rule name="TIM"'
 nsExec::Exec 'cmd /c netsh advfirewall firewall add rule name="TIM" dir=out action=block program="C:\Program Files\TIM Lite\Bin\TIM.exe"'
 ```
 
-### 4.9. 删掉 WIN10 回收站右键菜单的固定到＂开始＂屏幕！
+### 4.10. 删掉 WIN10 回收站右键菜单的固定到＂开始＂屏幕！
 
 - 删除：打开注册表，定位到 `HKEY_LOCAL_MACHINE\SOFTWARE\Classes\Folder\shellex\ContextMenuHandlers`，删除其子键 `PintoStartScreen`
 - 恢复：在 `HKEY_LOCAL_MACHINE\SOFTWARE\Classes\Folder\shellex\ContextMenuHandlers` 上单击右键，新建项 `PintoStartScreen`，修改其默认值为 `{470C0EBD-5D73-4d58-9CED-E91E22E23282}`
 
-### 4.10. 限制保留宽带设置
+### 4.11. 限制保留宽带设置
 
 1. 按“WIN+R”，打开【运行】对话框；
 2. 输入“regedit”，回车，打开注册表编辑器；
@@ -407,7 +473,7 @@ nsExec::Exec 'cmd /c netsh advfirewall firewall add rule name="TIM" dir=out acti
 5. 计算机配置－管理模板－网络－qos数据包计划程序－限制保留宽带
 6. 选择已启用。一般默认是20，直接把它改成0。
 
-### 4.11. win10 系统任务栏设置时间显示秒
+### 4.12. win10 系统任务栏设置时间显示秒
 
 1. 按“WIN+R”，打开【运行】对话框；
 2. 输入“regedit”，回车，打开注册表编辑器；
@@ -419,12 +485,12 @@ nsExec::Exec 'cmd /c netsh advfirewall firewall add rule name="TIM" dir=out acti
 
 > Notes: 微软承认 win 11 系统中，删除了注册表值“`ShowSecondsInSystemClock`”，该值允许任务栏时钟以秒为单位显示时间。如果时间需要显示秒，需要安装第三方软件
 
-### 4.12. Win10系统删除无用的服务
+### 4.13. Win10系统删除无用的服务
 
 1. 运行 -> `regedit`，打开注册表编辑器
 2. 定位到【计算机\HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services】，选择服务名称，右键删除即可
 
-### 4.13. 修改window默认系统安装目录
+### 4.14. 修改window默认系统安装目录
 
 Windows10系统更改软件程序默认安装目录的方法
 
@@ -440,7 +506,7 @@ Windows10系统更改软件程序默认安装目录的方法
 3. 在存储对应的右侧窗口，用鼠标左键按住右侧的滑块向下拖动，找到：保存位置，在保存位置下，点击：新的应用将保存到此电脑（C:）后面的小勾
 4. 修改成D盘。之后打开磁盘(D:\)，可以看到磁盘(D:\)中新增了三个文件夹：MoonZero（用户文件：文档、音乐、图片和视频）、Program Files（程序文件）和Windows Apps（窗口应用程序）；
 
-### 4.14. win10一般禁用的服务
+### 4.15. win10一般禁用的服务
 
 1. 运行输入【services.msc】打开服务面板，禁用以下服务
     1. Connected User Experiences and Telemetry
@@ -454,7 +520,7 @@ Windows10系统更改软件程序默认安装目录的方法
 3. 点击“设置” --> “更新与安全” --> “Windows预览体验计划”，退出Windows Insider计划。
 4. 右击任务栏空白处选择“任务管理器”，切换到“启动”标签，将没必要的自启动程序全部禁用。
 
-### 4.15. 修复win10右键无新建txt文本文件
+### 4.16. 修复win10右键无新建txt文本文件
 
 ```bat
 Windows Registry Editor Version 5.00
@@ -472,11 +538,11 @@ Windows Registry Editor Version 5.00
 
 打开记事本，复制以上内容，另存为`xxx.reg`。点击文件，确认操作后，重启电脑生效
 
-### 4.16. 关闭cmd命令行窗口的中文输入法
+### 4.17. 关闭cmd命令行窗口的中文输入法
 
 运行`regedit`命令，打开注册表窗口，修改注册表：`HKEY_CURRENT_USER\Console\LoadConIme` 的键值由`1`改为`0`
 
-### 4.17. 修改cmd/powershell命令行窗口默认编码
+### 4.18. 修改cmd/powershell命令行窗口默认编码
 
 **临时修改**
 
@@ -487,7 +553,7 @@ Windows Registry Editor Version 5.00
 - **修改powershell默认编码**：运行`regedit`命令打开注册表，展开注册表`计算机\HKEY_CURRENT_USER\Console`项。选择powershell，点击修改右边窗口中`CodePage`项，选择十进制，修改值为`65001`。修改后就每次启动都默认改成UTF-8的编码
 - **修改cmd编码**：运行`regedit`命令打开注册表，展开注册表`计算机\HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Command Processor`项。如果右边窗口没有`autorun`字符串值，则右键新建字符串值，数值名称：`autorun`，数值数据：`chcp 65001`。修改后就每次启动都默认改成UTF-8的编码
 
-### 4.18. 彻底关闭Cortana小娜
+### 4.19. 彻底关闭Cortana小娜
 
 - **关闭Cortana小娜的权限**
 
@@ -505,7 +571,7 @@ Win10的设置菜单 -> "应用" -> 在应用列表中搜索找到Cortana -> 高
 Get-AppxPackage -allusers Microsoft.549981C3F5F10 | Remove-AppxPackage
 ```
 
-### 4.19. 关闭 Win11/ Win 10 内存压缩
+### 4.20. 关闭 Win11/ Win 10 内存压缩
 
 Win11默认开启了内存压缩功能。可以压缩内存中的数据，让内存占用更少，同时减少Swap频次，带来更高的I/O效率。但CPU性能较弱的设备，例如轻薄本，开启内存压缩可能会造成卡顿缓慢。同时，内存压缩需要消耗额外的CPU资源，带来更多耗电发热，这对注重续航的设备来说也是不合适的。
 
@@ -514,13 +580,13 @@ Win11默认开启了内存压缩功能。可以压缩内存中的数据，让内
 - **关闭内存压缩**。使用系统管理员权限，打开PowerShell，然后输入命令 `Disable-MMAgent -mc` 后，重启系统，内存压缩就关闭了。
 - **重新打开内存压缩**。使用系统管理员权限，打开PowerShell，然后输入命令 `Enable-MMAgent -mc` 后，重启系统，内存压缩就重新开启。
 
-### 4.20. 清除电脑的运行记录
+### 4.21. 清除电脑的运行记录
 
 1. win+R 打开运行窗口，输入 `regedit` 打开注册表编辑器
 2. 展开 `HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\RunMRU`在右侧除了默认
 3. 将其他选项都删除掉
 
-### 4.21. 删除资源管理器中“此电脑”下面多余的图标
+### 4.22. 删除资源管理器中“此电脑”下面多余的图标
 
 1. WIN+R 打开运行窗口，输入 `regedit` 打开注册表编辑器
 2. 在注册表中定位到：`HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace` 项

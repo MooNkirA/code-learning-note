@@ -77,7 +77,7 @@ java -jar E:\deployment-environment\zipkin\zipkin-server-2.23.16-exec.jar
 - 版本：5.15.3
 - 安装位置：`E:\deployment-environment\apache-activemq-5.15.3\`
 - 端口：61616/8161/5672/61613/61614/1883
-- 后台访问地址： http://127.0.0.1:8161
+- 管理后台地址： http://127.0.0.1:8161
 - 账号/密码：admin/admin
 - 启动命令：
 
@@ -145,7 +145,7 @@ cd /d E:\kafka_2.13-2.8.1\
 - 占用的端口：8070（`apollo-portal`）, 8080（`apollo-configservice`）, 8090（`apollo-adminservice`）
 - 账号/密码：
     - apollo/admin（默认）
-    - - moon/123456
+    - moon/123456
 
 #### 1.10.2. 启动脚本
 
@@ -519,29 +519,18 @@ yum install jenkins
 - username: moon
 - pw: 123456
 
-## 7. git
+## 7. linux 系统远程 git 仓库
 
-- linux系统远程仓库地址：ssh://git@192.168.217.128/home/git/mytest.git
-- 用户名：git   密码：git
+- 地址：ssh://git@192.168.217.128/home/git/mytest.git
+- 用户名/密码：git/git
 
-## 8. ActiveMQ
+## 8. 开启服务
 
-- 端口号：8161
-- 启动访问：http://localhost:8161/admin
-- 账号密码都是admin
+- MySQL 手动开启--服务名称：`MySQL`
+- nexus Maven私服 手动开启--服务名称：`nexus-webapp`
+- VisualSVN Server 手动开启--服务名称：`VisualSVNServer`
 
-## 9. 常用网址
-
-- web服务：http://www.webxml.com.cn/zh_cn/index.aspx
-	- 天气预报接口：http://ws.webxml.com.cn/WebServices/WeatherWS.asmx?wsdl
-
-## 10. 开启服务
-
-- MySQL 手动开启--服务名称：MySQL
-- nexus Maven私服 手动开启--服务名称：nexus-webapp
-- VisualSVN Server 手动开启--服务名称：VisualSVNServer
-
-## 11. maven私服配置(setting.xml)
+## 9. maven私服配置(setting.xml)
 
 - 说明：以下两个配置都需要在教室使用。
 
@@ -550,20 +539,19 @@ yum install jenkins
 3. 阿里云仓库地址，可以上外网的情况下使用（大家以后在工作中，可以使用这个，下载速度要比maven中央仓库快）
 
 ```xml
-
-外网使用（在教室，使用学校分配的帐号登录上网以后使用）：
+<!-- 外网使用（在教室，使用学校分配的帐号登录上网以后使用）：-->
 <mirror>
 	<id>nexus</id>
 	<mirrorOf>*</mirrorOf>
 	<url>http://172.16.2.20:8081/nexus/content/repositories/central/</url>
  </mirror>
-内网使用（在教室，不能上网使用）：
+<!-- 内网使用（在教室，不能上网使用）：-->
 <mirror>
 	<id>nexus</id>
 	<mirrorOf>*</mirrorOf>
 	<url>http://192.168.50.20:8081/nexus/content/repositories/central/</url>
  </mirror>
- 阿里云（只要可以上网，就能使用）：
+<!-- 阿里云（只要可以上网，就能使用）：-->
 <mirror>
   <id>nexus</id>
   <mirrorOf>*</mirrorOf>
@@ -802,130 +790,3 @@ mysql-connector-java-5.1.44
 <script type="text/javascript" src="../../../js/jquery.ztree.core-3.5.js"></script>
 <script type="text/javascript" src="../../../js/jquery.ztree.excheck-3.5.js"></script>
 ```
-
-# 【待处理】
-
-## 1. 学习遗留问题
-
-- Day04Exercise2_04
-	- 为什么for循环会提示超出数组范围
-- day12 test01_06_07
-- day13 test10 使用递归
-- day14
-- day15
-- day16训练案例6 优化
-- day17 test01 修改
-- day18 test02_03后 、做一下BeanUtils的日期转换器
-- day19 test01_02后
-- day20 Day20Test02_01需要修改
-- day21 关卡2题目1 倒序显示、关卡3题目1
-- day22 关卡3题目2
-- day23 关卡3题目1
-- day24 关卡3题目1
-- day25 关卡3题目1
-- day29 关卡3题目2
-- day30 结合课堂案例：制作会动的时钟
-- day31 关卡2
-- day32 剩下两个文档
-- day38 完善添加图书案例，将添加的图书显示在添加的页面中。
-- day40 选做：实现简易版本购物车/作业的最后一题动物管理系统
-- day41 人力管理系统增加filter过滤
-- 添加数据：增加返回值，判断是否新增成功
-- 在数据库没有数据时，查询所有会报错
-- 修改批量删除
-
-```
-上网查询一下关于日期的正则表达式。
-/^((?:19|20)\d\d)-(0[1-9]|1[012])-(0[1-9]|[12][0-9]|3[01])$/
-""''
-
-
-综合案例：商品管理系统
-http://localhost:8080/ECSystem/admin/home.jsp
-http://localhost:8080/ECSystem_page/admin/home.jsp
-
-javaweb综合项目
-​	第一次：http://localhost:8080/javawebshop/
-​	后台版：http://localhost:8080/javaweb_back
-​	在线支付版：http://localhost:8080/javawebshop_pay
-​	第二次练习：http://localhost:8080/testShop/
-待优化项：修改购物车商品数量是不能为负数或0
-
-linux部署项目
-http://192.168.34.128:8080/day47_EasyUI
-
-使用Jquery判断价格不能为负数
-优化：在ProductService层进行那个筛选条件的判断。然后再传递那个拼接好的sql语句和占位符参数数组
-
-
-补充day61最后内容
-
-day68-spring-05-aop-hibernate-annotation ,无法同时查询再修改？
-
-day71-crm系统整合中没有放入此包：commons-beanutils-1.8.3.jar
-
-查询OGNL回显的解释
-新增客户，如果不选择下拉框，会触发外键约束，报错
-查询pageBean定义方式
-```
-
-## 2. 项目一
-
-### 2.1. 项目一各系统网址
-
-- 后台系统：localhost:8080/ilcps_web
-	- 角色权限树需要开启redis
-- 电子报运功能（模拟平台,使用）：localhost:8000/jk_export
-	- 电子报运功能需要开启海关项目，（修改了eclipse中的tomcat端口）
-- 消息队列系统：localhost:8081/ilcps_jms
-	- 需要开启activeMQ服务器
-- redis
-	- IP（虚拟机）:192.168.187.10
-	- 端口号：6379
-- oracle
-  - IP（虚拟机）:192.168.187.10
-  - 端口号：1521
-- 前端系统：localhost:9000/
-
-### 2.2. 项目一需要补充的问题：
-
-1. 补充新增用户页面直属领导。。
-2. 修复新增角色，需要判断数据库是否存在此角色
-3. 优化：生成报运单中，修改合同的已报运状态
-
-```
-// ***!!!!从货物对象中获取合同（货物对象是从数据库出现，是持久态）
-// 将购销合同状态设置为2：已报运（但存在问题，会出现多次修改）
-cp.getContract().setState(2);
-```
-
-4. 补充报运单的删除功能
-5. 补充货物附件增删改功能
-6. 补充购销合同条件查询功能
-7. 优化交期发送提醒邮件的功能
-8. 增加shiro功能需求
-    1. 整合EhCache。如果在校验权限的时候不走Realm的授权方法。说明整合成功了。校验权限只在登录的时候走一次授权的方法。之后都是从缓存里面读取了。如果缓存修改了，就重新走一次授权的方法。
-    2. 同步更新用户权限。在一个浏览器用户A(超级管理员)里面修改另外一个浏览器用户B(普通用户)的权限，在用户B不重新登录的情况下，失去操作的权限。
-9. 整理项目使用过的相关工具类
-
-### 2.3. 项目一实战登陆网址
-
-- 【消息系统】http://localhost:9000/
-- 【前端系统】http://localhost:8090/
-- 【后台系统】http://localhost:8080/ilcps_web
-
-【SVN】
-
-- Repository Type: FSFS
-- Repository Name: ilcps
-- Repository URL:
-    - https://192.168.83.22:8888/svn/ilcps/trunk
-    - https://MoonKirA:8888/svn/ilcps/trunk
-
-### 2.4. 后面需要整合的代码
-
-1. 4个核心模块，（装箱单模块）
-2. 登录日志的添加，登陆IP次数的统计图（前10名）
-	- 04_onlineIpCount.html 页面
-	- StatChartAction.java增加需求4方法、接口、实现类
-	- 增加LoginLog对象对应数据库的表

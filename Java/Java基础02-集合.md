@@ -787,7 +787,7 @@ public ArrayList(Collection<? extends E> c) {
 
 ### 4.3. 主干方法
 
-#### 4.3.1. `trimToSize()`方法
+#### 4.3.1. trimToSize() 方法
 
 > 用来最小化实例存储，将容器大小调整为当前元素所占用的容量大小。
 
@@ -805,7 +805,7 @@ public void trimToSize() {
 }
 ```
 
-#### 4.3.2. `clone()`方法
+#### 4.3.2. clone() 方法
 
 > 用来克隆出一个新数组。
 
@@ -825,7 +825,7 @@ public Object clone() {
 
 通过调用`Object`的`clone()`方法来得到一个新的`ArrayList`对象，然后将`elementData`复制给该对象并返回。
 
-#### 4.3.3. `add(E e)`方法
+#### 4.3.3. add(E e) 方法
 
 > 在数组末尾添加元素
 
@@ -925,7 +925,7 @@ public static void main(String[] args) {
 
 ------
 
-#### 4.3.4. `add(int index, E element)`方法
+#### 4.3.4. add(int index, E element) 方法
 
 ```java
 public void add(int index, E element) {
@@ -939,7 +939,7 @@ public void add(int index, E element) {
 }
 ```
 
-rangeCheckForAdd()是越界异常检测方法。`ensureCapacityInternal()`之前有讲，着重说一下`System.arrayCopy`方法：
+`rangeCheckForAdd()` 是越界异常检测方法。`ensureCapacityInternal()`之前有讲，着重说一下`System.arrayCopy`方法：
 
 ```java
 public static void arraycopy(Object src, int srcPos, Object dest, int destPos, int length)
@@ -966,7 +966,7 @@ private void rangeCheckForAdd(int index) {
 }
 ```
 
-#### 4.3.5. `set(int index, E element)`方法
+#### 4.3.5. set(int index, E element) 方法
 
 ```java
 public E set(int index, E element) {
@@ -984,7 +984,7 @@ E elementData(int index) {
 
 逻辑很简单，覆盖旧值并返回。
 
-#### 4.3.6. `indexOf(Object o)`方法
+#### 4.3.6. indexOf(Object o) 方法
 
 > 根据Object对象获取数组中的索引值。
 
@@ -1007,7 +1007,7 @@ public int indexOf(Object o) {
 
 注意：通过源码可以看到，该方法是允许传空值进来的。
 
-#### 4.3.7. `get(int index)`方法
+#### 4.3.7. get(int index) 方法
 
 > 返回指定下标处的元素的值。
 
@@ -1021,7 +1021,7 @@ public E get(int index) {
 
 `rangeCheck(index)`会检测index值是否合法，如果合法则返回索引对应的值。
 
-#### 4.3.8. `remove(int index)`方法
+#### 4.3.8. remove(int index) 方法
 
 > 删除指定下标的元素。
 
@@ -1249,14 +1249,20 @@ E getLast();
 
 - **数据结构实现**：ArrayList 是动态数组的数据结构实现，而 LinkedList 是双向链表的数据结构实现。
 - **随机访问效率**：ArrayList 比 LinkedList 在随机访问的时候效率要高，因为 LinkedList 是线性的数据存储方式，所以需要移动指针从前往后依次查找。
-- **增加和删除效率**：在非首尾的增加和删除操作，LinkedList 要比 ArrayList 效率要高，因为 ArrayList 增删操作要影响数组内的其他数据的下标。
-- **内存空间占用**：LinkedList 比 ArrayList 更占内存，因为 LinkedList 的节点除了存储数据，还存储了两个引用，一个指向前一个元素，一个指向后一个元素。
+- **增加和删除效率**：
+    - 在非首尾的增加和删除操作，LinkedList 要比 ArrayList 效率要高，因为 ArrayList 的扩容机制的存在，增删操作时超出存储长度时，需要新建数组，再将原数组中的数据复制到新数组中。要影响数组内的其他数据的下标。
+    - 但如果在 ArrayList 指定了合适的初始容量，并且使用尾部插入数据（没有触发数组的扩展）时，会极大提升性能，甚至超过 LinkedList（增删操作还需要创建大量的 node 对象）的效率
+- **内存区域与空间占用**：
+    - LinkedList 比 ArrayList 更占内存，因为 LinkedList 的节点除了存储数据，还存储了两个引用，一个指向前一个元素，一个指向后一个元素。
+    - ArrayList 是连续内存存储；而 LinkedList 分散在内存中，
 - **线程安全**：ArrayList 和 LinkedList 都是不同步的，也就是不保证线程安全；
 
-选择建议：
+一些类型选择与使用建议：
 
 - 如果需要大量非首尾增删元素，则建议使用 LinkedList
 - 如果只是遍历查询元素，不进行增删操作，则建议使用 ArrayList
+- <font color=red>**遍历 LinkedList 必须使用 Iterator 而不使用 for 循环，因为每次 for 循环体内通过 `get(i)` 方法获取指定元素时，需要对整个集合重新进行遍历，性能消耗极大**</font>
+- 尽量不要试图使用 `indexOf` 等方法返回元素的索引，并利用其进行遍历。使用 `indexOf` 对集合进行遍历，当结果为空时会遍历整个集合。
 
 ## 6. 集合与数组之间的转换
 
