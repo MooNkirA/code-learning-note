@@ -1,6 +1,6 @@
-# java-develop 本地开发资源信息
+# 个人开发环境资源信息
 
-> Java 本地开发资源信息（开发环境密码、连接地址、端口等信息）
+> 本地开发搭建的环境信息资源信息（开发环境密码、连接地址、端口等信息）
 
 ## 1. 本地开发软件
 
@@ -790,3 +790,5 @@ mysql-connector-java-5.1.44
 <script type="text/javascript" src="../../../js/jquery.ztree.core-3.5.js"></script>
 <script type="text/javascript" src="../../../js/jquery.ztree.excheck-3.5.js"></script>
 ```
+
+

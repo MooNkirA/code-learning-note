@@ -426,6 +426,7 @@
   <li><a href="#/其他/docsify">docsify 文档类型网站搭建工具</a></li>
   <li><a href="#/其他/Mermaid">Mermaid 基于 Javascript 的绘图语法</a></li>
   <li><a href="#/其他/Markdown">Markdown 参考笔记</a></li>
+  <li><a href="#/其他/Develop-Environment">个人开发环境搭建资源信息文档</a></li>
 </ul>
 
 ## 收集的项目实战资料
