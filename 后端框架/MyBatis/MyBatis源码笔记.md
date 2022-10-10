@@ -183,7 +183,7 @@ BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(new Fil
 ### 3.1. 日志模块需求分析
 
 1. MyBatis 没有提供日志的实现类，需要接入第三方的日志组件，但第三方日志组件都有各自的 Log 级别，且各不相同，而 MyBatis 统一提供了 trace、debug、warn、error 四个级别；
-2. 自动扫描日志实现，并且第三方日志插件加载优先级如下：slf4J --> commonsLoging --> Log4J2 --> Log4J --> JdkLog;
+2. 自动扫描日志实现，并且第三方日志插件加载优先级如下：slf4J -> commonsLoging -> Log4J2 -> Log4J -> JdkLog;
 3. 日志的使用要优雅的嵌入到主体功能中
 
 ### 3.2. 适配器模式
