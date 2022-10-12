@@ -1050,9 +1050,15 @@ public E remove(int index) {
 
 ### 4.4. 集合的快速失败机制 “fail-fast”
 
-“fail-fast” 是当多个线程对  java 集合进行结构上的改变的操作时的一种错误检测机制。
+“fail-fast”，即快速失败，它是 Java 集合的一种错误检测机制。当多个线程对集合（非 fail-safe 的集合类）进行结构上的改变的操作时，有可能会产生 fail-fast 机制，这个时候就会抛出 ConcurrentModificationException（当方法检测到对象的并发修改，但不允许这种修改时就抛出该异常）。
 
-例如：假设存在两个线程（线程1、线程2），线程1通过 Iterator 在遍历集合A中的元素，在某个时候线程2修改了集合A的结构（是结构上面的修改，而不是简单的修改集合元素的内容），那么这个时候程序就会抛出 `ConcurrentModificationException` 异常，从而产生fail-fast机制。以下参考 `ArrayList` 源码的处理：
+<font color=red>**同时需要注意的是，即使不是多线程环境，如果单线程违反了规则，同样也有可能会抛出改异常。**</font>
+
+例如：假设存在两个线程（线程1、线程2），线程1通过 Iterator 在遍历集合A中的元素，在某个时候线程2修改了集合A的结构（是结构上面的修改，而不是简单的修改集合元素的内容），那么这个时候程序就会抛出 `ConcurrentModificationException` 异常，从而产生fail-fast机制。
+
+#### 源码分析
+
+以下参考 `ArrayList` 源码的处理：
 
 ```java
 public void forEach(Consumer<? super E> action) {
@@ -1070,16 +1076,55 @@ public void forEach(Consumer<? super E> action) {
 }
 ```
 
-通过源码分析可知异常的原因：迭代器在遍历时直接访问集合中的内容，并且在遍历过程中使用一个 `modCount` 变量。集合在被遍历期间如果内容发生变化，就会改变 `modCount` 的值。每当迭代器使用`hashNext()`/`next()` 遍历下一个元素之前，都会检测 `modCount` 变量是否为 `expectedmodCount` 值，是的话就返回遍历；否则抛出异常，终止遍历。
+通过源码分析可知异常的原因：迭代器在遍历时直接访问集合中的内容，并且在遍历过程中使用一个 `modCount` 成员变量，它表示该集合实际被修改的次数。集合在被遍历期间如果内容发生变化，就会改变 `modCount` 的值。
 
-解决办法如下：
+`expectedModCount` 是 ArrayList 中的一个内部类 - `Itr` 中的成员变量（`Itr` 是一个 Iterator 的实现，使用 `ArrayList.iterator` 方法可以获取到的迭代器就是 Itr 类的实例。）。`expectedModCount` 表示这个迭代器期望该集合被修改的次数。其值是在 `ArrayList.iterator` 方法被调用的时候初始化的。只有通过迭代器对集合进行操作，该值才会改变。
 
-1. 在遍历过程中，所有涉及到改变 `modCount` 值得地方全部加上 `synchronized`
-2. 使用 `CopyOnWriteArrayList` 来替换 `ArrayList`
+每当迭代器使用`hashNext()`/`next()` 遍历下一个元素之前，都会检测 `modCount` 变量是否为 `expectedmodCount` 值，是的话就返回遍历；否则抛出异常，终止遍历。
 
+#### 对集合进行 add/remove 正常操作方式：
 
+1. 直接使用普通 for 循环进行操作，因为普通 for 循环并没有用到 Iterator 的遍历，所以压根就没有进行 fail-fast 的检验。但这种方案其实存在一个问题，那就是 remove 操作会改变 List 中元素的下标，可能存在漏删的情况。
+2. 直接使用 Iterator 提供的 `remove` 方法进行操作。该方法可以修改到 `expectedModCount` 的值，那么就不会再抛出异常了。
 
+```java
+List<String> userNames = new ArrayList<String>() {{
+    add("MooN");
+    add("Zero");
+    add("L");
+    add("kirA");
+}};
 
+Iterator<String> iterator = userNames.iterator();
+while (iterator.hasNext()) {
+    if (iterator.next().equals("L")) {
+        iterator.remove();
+    }
+}
+```
+
+3. 使用 Java 8 中 Stream 提供的 filter 过滤
+4. 使用增强 for 循环，并且非常确定在一个集合中，某个即将删除的元素只包含一个的时候（比如对 `Set` 集合进行操作），只要在删除元素后立刻结束循环体，不再继续进行遍历，也就是说不让代码执行到下一次的 next 方法。
+
+```java
+List<String> userNames = new ArrayList<String>() {{
+    add("MooN");
+    add("Zero");
+    add("L");
+    add("kirA");
+}};
+
+for (String userName : userNames) {
+    if (userName.equals("L")) {
+        userNames.remove(userName);
+        break;
+    }
+}
+```
+
+5. 直接使用 fail-safe 的集合类，例如使用 `CopyOnWriteArrayList`、`ConcurrentLinkedDeque` 等来替换 `ArrayList`。这种集合容器在遍历时不是直接在集合内容上访问的，而是先复制原有集合内容，在拷贝的集合上进行遍历，因此在遍历过程中对原集合所作的修改并不能被迭代器检测到，所以不会触发 `ConcurrentModificationException`。
+> Tips: java.util.concurrent 包下的容器都是安全失败，可以在多线程下并发使用，并发修改。
+6. 在遍历过程中，所有涉及到改变 `modCount` 值得地方全部加上 `synchronized`
 
 ### 4.5. 手写ArrayList(网上资料)
 
