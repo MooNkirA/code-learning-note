@@ -3281,7 +3281,7 @@ $payment.get("Payment_WX")
 4. 网络接口层
 
 ![](images/146613316227164.png)
-  
+
 如上图所示，OSI 七层协议模型中，表示层做的事情主要就是对应用层的用户数据进行处理转换为二进制流。反过来的话，就是将二进制流转换成应用层的用户数据。因此，OSI 七层协议模型中的应用层、表示层和会话层对应的都是 TCP/IP 四层模型中的应用层，所以**序列化协议属于 TCP/IP 协议应用层的一部分**。
 
 ### 1.2. 实际开发中序列化和反序列化的应用场景
@@ -3290,9 +3290,11 @@ $payment.get("Payment_WX")
 2. 将对象存储到文件中的时候需要进行序列化，将对象从文件中读取出来需要进行反序列化
 3. 将对象存储到缓存数据库（如 Redis）时需要用到序列化，将对象从缓存数据库中读取出来需要反序列化
 
-## 2. Serializable - 序列化接口
+## 2. 序列化接口
 
-### 2.1. 概述
+### Serializable
+
+#### 概述
 
 ```java
 package java.io;
@@ -3301,13 +3303,32 @@ public interface Serializable {
 }
 ```
 
-`Serializable`接口，没有任何方法，该接口属于标记性接口。接口的作用是，能够保证实现了该接口的类的对象可以直接被序列化到文件中
+`Serializable`接口，没有任何方法，该接口属于标记性接口，仅用于标识可序列化的语义。接口的作用是，能够保证实现了该接口的类的对象可以直接被序列化到文件中
 
 > Notes: <font color=red>**被保存的对象要求实现 `Serializable` 接口，否则不能直接保存到文件中。否则会出现`java.io.NotSerializableException`。**</font>
 
-### 2.2. serialVersionUID 概述
+#### serialVersionUID 概述
+
+序列化是将对象的状态信息转换为可存储或传输的形式的过程。虚拟机是否允许反序列化，不仅取决于类路径和功能代码是否一致，一个非常重要的一点是两个类的序列化 ID 是否一致，这个所谓的序列化 ID，就是在代码中定义的 `serialVersionUID`。
 
 序列化号 serialVersionUID 属于版本控制的作用。序列化的时候 serialVersionUID 也会被写入二级制序列，当反序列化时会检查 serialVersionUID 是否和当前类的 serialVersionUID 一致。如果 serialVersionUID 不一致则会抛出 `InvalidClassException` 异常。强烈推荐每个序列化类都手动指定其 serialVersionUID，如果不手动指定，那么编译器会动态生成默认的序列化号
+
+### Externalizable
+
+Java 中还提供了 `Externalizable` 接口，也可以实现它来提供序列化能力。
+
+```java
+package java.io;
+
+public interface Externalizable extends java.io.Serializable {
+    
+    void writeExternal(ObjectOutput out) throws IOException;
+
+    void readExternal(ObjectInput in) throws IOException, ClassNotFoundException;
+}
+```
+
+`Externalizable` 继承自 Serializable，该接口中定义了两个抽象方法：`writeExternal()` 与 `readExternal()`。当使用 `Externalizable` 接口来进行序列化与反序列化的时候需要开发人员重写该方法。否则所有变量的值都会变成默认值。
 
 ## 3. 对象序列化流 ObjectOutputStream 类
 
@@ -3395,7 +3416,7 @@ public final Object readObject()
 
 `transient`关键字作用是用于指定**序列化对象时不保存某个成员变量的值**
 
-用 `transient` 修饰成员变量，能够保证该成员变量的值不能被序列化到文件中。当对象被反序列化时，被 `transient` 修饰的变量值不会被持久化和恢复
+用 `transient` 修饰成员变量，能够保证该成员变量的值不能被序列化到文件中。当对象被反序列化时，被 `transient` 修饰的变量值会设为初始值，如 int 型的是 0，对象型的是 null。
 
 #### 5.2.2. 使用 static 修饰的成员变量（不建议使用）
 

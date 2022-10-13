@@ -246,8 +246,8 @@ public void applyPattern(String pattern)
 
 #### 3.4.1. 存在线程安全问题
 
-- SimpleDateFormat并不是一个线程安全的类。在多线程情况下，会出现异常
-- 一般使用SimpleDateFormat的时候会把它定义为一个静态变量，避免频繁创建它的对象实例。因为把SimpleDateFormat定义为静态变量，那么多线程下SimpleDateFormat的实例就会被多个线程共享，B线程会读取到A线程的时间，就会出现时间差异和其它各种问题。SimpleDateFormat和它继承的DateFormat类也不是线程安全的。
+- SimpleDateFormat 并不是一个线程安全的类。在多线程情况下，会出现异常
+- 一般使用 SimpleDateFormat 的时候会把它定义为一个静态变量，避免频繁创建它的对象实例。因为把 SimpleDateFormat 定义为静态变量，那么多线程下 SimpleDateFormat 的实例就会被多个线程共享，B线程会读取到A线程的时间，就会出现时间差异和其它各种问题。SimpleDateFormat 和它继承的 DateFormat 类也不是线程安全的。
 
 - 通常使用 SimpleDateFormat，下面是一个常见的日期工具类。
 
@@ -336,9 +336,7 @@ Mon Jul 29 00:00:00 CST 2019
 
 > 出现这种情况就是因为没有考虑到线程安全，以下是 Java 文档有关 SimpleDateFormat 的描述：
 >
-> “日期格式是非同步的。
-> 建议为每个线程创建单独的日期格式化实例。
-> 如果多个线程并发访问某个格式化实例，则必须保证外部调用同步性。”
+> “日期格式是非同步的。建议为每个线程创建单独的日期格式化实例。如果多个线程并发访问某个格式化实例，则必须保证外部调用同步性。”
 >
 > **提示**：使用实例变量时，应该每次检查这个类是不是线程安全。
 
@@ -419,7 +417,7 @@ Mon Jul 29 00:00:00 CST 2019
 Mon Jul 29 00:00:00 CST 2019
 ```
 
-#### 3.4.3. 解决方案2：Java 8 线程安全的时间日期 API
+#### 3.4.3. 解决方案2：Java 8 线程安全的时间日期 API（推荐）
 
 - Java8 引入了新的日期时间 API，SimpleDateFormat 有了更好的替代者。如果继续坚持使用 SimpleDateFormat 可以配合 ThreadLocal 一起使用。也可以使用新的 API
 - Java 8 提供了几个线程安全的日期类，包括 DateTimeFormatter、OffsetDateTime、ZonedDateTime、LocalDateTime、LocalDate 和 LocalTime。Java 文档中这么描述：
@@ -493,7 +491,59 @@ public class TestSimpleDateFormat {
 2019-07-29
 ```
 
+#### 解决方案3：使用局部变量
+
+将 SimpleDateFormat 变成了局部变量，就不会被多个线程同时访问到了，就避免了线程安全问题。
+
+```java
+ExecutorService executorService = Executors.newFixedThreadPool(10);
+final String source = "2019-07-29 08:11:20";
+System.out.println(":: parsing date string ::");
+IntStream.rangeClosed(0, 10)
+        .forEach((i) -> {
+            // SimpleDateFormat 声明成局部变量
+            SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+            executorService.submit(() -> {
+                try {
+                    System.out.println(simpleDateFormat.parse(source));
+                } catch (ParseException e) {
+                    throw new RuntimeException(e);
+                }
+            });
+        });
+executorService.shutdown();
+```
+
+#### 解决方案4：加同步锁
+
+对于 SimpleDateFormat 共享变量进行加锁。
+
+```java
+private static final SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+
+public static void main(String[] args) {
+    ExecutorService executorService = Executors.newFixedThreadPool(10);
+    final String source = "2019-07-29 07:08:11";
+    System.out.println(":: parsing date string ::");
+    IntStream.rangeClosed(0, 10)
+            .forEach((i) -> {
+                executorService.submit(() -> {
+                    // 加锁
+                    synchronized (simpleDateFormat) {
+                        try {
+                            System.out.println(simpleDateFormat.parse(source));
+                        } catch (ParseException e) {
+                            throw new RuntimeException(e);
+                        }
+                    }
+                });
+            });
+    executorService.shutdown();
+}
+```
+
 ## 4. Calendar 类
+
 ### 4.1. Calendar 概述
 
 Calendar是一个日历类，抽象类；不能直接创建对象
