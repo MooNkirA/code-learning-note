@@ -491,7 +491,7 @@ public class TestSimpleDateFormat {
 2019-07-29
 ```
 
-#### 解决方案3：使用局部变量
+#### 3.4.4. 解决方案3：使用局部变量
 
 将 SimpleDateFormat 变成了局部变量，就不会被多个线程同时访问到了，就避免了线程安全问题。
 
@@ -514,7 +514,7 @@ IntStream.rangeClosed(0, 10)
 executorService.shutdown();
 ```
 
-#### 解决方案4：加同步锁
+#### 3.4.5. 解决方案4：加同步锁
 
 对于 SimpleDateFormat 共享变量进行加锁。
 

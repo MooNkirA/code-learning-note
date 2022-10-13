@@ -204,3 +204,7 @@ Bin
 选择【file】->【settings】->【version control】，选择项目目录，再点“减号”即可解除 git 仓库的关联，然后去项目目录下删除`.git`这个文件夹即可
 
 ![](images/392491618226450.png)
+
+## 3. Git 客户端 SourceTree 使用教程（待整理）
+
+> 参考：https://www.cnblogs.com/Can-daydayup/p/13128633.html

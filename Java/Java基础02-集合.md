@@ -1056,7 +1056,7 @@ public E remove(int index) {
 
 例如：假设存在两个线程（线程1、线程2），线程1通过 Iterator 在遍历集合A中的元素，在某个时候线程2修改了集合A的结构（是结构上面的修改，而不是简单的修改集合元素的内容），那么这个时候程序就会抛出 `ConcurrentModificationException` 异常，从而产生fail-fast机制。
 
-#### 源码分析
+#### 4.4.1. 源码分析
 
 以下参考 `ArrayList` 源码的处理：
 
@@ -1082,7 +1082,7 @@ public void forEach(Consumer<? super E> action) {
 
 每当迭代器使用`hashNext()`/`next()` 遍历下一个元素之前，都会检测 `modCount` 变量是否为 `expectedmodCount` 值，是的话就返回遍历；否则抛出异常，终止遍历。
 
-#### 对集合进行 add/remove 正常操作方式：
+#### 4.4.2. 对集合进行 add/remove 正常操作方式：
 
 1. 直接使用普通 for 循环进行操作，因为普通 for 循环并没有用到 Iterator 的遍历，所以压根就没有进行 fail-fast 的检验。但这种方案其实存在一个问题，那就是 remove 操作会改变 List 中元素的下标，可能存在漏删的情况。
 2. 直接使用 Iterator 提供的 `remove` 方法进行操作。该方法可以修改到 `expectedModCount` 的值，那么就不会再抛出异常了。
