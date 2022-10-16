@@ -560,10 +560,12 @@ public void componentScanNameResourcePatternTest() {
 
 #### 2.2.6. 自定义组件扫描过滤规则
 
+当项目中存在很多类时，在扫描的过程中使用过滤器，排除或者包含拥有某些注解或者符合指定规则的类，对于加快启动 Spring 应该上下文的过程是很有帮助的。
+
 ##### 2.2.6.1. 基础使用
 
-- `includeFilters`：指定包含的过滤规则，不会影响spring扫描其他规则
-- `excludeFilters`：指定排除的过滤规则，指定后该扫描规则会被过滤，不会被扫描加入spring容器
+- `includeFilters`：指定包含的过滤规则，不会影响 spring 扫描其他规则
+- `excludeFilters`：指定排除的过滤规则，指定后该扫描规则会被过滤，不会被扫描加入 spring 容器
 
 ```java
 /* includeFilters用于指定自定义组件扫描的过滤规则，表示包含某些规则，不会排除其他的规则 */
@@ -2563,15 +2565,14 @@ public class SpringProfileTest {
 
 - **作用**：这四个注解都是用于修饰类的，作用是标识当前类由Spring框架管理，负责创建对象示例，并存入Spring的IOC容器中。在实例化时，首选默认无参构造函数。同时支持带参构造，前提是构造函数的参数依赖必须要有值，否则抛异常
 - **使用场景**：当需要把编写的类注入到IOC容器中，就可以使用以上四个注解实现。以上四个注解中`@Component`注解通常用在非三层对象中。而`@Controller`，`@Service`，`@Repository`三个注解一般是针对控制层、业务层、数据层对象使用的，提供更加精确的语义化配置。
+    > 在不确定类的使用场景时，可以使用 `@Component` 注解，但建议在可能的情况下最好使用特性化注解，因为它们会根据类不同的目的来提供额外的功能（比如说 `@Repository` 会将异常包装为 `DataAccessException`，这使用调试变得更加容易）
 
-<font color=purple>需要注意的是，spring在注解驱动开发时，要求必须先接管类对象，然后会处理类中的属性和方法。如果类没有被spring接管，那么里面的属性和方法上的注解都不会被解析。
-</font>
-
+<font color=purple>需要注意的是，Spring 在注解驱动开发时，要求必须先接管类对象，然后会处理类中的属性和方法。如果类没有被 Spring 接管，那么里面的属性和方法上的注解都不会被解析。</font>
 
 #### 4.1.2. 相关属性
 
-| 属性名  |                                 作用                                  | 取值 |
-| :-----: | --------------------------------------------------------------------- | ---- |
+|  属性名  |                                作用                                | 取值 |
+| :-----: | ----------------------------------------------------------------- | ---- |
 | `value` | 用于指定存入容器时bean的ID。当不指定时，默认值为当前类的名称，首字母小写 |      |
 
 #### 4.1.3. 基于 @Component 等注解综合使用示例
@@ -2581,7 +2582,6 @@ public class SpringProfileTest {
 > [github仓库](https://github.com/MooNkirA/spring-note/tree/main/spring-sample/34-annotation-component-composite-sample)
 >
 > 本地：spring-note\spring-sample\34-annotation-component-composite-sample\
-
 
 ### 4.2. @Indexed
 

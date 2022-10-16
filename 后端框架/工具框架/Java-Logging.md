@@ -121,6 +121,8 @@ JUL 全称 Java util Logging，从 JDK1.4 开始提供的 Java 原生的日志�
 
 ### 3.1. 架构介绍
 
+![image-20221013085818698](images\image-20221013085818698.png)
+
 ![](images/314041018239084.jpg)
 
 - Loggers：被称为记录器，应用程序通过获取 `Logger` 对象，调用其 API 来来发布日志信息。`Logger` 通常时应用程序访问日志系统的入口程序。
@@ -479,7 +481,7 @@ public void testLogProperties() throws IOException {
 
 Log4j 是 Apache 下的一款开源的日志框架，是 Java 领域资格最老，应用最广的日志工具。从诞生之日到现在一直广受业界欢迎。但在 2015 年已经结束生命周期，目前已经不建议使用
 
-Log4j 是高度可配置的，并可通过在运行时的外部文件配置。它根据记录的优先级别，并提供机制，控制日志信息输出不同的位置，如：数据库，文件，控制台，UNIX 系统日志等。也可以控制每一条日志的输出格式，通过定义日志的输出级别，可以更灵活的控制日志的输出过程。方便项目的调试。
+Log4j 是高度可配置的，并可通过在运行时的外部文件配置。它根据记录的优先级别，并提供机制，控制日志信息输出不同的位置，如：数据库，文件，控制台，UNIX 系统日志等。也可以控制每一条日志的输出格式，通过定义日志的输出级别，可以更灵活的控制日志的输出过程，方便项目的调试。
 
 ### 4.2. Log4j 的日志级别
 
@@ -1228,7 +1230,7 @@ Logback 是由 log4j 创始人 Ceki Gulcu 设计的又一个开源日记组件�
 logback 主要分成三个模块：
 
 - logback-core：是其它两个模块的基础模块
-- logback-classic：是 log4j 的一个改良版本。此外 logback-classic 完整实现 SLF4J API，可以很方便地更换成其它日记系统如 log4j 或 JDK14 Logging 等
+- logback-classic：是 log4j 的一个改良版本。此外 logback-classic 完整实现 SLF4J API，可以很方便地更换成其它日记系统如 log4j 或 J.U.L 等
 - logback-access：访问模块与 Servlet 容器集成提供通过 Http 来访问日记的功能
 
 #### 7.1.2. Logback 组件

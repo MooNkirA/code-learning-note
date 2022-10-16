@@ -787,7 +787,7 @@ public ArrayList(Collection<? extends E> c) {
 
 ### 4.3. 主干方法
 
-#### 4.3.1. `trimToSize()`方法
+#### 4.3.1. trimToSize() 方法
 
 > 用来最小化实例存储，将容器大小调整为当前元素所占用的容量大小。
 
@@ -805,7 +805,7 @@ public void trimToSize() {
 }
 ```
 
-#### 4.3.2. `clone()`方法
+#### 4.3.2. clone() 方法
 
 > 用来克隆出一个新数组。
 
@@ -825,7 +825,7 @@ public Object clone() {
 
 通过调用`Object`的`clone()`方法来得到一个新的`ArrayList`对象，然后将`elementData`复制给该对象并返回。
 
-#### 4.3.3. `add(E e)`方法
+#### 4.3.3. add(E e) 方法
 
 > 在数组末尾添加元素
 
@@ -925,7 +925,7 @@ public static void main(String[] args) {
 
 ------
 
-#### 4.3.4. `add(int index, E element)`方法
+#### 4.3.4. add(int index, E element) 方法
 
 ```java
 public void add(int index, E element) {
@@ -939,7 +939,7 @@ public void add(int index, E element) {
 }
 ```
 
-rangeCheckForAdd()是越界异常检测方法。`ensureCapacityInternal()`之前有讲，着重说一下`System.arrayCopy`方法：
+`rangeCheckForAdd()` 是越界异常检测方法。`ensureCapacityInternal()`之前有讲，着重说一下`System.arrayCopy`方法：
 
 ```java
 public static void arraycopy(Object src, int srcPos, Object dest, int destPos, int length)
@@ -966,7 +966,7 @@ private void rangeCheckForAdd(int index) {
 }
 ```
 
-#### 4.3.5. `set(int index, E element)`方法
+#### 4.3.5. set(int index, E element) 方法
 
 ```java
 public E set(int index, E element) {
@@ -984,7 +984,7 @@ E elementData(int index) {
 
 逻辑很简单，覆盖旧值并返回。
 
-#### 4.3.6. `indexOf(Object o)`方法
+#### 4.3.6. indexOf(Object o) 方法
 
 > 根据Object对象获取数组中的索引值。
 
@@ -1007,7 +1007,7 @@ public int indexOf(Object o) {
 
 注意：通过源码可以看到，该方法是允许传空值进来的。
 
-#### 4.3.7. `get(int index)`方法
+#### 4.3.7. get(int index) 方法
 
 > 返回指定下标处的元素的值。
 
@@ -1021,7 +1021,7 @@ public E get(int index) {
 
 `rangeCheck(index)`会检测index值是否合法，如果合法则返回索引对应的值。
 
-#### 4.3.8. `remove(int index)`方法
+#### 4.3.8. remove(int index) 方法
 
 > 删除指定下标的元素。
 
@@ -1050,9 +1050,15 @@ public E remove(int index) {
 
 ### 4.4. 集合的快速失败机制 “fail-fast”
 
-“fail-fast” 是当多个线程对  java 集合进行结构上的改变的操作时的一种错误检测机制。
+“fail-fast”，即快速失败，它是 Java 集合的一种错误检测机制。当多个线程对集合（非 fail-safe 的集合类）进行结构上的改变的操作时，有可能会产生 fail-fast 机制，这个时候就会抛出 ConcurrentModificationException（当方法检测到对象的并发修改，但不允许这种修改时就抛出该异常）。
 
-例如：假设存在两个线程（线程1、线程2），线程1通过 Iterator 在遍历集合A中的元素，在某个时候线程2修改了集合A的结构（是结构上面的修改，而不是简单的修改集合元素的内容），那么这个时候程序就会抛出 `ConcurrentModificationException` 异常，从而产生fail-fast机制。以下参考 `ArrayList` 源码的处理：
+<font color=red>**同时需要注意的是，即使不是多线程环境，如果单线程违反了规则，同样也有可能会抛出改异常。**</font>
+
+例如：假设存在两个线程（线程1、线程2），线程1通过 Iterator 在遍历集合A中的元素，在某个时候线程2修改了集合A的结构（是结构上面的修改，而不是简单的修改集合元素的内容），那么这个时候程序就会抛出 `ConcurrentModificationException` 异常，从而产生fail-fast机制。
+
+#### 4.4.1. 源码分析
+
+以下参考 `ArrayList` 源码的处理：
 
 ```java
 public void forEach(Consumer<? super E> action) {
@@ -1070,16 +1076,55 @@ public void forEach(Consumer<? super E> action) {
 }
 ```
 
-通过源码分析可知异常的原因：迭代器在遍历时直接访问集合中的内容，并且在遍历过程中使用一个 `modCount` 变量。集合在被遍历期间如果内容发生变化，就会改变 `modCount` 的值。每当迭代器使用`hashNext()`/`next()` 遍历下一个元素之前，都会检测 `modCount` 变量是否为 `expectedmodCount` 值，是的话就返回遍历；否则抛出异常，终止遍历。
+通过源码分析可知异常的原因：迭代器在遍历时直接访问集合中的内容，并且在遍历过程中使用一个 `modCount` 成员变量，它表示该集合实际被修改的次数。集合在被遍历期间如果内容发生变化，就会改变 `modCount` 的值。
 
-解决办法如下：
+`expectedModCount` 是 ArrayList 中的一个内部类 - `Itr` 中的成员变量（`Itr` 是一个 Iterator 的实现，使用 `ArrayList.iterator` 方法可以获取到的迭代器就是 Itr 类的实例。）。`expectedModCount` 表示这个迭代器期望该集合被修改的次数。其值是在 `ArrayList.iterator` 方法被调用的时候初始化的。只有通过迭代器对集合进行操作，该值才会改变。
 
-1. 在遍历过程中，所有涉及到改变 `modCount` 值得地方全部加上 `synchronized`
-2. 使用 `CopyOnWriteArrayList` 来替换 `ArrayList`
+每当迭代器使用`hashNext()`/`next()` 遍历下一个元素之前，都会检测 `modCount` 变量是否为 `expectedmodCount` 值，是的话就返回遍历；否则抛出异常，终止遍历。
 
+#### 4.4.2. 对集合进行 add/remove 正常操作方式：
 
+1. 直接使用普通 for 循环进行操作，因为普通 for 循环并没有用到 Iterator 的遍历，所以压根就没有进行 fail-fast 的检验。但这种方案其实存在一个问题，那就是 remove 操作会改变 List 中元素的下标，可能存在漏删的情况。
+2. 直接使用 Iterator 提供的 `remove` 方法进行操作。该方法可以修改到 `expectedModCount` 的值，那么就不会再抛出异常了。
 
+```java
+List<String> userNames = new ArrayList<String>() {{
+    add("MooN");
+    add("Zero");
+    add("L");
+    add("kirA");
+}};
 
+Iterator<String> iterator = userNames.iterator();
+while (iterator.hasNext()) {
+    if (iterator.next().equals("L")) {
+        iterator.remove();
+    }
+}
+```
+
+3. 使用 Java 8 中 Stream 提供的 filter 过滤
+4. 使用增强 for 循环，并且非常确定在一个集合中，某个即将删除的元素只包含一个的时候（比如对 `Set` 集合进行操作），只要在删除元素后立刻结束循环体，不再继续进行遍历，也就是说不让代码执行到下一次的 next 方法。
+
+```java
+List<String> userNames = new ArrayList<String>() {{
+    add("MooN");
+    add("Zero");
+    add("L");
+    add("kirA");
+}};
+
+for (String userName : userNames) {
+    if (userName.equals("L")) {
+        userNames.remove(userName);
+        break;
+    }
+}
+```
+
+5. 直接使用 fail-safe 的集合类，例如使用 `CopyOnWriteArrayList`、`ConcurrentLinkedDeque` 等来替换 `ArrayList`。这种集合容器在遍历时不是直接在集合内容上访问的，而是先复制原有集合内容，在拷贝的集合上进行遍历，因此在遍历过程中对原集合所作的修改并不能被迭代器检测到，所以不会触发 `ConcurrentModificationException`。
+> Tips: java.util.concurrent 包下的容器都是安全失败，可以在多线程下并发使用，并发修改。
+6. 在遍历过程中，所有涉及到改变 `modCount` 值得地方全部加上 `synchronized`
 
 ### 4.5. 手写ArrayList(网上资料)
 
@@ -1249,14 +1294,20 @@ E getLast();
 
 - **数据结构实现**：ArrayList 是动态数组的数据结构实现，而 LinkedList 是双向链表的数据结构实现。
 - **随机访问效率**：ArrayList 比 LinkedList 在随机访问的时候效率要高，因为 LinkedList 是线性的数据存储方式，所以需要移动指针从前往后依次查找。
-- **增加和删除效率**：在非首尾的增加和删除操作，LinkedList 要比 ArrayList 效率要高，因为 ArrayList 增删操作要影响数组内的其他数据的下标。
-- **内存空间占用**：LinkedList 比 ArrayList 更占内存，因为 LinkedList 的节点除了存储数据，还存储了两个引用，一个指向前一个元素，一个指向后一个元素。
+- **增加和删除效率**：
+    - 在非首尾的增加和删除操作，LinkedList 要比 ArrayList 效率要高，因为 ArrayList 的扩容机制的存在，增删操作时超出存储长度时，需要新建数组，再将原数组中的数据复制到新数组中。要影响数组内的其他数据的下标。
+    - 但如果在 ArrayList 指定了合适的初始容量，并且使用尾部插入数据（没有触发数组的扩展）时，会极大提升性能，甚至超过 LinkedList（增删操作还需要创建大量的 node 对象）的效率
+- **内存区域与空间占用**：
+    - LinkedList 比 ArrayList 更占内存，因为 LinkedList 的节点除了存储数据，还存储了两个引用，一个指向前一个元素，一个指向后一个元素。
+    - ArrayList 是连续内存存储；而 LinkedList 分散在内存中，
 - **线程安全**：ArrayList 和 LinkedList 都是不同步的，也就是不保证线程安全；
 
-选择建议：
+一些类型选择与使用建议：
 
 - 如果需要大量非首尾增删元素，则建议使用 LinkedList
 - 如果只是遍历查询元素，不进行增删操作，则建议使用 ArrayList
+- <font color=red>**遍历 LinkedList 必须使用 Iterator 而不使用 for 循环，因为每次 for 循环体内通过 `get(i)` 方法获取指定元素时，需要对整个集合重新进行遍历，性能消耗极大**</font>
+- 尽量不要试图使用 `indexOf` 等方法返回元素的索引，并利用其进行遍历。使用 `indexOf` 对集合进行遍历，当结果为空时会遍历整个集合。
 
 ## 6. 集合与数组之间的转换
 

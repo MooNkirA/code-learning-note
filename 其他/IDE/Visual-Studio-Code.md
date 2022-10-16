@@ -1,17 +1,34 @@
 # Visual Studio Code
 
-> 官方网站：https://code.visualstudio.com/
+## 1. 安装与下载
 
-## 1. 常用配置
+官方网站：https://code.visualstudio.com/
 
-### 1.1. 用户设置和工作区设置的区别
+由于官网是国外的服务器，所以下载非常慢，可以使用国内镜像加快下载速度。具体步骤如下：
+
+1. 首先在官网找到需要下载的文件，点击下载。
+2. 在浏览器或者下载软件中复制其下载地址，如：
+
+```
+https://az764295.vo.msecnd.net/stable/64bbfbf67ada9953918d72e1df2f4d8e537d340e/VSCode-win32-x64-1.72.0.zip
+```
+
+3. 然后将域名更换为国内镜像域名（`vscode.cdn.azure.cn`）即可。更新国内镜像域名后的地址为：
+
+```
+https://vscode.cdn.azure.cn/stable/64bbfbf67ada9953918d72e1df2f4d8e537d340e/VSCode-win32-x64-1.72.0.zip
+```
+
+## 2. 常用配置
+
+### 2.1. 用户设置和工作区设置的区别
 
 > “用户设置”会应用于用户打开的所有工程；“工作区设置”仅适用于当前目录的 VSCode 的设置。<font color=red>**注：“工作区设置”会覆盖“用户设置”。**</font>
 
 - 用户设置：这种方式进行的设置，会应用于该用户打开的所有工程；
 - 工作空间设置：工作空间是指使用 VSCode 打开的某个文件夹，在该文件夹下会创建一个名为 .vscode 的隐藏文件夹，里面包含着仅适用于当前目录的 VSCode 的设置，工作空间的设置会覆盖用户的设置。
 
-#### 1.1.1. 用户设置与工作空间设置保存目录
+#### 2.1.1. 用户设置与工作空间设置保存目录
 
 VSCode 的设置文件为 setting.json。用户设置的文件保存在如下目录：
 
@@ -20,12 +37,12 @@ VSCode 的设置文件为 setting.json。用户设置的文件保存在如下目
 
 工作空间设置的文件保存在当前目录的 .vscode 文件夹下。
 
-#### 1.1.2. 修改默认设置的两种方式
+#### 2.1.2. 修改默认设置的两种方式
 
 - 使用编辑器直接打开 setting.json 文件进行设置；
 - 点击 VSCode 的【文件】->【首选项】->【设置】，可以打开设置面板进行设置；
 
-### 1.2. 出现CPU 100% 优化的设置
+### 2.2. 出现CPU 100% 优化的设置
 
 有时，vscode会出现CPU利用率100%的情况，两个rg.exe占用了全部的CPU。
 
@@ -35,7 +52,7 @@ VSCode 的设置文件为 setting.json。用户设置的文件保存在如下目
 
 ![](images/20201106085408474_25960.jpg)
 
-### 1.3. 如何配置VSCODE打开文件总是在一个新的标签
+### 2.3. 如何配置VSCODE打开文件总是在一个新的标签
 
 经常搞混单击和双击的区别？这里在左侧资源管理器这边 如果单击文件是打开文件的预览模式，文件所在的标签上显示的文件名是 斜体状态，表明是在 预览模式，会被新打开的文件替换。所以如果是要打开文件进行编辑需要双击文件进行打开
 
@@ -53,7 +70,7 @@ VSCode 的设置文件为 setting.json。用户设置的文件保存在如下目
 
 ![](images/20201106085551962_7405.jpg)
 
-### 1.4. 设置tab为4个空格与格式化时缩进4个空格
+### 2.4. 设置tab为4个空格与格式化时缩进4个空格
 
 tab的宽度设置
 
@@ -63,9 +80,9 @@ tab的宽度设置
 
 ![](images/20201106085641403_18541.jpg)
 
-## 2. 常用插件
+## 3. 常用插件
 
-### 2.1. 通用类
+### 3.1. 通用类
 
 |                      名称                       |                  说明                  |
 | ---------------------------------------------- | -------------------------------------- |
@@ -77,7 +94,7 @@ tab的宽度设置
 | Path Intellisense                              | 自动路径补全，默认不带这个功能的（必备） |
 | Path Autocomplete                              | 地址补全插件                            |
 
-#### 2.1.1. eslint 插件
+#### 3.1.1. eslint 插件
 
 ![](images/20201106084622737_26552.jpg)
 
@@ -297,7 +314,7 @@ module.exports = {
 }
 ```
 
-#### 2.1.2. Rainbow Brackets
+#### 3.1.2. Rainbow Brackets
 
 此扩展已经成为VSCode的一个本地功能(可以不安装)。直接修改 settings.json 文件开启即可
 
@@ -308,7 +325,7 @@ module.exports = {
 }
 ```
 
-#### 2.1.3. Path Intellisense 配置 @ 路径提示
+#### 3.1.3. Path Intellisense 配置 @ 路径提示
 
 路径提示配置的前提是，在 webpack.config.js 文件中配置 `@` 符号指定的目录位置
 
@@ -339,7 +356,7 @@ module.exports ={
 
 > <font color=red>**注意：需要使用vscode打开项目根目录（即 package.json 所在的目录），否则 `@` 路径提示将失效**</font>
 
-#### 2.1.4. Path Autocomplete 配置 @ 路径提示
+#### 3.1.4. Path Autocomplete 配置 @ 路径提示
 
 > 路径提示配置的前提同上
 
@@ -356,7 +373,7 @@ module.exports ={
 
 重启vscode，`@`路径提示就配置好了
 
-### 2.2. HTML 类
+### 3.2. HTML 类
 
 |          名称           |                           说明                            |
 | ---------------------- | --------------------------------------------------------- |
@@ -365,7 +382,7 @@ module.exports ={
 | Highlight Matching Tag | 高亮显示选中匹配标签                                       |
 |                        |                                                           |
 
-### 2.3. Vue 相关插件
+### 3.3. Vue 相关插件
 
 |              名称              |                                 说明                                  |
 | ----------------------------- | -------------------------------------------------------------------- |
@@ -374,7 +391,7 @@ module.exports ={
 | Vue Language Features (Volar) | Vue官方插件，支持Vue3                                                 |
 | Vscode-element-helper         | 使用element-ui库的可以安装这个插件，编写标签时自动提示element标签名称。 |
 
-#### 2.3.1. Vetur 插件配置
+#### 3.3.1. Vetur 插件配置
 
 <font color=red>**注意：VSCode中使用vetur插件格式化vue文件时，js代码会被添加上分号且单引号会转变为双引号。**</font>设置vscode配置文件
 
@@ -382,7 +399,7 @@ module.exports ={
 "vetur.format.defaultFormatter.js": "vscode-typescript"
 ```
 
-### 2.4. 推荐主题
+### 3.4. 推荐主题
 
 |           名称            |                   说明                   |
 | ------------------------ | --------------------------------------- |
@@ -394,12 +411,12 @@ module.exports ={
 
 
 
-### 2.5. beautify 与 Prettier - Code formatter
+### 3.5. beautify 与 Prettier - Code formatter
 
 - beautify：格式化代码的工具，可以格式化JSON|JS|HTML|CSS|SCSS,比内置格式化好用；但是react工程的jsx文件用beautify插件格式化会乱掉，建议不要用
 - Prettier - Code formatter：格式化代码的工具，可以支持react
 
-### 2.6. IntelliSense for CSS class names in HTML 或 HTML CSS Support
+### 3.6. IntelliSense for CSS class names in HTML 或 HTML CSS Support
 
 **IntelliSense for CSS class names in HTML**
 
@@ -410,7 +427,7 @@ module.exports ={
 让 html 标签上写class 智能提示当前项目所支持的样式。新版已经支持scss文件检索
 
 
-### 2.7. cssrem
+### 3.7. cssrem
 
 此插件的功能是实现 px 转换 rem
 
@@ -419,13 +436,13 @@ module.exports ={
 3. 设置html字体大小基准值，默认是16px
 4. 使用时只需要将光标停留在一些px单位的值上，再按`Alt+z`，就可以换算成 rem 单位的值
 
-### 2.8. Markdown 插件
+### 3.8. Markdown 插件
 
-#### 2.8.1. Markdown All in One
+#### 3.8.1. Markdown All in One
 
 集成了撰写 Markdown 时所需要的大部分功能
 
-#### 2.8.2. markdownlint
+#### 3.8.2. markdownlint
 
 > 参考：https://github.com/DavidAnson/markdownlint/tree/main/doc
 
@@ -512,7 +529,7 @@ markdownlint是vscode上一款非常好用的 Markdown 格式检查扩展工具�
 | MD046  | 	Code block style                                              | 整篇文档采用一致的代码格式                                                                                                                     |
 | MD047  | 	Files should end with a single newline character              | 文档末尾需要一个空行结尾                                                                                                                       |
 
-### 2.9. 待整理
+### 3.9. 待整理
 
 - HTML Snippets
     - 超级实用且初级的 H5代码片段以及提示
@@ -527,45 +544,45 @@ markdownlint是vscode上一款非常好用的 Markdown 格式检查扩展工具�
 
 ![](images/20201106085236711_21502.jpg)
 
-## 3. 快捷键
+## 4. 快捷键
 
-### 3.1. 官方快捷键列表
+### 4.1. 官方快捷键列表
 
 - 官网地址：https://code.visualstudio.com/shortcuts/keyboard-shortcuts-windows.pdf
 - windows 快捷键
 
 ![](../../resources/attachments/IDE/Visual-Studio-Code-keyboard-shortcuts-windows.jpg)
 
-### 3.2. 常用快捷键
+### 4.2. 常用快捷键
 
 - `ctrl+shift+L` 批量修改变量名称
 
-### 3.3. 多行编辑操作
+### 4.3. 多行编辑操作
 
 VScode对多行编辑有两种模式。
 
-#### 3.3.1. 第一种模式
+#### 4.3.1. 第一种模式
 
 竖列选择：长按`Alt+Shift`，按左键拖动鼠标选择多行。这种模式下只可以选择竖列，不可以随意插入光标。所以只限制于同一列且不间隔的情况下
 
-#### 3.3.2. 第二种模式
+#### 4.3.2. 第二种模式
 
 - 竖列选择：`Shift+Ctrl`
 - 选择多个编辑位点：`Ctrl+光标点击`
 
 这种模式下不仅可以选择竖列，同时还可以在多个地方插入光标
 
-#### 3.3.3. 两种模式的切换
+#### 4.3.3. 两种模式的切换
 
 使用`Ctrl+Shift+p`快捷键调用查询输入栏，输入“cursor”，列表中会出现“切换多行修改键”这个选项。选择这个选项就可以在两种模式下切换
 
-## 4. VSCode拓展推荐（前端开发）【网络资源】
+## 5. VSCode拓展推荐（前端开发）【网络资源】
 
 https://github.com/varHarrie/varharrie.github.io/issues/10
 
 > 最后更新于：2021-05-31
 
-## 5. 个人首选项配置（网络资源，仅供参考）
+## 6. 个人首选项配置（网络资源，仅供参考）
 
 ```json
 {
