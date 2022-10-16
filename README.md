@@ -5,7 +5,8 @@
 ### ☕ JavaSE
 
 <ul class="docs">
-  <li><a href="#/Java/Java基础01">Java基础</a></li>
+  <li><a href="#/Java/Java基础00-JDK">Java基础-JDK</a></li>
+  <li><a href="#/Java/Java基础01-语法">Java基础-语法</a></li>
   <li><a href="#/Java/Java基础02-集合">Java基础-集合</a></li>
   <li><a href="#/Java/Java基础03-异常">Java基础-异常</a></li>
   <li><a href="#/Java/Java基础04-正则表达式">Java基础-正则表达式</a></li>
