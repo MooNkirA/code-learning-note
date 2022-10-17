@@ -2,7 +2,7 @@
 
 Spring Boot 对 SQL 关系型数据库提供了技术支持。主要包含三个层面：**数据源技术**、**持久化技术**和**数据库技术**。
 
-此部分内容主要介绍**数据源技术**与**数据库技术**。**持久化技术**详见[《Spring Boot 整合关系型数据库持久技术框架》笔记](/分布式架构&微服务架构/SpringBoot/Spring-Boot-SQL-Databases-Technologies)
+此部分内容主要介绍**数据源技术**与**数据库技术**。**持久化技术**详见[《Spring Boot 整合关系型数据库持久技术框架》笔记](/分布式微服务/SpringBoot/Spring-Boot-SQL-Databases-Technologies)
 
 ## 1. 数据源技术
 

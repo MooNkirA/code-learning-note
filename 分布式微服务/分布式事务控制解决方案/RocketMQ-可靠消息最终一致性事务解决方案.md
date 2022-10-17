@@ -153,7 +153,7 @@ CREATE TABLE `de_duplication`  (
 
 #### 2.2.3. 启动 RocketMQ
 
-> RocketMQ 详细教程详见[《分布式消息中件间 RocketMQ》笔记](/07-分布式架构&微服务架构/07-分布式消息中件间/04-RocketMQ)
+> RocketMQ 详细教程详见[《分布式消息中件间 RocketMQ》笔记](/分布式微服务/分布式消息中件间/RocketMQ)
 
 到官网下载 RocketMQ 到本地并配置，到安装目录的 bin 文件中执行下面命令启动 RocketMQ
 

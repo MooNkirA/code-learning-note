@@ -641,7 +641,7 @@ Ribbon 内置了多种负载均衡策略，内部负载均衡的顶级接口为 
 
 Feign 是 Spring Cloud 提供的一个声明式、模板化的伪 Http 客户端，它使得调用远程服务就像调用本地服务一样简单，只需要创建一个接口并添加一个注解即可。
 
-> 注：Feign 的详细使用文档，详见[《Spring-Cloud-OpenFeign.md》](/分布式架构&微服务架构/SpringCloud/Spring-Cloud-OpenFeign)
+> 注：Feign 的详细使用文档，详见[《Spring-Cloud-OpenFeign.md》](/分布式微服务/SpringCloud/Spring-Cloud-OpenFeign)
 
 Nacos 很好的兼容了 Feign，Feign 默认集成了 Ribbon，所以在 Nacos 下使用 Fegin 默认就实现了负载均衡的效果。
 

@@ -4,11 +4,11 @@ Spring Boot 为集成消息系统提供了广泛的支持，从使用 JmsTemplat
 
 ## 1. Java处理消息的标准规范概述
 
-> 此部分内容详见[《消息中间件》笔记](/07-分布式架构&微服务架构/07-分布式消息中件间/01-消息中间件)
+> 此部分内容详见[《消息中间件》笔记](/分布式微服务/分布式消息中件间/消息中间件)
 
 ## 2. Spring Boot 整合 ActiveMQ
 
-> 本章节主要是 Spring Boot 整合 ActiveMQ，关于 ActiveMQ 更多介绍与使用详见[《ActiveMQ》笔记](/07-分布式架构&微服务架构/07-分布式消息中件间/02-ActiveMQ)
+> 本章节主要是 Spring Boot 整合 ActiveMQ，关于 ActiveMQ 更多介绍与使用详见[《ActiveMQ》笔记](/分布式微服务/分布式消息中件间/ActiveMQ)
 
 ActiveMQ 是 MQ 产品中的元老级产品，早期标准 MQ 产品之一，在 AMQP 协议没有出现之前，占据了消息中间件市场的绝大部分份额，后期因为 AMQP 系列产品的出现，迅速走弱，目前仅在一些线上运行的产品中出现，新产品开发较少采用。
 
@@ -228,7 +228,7 @@ spring:
 
 ## 3. Spring Boot 整合 RabbitMQ
 
-> 本章节主要是 Spring Boot 整合 RabbitMQ，关于 RabbitMQ 更多介绍与使用详见[《RabbitMQ》笔记](/07-分布式架构&微服务架构/07-分布式消息中件间/03-RabbitMQ)
+> 本章节主要是 Spring Boot 整合 RabbitMQ，关于 RabbitMQ 更多介绍与使用详见[《RabbitMQ》笔记](/分布式微服务/分布式消息中件间/RabbitMQ)
 
 ### 3.1. 环境准备
 
@@ -514,7 +514,7 @@ public String topicDemo(@PathVariable String id) throws InterruptedException {
 
 RocketMQ 由阿里研发，后捐赠给 apache 基金会，目前是 apache 基金会顶级项目之一，也是目前市面上的 MQ 产品中较为流行的产品之一，它遵从 AMQP 协议。
 
-> 本章节主要是 Spring Boot 整合 RocketMQ，关于 RocketMQ 更多介绍与使用详见[《RocketMQ》笔记](/07-分布式架构&微服务架构/07-分布式消息中件间/04-RocketMQ)
+> 本章节主要是 Spring Boot 整合 RocketMQ，关于 RocketMQ 更多介绍与使用详见[《RocketMQ》笔记](/分布式微服务/分布式消息中件间/RocketMQ)
 
 ### 4.1. 环境准备
 
@@ -620,7 +620,7 @@ public class MessageListener implements RocketMQListener<String> {
 
 ## 5. Spring Boot 整合 Kafka
 
-> 本章节主要是 Spring Boot 整合 Kafka，关于 Kafka 更多介绍与使用详见[《Kafka》笔记](/07-分布式架构&微服务架构/07-分布式消息中件间/05-Kafka)
+> 本章节主要是 Spring Boot 整合 Kafka，关于 Kafka 更多介绍与使用详见[《Kafka》笔记](/分布式微服务/分布式消息中件间/Kafka)
 
 ### 5.1. 环境准备
 

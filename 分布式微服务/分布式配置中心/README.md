@@ -76,14 +76,14 @@ Sping Cloud Alibaba 技术栈中的一个组件，2018年6月，阿里开源的�
 
 ### 3.1. Apollo
 
-具体内容详见：[Apollo.md](/分布式架构&微服务架构/分布式配置中心/Apollo)
+具体内容详见：[Apollo.md](/分布式微服务/分布式配置中心/Apollo)
 
 ### 3.2. Spring Cloud Config
 
-具体内容详见：[Spring-Cloud-Config.md](/分布式架构&微服务架构/SpringCloud/Spring-Cloud-Config)
+具体内容详见：[Spring-Cloud-Config.md](/分布式微服务/SpringCloud/Spring-Cloud-Config)
 
 ### 3.3. Nacos Config
 
-具体内容详见：[Spring-Cloud-Alibaba.md](/分布式架构&微服务架构/SpringCloud/Spring-Cloud-Alibaba?id=spring-cloud-alibaba-nacos-config)
+具体内容详见：[Spring-Cloud-Alibaba.md](/分布式微服务/SpringCloud/Spring-Cloud-Alibaba?id=spring-cloud-alibaba-nacos-config)
 
 

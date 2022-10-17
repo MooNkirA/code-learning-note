@@ -279,116 +279,119 @@
 ### 🌠 SpringBoot
 
 <ul class="docs">
-  <li><a href="#/分布式架构&微服务架构/SpringBoot/SpringBoot笔记01-基础">Spring Boot 基础笔记</a></li>
-  <li><a href="#/分布式架构&微服务架构/SpringBoot/SpringBoot笔记02-注解汇总">Spring Boot 注解汇总</a></li>
-  <li><a href="#/分布式架构&微服务架构/SpringBoot/SpringBoot笔记03-源码分析">Spring Boot 源码分析</a></li>
-  <li><a href="#/分布式架构&微服务架构/SpringBoot/Spring-Boot-Testing">Spring Boot 测试与 Junit</a></li>
-  <li><a href="#/分布式架构&微服务架构/SpringBoot/Spring-Boot-Servlet、Filter、Listener">SpringBoot 整合 Servlet、Filter、Listener</a></li>
-  <li><a href="#/分布式架构&微服务架构/SpringBoot/Spring-Boot-SQL-Databases">Spring Boot 关系型数据库技术（内置数据源技术、内置数据库）</a></li>
-  <li><a href="#/分布式架构&微服务架构/SpringBoot/Spring-Boot-SQL-Databases-Technologies">Spring Boot 关系型数据库持久技术框架(JdbcTemplate、MyBatis、MyBatis-Plus)</a></li>
-  <li><a href="#/分布式架构&微服务架构/SpringBoot/Spring-Boot-Actuator">Spring Boot Actuator 应用运行状态监控与 Spring Boot Admin 监控工具</a></li>
-  <li><a href="#/分布式架构&微服务架构/SpringBoot/Spring-Boot-Redis">Spring Boot 整合 Redis</a></li>
-  <li><a href="#/分布式架构&微服务架构/SpringBoot/Spring-Boot-MongoDB">Spring Boot 整合 MongoDB</a></li>
-  <li><a href="#/分布式架构&微服务架构/SpringBoot/Spring-Boot-Elasticsearch">Spring Boot 整合 Elasticsearch</a></li>
-  <li><a href="#/分布式架构&微服务架构/SpringBoot/Spring-Boot-Caching">Spring Boot 实现缓存功能</a></li>
-  <li><a href="#/分布式架构&微服务架构/SpringBoot/Spring-Boot-Validation">Spring Boot Validation 参数校验</a></li>
-  <li><a href="#/分布式架构&微服务架构/SpringBoot/Spring-Boot-Email">Spring Boot 发送邮件</a></li>
-  <li><a href="#/分布式架构&微服务架构/SpringBoot/Spring-Boot-Task-Scheduling">Spring Boot 定时任务调度</a></li>
-  <li><a href="#/分布式架构&微服务架构/SpringBoot/Spring-Boot-Messaging">Spring Boot 消息系统</a></li>
-  <li><a href="#/分布式架构&微服务架构/SpringBoot/SpringBoot笔记99-其他相关内容">Spring Boot 笔记-其他相关内容</a></li>
+  <li><a href="#/分布式微服务/SpringBoot/SpringBoot笔记01-基础">Spring Boot 基础笔记</a></li>
+  <li><a href="#/分布式微服务/SpringBoot/SpringBoot笔记02-注解汇总">Spring Boot 注解汇总</a></li>
+  <li><a href="#/分布式微服务/SpringBoot/SpringBoot笔记03-源码分析">Spring Boot 源码分析</a></li>
+  <li><a href="#/分布式微服务/SpringBoot/Spring-Boot-Testing">Spring Boot 测试与 Junit</a></li>
+  <li><a href="#/分布式微服务/SpringBoot/Spring-Boot-Servlet、Filter、Listener">SpringBoot 整合 Servlet、Filter、Listener</a></li>
+  <li><a href="#/分布式微服务/SpringBoot/Spring-Boot-SQL-Databases">Spring Boot 关系型数据库技术（内置数据源技术、内置数据库）</a></li>
+  <li><a href="#/分布式微服务/SpringBoot/Spring-Boot-SQL-Databases-Technologies">Spring Boot 关系型数据库持久技术框架(JdbcTemplate、MyBatis、MyBatis-Plus)</a></li>
+  <li><a href="#/分布式微服务/SpringBoot/Spring-Boot-Actuator">Spring Boot Actuator 应用运行状态监控与 Spring Boot Admin 监控工具</a></li>
+  <li><a href="#/分布式微服务/SpringBoot/Spring-Boot-Redis">Spring Boot 整合 Redis</a></li>
+  <li><a href="#/分布式微服务/SpringBoot/Spring-Boot-MongoDB">Spring Boot 整合 MongoDB</a></li>
+  <li><a href="#/分布式微服务/SpringBoot/Spring-Boot-Elasticsearch">Spring Boot 整合 Elasticsearch</a></li>
+  <li><a href="#/分布式微服务/SpringBoot/Spring-Boot-Caching">Spring Boot 实现缓存功能</a></li>
+  <li><a href="#/分布式微服务/SpringBoot/Spring-Boot-Validation">Spring Boot Validation 参数校验</a></li>
+  <li><a href="#/分布式微服务/SpringBoot/Spring-Boot-Email">Spring Boot 发送邮件</a></li>
+  <li><a href="#/分布式微服务/SpringBoot/Spring-Boot-Task-Scheduling">Spring Boot 定时任务调度</a></li>
+  <li><a href="#/分布式微服务/SpringBoot/Spring-Boot-Messaging">Spring Boot 消息系统</a></li>
+  <li><a href="#/分布式微服务/SpringBoot/SpringBoot笔记99-其他相关内容">Spring Boot 笔记-其他相关内容</a></li>
 </ul>
 
 ### ⛅ SpringCloud
 
 <ul class="docs">
-  <li><a href="#/分布式架构&微服务架构/SpringCloud/Microservices-Overview">微服务概述</a></li>
-  <li><a href="#/分布式架构&微服务架构/SpringCloud/Spring-Cloud-Overview">Spring Cloud 概述</a></li>
-  <li><a href="#/分布式架构&微服务架构/SpringCloud/Spring-Cloud-Netflix">Spring Cloud Netflix（包含Eureka、Ribbon、Hystrix、Zuul等组件）</a></li>
-  <li><a href="#/分布式架构&微服务架构/SpringCloud/Spring-Cloud-Alibaba">Spring Cloud Alibaba (包含Nacos、Sentinel等组件)</a></li>
-  <li><a href="#/分布式架构&微服务架构/SpringCloud/Spring-Cloud-OpenFeign">Spring Cloud OpenFeign 服务调用</a></li>
-  <li><a href="#/分布式架构&微服务架构/SpringCloud/Spring-Cloud-Consul">Spring Cloud Consul 注册中心</a></li>
-  <li><a href="#/分布式架构&微服务架构/SpringCloud/Spring-Cloud-Gateway">Spring Cloud Gateway 服务网关</a></li>
-  <li><a href="#/分布式架构&微服务架构/SpringCloud/Spring-Cloud-Sleuth">Spring Cloud Sleuth 链路跟踪</a></li>
-  <li><a href="#/分布式架构&微服务架构/SpringCloud/Spring-Cloud-Stream">Spring Cloud Stream 事件驱动型消息传递组件</a></li>
-  <li><a href="#/分布式架构&微服务架构/SpringCloud/Spring-Cloud-Config">Spring Cloud Config 分布式系统的配置管理方案</a></li>
-  <li><a href="#/分布式架构&微服务架构/SpringCloud/Spring-Cloud-Security">Spring Cloud Security 分布式系统认证授权解决方案</a></li>
+  <li><a href="#/分布式微服务/SpringCloud/Microservices-Overview">微服务概述</a></li>
+  <li><a href="#/分布式微服务/SpringCloud/Spring-Cloud-Overview">Spring Cloud 概述</a></li>
+  <li><a href="#/分布式微服务/SpringCloud/Spring-Cloud-Netflix">Spring Cloud Netflix（包含Eureka、Ribbon、Hystrix、Zuul等组件）</a></li>
+  <li><a href="#/分布式微服务/SpringCloud/Spring-Cloud-Alibaba">Spring Cloud Alibaba (包含Nacos、Sentinel等组件)</a></li>
+  <li><a href="#/分布式微服务/SpringCloud/Spring-Cloud-OpenFeign">Spring Cloud OpenFeign 服务调用</a></li>
+  <li><a href="#/分布式微服务/SpringCloud/Spring-Cloud-Consul">Spring Cloud Consul 注册中心</a></li>
+  <li><a href="#/分布式微服务/SpringCloud/Spring-Cloud-Gateway">Spring Cloud Gateway 服务网关</a></li>
+  <li><a href="#/分布式微服务/SpringCloud/Spring-Cloud-Sleuth">Spring Cloud Sleuth 链路跟踪</a></li>
+  <li><a href="#/分布式微服务/SpringCloud/Spring-Cloud-Stream">Spring Cloud Stream 事件驱动型消息传递组件</a></li>
+  <li><a href="#/分布式微服务/SpringCloud/Spring-Cloud-Config">Spring Cloud Config 分布式系统的配置管理方案</a></li>
+  <li><a href="#/分布式微服务/SpringCloud/Spring-Cloud-Security">Spring Cloud Security 分布式系统认证授权解决方案</a></li>
 </ul>
 
 ### 🔥 Dubbo
 
 <ul class="docs">
-  <li><a href="#/分布式架构&微服务架构/Dubbo/Dubbo-基础">Dubbo 基础</a></li>
-  <li><a href="#/分布式架构&微服务架构/Dubbo/Dubbo-源码分析">Dubbo 源码分析</a></li>
+  <li><a href="#/分布式微服务/Dubbo/Dubbo-基础">Dubbo 基础</a></li>
+  <li><a href="#/分布式微服务/Dubbo/Dubbo-源码分析">Dubbo 源码分析</a></li>
 </ul>
 
 ### 🔎 ElasticStack
 
 <ul class="docs">
-  <li><a href="#/分布式架构&微服务架构/ElasticStack/ElasticStack-基础">ElasticStack 基础笔记</a></li>
-  <li><a href="#/分布式架构&微服务架构/ElasticStack/ElasticSearch">ElasticSearch 分布式全文搜索引擎</a></li>
+  <li><a href="#/分布式微服务/ElasticStack/ElasticStack-基础">ElasticStack 基础笔记</a></li>
+  <li><a href="#/分布式微服务/ElasticStack/ElasticSearch">ElasticSearch 分布式全文搜索引擎</a></li>
 </ul>
 
 ### 🔄 Nginx
 
 <ul class="docs">
-  <li><a href="#/分布式架构&微服务架构/Nginx/Nginx-基础">Nginx 基础笔记</a></li>
+  <li><a href="#/分布式微服务/Nginx/Nginx-基础">Nginx 基础笔记</a></li>
 </ul>
 
 ### 🐒 ZooKeeper
 
 <ul class="docs">
-  <li><a href="#/分布式架构&微服务架构/Zookeeper/Zookeeper-基础">Zookeeper 基础笔记</a></li>
-  <li><a href="#/分布式架构&微服务架构/Zookeeper/Zookeeper-应用场景">Zookeeper 应用场景</a></li>
+  <li><a href="#/分布式微服务/Zookeeper/Zookeeper-基础">Zookeeper 基础笔记</a></li>
+  <li><a href="#/分布式微服务/Zookeeper/Zookeeper-应用场景">Zookeeper 应用场景</a></li>
 </ul>
 
 ### 📬 分布式消息中件间
 
 <ul class="docs">
-  <li><a href="#/分布式架构&微服务架构/分布式消息中件间/消息中间件">消息中间件概述</a></li>
-  <li><a href="#/分布式架构&微服务架构/分布式消息中件间/ActiveMQ">ActiveMQ</a></li>
-  <li><a href="#/分布式架构&微服务架构/分布式消息中件间/RabbitMQ">RabbitMQ</a></li>
-  <li><a href="#/分布式架构&微服务架构/分布式消息中件间/RocketMQ">RocketMQ</a></li>
-  <li><a href="#/分布式架构&微服务架构/分布式消息中件间/Kafka">Kafka</a></li>
+  <li><a href="#/分布式微服务/分布式消息中件间/消息中间件">消息中间件概述</a></li>
+  <li><a href="#/分布式微服务/分布式消息中件间/ActiveMQ">ActiveMQ</a></li>
+  <li><a href="#/分布式微服务/分布式消息中件间/RabbitMQ">RabbitMQ</a></li>
+  <li><a href="#/分布式微服务/分布式消息中件间/RocketMQ">RocketMQ</a></li>
+  <li><a href="#/分布式微服务/分布式消息中件间/Kafka">Kafka</a></li>
 </ul>
 
 ### 🧾 分布式配置中心
 
 <ul class="docs">
-  <li><a href="#/分布式架构&微服务架构/分布式配置中心/">分布式配置中心综述</a></li>
-  <li><a href="#/分布式架构&微服务架构/分布式配置中心/Apollo">Apollo 分布式配置中心</a></li>
+  <li><a href="#/分布式微服务/分布式配置中心/">分布式配置中心综述</a></li>
+  <li><a href="#/分布式微服务/分布式配置中心/Apollo">Apollo 分布式配置中心</a></li>
 </ul>
 
 ### 📝 分布式事务控制解决方案
 
 <ul class="docs">
-  <li><a href="#/分布式架构&微服务架构/分布式事务控制解决方案/分布式事务基础理论">分布式事务基础理论</a></li>
-  <li><a href="#/分布式架构&微服务架构/分布式事务控制解决方案/Seata-2PC分布式事务解决方案">Seata - 2PC 分布式事务解决方案</a></li>
-  <li><a href="#/分布式架构&微服务架构/分布式事务控制解决方案/Hmily-TCC分布式事务解决方案">Hmily - TCC 分布式事务解决方案</a></li>
-  <li><a href="#/分布式架构&微服务架构/分布式事务控制解决方案/RocketMQ-可靠消息最终一致性事务解决方案">RocketMQ - 可靠消息最终一致性事务解决方案</a></li>
+  <li><a href="#/分布式微服务/分布式事务控制解决方案/分布式事务基础理论">分布式事务基础理论</a></li>
+  <li><a href="#/分布式微服务/分布式事务控制解决方案/Seata-2PC分布式事务解决方案">Seata - 2PC 分布式事务解决方案</a></li>
+  <li><a href="#/分布式微服务/分布式事务控制解决方案/Hmily-TCC分布式事务解决方案">Hmily - TCC 分布式事务解决方案</a></li>
+  <li><a href="#/分布式微服务/分布式事务控制解决方案/RocketMQ-可靠消息最终一致性事务解决方案">RocketMQ - 可靠消息最终一致性事务解决方案</a></li>
 </ul>
 
 ### ⏲ 分布式任务调度
 
 <ul class="docs">
-  <li><a href="#/分布式架构&微服务架构/分布式任务调度/Quartz">Quartz 开源作业调度框架</a></li>
-  <li><a href="#/分布式架构&微服务架构/分布式任务调度/ElasticJob">Elastic-Job 分布式调度解决方案</a></li>
+  <li><a href="#/分布式微服务/分布式任务调度/Quartz">Quartz 开源作业调度框架</a></li>
+  <li><a href="#/分布式微服务/分布式任务调度/ElasticJob">Elastic-Job 分布式调度解决方案</a></li>
 </ul>
 
 ### ✨ 其他
 
 <ul class="docs">
-  <li><a href="#/分布式架构&微服务架构/其他/项目搭建模板">项目搭建模板与规范</a></li>
-  <li><a href="#/分布式架构&微服务架构/其他/分布式缓存">分布式缓存</a></li>
-  <li><a href="#/分布式架构&微服务架构/其他/FastDFS">FastDFS 分布式文件系统</a></li>
+  <li><a href="#/分布式微服务/其他/项目搭建模板">项目搭建模板与规范</a></li>
+  <li><a href="#/分布式微服务/其他/分布式缓存">分布式缓存</a></li>
+  <li><a href="#/分布式微服务/其他/FastDFS">FastDFS 分布式文件系统</a></li>
 </ul>
 
 ## 并发编程
 
 <ul class="docs">
-  <li><a href="#/并发编程/并发编程01-多线程">并发编程 - 多线程</a></li>
-  <li><a href="#/并发编程/并发编程02-应用篇">并发编程 - 应用篇</a></li>
-  <li><a href="#/并发编程/并发编程03-原理篇">并发编程 - 原理篇</a></li>
-  <li><a href="#/并发编程/并发编程99-常用API">并发编程 - 常用API</a></li>
+  <li><a href="#/并发编程/并发编程-基础篇01-多线程">并发编程（基础篇） - 多线程</a></li>
+  <li><a href="#/并发编程/并发编程-基础篇02-线程池">并发编程（基础篇） - 线程池</a></li>
+  <li><a href="#/并发编程/并发编程-基础篇03-线程安全与锁">并发编程（基础篇） - 线程安全与锁</a></li>
+  <li><a href="#/并发编程/并发编程-基础篇04-volatile">并发编程（基础篇） - volatile</a></li>
+  <li><a href="#/并发编程/并发编程-应用篇">并发编程（应用篇）</a></li>
+  <li><a href="#/并发编程/并发编程-原理篇">并发编程（原理篇）</a></li>
+  <li><a href="#/并发编程/并发编程-常用API">并发编程（常用API）</a></li>
 </ul>
 
 ## 性能调优

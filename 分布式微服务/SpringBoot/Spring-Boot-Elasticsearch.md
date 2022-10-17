@@ -2,7 +2,7 @@
 
 ## 1. Elasticsearch 简介
 
-> Elasticsearch 介绍、安装及其使用的相关内容，详见[《ElasticSearch 分布式全文搜索引擎》笔记](/分布式架构&微服务架构/ElasticStack/ElasticSearch)
+> Elasticsearch 介绍、安装及其使用的相关内容，详见[《ElasticSearch 分布式全文搜索引擎》笔记](/分布式微服务/ElasticStack/ElasticSearch)
 
 ### 1.1. 概述
 

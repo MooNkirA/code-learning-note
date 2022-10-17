@@ -1438,7 +1438,7 @@ Nacos 是阿里巴巴推出来的一个新开源项目，这是一个更易于�
 
 ### 8.2. Consul 注册中心入门
 
-Consul 注册中心组件的详细介绍与使用，详见`code-learning-note\07-分布式架构&微服务架构\02-SpringCloud\05-Spring-Cloud-Consul.md`
+Consul 注册中心组件的详细介绍与使用，详见`Spring-Cloud-Consul.md`
 
 # Ribbon 服务调用
 
@@ -1932,7 +1932,7 @@ Ribbon 的负载均衡主要是通 `LoadBalancerClient` 来实现，而 `LoadBal
 
 # Feign 服务调用
 
-Feign组件的详细介绍与使用，详见`code-learning-note\07-分布式架构&微服务架构\02-SpringCloud\04-Spring-Cloud-OpenFeign.md`
+Feign组件的详细介绍与使用，详见`Spring-Cloud-OpenFeign.md`
 
 # Hystrix 服务熔断
 
@@ -2786,7 +2786,7 @@ Resilicence4J 一款非常轻量、简单，并且文档非常清晰、丰富的
 
 ### 10.2. Spring Cloud Alibaba Sentinel
 
-Spring Cloud Alibaba Sentinel 组件详细介绍与使用，详见`code-learning-note\07-分布式架构&微服务架构\02-SpringCloud\03-Spring-Cloud-Alibaba.md`
+Spring Cloud Alibaba Sentinel 组件详细介绍与使用，详见`Spring-Cloud-Alibaba.md`
 
 ### 10.3. Resilience4J（待学习与整理）
 
@@ -3402,7 +3402,7 @@ Zuul2.x版本是对zuul的升级版，但并没有被Spring Cloud收录
 
 Spring Cloud Gateway 是 Spring Cloud 单独推出的微服务网关组件，比 Zuul 1.x 系列的性能和功能整体要好
 
-> 详细的Spring Cloud Gateway说明与使用详见`code-learning-note\07-分布式架构&微服务架构\02-SpringCloud\06-Spring-Cloud-Gateway.md`
+> 详细的Spring Cloud Gateway说明与使用详见`Spring-Cloud-Gateway.md`
 
 
 

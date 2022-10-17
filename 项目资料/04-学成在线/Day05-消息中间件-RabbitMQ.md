@@ -24,5 +24,5 @@
 1. 理解MQ的应用场景
 2. 理解MQ常用的工作模式
 
-详细参考 “学成在线-RabbitMQ研究v1.1.pdf”。或自己整理的笔记`code-learning-note\07-分布式架构&微服务架构\03-分布式消息中件间\03-RabbitMQ.md`
+详细参考 “学成在线-RabbitMQ研究v1.1.pdf”。或自己整理的笔记`RabbitMQ.md`
 

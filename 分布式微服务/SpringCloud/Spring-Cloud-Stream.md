@@ -64,7 +64,7 @@ Spring Cloud Stream支持各种binder实现，*下面包含GitHub项目的链接
 
 本次Spring Cloud Stream案例是通过RabbitMQ作为消息中间件，需要先准备RabbitMQ的环境
 
-> 更多RabbitMQ的内容详见：[\07-分布式架构&微服务架构\03-分布式消息中件间\03-RabbitMQ.md](/07-分布式架构&微服务架构/03-分布式消息中件间/03-RabbitMQ)
+> 更多RabbitMQ的内容详见：[《RabbitMQ》笔记](/分布式微服务/分布式消息中件间/RabbitMQ)
 
 创建`15-springcloud-stream`聚合工程，引入SpringBoot父工程与SpringCloud版本控制
 
