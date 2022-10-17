@@ -217,7 +217,7 @@ int arr[];
 double myList[];
 ```
 
-### 4.3. 数组初始化
+### 4.3. 数组初始化(创建数组)
 
 数组初始化，就是为数组开辟内存空间，并为数组中的每个元素赋予初始值。Java 语言使用 `new` 关键字来创建数组，有以下两种方式可以实现数组的初始化：
 
@@ -254,6 +254,53 @@ int[] arr = {1,2,3};
 // 根据索引获取数组第二个元素
 int a = arr[1];
 ```
+
+#### 循环数组
+
+数组的元素类型和数组的大小都是确定的，所以当处理数组元素时候，通常使用基本循环或者 For-Each 循环。
+
+- 基础 for 循环
+
+```java
+double[] myList = {1.9, 2.9, 3.4, 3.5};
+
+// 打印所有数组元素
+for (int i = 0; i < myList.length; i++) {
+    System.out.println(myList[i] + " ");
+}
+// 计算所有元素的总和
+double total = 0;
+for (int i = 0; i < myList.length; i++) {
+    total += myList[i];
+}
+System.out.println("Total is " + total);
+// 查找最大元素
+double max = myList[0];
+for (int i = 1; i < myList.length; i++) {
+    if (myList[i] > max) max = myList[i];
+}
+System.out.println("Max is " + max);
+```
+
+- JDK 1.5 引进了一种新的循环类型，被称为 For-Each 循环或者加强型循环，它能在不使用下标的情况下遍历数组。语法格式如下：
+
+```java
+for(数据类型 数组中元素变量: 数组变量名) {
+    // do something...
+}
+```
+
+示例
+
+```java
+double[] myList = {1.9, 2.9, 3.4, 3.5};
+ 
+// 打印所有数组元素
+for (double element: myList) {
+    System.out.println(element);
+}
+```
+
 
 #### 4.4.3. 数组常见小问题
 
@@ -459,17 +506,13 @@ public final class Xxx{
 
 当引用变量使用 final 修饰时，表示其指向的地址值不能发生改变，但指向对象的成员变量值可以改变。
 
-### 6.6. 常量治理（待整理）
+### 6.6. 常量治理
 
-虽然推崇在java中使用枚举（可查看[《Java中的枚举的治理》](http://www.cnblogs.com/shizhanming/p/6564805.html)）来对数据字典及常量进行控制，但是有些时候，我们还是会觉得常量控制更为便捷。
+虽然推荐在 java 中使用枚举来对数据字典及常量进行控制，但是有些时候，还是使用常量控制更为便捷。比如，对于数据字典，可以使用枚举值来处理；对于一些其他的信息，还是会使用常量保存和使用。
 
-比如，对于数据字典，我们可以使用枚举值来处理；对于一些其他的信息，我们会使用常量保存和使用。
+#### 6.6.1. 代码的坏味道
 
-#### 6.6.1. 苗条的常量类
-
-这里使用苗条形容下我们程序中的常量类，别看它宽度，就只看她长度，滚起屏来，那叫一个长啊，修长的身材，令你如痴如醉。（省略号里的东西）
-
-例如：
+很多程序中的常量类，随着业务与功能的迭代，类中定义的常量越来越多，导致类中行数过多，造成查找内容十分不方便。例如：
 
 
 ```java
@@ -479,30 +522,25 @@ public class Constants {
     public static final String REAL_NAME3 = "v3";
     public static final String REAL_NAME4 = "v4";
     public static final String REAL_NAME5 = "v5";
-    public static final String 6 = "v6";
-    public static final String 7 = "v7";
+    public static final String REAL_NAME5 = "v6";
+    public static final String REAL_NAME7 = "v7";
     public static final String REAL_NAME8 = "v8";
     public static final String REAL_NAME9 = "v9";
     ......
 }
 ```
 
-一个无穷尽的常量类，设想这个类篇幅巨长，你想加点什么不知道该加在哪；你想改点什么，不知道去哪改；你想骂街也不知道去哪骂！！！
+一个无穷尽的常量类，设想这个类篇幅巨长，这样的常量管理会带来的问题如下：
 
-这样的常量管理，带来的问题如下：
-
-1. 不好维护，相关的代码写到一起，此时，常量的篇幅较长导致你找不到对应的常量块进行维护；
+1. 不好维护，相关的代码写到一起，此时，常量的篇幅较长导致找不到对应的常量块进行维护；
 2. 虽然是在不同的业务场景下，但是有些常量的名称还是有可能重复；
 3. 有时为了减少常量的定义，就得共用一些常量，而这样的共用会导致某种业务场景下需要对该常量进行修改，而导致另外一些业务场景下的常量使用产生歧义；
-4. 其他你能想到的骂街的理由
 
-#### 6.6.2. 代码的坏味道
-
-引用下“代码的坏味道”这个词，我们常能看到一些常量类的坏味道里，假如常量名称如上所示，名称类似的很多；名称不明确的也很多，还没有注释，这样的歧义也是因为代码不好管理造成的。
+因此常能看到一些常量类的“代码里的坏味道”，假如常量名称如上所示，名称类似的很多；名称不明确的也很多，还没有注释，这样的歧义也是因为代码不好管理造成的。想对这种常量类进行新增或修改内容，是十分困难。
 
 #### 6.6.3. 初级治理 - 使用内部类
 
-使用java的内部类进行常量的初步治理，代码如下：
+使用 java 的内部类进行常量的初步治理，对常量根据不同的业务模块进行管理，代码如下：
 
 ```java
 /**
@@ -536,38 +574,30 @@ public void test(){
 
 #### 6.6.4. 中级治理 - 集中管理
 
-初级治理中，我们的想法还是不错的，但是看起来比较low，而且当我们希望通过value获取到key时，你却无能为力，于是我们有了中级治理。
-
-中级治理我们主要是通过map，每个内部类都会存为map中的一个entry，每个entry又都是map类型的集合，集合中包含该内部类的所有常量。
+在初级治理中，是无法实现通过 value 来获取到常量 key 。进而出现中级治理，主要是通过 map，每个内部类都会存为 map 中的一个 entry，每个 entry 又都是 map 类型的集合，集合中包含该内部类的所有常量。
 
 代码如下：
 
 ```java
-/**
- * Created by SZBright on 2017/3/1.
- *
- * @author :
- */
 public class Constants {
+    public static final Map<String, Map<String, String>> keyValueMapCons = new LinkedHashMap<>();
 
-    public static final Map<String,Map<String,String>> keyValueMapCons = new LinkedHashMap<String, Map<String, String>>();
+    public static final Map<String, Map<String, String>> valueKeyMapCons = new LinkedHashMap<>();
 
-    public static final Map<String,Map<String,String>> valueKeyMapCons = new LinkedHashMap<String, Map<String, String>>();
-　　/**
-     * 初始化所有常量
-     */
+    /* 初始化所有常量 */
     static {
         try {
-            //获取所有内部类
+            // 获取所有内部类
             for (Class cls : Constants.class.getClasses()) {
-                Map<String, String> keyValueMap = new LinkedHashMap<String, String>();//存放key和value的map
-                Map<String, String> valueKeyMap = new LinkedHashMap<String, String>();//存放value和key的map//每个内部类-获取所有属性（不包括父类的）
+                Map<String, String> keyValueMap = new LinkedHashMap<>(); // 存放 key 和 value 的 map
+                Map<String, String> valueKeyMap = new LinkedHashMap<>(); // 存放 value 和 key 的 map，每个内部类-获取所有属性（不包括父类的）
                 for (Field fd : cls.getDeclaredFields()) {
-                    keyValueMap.put(fd.getName(), fd.get(cls).toString());//注解对象空，其值为该field的值
-                    valueKeyMap.put(fd.get(cls).toString(),fd.getName());
+                    keyValueMap.put(fd.getName(), fd.get(cls).toString()); // 注解对象空，其值为该 field 的值
+                    valueKeyMap.put(fd.get(cls).toString(), fd.getName());
                 }
-                keyValueMapCons.put(cls.getSimpleName(),keyValueMap);
-                valueKeyMapCons.put(cls.getSimpleName(),valueKeyMap);
+                // 以内部类的名称作为 key 保存
+                keyValueMapCons.put(cls.getSimpleName(), keyValueMap);
+                valueKeyMapCons.put(cls.getSimpleName(), valueKeyMap);
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -575,233 +605,186 @@ public class Constants {
     }
 
     public static final class TOKEN_FLAG_ONE {
-		public static final String REAL_NAME = "v1";
-		public static final String CRET = "v2";
+        public static final String REAL_NAME = "v1";
+        public static final String CRET = "v2";
         public static final String GUR = "v5";
     }
 }
 ```
 
+示例中在 `Constants` 类中维护了两个 Map 常量集合：
 
-好了，我们在Constants中有了两个常量集：一个集keyValueMapCons，按照内部类的名称，把常量的名字作为map的key，值作为map的value；一个集valueKeyMapCons，按照内部类的名称，把常量的值作为map的key，常量的名字作为map的key。
+- 一个名为 `keyValueMapCons` 的 Map 集合，按照内部类的名称作为 key 存储，其 value 是一个常量 Map 集合，该结构是将常量的名字作为 map 的 key，值作为 map 的 value；
+- 一个名为 `valueKeyMapCons` 的 Map 集合，按照内部类的名称作为 key 存储，其 value 是一个常量 Map 集合，该结构是将常量的值作为 map 的 key，常量的名字作为 map 的 key。
 
-这样一来，我们可以使用常量的这两个集满足我们对常量的使用需求。使用代码如下：
+这样就可以通过这两个 map 集合，根据不同的的使用需求来获取相应的常量。使用示例代码如下：
 
 ```java
 @Test
 public void test1(){
-    System.out.println(Constants.keyValueMapCons.get("TOKEN_FLAG_ONE").get("REAL_NAME"));//v1
-    System.out.println(Constants.valueKeyMapCons.get("TOKEN_FLAG_ONE").get("v5"));//GUR
+    System.out.println(Constants.keyValueMapCons.get("TOKEN_FLAG_ONE").get("REAL_NAME")); // v1
+    System.out.println(Constants.valueKeyMapCons.get("TOKEN_FLAG_ONE").get("v5")); // GUR
 }
 ```
 
 #### 6.6.5. 中高级治理 - 使用注解
 
-我们可以通过key获取到value，也可以通过value获取到key了。现在有这么个问题，我们使用常量时，不光要有常量的定义、常量的值，还应该有对常量的描述，而传统的对于常量的定义，往往使我们无从存放对常量的描述。
+目前实现了通过 key 获取到 value，也可以通过 value 获取到 key 了。但在使用常量时，不光要有常量的定义、常量的值，还应该有对常量的描述，而传统的对于常量的定义，往往只在通过 ide 的文档功能来查看常量的描述。
 
-此时，我们希望通过注解来改变这种情况。
-
-我们来自定义注解类型如下：
+可以通过注解的方式来实现存储常量描述的功能，例如自定义注解类型如下：
 
 ```java
-/**
- * Created by SZBright on 2017/3/1.
- *
- * @author :
- */
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.FIELD, ElementType.TYPE})
 public @interface ConstantAnnotation {
-    String value();
+    String value(); // 用于记录常量的描述
 }
 ```
 
-有了这个注解，我们就可以把描述些到常量的上面了
+通过自定义的注解，将常量的中文描述都记录到注解的 `value` 属性中。
 
 ```java
-/**
- * Created by SZBright on 2017/3/1.
- *
- * @author :
- */
 public class Constants {
     private static final String CONSTANT_STRING = "这是一条短信消息";
 
     public static final class TOKEN_FLAG_ONE {
-
         @ConstantAnnotation("实名")
         public static final String REAL_NAME = "v1";
 
         @ConstantAnnotation("证书")
         public static final String CRET = "v2";
 
-        @ConstantAnnotation(CONSTANT_STRING)
-        public static final String GUR = "v5";//把描述与注解分开
-
+        @ConstantAnnotation(CONSTANT_STRING) // 把描述与注解分离
+        public static final String GUR = "v5";
     }
 }
 ```
-
-我们看到，每个常量上面有了对应的中文描述，这样的中文描述可以用来干嘛呢？
 
 比如，我们希望在某个业务场景下，符合gur常量的业务，发送一条短信消息，而这个消息我们就可以定义在我们的自定义注解中。例如GUR这个常量，我们把它的描述声明成一个常量，这个常量可用来存放对应的短信消息。我们的常量类中如果再有一个通过常量获取到描述的map，这是不是就完美了？
 
 于是，我们有了下面的代码：
 
 ```java
-/**
- * Created by SZBright on 2017/3/1.
- *
- * @author :
- */
 public class Constants {
 
-    public static final Map<String,Map<String,String>> keyDescMapCons = new LinkedHashMap<String, Map<String, String>>();
-/**
-     * 初始化所有常量
-     */
+    // 存储常量描述的 Map 集合，根据常量名称来获取常量描述的值
+    public static final Map<String, Map<String, String>> keyDescMapCons = new LinkedHashMap<>();
+
+    /* 初始化所有常量 */
     static {
         try {
-            //获取所有内部类
+            // 获取所有内部类
             for (Class cls : Constants.class.getClasses()) {
-                Map<String, String> keyDescMap = new LinkedHashMap<String, String>();//存放key和desc的map
+                Map<String, String> keyDescMap = new LinkedHashMap<>(); // 存放常量 key 和 desc 的 map
 
-                //每个内部类-获取所有属性（不包括父类的）
+                // 每个内部类-获取所有属性（不包括父类的）
                 for (Field fd : cls.getDeclaredFields()) {
-                    //每个属性获取指定的annotation的注解对象
+                    // 每个属性获取指定的 annotation 的注解对象
                     ConstantAnnotation ca = fd.getAnnotation(ConstantAnnotation.class);
-                    if(ca != null){
-                        keyDescMap.put(fd.getName(), ca.value());//注解对象不空，其值为注解对象中的值
+                    if (ca != null) {
+                        keyDescMap.put(fd.getName(), ca.value()); // 注解对象不空，常量的描述即为注解对象中的值
                     }
                 }
-                                keyDescMapCons.put(cls.getSimpleName(),keyDescMap);
-                
+                keyDescMapCons.put(cls.getSimpleName(), keyDescMap);
+
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
-    /**
-     * key-value-desc
-     *
-     * 常量名-常量值-注解描述
-     *
-     * 实现通过key获取value
-     *
-     * 实现通过key获取desc
-     *
-     * 实现通过value获取desc
-     */
-    private static final String CONSTANT_STRING = "这是一条短消息";
+
+    private static final String CONSTANT_STRING = "这是一条短信消息";
 
     public static final class TOKEN_FLAG_ONE {
-
         @ConstantAnnotation("实名")
         public static final String REAL_NAME = "v1";
 
         @ConstantAnnotation("证书")
         public static final String CRET = "v2";
 
-        @ConstantAnnotation(CONSTANT_STRING)
-        public static final String GUR = "v5";//把描述与注解分开
-
+        @ConstantAnnotation(CONSTANT_STRING) // 把描述与注解分离
+        public static final String GUR = "v5";
     }
-
 }
 ```
 
-现在，我们通过Constants的keyDescMap可以获取到这个常量对应的描述了。使用代码如下：
+经过改造后，可以通过 keyDescMap 集合，根据常量的名称获取到该常量对应的描述了。使用示例代码如下：
 
 ```java
-    @Test
-    public void test1(){
-        System.out.println(Constants.keyDescMapCons.get("TOKEN_FLAG_ONE").get("GUR"));//打印输出“这是一条短消息”
-    }
+@Test
+public void test1(){
+    System.out.println(Constants.keyDescMapCons.get("TOKEN_FLAG_ONE").get("GUR")); // 打印输出“这是一条短消息”
+}
 ```
 
 #### 6.6.6. 综合治理（终极治理）
 
-现在我们有了常量的治理，有了注解的描述，有时我们需要通过key获取到value，有时我们需要通过value获取描述，有时我们需要通过key获取到描述，等等。排列组合共6种形式，暂且不说什么时候会用到，我们先给他来个综合治理的实现。代码如下：
+目前有了常量的治理，有了注解的描述，有时需要通过key获取到value，有时需要通过value获取描述，有时需要通过key获取到描述等等。排列组合共6种形式，以下是综合治理的实现（虽然实际项目中不一定有用得上）。代码如下：
 
 ```java
-/**
- * Created by SZBright on 2017/3/1.
- *
- * @author :
- */
 public class Constants {
 
-    public static final Map<String,Map<String,String>> keyValueMapCons = new LinkedHashMap<String, Map<String, String>>();
+    public static final Map<String, Map<String, String>> keyValueMapCons = new LinkedHashMap<>();
+    public static final Map<String, Map<String, String>> keyDescMapCons = new LinkedHashMap<>();
+    public static final Map<String, Map<String, String>> descValueMapCons = new LinkedHashMap<>();
+    public static final Map<String, Map<String, String>> descKeyMapCons = new LinkedHashMap<>();
+    public static final Map<String, Map<String, String>> valueDescMapCons = new LinkedHashMap<>();
+    public static final Map<String, Map<String, String>> valueKeyMapCons = new LinkedHashMap<>();
 
-    public static final Map<String,Map<String,String>> keyDescMapCons = new LinkedHashMap<String, Map<String, String>>();
-
-    public static final Map<String,Map<String,String>> descValueMapCons = new LinkedHashMap<String, Map<String, String>>();
-
-    public static final Map<String,Map<String,String>> descKeyMapCons = new LinkedHashMap<String, Map<String, String>>();
-
-    public static final Map<String,Map<String,String>> valueDescMapCons = new LinkedHashMap<String, Map<String, String>>();
-
-    public static final Map<String,Map<String,String>> valueKeyMapCons = new LinkedHashMap<String, Map<String, String>>();
-
-
-    /**
-     * 初始化所有常量
-     */
+    /* 初始化所有常量 */
     static {
         try {
-            //获取所有内部类
+            // 获取所有内部类
             for (Class cls : Constants.class.getClasses()) {
-                Map<String, String> keyDescMap = new LinkedHashMap<String, String>();//存放key和desc的map
-                Map<String, String> keyValueMap = new LinkedHashMap<String, String>();//存放key和value的map
-                Map<String, String> valueKeyMap = new LinkedHashMap<String, String>();//存放value和key的map
-                Map<String, String> valueDescMap = new LinkedHashMap<String, String>();//存放value和desc的map
-                Map<String, String> descValueMap = new LinkedHashMap<String, String>();//存放desc和value的map
-                Map<String, String> descKeyMap = new LinkedHashMap<String, String>();//存放desc和key的map
-                //每个内部类-获取所有属性（不包括父类的）
+                Map<String, String> keyDescMap = new LinkedHashMap<>(); // 存放key和desc的map
+                Map<String, String> keyValueMap = new LinkedHashMap<>(); // 存放key和value的map
+                Map<String, String> valueKeyMap = new LinkedHashMap<>(); // 存放value和key的map
+                Map<String, String> valueDescMap = new LinkedHashMap<>(); // 存放value和desc的map
+                Map<String, String> descValueMap = new LinkedHashMap<>(); // 存放desc和value的map
+                Map<String, String> descKeyMap = new LinkedHashMap<>(); // 存放desc和key的map
+                // 每个内部类-获取所有属性（不包括父类的）
                 for (Field fd : cls.getDeclaredFields()) {
-                    //每个属性获取指定的annotation的注解对象
+                    // 每个属性获取指定的 annotation的 注解对象
                     ConstantAnnotation ca = fd.getAnnotation(ConstantAnnotation.class);
-                    keyValueMap.put(fd.getName(), fd.get(cls).toString());//注解对象空，其值为该field的值
-                    valueKeyMap.put(fd.get(cls).toString(),fd.getName());
-                    if(ca != null){
-                        keyDescMap.put(fd.getName(), ca.value());//注解对象不空，其值为注解对象中的值
-                        valueDescMap.put(fd.get(cls).toString(),ca.value());
-                        descValueMap.put(ca.value(),fd.get(cls).toString());
-                        descKeyMap.put(ca.value(),fd.getName());
+                    keyValueMap.put(fd.getName(), fd.get(cls).toString()); // 获取该 field 的名称
+                    valueKeyMap.put(fd.get(cls).toString(), fd.getName());
+                    if (ca != null) {
+                        keyDescMap.put(fd.getName(), ca.value()); // 注解对象不空，常量的描述即为注解对象中的值
+                        valueDescMap.put(fd.get(cls).toString(), ca.value());
+                        descValueMap.put(ca.value(), fd.get(cls).toString());
+                        descKeyMap.put(ca.value(), fd.getName());
                     }
                 }
-                keyValueMapCons.put(cls.getSimpleName(),keyValueMap);
-                keyDescMapCons.put(cls.getSimpleName(),keyDescMap);
-                descValueMapCons.put(cls.getSimpleName(),descValueMap);
-                descKeyMapCons.put(cls.getSimpleName(),descKeyMap);
-                valueDescMapCons.put(cls.getSimpleName(),valueDescMap);
-                valueKeyMapCons.put(cls.getSimpleName(),valueKeyMap);
+                keyValueMapCons.put(cls.getSimpleName(), keyValueMap);
+                keyDescMapCons.put(cls.getSimpleName(), keyDescMap);
+                descValueMapCons.put(cls.getSimpleName(), descValueMap);
+                descKeyMapCons.put(cls.getSimpleName(), descKeyMap);
+                valueDescMapCons.put(cls.getSimpleName(), valueDescMap);
+                valueKeyMapCons.put(cls.getSimpleName(), valueKeyMap);
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    private static final String CONSTANT_STRING = "这是一条短消息";
+    private static final String CONSTANT_STRING = "这是一条短信消息";
 
     public static final class TOKEN_FLAG_ONE {
-
         @ConstantAnnotation("实名")
         public static final String REAL_NAME = "v1";
 
         @ConstantAnnotation("证书")
         public static final String CRET = "v2";
 
-        @ConstantAnnotation(CONSTANT_STRING)
-        public static final String GUR = "v5";//把描述与注解分开
-
+        @ConstantAnnotation(CONSTANT_STRING) // 把描述与注解分离
+        public static final String GUR = "v5";
     }
 }
 ```
 
-好了，有了上面这个类，你就啥都不用愁了，用的时候先拿常量的声明，再用对应的map，然后指定内部类名称，想获取什么，获取什么。
+以上就是综合治理后的常量类，使用先拿常量的声明，再用对应的map，然后指定内部类名称，根据具体需要获取相应的内容。
 
-ps：枚举治理和常量治理结合使用，可能是我们系统开发时的最佳实践
+> Tips: <font color=red>**枚举治理和常量治理结合使用，可能才是系统开发时的最佳实践**</font>
 
 ## 7. volatile 关键字
 
@@ -2709,9 +2692,11 @@ public <E> void print(E... e) {
 类/接口<? extends 形参类型>
 ```
 
-如 `<? extends E>`，代表传递 E 类型或 E 的子类，即该通配符所代表的类型是 E 类型的子类。**在读取定义泛型上限的参数时，由于只知道父类但无法得知使用哪个子类，所以不能增加相应的元素。**
+如 `<? extends E>`，代表传递 E 类型或 E 的子类，即该通配符所代表的类型是 E 类型的子类。**还有一种特殊的形式，可以指定其不仅要是指定类型的子类，而且还要实现某些接口**。
 
-示例：
+例如：`List<? extends A>` 表明这是 A 某个具体子类的 List，保存的对象必须是 A 或 A 的子类。对于 `List<? extends A>` 列表，由于只知道父类但无法得知使用哪个子类，因此不能添加 A 或 A 的子类对象，只能获取 A 的对象。
+
+示例代码：
 
 ```java
 public class GenericityUpTest {
@@ -2756,9 +2741,11 @@ public class GenericityUpTest {
 类/接口<? super 形参类型>
 ```
 
-如 `<? super E>`，可以传递 E 类型或 E 的父类，即该通配符所代表的类型是 E 类型的父类。**在读取定义泛型上限的参数时，编译器只知道集合元素是下限的父类型，但具体是那种父类型不确定。因此，这种泛型集合能向其中添加元素；而读取内容时只能通过 Object 类型来接收。**
+如 `<? super E>`，可以传递 E 类型或 E 的父类，即该通配符所代表的类型是 E 类型的父类。
 
-示例：
+例如：`List<? super A>` 表明这是 A 某个具体父类的 List，保存的对象必须是 A 或 A 的超类。对于 `List<? super A>` 列表，由于编译器已知集合元素是下限类型，因此能够添加 A 或 A 的子类对象；而具体是那种父类型不能确定，所以获取内容时只能通过 Object 类型来接收。
+
+示例代码：
 
 ```java
 public class GenericityDownTest {
@@ -2789,6 +2776,13 @@ public class GenericityDownTest {
     }
 }
 ```
+
+### PECS（Producer Extends Consumer Super）原则
+
+- 作为生产者提供数据（往外读取）时，适合用上界通配符（extends）
+- 作为消费者消费数据（往里写入）时，适合用下界通配符（super）
+
+> Notes: 在日常编码中，比较常用的是上界通配符（extends），用于限定泛型类型的父类。
 
 ## 8. 类型擦除
 
@@ -3472,15 +3466,13 @@ IllegalArgumentException, InvocationTargetException
 
 如果是`enum`类型，则直接抛出异常`Cannot reflectively create enum objects`，无法通过反射创建实例对象！
 
-## 7. 枚举的治理（待整理）
+## 7. 枚举的治理
 
-### 7.1. 为啥用枚举&为啥要对枚举进行治理
+### 7.1. 概述
 
-#### 7.1.1. 先来说说为啥用枚举
+#### 7.1.1. 为什么要使用枚举？
 
-表中某个字段标识了这条记录的状态，我们往往使用一些code值来标识，例如01成功，00失败。
-
-多状态共性的东西可以常量保存，例如
+表中某个字段标识了这条记录的状态，通常会使用一些code值来标识，例如01代表成功，00代表失败。多状态共性的东西可以常量保存，例如：
 
 ```java
 class Constants{
@@ -3489,33 +3481,26 @@ class Constants{
 }
 ```
 
-然而，在一些大型项目中，表的数量极多，一些表中需要维护的状态也极多，如果都在如上的Constants中维护，试想如果添加一个状态值，那么需要在整个篇幅中找到对应的块，然后去新增值；修改呢？同样麻烦！！！
-
-所以我们使用枚举，每个枚举类就只负责对一个状态做维护，这样我们方便增删改。例如：
+然而在一些大型项目中，表的数量极多，一些表中需要维护的状态也极多，如果都在一个常量类中维护，当需要添加或修改一个状态值时，就需要在庞大的类中找到对应的块，操作十分不便利。因此可以使用枚举，每个枚举类就只负责对一个状态做维护，这样即可方便增删改。例如：
 
 ```java
-/**
- * Created by Bright on 2017/3/13.
- *
- * @author :
- */
 public enum Payment {
-    Payment_WX("010000","微信支付"),
-    Payment_ZFB("010001","支付宝支付"),
-    Payment_YL("010002","银联支付");
+    Payment_WX("010000", "微信支付"),
+    Payment_ZFB("010001", "支付宝支付"),
+    Payment_YL("010002", "银联支付");
 
-    public static Map<String,String> map = new HashMap<String, String>();
+    public static final Map<String, String> map = new HashMap<>();
 
-    static{
+    static {
         Payment[] values = Payment.values();
-        if(values.length > 0){
-            for(Payment product : values){
-                map.put(product.getCode(),product.getName());
+        if (values.length > 0) {
+            for (Payment product : values) {
+                map.put(product.getCode(), product.getName());
             }
         }
     }
 
-    Payment(String code, String name){
+    Payment(String code, String name) {
         this.code = code;
         this.name = name;
     }
@@ -3523,52 +3508,31 @@ public enum Payment {
     private String code;
 
     private String name;
-
-    public String getCode() {
-        return code;
-    }
-
-    public void setCode(String code) {
-        this.code = code;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
+	// ...省略 getter/setter
 }
 ```
 
-#### 7.1.2. 为啥要用java反射处理枚举呢？
+#### 7.1.2. 为什么需要枚举治理？
 
-我们之前看到了，使用Constants很方便，可以直接通过这个类的静态字段拿到值。当我们使用枚举时，当枚举类逐渐增多时，我们会发现，不同的地方我们需要获取不同的类，然后再通过不同的枚举获取到不同的值。这又势必是个头痛的事情。
+如果使用常量类，可以直接通过这个类的静态字段拿到值。当使用枚举时，尤其当枚举类逐渐增多时，此时不同的业务功能就可能需要获取不同的枚举类，然后再通过不同的枚举实例获取到不同的值。这种操作又会变得十分不便利。此时有如下的改进方法：
 
-那么我们想到了改进的方法：
+- 改进一：以上面示例为例，把每个枚举类中实例存入到 map 集合中，把其 code 和 name 值映射进去，然后调用时通过静态 map 对象，把 code 值作为 key 传入，即可获取到对应的描述。
 
-改进一：把每个枚举类中放个map，把其code和name值映射进去，然后调用时通过静态map对象，把code值作为key传入，势必能获取到对应的描述。（如上段代码的map值）
+> 然而以上的改进后，依旧需要找到相应的枚举类，然后去使用它的静态 Map 集合的成员属性，能不能只通过一个类进行统一治理呢？
 
-然而，这个改进后，我们依旧需要找到这个类，然后去使用它的静态map，能不能只通过一个类进行统一治理呢？
-
-改进二：通过一个类，把所有枚举在该类中注册，然后通过该类直接获取到相应的枚举值及name描述。
+- 改进二：通过一个类，把所有枚举都在该类中注册，然后通过该类直接获取到相应的枚举值及name描述。
 
 ### 7.2. 枚举治理的实现
 
-#### 7.2.1. 先弄清我们使用枚举的场景
+#### 7.2.1. 枚举的场景说明
 
-##### 7.2.1.1. 通过枚举类中枚举名获取到枚举的code值（使用上面的枚举值定义）
-
-例如：`{"Payment_WX":"010000","Payment_YL":"010002","Payment_ZFB":"010001"}`
+1. 通过枚举类中枚举名获取到枚举的code值，使用上面的枚举值定义为示例：`{"Payment_WX":"010000","Payment_YL":"010002","Payment_ZFB":"010001"}`
 
 ```java
 if(param.equals(Payment.Payment_WX.getCode()){}
 ```
 
-##### 7.2.1.2. 通过枚举类中枚举的code值获取到对应的name描述（使用上面的枚举值定义）
-
-例如：`{"010002":"银联支付","010001":"支付宝支付","010000":"微信支付"}`
+2. 通过枚举类中枚举的code值获取到对应的name描述，使用上面的枚举值定义为示例：`{"010002":"银联支付","010001":"支付宝支付","010000":"微信支付"}`
 
 ```java
 Payment.map.get(Payment.Payment_WX.getCode());
@@ -3577,34 +3541,29 @@ Payment.map.get(Payment.Payment_WX.getCode());
 #### 7.2.2. 枚举治理工具类的实现
 
 ```java
-/**
- * Created by Bright on 2017/3/13.
- *
- * @author :
- */
 public class VelocityEnumTools {
-
     public static final Logger logger = LoggerFactory.getLogger(VelocityEnumTools.class);
 
 
-    //通过枚举获取枚举code值，例如：{"Payment_WX":"010000","Payment_YL":"010002","Payment_ZFB":"010001"}
-    public static Map<String,Map<String,String>> mapKeyCode = new HashMap<String, Map<String, String>>();
+    // 通过枚举获取枚举code值，例如：{"Payment_WX":"010000","Payment_YL":"010002","Payment_ZFB":"010001"}
+    public static Map<String, Map<String, String>> mapKeyCode = new HashMap<>();
 
-    //通过code值获取枚举name，例如：{"010002":"银联支付","010001":"支付宝支付","010000":"微信支付"}
-    public static Map<String, Map<String, String>> mapCodeName = new HashMap<String, Map<String, String>>();
+    // 通过code值获取枚举name，例如：{"010002":"银联支付","010001":"支付宝支付","010000":"微信支付"}
+    public static Map<String, Map<String, String>> mapCodeName = new HashMap<>();
 
     /**
-     * 需要在页面控制的enum，如Payment类似添加即可
+     * 初始化项目中需要管理的枚举类，如Payment。其他枚举也类似添加即可
      */
     static {
-        //通过枚举获取code值
+        // 通过枚举获取code值
         mapKeyCode.put(Payment.class.getSimpleName(), getEnumMap(Payment.class));
-        //通过code值获取枚举name
-        mapCodeName.put(Payment.class.getSimpleName(),getEnumCodeMap(Payment.class));
+        // 通过code值获取枚举name
+        mapCodeName.put(Payment.class.getSimpleName(), getEnumCodeMap(Payment.class));
     }
 
     /**
-     * 通过枚举获取code值
+     * 通过枚举名称，取所有枚举实例名称(key) 与 code 属性值的映射集
+     *
      * @param enumKey
      * @return
      */
@@ -3613,7 +3572,8 @@ public class VelocityEnumTools {
     }
 
     /**
-     * 通过code值获取枚举name
+     * 通过枚举名称，获取所有枚举实例 code 与 name 属性值的映射集
+     *
      * @param enumKey
      * @return
      */
@@ -3621,14 +3581,21 @@ public class VelocityEnumTools {
         return mapCodeName.get(enumKey);
     }
 
+    /**
+     * 根据枚举的类型，获取所有枚举实例名称(key) 与 code 属性值的映射集
+     *
+     * @param clazz
+     * @param <T>
+     * @return
+     */
     public static <T> Map<String, String> getEnumMap(Class<T> clazz) {
-        Map<String, String> map = new HashMap<String, String>();
+        Map<String, String> map = new HashMap<>();
         try {
             if (clazz.isEnum()) {
-                Object[] enumConstants = clazz.getEnumConstants();
+                Object[] enumConstants = clazz.getEnumConstants(); // 获取所有枚举实例
                 for (int i = 0; i < enumConstants.length; i++) {
                     T t = (T) enumConstants[i];
-                    Field code = t.getClass().getDeclaredField("code");
+                    Field code = t.getClass().getDeclaredField("code"); // 获取 code 属性对象
                     code.setAccessible(true);
                     map.put(t.getClass().getDeclaredFields()[i].getName(), (String) code.get(t));
                 }
@@ -3641,18 +3608,25 @@ public class VelocityEnumTools {
         return map;
     }
 
-    private static <T> Map<String,String> getEnumCodeMap(Class<T> clazz) {
-        Map<String, String> map = new HashMap<String, String>();
+    /**
+     * 根据枚举的类型，获取所有枚举实例 code 与 name 属性值的映射集
+     *
+     * @param clazz
+     * @param <T>
+     * @return
+     */
+    private static <T> Map<String, String> getEnumCodeMap(Class<T> clazz) {
+        Map<String, String> map = new HashMap<>();
         try {
             if (clazz.isEnum()) {
                 Object[] enumConstants = clazz.getEnumConstants();
                 for (int i = 0; i < enumConstants.length; i++) {
                     T t = (T) enumConstants[i];
-                    Field code = t.getClass().getDeclaredField("code");
-                    Field name = t.getClass().getDeclaredField("name");
+                    Field code = t.getClass().getDeclaredField("code"); // 获取 code 属性对象
+                    Field name = t.getClass().getDeclaredField("name"); // 获取 name 属性对象
                     code.setAccessible(true);
                     name.setAccessible(true);
-                    map.put((String) code.get(t),(String) name.get(t));
+                    map.put((String) code.get(t), (String) name.get(t));
                 }
             }
         } catch (NoSuchFieldException e) {
@@ -3662,43 +3636,45 @@ public class VelocityEnumTools {
         }
         return map;
     }
-
-    public static void main(String[] args) throws NoSuchFieldException, IllegalAccessException {
-        Map<String, String> enumMap = getEnumMap(Payment.class);
-        System.out.println(JSON.toJSONString(enumMap));//{"Payment_WX":"010000","Payment_YL":"010002","Payment_ZFB":"010001"}
-        Map<String, String> enumCodeMap = getEnumCodeMap(Payment.class);
-        System.out.println(JSON.toJSONString(enumCodeMap));//{"010002":"银联支付","010001":"支付宝支付","010000":"微信支付"}
-    }
 }
 ```
 
-### 7.3. 枚举治理的扩展-velocity中使用枚举
+测试：
 
-#### 7.3.1. 为什么会在velocity中使用枚举
+```java
+Map<String, String> enumMap = getEnumMap(Payment.class);
+System.out.println(enumMap); // {"Payment_WX":"010000","Payment_YL":"010002","Payment_ZFB":"010001"}
+Map<String, String> enumCodeMap = getEnumCodeMap(Payment.class);
+System.out.println(enumCodeMap); // {"010002":"银联支付","010001":"支付宝支付","010000":"微信支付"}
+```
 
-当涉及与前端的交互时，我们可能需要从前端把三种支付方式对应的code值传到后台。
+### 7.3. 枚举治理的扩展 - 在 velocity 中使用枚举（了解）
 
-此时，如果在页面上直接写010000这样的值，那么页面的逻辑就很不直观了，今天写的时候你还能认知，为了防止自己忘了，除了加注释别无办法。
+Velocity 是一个基于 Java 的模板引擎，具有特定的语法，可以获取在 Java 语言中定义的对象，从而实现界面和 Java 代码的分离。本质就替代了以前老旧的 JSP 技术，是让后端人写前端页面逻辑的一种方式。*以下示例使用这种技术，个人没有实际使用过，了解即可。*
 
-故，为了解决后台可用，且前端页面直观，所以我们希望尝试在页面上直接用枚举来解决问题。
+#### 7.3.1. 为什么会在velocity  velocity 中使用枚举
 
-#### 7.3.2. 看看页面如何处理（velocity页面中）
+当涉及与前端的交互时，可能需要从前端把三种支付方式对应的code值传到后台。此时，如果在页面上直接写`010000`这样的值，那么页面的逻辑就很不直观了，具体代码的意义除了加注释别无办法。
+
+因此为了解决后台可用，并且前端页面直观，可以尝试在页面上直接用枚举来解决问题。
+
+#### 7.3.2. velocity 页面处理方式
 
 ```js
-#set($payment=$enumTool.getCodeNameMapperInstance("Payment"))//直接写明要获取的枚举类型名称
-#if($payment.get("Payment_WX") == $param.code)//通过枚举值获取其code值
-    //做微信支付页面逻辑
+#set($payment=$enumTool.getCodeNameMapperInstance("Payment")) // 直接写明要获取的枚举类型名称
+#if($payment.get("Payment_WX") == $param.code) // 通过枚举值获取其code值
+    // 做微信支付页面逻辑
 #end
 ```
 
-#### 7.3.3. velocity中配置velocity-tools
+#### 7.3.3. velocity 中配置 velocity-tools
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
 <toolbox>
     <tool>
         <key>enumTool</key>
-        <class>com.bright.core.enumconstant.VelocityEnumTools</class>
+        <class>com.moon.core.enumconstant.VelocityEnumTools</class>
     </tool>
     <tool>
         <key>stringTool</key>
@@ -3711,22 +3687,20 @@ public class VelocityEnumTools {
 </toolbox>
 ```
 
-这样就可以简单的在页面中应用我们枚举治理工具了。
-
-例如：通过code值获取到相应描述
+经以上配置后，即可在页面中应用枚举治理工具类。例如：通过 code 值获取到相应描述
 
 ```js
-$enumTool.getCodeNameMapperInstance("Payment").get($item.orderLoanStatus)//显示“微信支付”
+$enumTool.getCodeNameMapperInstance("Payment").get($item.orderLoanStatus) // 显示“微信支付”
 ```
 
-通过枚举获取到对应的code值
+通过枚举获取到对应的 code 值
 
 ```js
-#set($payment=$enumTool.getCodeNameMapperInstance("Payment"))//拿到了Payment的map
+#set($payment=$enumTool.getCodeNameMapperInstance("Payment")) // 拿到了Payment的map
 $payment.get("Payment_WX")
 ```
 
-就此，我们可以实现系统的中的枚举治理，并且可在前端页面灵活应用。
+至此可以实现系统的中的枚举治理，并且可在前端页面灵活应用。
 
 # 序列化与反序列化
 
