@@ -268,7 +268,9 @@ public static void main(String[] args) {
 
 > 参考《2019.10.25-JavaJDK新特性详解-JDK8》笔记
 
-总结：
+#### 总结
+
+实际上 Lambda 表达式**并非匿名内部类的语法糖**。Lambda 表达式在大多数虚拟机中采用 `invokeDynamic` 指令实现，相对于匿名内部类在**效率上会更高**一些。
 
 - 匿名内部类在编译的时候会一个class文件
 - Lambda在程序运行的时候形成一个类

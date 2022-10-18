@@ -1,5 +1,7 @@
 # PowerMock (单元测试模拟框架)
 
+> TODO: 详细使用参考阿里的《Java工程师必读手册.pdf》电子书的[Java单元测试系列]章节
+
 ## 1. PowerMock 概述
 
 ### 1.1. 为什么要使用Mock工具
@@ -20,7 +22,6 @@ PowerMock能够完美的弥补如今比较流行的jMock 、EasyMock 、Mockito�
 
 - `@RunWith(PowerMockRunner.class)`
 - `@PrepareForTest( { YourClassWithEgStaticMethod.class })`
-
 
 
 
