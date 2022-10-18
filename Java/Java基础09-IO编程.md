@@ -1,4 +1,4 @@
-# Java基础-IO编程
+# Java基础 - IO编程
 
 ## 1. 简述
 
@@ -1503,3 +1503,265 @@ IO 的方式通常分为几种：同步阻塞的 BIO、同步非阻塞的 NIO、
 > - 同步阻塞：你到饭馆点餐，然后在那等着，啥都干不了，饭馆没做好，你就必须等着！
 > - 同步非阻塞：你在饭馆点完餐，就去玩儿了。不过玩一会儿，就回饭馆问一声：好了没啊！
 > - 异步非阻塞：饭馆打电话说，我们知道您的位置，一会给你送过来，安心玩儿就可以了，类似于现在的外卖。
+
+## 8. 序列化与反序列化
+
+### 8.1. 对象的序列化与反序列化概述
+
+> 引用维基百科对于“序列化”的介绍：
+>
+> 序列化（serialization）在计算机科学的数据处理中，是指将数据结构或对象状态转换成可取用格式（例如存成文件，存于缓冲，或经由网络中发送），以留待后续在相同或另一台计算机环境中，能恢复原先状态的过程。依照序列化格式重新获取字节的结果时，可以利用它来产生与原始对象相同语义的副本。对于许多对象，像是使用大量引用的复杂对象，这种序列化重建的过程并不容易。面向对象中的对象序列化，并不概括之前原始对象所关系的函数。这种过程也称为对象编组（marshalling）。从一系列字节提取数据结构的反向操作，是反序列化（也称为解编组、deserialization、unmarshalling）。
+
+对象并不只是存在内存中，还需要在传输网络或者持久化到文件，下次再加载出来用，这些场景都需要用到 Java 序列化技术。
+
+- <font color=red>**序列化：将数据结构或对象转换成二进制字节流的过程**</font>。要实现对象的序列化需要使用的流：`ObjectOutputStream` 继承 `OutputStream`
+- <font color=red>**反序列化：将在序列化过程中所生成的二进制字节流的过程转换成数据结构或者对象的过程**</font>。要实现对象的反序列化需要使用的流：`ObjectInputStream` 继承 `InputStream`
+
+**Java 序列化技术**正是将对象转变成一串由二进制字节组成的数组，可以通过将二进制数据保存到磁盘或者传输网络，磁盘或者网络接收者可以在对象的属类的模板上来反序列化类的对象，达到对象持久化的目的。
+
+![](images/49242616239297.png)
+
+#### 8.1.1. 序列化协议对应于 TCP/IP 四层模型中的层级
+
+网络通信的双方必须要采用和遵守相同的协议。TCP/IP 四层模型如下：
+
+1. 应用层
+2. 传输层
+3. 网络层
+4. 网络接口层
+
+![](images/146613316227164.png)
+
+如上图所示，OSI 七层协议模型中，表示层做的事情主要就是对应用层的用户数据进行处理转换为二进制流。反过来的话，就是将二进制流转换成应用层的用户数据。因此，OSI 七层协议模型中的应用层、表示层和会话层对应的都是 TCP/IP 四层模型中的应用层，所以**序列化协议属于 TCP/IP 协议应用层的一部分**。
+
+#### 8.1.2. 实际开发中序列化和反序列化的应用场景
+
+1. 对象在进行网络传输（比如远程方法调用 RPC 的时候）之前需要先被序列化，接收到序列化的对象之后需要再进行反序列化
+2. 将对象存储到文件中的时候需要进行序列化，将对象从文件中读取出来需要进行反序列化
+3. 将对象存储到缓存数据库（如 Redis）时需要用到序列化，将对象从缓存数据库中读取出来需要反序列化
+
+### 8.2. 序列化接口
+
+#### 8.2.1. Serializable
+
+##### 8.2.1.1. 概述
+
+```java
+package java.io;
+
+public interface Serializable {
+}
+```
+
+`Serializable`接口，没有任何方法，该接口属于标记性接口，仅用于标识可序列化的语义。接口的作用是，能够保证实现了该接口的类的对象可以直接被序列化到文件中
+
+> Notes: <font color=red>**被保存的对象要求实现 `Serializable` 接口，否则不能直接保存到文件中。否则会出现`java.io.NotSerializableException`。**</font>
+
+##### 8.2.1.2. serialVersionUID 概述
+
+序列化是将对象的状态信息转换为可存储或传输的形式的过程。虚拟机是否允许反序列化，不仅取决于类路径和功能代码是否一致，一个非常重要的一点是两个类的序列化 ID 是否一致，这个所谓的序列化 ID，就是在代码中定义的 `serialVersionUID`。
+
+序列化号 serialVersionUID 属于版本控制的作用。序列化的时候 serialVersionUID 也会被写入二级制序列，当反序列化时会检查 serialVersionUID 是否和当前类的 serialVersionUID 一致。如果 serialVersionUID 不一致则会抛出 `InvalidClassException` 异常。强烈推荐每个序列化类都手动指定其 serialVersionUID，如果不手动指定，那么编译器会动态生成默认的序列化号
+
+#### 8.2.2. Externalizable
+
+Java 中还提供了 `Externalizable` 接口，也可以实现它来提供序列化能力。
+
+```java
+package java.io;
+
+public interface Externalizable extends java.io.Serializable {
+    
+    void writeExternal(ObjectOutput out) throws IOException;
+
+    void readExternal(ObjectInput in) throws IOException, ClassNotFoundException;
+}
+```
+
+`Externalizable` 继承自 Serializable，该接口中定义了两个抽象方法：`writeExternal()` 与 `readExternal()`。当使用 `Externalizable` 接口来进行序列化与反序列化的时候需要开发人员重写该方法。否则所有变量的值都会变成默认值。
+
+### 8.3. 对象序列化流 ObjectOutputStream 类
+
+#### 8.3.1. ObjectOutputStream 类作用
+
+对象输出流，将 Java 的对象保存到文件中
+
+#### 8.3.2. 构造方法
+
+```java
+public ObjectOutputStream(OutputStream out);
+```
+
+根据指定的字节输出`OutputStream`对象来创建`ObjectOutputStream`。如：
+
+```java
+ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream("stu.txt"));
+```
+
+#### 8.3.3. 相关方法
+
+```java
+public final void writeObject(Object obj)
+```
+
+将对象Obj写出到流关联的目标文件中
+
+#### 8.3.4. 序列化步骤
+
+1. 定义类，实现Serializable接口，自定义一个Serializable接口序列号
+
+```java
+public class Student implements Serializable {}
+```
+
+2. 创建对象
+3. 创建对象输出流`ObjectOutputStream`
+4. 调用`writeObject`将对象写入文件中
+5. 关流
+
+### 8.4. 对象反序列化流ObjectInputStream
+
+#### 8.4.1. ObjectInputStream作用
+
+将文件中的对象读取到程序中，将对象从文件中读取出来，实现对象的反序列化操作。
+
+#### 8.4.2. 构造方法
+
+```java
+ObjectInputStream(InputStream in)
+```
+
+通过字节输入`InputStream`对象创建`ObjectInputStream`
+
+#### 8.4.3. 普通方法
+
+```java
+public final Object readObject()
+```
+
+从流关联的的文件中读取对象
+
+#### 8.4.4. 反序列化步骤
+
+1. 创建对象输入流
+2. 调用`readObject()`方法读取对象
+3. 关流
+
+### 8.5. 序列化和反序列化的注意事项
+
+#### 8.5.1. InvalidClassException 异常
+
+`java.io.InvalidClassException`: 无效的类异常。此异常是<font color=red>**序列号冲突**</font>。
+
+- 出错的核心问题：**类改变后，类的序列化号也改变，就和文件中的序列化号不一样**
+- 解决方法：**修改类的时候,让序列化号不变，自定义一个序列号，不要系统随机生成序列号。**
+
+![](images/20201105141312805_17748.png)
+
+#### 8.5.2. 瞬态关键字 transient
+
+序列化对象时，如果不想保存某一个成员变量的值，该如何处理？
+
+##### 8.5.2.1. 关键字 transient 的作用
+
+`transient`关键字作用是用于指定**序列化对象时不保存某个成员变量的值**
+
+用 `transient` 修饰成员变量，能够保证该成员变量的值不能被序列化到文件中。当对象被反序列化时，被 `transient` 修饰的变量值会设为初始值，如 int 型的是 0，对象型的是 null。
+
+##### 8.5.2.2. 使用 static 修饰的成员变量（不建议使用）
+
+可以将该成员变量定义为静态的成员变量。因为对象序列化只会保存对象自己的信息，静态成员变量是属于类的信息，所有不会被保存
+
+##### 8.5.2.3. 注意点
+
+`transient` 只能修饰变量，不能修饰类和方法
+
+#### 8.5.3. 其它要点
+
+- 序列化对象必须实现序列化接口。
+- 序列化对象里面的属性是对象的话也要实现序列化接口。
+- 类的对象序列化后，类的序列化ID不能轻易修改，不然反序列化会失败。
+- 类的对象序列化后，类的属性有增加或者删除不会影响序列化，只是值会丢失。
+- 如果父类序列化了，子类会继承父类的序列化，子类无需添加序列化接口。
+- 如果父类没有序列化，子类序列化了，子类中的属性能正常序列化，但父类的属性会丢失，不能序列化。
+- 用Java序列化的二进制字节数据只能由Java反序列化，不能被其他语言反序列化。如果要进行前后端或者不同语言之间的交互一般需要将对象转变成Json/Xml通用格式的数据，再恢复原来的对象。
+- 如果某个字段不想序列化，在该字段前加上`transient`关键字即可
+
+### 8.6. 常见序列化协议对比
+
+常见的序列化协议有：JDK 自带的序列化，比较常用第三方的序列化协议：hessian、kyro、protostuff。
+
+其中 JDK 自带的序列化一般很少用，因为序列化效率低并且部分版本有安全漏洞，主要原因有两个：
+
+- 不支持跨语言调用：如果调用的是其他语言开发的服务的时候就不支持了。
+- 性能差：相比于其他序列化框架性能更低，主要原因是序列化之后的字节数组体积较大，导致传输成本加大。
+
+### 8.7. 序列化对象 - 网上案例
+
+要序列化一个对象，这个对象所在类就必须实现Java序列化的接口：`java.io.Serializable`。
+
+#### 8.7.1. 类添加序列化接口
+
+```java
+import java.io.Serializable;
+
+public class User implements Serializable {
+
+    private static final long serialVersionUID = -8475669200846811112L;
+
+    private String username;
+    private String address;
+
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public String getAddress() {
+        return address;
+    }
+
+    public void setAddress(String address) {
+        this.address = address;
+    }
+
+    @Override
+    public String toString() {
+        return "User{" +
+                "username='" + username + '\'' +
+                ", address='" + address + '\'' +
+                '}';
+    }
+}
+```
+
+#### 8.7.2. 序列化/反序列化
+
+可以借助commons-lang3工具包里面的类实现对象的序列化及反序列化，无需自己写
+
+```java
+import org.apache.commons.lang3.SerializationUtils;
+
+public class Test {
+    public static void main(String[] args) {
+        User user = new User();
+        user.setUsername("Java");
+        user.setAddress("China");
+        byte[] bytes = SerializationUtils.serialize(user);
+
+        User u = SerializationUtils.deserialize(bytes);
+        System.out.println(u);
+    }
+}
+```
+
+输出结果：
+
+```
+User{username='Java', address='China'}
+```
+
+上例通过序列化对象字节到内存然后反序列化，当然里面也提供了序列化磁盘然后再反序列化的方法，原理都是一样的，只是目标地不一样。

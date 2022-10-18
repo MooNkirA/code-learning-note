@@ -5,20 +5,26 @@
 ### ☕ JavaSE
 
 <ul class="docs">
-  <li><a href="#/Java/Java基础00-JDK">Java基础-JDK</a></li>
-  <li><a href="#/Java/Java基础01-语法">Java基础-语法</a></li>
-  <li><a href="#/Java/Java基础02-集合">Java基础-集合</a></li>
-  <li><a href="#/Java/Java基础03-异常">Java基础-异常</a></li>
-  <li><a href="#/Java/Java基础04-正则表达式">Java基础-正则表达式</a></li>
-  <li><a href="#/Java/Java基础05-Java8新特性">Java基础-Java8新特性</a></li>
-  <li><a href="#/Java/Java基础06-JDK常用API">Java基础-JDK常用API</a></li>
-  <li><a href="#/Java/Java基础07-类加载器、反射">Java基础-类加载器、反射</a></li>
-  <li><a href="#/Java/Java基础08-IO编程">Java基础-IO编程</a></li>
-  <li><a href="#/Java/Java基础09-JDBC">Java基础-JDBC（JDBC、DBUtils、JPA）</a></li>
-  <li><a href="#/Java/Java基础10-网络编程">Java基础-网络编程</a></li>
-  <li><a href="#/Java/设计模式">设计模式</a></li>
-  <li><a href="#/Java/Java案例01">Java案例</a></li>
-  <li><a href="#/Java/Java案例02-排序算法">Java基础-排序算法</a></li>
+  <li><a href="#/Java/Java基础00-JDK">Java基础 - JDK</a></li>
+  <li><a href="#/Java/Java基础01-语法">Java基础 - 语法</a></li>
+  <li><a href="#/Java/Java基础02-对象与类">Java基础 - 对象与类</a></li>
+  <li><a href="#/Java/Java基础03-泛型">Java基础 - 泛型(generics)</a></li>
+  <li><a href="#/Java/Java基础04-注解">Java基础 - 注解(Annatation)</a></li>
+  <li><a href="#/Java/Java基础05-枚举">Java基础 - 枚举类(Enum)</a></li>
+  <li><a href="#/Java/Java基础06-集合">Java基础 - 集合</a></li>
+  <li><a href="#/Java/Java基础07-异常">Java基础 - 异常</a></li>
+  <li><a href="#/Java/Java基础08-类加载器、反射">Java基础 - 类加载器、反射</a></li>
+  <li><a href="#/Java/Java基础09-IO编程">Java基础 - IO编程、序列化与反序列化</a></li>
+  <li><a href="#/Java/Java基础10-XML">Java基础 - XML</a></li>
+  <li><a href="#/Java/Java基础11-网络编程">Java基础 - 网络编程</a></li>
+  <li><a href="#/Java/Java基础12-数据库编程">Java基础 - 数据库编程（JDBC、DBUtils、JPA）</a></li>
+  <li><a href="#/Java/Java基础13-Java8新特性">Java基础 - Java 8 新特性</a></li>
+  <li><a href="#/Java/Java基础14-正则表达式">Java基础 - 正则表达式</a></li>
+  <li><a href="#/Java/Java基础99-JDK常用API">Java基础 - JDK常用API</a></li>
+  <li><a href="#/Java/Java扩展01-设计模式">Java扩展 - 设计模式</a></li>
+  <li><a href="#/Java/Java扩展02-代码简洁之道">Java扩展 - 代码简洁之道</a></li>
+  <li><a href="#/Java/Java扩展03-程序案例">Java扩展 - 程序案例</a></li>
+  <li><a href="#/Java/Java扩展04-排序算法">Java扩展 - 排序算法</a></li>
 </ul>
 
 ### 🥃 JavaWeb
@@ -385,13 +391,13 @@
 ## 并发编程
 
 <ul class="docs">
-  <li><a href="#/并发编程/并发编程-基础篇01-多线程">并发编程（基础篇） - 多线程</a></li>
-  <li><a href="#/并发编程/并发编程-基础篇02-线程池">并发编程（基础篇） - 线程池</a></li>
-  <li><a href="#/并发编程/并发编程-基础篇03-线程安全与锁">并发编程（基础篇） - 线程安全与锁</a></li>
-  <li><a href="#/并发编程/并发编程-基础篇04-volatile">并发编程（基础篇） - volatile</a></li>
-  <li><a href="#/并发编程/并发编程-应用篇">并发编程（应用篇）</a></li>
-  <li><a href="#/并发编程/并发编程-原理篇">并发编程（原理篇）</a></li>
-  <li><a href="#/并发编程/并发编程-常用API">并发编程（常用API）</a></li>
+  <li><a href="#/并发编程/并发编程01-多线程">并发编程 - 多线程</a></li>
+  <li><a href="#/并发编程/并发编程02-线程池">并发编程 - 线程池</a></li>
+  <li><a href="#/并发编程/并发编程03-线程安全与锁">并发编程 - 线程安全与锁</a></li>
+  <li><a href="#/并发编程/并发编程07-JMM">并发编程 - JMM(Java 内存模型)</a></li>
+  <li><a href="#/并发编程/并发编程-应用篇">并发编程 - 应用篇</a></li>
+  <li><a href="#/并发编程/并发编程-原理篇">并发编程 - 原理篇</a></li>
+  <li><a href="#/并发编程/并发编程-常用API">并发编程 - 常用 API</a></li>
 </ul>
 
 ## 性能调优
