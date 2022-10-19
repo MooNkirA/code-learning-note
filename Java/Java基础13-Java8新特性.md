@@ -79,6 +79,8 @@ public void quickstartTest() {
 
 ### 1.3. Lambda 表达式示例
 
+> TODO: 后面需要深入使用时，参考阿里的《Java工程师必读手册.pdf》电子书的[最完美的 Lambda 表达式只有一行]章节
+
 #### 1.3.1. 基础综合示例1
 
 ```java
@@ -268,27 +270,53 @@ public static void main(String[] args) {
 
 > 参考《2019.10.25-JavaJDK新特性详解-JDK8》笔记
 
-#### 1.4.1. 总结
+#### 类型推断与检查
 
-实际上 Lambda 表达式**并非匿名内部类的语法糖**。Lambda 表达式在大多数虚拟机中采用 `invokeDynamic` 指令实现，相对于匿名内部类在**效率上会更高**一些。
+Java 编译器会从上下文中推断出用什么函数式接口来配合 Lambda 表达式。Java 编译器**类型推断**步骤如下：
 
-- 匿名内部类在编译的时候会一个class文件
-- Lambda在程序运行的时候形成一个类
-    1. 在类中新增一个方法，这个方法的方法体就是Lambda表达式中的代码
-    2. 还会生成一个匿名内部类，实现接口，重写抽象方法
-    3. 在接口的重写方法中会调用第1点中新生成的方法
+1. 首先，根据 Lambda 表达式对应的方法、参数和返回值，确定使用了哪个函数式接口；
+2. 然后，Java 编译器根据这个函数式接口，获取到唯一抽象方法的函数描述符（参数和返回值类型）；
+3. 最后，Java 编译器通过函数描述符推断出 Lambda 表达式的参数类型。
+
+**类型检查**：利用 Java 编译器推断出来的函数描述符（参数和返回值类型），验证 Lambda 表达式参数是否合法。
+
+#### this 指向对象
+
+Lambda 表达式可以用来取代唯一抽象方法的内部匿名类的。但是 this 指针指向对象，却是完全不一样的：
+
+- 对于 Java 中的匿名内部类，编译器会自动生成它的类名（`外部类类名$数字`）。而<font color=red>**匿名内部类中的 this，将指向的是这个内部类对象本身**</font>。
+- 对于 Java 中的<font color=red>**Lambda 表达式中的 this，指向的是 Lambda 表达式所在类的对象**</font>。即 Lambda 表达式中的 this 与普通表达式中的 this 没有任何区别。
 
 ### 1.5. 变量作用域
 
-- lambda 表达式只能引用标记了 final 的外层局部变量，这就是说不能在 lambda 内部修改定义在域外的局部变量，否则会编译错误。
+#### 概述
+
+Java 局部类和匿名类都存在变量捕获（Captured Variable）和变量隐藏（Shadow Variable），但 Lambda 表达式只存在变量捕获，不存在变量隐藏。即 Lambda 表达式的作用域：
+
+- Lambda 表达式不会从超类继承或引入新级别的作用域
+- Lambda 表达式中的声明变量和普通封闭程序块中的一样
+
+Lambda 表达式可以无限制地捕获变量或常量，但是局部变量必须定义为 `final` 或准 `final` 型（不允许修改）。因为 Lambda 表达式只通过 `this` 指针捕获一次局部变量值，后续局部变量发生更改将无法得知。所以干脆禁止这些局部变量的更改，期望这些局部变量被定义为 `final` 或准 `final` 型，否则会出现编译错误。
+
+```java
+String str = "Hello world"; // 定义为准备 final 型
+new Thread(() -> {
+    System.out.println(str);
+    // str = "inner"; // 报错，不允许修改
+}).start();
+// str = "outer"; // 报错，不允许修改
+```
+
+#### 使用示例
+
+lambda 表达式只能引用标记了 `final` 的外层局部变量，这就是说不能在 lambda 内部修改定义在域外的局部变量，否则会编译错误。
 
 ```java
 public class Java8Tester {
     final static String salutation = "Hello! ";
 
     public static void main(String args[]) {
-        GreetingService greetService1 = message ->
-                System.out.println(salutation + message);
+        GreetingService greetService1 = message -> System.out.println(salutation + message);
         greetService1.sayMessage("Runoob");
     }
 
@@ -306,7 +334,7 @@ $ java Java8Tester
 Hello! Runoob
 ```
 
-- 也可以直接在 lambda 表达式中访问外层的局部变量
+也可以直接在 lambda 表达式中访问外层的局部变量
 
 ```java
 public class Java8Tester {
@@ -322,7 +350,7 @@ public class Java8Tester {
 }
 ```
 
-- lambda 表达式的局部变量可以不用声明为 final，但是必须不可被后面的代码修改（即隐性的具有 final 的语义）
+lambda 表达式的局部变量可以不用声明为 final，但是必须不可被后面的代码修改（即隐性的具有 final 的语义）
 
 ```java
 int num = 1;
@@ -333,7 +361,7 @@ num = 5;
 // 把num=5；注释掉就不报错了
 ```
 
-- 在 Lambda 表达式当中不允许声明一个与局部变量同名的参数或者局部变量
+在 Lambda 表达式当中不允许声明一个与局部变量同名的参数或者局部变量
 
 ```java
 public class Java8Tester {
@@ -349,17 +377,265 @@ public class Java8Tester {
 }
 ```
 
-### 1.6. Lambda和匿名内部类对比总结
+### 1.6. Lambda 和匿名内部类对比总结
+
+实际上 Lambda 表达式**并非匿名内部类的语法糖**。Lambda 表达式在大多数虚拟机中采用 `invokeDynamic` 指令实现，相对于匿名内部类在**效率上会更高**一些。
 
 1. 所需的类型不一样
     - 匿名内部类需要的类型可以是类，抽象类，接口
-    - Lambda表达式需要的类型必须是接口
+    - Lambda 表达式需要的类型必须是接口
 2. 抽象方法的数量不一样
     - 匿名内部类所需的接口中抽象方法的数量随意
-    - Lambda表达式所需的接口只能有一个抽象方法
+    - Lambda 表达式所需的接口只能有一个抽象方法
 3. 实现原理不同
-    - 匿名内部类是在编译后会形成class
-    - Lambda表达式是在程序运行的时候动态生成class
+    - 匿名内部类是在编译后会生成一个名称为 `外部类类名$数字` 的 class 文件
+    - Lambda 表达式是在程序运行的时候动态生成一个类（class 文件），在类中新增一个方法，这个方法的方法体就是 Lambda 表达式中的代码；还会生成一个匿名内部类，实现接口，重写抽象方法；在接口的重写方法中会调用前面新生成的方法（即 Lambda 表达式的代码）
+
+## 4. 方法引用
+
+方法引用是Lambda表达式的一个简化写法。所引用的方法其实是Lambda表达式的方法体的实现。如果正好有某个方法满足一个lambda表达式的形式，那就可以将这个lambda表达式用方法引用的方式表示，但是如果这个lambda表达式的比较复杂就不能用方法引用进行替换。实际上方法引用是lambda表达式的一种语法糖
+
+- 方法引用通过方法的名字来指向一个方法
+- 方法引用可以使语言的构造更紧凑简洁，减少冗余代码
+- 方法引用语法是使用一对冒号 `::`
+
+**应用场景**：如果 Lambda 所要实现的方案，已经有其他方法存在相同方案，那么则可以使用方法引用
+
+**方法引用的注意事项**
+
+1. <font color=red>**方法引用只能"引用"已经存在的方法**</font>
+2. <font color=red>**Lambda 体中调用的方法的参数列表与返回值类型，要与函数式中接口的抽象方法的参数列表和返回值类型一样**</font>
+
+### 4.1. 方法引用语法格式
+
+- **方法引用语法符号**：`::`
+- **方法引用符号说明**：双冒号为方法引用运算符，而它所在的表达式被称为方法引用。
+
+### 4.2. 常见引用方式
+
+主要有5种语法格式
+
+#### 4.2.1. 实例对象普通方法的引用
+
+最常见的一种用法，如果一个类中已经存在了一个成员方法，并且当 Lambda 表达式参数与调用的对象实例方法参数一致时，可以采用实例方法引用语法。表达式语法如下：
+
+```java
+// 对象名::引用成员方法
+instanceName::methodName
+```
+
+使用示例：
+
+```java
+/*
+ * 对象::实例方法 - 方法引用示例
+ */
+@Test
+public void methodReftest01() {
+    Date now = new Date();
+    // Lambda表达式实现函数式接口
+    // Supplier<Long> supplier = () -> now.getTime();
+    // 使用方法引用对象实例方法，实现函数式接口
+    Supplier<Long> supplier = now::getTime;
+    Long time = supplier.get();
+    System.out.println("time: " + time);
+}
+```
+
+#### 4.2.2. 类静态方法的引用
+
+当 Lambda 表达式参数与调用的静态方法参数一致时，可以采用静态方法引用语法。表达式语法如下：
+
+```java
+// 类名::引用静态方法名
+ClassName::staticMethodName
+```
+
+使用示例：
+
+```java
+@Test
+public void test02() {
+    // Lambda表达式实现函数式接口
+    // Supplier<Long> supplier = () -> System.currentTimeMillis();
+    // 使用方法引用类静态方法，实现函数式接口
+    Supplier<Long> supplier = System::currentTimeMillis;
+    Long time = supplier.get();
+    System.out.println("time = " + time);
+}
+```
+
+#### 4.2.3. 参数类方法的引用
+
+Java面向对象中，类名只能调用静态方法。而在方法引用中，也可以使用类名引用普通方法。
+
+但类名引用实例方法是有前提的，<font color=red>**当 Lambda 表达式只有一个参数且调用该参数的无参类方法时，可以使用类名实例方法引用，实际上是拿第一个参数作为方法的调用者**</font>。表达式语法如下：
+
+```java
+// 类名::实例方法名
+ClassName::methodName
+```
+
+使用示例：
+
+```java
+@Test
+public void test03() {
+    // Lambda表达式实现函数式接口(一个参数)
+    // Function<String, Integer> f1 = str -> str.length();
+    // 使用方法引用类实例方法，实现函数式接口(注意:类名::实例方法实际上会将第一个参数作为方法的调用者)
+    Function<String, Integer> f1 = String::length;
+    int length = f1.apply("hello");
+    System.out.println("length = " + length);
+    // Lambda表达式实现函数式接口(两个参数)
+    // BiFunction<String, Integer, String> f2 = (String str, Integer index) -> str.substring(index);
+    // 使用方法引用类实例方法，实现函数式接口
+    BiFunction<String, Integer, String> f2 = String::substring;
+    String str2 = f2.apply("helloworld", 3);
+    System.out.println("str2 = " + str2);
+}
+```
+
+#### 4.2.4. 构造方法的引用
+
+当 Lambda 表达式参数与调用的构造方法参数一致时，可以采用构造方法引用语法。由于构造器的名称与类名完全一样，所以可以使用类名引用。表达式语法如下：
+
+```java
+// 类名::new
+ClassName::new
+```
+
+使用示例：
+
+```java
+public class Person {
+    private String name;
+    private int age;
+    private int height;
+    public Person() {
+        System.out.println("执行Person类无参构造");
+    }
+    public Person(String name, int age) {
+        String temp = new StringJoiner(", ", "执行Person类有参构造" + "[", "]")
+                .add("name='" + name + "'")
+                .add("age=" + age)
+                .toString();
+        System.out.println(temp);
+        this.name = name;
+        this.age = age;
+    }
+    // 省略其他代码
+}
+```
+
+```java
+@Test
+public void test04() {
+    // Lambda表达式实现函数式接口
+    // Supplier<Person> supplier1 = () -> new Person();
+    // 使用方法引用类构造器方法，实现函数式接口
+    Supplier<Person> supplier1 = Person::new;
+    Person person = supplier1.get();
+    System.out.println("person = " + person);
+    // Lambda表达式实现函数式接口
+    // BiFunction<String, Integer, Person> bif = (String name, Integer age) -> new Person(name, age);
+    // 使用方法引用类构造器方法（有参构造），实现函数式接口。方法引用时，会根据参数列表的个数，引用相应的构造方法
+    BiFunction<String, Integer, Person> bif = Person::new;
+    Person person2 = bif.apply("新垣结衣", 18);
+    System.out.println("person2 = " + person2);
+}
+```
+
+#### 4.2.5. 数组构造器的引用
+
+数组也是 `Object` 的子类对象，所以同样具有构造器引用。表达式语法如下：
+
+```java
+// 数据类型[]::new
+TypeName[]::new
+```
+
+使用示例：
+
+```java
+@Test
+public void test05() {
+    // Lambda表达式实现函数式接口
+    // Function<Integer, int[]> f = (Integer length) -> new int[length];
+    // 使用方法引用数组构造器方法
+    Function<Integer, int[]> f = int[]::new;
+    int[] arr = f.apply(10);
+    System.out.println(Arrays.toString(arr));
+}
+```
+
+### 4.3. 方法引用用法综合示例
+
+```java
+public class Demo02MethodRefComprehensive {
+
+    public static void main(String[] args) {
+        // 构造器引用：它的语法是Class::new，或者更一般的Class<T>::new实例如下：
+        Car car = Car.create(Car::new);
+        Car car1 = Car.create(Car::new);
+        Car car2 = Car.create(Car::new);
+        Car car3 = new Car();
+        List<Car> cars = Arrays.asList(car, car1, car2, car3);
+        System.out.println("===================构造器引用========================");
+        // 静态方法引用：它的语法是Class::static_method，实例如下：
+        cars.forEach(Car::collide);
+        System.out.println("===================静态方法引用========================");
+        // 特定类的任意对象的方法引用：它的语法是Class::method实例如下：
+        cars.forEach(Car::repair);
+        System.out.println("==============特定类的任意对象的方法引用================");
+        // 特定对象的方法引用：它的语法是instance::method实例如下：
+        final Car police = Car.create(Car::new);
+        cars.forEach(police::follow);
+        System.out.println("===================特定对象的方法引用===================");
+    }
+
+}
+
+class Car {
+    // Supplier是jdk1.8的接口，这里和lamda一起使用了
+    public static Car create(final Supplier<Car> supplier) {
+        return supplier.get();
+    }
+
+    public static void collide(final Car car) {
+        System.out.println("Collided " + car.toString());
+    }
+
+    public void follow(final Car another) {
+        System.out.println("Following the " + another.toString());
+    }
+
+    public void repair() {
+        System.out.println("Repaired " + this.toString());
+    }
+}
+```
+
+程序输出程序
+
+```console
+===================构造器引用========================
+Collided com.moon.java.jdk8methodref.Car@3b9a45b3
+Collided com.moon.java.jdk8methodref.Car@7699a589
+Collided com.moon.java.jdk8methodref.Car@58372a00
+Collided com.moon.java.jdk8methodref.Car@4dd8dc3
+===================静态方法引用========================
+Repaired com.moon.java.jdk8methodref.Car@3b9a45b3
+Repaired com.moon.java.jdk8methodref.Car@7699a589
+Repaired com.moon.java.jdk8methodref.Car@58372a00
+Repaired com.moon.java.jdk8methodref.Car@4dd8dc3
+==============特定类的任意对象的方法引用================
+Following the com.moon.java.jdk8methodref.Car@3b9a45b3
+Following the com.moon.java.jdk8methodref.Car@7699a589
+Following the com.moon.java.jdk8methodref.Car@58372a00
+Following the com.moon.java.jdk8methodref.Car@4dd8dc3
+===================特定对象的方法引用===================
+```
 
 ## 2. JDK8 接口的默认方法与静态方法
 
@@ -1251,223 +1527,6 @@ public void test() {
 
     System.out.println(user);
 }
-```
-
-## 4. 方法引用
-
-方法引用是Lambda表达式的一个简化写法。所引用的方法其实是Lambda表达式的方法体的实现。如果正好有某个方法满足一个lambda表达式的形式，那就可以将这个lambda表达式用方法引用的方式表示，但是如果这个lambda表达式的比较复杂就不能用方法引用进行替换。实际上方法引用是lambda表达式的一种语法糖
-
-- 方法引用通过方法的名字来指向一个方法
-- 方法引用可以使语言的构造更紧凑简洁，减少冗余代码
-- 方法引用语法是使用一对冒号 `::`
-
-**应用场景**：如果Lambda所要实现的方案，已经有其他方法存在相同方案，那么则可以使用方法引用
-
-**方法引用的注意事项**
-
-1. 被引用的方法，参数要和接口中抽象方法的参数一样
-2. 当接口抽象方法有返回值时，被引用的方法也必须有返回值
-
-> <font color=red>**注意的是方法引用只能"引用"已经存在的方法**</font>
-
-### 4.1. 方法引用语法格式
-
-- **方法引用语法符号**：`::`
-- **方法引用符号说明**：双冒号为方法引用运算符，而它所在的表达式被称为方法引用。
-
-### 4.2. 常见引用方式
-
-主要有5种语法格式：
-
-- `instanceName::methodName`(`对象::实例方法名`)：调用类的普通方法
-- `ClassName::staticMethodName`(`类::实例方法名`)：调用类的普通方法
-- `ClassName::methodName`(`类::静态方法名`)：调用类的静态方法
-- `ClassName::new`(`类::new`)：调用类的构造函数
-- `TypeName[]::new`(`数据类型[]::new`)：调用数组的构造器
-
-> <font color=red>**注意：Lambda体中调用的方法的参数列表与返回值类型，要与函数式中接口的抽象方法的参数列表和返回值类型一样**</font>
-
-#### 4.2.1. 对象名::引用成员方法
-
-最常见的一种用法，如果一个类中已经存在了一个成员方法，则可以通过对象名引用成员方法
-
-```java
-/*
- * 对象::实例方法 - 方法引用示例
- */
-@Test
-public void methodReftest01() {
-    Date now = new Date();
-    // Lambda表达式实现函数式接口
-    // Supplier<Long> supplier = () -> now.getTime();
-    // 使用方法引用对象实例方法，实现函数式接口
-    Supplier<Long> supplier = now::getTime;
-    Long time = supplier.get();
-    System.out.println("time: " + time);
-}
-```
-
-#### 4.2.2. 类名::引用静态方法
-
-```java
-@Test
-public void test02() {
-    // Lambda表达式实现函数式接口
-    // Supplier<Long> supplier = () -> System.currentTimeMillis();
-    // 使用方法引用类静态方法，实现函数式接口
-    Supplier<Long> supplier = System::currentTimeMillis;
-    Long time = supplier.get();
-    System.out.println("time = " + time);
-}
-```
-
-#### 4.2.3. 类名::引用实例方法
-
-Java面向对象中，类名只能调用静态方法，<font color=red>**类名引用实例方法是有前提的，实际上是拿第一个参数作为方法的调用者**</font>
-
-```java
-@Test
-public void test03() {
-    // Lambda表达式实现函数式接口(一个参数)
-    // Function<String, Integer> f1 = str -> str.length();
-    // 使用方法引用类实例方法，实现函数式接口(注意:类名::实例方法实际上会将第一个参数作为方法的调用者)
-    Function<String, Integer> f1 = String::length;
-    int length = f1.apply("hello");
-    System.out.println("length = " + length);
-    // Lambda表达式实现函数式接口(两个参数)
-    // BiFunction<String, Integer, String> f2 = (String str, Integer index) -> str.substring(index);
-    // 使用方法引用类实例方法，实现函数式接口
-    BiFunction<String, Integer, String> f2 = String::substring;
-    String str2 = f2.apply("helloworld", 3);
-    System.out.println("str2 = " + str2);
-}
-```
-
-#### 4.2.4. 类名::new引用构造器
-
-由于构造器的名称与类名完全一样。所以构造器引用使用` 类名称::new` 的格式表示。
-
-```java
-public class Person {
-    private String name;
-    private int age;
-    private int height;
-    public Person() {
-        System.out.println("执行Person类无参构造");
-    }
-    public Person(String name, int age) {
-        String temp = new StringJoiner(", ", "执行Person类有参构造" + "[", "]")
-                .add("name='" + name + "'")
-                .add("age=" + age)
-                .toString();
-        System.out.println(temp);
-        this.name = name;
-        this.age = age;
-    }
-    // 省略其他代码
-}
-```
-
-```java
-@Test
-public void test04() {
-    // Lambda表达式实现函数式接口
-    // Supplier<Person> supplier1 = () -> new Person();
-    // 使用方法引用类构造器方法，实现函数式接口
-    Supplier<Person> supplier1 = Person::new;
-    Person person = supplier1.get();
-    System.out.println("person = " + person);
-    // Lambda表达式实现函数式接口
-    // BiFunction<String, Integer, Person> bif = (String name, Integer age) -> new Person(name, age);
-    // 使用方法引用类构造器方法（有参构造），实现函数式接口。方法引用时，会根据参数列表的个数，引用相应的构造方法
-    BiFunction<String, Integer, Person> bif = Person::new;
-    Person person2 = bif.apply("新垣结衣", 18);
-    System.out.println("person2 = " + person2);
-}
-```
-
-#### 4.2.5. 数组::new 引用数组构造器
-
-数组也是 `Object` 的子类对象，所以同样具有构造器
-
-```java
-@Test
-public void test05() {
-    // Lambda表达式实现函数式接口
-    // Function<Integer, int[]> f = (Integer length) -> new int[length];
-    // 使用方法引用数组构造器方法
-    Function<Integer, int[]> f = int[]::new;
-    int[] arr = f.apply(10);
-    System.out.println(Arrays.toString(arr));
-}
-```
-
-### 4.3. 方法引用用法综合示例
-
-```java
-public class Demo02MethodRefComprehensive {
-
-    public static void main(String[] args) {
-        // 构造器引用：它的语法是Class::new，或者更一般的Class<T>::new实例如下：
-        Car car = Car.create(Car::new);
-        Car car1 = Car.create(Car::new);
-        Car car2 = Car.create(Car::new);
-        Car car3 = new Car();
-        List<Car> cars = Arrays.asList(car, car1, car2, car3);
-        System.out.println("===================构造器引用========================");
-        // 静态方法引用：它的语法是Class::static_method，实例如下：
-        cars.forEach(Car::collide);
-        System.out.println("===================静态方法引用========================");
-        // 特定类的任意对象的方法引用：它的语法是Class::method实例如下：
-        cars.forEach(Car::repair);
-        System.out.println("==============特定类的任意对象的方法引用================");
-        // 特定对象的方法引用：它的语法是instance::method实例如下：
-        final Car police = Car.create(Car::new);
-        cars.forEach(police::follow);
-        System.out.println("===================特定对象的方法引用===================");
-    }
-
-}
-
-class Car {
-    // Supplier是jdk1.8的接口，这里和lamda一起使用了
-    public static Car create(final Supplier<Car> supplier) {
-        return supplier.get();
-    }
-
-    public static void collide(final Car car) {
-        System.out.println("Collided " + car.toString());
-    }
-
-    public void follow(final Car another) {
-        System.out.println("Following the " + another.toString());
-    }
-
-    public void repair() {
-        System.out.println("Repaired " + this.toString());
-    }
-}
-```
-
-程序输出程序
-
-```console
-===================构造器引用========================
-Collided com.moon.java.jdk8methodref.Car@3b9a45b3
-Collided com.moon.java.jdk8methodref.Car@7699a589
-Collided com.moon.java.jdk8methodref.Car@58372a00
-Collided com.moon.java.jdk8methodref.Car@4dd8dc3
-===================静态方法引用========================
-Repaired com.moon.java.jdk8methodref.Car@3b9a45b3
-Repaired com.moon.java.jdk8methodref.Car@7699a589
-Repaired com.moon.java.jdk8methodref.Car@58372a00
-Repaired com.moon.java.jdk8methodref.Car@4dd8dc3
-==============特定类的任意对象的方法引用================
-Following the com.moon.java.jdk8methodref.Car@3b9a45b3
-Following the com.moon.java.jdk8methodref.Car@7699a589
-Following the com.moon.java.jdk8methodref.Car@58372a00
-Following the com.moon.java.jdk8methodref.Car@4dd8dc3
-===================特定对象的方法引用===================
 ```
 
 ## 5. Stream流
