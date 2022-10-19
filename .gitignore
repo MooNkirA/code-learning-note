@@ -24,3 +24,9 @@ vx_notebook
 # 忽略VNote软件的删除缓存
 vx_recycle_bin
 
+# 忽略 vsCode
+.vscode
+
+# 忽略 office 编辑临时文件
+~*.doc
+~*.tmp
