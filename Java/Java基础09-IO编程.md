@@ -685,15 +685,15 @@ NIO 和 BIO 有着相同的目的和作用，但 Java NIO 和传统 I/O 有以�
 
 **NIO 主要有三大核心部分：Channel(通道)，Buffer(缓冲区), Selector(选择器)**。传统的 BIO 基于字节流和字符流进行操作，而 NIO 基于 Channel(通道)和 Buffer(缓冲区)进行操作，数据总是从通道读取到缓冲区中，或者从缓冲区写入到通道中。Selector(选择区)用于监听多个通道的事件（比如：连接请求，数据到达等），因此使用单个线程就可以监听多个客户端通道
 
-### 通道（Channel）
+### 6.2. 通道（Channel）
 
-#### 概述
+#### 6.2.1. 概述
 
 通道（Channel）：类似于 BIO 中的 Stream(流)。只是 Stream(流)是单向，分为 InputStream(输入流)和 OutputStream(输出流)；而 Channel 是双向的，既可以用来进行读操作，也可以用来进行写操作。
 
 > Notes: **BIO 中的 stream 是单向的**，例如 `FileInputStream` 用来建立到目标（文件，网络套接字，硬件设备等）的一个连接，对象只能进行读取数据的操作。而 **NIO 中的通道(Channel)是双向的**，既可以用来进行读操作，也可以用来进行写操作。
 
-#### 6.2.3. Channel 核心 API 实现
+#### 6.2.2. Channel 核心 API 实现
 
 NIO 中常用的 `Channel` 实现类有：
 
@@ -706,7 +706,7 @@ NIO 中常用的 `Channel` 实现类有：
 
 ![Channel接口实现关系图](images/20191002190510596_5957.png)
 
-##### 6.2.3.1. FileChannel 类常用方法
+##### 6.2.2.1. FileChannel 类常用方法
 
 该类主要用来对本地文件进行 IO 操作，主要方法如下
 
@@ -734,9 +734,9 @@ public long transferFrom(ReadableByteChannel src, long position, long count);
 public long transferTo(long position, long count, WritableByteChannel target);
 ```
 
-### 缓冲区（Buffer）
+### 6.3. 缓冲区（Buffer）
 
-#### 概述
+#### 6.3.1. 概述
 
 缓冲区（Buffer）：实际上是一个容器，其内部通过一个连续的字节数组存储 I/O 上的数据。缓冲区对象内置了一些机制，能够跟踪和记录缓冲区的状态变化情况。Channel 提供从文件、网络读取数据的渠道，但是读取或写入的数据都必须经由 Buffer，如下图所示
 
@@ -744,7 +744,7 @@ public long transferTo(long position, long count, WritableByteChannel target);
 
 > 在 NIO 中的 Channel 在文件、网络上的数据读取或写人都必须经过 Buffer。
 
-#### 6.2.2. Buffer 核心 API 实现
+#### 6.3.2. Buffer 核心 API 实现
 
 在 NIO 中，`Buffer` 是一个顶层抽象类，对于 Java 中的不同的基本数据类型都有一个 `Buffer` 类型实现与之相对应，常用的 `Buffer` 子类如下：
 
@@ -758,7 +758,7 @@ public long transferTo(long position, long count, WritableByteChannel target);
 | DoubleBuffer | 存储小数到缓冲区      |
 | FloatBuffer  | 存储小数到缓冲区      |
 
-##### 6.2.2.1. ByteBuffer 常用方法
+##### 6.3.2.1. ByteBuffer 常用方法
 
 最常用的自然是ByteBuffer 类（二进制数据），该类的主要方法如下所示
 
@@ -798,15 +798,15 @@ public static ByteBuffer wrap(byte[] array);
 public final Buffer flip();
 ```
 
-### 选择器（Selector）
+### 6.4. 选择器（Selector）
 
-#### 概述
+#### 6.4.1. 概述
 
 Selector（选择器），能够检测多个注册的 Channel 通道上是否有 I/O 事件发生，如果有事件发生，便获取事件然后针对每个事件进行相应的响应和处理。因此只用一个 Selector 单线程去管理多个通道，也就是管理多个连接，并且不必为每个连接都创建一个线程，避免了多线程之间的上下文切换导致的开销。同时，Selector 只有在 Channel 有真正有读写事件发生时，才会调用 I/O 函数来进行读写，从而大大地减少了系统开销。
 
-#### 6.3.2. 核心 API
+#### 6.4.2. 核心 API
 
-##### 6.3.2.1. Selector(选择器)
+##### 6.4.2.1. Selector(选择器)
 
 `Selector` 类关系图如下：
 
@@ -838,7 +838,7 @@ public Set<SelectionKey> selectedKeys()
 public abstract Set<SelectionKey> keys();
 ```
 
-##### 6.3.2.2. SelectionKey(网络通道key)
+##### 6.4.2.2. SelectionKey(网络通道key)
 
 `SelectionKey`，代表了 `Selector` 和网络通道的注册关系，一共四种：
 
@@ -890,7 +890,7 @@ public final boolean isReadable()
 public final boolean isWritable()
 ```
 
-##### 6.3.2.3. ServerSocketChannel(通道)
+##### 6.4.2.3. ServerSocketChannel(通道)
 
 ServerSocketChannel，用来在服务器端监听新的客户端 Socket 连接。常用方法如下
 
@@ -924,7 +924,7 @@ public SocketChannel accept()
 public final SelectionKey register(Selector sel, int ops)
 ```
 
-##### 6.3.2.4. SocketChannel(网络 IO 通道)
+##### 6.4.2.4. SocketChannel(网络 IO 通道)
 
 SocketChannel，网络 IO 通道，具体负责进行读写操作。NIO 总是把缓冲区的数据写入通道，或者把通道里的数据读到缓冲区。常用方法如下所示
 
@@ -976,11 +976,11 @@ public final SelectionKey register(Selector sel, int ops, Object att)
 public final void close()
 ```
 
-### 6.2.4. 文件 NIO 示例
+### 6.5. 文件 NIO 示例
 
 测试使用NIO进行本地文件的读、写和复制操作，和BIO进行对比
 
-#### 6.2.4.1. 往本地文件中写数据
+#### 6.5.1. 往本地文件中写数据
 
 ```java
 /* 往本地文件中写数据 */
@@ -1006,7 +1006,7 @@ public void testWrite() throws Exception {
 
 > NIO 中的通道是从输出流对象里通过 `getChannel` 方法获取到的，该通道是双向的，既可以读，又可以写。在往通道里写数据之前，必须通过 put 方法把数据存到 `ByteBuffer` 中，然后通过通道的 `write` 方法写数据。在 `write` 之前，需要调用 `flip` 方法翻转缓冲区，把内部重置到初始位置，这样在接下来写数据时才能把所有数据写到通道里
 
-#### 6.2.4.2. 从本地文件中读数据
+#### 6.5.2. 从本地文件中读数据
 
 ```java
 /* 从本地文件中读取数据 */
@@ -1029,7 +1029,7 @@ public void test2() throws Exception {
 
 > 上面示例从输入流中获得一个通道，然后提供 ByteBuffer 缓冲区，该缓冲区的初始容量和文件的大小一样，最后通过通道的 read 方法把数据读取出来并存储到了 ByteBuffer 中
 
-#### 6.2.4.3. 复制本地文件
+#### 6.5.3. 复制本地文件
 
 ```java
 /* 使用BIO实现文件复制 */
@@ -1072,9 +1072,9 @@ public void testNioCopy() throws Exception {
 
 > 上面示例分别从两个流中得到两个通道，sourceCh 负责读数据，destCh 负责写数据，然后直接调用 transferFrom 方法一步到位实现了文件复制
 
-### 6.3. 网络 IO
+### 6.6. 网络 IO
 
-#### 6.3.1. 概述
+#### 6.6.1. 概述
 
 Java NIO 中的网络通道是非阻塞 IO 的实现，基于事件驱动，非常适用于服务器需要维持大量连接，但是数据交换量不大的情况，例如一些即时通信的服务等等...
 
@@ -1086,7 +1086,7 @@ Java NIO 中的网络通道是非阻塞 IO 的实现，基于事件驱动，非�
 - 把每一个客户端连接交给一个拥有固定数量线程的连接池，优点：程序编写相对简单，可以处理大量的连接。确定：线程的开销非常大，连接如果非常多，排队现象会比较严重。
 - 使用 Java 的 NIO，用非阻塞的 IO 方式处理。这种模式可以用一个线程，处理大量的客户端连接
 
-#### 6.3.3. 基础示例
+#### 6.6.2. 基础示例
 
 需求分析：实现服务器端和客户端之间的数据通信（非阻塞）
 
@@ -1198,7 +1198,7 @@ public class NIOClient {
 >
 > ![NIO示例运行效果](images/20191005091833634_10778.png)
 
-#### 6.3.4. 网络聊天案例
+#### 6.6.3. 网络聊天案例
 
 需求：使用NIO实现多人聊天
 
@@ -1493,7 +1493,7 @@ public class TestChat {
 }
 ```
 
-## 6.4. AIO 编程
+## 7. AIO 编程
 
 JDK 7 引入了 Asynchronous I/O，即 AIO。在进行 I/O 编程中，常用到两种模式：Reactor 和 Proactor。Java 的 NIO 就是 Reactor，当有事件触发时，服务器端得到通知，进行相应的处理
 
@@ -1501,7 +1501,7 @@ IO 即 NIO2.0，叫做异步不阻塞的 IO。AIO 引入异步通道的概念，
 
 > *目前 AIO 还没有广泛应用*
 
-## 7. 不同类型的 IO 对比总结
+## 8. 不同类型的 IO 对比总结
 
 IO 的方式通常分为几种：同步阻塞的 BIO、同步非阻塞的 NIO、异步非阻塞的 AIO。
 
@@ -1522,9 +1522,9 @@ IO 的方式通常分为几种：同步阻塞的 BIO、同步非阻塞的 NIO、
 > - 同步非阻塞：你在饭馆点完餐，就去玩儿了。不过玩一会儿，就回饭馆问一声：好了没啊！
 > - 异步非阻塞：饭馆打电话说，我们知道您的位置，一会给你送过来，安心玩儿就可以了，类似于现在的外卖。
 
-## 8. 序列化与反序列化
+## 9. 序列化与反序列化
 
-### 8.1. 对象的序列化与反序列化概述
+### 9.1. 对象的序列化与反序列化概述
 
 > 引用维基百科对于“序列化”的介绍：
 >
@@ -1539,7 +1539,7 @@ IO 的方式通常分为几种：同步阻塞的 BIO、同步非阻塞的 NIO、
 
 ![](images/49242616239297.png)
 
-#### 8.1.1. 序列化协议对应于 TCP/IP 四层模型中的层级
+#### 9.1.1. 序列化协议对应于 TCP/IP 四层模型中的层级
 
 网络通信的双方必须要采用和遵守相同的协议。TCP/IP 四层模型如下：
 
@@ -1552,17 +1552,17 @@ IO 的方式通常分为几种：同步阻塞的 BIO、同步非阻塞的 NIO、
 
 如上图所示，OSI 七层协议模型中，表示层做的事情主要就是对应用层的用户数据进行处理转换为二进制流。反过来的话，就是将二进制流转换成应用层的用户数据。因此，OSI 七层协议模型中的应用层、表示层和会话层对应的都是 TCP/IP 四层模型中的应用层，所以**序列化协议属于 TCP/IP 协议应用层的一部分**。
 
-#### 8.1.2. 实际开发中序列化和反序列化的应用场景
+#### 9.1.2. 实际开发中序列化和反序列化的应用场景
 
 1. 对象在进行网络传输（比如远程方法调用 RPC 的时候）之前需要先被序列化，接收到序列化的对象之后需要再进行反序列化
 2. 将对象存储到文件中的时候需要进行序列化，将对象从文件中读取出来需要进行反序列化
 3. 将对象存储到缓存数据库（如 Redis）时需要用到序列化，将对象从缓存数据库中读取出来需要反序列化
 
-### 8.2. 序列化接口
+### 9.2. 序列化接口
 
-#### 8.2.1. Serializable
+#### 9.2.1. Serializable
 
-##### 8.2.1.1. 概述
+##### 9.2.1.1. 概述
 
 ```java
 package java.io;
@@ -1575,13 +1575,13 @@ public interface Serializable {
 
 > Notes: <font color=red>**被保存的对象要求实现 `Serializable` 接口，否则不能直接保存到文件中。否则会出现`java.io.NotSerializableException`。**</font>
 
-##### 8.2.1.2. serialVersionUID 概述
+##### 9.2.1.2. serialVersionUID 概述
 
 序列化是将对象的状态信息转换为可存储或传输的形式的过程。虚拟机是否允许反序列化，不仅取决于类路径和功能代码是否一致，一个非常重要的一点是两个类的序列化 ID 是否一致，这个所谓的序列化 ID，就是在代码中定义的 `serialVersionUID`。
 
 序列化号 serialVersionUID 属于版本控制的作用。序列化的时候 serialVersionUID 也会被写入二级制序列，当反序列化时会检查 serialVersionUID 是否和当前类的 serialVersionUID 一致。如果 serialVersionUID 不一致则会抛出 `InvalidClassException` 异常。强烈推荐每个序列化类都手动指定其 serialVersionUID，如果不手动指定，那么编译器会动态生成默认的序列化号
 
-#### 8.2.2. Externalizable
+#### 9.2.2. Externalizable
 
 Java 中还提供了 `Externalizable` 接口，也可以实现它来提供序列化能力。
 
@@ -1598,13 +1598,13 @@ public interface Externalizable extends java.io.Serializable {
 
 `Externalizable` 继承自 Serializable，该接口中定义了两个抽象方法：`writeExternal()` 与 `readExternal()`。当使用 `Externalizable` 接口来进行序列化与反序列化的时候需要开发人员重写该方法。否则所有变量的值都会变成默认值。
 
-### 8.3. 对象序列化流 ObjectOutputStream 类
+### 9.3. 对象序列化流 ObjectOutputStream 类
 
-#### 8.3.1. ObjectOutputStream 类作用
+#### 9.3.1. ObjectOutputStream 类作用
 
 对象输出流，将 Java 的对象保存到文件中
 
-#### 8.3.2. 构造方法
+#### 9.3.2. 构造方法
 
 ```java
 public ObjectOutputStream(OutputStream out);
@@ -1616,7 +1616,7 @@ public ObjectOutputStream(OutputStream out);
 ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream("stu.txt"));
 ```
 
-#### 8.3.3. 相关方法
+#### 9.3.3. 相关方法
 
 ```java
 public final void writeObject(Object obj)
@@ -1624,7 +1624,7 @@ public final void writeObject(Object obj)
 
 将对象Obj写出到流关联的目标文件中
 
-#### 8.3.4. 序列化步骤
+#### 9.3.4. 序列化步骤
 
 1. 定义类，实现Serializable接口，自定义一个Serializable接口序列号
 
@@ -1637,13 +1637,13 @@ public class Student implements Serializable {}
 4. 调用`writeObject`将对象写入文件中
 5. 关流
 
-### 8.4. 对象反序列化流ObjectInputStream
+### 9.4. 对象反序列化流ObjectInputStream
 
-#### 8.4.1. ObjectInputStream作用
+#### 9.4.1. ObjectInputStream作用
 
 将文件中的对象读取到程序中，将对象从文件中读取出来，实现对象的反序列化操作。
 
-#### 8.4.2. 构造方法
+#### 9.4.2. 构造方法
 
 ```java
 ObjectInputStream(InputStream in)
@@ -1651,7 +1651,7 @@ ObjectInputStream(InputStream in)
 
 通过字节输入`InputStream`对象创建`ObjectInputStream`
 
-#### 8.4.3. 普通方法
+#### 9.4.3. 普通方法
 
 ```java
 public final Object readObject()
@@ -1659,15 +1659,15 @@ public final Object readObject()
 
 从流关联的的文件中读取对象
 
-#### 8.4.4. 反序列化步骤
+#### 9.4.4. 反序列化步骤
 
 1. 创建对象输入流
 2. 调用`readObject()`方法读取对象
 3. 关流
 
-### 8.5. 序列化和反序列化的注意事项
+### 9.5. 序列化和反序列化的注意事项
 
-#### 8.5.1. InvalidClassException 异常
+#### 9.5.1. InvalidClassException 异常
 
 `java.io.InvalidClassException`: 无效的类异常。此异常是<font color=red>**序列号冲突**</font>。
 
@@ -1676,25 +1676,25 @@ public final Object readObject()
 
 ![](images/20201105141312805_17748.png)
 
-#### 8.5.2. 瞬态关键字 transient
+#### 9.5.2. 瞬态关键字 transient
 
 序列化对象时，如果不想保存某一个成员变量的值，该如何处理？
 
-##### 8.5.2.1. 关键字 transient 的作用
+##### 9.5.2.1. 关键字 transient 的作用
 
 `transient`关键字作用是用于指定**序列化对象时不保存某个成员变量的值**
 
 用 `transient` 修饰成员变量，能够保证该成员变量的值不能被序列化到文件中。当对象被反序列化时，被 `transient` 修饰的变量值会设为初始值，如 int 型的是 0，对象型的是 null。
 
-##### 8.5.2.2. 使用 static 修饰的成员变量（不建议使用）
+##### 9.5.2.2. 使用 static 修饰的成员变量（不建议使用）
 
 可以将该成员变量定义为静态的成员变量。因为对象序列化只会保存对象自己的信息，静态成员变量是属于类的信息，所有不会被保存
 
-##### 8.5.2.3. 注意点
+##### 9.5.2.3. 注意点
 
 `transient` 只能修饰变量，不能修饰类和方法
 
-#### 8.5.3. 其它要点
+#### 9.5.3. 其它要点
 
 - 序列化对象必须实现序列化接口。
 - 序列化对象里面的属性是对象的话也要实现序列化接口。
@@ -1705,7 +1705,7 @@ public final Object readObject()
 - 用Java序列化的二进制字节数据只能由Java反序列化，不能被其他语言反序列化。如果要进行前后端或者不同语言之间的交互一般需要将对象转变成Json/Xml通用格式的数据，再恢复原来的对象。
 - 如果某个字段不想序列化，在该字段前加上`transient`关键字即可
 
-### 8.6. 常见序列化协议对比
+### 9.6. 常见序列化协议对比
 
 常见的序列化协议有：JDK 自带的序列化，比较常用第三方的序列化协议：hessian、kyro、protostuff。
 
@@ -1714,11 +1714,11 @@ public final Object readObject()
 - 不支持跨语言调用：如果调用的是其他语言开发的服务的时候就不支持了。
 - 性能差：相比于其他序列化框架性能更低，主要原因是序列化之后的字节数组体积较大，导致传输成本加大。
 
-### 8.7. 序列化对象 - 网上案例
+### 9.7. 序列化对象 - 网上案例
 
 要序列化一个对象，这个对象所在类就必须实现Java序列化的接口：`java.io.Serializable`。
 
-#### 8.7.1. 类添加序列化接口
+#### 9.7.1. 类添加序列化接口
 
 ```java
 import java.io.Serializable;
@@ -1756,7 +1756,7 @@ public class User implements Serializable {
 }
 ```
 
-#### 8.7.2. 序列化/反序列化
+#### 9.7.2. 序列化/反序列化
 
 可以借助commons-lang3工具包里面的类实现对象的序列化及反序列化，无需自己写
 

@@ -330,7 +330,7 @@
 ### 🔎 ElasticStack
 
 <ul class="docs">
-  <li><a href="#/分布式微服务/ElasticStack/ElasticStack-基础">ElasticStack 基础笔记</a></li>
+  <li><a href="#/分布式微服务/ElasticStack/ElasticStack">ElasticStack 基础笔记</a></li>
   <li><a href="#/分布式微服务/ElasticStack/ElasticSearch">ElasticSearch 分布式全文搜索引擎</a></li>
 </ul>
 

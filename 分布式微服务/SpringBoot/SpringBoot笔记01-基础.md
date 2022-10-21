@@ -356,7 +356,6 @@ spring-boot:run
 
 `spring-boot-starter-parent` 仅仅只是进行版本的统一管理，需要开发者导入相应的坐标依赖，
 
-
 ##### 3.1.1.1. Spring Boot 依赖引入实现原理
 
 在项目的 pom.xm 文件中继承父工程 `spring-boot-starter-parent`，查阅 SpringBoot 的配置源码

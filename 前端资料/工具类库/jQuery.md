@@ -1,6 +1,6 @@
 # jQuery
 
-## 概述
+## 1. 概述
 
 jQuery 是一个 JS 框架，运行在 JS 之上。 **jQuery 就是一组 JS 编写的方法和功能，可以提高开发 JS 的效率，降低代码的开发难度**。JS 框架很多， jQuery 只是其中一个比较流行的框架。
 
@@ -18,9 +18,9 @@ jQuery 是一个 JS 框架，运行在 JS 之上。 **jQuery 就是一组 JS 编
 
 > Tips: 一些jQuery制作效果网站：www.17sucai.com
 
-## jQuery 基础使用
+## 2. jQuery 基础使用
 
-### 下载与导入
+### 2.1. 下载与导入
 
 官网：www.jquery.com
 
