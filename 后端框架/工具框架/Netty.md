@@ -2,7 +2,7 @@
 
 ## 1. 相关知识-BIO与NIO编程
 
-此部分内容详见[《Java基础-IO编程》笔记](/Java/Java基础08-IO编程)
+此部分内容详见[《Java基础 - IO编程、序列化》笔记](/Java/Java基础09-IO编程)
 
 ## 2. Netty 概述
 
@@ -1059,6 +1059,7 @@ public class NettyServer {
 ```
 
 ## 8. 基于 Netty 自定义 RPC
+
 ### 8.1. RPC 概述
 
 RPC (Remote Procedure Call)，即远程过程调用，它是一种通过网络从远程计算机程序上请求服务，而不需要了解底层网络实现的技术。
@@ -1094,6 +1095,7 @@ RPC 的目标就是将 2-8 这些步骤都封装起来，用户无需关心这�
 > 最终要实现的目标是：在 TestNettyRPC 中远程调用 HelloRPCImpl 或 HelloNettyImpl 中的方法
 
 #### 8.2.2. 代码实现
+
 ##### 8.2.2.1. Server端(服务提供方)
 
 作为服务的提供方，分别编写了两个接口和两个实现类，供消费方远程调用

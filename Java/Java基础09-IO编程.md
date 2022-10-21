@@ -572,9 +572,11 @@ public class MoonZero {
 
 ## 5. BIO 编程
 
-BIO 有的称之为 basic(基本) IO，有的称之为 block(阻塞) IO，主要应用于文件 IO 和网络 IO
+BIO 有的称之为 basic(基本) IO，有的称之为 block(阻塞) IO，主要应用于文件 IO 和网络 IO。
 
-### 5.1. BIO 之 网络IO
+BIO 主要的 API 在 Java.io 包中，其中重点包含 5 个类（`File`、`OutputStream`、`InputStream`、`Writer`、`Reader`）和 1 个接口（`Serializable`）。
+
+### 5.1. 基于 BIO 的网络 IO
 
 在 JDK1.4 之前，我们建立网络连接的时候只能采用 BIO，需要先在服务端启动一个ServerSocket，然后在客户端启动 Socket 来对服务端进行通信，默认情况下服务端需要对每个请求建立一个线程等待请求，而客户端发送请求后，先咨询服务端是否有线程响应，如果没有则会一直等待或者遭到拒绝，如果有的话，客户端线程会等待请求结束后才继续执行，这就是阻塞式 IO
 
@@ -669,27 +671,82 @@ public class TCPClient {
 - 上述代码编写了一个客户端程序，通过 9999 端口连接服务器端，getInputStream 方法用来等待服务器端返回数据，如果没有返回，就一直等待，程序会阻塞在`socket.getInputStream()`方法
 
 ## 6. NIO 编程
+
 ### 6.1. 概述
 
-java.nio 全称 java non-blocking IO，是指 JDK 提供的新 API。从 JDK1.4 开始，Java 提供了一系列改进的输入/输出的新特性，被统称为 NIO(即 New IO)。新增了许多用于处理输入输出的类，这些类都被放在 java.nio 包及子包下，并且对原 java.io 包中的很多类进行改写，新增了满足 NIO 的功能
+java.nio 全称 java non-blocking IO，是指 JDK 提供的新 API。从 JDK1.4 开始，Java 提供了一系列改进的输入/输出的新特性，被统称为 NIO(即 New IO)。新增了许多用于处理输入输出的类，这些类都被放在 java.nio 包及子包下，并且对原 java.io 包中的很多类进行改写，新增了满足 NIO 的功能。
 
 ![NIO包结构](images/20191002182312547_11612.png)
 
-NIO 和 BIO 有着相同的目的和作用，但是它们的实现方式完全不同，BIO 以流的方式处理数据，而 NIO 以块的方式处理数据，块 I/O 的效率比流 I/O 高很多。另外，NIO 是非阻塞式的，这一点跟 BIO 也很不相同，使用它可以提供非阻塞式的高伸缩性网络
+NIO 和 BIO 有着相同的目的和作用，但 Java NIO 和传统 I/O 有以下的区别：
 
-**NIO 主要有三大核心部分：Channel(通道)，Buffer(缓冲区), Selector(选择器)**。传统的 BIO基于字节流和字符流进行操作，而 NIO 基于 Channel(通道)和 Buffer(缓冲区)进行操作，数据总是从通道读取到缓冲区中，或者从缓冲区写入到通道中。Selector(选择区)用于监听多个通道的事件（比如：连接请求，数据到达等），因此使用单个线程就可以监听多个客户端通道
+1. 实现方式不同：传统 I/O 是面向流的，以流的方式处理数据；NIO 是面向缓冲区的，以块的方式处理数据。在流的操作中，数据只能在一个流中连续进行读写，数据没有缓冲；而面向缓冲区的操作，数据可以从一个 Channel 读取到一个 Buffer中，再从 Buffer 写入 CHannel 中，可以方便地在缓冲区中进行数据的前后移动等操作。块 I/O 的效率比流 I/O 高很多，这种功能在应用层主要用于数据的粘包、拆包等操作。
+2. 传统 I/O 的流操作是阻塞模式的，NIO 是基于多路复用 I/O 模型实现非阻塞模式的。传统的 I/O 中，用户线程调用 `read()` 或者 `write()` 进行 I/O 读写操作时，该线程将一直阻塞，直到数据读写完成；而 NIO 通过 Selector 监听 Channel 上事件的变化，在 Channel 上有数据变化时通知该线程进行读写操作。
 
-### 6.2. 文件 IO
+**NIO 主要有三大核心部分：Channel(通道)，Buffer(缓冲区), Selector(选择器)**。传统的 BIO 基于字节流和字符流进行操作，而 NIO 基于 Channel(通道)和 Buffer(缓冲区)进行操作，数据总是从通道读取到缓冲区中，或者从缓冲区写入到通道中。Selector(选择区)用于监听多个通道的事件（比如：连接请求，数据到达等），因此使用单个线程就可以监听多个客户端通道
 
-#### 6.2.1. 缓冲区（Buffer）概述
+### 通道（Channel）
 
-缓冲区（Buffer）：实际上是一个容器，是一个特殊的数组，缓冲区对象内置了一些机制，能够跟踪和记录缓冲区的状态变化情况。Channel 提供从文件、网络读取数据的渠道，但是读取或写入的数据都必须经由 Buffer，如下图所示
+#### 概述
+
+通道（Channel）：类似于 BIO 中的 Stream(流)。只是 Stream(流)是单向，分为 InputStream(输入流)和 OutputStream(输出流)；而 Channel 是双向的，既可以用来进行读操作，也可以用来进行写操作。
+
+> Notes: **BIO 中的 stream 是单向的**，例如 `FileInputStream` 用来建立到目标（文件，网络套接字，硬件设备等）的一个连接，对象只能进行读取数据的操作。而 **NIO 中的通道(Channel)是双向的**，既可以用来进行读操作，也可以用来进行写操作。
+
+#### 6.2.3. Channel 核心 API 实现
+
+NIO 中常用的 `Channel` 实现类有：
+
+|    Channel 实现类    |        作用       |
+| ------------------- | ----------------- |
+| `FileChannel`         | 用于文件的数据读写  |
+| `DatagramChannel`     | 用于 UDP 的数据读写 |
+| `ServerSocketChannel` | Socket Server 用于 TCP 的数据读写 |
+| `SocketChannel`       | Socket Client 用于 TCP 的数据读写 |
+
+![Channel接口实现关系图](images/20191002190510596_5957.png)
+
+##### 6.2.3.1. FileChannel 类常用方法
+
+该类主要用来对本地文件进行 IO 操作，主要方法如下
+
+- 从通道读取数据并放到缓冲区中
+
+```java
+public int read(ByteBuffer dst);
+```
+
+- 把缓冲区的数据写到通道中
+
+```java
+public int write(ByteBuffer src);
+```
+
+- 从目标通道中复制数据到当前通道
+
+```java
+public long transferFrom(ReadableByteChannel src, long position, long count);
+```
+
+- 把数据从当前通道复制给目标通道
+
+```java
+public long transferTo(long position, long count, WritableByteChannel target);
+```
+
+### 缓冲区（Buffer）
+
+#### 概述
+
+缓冲区（Buffer）：实际上是一个容器，其内部通过一个连续的字节数组存储 I/O 上的数据。缓冲区对象内置了一些机制，能够跟踪和记录缓冲区的状态变化情况。Channel 提供从文件、网络读取数据的渠道，但是读取或写入的数据都必须经由 Buffer，如下图所示
 
 ![](images/20191002184623913_10099.png)
 
-#### 6.2.2. 缓冲区（Buffer）核心 API
+> 在 NIO 中的 Channel 在文件、网络上的数据读取或写人都必须经过 Buffer。
 
-在 NIO 中，`Buffer` 是一个顶层父类，它是一个抽象类，对于 Java 中的基本数据类型，都有一个 `Buffer` 类型与之相对应，常用的 `Buffer` 子类有
+#### 6.2.2. Buffer 核心 API 实现
+
+在 NIO 中，`Buffer` 是一个顶层抽象类，对于 Java 中的不同的基本数据类型都有一个 `Buffer` 类型实现与之相对应，常用的 `Buffer` 子类如下：
 
 | Buffer 子类  |       作用类型       |
 | ------------ | -------------------- |
@@ -741,166 +798,19 @@ public static ByteBuffer wrap(byte[] array);
 public final Buffer flip();
 ```
 
-#### 6.2.3. 通道（Channel）概述
+### 选择器（Selector）
 
-通道（Channel）：类似于 BIO 中的 stream。例如 `FileInputStream` 对象，用来建立到目标（文件，网络套接字，硬件设备等）的一个连接。
+#### 概述
 
-需要注意：**BIO 中的 stream 是单向的**，例如 `FileInputStream` 对象只能进行读取数据的操作。而 **NIO 中的通道(Channel)是双向的**，既可以用来进行读操作，也可以用来进行写操作。
-
-常用的 `Channel` 实现类有：
-
-|    Channel 实现类    |        作用       |
-| ------------------- | ----------------- |
-| FileChannel         | 用于文件的数据读写  |
-| DatagramChannel     | 用于 UDP 的数据读写 |
-| ServerSocketChannel | 用于 TCP 的数据读写 |
-| SocketChannel       | 用于 TCP 的数据读写 |
-
-![Channel接口实现关系图](images/20191002190510596_5957.png)
-
-##### 6.2.3.1. FileChannel 类常用方法
-
-该类主要用来对本地文件进行 IO 操作，主要方法如下
-
-- 从通道读取数据并放到缓冲区中
-
-```java
-public int read(ByteBuffer dst);
-```
-
-- 把缓冲区的数据写到通道中
-
-```java
-public int write(ByteBuffer src);
-```
-
-- 从目标通道中复制数据到当前通道
-
-```java
-public long transferFrom(ReadableByteChannel src, long position, long count);
-```
-
-- 把数据从当前通道复制给目标通道
-
-```java
-public long transferTo(long position, long count, WritableByteChannel target);
-```
-
-#### 6.2.4. 文件 NIO 示例
-
-测试使用NIO进行本地文件的读、写和复制操作，和BIO进行对比
-
-##### 6.2.4.1. 往本地文件中写数据
-
-```java
-/* 往本地文件中写数据 */
-@Test
-public void testWrite() throws Exception {
-    // 1. 创建输出流
-    FileOutputStream fileOutputStream = new FileOutputStream("E:\\00-Downloads\\moon.txt");
-    // 2. 从流中得到一个通道
-    FileChannel fileChannel = fileOutputStream.getChannel();
-    // 3. 提供一个缓冲区
-    ByteBuffer buffer = ByteBuffer.allocate(1024);
-    // 4. 往缓冲区中存入数据
-    String str = "hello,nio";
-    buffer.put(str.getBytes());
-    // 5. 翻转缓冲区
-    buffer.flip();
-    // 6. 把缓冲区写到通道中
-    fileChannel.write(buffer);
-    // 7. 关闭
-    fileOutputStream.close();
-}
-```
-
-> NIO 中的通道是从输出流对象里通过 `getChannel` 方法获取到的，该通道是双向的，既可以读，又可以写。在往通道里写数据之前，必须通过 put 方法把数据存到 `ByteBuffer` 中，然后通过通道的 `write` 方法写数据。在 `write` 之前，需要调用 `flip` 方法翻转缓冲区，把内部重置到初始位置，这样在接下来写数据时才能把所有数据写到通道里
-
-##### 6.2.4.2. 从本地文件中读数据
-
-```java
-/* 从本地文件中读取数据 */
-@Test
-public void test2() throws Exception {
-    File file = new File("E:\\00-Downloads\\moon.txt");
-    // 1. 创建输入流
-    FileInputStream fileInputStream = new FileInputStream(file);
-    // 2. 得到一个通道
-    FileChannel fileChannel = fileInputStream.getChannel();
-    // 3. 准备一个缓冲区
-    ByteBuffer buffer = ByteBuffer.allocate((int) file.length());
-    // 4. 从通道里读取数据并存到缓冲区中
-    fileChannel.read(buffer);
-    System.out.println(new String(buffer.array()));
-    // 5. 关闭
-    fileInputStream.close();
-}
-```
-
-> 上面示例从输入流中获得一个通道，然后提供 ByteBuffer 缓冲区，该缓冲区的初始容量和文件的大小一样，最后通过通道的 read 方法把数据读取出来并存储到了 ByteBuffer 中
-
-##### 6.2.4.3. 复制本地文件
-
-```java
-/* 使用BIO实现文件复制 */
-@Test
-public void testBioCopy() throws Exception {
-    // 1. 创建两个流
-    FileInputStream fileInputStream = new FileInputStream("E:\\00-Downloads\\moon.txt");
-    FileOutputStream fileOutputStream = new FileOutputStream("E:\\00-Downloads\\moon_copy.txt");
-    // 2. 定义字节数组，使用一次读取数组方式复制文件
-    byte[] bytes = new byte[1024];
-    int len;
-    while ((len = fileInputStream.read(bytes)) != -1) {
-        fileOutputStream.write(bytes, 0, len);
-    }
-    // 3. 关闭资源
-    fileInputStream.close();
-    fileOutputStream.close();
-}
-```
-
-> 上面示例是通过传统的 BIO 复制一个文件，分别通过输入流和输出流实现了文件的复制
-
-```java
-/* 使用NIO实现文件复制 */
-@Test
-public void testNioCopy() throws Exception {
-    // 1. 创建两个流
-    FileInputStream fileInputStream = new FileInputStream("E:\\00-Downloads\\moon.txt");
-    FileOutputStream fileOutputStream = new FileOutputStream("E:\\00-Downloads\\moon_copy.txt");
-    // 2. 得到两个通道
-    FileChannel fileInChannel = fileInputStream.getChannel();
-    FileChannel fileOutChannel = fileOutputStream.getChannel();
-    // 3. 复制
-    fileOutChannel.transferFrom(fileInChannel, 0, fileInChannel.size());
-    // 4. 关闭
-    fileInputStream.close();
-    fileOutputStream.close();
-}
-```
-
-> 上面示例分别从两个流中得到两个通道，sourceCh 负责读数据，destCh 负责写数据，然后直接调用 transferFrom 方法一步到位实现了文件复制
-
-### 6.3. 网络 IO
-
-#### 6.3.1. 概述
-
-Java NIO 中的网络通道是非阻塞 IO 的实现，基于事件驱动，非常适用于服务器需要维持大量连接，但是数据交换量不大的情况，例如一些即时通信的服务等等...
-
-在 Java 中编写 Socket 服务器，通常有以下几种模式
-
-- 一个客户端连接用一个线程，优点：程序编写简单；缺点：如果连接非常多，分配的线程也会非常多，服务器可能会因为资源耗尽而崩溃。
-- 把每一个客户端连接交给一个拥有固定数量线程的连接池，优点：程序编写相对简单，可以处理大量的连接。确定：线程的开销非常大，连接如果非常多，排队现象会比较严重。
-- 使用 Java 的 NIO，用非阻塞的 IO 方式处理。这种模式可以用一个线程，处理大量的客户端连接
+Selector（选择器），能够检测多个注册的 Channel 通道上是否有 I/O 事件发生，如果有事件发生，便获取事件然后针对每个事件进行相应的响应和处理。因此只用一个 Selector 单线程去管理多个通道，也就是管理多个连接，并且不必为每个连接都创建一个线程，避免了多线程之间的上下文切换导致的开销。同时，Selector 只有在 Channel 有真正有读写事件发生时，才会调用 I/O 函数来进行读写，从而大大地减少了系统开销。
 
 #### 6.3.2. 核心 API
 
 ##### 6.3.2.1. Selector(选择器)
 
-`Selector`选择器，能够检测多个注册的通道上是否有事件发生，如果有事件发生，便获取事件然后针对每个事件进行相应的处理。这样就可以只用一个单线程去管理多个通道，也就是管理多个连接。这样使得只有在连接真正有读写事件发生时，才会调用函数来进行读写，就大大地减少了系统开销，并且不必为每个连接都创建一个线程，不用去维护多个线程，并且避免了多线程之间的上下文切换导致的开销。
+`Selector` 类关系图如下：
 
-![Selector类关系图](images/20191003102234080_15327.png)
+![](images/20191003102234080_15327.png)
 
 常用方法如下：
 
@@ -1066,7 +976,115 @@ public final SelectionKey register(Selector sel, int ops, Object att)
 public final void close()
 ```
 
+### 6.2.4. 文件 NIO 示例
+
+测试使用NIO进行本地文件的读、写和复制操作，和BIO进行对比
+
+#### 6.2.4.1. 往本地文件中写数据
+
+```java
+/* 往本地文件中写数据 */
+@Test
+public void testWrite() throws Exception {
+    // 1. 创建输出流
+    FileOutputStream fileOutputStream = new FileOutputStream("E:\\00-Downloads\\moon.txt");
+    // 2. 从流中得到一个通道
+    FileChannel fileChannel = fileOutputStream.getChannel();
+    // 3. 提供一个缓冲区
+    ByteBuffer buffer = ByteBuffer.allocate(1024);
+    // 4. 往缓冲区中存入数据
+    String str = "hello,nio";
+    buffer.put(str.getBytes());
+    // 5. 翻转缓冲区
+    buffer.flip();
+    // 6. 把缓冲区写到通道中
+    fileChannel.write(buffer);
+    // 7. 关闭
+    fileOutputStream.close();
+}
+```
+
+> NIO 中的通道是从输出流对象里通过 `getChannel` 方法获取到的，该通道是双向的，既可以读，又可以写。在往通道里写数据之前，必须通过 put 方法把数据存到 `ByteBuffer` 中，然后通过通道的 `write` 方法写数据。在 `write` 之前，需要调用 `flip` 方法翻转缓冲区，把内部重置到初始位置，这样在接下来写数据时才能把所有数据写到通道里
+
+#### 6.2.4.2. 从本地文件中读数据
+
+```java
+/* 从本地文件中读取数据 */
+@Test
+public void test2() throws Exception {
+    File file = new File("E:\\00-Downloads\\moon.txt");
+    // 1. 创建输入流
+    FileInputStream fileInputStream = new FileInputStream(file);
+    // 2. 得到一个通道
+    FileChannel fileChannel = fileInputStream.getChannel();
+    // 3. 准备一个缓冲区
+    ByteBuffer buffer = ByteBuffer.allocate((int) file.length());
+    // 4. 从通道里读取数据并存到缓冲区中
+    fileChannel.read(buffer);
+    System.out.println(new String(buffer.array()));
+    // 5. 关闭
+    fileInputStream.close();
+}
+```
+
+> 上面示例从输入流中获得一个通道，然后提供 ByteBuffer 缓冲区，该缓冲区的初始容量和文件的大小一样，最后通过通道的 read 方法把数据读取出来并存储到了 ByteBuffer 中
+
+#### 6.2.4.3. 复制本地文件
+
+```java
+/* 使用BIO实现文件复制 */
+@Test
+public void testBioCopy() throws Exception {
+    // 1. 创建两个流
+    FileInputStream fileInputStream = new FileInputStream("E:\\00-Downloads\\moon.txt");
+    FileOutputStream fileOutputStream = new FileOutputStream("E:\\00-Downloads\\moon_copy.txt");
+    // 2. 定义字节数组，使用一次读取数组方式复制文件
+    byte[] bytes = new byte[1024];
+    int len;
+    while ((len = fileInputStream.read(bytes)) != -1) {
+        fileOutputStream.write(bytes, 0, len);
+    }
+    // 3. 关闭资源
+    fileInputStream.close();
+    fileOutputStream.close();
+}
+```
+
+> 上面示例是通过传统的 BIO 复制一个文件，分别通过输入流和输出流实现了文件的复制
+
+```java
+/* 使用NIO实现文件复制 */
+@Test
+public void testNioCopy() throws Exception {
+    // 1. 创建两个流
+    FileInputStream fileInputStream = new FileInputStream("E:\\00-Downloads\\moon.txt");
+    FileOutputStream fileOutputStream = new FileOutputStream("E:\\00-Downloads\\moon_copy.txt");
+    // 2. 得到两个通道
+    FileChannel fileInChannel = fileInputStream.getChannel();
+    FileChannel fileOutChannel = fileOutputStream.getChannel();
+    // 3. 复制
+    fileOutChannel.transferFrom(fileInChannel, 0, fileInChannel.size());
+    // 4. 关闭
+    fileInputStream.close();
+    fileOutputStream.close();
+}
+```
+
+> 上面示例分别从两个流中得到两个通道，sourceCh 负责读数据，destCh 负责写数据，然后直接调用 transferFrom 方法一步到位实现了文件复制
+
+### 6.3. 网络 IO
+
+#### 6.3.1. 概述
+
+Java NIO 中的网络通道是非阻塞 IO 的实现，基于事件驱动，非常适用于服务器需要维持大量连接，但是数据交换量不大的情况，例如一些即时通信的服务等等...
+
 ![网络NIO流程图](images/20191003110743007_5665.png)
+
+在 Java 中编写 Socket 服务器，通常有以下几种模式
+
+- 一个客户端连接用一个线程，优点：程序编写简单；缺点：如果连接非常多，分配的线程也会非常多，服务器可能会因为资源耗尽而崩溃。
+- 把每一个客户端连接交给一个拥有固定数量线程的连接池，优点：程序编写相对简单，可以处理大量的连接。确定：线程的开销非常大，连接如果非常多，排队现象会比较严重。
+- 使用 Java 的 NIO，用非阻塞的 IO 方式处理。这种模式可以用一个线程，处理大量的客户端连接
 
 #### 6.3.3. 基础示例
 
@@ -1475,7 +1493,7 @@ public class TestChat {
 }
 ```
 
-### 6.4. AIO 编程
+## 6.4. AIO 编程
 
 JDK 7 引入了 Asynchronous I/O，即 AIO。在进行 I/O 编程中，常用到两种模式：Reactor 和 Proactor。Java 的 NIO 就是 Reactor，当有事件触发时，服务器端得到通知，进行相应的处理
 
