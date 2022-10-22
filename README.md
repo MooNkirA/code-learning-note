@@ -13,7 +13,7 @@
   <li><a href="#/Java/Java基础05-枚举">Java基础 - 枚举类(Enum)</a></li>
   <li><a href="#/Java/Java基础06-集合">Java基础 - 集合</a></li>
   <li><a href="#/Java/Java基础07-异常">Java基础 - 异常</a></li>
-  <li><a href="#/Java/Java基础08-类加载器、反射">Java基础 - 类加载器、反射</a></li>
+  <li><a href="#/Java/Java基础08-反射">Java基础 - 反射</a></li>
   <li><a href="#/Java/Java基础09-IO编程">Java基础 - IO编程、序列化</a></li>
   <li><a href="#/Java/Java基础10-XML">Java基础 - XML</a></li>
   <li><a href="#/Java/Java基础11-网络编程">Java基础 - 网络编程</a></li>

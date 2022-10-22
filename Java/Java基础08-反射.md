@@ -1,135 +1,8 @@
-# Java基础 - 类加载器、反射
+# Java基础 - 反射
 
-## 1. 类加载器
+## 1. 反射的概述
 
-类加载器是负责加载类的对象，作用是通过类的全限定名获取该类的 class 字节码文件（二进制字节流），从硬盘加载到内存中，并且在内存中创建一个Class对象。
-
-> Notes: 类加载器本身也是一个类
-
-### 1.1. 类加载器的分类
-
-**主要有以下四种类加载器:**
-
-1. **引导类加载器（Bootstrap ClassLoader）**：`BootStrapClassLoader`，最底层的加载器（由 C 和 C++ 编写，不是 Java 中的类），是虚拟机自身的一部分。负责加载 Java 核心类库。如：`JAVA_HOME\lib\rt.jar`，或者被 `-Xbootclasspath` 参数所指定的路径中并且被虚拟机识别的类库。该类无法被 Java 程序直接引用。
-2. **扩展类加载器（Extensions ClassLoader）**：`ExtClassLoader`，由 Java 程序编写，是Java类中的一个内部类。负责加载 JRE 中的扩展库的类。如：`JAVA_HOME\lib\ext`或 `Java.ext.dirs` 系统变量指定的路径中的所有类库。Java 虚拟机的实现会提供一个扩展库目录。该类加载器在此目录里面查找并加载 Java 类。
-
-> Notes: **如果要使用 lib/ext 包中的类，要在 eclipse 中要进行如下设置**：
->
-> 在“Project Properties --> Java Build Path”中的指定 JRE 包的访问规则，Edit 规则 Accessible，指定为 `sun/**`，指定可以在 eclipse 中访问 sun 开头的包。
->
-> ![](images/20190801110350918_7493.png)
-
-3. **应用类加载器（Application ClassLoader）**：`AppClassLoader`，由 Java 程序编写，是一个 Java 内部类。负责加载 CLASSPATH 指定的jar(包括第三方的库)和bin目录下的 Java 类。一般来说，Java 应用的类都是由它来完成加载的。可以通过 `ClassLoader.getSystemClassLoader()` 方法来获取它。一般情况，如果没有自定义类加载器，则默认使用该类加载器。
-4. **用户自定义类加载器（User ClassLoader）**：通过继承 `java.lang.ClassLoader` 类的方式实现
-
-### 1.2. 类加载器的加载机制（双亲委托机制）（理解）
-
-对于任意一个类，都需要由加载它的类加载器和这个类本身一同确立在 JVM 中的唯一性，每一个类加载器，都有一个独立的类名称空间。类加载器就是根据指定全限定名称将 class 文件加载到 JVM 内存，然后再转化为 class 对象。
-
-双亲委派模型：如果一个类加载器收到了类加载的请求，它首先不会自己去加载这个类，而是把这个请求委派给父类加载器去完成，每一层的类加载器都是如此，这样所有的加载请求都会被传送到顶层的启动类加载器中，只有当父加载无法完成加载请求（它的搜索范围中没找到所需的类）时，子加载器才会尝试去加载类。
-
-![](images/288710510239286.jpg)
-
-1. 当 AppClassLoader 加载一个 class 时，它首先不会自己去尝试加载这个类，而是把类加载请求委派给父类加载器 ExtClassLoader 去完成
-2. 当 ExtClassLoader 加载一个 class 时，它首先也不会自己去尝试加载这个类，而是把类加载请求委派给 BootStrapClassLoader 去完成
-3. 如果 BootStrapClassLoader 加载失败（例如在 `$JAVA_HOME/jre/lib` 里未查找到该class），会使用 ExtClassLoader 来尝试加载
-4. 若 ExtClassLoader 也加载失败，则会使用 AppClassLoader 来加载，如果 AppClassLoader 也加载失败，则会报出异常 ClassNotFoundException
-
-### 1.3. ClassLoader 类
-
-#### 1.3.1. 获取类加载器对象
-
-通过 Class 对象的 `getClassLoader` 方法可以获得当前类的类加载器对象
-
-```java
-public ClassLoader getClassLoader()
-```
-
-> Notes: **通过`类名.class.getClassLoader()`获得，如果获得的类加载器对象是 null，则该类是由引导类加载器加载***
-
-#### 1.3.2. ClassLoader 类常用方法
-
-```java
-public final ClassLoader getParent()
-```
-
-- 获得父加载器对象
-- 三种类加载器之间没有子父类关系。只是一种叫法。
-- 三种加载器的子父关系（上下级关系）：应用类加载器(AppClassLoader) --> 扩展类加载器(ExtClassLoader) --> 引导类加载器(BootstrapClassLoader)
-
-```java
-public URL getResource(String name)
-```
-
-- 如果资源文件是在src文件夹下，资源文件路径：不需要加“/”，代表从bin目录查找指定名称的资源文件。
-- 返回的URL对象(统一资源定位符)
-
-```java
-public InputStream getResourceAsStream(String name)
-```
-
-- 如果资源文件是在src文件夹下，资源文件路径：不需要加“/”，代表从bin目录查找指定名称的资源文件。返回资源文件关联的字节输入流对象。
-
-## 2. 类的加载
-
-### 2.1. 类加载的概念
-
-当第一次使用该类时，如果该类的字节码文件(class)还没有加载到内存中，则JVM会将该类的字节文件加载到内存中并在内存中创建一个Class对象(字节码文件对象)。**每一个类只会加载一次，每一个类的Class对象是都是唯一的**(单例)。
-
-> Notes: **静态代码块：当类加载到内存中时会执行该类的静态代码块，而且只会加载一次**
-
-### 2.2. 类加载的时机
-
-1. 创建该类的对象和子类对象
-2. 访问类的静态变量，或者为静态变量赋值（**静态常量除外**，因为静态常量在编译时已经存在）
-3. 调用类的静态方法
-4. 使用反射方式来强制创建某个类或接口对应的 `java.lang.Class` 对象
-5. 初始化某个类的子类
-6. 直接使用 `java` 命令来执行含有 main 方法的类时
-
-> Notes: Java类的加载是动态的，它并不会一次性将所有类全部加载后再运行，而是保证程序运行的基础类(像是基类)完全加载到 JVM 中，至于其他类，则在需要的时候才加载。此做法就是为了节省内存开销。
-
-### 2.3. 类装载方式
-
-类装载方式分成以下两种：
-
-1. 隐式装载，程序在运行过程中，当遇到通过 `new` 等方式生成对象时，隐式调用类装载器加载对应的类到 JVM 中
-2. 显式装载，通过 `Class.forName("com.moon.Foo")` 等方法，显式加载需要的类
-
-### 2.4. 类加载的过程
-
-当程序要使用某个类时，JVM 会将类加载到内存中初始完成初始化，类的加载分为5个阶段：**加载、验证、准备、解析、初始化**。在类初始化完成后就可以使用该类的信息，而当一个类不再被需要时可以从 JVM 中卸载。
-
-> TODO: 补图
-
-#### 2.4.1. 加载
-
-加载阶段，是指 JVM 读取 Class 文件（通过类的全限定名称来查找）读入内存，并且根据 Class 文件描述创建 `java.lang.Class` 对象的过程。类加载过程主要包含将 Class 文件读取到运行时区域的方法区内，在堆中创建 `java.lang.Class` 对象，并封装类在方法区的数据结构。读取 Class 文件时既可以通过文件的形式读取，也可以通过 jar 包、war 包读取，还可以通过代理自动生成 Class 或其他方式读取。
-
-> Tips: 任何类被使用时系统都会建立一个 Class 对象
-
-#### 2.4.2. 验证
-
-验证阶段，检查加载的 class 文件的正确性，是否有正确的内部结构，并和其他类协调一致。主要用于确保 Class 文件符合当前虚拟机的要求，保障虚拟机自身的安全，只有通过验证的 Class 文件才能被 JVM 加载。
-
-#### 2.4.3. 准备
-
-准备阶段，主要工作是在方法区中为类静态变量分配内存空间，并设置类中变量的初始值。初始值指不同数据类型的默认值，这里需要注意 final 类型的变量和非 final 类型的变量在准备阶段的数据初始化过程不同。
-
-- 例如：`public static int value = 1000;`，其中静态变量 value 在准备阶段的初始值是 0，将 value 设置为 1000 是在对象初始化阶段。因为 JVM 在编译阶段会将静态变量的初始化操作定义在构造器中。
-- 例如：`public static final int value = 1000;`，JVM 在编译阶段后会为 final 类型的变量 value 生成其对应的 ConstantValue 属性，虚拟机在准备阶段会根据 ConstantValue 属性将 value 赋值为 1000。
-
-#### 2.4.4. 解析
-
-虚拟机将类的二进制数据中的常量池中符号引用替换成直接引用的过程。“符号引用”可以理解为一个标示，在直接引用中直接指向内存中的地址
-
-#### 2.4.5. 初始化
-
-对静态变量和静态代码块执行初始化工作
-
-## 3. 反射的概述
-
-### 3.1. 什么是反射
+### 1.1. 什么是反射
 
 反射是一种机制，利用该机制可以在程序运行过程中对类进行解剖并操作类中所有成员。
 
@@ -144,12 +17,12 @@ JAVA反射机制是在**运行状态**中，对于任意一个类，都能够知
 
 > Notes: 反射的前提条件是，获得该类Class对象，就是字节码文件对象。
 
-### 3.2. 反射机制优缺点
+### 1.2. 反射机制优缺点
 
 - 优点：运行期类型的判断，动态加载类，提高代码灵活度。
 - 缺点：性能瓶颈：反射相当于一系列解释操作，通知 JVM 要做的事情，性能比直接的java代码要慢很多
 
-### 3.3. 反射在实际开发中的应用
+### 1.3. 反射在实际开发中的应用
 
 - 开发IDE（集成开发环境），比如:Eclipse
 - 框架的学习或框架的开发（Struts, Spring, Hibernate）
@@ -157,9 +30,9 @@ JAVA反射机制是在**运行状态**中，对于任意一个类，都能够知
 - **伪泛型**：在编译时期的进行限制，但利用反射可以在运行时候进行操作。
 - 动态代理设计模式也采用了反射机制
 
-## 4. Class 类
+## 2. Class 类
 
-### 4.1. 获取 Class 对象的四种方式
+### 2.1. 获取 Class 对象的四种方式
 
 - **方式1: 通过对象实例继承 Object 类中的`getClass()`方法**
 
@@ -194,7 +67,7 @@ ClassLoader.getSystemClassLoader().loadClass("com.moon.TargetObject");
 
 > Notes: **4 种方式得到的类对象，是同一个对象**
 
-#### 4.1.1. 番外：通过 IDE 获取类全限定名
+#### 2.1.1. 番外：通过 IDE 获取类全限定名
 
 eclipse 中获取类全名的方法：右键类名 -> 选择 Copy Qualified Name
 
@@ -204,7 +77,7 @@ idea 中获取类全名的方法：右键类文件或者类名 -> 选择 Copy Re
 
 ![](images/293070317247330.png) ![](images/155710417239999.png)
 
-### 4.2. Class 类常用方法
+### 2.2. Class 类常用方法
 
 ```java
 public String getName();
@@ -265,7 +138,7 @@ public InputStream getResourceAsStream(String name);
 - 如果资源文件和当前类在同一个文件夹下时，资源文件路径可以**省略/**，直接给文件名。
 - 返回与资源文件关联的字节输入流对象（**返回的对象：BufferedInputStream**）。
 
-### 4.3. 综合示例
+### 2.3. 综合示例
 
 ```java
 public class Demo02 {
@@ -287,13 +160,13 @@ public class Demo02 {
 }
 ```
 
-## 5. 反射获取构造方法(Constructor 类)
+## 3. 反射获取构造方法(Constructor 类)
 
 - 在反射机制中，把类中的成员（构造方法、成员方法、成员变量）都封装成了对应的类进行表示。其中，构造方法使用类**Constructor**表示。
 - 每一个构造方法都是一个Constructor类的对象
 - **可通过Class类中提供的方法获取构造方法**
 
-### 5.1. Class 类方法，返回一个构造方法 Constructor 类型
+### 3.1. Class 类方法，返回一个构造方法 Constructor 类型
 
 ```java
 public Constructor<T> getConstructor(Class<?>... parameterTypes);
@@ -310,7 +183,7 @@ public Constructor<T> getDeclaredConstructor(Class<?>... parameterTypes);
     - `Constructor<Student> con = c.getConstructor(xxx.class, xxx.class, xxx.class, xxx.class);`
     - 参数列表是**该类的构造方法对应的参数列表的数据类型.class**，个数也要和需要反射得到的构造方法一致。
 
-### 5.2. Class 类方法，返回多个构造方法 Constructor 类型数组
+### 3.2. Class 类方法，返回多个构造方法 Constructor 类型数组
 
 ```java
 public Constructor<?>[] getConstructors();
@@ -326,7 +199,7 @@ public Constructor<?>[] getDeclaredConstructors();
 
 **注：基本类型与引用类型类对象：在Java 中int.class 和 Integer.class 是2 种不同的类型。所以如果参数类型不匹配，也无法得到相应的构造方法，会出现如下异常：`java.lang.NoSuchMethodException`**
 
-### 5.3. Constructor 类 newInstance 方法
+### 3.3. Constructor 类 newInstance 方法
 
 **反射方式获取构造方法后，创建对象使用到 Constructor 类的方法**
 
@@ -336,7 +209,7 @@ public T newInstance(Object... initargs);
 
 - 指定构造方法的参数值(0~n)，创建一个 T 对象
 
-### 5.4. AccessibleObject 类 setAccessible 方法
+### 3.4. AccessibleObject 类 setAccessible 方法
 
 **AccessibleObject 类是 Field、Method 和 Constructor 对象的父类。它提供了将反射的对象标记为在使用时取消默认 Java 语言访问控制检查的能力。**
 
@@ -361,7 +234,7 @@ public void setAccessible(boolean flag) throws SecurityException
 	4. 通过构造方法类Constructor中的方法，创建对象;
 - **不推荐访问私有，因为破坏了程序的封装性，安全性**
 
-### 5.5. 案例：反射获取构造方法创建对象(包含私有构造方法)
+### 3.5. 案例：反射获取构造方法创建对象(包含私有构造方法)
 
 ```java
 import java.lang.reflect.Constructor;
@@ -403,11 +276,11 @@ public class MoonZero {
 }
 ```
 
-## 6. 反射获取成员变量（Field 类）
+## 4. 反射获取成员变量（Field 类）
 
 在反射机制中，把类中的成员变量使用类**Field**表示。可通过Class类中提供的方法获取成员变量：
 
-### 6.1. Class 类方法，返回一个成员变量
+### 4.1. Class 类方法，返回一个成员变量
 
 ```java
 public Field getField(String name);
@@ -421,7 +294,7 @@ public Field getDeclaredField(String name);
 
 - 获取指定的任意变量
 
-### 6.2. Class 类方法，返回多个成员变量
+### 4.2. Class 类方法，返回多个成员变量
 
 ```java
 public Field[] getFields();
@@ -435,7 +308,7 @@ public Field[] getDeclaredFields();
 
 - 获取所有的成员变量(包含private修饰)
 
-### 6.3. Field 类 set/get 方法
+### 4.3. Field 类 set/get 方法
 
 **反射方式获取成员变量后，创建对象使用到 Field 类的方法**
 
@@ -465,7 +338,7 @@ public Class<?> getType()
 
 - 返回一个 Class 对象，它标识了此 Field 对象所表示字段的声明类型。
 
-### 6.4. 其他常用方法
+### 4.4. 其他常用方法
 
 ```java
 public boolean isAnnotationPresent(Class<? extends Annotation> annotationClass)
@@ -473,7 +346,7 @@ public boolean isAnnotationPresent(Class<? extends Annotation> annotationClass)
 
 继承 `java.lang.reflect.AccessibleObject` 类的方法，判断当前字段对象上是否标识某个注解。是则返回 true，否则返回 false
 
-### 6.5. 通过反射，创建对象，获取指定的成员变量，进行赋值与获取值操作
+### 4.5. 通过反射，创建对象，获取指定的成员变量，进行赋值与获取值操作
 
 获取成员变量，步骤如下：
 
@@ -483,7 +356,7 @@ public boolean isAnnotationPresent(Class<? extends Annotation> annotationClass)
 4. 获取指定的成员变量（私有成员变量，通过 `setAccessible(boolean flag)` 方法暴力访问和修改）
 5. 通过方法，给指定对象的指定成员变量赋值或者获取值
 
-### 6.6. 案例：通过反射方式，获取成员变量(私有成员变量)，并修改
+### 4.6. 案例：通过反射方式，获取成员变量(私有成员变量)，并修改
 
 ```java
 import java.lang.reflect.Constructor;
@@ -539,11 +412,11 @@ public class MoonZero {
 }
 ```
 
-## 7. 反射获取成员方法（Method 类）
+## 5. 反射获取成员方法（Method 类）
 
 **在反射机制中，把类中的成员方法使用类Method表示。可通过Class类中提供的方法获取成员方法：**
 
-### 7.1. Class 类返回获取一个方法
+### 5.1. Class 类返回获取一个方法
 
 ```java
 public Method getMethod(String name, Class<?>... parameterTypes);
@@ -562,7 +435,7 @@ public Method getDeclaredMethod(String name, Class<?>... parameterTypes);
     - `Method<Student> met = c.getDeclaredMethod("方法名", xxx.class, xxx.class, xxx.class, xxx.class);`
     - 参数列表是**需要获取的方法名;后面是该类的方法对应的参数列表的数据类型.class**，个数也要和需要反射得到的方法一致。如果该方法没有参数，则只写方法名。
 
-### 7.2. Class 类返回获取多个方法
+### 5.2. Class 类返回获取多个方法
 
 ```java
 public Method[] getMethods();
@@ -576,7 +449,7 @@ public Method[] getDeclaredMethods();
 
 获取本类中所有的方法(包含私有的，**但不包括继承的方法**)
 
-### 7.3. Method 类 invoke 方法
+### 5.3. Method 类 invoke 方法
 
 ```java
 public Object invoke(Object obj,  Object... args)
@@ -594,7 +467,7 @@ method对象.invoke(null(或该方法的所在的类对象), 方法的参数值)
 
 - 执行指定对象obj中，当前Method对象所代表的方法，方法要传入的参数通过args指定。返回值为当前调用的方法的返回值
 
-### 7.4. 通过反射，创建对象，调用指定的方法（包括private）
+### 5.4. 通过反射，创建对象，调用指定的方法（包括private）
 
 获取成员方法（包括私有），步骤如下：
 
@@ -605,7 +478,7 @@ method对象.invoke(null(或该方法的所在的类对象), 方法的参数值)
 5. 开启暴力访问
 6. 执行找到的方法
 
-### 7.5. 案例：通过反射方式，获取成员方法(私有成员变量)，并调用
+### 5.5. 案例：通过反射方式，获取成员方法(私有成员变量)，并调用
 
 ```java
 import java.lang.reflect.Constructor;
@@ -697,9 +570,9 @@ public class Student {
 }
 ```
 
-## 8. 反射获取超类
+## 6. 反射获取超类
 
-### 8.1. Class 类获取超类的方法
+### 6.1. Class 类获取超类的方法
 
 ```java
 public Type getGenericSuperclass()
@@ -709,7 +582,7 @@ public Type getGenericSuperclass()
 
 如果此 `Class` 对象是 `Object` 类、接口、基本类型或 void，则返回 null。如果此对象是一个数组类，则返回表示 `Object` 类的 `Class` 对象。 
 
-### 8.2. 反射获取泛型参数示例
+### 6.2. 反射获取泛型参数示例
 
 假设某个类继承带泛型的类
 
@@ -729,13 +602,13 @@ if (type instanceof ParameterizedType ) {
 }
 ```
 
-## 9. Reflections 反射框架(待整理)
+## 7. Reflections 反射框架(待整理)
 
 
 
-## 10. 反射与Properties案例
+## 8. 反射与Properties案例
 
-### 10.1. 案例1
+### 8.1. 案例1
 
 ```java
 import java.io.File;

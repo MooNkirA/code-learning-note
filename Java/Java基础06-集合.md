@@ -529,14 +529,15 @@ List 是一个元素存取有序、带有索引、可以有重复的元素的集
 
 List 接口下有很多个集合实现，它们存储元素所采用的结构方式是不同的，这样就导致了这些集合有它们各自的特点，供给开发者在不同的环境下进行使用。
 
-### 1.2. 接口的常用子类
+### 1.2. 接口的常用实现类
 
 - ArrayList
 - LinkedList
+- Vector
 
-## 2. List 接口常用的方法
+### 1.3. 接口常用的方法
 
-### 2.1. 增加元素
+#### 1.3.1. 增加元素
 
 ```java
 boolean add(Object e);
@@ -550,7 +551,7 @@ boolean add(int index, Object e);
 
 - 向集合指定索引处，添加指定的元素，原有元素依次后移
 
-### 2.2. 删除元素
+#### 1.3.2. 删除元素
 
 ```java
 boolean remove(Object e);
@@ -570,7 +571,7 @@ void clear();
 
 - 清空集合
 
-### 2.3. 替换元素
+#### 1.3.3. 替换元素
 
 ```java
 E set(int index, E element);
@@ -578,7 +579,7 @@ E set(int index, E element);
 
 将指定索引处的元素，替换成指定的元素，返回值为替换前的元素
 
-### 2.4. 查询元素
+#### 1.3.4. 查询元素
 
 ```java
 E get(int index);
@@ -586,10 +587,9 @@ E get(int index);
 
 获取指定索引处的元素，并返回该元素
 
+## 2. ArrayList 集合
 
-## 3. ArrayList 集合
-
-### 3.1. 简介
+### 2.1. 简介
 
 <font color=red>**ArrayList 集合底层数据存储的结构是数组结构。数组实现的特点：<u>元素查询快，增删慢，线程不安全（效率高）</u>**</font>。可以在集合中存储任意类型的数据，由于日常开发中使用最多的功能为查询数据、遍历数据，所以 ArrayList 是最常用的集合。
 
@@ -600,14 +600,14 @@ public class ArrayList<E> extends AbstractList<E>
         implements List<E>, RandomAccess, Cloneable, java.io.Serializable
 ```
 
-### 3.2. ArrayList 数组实现的原理
+### 2.2. ArrayList 数组实现的原理
 
 数组实现的特点：查询快，增删慢，线程不安全（效率高）。原因：
 
 - <font color=red>**查询快**</font>：由于数组的索引支持，那么可以通过索引直接计算出元素的地址值，因此就可以直接通过元素的地址值获取到指定的元素
 - <font color=red>**增删慢**</font>：由于在添加元素的时候，实际上底层会先创建一个新数组(新数组的长度为原数组的长度+1)，那么在添加新元素的时候，先需要对数组中原有的数据进行拷贝，其次在末尾进行添加新的元素。因此，这样操作的效率的极低的(删除元素刚好和添加的操作相反)
 
-### 3.3. RandomAccess 接口
+### 2.3. RandomAccess 接口
 
 Java Collections 框架中提供了一个 `RandomAccess` 接口，用来标记 List 实现是否支持 Random Access。
 
@@ -619,11 +619,11 @@ public interface RandomAccess {
 - 如果一个数据集合实现了该接口，就意味着它支持 Random Access，按位置读取元素的平均时间复杂度为 O(1)，如 `ArrayList`
 - 如果没有实现该接口，表示不支持 Random Access，如 `LinkedList`
 
-### 3.4. 线程安全性
+### 2.4. 线程安全性
 
 对 ArrayList 的操作一般分为两个步骤，改变位置(size)和操作元素(e)。所以这个过程在多线程的环境下是不能保证具有原子性的，因此 ArrayList 在多线程的环境下是线程不安全的。
 
-### 3.5. ArrayList优缺点
+### 2.5. ArrayList优缺点
 
 优点：
 
@@ -637,15 +637,15 @@ public interface RandomAccess {
 
 ArrayList 比较适合顺序添加、随机访问的场景。
 
-### 3.6. ArrayList 的 contains 方法判断元素（自定义类型）是否存在的原理
+### 2.6. ArrayList 的 contains 方法判断元素（自定义类型）是否存在的原理
 
 ArrayList 的 `contains` 方法，会调用方法传入的元素的 equals 方法依次与集合中的旧元素所比较，从而根据返回的布尔值判断是否有重复元素。
 
 当 ArrayList 存放**自定义类型**时，由于自定义类型在未重写 equals 方法前，判断是否重复的依据是比较对象的地址值，所以<font color=red>**如果想根据内容判断是否为重复元素，需要重写元素的 equals 方法**</font>
 
-## 4. ArrayList 源码分析
+## 3. ArrayList 源码分析
 
-### 4.1. 属性分析
+### 3.1. 属性分析
 
 ```java
 /**
@@ -681,7 +681,7 @@ private int size;
 private static final int MAX_ARRAY_SIZE = Integer.MAX_VALUE - 8;
 ```
 
-#### 4.1.1. 扩展：什么是序列化
+#### 3.1.1. 扩展：什么是序列化
 
 序列化是指：将对象转换成以字节序列的形式来表示，以便用于持久化和传输。
 
@@ -689,7 +689,7 @@ private static final int MAX_ARRAY_SIZE = Integer.MAX_VALUE - 8;
 
 然后用的时候拿出来进行反序列化即可又变成Java对象。
 
-#### 4.1.2. transient 关键字修饰的 elementData 属性解析
+#### 3.1.2. transient 关键字修饰的 elementData 属性解析
 
 ```java
 /**
@@ -736,7 +736,7 @@ private void writeObject(java.io.ObjectOutputStream s)
 
 原因在于`elementData`是一个缓存数组，它通常会预留一些容量，等容量不足时再扩充容量，那么有些空间可能就没有实际存储元素，采用上诉的方式来实现序列化时，就可以保证只序列化实际存储的那些元素，而不是整个数组，从而**节省空间和时间**。
 
-### 4.2. 构造方法分析
+### 3.2. 构造方法分析
 
 根据initialCapacity 初始化一个空数组，如果值为0，则初始化一个空数组:
 
@@ -785,9 +785,9 @@ public ArrayList(Collection<? extends E> c) {
 }
 ```
 
-### 4.3. 主干方法
+### 3.3. 主干方法
 
-#### 4.3.1. trimToSize() 方法
+#### 3.3.1. trimToSize() 方法
 
 > 用来最小化实例存储，将容器大小调整为当前元素所占用的容量大小。
 
@@ -805,7 +805,7 @@ public void trimToSize() {
 }
 ```
 
-#### 4.3.2. clone() 方法
+#### 3.3.2. clone() 方法
 
 > 用来克隆出一个新数组。
 
@@ -825,7 +825,7 @@ public Object clone() {
 
 通过调用`Object`的`clone()`方法来得到一个新的`ArrayList`对象，然后将`elementData`复制给该对象并返回。
 
-#### 4.3.3. add(E e) 方法
+#### 3.3.3. add(E e) 方法
 
 > 在数组末尾添加元素
 
@@ -899,7 +899,7 @@ private void grow(int minCapacity) {
 
 ------
 
-##### 4.3.3.1. size+1的问题
+##### 3.3.3.1. size+1的问题
 
 > 好了，那到这里可以说一下为什么要size+1。
 
@@ -925,7 +925,7 @@ public static void main(String[] args) {
 
 ------
 
-#### 4.3.4. add(int index, E element) 方法
+#### 3.3.4. add(int index, E element) 方法
 
 ```java
 public void add(int index, E element) {
@@ -945,7 +945,7 @@ public void add(int index, E element) {
 public static void arraycopy(Object src, int srcPos, Object dest, int destPos, int length)
 ```
 
-##### 4.3.4.1. 代码解释
+##### 3.3.4.1. 代码解释
 
 - Object src : 原数组
 - int srcPos : 从元数据的起始位置开始
@@ -957,7 +957,7 @@ public static void arraycopy(Object src, int srcPos, Object dest, int destPos, i
 
 > ![ArrayList增加元素说明](images/20190218230525072_18679.png)
 
-##### 4.3.4.2. 异常处理
+##### 3.3.4.2. 异常处理
 
 ```java
 private void rangeCheckForAdd(int index) {
@@ -966,7 +966,7 @@ private void rangeCheckForAdd(int index) {
 }
 ```
 
-#### 4.3.5. set(int index, E element) 方法
+#### 3.3.5. set(int index, E element) 方法
 
 ```java
 public E set(int index, E element) {
@@ -984,7 +984,7 @@ E elementData(int index) {
 
 逻辑很简单，覆盖旧值并返回。
 
-#### 4.3.6. indexOf(Object o) 方法
+#### 3.3.6. indexOf(Object o) 方法
 
 > 根据Object对象获取数组中的索引值。
 
@@ -1007,7 +1007,7 @@ public int indexOf(Object o) {
 
 注意：通过源码可以看到，该方法是允许传空值进来的。
 
-#### 4.3.7. get(int index) 方法
+#### 3.3.7. get(int index) 方法
 
 > 返回指定下标处的元素的值。
 
@@ -1021,7 +1021,7 @@ public E get(int index) {
 
 `rangeCheck(index)`会检测index值是否合法，如果合法则返回索引对应的值。
 
-#### 4.3.8. remove(int index) 方法
+#### 3.3.8. remove(int index) 方法
 
 > 删除指定下标的元素。
 
@@ -1048,7 +1048,7 @@ public E remove(int index) {
 
 大概思路：将该元素后面的元素前移，最后一个元素置空。
 
-### 4.4. 集合的快速失败机制 “fail-fast”
+### 3.4. 集合的快速失败机制 “fail-fast”
 
 “fail-fast”，即快速失败，它是 Java 集合的一种错误检测机制。当多个线程对集合（非 fail-safe 的集合类）进行结构上的改变的操作时，有可能会产生 fail-fast 机制，这个时候就会抛出 ConcurrentModificationException（当方法检测到对象的并发修改，但不允许这种修改时就抛出该异常）。
 
@@ -1056,7 +1056,7 @@ public E remove(int index) {
 
 例如：假设存在两个线程（线程1、线程2），线程1通过 Iterator 在遍历集合A中的元素，在某个时候线程2修改了集合A的结构（是结构上面的修改，而不是简单的修改集合元素的内容），那么这个时候程序就会抛出 `ConcurrentModificationException` 异常，从而产生fail-fast机制。
 
-#### 4.4.1. 源码分析
+#### 3.4.1. 源码分析
 
 以下参考 `ArrayList` 源码的处理：
 
@@ -1082,7 +1082,7 @@ public void forEach(Consumer<? super E> action) {
 
 每当迭代器使用`hashNext()`/`next()` 遍历下一个元素之前，都会检测 `modCount` 变量是否为 `expectedmodCount` 值，是的话就返回遍历；否则抛出异常，终止遍历。
 
-#### 4.4.2. 对集合进行 add/remove 正常操作方式：
+#### 3.4.2. 对集合进行 add/remove 正常操作方式：
 
 1. 直接使用普通 for 循环进行操作，因为普通 for 循环并没有用到 Iterator 的遍历，所以压根就没有进行 fail-fast 的检验。但这种方案其实存在一个问题，那就是 remove 操作会改变 List 中元素的下标，可能存在漏删的情况。
 2. 直接使用 Iterator 提供的 `remove` 方法进行操作。该方法可以修改到 `expectedModCount` 的值，那么就不会再抛出异常了。
@@ -1126,7 +1126,7 @@ for (String userName : userNames) {
 > Tips: java.util.concurrent 包下的容器都是安全失败，可以在多线程下并发使用，并发修改。
 6. 在遍历过程中，所有涉及到改变 `modCount` 值得地方全部加上 `synchronized`
 
-### 4.5. 手写ArrayList(网上资料)
+### 3.5. 手写ArrayList(网上资料)
 
 那面试手写ArrayList应该就不是问题了。下面网上资料的手写一个简单阉割版的ArrayList：
 
@@ -1229,9 +1229,9 @@ public class MyArrayList {
 }
 ```
 
-## 5. LinkedList 集合
+## 4. LinkedList 集合
 
-### 5.1. 概述
+### 4.1. 概述
 
 <font color=red>**LinkedList 集合底层数据存储的实现是链表结构，查询慢，增删快，线程不安全（效率高）**</font>。
 
@@ -1241,7 +1241,7 @@ LinkedList 与 ArrayList 不同是，LinkedList 是方便添加删除的 List。
 >
 > 双向链表也叫双链表，是链表的一种，它的每个数据结点中都有两个指针，分别指向直接后继和直接前驱。所以，从双向链表中的任意一个结点开始，都可以很方便地访问它的前驱结点和后继结点。
 
-### 5.2. LinkedList 链表实现的原理
+### 4.2. LinkedList 链表实现的原理
 
 链表结构：查询慢，增删快，线程不安全（效率高）。其原因：
 
@@ -1250,7 +1250,7 @@ LinkedList 与 ArrayList 不同是，LinkedList 是方便添加删除的 List。
 
 链表查询元素是判断索引是否大于集合元素个数的一半来决定从表头还是表尾开始查询。如果大于一半，则从表尾开始查找，否则从表头开始查找。
 
-### 5.3. LinkedList 常用特有方法
+### 4.3. LinkedList 常用特有方法
 
 ```java
 void addFirst(E e);
@@ -1288,7 +1288,7 @@ E getLast();
 
 - 返回此列表的最后一个元素。
 
-### 5.4. ArrayList 和 LinkedList 的区别与选择
+### 4.4. ArrayList 和 LinkedList 的区别与选择
 
 区别：
 
@@ -1309,9 +1309,9 @@ E getLast();
 - <font color=red>**遍历 LinkedList 必须使用 Iterator 而不使用 for 循环，因为每次 for 循环体内通过 `get(i)` 方法获取指定元素时，需要对整个集合重新进行遍历，性能消耗极大**</font>
 - 尽量不要试图使用 `indexOf` 等方法返回元素的索引，并利用其进行遍历。使用 `indexOf` 对集合进行遍历，当结果为空时会遍历整个集合。
 
-## 6. 集合与数组之间的转换
+## 5. 集合与数组之间的转换
 
-### 6.1. 集合转数组( List 类方法)
+### 5.1. 集合转数组( List 类方法)
 
 集合（如：ArrayList）转数组使用的是，Collection 接口的 `toArray()` 方法，ArrayList 和 LinkedList 都有承继该方法。
 
@@ -1345,7 +1345,7 @@ String[] strs = new String[list.size()];
 list.toArray(strs);	
 ```
 
-### 6.2. 数组转集合（使用 Arrays 工具类方法）
+### 5.2. 数组转集合（使用 Arrays 工具类方法）
 
 ```java
 public static <T> List<T> asList(T... a);
@@ -1362,11 +1362,11 @@ ArrayList<String> array = Arrays.asList(arr);
 ArrayList<String> newArray = new ArrayList<String>(array); // newArray 是可以增删的。
 ```
 
-## 7. Collection 接口的其他实现与数据结构
+## 6. List 接口的其他实现类与数据结构
 
-### 7.1. Vector 集合（了解）
+### 6.1. Vector 集合（了解）
 
-#### 7.1.1. 概述
+#### 6.1.1. 概述
 
 `Vector` 集合数据存储的结构是数组结构，为JDK中最早提供的集合。
 
@@ -1380,7 +1380,7 @@ public class Vector<E>
 
 `Vector` 最大的特点是线程安全但效率低，原因就是它的 `add` 方法里被 `synchronized` 修饰，多个线程不能同时操作，所以已经被取代。
 
-#### 7.1.2. ArrayList 和 Vector 的区别
+#### 6.1.2. ArrayList 和 Vector 的区别
 
 此两个类都实现了 List 接口（List 接口继承了 Collection 接口），它们都是有序集合
 
@@ -1392,9 +1392,9 @@ Vector 类的所有方法都是同步的。可以由两个线程安全地访问�
 
 Arraylist 不是同步的，所以在不需要保证线程安全时时建议使用 Arraylist
 
-### 7.2. Stack 栈结构（了解）
+### 6.2. Stack 栈结构（了解）
 
-#### 7.2.1. 概述
+#### 6.2.1. 概述
 
 java 提供了一个专门用于栈结构的类：`java.util.Stack`
 
@@ -1404,7 +1404,7 @@ public class Stack<E> extends Vector<E>
 
 Stack 类表示后进先出（LIFO）的对象堆栈。
 
-#### 7.2.2. 常用方法
+#### 6.2.2. 常用方法
 
 ```java
 public E peek();
@@ -1424,9 +1424,9 @@ public E pop();
 
 - 移除堆栈顶部的对象，并作为此函数的值返回该对象。(弹栈)
 
-### 7.3. Queue 队列结构（了解）
+# Queue 接口
 
-#### 7.3.1. 概述
+## 1. 概述
 
 java 提供了一个专门用于队列结构的接口：`java.util.Queue`
 
@@ -1436,7 +1436,7 @@ public interface Queue<E> extends Collection<E>
 
 队列通常（但并非一定）以 FIFO（先进先出）的方式排序各个元素。
 
-#### 7.3.2. 常用方法
+### 1.1. 常用方法
 
 ```java
 boolean offer(E e);
@@ -1462,7 +1462,7 @@ E remove()
 
 - 获取并移除此队列的头。此方法与 poll 唯一的不同在于：当队列为空时将抛出一个 `NoSuchElementException` 异常。 
 
-#### 7.3.3. BlockingQueue（了解）
+## 2. BlockingQueue（了解）
 
 `java.util.concurrent.BlockingQueue` 接口继承 `Queue` 接口，也是一个队列。它有如下特点：
 
