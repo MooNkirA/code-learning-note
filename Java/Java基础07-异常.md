@@ -36,7 +36,7 @@ Exception（异常）指 Java 程序运行异常，即运行中的程序发生�
 
 `Exception` 类是 `Throwable` 类的子类。所有的异常类是 `java.lang.Exception` 类的子类。这些异常又分为两类：RuntimeException(运行时异常) 和 CheckedException(编译时异常、检查异常)。
 
-### 1.4. 异常与错误的区别
+### 1.3. 异常与错误的区别
 
 **异常**：
 
@@ -54,7 +54,7 @@ Exception（异常）指 Java 程序运行异常，即运行中的程序发生�
 - 根据控制台输入的错误信息，判断类名是以Error还是Exceptiong结尾。
 - 如果是Error则是错误，否是就是Exception。
 
-### 1.5. Java常见错误与异常
+### 1.4. Java常见错误与异常
 
 - `java.lang.IllegalAccessError`：违法访问错误。当一个应用试图访问、修改某个类的域（Field）或者调用其方法，但是又违反域或方法的可见性声明，则抛出该异常。
 - `java.lang.InstantiationError`：实例化错误。当一个应用试图通过Java的 `new` 操作符构造一个抽象类或者接口时抛出该异常.

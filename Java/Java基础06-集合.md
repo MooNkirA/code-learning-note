@@ -855,7 +855,7 @@ public interface Set<E> extends Collection<E>
 
 在 Set 集合中，对象元素的相等性比较是通过元素的 `equals` 与 `hashCode` 方法来判断。对象的相等性在本质上是对象的 `HashCode` 值相同，Java 依据对象的内存地址计算出对象的 `HashCode` 值。因此如果需要自定义比较两个对象是否相等，则必须同时重写对象的 `hashCode` 方法和 `equals` 方法。
 
-### Set 接口的实现类
+### 6.2. Set 接口的实现类
 
 HashSet
 
@@ -869,9 +869,9 @@ LinkedHashSet(继承HashSet)
 2. 不能重复
 3. 存储和取出有顺序
 
-### 6.2. 哈希表(数组和链表的组合体)
+### 6.3. 哈希表(数组和链表的组合体)
 
-#### 6.2.1. 对象的哈希值
+#### 6.3.1. 对象的哈希值
 
 对象的哈希值，就是一个十进制整数。通过 `Object` 类的 `hashCode()` 的方法获得。是对象存储到 `HashSet` 的依据。子类可以重写该方法自己计算哈希值。
 
@@ -881,7 +881,7 @@ LinkedHashSet(继承HashSet)
 
 <font color=purple>**总结：保证 `HashSet` 集合元素的唯一，其实就是根据对象的 `hashCode` 和 `equals` 方法来决定的。如果往集合中存放自定义的对象，那么保证其唯一则必须重写 `hashCode` 和 `equals` 方法，建立属于当前对象的比较方式。**</font>
 
-#### 6.2.2. Object 的 hashCode 方法
+#### 6.3.2. Object 的 hashCode 方法
 
 Object 类的 hashCode 方法，返回值是一个十进值整数，默认是对象的内存地址值（十六进制）。默认情况下内存地址不一样 hashCode 就不一样。
 
@@ -889,11 +889,11 @@ String 类重写了 hashCode，只要字符内容相同，等到的哈希值就�
 
 自定义的类如果要放到 HashSet 中，也需要重写 hashCode
 
-#### 6.2.3. 哈希表结构的特点
+#### 6.3.3. 哈希表结构的特点
 
 只要看到类名上带有 Hash。说明它底层使用哈希表结构，HashSet 底层使用的是哈希表结构。
 
-#### 6.2.4. 哈希表的存储元素详细过程(HashSet 判断元素唯一的原理)
+#### 6.3.4. 哈希表的存储元素详细过程(HashSet 判断元素唯一的原理)
 
 1. 调用对象的 `hashCode()` 方法，获得要存储元素的哈希值。
 2. 将哈希值与表的长度(即数组的长度)进行求余运算得到一个整数值，该值就是新元素要存放的位置(即是索引值)。
@@ -911,16 +911,16 @@ String 类重写了 hashCode，只要字符内容相同，等到的哈希值就�
 
 ![](images/396994721239277.jpg)
 
-#### 6.2.5. hashCode 注意事项
+#### 6.3.5. hashCode 注意事项
 
 假设有两个 `Person` 对象p1和p2，如果 `p1.equals(p2)` 为true。则 `p1.hashCode() == p2.hashCode()` 一定是 true 吗？ 答：一定。hashCode的官方协定：
 
 1. 如果根据 `equals(Object)` 方法，两个对象是相等的。那么对这两个对象中的每个对象调用 `hashCode` 方法都必须生成相同的整数结果。
 2. 如果根据 `equals(java.lang.Object)` 方法，两个对象不相等，那么对这两个对象中的任一对象上调用 `hashCode` 方法“不”要求一定生成不同的整数结果。但是，程序员应该意识到，为不相等的对象生成不同整数结果可以提高哈希表的性能。
 
-### 6.3. HashSet 集合
+### 6.4. HashSet 集合
 
-#### 6.3.1. 概述
+#### 6.4.1. 概述
 
 `HashSet` 集合的底层是哈希表结构，基于 `HashTable` 实现：查询快，增删快，线程不安全（效率高）
 
@@ -936,7 +936,7 @@ public class HashSet<E>
 - 底层是哈希表：数组和链表的组合体。底层采用 HashMap 来保存元素，其元素值都存放在 HashMap 的 key 中，而 value 统一为 PRESENT
 - 哈希表的特点：查询和增删都比较快。
 
-#### 6.3.2. HashSet 构造方法分析
+#### 6.4.2. HashSet 构造方法分析
 
 ```java
 static final float DEFAULT_LOAD_FACTOR = 0.75f;
@@ -948,7 +948,7 @@ public HashMap() {
 
 比如：<font color=red>加载因子是0.75</font>，数组的长度为16，其中存入`16 * 0.75 = 12`个元素。如果再存入第十三个(大于12)元素。那么此时会扩充哈希表(再哈希)，底层会开辟一个长度为原长度<font color=red>2倍</font>的数组。把老元素拷贝到新数组中，再把新元素添加数组中。当`存入元素数量 > 哈希表长度 * 加载因子`，就要扩容，因此加载因子决定扩容时机。
 
-#### 6.3.3. HashSet 保存元素的原理
+#### 6.4.3. HashSet 保存元素的原理
 
 `HashSet` 存放的是散列值，它是按照元素的散列值来存取元素的。`HashSet` 中的 `add` 方法的底层实现是调用 `HashMap` 的 `put` 方法，将元素的散列值（即 HashCode）作为 `HashMap` 的 key。
 
@@ -976,9 +976,9 @@ public class HashSet<E>
 
 元素的散列值是通过元素的 `hashCode` 方法计算得到的，HashSet 首先判断两个元素的散列值是否相等，如果散列值相等，则接着通过 `equals` 方法返回的结果（true/false），来判断是否为同一个元素。
 
-#### 6.3.4. HashSet 存储判断元素（自定义类型）重复的原理
+#### 6.4.4. HashSet 存储判断元素（自定义类型）重复的原理
 
-##### 6.3.4.1. HashSet 的 add/contains 等方法判断元素是否重复原理
+##### 6.4.4.1. HashSet 的 add/contains 等方法判断元素是否重复原理
 
 Set 集合不能存放重复元素，其添加方法在添加时会判断是否有重复元素，有重复不添加，没重复则添加。
 
@@ -987,11 +987,11 @@ HashSet 集合由于是无序的，其判断唯一的依据是元素类型的 `h
 1. 先判断新元素与集合内已经有的旧元素的 HashCode 值，如果不同，说明是不同元素，添加到集合
 2. 如果 HashCode 值相同，再判断 equals 比较结果。返回 true 则相同元素，不添加；返回 false 则不同元素，添加到集合。
 
-##### 6.3.4.2. 使用 HashSet 存储自定义类型
+##### 6.4.4.2. 使用 HashSet 存储自定义类型
 
 当使用HashSet存储<font color=red>自定义类型</font>，如果没有重写该类的 hashCode 与 equals 方法，则判断重复时，使用的是地址值，如果想<font color=red>**通过内容比较元素是否相同，需要重写该元素类的 `hashcode` 与 `equals` 方法**</font>
 
-### 6.4. LinkedHashSet 集合
+### 6.5. LinkedHashSet 集合
 
 ```java
 public class LinkedHashSet<E>
@@ -1001,7 +1001,7 @@ public class LinkedHashSet<E>
 
 LinkedHashSet 继承自 HashSet，底层也是哈希表，由 LinkedHashMap 来实现存储元素，所有的方法和操作与 HashSet 一致，不包含重复元素，没有索引。唯一不同是可预测迭代顺序的 Set 集合。
 
-### 6.5. TreeSet 集合
+### 6.6. TreeSet 集合
 
 TreeSet 基于二叉树的原理对新添加的对象按照指定的顺序排序（升序、降序），每添加一个对象都会进行排序，并将对象插入二叉树指定的位置。
 
@@ -1019,7 +1019,7 @@ public interface Queue<E> extends Collection<E>
 
 队列通常（但并非一定）以 FIFO（先进先出）的方式排序各个元素。
 
-### 7.1.1. 常用方法
+### 7.2. 常用方法
 
 ```java
 boolean offer(E e);
@@ -1045,7 +1045,7 @@ E remove()
 
 - 获取并移除此队列的头。此方法与 poll 唯一的不同在于：当队列为空时将抛出一个 `NoSuchElementException` 异常。 
 
-### 7.2. BlockingQueue（了解）
+### 7.3. BlockingQueue（了解）
 
 `java.util.concurrent.BlockingQueue` 接口继承 `Queue` 接口，也是一个队列。它有如下特点：
 
@@ -1285,9 +1285,9 @@ public class EntrySetTest {
 
 通过 Map 对象的 `Values()` 方法，获取所有值的 Collection 集合，再使用增加 for 循环遍历。
 
-### 8.4.1. HashMap
+### 8.4. HashMap
 
-#### 概述
+#### 8.4.1. 概述
 
 HashMap：基于哈希表的 Map 接口的实现类，并允许使用 **null** 的值和 null 的键（<font color=purple>**HashMap 最多只允许一条记录的键为 null，允许多条记录的值为 null。**</font>），
 
@@ -1297,24 +1297,24 @@ HashMap 有如下特点
  - <font color=red>**存储和取出无法保证顺序一致**</font>。
  - 非线程安全。同一时间有多个线程同时对 HashMap 进行写操作，将可能导致数据的不一致。*如需要满足线程安全的条件，可使用 `Collections` 的 `synchronizedMap` 方法使 HashMap 具有线程安全的能力，或者使用 `ConcurrentHashMap`*。
 
-#### 数据存储实现原理（TODO: 待整理）
+#### 8.4.2. 数据存储实现原理（TODO: 待整理）
 
 > TODO: 待将面试题那边整理的移动到此处
 
 > Notes: HashMap 实现原理在 Java 8 前后有很大区别。
 
 
-##### Java 8 以后的实现
+##### 8.4.2.1. Java 8 以后的实现
 
 为了减少链表遍历的开销，Java 8 对 HashMap 进行了优化，将数据结构修改为**数组+链表或红黑树**。在链表中的元素超过 8 个以后，HashMap 会将链表结构转换为红黑树结构以提高查询效率，因此其时间复杂度为 `O(log N)`。
 
-##### 常用参数
+##### 8.4.2.2. 常用参数
 
 - capacity：当前数组的容量，默认为 16，可以扩容，扩容后数组的大小为当前的两倍，因此该值始终为2<sup>n</sup>。
 - loadFactor：负载因子，默认为 0.75。
 - threshold：扩容的阈值，其值等于 `capacity × loadFactor`。
 
-### 8.4.2. LinkedHashMap
+### 8.5. LinkedHashMap
 
 `LinkedHashMap` 继承 `HashMap`，是 `Map` 接口的实现类，并允许使用 null 值和 null 键，<font color=red>**键是唯一，存储和取出有顺序**</font>
 
@@ -1322,9 +1322,9 @@ LinkedHashMap 是基于哈希表(HashTable)的数据结构，该结构保证 key
 
 > Tips: 其他与 HashMap 的功能与用法一样。
 
-### 8.4.3. TreeMap
+### 8.6. TreeMap
 
-####  概述
+#### 8.6.1. 概述
 
 TreeMap 是基于二叉树数据结构存储数据。从功能上讲，有比 HashMap 更为强大的功能，它实现了 `SortedMap` 接口，即可以对元素进行排序，默认按键值的升序排序，也可以自定义排序比较器。
 
@@ -1332,12 +1332,12 @@ TreeMap 要求存放的键值对所映射的键对象必须实现 `Comparable` �
 
 TreeMap 的性能略微低于 HashMap。如果在开发中需要对元素进行<font color=red>排序</font>，那么使用 HashMap 便无法实现这种功能，使用 TreeMap 的迭代输出将会以元素顺序进行。
 
-#### 与 LinkedHashMap 的区别
+#### 8.6.2. 与 LinkedHashMap 的区别
 
 - LinkedHashMap 是基于元素进入集合的顺序或者被访问的先后顺序排序。
 - TreeMap 则是基于元素的 key 固有顺序(由 Comparator 或者 Comparable 确定)进行排序。
 
-### Hashtable
+### 8.7. Hashtable
 
 ```java
 public class Hashtable<K,V>
@@ -1347,7 +1347,7 @@ public class Hashtable<K,V>
 
 `HashTable` 是旧版本的遗留类，很多映射的常用功能都与 `HashMap` 类似，不同的是它继承自 `Dictionary` 类，并且是线程安全的，同一时刻只允许一个线程对 `HashTable` 进行写操作，并发性不如 `ConcurrentHashMap`。
 
-### 8.4.4. ConcurrentHashMap（网络资料，未整理）
+### 8.8. ConcurrentHashMap（网络资料，未整理）
 
 ConcurrentHashMap 底层采用**分段的数组+链表**的方式来实现线程安全。
 
@@ -1369,9 +1369,9 @@ ConcurrentHashMap提供了与Hashtable和SynchronizedMap不同的锁机制。Has
 
 ConcurrentHashMap默认将hash表分为16个桶，诸如get、put、remove等常用操作只锁住当前需要用到的桶。这样，原来只能一个线程进入，现在却能同时有16个写线程执行，并发性能的提升是显而易见的。
 
-### 常用实现类的区别总结
+### 8.9. 常用实现类的区别总结
 
-#### 8.4.5. Hashtable 和 HashMap 的区别(面试题)
+#### 8.9.1. Hashtable 和 HashMap 的区别(面试题)
 
 Hashtable 与 HashMap 都是 Map 接口的实现类。
 

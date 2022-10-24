@@ -2,11 +2,11 @@
 
 ## 1. 反射的概述
 
-#### 动态语言的概念
+### 1.1. 动态语言的概念
 
 动态语言指程序在运行时可以改变其结构的语言，比如新的属性或方法的添加、删除等结构上的变化。JavaScript、Ruby、Python 等都属于动态语言；C、C++ 不属于动态语言。从反射的角度来说，Java 属于半动态语言。
 
-### 1.1. 什么是反射
+### 1.2. 什么是反射
 
 在程序**运行状态**中，对于任意一个类，都能够获取类的所有属性和方法；对于任意一个对象，都能够调用其任意一个方法和属性。这种动态获取类和对象的信息，以及动态调用对象的方法的功能被称为 Java 语言的反射机制。
 
@@ -19,12 +19,12 @@
 
 > Notes: 反射的前提条件是，获得该类Class对象，就是字节码文件对象。
 
-### 1.2. 反射机制优缺点
+### 1.3. 反射机制优缺点
 
 - 优点：运行期类型的判断，动态加载类，提高代码灵活度。
 - 缺点：性能瓶颈：反射相当于一系列解释操作，通知 JVM 要做的事情，性能比直接的java代码要慢很多
 
-### 1.3. 反射的应用
+### 1.4. 反射的应用
 
 Java中的对象有两种类型：编译时类型和运行时类型。
 
@@ -174,15 +174,15 @@ public class Demo02 {
 }
 ```
 
-## 3.4. AccessibleObject 类
+## 3. AccessibleObject 类
 
-### 概述
+### 3.1. 概述
 
 对于公共成员、默认（打包）访问成员、受保护成员和私有成员，在分别使用 `Field`、`Method` 或 `Constructor` 对象来设置或获取字段、调用方法，或者创建和初始化类的新实例的时候，会执行访问检查。
 
 `AccessibleObject` 类是 `Field`、`Method` 和 `Constructor` 的父类。它提供了将反射的对象标记为在使用时取消默认 Java 语言访问控制检查的能力。
 
-### 常用方法
+### 3.2. 常用方法
 
 ```java
 public void setAccessible(boolean flag) throws SecurityException
@@ -200,11 +200,11 @@ public void setAccessible(boolean flag) throws SecurityException
 
 > Notes: **一般不推荐访问私有，因为破坏了程序的封装性，安全性**
 
-## 3. Constructor 类（构造方法）
+## 4. Constructor 类（构造方法）
 
 在反射机制中，把类中的成员（构造方法、成员方法、成员变量）都封装成了对应的类进行表示。其中，构造方法使用 `Constructor` 类表示。每一个构造方法都是一个 `Constructor` 类的对象
 
-### 获取构造方法实例
+### 4.1. 获取构造方法实例
 
 **可通过 Class 类中提供的方法，获取一个或者多个 `Constructor` 构造方法对象**
 
@@ -241,7 +241,7 @@ public Constructor<?>[] getDeclaredConstructors();
 
 **注：基本类型与引用类型类对象：在Java 中int.class 和 Integer.class 是2 种不同的类型。所以如果参数类型不匹配，也无法得到相应的构造方法，会出现如下异常：`java.lang.NoSuchMethodException`**
 
-### 3.3. Constructor 类 newInstance 方法
+### 4.2. Constructor 类 newInstance 方法
 
 **反射方式获取构造方法后，创建对象使用到 Constructor 类的方法**
 
@@ -251,7 +251,7 @@ public T newInstance(Object... initargs);
 
 - 指定构造方法的参数值(0~n)，创建一个 T 对象
 
-### 反射调用构造方法创建对象的步骤
+### 4.3. 反射调用构造方法创建对象的步骤
 
 通过反射方式，获取构造方法(私有)，创建对象，步骤如下：
 
@@ -260,7 +260,7 @@ public T newInstance(Object... initargs);
 3. 暴力访问, 通过 `setAccessible(boolean flag)` 方法（如果是私有）
 4. 通过构造方法类 `Constructor` 中的方法，创建对象;
 
-### 3.5. 反射创建对象案例
+### 4.4. 反射创建对象案例
 
 反射获取构造方法创建对象(包含私有构造方法)
 
@@ -302,11 +302,11 @@ public static void main(String[] args) throws Exception {
 }
 ```
 
-## 4. Field 类（成员属性）
+## 5. Field 类（成员属性）
 
 在反射机制中，把类中的成员变量使用类**Field**表示。可通过Class类中提供的方法获取成员变量：
 
-### 4.1. 获取类成员属性实例
+### 5.1. 获取类成员属性实例
 
 通过 Class 类方法，返回一个成员变量
 
@@ -322,7 +322,7 @@ public Field getDeclaredField(String name);
 
 - 获取指定的任意变量
 
-### 4.2. Class 类方法，返回多个成员变量
+### 5.2. Class 类方法，返回多个成员变量
 
 ```java
 public Field[] getFields();
@@ -336,7 +336,7 @@ public Field[] getDeclaredFields();
 
 - 获取所有的成员变量(包含private修饰)
 
-### 4.3. Field 类常用方法
+### 5.3. Field 类常用方法
 
 **反射方式获取成员属性 Field 实例后，可以使用以下方法对属性值进行操作**
 
@@ -370,7 +370,7 @@ public boolean isAnnotationPresent(Class<? extends Annotation> annotationClass)
 
 - 继承自 `java.lang.reflect.AccessibleObject` 类的方法，判断当前字段对象上是否标识某个注解。是则返回 true，否则返回 false
 
-### 4.5. 反射操作类属性的步骤
+### 5.4. 反射操作类属性的步骤
 
 通过反射，创建对象，获取指定的成员变量，进行赋值与获取值操作。步骤如下：
 
@@ -380,7 +380,7 @@ public boolean isAnnotationPresent(Class<? extends Annotation> annotationClass)
 4. 获取指定的成员变量（私有成员变量，通过 `setAccessible(boolean flag)` 方法暴力访问和修改）
 5. 通过方法，给指定对象的指定成员变量赋值或者获取值
 
-### 4.6. 反射获取类属性案例
+### 5.5. 反射获取类属性案例
 
 通过反射方式，获取成员变量(私有成员变量)，并修改
 
@@ -436,11 +436,11 @@ public static void main(String[] args) throws Exception {
 }
 ```
 
-## 5. Method 类（成员方法）
+## 6. Method 类（成员方法）
 
 **在反射机制中，把类中的成员方法使用 `Method` 类表示。**
 
-### 获取 Method 实例
+### 6.1. 获取 Method 实例
 
 可通过 `Class` 类中提供的方法获取成员方法
 
@@ -477,7 +477,7 @@ public Method[] getDeclaredMethods();
 
 获取本类中所有的方法(包含私有的，**但不包括继承的方法**)
 
-### 5.3. Method 类 invoke 方法
+### 6.2. Method 类 invoke 方法
 
 通过 Method 类的 invoke方法，可以实现动态调用类或接口上某个方法及访问该方法的信息。比如可以动态传入参数及将方法参数化。
 
@@ -497,7 +497,7 @@ method对象.invoke(null(或该方法的所在的类对象), 方法的参数值)
 
 - 执行指定对象obj中，当前Method对象所代表的方法，方法要传入的参数通过args指定。返回值为当前调用的方法的返回值
 
-#### 5.4. 通过反射调用指定方法的步骤（包括private）
+#### 6.2.1. 通过反射调用指定方法的步骤（包括private）
 
 获取成员方法（包括私有），步骤如下：
 
@@ -508,7 +508,7 @@ method对象.invoke(null(或该方法的所在的类对象), 方法的参数值)
 5. 开启暴力访问
 6. 执行找到的方法
 
-#### 5.5. 方法反射调用的案例
+#### 6.2.2. 方法反射调用的案例
 
 通过反射方式获取成员方法(私有成员变量)，并调用
 
@@ -600,9 +600,9 @@ public class Student {
 }
 ```
 
-## 6. 反射获取超类
+## 7. 反射获取超类
 
-### 6.1. Class 类获取超类的方法
+### 7.1. Class 类获取超类的方法
 
 ```java
 public Type getGenericSuperclass()
@@ -612,7 +612,7 @@ public Type getGenericSuperclass()
 
 如果此 `Class` 对象是 `Object` 类、接口、基本类型或 void，则返回 null。如果此对象是一个数组类，则返回表示 `Object` 类的 `Class` 对象。 
 
-### 6.2. 反射获取泛型参数示例
+### 7.2. 反射获取泛型参数示例
 
 假设某个类继承带泛型的类
 
@@ -632,13 +632,13 @@ if (type instanceof ParameterizedType ) {
 }
 ```
 
-## 7. Reflections 反射框架(待整理)
+## 8. Reflections 反射框架(待整理)
 
 
 
-## 8. 反射与Properties案例
+## 9. 反射与Properties案例
 
-### 8.1. 案例1
+### 9.1. 案例1
 
 ```java
 import java.io.File;
