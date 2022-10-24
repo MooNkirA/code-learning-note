@@ -10,9 +10,15 @@ Java 异常是 Java 提供的一种识别及响应错误的一致性机制。Jav
 
 ### 1.2. 异常的继承体系
 
+![](images/591231111236539.png)
+
+> 异常体系思维导图详见《01-Java SE 知识体系.xmind》
+
+![](images/82550611247315.png)
+
 #### 1.2.1. Throwable
 
-Throwable 是 Java 异常体系的最顶层、所有错误与异常的超类。它包含了两个主要子类：`Error`（错误）和 `Exception`（异常）
+`Throwable` 是 Java 异常体系的最顶层、所有错误与异常的超类。它包含了两个主要子类：`Error`（错误）和 `Exception`（异常）
 
 无论是错误还是异常，它们都有具体的子类体现每一个问题，它们的子类都有一个共性，就是都**以父类名才作为子类的后缀名**
 
@@ -26,15 +32,9 @@ Error 类：是 Throwable 一个子类，用来指示运行时环境发生的错
 
 #### 1.2.3. Exception（异常）
 
-`Exception` 类：是 `Throwable` 类的子类。所有的异常类是从 `java.lang.Exception` 类继承的子类。其中异常类有两个主要的子类：`IOException` 类和 `RuntimeException` 类。
+Exception（异常）指 Java 程序运行异常，即运行中的程序发生了不期望发生的事件，这种异常可以被 Java 异常处理机制处理。
 
-`Exception` 这种异常又分为两类：**运行时异常**和**编译时异常**。
-
-### 1.3. 异常继承体系图
-
-![Java异常体系.xmind](images/591231111236539.png)
-
-![](images/82550611247315.png)
+`Exception` 类是 `Throwable` 类的子类。所有的异常类是 `java.lang.Exception` 类的子类。这些异常又分为两类：RuntimeException(运行时异常) 和 CheckedException(编译时异常、检查异常)。
 
 ### 1.4. 异常与错误的区别
 

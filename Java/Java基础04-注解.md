@@ -2,11 +2,11 @@
 
 ## 1. 概述
 
-注解是 JDK1.5 之后的新特性。注解可以标记在类、接口、方法、成员变量，构造方法，局部变量等等元素上。
+注解（Annotation）是 JDK1.5 之后的新特性，是 Java 提供用于设置程序中元素的关联信息和元数据（MetaData）的方法。它是一个接口，程序可以通过反射来获取指定程序中元素的 `Annotation` 注解对象，然后通过该 `Annotation` 对象来获取注解中的元数据信息。
 
-注解是给编译器或JVM查看的。编译器或JVM可以根据标记执行对应的功能。
+注解可以标记在类、接口、方法、成员变量，构造方法，局部变量等等元素上。
 
-Annatation(注解)是一个接口，程序可以通过反射来获取指定程序中元素的 Annotation 对象，然后通过该 Annotation 对象来获取注解中的元数据信息。
+> Tips: 可以理解为，注解是给编译器或 JVM 查看的，然后可以根据其标记执行对应的功能。
 
 ## 2. 注解作用
 
@@ -30,6 +30,7 @@ Annatation(注解)是一个接口，程序可以通过反射来获取指定程�
     - 缺点：程序耦合性高
 
 ## 3. Java常用内置注解的使用
+
 ### 3.1. @Override 注解
 
 该注解只能用于修饰方法声明，表示该方法是限定重写父类方法。该注解只能用于方法
@@ -64,6 +65,7 @@ Annatation(注解)是一个接口，程序可以通过反射来获取指定程�
 ```
 
 ### 4.2. 注解的属性
+
 #### 4.2.1. 属性定义格式
 
 - 第1种定义方式：`数据类型 属性名();`
@@ -110,19 +112,36 @@ Java 默认提供的注解，用于标识在注解上的注解，用来约束注
 
 ### 5.2. @Target 元注解
 
-- **`@Target` 作用**：标识注解使用范围【*Annotation可被用于 packages、types（类、接口、枚举、Annotation 类型）、类型成员（方法、构造方法、成员变量、枚举值）、方法参数和本地变量（如循环变量、catch 参数）*】，如果不写默认是任何地方都可以使用。元注解可选的值来自于ElemetnType枚举类。(写在自定义注解的类上)
-- **格式**：`@Target({TYPE, FIELD, METHOD, PARAMETER, CONSTRUCTOR, LOCAL_VARIABLE})`
-- **元注解的默认值**：
-    - `ElementType.TYPE`: 用在类和接口上
-    - `ElementType.FIELD`：用在成员变量上
-    - `ElementType.METHOD`: 用在成员方法上
-    - `ElementType.PARAMETER`：用在方法参数（形式参数）上
-    - `ElementType.CONSTRUCTOR`：用在构造方法上
-    - `ElementType.LOCAL_VARIABLE`：用在局部变量上
+**`@Target` 作用**：标识注解使用范围【*Annotation可被用于 packages、types（类、接口、枚举、Annotation 类型）、类型成员（方法、构造方法、成员变量、枚举值）、方法参数和本地变量（如循环变量、catch 参数）*】，如果不写默认是任何地方都可以使用。元注解可选的值来自于ElemetnType枚举类。(写在自定义注解的类上)。使用格式如下：
+
+```java
+@Target({TYPE, FIELD, METHOD, PARAMETER, CONSTRUCTOR, LOCAL_VARIABLE})
+public @interface MyAnnotation {}
+```
+
+**`@Target` 可选取值来自 `ElementType` 枚举类**：
+
+- `ElementType.TYPE`: 用在类、接口（包括注解类型）或者枚举(enum)上
+- `ElementType.FIELD`：用在成员变量上
+- `ElementType.METHOD`: 用在成员方法上
+- `ElementType.PARAMETER`：用在方法参数（形式参数）上
+- `ElementType.CONSTRUCTOR`：用在构造方法上
+- `ElementType.LOCAL_VARIABLE`：用在局部变量上
+- `ElementType.ANNOTATION_TYPE`：用过声明一个注解
+- `ElementType.PACKAGE`：用于描述包
+- `ElementType.TYPE_PARAMETER`：JDK1.8 以后加入，对普通变量的声明
+- `ElementType.TYPE_USE`：JDK1.8 以后加入，能标注任何类型的名称
 
 ### 5.3. @Retention 元注解
 
-**`@Retention` 作用**：用来标识注解的生命周期（有效作用范围），可选取值来自 `RetentionPolicy` 枚举类：
+**`@Retention` 作用**：用来标识注解的生命周期（有效作用范围）。使用格式如下：
+
+```java
+@Retention(RetentionPolicy.RUNTIME)
+public @interface MyAnnotation {}
+```
+
+**`@Retention` 可选取值来自 `RetentionPolicy` 枚举类**：
 
 - `RetentionPolicy.SOURCE`：注解只存在于 Java 源代码中，编译生成字节码文件和程序运行时就不存在了。（即源文件保留）
 - `RetentionPolicy.CLASS`：注解存在于 Java 源代码、编译以后的字节码文件中，运行的时候内存就不存在，此注解是默认值。（即 class 保留）
@@ -130,11 +149,21 @@ Java 默认提供的注解，用于标识在注解上的注解，用来约束注
 
 ### 5.4. @Inherited 元注解
 
-**`@Inherited` 作用**：表示该注解可以被子类继承。如果一个使用了 `@Inherited` 修饰的 annotation 类型被用于一个 class，则这个 annotation 将被用于该 class 的子类。
+**`@Inherited` 作用**：表示该注解可以被子类继承。如果一个使用了 `@Inherited` 修饰的 annotation 类型被用于一个 class，则这个 annotation 将被用于该 class 的子类。使用格式如下：
+
+```java
+@Inherited
+public @interface MyAnnotation {}
+```
 
 ### 5.5. @Documented 元注解
 
-**`@Documented` 作用**：表示该注解会出现在帮忙文档（javadoc）中。描述其它类型的 annotation 应该被作为被标注的程序成员的公共 API，因此可以被例如 javadoc 此类的工具文档化。
+**`@Documented` 作用**：表示该注解会出现在帮忙文档（javadoc）中。描述其它类型的 annotation 应该被作为被标注的程序成员的公共 API，因此可以被例如 javadoc 此类的工具文档化。使用格式如下：
+
+```java
+@Documented
+public @interface MyAnnotation {}
+```
 
 ## 6. 注解的原理
 

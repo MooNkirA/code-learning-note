@@ -2,13 +2,15 @@
 
 ## 1. 反射的概述
 
+#### 动态语言的概念
+
+动态语言指程序在运行时可以改变其结构的语言，比如新的属性或方法的添加、删除等结构上的变化。JavaScript、Ruby、Python 等都属于动态语言；C、C++ 不属于动态语言。从反射的角度来说，Java 属于半动态语言。
+
 ### 1.1. 什么是反射
 
-反射是一种机制，利用该机制可以在程序运行过程中对类进行解剖并操作类中所有成员。
+在程序**运行状态**中，对于任意一个类，都能够获取类的所有属性和方法；对于任意一个对象，都能够调用其任意一个方法和属性。这种动态获取类和对象的信息，以及动态调用对象的方法的功能被称为 Java 语言的反射机制。
 
-因为在 Java 中把一切的东西都抽象成对象，所以类本身也可以抽象成一个对象。类中的构造方法、方法、成员变量等也可以抽象成对象。反射就是通过类对象Class，得到类中有哪些**构造方法Constructor**、**成员方法Method**、**成员变量（字段）Field** 等对象。
-
-JAVA反射机制是在**运行状态**中，对于任意一个类，都能够知道这个类的所有属性和方法；对于任意一个对象，都能够调用它的任意一个方法和属性。
+反射是一种机制，利用该机制可以在程序运行过程中对类进行解剖并操作类中所有成员。因为在 Java 中把一切的东西都抽象成对象，所以类本身也可以抽象成一个对象。类中的构造方法、方法、成员变量等也可以抽象成对象。反射就是通过类对象Class，得到类中有哪些**构造方法Constructor**、**成员方法Method**、**成员变量（字段）Field** 等对象。
 
 静态编译和动态编译
 
@@ -22,17 +24,30 @@ JAVA反射机制是在**运行状态**中，对于任意一个类，都能够知
 - 优点：运行期类型的判断，动态加载类，提高代码灵活度。
 - 缺点：性能瓶颈：反射相当于一系列解释操作，通知 JVM 要做的事情，性能比直接的java代码要慢很多
 
-### 1.3. 反射在实际开发中的应用
+### 1.3. 反射的应用
+
+Java中的对象有两种类型：编译时类型和运行时类型。
+
+- 编译时类型指在声明对象时所采用的类型
+- 运行时类型指为对象赋值时所采用的类型
+
+```java
+Person person = new Student();
+```
+
+比如以上代码，编译时类型为`Person`，运行时类型是`Student`，因此无法在编译时获取在 `Student` 类中定义的方法。因为程序在编译期间无法预知该对象和类的真实信息，只能通过运行时信息来发现该对象和类的真实信息，而其真实信息（对象的属性和方法）通常通过反射机制来获取，这便是Java语言中反射机制的核心功能。
+
+实际开发中还有如下的应用场景：
 
 - 开发IDE（集成开发环境），比如:Eclipse
-- 框架的学习或框架的开发（Struts, Spring, Hibernate）
+- 框架的学习或框架的开发（Spring, MyBatis、dubbo）
 - **反射中对象的规律**：有 Declared 的可以得到所有声明的方法，没有 Declared 的只能得到公共的方法
 - **伪泛型**：在编译时期的进行限制，但利用反射可以在运行时候进行操作。
 - 动态代理设计模式也采用了反射机制
 
 ## 2. Class 类
 
-### 2.1. 获取 Class 对象的四种方式
+### 2.1. 获取 Class 对象
 
 - **方式1: 通过对象实例继承 Object 类中的`getClass()`方法**
 
@@ -97,8 +112,7 @@ public String getSimpleName();
 public T newInstance()
 ```
 
-- 通过无参数构造方法创建对象。之前建议创建类时要提供一个无参构造方法，是为使用反射获取一个无参对象。
-- **使用此方法获取一个空参构造的对象前提**：
+- 通过无参数构造方法创建对象。**使用此方法获取一个空参构造的对象前提**如下：
     1. 被反射的类，必须具有空参数构造方法
     2. 构造方法权限必须是 public
 - 示例：
@@ -160,42 +174,70 @@ public class Demo02 {
 }
 ```
 
-## 3. 反射获取构造方法(Constructor 类)
+## 3.4. AccessibleObject 类
 
-- 在反射机制中，把类中的成员（构造方法、成员方法、成员变量）都封装成了对应的类进行表示。其中，构造方法使用类**Constructor**表示。
-- 每一个构造方法都是一个Constructor类的对象
-- **可通过Class类中提供的方法获取构造方法**
+### 概述
 
-### 3.1. Class 类方法，返回一个构造方法 Constructor 类型
+对于公共成员、默认（打包）访问成员、受保护成员和私有成员，在分别使用 `Field`、`Method` 或 `Constructor` 对象来设置或获取字段、调用方法，或者创建和初始化类的新实例的时候，会执行访问检查。
+
+`AccessibleObject` 类是 `Field`、`Method` 和 `Constructor` 的父类。它提供了将反射的对象标记为在使用时取消默认 Java 语言访问控制检查的能力。
+
+### 常用方法
+
+```java
+public void setAccessible(boolean flag) throws SecurityException
+```
+
+- 设置是否取消权限检查（**暴力反射**）
+- 参数值为 **true** 则指示反射的对象在使用时应该**取消** Java 语言访问检查。参数值为 **false** 则指示反射的对象应该**实施** Java 语言访问检查。
+- 示例：
+
+```java
+反射获取的(Field、Method 或 Constructor)对象.setAccesible(true);
+```
+
+通过 `Field`、`Method` 或 `Constructor` 实例调用该方法后，才能调用或者操作相应的私有对象的方法或者属性。
+
+> Notes: **一般不推荐访问私有，因为破坏了程序的封装性，安全性**
+
+## 3. Constructor 类（构造方法）
+
+在反射机制中，把类中的成员（构造方法、成员方法、成员变量）都封装成了对应的类进行表示。其中，构造方法使用 `Constructor` 类表示。每一个构造方法都是一个 `Constructor` 类的对象
+
+### 获取构造方法实例
+
+**可通过 Class 类中提供的方法，获取一个或者多个 `Constructor` 构造方法对象**
 
 ```java
 public Constructor<T> getConstructor(Class<?>... parameterTypes);
 ```
 
-- 获取public修饰，指定参数类型所对应的构造方法
+- 获取 public 修饰，指定参数类型所对应的构造方法对象
 
 ```java
 public Constructor<T> getDeclaredConstructor(Class<?>... parameterTypes);
 ```
 
-- 获取指定参数类型所对应的构造方法(包含私有的)
+- 获取指定参数类型所对应的构造方法对象(包含 private 修饰)
 - 示例：
-    - `Constructor<Student> con = c.getConstructor(xxx.class, xxx.class, xxx.class, xxx.class);`
-    - 参数列表是**该类的构造方法对应的参数列表的数据类型.class**，个数也要和需要反射得到的构造方法一致。
 
-### 3.2. Class 类方法，返回多个构造方法 Constructor 类型数组
+```java
+Constructor<Student> con = c.getConstructor(xxx.class, xxx.class, xxx.class, xxx.class);
+```
+
+> 参数列表是**该类的构造方法对应的参数列表的数据类型.class**，个数也要和需要反射得到的构造方法一致。
 
 ```java
 public Constructor<?>[] getConstructors();
 ```
 
-- 获取所有的public 修饰的构造方法，返回一个 Constructor 类型数组
+- 获取类中所有的 public 修饰的构造方法，返回一个 Constructor 类型数组
 
 ```java
 public Constructor<?>[] getDeclaredConstructors();
 ```
 
-- 获取所有的构造方法(包含private修饰)，返回一个 Constructor 类型数组
+- 获取类中所有的构造方法(包含private修饰)，返回一个 Constructor 类型数组
 
 **注：基本类型与引用类型类对象：在Java 中int.class 和 Integer.class 是2 种不同的类型。所以如果参数类型不匹配，也无法得到相应的构造方法，会出现如下异常：`java.lang.NoSuchMethodException`**
 
@@ -209,32 +251,18 @@ public T newInstance(Object... initargs);
 
 - 指定构造方法的参数值(0~n)，创建一个 T 对象
 
-### 3.4. AccessibleObject 类 setAccessible 方法
+### 反射调用构造方法创建对象的步骤
 
-**AccessibleObject 类是 Field、Method 和 Constructor 对象的父类。它提供了将反射的对象标记为在使用时取消默认 Java 语言访问控制检查的能力。**
+通过反射方式，获取构造方法(私有)，创建对象，步骤如下：
 
-对于公共成员、默认（打包）访问成员、受保护成员和私有成员，在分别使用 Field、Method 或 Constructor 对象来设置或获取字段、调用方法，或者创建和初始化类的新实例的时候，会执行访问检查。常用方法如下：
+1. 获取到 Class 对象;
+2. 获取指定的构造方法;
+3. 暴力访问, 通过 `setAccessible(boolean flag)` 方法（如果是私有）
+4. 通过构造方法类 `Constructor` 中的方法，创建对象;
 
-```java
-public void setAccessible(boolean flag) throws SecurityException
-```
+### 3.5. 反射创建对象案例
 
-- 设置是否取消权限检查（**暴力反射**）
-- 参数值为 **true** 则指示反射的对象在使用时应该**取消** Java 语言访问检查。参数值为 **false** 则指示反射的对象应该**实施** Java 语言访问检查。
-- 示例：
-    - `反射出来的对象(Field、Method 和 Constructor).setAccesible(true);`
-    - 调用过这方法的私有对象后面才可以进行使用和修改
-
-5、通过反射方式，获取构造方法(私有)，创建对象
-
-- 获取构造方法，创建对象的步骤如下：
-	1. 获取到Class对象;
-	2. 获取指定的构造方法;
-	3. 暴力访问, 通过setAccessible(boolean flag)方法（如果是私有）
-	4. 通过构造方法类Constructor中的方法，创建对象;
-- **不推荐访问私有，因为破坏了程序的封装性，安全性**
-
-### 3.5. 案例：反射获取构造方法创建对象(包含私有构造方法)
+反射获取构造方法创建对象(包含私有构造方法)
 
 ```java
 import java.lang.reflect.Constructor;
@@ -242,45 +270,45 @@ import java.lang.reflect.Constructor;
 /*
  *	通过反射方式，获取构造方法(包含私有构造方法)，创建对象
  */
-public class MoonZero {
-	public static void main(String[] args) throws Exception {
-		// 获取Student的Class对象
-		// Class<Student> c = (Class<Student>) Class.forName("com.exercise.Student");
-		// 或者直接类名.class;
-		Class<Student> c = Student.class;
+public static void main(String[] args) throws Exception {
+	// 获取Student的Class对象
+	// Class<Student> c = (Class<Student>) Class.forName("com.exercise.Student");
+	// 或者直接类名.class;
+	Class<Student> c = Student.class;
 
-		// 获取Student的空参构造
-		Constructor<Student> con1 = c.getConstructor();
-		System.out.println(con1);
-		// 创建无参对象
-		Student s1 = con1.newInstance();
-		System.out.println(s1);
-		// 获取Student的有参构造
-		Constructor<Student> con2 = c.getConstructor(String.class, String.class, int.class, double.class);
-		System.out.println(con2);
-		// 创建有参对象
-		Student s2 = con2.newInstance("001", "凌月", 23, 90);
-		System.out.println(s2);
+	// 获取Student的空参构造
+	Constructor<Student> con1 = c.getConstructor();
+	System.out.println(con1);
+	// 创建无参对象
+	Student s1 = con1.newInstance();
+	System.out.println(s1);
+	// 获取Student的有参构造
+	Constructor<Student> con2 = c.getConstructor(String.class, String.class, int.class, double.class);
+	System.out.println(con2);
+	// 创建有参对象
+	Student s2 = con2.newInstance("001", "凌月", 23, 90);
+	System.out.println(s2);
 
-		// 获取Student的private有参构造方法
-		Constructor<Student> con3 = c.getDeclaredConstructor(String.class, String.class, int.class);
-		System.out.println(con3);
+	// 获取Student的private有参构造方法
+	Constructor<Student> con3 = c.getDeclaredConstructor(String.class, String.class, int.class);
+	System.out.println(con3);
 
-		// 暴力反射
-		con3.setAccessible(true);
+	// 暴力反射
+	con3.setAccessible(true);
 
-		// 创建prviate有参构造方法
-		Student s3 = con3.newInstance("002", "傷月", 24);
-		System.out.println(s3);
-	}
+	// 创建prviate有参构造方法
+	Student s3 = con3.newInstance("002", "傷月", 24);
+	System.out.println(s3);
 }
 ```
 
-## 4. 反射获取成员变量（Field 类）
+## 4. Field 类（成员属性）
 
 在反射机制中，把类中的成员变量使用类**Field**表示。可通过Class类中提供的方法获取成员变量：
 
-### 4.1. Class 类方法，返回一个成员变量
+### 4.1. 获取类成员属性实例
+
+通过 Class 类方法，返回一个成员变量
 
 ```java
 public Field getField(String name);
@@ -308,9 +336,9 @@ public Field[] getDeclaredFields();
 
 - 获取所有的成员变量(包含private修饰)
 
-### 4.3. Field 类 set/get 方法
+### 4.3. Field 类常用方法
 
-**反射方式获取成员变量后，创建对象使用到 Field 类的方法**
+**反射方式获取成员属性 Field 实例后，可以使用以下方法对属性值进行操作**
 
 ```java
 public void set(Object obj, Object value)
@@ -324,8 +352,6 @@ public Object get(Object obj)
 
 - 获得指定对象 obj 的当前成员变量的值
 
-**其他常用方法：**
-
 ```java
 public String getName()
 ```
@@ -338,17 +364,15 @@ public Class<?> getType()
 
 - 返回一个 Class 对象，它标识了此 Field 对象所表示字段的声明类型。
 
-### 4.4. 其他常用方法
-
 ```java
 public boolean isAnnotationPresent(Class<? extends Annotation> annotationClass)
 ```
 
-继承 `java.lang.reflect.AccessibleObject` 类的方法，判断当前字段对象上是否标识某个注解。是则返回 true，否则返回 false
+- 继承自 `java.lang.reflect.AccessibleObject` 类的方法，判断当前字段对象上是否标识某个注解。是则返回 true，否则返回 false
 
-### 4.5. 通过反射，创建对象，获取指定的成员变量，进行赋值与获取值操作
+### 4.5. 反射操作类属性的步骤
 
-获取成员变量，步骤如下：
+通过反射，创建对象，获取指定的成员变量，进行赋值与获取值操作。步骤如下：
 
 1. 获取 Class 对象
 2. 获取构造方法
@@ -356,7 +380,9 @@ public boolean isAnnotationPresent(Class<? extends Annotation> annotationClass)
 4. 获取指定的成员变量（私有成员变量，通过 `setAccessible(boolean flag)` 方法暴力访问和修改）
 5. 通过方法，给指定对象的指定成员变量赋值或者获取值
 
-### 4.6. 案例：通过反射方式，获取成员变量(私有成员变量)，并修改
+### 4.6. 反射获取类属性案例
+
+通过反射方式，获取成员变量(私有成员变量)，并修改
 
 ```java
 import java.lang.reflect.Constructor;
@@ -365,58 +391,58 @@ import java.lang.reflect.Field;
 /*
  *	通过反射方式，获取成员变量(私有成员变量)，并修改
  */
-public class MoonZero {
-	public static void main(String[] args) throws Exception {
-		// 获取Student的Class对象，直接类名.class;
-		Class<Student> c = Student.class;
-		// 通过反射方式获取Student的public有参构造
-		Constructor<Student> con = c.getConstructor(String.class, String.class, int.class, double.class);
-		// 使用Constructor类的方法获取一个Student对象
-		Student s = con.newInstance("001", "敌法师", 23, 90);
-		// 输出Student对象[id=001, name=敌法师, age=23, score=90.0]
-		System.out.println(s);
+public static void main(String[] args) throws Exception {
+	// 获取Student的Class对象，直接类名.class;
+	Class<Student> c = Student.class;
+	// 通过反射方式获取Student的public有参构造
+	Constructor<Student> con = c.getConstructor(String.class, String.class, int.class, double.class);
+	// 使用Constructor类的方法获取一个Student对象
+	Student s = con.newInstance("001", "敌法师", 23, 90);
+	// 输出Student对象[id=001, name=敌法师, age=23, score=90.0]
+	System.out.println(s);
 
-		// 获取public修饰的成员变量
-		Field f1 = c.getField("name");
-		// [public java.lang.String com.exercise.Student.name]
-		System.out.println(f1);
-		// 获取成员变量的值[敌法师]
-		System.out.println(f1.get(s));
-		// 修改成员变量的值
-		f1.set(s, "改改");
-		// 获取修改后成员变量的值[改改]
-		System.out.println(f1.get(s));
-		// [id=001, name=改改, age=23, score=90.0]
-		System.out.println(s);
+	// 获取public修饰的成员变量
+	Field f1 = c.getField("name");
+	// [public java.lang.String com.exercise.Student.name]
+	System.out.println(f1);
+	// 获取成员变量的值[敌法师]
+	System.out.println(f1.get(s));
+	// 修改成员变量的值
+	f1.set(s, "改改");
+	// 获取修改后成员变量的值[改改]
+	System.out.println(f1.get(s));
+	// [id=001, name=改改, age=23, score=90.0]
+	System.out.println(s);
 
-		// 获取private修饰的成员变量
-		Field f2 = c.getDeclaredField("id");
-		// private java.lang.String com.exercise.Student.id
-		System.out.println(f2);
+	// 获取private修饰的成员变量
+	Field f2 = c.getDeclaredField("id");
+	// private java.lang.String com.exercise.Student.id
+	System.out.println(f2);
 
-		// 强行反射修改成员变量
-		f2.setAccessible(true);
-		// 获取私有的成员变量[001]
-		System.out.println(f2.get(s));
-		// 修改私有的成员变量
-		f2.set(s, "00x");
+	// 强行反射修改成员变量
+	f2.setAccessible(true);
+	// 获取私有的成员变量[001]
+	System.out.println(f2.get(s));
+	// 修改私有的成员变量
+	f2.set(s, "00x");
 
-		// [id=00x, name=改改, age=23, score=90.0]
-		System.out.println(s);
+	// [id=00x, name=改改, age=23, score=90.0]
+	System.out.println(s);
 
-		// 获取该成员变量的名称,返回String类型，[name]
-		System.out.println(f1.getName());
-		//获取该成员变量的类型，返回Class类型，[class java.lang.String]
-		System.out.println(f1.getType());
-	}
+	// 获取该成员变量的名称,返回String类型，[name]
+	System.out.println(f1.getName());
+	//获取该成员变量的类型，返回Class类型，[class java.lang.String]
+	System.out.println(f1.getType());
 }
 ```
 
-## 5. 反射获取成员方法（Method 类）
+## 5. Method 类（成员方法）
 
-**在反射机制中，把类中的成员方法使用类Method表示。可通过Class类中提供的方法获取成员方法：**
+**在反射机制中，把类中的成员方法使用 `Method` 类表示。**
 
-### 5.1. Class 类返回获取一个方法
+### 获取 Method 实例
+
+可通过 `Class` 类中提供的方法获取成员方法
 
 ```java
 public Method getMethod(String name, Class<?>... parameterTypes);
@@ -429,13 +455,15 @@ public Method getDeclaredMethod(String name, Class<?>... parameterTypes);
 ```
 
 - 获取任意指定参数的方法，包含私有的
-- 参数1: name 要查找的方法名称；
-- 参数2: parameterTypes 该方法的参数类型
+  - `name` 参数: 要查找的方法名称
+  - `parameterTypes` 参数: 该方法的参数类型
 - 示例：
-    - `Method<Student> met = c.getDeclaredMethod("方法名", xxx.class, xxx.class, xxx.class, xxx.class);`
-    - 参数列表是**需要获取的方法名;后面是该类的方法对应的参数列表的数据类型.class**，个数也要和需要反射得到的方法一致。如果该方法没有参数，则只写方法名。
 
-### 5.2. Class 类返回获取多个方法
+```java
+Method<Student> met = c.getDeclaredMethod("方法名", xxx.class, xxx.class, xxx.class, xxx.class);
+```
+
+> 参数列表是**需要获取的方法名;后面是该类的方法对应的参数列表的数据类型.class**，个数也要和需要反射得到的方法一致。如果该方法没有参数，则只写方法名。
 
 ```java
 public Method[] getMethods();
@@ -450,6 +478,8 @@ public Method[] getDeclaredMethods();
 获取本类中所有的方法(包含私有的，**但不包括继承的方法**)
 
 ### 5.3. Method 类 invoke 方法
+
+通过 Method 类的 invoke方法，可以实现动态调用类或接口上某个方法及访问该方法的信息。比如可以动态传入参数及将方法参数化。
 
 ```java
 public Object invoke(Object obj,  Object... args)
@@ -467,7 +497,7 @@ method对象.invoke(null(或该方法的所在的类对象), 方法的参数值)
 
 - 执行指定对象obj中，当前Method对象所代表的方法，方法要传入的参数通过args指定。返回值为当前调用的方法的返回值
 
-### 5.4. 通过反射，创建对象，调用指定的方法（包括private）
+#### 5.4. 通过反射调用指定方法的步骤（包括private）
 
 获取成员方法（包括私有），步骤如下：
 
@@ -478,7 +508,9 @@ method对象.invoke(null(或该方法的所在的类对象), 方法的参数值)
 5. 开启暴力访问
 6. 执行找到的方法
 
-### 5.5. 案例：通过反射方式，获取成员方法(私有成员变量)，并调用
+#### 5.5. 方法反射调用的案例
+
+通过反射方式获取成员方法(私有成员变量)，并调用
 
 ```java
 import java.lang.reflect.Constructor;
@@ -487,35 +519,33 @@ import java.lang.reflect.Method;
 /*
  *	通过反射方式，获取成员方法(私有成员变量)，并调用
  */
-public class MoonZero {
-	public static void main(String[] args) throws Exception {
-		// 获取Student的Class对象,直接类名.class
-		Class<Student> c = Student.class;
-		// 通过反射，获取Student公共无参构造方法，直接用Class类的newInstance方法获取
-		Student s = c.newInstance();
+public static void main(String[] args) throws Exception {
+	// 获取Student的Class对象,直接类名.class
+	Class<Student> c = Student.class;
+	// 通过反射，获取Student公共无参构造方法，直接用Class类的newInstance方法获取
+	Student s = c.newInstance();
 
-		// 或者通过Constructor类获取
-		Constructor<Student> con = c.getConstructor();
-		Student s2 = con.newInstance();
+	// 或者通过Constructor类获取
+	Constructor<Student> con = c.getConstructor();
+	Student s2 = con.newInstance();
 
-		// 获取公共方法
-		Method m1 = c.getMethod("eat");
-		// 调用该方法
-		m1.invoke(s);
+	// 获取公共方法
+	Method m1 = c.getMethod("eat");
+	// 调用该方法
+	m1.invoke(s);
 
-		// 获取私有方法
-		Method m2 = c.getDeclaredMethod("sleep");
-		// 强制执行
-		m2.setAccessible(true);
-		// 调用私有方法
-		m2.invoke(s);
+	// 获取私有方法
+	Method m2 = c.getDeclaredMethod("sleep");
+	// 强制执行
+	m2.setAccessible(true);
+	// 调用私有方法
+	m2.invoke(s);
 
-		// 获取静态方法
-		Method m3 = c.getMethod("play");
-		m3.invoke(s);
-		// 或者
-		m3.invoke(null);
-	}
+	// 获取静态方法
+	Method m3 = c.getMethod("play");
+	m3.invoke(s);
+	// 或者
+	m3.invoke(null);
 }
 ```
 

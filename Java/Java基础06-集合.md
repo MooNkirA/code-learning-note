@@ -185,11 +185,11 @@ List 接口用来定义有序(存取顺序一致)，有索引，元素可重复�
 
 ### 4.1. 接口概述
 
-List 是一个元素存取有序、带有索引、可以有重复的元素的集合。例如：
+```java
+public interface List<E> extends Collection<E>
+```
 
-- 存元素的顺序是11、22、33。那么集合中，元素的存储就是按照11、22、33的顺序完成的）
-- 通过索引就可以精确的操作集合中的元素（与数组的索引是一个道理）
-- 在 List 集合中，可以存入重复的元素
+List 是一个元素存取有序、带有索引、并且可以存储重复元素的集合。例如：存元素的顺序是11、22、33。那么集合中，元素的存储就是按照11、22、33的顺序完成的；通过索引就可以精确的操作集合中的元素（与数组的索引是一个道理）
 
 由于 List 集合拥有索引，因此 List 集合迭代方式除了使用迭代器之外，还可以使用索引进行迭代。遍历方法分别是：<font color=red>**普通for，增强for，迭代器**</font>。
 
@@ -279,6 +279,8 @@ public class ArrayList<E> extends AbstractList<E>
 - <font color=red>**查询快**</font>：由于数组的索引支持，那么可以通过索引直接计算出元素的地址值，因此就可以直接通过元素的地址值获取到指定的元素
 - <font color=red>**增删慢**</font>：由于在添加元素的时候，实际上底层会先创建一个新数组(新数组的长度为原数组的长度+1)，那么在添加新元素的时候，先需要对数组中原有的数据进行拷贝，其次在末尾进行添加新的元素。因此，这样操作的效率的极低的(删除元素刚好和添加的操作相反)
 
+> Tips: 增删慢的情况是基于，数组的原长度不够，并且非在数组尾部插入数据的情况。若数组的长度足够并且在尾部插入新的元素，其他操作的效率甚至比链表更快。
+
 #### 4.3.3. RandomAccess 接口
 
 Java Collections 框架中提供了一个 `RandomAccess` 接口，用来标记 List 实现是否支持 Random Access。
@@ -315,19 +317,21 @@ ArrayList 的 `contains` 方法，会调用方法传入的元素的 equals 方�
 
 #### 4.4.1. 概述
 
-<font color=red>**LinkedList 集合底层数据存储的实现是链表结构，查询慢，增删快，线程不安全（效率高）**</font>。
-
-LinkedList 与 ArrayList 不同是，LinkedList 是方便添加删除的 List。实际开发中对一个集合元素的添加与删除经常涉及到首尾操作，所以该具体子类的特点在于提供了<font color=red>大量首尾操作</font>。
+<font color=red>**LinkedList 集合底层数据存储的实现是双向链表结构，<u>查询慢，增删快，线程不安全（效率高）</u>**</font>。
 
 > Notes: 数据结构基础之双向链表
 >
 > 双向链表也叫双链表，是链表的一种，它的每个数据结点中都有两个指针，分别指向直接后继和直接前驱。所以，从双向链表中的任意一个结点开始，都可以很方便地访问它的前驱结点和后继结点。
 
+LinkedList 与 ArrayList 不同的是，在对 LinkedList 进行插入和删除操作时，只需在对应的节点上插入或删除元素，并将前后的节点元素的指针指向该节点即可，数据不需要进行复制移动，因此随机插入和删除效率很高。
+
+LinkedList 还提供了在 List 接口中未定义，<font color=red>用于操作链表头部和尾部的元素</font>的方法，因此有时也可以被当作堆栈、队列或双向队列使用。
+
 #### 4.4.2. LinkedList 链表实现的原理
 
 链表结构：查询慢，增删快，线程不安全（效率高）。其原因：
 
-- <font color=red>**查询慢**</font>：由于不能直接找到元素的地址，需要上一个元素推导出下一个元素的地址，这种查询速度较慢。
+- <font color=red>**查询慢**</font>：由于不能直接找到元素的地址，需要上一个元素推导出下一个元素的地址，因为在进行随机访问时，需要从链表头部一直遍历到要查找的节点为止，这种查询速度较慢。
 - <font color=red>**增删快**</font>：在添加的时候，只需要更改元素所记录的地址值即可
 
 链表查询元素是判断索引是否大于集合元素个数的一半来决定从表头还是表尾开始查询。如果大于一半，则从表尾开始查找，否则从表头开始查找。
@@ -395,7 +399,7 @@ E getLast();
 
 #### 4.5.1. 概述
 
-`Vector` 集合数据存储的结构是数组结构，为JDK中最早提供的集合。
+`Vector` 集合数据存储的结构是数组结构，为 JDK 中最早提供的集合。
 
 ```java
 public class Vector<E>
@@ -405,7 +409,7 @@ public class Vector<E>
 
 `Vector` 中提供了一个独特的取出方式，就是枚举 `Enumeration`，它其实就是早期的迭代器。此接口 `Enumeration` 的功能与 `Iterator` 接口的功能是类似的。`Vector` 集合已被 `ArrayList` 替代。枚举 `Enumeration` 已被迭代器 `Iterator` 替代。
 
-`Vector` 最大的特点是线程安全但效率低，原因就是它的 `add` 方法里被 `synchronized` 修饰，多个线程不能同时操作，所以已经被取代。
+`Vector` 最大的特点是线程安全但效率低，因为 Vector 类的所有方法（如 `add`、`set`、`delete` 等）均是 `synchronized` 修饰的同步方法，在多线程访问的情况下，只允许一个线程进行增删改操作。后面已经不再建议使用，而 Arraylist 不是同步的，其效率比较高，在不需要保证线程安全时建议使用 Arraylist。
 
 #### 4.5.2. ArrayList 和 Vector 的区别
 
@@ -414,10 +418,6 @@ public class Vector<E>
 - **线程安全**：Vector 使用了 `Synchronized` 来实现线程同步，是线程安全的，而 ArrayList 是非线程安全的。
 - **性能**：ArrayList 在性能方面要优于 Vector。
 - **扩容**：ArrayList 和 Vector 都会根据实际的需要动态的调整容量，只不过在 Vector 扩容每次会增加 1 倍，而 ArrayList 只会增加 50%。
-
-Vector 类的所有方法都是同步的。可以由两个线程安全地访问一个 Vector 对象、但是一个线程访问 Vector 的话代码要在同步操作上耗费大量的时间。
-
-Arraylist 不是同步的，所以在不需要保证线程安全时时建议使用 Arraylist
 
 ### 4.6. Stack 栈结构（了解）
 
@@ -853,7 +853,9 @@ Set 是无序(存取顺序不一致)，无索引，元素不可重复的集合
 public interface Set<E> extends Collection<E>
 ```
 
-Set 接口的实现类如下：
+在 Set 集合中，对象元素的相等性比较是通过元素的 `equals` 与 `hashCode` 方法来判断。对象的相等性在本质上是对象的 `HashCode` 值相同，Java 依据对象的内存地址计算出对象的 `HashCode` 值。因此如果需要自定义比较两个对象是否相等，则必须同时重写对象的 `hashCode` 方法和 `equals` 方法。
+
+### Set 接口的实现类
 
 HashSet
 
@@ -866,8 +868,6 @@ LinkedHashSet(继承HashSet)
 1. 没有索引
 2. 不能重复
 3. 存储和取出有顺序
-
-> Notes: 在 Set 集合中，通过元素的 `equals` 方法，来比较是否为重复的元素。
 
 ### 6.2. 哈希表(数组和链表的组合体)
 
@@ -922,7 +922,7 @@ String 类重写了 hashCode，只要字符内容相同，等到的哈希值就�
 
 #### 6.3.1. 概述
 
-HashSet 集合的底层是哈希表结构：查询快，增删快，线程不安全（效率高）
+`HashSet` 集合的底层是哈希表结构，基于 `HashTable` 实现：查询快，增删快，线程不安全（效率高）
 
 ```java
 public class HashSet<E>
@@ -950,7 +950,7 @@ public HashMap() {
 
 #### 6.3.3. HashSet 保存元素的原理
 
-`HashSet` 中的 `add` 方法的底层实现是调用 `HashMap` 的 `put` 方法。将元素值作为 `HashMap` 的 key
+`HashSet` 存放的是散列值，它是按照元素的散列值来存取元素的。`HashSet` 中的 `add` 方法的底层实现是调用 `HashMap` 的 `put` 方法，将元素的散列值（即 HashCode）作为 `HashMap` 的 key。
 
 ```java
 public class HashSet<E>
@@ -974,7 +974,7 @@ public class HashSet<E>
 }
 ```
 
-> Tips: HashMap 比较 key 是否相等是先比较其 hashcode 再调用其 equals 方法
+元素的散列值是通过元素的 `hashCode` 方法计算得到的，HashSet 首先判断两个元素的散列值是否相等，如果散列值相等，则接着通过 `equals` 方法返回的结果（true/false），来判断是否为同一个元素。
 
 #### 6.3.4. HashSet 存储判断元素（自定义类型）重复的原理
 
@@ -989,17 +989,23 @@ HashSet 集合由于是无序的，其判断唯一的依据是元素类型的 `h
 
 ##### 6.3.4.2. 使用 HashSet 存储自定义类型
 
-当使用HashSet存储<font color=red>自定义类型</font>，如果没有重写该类的 hashCode 与 equals 方法，则判断重复时，使用的是地址值，如果想<font color=red>**通过内容比较元素是否相同，需要重写该元素类的 hashcode 与 equals 方法**</font>
+当使用HashSet存储<font color=red>自定义类型</font>，如果没有重写该类的 hashCode 与 equals 方法，则判断重复时，使用的是地址值，如果想<font color=red>**通过内容比较元素是否相同，需要重写该元素类的 `hashcode` 与 `equals` 方法**</font>
 
 ### 6.4. LinkedHashSet 集合
 
-继承自 HashSet，底层也是哈希表，由 LinkedHashMap 来实现，特性与HashSet一致，不包含重复元素，没有索引。
+```java
+public class LinkedHashSet<E>
+    extends HashSet<E>
+    implements Set<E>, Cloneable, java.io.Serializable
+```
 
-唯一不同是可预测迭代顺序的 Set 集合。
+LinkedHashSet 继承自 HashSet，底层也是哈希表，由 LinkedHashMap 来实现存储元素，所有的方法和操作与 HashSet 一致，不包含重复元素，没有索引。唯一不同是可预测迭代顺序的 Set 集合。
 
 ### 6.5. TreeSet 集合
 
-TreeSet 要求存放的对象必须实现 `Comparable` 接口，该接口提供了比较元素的 `compareTo()` 方法，当插入元素时会回调该方法比较元素的大小从而进行排序
+TreeSet 基于二叉树的原理对新添加的对象按照指定的顺序排序（升序、降序），每添加一个对象都会进行排序，并将对象插入二叉树指定的位置。
+
+Integer和String等基础对象类型可以直接根据 TreeSet 的默认排序进行存储，而对于自定义的数据类型，TreeSet 要求存放的对象必须实现 `Comparable` 接口，并重写该接口提供的  `compareTo()` 比较元素方法，当插入元素时会回调该方法比较元素的大小从而进行排序。若重写该函数，返回 -1（或负整数）则表示升序，即当前对象(this)小于指定对象；返回 1（或正整数）则表示降序，即当前对象(this)大于指定对象
 
 ## 7. Queue 接口
 
@@ -1013,7 +1019,7 @@ public interface Queue<E> extends Collection<E>
 
 队列通常（但并非一定）以 FIFO（先进先出）的方式排序各个元素。
 
-#### 7.1.1. 常用方法
+### 7.1.1. 常用方法
 
 ```java
 boolean offer(E e);
@@ -1060,7 +1066,7 @@ E remove()
 
 ### 8.1. 概述
 
-只要是 Map 接口的实现类，都是双列集合。将键映射到值的对象。一个映射不能包含重复的键；每个键最多只能映射到一个值
+只要是 Map 接口的实现类，都属于双列集合。将键映射到值的对象。一个映射不能包含重复的键；每个键最多只能映射到一个值
 
 #### 8.1.1. Map（双列集合）继承体系图
 
@@ -1074,6 +1080,7 @@ E remove()
 - 键和值称为键值对；
 - 键必须唯一，值可以重复。
 - Map 集合的数据结构仅仅针对键有效，与值无关。
+- 基于键的 HashCode 值唯一标识一条数据，同时基于键的 HashCode 值进行数据的存取。
 
 #### 8.1.3. Map 集合的初始化
 
@@ -1278,33 +1285,71 @@ public class EntrySetTest {
 
 通过 Map 对象的 `Values()` 方法，获取所有值的 Collection 集合，再使用增加 for 循环遍历。
 
-### 8.4. Map 的常用实现类
+### 8.4.1. HashMap
 
-#### 8.4.1. HashMap
+#### 概述
 
-HashMap：基于哈希表的 Map 接口的实现类，并允许使用 null 的值和 null 的键（<font color=purple>**HashMap 最多只允许一条记录的键为 null，允许多条记录的值为 null。**</font>），
+HashMap：基于哈希表的 Map 接口的实现类，并允许使用 **null** 的值和 null 的键（<font color=purple>**HashMap 最多只允许一条记录的键为 null，允许多条记录的值为 null。**</font>），
 
-HashMap 的特点：<font color=red>**键是唯一，存储和取出没有顺序**</font>。
+HashMap 有如下特点
 
-#### 8.4.2. LinkedHashMap
+ - 键是唯一，基于键的 HashCode 值唯一标识一条数据，同时基于键的 HashCode 值进行数据的存取。
+ - <font color=red>**存储和取出无法保证顺序一致**</font>。
+ - 非线程安全。同一时间有多个线程同时对 HashMap 进行写操作，将可能导致数据的不一致。*如需要满足线程安全的条件，可使用 `Collections` 的 `synchronizedMap` 方法使 HashMap 具有线程安全的能力，或者使用 `ConcurrentHashMap`*。
 
-LinkedHashMap：基于哈希表的 Map 接口的实现类，并允许使用 null 值和 null 键，<font color=red>**键是唯一，存储和取出有顺序**</font>
+#### 数据存储实现原理（TODO: 待整理）
 
-LinkedHashMap 的特点：继承HashMap，使用了 Linked 链表结构，保证元素有顺序，可以保证怎么存就怎么取；而 Hash 结构保证元素唯一。这些约束都是针对键起作用
+> TODO: 待将面试题那边整理的移动到此处
 
-> 其他与 HashMap 的功能与用法一样。
+> Notes: HashMap 实现原理在 Java 8 前后有很大区别。
 
-#### 8.4.3. TreeMap
 
-TreeMap：从功能上讲，TreeMap 有着比 HashMap 更为强大的功能，它实现了 SortedMap 接口，这意味着它可以对元素进行排序。TreeMap 的性能略微低于 HashMap。如果在开发中需要对元素进行<font color=red>排序</font>，那么使用 HashMap 便无法实现这种功能，使用 TreeMap 的迭代输出将会以元素顺序进行。
+##### Java 8 以后的实现
 
-TreeMap 要求存放的键值对所映射的键对象必须实现 `Comparable` 接口，重写 `compareTo` 方法，从而根据键对元素进行排序。
+为了减少链表遍历的开销，Java 8 对 HashMap 进行了优化，将数据结构修改为**数组+链表或红黑树**。在链表中的元素超过 8 个以后，HashMap 会将链表结构转换为红黑树结构以提高查询效率，因此其时间复杂度为 `O(log N)`。
 
-<font color=red>**LinkedHashMap 是基于元素进入集合的顺序或者被访问的先后顺序排序，TreeMap 则是基于元素的固有顺序 (由 Comparator 或者 Comparable 确定)。即：LinkedHashMap 是根据元素增加或者访问的先后顺序进行排序，而 TreeMap 则根据元素的 Key 进行排序**</font>。
+##### 常用参数
 
-#### 8.4.4. ConcurrentHashMap（网络资料，未整理）
+- capacity：当前数组的容量，默认为 16，可以扩容，扩容后数组的大小为当前的两倍，因此该值始终为2<sup>n</sup>。
+- loadFactor：负载因子，默认为 0.75。
+- threshold：扩容的阈值，其值等于 `capacity × loadFactor`。
 
-ConcurrentHashMap 底层采用分段的数组+链表实现，线程安全。
+### 8.4.2. LinkedHashMap
+
+`LinkedHashMap` 继承 `HashMap`，是 `Map` 接口的实现类，并允许使用 null 值和 null 键，<font color=red>**键是唯一，存储和取出有顺序**</font>
+
+LinkedHashMap 是基于哈希表(HashTable)的数据结构，该结构保证 key 唯一；使用链表(Linked)结构保存元素，从而保证元素有序性，怎么存就怎么取。*注：这些约束都是针对键起作用*
+
+> Tips: 其他与 HashMap 的功能与用法一样。
+
+### 8.4.3. TreeMap
+
+####  概述
+
+TreeMap 是基于二叉树数据结构存储数据。从功能上讲，有比 HashMap 更为强大的功能，它实现了 `SortedMap` 接口，即可以对元素进行排序，默认按键值的升序排序，也可以自定义排序比较器。
+
+TreeMap 要求存放的键值对所映射的键对象必须实现 `Comparable` 接口，重写 `compareTo` 方法，从而根据键对元素进行排序。否则会抛出 `java.lang.ClassCastException` 异常
+
+TreeMap 的性能略微低于 HashMap。如果在开发中需要对元素进行<font color=red>排序</font>，那么使用 HashMap 便无法实现这种功能，使用 TreeMap 的迭代输出将会以元素顺序进行。
+
+#### 与 LinkedHashMap 的区别
+
+- LinkedHashMap 是基于元素进入集合的顺序或者被访问的先后顺序排序。
+- TreeMap 则是基于元素的 key 固有顺序(由 Comparator 或者 Comparable 确定)进行排序。
+
+### Hashtable
+
+```java
+public class Hashtable<K,V>
+    extends Dictionary<K,V>
+    implements Map<K,V>, Cloneable, java.io.Serializable
+```
+
+`HashTable` 是旧版本的遗留类，很多映射的常用功能都与 `HashMap` 类似，不同的是它继承自 `Dictionary` 类，并且是线程安全的，同一时刻只允许一个线程对 `HashTable` 进行写操作，并发性不如 `ConcurrentHashMap`。
+
+### 8.4.4. ConcurrentHashMap（网络资料，未整理）
+
+ConcurrentHashMap 底层采用**分段的数组+链表**的方式来实现线程安全。
 
 通过把整个Map分为N个Segment，可以提供相同的线程安全，但是效率提升N倍，默认提升16倍。(读操作不加锁，由于HashEntry的value变量是 volatile的，也能保证读取到最新的值。)
 
@@ -1324,17 +1369,14 @@ ConcurrentHashMap提供了与Hashtable和SynchronizedMap不同的锁机制。Has
 
 ConcurrentHashMap默认将hash表分为16个桶，诸如get、put、remove等常用操作只锁住当前需要用到的桶。这样，原来只能一个线程进入，现在却能同时有16个写线程执行，并发性能的提升是显而易见的。
 
-#### 8.4.5. Hashtable和HashMap的区别(面试题)
+### 常用实现类的区别总结
+
+#### 8.4.5. Hashtable 和 HashMap 的区别(面试题)
 
 Hashtable 与 HashMap 都是 Map 接口的实现类。
 
 - HashMap：可以存入 null，是不同步的，效率高，但线程不安全
 - Hashtable：不能存入 null 值，是同步的，效率低，但线程安全
-
-
-
-
-
 
 ## 9. 集合相关的工具类API
 
@@ -1562,7 +1604,7 @@ private static final int MAX_ARRAY_SIZE = Integer.MAX_VALUE - 8;
 
 序列化是指：将对象转换成以字节序列的形式来表示，以便用于持久化和传输。
 
-实现方法：实现Serializable接口。
+实现方法：实现 `Serializable` 接口。
 
 然后用的时候拿出来进行反序列化即可又变成Java对象。
 
@@ -1955,7 +1997,7 @@ public void forEach(Consumer<? super E> action) {
 
 每当迭代器使用`hashNext()`/`next()` 遍历下一个元素之前，都会检测 `modCount` 变量是否为 `expectedmodCount` 值，是的话就返回遍历；否则抛出异常，终止遍历。
 
-#### 1.4.2. 对集合进行 add/remove 正常操作方式：
+#### 1.4.2. 对集合进行 add/remove 正常操作方式
 
 1. 直接使用普通 for 循环进行操作，因为普通 for 循环并没有用到 Iterator 的遍历，所以压根就没有进行 fail-fast 的检验。但这种方案其实存在一个问题，那就是 remove 操作会改变 List 中元素的下标，可能存在漏删的情况。
 2. 直接使用 Iterator 提供的 `remove` 方法进行操作。该方法可以修改到 `expectedModCount` 的值，那么就不会再抛出异常了。
