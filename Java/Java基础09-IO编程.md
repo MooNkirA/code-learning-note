@@ -1524,7 +1524,7 @@ IO 的方式通常分为几种：同步阻塞的 BIO、同步非阻塞的 NIO、
 
 ## 9. 序列化与反序列化
 
-### 9.1. 对象的序列化与反序列化概述
+### 9.1. 概述
 
 > 引用维基百科对于“序列化”的介绍：
 >
@@ -1562,8 +1562,6 @@ IO 的方式通常分为几种：同步阻塞的 BIO、同步非阻塞的 NIO、
 
 #### 9.2.1. Serializable
 
-##### 9.2.1.1. 概述
-
 ```java
 package java.io;
 
@@ -1575,13 +1573,13 @@ public interface Serializable {
 
 > Notes: <font color=red>**被保存的对象要求实现 `Serializable` 接口，否则不能直接保存到文件中。否则会出现`java.io.NotSerializableException`。**</font>
 
-##### 9.2.1.2. serialVersionUID 概述
+#### 9.2.2. serialVersionUID 概述
 
 序列化是将对象的状态信息转换为可存储或传输的形式的过程。虚拟机是否允许反序列化，不仅取决于类路径和功能代码是否一致，一个非常重要的一点是两个类的序列化 ID 是否一致，这个所谓的序列化 ID，就是在代码中定义的 `serialVersionUID`。
 
 序列化号 serialVersionUID 属于版本控制的作用。序列化的时候 serialVersionUID 也会被写入二级制序列，当反序列化时会检查 serialVersionUID 是否和当前类的 serialVersionUID 一致。如果 serialVersionUID 不一致则会抛出 `InvalidClassException` 异常。强烈推荐每个序列化类都手动指定其 serialVersionUID，如果不手动指定，那么编译器会动态生成默认的序列化号
 
-#### 9.2.2. Externalizable
+#### 9.2.3. Externalizable
 
 Java 中还提供了 `Externalizable` 接口，也可以实现它来提供序列化能力。
 
@@ -1626,15 +1624,17 @@ public final void writeObject(Object obj)
 
 #### 9.3.4. 序列化步骤
 
-1. 定义类，实现Serializable接口，自定义一个Serializable接口序列号
+1. 定义类，实现 `Serializable` 接口，自定义一个 `serialVersionUID`
 
 ```java
-public class Student implements Serializable {}
+public class Student implements Serializable {
+    private static final long serialVersionUID = -6286083484798000168L;
+}
 ```
 
 2. 创建对象
-3. 创建对象输出流`ObjectOutputStream`
-4. 调用`writeObject`将对象写入文件中
+3. 创建对象输出流 `ObjectOutputStream`
+4. 调用 `writeObject` 将对象写入文件中
 5. 关流
 
 ### 9.4. 对象反序列化流ObjectInputStream
@@ -1665,47 +1665,48 @@ public final Object readObject()
 2. 调用`readObject()`方法读取对象
 3. 关流
 
-### 9.5. 序列化和反序列化的注意事项
-
-#### 9.5.1. InvalidClassException 异常
-
-`java.io.InvalidClassException`: 无效的类异常。此异常是<font color=red>**序列号冲突**</font>。
-
-- 出错的核心问题：**类改变后，类的序列化号也改变，就和文件中的序列化号不一样**
-- 解决方法：**修改类的时候,让序列化号不变，自定义一个序列号，不要系统随机生成序列号。**
-
-![](images/20201105141312805_17748.png)
-
-#### 9.5.2. 瞬态关键字 transient
+### 9.5. 瞬态关键字 transient
 
 序列化对象时，如果不想保存某一个成员变量的值，该如何处理？
 
-##### 9.5.2.1. 关键字 transient 的作用
+#### 9.5.1. transient 的作用
 
 `transient`关键字作用是用于指定**序列化对象时不保存某个成员变量的值**
 
 用 `transient` 修饰成员变量，能够保证该成员变量的值不能被序列化到文件中。当对象被反序列化时，被 `transient` 修饰的变量值会设为初始值，如 int 型的是 0，对象型的是 null。
 
-##### 9.5.2.2. 使用 static 修饰的成员变量（不建议使用）
+#### 9.5.2. 使用 static 修饰的成员变量（不建议使用）
 
 可以将该成员变量定义为静态的成员变量。因为对象序列化只会保存对象自己的信息，静态成员变量是属于类的信息，所有不会被保存
 
-##### 9.5.2.3. 注意点
+#### 9.5.3. 注意点
 
 `transient` 只能修饰变量，不能修饰类和方法
 
-#### 9.5.3. 其它要点
+### 9.6. 序列化和反序列化的注意事项
+
+#### 9.6.1. InvalidClassException 异常
+
+`java.io.InvalidClassException`: 无效的类异常。此异常是<font color=red>**序列号冲突**</font>。
+
+- 出错的核心问题：**类改变后，类的序列化号也改变，就和文件中的序列化号不一样**
+- 解决方法：**修改类的时候，让序列化号不变，自定义一个序列号，不要系统随机生成序列号。**
+
+![](images/20201105141312805_17748.png)
+
+#### 9.6.2. 要点总结
 
 - 序列化对象必须实现序列化接口。
 - 序列化对象里面的属性是对象的话也要实现序列化接口。
 - 类的对象序列化后，类的序列化ID不能轻易修改，不然反序列化会失败。
 - 类的对象序列化后，类的属性有增加或者删除不会影响序列化，只是值会丢失。
-- 如果父类序列化了，子类会继承父类的序列化，子类无需添加序列化接口。
-- 如果父类没有序列化，子类序列化了，子类中的属性能正常序列化，但父类的属性会丢失，不能序列化。
-- 用Java序列化的二进制字节数据只能由Java反序列化，不能被其他语言反序列化。如果要进行前后端或者不同语言之间的交互一般需要将对象转变成Json/Xml通用格式的数据，再恢复原来的对象。
-- 如果某个字段不想序列化，在该字段前加上`transient`关键字即可
+- 如果父类实现了序列化接口，子类会继承父类的序列化，子类无需添加序列化接口。
+- 如果父类没有实现序列化接口，而子类序列化了，子类中的属性能正常序列化，但父类的属性会丢失，不能序列化。
+- 用 Java 序列化的二进制字节数据只能由 Java 反序列化，不能被其他语言反序列化。如果要进行前后端或者不同语言之间的交互一般需要将对象转变成 Json/Xml 通用格式的数据，再恢复原来的对象。
+- 如果某个字段不想被序列化，在该字段前加上 `transient` 关键字即可。在被反序列化后，`transient` 修饰的变量值会被设为对应类型的初始值，例如，int 类型变量的值是 0，对象类型变量的值是 null。
+- <font color=red>**序列化不会保存静态变量**</font>
 
-### 9.6. 常见序列化协议对比
+### 9.7. 常见序列化协议对比
 
 常见的序列化协议有：JDK 自带的序列化，比较常用第三方的序列化协议：hessian、kyro、protostuff。
 
@@ -1714,11 +1715,11 @@ public final Object readObject()
 - 不支持跨语言调用：如果调用的是其他语言开发的服务的时候就不支持了。
 - 性能差：相比于其他序列化框架性能更低，主要原因是序列化之后的字节数组体积较大，导致传输成本加大。
 
-### 9.7. 序列化对象 - 网上案例
+### 9.8. 序列化对象 - 网上案例
 
 要序列化一个对象，这个对象所在类就必须实现Java序列化的接口：`java.io.Serializable`。
 
-#### 9.7.1. 类添加序列化接口
+#### 9.8.1. 类添加序列化接口
 
 ```java
 import java.io.Serializable;
@@ -1756,7 +1757,7 @@ public class User implements Serializable {
 }
 ```
 
-#### 9.7.2. 序列化/反序列化
+#### 9.8.2. 序列化/反序列化
 
 可以借助commons-lang3工具包里面的类实现对象的序列化及反序列化，无需自己写
 
