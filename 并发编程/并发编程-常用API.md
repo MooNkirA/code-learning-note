@@ -137,7 +137,10 @@ public final native boolean isAlive();
 public void interrupt()
 ```
 
-- 打断线程。如果被打断线程正在 `sleep`，`wait`，`join` 会导致被打断的线程抛出 `InterruptedException`，并**清除打断标记**；如果打断的正在运行的线程，则会**设置打断标记** ；`park` 的线程被打断，也会**设置打断标记**
+- 打断线程。方法向线程发行一个终止通知信号，会影响该线程内部的一个中断标识位，但这个线程本身并不会因为调用了 interrupt 方法而改变状态（阻塞、终止等）。
+    - 如果被打断线程正在 `sleep`，`wait`，`join` 会导致被打断的线程抛出 `InterruptedException`，并**清除打断标记**；
+    - 如果打断的正在运行的线程，则会**设置打断标记** ；
+    - `park` 的线程被打断，也会**设置打断标记**
 
 ```java
 public static boolean interrupted()
