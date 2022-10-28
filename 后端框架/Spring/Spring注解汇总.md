@@ -2620,7 +2620,7 @@ com.moon.spring.Bean2=org.springframework.stereotype.Component
 
 #### 5.1.1. 作用与使用场景
 
-- **作用**：自动按照类型注入。当ioc容器中有且只有一个类型匹配时可以直接注入成功。
+- **作用**：自动按照类型注入。当ioc容器中有且只有一个类型匹配时可以直接注入成功。也可以标识在数组、List、Map等类型上，可以注入同一类型的多个实例。
 - **使用场景**：通常情况下自己写的类中注入依赖bean对象时，都可以采用此注解。
 
 注意事项：
@@ -2631,11 +2631,13 @@ com.moon.spring.Bean2=org.springframework.stereotype.Component
 
 #### 5.1.2. 相关属性
 
-|   属性名    |                                 作用                                 |    取值    |
-| :--------: | -------------------------------------------------------------------- | ---------- |
+|   属性名    |                               作用                                |    取值    |
+| :--------: | ---------------------------------------------------------------- | ---------- |
 | `required` | 是否必须注入成功。默认值是 true，表示必须注入成功，如果注入不成功会报错 | true/false |
 
-#### 5.1.3. 基础使用示例
+#### 5.1.3. 各种使用方式示例
+
+##### 5.1.3.1. 测试准备
 
 - 创建用于测试的类
 
@@ -2683,7 +2685,9 @@ public class SpringConfiguration {
 }
 ```
 
-- 测试代码
+##### 5.1.3.2. 对象成员属性
+
+将 `@Autowired` 注解标识在类的对象成员属性上，Spring 将匹配到该类型的 bean 自动装配到属性中。
 
 ```java
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -2709,6 +2713,90 @@ public class SpringAutowiredTest {
 }
 ```
 
+##### 5.1.3.3. 数组或集合类型的成员属性
+
+将 `@Autowired` 注解标识在数组或者 List 集合的属性上，Spring 会读取该数组或者集合的类型，将所有匹配的该类型的 bean 自动装配到该属性上
+
+```java
+@Component
+public class Foo {
+    @Autowired
+    private Bar[] bars;
+
+    @Autowired
+    private List<Bar> barList;
+    // ...省略
+}
+```
+
+##### 5.1.3.4. Map 类型的成员属性
+
+将 `@Autowired` 注解标识在 `java.util.Map` 类型属性上，并且 Map 的键是字符串类型时，Spring 会将所有匹配 Map 所指定 value 类型的 bean 添加到此 Map 集合中，并且将 bean 的名字作为键。
+
+```java
+@Component
+public class Foo {
+    @Autowired
+    private Map<String, Bar> barMap;
+    // ...省略
+}
+```
+
+##### 5.1.3.5. setter 方法
+
+将 `@Autowired` 注解标识在类的setter方法上，Spring 会自动装配匹配该方法形参类型的 bean，并自动装配到方法形参
+
+```java
+@Component
+public class Foo {
+    private UserService userService;
+
+    @Autowired
+    public void setUserService(UserService userService) {
+        this.userService = userService;
+    }
+    // ...省略
+}
+```
+
+##### 5.1.3.6. 构造方法
+
+将 `@Autowired` 注解标识在类的有参构造方法上，Spring 会自动装配匹配该方法形参类型的 bean，并自动装配到方法形参
+
+```java
+@Component
+public class Foo {
+    private UserService userService;
+
+    @Autowired
+    public Foo(UserService userService) {
+        this.userService = userService;
+    }
+    // ...省略
+}
+```
+
+> Tips: 从 Spring Framework 4.3 版本开始，如果**只有一个构造方法**，则 Spring 会自动使用这个构造方法进行自动装配。在这种情况下， `@Autowired` 注解可以省略不写。
+
+##### 5.1.3.7. 任意成员方法
+
+将 `@Autowired` 注解标识在类中任意名称以及任意数量形参的方法上，Spring 也会自动匹配方法每个形参的类型，并自动装配到相应的方法形参上。
+
+```java
+@Component
+public class Foo {
+    private UserService userService;
+    
+    // 方法的形参数量是任意的
+    @Autowired
+    public void customMethod(UserService userService, RemoteLogService remoteLogService) {
+        this.userService = userService;
+        remoteLogService.saveLog(new SysOperLog(), "xxx");
+    }
+    // ...省略
+}
+```
+
 ### 5.2. @Qualifier
 
 #### 5.2.1. 作用与使用场景
@@ -2726,12 +2814,27 @@ public class SpringAutowiredTest {
 
 #### 5.2.3. 使用示例
 
-基于`@Autowired`注解的使用示例工程，增加`@Qualifier`注解部分
+> 基于`@Autowired`注解的使用示例工程，增加`@Qualifier`注解部分
+
+##### 5.2.3.1. 对象成员属性
+
+将 `@Qualifier` 注解标识对象成员属性上，用于指定注入的 bean 的唯一标识
 
 ```java
 @Autowired
 @Qualifier("userServiceOther") // @Qualifier注解与@Autowired注解配合使用，一般用于容器中存在多个同类型的bean实例，@Qualifier注解来指定注入的bean的ID
 private UserService userService;
+```
+
+##### 5.2.3.2. 方法参数
+
+`@Qualifier` 注解还可以标识在方法参数上，用于指定注入的 bean 的唯一标识
+
+```java
+@Autowired
+public void customMethod(@Qualifier("userService") UserService userService) {
+    this.userService = userService;
+}
 ```
 
 ### 5.3. @Value
@@ -2810,15 +2913,15 @@ public void valueBasicTest(){
 
 #### 5.4.2. 相关属性
 
-|        属性名         |                                                 作用                                                  | 取值 |
-| :------------------: | ----------------------------------------------------------------------------------------------------- | ---- |
-|        `name`        | 资源的JNDI名称。在 spring 的注入时，指定 bean 的唯一标识                                                |      |
-|        `type`        | 指定bean的类型                                                                                        |      |
-|       `lookup`       | 引用指向的资源的名称。它可以使用全局JNDI名称链接到任何兼容的资源                                         |      |
+|        属性名         |                                              作用                                               | 取值 |
+| :------------------: | ----------------------------------------------------------------------------------------------- | ---- |
+|        `name`        | 资源的JNDI名称。在 spring 的注入时，指定 bean 的唯一标识                                            |      |
+|        `type`        | 指定bean的类型                                                                                   |      |
+|       `lookup`       | 引用指向的资源的名称。它可以使用全局JNDI名称链接到任何兼容的资源                                      |      |
 | `authenticationType` | 指定资源的身份验证类型。它只能为任何受支持类型的连接工厂的资源指定此选项，而不能为其他类型的资源指定此选项 |      |
-|     `shareable`      | 指定此资源是否可以在此组件和其他组件之间共享                                                            |      |
-|     `mappedName`     | 指定资源的映射名称                                                                                     |      |
-|    `description`     | 指定资源的描述                                                                                        |      |
+|     `shareable`      | 指定此资源是否可以在此组件和其他组件之间共享                                                         |      |
+|     `mappedName`     | 指定资源的映射名称                                                                                |      |
+|    `description`     | 指定资源的描述                                                                                   |      |
 
 #### 5.4.3. 基础使用示例
 

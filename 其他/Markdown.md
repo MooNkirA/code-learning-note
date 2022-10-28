@@ -750,6 +750,7 @@ Markdown可以和HTML的语法兼容，可以通过HTML的标签来实现下划�
 | violet      | `#ee82ee`     | `rgb(238, 130, 238)` | <span style="background-color:violet">&nbsp;&nbsp;&nbsp;</span>  |
 | lightgray   | `#c7edcc`     | `rgb(199,237,204)`   | <span style="background-color:#c7edcc">&nbsp;&nbsp;&nbsp;</span> |
 | yellowgreen | `#8BCC29`     | `rgb(139,204,41)`    | <span style="background-color:#8BCC29">&nbsp;&nbsp;&nbsp;</span> |
+| whitesmoke  | `#EAEFEF`     | `rgb(234, 239, 239)` | <span style="background-color:#EAEFEF">&nbsp;&nbsp;&nbsp;</span> |
 
 > 颜色相关在线工具
 >

@@ -443,7 +443,7 @@ public @interface EnableWebSecurity {
 
 ## 3. Spring Boot 集成 Spring Security
 
-> *注：Spring Boot 集成 Spring Security 更多的集成功能示例详见【分布式架构&微服务架构/SpringBoot】*
+> *注：Spring Boot 集成 Spring Security 更多的集成功能示例详见【分布式微服务/SpringBoot】*
 
 Spring Boot 是一套 Spring 的快速开发框架，基于 Spring 4.0 设计，使用 Spring Boot 开发可以避免一些繁琐的工程搭建和配置，同时它集成了大量的常用框架，快速导入依赖包，避免依赖包的冲突。基本上常用的开发框架都支持 Spring Boot 开发，例如：MyBatis、Dubbo 等，Spring 家族更是如此，例如：Spring cloud、Spring mvc、Spring security 等，使用 Spring Boot 开发可以大大得高生产率。
 
