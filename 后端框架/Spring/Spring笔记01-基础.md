@@ -2848,3 +2848,68 @@ typeConverter.registerCustomEditor(User.class, new StringToUserPropertyEditor())
 User value = typeConverter.convertIfNecessary("1", User.class);
 System.out.println(value);
 ```
+
+## 14. Resources 资源接口
+
+### 14.1. 概述
+
+> TODO: 整理中
+
+### 14.2. Resource 接口
+
+Spring 提供了 `org.springframework.core.io.Resource` 接口，用于读取资源内容
+
+```java
+public interface Resource extends InputStreamSource {
+
+    boolean exists();
+
+    boolean isReadable();
+
+    boolean isOpen();
+
+    boolean isFile();
+
+    URL getURL() throws IOException;
+
+    URI getURI() throws IOException;
+
+    File getFile() throws IOException;
+
+    ReadableByteChannel readableChannel() throws IOException;
+
+    long contentLength() throws IOException;
+
+    long lastModified() throws IOException;
+
+    Resource createRelative(String relativePath) throws IOException;
+
+    String getFilename();
+
+    String getDescription();
+}
+```
+
+### 14.3. Resource 接口实现
+
+Spring 内置了一些 `Resource` 接口实现类，用于通过不方式读取资源文件，常用的实现类包括：
+
+- `UrlResource`
+- `ClassPathResource`
+- `FileSystemResource`
+- `PathResource`
+- `ServletContextResource`
+- `InputStreamResource`
+- `ByteArrayResource`
+
+#### 14.3.1. UrlResource
+
+
+
+#### 14.3.2. ClassPathResource
+
+
+#### 14.3.3. FileSystemResource
+
+
+

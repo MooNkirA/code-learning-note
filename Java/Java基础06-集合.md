@@ -1062,6 +1062,10 @@ E remove()
 - `LinkedTransferQueue`：一个由链表结构组成的无界阻塞队列。
 - `LinkedBlockingDeque`：一个由链表结构组成的双向阻塞队列。
 
+#### 7.3.1. ArrayBlockingQueue
+
+ArrayBlockingQueue 是基于数组实现的有界阻塞队列。ArrayBlockingQueue 队列按照先进先出原则对元素进行排序，在默认情况下不保证元素操作的公平性。
+
 ## 8. Map 接口（双列集合）
 
 ### 8.1. 概述

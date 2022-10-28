@@ -2841,8 +2841,10 @@ public void customMethod(@Qualifier("userService") UserService userService) {
 
 #### 5.3.1. 作用与使用场景
 
-- **作用**：用于注入基本类型和String类型的数据。它支持spring的EL表达式，可以通过`${}`的方式获取配置文件中的数据。配置文件支持properties，xml和yml类型的文件
+- **作用**：用于注入基本类型和 String 类型的数据。它支持spring的EL表达式，可以通过`${}`的方式获取配置文件中的数据。配置文件支持properties，xml和yml类型的文件。
 - **使用场景**：在实际开发中，像连接数据库的配置，发送邮件的配置等等，都可以使用配置文件配置起来。此时读取配置文件就可以借助spring的el表达式读取。
+
+> TODO: 待确认使用 `#{bean名称}` 的方便，可以自动配置相应的对象。
 
 #### 5.3.2. 相关属性
 
@@ -2909,7 +2911,7 @@ public void valueBasicTest(){
     - 如果指定了name，没有指定type，则采用byName（bean的唯一标识id）的方式装配bean对象
     - 如果没有指定name，而是指定了type，则按照byType的方式装配bean对象
     - 当byName和byType都指定了，两个都会校验，有任何一个不符合条件就会报错。
-- **使用场景**：当某个类的依赖bean在ioc容器中存在多个的时候，可以使用此注解指定特定的bean对象注入。当然也可以使用`@Autowired`配合`@Qualifier`注入。
+- **使用场景**：当某个类的依赖bean在ioc容器中存在多个的时候，可以使用此注解指定特定的bean对象注入。相当于使用`@Autowired`配合`@Qualifier`注入。
 
 #### 5.4.2. 相关属性
 
@@ -3019,7 +3021,9 @@ beanFactory.getBeansOfType(BeanPostProcessor.class)
 
 #### 5.5.1. 作用与使用场景
 
-- **作用**：也是用于建立依赖关系的。和`@Resource`和`@Autowired`的作用是一样。在使用之前需要先导入依赖坐标
+`@Inject` 来源于 JSR-330 标准。
+
+- **作用**：也是根据对象类型进行自动注入，与 `@Resource`、`@Autowired` 的作用是一样。在使用之前需要先导入依赖坐标
 - **使用场景**：在使用`@Autowired`注解的地方，都可以替换成`@Inject`。它也可以出现在方法上，构造函数上和字段上，<font color=red>**但是需要注意的是：因为JRE无法决定构造方法注入的优先级，所以规范中规定类中只能有一个构造方法标识`@Inject`注解。**</font>
 
 #### 5.5.2. 需导入的依赖
@@ -3063,6 +3067,10 @@ public AccountServiceImpl(AccountDao accountDao) {
     this.accountDao = accountDao;
 }
 ```
+
+- `@Inject`使用方式三：使用自定义注解
+
+
 
 ### 5.6. @Primary
 
