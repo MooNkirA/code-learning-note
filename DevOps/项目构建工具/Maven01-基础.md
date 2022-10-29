@@ -4,7 +4,7 @@
 
 ### 1.1. Maven 是什么
 
-Maven 的 Apache 公司开源项目，是项目管理、构建工具。用来依赖管理。
+Maven 的 Apache 公司开源项目，是项目依赖管理、构建工具。
 
 Maven 是用于建立 jar 包仓库，使用依赖管理，就是对 jar 包统一管理，maven 项目中如果需要使用一个 jar 包，只需要在 maven 项目中配置需要 jar 包坐标信息，maven 程序根据 jar 包坐标的信息去 jar 包仓库中查找 jar 包
 
@@ -12,17 +12,17 @@ Maven 采用 Project Object Modle（POM、项目对象模型）概念来管理�
 
 ### 1.2. Maven 的概念模型
 
-Maven包含了一个项目对象模型(Project Object Model)，一组标准集合，一个项目生命周期(Project Lifecycle)，一个依赖管理系统(Dependency Management System)，和用来运行定义在生命周期阶段(phase)中插件(plugin)目标(goal)的逻辑
+Maven 包含了一个项目对象模型(Project Object Model)，一组标准集合，一个项目生命周期(Project Lifecycle)，一个依赖管理系统(Dependency Management System)，和用来运行定义在生命周期阶段(phase)中插件(plugin)目标(goal)的逻辑
 
 ![](images/20220115153602269_5827.png)
 
 #### 1.2.1. 项目对象模型 (Project Object Model)
 
-一个maven工程都有一个pom.xml文件，通过pom.xml文件定义项目的坐标、项目依赖、项目信息、插件目标等。
+一个 maven 工程都有一个 pom.xml 文件，通过 pom.xml 文件定义项目的坐标、项目依赖、项目信息、插件目标等。
 
 #### 1.2.2. 依赖管理系统(Dependency Management System)
 
-通过maven的依赖管理对项目所依赖的jar包进行统一管理。比如：项目依赖junit4.9，通过在pom.xml中定义junit4.9的依赖即使用junit4.9，如下所示是junit4.9的依赖定义：
+通过 maven 的依赖管理对项目所依赖的 jar 包进行统一管理。比如：项目依赖 junit 4.9，通过在 pom.xml 中定义 junit的依赖即使用junit 4.9，如下所示是junit 4.9的依赖定义：
 
 ```xml
 <!-- 依赖关系 -->
@@ -47,16 +47,15 @@ Maven包含了一个项目对象模型(Project Object Model)，一组标准集�
 
 ![](images/20220115223548069_27553.jpg)
 
-maven通过执行一些简单命令即可实现上边生命周期的各各过程，比如执行mvn compile执行编译、执行mvn clean执行清理
+maven 通过执行一些简单命令即可实现上边生命周期的各各过程，比如执行 `mvn compile` 执行编译、执行 `mvn clean` 执行清理
 
 #### 1.2.4. 一组标准集合
 
-maven将整个项目管理过程定义一组标准，比如：通过maven构建工程有标准的目录结构，有标准的生命周期阶段、依赖管理有标准的坐标定义等。
+maven 将整个项目管理过程定义一组标准，比如：通过 maven 构建工程有标准的目录结构，有标准的生命周期阶段、依赖管理有标准的坐标定义等。
 
 #### 1.2.5. 插件(plugin)目标(goal)
 
-maven管理项目生命周期过程都是基于插件完成的。
-
+maven 管理项目生命周期过程都是基于插件完成的。
 
 ### 1.3. 什么是项目构建
 
@@ -84,6 +83,8 @@ maven 将项目构建的过程进行标准化，每个阶段使用一个命令�
 - 编译阶段对应 maven 的命令是 `compile`，将 java 代码编译成 class 文件。
 - 打包阶段对应 maven 的命令是 `package`，java 工程可以打成 jar 包，web 包可以打成 war 包
 - 运行一个 maven 工程（web工程）需要一个命令：`tomat:run`
+
+![](images/561565416221070.png)
 
 **maven工程构建的优点**：
 
@@ -157,8 +158,7 @@ Maven 3.3+ 需要使用jdk 1.7+；请使用 `java -version` 命令检查本机�
 
 - 【bin】：含有mvn运行的脚本。其中 mvn.bat（以run方式运行项目）、mvnDebug.bat（以debug方式运行项目）
 - 【boot】：maven运行需要 plexus-classworlds 类加载器框架
-- 【conf】：包含 settings.xml 配置文件，整个maven工具核心配置文件
-    - > settings.xml 中默认的用户库: `${user.home}/.m2/repository`。通过maven下载的jar包都会存储到此仓库中。可以手动修改指定的保存路径。
+- 【conf】：包含 settings.xml 配置文件，整个maven工具核心配置文件。settings.xml 中默认的用户库: `${user.home}/.m2/repository`。通过maven下载的jar包都会存储到此仓库中。可以手动修改指定的保存路径。
 - 【lib】：maven 运行依赖 jar 包
 
 ### 2.4. 配置环境变量
@@ -179,9 +179,7 @@ Maven 3.3+ 需要使用jdk 1.7+；请使用 `java -version` 命令检查本机�
 
 ![](images/20220115152219668_14196.png)
 
-- *可选配置（注意：可以不配置）*
-
-配置 MAVEN_OPTS 的环境变量，值为 `-Xms256m -Xmx512m`
+- *可选配置（注意：可以不配置）*。配置 MAVEN_OPTS 的环境变量，值为 `-Xms256m -Xmx512m`
 
 ![](images/20220115152621134_12862.jpg)
 
@@ -196,7 +194,6 @@ mvn -v
 ![](images/20220115153032526_25105.jpg)
 
 ## 3. Maven 项目的核心概念
-
 
 ### 3.1. Maven 仓库
 
@@ -228,7 +225,6 @@ mvn -v
 2. 再查找私服或者外网中央仓库
 3. 如果在私服查找不到，再到中央仓库查找
 
-
 ![](images/20220115231724050_11833.png)
 
 **过程详解**：
@@ -237,14 +233,23 @@ maven的工作需要从仓库下载一些jar包，如下图所示，本地的项
 
 #### 3.1.4. 配置本地仓库
 
-配置本地仓库目的：让maven程序知道仓库具体位置
+配置本地仓库目的：让 maven 程序知道仓库具体位置。windows 系统本地仓库默认值：`%HOMEPATH%/.m2/repository`。配置方式如下：
 
-1. 修改 apache-maven-x.x.x\conf\settings.xml 文件
-2. 打开文件修改【`<localRepository>/path/to/local/repo</localRepository>`】路径内容，注意：内容在注释里，需要将内容复制到外面进行修改
+1. 打开 `apache-maven-x.x.x\conf\settings.xml` 文件
+2. 在 `<localRepository>` 标签中配置本地仓库路径
 
 ```xml
+<!-- localRepository
+| The path to the local repository maven will use to store artifacts.
+|
+| Default: ${user.home}/.m2/repository
+<localRepository>/path/to/local/repo</localRepository>
+-->
+<!-- 配置本地仓库位置 -->
 <localRepository>D:\development\maven\repository</localRepository>
 ```
+
+> Notes: `<localRepository>` 标签内容在注释里，需要将内容复制到外面进行修改。配置的本地仓库目录，需要先手动创建一个空的目录。仓库目录的名称不能包含中文与空格。
 
 #### 3.1.5. 配置阿里云远程仓库
 

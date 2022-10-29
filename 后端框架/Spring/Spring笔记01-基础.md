@@ -2857,7 +2857,7 @@ System.out.println(value);
 
 ### 14.2. Resource 接口
 
-Spring 提供了 `org.springframework.core.io.Resource` 接口，用于读取资源内容
+Spring 提供了 `org.springframework.core.io.Resource` 接口，是用于访问资源的抽象。
 
 ```java
 public interface Resource extends InputStreamSource {
@@ -2890,9 +2890,17 @@ public interface Resource extends InputStreamSource {
 }
 ```
 
+`Resource` 接口继承了 `org.springframework.core.io.InputStreamSource` 接口，返回一个用于读取资源的 `InputStream`
+
+```java
+public interface InputStreamSource {
+    InputStream getInputStream() throws IOException;
+}
+```
+
 ### 14.3. Resource 接口实现
 
-Spring 内置了一些 `Resource` 接口实现类，用于通过不方式读取资源文件，常用的实现类包括：
+Spring 内置了一些 `Resource` 接口实现类，用于通过不同方式读取资源文件，常用的实现类包括：
 
 - `UrlResource`
 - `ClassPathResource`
@@ -2904,12 +2912,24 @@ Spring 内置了一些 `Resource` 接口实现类，用于通过不方式读取�
 
 #### 14.3.1. UrlResource
 
+Spring 提供的 `UrlResource` 实现类用于访问 URL 类型的资源
 
+```java
+Resource resource = new UrlResource("http://www.moon.com/code/demo.txt");
+```
 
 #### 14.3.2. ClassPathResource
 
+Spring 提供的 `ClassPathResource` 实现类用于访问类路径下的资源
+
+```java
+Resource resource = new ClassPathResource("demo.txt");
+```
 
 #### 14.3.3. FileSystemResource
 
+Spring 提供的 `UrlResource` 实现类用于访问文件系统路径下的资源
 
-
+```java
+Resource resource = new FileSystemResource("c:/code/demo.txt");
+```

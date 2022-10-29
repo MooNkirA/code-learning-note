@@ -2841,10 +2841,8 @@ public void customMethod(@Qualifier("userService") UserService userService) {
 
 #### 5.3.1. 作用与使用场景
 
-- **作用**：用于注入基本类型和 String 类型的数据。它支持spring的EL表达式，可以通过`${}`的方式获取配置文件中的数据。配置文件支持properties，xml和yml类型的文件。
-- **使用场景**：在实际开发中，像连接数据库的配置，发送邮件的配置等等，都可以使用配置文件配置起来。此时读取配置文件就可以借助spring的el表达式读取。
-
-> TODO: 待确认使用 `#{bean名称}` 的方便，可以自动配置相应的对象。
+- **作用**：用于注入基本类型、String 类型和对象类型的数据。它支持 Spring 的 EL 表达式，配置文件支持 properties，xml 和 yml 类型的文件。
+- **使用场景**：在实际开发中，像连接数据库的配置，发送邮件的配置等等，都可以使用配置文件配置起来。此时读取配置文件就可以借助 spring 的 el 表达式读取。
 
 #### 5.3.2. 相关属性
 
@@ -2852,7 +2850,48 @@ public void customMethod(@Qualifier("userService") UserService userService) {
 | :-----: | ------------------------------- | ---- |
 | `value` | 指定注入的数据或者spring的el表达式 |      |
 
-#### 5.3.3. 使用示例
+#### 5.3.3. EL 表达式语法
+
+> 以下是部分 EL 表达式语法
+
+- 根据配置文件的键（key）注入数据
+
+```java
+@Value("${key}")
+private String foo;
+```
+
+- 根据配置文件的键（key）注入数据，找不到匹配时使用默认值
+
+```java
+@Value("#{key:default_value}")
+private String foo;
+```
+
+- 指定 bean 对象的名称，自动装配对象属性
+
+```java
+@Value("#{beanName}")
+private FooService fooService;
+```
+
+- 指定任意位置的资源文件，自动装配成 `Resource` 对象。*Tips: 如果需要对资源进行其他特殊的处理，可以直接使用 Spring 提供的 `Resource` 接口类，手动创建相应的资源实现对象。*
+
+```java
+// 使用 classpath 前缀，访问类路径下的资源文件
+@Value("classpath:banner.txt")
+private Resource resource;
+
+// 使用 file 前缀，访问绝对路径下的资源文件
+@Value("file:d:/code/banner.txt")
+private Resource resource;
+
+// 指定 URL 来的访问资源文件
+@Value("http://www.moon.com/code/banner.txt")
+private Resource resource;
+```
+
+#### 5.3.4. 使用示例
 
 - 创建配置文件name.properties
 
@@ -2880,7 +2919,19 @@ public class SpringConfiguration {
     // 使用Spring的el表达式，用于读取配置文件
     @Value("${project.name}")
     private String name;
+    
+    // 使用 ${key:default_value} 语法读取配置文件，找不到匹配时使用默认值
+    @Value("${project.version:1.0.0}")
+    private String version;
+
+    // 使用Spring的el表达式，自动装配指定名称的 bean 对象
+    @Value("#{fooService}")
+    private FooService fooService;
     // 只生成getter方法，不用生成setter方法也是可以成功注入...以下省略所有getter方法
+    
+    // 读取类路径的资源，自动装配在 Resource 对象
+    @Value("classpath:banner.txt")
+    private Resource resource;
 }
 ```
 
@@ -2897,6 +2948,19 @@ public void valueBasicTest(){
     System.out.println(configuration.getColor());
     System.out.println(configuration.getName());
     System.out.println(configuration.getNumber());
+    System.out.println(configuration.getFooService());
+    System.out.println(configuration.getVersion());
+    // 获取读取文件资源
+    InputStream is = configuration.getResource().getInputStream();
+    BufferedReader reader = new BufferedReader(new InputStreamReader(is));
+    while (true){
+        String line = reader.readLine();
+        if (line == null) {
+            break;
+        }
+        System.out.println(line);
+    }
+    reader.close();
 }
 ```
 
@@ -3038,13 +3102,13 @@ beanFactory.getBeansOfType(BeanPostProcessor.class)
 
 #### 5.5.3. 与其他注入数据注解的区别
 
-- `@Autowired`：来源于spring框架自身。默认是byType自动装配，当配合了`@Qualifier`注解之后，由`@Qualifier`来实现byName的方式装配。它有一个`required`属性，用于指定是否必须注入成功。
-- `@Resource`：来源于JSR-250规范。在没有指定name属性时是byType自动装配，当指定了name属性之后，采用byName方式自动装配。
-- `@Inject`：来源于JSR-330规范。（JSR330是Jcp给出的官方标准反向依赖注入规范。）它不支持任何属性，但是可以配合`@Qualifier`或者`@Primary`注解使用。同时，它默认是采用byType装配，当指定了JSR-330规范中的`@Named`注解之后，变成byName装配。
+- `@Autowired`：来源于 Spring 框架自身。默认是byType自动装配，当配合了`@Qualifier`注解之后，由`@Qualifier`来实现byName的方式装配。它有一个`required`属性，用于指定是否必须注入成功。
+- `@Resource`：来源于 JSR-250 规范。在没有指定name属性时是byType自动装配，当指定了name属性之后，采用byName方式自动装配。
+- `@Inject`：来源于 JSR-330 规范。（JSR330是Jcp给出的官方标准反向依赖注入规范。）它不支持任何属性，但是可以配合`@Qualifier`或者`@Primary`注解使用。同时，它默认是采用byType装配，当指定了JSR-330规范中的`@Named`注解之后，变成byName装配。
 
 #### 5.5.4. 使用示例
 
-示例基础代码沿用`@Resource`注解示例项目，引入inject的依赖
+示例基础代码沿用`@Resource`注解示例项目，引入 inject 的依赖
 
 - `@Inject`使用方式一：标识在类属性上
 
@@ -3068,9 +3132,7 @@ public AccountServiceImpl(AccountDao accountDao) {
 }
 ```
 
-- `@Inject`使用方式三：使用自定义注解
-
-
+> Notes: inject 还提供了一个 `@Qualifier` 的注解，位于 `javax.inject` 包中，该注解只能用在自定义注解上，用于实现 `@Inject` 根据名称来自动装配。*此示例参考《Spring 5 攻略（Spring 5 Recipes）》书籍中的2-4章节*
 
 ### 5.6. @Primary
 
