@@ -1,5 +1,7 @@
 # Maven 笔记
 
+> Maven 官网：https://maven.apache.org/
+
 ## 1. Maven 概述
 
 ### 1.1. Maven 是什么
@@ -9,6 +11,11 @@ Maven 的 Apache 公司开源项目，是项目依赖管理、构建工具。
 Maven 是用于建立 jar 包仓库，使用依赖管理，就是对 jar 包统一管理，maven 项目中如果需要使用一个 jar 包，只需要在 maven 项目中配置需要 jar 包坐标信息，maven 程序根据 jar 包坐标的信息去 jar 包仓库中查找 jar 包
 
 Maven 采用 Project Object Modle（POM、项目对象模型）概念来管理项目，即将项目开发和管理过程抽象成一个项目对象模型(POM)，所有的项目配置信息都定义在 pom.xml 文件中。
+
+**Maven 的两大核心**：
+
+- **项目构建**：项目在编码完成后，对项目进行编译、测试、打包、部署等一系列的操作都通过**命令**来实现
+- **依赖管理**：对 jar 包管理过程
 
 ### 1.2. Maven 的概念模型
 
@@ -130,27 +137,76 @@ maven 项目管理所依赖的 jar 包不需要手动向工程添加 jar 包，�
 3. maven的跨平台，可在window、linux上使用
 4. maven遵循规范开发有利于提高大型团队的开发效率，降低项目的维护成本，大公司都会考虑使用maven来构建项目
 
-### 1.6. Maven 的两大核心
+## 2. Maven 项目的核心概念
 
-- **项目构建**：项目在编码完成后，对项目进行编译、测试、打包、部署等一系列的操作都通过**命令**来实现
-- **依赖管理**：对jar包管理过程
+### 2.1. Maven 仓库
 
-## 2. Maven 的安装与配置
+#### 2.1.1. 仓库的类型
+
+<font color=red>本地仓库</font>
+
+- 用来存储从远程仓库或中央仓库下载的插件和jar包，项目使用一些插件或jar包，优先从本地仓库查找
+- 默认本地仓库位置在 `${user.dir}/.m2/repository`，`${user.dir}`表示windows用户目录
+
+<font color=red>远程仓库（私服）</font>
+
+- 如果本地需要插件或者jar包，本地仓库没有，默认去远程仓库下载
+- 远程仓库可以在互联网内也可以在局域网内
+- 私服在一定范围内共享资源，仅对内部开放，不对外共享。可以保存具有版权的资源，包含购买或自主研发的jar。因为中央仓库中的jar都是开源的，不能存储具有版权的资源。
+
+<font color=red>中央仓库</font>
+
+在maven软件中内置一个远程仓库地址，它是[中央仓库](https://repo1.maven.org/maven2)，服务于整个互联网，它是由Maven团队自己维护，里面存储了非常全的jar包，它包含了世界上大部分流行的开源项目构件
+
+#### 2.1.2. 相关仓库服务器网址
+
+- 中央仓库的地址：https://repo1.maven.org/maven2/
+- maven坐标查找的网站：https://mvnrepository.com/
+
+#### 2.1.3. 项目查找jar顺序
+
+1. 先查找本地仓库
+2. 再查找私服或者外网中央仓库
+3. 如果在私服查找不到，再到中央仓库查找
+
+![](images/20220115231724050_11833.png)
+
+**过程详解**：
+
+maven的工作需要从仓库下载一些jar包，如下图所示，本地的项目A、项目B等都会通过maven软件从远程仓库（可以理解为互联网上的仓库）下载jar包并存在本地仓库，本地仓库就是本地文件夹，当第二次需要此jar包时则不再从远程仓库下载，因为本地仓库已经存在了，可以将本地仓库理解为缓存，有了本地仓库就不用每次从远程仓库下载了。
+
+### 2.2. Maven 的坐标
+
+#### 2.2.1. 定义
+
+坐标(GAV)：是 Maven 作为查找定位jar包（项目/组件）的唯一依据。例如：`struts2-core-2.3.24.jar`
+
+坐标的规则：`Apache(公司名称)+struts2(项目名称)+2.3.24(版本信息)`
+
+官方中央仓库网址：https://repo1.maven.org/maven2/
+
+#### 2.2.2. Maven 坐标主要组成
+
+- `groupId`：定义当前Maven项目隶属项目、组织（通常是域名反转，如：org.mybatis）
+- `artifactId`：定义实际项目中的一个项目（模块）名称
+- `version`：定义当前项目的当前版本
+- `packaging`：定义该项目的打包方式(pom/jar/war，默认是jar包)
+
+## 3. Maven 的安装与配置
 
 maven 程序的安装前提是：先安装JDK，它的运行依赖JDK
 
-### 2.1. 下载 Maven 安装包
+### 3.1. 下载 Maven 安装包
 
-- 官方网站：https://maven.apache.org/
 - 官方最新版本下载地址：https://maven.apache.org/download.cgi
 - 历史版本下载地址：https://archive.apache.org/dist/maven/maven-3/
 - Maven Releases History（Maven 历史版本）：https://maven.apache.org/docs/history.html
 
-### 2.2. 环境要求
+### 3.2. 环境要求
 
 Maven 3.3+ 需要使用jdk 1.7+；请使用 `java -version` 命令检查本机的 JDK 安装信息。
 
-### 2.3. Maven 的目录结构
+### 3.3. Maven 的目录结构
 
 下载 maven 的压缩包 `apache-maven-3.x.x-bin.zip`，解压到本地磁盘（解压目录不要有中文、空格）。maven 目录结构如下：
 
@@ -161,9 +217,9 @@ Maven 3.3+ 需要使用jdk 1.7+；请使用 `java -version` 命令检查本机�
 - 【conf】：包含 settings.xml 配置文件，整个maven工具核心配置文件。settings.xml 中默认的用户库: `${user.home}/.m2/repository`。通过maven下载的jar包都会存储到此仓库中。可以手动修改指定的保存路径。
 - 【lib】：maven 运行依赖 jar 包
 
-### 2.4. 配置环境变量
+### 3.4. 配置环境变量
 
-> 电脑上需先安装java环境，至少JDK1.7+版本（将`JAVA_HOME/bin`配置环境变量path）。
+> 电脑上需先安装java环境，至少 JDK1.7+ 版本（将`JAVA_HOME/bin`配置环境变量path）。
 
 如果需要使用 maven 命令行，就必须配置环境变量。注：maven环境变量的配置是可选，如果使用eclipse/idea关联运行项目，可以需要配置也能正常使用。但建议还是配置使用比较方便。
 
@@ -183,7 +239,7 @@ Maven 3.3+ 需要使用jdk 1.7+；请使用 `java -version` 命令检查本机�
 
 ![](images/20220115152621134_12862.jpg)
 
-### 2.5. 验证是否安装成功
+### 3.5. 验证是否安装成功
 
 查询maven的版本信息，用于检验 maven 是否配置成功。打开命令行，输入以下命令：
 
@@ -193,45 +249,20 @@ mvn -v
 
 ![](images/20220115153032526_25105.jpg)
 
-## 3. Maven 项目的核心概念
+### 3.6. Maven 全局核心配置
 
-### 3.1. Maven 仓库
+#### 3.6.1. 全局 setting 与用户 setting
 
-#### 3.1.1. 仓库的类型
+maven 仓库地址、私服等配置信息需要在 setting.xml 文件中配置，分为<font color=red>全局配置</font>和<font color=red>用户配置</font>。
 
-<font color=red>本地仓库</font>
+- 在 maven 安装目录下的有 `conf/setting.xml` 文件，此 setting.xml 文件用于 maven 的所有 project 项目，它作为 maven 的全局配置。
+- 如需要个性配置则需要在用户配置中设置，用户配置的 setting.xml 文件默认的位置在：`${user.dir}/.m2/settings.xml` 目录中，`${user.dir}` 指 windows 中的用户目录。
 
-- 用来存储从远程仓库或中央仓库下载的插件和jar包，项目使用一些插件或jar包，优先从本地仓库查找
-- 默认本地仓库位置在 `${user.dir}/.m2/repository`，`${user.dir}`表示windows用户目录
+maven 会先找用户配置，如果找到则以用户配置文件为准，否则使用全局配置文件。
 
-<font color=red>远程仓库（私服）</font>
+![](images/20220116171359145_19781.jpg)
 
-- 如果本地需要插件或者jar包，本地仓库没有，默认去远程仓库下载
-- 远程仓库可以在互联网内也可以在局域网内
-- 私服在一定范围内共享资源，仅对内部开放，不对外共享。可以保存具有版权的资源，包含购买或自主研发的jar。因为中央仓库中的jar都是开源的，不能存储具有版权的资源。
-
-<font color=red>中央仓库</font>
-
-在maven软件中内置一个远程仓库地址，它是[中央仓库](https://repo1.maven.org/maven2)，服务于整个互联网，它是由Maven团队自己维护，里面存储了非常全的jar包，它包含了世界上大部分流行的开源项目构件
-
-#### 3.1.2. 相关仓库服务器网址
-
-- 中央仓库的地址：https://repo1.maven.org/maven2/
-- maven坐标查找的网站：https://mvnrepository.com/
-
-#### 3.1.3. 项目查找jar顺序
-
-1. 先查找本地仓库
-2. 再查找私服或者外网中央仓库
-3. 如果在私服查找不到，再到中央仓库查找
-
-![](images/20220115231724050_11833.png)
-
-**过程详解**：
-
-maven的工作需要从仓库下载一些jar包，如下图所示，本地的项目A、项目B等都会通过maven软件从远程仓库（可以理解为互联网上的仓库）下载jar包并存在本地仓库，本地仓库就是本地文件夹，当第二次需要此jar包时则不再从远程仓库下载，因为本地仓库已经存在了，可以将本地仓库理解为缓存，有了本地仓库就不用每次从远程仓库下载了。
-
-#### 3.1.4. 配置本地仓库
+#### 3.6.2. 配置本地仓库
 
 配置本地仓库目的：让 maven 程序知道仓库具体位置。windows 系统本地仓库默认值：`%HOMEPATH%/.m2/repository`。配置方式如下：
 
@@ -251,7 +282,7 @@ maven的工作需要从仓库下载一些jar包，如下图所示，本地的项
 
 > Notes: `<localRepository>` 标签内容在注释里，需要将内容复制到外面进行修改。配置的本地仓库目录，需要先手动创建一个空的目录。仓库目录的名称不能包含中文与空格。
 
-#### 3.1.5. 配置阿里云远程仓库
+#### 3.6.3. 配置阿里云镜像仓库
 
 因为中央仓库的服务是在国外，访问中央仓库比较慢，所以可以修改配置，当访问阿里云的公共库。中央库里面有的jar包，阿里云仓库几乎都有
 
@@ -270,9 +301,9 @@ maven的工作需要从仓库下载一些jar包，如下图所示，本地的项
 -->
 <mirror>
   <!-- 镜像的唯一标识符，用于区分不同的 mirror 元素（名称随意，不重复即可） -->
-  <id>aliyunmaven</id>
+  <id>nexus-aliyun</id>
   <!-- 对哪种仓库进行镜像，即指定替代哪种仓库 -->
-  <mirrorOf>*</mirrorOf>
+  <mirrorOf>public</mirrorOf>
   <!-- 镜像名称（不配置也可以） -->
   <name>阿里云公共仓库</name>
   <!-- 镜像url -->
@@ -282,33 +313,29 @@ maven的工作需要从仓库下载一些jar包，如下图所示，本地的项
 
 ![](images/20220115233136704_31857.png)
 
-#### 3.1.6. 全局setting与用户setting
+#### 3.6.4. 配置 Maven 工程的基础 JDK 版本
 
-maven仓库地址、私服等配置信息需要在 setting.xml 文件中配置，分为<font color=red>全局配置</font>和<font color=red>用户配置</font>。
+按默认配置运行的 maven 项目，默认使用的 JDK 版本是 1.5。可以通过修改 settings.xml 配置文件，在 `<profiles>` 标签增加以下 `<profile>` 子标签内容，指定 JDK 版本。
 
-- 在maven安装目录下的有 `conf/setting.xml` 文件，此 setting.xml 文件用于maven的所有project项目，它作为maven的全局配置。
-- 如需要个性配置则需要在用户配置中设置，用户配置的 setting.xml 文件默认的位置在：`${user.dir}/.m2/settings.xml` 目录中，`${user.dir}` 指windows中的用户目录。
-
-maven 会先找用户配置，如果找到则以用户配置文件为准，否则使用全局配置文件。
-
-![](images/20220116171359145_19781.jpg)
-
-### 3.2. Maven 的坐标
-
-#### 3.2.1. 定义
-
-坐标(GAV)：是 Maven 作为查找定位jar包（项目/组件）的唯一依据。例如：`struts2-core-2.3.24.jar`
-
-坐标的规则：`Apache(公司名称)+struts2(项目名称)+2.3.24(版本信息)`
-
-官方中央仓库网址：https://repo1.maven.org/maven2/
-
-#### 3.2.2. Maven 坐标主要组成
-
-- `groupId`：定义当前Maven项目隶属项目、组织（通常是域名反转，如：org.mybatis）
-- `artifactId`：定义实际项目中的一个项目（模块）名称
-- `version`：定义当前项目的当前版本
-- `packaging`：定义该项目的打包方式(pom/jar/war，默认是jar包)
+```xml
+<profiles>
+    <!-- 指定 JDK 默认版本 -->
+	<profile>
+		<id>jdk-1.8</id>
+		<activation>
+			<!-- 指定为默认激活 -->
+			<activeByDefault>true</activeByDefault>
+			<!-- 指定 JDK 的版本 -->
+			<jdk>1.8</jdk>
+		</activation>
+		<properties>
+			<maven.compiler.source>1.8</maven.compiler.source>
+			<maven.compiler.target>1.8</maven.compiler.target>
+			<maven.compiler.compilerVersion>1.8</maven.compiler.compilerVersion>
+		</properties>
+	</profile>
+</profiles>
+```
 
 ## 4. maven的常用命令（应用）
 

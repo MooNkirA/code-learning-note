@@ -1045,7 +1045,7 @@ E remove()
 
 - 获取并移除此队列的头。此方法与 poll 唯一的不同在于：当队列为空时将抛出一个 `NoSuchElementException` 异常。 
 
-### 7.3. BlockingQueue（了解）
+### 7.3. BlockingQueue 接口（了解）
 
 `java.util.concurrent.BlockingQueue` 接口继承 `Queue` 接口，也是一个队列。它有如下特点：
 
@@ -1064,7 +1064,173 @@ E remove()
 
 #### 7.3.1. ArrayBlockingQueue
 
-ArrayBlockingQueue 是基于数组实现的有界阻塞队列。ArrayBlockingQueue 队列按照先进先出原则对元素进行排序，在默认情况下不保证元素操作的公平性。
+`ArrayBlockingQueue` 是基于数组实现的有界阻塞队列。队列按照先进先出原则对元素进行排序，在**默认情况下不保证元素操作的公平性**。
+
+队列操作的公平性指在生产者线程或消费者线程发生阻塞后再次被唤醒时，按照阻塞的先后顺序操作队列，即先阻塞的生产者线程优先向队列中插入元素，先阻塞的消费者线程优先从队列中获取元素。因为保证公平性会降低吞吐量，所以如果要处理的数据没有先后顺序，则对其可以使用非公平处理的方式。
+
+可以通过 `ArrayBlockingQueue` 有参构造方法中的参数来指定是否为公平的阻塞队列
+
+```java
+// 大小为1000的公平队列
+BlockingQueue<String> fairQueue = new ArrayBlockingQueue<>(1000, true);
+// 大小为1000的非公平队列
+BlockingQueue<String> unfairQueue = new ArrayBlockingQueue<>(1000, false);
+```
+
+#### 7.3.2. LinkedBlockingQueue
+
+`LinkedBlockingQueue` 是基于链表实现的阻塞队列，该队列按照先进先出原则对元素进行排序。`LinkedBlockingQueue` **对生产者端和消费者端分别采用了两个独立的锁来控制数据同步**，可以将队列头部的锁理解为写锁，将队列尾部的锁理解为读锁，因此生产者和消费者可以基于各自独立的锁并行地操作队列中的数据，队列的并发性能较高。
+
+```java
+BlockingQueue<String> queue = new LinkedBlockingDeque<>(100);
+```
+
+#### 7.3.3. PriorityBlockingQueue
+
+`PriorityBlockingQueue` 是一个支持优先级的无界队列，元素在默认情况下采用自然顺序升序排列。可以自定义实现 `compareTo` 方法来指定元素进行排序规则，或者在初始化 `PriorityBlockingQueue` 时指定构造参数 `Comparator` 来实现对元素的排序。
+
+> Notes: **如果两个元素的优先级相同，则不能保证该元素的存储和访问顺序**。
+
+```java
+// 实现 Comparable 接口
+public class Data implements Comparable<Data> {
+    private int number; // 定义用来排序的字段
+
+    public int getNumber() {
+        return number;
+    }
+
+    public void setNumber(int number) {
+        this.number = number;
+    }
+
+    // 自定义排序的规则：使用 number 字段来排序
+    @Override
+    public int compareTo(Data o) {
+        return Integer.compare(this.number, o.getNumber());
+    }
+}
+
+// 使用示例
+@Test
+public void tset() {
+    // 元素实现 Comparable 接口并重写 compareTo 排序方法
+    BlockingQueue<Data> queue = new PriorityBlockingQueue<>(100);
+    // 构造函数中的直接使用 Comparator 实现
+    BlockingQueue<Data> queue1 = new PriorityBlockingQueue<>(100, Comparator.comparingInt(Data::getNumber));
+}
+```
+
+#### 7.3.4. DelayQueue
+
+`DelayQueue` 是一个支持延时获取元素的无界阻塞队列，该队列底层使用 `PriorityQueue` 实现 。`DelayQueue` 队列中的元素必须实现 `Delayed` 接口，该接口定义了在创建元素时该元素的延迟时间，在内部通过为每个元素的操作加锁来保障数据的一致性。只有在延迟时间到后才能从队列中提取元素。此类型队列的运用于场景如下：
+
+- **缓存系统的设计**：可以用 `DelayQueue` 保存缓存元素的有效期，使用一个线程循环查询队列，一旦能从队列中获取元素，则表示缓存的有效期到了。
+- **定时任务调度**：使用 `DelayQueue` 保存即将执行的任务和执行时间，一旦从队列中获取元素，就表示任务开始执行。Java 中的 `TimerQueue` 就是使用 `DelayQueue` 实现的。
+
+```java
+// 定义延迟对象实现 Delayed 接口
+public class DelayData implements Delayed {
+    private int number; // 定义用来排序的字段
+
+    public int getNumber() {
+        return number;
+    }
+
+    public void setNumber(int number) {
+        this.number = number;
+    }
+
+    @Override
+    public long getDelay(TimeUnit unit) {
+        return 5000L; // 设置队列 5s 延迟获取
+    }
+
+    // 自定义排序的规则：使用 number 字段来排序
+    @Override
+    public int compareTo(Delayed o) {
+        DelayData d = (DelayData) o;
+        return Integer.compare(this.getNumber(), d.getNumber());
+    }
+}
+
+// 测试
+@Test
+public void tset() {
+    // 创建延时队列
+    DelayQueue<DelayData> queue = new DelayQueue<>();
+    // 实时添加数据
+    queue.add(new DelayData());
+    while (true) {
+        try {
+            DelayData data = queue.take(); // 延迟 5s 后才能获取数据
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+    }
+}
+```
+
+#### 7.3.5. SynchronousQueue
+
+`SynchronousQueue` 是一个不存储元素的阻塞队列。队列中的每个 `put` 操作都必须等待一个 `take` 操作完成，否则不能继续添加元素。`SynchronousQueue` 它负责把生产者线程的数据直接传递给消费者线程，非常适用于传递型场景，比如将在一个线程中使用的数据传递给另一个线程使用 。`SynchronousQueue` 的吞吐量高于 `LinkedBlockingQueue` 和 `ArrayBlockingQueue`。具体的使用方法如下：
+
+```java
+public static void main(String[] args) {
+    SynchronousQueue<Integer> queue = new SynchronousQueue<>();
+    // 模拟生产者线程
+    new Thread(() -> {
+        try {
+            for (int i = 0; i < 5; i++) {
+                int product = new Random().nextInt(1000);
+                queue.put(product); // 生产一个随机数放入队列
+                System.out.println("product a data: " + product);
+            }
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }).start();
+    // 模拟消费者线程
+    new Thread(() -> {
+        while (true) {
+            try {
+                Integer data = queue.take();
+                System.out.println("customer a data: " + data);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }).start();
+}
+```
+
+#### 7.3.6. LinkedTransferQueue
+
+`LinkedTransferQueue` 是基于链表结构实现的无界阻塞 `TransferQueue` 队列。相对于其他阻塞队列有如下几个特有方法：
+
+```java
+void transfer(E e) throws InterruptedException;
+```
+
+- 如果当前有消费者正在等待接收元素，该方法就会直接把生产者传入的元素投递给消费者并返回 true；如果没有消费者在等待接收元素，该方法就会将元素存放在队列的尾部（tail）节点，直到该元素被消费后才返回。
+
+```java
+boolean tryTransfer(E e);
+```
+
+- 此方法首先尝试能否将生产者传入的元素直接传给消费者，如果没有消费者等待接收元素，则返回 false。和 `transfer` 方法的区别是，无论消费者是否接收元素，`tryTransfer` 方法都立即返回，而 `transfer` 方法必须等到元素被消费后才返回。
+
+```java
+boolean tryTransfer(E e, long timeout, TimeUnit unit) throws InterruptedException;
+```
+
+- 此方法首先尝试把生产者传入的元素直接传给消费者，如果没有消费者，则等待指定的时间，在超时后如果元素还没有被消费，则返回 false，否则返回 true。
+
+#### 7.3.7. LinkedBlockingDeque
+
+`LinkedBlockingDeque` 是基于链表结构实现的双向阻塞队列，可以在队列的两端分别执行插入和移出元素操作。因此在多线程同时操作队列时，可以减少一半的锁资源竞争，提高队列的操作效率。在初始化 `LinkedBlockingDeque` 时，可以设置队列的大小以防止内存溢出，双向阻塞队列也常被用于工作窃取模式。
+
+LinkedBlockingDeque 比其他阻塞队列，多了一些特有方法，如：`addFirst`、`addLast`、`offerFirst`、`offerLast`、`peekFirst`、`peekLast` 等方法。以 `First` 结尾的方法表示在队列头部执行插入（add）、获取（peek）、移除（offer）操作；以 `Last` 结尾的方法表示在队列的尾部执行插入、获取、移除操作。
 
 ## 8. Map 接口（双列集合）
 
