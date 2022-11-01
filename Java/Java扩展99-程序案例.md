@@ -1,7 +1,8 @@
 # Java案例
+
 ## 1. 将小数类型转成金额形式的字符串
 
-使用NumberFormat类进行数值格式，再对截取字符串
+使用 `NumberFormat` 类进行数值格式，再对截取字符串
 
 ```java
 package com.moon.testproj;

@@ -2,9 +2,11 @@
 
 ## 1. 网络编程概述
 
-### 1.1. 网络7层架构
+在计算机领域中，网络是信息传输、接收、共享的虚拟平台，将各个点、面、体的信息联系到一起，从而实现这些资源的共享。
 
-7 层模型主要包括：
+### 1.1. OSI 七层网络模型
+
+网络的七层模型从下到上主要包括：
 
 1. 物理层：主要定义物理设备标准，如网线的接口类型、光纤的接口类型、各种传输介质的传输速率等。它的主要作用是传输比特流（就是由 1、0 转化为电流强弱来进行传输,到达目的地后在转化为1、0，也就是我们常说的模数转换与数模转换）。这一层的数据叫做比特。
 2. 数据链路层：主要将从物理层接收的数据进行 MAC 地址（网卡的地址）的封装与解封装。常把这一层的数据叫做帧。在这一层工作的设备是交换机，数据通过交换机来传输。
@@ -16,11 +18,34 @@
 
 ![网络7层架构图](images/20190508152907946_3525.png)
 
-### 1.2. 网络编程的作用
+### 1.2. TCP/IP 四层网络模型
+
+TCP/IP 是指因特网的整个 TCP/IP 协议簇。从协议分层模型方面来讲，TCP/IP 由 4 个层次组成：
+
+![](images/145210517226806.png)
+
+TCP/IP 中网络接口层、网络层、传输层和应用层的具体工作职责：
+
+- 网络接口层（Network Access Layer）：定义了主机间网络连通的协议，具体包括 Echernet、FDDI、ATM 等通信协议。
+- 网络层（Internet Layer）：主要用于数据的传输、路由及地址的解析，以保障主机可以把数据发送给任何网络上的目标。数据经过网络传输，发送的顺序和到达的顺序可能发生变化。在网络层使用 IP（Internet Protocol）和地址解析协议（ARP）。
+- 传输层（Transport Layer）：使源端和目的端机器上的对等实体可以基于会话相互通信。在这一层定义了两个端到端的协议 TCP 和 UDP。
+    - TCP 是面向连接的协议，提供可靠的报文传输和对上层应用的连接服务，除了基本的数据传输，它还有可靠性保证、流量控制、多路复用、优先权和安全性控制等功能。
+    - UDP 是面向无连接的不可靠传输的协议，主要用于不需要TCP 的排序和流量控制等功能的应用程序。
+- 应用层（Application Layer）：负责具体应用层协议的定义，包括以下协议：
+    - Telnet（TELecommunications NETwork，虚拟终端协议）
+    - FTP（File Transfer Protocol，文件传输协议）
+    - SMTP（Simple Mail Transfer Protocol，电子邮件传输协议）
+    - DNS（Domain Name Service，域名服务）
+    - NNTP（Net News Transfer Protocol，网上新闻传输协议）
+    - HTTP（HyperText Transfer Protocol，超文本传输协议）
+
+### 1.3. 网络编程的作用
 
 解决计算机与计算机数据传输的问题。
 
-### 1.3. IP地址（网络通讯三要素）
+### 1.4. 网络通讯三要素
+
+#### 1.4.1. IP地址
 
 - IP 是每台电脑在互联网上的**唯一标识符**
 - 一个IPV4 的地址是由四段0—255 的数字组成：192.168.0.100
@@ -28,7 +53,7 @@
 - IPv6使用16个字节表示IP地址，它所拥有的地址容量约是IPv4的8×10<sup>28</sup>倍，达到2<sup>128</sup>个。
 - **127.0.0.1 为本地主机地址(本地回环地址)**
 
-### 1.4. 端口号（网络通讯三要素）
+#### 1.4.2. 端口号
 
 - 通过IP地址可以连接到指定计算机，但如果想访问目标计算机中的某个应用程序，还需要指定端口号。
 - 端口号是一个十进制整数。
@@ -36,7 +61,7 @@
 - 端口号是用两个字节（16位的二进制数）表示的，它的取值范围是**0~65535**
 - 其中，**0~1023之间的端口号是系统保留使用的**，开发人员需要使用1024以上的端口号，从而避免端口号被另外一个应用或服务所占用。
 
-### 1.5. 通讯协议（网络通讯三要素）
+#### 1.4.3. 通讯协议
 
 - **通讯协议的作用**：确定数据如何传输
     - TCP/IP协议中的四层分别是应用层、传输层、网络层和链路层，每层分别负责不同的通信功能，接下来针对这四层进行详细地讲解。
@@ -46,69 +71,6 @@
 - **应用层**：主要负责应用程序的协议，例如HTTP协议、FTP协议等。
 
 **网络通讯三要素小结：通过IP找主机，通过端口找程序，通过协议确定如何传输数据**
-
-### 1.6. InetAddress 类
-
-#### 1.6.1. InetAddress 类概述
-
-- Java 中可以使用 InetAddress 类表示一个IP 地址
-- 一个InetAddress对象就对应一个IP地址。
-
-#### 1.6.2. InetAddress 类常用方法
-
-##### 1.6.2.1. 静态方法
-
-```java
-public static InetAddress getLocalHost();
-// 获取本地主机IP地址对象。直接输出：“主机名/ip地址”
-
-public static InetAddress getByName(String host);
-// 依据主机名（IP地址字符串/域名）获取主机IP地址对象。
-```
-
-##### 1.6.2.2. 非静态方法
-
-```java
-public String getHostName();
-// 获取主机名称
-public String getHostAddress();
-// 获取主机字符串形式的IP
-```
-
-#### 1.6.3. 其他
-
-- `ipconfig` 用于DOS获取计算机IP设置
-- `ping` 用于判断两台计算机连接是否通畅
-- 127.0.0.1 与 localhost 类似，均代表本机地址
-- xxx.xxx.xxx.255 广播地址，即该网段下所有用户均可以被通知到
-
-#### 1.6.4. InetAddress 类 Code Demo
-
-```java
-import java.net.InetAddress;
-import java.net.UnknownHostException;
-
-/*
- * 	Inetaddress 类
- */
-public class MoonZero {
-    public static void main(String[] args) throws UnknownHostException {
-        // 获取本机IP地址值对象
-        InetAddress inet = InetAddress.getLocalHost();
-        // 获取本机名称和IP地址
-        System.out.println(inet); // Zero/192.168.83.21
-        String name = inet.getHostName();
-        System.out.println(name); // Zero
-        String ip = inet.getHostAddress();
-        System.out.println(ip); // 192.168.83.21
-
-        // 以主机的名称获取其他主机的对象
-        InetAddress inetOther = InetAddress.getByName("2011-20120210FQ");
-        // 获取其他主机的名称和IP地址
-        System.out.println(inetOther); // 2011-20120210FQ/192.168.83.64
-    }
-}
-```
 
 ## 2. UDP 通信
 
@@ -916,4 +878,67 @@ public class TCPServerThread extends Thread {
 - 信号驱动模型，用户线程接收到信号便表示数据已经就绪，需要用户线程调用 I/O 函数进行实际的 I/O 读写操作，将数据读取到用户线程；
 - 异步 I/O 模型，用户线程接收到信号便表示 I/O 操作已经完成（数据己经被复制到用户线程），用户可以开始使用该数据了 。
 
+## 5. 网络编程相关 API
 
+### 5.1. InetAddress 类
+
+#### 5.1.1. InetAddress 类概述
+
+- Java 中可以使用 InetAddress 类表示一个IP 地址
+- 一个InetAddress对象就对应一个IP地址。
+
+#### 5.1.2. InetAddress 类常用方法
+
+##### 5.1.2.1. 静态方法
+
+```java
+public static InetAddress getLocalHost();
+// 获取本地主机IP地址对象。直接输出：“主机名/ip地址”
+
+public static InetAddress getByName(String host);
+// 依据主机名（IP地址字符串/域名）获取主机IP地址对象。
+```
+
+##### 5.1.2.2. 非静态方法
+
+```java
+public String getHostName();
+// 获取主机名称
+public String getHostAddress();
+// 获取主机字符串形式的IP
+```
+
+#### 5.1.3. InetAddress 类 Code Demo
+
+```java
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+
+/*
+ * 	Inetaddress 类
+ */
+public class MoonZero {
+    public static void main(String[] args) throws UnknownHostException {
+        // 获取本机IP地址值对象
+        InetAddress inet = InetAddress.getLocalHost();
+        // 获取本机名称和IP地址
+        System.out.println(inet); // Zero/192.168.83.21
+        String name = inet.getHostName();
+        System.out.println(name); // Zero
+        String ip = inet.getHostAddress();
+        System.out.println(ip); // 192.168.83.21
+
+        // 以主机的名称获取其他主机的对象
+        InetAddress inetOther = InetAddress.getByName("2011-20120210FQ");
+        // 获取其他主机的名称和IP地址
+        System.out.println(inetOther); // 2011-20120210FQ/192.168.83.64
+    }
+}
+```
+
+## 6. 其他
+
+- `ipconfig` 用于DOS获取计算机IP设置
+- `ping` 用于判断两台计算机连接是否通畅
+- 127.0.0.1 与 localhost 类似，均代表本机地址
+- xxx.xxx.xxx.255 广播地址，即该网段下所有用户均可以被通知到

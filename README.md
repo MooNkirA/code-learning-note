@@ -23,8 +23,9 @@
   <li><a href="#/Java/Java基础99-JDK常用API">Java基础 - JDK常用API</a></li>
   <li><a href="#/Java/Java扩展01-设计模式">Java扩展 - 设计模式</a></li>
   <li><a href="#/Java/Java扩展02-代码简洁之道">Java扩展 - 代码简洁之道</a></li>
-  <li><a href="#/Java/Java扩展03-程序案例">Java扩展 - 程序案例</a></li>
+  <li><a href="#/Java/Java扩展03-数据结构">Java扩展 - 数据结构</a></li>
   <li><a href="#/Java/Java扩展04-排序算法">Java扩展 - 排序算法</a></li>
+  <li><a href="#/Java/Java扩展99-程序案例">Java扩展 - 程序案例</a></li>
 </ul>
 
 ### 🥃 JavaWeb
