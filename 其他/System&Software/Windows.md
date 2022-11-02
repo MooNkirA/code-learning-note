@@ -287,6 +287,7 @@ pause
 | calc                                  | 启动计算器                                |
 | mspaint                               | 画图                                     |
 | notepad                               | 打开记事本                                |
+| ncpa.cpl                              | 打开网络连接                              |
 | `Shutdown -s -t 600`                  | 表示600秒后自动关机                       |
 | `Shutdown -a`                         | 可取消定时关机                            |
 | `Shutdown -r -t 600`                  | 表示600秒后自动重启                       |
