@@ -31,10 +31,10 @@
 ### 🥃 JavaWeb
 
 <ul class="docs">
-  <li><a href="#/JavaWeb/JavaWeb01-HTTP协议">HTTP 协议</a></li>
-  <li><a href="#/JavaWeb/JavaWeb02-Web服务器">Web 服务器</a></li>
-  <li><a href="#/JavaWeb/JavaWeb03-Servlet">Servlet 基础笔记</a></li>
-  <li><a href="#/JavaWeb/JavaWeb04-JSP">JSP 基础笔记</a></li>
+  <li><a href="#/JavaWeb/JavaWeb01-网络">JavaWeb 基础 - 网络</a></li>
+  <li><a href="#/JavaWeb/JavaWeb02-Web服务器">JavaWeb 基础 - Web 服务器</a></li>
+  <li><a href="#/JavaWeb/JavaWeb03-Servlet">JavaWeb 基础 - Servlet</a></li>
+  <li><a href="#/JavaWeb/JavaWeb04-JSP">JavaWeb 基础 - JSP</a></li>
 </ul>
 
 ## 后端框架
