@@ -196,7 +196,15 @@
 
 ## 数据库
 
-### 🔢 MySQL
+### 数据库综合概述
+
+<ul class="docs">
+  <li><a href="#/数据库/关系型数据库概述与规范">关系型数据库概述与规范</a></li>
+</ul>
+
+### 关系型数据库
+
+#### 🔢 MySQL
 
 <ul class="docs">
   <li><a href="#/数据库/MySQL/MySQL数据库00-安装与部署">MySQL数据库-安装与部署</a></li>
@@ -207,17 +215,20 @@
   <li><a href="#/数据库/MySQL/MySQL数据库05-索引">MySQL数据库-索引</a></li>
   <li><a href="#/数据库/MySQL/MySQL数据库06-锁">MySQL数据库-锁</a></li>
   <li><a href="#/数据库/MySQL/MySQL数据库07-运维">MySQL数据库-运维篇（日志、主从复制、读写分离、分库分表）</a></li>
+  <li><a href="#/数据库/MySQL/MySQL数据库08-开发规范">MySQL 数据库开发规范</a></li>
+  <li><a href="#/数据库/MySQL/MySQL数据库09-性能优化">MySQL 数据库性能优化</a></li>
   <li><a href="#/数据库/MySQL/MySQL数据库99-SQL示例">SQL 练习示例</a></li>
-  <li><a href="#/数据库/MySQL/MySQL数据库规范与性能优化">MySQL 数据库规范与性能优化</a></li>
 </ul>
 
-### 🅾 Oracle
+#### 🅾 Oracle
 
 <ul class="docs">
   <li><a href="#/数据库/Oracle/Oracle-基础">Oracle 基础笔记</a></li>
 </ul>
 
-### 🪐 Redis
+### 非关系型数据库
+
+#### 🪐 Redis
 
 <ul class="docs">
   <li><a href="#/数据库/Redis/Redis-基础">Redis 基础笔记</a></li>
@@ -226,7 +237,7 @@
   <li><a href="#/数据库/Redis/Redis-操作命令">Redis 操作命令</a></li>
 </ul>
 
-### 🥭 MongoDb
+#### 🥭 MongoDb
 
 <ul class="docs">
   <li><a href="#/数据库/MongoDb/MongoDB-基础">MongoDB 基础笔记</a></li>
