@@ -130,12 +130,12 @@ maven 项目管理所依赖的 jar 包不需要手动向工程添加 jar 包，�
 1. 通过pom.xml文件对jar包的版本进行统一管理，可避免版本冲突。
 2. maven团队维护了一个非常全的maven仓库，里边包括了当前使用的jar包，maven工程可以自动从maven仓库下载jar包，非常方便。
 
-### 1.5. 使用maven的好处
+### 1.5. 使用 maven 的好处
 
-1. 一步构建。maven对项目构建的过程进行标准化，通过一个命令即可完成构建过程
-2. 依赖管理。maven工程不用手动导jar包，通过在pom.xml中定义坐标从maven仓库自动下载，方便且不易出错
-3. maven的跨平台，可在window、linux上使用
-4. maven遵循规范开发有利于提高大型团队的开发效率，降低项目的维护成本，大公司都会考虑使用maven来构建项目
+1. 一步构建。maven 对项目构建的过程进行标准化，通过一个命令即可完成构建过程
+2. 依赖管理。maven 工程不用手动导 jar 包，通过在 pom.xml 中定义坐标从 maven 仓库自动下载，方便且不易出错
+3. maven 的跨平台，可在 window、linux 上使用
+4. maven 遵循规范开发有利于提高大型团队的开发效率，降低项目的维护成本，大公司都会考虑使用 maven 来构建项目
 
 ## 2. Maven 项目的核心概念
 
@@ -145,14 +145,14 @@ maven 项目管理所依赖的 jar 包不需要手动向工程添加 jar 包，�
 
 <font color=red>本地仓库</font>
 
-- 用来存储从远程仓库或中央仓库下载的插件和jar包，项目使用一些插件或jar包，优先从本地仓库查找
-- 默认本地仓库位置在 `${user.dir}/.m2/repository`，`${user.dir}`表示windows用户目录
+- 用来存储从远程仓库或中央仓库下载的插件和 jar 包，项目使用一些插件或 jar 包，优先从本地仓库查找
+- 默认本地仓库位置在 `${user.dir}/.m2/repository`，`${user.dir}`表示 windows 用户目录
 
 <font color=red>远程仓库（私服）</font>
 
-- 如果本地需要插件或者jar包，本地仓库没有，默认去远程仓库下载
+- 如果本地需要插件或者 jar 包，本地仓库没有，默认去远程仓库下载
 - 远程仓库可以在互联网内也可以在局域网内
-- 私服在一定范围内共享资源，仅对内部开放，不对外共享。可以保存具有版权的资源，包含购买或自主研发的jar。因为中央仓库中的jar都是开源的，不能存储具有版权的资源。
+- 私服在一定范围内共享资源，仅对内部开放，不对外共享。可以保存具有版权的资源，包含购买或自主研发的 jar。因为中央仓库中的 jar 都是开源的，不能存储具有版权的资源。
 
 <font color=red>中央仓库</font>
 
@@ -160,10 +160,10 @@ maven 项目管理所依赖的 jar 包不需要手动向工程添加 jar 包，�
 
 #### 2.1.2. 相关仓库服务器网址
 
-- 中央仓库的地址：https://repo1.maven.org/maven2/
-- maven坐标查找的网站：https://mvnrepository.com/
+- 中央仓库的网址：https://repo1.maven.org/maven2/
+- maven 坐标查找的网站：https://mvnrepository.com/
 
-#### 2.1.3. 项目查找jar顺序
+#### 2.1.3. 项目查找 jar 顺序
 
 1. 先查找本地仓库
 2. 再查找私服或者外网中央仓库
@@ -173,24 +173,41 @@ maven 项目管理所依赖的 jar 包不需要手动向工程添加 jar 包，�
 
 **过程详解**：
 
-maven的工作需要从仓库下载一些jar包，如下图所示，本地的项目A、项目B等都会通过maven软件从远程仓库（可以理解为互联网上的仓库）下载jar包并存在本地仓库，本地仓库就是本地文件夹，当第二次需要此jar包时则不再从远程仓库下载，因为本地仓库已经存在了，可以将本地仓库理解为缓存，有了本地仓库就不用每次从远程仓库下载了。
+maven 的工作需要从仓库下载一些 jar 包，如下图所示，本地的项目A、项目B等都会通过 maven 软件从远程仓库（可以理解为互联网上的仓库）下载 jar 包并存在本地仓库，本地仓库就是本地文件夹，当第二次需要此 jar 包时则不再从远程仓库下载，因为本地仓库已经存在了，可以将本地仓库理解为缓存，有了本地仓库就不用每次从远程仓库下载了。
 
 ### 2.2. Maven 的坐标
 
 #### 2.2.1. 定义
 
-坐标(GAV)：是 Maven 作为查找定位jar包（项目/组件）的唯一依据。例如：`struts2-core-2.3.24.jar`
+坐标(GAV)：是 Maven 作为<font color=red>**查找定位 jar 包（项目/组件）的唯一依据**</font>。例如：`struts2-core-2.3.24.jar`
 
 坐标的规则：`Apache(公司名称)+struts2(项目名称)+2.3.24(版本信息)`
 
-官方中央仓库网址：https://repo1.maven.org/maven2/
-
 #### 2.2.2. Maven 坐标主要组成
 
-- `groupId`：定义当前Maven项目隶属项目、组织（通常是域名反转，如：org.mybatis）
+- `groupId`：定义当前 Maven 工程隶属项目、组织（通常是域名反转，如：org.mybatis）
 - `artifactId`：定义实际项目中的一个项目（模块）名称
-- `version`：定义当前项目的当前版本
-- `packaging`：定义该项目的打包方式(pom/jar/war，默认是jar包)
+- `version`：定义当前项目的版本号，也可以增加以下后缀来说明目前版本的性质
+    - `SNAPSHOT` 表示快照版本，正在迭代过程中，不稳定的版本
+    - `RELEASE` 表示正式版本
+
+```xml
+<groupId>com.moon</groupId>
+<artifactId>java-stack-maven</artifactId>
+<version>1.0-SNAPSHOT</version>
+```
+
+#### 2.2.3. 坐标和仓库中 jar 包存储路径的对应关系
+
+示例坐标：
+
+```xml
+<groupId>com.moon</groupId>
+<artifactId>maven-demo</artifactId>
+<version>1.0</version>
+```
+
+上面坐标对应的 jar 包在 Maven 本地仓库中的位置是：`Maven本地仓库根目录\com\moon\maven-demo\1.0\maven-demo-1.0.jar`
 
 ## 3. Maven 的安装与配置
 
@@ -241,7 +258,7 @@ Maven 3.3+ 需要使用jdk 1.7+；请使用 `java -version` 命令检查本机�
 
 ### 3.5. 验证是否安装成功
 
-查询maven的版本信息，用于检验 maven 是否配置成功。打开命令行，输入以下命令：
+查询 maven 的版本信息，用于检验 maven 是否配置成功。打开命令行，输入以下命令：
 
 ```bash
 mvn -v
@@ -367,19 +384,18 @@ mvn test
 
 将项目根目录下src/test/java目录下的单元测试类都会执行
 
-
 ### 4.4. package(打包)
 
 ```bash
 mvn package
 ```
 
-程序会根据项目的不同类型，打包成不同类型的包:
+程序会根据 pom.xml 配置文件中的 `<packaging>` 标签中定义该工程的打包方式（pom/jar/war，默认是jar包），打包成不同类型的包:
 
-- web project  --> war包
-- java project  --> jar包
+- web project -> war包
+- java project -> jar包
 
-将项目打包，打包后文件存在项目根目录下taget目录
+打包后生成的文件默认保存在工程根目录下 taget 目录
 
 ### 4.5. install(安装)
 
@@ -425,7 +441,7 @@ MavenProject
 
 ![](images/20220116181003944_17077.png)
 
-#### 5.1.2. pom.xml文件
+#### 5.1.2. pom.xml 文件
 
 - project：任何要build的事物，Maven都认为它们是工程。这些工程被定义为工程对象模型（POM，Poject Object Model）。一个工程可以依赖其它工程，一个工程也可以由多个子工程构成。
 - POM：pom(pom.xml)是Maven的核心文件，它是指示Maven如何工作的元数据文件，类似于Ant的build.xml文件。pom.xml文件位于每个工程的根目录下。
@@ -433,7 +449,7 @@ MavenProject
 
 ### 5.2. 使用命令方式创建 maven 项目
 
-直接通过命令行使用 maven 提供的插件创建 maven项目。语法如下：
+直接通过命令行使用 maven 提供的插件创建 maven 项目。语法如下：
 
 ```bash
 mvn archetype:generate
@@ -443,6 +459,10 @@ mvn archetype:generate
     -Dversion={项目版本号}
     -DinteractiveMode=false
 ```
+
+![](images/373710623221146.png)
+
+> Tips: 如果使用命令时，不指定相关的参数，则会需要创建工程的过程中来输入相关的工程名称、版本号等等信息。
 
 - 创建 java 工程示例：
 
