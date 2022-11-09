@@ -768,7 +768,7 @@ session.fireAllRules();
 session.dispose();
 ```
 
-通过控制台的输出可以看到规则文件中定义的三个规则都触发了，因为update方法会再次触发规则的校验。<font color=red>**在更新数据时需要注意防止发生死循环**</font>。
+通过控制台的输出可以看到规则文件中定义的三个规则都触发了，因为 update 方法会再次触发规则的校验。<font color=red>**在更新数据时需要注意防止发生死循环**</font>。
 
 #### 5.8.2. insert 方法
 
