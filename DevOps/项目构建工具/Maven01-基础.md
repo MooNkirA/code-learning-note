@@ -380,6 +380,10 @@ mvn archetype:generate -DgroupId=com.moon -DartifactId=web-project-demo -Darchet
 
 ![](images/20220116221152757_17049.png)
 
+#### 4.2.3. 创建 web 项目（待整理）
+
+> TODO: 待补充整理！
+
 ### 4.3. 使用 eclipse 创建（待整理）
 
 > TODO: 待补充整理！
@@ -829,7 +833,7 @@ maven 项目管理所依赖的 jar 包不需要手动向工程添加 jar 包，�
 </dependencies>
 ```
 
-#### 6.7.1. Maven自动依赖调解原则：在两个直接依赖中,以后面声明者优先
+#### 6.7.1. 自动依赖调解原则：在两个直接依赖中,以后面声明者优先
 
 在pom文件定义依赖，以后面声明的依赖为准
 
@@ -849,7 +853,7 @@ maven 项目管理所依赖的 jar 包不需要手动向工程添加 jar 包，�
 </dependency>
 ```
 
-#### 6.7.2. Maven自动依赖调解原则：在两个传递(间接)依赖中,以先声明者优先
+#### 6.7.2. 自动依赖调解原则：在两个传递(间接)依赖中,以先声明者优先
 
 在pom文件定义依赖，以先声明的依赖为准
 
@@ -869,7 +873,7 @@ maven 项目管理所依赖的 jar 包不需要手动向工程添加 jar 包，�
 </dependency>
 ```
 
-#### 6.7.3. Maven自动依赖调解原则：直接依赖级别高于传递(间接)依赖
+#### 6.7.3. 自动依赖调解原则：直接依赖级别高于传递(间接)依赖
 
 例如：A依赖spirng-beans-4.2.4，A依赖B依赖spirng-beans-3.0.5，则spring-beans-4.2.4优先被依赖在A中，因为spring-beans-4.2.4相对spirng-beans-3.0.5被A依赖的路径最近
 
@@ -882,7 +886,7 @@ maven 项目管理所依赖的 jar 包不需要手动向工程添加 jar 包，�
 </dependency>
 ```
 
-#### 6.7.4. Maven手动解决依赖冲突：排除依赖
+#### 6.7.4. 手动解决依赖冲突：排除依赖
 
 版本的冲突可以通过排除依赖方法辅助依赖调解。比如在依赖 struts2-spring-plugin 的设置中添加排除依赖，排除 spring-beans
 
@@ -908,11 +912,11 @@ maven 项目管理所依赖的 jar 包不需要手动向工程添加 jar 包，�
 </dependency>
 ```
 
-#### 6.7.5. Maven手动解决依赖冲突：锁定版本（推荐使用）
+#### 6.7.5. 手动解决依赖冲突：锁定版本（推荐使用）
 
 面对众多的依赖，有一种方法不用考虑依赖路径、声明优化等因素可以采用直接锁定版本的方法确定依赖构件的版本，版本锁定后则不考虑依赖的声明顺序或依赖的路径，<font color=red>**以锁定的版本为准添加到工程中，此方法在企业开发中常用**</font>
 
-在pom.xml文件中，通过使用 `<dependencyManagement>` 标签来锁定依赖的版本。注意点如下：
+在 pom.xml 文件中，通过使用 `<dependencyManagement>` 标签来锁定依赖的版本。注意点如下：
 
 1. 在工程中锁定依赖的版本并不代表在工程中添加了依赖，如果工程需要添加锁定版本的依赖则需要单独添加 `<dependencies></dependencies>` 标签
 2. 如果在 `<dependencyManagement>` 中锁定了版本，那么在 `<dependency>` 下不需要再指定版本
@@ -956,15 +960,15 @@ maven 项目管理所依赖的 jar 包不需要手动向工程添加 jar 包，�
 </dependencies>
 ```
 
-## 7. maven项目的生命周期
+## 7. maven 项目的生命周期
 
 ### 7.1. 三套生命周期
 
-在maven中存在“三套”生命周期，每一套生命周期相互<font color=red>**独立**</font>，互不影响。<font color=red>**在一套生命周期内，执行后面的命令前面操作会自动执行**</font>
+在 maven 中存在“三套”生命周期，每一套生命周期相互<font color=red>**独立**</font>，互不影响。<font color=red>**在同一套生命周期内，执行后面的命令前面操作会自动执行**</font>
 
 三套生命周期分别是：
 
-- Clean LifeCycle：在进行真正的构建之前进行一些清理工作。包括的命令：`clean`
+- Clean LifeCycle：在进行真正的构建之前进行一些清理工作。包括的命令：`pre-clean`、`clean`、`post-clean`
 - Default LifeCycle：默认生命周期，构建核心部分，编译，测试，打包，部署等等。包括的命令：`compile`,`test`,`package`,`install`,`deploy`
 - site LifeCycle：站点生命周期，生成项目报告，站点，发布站点。包括的命令：`site`
 
@@ -1034,11 +1038,11 @@ site 生命周期包含如下 4 个阶段：
 
 ### 7.3. 命令与生命周期的阶段
 
-每个maven命令对应生命周期的某个阶段，例如：`mvn clean`命令对应 clean 生命周期的clean阶段，`mvn test`命令对应default生命周期的test阶段。
+每个 maven 命令对应生命周期的某个阶段，例如：`mvn clean`命令对应 clean 生命周期的 clean 阶段，`mvn test` 命令对应 default 生命周期的test  阶段。
 
-执行命令会将该命令在的在生命周期当中之前的阶段自动执行，比如：执行 `mvn clean` 命令会自动执行pre-clean和clean两个阶段，`mvn test`命令会自动执行validate、compile、test等阶段。
+<font color=red>**执行某个命令时，会将该命令所在生命周期阶段之前的命令全部自动执行**</font>，比如：执行 `mvn clean` 命令会自动执行 `pre-clean` 和 `clean` 两个阶段，`mvn test`命令会自动执行 `validate`、`compile`、`test` 等阶段。
 
-<font color=red>**注意：执行某个生命周期的某个阶段不会影响其它的生命周期！**</font>
+> Notes: <font color=red>**执行某个生命周期的某个阶段不会影响其它的生命周期！**</font>
 
 如果要同时执行多个生命周期的阶段可在命令行输入多个命令，中间以空格隔开，例如：`clean package` 该命令执行 clean 生命周期的 clean 阶段和 default 生命周期的 package 阶段。
 
