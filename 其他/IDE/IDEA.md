@@ -25,8 +25,8 @@ idea.system.path=D:/development/JetBrains/.IntelliJIdea/system
 
 ### 1.2. 配置说明
 
-- **config**：在初始化安装IntelliJ IDEA时会询问是否导入以存在的配置信息，这个config就是你的配置信息，方便更换电脑和换系统的时候重新安装，前提是要保存好此文件夹。
-- **system**：此文件夹是IntelliJ IDEA发生什么不可预知性的错误时，比如蓝屏突然断电导致项目不能启动，可以尝试删除此文件，让系统重新生成一个system的文件。
+- **config**：在初始化安装 IntelliJ IDEA 时会询问是否导入以存在的配置信息，这个 config 就是你的配置信息，方便更换电脑和换系统的时候重新安装，前提是要保存好此文件夹。
+- **system**：此文件夹是 IntelliJ IDEA 发生什么不可预知性的错误时，比如蓝屏突然断电导致项目不能启动，可以尝试删除此文件，让系统重新生成一个 system 的文件。
 
 ## 2. 当前项目配置 VS 默认配置
 
@@ -103,7 +103,7 @@ Intellj 自动载入Mave依赖的功能很好用，但有时候会碰到问题�
 
 ![](images/20220107203255434_25967.png)
 
-### 4.7. 解决idea创建maven项目速度慢问题的三种方法
+### 4.7. 解决 idea 创建 maven 项目速度慢问题的三种方法
 
 idea创建maven项目时，速度很慢，主要原因是创建maven项目时默认是下载求网络上的一个文件archetype-catalog.xml，该文件的大小有5-6M，下载的速度很慢，导致创建过程也变得很慢。
 
@@ -125,32 +125,34 @@ idea创建maven项目时，速度很慢，主要原因是创建maven项目时默
 
 #### 4.7.2. 方式二
 
-下载archetype-catalog.xml文件，在maven的VM Options加上`-DarchetypeCatalog=local`。默认情况下，创建maven项目是从网络下载catalog文件，我们可以将catalog文件下到本地，然后通过设置archetype的使用方式为local，这样就不用每次都从网络上下载了。
+下载 archetype-catalog.xml 文件，在 maven 的 VM Options 加上`-DarchetypeCatalog=local`。默认情况下，创建 maven 项目是从网络下载 catalog 文件，因此可以将 catalog 文件下到本地，然后通过设置 archetype 的使用方式为 `local`，这样就不用每次都从网络上下载了。
 
-1. 下载archetype-catalog.xml文件到本地。文件的位置是http://repo1.maven.org/maven2/archetype-catalog.xml，但直接访问是下载不了，我把该文件放在了github上，有需要的同学可以点击下载。地址：https://github.com/Taoxj/sc_properties
-2. 下载后放到本地仓库中对应的位置。maven本地仓库的位置与settting.xml中的配置有关，例如我的setting.xml配置仓库的位置是：D:\apache-maven-3.6.0\repository
+1. 下载 archetype-catalog.xml 文件到本地，文件的位置如下：
+> 官方：http://repo1.maven.org/maven2/archetype-catalog.xml
+> 其他：https://github.com/Taoxj/sc_properties
+2. 下载后放到本地仓库中对应的位置。maven 本地仓库的位置与 settting.xml 中的配置有关，例如 setting.xml 配置仓库的位置是：D:\apache-maven-3.6.0\repository
 
 ![](images/20201105161047495_11028.jpg)
 
-那么catalog文件就可以放在 D:\apache-maven-3.6.0\repository\org\apache\maven\archetype-catalog\3.0.1\
+那么 catalog 文件就可以放在 D:\apache-maven-3.6.0\repository\org\apache\maven\archetype-catalog\3.0.1\
 
 ![](images/20201105161117486_22248.jpg)
 
-如果setting.xml没有配置仓库位置，那么就放到默认本地仓库下面对应的位置即可。本地仓库的默认位置是：`Default: ${user.home}/.m2/repository`，例如笔者的计算机用户名是Administrator，仓库位置就是 C:Users\Administrator\.m2\repository
+如果 setting.xml 没有配置仓库位置，那么就放到默认本地仓库下面对应的位置即可。本地仓库的默认位置是：`Default: ${user.home}/.m2/repository`，例如计算机用户名是 Administrator，仓库位置就是 C:Users\Administrator\.m2\repository
 
-3. 修改maven的VM Options参数。跟之前方法的步骤一样，打开全局设置中的maven设置栏，然后在VM Options输入框中填入`-DarchetypeCatalog=local`。这样maven每次就会从本地获取catalog文件，创建项目时就不用等那么久了。
+3. 修改 maven 的 VM Options 参数。跟之前方法的步骤一样，打开全局设置中的 maven 设置栏，然后在 VM Options 输入框中填入`-DarchetypeCatalog=local`。这样 maven 每次就会从本地获取 catalog 文件，创建项目时就不用等那么久了。
 
 #### 4.7.3. 方式三
 
-在maven的VM Options加上`-Dmaven.multiModuleProjectDictory=$MAVEN_HOME`参数，MAVEN_HOME是你环境变量中配置maven环境的名称
+在 maven 的 VM Options 加上`-Dmaven.multiModuleProjectDictory=$MAVEN_HOME`参数，`MAVEN_HOME` 是环境变量中配置 maven 环境的名称
 
 ![](images/20201105161245667_23969.jpg)
 
-设置好参数后，新建maven项目的时候添加上参数archetypeCatalog，值为local，或者是如果本地仓库里有了catalog文件，参数值也可以为local
+设置好参数后，新建 maven 项目的时候添加上参数 archetypeCatalog，值为 local，或者是如果本地仓库里有了 catalog 文件，参数值也可以为 local
 
 ![](images/20201105161258484_26119.jpg)
 
-确定之后，maven项目就能很快的建成了。
+确定之后，maven 项目就能很快的建成了。
 
 #### 4.7.4. 方式四
 
@@ -166,6 +168,28 @@ idea创建maven项目时，速度很慢，主要原因是创建maven项目时默
 ```
 
 ![](images/20211227215818216_1738.png)
+
+### 4.8. 导入 maven 项目时无法识别
+
+导入项目父级目录不是 Maven Parent 目录而是普通的文件夹，里面的子 maven 项目无法识别（子module变灰）。
+
+#### 4.8.1. 方式1
+
+1. 右键父项目 -> 选择【open Module Settings】 -> 选择【modules】 -> 点击【+】号 -> 选择【Import Module】
+
+![](images/20201010234047833_29940.jpg)
+
+![](images/20201010234122234_17422.jpg)
+
+2. 选择变灰项目的【pom.xml】文件
+3. 点击【ok】 -> 【next】 -> 一直选择到结束即可
+
+#### 4.8.2. 方式2
+
+选择无法识别的 pom.xml 文件，右键选择【+ Add as Maven Project】
+
+![](images/20201010234327948_1885.png)
+
 
 ## 5. 常用配置
 
@@ -556,6 +580,14 @@ Editor: 选择要应用于编辑器的抗锯齿模式：
 - 【Show tool window bars】，在主窗口的边缘周围显示工具窗口栏
 - 【Show tool window numbers】，工具栏显示数字，并且可以按Alt键加数字键快捷打开菜单
 
+### 5.28. IDEA 2019 中文字体渲染有粗有细异常解决方法
+
+![](images/20201105160134895_28746.jpg)
+
+解决方法：File --> Settings --> Editor --> Font --> Fallback font 这一栏选择一种字体，如：SimHei 字体
+
+![](images/20201105160145406_6013.jpg)
+
 ## 6. 配置代码模板（Live Templates）
 
 ![](images/20201104164947850_3828.jpg)
@@ -672,30 +704,9 @@ Postfix Completion其实就是关于代码补全的一些模板。在【Settings
 
 ![](images/20201105145508248_1706.jpg)
 
-导入：点击【File】 --> 【Import Settings】 --> 找到【Settings】的位置，点击【OK】导入
+导入：点击【File】 -> 【Import Settings】 -> 找到【Settings】的位置，点击【OK】导入
 
-## 11. 导入maven项目时无法识别
-
-导入项目父级目录不是 Maven Parent 目录而是普通的文件夹，里面的子 maven 项目无法识别（子module变灰）。
-
-### 11.1. 方式1
-
-1. 右键父项目 --> 选择【open Module Settings】 --> 选择【modules】 --> 点击【+】号 --> 选择【Import Module】
-
-![](images/20201010234047833_29940.jpg)
-
-![](images/20201010234122234_17422.jpg)
-
-2. 选择变灰项目的【pom.xml】文件
-3. 点击【ok】 --> 【next】 --> 一直选择到结束即可
-
-### 11.2. 方式2
-
-选择无法识别的 pom.xml 文件，右键选择【+ Add as Maven Project】
-
-![](images/20201010234327948_1885.png)
-
-## 12. IDEA复制项目导致sources root复用了另一个项目【解决办法】
+## 11. 解决 IDEA 复制项目导致 sources root 复用了另一个项目
 
 比如现在新建一个项目，而对原来的uis-gateway复制粘贴，然后改项目名就成了uis-application了。这时会发现如下图所示，sources root依然是uis-gateway：
 
@@ -715,21 +726,13 @@ Postfix Completion其实就是关于代码补全的一些模板。在【Settings
 
 ![](images/20201111135651846_8443.png)
 
-## 13. Tomcat Server（当前项目配置）
-
-Tomcat或者Jetty这些都是部署的容器，自然会联想到Deployment ，打开部署配置，可以看到应用服务器的配置
-
-配置Tomcat方法： File -> Settings -> Deployment -> Application Servers -> Tomcat Server
-
-![](images/20201105154033810_20978.jpg)
-
-## 14. IDEA 的项目配置和Web部署
+## 12. IDEA 的项目配置和 Web 部署
 
 IDEA中最重要的各种设置项，就是这个 `Project Structre` 了，关乎你的项目运行
 
 ![](images/20201105154113621_18429.jpg)
 
-### 14.1. Project选项卡
+### 12.1. Project选项卡
 ![](images/20201105154138246_26519.jpg)
 
 - `Project name`：定义项目的名称；
@@ -737,17 +740,17 @@ IDEA中最重要的各种设置项，就是这个 `Project Structre` 了，关�
 - `Project language level`：这个和JDK的类似，区别在于，假如你设置了JDK1.8，却只用到1.6的特性，那么这里可以设置语言等级为1.6，这个是限定项目编译检查时最低要求的JDK特性；
 - `Project compiler output`：项目中的默认编译输出总目录，如图黄色部分，实际上每个模块可以自己设置特殊的输出目录（Modules - (project) - Paths - Use module compile output path），所以这个设置有点鸡肋。
 
-### 14.2. Modules选项卡
+### 12.2. Modules选项卡
 
 ![](images/20201105154246189_1479.jpg)
 
-#### 14.2.1. 增删子项目
+#### 12.2.1. 增删子项目
 
 ![](images/20201105154340793_28073.jpg)
 
 一个项目中可以有多个子项目，每个子项目相当于一个模块。一般我们项目只是单独的一个，IntelliJ IDEA 默认也是单子项目的形式，所以只需要配置一个模块
 
-#### 14.2.2. 子项目配置
+#### 12.2.2. 子项目配置
 
 每个子项目都对应了Sources、Paths、Dependencies 三大配置选项
 
@@ -761,13 +764,13 @@ IDEA中最重要的各种设置项，就是这个 `Project Structre` 了，关�
 
 ![](images/20201105154536810_4240.jpg)
 
-#### 14.2.3. 增删框架（Web部署-1）
+#### 12.2.3. 增删框架（Web部署-1）
 
 每个子项目之下都可以定义它所使用的框架，这里重点说明一下Web部分的设置
 
 ![](images/20201105154614214_17076.jpg)
 
-### 14.3. Libraries选项卡
+### 12.3. Libraries选项卡
 
 这里可以显示所添加的jar包，同时也可以添加jar包，并且可以把多个jar放在一个组里面，类似于jar包整理。
 
@@ -775,7 +778,7 @@ IDEA中最重要的各种设置项，就是这个 `Project Structre` 了，关�
 
 ![](images/20201105154650284_16459.jpg)
 
-### 14.4. Facets选项卡
+### 12.4. Facets选项卡
 
 官方的解释是：When you select a framework (a facet) in the element selector pane, the settings for the framework are shown in the right-hand part of the dialog.（当你在左边选择面板点击某个技术框架，右边将会显示这个框架的一些设置）
 
@@ -783,7 +786,7 @@ IDEA中最重要的各种设置项，就是这个 `Project Structre` 了，关�
 
 ![](images/20201105154731311_7022.jpg)
 
-### 14.5. Artifacts（Web部署-2）
+### 12.5. Artifacts（Web部署-2）
 
 项目的打包部署设置，这个是项目配置里面比较关键的地方。先理解下它的含义，来看看官方定义的artifacts：
 
@@ -810,9 +813,18 @@ IDEA中最重要的各种设置项，就是这个 `Project Structre` 了，关�
 
 ![](images/20201105154911012_26433.jpg)
 
-## 15. 设置idea连接linux系统
+### 12.6. Tomcat Server（当前项目配置）
 
-根据linux系统的编码设置Default encoding
+Tomcat 或者 Jetty 这些都是部署的容器，自然会联想到 Deployment ，打开部署配置，可以看到应用服务器的配置
+
+配置 Tomcat 方法： File -> Settings -> Deployment -> Application Servers -> Tomcat Server
+
+![](images/20201105154033810_20978.jpg)
+
+
+## 13. 设置 idea 连接 linux 系统
+
+根据 linux 系统的编码设置 Default encoding
 
 ![](images/20201105155104739_10439.jpg)
 
@@ -830,24 +842,24 @@ IDEA中最重要的各种设置项，就是这个 `Project Structre` 了，关�
 
 ![](images/20201105155227043_12236.jpg)
 
-## 16. 使用idae创建的 Spring Boot 项目，运行两个一样的启动类
+## 14. 使用 idae 创建的 Spring Boot 项目，运行两个一样的启动类
 
 ![](images/20201105155459921_5551.jpg)
 
 ![](images/20201105155507031_28656.jpg)
 
-## 17. Intellij IDEA 4种配置热部署的方法
+## 15. Intellij IDEA 四种配置热部署的方法
 
 热部署可以使的修改代码后，无须重启服务器，就可以加载更改的代码。
 
-### 17.1. 方式1：修改服务器配置，使得IDEA窗口失去焦点时，更新类和资源
+### 15.1. 方式1：修改服务器配置，使得 IDEA 窗口失去焦点时，更新类和资源
 
 菜单Run -> EditConfiguration , 然后配置指定服务器下，右侧server标签下on frame deactivation = Update classes and resource。
 
 - 优点：简单
 - 缺点：基于JVM提供的热加载仅支持方法块内代码修改，只有debug模式下，并且是在idea失去焦点时才会出发热加载，相对加载速度缓慢
 
-### 17.2. 方式2：使用springloaded jar包
+### 15.2. 方式2：使用 springloaded jar 包
 
 下载jar包，github：https://github.com/spring-projects/spring-loaded
 
@@ -856,7 +868,7 @@ IDEA中最重要的各种设置项，就是这个 `Project Structre` 了，关�
 - 优点：对Spring系列框架支持好（不含Spring boot）, 支持 成员级别的修改（增删改方法、字段、注解），支持对枚举值集。
 - 缺点：与优点相对
 
-### 17.3. 方式3：使用spring-boot-devtools提供的开发者工具
+### 15.3. 方式3：使用 spring-boot-devtools 提供的开发者工具
 
 spring-boot项目中引入如下依赖
 
@@ -867,31 +879,23 @@ spring-boot项目中引入如下依赖
 </dependency>
 ```
 
-- 优点：简单，支持Spring-boot项目，支持成员级别的修改热部署。
-- 缺点：只支持spring-boot项目。
+- 优点：简单，支持 Spring-boot 项目，支持成员级别的修改热部署。
+- 缺点：只支持 spring-boot 项目。
 
-### 17.4. 方式4：使用Jrebel插件实现热部署(该插件14天免费试用)
+### 15.4. 方式4：使用 Jrebel 插件实现热部署(该插件14天免费试用)
 
 在线安装：菜单File -> Setting -> Plugin, 点击右侧底部 Browse repositories, 弹出框顶部输入:JReble for Intellij， 选中安装即可
 
 - 优点：强大，对各类框架支持，并且提供IDE插件的方式
 
-### 17.5. 注意
+### 15.5. 注意
 
 最后3种方法是基于类加载机制来实现热加载的，因此你修改完成代码后必须重新编译当前代码，才能触发热部署，Eclipse默认就支持了自动编译，而在Intellij IDEA中默认是关闭了自动编译的，可以按照如下2步设置开启：
 
 1. IDEA开启项目自动编译，进入设置，Build,Execut, Deployment -> Compiler 勾选中左侧的`Build Project automatically`
 2. IDEA开启项目运行时自动make, ctrl + shift + a搜索命令：registry -> 勾选`compiler.automake.allow.when.app.running`
 
-## 18. IDEA 2019 中文字体渲染有粗有细异常解决方法
-
-![](images/20201105160134895_28746.jpg)
-
-解决方法：File --> Settings --> Editor --> Font --> Fallback font 这一栏选择一种字体，如：SimHei 字体
-
-![](images/20201105160145406_6013.jpg)
-
-## 19. 开启/关闭一个项目中的某些模块
+## 16. 开启/关闭一个项目中的某些模块
 
 在项目根目录上右键，选择【Load/Unload Modules...】
 
@@ -901,7 +905,7 @@ spring-boot项目中引入如下依赖
 
 ![](images/20201105160248817_9448.jpg)
 
-### 19.1. Http Client 无法请求本地接口
+## 17. Http Client 无法请求本地接口
 
 ![](images/20210714214823612_1633.png)
 
@@ -909,7 +913,7 @@ spring-boot项目中引入如下依赖
 
 ![](images/20210714214518425_30883.png)
 
-## 20. 自动清理缓存和日志(2021.2+版本)
+## 18. 自动清理缓存和日志(2021.2+版本)
 
 IDEA 2021.2 增加一个自动清理的缓存以及日志的的功能，目前将会自动清理更新已超过 180 天的所有缓存和日志目录。这个清理不会影响系统设置和插件目录。
 
@@ -917,19 +921,19 @@ IDEA 2021.2 增加一个自动清理的缓存以及日志的的功能，目前�
 
 ![](images/592233714220166)
 
-## 21. 微服务图表(2021.2+版本)
+## 19. 微服务图表(2021.2+版本)
 
 IDEA 2021.2 现在可以展示微服务的图表，在这上面可以看到微信服务交互关系。可以点击 Endpoints 工具窗口中的相应图标进行构建生成。
 
 ![](images/488954214238592)
 
-## 22. 常用操作
+## 20. 常用操作
 
-### 22.1. 个人修改的快捷键
+### 20.1. 个人修改的快捷键
 
 查看附件 `IntelliJ IDEA 快捷键.xlsx`
 
-### 22.2. 查看图形形式的继承链
+### 20.2. 查看图形形式的继承链
 
 在想查看的类的标签页内，点击右键，选择 Diagrams，其中有 show 和 show ... Popup，只是前者新建在标签页内，后者以浮窗的形式展示：
 
@@ -943,11 +947,11 @@ IDEA 2021.2 现在可以展示微服务的图表，在这上面可以看到微�
 - <font color=blue>**蓝色**</font>实线箭头是指继承关系
 - <font color=green>**绿色**</font>虚线箭头是指接口实现关系
 
-### 22.3. 同时编辑多行
+### 20.3. 同时编辑多行
 
 按着ALT键，用鼠标左键拖动需要编辑的行内容
 
-### 22.4. inject language快速构建一些语法 - 快速定义JSON
+### 20.4. inject language快速构建一些语法 - 快速定义JSON
 
 1. 定义一个json字符串则需要手动的去用`\`将`"`转义。使用inject language则可以省去这个步骤。
 2. 定义一个json的字符串，将光标放在`""`中间，然后按Alt+Enter，出来如下提示后，选择Inject language or reference。
@@ -964,11 +968,81 @@ IDEA 2021.2 现在可以展示微服务的图表，在这上面可以看到微�
 
 ![](images/20201105162146169_13016.jpg)
 
-## 23. 解决 idea 卡顿问题
+## 21. 解决 idea 卡顿问题
 
 - 在各种优化配置都没明显改善，最后想出了一招禁用和卸载一些平时用不到的插件。效果显著，直接起飞。
 
 > 在升级 2021 以上版本后卡顿问题，感觉主要可能是 Code With Me 和 Space 引起的，在之前没有这 2 插件的时候也没这么明显的卡顿感
+
+## 22. idea64.exe.vmoptions 配置文件详解
+
+> 更多配置详解参考：https://www.zender.top/post/idea_jvm.html
+
+idea2020.1.2 的配置 idea64.exe.vmoptions 文件示例内容
+
+```
+-server
+-Xms512m
+-Xmx1024m
+-Xmn393m
+-Xverify:none
+-ea
+-XX:+AlwaysPreTouch
+-XX:MaxGCPauseMillis=100
+-XX:+UseConcMarkSweepGC
+-XX:ParallelGCThreads=4
+-XX:+CMSParallelRemarkEnabled
+-XX:ConcGCThreads=4
+-XX:CICompilerCount=4
+-XX:ReservedCodeCacheSize=240m
+-XX:+TieredCompilation
+-XX:+UseCompressedOops
+-XX:SoftRefLRUPolicyMSPerMB=50
+-XX:MaxTenuringThreshold=10
+-XX:-OmitStackTraceInFastThrow
+-Dsun.io.useCanonCaches=false
+-Dsun.io.useCanonPrefixCache=false
+# 设置禁用 IPv6
+-Djava.net.preferIPv4Stack=true
+-Djdk.http.auth.tunneling.disabledSchemes=""
+-Djdk.attach.allowAttachSelf
+-Dkotlinx.coroutines.debug=on
+-Djdk.module.illegalAccess.silent=true
+```
+
+### 22.1. -server
+
+JVM 的参数配置分别是**服务器模式(-server)**和**客户端模式(client)**
+
+比如垃圾回收机制，客户端模式下，要求的是用户体验流程，无明显滞留感（就是没有卡的现象）。而服务端，要求的是吞吐量，就是单位时间内执行的代码要求越多越好。
+
+### 22.2. JVM 配置
+
+- `-Xmx1024m`：设置 JVM 最大可用内存为 1024m。
+- `-Xms512m`：设置 JVM 初始内存为 512m(启动时占用内存大小)。此值可以设置与`-Xmx`相同，以避免每次垃圾回收完成后 JVM 重新分配内存。
+- `-Xmn393m`：设置 JVM 年轻代(Young Generation)大小为393m。<font color=red>**整个堆大小 = 年轻代大小 + 年老代大小 + 持久代大小**</font>。持久代一般固定大小为 64m，所以增大年轻代后，将会减小年老代大小。此值对系统性能影响较大，Sun 官方推荐配置为整个堆的3/8。
+- `-Xss128k`：设置每个线程的堆栈大小为 128k。JDK5.0 以后每个线程堆栈大小为 1M，以前每个线程堆栈大小为 256K。更具应用的线程所需内存大小进行调整。在相同物理内存下，减小这个值能生成更多的线程。但是操作系统对一个进程内的线程数还是有限制的，不能无限生成，经验值在 3000~5000 左右。
+- `-Xverify:none`：关闭 Java 字节码验证，从而加快了类装入的速度，并使得在仅为验证目的而启动的过程中无需装入类，缩短了启动时间。 
+- `-ea`：启动断言检查机制。
+
+### 22.3. -XX:+AlwaysPreTouch
+
+参数作用：服务启动的时候分配真实的物理内存给 JVM。
+
+JAVA 进程启动的时候，虽然可以为 JVM 指定合适的内存大小，但是这些内存操作系统并没有真正的分配给 JVM，而是等 JVM 访问这些内存的时候，才真正分配。这样会造成以下问题：
+
+1. 第 1 次YGC(年轻带GC)之前 Eden 区分配对象的速度较慢;
+2. YGC(年轻带GC)的时候，Young 区的对象要晋升到 Old 区的时候，这个时候需要操作系统真正分配内存，这样就会加大YGC(年轻带GC)的停顿时间。
+
+配置 `-XX:+AlwaysPreTouch` 参数可以优化这个问题，不过这个参数也有副作用，它会影响启动时间。
+
+配置这个参数后这么耗时其中一个原因是，这个特性在 JDK8 版本以前都不是并行处理的，到了 JDK9 才是并行。在没有配置 `-XX:+AlwaysPreTouch` 参数即默认情况下，JVM 参数 `-Xms` 申明的堆只是在虚拟内存中分配，而不是在物理内存中分配：它被以一种内部数据结构的形式记录，从而避免被其他进程使用这些内存。这些内存页直到被访问时，才会在物理内存中分配。当 JVM 需要内存的时候，操作系统将根据需要分配内存页。
+
+配置 `-XX:+AlwaysPreTouch` 参数后，JVM 将 `-Xms` 指定的堆内存中每个字节都写入"0"，这样的话，除了在虚拟内存中以内部数据结构保留之外，还会在物理内存中分配内存。并且由于touch(分配物理内存)这个行为是单线程的，因此它将会让 JVM 进程启动变慢。所以，要么选择减少接下来对每个缓存页的第一次访问时间，要么选择减少 JVM 进程启动时间，这是一种权衡。
+
+### 22.4. -XX:MaxGCPauseMillis
+
+设置每次年轻代垃圾回收的最长时间(毫秒单位)，如果无法满足此时间，JVM 会自动调整年轻代大小，以满足此值。
 
 # 其他
 
