@@ -2213,15 +2213,15 @@ public class MyEventPublisher implements ApplicationEventPublisherAware {
 }
 ```
 
-也可以直接使用 `@Autowired` 自动注入事件发布器对象。
+也可以直接使用 `@Autowired` 自动注入事件发布器对象 `ApplicationEventPublisher`。
 
-<font color=red>**注意：在默认情况下，事件监听器是同步接收事件的。`ApplicationEventPublisher.publishEvent()` 方法会阻塞，直到所有的监听器都完成对事件的处理**</font>。若修改为异步监听事件，详见下面的章节内容
+> Notes: <font color=red>**在默认情况下，事件监听器是同步接收事件的。`ApplicationEventPublisher.publishEvent()` 方法会阻塞，直到所有的监听器都完成对事件的处理**</font>。若修改为异步监听事件，详见下面的章节内容
 
 #### 12.3.4. 事件监听
 
 创建事件监听器，有如下两种方式：
 
-- 创建类实现 `org.springframework.context.ApplicationListener` 接口，接口的泛型
+- 创建类实现 `org.springframework.context.ApplicationListener` 接口，接口的泛型为事件的类型。
 
 ```java
 @Component
