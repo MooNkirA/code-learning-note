@@ -494,6 +494,8 @@ Maven 为了让构建过程能够尽可能自动化完成，所以必须约定�
 </project>
 ```
 
+> Tips: 更多 POM 配置与介绍详见[《Maven POM 配置》笔记](/DevOps/项目构建工具/Maven03-POM)
+
 ## 5. maven 命令
 
 进入项目根目录，通过（cmd）命令行界面进行操作。如果配置系统的环境变量，即可在任意目录中使用 `mvn` 的命令。
@@ -584,7 +586,7 @@ mvn deploy
 
 ### 5.4. 常用命令汇总
 
-- 创建maven项目：`mvn archetype:create`
+- 创建 maven 项目：`mvn archetype:create`
 - 指定 group：`-DgroupId=packageName`
 - 指定 artifact：`-DartifactId=projectName`
 - 创建web项目：`-DarchetypeArtifactId=maven-archetype-webapp`
@@ -1709,11 +1711,32 @@ nexus中包括很多仓库，hosted中存放的是企业自己发布的jar包及
 
 # 扩展资料
 
-## 1. 手动添加 jar 包到本地 Maven 仓库
+## 1. help 插件
+
+> 官方说明文档：https://maven.apache.org/plugins/maven-help-plugin
+
+### 1.1. 概念
+
+Maven help 插件用于获取项目或系统的相关信息。它可以用来获取某个特定插件的描述，包括该插件的目标及其参数和组件要求、当前构建的有效 POM 和有效设置，以及应用于当前构建项目的配置文件。
+
+### 1.2. help 插件的 7 个目标
+
+|            目标            |                      说明                      |
+| ------------------------- | ---------------------------------------------- |
+| `help:active-profiles`    | 列出当前已激活的 profile                        |
+| `help:all-profiles`       | 列出当前工程所有可用 profile                     |
+| `help:describe`           | 描述一个插件和/或 Mojo 的属性                    |
+| `help:effective-pom`      | 以 XML 格式展示有效 POM                         |
+| `help:effective-settings` | 为当前工程以 XML 格式展示计算得到的 settings 配置 |
+| `help:evaluate`           | 计算用户在交互模式下给出的 Maven 表达式           |
+| `help:system`             | 显示平台详细信息列表，如系统属性和环境变量         |
+
+
+## 2. 手动添加 jar 包到本地 Maven 仓库
 
 使用Maven的过程中，经常碰到有些jar包在中央仓库没有的情况。如果公司有私服，那么就把jar包安装到私服上。如果没有私服，那就把jar包安装到本地Maven仓库。有2种安装jar包到本地Maven仓库的方法
 
-### 1.1. 使用 Maven 命令安装 jar 包
+### 2.1. 使用 Maven 命令安装 jar 包
 
 前提：在windows操作系统中配置好了Maven的环境变量。在windows的cmd命令下，参考下面安装命令安装jar包。注意：这个命令不能换行，中间用空格来分割的
 
@@ -1733,7 +1756,7 @@ $ mvn install:install-file -DgroupId=com.baidu -DartifactId=ueditor -Dversion=1.
 
 执行完命令后，可看到SUCCESS字样提示，代表安装成功，可以在本地仓库找到jar包
 
-### 1.2. 使用 eclipse 安装 jar 包
+### 2.2. 使用 eclipse 安装 jar 包
 
 使用eclipse安装也有个前提，就是eclipse的Maven要先配置好。具体操作：
 
@@ -1745,13 +1768,13 @@ $ mvn install:install-file -DgroupId=com.baidu -DartifactId=ueditor -Dversion=1.
 
 ![](images/20201104152759117_23200.png)
 
-### 1.3. 两种方案的比较
+### 2.3. 两种方案的比较
 
 方案一：缺点就是很麻烦，比如要配置环境变量，需要写很长的安装命令。不过，如果你配置好了环境变量，那就简单了。copy个安装的命令的示例，然后就直接安装了。
 
 方案二：需要eclipse，个人推荐这种方式，比较简单。
 
-## 2. 批量删除maven项目错误后生成`*.lastUpdated`文件
+## 3. 批量删除maven项目错误后生成`*.lastUpdated`文件
 
 在项目运行错误后，在本地仓库下生成`.lastUpdated`文件，会影响项目的运行。使用批处理文件可以将里面文件删除，<font color=red>**注：将`REPOSITORY_PATH`变量改成本地仓库的路径**</font>
 
