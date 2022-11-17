@@ -1338,7 +1338,7 @@ mvn help:system
 
 ### 9.6. 资源配置文件引用 pom 文件
 
-maven 可以在任意配置文件中加载 pom 文件中定义的属性，步骤如下：
+maven 可以在任意配置文件使用 pom 文件中定义的属性，在处理资源时会将引用属性的表达式替换为具体的属性值，步骤如下：
 
 - 在项目的 pom 文件中配置
 
@@ -1373,7 +1373,7 @@ maven 可以在任意配置文件中加载 pom 文件中定义的属性，步骤
 </build>
 ```
 
-- 在 properties 或者 xml 等文件调用：
+- 在非 Maven 配置文件中引用属性，如 properties 或者 xml 等文件调用：
 
 ```properties
 jdbc.url=${jdbc.url}
@@ -1731,6 +1731,102 @@ Maven help 插件用于获取项目或系统的相关信息。它可以用来获
 | `help:evaluate`           | 计算用户在交互模式下给出的 Maven 表达式           |
 | `help:system`             | 显示平台详细信息列表，如系统属性和环境变量         |
 
+### 1.3. help:evaluate 的使用
+
+#### 1.3.1. 查看属性值
+
+假设在 pom.xml 文件中定义属性
+
+```java
+<properties>
+    <moonzero>MooNkirA</moonzero>
+</properties>
+```
+
+在项目的根目录中，运行命令
+
+```
+mvn help:evaluate
+```
+
+输入要查看的属性表达式`${moonzero}`，运行结果如下：
+
+![](images/175771622221157.png)
+
+#### 1.3.2. 访问系统属性
+
+通过 Java 代码获取所有系统属性
+
+```java
+Properties properties = System.getProperties();
+Set<Object> propNameSet = properties.keySet();
+for (Object propName : propNameSet) {
+    String propValue = properties.getProperty((String) propName);
+    System.out.println(propName + " = " + propValue);
+}
+```
+
+运行结果：
+
+![](images/386912022239583.png)
+
+运行命令 `mvn help:evaluate`，通过表达式来访问系统变量
+
+```bash
+[INFO] --- maven-help-plugin:3.3.0:evaluate (default-cli) @ 01-maven-helloWorld ---
+[INFO] No artifact parameter specified, using 'com.moon:01-maven-helloWorld:war:0.0.1-SNAPSHOT' as project.
+[INFO] Enter the Maven expression i.e. ${project.groupId} or 0 to exit?:
+${java.runtime.name}
+[INFO]
+Java(TM) SE Runtime Environment
+```
+
+#### 1.3.3. 访问系统环境变量
+
+运行命令 `mvn help:evaluate`，通过表达式 `${env.系统环境变量名}` 来访问系统环境变量
+
+```bash
+[INFO] --- maven-help-plugin:3.3.0:evaluate (default-cli) @ 01-maven-helloWorld ---
+[INFO] No artifact parameter specified, using 'com.moon:01-maven-helloWorld:war:0.0.1-SNAPSHOT' as project.
+[INFO] Enter the Maven expression i.e. ${project.groupId} or 0 to exit?:
+${env.JAVA_HOME}
+[INFO]
+D:\development\Java\jdk1.8.0_311
+```
+
+#### 1.3.4. 访问 pom 配置中 project 属性
+
+运行命令 `mvn help:evaluate`，通过表达式 `${project.标签名}` 可以访问当前 POM 中的一级标签元素值
+
+```bash
+[INFO] --- maven-help-plugin:3.3.0:evaluate (default-cli) @ 01-maven-helloWorld ---
+[INFO] No artifact parameter specified, using 'com.moon:01-maven-helloWorld:war:0.0.1-SNAPSHOT' as project.
+[INFO] Enter the Maven expression i.e. ${project.groupId} or 0 to exit?:
+${project.artifactId}
+[INFO]
+01-maven-helloWorld
+```
+
+通过表达式 `${project.标签名.子标签名}` 可以访问当前 POM 中的子标签元素值
+
+![](images/579053122247616.png)
+
+通过表达式 `${project.标签名[下标]}` 可以访问当前 POM 中的列表标签
+
+![](images/88863322240285.png)
+
+#### 1.3.5. 访问 settings 全局配置
+
+运行命令 `mvn help:evaluate`，通过表达式 `${settings.标签名}` 可以访问 settings.xml 中配置的元素值。
+
+```bash
+[INFO] --- maven-help-plugin:3.3.0:evaluate (default-cli) @ 01-maven-helloWorld ---
+[INFO] No artifact parameter specified, using 'com.moon:01-maven-helloWorld:war:0.0.1-SNAPSHOT' as project.
+[INFO] Enter the Maven expression i.e. ${project.groupId} or 0 to exit?:
+${settings.LocalRepository}
+[INFO]
+D:\development\maven\repository
+```
 
 ## 2. 手动添加 jar 包到本地 Maven 仓库
 

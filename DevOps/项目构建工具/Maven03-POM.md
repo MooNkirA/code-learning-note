@@ -45,7 +45,92 @@ mvn help:effective-pom
 3. **当前 POM**：即平时关注和最多使用的 pom.xml
 4. **有效 POM**：隐含的一层，最终项目运行时实际真正生效的一层。
 
-## 2. 项目构建 pom.xml 配置详解(网上资源)
+## 2. 项目构建 pom.xml 配置详解
+
+### 2.1. build 标签
+
+`<build>` 标签用于定制构建过程规则，在超级 POM 中有相关默认配置，也可以在具体项目中的 pom.xml 中配置 `<build>` 标签覆盖默认值或补充配置。The Super POM 默认配置如下：
+
+```xml
+<build>
+    <directory>${project.basedir}/target</directory>
+    <outputDirectory>${project.build.directory}/classes</outputDirectory>
+    <finalName>${project.artifactId}-${project.version}</finalName>
+    <testOutputDirectory>${project.build.directory}/test-classes</testOutputDirectory>
+    <sourceDirectory>${project.basedir}/src/main/java</sourceDirectory>
+    <scriptSourceDirectory>${project.basedir}/src/main/scripts</scriptSourceDirectory>
+    <testSourceDirectory>${project.basedir}/src/test/java</testSourceDirectory>
+    <resources>
+      <resource>
+        <directory>${project.basedir}/src/main/resources</directory>
+      </resource>
+    </resources>
+    <testResources>
+      <testResource>
+        <directory>${project.basedir}/src/test/resources</directory>
+      </testResource>
+    </testResources>
+    <pluginManagement>
+      <!-- NOTE: These plugins will be removed from future versions of the super POM -->
+      <!-- They are kept for the moment as they are very unlikely to conflict with lifecycle mappings (MNG-4453) -->
+      <plugins>
+        <plugin>
+          <artifactId>maven-antrun-plugin</artifactId>
+          <version>1.3</version>
+        </plugin>
+        <plugin>
+          <artifactId>maven-assembly-plugin</artifactId>
+          <version>2.2-beta-5</version>
+        </plugin>
+        <plugin>
+          <artifactId>maven-dependency-plugin</artifactId>
+          <version>2.8</version>
+        </plugin>
+        <plugin>
+          <artifactId>maven-release-plugin</artifactId>
+          <version>2.5.3</version>
+        </plugin>
+      </plugins>
+    </pluginManagement>
+</build>
+```
+
+> Notes: 从本质上来说，在项目中的 pom.xml 中配置 `<build>` 标签都是对超级 POM 配置的叠加。
+
+#### 2.1.1. 定义项目的目录结构
+
+用于指定目录的子标签如下：
+
+|           标签名           |           作用           |
+| ------------------------- | ------------------------ |
+| `<sourceDirectory>`       | 主体源程序存放目录         |
+| `<scriptSourceDirectory>` | 脚本源程序存放目录         |
+| `<testSourceDirectory>`   | 测试源程序存放目录         |
+| `<outputDirectory>`       | 主体源程序编译结果输出目录 |
+| `<testOutputDirectory>`   | 测试源程序编译结果输出目录 |
+| `<resources>`             | 主体资源文件存放目录       |
+| `<testResources>`         | 测试资源文件存放目录       |
+| `<directory>`             | 构建结果输出目录          |
+
+#### 2.1.2. 插件管理
+
+通过 `<pluginManagement>` 子标签管理插件，用于在父工程中统一管理版本，子工程使用时可以省略版本号。（*类似于 `<dependencyManagement>` 标签*）
+
+```xml
+
+
+
+```
+
+#### 2.1.3. 插件生命周期管理
+
+
+
+
+#### 2.1.4. 指定 JDK 版本
+
+
+### 2.2. pom.xml 全配置示例注释 (网上资源)
 
 > 引用网上资源的最全面版本pom.xml，后期根据理解修改
 
@@ -1917,8 +2002,6 @@ xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/ma
     </properties>
 </project>
 ```
-
-
 
 ### 3.2. 附件2：POM文件单项配置说明
 
