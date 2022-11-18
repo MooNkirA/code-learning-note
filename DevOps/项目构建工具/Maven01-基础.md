@@ -1128,6 +1128,158 @@ mavan 执行每个生命周期都是通过插件来完成，所以对相应的�
 </build>
 ```
 
+### 7.6. Maven 自定义插件（了解）
+
+> TODO: 待整理，参考 http://heavy_code_industry.gitee.io/code_heavy_industry/pro002-maven/chapter09/verse06.html
+
+> Notes: 实际开发中几乎没有什么场景需要开发自定义 Maven 插件，只是通过自定义插件的过程，来更好的理解插件的目标和生命周期阶段之间的关系
+
+#### 7.6.1. 插件开发
+
+1. 创建 Maven 工程
+2. 设定打包方式
+
+```xml
+<packaging>maven-plugin</packaging>
+```
+
+3. 引入依赖。以下两种方式二选一：
+
+- 将来在文档注释中使用注解
+
+```xml
+<dependency>
+    <groupId>org.apache.maven</groupId>
+    <artifactId>maven-plugin-api</artifactId>
+    <version>3.5.2</version>
+</dependency>
+```
+
+- 将来直接使用注解
+
+```xml
+<dependency>
+    <groupId>org.apache.maven.plugin-tools</groupId>
+    <artifactId>maven-plugin-annotations</artifactId>
+    <version>3.5.2</version>
+</dependency>
+```
+
+4. 创建 `Mojo` 类，该类是一个 Maven 插件的核心类。也有如下两种方式
+
+- 每一个 Mojo 类都需要实现 `org.apache.maven.plugin.Mojo` 接口。
+
+![](images/55692723247618)
+
+- 基于实现 Mojo 接口的方式比较困难。可以继承 `AbstractMojo` 抽象类，只要实现 `execute()` 这一个方法即可。示例如下：
+
+```java
+public class MyHelloPlugin extends AbstractMojo {
+    @Override
+    public void execute() throws MojoExecutionException, MojoFailureException {
+        getLog().info("---> This is my first maven plugin. <---");
+    }
+}
+```
+
+#### 7.6.2. 插件配置
+
+1. Mojo 类中的配置，有以下两种方式：
+
+- 在文档注释中用注解。对应的 pom.xml 中需要引入依赖 `maven-plugin-api`
+
+![](images/293704023240287.png)
+
+- 直接在类上标记注解。对应的 pom.xml 中需要引入依赖 `maven-plugin-annotations`
+
+```java
+// name 属性：指定目标名称
+@Mojo(name = "firstBlood")
+public class MyPluginOfFistBlood extends AbstractMojo {
+    @Override
+    public void execute() throws MojoExecutionException, MojoFailureException {
+        getLog().info("---> first blood <---");
+    }
+}
+```
+
+2. 安装插件。要在后续使用该自定义插件，就必须至少将插件安装到本地仓库。
+3. 注册插件。将插件坐标中的 groupId 部分注册到全局配置 settings.xml 中
+
+```xml
+<pluginGroups>
+	<!-- pluginGroup
+	 | Specifies a further group identifier to use for plugin lookup.
+	<pluginGroup>com.your.plugins</pluginGroup>
+	-->
+	<pluginGroup>com.moon.maven</pluginGroup>
+</pluginGroups>
+```
+
+#### 7.6.3. 使用插件
+
+Maven 会根据插件的 artifactId 来<font color=red>**识别插件前缀**</font>。例如下面两种情况
+
+- 前置匹配
+    - 匹配规则：`${prefix}-maven-plugin`
+    - artifactId：hello-maven-plugin
+    - 前缀：hello
+- 中间匹配
+    - 匹配规则：`maven-${prefix}-plugin`
+    - artifactId：maven-good-plugin
+    - 前缀：good
+
+**使用方式一：在命令行直接使用**
+
+```bash
+mvn hello:sayHello
+```
+
+效果如下：
+
+![](images/43284423236842.png)
+
+**使用方式二：配置到 build 标签里**
+
+- pom.xml 的配置
+
+```xml
+<build>
+	<plugins>
+		<plugin>
+			<groupId>com.moon.maven</groupId>
+			<artifactId>hello-maven-plugin</artifactId>
+			<version>1.0-SNAPSHOT</version>
+			<executions>
+				<execution>
+                    <id>hello</id>
+                    <!-- 指定和目标关联的生命周期阶段 -->
+					<phase>clean</phase>
+					<goals>
+						<goal>sayHello</goal>
+					</goals>
+				</execution>
+                <execution>
+                    <id>blood</id>
+                    <phase>validate</phase>
+                    <goals>
+                        <goal>firstBlood</goal>
+                    </goals>
+                </execution>
+			</executions>
+		</plugin>
+	</plugins>
+</build>
+```
+
+- 在 idea 里图形化界面中，双击任何一个目标使用即可，显示效果如下：
+
+![](images/518914923250476.png)
+
+- 通过命令行使用，执行已和插件目标绑定的生命周期：
+
+![](images/357145023248080.png)
+
 ## 8. 继承和聚合
 
 通常继承和聚合同时使用

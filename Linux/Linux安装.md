@@ -1,23 +1,51 @@
-# Linux安装
+# Linux 安装
 
 ## 1. 虚拟机
 
-虚拟机：指通过软件模拟的具有完整硬件系统功能的、运行在一个完全隔离环境中的完整计算机系统。
+虚拟机：指通过软件模拟的具有完整硬件系统功能的、运行在一个完全隔离环境中的完整计算机系统。它模拟标准 PC 环境，和真实的计算机一样，都有芯片组、CPU、内存、显卡、声卡、网卡、软驱、硬盘、光驱、串口、并口、USB控制器等。
 
-### 1.1. 虚拟机软件
+常用的虚拟机软件：
 
-- VMware Workstation（中文名“威睿工作站”）是一款功能强大的桌面虚拟计算机软件，收费（VMware-workstation-full-12.0.0-2985596.exe），需要使用VMware.Workstation.v12.0.0.Keymaker.rar破解
+- VMware Workstation（中文名“威睿工作站”）是一款功能强大、<u>收费</u>的桌面虚拟计算机软件，需要使用破解或者网上搜索“永久许可证激活秘钥”
 - VirtualBox 是一款开源虚拟机软件
 
-### 1.2. 虚拟机其他问题
+## 2. VMware workstation
 
-如果运行提示没有开启虚拟服务，运行系统的【服务】，将`VMware Authorization Service`启动即可
+### 2.1. 安装
+
+> TODO: 本地安装时再截图整理
+
+### 2.2. VMware workstation 相关问题
+
+#### 2.2.1. 解决提示 VMware Workstation cannot connect to the virtual machine 的问题
+
+如果打开 VMware Workstation 虚拟机时，弹出对话框提示下述问题：
+
+```
+VMware Workstation cannot connect to the virtual machine. 
+Make sure you have rights to run the program, access all directories the program uses, and access all directories for temporary files.
+The VMware Authorization Service is not running。
+```
+
+![](images/398361322221159.png)
+
+从提示消息可以看到，问题在于 VMware 授权服务没有开启，具体处理方法如下：
+
+依次打开 "This PC（我的电脑）" -> 右键"manage（管理）" -> "Service and Applications（服务和应用）" -> "Service（服务）" -> 在右栏找到 `Vmware Authorization Service`，点击右键属性
+
+![](images/260863622239585.png)
+
+将 Startup Type（启动类型）改为 Automatic（自动），点击“OK”即可
+
+![](images/140873722227452.png)
+
+在 `Vmware Authorization Service` 上，点击右键 start（开始），即可看到已经在 Running（运行）.
 
 ![](images/20200930231851537_15316.jpg)
 
-## 2. CentOS-7-x86_64-DVD-1804 版本的安装
+## 3. CentOS-7-x86_64-DVD-1804 版本的安装
 
-### 2.1. 安装相关设置
+### 3.1. 安装相关设置
 
 ![](images/20201001080227632_11192.jpg)
 
@@ -71,7 +99,7 @@
 
 安装的过程点击设置root的密码，也可以点击创建用户（可以暂时不用，后面通过root用户再进行创建）
 
-### 2.2. 设置IP地址、网关DNS
+### 3.2. 设置IP地址、网关DNS
 
 （1）为虚拟机添加虚拟网卡
 
@@ -101,7 +129,7 @@
 
 ![](images/20201001081435089_17121.jpg)
 
-### 2.3. 网络配置参考示例
+### 3.3. 网络配置参考示例
 
 说明：CentOS 7.0默认安装好之后是没有自动开启网络连接的！
 
@@ -165,7 +193,7 @@ ping www.baidu.com  # 测试网络是否正常
 ip addr  # 查看IP地址
 ```
 
-### 2.4. 设置主机名为www
+### 3.4. 设置主机名为www
 
 ```bash
 hostname  www  # 设置主机名为www
@@ -178,9 +206,31 @@ vi /etc/hosts # 编辑配置文件
 shutdown -r now  # 重启系统
 ```
 
-## 3. CentOS-8-x86_64-1905-dvd1 的安装
+### 3.5. Linux 的静态 ip 地址设置
 
-### 3.1. 安装相关前虚拟机设置
+运行命令
+
+```bash
+cd /etc/sysconfig/network-scripts
+vi ifcfg-eth0
+```
+
+添加或修改如下内容：
+
+```properties
+DEVICE=eth0
+BOOTPRPTP=static
+IPADDR=192.168.12.131
+NETMASK=255.255.255.0
+HWADDR=00:50:56:32:4B:4C
+IPV6INIT=yes
+IPV6_AUTOCONF=yes
+ONBOOT=yes
+```
+
+## 4. CentOS-8-x86_64-1905-dvd1 的安装
+
+### 4.1. 安装相关前虚拟机设置
 
 ![](images/20200930232103306_30750.jpg)
 
@@ -222,7 +272,7 @@ VM 虚拟机软件为用户提供了 3 种可选的网络模式，分别为桥�
 
 ![](images/20200930233205284_19312.jpg)
 
-### 3.2. 安装linux
+### 4.2. 安装linux
 
 ![](images/20200930233326737_1071.jpg)
 
@@ -309,7 +359,7 @@ IPV6_PRIVACY="no"
 
 ![](images/20200930234304636_24057.jpg)
 
-### 3.3. 设置IP地址、网关DNS
+### 4.3. 设置IP地址、网关DNS
 
 （1）为虚拟机添加虚拟网卡
 
@@ -413,13 +463,13 @@ DNS2=8.8.4.4  #设置备DNS
 
 ![](images/20200930235045958_30084.jpg)
 
-### 3.4. 其他问题
+### 4.4. 其他问题
 
 如果出现主机可以ping通虚拟机，而虚拟机无法ping通主机的情况，一般是主机防火墙的设置问题，通过设置防火墙的高级设置即可，见下图？
 
-## 4. ubuntu-16.04.3-server-amd64 的安装
+## 5. ubuntu-16.04.3-server-amd64 的安装
 
-### 4.1. 配置静态IP地址
+### 5.1. 配置静态IP地址
 
 1. 查看配置文件
 
@@ -475,27 +525,3 @@ vim /etc/resolvconf/resolv.conf.d/base
 # 增加以下内容
 nameserver 119.29.29.29
 ```
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

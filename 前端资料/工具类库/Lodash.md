@@ -1,5 +1,7 @@
 # Lodash 工具函数库
 
+> 待整理参考资料：https://mp.weixin.qq.com/s/I4yfSto6BOaQqccudNN-HQ
+
 ## 1. 简介
 
 一个一致性、模块化、高性能的 JavaScript 实用工具库。
