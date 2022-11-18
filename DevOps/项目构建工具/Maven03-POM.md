@@ -117,18 +117,186 @@ mvn help:effective-pom
 通过 `<pluginManagement>` 子标签管理插件，用于在父工程中统一管理版本，子工程使用时可以省略版本号。（*类似于 `<dependencyManagement>` 标签*）
 
 ```xml
+<build>
+    <pluginManagement>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <version>2.6.2</version>
+            </plugin>
+        </plugins>
+    </pluginManagement>
+</build>
+```
 
+在子工程中使用插件
 
-
+```xml
+<build>
+    <plugins>
+        <plugin>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-maven-plugin</artifactId>
+        </plugin>
+    </plugins>
+</build>
 ```
 
 #### 2.1.3. 插件生命周期管理
 
+`<plugins>` 标签存放在默认生命周期中实际用到的插件，插件坐标与依赖 jar 包的坐标一样，包含 `<artifactId>`、`<version>` 和 `<groupId>` 标签，作为 Maven 的自带插件可以省略 `<groupId>` 标签
 
+```xml
+<plugin>
+    <artifactId>maven-compiler-plugin</artifactId>
+    <version>3.1</version>
+    <executions>
+        <execution>
+            <id>default-compile</id>
+            <phase>compile</phase>
+            <goals>
+                <goal>compile</goal>
+            </goals>
+        </execution>
+        <execution>
+            <id>default-testCompile</id>
+            <phase>test-compile</phase>
+            <goals>
+                <goal>testCompile</goal>
+            </goals>
+        </execution>
+    </executions>
+</plugin>
+```
 
+`<executions>` 标签内可以配置多个 `<execution>` 标签，`<execution>` 标签用于指定构建生命周期中执行一组目标，包含以下子标签：
+
+- `<id>`：指定唯一标识
+- `<phase>`：指定关联的生命周期阶段。如果省略，目标会被绑定到源数据里配置的默认阶段
+- `<goals>`：配置生命周期执行的一（多）个目标
+    - `<goal>` 子标签，表示一个生命周期环节可以对应当前插件的多个目标。
+
+下面示例是 maven-site-plugin 插件的 site 目标：
+
+```xml
+<execution>
+    <id>default-site</id>
+    <phase>site</phase>
+    <goals>
+        <goal>site</goal>
+    </goals>
+    <configuration>
+        <outputDirectory>D:\workspace\maven-quickstart\target\site</outputDirectory>
+        <reportPlugins>
+            <reportPlugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-project-info-reports-plugin</artifactId>
+            </reportPlugin>
+        </reportPlugins>
+    </configuration>
+</execution>
+```
+
+`<configuration>` 标签内配置的子标签，是由插件本身来定义的。以 maven-site-plugin 插件为例，它的核心类是 `org.apache.maven.plugins.site.render.SiteMojo`，在该类中可以找到 `outputDirectory` 属性：
+
+![](images/589801622221158)
+
+SiteMojo 的父类是：`AbstractSiteRenderingMojo`，在父类中可以看到 `reportPlugins` 属性：
+
+![](images/268531722239584)
+
+> Notes: <font color=red>**重要结论，插件可设置的内容均由该插件来定义。**</font>
 
 #### 2.1.4. 指定 JDK 版本
 
+maven-compiler-plugin 插件，可以通过 `<configuration>` 标签来指定当前工程编译时所使用的 JDK 版本
+
+```java
+<!-- build 标签：自定义构建的行为 -->
+<build>
+    <!-- plugins 标签：构建时用到的插件集 -->
+    <plugins>
+        <!-- plugin 标签：具体的插件 -->
+        <plugin>
+            <!-- 插件的坐标。此处引用的 maven-compiler-plugin 插件不是第三方的，是一个 Maven 自带的插件。 -->
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-compiler-plugin</artifactId>
+            <version>3.1</version>
+            
+            <!-- configuration 标签：配置 maven-compiler-plugin 插件 -->
+            <configuration>
+                <!-- 具体配置信息会因为插件不同、需求不同而有所差异 -->
+                <source>1.8</source>
+                <target>1.8</target>
+                <encoding>UTF-8</encoding>
+            </configuration>
+        </plugin>
+    </plugins>
+</build>
+```
+
+**参数说明**：
+
+- `<source>`：编写源代码时，编译器所使用的 JDK 版本
+- `<target>`：源文件编译后，所生成的 class 字节码文件的 JDK 版本
+
+以上功能还可以通过在 `<properties>` 标签中配置 `maven.compiler.source`与 `maven.compiler.target` 属性来实现：
+
+```xml
+<properties>
+    <maven.compiler.source>1.8</maven.compiler.source>
+    <maven.compiler.target>1.8</maven.compiler.target>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+</properties>
+```
+
+**两种指定 JDK 版本配置方式的比较**：
+
+- 在 settings.xml 全局配置中设置 JDK 版本，仅在本地生效，如果脱离当前 settings.xml 能够覆盖的范围，则无法生效。（例如部署到服务器中）
+- 在当前 Maven 工程 pom.xml 中配置 JDK 版本，则项目无论在哪个环境执行编译等构建操作均能生效
+
+#### 2.1.5. 插件的依赖
+
+使用 Mybatis 的逆向工程需要使用如下配置，MBG 插件需要配置该插件所需的依赖：
+
+```xml
+<!-- 控制 Maven 在构建过程中相关配置 -->
+<build>	
+	<!-- 构建过程中用到的插件 -->
+	<plugins>
+		<!-- 具体插件，逆向工程的操作是以构建过程中插件形式出现的 -->
+		<plugin>
+			<groupId>org.mybatis.generator</groupId>
+			<artifactId>mybatis-generator-maven-plugin</artifactId>
+			<version>1.3.0</version>
+			<!-- 插件的依赖 -->
+			<dependencies>
+				<!-- 逆向工程的核心依赖 -->
+				<dependency>
+					<groupId>org.mybatis.generator</groupId>
+					<artifactId>mybatis-generator-core</artifactId>
+					<version>1.3.2</version>
+				</dependency>
+					
+				<!-- 数据库连接池 -->
+				<dependency>
+					<groupId>com.mchange</groupId>
+					<artifactId>c3p0</artifactId>
+					<version>0.9.2</version>
+				</dependency>
+					
+				<!-- MySQL驱动 -->
+				<dependency>
+					<groupId>mysql</groupId>
+					<artifactId>mysql-connector-java</artifactId>
+					<version>5.1.8</version>
+				</dependency>
+			</dependencies>
+		</plugin>
+	</plugins>
+</build>
+```
 
 ### 2.2. pom.xml 全配置示例注释 (网上资源)
 
@@ -1498,8 +1666,7 @@ xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/ma
                 <!-- 被使用的插件的版本（或版本范围） --> 
                 <version></version> 
 
-                <!-- 是否从该插件下载Maven扩展（例如打包和类型处理器），由于性能原因，只有在真需要下载时，该
-                     元素才被设置成enabled。 --> 
+                <!-- 是否从该插件下载Maven扩展（例如打包和类型处理器），由于性能原因，只有在真需要下载时，该元素才被设置成enabled。 --> 
                 <extensions>true/false</extensions> 
 
                 <!-- 在构建生命周期中执行一组目标的配置。每个目标可能有不同的配置。 --> 
