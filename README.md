@@ -252,6 +252,7 @@
   <li><a href="#/DevOps/项目构建工具/Maven01-基础">Maven 基础笔记</a></li>
   <li><a href="#/DevOps/项目构建工具/Maven02-全局配置">Maven 全局配置 setting.xml</a></li>
   <li><a href="#/DevOps/项目构建工具/Maven03-POM">Maven POM 配置</a></li>
+  <li><a href="#/DevOps/项目构建工具/Maven04-私服">Maven 私服</a></li>
   <li><a href="#/DevOps/项目构建工具/Gradle">Gradle 基础笔记</a></li>
 </ul>
 
