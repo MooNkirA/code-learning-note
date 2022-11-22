@@ -1635,9 +1635,11 @@ maven 可以在任意配置文件使用 pom 文件中定义的属性，在处理
 jdbc.url=${jdbc.url}
 ```
 
-## 10. 多环境配置
+## 10. 多环境配置 profile
 
-### 10.1. 项目的不同运行环境
+### 10.1. 概述
+
+#### 10.1.1. 项目的不同运行环境
 
 通常情况下，项目研究至少有三种运行环境：
 
@@ -1649,7 +1651,22 @@ jdbc.url=${jdbc.url}
 
 在 Maven 中，使用 profile 机制来管理不同环境下的配置信息。
 
-### 10.2. 定义语法
+#### 10.1.2. 默认的 profile
+
+其实根标签 project 下所有配置相当于都是在设定默认的 profile。除了 `<modelVersion>` 和坐标标签之外，其它标签都可以配置到 profile 中，然后安装、打包时可以选择不同的 profile 配置。
+
+#### 10.1.3. 配置的位置
+
+profile 可以在以下两种配置文件中配置：
+
+- settings.xml：全局生效。**但值得注意的是，若只本地配置，当项目部署到其他环境中，则此配置就会失效（因为其他环境不一定有修改全局配置）**。例如配置 JDK 版本。
+- pom.xml：当前项目 POM 生效
+
+### 10.2. 基础定义语法
+
+`<profiles>` 标签统一管理多个 `<profile>` 子标签，
+
+> Tips: 由于 `<profile>` 标签覆盖了 pom.xml 中的默认配置，所以 `<profiles>` 标签通常是 pom.xml 中的最后一个标签。
 
 ```xml
 <!--
@@ -1680,9 +1697,11 @@ jdbc.url=${jdbc.url}
 </profiles>
 ```
 
-### 10.3. 加载指定环境
+### 10.3. 激活 profile
 
-加载指定环境配置，通过命令运行时指定相应的环境，语法以下：
+#### 10.3.1. 命令语法
+
+每个 profile 都必须有一个`<id>`标签，指定该 profile 的唯一标识。该值会被用于使用命令行时加载指定环境配置，语法以下：
 
 ```bash
 mvn 指令 –P 环境定义id
@@ -1693,6 +1712,118 @@ mvn 指令 –P 环境定义id
 ```bash
 mvn install -P prod_env
 ```
+
+还可以通过命令，列出所有激活的 profile，以及它们在哪里定义
+
+```bash
+mvn help:active-profiles
+```
+
+#### 10.3.2. 默认激活
+
+通过 `<activeByDefault>` 标识来设置默认激活的 profile
+
+```xml
+<profiles>
+    <profile>
+        ...
+        <!-- 设置默认启动 -->
+        <activation>
+            <activeByDefault>true</activeByDefault>
+        </activation>
+    </profile>
+    <profile>
+        ...
+    </profile>
+</profiles>
+```
+
+#### 10.3.3. 多个激活条件
+
+- Maven 3.2.2 之前：遇到第一个满足的条件即可激活（或的关系）
+- Maven 3.2.2 开始：各条件均需满足（且的关系）
+
+### 10.4. 基于环境信息激活
+
+环境信息包含：JDK 版本、操作系统参数、文件、属性等各个方面。一个 profile 一旦被激活，那么它定义的所有配置都会覆盖原来 POM 中对应层次的元素。
+
+#### 10.4.1. 资源属性过滤
+
+Maven 为了能够通过 profile 实现各不同运行环境切换，提供了一种『资源属性过滤』的机制。通过属性替换实现不同环境使用不同的参数。
+
+```xml
+<profiles>
+    <profile>
+        <id>devJDBCProfile</id>
+        <properties>
+            <dev.jdbc.user>root</dev.jdbc.user>
+            <dev.jdbc.password>root</dev.jdbc.password>
+            <dev.jdbc.url>http://localhost:3306/db_good</dev.jdbc.url>
+            <dev.jdbc.driver>com.mysql.jdbc.Driver</dev.jdbc.driver>
+        </properties>
+        <build>
+            <resources>
+                <resource>
+                    <!-- 表示为这里指定的目录开启资源过滤功能 -->
+                    <directory>src/main/resources</directory>
+                    <!-- 将资源过滤功能打开 -->
+                    <filtering>true</filtering>
+                </resource>
+            </resources>
+        </build>
+    </profile>
+</profiles>
+```
+
+执行处理资源命令
+
+```bash
+mvn clean resources:resources -PdevJDBCProfile
+```
+
+对比处理得到的资源文件
+
+![](images/505821023221162.png)
+
+#### 10.4.2. 资源文件的包含与排除
+
+`<resource>` 标签中可以配置 `<includes>` 和 `<excludes>` 子标签。它们的作用是：
+
+- `<includes>`：指定执行 resource 阶段时要包含到目标位置的资源
+- `<excludes>`：指定执行 resource 阶段时要排除的资源
+
+以 properties 文件为示例配置，但并不是只能处理 properties 文件。
+
+```xml
+<build>
+    <resources>
+        <resource>
+            <!-- 表示为这里指定的目录开启资源过滤功能 -->
+            <directory>src/main/resources</directory>
+            <!-- 将资源过滤功能打开 -->
+            <filtering>true</filtering>
+
+            <includes>
+                <include>*.properties</include>
+            </includes>
+
+            <excludes>
+                <exclude>happy.properties</exclude>
+            </excludes>
+        </resource>
+    </resources>
+</build>
+```
+
+执行处理资源命令：
+
+```bash
+mvn clean resources:resources -PdevJDBCProfile
+```
+
+执行效果如下：
+
+![](images/20761323239588)
 
 # 扩展资料
 
