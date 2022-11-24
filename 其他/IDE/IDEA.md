@@ -1,10 +1,92 @@
-# IDEA
+# IntelliJ IDEA
 
-> 官网：https://www.jetbrains.com/idea/
+> - 官网：https://www.jetbrains.com/idea/
+> - 官网提供的详细使用文档：https://www.jetbrains.com/help/idea/meet-intellij-idea.html
 
-## 1. 初次启动 Intellij IDEA 前需进行的配置
+## 1. 简介
 
-### 1.1. 设置 idea 配置保存位置
+IDEA，全称 IntelliJ IDEA ，是 Java 语言的集成开发环境，目前已经（基本）代替了 Eclipse 的使用。IDEA 在业界被公认为是最好的 Java 开发工具（之一），因其功能强悍、设置人性化，而深受Java、大数据、移动端程序员的喜爱。尤其在智能代码助手、代码自动提示、重构、J2EE 支持、Ant、JUnit、CVS 整合、代码审查、创新的 GUI 设计等方面的功能可以说是超常的。
+
+> IntelliJ IDEA 在 2015 年的官网上介绍：
+>
+> Excel at enterprise, mobile and web development with Java, Scala and Groovy,with all the latest modern technologies and frameworks available out of thebox.
+
+IDEA 分为两个版本：旗舰版(Ultimate) 和社区版(Community)。两个不同版本的详细对比，可以参照官网：https://www.jetbrains.com/idea/features/editions_comparison_matrix.html
+
+## 2. 安装与卸载
+
+### 2.1. 安装
+
+1. 下载安装包后双击进行安装
+
+![](images/133864522247623.png)
+
+2. 如果电脑上有低版本的 IDEA，会提示是否删除电脑上低版本的（如果有，也可以选择忽略）；如需卸载，建议勾选下面的保留旧的设置和配置。
+
+![](images/511724522240292.png)
+
+3. 选择安装目录，目录不要有中文和空格。
+
+![](images/316144722236847.png)
+
+4. 提示创建桌面快捷图标、是否与.java、.groovy、.kt 格式文件进行关联（建议不关联）等设置。
+
+![](images/134924922232601.png)
+
+5. 一直下一步直到安装完成
+
+### 2.2. 注册激活
+
+如安装的旗舰版，则需要注(po)册(jie)才能使用，否则只能试用30天
+
+#### 2.2.1. 使用激活码（已过时）
+
+1. 安装下载软件，安装完成后，注意先不运行软件，所以不要勾选【Run Intelli IDEA】
+2. 接下来对软件进行注册破解，首先以记事本的方式打开hosts文件（文件默认目录【C:\Windows\System32\drivers\etc】），将代码添加至hosts文件屏蔽网络联网；
+
+```
+0.0.0.0 account.jetbrains.com
+0.0.0.0 www.jetbrains.com
+```
+
+![](images/20201105162322897_22543.jpg)
+
+3. 再运行桌面上生成的idea ultimate 2019.1软件图标，选择【do not import settings】点击ok，然后勾选【I confirm that...】点击continue进入进入如下界面，点击红色框内的选择
+
+![](images/20201105162351189_20098.jpg)
+
+4. 弹出注册界面，选择"activation code"输入注册码即可激活
+
+![](images/20201105162418183_15702.jpg)
+
+5. 至此，idea ultimate 2019.1破解版成功激活
+
+#### 2.2.2. 其他方式
+
+利用搜索引擎解决问题 ^_^
+
+### 2.3. 卸载
+
+可以通过控制面板或者 Geek Uninstaller 等软件卸载工具来卸载 IDEA。
+
+![](images/318533022221164.png)
+
+卸载的过程中会提示是否保留IDEA之前使用的缓存、历史记录、配置、插件等。如需保留则不要打✓；如想彻底删除所有数据，则打上✓。
+
+![](images/485003122239590.png)
+
+程序卸载完成后，还需要移除以下位置的残留文件：
+
+- `%APPDATA%` 或 `C:\Users\<username>\AppData\Roaming`
+- `%LOCALAPPDATA%` 或 `C:\Users\<username>\AppData\Local`
+
+在以上的目录中查看是否有名为 `JetBrains` 的目录，有则直接删除即可
+
+![](images/197143522227457.png)
+
+## 3. 建议初次启动 IDEA 前的配置
+
+### 3.1. 设置 idea 配置保存位置
 
 第一次进入Intellij IDEA之前，先修改一下缓存的保存位置
 
@@ -23,18 +105,18 @@ idea.system.path=D:/development/JetBrains/.IntelliJIdea/system
 
 3. 修改后，将idea的配置缓存文件不需要保存在c盘的用户目录下，保存在指定的目录下
 
-### 1.2. 配置说明
+> 配置目录说明：
+>
+> - **config**：在初始化安装 IntelliJ IDEA 时会询问是否导入以存在的配置信息，这个 config 就是你的配置信息，方便更换电脑和换系统的时候重新安装，前提是要保存好此文件夹。
+> - **system**：此文件夹是 IntelliJ IDEA 发生什么不可预知性的错误时，比如蓝屏突然断电导致项目不能启动，可以尝试删除此文件，让系统重新生成一个 system 的文件。
 
-- **config**：在初始化安装 IntelliJ IDEA 时会询问是否导入以存在的配置信息，这个 config 就是你的配置信息，方便更换电脑和换系统的时候重新安装，前提是要保存好此文件夹。
-- **system**：此文件夹是 IntelliJ IDEA 发生什么不可预知性的错误时，比如蓝屏突然断电导致项目不能启动，可以尝试删除此文件，让系统重新生成一个 system 的文件。
-
-## 2. 当前项目配置 VS 默认配置
+### 3.2. 当前项目配置 VS 默认配置
 
 **为什么有了当前项目配置，还需要默认配置呢？**
 
 因为IDEA没有工作空间的概念，所以每个新项目（Project）都需要设置自己的JDK和MAVEN等相关配置，这样虽然提高了灵活性，但是却要为每个新项目都要重新配置，这显然不符合我们的预期。在这个背景下，默认配置给予当前项目配置提供了Default选项，问题自然就迎刃而解了。
 
-最新补充：IDEA为了明确这个新项目配置的概念，在2018.2之后的正式版本已正式将“Default Settings”名字修改“ Default Settings /ProjectStructs”，即“默认配置”就是指“新项目配置”。
+最新补充：IDEA为了明确这个新项目配置的概念，在 2018.2 之后的正式版本已正式将“Default Settings”名字修改“Default Settings /Project Structure”，即“默认配置”就是指“新项目配置”。
 
 **初始化步骤**
 
@@ -45,7 +127,14 @@ idea.system.path=D:/development/JetBrains/.IntelliJIdea/system
 
 ![](images/20201105143703252_4908.png)
 
-## 3. 全局 JDK（默认配置）
+后面最新版本又调整为：
+
+- 打开默认配置：顶部导航栏 -> File -> Other Settings -> Default Settings /ProjectStructs
+- 打开当前配置：顶部导航栏 -> File -> Settings / ProjectStructs
+
+![](images/515043623226828.png)
+
+### 3.3. 全局 JDK（默认配置）
 
 具体步骤：顶部工具栏 File -> Other Settins -> Default Project Structure -> SDKs -> JDK
 
@@ -968,13 +1057,7 @@ IDEA 2021.2 现在可以展示微服务的图表，在这上面可以看到微�
 
 ![](images/20201105162146169_13016.jpg)
 
-## 21. 解决 idea 卡顿问题
-
-- 在各种优化配置都没明显改善，最后想出了一招禁用和卸载一些平时用不到的插件。效果显著，直接起飞。
-
-> 在升级 2021 以上版本后卡顿问题，感觉主要可能是 Code With Me 和 Space 引起的，在之前没有这 2 插件的时候也没这么明显的卡顿感
-
-## 22. idea64.exe.vmoptions 配置文件详解
+## 21. idea64.exe.vmoptions 配置文件详解
 
 > 更多配置详解参考：https://www.zender.top/post/idea_jvm.html
 
@@ -1010,13 +1093,13 @@ idea2020.1.2 的配置 idea64.exe.vmoptions 文件示例内容
 -Djdk.module.illegalAccess.silent=true
 ```
 
-### 22.1. -server
+### 21.1. -server
 
 JVM 的参数配置分别是**服务器模式(-server)**和**客户端模式(client)**
 
 比如垃圾回收机制，客户端模式下，要求的是用户体验流程，无明显滞留感（就是没有卡的现象）。而服务端，要求的是吞吐量，就是单位时间内执行的代码要求越多越好。
 
-### 22.2. JVM 配置
+### 21.2. JVM 配置
 
 - `-Xmx1024m`：设置 JVM 最大可用内存为 1024m。
 - `-Xms512m`：设置 JVM 初始内存为 512m(启动时占用内存大小)。此值可以设置与`-Xmx`相同，以避免每次垃圾回收完成后 JVM 重新分配内存。
@@ -1025,7 +1108,7 @@ JVM 的参数配置分别是**服务器模式(-server)**和**客户端模式(cli
 - `-Xverify:none`：关闭 Java 字节码验证，从而加快了类装入的速度，并使得在仅为验证目的而启动的过程中无需装入类，缩短了启动时间。 
 - `-ea`：启动断言检查机制。
 
-### 22.3. -XX:+AlwaysPreTouch
+### 21.3. -XX:+AlwaysPreTouch
 
 参数作用：服务启动的时候分配真实的物理内存给 JVM。
 
@@ -1040,9 +1123,40 @@ JAVA 进程启动的时候，虽然可以为 JVM 指定合适的内存大小，�
 
 配置 `-XX:+AlwaysPreTouch` 参数后，JVM 将 `-Xms` 指定的堆内存中每个字节都写入"0"，这样的话，除了在虚拟内存中以内部数据结构保留之外，还会在物理内存中分配内存。并且由于touch(分配物理内存)这个行为是单线程的，因此它将会让 JVM 进程启动变慢。所以，要么选择减少接下来对每个缓存页的第一次访问时间，要么选择减少 JVM 进程启动时间，这是一种权衡。
 
-### 22.4. -XX:MaxGCPauseMillis
+### 21.4. -XX:MaxGCPauseMillis
 
 设置每次年轻代垃圾回收的最长时间(毫秒单位)，如果无法满足此时间，JVM 会自动调整年轻代大小，以满足此值。
+
+## 22. 常见问题的解决方法
+
+### 22.1. 闪退问题
+
+- 问题描述1：双击桌面图标启动不了，没有响应。
+- 问题描述2：进入到安装位置下的 `\bin` 目录，打开 CMD。输入idea，发现报错。
+
+原因：之前使用过其他版本（如 2021.2.2 版本）的补(po)丁(jie)了。安装新版 IEDA 会以前的启运参数也都复制过来。而最新的 IDEA 不兼容之前版本中某些配置，如：
+
+```
+-javaagent:D:\develop_tools\IDEA\IntelliJ IDEA2021.2.2\bin\jetbrains-agent.jar
+```
+
+会报错从而导致 JVM 结束运行，因此无法启动
+
+解决办法：打开 idea 配置保存目录中的 `idea64.exe.vmoptions` 文件，如：
+
+![](images/43092123248085.png)
+
+删除以下内容后，再次打开即可正常进入。
+
+![](images/366772123245587.png)
+
+### 22.2. 解决 idea 卡顿问题
+
+在各种优化配置都没明显改善，最后想出了一招禁用和卸载一些平时用不到的插件。效果显著，直接起飞。
+
+> Tips: 在升级 2021 以上版本后卡顿问题，感觉主要可能是 Code With Me 和 Space 引起的，在之前没有这此插件的时候也没这么明显的卡顿感
+
+> TODO: 待整理可移除的插件列表
 
 # 其他
 
@@ -1153,29 +1267,7 @@ Codota 还有一个在线网站，在这个网站上可以根据代码关键字�
 
 > 注：同时支持Eclipse
 
-## 2. 使用激活码激活
-
-1. 安装下载软件，安装完成后，注意先不运行软件，所以不要勾选【Run Intelli IDEA】
-2. 接下来对软件进行注册破解，首先以记事本的方式打开hosts文件（文件默认目录【C:\Windows\System32\drivers\etc】），将代码添加至hosts文件屏蔽网络联网；
-
-```
-0.0.0.0 account.jetbrains.com
-0.0.0.0 www.jetbrains.com
-```
-
-![](images/20201105162322897_22543.jpg)
-
-3. 再运行桌面上生成的idea ultimate 2019.1软件图标，选择【do not import settings】点击ok，然后勾选【I confirm that...】点击continue进入进入如下界面，点击红色框内的选择
-
-![](images/20201105162351189_20098.jpg)
-
-4. 弹出注册界面，选择"activation code"输入注册码即可激活
-
-![](images/20201105162418183_15702.jpg)
-
-5. 至此，idea ultimate 2019.1破解版成功激活
-
-## 3. 快捷键
+## 2. 快捷键
 
 > 官方快捷键文档 https://resources.jetbrains.com/storage/products/intellij-idea/docs/IntelliJIDEA_ReferenceCard.pdf
 
@@ -1187,23 +1279,23 @@ Codota 还有一个在线网站，在这个网站上可以根据代码关键字�
 
 ![](../../resources/attachments/IDE/IntelliJIDEA_ReferenceCard_mac.jpg)
 
-## 4. 主题样式
+## 3. 主题样式
 
-### 4.1. 一些主题网址
+### 3.1. 一些主题网址
 
 - http://www.themesmap.com/
 - http://www.riaway.com/
 - http://www.easycolor.cc/intelliJidea/list.html
 - http://color-themes.com/?view=index
 
-### 4.2. 待尝试主题
+### 3.2. 待尝试主题
 
 - Xcode-Dark Theme主题下载地址：https://plugins.jetbrains.com/plugin/13106-xcode-dark-theme/versions
 - Vuesion Theme主题下载地址：https://plugins.jetbrains.com/plugin/13106-xcode-dark-theme/versions
 - One Dark theme主题下载地址：https://plugins.jetbrains.com/plugin/11938-one-dark-theme
 - Dark Purple Theme主题下载地址：https://plugins.jetbrains.com/plugin/12100-dark-purple-theme
 
-### 4.3. 怎么安装下载的主题
+### 3.3. 怎么安装下载的主题
 
 1. 从主菜单打开你的编辑器选择 File --> Import Setting。选择下载的jar文件;
 2. 等待重启之后进行配置：打开File --> Settings --> Editor --> Colors and fonts 然后选择要安装的主题即可完成

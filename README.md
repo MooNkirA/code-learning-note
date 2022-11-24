@@ -430,9 +430,9 @@
 ### 💻 IDE
 
 <ul class="docs">
-  <li><a href="#/其他/IDE/IDEA">IntelliJ IDEA 常用配置</a></li>
-  <li><a href="#/其他/IDE/eclipse">Eclipse 常用配置</a></li>
-  <li><a href="#/其他/IDE/Visual-Studio-Code">Visual Studio Code 常用配置</a></li>
+  <li><a href="#/其他/IDE/IDEA">IntelliJ IDEA 使用教程</a></li>
+  <li><a href="#/其他/IDE/eclipse">Eclipse 使用教程</a></li>
+  <li><a href="#/其他/IDE/Visual-Studio-Code">Visual Studio Code 使用教程</a></li>
   <li><a href="#/其他/IDE/DevelopmentTool">其它开发工具常用配置与使用</a></li>
 </ul>
 
