@@ -256,13 +256,26 @@ Editor: 选择要应用于编辑器的抗锯齿模式：
 
 建议不勾选检查 IDEA 更新，勾选检查插件更新。
 
-### 4.2. Editor（编辑器）
+#### 4.1.5. 关闭自动保存
 
-#### 4.2.1. 编辑器主题、字体与颜色配置
+设置位置：Appearance & Behavior -> System Settings -> Autosave。取消勾选相关选项即可去掉默认保存
+
+![](images/510561022227459.png)
+
+### 4.2. Keymap（快捷键配置）
+
+#### 4.2.1. 修改智能提示快捷键
+
+- File -> Settings -> Keymap -> Main menu -> Code -> Completion -> Basic，修改提示快捷键（如：Ctrl+Alt+Enter）
+- File -> Settings -> Keymap -> Editor Actions -> Complete Current Statement，修改（如：Ctrl+）
+
+### 4.3. Editor（编辑器）
+
+#### 4.3.1. 编辑器主题、字体与颜色配置
 
 ![](images/564741022244405.png)
 
-##### 4.2.1.1. IDEA 2019 中文字体渲染有粗有细异常解决方法
+##### 4.3.1.1. IDEA 2019 中文字体渲染有粗有细异常解决方法
 
 ![](images/20201105160134895_28746.jpg)
 
@@ -274,9 +287,9 @@ Editor: 选择要应用于编辑器的抗锯齿模式：
 
 ![](images/87961422237951.png)
 
-##### 4.2.1.2. 注释的字体颜色
+##### 4.3.1.2. 注释的字体颜色
 
-设置位置：Appearance & Behavior -> Editor -> Color Scheme -> Language Defaults
+设置位置：Editor -> Color Scheme -> Language Defaults
 
 ![](images/132111822221615.png)
 
@@ -284,13 +297,13 @@ Editor: 选择要应用于编辑器的抗锯齿模式：
 - Doc Comment -> Text：修改文档注释的字体颜色
 - Line comment：修改单行注释的字体颜色
 
-#### 4.2.2. 使用鼠标滚轮调整字体大小
+#### 4.3.2. 使用鼠标滚轮调整字体大小
 
-设置位置：Appearance & Behavior -> Editor -> General -> Mouse Control
+设置“Ctrl+滚轴”修改编辑器字体大小，如果需要此功能，勾选下图选项即可。设置位置：Editor -> General -> Mouse Control
 
 ![](images/156211622231085.png)
 
-#### 4.2.3. IDEA 设置类和方法注释模板
+#### 4.3.3. 设置类和方法注释模板
 
 > TODO: 待整理方法注释模板设置参考 https://blog.csdn.net/xiaoliulang0324/article/details/79030752
 
@@ -325,9 +338,9 @@ ${MONTH_NAME_SHORT} - the first 3 letters of the month name. Example: Jan, Feb, 
 ${MONTH_NAME_FULL} - full name of a month. Example: January, February, etc.
 ```
 
-#### 4.2.4. 设置显示代码区的行号、方法分隔线、空格
+#### 4.3.4. 设置显示代码区的行号、方法分隔线、空格
 
-设置位置：Appearance & Behavior -> Editor -> General -> Appearance
+设置位置：Editor -> General -> Appearance
 
 - Show line numbers 显示行数的，勾选上显示行数
 - Show method separators 显示方法线的，这种线有助于区分开方法，建议勾选上的
@@ -335,7 +348,7 @@ ${MONTH_NAME_FULL} - full name of a month. Example: January, February, etc.
 
 ![](images/147643023238545.png)
 
-#### 4.2.5. 代码智能提示忽略区分大小写
+#### 4.3.5. 代码智能提示忽略区分大小写
 
 IDEA 代码提示默认是匹配大小写，此开关如果未关。输入字符一定要符合大小写。比如输入`string`是不会出现代码提示或智能补充。但是，如果开了这个开关，无论输入`String`或者`string`都会出现代码提示或者智能补充！
 
@@ -347,7 +360,7 @@ IDEA 代码提示默认是匹配大小写，此开关如果未关。输入字符
 
 ![](images/20201104160400207_31934.png)
 
-#### 4.2.6. 设置自动导包
+#### 4.3.6. 设置自动导包
 
 默认需要手动导包（Alt+Enter 快捷键）
 
@@ -362,11 +375,11 @@ IDEA 代码提示默认是匹配大小写，此开关如果未关。输入字符
 
 **如果设置智能自动导包**。将【自动导入不明确的结构】和【智能优化包】这两个选项勾上。在代码中，只要敲 list，就会出现提示，自动导入`java.util.List`这个类。而这个特性，在 eclipse 中，是无法做到的。
 
-此外，还可以设置 Java 类中导入的某个包下类超过指定个数，就会换成用 `*` 号来代替。设置位置：Appearance & Behavior -> Editor -> Code Style -> Java -> Imports
+此外，还可以设置 Java 类中导入的某个包下类超过指定个数，就会换成用 `*` 号来代替。设置位置：Editor -> Code Style -> Java -> Imports
 
 ![](images/339644322225951.png)
 
-#### 4.2.7. 设置项目文件默认编码（必须修改）
+#### 4.3.7. 设置项目文件默认编码（必须修改）
 
 1. 打开【Settings】，找到【File Encodings】，把 encoding 相关的选项都选择 UTF-8
 
@@ -396,19 +409,19 @@ IDEA 代码提示默认是匹配大小写，此开关如果未关。输入字符
 
 > 注：默认的idea数据缓存目录在c盘，也可以修改配置来指定缓存目录的位置
 
-#### 4.2.8. 设置控制台的字符编码
+#### 4.3.8. 设置控制台的字符编码
 
-设置位置：Appearance & Behavior -> Editor -> General -> Console -> Default Encoding
+设置位置：Editor -> General -> Console -> Default Encoding
 
 ![](images/27635322226560.png)
 
-#### 4.2.9. 设置 tab 为 4 个空格
+#### 4.3.9. 设置 tab 为 4 个空格
 
-设置位置：Appearance & Behavior -> Editor -> Code Style -> Java -> Tabs and Indents。取消勾选 Use tab character
+设置位置：Editor -> Code Style -> Java -> Tabs and Indents。取消勾选 Use tab character
  
 ![](images/460514310227046.png)
 
-#### 4.2.10. 设置忽略显示，隐藏文件或者文件夹（类似eclipse的filter功能）
+#### 4.3.10. 设置忽略显示，隐藏文件或者文件夹（类似eclipse的filter功能）
 
 设置位置：Editor -> File Types -> Ignore files and folders 设置内容：
 
@@ -422,7 +435,7 @@ IDEA 代码提示默认是匹配大小写，此开关如果未关。输入字符
 
 ![](images/592044023239840.png)
 
-#### 4.2.11. 设置取消显示形参名提示
+#### 4.3.11. 设置取消显示形参名提示
 
 ![](images/20201105151054543_134.png)
 
@@ -434,11 +447,11 @@ IDEA 代码提示默认是匹配大小写，此开关如果未关。输入字符
 
 ![](images/20201105151319106_30759.png)
 
-#### 4.2.12. 设置为单行注释的两个斜杠跟随在代码的头部
+#### 4.3.12. 设置为单行注释的两个斜杠跟随在代码的头部
 
 ![](images/20201105151625210_6294.jpg)
 
-#### 4.2.13. 设置鼠标悬浮时显示代码的文档信息
+#### 4.3.13. 设置鼠标悬浮时显示代码的文档信息
 
 选择【Editor】->【Code Editing】，勾选`Show quick documentation on mouse move`。可以设置弹出提示响应时间，默认500 ms
 
@@ -446,9 +459,171 @@ IDEA 代码提示默认是匹配大小写，此开关如果未关。输入字符
 
 > 注：旧版本idea是在【General】选项下
 
-### 4.3. Build, Execution, Deployment（构建，执行，部署）
+#### 4.3.14. 设置编辑器 tab 标签多行显示
 
-#### 4.3.1. 配置自动编译（非常重要！！）
+设置位置：Editor -> General -> Editor Tabs -> 不勾选 Show tabs in one row 选项即可
+
+![](images/20201104161507103_21878.png)
+
+效果：
+
+![](images/20201104161614312_9051.jpg)
+
+#### 4.3.15. 设置代码行宽度
+
+输入的代码超出宽度界线时，自动将代码换行。
+
+- 方式1：点击【Editor】->【Code Style】->【General】选项卡，在“Hard wrap at”输入框中指定换行的数字量。当代码宽度超过该设置值时，IDEA 会自动将代码换行。
+
+![](images/46965121239592.png)
+
+- 方式2：点击【Editor】->【Code Style】->【Java】->【Wrapping and Braces】选项卡，在“Keep when reformatting”中有一个“Ensure rigth margin is not exceeded”，选中它，在格式化 Java 代码时，确保代码没有超过宽度界线。即输入的代码超出界线后格式化换行
+
+![](images/378444821221166.png)
+
+#### 4.3.16. 设置默认展开与折叠代码
+
+设置位置：Editor -> General -> Code Folding
+
+![](images/20201104171721608_2987.png)
+
+如上图标注红圈所示，可以对指定代码类型进行默认折叠或是展开的设置，勾选上的表示该类型的代码在文件被打开的时候默认是被折叠的，去掉勾选则默认展开。
+
+#### 4.3.17. 关闭注释 doc 默认的 Rendered View 模式
+
+在 idea 2020 版本以后，增加了 Rendered View 模式，用于提升注释文档的阅读体验，默认是开启。如需关闭，按如下步骤操作：
+
+设置位置：Editor -> General -> Appearance -> 取消勾选 【Render documentation comments】。
+
+![](images/20210222221153551_1459.png)
+
+Editor -> Reader Mode -> 取消勾选 【Enable Reader mode】
+
+![](images/20210223210345370_19141.png)
+
+#### 4.3.18. 标志修改文件带星号（*）
+
+标志修改文件为星号 Editor -> General -> Editor tabs -> 勾选 mark modified files as asterisk 选项
+
+![](images/20201105151826264_22179.jpg)
+
+新版
+
+![](images/210351322247625.png)
+
+### 4.4. Inspections（安全检查配置）
+
+安全检查的相关配置位置：Editor -> Inspections
+
+#### 4.4.1. 点击右下角取消文件检查
+
+IntelliJ IDEA 对于编辑大文件并没有太大优势，很卡，原因就是它有各种检查，这样是非常耗内存和 CPU 的，所以为了能加快大文件的读写，一般会暂时性设置为 None。
+
+- Inspections 为最高等级检查，可以检查单词拼写，语法错误，变量使用，方法之间调用等。
+- Syntax 可以检查单词拼写，简单语法错误。
+- None 不设置检查。
+
+![](images/20201105152332190_17267.jpg)
+
+#### 4.4.2. 取消单词拼写检查
+
+![](images/20201105152356496_20126.jpg)
+
+如上图箭头所示，IntelliJ IDEA 默认是开启单词拼写检查的，有些人可能有强迫症不喜欢看到单词下面有波浪线，就可以去掉该勾选。
+
+但是建议这个还是不要关闭，因为拼写检查是一个很好的功能，当大家的命名都是标准话的时候，这可以方便找到代码因为拼写错误引起的 Bug。
+
+#### 4.4.3. 代码中大量的波浪线
+
+![](images/20201105152727036_12348.jpg)
+
+解决方法是File -- Setting -- Editor -- Inspections，右侧搜索General，取消√，保存退出
+
+![](images/20201105152747720_3186.jpg)
+
+#### 4.4.4. 参数和变量有下划线，实线
+
+![](images/20201105152828795_5456.jpg)
+
+![](images/20201105152836924_41.jpg)
+
+解决方法，Filt -- Setting -- Editor -- Color Scheme -- Java ，点击下方需要修改代码，看到最右侧有显示效果Effects ，如下图。这里可以看到，参数的显示效果是绿色下划线underscored，（同样的点击下面代码中变量名，可以看到他的显示效果，也可以按照这个方法取消一些提示显示的效果）。可以把underscored换成blod underscored，或者直接取消Effects前的√，Apply，退出。
+
+![](images/20201105152852940_21875.jpg)
+
+#### 4.4.5. Typo 提示
+
+![](images/20201105152940255_24967.jpg)
+
+![](images/20201105152946635_28965.jpg)
+
+这种提示也是比较常见的，直接File -- Setting，搜索Typo，可以看到下面有各种情况下的提示效果包括Typo（绿色波浪线），Typo上面还有Error错误时红线波浪线，Warning警告时灰色波浪线和无法识别时加红等。根据自己的情况调整。这里把Typo和警告Warning，Weak warning时的提示效果都取消掉。取消方法还是取消掉右侧的Effects的“√”。保存退出。
+
+![](images/20201105152952105_24494.jpg)
+
+#### 4.4.6. never used 提示
+
+![](images/20201105153032644_20759.jpg)
+
+为了代码更加规范，少些无效的代码，IDEA会对于方法中未使用到的一些变量做出提示never used，但是对于刚创建的变量，方法都还没有写完，他就开始提示该变量没有用到就有点过分了，甚是让人反感。
+
+解决方法，File -- Setting -- Editor -- Inspections，右侧搜索“unused”，找到Java一栏，取消没未用到时的提醒说明。保存退出。
+
+![](images/20201105153140754_17980.jpg)
+
+有时候会出现assigned的提示，解决方法和上面的一样。搜索“assigned”，找到java一栏，取消下面的勾选项。
+
+![](images/20201105153157823_18782.jpg)
+
+#### 4.4.7. 参数不匹配时symbol错误提示
+
+![](images/20201105153237789_7222.jpg)
+
+这个个人感觉还是有必要保留的，但是对于或者用习惯eclipse的，可能一开始提示这样的错误，很诧异，注释中参数名和方法中不匹配竟然直接error提示。当然关闭提示的办法肯定是有的。
+
+如图，直接File -- setting，搜索“javadoc”，取消选项。保存退出。
+
+![](images/20201105153246650_17185.jpg)
+
+#### 4.4.8. 变量初始化多余时的提示：Variable "xxxx" initializer 'xxx' is redundant
+
+![](images/20201105153431033_4985.jpg)
+
+idea对代码进行了审查，在开发的时候也会经常对变量在未使用之前做初始化操作，不分配内存地址，但是不明白为什么，idea竟然会提示“变量初始化多余”。有点不解，难道是对jvm的内存使用理解有问题。
+
+取消提示的方法，选择提示的变量，快捷键“Alt” + “Enter”，取消审查。
+
+![](images/20201105153447663_10452.jpg)
+
+#### 4.4.9. 去除IntelliJ IDEA中mapper.xml文件的提示和背景色
+
+1. 点击 File --> Settings --> Editor --> Inspections，找到图中所示的SQL，去掉下面的No data sources configured和SQL dialect detection的勾选
+
+![](images/20201105153545776_5258.jpg)
+
+2. 点击 Editor --> Colors Scheme --> General ，打开Code，选择Injected language fragment，去掉Background的勾选
+
+![](images/20201105153827436_20805.jpg)
+
+#### 4.4.10. 设置自动生成serialVersionUID
+
+新建一个测试的实体类，实现`java.io.Serializable`接口，选择类名，按`Alt+Enter`键，出现的提示框中没有生成 serialVersionUID 的提示，这个需要设置之后才会有自动生成的提示信息
+
+点击选择【Editor】->【Inspections】。在右边的搜索框中输入 `serialVersionUID` 关键字，出现以下选项，勾选 `Serializable class without serialVersionUID`
+
+![](images/20201001162411075_32472.png)
+
+设置完后，光标放在类名上，再次按`Alt+Enter`键，这个时候可以看到`Add serialVersionUID field`提示信息
+
+![](images/20201001162829472_101.png)
+
+#### 4.4.11. 总结
+
+简单的统一关闭提示的方法，其实上面也有说明这个方法，当遇到提示的时候，我们可以先选择代码，然后快捷键“Alt”+“Enter”，选择remove xxxx，可以选择删除你的多余代码，也可以选择取消idea的提示。
+
+### 4.5. Build, Execution, Deployment（构建，执行，部署）
+
+#### 4.5.1. 配置自动编译（非常重要！！）
 
 设置位置：Build,Execution,Deployment -> Compiler -> Build project automatically
 
@@ -463,232 +638,15 @@ IDEA 代码提示默认是匹配大小写，此开关如果未关。输入字符
 ![](images/20201105145338209_14680.jpg)
 
 
+### 4.6. 其他设置
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-### 4.4. 设置tab标签多行显示
-
-File --> settings --> Editor --> General --> Editor Tabs --> 去掉 Show tabs in one row 的 √ 即可
-
-![](images/20201104161507103_21878.png)
-
-![](images/20201104161614312_9051.jpg)
-
-### 4.5. IDEA 设置代码行宽度
-
-输入的代码超出宽度界线时，让IDE自动将代码换行。点击【File】 --> 【settings】 --> 【Editor】 --> 【Code Style】
-
-- 方式1：在上述的“Right margin (columns)”的下方，有“Wrap when typing reaches right margin”选项，选中它。随着输入的字符的增加，当代码宽度到达界线时，IDEA会自动将代码换行。
-- 方式2：在File -> settings -> Code Style -> Java中，选中“Wrapping and Braces”选项卡，在“Keep when reformatting”中有一个“Ensure rigth margin is not exceeded”，选中它，在格式化Java代码时，确保代码没有超过宽度界线。即输入的代码超出界线后格式化换行
-
-
-
-
-### 4.6. 修改智能提示快捷键
-
-- File -> Settings -> Keymap -> Main menu -> Code -> Completion -> Basic，修改提示快捷键（如：Ctrl+Alt+Enter）
-- File -> Settings -> Keymap -> Editor Actions -> Complete Current Statement，修改（如：Ctrl+）
-
-### 4.7. 设置项目结构树状显示或折叠空包
-
-树状显示效果：
-
-![](images/20201104171017300_4689.jpg)
-
-折叠空包显示效果：
-
-![](images/20201104171134399_9438.png)
-
-### 4.8. 设置默认展开与折叠代码
-
-![](images/20201104171721608_2987.png)
-
-如上图标注红圈所示，可以对指定代码类型进行默认折叠或是展开的设置，勾选上的表示该类型的代码在文件被打开的时候默认是被折叠的，去掉勾选则反之。
-
-### 4.9. 设置滚轴修改字体大小
-
-按住Ctrl+滚轴可以修改编辑器字体大小，如果需要此功能，勾选下图选项即可
-
-![](images/20201104171816798_27478.png)
-
-### 4.10. 设置自动生成serialVersionUID
-
-新建一个测试的实体类，实现`java.io.Serializable`接口，选择类名，按`Alt+Enter`键，出现的提示框中没有生成serialVersionUID的提示，这个需要设置之后才会有自动生成的提示信息
-
-点击选择【File】-->【Settings】-->【Editor】-->【Inspections】。在右边的搜索框中输入`serialVersionUID`关键字，出现以下选项，勾选`Serializable class without serialVersionUID`
-
-![](images/20201001162411075_32472.png)
-
-设置完后，光标放在类名上，再次按`Alt+Enter`键，这个时候可以看到`Add serialVersionUID field`提示信息
-
-![](images/20201001162829472_101.png)
-
-### 4.11. 关闭自动保存和标志修改文件为星号（*）
-
-去掉默认保存，File --> settings --> System Settings --> 去掉勾选synchronize files on frame or editor tab activation 和去掉勾选 save files on frame deactivation
-
-![](images/20201105151727334_5795.jpg)
-
-标志修改文件为星号File --> Settings --> Editor --> General --> Editor tabs --> 勾选 mark modified files as asterisk
-
-![](images/20201105151826264_22179.jpg)
-
-### 4.12. IDEA去除掉虚线，波浪线，和下划线实线的方法
-
-#### 4.12.1. 点击右下角取消文件检查
-
-IntelliJ IDEA 对于编辑大文件并没有太大优势，很卡，原因就是它有各种检查，这样是非常耗内存和 CPU 的，所以为了能加快大文件的读写，一般会暂时性设置为 None。
-
-- Inspections 为最高等级检查，可以检查单词拼写，语法错误，变量使用，方法之间调用等。
-- Syntax 可以检查单词拼写，简单语法错误。
-- None 不设置检查。
-
-![](images/20201105152332190_17267.jpg)
-
-#### 4.12.2. 取消单词拼写检查
-
-![](images/20201105152356496_20126.jpg)
-
-如上图箭头所示，IntelliJ IDEA 默认是开启单词拼写检查的，有些人可能有强迫症不喜欢看到单词下面有波浪线，就可以去掉该勾选。
-
-但是建议这个还是不要关闭，因为拼写检查是一个很好的功能，当大家的命名都是标准话的时候，这可以在不时方便地帮我们找到代码因为拼写错误引起的 Bug。
-
-#### 4.12.3. 代码中大量的波浪线
-
-![](images/20201105152727036_12348.jpg)
-
-解决方法是File -- Setting -- Editor -- Inspections，右侧搜索General，取消√，保存退出
-
-![](images/20201105152747720_3186.jpg)
-
-#### 4.12.4. 参数和变量有下划线，实线
-
-![](images/20201105152828795_5456.jpg)
-
-![](images/20201105152836924_41.jpg)
-
-解决方法，Filt -- Setting -- Editor -- Color Scheme -- Java ，点击下方需要修改代码，看到最右侧有显示效果Effects ，如下图。这里可以看到，参数的显示效果是绿色下划线underscored，（同样的点击下面代码中变量名，可以看到他的显示效果，也可以按照这个方法取消一些提示显示的效果）。可以把underscored换成blod underscored，或者直接取消Effects前的√，Apply，退出。
-
-![](images/20201105152852940_21875.jpg)
-
-#### 4.12.5. Typo提示
-
-![](images/20201105152940255_24967.jpg)
-
-![](images/20201105152946635_28965.jpg)
-
-这种提示也是比较常见的，直接File -- Setting，搜索Typo，可以看到下面有各种情况下的提示效果包括Typo（绿色波浪线），Typo上面还有Error错误时红线波浪线，Warning警告时灰色波浪线和无法识别时加红等。根据自己的情况调整。这里把Typo和警告Warning，Weak warning时的提示效果都取消掉。取消方法还是取消掉右侧的Effects的“√”。保存退出。
-
-![](images/20201105152952105_24494.jpg)
-
-#### 4.12.6. never used 提示
-
-![](images/20201105153032644_20759.jpg)
-
-为了代码更加规范，少些无效的代码，IDEA会对于方法中未使用到的一些变量做出提示never used，但是对于刚创建的变量，方法都还没有写完，他就开始提示该变量没有用到就有点过分了，甚是让人反感。
-
-解决方法，File -- Setting -- Editor -- Inspections，右侧搜索“unused”，找到Java一栏，取消没未用到时的提醒说明。保存退出。
-
-![](images/20201105153140754_17980.jpg)
-
-有时候会出现assigned的提示，解决方法和上面的一样。搜索“assigned”，找到java一栏，取消下面的勾选项。
-
-![](images/20201105153157823_18782.jpg)
-
-#### 4.12.7. 参数不匹配时symbol错误提示
-
-![](images/20201105153237789_7222.jpg)
-
-这个个人感觉还是有必要保留的，但是对于或者用习惯eclipse的，可能一开始提示这样的错误，很诧异，注释中参数名和方法中不匹配竟然直接error提示。当然关闭提示的办法肯定是有的。
-
-如图，直接File -- setting，搜索“javadoc”，取消选项。保存退出。
-
-![](images/20201105153246650_17185.jpg)
-
-#### 4.12.8. 变量初始化多余时的提示：Variable "xxxx" initializer 'xxx' is redundant
-
-![](images/20201105153431033_4985.jpg)
-
-idea对代码进行了审查，在开发的时候也会经常对变量在未使用之前做初始化操作，不分配内存地址，但是不明白为什么，idea竟然会提示“变量初始化多余”。有点不解，难道是对jvm的内存使用理解有问题。
-
-取消提示的方法，选择提示的变量，快捷键“Alt” + “Enter”，取消审查。
-
-![](images/20201105153447663_10452.jpg)
-
-#### 4.12.9. 去除IntelliJ IDEA中mapper.xml文件的提示和背景色
-
-1. 点击 File --> Settings --> Editor --> Inspections，找到图中所示的SQL，去掉下面的No data sources configured和SQL dialect detection的勾选
-
-![](images/20201105153545776_5258.jpg)
-
-2. 点击 Editor --> Colors Scheme --> General ，打开Code，选择Injected language fragment，去掉Background的勾选
-
-![](images/20201105153827436_20805.jpg)
-
-#### 4.12.10. 总结
-
-简单的统一关闭提示的方法，其实上面也有说明这个方法，当遇到提示的时候，我们可以先选择代码，然后快捷键“Alt”+“Enter”，选择remove xxxx，可以选择删除你的多余代码，也可以选择取消idea的提示。
-
-### 4.13. IDEA无法使用已安装的字体
-
-给电脑安装了Monaco.ttf字体后在其他软件都能正常使用，结果在IDEA字体设置中找不到该字体。电脑环境：Windows10 x64、IntelliJ IDEA 2018.3.5 x64
-
-![](images/20201105160020098_25311.jpg)
-
-解决办法：找到IDEA安装目录，把字体文件复制到IDEA-jre-lib-fonts目录下，重启IDEA就能看到该字体了
-
-![](images/20201105160034155_21682.jpg)
-
-### 4.14. 关闭idea2020的注释doc默认的Rendered View模式
-
-打开【Settings】 -> Editor -> General -> Appearance -> 取消勾选 【Render documentation comments】
-
-![](images/20210222221153551_1459.png)
-
-Editor -> Reader Mode -> 取消勾选 【Enable Reader mode】
-
-![](images/20210223210345370_19141.png)
-
-### 4.15. 其他设置
-
-#### 4.15.1. 设置为省电模式 (一般不会设置)
+#### 4.6.1. 设置为省电模式 (一般不会设置)
 
 ![](images/155940223225026.png)
 
 IntelliJ IDEA 有一种叫做“省电模式”的状态，开启这种模式之后 IDEA 会**关掉代码检查**和**代码提示**等功能。所以一般也可认为这是一种**阅读模式**，如果在开发过程中遇到突然代码文件不能进行检查和提示，可以来看看这里是否有开启该功能。
 
-#### 4.15.2. 取消双击 shift 搜索
+#### 4.6.2. 取消双击 shift 搜索
 
 因为平时按 shift 切换中英文输入，经常弹出搜索框，嫌麻烦的话可以取消它。
 
@@ -704,6 +662,77 @@ IntelliJ IDEA 有一种叫做“省电模式”的状态，开启这种模式之
 
 ![](images/529682323233506.png)
 
+#### 4.6.3. 设置项目结构树状显示或折叠空包
+
+树状显示效果：
+
+![](images/20201104171017300_4689.jpg)
+
+折叠空包显示效果：
+
+![](images/20201104171134399_9438.png)
+
+#### 4.6.4. IDEA 启用/禁用 Run Dashboard
+
+##### 4.6.4.1. 启用 Run Dashboard
+
+**方式一**：	创建/打开一个SpringBoot项目【或者点击Run -> Edit Configurations 添加 Spring Boot 类型的项目配置；或者如图在红框处添加配置】，会弹出一个 Run Dashboard 信息框，点击第一个蓝色连接(Show run configurations in Run Dashboard) 即可。
+
+![](images/20201009221411355_31398.jpg)
+
+![](images/20201009221421083_17929.jpg)
+
+![](images/20201009221429616_8781.jpg)
+
+方式二：点击 View -> Tool Windows -> Run Dashboard（此方式是 Run Dashboard 已经打开后，只是隐藏了才能使用此方式）
+
+![](images/20201009221615940_7973.jpg)
+
+方式三：在项目`.idea`目录中的`workspace.xml`中找到 RunDashboard 的 component 节点内增加以下代码
+
+```xml
+<component name="RunDashboard">
+    <option name="configurationTypes">
+      <set>
+        <option value="SpringBootApplicationConfigurationType" />
+      </set>
+    </option>
+</component>
+```
+
+##### 4.6.4.2. 禁用 Run Dashboard
+
+方式一：在弹出的 Run Dashboard 信息框，点击第二个蓝色连接(Do not show again for this peoject) 即可
+
+![](images/20201009221833358_19679.jpg)
+
+方式二：在项目`.idea`目录中的`workspace.xml`中找到 RunDashboard 的 component 接点内删除以下代码
+
+```xml
+<option name="configurationTypes">
+	<set>
+		<option value="SpringBootApplicationConfigurationType" />
+	</set>
+</option>
+```
+
+##### 4.6.4.3. 其他操作
+
+在弹出的 Run Dashboard 信息框，点击第二个蓝色连接(Do not show again for this peoject)后，会发现Run Dashboard 信息框不再有了，可以通过快捷键`Ctrl+Alt+S`打开 Settings 窗口【或点击File -> Settings】，在搜索框输入`Notifications`，然后修改右侧 Run Dashboard 栏信息即可。以下是 Popup (弹出窗口)的设置说明：
+
+- `Balloon`：弹出窗在屏幕上显示一小段时间，然后自动消失。通知也会显示在状态栏中，并添加到通知列表中。
+- `Sticky balloon`：若不手动关闭，弹出窗会在屏幕上一直显示
+- `No popup`：不显示该弹出窗
+
+![](images/20201009222219012_2906.jpg)
+
+### 4.7. 导出和导入设置
+
+导出：点击【File】->【Export Settings】-> 选择需要导出的【Settings】的选项 -> 选择导出的位置，点击【OK】导出
+
+![](images/20201105145508248_1706.jpg)
+
+导入：点击【File】 -> 【Import Settings】 -> 找到【Settings】的位置，点击【OK】导入
 
 ## 5. 配置 Maven 仓库
 
@@ -840,17 +869,66 @@ idea创建maven项目时，速度很慢，主要原因是创建maven项目时默
 
 ![](images/20201010234327948_1885.png)
 
-## 6. 配置代码模板（Live Templates）
+## 6. 代码模板的使用与设置
+
+### 6.1. 常用代码模板
+
+#### 6.1.1. 非空判断
+
+- `变量.null`：`if(变量 == null)`
+- `变量.nn`：`if(变量 != null)`
+- `变量.notnull`：`if(变量 != null)`
+- `ifn`：`if(xx == null)`
+- `inn`：`if(xx != null)`
+
+#### 6.1.2. 遍历数组和集合
+
+- 数组或集合变量.fori：for循环
+- 数组或集合变量.for：增强for循环
+- 数组或集合变量.forr：反向for循环
+- 数组或集合变量.iter：增强for循环遍历数组或集合
+
+#### 6.1.3. 输出语句
+
+- `sout`：相当于 System.out.println
+- `soutm`：打印当前方法的名称
+- `soutp`：打印当前方法的形参及形参对应的实参值
+- `soutv`：打印方法中声明的最近的变量的值
+- `变量.sout`：打印当前变量值
+- `变量.soutv`：打印当前变量名及变量值
+
+#### 6.1.4. 对象操作
+
+创建对象
+
+- `Xxx.new.var`：创建Xxx类的对象，并赋给相应的变量
+- `Xxx.new.field`：会将方法内刚创建的Xxx对象抽取为一个属性
+
+强转
+
+- `对象.cast`：将对象进行强转
+- `对象.castvar`：将对象强转后，并赋给一个变量
+
+静态常量声明
+
+- `psf`：public static final
+- `psfi`：public static final int
+- `psfs`：public static final String
+- `prsf`：private static final
+
+### 6.2. 自定义代码模板（Live Templates）
+
+Live Templates 其实就是输入代码片段，快速生成代码模板。在【Settings】->【Editor】->【Live Templates】中看到 idea 默认的一些模板
 
 ![](images/20201104164947850_3828.jpg)
 
-### 6.1. 示例 - 修改main方法与输出打印快捷键
+#### 6.2.1. 示例 - 修改 main 方法与输出打印快捷键
 
 ![](images/20201104165401624_6418.jpg)
 
 ![](images/20201104165408683_9428.jpg)
 
-### 6.2. 示例 - 配置日志LOGGER模板
+#### 6.2.2. 示例 - 配置日志 LOGGER 模板
 
 ![](images/20201104165526641_8748.jpg)
 
@@ -858,15 +936,19 @@ idea创建maven项目时，速度很慢，主要原因是创建maven项目时默
 
 ![](images/20201104165543443_11129.jpg)
 
-选择分组，创建模版
+选择分组，创建模版。一些输入元素的介绍如下：
+
+1. Abbreviation：模板的缩略名称
+2. Description：模板的描述
+3. Template text：模板的代码片段
 
 ![](images/20201104165611133_8712.jpg)
 
 设置需要的变量值
 
-![4](images/20201104165624919_933.jpg)
+![](images/20201104165624919_933.jpg)
 
-设置模版作用的范围
+Define：设置模版作用的范围。比如点击选择，应用在java代码中。
 
 ![](images/20201104165641796_22753.jpg)
 
@@ -874,11 +956,31 @@ idea创建maven项目时，速度很慢，主要原因是创建maven项目时默
 
 ![](images/20201104165658728_19749.jpg)
 
-## 7. 定义文件模版（File and Code Templates）
+### 6.3. 自定义代码后缀补全模板（Postfix Completion）
+
+Postfix Completion 其实就是关于代码补全的一些模板。在【Settings】->【Editor】->【General】->【Postfix Completion】中看到idea默认的一些模板
+
+![](images/20201104170702945_25792.jpg)
+
+#### 6.3.1. 示例 - 快速生成集合定义
+
+点击“+”号，创建 Java 的模板
+
+![](images/471235823240294.png)
+
+- Key：输入代码后缀的内容
+- Minimum language Level：支持最低的 JDK 版本
+- 最后输入代码补全生成的模板，可以使用`$expr$`表达式来动态指定生成的内容
+
+![](images/531995823236849.png)
+
+### 6.4. 自定义文件模版（File and Code Templates）
+
+文件模版就是在创建文件时，会自动生成预设好的内容。设置位置：【Settings】->【Editor】->【File and Code Templates】
 
 ![](images/20201104170042990_11747.jpg)
 
-### 7.1. 示例 - 定义Mybatis的mapper.xml文件
+#### 6.4.1. 示例 - 定义Mybatis的mapper.xml文件
 
 ![](images/20201104170403732_18108.jpg)
 
@@ -890,101 +992,14 @@ idea创建maven项目时，速度很慢，主要原因是创建maven项目时默
 
 ![](images/20201104170448866_27272.jpg)
 
-## 8. 代码补全模板（Postfix Completion）
-
-Postfix Completion其实就是关于代码补全的一些模板。在【Settings】-->【Editor】-->【General】-->【Postfix Completion】中看到idea默认的一些模板
-
-![](images/20201104170702945_25792.jpg)
-
-## 9. IDEA 启用/禁用 Run Dashboard
-
-### 9.1. 启用 Run Dashboard
-
-**方式一**：	创建/打开一个SpringBoot项目【或者点击Run --> Edit Configurations 添加 Spring Boot 类型的项目配置；或者如图在红框处添加配置】，会弹出一个 Run Dashboard 信息框，点击第一个蓝色连接(Show run configurations in Run Dashboard) 即可。
-
-![](images/20201009221411355_31398.jpg)
-
-![](images/20201009221421083_17929.jpg)
-
-![](images/20201009221429616_8781.jpg)
-
-方式二：点击View --> Tool Windows --> Run Dashboard（此方式是Run Dashboard已经打开后，只是隐藏了才能使用此方式）
-
-![](images/20201009221615940_7973.jpg)
-
-方式三：在项目`.idea`目录中的`workspace.xml`中找到 RunDashboard 的 component 节点内增加以下代码
-
-```xml
-<component name="RunDashboard">
-    <option name="configurationTypes">
-      <set>
-        <option value="SpringBootApplicationConfigurationType" />
-      </set>
-    </option>
-</component>
-```
-
-### 9.2. 禁用 Run Dashboard
-
-方式一：在弹出的 Run Dashboard 信息框，点击第二个蓝色连接(Do not show again for this peoject) 即可
-
-![](images/20201009221833358_19679.jpg)
-
-方式二：在项目`.idea`目录中的`workspace.xml`中找到 RunDashboard 的 component 接点内删除以下代码
-
-```xml
-<option name="configurationTypes">
-	<set>
-		<option value="SpringBootApplicationConfigurationType" />
-	</set>
-</option>
-```
-
-### 9.3. 其他操作
-
-在弹出的 Run Dashboard 信息框，点击第二个蓝色连接(Do not show again for this peoject)后，会发现Run Dashboard 信息框不再有了，可以通过快捷键`Ctrl+Alt+S`打开Settings窗口【或点击File --> Settings】，在搜索框输入Notifications，然后修改右侧Run Dashboard栏信息即可。以下是Popup(弹出窗口)的设置说明：
-
-- `Balloon`：弹出窗在屏幕上显示一小段时间，然后自动消失。通知也会显示在状态栏中，并添加到通知列表中。
-- `Sticky balloon`：若不手动关闭，弹出窗会在屏幕上一直显示
-- `No popup`：不显示该弹出窗
-
-![](images/20201009222219012_2906.jpg)
-
-## 10. IntelliJ IDEA 导出和导入设置
-
-导出：点击【File】 --> 【Export Settings】 --> 选择需要导出的【Settings】的选项 --> 选择导出的位置，点击【OK】导出
-
-![](images/20201105145508248_1706.jpg)
-
-导入：点击【File】 -> 【Import Settings】 -> 找到【Settings】的位置，点击【OK】导入
-
-## 11. 解决 IDEA 复制项目导致 sources root 复用了另一个项目
-
-比如现在新建一个项目，而对原来的uis-gateway复制粘贴，然后改项目名就成了uis-application了。这时会发现如下图所示，sources root依然是uis-gateway：
-
-![](images/20201111133014786_1013.png)
-
-解决方法：快捷键`Ctrl+Alt+Shift+S`打开Project Structure -> 在Modules中点下原始项目uis-gateway，可以看到这时它的Sources、Test、Resources都是新项目uis-application的：
-
-![](images/20201111135549742_10717.png)
-
-点上图右边框框里的叉叉删掉：
-
-![](images/20201111135608229_7886.png)
-
-![](images/20201111135626445_15338.png)
-
-此时恢复原状：
-
-![](images/20201111135651846_8443.png)
-
-## 12. IDEA 的项目配置和 Web 部署
+## 7. IDEA 的项目配置和 Web 部署
 
 IDEA中最重要的各种设置项，就是这个 `Project Structre` 了，关乎你的项目运行
 
 ![](images/20201105154113621_18429.jpg)
 
-### 12.1. Project选项卡
+### 7.1. Project选项卡
+
 ![](images/20201105154138246_26519.jpg)
 
 - `Project name`：定义项目的名称；
@@ -992,17 +1007,17 @@ IDEA中最重要的各种设置项，就是这个 `Project Structre` 了，关�
 - `Project language level`：这个和JDK的类似，区别在于，假如你设置了JDK1.8，却只用到1.6的特性，那么这里可以设置语言等级为1.6，这个是限定项目编译检查时最低要求的JDK特性；
 - `Project compiler output`：项目中的默认编译输出总目录，如图黄色部分，实际上每个模块可以自己设置特殊的输出目录（Modules - (project) - Paths - Use module compile output path），所以这个设置有点鸡肋。
 
-### 12.2. Modules选项卡
+### 7.2. Modules选项卡
 
 ![](images/20201105154246189_1479.jpg)
 
-#### 12.2.1. 增删子项目
+#### 7.2.1. 增删子项目
 
 ![](images/20201105154340793_28073.jpg)
 
 一个项目中可以有多个子项目，每个子项目相当于一个模块。一般我们项目只是单独的一个，IntelliJ IDEA 默认也是单子项目的形式，所以只需要配置一个模块
 
-#### 12.2.2. 子项目配置
+#### 7.2.2. 子项目配置
 
 每个子项目都对应了Sources、Paths、Dependencies 三大配置选项
 
@@ -1016,13 +1031,13 @@ IDEA中最重要的各种设置项，就是这个 `Project Structre` 了，关�
 
 ![](images/20201105154536810_4240.jpg)
 
-#### 12.2.3. 增删框架（Web部署-1）
+#### 7.2.3. 增删框架（Web部署-1）
 
 每个子项目之下都可以定义它所使用的框架，这里重点说明一下Web部分的设置
 
 ![](images/20201105154614214_17076.jpg)
 
-### 12.3. Libraries选项卡
+### 7.3. Libraries选项卡
 
 这里可以显示所添加的jar包，同时也可以添加jar包，并且可以把多个jar放在一个组里面，类似于jar包整理。
 
@@ -1030,7 +1045,7 @@ IDEA中最重要的各种设置项，就是这个 `Project Structre` 了，关�
 
 ![](images/20201105154650284_16459.jpg)
 
-### 12.4. Facets选项卡
+### 7.4. Facets选项卡
 
 官方的解释是：When you select a framework (a facet) in the element selector pane, the settings for the framework are shown in the right-hand part of the dialog.（当你在左边选择面板点击某个技术框架，右边将会显示这个框架的一些设置）
 
@@ -1038,7 +1053,7 @@ IDEA中最重要的各种设置项，就是这个 `Project Structre` 了，关�
 
 ![](images/20201105154731311_7022.jpg)
 
-### 12.5. Artifacts（Web部署-2）
+### 7.5. Artifacts（Web部署-2）
 
 项目的打包部署设置，这个是项目配置里面比较关键的地方。先理解下它的含义，来看看官方定义的artifacts：
 
@@ -1065,7 +1080,7 @@ IDEA中最重要的各种设置项，就是这个 `Project Structre` 了，关�
 
 ![](images/20201105154911012_26433.jpg)
 
-### 12.6. Tomcat Server（当前项目配置）
+### 7.6. Tomcat Server（当前项目配置）
 
 Tomcat 或者 Jetty 这些都是部署的容器，自然会联想到 Deployment ，打开部署配置，可以看到应用服务器的配置
 
@@ -1074,7 +1089,7 @@ Tomcat 或者 Jetty 这些都是部署的容器，自然会联想到 Deployment 
 ![](images/20201105154033810_20978.jpg)
 
 
-## 13. 设置 idea 连接 linux 系统
+## 8. 设置 idea 连接 linux 系统
 
 根据 linux 系统的编码设置 Default encoding
 
@@ -1094,24 +1109,24 @@ Tomcat 或者 Jetty 这些都是部署的容器，自然会联想到 Deployment 
 
 ![](images/20201105155227043_12236.jpg)
 
-## 14. 使用 idae 创建的 Spring Boot 项目，运行两个一样的启动类
+## 9. 使用 idae 创建的 Spring Boot 项目，运行两个一样的启动类
 
 ![](images/20201105155459921_5551.jpg)
 
 ![](images/20201105155507031_28656.jpg)
 
-## 15. Intellij IDEA 四种配置热部署的方法
+## 10. Intellij IDEA 四种配置热部署的方法
 
 热部署可以使的修改代码后，无须重启服务器，就可以加载更改的代码。
 
-### 15.1. 方式1：修改服务器配置，使得 IDEA 窗口失去焦点时，更新类和资源
+### 10.1. 方式1：修改服务器配置，使得 IDEA 窗口失去焦点时，更新类和资源
 
 菜单Run -> EditConfiguration , 然后配置指定服务器下，右侧server标签下on frame deactivation = Update classes and resource。
 
 - 优点：简单
 - 缺点：基于JVM提供的热加载仅支持方法块内代码修改，只有debug模式下，并且是在idea失去焦点时才会出发热加载，相对加载速度缓慢
 
-### 15.2. 方式2：使用 springloaded jar 包
+### 10.2. 方式2：使用 springloaded jar 包
 
 下载jar包，github：https://github.com/spring-projects/spring-loaded
 
@@ -1120,7 +1135,7 @@ Tomcat 或者 Jetty 这些都是部署的容器，自然会联想到 Deployment 
 - 优点：对Spring系列框架支持好（不含Spring boot）, 支持 成员级别的修改（增删改方法、字段、注解），支持对枚举值集。
 - 缺点：与优点相对
 
-### 15.3. 方式3：使用 spring-boot-devtools 提供的开发者工具
+### 10.3. 方式3：使用 spring-boot-devtools 提供的开发者工具
 
 spring-boot项目中引入如下依赖
 
@@ -1134,20 +1149,20 @@ spring-boot项目中引入如下依赖
 - 优点：简单，支持 Spring-boot 项目，支持成员级别的修改热部署。
 - 缺点：只支持 spring-boot 项目。
 
-### 15.4. 方式4：使用 Jrebel 插件实现热部署(该插件14天免费试用)
+### 10.4. 方式4：使用 Jrebel 插件实现热部署(该插件14天免费试用)
 
 在线安装：菜单File -> Setting -> Plugin, 点击右侧底部 Browse repositories, 弹出框顶部输入:JReble for Intellij， 选中安装即可
 
 - 优点：强大，对各类框架支持，并且提供IDE插件的方式
 
-### 15.5. 注意
+### 10.5. 注意
 
 最后3种方法是基于类加载机制来实现热加载的，因此你修改完成代码后必须重新编译当前代码，才能触发热部署，Eclipse默认就支持了自动编译，而在Intellij IDEA中默认是关闭了自动编译的，可以按照如下2步设置开启：
 
 1. IDEA开启项目自动编译，进入设置，Build,Execut, Deployment -> Compiler 勾选中左侧的`Build Project automatically`
 2. IDEA开启项目运行时自动make, ctrl + shift + a搜索命令：registry -> 勾选`compiler.automake.allow.when.app.running`
 
-## 16. 开启/关闭一个项目中的某些模块
+## 11. 开启/关闭一个项目中的某些模块
 
 在项目根目录上右键，选择【Load/Unload Modules...】
 
@@ -1157,7 +1172,7 @@ spring-boot项目中引入如下依赖
 
 ![](images/20201105160248817_9448.jpg)
 
-## 17. Http Client 无法请求本地接口
+## 12. Http Client 无法请求本地接口
 
 ![](images/20210714214823612_1633.png)
 
@@ -1165,7 +1180,7 @@ spring-boot项目中引入如下依赖
 
 ![](images/20210714214518425_30883.png)
 
-## 18. 自动清理缓存和日志(2021.2+版本)
+## 13. 自动清理缓存和日志(2021.2+版本)
 
 IDEA 2021.2 增加一个自动清理的缓存以及日志的的功能，目前将会自动清理更新已超过 180 天的所有缓存和日志目录。这个清理不会影响系统设置和插件目录。
 
@@ -1173,19 +1188,15 @@ IDEA 2021.2 增加一个自动清理的缓存以及日志的的功能，目前�
 
 ![](images/592233714220166)
 
-## 19. 微服务图表(2021.2+版本)
+## 14. 微服务图表(2021.2+版本)
 
 IDEA 2021.2 现在可以展示微服务的图表，在这上面可以看到微信服务交互关系。可以点击 Endpoints 工具窗口中的相应图标进行构建生成。
 
 ![](images/488954214238592)
 
-## 20. 常用操作
+## 15. 常用操作
 
-### 20.1. 个人修改的快捷键
-
-查看附件 `IntelliJ IDEA 快捷键.xlsx`
-
-### 20.2. 查看图形形式的继承链
+### 15.1. 查看图形形式的继承链
 
 在想查看的类的标签页内，点击右键，选择 Diagrams，其中有 show 和 show ... Popup，只是前者新建在标签页内，后者以浮窗的形式展示：
 
@@ -1199,11 +1210,11 @@ IDEA 2021.2 现在可以展示微服务的图表，在这上面可以看到微�
 - <font color=blue>**蓝色**</font>实线箭头是指继承关系
 - <font color=green>**绿色**</font>虚线箭头是指接口实现关系
 
-### 20.3. 同时编辑多行
+### 15.2. 同时编辑多行
 
-按着ALT键，用鼠标左键拖动需要编辑的行内容
+按着 ALT 键，用鼠标左键拖动需要编辑的行内容
 
-### 20.4. inject language快速构建一些语法 - 快速定义JSON
+### 15.3. inject language 快速构建一些语法 - 快速定义JSON
 
 1. 定义一个json字符串则需要手动的去用`\`将`"`转义。使用inject language则可以省去这个步骤。
 2. 定义一个json的字符串，将光标放在`""`中间，然后按Alt+Enter，出来如下提示后，选择Inject language or reference。
@@ -1220,79 +1231,9 @@ IDEA 2021.2 现在可以展示微服务的图表，在这上面可以看到微�
 
 ![](images/20201105162146169_13016.jpg)
 
-## 21. idea64.exe.vmoptions 配置文件详解
+## 16. 常见问题的解决方法
 
-> 更多配置详解参考：https://www.zender.top/post/idea_jvm.html
-
-idea2020.1.2 的配置 idea64.exe.vmoptions 文件示例内容
-
-```
--server
--Xms512m
--Xmx1024m
--Xmn393m
--Xverify:none
--ea
--XX:+AlwaysPreTouch
--XX:MaxGCPauseMillis=100
--XX:+UseConcMarkSweepGC
--XX:ParallelGCThreads=4
--XX:+CMSParallelRemarkEnabled
--XX:ConcGCThreads=4
--XX:CICompilerCount=4
--XX:ReservedCodeCacheSize=240m
--XX:+TieredCompilation
--XX:+UseCompressedOops
--XX:SoftRefLRUPolicyMSPerMB=50
--XX:MaxTenuringThreshold=10
--XX:-OmitStackTraceInFastThrow
--Dsun.io.useCanonCaches=false
--Dsun.io.useCanonPrefixCache=false
-# 设置禁用 IPv6
--Djava.net.preferIPv4Stack=true
--Djdk.http.auth.tunneling.disabledSchemes=""
--Djdk.attach.allowAttachSelf
--Dkotlinx.coroutines.debug=on
--Djdk.module.illegalAccess.silent=true
-```
-
-### 21.1. -server
-
-JVM 的参数配置分别是**服务器模式(-server)**和**客户端模式(client)**
-
-比如垃圾回收机制，客户端模式下，要求的是用户体验流程，无明显滞留感（就是没有卡的现象）。而服务端，要求的是吞吐量，就是单位时间内执行的代码要求越多越好。
-
-### 21.2. JVM 配置
-
-- `-Xmx1024m`：设置 JVM 最大可用内存为 1024m。
-- `-Xms512m`：设置 JVM 初始内存为 512m(启动时占用内存大小)。此值可以设置与`-Xmx`相同，以避免每次垃圾回收完成后 JVM 重新分配内存。
-- `-Xmn393m`：设置 JVM 年轻代(Young Generation)大小为393m。<font color=red>**整个堆大小 = 年轻代大小 + 年老代大小 + 持久代大小**</font>。持久代一般固定大小为 64m，所以增大年轻代后，将会减小年老代大小。此值对系统性能影响较大，Sun 官方推荐配置为整个堆的3/8。
-- `-Xss128k`：设置每个线程的堆栈大小为 128k。JDK5.0 以后每个线程堆栈大小为 1M，以前每个线程堆栈大小为 256K。更具应用的线程所需内存大小进行调整。在相同物理内存下，减小这个值能生成更多的线程。但是操作系统对一个进程内的线程数还是有限制的，不能无限生成，经验值在 3000~5000 左右。
-- `-Xverify:none`：关闭 Java 字节码验证，从而加快了类装入的速度，并使得在仅为验证目的而启动的过程中无需装入类，缩短了启动时间。 
-- `-ea`：启动断言检查机制。
-
-### 21.3. -XX:+AlwaysPreTouch
-
-参数作用：服务启动的时候分配真实的物理内存给 JVM。
-
-JAVA 进程启动的时候，虽然可以为 JVM 指定合适的内存大小，但是这些内存操作系统并没有真正的分配给 JVM，而是等 JVM 访问这些内存的时候，才真正分配。这样会造成以下问题：
-
-1. 第 1 次YGC(年轻带GC)之前 Eden 区分配对象的速度较慢;
-2. YGC(年轻带GC)的时候，Young 区的对象要晋升到 Old 区的时候，这个时候需要操作系统真正分配内存，这样就会加大YGC(年轻带GC)的停顿时间。
-
-配置 `-XX:+AlwaysPreTouch` 参数可以优化这个问题，不过这个参数也有副作用，它会影响启动时间。
-
-配置这个参数后这么耗时其中一个原因是，这个特性在 JDK8 版本以前都不是并行处理的，到了 JDK9 才是并行。在没有配置 `-XX:+AlwaysPreTouch` 参数即默认情况下，JVM 参数 `-Xms` 申明的堆只是在虚拟内存中分配，而不是在物理内存中分配：它被以一种内部数据结构的形式记录，从而避免被其他进程使用这些内存。这些内存页直到被访问时，才会在物理内存中分配。当 JVM 需要内存的时候，操作系统将根据需要分配内存页。
-
-配置 `-XX:+AlwaysPreTouch` 参数后，JVM 将 `-Xms` 指定的堆内存中每个字节都写入"0"，这样的话，除了在虚拟内存中以内部数据结构保留之外，还会在物理内存中分配内存。并且由于touch(分配物理内存)这个行为是单线程的，因此它将会让 JVM 进程启动变慢。所以，要么选择减少接下来对每个缓存页的第一次访问时间，要么选择减少 JVM 进程启动时间，这是一种权衡。
-
-### 21.4. -XX:MaxGCPauseMillis
-
-设置每次年轻代垃圾回收的最长时间(毫秒单位)，如果无法满足此时间，JVM 会自动调整年轻代大小，以满足此值。
-
-## 22. 常见问题的解决方法
-
-### 22.1. 闪退问题
+### 16.1. 闪退问题
 
 - 问题描述1：双击桌面图标启动不了，没有响应。
 - 问题描述2：进入到安装位置下的 `\bin` 目录，打开 CMD。输入idea，发现报错。
@@ -1313,13 +1254,43 @@ JAVA 进程启动的时候，虽然可以为 JVM 指定合适的内存大小，�
 
 ![](images/366772123245587.png)
 
-### 22.2. 解决 idea 卡顿问题
+### 16.2. 解决 idea 卡顿问题
 
 在各种优化配置都没明显改善，最后想出了一招禁用和卸载一些平时用不到的插件。效果显著，直接起飞。
 
 > Tips: 在升级 2021 以上版本后卡顿问题，感觉主要可能是 Code With Me 和 Space 引起的，在之前没有这此插件的时候也没这么明显的卡顿感
 
 > TODO: 待整理可移除的插件列表
+
+### 16.3. 无法使用已安装的字体
+
+给电脑安装了 Monaco.ttf 字体后在其他软件都能正常使用，结果在IDEA字体设置中找不到该字体。电脑环境：Windows10 x64、IntelliJ IDEA 2018.3.5 x64
+
+![](images/20201105160020098_25311.jpg)
+
+解决办法：找到IDEA安装目录，把字体文件复制到IDEA-jre-lib-fonts目录下，重启IDEA就能看到该字体了
+
+![](images/20201105160034155_21682.jpg)
+
+### 16.4. 解决 IDEA 复制项目导致 sources root 复用了另一个项目
+
+比如现在新建一个项目，而对原来的uis-gateway复制粘贴，然后改项目名就成了uis-application了。这时会发现如下图所示，sources root依然是uis-gateway：
+
+![](images/20201111133014786_1013.png)
+
+解决方法：快捷键`Ctrl+Alt+Shift+S`打开Project Structure -> 在Modules中点下原始项目uis-gateway，可以看到这时它的Sources、Test、Resources都是新项目uis-application的：
+
+![](images/20201111135549742_10717.png)
+
+点上图右边框框里的叉叉删掉：
+
+![](images/20201111135608229_7886.png)
+
+![](images/20201111135626445_15338.png)
+
+此时恢复原状：
+
+![](images/20201111135651846_8443.png)
 
 # 其他
 
@@ -1462,3 +1433,73 @@ Codota 还有一个在线网站，在这个网站上可以根据代码关键字�
 
 1. 从主菜单打开你的编辑器选择 File --> Import Setting。选择下载的jar文件;
 2. 等待重启之后进行配置：打开File --> Settings --> Editor --> Colors and fonts 然后选择要安装的主题即可完成
+
+## 4. idea64.exe.vmoptions 配置文件详解
+
+> 更多配置详解参考：https://www.zender.top/post/idea_jvm.html
+
+idea2020.1.2 的配置 idea64.exe.vmoptions 文件示例内容
+
+```
+-server
+-Xms512m
+-Xmx1024m
+-Xmn393m
+-Xverify:none
+-ea
+-XX:+AlwaysPreTouch
+-XX:MaxGCPauseMillis=100
+-XX:+UseConcMarkSweepGC
+-XX:ParallelGCThreads=4
+-XX:+CMSParallelRemarkEnabled
+-XX:ConcGCThreads=4
+-XX:CICompilerCount=4
+-XX:ReservedCodeCacheSize=240m
+-XX:+TieredCompilation
+-XX:+UseCompressedOops
+-XX:SoftRefLRUPolicyMSPerMB=50
+-XX:MaxTenuringThreshold=10
+-XX:-OmitStackTraceInFastThrow
+-Dsun.io.useCanonCaches=false
+-Dsun.io.useCanonPrefixCache=false
+# 设置禁用 IPv6
+-Djava.net.preferIPv4Stack=true
+-Djdk.http.auth.tunneling.disabledSchemes=""
+-Djdk.attach.allowAttachSelf
+-Dkotlinx.coroutines.debug=on
+-Djdk.module.illegalAccess.silent=true
+```
+
+### 4.1. -server
+
+JVM 的参数配置分别是**服务器模式(-server)**和**客户端模式(client)**
+
+比如垃圾回收机制，客户端模式下，要求的是用户体验流程，无明显滞留感（就是没有卡的现象）。而服务端，要求的是吞吐量，就是单位时间内执行的代码要求越多越好。
+
+### 4.2. JVM 配置
+
+- `-Xmx1024m`：设置 JVM 最大可用内存为 1024m。
+- `-Xms512m`：设置 JVM 初始内存为 512m(启动时占用内存大小)。此值可以设置与`-Xmx`相同，以避免每次垃圾回收完成后 JVM 重新分配内存。
+- `-Xmn393m`：设置 JVM 年轻代(Young Generation)大小为393m。<font color=red>**整个堆大小 = 年轻代大小 + 年老代大小 + 持久代大小**</font>。持久代一般固定大小为 64m，所以增大年轻代后，将会减小年老代大小。此值对系统性能影响较大，Sun 官方推荐配置为整个堆的3/8。
+- `-Xss128k`：设置每个线程的堆栈大小为 128k。JDK5.0 以后每个线程堆栈大小为 1M，以前每个线程堆栈大小为 256K。更具应用的线程所需内存大小进行调整。在相同物理内存下，减小这个值能生成更多的线程。但是操作系统对一个进程内的线程数还是有限制的，不能无限生成，经验值在 3000~5000 左右。
+- `-Xverify:none`：关闭 Java 字节码验证，从而加快了类装入的速度，并使得在仅为验证目的而启动的过程中无需装入类，缩短了启动时间。 
+- `-ea`：启动断言检查机制。
+
+### 4.3. -XX:+AlwaysPreTouch
+
+参数作用：服务启动的时候分配真实的物理内存给 JVM。
+
+JAVA 进程启动的时候，虽然可以为 JVM 指定合适的内存大小，但是这些内存操作系统并没有真正的分配给 JVM，而是等 JVM 访问这些内存的时候，才真正分配。这样会造成以下问题：
+
+1. 第 1 次YGC(年轻带GC)之前 Eden 区分配对象的速度较慢;
+2. YGC(年轻带GC)的时候，Young 区的对象要晋升到 Old 区的时候，这个时候需要操作系统真正分配内存，这样就会加大YGC(年轻带GC)的停顿时间。
+
+配置 `-XX:+AlwaysPreTouch` 参数可以优化这个问题，不过这个参数也有副作用，它会影响启动时间。
+
+配置这个参数后这么耗时其中一个原因是，这个特性在 JDK8 版本以前都不是并行处理的，到了 JDK9 才是并行。在没有配置 `-XX:+AlwaysPreTouch` 参数即默认情况下，JVM 参数 `-Xms` 申明的堆只是在虚拟内存中分配，而不是在物理内存中分配：它被以一种内部数据结构的形式记录，从而避免被其他进程使用这些内存。这些内存页直到被访问时，才会在物理内存中分配。当 JVM 需要内存的时候，操作系统将根据需要分配内存页。
+
+配置 `-XX:+AlwaysPreTouch` 参数后，JVM 将 `-Xms` 指定的堆内存中每个字节都写入"0"，这样的话，除了在虚拟内存中以内部数据结构保留之外，还会在物理内存中分配内存。并且由于touch(分配物理内存)这个行为是单线程的，因此它将会让 JVM 进程启动变慢。所以，要么选择减少接下来对每个缓存页的第一次访问时间，要么选择减少 JVM 进程启动时间，这是一种权衡。
+
+### 4.4. -XX:MaxGCPauseMillis
+
+设置每次年轻代垃圾回收的最长时间(毫秒单位)，如果无法满足此时间，JVM 会自动调整年轻代大小，以满足此值。
