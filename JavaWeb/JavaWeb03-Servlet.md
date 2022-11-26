@@ -148,15 +148,36 @@
 最后使用浏览器访问刚刚部署的项目 `http://localhost:8080/Day35_Tomcat/test`
 
 
+## 3. 常见问题
 
+### 3.1. 找不到 HttpServlet 错误
 
+如果看到 JSP 报错：`The superclass "javax.servlet.http.HttpServlet" was not found on the Java Build Path` 可以加入如下依赖解决。
 
+```xml
+<dependency>
+    <groupId>javax.servlet</groupId>
+    <artifactId>servlet-api</artifactId>
+    <version>2.5</version>
+    <scope>provided</scope>
+</dependency>
+```
 
+### 3.2. EL 表达式没有提示问题
 
+`${pageContext}` 这个 EL 表达式中通过 pageContext 对象访问 reuqest 属性时本身是应该有提示的，如果没有，则加入以下依赖即可。
 
+```xml
+<dependency>
+    <groupId>javax.servlet.jsp</groupId>
+    <artifactId>jsp-api</artifactId>
+    <version>2.1.3-b06</version>
+    <scope>provided</scope>
+</dependency>
+```
 
+同时，针对 index.jsp 文件，修改一下文件头信息为：
 
-
-
-
-
+```jsp
+<%@page language="java" pageEncoding="utf-8" contentType="text/html;UTF-8" %>
+```

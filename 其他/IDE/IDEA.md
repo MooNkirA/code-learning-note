@@ -179,6 +179,58 @@ idea.system.path=D:/development/JetBrains/.IntelliJIdea/system
 
 ![](images/75623421236848.png)
 
+### 3.5. 设置默认编码
+
+#### 3.5.1. 设置项目文件默认编码（必须修改）
+
+1. 打开【Settings】，找到【File Encodings】，把 encoding 相关的选项都选择 UTF-8
+
+![](images/422814610247212.png)
+ 
+> Notes: Transparent native-to-ascii conversion 是用于自动转换 ASCII 编码，显式原生内容。工作原理是：在文件中输入文字时他会自动的转换为 Unicode 编码，然后在 idea 中发开文件时他会自动转回文字来显示。这样做是为了防止文件乱码。像 properties 这类文件，一般都不会出现中文乱码！<font color=red>**一般建议都要勾选。**</font>
+
+2. 打开 IDEA 安装路径，找到如下的安装目录。根据所安装的版本修改相应的配置文件（idea64.exe.vmoptions）
+
+![](images/183925610236436.png)
+
+2021.2 版本
+
+![](images/227223209220752.png)
+
+在文件的最后一行追加以下一项配置，然后重启 IDEA
+
+```properties
+-Dfile.encoding=UTF-8 
+```
+
+> notes: 最新版本的idea只有64位的配置文件。<font color=red>**特别注意，不能有空格，否则重启后无法打开 IDEA**</font>
+
+3. 如前面的方法均已配置，还有乱码问题，则需要修改idea数据缓存目录中的 idea64.exe.vmoptions，同样在文件的末尾添加：`-Dfile.encoding=UTF-8`，然后重启idea，如图：
+
+![](images/353063409239178.png)
+
+> 注：默认的idea数据缓存目录在c盘，也可以修改配置来指定缓存目录的位置
+
+#### 3.5.2. 设置控制台的字符编码
+
+设置位置：Editor -> General -> Console -> Default Encoding
+
+![](images/27635322226560.png)
+
+#### 3.5.3. 单独设置个别文件编码
+
+有时打开其他来源的个别源文件，会发现有乱码。比如：
+
+![](images/503260308221167.png)
+
+出现这种问题的原因是：当前项目设置的是 UTF-8，而此`.java`文件是使用 GBK 的编码。又比如某些项目中可能存在有些文件是 GBK，有些是 UTF-8，这就比较麻烦了。遇到这种情况，**可以单独给这些文件或者某个模块单独设置编码**。
+
+![](images/364241008239593.png)
+
+改为 GBK，确认即可。如图：
+
+![](images/37351108227460.png)
+
 ## 4. 常用配置
 
 选择【File】->【Settings...】打开配置窗口，主要分以下配置模块：
@@ -264,10 +316,42 @@ Editor: 选择要应用于编辑器的抗锯齿模式：
 
 ### 4.2. Keymap（快捷键配置）
 
-#### 4.2.1. 修改智能提示快捷键
+> 官方快捷键文档 https://resources.jetbrains.com/storage/products/intellij-idea/docs/IntelliJIDEA_ReferenceCard.pdf
+
+#### 4.2.1. 快速搜索汇总
+
+- windows 快捷键
+
+![](../../resources/attachments/IDE/IntelliJIDEA_ReferenceCard_win.jpg)
+
+- macOS 快捷键
+
+![](../../resources/attachments/IDE/IntelliJIDEA_ReferenceCard_mac.jpg)
+
+#### 4.2.2. 查看快捷键
+
+1. 已知快捷键操作名，未知快捷键
+
+![](images/403635908233508.png)
+
+2. 已知快捷键，不知道对应的操作名
+
+![](images/126600009238547.png)
+
+#### 4.2.3. 自定义快捷键
+
+![](images/447960009239842.png)
+
+**示例：修改智能提示快捷键**
 
 - File -> Settings -> Keymap -> Main menu -> Code -> Completion -> Basic，修改提示快捷键（如：Ctrl+Alt+Enter）
 - File -> Settings -> Keymap -> Editor Actions -> Complete Current Statement，修改（如：Ctrl+）
+
+#### 4.2.4. 使用其它平台快捷键
+
+苹果电脑或者是习惯 Eclipse 快捷键，可以选择其他快捷键插件。
+
+![](images/163800209240844.png)
 
 ### 4.3. Editor（编辑器）
 
@@ -379,49 +463,13 @@ IDEA 代码提示默认是匹配大小写，此开关如果未关。输入字符
 
 ![](images/339644322225951.png)
 
-#### 4.3.7. 设置项目文件默认编码（必须修改）
-
-1. 打开【Settings】，找到【File Encodings】，把 encoding 相关的选项都选择 UTF-8
-
-![](images/422814610247212.png)
- 
-> Notes: Transparent native-to-ascii conversion 是用于自动转换 ASCII 编码，显式原生内容。工作原理是：在文件中输入文字时他会自动的转换为 Unicode 编码，然后在 idea 中发开文件时他会自动转回文字来显示。这样做是为了防止文件乱码。像 properties 这类文件，一般都不会出现中文乱码！<font color=red>**一般建议都要勾选。**</font>
-
-2. 打开 IDEA 安装路径，找到如下的安装目录。根据所安装的版本修改相应的配置文件（idea64.exe.vmoptions）
-
-![](images/183925610236436.png)
-
-2021.2 版本
-
-![](images/227223209220752.png)
-
-在文件的最后一行追加以下一项配置，然后重启 IDEA
-
-```properties
--Dfile.encoding=UTF-8 
-```
-
-> notes: 最新版本的idea只有64位的配置文件。<font color=red>**特别注意，不能有空格，否则重启后无法打开 IDEA**</font>
-
-3. 如前面的方法均已配置，还有乱码问题，则需要修改idea数据缓存目录中的 idea64.exe.vmoptions，同样在文件的末尾添加：`-Dfile.encoding=UTF-8`，然后重启idea，如图：
-
-![](images/353063409239178.png)
-
-> 注：默认的idea数据缓存目录在c盘，也可以修改配置来指定缓存目录的位置
-
-#### 4.3.8. 设置控制台的字符编码
-
-设置位置：Editor -> General -> Console -> Default Encoding
-
-![](images/27635322226560.png)
-
-#### 4.3.9. 设置 tab 为 4 个空格
+#### 4.3.7. 设置 tab 为 4 个空格
 
 设置位置：Editor -> Code Style -> Java -> Tabs and Indents。取消勾选 Use tab character
  
 ![](images/460514310227046.png)
 
-#### 4.3.10. 设置忽略显示，隐藏文件或者文件夹（类似eclipse的filter功能）
+#### 4.3.8. 设置忽略显示，隐藏文件或者文件夹（类似eclipse的filter功能）
 
 设置位置：Editor -> File Types -> Ignore files and folders 设置内容：
 
@@ -435,7 +483,7 @@ IDEA 代码提示默认是匹配大小写，此开关如果未关。输入字符
 
 ![](images/592044023239840.png)
 
-#### 4.3.11. 设置取消显示形参名提示
+#### 4.3.9. 设置取消显示形参名提示
 
 ![](images/20201105151054543_134.png)
 
@@ -447,11 +495,11 @@ IDEA 代码提示默认是匹配大小写，此开关如果未关。输入字符
 
 ![](images/20201105151319106_30759.png)
 
-#### 4.3.12. 设置为单行注释的两个斜杠跟随在代码的头部
+#### 4.3.10. 设置为单行注释的两个斜杠跟随在代码的头部
 
 ![](images/20201105151625210_6294.jpg)
 
-#### 4.3.13. 设置鼠标悬浮时显示代码的文档信息
+#### 4.3.11. 设置鼠标悬浮时显示代码的文档信息
 
 选择【Editor】->【Code Editing】，勾选`Show quick documentation on mouse move`。可以设置弹出提示响应时间，默认500 ms
 
@@ -459,7 +507,7 @@ IDEA 代码提示默认是匹配大小写，此开关如果未关。输入字符
 
 > 注：旧版本idea是在【General】选项下
 
-#### 4.3.14. 设置编辑器 tab 标签多行显示
+#### 4.3.12. 设置编辑器 tab 标签多行显示
 
 设置位置：Editor -> General -> Editor Tabs -> 不勾选 Show tabs in one row 选项即可
 
@@ -469,7 +517,7 @@ IDEA 代码提示默认是匹配大小写，此开关如果未关。输入字符
 
 ![](images/20201104161614312_9051.jpg)
 
-#### 4.3.15. 设置代码行宽度
+#### 4.3.13. 设置代码行宽度
 
 输入的代码超出宽度界线时，自动将代码换行。
 
@@ -481,7 +529,7 @@ IDEA 代码提示默认是匹配大小写，此开关如果未关。输入字符
 
 ![](images/378444821221166.png)
 
-#### 4.3.16. 设置默认展开与折叠代码
+#### 4.3.14. 设置默认展开与折叠代码
 
 设置位置：Editor -> General -> Code Folding
 
@@ -489,7 +537,7 @@ IDEA 代码提示默认是匹配大小写，此开关如果未关。输入字符
 
 如上图标注红圈所示，可以对指定代码类型进行默认折叠或是展开的设置，勾选上的表示该类型的代码在文件被打开的时候默认是被折叠的，去掉勾选则默认展开。
 
-#### 4.3.17. 关闭注释 doc 默认的 Rendered View 模式
+#### 4.3.15. 关闭注释 doc 默认的 Rendered View 模式
 
 在 idea 2020 版本以后，增加了 Rendered View 模式，用于提升注释文档的阅读体验，默认是开启。如需关闭，按如下步骤操作：
 
@@ -501,7 +549,7 @@ Editor -> Reader Mode -> 取消勾选 【Enable Reader mode】
 
 ![](images/20210223210345370_19141.png)
 
-#### 4.3.18. 标志修改文件带星号（*）
+#### 4.3.16. 标志修改文件带星号（*）
 
 标志修改文件为星号 Editor -> General -> Editor tabs -> 勾选 mark modified files as asterisk 选项
 
@@ -734,146 +782,11 @@ IntelliJ IDEA 有一种叫做“省电模式”的状态，开启这种模式之
 
 导入：点击【File】 -> 【Import Settings】 -> 找到【Settings】的位置，点击【OK】导入
 
-## 5. 配置 Maven 仓库
+## 5. 代码模板的使用与设置
 
-1. 在File -> settings -> Build, Execution, Deployment -> Build Tools -> Maven
-2. Mavan home directory --设置maven安装包的bin文件夹所在的位置
-3. User settings file --设置setting文件所在的位置
-4. Local repository --设置本地仓库
+### 5.1. 常用代码模板
 
-### 5.1. 全局 Maven（默认配置）
-
-具体步骤：顶部工具栏 File -> Other Settings -> Default Settings -> Build & Tools -> Maven
-
-示例：理论上只要配置了Maven主目录即可，实际开发推荐采用User Settins file
-
-![](images/20201105144306516_17572.jpg)
-
-### 5.2. 各项目（Project）设置各自的MAVEN等相关配置
-
-![](images/20201105144437320_21147.jpg)
-
-### 5.3. 勾选自动导入依赖、下载源码与文档说明
-
-![](images/20201105144821815_27336.jpg)
-
-### 5.4. 更新本地仓库和远程仓库
-
-在pom.xml文件中添加依赖jar包的坐标时就可以很好的提示出来
-
-![](images/20201105144858228_5957.jpg)
-
-### 5.5. IntelliJ 强制更新 Maven Dependencies
-
-Intellj 自动载入Mave依赖的功能很好用，但有时候会碰到问题，导致pom文件修改却没有触发自动重新载入的动作，此时需要手动强制更新依赖
-
-1. 手动删除 Project Settings 里面的 Libraries 内容；
-2. 在 Maven Project 的试图里 clean 一下，删除之前编译过的文件；
-3. 项目右键 --> Maven --> Reimport
-
-### 5.6. IDEA 2020 版 Maven 依赖成功导入但任然报错找不到包解决方案
-
-有时 pom.xml 中的依赖正确，点击运行按钮，报错找不到包。但ctrl+鼠标左键却能定位到jar包（说明jar成功导入）
-
-- 原因：IDEA启动程序按钮和maven的build使用的jar包环境不一样
-- 解决方案：设置idea构建/运行操作委托给maven就行了。
-- 具体设置：Settings搜索Runner,勾选delegate ide build/run actions to maven
-- 存在问题：如果勾选之后，在本项目中一些依赖模块（如：项目的公共依赖模块），需要安装到本地仓库，不然会提示说无法找到相应的依赖。
-
-![](images/20220107203255434_25967.png)
-
-### 5.7. 解决 idea 创建 maven 项目速度慢问题的三种方法
-
-idea创建maven项目时，速度很慢，主要原因是创建maven项目时默认是下载求网络上的一个文件archetype-catalog.xml，该文件的大小有5-6M，下载的速度很慢，导致创建过程也变得很慢。
-
-解决办法有三种，并且都需要对maven的VM Options参数做配置。
-
-#### 5.7.1. 方式一
-
-在maven的VM Options加上 `-DarchetypeCatalog=internal` 或者 `-DarchetypeCatalog=local` 参数，步骤如下：
-
-1. 打开idea的启动界面，进入全局设置
-
-![](images/20201105160847504_4516.jpg)
-
-搜索maven，点击Runner一栏，在VM Options输入框里写上 `-DarchetypeCatalog=local`
-
-![](images/20201105160907980_5304.jpg)
-
-确定后，再新建maven项目，就能发现项目很快就创建完成。
-
-#### 5.7.2. 方式二
-
-下载 archetype-catalog.xml 文件，在 maven 的 VM Options 加上`-DarchetypeCatalog=local`。默认情况下，创建 maven 项目是从网络下载 catalog 文件，因此可以将 catalog 文件下到本地，然后通过设置 archetype 的使用方式为 `local`，这样就不用每次都从网络上下载了。
-
-1. 下载 archetype-catalog.xml 文件到本地，文件的位置如下：
-> 官方：http://repo1.maven.org/maven2/archetype-catalog.xml
-> 其他：https://github.com/Taoxj/sc_properties
-2. 下载后放到本地仓库中对应的位置。maven 本地仓库的位置与 settting.xml 中的配置有关，例如 setting.xml 配置仓库的位置是：D:\apache-maven-3.6.0\repository
-
-![](images/20201105161047495_11028.jpg)
-
-那么 catalog 文件就可以放在 D:\apache-maven-3.6.0\repository\org\apache\maven\archetype-catalog\3.0.1\
-
-![](images/20201105161117486_22248.jpg)
-
-如果 setting.xml 没有配置仓库位置，那么就放到默认本地仓库下面对应的位置即可。本地仓库的默认位置是：`Default: ${user.home}/.m2/repository`，例如计算机用户名是 Administrator，仓库位置就是 C:Users\Administrator\.m2\repository
-
-3. 修改 maven 的 VM Options 参数。跟之前方法的步骤一样，打开全局设置中的 maven 设置栏，然后在 VM Options 输入框中填入`-DarchetypeCatalog=local`。这样 maven 每次就会从本地获取 catalog 文件，创建项目时就不用等那么久了。
-
-#### 5.7.3. 方式三
-
-在 maven 的 VM Options 加上`-Dmaven.multiModuleProjectDictory=$MAVEN_HOME`参数，`MAVEN_HOME` 是环境变量中配置 maven 环境的名称
-
-![](images/20201105161245667_23969.jpg)
-
-设置好参数后，新建 maven 项目的时候添加上参数 archetypeCatalog，值为 local，或者是如果本地仓库里有了 catalog 文件，参数值也可以为 local
-
-![](images/20201105161258484_26119.jpg)
-
-确定之后，maven 项目就能很快的建成了。
-
-#### 5.7.4. 方式四
-
-修改下载下来的 maven 目录下面 conf/settings.xml 文件，修改镜像源使用国内阿里巴巴的镜像源
-
-```xml
-<mirror>
-    <id>alimaven</id>
-    <name>aliyun maven</name>
-    <url>http://maven.aliyun.com/nexus/content/groups/public/</url>
-    <mirrorOf>central</mirrorOf>
-</mirror>
-```
-
-![](images/20211227215818216_1738.png)
-
-### 5.8. 导入 maven 项目时无法识别
-
-导入项目父级目录不是 Maven Parent 目录而是普通的文件夹，里面的子 maven 项目无法识别（子module变灰）。
-
-#### 5.8.1. 方式1
-
-1. 右键父项目 -> 选择【open Module Settings】 -> 选择【modules】 -> 点击【+】号 -> 选择【Import Module】
-
-![](images/20201010234047833_29940.jpg)
-
-![](images/20201010234122234_17422.jpg)
-
-2. 选择变灰项目的【pom.xml】文件
-3. 点击【ok】 -> 【next】 -> 一直选择到结束即可
-
-#### 5.8.2. 方式2
-
-选择无法识别的 pom.xml 文件，右键选择【+ Add as Maven Project】
-
-![](images/20201010234327948_1885.png)
-
-## 6. 代码模板的使用与设置
-
-### 6.1. 常用代码模板
-
-#### 6.1.1. 非空判断
+#### 5.1.1. 非空判断
 
 - `变量.null`：`if(变量 == null)`
 - `变量.nn`：`if(变量 != null)`
@@ -881,14 +794,14 @@ idea创建maven项目时，速度很慢，主要原因是创建maven项目时默
 - `ifn`：`if(xx == null)`
 - `inn`：`if(xx != null)`
 
-#### 6.1.2. 遍历数组和集合
+#### 5.1.2. 遍历数组和集合
 
 - 数组或集合变量.fori：for循环
 - 数组或集合变量.for：增强for循环
 - 数组或集合变量.forr：反向for循环
 - 数组或集合变量.iter：增强for循环遍历数组或集合
 
-#### 6.1.3. 输出语句
+#### 5.1.3. 输出语句
 
 - `sout`：相当于 System.out.println
 - `soutm`：打印当前方法的名称
@@ -897,7 +810,7 @@ idea创建maven项目时，速度很慢，主要原因是创建maven项目时默
 - `变量.sout`：打印当前变量值
 - `变量.soutv`：打印当前变量名及变量值
 
-#### 6.1.4. 对象操作
+#### 5.1.4. 对象操作
 
 创建对象
 
@@ -916,19 +829,19 @@ idea创建maven项目时，速度很慢，主要原因是创建maven项目时默
 - `psfs`：public static final String
 - `prsf`：private static final
 
-### 6.2. 自定义代码模板（Live Templates）
+### 5.2. 自定义代码模板（Live Templates）
 
 Live Templates 其实就是输入代码片段，快速生成代码模板。在【Settings】->【Editor】->【Live Templates】中看到 idea 默认的一些模板
 
 ![](images/20201104164947850_3828.jpg)
 
-#### 6.2.1. 示例 - 修改 main 方法与输出打印快捷键
+#### 5.2.1. 示例 - 修改 main 方法与输出打印快捷键
 
 ![](images/20201104165401624_6418.jpg)
 
 ![](images/20201104165408683_9428.jpg)
 
-#### 6.2.2. 示例 - 配置日志 LOGGER 模板
+#### 5.2.2. 示例 - 配置日志 LOGGER 模板
 
 ![](images/20201104165526641_8748.jpg)
 
@@ -956,13 +869,13 @@ Define：设置模版作用的范围。比如点击选择，应用在java代码�
 
 ![](images/20201104165658728_19749.jpg)
 
-### 6.3. 自定义代码后缀补全模板（Postfix Completion）
+### 5.3. 自定义代码后缀补全模板（Postfix Completion）
 
 Postfix Completion 其实就是关于代码补全的一些模板。在【Settings】->【Editor】->【General】->【Postfix Completion】中看到idea默认的一些模板
 
 ![](images/20201104170702945_25792.jpg)
 
-#### 6.3.1. 示例 - 快速生成集合定义
+#### 5.3.1. 示例 - 快速生成集合定义
 
 点击“+”号，创建 Java 的模板
 
@@ -974,13 +887,13 @@ Postfix Completion 其实就是关于代码补全的一些模板。在【Setting
 
 ![](images/531995823236849.png)
 
-### 6.4. 自定义文件模版（File and Code Templates）
+### 5.4. 自定义文件模版（File and Code Templates）
 
 文件模版就是在创建文件时，会自动生成预设好的内容。设置位置：【Settings】->【Editor】->【File and Code Templates】
 
 ![](images/20201104170042990_11747.jpg)
 
-#### 6.4.1. 示例 - 定义Mybatis的mapper.xml文件
+#### 5.4.1. 示例 - 定义Mybatis的mapper.xml文件
 
 ![](images/20201104170403732_18108.jpg)
 
@@ -992,13 +905,448 @@ Postfix Completion 其实就是关于代码补全的一些模板。在【Setting
 
 ![](images/20201104170448866_27272.jpg)
 
-## 7. IDEA 的项目配置和 Web 部署
+## 6. 工程与模块管理
 
-IDEA中最重要的各种设置项，就是这个 `Project Structre` 了，关乎你的项目运行
+### 6.1. IDEA 项目结构
+
+层级关系：project(工程) - module(模块) - package(包) - class(类)。具体关系如下：
+
+- 一个 project 中可以创建多个 module
+- 一个 module 中可以创建多个 package
+- 一个 package 中可以创建多个 class
+
+> Tips: 这些结构的划分，是为了方便管理功能代码
+
+### 6.2. Project 和 Module 的概念
+
+在 IntelliJ IDEA 中，提出了 Project 和 Module 这两个概念。在 IntelliJ IDEA 中 Project 是<font color=red>**最顶级的结构单元**</font>，然后就是 Module。目前，主流的大型项目结构基本都是多 Module 的结构，这类项目一般是**按功能划分**的，比如：user-core-module、user-facade-module和user-hessian-module等等，模块之间彼此可以**相互依赖**，有着不可分割的业务关系。因此，对于一个 Project 来说：
+
+- 单 Module 项目的时候，这个单独的 Module 实际上当作是一个 Project。
+- 多 Module 项目的时候，多个模块处于同一个 Project 之中，此时彼此之间具有<font color=red>**互相依赖**</font>的关系。
+- 若多个 Module（模块）没有建立依赖关系的话，则每个 Module（模块）也可以作为单独一个“小项目”运行。
+
+### 6.3. 创建 Module
+
+建议创建“Empty空工程”，然后创建多模块，每一个模块可以独立运行，相当于一个小项目。尤其是创建 JavaSE 工程，不涉及到模块之间的依赖。具体操作步骤如下：
+
+1. 选择创建模块。可以选择菜单栏的【File】，也可以在已有模块上右键点击后选择【New】
+
+![](images/432142308240295.png) ![](images/333772008247626.png)
+
+2. 选择模块类型：这里选择创建 Java 模块，给模块命名，确定存放位置
+
+![](images/227952508236850.png)
+
+3. 创建成功后，在原来的工程中可以看到刚新建的模块。
+
+![](images/592632708232604.png)
+
+### 6.4. 删除模块
+
+#### 6.4.1. 移除模块
+
+注意：这种操作只是将模块从“逻辑”上移除，并**没有真正删除模块**
+
+![](images/439682908250484.png)
+
+![](images/488722908248088.png)
+
+#### 6.4.2. 彻底删除模块
+
+在移除模块后，再次右键可以选择删除模块。**值得注意：这种删除方式是彻底的删除，不会放到系统的回收站**
+
+![](images/548423008245590.png)
+
+### 6.5. 导入模块
+
+1. 将某个模块文件夹复制到 IDEA 项目的路径下
+
+![](images/153994608231087.png)
+
+接着打开 IDEA 的项目，会在项目目录下看到拷贝过来的 module，但只会以模块的方式呈现。
+
+![](images/214344708221617.png)
+
+2. 点击打开【File】->【Project Structure】，选择【import module】
+
+![](images/367124808224121.png)
+
+3. 选择要导入的 module
+
+![](images/350415008233068.png)
+
+4. 选择【Create module from existing sources】，接着一直点击 Next 直到到 Finish 即可
+
+![](images/487155108225953.png)
+
+成功导入后效果：
+
+![](images/442925408221279.png)
+
+![](images/213085608221418.png)
+
+### 6.6. 开启/关闭项目中的某些模块
+
+在项目根目录上右键，选择【Load/Unload Modules...】
+
+![](images/20201105160237580_3170.jpg)
+
+选择相应需要加载的/不加载的模块
+
+![](images/20201105160248817_9448.jpg)
+
+## 7. 配置 Maven
+
+1. 在File -> settings -> Build, Execution, Deployment -> Build Tools -> Maven
+2. Mavan home directory --设置maven安装包的bin文件夹所在的位置
+3. User settings file --设置setting文件所在的位置
+4. Local repository --设置本地仓库
+
+### 7.1. 全局 Maven（默认配置）
+
+具体步骤：顶部工具栏 File -> Other Settings -> Default Settings -> Build & Tools -> Maven
+
+示例：理论上只要配置了Maven主目录即可，实际开发推荐采用User Settins file
+
+![](images/20201105144306516_17572.jpg)
+
+### 7.2. 各项目（Project）设置各自的 Maven 等相关配置
+
+![](images/20201105144437320_21147.jpg)
+
+### 7.3. 勾选自动导入依赖、下载源码与文档说明
+
+![](images/20201105144821815_27336.jpg)
+
+### 7.4. 更新本地仓库和远程仓库
+
+在pom.xml文件中添加依赖jar包的坐标时就可以很好的提示出来
+
+![](images/20201105144858228_5957.jpg)
+
+### 7.5. 解决 idea 创建 maven 项目速度慢问题的三种方法
+
+idea 创建 maven 项目时，速度很慢，主要原因是创建 maven 项目时默认是下载求网络上的一个文件 archetype-catalog.xml，该文件的大小有 5-6M，下载的速度很慢，导致创建过程也变得很慢。
+
+解决办法有三种，并且都需要对 maven 的 VM Options 参数做配置。
+
+#### 7.5.1. 方式一
+
+在 maven 的 VM Options 加上 `-DarchetypeCatalog=internal` 或者 `-DarchetypeCatalog=local` 参数，步骤如下：
+
+1. 打开 idea 的启动界面，进入全局设置
+
+![](images/20201105160847504_4516.jpg)
+
+搜索 maven，点击 Runner 一栏，在 VM Options 输入框里写上 `-DarchetypeCatalog=local`
+
+![](images/20201105160907980_5304.jpg)
+
+确定后，再新建 maven 项目，就能发现项目很快就创建完成。
+
+#### 7.5.2. 方式二
+
+下载 archetype-catalog.xml 文件，在 maven 的 VM Options 加上`-DarchetypeCatalog=local`。默认情况下，创建 maven 项目是从网络下载 catalog 文件，因此可以将 catalog 文件下到本地，然后通过设置 archetype 的使用方式为 `local`，这样就不用每次都从网络上下载了。
+
+1. 下载 archetype-catalog.xml 文件到本地，文件的位置如下：
+> 官方：http://repo1.maven.org/maven2/archetype-catalog.xml
+> 其他：https://github.com/Taoxj/sc_properties
+2. 下载后放到本地仓库中对应的位置。maven 本地仓库的位置与 settting.xml 中的配置有关，例如 setting.xml 配置仓库的位置是：D:\apache-maven-3.6.0\repository
+
+![](images/20201105161047495_11028.jpg)
+
+那么 catalog 文件就可以放在 D:\apache-maven-3.6.0\repository\org\apache\maven\archetype-catalog\3.0.1\
+
+![](images/20201105161117486_22248.jpg)
+
+如果 setting.xml 没有配置仓库位置，那么就放到默认本地仓库下面对应的位置即可。本地仓库的默认位置是：`Default: ${user.home}/.m2/repository`，例如计算机用户名是 Administrator，仓库位置就是 C:Users\Administrator\.m2\repository
+
+3. 修改 maven 的 VM Options 参数。跟之前方法的步骤一样，打开全局设置中的 maven 设置栏，然后在 VM Options 输入框中填入`-DarchetypeCatalog=local`。这样 maven 每次就会从本地获取 catalog 文件，创建项目时就不用等那么久了。
+
+#### 7.5.3. 方式三
+
+在 maven 的 VM Options 加上`-Dmaven.multiModuleProjectDictory=$MAVEN_HOME`参数，`MAVEN_HOME` 是环境变量中配置 maven 环境的名称
+
+![](images/20201105161245667_23969.jpg)
+
+设置好参数后，新建 maven 项目的时候添加上参数 archetypeCatalog，值为 local，或者是如果本地仓库里有了 catalog 文件，参数值也可以为 local
+
+![](images/20201105161258484_26119.jpg)
+
+确定之后，maven 项目就能很快的建成了。
+
+#### 7.5.4. 方式四
+
+修改下载下来的 maven 目录下面 conf/settings.xml 文件，修改镜像源使用国内阿里巴巴的镜像源
+
+```xml
+<mirror>
+    <id>alimaven</id>
+    <name>aliyun maven</name>
+    <url>http://maven.aliyun.com/nexus/content/groups/public/</url>
+    <mirrorOf>central</mirrorOf>
+</mirror>
+```
+
+![](images/20211227215818216_1738.png)
+
+## 8. 不同类型工程的创建
+
+### 8.1. 创建Java工程
+
+在工程上，右键选择 New -> Module，如
+
+![](images/267512522225953.png)
+
+指明 Java 工程的名称及使用的 JDK 版本：
+
+![](images/562302522226562.png)
+
+### 8.2. 创建 Java Web 工程
+
+> Notes: 在 IDEA 中配置 Tomcat 之前，需要保证已经安装并配置了 Tomcat 的环境变量
+
+#### 8.2.1. Tomcat Server（当前项目配置）
+
+Tomcat 或者 Jetty 这些都是部署的容器，自然会联想到 Deployment ，打开部署配置，可以看到应用服务器的配置。
+
+打开 Settings 面板，配置 Tomcat Server 的位置： File -> Settings -> Build, Execution, Deployment -> Application Servers -> Tomcat Server
+
+![](images/566072722253517.png)
+
+配置 Tomcat 的名称以及配置应用服务器的位置。（根据自己 Tomcat 的安装位置决定）
+
+![](images/369732822235730.png)
+
+配置好后，如下图所示：
+
+![](images/487502822225028.png)
+
+#### 8.2.2. 创建 Web 工程
+
+选择 New Module，
+
+![](images/60123822221279.png)
+
+定义当前工程的名称：
+
+![](images/311723822221418.png)
+
+选中当前创建的工程，添加框架支持：
+
+![](images/10363922233508.png)
+
+选择：Web Application，选择 Create web.xml，如下：
+
+![](images/256453922238547.png)
+
+#### 8.2.3. 配置 web 工程并运行
+
+修改 web 配置
+
+![](images/431393922239842.png)  ![](images/292054022240844.png)
+
+部署当前的 web 项目：
+
+![](images/21884122241021.png)
+
+选择第 2 项：
+
+![](images/275314122226573.png)
+
+可以修改 Application context，如下：
+
+![](images/473954422242852.png)
+
+配置当前 web 工程的详细信息，如下：
+
+![](images/260674522235897.png)
+
+配置好后，可以直接运行：
+
+![](images/431474622232664.png)
+
+### 8.3. 创建 Maven Java 工程
+
+右键创建新的模块
+
+![](images/88411523247425.png)
+
+指明当前 maven 工程的名称、模板等信息。<font color=red>**值得注意的是，一个项目组的jdk版本必须一致。**</font>
+
+![](images/74341723231020.png)
+
+新创建的 maven 的 java 工程缺少相应的 resources 文件目录，需要创建如下：
+
+![](images/194731823249829.png)  ![](images/289061823244937.png)
+
+指定 main 下 resources 的文件目录类型。类似的操作 test 目录下，提供 resources 即可。
+
+![](images/516001923252448.png)
+
+### 8.4. 创建 Maven Web 工程
+
+创建新的模块，指宝 Maven 的 web 工程的名称和模板。如下：
+
+![](images/488722223251459.png)
+
+在 Tomcat 上进行部署：
+
+![](images/340462423238799.png)
+
+配置部署的详细信息：
+
+![](images/594592423225790.png)
+
+## 9. 断点调试(Debug)
+
+### 9.1. Debug 概述
+
+编好的程序在执行过程中如果出现错误，可以借助程序调试（Debug）来查找错误，比如以下几种情况：
+
+- 情况1：运行以后，出现了错误或异常信息。但是通过日志文件或控制台，显示了异常信息的位置。
+- 情况2：运行以后，得到了结果，但是结果不是预期的。
+- 情况3：运行以后，得到了结果，结果大概率是预期的。但是多次运行的话，可能会出现不是预期的情况。比如：多线程情况下，处理线程安全问题。
+
+### 9.2. Debug 的步骤
+
+Debug(调试)程序步骤如下：
+
+1. 添加断点
+2. 启动调试
+3. 单步执行
+4. 观察变量和执行流程，找到并解决问题
+
+#### 9.2.1. 添加断点
+
+在源代码文件中，在想要设置断点的代码行的前面的标记行处，单击鼠标左键就可以设置断点，在相同位置再次单击即可取消断点。
+
+![](images/450201209241021.png)
+
+#### 9.2.2. 启动调试
+
+IDEA 提供多种方式来启动程序(Launch)的调试，分别是通过菜单(Run –> Debug)、图标(“绿色臭虫” ![](images/382141309226573.png))等等
+
+![](images/122971509235897.png)
+
+### 9.3. 调试工具介绍
+
+可以通过菜单【Run】来操作
+
+![](images/543881509232664.png)
+
+或者通过 Debug 面板来操作
+
+![](images/201871609222995.png)
+
+按键作用说明：
+
+- ![](images/215161709241038.png) Step Over（F8）：进入下一步，如果当前行断点是调用一个方法，则不进入当前方法体内
+- ![](images/220591809246793.png) Step Into（F7）：进入下一步，如果当前行断点是调用一个自定义方法，则进入该方法体内
+- ![](images/309161809247425.png) Force Step Into（Alt +Shift + F7）：进入下一步，如果当前行断点是调用一个核心类库方法，则进入该方法体内
+- ![](images/386761809238161.png) Step Out（Shift + F8）：跳出当前方法体
+- ![](images/478451809231020.png) Run to Cursor（Alt + F9）：直接跳到光标处继续调试
+- ![](images/567531809249829.png) Resume Program（F9）：恢复程序运行，但如果该断点下面代码还有断点则停在下一个断点上
+- ![](images/56201909244937.png) Stop（Ctrl + F2）：结束调试
+- ![](images/143441909252448.png) View Breakpoints（Ctrl + Shift + F8）：查看所有断点
+- ![](images/198891909251459.png) Mute Breakpoints：使得当前代码后面所有的断点失效，一下执行到底
+
+> Tips: 在 Debug 过程中，可以动态的下断点。
+
+### 9.4. 各种 Debug 用法
+
+#### 9.4.1. 行断点
+
+断点打在代码所在的行上。执行到此行时，会停下来。
+
+#### 9.4.2. 方法断点
+
+断点设置在方法的签名上，默认当进入时，断点可以被唤醒；也可以设置在方法退出时，断点也被唤醒。在多态的场景下，在父类或接口的方法上打断点，会自动调入到子类或实现类的方法
+
+![](images/381064619236850.png)
+
+#### 9.4.3. 字段（属性）断点
+
+在类的属性声明上打断点，默认对属性的修改操作进行监控
+
+![](images/197694819232604.png)
+
+#### 9.4.4. 条件断点
+
+```java
+public class DebugTest {
+    public static void main(String[] args) {
+        int[] arr = new int[]{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12};
+        for (int i = 0; i < arr.length; i++) {
+            int target = arr[i];
+            System.out.println(target);
+        }
+    }
+}
+```
+
+针对上述代码，在测试在满足 `arr[i] % 3 == 0` 的条件下，执行断点。
+
+![](images/44835119250484.png)
+
+#### 9.4.5. 异常断点
+
+对异常进行跟踪。如果程序出现指定异常，程序就会执行断点，自动停住。
+
+```java
+public class DebugTest {
+    public static void main(String[] args) {
+        int m = 10;
+        int n = 0;
+        int result = m / n;
+        System.out.println(result);
+        
+        // Person p1 = new Person(1001);
+        // System.out.println(p1.getName().toUpperCase());
+    }
+}
+```
+
+通过下图的方式，对指定的异常进行监控：
+
+![](images/336865219248088.png)
+
+#### 9.4.6. 线程调试
+
+右键断点标识，选择“Thread”模式
+
+![](images/579495219245590.png)
+
+#### 9.4.7. 强制结束
+
+debug 调试一个方法时，不需要再往下执行直接结束，右键选择“Force Return”
+
+![](images/114245519226831.png)
+
+#### 9.4.8. 自定义调试数据视图
+
+![](images/49543617227460.png)
+
+![](images/35703517221167.png)
+
+### 9.5. Debug 常见问题
+
+问题：使用 Step Into 时，会出现无法进入源码的情况。如何解决？
+
+- 方案1：使用 force step into 即可
+- 方案2：点击 Setting -> Build,Execution,Deployment -> Debugger -> Stepping。把【Do not step into the classess】中的`java.*`、`javax.*`取消勾选即可。
+
+![](images/45332209238799.png)
+
+> Tips: 初学者对于在哪里加断点，缺乏经验，这也是调试程序最麻烦的地方，需要一定的经验。简单来说，在可能发生错误的代码的前面加断点。如果不会判断，就在程序执行的起点处加断点。
+
+## 10. Project Structre（项目结构配置）
+
+IDEA 中最重要的各种设置项，就是这个 `Project Structre` 了，关乎项目的运行
 
 ![](images/20201105154113621_18429.jpg)
 
-### 7.1. Project选项卡
+### 10.1. Project选项卡
 
 ![](images/20201105154138246_26519.jpg)
 
@@ -1007,17 +1355,17 @@ IDEA中最重要的各种设置项，就是这个 `Project Structre` 了，关�
 - `Project language level`：这个和JDK的类似，区别在于，假如你设置了JDK1.8，却只用到1.6的特性，那么这里可以设置语言等级为1.6，这个是限定项目编译检查时最低要求的JDK特性；
 - `Project compiler output`：项目中的默认编译输出总目录，如图黄色部分，实际上每个模块可以自己设置特殊的输出目录（Modules - (project) - Paths - Use module compile output path），所以这个设置有点鸡肋。
 
-### 7.2. Modules选项卡
+### 10.2. Modules选项卡
 
 ![](images/20201105154246189_1479.jpg)
 
-#### 7.2.1. 增删子项目
+#### 10.2.1. 增删子项目
 
 ![](images/20201105154340793_28073.jpg)
 
 一个项目中可以有多个子项目，每个子项目相当于一个模块。一般我们项目只是单独的一个，IntelliJ IDEA 默认也是单子项目的形式，所以只需要配置一个模块
 
-#### 7.2.2. 子项目配置
+#### 10.2.2. 子项目配置
 
 每个子项目都对应了Sources、Paths、Dependencies 三大配置选项
 
@@ -1031,13 +1379,13 @@ IDEA中最重要的各种设置项，就是这个 `Project Structre` 了，关�
 
 ![](images/20201105154536810_4240.jpg)
 
-#### 7.2.3. 增删框架（Web部署-1）
+#### 10.2.3. 增删框架（Web部署-1）
 
 每个子项目之下都可以定义它所使用的框架，这里重点说明一下Web部分的设置
 
 ![](images/20201105154614214_17076.jpg)
 
-### 7.3. Libraries选项卡
+### 10.3. Libraries选项卡
 
 这里可以显示所添加的jar包，同时也可以添加jar包，并且可以把多个jar放在一个组里面，类似于jar包整理。
 
@@ -1045,7 +1393,7 @@ IDEA中最重要的各种设置项，就是这个 `Project Structre` 了，关�
 
 ![](images/20201105154650284_16459.jpg)
 
-### 7.4. Facets选项卡
+### 10.4. Facets选项卡
 
 官方的解释是：When you select a framework (a facet) in the element selector pane, the settings for the framework are shown in the right-hand part of the dialog.（当你在左边选择面板点击某个技术框架，右边将会显示这个框架的一些设置）
 
@@ -1053,7 +1401,7 @@ IDEA中最重要的各种设置项，就是这个 `Project Structre` 了，关�
 
 ![](images/20201105154731311_7022.jpg)
 
-### 7.5. Artifacts（Web部署-2）
+### 10.5. Artifacts（Web部署-2）
 
 项目的打包部署设置，这个是项目配置里面比较关键的地方。先理解下它的含义，来看看官方定义的artifacts：
 
@@ -1080,16 +1428,47 @@ IDEA中最重要的各种设置项，就是这个 `Project Structre` 了，关�
 
 ![](images/20201105154911012_26433.jpg)
 
-### 7.6. Tomcat Server（当前项目配置）
+## 11. IDEA 内置工具使用与配置
 
-Tomcat 或者 Jetty 这些都是部署的容器，自然会联想到 Deployment ，打开部署配置，可以看到应用服务器的配置
+IDEA 内置很实用工具，如 Terminal（终端）、web 浏览器、SSH 终端、数据库连接工具等等。其各种工具的配置位置集中在：【Settings】->【Tools】
 
-配置 Tomcat 方法： File -> Settings -> Deployment -> Application Servers -> Tomcat Server
+### 11.1. 数据库操作工具
 
-![](images/20201105154033810_20978.jpg)
+数据库的 GUI 工具有很多，IntelliJ IDEA 的 Database 也没有太明显的优势。IntelliJ IDEA 的 Database 最大特性就是对于 Java Web 项目来讲，常使用的 ORM 框架，如 Hibernate、Mybatis 有很好的支持，比如配置好了 Database 之后，IntelliJ IDEA 会自动识别 domain 对象与数据表的关系，也可以通过 Database 的数据表直接生成 domain 对象等。
 
+#### 11.1.1. 关联方式
 
-## 8. 设置 idea 连接 linux 系统
+在菜单栏中找到数据库选项：【View】->【Tool Windows】->【Database】
+
+![](images/407910320249271.png)
+
+添加指定数据库：
+
+![](images/295270420244407.png)
+
+配置 MySQL 数据库的详细信息（作为示例）：
+
+![](images/196960620237953.png)
+
+> Tips: 如果提示没有相应数据库的驱动，可以点击下载即可
+
+#### 11.1.2. 常用操作
+
+![](images/449421220231087.png)
+
+- 图标1：同步当前的数据库连接。这个是最重要的操作。配置好连接以后或通过其他工具操作数据库以后，需要及时同步
+- 图标2：配置当前的连接
+- 图标3：断开当前的连接
+- 图标4：显示相应数据库对象的数据
+- 图标5：编辑修改当前数据库对象
+
+展示 ER 图：
+
+![](images/588561420224121.jpg)
+
+![](images/106701520233068.png)
+
+### 11.2. 设置 idea 连接 linux 系统
 
 根据 linux 系统的编码设置 Default encoding
 
@@ -1109,24 +1488,28 @@ Tomcat 或者 Jetty 这些都是部署的容器，自然会联想到 Deployment 
 
 ![](images/20201105155227043_12236.jpg)
 
-## 9. 使用 idae 创建的 Spring Boot 项目，运行两个一样的启动类
+### 11.3. Http Client（待整理）
 
-![](images/20201105155459921_5551.jpg)
+#### 11.3.1. Http Client 无法请求本地接口
 
-![](images/20201105155507031_28656.jpg)
+![](images/20210714214823612_1633.png)
 
-## 10. Intellij IDEA 四种配置热部署的方法
+原因是 IDEA 的代理出了问题，准确说是 IDEA 的代理没有忽略本地地址，导致 IDEA 访问不到本地。修改 IDEA 代理或者直接关闭代理
+
+![](images/20210714214518425_30883.png)
+
+## 12. Intellij IDEA 四种配置热部署的方法
 
 热部署可以使的修改代码后，无须重启服务器，就可以加载更改的代码。
 
-### 10.1. 方式1：修改服务器配置，使得 IDEA 窗口失去焦点时，更新类和资源
+### 12.1. 方式1：修改服务器配置，使得 IDEA 窗口失去焦点时，更新类和资源
 
 菜单Run -> EditConfiguration , 然后配置指定服务器下，右侧server标签下on frame deactivation = Update classes and resource。
 
 - 优点：简单
 - 缺点：基于JVM提供的热加载仅支持方法块内代码修改，只有debug模式下，并且是在idea失去焦点时才会出发热加载，相对加载速度缓慢
 
-### 10.2. 方式2：使用 springloaded jar 包
+### 12.2. 方式2：使用 springloaded jar 包
 
 下载jar包，github：https://github.com/spring-projects/spring-loaded
 
@@ -1135,7 +1518,7 @@ Tomcat 或者 Jetty 这些都是部署的容器，自然会联想到 Deployment 
 - 优点：对Spring系列框架支持好（不含Spring boot）, 支持 成员级别的修改（增删改方法、字段、注解），支持对枚举值集。
 - 缺点：与优点相对
 
-### 10.3. 方式3：使用 spring-boot-devtools 提供的开发者工具
+### 12.3. 方式3：使用 spring-boot-devtools 提供的开发者工具
 
 spring-boot项目中引入如下依赖
 
@@ -1149,54 +1532,22 @@ spring-boot项目中引入如下依赖
 - 优点：简单，支持 Spring-boot 项目，支持成员级别的修改热部署。
 - 缺点：只支持 spring-boot 项目。
 
-### 10.4. 方式4：使用 Jrebel 插件实现热部署(该插件14天免费试用)
+### 12.4. 方式4：使用 Jrebel 插件实现热部署(该插件14天免费试用)
 
 在线安装：菜单File -> Setting -> Plugin, 点击右侧底部 Browse repositories, 弹出框顶部输入:JReble for Intellij， 选中安装即可
 
 - 优点：强大，对各类框架支持，并且提供IDE插件的方式
 
-### 10.5. 注意
+### 12.5. 注意事项
 
-最后3种方法是基于类加载机制来实现热加载的，因此你修改完成代码后必须重新编译当前代码，才能触发热部署，Eclipse默认就支持了自动编译，而在Intellij IDEA中默认是关闭了自动编译的，可以按照如下2步设置开启：
+最后 3 种方法是基于类加载机制来实现热加载的，因此你修改完成代码后必须重新编译当前代码，才能触发热部署，Eclipse 默认就支持了自动编译，而在 Intellij IDEA 中默认是关闭了自动编译的，可以按照如下 2 步设置开启：
 
-1. IDEA开启项目自动编译，进入设置，Build,Execut, Deployment -> Compiler 勾选中左侧的`Build Project automatically`
-2. IDEA开启项目运行时自动make, ctrl + shift + a搜索命令：registry -> 勾选`compiler.automake.allow.when.app.running`
+1. IDEA 开启项目自动编译，进入设置，Build,Execut, Deployment -> Compiler 勾选中左侧的 `Build Project automatically`
+2. IDEA 开启项目运行时自动 make, ctrl + shift + a 搜索命令：registry -> 勾选 `compiler.automake.allow.when.app.running`
 
-## 11. 开启/关闭一个项目中的某些模块
+## 13. 常用操作
 
-在项目根目录上右键，选择【Load/Unload Modules...】
-
-![](images/20201105160237580_3170.jpg)
-
-选择相应需要加载的/不加载的模块
-
-![](images/20201105160248817_9448.jpg)
-
-## 12. Http Client 无法请求本地接口
-
-![](images/20210714214823612_1633.png)
-
-原因是 IDEA 的代理出了问题，准确说是 IDEA 的代理没有忽略本地地址，导致 IDEA 访问不到本地。修改 IDEA 代理或者直接关闭代理
-
-![](images/20210714214518425_30883.png)
-
-## 13. 自动清理缓存和日志(2021.2+版本)
-
-IDEA 2021.2 增加一个自动清理的缓存以及日志的的功能，目前将会自动清理更新已超过 180 天的所有缓存和日志目录。这个清理不会影响系统设置和插件目录。
-
-另外也可以 Help | Delete Leftover IDE Directories 手动打开这个清理功能。
-
-![](images/592233714220166)
-
-## 14. 微服务图表(2021.2+版本)
-
-IDEA 2021.2 现在可以展示微服务的图表，在这上面可以看到微信服务交互关系。可以点击 Endpoints 工具窗口中的相应图标进行构建生成。
-
-![](images/488954214238592)
-
-## 15. 常用操作
-
-### 15.1. 查看图形形式的继承链
+### 13.1. 查看图形形式的继承链
 
 在想查看的类的标签页内，点击右键，选择 Diagrams，其中有 show 和 show ... Popup，只是前者新建在标签页内，后者以浮窗的形式展示：
 
@@ -1210,11 +1561,11 @@ IDEA 2021.2 现在可以展示微服务的图表，在这上面可以看到微�
 - <font color=blue>**蓝色**</font>实线箭头是指继承关系
 - <font color=green>**绿色**</font>虚线箭头是指接口实现关系
 
-### 15.2. 同时编辑多行
+### 13.2. 同时编辑多行
 
 按着 ALT 键，用鼠标左键拖动需要编辑的行内容
 
-### 15.3. inject language 快速构建一些语法 - 快速定义JSON
+### 13.3. inject language 快速构建一些语法 - 快速定义JSON
 
 1. 定义一个json字符串则需要手动的去用`\`将`"`转义。使用inject language则可以省去这个步骤。
 2. 定义一个json的字符串，将光标放在`""`中间，然后按Alt+Enter，出来如下提示后，选择Inject language or reference。
@@ -1231,9 +1582,29 @@ IDEA 2021.2 现在可以展示微服务的图表，在这上面可以看到微�
 
 ![](images/20201105162146169_13016.jpg)
 
-## 16. 常见问题的解决方法
+### 13.4. 使用 idae 创建的 Spring Boot 项目，运行两个一样的启动类
 
-### 16.1. 闪退问题
+![](images/20201105155459921_5551.jpg)
+
+![](images/20201105155507031_28656.jpg)
+
+### 13.5. 查看微服务关系图表(2021.2+版本)
+
+IDEA 2021.2 现在可以展示微服务的图表，在这上面可以看到微信服务交互关系。可以点击 Endpoints 工具窗口中的相应图标进行构建生成。
+
+![](images/488954214238592)
+
+### 13.6. 自动清理缓存和日志(2021.2+版本)
+
+IDEA 2021.2 增加一个自动清理的缓存以及日志的的功能，目前将会自动清理更新已超过 180 天的所有缓存和日志目录。这个清理不会影响系统设置和插件目录。
+
+另外也可以 Help | Delete Leftover IDE Directories 手动打开这个清理功能。
+
+![](images/592233714220166.jpg)
+
+## 14. 常见问题的解决方法
+
+### 14.1. 闪退问题
 
 - 问题描述1：双击桌面图标启动不了，没有响应。
 - 问题描述2：进入到安装位置下的 `\bin` 目录，打开 CMD。输入idea，发现报错。
@@ -1254,7 +1625,7 @@ IDEA 2021.2 现在可以展示微服务的图表，在这上面可以看到微�
 
 ![](images/366772123245587.png)
 
-### 16.2. 解决 idea 卡顿问题
+### 14.2. 解决 idea 卡顿问题
 
 在各种优化配置都没明显改善，最后想出了一招禁用和卸载一些平时用不到的插件。效果显著，直接起飞。
 
@@ -1262,7 +1633,7 @@ IDEA 2021.2 现在可以展示微服务的图表，在这上面可以看到微�
 
 > TODO: 待整理可移除的插件列表
 
-### 16.3. 无法使用已安装的字体
+### 14.3. 无法使用已安装的字体
 
 给电脑安装了 Monaco.ttf 字体后在其他软件都能正常使用，结果在IDEA字体设置中找不到该字体。电脑环境：Windows10 x64、IntelliJ IDEA 2018.3.5 x64
 
@@ -1272,13 +1643,13 @@ IDEA 2021.2 现在可以展示微服务的图表，在这上面可以看到微�
 
 ![](images/20201105160034155_21682.jpg)
 
-### 16.4. 解决 IDEA 复制项目导致 sources root 复用了另一个项目
+### 14.4. 解决 IDEA 复制项目导致 sources root 复用了另一个项目
 
-比如现在新建一个项目，而对原来的uis-gateway复制粘贴，然后改项目名就成了uis-application了。这时会发现如下图所示，sources root依然是uis-gateway：
+比如现在新建一个项目，而对原来的 uis-gateway 复制粘贴，然后改项目名就成了 uis-application 了。这时会发现如下图所示，sources root 依然是 uis-gateway：
 
 ![](images/20201111133014786_1013.png)
 
-解决方法：快捷键`Ctrl+Alt+Shift+S`打开Project Structure -> 在Modules中点下原始项目uis-gateway，可以看到这时它的Sources、Test、Resources都是新项目uis-application的：
+解决方法：快捷键`Ctrl+Alt+Shift+S`打开 Project Structure -> 在 Modules 中点下原始项目 uis-gateway，可以看到这时它的 Sources、Test、Resources 都是新项目 uis-application 的：
 
 ![](images/20201111135549742_10717.png)
 
@@ -1292,61 +1663,115 @@ IDEA 2021.2 现在可以展示微服务的图表，在这上面可以看到微�
 
 ![](images/20201111135651846_8443.png)
 
-# 其他
+### 14.5. Tomcat 日志乱码问题的解决
 
-## 1. 推荐插件
+如果 Tomcat 日志出现乱码，需要配置：
 
-### 1.1. 热替换利器：JRebel
+![](images/278534822222995.png)
+
+解决方案：
+
+1. 点击 Help -> Edit custom VM Options，在最后面添加以下内容：
+
+```properties
+-Dfile.encoding=UTF-8
+```
+
+2. 打开 Run/Debug Configurations 面板，选择 Tomcat Server 实例，在 Server 标签页配置 VM option，添加以下内容：
+
+```properties
+-Dfile.encoding=UTF-8
+```
+
+![](images/51175422246793.png)
+
+3. Startup/Connection 页签的 Run 和 Debug 添加一个 key 为`JAVA_TOOL_OPTIONS`，value 为`-Dfile.encoding=UTF-8`的环境变量
+
+![](images/183455322241038.png)
+
+保存后重启IDEA，可以发现控制台中文乱码显示正常了。
+
+### 14.6. 解决 IDEA 2020 版 Maven 依赖成功导入但任然报错找不到包的问题
+
+有时 pom.xml 中的依赖正确，点击运行按钮，报错找不到包。但ctrl+鼠标左键却能定位到jar包（说明jar成功导入）
+
+- 原因：IDEA 启动程序按钮和 maven 的 build 使用的 jar 包环境不一样
+- 解决方案：设置 idea 构建/运行操作委托给 maven 就行了。
+- 具体设置：Settings 搜索 `Runner`，勾选 delegate ide build/run actions to maven
+- 存在问题：如果勾选之后，在本项目中一些依赖模块（如：项目的公共依赖模块），需要安装到本地仓库，不然会提示说无法找到相应的依赖。
+
+![](images/20220107203255434_25967.png)
+
+### 14.7. 导入 maven 项目时无法识别
+
+导入项目父级目录不是 Maven Parent 目录而是普通的文件夹，里面的子 maven 项目无法识别（子module变灰）。
+
+#### 14.7.1. 方式1
+
+1. 右键父项目 -> 选择【open Module Settings】 -> 选择【modules】 -> 点击【+】号 -> 选择【Import Module】
+
+![](images/20201010234047833_29940.jpg)
+
+![](images/20201010234122234_17422.jpg)
+
+2. 选择变灰项目的【pom.xml】文件
+3. 点击【ok】 -> 【next】 -> 一直选择到结束即可
+
+#### 14.7.2. 方式2
+
+选择无法识别的 pom.xml 文件，右键选择【+ Add as Maven Project】
+
+![](images/20201010234327948_1885.png)
+
+### 14.8. 强制更新 Maven Dependencies
+
+自动载入 Mave 依赖的功能很好用，但有时候会碰到问题，导致 pom 文件修改却没有触发自动重新载入的动作，此时需要手动强制更新依赖
+
+1. 手动删除 Project Settings 里面的 Libraries 内容；
+2. 在 Maven Project 的试图里 clean 一下，删除之前编译过的文件；
+3. 项目右键 -> Maven -> Reimport
+
+## 15. 推荐插件
+
+### 15.1. 热替换利器：JRebel
 
 一款热部署插件，帮助开发者在项目处于运行状态下任意修改 Java 文件并动态反馈到运行的项目中。地址：https://plugins.jetbrains.com/plugin/4441-jrebel-for-intellij
 
-### 1.2. 开发测试必备部署神器：Cloud Toolkit
+### 15.2. 开发测试必备部署神器：Cloud Toolkit
 
 帮助开发者更高效地开发、测试、诊断并部署应用，利用此插件，能够方便地将本地应用一键部署到任意机器（了解更多：[体验链接](https://mp.weixin.qq.com/s?__biz=MzU4NzU0MDIzOQ==&mid=2247485392&idx=3&sn=113a67be48740443b9a29d172da48b12&chksm=fdeb35b0ca9cbca6f48b61c8c333683b6acbaac4f1e8101ff54546d9256347bff629e0e513c5&scene=21#wechat_redirect)）
 
-### 1.3. Lombok插件
+### 15.3. Lombok 插件
 
-Lombok是一个实用的java工具，使用它可以消除java代码的臃肿，Lombok提供一系列的注解，使用这些注解可以不用定义getter/setter、equals、构造方法等，它会在编译时在字节码文件自动生成这些通用的方法，简化开发人员的工作。该插件使用IDEA开发时根据Lombok注解生成通用方法并提示，不报错
+> Notes: 2020 以上版本已经内置此插件
+
+Lombok 是一个实用的java工具，使用它可以消除java代码的臃肿，Lombok提供一系列的注解，使用这些注解可以不用定义getter/setter、equals、构造方法等，它会在编译时在字节码文件自动生成这些通用的方法，简化开发人员的工作。该插件使用IDEA开发时根据Lombok注解生成通用方法并提示，不报错
 
 项目官方地址：https://www.projectlombok.org/
 
 ![](images/20201105162725764_11523.jpg)
 
-### 1.4. Rainbow Brackets
+### 15.4. Rainbow Brackets
 
-彩虹颜色的括号，分清括号个数，防止括号错乱。插件提供地址：https://plugins.jetbrains.com/plugin/10080-rainbow-brackets
+彩虹颜色的括号，分清括号个数与层级，防止括号错乱。插件提供地址：https://plugins.jetbrains.com/plugin/10080-rainbow-brackets
 
-### 1.5. Free Mybatis plugin
+### 15.5. Free Mybatis plugin
 
 可以在mapper接口中和mapper的xml文件中来回跳转，就想接口跳到实现类那样简单。
 
-> 目前安装的版本是：Free Mybatis plugin，还一个插件叫Mybatis plugin
+> 目前安装的版本是：Free Mybatis plugin，还一个插件叫 Mybatis plugin 
 
-### 1.6. 主题类插件
+### 15.6. Key promoter X（快捷键提示）
 
-- Material Theme UI
-- One Dark theme
-- Dark Purple Theme
-
-### 1.7. Key promoter X（快捷键提示）
-
-Key Promoter X 是一个提示插件。在IDEA里使用鼠标操作时，会有这个操作的快捷键在界面的右下角进行告知。有个小缺点是有些没有快捷键的操作，会直接把操作的名字提示出来，实际上那样的提示是没有作用的，可以点击Don't show again来忽略。
+Key Promoter X 是一个提示插件。在 IDEA 里使用鼠标操作时，会有这个操作的快捷键在界面的右下角进行告知。有个小缺点是有些没有快捷键的操作，会直接把操作的名字提示出来，实际上那样的提示是没有作用的，可以点击Don't show again来忽略。
 
 ![](images/20201105162839028_20849.jpg)
 
-### 1.8. Alibaba Java Coding Guidelines（代码规范）
-
-阿里巴巴代码规范检测。不符合代码规范的地方会有波浪线，鼠标移上去就会有相应的提示，有些问题甚至可以快速修复。
-
-### 1.9. Leetcode Editor
-
-LeetCode插件，可以在IDEA中在线刷题。
-
-### 1.10. RestfulToolkit
+### 15.7. RestfulToolkit
 
 搜索URL，准确的说是搜索SpringMVC项目里，Controller层的`@RequestMapping`里的URL，通过URL匹配到相应的Controller层方法。使用快捷键：`Ctrl + \` 或 `Ctrl + Alt + N`
 
-### 1.11. CamelCase
+### 15.8. CamelCase
 
 在几种字符串格式之间来回切换。有一下几种格式：
 
@@ -1359,7 +1784,7 @@ LeetCode插件，可以在IDEA中在线刷题。
 
 使用：按住Shift + Alt再不停的按U，会把选中内容的单词的下划线转驼峰转大写等，不停的转换。~~感觉String Manipulation功能比它强大~~
 
-### 1.12. String Manipulation
+### 15.9. String Manipulation
 
 功能：变量名使用驼峰形式、常量需要全部大写等等，编码解码等等。总的来说就是对字符串的处理。
 
@@ -1367,19 +1792,29 @@ LeetCode插件，可以在IDEA中在线刷题。
 
 ![](images/20201105163037745_20986.jpg)
 
-### 1.13. SequenceDiagram
+### 15.10. SequenceDiagram
 
 时序图生成工具。需要梳理业务逻辑或者阅读源码。需要了解整个调用链路，反向生成 UML 的时序图是强需求。其中，SequenceDiagram 插件是一个非常棒的插件。详细使用参考：https://plugins.jetbrains.com/plugin/8286-sequencediagram
 
-### 1.14. Maven Helper
+### 15.11. Maven Helper
 
 Maven辅助工具。如果 Maven 引入的 jar 包有冲突，可以使用 Maven Helper 插件来帮助分析。详细使用参考：https://plugins.jetbrains.com/plugin/7179-maven-helper
 
-### 1.15. GsonFormat
+### 15.12. GsonFormat/GsonFormatPlus
 
-在对接接口的时候接受对方返回的JSON对象，而自己想要用一个对象去接受时，可以用此插件进行转换。可以根据json字符串生成对应的实体类
+在对接接口的时候接受对方返回的 JSON 对象，而想要用一个对象去接收时，可以用此插件进行转换。可以根据 json 字符串生成对应的实体类
 
-### 1.16. Grep Console
+使用：使用alt + s 或 alt + insert调取。
+
+![](images/441241300248771.png)
+
+### 15.13. GenerateAllSetter
+
+此插件用于快速生成对象的所有 Setter 函数（可填充默认值），然后再跟进实际需求设置属性值。
+
+![](images/193940000228838.png)
+
+### 15.14. Grep Console
 
 Idea的控制台console输出日志时，往往是一大堆信息一起出现，想要快速找到自己想要的日志类型，使用这个插件便可以快速定位到自己关注的日志类型，还可以配置自己喜欢的颜色。
 
@@ -1387,7 +1822,7 @@ Idea的控制台console输出日志时，往往是一大堆信息一起出现，
 
 ![](images/20201105163130518_28244.jpg)
 
-### 1.17. Tabnine AI Code Completion — 代码智能提示
+### 15.15. Tabnine AI Code Completion — 代码智能提示
 
 > 官网：https://www.tabnine.com/code
 
@@ -1401,40 +1836,85 @@ Codota 还有一个在线网站，在这个网站上可以根据代码关键字�
 
 > 注：同时支持Eclipse
 
-## 2. 快捷键
+### 15.16. jclasslib bytecode viewer
 
-> 官方快捷键文档 https://resources.jetbrains.com/storage/products/intellij-idea/docs/IntelliJIDEA_ReferenceCard.pdf
+可视化的字节码查看器。使用步骤如下：
 
-- windows 快捷键
+1. 在 IDEA 打开想研究的类。
+2. 编译该类或者直接编译整个项目（ 如果想研究的类在 jar 包中，此步可略过）。
+3. 打开 “view” 菜单，选择“Show Bytecode With jclasslib” 选项。
+4. 选择上述菜单项后 IDEA 中会弹出 jclasslib 工具窗口。
 
-![](../../resources/attachments/IDE/IntelliJIDEA_ReferenceCard_win.jpg)
+![](images/95375623236267.png)
 
-- macOS 快捷键
+英文设置：在【Help】->【Edit Custom VM Options…】，加上以下配置
 
-![](../../resources/attachments/IDE/IntelliJIDEA_ReferenceCard_mac.jpg)
+```properties
+-Duser.language=en
+```
 
-## 3. 主题样式
+### 15.17. JavaDoc
 
-### 3.1. 一些主题网址
+按 `alt+insert`，执行操作生成多个注释文档：
+
+![](images/39771200246674.png)
+
+### 15.18. Translation
+
+注册翻译服务（有道智云、百度翻译开放平台、阿里云机器翻译）帐号，开通翻译服务并获取其应用ID和密钥。绑定应用ID和密钥：偏好设置（设置）-> 工具 -> 翻译 -> 常规 -> 翻译引擎 -> 配置…
+
+使用方法：鼠标选中文本，点击右键即可自动翻译成多国语言。
+
+> Tips: 注意保管好应用密钥，防止其泄露。
+
+### 15.19. CodeGlance Pro
+
+在编辑器右侧生成代码小地图，可以拖拽小地图光标快速定位代码，阅读行数很多的代码文件时非常实用。
+
+![](images/195790600249380.png)
+
+### 15.20. Statistic
+
+代码统计工具。
+
+![](images/562130900227995.png)
+
+### 15.21. Leetcode Editor
+
+LeetCode插件，可以在IDEA中在线刷题。
+
+### 15.22. Alibaba Java Coding Guidelines（代码规范）
+
+阿里巴巴代码规范检测。不符合代码规范的地方会有波浪线，鼠标移上去就会有相应的提示，有些问题甚至可以快速修复。
+
+使用方法：在类中，右键，选择编码规约扫描，在下方显示扫描规约和提示。根据提示规范代码，提高代码质量。
+
+### 15.23. 主题类插件
+
+- Material Theme UI
+- One Dark theme
+- Dark Purple Theme
+
+#### 15.23.1. 一些主题网址
 
 - http://www.themesmap.com/
 - http://www.riaway.com/
 - http://www.easycolor.cc/intelliJidea/list.html
 - http://color-themes.com/?view=index
 
-### 3.2. 待尝试主题
+#### 15.23.2. 待尝试主题
 
 - Xcode-Dark Theme主题下载地址：https://plugins.jetbrains.com/plugin/13106-xcode-dark-theme/versions
 - Vuesion Theme主题下载地址：https://plugins.jetbrains.com/plugin/13106-xcode-dark-theme/versions
 - One Dark theme主题下载地址：https://plugins.jetbrains.com/plugin/11938-one-dark-theme
 - Dark Purple Theme主题下载地址：https://plugins.jetbrains.com/plugin/12100-dark-purple-theme
 
-### 3.3. 怎么安装下载的主题
+#### 15.23.3. 怎么安装下载的主题
 
 1. 从主菜单打开你的编辑器选择 File --> Import Setting。选择下载的jar文件;
 2. 等待重启之后进行配置：打开File --> Settings --> Editor --> Colors and fonts 然后选择要安装的主题即可完成
 
-## 4. idea64.exe.vmoptions 配置文件详解
+## 16. idea64.exe.vmoptions 配置文件详解
 
 > 更多配置详解参考：https://www.zender.top/post/idea_jvm.html
 
@@ -1470,13 +1950,13 @@ idea2020.1.2 的配置 idea64.exe.vmoptions 文件示例内容
 -Djdk.module.illegalAccess.silent=true
 ```
 
-### 4.1. -server
+### 16.1. -server
 
 JVM 的参数配置分别是**服务器模式(-server)**和**客户端模式(client)**
 
 比如垃圾回收机制，客户端模式下，要求的是用户体验流程，无明显滞留感（就是没有卡的现象）。而服务端，要求的是吞吐量，就是单位时间内执行的代码要求越多越好。
 
-### 4.2. JVM 配置
+### 16.2. JVM 配置
 
 - `-Xmx1024m`：设置 JVM 最大可用内存为 1024m。
 - `-Xms512m`：设置 JVM 初始内存为 512m(启动时占用内存大小)。此值可以设置与`-Xmx`相同，以避免每次垃圾回收完成后 JVM 重新分配内存。
@@ -1485,7 +1965,7 @@ JVM 的参数配置分别是**服务器模式(-server)**和**客户端模式(cli
 - `-Xverify:none`：关闭 Java 字节码验证，从而加快了类装入的速度，并使得在仅为验证目的而启动的过程中无需装入类，缩短了启动时间。 
 - `-ea`：启动断言检查机制。
 
-### 4.3. -XX:+AlwaysPreTouch
+### 16.3. -XX:+AlwaysPreTouch
 
 参数作用：服务启动的时候分配真实的物理内存给 JVM。
 
@@ -1500,6 +1980,6 @@ JAVA 进程启动的时候，虽然可以为 JVM 指定合适的内存大小，�
 
 配置 `-XX:+AlwaysPreTouch` 参数后，JVM 将 `-Xms` 指定的堆内存中每个字节都写入"0"，这样的话，除了在虚拟内存中以内部数据结构保留之外，还会在物理内存中分配内存。并且由于touch(分配物理内存)这个行为是单线程的，因此它将会让 JVM 进程启动变慢。所以，要么选择减少接下来对每个缓存页的第一次访问时间，要么选择减少 JVM 进程启动时间，这是一种权衡。
 
-### 4.4. -XX:MaxGCPauseMillis
+### 16.4. -XX:MaxGCPauseMillis
 
 设置每次年轻代垃圾回收的最长时间(毫秒单位)，如果无法满足此时间，JVM 会自动调整年轻代大小，以满足此值。
