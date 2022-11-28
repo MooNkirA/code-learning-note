@@ -318,15 +318,47 @@ Editor: 选择要应用于编辑器的抗锯齿模式：
 
 > 官方快捷键文档 https://resources.jetbrains.com/storage/products/intellij-idea/docs/IntelliJIDEA_ReferenceCard.pdf
 
-#### 4.2.1. 快速搜索汇总
+#### 4.2.1. 快捷键汇总（Windows 系统）
 
-- windows 快捷键
+##### 4.2.1.1. 通用【General】
 
-![](../../resources/attachments/IDE/IntelliJIDEA_ReferenceCard_win.jpg)
+![](images/298270816226832.png)
 
-- macOS 快捷键
+##### 4.2.1.2. 编辑【Editing】
 
-![](../../resources/attachments/IDE/IntelliJIDEA_ReferenceCard_mac.jpg)
+![](images/185090716239594.png)
+
+##### 4.2.1.3. 查看使用情况【Usage Search】
+
+![](images/311550716227461.png)
+
+##### 4.2.1.4. 导航【Navigation】
+
+![](images/421910716247627.png)
+
+##### 4.2.1.5. 查找或替换【Search/Replace】
+
+![](images/494150716240296.png)
+
+##### 4.2.1.6. 代码模板【Live Templates】
+
+![](images/551870716236851.png)
+
+##### 4.2.1.7. 重构【Refactoring】
+
+![](images/14660816232605.png)
+
+##### 4.2.1.8. 调试【Debugging】
+
+![](images/79870816250485.png)
+
+##### 4.2.1.9. 编译与运行【Compile and Run】
+
+![](images/134670816248089.png)
+
+##### 4.2.1.10. 版本管理与本地历史记录【VCS/Local History】
+
+![](images/204120816245591.png)
 
 #### 4.2.2. 查看快捷键
 
@@ -623,7 +655,7 @@ IntelliJ IDEA 对于编辑大文件并没有太大优势，很卡，原因就是
 
 ![](images/20201105153157823_18782.jpg)
 
-#### 4.4.7. 参数不匹配时symbol错误提示
+#### 4.4.7. 参数不匹配时 symbol 错误提示
 
 ![](images/20201105153237789_7222.jpg)
 
@@ -643,13 +675,13 @@ idea对代码进行了审查，在开发的时候也会经常对变量在未使�
 
 ![](images/20201105153447663_10452.jpg)
 
-#### 4.4.9. 去除IntelliJ IDEA中mapper.xml文件的提示和背景色
+#### 4.4.9. 去除 mapper.xml 文件的提示和背景色
 
-1. 点击 File --> Settings --> Editor --> Inspections，找到图中所示的SQL，去掉下面的No data sources configured和SQL dialect detection的勾选
+1. 点击 File -> Settings -> Editor -> Inspections，找到图中所示的SQL，去掉下面的No data sources configured和SQL dialect detection的勾选
 
 ![](images/20201105153545776_5258.jpg)
 
-2. 点击 Editor --> Colors Scheme --> General ，打开Code，选择Injected language fragment，去掉Background的勾选
+2. 点击 Editor -> Colors Scheme -> General ，打开Code，选择Injected language fragment，去掉Background的勾选
 
 ![](images/20201105153827436_20805.jpg)
 
@@ -1891,28 +1923,25 @@ LeetCode插件，可以在IDEA中在线刷题。
 
 ### 15.23. 主题类插件
 
-- Material Theme UI
-- One Dark theme
-- Dark Purple Theme
+#### 15.23.1. 主题下载地址
 
-#### 15.23.1. 一些主题网址
+- Material Theme UI
+- Xcode-Dark Theme 下载地址：https://plugins.jetbrains.com/plugin/13106-xcode-dark-theme/versions
+- Vuesion Theme 下载地址：https://plugins.jetbrains.com/plugin/13106-xcode-dark-theme/versions
+- One Dark theme 下载地址：https://plugins.jetbrains.com/plugin/11938-one-dark-theme
+- Dark Purple Theme 下载地址：https://plugins.jetbrains.com/plugin/12100-dark-purple-theme
+
+#### 15.23.2. 怎么安装下载的主题
+
+1. 从主菜单打开你的编辑器选择 File -> Import Setting。选择下载的jar文件;
+2. 等待重启之后进行配置：打开File -> Settings -> Editor -> Colors and fonts 然后选择要安装的主题即可完成
+
+#### 15.23.3. 一些主题网址
 
 - http://www.themesmap.com/
 - http://www.riaway.com/
 - http://www.easycolor.cc/intelliJidea/list.html
 - http://color-themes.com/?view=index
-
-#### 15.23.2. 待尝试主题
-
-- Xcode-Dark Theme主题下载地址：https://plugins.jetbrains.com/plugin/13106-xcode-dark-theme/versions
-- Vuesion Theme主题下载地址：https://plugins.jetbrains.com/plugin/13106-xcode-dark-theme/versions
-- One Dark theme主题下载地址：https://plugins.jetbrains.com/plugin/11938-one-dark-theme
-- Dark Purple Theme主题下载地址：https://plugins.jetbrains.com/plugin/12100-dark-purple-theme
-
-#### 15.23.3. 怎么安装下载的主题
-
-1. 从主菜单打开你的编辑器选择 File --> Import Setting。选择下载的jar文件;
-2. 等待重启之后进行配置：打开File --> Settings --> Editor --> Colors and fonts 然后选择要安装的主题即可完成
 
 ## 16. idea64.exe.vmoptions 配置文件详解
 
