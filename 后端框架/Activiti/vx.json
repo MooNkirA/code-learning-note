@@ -1,0 +1,41 @@
+{
+    "created_time": "2022-07-18T00:30:27Z",
+    "files": [
+        {
+            "attachment_folder": "",
+            "created_time": "2022-06-23T14:17:16Z",
+            "id": "434",
+            "modified_time": "2022-09-12T00:02:01Z",
+            "name": "Activiti-工作流引擎01-基础.md",
+            "signature": "79316817049068",
+            "tags": [
+            ]
+        },
+        {
+            "attachment_folder": "",
+            "created_time": "2022-07-12T02:27:10Z",
+            "id": "435",
+            "modified_time": "2022-07-15T10:24:13Z",
+            "name": "Activiti-工作流引擎02-进阶.md",
+            "signature": "177751251966",
+            "tags": [
+            ]
+        },
+        {
+            "attachment_folder": "",
+            "created_time": "2022-07-12T02:27:21Z",
+            "id": "436",
+            "modified_time": "2022-07-17T14:10:33Z",
+            "name": "Activiti-工作流引擎03-整合.md",
+            "signature": "79316818648073",
+            "tags": [
+            ]
+        }
+    ],
+    "folders": [
+    ],
+    "id": "506",
+    "modified_time": "2022-07-18T00:30:27Z",
+    "signature": "177751763363",
+    "version": 3
+}

@@ -1,0 +1,81 @@
+{
+    "created_time": "2022-07-18T00:51:41Z",
+    "files": [
+        {
+            "attachment_folder": "",
+            "created_time": "2022-07-18T00:51:55Z",
+            "id": "438",
+            "modified_time": "2022-09-11T08:55:12Z",
+            "name": "README.md",
+            "signature": "27205980958379",
+            "tags": [
+            ]
+        },
+        {
+            "attachment_folder": "",
+            "created_time": "2022-07-18T00:53:43Z",
+            "id": "440",
+            "modified_time": "2022-09-12T00:33:38Z",
+            "name": "01-项目概述.md",
+            "signature": "113818291449623",
+            "tags": [
+            ]
+        },
+        {
+            "attachment_folder": "",
+            "created_time": "2022-07-18T06:39:50Z",
+            "id": "448",
+            "modified_time": "2022-09-12T00:34:03Z",
+            "name": "02-项目搭建与工具模块使用.md",
+            "signature": "79316819181622",
+            "tags": [
+            ]
+        },
+        {
+            "attachment_folder": "",
+            "created_time": "2022-07-23T08:07:14Z",
+            "id": "449",
+            "modified_time": "2022-07-25T06:15:13Z",
+            "name": "03-权限数据模型.md",
+            "signature": "177752222770",
+            "tags": [
+            ]
+        },
+        {
+            "attachment_folder": "",
+            "created_time": "2022-07-25T02:01:41Z",
+            "id": "454",
+            "modified_time": "2022-07-26T08:31:00Z",
+            "name": "04-权限服务开发.md",
+            "signature": "79316819769733",
+            "tags": [
+            ]
+        },
+        {
+            "attachment_folder": "",
+            "created_time": "2022-07-26T08:31:32Z",
+            "id": "455",
+            "modified_time": "2022-07-28T00:54:34Z",
+            "name": "05-网关服务开发.md",
+            "signature": "113818292168292",
+            "tags": [
+            ]
+        },
+        {
+            "attachment_folder": "",
+            "created_time": "2022-07-28T00:55:39Z",
+            "id": "456",
+            "modified_time": "2022-07-28T03:34:42Z",
+            "name": "06-通用权限系统企业应用指南.md",
+            "signature": "79316820024971",
+            "tags": [
+            ]
+        }
+    ],
+    "folders": [
+    ],
+    "id": "437",
+    "modified_time": "2022-07-18T00:51:41Z",
+    "signature": "79316819160733",
+    "version": 3
+}

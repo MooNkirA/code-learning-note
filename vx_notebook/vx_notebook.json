@@ -1,0 +1,515 @@
+{
+    "attachment_folder": "_v_attachments",
+    "config_mgr": "vx.vnotex",
+    "created_time": "2020-04-11T23:54:41Z",
+    "description": "Code-Note",
+    "extra_configs": {
+    },
+    "history": [
+        {
+            "last_accessed_time": "2022-09-17T08:10:08Z",
+            "line_number": 0,
+            "path": "DevOps/版本管理工具/Git-02-基础.md"
+        },
+        {
+            "last_accessed_time": "2022-09-17T08:49:52Z",
+            "line_number": 243,
+            "path": "DevOps/版本管理工具/Git-02-安装.md"
+        },
+        {
+            "last_accessed_time": "2022-09-17T09:42:32Z",
+            "line_number": 8,
+            "path": "DevOps/版本管理工具/GitHub.md"
+        },
+        {
+            "last_accessed_time": "2022-09-24T08:02:44Z",
+            "line_number": 427,
+            "path": "其他/IDE/eclipse.md"
+        },
+        {
+            "last_accessed_time": "2022-10-04T00:34:41Z",
+            "line_number": 36,
+            "path": "Java/Java基础08-IO编程.md"
+        },
+        {
+            "last_accessed_time": "2022-10-05T00:21:39Z",
+            "line_number": 51,
+            "path": "Java/Java基础10-网络编程.md"
+        },
+        {
+            "last_accessed_time": "2022-10-06T00:31:10Z",
+            "line_number": 775,
+            "path": "并发编程/并发基础-多线程.md"
+        },
+        {
+            "last_accessed_time": "2022-10-06T00:31:18Z",
+            "line_number": 154,
+            "path": "并发编程/并发编程01-常用API.md"
+        },
+        {
+            "last_accessed_time": "2022-10-06T00:33:01Z",
+            "line_number": 1047,
+            "path": "其他/Windows系统软件资料.md"
+        },
+        {
+            "last_accessed_time": "2022-10-06T00:49:25Z",
+            "line_number": 0,
+            "path": "其他/IDE/DevelopmentTool.md"
+        },
+        {
+            "last_accessed_time": "2022-10-06T09:48:44Z",
+            "line_number": 85,
+            "path": "mine/System&Software/Web-Browser.md"
+        },
+        {
+            "last_accessed_time": "2022-10-06T09:48:45Z",
+            "line_number": 10,
+            "path": "mine/System&Software/Microsoft-Office.md"
+        },
+        {
+            "last_accessed_time": "2022-10-06T09:49:22Z",
+            "line_number": 0,
+            "path": "mine/System&Software/Windows系统软件资料.md"
+        },
+        {
+            "last_accessed_time": "2022-10-06T09:50:33Z",
+            "line_number": 80,
+            "path": "mine/System&Software/Software.md"
+        },
+        {
+            "last_accessed_time": "2022-10-06T09:55:14Z",
+            "line_number": 15,
+            "path": "mine/README.md"
+        },
+        {
+            "last_accessed_time": "2022-10-06T14:17:35Z",
+            "line_number": 551,
+            "path": "Java/Java基础07-类加载器、反射.md"
+        },
+        {
+            "last_accessed_time": "2022-10-07T08:37:40Z",
+            "line_number": 320,
+            "path": "mine/System&Software/Windows.md"
+        },
+        {
+            "last_accessed_time": "2022-10-07T09:38:56Z",
+            "line_number": 2,
+            "path": "项目资料/02-品优购/README.md"
+        },
+        {
+            "last_accessed_time": "2022-10-07T09:41:36Z",
+            "line_number": 22,
+            "path": "项目资料/01-国际物流云商系统/README.md"
+        },
+        {
+            "last_accessed_time": "2022-10-07T09:52:38Z",
+            "line_number": 4,
+            "path": "mine/Learning-List.md"
+        },
+        {
+            "last_accessed_time": "2022-10-07T09:52:42Z",
+            "line_number": 235,
+            "path": "mine/编程资源收集.md"
+        },
+        {
+            "last_accessed_time": "2022-10-08T14:32:29Z",
+            "line_number": 2,
+            "path": "mine/Java-Develop.md"
+        },
+        {
+            "last_accessed_time": "2022-10-09T14:26:27Z",
+            "line_number": 1032,
+            "path": "后端框架/Authorization-Certification/Authorization-Overview.md"
+        },
+        {
+            "last_accessed_time": "2022-10-13T10:58:51Z",
+            "line_number": 207,
+            "path": "DevOps/版本管理工具/Git-03-客户端.md"
+        },
+        {
+            "last_accessed_time": "2022-10-13T10:58:52Z",
+            "line_number": 0,
+            "path": "后端框架/MyBatis/MyBatis源码笔记.md"
+        },
+        {
+            "last_accessed_time": "2022-10-13T10:59:27Z",
+            "line_number": 516,
+            "path": "Java/Java基础06-JDK常用API.md"
+        },
+        {
+            "last_accessed_time": "2022-10-13T11:00:57Z",
+            "line_number": 2,
+            "path": "Java/设计模式.md"
+        },
+        {
+            "last_accessed_time": "2022-10-13T11:01:24Z",
+            "line_number": 14,
+            "path": "后端框架/工具框架/Java-Logging.md"
+        },
+        {
+            "last_accessed_time": "2022-10-15T00:52:20Z",
+            "line_number": 1050,
+            "path": "Java/Java基础02-集合.md"
+        },
+        {
+            "last_accessed_time": "2022-10-16T13:55:19Z",
+            "line_number": 0,
+            "path": "Java/Java基础03-异常.md"
+        },
+        {
+            "last_accessed_time": "2022-10-16T13:58:55Z",
+            "line_number": 2,
+            "path": "Java/Java基础00-JDK安装.md"
+        },
+        {
+            "last_accessed_time": "2022-10-16T14:00:48Z",
+            "line_number": 0,
+            "path": "Java/Java基础05-Java8新特性.md"
+        },
+        {
+            "last_accessed_time": "2022-10-16T14:05:01Z",
+            "line_number": 84,
+            "path": "Java/Java基础00-JDK.md"
+        },
+        {
+            "last_accessed_time": "2022-10-16T14:29:14Z",
+            "line_number": 0,
+            "path": "Java/Java基础01.md"
+        },
+        {
+            "last_accessed_time": "2022-10-17T11:25:12Z",
+            "line_number": 4,
+            "path": "分布式架构&微服务架构/分布式消息中件间/消息中间件.md"
+        },
+        {
+            "last_accessed_time": "2022-10-17T15:24:58Z",
+            "line_number": 110,
+            "path": "并发编程/并发编程02-应用篇.md"
+        },
+        {
+            "last_accessed_time": "2022-10-18T11:20:30Z",
+            "line_number": 0,
+            "path": "Java/Java基础05-枚举.md"
+        },
+        {
+            "last_accessed_time": "2022-10-18T11:28:32Z",
+            "line_number": 2,
+            "path": "Java/Java基础10-XML.md"
+        },
+        {
+            "last_accessed_time": "2022-10-18T11:33:36Z",
+            "line_number": 0,
+            "path": "Java/Java扩展04-排序算法.md"
+        },
+        {
+            "last_accessed_time": "2022-10-18T11:35:50Z",
+            "line_number": 0,
+            "path": "后端框架/工具框架/PowerMock.md"
+        },
+        {
+            "last_accessed_time": "2022-10-18T14:06:42Z",
+            "line_number": 1369,
+            "path": "Java/Java基础01-语法.md"
+        },
+        {
+            "last_accessed_time": "2022-10-18T14:35:31Z",
+            "line_number": 234,
+            "path": "并发编程/并发编程-原理篇.md"
+        },
+        {
+            "last_accessed_time": "2022-10-18T14:36:19Z",
+            "line_number": 667,
+            "path": "并发编程/并发编程-基础篇01-多线程.md"
+        },
+        {
+            "last_accessed_time": "2022-10-18T14:36:24Z",
+            "line_number": 342,
+            "path": "并发编程/并发编程-基础篇02-线程池.md"
+        },
+        {
+            "last_accessed_time": "2022-10-18T15:02:58Z",
+            "line_number": 864,
+            "path": "并发编程/并发编程03-线程安全与锁.md"
+        },
+        {
+            "last_accessed_time": "2022-10-19T14:44:41Z",
+            "line_number": 18,
+            "path": "Java/Java基础13-Java8新特性.md"
+        },
+        {
+            "last_accessed_time": "2022-10-19T14:44:42Z",
+            "line_number": 337,
+            "path": "Java/Java扩展02-代码简洁之道.md"
+        },
+        {
+            "last_accessed_time": "2022-10-19T14:48:50Z",
+            "line_number": 176,
+            "path": "其他/其它资料.md"
+        },
+        {
+            "last_accessed_time": "2022-10-19T15:09:33Z",
+            "line_number": 538,
+            "path": "其他/IDE/Visual-Studio-Code.md"
+        },
+        {
+            "last_accessed_time": "2022-10-20T14:32:58Z",
+            "line_number": 731,
+            "path": "其他/Markdown.md"
+        },
+        {
+            "last_accessed_time": "2022-10-20T15:16:02Z",
+            "line_number": 237,
+            "path": "前端资料/工具类库/前端其他相关资料.md"
+        },
+        {
+            "last_accessed_time": "2022-10-21T10:52:41Z",
+            "line_number": 8,
+            "path": "分布式微服务/ElasticStack/ElasticStack-基础.md"
+        },
+        {
+            "last_accessed_time": "2022-10-21T11:44:32Z",
+            "line_number": 0,
+            "path": "分布式微服务/ElasticStack/ElasticSearch.md"
+        },
+        {
+            "last_accessed_time": "2022-10-21T11:44:34Z",
+            "line_number": 9,
+            "path": "Java/Java基础11-网络编程.md"
+        },
+        {
+            "last_accessed_time": "2022-10-21T11:44:34Z",
+            "line_number": 0,
+            "path": "Java/Java基础09-IO编程.md"
+        },
+        {
+            "last_accessed_time": "2022-10-21T11:44:35Z",
+            "line_number": 10,
+            "path": "前端资料/工具类库/jQuery.md"
+        },
+        {
+            "last_accessed_time": "2022-10-21T11:44:37Z",
+            "line_number": 2,
+            "path": "并发编程/并发编程07-JMM.md"
+        },
+        {
+            "last_accessed_time": "2022-10-21T14:16:29Z",
+            "line_number": 180,
+            "path": "分布式微服务/SpringBoot/Spring-Boot-Actuator.md"
+        },
+        {
+            "last_accessed_time": "2022-10-21T15:34:00Z",
+            "line_number": 0,
+            "path": "分布式微服务/ElasticStack/ElasticStack.md"
+        },
+        {
+            "last_accessed_time": "2022-10-22T00:30:27Z",
+            "line_number": 0,
+            "path": "Java/Java基础08-类加载器、反射.md"
+        },
+        {
+            "last_accessed_time": "2022-10-24T11:25:14Z",
+            "line_number": 40,
+            "path": "Java/Java基础08-反射.md"
+        },
+        {
+            "last_accessed_time": "2022-10-24T15:09:06Z",
+            "line_number": 21,
+            "path": "性能调优/JVM/JVM基础.md"
+        },
+        {
+            "last_accessed_time": "2022-10-24T15:09:06Z",
+            "line_number": 1380,
+            "path": "Java/Java基础06-集合.md"
+        },
+        {
+            "last_accessed_time": "2022-10-24T15:09:06Z",
+            "line_number": 625,
+            "path": "Java/Java基础02-对象与类.md"
+        },
+        {
+            "last_accessed_time": "2022-10-24T15:09:06Z",
+            "line_number": 0,
+            "path": "Java/Java基础04-注解.md"
+        },
+        {
+            "last_accessed_time": "2022-10-24T15:09:06Z",
+            "line_number": 0,
+            "path": "Java/Java基础07-异常.md"
+        },
+        {
+            "last_accessed_time": "2022-10-25T15:30:40Z",
+            "line_number": 79,
+            "path": "Java/Java基础03-泛型.md"
+        },
+        {
+            "last_accessed_time": "2022-10-26T15:03:53Z",
+            "line_number": 155,
+            "path": "并发编程/并发编程-常用API.md"
+        },
+        {
+            "last_accessed_time": "2022-10-29T03:14:33Z",
+            "line_number": 280,
+            "path": "其他/Develop-Environment.md"
+        },
+        {
+            "last_accessed_time": "2022-10-29T04:41:12Z",
+            "line_number": 114,
+            "path": "后端框架/Spring/Spring源码编译教程.md"
+        },
+        {
+            "last_accessed_time": "2022-10-29T04:42:21Z",
+            "line_number": 141,
+            "path": "DevOps/项目构建工具/Gradle.md"
+        },
+        {
+            "last_accessed_time": "2022-11-06T09:27:55Z",
+            "line_number": 11,
+            "path": "其他/System&Software/Microsoft-Office.md"
+        },
+        {
+            "last_accessed_time": "2022-11-06T09:27:59Z",
+            "line_number": 916,
+            "path": "并发编程/并发编程01-多线程.md"
+        },
+        {
+            "last_accessed_time": "2022-11-07T14:25:51Z",
+            "line_number": 19,
+            "path": "其他/System&Software/Software.md"
+        },
+        {
+            "last_accessed_time": "2022-11-07T14:25:57Z",
+            "line_number": 0,
+            "path": "其他/System&Software/Windows.md"
+        },
+        {
+            "last_accessed_time": "2022-11-13T13:57:14Z",
+            "line_number": 569,
+            "path": "DevOps/版本管理工具/Git-01-基础.md"
+        },
+        {
+            "last_accessed_time": "2022-11-15T14:37:33Z",
+            "line_number": 2,
+            "path": "DevOps/项目构建工具/Maven02-配置.md"
+        },
+        {
+            "last_accessed_time": "2022-11-15T14:47:58Z",
+            "line_number": 78,
+            "path": "分布式微服务/分布式配置中心/README.md"
+        },
+        {
+            "last_accessed_time": "2022-11-17T14:46:55Z",
+            "line_number": 2507,
+            "path": "分布式微服务/SpringBoot/SpringBoot笔记01-基础.md"
+        },
+        {
+            "last_accessed_time": "2022-11-18T11:43:01Z",
+            "line_number": 2,
+            "path": "前端资料/工具类库/Lodash.md"
+        },
+        {
+            "last_accessed_time": "2022-11-18T15:15:21Z",
+            "line_number": 0,
+            "path": "Linux/Linux笔记.md"
+        },
+        {
+            "last_accessed_time": "2022-11-18T15:21:16Z",
+            "line_number": 0,
+            "path": "Linux/Linux安装.md"
+        },
+        {
+            "last_accessed_time": "2022-11-18T15:21:17Z",
+            "line_number": 1577,
+            "path": "后端框架/工具框架/Drools.md"
+        },
+        {
+            "last_accessed_time": "2022-11-19T00:46:07Z",
+            "line_number": 2379,
+            "path": "DevOps/项目构建工具/Maven03-POM.md"
+        },
+        {
+            "last_accessed_time": "2022-11-19T01:00:08Z",
+            "line_number": 393,
+            "path": "DevOps/项目构建工具/Maven02-全局配置.md"
+        },
+        {
+            "last_accessed_time": "2022-11-19T08:14:52Z",
+            "line_number": 0,
+            "path": "前端资料/基础语法03-JavaScript/ECMAScript6.md"
+        },
+        {
+            "last_accessed_time": "2022-11-19T08:14:59Z",
+            "line_number": 1112,
+            "path": "前端资料/基础语法03-JavaScript/JavaScript-03工具函数.md"
+        },
+        {
+            "last_accessed_time": "2022-11-26T00:44:43Z",
+            "line_number": 114,
+            "path": "DevOps/项目构建工具/Maven04-私服.md"
+        },
+        {
+            "last_accessed_time": "2022-11-26T00:44:45Z",
+            "line_number": 1787,
+            "path": "DevOps/项目构建工具/Maven01-基础.md"
+        },
+        {
+            "last_accessed_time": "2022-11-27T09:50:01Z",
+            "line_number": 657,
+            "path": "其他/IDE/IDEA.md"
+        },
+        {
+            "last_accessed_time": "2022-11-27T14:25:00Z",
+            "line_number": 4,
+            "path": "后端框架/Spring/Spring笔记09-其他.md"
+        },
+        {
+            "last_accessed_time": "2022-11-27T14:25:28Z",
+            "line_number": 1405,
+            "path": "后端框架/Spring/Spring笔记02-AOP.md"
+        },
+        {
+            "last_accessed_time": "2022-11-27T15:01:31Z",
+            "line_number": 3208,
+            "path": "后端框架/SpringMVC/SpringMVC基础.md"
+        },
+        {
+            "last_accessed_time": "2022-11-27T15:01:32Z",
+            "line_number": 5804,
+            "path": "后端框架/Spring/Spring源码分析02-IOC.md"
+        },
+        {
+            "last_accessed_time": "2022-11-27T15:01:35Z",
+            "line_number": 547,
+            "path": "分布式微服务/SpringBoot/SpringBoot笔记03-源码分析.md"
+        },
+        {
+            "last_accessed_time": "2022-11-27T15:01:37Z",
+            "line_number": 0,
+            "path": "后端框架/Spring/Spring笔记03-Transaction.md"
+        },
+        {
+            "last_accessed_time": "2022-11-29T23:22:35Z",
+            "line_number": 2306,
+            "path": "后端框架/Spring/Spring笔记01-基础.md"
+        },
+        {
+            "last_accessed_time": "2022-11-29T23:22:36Z",
+            "line_number": 2228,
+            "path": "后端框架/Spring/Spring注解汇总.md"
+        },
+        {
+            "last_accessed_time": "2022-11-29T23:22:37Z",
+            "line_number": 150,
+            "path": "JavaWeb/JavaWeb03-Servlet.md"
+        },
+        {
+            "last_accessed_time": "2022-11-29T23:22:37Z",
+            "line_number": 163,
+            "path": "前端资料/基础语法01-HTML/HTML5-基础语法.md"
+        }
+    ],
+    "image_folder": "images",
+    "name": "code-learning-note",
+    "tag_graph": "",
+    "version": 3,
+    "version_controller": "dummy.vnotex"
+}
