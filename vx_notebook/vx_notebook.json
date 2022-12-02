@@ -377,11 +377,6 @@
             "path": "其他/System&Software/Windows.md"
         },
         {
-            "last_accessed_time": "2022-11-13T13:57:14Z",
-            "line_number": 569,
-            "path": "DevOps/版本管理工具/Git-01-基础.md"
-        },
-        {
             "last_accessed_time": "2022-11-15T14:37:33Z",
             "line_number": 2,
             "path": "DevOps/项目构建工具/Maven02-配置.md"
@@ -502,9 +497,14 @@
             "path": "前端资料/基础语法01-HTML/HTML5-基础语法.md"
         },
         {
-            "last_accessed_time": "2022-11-30T15:35:22Z",
-            "line_number": 263,
+            "last_accessed_time": "2022-12-02T16:35:51Z",
+            "line_number": 251,
             "path": "JavaWeb/JavaWeb02-Web服务器.md"
+        },
+        {
+            "last_accessed_time": "2022-12-02T16:35:53Z",
+            "line_number": 187,
+            "path": "DevOps/版本管理工具/Git-01-基础.md"
         }
     ],
     "image_folder": "images",
