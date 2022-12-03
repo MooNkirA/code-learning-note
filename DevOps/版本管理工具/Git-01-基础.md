@@ -149,7 +149,7 @@ Git 的工作流程图
 
 ![](images/3660922239387.jpg)
 
-### 7.2. Git 配置命令
+### 7.2. config - 配置命令
 
 Git 的设置文件为 `.gitconfig`，它可以在用户主目录下（全局配置），也可以在项目目录下（项目配置）。在安装好后首次使用前，需要先进行全局配置。通过相关的命令设置全局信息会保存在 `~/.gitconfig` 文件中。
 
@@ -170,22 +170,21 @@ $ git config --global user.email "邮箱地址"
 $ git config -e [--global]
 ```
 
+> Notes: `--global` 表示编辑全局配置，省略则表示编辑当前仓库的配置。
+
 #### 7.2.3. 查看配置信息
 
 ```bash
 # 查看当前 git 全部的配置信息
 $ git config --list
+
 # 查看当前 git 指定的配置信息
 $ git config [--global] user.name
 ```
 
-查看指定的设置值
+### 7.3. 基础操作命令
 
-![](images/20211212154343848_25152.png)
-
-### 7.3. 常用操作命令
-
-#### 7.3.1. 本地仓库初始化
+#### 7.3.1. init - 本地仓库初始化
 
 执行以下命令，初始化 git 仓库，即由 git 来管理此目录
 
@@ -202,18 +201,7 @@ $ git init --bare
 
 > 执行之后会在项目目录下创建【`.git`】的隐藏目录，这个目录是Git所创建的，不能删除，也不能随意更改其中的内容。
 
-#### 7.3.2. 查看仓库当前状态
-
-用于查询当前仓库中有那些文件存在变动
-
-```bash
-# 查看状态
-$ git status
-# 查看状态 使输出信息更加简洁
-git status –s
-```
-
-#### 7.3.3. 添加文件到缓存区
+#### 7.3.2. add - 添加文件到缓存区
 
 `git add` 指令，用于添加单个（多个）文件到缓存区。
 
@@ -247,7 +235,7 @@ $ git add .
 $ git add -p
 ```
 
-#### 7.3.4. 取消缓存区的文件
+#### 7.3.3. reset - 取消缓存区的文件
 
 将暂存区的文件取消暂存指定的文件(取消 `add`)
 
@@ -255,7 +243,7 @@ $ git add -p
 $ git reset 文件名
 ```
 
-#### 7.3.5. 删除本地工作区文件
+#### 7.3.4. rm - 删除本地工作区文件
 
 删除工作区文件，并且将这次删除放入暂存区
 
@@ -269,7 +257,7 @@ $ git rm <文件名1> <文件名2>...
 $ git rm --cached <文件名>
 ```
 
-#### 7.3.6. 修改文件名
+#### 7.3.5. mv - 修改文件名
 
 修改文件名称，并且将这个改名后文件放入暂存区
 
@@ -277,7 +265,7 @@ $ git rm --cached <文件名>
 $ git mv <file-original> <file-renamed>
 ```
 
-#### 7.3.7. 提交至版本库
+#### 7.3.6. commit - 提交至版本库
 
 `git commit` 指令，将当前缓存区的内容提交到版本库。
 
@@ -304,38 +292,59 @@ $ git commit --amend -m [message]
 $ git commit --amend [file1] [file2] ...
 ```
 
-#### 7.3.8. 回退本工作区库误删文件
+### 7.4. 查看信息命令
+
+#### 7.4.1. status - 查看仓库当前状态
+
+用于查询当前仓库中有那些文件存在变动
 
 ```bash
-$ git checkout head <文件名>
-```1.1.1. 
-#### 7.3.9. 查看版本
+# 查看状态
+$ git status
+# 查看状态 使输出信息更加简洁
+git status –s
+```
 
-`git log` 指令，用于查看当前git的提交记录（版本）
+#### 7.4.2. log - 查看版本记录
+
+`git log` 指令，用于查看当前分支 git 的提交记录（版本）
 
 ```bash
+# 显示当前分支的版本历史
 $ git log
 ```
 
-参数 `--pretty=oneline`，将每个git的提交记录在一行显示
+参数 `--pretty`，用于指定显示的格式。
 
 ```bash
+# 将每个 git 的提交记录在一行显示
 $ git log --pretty=oneline
+
+# 指定其他显示格式
+$ git log [tag] HEAD --pretty=format:%s
 ```
 
-#### 7.3.9. 版本回退
-
-`git reset` 指令用于版本的回退
+其他使用方式
 
 ```bash
-$ git reset --hard 提交编号
+# 显示commit历史，以及每次commit发生变更的文件
+$ git log --stat
+
+# 搜索提交历史，根据关键词
+$ git log -S [keyword]
+
+# 显示某个commit之后的所有变动，其"提交说明"必须符合搜索条件
+$ git log [tag] HEAD --grep feature
+
+# 显示某个文件的版本历史，包括文件改名
+$ git log --follow [file]
+$ git whatchanged [file]
+
+# 显示过去5次提交
+$ git log -5 --pretty --oneline
 ```
 
-> 注：”提交编号“是通过 `git log` 指令查看
->
-> 在使用回退指令的时候 commit id 可以不用写全，git会自动识别，但是至少需要写前4位字符
-
-#### 7.3.10. 查看历史版本
+#### 7.4.3. reflog - 查看历史版本
 
 如果发生版本回退的操作，此时使用`git log`就无法查询回退到此版本之前的操作记录，所以需要使用 `git reflog` 指令来查看历史操作，获取最新的 commit id
 
@@ -343,9 +352,50 @@ $ git reset --hard 提交编号
 $ git reflog
 ```
 
-### 7.4. 远程仓库操作命令
+#### 7.4.4. 显示修改信息
 
-#### 7.4.1. 克隆远程仓库到本地
+```bash
+# 显示所有提交过的用户，按提交次数排序
+$ git shortlog -sn
+
+# 显示指定文件是什么人在什么时间修改过
+$ git blame [file]
+
+# 显示某次提交的元数据和内容变化
+$ git show [commit]
+
+# 显示某次提交发生变化的文件
+$ git show --name-only [commit]
+
+# 显示某次提交时，某个文件的内容
+$ git show [commit]:[filename]
+```
+
+#### 7.4.5. diff - 查看文件差异
+
+```bash
+# 显示指定文件相关的每一次diff
+$ git log -p [file]
+
+# 显示暂存区和工作区的差异
+$ git diff
+
+# 显示暂存区和上一个commit的差异
+$ git diff --cached [file]
+
+# 显示工作区与当前分支最新commit之间的差异
+$ git diff HEAD
+
+# 显示两次提交之间的差异
+$ git diff [first-branch]...[second-branch]
+
+# 显示今天修改的代码行数
+$ git diff --shortstat "@{0 day ago}"
+```
+
+### 7.5. 远程仓库操作命令
+
+#### 7.5.1. clone - 克隆远程仓库到本地
 
 `clone` 指令用于克隆远程仓库到本地
 
@@ -355,7 +405,7 @@ $ git clone 远程Git仓库地址
 
 > 注：远程仓库分两种，基于http/https协议或者基于ssh协议
 
-#### 7.4.2. 查看远程
+#### 7.5.2. remote - 查看远程仓库
 
 查看远程，列出指定的每一个远程服务器的简写
 
@@ -375,7 +425,7 @@ $ git remote -v
 $ git remote show <仓库简称>
 ```
 
-#### 7.4.3. 添加/移除远程仓库
+#### 7.5.3. remote add - 添加远程仓库
 
 添加远程仓库
 
@@ -383,13 +433,48 @@ $ git remote show <仓库简称>
 $ git remote add <shortname> <url>
 ```
 
+#### 7.5.4. remote rm - 移除远程仓库
+
 移除远程仓库和本地仓库的关系(只是从本地移除远程仓库的关联关系，并不会真正影响到远程仓库)
 
 ```bash
 $ git remote rm <shortname>
 ```
 
-#### 7.4.4. 推送到远程仓库
+#### 7.5.5. 拉取远程仓库版本
+
+##### 7.5.5.1. fetch - 手动拉取与合并
+
+从远程仓库拉取 (拉取到.git 目录，不会合并到工作区，工作区发生变化)
+
+```bash
+$ git fetch <remote> <分支名称>
+```
+
+手动合并。把某个版本的某个分支合并到当前工作区
+
+```bash
+$ git merge <remote>/<分支名称>
+```
+
+##### 7.5.5.2. pull - 自动拉取与合并工作区
+
+`pull` 指令用于拉取远程仓库的版本记录。(拉取到 .git 目录，合并到工作区，工作区不发生变化。相当于 `fetch` + `merge`)
+
+```bash
+$ git pull <shortname> <分支名称>
+```
+
+> 拉取时如果出现版本冲突，需要手动进行冲突的合并
+
+注意：如果当前本地仓库不是从远程仓库克隆，而是本地创建的仓库，并且仓库中存在文件，此时再从远程仓库拉取文件的时候会报错（fatal: refusing to merge unrelated histories），解决此问题可以在 `git pull` 命令后加入参数 `--allow-unrelated-histories`
+
+```bash
+# 强制拉取合并
+$ git pull <shortname> <分支名称> --allow-unrelated-histories
+```
+
+#### 7.5.6. push - 推送到远程仓库
 
 `push` 指令用于将修改的版本推送到远程仓库某个分支
 
@@ -411,44 +496,82 @@ $ git push [remote-name] [branch-name]
 
 > 注：推送到基于ssh协议的远程仓库，在push的时候并没有提示要求输入帐号密码，因为公私玥已经实现了用户身份鉴权，也不需要修改此配置文件。
 
-#### 7.4.5. 远程仓库拉取版本
-
-##### 7.4.5.1. 手动拉取与合并
-
-从远程仓库拉取 (拉取到.git 目录，不会合并到工作区，工作区发生变化)
+强行推送当前分支到远程仓库(有冲突也推送)
 
 ```bash
-$ git fetch <shortname> <分支名称>
+$ git push [remote] --force
 ```
 
-手动合并。把某个版本的某个分支合并到当前工作区
+推送所有分支到远程仓库
 
 ```bash
-$ git merge <shortname>/<分支名称>
+$ git push [remote] --all
 ```
 
-##### 7.4.5.2. 自动拉取与合并工作区
+### 7.6. 版本回退与撤销命令
 
-`pull` 指令用于拉取远程仓库的版本记录。(拉取到 .git 目录，合并到工作区，工作区不发生变化。相当于 `fetch` + `merge`)
+#### 7.6.1. checkout 恢复工作区
 
 ```bash
-$ git pull <shortname> <分支名称>
+$ git checkout<文件名>
+# 恢复暂存区的指定文件到工作区
+$ git checkout head [file]
+
+# 恢复某个commit的指定文件到暂存区和工作区
+$ git checkout [commit] [file]
+
+# 恢复暂存区的所有文件到工作区
+$ git checkout .
 ```
 
-> 拉取时如果出现版本冲突，需要手动进行冲突的合并
+#### 7.6.2. reset 版本回退
 
-注意：如果当前本地仓库不是从远程仓库克隆，而是本地创建的仓库，并且仓库中存在文件，此时再从远程仓库拉取文件的时候会报错（fatal: refusing to merge unrelated histories），解决此问题可以在 `git pull` 命令后加入参数 `--allow-unrelated-histories`
+`git reset` 指令用于版本的回退
 
 ```bash
-# 强制拉取合并
-$ git pull <shortname> <分支名称> --allow-unrelated-histories
+# 重置暂存区的指定文件，与上一次commit保持一致，但工作区不变
+$ git reset [file]
+
+# 重置暂存区与工作区，与上一次commit保持一致
+$ git reset --hard
+
+# 重置当前分支的指针为指定commit，同时重置暂存区，但工作区不变
+$ git reset [commit]
+
+# 重置当前分支的HEAD为指定commit，同时重置暂存区和工作区，与指定commit一致
+$ git reset --hard [commit]
+
+# 重置当前HEAD为指定commit，但保持暂存区和工作区不变
+$ git reset --keep [commit]
 ```
 
-### 7.5. 分支管理命令
+> Notes: 
+>
+> - `commit` 参数是指“提交编号”，可以通过 `git log` 指令查看
+> - 在使用回退指令的时候 commit id 可以不用写全，git 会自动识别，但是至少需要写前 4 位字符
+
+#### 7.6.3. revert
+
+新建一个 commit，用来撤销指定 commit。后者的所有变化都将被前者抵消，并且应用到当前分支
+
+```bash
+$ git revert [commit]
+```
+
+#### 7.6.4. stash
+
+暂时将未提交的变化移除，稍后再移入
+
+```bash
+$ git stash
+$ git stash pop
+```
+
+### 7.7. branch - 分支管理命令
 
 默认分支名称为 master。*2020年Github开始修改为 main*
 
-#### 7.5.1. 查看分支
+#### 7.7.1. 查看分支
 
 ```bash
 $ git branch
@@ -468,101 +591,177 @@ $ git branch -r
 $ git branch -a
 ```
 
-#### 7.5.2. 创建分支
+#### 7.7.2. 创建分支
+
+新建一个分支，但依然停留在当前分支
 
 ```bash
 $ git branch <分支名>
 ```
 
-#### 7.5.3. 切换分支
+新建一个分支，并切换到该分支
 
 ```bash
-$ git checkout <分支名>
+$ git checkout -b <分支名>
 ```
 
-#### 7.5.4. 删除分支
+新建一个分支，指向指定 commit
+
+```bash
+$ git branch [branch] [commit]
+```
+
+新建一个分支，与指定的远程分支建立追踪关系
+
+```bash
+$ git branch --track [branch] [remote-branch]
+```
+
+#### 7.7.3. 切换分支
+
+使用 `checkout` 命令切换分支
+
+```bash
+# 切换到指定分支，并更新工作区
+$ git checkout <分支名>
+
+# 切换到上一个分支
+$ git checkout -
+```
+
+#### 7.7.4. 分支追踪
+
+在现有分支与指定的远程分支之间建立追踪关系。
+
+```bash
+$ git branch --set-upstream [branch] [remote-branch]
+```
+
+#### 7.7.5. 删除分支
+
+删除本地仓库的分支
 
 ```bash
 $ git branch -d <分支名>
 ```
 
-> 注意：在删除分支的时候，一定要先退出要删除的分支（或切换到其他分支），然后才能删除该分支。或者如果分支已经修改过，则不允许删除。
+> Notes: **在删除分支的时候，一定要先退出要删除的分支（或切换到其他分支），然后才能删除该分支。或者如果分支已经修改过，则不允许删除。**
 
-强制删除分支（慎用）
+强制删除分支（**慎用**）
 
 ```bash
 $ git branch -D <分支名>
 ```
 
-#### 7.5.5. 合并分支
+删除远程仓库分支
 
 ```bash
-$ git merge 被合并的分支名
+# 简写
+$ git push origin –d 分支名称
+# 全写
+$ git push origin --delete [branch-name]
+# 直接根据远程分支的全称来删除
+$ git branch -dr [remote/branch]
 ```
 
-合并分支需要先使用 `checkout` 切换到待合并到的分支，然后再使用 `merge` 指令指定要合并的分支。<font color=red>**需要注意：合并所有分支之后，需要使用 `push` 指令推送到远程仓库中**</font>
+#### 7.7.6. 合并分支
 
-#### 7.5.6. 提交分支至远程仓库
+合并指定分支到当前分支。合并分支前需要先使用 `checkout` 切换到待合并到的分支，然后再使用 `merge` 指令指定要合并的分支。
+
+```bash
+$ git merge <被合并的分支名>
+```
+
+> Notes: <font color=red>**合并本地所有分支之后，需要使用 `push` 指令推送到远程仓库中**</font>
+
+选择一个 commit，合并进当前分支
+
+```bash
+$ git cherry-pick [commit]
+```
+
+#### 7.7.7. 提交分支至远程仓库
 
 ```bash
 $ git push <仓库简称> <分支名称>
 ```
 
-#### 7.5.7. 删除远程仓库分支
+### 7.8. tag - 标签管理命令
 
-```bash
-$ git push origin –d 分支名称
-```
+#### 7.8.1. 查看 tag 信息
 
-### 7.6. 标签（tag）命令
-
-#### 7.6.1. 查看 tag 信息
-
-列出所有tag
+列出所有 tag
 
 ```bash
 $ git tag
 ```
 
-查看tag详细信息
+查看 tag 详细信息
 
 ```bash
 $ git show [tagName]
 ```
 
-#### 7.6.2. 新建一个 tag
+#### 7.8.2. 新建 tag
+
+在当前 commit 中新建一个标签（tag）
 
 ```bash
 $ git tag [tagName]
 ```
 
-#### 7.6.3. 提交指定 tag
+在指定 commit 中新建一个标签（tag）
 
 ```bash
-$ git push [仓库简称] [tagName]
+$ git tag [tag] [commit]
 ```
 
-#### 7.6.4. 新建一个分支指向某个 tag
+#### 7.8.3. 新建一个分支指向某个 tag
 
 ```bash
 $ git checkout -b [branch] [tag]
 ```
 
-#### 7.6.5. 删除本地 tag
+#### 7.8.4. 删除本地 tag
 
 ```bash
 $ git tag -d [tag]
 ```
 
-#### 7.6.6. 删除远程 tag (注意 空格)
-
-**注意空格**
+#### 7.8.5. 删除远程 tag
 
 ```bash
-$ git push origin :refs/tags/[tag]
+$ git push origin :refs/tags/[tagName]
 ```
 
-### 7.7. 其他命令
+> Notes: **注意空格**
+
+
+#### 7.8.6. 提交 tag
+
+提交指定标签（tag）
+
+```bash
+$ git push [remote] [tagName]
+```
+
+> Notes: `[remote]` 是指远程仓库简称
+
+提交所有标签（tag）
+
+```bash
+$ git push [remote] --tags
+```
+
+#### 7.8.7. 新建分支指向某个 tag
+
+新建一个分支，并指向某个 tag
+
+```bash
+$ git checkout -b <分支名称> <标签名称>
+```
+
+### 7.9. 其他命令
 
 生成一个可供发布的压缩包
 
