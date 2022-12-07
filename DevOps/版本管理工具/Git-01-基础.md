@@ -773,7 +773,7 @@ $ git archive
 
 ### 8.1. .gitkeep 文件
 
-`.gitkeep`文件是用来保证当前目录即使为空，也会上传到github上
+`.gitkeep`文件是用来保证当前目录即使为空，也会上传到 github 上
 
 ### 8.2. .gitignore 忽略规则文件（待整理）
 
