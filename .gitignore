@@ -18,8 +18,8 @@ Bin
 _v_recycle_bin
 
 # ignore vnote 3.x config file
-vx.json
-vx_notebook
+#vx.json
+#vx_notebook
 
 # 忽略VNote软件的删除缓存
 vx_recycle_bin

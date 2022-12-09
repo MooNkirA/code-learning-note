@@ -1435,3 +1435,154 @@ drop trigger if exists trigger_test1;
 1. MYSQL 中触发器中不能对本表进行 `insert`, `update`, `delete` 操作，以免递归循环触发
 2. 尽量少使用触发器，假设触发器触发每次执行1s，insert table 500条数据，那么就需要触发500次触发器，光是触发器执行的时间就花费了500s，而insert 500条数据一共是1s，那么这个insert的效率就非常低了。
 3. 触发器是针对每一行的；对增删改非常频繁的表上切记不要使用触发器，因为它会非常消耗资源。
+
+## 5. 分区表(了解)
+
+> Tips: 此知识点只需要了解，实际项目的应用极少
+
+### 5.1. 简介
+
+分区是指根据一定的规则，数据库把一个表分解成多个更小的、更容易管理的部分。就访问数据库的应用而言，逻辑上只有一个表或一个索引，但是实际上这个表可能由数 10 个物理分区对象组成，每个分区都是一个独立的对象，可以独自处理，可以作为表的一部分进行处理。
+
+分区表是一个独立的逻辑表，但是底层由多个物理子表组成。实现分区的代码实际上是对一组底层表的的封装。对分区表的请求，都会转化成对存储引擎的接口调用。**分区对于 SQL 层来说是一个完全封装底层实现的黑盒子，对应用是透明的**。
+
+从底层的文件系统可以看出，每一个分区表都有一个使用`#`分隔命名的表文件。
+
+MySQL 在创建表时使用`PARTITION BY`子句定义每个分区存放的数据。在执行查询的时候，优化器根据分区定义过滤那些数据不在的分区，这样查询就无须扫描所有分区。
+
+分区的一个主要目的是将数据按照一个较粗的粒度分在不同的表中。另外，也方便一次批量删除整个分区的数据。分区表作用如下：
+
+- 表非常大以至于无法全部都放在内存中，或者只在表的最后部分有热点数据，其他均是历史数据。
+- 分区表的数据更容易维护。例如，想批量删除大量数据可以使用清除整个分区的方式。另外，还可以对一个独立分区进行优化、检查、修复等操作。
+- 分区表的数据可以分布在不同的物理设备上，从而高效地利用多个硬件设备。可以使用分区表来避免某些特殊的瓶颈，例如 InnoDB 的单个索引的互斥访问、ext3 文件系统的 inode 锁竞争等。
+- 如果需要,还可以备份和恢复独立的分区,这在非常大的数据集的场景下效果非常好。
+
+分区表的限制：
+
+- 一个表最多只能有 1024 个分区
+- 如果分区字段中有主键或者唯一索引的列，那么所有主键列和唯一索引列都必须包含进来
+- 分区表中无法使用外键约束
+
+### 5.2. 分区表的原理
+
+分区表由多个相关的底层表实现，这些底层表也是由句柄对象（Handlerobject)表示，所以也可以直接访问各个分区。存储引擎管理分区的各个底层表和管理普通表一样（所有的底层表都必须使用相同的存储引擎)，分区表的索引只是在各个底层表上各自加上一个完全相同的索引。从存储引擎的角度来看，底层表和一个普通表没有任何不同，存储引擎也无须知道这是一个普通表还是一个分区表的一部分。分区表上的操作按照下面的操作逻辑进行:
+
+虽然每个操作都会“先打开并锁住所有的底层表”，但这并不是说分区表在处理过程中是锁住全表的。如果存储引擎能够自己实现行级锁，例如 InnoDB，则会在分区层释放对应表锁。这个加锁和解锁过程与普通 InnoDB 上的查询类似。
+
+### 5.3. 分区表的类型
+
+#### 5.3.1. MySQL 支持的分区表
+
+- RANGE 分区：基于属于一个给定连续区间的列值，把多行分配给分区。
+- LIST 分区：类似于按 RANGE 分区，区别在于 LIST 分区是基于列值匹配一个离散值集合中的某个值来进行选择。
+- HASH 分区：基于用户定义的表达式的返回值来进行选择的分区，该表达式使用将要插入到表中的这些行的列值进行计算。这个函数可以包含 MySQL 中有效的、产生非负整数值的任何表达式。
+- KEY 分区：类似于按 HASH 分区，区别在于 KEY 分区只支持计算一列或多列，且 MySQL 服务器提供其自身的哈希函数。必须有一列或多列包含整数值。
+- 复合分区/子分区：目前只支持 RANGE 和 LIST 的子分区，且子分区的类型只能为 HASH 和 KEY。
+
+#### 5.3.2. 分区的基本语法
+
+- RANGE 分区
+
+```sql
+CREATE TABLE test (
+    order_date DATETIME NOT NULL,
+）ENGINE=InnoDB
+PARTITION BY RANGE(YEAR(order_date))(
+PARTITION p_0 VALUES LESS THAN (2010) ,
+PARTITION p_1 VALUES LESS THAN (2011),
+PARTITION p_2 VALUES LESS THAN (2012),
+PARTITION p_other VALUES LESS THAN MAXVALUE);
+```
+
+- LIST 分区(类似枚举)
+
+```sql
+CREATE TABLE h2 (
+    c1 INT,
+    c2 INT
+PARTITION BY LIST(c1) (
+PARTITION p0 VALUES IN (1, 4, 7),
+PARTITION p1 VALUES IN (2, 5, 8));
+```
+
+- range 和 List 都是整数类型分区，其实 range 和 List 也支持非整数分区，但是要结合 COLUMN 分区，支持整形、日期、字符串
+
+```sql
+CREATE TABLE emp_date(
+    id INT NOT NULL,
+    ename VARCHAR (30),
+    hired DATE NOT NULL DEFAULT '1970-01-01',
+    separated DATE NOT NULL DEFAULT '9999-12-31',
+    job VARCHAR(30) NOT NULL,
+    store_id INT NOT NULL)
+PARTITION BY RANGE COLUMNS (separated)(
+PARTITION pO VALUES LESS THAN ('1996-01-01'),
+PARTITION p1 VALUES LESS THAN ('2001-01-01'),
+PARTITION p2 VALUES LESS THAN ('2006-01-01'));
+
+CREATE TABLE expenses (
+    expense_date DATE NOT NULL,
+    category VARCHAR(30),
+    amount DECIMAL (10,3)
+)
+PARTITION BY LIST COLUMNS (category)(
+PARTITION p0 VALUES IN ('a','b') ,
+PARTITION p1 VALUES IN('c','d'),
+PARTITION p2 VALUES IN('e','f'),
+PARTITION p3 VALUES IN('g'),
+PARTITION p4 VALUES IN('h'));
+
+-- 在结合 COLUMN 分区时还支持多列
+CREATE TABLE rc3(
+    a INT,
+    b INT)
+PARTITION BY RANGE COLUMNS(a,b)(
+PARTITION p01 VALUES LESS THAN (0,10),
+PARTITION p02 VALUES LESS THAN (10,10),
+PARTITION p03 VALUES LESS THAN (10,20),
+PARTITION p04 VALUES LESS THAN (10,35),
+PARTITION p05 VALUES LESS THAN (10,MAXVALUE),
+PARTITION p06 VALUES LESS THAN (MAXVALUE,MAXVALUE));
+```
+
+- Hash 分区
+
+```sql
+CREATE TABLE emp (
+    id INT NOT NULL,
+    ename VARCHAR(30),
+    hired DATE NOT NULL DEFAULT '1970-01-01'
+    separated DATENOT NULL DEFAULT '9999-12-31',
+    job VARCHAR(30) NOT NULL,
+    store_id INT NOT NULL
+)
+PARTITION BY HASH (store_id) PARTITIONS 4;
+```
+
+> 以上示例创建了一个基于 store_id 列 HASH 分区的表，表被分成了 4 个分区，如果我们插入的记录`store_id=234`，则 `234 mod 4 = 2`，这条记录就会保存到第二个分区。虽然在HASH()中直接使用的 store_id 列，但是 MySQL 是允许基于某列值返回一个整数值的表达式或者 MySQL 中有效的任何函数或者其他表达式都是可以的。
+
+- key分区
+
+```sql
+- 创建了一个基于 job 字段进行 Key 分区的表，表被分成了 4 个分区。KEY ()里只允许出现表中的字段。
+CREATE TABLE emp (
+    id INT NOT NULL,
+    ename VARCHAR(30),
+    hired DATE NOT NULL DEFAULT '1970-01-01'
+    separated DATENOT NULL DEFAULT '9999-12-31',
+    job VARCHAR(30) NOT NULL,
+    store_id INT NOT NULL
+)
+PARTITION BY KEY (job) PARTITIONS 4;
+```
+
+### 5.4. 不建议使用 mysql 分区表
+
+在实际互联网项目中，MySQL分区表用的极少，更多的是分库分表。
+
+分库分表除了支持 MySQL 分区表的水平切分以外，还支持垂直切分，把一个很大的库（表）的数据分到几个库（表）中，每个库（表）的结构都相同，但他们可能分布在不同的 mysql 实例，甚至不同的物理机器上，以达到降低单库（表）数据量，提高访问性能的目的。两者对比如下：
+
+- 分区表，分区键设计不太灵活，如果不走分区键，很容易出现全表锁
+- 一旦数据量并发量上来，如果在分区表实施关联，就是一个灾难
+- 分库分表，使用者来掌控业务场景与访问模式，可控。分区表，由 mysql 本身来实现，不太可控
+- 分区表无论怎么分，都是在一台机器上，天然就有性能的上限

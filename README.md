@@ -23,17 +23,18 @@
   <li><a href="#/Java/Java基础99-JDK常用API">Java基础 - JDK常用API</a></li>
   <li><a href="#/Java/Java扩展01-设计模式">Java扩展 - 设计模式</a></li>
   <li><a href="#/Java/Java扩展02-代码简洁之道">Java扩展 - 代码简洁之道</a></li>
-  <li><a href="#/Java/Java扩展03-程序案例">Java扩展 - 程序案例</a></li>
+  <li><a href="#/Java/Java扩展03-数据结构">Java扩展 - 数据结构</a></li>
   <li><a href="#/Java/Java扩展04-排序算法">Java扩展 - 排序算法</a></li>
+  <li><a href="#/Java/Java扩展99-程序案例">Java扩展 - 程序案例</a></li>
 </ul>
 
 ### 🥃 JavaWeb
 
 <ul class="docs">
-  <li><a href="#/JavaWeb/JavaWeb01-HTTP协议">HTTP 协议</a></li>
-  <li><a href="#/JavaWeb/JavaWeb02-Web服务器">Web 服务器</a></li>
-  <li><a href="#/JavaWeb/JavaWeb03-Servlet">Servlet 基础笔记</a></li>
-  <li><a href="#/JavaWeb/JavaWeb04-JSP">JSP 基础笔记</a></li>
+  <li><a href="#/JavaWeb/JavaWeb01-网络">JavaWeb 基础 - 网络</a></li>
+  <li><a href="#/JavaWeb/JavaWeb02-Web服务器">JavaWeb 基础 - Web 服务器</a></li>
+  <li><a href="#/JavaWeb/JavaWeb03-Servlet">JavaWeb 基础 - Servlet</a></li>
+  <li><a href="#/JavaWeb/JavaWeb04-JSP">JavaWeb 基础 - JSP</a></li>
 </ul>
 
 ## 后端框架
@@ -178,7 +179,6 @@
   <li><a href="#/前端资料/前端工程化工具/ESLint">ESLint 笔记</a></li>
 </ul>
 
-
 ### 📱 移动端 Web
 
 <ul class="docs">
@@ -196,7 +196,15 @@
 
 ## 数据库
 
-### 🔢 MySQL
+### 数据库综合概述
+
+<ul class="docs">
+  <li><a href="#/数据库/关系型数据库概述与规范">关系型数据库概述与规范</a></li>
+</ul>
+
+### 关系型数据库
+
+#### 🔢 MySQL
 
 <ul class="docs">
   <li><a href="#/数据库/MySQL/MySQL数据库00-安装与部署">MySQL数据库-安装与部署</a></li>
@@ -207,17 +215,20 @@
   <li><a href="#/数据库/MySQL/MySQL数据库05-索引">MySQL数据库-索引</a></li>
   <li><a href="#/数据库/MySQL/MySQL数据库06-锁">MySQL数据库-锁</a></li>
   <li><a href="#/数据库/MySQL/MySQL数据库07-运维">MySQL数据库-运维篇（日志、主从复制、读写分离、分库分表）</a></li>
+  <li><a href="#/数据库/MySQL/MySQL数据库08-开发规范">MySQL 数据库开发规范</a></li>
+  <li><a href="#/数据库/MySQL/MySQL数据库09-性能优化">MySQL 数据库性能优化</a></li>
   <li><a href="#/数据库/MySQL/MySQL数据库99-SQL示例">SQL 练习示例</a></li>
-  <li><a href="#/数据库/MySQL/MySQL数据库规范与性能优化">MySQL 数据库规范与性能优化</a></li>
 </ul>
 
-### 🅾 Oracle
+#### 🅾 Oracle
 
 <ul class="docs">
   <li><a href="#/数据库/Oracle/Oracle-基础">Oracle 基础笔记</a></li>
 </ul>
 
-### 🪐 Redis
+### 非关系型数据库
+
+#### 🪐 Redis
 
 <ul class="docs">
   <li><a href="#/数据库/Redis/Redis-基础">Redis 基础笔记</a></li>
@@ -226,7 +237,7 @@
   <li><a href="#/数据库/Redis/Redis-操作命令">Redis 操作命令</a></li>
 </ul>
 
-### 🥭 MongoDb
+#### 🥭 MongoDb
 
 <ul class="docs">
   <li><a href="#/数据库/MongoDb/MongoDB-基础">MongoDB 基础笔记</a></li>
@@ -239,7 +250,9 @@
 
 <ul class="docs">
   <li><a href="#/DevOps/项目构建工具/Maven01-基础">Maven 基础笔记</a></li>
-  <li><a href="#/DevOps/项目构建工具/Maven02-配置">Maven 配置</a></li>
+  <li><a href="#/DevOps/项目构建工具/Maven02-全局配置">Maven 全局配置 setting.xml</a></li>
+  <li><a href="#/DevOps/项目构建工具/Maven03-POM">Maven POM 配置</a></li>
+  <li><a href="#/DevOps/项目构建工具/Maven04-私服">Maven 私服</a></li>
   <li><a href="#/DevOps/项目构建工具/Gradle">Gradle 基础笔记</a></li>
 </ul>
 
@@ -383,8 +396,8 @@
 ### ✨ 其他
 
 <ul class="docs">
+  <li><a href="#/分布式微服务/其他/分布式微服务相关概念">分布式微服务相关概念（分布式缓存、负载均衡等）</a></li>
   <li><a href="#/分布式微服务/其他/项目搭建模板">项目搭建模板与规范</a></li>
-  <li><a href="#/分布式微服务/其他/分布式缓存">分布式缓存</a></li>
   <li><a href="#/分布式微服务/其他/FastDFS">FastDFS 分布式文件系统</a></li>
 </ul>
 
@@ -417,9 +430,9 @@
 ### 💻 IDE
 
 <ul class="docs">
-  <li><a href="#/其他/IDE/IDEA">IntelliJ IDEA 常用配置</a></li>
-  <li><a href="#/其他/IDE/eclipse">Eclipse 常用配置</a></li>
-  <li><a href="#/其他/IDE/Visual-Studio-Code">Visual Studio Code 常用配置</a></li>
+  <li><a href="#/其他/IDE/IDEA">IntelliJ IDEA 使用教程</a></li>
+  <li><a href="#/其他/IDE/eclipse">Eclipse 使用教程</a></li>
+  <li><a href="#/其他/IDE/Visual-Studio-Code">Visual Studio Code 使用教程</a></li>
   <li><a href="#/其他/IDE/DevelopmentTool">其它开发工具常用配置与使用</a></li>
 </ul>
 

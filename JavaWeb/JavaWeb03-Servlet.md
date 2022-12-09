@@ -1,17 +1,23 @@
 # Servlet
 
-## 1. Servlet概述
+## 1. Servlet 概述
 
-javax.servlet.Servlet，是一个接口
-
-Servlet 是运行在 Web 服务器（如：Tomcat）上的 Java 小应用程序，由Tomcat去调用，没有main函数。
+`javax.servlet.Servlet` 是一个接口。是运行在 Web 服务器（如：Tomcat）上的 Java 小应用程序，由Tomcat去调用，没有main函数。
 
 每个 Servlet 都要在 web.xml 中进行配置。Servlet 就是一个 Java 类，运行在 Web 容器中，接收并响应用户的请求并且对用户的请求做出响应。通常通过 HTTP 协议实现。
 
-### 1.1. Servlet的生命周期方法
+### 1.1. Servlet 的生命周期方法
+
+|                          方法                           |                                       作用                                        | 运行次数 |
+| ------------------------------------------------------ | -------------------------------------------------------------------------------- | -------- |
+| 构造方法(单例模式)                                       | 实例化Servlet的时候调用  用户第一次访问Servlet的时候才会创建单例对象                   | 1次      |
+| void init(ServletConfig config)                        | 初始化的方法，Servlet 实例化的时候执行一次，只有用户第一次访问Servlet的时候才会执行      | 1次      |
+| void service(ServletRequest  req, ServletResponse res) | 用来处理用户每次发送的请求  request请求对象，  response响应对象                       | n次      |
+| void destroy()                                         | 在Servlet销毁的时候执行一次  Servlet是常驻内存的，只在服务器关闭的时候执行一次该销毁方法 | 1次      |
+| ServletConfig getServletConfig()                       | 返回ServletConfig配置对象                                                          |          |
+| String getServletInfo()                                | 返回Servlet中的一些额外信息（几乎不用），如：作者，版本，版权                          |          |
 
 ![](images/590270723243606.jpg)
-
 
 ### 1.2. Servlet 的运行过程
 
@@ -26,6 +32,12 @@ Servlet 是运行在 Web 服务器（如：Tomcat）上的 Java 小应用程序�
 1. 解析web.xml文件，使用dom4j之类工具。
 2. 得到类全名，通过反射实例化Servlet
 3. 创建request和response对象，调用service()方法，传递2个对象给方法。
+
+### 1.3. Servlet 的实现类
+
+#### 1.3.1. Servlet 接口继承结构
+
+
 
 ## 2. JavaWeb 项目开发步骤
 
@@ -136,15 +148,36 @@ Servlet 是运行在 Web 服务器（如：Tomcat）上的 Java 小应用程序�
 最后使用浏览器访问刚刚部署的项目 `http://localhost:8080/Day35_Tomcat/test`
 
 
+## 3. 常见问题
 
+### 3.1. 找不到 HttpServlet 错误
 
+如果看到 JSP 报错：`The superclass "javax.servlet.http.HttpServlet" was not found on the Java Build Path` 可以加入如下依赖解决。
 
+```xml
+<dependency>
+    <groupId>javax.servlet</groupId>
+    <artifactId>servlet-api</artifactId>
+    <version>2.5</version>
+    <scope>provided</scope>
+</dependency>
+```
 
+### 3.2. EL 表达式没有提示问题
 
+`${pageContext}` 这个 EL 表达式中通过 pageContext 对象访问 reuqest 属性时本身是应该有提示的，如果没有，则加入以下依赖即可。
 
+```xml
+<dependency>
+    <groupId>javax.servlet.jsp</groupId>
+    <artifactId>jsp-api</artifactId>
+    <version>2.1.3-b06</version>
+    <scope>provided</scope>
+</dependency>
+```
 
+同时，针对 index.jsp 文件，修改一下文件头信息为：
 
-
-
-
-
+```jsp
+<%@page language="java" pageEncoding="utf-8" contentType="text/html;UTF-8" %>
+```

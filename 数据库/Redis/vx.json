@@ -1,0 +1,51 @@
+{
+    "created_time": "2019-04-08T00:18:19Z",
+    "files": [
+        {
+            "attachment_folder": "",
+            "created_time": "2019-04-18T14:56:36Z",
+            "id": "524",
+            "modified_time": "2022-08-24T13:21:44Z",
+            "name": "Redis-基础.md",
+            "signature": "118139013209535",
+            "tags": [
+            ]
+        },
+        {
+            "attachment_folder": "",
+            "created_time": "2019-08-20T09:20:29Z",
+            "id": "482",
+            "modified_time": "2022-03-11T06:28:27Z",
+            "name": "Redis-安装.md",
+            "signature": "55965066632639",
+            "tags": [
+            ]
+        },
+        {
+            "attachment_folder": "",
+            "created_time": "2019-11-14T06:37:21Z",
+            "id": "483",
+            "modified_time": "2019-11-14T06:37:21Z",
+            "name": "Redis-场景应用设计.md",
+            "signature": "70494940995007",
+            "tags": [
+            ]
+        },
+        {
+            "attachment_folder": "",
+            "created_time": "2021-08-08T07:09:40Z",
+            "id": "484",
+            "modified_time": "2022-08-25T01:14:28Z",
+            "name": "Redis-操作命令.md",
+            "signature": "125277248855487",
+            "tags": [
+            ]
+        }
+    ],
+    "folders": [
+    ],
+    "id": "152",
+    "modified_time": "2022-01-21T11:49:19Z",
+    "signature": "107143896931775",
+    "version": 3
+}

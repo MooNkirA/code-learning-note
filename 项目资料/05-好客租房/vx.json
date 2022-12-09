@@ -1,0 +1,81 @@
+{
+    "created_time": "2020-04-10T15:10:38Z",
+    "files": [
+        {
+            "attachment_folder": "",
+            "created_time": "2020-04-10T15:12:32Z",
+            "id": "47",
+            "modified_time": "2022-09-11T23:29:15Z",
+            "name": "Day01-ES6新特性以及ReactJS入门.md",
+            "signature": "65031742594494",
+            "tags": [
+            ]
+        },
+        {
+            "attachment_folder": "",
+            "created_time": "2020-04-10T15:13:40Z",
+            "id": "48",
+            "modified_time": "2020-04-10T15:13:40Z",
+            "name": "Day02-AntDesign以及AntDesignPro入门.md",
+            "signature": "33120135585214",
+            "tags": [
+            ]
+        },
+        {
+            "attachment_folder": "",
+            "created_time": "2020-04-10T15:14:04Z",
+            "id": "49",
+            "modified_time": "2020-04-10T15:14:04Z",
+            "name": "Day03-项目介绍以及开发后台系统.md",
+            "signature": "121347353779646",
+            "tags": [
+            ]
+        },
+        {
+            "attachment_folder": "",
+            "created_time": "2020-10-02T01:54:32Z",
+            "id": "51",
+            "modified_time": "2022-09-11T14:52:39Z",
+            "name": "Day04-后台服务的搭建与实现以及MybatisPlus的入门.md",
+            "signature": "109725172276670",
+            "tags": [
+            ]
+        },
+        {
+            "attachment_folder": "",
+            "created_time": "2020-10-04T03:21:38Z",
+            "id": "52",
+            "modified_time": "2020-10-04T03:21:38Z",
+            "name": "Day05-阿里云OSS以及GraphQL入门.md",
+            "signature": "118731718696382",
+            "tags": [
+            ]
+        },
+        {
+            "attachment_folder": "",
+            "created_time": "2020-04-11T08:33:27Z",
+            "id": "50",
+            "modified_time": "2020-04-11T08:33:27Z",
+            "name": "好客租房项目-整体架构配置笔记.md",
+            "signature": "29499478154686",
+            "tags": [
+            ]
+        },
+        {
+            "attachment_folder": "",
+            "created_time": "2022-02-12T14:17:37Z",
+            "id": "325",
+            "modified_time": "2022-09-11T08:54:35Z",
+            "name": "README.md",
+            "signature": "27205967528321",
+            "tags": [
+            ]
+        }
+    ],
+    "folders": [
+    ],
+    "id": "329",
+    "modified_time": "2022-01-21T11:49:18Z",
+    "signature": "20033370234302",
+    "version": 3
+}

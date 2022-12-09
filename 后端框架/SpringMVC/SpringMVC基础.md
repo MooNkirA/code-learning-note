@@ -3204,7 +3204,7 @@ public String testRestfulDelete(@PathVariable Integer id) {
 
 ### 5.1. 正常编译反射获取方法名
 
-在 src 以外目录，准备一个类和一个接口用于测试。（_注：不在放在 src 目录是避免 idea 自动编译它下面的类_）
+在 src 以外目录，准备一个类和一个接口用于测试。（*注：不在放在 src 目录是避免 idea 自动编译它下面的类*）
 
 ```java
 public class Bean1 {

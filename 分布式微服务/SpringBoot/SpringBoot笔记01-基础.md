@@ -2492,6 +2492,20 @@ SpringBoot 项目打包都需要配置 spring-boot-maven-plugin 插件：
 
 > <font color=red>**特别注意：在打包 SpringBoot 工程前，需要先检查 pom.xml 文件是否有配置 spring-boot-maven-plugin 插件，否则打包后无法正常执行程序。**</font>
 
+#### 1.1.1. 插件的七个目标
+
+![](images/539374522227451.png)
+
+|         目标名称         |                                                                                                                               作用                                                                                                                                |
+| ----------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| spring-boot:build-image | Package an application into a OCI image using a buildpack.                                                                                                                                                                                                       |
+| spring-boot:build-info  | Generate a build-info.properties file based on the content of the current MavenProject.                                                                                                                                                                          |
+| spring-boot:help        | Display help information on spring-boot-maven-plugin. Call mvn spring-boot:help -Ddetail=true -Dgoal=<goal-name> to display parameter details.                                                                                                                   |
+| spring-boot:repackage   | Repackage existing JAR and WAR archives so that they can be executed from the command line using java -jar. With layout=NONE can also be used simply to package a JAR with nested dependencies (and no main class, so not executable).                           |
+| spring-boot:run         | Run an application in place.                                                                                                                                                                                                                                     |
+| spring-boot:start       | Start a spring application. Contrary to the run goal, this does not block and allows other goals to operate on the application. This goal is typically used in integration test scenario where the application is started before a test suite and stopped after. |
+| spring-boot:stop        | Stop an application that has been started by the 'start' goal. Typically invoked once a test suite has completed                                                                                                                                                 |
+
 ### 1.2. 打成 jar 包部署（官方推荐）
 
 #### 1.2.1. 打包步骤

@@ -1,5 +1,7 @@
 # Drools 开源规则引擎
 
+> TODO: [Drools 规则引擎应用 看这一篇就够了](https://zhuanlan.zhihu.com/p/482763434)。参考资料，阅后删除
+
 ## 1. 业务规则问题的引出
 
 现有一个在线申请信用卡的业务场景，用户需要录入个人信息，如下图所示：
@@ -135,8 +137,8 @@ public Integer determineCreditCardLimit(User user){
 
 drools 是一款由 JBoss 组织提供的基于 Java 语言开发的开源规则引擎，可以将复杂且多变的业务规则从硬编码中解放出来，以规则脚本的形式存放在文件或特定的存储介质中(例如存放在数据库中)，使得业务规则的变更不需要修改项目代码、重启服务器就可以在线上环境立即生效。
 
-- drools 官网地址：https://drools.org/
-- drools 源码仓库：https://github.com/kiegroup/drools
+- [Drools 官网地址](https://drools.org/)
+- [Drools 源码仓库](https://github.com/kiegroup/drools)
 
 ### 3.2. Drools 的使用步骤
 
@@ -766,7 +768,7 @@ session.fireAllRules();
 session.dispose();
 ```
 
-通过控制台的输出可以看到规则文件中定义的三个规则都触发了，因为update方法会再次触发规则的校验。<font color=red>**在更新数据时需要注意防止发生死循环**</font>。
+通过控制台的输出可以看到规则文件中定义的三个规则都触发了，因为 update 方法会再次触发规则的校验。<font color=red>**在更新数据时需要注意防止发生死循环**</font>。
 
 #### 5.8.2. insert 方法
 
@@ -1054,7 +1056,62 @@ rule "rule_noloop"
 end
 ```
 
-#### 5.9.5. activation-group 属性
+#### 5.9.5. lock-on-active 属性
+
+`lock-on-active` 属性用于限制当前规则只会被执行一次，包括当前规则的重复执行不是由本身触发的。取值类型为 `Boolean`，默认值为 false。测试步骤如下：
+
+- 第一步：编写规则文件 /resource/rules/attributes-lockonactive.drl
+
+```java
+// 当前规则文件用于测试 lock-on-active 属性防止规则执行时死循环问题
+package test.attributeslockonactive
+import com.moon.drools.entity.Student
+
+rule "rule_noloop"
+    no-loop true // 使用 no-loop 解决死循环问题，但不能解决其他规则引起的死循环
+    when
+        $s:Student(age == 50)
+    then
+        update($s); // 调用update方法会导致相关规则重新匹配
+        System.out.println("规则：rule_noloop 触发了...");
+end
+
+rule "lock_on_active"
+    lock-on-active true // 使用 lock-on-active 解决包含自身或者其他规则所引起的死循环问题
+    when
+        $s:Student(age == 50)
+    then
+        update($s); // 调用update方法会导致相关规则重新匹配
+        System.out.println("规则：lock_on_active 触发了...");
+end
+```
+
+- 第二步：编写单元测试
+
+```java
+KieServices kieServices = KieServices.Factory.get();
+KieContainer kieContainer = kieServices.newKieClasspathContainer();
+KieSession session = kieContainer.newKieSession();
+Student student = new Student();
+student.setAge(50);
+session.insert(student);
+
+// 激活规则，由Drools框架自动进行规则匹配，如果规则匹配成功，则执行当前规则
+session.fireAllRules();
+session.dispose();
+```
+
+- 测试结果
+
+```
+规则：rule_noloop 触发了...
+规则：lock_on_active 触发了...
+规则：rule_noloop 触发了...
+```
+
+`no-loop` 属性的作用是限制因为 modify 等更新操作导致规则重复执行，但是只限定于当前规则中进行更新而导致当前规则重复执行的情况，并不会防止其他规则更新相同的 fact 对象而导致当前规则更新。`lock-on-active` 属性可以看作是 `no-loop` 的加强版，不仅能限制自己的更新，还能限制别人的更新造成的死循环。
+
+#### 5.9.6. activation-group 属性
 
 `activation-group` 属性是指激活分组，取值为 String 类型。具有相同分组名称的规则只能有一个规则被触发。
 
@@ -1112,7 +1169,7 @@ session.dispose();
 
 通过控制台可以发现，上面设置了 `activation-group` 属性且值为相同的两个规则因为属于同一个分组，所以只有一个触发了。同一个分组中的多个规则如果都能够匹配成功，具体哪一个最终能够被触发可以通过 `salience` 属性确定。
 
-#### 5.9.6. agenda-group 属性
+#### 5.9.7. agenda-group 属性
 
 `agenda-group` 属性为议程分组，属于另一种可控的规则执行方式。用户可以通过设置 `agenda-group` 来控制规则的执行，只有获取焦点的组中的规则才会被触发。
 
@@ -1178,7 +1235,7 @@ session.dispose();
 
 通过控制台可以看到，只有获取焦点的分组中的规则才会触发。与 `activation-group` 属性不同的是，`activation-group` 属性定义的分组中只能够有一个规则可以被触发，而 `agenda-group` 分组中的多个规则都可以被触发(前提是符合条件)。
 
-#### 5.9.7. auto-focus 属性
+#### 5.9.8. auto-focus 属性
 
 `auto-focus` 属性为自动获取焦点，取值类型为 Boolean，默认值为 false。一般结合 `agenda-group` 属性使用，当一个议程分组未获取焦点时，可以设置 `auto-focus` 属性来控制。
 
@@ -1245,7 +1302,7 @@ session.dispose();
 
 通过控制台可以看到，设置 `auto-focus` 属性为 true 的规则，不需要通过代码获取焦点，都会触发了。
 
-#### 5.9.8. timer 属性
+#### 5.9.9. timer 属性
 
 `timer` 属性可以通过定时器的方式指定规则执行的时间，使用方式有两种：
 
@@ -1254,7 +1311,7 @@ session.dispose();
 
 > Tips: 以下单元测试的代码和以前的有所不同，因为规则文件中使用到了 timer 进行定时执行，需要程序能够持续一段时间才能够看到定时器触发的效果。
 
-##### 5.9.8.1. 方式1实现
+##### 5.9.9.1. 方式1实现
 
 - 第一步：创建规则文件 /resources/rules/attributes-timer.drl
 
@@ -1292,7 +1349,7 @@ session.halt();
 session.dispose();
 ```
 
-##### 5.9.8.2. 方式2实现
+##### 5.9.9.2. 方式2实现
 
 - 第一步：创建规则文件 /resources/rules/attributes-timer.drl
 
@@ -1340,7 +1397,7 @@ session.dispose();
 规则：rule_timer_2触发了...触发的时间为：2022-09-25 15:11:00
 ```
 
-#### 5.9.9. date-effective 属性
+#### 5.9.10. date-effective 属性
 
 `date-effective` 属性用于指定规则的生效时间，即只有当前系统时间大于等于设置的时间或者日期规则才有可能触发。默认日期格式为：`dd-MMM-yyyy`。用户也可以自定义日期格式，使用时需要指定自定义的格式，否则会报错。
 
@@ -1381,7 +1438,7 @@ java.lang.RuntimeException: Error while creating KieBase[Message [id=1, kieBase=
    text=Wrong date-effective value: Invalid date input format: [2022-09-25 10:00] it should follow: [dd-MMM-yyyy]]]
 ```
 
-#### 5.9.10. date-expires 属性
+#### 5.9.11. date-expires 属性
 
 date-expires 属性用于指定规则的失效时间，即只有当前系统时间小于设置的时间或者日期规则才有可能触发。默认日期格式为：`dd-MMM-yyyy`。用户也可以自定义日期格式，使用时需要指定自定义的格式，否则会报错。
 

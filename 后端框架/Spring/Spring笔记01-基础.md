@@ -2213,15 +2213,15 @@ public class MyEventPublisher implements ApplicationEventPublisherAware {
 }
 ```
 
-也可以直接使用 `@Autowired` 自动注入事件发布器对象。
+也可以直接使用 `@Autowired` 自动注入事件发布器对象 `ApplicationEventPublisher`。
 
-<font color=red>**注意：在默认情况下，事件监听器是同步接收事件的。`ApplicationEventPublisher.publishEvent()` 方法会阻塞，直到所有的监听器都完成对事件的处理**</font>。若修改为异步监听事件，详见下面的章节内容
+> Notes: <font color=red>**在默认情况下，事件监听器是同步接收事件的。`ApplicationEventPublisher.publishEvent()` 方法会阻塞，直到所有的监听器都完成对事件的处理**</font>。若修改为异步监听事件，详见下面的章节内容
 
 #### 12.3.4. 事件监听
 
 创建事件监听器，有如下两种方式：
 
-- 创建类实现 `org.springframework.context.ApplicationListener` 接口，接口的泛型
+- 创建类实现 `org.springframework.context.ApplicationListener` 接口，接口的泛型为事件的类型。
 
 ```java
 @Component
@@ -2847,4 +2847,89 @@ typeConverter.registerCustomEditor(User.class, new StringToUserPropertyEditor())
 //typeConverter.setConversionService(conversionService);
 User value = typeConverter.convertIfNecessary("1", User.class);
 System.out.println(value);
+```
+
+## 14. Resources 资源接口
+
+### 14.1. 概述
+
+> TODO: 整理中
+
+### 14.2. Resource 接口
+
+Spring 提供了 `org.springframework.core.io.Resource` 接口，是用于访问资源的抽象。
+
+```java
+public interface Resource extends InputStreamSource {
+
+    boolean exists();
+
+    boolean isReadable();
+
+    boolean isOpen();
+
+    boolean isFile();
+
+    URL getURL() throws IOException;
+
+    URI getURI() throws IOException;
+
+    File getFile() throws IOException;
+
+    ReadableByteChannel readableChannel() throws IOException;
+
+    long contentLength() throws IOException;
+
+    long lastModified() throws IOException;
+
+    Resource createRelative(String relativePath) throws IOException;
+
+    String getFilename();
+
+    String getDescription();
+}
+```
+
+`Resource` 接口继承了 `org.springframework.core.io.InputStreamSource` 接口，返回一个用于读取资源的 `InputStream`
+
+```java
+public interface InputStreamSource {
+    InputStream getInputStream() throws IOException;
+}
+```
+
+### 14.3. Resource 接口实现
+
+Spring 内置了一些 `Resource` 接口实现类，用于通过不同方式读取资源文件，常用的实现类包括：
+
+- `UrlResource`
+- `ClassPathResource`
+- `FileSystemResource`
+- `PathResource`
+- `ServletContextResource`
+- `InputStreamResource`
+- `ByteArrayResource`
+
+#### 14.3.1. UrlResource
+
+Spring 提供的 `UrlResource` 实现类用于访问 URL 类型的资源
+
+```java
+Resource resource = new UrlResource("http://www.moon.com/code/demo.txt");
+```
+
+#### 14.3.2. ClassPathResource
+
+Spring 提供的 `ClassPathResource` 实现类用于访问类路径下的资源
+
+```java
+Resource resource = new ClassPathResource("demo.txt");
+```
+
+#### 14.3.3. FileSystemResource
+
+Spring 提供的 `UrlResource` 实现类用于访问文件系统路径下的资源
+
+```java
+Resource resource = new FileSystemResource("c:/code/demo.txt");
 ```

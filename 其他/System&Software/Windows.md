@@ -208,75 +208,11 @@ pause
 
 设置环境变量：选择计算机->右键选择属性->选择系统高级设置->选择“环境变量->双击path->添加刚刚建立的文件夹D:\shortcut(如果有多个则在每个文件夹路径后面加英文状态下的分号`;`)
 
-将桌面上所有的快捷方式都剪切到shortcut文件夹即可,以后有快捷方式也直接扔进去
+将桌面上所有的快捷方式都剪切到shortcut文件夹即可，以后有快捷方式也直接扔进去
 
-> 注意事项:如果想更加简单的使用Win+R打开程序,可以将shortcut下的文件名称更改为自己熟悉的(支持中文哦)
+> 注意事项: 如果想更加简单的使用 Win+R 打开程序，可以将shortcut下的文件名称更改为自己熟悉的(支持中文哦)
 
-### 2.2. 自定义的快捷命令
-
-`moon` 查看快捷方式文件夹
-
-|   快捷键   |                   程序                   |
-| --------- | ---------------------------------------- |
-| youdao    | 网易有道词典                              |
-| ps        | Adobe Photoshop CS6 ~~或者 CS2~~         |
-| ie        | Internet Explorer                        |
-| ++        | Notepad++                                |
-| wx        | 微信                                     |
-| tim       | TIM                                      |
-| foo       | foobar2000                               |
-| ym        | 网易云音乐                                |
-| et        | Everything                               |
-| spdf      | SumatraPDF                               |
-| fd        | Free Download Manager                    |
-| by        | 百度网盘                                  |
-| jg        | 坚果云                                   |
-| wy        | 腾讯微云                                  |
-| vn        | VNote                                    |
-| id        | IntelliJ IDEA                            |
-| ec        | eclipse                                  |
-| vsc       | VS Code                                  |
-| nc        | Navicat Premium                          |
-| stree     | Sourcetree                               |
-| vm        | VMware Workstation Pro                   |
-| qt        | QTranslate                               |
-| bat       | 自己写的批处理命令，用来设置ip、开启服务     |
-| crt       | SecureCRT（远程连接工具）                 |
-| copy      | FastCopy                                 |
-| jv        | JsonView(JSON格式化小工具)                |
-| redis     | Redis Desktop Manager                    |
-| fsc       | Faststone Capture 9.2 中文版(截图工具)    |
-| draw      | draw.io（流程图工具）                     |
-| ad        | 阿里云盘                                  |
-| pic       | PicGo 图床工具                            |
-| yq        | 语雀文档                                  |
-| ~~pscc~~  | ~~Adobe Photoshop CC 2019~~              |
-| ~~lr~~    | ~~Adobe Lightroom Classic 2019~~         |
-| ~~serv~~  | ~~系统服务(自定义)~~                      |
-| ~~mi~~    | ~~小米云服务~~                            |
-| ~~qm~~    | ~~QQ音乐~~                               |
-| ~~l1~~    | ~~Listen1~~                              |
-| ~~yn~~    | ~~有道云笔记~~                            |
-| ~~ut~~    | ~~utorrent~~                             |
-| ~~idm~~   | ~~Internet Download Manager~~            |
-| ~~mo~~    | ~~Motrix~~                               |
-| ~~ty~~    | ~~天翼云盘~~                              |
-| ~~ditto~~ | ~~Ditto~~                                |
-| ~~moba~~  | ~~MobaXterm（远程连接工具）~~             |
-| ~~ol~~    | ~~欧路词典~~                              |
-| ~~ebook~~ | ~~Icecream Ebook Reader（电子书阅读器）~~ |
-
-### 2.3. 安装第三方软件内设快捷运行
-
-|  快捷键   |           程序           |
-| -------- | ------------------------ |
-| xshell   | xShell 6                 |
-| xftp     | Xftp 6                   |
-| snipaste | windows截图工具           |
-| calibre  | calibre 开源电子书管理工具 |
-| typora   | Typora                   |
-
-### 2.4. window 系统常用原生命令
+### 2.2. window 系统常用原生命令
 
 |                 快捷键                 |                   程序                   |
 | ------------------------------------- | ---------------------------------------- |
@@ -287,6 +223,7 @@ pause
 | calc                                  | 启动计算器                                |
 | mspaint                               | 画图                                     |
 | notepad                               | 打开记事本                                |
+| ncpa.cpl                              | 打开网络连接                              |
 | `Shutdown -s -t 600`                  | 表示600秒后自动关机                       |
 | `Shutdown -a`                         | 可取消定时关机                            |
 | `Shutdown -r -t 600`                  | 表示600秒后自动重启                       |

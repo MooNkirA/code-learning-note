@@ -1,0 +1,60 @@
+{
+    "created_time": "2022-01-21T11:49:18Z",
+    "files": [
+        {
+            "attachment_folder": "",
+            "created_time": "2022-01-21T11:51:22Z",
+            "id": "243",
+            "modified_time": "2022-07-22T00:32:44Z",
+            "name": "README.md",
+            "signature": "78127097880122",
+            "tags": [
+            ]
+        }
+    ],
+    "folders": [
+        {
+            "name": "项目资料"
+        },
+        {
+            "name": "Java"
+        },
+        {
+            "name": "JavaWeb"
+        },
+        {
+            "name": "后端框架"
+        },
+        {
+            "name": "前端资料"
+        },
+        {
+            "name": "数据库"
+        },
+        {
+            "name": "DevOps"
+        },
+        {
+            "name": "Linux"
+        },
+        {
+            "name": "分布式微服务"
+        },
+        {
+            "name": "并发编程"
+        },
+        {
+            "name": "性能调优"
+        },
+        {
+            "name": "面试手册"
+        },
+        {
+            "name": "其他"
+        }
+    ],
+    "id": "1",
+    "modified_time": "2022-01-21T11:49:18Z",
+    "signature": "177736424894",
+    "version": 3
+}
