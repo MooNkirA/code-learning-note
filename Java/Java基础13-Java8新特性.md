@@ -3212,7 +3212,7 @@ public class StringJoinerTest {
         /* 输出结果 */
         System.out.println(sj.toString()); // ZeroMoonkirA
 
-        StringJoiner sj1 = new StringJoiner(":", "[", "]");
+        StringJoiner sj1 = new StringJoiner(",", "[", "]");
         sj1.add("Moon").add("Zero").add("kirA");
         /* 输出结果 */
         System.out.println(sj1.toString()); // [Moon,Zero,kirA]

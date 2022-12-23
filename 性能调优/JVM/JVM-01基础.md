@@ -966,14 +966,43 @@ private native void resolveClass0(Class<?> c);
 ##### 7.4.3.1. 构造方法
 
 ```java
-
+public URLClassLoader(URL[] urls, ClassLoader parent)
 ```
+
+- 指定要加载的类所在的 URL 地址，并指定父类加载器
+
+```java
+public URLClassLoader(URL[] urls)
+```
+
+- 指定要加载的类所在的 URL 地址，父类加载器默认为系统类加载器
 
 ##### 7.4.3.2. 使用示例
 
+示例1；加载磁盘上的类
 
+```java
+File path = new File("d:/");
+URI uri = path.toURI();
+URL url = uri.toURL();
+URLClassLoader cl = new URLClassLoader(new URL[]{url});
+Class clazz = cl.loadClass("com.moon.Demo");
+clazz.newInstance();
+```
+
+示例2；加载网络上的类
+
+```java
+URL url = new URL("http://localhost:8080/examples/");
+URLClassLoader classLoader = new URLClassLoader(new URL[]{url});
+System.out.println(classLoader.getParent());
+Class aClass = classLoader.loadClass("com.moon.Demo");
+aClass.newInstance();
+```
 
 ### 7.5. 自定义类加载器
+
+自定义类加载器，需要继承 `ClassLoader` 类，并覆盖 `findClass` 方法。
 
 #### 7.5.1. OSGI（了解）
 
@@ -982,6 +1011,181 @@ OSGI（Open Service Gateway Initiative）是 Java 动态化模块化系统的一
 OSGI 提供了一种面向服务的架构，该架构为组件提供了动态发现其他组件的功能，这样无论是加入组件还是卸载组件，都能被系统的其他组件感知，以便各个组件之间能更好地协调工作。
 
 OSGI 不但定义了模块化开发的规范，还定义了实现这些规范所依赖的服务与架构，市场上也有成熟的框架对其进行实现和应用，但只有部分应用适合采用 OSGI 方式，因为它为了实现动态模块，不再遵循 JVM 类加载双亲委派机制和其他 JVM 规范，在安全性上有所牺牲。
+
+#### 7.5.2. 自定义文件类加载器  
+
+```java
+public class MyFileClassLoader extends ClassLoader {
+
+    private String directory; // 被加载的类所在的目录
+
+    // 父类加载器：AppClassLoader系统类加载器
+    public MyFileClassLoader(String directory) {
+        super();
+        this.directory = directory;
+    }
+
+    // 指定要加载的类所在的文件目录
+    public MyFileClassLoader(String directory, ClassLoader parent) {
+        super(parent);
+        this.directory = directory;
+    }
+
+    /**
+     * 覆盖 findClass 方法，并使用 defineClass 返回 Class 对象
+     *
+     * @param name
+     * @return
+     * @throws ClassNotFoundException
+     */
+    @Override
+    protected Class<?> findClass(String name) throws ClassNotFoundException {
+        try {
+            // 包名转换为目录
+            StringBuilder sb = new StringBuilder();
+            sb.append(directory).append(File.separator).append(name.replace(".", File.separator)).append(".class");
+            String file = sb.toString();
+
+            // 构建输入流
+            InputStream in = new FileInputStream(file);
+            // 构建输出流:ByteArrayOutputStream
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            // 读取文件
+            int len = -1;//读取到的数据的长度
+            byte[] buf = new byte[2048];//缓存
+            while ((len = in.read(buf)) != -1) {
+                baos.write(buf, 0, len);
+            }
+            byte[] data = baos.toByteArray();
+            in.close();
+            baos.close();
+            return defineClass(name, data, 0, data.length);
+        } catch (IOException e) {
+            System.out.println(e);
+            return null;
+        }
+    }
+
+    // 测试
+    public static void main(String[] args) throws Exception {
+        MyFileClassLoader cl = new MyFileClassLoader("d:/");
+        Class<?> aClass = cl.loadClass("com.moon.Demo");
+        aClass.newInstance();
+    }
+}
+```
+
+![](images/473441422221263.png)
+
+#### 7.5.3. 自定义网络类加载器
+
+```java
+public class MyURLClassLoader extends ClassLoader {
+
+    private String url; // 类所在的网络地址
+
+    // 默认的父类加载器：AppClassLoader
+    public MyURLClassLoader(String url) {
+        this.url = url;
+    }
+
+    public MyURLClassLoader(String url, ClassLoader parent) {
+        super(parent);
+        this.url = url;
+    }
+
+    /**
+     * 覆盖 findClass 方法，并使用 defineClass 返回 Class 对象
+     * http://localhost:8080/examples         com.moon.Demo
+     *
+     * @param name
+     * @return
+     * @throws ClassNotFoundException
+     */
+    protected Class<?> findClass(String name) throws ClassNotFoundException {
+        try {
+            // 组装URL地址
+            StringBuilder sb = new StringBuilder();
+            sb.append(url).append("/").append(name.replace(".", "/")).append(".class");
+            String path = sb.toString();
+            URL url = new URL(path);
+
+            // 构建输入流
+            InputStream in = url.openStream();
+            // 构建字节输出流
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            // 读取内容
+            int len = -1;
+            byte[] buf = new byte[2048];
+            while ((len = in.read(buf)) != -1) {
+                baos.write(buf, 0, len);
+            }
+            byte[] data = baos.toByteArray(); // class的二进制数据
+            in.close();
+            baos.close();
+            return defineClass(name, data, 0, data.length);
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    public static void main(String[] args) throws Exception {
+        MyURLClassLoader cl = new MyURLClassLoader("http://localhost:8080/examples");
+        Class<?> aClass = cl.loadClass("com.moon.Demo");
+        aClass.newInstance();
+    }
+}
+```
+
+#### 7.5.4. 热部署类加载器
+
+当调用 loadClass 方法加载类时，会采用双亲委派模式，即如果类已经被加载，就从缓存中获取，不会重新加载。如果同一个 class 被同一个类加载器多次加载，则会报错。因此，要实现热部署让同一个 class 文件被不同的类加载器重复加载即可。但是不能调用 loadClass 方法，而应该调用 findClass 方法，避开双亲委托模式，从而实现同一个类被多次加载，实现热部署。
+
+```java
+MyFileClassLoader myFileClassLoader1 = new MyFileClassLoader("d:/", null);
+MyFileClassLoader myFileClassLoader2 = new MyFileClassLoader("d:/", myFileClassLoader1);
+Class clazz1 = myFileClassLoader1.loadClass("com.moon.Demo");
+Class clazz2 = myFileClassLoader2.loadClass("com.moon.Demo");
+System.out.println("class1:" + clazz1.hashCode());
+System.out.println("class2:" + clazz2.hashCode());
+// 结果:class1和class2的hashCode一致
+
+MyFileClassLoader myFileClassLoader3 = new MyFileClassLoader("d:/", null);
+MyFileClassLoader myFileClassLoader4 = new MyFileClassLoader("d:/", myFileClassLoader3);
+Class clazz3 = myFileClassLoader3.findClass("com.moon.Demo");
+Class clazz4 = myFileClassLoader4.findClass("com.moon.Demo");
+System.out.println("class3:" + clazz3.hashCode());
+System.out.println("class4:" + clazz4.hashCode());
+// 结果：class1和class2的hashCode不一致
+```
+
+### 7.6. 类的显式与隐式加载
+
+类的加载方式是指虚拟机将 class 文件加载到内存的方式。
+
+- **显式加载**：指在 java 代码中通过调用 `ClassLoader` 加载 class 对象，比如 `Class.forName(String name)`、`this.getClass().getClassLoader().loadClass()` 等方式加载类。
+- **隐式加载**：指不需要在 java 代码中明确调用加载的代码，而是通过虚拟机自动加载到内存中。比如在加载某个 class 时，该 class 引用了另外一个类的对象，那么这个对象的字节码文件就会被虚拟机自动加载到内存中。
+
+### 7.7. 线程上下文类加载器
+
+在 Java 中存在着很多的服务提供者接口 SPI，全称 Service Provider Interface，是 Java 提供的一套用来被第三方实现或者扩展的 API，这些接口一般由第三方提供实现，常见的 SPI 有 JDBC、JNDI 等。这些 SPI 的接口（比如 JDBC 中的 java.sql.Driver）属于核心类库，一般存在 rt.jar 包中，由引导类加载器加载。而第三方实现的代码一般作为依赖 jar 包存放在 classpath 路径下，由于 SPI 接口中的代码需要加载具体的第三方实现类并调用其相关方法，SPI 的接口类是由根类加载器加载的，Bootstrap 类加载器无法直接加载位于 classpath 下的具体实现类。由于双亲委派模式的存在， Bootstrap 类加载器也无法反向委托 AppClassLoader 加载 SPI 的具体实现类。在这种情况下，java 提供了线程上下文类加载器用于解决以上问题。
+
+线程上下文类加载器可以通过 `java.lang.Thread` 的 `getContextClassLoader()` 来获取，或者通过 `setContextClassLoader(ClassLoader cl)` 来设置线程的上下文类加载器。如果没有手动设置上下文类加载器，线程将继承其父线程的上下文类加载器，初始线程的上下文类加载器是系统类加载器（AppClassLoader），在线程中运行的代码可以通过此类加载器来加载类或资源。
+
+显然这种加载类的方式破坏了双亲委托模型，但它使得java类加载器变得更加灵活。
+
+> TODO: 待补充以下源码示例
+
+以 JDBC 中的类为例说明。在 JDBC 中有一个类 java.sql.DriverManager，它是 rt.jar 中的类，用来注册实现了 java.sql.Driver 接口的驱动类，而 java.sql.Driver 的实现类一般都是位于数据库的驱动 jar 包中的。
+
+java.sql.DriverManager 的部分源码截图：
+
+> TODO: 待补充源码示例
+
+java.util.ServiceLoader 的部分源码截图：
+
+> TODO: 待补充源码示例
 
 ## 8. JVM 调优
 
@@ -1272,4 +1476,3 @@ fcmpg,dcmpl,dcmpg
 异常：athrow 
 finally关键字的实现使用：jsr,jsr_w,ret
 ```
-
