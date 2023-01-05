@@ -1,4 +1,4 @@
-# JVM 基础笔记
+# JVM - 基础笔记
 
 ## 1. JVM 概述
 
@@ -624,17 +624,17 @@ GC（Gabage Collection）垃圾收集，Java 提供的 GC 功能可以自动监�
 
 ## 6. 类的加载
 
-### 6.1. 类的生命周期
+### 6.1. 类加载的概念
+
+当第一次使用某个类时，如果该类的字节码文件(class)还没有加载到内存中，则 JVM 通过类的完全限定名（包名和类名）查找此类的字节码文件，会将该类的字节文件（`.class`）加载到内存中，并在内存中创建一个Class对象(字节码文件对象)，用来封装类在方法区内的数据结构并存放在堆区内。
+
+> Notes: **每一个类只会加载一次，每一个类的 Class 对象是都是唯一的(单例)。当类加载到内存中时会执行该类的静态代码块，而且只会加载一次**
+
+### 6.2. 类的生命周期
 
 类的生命周期是指，从被加载到虚拟机内存中开始，到从内存卸载为止。它的完整生命周期包括：加载（Loading）、验证（Verification）、准备（Preparation）、解析（Resolution）、初始化（Initialization）、使用（Using）和卸载（Unloading）等 7 个阶段。*其中验证、准备、解析 3 个部分统称为连接（Linking）*
 
 ![](images/216770908239489.png)
-
-### 6.2. 类加载的概念
-
-当第一次使用该类时，如果该类的字节码文件(class)还没有加载到内存中，则JVM会将该类的字节文件加载到内存中并在内存中创建一个Class对象(字节码文件对象)。**每一个类只会加载一次，每一个类的Class对象是都是唯一的**(单例)。
-
-> Notes: **静态代码块：当类加载到内存中时会执行该类的静态代码块，而且只会加载一次**
 
 ### 6.3. 类加载的时机
 
@@ -694,51 +694,172 @@ GC（Gabage Collection）垃圾收集，Java 提供的 GC 功能可以自动监�
 
 ## 7. 类加载器
 
-类加载器是负责加载类的对象，作用是通过类的全限定名获取该类的 class 字节码文件（二进制字节流），从硬盘加载到内存中，并且在内存中创建一个 Class 对象。
+### 7.1. 概念
 
-> Notes: 类加载器本身也是一个类
+类加载器是负责加载类的对象。对于任意一个类，都需要由加载它的类加载器和这个类本身，并确立在 JVM 中的唯一性，每一个类加载器，都有一个独立的类名称空间。类加载器通过类的全限定名获取该类的 class 字节码文件（二进制字节流），将硬盘中的 class 文件加载到 Java 内存中，并且在内存中创建一个 Class 对象。
 
-### 7.1. 类加载器的分类
+> Notes: **类加载器本身也是一个类**
 
-**主要有以下四种类加载器:**
+### 7.2. 类加载器的分类
 
-1. **引导类加载器（Bootstrap ClassLoader）**：`BootStrapClassLoader`，最底层的加载器（由 C 和 C++ 编写，不是 Java 中的类），是虚拟机自身的一部分。负责加载 Java 核心类库。如：`JAVA_HOME\lib\rt.jar`，或者被 `-Xbootclasspath` 参数所指定的路径中并且被虚拟机识别的类库。该类无法被 Java 程序直接引用。
-2. **扩展类加载器（Extensions ClassLoader）**：`ExtClassLoader`，由 Java 程序编写，是Java类中的一个内部类。负责加载 JRE 中的扩展库的类。如：`JAVA_HOME\lib\ext`或 `Java.ext.dirs` 系统变量指定的路径中的所有类库。Java 虚拟机的实现会提供一个扩展库目录。该类加载器在此目录里面查找并加载 Java 类。
+类加载器可以分为两种：
 
-> Notes: **如果要使用 lib/ext 包中的类，要在 eclipse 中要进行如下设置**：
+- 第一种是 Java 虚拟机自带的类加载器，分别为引导类加载器、扩展类加载器和应用类加载器（系统类加载器）
+- 第二种是用户自定义的类加载器，是 `java.lang.ClassLoader` 的子类实例。
+
+#### 7.2.1. Bootstrap ClassLoader（引导类加载器）
+
+**引导类加载器（Bootstrap ClassLoader）**：最底层的加载器（由 C 和 C++ 编写，不是 Java 中的类），是虚拟机自身的一部分。且没有父加载器，也没有继承 `java.lang.ClassLoader` 类。负责加载由系统属性 `sun.boot.class.path` 指定的路径下的核心 Java 类库（即：`JAVA_HOME\lib\rt.jar`），或者被 `-Xbootclasspath` 参数所指定的路径中并且被虚拟机识别的类库。该类无法被 Java 程序直接引用。
+
+> Notes: 出于安全考虑，根类加载器只加载 java、javax、sun 开头包的类。
+
+```java
+ClassLoader cl1 = Object.class.getClassLoader();
+// Object 类是由引导类加载器加载，因此输出为 null
+System.out.println("cl1:" + cl1);
+```
+
+#### 7.2.2. Extensions ClassLoader（扩展类加载器）
+
+**扩展类加载器（Extensions ClassLoader）**：由 Java 程序编写，是 Java 类中的一个内部类，`sun.misc.Launcher$ExtClassLoader`类（JDK9 是 `jdk.internal.loader.ClassLoaders$PlatformClassLoader` 类）。负责加载 JRE 中的扩展库的类。如：`JAVA_HOME\jar\lib\ext`或 `Java.ext.dirs` 系统变量指定的路径中的所有类库。Java 虚拟机的实现会提供一个扩展库目录。该类加载器在此目录里面查找并加载 Java 类。
+
+**其父加载器是引导类加载器**。
+
+> Notes: **如果在 eclipse 中要使用 lib/ext 包中的类，需要进行如下设置**：
 >
 > 在“Project Properties --> Java Build Path”中的指定 JRE 包的访问规则，Edit 规则 Accessible，指定为 `sun/**`，指定可以在 eclipse 中访问 sun 开头的包。
 >
 > ![](images/20190801110350918_7493.png)
 
-3. **应用类加载器（Application ClassLoader）**：`AppClassLoader`，由 Java 程序编写，是一个 Java 内部类。负责加载 CLASSPATH 指定的jar(包括第三方的库)和bin目录下的 Java 类。一般来说，Java 应用的类都是由它来完成加载的。可以通过 `ClassLoader.getSystemClassLoader()` 方法来获取它。一般情况，如果没有自定义类加载器，则默认使用该类加载器。
-4. **用户自定义类加载器（User ClassLoader）**：通过继承 `java.lang.ClassLoader` 类的方式实现
+`ExtClassLoader` 加载目录源码：
 
-### 7.2. 类加载器的加载机制（双亲委托机制）（理解）
+```java
+private static File[] getExtDirs() {
+    String s = System.getProperty("java.ext.dirs");
+    File[] dirs;
+    if (s != null) {
+        StringTokenizer st =
+                new StringTokenizer(s, File.pathSeparator);
+        int count = st.countTokens();
+        dirs = new File[count];
+        for (int i = 0; i < count; i++) {
+            dirs[i] = new File(st.nextToken());
+        }
+    } else {
+        dirs = new File[0];
+    }
+    return dirs;
+}
+```
 
-对于任意一个类，都需要由加载它的类加载器和这个类本身一同确立在 JVM 中的唯一性，每一个类加载器，都有一个独立的类名称空间。类加载器就是根据指定全限定名称将 class 文件加载到 JVM 内存，然后再转化为 class 对象。
+输出示例：
+
+```java
+// DNSNameService类位于 dnsns.jar 包中，它存在于 jre/lib/ext 目录下
+ClassLoader cl = DNSNameService.class.getClassLoader();
+System.out.println(cl); // 打印结果sun.misc.Launcher$ExtClassLoader
+```
+
+#### 7.2.3. Application / System ClassLoader（应用/系统类加载器）
+
+**应用类加载器（Application ClassLoader），或者称为系统类加载器（System ClassLoader）**：由 Java 程序编写，是一个 Java 内部类，`sun.misc.Launcher$AppClassLoader`类（JDK9是`jdk.internal.loader.ClassLoaders$AppClassLoader`）。负责加载 `CLASSPATH` 环境变量或者系统属性 `java.class.path` 所指定的目录中指定的jar(包括第三方的库)和bin目录下的 Java 类。一般来说，Java 应用的类都是由它来完成加载的。可以通过 `ClassLoader.getSystemClassLoader()` 方法来获取它。一般情况，如果没有自定义类加载器，则默认使用该类加载器。
+
+**其父加载器是扩展类加载器，是用户自定义类加载器的父加载器。**
+
+```java
+// 平常编写的 Java 类是使用的应用类加载器
+ClassLoader classLoader = ClassLoaderDemo.class.getClassLoader();
+System.out.println(classLoader); // sun.misc.Launcher$AppClassLoader
+```
+
+#### 7.2.4. User ClassLoader（自定义类加载器）
+
+**用户自定义类加载器（User ClassLoader）**：通过继承 `java.lang.ClassLoader` 类的方式实现
+
+### 7.3. 类加载器的加载机制（双亲委派机制）（理解）
+
+从 JDK1.2 开始，<font color=red>**类的加载过程采用双亲委派机制**</font>。这种机制能够很好的保护 java 程序的安全。
 
 双亲委派模型：如果一个类加载器收到了类加载的请求，它首先不会自己去加载这个类，而是把这个请求委派给父类加载器去完成，每一层的类加载器都是如此，这样所有的加载请求都会被传送到顶层的启动类加载器中，只有当父加载无法完成加载请求（它的搜索范围中没找到所需的类）时，才向下委派给子加载器尝试去加载类，直到该类被成功加载。若最后找不到该类，则 JVM 会抛出 `ClassNotFoud` 异常。
 
+> Tips: 
+>
+> - 除了虚拟机自带的引导类加载器之外，其余的类加载器都有唯一的父加载器。
+> - 双亲委派机制的父子关系并非面向对象程序设计中的继承关系，而是通过使用组合模式来复用父加载器代码。
+
+演示类加载器的父子关系：
+
+```java
+ClassLoader loader = ClassLoaderDemo.class.getClassLoader();
+while (loader != null) {
+    System.out.println(loader);
+    loader = loader.getParent();
+}
+```
+
+输出结果：
+
+```
+sun.misc.Launcher$AppClassLoader@18b4aac2
+sun.misc.Launcher$ExtClassLoader@677327b6
+```
+
+#### 7.3.1. 双亲委派机制的加载流程
+
 ![](images/288710510239286.jpg)
 
-双亲委派类加载机制的类加载流程如下：
+双亲委派加载机制的类加载流程如下：
 
 1. 将自定义加载器挂载到应用程序类加载器
 2. 当 AppClassLoader 加载一个 class 时，它首先不会自己去尝试加载这个类，而是把类加载请求委派给父类加载器 ExtClassLoader 去完成
 3. 当 ExtClassLoader 加载一个 class 时，它首先也不会自己去尝试加载这个类，而是把类加载请求委派给 BootStrapClassLoader 去完成
 4. 启动类加载器(BootStrapClassLoader)在加载路径下查找并加载 Class 文件，如果 BootStrapClassLoader 加载失败（例如在 `$JAVA_HOME/jre/lib` 里未查找到该class），会使用 ExtClassLoader 来尝试加载
-5. 扩展类加载器（ExtClassLoader）在加载路径下查找并加载Class文件，若 ExtClassLoader 也加载失败，则会使用 AppClassLoader 来加载
-6. AppClassLoader 在加载路径下查找并加载Class文件，如果未找到目标 Class 文件，则交由自定义加载器加载。
+5. 扩展类加载器（ExtClassLoader）在加载路径下查找并加载 Class 文件，若 ExtClassLoader 也加载失败，则会使用 AppClassLoader 来加载
+6. AppClassLoader 在加载路径下查找并加载 Class 文件，如果未找到目标 Class 文件，则交由自定义加载器加载。
 7. 在自定义加载器下查找并加载用户指定目录下的 Class 文件，如果在自定义加载路径下未找到目标 Class 文件，则会抛出 ClassNotFoundException 异常
 
 ![](images/312510508221063.png)
 
 > Notes: 双亲委派机制的核心是保障类的唯一性和安全性。如果在 JVM 中存在包名和类名相同的两个类，则该类将无法被加载，JVM 也无法完成类加载流程。
 
-### 7.3. ClassLoader 类
+#### 7.3.2. 双亲委派机制的好处
 
-#### 7.3.1. 获取类加载器对象
+使用双亲委派机制的好处：
+
+1. 可以避免类的重复加载，当父类加载器已经加载了该类时，就没有必要子 ClassLoader 再加载一次。
+2. 基于安全因素的考虑，java 核心 api 中定义类型不会被随意替换。假设通过网络传递一个名为 `java.lang.Object` 的类，通过双亲委托模式传递到启动类加载器，而启动类加载器在核心 Java API 发现该名字的类已被加载，则不会重新加载网络传递过来的 `java.lang.Object` 类，而直接返回已加载过的 `Object.class`，从而可以防止核心 API 库被随意篡改。
+
+定义一个类，注意包名与jdk原生的一样
+
+```java
+package java.lang;
+​
+public class MyObject {
+​
+}
+
+加载该类
+
+```java
+public static void main(String[] args) {
+    Class clazz = MyObject.class;
+    System.out.println(clazz.getClassLoader());
+}
+```
+
+输出结果：
+
+```
+Exception in thread "main" java.lang.SecurityException: Prohibited package name: java.lang
+```
+
+示例说明：因为 java.lang 包属于核心包，只能由引导类加载器进行加载。而根据类加载的双亲委派机制，引导类加载器是加载不到该自定义的 MyObject 类的，所以只能由 AppClassLoader 进行加载，而这又不是允许的，所以最终会报出`Prohibited package name: java.lang`（禁止的包名）错误。
+
+### 7.4. ClassLoader 抽象类
+
+所有的类加载器（除了引导类加载器）都必须继承 `java.lang.ClassLoader` 抽象类
+
+#### 7.4.1. 获取类加载器对象
 
 通过 Class 对象的 `getClassLoader` 方法可以获得当前类的类加载器对象
 
@@ -746,9 +867,9 @@ GC（Gabage Collection）垃圾收集，Java 提供的 GC 功能可以自动监�
 public ClassLoader getClassLoader()
 ```
 
-> Notes: **通过`类名.class.getClassLoader()`获得，如果获得的类加载器对象是 null，则该类是由引导类加载器加载***
+> Notes: <font color=red>**如果通过`类名.class.getClassLoader()`获得的类加载器对象是 null，则说明该类是由引导类加载器加载**</font>
 
-#### 7.3.2. ClassLoader 类常用方法
+#### 7.4.2. ClassLoader 类常用方法
 
 ```java
 public final ClassLoader getParent()
@@ -771,15 +892,300 @@ public InputStream getResourceAsStream(String name)
 
 - 如果资源文件是在src文件夹下，资源文件路径：不需要加“/”，代表从bin目录查找指定名称的资源文件。返回资源文件关联的字节输入流对象。
 
-### 7.4. 自定义类加载器
+```java
+protected Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException
+{
+    synchronized (getClassLoadingLock(name)) {
+        // First, check if the class has already been loaded
+        Class<?> c = findLoadedClass(name);
+        if (c == null) {
+            long t0 = System.nanoTime();
+            try {
+                if (parent != null) {
+                    c = parent.loadClass(name, false);
+                } else {
+                    c = findBootstrapClassOrNull(name);
+                }
+            } catch (ClassNotFoundException e) {
+                // ClassNotFoundException thrown if class not found
+                // from the non-null parent class loader
+            }
 
-#### 7.4.1. OSGI（了解）
+            if (c == null) {
+                // If still not found, then invoke findClass in order
+                // to find the class.
+                long t1 = System.nanoTime();
+                c = findClass(name);
+
+                // this is the defining class loader; record the stats
+                sun.misc.PerfCounter.getParentDelegationTime().addTime(t1 - t0);
+                sun.misc.PerfCounter.getFindClassTime().addElapsedTimeFrom(t1);
+                sun.misc.PerfCounter.getFindClasses().increment();
+            }
+        }
+        if (resolve) {
+            resolveClass(c);
+        }
+        return c;
+    }
+}
+```
+
+- loadClass 方法是双亲委托模式的实现。从源码中可以观察到各种类加载器的执行顺序。需要注意的是，只有父类加载器加载不到类时，才会调用 `findClass` 方法进行类的查找，所以，在自定义类加载器时，不要覆盖掉该方法，而应该覆盖掉 `findClass` 方法
+
+```java
+protected Class<?> findClass(String name) throws ClassNotFoundException {
+    throw new ClassNotFoundException(name);
+}
+```
+
+- `findClass` 方法在 `ClassLoader` 类中给出了一个默认的错误实现。在自定义类加载器时，一般需要覆盖此方法
+
+```java
+protected final Class<?> defineClass(String name, byte[] b, int off, int len) throws ClassFormatError {
+    return defineClass(name, b, off, len, null);
+}
+```
+
+- `defineClass` 方法是用来将 byte 字节解析成虚拟机能够识别的 Class 对象。`defineClass()`方法通常与`findClass()`方法一起使用。在自定义类加载器时，会直接覆盖 `ClassLoader` 的`findClass()` 方法获取要加载类的字节码，然后调用 `defineClass()` 方法生成 Class 对象。
+
+```java
+protected final void resolveClass(Class<?> c) {
+    resolveClass0(c);
+}
+
+private native void resolveClass0(Class<?> c);
+```
+
+- 类加载器可以使用此方法来连接指定的类。
+
+#### 7.4.3. URLClassLoader（实现类）
+
+在 java.net 包中，JDK 提供了一个更加易用的类加载器 `URLClassLoader`，继承了 `ClassLoader`，能够从本地或者网络上指定的位置加载类。*可以将其作为自定义的类加载器来使用*。
+
+##### 7.4.3.1. 构造方法
+
+```java
+public URLClassLoader(URL[] urls, ClassLoader parent)
+```
+
+- 指定要加载的类所在的 URL 地址，并指定父类加载器
+
+```java
+public URLClassLoader(URL[] urls)
+```
+
+- 指定要加载的类所在的 URL 地址，父类加载器默认为系统类加载器
+
+##### 7.4.3.2. 使用示例
+
+示例1；加载磁盘上的类
+
+```java
+File path = new File("d:/");
+URI uri = path.toURI();
+URL url = uri.toURL();
+URLClassLoader cl = new URLClassLoader(new URL[]{url});
+Class clazz = cl.loadClass("com.moon.Demo");
+clazz.newInstance();
+```
+
+示例2；加载网络上的类
+
+```java
+URL url = new URL("http://localhost:8080/examples/");
+URLClassLoader classLoader = new URLClassLoader(new URL[]{url});
+System.out.println(classLoader.getParent());
+Class aClass = classLoader.loadClass("com.moon.Demo");
+aClass.newInstance();
+```
+
+### 7.5. 自定义类加载器
+
+自定义类加载器，需要继承 `ClassLoader` 类，并覆盖 `findClass` 方法。
+
+#### 7.5.1. OSGI（了解）
 
 OSGI（Open Service Gateway Initiative）是 Java 动态化模块化系统的一系列规范，旨在为实现 Java 程序的模块化编程提供基础条件。基于 OSGI 的程序可以实现模块级的热插拔功能，在程序升级更新时，可以只针对需要更新的程序进行停用和重新安装，极大提高了系统升级的安全性和便捷性。
 
 OSGI 提供了一种面向服务的架构，该架构为组件提供了动态发现其他组件的功能，这样无论是加入组件还是卸载组件，都能被系统的其他组件感知，以便各个组件之间能更好地协调工作。
 
 OSGI 不但定义了模块化开发的规范，还定义了实现这些规范所依赖的服务与架构，市场上也有成熟的框架对其进行实现和应用，但只有部分应用适合采用 OSGI 方式，因为它为了实现动态模块，不再遵循 JVM 类加载双亲委派机制和其他 JVM 规范，在安全性上有所牺牲。
+
+#### 7.5.2. 自定义文件类加载器  
+
+```java
+public class MyFileClassLoader extends ClassLoader {
+
+    private String directory; // 被加载的类所在的目录
+
+    // 父类加载器：AppClassLoader系统类加载器
+    public MyFileClassLoader(String directory) {
+        super();
+        this.directory = directory;
+    }
+
+    // 指定要加载的类所在的文件目录
+    public MyFileClassLoader(String directory, ClassLoader parent) {
+        super(parent);
+        this.directory = directory;
+    }
+
+    /**
+     * 覆盖 findClass 方法，并使用 defineClass 返回 Class 对象
+     *
+     * @param name
+     * @return
+     * @throws ClassNotFoundException
+     */
+    @Override
+    protected Class<?> findClass(String name) throws ClassNotFoundException {
+        try {
+            // 包名转换为目录
+            StringBuilder sb = new StringBuilder();
+            sb.append(directory).append(File.separator).append(name.replace(".", File.separator)).append(".class");
+            String file = sb.toString();
+
+            // 构建输入流
+            InputStream in = new FileInputStream(file);
+            // 构建输出流:ByteArrayOutputStream
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            // 读取文件
+            int len = -1;//读取到的数据的长度
+            byte[] buf = new byte[2048];//缓存
+            while ((len = in.read(buf)) != -1) {
+                baos.write(buf, 0, len);
+            }
+            byte[] data = baos.toByteArray();
+            in.close();
+            baos.close();
+            return defineClass(name, data, 0, data.length);
+        } catch (IOException e) {
+            System.out.println(e);
+            return null;
+        }
+    }
+
+    // 测试
+    public static void main(String[] args) throws Exception {
+        MyFileClassLoader cl = new MyFileClassLoader("d:/");
+        Class<?> aClass = cl.loadClass("com.moon.Demo");
+        aClass.newInstance();
+    }
+}
+```
+
+![](images/473441422221263.png)
+
+#### 7.5.3. 自定义网络类加载器
+
+```java
+public class MyURLClassLoader extends ClassLoader {
+
+    private String url; // 类所在的网络地址
+
+    // 默认的父类加载器：AppClassLoader
+    public MyURLClassLoader(String url) {
+        this.url = url;
+    }
+
+    public MyURLClassLoader(String url, ClassLoader parent) {
+        super(parent);
+        this.url = url;
+    }
+
+    /**
+     * 覆盖 findClass 方法，并使用 defineClass 返回 Class 对象
+     * http://localhost:8080/examples         com.moon.Demo
+     *
+     * @param name
+     * @return
+     * @throws ClassNotFoundException
+     */
+    protected Class<?> findClass(String name) throws ClassNotFoundException {
+        try {
+            // 组装URL地址
+            StringBuilder sb = new StringBuilder();
+            sb.append(url).append("/").append(name.replace(".", "/")).append(".class");
+            String path = sb.toString();
+            URL url = new URL(path);
+
+            // 构建输入流
+            InputStream in = url.openStream();
+            // 构建字节输出流
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            // 读取内容
+            int len = -1;
+            byte[] buf = new byte[2048];
+            while ((len = in.read(buf)) != -1) {
+                baos.write(buf, 0, len);
+            }
+            byte[] data = baos.toByteArray(); // class的二进制数据
+            in.close();
+            baos.close();
+            return defineClass(name, data, 0, data.length);
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    public static void main(String[] args) throws Exception {
+        MyURLClassLoader cl = new MyURLClassLoader("http://localhost:8080/examples");
+        Class<?> aClass = cl.loadClass("com.moon.Demo");
+        aClass.newInstance();
+    }
+}
+```
+
+#### 7.5.4. 热部署类加载器
+
+当调用 loadClass 方法加载类时，会采用双亲委派模式，即如果类已经被加载，就从缓存中获取，不会重新加载。如果同一个 class 被同一个类加载器多次加载，则会报错。因此，要实现热部署让同一个 class 文件被不同的类加载器重复加载即可。但是不能调用 loadClass 方法，而应该调用 findClass 方法，避开双亲委托模式，从而实现同一个类被多次加载，实现热部署。
+
+```java
+MyFileClassLoader myFileClassLoader1 = new MyFileClassLoader("d:/", null);
+MyFileClassLoader myFileClassLoader2 = new MyFileClassLoader("d:/", myFileClassLoader1);
+Class clazz1 = myFileClassLoader1.loadClass("com.moon.Demo");
+Class clazz2 = myFileClassLoader2.loadClass("com.moon.Demo");
+System.out.println("class1:" + clazz1.hashCode());
+System.out.println("class2:" + clazz2.hashCode());
+// 结果:class1和class2的hashCode一致
+
+MyFileClassLoader myFileClassLoader3 = new MyFileClassLoader("d:/", null);
+MyFileClassLoader myFileClassLoader4 = new MyFileClassLoader("d:/", myFileClassLoader3);
+Class clazz3 = myFileClassLoader3.findClass("com.moon.Demo");
+Class clazz4 = myFileClassLoader4.findClass("com.moon.Demo");
+System.out.println("class3:" + clazz3.hashCode());
+System.out.println("class4:" + clazz4.hashCode());
+// 结果：class1和class2的hashCode不一致
+```
+
+### 7.6. 类的显式与隐式加载
+
+类的加载方式是指虚拟机将 class 文件加载到内存的方式。
+
+- **显式加载**：指在 java 代码中通过调用 `ClassLoader` 加载 class 对象，比如 `Class.forName(String name)`、`this.getClass().getClassLoader().loadClass()` 等方式加载类。
+- **隐式加载**：指不需要在 java 代码中明确调用加载的代码，而是通过虚拟机自动加载到内存中。比如在加载某个 class 时，该 class 引用了另外一个类的对象，那么这个对象的字节码文件就会被虚拟机自动加载到内存中。
+
+### 7.7. 线程上下文类加载器
+
+在 Java 中存在着很多的服务提供者接口 SPI，全称 Service Provider Interface，是 Java 提供的一套用来被第三方实现或者扩展的 API，这些接口一般由第三方提供实现，常见的 SPI 有 JDBC、JNDI 等。这些 SPI 的接口（比如 JDBC 中的 java.sql.Driver）属于核心类库，一般存在 rt.jar 包中，由引导类加载器加载。而第三方实现的代码一般作为依赖 jar 包存放在 classpath 路径下，由于 SPI 接口中的代码需要加载具体的第三方实现类并调用其相关方法，SPI 的接口类是由根类加载器加载的，Bootstrap 类加载器无法直接加载位于 classpath 下的具体实现类。由于双亲委派模式的存在， Bootstrap 类加载器也无法反向委托 AppClassLoader 加载 SPI 的具体实现类。在这种情况下，java 提供了线程上下文类加载器用于解决以上问题。
+
+线程上下文类加载器可以通过 `java.lang.Thread` 的 `getContextClassLoader()` 来获取，或者通过 `setContextClassLoader(ClassLoader cl)` 来设置线程的上下文类加载器。如果没有手动设置上下文类加载器，线程将继承其父线程的上下文类加载器，初始线程的上下文类加载器是系统类加载器（AppClassLoader），在线程中运行的代码可以通过此类加载器来加载类或资源。
+
+显然这种加载类的方式破坏了双亲委托模型，但它使得java类加载器变得更加灵活。
+
+> TODO: 待补充以下源码示例
+
+以 JDBC 中的类为例说明。在 JDBC 中有一个类 java.sql.DriverManager，它是 rt.jar 中的类，用来注册实现了 java.sql.Driver 接口的驱动类，而 java.sql.Driver 的实现类一般都是位于数据库的驱动 jar 包中的。
+
+java.sql.DriverManager 的部分源码截图：
+
+> TODO: 待补充源码示例
+
+java.util.ServiceLoader 的部分源码截图：
+
+> TODO: 待补充源码示例
 
 ## 8. JVM 调优
 
@@ -1070,4 +1476,3 @@ fcmpg,dcmpl,dcmpg
 异常：athrow 
 finally关键字的实现使用：jsr,jsr_w,ret
 ```
-

@@ -422,7 +422,8 @@
 ### 🖥 JVM（Java 虚拟机）
 
 <ul class="docs">
-  <li><a href="#/性能调优/JVM/JVM基础">JVM 基础笔记</a></li>
+  <li><a href="#/性能调优/JVM/JVM-01基础">JVM 基础笔记</a></li>
+  <li><a href="#/性能调优/JVM/JVM-02源码分析">JVM 源码分析</a></li>
 </ul>
 
 ## 其他
