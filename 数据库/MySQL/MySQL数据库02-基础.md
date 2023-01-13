@@ -609,7 +609,7 @@ INSERT [INTO] 表 (列名1, 列名2, 列名3..) VALUES (值1, 值2, 值3..), (�
 
 ```sql
 -- 向 student 表中插入所有列
-INSERT INTO  VALUES(1, 'NewBoy', 20, '广州人', '男');
+INSERT INTO student VALUES(1, 'NewBoy', 20, '广州人', '男');
 
 -- 向表中插入某些列，也可以一次插入多个列
 INSERT INTO student(id,NAME,age,remark) VALUES(3,'jacky',27,'佛山人');
