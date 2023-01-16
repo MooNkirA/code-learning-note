@@ -2902,23 +2902,26 @@ Spring Boot uses a very particular `PropertySource` order that is designed to al
 
 ## 5. Spring Boot 加载不同位置的配置文件的顺序
 
-### 5.1. 配置文件分类（按位置不同）
+### 5.1. 默认加载的配置文件分类（按位置不同）
 
-SpringBoot 提供的4种不同位置的配置文件。
+Spring Boot 默认加载的配置文件是 application.properties 或者 application.yaml，默认加载的位置分为 5 个：
 
-- 类路径下配置文件（一直使用的是这个，也就是resources目录中的application.yml文件）
-- 类路径下config目录下配置文件
-- 程序包所在目录中配置文件
-- 程序包所在目录中config目录下配置文件
+- 类路径下配置文件（一直使用的是这个，也就是 resources 目录中的 application.yml 文件）
+- 类路径下 config 目录下配置文件。如：`classpath:/config/application.properties`
+- 程序包所在目录中配置文件。如：`file:./application.properties`
+- 程序包所在目录中 config 目录下配置文件。如：`file:./config/application.properties`
+- 程序包所在目录中 config 目录的子文件夹的配置文件（不能加载孙子级文件夹）。如：`file:./config/a/application.properties` 可以加载，但不能加载 `file:./config/a/b/application.properties`
+
+> Tips: 以上是Spring Boot 默认加载配置文件的顺序，后面加载的配置会覆盖掉前面的。*也可以理解为后面的配置文件优先级较高*
 
 ### 5.2. 配置文件加载优先级顺序
 
-SpringBoot 程序启动时，会按以下位置的从上往下的优先级加载配置文件：
+Spring Boot 程序启动时，会按以下位置的从上往下的优先级加载配置文件：
 
-1. `file:./config/application.properties`：当前项目下的/config目录下。*【优先级最高】*
+1. `file:./config/application.properties`：当前项目下的 /config 目录下。*【优先级最高】*
 2. `file:./application.properties`：当前项目的根目录
-3. `classpath:/config/application.properties`：classpath的/config目录
-4. `classpath:/application.properties`：classpath的根目录。*【优先级最低】*
+3. `classpath:/config/application.properties`：classpath 的 /config 目录
+4. `classpath:/application.properties`：classpath 的根目录。*【优先级最低】*
 
 加载顺序为上文的排列顺序，高优先级配置的属性会生效。
 
@@ -2933,11 +2936,13 @@ SpringBoot 程序启动时，会按以下位置的从上往下的优先级加载
 
 ## 6. 自定义配置文件
 
-如果不想使用 application.properties 作为配置文件，可以通过启动程序时使用参数来指定配置文件。自定义配置文件方式有如下几种：
+如果不想使用 application.properties/application.yml 作为配置文件，可以通过启动程序时使用参数来指定配置文件。自定义配置文件方式有如下几种：
 
 > <font color=purple>温馨提示</font>：这种方式仅适用于Spring Boot单体项目，实际企业开发的项目都基于微服务，部署到多个服务器上，所有的服务器将不再各自设置自己的配置文件，而是通过配置中心获取配置，动态加载配置信息。
 
-### 6.1. 程序启动参数设置配置文件名
+### 6.1. 通过程序启动参数加载指定的配置文件
+
+#### 6.1.1. 设置配置文件名
 
 通过启动参数 `--spring.config.name` 来指定配置文件的名称。<font color=violet>**注意：仅仅是名称，不要带扩展名，多个配置文件之间使用“`,`”号分隔**</font>
 
@@ -2945,12 +2950,14 @@ SpringBoot 程序启动时，会按以下位置的从上往下的优先级加载
 java -jar springboot-demo.jar --spring.config.name=default,override
 ```
 
-### 6.2. 程序启动参数设置配置文件路径
+以上示例设置加载默认位置上名称为 default.yaml / override.yaml 的配置文件。（*默认位置详见前面章节*）
 
-通过启动参数 `--spring.config.location` 来指定配置文件的所在路径。<font color=violet>**注意：相对路径名、全路径名均可**</font>
+#### 6.1.2. 设置配置文件路径
+
+通过启动参数 `--spring.config.location` 来指定配置文件的所在路径。<font color=violet>**注意：相对路径名、全路径名均可**</font>。
 
 ```bash
-java -jar springboot-demo.jar --spring.config.location=classpath:/default.properties,classpath:/override.properties
+java -jar springboot-demo.jar --spring.config.location=classpath:/default.properties
 # 或者
 java -jar springboot-demo.jar --spring.config.location=D:\config\config.properties
 ```
@@ -2961,8 +2968,53 @@ java -jar springboot-demo.jar --spring.config.location=D:\config\config.properti
 java -jar springboot-demo.jar --spring.config.location=D:\config\config.properties,D:\config\confg-dev.properties
 ```
 
+注意：若在 classpath 前面加上了 `optional:` 表示如果这个配置文件不存在，则按照默认的方式启动，不会因找不到指定配置文件而报错。如果不加这个前缀，则当系统找不到指定的配置文件时，就会抛出 `ConfigDataLocationNotFoundException` 异常，进而导致应用启动失败。
 
-### 6.3. 在代码中指定自定义配置文件
+```bash
+java -jar springboot-demo.jar --spring.config.location=optional:config/config.properties
+```
+
+如果 `spring.config.location` 的配置只是指定了目录，则必须以 `/` 结尾，并且通过 `spring.config.name` 属性指定配置文件的文件名。
+
+```bash
+java -jar springboot-demo.jar --spring.config.location=optional:config/ --spring.config.name=config
+```
+
+#### 6.1.3. 覆盖默认配置位置
+
+如果不想覆盖掉 Spring Boot 默认的配置文件查找策略，又想自定义加载配置文件，那么可以通过 `spring.config.additional-location ` 配置项方式指定配置文件位置：
+
+```bash
+java -jar springboot-demo.jar --spring.config.additional-location=optional:abc/app.yaml
+```
+
+#### 6.1.4. 位置通配符
+
+假设有 redis 和 mysql 的配置，并放在两个不同的文件夹中以便于管理，可以通过通配符 `*` 批量扫描相应的文件夹：
+
+![](images/410804812230157.png)
+
+```bash
+java -jar boot_config_file-0.0.1-SNAPSHOT.jar --spring.config.additional-location=optional:config/*/
+```
+
+> Notes: 使用通配符批量扫描 mysql 和 redis 目录时，默认的加载顺序是按照文件夹的字母排序，即先加载 mysql 目录后加载 redis 目录。<font color=red>**需要注意的是，通配符只能用在外部目录中，不可以用在 classpath 中的目录上。另外，包含了通配符的目录，只能有一个通配符 `*`，不可以有多个，并且还必须是以 `*/` 结尾，即一个目录的最后部分可以不确定。**</font>
+
+#### 6.1.5. 导入外部文件
+
+从 Spring Boot 2.4 开始，可以使用 `spring.config.import` 参数来导入配置文件，相比于 `spring.config.additional-location` 参数配置，此导入方式更加灵活，可以导入任意名称的配置文件。
+
+```bash
+spring.config.import=optional:file:./dev.properties
+```
+
+`spring.config.import` 还可以导入无扩展名的配置文件。例如有一个 properties 格式的配置文件，但是此配置文件没有扩展名，如果想导入将该配置文件，可以进行以下的配置：
+
+```bash
+spring.config.import=optional:file:/Users/moon/dev[.properties]
+```
+
+### 6.2. 在代码中指定自定义配置文件
 
 ```java
 @SpringBootApplication
