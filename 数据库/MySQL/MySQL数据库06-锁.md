@@ -133,7 +133,7 @@ mysqldump --single-transaction -uroot –p123456 temp_db > temp_db.sql
 | SELECT ... FOR UPDATE         | 排他锁     | 需要手动在SELECT之后加FOR UPDATE         |
 | INSERT ...                    | 排他锁     | 自动加锁                                 |
 | UPDATE ...                    | 排他锁     | 自动加锁                                 |
-| INSERT ...                    | 排他锁     | 自动加锁                                 |
+| DELETE ...               | 排他锁     | 自动加锁                                 |
 | 串行化事务隔离级别              |           | 串行                                    |
 
 当前读这种实现方式，也可以称之为 LBCC（基于锁的并发控制，Lock-Based Concurrency Control）
