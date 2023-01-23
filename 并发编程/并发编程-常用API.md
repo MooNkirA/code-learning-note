@@ -2,8 +2,6 @@
 
 ## 1. Thread 类
 
-### 1.1. 简介
-
 ```java
 public class Thread implements Runnable
 ```
@@ -12,7 +10,7 @@ public class Thread implements Runnable
 
 创建新执行线程有两种方法。一种方法是将类声明为 `Thread` 的子类。该子类应重写 `Thread` 类的 `run` 方法。
 
-### 1.2. 构造方法
+### 1.1. 构造方法
 
 ```java
 public Thread()
@@ -46,7 +44,7 @@ public Thread(ThreadGroup group, Runnable target, String name)
 
 > 建议创建线程时，都给线程设置名称，方便日志的追踪
 
-### 1.3. 常用方法
+### 1.2. 常用方法
 
 ```java
 public void run()
@@ -181,8 +179,6 @@ public static void dumpStack()
 
 ## 2. FutureTask 类
 
-### 2.1. 简介
-
 ```java
 public class FutureTask<V> implements RunnableFuture<V>
 ```
@@ -191,7 +187,7 @@ public class FutureTask<V> implements RunnableFuture<V>
 
 其中泛型是 `V` 是此 `FutureTask` 的 `get` 方法所返回的结果类型。
 
-### 2.2. 构造方法
+### 2.1. 构造方法
 
 ```java
 public FutureTask(Callable<V> callable)
@@ -214,17 +210,10 @@ public FutureTask(Runnable runnable, V result)
 - `runnable`：待执行的线务任务
 - `result`：成功完成时要返回的结果。如果不需要特定的结果可以`new FutureTask(runnable, null)`
 
-### 2.3. 常用方法
+### 2.2. 常用方法
 
 ```java
 public V get() throws InterruptedException, ExecutionException
 ```
 
 调用此方法，`FutureTask`对象将当前线程阻塞，并等待执行完成后，返回结果。
-
-
-
-
-
-
-
