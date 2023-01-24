@@ -1,6 +1,7 @@
 # Day09 广告管理&Spring Data Redis缓存方案
 
 ## 1. 网站前台分析
+
 ### 1.1. 网站前台有哪些页面
 
 - 网站首页
@@ -25,8 +26,8 @@
 
 - tb_content_category 广告分类表
 
-| 字段 |  类型   | 长度 |     含义     |
-| :--: | :-----: | :--: | :----------: |
+| 字段 |  类型   | 长度 |   含义       |
+| :--: | :-----: | :--: | :---------: |
 |  id  | bigint  |      |     主键     |
 | name | varchar |  25  | 广告分类名称 |
 
@@ -43,11 +44,13 @@
 | sort_order  |   int   |      |    排序    |
 
 ## 2. 运营商后台【广告类型及广告管理】
+
 ### 2.1. 需求分析
 
 实现广告类型表与广告表的增删改查
 
 ### 2.2. 搭建广告服务工程
+
 #### 2.2.1. pinyougou-content聚合项目
 
 参考之前模块与讲义，pinyougou-content的web端口9002
@@ -291,6 +294,7 @@ log4j.appender.stdout.layout.ConversionPattern=%-d{yyyy-MM-dd HH:mm:ss,SSS} [%t]
 - 保存，启动
 
 ### 2.3. 创建广告服务(content)-服务层（准备工作）
+
 #### 2.3.1. 创建内容接口
 
 - pinyougou-content-interface创建ContentCategoryService接口
@@ -394,6 +398,7 @@ public class ContentController {
 *说明：测试运行广告分类管理和广告管理页面*
 
 ### 2.4. 广告分类管理
+
 #### 2.4.1. content_category.html页面
 
 content_category.html页面，引入相关js，引入控制器(之前提供的资料里，已经完成此部分代码，但需要修改部分地方，与控制器的参数一致)
@@ -650,6 +655,7 @@ public interface ContentCategoryMapper extends Mapper<ContentCategory> {
 ```
 
 ### 2.5. 广告管理
+
 #### 2.5.1. 广告图片上传
 
 - 第一步：将pinyougou-shop-web的以下资源拷贝到pinyougou-manager-web：
@@ -1193,11 +1199,13 @@ $scope.status = ['无效', '有效'];
 *注：在广告内容修改时有一个bug，不勾选“是否有效”时，还是绑定到对象是勾选的值。后端接收到的数据永远都是1*
 
 ## 3. 网站首页【广告展示】
+
 ### 3.1. 需求分析
 
 修改门户网站的首页，当其轮播广告图根据后台设置的广告列表动态产生
 
 ### 3.2. 搭建工程
+
 #### 3.2.1. 配置文件
 
 创建war模块pinyougou-portal-web，此工程为网站前台的入口，参照其它war模块编写配置文件，不需要添加SpringSecurity框架
@@ -1507,6 +1515,7 @@ public List<Content> findContentByCategoryId(Long categoryId) {
 ```
 
 ### 3.4. 门户网站广告查询-前端部分
+
 #### 3.4.1. 控制层（contentController.js）
 
 pinyougou-portal-web创建contentController.js，从其他工程拷贝baseService.js到本工程中
@@ -1566,6 +1575,7 @@ app.controller('contentController', function ($scope, baseService) {
 ```
 
 ## 4. SpringDataRedis 简介
+
 ### 4.1. 项目常见问题思考
 
 目前的系统已经实现了广告后台管理和广告前台展示，但是对于首页每天有大量的人访问，对数据库造成很大的访问压力，甚至是瘫痪。那如何解决呢？通常的做法有两种：**一种是数据缓存、一种是网页静态化**
@@ -1575,6 +1585,7 @@ app.controller('contentController', function ($scope, baseService) {
 redis是一款开源的高性能的Key-Value数据库，运行在内存中，由ANSI C编写。企业开发通常采用Redis来实现缓存。同类的产品还有memcached、MongoDB等。
 
 #### 4.2.1. Redis集群原理
+
 ##### 4.2.1.1. Redis-cluster架构图
 
 ![Redis-cluster架构图1](images/20190202075859293_15741.jpg)
@@ -1613,6 +1624,7 @@ B：如果集群**超过半数以上master挂掉**，无论是否有slave，集�
 **一共需要6台redis服务器；可以使用6个redis实例。6个redis实例的端口号：7001~7006**
 
 #### 4.2.4. Redis集群连接
+
 ##### 4.2.4.1. 工具连接
 
 redis的单机版，默认是16个数据库，但是redis-Cluster集群版，有n个数据库(多个主数据库则多少个，整个集群算是一个数据库)。
@@ -1675,6 +1687,7 @@ Spring-Data-Redis针对jedis提供了如下功能：
     - `ListOperations`：list类型的数据操作
 
 ### 4.5. Spring Data Redis入门Demo
+
 #### 4.5.1. 搭建项目
 
 - 构建Maven模块spring-data-redis-test（jar）类型
@@ -1914,11 +1927,13 @@ public class RedisClusterTest {
 ```
 
 ## 5. 网站首页【缓存广告数据】
+
 ### 5.1. 需求分析
 
 现在首页的广告每次都是从数据库读取，这样当网站访问量达到高峰时段，对数据库压力很大，并且影响执行效率。所以需要将这部分广告数据缓存起来
 
 ### 5.2. 读取缓存
+
 #### 5.2.1. 公共组件层
 
 因为缓存对于整个的系统来说是通用功能。广告需要用，其它数据可能也会用到，所以我们将配置放在公共组件层（pinyougou-common）中较为合理

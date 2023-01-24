@@ -1,8 +1,7 @@
 # Day05 Spring Security安全框架与商家入驻审核功能
 
----
-
 ## 1. Spring Security 安全框架入门
+
 ### 1.1. Spring Security 简介
 
 Spring Security是一个能够为基于Spring的企业应用系统提供声明式的安全访问控制解决方案的安全框架。它提供了一组可以在Spring应用上下文中配置的Bean，充分利用了Spring IoC，DI（控制反转Inversion of Control ,DI:Dependency Injection 依赖注入）和AOP（面向切面编程）功能，为应用系统提供声明式的安全访问控制功能，减少了为企业系统安全控制编写大量重复代码的工作
@@ -279,6 +278,7 @@ Spring Security是一个能够为基于Spring的企业应用系统提供声明�
 ---
 
 ## 2. 运营商系统登录与安全控制
+
 ### 2.1. 需求分析
 
 完成运营商登录功能：http://manager.moon.com/login.html
@@ -433,6 +433,7 @@ Spring Security是一个能够为基于Spring的企业应用系统提供声明�
 ```
 
 ### 2.3. 主界面显示登录用户名
+
 #### 2.3.1. 后端代码
 
 在pinyougou-manager-web新建LoginController，返回用户数据
@@ -522,6 +523,7 @@ app.controller('indexController', ($scope, baseService) => {
 ---
 
 ## 3. 商家申请入驻功能模块
+
 ### 3.1. 需求分析
 
 商家申请入驻，需要填写商家相关的信息。待运营商平台审核通过后即可使用。
@@ -701,12 +703,14 @@ public void saveSeller(Seller seller) {
 ---
 
 ## 4. 商家审核功能模块
+
 ### 4.1. 需求分析
 
 - 商家申请入驻后，需要网站运营人员在运营商后台pinyougou-manager-web中进行审核，审核后商家才可以登录系统。
 - 状态值：`0：未审核  1：已审核  2：审核未通过  3：关闭`
 
 ### 4.2. 审核功能-商家待审核列表
+
 #### 4.2.1. 商家待审核列表-前端部分
 
 - 修改pinyougou-manager-web 模块中的 seller_check.html
@@ -1002,6 +1006,7 @@ List<Seller> findAll(@Param("seller") Seller seller);
 ```
 
 ### 4.3. 商家审核功能（与教材不一样，个人实践使用post请求实现）
+
 #### 4.3.1. 商家审核-前端部分
 
 - 修改seller_check.html的审核按钮，调用更新方法
@@ -1116,6 +1121,7 @@ public void updateStatus(Seller seller) {
 ---
 
 ## 5. 商家系统登录与安全控制
+
 ### 5.1. 需求分析
 
 完成商家系统登录与安全控制，商家账号来自数据库，并实现密码加密
@@ -1377,6 +1383,7 @@ public boolean save(@RequestBody Seller seller) {
 ```
 
 ### 5.5. 显示登录名与退出登录
+
 #### 5.5.1. 显示登录名
 
 - 参照运营商后台
@@ -1397,9 +1404,3 @@ applicationContext-security.xml：
 <!-- 配置退出登录 -->
 <security:logout logout-url="/logout"/>
 ```
-
-
-
-
-
-

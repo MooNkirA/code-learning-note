@@ -495,7 +495,7 @@ mysql> EXPLAIN SELECT * FROM order_exp;
 
 #### 3.3.4. id 列
 
-选定的执行计划中查询的序列号。**表示查询中执行select子句或操作表的顺序，id值越大优先级越高，越先被执行。id相同，执行顺序由上至下**。
+选定的执行计划中查询的序列号。**表示查询中执行select子句或操作表的顺序，<font color=red>id值越大优先级越高</font>，越先被执行。id相同，执行顺序由上至下**。
 
 ##### 3.3.4.1. 单 SELECT 关键字
 
@@ -581,21 +581,21 @@ mysql> EXPLAIN SELECT * FROM s1 UNION ALL SELECT * FROM s2;
 
 表示所使用select查询类型，MySQL 为每一个`SELECT`关键字代表的小查询都定义了一个称之为`select_type`的属性，意思是我们只要知道了某个小查询的`select_type`属性，就知道了这个小查询在整个大查询中扮演了一个什么角色。常见类型汇总表如下：
 
-|         类型         |                                                                                                       说明                                                                                                       |
-| :------------------: | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-|        SIMPLE        | 简单的select查询，SQL中不包含子查询或者UNION。                                                                                                                                                                      |
-|       PRIMARY        | 最外层的select查询，查询中包含复杂的子查询部分，最外层查询被标记为PRIMARY                                                                                                                                              |
-|        UNION         | UNION 中的第二个或随后的select查询，不依赖于外部查询的结果集                                                                                                                                                         |
-|     UNION RESULT     | 从 UNION 表获取结果集的SELECT查询被标记为 UNION RESULT                                                                                                                                                             |
-|       SUBQUERY       | 子查询中的第一个 select 查询，不依赖于外部查询的结果集                                                                                                                                                               |
-|   DEPENDENT UNION    | UNION 中的第二个或随后的select查询，依赖于外部查询的结果集                                                                                                                                                           |
-|  DEPENDENT SUBQUERY  | 子查询中的第一个 select 查询，依赖于外部查询的结果集                                                                                                                                                                 |
-|       DERIVED        | DERIVED（衍生）用来表示包含在 from 子句中的子查询的 select。若UNION 包含在 FROM 子句的子查询中，外层 SELECT 将被标记为 DERIVED。mysql 会递归执行并将结果放到一个临时表中。服务器内部称为"派生表"，因为该临时表是从子查询中派生出来 |
-|     MATERIALIZED     | 物化子查询                                                                                                                                                                                                       |
-| UNCACHEABLE SUBQUERY | 结果集不能被缓存的子查询，必须重新为外层查询的每一行进行评估，极少出现                                                                                                                                                  |
-|  UNCACHEABLE UNION   | UNION 中的第二个或随后的select查询，属于不可缓存的子查询，极少出现                                                                                                                                                    |
-|      DEPENDENT       | 意味着 select 依赖于外层查询中发现的数据                                                                                                                                                                            |
-|     UNCACHEABLE      | 意味着 select 中的某些特性阻止结果被缓存于一个 item_cache中                                                                                                                                                          |
+|         类型         |                                                                                                         说明                                                                                                          |
+| :------------------: | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+|        SIMPLE        | 简单的select查询，SQL中不包含子查询或者UNION。                                                                                                                                                                           |
+|       PRIMARY        | 最外层的select查询，查询中包含复杂的子查询部分，最外层查询被标记为PRIMARY                                                                                                                                                   |
+|        UNION         | UNION 中的第二个或随后的select查询，不依赖于外部查询的结果集                                                                                                                                                               |
+|     UNION RESULT     | 从 UNION 表获取结果集的SELECT查询被标记为 UNION RESULT                                                                                                                                                                   |
+|       SUBQUERY       | 子查询中的第一个 select 查询，不依赖于外部查询的结果集                                                                                                                                                                     |
+|   DEPENDENT UNION    | UNION 中的第二个或随后的select查询，依赖于外部查询的结果集                                                                                                                                                                 |
+|  DEPENDENT SUBQUERY  | 子查询中的第一个 select 查询，依赖于外部查询的结果集                                                                                                                                                                       |
+|       DERIVED        | DERIVED（衍生）用来表示包含在 from 子句中的子查询的 select 语句。若 UNION 包含在 FROM 子句的子查询中，外层 SELECT 将被标记为 DERIVED。mysql 会递归执行并将结果放到一个临时表中。服务器内部称为"派生表"，因为该临时表是从子查询中派生出来 |
+|     MATERIALIZED     | 物化子查询                                                                                                                                                                                                             |
+| UNCACHEABLE SUBQUERY | 结果集不能被缓存的子查询，必须重新为外层查询的每一行进行评估，极少出现                                                                                                                                                       |
+|  UNCACHEABLE UNION   | UNION 中的第二个或随后的select查询，属于不可缓存的子查询，极少出现                                                                                                                                                          |
+|      DEPENDENT       | 意味着 select 依赖于外层查询中发现的数据                                                                                                                                                                                 |
+|     UNCACHEABLE      | 意味着 select 中的某些特性阻止结果被缓存于一个 item_cache中                                                                                                                                                               |
 
 ##### 3.3.5.1. SIMPLE 类型
 
@@ -923,11 +923,10 @@ EXPLAIN SELECT * FROM s1 WHERE order_no > 'a' AND order_no < 'b';
 
 表示索引中使用的字节数，可通过该列计算查询中使用的索引长度。在不损失精确性的情况下，长度越短越好。
 
-key_len显示的值为索引字段的最大可能长度，并非实际使用长度，即key_len是根据表定义计算而得，不是通过表内检索出来的。计算方式是如下：
+key_len 显示的值为索引字段的最大可能长度，并非实际使用长度，即 key_len 是根据表定义计算而得，不是通过表内检索出来的。计算方式是如下：
 
-对于使用固定长度类型的索引列来说，它实际占用的存储空间的最大长度就是该固定值，对于指定字符集的变长类型的索引列来说，比如某个索引列的类型是 VARCHAR(100)，使用的字符集是 utf8，那么该列实际占用的最大存储空间就是 100 x 3 = 300 个字节。
-
-如果该索引列可以存储 NULL 值，则 key_len 比不可以存储 NULL 值时多 1 个字节；对于变长字段来说，都会有 2 个字节的空间来存储该变长列的实际长度。
+- 对于使用固定长度类型的索引列来说，它实际占用的存储空间的最大长度就是该固定值，对于指定字符集的变长类型的索引列来说，比如某个索引列的类型是 VARCHAR(100)，使用的字符集是 utf8，那么该列实际占用的最大存储空间就是 100 x 3 = 300 个字节。
+- 如果该索引列可以存储 NULL 值，则 key_len 比不可以存储 NULL 值时多 1 个字节；对于变长字段来说，都会有 2 个字节的空间来存储该变长列的实际长度。
 
 ![](images/20210502183425728_4371.png)
 
@@ -938,6 +937,30 @@ key_len显示的值为索引字段的最大可能长度，并非实际使用长�
 > 由于 order_no 列的类型是`VARCHAR(50)`，所以该列实际最多占用的存储空间就是 50*3 字节，又因为该列是可变长度列，所以 key_len 需要加 2，所以最后 ken_len 的值就是 152。
 
 *注意：`char`和`varchar`跟字符编码也有密切的联系，比如latin1占用1个字节，gbk占用2个字节，utf8占用3个字节*
+
+索引最大长度是 768 字节，当字符串过长时，mysql 会做一个类似左前缀索引的处理，将前半部分的字符提取出来做索引。
+
+##### 3.3.11.1. key_len 计算规则
+
+**字符串类型**：5.0.3 以后版本中，定义时的 n 均代表字符数，而不是字节数，如果是 utf-8，一个数字或字母占1个字节，一个汉字占3个字节
+
+- `char(n)`：如果存汉字长度就是 3n 字节
+- `varchar(n)`：如果存汉字则长度是 3n + 2 字节，加的 2 字节用来存储字符串长度，因为 varchar 是变长字符串
+
+**数值类型**：
+
+- tinyint：1 字节
+- smallint：2 字节
+- int：4 字节
+- bigint：8字节
+
+**时间类型**：
+
+- date：3 字节
+- timestamp：4 字节
+- datetime：8 字节
+
+如果字段允许为 NULL，需要 1 字节记录是否为 NULL
 
 #### 3.3.12. ref 列
 
@@ -1138,14 +1161,36 @@ EXPLAIN SELECT order_note, COUNT(*) AS amount FROM s1 GROUP BY order_note order 
 
 在将 In 子查询转为 semi-join 时，如果采用的是 FirstMatch 执行策略，则在被驱动表执行计划的 Extra 列就是显示 FirstMatch(tbl_name)提示。
 
-### 3.4. 分析慢 sql 的其他方法
+### 3.4. explain 两个变种
+
+#### 3.4.1. explain extended
+
+> Notes: 在 5.7 版本以前可以使用，后续的版本已取消此关键字。
+
+`explain extended` 会在 `explain` 的基础上额外提供一些查询优化的信息。
+
+```sql
+mysql> explain extended select * from film where id = 1;
+```
+
+紧随其后通过 `show warnings` 命令可以得到优化后的查询语句，从而看出优化器做了什么优化。额外还有 filtered 列，是一个百分比的值，`rows * filtered/100` 可以估算出将要和 explain 中前一个表进行连接的行数（前一个表指 explain 中的id值比当前表id值小的表）。
+
+```sql
+mysql> show warnings;
+```
+
+#### 3.4.2. explain partitions
+
+相比 `explain` 多了个 `partitions` 字段，如果查询是基于分区表的话，会显示查询将访问的分区。
+
+### 3.5. 分析慢 sql 的其他方法
 
 通过应用程序访问 MySQL 服务时，有时候性能不一定全部卡在语句的执行上。常用的手段是通过慢查询日志定位那些执行效率较低的SQL语句。
 
 1. 慢查询日志在查询结束以后才记录，在应用反映执行效率出现问题的时候查询未必执行完成
 2. 有时候问题的产生不一定是语句的执行，有可能是其他原因导致的。慢查询日志并不能定位问题。
 
-#### 3.4.1. 通过 show processlist 分析 SQL
+#### 3.5.1. 通过 show processlist 分析 SQL
 
 ```sql
 show processlist;
@@ -1182,7 +1227,7 @@ The thread is reading and processing rows for a SELECT statement, and sending da
 
 > 具体状态参数解释参考官网：https://dev.mysql.com/doc/refman/5.7/en/general-thread-states.html
 
-#### 3.4.2. 通过 show profile 分析 SQL
+#### 3.5.2. 通过 show profile 分析 SQL
 
 对于每个线程到底时间耗费在哪里，可以通过 `show profile` 来分析。
 
@@ -2277,6 +2322,12 @@ explain select * from tb_user force index(idx_user_pro) where profession = '软�
 6. 要控制索引的数量，索引并不是多多益善，索引越多，维护索引结构的代价也就越大，会影响增删改的效率。
 7. 如果索引列不能存储 NULL 值，请在创建表时使用 NOT NULL 约束它。当优化器知道每列是否包含 NULL 值时，它可以更好地确定哪个索引最有效地用于查询。
 8. **多表join的关联列**
+
+下图是引用网络的资料：
+
+![](images/325342518230164.png)
+
+> Tips: `like KK%` 相当于`=常量`，`%KK`和`%KK%`相当于范围查询
 
 ## 6. MySQL 的查询成本
 

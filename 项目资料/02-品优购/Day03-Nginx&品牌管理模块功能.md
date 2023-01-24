@@ -1,11 +1,10 @@
 # Day03 Nginx & 品牌管理模块功能
 
----
-
 - 将“资料\运营商管理后台静态资源”下的静态资源全部拷贝到pinyougou-manager-web的src/main/webapp/目录下。
 - 其中plugins文件夹中包括了angularJS 、bootstrap、JQuery等常用前端库，我们将在项目中用到。
 
 ## 1. 使用域名访问后台系统
+
 ### 1.1. 不使用域名存在的问题
 
 1. 开发环境和测试环境的ip不一样，每次环境变化时，都需要修改访问地址；
@@ -29,6 +28,7 @@
 - 问题：ip不用输入了，但是端口还在。可使用nginx解决。
 
 ## 2. Nginx 反向代理服务器
+
 ### 2.1. Nginx 简介
 
 1. Nginx ("engine x") 是一个高性能的HTTP和反向代理服务器；
@@ -46,6 +46,7 @@
 - 本次项目使用版本：nginx-1.13.12.zip
 
 ### 2.3. Nginx 相关命令
+
 - 用cmd进入nginx所在的根目录：
     - 启动： `start nginx`
     - 停止： `nginx -s stop`
@@ -92,8 +93,11 @@ server {
 - 请求地址：http://manager.moon.com/admin/index.html
 
 ## 3. 运营商后台品牌列表模块功能
+
 ### 3.1. 品牌列表查询（不分页）
+
 #### 3.1.1. 前端 - 品牌查询（brand.html）
+
 ##### 3.1.1.1. 引入js
 
 修改admin/brand.html，引入js：
@@ -388,6 +392,7 @@ $scope.search = function (page, rows) {
 ```
 
 ### 3.3. 新增品牌
+
 #### 3.3.1. 后端-服务接口与实现层
 
 - 在pinyougou-sellergoods-interface服务接口层的BrandService.java添加新增方法
@@ -490,6 +495,7 @@ $scope.saveOrUpdate = function () {
 ```
 
 ### 3.4. 修改品牌
+
 点击列表的修改按钮，弹出窗口，修改数据后点“保存”执行保存操
 
 #### 3.4.1. 后端-服务接口与实现层
@@ -849,10 +855,12 @@ $scope.ck_all = $scope.ids.length == $scope.dataList.length;
 ```
 
 ### 3.6. 多条件分页查询品牌
+
 - 实现品牌条件查询功能，输入品牌名称、首字母后查询，并分页
 - <font color="red">需要注意使用get方法传递中文查询条件时乱码的问题</font>
 
 #### 3.6.1. 后端-服务接口与实现层（修改原来分页查询方法）
+
 - 根据前端查询条件分析，可以直接使用品牌的实体类来封装查询条件即可
 - 在pinyougou-sellergoods-interface工程的BrandService.java修改findByPage分页方法，增加Brand对象，用来封装查询条件
 
@@ -934,6 +942,7 @@ List<Brand> findByWhere(@Param("brand") Brand brand);
 - 例：`select * from tb_brand where name like CONCAT('%', '米' ,'%');`
 
 #### 3.6.3. 后端-控制层
+
 ##### 3.6.3.1. 增加查询条件封装的Brand对象
 
 - 修改之前的分页查询方法，增加封装查询条件

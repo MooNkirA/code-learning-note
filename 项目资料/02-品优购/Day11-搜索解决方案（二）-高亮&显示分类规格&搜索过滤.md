@@ -1,10 +1,9 @@
 # Day11 搜索解决方案（二）-高亮&显示分类规格&搜索过滤
 
----
-
 主要运行pinyougou-search服务与pinyougou-search-web搜索系统
 
 ## 1. 搜索结果-高亮显示
+
 ### 1.1. 需求分析
 
 将用户输入的关键字在标题中以红色的字体显示出来，就是搜索中常用的高亮显示
@@ -129,9 +128,8 @@ app.filter('trustHtml', function ($sce) {
 > 注意：商品标题文本太长，可使用用样式控制用省略号显示。在style样式中增加下面的属性：  
 > `style="line-height: 20px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"`
 
----
-
 ## 2. 搜索业务规则分析
+
 ### 2.1. 需求分析
 
 在关键字搜索的基础上添加面板搜索功能。面板上有商品分类、品牌、各种规格和价格区间等条件
@@ -156,9 +154,8 @@ app.filter('trustHtml', function ($sce) {
 3. 查询条件的构建、面板的隐藏需要使用angularJS来实现
 4. 后端的分类、品牌、规格、价格区间查询需要使用过滤查询来实现
 
----
-
 ## 3. 查询分类列表
+
 ### 3.1. 需求分析
 
 根据搜索关键字查询商品分类名称列表
@@ -270,9 +267,8 @@ public Map<String, Object> search(Map<String, Object> params) {
 </div>
 ```
 
----
-
 ## 4. 缓存商品分类、品牌与规格数据
+
 ### 4.1. 需求分析
 
 - 将商品分类数据、品牌数据、和规格数据都放入Redis存储。因为此部分数据变化频率小，在搜索经常使用，将放到缓存中，加强搜索的性能
@@ -473,9 +469,8 @@ $scope.updateRedis = () => {
 
 在linux系统启动redis，运行运营商管理后台，打开商品分类和类型模板管理页，点击【更新缓存】按钮即可将数据放入缓存中
 
----
-
 ## 5. 显示品牌和规格数据
+
 ### 5.1. 需求分析
 
 在搜索面板区域显示第一个分类的品牌和规格列表
@@ -570,6 +565,7 @@ public Map<String, Object> search(Map<String, Object> params) {
 ```
 
 ### 5.3. 显示品牌和规格-前端部分
+
 #### 5.3.1. 获取品牌列表
 
 修改页面search.html，实现循环品牌列表
@@ -635,9 +631,8 @@ public Map<String, Object> search(Map<String, Object> params) {
 
 ![solr配置导入注意问题4](images/20190210104028727_6707.jpg)
 
----
-
 ## 6. 过滤条件构建
+
 ### 6.1. 需求分析
 
 - 点击搜索面板上的分类、品牌和规格，实现查询条件的构建。查询条件以面包屑的形式显示。
@@ -645,6 +640,7 @@ public Map<String, Object> search(Map<String, Object> params) {
 - 用户可以点击面包屑上的X撤销查询条件。撤销后显示搜索面包相应的区域。
 
 ### 6.2. 添加搜索项
+
 #### 6.2.1. 添加搜索项的方法
 
 - 当点击搜索面板上的分类、品牌和规格后，将点击的内容封装到搜索对象中
@@ -825,9 +821,8 @@ $scope.removeSearchItem = (key) => {
      ng-repeat="spec in resultMap.specList">
 ```
 
----
-
 ## 7. 过滤查询
+
 ### 7.1. 需求分析
 
 根据上一步构建的查询条件，实现分类、品牌和规格的过滤查询

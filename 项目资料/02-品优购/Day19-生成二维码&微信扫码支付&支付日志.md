@@ -1,8 +1,7 @@
 # Day19 生成二维码&微信扫码支付&支付日志
 
----
-
 ## 1. 二维码
+
 ### 1.1. 什么是二维码
 
 二维码又称QR Code，QR全称Quick Response，是一个近几年来移动设备上超流行的一种编码方式，它比传统的Bar Code条形码能存更多的信息，也能表示更多的数据类型。
@@ -214,9 +213,8 @@ public class BarCodeController {
 </html>
 ```
 
----
-
 ## 2. 微信扫码支付简介
+
 ### 2.1. 微信扫码支付申请（了解）
 
 - 微信扫码支付是商户系统按微信支付协议生成支付二维码，用户再用微信“扫一扫”完成支付的模式。该模式适用于PC网站支付、实体店单品或订单支付、媒体广告支付等场景。
@@ -460,10 +458,10 @@ orderquery=https://api.mch.weixin.qq.com/pay/orderquery
 
 拷贝资料\生成二维码\qrious框架\qrious.min.js 到pinyougou-cart-web的src/main/webapp/js目录中
 
----
-
 ## 3. 微信支付二维码生成（商家的签名已过期，无法实现）
+
 ### 3.1. 需求分析与实现思路
+
 #### 3.1.1. 需求分析
 
 在支付页面上生成支付二维码，并显示订单号和金额。用户拿出手机，打开微信扫描页面上的二维码，然后在微信中完成支付
@@ -475,6 +473,7 @@ orderquery=https://api.mch.weixin.qq.com/pay/orderquery
 - 具体参数参见“统一下单”API, 构建参数发送给统一下单的url，返回的信息中有支付url，根据url生成二维码，显示的订单号和金额也在返回的信息中。
 
 ### 3.2. 后端部分
+
 #### 3.2.1. 订单服务-接口层与实现层
 
 - pinyougou-pay-interface创建com.pinyougou.pay.service包，创建接口WeixinPayService
@@ -604,6 +603,7 @@ public Map<String, String> genPayCode() {
 浏览器测试：http://127.0.0.1:9108/order/genPayCode
 
 ### 3.3. 前端部分
+
 #### 3.3.1. 购物车系统-前端控制层
 
 修改pinyougou-cart-web的orderController.js，定义获取微信支付二维码的方法
@@ -676,10 +676,10 @@ $scope.genPayCode = () => {
 </div>
 ```
 
----
-
 ## 4. 检测支付状态
+
 ### 4.1. 需求分析及实现思路
+
 #### 4.1.1. 需求分析
 
 当用户支付成功后跳转到成功页面(paysuccess.html)，当返回异常时跳转到错误页面(payfail.html)。
@@ -691,6 +691,7 @@ $scope.genPayCode = () => {
 - 具体参数参见“查询订单”API, 我们在前端页面采用js定时器间隔3秒发送请求查询订单，当后台返回状态为success时，前端自动跳转到支付成功页面。
 
 ### 4.2. 检测支付状态-后端代码
+
 #### 4.2.1. 支付服务-接口层与实现层
 
 - pinyougou-pay-interface的WeixinPayService.java中新增queryPayStatus查询订单状态方法
@@ -781,6 +782,7 @@ public Map<String, Integer> queryPayStatus(String outTradeNo) {
 ```
 
 ### 4.3. 检测支付状态-前端代码
+
 #### 4.3.1. 购物车系统-前端控制层
 
 修改orderController.js的genPayCode方法，引入$interval服务，定时发送查询支付状态请求
@@ -827,6 +829,7 @@ $scope.genPayCode = () => {
 ```
 
 ### 4.4. 支付成功页面显示金额
+
 #### 4.4.1. 问题分析
 
 现在支付成功页面显示的是固定的值，怎么显示真正的支付金额呢？这里可以使用angularJS的页面传参来解决。
@@ -903,9 +906,8 @@ app.controller('orderController', function ($scope, $controller,
 <p>支付金额：￥{{ getMoney() }}元</p>
 ```
 
----
-
 ## 5. 支付日志
+
 ### 5.1. 需求分析
 
 - 现在系统还有两个问题需要解决：
@@ -996,6 +998,7 @@ public void saveOrder(Order order) {
 ```
 
 ### 5.4. 读取支付日志
+
 #### 5.4.1. 订单服务接口与实现层
 
 - pinyougou-order-interface工程的OrderService.java新增查询支付日志的方法
@@ -1049,6 +1052,7 @@ public Map<String, String> genPayCode(HttpServletRequest request) {
 ```
 
 ### 5.5. 修改订单状态
+
 #### 5.5.1. 订单服务接口与实现层
 
 - pinyougou-order-interface的OrderService.java新增修改订单状态的方法

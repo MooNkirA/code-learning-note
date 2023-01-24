@@ -610,6 +610,7 @@ public List<Brand> findAll() {
 ```
 
 ## 4. 前端框架 AngularJS
+
 ### 4.1. AngularJS 简介
 
 - AngularJS  诞生于2009年，由Misko Hevery 等人创建，后为Google所收购。是一款优秀的前端JS框架。AngularJS有着诸多特性，最为核心的是：<font color="red">**MVC、模块化、自动化双向数据绑定、依赖注入**</font>等等
@@ -618,6 +619,7 @@ public List<Brand> findAll() {
 
 
 ### 4.2. AngularJS四大特征
+
 #### 4.2.1. MVC 模式
 
 - Angular遵循软件工程的MVC模式,并鼓励展现，数据，和逻辑组件之间的松耦合.通过依赖注入（dependency injection），Angular为客户端的Web应用带来了传统服务端的服务，例如独立于视图的控制。 因此，后端减少了许多负担，产生了更轻的Web应用。
@@ -645,6 +647,7 @@ AngularJS是建立在这样的信念上的：即声明式编程应该用于构�
 	2. 用户自定义的模块 `angular.module('模块名',[ ])`
 
 ### 4.3. 基础指令
+
 #### 4.3.1. 构建web模块angularjs-test(war)用于测试
 
 - 配置pom.xml依赖
@@ -1015,6 +1018,7 @@ AngularJS是建立在这样的信念上的：即声明式编程应该用于构�
 ```
 
 ### 4.4. 内置服务
+
 #### 4.4.1. `$timeout`服务
 
 - `$timeout`服务对应了`window.setTimeout`函数，<font color="red">只执行一次</font>。如果想循环输出，需要放到函数里
@@ -1107,6 +1111,7 @@ AngularJS是建立在这样的信念上的：即声明式编程应该用于构�
 ```
 
 #### 4.4.4. `$location` 服务
+
 ##### 4.4.4.1. 简介
 
 `$location`服务解析在浏览器地址栏中的URL（基于`window.location`）并且让URL在你的应用中可用。改变在地址栏中的URL会作用到`$location`服务，同样的，改变`$location`服务也会改变浏览器的地址栏。（可以使用`$location`进行重定向等操作）
@@ -1159,6 +1164,7 @@ AngularJS是建立在这样的信念上的：即声明式编程应该用于构�
 - 例子2详见Day12，首页搜索传递关键字跳转到搜索系统
 
 #### 4.4.5. `$sce`服务
+
 ##### 4.4.5.1. 什么是SCE
 
 SCE，即strict contextual escaping，是angularjs严格的控制上下文访问。
@@ -1505,6 +1511,7 @@ import {Component, OnInit} from '@angular/core';
 
 
 ### 4.5. 前端分层
+
 #### 4.5.1. 基础层
 
 - 创建js/base.js

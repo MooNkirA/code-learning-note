@@ -1,8 +1,7 @@
 # Day10 搜索解决方案（一）-SpringDataSolr
 
----
-
 ## 1. Solr安装与配置
+
 ### 1.1. 什么是Solr
 
 大多数搜索引擎应用都必须具有某种搜索功能，问题是搜索功能往往是巨大的资源消耗并且它们由于沉重的数据库加载而拖垮你的应用的性能。
@@ -18,6 +17,7 @@ Solr可以和Hadoop一起使用。由于Hadoop处理大量数据，Solr帮助我
 总之，Solr是一个可扩展的，可部署，搜索/存储引擎，优化搜索大量以文本为中心的数据。
 
 ### 1.2. Solr安装
+
 #### 1.2.1. Linux安装单机版Solr
 
 参考安装文档：\Java编程工具资料\Java源代码\Apache Lucene&solr\Solr相关资料（项目2）\Linux安装单机版Solr.docx
@@ -26,9 +26,8 @@ Solr可以和Hadoop一起使用。由于Hadoop处理大量数据，Solr帮助我
 
 参考安装文档：\Java编程工具资料\Java源代码\Apache Lucene&solr\Solr相关资料（项目2）\Linux安装集群版Solr.docx
 
----
-
 ## 2. 中文分析器IK Analyzer
+
 ### 2.1. IK Analyzer简介
 
 IK Analyzer是一个开源的，基于java语言开发的轻量级的中文分词工具包。从2006年12月推出1.0版开始，IKAnalyzer已经推出了4个大版本。最初，它是以开源项目Luence为应用主体的，结合词典分词和文法分析算法的中文分词组件。从3.0版本开始，IK发展为面向Java的公用分词组件，独立于Lucene项目，同时提供了对Lucene的默认优化实现。在2012版本中，IK实现了简单的分词歧义排除算法，标志着IK分词器从单纯的词典分词向模拟语义分词衍化。
@@ -133,8 +132,6 @@ IK Analyzer是一个开源的，基于java语言开发的轻量级的中文分�
 </searchComponent> -->
 ```
 
----
-
 ## 3. SolrCloud简介
 
 SolrCloud(solr云)是Solr提供的分布式搜索方案，当你需要大规模，容错，分布式索引和检索能力时使用SolrCloud。当一个系统的索引数据量少的时候是不需要使用SolrCloud的，当索引量很大，搜索请求并发很高，这时需要使用SolrCloud来满足这些需求。
@@ -152,6 +149,7 @@ SolrCloud是基于Solr和Zookeeper的分布式搜索方案，它的主要思想�
 Apache Hbase和Apache Solr的分布式集群都用到了zookeeper；<font color="red">***zookeeper是一个分布式的、开源的程序协调服务***</font>，是hadoop项目下的一个子项目。
 
 ### 3.2. Zookeeper功能
+
 #### 3.2.1. 配置管理
 
 在我们的应用中除了代码外，还有一些就是各种配置文件。比如数据库连接等。一般我们都是使用配置文件的方式，在代码中引入这些配置文件。但是当我们只有一种配置，只有一台服务器，并且不经常修改的时候，使用配置文件是一个很好的做法，但是如果我们配置非常多，有很多服务器都需要这个配置，而且还可能是动态的话使用配置文件就不是个好主意了。这个时候往往需要寻找一种集中管理配置的方法，我们在这个集中的地方修改了配置，所有对这个配置感兴趣的都可以获得变更。比如我们可以把配置放在数据库里，然后所有需要配置的服务都去这个数据库读取配置。但是，因为很多服务的正常运行都非常依赖这个配置，所以需要这个集中提供配置服务的服务具备很高的可靠性。一般我们可以用一个集群来提供这个配置服务，但是用集群提升可靠性，那如何保证配置在集群中的一致性呢？ 这个时候就需要使用一种实现了一致性协议的服务了。Zookeeper就是这种服务，它使用Zab这种一致性协议来提供一致性。现在有很多开源项目使用Zookeeper来维护配置，比如在HBase中，客户端就是连接一个Zookeeper，获得必要的HBase集群的配置信息，然后才可以进一步操作。还有在开源的消息队列Kafka中，也使用Zookeeper来维护broker的信息。在Alibaba开源的SOA框架Dubbo中也广泛的使用Zookeeper管理一些配置来实现服务治理。
@@ -205,6 +203,7 @@ Master是master-slave结构中的主节点（通常说主服务器），Slave是
 Collection的逻辑分片
 
 ### 3.4. SolrCloud搭建架构分析
+
 #### 3.4.1. SolrCloud构架图
 
 ![SolrCloud集群结构](images/20190203072512340_15564.png)
@@ -226,14 +225,14 @@ Collection的逻辑分片
 
 ![SolrCloud服务url](images/20190203072647552_14117.jpg)
 
----
-
 ## 4. Spring Data Solr入门
+
 ### 4.1. Spring Data Solr简介
 
 Spring Data Solr就是为了方便Solr的开发所研制的一个框架，其底层是对SolrJ（官方API）的封装。
 
 ### 4.2. Spring Data Solr入门Demo
+
 #### 4.2.1. 搭建Maven工程
 
 在pyg-test项目中创建maven工程spring-data-solr-test，在pom.xml中引入依赖
@@ -482,9 +481,8 @@ public class Solr02Test {
 }
 ```
 
----
-
 ## 5. 项目索引库-批量数据导入
+
 ### 5.1. 需求分析
 
 编写专门的导入程序，将商品数据导入到Solr索引库中
@@ -505,6 +503,7 @@ public class Solr02Test {
 2. 将spring-data-solr-test工程中添加了`@Field`注解的实体类Item拷贝到pinyougou-pojo的com.pinyougou.solr包下更名为SolrItem
 
 ### 5.3. 搭建solr工具模块-查询商品数据列表
+
 #### 5.3.1. 工程搭建
 
 1. 创建pinyougou-solr-util模块，打包方式jar
@@ -636,7 +635,8 @@ public class SolrUtils {
 ```
 
 ### 5.4. 规格导入动态域
-#### 5.4.1. `@Dynamic`注解，封装动态域数据
+
+#### 5.4.1. @Dynamic 注解，封装动态域数据
 
 - 修改SolrItem.java，添加属性，用于封装动态域数据
 
@@ -681,9 +681,8 @@ public void importItemData() {
 }
 ```
 
----
-
 ## 6. 项目搜索系统-关键字搜索
+
 ### 6.1. 需求分析
 
 打开搜索页面，在搜索框输入要搜索的关键字，点击搜索按钮即可进行搜索，展示搜索结果
@@ -698,6 +697,7 @@ public void importItemData() {
     - pinyougou-search-service 服务实现
 
 ### 6.3. 搜索系统服务层(pinyougou-search)
+
 #### 6.3.1. pinyougou-search聚合模块
 
 创建选择类型：pom。修改pinyougou-search/pom.xml，添加依赖
@@ -1004,6 +1004,7 @@ public class ItemSearchServiceImpl implements ItemSearchService {
 ```
 
 ### 6.4. 搜索系统表现层(pinyougou-search-web)
+
 #### 6.4.1. pinyougou-search-web模块
 
 - 创建maven工程，打包方式为war。在pinyougou-search-web/pom.xml配置依赖

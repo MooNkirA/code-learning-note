@@ -34,6 +34,7 @@ Spring Boot其设计目的是用来简化Spring应用的初始搭建以及开发
 <font color="red">***Spring Boot主要的作用是用于简化spring整合其他框架，自动解决不同框架的依赖jar包的冲突，内嵌了整合其他框架的代码***</font>
 
 ### 1.2. Spring Boot 入门demo
+
 #### 1.2.1. 起步依赖
 
 - 创建Maven模块springboot-test（打包方式jar）
@@ -346,6 +347,7 @@ spring:
 ```
 
 ### 1.4. Spring Boot与ActiveMQ整合
+
 #### 1.4.1. 使用内嵌ActiveMQ服务
 
 - 在pom.xml中引入ActiveMQ起步依赖（不需要指定版本，因为已经在父工程进行版本控制）
@@ -444,6 +446,7 @@ public void readMapMessage(Map<String, String> map) {
 监听类获取消息，在指定的消费消息的方法上使用`@JmsListener`注解，属性`destination = "消息队列名称"`
 
 ## 2. 短信发送平台【阿里大于】
+
 ### 2.1. 短信发送sdk（旧版）
 
 具体使用参考项目一与day15教材
@@ -643,6 +646,7 @@ public class CommonRpc {
 *新版的短信发送比旧版的区别，不需要下载安装`aliyun-java-sdk-dysmsapi`到maven仓库，只需要依赖`aliyun-java-sdk-core`核心包就好*
 
 ## 3. 短信微服务
+
 ### 3.1. 需求分析
 
 构建一个通用的短信发送服务模块，接收ActiveMQ的消息（Map类型）消息包括手机号（phoneNum）、短信模板号（templateCode）、签名（signName）、消息字符串（message）
@@ -926,6 +930,7 @@ public class SmsController {
 - 观察控制台输出；随后短信也成功发送到手机上
 
 ## 4. 用户中心
+
 ### 4.1. 需求分析
 
 完成用户注册功能：
@@ -1364,6 +1369,7 @@ server {
 访问地址：http://user.moon.com，可访问用户注册页面
 
 ### 4.4. 基本注册功能（无发送短信获取验证码）
+
 #### 4.4.1. 用户服务接口
 
 - 创建pinyougou-user-interface用户服务接口UserService与pinyougou-user-service实现类UserServiceImpl
@@ -1563,6 +1569,7 @@ app.controller('userController', function ($scope, baseService) {
 ```
 
 ### 4.5. 注册判断短信验证码
+
 #### 4.5.1. 实现思路
 
 点击页面上的“获取短信验证码”连接，向后端传递手机号。后端随机生成6位数字作为短信验证码，将其保存在redis中（手机号作为KEY），并发送到短信网关。
