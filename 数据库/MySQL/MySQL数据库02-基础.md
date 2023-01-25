@@ -2310,6 +2310,24 @@ WHERE
 OR B. KEY IS NULL
 ```
 
+### 7.12. straight_join 指定驱动表查询
+
+#### 7.12.1. 概述
+
+`straight_join` 关键字功能与 `join` 关键字类似，区别在于，`straight_join` 可以指定左边的表来驱动右边的表，改变 MySQL 优化器对于联表查询的执行顺序。
+
+```sql
+select * from t2 straight_join t1 on t2.a = t1.a;
+```
+
+以上语句代表指定 t2 表作为驱动表。
+
+#### 7.12.2. 注意事项
+
+`straight_join` 只适用于 `inner join` 的情况，并不适用于 `left join`，`right join`。（因为`left join`，`right join`已经指定了表的执行顺序，哪个表做为驱动表）
+
+> Tips: 建议少使用此关键字，尽可能使用优化器去选择的执行顺序，因为大部分情况下人为指定的执行顺序并不一定会比优化引擎选择的要更优。
+
 ## 8. 子查询
 
 ### 8.1. 子查询概述
@@ -2637,19 +2655,20 @@ SELECT * FROM e1 WHERE m1 > (SELECT MAX(m2) FROM e2);
 
 #### 8.5.4. EXISTS 子查询
 
-语法：
+##### 8.5.4.1. 基础使用
 
 ```sql
-select * from 表 where exists(子查询语句);
+select * from 表A where exists(子查询语句);
 ```
 
-如果仅仅需要判断子查询的结果集中是否有记录，而不在乎它的记录具体值，可以使用把 `EXISTS` 或者 `NOT EXISTS` 放在子查询语句前边
+`EXISTS` 的作用是，将主查询表A的数据，放到子查询中作为筛选条件，然后根据子查询中的结果（true 或 false）来决定判断主查询的数据是否保留。如果仅仅需要判断子查询的结果集中是否有记录，而不在乎它的记录具体值，可以使用把 `EXISTS` 或者 `NOT EXISTS` 放在子查询语句前边。
 
-- 该子查询如果“有数据结果”(至少返回一行数据)， 则该`EXISTS()`的结果为“`true`”，外层查询执行
+- `EXISTS(subquery)` 只返回 TRUE 或 FALSE，因此子查询中的 `SELECT *` 也可以用 `SELECT 1` 替换，官方说法是实际执行时会忽略 `SELECT` 的清单，因此两者没有区别
+- 该子查询如果“有数据结果”(至少返回一行数据)，则该`EXISTS()`的结果为“`true`”，外层查询执行
 - 该子查询如果“没有数据结果”（没有任何数据返回），则该`EXISTS()`的结果为“`false`”，外层查询不执行
 - `EXISTS`后面的子查询不返回任何实际数据，只返回真或假，当返回真时 `where` 条件成立
-
-
+- `EXISTS` 子查询的实际执行过程可能经过了优化，而不是逐条对比
+- `EXISTS` 子查询也可以用 `JOIN` 来代替，但需要具体问题具体分析才能决定哪种方式最优
 
 ```sql
 SELECT * FROM e1 WHERE EXISTS (SELECT 1 FROM e2);
@@ -2663,7 +2682,7 @@ select * from emp3 a where exists(select * from dept3 b where a.dept_id = b.dept
 
 对于子查询`(SELECT 1 FROM e2)`来说，如果并不关心这个子查询最后到底查询出的结果是什么，所以查询列表里填`*`、某个列名，或者其他内容都无所谓，真正关心的是子查询的结果集中是否存在记录。也就是说只要`(SELECT 1 FROM e2)`这个查询中有记录，那么整个`EXISTS`表达式的结果就为TRUE。
 
-##### 8.5.4.1. in 和 exists 子查询的区别
+##### 8.5.4.2. in 和 exists 子查询的区别
 
 mysql 中的 in 语句是把外表和内表作 hash 连接，而 exists 语句是对外表作 loop循环，每次loop循环再对内表进行查询。exists 语句在某些条件下的执行效率比 in 语句高：
 
