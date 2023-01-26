@@ -687,4 +687,4 @@ public void chainOfResponsibilityPatternTest() {
 
 - [设计模式内容聚合](https://mp.weixin.qq.com/s?__biz=MzI4Njc5NjM1NQ==&mid=2247487936&idx=2&sn=02c48b88fa45a32e55b99fa0be610a29&chksm=ebd62eecdca1a7faccf9f26d17bd2108e1b8939421640f71f1ebf5f14b621448ac05ad168a00&mpshare=1&scene=1&srcid=#rd)
 - [Java设计模式：23种设计模式全面解析（超级详细）](http://c.biancheng.net/design_pattern/)
-
+- [Java Design Patterns (中文)](https://java-design-patterns.com/zh/)，软件设计模式，编程原则还有代码片段
