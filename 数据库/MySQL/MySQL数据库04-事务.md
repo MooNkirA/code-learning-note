@@ -801,11 +801,7 @@ Page Header 部分有一个称之为`PAGE_FREE`的属性，它指向由被删除
 
 表空间其实是由许许多多的页面构成的，页面默认大小为16KB。这些页面有不同的类型，比如类型为`FIL_PAGE_INDEX`的页面用于存储聚簇索引以及二级索引，类型为`FIL_PAGE_TYPE_FSP_HDR`的页面用于存储表空间头部信息的，还有其他各种类型的页面，其中`FIL_PAGE_UNDO_LOG`类型的页面是专门用来存储 undo 日志的。
 
-## 3. MVCC 原理
-
-Multi-Version Concurrency Control，即多版本并发控制，主要是为了提高数据库的并发性能。
-
-同一行数据发生读写请求时，会上锁阻塞住。但 MVCC 用更好的方式去处理读/写请求，做到在发生读/写请求冲突时不用加锁。这个读是指的快照读，而不是当前读，当前读是一种加锁操作，是悲观锁。
+## 3. MVCC（多版本并发控制）
 
 ### 3.1. 事务并发执行遇到的问题
 
@@ -813,35 +809,65 @@ Multi-Version Concurrency Control，即多版本并发控制，主要是为了�
 
 不同的数据库厂商对 SQL 标准中规定的四种隔离级别支持不一样，MySQL 在 REPEATABLE READ 隔离级别下，是可以很大程度避免幻读问题的发生的
 
-### 3.2. 版本链
+### 3.2. MVCC 的概述
 
-对于使用 InnoDB 存储引擎的表来说，它的聚簇索引记录中都包含两个必要的隐藏列（row_id 并不是必要的，我们创建的表中有主键或者非 NULL 的 UNIQUE 键时都不会包含 row_id 列）
+Multi-Version Concurrency Control，即多版本并发控制，主要是为了提高数据库的并发性能。
+
+串行化隔离级别为了保证较高的隔离性是通过将所有操作加锁互斥来实现的。而在读已提交和可重复读的隔离级别下，是通过 MVCC(Multi-Version Concurrency Control)机制来保证的，对同一行数据的读和写两个操作默认是不会通过加锁互斥来保证隔离性，避免了频繁加锁互斥。*这里的“读”是指的快照读，而不是当前读，当前读加锁操作是一种悲观锁*。
+
+MVCC 机制的实现就是通过 **read-view 机制与 undo 版本链比对机制**，使得不同的事务会根据版本链对比规则读取同一条数据在版本链上的不同版本数据。
+
+### 3.3. MVCC 的核心组成部分
+
+#### 3.3.1. undo 日志版本链
+
+对于使用 InnoDB 存储引擎的表来说，它的聚簇索引记录中都包含两个必要的隐藏列（row_id 并不是必要的，创建的表中有主键或者非 NULL 的 UNIQUE 键时都不会包含 row_id 列）
 
 - `trx_id`：每次一个事务对某条聚簇索引记录进行改动时，都会把该事务的事务 id 赋值给 trx_id 隐藏列。
 - `roll_pointer`：每次对某条聚簇索引记录进行改动时，都会把旧的版本写入到 undo 日志中，然后这个隐藏列就相当于一个指针，可以通过它来找到该记录修改前的信息。
 
-假设插入一条记录的事务 id 为 60，后面有两个事务 id 分别为 80、120 的事务对这条记录进行 UPDATE 操作，操作流程如下：
-
 ![](images/20210531225505314_16485.jpg)
 
-对该记录每次更新后，都会将旧值放到一条 undo 日志中，就算是该记录的一个旧版本，随着更新次数的增多，所有的版本都会被 roll_pointer 属性连接成一个链表，我们把这个链表称之为版本链，版本链的头节点就是当前记录最新的值。另外，每个版本中还包含生成该版本时对应的事务 id。于是可以利用这个记录的版本链来控制并发事务访问相同记录的行为，那么这种机制就被称之为**多版本并发控制(Mulit-Version Concurrency Control MVCC)**。
+对该记录每次更新后，都会将旧值放到一条 undo 日志中，就算是该记录的一个旧版本，随着更新次数的增多，所有的版本都会被 roll_pointer 属性连接成一个链表，我们把这个链表称之为**版本链**，版本链的头节点就是当前记录最新的值。另外，每个版本中还包含生成该版本时对应的事务 id。于是可以利用这个记录的版本链来控制并发事务访问相同记录的行为，那么这种机制就被称之为**多版本并发控制(Mulit-Version Concurrency Control MVCC)**。
 
-### 3.3. ReadView
+#### 3.3.2. ReadView
 
-ReadView（读视图）是 快照读 SQL执行时MVCC提取数据的依据，记录并维护系统当前活跃的事务（未提交的）id。
+为了实现不同事务的控制，InnoDB 提出了一个 ReadView 的概念。ReadView（读视图）是**快照读**SQL 执行时 MVCC 提取数据的依据，记录并维护系统当前活跃的事务（未提交的）id。
 
-- 对于使用 READ UNCOMMITTED 隔离级别的事务来说，由于可以读到未提交事务修改过的记录，所以直接读取记录的最新版本就好了。
-- 对于使用 SERIALIZABLE 隔离级别的事务来说，InnoDB 使用加锁的方式来访问记录。
-- 对于使用 READ COMMITTED 和 REPEATABLE READ 隔离级别的事务来说，都必须保证读到已经提交了的事务修改过的记录，也就是说假如另一个事务已经修改了记录但是尚未提交，是不能直接读取最新版本的记录的
+不过需要注意的是，<font color=red>**begin/start transaction 命令并不是一个事务的起点，而是在它们之后执行的第一个修改操作或加排它锁操作(比如`select...for update`)的语句，事务才真正启动，才会向 mysql 申请真正的事务 id，mysql 内部是严格按照事务的启动顺序来分配事务 id 的。**</font>
 
-**所以，READ COMMITTED 和 REPEATABLE READ 这两种隔离级别关键是需要判断一下版本链中的哪个版本是当前事务可见的**。为此，InnoDB 提出了一个 ReadView 的概念，这个 ReadView 中主要包含4个比较重要的内容：
+ReadView 中主要包含4个比较重要的内容：
 
 - `m_ids`：表示在生成 ReadView 时当前系统中活跃的读写事务的事务 id 列表。
 - `min_trx_id`：表示在生成 ReadView 时当前系统中活跃的读写事务中最小的事务 id，也就是 m_ids 中的最小值。
 - `max_trx_id`：表示生成 ReadView 时系统中应该分配给下一个事务的 id 值。注意 `max_trx_id` 并不是 `m_ids` 中的最大值，事务 id 是递增分配的。比方说现在有 id 为 1，2，3 这三个事务，之后 id 为 3 的事务提交了。那么一个新的读事务在生成 ReadView 时，`m_ids` 就包括 1 和 2，`min_trx_id` 的值就是 1，`max_trx_id`的值就是 4。
 - `creator_trx_id`：表示生成该 ReadView 的事务的事务 id。
 
-有了这个 ReadView，在访问某条记录时，只需要按照以下步骤判断记录的某个版本是否可见：
+有了这个 ReadView，在访问某条记录时，只需要按照相关的规则，判断记录的某个版本是否可见。
+
+### 3.4. undo 日志版本链与 Read View 机制详解
+
+- 对于使用 READ UNCOMMITTED 隔离级别的事务来说，由于可以读到未提交事务修改过的记录，所以直接读取记录的最新版本即可。
+- 对于使用 SERIALIZABLE 隔离级别的事务来说，InnoDB 使用加锁的方式来访问记录。
+- 对于使用 READ COMMITTED 和 REPEATABLE READ 隔离级别的事务来说，都必须保证读到已经提交了的事务修改过的记录，也就是说假如另一个事务已经修改了记录但是尚未提交，是不能直接读取最新版本的记录的
+
+**因此，READ COMMITTED 和 REPEATABLE READ 这两种隔离级别关键是需要判断一下版本链中的哪个版本是当前事务可见的**。
+
+#### 3.4.1. 修改操作的事务实现
+
+假设插入一条记录的事务 id 为 80，后面有两个事务 id 分别为 300、100、200 的事务对这条记录进行 UPDATE 操作，操作流程如下：
+
+![](images/518912512230169.png)
+
+1. 如果 row 的 trx_id 落在绿色部分( `trx_id < min_trx_id` )，表示这个版本是已提交的事务生成的，这个数据是可见的；
+2. 如果 row 的 trx_id 落在红色部分( `trx_id > max_trx_id` )，表示这个版本是由将来启动的事务生成的，是不可见的(若 row 的 trx_id 就是当前自己的事务是可见的）；
+3. 如果 row 的 trx_id 落在黄色部分(`min_trx_id <= trx_id <= max_trx_id`)，那就包括两种情况
+    1. 若 row 的 trx_id 在视图数组中，表示这个版本是由还没提交的事务生成的，不可见(若 row 的 trx_id 就是当前自己的事务是可见的)；
+    2. 若 row 的 trx_id 不在视图数组中，表示这个版本是已经提交了的事务生成的，可见。
+
+---
+
+待整理：
 
 1. 如果被访问版本的 trx_id 属性值与 ReadView 中的 creator_trx_id 值相同，意味着当前事务在访问它自己修改过的记录，所以该版本可以被当前事务访问。
 2. 如果被访问版本的 trx_id 属性值小于 ReadView 中的 min_trx_id 值，表明生成该版本的事务在当前事务生成 ReadView 前已经提交，所以该版本可以被当前事务访问。
@@ -849,20 +875,22 @@ ReadView（读视图）是 快照读 SQL执行时MVCC提取数据的依据，记
 4. 如果被访问版本的 trx_id 属性值在 ReadView 的 min_trx_id 和 max_trx_id 之间(`min_trx_id < trx_id < max_trx_id`)，那就需要判断一下 trx_id 属性值是不是在 m_ids 列表中，如果在，说明创建 ReadView 时生成该版本的事务还是活跃的，该版本不可以被访问；如果不在，说明创建 ReadView 时生成该版本的事务已经被提交，该版本可以被访问。
 5. 如果某个版本的数据对当前事务不可见的话，那就顺着版本链找到下一个版本的数据，继续按照上边的步骤判断可见性，依此类推，直到版本链中的最后一个版本。如果最后一个版本也不可见的话，那么就意味着该条记录对该事务完全不可见，查询结果就不包含该记录
 
-在 MySQL 中，READ COMMITTED 和 REPEATABLE READ 隔离级别的的一个非常大的区别就是它们生成 ReadView 的时机不同。
+---
 
-#### 3.3.1. READ COMMITTED - 每次读取数据前都生成一个 ReadView
+> Notes: 在 MySQL 中，READ COMMITTED 和 REPEATABLE READ 隔离级别的的一个非常大的区别就是它们<font color=red>**生成 ReadView 的时机不同**</font>。
+>
+> - 实现 READ COMMITTED 隔离级别，事务里每次执行查询操作时都会按照数据库当前状态重新生成 readview，也就是每次查询都是跟数据库里当前所有事务提交状态来比对数据是否可见，因此可以实现每次都能查到已提交的最新数据的效果。
+> - 实现 REPEATABLE READ 隔离级别，事务里每次执行查询操作时都是使用第一次查询时生成的 readview，也就是都是以第一次查询时当时数据库里所有事务提交状态来比对数据是否可见，因此可以实现每次查询的可重复读的效果。
 
+#### 3.4.2. 删除操作的事务实现
 
+对于删除的情况可以认为是 update 操作的特殊情况，会将版本链上最新的数据复制一份，然后将 trx_id 修改成删除操作的 trx_id，同时将该条记录的头信息（record header）里的（deleted_flag）标记位设置为 true，用于表示当前记录已经被删除，在查询时按照上面的规则查到对应的记录如果 delete_flag 标记位为 true，意味着记录已被删除，则不返回数据。
 
-#### 3.3.2. REPEATABLE READ - 在第一次读取数据时生成一个 ReadView
+### 3.5. (！待整理)MVCC 下的幻读解决和幻读现象 
 
+> TODO: 待整理
 
-### 3.4. MVCC 下的幻读解决和幻读现象 
-
-
-
-### 3.5. MVCC 小结
+### 3.6. MVCC 小结
 
 MVCC（Multi-Version Concurrency Control ，多版本并发控制）指的就是在使用 READ COMMITTD、REPEATABLE READ 这两种隔离级别的事务在执行普通的 SELECT 操作时访问记录的版本链的过程，这样子可以使不同事务的读-写、写-读操作并发执行，从而提升系统性能。
 
@@ -872,9 +900,7 @@ MVCC 的实现原理就是通过 InnoDB 表的隐藏字段、UndoLog 版本链�
 
 READ COMMITTD、REPEATABLE READ 这两个隔离级别的一个很大不同就是：生成 ReadView 的时机不同
 
-- READ COMMITTD 在每一次进行普通 SELECT 操作前都会生成一个 ReadView，
-- REPEATABLE READ 只在第一次进行普通 SELECT 操作前生成一个 ReadView，之后的查询操作都重复使用这个ReadView，从而基本上可以避免幻读现象。
+- READ COMMITTD 在每一次进行普通 SELECT 操作前都会生成一个 ReadView
+- REPEATABLE READ 只在第一次进行普通 SELECT 操作前生成一个 ReadView，之后的查询操作都重复使用这个ReadView，从而基本上可以避免幻读现象
 
-执行 DELETE 语句或者更新主键的 UPDATE 语句并不会立即把对应的记录完全从页面中删除，而是执行一个所谓的 delete mark 操作，相当于只是对记录打上了一个删除标志位，这主要就是为MVCC服务。
-
-MVCC 只是在进行**普通的 SEELCT 查询**时才生效
+执行 DELETE 语句或者更新主键的 UPDATE 语句并不会立即把对应的记录完全从页面中删除，而是执行一个所谓的 delete mark 操作，相当于只是对记录打上了一个删除标志位，这主要就是为MVCC服务。MVCC 只是在进行**普通的 SEELCT 查询**时才生效
