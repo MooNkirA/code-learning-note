@@ -390,7 +390,7 @@ public void componentScanBasePackageClassesTest() {
 
 ![](images/20200809001235062_3991.png)
 
-#### 2.2.4. 自定义BeanNameGenerator生成规则
+#### 2.2.4. 自定义 BeanNameGenerator 生成规则
 
 ##### 2.2.4.1. nameGenrator属性
 
@@ -562,7 +562,7 @@ public void componentScanNameResourcePatternTest() {
 
 当项目中存在很多类时，在扫描的过程中使用过滤器，排除或者包含拥有某些注解或者符合指定规则的类，对于加快启动 Spring 应该上下文的过程是很有帮助的。
 
-##### 2.2.6.1. 基础使用
+##### 2.2.6.1. ExcludeFilter 和 IncludeFilter 基础使用
 
 - `includeFilters`：指定包含的过滤规则，不会影响 spring 扫描其他规则
 - `excludeFilters`：指定排除的过滤规则，指定后该扫描规则会被过滤，不会被扫描加入 spring 容器
@@ -602,27 +602,27 @@ public void componentScanFiltersTest() {
 
 ![](images/20200825232151925_20711.png)
 
-##### 2.2.6.2. FilterType枚举
+##### 2.2.6.2. FilterType 枚举
 
 ```java
 public enum FilterType {
 	/**
-	 * 过滤标记指定注解类型的对象 (默认)
+	 * 过滤标记指定注解类型的类 (默认)
 	 */
 	ANNOTATION,
 
 	/**
-	 * 过滤指定固定类
+	 * 过滤指定的类
 	 */
 	ASSIGNABLE_TYPE,
 
 	/**
-	 * 过滤 ASPECTJ 类型
+	 * 过滤符合某个 ASPECTJ 表达式的类型
 	 */
 	ASPECTJ,
 
 	/**
-	 * 过滤正则表达式匹配的类
+	 * 过滤符合正则表达式匹配的类型
 	 */
 	REGEX,
 
@@ -633,9 +633,9 @@ public enum FilterType {
 }
 ```
 
-##### 2.2.6.3. TypeFilter接口
+##### 2.2.6.3. TypeFilter 接口
 
-TypeFilter接口，自定义过滤器必须实现的基础接口
+`org.springframework.core.type.filter.TypeFilter` 是自定义过滤器必须实现的基础接口
 
 ```java
 /* Spring 过滤器必须实现的基础接口 */
@@ -4871,8 +4871,6 @@ public void transfer(String sourceName, String targetName, Double money) {
     });
 }
 ```
-
-
 
 # 其他
 
