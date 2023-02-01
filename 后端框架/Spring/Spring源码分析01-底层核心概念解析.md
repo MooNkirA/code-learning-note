@@ -2,6 +2,8 @@
 
 > 官方参考文档：https://docs.spring.io/spring-framework/docs/5.2.12.RELEASE/spring-framework-reference/
 
+在分析源码前，先对 Spring 框架中一些核心的概念、类、方法等进行了解。
+
 ## 1. IOC相关理论
 
 ### 1.1. 设计模式-工厂模式
@@ -36,7 +38,7 @@
 
 ### 2.1. 源码的下载与编译
 
-详见[《Spring 源码编译教程》](/后端框架/03-Spring/05-Spring源码编译教程)
+详见[《Spring 源码编译教程》](/后端框架/Spring/Spring源码分析00-Spring源码编译教程)
 
 ### 2.2. 创建 Spring 最基础示例项目
 
@@ -534,15 +536,15 @@ spring 中自定义标签的解析就是这种 SPI 设计的运用，在自定�
 
 dubbo在spi的配置文件中，设置为key-value的形式，这样在xml配置文件中配置相关属性，就可以唯一的确认一个实现类。
 
-## 5. Spring 中的 BeanDefinition
+## 5. BeanDefinition 接口
 
-### 5.1. BeanDefinition 简介
+### 5.1. 概述
 
 ```java
 public interface BeanDefinition extends AttributeAccessor, BeanMetadataElement
 ```
 
-BeanDefinition 在 spring 中贯穿全部，spring 要根据 BeanDefinition 对象来实例化 bean，只要把解析的标签或者扫描的注解类封装成 BeanDefinition 对象，spring 才能实例化 bean。BeanDefinition 中存在很多属性用来描述一个 Bean 的特点
+BeanDefinition 贯穿整个 spring 框架，spring 是根据 BeanDefinition 对象来实例化 bean，只要把解析的标签或者扫描的注解类封装成 BeanDefinition 对象，spring 才能实例化 bean。BeanDefinition 中定义很多属性用来描述一个 Bean 的特点
 
 #### 5.1.1. 作用说明
 
@@ -556,9 +558,9 @@ BeanDefinition 的继承关系如下图，`RootBeanDefinition`、`ChildBeanDefin
 
 ![](images/20200903233604050_18807.png)
 
-### 5.2. Bean 的定义方式
+### 5.2. 在 Spring 中 Bean 的定义方式
 
-#### 5.2.1. 申明式定义
+#### 5.2.1. 声明式定义
 
 在 Spring 中，通常有以下几种方式来定义Bean：
 
@@ -755,9 +757,7 @@ class ConfigurationClassBeanDefinitionReader {
 
 #### 5.4.1. 属性图示
 
-> 原文件：`BeanDefinition属性结构图.xmind`
-
-![](images/20210102145642637_20396.png)
+![BeanDefinition属性结构图.xmind](images/20210102145642637_20396.png)
 
 #### 5.4.2. 属性作用解释
 
@@ -876,49 +876,64 @@ parsePropertyElements(ele, bd);
 
 **解析过程重点记忆：`MutablePropertyValues`属性**。如果想要设置类的属性值，那么就需要往这个对象中添加 `PropertyValue` 对象
 
-## 6. Spring 框架中的 BeanFactory
+## 6. BeanFactory
 
-`BeanFactory` 是一个接口，Spring 框架中，所有对 Bean 相关操作，都可以在 `BeanFactory` 里实现
+### 6.1. 概述
 
-### 6.1. BeanFactory 类视图
+`BeanFactory` 是 Spring 顶层接口，在 Spring 框架中，所有对 Bean 相关操作（创建、获取等），该接口中定义的各种方法，其中将近一半是获取 bean 对象的各种方法，另外就是对 bean 属性的获取和判定，该接口仅仅是定义了 IOC 容器的最基本形式，具体实现都交由子类来实现。
+
+### 6.2. BeanFactory 类视图
 
 ![](images/20200903095250647_20309.png)
 
-### 6.2. Spring 框架中各类工厂（*BeanFactory）介绍
+### 6.3. 其他类型的 BeanFactory
 
-#### 6.2.1. BeanFactory
-
-BeanFactory 中定义的各种方法其中将近一半是获取 bean 对象的各种方法，另外就是对 bean 属性的获取和判定，该接口仅仅是定义了 IOC 容器的最基本基本形式，具体实现都交由子类来实现。
-
-#### 6.2.2. HierarchicalBeanFactory
+#### 6.3.1. HierarchicalBeanFactory 接口
 
 ```java
-public interface HierarchicalBeanFactory extends BeanFactory
+public interface HierarchicalBeanFactory extends BeanFactory {
+	/**
+	 * Return the parent bean factory, or {@code null} if there is none.
+	 */
+	@Nullable
+	BeanFactory getParentBeanFactory();
+
+	/**
+	 * Return whether the local bean factory contains a bean of the given name,
+	 * ignoring beans defined in ancestor contexts.
+	 * <p>This is an alternative to {@code containsBean}, ignoring a bean
+	 * of the given name from an ancestor bean factory.
+	 * @param name the name of the bean to query
+	 * @return whether a bean with the given name is defined in the local factory
+	 * @see BeanFactory#containsBean
+	 */
+	boolean containsLocalBean(String name);
+}
 ```
 
-`HierarchicalBeanFactory`（译为中文是“分层的”），它相对于 `BeanFactory` 而言，增加了对父 `BeanFactory` 的获取，子容器可以通过接口方法访问父容器，让容器的设计具备了层次性。
+`HierarchicalBeanFactory`（中文意思是“分层的”），它相对于 `BeanFactory` 而言，增加了获取父 `BeanFactory` 的方法，子容器可以通过接口方法访问父容器，让容器的设计具备了层次性。
 
 这种层次性增强了容器的扩展性和灵活性，可以通过编程的方式为一个已有的容器添加一个或多个子容器，从而实现一些特殊功能。
 
 层次容器有一个特点就是子容器对于父容器来说是透明的，而子容器则能感知到父容器的存在。典型的应用场景就是 Spring MVC，控制层的 bean 位于子容器中，并将业务层和持久层的 bean 所在的容器设置为父容器，这样的设计可以让控制层的 bean 访问业务层和持久层的 bean，反之则不行，从而在容器层面对三层软件结构设计提供支持。
 
-#### 6.2.3. ListableBeanFactory
+#### 6.3.2. ListableBeanFactory
 
 ```java
 public interface ListableBeanFactory extends BeanFactory
 ```
 
-该接口引入了获取容器中 bean 的配置信息的若干方法，比如获取容器中 bean 的个数，获取容器中所有 bean 的名称列表，按照目标类型获取 bean 名称，以及检查容器中是否包含指定名称的 bean 等等。
+`ListableBeanFactory` 接口扩展了获取容器中 bean 的配置信息的若干方法，比如获取容器中 bean 的个数，获取容器中所有 bean 的名称列表，按照目标类型获取 bean 名称，以及检查容器中是否包含指定名称的 bean 等等。
 
 Listable 中文译为“可列举的”，对于容器而言，bean 的定义和属性是可以列举的对象
 
-#### 6.2.4. AutowireCapableBeanFactory
+#### 6.3.3. AutowireCapableBeanFactory
 
 ```java
 public interface AutowireCapableBeanFactory extends BeanFactory
 ```
 
-该接口提供了创建 bean、自动注入、初始化以及应用 bean 的后置处理器等功能。自动注入让配置变得更加简单，也让注解配置成为可能，Spring 提供了四种自动注入类型：
+`AutowireCapableBeanFactory` 接口提供了创建 bean、自动注入、初始化以及应用 bean 的后置处理器等功能。自动注入让配置变得更加简单，也让注解配置成为可能，Spring 提供了四种自动注入类型：
 
 - `byName`：根据名称自动装配。假设 bean A 有一个名为 b 的对象属性，如果容器中刚好存在一个 bean 的名称为 b，则将该 bean 装配给 bean A 的 b 属性。
 - `byType`：根据类型自动匹配。假设 bean A 有一个类型为 B 的对象属性，如果容器中刚好有一个 B 类型的 bean，则使用该 bean 装配 A 的对应属性。
@@ -927,22 +942,22 @@ public interface AutowireCapableBeanFactory extends BeanFactory
 
 **总结**：`<beans />`元素标签中的 `default-autowire` 属性可以配置全局自动匹配，`default-autowire` 默认值为 `no`，表示不启用自动装配。在实际开发中，XML 配置方式很少启用自动装配功能，而基于注解的配置方式默认采用 byType 自动装配策略。
 
-#### 6.2.5. ConfigurableBeanFactory
+#### 6.3.4. ConfigurableBeanFactory
 
 ```java
 public interface ConfigurableBeanFactory extends HierarchicalBeanFactory, SingletonBeanRegistry
 ```
 
-ConfigurableBeanFactory 提供配置 Factory 的各种方法，增强了容器的可定制性，定义了设置类装载器、属性编辑器、容器初始化后置处理器等方法。
+`ConfigurableBeanFactory` 接口提供配置 Factory 的各种方法，增强了容器的可定制性，定义了设置类装载器、属性编辑器、容器初始化后置处理器等方法。
 
-#### 6.2.6. DefaultListableBeanFactory（重要）
+### 6.4. DefaultListableBeanFactory（BeanFactory 重要的实现类）
 
 ```java
 public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFactory
 		implements ConfigurableListableBeanFactory, BeanDefinitionRegistry, Serializable
 ```
 
-`DefaultListableBeanFactory` 是一个非常重要的类，它包含了 IOC 容器所应该具备的像**控制反转**和**依赖注入**等重要功能，是容器完整功能的一个基本实现。
+`DefaultListableBeanFactory` 是一个非常核心的类，它包含了 IOC 容器所应该具备的像**控制反转**和**依赖注入**等重要功能，是容器完整功能的一个基本实现，支持其他扩展的功能。
 
 其中 `XmlBeanFactory`(已过时)是一个典型的由该类派生出来的 `Factory` 类，并且只是增加了加载 XML 配置资源的逻辑，而容器相关的特性则全部由 `DefaultListableBeanFactory` 来实现。
 
@@ -952,22 +967,47 @@ public class DefaultListableBeanFactory extends AbstractAutowireCapableBeanFacto
 public class XmlBeanFactory extends DefaultListableBeanFactory
 ```
 
-## 7. Spring 框架中的高级容器（`*Context`）
+#### 6.4.1. DefaultListableBeanFactory 的类继承实现结构
 
-### 7.1. ApplicationContext
+![](images/149650217236535.png)
+
+#### 6.4.2. 实现功能说明
+
+`DefaultListableBeanFactory` 实现了很多接口，因此具有比 `BeanFactory` 更多的功能：
+
+1. AliasRegistry：支持别名功能，一个名字可以对应多个别名
+2. BeanDefinitionRegistry：可以注册、保存、移除、获取某个BeanDefinition
+3. BeanFactory：Bean工厂，可以根据某个bean的名字、或类型、或别名获取某个Bean对象
+4. SingletonBeanRegistry：可以直接注册、获取某个单例Bean
+5. SimpleAliasRegistry：它是一个类，实现了AliasRegistry接口中所定义的功能，支持别名功能
+6. ListableBeanFactory：在BeanFactory的基础上，增加了其他功能，可以获取所有BeanDefinition的beanNames，可以根据某个类型获取对应的beanNames，可以根据某个类型获取映射关系，即`类型：对应的Bean`
+7. HierarchicalBeanFactory：在BeanFactory的基础上，添加了获取父BeanFactory的功能
+8. DefaultSingletonBeanRegistry：它是一个类，实现了SingletonBeanRegistry接口，拥有了直接注册、获取某个单例Bean的功能
+9. ConfigurableBeanFactory：在HierarchicalBeanFactory和SingletonBeanRegistry的基础上，添加了设置父BeanFactory、类加载器（表示可以指定某个类加载器进行类的加载）、设置Spring EL表达式解析器（表示该BeanFactory可以解析EL表达式）、设置类型转化服务（表示该BeanFactory可以进行类型转化）、可以添加BeanPostProcessor（表示该BeanFactory支持Bean的后置处理器），可以合并BeanDefinition，可以销毁某个Bean等等功能
+10. FactoryBeanRegistrySupport：支持了FactoryBean的功能
+11. AutowireCapableBeanFactory：是直接继承了BeanFactory，在BeanFactory的基础上，支持在创建Bean的过程中能对Bean进行自动装配
+12. AbstractBeanFactory：实现了ConfigurableBeanFactory接口，继承了FactoryBeanRegistrySupport，这个BeanFactory的功能已经很全面了，但是不能自动装配和获取beanNames
+13. ConfigurableListableBeanFactory：继承了ListableBeanFactory、AutowireCapableBeanFactory、ConfigurableBeanFactory
+14. AbstractAutowireCapableBeanFactory：继承了AbstractBeanFactory，实现了AutowireCapableBeanFactory，拥有了自动装配的功能
+15. DefaultListableBeanFactory：继承了AbstractAutowireCapableBeanFactory，实现了ConfigurableListableBeanFactory接口和BeanDefinitionRegistry接口，所以DefaultListableBeanFactory的功能很强大
+
+## 7. Spring 中的高级容器
+
+### 7.1. ApplicationContext 接口
 
 ```java
 public interface ApplicationContext extends EnvironmentCapable, ListableBeanFactory, HierarchicalBeanFactory,
 		MessageSource, ApplicationEventPublisher, ResourcePatternResolver
 ```
 
-`ApplicationContext` 是 Spring 为开发者提供的高级容器形式，也是初始化 Spring 容器的常用方式，实际上也是一个 `BeanFactory`，除了简单容器所具备的功能（*即继承了 `ListableBeanFactory`, `HierarchicalBeanFactory` 接口*）外，`ApplicationContext` 还提供了许多额外功能，这些额外的功能主要包括：
+`ApplicationContext` 是 Spring 提供的高级容器实现，也是初始化 Spring 容器的常用方式，实际上也是一个 `BeanFactory`，除了简单容器所具备的功能（*即继承了 `ListableBeanFactory`, `HierarchicalBeanFactory` 接口*）外，`ApplicationContext` 还提供了许多额外功能，这些额外的功能主要包括：
 
+- 获取运行时环境功能：实现了`org.springframework.core.env.EnvironmentCapable`接口，可以获取运行时环境（没有设置运行时环境功能）
 - 国际化支持：`ApplicationContext` 实现了 `org.springframework.context.MessageSource` 接口，该接口为容器提供国际化消息访问功能，支持具备多语言版本需求的应用开发，并提供了多种实现来简化国际化资源文件的装载和获取。
-- 发布应用上下文事件：`ApplicationContext` 实现了 `org.springframework.context.ApplicationEventPublisher` 接口，该接口让容器拥有发布应用上下文事件的功能，包括容器启动、关闭事件等，如果一个 bean 需要接收容器事件，则只需要实现 ApplicationListener 接口即可，Spring 会自动扫描对应的监听器配置，并注册成为主题的观察者。
-- 丰富的资源获取的方式：`ApplicationContext` 实现了 `org.springframework.core.io.support.ResourcePatternResolver` 接口，`ResourcePatternResolver` 的实现类 `PathMatchingResourcePatternResolver` 让我们可以采用 Ant 风格的资源路径去加载配置文件。
+- 发布应用上下文事件：实现了 `org.springframework.context.ApplicationEventPublisher` 接口，该接口让容器拥有发布（广播）应用上下文事件的功能（没有添加事件监听器的功能），包括容器启动、关闭事件等，如果一个 bean 需要接收容器事件，则只需要实现 ApplicationListener 接口即可，Spring 会自动扫描对应的监听器配置，并注册成为主题的观察者。
+- 丰富的资源获取的方式：实现了 `org.springframework.core.io.support.ResourcePatternResolver` 接口，因此拥有资源加载功能，可以一次性获取多个资源（文件资源等等）。其中 `ResourcePatternResolver` 的实现类 `PathMatchingResourcePatternResolver` 可以采用 Ant 风格的资源路径去加载配置文件。
 
-### 7.2. ConfigurableApplicationContext
+### 7.2. ConfigurableApplicationContext 接口
 
 ```java
 public interface ConfigurableApplicationContext extends ApplicationContext, Lifecycle, Closeable
@@ -975,7 +1015,7 @@ public interface ConfigurableApplicationContext extends ApplicationContext, Life
 
 `ConfigurableApplicationContext` 中主要增加了 `refresh()` 和 `close()` 两个方法，从而为应用上下文提供了启动、刷新和关闭的能力。其中 `refresh()` 方法是高级容器的核心方法，方法中概括了高级容器初始化的主要流程（包含简单的容器的全部功能，以及高级容器特有的扩展功能）
 
-### 7.3. WebApplicationContext
+### 7.3. WebApplicationContext 接口
 
 ```java
 public interface WebApplicationContext extends ApplicationContext
@@ -1003,24 +1043,40 @@ public class GenericApplicationContext extends AbstractApplicationContext implem
 
 一个比较“纯净”的容器，类中只组合 `DefaultListableBeanFactory`，但没有相关 `BeanPostProcessor` 实现
 
-#### 7.4.2. AnnotationConfigApplicationContext
+#### 7.4.2. AnnotationConfigApplicationContext（重要）
 
 ```java
 public class AnnotationConfigApplicationContext extends GenericApplicationContext implements AnnotationConfigRegistry
 ```
 
-`AnnotationConfigApplicationContext` 是基于注解驱动开发的高级容器实现类，该类中提供了`AnnotatedBeanDefinitionReader`和`ClassPathBeanDefinitionScanner`两个成员。也是 Spring boot 中非 web 环境容器（新）
+`AnnotationConfigApplicationContext` 是基于注解驱动开发的高级容器实现类，此类也是 Spring boot 中非 web 环境容器（新）。此类包含了`AnnotatedBeanDefinitionReader`和`ClassPathBeanDefinitionScanner`两个成员属性，其作用分别如下：
 
 - `AnnotatedBeanDefinitionReader`：用于读取注解创建 Bean 的定义信息
 - `ClassPathBeanDefinitionScanner`：负责扫描指定包获取 Bean 的定义信息
 
-#### 7.4.3. ClasspathXmlApplicationContext
+`AnnotationConfigApplicationContext` 类继承实现结构图：
+
+![](images/80355716230242.png)
+
+以下是一些重要继承关系的说明：
+
+1. ConfigurableApplicationContext：继承了 ApplicationContext 接口，增加了添加事件监听器、添加 BeanFactoryPostProcessor、设置 Environment，获取 ConfigurableListableBeanFactory 等功能
+2. AbstractApplicationContext：实现了 ConfigurableApplicationContext 接口
+3. GenericApplicationContext：继承了 AbstractApplicationContext，实现了 BeanDefinitionRegistry 接口，拥有了所有 ApplicationContext 的功能，并且可以注册 BeanDefinition，注意这个类中有一个属性(DefaultListableBeanFactory beanFactory)
+4. AnnotationConfigRegistry：可以单独注册某个为类为 BeanDefinition（可以处理该类上的 `@Configuration` 注解，已经可以处理 `@Bean` 注解），同时可以扫描
+5. AnnotationConfigApplicationContext：继承了 GenericApplicationContext，实现了 AnnotationConfigRegistry 接口，拥有了以上所有的功能
+
+#### 7.4.3. ClasspathXmlApplicationContext（重要）
 
 ```java
 public class ClassPathXmlApplicationContext extends AbstractXmlApplicationContext
 ```
 
-`ClasspathXmlApplicationContext` 是基于xml配置的高级容器类，它用于加载类路径下配置文件。
+`ClasspathXmlApplicationContext` 是基于xml配置的高级容器类，它用于加载类路径下配置文件。该类也是继承了 `AbstractApplicationContext`，但没有 `AnnotationConfigApplicationContext` 功能强大，比如没有注册 BeanDefinition 功能等
+
+`ClassPathXmlApplicationContext` 类继承实现结构图：
+
+![](images/53990117248668.png)
 
 #### 7.4.4. FileSystemXmlApplicationContext
 
@@ -1051,13 +1107,13 @@ Spring boot 中 servlet web 环境容器（新）
 
 Spring boot 中 reactive web 环境容器（新）
 
-## 8. BeanDefinitionReader（BeanDefinition读取器）
+## 8. BeanDefinitionReader - BeanDefinition 读取器
 
-Spring源码中提供了BeanDefinition读取器（BeanDefinitionReader），这些BeanDefinitionReader在实际使用Spring时用得少，但在Spring源码中用得多，相当于Spring源码的基础设施。
+Spring 源码中提供了 BeanDefinition 读取器（BeanDefinitionReader），这些 BeanDefinitionReader 在实际使用 Spring 时比较少用到，但在 Spring 源码中用得多，相当于 Spring 源码的基础设施。
 
 ### 8.1. AnnotatedBeanDefinitionReader（整理中）
 
-可以直接把某个类转换为BeanDefinition，并且会解析该类上的注解，具体使用案例如下：*注：以下案例没有配置包扫描与bean上没有任何`@Component`注解*
+可以直接把某个类转换为 BeanDefinition，并且会解析该类上的注解，具体使用案例如下：*注：以下案例没有配置包扫描与bean上没有任何`@Component`注解*
 
 ```java
 @Scope
@@ -1094,7 +1150,7 @@ public void testAnnotatedBeanDefinitionReader() {
 }
 ```
 
-> <font color=red>**注：该BeanDefinition读取器能解析的注解如`@Conditional`，`@Scope`、`@Lazy`、`@Primary`、`@DependsOn`、`@Role`、`@Description`**</font>
+> Notes: <font color=red>**该BeanDefinition读取器能解析的注解如`@Conditional`，`@Scope`、`@Lazy`、`@Primary`、`@DependsOn`、`@Role`、`@Description`**</font>
 
 ### 8.2. XmlBeanDefinitionReader
 
@@ -1110,6 +1166,10 @@ System.out.println(context.getBean("user"));
 ```
 
 ### 8.3. ClassPathBeanDefinitionScanner
+
+```java
+public class ClassPathBeanDefinitionScanner extends ClassPathScanningCandidateComponentProvider
+```
 
 `ClassPathBeanDefinitionScanner` 是扫描器，但是它的作用与 `BeanDefinitionReader` 类似，它可以进行扫描，扫描某个包路径，对扫描到的类进行解析，比如，扫描到的类上如果存在 `@Component` 注解，那么就会把这个类解析为一个 BeanDefinition 对象，比如：
 
@@ -1157,7 +1217,9 @@ public void test() throws IOException {
 - `ExcludeFilter`：排除过滤器
 - `IncludeFilter`：包含过滤器
 
-以上两个 Filter 是 Spring 扫描过程中用来过滤类是否需要扫描。示例如下：
+以上两个 Filter 是 Spring 扫描过程中用来过滤类是否需要扫描。在 Spring 的扫描逻辑中，默认会添加一个 `AnnotationTypeFilter` 给 `includeFilters`，表示默认情况下 Spring 扫描过程中会包含标识了 `@Component` 注解的类。
+
+详细的使用参考[《Spring 笔记-注解汇总》](/后端框架/Spring/Spring笔记04-注解汇总)的`@ComponentScan`注解章节，基础示例如下：
 
 ```java
 @ComponentScan(value = "com.moon",
@@ -1177,16 +1239,6 @@ public class AppConfig {
 
 > 以上配置表示扫描 `com.moon` 包下面的所有类时始终会包含 `UserService` 类，即使该类上没有标识 `@Component` 注解也会被扫描成 bean。
 
-在 Spring 的扫描逻辑中，默认会添加一个 `AnnotationTypeFilter` 给 `includeFilters`，表示默认情况下 Spring 扫描过程中会包含标识了 `@Component` 注解的类
-
-### 10.1. FilterType 分类
-
-1. `ANNOTATION`：表示是否包含某个注解
-2. `ASSIGNABLE_TYPE`：表示是否是某个类
-3. `ASPECTJ`：表示否是符合某个 Aspectj 表达式
-4. `REGEX`：表示是否符合某个正则表达式
-5. `CUSTOM`：自定义
-
 ## 11. Spring 源码相关扩展知识
 
 ### 11.1. JFR
@@ -1194,4 +1246,3 @@ public class AppConfig {
 JFR 是 Java Flight Record （Java飞行记录） 的缩写，是 JVM 内置的基于事件的JDK监控记录框架。Spring 源码有其应用。
 
 > 附带资料JFR介绍：https://zhuanlan.zhihu.com/p/122247741
-

@@ -576,6 +576,8 @@ public class SpringConfiguration {
 }
 ```
 
+> Tips: `@ComponentScan.Filter` 的 `type` 属性有默认值为 `FilterType.ANNOTATION`；还有 `classes` 属性等价于 `value` 属性
+
 测试
 
 ```java

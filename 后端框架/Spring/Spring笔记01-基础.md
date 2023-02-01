@@ -2115,21 +2115,21 @@ public void testMessageSource() {
 
 ```java
 AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(AppConfig.class);
-
+// 获取指定位置的文件
 Resource resource = context.getResource("file://D:\\code\\src\\main\\java\\com\\moon\\service\\UserService.java");
 System.out.println(resource.contentLength());
 System.out.println(resource.getFilename());
-
+// 获取网络资源
 Resource resource1 = context.getResource("https://www.baidu.com");
 System.out.println(resource1.contentLength());
 System.out.println(resource1.getURL());
-
+// 获取项目类路径下的配置文件
 Resource resource2 = context.getResource("classpath:spring.xml");
 System.out.println(resource2.contentLength());
 System.out.println(resource2.getURL());
 ```
 
-还可以一次性获取多个资源：
+还可以通过 `getResources` 方法，一次性获取多个资源：
 
 ```java
 @Test
@@ -2568,7 +2568,36 @@ public ApplicationEventMulticaster applicationEventMulticaster(ConfigurableAppli
 }
 ```
 
-### 12.7. BeanFactory 和 ApplicationContext 的区别
+### 12.7. 获取运行时环境
+
+`ApplicationContext` 接口具有获取运行时环境功能，通过 `getEnvironment()` 方法获取到 `ConfigurableEnvironment` 对象，通过该对象可以再获取不同类型的环境对象。基础使用示例如下：
+
+```java
+AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(AppConfig.class);
+
+Map<String, Object> systemEnvironment = context.getEnvironment().getSystemEnvironment();
+System.out.println(systemEnvironment);
+
+Map<String, Object> systemProperties = context.getEnvironment().getSystemProperties();
+System.out.println(systemProperties);
+
+MutablePropertySources propertySources = context.getEnvironment().getPropertySources();
+System.out.println(propertySources);
+
+System.out.println(context.getEnvironment().getProperty("NO_PROXY"));
+System.out.println(context.getEnvironment().getProperty("sun.jnu.encoding"));
+System.out.println(context.getEnvironment().getProperty("moon"));
+```
+
+注意上面示例中的 `MutablePropertySources` 对象是读取项目的 properties 配置文件，也可以利用 `@PropertySource` 注解来导入指定的 properties 文件中参数，并添加到运行时环境中
+
+```java
+@Configuration
+@PropertySource("classpath:spring.properties")
+public class ConfigApp {}
+```
+
+### 12.8. BeanFactory 和 ApplicationContext 的区别
   
 两者创建对象的时间点不一样
 

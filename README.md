@@ -45,15 +45,13 @@
   <li><a href="#/后端框架/Spring/Spring笔记01-基础">Spring 笔记-核心功能</a></li>
   <li><a href="#/后端框架/Spring/Spring笔记02-AOP">Spring 笔记-AOP</a></li>
   <li><a href="#/后端框架/Spring/Spring笔记03-Transaction">Spring 笔记-Transaction</a></li>
-  <li><a href="#/后端框架/Spring/Spring笔记09-其他">Spring 其他相关资料</a></li>
-  <li><a href="#/后端框架/Spring/Spring注解汇总">Spring 注解汇总</a></li>
+  <li><a href="#/后端框架/Spring/Spring笔记04-注解汇总">Spring 笔记-注解汇总</a></li>
+  <li><a href="#/后端框架/Spring/Spring笔记09-其他与案例">Spring 其他相关资料与案例</a></li>
+  <li><a href="#/后端框架/Spring/Spring源码分析00-Spring源码编译教程">Spring源码分析00 -Spring源码编译教程</a></li>
   <li><a href="#/后端框架/Spring/Spring源码分析01-底层核心概念解析">Spring 源码分析01-底层核心概念解析</a></li>
   <li><a href="#/后端框架/Spring/Spring源码分析02-IOC">Spring 源码分析02-IOC(控制反转)</a></li>
   <li><a href="#/后端框架/Spring/Spring源码分析03-AOP">Spring 源码分析03-AOP(面向切面编程)</a></li>
   <li><a href="#/后端框架/Spring/Spring源码分析04-Transaction">Spring 源码分析04-Transaction(事务)</a></li>
-  <li><a href="#/后端框架/Spring/Spring案例">Spring 案例</a></li>
-  <li><a href="#/后端框架/Spring/Spring源码编译教程">Spring 源码编译教程</a></li>
-  <li><a href="#/后端框架/Spring/网络资料-Spring事务管理（一）快速入门">网络资料-Spring事务管理（一）快速入门</a></li>
 </ul>
 
 ### 🐦 MyBatis
