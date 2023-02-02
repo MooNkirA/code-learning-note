@@ -1291,7 +1291,25 @@ Spring IoC 容器提供了一些特殊的接口，通过实现此类接口可以
 
 ### 10.1. BeanPostProcessor 接口扩展 Bean 功能
 
-`BeanPostProcessor` 接口定义了回调方法，可以实现这些方法来提供自定义（或覆盖容器的默认）实例化逻辑、依赖性解决逻辑等。如果想在 Spring 容器完成实例化、配置和初始化 Bean 之后实现一些自定义逻辑，也可以创建一个或多个自定义 `BeanPostProcessor` 实现。
+```java
+public interface BeanPostProcessor {
+    @Nullable
+    default Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
+        return bean;
+    }
+
+    @Nullable
+    default Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
+        return bean;
+    }
+}
+```
+
+`BeanPostProcessor` 接口定义了<font color=red>**Bean的初始化之前以及初始化之后**</font>的回调方法，可以实现这些方法来提供自定义（或覆盖容器的默认）实例化逻辑、依赖性解决逻辑等。
+
+通过实现 `BeanPostProcessor` 接口可以干涉 Spring 创建 Bean 的过程，在 Spring 容器对任意一个 Bean 完成实例化、配置和初始化的<font color=red>**前后**</font>去完成一些用户自定义的处理逻辑，也可以通过判断 beanName 来进行针对性处理（针对某个Bean，或某部分Bean）。
+
+Spring 支持创建一个或多个自定义 `BeanPostProcessor` 实现。
 
 #### 10.1.1. 基础使用示例
 
@@ -1370,7 +1388,6 @@ Cat(name=在 BeanPostProcessor 接口中设置的名称, age=2, color=pink)
 #### 10.1.2. 增强接口 InstantiationAwareBeanPostProcessor 示例（待整理）
 
 `InstantiationAwareBeanPostProcessor` 继承 `BeanPostProcessor` 接口
-
 
 #### 10.1.3. 增强接口 DestructionAwareBeanPostProcessor 示例（待整理）
 
@@ -1518,7 +1535,9 @@ Spring 提供了一些内置的 `BeanFactoryPostProcessor` 实现类
 
 #### 10.2.2. 自定义 BeanFactoryPostProcessor 实现
 
-以下示例自定义 `BeanFactoryPostProcessor` 后置处理器实现，分别模拟 `@ComponentScan` 注解扫描注册实例、`@Bean` 生成实例、解析 Mybatis 的 Mapper 接口生成代理实例等功能
+以下示例自定义 `BeanFactoryPostProcessor` 后置处理器实现，分别模拟 `@ComponentScan` 注解扫描注册实例、`@Bean` 生成实例、解析 Mybatis 的 Mapper 接口生成代理实例等功能。
+
+注：以下示例选择实现 `BeanFactoryPostProcessor` 子接口 `BeanDefinitionRegistryPostProcessor`，因为此接口的方法可以获取 `BeanDefinitionRegistry` 对象，此对象有注册 BeanDefinition 的方法
 
 ##### 10.2.2.1. 模拟解析 @ComponentScan
 
@@ -1542,7 +1561,7 @@ public class Component1 {
 }
 ```
 
-- 创建 `BeanFactoryPostProcessor` 后置处理器实现模拟解析 `@ComponentScan` 包扫描并生成实例功能。以下示例选择实现 `BeanFactoryPostProcessor` 子接口 `BeanDefinitionRegistryPostProcessor`，因为此接口的方法可以获取 `BeanDefinitionRegistry` 对象，此对象有注册 BeanDefinition 的方法
+- 创建 `BeanFactoryPostProcessor` 后置处理器实现模拟解析 `@ComponentScan` 包扫描并生成实例功能。
     1. Spring 操作元数据的工具类 `CachingMetadataReaderFactory`
     2. 通过注解元数据（`AnnotationMetadata`）获取直接或间接标注的注解信息
     3. 通过类元数据（`ClassMetadata`）获取类名，`AnnotationBeanNameGenerator` 工具方法生成 bean 名
@@ -1936,6 +1955,12 @@ public void test1() {
     - 若获取 `FactoryBean` 接口实现类实例本身，就必须在 beanName 前加上`&`符号，如：`getBean("&myBean")`
     - 若获取 `getObject()` 方法返回的实例，直接使用 beanName 即可，如：`getBean("myBean")`
 - 使用 `FactoryBean` 接口创建的实例，不会触发 Spring 的依赖注入、Aware 系列接口回调、`InitializingBean` 接口的 `afterPropertiesSet`、`BeanPostProcessor` 接口的 `postProcessBeforeInitialization` 等操作。但会执行 `BeanPostProcessor` 接口的 `postProcessAfterInitialization` 实例初始化后回调，也就是意味着创建的实例可以被代理增强
+
+#### 10.3.5. FactoryBean 接口与 @Bean 创建的对象的区别
+
+实现 `FactoryBean` 接口与 `@Bean` 这两种创建对象方式其实在大部分场景下都可以相互替换。但从实现原理来讲，使用 `@Bean` 注解定义的 Bean 是会经过完整的 Bean 生命周期的。而实现 `FactoryBean` 接口 `getObject()` 方法创建的 Bean 对象，Spring 只会对其进行**初始化后**的埋点增强。
+
+> Notes: 具体区别详见《Spring 源码分析》的笔记
 
 ## 11. BeanFactory
 
@@ -2610,9 +2635,9 @@ Spring 3.0 后引入了 core.convert 包，提供了一个通用的类型转换�
 
 ### 13.1. PropertyEditor
 
-JDK中提供的类型转化工具类 `PropertyEditor`
+`java.beans.PropertyEditor` 接口，是由 JDK 提供的类型转化工具
 
-- 自定义类型转化工具类，需要实现 `java.beans.PropertyEditor` 接口
+- 自定义类型转化工具类，需要实现 `PropertyEditor` 接口
 
 ```java
 public class StringToUserPropertyEditor extends PropertyEditorSupport implements PropertyEditor {
@@ -2763,7 +2788,7 @@ public interface GenericConverter {
 
 ### 13.5. ConversionService 接口
 
-ConversionService 是 Spring 提供的类型转化服务统一的 API，用于在运行时执行类型转换逻辑。它比PropertyEditor更强大
+`ConversionService` 接口是 Spring 提供的类型转化服务统一的 API，用于在运行时执行类型转换逻辑。它比原生的 `PropertyEditor` 更强大
 
 #### 13.5.1. 接口相关方法
 
@@ -2782,33 +2807,7 @@ public interface ConversionService {
 }
 ```
 
-#### 13.5.2. 自定义转换器的配置
-
-- xml 配置
-
-```xml
-<bean id="conversionService"
-      class="org.springframework.context.support.ConversionServiceFactoryBean">
-    <property name="converters">
-        <set>
-            <bean class="example.MyCustomConverter"/>
-        </set>
-    </property>
-</bean>
-```
-
-- 注解配置
-
-```java
-@Bean
-public ConversionServiceFactoryBean conversionService() {
-	ConversionServiceFactoryBean conversionServiceFactoryBean = new ConversionServiceFactoryBean();
-	conversionServiceFactoryBean.setConverters(Collections.singleton(new StringToUserConverter()));
-	return conversionServiceFactoryBean;
-}
-```
-
-#### 13.5.3. 基础示例
+#### 13.5.2. 基础示例
 
 创建字符串转对象的转换器
 
@@ -2841,6 +2840,32 @@ DefaultConversionService conversionService = new DefaultConversionService();
 conversionService.addConverter(new StringToUserConverter());
 User value = conversionService.convert("1", User.class);
 System.out.println(value);
+```
+
+#### 13.5.3. 自定义转换器的注册
+
+- xml 配置自定义转换器注册到 Spring 容器中
+
+```xml
+<bean id="conversionService"
+      class="org.springframework.context.support.ConversionServiceFactoryBean">
+    <property name="converters">
+        <set>
+            <bean class="example.MyCustomConverter"/>
+        </set>
+    </property>
+</bean>
+```
+
+- 注解配置自定义转换器注册到 Spring 容器中
+
+```java
+@Bean
+public ConversionServiceFactoryBean conversionService() {
+	ConversionServiceFactoryBean conversionServiceFactoryBean = new ConversionServiceFactoryBean();
+	conversionServiceFactoryBean.setConverters(Collections.singleton(new StringToUserConverter()));
+	return conversionServiceFactoryBean;
+}
 ```
 
 ### 13.6. TypeConverter 

@@ -229,10 +229,10 @@
 #### 🪐 Redis
 
 <ul class="docs">
-  <li><a href="#/数据库/Redis/Redis-基础">Redis 基础笔记</a></li>
   <li><a href="#/数据库/Redis/Redis-安装">Redis 安装</a></li>
-  <li><a href="#/数据库/Redis/Redis-场景应用设计">Redis 场景应用设计</a></li>
+  <li><a href="#/数据库/Redis/Redis-基础">Redis 基础笔记</a></li>
   <li><a href="#/数据库/Redis/Redis-操作命令">Redis 操作命令</a></li>
+  <li><a href="#/数据库/Redis/Redis-场景应用设计">Redis 场景应用设计</a></li>
 </ul>
 
 #### 🥭 MongoDb

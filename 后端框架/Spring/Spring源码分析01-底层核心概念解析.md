@@ -1107,11 +1107,27 @@ Spring boot 中 servlet web 环境容器（新）
 
 Spring boot 中 reactive web 环境容器（新）
 
-## 8. BeanDefinitionReader - BeanDefinition 读取器
+## 8. Spring 的 PostProcessor（后置处理器）
+
+Spring 提供了一系列的以 `PostProcessor` 为后缀的后置处理器，用于实现扩展功能
+
+### 8.1. BeanPostProcessor
+
+`BeanPostProcessor` 是 Bean 的后置处理器，用于对任意一个 Bean 的**初始化之前以及初始化之后**去额外的做一些用户自定义的逻辑，也可以通过判断 beanName 来进行针对性处理（针对某个Bean，或某部分Bean）。
+
+> Notes: 具体示例详见[《Spring 笔记-核心功能》笔记](/后端框架/Spring/Spring笔记01-基础)
+
+### 8.2. BeanFactoryPostProcessor
+
+`BeanFactoryPostProcessor` 是 Bean 工厂的后置处理器，会干涉 BeanFactory 的创建过程，实现接口的 `postProcessBeanFactory` 方法中，可以获取 `ConfigurableListableBeanFactory` 对象，从而可以对 BeanFactory 进行加工。
+
+> Notes: 具体示例详见[《Spring 笔记-核心功能》笔记](/后端框架/Spring/Spring笔记01-基础)
+
+## 9. BeanDefinitionReader - BeanDefinition 读取器
 
 Spring 源码中提供了 BeanDefinition 读取器（BeanDefinitionReader），这些 BeanDefinitionReader 在实际使用 Spring 时比较少用到，但在 Spring 源码中用得多，相当于 Spring 源码的基础设施。
 
-### 8.1. AnnotatedBeanDefinitionReader（整理中）
+### 9.1. AnnotatedBeanDefinitionReader（整理中）
 
 可以直接把某个类转换为 BeanDefinition，并且会解析该类上的注解，具体使用案例如下：*注：以下案例没有配置包扫描与bean上没有任何`@Component`注解*
 
@@ -1152,7 +1168,7 @@ public void testAnnotatedBeanDefinitionReader() {
 
 > Notes: <font color=red>**该BeanDefinition读取器能解析的注解如`@Conditional`，`@Scope`、`@Lazy`、`@Primary`、`@DependsOn`、`@Role`、`@Description`**</font>
 
-### 8.2. XmlBeanDefinitionReader
+### 9.2. XmlBeanDefinitionReader
 
 用于解析 `<bean />` 标签
 
@@ -1165,7 +1181,7 @@ int i = xmlBeanDefinitionReader.loadBeanDefinitions("spring.xml");
 System.out.println(context.getBean("user"));
 ```
 
-### 8.3. ClassPathBeanDefinitionScanner
+### 9.3. ClassPathBeanDefinitionScanner
 
 ```java
 public class ClassPathBeanDefinitionScanner extends ClassPathScanningCandidateComponentProvider
@@ -1183,7 +1199,7 @@ scanner.scan("com.moon");
 System.out.println(context.getBean("userService"));
 ```
 
-## 9. MetadataReader、ClassMetadata、AnnotationMetadata
+## 10. MetadataReader、ClassMetadata、AnnotationMetadata
 
 在 Spring 中需要去解析类的信息，比如类名、类中的方法、类上的注解，这些称之为类的<font color=red>**元数据**</font>，Spring 对类的元数据做了抽象，并提供了一些工具类。
 
@@ -1212,7 +1228,7 @@ public void test() throws IOException {
 
 > Notes: `SimpleMetadataReader` 使用的 ASM 技术去解析类时。因为 Spring 启动的时候需要进行包扫描，如果指定的包路径范围比较大，那么要扫描类的数量非常多，如果在 Spring 启动时就把这些类全部加载进 JVM 会造成资源的浪费与性能差的问题，因此使用了 ASM 技术。
 
-## 10. ExcludeFilter 和 IncludeFilter
+## 11. ExcludeFilter 和 IncludeFilter
 
 - `ExcludeFilter`：排除过滤器
 - `IncludeFilter`：包含过滤器
@@ -1239,9 +1255,121 @@ public class AppConfig {
 
 > 以上配置表示扫描 `com.moon` 包下面的所有类时始终会包含 `UserService` 类，即使该类上没有标识 `@Component` 注解也会被扫描成 bean。
 
-## 11. Spring 源码相关扩展知识
+## 12. Spring 的排序处理
 
-### 11.1. JFR
+### 12.1. OrderComparator
+
+```java
+public class OrderComparator implements Comparator<Object> 
+```
+
+`OrderComparator` 是 Spring 提供的一种比较器，实现 JDK 原生的 `java.util.Comparator` 接口，可以对实现 `Ordered` 接口所指定的顺序值进行比较，从而实现排序。
+
+例如有以下两个类，并且实现 `Ordered` 接口
+
+```java
+public class A implements Ordered {
+
+	@Override
+	public int getOrder() {
+		return 3;
+	}
+
+	@Override
+	public String toString() {
+		return this.getClass().getSimpleName();
+	}
+}
+
+public class B implements Ordered {
+
+	@Override
+	public int getOrder() {
+		return 2;
+	}
+
+	@Override
+	public String toString() {
+		return this.getClass().getSimpleName();
+	}
+}
+```
+
+基础示例：
+
+```java
+public class OrderComparatorTest {
+
+	public static void main(String[] args) {
+		A a = new A(); // order=3
+		B b = new B(); // order=2
+
+		OrderComparator comparator = new OrderComparator();
+		System.out.println(comparator.compare(a, b));  // 1
+
+		List list = new ArrayList<>();
+		list.add(a);
+		list.add(b);
+
+		// 按order值升序排序
+		list.sort(comparator);
+
+		System.out.println(list);  // B，A
+	}
+}
+```
+
+### 12.2. AnnotationAwareOrderComparator
+
+`AnnotationAwareOrderComparator` 是 Spring 中提供的 `OrderComparator` 的子类，它支持用 `@Order` 来指定排序值。
+
+```java
+@Order(3)
+public class A {
+
+	@Override
+	public String toString() {
+		return this.getClass().getSimpleName();
+	}
+}
+
+@Order(2)
+public class B {
+
+	@Override
+	public String toString() {
+		return this.getClass().getSimpleName();
+	}
+}
+```
+
+基础示例：
+
+```java
+public class AnnotationAwareOrderComparatorTest {
+
+	public static void main(String[] args) {
+		A a = new A(); // order=3
+		B b = new B(); // order=2
+
+		AnnotationAwareOrderComparator comparator = new AnnotationAwareOrderComparator();
+		System.out.println(comparator.compare(a, b)); // 1
+
+		List list = new ArrayList<>();
+		list.add(a);
+		list.add(b);
+
+		// 按order值升序排序
+		list.sort(comparator);
+
+		System.out.println(list); // B，A
+	}
+}
+```
+
+## 13. Spring 源码相关扩展知识
+
+### 13.1. JFR
 
 JFR 是 Java Flight Record （Java飞行记录） 的缩写，是 JVM 内置的基于事件的JDK监控记录框架。Spring 源码有其应用。
 

@@ -158,6 +158,13 @@ Redis 的Hashes（哈希）类型，类似的Java中的哈希类型，数据结�
 是要注意，哈希类型中的映射关系叫作 field-value，注意这里的 value 是指 field
 对应的值，不是键对应的值。
 
+### 3.4. Redis 集合类型存储数据的特点
+
+对于集合类型(List/Set/SortSet)，有如下共同点：
+
+- **如果元素都没有，那么这个 key 自动从 Redis 中删除**
+- **如果强行删除 key，那么原来的所有 value 也会被删除**
+
 ## 4. Jedis（Java 操作 Redis）
 
 ### 4.1. Jedis概述
@@ -377,8 +384,7 @@ RDB 持久化（Redis DataBase 缩写快照）把当前进程数据生成快照�
 手动触发有 `save` 和 `bgsave` 两命令
 
 - `save` 命令：阻塞当前 Redis，直到 RDB 持久化过程完成为止，若内存实例比较大会造成长时间阻塞，线上环境不建议用它
-- `bgsave` 命令：redis 进程执行 fork 操作创建子线程，由子线程完成持久化，阻塞时间很短（微秒级），是 save 的优化，在执行 `redis-cli shutdown` 关闭 redis 服务时，如果没有开
-启 AOF 持久化，会自动执行 bgsave。显然 bgsave 是对 save 的优化。
+- `bgsave` 命令：redis 进程执行 fork 操作创建子线程，由子线程完成持久化，阻塞时间很短（微秒级），是 save 的优化，在执行 `redis-cli shutdown` 关闭 redis 服务时，如果没有开启 AOF 持久化，会自动执行 bgsave。显然 bgsave 是对 save 的优化。
 
 bgsave 运行流程
 

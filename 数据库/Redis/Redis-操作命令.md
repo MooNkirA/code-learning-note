@@ -969,76 +969,68 @@ Redis中的Hash类型可以看成具有String Key和String Value的map容器。�
 - `hkeys key`：获得所有的key
 - `hvals key`：获得所有的value
 
-## 4. Redis存储数据
-
-- 对于集合类型(List/Set/SortSet)，共同点：
-    - **如果元素都没有，那么这个key自动从Redis中删除**
-    - **如果强行删除key，那么原来的所有value也会被删除**
-
-## 5. 存储List(了解)
+## 4. 存储List(了解)
 
 在Redis中，list类型是按照插入顺序排序的字符串链表。我们可以在其头部（left）和尾部（right）添加新的元素。在插入时，如果该key不存在，Redis将为该key创建一个新的链表。与此相反，如果链表中的所有元素都被删除了，那么该key也将会被从数据库中删除。list中可以包含的最大元素数据量4294967295（十亿以上）。
 
-List接口
-	ArrayList
-	LinkedList,redis中的list就类似于java中的LinkList
+在 java 中 List 接口有常用的有 ArrayList、LinkedList，而在 redis 中的 list 就类似于 java 中的 LinkedList。
 
-### 5.1. 两端添加
+### 4.1. 两端添加
 
 - `lpush key value1 value2……`：在指定的key对应的list的头部插入所有的value，如果该key不存在，该命令在插入之前创建一个与该key对应的空链表，再从头部插入数据。插入成功，返回元素的个数。
 - `rpush key value1 value2……`：在指定的key对应的list的尾部插入所有的value，如果该key不存在，该命令在插入之前创建一个与该key对应的空链表，再从尾部插入数据。插入成功，返回元素的个数。
 
-### 5.2. 查看列表
+### 4.2. 查看列表
 
 - `lrange key start end`：获取链表中从start到end的元素的值，start和end从0开始计数，如果为负数，-1表示倒数第一个元素，-2表示倒数第二个元素，以此类推。
 - 查看所有列表：(0~-1就可以查看所有值)。例：`lrange key 0 -1`
 
 ![1](images/20190511095521734_6959.jpg)
 
-### 5.3. 两边弹出
+### 4.3. 两边弹出
 
 - `lpop key`：返回并弹出指定的key对应链表中头部（left）第一个元素，如果该key不存在，返回nil。
 - `rpop key`：返回并弹出指定的key对应链表中尾部（right）第一个元素，如果该key不存在，返回nil。
 
-### 5.4. 获取列表中元素的个数
+### 4.4. 获取列表中元素的个数
 
 `llen key`：返回指定key对应链表中元素的个数，l代表list，len代表length
 
-## 6. 存储set(了解)
+## 5. 存储set(了解)
 
 Redis中，我们可以将set类型看作是没有排序的字符集合，set中可以包含的最大元素数据量4294967295（十亿以上）。
 
 **和list不同，set集合不允许出现重复元素，如果多次添加相同元素，set中仅保留一份。**
 
-### 6.1. 添加/删除元素
+### 5.1. 添加/删除元素
 
 - `sadd key value1 value2……`：向set中添加数据，如果该key的值已存在，则不会重复添加，返回添加成功个数
 - `srem key value1 value2……`：删除set中指定的成员，返回删除成功个数
 
-### 6.2. 获得集体中的元素
+### 5.2. 获得集体中的元素
 
 `smembers key`：获取set集合中所有元素
 
 - 直接删除key，那么key对应的list-set-sortedset都会删除；
 - 如果key对应的所有值删除了，那么key也会自动被删除
 
-### 6.3. 判断元素是否在集合中存在
+### 5.3. 判断元素是否在集合中存在
 
 - `sismember key value`：判断key中指定的元素是否在该set集合中存在。存在则返回1，不存在则返回0
 
-## 7. 存储sortedset
+## 6. 存储sortedset
 
 sortedset和set类型极为类似，它们都是字符串的集合，都不允许重复的元素出现在一个set中。它们之间的主要区别是**sortedset中每一个元素都会有一个分数（score）与之关联，Redis正是通过分数来为集合中的元素进行从小到大的排序（默认）。**
 
 **sortedset集合中的元素必须是唯一的，但分数（score）却是可以重复。**
 
-### 7.1. 添加元素
+### 6.1. 添加元素
 
 - `zadd key score value score value score value`
     - 将所有元素以及对应的分数，存放到sortedset集合中，如果该元素已存在则会用新的分数替换原来的分数。
     - 返回值是新加入到集合中的元素个数，不包含之前已经存在的元素。
 
-### 7.2. 查询元素（从小到大）
+### 6.2. 查询元素（从小到大）
 
 - `zrange key start end`
     - 获取集合中下标为start到end的元素，不带分数排序之后的sortedSet与list的位置是一样，位置从左到右是正数，从0开始，位置从右到左是负数，从-1开始，-1是倒数第一个元素，-2倒数第二个元素
@@ -1046,30 +1038,30 @@ sortedset和set类型极为类似，它们都是字符串的集合，都不允�
     - 获取集合中下标为start到end的元素，带分数按分数从小到大排序
     - 如果相同用户的话，不会再将用户名插入集合中，但分数可以替换原来的分数
 
-### 7.3. 查询元素（从大到小）
+### 6.3. 查询元素（从大到小）
 
 - `zrevrange key start end`：按照元素分数从大到小，获取集合中下标为start到end的元素，不带分数
 - `zrevrange key start end withscores`：按照元素分数从大到小，获取集合中下标为start到end的元素，带分数
 
-### 7.4. 获取元素分数
+### 6.4. 获取元素分数
 
 `zscore key member`：返回指定元素的分数
 
-### 7.5. 获取元素数量
+### 6.5. 获取元素数量
 
 `zcard key`：获取集合中元素数量
 
-### 7.6. 删除元素
+### 6.6. 删除元素
 
 `zrem key member member member`：从集合中删除指定的元素
 
-### 7.7. 按照分数范围删除元素
+### 6.7. 按照分数范围删除元素
 
 `zremrangebyscore key min max`：按照分数范围删除元素
 
-## 8. Redis其他知识（了解）
+## 7. Redis其他知识（了解）
 
-### 8.1. 服务器命令(自学)
+### 7.1. 服务器命令(自学)
 
 - **ping**，测试连接是否存活
     - 执行下面命令之前，我们停止redis 服务器
@@ -1085,7 +1077,7 @@ sortedset和set类型极为类似，它们都是字符串的集合，都不允�
 - **flushdb**，删除当前选择数据库中的所有key。
 - **flushall**，删除所有数据库中的所有key。
 
-### 8.2. 消息订阅与发布
+### 7.2. 消息订阅与发布
 
 - 命令：`subscribe channel`
     - 订阅频道，例：subscribe mychat，订阅mychat这个频道
@@ -1096,7 +1088,7 @@ sortedset和set类型极为类似，它们都是字符串的集合，都不允�
 
 其他详见day50笔记
 
-### 8.3. redis事务
+### 7.3. redis事务
 
 - redis事务特征
     - 在事务中的所有命令都将会被串行化的顺序执行，事务执行期间，Redis不会再为其它客户端的请求提供任何服务

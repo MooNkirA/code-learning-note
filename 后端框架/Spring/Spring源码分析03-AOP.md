@@ -1,6 +1,6 @@
 # Spring 源码分析 - AOP
 
-> 此笔记只针对 Spring 源码中 AOP 功能实现分析，关于 Spring AOP 基础理论与使用详见[《Spring笔记02-AOP.md》](/后端框架/Spring/Spring笔记02-AOP)
+> 此笔记只针对 Spring 源码中 AOP 功能实现分析，关于 Spring AOP 基础理论与使用详见[《Spring 笔记-AOP》](/后端框架/Spring/Spring笔记02-AOP)
 
 ## 1. Spring AOP 前置知识
 
@@ -41,9 +41,7 @@ public interface Pointcut {
 
 - 通知：典型接口为 MethodInterceptor 代表环绕通知
 
-
 #### 1.1.3. 切面
-
 
 - 切面：Advisor，包含一个 Advice 通知，PointcutAdvisor 包含一个 Advice 通知和一个 Pointcut
 
