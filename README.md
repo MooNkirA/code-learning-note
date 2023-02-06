@@ -205,17 +205,17 @@
 #### 🔢 MySQL
 
 <ul class="docs">
-  <li><a href="#/数据库/MySQL/MySQL数据库00-安装与部署">MySQL数据库-安装与部署</a></li>
-  <li><a href="#/数据库/MySQL/MySQL数据库01-体系架构">MySQL数据库-体系架构</a></li>
-  <li><a href="#/数据库/MySQL/MySQL数据库02-基础">MySQL数据库-基础（SQL基础、函数）</a></li>
-  <li><a href="#/数据库/MySQL/MySQL数据库03-进阶">MySQL数据库-进阶（存储过程、存储函数、视图、触发器）</a></li>
-  <li><a href="#/数据库/MySQL/MySQL数据库04-事务">MySQL数据库-事务</a></li>
-  <li><a href="#/数据库/MySQL/MySQL数据库05-索引">MySQL数据库-索引</a></li>
-  <li><a href="#/数据库/MySQL/MySQL数据库06-锁">MySQL数据库-锁</a></li>
-  <li><a href="#/数据库/MySQL/MySQL数据库07-运维">MySQL数据库-运维篇（日志、主从复制、读写分离、分库分表）</a></li>
-  <li><a href="#/数据库/MySQL/MySQL数据库08-开发规范">MySQL 数据库开发规范</a></li>
-  <li><a href="#/数据库/MySQL/MySQL数据库09-性能优化">MySQL 数据库性能优化</a></li>
-  <li><a href="#/数据库/MySQL/MySQL数据库99-SQL示例">SQL 练习示例</a></li>
+  <li><a href="#/数据库/MySQL/MySQL-00-安装与部署">MySQL数据库-安装与部署</a></li>
+  <li><a href="#/数据库/MySQL/MySQL-01-体系架构">MySQL数据库-体系架构</a></li>
+  <li><a href="#/数据库/MySQL/MySQL-02-基础">MySQL数据库-基础（SQL基础、函数）</a></li>
+  <li><a href="#/数据库/MySQL/MySQL-03-进阶">MySQL数据库-进阶（存储过程、存储函数、视图、触发器、MySQL 8.x 新特性）</a></li>
+  <li><a href="#/数据库/MySQL/MySQL-04-事务">MySQL数据库-事务</a></li>
+  <li><a href="#/数据库/MySQL/MySQL-05-索引">MySQL数据库-索引</a></li>
+  <li><a href="#/数据库/MySQL/MySQL-06-锁">MySQL数据库-锁</a></li>
+  <li><a href="#/数据库/MySQL/MySQL-07-运维">MySQL数据库-运维篇（日志、主从复制、读写分离、分库分表）</a></li>
+  <li><a href="#/数据库/MySQL/MySQL-08-开发规范">MySQL 数据库开发规范</a></li>
+  <li><a href="#/数据库/MySQL/MySQL-09-性能优化">MySQL 数据库性能优化</a></li>
+  <li><a href="#/数据库/MySQL/MySQL-99-SQL示例">SQL 练习示例</a></li>
 </ul>
 
 #### 🅾 Oracle

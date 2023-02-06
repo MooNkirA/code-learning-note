@@ -412,9 +412,40 @@ InnoDB 存储引擎是以页为单位来管理存储空间，在进行的增删�
 - **redo 日志占用的空间非常小**。存储表空间 ID、页号、偏移量以及需要更新的值所需的存储空间是很小的。
 - **redo 日志是顺序写入磁盘的**。在执行事务的过程中，每执行一条语句，就可能产生若干条 redo 日志，这些日志是按照产生的顺序写入磁盘的，也就是使用顺序 IO。
 
-该日志文件由两部分组成：重做日志缓冲（redo log buffer）以及重做日志文件（redo log file），前者是在内存中，后者在磁盘中。当事务提交之后会把所有修改信息都存到该日志文件中，用于在刷新脏页到磁盘，发生错误时，进行数据恢复使用。
+该日志文件由两部分组成：重做日志缓冲（redo log buffer）以及重做日志文件（redo log file），前者是在内存中，后者在磁盘中。当事务提交之后会把所有修改信息都存到该日志文件中，用于在刷新该页到磁盘，发生错误时，进行数据恢复使用。
 
-### 1.2. redo 日志格式
+### 1.2. redo log 关键参数
+
+```sql
+mysql> SHOW VARIABLES LIKE '%innodb_log_%';
++------------------------------------+----------+
+| Variable_name                      | Value    |
++------------------------------------+----------+
+| innodb_log_buffer_size             | 1048576  |
+| innodb_log_checksums               | ON       |
+| innodb_log_compressed_pages        | ON       |
+| innodb_log_file_size               | 50331648 |
+| innodb_log_files_in_group          | 2        |
+| innodb_log_group_home_dir          | .\       |
+| innodb_log_spin_cpu_abs_lwm        | 80       |
+| innodb_log_spin_cpu_pct_hwm        | 50       |
+| innodb_log_wait_for_flush_spin_hwm | 400      |
+| innodb_log_write_ahead_size        | 8192     |
+| innodb_log_writer_threads          | ON       |
++------------------------------------+----------+
+11 rows in set (0.05 sec)
+```
+
+通过以上 SQL 语句可以查询到 redo log 相关的关键参数，重点关注的参数如下：
+
+- `innodb_log_buffer_size`：设置 redo log buffer 大小参数，默认16M ，最大值是4096M，最小值为1M。
+- `innodb_log_group_home_dir`：设置 redo log 文件存储位置参数，默认值为"`./`"，即 innodb 数据文件存储位置，其中 redo log 文件如：ib_logfile0、ib_logfile1。（*注：mysql 8.0 版本后名称好像不一样了*）
+- `innodb_log_files_in_group`：设置 redo log 文件的个数，命名方式如: ib_logfile0, iblogfile1,...iblogfileN。默认2个，最大100个。
+- `innodb_log_file_size`：设置单个 redo log 文件大小，默认值为48M，最大值为512G。注意最大值指的是整个 redo log 系列文件之和，即(`innodb_log_files_in_group * innodb_log_file_size`)不能大于最大值512G。
+
+> Notes: 后面会结合具体场景分析说明配置的作用。
+
+### 1.3. redo 日志格式
 
 redo 日志本质上只是记录了一下事务对数据库的修改内容。 InnoDB 们针对事务对数据库的不同修改场景定义了多种类型的 redo 日志，但是绝大部分类型的 redo 日志都有下边这种通用的结构：
 
@@ -427,7 +458,7 @@ redo 日志本质上只是记录了一下事务对数据库的修改内容。 In
 - `page number`：页号。
 - `data`：该条 redo 日志的具体内容。
 
-### 1.3. 简单 redo 日志类型
+#### 1.3.1. 简单 redo 日志类型
 
 InnoDB 的记录行格式，如果没有为某个表显式的定义主键，并且表中也没有定义`unique`键，那么 InnoDB 会自动的为表添加一个称之为 row_id 的隐藏列作为主键。为这个 row_id 隐藏列赋值的方式如下：
 
@@ -445,7 +476,7 @@ Max Row ID 属性占用的存储空间是 8 个字节，当某个事务向某个
 - MLOG_8BYTE（type 字段对应的十进制数字为 8）：表示在页面的某个偏移量处写入 8 个字节的 redo 日志类型。
 - MLOG_WRITE_STRING（type 字段对应的十进制数字为 30）：表示在页面的某个偏移量处写入一串数据。
 
-Max Row ID 属性实际占用 8 个字节的存储空间，所以在修改页面中的该属性时，会记录一条类型为MLOG_8BYTE的redo日志，MLOG_8BYTE的 redo 日志结构如下所示：
+Max Row ID 属性实际占用 8 个字节的存储空间，所以在修改页面中的该属性时，会记录一条类型为 MLOG_8BYTE 的 redo 日志，MLOG_8BYTE 的 redo 日志结构如下所示：
 
 ![](images/20210529121443029_23295.png)
 
@@ -453,7 +484,7 @@ Max Row ID 属性实际占用 8 个字节的存储空间，所以在修改页面
 >
 > 其余 MLOG_1BYTE、MLOG_2BYTE、MLOG_4BYTE 类型的 redo 日志结构和MLOG_8BYTE 的类似，只不过具体数据中包含对应个字节的数据而已。MLOG_WRITE_STRING 类型的 redo 日志表示写入一串数据，但是因为不能确定写入的具体数据占用多少字节，所以需要在日志结构中还会多一个 len 字段。
 
-### 1.4. 复杂 redo 日志类型
+#### 1.3.2. 复杂 redo 日志类型
 
 有些情况，执行一条语句会修改非常多的页面，包括系统数据页面和用户数据页面（用户数据指的就是聚簇索引和二级索引对应的B+树）。如：以 INSERT 语句为例，它除了要向 B+树的页面中插入数据，也可能更新系统数据 Max Row ID 的值。表中包含多少个索引，一条 INSERT 语句就可能更新多少棵 B+树。
 
@@ -477,9 +508,9 @@ Max Row ID 属性实际占用 8 个字节的存储空间，所以在修改页面
 
 <font color=red>**总结：redo 日志会把事务在执行过程中对数据库所做的所有修改都记录下来，在之后系统崩溃重启后可以把事务所做的任何修改都恢复出来。**</font>
 
-### 1.5. Mini-Transaction
+### 1.4. Mini-Transaction
 
-#### 1.5.1. Mini-Transaction 的概念
+#### 1.4.1. Mini-Transaction 的概念
 
 MySQL 把对底层页面中的一次原子访问的过程称之为一个 Mini-Transaction。*比如：修改一次 Max Row ID 的值算是一个 Mini-Transaction，向某个索引对应的 B+树中插入一条记录的过程也算是一个Mini-Transaction。*
 
@@ -487,7 +518,7 @@ MySQL 把对底层页面中的一次原子访问的过程称之为一个 Mini-Tr
 
 一个事务可以包含若干条语句，每一条语句其实是由若干个 Mini-Transaction 组成，每一个 Mini-Transaction 又可以包含若干条 redo 日志，最终形成了一个树形结构。
 
-#### 1.5.2. 以组的形式写入 redo 日志
+#### 1.4.2. 以组的形式写入 redo 日志
 
 一条 INSERT 语句可能会修改很多的页面，对这些页面的更改都发生在 Buffer Pool 中，所以在修改完页面之后，需要记录一下相应的 redo 日志。而执行语句的过程中产生的 redo 日志被 InnoDB 人为的划分成了若干个不可分割的组。
 
@@ -507,9 +538,9 @@ InnoDB 认为向某个索引对应的 B+树中插入一条记录的这个过程�
 
 所以规定在执行这些需要保证原子性的操作时必须以组的形式来记录的 redo 日志，在进行系统崩溃重启恢复时，针对某个组中的 redo 日志，要么把全部的日志都恢复掉，要么一条也不恢复。在实现上，根据多个 redo 日志的不同，使用了特殊的 redo 日志类型作为组的结尾，来表示一组完整的 redo 日志。
 
-### 1.6. redo 日志的写入过程
+### 1.5. redo 日志的写入过程
 
-#### 1.6.1. redo log block 和日志缓冲区
+#### 1.5.1. redo log block 和日志缓冲区
 
 InnoDB 为了更好的进行系统崩溃恢复，把通过 Mini-Transaction 生成的 redo 日志都放在了大小为 512 字节的块（block）中
 
@@ -519,21 +550,22 @@ MySQL 为了解决磁盘速度过慢的问题而引入了 Buffer Pool。同理�
 
 Mini-Transaction 执行过程中可能产生若干条 redo 日志，这些 redo 日志是一个不可分割的组，所以其实并不是每生成一条 redo 日志，就将其插入到 log buffer 中，而是每个 Mini-Transaction 运行过程中产生的日志先暂时存到一个地方，当该 Mini-Transaction 结束的时候，将过程中产生的一组 redo 日志再全部复制到 log buffer 中。
 
-#### 1.6.2. redo 日志刷盘时机
+#### 1.5.2. redo 日志刷盘时机
 
 Mini-Transaction 运行过程中产生的一组 redo 日志是在 Mini-Transaction 结束时会被复制到 log buffer 中，但在一些情况下它们会被刷新到磁盘里，比如：
 
 - log buffer 空间不足时。log buffer 的大小是有限的（通过系统变量 innodb_log_buffer_size 指定），如果不停的往这个有限大小的 log buffer 里塞入日志，很快它就会被填满。InnoDB 认为如果当前写入 log buffer 的 redo 日志量已经占满了 log buffer 总容量的大约一半左右，就需要把这些日志刷新到磁盘上。
 - 事务提交时。使用 redo 日志记录事务的操作主要是因为它占用的空间少，并且是顺序写，在事务提交时可以不把修改过的 Buffer Pool 页面刷新到磁盘，但是为了保证持久性，必须要把修改这些页面对应的 redo 日志刷新到磁盘
-- MySQL后台有一个线程，大约每秒都会刷新一次 log buffer 中的 redo 日志到磁盘
+- MySQL 后台有一个线程，大约每秒都会刷新一次 log buffer 中的 redo 日志到磁盘
 - 正常关闭服务器时
 
-#### 1.6.3. redo 日志文件组
+#### 1.5.3. redo 日志文件组
 
 使用以下命令可以查看 MySQL 的数据目录，其中默认有两个名为 `ib_logfile0` 和 `ib_logfile1` 的文件，log buffer 中的日志默认情况下就是刷新到这两个磁盘文件中。
 
 ```sql
-SHOW VARIABLES LIKE 'datadir'
+-- 查询数据库的数据目录
+SHOW VARIABLES LIKE 'datadir';
 ```
 
 修改以下启动参数来设置 redo 日志文件
@@ -544,19 +576,19 @@ SHOW VARIABLES LIKE 'datadir'
 
 磁盘上的 redo 日志文件可以不只一个，而是以一个日志文件组的形式出现的。这些文件以 `ib_logfile[数字]`（数字可以是 0、1、2...）的形式进行命名。在将 redo 日志写入日志文件组时，是从 `ib_logfile0` 开始写，如果 `ib_logfile0` 写满了，就接着 `ib_logfile1` 写，同理，`ib_logfile1` 写满了就去写 `ib_logfile2`，依此类推。如果写满最后一个文件，就会重新转到 `ib_logfile0` 继续写。
 
-#### 1.6.4. redo 日志文件格式
+#### 1.5.4. redo 日志文件格式
 
 log buffer 本质上是一片连续的内存空间，被划分成了若干个 512 字节大小的 block。将 log buffer 中的 redo 日志刷新到磁盘的本质就是把 block 的镜像写入日志文件中，所以 redo 日志文件其实也是由若干个 512 字节大小的 block 组成。
 
 redo 日志文件组中的每个文件大小都一样，格式也一样，都是由两部分组成：前 2048 个字节，也就是前 4 个 block 是用来存储一些管理信息的。从第 2048 字节往后是用来存储 log buffer 中的 block 镜像的。
 
-### 1.7. Log Sequence Number
+### 1.6. Log Sequence Number
 
 自MySQL系统开始运行，就不断的在修改页面，Redo 日志的量在不断的递增，InnoDB 为记录已经写入的 redo 日志量，设计了一个称之为 Log Sequence Number (日志序列号，简称 LSN)的全局变量。规定初始 LSN 的值为 8704（也就是一条 redo 日志也没写入时，LSN 的值为 8704）。
 
 在向 log buffer 中写入 redo 日志时不是一条一条写入的，而是以一个 Mini-Transaction 生成的一组 redo 日志为单位进行写入的。从上边的描述中可以看出来，每一组由 Mini-Transaction 生成的 redo 日志都有一个唯一的 LSN 值与其对应，LSN 值越小，说明 redo 日志产生的越早。
 
-#### 1.7.1. flushed_to_disk_lsn
+#### 1.6.1. flushed_to_disk_lsn
 
 InnoDB 中有一个 `buf_next_to_write` 的全局变量，标记当前 log buffer 中已经有哪些日志被刷新到磁盘中了。
 
@@ -568,7 +600,7 @@ LSN 是表示当前系统中写入的 redo 日志量，这包括了写到 log bu
 
 > Tips: 应用程序向磁盘写入文件时其实是先写到操作系统的缓冲区中去，如果某个写入操作要等到操作系统确认已经写到磁盘时才返回，那需要调用一下操作系统提供的 `fsync` 函数。其实只有当系统执行了 `fsync` 函数后，`flushed_to_disk_lsn` 的值才会跟着增长，当仅仅把 log buffer 中的日志写入到操作系统缓冲区却没有显式的刷新到磁盘时，另外的一个名为 `write_lsn` 的值跟着增长。当然系统的 LSN 值远不止前面描述的 lsn，还有很多。
 
-#### 1.7.2. 查看系统中的各种 LSN 值
+#### 1.6.2. 查看系统中的各种 LSN 值
 
 查看当前 InnoDB 存储引擎中的各种 LSN 值的情况
 
@@ -583,15 +615,25 @@ SHOW ENGINE INNODB STATUS;
 - `Pages flushed up to`：代表 flush 链表中被最早修改的那个页面对应的 oldest_modification 属性值。
 - `Last checkpoint at`：当前系统的 checkpoint_lsn 值。
 
-### 1.8. innodb_flush_log_at_trx_commit 的用法
+### 1.7. innodb_flush_log_at_trx_commit 参数
 
-为了保证事务的持久性，用户线程在事务提交时需要将该事务执行过程中产生的所有 redo 日志都刷新到磁盘上。会很明显的降低数据库性能。如果对事务的持久性要求不是那么强烈的话，可以选择修改系统变量的`innodb_flush_log_at_trx_commit`的值，该变量有 3 个可选的值：
+为了保证事务的持久性，用户线程在事务提交时需要将该事务执行过程中产生的所有 redo 日志都刷新到磁盘上，但这样会很明显的降低数据库性能。
 
-- 当该系统变量值为`0`时，表示在事务提交时不立即向磁盘中同步 redo 日志，这个任务是交给后台线程做的。
-- 当该系统变量值为`1`时，表示在事务提交时需要将 redo 日志同步到磁盘，可以保证事务的持久性。*此值也是 `innodb_flush_log_at_trx_commit` 的默认值*。
-- 当该系统变量值为`2`时，表示在事务提交时需要将 redo 日志写到操作系统的缓冲区中，但并不需要保证将日志真正的刷新到磁盘。*这种情况下如果数据库挂了，操作系统没挂的话，事务的持久性还是可以保证的，但是操作系统也挂了的话，那就不能保证持久性了。*
+MySQL 提供了控制 redo log 的写入策略的系统变量参数 `innodb_flush_log_at_trx_commit`，该变量有 3 个可选的值：
 
-查询看当前事务redo日志刷盘参数
+- 当该系统变量值为`0`时，表示在事务提交时不立即将 redo log buffer 中向磁盘中同步 redo 日志，这个任务是交给后台线程做的。数据库宕机可能会丢失数据。
+- 当该系统变量值为`1`时（默认值），表示在事务提交时需要将 redo 日志同步持久化到磁盘。此方式可以保证事务的持久性，数据最安全，不会因为数据库宕机丢失数据，但是效率稍微差一点，线上系统推荐这个设置。
+- 当该系统变量值为`2`时，表示在事务提交时需要将 redo 日志写到操作系统的缓冲区（page cache）中，但并不需要马上将日志真正的刷新到磁盘。*这种情况如果数据库宕机，事务的持久性还是可以保证的，不会丢失数据的；但如果操作系统宕机了，page cache 里的数据还没来得及写入磁盘文件的话，那就不能保证持久性了，会丢失数据*。
+
+#### 1.7.1. redo log 写入策略流程图
+
+InnoDB 有一个后台线程，每隔 1 秒，就会把 redo log buffer 中的日志，调用 操作系统函数 write 写到文件系统的 page cache，然后调用操作系统函数 fsync 持久化到磁盘文件。 
+
+![](images/511081916230246.jpg)
+
+#### 1.7.2. 查询与设置参数
+
+查询看当前事务 redo 日志刷盘参数
 
 ```sql
 mysql> show variables like 'innodb_flush_log_at_trx_commit';
@@ -603,13 +645,19 @@ mysql> show variables like 'innodb_flush_log_at_trx_commit';
 1 row in set (0.02 sec)
 ```
 
-### 1.9. 崩溃后的恢复
+设置 `innodb_flush_log_at_trx_commit` 参数值(也可以在 my.ini 或 my.cnf 文件里配置)：
 
-#### 1.9.1. 恢复机制
+```sql
+set global innodb_flush_log_at_trx_commit=1;  
+```
+
+### 1.8. 崩溃后的恢复
+
+#### 1.8.1. 恢复机制
 
 MySQL 可以根据 redo 日志中的各种 LSN 值，来确定恢复的起点和终点。然后将 redo 日志中的数据，以哈希表的形式，将一个页面下的放到哈希表的一个槽中。之后就可以遍历哈希表，因为对同一个页面进行修改的 redo 日志都放在了一个槽里，所以可以一次性将一个页面修复好（避免了很多读取页面的随机 IO）。并且通过各种机制，避免无谓的页面修复，比如已经刷新的页面，进而提升崩溃恢复的速度
 
-#### 1.9.2. 崩溃后的恢复为什么不用 binlog？
+#### 1.8.2. 崩溃后的恢复为什么不用 binlog？
 
 1. redo log 与 binlog 两者使用方式不一样。binlog 会记录表所有更改操作，包括更新删除数据，更改表结构等等，主要用于人工恢复数据；而 redo log 对于用户是不可见的，它是 InnoDB 用于保证crash-safe 能力的，也就是在事务提交后 MySQL 崩溃的话，可以保证事务的持久性，即事务提交后其更改是永久性的。
 2. redo log 是 InnoDB 引擎特有的；binlog 是 MySQL 的 Server 层实现的，所有引擎都可以使用。
@@ -628,7 +676,31 @@ MySQL 可以根据 redo 日志中的各种 LSN 值，来确定恢复的起点和
 
 ## 2. undo log（撤销日志）
 
-### 2.1. 事务回滚
+InnoDB 对 undo log 文件的管理采用段的方式，也就是回滚段（rollback segment）。每个回滚段记录了 1024 个 undo log segment ，每个事务只会使用一个 undo log segment。
+
+MySQL 5.5 版本，只有一个回滚段，最大同时支持的事务数量为1024个。从 MySQL 5.6 版本开始，InnoDB 支持最大 128 个回滚段，故其支持同时在线的事务限制提高到了 `128*1024`。
+
+### 2.1. 查询 undo log 参数
+
+```sql
+mysql> SHOW VARIABLES LIKE '%innodb_undo_%';
++--------------------------+-------+
+| Variable_name            | Value |
++--------------------------+-------+
+| innodb_undo_directory    | .\    |
+| innodb_undo_log_encrypt  | OFF   |
+| innodb_undo_log_truncate | ON    |
+| innodb_undo_tablespaces  | 2     |
++--------------------------+-------+
+```
+
+参数说明：
+
+- `innodb_undo_directory`：设置 undo log 文件所在的路径。该参数的默认值为"`./`"，即 innodb 数据文件存储位置，目录下 ibdata1 文件就是 undo log 存储的位置。
+- `innodb_undo_logs`：设置 undo log 文件内部回滚段的个数，默认值为 128。
+- `innodb_undo_tablespaces`：设置 undo log 文件的数量，这样回滚段可以较为平均地分布在多个文件中。设置该参数后，会在路径 `innodb_undo_directory` 看到 undo 为前缀的文件。
+
+### 2.2. 事务回滚
 
 事务需要保证原子性，要么全部成功，要么全部失败。比如：
 
@@ -645,9 +717,9 @@ MySQL 可以根据 redo 日志中的各种 LSN 值，来确定恢复的起点和
 
 **为了回滚而记录的这些东西称之为撤销日志，英文名为 undo log（undo日志）。这里需要注意的一点是，由于查询操作（`SELECT`）并不会修改任何用户记录，所以在查询操作执行时，并不需要记录相应的 undo 日志**。在InnoDB中，不同类型的操作产生的 undo 日志的格式也是不同的
 
-### 2.2. 事务ID
+### 2.3. 事务ID
 
-#### 2.2.1. 给事务分配 id 的时机
+#### 2.3.1. 给事务分配 id 的时机
 
 一个事务可以是一个只读事务，或者是一个读写事务。
 
@@ -674,7 +746,7 @@ START TRANSACTION;
 
 > *注：上面描述的事务id分配策略是针对 MySQL 5.7 而言，以前版本的分配方式可能不同。*
 
-#### 2.2.2. 事务 id 生成机制
+#### 2.3.2. 事务 id 生成机制
 
 事务 id 本质上就是一个数字。分配策略和隐藏列 row_id（当用户没有为表创建主键和 UNIQUE 键时 InnoDB 自动创建的列）的分配策略大致相同。具体策略如下：
 
@@ -686,7 +758,7 @@ START TRANSACTION;
 
 这样就可以保证整个系统中分配的事务 id 值是一个递增的数字。先被分配id 的事务得到的是较小的事务 id，后被分配 id 的事务得到的是较大的事务 id。
 
-### 2.3. 隐藏列
+### 2.4. 隐藏列
 
 聚簇索引的记录除了会保存完整的用户数据以外，而且还会自动添加名为 trx_id、roll_pointer 的隐藏列，如果用户没有在表中定义主键以及 UNIQUE 键，还会自动添加一个名为 row_id 的隐藏列。
 
@@ -702,7 +774,7 @@ START TRANSACTION;
 | DB_ROLL_PTR | 回滚指针，指向这条记录的上一个版本，用于配合undo log，指向上一个版本 |
 | DB_ROW_ID   | 隐藏主键，如果表结构没有指定主键，将会生成该隐藏字段                 |
 
-### 2.4. undo 日志的格式
+### 2.5. undo 日志的格式
 
 InnoDB 存储引擎在实际进行增、删、改记录时，都需要记录对应的 undo 日志。一般每1条记录的改动都对应1条undo日志，但在某些更新记录操作中，可能会对应2条undo日志
 
@@ -710,9 +782,9 @@ InnoDB 存储引擎在实际进行增、删、改记录时，都需要记录对�
 
 undo 日志是被记录到类型为`FIL_PAGE_UNDO_LOG`的页面中。这些页面可以从系统表空间中分配，也可以从一种专门存放 undo 日志的表空间，也就是所谓的 undo tablespace 中分配。
 
-#### 2.4.1. INSERT 操作对应的 undo 日志
+#### 2.5.1. INSERT 操作对应的 undo 日志
 
-##### 2.4.1.1. 基础处理流程
+##### 2.5.1.1. 基础处理流程
 
 InnoDB 的设计了一个类型为`TRX_UNDO_INSERT_REC`的undo日志。当插入记录后回滚时，只需要将该记录删除即可，所以undo日志主要是记录该记录的主键信息。
 
@@ -721,13 +793,13 @@ InnoDB 的设计了一个类型为`TRX_UNDO_INSERT_REC`的undo日志。当插入
 
 当向某个表中插入一条记录时，实际上需要向聚簇索引和所有的二级索引都插入一条记录。不过记录 undo 日志时，只需要考虑向聚簇索引插入记录时的情况，因为聚簇索引记录和二级索引记录是一一对应的，在回滚插入操作时，只需要知道这条记录的主键信息，然后根据主键信息做对应的删除操作，做删除操作时就会顺带着把所有二级索引中相应的记录也删除掉。*DELETE 操作和 UPDATE 操作对应的 undo 日志也都是针对聚簇索引记录而言的*。
 
-##### 2.4.1.2. roll_pointer 的作用
+##### 2.5.1.2. roll_pointer 的作用
 
 roll_pointer 本质上就是一个指向记录对应的 undo 日志的一个指针。比如向表里插入了 2 条记录，每条记录都有与其对应的一条 undo 日志。记录被存储到了类型为`FIL_PAGE_INDEX`的页面中（数据页），undo 日志被存放到了类型为`FIL_PAGE_UNDO_LOG`的页面中。
 
-#### 2.4.2. DELETE 操作对应的 undo 日志
+#### 2.5.2. DELETE 操作对应的 undo 日志
 
-##### 2.4.2.1. 基础处理流程
+##### 2.5.2.1. 基础处理流程
 
 插入到页面中的记录会根据记录头信息中的 next_record 属性组成一个单向链表，该链表称之为**正常记录链表**。删除的记录也会根据记录头信息中的 next_record 属性组成一个链表，只是这个链表中的记录占用的存储空间可以被重新利用，所以这个链表也称为**垃圾链表**。
 
@@ -751,7 +823,7 @@ Page Header 部分有一个称之为`PAGE_FREE`的属性，它指向由被删除
 
 在删除语句所在的事务提交之前，只会经历阶段一，也就是 delete mark 阶段（提交之后就不用回滚了，所以只需考虑对删除操作的阶段一做的影响进行回滚）。InnoDB 中就会产生一种称之为`TRX_UNDO_DEL_MARK_REC`类型的 undo 日志。
 
-##### 2.4.2.2. 版本链
+##### 2.5.2.2. 版本链
 
 在对一条记录进行 delete mark 操作前，需要把该记录的旧的 trx_id 和 roll_pointer 隐藏列的值都给记到对应的 undo 日志中来，就是图中显示的 old trx_id 和 old roll_pointer 属性。这样有一个好处，那就是可以通过 undo 日志的 old roll_pointer 找到记录在修改之前对应的 undo 日志。比方说在一个事务中，先插入了一条记录，然后又执行对该记录的删除操作，这个过程的示意图如下：
 
@@ -759,11 +831,11 @@ Page Header 部分有一个称之为`PAGE_FREE`的属性，它指向由被删除
 
 执行完 delete mark操作后，它对应的 undo日志和 INSERT 操作对应的 undo 日志就串成了一个链表。这个链表就称之为版本链。
 
-#### 2.4.3. UPDATE 操作对应的 undo 日志
+#### 2.5.3. UPDATE 操作对应的 undo 日志
 
 在执行 UPDATE 语句时，InnoDB 对更新主键和不更新主键这两种情况有不同的处理方案
 
-##### 2.4.3.1. 不更新主键的情况
+##### 2.5.3.1. 不更新主键的情况
 
 在不更新主键的情况下，又可以细分为被更新的列占用的存储空间不发生变化和发生变化的情况。
 
@@ -781,7 +853,7 @@ Page Header 部分有一个称之为`PAGE_FREE`的属性，它指向由被删除
 
 针对 UPDATE 不更新主键的情况（包括上边所说的就地更新和先删除旧记录再插入新记录），InnoDB 设计了一种类型为`TRX_UNDO_UPD_EXIST_REC`的 undo 日志。
 
-##### 2.4.3.2. 更新主键的情况
+##### 2.5.3.2. 更新主键的情况
 
 在聚簇索引中，记录是按照主键值的大小连成了一个单向链表的，如果更新了某条记录的主键值，意味着这条记录在聚簇索引中的位置将会发生改变。并且更新的记录可能相隔很大，中间隔好多个页，针对 UPDATE 语句中更新了记录主键值的这种情况，InnoDB 在聚簇索引中分了两步处理：
 
@@ -797,9 +869,14 @@ Page Header 部分有一个称之为`PAGE_FREE`的属性，它指向由被删除
 
 针对 UPDATE 语句更新记录主键值的这种情况，在对该记录进行 delete mark 操作前，会记录一条类型为`TRX_UNDO_DEL_MARK_REC`的 undo 日志；之后插入新记录时，会记录一条类型为`TRX_UNDO_INSERT_REC`的 undo 日志，也就是说每对一条记录的主键值做改动时，会记录 2 条 undo 日志
 
-### 2.5. FIL_PAGE_UNDO_LOG 页面
+### 2.6. FIL_PAGE_UNDO_LOG 页面
 
 表空间其实是由许许多多的页面构成的，页面默认大小为16KB。这些页面有不同的类型，比如类型为`FIL_PAGE_INDEX`的页面用于存储聚簇索引以及二级索引，类型为`FIL_PAGE_TYPE_FSP_HDR`的页面用于存储表空间头部信息的，还有其他各种类型的页面，其中`FIL_PAGE_UNDO_LOG`类型的页面是专门用来存储 undo 日志的。
+
+### 2.7. undo log 日志删除时机
+
+- 新增操作，在事务提交之后就可以清除掉了。
+- 修改操作，事务提交之后不能立即清除掉，这些日志会用于 mvcc。只有当 MySQL 检测到没有事务用到该版本信息时才可以清除。
 
 ## 3. MVCC（多版本并发控制）
 

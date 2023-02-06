@@ -1,0 +1,340 @@
+# MySQL 运维篇
+
+## 1. MySQL 常用工具
+
+### 1.1. mysql 客户端工具
+
+此 mysql 并非指 mysql 服务，而是指 mysql 的客户端工具。命令语法如下：
+
+```bash
+mysql [options] [database]
+```
+
+命令选项说明：
+
+| 选项（短） |      选项（长）       |       说明        |
+| --------- | ------------------- | ----------------- |
+| `-u`      | `--user=name`       | 指定用户名         |
+| `-p`      | `--password[=name]` | 指定密码           |
+| `-h`      | `--host=name`       | 指定服务器IP或域名 |
+| `-P`      | `--port=port`       | 指定连接端口       |
+| `-e`      | `--execute=name`    | 执行SQL语句并退出  |
+
+示例：`-e` 选项可以在 Mysql 客户端执行 SQL 语句，而不用连接到 MySQL 数据库再执行，此方式对于一些批处理脚本尤其方便。
+
+```bash
+mysql -uroot –p123456 db01 -e "select * from stu";
+```
+
+```sql
+MySQL Server 8.0\bin>mysql -h127.0.0.1 -P3306 -uroot -p123456 tempdb -e "select * from dept"
+mysql: [Warning] Using a password on the command line interface can be insecure.
++----+-----------+
+| id | name      |
++----+-----------+
+|  1 | 研发部    |
+|  2 | 市场部    |
+|  3 | 财务部    |
+|  4 | 销售部    |
+|  5 | 总经办    |
+|  6 | 人事部    |
++----+-----------+
+```
+
+> Notes: 执行完毕，并未进入 MySQL 客户端命令行
+
+### 1.2. mysqladmin 管理操作的客户端
+
+mysqladmin 是一个执行管理操作的客户端程序。可以用它来检查服务器的配置和当前状态、创建并删除数据库等。
+
+通过帮助文档查看选项：
+
+```bash
+mysqladmin --help
+```
+
+![](images/164023009232287.png)
+
+命令语法如下：
+
+```bash
+mysqladmin [options] command ...
+```
+
+命令选项说明：
+
+| 选项（短） |      选项（长）       |       说明        |
+| --------- | ------------------- | ----------------- |
+| `-u`      | `--user=name`       | 指定用户名         |
+| `-p`      | `--password[=name]` | 指定密码           |
+| `-h`      | `--host=name`       | 指定服务器IP或域名 |
+| `-P`      | `--port=port`       | 指定连接端口       |
+
+示例：
+
+```bash
+mysqladmin -uroot –p1234 drop 'test01'
+mysqladmin -uroot –p1234 version
+```
+
+![](images/551862711245273.png)
+
+### 1.3. mysqlbinlog 日志管理工具
+
+由于服务器生成的二进制日志文件以二进制格式保存，所以如果想要检查这些文本的文本格式，就需要使用 mysqlbinlog 日志管理工具。命令语法如下：
+
+```bash
+mysqlbinlog [options] log-files1 log-files2 ...
+```
+
+命令选项说明：
+
+| 选项（短） |                    选项（长）                     |                  说明                  |
+| --------- | ----------------------------------------------- | -------------------------------------- |
+| `-d`      | `--database=name`                               | 指定数据库名称，只列出指定的数据库相关操作 |
+| `-o`      | `--offset=#`                                    | 忽略掉日志中的前n行命令                  |
+| `-r`      | `--result-file=name`                            | 将输出的文本格式日志输出到指定文件         |
+| `-s`      | `--short-form`                                  | 显示简单格式，省略掉一些信息              |
+|           | `--start-datatime=date1 --stop-datetime=date2 ` | 指定日期间隔内的所有日志                 |
+|           | `--start-position=pos1 --stop-position=pos2`    | 指定位置间隔内的所有日志                 |
+
+示例：查看 binlog.000001这个二进制文件中的数据信息
+
+![](images/403033314220850.png)
+
+上述查看到的二进制日志文件数据信息量太多了，不方便查询。可以加上一个参数 `-s` 来显示简单格式。
+
+![](images/164733514239276.png)
+
+### 1.4. mysqlshow 对象查找工具
+
+mysqlshow 客户端对象查找工具，用来很快地查找存在哪些数据库、数据库中的表、表中的列或者索引。
+
+命令语法如下：
+
+```bash
+mysqlshow [options] [db_name [table_name [col_name]]]
+```
+
+命令选项说明：
+
+| 选项（短） | 选项（长）  |                      说明                       |
+| --------- | --------- | ----------------------------------------------- |
+|           | `--count` | 显示数据库及表的统计信息（数据库、表，均可以不指定） |
+| `-i`      |           | 显示指定数据库或者指定表的状态信息                 |
+
+示例1：查询每个数据库的表的数量及表中记录的数量
+
+```sql
+MySQL Server 8.0\bin>mysqlshow -uroot -p123456 --count
+mysqlshow: [Warning] Using a password on the command line interface can be insecure.
++------------------------+--------+--------------+
+|       Databases        | Tables |  Total Rows  |
++------------------------+--------+--------------+
+| activiti_sample        |     25 |           18 |
+| apolloconfigdb         |     16 |         5154 |
+| apolloconfigdbpro      |     15 |           60 |
+| apolloportaldb         |     14 |         2967 |
+| information_schema     |     79 |        24620 |
+| jav_db                 |      4 |        23543 |
+| jav_db_test            |      4 |           24 |
+| mybatis_plus_sample_db |      5 |           30 |
+| mysql                  |     37 |         5343 |
+| nacos                  |     12 |           20 |
+| performance_schema     |    111 |       262769 |
+| sys                    |    101 |         7477 |
+| tempdb                 |     28 |     10010851 |
++------------------------+--------+--------------+
+```
+
+示例2：查看数据库 tempdb 的统计信息
+
+```sql
+MySQL Server 8.0\bin>mysqlshow -uroot -p123456 tempdb --count
+mysqlshow: [Warning] Using a password on the command line interface can be insecure.
+Database: tempdb
++---------------------+----------+------------+
+|       Tables        | Columns  | Total Rows |
++---------------------+----------+------------+
+| account             |        3 |          7 |
+| course              |        2 |          4 |
+| dept                |        2 |          6 |
+| emp                 |        8 |         17 |
+| employee            |        5 |          6 |
+| order_exp           |        7 |      10567 |
+| order_exp_cut       |        7 |          2 |
+| s1                  |        7 |          3 |
+| s2                  |        7 |          3 |
+| salgrade            |        3 |          8 |
+| score               |        3 |          5 |
+| student             |        3 |          4 |
+| student_course      |        3 |          6 |
+| tb_sku              |       17 |   10000000 |
+| tb_stu_course_view  |        3 |          6 |
+| tb_user             |        9 |         24 |
+| tb_user_view        |        7 |         24 |
+| teacher             |        3 |          5 |
+| user                |        3 |          3 |
++---------------------+----------+------------+
+```
+
+示例3：查看数据库 tempdb 中的 course 表的信息
+
+```sql
+MySQL Server 8.0\bin>mysqlshow -uroot -p123456 tempdb course --count
+mysqlshow: [Warning] Using a password on the command line interface can be insecure.
+Database: tempdb  Table: course  Rows: 4
++-------+-------------+--------------------+------+-----+---------+----------------+---------------------------------+----------+
+| Field | Type        | Collation          | Null | Key | Default | Extra          | Privileges                      | Comment  |
++-------+-------------+--------------------+------+-----+---------+----------------+---------------------------------+----------+
+| id    | int         |                    | NO   | PRI |         | auto_increment | select,insert,update,references |  主键ID   |
+| name  | varchar(10) | utf8mb4_general_ci | YES  |     |         |                | select,insert,update,references |  课程名称 |
++-------+-------------+--------------------+------+-----+---------+----------------+---------------------------------+----------+
+```
+
+示例4：查看数据库 tempdb 中的 course 表的 id 字段的信息
+
+```sql
+MySQL Server 8.0\bin>mysqlshow -uroot -p123456 tempdb course id --count
+mysqlshow: [Warning] Using a password on the command line interface can be insecure.
+Database: tempdb  Table: course  Rows: 4  Wildcard: id
++-------+------+-----------+------+-----+---------+----------------+---------------------------------+---------+
+| Field | Type | Collation | Null | Key | Default | Extra          | Privileges                      | Comment |
++-------+------+-----------+------+-----+---------+----------------+---------------------------------+---------+
+| id    | int  |           | NO   | PRI |         | auto_increment | select,insert,update,references | 主键ID  |
++-------+------+-----------+------+-----+---------+----------------+---------------------------------+---------+
+```
+
+### 1.5. mysqldump 数据备份迁移工具
+
+mysqldump 客户端工具用来备份数据库或在不同数据库之间进行数据迁移。备份内容包含创建表，及插入表的SQL语句。命令语法如下：
+
+```bash
+mysqldump [options] db_name [tables]
+
+mysqldump [options] --database/-B db1 [db2 db3...]
+
+mysqldump [options] --all-databases/-A
+```
+
+连接选项说明：
+
+| 选项（短） |      选项（长）       |       说明        |
+| --------- | ------------------- | ----------------- |
+| `-u`      | `--user=name`       | 指定用户名         |
+| `-p`      | `--password[=name]` | 指定密码           |
+| `-h`      | `--host=name`       | 指定服务器IP或域名 |
+| `-P`      | `--port=port`       | 指定连接端口       |
+
+输出选项说明：
+
+| 选项（短） |       选项（长）        |                                     说明                                     |
+| --------- | --------------------- | ---------------------------------------------------------------------------- |
+|           | `--add-drop-database` | 在每个数据库创建语句前加上 drop database 语句                                   |
+|           | `--add-drop-table`    | 在每个表创建语句前加上 drop table 语句，默认开启；不开启 (--skip-add-drop-table) |
+| `-n`      | `--no-create-db`      | 不包含数据库的创建语句                                                         |
+| `-t`      | `--no-create-info`    | 不包含数据表的创建语句                                                         |
+| `-d`      | `--no-data`           | 不包含数据                                                                    |
+| `-T`      | `--tab=name`          | 自动生成两个文件：一个.sql文件，创建表结构的语句；一个.txt文件，数据文件            |
+
+示例1：备份 tempdb 数据库
+
+```bash
+mysqldump -uroot -p123456 tempdb > tempdb.sql
+```
+
+![](images/78550315227143.png)
+
+备份出来的数据包含：
+
+- 删除表的语句
+- 创建表的语句
+- 数据插入语句
+
+如果在数据备份时，不需要创建表，或者不需要备份数据，只需要备份表结构，都可以通过对应的参数来实现。
+
+示例2：备份 tempdb 数据库中的表数据，不备份表结构(`-t`)
+
+```bash
+mysqldump -uroot -p123456 -t tempdb > tempdb.sql
+```
+
+打开 tempdb.sql 查看备份的数据，只有 insert 语句，没有备份表结构。
+
+示例3：将tempdb 数据库的表结构与数据分开备份(`-T`)
+
+```sql
+MySQL Server 8.0\bin>mysqldump -uroot -p123456 -T E:/ tempdb dept
+mysqldump: [Warning] Using a password on the command line interface can be insecure.
+mysqldump: Got error: 1290: The MySQL server is running with the --secure-file-priv option so it cannot execute this statement when executing 'SELECT INTO OUTFILE'
+```
+
+执行上述指令时会出错，数据不能完成备份。原因是因为指定的数据存放目录 `E:/`，MySQL 认为是不安全的，需要存储在 MySQL 信任的目录下。可以通过系统变量 `secure_file_priv` 查看信任的目录。执行结果如下：
+
+```sql
+mysql> show variables like '%secure_file_priv%';
++------------------+----------------------------------+
+| Variable_name    | Value                            |
++------------------+----------------------------------+
+| secure_file_priv | D:\development\MySQL\SecureFile\ |
++------------------+----------------------------------+
+```
+
+修改数据保存的目录后(如果目录有空格，执行命令会报错，修改my.ini文件使用无空格的目录吧-_-!)，再执行命令：
+
+```sql
+mysqldump -uroot -p123456 -T D:\development\MySQL\SecureFile\ tempdb dept
+```
+
+![](images/34153115239978.png)
+
+上述的两个文件 dept.sql 中记录的就是表结构文件，而 dept.txt 就是表数据文件，但是需要注意表数据文件，并不是记录一条条的insert语句，而是按照一定的格式记录表结构中的数据。如下：
+
+![](images/89753315236533.png)
+
+### 1.6. mysqlimport 文本数据导入工具
+
+mysqlimport 是客户端数据导入工具，用来导入 `mysqldump` 命令加 `-T` 参数后导出的文本文件。命令语法如下：
+
+```bash
+mysqlimport [options] db_name textfile1 [textfile2...]
+```
+
+示例：
+
+```sql
+mysqlimport -uroot -p123456 test /tmp/dept.txt
+```
+
+### 1.7. source 脚本数据导入工具
+
+如果需要导入 sql 文件，可以使用 mysql 中的 source 指令。命令语法如下：
+
+```bash
+source /root/xxxxx.sql
+```
+
+## 2. Mysql 全局配置参数优化
+
+针对服务端进行优化，对配置文件 my.ini 或 my.cnf 的设置一些全局参数，以下配置项默认在配置文件的 [mysqld] 标签下。
+
+
+
+
+
+## 3. 主从复制、读写分离
+
+### 3.1. 主从复制过程
+
+![](images/67862610220867.png)
+
+> Tips: 日志名词解释：
+>
+> - Binary log：主数据库的二进制日志
+> - Relay log：从服务器的中继日志
+
+有3个线程以及之间的关联，基本原理流程如下：
+
+- 第一步：master 在每个事务更新数据完成之前，开启 binlog 线程，将所有改变数据库的操作记录串行地写入到 master 的 binlog 文件中。
+- 第二步：salve 开启一个I/O Thread，该线程在 master 打开一个普通连接，主要工作是 binlog dump process。如果读取的进度已经跟上了 master，就进入睡眠状态并等待 master 产生新的事件。I/O线程最终的目的是将 master 的 binlog 内容写入到自己的 relay log（中继日志）中。
+- 第三步：salve 开户一个 SQL Thread，会读取 relay log（中继日志），并顺序执行该日志中的 SQL 事件，从而与主数据库中的数据保持一致。
