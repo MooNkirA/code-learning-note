@@ -314,13 +314,115 @@ mysqlimport -uroot -p123456 test /tmp/dept.txt
 source /root/xxxxx.sql
 ```
 
-## 2. Mysql 全局配置参数优化
+## 2. Mysql 全局配置参数最佳实践
 
-针对服务端进行优化，对配置文件 my.ini 或 my.cnf 的设置一些全局参数，以下配置项默认在配置文件的 [mysqld] 标签下。
+针对服务端进行优化，需要对配置文件 my.ini 或 my.cnf 的设置一些全局参数，以下配置项默认在配置文件的 [mysqld] 标签下。
 
+以下示例配置假设服务器配置为：
 
+- CPU：32核
+- 内存：64G
+- DISK：2T SSD
 
+### 2.1. 最大连接数
 
+连接的创建和销毁都需要系统资源，比如内存、文件句柄，业务说的支持多少并发，指的是每秒请求数，也就是QPS。一个连接最少占用内存是256K，最大是64M，如果一个连接的请求数据超过64MB（比如排序），就会申请临时空间，放到硬盘上。
+
+如果3000个用户同时连上mysql，最小需要内存`3000*256KB=750M`，最大需要内存`3000*64MB=192G`。如果 innodb_buffer_pool_size 是40GB，给操作系统分配4G，给连接使用的最大内存不到20G，如果连接过多，使用的内存超过20G，将会产生磁盘SWAP，此时将会影响性能。连接数过高，不一定带来吞吐量的提高，而且可能占用更多的系统资源。以下是参考配置值：
+
+```properties
+max_connections=3000
+```
+
+### 2.2. 用户连接的最大数量
+
+此配置是设置允许用户连接的最大数量，与`max_connections`相减后，剩余连接数用作DBA管理。以下是参考配置值：
+
+```properties
+max_user_connections=2980
+```
+
+### 2.3. 暂存连接数量
+
+MySQL 能够暂存的连接数量。如果 MySQL 的连接数达到 `max_connections` 配置项的值时，新的请求将会被存在堆栈中，等待某一连接释放资源，该堆栈数量即 `back_log`，如果等待连接的数量超过`back_log`，将被拒绝。以下是参考配置值：
+
+```properties
+back_log=300
+```
+
+### 2.4. 空闲连接超时时间
+
+`wait_timeout` 配置项是指 app 应用通过 jdbc 连接 mysql 进行操作完毕后，空闲多少时间后断开连接，单位是秒。默认是28800秒（即8个小时）。以下是参考配置值：
+
+```properties
+wait_timeout=300
+```
+
+`interactive_timeout` 配置项是指 MySQL Client 操作完毕后，空闲多少时间后断开连接，单位是秒。默认是28800秒（即8个小时）。以下是参考配置值：
+
+```properties
+interactive_timeout=300
+```
+
+### 2.5. innodb 线程的并发数
+
+`innodb_thread_concurrency` 参数用来设置 innodb 线程的并发数，默认值为0表示不被限制，一般设置与服务器的CPU核心数相同或是CPU的核心数的2倍，如果超过配置并发数，则需要排队，这个值不宜太大，不然可能会导致线程之间锁争用严重，影响性能。以下是参考配置值：
+
+```properties
+innodb_thread_concurrency=64
+```
+
+### 2.6. innodb 存储引擎 buffer pool 缓存大小
+
+`innodb_buffer_pool_size` 配置项用于设置 innodb 存储引擎 buffer pool 缓存大小，一般为物理内存的60%-70%。。以下是参考配置值：
+
+```properties
+ innodb_buffer_pool_size=40G
+```
+
+### 2.7. 行锁锁定时间
+
+`innodb_lock_wait_timeout` 配置项用于设置行锁锁定时间，默认50s，根据公司业务定，没有标准值。以下是参考配置值：
+
+```properties
+innodb_lock_wait_timeout=10
+```
+
+### 2.8. redo log 的写入策略
+
+`innodb_flush_log_at_trx_commit` 配置项用于的控制制 redo log 的写入策略。以下是参考配置值：
+
+```properties
+innodb_flush_log_at_trx_commit=1
+```
+
+### 2.9. binlog 写入磁盘机制
+
+`sync_binlog` 配置项是指 binlog 写入磁盘机制的策略。以下是参考配置值：
+
+```properties
+sync_binlog=1
+```
+
+### 2.10. 排序缓冲区大小
+
+每个需要排序的线程分配该大小的一个缓冲区。增加该值可以加速 ORDER BY 或 GROUP BY 操作。
+
+sort_buffer_size 配置项是指定排序缓冲区的大小，是一个 connection 级的参数，在每个 connection（session）第一次需要使用这个 buffer 的时候，一次性分配设置的内存。sort_buffer_size 并不是越大越好，由于是 connection 级的参数，过大的设置+高并发可能会耗尽系统的内存资源。例如：500个连接将会消耗`500*sort_buffer_size(4M)=2G`。
+
+以下是参考配置值：
+
+```properties
+sort_buffer_size=4M
+```
+
+### 2.11. 关联缓存区大小
+
+join_buffer_size 配置项用于表关联缓存的大小，和 `sort_buffer_size` 一样，该参数对应的分配内存也是每个连接独享。以下是参考配置值：
+
+```properties
+join_buffer_size=4M
+```
 
 ## 3. 主从复制、读写分离
 
