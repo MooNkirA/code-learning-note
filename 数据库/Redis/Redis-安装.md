@@ -49,7 +49,7 @@ redis-server.exe --service-stop    # 停止服务
 ### 3.1. 安装（压缩包安装）
 
 > - 参考文档：
->    - E:\07-编程工具资料\04-数据库\Redis\Redis安装和使用.docx
+>   - E:\07-编程工具资料\04-数据库\Redis\Redis安装和使用.docx
 >   - E:\07-编程工具资料\04-数据库\Redis\Redis安装.doc
 
 1. **安装 redis 的依赖环境**

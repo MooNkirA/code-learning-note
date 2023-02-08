@@ -1059,7 +1059,7 @@ sortedset和set类型极为类似，它们都是字符串的集合，都不允�
 
 `zremrangebyscore key min max`：按照分数范围删除元素
 
-## 7. Redis其他知识（了解）
+## 7. Redis其他命令（了解）
 
 ### 7.1. 服务器命令(自学)
 
@@ -1079,23 +1079,21 @@ sortedset和set类型极为类似，它们都是字符串的集合，都不允�
 
 ### 7.2. 消息订阅与发布
 
-- 命令：`subscribe channel`
-    - 订阅频道，例：subscribe mychat，订阅mychat这个频道
-- 命令：`psubscribe channel*`
-    - 批量订阅频道，例：`psubscribe s*`，订阅以”s”开头的频道
-- 命令：publish channel content
-    - 在指定的频道中发布消息，如 `publish mychat ‘today is a newday’`
+- `subscribe`：订阅指定的一个频道的信息。例如，`subscribe mychat`，订阅“mychat”这个频道
+- `psubscribe`：订阅一个或多个符合指定模式的频道。例如，`psubscribe s*`：批量订阅以“s”开头的频道
+- `unsubscribe`：取消订阅指定的频道
+- `pubsub`：查看订阅与发布系统的状态
+- `publish`：在指定的频道中发布消息。例如，`publish mychat 'today is a newday'`
 
-其他详见day50笔记
+> TODO: 待整理，其他详见day50笔记
 
-### 7.3. redis事务
+### 7.3. redis 事务
 
-- redis事务特征
-    - 在事务中的所有命令都将会被串行化的顺序执行，事务执行期间，Redis不会再为其它客户端的请求提供任何服务
-    - 在Redis事务中如果有某一条命令执行失败，其后的命令仍然会被继续执行。
-- **multi**：开启事务用于标记事务的开始，其后执行的命令都将被存入命令队列，直到执行EXEC时，这些命令才会被原子的执行，类似与关系型数据库中的：begin transaction
-- **exec**：提交事务，类似与关系型数据库中的：commit
-- **discard**：事务回滚，类似与关系型数据库中的：rollback
+- `multi`：开启事务，用于标记事务的开始，其后执行的命令都将被存入命令队列，直到执行 `EXEC` 命令时，这些命令才会被原子的执行，类似与关系型数据库中的：begin transaction
+- `exec`：提交事务，会执行所有事务块内的命令。类似与关系型数据库中的：commit
+- `discard`：事务回滚，放弃执行事务块内的所有命令。类似与关系型数据库中的：rollback
+- `watch`：监视一个（或多个）key，如果在事务执行之前这个（或这些）key 被其他命令改动，那么事务将被打断。
+- `unwath`：取消 `watch` 命令对所有 key 的监视
 
-详见day50笔记
+> TODO: 待整理，详见day50笔记
 

@@ -4,18 +4,17 @@
 
 ### 1.1. 版本分类
 
-MySQL 提供了以下版本：
+MySQL 服务端提供了以下版本：
 
 - MySQL Community Server：社区版本，免费，但是MySQL不提供官方技术支持。
 - MySQL Enterprise Edition：商业版，该版本是收费版本，可以试用30天，官方提供技术支持
 - MySQL Cluster：集群版，开源免费，可将几个MySQL Server封装成一个Server。
 - MySQL Cluster CGE：高级集群版，需付费。
 
-MySQL 的图形化客户端
+MySQL 的图形化客户端 MySQL Workbench（GUI TOOL）：一款专为MySQL设计的ER/数据库建模工具。又分为两个版本：
 
-- MySQL Workbench（GUI TOOL）：一款专为MySQL设计的ER/数据库建模工具。MySQL Workbench又分为两个版本：
-    - 社区版（MySQL Workbench OSS）
-    - 商用版（MySQL Workbench SE）
+- 社区版（MySQL Workbench OSS）
+- 商用版（MySQL Workbench SE）
 
 ### 1.2. 版本号
 
