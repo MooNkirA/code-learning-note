@@ -89,7 +89,7 @@ spring:
 
 ### 2.3. 基础使用示例
 
-使用 Spring Boot 整合 redis 的专用客户端接口 RedisTemplate 执行相应的操作，通过以下方法操作 redis 的五种不同的数据类型
+Spring Boot 提供了 redis 的专用客户端接口 RedisTemplate，是基于 Jedis 对 Redis 数据库的操作进行了二次封装，执行相应的操作更加方便。通过以下方法操作 redis 的五种不同的数据类型
 
 ![](images/317345514220469.png)
 
@@ -192,12 +192,12 @@ spring:
     port: 6379 # redis 服务端口，默认是 6379
     # Spring Boot 默认的客户端是 lettuce，使用 client-type 属性来指定客户端的类型
     client-type: jedis
-#    lettuce: # 根据客户端的类型，设置对应的配置。默认是 lettuce 客户端
-#      pool:
-#        max-active: 16
     jedis: # 根据客户端的类型，设置对应的配置。示例使用 jedis 客户端
       pool:
         max-active: 16
+#    lettuce: # 根据客户端的类型，设置对应的配置。默认是 lettuce 客户端
+#      pool:
+#        max-active: 16
 ```
 
 配置完成后，按原来的使用方式即可，Spring Boot 底层已经切换成指定的客户端类型
@@ -207,16 +207,7 @@ spring:
 - jedis 连接 Redis 服务器是直连模式，当多线程模式下使用 jedis 会存在线程安全问题，解决方案可以通过配置连接池使每个连接专用，这样整体性能就大受影响
 - lettcus 基于 Netty 框架进行与 Redis 服务器连接，底层设计中采用 StatefulRedisConnection。 StatefulRedisConnection 自身是线程安全的，可以保障并发访问安全问题，所以一个连接可以被多线程复用。当然 lettcus 也支持多连接实例一起工作
 
-## 4. 整合Redis
-
-
-### 4.1. 配置连接Redis
-
-
-
-### 4.2. 注入RedisTemplate测试redis操作
-
-
+### 3.3. 注入 RedisTemplate 测试操作 redis
 
 ```java
 @RunWith(SpringRunner.class)
@@ -248,3 +239,91 @@ public class RedisTest {
     }
 }
 ```
+
+## 4. Spring Boot 整合 redis 进阶
+
+### 4.1. 常用配置项
+
+以下是 Spring Boot 整合 Redis 中常用的配置项示例：
+
+```yml
+spring:
+  redis:
+    host: localhost # redis 服务地址，默认是 localhost
+    port: 6379 # redis 服务端口，默认是 6379
+    database: 0 # redis 数据库的索引，默认是 0
+    password: # Redis 的服务器连接密码（默认为空）
+    client-type: jedis # Spring Boot 默认的客户端是 lettuce，使用 client-type 属性来指定客户端的类型
+    jedis: # 根据客户端的类型，设置对应的配置。示例使用 jedis 客户端
+      pool:
+        max-active: 2000 # 连接池的最大连接数（使用负值表示没有限制）
+        max-wait: -1 # 连接池的最大阻塞等待时间（使用负值表示没有限制）
+        max-idle: 100 # 连接池的最大空闲连接
+        min-idle: 50 # 连接池的最小空闲连接
+    timeout: 1000 # 连接超时时间（毫秒）
+    # 哨兵模式配置
+    sentinel:
+      master: mymaster
+      nodes: 127.0.0.1:9000
+    # 集群模式配置
+    cluster:
+      nodes: 127.0.0.1:7000,127.0.0.1:7001,127.0.0.1:7002,127.0.0.1:7003,127.0.0.1:7004,127.0.0.1:7005
+```
+
+配置说明：
+
+- spring.redis.cluster.nodes 为 Redis 集群节点的服务地址，在多个服务地址之间使用逗号隔开
+- spring.redis.password 为 Redis 服务密码，如果没有密码，则将其设置为空即可
+- 如果 Redis 是主从模式，则将 spring.redis.cluster.nodes 地址修改为主从节点的服务地址即可
+- 如果是哨兵模式，则不需要 spring.redis.cluster.nodes 配置，在 spring.redis.sentinel.master 和 spring.redis.sentinel.nodes 中分别配置哨兵的名称和哨兵的节点即可
+- 如果是单机模式，则不需要 sentinel 与 cluster 相关配置项，通过 spring.redis.host 配置 Redis 服务的地址；spring.redis.port 配置 Redis 服务的端口
+
+### 4.2. RedisTemplate 配置类
+
+创建 Redis 配置类，用于配置 `RedisTemplate`。 Spring Boot 默认配置了 RedisTemplate，在应用时注入使用即可，也可以创建自定义的 RedisTemplate。
+
+```java
+@EnableCaching
+@Configuration // TODO: 或者使用 @AutoConfiguration 后面再研究一下两者的区别
+@AutoConfigureBefore(RedisAutoConfiguration.class) // TODO: 后面再研究与 @AutoConfigureAfter 使用时的区别
+public class RedisTemplateConfiguration {
+
+	@Bean
+	public RedisTemplate<String, Object> redisTemplate(RedisConnectionFactory factory) {
+		RedisTemplate<String, Object> redisTemplate = new RedisTemplate<>();
+		redisTemplate.setKeySerializer(RedisSerializer.string());
+		redisTemplate.setHashKeySerializer(RedisSerializer.string());
+		redisTemplate.setValueSerializer(RedisSerializer.java());
+		redisTemplate.setHashValueSerializer(RedisSerializer.java());
+		redisTemplate.setConnectionFactory(factory);
+		return redisTemplate;
+	}
+
+	@Bean
+	public HashOperations<String, String, Object> hashOperations(RedisTemplate<String, Object> redisTemplate) {
+		return redisTemplate.opsForHash();
+	}
+
+	@Bean
+	public ValueOperations<String, String> valueOperations(RedisTemplate<String, String> redisTemplate) {
+		return redisTemplate.opsForValue();
+	}
+
+	@Bean
+	public ListOperations<String, Object> listOperations(RedisTemplate<String, Object> redisTemplate) {
+		return redisTemplate.opsForList();
+	}
+
+	@Bean
+	public SetOperations<String, Object> setOperations(RedisTemplate<String, Object> redisTemplate) {
+		return redisTemplate.opsForSet();
+	}
+
+	@Bean
+	public ZSetOperations<String, Object> zSetOperations(RedisTemplate<String, Object> redisTemplate) {
+		return redisTemplate.opsForZSet();
+	}
+}
+```
+
+以上示例配置类中，通过` @Configuration` 开启配置文件注解，通过 `@AutoConfigureBefore` 配置自动注解类，自定义 `RedisTemplate` 实例时设置不同类型的键值的序列化方式。
