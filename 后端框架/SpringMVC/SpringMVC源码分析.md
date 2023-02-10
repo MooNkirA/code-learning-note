@@ -56,6 +56,8 @@ public @interface HandlesTypes {
 
 ### 2.4. 注册 DisptatcherServlet
 
+> TODO: 整理中
+
 # SpringMVC 中各组件详解及源码分析
 
 ## 1. 前端控制器 DispatcherServlet

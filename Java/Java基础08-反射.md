@@ -759,7 +759,7 @@ public class MoonZero {
 
 代理模式的作用：拦截对真实对象的直接访问，并增加一些功能。
 
-## 2. 代理模式的分类(了解)
+## 2. 代理模式的分类
 
 代理模式分成静态代理和动态代理
 
@@ -767,13 +767,14 @@ public class MoonZero {
 
 ### 2.1. 静态代理模式
 
-静态代理模式的特点：
+静态代理模式的优点：
 
-1. 优点：
-    - 不需要修改目标对象就实现了目标对象功能的增加
-2. 缺点：
-    - 一个真实对象必须对应一个代理对象，如果大量使用会导致类的数量急速增长。
-    - 如果抽象对象中存在很多方法，则代理对象也要同样实现相应数量的方法。
+- 不需要修改目标对象就实现了目标对象功能的增加
+
+缺点：
+
+- 一个真实对象必须对应一个代理对象，如果大量使用会导致类的数量急速增长。
+- 如果抽象对象中存在很多方法，则代理对象也要同样实现相应数量的方法。
 
 ### 2.2. 动态代理模式
 
@@ -800,7 +801,7 @@ public static Object newProxyInstance(ClassLoader loader, Class<?>[] interfaces,
 
 <u><font color=purple>**真实对象与代理对象的是实现了共同接口，所以返回的Object代理对象需要转成接口类型**</font></u>
 
-> 引用网络资料的解释：为什么jdk动态代理的对象必须实现一个统一的接口，其实我的理解大致是代理类本身已经 extends 了 TimeHandler,如果传入的是父类，很可能出现这种情况：“public class $Proxy1 extends Proxy extends 传入的父类”；这个明显在 java 中是不允许的，Java 只支持单继承，但是实现接口是完全可以的。
+> 引用网络资料的解释：为什么jdk动态代理的对象必须实现一个统一的接口，其实可以大致理解为，代理类本身已经 extends 了 `Proxy`，如果传入的是父类，很可能出现这种情况：“`public class $Proxy1 extends Proxy extends 传入的父类`”；这个明显在 java 中是不允许的，Java 只支持单继承，但是实现接口是完全可以的。
 
 ### 3.2. InvocationHandler 接口的核心方法
 
@@ -818,9 +819,9 @@ public Object invoke(Object proxy, Method method, Object[] args);
 
 - 作用：每当通过代理对象调用方法时，都会被该方法拦截。
 - 参数`Object proxy`：代理对象本身（不一定每次都用得到）。即方法` newProxyInstance()`方法返回的代理对象，该对象一般<font color=red>**不要在 `invoke` 方法中使用，容易出现递归调用**</font>。
-- 参数`Method method`：代理对象调用的方法，被拦截的方法，<font color=red>**真实对象的方法对象**</font>，会进行多次调用，每次调用 method 对象都不同。
+- 参数`Method method`：代理对象调用的方法（即被拦截真实对象的方法），是<font color=red>**真实对象的方法对象**</font>，会进行多次调用，每次调用 method 对象都不同。
 - 参数`Object[] args`：**代理对象调用方法时传递的参数，该参数会传递给真实对象的方法**。
-- 返回值Object：**一般返回真实对象方法执行后的结果**。
+- 返回值 `Object`：**一般返回真实对象方法执行后的结果**。
 
 ### 3.3. Class 类 getInterfaces 方法
 
@@ -1111,7 +1112,7 @@ public class DemoTarget implements DemoInterface {
 }
 ```
 
-**重点：定义模拟 JDK 动态代理生成的代理类 `$Proxy0`。**。
+**重点：定义模拟 JDK 动态代理生成的代理类 `$Proxy0`**
 
 ```java
 public class $Proxy0 extends Proxy implements DemoInterface {

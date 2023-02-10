@@ -1,16 +1,12 @@
-# Spring 基于 IOC 注解汇总
+# Spring 注解驱动开发入门
 
-> 注：注解的源码注释参考项目 https://github.com/MooNkirA/spring-note/tree/master/Spring-Framework
-
-## 1. Spring注解驱动开发入门
-
-### 1.1. 简介
+## 1. 简介
 
 Spring 在 2.5 版本引入了注解配置的支持，同时从 Spring 3.x 版本开始，Spring JavaConfig 项目提供的许多特性成为核心 Spring 框架的一部分。因此，可以使用 Java 而不是 XML 文件来定义应用程序类外部的 bean。在 Spring 的官方文档里提供了四个基本注解 `@Configuration`，`@Bean`，`@Import`，`@DependsOn` 用于驱动开发
 
-### 1.2. 注解驱动入门案例
+## 2. Spring 纯注解驱动入门案例
 
-#### 1.2.1. 案例需求
+### 2.1. 案例需求
 
 1. 需求：实现保存一条数据到数据库。
 2. 示例使用的表结构：
@@ -25,9 +21,9 @@ create table account(
 
 3. 要求：使用 spring 框架中的 `JdbcTemplate` 和 `DriverManagerDataSource`，使用纯注解配置 spring 的 IOC
 
-#### 1.2.2. 代码实现
+### 2.2. 代码实现
 
-##### 1.2.2.1. 导入依赖
+#### 2.2.1. 导入依赖
 
 创建示例项目，pom.xml文件引入相关依赖
 
@@ -53,7 +49,7 @@ create table account(
 </dependencies>
 ```
 
-##### 1.2.2.2. 编写配置类
+#### 2.2.2. 编写配置类
 
 创建spring的配置类，用于代替xml配置文件
 
@@ -117,7 +113,7 @@ public class JdbcConfig {
 }
 ```
 
-##### 1.2.2.3. 编写配置文件
+#### 2.2.3. 编写配置文件
 
 在resources目录下，创建数据库连接参数的配置文件jdbc.properties
 
@@ -128,7 +124,7 @@ jdbc.username=root
 jdbc.password=123456
 ```
 
-##### 1.2.2.4. 测试
+#### 2.2.4. 测试
 
 ```java
 /* 测试spring全注解开发示例 */
@@ -142,24 +138,363 @@ public static void main(String[] args) {
 }
 ```
 
-## 2. IOC常用注解 - 用于注解驱动
+## 3. Spring 注解驱动 AOP 快速入门示例
 
-### 2.1. @Configuration
+案例需求：实现在执行service方法时输出执行日志。（除了业务层外，表现层和持久层也可以实现）
 
-#### 2.1.1. 作用
+### 3.1. 示例项目准备
+
+- 项目pom.xml引入依赖
+
+```xml
+<!-- spring核心依赖 -->
+<dependency>
+    <groupId>org.springframework</groupId>
+    <artifactId>spring-context</artifactId>
+    <version>5.1.6.RELEASE</version>
+</dependency>
+<!-- aspectj 依赖 -->
+<dependency>
+    <groupId>org.aspectj</groupId>
+    <artifactId>aspectjweaver</artifactId>
+    <version>1.8.13</version>
+</dependency>
+```
+
+- 创建实体类
+
+```java
+public class User implements Serializable {
+    private String id;
+    private String username;
+    private String password;
+    private String email;
+    private Date birthday;
+    private String gender;
+    private String mobile;
+    private String nickname;
+    // 省略getter、setter
+}
+```
+
+- 业务层接口与现实类
+
+```java
+public interface UserService {
+    /**
+     * 模拟保存用户
+     */
+    void saveUser(User user);
+}
+
+@Service("userService")
+public class UserServiceImpl implements UserService {
+    @Override
+    public void saveUser(User user) {
+        System.out.println("UserServiceImpl.saveUser()执行了保存用户" + user.toString());
+    }
+}
+```
+
+### 3.2. 项目配置类
+
+```java
+@Configuration
+@ComponentScan("com.moon.springsample")
+// 开启spring注解aop配置的支持
+@EnableAspectJAutoProxy
+public class SpringConfiguration {
+}
+```
+
+### 3.3. 编写切面类
+
+编写日志切面类
+
+```java
+// 将当前切面类注册到spring容器中
+@Component
+// 标识当前类是一个切面类
+@Aspect
+public class LogAspect {
+    /*
+     * 定义切入点表达式
+     *   表达式意思是：匹配 任意返回值 com.moon.springsample.service.impl包下 任意类 任意方法 任意类型参数列表
+     */
+    @Pointcut("execution(* com.moon.springsample.service.impl.*.*(..))")
+    private void pt() {}
+
+    /* @Before注解用于配置当前方法是一个前置通知 */
+    @Before("pt()")
+    public void beforeLog(JoinPoint joinPoint) {
+        System.out.println("前置通知(@Before)：执行切入点方法前...记录日志");
+    }
+
+    /* @AfterReturning注解用于配置当前方法是一个后置通知 */
+    @AfterReturning("pt()")
+    public void afterReturnLog() {
+        System.out.println("后置通知(@AfterReturning)：执行切入点方法后...记录日志");
+    }
+
+    /* @AfterThrowing注解用于配置当前方法是一个异常通知 */
+    @AfterThrowing("pt()")
+    public void afterThrowingLog() {
+        System.out.println("异常通知(@AfterThrowing)：执行切入点方法出现异常时...记录日志");
+    }
+
+    /* @After注解用于配置当前方法是一个最终通知 */
+    @After("pt()")
+    public void afterLog() {
+        System.out.println("最终通知(@After)：执行切入点方法完成后（不管有无异常都会执行）...记录日志");
+    }
+
+    /* @Around注解用于配置当前方法是一个环绕通知 */
+    @Around("pt()")
+    public Object aroundLog(ProceedingJoinPoint joinPoint) {
+        // 定义返回值
+        Object retValue = null;
+        try {
+            // 前置通知
+            System.out.println("环绕通知(@Around)：执行切入点方法之前...记录日志");
+            // 获取切入点方法执行所需的参数
+            Object[] args = joinPoint.getArgs();
+            // 执行切入点的方法
+            retValue = joinPoint.proceed(args);
+            // 后置通知
+            System.out.println("环绕通知(@Around)：执行切入点方法之后...记录日志");
+        } catch (Throwable throwable) {
+            throwable.printStackTrace();
+            //异常通知
+            System.out.println("环绕通知(@Around)：执行切入点方法产生异常后记录日志");
+        } finally {
+            //最终通知
+            System.out.println("环绕通知(@Around)：无论切入点方法执行是否有异常都记录日志");
+        }
+        return retValue;
+    }
+}
+```
+
+### 3.4. 测试
+
+- 测试代码
+
+```java
+@Test
+public void aspectBasicTest() {
+    // 1. 创建注解扫描的容器
+    ApplicationContext context = new AnnotationConfigApplicationContext(SpringConfiguration.class);
+    // 2.获取对象
+    UserService userService = context.getBean("userService", UserService.class);
+    // 3.执行方法
+    User user = new User();
+    user.setId("1");
+    user.setUsername("石原里美");
+    user.setNickname("十元");
+    userService.saveUser(user);
+}
+```
+
+- 测试结果
+
+```
+环绕通知(@Around)：执行切入点方法之前...记录日志
+前置通知(@Before)：执行切入点方法前...记录日志
+UserServiceImpl.saveUser()执行了保存用户User[id='1', username='石原里美', password='null', email='null', birthday=null, gender='null', mobile='null', nickname='十元']
+环绕通知(@Around)：执行切入点方法之后...记录日志
+环绕通知(@Around)：无论切入点方法执行是否有异常都记录日志
+最终通知(@After)：执行切入点方法完成后（不管有无异常都会执行）...记录日志
+后置通知(@AfterReturning)：执行切入点方法后...记录日志
+```
+
+## 4. Spring 纯注解配置声明式事务快速入门案例
+
+### 4.1. 案例说明
+
+本案例采用的是经典转账案例测试事务控制。本案例中，采用的是声明式事务，且注解驱动的方式配置。
+
+### 4.2. 引入依赖
+
+```xml
+<!-- 注：依赖的版本按实际需要，此处省略 -->
+<dependencies>
+    <!-- spring核心依赖 -->
+    <dependency>
+        <groupId>org.springframework</groupId>
+        <artifactId>spring-context</artifactId>
+    </dependency>
+    <!-- spring操作持久层依赖 -->
+    <dependency>
+        <groupId>org.springframework</groupId>
+        <artifactId>spring-jdbc</artifactId>
+    </dependency>
+    <!-- mysql驱动 -->
+    <dependency>
+        <groupId>mysql</groupId>
+        <artifactId>mysql-connector-java</artifactId>
+    </dependency>
+    <dependency>
+        <groupId>junit</groupId>
+        <artifactId>junit</artifactId>
+    </dependency>
+    <dependency>
+        <groupId>org.springframework</groupId>
+        <artifactId>spring-test</artifactId>
+    </dependency>
+</dependencies>
+```
+
+### 4.3. 编写基础代码、配置类
+
+> 复用上面《注解驱动入门案例》中的账户实体类Account.java，数据库连接参数的配置文件jdbc.properties，Jdbc配置类JdbcConfig.java
+
+- 创建事务管理器的配置类，往ioc容器中注册事务管理器PlatformTransactionManager
+
+```java
+/**
+ * 事务管理器的配置类
+ */
+public class TransactionManagerConfig {
+    // 创建PlatformTransactionManager事务管理器，注册到ioc容器中
+    @Bean
+    public PlatformTransactionManager createPlatformTransactionManager(DataSource dataSource) {
+        return new DataSourceTransactionManager(dataSource);
+    }
+}
+```
+
+- spring核心配置文件，增加`@EnableTransactionManagement`注解开启注解事务支持，并导入Jdbc配置类与事务管理器的配置类
+
+```java
+@Configuration // 标识配置类
+@ComponentScan("com.moon.springsample") // 开启包扫描
+@Import({JdbcConfig.class, TransactionManagerConfig.class}) // 导入jdbc配置类与事务管理器的配置类
+@PropertySource("classpath:jdbc.properties") // 引入数据库连接配置文件
+/* 开启spring注解事务的支持 */
+@EnableTransactionManagement
+public class SpringConfiguration {
+}
+```
+
+### 4.4. 编写业务层与持久层
+
+- 持久层接口与实现
+
+```java
+public interface AccountDao {
+    /**
+     * 更新账户
+     */
+    void update(Account account);
+
+    /**
+     * 根据名称查询账户
+     */
+    Account findByName(String name);
+}
+
+@Repository("accountDao")
+public class AccountDaoImpl implements AccountDao {
+    // 注入JdbcTemplate操作对象
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
+
+    @Override
+    public void update(Account account) {
+        jdbcTemplate.update("update account set name=?,money=? where id = ?", account.getName(), account.getMoney(), account.getId());
+    }
+
+    @Override
+    public Account findByName(String name) {
+        List<Account> accounts = jdbcTemplate.query("select * from account where name = ?", new BeanPropertyRowMapper<>(Account.class), name);
+        if (accounts.isEmpty()) {
+            return null;
+        }
+        if (accounts.size() > 1) {
+            throw new RuntimeException("账户不唯一");
+        }
+        return accounts.get(0);
+    }
+}
+```
+
+- 编写业务层接口与实现，使用`@Transactional`注解
+
+```java
+public interface AccountService {
+    /** 转账 */
+    void transfer(String sourceName, String targetName, Double money);
+}
+
+@Service("accountService")
+@Transactional
+public class AccountServiceImpl implements AccountService {
+    // 注入dao接口
+    @Autowired
+    private AccountDao accountDao;
+
+    @Override
+    public void transfer(String sourceName, String targetName, Double money) {
+        // 1. 根据名称查询转出账户
+        Account source = accountDao.findByName(sourceName);
+        // 2. 根据名称查询转入账户
+        Account target = accountDao.findByName(targetName);
+        // 3. 转出账户减钱
+        source.setMoney(source.getMoney() - money);
+        // 4. 转入账户加钱
+        target.setMoney(target.getMoney() + money);
+        // 5. 更新转出账户
+        accountDao.update(source);
+        // int i = 1 / 0; // 模拟转账异常
+        // 6. 更新转入账户
+        accountDao.update(target);
+    }
+}
+```
+
+### 4.5. 测试
+
+```java
+@RunWith(SpringJUnit4ClassRunner.class)
+@ContextConfiguration(classes = SpringConfiguration.class)
+public class SpringTransactionTest {
+    @Autowired
+    private AccountService accountService;
+
+    /* 测试转账 */
+    @Test
+    public void testTransfer() {
+        accountService.transfer("石原里美", "新垣结衣", 100d);
+    }
+}
+```
+
+## 5. (!整理中)Spring 注解汇总清单
+
+> TODO: 整理中！在《Spring注解汇总-相关表格.xlsx》中，整理完成后转为图片形式放入笔记
+
+## 6. 注解示例源码
+
+> Notes: 注解的源码注释参考项目 https://github.com/MooNkirA/spring-note/tree/master/Spring-Framework
+
+# IOC常用注解 - 用于注解驱动
+
+## 1. @Configuration
+
+### 1.1. 作用
 
 它是在 Spring 3.0 版本之后加入的。此注解是 Spring 支持注解驱动开发的一个标志。表示当前类是 Spring 的一个配置类，作用是替代传统主 Spring 的 applicationContext.xml 配置文件。
 
 从它的源码可以看出，其本质就是 `@Component` 注解，被此注解修饰的类，也会被存入 spring 的 ioc 容器。
 
-#### 2.1.2. 相关属性
+### 1.2. 相关属性
 
 |       属性名        |                                                               作用                                                               |    取值     |
 | ------------------ | ------------------------------------------------------------------------------------------------------------------------------- | ---------- |
 | `value`            | 用于存入spring的Ioc容器中Bean的id                                                                                                |            |
 | `proxyBeanMethods` | (Spring 5.2 版本后新增)指定类中`@Bean`注解标识的方法是否返回代理对象，默认值为 true，返回代理对象。如设置为 false，则每次创建新的对象 | true/false |
 
-#### 2.1.3. 使用场景
+### 1.3. 使用场景
 
 在注解驱动开发时，用于编写配置的类，通常可以使用此注解。一般情况下，配置也会分为主从配置，`@Configuration`一般出现在主配置类上。
 
@@ -187,7 +522,7 @@ public class SpringConfiguration {
 }
 ```
 
-#### 2.1.4. 示例
+### 1.4. 示例
 
 - 创建配置类
 
@@ -241,9 +576,9 @@ public class ConfigurationTest {
 }
 ```
 
-### 2.2. @ComponentScan
+## 2. @ComponentScan
 
-#### 2.2.1. 作用与使用场景
+### 2.1. 作用与使用场景
 
 用于指定创建容器时要扫描的包。该注解在指定扫描的位置时，可以指定包名，也可以指定扫描的类。同时支持定义扫描规则，例如包含哪些或者排除哪些。同时，它还支持自定义Bean的命名规则
 
@@ -251,25 +586,25 @@ public class ConfigurationTest {
 
 <font color=red>**注意：在spring4.3版本之后还加入了一个`@ComponentScans`的注解，该注解相当于支持配置多个`@ComponentScan`**</font>
 
-#### 2.2.2. 相关属性
+### 2.2. 相关属性
 
-|        属性名         |                                                  作用                                                  |                                                                  取值                                                                  |
-| :------------------: | ------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------- |
-|       `value`        | 用于指定要扫描的包。当指定了包的名称之后，spring会扫描指定的包及其子包下的所有类                               |                                                                                                                                       |
-|    `basePackages`    | 与value作用一样                                                                                         |                                                                                                                                       |
-| `basePackageClasses` | 指定具体要扫描的类的字节码，spring会扫描指定字节码的类所在的包及其子包下的所有类。                             |                                                                                                                                       |
-|    `nameGenrator`    | 指定扫描bean对象存入容器时的命名规则。详情参考《Spring源码分析》的BeanNameGenerator及其实现类。               |                                                                                                                                       |
-|   `scopeResolver`    | 用于处理并转换检测到的Bean的作用范围。                                                                    |                                                                                                                                       |
-| `scopedProxy` | 用于指定bean生成时的代理方式。默认是Default，则不使用代理                                                   | 可选值有4个：`DEFAULT`，`NO`，`INTERFACES`，`TARGET_CLASS`。<br/>详情请可查看spring源码的ScopedProxyMode枚举。                             |
-|  `resourcePattern`   | 用于指定符合组件检测条件的类文件，默认是包扫描下的`**/*.class`                                              |                                                                                                                                       |
-| `useDefaultFilters`  | 是否对带有`@Component` `@Repository` `@Service` `@Controller`注解的类开启检测，默认是开启的。              |                                                                                                                                       |
+|        属性名         |                                               作用                                               |                                                               取值                                                                |
+| :------------------: | ----------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+|       `value`        | 用于指定要扫描的包。当指定了包的名称之后，spring会扫描指定的包及其子包下的所有类                               |                                                                                                                                  |
+|    `basePackages`    | 与value作用一样                                                                                   |                                                                                                                                  |
+| `basePackageClasses` | 指定具体要扫描的类的字节码，spring会扫描指定字节码的类所在的包及其子包下的所有类。                             |                                                                                                                                  |
+|    `nameGenrator`    | 指定扫描bean对象存入容器时的命名规则。详情参考《Spring源码分析》的BeanNameGenerator及其实现类。               |                                                                                                                                  |
+|   `scopeResolver`    | 用于处理并转换检测到的Bean的作用范围。                                                                 |                                                                                                                                  |
+|    `scopedProxy`     | 用于指定bean生成时的代理方式。默认是Default，则不使用代理                                                | 可选值有4个：`DEFAULT`，`NO`，`INTERFACES`，`TARGET_CLASS`。<br/>详情请可查看spring源码的ScopedProxyMode枚举。                            |
+|  `resourcePattern`   | 用于指定符合组件检测条件的类文件，默认是包扫描下的`**/*.class`                                            |                                                                                                                                  |
+| `useDefaultFilters`  | 是否对带有`@Component` `@Repository` `@Service` `@Controller`注解的类开启检测，默认是开启的。            |                                                                                                                                  |
 |   `includeFilters`   | 自定义组件扫描的过滤规则，用于扫描组件。该注解的值是`Filter`注解数组，`Filter`的`type`属性是`FilterType`的枚举 | `ANNOTATION`：注解类型（默认）<br/>`ASSIGNABLE_TYPE`：指定固定类<br/>`ASPECTJ`：ASPECTJ类型<br/>`REGEX`：正则表达式<br/>`CUSTOM`：自定义类型 |
-|   `excludeFilters`   | 自定义组件扫描的排除规则。注解值的类型与`includeFilters`一致                                               |                                                                                                                                       |
-|      `lazyInit`      | 组件扫描时是否采用懒加载 ，默认不开启。                                                                    |                                                                                                                                       |
+|   `excludeFilters`   | 自定义组件扫描的排除规则。注解值的类型与`includeFilters`一致                                             |                                                                                                                                  |
+|      `lazyInit`      | 组件扫描时是否采用懒加载 ，默认不开启。                                                                 |                                                                                                                                  |
 
-#### 2.2.3. 包扫描配置示例
+### 2.3. 包扫描配置示例
 
-##### 2.2.3.1. 不指定扫描包的使用
+#### 2.3.1. 不指定扫描包的使用
 
 - 创建配置类
 
@@ -298,7 +633,7 @@ public void componentScanBaseTest() {
 
 ![](images/20200805234044677_8448.png)
 
-##### 2.2.3.2. value 与 basePackages 属性
+#### 2.3.2. value 与 basePackages 属性
 
 - 创建简单模拟的业务层代码
 
@@ -358,7 +693,7 @@ public void componentScanBasePackagesTest() {
 }
 ```
 
-##### 2.2.3.3. basePackageClasses 属性
+#### 2.3.3. basePackageClasses 属性
 
 - 配置`basePackageClasses`属性，指定扫描类的字节码
 
@@ -390,9 +725,9 @@ public void componentScanBasePackageClassesTest() {
 
 ![](images/20200809001235062_3991.png)
 
-#### 2.2.4. 自定义 BeanNameGenerator 生成规则
+### 2.4. 自定义 BeanNameGenerator 生成规则
 
-##### 2.2.4.1. nameGenrator属性
+#### 2.4.1. nameGenrator属性
 
 通过查看`@ComponentScan`注解的源码，有`nameGenrator`属性，用来定义bean在spring容器中的名称。属性的值是一个`BeanNameGenerator`接口，spring有默认实现的生成名称，其实现类为`AnnotationBeanNameGenerator`。
 
@@ -400,7 +735,7 @@ public void componentScanBasePackageClassesTest() {
 
 > 注：在《Spring源码分析》中有`BeanNameGenerator`的详细介绍
 
-##### 2.2.4.2. 自定义beanName生成规则示例
+#### 2.4.2. 自定义beanName生成规则示例
 
 - 创建自定义beanName生成规则类`com.moon.springsample.custom.CustomBeanNameGenerator`，实现`BeanNameGenerator`接口。里面的逻辑可以参考源码
 
@@ -532,7 +867,7 @@ public void componentScanNameGeneratorTest() {
 
 ![](images/20200811230734059_29542.png)
 
-#### 2.2.5. resourcePattern 属性配置扫描规则
+### 2.5. resourcePattern 属性配置扫描规则
 
 `resourcePattern` 属性的默认值是包扫描下的` **/*.class`。可以通过该属性修改包扫描的规则
 
@@ -558,11 +893,11 @@ public void componentScanNameResourcePatternTest() {
 
 ![](images/20200824232433304_30206.png)
 
-#### 2.2.6. 自定义组件扫描过滤规则
+### 2.6. 自定义组件扫描过滤规则
 
 当项目中存在很多类时，在扫描的过程中使用过滤器，排除或者包含拥有某些注解或者符合指定规则的类，对于加快启动 Spring 应该上下文的过程是很有帮助的。
 
-##### 2.2.6.1. ExcludeFilter 和 IncludeFilter 基础使用
+#### 2.6.1. ExcludeFilter 和 IncludeFilter 基础使用
 
 - `includeFilters`：指定包含的过滤规则，不会影响 spring 扫描其他规则
 - `excludeFilters`：指定排除的过滤规则，指定后该扫描规则会被过滤，不会被扫描加入 spring 容器
@@ -604,7 +939,7 @@ public void componentScanFiltersTest() {
 
 ![](images/20200825232151925_20711.png)
 
-##### 2.2.6.2. FilterType 枚举
+#### 2.6.2. FilterType 枚举
 
 ```java
 public enum FilterType {
@@ -635,7 +970,7 @@ public enum FilterType {
 }
 ```
 
-##### 2.2.6.3. TypeFilter 接口
+#### 2.6.3. TypeFilter 接口
 
 `org.springframework.core.type.filter.TypeFilter` 是自定义过滤器必须实现的基础接口
 
@@ -663,7 +998,7 @@ public interface TypeFilter {
 }
 ```
 
-##### 2.2.6.4. Spring提供的过滤规则 - AnnotationTypeFilter
+#### 2.6.4. Spring提供的过滤规则 - AnnotationTypeFilter
 
 spring框架本身就提供了一些过滤规则的实现，比如`AnnotationTypeFilter`，用于筛选指定的标识了指定类型注解的类
 
@@ -677,7 +1012,7 @@ public class SpringConfiguration {
 }
 ```
 
-##### 2.2.6.5. 自定义过滤器案例模拟场景分析
+#### 2.6.5. 自定义过滤器案例模拟场景分析
 
 在实际开发中，有很多下面这种业务场景：一个业务需求根据环境的不同，可能要加载不同的实现。比如以下案例：
 
@@ -686,7 +1021,7 @@ public class SpringConfiguration {
 
 此时应该考虑采用桥接设计模式，把将涉及到场景差异的模块功能单独抽取到代表场景功能的接口中。针对不同场景进行实现。并且在扫描组件注册到容器中时，采用哪个场景的具体实现，应该采用配置文件配置起来。而自定义TypeFilter就可以实现注册指定场景的组件到spring容器中。
 
-##### 2.2.6.6. 相关代码准备
+#### 2.6.6. 相关代码准备
 
 - **定义场景的注解**
 
@@ -807,7 +1142,7 @@ public class NormalPlatformImpl implements PlatformService {
 }
 ```
 
-##### 2.2.6.7. 不使用过滤器测试
+#### 2.6.7. 不使用过滤器测试
 
 - **编写项目的配置类**
 
@@ -836,7 +1171,7 @@ public void noTypeFiltertest() {
 
 ![](images/20200828000712072_18714.png)
 
-##### 2.2.6.8. 使用自定义过滤器实现不同场景不同实现（重点）
+#### 2.6.8. 使用自定义过滤器实现不同场景不同实现（重点）
 
 - **编写自定义扫描过滤规则**。可以通过实现顶级接口`TypeFilter`，但也可以选择继承其他的抽象类（如`AbstractTypeHierarchyTraversingFilter`），因为抽象类已经实现部分逻辑，这样减少一些代码的编写
 
@@ -982,9 +1317,9 @@ public class SpringConfiguration {
 
 ![](images/20200829001505989_13028.png)
 
-### 2.3. @Bean
+## 3. @Bean
 
-#### 2.3.1. 作用与使用场景
+### 3.1. 作用与使用场景
 
 - `@Bean`注解可以写在方法上，表示把当前方法的返回值存入Spring的ioc容器。
 - `@Bean`注解同时还可以出现在注解上，作为元注解来使用。
@@ -995,7 +1330,7 @@ public class SpringConfiguration {
 
 例如：在配置`JdbcTemplate`使用Spring内置数据源`DriverManagerDataSource`时，数据源类是spring-jdbc这个jar包中类，此时无法编辑在该类上面加注解，此时就可以使用`@Bean`注解配置
 
-#### 2.3.2. 相关属性
+### 3.2. 相关属性
 
 |        属性名        |                                                                作用                                                                 |    取值    |
 | :-----------------: | ----------------------------------------------------------------------------------------------------------------------------------- | ---------- |
@@ -1007,7 +1342,7 @@ public class SpringConfiguration {
 |   `destroyMethod`   | 用于指定销毁方法。*注意：该方法不能有入参*                                                                                              |            |
 
 
-#### 2.3.3. @Bean 注解的使用细节
+### 3.3. 使用细节
 
 1. 如果`@Bean`注解不指定name/value属性，则存入ioc容器时，标识了该注解下的方法的名称作为bean的名称标识，存入到ioc容器
 2. 如果`@Bean`注解不指定name/value属性，并出现了方法重载，则以最后定义的方法的返回对象，注入到spring ioc容器中
@@ -1036,7 +1371,7 @@ public JdbcTemplate createJdbcTemplate(@Autowired DataSource dataSource) {
 }
 ```
 
-#### 2.3.4. 使用示例
+### 3.4. 使用示例
 
 - 定义Spring项目的配置类
 
@@ -1129,22 +1464,22 @@ public class SpringBeanTest {
 }
 ```
 
-### 2.4. @Import
+## 4. @Import
 
-#### 2.4.1. 作用与使用场景
+### 4.1. 作用与使用场景
 
 - **作用**：该注解是写在类上的，通常都是和注解驱动的配置类一起使用的。其作用是引入其他的配置类。使用了此注解之后，可以使注解驱动开发和早期 xml 配置一样，按不同的功能模块，分别配置不同的内容，使配置更加清晰。同时指定了此注解之后，被引入的类上可以不再使用`@Configuration`，`@Component`等注解的支撑，spring ioc 也可以将引入类加载到 ioc 容器。
 - **使用场景**：当在使用注解驱动开发时，由于配置项过多，如果都写在一个类里面，配置结构和内容将杂乱不堪，此时使用此注解可以把配置项进行分模块进行配置。
 
 > 注：使用`@Bean`也可以实现引入其他类（第三方的类）一样的效果，但`@Import`可以自定义批量导入类；<font color=red>**通过`@Import`注解导入的类，在 spring 容器中注册的名称不是默认的“类名首字母小写”，而是“类的全限定名”**</font>
 
-#### 2.4.2. 相关属性
+### 4.2. 相关属性
 
 | 属性名  |                            作用                             |        取值        |
 | :-----: | ----------------------------------------------------------- | ------------------ |
 | `value` | 用于导入其他配置类，其值类型为类的字节码。它支持指定多个配置类 | `Class<?>`对象数组 |
 
-#### 2.4.3. 基础使用示例
+### 4.3. 基础使用示例
 
 在入门案例中，使用了`SpringConfiguration`做为主配置类，而连接数据库相关的配置被分配到了`JdbcConfig`配置类中，此时使用在`SpringConfiguration`类上使用`@Import`注解把`JdbcConfig`导入进来就可以了。
 
@@ -1206,7 +1541,7 @@ public void importAnnotaionBasicTest() {
 }
 ```
 
-#### 2.4.4. （扩展）通过spring容器对象获取所有注册的bean的唯一标识
+### 4.4. （扩展）通过spring容器对象获取所有注册的bean的唯一标识
 
 ```java
 /* 获取spring ioc容器中所有注册的bean的名称 */
@@ -1223,18 +1558,18 @@ public void getBeanDefinitionNamesTest() {
 }
 ```
 
-### 2.5. @Import 注解的高级分析
+## 5. @Import 注解的高级分析
 
 `@Import`注解除了可以直接导入一个（或多个）类，还可以导入实现一些接口的实现类，而这些接口分别是：`ImportSelector`与`ImportBeanDefinitionRegistrar`
 
 <font color=red>**注：`ImportSelector`与`ImportBeanDefinitionRegistrar`这此接口的方法，必须通过`@Import`导入的方式才会被spring调用，如果使用`@Component`等注解加入到spring中，是无法调用接口的方法**</font>
 
-#### 2.5.1. ImportSelector 和 ImportBeanDefinitionRegistrar 介绍
+### 5.1. ImportSelector 和 ImportBeanDefinitionRegistrar 介绍
 
 - `ImportSelector`：导入器，用于动态注册bean对象到容器中
 - `ImportBeanDefinitionRegistrar`：注册器，用于动态注册bean对象到容器中
 
-##### 2.5.1.1. bean对象注册到spring容器的方式
+#### 5.1.1. bean对象注册到spring容器的方式
 
 在spring框架中，注册bean到ioc容器有很多种方式。
 
@@ -1248,7 +1583,7 @@ public void getBeanDefinitionNamesTest() {
 >
 > 同理，如果开发一个自定义功能，可以使用这种方式，自定义一个注解，通过 `@Import` 注解导入相关 `ImportSelector` 或者 `ImportBeanDefinitionRegistrar` 实现，最后将项目打成 jar 包，再通过依赖的方式引入到相关工程，再使用自定义注解将相关的类导入到 spring 容器即可
 
-##### 2.5.1.2. 共同点、区别、注意事项
+#### 5.1.2. 共同点、区别、注意事项
 
 - **共同点**：
     - `ImportSelector`与`ImportBeanDefinitionRegistrar`都是用于动态注册bean对象到容器中的。并且支持大批量的bean导入。
@@ -1264,9 +1599,9 @@ public void getBeanDefinitionNamesTest() {
     2. 通过以上两个接口实现注册bean对象到容器中时，<font color=red>**bean的唯一标识是全限定类名，而非短类名**</font>。
     3. 以上两个接口的实现类不能通过`@Component`等注解来加入到spring容器，使用此方式接口的方法不会被spring所调用，必须配合`@Import`注解导入的方式，接口的方法才会被spring所调用。
 
-#### 2.5.2. 自定义 ImportSelector
+### 5.2. 自定义 ImportSelector
 
-##### 2.5.2.1. 代码准备
+#### 5.2.1. 代码准备
 
 - 添加示例相关依赖，因为本示例使用aspectJ过滤规则，所以需要添加aspectjweaver的依赖
 
@@ -1332,7 +1667,7 @@ public class SpringConfiguration {
 }
 ```
 
-##### 2.5.2.2. 自定义导入器，实现 ImportSelector 接口
+#### 5.2.2. 自定义导入器，实现 ImportSelector 接口
 
 ```java
 package com.moon.springsample.importselector;
@@ -1442,7 +1777,7 @@ public class CustomImportSelector implements ImportSelector {
 }
 ```
 
-##### 2.5.2.3. 测试
+#### 5.2.3. 测试
 
 - 编写测试代码
 
@@ -1488,7 +1823,7 @@ custom.importselector.expression=com.moon.springsample.service..*
 
 > <font color=purple>**注：此处有坑，如果aspectJ切入点表达式包含自定义导入器`CustomImportSelector`类的话，会报错，在学习源码后再试试分析分析**</font>
 
-##### 2.5.2.4. 改造自定义导入器逻辑，将扫描包路径也定义在配置文件中
+#### 5.2.4. 改造自定义导入器逻辑，将扫描包路径也定义在配置文件中
 
 改造需求：通过properties配置文件指定扫描的包路径，同时兼容`@ComponentScan`指定的扫描包路径。如果注解与配置文件都没有指定包路径时，才扫描标识`@Import`注解的类所有包路径。
 
@@ -1616,9 +1951,9 @@ public class SpringConfiguration {
 custom.importselector.package=com.moon.springsample.service.impl
 ```
 
-#### 2.5.3. 自定义 ImportBeanDefinitionRegistrar
+### 5.3. 自定义 ImportBeanDefinitionRegistrar
 
-##### 2.5.3.1. 代码准备
+#### 5.3.1. 代码准备
 
 - 添加示例相关依赖，参考《自定义ImportSelector》
 - 准备相关待注册到容器的类，参考《自定义ImportSelector》
@@ -1643,7 +1978,7 @@ public class SpringConfiguration {
 }
 ```
 
-##### 2.5.3.2. 自定义bean定义注册器，实现ImportBeanDefinitionRegistrar接口
+#### 5.3.2. 自定义bean定义注册器，实现ImportBeanDefinitionRegistrar接口
 
 实现的逻辑可以参考《自定义 ImportSelector》章节，注意的是`ImportBeanDefinitionRegistrar`接口是通过扫描包来实现对象的注册
 
@@ -1758,7 +2093,7 @@ public class CustomImportDefinitionRegistrar implements ImportBeanDefinitionRegi
 }
 ```
 
-##### 2.5.3.3. 测试
+#### 5.3.3. 测试
 
 ```java
 @Test
@@ -1775,7 +2110,7 @@ public void customImportBeanDefinitionRegistrarTest() {
 
 结果与自定义ImportSelector一样
 
-#### 2.5.4. 自定义 DeferredImportSelector（！待理解后再整理）
+### 5.4. 自定义 DeferredImportSelector（！待理解后再整理）
 
 ```java
 public interface DeferredImportSelector extends ImportSelector
@@ -1785,29 +2120,29 @@ public interface DeferredImportSelector extends ImportSelector
 
 此部分内容示例暂时未整理，先详见[《Spring 源码分析02-IOC(控制反转)》笔记](/后端框架/Spring/Spring源码分析02-IOC)的示例
 
-#### 2.5.5. 实现原理分析
+### 5.5. 实现原理分析
 
 以上`@Import`注解的实现原理，与`ImportSelector`、`ImportBeanDefinitionRegistrar`、`DeferredImportSelector`接口的调用逻辑，此部分内容详见[《Spring 源码分析02-IOC(控制反转)》笔记](/后端框架/Spring/Spring源码分析02-IOC)
 
-### 2.6. @PropertySource
+## 6. @PropertySource
 
-#### 2.6.1. 作用与使用场景
+### 6.1. 作用与使用场景
 
 用于指定读取资源文件的位置。不仅支持properties文件，也支持xml文件，并且通过YAML解析器，配合自定义PropertySourceFactory实现解析yml配置文件
 
 使用场景：实际开发中，使用注解驱动后，xml配置文件就没有了，此时一些配置如果直接写在类中，会造成和java源码的紧密耦合，修改起来不方法。此时一些配置可以使用properties或者yml来配置就变得很灵活方便。
 
-#### 2.6.2. 相关属性
+### 6.2. 相关属性
 
-|          属性名           |                                     作用                                     |                                         取值                                         |
-| :----------------------: | ---------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
-|          `name`          | 指定资源的名称。如果没有指定，将根据基础资源描述生成。                             |                                                                                      |
-|         `value`          | 指定资源的位置。可以是类路径，也可以是文件路径。                                  | 如：类路径:`classpath:/com/myco/app.properties`<br/>文件路径：`file:/path/to/file.xml` |
-| `ignoreResourceNotFound` | 指定是否忽略资源文件不存在，默认是false,也就是说当资源文件不存在时spring启动将会报错 | true/false                                                                           |
-|        `encoding`        | 指定解析资源文件使用的字符集。当有中文的时候，需要指定中文的字符集。                 | 如："UTF-8"                                                                          |
-|        `factory`         | 指定读取对应资源文件的工厂类，默认的是PropertySourceFactory。                    |                                                                                      |
+|          属性名           |                                  作用                                   |                                        取值                                         |
+| :----------------------: | ---------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
+|          `name`          | 指定资源的名称。如果没有指定，将根据基础资源描述生成。                            |                                                                                    |
+|         `value`          | 指定资源的位置。可以是类路径，也可以是文件路径。                                 | 如：类路径:`classpath:/com/myco/app.properties`<br/>文件路径：`file:/path/to/file.xml` |
+| `ignoreResourceNotFound` | 指定是否忽略资源文件不存在，默认是false,也就是说当资源文件不存在时spring启动将会报错 | true/false                                                                         |
+|        `encoding`        | 指定解析资源文件使用的字符集。当有中文的时候，需要指定中文的字符集。                 | 如："UTF-8"                                                                         |
+|        `factory`         | 指定读取对应资源文件的工厂类，默认的是PropertySourceFactory。                  |                                                                                    |
 
-#### 2.6.3. 基础使用示例
+### 6.3. 基础使用示例
 
 - 创建配置文件jdbc.properties或者jdbc.xml（这种格式比较少用）
 
@@ -1906,12 +2241,12 @@ public void propertySourceBasicTest() throws Exception {
 }
 ```
 
-### 2.7. 自定义 PropertySourceFactory 实现YAML文件解析
+## 7. 自定义 PropertySourceFactory 实现YAML文件解析
 
 通过分析`@PropertySource`源码，可知默认情况下此注解只能解析properties文件和xml文件，而遇到yaml（yml）文件，解析就会报错。此时就需要编写一个`PropertySourceFactory`的实现类，借助yaml解析器，实现yml文件的解析。
 
 
-#### 2.7.1. 编写yml配置文件
+### 7.1. 编写yml配置文件
 
 ```yml
 jdbc:
@@ -1921,7 +2256,7 @@ jdbc:
   password: 123456
 ```
 
-#### 2.7.2. 引入yaml解析器的依赖
+### 7.2. 引入yaml解析器的依赖
 
 修改pom.xml文件，增加yaml解析器的依赖
 
@@ -1934,7 +2269,7 @@ jdbc:
 </dependency>
 ```
 
-#### 2.7.3. 编写自定义 PropertySourceFactory
+### 7.3. 编写自定义 PropertySourceFactory
 
 分析：实现逻辑可以参考Spring构架的默认实现`DefaultPropertySourceFactory`，将接口中的方法的入参EncodedResource转成PropertySource对象即可
 
@@ -1985,7 +2320,7 @@ public class CustomPropertySourceFactory implements PropertySourceFactory {
 }
 ```
 
-#### 2.7.4. 使用`@PropertyeSource`的factory属性配置自定义工厂
+### 7.4. 使用`@PropertyeSource`的factory属性配置自定义工厂
 
 ```java
 @Configuration
@@ -2012,29 +2347,29 @@ public void propertySourceFactoryTest() throws Exception {
 }
 ```
 
-### 2.8. @ImportResource(有需要时再整理)
+## 8. @ImportResource(有需要时再整理)
 
 `@ImportResource` 注解的作用是引入一个 xml 配置文件，目前的项目都是基于注解开发，所以没什么用
 
-## 3. IOC常用注解 - 注入时机和设定注入条件
+# IOC常用注解 - 注入时机和设定注入条件
 
-### 3.1. @DependsOn
+## 1. @DependsOn
 
-#### 3.1.1. 作用与使用场景
+### 1.1. 作用与使用场景
 
 **作用**：用于指定某个类的创建依赖的bean对象先创建。spring中没有特定bean的加载顺序，使用此注解则可指定bean的加载顺序。(在基于注解配置中，是按照类中方法的书写顺序决定的)
 
 **使用场景**：在观察者模式中，分为事件，事件源和监听器。一般情况下，监听器负责监听事件源，当事件源触发了事件之后，监听器就要捕获，并且做出相应的处理。以此为前提，肯定希望监听器的创建时间在事件源之前，此时就可以使用此注解
 
-#### 3.1.2. 相关属性
+### 1.2. 相关属性
 
-|  属性名  |                              作用                               | 取值 |
-| :-----: | -------------------------------------------------------------- | ---- |
+|  属性名  |                            作用                            | 取值 |
+| :-----: | ---------------------------------------------------------- | ---- |
 | `value` | 用于指定bean的唯一标识。被指定的bean(或多个)会在当前bean创建之前加载 |      |
 
 > Notes: `value` 属性是字符串数组类型，可以指定多个bean对象。如：`@DependsOn({"beanA,beanB,beanC,..."})`
 
-#### 3.1.3. 基础使用示例
+### 1.3. 基础使用示例
 
 - 创建项目配置类
 
@@ -2103,9 +2438,9 @@ public class EventSource {
 
 ![](images/20200830181753817_31032.png)
 
-### 3.2. @Lazy
+## 2. @Lazy
 
-#### 3.2.1. 作用与使用场景
+### 2.1. 作用与使用场景
 
 - **作用**：用于指定<font color=red>**单例bean对象的创建时机**</font>。<font color=red>**值得注意的是：此注解只对单例bean对象起作用，当指定了`@Scope`注解的`prototype`取值后，此注解不起作用**</font>。在没有使用此注解时，单例bean的生命周期与容器相同。但是当使用了此注解之后，单例对象的创建时机变成了第一次使用时创建。注意：这不是延迟加载思想（因为不是每次使用时都创建，只是第一次创建的时机改变了）。
 - **使用场景**：在实际开发中，当创建的Bean是单例对象时，并不是每个都需要一开始都加载到ioc容器之中，有些对象可以在真正使用的时候再加载，当有此需求时，即可使用此注解。
@@ -2113,13 +2448,13 @@ public class EventSource {
 
 > 注：如果标识在构造函数中，可以解决单例实例构造函数的循环依赖问题，原因是在调用A类构造函数时依赖注入B类时，不是真正的B类实例，而是B类的代理实例
 
-#### 3.2.2. 相关属性
+### 2.2. 相关属性
 
-| 属性名  |                   作用                   |    取值    |
-| :-----: | ---------------------------------------- | ---------- |
+|  属性名   |                 作用                  |    取值     |
+| :-----: | ------------------------------------ | ---------- |
 | `value` | 指定是否采用延迟加载。默认值为true，表示开启 | true/false |
 
-#### 3.2.3. 基础使用示例
+### 2.3. 基础使用示例
 
 - 创建配置类
 
@@ -2165,24 +2500,24 @@ public void lazyBasicTest() {
 
 ![](images/20200831225707309_20245.png)
 
-### 3.3. @Conditional
+## 3. @Conditional
 
-#### 3.3.1. 作用与使用场景
+### 3.1. 作用与使用场景
 
 - **作用**：根据条件选择注入的 bean 对象。该注解可以作用在类、方法上
 - **使用场景**：在开发时，可能会使用多平台来测试，例如测试数据库分别部署到了 linux 和 windows两 个操作系统上面，现在根据工程运行环境来选择连接的数据库。此时就可以使用此注解。同时基于此注解引出的`@Profile`注解，就是根据不同的环境，加载不同的配置信息，*详情请参考后面章节的 `@Profile` 的使用*。
 
-#### 3.3.2. 相关属性
+### 3.2. 相关属性
 
-|  属性名  |                                       作用                                       | 取值 |
-| :-----: | ------------------------------------------------------------------------------- | ---- |
-| `value` | 提供一个或者多个Condition接口的实现类，实现类中需要编写具体代码实现注册到ioc容器的条件  |      |
+|  属性名  |                                   作用                                   | 取值 |
+| :-----: | ------------------------------------------------------------------------ | ---- |
+| `value` | 提供一个或者多个Condition接口的实现类，实现类中需要编写具体代码实现注册到ioc容器的条件 |      |
 
-#### 3.3.3. 基础使用示例
+### 3.3. 基础使用示例
 
 示例场景说明：本示例模拟在不同操作系统平台上，项目根据工程运行的环境来选择连接不同的数据库。
 
-##### 3.3.3.1. 不使用 @Conditional 注解前存在的问题
+#### 3.3.1. 不使用 @Conditional 注解前存在的问题
 
 - 创建两套配置文件
 
@@ -2283,7 +2618,7 @@ org.springframework.jdbc.datasource.DriverManagerDataSource@7ee955a8
 
 以上结果明显不符合项目的需求，当前`@Bean`注解存在方法重载时，spring 的默认规则是以最后定义的方法的返回对象，注入到 spring ioc 容器中。需要使用 `@Conditional` 注解去控制加载哪个 bean 到 ioc 容器中
 
-##### 3.3.3.2. 使用 @Conditional 注解改造程序
+#### 3.3.2. 使用 @Conditional 注解改造程序
 
 - 分别创建两套自定义注册条件类，需要实现 Spring 框架的`Condition`接口
 
@@ -2401,17 +2736,17 @@ createWindowsDataSource()方法执行，Window URL is: jdbc:mysql://localhost:33
 org.springframework.jdbc.datasource.DriverManagerDataSource@647fd8ce
 ```
 
-### 3.4. @Profile
+## 4. @Profile
 
-#### 3.4.1. 作用与使用场景
+### 4.1. 作用与使用场景
 
 `@Profile` 注解是 spring 提供的一个用来标明当前运行环境的注解。正常开发的过程中经常分成多套环境的配置，开发环境是一套环境，测试是一套环境，线上部署又是一套环境。为了解决此的问题，一般会使用一种方法，就是针对不同的环境进行不同的配置，从而在不同的场景中正常运行程序。
 
 而 spring 中的 `@Profile` 注解的作用就体现在：在 spring 使用 DI 来注入的时候，能够根据当前制定的运行环境来注入相应的 bean。最常见的就是使用不同的 DataSource 了。
 
-#### 3.4.2. 基础使用示例
+### 4.2. 基础使用示例
 
-##### 3.4.2.1. 示例项目相关依赖
+#### 4.2.1. 示例项目相关依赖
 
 ```xml
 <dependencies>
@@ -2446,7 +2781,7 @@ org.springframework.jdbc.datasource.DriverManagerDataSource@647fd8ce
 </dependencies>
 ```
 
-##### 3.4.2.2. 编写配置类与配置文件
+#### 4.2.2. 编写配置类与配置文件
 
 ```properties
 jdbc.driver=com.mysql.jdbc.Driver
@@ -2465,7 +2800,7 @@ public class SpringConfiguration {
 }
 ```
 
-##### 3.4.2.3. 定义不同环境的数据源配置类
+#### 4.2.3. 定义不同环境的数据源配置类
 
 定义不同的方法，设置返回不同属性的数据源对象，为避免方法重载带来对于对象注册到ioc的不必要麻烦，每个方法名称都设置不一样。并在每个方法上标识`@Profile`注解，标识不同环境
 
@@ -2534,7 +2869,7 @@ public class JdbcConfig {
 }
 ```
 
-##### 3.4.2.4. 编写测试类
+#### 4.2.4. 编写测试类
 
 ```java
 /**
@@ -2561,11 +2896,11 @@ public class SpringProfileTest {
 
 ![](images/20200901152609840_19300.png)
 
-## 4. 用于创建对象的注解
+# 用于创建对象的注解
 
-### 4.1. @Component、@Controller、@Service、@Repository
+## 1. @Component、@Controller、@Service、@Repository
 
-#### 4.1.1. 作用与使用场景
+### 1.1. 作用与使用场景
 
 - **作用**：这四个注解都是用于修饰类的，作用是标识当前类由Spring框架管理，负责创建对象示例，并存入Spring的IOC容器中。在实例化时，首选默认无参构造函数。同时支持带参构造，前提是构造函数的参数依赖必须要有值，否则抛异常
 - **使用场景**：当需要把编写的类注入到IOC容器中，就可以使用以上四个注解实现。以上四个注解中`@Component`注解通常用在非三层对象中。而`@Controller`，`@Service`，`@Repository`三个注解一般是针对控制层、业务层、数据层对象使用的，提供更加精确的语义化配置。
@@ -2573,13 +2908,13 @@ public class SpringProfileTest {
 
 <font color=purple>需要注意的是，Spring 在注解驱动开发时，要求必须先接管类对象，然后会处理类中的属性和方法。如果类没有被 Spring 接管，那么里面的属性和方法上的注解都不会被解析。</font>
 
-#### 4.1.2. 相关属性
+### 1.2. 相关属性
 
-|  属性名  |                                作用                                | 取值 |
-| :-----: | ----------------------------------------------------------------- | ---- |
+|  属性名  |                             作用                             | 取值 |
+| :-----: | ----------------------------------------------------------- | ---- |
 | `value` | 用于指定存入容器时bean的ID。当不指定时，默认值为当前类的名称，首字母小写 |      |
 
-#### 4.1.3. 基于 @Component 等注解综合使用示例
+### 1.3. 基于 @Component 等注解综合使用示例
 
 综合示例代码详见：
 
@@ -2587,9 +2922,9 @@ public class SpringProfileTest {
 >
 > 本地：spring-note\spring-sample\34-annotation-component-composite-sample\
 
-### 4.2. @Indexed
+## 2. @Indexed
 
-#### 4.2.1. 作用与原理
+### 2.1. 作用与原理
 
 Spring 5.0 版本后，增加 `@Indexed` 注解，用于加快扫描类的时间。
 
@@ -2606,7 +2941,7 @@ com.moon.spring.Bean2=org.springframework.stereotype.Component
 
 > 注：在 5.0 版本后，`@Component` 已经组合了 `@Indexed` 注解，因此标识 `@Component` 的类相当于也标识 `@Indexed`
 
-#### 4.2.2. 使用示例
+### 2.2. 使用示例
 
 需要在项目上添加如下依赖
 
@@ -2618,11 +2953,11 @@ com.moon.spring.Bean2=org.springframework.stereotype.Component
 </dependency>
 ```
 
-## 5. 用于注入数据的注解
+# 用于注入数据的注解
 
-### 5.1. @Autowired
+## 1. @Autowired
 
-#### 5.1.1. 作用与使用场景
+### 1.1. 作用与使用场景
 
 - **作用**：自动按照类型注入。当ioc容器中有且只有一个类型匹配时可以直接注入成功。也可以标识在数组、List、Map等类型上，可以注入同一类型的多个实例。
 - **使用场景**：通常情况下自己写的类中注入依赖bean对象时，都可以采用此注解。
@@ -2633,15 +2968,15 @@ com.moon.spring.Bean2=org.springframework.stereotype.Component
 - 当 `@Autowired` 注解属性值 `required` 为 false 时，代表不必须注入成功，如果当前 IOC 容器无可匹配的类型时，不会报错，但对应标识此注解的变量为 null
 - 当 IOC 容器有超过一个匹配时，则使用变量名称（如写在方法上就是方法名称）作为 bean 的 id，在符合类型的 bean 中再次匹配，能匹配上就可以注入成功。找不到匹配时根据 `required` 属性的取值决定是否报错
 
-#### 5.1.2. 相关属性
+### 1.2. 相关属性
 
-|   属性名    |                               作用                                |    取值    |
-| :--------: | ---------------------------------------------------------------- | ---------- |
+|   属性名    |                            作用                             |    取值     |
+| :--------: | ---------------------------------------------------------- | ---------- |
 | `required` | 是否必须注入成功。默认值是 true，表示必须注入成功，如果注入不成功会报错 | true/false |
 
-#### 5.1.3. 各种使用方式示例
+### 1.3. 各种使用方式示例
 
-##### 5.1.3.1. 测试准备
+#### 1.3.1. 测试准备
 
 - 创建用于测试的类
 
@@ -2689,7 +3024,7 @@ public class SpringConfiguration {
 }
 ```
 
-##### 5.1.3.2. 对象成员属性
+#### 1.3.2. 对象成员属性
 
 将 `@Autowired` 注解标识在类的对象成员属性上，Spring 将匹配到该类型的 bean 自动装配到属性中。
 
@@ -2717,7 +3052,7 @@ public class SpringAutowiredTest {
 }
 ```
 
-##### 5.1.3.3. 数组或集合类型的成员属性
+#### 1.3.3. 数组或集合类型的成员属性
 
 将 `@Autowired` 注解标识在数组或者 List 集合的属性上，Spring 会读取该数组或者集合的类型，将所有匹配的该类型的 bean 自动装配到该属性上
 
@@ -2733,7 +3068,7 @@ public class Foo {
 }
 ```
 
-##### 5.1.3.4. Map 类型的成员属性
+#### 1.3.4. Map 类型的成员属性
 
 将 `@Autowired` 注解标识在 `java.util.Map` 类型属性上，并且 Map 的键是字符串类型时，Spring 会将所有匹配 Map 所指定 value 类型的 bean 添加到此 Map 集合中，并且将 bean 的名字作为键。
 
@@ -2746,7 +3081,7 @@ public class Foo {
 }
 ```
 
-##### 5.1.3.5. setter 方法
+#### 1.3.5. setter 方法
 
 将 `@Autowired` 注解标识在类的setter方法上，Spring 会自动装配匹配该方法形参类型的 bean，并自动装配到方法形参
 
@@ -2763,7 +3098,7 @@ public class Foo {
 }
 ```
 
-##### 5.1.3.6. 构造方法
+#### 1.3.6. 构造方法
 
 将 `@Autowired` 注解标识在类的有参构造方法上，Spring 会自动装配匹配该方法形参类型的 bean，并自动装配到方法形参
 
@@ -2782,7 +3117,7 @@ public class Foo {
 
 > Tips: 从 Spring Framework 4.3 版本开始，如果**只有一个构造方法**，则 Spring 会自动使用这个构造方法进行自动装配。在这种情况下， `@Autowired` 注解可以省略不写。
 
-##### 5.1.3.7. 任意成员方法
+#### 1.3.7. 任意成员方法
 
 将 `@Autowired` 注解标识在类中任意名称以及任意数量形参的方法上，Spring 也会自动匹配方法每个形参的类型，并自动装配到相应的方法形参上。
 
@@ -2801,26 +3136,26 @@ public class Foo {
 }
 ```
 
-### 5.2. @Qualifier
+## 2. @Qualifier
 
-#### 5.2.1. 作用与使用场景
+### 2.1. 作用与使用场景
 
 - **作用**：当使用自动按类型注入时，遇到有多个类型匹配的时候，就可以使用此注解来明确注入哪个bean对象。
 - **使用场景**：在项目开发中，很多时候都会用到消息队列，以ActiveMQ为例。当和spring整合之后，Spring框架提供了一个JmsTemplate对象，它既可以用于发送点对点模型消息也可以发送主题模型消息。如果项目中两种消息模型都用上了，那么针对不同的代码，将会注入不同的JmsTemplate，而容器中出现两个之后，就可以使用此注解注入。当然不用也可以，只需要把要注入的变量名称改为和要注入的bean的id一致即可。
 
 > Notes: `@Qualifier` 通常情况下都必须配合 `@Autowired` 注解一起使用
 
-#### 5.2.2. 相关属性
+### 2.2. 相关属性
 
 |  属性名  |         作用         | 取值 |
-| :-----: | -------------------- | ---- |
+| :-----: | ------------------- | ---- |
 | `value` | 用于指定bean的唯一标识 |      |
 
-#### 5.2.3. 使用示例
+### 2.3. 使用示例
 
 > 基于`@Autowired`注解的使用示例工程，增加`@Qualifier`注解部分
 
-##### 5.2.3.1. 对象成员属性
+#### 2.3.1. 对象成员属性
 
 将 `@Qualifier` 注解标识对象成员属性上，用于指定注入的 bean 的唯一标识
 
@@ -2830,7 +3165,7 @@ public class Foo {
 private UserService userService;
 ```
 
-##### 5.2.3.2. 方法参数
+#### 2.3.2. 方法参数
 
 `@Qualifier` 注解还可以标识在方法参数上，用于指定注入的 bean 的唯一标识
 
@@ -2841,20 +3176,20 @@ public void customMethod(@Qualifier("userService") UserService userService) {
 }
 ```
 
-### 5.3. @Value
+## 3. @Value
 
-#### 5.3.1. 作用与使用场景
+### 3.1. 作用与使用场景
 
 - **作用**：用于注入基本类型、String 类型和对象类型的数据。它支持 Spring 的 EL 表达式，配置文件支持 properties，xml 和 yml 类型的文件。
 - **使用场景**：在实际开发中，像连接数据库的配置，发送邮件的配置等等，都可以使用配置文件配置起来。此时读取配置文件就可以借助 spring 的 el 表达式读取。
 
-#### 5.3.2. 相关属性
+### 3.2. 相关属性
 
-|  属性名  |               作用               | 取值 |
-| :-----: | ------------------------------- | ---- |
+|  属性名  |              作用              | 取值 |
+| :-----: | ----------------------------- | ---- |
 | `value` | 指定注入的数据或者spring的el表达式 |      |
 
-#### 5.3.3. EL 表达式语法
+### 3.3. EL 表达式语法
 
 > 以下是部分 EL 表达式语法
 
@@ -2895,7 +3230,7 @@ private Resource resource;
 private Resource resource;
 ```
 
-#### 5.3.4. 使用示例
+### 3.4. 使用示例
 
 - 创建配置文件name.properties
 
@@ -2968,9 +3303,9 @@ public void valueBasicTest(){
 }
 ```
 
-### 5.4. @Resource
+## 4. @Resource
 
-#### 5.4.1. 作用与使用场景
+### 4.1. 作用与使用场景
 
 此注解来源于JSR规范（Java Specification Requests），其作用是找到依赖的组件注入到应用来，它利用了JNDI（Java Naming and Directory Interface Java命名目录接口 J2EE规范之一）技术查找所需的资源。
 
@@ -2981,19 +3316,19 @@ public void valueBasicTest(){
     - 当byName和byType都指定了，两个都会校验，有任何一个不符合条件就会报错。
 - **使用场景**：当某个类的依赖bean在ioc容器中存在多个的时候，可以使用此注解指定特定的bean对象注入。相当于使用`@Autowired`配合`@Qualifier`注入。
 
-#### 5.4.2. 相关属性
+### 4.2. 相关属性
 
-|        属性名         |                                              作用                                               | 取值 |
-| :------------------: | ----------------------------------------------------------------------------------------------- | ---- |
-|        `name`        | 资源的JNDI名称。在 spring 的注入时，指定 bean 的唯一标识                                            |      |
-|        `type`        | 指定bean的类型                                                                                   |      |
-|       `lookup`       | 引用指向的资源的名称。它可以使用全局JNDI名称链接到任何兼容的资源                                      |      |
+|        属性名         |                                          作用                                          | 取值 |
+| :------------------: | ------------------------------------------------------------------------------------- | ---- |
+|        `name`        | 资源的JNDI名称。在 spring 的注入时，指定 bean 的唯一标识                                      |      |
+|        `type`        | 指定bean的类型                                                                          |      |
+|       `lookup`       | 引用指向的资源的名称。它可以使用全局JNDI名称链接到任何兼容的资源                                  |      |
 | `authenticationType` | 指定资源的身份验证类型。它只能为任何受支持类型的连接工厂的资源指定此选项，而不能为其他类型的资源指定此选项 |      |
-|     `shareable`      | 指定此资源是否可以在此组件和其他组件之间共享                                                         |      |
-|     `mappedName`     | 指定资源的映射名称                                                                                |      |
-|    `description`     | 指定资源的描述                                                                                   |      |
+|     `shareable`      | 指定此资源是否可以在此组件和其他组件之间共享                                                   |      |
+|     `mappedName`     | 指定资源的映射名称                                                                        |      |
+|    `description`     | 指定资源的描述                                                                           |      |
 
-#### 5.4.3. 基础使用示例
+### 4.3. 基础使用示例
 
 - 创建配置类
 
@@ -3070,7 +3405,12 @@ public void resourceBasicTest() {
 }
 ```
 
-#### 5.4.4. 扩展知识 - 同时使用 @Autowired 与 @Resource
+### 4.4. @Autowired 和 @Resource 的区别
+
+- `@Autowired` 默认是按照<u>**类型装配**</U>注入的，默认情况下它要求依赖对象必须存在（可以设置 `required` 属性为 false，非必须注入）
+- `@Resource` 默认是按照<u>**名称装配**</u>注入的，只有当找不到与名称匹配的 bean 才会按照类型来装配注入。
+
+### 4.5. （扩展）同时使用 @Autowired 与 @Resource
 
 如果在一个对象属性上同时使用 `@Autowired` 与 `@Resource` 注解，假设依赖注入的对象实现有多个，会以哪个注解指定的为准？这个可以根据 Spring 的后置处理器的排序来判断，默认 `@Autowired` 是优先于 `@Resource`。也可以通过修改排序器来改变两个注解的优先级
 
@@ -3085,16 +3425,16 @@ beanFactory.getBeansOfType(BeanPostProcessor.class)
         });
 ```
 
-### 5.5. @Inject
+## 5. @Inject
 
-#### 5.5.1. 作用与使用场景
+### 5.1. 作用与使用场景
 
 `@Inject` 来源于 JSR-330 标准。
 
 - **作用**：也是根据对象类型进行自动注入，与 `@Resource`、`@Autowired` 的作用是一样。在使用之前需要先导入依赖坐标
 - **使用场景**：在使用`@Autowired`注解的地方，都可以替换成`@Inject`。它也可以出现在方法上，构造函数上和字段上，<font color=red>**但是需要注意的是：因为JRE无法决定构造方法注入的优先级，所以规范中规定类中只能有一个构造方法标识`@Inject`注解。**</font>
 
-#### 5.5.2. 需导入的依赖
+### 5.2. 需导入的依赖
 
 ```xml
 <dependency>
@@ -3104,13 +3444,13 @@ beanFactory.getBeansOfType(BeanPostProcessor.class)
 </dependency>
 ```
 
-#### 5.5.3. 与其他注入数据注解的区别
+### 5.3. 与其他注入数据注解的区别
 
 - `@Autowired`：来源于 Spring 框架自身。默认是byType自动装配，当配合了`@Qualifier`注解之后，由`@Qualifier`来实现byName的方式装配。它有一个`required`属性，用于指定是否必须注入成功。
 - `@Resource`：来源于 JSR-250 规范。在没有指定name属性时是byType自动装配，当指定了name属性之后，采用byName方式自动装配。
 - `@Inject`：来源于 JSR-330 规范。（JSR330是Jcp给出的官方标准反向依赖注入规范。）它不支持任何属性，但是可以配合`@Qualifier`或者`@Primary`注解使用。同时，它默认是采用byType装配，当指定了JSR-330规范中的`@Named`注解之后，变成byName装配。
 
-#### 5.5.4. 使用示例
+### 5.4. 使用示例
 
 示例基础代码沿用`@Resource`注解示例项目，引入 inject 的依赖
 
@@ -3138,14 +3478,14 @@ public AccountServiceImpl(AccountDao accountDao) {
 
 > Notes: inject 还提供了一个 `@Qualifier` 的注解，位于 `javax.inject` 包中，该注解只能用在自定义注解上，用于实现 `@Inject` 根据名称来自动装配。*此示例参考《Spring 5 攻略（Spring 5 Recipes）》书籍中的2-4章节*
 
-### 5.6. @Primary
+## 6. @Primary
 
-#### 5.6.1. 作用与使用场景
+### 6.1. 作用与使用场景
 
 - **作用**：用于指定bean的注入优先级。被`@Primary`修饰的bean对象优先注入
 - **使用场景**：当依赖对象有多个存在时，`@Autowired`注解已经无法完成功能，此时首先想到的是`@Qualifier`注解指定依赖bean的id。但是此时就产生了，无论有多少个bean，每次都会使用指定的bean注入。但是当使用`@Primary`，表示优先使用被`@Primary`注解标识的bean，但是当不存在时还会使用其他的。
 
-#### 5.6.2. 使用示例
+### 6.2. 使用示例
 
 示例基础代码沿用`@Resource`注解示例项目，修改待注入的类，标识`@Primary`注解
 
@@ -3175,15 +3515,15 @@ public class AccountServiceImpl implements AccountService {
 }
 ```
 
-### 5.7. @Required（已过时）
+## 7. @Required（已过时）
 
-#### 5.7.1. 作用与使用场景
+### 7.1. 作用与使用场景
 
 **作用**：`@Required` 用于标识类的方法上，表示所标识  bean 的属性必须在创建该类时，通过 bean 定义中的显式属性值或通过自动注入来填充。如果受影响的 bean 属性未被设置，容器就会抛出 `BeanInitializationException` 异常。
 
 > Notes: 从 Spring Framework 5.1 开始，`@Required` 注解和 `RequiredAnnotationBeanPostProcessor` 已被正式废弃，转而使用构造器注入来实现所需的设置（或者自定义 `InitializingBean.afterPropertiesSet()` 的实现，或者自定义 `@PostConstruct` 方法以及 Bean 属性设置方法）。
 
-#### 5.7.2. 基础使用示例
+### 7.2. 基础使用示例
 
 ```java
 public class SimpleMovieLister {
@@ -3198,26 +3538,26 @@ public class SimpleMovieLister {
 }
 ```
 
-## 6. 和生命周期以及作用范围相关的注解
+# 和生命周期以及作用范围相关的注解
 
-### 6.1. @Scope
+## 1. @Scope
 
-#### 6.1.1. 作用与使用场景
+### 1.1. 作用与使用场景
 
 - **作用**：用于指定bean对象的作用范围，标识在类上。
 - **使用场景**：在实际开发中，bean对象默认都是单例的。通常情况下，被spring管理的bean都使用单例模式来创建。但是也有例外，例如Struts2框架中的Action，由于有模型驱动和OGNL表达式的原因，就必须配置成多例的。
 
-#### 6.1.2. 相关属性
+### 1.2. 相关属性
 
-|    属性名    |                                                                      作用                                                                      |                                                                          取值                                                                          |
-| :---------: | --------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
-|   `value`   | 指定作用范围的取值。在注解中默认值是""。但是在spring初始化容器时，会借助ConfigurableBeanFactory接口中的类成员：`String SCOPE_SINGLETON = "singleton";` | "singleton"/"prototype"                                                                                                                               |
-| `scopeName` | 它和value的作用是一样的                                                                                                                         |                                                                                                                                                       |
-| `proxyMode` | 指定bean对象的代理方式。指定的是ScopedProxyMode枚举的值                                                                                           | `DEFAULT`：默认值。（就是NO）<br/>`NO`：不使用代理。<br/>`INTERFACES`：使用JDK官方的基于接口的代理。<br/>`TARGET_CLASS`：使用CGLIB基于目标类的子类创建代理对象。 |
+|    属性名    |                                                                  作用                                                                   |                                                                      取值                                                                      |
+| :---------: | -------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+|   `value`   | 指定作用范围的取值。在注解中默认值是""。但是在spring初始化容器时，会借助ConfigurableBeanFactory接口中的类成员：`String SCOPE_SINGLETON = "singleton";` | "singleton"/"prototype"                                                                                                                       |
+| `scopeName` | 它和value的作用是一样的                                                                                                                    |                                                                                                                                               |
+| `proxyMode` | 指定bean对象的代理方式。指定的是ScopedProxyMode枚举的值                                                                                        | `DEFAULT`：默认值。（就是NO）<br/>`NO`：不使用代理。<br/>`INTERFACES`：使用JDK官方的基于接口的代理。<br/>`TARGET_CLASS`：使用CGLIB基于目标类的子类创建代理对象。 |
 
-### 6.2. @PostConstruct 与 @PreDestroy 的方式实现生命周期方法
+## 2. @PostConstruct 与 @PreDestroy 的方式实现生命周期方法
 
-#### 6.2.1. 作用与使用场景
+### 2.1. 作用与使用场景
 
 **作用**：
 
@@ -3231,7 +3571,7 @@ public class SimpleMovieLister {
 
 **注：单例的生命周期与容器的生命周期一致，对象随着容器的创建而创建，随容器的销毁而销毁。如果将作用范围设置为多例，则对象的生命周期会脱离容器，当对象被使用时创建，因为容器不知道对象什么时候会不再使用，所以对象的销毁是GC垃圾回收器决定**
 
-#### 6.2.2. 使用示例
+### 2.2. 使用示例
 
 参考代码详见：`spring-note\spring-analysis-note\spring-sample-annotation\19-annotation-lifecycle\`
 
@@ -3302,210 +3642,23 @@ LogUtil基于@PreDestroy注解销毁前的方法执行了...
 
 <font color=purple>*注：这两个注解并非Spring提供，而是JSR250规范提供*</font>
 
-## 7. 其他注解
+# 用于开启注解 AOP 支持的、配置切面、配置切入点表达式
 
-### 7.1. @Order
+## 1. @EnableAspectJAutoProxy
 
-#### 7.1.1. 作用与使用场景
-
-此注解用于指定 Spring 管理的组件的排序顺序。
-
-- **使用场景**：如自定义多个 `BeanPostProcessor` 实现、`BeanFactoryPostProcessor` 实现、AOP 切面等，可以使用此注解控制其组件的作用顺序
-
-#### 7.1.2. 相关属性
-
-|  属性名  |      作用      | 取值 |
-| :-----: | -------------- | ---- |
-| `value` | 指定排序顺序值 |      |
-
-# Spring 基于 AOP 注解汇总
-
-## 1. Spring注解驱动AOP快速入门示例
-
-案例需求：实现在执行service方法时输出执行日志。（除了业务层外，表现层和持久层也可以实现）
-
-### 1.1. 示例项目准备
-
-- 项目pom.xml引入依赖
-
-```xml
-<!-- spring核心依赖 -->
-<dependency>
-    <groupId>org.springframework</groupId>
-    <artifactId>spring-context</artifactId>
-    <version>5.1.6.RELEASE</version>
-</dependency>
-<!-- aspectj 依赖 -->
-<dependency>
-    <groupId>org.aspectj</groupId>
-    <artifactId>aspectjweaver</artifactId>
-    <version>1.8.13</version>
-</dependency>
-```
-
-- 创建实体类
-
-```java
-public class User implements Serializable {
-    private String id;
-    private String username;
-    private String password;
-    private String email;
-    private Date birthday;
-    private String gender;
-    private String mobile;
-    private String nickname;
-    // 省略getter、setter
-}
-```
-
-- 业务层接口与现实类
-
-```java
-public interface UserService {
-    /**
-     * 模拟保存用户
-     */
-    void saveUser(User user);
-}
-
-@Service("userService")
-public class UserServiceImpl implements UserService {
-    @Override
-    public void saveUser(User user) {
-        System.out.println("UserServiceImpl.saveUser()执行了保存用户" + user.toString());
-    }
-}
-```
-
-### 1.2. 项目配置类
-
-```java
-@Configuration
-@ComponentScan("com.moon.springsample")
-// 开启spring注解aop配置的支持
-@EnableAspectJAutoProxy
-public class SpringConfiguration {
-}
-```
-
-### 1.3. 编写切面类
-
-编写日志切面类
-
-```java
-// 将当前切面类注册到spring容器中
-@Component
-// 标识当前类是一个切面类
-@Aspect
-public class LogAspect {
-    /*
-     * 定义切入点表达式
-     *   表达式意思是：匹配 任意返回值 com.moon.springsample.service.impl包下 任意类 任意方法 任意类型参数列表
-     */
-    @Pointcut("execution(* com.moon.springsample.service.impl.*.*(..))")
-    private void pt() {}
-
-    /* @Before注解用于配置当前方法是一个前置通知 */
-    @Before("pt()")
-    public void beforeLog(JoinPoint joinPoint) {
-        System.out.println("前置通知(@Before)：执行切入点方法前...记录日志");
-    }
-
-    /* @AfterReturning注解用于配置当前方法是一个后置通知 */
-    @AfterReturning("pt()")
-    public void afterReturnLog() {
-        System.out.println("后置通知(@AfterReturning)：执行切入点方法后...记录日志");
-    }
-
-    /* @AfterThrowing注解用于配置当前方法是一个异常通知 */
-    @AfterThrowing("pt()")
-    public void afterThrowingLog() {
-        System.out.println("异常通知(@AfterThrowing)：执行切入点方法出现异常时...记录日志");
-    }
-
-    /* @After注解用于配置当前方法是一个最终通知 */
-    @After("pt()")
-    public void afterLog() {
-        System.out.println("最终通知(@After)：执行切入点方法完成后（不管有无异常都会执行）...记录日志");
-    }
-
-    /* @Around注解用于配置当前方法是一个环绕通知 */
-    @Around("pt()")
-    public Object aroundLog(ProceedingJoinPoint joinPoint) {
-        // 定义返回值
-        Object retValue = null;
-        try {
-            // 前置通知
-            System.out.println("环绕通知(@Around)：执行切入点方法之前...记录日志");
-            // 获取切入点方法执行所需的参数
-            Object[] args = joinPoint.getArgs();
-            // 执行切入点的方法
-            retValue = joinPoint.proceed(args);
-            // 后置通知
-            System.out.println("环绕通知(@Around)：执行切入点方法之后...记录日志");
-        } catch (Throwable throwable) {
-            throwable.printStackTrace();
-            //异常通知
-            System.out.println("环绕通知(@Around)：执行切入点方法产生异常后记录日志");
-        } finally {
-            //最终通知
-            System.out.println("环绕通知(@Around)：无论切入点方法执行是否有异常都记录日志");
-        }
-        return retValue;
-    }
-}
-```
-
-### 1.4. 测试
-
-- 测试代码
-
-```java
-@Test
-public void aspectBasicTest() {
-    // 1. 创建注解扫描的容器
-    ApplicationContext context = new AnnotationConfigApplicationContext(SpringConfiguration.class);
-    // 2.获取对象
-    UserService userService = context.getBean("userService", UserService.class);
-    // 3.执行方法
-    User user = new User();
-    user.setId("1");
-    user.setUsername("石原里美");
-    user.setNickname("十元");
-    userService.saveUser(user);
-}
-```
-
-- 测试结果
-
-```
-环绕通知(@Around)：执行切入点方法之前...记录日志
-前置通知(@Before)：执行切入点方法前...记录日志
-UserServiceImpl.saveUser()执行了保存用户User[id='1', username='石原里美', password='null', email='null', birthday=null, gender='null', mobile='null', nickname='十元']
-环绕通知(@Around)：执行切入点方法之后...记录日志
-环绕通知(@Around)：无论切入点方法执行是否有异常都记录日志
-最终通知(@After)：执行切入点方法完成后（不管有无异常都会执行）...记录日志
-后置通知(@AfterReturning)：执行切入点方法后...记录日志
-```
-
-## 2. 用于开启注解 AOP 支持的、配置切面、配置切入点表达式
-
-### 2.1. @EnableAspectJAutoProxy
-
-#### 2.1.1. 作用与使用场景
+### 1.1. 作用与使用场景
 
 - **作用**：表示开启 spring 对注解 AOP 的支持，只能标识有类或接口上。它有两个属性，分别是指定采用的代理方式和是否暴露代理对象，通过 `AopContext` 可以进行访问。从定义可以看得出，它引入 `AspectJAutoProxyRegister.class` 对象，该对象是基于注解 `@EnableAspectJAutoProxy` 注册一个 `AnnotationAwareAspectJAutoProxyCreator`，该对象通过调用 `AopConfigUtils.registerAspectJAnnotationAutoProxyCreatorIfNecessary(registry)` 注册一个 AOP 代理对象生成器。
 - **使用场景**：当注解驱动开发时，在需要使用 AOP 实现某些功能的情况下，都需要用到此注解去开启 AOP 功能
 
-#### 2.1.2. 相关属性
+### 1.2. 相关属性
 
-|       属性名        |                                                  作用                                                  |    取值    |
-| :----------------: | ------------------------------------------------------------------------------------------------------ | ---------- |
+|       属性名        |                                            作用                                            |    取值     |
+| :----------------: | ------------------------------------------------------------------------------------------ | ---------- |
 | `proxyTargetClass` | 指定是否采用 cglib 进行代理。默认值是false，并目标没有实现接口，此时则使用jdk的代理，否则都使用 cglib 代理 | true/false |
-|   `exposeProxy`    | 指定是否暴露代理对象，默认值是 false。如果暴露则通过 AopContext 可以进行访问                              | true/false |
+|   `exposeProxy`    | 指定是否暴露代理对象，默认值是 false。如果暴露则通过 AopContext 可以进行访问                          | true/false |
 
-#### 2.1.3. 基础使用示例
+### 1.3. 基础使用示例
 
 > 注：示例代码基于上面的AOP快速入门示例
 
@@ -3596,22 +3749,22 @@ public void enableAspecctJAutoProxyasicTest() {
 }
 ```
 
-### 2.2. @Aspect
+## 2. @Aspect
 
-#### 2.2.1. 作用与使用场景
+### 2.1. 作用与使用场景
 
 - **作用**：声明当前类是一个切面类。
 - **使用场景**：此注解也是一个注解驱动开发aop的必备注解。
 
-#### 2.2.2. 相关属性
+### 2.2. 相关属性
 
-|  属性名  |                                                  作用                                                  |                           取值                            |
-| :-----: | ------------------------------------------------------------------------------------------------------ | -------------------------------------------------------- |
+|  属性名  |                                           作用                                            |                           取值                            |
+| :-----: | ---------------------------------------------------------------------------------------- | -------------------------------------------------------- |
 | `value` | 默认的切面类应该为单例的。当切面类为一个多例类时，指定预处理的切入点表达式。用法是`perthis(切入点表达式)`。 | Valid values are `""` (singleton), `"perthis(...)"`, etc |
 
 > `@Aspect`注解它支持指定切入点表达式，或者在修饰的切面类中，使用`@Pointcut`修饰的方法名称（要求全限定方法名）。属性中的`perthis`切入点表达式的优先级比`@Pointcut`高
 
-#### 2.2.3. 使用示例
+### 2.3. 使用示例
 
 - 改造切面类，用于测试指定`@Aspect`属性值时的变化。
 
@@ -3681,23 +3834,23 @@ UserServiceImpl.saveUser()执行了保存用户User[id='1', username='石原里�
 方法执行时间为:1
 ```
 
-### 2.3. @Pointcut
+## 3. @Pointcut
 
-#### 2.3.1. 作用与使用场景
+### 3.1. 作用与使用场景
 
 - **作用**：此注解是用于指定切入点表达式的。此注解是代替xml中的`<aop:pointcut>`标签，实现切入点表达式的通用化。
 - **使用场景**：在实际开发中，当多个通知需要执行，同时增强的规则确定的情况下，就可以把切入点表达式通用化。
 
-#### 2.3.2. 相关属性
+### 3.2. 相关属性
 
-|   属性名    |                                                    作用                                                    | 取值 |
-| :--------: | --------------------------------------------------------------------------------------------------------- | ---- |
-|  `value`   | 用于指定切入点表达式                                                                                         |      |
+|   属性名    |                                               作用                                                | 取值 |
+| :--------: | ------------------------------------------------------------------------------------------------ | ---- |
+|  `value`   | 用于指定切入点表达式                                                                                  |      |
 | `argNames` | 用于指定切入点表达式的参数，参数可以是execution中的，也可以是args中的。通常情况下不使用此属性也可以获得切入点方法参数 |      |
 
 > 表达式的配置详解详见《Spring笔记01-基础.md》
 
-#### 2.3.3. 使用示例
+### 3.3. 使用示例
 
 - 创建一个独立的类，抽取公共的切入点表达式，方法的权限修饰符设置为`public`，也可以根据不同的需求定义为`protected`或者空
 
@@ -3796,73 +3949,73 @@ public class EfficiencyAspect {
 }
 ```
 
-## 3. AOP用于配置通知的注解
+# AOP用于配置通知的注解
 
-### 3.1. @Before
+## 1. @Before
 
-#### 3.1.1. 作用与使用场景
+### 1.1. 作用与使用场景
 
 - **作用**：被此注解修饰的方法为前置通知。前置通知的执行时间点是在切入点方法执行之前。
 - **使用场景**：在实际开发中，如果需要对切入点方法执行之前进行增强，此时就用到了前置通知。在通知（增强的方法）中需要获取切入点方法中的参数进行处理时，就要配合切入点表达式参数来使用。
 
-#### 3.1.2. 相关属性
+### 1.2. 相关属性
 
-|   属性名    |                                               作用                                               | 取值 |
-| :--------: | ------------------------------------------------------------------------------------------------ | ---- |
-|  `value`   | 用于指定切入点表达式。可以是表达式，也可以是表达式的引用。                                             |      |
+|   属性名    |                                           作用                                           | 取值 |
+| :--------: | --------------------------------------------------------------------------------------- | ---- |
+|  `value`   | 用于指定切入点表达式。可以是表达式，也可以是表达式的引用。                                         |      |
 | `argNames` | 用于指定切入点表达式的参数，它要求和切入点表达式中的参数名称一致。通常不指定也可以获取切入点方法的参数内容。 |      |
 
-### 3.2. @AfterReturning
+## 2. @AfterReturning
 
-#### 3.2.1. 作用与使用场景
+### 2.1. 作用与使用场景
 
 - **作用**：用于配置后置通知。后置通知的执行是在切入点方法<font color=red>**正常执行**</font>之后执行。
 - **使用场景**：此注解是用于配置后置增强切入点方法的。被此注解修饰方法会在切入点方法正常执行情况下之后执行。在实际开发中，像提交事务，记录访问日志，统计方法执行效率等等都可以利用后置通知实现
 
 <font color=red>**需要注意的是：由于基于注解的配置时，spring创建通知方法的拦截器链时，后置通知在最终通知之后，所以会先执行`@After`注解修饰的方法。**</font>
 
-#### 3.2.2. 相关属性
+### 2.2. 相关属性
 
-|   属性名    |                                               作用                                               | 取值 |
-| :---------: | ------------------------------------------------------------------------------------------------ | ---- |
-|   `value`   | 用于指定切入点表达式，可以是表达式，也可以是表达式的引用                                               |      |
-| `pointcut`  | 作用和value是一样的                                                                                |      |
-| `returning` | 指定切入点方法返回值的变量名称。它必须和切入点方法返回值名称一致                                        |      |
+|    属性名     |                                           作用                                           | 取值 |
+| :---------: | --------------------------------------------------------------------------------------- | ---- |
+|   `value`   | 用于指定切入点表达式，可以是表达式，也可以是表达式的引用                                           |      |
+| `pointcut`  | 作用和value是一样的                                                                        |      |
+| `returning` | 指定切入点方法返回值的变量名称。它必须和切入点方法返回值名称一致                                     |      |
 | `argNames`  | 用于指定切入点表达式的参数，它要求和切入点表达式中的参数名称一致。通常不指定也可以获取切入点方法的参数内容。 |      |
 
-### 3.3. @AfterThrowing
+## 3. @AfterThrowing
 
-#### 3.3.1. 作用与使用场景
+### 3.1. 作用与使用场景
 
 - **作用**：用于配置异常通知。
 - **使用场景**：用此注解修饰的方法执行时机是在切入点方法执行产生异常之后执行。
 
-#### 3.3.2. 相关属性
+### 3.2. 相关属性
 
-|   属性名    |                                               作用                                               | 取值 |
-| :--------: | ------------------------------------------------------------------------------------------------ | ---- |
-|  `value`   | 用于指定切入点表达式，可以是表达式，也可以是表达式的引用                                               |      |
-| `pointcut` | 作用和value是一样的                                                                                |      |
-| `throwing` | 指定切入点方法执行产生异常时的异常对象变量名称。它必须和异常变量名称一致                                 |      |
+|   属性名    |                                           作用                                           | 取值 |
+| :--------: | --------------------------------------------------------------------------------------- | ---- |
+|  `value`   | 用于指定切入点表达式，可以是表达式，也可以是表达式的引用                                           |      |
+| `pointcut` | 作用和value是一样的                                                                        |      |
+| `throwing` | 指定切入点方法执行产生异常时的异常对象变量名称。它必须和异常变量名称一致                              |      |
 | `argNames` | 用于指定切入点表达式的参数，它要求和切入点表达式中的参数名称一致。通常不指定也可以获取切入点方法的参数内容。 |      |
 
-### 3.4. @After
+## 4. @After
 
-#### 3.4.1. 作用与使用场景
+### 4.1. 作用与使用场景
 
 - **作用**：用于指定最终通知。
 - **使用场景**：最终通知的执行时机，是在切入点方法执行完成之后执行，无论切入点方法执行是否产生异常最终通知都会执行。所以被此注解修饰的方法，通常都是做一些清理操作。
 
-#### 3.4.2. 相关属性
+### 4.2. 相关属性
 
-|   属性名    |                                               作用                                               | 取值 |
-| :--------: | ------------------------------------------------------------------------------------------------ | ---- |
-|  `value`   | 用于指定切入点表达式。可以是表达式，也可以是表达式的引用。                                             |      |
+|   属性名    |                                           作用                                           | 取值 |
+| :--------: | --------------------------------------------------------------------------------------- | ---- |
+|  `value`   | 用于指定切入点表达式。可以是表达式，也可以是表达式的引用。                                         |      |
 | `argNames` | 用于指定切入点表达式的参数，它要求和切入点表达式中的参数名称一致。通常不指定也可以获取切入点方法的参数内容。 |      |
 
-### 3.5. 前4种注解综合示例
+## 5. 前4种注解综合示例
 
-#### 3.5.1. 基础使用示例
+### 5.1. 基础使用示例
 
 - 修改用于测试的业务类
 
@@ -3986,7 +4139,7 @@ public void adviceTypeBasicTest() {
 
 ![](images/20200909143016664_4466.png)
 
-#### 3.5.2. 同一切面同一通知类型的执行顺序示例
+### 5.2. 同一切面同一通知类型的执行顺序示例
 
 ```java
 @Component
@@ -4031,21 +4184,21 @@ public class LogAspect {
 }
 ```
 
-### 3.6. @Around
+## 6. @Around
 
-#### 3.6.1. 作用与使用场景
+### 6.1. 作用与使用场景
 
 - **作用**：用于指定环绕通知。
 - **使用场景**：环绕通知有别于前面介绍的四种通知类型。它不是指定增强方法执行时机的，而是spring提供的一种可以通过编码的方式手动控制增强方法何时执行的机制。
 
-#### 3.6.2. 相关属性
+### 6.2. 相关属性
 
 |   属性名    |                                               作用                                               | 取值 |
 | :--------: | ------------------------------------------------------------------------------------------------ | ---- |
 |  `value`   | 用于指定切入点表达式。可以是表达式，也可以是表达式的引用。                                             |      |
 | `argNames` | 用于指定切入点表达式的参数，它要求和切入点表达式中的参数名称一致。通常不指定也可以获取切入点方法的参数内容。 |      |
 
-#### 3.6.3. 使用示例
+### 6.3. 使用示例
 
 案例需求：模块执行一个业务层的多个方法，分别记录每个方法执行的相关信息（如：方法名、方法描述等）
 
@@ -4283,7 +4436,7 @@ public void aroundDemoTest() {
 }
 ```
 
-### 3.7. 通知相关的注解使用注意要点
+## 7. 通知相关的注解使用注意要点
 
 1. 定义几个不同的切入点，如果想让一个通知方法对此几个切入点都进行增加，在通知类注解`value`属性中指定多个切入点方法名称，多个方法名称中间使用`||`隔开
 
@@ -4300,23 +4453,23 @@ public Object methodsAnnotatedWithHystrixCommand(final ProceedingJoinPoint joinP
 }
 ```
 
-## 4. AOP用于扩展目标类的注解
+# AOP 用于扩展目标类的注解
 
-### 4.1. @DeclareParents
+## 1. @DeclareParents
 
-#### 4.1.1. 作用与使用场景
+### 1.1. 作用与使用场景
 
 - **作用**：用于给被增强的类提供新的方法。（即相当被增强的类多实现了新的接口）
 - **使用场景**：当完成了一个项目的某个阶段开发，此时需要对已完成的某个类加入一些新的方法，首先想到的是写一个接口，然后让这些需要方法的类实现此接口，但是如果目标类非常复杂，改动的话可能非常麻烦。此时就可以使用此注解，然后建一个代理类，同时代理该类和目标类。
 
-#### 4.1.2. 相关属性
+### 1.2. 相关属性
 
-|     属性名     |                                作用                                | 取值 |
-| :-----------: | ----------------------------------------------------------------- | ---- |
+|     属性名     |                             作用                             | 取值 |
+| :-----------: | ----------------------------------------------------------- | ---- |
 |    `value`    | 用于指定目标类型的表达式。当在全限定类名后面跟上`+`时，表示当前类及其子类 |      |
-| `defaultImpl` | 指定提供方法或者字段的默认实现类                                      |      |
+| `defaultImpl` | 指定提供方法或者字段的默认实现类                                   |      |
 
-#### 4.1.3. 使用示例
+### 1.3. 使用示例
 
 > 使用前面示例基础的代码
 
@@ -4408,22 +4561,22 @@ public void adviceSequenceBasicTest() {
 }
 ```
 
-### 4.2. @EnableLoadTimeWeaving
+## 2. @EnableLoadTimeWeaving
 
-#### 4.2.1. 作用与使用场景
+### 2.1. 作用与使用场景
 
 - **作用**：用于切换不同场景下实现增强。
 - **使用场景**：
     - 在Java 语言中，从织入切面的方式上来看，存在三种织入方式：编译期织入、类加载期织入和运行期织入。编译期织入是指在Java编译期，采用特殊的编译器，将切面织入到Java类中；而类加载期织入则指通过特殊的类加载器，在类字节码加载到JVM时，织入切面；运行期织入则是采用CGLib工具或JDK动态代理进行切面的织入。
     - AspectJ提供了两种切面织入方式，第一种通过特殊编译器，在编译期，将AspectJ语言编写的切面类织入到Java类中，可以通过一个Ant或Maven任务来完成这个操作；第二种方式是类加载期织入，也简称为LTW（Load Time Weaving）
 
-#### 4.2.2. 相关属性
+### 2.2. 相关属性
 
 |      属性名       |                                作用                                |                                                                                 取值                                                                                 |
 | :--------------: | ----------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `aspectjWeaving` | 是否开启LTW的支持。读取`META‐INF/aop.xml`文件，路径与文件名称是固定的。 | `AspectJWeaving.ENABLED`：开启LTW<br/>`AspectJWeaving.DISABLED`：不开启LTW<br/> `AspectJWeaving.AUTODETECT`：如果类路径下能读取到META‐INF/aop.xml文件，则开启LTW，否则关闭 |
 
-#### 4.2.3. 使用示例
+### 2.3. 使用示例
 
 - 引入实现LTW（Load Time Weaving）依赖坐标
 
@@ -4489,179 +4642,15 @@ public class LoadTimeWeavingAspect {
 
 > TODO: 检查过代码所有都没有问题，但使用`@EnableLoadTimeWeaving`后无法增强，如果使用原来的`@EnableAspectJAutoProxy`的方式，是正常可以增强，所以目前觉得可以aop.xml文件没有生效，日后有时间再去排查
 
-# Spring 事务注解汇总
+# 事务注解
 
-## 1. 入门案例（声明式事务，且基于纯注解配置）
+## 1. @EnableTransactionManagement
 
-### 1.1. 案例说明
-
-本案例采用的是经典转账案例测试事务控制。本案例中，采用的是声明式事务，且注解驱动的方式配置。
-
-### 1.2. 引入依赖
-
-```xml
-<!-- 注：依赖的版本按实际需要，此处省略 -->
-<dependencies>
-    <!-- spring核心依赖 -->
-    <dependency>
-        <groupId>org.springframework</groupId>
-        <artifactId>spring-context</artifactId>
-    </dependency>
-    <!-- spring操作持久层依赖 -->
-    <dependency>
-        <groupId>org.springframework</groupId>
-        <artifactId>spring-jdbc</artifactId>
-    </dependency>
-    <!-- mysql驱动 -->
-    <dependency>
-        <groupId>mysql</groupId>
-        <artifactId>mysql-connector-java</artifactId>
-    </dependency>
-    <dependency>
-        <groupId>junit</groupId>
-        <artifactId>junit</artifactId>
-    </dependency>
-    <dependency>
-        <groupId>org.springframework</groupId>
-        <artifactId>spring-test</artifactId>
-    </dependency>
-</dependencies>
-```
-
-### 1.3. 编写基础代码、配置类
-
-> 复用上面《注解驱动入门案例》中的账户实体类Account.java，数据库连接参数的配置文件jdbc.properties，Jdbc配置类JdbcConfig.java
-
-- 创建事务管理器的配置类，往ioc容器中注册事务管理器PlatformTransactionManager
-
-```java
-/**
- * 事务管理器的配置类
- */
-public class TransactionManagerConfig {
-    // 创建PlatformTransactionManager事务管理器，注册到ioc容器中
-    @Bean
-    public PlatformTransactionManager createPlatformTransactionManager(DataSource dataSource) {
-        return new DataSourceTransactionManager(dataSource);
-    }
-}
-```
-
-- spring核心配置文件，增加`@EnableTransactionManagement`注解开启注解事务支持，并导入Jdbc配置类与事务管理器的配置类
-
-```java
-@Configuration // 标识配置类
-@ComponentScan("com.moon.springsample") // 开启包扫描
-@Import({JdbcConfig.class, TransactionManagerConfig.class}) // 导入jdbc配置类与事务管理器的配置类
-@PropertySource("classpath:jdbc.properties") // 引入数据库连接配置文件
-/* 开启spring注解事务的支持 */
-@EnableTransactionManagement
-public class SpringConfiguration {
-}
-```
-
-### 1.4. 编写业务层与持久层
-
-- 持久层接口与实现
-
-```java
-public interface AccountDao {
-    /**
-     * 更新账户
-     */
-    void update(Account account);
-
-    /**
-     * 根据名称查询账户
-     */
-    Account findByName(String name);
-}
-
-@Repository("accountDao")
-public class AccountDaoImpl implements AccountDao {
-    // 注入JdbcTemplate操作对象
-    @Autowired
-    private JdbcTemplate jdbcTemplate;
-
-    @Override
-    public void update(Account account) {
-        jdbcTemplate.update("update account set name=?,money=? where id = ?", account.getName(), account.getMoney(), account.getId());
-    }
-
-    @Override
-    public Account findByName(String name) {
-        List<Account> accounts = jdbcTemplate.query("select * from account where name = ?", new BeanPropertyRowMapper<>(Account.class), name);
-        if (accounts.isEmpty()) {
-            return null;
-        }
-        if (accounts.size() > 1) {
-            throw new RuntimeException("账户不唯一");
-        }
-        return accounts.get(0);
-    }
-}
-```
-
-- 编写业务层接口与实现，使用`@Transactional`注解
-
-```java
-public interface AccountService {
-    /** 转账 */
-    void transfer(String sourceName, String targetName, Double money);
-}
-
-@Service("accountService")
-@Transactional
-public class AccountServiceImpl implements AccountService {
-    // 注入dao接口
-    @Autowired
-    private AccountDao accountDao;
-
-    @Override
-    public void transfer(String sourceName, String targetName, Double money) {
-        // 1. 根据名称查询转出账户
-        Account source = accountDao.findByName(sourceName);
-        // 2. 根据名称查询转入账户
-        Account target = accountDao.findByName(targetName);
-        // 3. 转出账户减钱
-        source.setMoney(source.getMoney() - money);
-        // 4. 转入账户加钱
-        target.setMoney(target.getMoney() + money);
-        // 5. 更新转出账户
-        accountDao.update(source);
-        // int i = 1 / 0; // 模拟转账异常
-        // 6. 更新转入账户
-        accountDao.update(target);
-    }
-}
-```
-
-### 1.5. 测试
-
-```java
-@RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration(classes = SpringConfiguration.class)
-public class SpringTransactionTest {
-    @Autowired
-    private AccountService accountService;
-
-    /* 测试转账 */
-    @Test
-    public void testTransfer() {
-        accountService.transfer("石原里美", "新垣结衣", 100d);
-    }
-}
-```
-
-## 2. 事务中的注解
-
-### 2.1. @EnableTransactionManagement
-
-#### 2.1.1. 作用
+### 1.1. 作用
 
 此注解是Spring支持注解事务配置的标志。表明Spring开启注解事务配置的支持。是注解驱动开发事务配置的必备注解。
 
-#### 2.1.2. 相关属性
+### 1.2. 相关属性
 
 |       属性名        |                                              作用                                               |                取值                 |
 | :----------------: | ---------------------------------------------------------------------------------------------- | ----------------------------------- |
@@ -4669,9 +4658,9 @@ public class SpringTransactionTest {
 |       `mode`       | 指定事务通知是如何执行的。默认是通过代理方式执行的。如果是同一个类中调用的话，请采用AdviceMode.ASPECTJ。 | AdviceMode.PROXY/AdviceMode.ASPECTJ |
 |      `order`       | 指示在特定连接点应用多个通知时事务处理的执行顺序。默认值是：最低优先级（Integer.MAX_VALUE）             |                                     |
 
-### 2.2. @Transactional
+## 2. @Transactional
 
-#### 2.2.1. 作用
+### 2.1. 作用
 
 `@Transactional`注解是Spring注解配置事务的核心注解，无论是注解驱动开发还是注解和XML混合开发，只有涉及配置事务采用注解的方式，都需要使用此注解。
 
@@ -4683,7 +4672,7 @@ public class SpringTransactionTest {
 
 以上三个标识位置的优先级：方法 > 类 > 接口
 
-#### 2.2.2. 相关属性
+### 2.2. 相关属性
 
 |          属性名           |                                              作用                                               |    取值    |
 | :----------------------: | ---------------------------------------------------------------------------------------------- | ---------- |
@@ -4700,7 +4689,7 @@ public class SpringTransactionTest {
 
 > 注：`@Transactional`的默认值：`transactionManager="transactionManager",propagation=Propagation.REQUIRED,readOnly=false,isolation=Isolation.DEFAULT`
 
-#### 2.2.3. @Transactional用法总结
+### 2.3. @Transactional 用法总结
 
 `@Transactional` 可以作用于接口、接口方法、类以及类方法上。当作用于类上时，该类的所有 public方法将都具有该类型的事务属性，同时，也可以在方法级别使用该标注来覆盖类级别的定义。
 
@@ -4708,13 +4697,13 @@ public class SpringTransactionTest {
 
 默认情况下，只有来自外部的方法调用才会被AOP代理捕获，也就是，类内部方法调用本类内部的其他方法并不会引起事务行为，即使被调用方法使用`@Transactional`注解进行修饰。
 
-### 2.3. @TransactionalEventListener
+## 3. @TransactionalEventListener
 
-#### 2.3.1. 作用
+### 3.1. 作用
 
 `@TransactionalEventListener`是spring在4.2版本之后加入的注解。用于配置一个事务的事件监听器。可以在事务提交和回滚前后可以做一些额外的功能。例如：对事务执行监控，执行中同步做一些操作等等。
 
-#### 2.3.2. 相关属性
+### 3.2. 相关属性
 
 |        属性名        |                                    作用                                     |                                                                                                   取值                                                                                                    |
 | :-----------------: | --------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -4724,7 +4713,7 @@ public class SpringTransactionTest {
 |      `classes`      | 它和value属性的作用是一样，指定事件类的字节码                                 |                                                                                                                                                                                                           |
 |     `condition`     | 用于指定执行事件处理器的条件。取值是基于Spring的el表达式编写的                 |                                                                                                                                                                                                           |
 
-#### 2.3.3. 使用示例
+### 3.3. 使用示例
 
 > 在事务的入门案例中进行修改
 
@@ -4822,7 +4811,7 @@ public class MyTransactionalEventListener {
 }
 ```
 
-### 2.4. 番外篇 - TransactionTemplate编程式事务的模板对象实现事务控制
+## 4. 番外篇 - TransactionTemplate 编程式事务的模板对象实现事务控制
 
 除了注解声明式实现事务控制，也可以使用Spring提供的`TransactionTemplate`编程式事务的模板对象实现事务控制
 
@@ -4874,89 +4863,18 @@ public void transfer(String sourceName, String targetName, Double money) {
 }
 ```
 
-# 其他
+# 其他注解
 
-## 1. @ControllerAdvice 注解
+## 1. @Order
 
-`@ControllerAdvice`，是spring3.2提供的新注解，大体的作用是控制器增强。还有`@RestControllerAdvice`注解，是`@ControllerAdvice`与`@ResponseBody`的组合体
+### 1.1. 作用与使用场景
 
-**使用`@ControllerAdvice`，不用任何的配置，只要把这个类放在项目中配置了Spring包扫描的位置（`<context:component-scan>`）。就可以实现全局异常的回调。**
+此注解用于指定 Spring 管理的组件的排序顺序。
 
-官方定义说明
+- **使用场景**：如自定义多个 `BeanPostProcessor` 实现、`BeanFactoryPostProcessor` 实现、AOP 切面等，可以使用此注解控制其组件的作用顺序
 
-- `@ControllerAdvice`是一个`@Component`，用于定义`@ExceptionHandler`，`@InitBinder`和`@ModelAttribute`方法，适用于所有使用`@RequestMapping`方法。
-- Spring4之前，`@ControllerAdvice`在同一调度的Servlet中协助所有控制器。Spring4已经改变：`@ControllerAdvice`支持配置控制器的子集，而默认的行为仍然可以利用。
-- 在Spring4中，` @ControllerAdvice`通过`annotations()`, `basePackageClasses()`, `basePackages()`方法定制用于选择控制器子集。
+### 1.2. 相关属性
 
-此注解一般配合`@ExceptionHandler`使用，异常处理器，此注解的作用是当出现其定义的异常时进行处理的方法，其可以使用springmvc提供的数据绑定，比如注入HttpServletRequest等，还可以接受一个当前抛出的Throwable对象。
-
-例：
-
-```java
-/**
- * 全局异常处理器
- */
-@RestControllerAdvice
-public class GlobalExceptionHandler {
-    private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
-
-    /**
-     * 权限校验失败 如果请求为ajax返回json，普通请求跳转页面
-     */
-    @ExceptionHandler(AuthorizationException.class)
-    public Object handleAuthorizationException(HttpServletRequest request, AuthorizationException e) {
-        log.error(e.getMessage(), e);
-        if (ServletUtils.isAjaxRequest(request)) {
-            return AjaxResult.error(PermissionUtils.getMsg(e.getMessage()));
-        } else {
-            ModelAndView modelAndView = new ModelAndView();
-            modelAndView.setViewName("/error/unauth");
-            return modelAndView;
-        }
-    }
-
-    /**
-     * 请求方式不支持
-     */
-    @ExceptionHandler({HttpRequestMethodNotSupportedException.class})
-    public AjaxResult handleException(HttpRequestMethodNotSupportedException e) {
-        log.error(e.getMessage(), e);
-        return AjaxResult.error("不支持' " + e.getMethod() + "'请求");
-    }
-
-    /**
-     * 拦截未知的运行时异常
-     */
-    @ExceptionHandler(RuntimeException.class)
-    public AjaxResult notFount(RuntimeException e) {
-        log.error("运行时异常:", e);
-        return AjaxResult.error("运行时异常:" + e.getMessage());
-    }
-
-    /**
-     * 系统异常
-     */
-    @ExceptionHandler(Exception.class)
-    public AjaxResult handleException(Exception e) {
-        log.error(e.getMessage(), e);
-        return AjaxResult.error("服务器错误，请联系管理员");
-    }
-
-    /**
-     * 业务异常
-     */
-    @ExceptionHandler(BusinessException.class)
-    public AjaxResult businessException(BusinessException e) {
-        log.error(e.getMessage(), e);
-        return AjaxResult.error(e.getMessage());
-    }
-}
-```
-
-*注：AjaxResult.error是自定义的一个方法，封装了一个返回的map，用来返回前端是一个json对象*
-
-## 2. @Autowired 和 @Resource 的区别
-
-- `@Autowired` 默认是按照<u>**类型装配**</U>注入的，默认情况下它要求依赖对象必须存在（可以设置 `required` 属性为 false，非必须注入）
-- `@Resource` 默认是按照<u>**名称装配**</u>注入的，只有当找不到与名称匹配的 bean 才会按照类型来装配注入。
-
+|  属性名  |     作用     | 取值 |
+| :-----: | ------------ | ---- |
+| `value` | 指定排序顺序值 |      |
