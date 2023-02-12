@@ -528,11 +528,11 @@ public void testProperty() {
 }
 ```
 
-### 4.4. (！整理中)方式3：静态工厂注入
+### 4.4. 方式3：静态工厂注入
 
-静态工厂注入是通过调用工厂类中定义的静态方法来获取需要的对象。为了让 Spring 管理所有对象，应用程序不能直接通过 `工厂类.静态方法()` 的方式来获取对象，而需要通过 Spring 注入的方式获取。示例代码如下：
+静态工厂注入是通过调用工厂类中定义的静态方法来获取需要的对象。为了让 Spring 管理所有对象，应用程序不能直接通过 `工厂类.静态方法()` 的方式来获取对象，而需要通过 Spring 注入的方式获取。
 
-
+定义一个`FooStaticFactory`工厂类和`getStaticBeanFoo()`静态工厂方法，该方法实例化并返回一个`Foo`实例；同时定义一个`SpringFactoryMethodDemo`类，测试通过 set 方法获取注入的`Foo`实例。示例代码如下：
 
 ```java
 public class Foo {
@@ -557,6 +557,8 @@ public class SpringFactoryMethodDemo {
 }
 ```
 
+修改 xml 配置文件，通过`<bean>`标签定义实例化`FooStaticFactory`类，并配置通过`factory-method`属性定义该类中的用于实例化`Foo`类的静态方法`getStaticBeanFoo`。该静态方法返回`Foo`的实例对象，在定义`SpringFactoryMethodDemo`实例化配置中，通过`<property>`标签注入静态工厂实例。示例配置如下：
+
 ```xml
 <!-- 定义获取工厂对象的静态方法
     其中 factory-method 属性用于指定调用哪个工厂方法
@@ -569,7 +571,6 @@ public class SpringFactoryMethodDemo {
     <property name="foo" ref="fooStaticFactory"/>
 </bean>
 ```
-
 
 ### 4.5. (！整理中)方式4：实例工厂注入
 

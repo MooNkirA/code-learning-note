@@ -427,6 +427,12 @@
 
 ## 其他
 
+<ul class="docs">
+  <li><a href="#/其他/优质编程资源分享">优质编程资源分享</a></li>
+  <li><a href="#/其他/常用软件工具汇总">常用软件工具汇总</a></li>
+  <li><a href="#/其他/编程开发相关资料">编程开发相关资料</a></li>
+</ul>
+
 ### 💻 IDE
 
 <ul class="docs">
@@ -436,24 +442,24 @@
   <li><a href="#/其他/IDE/DevelopmentTool">其它开发工具常用配置与使用</a></li>
 </ul>
 
-### 系统与软件使用教程笔记
+### 编程开发工具资料
+
+<ul class="docs">
+  
+  <li><a href="#/其他/Hexo">Hexo 博客搭建工具</a></li>
+  <li><a href="#/其他/docsify">docsify 文档类型网站搭建工具</a></li>
+  <li><a href="#/其他/Mermaid">Mermaid 基于 Javascript 的绘图语法</a></li>
+  <li><a href="#/其他/Markdown">Markdown 参考笔记</a></li>
+  <li><a href="#/其他/Develop-Environment">个人开发环境搭建资源信息文档</a></li>
+</ul>
+
+### 系统与工具软件教程
 
 <ul class="docs">
   <li><a href="#/其他/System&Software/Windows">Windows 系统相关教程</a></li>
   <li><a href="#/其他/System&Software/Microsoft-Office">Microsoft Office 系列教程</a></li>
   <li><a href="#/其他/System&Software/Web-Browser">网页浏览器系列教程</a></li>
   <li><a href="#/其他/System&Software/Software">常用软件教程</a></li>
-</ul>
-
-### 相关编程资料
-
-<ul class="docs">
-  <li><a href="#/其他/其它资料">其它资料</a></li>
-  <li><a href="#/其他/Hexo">Hexo 博客搭建工具</a></li>
-  <li><a href="#/其他/docsify">docsify 文档类型网站搭建工具</a></li>
-  <li><a href="#/其他/Mermaid">Mermaid 基于 Javascript 的绘图语法</a></li>
-  <li><a href="#/其他/Markdown">Markdown 参考笔记</a></li>
-  <li><a href="#/其他/Develop-Environment">个人开发环境搭建资源信息文档</a></li>
 </ul>
 
 ## 收集的项目实战资料
@@ -482,4 +488,4 @@ Gitee Pages 在线阅读地址：[点击进入](https://moonzero.gitee.io/code-l
 
 如果本项目对你有帮助，今天可以喝杯咖啡吗？😁
 
-![](resources/images/money-QRCode.png)
+![](resources/images/wechat_pay.png)  ![](resources/images/ali_pay.jpg)
