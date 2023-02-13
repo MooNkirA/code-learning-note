@@ -490,11 +490,11 @@ public void testConstructor () {
 
 #### 4.3.1. property 标签
 
-|  属性名   |                            说明                             |
-| :-----: | ---------------------------------------------------------- |
+|  属性名  |                               说明                               |
+| :-----: | --------------------------------------------------------------- |
 | `name`  | 指定参数的名称，**参数名字是在类中set方法的后面字符串，首字母小写** |
 |  `ref`  | 给属性赋值是其他bean类型，必须是在配置文件中配置过的bean对象          |
-| `value` | 给属性赋值是基本数据类型和String类型                             |
+| `value` | 给属性赋值是基本数据类型和String类型                                |
 
 #### 4.3.2. 示例
 
@@ -528,6 +528,111 @@ public void testProperty() {
 }
 ```
 
+#### 4.3.3. 使用p名称空间注入数据（了解）
+
+p名称空间注入，本质还是调用set方法，几乎不用。通过在 xml 中导入 p 名称空间，使用 `p:propertyName` 来注入数据，本质仍然是调用类中的set方法实现注入功能。示例配置如下：
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+	<!-- 使用p名称空间注入数据 -->
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:p="http://www.springframework.org/schema/p"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+	<bean id="now" class="java.util.Date"></bean>
+	<!-- 使用p名称空间注入数据 -->
+	<bean id="customer2" class="com.moonzero.entity.Customer"
+		p:custId="33" p:custName="死灵法师" p:birthday-ref="now"></bean>
+</beans>
+```
+
+测试：
+
+```java
+/** p名称空间注入数据 */
+@Test
+public void testP() {
+	// 创建spring容器ApplicationContext
+	ApplicationContext context = new ClassPathXmlApplicationContext("bean.xml");
+	// 根据id获取bean对象
+	Customer customer = (Customer) context.getBean("customer2");
+	System.out.println(customer);
+}
+```
+
+#### 4.3.4. 注入集合属性（复杂类型）
+
+给类中的集合成员传值，也是set方法注入的方式，只不过变量的数据类型都是集合。
+
+- `<property>`表示List结构的子标签分别是：`<array>`、`<list>`、`<set>`
+- `<property>`表示Map结构的子标签分别是：`<map>-子标签<entry>`、`<props>-子标签<prop>`
+
+> Notes: <font color=red>**在注入集合数据时，只要结构相同，标签是可以互换，一般只需要记住`<list>`和`<map>`标签即可**</font>
+
+示例配置：
+
+```xml
+<!-- 注入集合属性 -->
+<bean id="user" class="com.moonzero.entity.User">
+	<!-- 数组(可以使用<array>,<list>,<set>标签) -->
+	<property name="arrs">
+		<set>
+			<value>露娜</value>
+			<value>安吉娜</value>
+			<value>幻影刺客</value>
+		</set>
+	</property>
+	<!-- List集合(可以使用<array>,<list>,<set>标签) -->
+	<property name="list">
+		<array>
+			<value>主宰</value>
+			<value>敌法师</value>
+			<value>幽鬼</value>
+		</array>
+	</property>
+	<!-- set集合(可以使用<array>,<list>,<set>标签) -->
+	<property name="set">
+		<list>
+			<value>撼地神牛</value>
+			<value>影魔</value>
+			<value>剧毒术士</value>
+		</list>
+	</property>
+	<!-- map集合(可以使用<map>-<entry>,<props>-<prop>标签) -->
+	<property name="map">
+		<props>
+			<prop key="1">宙斯</prop>
+			<prop key="2">斧王</prop>
+			<prop key="3">地狱领主</prop>
+		</props>
+	</property>
+	<!-- Properties(可以使用<map>,<entry>,<props>,<prop>标签) -->
+	<property name="props">
+		<map>
+			<entry key="A" value="暗影猎手"></entry>
+			<entry key="B" value="矮人阻击手"></entry>
+			<entry key="C">
+				<value>变体精灵</value>
+			</entry>
+		</map>
+	</property>
+</bean>
+```
+
+测试：
+
+```java
+/** 注入集合属性 */
+@Test
+public void testOther() {
+	// 创建spring容器ApplicationContext
+	ApplicationContext context = new ClassPathXmlApplicationContext("bean.xml");
+	// 根据id获取bean对象
+	User user = (User) context.getBean("user");
+	user.test();
+}
+```
+
 ### 4.4. 方式3：静态工厂注入
 
 静态工厂注入是通过调用工厂类中定义的静态方法来获取需要的对象。为了让 Spring 管理所有对象，应用程序不能直接通过 `工厂类.静态方法()` 的方式来获取对象，而需要通过 Spring 注入的方式获取。
@@ -543,7 +648,6 @@ public class FooStaticFactory {
     public static final Foo getStaticBeanFoo() {
         return new Foo();
     }
-
 }
 
 public class SpringFactoryMethodDemo {
@@ -572,10 +676,58 @@ public class SpringFactoryMethodDemo {
 </bean>
 ```
 
-### 4.5. (！整理中)方式4：实例工厂注入
+### 4.5. 方式4：实例工厂注入
 
-实例工厂注入指的是获取对象实例的方法是非静态的，因此首先需要实例化一个工厂类对象，然后调用对象的方法来实例化对象。
+实例工厂注入指的是获取对象实例的方法是非静态的，因此首先需要实例化一个工厂类对象，然后调用对象的方法来实例化对象。示例代码如下：
 
+```java
+public class Foo {
+}
+
+// 实例工厂
+public class FooFactory {
+
+    public Foo getBeanFoo() {
+        return new Foo();
+    }
+}
+
+public class SpringFactoryMethodDemo {
+
+    private Foo foo; // 定义需要通过 factory-method 方式注入的属性
+
+    // 通过set方法注入
+    public void setFoo(Foo foo) {
+        this.foo = foo;
+    }
+}
+```
+
+修改 xml 配置文件，通过`<bean>`标签定义实例化`FooFactory`类，再使用`<bean>`标签定义实例化`Foo`类，并配置`factory-baen`为相关的工厂实例，`factory-method`属性定义工厂类中的用于实例化`Foo`类的方法`getBeanFoo`。在定义`SpringFactoryMethodDemo`实例化配置中，通过`<property>`标签注入工厂实例。示例配置如下：
+
+```xml
+<!-- 定义获取工厂对象的静态方法
+    其中 factory-method 属性用于指定调用哪个工厂方法
+-->
+<bean id="fooFactory" class="com.moonzero.FooFactory"/>
+<bean id="fooBean" factory-bean="fooFactory" factory-method="getBeanFoo"/>
+
+<!-- 定义待注入的对象 -->
+<bean class="com.moonzero.SpringFactoryMethodDemo" id="springFactoryMethodDemo">
+    <!-- 通过 property 标签中的 ref 属性找到对应的工厂类创建的实例，注入对象 -->
+    <property name="foo" ref="fooBean"/>
+</bean>
+```
+
+### 4.6. 自动装配（自动注入）
+
+Spring 的 Bean 属性依赖注入分成为手动装配和自动装配。上面介绍的 xml 配置与注解配置方法均为手动装配。自动装配是用来引导 Spring 容器自动完成依赖注入，具体有以下几种方式：
+
+- no：关闭自动装配，通过显示设置 `ref` 属性来进行对象装配。
+- byName：通过参数名自动装配，Bean 的 autowire 被设置为 byName 后，Spring 容器试图匹配并装配与该 Bean 的属性具有相同名字的 Bean
+- byType：通过参数类型自动装配，Bean 的 autowire 被设置为 byType 后，Spring 容器试图匹配并装配与该 Bean 的属性具有相同类型的 Bean
+- constructor：通过设置构造器参数的方式来装配对象，如果没有匹配到带参数的构造器参数类型，则 Spring 会抛出异常
+- autodetect：首先尝试使用 constructor 来自动装配，如果无法完成自动装配，则使用 byType 方式进行装配
 
 ## 5. Spring Bean 的作用范围
 
@@ -583,14 +735,14 @@ public class SpringFactoryMethodDemo {
 
 Spring 创建的 Bean 对象的都有其作用范围。Spring 框架支持6种作用域，其中4种只有在 Web 环境的 `ApplicationContext` 容器中才可用，使用者也可以创建一个自定义作用域。下表是支持的作用域描述：
 
-|  作用范围取值  | 描述                                                                                                                                                         |
-| :---------: | :----------------------------------------------------------------------------------------------------------------------------------------------------------- |
-|  singleton  | (默认) Bean 定义的作用域存在整个 Spring IoC 容器                                                                                                                  |
-|  prototype  | Bean 定义的作用域存在任何数量的对象实例。                                                                                                                           |
+| 作用范围取值  |                                                                                  描述                                                                                   |
+| :---------: | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+|  singleton  | (默认) Bean 定义的作用域存在整个 Spring IoC 容器                                                                                                                           |
+|  prototype  | Bean 定义的作用域存在任何数量的对象实例。                                                                                                                                   |
 |   request   | Bean 定义的作用域存在单个 HTTP 请求的生命周期中。即每个 HTTP 请求都有自己的 Bean 实例，这些实例基于单个 Bean 定义的基础上创建的。（只在 Web 环境的 `ApplicationContext` 容器中有效） |
-|   session   | Bean 定义的作用域存在一个 HTTP 会话的生命周期。（只在 Web 环境的 `ApplicationContext` 容器中有效）                                                                       |
-| application | Bean 定义的作用域存在 `ServletContext` 的生命周期。（只在 Web 环境的 `ApplicationContext` 容器中有效）                                                                 |
-|  websocket  | Bean 定义的作用域存在 `WebSocket` 的生命周期。（只在 Web 环境的 `ApplicationContext` 容器中有效）                                                                      |
+|   session   | Bean 定义的作用域存在一个 HTTP 会话的生命周期。（只在 Web 环境的 `ApplicationContext` 容器中有效）                                                                            |
+| application | Bean 定义的作用域存在 `ServletContext` 的生命周期。（只在 Web 环境的 `ApplicationContext` 容器中有效）                                                                       |
+|  websocket  | Bean 定义的作用域存在 `WebSocket` 的生命周期。（只在 Web 环境的 `ApplicationContext` 容器中有效）                                                                            |
 
 > 注：有些历史资料中提及有 `globalSession` 这种作用范围，目前 Spring 中已废弃
 

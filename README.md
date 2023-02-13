@@ -427,39 +427,40 @@
 
 ## 其他
 
+### ℹ️ 资源汇总
+
 <ul class="docs">
-  <li><a href="#/其他/优质编程资源分享">优质编程资源分享</a></li>
+  <li><a href="#/其他/编程文档与项目资源分享">编程文档与项目资源分享</a></li>
   <li><a href="#/其他/常用软件工具汇总">常用软件工具汇总</a></li>
   <li><a href="#/其他/编程开发相关资料">编程开发相关资料</a></li>
-</ul>
-
-### 💻 IDE
-
-<ul class="docs">
-  <li><a href="#/其他/IDE/IDEA">IntelliJ IDEA 使用教程</a></li>
-  <li><a href="#/其他/IDE/eclipse">Eclipse 使用教程</a></li>
-  <li><a href="#/其他/IDE/Visual-Studio-Code">Visual Studio Code 使用教程</a></li>
-  <li><a href="#/其他/IDE/DevelopmentTool">其它开发工具常用配置与使用</a></li>
-</ul>
-
-### 编程开发工具资料
-
-<ul class="docs">
-  
-  <li><a href="#/其他/Hexo">Hexo 博客搭建工具</a></li>
-  <li><a href="#/其他/docsify">docsify 文档类型网站搭建工具</a></li>
-  <li><a href="#/其他/Mermaid">Mermaid 基于 Javascript 的绘图语法</a></li>
-  <li><a href="#/其他/Markdown">Markdown 参考笔记</a></li>
   <li><a href="#/其他/Develop-Environment">个人开发环境搭建资源信息文档</a></li>
 </ul>
 
-### 系统与工具软件教程
+### 💻 编程开发软件
 
 <ul class="docs">
-  <li><a href="#/其他/System&Software/Windows">Windows 系统相关教程</a></li>
-  <li><a href="#/其他/System&Software/Microsoft-Office">Microsoft Office 系列教程</a></li>
-  <li><a href="#/其他/System&Software/Web-Browser">网页浏览器系列教程</a></li>
-  <li><a href="#/其他/System&Software/Software">常用软件教程</a></li>
+  <li><a href="#/其他/development-software/IDEA">IntelliJ IDEA 使用教程</a></li>
+  <li><a href="#/其他/development-software/eclipse">Eclipse 使用教程</a></li>
+  <li><a href="#/其他/development-software/Visual-Studio-Code">Visual Studio Code 使用教程</a></li>
+  <li><a href="#/其他/development-software/Common-Development">其它常用开发工具配置与使用</a></li>
+</ul>
+
+### 🛠️ 编程辅助工具
+
+<ul class="docs">
+  <li><a href="#/其他/development-tools/Hexo">Hexo 博客搭建工具</a></li>
+  <li><a href="#/其他/development-tools/docsify">docsify 文档类型网站搭建工具</a></li>
+  <li><a href="#/其他/development-tools/Mermaid">Mermaid 基于 Javascript 的绘图语法</a></li>
+  <li><a href="#/其他/development-tools/Markdown">Markdown 参考笔记</a></li>
+</ul>
+
+### 🖥️ 系统软件工具
+
+<ul class="docs">
+  <li><a href="#/其他/system-software/Windows">Windows 系统相关教程</a></li>
+  <li><a href="#/其他/system-software/Microsoft-Office">Microsoft Office 系列教程</a></li>
+  <li><a href="#/其他/system-software/Web-Browser">网页浏览器系列教程</a></li>
+  <li><a href="#/其他/system-software/Common-Software">其他常用软件教程</a></li>
 </ul>
 
 ## 收集的项目实战资料
