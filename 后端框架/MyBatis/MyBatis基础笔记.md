@@ -2465,6 +2465,8 @@ public void queryUserById_annotationTest() {
 
 MyBatis 包含一个非常强大的查询缓存特性，使用缓存可以使应用更快地获取数据，避免频繁的数据库交互。分成一级缓存和二级缓存
 
+![](images/1820122230254.png)
+
 ### 9.1. 一级缓存（sqlSession 级别缓存）
 
 #### 9.1.1. 实现步骤

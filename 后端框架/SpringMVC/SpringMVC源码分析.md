@@ -249,18 +249,52 @@ public interface HttpRequestHandler {
 
 SpringMVC为逻辑视图名的解析提供了不同的策略，可以在Spring WEB上下文中配置一种或多种解析策略，并指定他们之间的先后顺序。每一种映射策略对应一个具体的视图解析器实现类。程序员可以选择一种视图解析器或混用多种视图解析器。可以通过order属性指定解析器的优先顺序，order越小优先级越高，SpringMVC会按视图解析器顺序的优先顺序对逻辑视图名进行解析，直到解析成功并返回视图对象，否则抛出`ServletException`异常。
 
-|      分类       |          解析器类型           |                                      说明                                      |
-| --------------- | ---------------------------- | ----------------------------------------------------------------------------- |
-| 解析为Bean的名称 | BeanNameViewResolver         | Bean的id即为逻辑视图名称                                                        |
+|      分类       |           解析器类型           |                                   说明                                    |
+| -------------- | ---------------------------- | ----------------------------------------------------------------------- |
+| 解析为Bean的名称 | BeanNameViewResolver         | Bean的id即为逻辑视图名称                                                    |
 | 解析为URL文件    | InternalResourceViewResolver | 将视图名解析成一个URL文件，一般就是一个jsp或者html文件。文件一般都存放在WEB-INF目录中 |
-| 解析指定XML文件  | XmlViewResolver              | 解析指定位置的XML文件，默认在/WEB-INF/views.xml                                  |
-| 解析指定属性文件 | ResourceBundleViewResolver   | 解析properties文件                                                             |
+| 解析指定XML文件  | XmlViewResolver              | 解析指定位置的XML文件，默认在/WEB-INF/views.xml                               |
+| 解析指定属性文件  | ResourceBundleViewResolver   | 解析properties文件                                                        |
 
 ## 5. 请求参数封装的源码分析
 
 ### 5.1. 传统表单数据封装原理(!待整理)
 
-![](images/20200921233526749_10621.png)
+第1步：`DispatcherServlet` 的 `doService` 方法执行
+
+![](images/66592815248680.png)
+
+第2步：`DispatcherServlet` 的 `doDispatch` 方法执行
+
+![](images/263722815236547.png)
+
+第3步：`RequestMappingHandlerAdapter` 的 `handleInternal` 方法执行
+
+![](images/352502815256713.png)
+
+第4步：`RequestMappingHandlerAdapter` 的 `invokeHandlerMethod` 方法执行
+
+![](images/219342915249382.png)
+
+第5步：`ServletInvocableHandlerMethod` 的 `invokeAndHandle` 方法执行
+
+![](images/409252915245937.png)
+
+第6步：`InvocableHandlerMethod` 的 `invokeForRequest` 方法执行。其中有会调用到最后一步（第10步）：`InvocableHandlerMethod` 的 `doInvoke` 方法执行
+
+![](images/538432915241691.png)
+
+第7步：`InvocableHandlerMethod` 的 `getMethodArgumentValues` 方法执行
+
+![](images/380103015259571.png)
+
+第8步：`HandlerMethodArgumentResolverComposite` 的 `resolveArgument` 方法执行
+
+![](images/447533015257175.png)
+
+第9步：`RequestParamMethodArgumentResolver` 的 `resolveName` 方法执行
+
+![](images/555763015254677.png)
 
 ### 5.2. @RequestBody 注解执行原理(!待整理)
 
