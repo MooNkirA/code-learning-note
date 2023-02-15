@@ -2,7 +2,7 @@
 
 ## 1. JPA 基础回顾
 
-> 详情 JPA 详见 [《Java基础-JPA》](/Java/Java基础09-JPA)
+> 详情 JPA 详见 [《Java基础-数据库编程》笔记](/Java/Java基础12-数据库编程)
 
 ### 1.1. 概述
 

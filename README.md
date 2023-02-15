@@ -74,7 +74,7 @@
 ### 💾 Spring Data
 
 <ul class="docs">
-  <li><a href="#/后端框架/Spring-Data/Spring-Data-基础">Spring Data 概述</a></li>
+  <li><a href="#/后端框架/Spring-Data/Spring-Data-Overview">Spring Data 概述</a></li>
   <li><a href="#/后端框架/Spring-Data/Spring-Data-JPA">Spring Data JPA</a></li>
   <li><a href="#/后端框架/Spring-Data/Spring-Data-Redis">Spring Data Redis</a></li>
 </ul>

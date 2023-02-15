@@ -210,7 +210,7 @@ SqlMapConfig.xml 示例：
 
 企业项目开发，推荐mapper代理方式
 
-### 4.2. 2、MyBaties原始dao开发方式
+### 4.2. MyBaties原始 dao 开发方式
 
 #### 4.2.1. 原始dao开发的步骤
 
@@ -2504,12 +2504,9 @@ public void oneCacheTest() {
 
 #### 9.1.3. 一级缓存原理（sqlsession 级别）
 
-第一次发出一个查询 sql，sql 查询结果写入 sqlsession 的一级缓存中，缓存使用的数据结构是一个 map。
+第一次发出一个查询 sql，sql 查询结果写入 sqlsession 的一级缓存中，缓存使用的数据结构是 map，其中，key 是 `MapperID + offset + limit + Sql + 所有的入参`；value是用户查询的数据结果集
 
-- key：MapperID + offset + limit + Sql + 所有的入参
-- value：用户查询的数据
-
-同一个 sqlsession 再次发出相同的 sql，就从缓存中取出数据。如果两次中间出现 commit 操作（修改、添加、删除），本 sqlsession 中的一级缓存区域全部清空，下次再去缓存中查询不到所以要从数据库查询，从数据库查询到再写入缓存。
+同一个 sqlsession 再次发出相同的 sql，就从缓存中获取数据。如果两次中间出现 commit 操作（修改、添加、删除），则认为数据已发生了变化，MyBatis 会将该 sqlsession 中的一级缓存区域全部清空，下次再去缓存中将查询不到对应的缓存数据，因此会再次从数据库查询并将查询结果集写入缓存。
 
 ### 9.2. 二级缓存（SqlSessionFactory 级别缓存）
 
@@ -2590,15 +2587,15 @@ public void secondCacheTest() {
 
 #### 9.2.2. 二级缓存原理
 
-二级缓存的范围是 mapper 级别（mapper同一个命名空间），mapper 以命名空间为单位创建缓存数据结构，结构是 map。mybatis 的二级缓存是通过 CacheExecutor 实现的。CacheExecutor 其实是 Executor 的代理对象。所有的查询操作，在 CacheExecutor 中都会先匹配缓存中是否存在，不存在则查询数据库。
+二级缓存的范围是 mapper 级别（mapper同一个命名空间），mapper 以命名空间为单位创建缓存数据结构，结构是 Map 类型。其中 key为 `MapperID + offset + limit + Sql + 所有的入参`
 
-- key：MapperID + offset + limit + Sql + 所有的入参
+Mybatis 的二级缓存是通过 `CacheExecutor` 实现的。CacheExecutor 其实是 Executor 的代理对象。所有的查询操作，在 CacheExecutor 中都会先匹配缓存中是否存在，不存在则查询数据库。
 
 具体使用需要配置：
 
 1. Mybatis 全局配置中启用二级缓存配置
 2. 在对应的 Mapper.xml 中配置 cache 节点
-3. 在对应的 select 查询节点中添加 `useCache=true`(*默认*)
+3. 在对应的 select 查询节点中添加 `useCache=true`(*该配置为默认值*)
 
 ### 9.3. 自定义缓存
 

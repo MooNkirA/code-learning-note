@@ -21,14 +21,16 @@
 
 > [Spring Cloud Config 官方文档](https://docs.spring.io/spring-cloud-config/docs/2.2.5.RELEASE/reference/html/)
 
-Spring Cloud Config 项目是一个解决分布式系统的配置管理方案。它包含了`Client`和`Server`两个部分
+Spring Cloud Config 项目是一个解决分布式系统的配置管理方案。应用程序可以像使用本地配置一样方便地添加、访问、修改配置中心的配置。Spring Cloud Confïg 将 `Environment` 的 `PropertySource` 抽象和配置中心的配置进行映射，以便应用程序可以在任何场景下获取和修改配置。
+
+Spring Cloud Config 主要包含了`Client`和`Server`两个部分：
 
 - `Server`提供配置文件的存储、以接口的形式将配置文件的内容对外提供
 - `Client`通过接口获取数据、并依据此数据初始化自己的应用
 
 ![](images/20201127164910467_3599.png)
 
-Spring Cloud Config 为分布式系统中的外部配置提供服务器和客户端支持。使用Config Server，可以为所有环境中的应用程序管理其外部属性。它非常适合Spring应用，也可以使用在其他语言的应用上。
+Spring Cloud Config 为分布式系统中的外部配置提供服务器和客户端支持。使用 Config Server，可以为所有环境中的应用程序管理其外部属性。它非常适合 Spring 应用，也可以使用在其他语言的应用上。
 
 随着应用程序通过从开发到测试和生产的部署流程，可以管理这些环境之间的配置，并确定应用程序具有迁移时需要运行的一切。服务器存储后端的默认实现使用git，因此它轻松支持标签版本的配置环境，以及可以访问用于管理内容的各种工具
 
@@ -446,3 +448,10 @@ eureka: # Eureka 客户端配置
 
 ![](images/20201128235001042_14889.png)
 
+## 7. Spring Cloud Config 的原理
+
+Spring Cloud Config 支持将配宣布储在配置中心的本地服务器、Git 仓库或 Subversion。在 Spring Cloud Config 的线上环境中，通常将配置文件集中放宣在一个 Git 仓库里，然后通过配置中心服务端(Config Server)来管理所有的配置文件，当某个服务实例需要添加或更新配置肘，只要在该服务实例的本地将配置文件进行修改，然后推送到 Git 仓库.其他服务实例通过配置中心从 Git 服务端获取最新的配置信息。对于配置中心来说，每个服务实例都相当于客户端(Config Client)。
+
+为了保证系统的稳定，配置中心服务端可以进行多副本集群部署，前端使用负载均衡实现服务之间的请求转发。Spring Cloud Config 架构如下图：
+
+![](images/287282617256714.png)
