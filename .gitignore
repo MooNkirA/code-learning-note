@@ -30,3 +30,6 @@ vx_recycle_bin
 # 忽略 office 编辑临时文件
 ~*.doc
 ~*.tmp
+
+# 忽略同步的临时文件
+resources/!temp_data/

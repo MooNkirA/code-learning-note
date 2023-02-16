@@ -8,21 +8,24 @@
 
 ## 1. Eureka 注册中心
 
-Eureka是Netflix开发的服务发现框架，SpringCloud将它集成在自己的子项目spring-cloud-netflix中，实现SpringCloud的服务发现功能。Spring Cloud提供了多种注册中心的支持，如：Eureka、ZooKeeper等。推荐使用Eureka。
+Eureka 是 Netflix 开发的服务发现框架，SpringCloud 将它集成在自己的子项目 spring-cloud-netflix 中，实现 Spring Cloud 的服务发现功能。Spring Cloud 提供了多种注册中心的支持，如：Eureka、ZooKeeper 等。推荐使用 Eureka。
 
 ### 1.1. Eureka 的基本架构
 
 ![](images/20201008123337857_27461.png)
 
-上图简要描述了Eureka的基本架构，由3个角色组成：
+上图简要描述了 Eureka 的基本架构，由3个角色组成：
 
-- `Eureka Server`：提供服务注册和发现
-- `Service Provider`：服务提供者，将自身服务注册到Eureka，使服务消费方能够找到
-- `Service Consumer`：服务消费者，从Eureka获取注册服务列表，消费服务
+- `Eureka Server`：注册中心服务端，提供服务注册和发现功能
+- `Eureka client`：客户端，指注册到注册中心的具体的服务实例。又可抽象分为**服务提供者**和**服务消费者**。
+    - `Service Provider`：服务提供者，将自身服务注册到 Eureka，使服务消费方能够找到
+    - `Service Consumer`：服务消费者，从 Eureka 获取注册服务列表，调用相应的服务
 
 ### 1.2. Eureka 的交互流程与原理
 
 ![](images/20201008123931375_6484.png)
+
+![](images/52805312230256.png)
 
 上图是Eureka官方的架构图，大致描述了Eureka集群的工作过程
 
@@ -32,8 +35,8 @@ Eureka是Netflix开发的服务发现框架，SpringCloud将它集成在自己�
 
 <font color=red>**Eureka包含两个组件：`Eureka Server` 和 `Eureka Client`**</font>，作用如下：
 
-- Eureka Client是一个Java客户端，用于简化与Eureka Server的交互。客户端同时也就别一个内置的、使用轮询(round-robin)负载算法的负载均衡器。
-- Eureka Server提供服务发现的能力，各个微服务节点启动时，会通过Eureka Client向Eureka Server进行注册自己的信息（例如网络信息），Eureka Server服务注册表中将会存储所有可用服务节点的信息到内存中，服务节点的信息可以在管理平台界面中直观的看到
+- Eureka Client 是一个 Java 客户端，用于简化与 Eureka Server 的交互。客户端同时也就别一个内置的、使用轮询(round-robin)负载算法的负载均衡器。
+- Eureka Server 提供服务发现的能力，各个微服务节点启动时，会通过Eureka Client向Eureka Server进行注册自己的信息（例如网络信息），Eureka Server服务注册表中将会存储所有可用服务节点的信息到内存中，服务节点的信息可以在管理平台界面中直观的看到
 - 各个微服务节点启动后，会周期性地向Eureka Server发送心跳（默认周期为30秒）以续约自己的信息。如果Eureka Server在多个心跳周期内没有接收到某个微服务节点的心跳，Eureka Server将会注销该微服务节点（即把这个服务节点从服务注册表中移除，默认90秒）
 - 每个Eureka Server同时也是Eureka Client，多个Eureka Server之间通过复制的方式完成服务注册表数据的同步
 - Eureka Client还提供了客户端缓存机制，会缓存Eureka Server中的信息。即使所有的Eureka Server节点都宕掉，服务消费者依然可以使用缓存中的信息找到服务提供者。

@@ -42,7 +42,7 @@ Spring Cloud Config 为分布式系统中的外部配置提供服务器和客户
 
 ### 2.2. Spring Cloud Config 客户端特性（特指Spring应用）
 
-- 绑定Config服务端，并使用远程的属性源初始化Spring环境
+- 绑定 Config 服务端，并使用远程的属性源初始化 Spring 环境
 - 属性值的加密和解密（对称加密和非对称加密）
 
 ## 3. Spring Cloud Config 入门案例
@@ -80,6 +80,8 @@ Config Server 是一个可横向扩展、集中式的配置服务器，它用于
 
 ### 3.2. 搭建 Config 服务端程序
 
+Spring Cloud Config 服务为外部配置(键值对或YAML)提供了基于 HTTP 的远程资源访问接口。
+
 #### 3.2.1. 引入依赖
 
 创建`server-config`工程，并引入Spring Cloud Config的依赖
@@ -103,6 +105,8 @@ Config Server 是一个可横向扩展、集中式的配置服务器，它用于
 
 #### 3.2.2. 配置启动类
 
+使用 `@EnableConfigServer` 注解表示开启注册中心服务端功能，声明此应用程序是一个配置中心服务。
+
 ```java
 @SpringBootApplication
 @EnableConfigServer // 开启注册中心服务端功能
@@ -113,9 +117,10 @@ public class ConfigServerApplication {
 }
 ```
 
-`@EnableConfigServer`注解表示开启注册中心服务端功能
-
 #### 3.2.3. 配置 application.yml
+
+Spring Cloud Config 将分布式配置文件的数据存放在 Git 仓库中，因此需要配置 Git 仓库的基本信息。
+，
 
 ```yml
 server:
@@ -160,7 +165,7 @@ spring:
 
 #### 3.3.2. 创建高级别 bootstrap.yml 配置文件
 
-因为商品服务会从`server-config`中获取相应的配置文件，所以此时可以删除原来的`application.yml`文件
+因为商品服务（config Client）会从`server-config`中获取相应的配置文件，所以此时可以删除原来的`application.yml`文件
 
 此时使用加载级别更高的 `bootstrap.yml` 文件进行相关获取配置信息的配置。启动应用时会检查此配置文件，在此文件中指定配置中心的服务地址，从而会自动的拉取所有应用配置并启用
 
