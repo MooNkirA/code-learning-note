@@ -1,8 +1,7 @@
 # Day18 CORS跨域请求解决方案&结算页&保存订单
 
----
-
 ## 1. 商品详细页跨域请求
+
 ### 1.1. 需求分析
 
 从商品详细页点击“加入购物车”按钮，将当前商品加入购物车，并跳转到购物车页面。
@@ -54,6 +53,7 @@ $scope.addToCart = function () {
 ![跨域请求](images/20190318155023892_27611.png)
 
 ### 1.4. 跨域解决方案CORS
+
 #### 1.4.1. CORS请求原理
 
 CORS是一个W3C标准，全称是"跨域资源共享"（Cross-origin Resource Sharing）。CORS需要浏览器和服务器同时支持。目前，所有浏览器都支持该功能，IE浏览器不能低于IE10。
@@ -126,9 +126,8 @@ public boolean addCart(Long itemId, Integer num) {
 }
 ```
 
----
-
 ## 2. 结算页【收件人地址选择】
+
 ### 2.1. 需求与数据库分析
 
 - 需求描述：在结算页实现收件人地址选择功能
@@ -137,6 +136,7 @@ public boolean addCart(Long itemId, Integer num) {
 ![tb_address表字段](images/20190318162759764_29183.jpg)
 
 ### 2.2. 初始化
+
 #### 2.2.1. 创建与配置
 
 1. pinyougou-user-interface创建AddressService服务接口
@@ -159,6 +159,7 @@ public boolean addCart(Long itemId, Integer num) {
 拷贝【`资料/order/getOrderInfo.html`】至pinyougou-cart-web的`webapp/order`目录下面
 
 ### 2.3. 实现查询用户地址列表
+
 #### 2.3.1. 后端代码
 
 - 修改用户服务接口pinyougou-user-interface的AddressService.java与pinyougou-user-service的AddressServiceImpl.java，增加实现根据用户编号查询地址的方法
@@ -375,16 +376,16 @@ $scope.findUserAddress = () => {
 
 ### 2.6. (！待实现)收件人地址增加、修改与删除
 
-待实现
-
----
+> TODO: 待实现
 
 ## 3. 结算页【支付方式选择】
+
 ### 3.1. 需求分析
 
 实现支付方式的选择，品优购支持两种支付方式：微信支付和货到付款
 
 ### 3.2. 支付方式选择
+
 #### 3.2.1. 前端控制层
 
 修改orderController.js，定义order对象，用于封装订单的数据。初始化支付方式的属性，支付类型数据字典：1、在线支付，2、货到付款
@@ -415,9 +416,8 @@ $scope.selectPayType = type => {
 </ul>
 ```
 
----
-
 ## 4. 结算页【商品清单与金额显示】
+
 ### 4.1. 需求分析
 
 显示购物车中的商品清单以及合计数量、金额
@@ -475,10 +475,10 @@ $scope.selectPayType = type => {
 <div class="fc-price">应付金额:　<span class="price">¥{{ totalEntity.totalMoney.toFixed(2) }}</span></div>
 ```
 
----
-
 ## 5. 保存订单【搭建订单服务】
+
 ### 5.1. 需求分析
+
 #### 5.1.1. 需求描述
 
 点击订单结算页的提交订单 ，将购物车保存到订单表和订单明细表中，并将购物车数据清除
@@ -494,6 +494,7 @@ $scope.selectPayType = type => {
 ![tb_order_item订单明细表结构](images/20190319091927661_17585.jpg)
 
 ### 5.2. 订单服务项目搭建与相关配置
+
 #### 5.2.1. 搭建框架
 
 - 创建pinyougou-order聚合模块（pom类型）
@@ -688,6 +689,7 @@ public class OrderController {
 ```
 
 ### 5.3. 保存订单-后端部分
+
 #### 5.3.1. 服务实现层（pinyougou-order）
 
 修改pinyougou-order-interface的OrderService.java与pinyougou-order-service的OrderServiceImpl.java。实现保存订单的方法
@@ -825,6 +827,7 @@ public boolean saveOrder(@RequestBody Order order,
 ```
 
 ### 5.4. 保存订单-前端部分
+
 #### 5.4.1. 控制层
 
 修改pinyougou-cart-web的orderController.js，定义保存订单的方法

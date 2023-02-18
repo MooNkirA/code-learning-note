@@ -2,29 +2,21 @@
 
 ## 1. Spring Boot 简介
 
-Spring 诞生时是 Java 企业版（Java Enterprise Edition，JEE，也称 J2EE）的轻量级代替品。无需开发重量级的 Enterprise JavaBean（EJB），Spring 为企业级Java 开发提供了一种相对简单的方法，通过依赖注入和面向切面编程，用简单的Java 对象（Plain Old Java Object，POJO）实现了 EJB 的功能。
+> 引子：
+>
+> Spring 诞生时是 Java 企业版（Java Enterprise Edition，JEE，也称 J2EE）的轻量级代替品。无需开发重量级的 Enterprise JavaBean（EJB），Spring 为企业级Java 开发提供了一种相对简单的方法，通过依赖注入和面向切面编程，用简单的Java 对象（Plain Old Java Object，POJO）实现了 EJB 的功能。虽然 Spring 的组件代码是轻量级的，但它的配置却是重量级的。
+>
+> - 第一阶段：xml配置。在Spring 1.x时代，使用Spring开发满眼都是xml配置的Bean，随着项目的扩大，需要把xml配置文件放到不同的配置文件里，那时需要频繁的在开发的类和配置文件之间进行切换
+> - 第二阶段：注解配置。在Spring 2.x 时代，随着JDK1.5带来的注解支持，Spring提供了声明Bean的注解（例如@Controller、@Service），大大减少了配置量。主要使用的方式是应用的基本配置（如数据库配置）用xml，业务配置用注解
+> - 第三阶段：java配置。Spring 3.0 引入了基于 Java 的配置能力，这是一种类型安全的可重构配置方式，可以代替 XML。现在Spring和Springboot都推荐使用java配置。
+>
+> 所有这些配置都代表了开发时的损耗。因为在思考 Spring 特性配置和解决业务问题之间需要进行思维切换，所以写配置挤占了写应用程序逻辑的时间。除此之外，项目的依赖管理也是件吃力不讨好的事情。决定项目里要用哪些库就已经够让人头痛的了，你还要知道这些库的哪个版本和其他库不会有冲突，这难题实在太棘手。并且，依赖管理也是一种损耗，添加依赖不是写应用程序代码。一旦选错了依赖的版本，随之而来的不兼容问题毫无疑问会是生产力杀手。
 
-虽然 Spring 的组件代码是轻量级的，但它的配置却是重量级的。
+Spring Boot 是全新的 Spring 开发框架，其设计的初衷是简化 Spring 应用复杂的搭建及开发过程、所有内容自动化。该框架提供了一套简单的 Spring 模块依赖和管理工具，采用**约定优于配置**(为 Spring 平台及第三方库提供开箱即用的设置，即有默认设置)的概念，不用开发者做复杂配置，降低参数配错几率，将后续的管理、内嵌的外部服务器容器全部搞定，做到最小化依赖，最大程度降低程序运行后对开发人员的依赖性，也避免了开发人员处理复杂的模块依赖和版本冲突问题，同时提供打包即可用的 Web 服务，成为快速应用开发领域(Rapid Application Development)的领导者。
 
-- 第一阶段：xml配置
+![](images/34421117236548.png)
 
-在Spring 1.x时代，使用Spring开发满眼都是xml配置的Bean，随着项目的扩大，我们需要把xml配置文件放到不同的配置文件里，那时需要频繁的在开发的类和配置文件之间进行切换
-
-- 第二阶段：注解配置
-
-在Spring 2.x 时代，随着JDK1.5带来的注解支持，Spring提供了声明Bean的注解（例如@Controller、@Service），大大减少了配置量。主要使用的方式是应用的基本配置（如数据库配置）用xml，业务配置用注解
-
-- 第三阶段：java配置
-
-Spring 3.0 引入了基于 Java 的配置能力，这是一种类型安全的可重构配置方式，可以代替 XML。我们目前刚好处于这个时代。现在Spring和Springboot都推荐使用java配置。
-
-所有这些配置都代表了开发时的损耗。 因为在思考 Spring 特性配置和解决业务问题之间需要进行思维切换，所以写配置挤占了写应用程序逻辑的时间。除此之外，项目的依赖管理也是件吃力不讨好的事情。决定项目里要用哪些库就已经够让人头痛的了，你还要知道这些库的哪个版本和其他库不会有冲突，这难题实在太棘手。并且，依赖管理也是一种损耗，添加依赖不是写应用程序代码。一旦选错了依赖的版本，随之而来的不兼容问题毫无疑问会是生产力杀手。
-
-Spring Boot 让这一切成为了过去。
-
-Spring Boot其设计目的是用来简化Spring应用的初始搭建以及开发采用约定优于配置，只需要“run”就能创建一个独立的、生产级别的Spring应用。Spring Boot 为 Spring 平台及第三方库提供开箱即用的设置（提供默认设置），这样我们就可以简单的开始。多数 Spring Boot 应用只需要很少的 Spring 配置。
-
-我们可以使用 SpringBoot 创建 java 应用，并使用 `java –jar` 命令启动它，或者采用传统的war部署方式。
+使用 Spring Boot 创建 java 应用，可以直接使用 `java –jar` 命令启动它，或者采用传统的 war 部署方式。
 
 ### 1.1. 核心功能
 
@@ -34,15 +26,40 @@ Spring Boot其设计目的是用来简化Spring应用的初始搭建以及开发
 - 强大的整合其他技术的能力
 - 测试：强悍的应用测试
 
-### 1.2. 开发环境要求（2.1.7.RELEASES）
+### 1.2. 开发环境要求
 
-- Spring Boot的2.1.7.RELEASES正式发行版，必须要使用Java8或 Java 11，Spring版本也必须是5.1.8及以上
-- 构建工具版本：Maven ，版本要求是3.3及以上
-- SpringBoot 支持如下的嵌入式Servlet容器，Spring Boot应用程序最低支持到Servlet 3.1的容器。
+> Notes: 示例使用 Spring Boot 2.1.7.RELEASES 版本
+
+- JDK 版本：Java 8 或 Java 11
+- Spring 版本：5.1.8 及以上
+- 构建工具版本：Maven版本：3.3 及以上
+
+Spring Boot 支持如下的嵌入式 Servlet 容器，Spring Boot 应用程序最低支持到 Servlet 3.1 的容器。
 
 ### 1.3. 项目构建
 
 强烈推荐选择一个支持依赖管理的构建系统，可以使用它将 artifact 发布到 Maven Central 仓库。所以建议选择 Maven 或者 Gradle。
+
+### 1.4. Spring Boot 2.0 特性
+
+Spring Boot2.0 里面有一个重大的变化叫**响应式编程**，相比于传统的 Serviet API 阻塞的 API，引入到非阻塞的编程模式，主要目标是提升高并发程序的吞吐量，包括底层数据库对接等。
+
+**Spring Boot 1.x 特性**
+
+- 创建独立运行的 Spring 应用程序
+- 直接嵌入 Tomcat，Jetty 或 Undertow（无需部署 WAR 文件）
+- 提供运行需要的“最低”依赖项以简化构建配置
+- 尽可能自动配置 Spring 和第三方库
+- 提供生产就绪功能，例如指标测试，健康检查和外部配置
+- 没有代码生成，也不需 XML 配置
+
+**Spring Boot 2.x 新特性**
+
+- 增加 Reactive 响应式模块，如 Spring WebFlux
+- HTTP/2 新协议支持
+- Spring Boot 2.x 启用 HikariCP 替换 Tomcat 内置连接池
+- 支持 Kotlin 1.2，支持性能监控 Micrometer 集成 Actuator
+- 其他开发、测试、部署的小改进
 
 ## 2. Spring Boot 入门
 
@@ -58,12 +75,11 @@ Spring Boot其设计目的是用来简化Spring应用的初始搭建以及开发
 - Maven：3.3.9 （官方声明Springboot 1.5.6版本需要Maven 3.2+）
 - Gradle：4.0.2 (官方网站https://gradle.org/)
 
-- 本地仓库：需要使用资料中的仓库 【仓库(SpringBoot).zip】
-- 引用资料中的仓库，重新构建索引：
+> Tips: 如果本地仓库是直接复制其他人的仓库中jar包时，eclipse 需要重新构建索引
 
-![重建索引1](images/_重建索引1_1536458505_22077.png)
+![](images/_重建索引1_1536458505_22077.png)
 
-![重建索引2](images/_重建索引2_1536458518_15991.png)
+![](images/_重建索引2_1536458518_15991.png)
 
 ### 2.2. 创建 Spring Boot 项目（eclipse 版）-已过时，有需要再更新！
 
@@ -91,9 +107,10 @@ Spring Boot其设计目的是用来简化Spring应用的初始搭建以及开发
 
 ![](images/_jdk版本2_1536461119_32443.jpg)
 
-- 注意：
-  - 虽然JDK1.6或者1.7都可以使用SpringBoot，但SpringBoot官方建议使用JDK1.8，要使用JDK1.8，首先必须要配置JDK1.8后，才可以使用上述方法设置。
-  - **如果是传统的maven项目，是需要配置jdk插件，但spring boot项目中，只需要配置`<properties>`属性即可**
+> Notes: 
+>
+> - 虽然JDK1.6或者1.7都可以使用SpringBoot，但SpringBoot官方建议使用JDK1.8，要使用JDK1.8，首先必须要配置JDK1.8后，才可以使用上述方法设置。
+> - **如果是传统的maven项目，是需要配置jdk插件，但spring boot项目中，只需要配置`<properties>`属性即可**
 
 ### 2.3. 创建 Spring Boot 项目（IDEA 版）
 
@@ -277,9 +294,9 @@ public class Application {
 
 需求：使用 Spring MVC 实现 Hello World 输出
 
-#### 2.7.1. 原来的 Spring MVC 实现
+#### 2.7.1. 以住的 Spring MVC 实现
 
-现在开始使用spring MVC 框架，实现json 数据的输出。如果按照我们原来的做法，需要在web.xml 中添加一个DispatcherServlet 的配置，还需要添加一个spring的配置文件，配置文件如下配置
+现在开始使用spring MVC 框架，实现json 数据的输出。如果按照以往的做法，需要在 web.xml 中添加一个 `DispatcherServlet` 的配置，还需要添加一个 spring 的配置文件，配置文件如下配置
 
 spring 加入配置
 
@@ -308,7 +325,7 @@ web.xml加入配置
 </servlet-mapping>
 ```
 
-还要编写Controller。。。
+还要编写 Controller。。。
 
 #### 2.7.2. SpringBoot 的实现
 
@@ -338,9 +355,15 @@ spring-boot:run
 
 ![Spring Boot启动方式二2](images/_springboot_1536463286_8169.jpg)
 
-## 3. Spring Boot 高级知识
+### 2.8. 使用 Gradle 构建 Spring Boot 项目
 
-### 3.1. Spring Boot 项目基础组成分析
+要了解如何使用 Spring Boot 和 Gradle，请参阅 Spring Boot 的 Gradle 插件文档：
+
+- [最新API文档](https://docs.spring.io/spring-boot/docs/current/api/)
+- 参考文档 ([HTML](https://docs.spring.io/spring-boot/docs/2.5.8/gradle-plugin/reference/htmlsingle/) and [PDF](https://docs.spring.io/spring-boot/docs/2.5.8/gradle-plugin/reference/pdf/spring-boot-gradle-plugin-reference.pdf))
+- [API](https://docs.spring.io/spring-boot/docs/2.5.8/gradle-plugin/api/)
+
+## 3. Spring Boot 项目基础组成分析
 
 根据快速入门案例，一个最基础的 SpringBoot 项目包括：
 
@@ -348,7 +371,7 @@ spring-boot:run
 - 自动配置（简化常用工程相关配置）
 - 辅助功能（内置服务器，……）
 
-#### 3.1.1. spring-boot-starter-parent
+### 3.1. spring-boot-starter-parent
 
 通常一个项目需要依赖各种不同的技术，而各个技术的依赖版本之间可能会存在冲突。而 SpringBoot 于是所有的技术版本的常见使用方案都给开发者整理了出来，以后开发者使用时直接用它提供的版本方案，不用担心版本冲突问题了，相当于 SpringBoot 做了无数个技术版本搭配的列表，这个技术搭配列表的名字叫做 `spring-boot-starter-parent`
 
@@ -356,7 +379,7 @@ spring-boot:run
 
 `spring-boot-starter-parent` 仅仅只是进行版本的统一管理，需要开发者导入相应的坐标依赖，
 
-##### 3.1.1.1. Spring Boot 依赖引入实现原理
+#### 3.1.1. Spring Boot 依赖引入实现原理
 
 在项目的 pom.xm 文件中继承父工程 `spring-boot-starter-parent`，查阅 SpringBoot 的配置源码
 
@@ -395,52 +418,67 @@ spring-boot:run
 
 **总结：通过 maven 的依赖传递从而实现继承 spring boot 的父依赖后，可以依赖 spring boot 项目相关的 jar**
 
-##### 3.1.1.2. 小结
+#### 3.1.2. 小结
 
 1. 开发 SpringBoot 程序需要继承 `spring-boot-starter-parent` 父项目
 2. `spring-boot-starter-parent` 中定义了各种技术的依赖管理
 3. 继承 parent 模块可以避免多个依赖使用相同技术时出现依赖版本冲突
 4. 继承 parent 的形式也可以采用 `<scope>` 引入依赖的形式实现效果（*详见《引入 SpringBoot 父工程依赖的方式》章节*）
 
-#### 3.1.2. spring-boot-starter-xxx
+### 3.2. Spring Boot Application Starters
 
-##### 3.1.2.1. 概述
+#### 3.2.1. 概述
 
-SpringBoot 提供了很多 `spring-boot-starter-xxx`，是定义了某种技术各种依赖的固定搭配格式的集合，使用 starter 可以帮助开发者减少依赖配置。*如：spring-boot-starter-web，里面定义了若干个具体依赖的坐标*
+Spring Boot Application Starters 是一组资源依赖描述，定义了某种技术各种依赖的固定搭配格式的集合，其格式一般为`spring-boot-starter-xxx`。*如：spring-boot-starter-web，里面定义了若干个具体依赖的坐标*
 
 ![](images/20220111092706227_16463.png)
+
+Starters 的作用主要是为不同的 Spring Boot 应用提供一站式服务，具体的依赖细节由 starters 统一处理，使用 starter 可以帮助开发者减少依赖配置，也不必像传统的 Spring 项目需要开发人员处理应用程序中各种 jar 包之间的复杂依赖关系。例如，如果要使用 Spring 的 JPA 功能进行数据库访问，只需要应用程序在项目中加入 spring-boot-starter-jpa 依赖即可。
 
 使用官方的 starter 引入技术可能会存在一些问题，就是会出现这种过量导入依赖的可能性，不过可以通过maven中的排除依赖剔除掉一部分。对于项目影响不大。
 
 ![](images/20220111093714497_29920.png)
 
-##### 3.1.2.2. 实际开发应用方式
+另外，Spring Boot 还提供了开发者自定义 starter 的功能，具体的详见后面的《自定义 starter 功能》章节
 
-- 实际开发中如果需要用什么技术，先去找有没有这个技术对应的 starter
-    - 如果有对应的 starter，直接使用 starter，而且无需指定版本，版本由 parent 提供
-    - 如果没有对应的 starter，手写坐标即可
-- 实际开发中如果发现坐标出现了冲突现象，确认你要使用的可行的版本号，使用手工书写的方式添加对应依赖，覆盖SpringBoot提供给我们的配置管理
-    - 方式一：直接写坐标
-    - 方式二：覆盖`<properties>`中定义的版本号
+#### 3.2.2. 实际开发应用方式
 
-##### 3.1.2.3. starter 与 parent 的区别
+实际开发中如果需要用什么技术，先去找有没有这个技术对应的 starter
 
-- starter 是一个坐标中定义了若干个坐标，引入一个坐标相当于引入多个坐标，是用来减少依赖配置的书写量的。
-- parent 是定义了几百个依赖版本号，由 SpringBoot 统一管理控制版本，是用来减少各种技术的依赖冲突
+- 如果有对应的 starter，直接使用 starter，而且无需指定版本，版本由 parent 提供
+- 如果没有对应的 starter，手写坐标即可
 
-##### 3.1.2.4. starter 命名规范
+实际开发中如果发现坐标出现了冲突现象，确认你要使用的可行的版本号，使用手工书写的方式添加对应依赖，覆盖 SpringBoot 提供给开发者的配置管理
 
-SpringBoot 官方定义了很多 starter，命名格式：`spring-boot-starter-技术名称`
+- 方式一：直接写坐标
+- 方式二：覆盖`<properties>`中定义的版本号
 
-##### 3.1.2.5. 小结
+#### 3.2.3. 常用的 starter 列表
+
+> TODO: 有时间再好好整理
+
+![](images/344665316230255.png)
+
+![](images/597725316248681.png)
+
+#### 3.2.4. 小结
 
 1. 开发 SpringBoot 程序需要导入某些技术时，通常导入对应的 starter 即可
 2. 每个不同的 starter 根据功能不同，通常包含多个依赖坐标
 3. 使用 starter 可以实现快速配置的效果，达到简化配置的目的
 
-#### 3.1.3. 引导类
+##### 3.2.4.1. starter 与 parent 的区别
 
-##### 3.1.3.1. 概述
+- starter 是一个坐标中定义了若干个坐标，引入一个坐标相当于引入多个坐标，是用来减少依赖配置的书写量的。
+- parent 是定义了几百个依赖版本号，由 SpringBoot 统一管理控制版本，是用来减少各种技术的依赖冲突
+
+##### 3.2.4.2. starter 命名规范
+
+SpringBoot 官方定义了很多 starter，命名格式：`spring-boot-starter-技术名称`
+
+### 3.3. 引导类
+
+#### 3.3.1. 概述
 
 SpringBoot 引导类是指程序运行的入口，即快速开始案例中标识 `@SpringBootApplication` 注解，并带有 main 方法的那个类，运行这个类就可以启动 SpringBoot 工程，并创建了一个 Spring 容器对象。
 
@@ -469,14 +507,14 @@ public class Application {
 - `@EnableAutoConfiguration`：Spring Boot会自动根据你jar包的依赖来自动配置项目
 - `@ComponentScan`：告诉Spring 哪个packages 的用注解标识的类会被spring自动扫描并且装入bean 容器。
 
-##### 3.1.3.2. 小结
+#### 3.3.2. 小结
 
 1. SpringBoot 工程提供引导类用来启动程序
 2. SpringBoot 工程启动后创建并初始化 Spring 容器
 
-#### 3.1.4. 内嵌 web 容器（如 tomcat）
+### 3.4. 内嵌 web 容器（如 tomcat）
 
-##### 3.1.4.1. 内嵌 tomcat 定义与运行原理概述
+#### 3.4.1. 内嵌 tomcat 定义与运行原理概述
 
 SpringBoot 内嵌的 web 服务器，需要引入 `spring-boot-starter-web` 的依赖
 
@@ -532,7 +570,7 @@ starter 其中有引入 `spring-boot-starter-tomcat` 的依赖，具体如下：
 
 其中有一个核心的坐标，`tomcat-embed-core` 叫做tomcat内嵌核心。就是此依赖把tomcat功能引入到了程序中。而 tomcat 服务器运行其实是以对象的形式保存到 Spring 容器，并在 SpringBoot 程序启动时运行起来。
 
-##### 3.1.4.2. 更换内嵌默认内嵌 web 服务器
+#### 3.4.2. 更换内嵌默认内嵌 web 服务器
 
 SpringBoot 提供了3款内置的服务器
 
@@ -563,15 +601,15 @@ SpringBoot 提供了3款内置的服务器
 
 ![](images/20220111170242295_14539.png)
 
-##### 3.1.4.3. 小结
+#### 3.4.3. 小结
 
 1. 内嵌 Tomcat 服务器是 SpringBoot 辅助功能之一
 2. 内嵌 Tomcat 工作原理是将 Tomcat 服务器作为对象运行，并将该对象交给 Spring 容器管理
 3. Spring Boot 提供可以配置替换默认 tomcat 内嵌服务器的功能
 
-### 3.2. 引入 SpringBoot 父工程依赖的方式
+### 3.5. 引入 SpringBoot 父工程依赖的方式
 
-#### 3.2.1. 方式1 - 使用 `<parent>` 标签
+#### 3.5.1. 方式1 - 使用 `<parent>` 标签
 
 在pom.xml中添加依赖，效果如下：
 
@@ -616,7 +654,7 @@ SpringBoot 提供了3款内置的服务器
 
 这些jar包被刚才加入的 spring-boot-starter-web 所引用了，所以添加 spring-boot-starter-web 后会自动把依赖传递过来。
 
-#### 3.2.2. 方式2 - 定义范围 `<scope>` 为 import
+#### 3.5.2. 方式2 - 定义范围 `<scope>` 为 import
 
 在 SpringBoot 项目的 POM 文件中，可以通过在 POM 文件中继承 Spring-boot-starter-parent 来引用 Srping boot 默认依赖的 jar 包。但使用 parent 这种继承的方式，只能继承一个 spring-boot-start-parent。实际开发中，很可能需要继承自己公司的标准 parent 配置，此时可以使用 `<scope>import</scope>` 来实现多继承。如下例：
 
@@ -641,14 +679,6 @@ SpringBoot 提供了3款内置的服务器
     </dependencies>
 </dependencyManagement>
 ```
-
-### 3.3. 使用 Gradle 构建 Spring Boot 项目
-
-要了解如何使用 Spring Boot 和 Gradle，请参阅 Spring Boot 的 Gradle 插件文档：
-
-- [最新API文档](https://docs.spring.io/spring-boot/docs/current/api/)
-- 参考文档 ([HTML](https://docs.spring.io/spring-boot/docs/2.5.8/gradle-plugin/reference/htmlsingle/) and [PDF](https://docs.spring.io/spring-boot/docs/2.5.8/gradle-plugin/reference/pdf/spring-boot-gradle-plugin-reference.pdf))
-- [API](https://docs.spring.io/spring-boot/docs/2.5.8/gradle-plugin/api/)
 
 ## 4. Spring Boot 配置文件
 
@@ -1974,17 +2004,17 @@ spring.mvc.throw-exception-if-no-handler-found=true
 
 配置 `spring.mvc.throw-exception-if-no-handler-found` 为 true，Spring MVC 在 404 时就会抛出 `DispatcherServlet` 中的 `throwExceptionIfNoHandlerFound`。此时开发者可以在全局异常处理中利用`@ExceptionHandler` 注解捕获 `NoHandlerFoundException` 异常，再做自定义处理即可
 
-## 10. 自定义 starter
+## 10. 自定义 starter 功能
 
-> 自定义的 starter 开发规范，可以参考官方定义的 starter 或者一些其他框架整合的 starter
+自定义的 starter 开发规范，可以参考官方定义的 starter 或者一些其他框架整合的 starter
 
-### 10.1. starter 工程结构
+### 10.1. starter 工程结构规范
 
 参考官方 starter 与其他第三方的 starter 会发现，有些第三方的 starter 不一定按约定的规范来命名；还有官方的 starter 依赖与自动配置类是分开两个包，但有些第三方的 starter 是放到同一个包中。因此自定义 starter 的可以参考选择以下的某种方式进行开发即可
 
 ![](images/404481116247472.png)
 
-### 10.2. 案例说明
+### 10.2. 案例需求说明
 
 本自定义 starter 案例的功能是统计网站独立 IP 访问次数的功能，并将访问信息在后台持续输出。整体功能是在后台每 10 秒输出一次监控信息（格式：IP+访问次数），当用户访问网站时，对用户的访问行为进行统计。
 
@@ -2007,7 +2037,7 @@ spring.mvc.throw-exception-if-no-handler-found=true
     - 数据特征：累计数据 / 阶段数据，默认累计数据
     - 输出格式：详细模式 / 极简模式 
 
-### 10.3. starter 功能实现
+### 10.3. 自定义 starter 功能实现
 
 创建 maven 工程 counter-spring-boot-starter
 
@@ -2289,7 +2319,7 @@ tools:
 +--------------------+
 ```
 
-### 10.4. 功能优化 - 使用配置设置定时器参数
+### 10.4. 示例功能优化1：使用配置设置定时器参数
 
 按目前的代码，在使用属性配置中的显示周期数据时会出现问题，在 `@Scheduled` 注解如果要使用直接使用配置数据，则可能通过EL表达式 `#{}` 来读取 bean 属性值，但前提是要知道 bean 在 Spring 容器中的名称。如果不设置 bean 的访问名称，Spring 会使用自己的命名生成器生成bean的长名称(如：`xxx.xx.xx.Xxxx`)，在 `#{}` 中会将第一点开始后面都当成属性，因此无法实现属性的读取。所以，优化方案是放弃使用 `@EnableConfigurationProperties` 注解对应的功能，改成最原始的 bean 定义格式。
 
@@ -2326,7 +2356,7 @@ public void print() {
 
 重装安装 starter 工程到仓库，在 web 端程序中通过 yml 文件中的 `tools.ip.cycle` 属性配置参数对统计信息的显示周期进行控制，观察控制台日志输出的间隔
 
-### 10.5. 功能优化 - 使用拦截器进行统计
+### 10.5. 示例功能优化2：使用拦截器进行统计
 
 - 步骤一：编写拦截器，在前置拦截的方法中，调用功能业务类的统计方法
 
@@ -2376,7 +2406,7 @@ public class IpCountAutoConfiguration {
 
 > 使用拦截器实现统计后，可以移除上面测试中硬编码调用统计业务功能接口的代码
 
-### 10.6. 功能优化 - 开启 yml/properties 配置文件提示功能
+### 10.6. 示例功能优化3：开启 yml/properties 配置文件提示功能
 
 #### 10.6.1. 提示信息功能配置
 
@@ -2496,15 +2526,15 @@ SpringBoot 项目打包都需要配置 spring-boot-maven-plugin 插件：
 
 ![](images/539374522227451.png)
 
-|         目标名称         |                                                                                                                               作用                                                                                                                                |
-| ----------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| spring-boot:build-image | Package an application into a OCI image using a buildpack.                                                                                                                                                                                                       |
-| spring-boot:build-info  | Generate a build-info.properties file based on the content of the current MavenProject.                                                                                                                                                                          |
-| spring-boot:help        | Display help information on spring-boot-maven-plugin. Call mvn spring-boot:help -Ddetail=true -Dgoal=<goal-name> to display parameter details.                                                                                                                   |
-| spring-boot:repackage   | Repackage existing JAR and WAR archives so that they can be executed from the command line using java -jar. With layout=NONE can also be used simply to package a JAR with nested dependencies (and no main class, so not executable).                           |
-| spring-boot:run         | Run an application in place.                                                                                                                                                                                                                                     |
-| spring-boot:start       | Start a spring application. Contrary to the run goal, this does not block and allows other goals to operate on the application. This goal is typically used in integration test scenario where the application is started before a test suite and stopped after. |
-| spring-boot:stop        | Stop an application that has been started by the 'start' goal. Typically invoked once a test suite has completed                                                                                                                                                 |
+|         目标名称          |                                                     作用                                                      |
+| ----------------------- | ------------------------------------------------------------------------------------------------------------ |
+| spring-boot:build-image | 使用构建包将一个应用程序打包成一个OCI图像                                                                            |
+| spring-boot:build-info  | 根据当前MavenProject的内容，生成 build-info.properties 文件                                                       |
+| spring-boot:help        | 显示spring-boot-maven-plugin的帮助信息。使用`mvn spring-boot:help -Ddetail=true -Dgoal=<goal-name>`命令显示参数细节 |
+| spring-boot:repackage   | 重新打包为可以使用`java -jar`命令执行的JAR和WAR包。也可以用`layout=NONE`简单地打包成有嵌套依赖的JAR（没有主类，所以不能执行）   |
+| spring-boot:run         | 运行应用程序                                                                                                    |
+| spring-boot:start       | 启动应用程序，不会阻塞，允许其他目标对应用程序进行操作。这个目标通常用于集成测试场景，在测试套件之前启动应用程序，之后停止            |
+| spring-boot:stop        | 停止已经被“开始”目标启动的应用程序。通常在测试套件完成后调用                                                             |
 
 ### 1.2. 打成 jar 包部署（官方推荐）
 
@@ -2902,23 +2932,26 @@ Spring Boot uses a very particular `PropertySource` order that is designed to al
 
 ## 5. Spring Boot 加载不同位置的配置文件的顺序
 
-### 5.1. 配置文件分类（按位置不同）
+### 5.1. 默认加载的配置文件分类（按位置不同）
 
-SpringBoot 提供的4种不同位置的配置文件。
+Spring Boot 默认加载的配置文件是 application.properties 或者 application.yaml，默认加载的位置分为 5 个：
 
-- 类路径下配置文件（一直使用的是这个，也就是resources目录中的application.yml文件）
-- 类路径下config目录下配置文件
-- 程序包所在目录中配置文件
-- 程序包所在目录中config目录下配置文件
+- 类路径下配置文件（一直使用的是这个，也就是 resources 目录中的 application.yml 文件）
+- 类路径下 config 目录下配置文件。如：`classpath:/config/application.properties`
+- 程序包所在目录中配置文件。如：`file:./application.properties`
+- 程序包所在目录中 config 目录下配置文件。如：`file:./config/application.properties`
+- 程序包所在目录中 config 目录的子文件夹的配置文件（不能加载孙子级文件夹）。如：`file:./config/a/application.properties` 可以加载，但不能加载 `file:./config/a/b/application.properties`
+
+> Tips: 以上是Spring Boot 默认加载配置文件的顺序，后面加载的配置会覆盖掉前面的。*也可以理解为后面的配置文件优先级较高*
 
 ### 5.2. 配置文件加载优先级顺序
 
-SpringBoot 程序启动时，会按以下位置的从上往下的优先级加载配置文件：
+Spring Boot 程序启动时，会按以下位置的从上往下的优先级加载配置文件：
 
-1. `file:./config/application.properties`：当前项目下的/config目录下。*【优先级最高】*
+1. `file:./config/application.properties`：当前项目下的 /config 目录下。*【优先级最高】*
 2. `file:./application.properties`：当前项目的根目录
-3. `classpath:/config/application.properties`：classpath的/config目录
-4. `classpath:/application.properties`：classpath的根目录。*【优先级最低】*
+3. `classpath:/config/application.properties`：classpath 的 /config 目录
+4. `classpath:/application.properties`：classpath 的根目录。*【优先级最低】*
 
 加载顺序为上文的排列顺序，高优先级配置的属性会生效。
 
@@ -2933,11 +2966,13 @@ SpringBoot 程序启动时，会按以下位置的从上往下的优先级加载
 
 ## 6. 自定义配置文件
 
-如果不想使用 application.properties 作为配置文件，可以通过启动程序时使用参数来指定配置文件。自定义配置文件方式有如下几种：
+如果不想使用 application.properties/application.yml 作为配置文件，可以通过启动程序时使用参数来指定配置文件。自定义配置文件方式有如下几种：
 
 > <font color=purple>温馨提示</font>：这种方式仅适用于Spring Boot单体项目，实际企业开发的项目都基于微服务，部署到多个服务器上，所有的服务器将不再各自设置自己的配置文件，而是通过配置中心获取配置，动态加载配置信息。
 
-### 6.1. 程序启动参数设置配置文件名
+### 6.1. 通过程序启动参数加载指定的配置文件
+
+#### 6.1.1. 设置配置文件名
 
 通过启动参数 `--spring.config.name` 来指定配置文件的名称。<font color=violet>**注意：仅仅是名称，不要带扩展名，多个配置文件之间使用“`,`”号分隔**</font>
 
@@ -2945,12 +2980,14 @@ SpringBoot 程序启动时，会按以下位置的从上往下的优先级加载
 java -jar springboot-demo.jar --spring.config.name=default,override
 ```
 
-### 6.2. 程序启动参数设置配置文件路径
+以上示例设置加载默认位置上名称为 default.yaml / override.yaml 的配置文件。（*默认位置详见前面章节*）
 
-通过启动参数 `--spring.config.location` 来指定配置文件的所在路径。<font color=violet>**注意：相对路径名、全路径名均可**</font>
+#### 6.1.2. 设置配置文件路径
+
+通过启动参数 `--spring.config.location` 来指定配置文件的所在路径。<font color=violet>**注意：相对路径名、全路径名均可**</font>。
 
 ```bash
-java -jar springboot-demo.jar --spring.config.location=classpath:/default.properties,classpath:/override.properties
+java -jar springboot-demo.jar --spring.config.location=classpath:/default.properties
 # 或者
 java -jar springboot-demo.jar --spring.config.location=D:\config\config.properties
 ```
@@ -2961,8 +2998,53 @@ java -jar springboot-demo.jar --spring.config.location=D:\config\config.properti
 java -jar springboot-demo.jar --spring.config.location=D:\config\config.properties,D:\config\confg-dev.properties
 ```
 
+注意：若在 classpath 前面加上了 `optional:` 表示如果这个配置文件不存在，则按照默认的方式启动，不会因找不到指定配置文件而报错。如果不加这个前缀，则当系统找不到指定的配置文件时，就会抛出 `ConfigDataLocationNotFoundException` 异常，进而导致应用启动失败。
 
-### 6.3. 在代码中指定自定义配置文件
+```bash
+java -jar springboot-demo.jar --spring.config.location=optional:config/config.properties
+```
+
+如果 `spring.config.location` 的配置只是指定了目录，则必须以 `/` 结尾，并且通过 `spring.config.name` 属性指定配置文件的文件名。
+
+```bash
+java -jar springboot-demo.jar --spring.config.location=optional:config/ --spring.config.name=config
+```
+
+#### 6.1.3. 覆盖默认配置位置
+
+如果不想覆盖掉 Spring Boot 默认的配置文件查找策略，又想自定义加载配置文件，那么可以通过 `spring.config.additional-location ` 配置项方式指定配置文件位置：
+
+```bash
+java -jar springboot-demo.jar --spring.config.additional-location=optional:abc/app.yaml
+```
+
+#### 6.1.4. 位置通配符
+
+假设有 redis 和 mysql 的配置，并放在两个不同的文件夹中以便于管理，可以通过通配符 `*` 批量扫描相应的文件夹：
+
+![](images/410804812230157.png)
+
+```bash
+java -jar boot_config_file-0.0.1-SNAPSHOT.jar --spring.config.additional-location=optional:config/*/
+```
+
+> Notes: 使用通配符批量扫描 mysql 和 redis 目录时，默认的加载顺序是按照文件夹的字母排序，即先加载 mysql 目录后加载 redis 目录。<font color=red>**需要注意的是，通配符只能用在外部目录中，不可以用在 classpath 中的目录上。另外，包含了通配符的目录，只能有一个通配符 `*`，不可以有多个，并且还必须是以 `*/` 结尾，即一个目录的最后部分可以不确定。**</font>
+
+#### 6.1.5. 导入外部文件
+
+从 Spring Boot 2.4 开始，可以使用 `spring.config.import` 参数来导入配置文件，相比于 `spring.config.additional-location` 参数配置，此导入方式更加灵活，可以导入任意名称的配置文件。
+
+```bash
+spring.config.import=optional:file:./dev.properties
+```
+
+`spring.config.import` 还可以导入无扩展名的配置文件。例如有一个 properties 格式的配置文件，但是此配置文件没有扩展名，如果想导入将该配置文件，可以进行以下的配置：
+
+```bash
+spring.config.import=optional:file:/Users/moon/dev[.properties]
+```
+
+### 6.2. 在代码中指定自定义配置文件
 
 ```java
 @SpringBootApplication
@@ -3625,6 +3707,7 @@ spring.data.solr.zkHost=192.168.12.128:3181,192.168.12.128:3182,192.168.12.128:3
 ![操作SolrClient](images/20190501085740120_19316.jpg)
 
 ## 4. 整合ActiveMQ
+
 ### 4.1. 加入依赖
 
 在pom.xml中加入依赖

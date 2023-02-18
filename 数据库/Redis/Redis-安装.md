@@ -1,6 +1,8 @@
 # Redis 安装
 
-## 1. windows 版本
+Redis 的安装分为：Redis 单机版安装、Redis 主从模式安装、Redis 哨兵模式安装和 Redis 集群模式安装。
+
+## 1. windows 单机版
 
 ### 1.1. 直接运行Redis服务
 
@@ -36,7 +38,7 @@ redis-server.exe --service-start    # 开启服务
 redis-server.exe --service-stop    # 停止服务
 ```
 
-## 2. windows图形化操作界面
+## 2. windows 图形化客户端
 
 ### 2.1. redis-desktop-manager
 
@@ -44,12 +46,12 @@ redis-server.exe --service-stop    # 停止服务
 - 下载 redis-desktop-manager-0.9.2.806.exe，安装后启动redis客户端：【据说0.9.3（最后一个免费版本），待测试】
 - 配置redis链接：选择连接到Redis服务器，配置主机地址与端口号
 
-## 3. linux 版本
+## 3. linux 单机版
 
 ### 3.1. 安装（压缩包安装）
 
 > - 参考文档：
->    - E:\07-编程工具资料\04-数据库\Redis\Redis安装和使用.docx
+>   - E:\07-编程工具资料\04-数据库\Redis\Redis安装和使用.docx
 >   - E:\07-编程工具资料\04-数据库\Redis\Redis安装.doc
 
 1. **安装 redis 的依赖环境**
@@ -192,3 +194,6 @@ shutdown nosave|save
 ```bash
 monitor
 ```
+
+## 4. Redis 集群模式的安装
+

@@ -1,13 +1,13 @@
 # Day12 搜索解决方案（三）-分页&价格区间筛选&排序&更新索引库
 
----
-
 ## 1. 按价格区间筛选
+
 ### 1.1. 需求分析
 
 点击搜索面板上的价格区间，实现按价格筛选
 
 ### 1.2. 价格筛选-前端部分
+
 #### 1.2.1. 前端控制层
 
 - 修改pinyougou-search-web的searchController.js搜索条件封装对象，增加价格price属性
@@ -131,9 +131,8 @@ public Map<String, Object> search(Map<String, Object> params) {
 }
 ```
 
----
-
 ## 2. 搜索结果分页
+
 ### 2.1. 需求分析
 
 在上述功能基础上实现分页查询
@@ -225,6 +224,7 @@ public Map<String, Object> search(Map<String, Object> params) {
 ```
 
 ### 2.3. 分页搜索-前端部分
+
 #### 2.3.1. 初始化分页标签
 
 - 如果需要修改默认页码和每页记录数，可以修改searchController.js的searchParam对象，为搜索对象添加属性
@@ -472,9 +472,8 @@ var initPageNum = function () {
         ng-click="searchParam.page=1;search();">搜索</button>
 ```
 
----
-
 ## 3. 多关键字搜索
+
 ### 3.1. 多关键字搜索规则
 
 之前测试都是使用单一的词（比如手机）来进行搜索，如果输入的关键字是一个复合的词组（比如手机小米），那solr如何进行搜索呢？
@@ -507,9 +506,8 @@ public Map<String, Object> search(Map<String, Object> params) {
 }
 ```
 
----
-
 ## 4. 搜索排序
+
 ### 4.1. 按价格排序
 
 实现价格的排序（升降序可切换）
@@ -631,9 +629,8 @@ $scope.sortSearch = function (sortField, sort) {
 
 评论分为好评、中评、差评，我们不能简单地将评论数相加，而是应该根据每种评论加权进行统计。比如好评的权重是3 ，中评的权重是1，而差评的权重是 -3，这样得出的是评价的综合得分。
 
----
-
 ## 5. 隐藏品牌列表
+
 ### 5.1. 需求分析
 
 需求：如果用户输入的是品牌的关键字，则隐藏品牌列表
@@ -668,14 +665,14 @@ $scope.keywordsIsBrand = function () {
 </div>
 ```
 
----
-
 ## 6. 搜索页与首页对接
+
 ### 6.1. 需求分析
 
 用户在首页的搜索框输入关键字，点击搜索后自动跳转到搜索页查询
 
 ### 6.2. 首页与搜索页传递搜索关键字
+
 #### 6.2.1. 首页传入关键字
 
 - 修改pinyougou-portal-web工程的contentController.js增加搜索跳转的方法search()
@@ -740,9 +737,8 @@ $scope.getkeywords = function () {
       ng-init="getkeywords();">
 ```
 
----
-
 ## 7. 更新索引库
+
 ### 7.1. 需求分析
 
 在进行商品审核后更新到solr索引库,在商品删除后删除solr索引库中相应的记录.
@@ -783,6 +779,7 @@ public List<Item> findItemByGoodsIdAndStatus(Long[] ids, String status) {
 ```
 
 ### 7.3. 商品审批时更新到索引库
+
 #### 7.3.1. 搜索服务pinyougou-search工程接口层与实现层
 
 修改pinyougou-search服务工程的ItemSearchService接口与ItemSearchServiceImpl现实类，增加添加或修改索引库的方法
@@ -874,6 +871,7 @@ public boolean updateStatus(@RequestParam("ids") Long[] ids,
 ```
 
 ### 7.4. 商品删除同步索引数据
+
 #### 7.4.1. 搜索服务pinyougou-search工程接口层与实现层
 
 修改pinyougou-search服务工程ItemSearchService接口层与ItemSearchServiceImpl实现层，增加删除索引库指定商品的方法

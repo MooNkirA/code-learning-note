@@ -1,8 +1,7 @@
 # Day13 Freemarker-网页静态化解决方案
 
----
-
 ## 1. 网页静态化技术FreeMarker
+
 ### 1.1. 为什么要使用网页静态化技术
 
 网页静态化解决方案在实际开发中运用比较多，例如新闻网站，门户网站中的新闻频道或者是文章类的频道。
@@ -114,6 +113,7 @@ public void test1() throws IOException, TemplateException {
 > 执行后，生成E:\Downloads\hello.html文件
 
 ### 1.4. freemarker API
+
 #### 1.4.1. Configuration 类
 
 `public class Configuration extends Configurable implements Cloneable, ParserConfiguration`
@@ -146,6 +146,7 @@ public void test1() throws IOException, TemplateException {
         - 参数out：文件输出流
 
 ### 1.5. FTL指令
+
 #### 1.5.1. assign变量指令
 
 语法：`<#assign 变量名="xxx"/>` 或 `<#assign 变量名={属性1:值1, 属性2:值2, ...}/>`
@@ -390,6 +391,7 @@ ${aaa!'默认值'}
 在代码中不对aaa赋值，也不会报错了，当aaa为null则返回`!`后边的内容"默认值"
 
 ### 1.8. 运算符
+
 #### 1.8.1. 算数运算符
 
 FreeMarker支持的算术运算符包括：`+、 -、 *、/、%`
@@ -421,9 +423,8 @@ ${(!(10 gt 10))?string('true','false')}
 <#-- 输出：true -->
 ```
 
----
-
 ## 2. 商品详情页-数据显示
+
 ### 2.1. 需求分析
 
 运用Freemarker技术来实现商品详细页动态展示。通过地址栏输入某地址，如下形式
@@ -433,6 +434,7 @@ ${(!(10 gt 10))?string('true','false')}
 访问路径：`http://item.moon.com/SPU商品goodsId.html`
 
 ### 2.2. 搭建商品详情web工程
+
 #### 2.2.1. 工程配置
 
 - 创建maven项目pinyougou-item-web，选项war类型。配置pom.xml引入相关依赖
@@ -716,6 +718,7 @@ public class ItemController {
 ---
 
 ### 2.3. 商品详情页模板构建
+
 #### 2.3.1. 模板模块化引入
 
 此时item.ftl内容较多，当编辑时不容易快速找到编辑的位置，所以将头部分拆分到header.ftl，将尾部拆分到footer.ftl，用include指令在item.ftl中引入。(静态页面参考：【资料\商品静态资源\static\三个html页面】)
@@ -921,10 +924,10 @@ public Map<String, Object> getGoods(Long goodsId) {
 </ul>
 ```
 
----
-
 ## 3. 商品详情页-前端逻辑
+
 ### 3.1. 购买数量加减操作
+
 #### 3.1.1. 前端控制层
 
 在js目录下创建controller文件夹，创建itemController.js。增加数量加减的方法
@@ -1028,13 +1031,12 @@ $scope.isSelected = function (name, value) {
 </#list>
 ```
 
----
-
 ## 4. 商品详情页-读取SKU信息
 
 需求：当选择规格后，应该在页面上更新商品名称为SKU的商品标题，价格也应该为SKU的商品价格。
 
 ### 4.1. 页面生成SKU列表变量
+
 #### 4.1.1. 后端服务层
 
 修改pinyougou-sellergoods-service的GoodsServiceImpl的getGoods()方法，增加条件查询sku商品的数据
@@ -1077,6 +1079,7 @@ public Map<String, Object> getGoods(Long goodsId) {
 ```
 
 ### 4.2. 显示SKU标题和价格
+
 #### 4.2.1. 加载默认SKU信息
 
 - 修改itemController.js，增加加载默认的sku商品数据
@@ -1170,9 +1173,8 @@ $scope.addToCart = function () {
 </ul>
 ```
 
----
-
 ## 5. 系统模块对接
+
 ### 5.1. 搜索系统与商品详细页对接
 
 修改pinyougou-search-web工程的search.html，修改点击图片的链接为`http://item.pinyougou.com/{{item.goodsId}}.html`(330行)

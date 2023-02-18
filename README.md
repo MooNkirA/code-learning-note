@@ -45,15 +45,13 @@
   <li><a href="#/后端框架/Spring/Spring笔记01-基础">Spring 笔记-核心功能</a></li>
   <li><a href="#/后端框架/Spring/Spring笔记02-AOP">Spring 笔记-AOP</a></li>
   <li><a href="#/后端框架/Spring/Spring笔记03-Transaction">Spring 笔记-Transaction</a></li>
-  <li><a href="#/后端框架/Spring/Spring笔记09-其他">Spring 其他相关资料</a></li>
-  <li><a href="#/后端框架/Spring/Spring注解汇总">Spring 注解汇总</a></li>
+  <li><a href="#/后端框架/Spring/Spring笔记04-注解汇总">Spring 笔记-注解汇总</a></li>
+  <li><a href="#/后端框架/Spring/Spring笔记09-其他与案例">Spring 其他相关资料与案例</a></li>
+  <li><a href="#/后端框架/Spring/Spring源码分析00-Spring源码编译教程">Spring 源码分析00-Spring源码编译教程</a></li>
   <li><a href="#/后端框架/Spring/Spring源码分析01-底层核心概念解析">Spring 源码分析01-底层核心概念解析</a></li>
   <li><a href="#/后端框架/Spring/Spring源码分析02-IOC">Spring 源码分析02-IOC(控制反转)</a></li>
   <li><a href="#/后端框架/Spring/Spring源码分析03-AOP">Spring 源码分析03-AOP(面向切面编程)</a></li>
   <li><a href="#/后端框架/Spring/Spring源码分析04-Transaction">Spring 源码分析04-Transaction(事务)</a></li>
-  <li><a href="#/后端框架/Spring/Spring案例">Spring 案例</a></li>
-  <li><a href="#/后端框架/Spring/Spring源码编译教程">Spring 源码编译教程</a></li>
-  <li><a href="#/后端框架/Spring/网络资料-Spring事务管理（一）快速入门">网络资料-Spring事务管理（一）快速入门</a></li>
 </ul>
 
 ### 🐦 MyBatis
@@ -76,7 +74,7 @@
 ### 💾 Spring Data
 
 <ul class="docs">
-  <li><a href="#/后端框架/Spring-Data/Spring-Data-基础">Spring Data 概述</a></li>
+  <li><a href="#/后端框架/Spring-Data/Spring-Data-Overview">Spring Data 概述</a></li>
   <li><a href="#/后端框架/Spring-Data/Spring-Data-JPA">Spring Data JPA</a></li>
   <li><a href="#/后端框架/Spring-Data/Spring-Data-Redis">Spring Data Redis</a></li>
 </ul>
@@ -207,17 +205,17 @@
 #### 🔢 MySQL
 
 <ul class="docs">
-  <li><a href="#/数据库/MySQL/MySQL数据库00-安装与部署">MySQL数据库-安装与部署</a></li>
-  <li><a href="#/数据库/MySQL/MySQL数据库01-体系架构">MySQL数据库-体系架构</a></li>
-  <li><a href="#/数据库/MySQL/MySQL数据库02-基础">MySQL数据库-基础（SQL基础、函数）</a></li>
-  <li><a href="#/数据库/MySQL/MySQL数据库03-进阶">MySQL数据库-进阶（存储过程、存储函数、视图、触发器）</a></li>
-  <li><a href="#/数据库/MySQL/MySQL数据库04-事务">MySQL数据库-事务</a></li>
-  <li><a href="#/数据库/MySQL/MySQL数据库05-索引">MySQL数据库-索引</a></li>
-  <li><a href="#/数据库/MySQL/MySQL数据库06-锁">MySQL数据库-锁</a></li>
-  <li><a href="#/数据库/MySQL/MySQL数据库07-运维">MySQL数据库-运维篇（日志、主从复制、读写分离、分库分表）</a></li>
-  <li><a href="#/数据库/MySQL/MySQL数据库08-开发规范">MySQL 数据库开发规范</a></li>
-  <li><a href="#/数据库/MySQL/MySQL数据库09-性能优化">MySQL 数据库性能优化</a></li>
-  <li><a href="#/数据库/MySQL/MySQL数据库99-SQL示例">SQL 练习示例</a></li>
+  <li><a href="#/数据库/MySQL/MySQL-00-安装与部署">MySQL数据库-安装与部署</a></li>
+  <li><a href="#/数据库/MySQL/MySQL-01-体系架构">MySQL数据库-体系架构</a></li>
+  <li><a href="#/数据库/MySQL/MySQL-02-基础">MySQL数据库-基础（SQL基础、函数）</a></li>
+  <li><a href="#/数据库/MySQL/MySQL-03-进阶">MySQL数据库-进阶（存储过程、存储函数、视图、触发器、MySQL 8.x 新特性）</a></li>
+  <li><a href="#/数据库/MySQL/MySQL-04-事务">MySQL数据库-事务</a></li>
+  <li><a href="#/数据库/MySQL/MySQL-05-索引">MySQL数据库-索引</a></li>
+  <li><a href="#/数据库/MySQL/MySQL-06-锁">MySQL数据库-锁</a></li>
+  <li><a href="#/数据库/MySQL/MySQL-07-运维">MySQL数据库-运维篇（日志、主从复制、读写分离、分库分表）</a></li>
+  <li><a href="#/数据库/MySQL/MySQL-08-开发规范">MySQL 数据库开发规范</a></li>
+  <li><a href="#/数据库/MySQL/MySQL-09-性能优化">MySQL 数据库性能优化</a></li>
+  <li><a href="#/数据库/MySQL/MySQL-99-SQL示例">SQL 练习示例</a></li>
 </ul>
 
 #### 🅾 Oracle
@@ -231,10 +229,10 @@
 #### 🪐 Redis
 
 <ul class="docs">
-  <li><a href="#/数据库/Redis/Redis-基础">Redis 基础笔记</a></li>
   <li><a href="#/数据库/Redis/Redis-安装">Redis 安装</a></li>
-  <li><a href="#/数据库/Redis/Redis-场景应用设计">Redis 场景应用设计</a></li>
+  <li><a href="#/数据库/Redis/Redis-基础">Redis 基础笔记</a></li>
   <li><a href="#/数据库/Redis/Redis-操作命令">Redis 操作命令</a></li>
+  <li><a href="#/数据库/Redis/Redis-场景应用设计">Redis 场景应用设计</a></li>
 </ul>
 
 #### 🥭 MongoDb
@@ -414,6 +412,7 @@
   <li><a href="#/并发编程/并发编程08-JMM">并发编程 - JMM(Java 内存模型)</a></li>
   <li><a href="#/并发编程/并发编程-应用篇">并发编程 - 应用篇</a></li>
   <li><a href="#/并发编程/并发编程-原理篇">并发编程 - 原理篇</a></li>
+  <li><a href="#/并发编程/并发编程-设计模式篇">并发编程 - 设计模式篇</a></li>
   <li><a href="#/并发编程/并发编程-常用API">并发编程 - 常用 API</a></li>
 </ul>
 
@@ -428,33 +427,40 @@
 
 ## 其他
 
-### 💻 IDE
+### ℹ️ 资源汇总
 
 <ul class="docs">
-  <li><a href="#/其他/IDE/IDEA">IntelliJ IDEA 使用教程</a></li>
-  <li><a href="#/其他/IDE/eclipse">Eclipse 使用教程</a></li>
-  <li><a href="#/其他/IDE/Visual-Studio-Code">Visual Studio Code 使用教程</a></li>
-  <li><a href="#/其他/IDE/DevelopmentTool">其它开发工具常用配置与使用</a></li>
-</ul>
-
-### 系统与软件使用教程笔记
-
-<ul class="docs">
-  <li><a href="#/其他/System&Software/Windows">Windows 系统相关教程</a></li>
-  <li><a href="#/其他/System&Software/Microsoft-Office">Microsoft Office 系列教程</a></li>
-  <li><a href="#/其他/System&Software/Web-Browser">网页浏览器系列教程</a></li>
-  <li><a href="#/其他/System&Software/Software">常用软件教程</a></li>
-</ul>
-
-### 相关编程资料
-
-<ul class="docs">
-  <li><a href="#/其他/其它资料">其它资料</a></li>
-  <li><a href="#/其他/Hexo">Hexo 博客搭建工具</a></li>
-  <li><a href="#/其他/docsify">docsify 文档类型网站搭建工具</a></li>
-  <li><a href="#/其他/Mermaid">Mermaid 基于 Javascript 的绘图语法</a></li>
-  <li><a href="#/其他/Markdown">Markdown 参考笔记</a></li>
+  <li><a href="#/其他/编程文档与项目资源分享">编程文档与项目资源分享</a></li>
+  <li><a href="#/其他/常用软件工具汇总">常用软件工具汇总</a></li>
+  <li><a href="#/其他/编程开发相关资料">编程开发相关资料</a></li>
   <li><a href="#/其他/Develop-Environment">个人开发环境搭建资源信息文档</a></li>
+</ul>
+
+### 💻 编程开发软件
+
+<ul class="docs">
+  <li><a href="#/其他/development-software/IDEA">IntelliJ IDEA 使用教程</a></li>
+  <li><a href="#/其他/development-software/eclipse">Eclipse 使用教程</a></li>
+  <li><a href="#/其他/development-software/Visual-Studio-Code">Visual Studio Code 使用教程</a></li>
+  <li><a href="#/其他/development-software/Common-Development">其它常用开发工具配置与使用</a></li>
+</ul>
+
+### 🛠️ 编程辅助工具
+
+<ul class="docs">
+  <li><a href="#/其他/development-tools/Hexo">Hexo 博客搭建工具</a></li>
+  <li><a href="#/其他/development-tools/docsify">docsify 文档类型网站搭建工具</a></li>
+  <li><a href="#/其他/development-tools/Mermaid">Mermaid 基于 Javascript 的绘图语法</a></li>
+  <li><a href="#/其他/development-tools/Markdown">Markdown 参考笔记</a></li>
+</ul>
+
+### 🖥️ 系统软件工具
+
+<ul class="docs">
+  <li><a href="#/其他/system-software/Windows">Windows 系统相关教程</a></li>
+  <li><a href="#/其他/system-software/Microsoft-Office">Microsoft Office 系列教程</a></li>
+  <li><a href="#/其他/system-software/Web-Browser">网页浏览器系列教程</a></li>
+  <li><a href="#/其他/system-software/Common-Software">其他常用软件教程</a></li>
 </ul>
 
 ## 收集的项目实战资料
@@ -483,4 +489,4 @@ Gitee Pages 在线阅读地址：[点击进入](https://moonzero.gitee.io/code-l
 
 如果本项目对你有帮助，今天可以喝杯咖啡吗？😁
 
-![](resources/images/money-QRCode.png)
+![](resources/images/wechat_pay.png)  ![](resources/images/ali_pay.jpg)

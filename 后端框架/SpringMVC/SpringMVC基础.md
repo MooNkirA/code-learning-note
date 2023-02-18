@@ -8,7 +8,7 @@
 
 Spring Web MVC 是基于 Servlet API 上， MVC 的表现层的 Web 框架，用于 web 项目的开发，也可以称为 "Spring MVC"。是 Spring 框架的一个模块（一部分），包含在 Spring Framework 中 spring-webmvc 模块。Spring MVC 和 Spring 无需通过中间整合层进行整合。
 
-与 Spring Web MVC 并行，Spring Framework 5.0 引入了一个新 Web 框架 Spring WebFlux，具体在 spring-webflux 模块。（_此框架本笔记中不涉及，详见其他笔记_）
+与 Spring Web MVC 并行，Spring Framework 5.0 引入了一个新 Web 框架 Spring WebFlux，具体在 spring-webflux 模块。（*此框架本笔记中不涉及，详见其他笔记*）
 
 > Spring MVC 的 jar 包：`spring-webmvc-x.x.x.RELEASE.jar` 或者 `spring-webmvc-x.x.x.jar`
 
@@ -16,7 +16,7 @@ Spring Web MVC 是基于 Servlet API 上， MVC 的表现层的 Web 框架，用
 
 ### 1.2. MVC 是什么(b/s 系统)
 
-mvc 是一种设计模式。模型（model） --> 视图（view） --> 控制器（controller），三层架构设计模式，主要用于实现前端页面的展现和后端业务数据处理逻辑分离
+mvc 是一种设计模式。模型（model） -> 视图（view） -> 控制器（controller），三层架构设计模式，主要用于实现前端页面的展现和后端业务数据处理逻辑分离
 
 mvc 设计模式的优点：
 
@@ -199,16 +199,16 @@ public class DemoController {
 
 #### 2.2.4. 创建跳转的视图页面
 
-创建`/WEB-INF/jsp/helloSpringMVC.jsp`文件
+创建`/WEB-INF/jsp/helloSpringMVC.jsp`文件，最后运行项目查看效果
 
 ```jsp
 <!-- 读取springMVC返回模型的数据 -->
 <h1 style="color: red">${hello}</h1>
 ```
 
-最后运行项目查看效果
+## 3. Spring MVC 整体架构与实现原理
 
-## 3. Spring MVC 运行流程总结（待更新流程图）
+### 3.1. Spring MVC 运行流程（待更新流程图）
 
 Spring 的模型-视图-控制器（MVC）框架是围绕一个 `DispatcherServlet` 来设计的，这个 Servlet 会把请求分发给各个处理器，并支持可配置的处理器映射、视图渲染、本地化、时区与主题渲染等，甚至还能支持文件上传。
 
@@ -237,7 +237,7 @@ Spring 的模型-视图-控制器（MVC）框架是围绕一个 `DispatcherServl
 
 1. 服务器提供了 DispatcherServlet，它使用的是标准 Servlet 技术
    - 路径：默认映射路径为 `/`，即会匹配到所有请求 URL，可作为请求的统一入口，也被称之为**前端控制器**
-     - _注：jsp 不会匹配到 DispatcherServlet （了解）_
+     - *注：jsp 不会匹配到 DispatcherServlet （了解）*
      - 其它有路径的 Servlet 匹配优先级也高于 DispatcherServlet
    - 创建：在 Boot 中，由 DispatcherServletAutoConfiguration 这个自动配置类提供 DispatcherServlet 的 bean
    - 初始化：DispatcherServlet 初始化时会优先到容器里寻找各种组件，作为它的成员变量
@@ -278,7 +278,7 @@ Spring 的模型-视图-控制器（MVC）框架是围绕一个 `DispatcherServl
 
 ![](images/372305809220858.png)
 
-### 3.1. Spring MVC 框架重要组件
+### 3.2. Spring MVC 框架重要组件
 
 框架提供组件包含：
 
@@ -291,21 +291,21 @@ Spring 的模型-视图-控制器（MVC）框架是围绕一个 `DispatcherServl
 
 **在上述的组件中：处理器映射器（HandlerMapping）、处理器适配器（HandlerAdapter）、视图解析器（ViewResolver）称为 Spring MVC 的三大组件**。其中 handler 与 view 组件是由使用者来实现
 
-#### 3.1.1. 前端控制器 DispatcherServlet
+#### 3.2.1. 前端控制器 DispatcherServlet
 
 Spring MVC 和其他许多 Web 框架一样，是围绕前端控制器模式设计的，`DispatcherServlet` 就是相当于一个中央处理器、转发器，作用是接收请求，响应结果。
 
 用户请求到达前端控制器，它就相当于 MVC 模式中的 C，`DispatcherServlet` 是整个流程控制的中心，由它调用其它组件处理用户的请求，<font color=red>**`DispatcherServlet`的存在降低了组件之间的耦合性**</font>
 
-#### 3.1.2. 处理器映射器 HandlerMapping
+#### 3.2.2. 处理器映射器 HandlerMapping
 
 HandlerMapping 是作用是负责根据用户请求 url 找到 Handler（即处理器的方法），Spring MVC 提供了不同的映射器实现不同的映射方式，例如：配置文件方式，实现接口方式，注解方式等
 
-#### 3.1.3. 处理器适配器 HandlerAdapter
+#### 3.2.3. 处理器适配器 HandlerAdapter
 
 按照指定的规则（处理器适配器 HandlerAdapter 设置的特定规则），执行 Handler 处理器的方法，并处理方法参数与方法返回值。这是适配器模式的应用，通过扩展适配器可以对更多类型的处理器进行执行。
 
-#### 3.1.4. 处理器 Handler
+#### 3.2.4. 处理器 Handler
 
 编写 Handler 时按照 HandlerAdapter 的要求去完成，这样适配器才可以去正确执行 Handler
 
@@ -313,17 +313,15 @@ Handler 是继承 `DispatcherServlet` 前端控制器的**后端控制器**，�
 
 > 由于 Handler 涉及到具体的用户业务请求，所以一般情况需要程序员根据业务需求开发 Handler。
 
-#### 3.1.5. 视图解析器 ViewResolver
+#### 3.2.5. 视图解析器 ViewResolver
 
 ViewResolver 作用是进行视图解析，把逻辑视图（在 controller 中设置的视图名称）解析成物理视图（在浏览器看到的实际页面，即 view）。ViewResolver 首先根据逻辑视图名解析成物理视图名即具体的页面地址，再生成 View 视图对象，最后对 View 进行渲染将处理结果通过页面展示给用户。
 
-#### 3.1.6. 视图 View
+#### 3.2.6. 视图 View
 
 View 是一个接口，实现类支持不同的 View 类型（jsp、freemarker、pdf...）
 
-Spring MVC 框架提供了很多的 View 视图类型的支持，包括：jstlView、freemarkerView、pdfView 等。最常用的视图就是 jsp
-
-一般情况下需要通过页面标签或页面模版技术将模型数据通过页面展示给用户，需要由程序员根据业务需求开发具体的页面。
+Spring MVC 框架提供了很多的 View 视图类型的支持，包括：jstlView、freemarkerView、pdfView 等，最常用的视图就是 jsp。一般情况下需要通过页面标签或页面模版技术将模型数据通过页面展示给用户，需要由程序员根据业务需求开发具体的页面。
 
 ## 4. DispatcherServlet 前端控制器配置
 

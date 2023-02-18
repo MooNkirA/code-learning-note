@@ -6,35 +6,43 @@ Spring Cloud是java语言的微服务框架，依赖于Spring boot。
 
 ## 1. Spring Cloud 核心组件
 
-Spring Cloud 的本质是在 Spring Boot 的基础上，增加了一堆微服务相关的规范，并对应用上下文（Application Context）进行了功能增强。目前 Spring Cloud 规范已有 Spring 官方，Spring Cloud Netflix，Spring Cloud Alibaba等实现。通过组件化的方式，Spring Cloud 将这些实现整合到一起构成全家桶式的微服务技术栈。
+Spring Cloud 的本质是在 Spring Boot 的基础上，增加了一堆微服务相关的规范，并对应用上下文（Application Context）进行了功能增强。目前 Spring Cloud 规范已有 Spring 官方，Spring Cloud Netflix，Spring Cloud Alibaba等实现。通过组件化的方式，Spring Cloud 将这些实现整合到一起构成全家桶式的微服务技术栈。主要组件如下：
 
-**Spring Cloud Netflix组件**
+- **Spring Cloud Config**：分布式配置中心组件，用于将配置文件存储到服务器中进行集中化管理，支持本地存储、Git 和 Subversion 等 3 种存储方式。配置资源直接映射到项目环境。*还有 Apollo 配置中心和基于ZooKeeper 等方式实现的配置中心*。
+- **Spring Cloud Netflix**：整合 Netflix OSS 的组件，包含 Eureka、Hystrix、Zuul、Archaius 等
+    - **Eureka**：服务注册中心组件，用于服务注册和发现组件。集群中各个服务以 REST 的方式将服务注册到注册中心，并与注册中心保持心跳连接，主要用于服务发现和自动故障转移。
+    - **Ribbon**：用于分布式系统客户端 API 调用负载均衡的组件，提供随机负载、轮询负载等多种负载均衡策略，常配合服务发现和断路器使用
+    - **Feign**：声明式、模板化 HTTP 服务调用
+    - **Hystrix**：服务熔断器组件，主要提供了服务负载过高或服务故障时的容错保护处理机制，以便集群在出现故障时依然能够对外提供服务，防止服务雪崩
+    - **Zuul**：API服务集群网关组件，提供通用网关的功能，前端服务访问后端服务均需要通过 Zuul 的动态路由来实现。同时可以在 Zuul 上实现服务的弹性扩展、安全监测、统一权限认证等功能
+    - **Archaius**：配置管理库组件，用于实现动态化属性配置和验证、线程安全配置操作、轮询框架、问调机制等功能
+    - **Turbine**：实时消息或事件流的聚合工具，常用来监控集群下 Hystrix 的健康指标数据
+- **Spring Cloud Bus**：事件消息总线组件，用于监听和传播集群中事件的状态的变化，例如集群中配置的变化检测、广播等
+- **Spring Cloud Cloudfoundry**：提供了一个服务发现的实现，将 Pivotal 通过 OAuth 2.0 协议绑定服务到 Cloud Foundry，实现 SSO 和 OAuth2 保护资源。（Cloud Foundry 是 VMware 推出的开源 PaaS 云平台）
+- **Spring Cloud Open Service Broker**：为构建一个实现开放服务代理API的服务代理提供了一个起点
+- **Spring Cloud Cluster**：提供领导选举（LeaderShip）功能，对 Zookeeper、Redis、Hazelcast、Consul 等常见的有状态模式进行了抽象和实现
+- **Spring Cloud Consul**：服务注册中心与配置管理组件，基于 Golang 开发的一个服务注册、发现和配置工具，其功能与 Eureka 类似
+- **Spring Cloud Security**：基于 Spring Security 工具包实现的安全管理组件。对服务单元用户验证和权限认证，在 Zuul 代理中提供对负载平衡的 OAuth2 rest 客户端和认证头转发的支持。
+- **Spring Cloud Sleuth**：分布式链路追踪组件，基于日志（如ELK）的跟踪，封装了 Dapper 和 Log-based 追踪及 Zipkin、HTrace 操作。
+- **Spring Cloud Data Flow**：一个混合计算模型，结合了流式数据与批量数据的处理方式，更便于处理大数据。为现代运行时上的可组合微服务应用提供云原生协调服务。易于使用的DSL、拖放式GUI和REST-APIs共同简化了基于数据管道的微服务的整体协调工作。
+- **Spring Cloud Stream**：一个轻量级的事件驱动的微服务框架，可以快速构建可以连接到外部系统的应用程序。让 Apache Kafka、RabbitMQ、Kafa 等在 Spring Boot 应用程序之间发送和接收消息。流式数据处理工具，可以快速实现流式数据分析功能。
+- **Spring Cloud Stream Applications**：开箱即用的 Spring Boot 应用，使用 Spring Cloud Stream 中的绑定器抽象，提供与外部中间件系统的集成，如 Apache Kafka、RabbitMQ 等。
+- **Spring Cloud Task**：分布式环挠下集群任务的统一管理和调度工具。
+- **Spring Cloud Task App Starters**：是 Spring Boot 应用程序，可以是任何进程，包括 Spring Batch 作业，不会永远运行，它们在有限的数据处理期后结束/停止。
+- **Spring Cloud Zookeeper**：封装了操作 Apache ZooKeeper 的 API，更便利地使用 Zookeeper 进行服务发现和配置管理
+- **Spring Cloud Connectors**：使得各种平台中的 PaaS 应用能够轻松连接到数据库和消息代理等后端服务（该项目以前称为 "Spring Cloud"）。
+- **Spring Cloud Starters**：Spring Boot 式的启动项目，为 Spring Cloud 提供开箱即用的依赖管理
+- **Spring Cloud CLI**：基于 Spring Boot CLI 插件，用于在 Groovy 中快速创建 Spring Cloud 组件应用程序。
+- **Spring Cloud Contract**：总括性项目，包含了帮助用户成功实施消费者驱动合同方法的解决方案。
+- **Spring Cloud Gateway**：API服务网关。基于 Project Reactor 的智能和可编程的路由器。
+- **Spring Cloud OpenFeign**：声明式，模板化的 HTTP 客户端
+- **Spring Cloud Pipelines**：实现以零停机时间的方式进行部署，并且在出现问题时可以轻松回滚。
+- **Spring Cloud Function**：通过函数实现业务逻辑。它支持跨无服务器提供商的统一编程模型，以及独立运行的能力（本地或PaaS）
 
-| 组件名称 |              作用               |
-| ------- | ------------------------------ |
-| Eureka  | 服务注册中心，服务的注册和发现组件 |
-| Ribbon  | 客户端负载均衡组件               |
-| Feign   | 声明式服务调用                   |
-| Hystrix | 客户端容错保护，熔断组件          |
-| Zuul    | API服务网关                     |
+**Spring Cloud Alibaba 组件**：
 
-**Spring Cloud Alibaba组件**
-
-| 组件名称 |     作用      |
-| -------- | ------------ |
-| Nacos    | 服务注册中心   |
-| Sentinel | 客户端容错保护 |
-
-**Spring Cloud原生及其他组件**
-
-|    组件名称    |             作用              |
-| ------------- | ---------------------------- |
-| Consul        | 服务注册中心                   |
-| Config        | 分布式配置中心，配置文件统一管理 |
-| Gateway       | API服务网关                   |
-| Sleuth/Zipkin | 分布式链路追踪组件             |
-| Security      | 服务单元用户验证和权限认证      |
-| Stream        | Spring Cloud数据流操作包       |
+- Nacos：服务注册中心
+- Sentinel：客户端容错保护
 
 ## 2. Spring Cloud 体系结构图
 

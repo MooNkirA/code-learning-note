@@ -3,6 +3,7 @@
 Guava 是一个 Google 开发的 基于 java 的类库集合的扩展项目，包括 collections, caching, primitives support, concurrency libraries, common annotations, string processing, I/O, 等等. 这些高质量的 API 可以使你的JAVA代码更加优雅，更加简洁
 
 ## 1. Guava 简介
+
 ### 1.1. 类库基础包
 
 - annotations：普通注解类型
@@ -23,15 +24,26 @@ Guava 是一个 Google 开发的 基于 java 的类库集合的扩展项目，�
 - XML：xml字符串转义
 
 ## 2. Guava 基础使用
+
 ### 2.1. maven 依赖
 
 ```xml
-<!-- Google Guava 类库 https://mvnrepository.com/artifact/com.google.guava/guava -->
+<!-- https://mvnrepository.com/artifact/com.google.guava/guava -->
 <dependency>
     <groupId>com.google.guava</groupId>
     <artifactId>guava</artifactId>
-    <version>28.0-jre</version>
+    <version>31.1-jre</version>
 </dependency>
 ```
 
+### 2.2. gradle 依赖
 
+```gradle
+// https://mvnrepository.com/artifact/com.google.guava/guava
+implementation group: 'com.google.guava', name: 'guava', version: '31.1-jre'
+```
+
+## 3. 参考资料
+
+> - [Google Guava官方教程（中文版）](https://wizardforcel.gitbooks.io/guava-tutorial/content/1.html)
+> - [一篇让你熟练掌握Google Guava包(全网最全)](https://juejin.cn/post/6964267379547504648)

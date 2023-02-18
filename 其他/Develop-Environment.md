@@ -21,7 +21,7 @@
 ### 1.2. Nacos 服务注册中心（8848）
 
 - 版本：2.0.3
-- 安装位置：`D:\Z00-deployment\nacos\`
+- 安装位置：`D:\deployment\nacos\`
 - 默认端口号：8848
 - 访问地址：http://127.0.0.1:8848/nacos
 - 用户名/密码：nacos/nacos
@@ -29,7 +29,7 @@
 服务启动脚本：
 
 ```bash
-cd /d D:\Z00-deployment\nacos\bin\
+cd /d D:\deployment\nacos\bin\
 startup.cmd -m standalone
 ```
 
@@ -38,7 +38,7 @@ startup.cmd -m standalone
 ### 1.3. Sentinel 分布式服务架构的流量控制组件（9898）
 
 - 版本：1.8.0
-- 安装位置：`D:\Z00-deployment\sentinel\`
+- 安装位置：`D:\deployment\sentinel\`
 - 端口号：9898 (默认是8080)
 - 访问地址：http://127.0.0.1:9898
 - 用户名/密码：sentinel/sentinel
@@ -46,7 +46,7 @@ startup.cmd -m standalone
 服务启动脚本：
 
 ```bash
-cd /d D:\Z00-deployment\sentinel\
+cd /d D:\deployment\sentinel\
 java -Dserver.port=9898 -Dcsp.sentinel.dashboard.server=localhost:9898 -Dproject.name=sentinel-dashboard -jar sentinel-dashboard-1.8.0.jar
 ```
 
@@ -63,26 +63,26 @@ start call redis-server redis.windows.conf
 ### 1.5. zipkin 日志数据收集（9411）
 
 - 版本：2.23.16
-- 安装位置：`E:\Z00-deployment\zipkin\`
+- 安装位置：`E:\deployment\zipkin\`
 - 端口：9411
 - 访问地址：http://127.0.0.1:9411
 - 启动命令：
 
 ```bash
-java -jar E:\Z00-deployment\zipkin\zipkin-server-2.23.16-exec.jar
+java -jar E:\deployment\zipkin\zipkin-server-2.23.16-exec.jar
 ```
 
 ### 1.6. ActiveMQ 消息中间件
 
 - 版本：5.15.3
-- 安装位置：`E:\Z00-deployment\apache-activemq-5.15.3\`
+- 安装位置：`E:\deployment\apache-activemq-5.15.3\`
 - 端口：61616/8161/5672/61613/61614/1883
 - 管理后台地址： http://127.0.0.1:8161
 - 账号/密码：admin/admin
 - 启动命令：
 
 ```bash
-E:\Z00-deployment\apache-activemq-5.15.3\bin\win64\activemq.bat
+E:\deployment\apache-activemq-5.15.3\bin\win64\activemq.bat
 ```
 
 ### 1.7. RocketMQ 消息中间件
@@ -90,13 +90,13 @@ E:\Z00-deployment\apache-activemq-5.15.3\bin\win64\activemq.bat
 #### 1.7.1. 服务端（9876）
 
 - 版本：4.9.2
-- 安装位置：`E:\Z00-deployment\RocketMQ\rocketmq-4.9.2\`
+- 安装位置：`E:\deployment\RocketMQ\rocketmq-4.9.2\`
 - 端口：9876
 
 #### 1.7.2. 控制台（7777）
 
 - 版本：1.0.0
-- 安装位置：`E:\Z00-deployment\RocketMQ\rocketmq-console\target\`
+- 安装位置：`E:\deployment\RocketMQ\rocketmq-console\target\`
 - 端口：7777
 - 访问地址：http://127.0.0.1:7777
 - 启动命令：
@@ -109,7 +109,7 @@ java -jar rocketmq-console-ng-1.0.0.jar --server.port=7777 --rocketmq.config.nam
 
 ### 1.8. kafka 分布式的发布-订阅消息系统
 
-> 注：放到 E 盘的 Z00-deployment 目录中，启动时会提示“输入行太长”，所以直接放到 E 盘根目录中
+> 注：放到 E 盘的 deployment 目录中，启动时会提示“输入行太长”，所以直接放到 E 盘根目录中
 
 - 版本：2.8.1
 - 安装位置：`E:\kafka_2.13-2.8.1\`
@@ -129,7 +129,7 @@ cd /d E:\kafka_2.13-2.8.1\
 ### 1.9. Seata 服务（9000）
 
 - 版本：0.9.0
-- 安装位置：`E:\Z00-deployment\seata\`
+- 安装位置：`E:\deployment\seata\`
 - 端口：9000
 
 > 注：seata 配置了使用 nacos 作为注册与配置中心，所以需要先启动 nacos 服务。
@@ -140,8 +140,8 @@ cd /d E:\kafka_2.13-2.8.1\
 
 > 目前使用 v1.6.1 版本（学习apollo课程、万信金融项目使用，待转用高版本后删除），v1.9.1版本（未启用）
 
-- v1.6.1 版本安装地址：`E:\Z00-deployment\apollo\`
-- v1.9.1 版本安装地址：`E:\Z00-deployment\apollo-v1.9.1\`
+- v1.6.1 版本安装地址：`E:\deployment\apollo\`
+- v1.9.1 版本安装地址：`E:\deployment\apollo-v1.9.1\`
 - 占用的端口：8070（`apollo-portal`）, 8080（`apollo-configservice`）, 8090（`apollo-adminservice`）
 - 账号/密码：
     - apollo/admin（默认）
@@ -213,49 +213,49 @@ pause
 #### 1.12.1. ElasticSearch
 
 - 版本：7.17.1
-- 安装位置：`E:\Z00-deployment\ElasticStack\elasticsearch-7.17.1\`
+- 安装位置：`E:\deployment\ElasticStack\elasticsearch-7.17.1\`
 - 端口：9200
 - 运行命令：
 
 ```bash
-E:\Z00-deployment\ElasticStack\elasticsearch-7.17.1\bin\elasticsearch.bat
+E:\deployment\ElasticStack\elasticsearch-7.17.1\bin\elasticsearch.bat
 ```
 
 #### 1.12.2. elasticsearch-head
 
 - 版本：0.0.0
-- 安装位置：`E:\Z00-deployment\ElasticStack\elasticsearch-head\`
+- 安装位置：`E:\deployment\ElasticStack\elasticsearch-head\`
 - 端口：9100
 - 访问地址：http://localhost:9100
 - 运行命令：
 
 ```bash
-cd /d E:\Z00-deployment\ElasticStack\elasticsearch-head\
+cd /d E:\deployment\ElasticStack\elasticsearch-head\
 npm run start
 ```
 
 #### 1.12.3. logstash
 
 - 版本：7.17.1
-- 安装位置：`E:\Z00-deployment\ElasticStack\logstash-7.17.1\`
+- 安装位置：`E:\deployment\ElasticStack\logstash-7.17.1\`
 - 运行命令：
 
 ```bash
-cd /d E:\Z00-deployment\ElasticStack\logstash-7.17.1\bin\
+cd /d E:\deployment\ElasticStack\logstash-7.17.1\bin\
 .\logstash.bat -f ..\config\mysql-es.conf
 ```
 
 ### 1.13. ZooKeeper
 
 - 版本：3.6.3
-- 安装位置：`E:\Z00-deployment\apache-zookeeper-3.6.3-bin\`
+- 安装位置：`E:\deployment\apache-zookeeper-3.6.3-bin\`
 - 端口：
     - Zookeeper Server：2181
     - Zookeeper AdminServer：9999
 - 运行命令：
 
 ```bash
-cd /d E:\Z00-deployment\apache-zookeeper-3.6.3-bin\bin\
+cd /d E:\deployment\apache-zookeeper-3.6.3-bin\bin\
 zkServer.cmd
 ```
 
@@ -264,24 +264,24 @@ zkServer.cmd
 ### 1.14. Memcached 缓存服务
 
 - 版本：1.4.4-14
-- 安装位置：`E:\Z00-deployment\memcached\`
+- 安装位置：`E:\deployment\memcached\`
 - 端口：11211
 - 安装与卸载命令（**以管理员身份运行cmd**）：
 
 ```bash
 # 安装服务
-E:\Z00-deployment\memcached\memcached.exe -d install
+E:\deployment\memcached\memcached.exe -d install
 # 卸载服务
-E:\Z00-deployment\memcached\memcached.exe -d uninstall
+E:\deployment\memcached\memcached.exe -d uninstall
 ```
 
 - 启用和停止命令（正常运行cmd 即可），也可以直接在【服务】面板中右键运行或者停止
 
 ```bash
 # 启动服务
-E:\Z00-deployment\memcached\memcached.exe -d start
+E:\deployment\memcached\memcached.exe -d start
 # 停止服务
-E:\Z00-deployment\memcached\memcached.exe -d stop
+E:\deployment\memcached\memcached.exe -d stop
 ```
 
 ## 2. linux系统

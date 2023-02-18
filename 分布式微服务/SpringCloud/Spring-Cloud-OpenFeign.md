@@ -5,7 +5,7 @@
 Feign是Netflix开发的声明式，模板化的HTTP客户端，其灵感来自Retrofit，JAXRS-2.0以及WebSocket
 
 - Feign可更加便捷，优雅的调用HTTP API
-- 在SpringCloud中，使用Feign非常简单——创建一个接口，并在接口上添加一些注解，代码就完成了
+- 在SpringCloud中，使用Feign非常简单。创建一个接口，并在接口上添加一些注解，代码就完成了
 - Feign支持多种注解，例如Feign自带的注解或者JAX-RS注解等
 - SpringCloud对Feign进行了增强，使Feign支持了SpringMVC注解，并整合了Ribbon和Eureka，从而让Feign的使用更加方便
 

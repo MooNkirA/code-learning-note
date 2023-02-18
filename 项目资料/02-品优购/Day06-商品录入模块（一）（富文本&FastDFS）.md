@@ -1,7 +1,9 @@
 # Day06 商品录入模块【一】（富文本&FastDFS）
 
 ## 1. 运营商后台-商品分类功能
+
 ### 1.1. 需求及表结构分析
+
 #### 1.1.1. 需求分析
 
 - 实现三级商品分类列表查询功能
@@ -23,14 +25,15 @@
 
 tb_item_cat 商品分类表
 
-|     字段      |    类型    | 长度 |     含义     |
-| :------------: | :---------: | :-: | :-----------: |
-|      id       |  bigint  |     |     主键     |
-| parent_id |  bigint  |     |   上级ID    |
-|     name     | varchar |     |  分名称类   |
-|  type_id   |  bigint  |     | 类型模板ID |
+|    字段    |   类型   | 长度 |    含义    |
+| :-------: | :-----: | :--: | :--------: |
+|    id     |  bigint |      |    主键    |
+| parent_id | bigint  |      |   上级ID   |
+|   name    | varchar |      |  分名称类  |
+|  type_id  | bigint  |      | 类型模板ID |
 
 ### 1.2. 商品分类列表显示
+
 #### 1.2.1. 分类列表查询-后端部分
 
 - 修改pinyougou-manager-web工程，商品分类控制层ItemCatController。根据父目录id查询，设置默认传入的父目录参数为0。(因为进入页面默认展示顶级分类)
@@ -151,6 +154,7 @@ $scope.findItemCatByParentId = function (parentId) {
 ```
 
 ### 1.3. 修改面包屑导航部分
+
 #### 1.3.1. 功能分析
 
 **面包屑导航:**
@@ -223,11 +227,18 @@ $scope.selectList = (entity, grade) => {
 
 ### 1.4. （!待完成）新增商品分类
 
+> TODO: 待完成
+
 ### 1.5. （!待完成）修改商品分类
+
+> TODO: 待完成
 
 ### 1.6. （!待完成）删除商品分类
 
+> TODO: 待完成
+
 ## 2. 电商概念及表结构分析
+
 ### 2.1. 电商概念SPU与SKU
 
 - SPU = Standard Product Unit （标准产品单位）
@@ -254,6 +265,7 @@ $scope.selectList = (entity, grade) => {
 ![表结构分析3](images/20190122124421048_21304.jpg)
 
 ## 3. 商家后台-商品录入【基本功能】
+
 ### 3.1. 需要分析
 
 1. 在商家后台实现商品录入功能。包括商品名称、副标题、价格、包装列表、售后服务
@@ -364,6 +376,7 @@ public class GoodsServiceImpl implements GoodsService {
 ```
 
 ### 3.3. 商品录入（基本功能）-前端部分
+
 #### 3.3.1. 控制层js代码
 
 修改goodsController.js（将无用方法删除，只剩saveOrUpdate方法），在增加成功后弹出提示，并清空实体（因为编辑页面无列表）
@@ -450,6 +463,7 @@ public class GoodsServiceImpl implements GoodsService {
 ```
 
 ## 4. 商家后台-商品录入【富文本编辑器】
+
 ### 4.1. 富文本编辑器介绍
 
 - 富文本编辑器，Rich Text Editor, 简称 RTE, 它提供类似于 Microsoft Word 的编辑功能。常用的富文本编辑器：
@@ -458,6 +472,7 @@ public class GoodsServiceImpl implements GoodsService {
     - CKEditor：http://ckeditor.com/
 
 ### 4.2. 使用kindeditor完成商品介绍的录入
+
 #### 4.2.1. 初始化kindeditor编辑器
 
 在goods_edit.html页面中添加JS代码，用于初始化kindeditor：
@@ -525,6 +540,7 @@ $scope.saveOrUpdate = function () {
 ```
 
 ## 5. FastDFS【分布式文件系统】
+
 ### 5.1. 图片服务器介绍
 
 - 要实现图片上传功能，需要有一个图片服务器。图片服务器的特点：
@@ -562,6 +578,7 @@ Storage 保存文件，分为很多组，组和组之间的数据不一样，组
 内容详见：编程资料笔记\【07】分布式架构 & 微服务架构\05-FastDFS 分布式文件系统.md 的『2.2.3. 文件下载流程』
 
 ### 5.6. 搭建文件服务器
+
 #### 5.6.1. 架构图
 
 ![文件服务器架构图](images/20190123151019608_10709.jpg)
@@ -571,6 +588,7 @@ Storage 保存文件，分为很多组，组和组之间的数据不一样，组
 安装详见【`\07-编程工具资料\03-Java相关框架+源代码\FastDFS【分布式文件系统】\文档\Linux安装FastDFS.docx`】
 
 ## 6. 使用图片服务器（pyg-test工程）
+
 ### 6.1. 添加依赖
 
 学习使用FastDFS需要有对应的Java客户端来支持；而遗憾的是FastDFS的作者没有把FastDFS的依赖放置到maven中央仓库提供下载；但可以自行导入项目并安装，然后再引用它。
@@ -586,6 +604,7 @@ Storage 保存文件，分为很多组，组和组之间的数据不一样，组
 使用install命令，安装fastdfs-client到本地仓库
 
 ### 6.2. 创建fastdfs-test工程，初始化相关配置
+
 #### 6.2.1. FastDFS依赖
 
 创建fastdfs-test工程，pom.xml依赖信息如下：
@@ -625,6 +644,7 @@ tracker_server=192.168.12.131:22122
 注：key的值是固定的：【tracker_server】，value值是分布式文件系统服务器的地址
 
 ### 6.3. 文件上传、下载、删除测试
+
 #### 6.3.1. 开启fastDFS文件系统
 
 ![开启fastDFS服务1](images/20190123164118391_24534.jpg)
@@ -731,6 +751,7 @@ public void deleteFile() throws Exception {
 ![删除文件效果2](images/20190123165657428_21641.png)
 
 ### 6.4. 上传、下载、删除步骤小结
+
 #### 6.4.1. 上传步骤
 
 1. 加载tracker server的配置文件地址，配置文件为tracker server的地址；在这里设置了`tracker_server=192.168.12.131:22122`
@@ -787,11 +808,13 @@ int delete_file(String group_name, String remote_filename)
 ```
 
 ## 7. 商家后台-商品录入【商品图片上传】
+
 ### 7.1. 需求分析
 
 在商品录入界面实现多图片上传。当用户点击新建按钮，弹出上传窗口。
 
 ### 7.2. 相关配置
+
 #### 7.2.1. 配置依赖
 
 pinyougou-shop-web工程pom.xml引入依赖
@@ -844,6 +867,7 @@ fileServerUrl=http://192.168.12.131
 **注：配置文件上传解析器时，id必须是固定的multipartResolver**
 
 ### 7.3. 文件上传-后端控制层
+
 #### 7.3.1. 实现步骤
 
 1. 使用MultipartFile接收表单提交的文件
@@ -939,6 +963,7 @@ public class UploadController {
 ```
 
 ### 7.4. 文件上传-前端部分
+
 #### 7.4.1. 创建uploadService.js服务层
 
 - anjularjs对于post和get请求默认的Content-Type header 是application/json。通过设置‘Content-Type’: undefined，这样浏览器会帮我们把Content-Type 设置为 multipart/form-data.

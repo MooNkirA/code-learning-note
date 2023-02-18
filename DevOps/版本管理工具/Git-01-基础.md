@@ -974,9 +974,64 @@ git config --global --add safe.directory D:/www/other-project
 git config --global --add safe.directory "*"
 ```
 
-## 5. git 钩子
+## 5. 减小 Git 仓库 .git 文件大小（待测试）
 
-### 5.1. 本地禁止提交(commit)到 master 分支
+> 后面待测试与修改，参考：https://blog.csdn.net/LOI_QER/article/details/107911115
+
+### 5.1. 起因
+
+使用 git 储存本地音频、相片时，其中很多文件超过 10Mb，更有很多超过 50Mb，这些文件都添加到 git 的历史记录中`(git add . && git commit`)，就算后面删除了这些文件本身，但其提交记录永久的留在了 .git 中，被 git 保存为了 Blob 对象储存起来了，导致 .git 目录超过 35 Gb，占用过多硬盘空间，所以需要进行“瘦身”。
+
+### 5.2. git gc 修剪历史提交
+
+当运行 `git gc` 命令时，Git 会收集所有松散对象并将它们存入 packfile，合并这些 packfile 进一个大的 packfile，然后将不被任何 `commit` 引用并且已存在一段时间 (数月) 的对象删除。 此外， Git 还会将所有引用 (references) 并入一个单独文件。
+
+1. 在仓库根目录，运行 `gc` ，生成 `pack` 文件（后面的 `--prune=now` 表示对之前的所有提交做修剪，有的时候仅仅 `gc` 一下 `.git` 文件就会小很多）
+
+```bash
+$ git gc --prune=now
+```
+
+2. 找出最大的三个文件（看自己需要）
+
+```bash
+$ git verify-pack -v .git/objects/pack/*.idx | sort -k 3 -n | tail -3
+# 示例输出：
+#1debc758cf31a649c2fc5b0c59ea1b7f01416636 blob   4925660 3655422 14351
+#c43a8da9476f97e84b52e0b34034f8c2d93b4d90 blob   154188651 152549294 12546842
+#2272096493d061489349e0a312df00dcd0ec19a2 blob   155414465 153754005 165096136
+```
+
+3. 查看那些大文件究竟是谁（c43a8da 是上面大文件的hash码）
+
+```bash
+$ git rev-list --objects --all | grep c43a8da
+# c43a8da9476f97e84b52e0b34034f8c2d93b4d90 data/bigfile
+```
+
+4. 移除对该文件的引用（也就是 data/bigfile）
+
+```bash
+$ git filter-branch --force --index-filter "git rm --cached --ignore-unmatch 'data/bigfile'"  --prune-empty --tag-name-filter cat -- --all
+```
+
+5. 进行 `repack`
+
+```bash
+$ git for-each-ref --format='delete %(refname)' refs/original | git update-ref --stdin
+$ git reflog expire --expire=now --all
+$ git gc --prune=now
+```
+
+6. 查看 `pack` 的空间使用情况
+
+```bash
+$ git count-objects -v
+```
+
+## 6. git 钩子
+
+### 6.1. 本地禁止提交(commit)到 master 分支
 
 一般 master 分支只能从其他分支合并代码，为了防止意外提交和开发者随意提交到 master 分支。可以通过提交前钩子来禁止提交到 master 分支，在 git 项目目录下添加 `.git/hooks/pre-commit` 文件，添加内容如下：
 
@@ -989,11 +1044,11 @@ if [ "master" == "$branch" ]; then
 fi
 ```
 
-## 6. Git 命令进阶 - 经典操作场景
+## 7. Git 命令进阶 - 经典操作场景
 
-### 6.1. 提交操作(commit )
+### 7.1. 提交操作(commit )
 
-#### 6.1.1. 查看提交的历史
+#### 7.1.1. 查看提交的历史
 
 如果使用 `git commit -a` 提交了一次变化(changes)，而又不确定到底这次提交了哪些内容。此时就可以用下面的命令显示当前HEAD上的最近一次的提交(commit):
 
@@ -1003,7 +1058,7 @@ fi
 $ git log -n1 -p
 ```
 
-#### 6.1.2. 修改提交信息(commit message)
+#### 7.1.2. 修改提交信息(commit message)
 
 如果提交信息(`commit message`)写错了且这次提交(commit)还没有推送(push)，可以通过下面的方法来修改提交信息(`commit message`)：
 
@@ -1019,7 +1074,7 @@ $ git commit --amend --only -m 'xxxxxxx'
 
 如果已经推送(push)了这次提交(commit)，则可以修改这次提交(commit)然后强推(`force push`)，但是不推荐这么做。
 
-#### 6.1.3. 修改提交(commit)里的用户名和邮箱
+#### 7.1.3. 修改提交(commit)里的用户名和邮箱
 
 如果只是单个提交(commit)，则通过以下命令修改：
 
@@ -1029,7 +1084,7 @@ $ git commit --amend --author "New Authorname <authoremail@mydomain.com>"
 
 > 如果需要修改所有历史，参考 'git filter-branch'的指南页.
 
-#### 6.1.4. 从一个提交(commit)里移除一个文件
+#### 7.1.4. 从一个提交(commit)里移除一个文件
 
 通过下面的方法，从一个提交(commit)里移除一个文件：
 
@@ -1041,7 +1096,7 @@ $ git commit --amend
 
 这将非常有用，当有一个开放的补丁(`open patch`)，往上面提交了一个不必要的文件，需要强推(`force push`)去更新这个远程补丁。
 
-#### 6.1.5. 删除最后一次提交(commit)
+#### 7.1.5. 删除最后一次提交(commit)
 
 如果需要删除已推送了的提交(`pushed commits`)，可以使用下面的方法。可是，这会不可逆的改变提交的历史，也会搞乱那些已经从该仓库拉取(pulled)了的人的历史。简而言之，如果不是很确定，千万不要这么做。
 
@@ -1058,7 +1113,7 @@ $ git push -f [remote] [branch]
 
 以上只能用在没有推送之前。如果已经推送了，唯一安全能做的是 `git revert SHAofBadCommit`， 那会创建一个新的提交(commit)用于撤消前一个提交的所有变化(changes)；或者如果推送的这个分支是rebase-safe的 (例如：其它开发者不会从这个分支拉取)，则只需要使用 `git push -f`。
 
-#### 6.1.6. 删除任意提交(commit)
+#### 7.1.6. 删除任意提交(commit)
 
 > Notes: <font color=red>**同样的警告，不到万不得已的时候不要这么做。**</font>
 
@@ -1069,7 +1124,7 @@ $ git push -f [remote] [branch]
 
 或者做一个 交互式rebase 删除那些想要删除的提交(commit)里所对应的行。
 
-#### 6.1.7. 尝试推一个修正后的提交(amended commit)到远程，但是报错：
+#### 7.1.7. 尝试推一个修正后的提交(amended commit)到远程，但是报错：
 
 ```
 To https://github.com/yourusername/repo.git  
@@ -1089,7 +1144,7 @@ hint: See the 'Note about fast-forwards' in 'git push --help' for details.
 
 一般来说，**要避免强推**。最好是创建和推(push)一个新的提交(commit)，而不是强推一个修正后的提交。后者会使那些与该分支或该分支的子分支工作的开发者，在源历史中产生冲突。
 
-#### 6.1.8. 做了一次硬重置(hard reset)，想找回之前内容
+#### 7.1.8. 做了一次硬重置(hard reset)，想找回之前内容
 
 如果意外的做了 `git reset --hard`，通常能找回之前提交(commit)，因为Git对每件事都会有日志，且都会保存几天。
 
@@ -1103,15 +1158,15 @@ hint: See the 'Note about fast-forwards' in 'git push --help' for details.
 (main)$ git reset --hard SHA1234
 ```
 
-### 6.2. 暂存(Staging)
+### 7.2. 暂存(Staging)
 
-#### 6.2.1. 把暂存的内容添加到上一次的提交(commit)
+#### 7.2.1. 把暂存的内容添加到上一次的提交(commit)
 
 ```bash
 (my-branch*)$ git commit --amend
 ```
 
-#### 6.2.2. 暂存一个新文件的一部分，而不是这个文件的全部
+#### 7.2.2. 暂存一个新文件的一部分，而不是这个文件的全部
 
 如果想暂存一个文件的一部分，可这样做：
 
@@ -1127,11 +1182,11 @@ $ git add -N filename.x
 
 然后需要使用 `e` 选项来手动选择需要添加的行，执行 `git diff --cached` 将会显示哪些行暂存了哪些行只是保存在本地了。
 
-#### 6.2.3. 在一个文件里的变化(changes)加到两个提交(commit)里
+#### 7.2.3. 在一个文件里的变化(changes)加到两个提交(commit)里
 
 `git add` 会把整个文件加入到一个提交；`git add -p` 允许交互式的选择想要提交的部分。
 
-#### 6.2.4. 把暂存的内容变成未暂存，把未暂存的内容暂存起来
+#### 7.2.4. 把暂存的内容变成未暂存，把未暂存的内容暂存起来
 
 多数情况下，应该将所有的内容变为未暂存，然后再选择想要的内容进行commit。但假定需要这么做，可以创建一个临时的commit来保存已暂存的内容，然后暂存那些未暂存的内容并进行stash。然后reset最后一个commit将原本暂存的内容变为未暂存，最后stash pop回来。
 
@@ -1148,15 +1203,15 @@ $ git stash pop --index 0
 > 1. 这里使用`pop`仅仅是因为想尽可能保持幂等。
 > 2. 假如不加上`--index`，会把暂存的文件标记为存储。
 
-### 6.3. 未暂存(Unstaged)的内容
+### 7.3. 未暂存(Unstaged)的内容
 
-#### 6.3.1. 把未暂存的内容移动到一个新分支
+#### 7.3.1. 把未暂存的内容移动到一个新分支
 
 ```bash
 $ git checkout -b my-branch
 ```
 
-#### 6.3.2. 把未暂存的内容移动到另一个已存在的分支
+#### 7.3.2. 把未暂存的内容移动到另一个已存在的分支
 
 ```bash
 $ git stash
@@ -1164,7 +1219,7 @@ $ git checkout my-branch
 $ git stash pop
 ```
 
-#### 6.3.3. 丢弃本地未提交的变化(uncommitted changes)
+#### 7.3.3. 丢弃本地未提交的变化(uncommitted changes)
 
 如果只是想重置源(origin)和本地(local)之间的一些提交(commit)，使用以下命令：
 
@@ -1185,7 +1240,7 @@ $ git stash pop
 $ git reset filename
 ```
 
-#### 6.3.4. 丢弃某些未暂存的内容
+#### 7.3.4. 丢弃某些未暂存的内容
 
 如果想丢弃工作拷贝中的一部分内容，而不是全部。签出(checkout)不需要的内容，保留需要的。
 
@@ -1211,9 +1266,9 @@ $ git stash -p
 $ git stash drop
 ```
 
-### 6.4. 分支(Branches)
+### 7.4. 分支(Branches)
 
-#### 6.4.1. 从错误的分支拉取了内容，或把内容拉取到了错误的分支
+#### 7.4.1. 从错误的分支拉取了内容，或把内容拉取到了错误的分支
 
 这是另外一种使用 `git reflog` 情况，找到在这次错误拉(pull) 之前HEAD的指向。
 
@@ -1229,7 +1284,7 @@ c5bc55a HEAD@{1}: checkout: checkout message goes here
 $ git reset --hard c5bc55a
 ```
 
-#### 6.4.2. 扔掉本地的提交(commit)，让本地分支与远程的保持一致
+#### 7.4.2. 扔掉本地的提交(commit)，让本地分支与远程的保持一致
 
 先确认没有推送(push)本地的内容到远程。使用`git status` 命令显示领先(ahead)源(origin)多少个提交：
 
@@ -1247,7 +1302,7 @@ $ git reset --hard c5bc55a
 (main)$ git reset --hard origin/my-branch
 ```
 
-#### 6.4.3. 提交到一个新分支，但错误的提交到了 main/master
+#### 7.4.3. 提交到一个新分支，但错误的提交到了 main/master
 
 在main下创建一个新分支，不切换到新分支，仍在main下:
 
@@ -1278,7 +1333,7 @@ HEAD is now at a13b85e
 (main)$ git checkout my-branch
 ```
 
-#### 6.4.4. 保留来自另外一个ref-ish的整个文件
+#### 7.4.4. 保留来自另外一个ref-ish的整个文件
 
 假设正在做一个原型方案(原文为working spike (see note))，有成百的内容，每个都工作得很好。现在，提交到了一个分支，保存工作内容：
 
@@ -1310,7 +1365,7 @@ HEAD is now at a13b85e
 
 然后正常提交
 
-#### 6.4.5. 把几个提交(commit)提交到了同一个分支，而这些提交应该分布在不同的分支里
+#### 7.4.5. 把几个提交(commit)提交到了同一个分支，而这些提交应该分布在不同的分支里
 
 假设有一个`main`分支，执行`git log`，看到做过两次提交：
 
@@ -1372,7 +1427,7 @@ HEAD is now at a13b85e
 (14)$ git cherry-pick 5ea5173
 ```
 
-#### 6.4.6. 删除上游(upstream)分支被删除了的本地分支
+#### 7.4.6. 删除上游(upstream)分支被删除了的本地分支
 
 一旦在 github 上面合并(merge)了一个`pull request`，就可以删除 fork 里被合并的分支。如果不准备继续在这个分支里工作，删除这个分支的本地拷贝会更干净，使不会陷入工作分支和一堆陈旧分支的混乱之中。
 
@@ -1380,7 +1435,7 @@ HEAD is now at a13b85e
 $ git fetch -p
 ```
 
-#### 6.4.7. 不小心删除了分支
+#### 7.4.7. 不小心删除了分支
 
 如果定期推送到远程，多数情况下应该是安全的，但有些时候还是可能删除了还没有推到远程的分支。下面模拟这种场景，先创建一个分支和一个新的文件
 
@@ -1447,7 +1502,7 @@ README.md foo.txt
 
 Git的 `reflog` 在rebasing出错的时候也是同样有用的。
 
-#### 6.4.8. 删除一个分支
+#### 7.4.8. 删除一个分支
 
 删除一个远程分支：
 
@@ -1463,7 +1518,7 @@ Git的 `reflog` 在rebasing出错的时候也是同样有用的。
 (main)$ git branch -D my-branch
 ```
 
-#### 6.4.9. 从别人正在工作的远程分支签出(checkout)一个分支
+#### 7.4.9. 从别人正在工作的远程分支签出(checkout)一个分支
 
 从远程拉取(fetch) 所有分支：
 
@@ -1481,9 +1536,9 @@ Switched to a new branch 'daves'
 
 (`--track` 是 `git checkout -b [branch] [remotename]/[branch]` 的简写)。这样就得到了一个`daves`分支的本地拷贝, 任何推过(pushed)的更新，远程都能看到.
 
-### 6.5. Rebasing 和合并(Merging)
+### 7.5. Rebasing 和合并(Merging)
 
-#### 6.5.1. 撤销rebase/merge
+#### 7.5.1. 撤销rebase/merge
 
 可以合并(merge)或rebase了一个错误的分支, 或者完成不了一个进行中的rebase/merge。Git 在进行危险操作的时候会把原始的HEAD保存在一个叫``ORIG_HEAD`的变量里, 所以要把分支恢复到rebase/merge前的状态是很容易的。
 
@@ -1491,7 +1546,7 @@ Switched to a new branch 'daves'
 (my-branch)$ git reset --hard ORIG_HEAD
 ```
 
-#### 6.5.2. 已经rebase过, 但是我不想强推(force push)
+#### 7.5.2. 已经rebase过, 但是我不想强推(force push)
 
 如果想把这些变化(changes)反应到远程分支上，就必须得强推(`force push`)。是因快进(`Fast forward`)了提交，改变了Git历史, 远程分支不会接受变化(changes)，除非强推(force push)。
 
@@ -1504,7 +1559,7 @@ Switched to a new branch 'daves'
 (main)$ git merge --ff-only my-branch
 ```
 
-#### 6.5.3. 组合(combine)几个提交(commit)
+#### 7.5.3. 组合(combine)几个提交(commit)
 
 假设工作分支将会做对于 `main` 的 pull-request。一般情况下不关心提交(commit)的时间戳，只想组合**所有**提交(commit) 到一个单独的里面, 然后重置(reset)重提交(recommit)。确保主(main)分支是最新的和本地变化都已经提交了，然后
 
@@ -1593,7 +1648,7 @@ Newer, awesomer features
 (main)$ Successfully rebased and updated refs/heads/main.
 ```
 
-##### 6.5.3.1. 安全合并(merging)策略
+##### 7.5.3.1. 安全合并(merging)策略
 
 `--no-commit` 执行合并(merge)但不自动提交，给用户在做提交前检查和修改的机会。`no-ff` 会为特性分支(feature branch)的存在过留下证据，保持项目历史一致。
 
@@ -1601,13 +1656,13 @@ Newer, awesomer features
 (main)$ git merge --no-ff --no-commit my-branch
 ```
 
-##### 6.5.3.2. 将一个分支合并成一个提交(commit)
+##### 7.5.3.2. 将一个分支合并成一个提交(commit)
 
 ```bash
 (main)$ git merge --squash my-branch
 ```
 
-##### 6.5.3.3. 组合(combine)未推的提交(unpushed commit)
+##### 7.5.3.3. 组合(combine)未推的提交(unpushed commit)
 
 有时候在将数据推向上游之前，有几个正在进行的工作提交(commit)。这时候不希望把已经推(push)过的组合进来，因为其他人可能已经有提交(commit)引用它们了。
 
@@ -1617,7 +1672,7 @@ Newer, awesomer features
 
 这会产生一次交互式的rebase(interactive rebase)，只会列出没有推(push)的提交(commit)，在这个列表时进行reorder/fix/squash 都是安全的。
 
-#### 6.5.4. 检查是否分支上的所有提交(commit)都合并(merge)过了
+#### 7.5.4. 检查是否分支上的所有提交(commit)都合并(merge)过了
 
 检查一个分支上的所有提交(commit)是否都已经合并(merge)到了其它分支，应该在这些分支的head(或任何 commits)之间做一次diff
 
@@ -1631,9 +1686,9 @@ Newer, awesomer features
 (main)$ git log main ^feature/120-on-scroll --no-merges
 ```
 
-#### 6.5.5. 交互式rebase(interactive rebase)可能出现的问题
+#### 7.5.5. 交互式rebase(interactive rebase)可能出现的问题
 
-##### 6.5.5.1. 这个rebase 编辑屏幕出现'noop'
+##### 7.5.5.1. 这个rebase 编辑屏幕出现'noop'
 
 如果看到的是这样：
 
@@ -1646,7 +1701,7 @@ noop
 - 检查确保主(main)分支没有问题
 - rebase  `HEAD~2` 或者更早
 
-##### 6.5.5.2. 有冲突的情况
+##### 7.5.5.2. 有冲突的情况
 
 如果不能成功的完成 rebase，可能必须要解决冲突。首先执行 `git status` 找出哪些文件有冲突:
 
@@ -1691,9 +1746,9 @@ Changes not staged for commit:
 (my-branch)$ git rebase --abort  
 ```
 
-### 6.6. Stash
+### 7.6. Stash
 
-#### 6.6.1. 暂存所有改动
+#### 7.6.1. 暂存所有改动
 
 暂存工作目录下的所有改动：
 
@@ -1707,7 +1762,7 @@ $ git stash
 $ git stash -u
 ```
 
-#### 6.6.2. 暂存指定文件
+#### 7.6.2. 暂存指定文件
 
 只暂存某一个文件
 
@@ -1721,7 +1776,7 @@ $ git stash push working-directory-path/filename.ext
 $ git stash push working-directory-path/filename1.ext working-directory-path/filename2.ext
 ```
 
-#### 6.6.3. 暂存时记录消息
+#### 7.6.3. 暂存时记录消息
 
 可以在`list`时看到它
 
@@ -1731,7 +1786,7 @@ $ git stash save <message>
 $ git stash push -m <message>
 ```
 
-#### 6.6.4. 指定暂存
+#### 7.6.4. 指定暂存
 
 首先可以查看 `stash`记录
 
@@ -1751,7 +1806,7 @@ $ git stash apply "stash@{n}"
 $ git stash apply "stash@{2.hours.ago}"
 ```
 
-#### 6.6.5. 暂存时保留未暂存的内容
+#### 7.6.5. 暂存时保留未暂存的内容
 
 需要手动 create 一个`stash commit`，然后使用`git stash store`。
 
@@ -1760,9 +1815,9 @@ $ git stash create
 $ git stash store -m "commit-message" CREATED_SHA1
 ```
 
-### 6.7. 杂项(Miscellaneous Objects)
+### 7.7. 杂项(Miscellaneous Objects)
 
-#### 6.7.1. 克隆所有子模块
+#### 7.7.1. 克隆所有子模块
 
 ```bash
 $ git clone --recursive git://github.com/foo/bar.git
@@ -1774,14 +1829,14 @@ $ git clone --recursive git://github.com/foo/bar.git
 $ git submodule update --init --recursive
 ```
 
-#### 6.7.2. 删除标签(tag)
+#### 7.7.2. 删除标签(tag)
 
 ```bash
 $ git tag -d <tag_name>
 $ git push <remote> :refs/tags/<tag_name>
 ```
 
-#### 6.7.3. 恢复已删除标签(tag)
+#### 7.7.3. 恢复已删除标签(tag)
 
 如果想恢复一个已删除标签(tag)，可以按照下面的步骤：
 
@@ -1797,29 +1852,29 @@ $ git fsck --unreachable | grep tag
 $ git update-ref refs/tags/<tag_name> <hash>
 ```
 
-#### 6.7.4. 已删除补丁(patch)
+#### 7.7.4. 已删除补丁(patch)
 
 如果某人在 GitHub 上发了一个`pull request`，但是然后他删除了他自己的原始 fork，这样将没法克隆他们的提交(commit)或使用 `git am`。在这种情况下，最好手动的查看他们的提交(commit)，并把它们拷贝到一个本地新分支，然后做提交。
 
 做完提交后，再修改作者（*参见“变更作者”章节*）。然后应用变化，再发起一个新的`pull request`。
 
-### 6.8. 跟踪文件(Tracking Files)
+### 7.8. 跟踪文件(Tracking Files)
 
-#### 6.8.1. 改变一个文件名字的大小写，而不修改内容
+#### 7.8.1. 改变一个文件名字的大小写，而不修改内容
 
 ```bash
 (main)$ git mv --force myfile MyFile
 ```
 
-#### 6.8.2. 从 Git 删除一个文件，但保留该文件
+#### 7.8.2. 从 Git 删除一个文件，但保留该文件
 
 ```bash
 (main)$ git rm --cached log.txt
 ```
 
-### 6.9. 配置(Configuration)
+### 7.9. 配置(Configuration)
 
-#### 6.9.1. 给一些 Git 命令添加别名(alias)
+#### 7.9.1. 给一些 Git 命令添加别名(alias)
 
 在 OS X 和 Linux 下，Git的配置文件储存在 `~/.gitconfig`。在`[alias]` 部分添加了一些快捷别名(和一些容易拼写错误的)，如下：
 
@@ -1846,7 +1901,7 @@ $ git update-ref refs/tags/<tag_name> <hash>
     zap = fetch -p  
 ```
 
-#### 6.9.2. 缓存一个仓库(repository)的用户名和密码
+#### 7.9.2. 缓存一个仓库(repository)的用户名和密码
 
 有一个仓库需要授权，此时可以缓存用户名和密码，而不用每次推/拉(push/pull)的时候都输入，可以使用 Credential helper 来实现。
 
@@ -1857,7 +1912,7 @@ $ git config --global credential.helper 'cache --timeout=3600'
 # Set the cache to timeout after 1 hour (setting is in seconds)
 ```
 
-#### 6.9.3. reflog
+#### 7.9.3. reflog
 
 如果 `重置(reset)` 了一些东西，或者合并了错误的分支，又或强推了后找不到自己的提交(commit)了，想回到以前的某个状态。
 

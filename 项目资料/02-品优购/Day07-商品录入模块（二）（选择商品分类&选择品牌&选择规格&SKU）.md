@@ -1,8 +1,7 @@
 # Day07 商品录入模块【二】（选择商品分类&选择品牌&选择规格&SKU）
 
----
-
 ## 1. 商品录入【选择商品分类】
+
 ### 1.1. 需求分析
 
 在商品录入界面实现商品分类的选择（三级分类）下拉框。当用户选择一级分类后，二级分类列表要相应更新，当用户选择二级分类后，三级列表要相应更新。
@@ -42,6 +41,7 @@ public class ItemCatController {
 ```
 
 ### 1.3. 商品分类下拉列表-前端部分
+
 #### 1.3.1. 一级分类下拉选择框
 
 - 在goodsController.js增加异步请求查询方法
@@ -227,6 +227,7 @@ $scope.$watch('goods.category3Id', function (newVal, oldVal) {
 ---
 
 ## 2. 商品录入【品牌选择】
+
 ### 2.1. 需求分析
 
 在用户选择商品分类后，品牌列表要根据用户所选择的分类进行更新。具体的逻辑是根据用户选择的三级分类找到对应的商品类型模板，商品类型模板中存储了品牌的列表json数据。
@@ -331,6 +332,7 @@ $scope.$watch('goods.typeTemplateId', function (newVal, oldVal) {
 ---
 
 ## 3. 商品录入【扩展属性】
+
 ### 3.1. 需求分析
 
 - 在商品录入实现扩展属性的录入
@@ -398,6 +400,7 @@ $scope.$watch('goods.typeTemplateId', function (newVal, oldVal) {
 ---
 
 ## 4. 商品录入【规格选择】
+
 ### 4.1. 需求分析
 
 显示规格及选项列表（复选框）如下图，并保存用户选择的结果
@@ -550,6 +553,7 @@ $scope.$watch('goods.typeTemplateId', function (newVal, oldVal) {
 ```
 
 ### 4.3. 保存选中规格选项
+
 #### 4.3.1. 需求分析
 
 - 需要将用户选中的选项保存在`tb_goods_desc`表的`specification_items`字段中，定义json格式如下：
@@ -661,7 +665,9 @@ $scope.$watch('goods.typeTemplateId', function (newVal, oldVal) {
 ---
 
 ## 5. 商品录入【SKU商品信息】
+
 ### 5.1. 需求分析
+
 #### 5.1.1. 需求
 
 基于上一步完成的规格选择，根据选择的规格录入商品的SKU信息，当用户选择相应的规格，下面的SKU列表就会自动生成
@@ -682,6 +688,7 @@ $scope.goods.items = [{spec:{}, price:0, num:9999, status:'0', isDefault:'0'}];
 ![SKU商品信息生成2](images/20190128112515900_31245.jpg)
 
 ### 5.2. 生成SKU商品信息-前端部分
+
 #### 5.2.1. 生成SKU表（tb_item）
 
 - goodsController.js实现创建sku列表的方法
@@ -920,6 +927,7 @@ private void setItemInfo(Item item, Goods goods) {
 ---
 
 ## 6. 商品录入【是否启用规格】
+
 ### 6.1. 需求分析
 
 在规格面板添加是否启用规格，当用户没有选择该项，将原来的规格面板和SKU列表隐藏，用户保存商品后只生成一个SKU。

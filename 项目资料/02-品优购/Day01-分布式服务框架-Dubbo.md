@@ -11,6 +11,7 @@
 - 系统安全
 
 ## 2. 主要电商模式
+
 ### 2.1. B2B--企业对企业
 
 B2B （ Business to Business）是指进行电子商务交易的供需双方都是商家（或企业、公司），她（他）们使用了互联网的技术或各种商务网络平台，完成商务交易的过程。电子商务是现代 B2B marketing的一种具体主要的表现形式。
@@ -58,6 +59,7 @@ B2B2C的来源于目前的B2B、B2C模式的演变和完善，把B2C和C2C完美
 案例：京东商城、天猫商城
 
 ## 3. 项目需求分析与系统设计
+
 ### 3.1. 品优购简介
 
 品优购网上商城是一个综合性的 B2B2C 平台，类似京东商城、天猫商城。网站采用商家入驻的模式，商家入驻平台提交申请，有平台进行资质审核，审核通过后，商家拥有独立的管理后台录入商品信息。商品经过平台审核后即可发布。
@@ -65,21 +67,25 @@ B2B2C的来源于目前的B2B、B2C模式的演变和完善，把B2C和C2C完美
 品优购网上商城主要分为网站前台、运营商后台、商家管理后台三个子系统
 
 #### 3.1.1. 网站前台
+
 主要包括网站首页、商家首页、商品详细页、、搜索页、会员中心、订单与支付相关页面、秒杀频道等。
 
 ![项目网站图1](images/20181202085929533_28450.jpg)
 
 #### 3.1.2. 运营商后台
+
 运营商的运营人员的管理后台。主要包括商家审核、品牌管理、规格管理、模板管理、商品分类管理、商品审核、广告类型管理、广告管理、订单查询、商家结算等。
 
 ![项目网站图2](images/20181202085946437_24902.jpg)
 
 #### 3.1.3. 商家管理后台
+
 入驻的商家进行管理的后台，主要功能是对商品的管理以及订单查询统计、资金结算等功能。
 
 ![项目网站图3](images/20181202090004346_9204.jpg)
 
 ### 3.2. 系统架构
+
 #### 3.2.1. 什么是SOA架构
 
 SOA是Service-Oriented Architecture的首字母简称，它是一种支持面向服务的架构样式。从服务、基于服务开发和服务的结果来看，面向服务是一种思考方式。其实SOA架构更多应用于互联网项目开发。
@@ -121,9 +127,10 @@ SOA是Service-Oriented Architecture的首字母简称，它是一种支持面向
 - 后端框架采用：Spring + SpringMVC + MyBatis + Dubbo
 - 前端采用：angularJS + Bootstrap
 
-
 ## 4. Dubbo 框架
+
 ### 4.1. RPC框架
+
 #### 4.1.1. 什么是RPC
 
 RPC（Remote Procedure Call Protocol）远程过程调用协议，它是一种通过网络从远程计算机程序上请求服务，而不需要了解底层网络技术的协议。简言之，RPC使得程序能够像访问本地系统资源一样，去访问远端系统资源。比较关键的一些方面包括：通讯协议、序列化、资源（接口）描述、服务框架、性能、语言支持等。
@@ -189,6 +196,7 @@ Dubbo 致力于提供高性能和透明化的RPC远程服务调用方案，以�
 	5. 服务消费者和提供者，在内存中累计调用次数和调用时间，定时每分钟发送一次统计数据到监控中心。
 
 ### 4.4. Zookeeper注册中心（Dubbo推荐使用）
+
 #### 4.4.1. Zookeeper介绍
 
 - 官方推荐使用 zookeeper 注册中心。注册中心负责服务地址的注册与查找，相当于目录服务，服务提供者和消费者只在启动时与注册中心交互，注册中心不转发请求，压力较小。
@@ -477,6 +485,7 @@ systemctl disable firewalld.service
 ![idea创建maven项目](images/20181209130432329_30524.jpg)
 
 #### 5.2.1. pinyougou聚合父项目(pom)
+
 pom.xml文件：【资料\pinyougou-pom.xml】
 
 ```xml
@@ -820,12 +829,11 @@ pom.xml文件：【资料\pinyougou-pom.xml】
 </project>
 ```
 
-#### 5.2.2. pinyougou-common通用工具类(jar)
+#### 5.2.2. 通用项目工程
 
-#### 5.2.3. pinyougou-pojo通用实体类(jar)
+分别创建 pinyougou-common通用工具类(jar)、pinyougou-pojo通用实体类(jar)、pinyougou-mapper通用数据访问(jar) 等三个 jar 类型的 maven 工程。*下面以 pinyougou-mapper 为例*
 
-#### 5.2.4. pinyougou-mapper通用数据访问(jar)
-##### 5.2.4.1. 相关配置文件
+##### 5.2.2.1. 相关配置文件
 
 - 第一步：在pom.xml文件中添加依赖
 
@@ -977,7 +985,7 @@ jdbc.minIdle=5
 
 - 第五步：mappers/TestMapper.xml（暂时使用，后面再修改名称）
 
-##### 5.2.4.2. 配置文件的注意点
+##### 5.2.2.2. 配置文件的注意点
 
 在MyBatis总配置文件中，使用了两个新的配置
 
@@ -990,7 +998,7 @@ applicationContext-mapper.xml文件是配置spring整合mapper和事务，本次
 
 配置开启事务注解驱动，由于dubbo用@service注解暴露服务，业务层需要加事务会产生代理对象，需设置proxy-target-class为true采用cglib产生代理
 
-#### 5.2.5. pinyougou-sellergoods商家服务聚合(pom)
+#### 5.2.3. pinyougou-sellergoods商家服务聚合(pom)
 
 - pom.xml添加依赖，注意后面的<module>配置的子模块是后面创建子模块自动增加进去
 
@@ -1029,7 +1037,7 @@ applicationContext-mapper.xml文件是配置spring整合mapper和事务，本次
 </project>
 ```
 
-##### 5.2.5.1. pinyougou-sellergoods-interface商家服务接口(jar)
+##### 5.2.3.1. pinyougou-sellergoods-interface商家服务接口(jar)
 
 - pom.xml添加依赖
 
@@ -1063,7 +1071,7 @@ applicationContext-mapper.xml文件是配置spring整合mapper和事务，本次
 </project>
 ```
 
-##### 5.2.5.2. pinyougou-sellergoods-service商家服务实现(war)
+##### 5.2.3.2. pinyougou-sellergoods-service商家服务实现(war)
 
 - 第一步：pom.xml添加依赖
 
@@ -1183,7 +1191,8 @@ log4j.appender.stdout.layout.ConversionPattern=%-d{yyyy-MM-dd HH:mm:ss,SSS} [%t]
 </beans>
 ```
 
-##### 5.2.5.3. dubbo服务化接口配置说明
+##### 5.2.3.3. dubbo服务化接口配置说明
+
 配置applicationContext-service.xml文件时，因为需要读取mapper，dao层配置文件。所以使用<import>标签导入数据访问配置文件applicationContext-mapper.xml。
 
 下面是注册中心配置服务
@@ -1199,8 +1208,9 @@ log4j.appender.stdout.layout.ConversionPattern=%-d{yyyy-MM-dd HH:mm:ss,SSS} [%t]
 	<!-- 配置采用包扫描来暴露服务 -->
 ```
 
-#### 5.2.6. pinyougou-manager-web运营商管理后台(war)
-##### 5.2.6.1. 相关配置文件
+#### 5.2.4. pinyougou-manager-web运营商管理后台(war)
+
+##### 5.2.4.1. 相关配置文件
 
 - 第一步：pom.xml添加依赖
 
@@ -1383,7 +1393,7 @@ log4j.appender.stdout.layout.ConversionPattern=%-d{yyyy-MM-dd HH:mm:ss,SSS} [%t]
 </beans>
 ```
 
-##### 5.2.6.2. 配置相关说明
+##### 5.2.4.2. 配置相关说明
 
 - pinyougou-manager-web-servlet.xml是springmvc的主配置文件，本次使用fastjson框架处理转json格式，效率相对jackson高。但需要在MVC注解驱动中配置
 - 配置dubbo服务消费者
@@ -1397,7 +1407,7 @@ log4j.appender.stdout.layout.ConversionPattern=%-d{yyyy-MM-dd HH:mm:ss,SSS} [%t]
 <dubbo:annotation package="com.pinyougou.manager.controller"/>
 ```
 
-#### 5.2.7. pinyougou-shop-web商家管理后台(war)
+#### 5.2.5. pinyougou-shop-web商家管理后台(war)
 
 - 构建web模块pinyougou-shop-web与运营商管理后台的构建方式类似
     - pom.xml、web.xml、pinyougou-shop-web-servlet.xml、log4j.properties
@@ -1418,6 +1428,7 @@ log4j.appender.stdout.layout.ConversionPattern=%-d{yyyy-MM-dd HH:mm:ss,SSS} [%t]
 ```
 
 ### 5.3. 实体类与数据访问工程
+
 编写Brand.java、BrandMapper.java、BrandMapper.xml
 
 - Brand实体类
@@ -1459,6 +1470,7 @@ public interface BrandMapper {
 ```
 
 ### 5.4. 品牌列表-后端代码
+
 #### 5.4.1. 需求分析
 
 完成品牌管理的后端代码，在浏览器可查询品牌的数据（json格式）
@@ -1543,6 +1555,7 @@ public class BrandController {
 
 
 ## 6. 附录：常见错误
+
 ### 6.1. 在注册中心找不到对应的服务
 
 ```
@@ -1562,4 +1575,4 @@ org.I0Itec.zkclient.exception.ZkTimeoutException: Unable to connect to zookeeper
 
 ## 7. Git版本控制（idea）
 
-参数day01笔记
+参考[《Git 笔记 - 客户端使用篇》笔记](/DevOps/版本管理工具/Git-03-客户端)

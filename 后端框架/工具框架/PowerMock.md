@@ -21,7 +21,7 @@ PowerMock能够完美的弥补如今比较流行的jMock 、EasyMock 、Mockito�
 ### 2.1. 相关注解
 
 - `@RunWith(PowerMockRunner.class)`
-- `@PrepareForTest( { YourClassWithEgStaticMethod.class })`
+- `@PrepareForTest({ YourClassWithEgStaticMethod.class })`
 
 
 

@@ -1,6 +1,7 @@
 # Day20 秒杀解决方案
 
 ## 1. 秒杀业务分析
+
 ### 1.1. 需求分析
 
 - 什么是秒杀：
@@ -35,6 +36,7 @@
 秒杀技术实现核心思想是运用缓存减少数据库瞬间的访问压力！读取商品详细信息时运用缓存，当用户点击抢购时减少缓存中的库存数量，当库存数为0时或活动期结束时，同步到数据库。产生的秒杀预订单也不会立刻写到数据库中，而是先写到缓存，当用户付款成功后再写入数据库。
 
 ### 1.4. 工程搭建与准备
+
 #### 1.4.1. 工程模块搭建-秒杀服务接口与实现层
 
 - 创建秒杀服务聚合模块pinyougou-seckill(pom类型)，配置pom.xml文件，设置tomcat端口9009
@@ -489,11 +491,13 @@ server {
 - 秒杀订单查询
 
 ## 2. 品优购-秒杀频道首页
+
 ### 2.1. 需求分析
 
 需求：秒杀频道首页，显示正在秒杀的商品（已经开始，未结束的商品）
 
 ### 2.2. 后端部分
+
 #### 2.2.1. 秒杀服务接口与实现层
 
 - pinyougou-seckill-interface的SeckillGoodsService.java，增加查询当前参与秒杀的商品
@@ -589,6 +593,7 @@ public class SeckillGoodsController {
 ```
 
 ### 2.3. 前端部分
+
 #### 2.3.1. 秒杀系统前端控制器
 
 pinyougou-seckill-web创建seckillGoodsController.js，定义查询秒杀商品的方法
@@ -745,11 +750,13 @@ public List<SeckillGoods> findSeckillGoods() {
 ```
 
 ## 3. 品优购-秒杀详细页
+
 ### 3.1. 需求分析
 
 商品详细页显示秒杀商品信息。
 
 ### 3.2. 显示详细页信息
+
 #### 3.2.1. 秒杀系统-后端部分
 
 - 修改pinyougou-seckill-interface的SeckillGoodsService与pinyougou-seckill-service的SeckillGoodsServiceImpl.java，增加根据id查询秒杀商品的方法
@@ -886,6 +893,7 @@ app.controller('seckillGoodsController', function ($scope, $controller,
 ```
 
 ### 3.3. 秒杀倒计时效果
+
 #### 3.3.1. `$timeout`服务简介
 
 使用Angular中`$timeout`延迟定时器服务，格式为：`$timeout(执行的函数, 间隔的毫秒数);`
@@ -963,11 +971,13 @@ app.controller('seckillGoodsController', function ($scope, $controller,
 ```
 
 ## 4. 品优购-秒杀下单
+
 ### 4.1. 需求分析
 
 商品详细页点击立即抢购实现秒杀下单，**订单先存储到Redis**中减轻MySql数据库压力，**下单时扣减库存(Redis中缓存商品的库存)。当库存为0时修改数据库秒杀商品库存同时删除Redis中秒杀商品**。
 
 ### 4.2. 秒杀系统-后端代码
+
 #### 4.2.1. 秒杀服务接口层
 
 - pinyougou-seckill-interface创建SeckillOrderService.java，定义提交订单到redis的方法
@@ -1119,6 +1129,7 @@ public class SeckillOrderController {
 ```
 
 ### 4.3. 秒杀系统-前端代码
+
 #### 4.3.1. 秒杀系统-前端控制层
 
 修改pinyougou-seckill-web的seckillGoodsController.js，定义下单方法
@@ -1160,11 +1171,13 @@ $scope.submitOrder = () => {
 ```
 
 ## 5. 品优购-秒杀支付
+
 ### 5.1. 需求分析
 
 用户成功下单后，跳转到支付页面。支付页显示微信支付二维码。用户完成支付后，保存订单到数据库。
 
 ### 5.2. 生成支付二维码
+
 #### 5.2.1. 后端代码
 
 - pinyougou-seckill-web工程引入pinyougou-pay-interface依赖
@@ -1314,6 +1327,7 @@ app.controller('seckillOrderController', function ($scope, $controller,
 ```
 
 ### 5.3. 支付成功保存订单
+
 #### 5.3.1. 后端代码
 
 - 修改pinyougou-seckill-interface的SeckillOrderService.java增加支付成功保存订单的方法，在pinyougou-seckill-service的SeckillOrderServiceImpl.java实现该方法

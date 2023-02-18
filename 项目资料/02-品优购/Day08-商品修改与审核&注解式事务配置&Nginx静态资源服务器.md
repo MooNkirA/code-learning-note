@@ -1,6 +1,7 @@
 # Day08 商品修改与审核&注解式事务配置&Nginx静态资源服务器
 
 ## 1. 商家后台-商品管理【商品列表】
+
 ### 1.1. 需求分析
 
 在商家后台，显示该商家的商品列表信息
@@ -197,9 +198,8 @@ $scope.status = ['未审核', '已审核', '审核未通过', '关闭'];
 </div>
 ```
 
----
-
 ## 2. 商家后台-商品管理【商品修改】
+
 ### 2.1. 需求分析
 
 在商品列表页面点击修改，进入商品编辑页面，并传递参数商品ID，商品编辑页面接受该参数后从数据库中读取商品信息，用户修改后保存信息。
@@ -532,6 +532,7 @@ baseService.findOne('/goods/findOne', id).then(function (response) {
 ```
 
 ### 2.8. 保存数据
+
 #### 2.8.1. 商品修改保存数据-后端部分
 
 - 在pinyougou-shop-web工程的控制层GoodsController增加修改商品的方法
@@ -712,9 +713,8 @@ $scope.saveOrUpdate = function () {
 };
 ```
 
----
-
 ## 3. 运营商后台-商品管理【商品审核】
+
 ### 3.1. 待审核商品列表
 
 需求：参照商家后台显示商品列表的代码
@@ -831,6 +831,7 @@ public class GoodsController {
 ```
 
 ### 3.2. 商品审核与驳回
+
 #### 3.2.1. 需求分析
 
 商品审核的状态值为1，驳回的状态值为2，用户在列表中选中ID后，点击审核或驳回，修改商品状态，并刷新列表。
@@ -955,6 +956,7 @@ $scope.updateStatus = function (status) {
 ```
 
 ## 4. 运营商后台-商品管理【商品删除】
+
 ### 4.1. 需求分析
 
 为商品管理提供商品删除功能，用户选中部分商品，点击删除按钮即可实现商品删除。注意，这里的删除并非是物理删除，而是修改`tb_goods`表的`is_delete`字段为1 ，称之为“逻辑删除”。
@@ -1063,9 +1065,8 @@ $scope.delete = function () {
 
 修改（检查）GoodsMapper.xml的`findByWhere`查询语句，是否有查询条件`is_delete is null`
 
----
-
 ## 5. 商家后台-【商品上下架】
+
 ### 5.1. 需求分析
 
 什么是商品上下架？其实上下架也是商品的一个状态，但是不同于审核状态。审核状态的控制权在运营商手中，而上下架的控制权在商户手中。商户可以随时将一个已审核状态的商品上架或下架。上架表示正常销售，而下架则表示暂停销售。
@@ -1198,9 +1199,8 @@ $scope.updateMarketableStatus = function (status) {
 </button>
 ```
 
----
-
 ## 6. 注解式事务配置
+
 ### 6.1. 事务异常测试
 
 修改服务层GoodsServiceImpl的saveGoods方法，在里面增加异常
@@ -1237,6 +1237,7 @@ public void saveGoods(Goods goods) {
 > 通过观察发现，程序发生异常，商品表仍然会存储记录，这是不符合我们要求的。这是因为我们目前的系统还没有配置事务。
 
 ### 6.2. 注解式事务解决方案
+
 #### 6.2.1. 配置文件
 
 修改pinyougou-mapper工程的applicationContext-mapper.xml
@@ -1268,8 +1269,6 @@ public class GoodsServiceImpl implements GoodsService {
 - `readOnly=false`：该服务类中所有方法CRUD都可以做
 - `readOnly=true`：该服务类中所有方法只能做查询
 - `rollbackFor=RuntimeException.class`：该服务类中所有方法出现RuntimeException异常时事务才有效
-
----
 
 ## 7. Nginx静态资源服务器
 

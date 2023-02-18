@@ -3533,7 +3533,6 @@ public class AnnotationConfigApplicationContext extends GenericApplicationContex
 
 `doScan()`中的`findCandidateComponents`方法调用`ClassPathScanningCandidateComponentProvider`类中的`scanCandidateComponents`方法，而此方法又去执行了`PathMatchingResourcePatternResolver`类中的`doFindAllClassPathResources`方法，找到指定扫描包的URL(是URL，不是路径。因为是带有file协议的)，然后根据磁盘路径读取当前目录及其子目录下的所有类。接下来执行`AnnotationConfigUtils`类中的`processCommonDefinitionAnnotations`方法，剩余执行流程与通过字节码方式的一样。
 
-
 ### 1.2. 使用类字节码的构造函数
 
 #### 1.2.1. 构造函数源码

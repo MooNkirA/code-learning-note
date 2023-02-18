@@ -1,13 +1,13 @@
 # Day04 Angular前端分层 & 规格及模板管理
 
----
-
 ## 1. 前端分层开发
+
 ### 1.1. 分层开发需求分析
 
 前端页面的JS和html都放在一起，并不利于后期的维护。可以在前端代码中也运用MVC的设计模式，将代码进行分离，提高程序的可维护性。
 
 ### 1.2. 前端页面mvc分层
+
 #### 1.2.1. 前端基础层
 
 - 在pinyougou-manager-web工程js目录下创建base.js
@@ -103,7 +103,7 @@ app.service('brandService', function ($http) {});
 
 - 有些功能是每个页面都有可能用到的，比如分页，复选等等，如果再开发另一个功能，还需要重复编写。通过继承的方式来实现让这些通用的功能只写一次。
 - 语法格式：`$controller("baseController",{$scope:$scope});`
-- <font color="red">说明：$controller也是angular提供的一个服务，可以实现伪继承，实际上就是与BaseController共享$scope</font>
+- <font color="red">说明：`$controller`也是angular提供的一个服务，可以实现伪继承，实际上就是与BaseController共享`$scope`</font>
 
 #### 1.3.1. 前端控制层-创建父控制器
 
@@ -310,19 +310,19 @@ app.controller('brandController', function ($scope, $controller, baseService) {
 
 tb_specification 规格表
 
-|     字段      |   类型   | 长度 |   含义    |
-| :------------: | :---------: | :-: | :--------: |
-|      id       |  bigint  |     |   主键    |
+|    字段    |   类型   | 长度 |   含义   |
+| :-------: | :-----: | :--: | :------: |
+|    id     | bigint  |      |   主键   |
 | spec_name | varchar | 255  | 规格名称 |
 
 tb_specification_option 规格选项表
 
-|       字段       |   类型   | 长度 |      含义      |
-| :---------------: | :---------: | :-: | :-------------: |
-|        id        |  bigint  |     |      主键      |
+|     字段     |   类型   | 长度 |     含义     |
+| :---------: | :-----: | :--: | :---------: |
+|     id      | bigint  |      |     主键     |
 | option_name | varchar | 200  | 规格选项名称 |
-|    spec_id    |  bigint  |  30  |    规格ID     |
-|     orders     |    int    |  11  |      排序      |
+|   spec_id   | bigint  |  30  |    规格ID    |
+|   orders    |   int   |  11  |     排序     |
 
 ### 2.2. 规格列表显示-前端
 
@@ -518,6 +518,7 @@ List<Specification> findByWhere(@Param("specification") Specification specificat
 ```
 
 ### 2.4. 新增规格
+
 #### 2.4.1. 增加页面，新增行实现
 
 - 给specification.html “新增规格选项” 按钮增加点击事件
@@ -696,6 +697,7 @@ public void saveSpecification(Specification specification) {
 ```
 
 ### 2.5. 修改规格（不完善，修改时是批量删除所有规格再新增本次数据）
+
 #### 2.5.1. 前端页面
 
 - 修改specification.html，给修改按钮绑定点击事件
@@ -973,6 +975,7 @@ void deleteSpecification(@Param("ids") Long[] ids);
 ```
 
 ## 3. 模版管理模块功能
+
 ### 3.1. 需求及表结构分析
 
 需要理解模板的作用。模板主要有两个：
@@ -982,12 +985,12 @@ void deleteSpecification(@Param("ids") Long[] ids);
 
 tb_type_template 模板表
 
-|               字段               |   类型   | 长度  |           含义            |
-| :-------------------------------: | :---------: | :----: | :------------------------: |
-|                id                |  bigint  |        |           主键            |
-|              name               | varchar |  80  |         模板名称         |
-|           spec_ids            | varchar | 1000 | 关联规格（json格式） |
-|           brand_ids           | varchar | 1000 | 关联品牌（json格式） |
+|          字段           |   类型   | 长度  |        含义         |
+| :--------------------: | :-----: | :--: | :-----------------: |
+|           id           | bigint  |      |        主键         |
+|          name          | varchar |  80  |       模板名称       |
+|        spec_ids        | varchar | 1000 | 关联规格（json格式） |
+|       brand_ids        | varchar | 1000 | 关联品牌（json格式） |
 | custom_attribute_items | varchar | 2000 | 扩展属性（json格式） |
 
 ### 3.2. 模板列表显示
@@ -1271,6 +1274,7 @@ $scope.json2String = (jsonStr, key) => {
 ![select2组件配置12](images/20190118082313836_19949.jpg)
 
 #### 3.4.2. 显示品牌下拉列表-后端返回数据
+
 ##### 3.4.2.1. 查询品牌下拉数据-后端代码
 
 - 让下拉列表的数据从数据库中提取，修改后端pinyougou-manager-web工程的BrandController中增加查询所有品牌的方法
@@ -1440,6 +1444,7 @@ List<Map<String, Object>> findAllByIdAnName();
 ```
 
 ### 3.5. 扩展属性
+
 #### 3.5.1. 新增行
 
 - 在typeTemplateController.js中新增addTableRow()方法

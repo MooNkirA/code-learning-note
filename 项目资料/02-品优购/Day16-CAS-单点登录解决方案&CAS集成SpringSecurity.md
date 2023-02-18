@@ -1,8 +1,7 @@
 # Day16 CAS-单点登录解决方案&CAS集成SpringSecurity
 
----
-
 ## 1. 单点登录系统CAS入门
+
 ### 1.1. 单点登录简介
 
 单点登录（Single Sign On），简称为SSO，是目前比较流行的企业业务整合的解决方案之一。SSO的定义是在多个应用系统中，用户只需要登录一次就可以访问所有相互信任的应用系统。
@@ -12,6 +11,7 @@
 ![单点登录流程](images/20190217230917311_21548.png)
 
 ### 1.2. CAS-单点登录解决方案
+
 #### 1.2.1. CAS简介
 
 CAS 是 Yale 大学发起的一个开源项目，旨在为 Web 应用系统提供一种可靠的单点登录方法，CAS 在 2004 年 12 月正式成为 JA-SIG 的一个项目。CAS 具有以下特点
@@ -56,6 +56,7 @@ SSO单点登录访问流程主要有以下步骤：
 *注：本次项目使用的CAS版本是v4.2.7（2016.11.4）*
 
 ### 1.3. CAS服务端部署与配置
+
 #### 1.3.1. CAS服务端部署
 
 CAS服务端其实就是一个war包。
@@ -177,6 +178,7 @@ server {
 ```
 
 ### 1.4. CAS客户端入门示例与配置
+
 #### 1.4.1. CAS客户端相关配置
 
 1. pom.xml文件，配置CAS核心依赖`cas-client-core`
@@ -487,9 +489,8 @@ cas.logout.followServiceRedirects=true
 <br/><a href="http://sso.moon.com/logout?service=https://moonkira.github.io">退出登录</a>
 ```
 
----
-
 ## 2. CAS服务端数据源设置
+
 ### 2.1. 需求分析
 
 让用户名密码从品优购的user表里做验证
@@ -541,14 +542,14 @@ cas.logout.followServiceRedirects=true
 
 说明：这四个jar包在【\Java编程工具资料\Java源代码\CAS【中央认证服务（单点登录）】\lib\】目录下，c3p0与mchange-commons的两个jar包cas项目中已自带不需要拷贝，用数据库中的用户名和密码进行测试。
 
----
-
 ## 3. CAS服务端界面改造
+
 ### 3.1. 需求分析
 
 将CAS默认的登录页更改为品优购的登录页面
 
 ### 3.2. 登录页面
+
 #### 3.2.1. 拷贝资源
 
 - 将品优购的【资料\登录静态原型】登录页login.html拷贝到CAS服务系统的`WEB-INF\view\jsp\default\ui`目录下。
@@ -655,6 +656,7 @@ authenticationFailure.FailedLoginException=\u7528\u6237\u767b\u5f55\u5931\u8d25\
 ---
 
 ## 4. CAS客户端与SpringSecurity集成
+
 ### 4.1. Spring Security测试工程搭建
 
 - 创建Maven项目casclient03（war类型），配置pom.xml文件，引入spring依赖和spring secrity相关依赖，tomcat端口设置为9003
@@ -1081,6 +1083,7 @@ public class UserController {
 ---
 
 ## 5. 品优购用户中心
+
 ### 5.1. 需求分析
 
 用户中心实现单点登录。
@@ -1318,24 +1321,25 @@ app.controller('indexController', function ($scope, baseService) {
 ---
 
 ## 6. 附录
+
 ### 6.1. 附录A. Spring Security 内置过滤器表
 
-|           **别名**           |                         **Filter类**                         |
-| :--------------------------: | :----------------------------------------------------------------: |
-|        CHANNEL_FILTER        |                 ChannelProcessingFilter                 |
-|   SECURITY_CONTEXT_FILTER    |          SecurityContextPersistenceFilter          |
-|  CONCURRENT_SESSION_FILTER   |                 ConcurrentSessionFilter                 |
-|        LOGOUT_FILTER         |                         LogoutFilter                         |
-|         X509_FILTER          |                X509AuthenticationFilter                |
+|             别名              |                   Filter类                    |
+| :--------------------------: | :-------------------------------------------: |
+|        CHANNEL_FILTER        |            ChannelProcessingFilter            |
+|   SECURITY_CONTEXT_FILTER    |       SecurityContextPersistenceFilter        |
+|  CONCURRENT_SESSION_FILTER   |            ConcurrentSessionFilter            |
+|        LOGOUT_FILTER         |                 LogoutFilter                  |
+|         X509_FILTER          |           X509AuthenticationFilter            |
 |       PRE_AUTH_FILTER        | AstractPreAuthenticatedProcessingFilter的子类 |
-|          CAS_FILTER          |                 CasAuthenticationFilter                 |
-|      FORM_LOGIN_FILTER       |       UsernamePasswordAuthenticationFilter       |
-|      BASIC_AUTH_FILTER       |               BasicAuthenticationFilter                |
-|  SERVLET_API_SUPPORT_FILTER  |     SecurityContextHolderAwareRequestFilter     |
-|   JAAS_API_SUPPORT_FILTER    |                JaasApiIntegrationFilter                |
-|      REMEMBER_ME_FILTER      |           RememberMeAuthenticationFilter            |
-|       ANONYMOUS_FILTER       |            AnonymousAuthenticationFilter             |
-|  SESSION_MANAGEMENT_FILTER   |                 SessionManagementFilter                 |
-| EXCEPTION_TRANSLATION_FILTER |              ExceptionTranslationFilter               |
-| FILTER_SECURITY_INTERCEPTOR  |               FilterSecurityInterceptor                |
-|      SWITCH_USER_FILTER      |                      SwitchUserFilter                      |
+|          CAS_FILTER          |            CasAuthenticationFilter            |
+|      FORM_LOGIN_FILTER       |     UsernamePasswordAuthenticationFilter      |
+|      BASIC_AUTH_FILTER       |           BasicAuthenticationFilter           |
+|  SERVLET_API_SUPPORT_FILTER  |    SecurityContextHolderAwareRequestFilter    |
+|   JAAS_API_SUPPORT_FILTER    |           JaasApiIntegrationFilter            |
+|      REMEMBER_ME_FILTER      |        RememberMeAuthenticationFilter         |
+|       ANONYMOUS_FILTER       |         AnonymousAuthenticationFilter         |
+|  SESSION_MANAGEMENT_FILTER   |            SessionManagementFilter            |
+| EXCEPTION_TRANSLATION_FILTER |          ExceptionTranslationFilter           |
+| FILTER_SECURITY_INTERCEPTOR  |           FilterSecurityInterceptor           |
+|      SWITCH_USER_FILTER      |               SwitchUserFilter                |

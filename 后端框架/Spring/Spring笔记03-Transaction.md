@@ -1,10 +1,10 @@
 # Spring Transaction（事务）
 
+事务是 Web 应用中不可缺少的组件模型，它保证了用户操作的原子性(Atomicity)、一致性(Consistency)、隔离性(Isolation)和持久性(Durabilily)。其中事务又分为本地事务和分布式事务两种。
+
 ## 1. Spring 中的 JdbcTemplate
 
 ### 1.1. JdbcTemplate 概述
-
-#### 1.1.1. 基本介绍
 
 JdbcTeTemplate是 spring 框架中提供的一个操作持久层的对象，是Spring对数据库的操作原始 Jdbc API 对象的简单封装，让开发者在操作数据库时只需关注SQL语句和查询结果处理器，即可完成功能（当然，只使用JdbcTemplate，还不能摆脱持久层实现类的编写）。
 
@@ -17,7 +17,7 @@ JdbcTemplate的限定命名为org.springframework.jdbc.core.JdbcTemplate。要�
     - ~~spring-orm-x.x.x.RELEASE.jar~~
     - spring-tx-x.x.x.RELEASE.jar（和事务相关的）
 
-#### 1.1.2. 节选源码
+#### 1.1.1. 节选源码
 
 ```java
 /* JdbcTemplate实现了JdbcOperations接口，jdbc相关操作方法都定义在此接口中 */
@@ -47,7 +47,7 @@ public void setDataSource(@Nullable DataSource dataSource) {
 
 > 结论：除了默认构造函数之外，都需要提供一个数据源。既然有 set 方法，就是可以使用依赖注入，在配置文件中配置。
 
-#### 1.1.3. 相关方法说明
+#### 1.1.2. 相关方法说明
 
 JdbcTemplate主要提供以下五类方法：
 
