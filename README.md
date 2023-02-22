@@ -260,6 +260,7 @@
   <li><a href="#/DevOps/版本管理工具/Git-01-基础">Git 笔记 - 基础篇</a></li>
   <li><a href="#/DevOps/版本管理工具/Git-02-安装">Git 笔记 - 安装篇</a></li>
   <li><a href="#/DevOps/版本管理工具/Git-03-客户端">Git 笔记 - 客户端使用篇</a></li>
+  <li><a href="#/DevOps/版本管理工具/Git-04-命令进阶">Git 笔记 - 命令进阶篇（经典操作场景）</a></li>
   <li><a href="#/DevOps/版本管理工具/GitHub">GitHub 相关资料与常用使用技巧</a></li>
   <li><a href="#/DevOps/版本管理工具/SVN">SVN 文件版本控制软件</a></li>
 </ul>

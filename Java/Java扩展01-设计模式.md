@@ -211,7 +211,7 @@ public class HolderSingleton {
 }
 ```
 
-### 4.1. 小结
+**小结**：
 
 上述代码中：虽然内部类中的成员变量`INSTANCE`是被`static`修改，但这个是懒加载的，原因是<font color=red>**内部类前面加`static`关键字，表示的是类级内部类，类级内部类只有在使用时才会被加载**</font>。
 
@@ -258,6 +258,24 @@ class EnumSingleton extends Enum {
 ## 8. 其他小问题
 
 开发中一般使用饿汉式，面试的时候使用懒汉式
+
+# 享元模式（Flyweight Pattern）（!整理中）
+
+## 1. 定义与特点
+
+享元模式（Flyweight Pattern）：主要通过对象的复用来减少对象创建的次数和数量，以减少系统内存的使用和降低系统的负载。享元模式属于<font color=red>**结构型模式**</font>，在系统需要一个对象时，享元模式首先在系统中查找并尝试重用现有的对象，如果未找到匹配的对象，则创建新对象并将其缓存在系统中以便下次使用。
+
+> wikipedia: A flyweight is an object that minimizes memory usage by sharing as much data as possible with other similar objects
+
+享元模式会把其中共同的部分抽象出来，如果有相同的业务请求，则直接返回内存中已有的对象，避免频繁重复创建和销毁大量的对象，造成系统资源的浪费。
+
+## 2. 模式的结构
+
+![](images/467742009230263.png)
+
+## 3. 基础实现
+
+> TODO: 待整理！
 
 # 模板方法设计模式（Template Method）
 
@@ -687,5 +705,5 @@ public void chainOfResponsibilityPatternTest() {
 ## 1. 网络参考资料
 
 - [设计模式内容聚合](https://mp.weixin.qq.com/s?__biz=MzI4Njc5NjM1NQ==&mid=2247487936&idx=2&sn=02c48b88fa45a32e55b99fa0be610a29&chksm=ebd62eecdca1a7faccf9f26d17bd2108e1b8939421640f71f1ebf5f14b621448ac05ad168a00&mpshare=1&scene=1&srcid=#rd)
-- [Java设计模式：23种设计模式全面解析（超级详细）](http://c.biancheng.net/design_pattern/)
+- ~~[Java设计模式：23种设计模式全面解析（超级详细）](http://c.biancheng.net/design_pattern/)~~，内容被清空了？
 - [Java Design Patterns (中文)](https://java-design-patterns.com/zh/)，软件设计模式，编程原则还有代码片段
