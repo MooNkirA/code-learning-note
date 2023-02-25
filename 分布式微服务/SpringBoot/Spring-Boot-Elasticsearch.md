@@ -485,7 +485,7 @@ public void testCreateIndex() throws IOException {
 }
 ```
 
-- 创建索引（IK分词器）。	IK 分词器是通过请求参数的形式进行设置的，设置请求参数使用 `CreateIndexRequest` 对象中的 `source` 方法进行设置，根据操作种类来决定相应的参数。当请求中需要参数时，均可使用当前形式进行参数设置。	
+- 创建索引（IK分词器）。IK 分词器是通过请求参数的形式进行设置的，设置请求参数使用 `CreateIndexRequest` 对象中的 `source` 方法进行设置，根据操作种类来决定相应的参数。当请求中需要参数时，均可使用当前形式进行参数设置。	
 
 ```java
 @Test

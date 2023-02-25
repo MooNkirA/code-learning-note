@@ -312,7 +312,10 @@
   <li><a href="#/分布式微服务/SpringBoot/Spring-Boot-Validation">Spring Boot Validation 参数校验</a></li>
   <li><a href="#/分布式微服务/SpringBoot/Spring-Boot-Email">Spring Boot 发送邮件</a></li>
   <li><a href="#/分布式微服务/SpringBoot/Spring-Boot-Task-Scheduling">Spring Boot 定时任务调度</a></li>
-  <li><a href="#/分布式微服务/SpringBoot/Spring-Boot-Messaging">Spring Boot 消息系统</a></li>
+  <li><a href="#/分布式微服务/SpringBoot/Spring-Boot-Messaging">Spring Boot 消息系统（ActiveMQ、RabbitMQ、RocketMQ、Kafka）</a></li>
+  <li><a href="#/分布式微服务/SpringBoot/Spring-Boot-FreeMarker">Spring Boot 整合 FreeMarker（待完善）</a></li>
+  <li><a href="#/分布式微服务/SpringBoot/Spring-Boot-Solr">Spring Boot 整合 Solr（待完善）</a></li>
+  <li><a href="#/分布式微服务/SpringBoot/Spring-Boot-Spring-Cloud">Spring Boot 整合 Spring Cloud（待完善）</a></li>
   <li><a href="#/分布式微服务/SpringBoot/SpringBoot笔记99-其他相关内容">Spring Boot 笔记-其他相关内容</a></li>
 </ul>
 
