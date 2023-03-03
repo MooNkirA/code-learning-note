@@ -162,6 +162,61 @@ char letter = 'A';
 > - 含义上：字符常量相当于一个整形值(ASCII值)，可以参加表达式运算；字符串常量代表一个地址值(该字符串在内存中存放位置)
 > - 占内存大小：字符常量只占一个字节；字符串常量占若干个字节(至少一个字符结束标志)
 
+### 2.2. 数值类型之间的转换
+
+![](images/102203012236637.jpg)
+
+上图是数值类型之间的合法转换，其中6个实心箭头表示无信息丢失的转换；3个虚箭头，表示可能有精度损失的转换。
+
+### 2.3. 强制类型转换
+
+强制类型转换，可能会出现精度的损失。
+
+语法格式：
+
+```java
+类型1 x = xxx;
+类型2 y = (类型2) x;
+```
+
+> Notes: 如果试图将一个数值从一种类型强制转换为另一种类型，而又超出了目标类型的表示范围，结果就会截断成一个完全不同的值。如：`(byte) 300` 强制类型转换后的实际值为 44。
+
+如果想对浮点数进行舍入运算，为了得到最接近的整数，很多情况下会使用 `Math.round` 静态方法
+
+```java
+double x = 9.997;
+int y = (int) Math.round(x);
+```
+
+扩展的赋值运算符，隐含了强制类型转换。
+
+```java
+a += 20;
+// 相当于
+a = (a的数据类型)(a + 20);
+```
+
+为了保留两位小数，利用数据类型强制转换可以实现
+
+```java
+d = 11.853333;
+d * 100 = 1185.3333;
+(int)(d * 100) = 1185;
+(int)(d * 100)/100.0 = 11.85;
+```
+
+注意：最后一步除以 100 的时候，必须写成 `100.0`，这个才会根据数据隐性转换原理，最后得出来的结果是浮点型。
+
+### 2.4. 字符存储数值
+
+大写字母与小写字母的 ASCII 码相差 32
+
+```java
+'A'=65;
+'a'=97;
+'0'=48;
+```
+
 ## 3. 权限修饰符
 
 **权限大小顺序**：`private < 默认 < protected < public`
@@ -173,12 +228,12 @@ char letter = 'A';
 
 **修饰符权限列表图**：
 
-|                       | public | protected | 空的（default） | private |
-| --------------------- | :----: | :-------: | :-------------: | :-----: |
-| 同一类中               |   ✔    |     ✔     |       ✔       |    ✔    |
+|                      | public | protected | 空的（default） | private |
+| -------------------- | :----: | :-------: | :------------: | :-----: |
+| 同一类中              |   ✔    |     ✔     |       ✔       |    ✔    |
 | 同一包中（子类与无关类） |   ✔    |     ✔     |       ✔       |         |
-| 不同包的子类            |   ✔    |     ✔     |                 |         |
-| 不同包中的无关类         |   ✔    |           |                 |         |
+| 不同包的子类           |   ✔    |     ✔     |                |         |
+| 不同包中的无关类        |   ✔    |           |                |         |
 
 > 类的成员不写访问修饰时默认为`default`。默认对于同一个包中的其他类相当于公开（`public`），对于不是同一个包中的其他类相当于私有（`private`）。受保护（`protected`）对子类相当于公开，对不是同一包中的没有父子关系的类相当于私有。
 
@@ -909,60 +964,7 @@ public class Test01 {
 1. 参数列表中只能有一个可变参数
 2. 如果出现不同类型的参数，可变参数必须放在参数列表的最后
 
-## 9. Java类的初始化顺序
-
-Java类的创建，相应的初始化顺序是：`静态变量` -> `静态代码块` -> `成员变量（全局变量）` -> `初始化代码块` -> `构造函数`。测试示例如下：
-
-```java
-public class InitSequenceBean {
-
-    private static String staticStr = initStaticMember();
-    private String str = initOrdinaryMember();
-
-    static {
-        System.out.println("静态代码块执行了....");
-    }
-
-    {
-        System.out.println("初始化代码块执行了....");
-    }
-
-    public InitSequenceBean() {
-        System.out.println("无参构造函数执行了....");
-    }
-
-    private static String initStaticMember() {
-        System.out.println("静态成员变量初始化....");
-        return "123";
-    }
-
-    private String initOrdinaryMember() {
-        System.out.println("普通成员变量初始化....");
-        return "abc";
-    }
-}
-```
-
-测试代码与结果
-
-```java
-@Test
-public void testInitializationSequence() {
-    InitSequenceBean bean = new InitSequenceBean();
-    System.out.println(bean);
-    /*
-     * 测试结果：
-     *  静态成员变量初始化....
-     *  静态代码块执行了....
-     *  普通成员变量初始化....
-     *  初始化代码块执行了....
-     *  无参构造函数执行了....
-     *  com.moon.java.basic.InitSequenceBean@ba8a1dc
-     */
-}
-```
-
-## 10. Java 运算符
+## 9. Java 运算符
 
 计算机的最基本用途之一就是执行数学运算，作为一门计算机语言，Java 也提供了一套丰富的运算符来操纵变量。运算符主分成以下几类：
 
@@ -973,7 +975,7 @@ public void testInitializationSequence() {
 - 赋值运算符
 - 其他运算符
 
-### 10.1. 算术运算符
+### 9.1. 算术运算符
 
 算术运算符用在数学表达式中，它们的作用和在数学中的作用一样。下表列出了所有的算术运算符。
 
@@ -1013,7 +1015,7 @@ public class Test {
 } 
 ```
 
-#### 10.1.1. 自增自减运算符
+#### 9.1.1. 自增自减运算符
 
 自增（`++`）自减（`--`）运算符是一种特殊的算术运算符，在算术运算符中需要两个操作数来进行运算，而自增自减运算符是一个操作数。又分以下两种：
 
@@ -1031,7 +1033,7 @@ public static void main(String args[]) {
 }
 ```
 
-### 10.2. 关系运算符
+### 9.2. 关系运算符
 
 算术运算符用在数学表达式中，它们的作用和在数学中的作用一样。下表列出了所有的算术运算符。
 
@@ -1061,7 +1063,7 @@ public static void main(String args[]) {
 }
 ```
 
-### 10.3. 位运算符
+### 9.3. 位运算符
 
 Java 定义了位运算符，应用于整数类型(int)，长整型(long)，短整型(short)，字符型(char)，和字节型(byte)等类型。
 
@@ -1119,7 +1121,7 @@ public static void main(String args[]) {
 }
 ```
 
-### 10.4. 逻辑运算符
+### 9.4. 逻辑运算符
 
 下表列出了逻辑运算符的基本运算，假设布尔变量A为真，变量B为假
 
@@ -1141,7 +1143,7 @@ public static void main(String args[]) {
 }
 ```
 
-#### 10.4.1. 短路逻辑运算符
+#### 9.4.1. 短路逻辑运算符
 
 当使用与逻辑运算符时，在两个操作数都为 true 时，结果才为 true，但是当得到第一个操作为 false 时，其结果就必定是 false，这时候就不会再判断第二个操作了。
 
@@ -1158,7 +1160,7 @@ public static void main(String args[]) {
 
 > 解析：该程序使用到了短路逻辑运算符(`&&`)，首先判断 `a<4` 的结果为 `false`，则 b 的结果必定是 `false`，所以不再执行第二个操作 `a++ < 10` 的判断，所以 a 的值为 5
 
-### 10.5. 赋值运算符
+### 9.5. 赋值运算符
 
 下面是Java语言支持的赋值运算符：
 
@@ -1214,7 +1216,7 @@ public static void main(String args[]) {
 }
 ```
 
-### 10.6. 条件运算符（三元运算符）
+### 9.6. 条件运算符（三元运算符）
 
 条件运算符也被称为三元运算符。该运算符有3个操作数，并且需要判断布尔表达式的值。该运算符的主要是决定哪个值应该赋值给变量。
 
@@ -1238,7 +1240,7 @@ public static void main(String args[]) {
 }
 ```
 
-#### 10.6.1. 三元表达式的类型转化规则
+#### 9.6.1. 三元表达式的类型转化规则
 
 > 引用阿里巴巴Java开发手册的规则：
 >
@@ -1253,12 +1255,12 @@ public static void main(String args[]) {
 - 若两个表达式类型不同，但类型不可转换，返回值类型为 Object 类型
 - 若两个表达式类型不同，但类型可以转化，先把包装数据类型转化为基本数据类型，然后按照基本数据类型的转换规则（`byte < short(char) < int < long < float < double`）来转化，返回值类型为优先级最高的基本数据类型。
 
-#### 10.6.2. 三元表达式使用建议
+#### 9.6.2. 三元表达式使用建议
 
 1. 如果三元表达式中有包装数据类型的算术计算，尽量避免使用三元表达式，可以考虑利用 if-else 语句代替。
 2. 如果在三元表达式中有算术计算，尽量使用基本数据类型，避免包装数据类型的拆装包。
 
-### 10.7. instanceof 运算符
+### 9.7. instanceof 运算符
 
 `instanceof` 运算符用于操作对象实例，检查该对象是否是一个特定类型（类类型或接口类型）。即判断父类引用指定的到底是哪一个子类类型的对象。使用格式如下：
 
@@ -1280,11 +1282,11 @@ Vehicle a = new Car();
 boolean result = a instanceof Car; // true
 ```
 
-#### 10.7.1. 注意事项
+#### 9.7.1. 注意事项
 
 毫无关系的两个对象不能进行判断。`instanceof` 关键字前面的对象和后面的类型必须是子父类关系或类实现接口关系
 
-### 10.8. Java 运算符优先级
+### 9.8. Java 运算符优先级
 
 当多个运算符出现在一个表达式中，就涉及到运算符的优先级别的问题。在一个多运算符的表达式中，运算符优先级不同会导致最后得出的结果差别甚大。
 
@@ -1309,9 +1311,9 @@ boolean result = a instanceof Car; // true
 | 赋值     | `=`、`+=`、`-=`、`*=`、`/=`、`%=`、`>>=`、`<<=`、`&=`、`^=`、`|=` | 从右到左 |
 | 逗号     | `,`                                                           | 左到右   |
 
-## 11. Java 包装类（整理中）
+## 10. Java 包装类
 
-### 11.1. 概述
+### 10.1. 概述
 
 一般地，当需要使用数字的时候，通常使用内置数据类型，如：byte、int、long、double 等。所有的包装类（Integer、Long、Byte、Double、Float、Short）都是抽象类 Number 的子类。
 
@@ -1319,7 +1321,7 @@ boolean result = a instanceof Car; // true
 
 基本类型包装类的产生原因：其实就是基本类型对应的引用类型(包装类)。在实际开发中，用户输入的内容都是以字符串形式存在，需要参与数学运算时需要将字符串转换成对应的基本数据类型。
 
-### 11.2. 八种基本类型对应的包装类
+### 10.2. 八种基本类型对应的包装类
 
 | 基本类型 | 引用类型(包装类) | 基本类型  | 引用类型(包装类) |
 | ------- | -------------- | ------- | -------------- |
@@ -1336,7 +1338,80 @@ int n = Integer.parseInt(String str);
 double d = Double.parseDouble(String str);
 ```
 
-### 11.3. 自动装箱和自动拆箱
+### 10.3. Integer
+
+#### 10.3.1. 概述
+
+```java
+public final class Integer extends Number implements Comparable<Integer> {
+    /**
+     * A constant holding the minimum value an {@code int} can
+     * have, -2<sup>31</sup>.
+     */
+     // 静态成员变量，直接用类名调用，返回整形的最小取值数
+    @Native public static final int   MIN_VALUE = 0x80000000;
+
+    /**
+     * A constant holding the maximum value an {@code int} can
+     * have, 2<sup>31</sup>-1.
+     */
+     // 静态成员变量，直接用类名调用，返回整形的最大取值数
+    @Native public static final int   MAX_VALUE = 0x7fffffff;
+    // 省略...
+}
+```
+
+#### 10.3.2. 核心方法
+
+```java
+public Integer(String s) throws NumberFormatException
+```
+
+- 构造一个新分配的 Integer 对象，它表示 String 参数所指示的 int 值。
+
+```java
+public Integer(int value)
+```
+
+- 构造一个新分配的 Integer 对象，它表示指定的 int 值。
+
+```java
+public int intValue()
+```
+
+- 将构造方法中指定的数字字符串转换基本数据类型
+
+```java
+public static int parseInt(String s) throws NumberFormatException
+```
+
+- 将字符串数字转换整数(传入s必须是数字字符串，不能有字母和空格)
+
+```java
+public String toString()
+```
+
+- 重写 Object 类的方法，将整数转换成字符串
+
+```java
+public static String toBinaryString(int i)
+```
+
+- 将指定的整数转成二进制字符串
+
+```java
+public static String toOctalString(int i)
+```
+
+- 将指定的整数转成八进制字符串
+
+```java
+public static String toHexString(int i)
+```
+
+- 将指定的整数转成十六进制字符串
+
+### 10.4. 自动装箱和自动拆箱
 
 自动拆装箱是 JDK 1.5 后的新特性
 
@@ -1354,7 +1429,7 @@ int a = i; // 自动拆箱，本质是调用 a.intValue()
 
 自动装拆箱的好处：基本数据类型的变量可以直接和对应的包装类引用变量进行数学运算。
 
-#### 11.3.1. 自动装拆箱的情况
+#### 10.4.1. 自动装拆箱的情况
 
 当基础类型与它们的包装类有如下几种情况时，编译器会自动帮我们进行装箱或拆箱：
 
@@ -1364,7 +1439,7 @@ int a = i; // 自动拆箱，本质是调用 a.intValue()
 - 调用`equals`进行比较（装箱）
 - `ArrayList`、`HashMap` 等集合类添加基础类型数据时（装箱）
 
-#### 11.3.2. 注意事项
+#### 10.4.2. 注意事项
 
 1. 自动拆箱和自动装箱是由编译器自动完成，根据语法来决定是否需要装箱和拆箱。
 2. 如果整型字面量的值在 -128 到 127 之间，那么自动装箱时不会创建新的 `Integer` 对象，而是直接引用常量池中的 `Integer` 对象，若超过范围才会创建新的对象（*经典面试题*）
@@ -1436,456 +1511,3 @@ private static class IntegerCache {
 ```
 
 默认 Integer cache 的下限是 -128，上限默认 127。当赋值 127 给 Integer 时，刚好在这个范围内，所以从 cache 中取对应的 Integer 并返回，所以 a2 和 b2 返回的是同一个对象，所以使用`==`比较是相等的，当赋值 128 给 Integer 时，不在 cache 的范围内，所以会 `new Integer` 创建新的对象并返回，比较的结果必然不相等的。
-
-## 12. String 类
-
-### 12.1. 简述
-
-```java
-public final class String
-    implements java.io.Serializable, Comparable<String>, CharSequence {
-    /** The value is used for character storage. */
-    private final char value[];
-
-    /** Cache the hash code for the string */
-    private int hash; // Default to 0
-}
-```
-
-`String` 字符串类，由多个字符组成的一串数据，<font color=red>**字符串其本质是一个字符数组**</font>。有以下特点：
-
-- `String` 类是 `final` 关键字修饰，此类不能被继承。并且该类的所有成员变量也都是 `final` 修饰。
-- "abc"是 `String` 类的一个实例，或者成为 String 类的一个对象，也可以看成是一个字符串对象(相当于`char data[] = {'a', 'b', 'c'};`)
-- **字符串是常量**，一旦被赋值，就不能被改变
-- **线程安全**。同一个字符串实例可以被多个线程共享，因为字符串不可变，本身就是线程安全的。
-- **支持hash映射和缓存**。因为String的hash值经常会使用到，比如作为 Map 的键，不可变的特性使得 hash 值也不会变，不需要重新计算。
-- **字符串常量池优化**。String 对象创建之后，会缓存到字符串常量池中，下次需要创建同样的对象时，可以直接返回缓存的引用。
-
-> Notes: 字符串是一种比较特殊的引用数据类型，直接输出字符串对象输出的是该对象中的数据。
-
-### 12.2. 常用方法
-
-#### 12.2.1. 构造方法
-
-把字符串数据封装成字符串对象，或者是简写成 `String s = "xxx";` 可直接创建对象。<font color=purple>**注意：只有 String 类型才能直接赋值创建对象**</font>
-
-```java
-public String()
-public String(String original)
-```
-
-通过字符数组创建的构造方法：
-
-```java
-// 把字符数组的数据封装成字符串对象
-public String(char value[])
-// 把字符数组中的一部分数据封装成字符串对象
-public String(char value[], int offset, int count)
-
-String(char[] value, boolean share)
-```
-
-其他的构造方法：
-
-```java
-public String(int[] codePoints, int offset, int count)
-public String(byte bytes[], int offset, int length, String charsetName)
-            throws UnsupportedEncodingException
-public String(byte bytes[], int offset, int length, Charset charset)
-public String(byte bytes[], String charsetName)
-            throws UnsupportedEncodingException
-public String(byte bytes[], Charset charset)
-public String(byte bytes[], int offset, int length)
-public String(byte bytes[])
-
-public String(StringBuffer buffer)
-public String(StringBuilder builder)
-```
-
-已过时的构造方法：
-
-```java
-@Deprecated
-public String(byte ascii[], int hibyte, int offset, int count)
-
-@Deprecated
-public String(byte ascii[], int hibyte)
-```
-
-
-
-#### 12.2.2. 字符串判断方法
-
-```java
-public boolean equals(Object anObject)
-```
-
-- 比较字符串的内容是否相同
-
-```java
-public boolean equalsIgnoreCase(String anotherString)
-```
-
-- 比较字符串的内容是否相同（忽略大小写）
-
-```java
-public boolean startsWith(String prefix)
-public boolean startsWith(String prefix, int toffset)
-```
-
-- 判断字符串对象是否以指定的 prefix 开头
-
-```java
-public boolean endsWith(String suffix)
-```
-
-- 判断字符串对象是否以指定的 str 结尾
-
-```java
-public boolean contains(CharSequence s)
-```
-
-- 如果此列表中包含指定的元素，则返回 true。更确切地讲，当且仅当此列表包含至少一个满足 (`o==null ? e==null : o.equals(e)`) 的元素 e 时，则返回 true。
-
-```java
-public int compareTo(String anotherString)
-```
-
-- 按字典顺序，当前字符串对象与参数 anotherString 指定的字符串比较大小。如果当前字符串与 anotherString 相同，该方法返回值0；如果当前字符串对象大于 anotherString，该方法返回正值；如果小于 anotherString，该方法返回负值。例如：
-
-```java
-String str = "abcde";
-str.compareTo("boy"); // 返回负整数
-str.compareTo("aba"); // 返回正整数
-str.compareTo("abcde"); // 返回0
-```
-
-```java
-public int compareToIgnoreCase(String str)
-```
-
-- 按字典顺序比较两个字符串，不考虑大小写。此方法返回一个整数，其符号与使用规范化的字符串调用 `compareTo` 所得符号相同，规范化字符串的大小写差异已通过对每个字符调用 `Character.toLowerCase(Character.toUpperCase(character))` 消除。返回值是根据指定 str 大于、等于还是小于当前 String 对象（不考虑大小写），分别返回一个负整数、0 或一个正整数。
-
-```java
-public boolean isEmpty()
-```
-
-- 当字符串对象的 `length()` 为 0 时返回 true。
-
-#### 12.2.3. 获取字符串信息的方法
-
-```java
-public int length()
-```
-
-- 获取字符串的长度，就是字符个数
-
-```java
-public char charAt(int index)
-```
-
-- 获取指定索引处的字符，首个字符的索引值是0
-
-```java
-public int indexOf(String str)
-```
-
-- 获取str在字符串对象中第一次出现的索引。(如果参数值是不存在的字符，输出-1)
-
-```java
-public int indexOf(String str, int fromIndex)
-```
-
-- 从当前字符串的 fromIndex 位置外开始检索字符串 str，并返回首次出现 str 的位置。如果没有检索到字符串str，该方法返回的值是-1。
-
-```java
-public int lastIndexOf(String str)
-```
-
-- 从当前字符串的头开始检索到字符串str，并返回最后出现str的位置。如果没有检索到字符串str，该方法返回的值是-1。
-
-#### 12.2.4. 字符串操作方法
-
-```java
-// 从 beginIndex 索引处开始截取字符串，默认到结尾。
-public String substring(int beginIndex)
-// 从 beginIndex 索引处开始，到 endIndex 索引结束截取字符串(包含beginIndex，不包含endIndex)
-public String substring(int beginIndex, int endIndex)
-```
-
-- 截取当前字符串对象。（注：并非直接截取当前对象）
-
-```java
-public String trim()
-```
-
-- 去除字符串两端空格
-
-```java
-public String[] split(String regex)
-public String[] split(String regex, int limit)
-```
-
-- 按照指定符号分割字符串，regex 可以为正则表达式。**注意：不能根据“`+`”和“`/`”进行切割，要特殊处理**。
-
-```java
-public String replace(char oldChar, char newChar)
-```
-
-- 返回一个新的字符串，它是通过用 newChar 替换此字符串中出现的所有 oldChar 得到的。
-
-```java
-public String replace(CharSequence target, CharSequence replacement)
-```
-
-- 使用指定的字面值替换序列替换此字符串所有匹配字面值目标序列的子字符串，该替换从字符串的开头朝末尾执行。例如，用 "b" 替换字符串 "aaa" 中的 "aa" 将生成 "ba" 而不是 "ab"。
-
-```java
-public String replaceAll(String regex, String replacement)
-```
-
-- 使用给定的 replacement 替换此字符串<font color=red>**所有**</font>匹配给定的正则表达式的子字符串。
-
-```java
-public String replaceFirst(String regex, String replacement)
-```
-
-- 使用给定的 replacement 替换此字符串匹配给定的正则表达式的<font color=red>**第一个**</font>子字符串。
-
-```java
-
-```
-
-- 
-
-```java
-
-```
-
-- 
-
-```java
-
-```
-
-- 
-
-
-
-
-
-
-
-
-#### 12.2.5. 字符串转换方法
-
-```java
-public char[] toCharArray()
-```
-
-- 将当前字符串对象转换为字符数组
-
-```java
-public String toLowerCase()
-public String toLowerCase(Locale locale)
-```
-
-- 将当前字符串对象内容转换为小写字符串
-
-```java
-public String toUpperCase()
-public String toUpperCase(Locale locale)
-```
-
-- 将当前字符串对象内容转换为大写字符串
-
-```java
-public byte[] getBytes()
-public byte[] getBytes(Charset charset)
-public byte[] getBytes(String charsetName) throws UnsupportedEncodingException
-
-@Deprecated
-public void getBytes(int srcBegin, int srcEnd, byte dst[], int dstBegin)
-```
-
-- 返回当前字符串的 byte 类型数组
-
-#### 12.2.6. 其他类型转换成字符串对象方法
-
-String 类的静态方法 `valueOf`，将 Object 类的对象、基础数据类型、字符数组等转换字符串表示形式（对象）返回。此方法有重载，参数可以是 boolean、char、char[]、long、int、double、float 等
-
-```java
-public static String valueOf(Object obj)
-
-public static String valueOf(char c)
-public static String valueOf(char data[])
-public static String valueOf(char data[], int offset, int count)
-
-public static String valueOf(boolean b)
-public static String valueOf(int i)
-public static String valueOf(long l)
-public static String valueOf(float f)
-public static String valueOf(double d)
-```
-
-#### 12.2.7. format 方法专题（java字符串格式化）
-
-[JAVA字符串格式化-String.format()的使用](https://blog.csdn.net/lonely_fireworks/article/details/7962171/)
-
-String类的format()方法用于创建格式化的字符串以及连接多个字符串对象，显示不同转换符实现不同数据类型到字符串的转换
-
-```java
-format(String format, Object... args)
-```
-
-- 新字符串使用本地语言环境，制定字符串格式和参数生成格式化的新字符串。
-
-```java
-format(Locale locale, String format, Object... args)
-```
-
-- 使用指定的语言环境，制定字符串格式和参数生成格式化的字符串。
-
-### 12.3. 字符串的遍历
-
-方式1：`length()` 配合 `charAt()`
-
-```java
-String str = "MooNkirA";
-for (int i = 0; i < str.length(); i++) {
-    System.out.println(str.charAt(i));
-}
-```
-
-方式2：把字符串转换为字符数组，然后遍历数组
-
-```java
-String str = "MooNkirA";
-char[] chars = str.toCharArray();
-for (char c : chars) {
-    System.out.println(c);
-}
-```
-
-### 12.4. 构造方法与直接赋值创建字符串的区别
-
-- 通过构造方法创建字符串对象是在堆内存。
-- 直接赋值方式创建对象是在方法区的常量池。
-
-> Notes: 字符串的内容是存储在方法区的常量池中，是为了方便字符串的重复使用。
-
-这两种方式创建的字符串对象地址值是不同，但是里面保存的内容是相同的，所以不能用 `==` 来判断字符串(String)是否相等。`==` 比较运算符可用于以下情况：
-
-- 用于基本数据类型：比较的是基本数据类型的值是否相同
-- 用于引用数据类型：比较的是引用数据类型的地址值是否相同。<font color=red>**(不同类型是不能比较，会直接报错)**</font>
-
-### 12.5. StringBuilder
-
-#### 12.5.1. 概述
-
-`StringBuilder` 可以理解为是一个可变的字符串，字符串缓冲区类。  
-
-```java
-public final class StringBuilder extends AbstractStringBuilder
-    implements Serializable, CharSequence
-```
-
-String 和 StringBuilder 的区别：
-
-- String 的内容是固定的
-- StringBuilder 的内容是可变的
-
-> Notes: `String` 与 `StringBuilder` 不是同一类型对象，不能直接进行比较。
-
-#### 12.5.2. 常用方法
-
-```java
-public StringBuilder()
-
-public StringBuilder(int capacity)
-
-public StringBuilder(String str)
-
-public StringBuilder(CharSequence seq)
-```
-
-- StringBuilder 的构造方法
-
-```java
-public int capacity()
-```
-
-- 返回当前容量 (理论值)
-
-```java
-public int length()
-```
-
-- 返回长度(已经存储的字符个数，实际值)
-
-```java
-public AbstractStringBuilder append(Object obj)
-public AbstractStringBuilder append(String str)
-public AbstractStringBuilder append(StringBuffer sb)
-AbstractStringBuilder append(AbstractStringBuilder asb)
-public AbstractStringBuilder append(CharSequence s)
-public AbstractStringBuilder append(CharSequence s, int start, int end)
-public AbstractStringBuilder append(char[] str)
-public AbstractStringBuilder append(char str[], int offset, int len)
-public AbstractStringBuilder append(boolean b)
-public AbstractStringBuilder append(char c)
-public AbstractStringBuilder append(int i)
-public AbstractStringBuilder append(long l)
-public AbstractStringBuilder append(float f)
-public AbstractStringBuilder append(double d)
-```
-
-- 添加数据的系列方法，并返回自身对象。因为添加方法均返回对象本身，因此可以使用链式编程：`sb.append("hello").append("world").append(true).append(100);`
-
-```java
-public AbstractStringBuilder reverse() 
-```
-
-- 字符串反转
-
-```java
-public AbstractStringBuilder delete(int start, int end)
-```
-
-- 移除此序列的子字符串中的字符。该子字符串从指定的 `start` 处开始，一直到索引 `end - 1` 处的字符（*即包头不包尾*）。如果不存在这种字符，则一直到序列尾部。如果 start 等于 end，则不发生任何更改。
-
-
-```java
-public AbstractStringBuilder deleteCharAt(int index)
-```
-
-- 移除此序列指定位置上的 char。此序列将缩短一个 char
-
-
-```java
-public char charAt(int index)
-```
-
-- 返回此序列中指定索引处的 char 值。index 参数必须大于等于 0，且小于此序列的长度。
-
-#### 12.5.3. StringBuilder 与 String 相互转换方法
-
-StringBuilder -> String：通过 `Object` 类的 `toString()` 方法或者 String 类的构造方法，均可实现将 `StringBuilder` 对象转成 `String`
-
-```java
-StringBuilder sb = new StringBuilder();
-sb.append("MooN").append("kirA");
-
-// 通过 toString 方法转成 String 对象
-String sb2String = sb.toString();
-// 通过 String 类的构造方法创建
-String sb2Str = new String(sb);
-```
-
-String -> StringBuilder：直接通过构造方法即可以实现把 String 转成 StringBuilder
-
-```java
-StringBuilder sb = new StringBuilder("MooNkirA");
-```
-
-### 12.6. StringBuffer (待整理)
