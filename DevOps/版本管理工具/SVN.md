@@ -559,3 +559,4 @@ Subversion 的 eclipse 插件，下载地址：http://subclipse.tigris.org/servl
 - [svn使用教程](https://svnbucket.com/posts/svn-tutorial/)
 - [svn常用命令](https://svnbucket.com/posts/svn-commands-tutorial/)
 - [菜鸟笔记 - SVN 教程](https://www.runoob.com/svn/svn-tutorial.html)
+- [40 图 | SVN 开发流程优化](https://mp.weixin.qq.com/s/9sFHRbxCT_o3ins3YJgrIg)

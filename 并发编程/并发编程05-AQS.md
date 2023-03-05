@@ -2,6 +2,8 @@
 
 ## 1. AQS 概述
 
+早期程序员会通过一种同步器去实现另一种相近的同步器，例如用可重入锁去实现信号量，或反之。这显然不够优雅，于是在 JSR166（java 规范提案）中创建了 AQS，提供了这种通用的同步器机制。
+
 队列同步器 AbstractQueuedSynchronizer（简称同步器或 AQS），是一个抽象的队列同步器，是用来构建**阻塞式锁或者相关同步组件的基础框架**。
 
 ```java
@@ -13,6 +15,118 @@ public abstract class AbstractQueuedSynchronizer
 AQS 它使用了一个 int 类型的共享成员变量表示同步状态，通过内置的 FIFO (先进先出)的线程等待队列来完成资源获取线程的排队工作，类似于 Monitor 的 EntryList。而条件变量用于实现等待、唤醒机制，支持多个条件变量，类似于 Monitor 的 WaitSet
 
 > *并发包的大师（Doug Lea）期望它能够成为实现大部分同步需求的基础*
+
+### 1.1. 目标
+
+实现的功能目标：
+
+- 阻塞版本获取锁 acquire 和非阻塞的版本尝试获取锁 tryAcquire
+- 获取锁超时机制
+- 通过打断取消机制
+- 独占机制及共享机制
+- 条件不满足时的等待机制
+
+要实现的性能目标：
+
+> Instead, the primary performance goal here is scalability: to predictably maintain efficiency even, or especially, when synchronizers are contended.
+
+### 1.2. 设计
+
+AQS 的基本设计思想很简单
+
+1. 获取锁的逻辑
+
+```java
+while(state 状态不允许获取) {
+    if(队列中还没有此线程) {
+        入队并阻塞
+    }
+}
+当前线程出队
+```
+
+2. 释放锁的逻辑
+
+```java
+if(state 状态允许了) {
+    恢复阻塞的线程(s)
+}
+```
+
+其中要点包含：
+
+- 原子维护 state 状态
+- 阻塞及恢复线程
+- 维护队列
+
+#### 1.2.1. state 设计
+
+- state 使用 `volatile` 配合 cas 保证其修改时的原子性
+- state 使用了 32bit int 来维护同步状态，因为当时使用 long 在很多平台下测试的结果并不理想
+
+#### 1.2.2. 阻塞恢复设计
+
+早期的控制线程暂停和恢复的 api 有 suspend 和 resume，但它们是不可用的，因为如果先调用的 resume 那么 suspend 将感知不到。
+
+解决方法是使用 park & unpark 来实现线程的暂停和恢复，因为先 unpark 再 park 也没问题。park & unpark 是针对线程的，而不是针对同步器的，因此控制粒度更为精细。park 线程还可以通过 interrupt 打断
+
+#### 1.2.3. 队列设计
+
+使用了 FIFO 先入先出队列，并不支持优先级队列。设计时借鉴了 CLH 队列，它是一种单向无锁队列。
+
+![](images/595543618230345.png)
+
+队列中有 head 和 tail 两个指针节点，都用 volatile 修饰配合 cas 使用，每个节点有 state 维护节点状态。
+
+只需要考虑 tail 赋值的原子性，以下是入队伪代码：
+
+```java
+do {
+    // 原来的 tail
+    Node prev = tail;
+    // 用 cas 在原来 tail 的基础上改为 node
+} while(tail.compareAndSet(prev, node))
+```
+
+出队伪代码：
+
+```java
+// prev 是上一个节点
+while((Node prev=node.prev).state != 唤醒状态) {
+}
+// 设置头节点
+head = node;
+```
+
+使用 CLH 的好处：
+
+- 无锁，使用自旋
+- 快速，无阻塞
+
+AQS 在一些方面改进了 CLH
+
+```java
+private Node enq(final Node node) {
+    for (; ; ) {
+        Node t = tail;
+        // 队列中还没有元素 tail 为 null
+        if (t == null) {
+            // 将 head 从 null -> dummy
+            if (compareAndSetHead(new Node()))
+                tail = head;
+        } else {
+            // 将 node 的 prev 设置为原来的 tail
+            node.prev = t;
+            // 将 tail 从原来的 tail 设置为 node
+            if (compareAndSetTail(t, node)) {
+                // 原来 tail 的 next 设置为 node
+                t.next = node;
+                return t;
+            }
+        }
+    }
+}
+```
 
 ## 2. AQS 实现原理
 
@@ -104,12 +218,137 @@ CountDownLatch 对 **AQS 的共享方式实现**为：CountDownLatch 将任务�
 
 ## 3. 实现不可重入锁
 
-### 3.1. （!待整理）自定义同步器
+### 3.1. 自定义同步器
 
-> TODO: 待整理
+自定义同步器，继承 `AbstractQueuedSynchronizer`
 
-### 3.2. （!待整理）自定义锁
+```java
+// 自定义同步器，实现 AbstractQueuedSynchronizer
+class CustomQueuedSynchronizer extends AbstractQueuedSynchronizer {
 
-> TODO: 待整理
+    @Override
+    protected boolean tryAcquire(int arg) {
+        if (compareAndSetState(0, 1)) {
+            // 加上了锁，并设置 owner 为当前线程
+            setExclusiveOwnerThread(Thread.currentThread());
+            return true;
+        }
+        return false;
+    }
 
+    @Override
+    protected boolean tryRelease(int arg) {
+        setExclusiveOwnerThread(null);
+        setState(0);
+        return true;
+    }
+
+    // 是否持有独占锁
+    @Override
+    protected boolean isHeldExclusively() {
+        return getState() == 1;
+    }
+
+    public Condition newCondition() {
+        return new ConditionObject();
+    }
+}
+```
+
+### 3.2. 自定义锁
+
+有了自定义同步器，复用 AQS 相关已实现的功能，实现一个功能完备的自定义锁
+
+```java
+// 自定义锁（不可重入锁）
+class CustomLock implements Lock {
+
+    private CustomQueuedSynchronizer sync = new CustomQueuedSynchronizer();
+
+    // 加锁（不成功会进入等待队列）
+    @Override
+    public void lock() {
+        sync.acquire(1);
+    }
+
+    // 加锁，不成功，进入等待队列，可打断
+    @Override
+    public void lockInterruptibly() throws InterruptedException {
+        sync.acquireInterruptibly(1);
+    }
+
+    // 尝试加锁（一次），不成功返回，不进入队列
+    @Override
+    public boolean tryLock() {
+        return sync.tryAcquire(1);
+    }
+
+    // 尝试加锁，不成功，进入等待队列，带超时
+    @Override
+    public boolean tryLock(long time, TimeUnit unit) throws InterruptedException {
+        return sync.tryAcquireNanos(1, unit.toNanos(time));
+    }
+
+    // 解锁
+    @Override
+    public void unlock() {
+        sync.release(1);
+    }
+
+    // 创建条件变量
+    @Override
+    public Condition newCondition() {
+        return sync.newCondition();
+    }
+}
+```
+
+### 3.3. 测试
+
+编写测试程序：
+
+```java
+@Slf4j
+public class AbstractQueuedSynchronizerDemo {
+
+    public static void main(String[] args) {
+        CustomLock lock = new CustomLock();
+        new Thread(() -> {
+            lock.lock();
+            try {
+                log.debug("locking...");
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            } finally {
+                log.debug("unlocking...");
+                lock.unlock();
+            }
+        }, "t1").start();
+
+        new Thread(() -> {
+            lock.lock();
+            try {
+                log.debug("locking...");
+            } finally {
+                log.debug("unlocking...");
+                lock.unlock();
+            }
+        }, "t2").start();
+    }
+}
+```
+
+输出结果：
+
+```java
+2023-03-04 08:29:15.142 [t1] DEBUG c.m.c.j.AbstractQueuedSynchronizerDemo - locking...
+2023-03-04 08:29:16.151 [t1] DEBUG c.m.c.j.AbstractQueuedSynchronizerDemo - unlocking...
+2023-03-04 08:29:16.151 [t2] DEBUG c.m.c.j.AbstractQueuedSynchronizerDemo - locking...
+2023-03-04 08:29:16.151 [t2] DEBUG c.m.c.j.AbstractQueuedSynchronizerDemo - unlocking...
+```
+
+不可重入测试，将代码修改为两次加锁，会发现自己也会被挡住（只会打印一次 locking）
+
+![](images/312463508230345.png)
 
