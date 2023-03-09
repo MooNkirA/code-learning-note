@@ -1671,7 +1671,7 @@ public final Object readObject()
 
 #### 9.5.1. transient 的作用
 
-`transient`关键字作用是用于指定**序列化对象时不保存某个成员变量的值**
+`transient`关键字作用是用于指定**序列化对象时不保存某个成员变量的值**。
 
 用 `transient` 修饰成员变量，能够保证该成员变量的值不能被序列化到文件中。当对象被反序列化时，被 `transient` 修饰的变量值会设为初始值，如 int 型的是 0，对象型的是 null。
 

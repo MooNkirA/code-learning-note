@@ -1324,7 +1324,7 @@ public class Person implements Cloneable {
 
 深拷贝：拷贝对象和原始对象的引用类型，引用不同的对象。
 
-如下例中，在 clone 函数中不仅调用了 `super.clone`，而且调用 `Student` 对象的 `clone` 方法（`Student` 类也要实现 `Cloneable` 接口并重写 `clone` 方法），从而实现了深拷贝。最终于打印的结果是“Moon”，可以看到拷贝`Student`对象的值不会受到原对象的影响。
+如下例中，在 clone 函数中不仅调用了 `super.clone`，而且调用 `Student` 对象的 `clone` 方法（`Student` 类也要实现 `Cloneable` 接口并重写 `clone` 方法），从而实现了深拷贝。最终于打印的结果是『Moon』，可以看到拷贝`Student`对象的值不会受到原对象的影响。
 
 ```java
 public class Student implements Cloneable {

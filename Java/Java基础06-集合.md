@@ -31,9 +31,7 @@ Java 集合框架支持两种不同类型的集合：
 
 **单列集合体系图**
 
-> TODO: 待重画继承图
-
-![](images/402115508220852.png)
+![Java 集合框架图.drawio](images/338213512256809.jpg)
 
 ## 2. Collection 接口（单列集合）
 
@@ -60,10 +58,10 @@ boolean add(E e);
 - 添加一个元素
 
 ```java
-boolean addAll(E e);
+boolean addAll(Collection<? extends E> c);
 ```
 
-- 添加一个集合元素
+- 按照指定 collection 的迭代器所返回的元素顺序，将该 collection 中的所有元素添加到此列表的尾部。
 
 #### 2.2.2. 删除元素
 
@@ -71,13 +69,21 @@ boolean addAll(E e);
 boolean remove(Object o);
 ```
 
-- 删除指定的元素
+- 移除此集合中首次出现的指定元素（如果存在），返回删除是否成功(true/false)。<font color=red>**删除元素是影响本来的集合**</font>。
 
-#### 2.2.3. 获取集合大小
+```java
+boolean removeAll(Collection<?> c);
+```
+
+- 移除此集合中所有包含在指定的集合中所有元素（如果存在），返回删除是否成功(true/false)
+
+#### 2.2.3. 获取集合信息
 
 ```java
 int size();
 ```
+
+- 返回集合中的元素的个数
 
 #### 2.2.4. 清空集合
 
@@ -85,7 +91,7 @@ int size();
 void clear();
 ```
 
-- 将集合的所有元素清空。
+- 移除此集合中的所有元素。此调用返回后，集合将为空。
 
 #### 2.2.5. 判断功能
 
@@ -93,9 +99,23 @@ void clear();
 boolean isEmpty();
 ```
 
-- 判断集合是否为空。
+- 判断集合是否为空。如果此列表中没有元素，则返回 true。
 
-#### 2.2.6. 综合示例
+```java
+boolean contains(Object o);
+```
+
+- 判断此集合中是否包含指定的元素，包含则返回 true。
+
+#### 2.2.6. 类型转换功能
+
+```java
+Object[] toArray();
+```
+
+- 按适当顺序（从第一个到最后一个元素）返回包含此集合中所有元素的数组。
+
+### 2.3. 综合示例
 
 Code Demo:
 
@@ -154,33 +174,37 @@ List 是一个元素存取有序、带有索引、并且可以存储重复元素
 
 由于 List 集合拥有索引，因此 List 集合迭代方式除了使用迭代器之外，还可以使用索引进行迭代。遍历方法分别是：<font color=red>**普通for，增强for，迭代器**</font>。
 
-#### 3.1.1. List 集合存储数据的结构
+### 3.2. List 集合存储数据的结构
 
-List 接口下有很多个集合实现，它们存储元素所采用的结构方式是不同的，这样就导致了这些集合有它们各自的特点，供给开发者在不同的环境下进行使用。
-
-#### 3.1.2. 接口的常见实现类
+List 接口下有很多个集合实现，它们存储元素所采用的结构方式是不同的，这样就导致了这些集合有它们各自的特点，供给开发者在不同的环境下进行使用。接口的常见实现类
 
 - ArrayList
 - LinkedList
 - Vector
 
-### 3.2. 接口常用的方法
+### 3.3. 接口常用的方法
 
-#### 3.2.1. 增加元素
+#### 3.3.1. 增加元素
 
 ```java
-boolean add(Object e);
+boolean add(E e);
 ```
 
 - 向集合末尾处，添加指定的元素 
 
 ```java
-boolean add(int index, Object e);
+void add(int index, E element);
 ```
 
 - 向集合指定索引处，添加指定的元素，原有元素依次后移
 
-#### 3.2.2. 删除元素
+```java
+boolean addAll(int index, Collection<? extends E> c);
+```
+
+- 从指定的位置开始，将指定 collection 中的所有元素插入到此列表中。向右移动当前位于该位置的元素（如果有）以及所有后续元素（增加其索引）。新元素将按照指定 collection 的迭代器所返回的元素顺序出现在列表中。
+
+#### 3.3.2. 删除元素
 
 ```java
 boolean remove(Object e);
@@ -192,7 +216,7 @@ boolean remove(Object e);
 boolean remove(int index);
 ```
 
-- 将指定索引处的元素，从集合中删除，返回值为被删除的元素
+- 从集合中删除将指定索引处的元素，并返回被删除的元素。<font color=red>**值得注意的是，若调用方法时传入的参数 index 是 `Integer` 类型的，调用的是 `remove(Object object)` 方法，而不是 `remove(int index)`，所以会出现无法删除指定的索引处的元素的情况，传入的一定要是基本数据类型哦!**</font>
 
 ```java
 void clear();
@@ -200,49 +224,52 @@ void clear();
 
 - 清空集合
 
-#### 3.2.3. 替换元素
+#### 3.3.3. 替换元素
 
 ```java
 E set(int index, E element);
 ```
 
-将指定索引处的元素，替换成指定的元素，返回值为替换前的元素
+- 将指定索引处的元素，替换成指定的元素，返回值为替换前的元素
 
-#### 3.2.4. 查询元素
+#### 3.3.4. 获取元素
 
 ```java
 E get(int index);
 ```
 
-获取指定索引处的元素，并返回该元素
+- 获取指定索引处的元素，并返回该元素。(获取元素是不会改变本来的集合)
 
-### 3.3. ArrayList
+```java
+int indexOf(Object o);
+```
 
-#### 3.3.1. 简介
+- 返回此集合中首次出现的指定元素的索引；如果此集合不包含元素，则返回 -1。
 
-<font color=red>**ArrayList 集合底层数据存储的结构是数组结构。数组实现的特点：<u>元素查询快，增删慢，线程不安全（效率高）</u>**</font>。可以在集合中存储任意类型的数据，由于日常开发中使用最多的功能为查询数据、遍历数据，所以 ArrayList 是最常用的集合。
+```java
+int lastIndexOf(Object o);
+```
 
-开发时随意地使用 ArrayList 完成任何需求，并不严谨，这种用法不提倡。
+- 返回此集合中最后一次出现的指定元素的索引；如果此集合不包含索引，则返回 -1。
+
+### 3.4. ArrayList
+
+#### 3.4.1. 简介
 
 ```java
 public class ArrayList<E> extends AbstractList<E>
         implements List<E>, RandomAccess, Cloneable, java.io.Serializable
 ```
 
-**线程安全性**：
+<font color=red>**ArrayList 集合底层数据存储的结构是数组结构。数组实现的特点：<u>元素查询快，增删慢，线程不安全（效率高）</u>**</font>。ArrayList 是一个长度可变的高级的数组，可以在集合中存储任意**对象类型**的数据，集合本身也是一个对象。由于日常开发中使用最多的功能为查询数据、遍历数据，所以 ArrayList 是最常用的集合。
 
-对 ArrayList 的操作一般分为两个步骤，改变位置(size)和操作元素(e)。所以这个过程在多线程的环境下是不能保证具有原子性的，因此 ArrayList 在多线程的环境下是线程不安全的。
+> Notes: **集合当中只能存储对象的数据，不能存在基本数据类型。**
 
-#### 3.3.2. ArrayList 数组实现的原理
+需要注意**线程安全性**：对 ArrayList 的操作一般分为两个步骤，改变位置(size)和操作元素(e)。所以这个过程在多线程的环境下是不能保证具有原子性的，因此 ArrayList 在多线程的环境下是线程不安全的。
 
-数组实现的特点：查询快，增删慢，线程不安全（效率高）。原因：
+> Tips: 开发时随意地使用 ArrayList 完成任何需求，并不严谨，这种用法不提倡。
 
-- <font color=red>**查询快**</font>：由于数组的索引支持，那么可以通过索引直接计算出元素的地址值，因此就可以直接通过元素的地址值获取到指定的元素
-- <font color=red>**增删慢**</font>：由于在添加元素的时候，实际上底层会先创建一个新数组(新数组的长度为原数组的长度+1)，那么在添加新元素的时候，先需要对数组中原有的数据进行拷贝，其次在末尾进行添加新的元素。因此，这样操作的效率的极低的(删除元素刚好和添加的操作相反)
-
-> Tips: 增删慢的情况是基于，数组的原长度不够，并且非在数组尾部插入数据的情况。若数组的长度足够并且在尾部插入新的元素，其他操作的效率甚至比链表更快。
-
-#### 3.3.3. RandomAccess 接口
+#### 3.4.2. RandomAccess 接口
 
 Java Collections 框架中提供了一个 `RandomAccess` 接口，用来标记 List 实现是否支持 Random Access。
 
@@ -254,7 +281,7 @@ public interface RandomAccess {
 - 如果一个数据集合实现了该接口，就意味着它支持 Random Access，按位置读取元素的平均时间复杂度为 O(1)，如 `ArrayList`
 - 如果没有实现该接口，表示不支持 Random Access，如 `LinkedList`
 
-#### 3.3.4. ArrayList 优缺点
+#### 3.4.3. ArrayList 优缺点
 
 优点：
 
@@ -268,15 +295,46 @@ public interface RandomAccess {
 
 ArrayList 比较适合顺序添加、随机访问的场景。
 
-#### 3.3.5. ArrayList 的 contains 方法判断元素（自定义类型）是否存在的原理
+#### 3.4.4. ArrayList 的特有方法
+
+```java
+protected void removeRange(int fromIndex, int toIndex)
+```
+
+- 重写 `AbstractList` 抽象父类的方法，移除集合中索引在 `fromIndex`（包括）和 `toIndex`（不包括）之间的所有元素。向左移动所有后续元素（减小其索引）。此调用将列表缩短了 (`toIndex - fromIndex`) 个元素。如果 `toIndex == fromIndex`，则此操作无效。
+
+#### 3.4.5. 集合的遍历示例
+
+ArrayList 集合的遍历最经典是，通过 `size()` 和 `get()` 配合实现的
+
+```java
+// 最标准的用法
+for (int x = 0; x < array.size(); x++) {
+    String s = array.get(x);    // 目的是为了以后能再对集合里的元素进行使用
+    System.out.println(s);
+}
+```
+
+#### 3.4.6. ArrayList 底层原理
+
+##### 3.4.6.1. ArrayList 数组实现的原理
+
+数组实现的特点：查询快，增删慢，线程不安全（效率高）。原因：
+
+- <font color=red>**查询快**</font>：由于数组的索引支持，那么可以通过索引直接计算出元素的地址值，因此就可以直接通过元素的地址值获取到指定的元素
+- <font color=red>**增删慢**</font>：由于在添加元素的时候，实际上底层会先创建一个新数组(新数组的长度为原数组的长度+1)，那么在添加新元素的时候，先需要对数组中原有的数据进行拷贝，其次在末尾进行添加新的元素。因此，这样操作的效率的极低的(删除元素刚好和添加的操作相反)
+
+> Tips: 增删慢的情况是基于，数组的原长度不够，并且非在数组尾部插入数据的情况。若数组的长度足够并且在尾部插入新的元素，其他操作的效率甚至比链表更快。
+
+##### 3.4.6.2. ArrayList 的 contains 方法判断元素（自定义类型）是否存在的原理
 
 ArrayList 的 `contains` 方法，会调用方法传入的元素的 equals 方法依次与集合中的旧元素所比较，从而根据返回的布尔值判断是否有重复元素。
 
 当 ArrayList 存放**自定义类型**时，由于自定义类型在未重写 equals 方法前，判断是否重复的依据是比较对象的地址值，所以<font color=red>**如果想根据内容判断是否为重复元素，需要重写元素的 equals 方法**</font>
 
-### 3.4. LinkedList
+### 3.5. LinkedList
 
-#### 3.4.1. 概述
+#### 3.5.1. 概述
 
 <font color=red>**LinkedList 集合底层数据存储的实现是双向链表结构，<u>查询慢，增删快，线程不安全（效率高）</u>**</font>。
 
@@ -288,7 +346,7 @@ LinkedList 与 ArrayList 不同的是，在对 LinkedList 进行插入和删除�
 
 LinkedList 还提供了在 List 接口中未定义，<font color=red>用于操作链表头部和尾部的元素</font>的方法，因此有时也可以被当作堆栈、队列或双向队列使用。
 
-#### 3.4.2. LinkedList 链表实现的原理
+#### 3.5.2. LinkedList 链表实现的原理
 
 链表结构：查询慢，增删快，线程不安全（效率高）。其原因：
 
@@ -297,7 +355,7 @@ LinkedList 还提供了在 List 接口中未定义，<font color=red>用于操�
 
 链表查询元素是判断索引是否大于集合元素个数的一半来决定从表头还是表尾开始查询。如果大于一半，则从表尾开始查找，否则从表头开始查找。
 
-#### 3.4.3. LinkedList 常用特有方法
+#### 3.5.3. LinkedList 常用特有方法
 
 ```java
 void addFirst(E e);
@@ -335,11 +393,11 @@ E getLast();
 
 - 返回此列表的最后一个元素。
 
-#### 3.4.4. ArrayList 和 LinkedList 的区别与选择
+#### 3.5.4. ArrayList 和 LinkedList 的区别与选择
 
 区别：
 
-- **数据结构实现**：ArrayList 是动态数组的数据结构实现，而 LinkedList 是双向链表的数据结构实现。
+- **数据结构实现**：ArrayList 是动态数组的数据结构实现；而 LinkedList 是双向链表的数据结构实现。
 - **随机访问效率**：ArrayList 比 LinkedList 在随机访问的时候效率要高，因为 LinkedList 是线性的数据存储方式，所以需要移动指针从前往后依次查找。
 - **增加和删除效率**：
     - 在非首尾的增加和删除操作，LinkedList 要比 ArrayList 效率要高，因为 ArrayList 的扩容机制的存在，增删操作时超出存储长度时，需要新建数组，再将原数组中的数据复制到新数组中。要影响数组内的其他数据的下标。
@@ -349,16 +407,16 @@ E getLast();
     - ArrayList 是连续内存存储；而 LinkedList 分散在内存中，
 - **线程安全**：ArrayList 和 LinkedList 都是不同步的，也就是不保证线程安全；
 
-一些类型选择与使用建议：
+类型选择与使用建议：
 
 - 如果需要大量非首尾增删元素，则建议使用 LinkedList
 - 如果只是遍历查询元素，不进行增删操作，则建议使用 ArrayList
 - <font color=red>**遍历 LinkedList 必须使用 Iterator 而不使用 for 循环，因为每次 for 循环体内通过 `get(i)` 方法获取指定元素时，需要对整个集合重新进行遍历，性能消耗极大**</font>
 - 尽量不要试图使用 `indexOf` 等方法返回元素的索引，并利用其进行遍历。使用 `indexOf` 对集合进行遍历，当结果为空时会遍历整个集合。
 
-### 3.5. Vector（了解）
+### 3.6. Vector（了解）
 
-#### 3.5.1. 概述
+#### 3.6.1. 概述
 
 `Vector` 集合数据存储的结构是数组结构，为 JDK 中最早提供的集合。
 
@@ -372,7 +430,7 @@ public class Vector<E>
 
 `Vector` 最大的特点是线程安全但效率低，因为 Vector 类的所有方法（如 `add`、`set`、`delete` 等）均是 `synchronized` 修饰的同步方法，在多线程访问的情况下，只允许一个线程进行增删改操作。后面已经不再建议使用，而 Arraylist 不是同步的，其效率比较高，在不需要保证线程安全时建议使用 Arraylist。
 
-#### 3.5.2. ArrayList 和 Vector 的区别
+#### 3.6.2. ArrayList 和 Vector 的区别
 
 此两个类都实现了 List 接口（List 接口继承了 Collection 接口），它们都是有序集合
 
@@ -380,9 +438,11 @@ public class Vector<E>
 - **性能**：ArrayList 在性能方面要优于 Vector。
 - **扩容**：ArrayList 和 Vector 都会根据实际的需要动态的调整容量，只不过在 Vector 扩容每次会增加 1 倍，而 ArrayList 只会增加 50%。
 
-### 3.6. Stack 栈结构（了解）
+> Vector 类的所有方法都是同步的。可以由两个线程安全地访问一个 Vector 对象、但是一个线程访问 Vector 的话代码要在同步操作上耗费大量的时间；而 Arraylist 不是同步的，所以在不需要保证线程安全时时建议使用 Arraylist
 
-#### 3.6.1. 概述
+### 3.7. Stack 栈结构（了解）
+
+#### 3.7.1. 概述
 
 java 提供了一个专门用于栈结构的类：`java.util.Stack`
 
@@ -392,7 +452,7 @@ public class Stack<E> extends Vector<E>
 
 Stack 类表示后进先出（LIFO）的对象堆栈。
 
-#### 3.6.2. 常用方法
+#### 3.7.2. 常用方法
 
 ```java
 public E peek();
@@ -412,9 +472,9 @@ public E pop();
 
 - 移除堆栈顶部的对象，并作为此函数的值返回该对象。(弹栈)
 
-### 3.7. 集合与数组之间的转换
+### 3.8. 集合与数组之间的转换
 
-#### 3.7.1. 集合转数组( List 类方法)
+#### 3.8.1. 集合转数组( List 类方法)
 
 集合（如：ArrayList）转数组使用的是，Collection 接口的 `toArray()` 方法，ArrayList 和 LinkedList 都有承继该方法。
 
@@ -448,7 +508,7 @@ String[] strs = new String[list.size()];
 list.toArray(strs);	
 ```
 
-#### 3.7.2. 数组转集合（使用 Arrays 工具类方法）
+#### 3.8.2. 数组转集合（使用 Arrays 工具类方法）
 
 ```java
 public static <T> List<T> asList(T... a);
@@ -968,6 +1028,14 @@ TreeSet 基于二叉树的原理对新添加的对象按照指定的顺序排序
 
 Integer和String等基础对象类型可以直接根据 TreeSet 的默认排序进行存储，而对于自定义的数据类型，TreeSet 要求存放的对象必须实现 `Comparable` 接口，并重写该接口提供的  `compareTo()` 比较元素方法，当插入元素时会回调该方法比较元素的大小从而进行排序。若重写该函数，返回 -1（或负整数）则表示升序，即当前对象(this)小于指定对象；返回 1（或正整数）则表示降序，即当前对象(this)大于指定对象
 
+### 5.7. Set 总结
+
+#### 5.7.1. HashSet、LinkedHashSet 和 TreeSet 的区别
+
+- `HashSet` 是 `Set` 接口的主要实现类，`HashSet` 的底层是 `HashMap`，线程不安全的，可以存储 `null` 值；
+- `LinkedHashSet` 是 `HashSet` 的子类，能够按照添加的顺序遍历；
+- `TreeSet` 底层使用红黑树，能够按照添加元素的顺序进行遍历，排序的方式可以自定义
+
 ## 6. Queue 接口
 
 ### 6.1. 概述
@@ -1201,9 +1269,7 @@ LinkedBlockingDeque 比其他阻塞队列，多了一些特有方法，如：`ad
 
 #### 7.1.1. Map（双列集合）继承体系图
 
-> TODO: 待重画继承图
-
-![](images/402115508220852-1.png)
+![Java 集合框架图.drawio](images/491795612249478.jpg)
 
 #### 7.1.2. Map 接口的特点(重点)
 
@@ -1420,7 +1486,9 @@ public class EntrySetTest {
 
 #### 7.4.1. 概述
 
-HashMap：基于哈希表的 Map 接口的实现类，并允许使用 **null** 的值和 null 的键（<font color=purple>**HashMap 最多只允许一条记录的键为 null，允许多条记录的值为 null。**</font>），
+HashMap：基于哈希表的 Map 接口的实现类，并允许使用 `null` 的值和 `null` 的键（<font color=purple>**HashMap 最多只允许一条记录的键为 null，允许多条记录的值为 null。**</font>）。
+
+HashMap 使用『数组+链表+红黑树』（JDK1.8增加了红黑树部分）实现的， 链表长度大于8（`TREEIFY_THRESHOLD`）时，会把链表转换为红黑树，红黑树节点个数小于6（`UNTREEIFY_THRESHOLD`）时才转化为链表，防止频繁的转化。
 
 HashMap 有如下特点
 
@@ -1428,22 +1496,23 @@ HashMap 有如下特点
  - <font color=red>**存储和取出无法保证顺序一致**</font>。
  - 非线程安全。同一时间有多个线程同时对 HashMap 进行写操作，将可能导致数据的不一致。*如需要满足线程安全的条件，可使用 `Collections` 的 `synchronizedMap` 方法使 HashMap 具有线程安全的能力，或者使用 `ConcurrentHashMap`*。
 
-#### 7.4.2. 数据存储实现原理（TODO: 待整理）
-
-> TODO: 待将面试题那边整理的移动到此处
-
-> Notes: HashMap 实现原理在 Java 8 前后有很大区别。
-
-
-##### 7.4.2.1. Java 8 以后的实现
+##### 7.4.1.1. Java 8 以后的实现
 
 为了减少链表遍历的开销，Java 8 对 HashMap 进行了优化，将数据结构修改为**数组+链表或红黑树**。在链表中的元素超过 8 个以后，HashMap 会将链表结构转换为红黑树结构以提高查询效率，因此其时间复杂度为 `O(log N)`。
 
-##### 7.4.2.2. 常用参数
+##### 7.4.1.2. 常用参数
 
 - capacity：当前数组的容量，默认为 16，可以扩容，扩容后数组的大小为当前的两倍，因此该值始终为2<sup>n</sup>。
 - loadFactor：负载因子，默认为 0.75。
 - threshold：扩容的阈值，其值等于 `capacity × loadFactor`。
+
+#### 7.4.2. 扩展内容
+
+##### 7.4.2.1. 一般用什么类型作为 HashMap 的 key
+
+一般用 `Integer`、`String` 这些不可变类当 HashMap 当 key。
+
+因为 String 是不可变的，所以在它创建的时候`hashcode`就被缓存了，不需要重新计算。这就是 HashMap 中的 key 经常使用字符串的原因。获取对象的时候要用到 `equals()` 和 `hashCode()` 方法，而 Integer、String 都已经重写了此两个方法，不需要程序员去重写。
 
 ### 7.5. LinkedHashMap
 
@@ -1457,13 +1526,28 @@ LinkedHashMap 是基于哈希表(HashTable)的数据结构，该结构保证 key
 
 #### 7.6.1. 概述
 
+```java
+public class TreeMap<K,V>
+    extends AbstractMap<K,V>
+    implements NavigableMap<K,V>, Cloneable, java.io.Serializable
+```
+
 TreeMap 是基于二叉树数据结构存储数据。从功能上讲，有比 HashMap 更为强大的功能，它实现了 `SortedMap` 接口，即可以对元素进行排序，默认按键值的升序排序，也可以自定义排序比较器。
 
 TreeMap 要求存放的键值对所映射的键对象必须实现 `Comparable` 接口，重写 `compareTo` 方法，从而根据键对元素进行排序。否则会抛出 `java.lang.ClassCastException` 异常
 
 TreeMap 的性能略微低于 HashMap。如果在开发中需要对元素进行<font color=red>排序</font>，那么使用 HashMap 便无法实现这种功能，使用 TreeMap 的迭代输出将会以元素顺序进行。
 
-#### 7.6.2. 与 LinkedHashMap 的区别
+#### 7.6.2. 继承结构
+
+![](images/472442217241787.png)
+
+#### 7.6.3. 特点
+
+- `TreeMap` 是有序的 key-value 集合，通过红黑树实现。根据键的自然顺序进行排序或根据提供的 `Comparator` 进行排序。
+- `TreeMap` 继承了 `AbstractMap`，实现了 `NavigableMap` 接口，支持一系列的导航方法，给定具体搜索目标，可以返回最接近的匹配项。如 `floorEntry()`、`ceilingEntry()` 分别返回小于等于、大于等于给定键关联的 `Map.Entry()` 对象，不存在则返回 null。`lowerKey()`、`floorKey`、`ceilingKey`、`higherKey()` 只返回关联的 key。
+
+#### 7.6.4. 与 LinkedHashMap 的区别
 
 - LinkedHashMap 是基于元素进入集合的顺序或者被访问的先后顺序排序。
 - TreeMap 则是基于元素的 key 固有顺序(由 Comparator 或者 Comparable 确定)进行排序。
@@ -1506,8 +1590,10 @@ ConcurrentHashMap默认将hash表分为16个桶，诸如get、put、remove等常
 
 Hashtable 与 HashMap 都是 Map 接口的实现类。
 
-- HashMap：可以存入 null，是不同步的，效率高，但线程不安全
-- Hashtable：不能存入 null 值，是同步的，效率低，但线程安全
+- **是否支持 null 为作为 key**：HashMap 可以接受为 null 的 key 和 value，key 为 null 的键值对放在下标为 0 的头结点的链表中；而 Hashtable 则不能。
+- **线程安全**：HashMap 是非线程安全的；HashTable 是线程安全的。Jdk 1.5 提供了 ConcurrentHashMap，它是 HashTable 的替代。
+- **执行效率**：Hashtable 很多方法是同步方法，在单线程环境下它效率低，比 HashMap 要低。
+- **哈希值**：HashTable 直接使用对象的 hashCode；而 HashMap 重新计算 hash 值。
 
 ## 8. 集合相关的工具类API
 
@@ -2096,7 +2182,7 @@ public E remove(int index) {
 
 ### 1.4. 集合的快速失败机制 “fail-fast”
 
-“fail-fast”，即快速失败，它是 Java 集合的一种错误检测机制。当多个线程对集合（非 fail-safe 的集合类）进行结构上的改变的操作时，有可能会产生 fail-fast 机制，这个时候就会抛出 ConcurrentModificationException（当方法检测到对象的并发修改，但不允许这种修改时就抛出该异常）。
+“fail-fast”，即快速失败，它是 Java 集合进行结构上的改变的操作时的一种错误检测机制。当多个线程对集合（非 fail-safe 的集合类）进行结构上的改变的操作时，有可能会产生 fail-fast 机制，这个时候就会抛出 ConcurrentModificationException（当方法检测到对象的并发修改，但不允许这种修改时就抛出该异常）。
 
 <font color=red>**同时需要注意的是，即使不是多线程环境，如果单线程违反了规则，同样也有可能会抛出改异常。**</font>
 
@@ -2168,7 +2254,7 @@ for (String userName : userNames) {
 }
 ```
 
-5. 直接使用 fail-safe 的集合类，例如使用 `CopyOnWriteArrayList`、`ConcurrentLinkedDeque` 等来替换 `ArrayList`。这种集合容器在遍历时不是直接在集合内容上访问的，而是先复制原有集合内容，在拷贝的集合上进行遍历，因此在遍历过程中对原集合所作的修改并不能被迭代器检测到，所以不会触发 `ConcurrentModificationException`。
+5. 不直接使用 fail-safe 的集合类，例如使用 `CopyOnWriteArrayList`、`ConcurrentLinkedDeque` 等来替换 `ArrayList`。这种集合容器在遍历时不是直接在集合内容上访问的，而是先复制原有集合内容，在拷贝的集合上进行遍历，因此在遍历过程中对原集合所作的修改并不能被迭代器检测到，所以不会触发 `ConcurrentModificationException`。
 > Tips: java.util.concurrent 包下的容器都是安全失败，可以在多线程下并发使用，并发修改。
 6. 在遍历过程中，所有涉及到改变 `modCount` 值得地方全部加上 `synchronized`
 
@@ -2274,3 +2360,86 @@ public class MyArrayList {
     }
 }
 ```
+
+## 2. HashMap 源码分析
+
+### 2.1. 数据存储实现原理（TODO: 待整理）
+
+> TODO: 待将面试题那边整理的移动到此处
+
+> Notes: HashMap 实现原理在 Java 8 前后有很大区别。
+
+### 2.2. HashMap 的实现原理
+
+HashMap 是基于哈希表的 Map 接口的非同步实现。此实现提供所有可选的映射操作，并允许使用 null 值和 null 键。此类不保证映射的顺序，特别是它不保证该顺序恒久不变。
+
+在 Java 编程语言中，保存数据有两种比较简单的数据结构：数组和链表（模拟指针引用）。所有的数据结构都可以用这两个基本结构来构造的，HashMap 也不例外。
+
+- 数组的特点是：寻址容易，插入和删除困难；
+- 链表的特点是：寻址困难，但插入和删除容易；
+
+所以将数组和链表结合在一起，发挥两者各自的优势，使用一种叫做**拉链法**的方式可以解决哈希冲突。HashMap 的数据结构实际上是一个“链表散列”的数据结构，即数组和链表的结合体。
+
+HashMap 基于 Hash 算法实现的，具体如下：
+
+1. 当我们往 Hashmap 中 put 元素时，利用 key 的 hashCode 重新 hash 计算出当前对象的元素在数组中的下标
+2. 存储时，如果出现 hash 值相同的 key，此时有两种情况。
+   1. 如果 key 相同，则覆盖原始值；
+   2. 如果 key 不同（出现冲突），则将当前的 key-value 放入链表中
+3. 获取时，直接找到 hash 值对应的下标，在进一步判断 key 是否相同，从而找到对应值。
+4. 理解了以上过程就不难明白 HashMap 是如何解决 hash 冲突的问题，核心就是使用了数组的存储方式，然后将冲突的 key 的对象放入链表中，一旦发现冲突就在链表中做进一步的对比。
+
+> 需要注意 Jdk 1.8 中对 HashMap 的实现做了优化，当链表中的节点数据超过八个之后，该链表会转为红黑树来提高查询效率，从原来的 `O(n)` 到 `O(logn)`
+
+#### 2.2.1. JDK1.8 之前实现
+
+JDK1.8 之前采用的是拉链法。拉链法：将链表和数组相结合。也就是说创建一个链表数组，数组中每一格就是一个链表。若遇到哈希冲突，则将冲突的值加到链表中即可。
+
+![](images/184312214220852.png)
+
+#### 2.2.2. JDK1.8 之后实现
+
+相比于之前的版本，jdk1.8 在解决哈希冲突时有了较大的变化，当链表长度大于阈值（默认为 8）时，将链表转化为红黑树，以减少搜索时间。
+
+![](images/13532314239278.png)
+
+数组+链表。通过计算 key 的 hashCode 的值，再去取模来决定当前 Entry 对象存储的索引位置，如果当前位置为空，则直接存储；如果当时位置已经存在内容，则将给存储的数据加上 next 指针，指向之前存在的数据。
+jdk8 主要是对 HashMap 做了红黑树的优化，使树的结构相对平衡，减小链的长度，达到加快查询的速度
+
+#### 2.2.3. JDK1.7 VS JDK1.8
+
+JDK1.8 主要解决或优化了一下问题：
+
+1. resize 扩容优化
+2. 引入了红黑树，目的是避免单条链表过长而影响查询效率
+3. 解决了多线程死循环问题，但仍是非线程安全的，多线程时可能会造成数据丢失问题。
+
+|         区别         |                             JDK1.7                              |                                        JDK1.8                                        |
+| -------------------- | --------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
+| 存储结构              | 数组+链表                                                        | 数组+链表+红黑树                                                                        |
+| 初始化方式             | 单独函数：inflateTable()                                          | 直接集成到了扩容函数 resize()中                                                          |
+| hash 值计算方式        | 扰动处理=9 次扰动=4 次位运算+5 次异或运算                             | 扰动处理=2 次扰动=1 次位运算+1 次异或运算                                                  |
+| 存放数据的规则         | 无冲突时，存放数组；冲突时，存放链表                                   | 无冲突时：存放数组<br>冲突 & `链表长度 < 8`：存放单链表<br>冲突 & `链表长度 > 8`：树化并存放红黑树 |
+| 插入数据方式           | 头插法（先将原位置的数据移到后 1 位，再插入数据到该位置）                  | 尾插法（直接插入到链表尾部/红黑树）                                                         |
+| 扩容后存储位置的计算方式 | 全部按照原来方法进行计算（即`hashCode ->> 扰动函数 ->> (h&length-1)`） | 按照扩容后的规律计算（即`扩容后的位置=原位置 or 原位置 + 旧容量`）                              |
+
+### 2.3. (待学习)HashMap 的 put 方法的具体流程
+
+当 put 元素的时候，首先计算 key 的 hash 值，这里调用了 hash 方法，hash 方法实际是让`key.hashCode()`与`key.hashCode()>>>16`进行异或操作，高 16bit 补 0，一个数和 0 异或不变，所以 hash 函数大概的作用就是：**高 16bit 不变，低 16bit 和高 16bit 做了一个异或，目的是减少碰撞**。按照函数注释，因为 bucket 数组大小是 2 的幂，计算下标`index = (table.length - 1) & hash`，如果不做 hash 处理，相当于散列生效的只有几个低 bit 位，为了减少散列的碰撞，设计者综合考虑了速度、作用、质量之后，使用高 16bit 和低 16bit 异或来简单处理减少碰撞，而且 JDK8 中用了复杂度 `O(logn)`的树结构来提升碰撞下的性能。
+
+putVal 方法执行流程图
+
+![](images/10234014227145.png)
+
+*另一组图*
+
+1. 如果 table 没有初始化就先进行初始化过程
+2. 使用 hash 算法计算 key 的索引
+3. 判断索引处有没有存在元素，没有就直接插入
+4. 如果索引处存在元素，则遍历插入，有两种情况，一种是链表形式就直接遍历到尾端插入，一种是红黑树就按照红黑树结构插入
+5. 链表的数量大于阈值8，就要转换成红黑树的结构
+6. 添加成功后会检查是否需要扩容
+
+![](images/479803615246033.png)
+
+### 2.4. (待学习)HashMap 的扩容操作是怎么实现的？
