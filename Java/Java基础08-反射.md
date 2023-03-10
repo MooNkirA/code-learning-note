@@ -1,5 +1,3 @@
-# Java基础 - 反射
-
 ## 1. 反射的概述
 
 ### 1.1. 动态语言的概念
@@ -49,6 +47,8 @@ Person person = new Student();
 
 ### 2.1. 获取 Class 对象
 
+JDK 中有4种方式获取 `Class` 对象。值得注意的是，<font color=red>**4 种方式得到的类对象，是同一个对象**</font>，因为 Class 文件在 JVM 中只存在一份
+
 - **方式1: 通过对象实例继承 Object 类中的`getClass()`方法**
 
 ```java
@@ -56,15 +56,13 @@ Person p = new Person();
 Class c = p.getClass();
 ```
 
-- **方式2: 通过 `类名.class` 获取到字节码文件对象**
-    - 任意数据类型都具备一个class静态属性，**该类要和当前类在同一个项目中**
+- **方式2: 通过 `类名.class` 获取到字节码文件对象**。任意数据类型都具备一个 class 静态属性，**该类要和当前类在同一个项目中**
 
 ```java
 Class c2 = Person.class;
 ```
 
-- **方式3: 通过Class类中的静态方法 `forName(String str)`**
-    - 将类名作为字符串传递给Class类中的静态方法forName即可。而类名必须全名：“包名.类名”(**在同一个项目下的类全名，不能跨项目的**)
+- **方式3: 通过Class类中的静态方法 `forName(String str)`**。将类名作为字符串传递给 `Class` 类中的静态方法 `forName` 即可。而类名必须全名：`包名.类名` (**在同一个项目下的类全名，不能跨项目的**)
 
 ```java
 Class c3 = Class.forName("com.moon.Person");
@@ -79,8 +77,6 @@ ClassLoader.getSystemClassLoader().loadClass("com.moon.TargetObject");
 ```
 
 > Notes: 通过类加载器获取 Class 对象不会进行初始化，意味着不进行包括初始化等一系列步骤，静态代码块和静态对象不会得到执行
-
-> Notes: **4 种方式得到的类对象，是同一个对象**
 
 #### 2.1.1. 番外：通过 IDE 获取类全限定名
 
@@ -753,19 +749,19 @@ public class MoonZero {
 }
 ```
 
-# 代理模式
+## 10. 代理模式
 
-## 1. 代理模式的概述
+### 10.1. 代理模式的概述
 
 代理模式的作用：拦截对真实对象的直接访问，并增加一些功能。
 
-## 2. 代理模式的分类
+### 10.2. 代理模式的分类
 
 代理模式分成静态代理和动态代理
 
 区别：**静态代理字节码文件已经生成；动态代理的字节码文件随用随加载**。
 
-### 2.1. 静态代理模式
+#### 10.2.1. 静态代理模式
 
 静态代理模式的优点：
 
@@ -776,23 +772,23 @@ public class MoonZero {
 - 一个真实对象必须对应一个代理对象，如果大量使用会导致类的数量急速增长。
 - 如果抽象对象中存在很多方法，则代理对象也要同样实现相应数量的方法。
 
-### 2.2. 动态代理模式
+#### 10.2.2. 动态代理模式
 
 动态代理模式特点：
 
 1. 动态生成代理对象，不用手动编写代理对象
 2. 不需要编写目标对象中所有同名的方法
 
-## 3. JDK 动态代理
+## 11. JDK 动态代理
 
-### 3.1. 概述
+### 11.1. 概述
 
 JDK 动态代理主要涉及到 `java.lang.reflect` 包中的两个类：`Proxy` 和 `InvocationHandler`。
 
 - `InvocationHandler` 是一个接口，通过实现该接口来定义代理后的处理逻辑，并可以通过反射机制来调用目标类的原代码，动态将代理逻辑和原逻辑编制在一起。
 - `Proxy` 利用 `InvocationHandler` 动态创建一个符合某一接口的实例，生成目标类的代理对象。
 
-### 3.2. Proxy 类创建代理对象
+### 11.2. Proxy 类创建代理对象
 
 创建 JDK 的动态代码对象，需要使用 `Proxy` 类的 `newProxyInstance` 方法。
 
@@ -810,7 +806,7 @@ public static Object newProxyInstance(ClassLoader loader, Class<?>[] interfaces,
 
 > 引用网络资料的解释：为什么jdk动态代理的对象必须实现一个统一的接口，其实可以大致理解为，代理类本身已经 extends 了 `Proxy`，如果传入的是父类，很可能出现这种情况：“`public class $Proxy1 extends Proxy extends 传入的父类`”；这个明显在 java 中是不允许的，Java 只支持单继承，但是实现接口是完全可以的。
 
-### 3.3. InvocationHandler 接口
+### 11.3. InvocationHandler 接口
 
 `InvocationHandler`的`invoke`方法，**在这方法中实现对真实方法的增强或拦截**
 
@@ -832,7 +828,7 @@ public interface InvocationHandler {
 - 参数`Object[] args`：**代理对象调用方法时传递的参数，该参数会传递给真实对象的方法**。
 - 返回值 `Object`：**一般返回真实对象方法执行后的结果**。
 
-### 3.4. Class 类 getInterfaces 方法
+### 11.4. Class 类 getInterfaces 方法
 
 ```java
 public Class<?>[] getInterfaces()
@@ -849,7 +845,7 @@ public class Demo implements A, B, C, …… {
 Class[] arr = Demo.class.getInterfaces();
 ```
 
-### 3.5. 动态代理模式的开发步骤(案例)
+### 11.5. 动态代理模式的开发步骤(案例)
 
 1. 先明确要被代理的功能(方法)是什么
 2. 然后将需要被代理的(功能)方法定义的接口中
@@ -861,7 +857,7 @@ Class[] arr = Demo.class.getInterfaces();
 	- 回调处理对象，拦截对代理方法调用
 6. 通过代理对象调用相关方法，方法就会被回调处理对象拦截。其实是调用 `InvocationHandler` 接口中的 `invoke()` 方法，值得注意的是，接口中每个方法的调用都会触发 `InvocationHandler.invoke` 方法，可以在拦截的方法中执行相关的判断。
 
-#### 3.5.1. 示例 1
+#### 11.5.1. 示例 1
 
 > 注：定义了个有参构造方法，传入被代理对象。也可以使用直接使用final修饰被代理的成员变量。
 
@@ -949,7 +945,7 @@ public interface Person {
 }
 ```
 
-#### 3.5.2. 示例 2
+#### 11.5.2. 示例 2
 
 或者这样玩，在`InvocationHandler`接口的实现类中直接使用`Proxy`的`newProxyInstance`方法，返回一个代理对象。
 
@@ -1011,7 +1007,7 @@ public class MyHandler implements InvocationHandler {
 2. 可以实现AOP编程(面向切面编程)，实际上静态代理也可以实现，总的来说，AOP可以算作是代理模式的一个典型应用；
 3. 解耦，通过参数就可以判断真实类，不需要事先实例化，更加灵活多变。
 
-#### 3.5.3. 框架学习阶段时案例
+#### 11.5.3. 框架学习阶段时案例
 
 ```java
 public interface IActor {
@@ -1090,9 +1086,9 @@ public class Client {
 }
 ```
 
-### 3.6. Proxy 类 newProxyInstance 生成代理对象的实现原理
+### 11.6. Proxy 类 newProxyInstance 生成代理对象的实现原理
 
-#### 3.6.1. 模拟 JDK 的动态代理实现示例
+#### 11.6.1. 模拟 JDK 的动态代理实现示例
 
 定义一个接口
 
@@ -1203,7 +1199,7 @@ public void testCustomProxy() {
 被代理类 DemoTarget.bar() 方法执行了...
 ```
 
-#### 3.6.2. InvocationHandler 接口的 invoke 方法的调用
+#### 11.6.2. InvocationHandler 接口的 invoke 方法的调用
 
 `Proxy.newProxyInstance(ClassLoader loader, Class<?>[] interfaces, InvocationHandler h)`方法，会生成一个代理对象，此代理对象名称叫`$Proxy0@xxx`。此代理对象会拥有一个属性`h`，该属性就是实现了`InvocationHandler`接口的实例（编写增强逻辑的类）。接口实现`h`有一个属性，就是待增强的类的实例。
 
@@ -1215,7 +1211,7 @@ public void testCustomProxy() {
 
 ![](images/20200616231804543_1488.png)
 
-#### 3.6.3. newProxyInstance 方法的执行过程
+#### 11.6.3. newProxyInstance 方法的执行过程
 
 1. 首先会生成一个代理类，通过拼凑字符串的方法生成一个叫`$Proxy0`的类，以`.java`结尾
 2. 使用文件流将拼凑好的字符串生成`$Proxy0.java`文件到本地磁盘中
@@ -1225,7 +1221,7 @@ public void testCustomProxy() {
 
 
 
-### 3.7. JDK 动态代理注意事项
+### 11.7. JDK 动态代理注意事项
 
 - JDK 的代理类是由 JDK 直接生成字节码文件，可以用 arthas 的 jad 工具反编译代理类查看源码
 - 代理类会继承 `Proxy` 类，该父类中有一个 `InvocationHandler h` 属性，通过接口回调的方式来实现代理增强的逻辑
@@ -1237,9 +1233,9 @@ public void testCustomProxy() {
     - 可使用 arthas 的 jad 工具反编译第 17 次调用生成的代理类，查看源码
     - > 注意：运行测试程序时须添加 `--add-opens java.base/java.lang.reflect=ALL-UNNAMED --add-opens java.base/jdk.internal.reflect=ALL-UNNAMED`
 
-## 4. CGlib 动态代理使用
+## 12. CGlib 动态代理使用
 
-### 4.1. CGlib 基础使用
+### 12.1. CGlib 基础使用
 
 定义接口与实现类
 
@@ -1300,7 +1296,7 @@ public void testCglibBasic() {
 
 > 注意事项：通过 `MethodProxy` 调用目标方法，在 jdk >= 9 的情况下，在调用 `Object` 的方法会有问题，启动程序时需要设置：`--add-opens java.base/java.lang=ALL-UNNAMED`
 
-### 4.2. 模拟 CGlib 代理基础实现
+### 12.2. 模拟 CGlib 代理基础实现
 
 定义用于测试的被代理类
 
@@ -1408,14 +1404,14 @@ public class CglibProxyMock extends Target {
 }
 ```
 
-### 4.3. MethodProxy 的实现原理
+### 12.3. MethodProxy 的实现原理
 
 上面提及 `MethodProxy` 类可以避免反射调用目标方法，原理是当调用 `MethodProxy` 的 `invoke` 或 `invokeSuper` 方法时，会动态生成两个类，都会继承 `net.sf.cglib.reflect.FastClass` 抽象类
 
 - 其中一个类是配合代理对象一起使用，避免反射
 - 另外一个类是配合目标对象一起使用，避免反射 (Spring 框架底层使用此方式)
 
-#### 4.3.1. 配合目标对象的 FastClass 实现
+#### 12.3.1. 配合目标对象的 FastClass 实现
 
 当第一次在 `MethodInterceptor` 实现中调用 `methodProxy.invoke(target, args)` 方法，cglib 就动态生成一个类，继承 `net.sf.cglib.reflect.FastClass` 抽象类。在初始创建时就记录了被代理的目标对象中方法与编号的对应关系，其中 `getIndex` 方法用于获取调用的方法的编号，`invoke` 方法则用于根据方法编号通过被代理的目标对象调用相应的方法
 
@@ -1508,7 +1504,7 @@ public void testTargetFastClass() throws InvocationTargetException {
 
 > 注：`Target` 是前面定义的用来测试的被代理类
 
-#### 4.3.2. 配合代理对象的 FastClass 实现
+#### 12.3.2. 配合代理对象的 FastClass 实现
 
 当第一次在 `MethodInterceptor` 实现中调用 `methodProxy.invokeSuper(proxy, args)` 方法，cglib 就动态生成一个类，继承 `net.sf.cglib.reflect.FastClass` 抽象类。在初始创建时就记录了cglib 的代理对象中调用原目标方法与编号的对应关系，其中 `getIndex` 方法用于获取调用的方法的编号，`invoke` 方法则用于根据方法编号通过代理对象调用相应原目标的方法
 
@@ -1604,7 +1600,7 @@ public void testProxyFastClass() throws InvocationTargetException {
 > - <u>*此测试使用 `CglibProxyMock` 是前面自定义的模拟 cglib 代理实现，非 cglib 原生*</u>
 > - 上面模拟使用代理对象调用原被代理目标的方法，记得要调用自定义代理中的非增强的方法。**如果调用增强的方法，该方法中又会回调 `MethodInterceptor` 的 `intercept` 方法，就会出现无限的循环调用**
 
-### 4.4. CGlib 与 JDK 动态代理的区别
+### 12.4. CGlib 与 JDK 动态代理的区别
 
 JDK 的动态代理，当方法被调用到一定的次数后，才会生成不通过反射调用的代理
 

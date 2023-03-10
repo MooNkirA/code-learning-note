@@ -91,38 +91,13 @@ jdk1.8 之后，接口可以定义非抽象方法，实现类不需要现实该�
 
 总结：Iterator 调用 ArrayList 的删除方法报错，Iterator 调用迭代器自己的删除方法，单线程不会报错，多线程会报错。
 
-## 2. Iterator 和 ListIterator 的区别
-
-- Iterator 可以遍历 Set 和 List 集合，而 ListIterator 只能遍历 List。
-- Iterator 只能单向遍历，而 ListIterator 可以双向遍历（向前/后遍历）。
-- ListIterator 实现 Iterator 接口，然后添加了一些额外的功能，比如添加一个元素、替换一个元素、获取前面或后面元素的索引位置
-
-## 3. ArrayList 和 LinkedList 的区别与选择
-
-区别：
-
-- **数据结构实现**：ArrayList 是动态数组的数据结构实现，而 LinkedList 是双向链表的数据结构实现。
-- **随机访问效率**：ArrayList 比 LinkedList 在随机访问的时候效率要高，因为 LinkedList 是线性的数据存储方式，所以需要移动指针从前往后依次查找。
-- **增加和删除效率**：在非首尾的增加和删除操作，LinkedList 要比 ArrayList 效率要高，因为 ArrayList 增删操作要影响数组内的其他数据的下标。
-- **内存空间占用**：LinkedList 比 ArrayList 更占内存，因为 LinkedList 的节点除了存储数据，还存储了两个引用，一个指向前一个元素，一个指向后一个元素。
-- **线程安全**：ArrayList 和 LinkedList 都是不同步的，也就是不保证线程安全；
-
-选择建议：
-
-- 如果需要大量非首尾增删元素，则建议使用 LinkedList
-- 如果只是遍历查询元素，不进行增删操作，则建议使用 ArrayList
-
-## 4. Map 的常用实现类 HashMap / LinkedHashMap / TreeMap 的区别
+## 2. Map 的常用实现类 HashMap / LinkedHashMap / TreeMap 的区别
 
 1. HashMap: 基于哈希表的 Map 接口的实现类，并允许使用 null 值和 null 键（<font color=purple>**HashMap 最多只允许一条记录的键为 null，允许多条记录的值为 null。**</font>），<font color=red>**键是唯一，存储和取出没有顺序**</font>。
 2. LinkedHashMap: 基于哈希表的 Map 接口的实现类，并允许使用 null 值和 null 键，<font color=red>**键是唯一，存储和取出有顺序**</font>
 3. TreeMap：从功能上讲，TreeMap 有着比 HashMap 更为强大的功能，它实现了 SortedMap 接口，这意味着它可以对元素进行排序。TreeMap 的性能略微低于 HashMap。如果在开发中需要对元素进行<font color=red>排序</font>，那么使用 HashMap 便无法实现这种功能，使用 TreeMap 的迭代输出将会以元素顺序进行。<font color=red>**LinkedHashMap 是基于元素进入集合的顺序或者被访问的先后顺序排序，TreeMap 则是基于元素的固有顺序 (由 Comparator 或者 Comparable 确定)。即：LinkedHashMap 是根据元素增加或者访问的先后顺序进行排序，而 TreeMap 则根据元素的 Key 进行排序**</font>。
 
-## 5. HashSet 的实现原理？
-
-HashSet 是基于 HashMap 实现的，HashSet 的值存放于 HashMap 的 key 上，HashMap 的 value 统一为 PRESENT，因此 HashSet 的实现比较简单，相关 HashSet 的操作，基本上都是直接调用底层 HashMap 的相关方法来完成，HashSet 不允许重复的值
-
-## 6. 说说 HashMap 底层原理？
+## 3. 说说 HashMap 底层原理？
 
 得分点 数据结构、put()流程、扩容机制
 
@@ -154,7 +129,7 @@ put()方法的执行过程中,主要包含四个步骤：
 
 HashMap 是非线程安全的,在多线程环境下,多个线程同时触发 HashMap 的改变时,有可能会发生冲突。所以,在多线程环境下不建议使用 HashMap,可以考虑使用 Collections 将 HashMap 转为线程安全的 HashMap,更为推荐的方式则是使用 ConcurrentHashMap。
 
-## 7. 说说 ConcurrentHashMap？
+## 4. 说说 ConcurrentHashMap？
 
 得分点 数组+链表+红黑树、锁的粒度
 
@@ -169,12 +144,12 @@ HashMap 是非线程安全的,在多线程环境下,多个线程同时触发 Has
 
 ConcurrentHashMap 实现线程安全的难点在于多线程并发扩容,即当一个线程在插入数据时,若发现数组正在扩容,那么它就会立即参与扩容操作,完成扩容后再插入数据到新数组。在扩容的时候,多个线程共同分担数据迁移任务,每个线程负责的迁移数量是 `(数组长度 >>> 3) / CPU核心数`。 也就是说,为线程分配的迁移任务,是充分考虑了硬件的处理能力的。多个线程依据硬件的处理能力,平均分摊一部分槽的迁移工作。另外,如果计算出来的迁移数量小于 16,则强制将其改为 16,这是考虑到目前服务器领域主流的 CPU 运行速度,每次处理的任务过少,对于 CPU 的算力也是一种浪费。
 
-## 8. HashMap 、ConcurrentHashMap 和 Hashtable 的区别
+## 5. HashMap 、ConcurrentHashMap 和 Hashtable 的区别
 
 1. 线程安全：HashMap 是线程不安全；而 ConcurrentHashMap 和 Hashtable 是线程安全的。
 2. key 是否允许有 null 值：HashMap 允许有 null，但只能存在一个；而 ConcurrentHashMap 和 Hashtable 都不允许。
 
-## 9. 你知道哪些线程安全的集合？
+## 6. 你知道哪些线程安全的集合？
 
 得分点 Collections、java.util.concurrent (JUC)
 
