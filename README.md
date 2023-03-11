@@ -328,7 +328,7 @@
   <li><a href="#/分布式微服务/SpringCloud/Microservices-Overview">微服务概述</a></li>
   <li><a href="#/分布式微服务/SpringCloud/Spring-Cloud-Overview">Spring Cloud 概述</a></li>
   <li><a href="#/分布式微服务/SpringCloud/Spring-Cloud-Netflix">Spring Cloud Netflix（包含Eureka、Ribbon、Hystrix、Zuul等组件）</a></li>
-  <li><a href="#/分布式微服务/SpringCloud/Spring-Cloud-Alibaba">Spring Cloud Alibaba (包含Nacos、Sentinel等组件)</a></li>
+  <li><a href="#/分布式微服务/SpringCloud/Spring-Cloud-Alibaba">Spring Cloud Alibaba (包含Nacos、Sentinel、SMS短信服务、Seata等组件)</a></li>
   <li><a href="#/分布式微服务/SpringCloud/Spring-Cloud-OpenFeign">Spring Cloud OpenFeign 服务调用</a></li>
   <li><a href="#/分布式微服务/SpringCloud/Spring-Cloud-Consul">Spring Cloud Consul 注册中心</a></li>
   <li><a href="#/分布式微服务/SpringCloud/Spring-Cloud-Gateway">Spring Cloud Gateway 服务网关</a></li>

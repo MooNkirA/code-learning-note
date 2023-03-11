@@ -1112,3 +1112,29 @@ export LESSHARESET=utf-8
 ```
 
 > Notes: 注意以上内容配置时，删除`#`号的注释
+
+### 6.3. Git 在跨平台 CRLF 和 LF 的解决方案
+
+- mac 与 Unix 系统的换行使用 LF
+- windows 系统换行使用 CRLF
+
+因为不同系统的换行不一致，在多人协作共同开发的时候，可能导致提交代码时候产生问题。当使用git库提交代码的时候，不同的开发环境如果都是按照自己系统的方式任意修改换行类型，难免会让代码库整体混乱或者产生许多没有必要的代码更新。
+
+Git 可以可以使用 `core.autocrlf` 命令设置在 push 时自动地把行结束符 CRLF 转换成 LF，而在 pull 代码时把 LF 转换成 CRLF。如果是在 Windows 系统上，把它设置成 `true`，这样当签出代码时，LF 会被转换成 CRLF
+
+```bash
+git config --global core.autocrlf true
+```
+
+将 `core.autocrlf` 设置成 `input`，在 push 时把 CRLF 转换成 LF，pull 时不转换
+
+```bash
+git config --global core.autocrlf input
+```
+
+将 `core.autocrlf` 设置成 `false`，则在本地和代码库中都保留 CRLF，无论 pull 还是 push 都不变
+
+```bash
+git config --global core.autocrlf false
+```
+

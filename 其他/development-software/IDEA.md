@@ -1,11 +1,9 @@
-# IntelliJ IDEA
+## 1. IntelliJ IDEA 简介
+
+IDEA，全称 IntelliJ IDEA ，是 Java 语言的集成开发环境，目前已经（基本）代替了 Eclipse 的使用。IDEA 在业界被公认为是最好的 Java 开发工具（之一），因其功能强悍、设置人性化，而深受Java、大数据、移动端程序员的喜爱。尤其在智能代码助手、代码自动提示、重构、J2EE 支持、Ant、JUnit、CVS 整合、代码审查、创新的 GUI 设计等方面的功能可以说是超常的。
 
 > - 官网：https://www.jetbrains.com/idea/
 > - 官网提供的详细使用文档：https://www.jetbrains.com/help/idea/meet-intellij-idea.html
-
-## 1. 简介
-
-IDEA，全称 IntelliJ IDEA ，是 Java 语言的集成开发环境，目前已经（基本）代替了 Eclipse 的使用。IDEA 在业界被公认为是最好的 Java 开发工具（之一），因其功能强悍、设置人性化，而深受Java、大数据、移动端程序员的喜爱。尤其在智能代码助手、代码自动提示、重构、J2EE 支持、Ant、JUnit、CVS 整合、代码审查、创新的 GUI 设计等方面的功能可以说是超常的。
 
 > IntelliJ IDEA 在 2015 年的官网上介绍：
 >
@@ -590,6 +588,12 @@ Editor -> Reader Mode -> 取消勾选 【Enable Reader mode】
 新版
 
 ![](images/210351322247625.png)
+
+#### 4.3.17. 设置默认换行符
+
+点击【New Projects Setup】->【Settings for New Projects】，选择【Editor】->【Code Style】->【General】选项卡，其中 Line separator 有四个选项 `System-Dependent/LF/CR/CRLF`，默认是 `System-Dependent`，也就是根据你是什么系统选择什么类型，如果想要自定义的话可以在这里设置，以后创建的新代码也默认用设置的方式
+
+![](images/594171823230351.png)
 
 ### 4.4. Inspections（安全检查配置）
 
