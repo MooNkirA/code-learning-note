@@ -1,7 +1,3 @@
-# Activiti 工作流引擎基础
-
-> 官方网站：https://www.activiti.org/
-
 ## 1. 工作流介绍
 
 ### 1.1. 概念
@@ -42,6 +38,8 @@ Activiti 是一个工作流引擎，是轻量级、以 java 为中心的开源 B
 Activiti Cloud 是新一代的商业自动化平台，提供了一套云端原生构建模块，旨在运行于分布式基础设施。<u>_截止 2022 年 6 月 23 日最新版本：Activiti Cloud 7.3.0.Beta_</u>
 
 经历的版本：Activiti 6.x 与 Activiti 5.x
+
+> Activiti 官方网站：https://www.activiti.org/
 
 #### 2.1.1. BPM
 

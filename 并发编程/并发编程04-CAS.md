@@ -1,5 +1,3 @@
-# 并发编程 - CAS 原子操作
-
 ## 1. 原子操作
 
 假定有两个操作 A 和 B，如果从执行 A 的线程来看，当另一个线程执行 B 时，要么将 B 全部执行完，要么完全不执行 B，那么 A 和 B 对彼此来说是原子的。
@@ -108,6 +106,73 @@ System.out.println(i.getAndAccumulate(10, (p, x) -> p + x));
 // 计算并获取（i = 10, p 为 i 的当前值, x 为参数1, 结果 i = 0, 返回 0）
 // 其中函数中的操作能保证原子，但函数需要无副作用
 System.out.println(i.accumulateAndGet(-10, (p, x) -> p + x));
+```
+
+#### 4.1.1. 通过 CAS 实现锁
+
+> Tips: 注意不要用于实际开发生产！
+
+定义使用原子操作工具类 `AtomicInteger` 的 CAS 来实现锁
+
+```java
+public class LockCas {
+    private AtomicInteger state = new AtomicInteger(0);
+
+    public void lock() {
+        while (true) {
+            if (state.compareAndSet(0, 1)) {
+                break;
+            }
+        }
+    }
+
+    public void unlock() {
+        log.debug("unlock...");
+        state.set(0);
+    }
+}
+```
+
+测试：
+
+```java
+@Test
+public void lockCasTest() throws InterruptedException {
+    LockCas lock = new LockCas();
+    new Thread(() -> {
+        log.debug("begin...");
+        lock.lock();
+        try {
+            log.debug("lock...");
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } finally {
+            lock.unlock();
+        }
+    }).start();
+    new Thread(() -> {
+        log.debug("begin...");
+        lock.lock();
+        try {
+            log.debug("lock...");
+        } finally {
+            lock.unlock();
+        }
+    }).start();
+    Thread.sleep(2500);
+}
+```
+
+测试结果：
+
+```java
+2023-03-13 17:15:42.220 [Thread-2] DEBUG com.moon.java.common.test.BasicTest - begin...
+2023-03-13 17:15:42.220 [Thread-1] DEBUG com.moon.java.common.test.BasicTest - begin...
+2023-03-13 17:15:42.222 [Thread-2] DEBUG com.moon.java.common.test.BasicTest - lock...
+2023-03-13 17:15:42.222 [Thread-2] DEBUG com.moon.java.common.test.BasicTest - unlock...
+2023-03-13 17:15:42.222 [Thread-1] DEBUG com.moon.java.common.test.BasicTest - lock...
+2023-03-13 17:15:43.236 [Thread-1] DEBUG com.moon.java.common.test.BasicTest - unlock...
 ```
 
 ### 4.2. 原子引用
@@ -409,7 +474,7 @@ public class BasicTest {
 
 - `java.util.concurrent.atomic.LongAdder`
 
-#### 4.5.1. 累加性能比较
+#### 4.5.1. 累加器性能比较
 
 比较 `AtomicLong` 与 `LongAdder` 示例：
 

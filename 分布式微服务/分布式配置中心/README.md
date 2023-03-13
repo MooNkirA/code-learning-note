@@ -84,4 +84,4 @@ Sping Cloud Alibaba 技术栈中的一个组件，2018年6月，阿里开源的�
 
 ### 3.3. Nacos Config
 
-具体内容详见：[Spring-Cloud-Alibaba.md](/分布式微服务/SpringCloud/Spring-Cloud-Alibaba?id=spring-cloud-alibaba-nacos-config)
+具体内容详见：《Spring-Cloud-Alibaba-Nacos》笔记的[nacos config 章节](/分布式微服务/SpringCloud/Spring-Cloud-Alibaba-Nacos?id=_6-nacos-config-概述)

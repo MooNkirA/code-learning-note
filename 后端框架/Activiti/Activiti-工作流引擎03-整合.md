@@ -1,5 +1,3 @@
-# Activiti 工作流引擎整合开发
-
 > Notes: 以下都是简单的整合示例，没有涉及真正的业务逻辑
 
 ## 1. Activiti7 与 Spring 整合开发
