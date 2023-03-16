@@ -48,7 +48,7 @@ CAS 需要在操作值的时候，检查值有没有发生变化，如果没有�
 
 ### 3.2. 循环时间长开销大
 
-自旋 CAS 如果长时间不成功，会给 CPU 带来非常大的执行开销。
+CAS 操作如果长时间不成功，会导致一直自旋，会给 CPU 带来非常大的执行开销。
 
 ### 3.3. 只能保证一个共享变量的原子操作
 
@@ -62,9 +62,69 @@ CAS 需要在操作值的时候，检查值有没有发生变化，如果没有�
 
 在 J.U.C 并发包提供了整数类型数据的原子操作工具类，分别如下：
 
-- `java.util.concurrent.atomic.AtomicBoolean`
-- `java.util.concurrent.atomic.AtomicInteger`
-- `java.util.concurrent.atomic.AtomicLong`
+- `java.util.concurrent.atomic.AtomicBoolean` 布尔型原子类
+- `java.util.concurrent.atomic.AtomicInteger` 整型原子类
+- `java.util.concurrent.atomic.AtomicLong` 长整型原子类
+
+#### 4.1.1. 常用方法
+
+列举 `AtomicInteger` 类常用的方法：
+
+```java
+public final int get()
+```
+
+- 获取当前的值
+
+```java
+public final int getAndSet(int newValue)
+```
+
+- 获取当前的值，并设置新的值
+
+```java
+public final int getAndIncrement()
+```
+
+- 获取当前的值，后自增
+
+```java
+public final int incrementAndGet()
+```
+
+- 先自增，再获取自增后的值
+
+```java
+public final int getAndDecrement()
+```
+
+- 获取当前的值，后自减
+
+```java
+public final int decrementAndGet()
+```
+
+- 先自减，再获取自减后的值
+
+```java
+public final int getAndAdd(int delta)
+```
+
+- 获取当前的值，并加上预期的值
+
+```java
+public final boolean compareAndSet(int expect, int update)
+```
+
+- 如果输入的数值等于预期值，则以原子方式将该值设置为输入值（update）
+
+```java
+public final void lazySet(int newValue)
+```
+
+- 最终设置为 newValue，使用 lazySet 设置之后可能导致其他线程在之后的一小段时间内还是可以读到旧的值。
+
+#### 4.1.2. 基础 API 使用示例
 
 以 `AtomicInteger` 为例，相关 API 的使用如下：
 
@@ -108,7 +168,7 @@ System.out.println(i.getAndAccumulate(10, (p, x) -> p + x));
 System.out.println(i.accumulateAndGet(-10, (p, x) -> p + x));
 ```
 
-#### 4.1.1. 通过 CAS 实现锁
+#### 4.1.3. 通过 CAS 实现锁
 
 > Tips: 注意不要用于实际开发生产！
 
@@ -179,9 +239,9 @@ public void lockCasTest() throws InterruptedException {
 
 在 J.U.C 并发包提供了引用类型数据的原子操作工具类，分别如下：
 
-- `java.util.concurrent.atomic.AtomicReference`
-- `java.util.concurrent.atomic.AtomicStampedReference`
-- `java.util.concurrent.atomic.AtomicMarkableReference`
+- `java.util.concurrent.atomic.AtomicReference` 引用类型原子类
+- `java.util.concurrent.atomic.AtomicStampedReference` 带有版本号的引用类型原子类。该类将整数值与引用关联起来，可用于解决原子的更新数据和数据的版本号，可以解决使用 CAS 进行原子更新时可能出现的 ABA 问题。
+- `java.util.concurrent.atomic.AtomicMarkableReference` 原子更新带有标记的引用类型。该类将 boolean 标记与引用关联起来
 
 #### 4.2.1. AtomicReference
 
@@ -355,9 +415,57 @@ class GarbageBag {
 
 在 J.U.C 并发包提供了数组类型的原子操作工具类，分别如下：
 
-- `java.util.concurrent.atomic.AtomicIntegerArray`
-- `java.util.concurrent.atomic.AtomicLongArray`
-- `java.util.concurrent.atomic.AtomicReferenceArray`
+- `java.util.concurrent.atomic.AtomicIntegerArray` 整形数组原子类
+- `java.util.concurrent.atomic.AtomicLongArray` 长整形数组原子类
+- `java.util.concurrent.atomic.AtomicReferenceArray` 引用类型数组原子类
+
+#### 4.3.1. 常用方法
+
+以 `AtomicIntegerArray` 类为例，常用方法：
+
+```java
+public final int get(int i)
+```
+
+- 获取 index=i 位置元素的值    
+
+```java
+public final int getAndSet(int i, int newValue)
+```
+
+- 返回 index=i 位置的当前的值，并将其设置为新值：newValue
+
+```java
+public final int getAndIncrement(int i)
+```
+
+- 获取 index=i 位置元素的值，并让该位置的元素自增
+
+```java
+public final int getAndDecrement(int i)
+```
+
+- 获取 index=i 位置元素的值，并让该位置的元素自减
+
+```java
+public final int getAndAdd(int i, int delta)
+```
+
+- 获取 index=i 位置元素的值，并加上预期的值
+
+```java
+public final boolean compareAndSet(int i, int expect, int update)
+```
+
+- 如果输入的数值等于预期值，则以原子方式将 index=i 位置的元素值设置为输入值（update）
+
+```java
+public final void lazySet(int i, int newValue)
+```
+
+- 最终将 index=i 位置的元素设置为 newValue，使用 lazySet 设置之后可能导致其他线程在之后的一小段时间内还是可以读到旧的值。
+
+#### 4.3.2. 基础使用示例
 
 数组不安全的操作示例：
 

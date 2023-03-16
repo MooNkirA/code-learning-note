@@ -1,10 +1,8 @@
-# 并发编程 - Abstract Queued Synchronizer(AQS) 队列同步器
-
 ## 1. AQS 概述
 
 早期程序员会通过一种同步器去实现另一种相近的同步器，例如用可重入锁去实现信号量，或反之。这显然不够优雅，于是在 JSR166（java 规范提案）中创建了 AQS，提供了这种通用的同步器机制。
 
-队列同步器 AbstractQueuedSynchronizer（简称同步器或 AQS），是一个抽象的队列同步器，是用来构建**阻塞式锁或者相关同步组件的基础框架**。
+队列同步器 AbstractQueuedSynchronizer（简称同步器或 AQS），是一个抽象的队列同步器，是用来构建**阻塞式锁或者相关同步组件的基础框架**。许多并发工具的实现都依赖于它，如常用的 `ReentrantLock`/`Semaphore`/`CountDownLatch`。
 
 ```java
 public abstract class AbstractQueuedSynchronizer
@@ -12,7 +10,7 @@ public abstract class AbstractQueuedSynchronizer
     implements java.io.Serializable
 ```
 
-AQS 它使用了一个 int 类型的共享成员变量表示同步状态，通过内置的 FIFO (先进先出)的线程等待队列来完成资源获取线程的排队工作，类似于 Monitor 的 EntryList。而条件变量用于实现等待、唤醒机制，支持多个条件变量，类似于 Monitor 的 WaitSet
+AQS 它使用了一个 int 类型的共享成员变量 `state` 表示同步状态，通过内置的 FIFO (先进先出)的线程等待队列来完成资源获取线程的排队工作，类似于 Monitor 的 EntryList。而条件变量用于实现等待、唤醒机制，支持多个条件变量，类似于 Monitor 的 WaitSet
 
 > *并发包的大师（Doug Lea）期望它能够成为实现大部分同步需求的基础*
 
@@ -136,6 +134,10 @@ AQS 核心思想是，如果被请求的共享资源空闲，则将当前请求�
 
 ![](images/218484510221142.png)
 
+同步器依赖内部的同步队列（一个 FIFO 双向队列）来完成同步状态的管理，当前线程获取同步状态失败时，同步器会将当前线程以及等待状态（独占或共享）构造成为一个节点（Node）并将其加入同步队列并进行自旋，当同步状态释放时，会把首节点中的后继节点对应的线程唤醒，使其再次尝试获取同步状态。
+
+![](images/113280915248783.png)
+
 ### 2.1. state：状态
 
 AQS 维护了一个 `volatile int` 类型的成员变量 `state`，用于表示当前资源的同步状态（分独占模式和共享模式）。通过内置的 FIFO 队列来完成获取资源线程的排队工作，AQS 使用 CAS 对该同步状态进行原子操作实现对其值的修改
@@ -179,7 +181,34 @@ AQS 是一个框架，只定义了一个接口，具体资源的获取、释放�
 
 自定义同步器的主要方法如下：
 
-![](images/175110511239568.png)
+```java
+protected boolean isHeldExclusively()
+```
+
+- 查询该线程是否正在独占资源，只有用到 condition 需要去实现它
+
+```java
+protected boolean tryAcquire(int arg)
+```
+
+- 尝试获取独占式资源：成功则返回 true，失败则返回 false
+
+```java
+protected boolean tryRelease(int arg)
+```
+
+- 尝试释放独占式资源：成功则返回 true，失败则返回 false
+
+```java
+protected int tryAcquireShared(int arg)
+```
+- 尝试获取共享式资源：负数表示失败；0 表示成功，但没有剩余可用资源；正数表示成功，且有剩余资源
+
+```java
+protected boolean tryReleaseShared(int arg)
+```
+
+- 尝试释放共享式资源：如果释放资源后允许唤醒后续等待线程，则返回 true，否则返回 false
 
 > Tips: 同步器的实现是 AQS 的核心。以上方法均默认抛出 `UnsupportedOperationException`
 

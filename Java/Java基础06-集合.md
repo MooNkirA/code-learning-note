@@ -1421,6 +1421,12 @@ Hashtable 与 HashMap 都是 Map 接口的实现类。
 - **执行效率**：Hashtable 很多方法是同步方法，在单线程环境下它效率低，比 HashMap 要低。
 - **哈希值**：HashTable 直接使用对象的 hashCode；而 HashMap 重新计算 hash 值。
 
+#### 6.9.2. SynchronizedMap 和 ConcurrentHashMap 有什么区别
+
+`SynchronizedMap` 是 `Collections` 集合工具类的内部类，一次锁住整张表来保证线程安全，所以每次只能有一个线程来访问 map。
+
+JDK1.8 `ConcurrentHashMap` 采用 CAS 和 `synchronized` 来保证并发安全。数据结构采用数组+链表/红黑二叉树。`synchronized` 只锁定当前链表或红黑二叉树的首节点，支持并发访问、修改。另外 `ConcurrentHashMap` 使用了一种不同的迭代方式。当 `iterator` 被创建后集合再发生改变就不再是抛出 `ConcurrentModificationException`，取而代之的是在改变时 new 新的数据从而不影响原有的数据，`iterator` 完成后再将头指针替换为新的数据，这样 `iterator` 线程可以使用原来老的数据，而写线程也可以并发的完成改变。
+
 ## 7. 集合相关的工具类API
 
 ### 7.1. Collections 工具类

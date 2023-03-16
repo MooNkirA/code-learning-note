@@ -333,7 +333,26 @@ Linux/Unix/Mac 关闭服务器
 sh shutdown.sh
 ```
 
-#### 2.6.6. 服务注册&发现和配置管理测试
+#### 2.6.6. 使用 Nginx 配置 Nacos 负载均衡
+
+修改 Nginx 配置，添加如下：
+
+```
+upstream nacos {
+    server 127.0.0.1:8841;
+    server 127.0.0.1:8842;
+    server 127.0.0.1:8853;
+}
+server {
+    listen 9090;
+    server_name localhost;
+    location /nacos/ {
+        proxy_pass http://nacos;
+    }
+}
+```
+
+#### 2.6.7. 服务注册&发现和配置管理测试
 
 配置完成后，发送以下请求进行测试
 
@@ -345,16 +364,21 @@ curl -X PUT 'http://127.0.0.1:8848/nacos/v1/ns/instance?serviceName=nacos.naming
 
 **服务发现**
 
-`curl -X GET 'http://127.0.0.1:8848/nacos/v1/ns/instance/list?serviceName=nacos.naming.serviceName'`
+```
+curl -X GET 'http://127.0.0.1:8848/nacos/v1/ns/instance/list?serviceName=nacos.naming.serviceName'
+```
 
 **发布配置**
 
-`curl -X POST "http://127.0.0.1:8848/nacos/v1/cs/configs?dataId=nacos.cfg.dataId&group=test&content=helloWorld"`
+```
+curl -X POST "http://127.0.0.1:8848/nacos/v1/cs/configs?dataId=nacos.cfg.dataId&group=test&content=helloWorld"
+```
 
 **获取配置**
 
-`curl -X GET "http://127.0.0.1:8848/nacos/v1/cs/configs?dataId=nacos.cfg.dataId&group=test"`
-
+```
+curl -X GET "http://127.0.0.1:8848/nacos/v1/cs/configs?dataId=nacos.cfg.dataId&group=test"
+```
 
 ### 2.7. 多集群模式
 
@@ -402,12 +426,11 @@ Spring Cloud 项目中，通过 Nacos Server 和 spring-cloud-starter-alibaba-na
 
 ![](images/20220101184857948_362.png)
 
-> TODO: 完整示例代码请参考：xxx
-
-
 > 前提条件：需要先下载 Nacos 并启动 Nacos server。
 
 以下示例是在 Spring Cloud 项目中启动 Nacos 的服务发现功能。以『商品模块』作为服务提供者，以『订单模块』作为服务消费方。
+
+> 完整示例代码请参考：https://github.com/MooNkirA/spring-cloud-note
 
 #### 3.2.1. Nacos Discovery Starter 依赖
 
