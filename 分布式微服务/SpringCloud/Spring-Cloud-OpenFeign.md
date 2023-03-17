@@ -118,11 +118,11 @@ public class OrderController {
 
 ## 4. Feign 的负载均衡
 
-Feign中本身已经集成了Ribbon依赖和自动配置，因此不需要额外引入依赖，也不需要再注册 `RestTemplate` 对象。
+Feign 本身已经集成了 Ribbon 依赖和自动配置，因此不需要额外引入依赖，也不需要再注册 `RestTemplate` 对象。
 
-配置负载均衡的方式与使用Ribbon的配置方式一致，即也可以通过修改项目配置文件中 `ribbon.xx` 来进行全局配置。也可以通过`服务名.ribbon.xx` 来对指定服务配置
+配置负载均衡的方式与使用 Ribbon 的配置方式一致，即也可以通过修改项目配置文件中 `ribbon.xx` 来进行全局配置。也可以通过`服务名.ribbon.xx` 来对指定服务配置
 
-启动两个`shop-service-product`服务，重新测试可以发现使用Ribbon的轮询策略进行负载均衡
+启动两个`shop-service-product`服务，重新测试可以发现使用 Ribbon 的轮询策略进行负载均衡
 
 ![](images/20201015140621794_15061.png)
 
@@ -130,7 +130,7 @@ Feign中本身已经集成了Ribbon依赖和自动配置，因此不需要额外
 
 ### 5.1. Feign 可配置项说明
 
-从Spring Cloud Edgware 版本开始，Feign支持使用属性自定义Feign。对于一个指定名称的Feign Client（例如该Feign Client的名称为 feignName ），Feign支持如下配置项：
+从 Spring Cloud Edgware 版本开始，Feign 支持使用属性自定义 Feign。对于一个指定名称的 Feign Client（例如该 Feign Client 的名称为 feignName ），Feign支持如下配置项：
 
 ```yml
 # Feign 属性配置
