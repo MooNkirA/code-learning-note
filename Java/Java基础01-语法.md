@@ -36,21 +36,21 @@ Java 源程序与编译型运行区别
 
 ### 1.2. 类、方法和变量修饰符
 
-|     关键字      |             说明             |
-| :------------: | ---------------------------- |
-|   `abstract`   | 声明抽象                      |
-|    `class`     | 类                           |
-|   `extends`    | 扩充，继承                    |
-|    `final`     | 最终值，不可改变的             |
-|  `implements`  | 实现（接口）                  |
-|  `interface`   | 接口                         |
+|     关键字      |            说明            |
+| :------------: | -------------------------- |
+|   `abstract`   | 声明抽象                    |
+|    `class`     | 类                         |
+|   `extends`    | 扩充，继承                   |
+|    `final`     | 最终值，不可改变的            |
+|  `implements`  | 实现（接口）                 |
+|  `interface`   | 接口                       |
 |    `native`    | 本地，原生方法（非 Java 实现） |
-|     `new`      | 新，创建                      |
-|    `static`    | 静态                         |
-|   `strictfp`   | 严格，精准                    |
-| `synchronized` | 线程，同步                    |
-|  `transient`   | 短暂                         |
-|   `volatile`   | 易失                         |
+|     `new`      | 新，创建                    |
+|    `static`    | 静态                       |
+|   `strictfp`   | 严格，精准                   |
+| `synchronized` | 线程，同步                   |
+|  `transient`   | 短暂                       |
+|   `volatile`   | 易失                       |
 
 实现一些其他的功能，Java 也提供了许多非访问修饰符。
 
@@ -61,66 +61,75 @@ Java 源程序与编译型运行区别
 
 ### 1.3. 程序控制语句
 
-|    关键字     |           说明            |
-| :----------: | ------------------------ |
-|   `break`    | 跳出循环                  |
-|  `continue`  | 继续                      |
-|  `default`   | 默认                      |
-|     `do`     | 运行                      |
-|    `else`    | 否则                      |
-|    `for`     | 循环                      |
-|     `if`     | 如果                      |
-| `instanceof` | 实例                      |
-|   `return`   | 返回                      |
-|   `switch`   | 根据值选择执行             |
+|    关键字     |           说明           |
+| :----------: | ----------------------- |
+|   `break`    | 跳出循环                 |
+|  `continue`  | 继续                     |
+|  `default`   | 默认                     |
+|     `do`     | 运行                     |
+|    `else`    | 否则                     |
+|    `for`     | 循环                     |
+|     `if`     | 如果                     |
+| `instanceof` | 实例                     |
+|   `return`   | 返回                     |
+|   `switch`   | 根据值选择执行            |
 |    `case`    | 定义一个值以供 switch 选择 |
-|   `while`    | 循环                      |
+|   `while`    | 循环                     |
 
 ### 1.4. 错误处理
 
-|   关键字   |         说明         |
-| :-------: | -------------------- |
+|   关键字   |        说明         |
+| :-------: | ------------------ |
 | `assert`  | 断言表达式是否为真     |
-|  `catch`  | 捕捉异常              |
-| `finally` | 有没有异常都执行       |
-|  `throw`  | 抛出一个异常对象       |
+|  `catch`  | 捕捉异常             |
+| `finally` | 有没有异常都执行      |
+|  `throw`  | 抛出一个异常对象      |
 | `throws`  | 声明一个异常可能被抛出 |
-|   `try`   | 捕获异常              |
+|   `try`   | 捕获异常             |
 
 ### 1.5. 包相关
 
 |   关键字   | 说明 |
-| :-------: | ---- |
+| :-------: | --- |
 | `import`  | 引入 |
 | `package` | 包   |
 
 ### 1.6. 基本类型
 
-|   关键字   |    说明    |
-| :-------: | --------- |
+|   关键字   |   说明    |
+| :-------: | -------- |
 | `boolean` | 布尔型     |
 |  `byte`   | 字节型     |
 |  `char`   | 字符型     |
 | `double`  | 双精度浮点 |
 |  `float`  | 单精度浮点 |
-|   `int`   | 整型       |
+|   `int`   | 整型      |
 |  `long`   | 长整型     |
 |  `short`  | 短整型     |
 
 ### 1.7. 变量引用
 
 |  关键字  |   说明    |
-| :-----: | --------- |
+| :-----: | -------- |
 | `super` | 父类，超类 |
 | `this`  | 本类      |
 | `void`  | 无返回值   |
 
 ### 1.8. 保留关键字
 
-|  关键字  |        说明         |
-| :-----: | ------------------ |
+|  关键字  |       说明        |
+| :-----: | ---------------- |
 | `goto`  | 是关键字，但不能使用 |
 | `const` | 是关键字，但不能使用 |
+
+### 1.9. JAVA 转义字符
+
+|   作用   | 转义字符 |  作用  | 转义字符 |
+| :-----: | :-----: | :---: | :-----: |
+|  退格键  |  `\b`   | Tab键 |  `\t`   |
+| 换行符号 |  `\n`   |  进纸  |  `\f`   |
+|  回车键  |  `\r`   | 反斜杠 |  `\\`   |
+|  单引号  |  `\'`   | 双引号 |  `\"`   |
 
 ## 2. Java 基本数据类型（整理中）
 
@@ -153,6 +162,61 @@ char letter = 'A';
 > - 含义上：字符常量相当于一个整形值(ASCII值)，可以参加表达式运算；字符串常量代表一个地址值(该字符串在内存中存放位置)
 > - 占内存大小：字符常量只占一个字节；字符串常量占若干个字节(至少一个字符结束标志)
 
+### 2.2. 数值类型之间的转换
+
+![](images/102203012236637.jpg)
+
+上图是数值类型之间的合法转换，其中6个实心箭头表示无信息丢失的转换；3个虚箭头，表示可能有精度损失的转换。
+
+### 2.3. 强制类型转换
+
+强制类型转换，可能会出现精度的损失。
+
+语法格式：
+
+```java
+类型1 x = xxx;
+类型2 y = (类型2) x;
+```
+
+> Notes: 如果试图将一个数值从一种类型强制转换为另一种类型，而又超出了目标类型的表示范围，结果就会截断成一个完全不同的值。如：`(byte) 300` 强制类型转换后的实际值为 44。
+
+如果想对浮点数进行舍入运算，为了得到最接近的整数，很多情况下会使用 `Math.round` 静态方法
+
+```java
+double x = 9.997;
+int y = (int) Math.round(x);
+```
+
+扩展的赋值运算符，隐含了强制类型转换。
+
+```java
+a += 20;
+// 相当于
+a = (a的数据类型)(a + 20);
+```
+
+为了保留两位小数，利用数据类型强制转换可以实现
+
+```java
+d = 11.853333;
+d * 100 = 1185.3333;
+(int)(d * 100) = 1185;
+(int)(d * 100)/100.0 = 11.85;
+```
+
+注意：最后一步除以 100 的时候，必须写成 `100.0`，这个才会根据数据隐性转换原理，最后得出来的结果是浮点型。
+
+### 2.4. 字符存储数值
+
+大写字母与小写字母的 ASCII 码相差 32
+
+```java
+'A'=65;
+'a'=97;
+'0'=48;
+```
+
 ## 3. 权限修饰符
 
 **权限大小顺序**：`private < 默认 < protected < public`
@@ -164,12 +228,12 @@ char letter = 'A';
 
 **修饰符权限列表图**：
 
-|                       | public | protected | 空的（default） | private |
-| --------------------- | :----: | :-------: | :-------------: | :-----: |
-| 同一类中               |   ✔    |     ✔     |       ✔       |    ✔    |
+|                      | public | protected | 空的（default） | private |
+| -------------------- | :----: | :-------: | :------------: | :-----: |
+| 同一类中              |   ✔    |     ✔     |       ✔       |    ✔    |
 | 同一包中（子类与无关类） |   ✔    |     ✔     |       ✔       |         |
-| 不同包的子类            |   ✔    |     ✔     |                 |         |
-| 不同包中的无关类         |   ✔    |           |                 |         |
+| 不同包的子类           |   ✔    |     ✔     |                |         |
+| 不同包中的无关类        |   ✔    |           |                |         |
 
 > 类的成员不写访问修饰时默认为`default`。默认对于同一个包中的其他类相当于公开（`public`），对于不是同一个包中的其他类相当于私有（`private`）。受保护（`protected`）对子类相当于公开，对不是同一包中的没有父子关系的类相当于私有。
 
@@ -900,60 +964,7 @@ public class Test01 {
 1. 参数列表中只能有一个可变参数
 2. 如果出现不同类型的参数，可变参数必须放在参数列表的最后
 
-## 9. Java类的初始化顺序
-
-Java类的创建，相应的初始化顺序是：`静态变量` -> `静态代码块` -> `成员变量（全局变量）` -> `初始化代码块` -> `构造函数`。测试示例如下：
-
-```java
-public class InitSequenceBean {
-
-    private static String staticStr = initStaticMember();
-    private String str = initOrdinaryMember();
-
-    static {
-        System.out.println("静态代码块执行了....");
-    }
-
-    {
-        System.out.println("初始化代码块执行了....");
-    }
-
-    public InitSequenceBean() {
-        System.out.println("无参构造函数执行了....");
-    }
-
-    private static String initStaticMember() {
-        System.out.println("静态成员变量初始化....");
-        return "123";
-    }
-
-    private String initOrdinaryMember() {
-        System.out.println("普通成员变量初始化....");
-        return "abc";
-    }
-}
-```
-
-测试代码与结果
-
-```java
-@Test
-public void testInitializationSequence() {
-    InitSequenceBean bean = new InitSequenceBean();
-    System.out.println(bean);
-    /*
-     * 测试结果：
-     *  静态成员变量初始化....
-     *  静态代码块执行了....
-     *  普通成员变量初始化....
-     *  初始化代码块执行了....
-     *  无参构造函数执行了....
-     *  com.moon.java.basic.InitSequenceBean@ba8a1dc
-     */
-}
-```
-
-## 10. Java 运算符
+## 9. Java 运算符
 
 计算机的最基本用途之一就是执行数学运算，作为一门计算机语言，Java 也提供了一套丰富的运算符来操纵变量。运算符主分成以下几类：
 
@@ -964,7 +975,7 @@ public void testInitializationSequence() {
 - 赋值运算符
 - 其他运算符
 
-### 10.1. 算术运算符
+### 9.1. 算术运算符
 
 算术运算符用在数学表达式中，它们的作用和在数学中的作用一样。下表列出了所有的算术运算符。
 
@@ -1004,7 +1015,7 @@ public class Test {
 } 
 ```
 
-#### 10.1.1. 自增自减运算符
+#### 9.1.1. 自增自减运算符
 
 自增（`++`）自减（`--`）运算符是一种特殊的算术运算符，在算术运算符中需要两个操作数来进行运算，而自增自减运算符是一个操作数。又分以下两种：
 
@@ -1022,7 +1033,7 @@ public static void main(String args[]) {
 }
 ```
 
-### 10.2. 关系运算符
+### 9.2. 关系运算符
 
 算术运算符用在数学表达式中，它们的作用和在数学中的作用一样。下表列出了所有的算术运算符。
 
@@ -1052,7 +1063,7 @@ public static void main(String args[]) {
 }
 ```
 
-### 10.3. 位运算符
+### 9.3. 位运算符
 
 Java 定义了位运算符，应用于整数类型(int)，长整型(long)，短整型(short)，字符型(char)，和字节型(byte)等类型。
 
@@ -1110,7 +1121,7 @@ public static void main(String args[]) {
 }
 ```
 
-### 10.4. 逻辑运算符
+### 9.4. 逻辑运算符
 
 下表列出了逻辑运算符的基本运算，假设布尔变量A为真，变量B为假
 
@@ -1132,7 +1143,7 @@ public static void main(String args[]) {
 }
 ```
 
-#### 10.4.1. 短路逻辑运算符
+#### 9.4.1. 短路逻辑运算符
 
 当使用与逻辑运算符时，在两个操作数都为 true 时，结果才为 true，但是当得到第一个操作为 false 时，其结果就必定是 false，这时候就不会再判断第二个操作了。
 
@@ -1149,7 +1160,7 @@ public static void main(String args[]) {
 
 > 解析：该程序使用到了短路逻辑运算符(`&&`)，首先判断 `a<4` 的结果为 `false`，则 b 的结果必定是 `false`，所以不再执行第二个操作 `a++ < 10` 的判断，所以 a 的值为 5
 
-### 10.5. 赋值运算符
+### 9.5. 赋值运算符
 
 下面是Java语言支持的赋值运算符：
 
@@ -1205,7 +1216,7 @@ public static void main(String args[]) {
 }
 ```
 
-### 10.6. 条件运算符（三元运算符）
+### 9.6. 条件运算符（三元运算符）
 
 条件运算符也被称为三元运算符。该运算符有3个操作数，并且需要判断布尔表达式的值。该运算符的主要是决定哪个值应该赋值给变量。
 
@@ -1229,7 +1240,7 @@ public static void main(String args[]) {
 }
 ```
 
-#### 10.6.1. 三元表达式的类型转化规则
+#### 9.6.1. 三元表达式的类型转化规则
 
 > 引用阿里巴巴Java开发手册的规则：
 >
@@ -1244,12 +1255,12 @@ public static void main(String args[]) {
 - 若两个表达式类型不同，但类型不可转换，返回值类型为 Object 类型
 - 若两个表达式类型不同，但类型可以转化，先把包装数据类型转化为基本数据类型，然后按照基本数据类型的转换规则（`byte < short(char) < int < long < float < double`）来转化，返回值类型为优先级最高的基本数据类型。
 
-#### 10.6.2. 三元表达式使用建议
+#### 9.6.2. 三元表达式使用建议
 
 1. 如果三元表达式中有包装数据类型的算术计算，尽量避免使用三元表达式，可以考虑利用 if-else 语句代替。
 2. 如果在三元表达式中有算术计算，尽量使用基本数据类型，避免包装数据类型的拆装包。
 
-### 10.7. instanceof 运算符
+### 9.7. instanceof 运算符
 
 `instanceof` 运算符用于操作对象实例，检查该对象是否是一个特定类型（类类型或接口类型）。即判断父类引用指定的到底是哪一个子类类型的对象。使用格式如下：
 
@@ -1271,38 +1282,38 @@ Vehicle a = new Car();
 boolean result = a instanceof Car; // true
 ```
 
-#### 10.7.1. 注意事项
+#### 9.7.1. 注意事项
 
 毫无关系的两个对象不能进行判断。`instanceof` 关键字前面的对象和后面的类型必须是子父类关系或类实现接口关系
 
-### 10.8. Java 运算符优先级
+### 9.8. Java 运算符优先级
 
 当多个运算符出现在一个表达式中，就涉及到运算符的优先级别的问题。在一个多运算符的表达式中，运算符优先级不同会导致最后得出的结果差别甚大。
 
 下表中具有最高优先级的运算符在的表的最上面，最低优先级的在表的底部。
 
-| 类别     | 操作符                                                           | 关联性   |
-| :------- | :-------------------------------------------------------------- | :------- |
-| 后缀     | `()`、`[]`、`.`(点操作符)                                         | 左到右   |
-| 一元     | `expr++`、`expr--`                                              | 从左到右 |
-| 一元     | `++expr`、`--expr`、`+`、`-`、`～`、`!`                           | 从右到左 |
-| 乘性     | `*`、`/`、`%`                                                    | 左到右   |
-| 加性     | `+`、`-`                                                        | 左到右   |
-| 移位     | `>>`、`>>>`、`<<`                                                | 左到右   |
-| 关系     | `>`、`>=`、`<`、`<=`                                             | 左到右   |
-| 相等     | `==`、`!=`                                                      | 左到右   |
-| 按位与   | `&`                                                             | 左到右   |
-| 按位异或 | `^`                                                             | 左到右   |
-| 按位或   | `|`                                                             | 左到右   |
-| 逻辑与   | `&&`                                                            | 左到右   |
-| 逻辑或   | `||`                                                            | 左到右   |
-| 条件     | `? :`                                                           | 从右到左 |
+|   类别   |                             操作符                              |  关联性  |
+| ------ | ------------------------------------------------------------- | ------- |
+| 后缀     | `()`、`[]`、`.`(点操作符)                                        | 左到右   |
+| 一元     | `expr++`、`expr--`                                             | 从左到右 |
+| 一元     | `++expr`、`--expr`、`+`、`-`、`～`、`!`                          | 从右到左 |
+| 乘性     | `*`、`/`、`%`                                                  | 左到右   |
+| 加性     | `+`、`-`                                                       | 左到右   |
+| 移位     | `>>`、`>>>`、`<<`                                              | 左到右   |
+| 关系     | `>`、`>=`、`<`、`<=`                                            | 左到右   |
+| 相等     | `==`、`!=`                                                     | 左到右   |
+| 按位与   | `&`                                                           | 左到右   |
+| 按位异或 | `^`                                                           | 左到右   |
+| 按位或   | `|`                                                           | 左到右   |
+| 逻辑与   | `&&`                                                          | 左到右   |
+| 逻辑或   | `||`                                                          | 左到右   |
+| 条件     | `? :`                                                         | 从右到左 |
 | 赋值     | `=`、`+=`、`-=`、`*=`、`/=`、`%=`、`>>=`、`<<=`、`&=`、`^=`、`|=` | 从右到左 |
-| 逗号     | `,`                                                             | 左到右   |
+| 逗号     | `,`                                                           | 左到右   |
 
-## 11. Java 包装类（整理中）
+## 10. Java 包装类
 
-### 11.1. 概述
+### 10.1. 概述
 
 一般地，当需要使用数字的时候，通常使用内置数据类型，如：byte、int、long、double 等。所有的包装类（Integer、Long、Byte、Double、Float、Short）都是抽象类 Number 的子类。
 
@@ -1310,14 +1321,14 @@ boolean result = a instanceof Car; // true
 
 基本类型包装类的产生原因：其实就是基本类型对应的引用类型(包装类)。在实际开发中，用户输入的内容都是以字符串形式存在，需要参与数学运算时需要将字符串转换成对应的基本数据类型。
 
-### 11.2. 八种基本类型对应的包装类
+### 10.2. 八种基本类型对应的包装类
 
-| 基本类型 | 引用类型(包装类) | 基本类型 | 引用类型(包装类) |
-| -------- | --------------- | -------- | --------------- |
-| char     | Character       | long     | Long            |
-| int      | Integer         | float    | Float           |
-| byte     | Byte            | double   | Double          |
-| short    | Short           | boolean  | Boolean         |
+| 基本类型 | 引用类型(包装类) | 基本类型  | 引用类型(包装类) |
+| ------- | -------------- | ------- | -------------- |
+| char    | Character      | long    | Long           |
+| int     | Integer        | float   | Float          |
+| byte    | Byte           | double  | Double         |
+| short   | Short          | boolean | Boolean        |
 
 > Tips: 除了 char 与 int 的包装类之外，其他包装类类名称均为基本类型名称的首字母大写
 
@@ -1327,28 +1338,111 @@ int n = Integer.parseInt(String str);
 double d = Double.parseDouble(String str);
 ```
 
-### 11.3. 自动装箱和自动拆箱
+### 10.3. Integer
 
-JDK1.5后的新特性: 自动拆装箱
+#### 10.3.1. 概述
+
+```java
+public final class Integer extends Number implements Comparable<Integer> {
+    /**
+     * A constant holding the minimum value an {@code int} can
+     * have, -2<sup>31</sup>.
+     */
+     // 静态成员变量，直接用类名调用，返回整形的最小取值数
+    @Native public static final int   MIN_VALUE = 0x80000000;
+
+    /**
+     * A constant holding the maximum value an {@code int} can
+     * have, 2<sup>31</sup>-1.
+     */
+     // 静态成员变量，直接用类名调用，返回整形的最大取值数
+    @Native public static final int   MAX_VALUE = 0x7fffffff;
+    // 省略...
+}
+```
+
+#### 10.3.2. 核心方法
+
+```java
+public Integer(String s) throws NumberFormatException
+```
+
+- 构造一个新分配的 Integer 对象，它表示 String 参数所指示的 int 值。
+
+```java
+public Integer(int value)
+```
+
+- 构造一个新分配的 Integer 对象，它表示指定的 int 值。
+
+```java
+public int intValue()
+```
+
+- 将构造方法中指定的数字字符串转换基本数据类型
+
+```java
+public static int parseInt(String s) throws NumberFormatException
+```
+
+- 将字符串数字转换整数(传入s必须是数字字符串，不能有字母和空格)
+
+```java
+public String toString()
+```
+
+- 重写 Object 类的方法，将整数转换成字符串
+
+```java
+public static String toBinaryString(int i)
+```
+
+- 将指定的整数转成二进制字符串
+
+```java
+public static String toOctalString(int i)
+```
+
+- 将指定的整数转成八进制字符串
+
+```java
+public static String toHexString(int i)
+```
+
+- 将指定的整数转成十六进制字符串
+
+### 10.4. 自动装箱和自动拆箱
+
+自动拆装箱是 JDK 1.5 后的新特性
 
 - 自动装箱：Java自动将基本数据类型转换成其对应的包装类的过程就是自动装箱。
 
 ```java
-Integer i = 10; // 自动装箱
+Integer i = 10; // 自动装箱，本质是调用 Integer.valueOf(10)
 ```
 
 - 自动拆箱：Java自动将包装类转换为其对应的基本数据类型的过程就是自动拆箱。
 
 ```java
-int a = i; // 自动拆箱
+int a = i; // 自动拆箱，本质是调用 a.intValue()
 ```
 
 自动装拆箱的好处：基本数据类型的变量可以直接和对应的包装类引用变量进行数学运算。
 
-#### 11.3.1. 注意事项
+#### 10.4.1. 自动装拆箱的情况
+
+当基础类型与它们的包装类有如下几种情况时，编译器会自动帮我们进行装箱或拆箱：
+
+- 赋值操作（装箱或拆箱）
+- 进行加减乘除混合运算（拆箱）
+- 进行`>`、`<`、`==`比较运算（拆箱）
+- 调用`equals`进行比较（装箱）
+- `ArrayList`、`HashMap` 等集合类添加基础类型数据时（装箱）
+
+#### 10.4.2. 注意事项
 
 1. 自动拆箱和自动装箱是由编译器自动完成，根据语法来决定是否需要装箱和拆箱。
-2. 如果整型字面量的值在 -128 到 127 之间，那么自动装箱时不会创建新的 `Integer` 对象，而是直接引用常量池中的 `Integer` 对象，若超过范围才会创建新的对象
+2. 如果整型字面量的值在 -128 到 127 之间，那么自动装箱时不会创建新的 `Integer` 对象，而是直接引用常量池中的 `Integer` 对象，若超过范围才会创建新的对象（*经典面试题*）
 
 ```java
 Integer a = new Integer(3);
@@ -1368,128 +1462,52 @@ Integer b2 = 127;
 System.out.println(a2 == b2); // true
 ```
 
-# 其他综合内容
-
-## 1. JAVA 转义字符
-
-- 退格键：`\b`
-- Tab键：`\t`
-- 换行符号：`\n`
-- 进纸：`\f`
-- 回车键：`\r`
-- 反斜杠：`\\`
-- 单引号：`\'`
-- 双引号：`\"`
-
-## 2. 实体类 VO、PO、DO、DTO、BO、QO、DAO、POJO 的概念
-
-- DO（ Data Object）领域对象：与数据库表结构一一对应，通过DAO层向上传输数据源对象。
-- PO（persistant object）持久对象：在 o/r 映射的时候出现的概念，如果没有 o/r 映射，没有这个概念存在了。通常对应数据模型 ( 数据库 ), 本身还有部分业务逻辑的处理。可以看成是与数据库中的表相映射的 java 对象。最简单的 PO 就是对应数据库中某个表中的一条记录，多个记录可以用 PO 的集合。 PO 中应该不包含任何对数据库的操作
-- DTO（ Data Transfer Object）数据传输对象：Service或Manager向外传输的对象。这个概念来源于J2EE的设计模式，原来的目的是为了EJB的分布式应用提供粗粒度的数据实体，以减少分布式调用的次数，从而提高分布式调用的性能和降低网络负载，但在这里，泛指用于展示层与服务层之间的数据传输对象。
-- BO（ Business Object）业务对象：由Service层输出的封装业务逻辑的对象。
-- AO（ Application Object）应用对象：在Web层与Service层之间抽象的复用对象模型，极为贴近展示层，复用度不高。
-- VO（ View Object）显示层对象：通常是Web向模板渲染引擎层传输的对象。
-- POJO（ Plain Ordinary Java Object）：POJO专指只有setter/getter/toString的简单类，包括DO/DTO/BO/VO等。
-- Query：数据查询对象，各层接收上层的查询请求。注意超过2个参数的查询封装，禁止使用Map类来传输。
-
-## 3. 递归
-
-### 3.1. 递归概念
-
-递归，指在当前方法内调用自己的这种现象
-
-### 3.2. 递归分类
-
-- **直接递归**：方法A调用方法A。
-- **间接递归**：A 方法调用 B 方法，B 方法调用 C 方法，C 方法调用 A 方法。（间接递归实际开发中比较少用。）
-
-### 3.3. 递归注意事项
-
-- 递归一定要有出口；要有结束递归的条件。
-- 递归次数不能太多。
-- 构造方法中不能使用递归。
-
-递归算法：方法自身调用方法自身，<font color=red>**必须有方法出口(可以结束方法的条件)，递归次数不宜过多，会有 stackoverflow (栈内存溢出错误)。**</font>
-
-### 3.4. 递归扩展知识
-
-**递归是程序控制的另一种形式，实质上就是不用循环控制的重复**
-
-递归会产生相当大的系统开销，它耗费了太多时间并占用了太多的内存。有些本质上有递归特性的问题用其他方法很难解决。如果迭代能解决的方案，就使用迭代。迭代通常比递归效率更高
-
-递归方法是一个直接或间接调用自己的方法。要终止一个递归方法，必须有一个或多个基础情况（程序出口）。
-
-## 4. 分层开发思想
-
-### 4.1. 三层开发结构
-
-什么是分层：开发中，常使用分层思想。不同的层解决不同的问题，层与层之间组成严密的封闭系统，<font color=red>不同层级结构彼此平等。不能出现跨层访问</font>。
-
-- 表示层(View)：直接跟用户打交道，展示数据给用户查看或收集用户输入的信息。
-- 业务逻辑层(service)：对数据进行处理，比如筛选数据、判断数据准确性……
-- 数据访问层(dao)：直接对数据库进行增删改查操作。
-
-### 4.2. 分层的好处
-
-- 提高代码的复用性：不同层之间进行功能调用时，相同的功能可以重复使用。
-- 提高代码的维护性：提高软件的可维护性，对现有的功能进行修改和更新时不会影响原有的功能。
-- 提高代码的扩展性：提升软件的可扩展性，添加新的功能的时候不会影响到现有的功能。
-- 降低代码的耦合性：降低层与层之间的耦合性。
-
-### 4.3. 如何分层
-
-**不同的层使用不同的包**，例如：
-
-- 表现层：`com.xxx.view`
-- 业务逻辑层：`com.xxx.service`
-- 数据访问层：`com.xxx.dao`
-- 工具包：`com.xxx.utils`。一般用来存放工具类，不属于任何一层，可以被所有层调用
-- 测试包：`com.xxx.test`
-- 实体包：`com.xxx.entity`、`com.xxx.domain`等。用于存放一些自定义的JavaBean类
-
-### 4.4. 访问顺序
-
-用户 -> 表现层 -> 业务层 -> 数据访问层 -> 数据库
-
-### 4.5. 开发流程
-
-一般从下向上开发：dao 数据访问层 -> service 业务逻辑层 -> view 表示层
-
-## 5. 层污染
-
-### 5.1. 什么是层污染
-
-某一层中使用到了本不应该出现在该层的代码，则称为层污染。如：`Connection` 对象，应该出现在 DAO 层，而不应该出现在业务层。所以想办法把 `Connection` 对象从业务层中移出。
-
-如果调用工具类的方法，不存在层污染，因为工具类属于每个层可以使用的。
-
-### 5.2. 如何解决层污染的问题
-
-以事务处理为例：
-
-1. 数据库工具类添加开启事务，提交事务，回滚事务的方法
-2. 提交事务或回滚事务以后，关闭连接，并且从当前线程中删除 `Connection` 对象。
-3. 业务层调用工具类中的方法操作事务，如果没有异常则提交事务，出现异常则事务回滚。并且抛出运行时异常给表示层。
-
-## 6. GUI 图形用户界面 (了解)
-
-Graphical User Interface，简称 GUI
+以上示例通过查看 Integer 类的源码可知：
 
 ```java
-JOptionPane.showMessageDialog(null, x);
+public static Integer valueOf(int i) {
+    if (i >= IntegerCache.low && i <= IntegerCache.high)
+        return IntegerCache.cache[i + (-IntegerCache.low)];
+    return new Integer(i);
+}
 ```
-x就是要显示的文本字符串，如："Welcome to Java."	用于弹出消息对话框，需要导包
+
+示例中的 a1 因为超过 127，所以会调用 `Integer.valueOf(128)` 进行自动拆箱，而从源码可知，该方法并不是直接进行 `new Integer` 操作，而是用内部类 `IntegerCache` 的 `cache[]` 数组中获取数据（即直接引用常量池中的 `Integer` 对象）
 
 ```java
-JOptionPane.showMessageDialog(null, x, y, JOptionPane.INFORMATION_MESSAGE);
+private static class IntegerCache {
+    static final int low = -128;
+    static final int high;
+    static final Integer cache[];
+
+    static {
+        // high value may be configured by property
+        int h = 127;
+        String integerCacheHighPropValue =
+            sun.misc.VM.getSavedProperty("java.lang.Integer.IntegerCache.high");
+        if (integerCacheHighPropValue != null) {
+            try {
+                int i = parseInt(integerCacheHighPropValue);
+                i = Math.max(i, 127);
+                // Maximum array size is Integer.MAX_VALUE
+                h = Math.min(i, Integer.MAX_VALUE - (-low) -1);
+            } catch( NumberFormatException nfe) {
+                // If the property cannot be parsed into an int, ignore it.
+            }
+        }
+        high = h;
+
+        cache = new Integer[(high - low) + 1];
+        int j = low;
+        for(int k = 0; k < cache.length; k++)
+            cache[k] = new Integer(j++);
+
+        // range [-128, 127] must be interned (JLS7 5.1.7)
+        assert IntegerCache.high >= 127;
+    }
+
+    private IntegerCache() {}
+}
 ```
 
-X是显示的文本字符串，y是表示消息对话框标题的字符串。第四个参数可以是 `JOptionPane.INFORMATION_MESSAGE` (它是为了让消息框能够显示图标(`!`))
-
-如果是 `JOptionPane.QUESTION_MESSAGE` 让消息框能够显示图标(`?`)
-
-从输入对话框获取输入
-
-```java
-JOptionPane.showInputDialog("xxx")
-```
+默认 Integer cache 的下限是 -128，上限默认 127。当赋值 127 给 Integer 时，刚好在这个范围内，所以从 cache 中取对应的 Integer 并返回，所以 a2 和 b2 返回的是同一个对象，所以使用`==`比较是相等的，当赋值 128 给 Integer 时，不在 cache 的范围内，所以会 `new Integer` 创建新的对象并返回，比较的结果必然不相等的。

@@ -21,10 +21,12 @@
   <li><a href="#/Java/Java基础13-Java8新特性">Java基础 - Java 8 新特性</a></li>
   <li><a href="#/Java/Java基础14-正则表达式">Java基础 - 正则表达式</a></li>
   <li><a href="#/Java/Java基础99-JDK常用API">Java基础 - JDK常用API</a></li>
+  <li><a href="#/Java/Java扩展00-综合知识">Java扩展 - 综合知识</a></li>
   <li><a href="#/Java/Java扩展01-设计模式">Java扩展 - 设计模式</a></li>
   <li><a href="#/Java/Java扩展02-代码简洁之道">Java扩展 - 代码简洁之道</a></li>
   <li><a href="#/Java/Java扩展03-数据结构">Java扩展 - 数据结构</a></li>
   <li><a href="#/Java/Java扩展04-排序算法">Java扩展 - 排序算法</a></li>
+  <li><a href="#/Java/Java扩展05-JDK集合类源码分析">Java扩展 - JDK 集合类源码分析</a></li>
   <li><a href="#/Java/Java扩展99-程序案例">Java扩展 - 程序案例</a></li>
 </ul>
 
@@ -99,15 +101,16 @@
 ### 🔧 工具框架
 
 <ul class="docs">
-  <li><a href="#/后端框架/工具框架/Gson">Gson（JSON处理工具类库）</a></li>
-  <li><a href="#/后端框架/工具框架/iTextPdf">iTextPdf（PDF操作工具类库）</a></li>
+  <li><a href="#/后端框架/工具框架/JUnit">JUnit（Java 单元测试工具框架）</a></li>
+  <li><a href="#/后端框架/工具框架/Gson">Gson（JSON 处理工具类库）</a></li>
+  <li><a href="#/后端框架/工具框架/iTextPdf">iTextPdf（PDF 操作工具类库）</a></li>
   <li><a href="#/后端框架/工具框架/BloomFilter">BloomFilter（布隆过滤器）</a></li>
-  <li><a href="#/后端框架/工具框架/Java-Logging">Java日志工具类库</a></li>
-  <li><a href="#/后端框架/工具框架/Guava">Guava（Google基于Java类库扩展）</a></li>
+  <li><a href="#/后端框架/工具框架/Java-Logging">Java 日志工具类库</a></li>
+  <li><a href="#/后端框架/工具框架/Guava">Guava（Google 基于 Java 类库扩展）</a></li>
   <li><a href="#/后端框架/工具框架/Netty">Netty（网络应用程序框架）</a></li>
   <li><a href="#/后端框架/工具框架/Lombok">Lombok 实体类工具插件</a></li>
-  <li><a href="#/后端框架/工具框架/Apache-Commons-IO">Apache Commons IO（IO操作工具类库）</a></li>
-  <li><a href="#/后端框架/工具框架/Apache-Commons-Lang">Apache Commons Lang（Java基础API增强的工具包）</a></li>
+  <li><a href="#/后端框架/工具框架/Apache-Commons-IO">Apache Commons IO（IO 操作工具类库）</a></li>
+  <li><a href="#/后端框架/工具框架/Apache-Commons-Lang">Apache Commons Lang（Java 基础 API 增强的工具包）</a></li>
   <li><a href="#/后端框架/工具框架/PowerMock">PowerMock (单元测试模拟框架)</a></li>
   <li><a href="#/后端框架/工具框架/Swagger">Swagger 接口文档工具(包含 knife4j 增强框架)</a></li>
   <li><a href="#/后端框架/工具框架/Drools">Drools 规则引擎</a></li>
@@ -260,6 +263,7 @@
   <li><a href="#/DevOps/版本管理工具/Git-01-基础">Git 笔记 - 基础篇</a></li>
   <li><a href="#/DevOps/版本管理工具/Git-02-安装">Git 笔记 - 安装篇</a></li>
   <li><a href="#/DevOps/版本管理工具/Git-03-客户端">Git 笔记 - 客户端使用篇</a></li>
+  <li><a href="#/DevOps/版本管理工具/Git-04-命令进阶">Git 笔记 - 命令进阶篇（经典操作场景）</a></li>
   <li><a href="#/DevOps/版本管理工具/GitHub">GitHub 相关资料与常用使用技巧</a></li>
   <li><a href="#/DevOps/版本管理工具/SVN">SVN 文件版本控制软件</a></li>
 </ul>
@@ -293,7 +297,7 @@
 
 ## 分布式架构 & 微服务架构
 
-### 🌠 SpringBoot
+### 🌠 Spring Boot
 
 <ul class="docs">
   <li><a href="#/分布式微服务/SpringBoot/SpringBoot笔记01-基础">Spring Boot 基础笔记</a></li>
@@ -311,17 +315,38 @@
   <li><a href="#/分布式微服务/SpringBoot/Spring-Boot-Validation">Spring Boot Validation 参数校验</a></li>
   <li><a href="#/分布式微服务/SpringBoot/Spring-Boot-Email">Spring Boot 发送邮件</a></li>
   <li><a href="#/分布式微服务/SpringBoot/Spring-Boot-Task-Scheduling">Spring Boot 定时任务调度</a></li>
-  <li><a href="#/分布式微服务/SpringBoot/Spring-Boot-Messaging">Spring Boot 消息系统</a></li>
+  <li><a href="#/分布式微服务/SpringBoot/Spring-Boot-Messaging">Spring Boot 消息系统（ActiveMQ、RabbitMQ、RocketMQ、Kafka）</a></li>
+  <li><a href="#/分布式微服务/SpringBoot/Spring-Boot-FreeMarker">Spring Boot 整合 FreeMarker（待完善）</a></li>
+  <li><a href="#/分布式微服务/SpringBoot/Spring-Boot-Solr">Spring Boot 整合 Solr（待完善）</a></li>
+  <li><a href="#/分布式微服务/SpringBoot/Spring-Boot-Spring-Cloud">Spring Boot 整合 Spring Cloud（待完善）</a></li>
   <li><a href="#/分布式微服务/SpringBoot/SpringBoot笔记99-其他相关内容">Spring Boot 笔记-其他相关内容</a></li>
 </ul>
 
-### ⛅ SpringCloud
+### ⛅ Spring Cloud
 
 <ul class="docs">
   <li><a href="#/分布式微服务/SpringCloud/Microservices-Overview">微服务概述</a></li>
   <li><a href="#/分布式微服务/SpringCloud/Spring-Cloud-Overview">Spring Cloud 概述</a></li>
-  <li><a href="#/分布式微服务/SpringCloud/Spring-Cloud-Netflix">Spring Cloud Netflix（包含Eureka、Ribbon、Hystrix、Zuul等组件）</a></li>
-  <li><a href="#/分布式微服务/SpringCloud/Spring-Cloud-Alibaba">Spring Cloud Alibaba (包含Nacos、Sentinel等组件)</a></li>
+  <li>
+    <p>Spring Cloud Netflix（包含Eureka、Ribbon、Feign、Hystrix、Zuul 等组件）</p>
+     <ul class="docs">
+        <li><a href="#/分布式微服务/SpringCloud/Spring-Cloud-Netflix-Eureka">Spring Cloud Netflix Eureka 服务注册和发现</a></li>
+        <li><a href="#/分布式微服务/SpringCloud/Spring-Cloud-Netflix-Ribbon">Spring Cloud Netflix Ribbon 基于客户端的服务调用负载均衡工具</a></li>
+        <li>Spring Cloud Netflix Feign 详见《Spring Cloud OpenFeign》笔记</li>
+        <li><a href="#/分布式微服务/SpringCloud/Spring-Cloud-Netflix-Hystrix">Spring Cloud Netflix Hystrix 服务容错解决方案</a></li>
+        <li><a href="#/分布式微服务/SpringCloud/Spring-Cloud-Netflix-Zuul">Spring Cloud Netflix Zuul 微服务网关</a></li>
+      </ul>
+  </li>
+  <li>
+    <p>Spring Cloud Alibaba (包含Nacos、Sentinel、SMS短信服务、Seata等组件)</p>
+    <ul class="docs">
+        <li><a href="#/分布式微服务/SpringCloud/Spring-Cloud-Alibaba">Spring Cloud Alibaba 概述</a></li>
+        <li><a href="#/分布式微服务/SpringCloud/Spring-Cloud-Alibaba-Nacos">Spring Cloud Alibaba Nacos 服务注册与配置管理</a></li>
+        <li><a href="#/分布式微服务/SpringCloud/Spring-Cloud-Alibaba-Sentinel">Spring Cloud Alibaba Sentinel 服务容错的综合性解决方案</a></li>
+        <li><a href="#/分布式微服务/SpringCloud/Spring-Cloud-Alibaba-SMS">Spring Cloud Alibaba SMS 阿里云短信服务</a></li>
+        <li><a href="#/分布式微服务/SpringCloud/Spring-Cloud-Alibaba-Seata">Spring Cloud Alibaba Seata 分布式事务解决方案</a></li>
+      </ul>
+  </li>
   <li><a href="#/分布式微服务/SpringCloud/Spring-Cloud-OpenFeign">Spring Cloud OpenFeign 服务调用</a></li>
   <li><a href="#/分布式微服务/SpringCloud/Spring-Cloud-Consul">Spring Cloud Consul 注册中心</a></li>
   <li><a href="#/分布式微服务/SpringCloud/Spring-Cloud-Gateway">Spring Cloud Gateway 服务网关</a></li>

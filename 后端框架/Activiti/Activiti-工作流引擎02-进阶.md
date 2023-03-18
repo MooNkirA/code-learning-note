@@ -1,6 +1,4 @@
-# Activiti 工作流引擎进阶
-
-> 官方网站：https://www.activiti.org/
+> Activiti 官方网站：https://www.activiti.org/
 
 ## 1. 流程实例
 

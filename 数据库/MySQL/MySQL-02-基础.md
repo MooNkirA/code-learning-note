@@ -341,7 +341,7 @@ UTF8MB4 常用的排序规则：utf8mb4_unicode_ci、utf8mb4_general_ci、utf8mb
 - utf8mb4_unicode_ci 在特殊情况下，Unicode 排序规则为了能够处理特殊字符的情况，实现了略微复杂的排序算法。相比选择哪一种 collation，使用者更应该关心字符集与排序规则在db里需要统一。
 - utf8mb4_bin 将字符串每个字符用二进制数据编译存储，区分大小写，而且可以存二进制的内容。
 
-> Tips: 总而言之，utf8mb4_general_ci 和 utf8mb4_unicode_ci 是最常使用的排序规则。utf8mb4_unicode_ci 校对速度快，但准确度稍差；utf8_unicode_ci 准确度高，但校对速度稍慢。两者都不区分大小写，选择那种类型按具体情况而定
+> Tips: 总而言之，utf8mb4_general_ci 和 utf8mb4_unicode_ci 是最常使用的排序规则。utf8mb4_general_ci 校对速度快，但准确度稍差；utf8_unicode_ci 准确度高，但校对速度稍慢。两者都不区分大小写，选择那种类型按具体情况而定
 
 #### 3.8.3. 校对规则（了解）
 

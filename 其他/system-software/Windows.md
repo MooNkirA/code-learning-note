@@ -1,5 +1,3 @@
-# Windows 系统相关资料
-
 ## 1. 常用DOS命令
 
 - d: 回车	盘符切换
@@ -263,45 +261,48 @@ pause
 
 #### 3.1.3. 常用变量清单
 
-- `%COMMONPROGRAMFILES%` - `C:\Program Files\Common Files`
-- `%COMMONPROGRAMFILES(x86)%` - `C:\Program Files (x86)\Common Files`
-- `%COMSPEC%` - `C:\Windows\System32\cmd.exe`
-- `%HOMEDRIVE%` - `C:`
-- `%HOMEPATH%` 或 `%USERPROFILE%` - 用户主目录的完整路径（当前用户的配置文件的位置），如：`C:\Users\<username>`
-- `%SYSTEMROOT%` 或 `%WINDIR%` - 操作系统根目录。如：`C:\Windows`
-- `%PSMODULEPATH%` - `%SystemRoot%\system32\WindowsPowerShell\v1.0\Modules\`
-- `%TMP%` - `C:\Users\<username>\AppData\Local\Temp`
-- `%TEMP%` - `C:\Users\<username>\AppData\Local\Temp`
-- `%APPDATA%` - 列出应用程序数据的默认存放位置。如：`C:\Users\<username>\AppData\Roaming`
-- `%LOCALAPPDATA%` - `C:\Users\<username>\AppData\Local`
-- `%ALLUSERSPROFILE%` - `C:\ProgramData`
-- `%CD%` - Typing in this command will give you the current directory you are working in.
-- `%CMDEXTVERSION%` - This variable expands to the version of the command-line extensions.
-- `%DATE%` - This variable will give you the current date according to date format preferences.
-- `%ERRORLEVEL%` - Determines the error level set by last executing command.
-- `%LOGONSERVER%` - `\\<domain_logon_server>`
-- `%PATH%` - `C:\Windows\system32;C:\Windows;`
-- `%PATHEXT%` - `.com;.exe;.bat;.cmd;.vbs;.vbe;.js;.jse;.wsf;.wsh;.msc`
-- `%PROGRAMDATA%` - `C:\ProgramData`
-- `%PROGRAMFILES%` - `C:\Program Files`
-- `%PROGRAMW6432%` - `C:\Program Files`
-- `%PROGRAMFILES(X86)%` - `C:\Program Files (x86)`
-- `%PROMPT%` - `$P$G`
-- `%SYSTEMDRIVE%` - `C:`
-- `%TIME%` - Similarly, it gives you current time according to the time format preferences.
-- `%USERNAME%` - 当前系统用户名称
-- `%USERDOMAIN%` - Userdomain associated with current user.
-- `%USERDOMAIN_ROAMINGPROFILE%` - Userdomain associated with roaming profile.
-- `%PUBLIC%` - `C:\Users\Public`
-- `%ONEDRIVE%` - `C:\Users\<username>\OneDrive`
-- `%CMDCMDLINE%` - Outputs command line used to launch the current Command Prompt session.
-- `%COMPUTERNAME%` - Outputs the system name.
-- `%PROCESSOR_REVISION%` - Outputs processor revision.
-- `%PROCESSOR_IDENTIFIER%` - Outputs processor identifier.
-- `%PROCESSOR_LEVEL%` - Outputs processor level.
-- `%RANDOM%` - This variable prints a random number from 0 through 32767
-- `%NUMBER_OF_PROCESSORS%` - Outputs the number of physical and virtual cores.
-- `%OS%` - Windows_NT
+|               变量名称                |                                值                                |
+| :----------------------------------: | ---------------------------------------------------------------- |
+|         `%ALLUSERSPROFILE%`          | C:\ProgramData                                                   |
+|             `%APPDATA%`              | 列出应用程序数据的默认存放位置。C:\Users\{username}\AppData\Roaming |
+|           `%LOCALAPPDATA%`           | C:\Users\{username}\AppData\Local                                |
+|          `%TEMP%`或`%TMP%`           | C:\Users\{username}\AppData\Local\Temp                           |
+|        `%COMMONPROGRAMFILES%`        | C:\Program Files\Common Files                                    |
+|     `%COMMONPROGRAMFILES(x86)%`      | C:\Program Files (x86)\Common Files                              |
+|        `%CommonProgramW6432%`        | C:\Program Files\Common Files                                    |
+|             `%COMSPEC%`              | C:\Windows\System32\cmd.exe                                      |
+|            `%HOMEDRIVE%`             | C:\                                                              |
+|   `%HOMEPATH%` 或 `%USERPROFILE%`    | 用户主目录的完整路径（当前用户的配置文件的位置）。C:\Users\{username} |
+|     `%WINDIR%` 或 `%SYSTEMROOT%`     | 操作系统根目录。C:\Windows                                         |
+|           `%LOGONSERVER%`            | \\{domain_logon_server}                                          |
+|               `%PATH%`               | C:\Windows\system32;C:\Windows;C:\Windows\System32\Wbem          |
+|             `%PATHEXT%`              | .com;.exe;.bat;.cmd;.vbs;.vbe;.js;.jse;.wsf;.wsh;.msc            |
+|           `%PROGRAMDATA%`            | C:\ProgramData                                                   |
+| `%PROGRAMFILES%` 或 `%ProgramW6432%` | C:\Program Files                                                 |
+|        `%PROGRAMFILES(X86)%`         | C:\Program Files (x86)                                           |
+|              `%PROMPT%`              | `$P$G`                                                           |
+|           `%SYSTEMDRIVE%`            | C:                                                               |
+|            `%SystemRoot%`            | C:\Windows                                                       |
+|            `%USERDOMAIN%`            | 与当前用户相关的用户域。                                            |
+|    `%USERDOMAIN_ROAMINGPROFILE%`     | 与漫游配置文件相关的用户域。                                        |
+|             `%USERNAME%`             | 当前系统用户名称。{username}                                       |
+|              `%PUBLIC%`              | C:\Users\Public                                                  |
+|           `%PSMODULEPATH%`           | %SystemRoot%\system32\WindowsPowerShell\v1.0\Modules\            |
+|            ` %ONEDRIVE%`             | C:\Users\{username}\OneDrive                                     |
+|            `%DriverData%`            | C:\Windows\System32\Drivers\DriverData                           |
+|                `%CD%`                | 输出当前目录路径。(命令提示符)                                      |
+|            `%CMDCMDLINE%`            | 输出用于启动当前命令提示符会话的命令行。(命令提示符)                  |
+|          `%CMDEXTVERSION%`           | 输出当前命令处理器扩展的数量。(命令提示符)                           |
+|           `%COMPUTERNAME%`           | 输出系统名称。                                                    |
+|               `%DATE%`               | 输出当前日期。(命令提示符)                                          |
+|               `%TIME%`               | 输出时间。(命令提示符)                                             |
+|            `%ERRORLEVEL%`            | 输出上一条命令的定义退出状态的数字。(命令提示符)                      |
+|       `%PROCESSOR_IDENTIFIER%`       | 输出处理器标识符。                                                 |
+|         `%PROCESSOR_LEVEL%`          | 输出处理器电平。                                                   |
+|        `%PROCESSOR_REVISION%`        | 输出处理器版本。                                                   |
+|       `%NUMBER_OF_PROCESSORS%`       | 输出物理和虚拟内核的数量。                                          |
+|              `%RANDOM%`              | 输出从 0 到 32767 的随机数。                                       |
+|                `%OS%`                | Windows_NT                                                       |
 
 ### 3.2. hosts 文件
 

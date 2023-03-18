@@ -121,6 +121,7 @@ public class ActiveMQApplication {
 在项目的 pom.xml 文件中引入 Spring Boot 整合 ActiveMQ 的 starter 依赖。Spring Boot 父工程已进行版本管理，无需指定版本。
 
 ```xml
+<!-- 配置ActiveMQ启动器 -->
 <dependency>
     <groupId>org.springframework.boot</groupId>
     <artifactId>spring-boot-starter-activemq</artifactId>
@@ -180,13 +181,48 @@ public class MessageListener {
 }
 ```
 
-> 值得注意：`@JmsListener` 修饰的消费方法不能用返回值。
+> 值得注意：`@JmsListener` 修饰的消费方法不能用返回值。并且在类上加 `@Component` 注解让 spring 管理些监听器
 
 #### 2.2.6. 功能测试
 
 启动工程与 ActiveMQ 服务，在浏览器访问 http://localhost/order/S1838323
 
 观察项目控制台日志输出
+
+#### 2.2.7. 点对点模式示例2
+
+在配置类中创建点对点消息队列实例
+
+```java
+/* 创建点对点消息队列 */
+@Bean
+public Queue queue() {
+    return new ActiveMQQueue("SpringBoot.queue");
+}
+```
+
+注入 `JmsTemplate` 与目标消息模式 `Destination`，发送消息
+
+```java
+@RestController
+@RequestMapping("/queue")
+public class QueueController {
+    /* 注入JmsTemplate消息发送模版对象 */
+    @Autowired
+    private JmsTemplate jmsTemplate;
+    /* 注入目标消息模式 */
+    @Autowired
+    private Destination destination;
+
+    /* 发送消息的方法 */
+    @RequestMapping("/send/{message}")
+    public String send(@PathVariable String message) {
+        /* 发送消息 */
+        this.jmsTemplate.convertAndSend(destination, message);
+        return "消息发送成功!消息内容：" + message;
+    }
+}
+```
 
 ### 2.3. 进阶使用示例
 
@@ -224,6 +260,15 @@ spring:
     broker-url: tcp://localhost:61616 # ActiveMQ 服务地址
   jms:
     pub-sub-domain: true # 设置消息模型，默认值为 false，即点对点模型，修改为 true 即发布订阅模型。
+```
+
+如是 properties 文件：
+
+```properties
+# ActiveMQ 消息服务器连接地址
+spring.activemq.brokerUrl=tcp://192.168.12.128:61616
+# 开启发布与订阅模式(默认为点对点模式)
+spring.jms.pubSubDomain=true
 ```
 
 ## 3. Spring Boot 整合 RabbitMQ

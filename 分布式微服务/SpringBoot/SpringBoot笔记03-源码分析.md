@@ -216,7 +216,7 @@ public class RedisAutoConfiguration {
 
 ![](images/330292115249868.png)
 
-双比如内置 web 容器的处理类 `EmbeddedWebServerFactoryCustomizerAutoConfiguration`，类上引入 `@EnableConfigurationProperties({ServerProperties.class})` 注解，用于加载默认配置类的参数。然后内部类中通过 `@ConditionalOnClass` 注解来控制加载哪种类型的 web 容器
+又比如内置 web 容器的处理类 `EmbeddedWebServerFactoryCustomizerAutoConfiguration`，类上引入 `@EnableConfigurationProperties({ServerProperties.class})` 注解，用于加载默认配置类的参数。然后内部类中通过 `@ConditionalOnClass` 注解来控制加载哪种类型的 web 容器
 
 ![](images/20201006152054124_172.png)
 
@@ -224,7 +224,7 @@ public class RedisAutoConfiguration {
 
 自动配置类本质上就是一个配置类而已，只是用 META-INF/spring.factories 管理，与应用配置类解耦。Spring Boot 启动时先加载 spring.factories 文件中的 `org.springframework.boot.autoconfigure.EnableAutoConfiguration` 配置项，循环配置中每个自动配置类，然后根据定义在类上的 `@ConditionalOn*` 条件注解来决定哪些 bean 需要加载。
 
-以 `@Enable` 开头的注解本质是利用了 `@Import` 配合 `DeferredImportSelector` 实现导入，在 `selectImports` 方法的返回值即为要导入的配置类名。值得注意的是，`DeferredImportSelector` 接口的导入会在最后执行，其目的是为了让其它配置优先解析
+以 `@Enable**` 开头的注解本质是利用了 `@Import` 配合 `DeferredImportSelector` 实现导入，在 `selectImports` 方法的返回值即为要导入的配置类名。值得注意的是，`DeferredImportSelector` 接口的导入会在最后执行，其目的是为了让其它配置优先解析
 
 对于正常加载成 bean 的类，通常会通过 `@EnableConfigurationProperties` 注解初始化对应的配置属性类并加载对应的配置。而配置属性类上通常会通过 `@ConfigurationProperties` 加载指定前缀的配置，并且这些配置通常都有默认值。
 
@@ -341,7 +341,7 @@ public class AopAutoConfiguration {
 ```
 
 AOP 自动配置的本质是通过 `@EnableAspectJAutoProxy` 来开启了自动代理，如果在引导类上添加了 `@EnableAspectJAutoProxy` 注解，则使用者添加的为准。
-  
+
 ```java
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)

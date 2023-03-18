@@ -1,88 +1,10 @@
-# JDK常用API
+# JDK 常用 API
 
-## 1. 字符串操作
-
-### 1.1. String 类
-
-#### 1.1.1. String 类的简述
-
-```java
-public final class String
-    implements java.io.Serializable, Comparable<String>, CharSequence {
-}
-```
-
-`String` 字符串类，由多个字符组成的一串数据，**字符串其本质是一个字符数组**
-
-1. "abc"是 `String` 类的一个实例，或者成为 String 类的一个对象
-2. 字符串字面值"abc"也可以看成是一个字符串对象(相当于`char data[] = {'a', 'b', 'c'};`)
-3. 字符串是常量，一旦被赋值，就不能被改变
-4. 字符串本质是一个字符数组
-5. `String` 类是 `final` 关键字修改，此类不能被继承
-
-#### 1.1.2. String类的构造方法
-
-```java
-public String(String original)
-```
-
-- 把字符串数据封装成字符串对象，(*或者是简写成 `String s = "xxx";`，只有String类型才能直接赋值创建对象*)
-
-```java
-String(char[] value)
-```
-
-- 把字符数组的数据封装成字符串对象
-
-```java
-String(char[] value, int index, int count)
-```
-
-- 把字符数组中的一部分数据封装成字符串对象
-
-#### 1.1.3. 常用方法（待整理）
-
-```
-indexOf()：返回指定字符的索引。
-charAt()：返回指定索引处的字符。
-replace()：字符串替换。
-trim()：去除字符串两端空白。
-split()：分割字符串，返回一个分割后的字符串数组。
-getBytes()：返回字符串的 byte 类型数组。
-length()：返回字符串长度。
-toLowerCase()：将字符串转成小写字母。
-toUpperCase()：将字符串转成大写字符。
-substring()：截取字符串。
-equals()：字符串比较。
-```
-
-#### 1.1.4. format方法专题（java字符串格式化）
-
-[JAVA字符串格式化-String.format()的使用](https://blog.csdn.net/lonely_fireworks/article/details/7962171/)
-
-String类的format()方法用于创建格式化的字符串以及连接多个字符串对象，显示不同转换符实现不同数据类型到字符串的转换
-
-```java
-format(String format, Object... args)
-```
-
-- 新字符串使用本地语言环境，制定字符串格式和参数生成格式化的新字符串。
-
-```java
-format(Locale locale, String format, Object... args)
-```
-
-- 使用指定的语言环境，制定字符串格式和参数生成格式化的字符串。
-
-### 1.2. StringBuilder （待整理）
-
-### 1.3. StringBuffer (待整理)
-
-## 2. Date 类 (在util包中)
+## 1. Date 类 (在util包中)
 
 通过该类可以获得当前的日期和时间。
 
-### 2.1. Date 构造方法
+### 1.1. Date 构造方法
 
 ```java
 public Date()
@@ -96,7 +18,7 @@ public Date(long date)
 
 - 根据指定的毫秒值创建日期对象，返回指定毫秒值的日期对象，(**从时间零点到指定时间为止**)
 
-### 2.2. Date常用成员方法
+### 1.2. Date常用成员方法
 
 ```java
 public long getTime();
@@ -112,9 +34,9 @@ public void setTime(long time);
 
 - 将时间设置到指定的毫秒值上
 
-## 3. DateFormat 类 / SimpleDateFormat 子类
+## 2. DateFormat 类 / SimpleDateFormat 子类
 
-### 3.1. DateFormat概念
+### 2.1. DateFormat概念
 
 - DateFormat:日期格式化类；
     - 是一个抽象类，不能直接创建对象。
@@ -126,7 +48,7 @@ public void setTime(long time);
     - 无参：`SimpleDateFormat sdf = new SimpleDateFormat();`
     - 有参：`SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd  HH:mm:ss");`
 
-### 3.2. SimpleDateFormat构造方法
+### 2.2. SimpleDateFormat构造方法
 
 ```java
 public SimpleDateFormat()
@@ -145,7 +67,7 @@ public SimpleDateFormat(String pattern)
 | **字母** |   **日期或时间元素**    |      **表示**       |                **示例**                 |
 | -------- | ---------------------- | ------------------- | --------------------------------------- |
 | G        | Era 标志符              | Text                | AD                                      |
-| y        | 年                      | Year                | 1996; 96                                |
+| y        | 年                     | Year                | 1996; 96                                |
 | M        | 年中的月份               | Month               | July; Jul; 07                           |
 | w        | 年中的周数               | Number              | 27                                      |
 | W        | 月份中的周数             | Number              | 2                                       |
@@ -153,19 +75,20 @@ public SimpleDateFormat(String pattern)
 | d        | 月份中的天数             | Number              | 10                                      |
 | F        | 月份中的星期             | Number              | 2                                       |
 | E        | 星期中的天数             | Text                | Tuesday; Tue                            |
-| a        | Am/pm 标记              | Text                | PM                                      |
-| H        | 一天中的小时数（0-23）   | Number              | 0                                       |
-| k        | 一天中的小时数（1-24）   | Number              | 24                                      |
+| a        | Am/pm 标记             | Text                | PM                                      |
+| H        | 一天中的小时数（0-23）    | Number              | 0                                       |
+| k        | 一天中的小时数（1-24）    | Number              | 24                                      |
 | K        | am/pm 中的小时数（0-11） | Number              | 0                                       |
 | h        | am/pm 中的小时数（1-12） | Number              | 12                                      |
 | m        | 小时中的分钟数           | Number              | 30                                      |
 | s        | 分钟中的秒数             | Number              | 55                                      |
 | S        | 毫秒数                  | Number              | 978                                     |
-| z        | 时区                    | General time   zone | Pacific Standard   Time; PST; GMT-08:00 |
-| Z        | 时区                    | RFC 822   time zone | -0800                                   |
+| z        | 时区                   | General time   zone | Pacific Standard   Time; PST; GMT-08:00 |
+| Z        | 时区                   | RFC 822   time zone | -0800                                   |
 
-### 3.3. SimpleDateFormat常用方法和使用步骤
-#### 3.3.1. 日期对象格式化成字符串
+### 2.3. SimpleDateFormat常用方法和使用步骤
+
+#### 2.3.1. 日期对象格式化成字符串
 
 ```java
 public final String format(Date date)
@@ -196,7 +119,7 @@ public class Test09 {
 }
 ```
 
-#### 3.3.2. 将时间字符串转换成日期对象
+#### 2.3.2. 将时间字符串转换成日期对象
 
 ```java
 public Date parse(String source) throws ParseException
@@ -242,9 +165,9 @@ public void applyPattern(String pattern)
 
 - 将给定模式字符串应用于此日期格式。（**此方法用于SimpleDateFormal创建对象的时候没有指定格式，使用这方法可以给对象指定日期格式。**）
 
-### 3.4. SimpleDateFormat存在问题与解决方案
+### 2.4. SimpleDateFormat存在问题与解决方案
 
-#### 3.4.1. 存在线程安全问题
+#### 2.4.1. 存在线程安全问题
 
 - SimpleDateFormat 并不是一个线程安全的类。在多线程情况下，会出现异常
 - 一般使用 SimpleDateFormat 的时候会把它定义为一个静态变量，避免频繁创建它的对象实例。因为把 SimpleDateFormat 定义为静态变量，那么多线程下 SimpleDateFormat 的实例就会被多个线程共享，B线程会读取到A线程的时间，就会出现时间差异和其它各种问题。SimpleDateFormat 和它继承的 DateFormat 类也不是线程安全的。
@@ -340,7 +263,7 @@ Mon Jul 29 00:00:00 CST 2019
 >
 > **提示**：使用实例变量时，应该每次检查这个类是不是线程安全。
 
-#### 3.4.2. 解决方案1：ThreadLocal
+#### 2.4.2. 解决方案1：ThreadLocal
 
 - 可以使用 ThreadLocal 解决。Threadlocal 的 get() 方法会给当前线程提供正确的值。
 
@@ -417,7 +340,7 @@ Mon Jul 29 00:00:00 CST 2019
 Mon Jul 29 00:00:00 CST 2019
 ```
 
-#### 3.4.3. 解决方案2：Java 8 线程安全的时间日期 API（推荐）
+#### 2.4.3. 解决方案2：Java 8 线程安全的时间日期 API（推荐）
 
 - Java8 引入了新的日期时间 API，SimpleDateFormat 有了更好的替代者。如果继续坚持使用 SimpleDateFormat 可以配合 ThreadLocal 一起使用。也可以使用新的 API
 - Java 8 提供了几个线程安全的日期类，包括 DateTimeFormatter、OffsetDateTime、ZonedDateTime、LocalDateTime、LocalDate 和 LocalTime。Java 文档中这么描述：
@@ -491,7 +414,7 @@ public class TestSimpleDateFormat {
 2019-07-29
 ```
 
-#### 3.4.4. 解决方案3：使用局部变量
+#### 2.4.4. 解决方案3：使用局部变量
 
 将 SimpleDateFormat 变成了局部变量，就不会被多个线程同时访问到了，就避免了线程安全问题。
 
@@ -514,7 +437,7 @@ IntStream.rangeClosed(0, 10)
 executorService.shutdown();
 ```
 
-#### 3.4.5. 解决方案4：加同步锁
+#### 2.4.5. 解决方案4：加同步锁
 
 对于 SimpleDateFormat 共享变量进行加锁。
 
@@ -542,13 +465,13 @@ public static void main(String[] args) {
 }
 ```
 
-## 4. Calendar 类
+## 3. Calendar 类
 
-### 4.1. Calendar 概述
+### 3.1. Calendar 概述
 
 Calendar是一个日历类，抽象类；不能直接创建对象
 
-### 4.2. Calendar 日历类对象创建方法
+### 3.2. Calendar 日历类对象创建方法
 
 ```java
 public static Calendar getInstance()
@@ -560,7 +483,7 @@ public static Calendar getInstance()
 - **注：返回值是Calendar对象，因为Calendar是抽象类，不能new对象，返回值的应该是它的子类对象，只是用父类Calendar来接收，这里使用多态的特性**
 - *一般一些抽象类都有提供`getInstance()`方法，返回自己类型的对象*
 
-### 4.3. Calendar 常用成员方法
+### 3.3. Calendar 常用成员方法
 
 ```java
 public final Date getTime()
@@ -605,7 +528,7 @@ public abstract void add(int field, int amount);
 - 将指定日历字段的值在当前的基础上偏移指定的值（整数向后偏移，负数向前偏移）
 - 根据日历的规则，为给定的日历字段添加或减去指定的时间量。例如，要从当前日历时间减去5天，可以通过调用以下方法做到这一点：`add(Calendar.DAY_OF_MONTH, -5)`。
 
-### 4.4. Calendar 使用示例
+### 3.4. Calendar 使用示例
 
 ```java
 import java.util.Calendar;
@@ -641,8 +564,8 @@ public class Test09 {
 }
 ```
 
-## 5. Math 工具类
-### 5.1. 常用方法
+## 4. Math 工具类
+### 4.1. 常用方法
 
 ```java
 public static int sqrt(double d);
@@ -689,8 +612,8 @@ public static long round(double d);
 
 *注：Math 是一个数字工具类，该类提供了大量与数学运算相关的方法。工具类都是static方法，可以直接用类点调用。如果遇到算术有关的内容，可以到API查找相关的方法。如：求最大，最小值，求三角余弦等*
 
-## 6. System 工具类
-### 6.1. 常用方法
+## 5. System 工具类
+### 5.1. 常用方法
 
 ```java
 public static long currentTimeMillis();
@@ -729,7 +652,7 @@ public static void arraycopy(Object src, int srcPos, Object dest, int destPos, i
     - `destPos`：目标数组的起始位置
     - `length`：复制元素的个数
 
-### 6.2. System 类使用示例
+### 5.2. System 类使用示例
 
 ```java
 public class Test10 {
@@ -770,7 +693,7 @@ public class Test10 {
 }
 ```
 
-## 7. Date 类（SQL包的，是util包下Date的子类）
+## 6. Date 类（SQL包的，是util包下Date的子类）
 
 ```java
 public class Date extends Date
@@ -779,7 +702,7 @@ public class Date extends Date
 - 位置：java.sql 包
 - 一个包装了毫秒值的瘦包装器，JDBC 将毫秒值标识为 SQL DATE 值
 
-### 7.1. 构造方法
+### 6.1. 构造方法
 
 ```java
 public Date(long date);
@@ -787,7 +710,7 @@ public Date(long date);
 
 使用给定毫秒时间值构造一个 Date 对象。直接输出对象是一个包装过的对象，格式：yyyy-MM-dd
 
-### 7.2. 常用方法
+### 6.2. 常用方法
 
 ```java
 public static Date valueOf(String s);
@@ -803,7 +726,7 @@ public String toString();
 
 - 将日期对象格式化成 yyyy-mm-dd 的日期字符串
 
-## 8. Time 类
+## 7. Time 类
 
 ```java
 public class Time extends Date
@@ -812,7 +735,7 @@ public class Time extends Date
 - 位置：java.sql 包
 - 继承java.util包下的Date类，瘦包装器，
 
-### 8.1. 构造方法
+### 7.1. 构造方法
 
 ```java
 public Time(long time)
@@ -820,7 +743,7 @@ public Time(long time)
 
 - 使用毫秒时间值构造 Time 对象。输出是经过包装的时间格式。输出对象是`HH:mm:ss`
 
-### 8.2. 常用方法
+### 7.2. 常用方法
 
 ```java
 public String toString()
@@ -834,7 +757,7 @@ public static Time valueOf(String s)
 
 - 将使用 JDBC 时间转义格式的字符串转换为 Time 值。s使用 "`hh:mm:ss`" 格式的时间
 
-### 8.3. sql包 Date和Time 示例
+### 7.3. sql包 Date和Time 示例
 
 ```java
 import java.sql.Time;
@@ -864,7 +787,7 @@ public class MoonZero {
 }
 ```
 
-## 9. Timestamp 时间戳
+## 8. Timestamp 时间戳
 
 ```java
 public class Timestamp extends Date
@@ -873,7 +796,7 @@ public class Timestamp extends Date
 - 位置：java.sql 包
 - 一个与 java.util.Date 类有关的瘦包装器，可以生成时间戳
 
-### 9.1. 构造方法
+### 8.1. 构造方法
 
 ```java
 public Timestamp(long time);
@@ -881,7 +804,7 @@ public Timestamp(long time);
 
 - 使用毫秒时间值构造 Timestamp 对象。
 
-### 9.2. 常用方法
+### 8.2. 常用方法
 
 ```java
 public static Timestamp valueOf(String s);
@@ -895,7 +818,7 @@ public String toString();
 
 - 使用 JDBC 时间戳转义格式编排时间戳。`yyyy-mm-dd hh:mm:ss.fffffffff`，其中 `ffffffffff` 指示毫微秒。
 
-## 10. DecimalFormat 数字格式化类
+## 9. DecimalFormat 数字格式化类
 
 ```java
 public class DecimalFormat extends NumberFormat
@@ -904,7 +827,7 @@ public class DecimalFormat extends NumberFormat
 - 位置：java.text 包
 - DecimalFormat 是 NumberFormat 的一个具体子类，用于格式化十进制数字。
 
-### 10.1. 构造方法
+### 9.1. 构造方法
 
 ```java
 public DecimalFormat(String pattern);
@@ -914,7 +837,7 @@ public DecimalFormat(String pattern);
 - 参数：pattern - 一个非本地化的模式字符串。
 - 传入一个字符串的格式。eg: `new DecimalFormat("￥#,###.00")`
 
-### 10.2. 常用方法
+### 9.2. 常用方法
 
 ```java
 public final StringBuffer format(Object number, StringBuffer toAppendTo, FieldPosition pos)
@@ -928,11 +851,11 @@ public final StringBuffer format(Object number, StringBuffer toAppendTo, FieldPo
 System.out.println(new DecimalFormat("￥#,###.00").format(1234.011));
 ```
 
-## 11. UUID 类
+## 10. UUID 类
 
 java.util.UUID 所有已实现的接口：Serializable, `Comparable<UUID>`
 
-### 11.1. 常用方法
+### 10.1. 常用方法
 
 ```java
 static UUID randomUUID()
@@ -946,12 +869,13 @@ public String toString()
 
 - 返回表示此 UUID 的 String 对象
 
-### 11.2. UUID的生成
+### 10.2. UUID的生成
 
 `UUID.randomUUID().toString()` 是javaJDK提供的一个自动生成主键的方法。UUID(Universally Unique Identifier)全局唯一标识符,是指在一台机器上生成的数字，它保证对在同一时空中的所有机器都是唯一的，是由一个十六位的数字组成,表现出来的形式。由以下几部分的组合：当前日期和时间(UUID的第一个部分与时间有关，如果你在生成一个UUID之后，过几秒又生成一个UUID，则第一个部分不同，其余相同)，时钟序列，全局唯一的IEEE机器识别号（如果有网卡，从网卡获得，没有网卡以其他方式获得），UUID的唯一缺陷在于生成的结果串会比较长
 
-## 12. Scanner 类
-### 12.1. 常用方法
+## 11. Scanner 类
+
+### 11.1. 常用方法
 
 ```java
 public String nextLine()
@@ -977,7 +901,7 @@ public boolean hasNextInt(int radix)
 
 - 如果通过使用 `nextInt()` 方法，此扫描器输入信息中的下一个标记可以解释为指定基数中的一个 int 值，则返回 true
 
-### 12.2. Scanner类的next()与nextLine()区别
+### 11.2. Scanner类的next()与nextLine()区别
 
 - `next();`
     - 从左往右开始扫描内容，在没有扫描到有效内容时遇到的空格，tab键,换行符都会被自己过滤掉。

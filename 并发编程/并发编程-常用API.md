@@ -1,5 +1,3 @@
-# Java并发编程-常用API
-
 ## 1. Thread 类
 
 ```java
@@ -119,7 +117,7 @@ public State getState()
 public boolean isInterrupted()
 ```
 
-- 判断是否被打断，**不会清除打断标记**。线程的中断状态不受该方法的影响。
+- 判断线程是否被打断，**不会清除打断标记**。线程的中断状态不受该方法的影响。
 
 ```java
 public final native boolean isAlive();

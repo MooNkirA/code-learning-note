@@ -1,15 +1,13 @@
-# Spring Cloud OpenFeign
+## 1. Feign 简介
 
-## 1. Feign简介
+Feign 是 Netflix 开发的声明式，模板化的 HTTP 客户端，其灵感来自 Retrofit，JAXRS-2.0 以及 WebSocket
 
-Feign是Netflix开发的声明式，模板化的HTTP客户端，其灵感来自Retrofit，JAXRS-2.0以及WebSocket
+- Feign 可更加便捷，优雅的调用 HTTP API
+- 在 Spring Cloud 中，使用 Feign 非常简单。创建一个接口，并在接口上添加一些注解，代码就完成了
+- Feign 支持多种注解，例如 Feign 自带的注解或者 JAX-RS 注解等
+- Spring Cloud 对 Feign 进行了增强，使 Feign 支持了 SpringMVC 注解，并整合了 Ribbon 和 Eureka，从而让 Feign 的使用更加方便
 
-- Feign可更加便捷，优雅的调用HTTP API
-- 在SpringCloud中，使用Feign非常简单。创建一个接口，并在接口上添加一些注解，代码就完成了
-- Feign支持多种注解，例如Feign自带的注解或者JAX-RS注解等
-- SpringCloud对Feign进行了增强，使Feign支持了SpringMVC注解，并整合了Ribbon和Eureka，从而让Feign的使用更加方便
-
-## 2. 基于Feign的服务调用示例
+## 2. 基于 Feign 的服务调用示例
 
 ### 2.1. 示例工程准备
 
@@ -120,11 +118,11 @@ public class OrderController {
 
 ## 4. Feign 的负载均衡
 
-Feign中本身已经集成了Ribbon依赖和自动配置，因此不需要额外引入依赖，也不需要再注册 `RestTemplate` 对象。
+Feign 本身已经集成了 Ribbon 依赖和自动配置，因此不需要额外引入依赖，也不需要再注册 `RestTemplate` 对象。
 
-配置负载均衡的方式与使用Ribbon的配置方式一致，即也可以通过修改项目配置文件中 `ribbon.xx` 来进行全局配置。也可以通过`服务名.ribbon.xx` 来对指定服务配置
+配置负载均衡的方式与使用 Ribbon 的配置方式一致，即也可以通过修改项目配置文件中 `ribbon.xx` 来进行全局配置。也可以通过`服务名.ribbon.xx` 来对指定服务配置
 
-启动两个`shop-service-product`服务，重新测试可以发现使用Ribbon的轮询策略进行负载均衡
+启动两个`shop-service-product`服务，重新测试可以发现使用 Ribbon 的轮询策略进行负载均衡
 
 ![](images/20201015140621794_15061.png)
 
@@ -132,7 +130,7 @@ Feign中本身已经集成了Ribbon依赖和自动配置，因此不需要额外
 
 ### 5.1. Feign 可配置项说明
 
-从Spring Cloud Edgware 版本开始，Feign支持使用属性自定义Feign。对于一个指定名称的Feign Client（例如该Feign Client的名称为 feignName ），Feign支持如下配置项：
+从 Spring Cloud Edgware 版本开始，Feign 支持使用属性自定义 Feign。对于一个指定名称的 Feign Client（例如该 Feign Client 的名称为 feignName ），Feign支持如下配置项：
 
 ```yml
 # Feign 属性配置
