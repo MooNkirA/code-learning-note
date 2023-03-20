@@ -13,9 +13,9 @@ Feign 是 Netflix 开发的声明式，模板化的 HTTP 客户端，其灵感�
 
 复用之前eureka单机版的示例项目`02-springcloud-eureka`，命名为`06-springcloud-feign`
 
-### 2.2. 引入Feign依赖
+### 2.2. 引入 Feign 依赖
 
-在服务消费者 `shop-service-order` 工程添加Feign依赖
+在服务消费者 `shop-service-order` 工程添加 Feign 依赖
 
 ```xml
 <!-- SpringCloud整合的openFeign -->
@@ -25,9 +25,9 @@ Feign 是 Netflix 开发的声明式，模板化的 HTTP 客户端，其灵感�
 </dependency>
 ```
 
-### 2.3. 开启Feign的支持
+### 2.3. 开启 Feign 的支持
 
-在服务消费者的启动类上，通过`@EnableFeignClients`注解开启Spring Cloud Feign的支持功能
+在服务消费者的启动类上，通过`@EnableFeignClients`注解开启 Spring Cloud Feign 的支持功能
 
 ```java
 @SpringBootApplication(scanBasePackages = "com.moon.order")
@@ -40,11 +40,11 @@ public class OrderApplication {
 }
 ```
 
-### 2.4. 创建Feign服务调用的接口
+### 2.4. 创建 Feign 服务调用的接口
 
 #### 2.4.1. 基础使用步骤
 
-在服务消费者 `shop-service-order` 创建一个Feign接口，此接口是在Feign中调用微服务的核心接口。
+在服务消费者 `shop-service-order` 创建一个 Feign 接口，此接口是在 Feign 中调用微服务的核心接口。
 
 ```java
 /*
@@ -151,11 +151,11 @@ feign:
 
 部分属性配置说明：
 
-- `feignName`：FeignClient的名称，即上面例子的`shop-service-product`
+- `feignName`：FeignClient 的名称，即上面例子的`shop-service-product`
 - `connectTimeout`：建立链接的超时时长
 - `readTimeout`：读取超时时长
-- `loggerLevel`：Feign的日志级别
-- `errorDecoder`：Feign的错误解码器
+- `loggerLevel`：Feign 的日志级别
+- `errorDecoder`：Feign 的错误解码器
 - `retryer`：配置重试
 - `requestInterceptors`：添加请求拦截器
 - `decode404`：配置熔断不处理404异常
