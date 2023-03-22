@@ -124,6 +124,136 @@ public class OrderController {
 5. 服务消费者使用 Feign 接口调用服务提供者
 6. 启动并测试
 
+### 3.2. 服务提供者
+
+创建 feign-nacos-provider 工程，添加 Nacos 依赖：
+
+```xml
+<dependencies>
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-web</artifactId>
+    </dependency>
+
+    <dependency>
+        <groupId>com.alibaba.cloud</groupId>
+        <artifactId>spring-cloud-starter-alibaba-nacos-discovery</artifactId>
+    </dependency>
+</dependencies>
+
+<dependencyManagement>
+    <dependencies>
+        <!-- spring boot 依赖 -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-dependencies</artifactId>
+            <version>2.1.13.RELEASE</version>
+            <type>pom</type>
+            <scope>import</scope>
+        </dependency>
+        <!-- spring cloud alibaba 依赖 -->
+        <dependency>
+            <groupId>com.alibaba.cloud</groupId>
+            <artifactId>spring-cloud-alibaba-dependencies</artifactId>
+            <version>2.1.4.RELEASE</version>
+            <type>pom</type>
+            <scope>import</scope>
+        </dependency>
+    </dependencies>
+</dependencyManagement>
+```
+
+在启动类或者配置类上，添加 `@EnableDiscoveryClient` 注解开启服务发现
+
+```java
+@SpringBootApplication
+@EnableDiscoveryClient
+public class FeignNacosProviderApp {
+    public static void main(String[] args) {
+        SpringApplication.run(FeignNacosProviderApp.class, args);
+    }
+}
+```
+
+修改项目配置文件，添加 nacos 地址
+
+```yml
+server:
+  port: 8081
+spring:
+  application:
+    name: service-provider
+  cloud:
+    nacos:
+      discovery:
+        server-addr: localhost:8848
+```
+
+### 3.3. 服务消费者
+
+创建 feign-nacos-consumer 工程，添加 Nacos 与 feign 依赖：
+
+```xml
+<dependencies>
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-web</artifactId>
+    </dependency>
+
+    <dependency>
+        <groupId>com.alibaba.cloud</groupId>
+        <artifactId>spring-cloud-starter-alibaba-nacos-discovery</artifactId>
+    </dependency>
+
+    <dependency>
+        <groupId>org.springframework.cloud</groupId>
+        <artifactId>spring-cloud-starter-openfeign</artifactId>
+    </dependency>
+</dependencies>
+
+<dependencyManagement>
+    <dependencies>
+        <!-- spring boot 依赖 -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-dependencies</artifactId>
+            <version>2.1.13.RELEASE</version>
+            <type>pom</type>
+            <scope>import</scope>
+        </dependency>
+        <!-- spring cloud 依赖 -->
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-dependencies</artifactId>
+            <version>Greenwich.SR6</version>
+            <type>pom</type>
+            <scope>import</scope>
+        </dependency>
+        <!-- spring cloud alibaba 依赖 -->
+        <dependency>
+            <groupId>com.alibaba.cloud</groupId>
+            <artifactId>spring-cloud-alibaba-dependencies</artifactId>
+            <version>2.1.4.RELEASE</version>
+            <type>pom</type>
+            <scope>import</scope>
+        </dependency>
+    </dependencies>
+</dependencyManagement>
+```
+
+在启动类或者配置类上，添加 `@EnableDiscoveryClient` 注解开启服务发现、`@EnableFeignClients` 注解开启 Feign 支持
+
+```java
+@SpringBootApplication
+@EnableDiscoveryClient
+@EnableFeignClients
+public class FeignNacosConsumer {
+    public static void main(String[] args) {
+        SpringApplication.run(FeignNacosConsumer.class, args);
+    }
+}
+```
+
 ## 4. Feign 和 Ribbon 的联系
 
 - Ribbon 是一个基于 HTTP 和 TCP 客户端的负载均衡的工具。它可以在客户端配置`RibbonServerList`（服务端列表），使用 `HttpClient` 或 `RestTemplate` 模拟http请求，步骤比较繁琐
