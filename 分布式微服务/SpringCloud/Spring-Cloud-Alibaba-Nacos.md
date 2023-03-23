@@ -262,11 +262,16 @@ sh shutdown.sh
 ```properties
 spring.datasource.platform=mysql
 
+### Count of DB:
 db.num=1
-db.url.0=jdbc:mysql://127.0.0.1:3306/nacos_devtest?characterEncoding=utf8&connectTimeout=1000&socketTimeout=3000&autoReconnect=true
-db.user=root
-db.password=123456
+
+### Connect URL of DB:
+db.url.0=jdbc:mysql://127.0.0.1:3306/nacos?characterEncoding=utf8&connectTimeout=1000&socketTimeout=3000&autoReconnect=true&useUnicode=true&useSSL=false&serverTimezone=Asia/Shanghai
+db.user.0=root
+db.password.0=123456
 ```
+
+> Notes: <font color=red>**如果 MySQL 服务器是8.0版本的话，需要设置 `MYSQL_SERVICE_DB_PARAM` 需要指定 `serverTimezone` 为 Asia/Shanghai**</font>，否则会因为 nacos-server 连接外部的 mysql 服务器失败导致无法启动。
 
 再以单机模式启动 nacos，此时所有相关的配置数据都持久化到 mysql 数据库
 

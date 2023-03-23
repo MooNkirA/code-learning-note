@@ -189,6 +189,24 @@ spring:
         server-addr: localhost:8848
 ```
 
+创建测试的接口
+
+```java
+@RestController
+public class TestController {
+
+    @GetMapping("/hi")
+    public String hi() {
+        return "hi";
+    }
+
+    @GetMapping("/hello")
+    public String hello(@RequestParam String name) {
+        return "hello " + name + "!";
+    }
+}
+```
+
 ### 3.3. 服务消费者
 
 创建 feign-nacos-consumer 工程，添加 Nacos 与 feign 依赖：
@@ -253,6 +271,8 @@ public class FeignNacosConsumer {
     }
 }
 ```
+
+
 
 ## 4. Feign 和 Ribbon 的联系
 
