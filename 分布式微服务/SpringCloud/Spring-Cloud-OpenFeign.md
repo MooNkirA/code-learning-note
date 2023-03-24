@@ -272,7 +272,18 @@ public class FeignNacosConsumer {
 }
 ```
 
+创建 feign 代理接口
 
+```java
+@FeignClient(name = "service-provider")
+public interface FeignClientDemo {
+
+    @GetMapping("/hello")
+    String hello(@RequestParam("name") String name);
+}
+```
+
+创建请求接口，通过 feign 代理接口调用服务提供者
 
 ## 4. Feign 和 Ribbon 的联系
 
