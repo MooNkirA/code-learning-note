@@ -193,12 +193,7 @@ spring:
 
 ```java
 @RestController
-public class TestController {
-
-    @GetMapping("/hi")
-    public String hi() {
-        return "hi";
-    }
+public class ProviderTestController {
 
     @GetMapping("/hello")
     public String hello(@RequestParam String name) {
@@ -259,6 +254,20 @@ public class TestController {
 </dependencyManagement>
 ```
 
+修改项目配置文件，添加 nacos 地址
+
+```yml
+server:
+  port: 8080
+spring:
+  application:
+    name: service-consumer
+  cloud:
+    nacos:
+      discovery:
+        server-addr: localhost:8848
+```
+
 在启动类或者配置类上，添加 `@EnableDiscoveryClient` 注解开启服务发现、`@EnableFeignClients` 注解开启 Feign 支持
 
 ```java
@@ -283,7 +292,29 @@ public interface FeignClientDemo {
 }
 ```
 
-创建请求接口，通过 feign 代理接口调用服务提供者
+创建测试请求接口，通过 feign 代理接口调用服务提供者
+
+```java
+@RestController
+public class ComsumerTestController {
+
+    @Autowired
+    private FeignClientDemo feignClientDemo;
+
+    @GetMapping("/hello")
+    public String hello(@RequestParam String name) {
+        return feignClientDemo.hello(name);
+    }
+}
+```
+
+### 3.4. 测试
+
+发送get请求，观察是否成功返回
+
+```
+http://127.0.0.1:8080/hello?name=MooNkirA
+```
 
 ## 4. Feign 和 Ribbon 的联系
 
@@ -300,7 +331,7 @@ Feign 本身已经集成了 Ribbon 依赖和自动配置，因此不需要额外
 
 ![](images/20201015140621794_15061.png)
 
-## 6. Feign 相关配置
+## 6. Feign 进阶配置
 
 ### 6.1. Feign 可配置项说明
 
@@ -362,16 +393,34 @@ feign:
 
 ### 6.3. 日志级别
 
-如果在开发或者运行阶段希望看到Feign请求过程的日志记录，默认情况下Feign的日志是没有开启的。要想用属性配置方式来达到日志效果，只需在 `application.yml` 中添加如下内容即可：
+Feign 在构建服务客户端时，会为每个客户端都创建一个 `feign.logger` 实例，此日志对象的调试模式可以记录 Feign 请求过程细节日志记录。
+
+默认情况下 Feign 的日志是关闭的，可以通过以下几种方式开启日志记录。
+
+#### 6.3.1. 代码方式局部日志配置
+
+1. 在配置文件中设置 Feigin client 接口的日志级别
 
 ```yml
-# 配置feign日志的输出
+logging:
+  level:
+    com.moon.example.feign.FeignClientDemo: debug # Feigin client 接口日志级别配置
+```
+
+
+
+#### 6.3.2. 属性方式局部日志配置
+
+在 `application.yml` 中以属性配置方式，配置 Feigin client 接口的日志级别与目标调用服务的日志级别
+
+```yml
+# 配置目标调用服务的日志级别
 feign:
   client:
     config:
       shop-service-product:  # 需要调用的服务名称
         loggerLevel: full # 配置Feign的日志级别，相当于代码配置方式中的Logger
-# 日志配置
+# Feigin client 日志配置
 logging:
   level:
     # 配置只输出ProductFeignClient接口的日志
@@ -380,20 +429,34 @@ logging:
 
 配置参数说明：
 
-- `logging.level.xx: debug`：配置Feign只会对日志级别为debug的做出响应
-- `feign.client.config.服务名称.loggerLevel`： 配置Feign的日志级别，其中Feign有以下四种日志级别：
-    - `NONE`【性能最佳，适用于生产】：不记录任何日志（默认值）
-    - `BASIC`【适用于生产环境追踪问题】：仅记录请求方法、URL、响应状态代码以及执行时间
-    - `HEADERS`：记录BASIC级别的基础上，记录请求和响应的header。
-    - `FULL`【比较适用于开发及测试环境定位问题】：记录请求和响应的header、body和元数据。
+- `logging.level.xx: debug`：设置 Feigin client 接口的日志级别。示例是只对日志级别为 debug 的做出响应。
+- `feign.client.config.服务名称.loggerLevel`：配置 Feign 目标调用服务的日志级别，有以下四种日志级别可选值：
+    - `NONE`：不记录任何日志（默认值）。【性能最佳，适用于生产】
+    - `BASIC`：只记录基本的日志信息，包括请求方法、URL、响应状态代码、执行时间。【适用于生产环境追踪问题】
+    - `HEADERS`：在 BASIC 级别的基础上，记录请求和响应的 Header 信息。
+    - `FULL`：记录最全的日志信息。包括请求和响应的 Header、Body、元数据信息。【比较适用于开发及测试环境定位问题】
 
 ![](images/20201015210138012_24744.png)
 
-## 7. Feign 源码分析
+## 7. Feign 工作原理
+
+### 7.1. 开发编码层面流程梳理
+
+![Spring-Cloud-OpenFeign流程图.drawio](images/241154011248792.jpg)
+
+### 7.2. FeignClient 代理工作流程
+
+![Spring-Cloud-OpenFeign流程图.drawio](images/470700012256825.jpg)
+
+### 7.3. Feign 最终整体调用流程
+
+![Spring-Cloud-OpenFeign流程图.drawio](images/506390812249494.jpg)
+
+## 8. Feign 源码分析
 
 通过使用过程可知，`@EnableFeignClients`和`@FeignClient`两个注解就实现了Feign的功能，所以从`@EnableFeignClients`注解开始分析Feign的源码
 
-### 7.1. @EnableFeignClients 注解
+### 8.1. @EnableFeignClients 注解
 
 ```java
 @Retention(RetentionPolicy.RUNTIME)
@@ -407,7 +470,7 @@ public @interface EnableFeignClients {
 
 通过 `@EnableFeignClients` 引入了`FeignClientsRegistrar`客户端注册类
 
-### 7.2. FeignClientsRegistrar 客户端注册类
+### 8.2. FeignClientsRegistrar 客户端注册类
 
 ```java
 class FeignClientsRegistrar implements ImportBeanDefinitionRegistrar,
@@ -514,7 +577,7 @@ public void registerFeignClients(AnnotationMetadata metadata,
 
 `registerFeignClients()`方法主要是扫描类路径，对所有的FeignClient生成对应的`BeanDefinition`。同时又调用了 `registerClientConfiguration` 注册配置的方法。这里是第二次调用，主要是将扫描的目录下，每个项目的配置类加载的容器当中。调用 `registerFeignClient` 注册对象
 
-### 7.3. FeignClient 对象的注册
+### 8.3. FeignClient 对象的注册
 
 在上一步中，获取`@FeignClient`注解的数据封装到一个map集合后，调用`registerFeignClient(registry, annotationMetadata, attributes);`方法，往spring容器中注册`BeanDefinition`对象
 
@@ -566,7 +629,7 @@ private void registerFeignClient(BeanDefinitionRegistry registry,
 
 通过源分析可知：最终是向Spring中注册了一个bean，bean的名称就是类或接口的名称（也就是本例中的FeignService），bean的实现类是`FeignClientFactoryBean`，其属性设置就是在`@FeignClient`中定义的属性。那么下面在Controller中对`FeignService`的的引入，实际就是引入了`FeignClientFactoryBean`类
 
-### 7.4. FeignClientFactoryBean 类
+### 8.4. FeignClientFactoryBean 类
 
 对`@EnableFeignClients`注解的源码进行了分析，了解到其主要作用就是把带有`@FeignClient`注解的类或接口用`FeignClientFactoryBean`类注册到Spring容器中。
 
@@ -628,7 +691,7 @@ class FeignClientFactoryBean implements FactoryBean<Object>, InitializingBean,
 - `getObject()`方法中调用的是`getTarget()`方法，它从applicationContext取出FeignContext，然后构造`Feign.Builder`并设置了logger、encoder、decoder、contract，之后通过configureFeign根据`FeignClientProperties`来进一步配置`Feign.Builder`的retryer、errorDecoder、request.Options、requestInterceptors、queryMapEncoder、decode404
 - 初步配置完`Feign.Builder`之后再判断是否需要loadBalance，如果需要则通过loadBalance方法来设置，不需要则在Client是`LoadBalancerFeignClient`的时候进行unwrap
 
-### 7.5. 发送请求的实现
+### 8.5. 发送请求的实现
 
 从上面的源码分析可知，`FeignClientFactoryBean.getObject()`具体返回的是一个代理类，具体为`FeignInvocationHandler`
 
