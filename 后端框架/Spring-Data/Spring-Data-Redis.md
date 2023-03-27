@@ -18,7 +18,7 @@ Spring Data Redis 的作用是通过一段简单的配置即可访问 redis 服�
 
 ### 2.1. Redis 环境搭建
 
-- Redis 的测试环境搭建，详见 [《Redis 安装笔记》](/数据库/Redis/Redis-安装) 章节
+- Redis 的测试环境搭建，详见 [《Redis 安装笔记》](/数据库/Redis/Redis-安装部署) 章节
 - Redis 的基础使用，详见 [《Redis 基础笔记》](/数据库/Redis/Redis-基础) 章节
 
 ### 2.2. 创建案例项目

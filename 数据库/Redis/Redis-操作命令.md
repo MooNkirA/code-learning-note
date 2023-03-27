@@ -1,25 +1,21 @@
-# Redis 操作命令
+## 1. 全局命令 - 键(Key)的通用操作
 
-## 1. 全局命令（keys的通用操作）
-
-所谓通用操作是指，不管value是五种类型中的哪一种类型，都可以用的操作
+Redis 对键(Key)的操作是通用的，不管 value 是五种类型中的哪一种类型，都可以用的操作
 
 ### 1.1. KEYS 查询键
+
+#### 1.1.1. 基础使用
 
 ```bash
 keys pattern
 ```
 
-获取所有与`pattern`匹配的`key`，`*`表示任意0个或多个字符，`?`表示任意一个字符。**如果存在大量键，线上禁止使用此指令**
-
-- 收集：到目为此，`*`在哪些技术中出现过，分别表示什么意思？
-- 正则表达式，`*`，0个或多个
-- url-pattern，`*`，模糊匹配（前缀和后缀）
+获取所有与`pattern`匹配的`key`，`*`表示任意0个或多个字符，`?`表示任意一个字符。
 
 比如：
 
 - `KEYS *` 匹配数据库中所有 `key`
-- `KEYS h?llo` 匹配 `hello` ， `hallo` 和 `hxllo` 等
+- `KEYS h?llo` 匹配 `hello`，`hallo` 和 `hxllo` 等
 - `KEYS h*llo` 匹配 `hllo` 和 `heeeeello` 等
 - `KEYS h[ae]llo` 匹配 `hello` 和 `hallo` ，但不匹配 `hillo`
 
@@ -47,7 +43,34 @@ redis> KEYS *  # 匹配数据库内所有 key
 4) "one"
 ```
 
-### 1.2. DBSIZE 查询键总数
+#### 1.1.2. keys 命令存在的问题
+
+因为 Redis 是单线程的。keys 指令会导致线程阻塞一段时间，直到执行完毕，服务才能恢复。所以值得注意的是，<font color=red>**如果存在大量键，线上禁止使用此指令**</font>
+
+### 1.2. SCAN 迭代集合元素
+
+#### 1.2.1. 基础使用
+
+```bash
+SCAN cursor [MATCH pattern] [COUNT count]
+```
+
+`SCAN` 命令及其相关的命令(`SSCAN`、`HSCAN`、`ZSCAN`)都用于增量地迭代（incrementally iterate）一集元素（a collection of elements）：
+
+- `SCAN` 命令用于迭代当前数据库中的数据库键。
+- `SSCAN` 命令用于迭代集合键中的元素。
+- `HSCAN` 命令用于迭代哈希键中的键值对。
+- `ZSCAN` 命令用于迭代有序集合中的元素（包括元素成员和元素分值）。
+
+以上列出的四个命令都支持增量式迭代，它们每次执行都只会返回少量元素，所以这些命令可以用于生产环境，而不会出现像在大量键的情况下 `KEYS` 命令造成阻塞的问题。
+
+#### 1.2.2. SCAN 命令优缺点
+
+`scan` 的优点是：该命令采用渐进式遍历的方式来解决 `keys` 命令可能带来的阻塞问题，每次 `scan` 命令的时间复杂度是 `O(1)`，但是要真正实现 `keys` 的功能，需要执行多次 `scan`。
+
+`scan` 的缺点是：在执行命令的过程中，如果有键的变化（增加、删除、修改），遍历过程可能会出现，新增的键可能没有遍历到、遍历出了重复的键等情况。即 `scan` 命令并不能保证完整的遍历出来所有的键。
+
+### 1.3. DBSIZE 查询键总数
 
 ```bash
 dbsize
@@ -62,7 +85,7 @@ redis> DBSIZE
 (integer) 5
 ```
 
-### 1.3. EXISTS 检查键是否存在
+### 1.4. EXISTS 检查键是否存在
 
 ```bash
 exists key
@@ -84,7 +107,7 @@ redis> EXISTS db
 (integer) 0
 ```
 
-### 1.4. DEL 删除键
+### 1.5. DEL 删除键
 
 ```bash
 DEL key [key …]
@@ -106,7 +129,7 @@ redis> DEL name type website
 (integer) 3
 ```
 
-### 1.5. EXPIRE 设置过期时间（秒级别）
+### 1.6. EXPIRE 设置过期时间（秒级别）
 
 ```bash
 expire key
@@ -122,7 +145,7 @@ redis> EXPIRE cache_page 30000   # 如果在过期之前，再次使用EXPIRE命
 (integer) 1
 ```
 
-### 1.6. TTL 查询剩余生存时间（秒级别）
+### 1.7. TTL 查询剩余生存时间（秒级别）
 
 ```bash
 ttl key
@@ -150,7 +173,7 @@ redis> TTL key
 (integer) 10084
 ```
 
-### 1.7. EXPIREAT 设置生存时间（秒级别时间戳）
+### 1.8. EXPIREAT 设置生存时间（秒级别时间戳）
 
 ```bash
 EXPIREAT key timestamp
@@ -165,7 +188,7 @@ redis> EXPIREAT cache 1355292000     # 这个 key 将在 2021.12.12 过期
 (integer) 1
 ```
 
-### 1.8. PEXPIRE 设置生存时间（毫秒级别）
+### 1.9. PEXPIRE 设置生存时间（毫秒级别）
 
 ```bash
 PEXPIRE key milliseconds
@@ -184,7 +207,7 @@ redis> PTTL mykey   # PTTL 可以给出准确的毫秒数
 (integer) 1499
 ```
 
-### 1.9. PEXPIREAT 设置生存时间（毫秒级别时间戳）
+### 1.10. PEXPIREAT 设置生存时间（毫秒级别时间戳）
 
 ```bash
 PEXPIREAT key milliseconds-timestamp
@@ -203,7 +226,7 @@ redis> PTTL mykey          # PTTL 返回毫秒
 (integer) 223157079318
 ```
 
-### 1.10. PTTL 查询剩余生存时间（毫秒级别）
+### 1.11. PTTL 查询剩余生存时间（毫秒级别）
 
 ```bash
 PTTL key
@@ -217,7 +240,7 @@ PTTL key
 
 > 注：在 Redis 2.8 以前，当 `key` 不存在，或者 `key` 没有设置剩余生存时间时，命令都返回`-1`
 
-### 1.11. PERSIST 移除生存时间
+### 1.12. PERSIST 移除生存时间
 
 ```bash
 PERSIST key
@@ -239,7 +262,7 @@ redis> TTL mykey
 (integer) -1
 ```
 
-### 1.12. TYPE 键存储的数据结构类型
+### 1.13. TYPE 键存储的数据结构类型
 
 ```bash
 TYPE key
@@ -275,7 +298,7 @@ redis> TYPE pat
 set
 ```
 
-### 1.13. RANDOMKEY 随机获取一个key
+### 1.14. RANDOMKEY 随机获取一个key
 
 ```bash
 RANDOMKEY
@@ -290,7 +313,7 @@ redis> RANDOMKEY
 (nil)
 ```
 
-### 1.14. RENAME 重命名
+### 1.15. RENAME 重命名
 
 ```bash
 RENAME key newkey
@@ -332,23 +355,22 @@ redis> GET name2      # 原来的值 kira 被覆盖了
 "moon"
 ```
 
-### 1.15. SELECT 切换数据库
+### 1.16. SELECT 切换数据库
 
 ```bash
 SELECT index
 ```
 
-切换到指定的数据库，数据库索引号 `index` 用数字值指定，以 `0` 作为起始索引值。默认使用 `0` 号数据库。
+切换到指定的数据库，数据库索引号 `index` 用数字值指定。
 
-- 一个Redis服务器可以包括多个数据库，客户端可以指连接Redis中的的哪个数据库，就好比一个mysql服务器中创建多个数据库，客户端连接时指定连接到哪个数据库。
-- 一个Redis实例最多可提供`16`个数据库，下标为`0`到`15`，客户端默认连接第`0`个数据库，也可以通过`select`命令选择哪个数据库。
+一个 Redis 服务器可以包括多个数据库，客户端可以指连接 Redis 中的的哪个数据库，就好比一个mysql服务器中创建多个数据库，客户端连接时指定连接到哪个数据库。Redis 实例最多可提供 16 个数据库，索引值从`0`到`15`，客户端默认连接索引值为`0`的数据库，也可以通过`select`命令选择哪个数据库。如果选择 16 时会报错，说明没有编号为 16 的数据库。
 
 ```bash
-redis> SELECT 1                # 使用 1 号数据库
+redis> SELECT 1   # 使用 1 号数据库
 OK
 ```
 
-### 1.16. MOVE 迁移键
+### 1.17. MOVE 迁移键
 
 ```bash
 MOVE key db
@@ -395,14 +417,14 @@ redis:1> GET favorite_fruit                 # 数据库 1 的 favorite_fruit 也
 "apple"
 ```
 
-### 1.17. 其他小结
+### 1.18. 其他小结
 
-#### 1.17.1. KEYS 与 DBSIZE 命令小结
+#### 1.18.1. KEYS 与 DBSIZE 命令小结
 
 - `dbsize` 命令在计算键总数时不会遍历所有键，而是直接获取 Redis 内置的键总数变量，所以`dbsize`命令的时间复杂度是O(1)。
 - `keys` 命令会遍历所有键，所以它的时间复杂度是`o(n)`，当 Redis 保存了大量键时线上环境禁止使用`keys`命令。
 
-#### 1.17.2. 关于使用Redis相关过期命令时注意点
+#### 1.18.2. 关于使用Redis相关过期命令时注意点
 
 - 如果使用 `expire key` 命令时相应的键不存在，返回结果为0
 - 如果过期时间为负值，键会立即被删除，效果与使用`del`命令一样
@@ -411,7 +433,7 @@ redis:1> GET favorite_fruit                 # 数据库 1 的 favorite_fruit 也
 - Redis不支持二级数据结构(例如哈希、列表)内部元素的过期功能，例如不能对列表类型的一个元素做过期时间设置。
 - 如果关了Redis服务器端，在默认情况下从控制台插入的`key=value`键值对数据，就算key时间未到，也会自动销毁。
 
-## 2. 存储String类型（重点）
+## 2. String 类型命令（重点）
 
 字符串类型是Redis中最为基础的数据存储类型，它在Redis中是二进制安全的，这便意味着该类型**存入和获取的数据相同**。字符串类型的值实际可以是字符串(简单的字符串、复杂的字符串(例如JSON、XML))、数字(整数、浮点数)，甚至是二进制(图片、音频、视频)，在Redis中字符串类型的Value最多可以容纳的数据长度是512M。
 
@@ -938,7 +960,7 @@ redis> GETRANGE greeting 0 1008611    # 值域范围不超过实际字符串，�
 
 字符串这些命令中，除了`del`、`mset`、`mget`支持多个键的批量操作，时间复杂度和键的个数相关，为`O(n)`，`getrange`和字符串长度相关，也是`O(n)`，其余的命令基本上都是`O(1)`的时间复杂度，所以操作速度非常快
 
-## 3. 存储hash（了解）
+## 3. Hash 类型命令
 
 Redis中的Hash类型可以看成具有String Key和String Value的map容器。所以该类型非常适合于存储值对象的信息。如Username、Password和Age等。如果Hash中包含很少的字段，那么该类型的数据也将仅占用很少的磁盘空间。每一个Hash可以存储4294967295个键值对。
 
@@ -969,7 +991,7 @@ Redis中的Hash类型可以看成具有String Key和String Value的map容器。�
 - `hkeys key`：获得所有的key
 - `hvals key`：获得所有的value
 
-## 4. 存储List(了解)
+## 4. List 类型命令
 
 在Redis中，list类型是按照插入顺序排序的字符串链表。我们可以在其头部（left）和尾部（right）添加新的元素。在插入时，如果该key不存在，Redis将为该key创建一个新的链表。与此相反，如果链表中的所有元素都被删除了，那么该key也将会被从数据库中删除。list中可以包含的最大元素数据量4294967295（十亿以上）。
 
@@ -977,8 +999,17 @@ Redis中的Hash类型可以看成具有String Key和String Value的map容器。�
 
 ### 4.1. 两端添加
 
-- `lpush key value1 value2……`：在指定的key对应的list的头部插入所有的value，如果该key不存在，该命令在插入之前创建一个与该key对应的空链表，再从头部插入数据。插入成功，返回元素的个数。
-- `rpush key value1 value2……`：在指定的key对应的list的尾部插入所有的value，如果该key不存在，该命令在插入之前创建一个与该key对应的空链表，再从尾部插入数据。插入成功，返回元素的个数。
+```bash
+lpush key value1 value2……
+```
+
+- 在指定的 key 对应的 list 的头部插入所有的 value，如果该 key 不存在，该命令在插入之前创建一个与该 key 对应的空链表，再从头部插入数据。插入成功，返回元素的个数。
+
+```bash
+rpush key value1 value2……
+```
+
+- 在指定的 key 对应的 list 的尾部插入所有的 value，如果该 key 不存在，该命令在插入之前创建一个与该 key 对应的空链表，再从尾部插入数据。插入成功，返回元素的个数。
 
 ### 4.2. 查看列表
 
@@ -994,11 +1025,15 @@ Redis中的Hash类型可以看成具有String Key和String Value的map容器。�
 
 ### 4.4. 获取列表中元素的个数
 
-`llen key`：返回指定key对应链表中元素的个数，l代表list，len代表length
+```bash
+llen key
+```
 
-## 5. 存储set(了解)
+- 返回指定 key 对应链表中元素的个数。命令的 `l` 代表 list，`len` 代表 length
 
-Redis中，我们可以将set类型看作是没有排序的字符集合，set中可以包含的最大元素数据量4294967295（十亿以上）。
+## 5. Set 类型命令
+
+Redis 中，可以将set类型看作是没有排序的字符集合，set中可以包含的最大元素数据量4294967295（十亿以上）。
 
 **和list不同，set集合不允许出现重复元素，如果多次添加相同元素，set中仅保留一份。**
 
@@ -1018,48 +1053,81 @@ Redis中，我们可以将set类型看作是没有排序的字符集合，set中
 
 - `sismember key value`：判断key中指定的元素是否在该set集合中存在。存在则返回1，不存在则返回0
 
-## 6. 存储sortedset
+## 6. SortedSet 类型命令
 
-sortedset和set类型极为类似，它们都是字符串的集合，都不允许重复的元素出现在一个set中。它们之间的主要区别是**sortedset中每一个元素都会有一个分数（score）与之关联，Redis正是通过分数来为集合中的元素进行从小到大的排序（默认）。**
+SortedSet 和 Set 类型极为类似，它们都是字符串的集合，都不允许重复的元素出现在一个 Set 中。它们之间的主要区别是**SortedSet 中每一个元素都会有一个分数（score）与之关联，Redis 正是通过分数来为集合中的元素进行从小到大的排序（默认）。**
 
-**sortedset集合中的元素必须是唯一的，但分数（score）却是可以重复。**
+<font color=red>**SortedSet 集合中的元素必须是唯一的，但分数（score）却是可以重复。**</font>
 
 ### 6.1. 添加元素
 
-- `zadd key score value score value score value`
-    - 将所有元素以及对应的分数，存放到sortedset集合中，如果该元素已存在则会用新的分数替换原来的分数。
-    - 返回值是新加入到集合中的元素个数，不包含之前已经存在的元素。
+```bash
+zadd key score value score value score value
+```
+
+- 将所有元素以及对应的分数，存放到 sortedset 集合中，如果该元素已存在则会用新的分数替换原来的分数。返回值是新加入到集合中的元素个数，不包含之前已经存在的元素。
 
 ### 6.2. 查询元素（从小到大）
 
-- `zrange key start end`
-    - 获取集合中下标为start到end的元素，不带分数排序之后的sortedSet与list的位置是一样，位置从左到右是正数，从0开始，位置从右到左是负数，从-1开始，-1是倒数第一个元素，-2倒数第二个元素
-- `zrange key start end withscores`
-    - 获取集合中下标为start到end的元素，带分数按分数从小到大排序
-    - 如果相同用户的话，不会再将用户名插入集合中，但分数可以替换原来的分数
+```bash
+zrange key start end
+```
+
+- 获取集合中下标为 start 到 end 的元素，不带分数排序之后的 SortedSet 与 list 的位置是一样，位置从左到右是正数，从0开始，位置从右到左是负数，从-1开始，-1是倒数第一个元素，-2倒数第二个元素
+
+```bash
+zrange key start end withscores
+```
+
+- 获取集合中下标为 start 到 end 的元素，带分数按分数从小到大排序。如果相同用户的话，不会再将用户名插入集合中，但分数可以替换原来的分数
 
 ### 6.3. 查询元素（从大到小）
 
-- `zrevrange key start end`：按照元素分数从大到小，获取集合中下标为start到end的元素，不带分数
-- `zrevrange key start end withscores`：按照元素分数从大到小，获取集合中下标为start到end的元素，带分数
+```bash
+zrevrange key start end
+```
+
+- 按照元素分数从大到小，获取集合中下标为start到end的元素，不带分数
+
+```bash
+zrevrange key start end withscores
+```
+
+- 按照元素分数从大到小，获取集合中下标为start到end的元素，带分数
 
 ### 6.4. 获取元素分数
 
-`zscore key member`：返回指定元素的分数
+```bash
+zscore key member
+```
+
+- 返回指定元素的分数
 
 ### 6.5. 获取元素数量
 
-`zcard key`：获取集合中元素数量
+```bash
+zcard key
+```
+
+- 获取集合中元素数量
 
 ### 6.6. 删除元素
 
-`zrem key member member member`：从集合中删除指定的元素
+```bash
+zrem key member member member
+```
+
+- 从集合中删除指定的元素
 
 ### 6.7. 按照分数范围删除元素
 
-`zremrangebyscore key min max`：按照分数范围删除元素
+```bash
+zremrangebyscore key min max
+```
 
-## 7. Redis其他命令（了解）
+- 按照分数范围删除元素
+
+## 7. Redis 其他命令（了解）
 
 ### 7.1. 服务器命令(自学)
 
@@ -1068,16 +1136,14 @@ sortedset和set类型极为类似，它们都是字符串的集合，都不允�
     - `redis 127.0.0.1:6379> ping`
     - Could not connect to Redis at 127.0.0.1:6379: Connection refused
 - **echo**，在命令行打印一些内容
-- **select**，选择数据库。
-    - Redis 数据库编号从0~15，可以选择任意一个数据库来进行数据的存取。
-    - 当选择16 时，报错，说明没有编号为16 的这个数据库
 - **quit**，退出连接。
-- **dbsize**，返回当前数据库中key 的数目。
 - **info**，获取服务器的信息和统计。
 - **flushdb**，删除当前选择数据库中的所有key。
 - **flushall**，删除所有数据库中的所有key。
 
 ### 7.2. 消息订阅与发布
+
+> TODO: 待整理，其他详见day50笔记
 
 - `subscribe`：订阅指定的一个频道的信息。例如，`subscribe mychat`，订阅“mychat”这个频道
 - `psubscribe`：订阅一个或多个符合指定模式的频道。例如，`psubscribe s*`：批量订阅以“s”开头的频道
@@ -1085,15 +1151,100 @@ sortedset和set类型极为类似，它们都是字符串的集合，都不允�
 - `pubsub`：查看订阅与发布系统的状态
 - `publish`：在指定的频道中发布消息。例如，`publish mychat 'today is a newday'`
 
-> TODO: 待整理，其他详见day50笔记
-
 ### 7.3. redis 事务
-
-- `multi`：开启事务，用于标记事务的开始，其后执行的命令都将被存入命令队列，直到执行 `EXEC` 命令时，这些命令才会被原子的执行，类似与关系型数据库中的：begin transaction
-- `exec`：提交事务，会执行所有事务块内的命令。类似与关系型数据库中的：commit
-- `discard`：事务回滚，放弃执行事务块内的所有命令。类似与关系型数据库中的：rollback
-- `watch`：监视一个（或多个）key，如果在事务执行之前这个（或这些）key 被其他命令改动，那么事务将被打断。
-- `unwath`：取消 `watch` 命令对所有 key 的监视
 
 > TODO: 待整理，详见day50笔记
 
+#### 7.3.1. multi 开启事务
+
+```bash
+multi
+```
+
+- 开启事务，用于标记事务的开始，其后执行的命令都将被存入命令队列，直到执行 `EXEC` 命令时，这些命令才会被原子的执行，类似与关系型数据库中的：begin transaction
+
+#### 7.3.2. exec 提交事务
+
+```bash
+exec
+```
+
+- 提交事务，会执行所有事务块内的命令。类似与关系型数据库中的：commit
+
+示例：
+
+```bash
+127.0.0.1:6379> multi
+OK
+
+127.0.0.1:6379> set a 1
+QUEUED
+
+127.0.0.1:6379> set b 1 2
+QUEUED
+
+127.0.0.1:6379> set c 3
+QUEUED
+
+127.0.0.1:6379> exec
+1) OK
+2) (error) ERR syntax error
+3) OK
+```
+
+#### 7.3.3. discard 事务回滚
+
+```bash
+discard
+```
+- 事务回滚，放弃执行事务块内的所有命令。类似与关系型数据库中的：rollback
+
+#### 7.3.4. watch 监听键
+
+```bash
+watch keyName
+```
+
+- 监视一个（或多个）key，如果在事务执行之前这个（或这些）key 被其他命令改动，那么事务将被打断（类似于乐观锁）。另外执行 `EXEC` 命令之后，也会自动取消监控。
+
+使用示例：
+
+```bash
+127.0.0.1:6379> watch name
+OK
+
+127.0.0.1:6379> set name 1
+OK
+
+127.0.0.1:6379> multi
+OK
+
+127.0.0.1:6379> set name 2
+QUEUED
+
+127.0.0.1:6379> set gender 1
+QUEUED
+
+127.0.0.1:6379> exec
+(nil)
+
+127.0.0.1:6379> get gender
+(nil)
+```
+
+示例命令实现说明：
+
+1. `watch name` 开启了对 `name` 这个 key 的监控
+2. 修改 `name` 的值
+3. 开启事务a
+4. 在事务a中设置了 `name` 和 `gender` 的值
+5. 使用 `EXEC` 命令进提交事务
+6. 使用命令 `get gender` 发现不存在，即事务a没有执行
+
+#### 7.3.5. unwath 取消所有控制
+
+```bash
+unwath
+```
+
+- 取消 `watch` 命令对所有 key 的监控，所有监控锁将会被取消。

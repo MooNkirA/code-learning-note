@@ -1213,30 +1213,40 @@ show processlist;
 
 ![](images/20211224104543121_17316.png)
 
-- id列，用户登录mysql时，系统分配的"connection_id"，可以使用函数`connection_id()`查看
-- user列，显示当前用户。如果不是root，这个命令就只显示用户权限范围的sql语句
-- host列，显示这个语句是从哪个ip的哪个端口上发的，可以用来跟踪出现问题语句的用户
-- db列，显示这个进程目前连接的是哪个数据库
-- command列，显示当前连接的执行的命令，一般取值为休眠（sleep），查询（query），连接（connect）等
-- time列，显示这个状态持续的时间，单位是秒
-- state列，显示使用当前连接的sql语句的状态，很重要的列。state描述的是语句执行中的某一个状态。一个sql语句，以查询为例，可能需要经过copying to tmp table、sorting result、sending data等状态才可以完成
-- info列，显示这个sql语句，是判断问题语句的一个重要依据
+- id 列：线程 id，用户登录 mysql 时，系统分配的"connection_id"，可以使用函数`connection_id()`查看。此 id 可用于 `kill id` 杀死某个线程
+- user 列：显示当前用户。如果不是root，这个命令就只显示用户权限范围的sql语句
+- host 列：数据库实例的 IP，显示这个语句是从哪个ip的哪个端口上发的，可以用来跟踪出现问题语句的用户
+- db 列：显示这个进程目前连接的是哪个数据库
+- command 列：显示当前连接执行的命令，一般取值为休眠（`sleep`），查询（`query`），连接（`connect`）等
+- time 列：显示这个状态持续的时间，单位是秒
+- state 列(**重要**)：显示使用当前连接的 sql 语句的状态，描述的是语句执行中的某一个状态。以查询语句为例，可能需要经过 copying to tmp table、sorting result、sending data 等状态才可以完成。此列主要有以下常见状态：
+    - `Sleep`，线程正在等待客户端发送新的请求
+    - `Locked`，线程正在等待锁
+    - `Sending data`，正在处理 SELECT 查询的记录，同时把结果发送给客户端
+    - `Kill`，正在执行 kill 语句，杀死指定线程
+    - `Connect`，一个从节点连上了主节点
+    - `Quit`，线程正在退出
+    - `Sorting for group`，正在为 GROUP BY 做排序
+    - `Sorting for order`，正在为 ORDER BY 做排序
+- info 列：显示这个 sql 语句，是判断问题语句的一个重要依据
 
 通过上面的命令可以查看线程状态。可以了解当前 MySQL 在进行的线程，包括线程的状态、是否锁表等，可以实时地查看SQL的执行情况，同时对一些锁表操作进行优化。在一个繁忙的服务器上，可能会看到大量的不正常的状态，例如 `statistics` 正占用大量的时间。这通常表示，某个地方有异常了。如：
 
 - statistics
-The server is calculating statistics to develop a query execution plan. If a thread is in this state for a long time, the server is probably disk-bound performing other work.
+
+> The server is calculating statistics to develop a query execution plan. If a thread is in this state for a long time, the server is probably disk-bound performing other work.
+
 服务器正在计算统计信息以研究一个查询执行计划。如果线程长时间处于此状态，则服务器可能是磁盘绑定执行其他工作。
 
 - Creating tmp table
 
-The thread is creating a temporary table in memory or on disk. If the table is created in memory but later is converted to an on-disk table, the state during that operation is Copying to tmp table on disk.
+> The thread is creating a temporary table in memory or on disk. If the table is created in memory but later is converted to an on-disk table, the state during that operation is Copying to tmp table on disk.
 
 该线程正在内存或磁盘上创建临时表。如果表在内存中创建但稍后转换为磁盘表，则该操作期间的状态将为 Copying to tmp table on disk
 
 - Sending data
 
-The thread is reading and processing rows for a SELECT statement, and sending data to the client. Because operations occurring during this state tend to perform large amounts of disk access (reads), it is often the longest-running state over the lifetime of a given query.
+> The thread is reading and processing rows for a SELECT statement, and sending data to the client. Because operations occurring during this state tend to perform large amounts of disk access (reads), it is often the longest-running state over the lifetime of a given query.
 
 线程正在读取和处理 SELECT 语句的行 ，并将数据发送到客户端。由于在此状态期间发生的操作往往会执行大量磁盘访问（读取），因此它通常是给定查询生命周期中运行时间最长的状态。
 
