@@ -1129,7 +1129,18 @@ zremrangebyscore key min max
 
 ## 7. Redis 其他命令（了解）
 
-### 7.1. 服务器命令(自学)
+### 7.1. pipeline 批命令
+
+Redis 客户端执行一条命令分4个过程：发送命令、命令排队、命令执行、返回结果。使用 `pipeline` 可以批量请求，批量返回结果，执行速度比逐条执行要快。
+
+值得注意的是：使用 `pipeline` 组装的命令个数不能太多，不然数据量过大，增加客户端的等待时间，还可能造成网络阻塞，可以将大量命令的拆分多个小的 `pipeline` 命令完成。
+
+原生批命令（`mset`和`mget`）与 `pipeline` 对比：
+
+1. 原生批命令是原子性；`pipeline` 是非原子性，即 `pipeline` 命令中途异常退出，之前执行成功的命令不会回滚。
+2. 原生批命令只有一个命令；但 `pipeline` 支持多命令。
+
+### 7.2. 服务器命令
 
 - **ping**，测试连接是否存活
     - 执行下面命令之前，我们停止redis 服务器
@@ -1141,7 +1152,7 @@ zremrangebyscore key min max
 - **flushdb**，删除当前选择数据库中的所有key。
 - **flushall**，删除所有数据库中的所有key。
 
-### 7.2. 消息订阅与发布
+### 7.3. 消息订阅与发布
 
 > TODO: 待整理，其他详见day50笔记
 
@@ -1151,11 +1162,11 @@ zremrangebyscore key min max
 - `pubsub`：查看订阅与发布系统的状态
 - `publish`：在指定的频道中发布消息。例如，`publish mychat 'today is a newday'`
 
-### 7.3. redis 事务
+### 7.4. redis 事务
 
 > TODO: 待整理，详见day50笔记
 
-#### 7.3.1. multi 开启事务
+#### 7.4.1. multi 开启事务
 
 ```bash
 multi
@@ -1163,7 +1174,7 @@ multi
 
 - 开启事务，用于标记事务的开始，其后执行的命令都将被存入命令队列，直到执行 `EXEC` 命令时，这些命令才会被原子的执行，类似与关系型数据库中的：begin transaction
 
-#### 7.3.2. exec 提交事务
+#### 7.4.2. exec 提交事务
 
 ```bash
 exec
@@ -1192,14 +1203,14 @@ QUEUED
 3) OK
 ```
 
-#### 7.3.3. discard 事务回滚
+#### 7.4.3. discard 事务回滚
 
 ```bash
 discard
 ```
 - 事务回滚，放弃执行事务块内的所有命令。类似与关系型数据库中的：rollback
 
-#### 7.3.4. watch 监听键
+#### 7.4.4. watch 监听键
 
 ```bash
 watch keyName
@@ -1241,10 +1252,67 @@ QUEUED
 5. 使用 `EXEC` 命令进提交事务
 6. 使用命令 `get gender` 发现不存在，即事务a没有执行
 
-#### 7.3.5. unwath 取消所有控制
+#### 7.4.5. unwath 取消所有控制
 
 ```bash
 unwath
 ```
 
 - 取消 `watch` 命令对所有 key 的监控，所有监控锁将会被取消。
+
+## 8. LUA 脚本
+
+### 8.1. 概述
+
+Redis 通过 LUA 脚本创建具有原子性的命令：当 lua 脚本命令正在运行的时候，不会有其他脚本或 Redis 命令被执行，实现组合命令的原子操作。
+
+lua 脚本作用：
+
+1. Lua 脚本在 Redis 中是原子执行的，执行过程中间不会插入其他命令。
+2. Lua 脚本可以将多条命令一次性打包，有效地减少网络开销。
+
+### 8.2. Lua 脚本的使用
+
+在 Redis 中执行 Lua 脚本有两种方法：`eval` 和 `evalsha`。`eval` 命令使用内置的 Lua 解释器，对 Lua 脚本进行求值。
+
+```bash
+// 第一个参数是lua脚本，第二个参数是键名参数个数，剩下的是键名参数和附加参数
+127.0.0.1:6379> eval "return {KEYS[1],KEYS[2],ARGV[1],ARGV[2]}" 2 key1 key2 first second
+1) "key1"
+2) "key2"
+3) "first"
+4) "second"
+```
+### 8.3. 应用场景
+
+#### 8.3.1. 限制接口访问频率(未验证正确性)
+
+在 Redis 维护一个接口访问次数的键值对，key 是接口名称，value 是访问次数。每次访问接口时，会执行以下操作：
+
+- 通过 aop 拦截接口的请求，对接口请求进行计数，每次进来一个请求，相应的接口访问次数 count 加 1，存入 redis。
+- 如果是第一次请求，则会设置 `count=1`，并设置过期时间。因为这里 `set()` 和 `expire()` 组合操作不是原子操作，所以需要引入 lua 脚本实现原子操作，避免并发访问问题。
+- 如果给定时间范围内超过最大访问次数，则会抛出异常。
+
+```java
+private String buildLuaScript() {
+    return "local c" +
+            "\nc = redis.call('get',KEYS[1])" +
+            "\nif c and tonumber(c) > tonumber(ARGV[1]) then" +
+            "\nreturn c;" +
+            "\nend" +
+            "\nc = redis.call('incr',KEYS[1])" +
+            "\nif tonumber(c) == 1 then" +
+            "\nredis.call('expire',KEYS[1],ARGV[2])" +
+            "\nend" +
+            "\nreturn c;";
+}
+
+@Test
+public void testLua() {
+    String luaScript = buildLuaScript();
+    RedisScript<Number> redisScript = new DefaultRedisScript<>(luaScript, Number.class);
+    Number count = redisTemplate.execute(redisScript, keys, limit.count(), limit.period());
+}
+```
+
+> Notes: 这种接口限流的实现方式只是示例，实现比较简单，问题也比较多，一般不会使用，接口限流用的比较多的是令牌桶算法和漏桶算法。

@@ -1,76 +1,85 @@
-# RabbitMQ
+## 1. RabbitMQ 简介
 
-RabbitMQ 官方地址：http://www.rabbitmq.com/
+> RabbitMQ 官方地址：http://www.rabbitmq.com/
 
-## 1. 介绍
+MQ 全称为 Message Queue，即消息队列， RabbitMQ 是由 erlang 语言开发，基于 AMQP（Advanced Message Queue 高级消息队列协议）协议实现的消息队列，它是一种应用程序之间的通信方法，消息队列在分布式系统开发中应用非常广泛。
 
-### 1.1. RabbitMQ 简介
-
-MQ全称为Message Queue，即消息队列， RabbitMQ是由erlang语言开发，基于AMQP（Advanced Message Queue 高级消息队列协议）协议实现的消息队列，它是一种应用程序之间的通信方法，消息队列在分布式系统开发中应用非常广泛。
-
-开发中消息队列通常有如下应用场景
-
-1. **任务异步处理**。将不需要同步处理的并且耗时长的操作由消息队列通知消息接收方进行异步处理。提高了应用程序的响应时间。
-2. **应用程序解耦合**。MQ相当于一个中介，生产方通过MQ与消费方交互，它将应用程序进行解耦合。
-
-市场上还有其他的消息队列框架，如：ActiveMQ，RabbitMQ，ZeroMQ，Kafka，MetaMQ，RocketMQ、Redis
-
-为什么使用RabbitMQ呢？
+市场上还有其他的消息队列框架，如：ActiveMQ，ZeroMQ，Kafka，MetaMQ，RocketMQ、Redis。为什么使用 RabbitMQ 呢？
 
 1. 使得简单，功能强大。
-2. 基于AMQP协议。
+2. 基于 AMQP 协议。
 3. 社区活跃，文档完善。
-4. 高并发性能好，这主要得益于Erlang语言。
-5. Spring Boot默认已集成RabbitMQ
+4. 高并发性能好，这主要得益于 Erlang 语言。
+5. Spring Boot 默认已集成 RabbitMQ
 
-### 1.2. 其它相关知识
+### 1.1. 基础概念
 
-#### 1.2.1. AMQP
+#### 1.1.1. AMQP
 
 AMQP 是一套公开的消息队列协议，最早在 2003 年被提出，它旨在从协议层定义消息通信数据的标准格式，为的就是解决 MQ 市场上协议不统一的问题。RabbitMQ 就是遵循 AMQP 标准协议开发的 MQ 服务。
 
 官网：http://www.amqp.org/
 
-#### 1.2.2. JMS
+#### 1.1.2. JMS
 
 JMS 是 java 提供的一套消息服务 API 标准，其目的是为所有的 java 应用程序提供统一的消息通信的标准，类似 java 的 jdbc，只要遵循 jms 标准的应用程序之间都可以进行消息通信。它和 AMQP 有以下区别：
 
 - jms 是 java 语言专属的消息服务标准，它是在 api 层定义标准，并且只能用于 java 应用。
 - AMQP 是在协议层定义的标准，是跨语言的。
 
-## 2. RabbitMQ 快速入门
+### 1.2. 消息队列的应用场景
 
-### 2.1. RabbitMQ 的工作原理
+总结一下，主要三点原因：**异步、解耦、削峰**。
 
-下图是RabbitMQ的基本结构
+1. **异步**。将不需要同步处理的并且耗时长的操作写入消息队列中，由消息队列通知消息接收方以异步的方式处理，提高了应用程序的响应时间。
+2. **解耦**。MQ相当于一个中介，生产方通过MQ与消费方交互，它将应用程序进行解耦合。
+> 比如，用户下单后，订单系统需要通知库存系统，假如库存系统无法访问，则订单减库存将失败，从而导致订单操作失败。订单系统与库存系统耦合，这个时候如果使用消息队列，可以返回给用户成功，先把消息持久化，等库存系统恢复后，就可以正常消费减去库存了。
+3. **削峰**。实际生产中，可能会出现某个时间点流量高峰期，比如秒杀活动等，导致流量暴增。如果服务器不采取任何措施，可能就是会因为请求过多导致应用服务器挂掉。此时可以加上消息队列，服务器接收到用户的请求后，首先写入消息队列，如果消息队列长度超过最大数量，则直接抛弃用户请求或跳转到错误页面。然后消费端慢慢的按照数据库能处理的并发量，从消息队列中慢慢拉取消息并处理。
 
-![RabbitMQ基本结构](images/20190526162915167_31531.png)
+### 1.3. 使用消息队列的缺点
+
+- **系统可用性降低**。引入消息队列之后，如果消息队列挂了，可能会影响到业务系统的可用性。
+- **系统复杂性增加**。加入了消息队列，要多考虑很多方面的问题，比如：一致性问题、如何保证消息不被重复消费、如何保证消息可靠性传输等。
+
+### 1.4. RabbitMQ 的基本结构
+
+![](images/20190526162915167_31531.png)
+
+![](images/101063116248795.png)
 
 组成部分说明如下
 
-- Broker ：消息队列服务进程，此进程包括两个部分：Exchange和Queue。
-- Exchange ：消息队列交换机，按一定的规则将消息路由转发到某个队列，对消息进行过虑。
-- Queue ：消息队列，存储消息的队列，消息到达队列并转发给指定的消费方。
-- Producer ：消息生产者，即生产方客户端，生产方客户端将消息发送到MQ。
-- Consumer ：消息消费者，即消费方客户端，接收MQ转发的消息。
+- Message：由消息头和消息体组成。消息体是不透明的，而消息头则由一系列的可选属性组成，这些属性包括 `routing-key`、`priority`、`delivery-mode`（是否持久性存储）等。
+- Broker：消息队列服务进程，此进程包括两个部分：Exchange 和 Queue。
+- Exchange：消息队列交换机，接收消息并按一定的规则将消息路由转发到一个或多个队列(Queue)，对消息进行过滤。`default exchange` 是默认的直连交换机，名字为空字符串，每个新建队列都会自动绑定到默认交换机上，绑定的路由键名称与队列名称相同。
+- Queue：存储消息的队列，消息到达队列并转发给指定的消费方。队列的特性是先进先出。一个消息可分发到一个或多个队列。
+- Binding：将 Exchange 和 Queue 进行关联，让 Exchange 就知道将消息路由到哪个 Queue 中。
+- Virtual host：每个 vhost 本质上就是一个 mini 版的 RabbitMQ 服务器，拥有自己的队列、交换器、绑定和权限机制。vhost 是 AMQP 概念的基础，必须在连接时指定，RabbitMQ 默认的 vhost 是 `/`。当多个不同的用户使用同一个 RabbitMQ server 提供的服务时，可以划分出多个 vhost，每个用户在自己的 vhost 创建 exchange 和 queue。
+- Producer：消息生产者，即生产方客户端，生产方客户端将消息发送到 MQ。
+- Consumer：消息消费者，即消费方客户端，接收 MQ 转发的消息。
 
-消息发布接收流程
+### 1.5. 消息发布与接收流程
 
-- **发送消息**
-    1. 生产者和Broker建立TCP连接
-    2. 生产者和Broker建立通道
-    3. 生产者通过通道消息发送给Broker，由Exchange将消息进行转发
-    4. Exchange将消息转发到指定的Queue（队列）
-- **接收消息**
-    1. 消费者和Broker建立TCP连接
-    2. 消费者和Broker建立通道
-    3. 消费者监听指定的Queue（队列）
-    4. 当有消息到达Queue时Broker默认将消息推送给消费者
-    5. 消费者接收到消息
+**发送消息**
 
-### 2.2. window版 安装
+1. 生产者和 Broker 建立 TCP 连接
+2. 生产者和 Broker 建立通道
+3. 生产者通过通道消息发送给 Broker，由 Exchange 将消息进行转发
+4. Exchange 将消息转发到指定的 Queue（队列）
 
-#### 2.2.1. 说明
+**接收消息**
+
+1. 消费者和 Broker 建立 TCP 连接
+2. 消费者和 Broker 建立通道
+3. 消费者监听指定的 Queue（队列）
+4. 当有消息到达 Queue 时 Broker 默认将消息推送给消费者
+5. 消费者接收到消息
+
+## 2. RabbitMQ 快速入门
+
+### 2.1. window版 安装
+
+#### 2.1.1. 说明
 
 RabbitMQ 由 Erlang 语言开发，Erlang 语言用于并发及分布式系统的开发，在电信领域应用广泛，OTP（Open Telecom Platform）作为 Erlang 语言的一部分，包含了很多基于 Erlang 开发的中间件及工具库，安装 RabbitMQ 需要安装 Erlang/OTP，并保持版本匹配，如下图
 
@@ -78,7 +87,7 @@ RabbitMQ 由 Erlang 语言开发，Erlang 语言用于并发及分布式系统�
 
 本次测试使用 Erlang/OTP 22.0 版本和 RabbitMQ 3.7.15 版本。
 
-#### 2.2.2. Erlang 下载与安装
+#### 2.1.2. Erlang 下载与安装
 
 erlang 下载地址：http://www.erlang.org/downloads
 
@@ -100,7 +109,7 @@ ERLANG_HOME=D:\development\erl10.4
 %ERLANG_HOME%\bin;
 ```
 
-#### 2.2.3. RabbitMQ 下载与安装
+#### 2.1.3. RabbitMQ 下载与安装
 
 RabbitMQ 的下载地址：http://www.rabbitmq.com/download.html
 
@@ -108,7 +117,7 @@ RabbitMQ 的下载地址：http://www.rabbitmq.com/download.html
 
 官方安装说明文档：https://www.rabbitmq.com/install-windows.html
 
-#### 2.2.4. 启动
+#### 2.1.4. 启动
 
 安装成功后会自动创建 RabbitMQ 服务并且启动，默认对外服务端口是 5672
 
@@ -128,7 +137,7 @@ rabbitmq-service.bat stop # 停止服务
 rabbitmq-service.bat start # 启动服务
 ```
 
-#### 2.2.5. 安装管理插件
+#### 2.1.5. 安装管理插件
 
 RabbitMQ 也提供有 web 控制台服务，但是此功能是一个插件，需要先启用才可以使用。安装 rabbitMQ 的管理插件，方便在浏览器端管理 RabbitMQ。以管理员身份运行 cmd 命令行，执行以下命令：
 
@@ -145,14 +154,14 @@ RabbitMQ 也提供有 web 控制台服务，但是此功能是一个插件，需
 
 ![](images/13724222247002.png)
 
-#### 2.2.6. 注意事项
+#### 2.1.6. 注意事项
 
 1. 安装 erlang 和 rabbitMQ 都以管理员身份运行。
 2. 当卸载重新安装时会出现 RabbitMQ 服务注册失败，此时需要进入注册表清理 erlang，搜索 RabbitMQ、ErlSrv，将对应的项全部删除。
 
-### 2.3. Linux版安装
+### 2.2. Linux版安装
 
-#### 2.3.1. 使用 Docker 安装部署 RabbitMQ
+#### 2.2.1. 使用 Docker 安装部署 RabbitMQ
 
 1. `docker search rabbitmq:management`：查询RabbitMQ的镜像
 2. `docker pull rabbitmq:management`：拉取RabbitMQ镜像，**注意：如果docker pull rabbitmq 后面不带management，启动rabbitmq后是无法打开管理界面的，所以我们要下载带management插件的rabbitmq.**
@@ -186,21 +195,21 @@ systemctl start firewalld.service
 systemctl disable firewalld.service
 ```
 
-#### 2.3.2. 传统方式安装部署RabbitMQ（待整理）
+#### 2.2.2. 传统方式安装部署RabbitMQ（待整理）
 
 
-### 2.4. 测试使用
+### 2.3. 测试使用
 
 按照[官方教程文档](http://www.rabbitmq.com/getstarted.html)，测试 hello world
 
-#### 2.4.1. 搭建环境
+#### 2.3.1. 搭建环境
 
-##### 2.4.1.1. Java client
+##### 2.3.1.1. Java client
 
 - 生产者和消费者都属于客户端，rabbitMQ 的 java 客户端参考：https://github.com/rabbitmq/rabbitmq-java-client/
 - 先用 rabbitMQ 官方提供的java client测试，目的是对RabbitMQ的交互过程有个清晰的认识
 
-##### 2.4.1.2. 创建maven工程
+##### 2.3.1.2. 创建maven工程
 
 - 创建生产者工程和消费者工程，分别加入RabbitMQ java client的依赖。
     - **test-rabbitmq-producer**：生产者工程
@@ -221,7 +230,7 @@ systemctl disable firewalld.service
 </dependencies>
 ```
 
-#### 2.4.2. 生产者
+#### 2.3.2. 生产者
 
 在生产者工程下的test中创建测试类如下
 
@@ -309,7 +318,7 @@ public class Producer01 {
 }
 ```
 
-#### 2.4.3. 消费者
+#### 2.3.3. 消费者
 
 在消费者工程下的test中创建测试类如下
 
@@ -391,52 +400,64 @@ public class Consumer01 {
 }
 ```
 
-#### 2.4.4. 总结
+#### 2.3.4. 总结
 
-- 发送端操作流程
-    1. 创建连接
-    2. 创建通道
-    3. 声明队列
-    4. 发送消息
-- 接收端
-    1. 创建连接
-    2. 创建通道
-    3. 声明队列
-    4. 监听队列
-    5. 接收消息
-    6. ack回复
+发送端操作流程
+
+1. 创建连接
+2. 创建通道
+3. 声明队列
+4. 发送消息
+
+接收端操作流程
+
+1. 创建连接
+2. 创建通道
+3. 声明队列
+4. 监听队列
+5. 接收消息
+6. ack回复
 
 ## 3. 工作模式
 
-- RabbitMQ有以下几种工作模式：
-    1. Work queues
-    2. Publish/Subscribe
-    3. Routing
-    4. Topics
-    5. Header
-    6. RPC
+RabbitMQ 有以下几种工作模式：
+
+1. Work queues
+2. Publish/Subscribe
+3. Routing
+4. Topics
+5. Header
+6. RPC
 
 ### 3.1. Work queues 工作队列
 
 ![](images/20190528152156647_10560.png)
 
-- Work queues 与入门程序相比，多了一个消费端，两个消费端共同消费同一个队列中的消息。
-- 应用场景：对于任务过重或任务较多情况使用工作队列可以提高任务处理的速度。
-- 测试：
-    1. 使用入门程序，启动多个消费者
-    2. 生产者发送多个消息
-- 结果：
-    1. 一条消息只会被一个消费者接收；
-    2. rabbitmq 采用轮询的方式将消息是平均发送给消费者的；
-    3. 消费者在处理完某条消息后，才会收到下一条消息
+Work queues 与入门程序相比，只是多了一个消费端，两个消费端共同消费同一个队列中的消息。
+
+Work queues 工作队列应用场景：对于任务过重或任务较多情况使用工作队列可以提高任务处理的速度。
+
+#### 3.1.1. 测试
+
+测试流程：
+
+1. 使用入门程序，启动多个消费者
+2. 生产者发送多个消息
+
+测试结果：
+
+1. 一条消息只会被一个消费者接收；
+2. rabbitmq 采用轮询的方式将消息是平均发送给消费者的；
+3. 消费者在处理完某条消息后，才会收到下一条消息
 
 ### 3.2. Publish/subscribe 发布订阅工作模式
 
 ![](images/20190528152234400_13754.png)
 
-- 发布订阅模式：
-    1. 每个消费者监听自己的队列。
-    2. 生产者将消息发给broker，由交换机将消息转发到绑定此交换机的每个队列，每个绑定交换机的队列都将接收到消息
+发布订阅模式：
+
+1. 每个消费者监听自己的队列。
+2. 生产者将消息发给 broker，由交换机将消息转发到绑定此交换机的每个队列，每个绑定交换机的队列都将接收到消息
 
 #### 3.2.1. 案例代码
 
@@ -652,7 +673,7 @@ channel.basicConsume(QUEUE_INFORM_SMS, true, consumer);
 **路由模式**：
 
 1. 每个消费者监听自己的队列，并且设置 routingkey
-2. 生产者将消息发给交换机，由交换机根据 routingkey来转发消息到指定的队列
+2. 生产者将消息发给交换机，由交换机根据 routingkey 来转发消息到指定的队列
 
 #### 3.3.1. 案例代码
 
@@ -887,14 +908,6 @@ channel.basicConsume(QUEUE_INFORM_SMS, true, consumer);
 3. 每个消费者监听自己的队列，并且设置带统配符的 routingkey。
 4. 生产者将消息发给 broker，由交换机根据 routingkey 来转发消息到指定的队列。
 
-**Topics 与 Routing 的区别**
-
-- Topics 与 Routing 的基本原理相同，即：生产者将消息发给交换机，交换机根据 routingKey 将消息转发给与 routingKey 匹配的队列
-- 不同之处是：routingKey 的匹配方式，Routing 模式是相等匹配，topics 模式是统配符匹配
-
-> 符号`#`：匹配一个或者多个词，比如`inform.#`可以匹配inform.sms、inform.email、inform.email.sms  
-> 符号`*`：只能匹配一个词，比如`inform.*`可以匹配inform.sms、inform.email
-
 #### 3.4.1. 案例代码
 
 案例：根据用户的通知设置去通知用户，设置接收 Email 的用户只接收 Email，设置接收 sms 的用户只接收 sms，设置两种通知类型都接收的则两种通知都有效。
@@ -1113,6 +1126,14 @@ public class Consumer04_topics_sms {
     - 使用Routing模式也可以实现本案例，共设置三个 routingkey，分别是email、sms、all，email队列绑定email和all，sms队列绑定sms和all，这样就可以实现上边案例的功能，实现过程比topics复杂。
     - Topic模式更多加强大，它可以实现Routing、publish/subscirbe模式的功能
 
+#### 3.4.4. Topics 与 Routing 的区别
+
+- Topics 与 Routing 的基本原理相同，即：生产者将消息发给交换机，交换机根据 routingKey 将消息转发给与 routingKey 匹配的队列
+- 不同之处是：routingKey 的匹配方式，Routing 模式是相等匹配，topics 模式是统配符匹配
+
+> 符号`#`：匹配一个或者多个词，比如`inform.#`可以匹配inform.sms、inform.email、inform.email.sms  
+> 符号`*`：只能匹配一个词，比如`inform.*`可以匹配inform.sms、inform.email
+
 ### 3.5. Header 工作模式
 
 header模式与routing不同的地方在于，header模式取消routingkey，使用header中的 key/value（键值对）匹配队列。
@@ -1120,6 +1141,7 @@ header模式与routing不同的地方在于，header模式取消routingkey，使
 案例：根据用户的通知设置去通知用户，设置接收Email的用户只接收Email，设置接收sms的用户只接收sms，设置两种通知类型都接收的则两种通知都有效。
 
 #### 3.5.1. 案例代码
+
 ##### 3.5.1.1. 生产者
 
 - 队列与交换机绑定的代码与之前不同，如下
@@ -1166,11 +1188,12 @@ channel.basicConsume(QUEUE_INFORM_EMAIL, true, consumer);
 
 ![RPC工作原理](images/20190528152451762_30311.png)
 
-- RPC即客户端远程调用服务端的方法，使用MQ可以实现RPC的异步调用，基于Direct交换机实现，流程如下：
-    1. 客户端即是生产者就是消费者，向RPC请求队列发送RPC调用消息，同时监听RPC响应队列。
-    2. 服务端监听RPC请求队列的消息，收到消息后执行服务端的方法，得到方法返回的结果
-    3. 服务端将RPC方法的结果发送到RPC响应队列
-    4. 客户端（RPC调用方）监听RPC响应队列，接收到RPC调用结果。
+RPC即客户端远程调用服务端的方法，使用MQ可以实现RPC的异步调用，基于Direct交换机实现，流程如下：
+
+1. 客户端即是生产者就是消费者，向 RPC 请求队列发送 RPC 调用消息，同时监听 RPC 响应队列。
+2. 服务端监听 RPC 请求队列的消息，收到消息后执行服务端的方法，得到方法返回的结果
+3. 服务端将 RPC 方法的结果发送到 RPC 响应队列
+4. 客户端（RPC 调用方）监听 RPC 响应队列，接收到 RPC 调用结果。
 
 ## 4. Spring 整合 RibbitMQ
 
@@ -1208,7 +1231,7 @@ channel.basicConsume(QUEUE_INFORM_EMAIL, true, consumer);
 
 #### 4.2.1. 配置application.yml
 
-配置连接rabbitmq的参数
+配置连接 rabbitmq 的参数
 
 ```yml
 server:
