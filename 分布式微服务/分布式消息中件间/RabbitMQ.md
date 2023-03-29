@@ -429,7 +429,42 @@ RabbitMQ 有以下几种工作模式：
 5. Header
 6. RPC
 
-### 3.1. Work queues 工作队列
+### 3.1. Exchange 交换机的类型
+
+根据 RabbitMQ 不同类型的工作模式会选择不同类型的 Exchange，在分发消息时会选择不同的分发策略，目前共四种类型：direct、fanout、topic、headers。
+
+其中 headers 模式根据消息的 headers 进行路由，此外 headers 交换器和 direct 交换器完全一致，但性能差很多。
+
+| 类型名称  |                                            类型描述                                            |    相应的工作模式    |
+| ------- | -------------------------------------------------------------------------------------------- | ----------------- |
+| fanout  | 把所有发送到该Exchange的消息路由到所有与它绑定的Queue中                                               | publish/subscribe |
+| direct  | 发送到Routing Key与Binding Key完全匹配的的Queue中                                                 | Routing           |
+| topic   | 模糊匹配                                                                                       | Topics            |
+| headers | Exchange不依赖于routing key与binding key的匹配规则来路由消息，而是根据发送的消息内容中的header属性进行匹配 | headers           |
+
+#### 3.1.1. fanout
+
+所有发到 fanout 类型交换机的消息都会路由到所有与该交换机绑定的队列。fanout 类型转发消息是最快的。
+
+![](images/244395608248796.png)
+
+#### 3.1.2. direct
+
+direct 交换机会将消息路由到 binding key 和 routing key 完全匹配的队列中。它是完全匹配、单播的模式。
+
+![](images/445265508230370.png)
+
+#### 3.1.3. topic
+
+topic 交换机使用 routing key 和 binding key 进行模糊匹配，匹配成功则将消息发送到相应的队列。routing key 和 binding key 都是句号 `.` 作为分隔的字符串，binding key 中可以存在两种特殊字符 `*` 与 `#`，用于做模糊匹配，其中 `*` 用于匹配一个单词，`#` 用于匹配多个单词。
+
+![](images/318805809236663.png)
+
+#### 3.1.4. headers
+
+headers 交换机是根据发送的消息内容中的 headers 属性进行路由的。在绑定 Queue 与 Exchange 时指定一组键值对；当消息发送到 Exchange 时，RabbitMQ 会取到该消息的 headers（也是一个键值对的形式），对比其中的键值对是否完全匹配 Queue 与 Exchange 绑定时指定的键值对；如果完全匹配则消息会路由到该 Queue，否则不会路由到该 Queue。
+
+### 3.2. Work queues 工作队列
 
 ![](images/20190528152156647_10560.png)
 
@@ -437,9 +472,7 @@ Work queues 与入门程序相比，只是多了一个消费端，两个消费�
 
 Work queues 工作队列应用场景：对于任务过重或任务较多情况使用工作队列可以提高任务处理的速度。
 
-#### 3.1.1. 测试
-
-测试流程：
+#### 3.2.1. 测试流程
 
 1. 使用入门程序，启动多个消费者
 2. 生产者发送多个消息
@@ -450,7 +483,7 @@ Work queues 工作队列应用场景：对于任务过重或任务较多情况�
 2. rabbitmq 采用轮询的方式将消息是平均发送给消费者的；
 3. 消费者在处理完某条消息后，才会收到下一条消息
 
-### 3.2. Publish/subscribe 发布订阅工作模式
+### 3.3. Publish/subscribe 发布订阅工作模式
 
 ![](images/20190528152234400_13754.png)
 
@@ -459,11 +492,11 @@ Work queues 工作队列应用场景：对于任务过重或任务较多情况�
 1. 每个消费者监听自己的队列。
 2. 生产者将消息发给 broker，由交换机将消息转发到绑定此交换机的每个队列，每个绑定交换机的队列都将接收到消息
 
-#### 3.2.1. 案例代码
+#### 3.3.1. 案例代码
 
 用户通知，当用户充值成功或转账完成系统通知用户，通知方式有短信、邮件多种方法 。
 
-##### 3.2.1.1. 生产者
+##### 3.3.1.1. 生产者
 
 - 声明Exchange_fanout_inform交换机。
 - 声明两个队列并且绑定到此交换机，绑定时不需要指定routingkey
@@ -560,7 +593,7 @@ public class Producer02_publish {
 }
 ```
 
-##### 3.2.1.2. 邮件发送消费者
+##### 3.3.1.2. 邮件发送消费者
 
 ```java
 /**
@@ -626,7 +659,7 @@ public class Consumer02_subscribe_email {
 }
 ```
 
-##### 3.2.1.3. 短信发送消费者
+##### 3.3.1.3. 短信发送消费者
 
 参考上边的邮件发送消费者代码编写。*只需要将邮件队列的名称换成短信队列即可*
 
@@ -644,7 +677,7 @@ channel.queueBind(QUEUE_INFORM_SMS, EXCHANGE_FANOUT_INFORM, "");
 channel.basicConsume(QUEUE_INFORM_SMS, true, consumer);
 ```
 
-#### 3.2.2. 测试
+#### 3.3.2. 测试
 
 打开RabbitMQ的管理界面，观察交换机绑定情况：
 
@@ -654,7 +687,7 @@ channel.basicConsume(QUEUE_INFORM_SMS, true, consumer);
 
 ![绑定的队列都接收到消息](images/20190528150007699_23344.png)
 
-#### 3.2.3. 总结
+#### 3.3.3. 总结
 
 1. **publish/subscribe与work queues有什么区别**
     - **区别**
@@ -666,7 +699,7 @@ channel.basicConsume(QUEUE_INFORM_SMS, true, consumer);
 2. **实质工作用什么 publish/subscribe还是work queues**
     - 建议使用 publish/subscribe，发布订阅模式比工作队列模式更强大，并且发布订阅模式可以指定自己专用的交换机
 
-### 3.3. Routing 路由工作模式
+### 3.4. Routing 路由工作模式
 
 ![](images/20190528152355813_18719.png)
 
@@ -675,13 +708,21 @@ channel.basicConsume(QUEUE_INFORM_SMS, true, consumer);
 1. 每个消费者监听自己的队列，并且设置 routingkey
 2. 生产者将消息发给交换机，由交换机根据 routingkey 来转发消息到指定的队列
 
-#### 3.3.1. 案例代码
+#### 3.4.1. RabbitMQ 消息实现路由的原理
 
-##### 3.3.1.1. 生产者
+消息路由必须有三部分：**交换器、路由、绑定**。生产者把消息发布到交换器上；绑定决定了消息如何从路由器路由到特定的队列；消息最终到达队列，并被消费者接收。
 
-- 声明exchange_routing_inform交换机。
-- 声明两个队列并且绑定到此交换机，绑定时需要指定routingkey
-- 发送消息时需要指定routingkey
+1. 消息发布到交换器时，消息将拥有一个路由键（routing key），在消息创建时设定。
+2. 通过队列路由键，可以把队列绑定到交换器上。
+3. 消息到达交换器后，RabbitMQ 会将消息的路由键与队列的路由键进行匹配（针对不同的交换器有不同的路由规则）。如果能够匹配到队列，则消息会投递到相应队列中。
+
+#### 3.4.2. 案例代码
+
+##### 3.4.2.1. 生产者
+
+- 声明 exchange_routing_inform 交换机。
+- 声明两个队列并且绑定到此交换机，绑定时需要指定 routingkey
+- 发送消息时需要指定 routingkey
 
 ```java
 /**
@@ -793,7 +834,7 @@ public class Producer03_routing {
 }
 ```
 
-##### 3.3.1.2. 邮件发送消费者
+##### 3.4.2.2. 邮件发送消费者
 
 ```java
 /**
@@ -861,7 +902,7 @@ public class Consumer03_routing_email {
 }
 ```
 
-##### 3.3.1.3. 短信发送消费者
+##### 3.4.2.3. 短信发送消费者
 
 参考邮件发送消费者的代码流程，编写短信通知的代码，修改队列名称与路由名称即可
 
@@ -884,20 +925,19 @@ channel.queueBind(QUEUE_INFORM_SMS, EXCHANGE_ROUTING_INFORM, ROUTINGKEY_SMS);
 channel.basicConsume(QUEUE_INFORM_SMS, true, consumer);
 ```
 
-#### 3.3.2. 测试
+#### 3.4.3. 测试
 
-打开RabbitMQ的管理界面，观察交换机绑定情况
+打开 RabbitMQ 的管理界面，观察交换机绑定情况
 
 ![交换机绑定队列](images/20190528161502584_6482.png)
 
 使用生产者发送若干条消息，交换机根据routingkey转发消息到指定的队列
 
-#### 3.3.3. 总结
+#### 3.4.4. 总结
 
-- **Routing模式和Publish/subscibe有啥区别**
-    - Routing模式要求队列在绑定交换机时要指定routingkey，消息会转发到符合routingkey的队列
+**Routing 模式和Publish/subscibe 的区别**：Routing 模式要求队列在绑定交换机时要指定 routingkey，消息会转发到符合 routingkey 的队列
 
-### 3.4. Topics 主题工作模式
+### 3.5. Topics 主题工作模式
 
 ![](images/20190528152429252_4069.png)
 
@@ -908,11 +948,11 @@ channel.basicConsume(QUEUE_INFORM_SMS, true, consumer);
 3. 每个消费者监听自己的队列，并且设置带统配符的 routingkey。
 4. 生产者将消息发给 broker，由交换机根据 routingkey 来转发消息到指定的队列。
 
-#### 3.4.1. 案例代码
+#### 3.5.1. 案例代码
 
 案例：根据用户的通知设置去通知用户，设置接收 Email 的用户只接收 Email，设置接收 sms 的用户只接收 sms，设置两种通知类型都接收的则两种通知都有效。
 
-##### 3.4.1.1. 生产者
+##### 3.5.1.1. 生产者
 
 声明交换机，指定topic类型
 
@@ -1045,12 +1085,12 @@ public class Producer04_topics {
 }
 ```
 
-##### 3.4.1.2. 消费端
+##### 3.5.1.2. 消费端
 
-- 队列绑定交换机指定通配符：
-- 统配符规则：
-    - 中间以“.”分隔。
-    - 符号`#`可以匹配多个词，符号`*`可以匹配一个词语。
+队列绑定交换机指定通配符，统配符规则如下：
+
+- 中间以 `.` 分隔。
+- 符号`#`可以匹配多个词，符号`*`可以匹配一个词语。
 
 ```java
 /**
@@ -1112,7 +1152,7 @@ public class Consumer04_topics_sms {
 }
 ```
 
-#### 3.4.2. 测试
+#### 3.5.2. 测试
 
 ![topics工作模式绑定情况](images/20190528164604591_22637.png)
 
@@ -1120,29 +1160,31 @@ public class Consumer04_topics_sms {
 
 使用生产者发送若干条消息，交换机根据routingkey统配符匹配并转发消息到指定的队列
 
-#### 3.4.3. 总结
+#### 3.5.3. 总结
 
-- **本案例的需求使用Routing工作模式能否实现？**
-    - 使用Routing模式也可以实现本案例，共设置三个 routingkey，分别是email、sms、all，email队列绑定email和all，sms队列绑定sms和all，这样就可以实现上边案例的功能，实现过程比topics复杂。
-    - Topic模式更多加强大，它可以实现Routing、publish/subscirbe模式的功能
+**本案例的需求使用Routing工作模式能否实现？**
 
-#### 3.4.4. Topics 与 Routing 的区别
+- 使用Routing模式也可以实现本案例，共设置三个 routingkey，分别是email、sms、all，email队列绑定email和all，sms队列绑定sms和all，这样就可以实现上边案例的功能，实现过程比topics复杂。
+- Topic模式更多加强大，它可以实现Routing、publish/subscirbe模式的功能
+
+#### 3.5.4. Topics 与 Routing 的区别
 
 - Topics 与 Routing 的基本原理相同，即：生产者将消息发给交换机，交换机根据 routingKey 将消息转发给与 routingKey 匹配的队列
 - 不同之处是：routingKey 的匹配方式，Routing 模式是相等匹配，topics 模式是统配符匹配
 
-> 符号`#`：匹配一个或者多个词，比如`inform.#`可以匹配inform.sms、inform.email、inform.email.sms  
-> 符号`*`：只能匹配一个词，比如`inform.*`可以匹配inform.sms、inform.email
+> 符号`#`：匹配一个或者多个词，比如 `inform.#` 可以匹配 `inform.sms`、`inform.email`、`inform.email.sms`  
+>
+> 符号`*`：只能匹配一个词，比如 `inform.*` 可以匹配 `inform.sms`、`inform.email`
 
-### 3.5. Header 工作模式
+### 3.6. Header 工作模式
 
 header模式与routing不同的地方在于，header模式取消routingkey，使用header中的 key/value（键值对）匹配队列。
 
 案例：根据用户的通知设置去通知用户，设置接收Email的用户只接收Email，设置接收sms的用户只接收sms，设置两种通知类型都接收的则两种通知都有效。
 
-#### 3.5.1. 案例代码
+#### 3.6.1. 案例代码
 
-##### 3.5.1.1. 生产者
+##### 3.6.1.1. 生产者
 
 - 队列与交换机绑定的代码与之前不同，如下
 
@@ -1168,7 +1210,7 @@ properties.headers(headers);
 channel.basicPublish(EXCHANGE_HEADERS_INFORM, "", properties.build(), message.getBytes());
 ```
 
-##### 3.5.1.2. 发送邮件消费者
+##### 3.6.1.2. 发送邮件消费者
 
 ```java
 channel.exchangeDeclare(EXCHANGE_HEADERS_INFORM, BuiltinExchangeType.HEADERS);
@@ -1180,11 +1222,11 @@ channel.queueBind(QUEUE_INFORM_EMAIL, EXCHANGE_HEADERS_INFORM, "", headers_email
 channel.basicConsume(QUEUE_INFORM_EMAIL, true, consumer);
 ```
 
-#### 3.5.2. 测试
+#### 3.6.2. 测试
 
 ![header工作模式绑定](images/20190528172335916_30081.png)
 
-### 3.6. RPC 工作模式
+### 3.7. RPC 工作模式
 
 ![RPC工作原理](images/20190528152451762_30311.png)
 
@@ -1435,3 +1477,197 @@ public class ReceiveHandler {
 ### 4.5. 测试
 
 ![测试springboot整合RabbitMQ](images/20190529145035128_30311.png)
+
+## 5. 消息丢失
+
+### 5.1. 消息丢失场景分析
+
+消息丢失有以下场景：
+
+- 生产者生产消息到 RabbitMQ Server 消息丢失
+- RabbitMQ Server 存储的消息丢失
+- RabbitMQ Server 到消费者消息丢失
+
+### 5.2. 生产者确认机制
+
+适用场景：生产者发送消息到队列，无法确保发送的消息成功的到达 server。
+
+解决方案：
+
+- 事务机制。在一条消息发送之后会使发送端阻塞，等待 RabbitMQ 的回应，之后才能继续发送下一条消息。这种方案性能较差。
+- 开启生产者确认机制，只要消息成功发送到交换机之后，RabbitMQ 就会发送一个 ack 给生产者（即使消息没有 Queue 接收，也会发送 ack）。如果消息没有成功发送到交换机，就会发送一条 nack 消息，提示发送失败。
+
+**生产者确认机制实现**：
+
+- 在 Springboot 是通过 `publisher-confirms` 参数来设置 `confirm` 模式：
+
+```yml
+spring:
+  rabbitmq: # RabbitMQ 相关配置
+    host: 192.168.12.132
+    port: 5672
+    publisher-confirms: true # 开启 confirm 确认机制
+```
+
+- 在生产端会提供一个回调方法，当服务端确认了一条或者多条消息后，生产者会回调这个方法，根据具体的结果对消息进行后续处理，比如<u>重新发送、记录日志</u>等。
+
+```java
+// 消息是否成功发送到Exchange
+final RabbitTemplate.ConfirmCallback confirmCallback = (CorrelationData correlationData, boolean ack, String cause) -> {
+    log.info("correlationData: " + correlationData);
+    log.info("ack: " + ack);
+    if (!ack) {
+        log.info("异常处理....");
+    }
+};
+rabbitTemplate.setConfirmCallback(confirmCallback);
+```
+
+### 5.3. 路由不可达消息
+
+生产者确认机制只确保消息正确到达交换机，对于从交换机路由到 Queue 失败的消息，也会被丢弃掉，导致消息丢失。对于不可路由的消息，有两种处理方式：**Return 消息机制**和**备份交换机**。
+
+#### 5.3.1. Return 
+
+在核心配置文件中，将 `mandatory` 选项设置为 `true`，开启监听到路由不可达的消息。Return 消息机制提供了回调函数 `ReturnCallback`，当消息从交换机路由到 Queue 失败才会回调这个方法。
+
+```yml
+spring:
+  rabbitmq: # RabbitMQ 相关配置
+    # 触发 ReturnCallback 必须设置 mandatory=true, 否则 Exchange 没有找到 Queue 就会丢弃掉消息, 也不会触发 ReturnCallback
+    template.mandatory: true
+```
+
+通过 `ReturnCallback` 回调函数监听路由不可达消息。
+
+```java
+final RabbitTemplate.ReturnCallback returnCallback = (Message message, int replyCode, String replyText, String exchange, String routingKey) -> {
+    // do something...
+    log.info("return exchange: " + exchange + ", routingKey: " + routingKey + ", replyCode: " + replyCode + ", replyText: " + replyText);
+};
+
+rabbitTemplate.setReturnCallback(returnCallback);
+```
+
+当消息从交换机路由到 Queue 失败时，会返回 `return exchange: , routingKey: MAIL, replyCode: 312, replyText: NO_ROUTE`。
+
+#### 5.3.2. 备份交换机
+
+备份交换机 alternate-exchange 是一个普通的 exchange，当发送消息到对应的 exchange 时，没有匹配到 queue，就会自动转移到备份交换机对应的 queue，这样消息就不会丢失。
+
+### 5.4. 消费者手动消息确认
+
+有可能消费者收到消息还没来得及处理，MQ 服务就宕机了，从而导致消息丢失。因为消息者默认采用自动 ack，一旦消费者收到消息后会通知 MQ Server 这条消息已经处理好了，MQ 就会移除这条消息。
+
+解决方法：消费者设置为手动确认消息。消费者处理完逻辑之后再给 broker 回复 `ack`，表示消息已经成功消费，可以从 broker 中删除。当消息者消费失败的时候，给 broker 回复 `nack`，根据配置决定重新入队还是从 broker 移除，或者进入死信队列。只要没收到消费者的 `acknowledgment`，broker 就会一直保存着这条消息，但不会重新入队，也不会分配给其他消费者。
+
+- 配置消费者设置手动消息确认 ack：
+
+```yml
+spring:
+  rabbitmq: # RabbitMQ 相关配置
+    listener:
+      simple:
+        acknowledge-mode: manual # 设置消费端手动消息确认 ack
+```
+
+或者
+
+```properties
+# 设置消费端手动消息确认 ack
+spring.rabbitmq.listener.simple.acknowledge-mode=manual
+```
+
+- 消息处理完，手动确认：
+
+```java
+@RabbitListener(queues = RabbitMqConfig.MAIL_QUEUE)
+public void onMessage(Message message, Channel channel) throws IOException {
+    try {
+        Thread.sleep(5000); // 模拟业务逻辑耗时
+    } catch (InterruptedException e) {
+        e.printStackTrace();
+    }
+    long deliveryTag = message.getMessageProperties().getDeliveryTag();
+    // 手工 ack；第二个参数是 multiple，设置为 true，表示 deliveryTag 序列号之前（包括自身）的消息都已经收到，设为 false 则表示收到一条消息
+    channel.basicAck(deliveryTag, true);
+    System.out.println("mail listener receive: " + new String(message.getBody()));
+}
+```
+
+当消息消费失败时，消费端给 broker 回复 `nack`，如果 consumer 设置了 `requeue` 为 false，则 `nack` 后 broker 会删除消息或者进入死信队列，否则消息会重新入队。
+
+#### 5.4.1. 持久化
+
+如果 RabbitMQ 服务异常导致重启，将会导致消息丢失。RabbitMQ 提供了持久化的机制，将内存中的消息持久化到硬盘上，即使重启RabbitMQ，消息也不会丢失。消息持久化需要满足以下条件：
+
+1. 消息设置持久化。发布消息前，设置投递模式 `delivery mode` 为`2`，表示消息需要持久化。
+2. Queue设置持久化。
+3. 交换机设置持久化。
+
+当发布一条消息到交换机上时，RabbitMQ 会先把消息写入持久化日志，然后才向消息生产者发送响应。一旦从队列中消费了一条消息并且做了确认，RabbitMQ 会在持久化日志中移除这条消息。在消费消息前，如果 RabbitMQ 重启的话，服务器会自动重建交换机和队列，加载持久化日志中的消息到相应的队列或者交换机上，保证消息不会丢失。
+
+### 5.5. 镜像队列
+
+当 MQ 发生故障时，会导致服务不可用。引入 RabbitMQ 的镜像队列机制，将 queue 镜像到集群中其他的节点之上。如果集群中的一个节点失效了，能自动地切换到镜像中的另一个节点以保证服务的可用性。
+
+通常每一个镜像队列都包含一个 master 和多个 slave，分别对应于不同的节点。发送到镜像队列的所有消息总是被直接发送到 master 和所有的 slave 之上。除了 publish 外所有动作都只会向 master 发送，然后由 master 将命令执行的结果广播给 slave，从镜像队列中的消费操作实际上是在 master 上执行的。
+
+## 6. 重复消费
+
+消息重复的情况有以下两种：
+
+1. **生产时消息重复**。生产者发送消息给 MQ，在 MQ 确认的时候出现了网络波动，生产者没有收到确认，这时候生产者就会重新发送这条消息，导致 MQ 会接收到重复消息。
+2. **消费时消息重复**。消费者消费成功后，给 MQ 确认的时候出现了网络波动，MQ 没有接收到确认，为了保证消息不丢失，MQ 就会继续给消费者投递之前的消息。这时候消费者就接收到了两条一样的消息。
+
+重复消息是由于网络原因造成的，无法避免。
+
+解决方案：发送消息时让每个消息携带一个全局的唯一ID，在消费消息时先判断消息是否已经被消费过，保证消息消费逻辑的幂等性。具体消费过程为：
+
+1. 消费者获取到消息后先根据 id 去查询 redis/db 是否存在该消息
+2. 如果不存在，则正常消费，消费完毕后写入 redis/db
+3. 如果存在，则证明消息被消费过，直接丢弃
+
+## 7. 消费端限流
+
+当 RabbitMQ 服务器积压大量消息时，队列里的消息会大量涌入消费端，可能导致消费端服务器奔溃。这种情况下需要对**消费端限流**。
+
+Spring RabbitMQ 提供参数 `prefetch` 可以设置单个请求处理的消息个数。如果消费者同时处理的消息到达最大值的时候，则该消费者会阻塞，不会消费新的消息，直到有消息 ack 才会消费新的消息。
+
+- 开启消费端限流：
+
+properties 配置：
+
+```properties
+# 在单个请求中处理的消息个数，unack 的最大数量
+spring.rabbitmq.listener.simple.prefetch=2
+```
+
+yaml 配置：
+
+```yml
+spring:
+  rabbitmq: # RabbitMQ 相关配置
+    listener:
+      simple:
+        prefetch: 2 # 在单个请求中处理的消息个数，unack 的最大数量
+```
+
+- 原生 RabbitMQ 还提供 `prefetchSize` 和 `global` 两个参数。但 Spring RabbitMQ 没有这两个参数。
+
+```java
+// 单条消息大小限制，0代表不限制
+// global：限制限流功能是channel级别的还是consumer级别。
+// 当设置为 false，consumer 级别，限流功能生效，设置为 true 没有了限流功能，因为 channel 级别尚未实现。
+void basicQos(int prefetchSize, int prefetchCount, boolean global) throws IOException;
+```
+
+## 8. (待整理)死信队列
+
+死信队列，是消费失败的消息存放的队列。消息消费失败的原因主要有如下：
+
+- 消息被拒绝并且消息没有重新入队（`requeue=false`）
+- 消息超时未消费
+- 达到最大队列长度
+
+> TODO: 待整理学习

@@ -618,9 +618,19 @@ public interface FeignClientDemo {
     @RequestMapping(path = "/demo_complex/{id}", method = RequestMethod.POST)
     String demo_complex(@PathVariable("id") String id,
                         @RequestBody Map<String, Object> map,
-                        @RequestParam String name);
+                        @RequestParam("name") String name);
 }
 ```
+
+#### 5.5.1. 问题记录
+
+做些示例项目时，使用 spring-cloud-starter-openfeign 是 2.1.5.RELEASE 版本，启动时会提示 `RequestParam.value() was empty on parameter 2` 错误。
+
+![](images/20150622230369.png)
+
+后面查询相关资料，才发现原来忘记 FeignClient 接口定义接口时一个很重要的注意点（之前已经做过笔记，居然忘记了，看来技术还是要经常使用，才能记得细节），当 FeignClient 方法参数使用了 `@PathVariable("XXX")`和`@RequestParam("XXX")`注解，就必须要指定对应的参数值（原来SpringMVC是可以省略），否则启动报错。
+
+以上示例修改为 `@RequestParam("name") String name` 后就能正常启动。
 
 ### 5.6. 文件上传
 
@@ -672,6 +682,10 @@ public String fileUpload(MultipartFile file) throws Exception {
     return feignClientDemo.handleFileUpload(file);
 }
 ```
+
+5. 使用 postman 上传文件测试
+
+![](images/125252322236662.png)
 
 ## 6. Feign 工作原理
 
