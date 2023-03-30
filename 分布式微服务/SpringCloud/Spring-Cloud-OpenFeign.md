@@ -687,6 +687,107 @@ public String fileUpload(MultipartFile file) throws Exception {
 
 ![](images/125252322236662.png)
 
+### 5.7. 使用 HttpClient 与 OkHttp 远程调用
+
+Feign 的 HTTP 客户端支持 3 种框架：
+
+- HttpURLConnection（默认）
+- HttpClient
+- OkHttp
+
+传统的 HttpURLConnection 是 JDK 自带的，并不支持连接池，效率非常低。为了提高效率，Feign 支持替换支持连接池的的请求客户端 appache httpclient 和 okhttp
+
+#### 5.7.1. HttpClient
+
+在消费者工程中，使用 HttpClient 做为 Feign HTTP 客户端步骤如下：
+
+1. 添加 HttpClient 依赖
+
+```xml
+<dependency>
+    <groupId>io.github.openfeign</groupId>
+    <artifactId>feign-httpclient</artifactId>
+</dependency>
+```
+
+> Tips: feign-httpclient 不需要指定版本号，因为 Spring Cloud 中导入 spring-cloud-openfeign-dependencies 已指定 feign-httpclient 的依赖版本管理
+
+2. 修改核心配置文件 `feign.httpclient.enabled` 选项，开启 HttpClient 的支持。
+
+```yml
+feign:
+  httpclient:
+    enabled: true # 开启 httpclient
+    max-connections: 200 # 最大连接数
+    max-connections-per-route: 50 # 单个路由的最大连接数
+logging:
+  level:
+    org.apache.http.wire: debug # 开启 HttpClient 相关接口的日志
+    org.apache.http.headers: debug
+```
+
+3. 启动服务发送 get 请求 `/hello` 接口测试，观察日志验证是否输出 HttpClient 相关日志
+
+![](images/389022522230370.png)
+
+#### 5.7.2. OkHttp
+
+在消费者工程中，使用 OkHttp 做为 Feign HTTP 客户端步骤如下：
+
+1. 添加 OkHttp 依赖
+
+```xml
+<dependency>
+	<groupId>io.github.openfeign</groupId>
+	<artifactId>feign-okhttp</artifactId>
+	<version>10.2.0</version>
+</dependency>
+
+<dependency>
+	<groupId>com.parkingwang</groupId>
+	<artifactId>okhttp3-loginterceptor</artifactId>
+	<version>0.5</version>
+</dependency>
+```
+
+2. 修改核心配置文件 `feign.okhttp.enabled` 选项，开启 OkHttp 的支持。
+
+```yml
+feign:
+  okhttp:
+    enabled: true # 开启 okhttp
+logging:
+  level:
+    okhttp3: debug # 开启 OkHttp 相关接口的日志
+```
+
+3. 创建 OKHttp 配置类，配置连接池，以及日志拦截器
+
+```java
+@Configuration
+@ConditionalOnClass(Feign.class)
+@AutoConfigureBefore(FeignAutoConfiguration.class)
+public class OkHttpConfiguration {
+    /* 配置 OkHttp Client */
+    @Bean
+    public OkHttpClient okHttpClient() {
+        // 设置相关配置项
+        return new OkHttpClient.Builder()
+                .connectTimeout(20, TimeUnit.SECONDS) // 1.连接超时时间
+                .readTimeout(20, TimeUnit.SECONDS) // 2.响应超时时间
+                .writeTimeout(20, TimeUnit.SECONDS) // 3.写超时时间
+                .retryOnConnectionFailure(true) // 4.自动重连
+                .connectionPool(new ConnectionPool()) // 5.配置连接池
+                .addInterceptor(new LogInterceptor()) // 6.添加日志拦截器
+                .build();
+    }
+}
+```
+
+4. 启动服务发送 get 请求 `/hello` 接口测试，观察日志验证是否输出 OkHttp 相关日志
+
+![](images/532473922248796.png)
+
 ## 6. Feign 工作原理
 
 ### 6.1. 开发编码层面流程梳理
