@@ -175,31 +175,31 @@ GET http://localhost:9100/actuator/health
 
 通过发送请求路径 `/actuator` 可以访问应用所有端点信息，如果端点中还有明细信息可以发送请求 `/actuator/端点名称` 来获取详细信息。以下列出了所有端点信息说明：
 
-|      端点名称      |                                                  描述                                                  | 默认启用 |
-| ---------------- | ----------------------------------------------------------------------------------------------------- | :-----: |
-| auditevents      | 暴露当前应用程序的审计事件信息。                                                                             |   是    |
-| beans            | 显示应用程序中所有 Spring bean 的完整列表，以及它们的关系                                                      |   是    |
-| caches           | 暴露可用的缓存。                                                                                         |   是    |
+|     端点名称      |                                                     描述                                                     | 默认启用 |
+| ---------------- | ------------------------------------------------------------------------------------------------------------ | :-----: |
+| auditevents      | 暴露当前应用程序的审计事件信息。                                                                                 |   是    |
+| beans            | 显示应用程序中所有 Spring bean 的完整列表，以及它们的关系                                                         |   是    |
+| caches           | 暴露可用的缓存。                                                                                               |   是    |
 | conditions       | 显示在配置和自动配置类上评估的条件以及它们匹配或不匹配的原因。                                                     |   是    |
-| configprops      | 显示所有 `@ConfigurationProperties` 的校对清单。                                                          |   是    |
-| env              | 暴露 Spring ConfigurableEnvironment 中的依赖全部环境属性。`/env/{name}`：根据名称获取特定的环境属性值            |   是    |
-| flyway           | 显示已应用的 Flyway 数据库迁移。                                                                           |   是    |
-| health           | 显示应用程序健康信息，这些值由 HealthIndicator 的实现类提供                                                    |   是    |
-| httptrace        | 显示 HTTP 追踪信息（默认情况下，最后 100 个 HTTP 请求/响应交换）。                                              |   是    |
-| info             | 显示应用程序定制信息。这些信息由 info 前缀的配置属性提供                                                        |   是    |
-| integrationgraph | 显示 Spring Integration 图。                                                                            |   是    |
-| loggers          | 显示和修改应用程序中日志记录器的配置。                                                                        |   是    |
-| liquibase        | 显示已应用的 Liquibase 数据库迁移。                                                                        |   是    |
+| configprops      | 显示所有 `@ConfigurationProperties` 的校对清单。                                                               |   是    |
+| env              | 暴露 Spring ConfigurableEnvironment 中的依赖全部环境属性。`/env/{name}`：根据名称获取特定的环境属性值              |   是    |
+| flyway           | 显示已应用的 Flyway 数据库迁移。                                                                                |   是    |
+| health           | 显示应用程序健康信息，这些值由 HealthIndicator 的实现类提供                                                       |   是    |
+| httptrace        | 显示 HTTP 追踪信息（默认情况下，最后 100 个 HTTP 请求/响应交换）。                                                |   是    |
+| info             | 显示应用程序定制信息。这些信息由 info 前缀的配置属性提供                                                           |   是    |
+| integrationgraph | 显示 Spring Integration 图。                                                                                  |   是    |
+| loggers          | 显示和修改应用程序中日志记录器的配置。                                                                           |   是    |
+| liquibase        | 显示已应用的 Liquibase 数据库迁移。                                                                             |   是    |
 | metrics          | 显示当前应用程序的指标度量信息，比如内存用量和HTTP请求计数。`/metrics/{name}`：报告指定名称的应用程序度量值            |   是    |
-| mappings         | 显示所有 `@RequestMapping` 路径的整理清单，以及它们和控制器(包含 Actuator 端点)的映射关系                         |   是    |
-| scheduledtasks   | 显示应用程序中的调度任务。                                                                                 |   是    |
+| mappings         | 显示所有 `@RequestMapping` 路径的整理清单，以及它们和控制器(包含 Actuator 端点)的映射关系                          |   是    |
+| scheduledtasks   | 显示应用程序中的调度任务。                                                                                      |   是    |
 | sessions         | 允许从 Spring Session 支持的会话存储中检索和删除用户会话。当使用 Spring Session 的响应式 Web 应用程序支持时不可用。   |   是    |
-| shutdown         | 正常关闭应用程序。                                                                                        |   否    |
-| threaddump       | 执行线程 dump。                                                                                         |   是    |
-| heapdump         | 返回一个 hprof 堆 dump 文件。                                                                            |   是    |
-| jolokia          | 通过 HTTP 暴露 JMX bean（当  Jolokia 在 classpath 上时，不适用于 WebFlux）。                                 |   是    |
+| shutdown         | 正常关闭应用程序。                                                                                             |   否    |
+| threaddump       | 执行线程 dump。                                                                                               |   是    |
+| heapdump         | 返回一个 hprof 堆 dump 文件。                                                                                  |   是    |
+| jolokia          | 通过 HTTP 暴露 JMX bean（当  Jolokia 在 classpath 上时，不适用于 WebFlux）。                                     |   是    |
 | logfile          | 返回日志文件的内容（如果已设置 logging.file 或 logging.path 属性）。支持使用 HTTP Range 头来检索部分日志文件的内容。 |   是    |
-| prometheus       | 以可以由 Prometheus 服务器抓取的格式暴露指标。                                                               |   是    |
+| prometheus       | 以可以由 Prometheus 服务器抓取的格式暴露指标。                                                                   |   是    |
 
 状态监控的数据都是以 json 格式返回，分析数据不太方便，*推荐使用基于 Actuator 开发的 Spring Boot Admin 状态监控开源项目*
 
