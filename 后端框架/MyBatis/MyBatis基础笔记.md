@@ -1,16 +1,49 @@
-# MyBatis 基础笔记
-
 ## 1. MyBatis 框架概述
 
-MyBatis是一个持久层的框架，本是apache的一个开源项目iBatis，2010年这个项目由apache software foundation迁移到了google code，并且改名为MyBatis。2013年11月迁移到Github
+### 1.1. 原生 JDBC 存在问题
 
-MyBatis让程序将主要精力放在sql上，通过MyBatis提供的映射方式，自由灵活生成(半自动化)满足需要的sql语句
+1. 数据库连接，使用时就创建，不使用立即释放。对数据库进行频繁连接开启和关闭，造成数据库资源浪费，影响数据库性能
 
-MyBatis可以将向preparedStatement中的输入参数自动进行输入映射，将查询结果集映射成java对象(输出映射)
+> 解决方案：使用数据库连接池管理数据库连接。MyBatis内部自带连接池
 
-> 下载地址：https://github.com/mybatis/mybatis-3/releases
->
-> Mybatis中文文档：https://mybatis.org/mybatis-3/zh/index.html
+2. 将sql语句硬编码到java代码中，在企业项目中，sql语句变化的需求比较大。如果sql语句修改，需要重新编译java代码，不利于系统维护
+
+> 解决方案：将sql语句配置在xml配置文件中，即使sql语句变化，不需要对java代码进行重新编译
+
+3. 向preparedStatement中设置参数，对占位符位置和设置参数值，硬编码在java代码中，不利于系统维护
+
+> 解决方案：将sql语句及占位符和参数全部配置在xml配置文件中
+
+4. 从resultSet中遍历结果集数据时，存在硬编码，将获取表的字段进行硬编码，不利于系统维护。如果可以映射成java对象会比较方便
+
+> 解决方案：将查询的结果集，自动映射成java对象
+
+### 1.2. MyBatis 简介
+
+MyBatis是一个持久层的框架，本是 apache 的一个开源项目 iBatis，2010 年这个项目由 apache software foundation 迁移到了google code，并且改名为 MyBatis。2013年11月迁移到Github
+
+MyBatis 让程序将主要精力放在 sql 上，通过 MyBatis 提供的映射方式，自由灵活生成(半自动化)满足需要的sql语句。还可以将向 `preparedStatement` 中的输入参数自动进行输入映射，将查询结果集映射成j ava 对象(输出映射)
+
+> - Mybatis 下载地址：https://github.com/mybatis/mybatis-3/releases
+> - Mybatis 中文文档：https://mybatis.org/mybatis-3/zh/index.html
+
+### 1.3. 使用 MyBatis 解决 JDBC 编程的问题
+
+1. 数据库连接创建、释放频繁造成系统资源浪费从而影响系统性能，如果使用数据库连接池可解决此问题。
+
+> MyBatis解决方案：在SqlMapConfig.xml中配置数据连接池，使用连接池管理数据库链接。
+
+2. Sql语句写在代码中造成代码不易维护，实际应用sql变化的可能较大，sql变动需要改变java代码。
+
+> MyBatis解决方案：将Sql语句配置在XXXXmapper.xml文件中与java代码分离。
+
+3. 向sql语句传参数麻烦，因为sql语句的where条件不一定，可能多也可能少，占位符需要和参数一一对应。
+
+> MyBatis解决方案：Mybatis自动将java对象映射至sql语句，通过statement中的parameterType定义输入参数的类型。
+
+4. 对结果集解析麻烦，sql变化导致解析代码变化，且解析前需要遍历，如果能将数据库记录封装成pojo对象解析比较方便。
+
+> MyBatis解决方案：Mybatis自动将sql执行结果映射至java对象，通过statement中的resultType定义输出结果的类型。
 
 ## 2. MyBatis基本使用
 
@@ -142,51 +175,15 @@ SqlMapConfig.xml 示例：
 5. 执行SqlSession对象执行查询，获取结果
 6. 释放资源
 
-## 3. MyBatis 小结
+## 3. MyBatis 架构
 
-### 3.1. 原生 JDBC 存在问题
-
-1. 数据库连接，使用时就创建，不使用立即释放。对数据库进行频繁连接开启和关闭，造成数据库资源浪费，影响数据库性能
-
-> 解决方案：使用数据库连接池管理数据库连接。MyBatis内部自带连接池
-
-2. 将sql语句硬编码到java代码中，在企业项目中，sql语句变化的需求比较大。如果sql语句修改，需要重新编译java代码，不利于系统维护
-
-> 解决方案：将sql语句配置在xml配置文件中，即使sql语句变化，不需要对java代码进行重新编译
-
-3. 向preparedStatement中设置参数，对占位符位置和设置参数值，硬编码在java代码中，不利于系统维护
-
-> 解决方案：将sql语句及占位符和参数全部配置在xml配置文件中
-
-4. 从resultSet中遍历结果集数据时，存在硬编码，将获取表的字段进行硬编码，不利于系统维护。如果可以映射成java对象会比较方便
-
-> 解决方案：将查询的结果集，自动映射成java对象
-
-### 3.2. 使用 MyBatis 解决 JDBC 编程的问题
-
-1. 数据库连接创建、释放频繁造成系统资源浪费从而影响系统性能，如果使用数据库连接池可解决此问题。
-
-> MyBatis解决方案：在SqlMapConfig.xml中配置数据连接池，使用连接池管理数据库链接。
-
-2. Sql语句写在代码中造成代码不易维护，实际应用sql变化的可能较大，sql变动需要改变java代码。
-
-> MyBatis解决方案：将Sql语句配置在XXXXmapper.xml文件中与java代码分离。
-
-3. 向sql语句传参数麻烦，因为sql语句的where条件不一定，可能多也可能少，占位符需要和参数一一对应。
-
-> MyBatis解决方案：Mybatis自动将java对象映射至sql语句，通过statement中的parameterType定义输入参数的类型。
-
-4. 对结果集解析麻烦，sql变化导致解析代码变化，且解析前需要遍历，如果能将数据库记录封装成pojo对象解析比较方便。
-
-> MyBatis解决方案：Mybatis自动将sql执行结果映射至java对象，通过statement中的resultType定义输出结果的类型。
-
-### 3.3. MyBatis 框架执行流程
+### 3.1. MyBatis 执行流程图
 
 ![流程图-MyBatis框架执行流程.drawio](images/20200621084037450_14336.jpg)
 
 1. SqlSessionFactoryBuilder：读取配置文件内容。返回框架的核心对象 SqlSessionFactory
     - `SqlMapConfig.xml`（是mybatis的全局配置文件，名称不固定的）：配置了数据源、事务等mybatis运行环境
-    - `mapper1.xml（映射文件）、mapper2.xml、mapperN.xml.....	`：配置映射文件（配置sql语句），相当于每个实体类与数据库映射
+    - `mapper1.xml（映射文件）、mapper2.xml、mapperN.xml.....`：配置映射文件（配置sql语句），相当于每个实体类与数据库映射
 2. SqlSessionFactory（会话工厂），根据配置文件创建会话工厂。一旦被创建就应该在应用的运行期间一直存在，是单例。
     - 作用：创建SqlSession
 3. SqlSession（会话），是一个接口，面向用户（程序员）的接口。由会话工厂 SqlSessionFactory 创建，每个线程都有它自己的 SqlSession 实例。
@@ -198,6 +195,27 @@ SqlMapConfig.xml 示例：
     - 输入参数映射：输入参数类型可以是java基本数据类型、Map、List 等集合类型、自定义 POJO 类等。输入参数映射过程类似于 JDBC 对 `PreparedStatement` 对象设置参数的过程
     - 输出结果映射：输出结果类型可以是java基本数据类型、Map、List 等集合类型、自定义 POJO 类等。输出结果映射过程类似于 JDBC 对结果集的解析过程
 6. 操作数据库
+
+### 3.2. MyBatis 的框架设计
+
+![](images/188733011248670.jpg)
+
+### 3.3. MyBatis 的主要构件及其相互关系
+
+从MyBatis代码实现的角度来看，MyBatis的主要的核心部件有以下几个：
+
+- SqlSession：作为 MyBatis 工作的主要顶层API，表示和数据库交互的会话，完成必要数据库增删改查功能
+- Executor：MyBatis 执行器，是 MyBatis 调度的核心，负责SQL语句的生成和查询缓存的维护
+- StatementHandler：封装了JDBC Statement操作，负责对JDBC statement 的操作，如设置参数、将Statement结果集转换成List集合。
+- ParameterHandler：负责对用户传递的参数转换成JDBC Statement 所需要的参数，
+- ResultSetHandler：负责将JDBC返回的ResultSet结果集对象转换成List类型的集合；
+- TypeHandler：负责java数据类型和jdbc数据类型之间的映射和转换
+- MappedStatement：MappedStatement维护了一条`<select|update|delete|insert>`节点的封装
+- SqlSource：负责根据用户传递的parameterObject，动态地生成SQL语句，将信息封装到BoundSql对象中，并返回
+- BoundSql：表示动态生成的SQL语句以及相应的参数信息
+- Configuration：MyBatis所有的配置信息都维持在Configuration对象之中。
+
+![](images/558721412236537.jpg)
 
 ## 4. MyBatis开发数据层
 
@@ -3644,33 +3662,7 @@ public void testMyBatisSpringAnnoBasic() {
 }
 ```
 
-# 其他
-
-## 1. MyBatis 和 Hibernate 本质区别和应用场景（了解）
-
-### 1.1. MyBatis 和 Hibernate 相同点
-
-1. 对JDBC的封装
-2. 持久层的框架
-3. 用于dao层开发
-
-### 1.2. MyBatis 和 Hibernate 区别
-
-1.	SQL支持
-    - hibernate是封装了sql语句，支持数据库无关性，在项目需要支持多种数据库的情况下，代码开发量较少，sql语句优化困难。
-    - mybatis直接使用sql语句，不支持数据库无关性，在项目需要支持多种数据库的情况下，代码开发量较多，sql语句优化容易。
-2.	多表关联
-    - hibernate是配置java对象与表的对应关系，多表关联关系配置复杂。
-    - mybatis是配置java对象与sql语句的对应关系，多表关联关系配置简单。
-3.	应用场景
-    - hibernate是一个相对重量级的框架，学习使用门槛高，适合于需求相对稳定的中小型项目，中小型的项目，比如办公自动化系统（OA），后台管理系统，erp、orm等
-    - mybatis框架是一个轻量级的框架，学习使用门槛低，适合于大型的项目与需求变化较多的项目，比如互联网的项目。
-
-注：hibernate是一个完全ORM构架，MyBatis是一个半ORM构架。快照是为了提高hibernate的保存数据的效率，是hibernate特有，其他框架没有存在。
-
-企业进行技术选型，以低成本高回报作为技术选型的原则，根据项目组的技术力量进行选择
-
-## 2. Mybatis 3.5.0 全配置示例(demo项目配置更新优先)
+## 12. Mybatis 3.5.0 全配置示例(demo项目配置更新优先)
 
 > 参考Mybatis源码学习项目：https://github.com/MooNkirA/mybatis-note
 >
@@ -3817,15 +3809,15 @@ public void testMyBatisSpringAnnoBasic() {
 </configuration>
 ```
 
-## 3. MyBatis常用API总结
+## 13. MyBatis常用API总结
 
-### 3.1. Resources 类
+### 13.1. Resources 类
 
-#### 3.1.1. 简述
+#### 13.1.1. 简述
 
 MyBatis提供的文件IO转换的工具类
 
-#### 3.1.2. 常用方法
+#### 13.1.2. 常用方法
 
 ```java
 static InputStream getResourceAsStream(String resource)
@@ -3834,15 +3826,15 @@ static InputStream getResourceAsStream(String resource)
 - 作用：将指定的文件资源转成输入流对象。
 - 参数`resource`：需要转换的文件资源名称（路径）
 
-### 3.2. SqlSessionFactoryBuilder 类
+### 13.2. SqlSessionFactoryBuilder 类
 
-#### 3.2.1. 简述
+#### 13.2.1. 简述
 
 通过SqlSessionFactoryBuilder创建会话工厂SqlSessionFactory。将SqlSessionFactoryBuilder当成一个工具类使用即可，不需要使用单例管理SqlSessionFactoryBuilder
 
 在需要创建SqlSessionFactory时候，只需要new一次SqlSessionFactoryBuilder即可
 
-#### 3.2.2. 常用方法
+#### 13.2.2. 常用方法
 
 ```java
 SqlSessionFactory build(InputStream inputStream);
@@ -3851,15 +3843,15 @@ SqlSessionFactory build(InputStream inputStream);
 - 作用：根据全局配置文件，创建SqlSessionFactory会话工厂。
 - 参数`inputStream`：MyBatis的配置文件输入流对象
 
-### 3.3. SqlSessionFactory 接口
+### 13.3. SqlSessionFactory 接口
 
-#### 3.3.1. 简述
+#### 13.3.1. 简述
 
 它是mybaties框架的核心对象，是线程安全的。通过SqlSessionFactory创建SqlSession，可以使用单例模式管理sqlSessionFactory（工厂一旦创建，使用一个实例）
 
 mybatis和spring整合后，使用单例模式管理sqlSessionFactory
 
-#### 3.3.2. 常用方法
+#### 13.3.2. 常用方法
 
 <font color=violet>*说明：自动提交事务，只要sql语句一执行，就马上提交。如果同时有多个操作，如果有个操作失败，则之前的其他操作无法回滚，此时需要使用手动提交的方式*</font>
 
@@ -3876,9 +3868,9 @@ SqlSession openSession(boolean autoCommit);
 - 作用：开启会话并指定是否自动提交事务，返回SqlSession对象
 - 参数`autoCommit`：true开启自动提交/false关闭自动提交
 
-### 3.4. SqlSession 接口
+### 13.4. SqlSession 接口
 
-#### 3.4.1. 简述
+#### 13.4.1. 简述
 
 ```java
 public interface SqlSession extends Closeable
@@ -3888,7 +3880,7 @@ public interface SqlSession extends Closeable
 
 <font color=red>*SqlSession是线程不安全的*</font>。因此 **SqlSession 最佳应用场合在方法体内，定义成局部变量使用**
 
-#### 3.4.2. 常用方法
+#### 13.4.2. 常用方法
 
 ```java
 void close()
@@ -3956,7 +3948,7 @@ int update(String statement, Object parameter)
 - 作用：获取指定的mapper接口动态代理对象
 - 参数`type`：指定的mapper接口的字节码对象
 
-#### 3.4.3. selectOne 和 selectList 区别
+#### 13.4.3. selectOne 和 selectList 区别
 
 - `selectOne`表示查询出一条记录进行映射。如果使用`selectOne`可以实现使用`selectList`也可以实现（list中只有一个对象）。
 - `selectList`表示查询出一个列表（多条记录）进行映射。如果使用`selectList`查询多条记录，不能使用`selectOne`。
@@ -3967,38 +3959,38 @@ int update(String statement, Object parameter)
 
 注：在动态代理对象调用`selectOne`和`selectList`是根据mapper接口方法的返回值决定，如果返回list则调用`selectList`方法，如果返回单个对象则调用`selectOne`方法。
 
-## 4. 预编译
+## 14. 其他扩展
 
-### 4.1. 定义
+### 14.1. MyBatis 和 Hibernate 本质区别和应用场景（了解）
+
+#### 14.1.1. MyBatis 和 Hibernate 相同点
+
+1. 对JDBC的封装
+2. 持久层的框架
+3. 用于dao层开发
+
+#### 14.1.2. MyBatis 和 Hibernate 区别
+
+1.	SQL支持
+    - hibernate是封装了sql语句，支持数据库无关性，在项目需要支持多种数据库的情况下，代码开发量较少，sql语句优化困难。
+    - mybatis直接使用sql语句，不支持数据库无关性，在项目需要支持多种数据库的情况下，代码开发量较多，sql语句优化容易。
+2.	多表关联
+    - hibernate是配置java对象与表的对应关系，多表关联关系配置复杂。
+    - mybatis是配置java对象与sql语句的对应关系，多表关联关系配置简单。
+3.	应用场景
+    - hibernate是一个相对重量级的框架，学习使用门槛高，适合于需求相对稳定的中小型项目，中小型的项目，比如办公自动化系统（OA），后台管理系统，erp、orm等
+    - mybatis框架是一个轻量级的框架，学习使用门槛低，适合于大型的项目与需求变化较多的项目，比如互联网的项目。
+
+注：hibernate是一个完全ORM构架，MyBatis是一个半ORM构架。快照是为了提高hibernate的保存数据的效率，是hibernate特有，其他框架没有存在。
+
+企业进行技术选型，以低成本高回报作为技术选型的原则，根据项目组的技术力量进行选择
+
+### 14.2. 预编译
+
+#### 14.2.1. 定义
 
 SQL 预编译指的是数据库驱动在发送 SQL 语句和参数给 DBMS 之前对 SQL 语句进行编译，这样 DBMS 执行 SQL 时，就不需要重新编译。
 
-### 4.2. 为什么需要预编译
+#### 14.2.2. 为什么需要预编译
 
-JDBC 中使用对象 `PreparedStatement` 来抽象预编译语句，使用预编译。预编译阶段可以优化 SQL 的执行。预编译之后的 SQL 多数情况下可以直接执行，DBMS 不需要再次编译，越复杂的SQL，编译的复杂度将越大，预编译阶段可以合并多次操作为一个操作。同时预编译语句对象可以重复利用。把一个 SQL 预编译后产生的 `PreparedStatement` 对象缓存下来，下次对于同一个SQL，可以直接使用这个缓存的对象。**Mybatis 默认情况下，将对所有的 SQL 进行预编译**。
-
-## 5. ！！待整合
-
-### 5.1. MyBatis 的框架设计
-
-![](images/188733011248670.jpg)
-
-### 5.2. MyBatis 的主要构件及其相互关系
-
-从MyBatis代码实现的角度来看，MyBatis的主要的核心部件有以下几个：
-
-- SqlSession：作为 MyBatis 工作的主要顶层API，表示和数据库交互的会话，完成必要数据库增删改查功能
-- Executor：MyBatis 执行器，是 MyBatis 调度的核心，负责SQL语句的生成和查询缓存的维护
-- StatementHandler：封装了JDBC Statement操作，负责对JDBC statement 的操作，如设置参数、将Statement结果集转换成List集合。
-- ParameterHandler：负责对用户传递的参数转换成JDBC Statement 所需要的参数，
-- ResultSetHandler：负责将JDBC返回的ResultSet结果集对象转换成List类型的集合；
-- TypeHandler：负责java数据类型和jdbc数据类型之间的映射和转换
-- MappedStatement：MappedStatement维护了一条`<select|update|delete|insert>`节点的封装
-- SqlSource：负责根据用户传递的parameterObject，动态地生成SQL语句，将信息封装到BoundSql对象中，并返回
-- BoundSql：表示动态生成的SQL语句以及相应的参数信息
-- Configuration：MyBatis所有的配置信息都维持在Configuration对象之中。
-
-![](images/558721412236537.jpg)
-
-
-
+JDBC 中使用对象 `PreparedStatement` 来抽象预编译语句，使用预编译。预编译阶段可以优化 SQL 的执行。预编译之后的 SQL 多数情况下可以直接执行，DBMS 不需要再次编译，越复杂的SQL，编译的复杂度将越大，预编译阶段可以合并多次操作为一个操作。同时预编译语句对象可以重复利用。把一个 SQL 预编译后产生的 `PreparedStatement` 对象缓存下来，下次对于同一个SQL，可以直接使用这个缓存的对象。<font color=red>**Mybatis 默认情况下，将对所有的 SQL 进行预编译**</font>。

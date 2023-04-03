@@ -1,5 +1,3 @@
-# MySQL 数据库性能优化
-
 ## 1. 性能优化总论
 
 ![](images/121553112256705.jpg)
@@ -478,20 +476,20 @@ mysql> EXPLAIN SELECT * FROM order_exp;
 
 ### 4.3. 字段类型汇总表
 
-|     字段      |                                    说明                                     |
-| :-----------: | --------------------------------------------------------------------------- |
-|      id       | 查询中执行 `select` 子句或操作表的顺序，每个`SELECT`关键字都对应一个唯一的id      |
-|  select_type  | 所使用的SELECT查询类型，*常见类型详见各列说明章节*                               |
-|     table     | 所使用的的数据表的名字                                                        |
-|  partitions   | 匹配的分区信息                                                                |
+|      字段      |                                  说明                                  |
+| :-----------: | --------------------------------------------------------------------- |
+|      id       | 查询中执行 `select` 子句或操作表的顺序，每个`SELECT`关键字都对应一个唯一的id     |
+|  select_type  | 所使用的SELECT查询类型，*常见类型详见各列说明章节*                            |
+|     table     | 所使用的的数据表的名字                                                    |
+|  partitions   | 匹配的分区信息                                                           |
 |     type      | 表示 MySQL 在表中找到所需行的方式，又称“访问类型”。*取值与优劣排序详见各列说明章节* |
-| possible_keys | 可能使用哪个索引在表中找到记录                                                 |
-|      key      | 实际使用的索引                                                                |
-|    key_len    | 索引中使用的字节数长度                                                        |
+| possible_keys | 可能使用哪个索引在表中找到记录                                              |
+|      key      | 实际使用的索引                                                           |
+|    key_len    | 索引中使用的字节数长度                                                    |
 |      ref      | 当使用索引列等值查询时，显示哪个与索引列进行等值匹配的对象信息被使用了              |
-|     rows      | 估算的找到所需的记录所需要读取的行数                                            |
-|   filtered    | 通过条件过滤出后剩余行数的百分比估计值                                          |
-|     extra     | 包含不适合在其他列中显示但十分重要的额外信息                                     |
+|     rows      | 估算的找到所需的记录所需要读取的行数                                         |
+|   filtered    | 通过条件过滤出后剩余行数的百分比估计值                                        |
+|     extra     | 包含不适合在其他列中显示但十分重要的额外信息                                   |
 
 ### 4.4. id 列
 
@@ -579,23 +577,22 @@ mysql> EXPLAIN SELECT * FROM s1 UNION ALL SELECT * FROM s2;
 
 ### 4.5. select_type 列
 
-表示所使用select查询类型，MySQL 为每一个`SELECT`关键字代表的小查询都定义了一个称之为`select_type`的属性，意思是我们只要知道了某个小查询的`select_type`属性，就知道了这个小查询在整个大查询中扮演了一个什么角色。常见类型汇总表如下：
+表示所使用select查询类型，MySQL 为每一个`SELECT`关键字代表的小查询都定义了一个称之为`select_type`的属性，意思是我们只要知道了某个小查询的`select_type`属性，就知道了这个小查询在整个大查询中扮演了一个什么角色。常见类型汇总如下：
 
-|         类型         |                                                                                                         说明                                                                                                          |
-| :------------------: | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-|        SIMPLE        | 简单的select查询，SQL中不包含子查询或者UNION。                                                                                                                                                                           |
-|       PRIMARY        | 最外层的select查询，查询中包含复杂的子查询部分，最外层查询被标记为PRIMARY                                                                                                                                                   |
-|        UNION         | UNION 中的第二个或随后的select查询，不依赖于外部查询的结果集                                                                                                                                                               |
-|     UNION RESULT     | 从 UNION 表获取结果集的SELECT查询被标记为 UNION RESULT                                                                                                                                                                   |
-|       SUBQUERY       | 子查询中的第一个 select 查询，不依赖于外部查询的结果集                                                                                                                                                                     |
-|   DEPENDENT UNION    | UNION 中的第二个或随后的select查询，依赖于外部查询的结果集                                                                                                                                                                 |
-|  DEPENDENT SUBQUERY  | 子查询中的第一个 select 查询，依赖于外部查询的结果集                                                                                                                                                                       |
-|       DERIVED        | DERIVED（衍生）用来表示包含在 from 子句中的子查询的 select 语句。若 UNION 包含在 FROM 子句的子查询中，外层 SELECT 将被标记为 DERIVED。mysql 会递归执行并将结果放到一个临时表中。服务器内部称为"派生表"，因为该临时表是从子查询中派生出来 |
-|     MATERIALIZED     | 物化子查询                                                                                                                                                                                                             |
-| UNCACHEABLE SUBQUERY | 结果集不能被缓存的子查询，必须重新为外层查询的每一行进行评估，极少出现                                                                                                                                                       |
-|  UNCACHEABLE UNION   | UNION 中的第二个或随后的select查询，属于不可缓存的子查询，极少出现                                                                                                                                                          |
-|      DEPENDENT       | 意味着 select 依赖于外层查询中发现的数据                                                                                                                                                                                 |
-|     UNCACHEABLE      | 意味着 select 中的某些特性阻止结果被缓存于一个 item_cache中                                                                                                                                                               |
+
+- `SIMPLE`：简单的select查询，SQL中不包含子查询或者UNION
+- `PRIMARY`：最外层的select查询，查询中包含复杂的子查询部分，最外层查询被标记为PRIMARY                                                                                                                                         
+- `UNION`：UNION 中的第二个或随后的select查询，不依赖于外部查询的结果集
+- `UNION RESULT`：从 UNION 表获取结果集的SELECT查询被标记为 UNION RESULT                                                                                                                                                     
+- `SUBQUERY`：子查询中的第一个 select 查询，不依赖于外部查询的结果集                                                                                                                                                         
+- `DEPENDENT UNION`：UNION 中的第二个或随后的select查询，依赖于外部查询的结果集                                                                                                                                                     
+- `DEPENDENT SUBQUERY`：子查询中的第一个 select 查询，依赖于外部查询的结果集                                                                                                                                                          
+- `DERIVED`（衍生）：用来表示包含在 from 子句中的子查询的 select 语句。若 UNION 包含在 FROM 子句的子查询中，外层 SELECT 将被标记为 DERIVED。mysql 会递归执行并将结果放到一个临时表中。服务器内部称为"派生表"，因为该临时表是从子查询中派生出来
+- `MATERIALIZED`：物化子查询                                                                                                                                                                                              
+- `UNCACHEABLE SUBQUERY`：结果集不能被缓存的子查询，必须重新为外层查询的每一行进行评估，极少出现                                                                                                                                              
+- `UNCACHEABLE UNION`：UNION 中的第二个或随后的select查询，属于不可缓存的子查询，极少出现                                                                                                                                              
+- `DEPENDENT`：意味着 select 依赖于外层查询中发现的数据
+- `UNCACHEABLE`：意味着 select 中的某些特性阻止结果被缓存于一个 item_cache中                                                                                                                                                   
 
 #### 4.5.1. SIMPLE 类型
 
@@ -753,23 +750,21 @@ NULL > system > const > eq_ref > ref > fulltext > ref_or_null > index_merge > un
 >
 > <font color=red>**一般来说，保证查询至少达到range级别，最好能达到ref级别**</font>。
 
-type 列常见的类型汇总表：
+type 列常见的类型汇总：
 
-|       类型        |                                                                                                                           说明                                                                                                                           |
-| :---------------: | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-|       `all`       | full table scan，mysql将遍历全表以找到匹配的行；全表扫描从磁盘中获取数据百万级别的数据ALL类型的数据尽量优化                                                                                                                                                       |
-|      `index`      | Full index scan，扫描遍历索引树(扫描全表的索引，从索引中获取数据)。index和all的区别在于index类型只遍历索引                                                                                                                                                       |
-|      `range`      | 索引范围扫描，对索引的扫描开始于某一点，返回匹配值的行，只检索给定范围的行，使用一个索引来选着行。key列显示使用了哪个索引。一般在WHERE语句中出现`between`、`<`、`>`、`in`等查询，这种给定范围扫描比全表扫描要好。因为它只需要开始于索引的某一点，而结束于另一点，不用扫描全部索引。 |
-| `index_subquery`  | 该联接类型类似于unique_subquery。可以替换IN子查询，但只适合下列形式的子查询中的非唯一索引：`value IN (SELECT key_column FROM single_table WHERE some_expr)`                                                                                                      |
-| `unique_subquery` | 该类型替换了下面形式的`IN`子查询的 ref: `value IN (SELECT primary_key FROM single_table WHERE some_expr) `。unique_subquery是一个索引查找函数，可以完全替换子查询，效率更高。                                                                                     |
-|   `index_merge`   | 该联接类型表示使用了索引合并优化方法                                                                                                                                                                                                                        |
-|   `ref_or_null`   | 该联接类型如同ref，但是添加了MySQL可以专门搜索包含NULL值的行                                                                                                                                                                                                  |
-|    `fulltext`     | 全文索引                                                                                                                                                                                                                                                 |
-|       `ref`       | 非唯一性索引扫描，返回匹配某个单独值的所有行，常见于使用非唯一索引即唯一索引的非唯一前缀进行查找；本质上是一种索引访问，它返回所有匹配某个单独值的行，就是说它可能会找到多条符合条件的数据，所以他是查找与扫描的混合体。                                                        |
-|     `eq_ref`      | 唯一性索引扫描，对于每个索引键，表中只有一条记录与之匹配，常用于主键或者唯一索引扫描                                                                                                                                                                              |
-|      `const`      | 当mysql对某查询某部分进行优化，并转为一个常量时，使用这些访问类型。通过索引一次查到数据，该类型主要用于比较primary key或者unique索引，因为只匹配一行数据，所以很快；如果将主键置于WHERE语句后面，Mysql就能将该查询转换为一个常量。                                            |
-|     `system`      | 表只有一条记录(等于系统表)，这是const类型的特例，平时业务中不会出现                                                                                                                                                                                            |
-|      `NULL`       | MySQL 在优化过程中分解语句，执行时甚至不用访问表或索引，例如从一个索引列里选取最小值可以通过单独索引查找完成                                                                                                                                                        |
+- `all`：full table scan，mysql将遍历全表以找到匹配的行；全表扫描从磁盘中获取数据百万级别的数据ALL类型的数据尽量优化                                                                                                                                                      
+- `index`：Full index scan，扫描遍历索引树(扫描全表的索引，从索引中获取数据)。index和all的区别在于index类型只遍历索引                                                                                                                                                      
+- `range`：索引范围扫描，对索引的扫描开始于某一点，返回匹配值的行，只检索给定范围的行，使用一个索引来选着行。key列显示使用了哪个索引。一般在WHERE语句中出现`between`、`<`、`>`、`in`等查询，这种给定范围扫描比全表扫描要好。因为它只需要开始于索引的某一点，而结束于另一点，不用扫描全部索引。
+- `index_subquery`：该联接类型类似于unique_subquery。可以替换IN子查询，但只适合下列形式的子查询中的非唯一索引：`value IN (SELECT key_column FROM single_table WHERE some_expr)`                                                                                                     
+- `unique_subquery`：该类型替换了下面形式的`IN`子查询的 ref: `value IN (SELECT primary_key FROM single_table WHERE some_expr) `。unique_subquery 是一个索引查找函数，可以完全替换子查询，效率更高。
+- `index_merge`：该联接类型表示使用了索引合并优化方法                                                                                                                                                                                                                        
+- `ref_or_null`： 该联接类型如同ref，但是添加了MySQL可以专门搜索包含NULL值的行                                                                                                                                                                                                 
+- `fulltext`： 全文索引                                                                                                                                                                                                                                                 
+- `ref`：非唯一性索引扫描，返回匹配某个单独值的所有行，常见于使用非唯一索引即唯一索引的非唯一前缀进行查找；本质上是一种索引访问，它返回所有匹配某个单独值的行，就是说它可能会找到多条符合条件的数据，所以他是查找与扫描的混合体。
+- `eq_ref`： 唯一性索引扫描，对于每个索引键，表中只有一条记录与之匹配，常用于主键或者唯一索引扫描                                                                                                                                                                             
+- `const`：当mysql对某查询某部分进行优化，并转为一个常量时，使用这些访问类型。通过索引一次查到数据，该类型主要用于比较primary key或者unique索引，因为只匹配一行数据，所以很快；如果将主键置于WHERE语句后面，Mysql就能将该查询转换为一个常量。
+- `system`：表只有一条记录(等于系统表)，这是const类型的特例，平时业务中不会出现                                                                                                                                                                                            
+- `NULL`：MySQL 在优化过程中分解语句，执行时甚至不用访问表或索引，例如从一个索引列里选取最小值可以通过单独索引查找完成                                                                                                                                                        
 
 #### 4.8.1. system 类型
 
@@ -1218,30 +1213,40 @@ show processlist;
 
 ![](images/20211224104543121_17316.png)
 
-- id列，用户登录mysql时，系统分配的"connection_id"，可以使用函数`connection_id()`查看
-- user列，显示当前用户。如果不是root，这个命令就只显示用户权限范围的sql语句
-- host列，显示这个语句是从哪个ip的哪个端口上发的，可以用来跟踪出现问题语句的用户
-- db列，显示这个进程目前连接的是哪个数据库
-- command列，显示当前连接的执行的命令，一般取值为休眠（sleep），查询（query），连接（connect）等
-- time列，显示这个状态持续的时间，单位是秒
-- state列，显示使用当前连接的sql语句的状态，很重要的列。state描述的是语句执行中的某一个状态。一个sql语句，以查询为例，可能需要经过copying to tmp table、sorting result、sending data等状态才可以完成
-- info列，显示这个sql语句，是判断问题语句的一个重要依据
+- id 列：线程 id，用户登录 mysql 时，系统分配的"connection_id"，可以使用函数`connection_id()`查看。此 id 可用于 `kill id` 杀死某个线程
+- user 列：显示当前用户。如果不是root，这个命令就只显示用户权限范围的sql语句
+- host 列：数据库实例的 IP，显示这个语句是从哪个ip的哪个端口上发的，可以用来跟踪出现问题语句的用户
+- db 列：显示这个进程目前连接的是哪个数据库
+- command 列：显示当前连接执行的命令，一般取值为休眠（`sleep`），查询（`query`），连接（`connect`）等
+- time 列：显示这个状态持续的时间，单位是秒
+- state 列(**重要**)：显示使用当前连接的 sql 语句的状态，描述的是语句执行中的某一个状态。以查询语句为例，可能需要经过 copying to tmp table、sorting result、sending data 等状态才可以完成。此列主要有以下常见状态：
+    - `Sleep`，线程正在等待客户端发送新的请求
+    - `Locked`，线程正在等待锁
+    - `Sending data`，正在处理 SELECT 查询的记录，同时把结果发送给客户端
+    - `Kill`，正在执行 kill 语句，杀死指定线程
+    - `Connect`，一个从节点连上了主节点
+    - `Quit`，线程正在退出
+    - `Sorting for group`，正在为 GROUP BY 做排序
+    - `Sorting for order`，正在为 ORDER BY 做排序
+- info 列：显示这个 sql 语句，是判断问题语句的一个重要依据
 
 通过上面的命令可以查看线程状态。可以了解当前 MySQL 在进行的线程，包括线程的状态、是否锁表等，可以实时地查看SQL的执行情况，同时对一些锁表操作进行优化。在一个繁忙的服务器上，可能会看到大量的不正常的状态，例如 `statistics` 正占用大量的时间。这通常表示，某个地方有异常了。如：
 
 - statistics
-The server is calculating statistics to develop a query execution plan. If a thread is in this state for a long time, the server is probably disk-bound performing other work.
+
+> The server is calculating statistics to develop a query execution plan. If a thread is in this state for a long time, the server is probably disk-bound performing other work.
+
 服务器正在计算统计信息以研究一个查询执行计划。如果线程长时间处于此状态，则服务器可能是磁盘绑定执行其他工作。
 
 - Creating tmp table
 
-The thread is creating a temporary table in memory or on disk. If the table is created in memory but later is converted to an on-disk table, the state during that operation is Copying to tmp table on disk.
+> The thread is creating a temporary table in memory or on disk. If the table is created in memory but later is converted to an on-disk table, the state during that operation is Copying to tmp table on disk.
 
 该线程正在内存或磁盘上创建临时表。如果表在内存中创建但稍后转换为磁盘表，则该操作期间的状态将为 Copying to tmp table on disk
 
 - Sending data
 
-The thread is reading and processing rows for a SELECT statement, and sending data to the client. Because operations occurring during this state tend to perform large amounts of disk access (reads), it is often the longest-running state over the lifetime of a given query.
+> The thread is reading and processing rows for a SELECT statement, and sending data to the client. Because operations occurring during this state tend to perform large amounts of disk access (reads), it is often the longest-running state over the lifetime of a given query.
 
 线程正在读取和处理 SELECT 语句的行 ，并将数据发送到客户端。由于在此状态期间发生的操作往往会执行大量磁盘访问（读取），因此它通常是给定查询生命周期中运行时间最长的状态。
 
@@ -1936,7 +1941,7 @@ select * from A where exists (select 1 from B where B.id = A.id)
 类型大小指的就是该类型表示的数据范围的大小。原因如下：
 
 - 数据类型越小，在查询时进行的比较操作越快（CPU 层次)
-- 数据类型越小，索引占用的存储空间就越少，在一个数据页内就可以放下更多的记录，从而减少磁盘/0 带来的性能损耗，也就意味着可以把更多的数据页缓存在内存中，从而加快读写效率。
+- 数据类型越小，索引占用的存储空间就越少，在一个数据页内就可以放下更多的记录，从而减少磁盘 I/O 带来的性能损耗，也就意味着可以把更多的数据页缓存在内存中，从而加快读写效率。
 
 此建议对于表的主键来说更加适用，因为不仅是聚簇索引中会存储主键值，其他所有的二级索引的节点处都会存储一份记录的主键值，如果主键适用更小的数据类型，也就意味着节省更多的存储空间和更高效的I/O。
 
@@ -2128,7 +2133,16 @@ select user_name,sex,age from test where user_name like 'test%' and sex = 1 ORDE
 
 有一些表永远不用的索引，建议考虑删除。
 
+#### 7.1.10. 不建议使用索引的情况
+
+- where 条件中用不到的字段不适合建立索引
+- 表记录较少
+- 需要经常增删改的表或者字段
+- 参与列计算的列不适合建索引
+
 ### 7.2. 索引使用策略
+
+> Tips: 若不按以下策略使用索引，可能会导致索引失效。
 
 #### 7.2.1. 不在索引列上做任何操作
 
@@ -2153,7 +2167,7 @@ select * from order_exp where insert_time='2021-03-22 18:34:55' and order_status
 
 #### 7.2.3. 最佳左前缀法则
 
-建立了联合索引列，如果在查询语句中无法包含全部联合索引中的列时，但要遵守最左前缀法则。指的是查询从索引的最左前列开始并且不跳过索引中的列，并且遇到范围查询(`>`、`<`、`between`、`like`)就停止匹配
+建立了联合索引列，尽管在查询语句中无法包含全部联合索引中的列，但也要遵守最左前缀法则。『最左前缀法则』指的是查询从索引的最左前列开始并且不跳过索引中的列，并且遇到范围查询(`>`、`<`、`between`、`like`)就停止匹配
 
 ```sql
 -- 联合索引
@@ -2168,9 +2182,11 @@ select * from t where b = 1;
 select * from t where b = 1 and c = '3';
 ```
 
-根据联合索引的数据结构可以分析，索引是先按a，再按b，最后按c来进行排序，如果跳过a直接使用b或者c去匹配，因为b与c可能是乱序，所以查询优化器可能就会直接选择全表扫描。
+根据联合索引的数据结构可以分析，索引是先按a，再按b，最后按c来进行排序，如果跳过a直接使用b或者c去匹配，因为b与c可能是乱序，所以查询优化器可能就会直接选择全表扫描。如下图，对(a, b) 建立索引，a 在索引树中是全局有序的，而 b 是全局无序，局部有序（当a相等时，会根据b进行排序）。直接执行 `b = 2` 这种查询条件无法使用索引。
 
-如果想使用联合索引中尽可能多的列，搜索条件中的各个列必须是联合索引中从最左边连续的列。
+![](images/213611512230362.png)
+
+如果想使用联合索引中尽可能多的列，<font color=red>**搜索条件中的各个列必须是联合索引中从最左边连续的列**</font>。
 
 > Tips: 最左前缀法则中指的最左边的列，是指在查询时，联合索引的最左边的字段(即是第一个字段)必须存在，与编写SQL时<font color=red>**条件的先后顺序无关**</font>。mysql的查询优化器会优化成索引可以识别的形式
 

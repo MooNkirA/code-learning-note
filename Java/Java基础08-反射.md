@@ -783,7 +783,7 @@ public class MoonZero {
 
 ### 11.1. 概述
 
-JDK 动态代理主要涉及到 `java.lang.reflect` 包中的两个类：`Proxy` 和 `InvocationHandler`。
+JDK 动态代理的核心主要涉及到 `java.lang.reflect` 包中的两个类：`Proxy` 和 `InvocationHandler`。
 
 - `InvocationHandler` 是一个接口，通过实现该接口来定义代理后的处理逻辑，并可以通过反射机制来调用目标类的原代码，动态将代理逻辑和原逻辑编制在一起。
 - `Proxy` 利用 `InvocationHandler` 动态创建一个符合某一接口的实例，生成目标类的代理对象。
@@ -822,7 +822,8 @@ public interface InvocationHandler {
 }
 ```
 
-- 作用：每当通过代理对象调用方法时，都会被该方法拦截。
+`invoke` 方法的作用：每当通过代理对象调用方法时，都会被该方法拦截。方法参数说明如下：
+
 - 参数`Object proxy`：代理对象本身（不一定每次都用得到）。即方法` newProxyInstance()`方法返回的代理对象，该对象一般<font color=red>**不要在 `invoke` 方法中使用，容易出现递归调用**</font>。
 - 参数`Method method`：代理对象调用的方法（即被拦截真实对象的方法），是<font color=red>**真实对象的方法对象**</font>，会进行多次调用，每次调用 method 对象都不同。
 - 参数`Object[] args`：**代理对象调用方法时传递的参数，该参数会传递给真实对象的方法**。
@@ -834,8 +835,7 @@ public interface InvocationHandler {
 public Class<?>[] getInterfaces()
 ```
 
-- 作用：返回调用对象的类所有的接口数组。
-- 如果此对象表示一个类，则返回值是一个数组，它包含了表示该类所实现的所有接口的对象。
+- 作用：返回调用对象的类所有的接口数组。如果此对象表示一个类，则返回值是一个数组，它包含了表示该类所实现的所有接口的对象。
 
 示例（伪代码）
 
@@ -1033,7 +1033,6 @@ public class ActorImpl implements IActor {
 	public void wonderfulAct(float money) {
 		System.out.println("拿到 " + money + " 元，开始精彩的表演!!");
 	}
-
 }
 
 /**
@@ -1225,6 +1224,7 @@ public void testCustomProxy() {
 
 - JDK 的代理类是由 JDK 直接生成字节码文件，可以用 arthas 的 jad 工具反编译代理类查看源码
 - 代理类会继承 `Proxy` 类，该父类中有一个 `InvocationHandler h` 属性，通过接口回调的方式来实现代理增强的逻辑
+- **目标类必须有实现的接口**。如果某个类没有实现接口，那么这个类就不能用 JDK 动态代理。
 - 在代理实现的接口方法中，通过反射调用相应的目标方法
 - 代理增强是借助多态来实现，因此<font color=red>**成员变量、静态方法、final 方法均不能通过代理实现**</font>
 - 扩展知识：JDK 的动态代理对反射调用目标对象的方法做了优化。
@@ -1233,9 +1233,17 @@ public void testCustomProxy() {
     - 可使用 arthas 的 jad 工具反编译第 17 次调用生成的代理类，查看源码
     - > 注意：运行测试程序时须添加 `--add-opens java.base/java.lang.reflect=ALL-UNNAMED --add-opens java.base/jdk.internal.reflect=ALL-UNNAMED`
 
-## 12. CGlib 动态代理使用
+## 12. CGlib 动态代理
 
-### 12.1. CGlib 基础使用
+### 12.1. 概述
+
+CGLIB(Code Generation Library) 是通过**继承**的方式做的动态代理。如果某个类被标记为 `final`，那么它是无法使用 CGLIB 生成动态代理。
+
+优点：与 JDK 动态代理相比，目标类不需要实现特定的接口，更加灵活。
+
+> Tips: *在 Spring AOP 中，如果目标类没有实现接口，则会选择使用 CGLIB 来生成动态代理*
+
+### 12.2. CGlib 基础使用
 
 定义接口与实现类
 
@@ -1296,7 +1304,7 @@ public void testCglibBasic() {
 
 > 注意事项：通过 `MethodProxy` 调用目标方法，在 jdk >= 9 的情况下，在调用 `Object` 的方法会有问题，启动程序时需要设置：`--add-opens java.base/java.lang=ALL-UNNAMED`
 
-### 12.2. 模拟 CGlib 代理基础实现
+### 12.3. 模拟 CGlib 代理基础实现
 
 定义用于测试的被代理类
 
@@ -1404,14 +1412,14 @@ public class CglibProxyMock extends Target {
 }
 ```
 
-### 12.3. MethodProxy 的实现原理
+### 12.4. MethodProxy 的实现原理
 
 上面提及 `MethodProxy` 类可以避免反射调用目标方法，原理是当调用 `MethodProxy` 的 `invoke` 或 `invokeSuper` 方法时，会动态生成两个类，都会继承 `net.sf.cglib.reflect.FastClass` 抽象类
 
 - 其中一个类是配合代理对象一起使用，避免反射
 - 另外一个类是配合目标对象一起使用，避免反射 (Spring 框架底层使用此方式)
 
-#### 12.3.1. 配合目标对象的 FastClass 实现
+#### 12.4.1. 配合目标对象的 FastClass 实现
 
 当第一次在 `MethodInterceptor` 实现中调用 `methodProxy.invoke(target, args)` 方法，cglib 就动态生成一个类，继承 `net.sf.cglib.reflect.FastClass` 抽象类。在初始创建时就记录了被代理的目标对象中方法与编号的对应关系，其中 `getIndex` 方法用于获取调用的方法的编号，`invoke` 方法则用于根据方法编号通过被代理的目标对象调用相应的方法
 
@@ -1504,7 +1512,7 @@ public void testTargetFastClass() throws InvocationTargetException {
 
 > 注：`Target` 是前面定义的用来测试的被代理类
 
-#### 12.3.2. 配合代理对象的 FastClass 实现
+#### 12.4.2. 配合代理对象的 FastClass 实现
 
 当第一次在 `MethodInterceptor` 实现中调用 `methodProxy.invokeSuper(proxy, args)` 方法，cglib 就动态生成一个类，继承 `net.sf.cglib.reflect.FastClass` 抽象类。在初始创建时就记录了cglib 的代理对象中调用原目标方法与编号的对应关系，其中 `getIndex` 方法用于获取调用的方法的编号，`invoke` 方法则用于根据方法编号通过代理对象调用相应原目标的方法
 
@@ -1600,10 +1608,12 @@ public void testProxyFastClass() throws InvocationTargetException {
 > - <u>*此测试使用 `CglibProxyMock` 是前面自定义的模拟 cglib 代理实现，非 cglib 原生*</u>
 > - 上面模拟使用代理对象调用原被代理目标的方法，记得要调用自定义代理中的非增强的方法。**如果调用增强的方法，该方法中又会回调 `MethodInterceptor` 的 `intercept` 方法，就会出现无限的循环调用**
 
-### 12.4. CGlib 与 JDK 动态代理的区别
+### 12.5. CGlib 与 JDK 动态代理的区别
 
-JDK 的动态代理，当方法被调用到一定的次数后，才会生成不通过反射调用的代理
+JDK 的动态代理通过 `Proxy` 类使用反射技术来实现，不需要导入其他依依赖。值得注意的是，<font color=red>**当方法被调用到一定的次数后，才会生成不通过反射调用的代理**</font>。
 
-而 CGlib 在加载时动态生成两个类，分别是使用目标对象与代理对象来调用原方法，从而避免反射，提高性能。但代价是一个代理类会搭配生成两个 `FastClass` 实现类，代理类中还得增加仅调用原目标对象的 `super` 的相关方法。
+而 CGlib 需要引入 `asm.jar` 相关依赖，它是使用字节码增强技术来实现。在加载时动态生成两个类，分别是使用目标对象与代理对象来调用原方法，从而避免反射，提高性能。但代价是一个代理类会搭配生成两个 `FastClass` 实现类，代理类中还得增加仅调用原目标对象的 `super` 的相关方法。
 
-使用编号处理方法对应关系比较省内存，另外，最初获得方法顺序是不确定的。这个过程没法固定死
+使用编号处理方法对应关系比较省内存，另外，最初获得方法顺序是不确定的，这个过程没法固定死。
+
+

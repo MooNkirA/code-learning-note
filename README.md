@@ -232,7 +232,7 @@
 #### 🪐 Redis
 
 <ul class="docs">
-  <li><a href="#/数据库/Redis/Redis-安装">Redis 安装</a></li>
+  <li><a href="#/数据库/Redis/Redis-安装部署">Redis 安装部署</a></li>
   <li><a href="#/数据库/Redis/Redis-基础">Redis 基础笔记</a></li>
   <li><a href="#/数据库/Redis/Redis-操作命令">Redis 操作命令</a></li>
   <li><a href="#/数据库/Redis/Redis-场景应用设计">Redis 场景应用设计</a></li>
@@ -412,6 +412,7 @@
 ### ⏲ 分布式任务调度
 
 <ul class="docs">
+  <li><a href="#/分布式微服务/分布式任务调度/Task-Scheduling">任务调度概述</a></li>
   <li><a href="#/分布式微服务/分布式任务调度/Quartz">Quartz 开源作业调度框架</a></li>
   <li><a href="#/分布式微服务/分布式任务调度/ElasticJob">Elastic-Job 分布式调度解决方案</a></li>
 </ul>
@@ -456,7 +457,6 @@
 
 <ul class="docs">
   <li><a href="#/其他/编程文档与项目资源分享">编程文档与项目资源分享</a></li>
-  <li><a href="#/其他/常用软件工具汇总">常用软件工具汇总</a></li>
   <li><a href="#/其他/编程开发相关资料">编程开发相关资料</a></li>
   <li><a href="#/其他/Develop-Environment">个人开发环境搭建资源信息文档</a></li>
 </ul>

@@ -134,14 +134,28 @@ Sentinel 控制台包含如下功能:
 
 ### 3.2. 获取 Sentinel 控制台
 
-可以从官方网站中下载最新版本编译后的控制台 jar 包，本次示例使用v1.8.0版本
+#### 3.2.1. 下载编译后 jar 包
 
-> 官网下载地址：https://github.com/alibaba/Sentinel/releases/
+可以官方仓库中的 release 页面，下载最新版本的编译后控制台 jar 包。
 
-也可以从最新版本的源码自行构建 Sentinel 控制台：
+> 下载地址：https://github.com/alibaba/Sentinel/releases/
 
-- 下载 [控制台](https://github.com/alibaba/Sentinel/tree/master/sentinel-dashboard) 工程
-- 使用以下命令将代码打包成一个 fat jar: `mvn clean package`
+#### 3.2.2. 通过源码构建 jar 包
+
+也可以下载最新版本的源码自行构建 Sentinel 控制台。
+
+> - 源码仓库地址：https://github.com/alibaba/Sentinel
+> - 控制台源码目录：https://github.com/alibaba/Sentinel/tree/master/sentinel-dashboard
+
+下载源码工程后，进入 sentinel-dashboard 目录，使用命令 `mvn clean package` 将代码打包成一个 fat jar: 
+
+![](images/167914422248797.png)
+
+#### 3.2.3. 版本选择
+
+从 `spring-cloud-alibaba-dependencies` 的依赖中可以看到 Sentinel 的版本，因为选择控制台的版本尽量与其一致。本次示例使用v1.8.0版本
+
+![](images/244152822230371.png)
 
 ### 3.3. 启动 Sentinel 控制台
 
@@ -193,7 +207,7 @@ Sentinel 的控制台其实就是一个 SpringBoot 编写的程序。只需要�
 
 使用 Spring Cloud 整合了 Spring Cloud Alibaba 的方式来接入 Sentinel。
 
-> *注：需要注意Spring Cloud Alibaba与Spring Cloud的版本关系*。具体详见：[版本说明](#_5-版本说明20211222日更新)章节
+> *注：需要注意Spring Cloud Alibaba与Spring Cloud的版本关系*。具体详见：[《Spring Cloud Alibaba 概述》](/分布式微服务/SpringCloud/Spring-Cloud-Alibaba)笔记的『版本说明』章节
 
 如果需要使用 Spring Cloud Greenwich 版本，在父工程`pom.xml`文件的`<dependencyManagement>`中添加如下内容：
 
@@ -351,8 +365,8 @@ Sentinel 支持以下几种规则：**流量控制规则**、**熔断降级规�
 
 #### 6.2.3. 流量规则重要属性
 
-|      Field      | 说明                                                         | 默认值                      |
-| :-------------: | :----------------------------------------------------------- | :-------------------------- |
+|      Field      |                             说明                             |            默认值            |
+| :-------------: | ----------------------------------------------------------- | --------------------------- |
 |    resource     | 资源名，资源名是限流规则的作用对象                              |                             |
 |      count      | 限流阈值                                                     |                             |
 |      grade      | 限流阈值类型，QPS 或线程数模式                                 | QPS 模式                    |

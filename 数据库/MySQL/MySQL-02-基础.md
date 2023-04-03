@@ -1,5 +1,3 @@
-# MySQL数据库-基础
-
 ## 1. SQL 的概念
 
 SQL，全称 Structured Query Language，是结构化查询语言，用于一种访问和处理数据库的标准的计算机语言。是一套操作关系型数据库的统一标准
@@ -92,54 +90,55 @@ MySQL 中的数据类型有很多，主要分为三类：数值类型、字符�
 
 #### 2.1.1. 数值类型
 
-|       类型        | 大小(byte) |                                                            说明                                                             |
-| :--------------: | :--------: | --------------------------------------------------------------------------------------------------------------------------- |
-|    `TINYINT`     |     1      | <font color=red>很小的整数型，默认长度4</font>                                                                                |
-|    `SMALLINT`    |     2      | 小的整型，默认长度6                                                                                                           |
-|   `MEDIUMINT`    |     3      | 中等大小的整数，默认长度9                                                                                                     |
-| `INT`或`INTEGER` |     4      | <font color=red>普通大小的整数（占4字节），默认长度11</font>                                                                    |
-|     `BIGINT`     |     8      | 占用的8个字节，默认长度20                                                                                                     |
-|   `FLOAT(m,d)`   |     4      | 单精度浮点型小数                                                                                                              |
+|       类型        | 大小(byte) |                                                         说明                                                          |
+| :--------------: | :--------: | -------------------------------------------------------------------------------------------------------------------- |
+|    `TINYINT`     |     1      | <font color=red>很小的整数型，默认长度4</font>                                                                           |
+|    `SMALLINT`    |     2      | 小的整型，默认长度6                                                                                                     |
+|   `MEDIUMINT`    |     3      | 中等大小的整数，默认长度9                                                                                                 |
+| `INT`或`INTEGER` |     4      | <font color=red>普通大小的整数（占4字节），默认长度11</font>                                                                |
+|     `BIGINT`     |     8      | 占用的8个字节，默认长度20                                                                                                |
+|   `FLOAT(m,d)`   |     4      | 单精度浮点型小数                                                                                                        |
 |  `DOUBLE(m,d)`   |     8      | <font color=red>双精度浮点型小数 d代表小数位数，m代表总位数 (整数位=m-d);</font><br/>比如：DOUBLE(5.2)， 数值共5位，其中小数为2位。 |
-|  `DECIMAL(m,d)`  |            | <font color=red>压缩严格的定点数，取值范围与double相同，但有效取值范围由M(精度)与D(标度)决定</font>                                |
+|  `DECIMAL(m,d)`  |            | <font color=red>压缩严格的定点数，取值范围与double相同，但有效取值范围由M(精度)与D(标度)决定</font>                               |
 
 > Tips: 当字段用记录年龄时，因为不会存在负数与数值的范围不会太大，可以设置为 `age tinyint unsigned`
 
 #### 2.1.2. 字符串类型
 
-|      类型       | 大小(byte) |                                      说明                                       |
-| :------------: | :--------: | ------------------------------------------------------------------------------- |
-|   `CHAR(M)`    |   0-255    | CHAR(x),定长的字符串。**性能较好**                                                |
+|      类型       | 大小(byte) |                                     说明                                     |
+| :------------: | :--------: | --------------------------------------------------------------------------- |
+|   `CHAR(M)`    |   0-255    | `CHAR(x)`，定长的字符串。**性能较好**                                           |
 |  `VARCHAR(M)`  |  0-65535   | <font color=red>VARCHAR(x),可变长的字符串，注意数据不能超过X位数</font>**性能较差** |
-|   `TINYBLOB`   |   0-255    | 不超过 255 个字符的二进制字符串                                                    |
+|   `TINYBLOB`   |   0-255    | 不超过 255 个字符的二进制字符串                                                   |
 |     `BLOB`     |  0-65535   | <font color=red>二进制形式的长文本数据。（图片、视频、音频）</font>                  |
-|  `MEDIUMBLOB`  |   0-16M    | 二进制形式的中等长度文本数据                                                       |
-|   `LONGBLOB`   |    0-4G    | 二进制形式的长文本数据                                                            |
-|   `TINYTEXT`   |   0-255    | 短文本字符串                                                                     |
-|     `TEXT`     |  0-65535   | 长文本数据                                                                       |
-|  `MEDIUMTEXT`  |   0-16M    | 中等长度文本数据                                                                  |
-|   `LONGTEXT`   |    0-4G    | 极大文本数据                                                                     |
-| `VARBINARY(M)` |            | 允许长度0~M个字节的变长字节字符串                                                  |
-|  `BINARY(M)`   |            | 允许长度0~M个字节的定长字节字符串                                                  |
+|  `MEDIUMBLOB`  |   0-16M    | 二进制形式的中等长度文本数据                                                      |
+|   `LONGBLOB`   |    0-4G    | 二进制形式的长文本数据                                                           |
+|   `TINYTEXT`   |   0-255    | 短文本字符串                                                                   |
+|     `TEXT`     |  0-65535   | 长文本数据                                                                    |
+|  `MEDIUMTEXT`  |   0-16M    | 中等长度文本数据                                                                |
+|   `LONGTEXT`   |    0-4G    | 极大文本数据                                                                   |
+| `VARBINARY(M)` |            | 允许长度0~M个字节的变长字节字符串                                                 |
+|  `BINARY(M)`   |            | 允许长度0~M个字节的定长字节字符串                                                 |
 
 > Notes: `char` 与 `varchar` 都可以描述字符串，`char` 是定长字符串，指定长度多长，就占用多少个字符，和字段值的长度无关。而 `varchar` 是变长字符串，指定的长度为最大占用长度。相对来说，`char` 的性能会更高些。当存储的字符串长度是固定时，优先选择 `char` 类型
 
 #### 2.1.3. 日期类型
 
-|    类型     | 大小(byte) |                      范围                      |        格式         |                        说明                        |
-| :---------: | :--------: | ---------------------------------------------- | ------------------- | -------------------------------------------------- |
-|   `YEAR`    |     1      | 1901~2155                                      | YYYY                | 年份值                                              |
-|   `TIME`    |     3      | -838:59:59~838:59:59                           | HH:MM:SS            | 时间值或持续时间                                     |
+|     类型     | 大小(byte) |                      范围                       |         格式         |                       说明                        |
+| :---------: | :--------: | ---------------------------------------------- | ------------------- | ------------------------------------------------ |
+|   `YEAR`    |     1      | 1901~2155                                      | YYYY                | 年份值                                            |
+|   `TIME`    |     3      | -838:59:59~838:59:59                           | HH:MM:SS            | 时间值或持续时间                                    |
 |   `DATE`    |     3      | 1000-01-01~9999-12-31                          | YYYY-MM-DD          | <font color=red>日期值(只有年月日，没有时分秒)</font> |
-| `DATETIME`  |     8      | 1000-01-01 00:00:00~ 9999-12-31 23:59:59       | YYYY-MM-DD HH:MM:SS | <font color=red>混合日期和时间值</font>              |
+| `DATETIME`  |     8      | 1000-01-01 00:00:00~ 9999-12-31 23:59:59       | YYYY-MM-DD HH:MM:SS | <font color=red>混合日期和时间值</font>             |
 | `TIMESTAMP` |     4      | 1970~01~01 00:00:01 UTC~2038-01-19 03:14:07UTC | YYYYMMDD HHMMSS     | <font color=red>混合日期和时间值，时间戳</font>       |
 
 > Notes: 尽量使用 timestamp，空间效率高于 datetime，用整数保存时间戳通常不方便处理。若需要存储微秒，可以使用 bigint 存储。
 
 #### 2.1.4. 注意事项
 
-1. `char`、`varchar`和`text`等字符串类型都可以存储路径，但使用“`\`”会被过滤，所以路径中用“`/`”或“`\\`”来代替，MySQL就会不会自动过滤路径的分隔字符，完整的表示路径
-2. 一般情况下，数据库中不直接存储图片和音频文件，而是存储图片与文件的路径。如果存储文件，则选择`blob`类型
+1. `char`、`varchar`和`text`等字符串类型都可以存储路径，但使用“`\`”会被过滤，所以路径中用“`/`”或“`\\`”来代替，MySQL就会不会自动过滤路径的分隔字符，完整的表示路径。
+2. 一般情况下，数据库中不直接存储图片和音频文件，而是存储图片与文件的路径。如果存储文件，则选择`blob`类型。
+3. MySQL 中 `int(10)` 中的10表示的是显示数据的长度；`char(10)` 的10表示的是存储数据的长度。
 
 ### 2.2. 关于 Null 类型的特别说明
 
@@ -832,10 +831,13 @@ truncate table student;
 3. 语句后面不能带条件
 4. 语句中的 `table` 关键字可以省略
 
-#### 5.3.3. MySQL 中的 delete 和 truncate 的区别？
+#### 5.3.3. delete、truncate、drop 的区别？
 
-- `delete`：删除所有数据时，不会影响自增长的值；可以通过事务回滚数据
-- `truncate`：删除数据时，先直接`drop`表，然后新建一张表，自增长的值从默认值开始；不可以通过事务回滚数据
+- `delete`：删除所有数据时，不会影响自增长的值；可以通过事务回滚数据。
+- `truncate`：属于 DDL 语句（数据定义语言），执行后会自动提交，不可以通过事务回滚数据；删除数据时，先直接`drop`表，然后新建一张表，自增长的值从默认值开始。
+- `drop`：属于 DDL 语句（数据定义语言），执行后会自动提交；会删除表的结构被依赖的约束、触发器、索引。
+
+> 一般来说，执行速度: `drop > truncate > delete`
 
 ## 6. MySQL 数据查询（DQL）
 
@@ -1411,9 +1413,9 @@ GROUP BY
 
 #### 6.7.2. 分组条件筛选 (having)
 
-`having` 关键字作用：用来对分组信息进行过滤，用法与`where`一样。但分组之后对统计结果进行筛选的话必须使用 `having`，不能使用 `where`
+`having` 关键字作用：用来对分组信息进行过滤，用法与`where`一样。但分组之后对统计结果进行筛选的话必须使用 `having`，不能使用 `where`。
 
-`where` 子句用来筛选 `FROM` 子句中指定的操作所产生的行；`group by` 子句用来分组 `WHERE` 子句的输出；`having` 子句用来从分组的结果中筛选行
+`where` 子句用来筛选 `FROM` 子句中指定的操作所产生的行；`group by` 子句用来分组 `WHERE` 子句的输出；`having` 子句用来从分组的结果中筛选行。
 
 ```sql
 select * from 表名 group by 列名 having 筛选条件;
@@ -1432,9 +1434,7 @@ select category_id ,count(*) from product group by category_id having count(*) >
 #### 6.7.3. where 和 having 的区别
 
 - 执行时机不同：`where` 是分组之前进行过滤，不满足 `where` 条件，不参与分组；而 `having` 是分组之后对结果进行过滤。
-- 判断条件不同：`where` 不能对聚合函数进行判断，而 `having` 可以。
-    - `where` 是对行记录进行筛选过滤，`where` 后**不能跟聚合函数**的(如:`count(*)`)
-    - `having` 是对组信息进行筛选过滤，`having` 后**可以跟聚合函数**的。(如:`count(*)`)
+- 判断条件不同：`where` 是对行记录进行筛选过滤，`where` 后**不能跟聚合函数**的(如:`count(*)`)；而 `having` 是对组信息进行筛选过滤，`having` 后**可以跟聚合函数**的。(如:`count(*)`)
 
 #### 6.7.4. with rollup 关键字
 
@@ -1449,7 +1449,6 @@ mysql> SELECT sex, COUNT(sex) FROM employee GROUP BY sex WITH ROLLUP;
 | 男   | 3          |
 | NULL | 4          |
 +------+----------- +
-3 row in set (0.00 sec)
 
 mysql> SELECT sex, GROUP_CONCAT(name) FROM employee GROUP BY sex WITH ROLLUP;
 +------+--------------------+
@@ -1459,7 +1458,6 @@ mysql> SELECT sex, GROUP_CONCAT(name) FROM employee GROUP BY sex WITH ROLLUP;
 | 男   | 张三,王五,Aric       |
 | NULL | 李四,张三,王五,Aric  |
 +------+--------------------+
-3 row in set (0.02 sec)
 ```
 
 最后一条记录是上面记录的总和
@@ -1472,18 +1470,18 @@ MySQL通过 `REGEXP` 关键字支持正则表达式进行字符串匹配。
 
 #### 6.8.1. 语法规则
 
-|    模式    |                                                描述                                                |
-| :--------: | -------------------------------------------------------------------------------------------------- |
-|    `^`     | 匹配输入字符串的开始位置。                                                                            |
-|    `$`     | 匹配输入字符串的结束位置。                                                                            |
-|    `.`     | 匹配除 "`\n`" 之外的任何单个字符。                                                                    |
-|  `[...]`   | 字符集合。匹配所包含的任意一个字符。例如，'`[abc]`' 可以匹配  "plain" 中的  'a'。                        |
-|  `[^...]`  | 负值字符集合。匹配未包含的任意字符。例如，'`[^abc]`' 可以匹配  "plain" 中的 'p'。                        |
-| `p1|p2|p3` | 匹配 p1 或 p2 或 p3。例如，'`z|food`' 能匹配 "z" 或 "food"。'`(z|f)ood`' 则匹配 "zood" 或  "food"。   |
+|    模式     |                                             描述                                              |
+| :--------: | -------------------------------------------------------------------------------------------- |
+|    `^`     | 匹配输入字符串的开始位置。                                                                        |
+|    `$`     | 匹配输入字符串的结束位置。                                                                        |
+|    `.`     | 匹配除 "`\n`" 之外的任何单个字符。                                                                |
+|  `[...]`   | 字符集合。匹配所包含的任意一个字符。例如，'`[abc]`' 可以匹配  "plain" 中的  'a'。                       |
+|  `[^...]`  | 负值字符集合。匹配未包含的任意字符。例如，'`[^abc]`' 可以匹配  "plain" 中的 'p'。                       |
+| `p1|p2|p3` | 匹配 p1 或 p2 或 p3。例如，'`z|food`' 能匹配 "z" 或 "food"。'`(z|f)ood`' 则匹配 "zood" 或  "food"。 |
 |    `*`     | 匹配前面的子表达式零次或多次。例如，`zo*` 能匹配 "z" 以及 "zoo"。`*` 等价于`{0,}`。                     |
 |    `+`     | 匹配前面的子表达式一次或多次。例如，'`zo+`' 能匹配   "zo" 以及 "zoo"，但不能匹配 "z"。`+` 等价于 `{1,}`。 |
-|   `{n}`    | n 是一个非负整数。匹配确定的 n 次。例如，'`o{2}`' 不能匹配 "Bob" 中的 'o'，但是能匹配 "food" 中的两个 o。 |
-|  `{n,m}`   | m 和 n 均为非负整数，其中`n <= m`。最少匹配 n 次且最多匹配 m 次。                                       |
+|   `{n}`    | n 是一个非负整数。匹配确定的 n 次。例如，'`o{2}`' 不能匹配 "Bob" 中的 'o'，但是能匹配 "food" 中的两个 o。  |
+|  `{n,m}`   | m 和 n 均为非负整数，其中`n <= m`。最少匹配 n 次且最多匹配 m 次。                                     |
 
 #### 6.8.2. 示例
 
@@ -2688,12 +2686,12 @@ SELECT * FROM e1 WHERE m1 > (SELECT MAX(m2) FROM e2);
 select * from 表A where exists(子查询语句);
 ```
 
-`EXISTS` 的作用是，将主查询表A的数据，放到子查询中作为筛选条件，然后根据子查询中的结果（true 或 false）来决定判断主查询的数据是否保留。如果仅仅需要判断子查询的结果集中是否有记录，而不在乎它的记录具体值，可以使用把 `EXISTS` 或者 `NOT EXISTS` 放在子查询语句前边。
+`EXISTS` 的作用是，将主查询表A的每一行数据，放到子查询中作为筛选条件，然后根据子查询中的结果（true 或 false）来决定判断主查询的数据是否保留。如果仅仅需要判断子查询的结果集中是否有记录，而不在乎它的记录具体值，可以使用把 `EXISTS` 或者 `NOT EXISTS` 放在子查询语句前边。
 
 - `EXISTS(subquery)` 只返回 TRUE 或 FALSE，因此子查询中的 `SELECT *` 也可以用 `SELECT 1` 替换，官方说法是实际执行时会忽略 `SELECT` 的清单，因此两者没有区别
 - 该子查询如果“有数据结果”(至少返回一行数据)，则该`EXISTS()`的结果为“`true`”，外层查询执行
 - 该子查询如果“没有数据结果”（没有任何数据返回），则该`EXISTS()`的结果为“`false`”，外层查询不执行
-- `EXISTS`后面的子查询不返回任何实际数据，只返回真或假，当返回真时 `where` 条件成立
+- `EXISTS` 后面的子查询不返回任何实际数据，只返回真或假，当返回真时 `where` 条件成立
 - `EXISTS` 子查询的实际执行过程可能经过了优化，而不是逐条对比
 - `EXISTS` 子查询也可以用 `JOIN` 来代替，但需要具体问题具体分析才能决定哪种方式最优
 
@@ -2875,69 +2873,37 @@ revoke delete on temp_db.* from 'zero'@'*';
 revoke all on temp_db.* from 'zero'@'*';
 ```
 
-## 10. 数据库的备份与恢复
+## 10. 数据的约束
 
-### 10.1. dos命令行备份与恢复
-
-#### 10.1.1. 备份数据库（导出数据库中所有的表和数据）
-
-语法格式：`mysqldump –u用户名 –p密码 数据库名 > 备份到的文件路径`
-
-#### 10.1.2. 还原数据库（导入）
-
-- 方式1：在 Windows 命令行中使用 mysql 命令
-
-    - 语法格式：`mysql -u用户名 -p密码 数据库名 < 文件的路径`
-- 方式2：在 MySQL 命令行中使用 source 命令把 sql 文件导入到当前数据库中
-    - 语法格式：
-
-        ```sql
-        use 数据库名;
-		source 导入文件的路径;
-        ```
-
-	- **注：这种方式要先选择数据库**
-
-### 10.2. SQLyog工具备份与恢复
-#### 10.2.1. SQL备份（导出）
-
-选中数据库，右键 --> “备份/导出” --> 以SQL转储文件备份数据库，指定导出路径，保存成 `.sql` 文件即可。
-
-#### 10.2.2. SQL恢复（导入）
-
-数据库列表区域右键“从 SQL 转储文件导入数据库”， 指定要执行的 SQL 文件，执行即可
-
-## 11. 数据的约束
-
-### 11.1. 数据约束概述
+### 10.1. 数据约束概述
 
 约束（constraint），是作用于表中字段上的规则，实质就是对表中存储的数据进行限制，表在设计和创建的时候加入约束的目的就是为了保证表中的记录完整性、有效性和准确性
 
-#### 11.1.1. 约束种类
+#### 10.1.1. 约束种类
 
-|    约束    |                        描述                         |      关键字       |
-| --------- | -------------------------------------------------- | ---------------- |
-| 默认约束   | 保存数据时，如果未指定该字段的值，则采用默认值          | `DEFAULT`        |
-| 主键约束   | 主键是一行数据的唯一标识，要求非空且唯一                | `PRIMARY KEY`    |
-| 唯一约束   | 保证该字段的所有数据都是唯一、不重复的                 | `UNIQUE`         |
-| 非空约束   | 限制该字段的数据不能为null                            | `NOT NULL`       |
-| 检查约束   | 8.0.16 版本之后新增，保证字段值满足某一个条件          | `CHECK`          |
+|   约束    |                      描述                      |      关键字       |
+| -------- | --------------------------------------------- | ---------------- |
+| 默认约束   | 保存数据时，如果未指定该字段的值，则采用默认值         | `DEFAULT`        |
+| 主键约束   | 主键是一行数据的唯一标识，要求非空且唯一              | `PRIMARY KEY`    |
+| 唯一约束   | 保证该字段的所有数据都是唯一、不重复的                | `UNIQUE`         |
+| 非空约束   | 限制该字段的数据不能为null                         | `NOT NULL`       |
+| 检查约束   | 8.0.16 版本之后新增，保证字段值满足某一个条件         | `CHECK`          |
 | 外键约束   | 用来让两张表的数据之间建立连接，保证数据的一致性和完整性 | `FOREIGN KEY`    |
-| 自增长约束 |                                                    | `auto_increment` |
-| 零填充约束 |                                                    | `zerofill`       |
+| 自增长约束 |                                               | `auto_increment` |
+| 零填充约束 |                                               | `zerofill`       |
 
 > 扩展：还有一种叫“检查约束”，但 MySQL 不支持，Oracle 支持
 
-#### 11.1.2. 约束添加时机
+#### 10.1.2. 约束添加时机
 
 - 创建表结构的同时添加约束（推荐）
 - 创建完表结构之后添加（不推荐）。如果创建完之后再添加约束，可能会添加失败。因为已有的数据可能不符合即将要添加的约束。
 
-### 11.2. 默认值约束 (default)
+### 10.2. 默认值约束 (default)
 
 默认约束，如果这个字段没有输入任何的值，则数据库使用默认的值
 
-#### 11.2.1. 定义与语法
+#### 10.2.1. 定义与语法
 
 - 在创建表时，指定默认约束，关键字：`default`
 
@@ -2973,7 +2939,7 @@ insert into st1 values (10, '小猪', '珠海');
 insert into st1 values (10, '小猪', null);
 ```
 
-#### 11.2.2. 删除默认约束
+#### 10.2.2. 删除默认约束
 
 删除默认约束只需要将默认值修改为`null`即可
 
@@ -2981,9 +2947,9 @@ insert into st1 values (10, '小猪', null);
 alter table 表名 modify column 字段名 数据类型(长度) default null;
 ```
 
-### 11.3. 非空约束 (not null)
+### 10.3. 非空约束 (not null)
 
-#### 11.3.1. 定义非空约束
+#### 10.3.1. 定义非空约束
 
 非空约束：约束某一列的值不能为空(`null`)，**必须有值，但可以插入空字符**。对于使用了非空约束的字段，如果用户在添加数据时没有指定值，数据库系统就会报错。
 
@@ -3017,11 +2983,11 @@ insert into s2 (id,gender) values (1,'女');
 select * from s2;
 ```
 
-#### 11.3.2. 删除非空约束
+#### 10.3.2. 删除非空约束
 
 删除非空约束，其实就是使用`alter`关键字修改字段的约束，去掉`not null`即可
 
-#### 11.3.3. Mysql 允许 null 与 default 值
+#### 10.3.3. Mysql 允许 null 与 default 值
 
 分为下面4种情况：
 
@@ -3030,9 +2996,9 @@ select * from s2;
 3. 不允许`null`，指定`default`值，不能指定`default`值为`null`，否则报错 `Invalid default value for xxx`
 4. 不允许`null`，不指定`default`值。这种情况，新增的时候，必须指定值。否则报错 `Field xxx doesn't have a default value`
 
-### 11.4. 唯一约束 (unique)
+### 10.4. 唯一约束 (unique)
 
-#### 11.4.1. 定义与语法
+#### 10.4.1. 定义与语法
 
 唯一约束，是指所有记录中某一列的数据不允许出现重复值
 
@@ -3067,7 +3033,7 @@ insert into s3 values(3,null);
 insert into s3 values(4,null);
 ```
 
-#### 11.4.2. 删除唯一约束
+#### 10.4.2. 删除唯一约束
 
 删除唯一约束的语法：
 
@@ -3077,30 +3043,31 @@ alter table 表名 drop index 唯一约束名;
 
 > 注：如果创建唯一约束时没有指定名称，则字段名就是唯一约束名称。
 
-#### 11.4.3. 注意事项
+#### 10.4.3. 注意事项
 
 - 可以出现多个`null`，因为`null`是表示没有任何内容，就没有重复的说法
 - 不可以出现多个空字符，因为空字符也是有内容，所以不能同时出现多个空字符
 
-### 11.5. 主键约束 (primary key)
+### 10.5. 主键约束 (primary key)
 
-#### 11.5.1. 概念
+#### 10.5.1. 概念
 
-- MySQL主键约束是一个列或者多个列的组合，用于唯一标识表中的一条数据，方便在RDBMS中尽快的找到某一行。
-- 每一张表都最多只能允许有一个主键。
-- 主键约束相当于“唯一约束 + 非空约束”的组合，主键约束列不允许重复，也不允许出现空值。
-- 当创建主键的约束时，系统默认会在所在的列和列组合上建立对应的唯一索引。
-- 主键约束的关键字是：
-    - `primary key`：**保证列的数据非空，唯一**
-    - `primary key auto_increment`：**让主键列数据，实现自动增长**
+MySQL 主键约束是一个列或者多个列的组合，用于唯一标识表中的一条数据，方便在RDBMS中尽快的找到某一行。每一张表都最多只能允许有一个主键。
 
-**主键设计原则**
+主键约束相当于“唯一约束 + 非空约束”的组合，主键约束列不允许重复，也不允许出现空值。当创建主键的约束时，系统默认会在所在的列和列组合上建立对应的唯一索引。
+
+**主键约束的关键字**：
+
+- `primary key`：**保证列的数据非空，唯一**
+- `primary key auto_increment`：**让主键列数据，实现自动增长**
+
+**主键设计原则**：
 
 - 主键列一般是选择对用户没有任何意义的数据。只是用于开发时标识当前记录。
 - 主键列的值一般是由数据库或计算机生成。
 - 主键值生成后，一般不建议修改
 
-#### 11.5.2. 创建单列主键
+#### 10.5.2. 创建单列主键
 
 创建单列主键有两种方式，一种是在定义字段的同时指定主键，一种是定义完字段之后指定主键
 
@@ -3124,7 +3091,7 @@ create table tablename(
 
 > 注：上面语法中 `constraint 主键名称` 是可以省略
 
-#### 11.5.3. 添加多列主键(联合主键）
+#### 10.5.3. 添加多列主键(联合主键）
 
 联合主键，是由一张表中多个字段组成的。注意事项：
 
@@ -3141,7 +3108,7 @@ create table 表名(
 
 > 注：上面语法中 `constraint 主键名称` 是可以省略
 
-#### 11.5.4. 通过修改表结构添加主键
+#### 10.5.4. 通过修改表结构添加主键
 
 主键约束不仅可以在创建表的同时创建，也可以在修改表结构时添加。
 
@@ -3149,7 +3116,7 @@ create table 表名(
 alter table 表名 add primary key(字段1, 字段2, ....);
 ```
 
-#### 11.5.5. 删除主键
+#### 10.5.5. 删除主键
 
 一个表中不需要主键约束时，可以从表中将其删除。删除指定表格的主键语法：
 
@@ -3166,7 +3133,7 @@ alter table sort drop primary key;
 
 > 注：因为表只有一个主键，所以删除时不需要指定主键名
 
-#### 11.5.6. 设置主键自动增长
+#### 10.5.6. 设置主键自动增长
 
 在 MySQL 中，当主键定义为自增长后，由数据库系统根据定义自动赋值。每增加一条记录，主键会自动以相同的步长进行增长。
 
@@ -3181,9 +3148,9 @@ CREATE TABLE sort (
 );
 ```
 
-### 11.6. 自增长字段 ( auto_increment )
+### 10.6. 自增长字段 ( auto_increment )
 
-#### 11.6.1. 自增长约束
+#### 10.6.1. 自增长约束
 
 - 创建表时，指定自增长约束的语法：
 
@@ -3209,7 +3176,7 @@ create table 表名 (
 alter table 表名 AUTO_INCREMENT = 新的起始值;
 ```
 
-#### 11.6.2. 自增长约束特点
+#### 10.6.2. 自增长约束特点
 
 - 默认情况下，`auto_increment` 的初始值是 1，每新增一条记录，字段值自动加 1。
 - 一个表中只能有一个字段使用 `auto_increment` 约束，且该字段必须有唯一索引，以避免序号重复（即为主键或主键的一部分）。
@@ -3217,12 +3184,12 @@ alter table 表名 AUTO_INCREMENT = 新的起始值;
 - `auto_increment` 约束的字段只能是整数类型（`TINYINT`、`SMALLINT`、`INT`、`BIGINT` 等。
 - `auto_increment` 约束字段的最大值受该字段的数据类型约束，如果达到上限，`auto_increment` 就会失效。
 
-#### 11.6.3. delete 和 truncate 删除后自增列的变化
+#### 10.6.3. delete 和 truncate 删除后自增列的变化
 
 - `delete` 数据之后自动增长从断点开始
 - `truncate` 数据之后自动增长从默认起始值开始
 
-### 11.7. 零填充
+### 10.7. 零填充
 
 如果某一数值列的值不满指定的位数，可以设置在列的值前面使用零填充。在数据类型的后面使用 `zerofill` 关键字：
 
@@ -3237,9 +3204,9 @@ create table 表名 (
 
 > 注：当使用 `zerofill` 时，默认会自动加`unsigned`（无符号）属性，使用`unsigned`属性后，数值范围是原值的2倍，例如，有符号为-128~+127，无符号为0~256。
 
-### 11.8. 外键约束
+### 10.8. 外键约束
 
-#### 11.8.1. 定义
+#### 10.8.1. 定义
 
 MySQL 外键约束（FOREIGN KEY）是表的一个特殊字段，经常与主键约束一起使用。对于两个具有关联关系的表而言，相关联字段中主键所在的表就是主表（父表），外键所在的表就是从表（子表）。
 
@@ -3251,7 +3218,7 @@ MySQL 外键约束（FOREIGN KEY）是表的一个特殊字段，经常与主键
 
 > Notes: 目前上述两张表，只是在逻辑上存在这样一层关系；在数据库层面，并未建立外键关联，所以是无法通过数据库本身来保证数据的一致性和完整性的。
 
-#### 11.8.2. 特点
+#### 10.8.2. 特点
 
 定义一个外键时，需要遵守下列规则：
 
@@ -3267,7 +3234,7 @@ MySQL 外键约束（FOREIGN KEY）是表的一个特殊字段，经常与主键
 
 **注：定义外键的时候，外键的约束比较和主键完全一致才能成功关联**
 
-#### 11.8.3. 外键约束语法格式1(创建表时定义)
+#### 10.8.3. 外键约束语法格式1(创建表时定义)
 
 在 `create table` 语句中，通过 `foreign key` 关键字来指定外键，具体的语法格式如下：
 
@@ -3296,7 +3263,7 @@ create table employee (
 )
 ```
 
-#### 11.8.4. 外键约束语法格式2(创建表后再定义)
+#### 10.8.4. 外键约束语法格式2(创建表后再定义)
 
 外键约束也可以在修改表时添加，但是添加外键约束的前提是：从表中外键列中的数据必须与主表中主键列中的数据一致或者是没有数据。
 
@@ -3324,13 +3291,13 @@ create table if not exists emp2(
 alter table emp2 add constraint dept_id_fk foreign key(dept_id) references dept2 (deptno);
 ```
 
-#### 11.8.5. 在外键约束下的数据操作
+#### 10.8.5. 在外键约束下的数据操作
 
 - **外键约束设计插入数据的顺序**：先插入主表、再插入副表
 - **外键约束设计更新数据的顺序**：先修改从表的外键数据，再修改主表的主键数据。
 - **外键约束设计删除数据的顺序**：先修改从表的外键数据，再修改主表的主键数据。
 
-#### 11.8.6. 删除外键约束
+#### 10.8.6. 删除外键约束
 
 当一个表中不需要外键约束时，就需要从表中将其删除。外键一旦删除，就会解除主表和从表间的关联关系。语法：
 
@@ -3344,7 +3311,7 @@ alter table 表名 drop foreign key 外键约束名;
 alter table emp2 drop foreign key dept_id_fk;
 ```
 
-#### 11.8.7. 级联操作
+#### 10.8.7. 级联操作
 
 在修改和删除主表的主键值时，同时更新或删除从表的外键值，称为级联操作。具体的删除/更新行为有以下几种:
 
@@ -3356,7 +3323,7 @@ alter table emp2 drop foreign key dept_id_fk;
 | `SET NULL`    | 当在父表中删除对应记录时，首先检查该记录是否有对应外键，如果有则设置子表中该外键值为null（这就要求该外键允许取null）。 |
 | `SET DEFAULT` | 父表有变更时，子表将外键列设置成一个默认的值 (Innodb不支持)                                                      |
 
-##### 11.8.7.1. CASCADE
+##### 10.8.7.1. CASCADE
 
 `CASCADE` 外键级联操作(更新和删除)的语法格式：
 
@@ -3381,7 +3348,7 @@ constraint foreign key(外键名) references 主表(主键名) ON UPDATE CASCADE
 
 父表的数据删除成功了，相应子表中关联的记录也被级联删除了。
 
-##### 11.8.7.2. SET NULL
+##### 10.8.7.2. SET NULL
 
 `SET NULL` 外键级联操作(更新和删除)的语法格式：
 
@@ -3402,9 +3369,9 @@ constraint foreign key(外键名) references 主表(主键名) on update set nul
 
 以上就是 `SET NULL` 这种删除/更新行为的级联效果。
 
-## 12. 函数（实际使用时再追加）
+## 11. 函数（实际使用时再追加）
 
-### 12.1. 概述
+### 11.1. 概述
 
 在 MySQL 中，为了提高代码重用性和隐藏实现细节，MySQL 提供了很多内置函数。函数可以理解为封装好的模板程序或代码，可以直接被另一段程序调用的。函数主要可以分为以下几类：
 
@@ -3415,9 +3382,9 @@ constraint foreign key(外键名) references 主表(主键名) on update set nul
 - 控制流函数
 - 窗口函数
 
-### 12.2. 聚合函数
+### 11.2. 聚合函数
 
-#### 12.2.1. GROUP_CONCAT() 函数
+#### 11.2.1. GROUP_CONCAT() 函数
 
 `GROUP_CONCAT()` 首先根据 `group by` 指定的列进行分组，并且用分隔符分隔，将同一个分组中的非 NULL 的值连接起来，返回一个字符串结果。语法：
 
@@ -3452,7 +3419,7 @@ select department,group_concat(emp_name order by salary desc separator ';' ) fro
 
 ![](images/20190404092723963_31844.jpg)
 
-### 12.3. 数学函数
+### 11.3. 数学函数
 
 |     函数      |             功能说明             |
 | :----------: | ------------------------------- |
@@ -3464,7 +3431,7 @@ select department,group_concat(emp_name order by salary desc separator ';' ) fro
 
 > Notes: MySQL中，数学函数如果发生错误，都会返回 `NULL`
 
-#### 12.3.1. ABS
+#### 11.3.1. ABS
 
 ```sql
 ABS(X)
@@ -3477,7 +3444,7 @@ SELECT ABS(2); -- 返回 2
 SELECT ABS(-32); -- 返回 32
 ```
 
-#### 12.3.2. CEIL
+#### 11.3.2. CEIL
 
 ```sql
 CEIL(X)
@@ -3492,7 +3459,7 @@ SELECT CEILING(1.23); -- 返回 2
 SELECT CEIL(-1.23); -- 返回 -1
 ```
 
-#### 12.3.3. FLOOR
+#### 11.3.3. FLOOR
 
 ```sql
 FLOOR(X)
@@ -3505,7 +3472,7 @@ SELECT FLOOR(1.23); -- 返回 1
 SELECT FLOOR(-1.23); -- 返回 -2
 ```
 
-#### 12.3.4. GREATEST
+#### 11.3.4. GREATEST
 
 ```sql
 GREATEST(value1, value2,...)
@@ -3518,7 +3485,7 @@ SELECT GREATEST(34.0,3.0,5.0,767.0); -- 返回 767.0
 SELECT GREATEST('B','A','C'); -- 返回 C
 ```
 
-#### 12.3.5. LEAST
+#### 11.3.5. LEAST
 
 ```sql
 LEAST(value1, value2,...)
@@ -3537,7 +3504,7 @@ SELECT LEAST(34.0,3.0,5.0,767.0); -- 返回 3.0
 SELECT LEAST('B','A','C'); -- 返回 'A'
 ```
 
-#### 12.3.6. MAX / MIN
+#### 11.3.6. MAX / MIN
 
 ```sql
 -- 获取最大值
@@ -3558,7 +3525,7 @@ SELECT student_name, MIN(test_score), MAX(test_score)
     GROUP BY student_name;
 ```
 
-#### 12.3.7. MOD
+#### 11.3.7. MOD
 
 ```sql
 MOD(N,M)
@@ -3577,7 +3544,7 @@ SELECT MOD(29,9); -- 返回 2
 SELECT 29 MOD 9; -- 返回 2
 ```
 
-#### 12.3.8. PI
+#### 11.3.8. PI
 
 ```sql
 PI()
@@ -3589,7 +3556,7 @@ PI()
 SELECT PI(); -- 返回 3.141593
 ```
 
-#### 12.3.9. POW
+#### 11.3.9. POW
 
 ```sql
 POW(X,Y)
@@ -3604,7 +3571,7 @@ SELECT POW(2,2); -- 返回 4
 SELECT POW(2,-2); -- 返回 0.25
 ```
 
-#### 12.3.10. RAND
+#### 11.3.10. RAND
 
 ```sql
 RAND()
@@ -3619,7 +3586,7 @@ SELECT RAND(); -- 返回 0.9233482386203 (随机)
 SELECT RAND(20); -- 返回 0.15888261251047 (随机)
 ```
 
-##### 12.3.10.1. 使用示例：随机样本
+##### 11.3.10.1. 使用示例：随机样本
 
 注：在ORDER BY语句中，不能使用一个带有RAND()值的列，原因是 ORDER BY 会计算列的多重时间。然而，可按照如下的随机顺序检索数据行：
 
@@ -3629,7 +3596,7 @@ SELECT * FROM tbl_name ORDER BY RAND();
 
 `ORDER BY RAND()`同 `LIMIT` 的结合从一组列中选择随机样本很有用：
 
-#### 12.3.11. ROUND
+#### 11.3.11. ROUND
 
 ```sql
 ROUND(X)
@@ -3653,7 +3620,7 @@ SELECT * FROM tablename ORDER BY RAND() LIMIT 1
 
 > Tips: 此方式效率不高，不推荐使用。
 
-#### 12.3.12. TRUNCATE
+#### 11.3.12. TRUNCATE
 
 ```sql
 TRUNCATE(X,D)
@@ -3670,7 +3637,7 @@ SELECT TRUNCATE(122,-2); -- 返回 100
 concat(truncate(0.55754 * 100,2),'%') -- 结果：55.75%
 ```
 
-#### 12.3.13. FORMAT
+#### 11.3.13. FORMAT
 
 ```sql
 FORMAT(X, D)
@@ -3691,7 +3658,7 @@ convert(字段, decimal(12,2))
 
 > Notes: *经测试，如果FORMAT函数的参数X如果数据库表字段类型是Bigint或者其他数字类型，内容长度超过17位是不会出现精度丢失；如果参数X是字符类型（varchar）的话，使用FORMAT函数后，超出17位后会进行四舍五入，精度丢失。*
 
-### 12.4. 字符串函数
+### 11.4. 字符串函数
 
 MySQL 中内置了很多字符串函数，常用的几个如下：
 
@@ -3705,7 +3672,7 @@ MySQL 中内置了很多字符串函数，常用的几个如下：
 |        `TRIM(str)`         | 去掉字符串头部和尾部的空格                              |
 | `SUBSTRING(str,start,len)` | 返回从字符串str从start位置起的len个长度的字符串          |
 
-#### 12.4.1. CHAR_LENGTH/CHARACTER_LENGTH
+#### 11.4.1. CHAR_LENGTH/CHARACTER_LENGTH
 
 ```sql
 CHAR_LENGTH(str)
@@ -3720,7 +3687,7 @@ SELECT CHAR_LENGTH("RUNOOB") -- 返回 6
 SELECT CHARACTER_LENGTH("RUNOOB") -- 返回 6
 ```
 
-#### 12.4.2. CONCAT
+#### 11.4.2. CONCAT
 
 ```sql
 CONCAT(str1, str2,...)
@@ -3751,7 +3718,7 @@ mysql> SELECT CONCAT(14.3);
 +--------------+
 ```
 
-#### 12.4.3. CONCAT_WS
+#### 11.4.3. CONCAT_WS
 
 ```sql
 CONCAT_WS(separator, str1, str2,...)
@@ -3765,7 +3732,7 @@ SELECT CONCAT_WS(',','First name',NULL,'Last Name'); -- 返回 'First name,Last 
 SELECT CONCAT_WS(NULL,'First name','Second name','Last Name'); -- 返回 NULL
 ```
 
-#### 12.4.4. FIELD
+#### 11.4.4. FIELD
 
 ```sql
 FIELD(str, str1, str2, str3,...)
@@ -3778,7 +3745,7 @@ SELECT FIELD('ej', 'Hej', 'ej', 'Heja', 'hej', 'foo'); -- 返回 2
 SELECT FIELD('fo', 'Hej', 'ej', 'Heja', 'hej', 'foo'); -- 返回 0
 ```
 
-#### 12.4.5. LTRIM
+#### 11.4.5. LTRIM
 
 ```sql
 LTRIM(str)
@@ -3790,7 +3757,7 @@ LTRIM(str)
 SELECT LTRIM('  barbar'); -- 返回 'barbar'
 ```
 
-#### 12.4.6. RTRIM
+#### 11.4.6. RTRIM
 
 ```sql
 RTRIM(str)
@@ -3802,7 +3769,7 @@ RTRIM(str)
 SELECT RTRIM('barbar   '); -- 返回 'barbar'
 ```
 
-#### 12.4.7. TRIM
+#### 11.4.7. TRIM
 
 ```sql
 TRIM(str)
@@ -3817,7 +3784,7 @@ SELECT TRIM(BOTH 'x' FROM 'xxxbarxxx'); -- 返回 'bar'
 SELECT TRIM(TRAILING 'xyz' FROM 'barxxyz'); -- 返回 'barx'
 ```
 
-#### 12.4.8. SUBSTRING / SUBSTR / MID
+#### 11.4.8. SUBSTRING / SUBSTR / MID
 
 ```sql
 SUBSTRING(str, pos, len)
@@ -3840,7 +3807,7 @@ SELECT SUBSTRING('Sakila', -5, 3); -- 返回 'aki'
 SELECT SUBSTRING('Sakila' FROM -4 FOR 2); -- 返回 'ki'
 ```
 
-#### 12.4.9. SUBSTRING_INDEX
+#### 11.4.9. SUBSTRING_INDEX
 
 ```sql
 SELECT SUBSTRING_INDEX(str, delim, count);
@@ -3875,7 +3842,7 @@ substring_index('www.baidu.com', '.', -2); -- 结果为：baidu.com
 substring_index(substring_index('www.baidu.com', '.', -2), ‘.’, 1);
 ```
 
-##### 12.4.9.1. 将字符串按指定的分隔符转成多行数据
+##### 11.4.9.1. 将字符串按指定的分隔符转成多行数据
 
 SQL案例：
 
@@ -3895,7 +3862,7 @@ on条件后面`(length(t.actor_ids) - length(replace(t.actor_ids,',',''))+1)`这
 
 提示：`mysql.help_topic`这张表只用到了它的 `help_topic_id`，可以看到这个 `help_topic_id` 是从0开始一直连续的，join 这张表只是为了确定数据行数。现在假设 `mysql.help_topic` 只有5条数据，那么最多可转成5行数据，若果现在主演的名字有6个就不能用 `mysql.help_topic` 这张表了。由此看出我们完全可以找其他表来替代 `mysql.help_topic`，只要满足表的id是连续的，且数据条数超过了你要转换的行数即可。
 
-#### 12.4.10. POSITION
+#### 11.4.10. POSITION
 
 ```sql
 POSITION(substr IN str)
@@ -3908,7 +3875,7 @@ SELECT POSITION('b' in 'abc'); -- 返回 2
 SELECT POSITION('e' in 'abc'); -- 返回 0
 ```
 
-#### 12.4.11. REPLACE
+#### 11.4.11. REPLACE
 
 ```sql
 REPLACE(str, from_str, to_str)
@@ -3920,7 +3887,7 @@ REPLACE(str, from_str, to_str)
 SELECT REPLACE('www.mysql.com', 'w', 'Ww'); -- 返回 'WwWwWw.mysql.com'
 ```
 
-#### 12.4.12. REVERSE
+#### 11.4.12. REVERSE
 
 ```sql
 REVERSE(str)
@@ -3932,7 +3899,7 @@ REVERSE(str)
 SELECT REVERSE('abc'); -- 返回 'cba'
 ```
 
-#### 12.4.13. LEFT
+#### 11.4.13. LEFT
 
 ```sql
 left(str, length)
@@ -3944,7 +3911,7 @@ left(str, length)
 SELECT LEFT('foobarbar', 4); -- 返回 'foob'
 ```
 
-#### 12.4.14. RIGHT
+#### 11.4.14. RIGHT
 
 ```sql
 RIGHT(str,len)
@@ -3959,7 +3926,7 @@ RIGHT(str,len)
 SELECT RIGHT('foobarbar', 4); -- 返回 'rbar'
 ```
 
-#### 12.4.15. STRCMP
+#### 11.4.15. STRCMP
 
 ```sql
 STRCMP(expr1, expr2)
@@ -3973,7 +3940,7 @@ SELECT STRCMP('text2', 'text'); -- 返回 1
 SELECT STRCMP('text', 'text'); -- 返回 0
 ```
 
-#### 12.4.16. UCASE / UPPER
+#### 11.4.16. UCASE / UPPER
 
 ```sql
 UPPER(str)
@@ -3992,7 +3959,7 @@ mysql> SELECT UPPER('Hej');
 +--------------+
 ```
 
-#### 12.4.17. LCASE / LOWER
+#### 11.4.17. LCASE / LOWER
 
 ```sql
 LOWER(str)
@@ -4011,7 +3978,7 @@ mysql> SELECT LOWER('QUADRATICALLY');
 +------------------------+
 ```
 
-#### 12.4.18. LPAD / RPAD 前后补位
+#### 11.4.18. LPAD / RPAD 前后补位
 
 LPAD / RPAD 函数是用于对字段内容补位(补零为例)，语法结构：
 
@@ -4044,7 +4011,7 @@ SELECT RPAD('hi',1,'?'); -- 返回结果：'h'
 update emp set workno = lpad(workno, 5, '0');
 ```
 
-#### 12.4.19. LENGTH/CHAR_LENGTH/CHARACTER_LENGTH/BIT_LENGTH
+#### 11.4.19. LENGTH/CHAR_LENGTH/CHARACTER_LENGTH/BIT_LENGTH
 
 - `LENGTH(str)`：用于函数获取某个字段数据长度，计算字段的长度规则是：一个汉字是算三个字符，一个数字或字母算一个字符
 - `CHAR_LENGTH(str)`：返回值为字符串str 的长度，长度的单位为字符。一个多字节字符算作一个单字符。对于一个包含五个二字节字符集，`LENGTH`返回值为10，而`CHAR_LENGTH`的返回值为5
@@ -4055,7 +4022,7 @@ update emp set workno = lpad(workno, 5, '0');
 SELECT LENGTH('www.moon.com'); -- 结果：12
 ```
 
-##### 12.4.19.1. 查询某一个字段是否包含中文字符
+##### 11.4.19.1. 查询某一个字段是否包含中文字符
 
 在使用 mysql 时候，某些字段会存储中文字符，或是包含中文字符的串，查询出来的方法是：
 
@@ -4068,7 +4035,7 @@ SELECT col FROM table WHERE length(col) != char_length(col)
 - `length()`：计算字段的长度，一个汉字算3个字符，一个数字或者字母按1个字符
 - `char_length()`：计算字段的长度，不论是汉字、数字还是字母，均按1个字符来算
 
-### 12.5. 日期函数
+### 11.5. 日期函数
 
 |                 函数                 |                   功能说明                    |
 | :---------------------------------: | --------------------------------------------- |
@@ -4081,7 +4048,7 @@ SELECT col FROM table WHERE length(col) != char_length(col)
 | `DATE_ADD(date, INTERVAL exprtype)` | 返回一个日期/时间值加上一个时间间隔expr后的时间值 |
 |       `DATEDIFF(date1,date2)`       | 返回起始时间date1和结束时间date2之间的天数       |
 
-#### 12.5.1. CURDATE
+#### 11.5.1. CURDATE
 
 ```sql
 CURDATE()
@@ -4098,7 +4065,7 @@ mysql> select curdate();
 +------------+
 ```
 
-#### 12.5.2. CURTIME
+#### 11.5.2. CURTIME
 
 ```sql
 CURTIME()
@@ -4115,7 +4082,7 @@ mysql> select curtime();
 +-----------+
 ```
 
-#### 12.5.3. NOW
+#### 11.5.3. NOW
 
 ```sql
 NOW()
@@ -4133,7 +4100,7 @@ mysql> SELECT NOW();
 1 row in set (0.02 sec)
 ```
 
-#### 12.5.4. YEAR
+#### 11.5.4. YEAR
 
 ```sql
 YEAR(date)
@@ -4150,7 +4117,7 @@ mysql> select YEAR(now());
 +-------------+
 ```
 
-#### 12.5.5. MONTH
+#### 11.5.5. MONTH
 
 ```sql
 MONTH(date)
@@ -4167,7 +4134,7 @@ mysql> select MONTH(now());
 +--------------+
 ```
 
-#### 12.5.6. DAY
+#### 11.5.6. DAY
 
 ```sql
 DAY(date)
@@ -4184,7 +4151,7 @@ mysql> select DAY(now());
 +------------+
 ```
 
-#### 12.5.7. DATE_ADD
+#### 11.5.7. DATE_ADD
 
 ```sql
 DATE_ADD(date, INTERVAL exprtype)
@@ -4201,7 +4168,7 @@ mysql> select date_add(now(), INTERVAL 70 YEAR);
 +-----------------------------------+
 ```
 
-#### 12.5.8. DATEDIFF
+#### 11.5.8. DATEDIFF
 
 ```sql
 DATEDIFF(date1,date2)
@@ -4218,7 +4185,7 @@ mysql> select datediff('2021-10-01', '2021-12-01');
 +--------------------------------------+
 ```
 
-### 12.6. 控制流程函数
+### 11.6. 控制流程函数
 
 流程函数也是很常用的一类函数，可以在 SQL 语句中实现条件筛选，从而提高语句的效率。
 
@@ -4229,7 +4196,7 @@ mysql> select datediff('2021-10-01', '2021-12-01');
 |     `CASE WHEN [ val1 ] THEN [res1] … ELSE [ default ] END`      | 如果val1为true，返回res1，... 否则返回default默认值       |
 | `CASE [ expr ] WHEN [ val1 ] THEN [res1] … ELSE [ default ] END` | 如果expr的值等于val1，返回res1，... 否则返回default默认值 |
 
-#### 12.6.1. IF
+#### 11.6.1. IF
 
 ```sql
 IF(expr1, expr2, expr3)
@@ -4243,7 +4210,7 @@ SELECT IF(1<2,'yes ','no'); -- 返回 'yes'
 SELECT IF(STRCMP('test','test1'),'no','yes'); -- 返回 'no'
 ```
 
-#### 12.6.2. IFNULL
+#### 11.6.2. IFNULL
 
 ```sql
 IFNULL(expr1, expr2)
@@ -4258,7 +4225,7 @@ SELECT IFNULL(1/0, 10); -- 返回 10
 SELECT IFNULL(1/0, 'yes'); -- 返回 'yes'
 ```
 
-#### 12.6.3. ISNULL
+#### 11.6.3. ISNULL
 
 ```sql
 ISNULL(expr)
@@ -4271,7 +4238,7 @@ SELECT ISNULL(1+1); -- 返回 0
 SELECT ISNULL(1/0); -- 返回 1
 ```
 
-#### 12.6.4. NULLIF
+#### 11.6.4. NULLIF
 
 ```sql
 NULLIF(expr1, expr2)
@@ -4286,7 +4253,7 @@ SELECT NULLIF(1,1); -- 返回 NULL
 SELECT NULLIF(1,2); -- 返回 1
 ```
 
-#### 12.6.5. case when 语句
+#### 11.6.5. case when 语句
 
 ```sql
 方式1:
@@ -4349,9 +4316,9 @@ FROM
 	orders;
 ```
 
-### 12.7. 窗口函数/分析函数（Window Functions，8.0版本新增）
+### 11.7. 窗口函数/分析函数（Window Functions，8.0版本新增）
 
-#### 12.7.1. 简述
+#### 11.7.1. 简述
 
 MySQL 8.0 新增窗口函数，又被称为开窗函数、分析函数，与 Oracle 窗口函数类似，属于 MySQL 的一大特点。它可以用来实现若干新的查询方式。窗口函数与 `SUM()`、`COUNT()` 这种分组聚合函数类似，在聚合函数后面加上`over()`就变成窗口函数了，在括号里可以加上 `partition by` 等分组关键字指定如何分组，窗口函数即便分组也不会将多行查询结果合并为一行，而是将结果放回多行当中，即窗口函数不需要再使用`GROUP BY`。
 
@@ -4363,7 +4330,7 @@ MySQL 8.0 新增窗口函数，又被称为开窗函数、分析函数，与 Ora
 
 ![](images/20211221110800548_4313.png)
 
-#### 12.7.2. 窗口函数分类
+#### 11.7.2. 窗口函数分类
 
 ![](images/20211221111108808_30522.png)
 
@@ -4375,7 +4342,7 @@ MySQL 8.0 新增窗口函数，又被称为开窗函数、分析函数，与 Ora
 
 另外还有开窗聚合函数: `SUM`, `AVG`, `MIN`, `MAX`
 
-#### 12.7.3. 窗口函数定义语法(通用)
+#### 11.7.3. 窗口函数定义语法(通用)
 
 **语法结构**：
 
@@ -4398,7 +4365,7 @@ window_function (expr) OVER (
 
 > Notes: 在聚合函数后面加上 `over()` 就变成窗口函数了，后面可以不用再加 `group by` 制定分组，因为在 `over` 里的 `partition` 关键字指明了如何分组计算，这种可以保留原有表数据的结构，不会像分组聚合函数那样每组只返回一条数据
 
-#### 12.7.4. 序号函数（ROW_NUMBER,RANK,DENSE_RANK）
+#### 11.7.4. 序号函数（ROW_NUMBER,RANK,DENSE_RANK）
 
 序号函数有三个：`ROW_NUMBER()`、`RANK()`、`DENSE_RANK()`，可以用来实现分组排序，并添加序号。
 
@@ -4457,7 +4424,7 @@ from
 
 ![](images/20211221143328575_18701.png)
 
-#### 12.7.5. 开窗聚合函数（SUM,AVG,MIN,MAX）
+#### 11.7.5. 开窗聚合函数（SUM,AVG,MIN,MAX）
 
 在窗口中每条记录动态地应用聚合函数 `SUM()`、`AVG()`、`MAX()`、`MIN()`、`COUNT()`，可以动态计算在指定的窗口内的各种聚合函数值。
 
@@ -4495,9 +4462,9 @@ FROM
 	employee;
 ```
 
-#### 12.7.6. 分布函数（CUME_DIST,PERCENT_RANK）
+#### 11.7.6. 分布函数（CUME_DIST,PERCENT_RANK）
 
-##### 12.7.6.1. CUME_DIST
+##### 11.7.6.1. CUME_DIST
 
 `CUME_DIST` 函数用途：分组内小于、等于当前(rank值的行数/分组内总行数)
 
@@ -4521,7 +4488,7 @@ FROM
 
 ![](images/20211221152049950_11761.png)
 
-##### 12.7.6.2. PERCENT_RANK
+##### 11.7.6.2. PERCENT_RANK
 
 `PERCENT_RANK` 函数用途：每行按照公式 `(rank-1) / (rows-1)` 进行计算。其中，`rank`为`RANK()`函数产生的序号，`rows`为当前窗口的记录总行数。
 
@@ -4544,7 +4511,7 @@ FROM
 
 ![](images/20211221152439242_5538.png)
 
-#### 12.7.7. 前后函数（LAG,LEAD）
+#### 11.7.7. 前后函数（LAG,LEAD）
 
 前后函数用途：返回位于当前行的前 n 行（`LAG(expr, n)`）或后 n 行（`LEAD(expr, n)`）的 `expr` 的值
 
@@ -4585,7 +4552,7 @@ FROM
 
 ![](images/20211221152826295_5829.png)
 
-#### 12.7.8. 头尾函数（FIRST_VALUE,LAST_VALUE）
+#### 11.7.8. 头尾函数（FIRST_VALUE,LAST_VALUE）
 
 头尾函数用途：返回第一个（`FIRST_VALUE(expr)`）或最后一个（`LAST_VALUE(expr)`）`expr` 的值
 
@@ -4603,9 +4570,9 @@ FROM
 
 ![](images/20211221153725059_7666.png)
 
-#### 12.7.9. 其他函数（NTH_VALUE,NTILE）
+#### 11.7.9. 其他函数（NTH_VALUE,NTILE）
 
-##### 12.7.9.1. NTH_VALUE
+##### 11.7.9.1. NTH_VALUE
 
 `NTH_VALUE(expr,n)` 函数用途：返回窗口中第n个expr的值。expr可以是表达式，也可以是列名
 
@@ -4622,7 +4589,7 @@ FROM
 
 ![](images/20211221161721961_32435.png)
 
-##### 12.7.9.2. NTILE
+##### 11.7.9.2. NTILE
 
 `NTILE(n)` 函数用途：将分区中的有序数据分为n个等级，记录等级数
 
@@ -4638,11 +4605,11 @@ FROM
 
 ![](images/20211221161919693_25285.png)
 
-# MySQL 扩展内容
+## 12. MySQL 扩展内容
 
-## 1. DOS 命令行下汉字乱码的问题（了解）
+### 12.1. DOS 命令行下汉字乱码的问题（了解）
 
-### 1.1. 查看字符集
+#### 12.1.1. 查看字符集
 
 语法：
 
@@ -4657,7 +4624,7 @@ show variables like 'character%';
 
 ![](images/20190404083401020_12924.jpg)
 
-### 1.2. 修改字符集
+#### 12.1.2. 修改字符集
 
 DOS命令行默认的字符集是GBK，而数据库的字符集是UTF-8，要将数据库中下列三项的字符集也改成GBK。在命令行插入数据之前输入: `set names gbk;` 则等同于
 
@@ -4671,9 +4638,9 @@ set character_set_client=gbk; -- 设置客户端的字符集
 
 注：上面只改变了本次运行时的数据库局部的字符集，重启后也会变回原来的模式。
 
-## 2. 系统变量
+### 12.2. 系统变量
 
-### 2.1. 简介
+#### 12.2.1. 简介
 
 系统变量又分为**全局变量**与**会话变量**
 
@@ -4684,7 +4651,7 @@ set character_set_client=gbk; -- 设置客户端的字符集
 
 有些系统变量的值是可以利用语句来动态进行更改的，但是有些系统变量的值却是只读的，对于那些可以更改的系统变量，可以利用`set`语句进行更改。
 
-### 2.2. 系统变量-全局变量
+#### 12.2.2. 系统变量-全局变量
 
 由系统提供，在整个数据库有效。
 
@@ -4706,7 +4673,7 @@ set global sort_buffer_size = 40000;
 set @@global.sort_buffer_size = 40000;
 ```
 
-### 2.3. 系统变量-会话变量
+#### 12.2.3. 系统变量-会话变量
 
 由系统提供，当前会话（连接）有效
 
@@ -4728,11 +4695,11 @@ set session sort_buffer_size = 50000;
 set @@session.sort_buffer_size = 50000;
 ```
 
-## 3. MySQL 的 pymysql 操作
+### 12.3. MySQL 的 pymysql 操作
 
 PyMySQL 是一个纯 Python 实现的 MySQL 客户端库，支持兼容 Python 3，用于代替 MySQLdb。
 
-### 3.1. 查询示例
+#### 12.3.1. 查询示例
 
 ```python
 import pymysql
@@ -4760,7 +4727,7 @@ cursor.close()
 conn.close()
 ```
 
-### 3.2. 增删改示例
+#### 12.3.2. 增删改示例
 
 ```python
 import pymysql
@@ -4792,7 +4759,7 @@ cursor.close()
 conn.close()
 ```
 
-## 4. MySQL中Decimal类型和Float、Double等区别
+### 12.4. MySQL中Decimal类型和Float、Double等区别
 
 MySQL中存在float,double等非标准数据类型，也有decimal这种标准数据类型。
 
@@ -4802,6 +4769,6 @@ float，double类型是可以存浮点数（即小数类型），但是float有�
 
 mysql提供了1个数据类型：decimal，这种数据类型可以轻松解决上面的问题：decimal类型被 MySQL 以同样的类型实现，这在 SQL92 标准中是允许的。他们用于保存对准确精度有重要要求的值，例如与金钱有关的数据。
 
-## 5. MySQL 数据库的伪表 DUAL
+### 12.5. MySQL 数据库的伪表 DUAL
 
 与 Oracle 数据库的伪表 DUAL 一样的用法

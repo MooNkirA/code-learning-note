@@ -262,10 +262,13 @@ sh shutdown.sh
 ```properties
 spring.datasource.platform=mysql
 
+### Count of DB:
 db.num=1
-db.url.0=jdbc:mysql://127.0.0.1:3306/nacos_devtest?characterEncoding=utf8&connectTimeout=1000&socketTimeout=3000&autoReconnect=true
-db.user=root
-db.password=123456
+
+### Connect URL of DB:
+db.url.0=jdbc:mysql://127.0.0.1:3306/nacos?characterEncoding=utf8&connectTimeout=1000&socketTimeout=3000&autoReconnect=true&useUnicode=true&useSSL=false&serverTimezone=UTC
+db.user.0=root
+db.password.0=123456
 ```
 
 再以单机模式启动 nacos，此时所有相关的配置数据都持久化到 mysql 数据库
@@ -1304,3 +1307,18 @@ Spring Cloud Alibaba Nacos Config 目前提供了三种配置能力从 Nacos 拉
 ```properties
 spring.cloud.nacos.config.enabled = false
 ```
+
+## 7. Nacos 使用中遇到的问题记录
+
+### 7.1. nacos 启动失败，提示 No DataSource set
+
+启动 nacos，报错提示 No DataSource set，很明显是 nacos-server 无法连接外部的 mysql 数据库，之前启动是正常，查询一些资料，推测是mysql数据库驱动的问题，然后反编译了 `nacos-server.jar`，发现mysql-connector-java 的版本是8.0.21，而本地安装的 mysql 版本是8.0.30
+
+![](images/596810223230364.png) ![](images/277000923248790.png)
+
+因些无法启动服务。解决方法有两种，
+
+- 方式1：下载 nacos 源码工程，在 pom 文件修改 mysql 驱动包的依赖版本，然后编译打包。
+- 方式2：查看一下现成最新版本支持 的mysql 驱动包的版本是多少，直接使用可用的。
+
+但后面发现还是不支持本地安装的 mysql 版本（*所以有时真的不要过于追求最新版本*），还好本地有之前测试使用的 5.7 免安装版本，直接修改 nacos 的 conf/application.properties 文件中数据库连接地址即可。
