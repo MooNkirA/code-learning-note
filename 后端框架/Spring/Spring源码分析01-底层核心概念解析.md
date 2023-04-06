@@ -1,5 +1,3 @@
-# Spring 源码分析01 - 底层核心概念解析
-
 > 官方参考文档：https://docs.spring.io/spring-framework/docs/5.2.12.RELEASE/spring-framework-reference/
 
 在分析源码前，先对 Spring 框架中一些核心的概念、类、方法等进行了解。
@@ -409,6 +407,15 @@ public void testBeanFactoryRegisterBean() {
     }
 }
 ```
+
+### 3.4. IOC 容器初始化过程
+
+1. 从 XML 中读取配置文件，或者通过注解的方式读取配置文件。
+2. 将 bean 标签解析成 BeanDefinition，如解析 property 元素， 并注入到 BeanDefinition 实例中。
+3. 将 BeanDefinition 注册到容器 BeanDefinitionMap 中。
+4. BeanFactory 根据 BeanDefinition 的定义信息创建实例化和初始化 bean。
+
+单例 bean 的初始化以及依赖注入一般都在容器初始化阶段进行，而懒加载（`lazy-init` 为 true）的单例 bean 与多例 bean （即使设置 `lazy-init` 为 false 也没用）则在容器启动时不实例化，是在程序第一次调用 `getBean()` 时进行初始化和依赖注入。
 
 ## 4. Spring 框架涉及的设计模式
 
