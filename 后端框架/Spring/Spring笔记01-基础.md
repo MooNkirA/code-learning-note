@@ -2312,7 +2312,7 @@ BeanFactory API 为 Spring 的 IoC 功能提供了底层基础。`BeanFactory` �
 
 `BeanFactory` 表面上只有 `getBean` 方法，实际上控制反转、基本的依赖注入、直至 Bean 的生命周期的各种功能，都由它的实现类提供。Spring 大量使用了 `BeanPostProcessor` 后置处理器去扩展功能（以便使用代理等）。如果仅仅只使用简单的 `BeanFactory` 接口，很多的支持功能将不会有效
 
-示例如下：
+### 9.2. 使用示例
 
 ```java
 @Test
@@ -2369,6 +2369,15 @@ public void test() {
 
 - `BeanPostProcessor`：解析 `@Bean`、`@ComponentScan` 等注解
 - `BeanFactoryPostProcessor`：解析 `@Autowired`、`@Resource` 等注解，并其添加到容器的顺序也影响到解析结果
+
+### 9.3. BeanFactory 和 FactoryBean 的区别（面试题）
+
+- `BeanFactory`：管理 Bean 的容器，Spring 中生成的 Bean 相关方法都是由这个接口来定义与管理的。
+- `FactoryBean`：是用来由开发者来自定义创建比较复杂的 bean。一般的 bean 可以直接用 xml 或者注解配置，但如果一个 bean 的创建过程中涉及到很多其他的 bean 和复杂的逻辑，传统的配置方式比较麻烦，这时可以考虑使用 `FactoryBean` 并且可以隐藏实例化复杂 Bean 的细节。
+
+当配置文件中 `<bean>` 标签的 `class` 属性配置的实现类是 `FactoryBean`，或者在 `FactoryBean` 接口的实现类中标识 `@Component` 等注解时，此时通过 `getBean()` 方法返回的不是 `FactoryBean` 类本身，而是调用 `FactoryBean#getObject()` 方法所返回的对象（相当于 `getObject()` 代理了 `getBean()` 方法）。如果想得到 FactoryBean 实例本身，必须使用名称为 `'&' + beanName` 的方式获取。
+
+
 
 ## 10. ApplicationContext
 
