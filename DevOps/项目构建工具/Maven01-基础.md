@@ -1,8 +1,6 @@
-# Maven 笔记
+## 1. 概述
 
 > Maven 官网：https://maven.apache.org/
-
-## 1. 概述
 
 ### 1.1. Maven 是什么
 
@@ -1178,7 +1176,7 @@ site 生命周期包含如下 4 个阶段：
 </build>
 ```
 
-### 7.5. 跳过测试
+### 7.5. 项目构建时跳过测试
 
 #### 7.5.1. 应用场景
 
@@ -1825,31 +1823,29 @@ mvn clean resources:resources -PdevJDBCProfile
 
 ![](images/20761323239588)
 
-# 扩展资料
-
-## 1. help 插件
+## 11. help 插件
 
 > 官方说明文档：https://maven.apache.org/plugins/maven-help-plugin
 
-### 1.1. 概念
+### 11.1. 概念
 
 Maven help 插件用于获取项目或系统的相关信息。它可以用来获取某个特定插件的描述，包括该插件的目标及其参数和组件要求、当前构建的有效 POM 和有效设置，以及应用于当前构建项目的配置文件。
 
-### 1.2. help 插件的 7 个目标
+### 11.2. help 插件的 7 个目标
 
-|            目标            |                      说明                      |
-| ------------------------- | ---------------------------------------------- |
-| `help:active-profiles`    | 列出当前已激活的 profile                        |
-| `help:all-profiles`       | 列出当前工程所有可用 profile                     |
-| `help:describe`           | 描述一个插件和/或 Mojo 的属性                    |
-| `help:effective-pom`      | 以 XML 格式展示有效 POM                         |
+|            目标            |                     说明                     |
+| ------------------------- | -------------------------------------------- |
+| `help:active-profiles`    | 列出当前已激活的 profile                       |
+| `help:all-profiles`       | 列出当前工程所有可用 profile                    |
+| `help:describe`           | 描述一个插件和/或 Mojo 的属性                   |
+| `help:effective-pom`      | 以 XML 格式展示有效 POM                        |
 | `help:effective-settings` | 为当前工程以 XML 格式展示计算得到的 settings 配置 |
 | `help:evaluate`           | 计算用户在交互模式下给出的 Maven 表达式           |
 | `help:system`             | 显示平台详细信息列表，如系统属性和环境变量         |
 
-### 1.3. help:evaluate 的使用
+### 11.3. help:evaluate 的使用
 
-#### 1.3.1. 查看属性值
+#### 11.3.1. 查看属性值
 
 假设在 pom.xml 文件中定义属性
 
@@ -1869,7 +1865,7 @@ mvn help:evaluate
 
 ![](images/175771622221157.png)
 
-#### 1.3.2. 访问系统属性
+#### 11.3.2. 访问系统属性
 
 通过 Java 代码获取所有系统属性
 
@@ -1897,7 +1893,7 @@ ${java.runtime.name}
 Java(TM) SE Runtime Environment
 ```
 
-#### 1.3.3. 访问系统环境变量
+#### 11.3.3. 访问系统环境变量
 
 运行命令 `mvn help:evaluate`，通过表达式 `${env.系统环境变量名}` 来访问系统环境变量
 
@@ -1910,7 +1906,7 @@ ${env.JAVA_HOME}
 D:\development\Java\jdk1.8.0_311
 ```
 
-#### 1.3.4. 访问 pom 配置中 project 属性
+#### 11.3.4. 访问 pom 配置中 project 属性
 
 运行命令 `mvn help:evaluate`，通过表达式 `${project.标签名}` 可以访问当前 POM 中的一级标签元素值
 
@@ -1931,7 +1927,7 @@ ${project.artifactId}
 
 ![](images/88863322240285.png)
 
-#### 1.3.5. 访问 settings 全局配置
+#### 11.3.5. 访问 settings 全局配置
 
 运行命令 `mvn help:evaluate`，通过表达式 `${settings.标签名}` 可以访问 settings.xml 中配置的元素值。
 
@@ -1944,11 +1940,13 @@ ${settings.LocalRepository}
 D:\development\maven\repository
 ```
 
-## 2. 手动添加 jar 包到本地 Maven 仓库
+## 12. Maven 进阶
+
+### 12.1. 手动添加 jar 包到本地 Maven 仓库
 
 使用Maven的过程中，经常碰到有些jar包在中央仓库没有的情况。如果公司有私服，那么就把jar包安装到私服上。如果没有私服，那就把jar包安装到本地Maven仓库。有2种安装jar包到本地Maven仓库的方法
 
-### 2.1. 使用 Maven 命令安装 jar 包
+#### 12.1.1. 使用 Maven 命令安装 jar 包
 
 前提：在windows操作系统中配置好了Maven的环境变量。在windows的cmd命令下，参考下面安装命令安装jar包。注意：这个命令不能换行，中间用空格来分割的
 
@@ -1968,7 +1966,7 @@ $ mvn install:install-file -DgroupId=com.baidu -DartifactId=ueditor -Dversion=1.
 
 执行完命令后，可看到SUCCESS字样提示，代表安装成功，可以在本地仓库找到jar包
 
-### 2.2. 使用 eclipse 安装 jar 包
+#### 12.1.2. 使用 eclipse 安装 jar 包
 
 使用eclipse安装也有个前提，就是eclipse的Maven要先配置好。具体操作：
 
@@ -1980,13 +1978,13 @@ $ mvn install:install-file -DgroupId=com.baidu -DartifactId=ueditor -Dversion=1.
 
 ![](images/20201104152759117_23200.png)
 
-### 2.3. 两种方案的比较
+#### 12.1.3. 两种方案的比较
 
 方案一：缺点就是很麻烦，比如要配置环境变量，需要写很长的安装命令。不过，如果你配置好了环境变量，那就简单了。copy个安装的命令的示例，然后就直接安装了。
 
 方案二：需要eclipse，个人推荐这种方式，比较简单。
 
-## 3. 批量删除maven项目错误后生成`*.lastUpdated`文件
+### 12.2. 批量删除maven项目错误后生成`*.lastUpdated`文件
 
 在项目运行错误后，在本地仓库下生成`.lastUpdated`文件，会影响项目的运行。使用批处理文件可以将里面文件删除，<font color=red>**注：将`REPOSITORY_PATH`变量改成本地仓库的路径**</font>
 

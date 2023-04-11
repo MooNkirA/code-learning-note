@@ -1274,18 +1274,18 @@ Sentinel 提供了丰富的数据源工具包，便于集成各类数据源。�
 - 结合 RDBMS、NoSQL、VCS 等来实现该规则
 - 配合 Sentinel Dashboard 使用
 
-#### 7.9.2. Sentinel 规则推送模式
+#### 7.9.2. DataSource 扩展(Sentinel 规则推送模式)
 
-以下是 Sentinel 规则推送模式的官方示意图：
+DataSource 扩展常见的实现方式有:
 
-**原始模式**：
+- **原始模式**：Sentienl 推送规则到各个客户端，客户端接收到规则对象存储在内存中。
 
+![](images/44055322248877.jpg)
 
-**拉模式**：
+- **拉模式**：客户端主动向某个规则管理中心定期轮询拉取规则，这个规则中心可以是 RDBMS、文件，甚至是 VCS 等。此方式实现简单，但缺点是无法及时获取变更；Sentinel 目前支持的数据源扩展：动态文件数据源、Consul、Eureka。
+- **推模式**：规则中心统一推送，客户端通过注册监听器的方式时刻监听变化，比如使用 Nacos、Zookeeper 等配置中心。此方式有更好的实时性和一致性保证。Sentinel 目前支持的数据源扩展有：ZooKeeper, Redis, Nacos, Apollo, etcd
 
-
-**推模式**：
-
+![](images/133303522230451.png)
 
 #### 7.9.3. 规则推送原理
 
@@ -1295,9 +1295,40 @@ Sentinel 提供了丰富的数据源工具包，便于集成各类数据源。�
 
 首先 Sentinel 控制台通过 API 将规则推送至客户端并更新到内存中，接着注册的写数据源会将新的规则保存到本地的文件中。
 
-#### 7.9.4. 实现规则持久化步骤
+#### 7.9.4. (!待补充)Sentinel 整合 Nacos 实现规则持久化流程
 
-注册数据源。可以借助 Sentinel 的 InitFunc SPI 扩展接口。只需要实现自己的 `InitFunc` 接口，在 `init` 方法中编写注册数据源的逻辑。
+![](images/323042017236115.png)
+
+Sentinel 针对 Nacos 作了适配，底层可以采用 Nacos 作为规则配置数据源。使用时只需添加以下依赖：
+
+```xml
+<dependency>
+    <groupId>com.alibaba.csp</groupId>
+    <artifactId>sentinel-datasource-nacos</artifactId>
+    <version>x.y.z</version>
+</dependency>
+```
+
+然后创建 `NacosDataSource` 并将其注册至对应的 `RuleManager` 上即可。比如：
+
+```java
+// remoteAddress 代表 Nacos 服务端的地址
+// groupId 和 dataId 对应 Nacos 中相应配置
+ReadableDataSource<String, List<FlowRule>> flowRuleDataSource = new NacosDataSource<>(remoteAddress, groupId, dataId,
+    source -> JSON.parseObject(source, new TypeReference<List<FlowRule>>() {}));
+FlowRuleManager.register2Property(flowRuleDataSource.getProperty());
+```
+
+#### 7.9.5. 注册数据源
+
+通常需要调用以下方法将数据源注册至指定的规则管理器中：
+
+```java
+eadableDataSource<String, List<FlowRule>> flowRuleDataSource = new NacosDataSource<>(remoteAddress, groupId, dataId, parser);
+FlowRuleManager.register2Property(flowRuleDataSource.getProperty());
+```
+
+若不希望手动注册数据源，可以借助 Sentinel 的 InitFunc SPI 扩展接口。只需要实现自己的 `InitFunc` 接口，在 `init` 方法中编写注册数据源的逻辑。比如：
 
 ```java
 public class DataSourceInitFunc implements InitFunc {
@@ -1431,17 +1462,9 @@ public class DataSourceInitFunc implements InitFunc {
 }
 ```
 
-在对应的类名添加到位于资源目录（通常是 resource 目录）下的 `META-INF/services` 目录下的 `com.alibaba.csp.sentinel.init.InitFunc` 文件中，添加自定义 `InitFunc` 接口实现类全限定名
-
-```
-com.moon.order.config.DataSourceInitFunc
-```
+在对应的类名添加到位于资源目录（通常是 resource 目录）下的 `META-INF/services` 目录下的 `com.alibaba.csp.sentinel.init.InitFunc` 文件中，添加自定义 `InitFunc` 接口实现类全限定名`com.moon.order.config.DataSourceInitFunc`
 
 当初次访问任意资源的时候，Sentinel 就可以自动去注册对应的数据源了。
-
-#### 7.9.5. Sentinel 整合 Nacos 实现规则持久化流程总结
-
-![](images/323042017236115.png)
 
 ## 8. @SentinelResource 注解
 
