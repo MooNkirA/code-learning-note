@@ -7,11 +7,6 @@
     },
     "history": [
         {
-            "last_accessed_time": "2023-01-23T10:35:28Z",
-            "line_number": 998,
-            "path": "项目资料/02-品优购/Day03-Nginx&品牌管理模块功能.md"
-        },
-        {
             "last_accessed_time": "2023-01-23T10:36:56Z",
             "line_number": 1755,
             "path": "项目资料/02-品优购/Day04-Angular前端分层&规格及模板管理.md"
@@ -492,18 +487,23 @@
             "path": "分布式微服务/SpringBoot/Spring-Boot-Actuator.md"
         },
         {
-            "last_accessed_time": "2023-04-10T15:25:29Z",
+            "last_accessed_time": "2023-04-11T14:21:32Z",
+            "line_number": 1248,
+            "path": "DevOps/项目构建工具/Maven01-基础.md"
+        },
+        {
+            "last_accessed_time": "2023-04-11T15:11:15Z",
             "line_number": 130,
             "path": "分布式微服务/SpringCloud/Spring-Cloud-Alibaba-Nacos.md"
         },
         {
-            "last_accessed_time": "2023-04-10T15:25:29Z",
+            "last_accessed_time": "2023-04-11T15:11:16Z",
             "line_number": 786,
             "path": "分布式微服务/SpringCloud/Spring-Cloud-OpenFeign.md"
         },
         {
-            "last_accessed_time": "2023-04-10T15:25:30Z",
-            "line_number": 1281,
+            "last_accessed_time": "2023-04-11T15:11:16Z",
+            "line_number": 1317,
             "path": "分布式微服务/SpringCloud/Spring-Cloud-Alibaba-Sentinel.md"
         }
     ],

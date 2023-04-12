@@ -1295,7 +1295,72 @@ DataSource 扩展常见的实现方式有:
 
 首先 Sentinel 控制台通过 API 将规则推送至客户端并更新到内存中，接着注册的写数据源会将新的规则保存到本地的文件中。
 
-#### 7.9.4. (!待补充)Sentinel 整合 Nacos 实现规则持久化流程
+#### 7.9.4. Sentinel 加载本地配置
+
+**一条限流规则主要由下面几个因素组成**：
+
+- `resource`：资源名，即限流规则的作用对象
+- `count`：限流阈值
+- `grade`：限流阈值类型（QPS 或并发线程数）
+- `limitApp`：流控针对的调用来源，若为`default`则不区分调用来源
+- `strategy`：调用关系限流策略
+- `controlBehavior`：流量控制效果（直接拒绝、Warm Up、匀速排队）
+
+Sentinel 可以通过控制台的方式修改相应服务的降级规则等相关参数。
+
+![](images/20201022101559417_4291.png)
+
+但会存在一定问题，因为通过控制台新增/修改的规则配置，都保存在相应服务的内存中，如果此服务重启后，内存中这些配置都没有了。所以一般都会将相应的Sentinel规则保存在本地文件，然后设置Sentinel加载本地配置。实现本地配置的步骤如下：
+
+1. 修改服务工程的 application.yml 配置文件，增加以下配置
+
+```yml
+spring:
+  cloud:
+    # Sentinel 相关配置
+    sentinel:
+      # 配置Sentinel读取本地文件配置限流规则
+      datasource:
+        ds1:
+          file:
+            file: classpath:flowrule.json
+            data-type: json
+            rule-type: flow
+```
+
+application.properties 配置文件
+
+```properties
+# 配置Sentinel读取本地文件配置限流规则
+spring.cloud.sentinel.datasource.ds1.file.file=classpath: flowrule.json
+spring.cloud.sentinel.datasource.ds1.file.data-type=json
+spring.cloud.sentinel.datasource.ds1.file.rule-type=flow
+```
+
+2. 在工程的`resources`目录下，创建`flowrule.json`文件，具体配置内容如下：
+
+```json
+[
+  {
+    "resource": "orderFindById",
+    "controlBehavior": 0,
+    "count": 1,
+    "grade": 1,
+    "limitApp": "default",
+    "strategy": 0
+  }
+]
+```
+
+> *注意：其中`resource`字段是相应需要保存的资源（接口）的名称，即`@SentinelResource`注解中配置的`value`属性值*
+>
+> 相应的可设置项参考`sentinel-core`包下的`com.alibaba.csp.sentinel.slots.block.RuleConstant`类
+
+3. 启动服务，在Sentinel控制台可以看到相应的配置
+
+![](images/20201022103834045_8987.png)
+
+#### 7.9.5. (!整理中)Sentinel 整合 Nacos 实现规则持久化流程
 
 ![](images/323042017236115.png)
 
@@ -1319,7 +1384,7 @@ ReadableDataSource<String, List<FlowRule>> flowRuleDataSource = new NacosDataSou
 FlowRuleManager.register2Property(flowRuleDataSource.getProperty());
 ```
 
-#### 7.9.5. 注册数据源
+#### 7.9.6. 注册数据源
 
 通常需要调用以下方法将数据源注册至指定的规则管理器中：
 
@@ -1694,71 +1759,6 @@ public class OrderController {
 测试结果：使用post请求`http://127.0.0.1:9002/order/1`成功，然后请求`http://127.0.0.1:9002/order/2`两次后都执行了异常处理的方法，此时再次请求`http://127.0.0.1:9002/order/1`，会执行熔断方法，等待10s后，再次请求就会恢复成功响应
 
 ![](images/20201022091446319_28012.png)
-
-#### 9.1.4. Sentinel 加载本地配置
-
-**一条限流规则主要由下面几个因素组成**：
-
-- `resource`：资源名，即限流规则的作用对象
-- `count`：限流阈值
-- `grade`：限流阈值类型（QPS 或并发线程数）
-- `limitApp`：流控针对的调用来源，若为`default`则不区分调用来源
-- `strategy`：调用关系限流策略
-- `controlBehavior`：流量控制效果（直接拒绝、Warm Up、匀速排队）
-
-Sentinel可以通过控制台的方式修改相应服务的降级规则等相关参数。
-
-![](images/20201022101559417_4291.png)
-
-但会存在一定问题，因为通过控制台新增/修改的规则配置，都保存在相应服务的内存中，如果此服务重启后，内存中这些配置都没有了。所以一般都会将相应的Sentinel规则保存在本地文件，然后设置Sentinel加载本地配置。实现本地配置的步骤如下：
-
-1. 修改服务工程的 application.yml 配置文件，增加以下配置
-
-```yml
-spring:
-  cloud:
-    # Sentinel 相关配置
-    sentinel:
-      # 配置Sentinel读取本地文件配置限流规则
-      datasource:
-        ds1:
-          file:
-            file: classpath:flowrule.json
-            data-type: json
-            rule-type: flow
-```
-
-application.properties 配置文件
-
-```properties
-# 配置Sentinel读取本地文件配置限流规则
-spring.cloud.sentinel.datasource.ds1.file.file=classpath: flowrule.json
-spring.cloud.sentinel.datasource.ds1.file.data-type=json
-spring.cloud.sentinel.datasource.ds1.file.rule-type=flow
-```
-
-2. 在工程的`resources`目录下，创建`flowrule.json`文件，具体配置内容如下：
-
-```json
-[
-  {
-    "resource": "orderFindById",
-    "controlBehavior": 0,
-    "count": 1,
-    "grade": 1,
-    "limitApp": "default",
-    "strategy": 0
-  }
-]
-```
-
-> *注意：其中`resource`字段是相应需要保存的资源（接口）的名称，即`@SentinelResource`注解中配置的`value`属性值*
->
-> 相应的可设置项参考`sentinel-core`包下的`com.alibaba.csp.sentinel.slots.block.RuleConstant`类
-
-3. 启动服务，在Sentinel控制台可以看到相应的配置
-
-![](images/20201022103834045_8987.png)
 
 ### 9.2. RestTemplate 整合 Sentinel 实现熔断
 

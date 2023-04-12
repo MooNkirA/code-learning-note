@@ -1187,23 +1187,27 @@ site 生命周期包含如下 4 个阶段：
 
 实现项目上线打包部署时是不被允许跳过测试，这只是用于在本地开发时，为了能快速构建项目才使用。
 
-#### 7.5.2. 命令行跳转测试
+#### 7.5.2. 命令行方式跳过测试
 
-命令语法格式：
+在使用 mvn 命令进行编译、打包时，Maven 会执行 src/test/java 中的 JUnit 测试用例，有以下两种命令来跳过测试：
 
 ```bash
-mvn 指令 –D skipTests
+mvn 指令 -DskipTests=true
 ```
+
+- `-DskipTests=true` 命令参数代表不执行测试用例，但编译测试用例类会生成相应的 class 文件至 target/test-classes 下。
+
+```bash
+mvn 指令 -Dmaven.test.skip=true
+```
+
+- `-Dmaven.test.skip=true` 命令参数代表不仅不执行测试用例，也不编译测试用例类。
 
 **注意事项：执行的指令生命周期必须包含测试环节**
 
-#### 7.5.3. IDEA 操作跳过测试
+#### 7.5.3. 通过配置文件跳过测试
 
-![](images/20220121191757343_20033.png)
-
-#### 7.5.4. 通过配置文件跳过测试
-
-mavan 执行每个生命周期都是通过插件来完成，所以对相应的插件配置跳过测试即可。也可以指定执行哪些测试用例，或者指定排除不执行哪些测试用例。配置示例如下：
+mavan 执行每个生命周期都是通过插件来完成，所以对相应的插件配置跳过测试即可。也可以指定执行哪些测试用例，或者指定排除不执行哪些测试用例。pom.xml 配置示例如下：
 
 ```xml
 <build>
@@ -1229,6 +1233,26 @@ mavan 执行每个生命周期都是通过插件来完成，所以对相应的�
     </plugins>
 </build>
 ```
+
+#### 7.5.4. IDEA 配置跳过测试
+
+##### 7.5.4.1. 操作命令栏
+
+在 IDEA 中的 Maven 命令栏的工具栏有下图中的图标【Skip Tests】。点击选中后再用【LifeStyle】中的相关命令时，就会跳过测试。
+
+![](images/20220121191757343_20033.png)
+
+##### 7.5.4.2. 配置 VM Options 参数
+
+打开配置，找到【Build,Exxcution,Deployment】–>【Maven Tools】–>【Maven】–>【Runner】，在 VM option 中添加 `-Dmaven.test.skip=true` 或者 `-DskipTests=true`，也可以在打包是跳过测试。
+
+![](images/129292122230452.png)
+
+##### 7.5.4.3. 修改运行 Properties 配置参数
+
+打开配置，找到【Build,Exxcution,Deployment】–>【Maven Tools】–>【Maven】–>【Runner】，在【Properties】中勾选【Skip Test】选项。
+
+![](images/569943019236745.png)
 
 ### 7.6. Maven 自定义插件（了解）
 
