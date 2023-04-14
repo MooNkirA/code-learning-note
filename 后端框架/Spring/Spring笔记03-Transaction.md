@@ -1,25 +1,24 @@
-# Spring Transaction（事务）
+## 1. Spring Transaction（事务）概述
 
 事务是 Web 应用中不可缺少的组件模型，它保证了用户操作的原子性(Atomicity)、一致性(Consistency)、隔离性(Isolation)和持久性(Durabilily)。其中事务又分为本地事务和分布式事务两种。
 
-## 1. Spring 中的 JdbcTemplate
+## 2. Spring 中的 JdbcTemplate
 
-### 1.1. JdbcTemplate 概述
+### 2.1. JdbcTemplate 概述
 
-JdbcTeTemplate是 spring 框架中提供的一个操作持久层的对象，是Spring对数据库的操作原始 Jdbc API 对象的简单封装，让开发者在操作数据库时只需关注SQL语句和查询结果处理器，即可完成功能（当然，只使用JdbcTemplate，还不能摆脱持久层实现类的编写）。
+`JdbcTeTemplate` 是 Spring 框架中提供的一个操作持久层的对象，是 Spring 对数据库的操作原始 Jdbc API 对象的简单封装，让开发者在操作数据库时只需关注 SQL 语句和查询结果处理器，即可完成功能（当然，只使用 JdbcTemplate，还不能摆脱持久层实现类的编写）。
 
-在配合spring的IoC功能，可以把DataSource注册到JdbcTemplate之中。同时利用spring基于aop的事务即可完成简单的数据库CRUD操作。
+在配合 Spring 的 IoC 功能，可以把 `DataSource` 注册到 `JdbcTemplate` 之中。同时利用 Spring 基于 aop 的事务即可完成简单的数据库 CRUD 操作。要使用 JdbcTemlate 需要导入 spring-jdbc 和 spring-tx 两个坐标。其核心 jar 包如下：
 
-JdbcTemplate的限定命名为org.springframework.jdbc.core.JdbcTemplate。要使用JdbcTemlate需要导入spring-jdbc和spring-tx两个坐标。
+- spring-jdbc-x.x.x.RELEASE.jar
+- ~~spring-orm-x.x.x.RELEASE.jar~~
+- spring-tx-x.x.x.RELEASE.jar（和事务相关的）
 
-- JdbcTemplate相关jar包
-    - spring-jdbc-x.x.x.RELEASE.jar
-    - ~~spring-orm-x.x.x.RELEASE.jar~~
-    - spring-tx-x.x.x.RELEASE.jar（和事务相关的）
-
-#### 1.1.1. 节选源码
+#### 2.1.1. 节选源码
 
 ```java
+package org.springframework.jdbc.core;
+
 /* JdbcTemplate实现了JdbcOperations接口，jdbc相关操作方法都定义在此接口中 */
 public class JdbcTemplate extends JdbcAccessor implements JdbcOperations {
     /* 使用默认构造函数构建JdbcTemplate */
@@ -47,19 +46,19 @@ public void setDataSource(@Nullable DataSource dataSource) {
 
 > 结论：除了默认构造函数之外，都需要提供一个数据源。既然有 set 方法，就是可以使用依赖注入，在配置文件中配置。
 
-#### 1.1.2. 相关方法说明
+#### 2.1.2. 核心方法说明
 
-JdbcTemplate主要提供以下五类方法：
+JdbcTemplate主 要提供以下五类方法：
 
 - `execute`方法：可以用于执行任何SQL语句，一般用于执行DDL语句
-- `update`方法用于执行新增、修改、删除等语句
-- `batchUpdate`方法用于执行批处理相关语句
+- `update`方法：用于执行新增、修改、删除等语句
+- `batchUpdate`方法：用于执行批处理相关语句
 - `query`方法及`queryForXxx`方法：用于执行查询相关语句
 - `call`方法：用于执行存储过程、函数相关语句
 
-### 1.2. 入门案例
+### 2.2. 入门案例
 
-#### 1.2.1. 引入依赖
+#### 2.2.1. 引入依赖
 
 ```xml
 <!-- 注：依赖的版本按实际需要，此处省略 -->
@@ -95,7 +94,7 @@ JdbcTemplate主要提供以下五类方法：
 </dependencies>
 ```
 
-#### 1.2.2. 编写实体类
+#### 2.2.2. 编写实体类
 
 ```java
 public class Account implements Serializable {
@@ -106,7 +105,7 @@ public class Account implements Serializable {
 }
 ```
 
-#### 1.2.3. 编写配置类、配置文件
+#### 2.2.3. 编写配置类、配置文件
 
 - spring核心配置类
 
@@ -168,7 +167,7 @@ jdbc.username=root
 jdbc.password=123456
 ```
 
-#### 1.2.4. 测试方法
+#### 2.2.4. 测试方法
 
 ```java
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -285,13 +284,13 @@ public class SpringJdbcTemplateTest {
 }
 ```
 
-### 1.3. LobHandler 和 LobCreator
+### 2.3. LobHandler 和 LobCreator
 
 BLOB (binary large object)，二进制大对象，是一个可以存储二进制文件的容器。在计算机中，BLOB常常是数据库中用来存储二进制文件的字段类型。
 
 `LobHandler`就是`JdbcTemplate`用于处理大对象
 
-#### 1.3.1. 示例环境准备
+#### 2.3.1. 示例环境准备
 
 - 创建表
 
@@ -329,7 +328,7 @@ public LobHandler createLobHandler() {
 }
 ```
 
-#### 1.3.2. 使用示例
+#### 2.3.2. 使用示例
 
 ```java
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -407,11 +406,11 @@ public class SpringLobHandlerTest {
 }
 ```
 
-## 2. Spring 中 NamedParameterJdbcTemplate
+## 3. Spring 中 NamedParameterJdbcTemplate
 
-### 2.1. NamedParameterJdbcTemplate 概述
+### 3.1. NamedParameterJdbcTemplate 概述
 
-#### 2.1.1. 基本介绍
+#### 3.1.1. 基本介绍
 
 在经典的 JDBC 用法中，SQL 参数是用占位符 `?` 表示，并且受到位置的限制，定位参数的问题在于一旦参数的顺序发生变化，就必须改变参数绑定。在 Spring JDBC 框架中，绑定 SQL 参数的另一种选择是使用具名参数(named parameter)
 
@@ -419,7 +418,7 @@ public class SpringLobHandlerTest {
 
 具名参数只在 `NamedParameterJdbcTemplate` 中得到支持。`NamedParameterJdbcTemplate`可以使用全部`jdbcTemplate`方法。
 
-#### 2.1.2. 节选源码
+#### 3.1.2. 节选源码
 
 ```java
 /*
@@ -457,7 +456,7 @@ public class NamedParameterJdbcTemplate implements NamedParameterJdbcOperations 
 }
 ```
 
-### 2.2. 入门案例
+### 3.2. 入门案例
 
 > 注：入门案例使用上面JdbcTemplate的基础代码
 
@@ -522,11 +521,11 @@ public class SpringNamedParameterJdbcTemplateTest {
 }
 ```
 
-## 3. JdbcTemplate 的实现原理
+## 4. JdbcTemplate 的实现原理
 
-### 3.1. 自定义JdbcTemplate
+### 4.1. 自定义JdbcTemplate
 
-#### 3.1.1. 创建工程并导入坐标
+#### 4.1.1. 创建工程并导入坐标
 
 ```xml
 <!-- 版本按实际需求来定 -->
@@ -544,7 +543,7 @@ public class SpringNamedParameterJdbcTemplateTest {
 </dependencies>
 ```
 
-#### 3.1.2. 编写自定义JdbcTemplate
+#### 4.1.2. 编写自定义JdbcTemplate
 
 ```java
 public class JdbcTemplate {
@@ -715,9 +714,9 @@ public class JdbcTemplate {
 }
 ```
 
-### 3.2. 自定义结果集处理器
+### 4.2. 自定义结果集处理器
 
-#### 3.2.1. 定义接口
+#### 4.2.1. 定义接口
 
 ```java
 /**
@@ -731,7 +730,7 @@ public interface ResultSetHandler<T> {
 }
 ```
 
-#### 3.2.2. 编写不同的实现
+#### 4.2.2. 编写不同的实现
 
 - 单个对象结果处理实现
 
@@ -833,9 +832,9 @@ public class BeanListHandler<T> implements ResultSetHandler {
 }
 ```
 
-### 3.3. 测试
+### 4.3. 测试
 
-#### 3.3.1. 打包自定义JdbcTemplate项目到本地仓库（非必须）
+#### 4.3.1. 打包自定义JdbcTemplate项目到本地仓库（非必须）
 
 ![](images/20200915144939751_22215.png)
 
@@ -843,7 +842,7 @@ public class BeanListHandler<T> implements ResultSetHandler {
 
 > **注：如果测试工程与自定义JdbcTemplate工程在同一个project里，则直接引入依赖即可**
 
-#### 3.3.2. 创建测试工程并导入自定义JdbcTemplate项目的依赖
+#### 4.3.2. 创建测试工程并导入自定义JdbcTemplate项目的依赖
 
 ```xml
 <!-- 版本按实际需求来定 -->
@@ -883,7 +882,7 @@ public class BeanListHandler<T> implements ResultSetHandler {
 
 ![](images/20200915151126935_11943.png)
 
-#### 3.3.3. 实体类、配置类、配置文件
+#### 4.3.3. 实体类、配置类、配置文件
 
 > 注：实体类（Account.java）、配置文件（jdbc.properties）、核心配置类（SpringConfiguration.java）均复用上面JdbcTemplate快速入门的代码即可
 
@@ -924,7 +923,7 @@ public class JdbcConfig {
 }
 ```
 
-### 3.4. 番外 - 策略模式
+### 4.4. 番外 - 策略模式
 
 策略模式（Strategy Pattern）也叫政策模式（Policy Pattern）。指的是对象具备某个行为，但是在不同的场景中，该行为有不同的实现。
 
@@ -938,31 +937,35 @@ public class JdbcConfig {
 
 策略模式是面向接口编程思想的具体体现，通常情况下，作为设计者会暴露出来一个接口，同时可以提供一些接口实现，也可以不提供，而让使用者根据具体情况去编写具体实现代码。以达到灵活的扩展目的。
 
-## 4. Spring 中的事务控制
+## 5. Spring 中的事务控制
 
 - 第一：JavaEE 体系进行分层开发，事务处理位于业务层，Spring 提供了分层设计业务层的事务处理解决方案
 - 第二：Spring 框架提供了一组事务控制的接口。这组接口是在spring-tx-4.2.4.RELEASE.jar中
 - 第三：Spring 的事务控制都是基于 AOP 的，它既可以使用编程的方式实现，也可以使用声明式（基于xml配置文件与注解方式）实现。**学习重点是使用配置的方式实现**。
 
-### 4.1. Spring支持编程式事务管理和声明式事务管理两种方式
+### 5.1. Spring 事务机制的实现方式
 
-编程式事务管理使用`TransactionTemplate`或者直接使用底层的`PlatformTransactionManager`。对于编程式事务管理，spring推荐使用`TransactionTemplate`。
+Spring 事务机制主要包括<u>**声明式事务**</u>和<u>**编程式事务**</u>两种方式。
 
-声明式事务管理建立在AOP之上的。其本质是对方法前后进行拦截，然后在目标方法开始之前创建或者加入一个事务，在执行完目标方法之后根据执行情况提交或者回滚事务。声明式事务最大的优点就是不需要通过编程的方式管理事务，这样就不需要在业务逻辑代码中掺杂事务管理的代码，只需在配置文件中做相关的事务规则声明(或通过基于`@Transactional`注解的方式)，便可以将事务规则应用到业务逻辑中。
+- **编程式事务管理**，直接使用 `TransactionTemplate` 或者底层的 `PlatformTransactionManager` 进行事务的控制。对于编程式事务管理，Spring 推荐使用 `TransactionTemplate`。
+- **声明式事务管理**，建立在 AOP 之上的。其本质是对方法前后进行拦截，然后在目标方法开始之前创建或者加入一个事务，在执行完目标方法之后根据执行情况提交或者回滚事务。声明式事务最大的优点就是，不需要像编程的方式管理事务，要在业务逻辑代码中掺杂事务管理的代码，来处理获得连接、关闭连接、事务提交和回滚等这些操作。只需做相关的事务规则声明，便可以将事务规则应用到业务逻辑中。声明式事务管理有以下两种常用的方式：
+    - 基于 tx 和 aop名 字空间的 xml 配置文件
+    - 基于`@Transactional`注解（*显然基于注解的方式更简单易用，更清爽*）
 
-显然声明式事务管理要优于编程式事务管理，这正是spring倡导的非侵入式的开发方式。声明式事务管理使业务代码不受污染，一个普通的POJO对象，只要加上注解就可以获得完全的事务支持。和编程式事务相比，声明式事务唯一不足地方是，后者的最细粒度只能作用到方法级别，无法做到像编程式事务那样可以作用到代码块级别。但是即便有这样的需求，也存在很多变通的方法，比如，可以将需要进行事务管理的代码块独立为方法等等。
+**总结**：
 
-声明式事务管理也有两种常用的方式，一种是基于tx和aop名字空间的xml配置文件，另一种就是基于`@Transactional`注解。显然基于注解的方式更简单易用，更清爽。
+1. 显然声明式事务管理要优于编程式事务管理，这正是 Spring 推荐的<u>**非侵入式**</u>的开发方式。声明式事务管理使业务代码不受污染，一个普通的 POJO 对象，只要加上注解就可以获得完全的事务支持。
+2. 和编程式事务相比，<u>声明式事务唯一不足地方是，后者的最细粒度只能作用到方法级别，无法做到像编程式事务那样可以作用到代码块级别</u>。但是即便有这样的需求，也存在很多变通的方法，比如，可以将需要进行事务管理的代码块独立为方法等等。
 
-### 4.2. Spring 中事务控制的 API
+### 5.2. Spring 中事务控制的 API
 
 - `PlatformTransactionManager`：平台事务管理接口
 - `TransactionDefinition`：事务定义接口
 - `TransactionStatus`：事务状态接口
 
-### 4.3. PlatformTransactionManager 接口和它的实现类
+### 5.3. PlatformTransactionManager 接口和它的实现类
 
-#### 4.3.1. 接口作用
+#### 5.3.1. 接口作用
 
 此接口是Spring的事务管理器核心接口。Spring本身并不支持事务实现，只是负责提供标准，应用底层支持什么样的事务，需要提供具体实现类。此处也是策略模式的具体应用。
 
@@ -976,11 +979,11 @@ public class JdbcConfig {
 
 > 注：`JpaTransactionManager` 和 `HibernateTransactionManager` 事务管理器在`spring-orm`包中
 
-#### 4.3.2. 类视图
+#### 5.3.2. 类视图
 
 ![](images/20200915162601974_4595.png)
 
-#### 4.3.3. 接口主要方法说明
+#### 5.3.3. 接口主要方法说明
 
 - 获取事务状态信息
 
@@ -1000,19 +1003,19 @@ void commit(TransactionStatus status) throws TransactionException;
 void rollback(TransactionStatus status) throws TransactionException;
 ```
 
-### 4.4. TransactionDefinition 接口
+### 5.4. TransactionDefinition 接口
 
-#### 4.4.1. 接口作用
+#### 5.4.1. 接口作用
 
 `org.springframework.transaction.TransactionDefinition` 接口是 Spring 中事务可控属性的顶层接口，里面定义了事务的一些属性以及获取属性的方法。例如：事务的传播行为，事务的隔离级别，事务的只读，事务的超时等等。
 
 通常情况下，在开发中都可以配置这些属性，以求达到最佳效果。配置的方式支持xml和注解。
 
-#### 4.4.2. 类视图
+#### 5.4.2. 类视图
 
 ![](images/20200915164133901_15297.png)
 
-#### 4.4.3. 接口常用方法说明
+#### 5.4.3. 接口常用方法说明
 
 - 获取事务传播行为
 
@@ -1045,52 +1048,72 @@ boolean isReadOnly();
 String getName();
 ```
 
-#### 4.4.4. 事务的传播行为（接口的常量属性）
+#### 5.4.4. 事务的传播行为（接口的常量属性）
 
 Spring 事务的传播行为是指，当多个事务同时存在的时候，Spring 如何处理这些事务的行为。主要有以下几种：
 
-|         事务传播行为          |                                          说明                                          |
-| :-------------------------: | -------------------------------------------------------------------------------------- |
-|   `PROPAGATION_REQUIRED`    | 如果当前没有事务，就新建一个事务；如果已经存在一个事务中，加入到这个事务中。一般的选择（默认值） |
-|   `PROPAGATION_SUPPORTS`    | 使用当前的事务；如果当前没有事务，就以非事务方式执行（没有事务）                              |
-|   `PROPAGATION_MANDATORY`   | 使用当前的事务，如果当前没有事务，就抛出异常                                                |
-| `PROPAGATION_REQUIRES_NEW`  | 无论当前存不存在事务，都创建新事务。（*如果当前在事务中，把当前事务挂起？待确认*）              |
-| `PROPAGATION_NOT_SUPPORTED` | 以非事务方式执行操作，如果当前存在事务，就把当前事务挂起                                     |
-|     `PROPAGATION_NEVER`     | 以非事务方式运行，如果当前存在事务，抛出异常                                                |
-|    `PROPAGATION_NESTED`     | 如果当前存在事务，则在嵌套事务内执行。如果当前没有事务，则执行 `REQUIRED` 类似的操作           |
+- `PROPAGATION_REQUIRED`：（默认值）如果当前没有事务，则新建一个事务；如果已经存在一个事务中，加入到这个事务中。如果嵌套调用的两个方法都加了事务注解，并且运行在相同线程中，则这两个方法使用相同的事务；如果运行在不同线程中，则会开启新的事务。
+- `PROPAGATION_SUPPORTS`：使用当前的事务；如果当前没有事务，就以非事务方式执行（没有事务）
+- `PROPAGATION_MANDATORY`：使用当前的事务；如果当前没有事务，就抛出异常`IllegalTransactionStateException`
+- `PROPAGATION_REQUIRES_NEW`：无论当前存不存在事务，都创建新事务。（*如果当前在事务中，把当前事务挂起？待确认*）需要使用 `JtaTransactionManager` 作为事务管理器。
+- `PROPAGATION_NOT_SUPPORTED`：总是以非事务方式执行操作；如果当前存在事务，则把当前事务挂起。需要使用 `JtaTransactionManager` 作为事务管理器。
+- `PROPAGATION_NEVER`：总是以非事务方式运行；如果当前存在事务，抛出异常
+- `PROPAGATION_NESTED`：如果当前存在事务，则在嵌套事务内执行；如果当前没有事务，则执行 `PROPAGATION_REQUIRED` 类似的操作。
 
 源码节选：
 
 ```java
-/* REQUIRED:如果当前没有事务，就新建一个事务，如果已经存在一个事务中，加入到这个事务中。一般的选择（默认值） */
-int PROPAGATION_REQUIRED = 0;
-/* SUPPORTS:支持当前事务，如果当前没有事务，就以非事务方式执行（没有事务） */
-int PROPAGATION_SUPPORTS = 1;
-/* MANDATORY：使用当前的事务，如果当前没有事务，就抛出异常 */
-int PROPAGATION_MANDATORY = 2;
-/* REQUERS_NEW:新建事务，如果当前在事务中，把当前事务挂起 */
-int PROPAGATION_REQUIRES_NEW = 3;
-/* NOT_SUPPORTED:以非事务方式执行操作，如果当前存在事务，就把当前事务挂起 */
-int PROPAGATION_NOT_SUPPORTED = 4;
-/* NEVER:以非事务方式运行，如果当前存在事务，抛出异常 */
-int PROPAGATION_NEVER = 5;
-/* NESTED:如果当前存在事务，则在嵌套事务内执行。如果当前没有事务，则执行REQUIRED类似的操作 */
-int PROPAGATION_NESTED = 6;
+public interface TransactionDefinition {
+    /* REQUIRED:如果当前没有事务，就新建一个事务，如果已经存在一个事务中，加入到这个事务中。一般的选择（默认值） */
+    int PROPAGATION_REQUIRED = 0;
+    /* SUPPORTS:支持当前事务，如果当前没有事务，就以非事务方式执行（没有事务） */
+    int PROPAGATION_SUPPORTS = 1;
+    /* MANDATORY：使用当前的事务，如果当前没有事务，就抛出异常 */
+    int PROPAGATION_MANDATORY = 2;
+    /* REQUERS_NEW:新建事务，如果当前在事务中，把当前事务挂起 */
+    int PROPAGATION_REQUIRES_NEW = 3;
+    /* NOT_SUPPORTED:以非事务方式执行操作，如果当前存在事务，就把当前事务挂起 */
+    int PROPAGATION_NOT_SUPPORTED = 4;
+    /* NEVER:以非事务方式运行，如果当前存在事务，抛出异常 */
+    int PROPAGATION_NEVER = 5;
+    /* NESTED:如果当前存在事务，则在嵌套事务内执行。如果当前没有事务，则执行REQUIRED类似的操作 */
+    int PROPAGATION_NESTED = 6;
+    // ...省略
+}
 ```
 
-#### 4.4.5. 事务的隔离级别（接口的常量属性）
+**`PROPAGATION_NESTED` 与 `PROPAGATION_REQUIRES_NEW` 的区别**:
+
+- 使用 `PROPAGATION_REQUIRES_NEW` 时，内层事务与外层事务是两个独立的事务。一旦内层事务进行了提交后，外层事务不能对其进行回滚。两个事务互不影响。
+- 使用 `PROPAGATION_NESTED` 时，外层事务的回滚可以引起内层事务的回滚。而内层事务的异常并不会导致外层事务的回滚，它是一个真正的嵌套事务。
+
+#### 5.4.5. 事务的隔离级别（接口的常量属性）
 
 事务隔离级别反映事务提交并发访问时的处理态度。Spring 有五大隔离级别，默认值为 `ISOLATION_DEFAULT`（使用数据库的设置），其他四个隔离级别和数据库的隔离级别一致：
 
-|         事务隔离级别          |                                                          说明                                                          |
-| :--------------------------: | --------------------------------------------------------------------------------------------------------------------- |
-|     `ISOLATION_DEFAULT`      | 事务的隔离级别默认值，当取值-1时，会采用下面的4个值其中一个。(使用底层数据库的设置隔离级别，不同数据库的默认隔离级别不一样)         |
-| `ISOLATION_READ_UNCOMMITTED` | 事务隔离级别为：读未提交。执行效率最高，但什么错误情况也无法避免                                                             |
-|  `ISOLATION_READ_COMMITTED`  | 事务隔离级别为：读已提交。可以防止脏读的发生，但是无法防止不可重复读和幻读的发生(Oracle默认级别)                                |
+|          事务隔离级别          |                                                      说明                                                       |
+| :--------------------------: | --------------------------------------------------------------------------------------------------------------- |
+|     `ISOLATION_DEFAULT`      | 事务的隔离级别默认值，当取值-1时，会采用下面的4个值其中一个。(使用底层数据库的设置隔离级别，不同数据库的默认隔离级别不一样)        |
+| `ISOLATION_READ_UNCOMMITTED` | 事务隔离级别为：读未提交。执行效率最高，但什么错误情况也无法避免                                                          |
+|  `ISOLATION_READ_COMMITTED`  | 事务隔离级别为：读已提交。可以防止脏读的发生，但是无法防止不可重复读和幻读的发生(Oracle默认级别)                              |
 | `ISOLATION_REPEATABLE_READ`  | 事务隔离级别为：可重复读（是否读取其他事务提交修改后的数据）。可以防止脏读和不可重复读的发生，但是无法防住幻读的发生(MySQL默认级别) |
-|   `ISOLATION_SERIALIZABLE`   | 事务隔离级别为：串行化。此时所有错误情况均可防止，但是由于事务变成了独占模式（排他模式），因此效率最低                            |
+|   `ISOLATION_SERIALIZABLE`   | 事务隔离级别为：串行化。此时所有错误情况均可防止，但是由于事务变成了独占模式（排他模式），因此效率最低                           |
 
-#### 4.4.6. 超时时间
+源码节选：
+
+```java
+public interface TransactionDefinition {
+
+    int ISOLATION_DEFAULT = -1;
+    int ISOLATION_READ_UNCOMMITTED = 1;
+    int ISOLATION_READ_COMMITTED = 2;
+    int ISOLATION_REPEATABLE_READ = 4;
+    int ISOLATION_SERIALIZABLE = 8;
+    // ...省略
+}
+```
+
+#### 5.4.6. 超时时间
 
 <font color=red>**默认值是-1，没有超时限制**</font>。如果有，以秒为单位进行设置
 
@@ -1098,16 +1121,16 @@ int PROPAGATION_NESTED = 6;
 int TIMEOUT_DEFAULT = -1;
 ```
 
-#### 4.4.7. 是否是只读事务
+#### 5.4.7. 是否是只读事务
 
 建议<font color=red>**查询时设置为只读**</font>。属性`Reonly`，取值如下：
 
 - `true`：只读，只用于查询
 - `false`：不只读，用于增删改
 
-### 4.5. TransactionStatus 接口
+### 5.5. TransactionStatus 接口
 
-#### 4.5.1. 接口作用
+#### 5.5.1. 接口作用
 
 `org.springframework.transaction.TransactionStatus` 接口是事务运行状态表示的顶层接口，里面定义着获取事务运行状态的一些方法。包含有6个具体的操作
 
@@ -1115,11 +1138,11 @@ int TIMEOUT_DEFAULT = -1;
 public interface TransactionStatus extends TransactionExecution, SavepointManager, Flushable
 ```
 
-#### 4.5.2. 类视图
+#### 5.5.2. 类视图
 
 ![](images/20200915170802906_28440.png)
 
-#### 4.5.3. 接口主要方法说明
+#### 5.5.3. 接口主要方法说明
 
 - 是否一个新的事务
 

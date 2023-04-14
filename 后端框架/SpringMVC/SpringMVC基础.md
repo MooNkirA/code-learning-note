@@ -1,8 +1,6 @@
-# Spring MVC 基础
+## 1. Spring MVC 框架介绍
 
 > 最新官方文档：https://docs.spring.io/spring-framework/docs/current/reference/html/web.html#spring-web
-
-## 1. Spring MVC 框架介绍
 
 ### 1.1. 概述
 
@@ -16,14 +14,45 @@ Spring Web MVC 是基于 Servlet API 上， MVC 的表现层的 Web 框架，用
 
 ### 1.2. MVC 是什么(b/s 系统)
 
-mvc 是一种设计模式。模型（model） -> 视图（view） -> 控制器（controller），三层架构设计模式，主要用于实现前端页面的展现和后端业务数据处理逻辑分离
+MVC 是一种设计模式。模型（model） -> 视图（view） -> 控制器（controller），三层架构设计模式，主要用于实现前端页面的展现和后端业务数据处理逻辑分离
 
-mvc 设计模式的优点：
+- View，视图是指用户看到并与之交互的界面。比如由 html 元素组成的网页界面，或者软件的客户端界面。MVC的好处之一在于它能为应用程序处理很多不同的视图。在视图中其实没有真正的处理发生，它只是作为一种输出数据并允许用户操纵的方式。
+- model，模型是指模型表示业务规则。在 MVC 的三个部件中，模型拥有最多的处理任务。被模型返回的数据是中立的，模型与数据格式无关，这样一个模型能为多个视图提供数据，由于应用于模型的代码只需写一次就可以被多个视图重用，所以减少了代码的重复性。
+- controller，控制器是指控制器接受用户的输入并调用模型和视图去完成用户的需求，控制器本身不输出任何东西和做任何处理。它只是接收请求并决定调用哪个模型构件去处理请求，然后再确定用哪个视图来显示返回的数据。
+
+MVC 设计模式的优点：
 
 1. 它是分层架构的设计，实现业务系统各个组件之间的解耦
 2. 有利于系统的可扩展性，可维护性
 3. 有利于实现系统的并行开发，提升开发效率
 
+### 1.3. SpringMVC 优点
+
+1. 与 Spring 集成使用非常方便，生态好。
+2. 配置简单，快速上手。
+3. 支持 RESTful 风格。
+4. 支持各种视图技术，支持各种请求资源映射策略。
+
+### 1.4. Spring MVC 与 struts2 的区别
+
+**相同点**：都是基于 mvc 的表现层框架，都用于 web 项目的开发
+
+**不同点**：
+
+1. 前端控制器不一样。
+   - SpringMVC 的前端控制器是 servlet（DispatcherServlet）
+   - struts2 的前端控制器是 filter（StrutsPrepareAndExecutorFilter）
+2. 请求参数接收方式不一样。
+   - SpringMVC 是使用方法的形参接收请求的参数，基于方法的开发，线程安全，可以设计为单例或者多例模式的开发，推荐使用单例模式的开发，执行效率会更高（默认就是单例模式开发）。
+   - strut2 是使用类的成员变量来接收请求的参数数据，基于类的开发，是线程不安全的，只能设计为多例模式的开发。
+   - 原因：springmvc 传递参数操作的是方法的形参，多个线程操作不会影响到另一个线程。但 strut2 传递封装参数操作的是成员变量，但一个线程改变了变量的值，会影响到另一个线程的操作时变量的值。所以会出现线程不安全的问题，所以 struts2 框架的 action 都是设计成单例模式
+3. 开发的方式不同
+   - Springmvc 基于方法开发的。springmvc 将 url 和 controller 里的方法映射。映射成功后 springmvc 生成一个 Handler 对象，对象中只包括了一个 method。方法执行结束，形参数据销毁。springmvc 的 controller 开发类似 web service 开发。
+   - Struts2 基于类开发的。
+4. 与 Spring 整合不一样。SpringMVC 框架本身就是 spring 框架的一部分，不需要整合。
+5. 加载速度不相同。Struts 处理速度稍微比 SpringMVC 慢，因为 Struts 使用了自己的标签，加载数据较慢。
+6. SpringMVC 支持单例开发模式，而 Struts 只能使用多例。Struts 由于只能通过类的成员变量接收参数，故只能使用多例。
+    
 ## 2. Spring MVC 入门程序（基于 xml 配置）
 
 ### 2.1. 编写入门程序步骤
@@ -2922,160 +2951,9 @@ public ViewResolver viewResolver() {
 }
 ```
 
-# SpringMVC 其他扩展知识整理
+## 11. 对于 Restful 风格支持
 
-## 1. 名词解释
-
-### 1.1. XxxVo 包装类
-
-以 Vo 结尾的类，一般用于封装值的实体类。(Vo:value Object)
-
-### 1.2. 相对路径与绝对路径
-
-当前路径：http://127.0.0.1:8080/ssm/user/login.do
-
-1. 不加斜杠是相对路径，相对于当前路径，下一步访问的路径：`http://127.0.0.1:8080/ssm/user/+目标url`
-2. 加上斜杠是绝对路径，下一步访问的路径：`http://127.0.0.1:8080/ssm/+目标url`
-
-## 2. Spring MVC 与 struts2 的区别
-
-**相同点**：都是基于 mvc 的表现层框架，都用于 web 项目的开发
-
-**不同点**：
-
-1. 前端控制器不一样。
-   - springmvc 的前端控制器是 servlet（DispatcherServlet）
-   - struts2 的前端控制器是 filter（StrutsPrepareAndExecutorFilter）
-2. 请求参数接收方式不一样。
-   - springmvc 是使用方法的形参接收请求的参数，基于方法的开发，线程安全，可以设计为单例或者多例模式的开发，推荐使用单例模式的开发，执行效率会更高（默认就是单例模式开发）。
-   - strut2 是使用类的成员变量来接收请求的参数数据，基于类的开发，是线程不安全的，只能设计为多例模式的开发。
-   - 原因：springmvc 传递参数操作的是方法的形参，多个线程操作不会影响到另一个线程。但 strut2 传递封装参数操作的是成员变量，但一个线程改变了变量的值，会影响到另一个线程的操作时变量的值。所以会出现线程不安全的问题，所以 struts2 框架的 action 都是设计成单例模式
-3. 开发的方式不同
-   - springmvc 基于方法开发的。springmvc 将 url 和 controller 里的方法映射。映射成功后 springmvc 生成一个 Handler 对象，对象中只包括了一个 method。方法执行结束，形参数据销毁。springmvc 的 controller 开发类似 web service 开发。
-   - struts2 基于类开发的。
-4. 与 spring 整合不一样。
-   - springmvc 框架本身就是 spring 框架的一部分，不需要整合。
-
-## 3. Tomcat 服务中文参数传递乱码解决
-
-传递对象后有可能出现的问题：中文乱码的原因是因为使用的 tomcat 服务器，它的默认字符集编码是 ISO-8859-1，不支持中文。
-
-![](images/583854714220571.png)
-
-### 3.1. POST 请求 - 解决中文乱码
-
-Spring 提供了一个字符集编码的过滤器(`CharacterEncodingFilter`)，解决 post 请求的中文乱码，它实质相当于一个拦截器
-
-只需要在 web.xml 中配置即可使用，使用 `<filter>` 标签
-
-```xml
-<!-- !配置字符集编码过滤器  -->
-<filter>
-	<filter-name>characterEncodingFilter</filter-name>
-	<filter-class>org.springframework.web.filter.CharacterEncodingFilter</filter-class>
-
-	<!-- 配置指定的编码-->
-	<init-param>
-		<param-name>encoding</param-name>
-		<param-value>UTF-8</param-value>
-	</init-param>
-</filter>
-
-<!-- 配置拦截的请求url -->
-<filter-mapping>
-	<filter-name>characterEncodingFilter</filter-name>
-	<!-- 配置所有请求都经过字符集编码过滤器处理 -->
-	<url-pattern>/*</url-pattern>
-</filter-mapping>
-```
-
-配置后解决 post 请求的中文乱码问题
-
-![](images/566465414238997.png)
-
-### 3.2. GET 请求 - 解决中文乱码
-
-测试 get 请求方式中文参数乱码
-
-![](images/264325714226864.png)
-
-或者请求 url 带中文
-
-```
-localhost:8080/ssm/queryItem.do?item.name=中文乱码哦!
-```
-
-测试结果
-
-![](images/152265814239699.png)
-
-#### 3.2.1. 解决方式 1
-
-对请求参数进行重新编码。ISO8859-1 是 tomcat 默认编码，需要将 tomcat 编码后的内容按 utf-8 编码。修改出现乱码的控制方法
-
-```java
-@RequestMapping("/queryItem.do")
-public String queryItem(Model model, QueryVo queryVo) {
-	// 解决get请求中文乱码方式1：解码再编码
-	try {
-		if (queryVo != null && queryVo.getItem() != null) {
-			// 1.获取参数数据
-			String name = queryVo.getItem().getName();
-			// 2.将数据按ISO-8859-1获取字节数组
-			byte[] bytes = name.getBytes("ISO-8859-1");
-			// 3.将字节数组使用UTF-8重新编码
-			name = new String(bytes, "UTF-8");
-			// 4.将编码后的数据重新设置到对象中
-			queryVo.getItem().setName(name);
-		}
-	} catch (Exception e) {
-		e.printStackTrace();
-	}
-	// =========解决end==========
-		....省略
-}
-```
-
-> 这种方式显然不可取，重复编码
-
-#### 3.2.2. 解决方式 2
-
-项目开发阶段，可以修改 maven 中 pom.xml，tomcat 插件的配置
-
-```xml
-<!-- 设置maven tomcat插件 -->
-<plugin>
-	<groupId>org.apache.tomcat.maven</groupId>
-	<artifactId>tomcat7-maven-plugin</artifactId>
-	<version>2.2</version>
-	<configuration>
-		<!-- 指定端口号 -->
-		<port>8080</port>
-		<!-- 指定请求路径 -->
-		<path>/ssm</path>
-		<!-- URL按UTF-8进行编码，解决中文参数乱码 -->
-		<uriEncoding>UTF-8</uriEncoding>
-		<!-- tomcat名称 -->
-		<server>tomcat7</server>
-	</configuration>
-</plugin>
-```
-
-项目部署阶段，需要修改 tomcat 配置文件，添加编码与工程编码一致
-
-![](images/58050315236254.png)
-
-```xml
-...
-<Connector URIEncoding="UTF-8" port="8080" protocol="HTTP/1.1"
-               connectionTimeout="20000"
-               redirectPort="8443" />
-...
-```
-
-## 4. 对于 Restful 风格支持
-
-### 4.1. Restful 风格简述
+### 11.1. Restful 风格简述
 
 restful，它是一种软件设计风格，指的是表现层资源的状态转换（Representational state transfer）。互联网上的一切都可以看成是资源，比如一张图片，一部电影。restful 根据 HTTP 请求方法：POST/GET/PUT/DELETE，定义了资源的操作方法：新增/查询/修改/删除。这样有什么好处呢？好处是使得请求的 URL 更加简洁
 
@@ -3101,11 +2979,11 @@ http://127.0.0.1:8080/springmvc-03/item		新增/修改
 2. restful 指的是表现层资源状态转换，是根据 http 的请求方法：post/get/put/delete，定义了资源的：新增/查询/修改/删除操作
 3. 使用 restful 的优点是使得请求的 url 更加简洁，更加优雅。
 
-### 4.2. restful 的使用示例
+### 11.2. restful 的使用示例
 
 需求：使用 restful 风格实现根据商品 id 查询数据
 
-#### 4.2.1. 项目配置
+#### 11.2.1. 项目配置
 
 修改项目 web.xml 配置中的 `<servlet-mapping>` 标签
 
@@ -3125,20 +3003,21 @@ http://127.0.0.1:8080/springmvc-03/item		新增/修改
 </servlet-mapping>
 ```
 
-#### 4.2.2. 修改请求控制器的 url
+#### 11.2.2. 修改请求控制器的 url
 
 使用 Reatful 风格的 url，需要配置 `@PathVariable` 注解来使用。
 
 - 作用：把路径变量的值，绑定到方法到形参上。
 - 路径变量格式：`{变量名}`，路径变量（模版参数），用于使用 restful 风格时传递提交参数
-- 注解写法：
-  > ```java
-  > @PathVariable(name="变量名")
-  > @PathVariable(value="变量名")
-  > @PathVariable("变量名")
-  > // 以下写法的前提是：路径变量的名称，与方法的形参名称一致
-  > @PathVariable
-  > ```
+- 注解示例写法：
+
+```java
+@PathVariable(name="变量名")
+@PathVariable(value="变量名")
+@PathVariable("变量名")
+// 以下写法的前提是：路径变量的名称，与方法的形参名称一致
+@PathVariable
+```
 
 测试 restful 风格请求
 
@@ -3198,9 +3077,9 @@ public String testRestfulDelete(@PathVariable Integer id) {
 
 > 注：更多 `@PathVariable` 注解的说明，详见[《Spring MVC 注解汇总.md》文档](/后端框架/SpringMVC/SpringMVC注解汇总)
 
-## 5. 扩展：方法参数名获取
+## 12. 扩展：方法参数名获取
 
-### 5.1. 正常编译反射获取方法名
+### 12.1. 正常编译反射获取方法名
 
 在 src 以外目录，准备一个类和一个接口用于测试。（*注：不在放在 src 目录是避免 idea 自动编译它下面的类*）
 
@@ -3295,7 +3174,7 @@ int arg1
 
 正常编译后反射是无法获取真正的方法参数名称，需要通过以下两种方式：
 
-### 5.2. 生成参数表
+### 12.2. 生成参数表
 
 如果编译时添加了 `-parameters` 参数，可以生成参数表，通过反射就可以拿到方法参数名（<font color=red>**注：这种方式对象类与接口都同样有效**</font>）
 
@@ -3365,13 +3244,13 @@ java.lang.String name
 int age
 ```
 
-### 5.3. 生成调试信息
+### 12.3. 生成调试信息
 
 如果编译时添加了 `-g` 参数，可以生成调试信息，但分为以下两种情况：
 
 > <font color=red>**注：大部分 IDE 编译时都会自动加 `-g` 参数**</font>
 
-#### 5.3.1. 普通类
+#### 12.3.1. 普通类
 
 对于普通类，使用 `-g` 参数编译，会包含局部变量表，用 asm 技术可以拿到方法参数名
 
@@ -3467,7 +3346,7 @@ public void testGetMethodArgumentName2() throws Exception {
 }
 ```
 
-#### 5.3.2. 接口
+#### 12.3.2. 接口
 
 对于接口，使用 `-g` 参数编译，不会包含局部变量表，无法获取方法参数名。<font color=purple>**扩展：这也是 MyBatis 在实现 Mapper 接口时为何要提供 `@Param` 注解来辅助获得参数名**</font>
 
@@ -3499,4 +3378,136 @@ Constant pool:
     flags: ACC_PUBLIC, ACC_ABSTRACT
 }
 SourceFile: "Bean2.java"
+```
+
+## 13. SpringMVC 其他扩展知识整理
+
+### 13.1. SpringMVC 相关名词解释
+
+#### 13.1.1. XxxVo 包装类
+
+以 Vo 结尾的类，一般用于封装值的实体类。(Vo:value Object)
+
+#### 13.1.2. 相对路径与绝对路径
+
+当前路径：http://127.0.0.1:8080/ssm/user/login.do
+
+1. 不加斜杠是相对路径，相对于当前路径，下一步访问的路径：`http://127.0.0.1:8080/ssm/user/+目标url`
+2. 加上斜杠是绝对路径，下一步访问的路径：`http://127.0.0.1:8080/ssm/+目标url`
+
+### 13.2. Tomcat 服务中文参数传递乱码解决
+
+传递对象后有可能出现的问题：中文乱码的原因是因为使用的 tomcat 服务器，它的默认字符集编码是 ISO-8859-1，不支持中文。
+
+![](images/583854714220571.png)
+
+#### 13.2.1. POST 请求 - 解决中文乱码
+
+Spring 提供了一个字符集编码的过滤器(`CharacterEncodingFilter`)，解决 post 请求的中文乱码，它实质相当于一个拦截器
+
+只需要在 web.xml 中配置即可使用，使用 `<filter>` 标签
+
+```xml
+<!-- !配置字符集编码过滤器  -->
+<filter>
+	<filter-name>characterEncodingFilter</filter-name>
+	<filter-class>org.springframework.web.filter.CharacterEncodingFilter</filter-class>
+
+	<!-- 配置指定的编码-->
+	<init-param>
+		<param-name>encoding</param-name>
+		<param-value>UTF-8</param-value>
+	</init-param>
+</filter>
+
+<!-- 配置拦截的请求url -->
+<filter-mapping>
+	<filter-name>characterEncodingFilter</filter-name>
+	<!-- 配置所有请求都经过字符集编码过滤器处理 -->
+	<url-pattern>/*</url-pattern>
+</filter-mapping>
+```
+
+配置后解决 post 请求的中文乱码问题
+
+![](images/566465414238997.png)
+
+#### 13.2.2. GET 请求 - 解决中文乱码
+
+测试 get 请求方式中文参数乱码
+
+![](images/264325714226864.png)
+
+或者请求 url 带中文
+
+```
+localhost:8080/ssm/queryItem.do?item.name=中文乱码哦!
+```
+
+测试结果
+
+![](images/152265814239699.png)
+
+##### 13.2.2.1. 解决方式 1
+
+对请求参数进行重新编码。ISO8859-1 是 tomcat 默认编码，需要将 tomcat 编码后的内容按 utf-8 编码。修改出现乱码的控制方法
+
+```java
+@RequestMapping("/queryItem.do")
+public String queryItem(Model model, QueryVo queryVo) {
+	// 解决get请求中文乱码方式1：解码再编码
+	try {
+		if (queryVo != null && queryVo.getItem() != null) {
+			// 1.获取参数数据
+			String name = queryVo.getItem().getName();
+			// 2.将数据按ISO-8859-1获取字节数组
+			byte[] bytes = name.getBytes("ISO-8859-1");
+			// 3.将字节数组使用UTF-8重新编码
+			name = new String(bytes, "UTF-8");
+			// 4.将编码后的数据重新设置到对象中
+			queryVo.getItem().setName(name);
+		}
+	} catch (Exception e) {
+		e.printStackTrace();
+	}
+	// =========解决end==========
+		....省略
+}
+```
+
+> 这种方式显然不可取，重复编码
+
+##### 13.2.2.2. 解决方式 2
+
+项目开发阶段，可以修改 maven 中 pom.xml，tomcat 插件的配置
+
+```xml
+<!-- 设置maven tomcat插件 -->
+<plugin>
+	<groupId>org.apache.tomcat.maven</groupId>
+	<artifactId>tomcat7-maven-plugin</artifactId>
+	<version>2.2</version>
+	<configuration>
+		<!-- 指定端口号 -->
+		<port>8080</port>
+		<!-- 指定请求路径 -->
+		<path>/ssm</path>
+		<!-- URL按UTF-8进行编码，解决中文参数乱码 -->
+		<uriEncoding>UTF-8</uriEncoding>
+		<!-- tomcat名称 -->
+		<server>tomcat7</server>
+	</configuration>
+</plugin>
+```
+
+项目部署阶段，需要修改 tomcat 配置文件，添加编码与工程编码一致
+
+![](images/58050315236254.png)
+
+```xml
+...
+<Connector URIEncoding="UTF-8" port="8080" protocol="HTTP/1.1"
+               connectionTimeout="20000"
+               redirectPort="8443" />
+...
 ```

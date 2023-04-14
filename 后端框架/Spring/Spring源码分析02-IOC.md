@@ -2643,7 +2643,7 @@ protected Object initializeBean(final String beanName, final Object bean, @Nulla
 
 #### 3.9.1. 循环依赖流程图
 
-循环依赖参照流程图（引用其他资料。）<font color="red">有时间自己再重新整理</font>
+> TODO: 循环依赖参照流程图（引用其他资料。）<font color="red">有时间自己再重新整理</font>
 
 ![](images/20200531165112369_24084.png)
 
@@ -2746,7 +2746,7 @@ protected void addSingletonFactory(String beanName, ObjectFactory<?> singletonFa
 
 > *注：其实`singletonFactories`（三级缓存）在多次的循环依赖情况下，只会触发一次就会被删除，将实例放到`earlySingletonObjects`（二级缓存）中*
 
-#### 3.9.5. 有参构造函数的`@Autowired`循环依赖
+#### 3.9.5. 有参构造函数的 @Autowired 循环依赖
 
 1. 创建A类的实例是在方法 `createBeanInstance(beanName, mbd, args)` 中通过无参或标识`@Autowired`注解的有参构造函数实例化进行的
 2. 如果A类的有参构造函数的参数是引用类型B类，创建当前实例的时候，就是触发B类的`getBean`实例化操作。
