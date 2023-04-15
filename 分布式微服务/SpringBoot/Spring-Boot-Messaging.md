@@ -1,8 +1,10 @@
-# Spring Boot 消息系统
+## 1. Spring Boot 整合消息系统
+
+### 1.1. 概述
 
 Spring Boot 为集成消息系统提供了广泛的支持，从使用 JmsTemplate 简化 JMS API 的使用到异步接收消息的完整基础设施。Spring AMQP 为高级消息队列协议提供了一个类似的功能集。Spring Boot 还为 RabbitTemplate 和 RabbitMQ 提供了自动配置选项。Spring WebSocket 原生包括对 STOMP 消息传递的支持，Spring Boot 通过启动器和少量的自动配置对其进行支持。Spring Boot 还支持 Apache Kafka
 
-## 1. Java处理消息的标准规范概述
+### 1.2. Java 处理消息的标准规范概述
 
 > 此部分内容详见[《消息中间件》笔记](/分布式微服务/分布式消息中件间/消息中间件)
 
@@ -749,3 +751,16 @@ public class MessageListener {
 启动工程与 Kafka 服务，在浏览器访问 http://localhost/order/S1838323
 
 观察项目控制台日志输出，会输出相关消息相关的日志
+
+## 6. Spring Boot 整合消息系统总结
+
+#### 6.1.1. Spring 消息模型编程模板总结
+
+下表是 Spring Boot 整合不同消息中间件产品时，使用的**消息生产者模板**与**消费监听者**对象汇总：
+
+|   消息中间件类型    |  生产者 Template  |     消费者 Listener      |
+| :--------------: | :--------------: | :---------------------: |
+| ActiveMQ/Artemis |   JmsTemplate    |       JmsListener       |
+|     RabbitMQ     |   AmqpTemplate   |     RabbitListener      |
+|     RocketMQ     | RocketMQTemplate | RocketMQMessageListener |
+|      Kafka       |  KafkaTemplate   |      KafkaListener      |

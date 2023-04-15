@@ -1,9 +1,3 @@
-# Spring 核心功能笔记
-
-> - Spring 框架：https://spring.io/projects/spring-framework
-> - Spring 最新版本文档：https://docs.spring.io/spring-framework/docs/current/reference/html/
-> - Spring 5.2.x 官方参考文档：https://docs.spring.io/spring-framework/docs/5.2.12.RELEASE/spring-framework-reference/
-
 ## 1. Spring 概述
 
 Spring 是一个开放源代码的设计层面框架。Spring 是分层的 Java SE/EE 应用 full-stack 轻量级开源框架，<font color=red>**以 IoC（Inverse Of Control：反转控制）和 AOP（Aspect Oriented Programming：面向切面编程）为内核**</font>，提供了展现层 SpringMVC 和持久层 Spring JDBC 以及业务层事务管理等众多的企业级应用技术，还能整合开源世界众多著名的第三方框架和类库，逐渐成为使用最多的 Java EE 企业应用开源框架。
@@ -14,6 +8,10 @@ spring 是一站式框架
 - web 层：springMVC
 - service 层：spring 的 ioc
 - dao 层：spring 的 jdbcTemplate
+
+> - Spring 框架：https://spring.io/projects/spring-framework
+> - Spring 最新版本文档：https://docs.spring.io/spring-framework/docs/current/reference/html/
+> - Spring 5.2.x 官方参考文档：https://docs.spring.io/spring-framework/docs/5.2.12.RELEASE/spring-framework-reference/
 
 ### 1.1. 工厂模式
 
@@ -1418,24 +1416,39 @@ OrdinaryBean 构造方法执行了...
 
 <font color=red>**注：`BeanPostProcessor` 对 IOC 容器中所有组件（对象）都生效**</font>
 
+### 6.7. Bean 的生命周期总结（流程图）
+
+![](images/412481317230447.png)
+
+1. 调用 bean 的构造方法创建 Bean
+2. 通过反射调用 setter 方法进行属性的依赖注入
+3. 如果 Bean实 现了 `BeanNameAware` 接口，Spring 将调用 `setBeanName()`，设置 Bean 的 name（xml 文件中 bean 标签的 id）
+4. 如果 Bean 实现了 `BeanFactoryAware` 接口，Spring 将调用 `setBeanFactory()` 把 BeanFactory 实例设置给 Bean
+5. 如果 Bean 实现了 `ApplicationContextAware` 接口，Spring 容器将调用 `setApplicationContext()` 给 Bean 设置 ApplictionContext
+6. 如果存在 `BeanPostProcessor`，Spring 将调用它们的 `postProcessBeforeInitialization`（预初始化）方法，在 Bean 初始化前对其进行处理
+7. 如果 Bean 实现了 `InitializingBean` 接口，Spring 将调用它的 `afterPropertiesSet` 方法，然后调用 xml 定义的 `init-method` 方法，两个方法作用类似，都是在初始化 Bean 的时候执行
+8. 如果存在 `BeanPostProcessor`，Spring 将调用它们的 `postProcessAfterInitialization`（后初始化）方法，在 Bean 初始化后对其进行处理
+9. Bean 初始化完成，供应用使用，直到应用被销毁
+10. 如果 Bean 实现了 `DisposableBean` 接口，Spring 将调用它的 `destory` 方法，然后调用在 xml 中定义的 `destory-method` 方法，这两个方法作用类似，都是在 Bean 实例销毁前执行
+
 ## 7. Spring Bean 的 Aware 接口
 
 Spring 框架提供了一系列的以 Aware 结尾的回调接口，可以让 Bean 注入相关 Spring 框架的功能依赖，一般名称表示依赖关系的类型。下表是 Spring 一些常用比较重要的 Aware 接口清单
 
-| Name                             | Injected Dependency                                                                     |
-| :------------------------------- | :-------------------------------------------------------------------------------------- |
-| `ApplicationContextAware`        | 注入 `ApplicationContext` 容器                                                           |
-| `ApplicationEventPublisherAware` | 注入 `ApplicationContext` 的事件发布者                                                   |
-| `BeanClassLoaderAware`           | 获取用于加载 Bean 类的类加载器                                                            |
-| `BeanFactoryAware`               | 注入 `BeanFactory` 工厂                                                                  |
-| `BeanNameAware`                  | 获取当前 Bean 在容器中的名称                                                              |
-| `LoadTimeWeaverAware`            | 用于在加载时处理类定义                                                                    |
-| `MessageSourceAware`             | 注入配置了用于解析消息的策略（支持参数化和国际化）                                         |
-| `NotificationPublisherAware`     | 注入 Spring JMX 通知发布器                                                               |
-| `ResourceLoaderAware`            | 获取低级别的资源访问的加载器                                                              |
+| Name                             | Injected Dependency                                                                 |
+| :------------------------------- | :---------------------------------------------------------------------------------- |
+| `ApplicationContextAware`        | 注入 `ApplicationContext` 容器                                                       |
+| `ApplicationEventPublisherAware` | 注入 `ApplicationContext` 的事件发布者                                                 |
+| `BeanClassLoaderAware`           | 获取用于加载 Bean 类的类加载器                                                          |
+| `BeanFactoryAware`               | 注入 `BeanFactory` 工厂                                                              |
+| `BeanNameAware`                  | 获取当前 Bean 在容器中的名称                                                            |
+| `LoadTimeWeaverAware`            | 用于在加载时处理类定义                                                                  |
+| `MessageSourceAware`             | 注入配置了用于解析消息的策略（支持参数化和国际化）                                          |
+| `NotificationPublisherAware`     | 注入 Spring JMX 通知发布器                                                            |
+| `ResourceLoaderAware`            | 获取低级别的资源访问的加载器                                                             |
 | `ServletConfigAware`             | 获取容器运行的当前 `ServletConfig`。仅在 Web 环境的 Spring `ApplicationContext` 中有效    |
 | `ServletContextAware`            | 获取容器所运行的当前 `ServletContext`。仅在 Web 环境的 Spring `ApplicationContext` 中有效 |
-| `EmbeddedValueResolverAware`     | 注入 `${}` 表达式解析器                                                                  |
+| `EmbeddedValueResolverAware`     | 注入 `${}` 表达式解析器                                                                |
 
 以上所有接口的用法都一样，实现相应的接口，在容器某个时间点会执行该接口的回调方法，然后实现类可以在此回调方法中获取到相应的 Spring 框架功能的对象引用，从而进行功能处理
 
@@ -1839,6 +1852,15 @@ public void TestBeanPostProcessorOrder() {
 ```
 
 ### 8.2. BeanFactoryPostProcessor 接口
+
+```java
+@FunctionalInterface
+public interface BeanFactoryPostProcessor {
+
+	void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException;
+
+}
+```
 
 与 `BeanPostProcessor` 一样，`BeanFactoryPostProcessor` 接口也是用于容器功能的扩展，可以创建一个或多个自定义 `BeanFactoryPostProcessor` 实现，并且可以通过 `PriorityOrdered`、`Ordered` 接口与 `@Order` 注解来设置实例的运行顺序（*使用参考 `BeanPostProcessor` 章节*）
 
@@ -2284,11 +2306,13 @@ public void test1() {
 
 ## 9. BeanFactory
 
+### 9.1. 概述
+
 BeanFactory API 为 Spring 的 IoC 功能提供了底层基础。`BeanFactory` 及其相关的接口，例如：`BeanFactoryAware`，`InitializingBean`，`DisposableBean`，仍在 Spring 中保留，目的就是为了让大量的第三方框架和 Spring 集成时保持向后兼容。
 
-`BeanFactory` 表面上只有 getBean 方法，实际上控制反转、基本的依赖注入、直至 Bean 的生命周期的各种功能，都由它的实现类提供。Spring 大量使用了 `BeanPostProcessor` 后置处理器去扩展功能（以便使用代理等）。如果仅仅只使用简单的 `BeanFactory` 接口，很多的支持功能将不会有效
+`BeanFactory` 表面上只有 `getBean` 方法，实际上控制反转、基本的依赖注入、直至 Bean 的生命周期的各种功能，都由它的实现类提供。Spring 大量使用了 `BeanPostProcessor` 后置处理器去扩展功能（以便使用代理等）。如果仅仅只使用简单的 `BeanFactory` 接口，很多的支持功能将不会有效
 
-示例如下：
+### 9.2. 使用示例
 
 ```java
 @Test
@@ -2345,6 +2369,15 @@ public void test() {
 
 - `BeanPostProcessor`：解析 `@Bean`、`@ComponentScan` 等注解
 - `BeanFactoryPostProcessor`：解析 `@Autowired`、`@Resource` 等注解，并其添加到容器的顺序也影响到解析结果
+
+### 9.3. BeanFactory 和 FactoryBean 的区别（面试题）
+
+- `BeanFactory`：管理 Bean 的容器，Spring 中生成的 Bean 相关方法都是由这个接口来定义与管理的。
+- `FactoryBean`：是用来由开发者来自定义创建比较复杂的 bean。一般的 bean 可以直接用 xml 或者注解配置，但如果一个 bean 的创建过程中涉及到很多其他的 bean 和复杂的逻辑，传统的配置方式比较麻烦，这时可以考虑使用 `FactoryBean` 并且可以隐藏实例化复杂 Bean 的细节。
+
+当配置文件中 `<bean>` 标签的 `class` 属性配置的实现类是 `FactoryBean`，或者在 `FactoryBean` 接口的实现类中标识 `@Component` 等注解时，此时通过 `getBean()` 方法返回的不是 `FactoryBean` 类本身，而是调用 `FactoryBean#getObject()` 方法所返回的对象（相当于 `getObject()` 代理了 `getBean()` 方法）。如果想得到 FactoryBean 实例本身，必须使用名称为 `'&' + beanName` 的方式获取。
+
+
 
 ## 10. ApplicationContext
 
@@ -3308,15 +3341,13 @@ Spring 提供的 `UrlResource` 实现类用于访问文件系统路径下的资�
 Resource resource = new FileSystemResource("c:/code/demo.txt");
 ```
 
-# 整合中内容
+## 13. （！待整理整合的内容）基于 XML 的 IOC 配置（已过时）
 
-## 1. （！待整理）基于 XML 的 IOC 配置（已过时）
-
-### 1.1. bean 标签
+### 13.1. bean 标签
 
 `<bean>` 标签是用于配置对象让 spring 来创建。**默认情况下它调用的是类中的无参构造方法**，如果没有无参构造方法则不能创建并抛出异常。
 
-#### 1.1.1. bean 标签的属性
+#### 13.1.1. bean 标签的属性
 
 有两个 `init-method` 和 `destroy-method` 重要的属性，该属性可以自定义初始化和注销方法。与其相同作用的的注解是 `@PostConstruct` 和 `@PreDestroy`。
 
@@ -3324,11 +3355,11 @@ Resource resource = new FileSystemResource("c:/code/demo.txt");
 <bean id="" class="" init-method="初始化方法" destroy-method="销毁方法"/>
 ```
 
-## 2. （！整理中）基于注解的 IOC 配置
+## 14. （！待整理整合的内容）基于注解的 IOC 配置
 
 注解配置和 xml 配置要实现的功能都是一样的，都是要降低程序间的耦合。只是配置的形式不一样。根据不同公司的使用习惯，两种配置方式都有可能使用。
 
-### 2.1. 关于注解和 XML 的配置选择问题
+### 14.1. 关于注解和 XML 的配置选择问题
 
 - 注解的优势：配置简单，维护方便（找到类，就相当于找到了对应的配置）
 - XML 的优势：修改时，不用改源码。不涉及重新编译和部署 

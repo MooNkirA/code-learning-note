@@ -588,19 +588,28 @@ public class ConfigurationTest {
 
 ### 2.2. 相关属性
 
-|        属性名         |                                               作用                                               |                                                               取值                                                                |
-| :------------------: | ----------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
-|       `value`        | 用于指定要扫描的包。当指定了包的名称之后，spring会扫描指定的包及其子包下的所有类                               |                                                                                                                                  |
-|    `basePackages`    | 与value作用一样                                                                                   |                                                                                                                                  |
-| `basePackageClasses` | 指定具体要扫描的类的字节码，spring会扫描指定字节码的类所在的包及其子包下的所有类。                             |                                                                                                                                  |
-|    `nameGenrator`    | 指定扫描bean对象存入容器时的命名规则。详情参考《Spring源码分析》的BeanNameGenerator及其实现类。               |                                                                                                                                  |
-|   `scopeResolver`    | 用于处理并转换检测到的Bean的作用范围。                                                                 |                                                                                                                                  |
-|    `scopedProxy`     | 用于指定bean生成时的代理方式。默认是Default，则不使用代理                                                | 可选值有4个：`DEFAULT`，`NO`，`INTERFACES`，`TARGET_CLASS`。<br/>详情请可查看spring源码的ScopedProxyMode枚举。                            |
-|  `resourcePattern`   | 用于指定符合组件检测条件的类文件，默认是包扫描下的`**/*.class`                                            |                                                                                                                                  |
-| `useDefaultFilters`  | 是否对带有`@Component` `@Repository` `@Service` `@Controller`注解的类开启检测，默认是开启的。            |                                                                                                                                  |
-|   `includeFilters`   | 自定义组件扫描的过滤规则，用于扫描组件。该注解的值是`Filter`注解数组，`Filter`的`type`属性是`FilterType`的枚举 | `ANNOTATION`：注解类型（默认）<br/>`ASSIGNABLE_TYPE`：指定固定类<br/>`ASPECTJ`：ASPECTJ类型<br/>`REGEX`：正则表达式<br/>`CUSTOM`：自定义类型 |
-|   `excludeFilters`   | 自定义组件扫描的排除规则。注解值的类型与`includeFilters`一致                                             |                                                                                                                                  |
-|      `lazyInit`      | 组件扫描时是否采用懒加载 ，默认不开启。                                                                 |                                                                                                                                  |
+- `value`：用于指定要扫描的包。当指定了包的名称之后，Spring 会扫描指定的包及其子包下的所有类
+- `basePackages`：指定要扫描的包路径。与 `value` 属性作用一样
+- `basePackageClasses`：指定具体要扫描的类的字节码，Spring 会扫描指定字节码的类所在的包及其子包下的所有类。
+- `nameGenrator`：指定扫描 Bean 对象存入容器时的命名规则。*详情参考《Spring 源码分析》相关笔记的 `BeanNameGenerator` 及其实现类*。
+- `scopeResolver`：用于处理并转换检测到的 Bean 的作用范围。
+- `scopedProxy`：用于指定 Bean 生成时的代理方式。有4个可选值，定义在 `ScopedProxyMode` 枚举中：
+    - `DEFAULT`(默认值)：不使用代理
+    - `NO`：不使用代理
+    - `INTERFACES`
+    - `TARGET_CLASS`
+- `resourcePattern`：用于指定符合组件检测条件的类文件，默认是包扫描下的`**/*.class`
+- `useDefaultFilters`：是否对带有 `@Component`、`@Repository`、`@Service`、`@Controller` 注解的类开启检测，默认是开启的。
+- `includeFilters`：自定义组件扫描的过滤规则，用于扫描组件。该注解的值是 `Filter` 注解类型数组，`Filter` 的 `type` 属性可选值是 `FilterType` 枚举：
+    - `ANNOTATION`：注解类型（默认）
+    - `ASSIGNABLE_TYPE`：指定固定类
+    - `ASPECTJ`：AspectJ 类型
+    - `REGEX`：正则表达式
+    - `CUSTOM`：自定义类型
+- `excludeFilters`：自定义组件扫描的排除规则。可选值的类型与 `includeFilters` 属性一致
+- `lazyInit`：组件扫描时是否采用懒加载 ，默认不开启。
+
+![](images/199692712230455.png)
 
 ### 2.3. 包扫描配置示例
 
@@ -1332,15 +1341,14 @@ public class SpringConfiguration {
 
 ### 3.2. 相关属性
 
-|        属性名        |                                                                作用                                                                 |    取值    |
-| :-----------------: | ----------------------------------------------------------------------------------------------------------------------------------- | ---------- |
-|       `name`        | 用于指定存入spring容器中bean的标识。支持指定多个标识。当不指定该属性时，默认值是当前方法的名称。                                             |            |
-|       `value`       | 此属性是在4.3.3版本之后加入的。它和name属性的作用是一样的。当前`@Bean`注解没有设置其他属性值时，value可以省略                                |            |
-|     `autowire`      | 5.1版本后该属性已过期，使用`autowireCandidate`属性代替                                                                                 |            |
+|        属性名        |                                                             作用                                                              |    取值     |
+| :-----------------: | ----------------------------------------------------------------------------------------------------------------------------- | ---------- |
+|       `name`        | 用于指定存入spring容器中bean的标识。支持指定多个标识。当不指定该属性时，默认值是当前方法的名称。                                            |            |
+|       `value`       | 此属性是在4.3.3版本之后加入的。它和name属性的作用是一样的。当前`@Bean`注解没有设置其他属性值时，value可以省略                               |            |
+|     `autowire`      | 5.1版本后该属性已过期，使用`autowireCandidate`属性代替                                                                             |            |
 | `autowireCandidate` | 用于指定是否支持自动按类型注入到其他bean中。只影响`@Autowired`注解的使用。不影响`@Resource`注解注入。默认值为true，意为允许使用自动按类型注入。 | true/false |
-|    `initMethod`     | 用于指定初始化方法。*注：一般比较少，建议使用编程式方式直接在创建对象的同时做初始化的工作*                                             |            |
-|   `destroyMethod`   | 用于指定销毁方法。*注意：该方法不能有入参*                                                                                              |            |
-
+|    `initMethod`     | 用于指定初始化方法。*注：一般比较少，建议使用编程式方式直接在创建对象的同时做初始化的工作*                                                  |            |
+|   `destroyMethod`   | 用于指定销毁方法。*注意：该方法不能有入参*                                                                                          |            |
 
 ### 3.3. 使用细节
 
@@ -1475,8 +1483,8 @@ public class SpringBeanTest {
 
 ### 4.2. 相关属性
 
-| 属性名  |                            作用                             |        取值        |
-| :-----: | ----------------------------------------------------------- | ------------------ |
+|  属性名  |                         作用                          |        取值        |
+| :-----: | ---------------------------------------------------- | ----------------- |
 | `value` | 用于导入其他配置类，其值类型为类的字节码。它支持指定多个配置类 | `Class<?>`对象数组 |
 
 ### 4.3. 基础使用示例
@@ -2128,19 +2136,21 @@ public interface DeferredImportSelector extends ImportSelector
 
 ### 6.1. 作用与使用场景
 
-用于指定读取资源文件的位置。不仅支持properties文件，也支持xml文件，并且通过YAML解析器，配合自定义PropertySourceFactory实现解析yml配置文件
+用于指定读取资源文件的位置。不仅支持 properties 文件，也支持 xml 文件，并且通过 YAML 解析器，配合自定义 `PropertySourceFactory` 实现解析 yml 配置文件
 
-使用场景：实际开发中，使用注解驱动后，xml配置文件就没有了，此时一些配置如果直接写在类中，会造成和java源码的紧密耦合，修改起来不方法。此时一些配置可以使用properties或者yml来配置就变得很灵活方便。
+使用场景：实际开发中，使用注解驱动后，xml 配置文件就没有了，此时一些配置如果直接写在类中，会造成和 java 源码的紧密耦合，修改起来不方法。此时一些配置可以使用 properties 或者 yml 来配置就变得很灵活方便。
 
 ### 6.2. 相关属性
 
-|          属性名           |                                  作用                                   |                                        取值                                         |
-| :----------------------: | ---------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
-|          `name`          | 指定资源的名称。如果没有指定，将根据基础资源描述生成。                            |                                                                                    |
-|         `value`          | 指定资源的位置。可以是类路径，也可以是文件路径。                                 | 如：类路径:`classpath:/com/myco/app.properties`<br/>文件路径：`file:/path/to/file.xml` |
-| `ignoreResourceNotFound` | 指定是否忽略资源文件不存在，默认是false,也就是说当资源文件不存在时spring启动将会报错 | true/false                                                                         |
-|        `encoding`        | 指定解析资源文件使用的字符集。当有中文的时候，需要指定中文的字符集。                 | 如："UTF-8"                                                                         |
-|        `factory`         | 指定读取对应资源文件的工厂类，默认的是PropertySourceFactory。                  |                                                                                    |
+- `name`：指定资源的名称。如果没有指定，将根据基础资源描述生成。
+- `value`：指定资源的位置。可以是类路径，也可以是文件路径。例如：
+    - 类路径: `classpath:/com/myco/app.properties`
+    - 文件路径: `file:/path/to/file.xml`
+- `ignoreResourceNotFound`：指定是否忽略资源文件不存在，可选值是为 true/false，默认是 false，也就是说当资源文件不存在时 Spring 启动将会报错 
+- `encoding`：指定解析资源文件使用的字符集。当有中文的时候，需要指定中文的字符集。如："UTF-8"
+- `factory`：指定读取对应资源文件的工厂类，默认的是 PropertySourceFactory                   |                                                                                     
+
+![](images/354413212248881.png)
 
 ### 6.3. 基础使用示例
 
@@ -2910,8 +2920,8 @@ public class SpringProfileTest {
 
 ### 1.2. 相关属性
 
-|  属性名  |                             作用                             | 取值 |
-| :-----: | ----------------------------------------------------------- | ---- |
+|  属性名  |                              作用                              | 取值 |
+| :-----: | ------------------------------------------------------------- | --- |
 | `value` | 用于指定存入容器时bean的ID。当不指定时，默认值为当前类的名称，首字母小写 |      |
 
 ### 1.3. 基于 @Component 等注解综合使用示例
@@ -2921,6 +2931,15 @@ public class SpringProfileTest {
 > [github仓库](https://github.com/MooNkirA/spring-note/tree/main/spring-sample/34-annotation-component-composite-sample)
 >
 > 本地：spring-note\spring-sample\34-annotation-component-composite-sample\
+
+### 1.4. @Component 等注解与 @Bean 的区别
+
+`@Component` 等注解与 `@Bean` 注解都是用于定义 Bean，区别如下：
+
+- **注解定义的位置不同**：`@Component` 注解用在类上，表明该类会作为组件类并且由 Spring 管理与实例化；@Bean 注解用在方法上，表示该方法会返回的 Bean 对象由 Spring 管理。
+- **是否需要配合使用**：`@Bean` 需要在标识了 `@Configuration` 注解的配置类中使用；而使用 `@Component` 注解的类只需要在配置的包扫描路径下即可。
+
+`@Bean` 注解使用更加灵活。当需要将第三方类装配到 Spring 容器中，因为没办法在源代码上添加 `@Component` 注解，只能使用 `@Bean` 注解的方式来定义 Bean，当然也可以使用 xml 的方式。
 
 ## 2. @Indexed
 
@@ -3140,8 +3159,8 @@ public class Foo {
 
 ### 2.1. 作用与使用场景
 
-- **作用**：当使用自动按类型注入时，遇到有多个类型匹配的时候，就可以使用此注解来明确注入哪个bean对象。
-- **使用场景**：在项目开发中，很多时候都会用到消息队列，以ActiveMQ为例。当和spring整合之后，Spring框架提供了一个JmsTemplate对象，它既可以用于发送点对点模型消息也可以发送主题模型消息。如果项目中两种消息模型都用上了，那么针对不同的代码，将会注入不同的JmsTemplate，而容器中出现两个之后，就可以使用此注解注入。当然不用也可以，只需要把要注入的变量名称改为和要注入的bean的id一致即可。
+- **作用**：当使用自动按类型注入时，遇到有多个类型匹配的时候，就可以使用此注解来明确指定注入哪个 bean 对象。
+- **使用场景**：在项目开发中，很多时候都会用到消息队列，以 ActiveMQ 为例。当和 Spring 整合之后，Spring 框架提供了一个 `JmsTemplate` 对象，它既可以用于发送点对点模型消息也可以发送主题模型消息。如果项目中两种消息模型都用上了，那么针对不同的代码，将会注入不同的 `JmsTemplate`，而容器中出现两个之后，就可以使用此注解注入。当然不用也可以，只需要把要注入的变量名称改为和要注入的 bean 的 id 一致即可。
 
 > Notes: `@Qualifier` 通常情况下都必须配合 `@Autowired` 注解一起使用
 
@@ -3318,15 +3337,15 @@ public void valueBasicTest(){
 
 ### 4.2. 相关属性
 
-|        属性名         |                                          作用                                          | 取值 |
-| :------------------: | ------------------------------------------------------------------------------------- | ---- |
-|        `name`        | 资源的JNDI名称。在 spring 的注入时，指定 bean 的唯一标识                                      |      |
-|        `type`        | 指定bean的类型                                                                          |      |
-|       `lookup`       | 引用指向的资源的名称。它可以使用全局JNDI名称链接到任何兼容的资源                                  |      |
+|        属性名         |                                           作用                                            | 取值 |
+| :------------------: | ----------------------------------------------------------------------------------------- | ---- |
+|        `name`        | 资源的JNDI名称。在 spring 的注入时，指定 bean 的唯一标识                                        |      |
+|        `type`        | 指定bean的类型                                                                             |      |
+|       `lookup`       | 引用指向的资源的名称。它可以使用全局JNDI名称链接到任何兼容的资源                                    |      |
 | `authenticationType` | 指定资源的身份验证类型。它只能为任何受支持类型的连接工厂的资源指定此选项，而不能为其他类型的资源指定此选项 |      |
-|     `shareable`      | 指定此资源是否可以在此组件和其他组件之间共享                                                   |      |
-|     `mappedName`     | 指定资源的映射名称                                                                        |      |
-|    `description`     | 指定资源的描述                                                                           |      |
+|     `shareable`      | 指定此资源是否可以在此组件和其他组件之间共享                                                     |      |
+|     `mappedName`     | 指定资源的映射名称                                                                           |      |
+|    `description`     | 指定资源的描述                                                                              |      |
 
 ### 4.3. 基础使用示例
 
@@ -3407,8 +3426,13 @@ public void resourceBasicTest() {
 
 ### 4.4. @Autowired 和 @Resource 的区别
 
-- `@Autowired` 默认是按照<u>**类型装配**</U>注入的，默认情况下它要求依赖对象必须存在（可以设置 `required` 属性为 false，非必须注入）
-- `@Resource` 默认是按照<u>**名称装配**</u>注入的，只有当找不到与名称匹配的 bean 才会按照类型来装配注入。
+- `@Autowired` 默认是按照<u>**类型装配**</U>注入的，默认情况下它要求依赖对象必须存在（可以设置 `required` 属性为 false，非必须注入）。如果需要按名称(byName)匹配的话，可以与 `@Qualifier` 注解配合使用。
+- `@Resource` 默认是按照<u>**名称装配**</u>注入的，只有当找不到与名称匹配的 bean 才会按照类型来装配注入。其中有两个中重要的属性：`name` 和 `type`
+    - 使用 `name` 属性，则按 byName 模式的自动注入策略
+    - 使用 `type` 属性，则按 byType 模式的自动注入策略
+    - 若既不指定 `name` 也不指定 `type` 属性，Spring 容器将通过反射技术默认按 byName 模式注入。
+
+> Tips: 上述两种自动装配的依赖注入**不适用于简单值类型**，如 int、boolean、long、String 以及 Enum 等，Spring 容器提供了 `@Value` 注解来注入这些类型。`@Value` 接收一个 String 的值，该值指定了将要被注入到内置的 java 类型属性值，Spring 容器会做好类型转换。一般情况下 `@Value` 会与 properties 文件结合使用。
 
 ### 4.5. （扩展）同时使用 @Autowired 与 @Resource
 
@@ -3549,11 +3573,24 @@ public class SimpleMovieLister {
 
 ### 1.2. 相关属性
 
-|    属性名    |                                                                  作用                                                                   |                                                                      取值                                                                      |
-| :---------: | -------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
-|   `value`   | 指定作用范围的取值。在注解中默认值是""。但是在spring初始化容器时，会借助ConfigurableBeanFactory接口中的类成员：`String SCOPE_SINGLETON = "singleton";` | "singleton"/"prototype"                                                                                                                       |
-| `scopeName` | 它和value的作用是一样的                                                                                                                    |                                                                                                                                               |
-| `proxyMode` | 指定bean对象的代理方式。指定的是ScopedProxyMode枚举的值                                                                                        | `DEFAULT`：默认值。（就是NO）<br/>`NO`：不使用代理。<br/>`INTERFACES`：使用JDK官方的基于接口的代理。<br/>`TARGET_CLASS`：使用CGLIB基于目标类的子类创建代理对象。 |
+- `value`：指定作用范围的取值。在注解中默认值是`""` 空字符串。但是在 spring 初始化容器时，会借助 `ConfigurableBeanFactory` 接口中的类成员 `SCOPE_SINGLETON` 来定义该字符串。
+
+```java
+public interface ConfigurableBeanFactory extends HierarchicalBeanFactory, SingletonBeanRegistry {
+    String SCOPE_SINGLETON = "singleton";
+    String SCOPE_PROTOTYPE = "prototype";
+    // ...省略
+}
+```
+
+- `scopeName`：此属性和 value 的作用一样
+- `proxyMode`：指定 bean 对象的代理方式。可选值为 `ScopedProxyMode` 枚举：
+    - `DEFAULT`：默认值。（就是NO）
+    - `NO`：不使用代理。
+    - `INTERFACES`：使用 JDK 官方的基于接口的代理。
+    - `TARGET_CLASS`：使用 CGLIB 基于目标类的子类创建代理对象。
+
+> 附件excel表中属性表格形式源码
 
 ## 2. @PostConstruct 与 @PreDestroy 的方式实现生命周期方法
 
@@ -4572,9 +4609,11 @@ public void adviceSequenceBasicTest() {
 
 ### 2.2. 相关属性
 
-|      属性名       |                                作用                                |                                                                                 取值                                                                                 |
-| :--------------: | ----------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `aspectjWeaving` | 是否开启LTW的支持。读取`META‐INF/aop.xml`文件，路径与文件名称是固定的。 | `AspectJWeaving.ENABLED`：开启LTW<br/>`AspectJWeaving.DISABLED`：不开启LTW<br/> `AspectJWeaving.AUTODETECT`：如果类路径下能读取到META‐INF/aop.xml文件，则开启LTW，否则关闭 |
+`aspectjWeaving`：是否开启LTW的支持。读取`META‐INF/aop.xml`文件，路径与文件名称是固定的。可选值如下：
+
+- `AspectJWeaving.ENABLED`：开启LTW
+- `AspectJWeaving.DISABLED`：不开启LTW
+- `AspectJWeaving.AUTODETECT`：如果类路径下能读取到META‐INF/aop.xml文件，则开启LTW，否则关闭
 
 ### 2.3. 使用示例
 
@@ -4652,11 +4691,11 @@ public class LoadTimeWeavingAspect {
 
 ### 1.2. 相关属性
 
-|       属性名        |                                              作用                                               |                取值                 |
-| :----------------: | ---------------------------------------------------------------------------------------------- | ----------------------------------- |
-| `proxyTargetClass` | 指定基于目标类代理还是基于接口代理。默认为false，采用JDK官方的基于接口代理。                           | true/false                          |
+|       属性名        |                                            作用                                             |                 取值                 |
+| :----------------: | ------------------------------------------------------------------------------------------ | ----------------------------------- |
+| `proxyTargetClass` | 指定基于目标类代理还是基于接口代理。默认为false，采用JDK官方的基于接口代理。                          | true/false                          |
 |       `mode`       | 指定事务通知是如何执行的。默认是通过代理方式执行的。如果是同一个类中调用的话，请采用AdviceMode.ASPECTJ。 | AdviceMode.PROXY/AdviceMode.ASPECTJ |
-|      `order`       | 指示在特定连接点应用多个通知时事务处理的执行顺序。默认值是：最低优先级（Integer.MAX_VALUE）             |                                     |
+|      `order`       | 指示在特定连接点应用多个通知时事务处理的执行顺序。默认值是：最低优先级（Integer.MAX_VALUE）            |                                     |
 
 ## 2. @Transactional
 
@@ -4674,20 +4713,66 @@ public class LoadTimeWeavingAspect {
 
 ### 2.2. 相关属性
 
-|          属性名           |                                              作用                                               |    取值    |
-| :----------------------: | ---------------------------------------------------------------------------------------------- | ---------- |
-|         `value`          | 指定事务管理器的唯一标识，等同于transactionManager属性                                             |            |
-|   `transactionManager`   | 指定事务管理器的唯一标识，等同于value属性                                                          |            |
-|      `propagation`       | 指定事务的传播行为                                                                               |            |
-|       `isolation`        | 指定事务的隔离级别，一般都是使用默认                                                               |            |
-|        `timeout`         | 指定事务的超时时间，默认值为-1，表示永不超时（注：但只是相对而言，因为如果数据库连接超时，也是一样会失败） |            |
-|        `readOnly`        | 指定事务是否只读                                                                                 | true/false |
-|      `rollbackFor`       | 通过指定异常类的字节码，限定事务在特定情况下回滚                                                     |            |
-|  `rollbackForClassName`  | 通过指定异常类的全限定类名，限定事务在特定情况下回滚                                                 |            |
-|     `noRollbackFor`      | 通过指定异常类的字节码，限定事务在特定情况下不回滚                                                   |            |
-| `noRollbackForClassName` | 通过指定异常类的全限定类名，限定事务在特定情况下不回滚                                               |            |
+|         属性名          |                                            作用                                            |            可选值             |
+| :--------------------: | ----------------------------------------------------------------------------------------- | ---------------------------- |
+|         value          | 指定事务管理器的唯一标识，等同于transactionManager属性                                          |                              |
+|   transactionManager   | 指定事务管理器的唯一标识，等同于value属性                                                       |                              |
+|      propagation       | 指定事务的传播行为                                                                           | Propagation 枚举              |
+|       isolation        | 指定事务的隔离级别，一般都是使用默认                                                            | Isolation 枚举                |
+|        timeout         | 指定事务的超时时间，默认值为-1，表示永不超时（注：但只是相对而言，因为如果数据库连接超时，也是一样会失败） | int 类型值                    |
+|        readOnly        | 指定事务是否只读，默认值是false(读写)                                                          | true/false                   |
+|      rollbackFor       | 通过指定异常类的字节码数组，限定事务在特定情况下回滚                                               | Class<? extends Throwable>[] |
+|  rollbackForClassName  | 通过指定异常类的全限定类名数组，限定事务在特定情况下回滚                                           | String[]                     |
+|     noRollbackFor      | 通过指定异常类的字节码数组，限定事务在特定情况下不回滚                                             | Class<? extends Throwable>[] |
+| noRollbackForClassName | 通过指定异常类的全限定类名数组，限定事务在特定情况下不回滚                                          | String[]                     |
 
 > 注：`@Transactional`的默认值：`transactionManager="transactionManager",propagation=Propagation.REQUIRED,readOnly=false,isolation=Isolation.DEFAULT`
+
+#### 2.2.1. Propagation 事务传播行为枚举类
+
+```java
+public enum Propagation {
+    REQUIRED(0),
+    SUPPORTS(1),
+    MANDATORY(2),
+    REQUIRES_NEW(3),
+    NOT_SUPPORTED(4),
+    NEVER(5),
+    NESTED(6);
+
+    private final int value;
+
+    private Propagation(int value) {
+        this.value = value;
+    }
+
+    public int value() {
+        return this.value;
+    }
+}
+```
+
+#### 2.2.2. Isolation 事务隔离级别枚举
+
+```java
+public enum Isolation {
+    DEFAULT(-1),
+    READ_UNCOMMITTED(1),
+    READ_COMMITTED(2),
+    REPEATABLE_READ(4),
+    SERIALIZABLE(8);
+
+    private final int value;
+
+    private Isolation(int value) {
+        this.value = value;
+    }
+
+    public int value() {
+        return this.value;
+    }
+}
+```
 
 ### 2.3. @Transactional 用法总结
 
@@ -4705,13 +4790,15 @@ public class LoadTimeWeavingAspect {
 
 ### 3.2. 相关属性
 
-|        属性名        |                                    作用                                     |                                                                                                   取值                                                                                                    |
-| :-----------------: | --------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-|       `phase`       | 指定事务监听器的执行是在何时                                                 | TransactionPhase.BEFORE_COMMIT 事务提交之前<br/>TransactionPhase.AFTER_COMMIT 事务提交之后（默认值）<br/>TransactionPhase.AFTER_ROLLBACK 事务回滚之后<br/>TransactionPhase.AFTER_COMPLETION 事务执行完成之后 |
-| `fallbackExecution` | 若没有事务的时候，对应的event是否已经执行。默认值为 false 表示没事务就不执行了 | true/false                                                                                                                                                                                                |
-|       `value`       | 指定事件类的字节码                                                           |                                                                                                                                                                                                           |
-|      `classes`      | 它和value属性的作用是一样，指定事件类的字节码                                 |                                                                                                                                                                                                           |
-|     `condition`     | 用于指定执行事件处理器的条件。取值是基于Spring的el表达式编写的                 |                                                                                                                                                                                                           |
+- `phase`：指定事务监听器在何时执行。取值如下：
+    - `TransactionPhase.BEFORE_COMMIT` 事务提交之前
+    - `TransactionPhase.AFTER_COMMIT` 事务提交之后（默认值）
+    - `TransactionPhase.AFTER_ROLLBACK` 事务回滚之后
+    - `TransactionPhase.AFTER_COMPLETION` 事务执行完成之后
+- `fallbackExecution`：若没有事务的时候，对应的 event 是否已经执行，可选值为 true/false。默认值是 false 表示没事务就不执行了
+- `value`：指定事件类的字节码
+- `classes`：指定事件类的字节码，与 `value` 属性的作用一样
+- `condition`：用于指定执行事件处理器的条件。取值是基于 Spring 的 el 表达式编写的 
 
 ### 3.3. 使用示例
 

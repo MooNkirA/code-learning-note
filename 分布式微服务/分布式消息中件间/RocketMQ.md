@@ -1,10 +1,6 @@
-# RocketMQ
-
-RocketMQ 是阿里巴巴开源的分布式消息中间件，现在是 Apache 的一个顶级项目。
-
 ## 1. RocketMQ 介绍
 
-RocketMQ 是一款开源的分布式消息系统，基于高可用分布式集群技术，提供低延时的、高可靠的消息发布与订阅服务。同时，广泛应用于多个领域，包括异步通信解耦、企业解决方案、金融支付、电信、电子商务、快递物流、广告营销、社交、即时通信、移动应用、手游、视频、物联网、车联网等。
+RocketMQ 是一款阿里巴巴开源的分布式消息中间件，现在是 Apache 的一个顶级项目。基于高可用分布式集群技术，提供低延时的、高可靠的消息发布与订阅服务。同时，广泛应用于多个领域，包括异步通信解耦、企业解决方案、金融支付、电信、电子商务、快递物流、广告营销、社交、即时通信、移动应用、手游、视频、物联网、车联网等。
 
 具有以下特点：
 
@@ -22,7 +18,7 @@ RocketMQ 学习示例是在 linux 环境下安装
 
 > 最新版本 4.9.2（截止 2021.10.18）
 
-RocketMQ 下载地址：https://rocketmq.apache.org/release_notes/release-notes-4.9.2/
+RocketMQ 下载地址：http://rocketmq.apache.org/dowloading/releases/
 
 解压后的目录结构如下：
 
@@ -46,10 +42,9 @@ apache-rocketmq
 
 #### 2.2.2. 安装
 
-1. 上传文件到Linux系统
+1. 使用 `rz` 命令工具上传文件到 Linux 系统
 
 ```bash
-# 上传
 rz
 ```
 
@@ -63,12 +58,23 @@ unzip rocketmq-all-4.4.0-bin-release.zip
 mv rocketmq-all-4.4.0-bin-release /xx/xxx
 ```
 
-#### 2.2.3. 启动服务
-
-- 进入 rocketmq 的安装目录下的bin目录
+如果是下载未编译的源码项目，则解压后需要进行编译
 
 ```bash
-cd ./xxx/rocketmq-all-4.4.0-bin-release/bin
+# 解压
+unzip rocketmq-all-4.4.0-source-release.zip
+
+# 编译项目
+cd rocketmq-all-4.4.0-source-release
+mvn -Prelease-all -DskipTests clean install -U
+```
+
+#### 2.2.3. 启动服务
+
+进入 rocketmq 的安装目录下的 bin 目录
+
+```bash
+cd ./{path}/rocketmq-all-4.4.0-bin-release/bin
 ```
 
 ##### 2.2.3.1. 修改配置文件
@@ -83,6 +89,13 @@ vim runbroker.sh
 vim runserver.sh
 # JAVA_OPT="${JAVA_OPT} -server -Xms4g -Xmx2g -Xmn -XX:MetaspaceSize=128m -XX:MaxMetaspaceSize=320m"
 # 修改为 JAVA_OPT="${JAVA_OPT} -server -Xms256m -Xmx128m -Xmn -XX:MetaspaceSize=128m -XX:MaxMetaspaceSize=320m"
+```
+
+如果部署环境的内存不多，又没修改配置中内存参数值，可能会在启动 broker 时遇到报错，**内存不足**：
+
+```
+Java HotSpot(TM) 64-Bit Server VM warning: INFO: os::commit_memory(0x00000005c0000000, 8589934592, 0) failed; error='Cannot allocate memory' (errno=12)
+...
 ```
 
 ##### 2.2.3.2. 启动 NameServer
@@ -233,23 +246,30 @@ mqbroker.cmd -c ../conf/broker.conf
 
 ### 2.4. RocketMQ 控制台安装（windows环境）
 
-RocketMQ 控制台 的 github 仓库地址：https://github.com/apache/rocketmq-externals
+部署完 NameServer、Broker 之后，RocketMQ 就可以正常工作了，但所有操作都是通过命令行，不太方便。所以还需要部署一个扩展项目 rocketmq-console，可以通过 web 界面来管理 RocketMQ。
 
-原下载地址：~~https://github.com/apache/rocketmq-externals/releases~~（已失效）
+> Notes: 
+>
+> - RocketMQ 控制台的 github 仓库地址：https://github.com/apache/rocketmq-externals
+> - 在github仓库中没有打包好的版本下载，选择`release-rocketmq-console`的分支，然后克隆或者打包下载到本地即可
 
-> 没有打包好的版本下载，在github仓库中，选择`release-rocketmq-console`的分支，然后克隆或者打包下载到本地即可
+- 修改项目配置文件
 
-- 修改项目的配置
+```bash
+cd rocketmq-console
+vim src/main/resources/application.properties
+```
+
+- 项目的配置文件修改内容，如：项目部署端口号、nameserv 地址与端口、项目的临时配置文件保存路径等
 
 ```properties
 # 修改配置文件 rocketmq-console\src\main\resources\application.properties
 server.port=7777 # 项目部署端口号
 rocketmq.config.namesrvAddr=192.168.12.132:9876 # nameserv的地址，注意防火墙要开启9876端口
-rocketmq.config.dataPath=E:/logs/tmp/rocketmq-console/data # 项目的临时配置文件
+rocketmq.config.dataPath=E:/logs/tmp/rocketmq-console/data # 项目的临时配置文件保存路径
 ```
 
-- 修改 \src\main\resources\logback.xml 中日志保存位置，默认保存在`${user.dir}`
-- 将工程打成jar包后，再启动项目
+- 修改 \src\main\resources\logback.xml 中日志保存位置，默认保存在`${user.dir}`。将工程打成jar包后，再启动项目
 
 ```bash
 # 进入控制台项目根目录，将工程打成jar包
@@ -258,7 +278,13 @@ mvn clean package -Dmaven.test.skip=true
 java -jar target/rocketmq-console-ng-1.0.0.jar
 ```
 
-> 注：也可以不修改原配置文件，在启动命令中，指定项目部署端口号和NameServer的地址
+或者进入项目根目录下，直接使用命令运行。
+
+```bash
+mvn spring-boot:run
+```
+
+也可以不修改原配置文件，在启动命令中，指定项目部署端口号和 NameServer 的地址
 
 ```bash
 cd /d E:\deployment-environment\RocketMQ\rocketmq-console\target\
@@ -270,6 +296,8 @@ java -jar rocketmq-console-ng-1.0.0.jar --server.port=7777 --rocketmq.config.nam
 
 ![](images/20220106154521415_7732.png)
 
+![](images/421073312230453.png)
+
 ## 3. RocketMQ 的架构及概念
 
 ### 3.1. 技术架构
@@ -280,85 +308,58 @@ RocketMQ 架构上主要分为四部分，如上图所示:
 
 - Producer：消息发布的角色，支持分布式集群方式部署。Producer 通过 MQ 的负载均衡模块选择相应的 Broker 集群队列进行消息投递，投递的过程支持快速失败并且低延迟。
 - Consumer：消息消费的角色，支持分布式集群方式部署。支持以 push（推送），pull（拉取）两种模式对消息进行消费。同时也支持集群方式和广播方式的消费，它提供实时消息订阅机制，可以满足大多数用户的需求。
-- NameServer：NameServer 是一个非常简单的 Topic 路由注册中心，其角色类似 Dubbo 中的 zookeeper，支持 Broker 的动态注册与发现。主要包括两个功能：Broker 管理，NameServer 接受 Broker 集群的注册信息并且保存下来作为路由信息的基本数据。然后提供心跳检测机制，检查 Broker 是否还存活；路由信息管理，每个NameServer将保存关于Broker集群的整个路由信息和用于客户端查询的队列信息。然后Producer和Conumser通过NameServer就可以知道整个Broker集群的路由信息，从而进行消息的投递和消费。NameServer通常也是集群的方式部署，各实例间相互不进行信息通讯。Broker是向每一台NameServer注册自己的路由信息，所以每一个NameServer实例上面都保存一份完整的路由信息。当某个NameServer因某种原因下线了，Broker仍然可以向其它NameServer同步其路由信息，Producer,Consumer仍然可以动态感知Broker的路由的信息。
-- BrokerServer：Broker主要负责消息的存储、投递和查询以及服务高可用保证，为了实现这些功能，Broker包含了以下几个重要子模块。
-  1. Remoting Module：整个Broker的实体，负责处理来自clients端的请求。
-  2. Client Manager：负责管理客户端(Producer/Consumer)和维护Consumer的Topic订阅信息
-  3. Store Service：提供方便简单的API接口处理消息存储到物理硬盘和查询功能。
-  4. HA Service：高可用服务，提供Master Broker 和 Slave Broker之间的数据同步功能。
-  5. Index Service：根据特定的Message key对投递到Broker的消息进行索引服务，以提供消息的快速查询。
+- NameServer：NameServer 是一个非常简单的 Topic 路由注册中心，其角色类似 Dubbo 中的 zookeeper，支持 Broker 的动态注册与发现。主要包括两个功能：
+    - Broker 管理，NameServer 接受 Broker 集群的注册信息并且保存下来作为路由信息的基本数据。然后提供心跳检测机制，检查 Broker 是否还存活；
+    - 路由信息管理，每个 NameServer 将保存关于 Broker 集群的整个路由信息和用于客户端查询的队列信息。然后 Producer 和 Conumser 通过 NameServer 就可以知道整个 Broker 集群的路由信息，从而进行消息的投递和消费。
+> NameServer 通常也是集群的方式部署，各实例间相互不进行信息通讯。Broker 会向每一台 NameServer 注册自己的路由信息，所以每一个 NameServer 实例上面都保存一份完整的路由信息。当某个 NameServer 因某种原因下线了，Broker 仍然可以向其它 NameServer 同步其路由信息，Producer、Consumer 仍然可以动态感知 Broker 的路由的信息。
+- BrokerServer：Broker 主要负责消息的存储、投递和查询以及服务高可用保证。
+
+### 3.2. Broker 核心子模块
+
+Broker 为了实现这些功能，其架构包含了以下几个重要子模块：
 
 ![](images/20220106111617801_5835.png)
 
-### 3.2. 基本概念
+- Remoting Module：整个 Broker 的实体入口，负责处理来自 clients 端的请求。
+- Client Manager：负责管理客户端(Producer/Consumer)和维护 Consumer 的 Topic 订阅信息
+- Store Service：提供方便简单的 API 接口处理消息存储到物理硬盘和查询功能。
+- HA Service：高可用服务，提供 Master Broker 和 Slave Broker 之间的数据同步功能。
+- Index Service：根据特定的 Message key 对投递到 Broker 的消息进行索引服务，以提供消息的快速查询。
 
-- 消息模型（Message Model）
+### 3.3. 基本概念
 
-RocketMQ 主要由 Producer、Broker、Consumer 三部分组成，其中 Producer 负责生产消息，Consumer 负责消费消息，Broker 负责存储消息。Broker 在实际部署过程中对应一台服务器，每个 Broker 可以存储多个 Topic 的消息，每个 Topic 的消息也可以分片存储于不同的 Broker。Message Queue 用于存储消息的物理地址，每个Topic中的消息地址存储于多个 Message Queue 中。ConsumerGroup 由多个Consumer 实例构成。
+- **消息模型（Message Model）**：RocketMQ 主要由 Producer、Broker、Consumer 三部分组成，其中 Producer 负责生产消息，Consumer 负责消费消息，Broker 负责存储消息。Broker 在实际部署过程中对应一台服务器，每个 Broker 可以存储多个 Topic 的消息，每个 Topic 的消息也可以分片存储于不同的 Broker。Message Queue 用于存储消息的物理地址，每个Topic中的消息地址存储于多个 Message Queue 中。ConsumerGroup 由多个Consumer 实例构成。
+- **消息生产者（Producer）**：负责生产消息，一般由业务系统负责生产消息。一个消息生产者会把业务应用系统里产生的消息发送到broker服务器。RocketMQ提供多种发送方式，同步发送、异步发送、顺序发送、单向发送。同步和异步方式均需要Broker返回确认信息，单向发送不需要。
+- **消息消费者（Consumer）**：负责消费消息，一般是后台系统负责异步消费。一个消息消费者会从Broker服务器拉取消息、并将其提供给应用程序。从用户应用的角度而言提供了两种消费形式：拉取式消费、推动式消费。
+- **主题（Topic）**：表示一类消息的集合，每个主题包含若干条消息，每条消息只能属于一个主题，是RocketMQ进行消息订阅的基本单位。
+- **代理服务器（Broker Server）**：消息中转角色，负责存储消息、转发消息。代理服务器在RocketMQ系统中负责接收从生产者发送来的消息并存储、同时为消费者的拉取请求作准备。代理服务器也存储消息相关的元数据，包括消费者组、消费进度偏移和主题和队列消息等。
+- **名字服务（Name Server）**：名称服务充当路由消息的提供者。生产者或消费者能够通过名字服务查找各主题相应的Broker IP列表。多个Namesrv实例组成集群，但相互独立，没有信息交换。
+- **拉取式消费（Pull Consumer）**：Consumer消费的一种类型，应用通常主动调用Consumer的拉消息方法从Broker服务器拉消息、主动权由应用控制。一旦获取了批量消息，应用就会启动消费过程。
+- **推动式消费（Push Consumer）**：Consumer消费的一种类型，该模式下Broker收到数据后会主动推送给消费端，该消费模式一般实时性较高。
+- **生产者组（Producer Group）**：同一类Producer的集合，这类Producer发送同一类消息且发送逻辑一致。如果发送的是事务消息且原始生产者在发送之后崩溃，则Broker服务器会联系同一生产者组的其他生产者实例以提交或回溯消费。
+- **消费者组（Consumer Group）**：同一类Consumer的集合，这类Consumer通常消费同一类消息且消费逻辑一致。消费者组使得在消息消费方面，实现负载均衡和容错的目标变得非常容易。要注意的是，消费者组的消费者实例必须订阅完全相同的Topic。RocketMQ 支持两种消息模式：集群消费（Clustering）和广播消费（Broadcasting）。
+- **集群消费（Clustering）**：集群消费模式下，相同Consumer Group的每个Consumer实例平均分摊消息。
+- **广播消费（Broadcasting）**：广播消费模式下，相同Consumer Group的每个Consumer实例都接收全量的消息。
+- **普通顺序消息（Normal Ordered Message）**：普通顺序消费模式下，消费者通过同一个消息队列（ Topic 分区，称作 Message Queue） 收到的消息是有顺序的，不同消息队列收到的消息则可能是无顺序的。
+- **严格顺序消息（Strictly Ordered Message）**：严格顺序消息模式下，消费者收到的所有消息均是有顺序的。
+- **消息（Message）**：消息系统所传输信息的物理载体，生产和消费数据的最小单位，每条消息必须属于一个主题。RocketMQ中每个消息拥有唯一的Message ID，且可以携带具有业务标识的Key。系统提供了通过Message ID和Key查询消息的功能。
+- **标签（Tag）**：为消息设置的标志，用于同一主题下区分不同类型的消息。来自同一业务单元的消息，可以根据不同业务目的在同一主题下设置不同标签。标签能够有效地保持代码的清晰度和连贯性，并优化RocketMQ提供的查询系统。消费者可以根据Tag实现对不同子主题的不同消费逻辑，实现更好的扩展性。
 
-- 消息生产者（Producer）
+### 3.4. 消息系统通用模型
 
-负责生产消息，一般由业务系统负责生产消息。一个消息生产者会把业务应用系统里产生的消息发送到broker服务器。RocketMQ提供多种发送方式，同步发送、异步发送、顺序发送、单向发送。同步和异步方式均需要Broker返回确认信息，单向发送不需要。
+消息发送-消费的通用模型
 
-- 消息消费者（Consumer）
-
-负责消费消息，一般是后台系统负责异步消费。一个消息消费者会从Broker服务器拉取消息、并将其提供给应用程序。从用户应用的角度而言提供了两种消费形式：拉取式消费、推动式消费。
-
-- 主题（Topic）
-
-表示一类消息的集合，每个主题包含若干条消息，每条消息只能属于一个主题，是RocketMQ进行消息订阅的基本单位。
-
-- 代理服务器（Broker Server）
-
-消息中转角色，负责存储消息、转发消息。代理服务器在RocketMQ系统中负责接收从生产者发送来的消息并存储、同时为消费者的拉取请求作准备。代理服务器也存储消息相关的元数据，包括消费者组、消费进度偏移和主题和队列消息等。
-
-- 名字服务（Name Server）
-
-名称服务充当路由消息的提供者。生产者或消费者能够通过名字服务查找各主题相应的Broker IP列表。多个Namesrv实例组成集群，但相互独立，没有信息交换。
-
-- 拉取式消费（Pull Consumer）
-
-Consumer消费的一种类型，应用通常主动调用Consumer的拉消息方法从Broker服务器拉消息、主动权由应用控制。一旦获取了批量消息，应用就会启动消费过程。
-
-- 推动式消费（Push Consumer）
-
-Consumer消费的一种类型，该模式下Broker收到数据后会主动推送给消费端，该消费模式一般实时性较高。
-
-- 生产者组（Producer Group）
-
-同一类Producer的集合，这类Producer发送同一类消息且发送逻辑一致。如果发送的是事务消息且原始生产者在发送之后崩溃，则Broker服务器会联系同一生产者组的其他生产者实例以提交或回溯消费。
-
-- 消费者组（Consumer Group）
-
-同一类Consumer的集合，这类Consumer通常消费同一类消息且消费逻辑一致。消费者组使得在消息消费方面，实现负载均衡和容错的目标变得非常容易。要注意的是，消费者组的消费者实例必须订阅完全相同的Topic。RocketMQ 支持两种消息模式：集群消费（Clustering）和广播消费（Broadcasting）。
-
-- 集群消费（Clustering）
-
-集群消费模式下,相同Consumer Group的每个Consumer实例平均分摊消息。
-
-- 广播消费（Broadcasting）
-
-广播消费模式下，相同Consumer Group的每个Consumer实例都接收全量的消息。
-
-- 普通顺序消息（Normal Ordered Message）
-
-普通顺序消费模式下，消费者通过同一个消息队列（ Topic 分区，称作 Message Queue） 收到的消息是有顺序的，不同消息队列收到的消息则可能是无顺序的。
-
-- 严格顺序消息（Strictly Ordered Message）
-
-严格顺序消息模式下，消费者收到的所有消息均是有顺序的。
-
-- 消息（Message）
-
-消息系统所传输信息的物理载体，生产和消费数据的最小单位，每条消息必须属于一个主题。RocketMQ中每个消息拥有唯一的Message ID，且可以携带具有业务标识的Key。系统提供了通过Message ID和Key查询消息的功能。
-
-- 标签（Tag）
-
-为消息设置的标志，用于同一主题下区分不同类型的消息。来自同一业务单元的消息，可以根据不同业务目的在同一主题下设置不同标签。标签能够有效地保持代码的清晰度和连贯性，并优化RocketMQ提供的查询系统。消费者可以根据Tag实现对不同子主题的不同消费逻辑，实现更好的扩展性。
+![](images/382563912248879.png)
 
 ## 4. RocketMQ 快速开始
 
-### 4.1. 相关依赖
+### 4.1. 消息发送-消费示例流程图
+
+示例需求：创建一个 Producer，向 RocketMQ 发送消息，通过 RocketMQ Console 验证发送成功；创建一个 Consumer，从 RocketMQ 成功接收消息
+
+![](images/375155012236746.png)
+
+### 4.2. 相关依赖
 
 示例使用 SpringBoot 项目
 
@@ -391,7 +392,7 @@ Consumer消费的一种类型，该模式下Broker收到数据后会主动推送
 </dependencies>
 ```
 
-### 4.2. RocketMQ 相关的配置
+### 4.3. RocketMQ 相关的配置
 
 修改项目application.yml配置文件，增加 RocketMQ 相关的配置
 
@@ -413,9 +414,9 @@ rocketmq:
   name-server: 127.0.0.1:9876 # RocketMQ 服务的地址
 ```
 
-### 4.3. 使用 RocketMQ 原生的 API 方式
+### 4.4. 使用 RocketMQ 原生的 API 方式
 
-#### 4.3.1. 发送消息
+#### 4.4.1. 发送消息
 
 使用 RocketMQ 发送消息步骤如下：
 
@@ -464,7 +465,7 @@ public void basicTest() throws Exception {
 }
 ```
 
-#### 4.3.2. 接收消息
+#### 4.4.2. 接收消息
 
 使用 RocketMQ 接收消息步骤：
 
@@ -519,9 +520,9 @@ public void basicTest() throws Exception {
 }
 ```
 
-### 4.4. Spring Boot 方式
+### 4.5. Spring Boot 方式
 
-#### 4.4.1. 发送消息
+#### 4.5.1. 发送消息
 
 使用 `RocketMQTemplate` 对象发送消息
 
@@ -553,7 +554,7 @@ public class ProducerController {
 }
 ```
 
-#### 4.4.2. 接收消息
+#### 4.5.2. 接收消息
 
 RocketMQ 支持两种消息模式：
 
@@ -765,6 +766,8 @@ RocketMQ 提供了事务消息，通过事务消息就能达到分布式事务�
 
 #### 5.3.1. 事务消息交互流程
 
+![](images/64572517256912.png)
+
 ![](images/20220107101823197_5114.png)
 
 **相关概念**：
@@ -823,7 +826,7 @@ public class TxMessageController {
 }
 ```
 
-创建事务消息监听实现类。需要继承 RocketMQLocalTransactionListener 接口，实现 executeLocalTransaction 与 checkLocalTransaction 方法。
+创建事务消息监听实现类。需要继承 `org.apache.rocketmq.spring.core.RocketMQLocalTransactionListener` 接口，实现 `executeLocalTransaction` 与 `checkLocalTransaction` 方法。
 
 ```java
 @Service
@@ -843,10 +846,9 @@ public class TxMessageServiceListener implements RocketMQLocalTransactionListene
         Product product = (Product) arg;
         System.out.println("executeLocalTransaction 方法获取到的消息体：" + txId);
         System.out.println("executeLocalTransaction 方法获取到的参数：" + product);
-
-        // 模拟本地一些业务逻辑(30s)
+        
         try {
-            Thread.sleep(30000);
+            Thread.sleep(30000); // 模拟本地一些业务逻辑(30s)
             return RocketMQLocalTransactionState.COMMIT;
         } catch (InterruptedException e) {
             e.printStackTrace();
