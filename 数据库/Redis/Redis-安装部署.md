@@ -342,10 +342,38 @@ Redis集群遵循如下原则：
 
 ## 7. Redis 图形化客户端
 
-### 7.1. Redis Desktop Manager
+### 7.1. iredis 命令行工具
 
-windows版本的redis客户端官网：https://redisdesktop.com/download
+iredis，用 `|` 将 redis 通过 pipe 用 shell 的其他工具，比如 jq/fx/rg/sort/uniq/cut/sed/awk 等处理可以实现json格式化。还能自动补全，高亮显示，功能很多。
+
+> 官网：https://iredis.io/
+
+### 7.2. Redis Desktop Manager
+
+Redis Desktop Manager，界面比较简洁，功能很全。key 的显示可以支持按冒号分割的键名空间，除了基本的五大数据类型之外，还支持 redis 5.0 新出的 Stream 数据类型。在 value 的显示方面。支持多达9种的数据显示方式。
+
+> 最新官网（需要登陆）：https://resp.app/
+> 
+> 旧官网：https://redisdesktop.com/download
 
 下载 redis-desktop-manager-0.9.2.806.exe，安装后启动redis客户端。【据说0.9.3（最后一个免费版本），待测试】
 
 配置redis链接：选择连接到Redis服务器，配置主机地址与端口号
+
+### 7.3. medis
+
+> http://getmedis.com/
+
+![](images/285824119230456.png)
+
+免费 redis 可视化工具，界面布局简洁，跨平台支持。对 key 有颜色鲜明的图标标识。在 key 的搜索上挺方便的，可以模糊搜索出匹配的 key，渐进式的 scan，无明显卡顿。在搜索的体验上还是比较出色的。
+
+缺点是不支持 key 的命名空间展示，不支持 redis 5.0 的 stream 数据类型，命令行比较单一，不支持自动匹配和提示。支持的 value 的展现方式也只有3种
+
+### 7.4. Another Redis Desktop Manager
+
+> https://github.com/qishibo/AnotherRedisDesktopManager
+
+一款比较稳定简洁免费的 redis UI 可视化工具，基本的功能都有。有监控统计，支持暗黑主题，还支持集群的添加。
+
+缺点是没什么亮点，UI 很简单，不支持 stream 数据类型。命令行模式也比较单一。value 展示支持的类型也只有3种。

@@ -7,31 +7,6 @@
     },
     "history": [
         {
-            "last_accessed_time": "2023-01-23T10:36:56Z",
-            "line_number": 1755,
-            "path": "项目资料/02-品优购/Day04-Angular前端分层&规格及模板管理.md"
-        },
-        {
-            "last_accessed_time": "2023-01-23T10:37:38Z",
-            "line_number": 1406,
-            "path": "项目资料/02-品优购/Day05-SpringSecurity安全框架与商家入驻审核功能.md"
-        },
-        {
-            "last_accessed_time": "2023-01-23T10:39:17Z",
-            "line_number": 1227,
-            "path": "项目资料/02-品优购/Day06-商品录入模块（一）（富文本&FastDFS）.md"
-        },
-        {
-            "last_accessed_time": "2023-01-23T10:40:04Z",
-            "line_number": 0,
-            "path": "项目资料/02-品优购/Day07-商品录入模块（二）（选择商品分类&选择品牌&选择规格&SKU）.md"
-        },
-        {
-            "last_accessed_time": "2023-01-23T10:40:55Z",
-            "line_number": 199,
-            "path": "项目资料/02-品优购/Day08-商品修改与审核&注解式事务配置&Nginx静态资源服务器.md"
-        },
-        {
             "last_accessed_time": "2023-01-23T10:42:02Z",
             "line_number": 2174,
             "path": "项目资料/02-品优购/Day09-广告管理&SpringDataRedis缓存方案.md"
@@ -477,11 +452,6 @@
             "path": "分布式微服务/SpringCloud/Spring-Cloud-Alibaba.md"
         },
         {
-            "last_accessed_time": "2023-03-31T14:04:24Z",
-            "line_number": 2,
-            "path": "后端框架/MyBatis/MyBatis源码笔记.md"
-        },
-        {
             "last_accessed_time": "2023-04-01T14:40:09Z",
             "line_number": 14,
             "path": "分布式微服务/SpringBoot/Spring-Boot-Actuator.md"
@@ -492,19 +462,49 @@
             "path": "DevOps/项目构建工具/Maven01-基础.md"
         },
         {
-            "last_accessed_time": "2023-04-13T15:21:21Z",
+            "last_accessed_time": "2023-04-15T04:51:25Z",
+            "line_number": 284,
+            "path": "DevOps/版本管理工具/GitHub.md"
+        },
+        {
+            "last_accessed_time": "2023-04-15T11:46:28Z",
+            "line_number": 379,
+            "path": "数据库/Redis/Redis-安装部署.md"
+        },
+        {
+            "last_accessed_time": "2023-04-15T11:46:34Z",
+            "line_number": 724,
+            "path": "数据库/Redis/Redis-基础.md"
+        },
+        {
+            "last_accessed_time": "2023-04-16T08:55:28Z",
+            "line_number": 23,
+            "path": "后端框架/MyBatis/MyBatis源码笔记.md"
+        },
+        {
+            "last_accessed_time": "2023-04-17T14:03:48Z",
             "line_number": 130,
             "path": "分布式微服务/SpringCloud/Spring-Cloud-Alibaba-Nacos.md"
         },
         {
-            "last_accessed_time": "2023-04-13T15:21:22Z",
+            "last_accessed_time": "2023-04-17T14:03:48Z",
             "line_number": 786,
             "path": "分布式微服务/SpringCloud/Spring-Cloud-OpenFeign.md"
         },
         {
-            "last_accessed_time": "2023-04-13T15:21:22Z",
-            "line_number": 1329,
+            "last_accessed_time": "2023-04-17T14:03:49Z",
+            "line_number": 1302,
             "path": "分布式微服务/SpringCloud/Spring-Cloud-Alibaba-Sentinel.md"
+        },
+        {
+            "last_accessed_time": "2023-04-17T14:03:49Z",
+            "line_number": 982,
+            "path": "分布式微服务/分布式消息中件间/RocketMQ.md"
+        },
+        {
+            "last_accessed_time": "2023-04-17T14:03:49Z",
+            "line_number": 413,
+            "path": "分布式微服务/SpringCloud/Spring-Cloud-Stream.md"
         }
     ],
     "image_folder": "images",

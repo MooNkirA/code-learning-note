@@ -1170,11 +1170,11 @@ public String useRequestBody(@RequestBody User user) {
 #### 1.4.1. @RequestBody 和 @RequestParam 的用法比较
 
 1. 当同时使用 `@RequestParam` 和 `@RequestBody` 时，`@RequestParam` 指定的参数可以是普通元素、数组、集合、对象等等
-	- 接收机制不一样。`@RequestBody` 接收的是**请求体里面的数据**；而 `@RequestParam` 接收的是**key-value 里面的参数**，所以它会被切面进行处理从而可以用普通元素、数组、集合、对象等接收
+	- 接收机制不一样。`@RequestBody` 接收的是**请求体里面的数据**，一般在请求中声明 `contentType: "application/json; charset=utf-8"`，也就是json数据或者xml数据；而 `@RequestParam` 接收的是**key-value 里面的参数**，通常请求中没有声明 contentType，为默认的 `x-www-form-urlencoded` 格式时，所以它会被切面进行处理从而可以用普通元素、数组、集合、对象等接收
 	- 如果参数时放在请求体中，传入后台的话，那么后台要用 `@RequestBody` 才能接收到；如果不是放在请求体中的话，那么后台接收前台传过来的参数时，要用 `@RequestParam` 来接收，或则形参前什么也不写也能接收
 2. 如果参数前写了 `@RequestParam(xxx)`，那么前端请求时必须上送对应的xxx名字(不管其是否有值，当然可以通过设置该注解的 `required` 属性来调节是否必须传)的请求参数，如果无上送该名称的参数，请求会报 400 的错误
 3. 如果参数前不写 `@RequestParam(xxx)` 的话，前端上送的参数如果有xxx名的话，那么就会自动匹配；没有的话，请求也能正确发送
-	- 扩展：这里与 feign 消费服务时不同；feign 消费服务时，如果参数前什么也不写，那么会被默认是 `@RequestBody` 的
+> 扩展：这里与 feign 消费服务时不同；feign 消费服务时，如果参数前什么也不写，那么会被默认是 `@RequestBody` 的
 4. 在同一个接收请求方法中，`@RequestBody` 与 `@RequestParam` 可以同时使用，此时原 Spring MVC 接收参数的机制不变。`@RequestBody` 最多只能有一个，而 `@RequestParam` 可以有多个
 
 #### 1.4.2. @RequestBody 修饰的对象接收数据的注意问题

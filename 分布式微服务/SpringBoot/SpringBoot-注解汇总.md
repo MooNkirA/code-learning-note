@@ -1,5 +1,3 @@
-# Spring Boot 核心注解汇总
-
 ## 1. Spring Boot 涉及的 Spring 注解
 
 ### 1.1. @Configuration

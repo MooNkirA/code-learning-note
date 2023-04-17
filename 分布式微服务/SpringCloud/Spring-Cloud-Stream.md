@@ -64,13 +64,13 @@ Spring Cloud Stream 支持各种 binder 实现，*下面包含GitHub项目的链
 | Fishtown [2.1.x]    | 2.1.x       | Greenwich    |
 | Elmhurst [2.0.x]    | 2.0.x       | Finchley     |
 
-## 2. 快速入门案例
+## 2. 快速入门案例（整合 RabbitMQ）
 
 ### 2.1. 案例准备
 
-本次Spring Cloud Stream案例是通过RabbitMQ作为消息中间件，需要先准备RabbitMQ的环境
+本次 Spring Cloud Stream 案例是通过 RabbitMQ 作为消息中间件，需要先准备 RabbitMQ 的环境
 
-> 更多RabbitMQ的内容详见：[《RabbitMQ》笔记](/分布式微服务/分布式消息中件间/RabbitMQ)
+> 更多 RabbitMQ 的内容详见：[《RabbitMQ 笔记》](/分布式微服务/分布式消息中件间/RabbitMQ)
 
 创建`15-springcloud-stream`聚合工程，引入SpringBoot父工程与SpringCloud版本控制
 
@@ -456,13 +456,33 @@ public class ConsumerApplication {
 
 ![](images/20201122092141361_7436.png)
 
-## 3. 自定义消息通道
+## 3. Spring Cloud Stream 整合 RocketMQ
+
+### 3.1. 案例准备
+
+此案例为 Spring Cloud Stream 整合 RocketMQ 作为消息中间件，需要先准备 RocketMQ 的环境
+
+> 更多 RocketMQ 的内容详见：[《RocketMQ 笔记》](/分布式微服务/分布式消息中件间/RocketMQ)
+
+### 3.2. 消费生产者
+
+#### 3.2.1. 开发实践流程
+
+![](images/184430618230457.png)
+
+### 3.3. 消息消费者
+
+#### 3.3.1. 开发实践流程
+
+![](images/344020618248883.png)
+
+## 4. 自定义消息通道
 
 Spring Cloud Stream 内置了两种接口，分别定义了 binding 为 `input` 的输入流和 `output` 的输出流，而在实际使用中，往往是需要自定义各种输入输出流。
 
-### 3.1. 创建自定义消息binding接口
+### 4.1. 创建自定义消息binding接口
 
-参考Spring Cloud Stream 内置的binding接口，创建一个自定义的消息binding接口。接口主要包含的内容是：
+参考 Spring Cloud Stream 内置的 binding 接口，创建一个自定义的消息 binding 接口。接口主要包含的内容是：
 
 1. 定义输入（输出）通道的名称
 2. 使用`@Input`注解标识输入流方法（*方法名随意*）方法的返回值为`SubscribableChannel`；使用`@Output`注解标识输出流方法（*方法名随意*）方法的返回值为`MessageChannel`
@@ -501,7 +521,7 @@ public interface CustomProcessor {
 
 > *使用上面快速入门的示例代码，因为将输入与输出两个binding定义在一个接口中，而消息的生产者与消费者工程都用到，所以抽取此消息binding接口到一个工程中，并将Spring Cloud Stream的依赖抽取到此公共工程中，详见《spring-cloud-note\spring-cloud-greenwich-sample\15-springcloud-stream》*
 
-### 3.2. 修改消费者与生产者项目配置
+### 4.2. 修改消费者与生产者项目配置
 
 - 修改生产者工程配置，增加自定义消息通道的配置
 
@@ -536,7 +556,7 @@ spring:
           type: rabbit # 指定绑定消息中间件的类型
 ```
 
-### 3.3. 创建消息发送工具类与消息监听类
+### 4.3. 创建消息发送工具类与消息监听类
 
 - 创建`CustomMessageSender`消息发送工具类，绑定自定义消息通道
 
@@ -582,7 +602,7 @@ public class CustomMessageListener {
 }
 ```
 
-### 3.4. 测试发送与接收消息
+### 4.4. 测试发送与接收消息
 
 - 创建生产者的发送消息的
 
@@ -601,7 +621,7 @@ public void sendMessageByCustomChannel() {
 
 ![](images/20201126172138222_19130.png)
 
-## 4. 消息分组
+## 5. 消息分组
 
 通常在生产环境，每个服务都不会以单节点的方式运行在生产环境，当同一个服务启动多个实例的时候，这些实例都会绑定到同一个消息通道的目标主题（Topic）上。默认情况下，当生产者发出一条消息到绑定通道上，这条消息会产生多个副本被每个消费者实例接收和处理，但是有些业务场景之下，只希望生产者产生的消息只被其中一个实例消费，此时就需要为这些消费者设置消费组来实现这样的功能。
 
@@ -630,13 +650,13 @@ spring:
 
 <font color=red>经测试，同一个分组的多个消费者默认是以**轮询**的方法进行消费</font>
 
-## 5. 消息分区
+## 6. 消息分区
 
 有一些场景需要满足，同一个特征的数据被同一个实例消费，比如同一个id的传感器监测数据必须被同一个实例统计计算分析，否则可能无法获取全部的数据。又比如部分异步任务，首次请求启动task，二次请求取消task，此场景就必须保证两次请求至同一实例
 
 ![](images/20201127085715243_1387.png)
 
-### 5.1. 消息生产者配置
+### 6.1. 消息生产者配置
 
 修改生产者工程的`application.yml`配置文件，增加分区相关配置
 
@@ -668,7 +688,7 @@ spring:
 
 [点击查看官网更多生产者详细配置项](https://cloud.spring.io/spring-cloud-static/spring-cloud-stream/2.2.1.RELEASE/spring-cloud-stream.html#_producer_properties)
 
-### 5.2. 消息消费者配置
+### 6.2. 消息消费者配置
 
 修改消费者工程的`application.yml`配置文件，增加分区相关配置
 
@@ -705,7 +725,7 @@ spring:
 
 [点击查看官网更多消费者详细配置项](https://cloud.spring.io/spring-cloud-static/spring-cloud-stream/2.2.1.RELEASE/spring-cloud-stream.html#_consumer_properties)
 
-### 5.3. 测试
+### 6.3. 测试
 
 编写生产的测试方法，发送多次消息
 

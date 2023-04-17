@@ -1,6 +1,6 @@
-> MyBatis 源码仓库地址：https://github.com/MyBatis/MyBatis-3
-
 ## 1. MyBatis 源码概述
+
+> MyBatis 源码仓库地址：https://github.com/MyBatis/MyBatis-3
 
 ### 1.1. MyBatis 源码包导入
 
@@ -20,9 +20,7 @@
 
 #### 1.2.1. 物理分层
 
-![](images/20191124082641659_9996.png)
-
-> 完整思维导图详见附件中的《MyBatis源码结构.xmind》
+![MyBatis源码结构.xmind](images/20191124082641659_9996.png)
 
 #### 1.2.2. 逻辑分层
 

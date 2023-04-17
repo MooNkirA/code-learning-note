@@ -39,13 +39,13 @@ MVC 设计模式的优点：
 
 **不同点**：
 
-1. 前端控制器不一样。
+1. 前端控制器（核心）不一样。
    - SpringMVC 的前端控制器是 servlet（DispatcherServlet）
    - struts2 的前端控制器是 filter（StrutsPrepareAndExecutorFilter）
 2. 请求参数接收方式不一样。
    - SpringMVC 是使用方法的形参接收请求的参数，基于方法的开发，线程安全，可以设计为单例或者多例模式的开发，推荐使用单例模式的开发，执行效率会更高（默认就是单例模式开发）。
    - strut2 是使用类的成员变量来接收请求的参数数据，基于类的开发，是线程不安全的，只能设计为多例模式的开发。
-   - 原因：springmvc 传递参数操作的是方法的形参，多个线程操作不会影响到另一个线程。但 strut2 传递封装参数操作的是成员变量，但一个线程改变了变量的值，会影响到另一个线程的操作时变量的值。所以会出现线程不安全的问题，所以 struts2 框架的 action 都是设计成单例模式
+> 原因：springmvc 传递参数操作的是方法的形参，多个线程操作不会影响到另一个线程。但 strut2 传递封装参数操作的是成员变量，但一个线程改变了变量的值，会影响到另一个线程的操作时变量的值。所以会出现线程不安全的问题，所以 struts2 框架的 action 都是设计成单例模式
 3. 开发的方式不同
    - Springmvc 基于方法开发的。springmvc 将 url 和 controller 里的方法映射。映射成功后 springmvc 生成一个 Handler 对象，对象中只包括了一个 method。方法执行结束，形参数据销毁。springmvc 的 controller 开发类似 web service 开发。
    - Struts2 基于类开发的。
@@ -237,7 +237,50 @@ public class DemoController {
 
 ## 3. Spring MVC 整体架构与实现原理
 
-### 3.1. Spring MVC 运行流程（待更新流程图）
+### 3.1. Spring MVC 框架重要组件
+
+框架提供组件包含：
+
+- DispatcherServlet：前端控制器
+- HandlerMapping：处理器映射器
+- Handler：处理器
+- HandlerAdapter：处理器适配器
+- ViewResolver：视图解析器
+- View：视图
+
+**在上述的组件中：处理器映射器（HandlerMapping）、处理器适配器（HandlerAdapter）、视图解析器（ViewResolver）称为 Spring MVC 的三大组件**。其中 handler 与 view 组件是由使用者来实现
+
+#### 3.1.1. 前端控制器 DispatcherServlet
+
+Spring MVC 和其他许多 Web 框架一样，是围绕前端控制器模式设计的，`DispatcherServlet` 就是相当于一个中央处理器、转发器，作用是接收请求，响应结果。
+
+用户请求到达前端控制器，它就相当于 MVC 模式中的 C，`DispatcherServlet` 是整个流程控制的中心，由它调用其它组件处理用户的请求，<font color=red>**`DispatcherServlet`的存在降低了组件之间的耦合性**</font>
+
+#### 3.1.2. 处理器映射器 HandlerMapping
+
+HandlerMapping 是作用是负责根据用户请求 url，通过注解或者 xml 配置寻找到匹配的 Handler（即处理器的方法），Spring MVC 提供了不同的映射器实现不同的映射方式，例如：配置文件方式，实现接口方式，注解方式等
+
+#### 3.1.3. 处理器适配器 HandlerAdapter
+
+按照指定的规则（处理器适配器 HandlerAdapter 设置的特定规则），执行 Handler 处理器的方法，并处理方法参数与方法返回值。这是适配器模式的应用，通过扩展适配器可以对更多类型的处理器进行执行。
+
+#### 3.1.4. 处理器 Handler
+
+Handler 是继承 `DispatcherServlet` 前端控制器的**后端控制器**，在 `DispatcherServlet` 的控制下 Handler 对具体的用户请求进行处理，并返回相应的数据和视图信息，将其封装到 ModelAndView 对象中。编写 Handler 时按照 HandlerAdapter 的要求去完成，这样适配器才可以去正确执行 Handler。
+
+> 由于 Handler 涉及到具体的用户业务请求，所以一般情况需要程序员根据业务需求开发 Handler。
+
+#### 3.1.5. 视图解析器 ViewResolver
+
+ViewResolver 作用是进行视图解析，把逻辑视图（在 controller 中设置的视图名称）解析成物理视图（在浏览器看到的实际页面，即 view）。ViewResolver 首先根据逻辑视图名解析成物理视图名即具体的页面地址，再生成 View 视图对象，最后对 View 进行渲染将处理结果通过页面展示给用户。
+
+#### 3.1.6. 视图 View
+
+View 是一个接口，实现类支持不同的 View 类型（jsp、freemarker、pdf 等）。
+
+Spring MVC 框架提供了很多的 View 视图类型的支持，包括：jstlView、freemarkerView、pdfView 等，最常用的视图就是 jsp。一般情况下需要通过页面标签或页面模版技术将模型数据通过页面展示给用户，需要由程序员根据业务需求开发具体的页面。
+
+### 3.2. Spring MVC 运行流程（待更新流程图）
 
 Spring 的模型-视图-控制器（MVC）框架是围绕一个 `DispatcherServlet` 来设计的，这个 Servlet 会把请求分发给各个处理器，并支持可配置的处理器映射、视图渲染、本地化、时区与主题渲染等，甚至还能支持文件上传。
 
@@ -306,51 +349,6 @@ Spring 的模型-视图-控制器（MVC）框架是围绕一个 `DispatcherServl
 ![](images/20200918135212093_9963.jpg)
 
 ![](images/372305809220858.png)
-
-### 3.2. Spring MVC 框架重要组件
-
-框架提供组件包含：
-
-- DispatcherServlet：前端控制器
-- HandlerMapping：处理器映射器
-- Handler：处理器
-- HandlerAdapter：处理器适配器
-- ViewResolver：视图解析器
-- View：视图
-
-**在上述的组件中：处理器映射器（HandlerMapping）、处理器适配器（HandlerAdapter）、视图解析器（ViewResolver）称为 Spring MVC 的三大组件**。其中 handler 与 view 组件是由使用者来实现
-
-#### 3.2.1. 前端控制器 DispatcherServlet
-
-Spring MVC 和其他许多 Web 框架一样，是围绕前端控制器模式设计的，`DispatcherServlet` 就是相当于一个中央处理器、转发器，作用是接收请求，响应结果。
-
-用户请求到达前端控制器，它就相当于 MVC 模式中的 C，`DispatcherServlet` 是整个流程控制的中心，由它调用其它组件处理用户的请求，<font color=red>**`DispatcherServlet`的存在降低了组件之间的耦合性**</font>
-
-#### 3.2.2. 处理器映射器 HandlerMapping
-
-HandlerMapping 是作用是负责根据用户请求 url 找到 Handler（即处理器的方法），Spring MVC 提供了不同的映射器实现不同的映射方式，例如：配置文件方式，实现接口方式，注解方式等
-
-#### 3.2.3. 处理器适配器 HandlerAdapter
-
-按照指定的规则（处理器适配器 HandlerAdapter 设置的特定规则），执行 Handler 处理器的方法，并处理方法参数与方法返回值。这是适配器模式的应用，通过扩展适配器可以对更多类型的处理器进行执行。
-
-#### 3.2.4. 处理器 Handler
-
-编写 Handler 时按照 HandlerAdapter 的要求去完成，这样适配器才可以去正确执行 Handler
-
-Handler 是继承 `DispatcherServlet` 前端控制器的**后端控制器**，在 `DispatcherServlet` 的控制下 Handler 对具体的用户请求进行处理。
-
-> 由于 Handler 涉及到具体的用户业务请求，所以一般情况需要程序员根据业务需求开发 Handler。
-
-#### 3.2.5. 视图解析器 ViewResolver
-
-ViewResolver 作用是进行视图解析，把逻辑视图（在 controller 中设置的视图名称）解析成物理视图（在浏览器看到的实际页面，即 view）。ViewResolver 首先根据逻辑视图名解析成物理视图名即具体的页面地址，再生成 View 视图对象，最后对 View 进行渲染将处理结果通过页面展示给用户。
-
-#### 3.2.6. 视图 View
-
-View 是一个接口，实现类支持不同的 View 类型（jsp、freemarker、pdf...）
-
-Spring MVC 框架提供了很多的 View 视图类型的支持，包括：jstlView、freemarkerView、pdfView 等，最常用的视图就是 jsp。一般情况下需要通过页面标签或页面模版技术将模型数据通过页面展示给用户，需要由程序员根据业务需求开发具体的页面。
 
 ## 4. DispatcherServlet 前端控制器配置
 
@@ -1072,15 +1070,15 @@ public class MyWebAppInitializer extends AbstractAnnotationConfigDispatcherServl
 
 下表是控制器方法支持的绑定参数类型
 
-| 控制器方法参数类型  | 说明                                                                                                                                                                                                                  |
-| :-----------------: | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-|  `ServletRequest`   | 请求类型，例如：`ServletRequest`、`HttpServletRequest`、Spring 的 `MultipartRequest`、`MultipartHttpServletRequest`                                                                                                   |
-|  `ServletResponse`  | 响应类型，例如：`ServletResponse`、`HttpServletResponse`                                                                                                                                                              |
+|   控制器方法参数类型   |                                                                                             说明                                                                                              |
+| :-----------------: | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+|  `ServletRequest`   | 请求类型，例如：`ServletRequest`、`HttpServletRequest`、Spring 的 `MultipartRequest`、`MultipartHttpServletRequest`                                                                              |
+|  `ServletResponse`  | 响应类型，例如：`ServletResponse`、`HttpServletResponse`                                                                                                                                        |
 |    `HttpSession`    | 请求会话类型。此类型可保证方法参数永远不会空。值得注意，使用会话类型的方法形参是非线程安全的。如果允许多个请求同时访问一个会话，考虑将 `RequestMappingHandlerAdapter` 实例的 `synchronizeOnSession` 标志设置为 `true` |
-| `Model`, `ModelMap` | 用于访问 HTML 控制器中使用的模型，并作为视图渲染的一部分暴露给模板。                                                                                                                                                  |
-|   `@RequestParam`   | 用于获取请求参数（即查询参数或表单数据、上传的文件），绑定到控制器中的方法参数。参数值会被转换为声明的方法形参的类型。注意，对于简单类型的参数值，只要形参名称与请求参数名称一致，该注解可省略。                      |
-|      `Map`集合      | key 为请求上送的参数名称，value 是参数值。需要与`@RequestParam`注解配置使用                                                                                                                                           |
-|  任何其他参数类型   | 控制方法形参是 Java 基本数据类型、对象、包装类型等，由`BeanUtils#isSimpleProperty`决定，它被解析为`@RequestParam`还是`@ModelAttribute`                                                                                |
+| `Model`, `ModelMap` | 用于访问 HTML 控制器中使用的模型，并作为视图渲染的一部分暴露给模板。                                                                                                                                    |
+|   `@RequestParam`   | 用于获取请求参数（即查询参数或表单数据、上传的文件），绑定到控制器中的方法参数。参数值会被转换为声明的方法形参的类型。注意，对于简单类型的参数值，只要形参名称与请求参数名称一致，该注解可省略。                             |
+|      `Map`集合       | key 为请求上送的参数名称，value 是参数值。需要与`@RequestParam`注解配置使用                                                                                                                           |
+|    任何其他参数类型    | 控制方法形参是 Java 基本数据类型、对象、包装类型等，由`BeanUtils#isSimpleProperty`决定，它被解析为`@RequestParam`还是`@ModelAttribute`                                                                   |
 
 > 支持使用 JDK 8 的 `java.util.Optional` 作为方法参数，与具有必填属性的注解相结合（例如，`@RequestParam`、`@RequestHeader` 等），相当于 `required=false`
 
@@ -1217,13 +1215,13 @@ SpringMVC 支持使用 `@ModelAttribute` 和 `@SessionAttributes` 在不同的�
 
 #### 5.9.1. 支持常用的简单类型参数绑定
 
-| 类型名称     | 包装类型 | 基础类型 |
-| ------------ | -------- | -------- |
-| 整型         | Integer  | int      |
-| 长整型       | Long     | long     |
-| 单精度浮点型 | Float    | float    |
-| 双精度浮点型 | Double   | double   |
-| 字符串       | String   | String   |
+|   类型名称   | 包装类型 | 基础类型 |
+| ---------- | ------- | ------- |
+| 整型        | Integer | int     |
+| 长整型      | Long    | long    |
+| 单精度浮点型 | Float   | float   |
+| 双精度浮点型 | Double  | double  |
+| 字符串      | String  | String  |
 
 示例：
 
@@ -2048,21 +2046,13 @@ public void testRequestDataBinderByDefaultConversionService() throws Exception {
 
 ## 6. Spring MVC 处理器方法 - 返回值
 
-### 6.1. 概念
+### 6.1. 默认返回值处理器
 
-下表是 Spring MVC 支持的控制器方法返回值类型与方式。（_注：所有的返回值都支持响应式类型_）
+Spring MVC 支持多种不同的控制器方法返回值类型（*注：所有的返回值都支持响应式类型*）。
 
-| 控制器方法返回值类型 | 说明                                       |
-| :------------------: | ------------------------------------------ |
-|   `@ResponseBody`    | 返回值会通过`HttpMessageConverter`实现转换 |
+Spring MVC 默认提供了很多返回值处理器实现（以 `ReturnValueHandler` 结尾来命名），对控制器方法的返回值进行处理，具体实现类如下：
 
-### 6.2. ReturnValueHandler 返回值处理器
-
-#### 6.2.1. 默认返回值处理器
-
-Spring MVC 提供了很多默认的返回值处理器，对控制器方法的返回值进行处理，具体实现类如下：
-
-```
+```java
 org.springframework.web.servlet.mvc.method.annotation.ModelAndViewMethodReturnValueHandler
 org.springframework.web.method.annotation.ModelMethodProcessor
 org.springframework.web.servlet.mvc.method.annotation.ViewMethodReturnValueHandler
@@ -2088,11 +2078,11 @@ org.springframework.web.servlet.mvc.method.annotation.ServletModelAttributeMetho
 - 返回值省略 `@ModelAttribute` 注解且返回非简单类型时，将返回值作为模型，放入 `ModelAndViewContainer`，此时需找到默认视图名
 - 返回值类型为 `ResponseEntity` 时，此时走 `MessageConverter`，并设置 `ModelAndViewContainer.requestHandled` 为 true
 - 返回值类型为 `HttpHeaders` 时，会设置 `ModelAndViewContainer.requestHandled` 为 true
-- 返回值添加了 `@ResponseBody` 注解时，此时走 `MessageConverter`，并设置 `ModelAndViewContainer.requestHandled` 为 true
+- 返回值添加了 `@ResponseBody` 注解时，此时走 `MessageConverter`，返回值会通过`HttpMessageConverter`实现转换，并设置 `ModelAndViewContainer.requestHandled` 为 true
 
 > 示例代码参考：\spring-note\springmvc-sample\12-return-value-handler
 
-#### 6.2.2. 自定义返回值处理器
+### 6.2. 自定义返回值处理器
 
 Spring MVC 提供了返回值处理功能的接口 `org.springframework.web.method.support.HandlerMethodReturnValueHandler`，自定义返回值处理器只需要实现该接口，实现怎样的参数生效与参数解析的逻辑
 
@@ -2838,6 +2828,8 @@ public boolean preHandle(HttpServletRequest request, HttpServletResponse respons
 
 ### 10.1. HandlerExceptionResolver 接口
 
+Spring MVC 提供了 `org.springframework.web.servlet.HandlerExceptionResolver` 接口用于异常处理
+
 ```java
 /* 异常处理器的根接口 */
 public interface HandlerExceptionResolver {
@@ -2845,6 +2837,12 @@ public interface HandlerExceptionResolver {
 	@Nullable
 	ModelAndView resolveException(HttpServletRequest request, HttpServletResponse response, @Nullable Object handler, Exception ex);
 }
+```
+
+Spring MVC 提供了一些异常处理器的默认实现，如：`org.springframework.web.servlet.handler.SimpleMappingExceptionResolver`
+
+```java
+public class SimpleMappingExceptionResolver extends AbstractHandlerExceptionResolver
 ```
 
 ### 10.2. 自定义异常处理器
@@ -3511,3 +3509,10 @@ public String queryItem(Model model, QueryVo queryVo) {
                redirectPort="8443" />
 ...
 ```
+
+### 13.3. SpringMVC 从后台向前台传递数据的方式
+
+1. 将数据绑定到 request
+2. 返回 ModelAndView
+3. 通过 ModelMap 对象，可以在这个对象里面调用 put 方法，把对象加到里面，前端就可以通过 el 表达式拿到
+4. 绑定数据到 Session 中

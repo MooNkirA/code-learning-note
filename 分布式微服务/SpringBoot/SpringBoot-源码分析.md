@@ -1,12 +1,10 @@
-# Spring Boot 源码分析
+## 1. Spring Boot 源码构建
 
 > 源码分析的笔记基于 spring-boot-2.2.2.RELEASE 版本
 >
 > 源码下载地址：https://github.com/spring-projects/spring-boot/releases
 
-## 1. SpringBoot源码构建
-
-### 1.1. 方式1：maven命令编译项目
+### 1.1. 方式1：maven 命令编译项目
 
 1. 进入到下载的源码目录执行如下命令：
 
@@ -79,7 +77,7 @@ starters 是依赖关系的整理和封装，是一套依赖坐标的整合。�
 
 ![](images/20201006145254228_20074.png)
 
-- 如果配置的框架有默认的配置参数，都放在一个命名为`XxxProperties`的属性类，如图所示：
+- 如果配置的框架有默认的配置参数，都放在一个命名为`XxxProperties`的属性类，通过 `@ConfigurationProperties` 注解将配置文件的属性值绑定到对应的 bean 上。如图所示：
 
 ![](images/20201006145402145_17341.png)
 
@@ -216,7 +214,7 @@ public class RedisAutoConfiguration {
 
 ![](images/330292115249868.png)
 
-又比如内置 web 容器的处理类 `EmbeddedWebServerFactoryCustomizerAutoConfiguration`，类上引入 `@EnableConfigurationProperties({ServerProperties.class})` 注解，用于加载默认配置类的参数。然后内部类中通过 `@ConditionalOnClass` 注解来控制加载哪种类型的 web 容器
+又比如内置 web 容器的处理类 `EmbeddedWebServerFactoryCustomizerAutoConfiguration`，类上引入 `@EnableConfigurationProperties({ServerProperties.class})` 注解，用于加载默认配置类的参数。然后内部类中通过 `@ConditionalOnClass` 注解来控制加载哪种类型的 web 容器；又比如 mybatis-spring-boot-starter，则会自动配置 SqlSessionFactory、SqlSessionTemplate、DataSource等 MyBatis 所需的组件
 
 ![](images/20201006152054124_172.png)
 
@@ -227,6 +225,10 @@ public class RedisAutoConfiguration {
 以 `@Enable**` 开头的注解本质是利用了 `@Import` 配合 `DeferredImportSelector` 实现导入，在 `selectImports` 方法的返回值即为要导入的配置类名。值得注意的是，`DeferredImportSelector` 接口的导入会在最后执行，其目的是为了让其它配置优先解析
 
 对于正常加载成 bean 的类，通常会通过 `@EnableConfigurationProperties` 注解初始化对应的配置属性类并加载对应的配置。而配置属性类上通常会通过 `@ConfigurationProperties` 加载指定前缀的配置，并且这些配置通常都有默认值。
+
+#### 2.5.5. Spring Boot 实现自动配置原理图解（网络资源）
+
+![](images/551005316236751.png)
 
 ### 2.6. 变更自动配置
 
@@ -262,7 +264,7 @@ spring:
 )
 ```
 
-#### 2.6.3. 排除坐标（应用面较窄）
+#### 2.6.3. 方式3：排除坐标（应用面较窄）
 
 此时可以通过检测条件的控制来管理自动配置是否启动。例如 web 程序启动时会自动启动 tomcat 服务器，可以通过排除坐标的方式，让加载 tomcat 服务器的条件失效。
 

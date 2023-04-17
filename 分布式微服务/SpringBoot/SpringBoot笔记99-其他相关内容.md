@@ -1,5 +1,3 @@
-# Spring Boot笔记-其他相关内容
-
 ## 1. 附录1. Spring-Boot的启动器
 
 - (摘自Spring-boot 1.5.6官方文档)
