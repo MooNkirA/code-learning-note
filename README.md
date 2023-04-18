@@ -20,7 +20,7 @@
   <li><a href="#/Java/Java基础12-数据库编程">Java基础 - 数据库编程（JDBC、DBUtils、JPA）</a></li>
   <li><a href="#/Java/Java基础13-Java8新特性">Java基础 - Java 8 新特性</a></li>
   <li><a href="#/Java/Java基础14-正则表达式">Java基础 - 正则表达式</a></li>
-  <li><a href="#/Java/Java基础99-JDK常用API">Java基础 - JDK常用API</a></li>
+  <li><a href="#/Java/Java基础99-JDK常用API">Java基础 - 常用API</a></li>
   <li><a href="#/Java/Java扩展00-综合知识">Java扩展 - 综合知识</a></li>
   <li><a href="#/Java/Java扩展01-设计模式">Java扩展 - 设计模式</a></li>
   <li><a href="#/Java/Java扩展02-代码简洁之道">Java扩展 - 代码简洁之道</a></li>
@@ -33,10 +33,10 @@
 ### 🥃 JavaWeb
 
 <ul class="docs">
-  <li><a href="#/JavaWeb/JavaWeb01-网络">JavaWeb 基础 - 网络</a></li>
-  <li><a href="#/JavaWeb/JavaWeb02-Web服务器">JavaWeb 基础 - Web 服务器</a></li>
-  <li><a href="#/JavaWeb/JavaWeb03-Servlet">JavaWeb 基础 - Servlet</a></li>
-  <li><a href="#/JavaWeb/JavaWeb04-JSP">JavaWeb 基础 - JSP</a></li>
+  <li><a href="#/JavaWeb/JavaWeb-网络">JavaWeb 基础 - 网络</a></li>
+  <li><a href="#/JavaWeb/JavaWeb-Web服务器">JavaWeb 基础 - Web 服务器</a></li>
+  <li><a href="#/JavaWeb/JavaWeb-Servlet">JavaWeb 基础 - Servlet</a></li>
+  <li><a href="#/JavaWeb/JavaWeb-JSP">JavaWeb 基础 - JSP</a></li>
 </ul>
 
 ## 后端框架
@@ -59,10 +59,10 @@
 ### 🐦 MyBatis
 
 <ul class="docs">
-  <li><a href="#/后端框架/MyBatis/MyBatis基础笔记">MyBatis 基础笔记</a></li>
-  <li><a href="#/后端框架/MyBatis/MyBatis代码生成器（逆向工程）">MyBatis 代码生成器（逆向工程）</a></li>
-  <li><a href="#/后端框架/MyBatis/MyBatis源码笔记">MyBatis 源码笔记</a></li>
-  <li><a href="#/后端框架/MyBatis/MyBatisPlus">MyBatis-Plus 基础笔记</a></li>
+  <li><a href="#/后端框架/MyBatis/MyBatis-基础">MyBatis 基础笔记</a></li>
+  <li><a href="#/后端框架/MyBatis/MyBatis-代码生成器">MyBatis 代码生成器（逆向工程）</a></li>
+  <li><a href="#/后端框架/MyBatis/MyBatis-源码分析">MyBatis 源码分析</a></li>
+  <li><a href="#/后端框架/MyBatis/MyBatis-Plus">MyBatis-Plus 基础笔记</a></li>
 </ul>
 
 ### 🧰 SpringMVC

@@ -1,6 +1,4 @@
-# Java基础-JDK
-
-## 1. 概述
+## 1. JDK 概述
 
 JDK (Java Development Kit) 是 Java 语言的软件开发工具包(SDK)，主要用于移动设备、嵌入式设备上的 Java 应用程序。JDK 是整个 Java 开发的核心，它包含了 JAVA 的运行环境（JVM+Java 系统类库）和 JAVA 工具。
 

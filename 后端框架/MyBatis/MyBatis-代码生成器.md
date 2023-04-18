@@ -1,12 +1,10 @@
-# MyBatis 代码生成器（逆向工程）
+## 1. 逆向工程
+
+根据数据库表，反向生成java代码（实体bean与mapper接口）和配置文件（mapper.xml）
 
 > 源码项目：https://github.com/mybatis/generator
 >
 > 说明文档：http://mybatis.org/generator/index.html
-
-## 1. 逆向工程
-
-根据数据库表，反向生成java代码（实体bean与mapper接口）和配置文件（mapper.xml）
 
 ## 2. 配置逆向工程生成代码（eclipse 版）
 

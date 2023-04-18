@@ -1,10 +1,8 @@
-# Java 基础 - 数据库技术
-
 ## 1. JDBC（Java数据库连接）概述
 
-JDBC（Java DataBase Connectivity,java数据库连接）是一种用于执行 SQL 语句的 Java API。JDBC 是 Java访问数据库的标准规范，作用是可以为不同的关系型数据库提供统一访问方式，它由一组用Java语言编写的接口和类组成。具体的实现类由各大数据库厂商来编写。
+JDBC（Java DataBase Connectivity, java数据库连接）是一种用于执行 SQL 语句的 Java API。JDBC 是 Java访问数据库的标准规范，作用是可以为不同的关系型数据库提供统一访问方式，它由一组用Java语言编写的接口和类组成。具体的实现类由各大数据库厂商来编写。
 
-JDBC需要连接驱动，驱动是两个设备要进行通信，满足一定通信数据格式，数据格式由设备提供商规定，设备提供商为设备提供驱动软件，通过软件可以与该设备进行通信。
+JDBC 需要连接驱动，驱动是两个设备要进行通信，满足一定通信数据格式，数据格式由设备提供商规定，设备提供商为设备提供驱动软件，通过软件可以与该设备进行通信。
 
 ![](images/20211224190630913_6149.png)
 
@@ -24,20 +22,23 @@ JDBC需要连接驱动，驱动是两个设备要进行通信，满足一定通�
 ### 2.2. JDBC 开发步骤（以 MySQL 为例）
 
 1. 加载并注册数据库驱动，即告知JVM使用的是哪一个数据库的驱动，通常使用反射技术 `Class.forName()` 方法将驱动类加入到内存中。
-    ```java
-    Class.forName("com.mysql.jdbc.Driver")
-    ```
+
+```java
+Class.forName("com.mysql.jdbc.Driver")
+```
+
 2. 通过 `DriverManager` 连接数据库并获得连接对象 `Connection`
-    ```java
-    Connection conn = DriverManager.getConnection(url, user, password);
-    ```
-    - 使用JDBC中的类，完成对MySQL数据库的连接
-3. 获得语句执行平台，通过 `Connection` 对象的 `createStatement()` 方法获得 `Statement` 对象
-    - `Statement` 对象就是对SQL语句的执行者对象
+
+```java
+Connection conn = DriverManager.getConnection(url, user, password);
+```
+
+> 使用JDBC中的类，完成对MySQL数据库的连接
+
+3. 获得语句执行平台，通过 `Connection` 对象的 `createStatement()` 方法获得 `Statement` 对象。`Statement` 对象就是对SQL语句的执行者对象。
 4. 调用 `Statement` 对象的 `excuteXxx(String sql)` 方法发送要执行的SQL语句，并获得执行后数据库返回结果。
 5. 处理结果，通过 `ResultSet` 的 `next()` 和 `getXxx(索引/字段名)` 方法获得数据库返回的结果集。
-6. 必须关闭释放数据库资源，使用 `close()` 方法
-    - <font color=red>**关闭原则：后开的先关(`ResultSet` -> `Statement` -> `Connection`)**</font>
+6. 必须关闭释放数据库资源，使用 `close()` 方法。<font color=red>**关闭原则：后开的先关(`ResultSet` -> `Statement` -> `Connection`)**</font>
 
 > <font color=purple>**注：一般开发会使用 `PreparedStatement` 来代替父类 `Statement`，使用效率和安全性都更高。**</font>
 >
@@ -417,11 +418,25 @@ void setXxx(int index, Xxx xxx);
 
 将指定参数值 `xxx` 赋值给第 `index` 个占位符 `?` 。再将此值发送到数据库时，驱动程序将它转换成一个 SQL Xxx类型值。
 
-#### 3.7.3. SQL注入的概念
+#### 3.7.3. SQL注入
 
-用户输入的内容作为了SQL语法的一部分，改变了原有SQL语句的含义。
+SQL 注入是指，用户输入的内容作为了 SQL 语法的一部分，改变了原有 SQL 语句的含义。
 
-#### 3.7.4. Statement 和 PreparedStatement 的区别
+#### 3.7.4. 预编译
+
+数据库在接收到 SQL 语句后，需要对词法和语义解析，优化 SQL 语句，制定执行计划等一系列处理，这需要花费一些时间。如果一条 SQL 语句需要反复执行，每次都进行语法检查和优化，显然会造成性能与时间的浪费。
+
+SQL 预编译，指的是数据库驱动在发送 SQL 语句和参数给 DBMS 之前对 SQL 语句进行编译，这样 DBMS 执行 SQL 时，就不需要重新编译，一次编译、多次运行，省去解析优化等过程。
+
+JDBC 中使用对象 `PreparedStatement` 来抽象预编译语句，使用预编译。具体做法是将 SQl 语句中的**值用占位符替代**，即**SQL 语句模板化**。预编译阶段可以优化 SQL 的执行，预编译之后的 SQL 多数情况下可以直接执行，DBMS 不需要再次编译，越复杂的SQL，编译的复杂度将越大，预编译阶段可以合并多次操作为一个操作；同时预编译语句对象可以重复利用，把一个 SQL 预编译后产生的 `PreparedStatement` 对象缓存下来，下次对于同一个SQL，可以直接使用这个缓存的对象。
+
+**预编译的作用小结**：
+
+- 预编译阶段可以优化 sql 的执行。预编译之后的 sql 多数情况下可以直接执行，数据库服务器不需要再次编译，可以提升性能。
+- 预编译语句对象可以重复利用。将一个 sql 预编译后产生的 `PreparedStatement` 对象缓存下来，下次对于同一个 sql，可以直接使用这个缓存的对象。
+- 防止 SQL 注入。使用预编译，对注入的参数将**不会再进行 SQL 编译**。即后面注入进来的参数系统将不会认为它会是一条 SQL 语句，而默认其是一个参数。
+
+#### 3.7.5. Statement 和 PreparedStatement 的区别
 
 1. 安全性
     - `PreparedStatement` 可以防止SQL注入问题，安全
@@ -436,7 +451,7 @@ void setXxx(int index, Xxx xxx);
     - `PreparedStatement` 效率高
     - `Statement` 效率低
 
-#### 3.7.5. PreparedStatement 使用步骤
+#### 3.7.6. PreparedStatement 使用步骤
 
 1. 准备要执行的SQL语句，使用 `?` 临时代替真实的参数
 2. 调用 `Connection` 对象的 `preparedStatement()` 方法创建 `PreparedStatement` 对象，并传递SQL语句

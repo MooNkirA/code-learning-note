@@ -4,7 +4,7 @@
 
 ### 1.1. MyBatis 源码包导入
 
-目前学习的MyBatis 版本是：3.5.2，源码包导入过程：
+目前学习的 MyBatis 版本是：3.5.2，源码包导入过程：
 
 1. 下载 MyBatis 的源码
 2. 检查 maven 的版本，必须是 3.25 以上，建议使用 maven 的最新版本
@@ -95,10 +95,12 @@ MyBatis 源码共 16 个模块，可以分成三层，MyBatis源码分层图如�
 
 建造者模式与工程模式的区别在于：
 
-|  设计模式  |                                       对象复杂度                                       |                                   客户端参与程度                                    |
-| --------- | ------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
-| 工厂模式   | 关注的是一个产品整体，无须关心产品的各部分是如何创建出来的                                   | 客户端对产品的创建过程参与度低，对象实例化时属性值相对比较固定                            |
-| 建造者模式 | 建造的对象更加复杂，是一个复合产品，它由各个部件复合而成，部件不同产品对象不同，生成的产品粒度细 | 客户端参与了产品的创建，决定了产品的类型和内容，参与度高；适合实例化对象时属性变化频繁的场景 |
+- **对象复杂度**：
+    - 工厂模式：关注的是一个产品整体，无须关心产品的各部分是如何创建出来的
+    - 建造者模式：建造的对象更加复杂，是一个复合产品，它由各个部件复合而成，部件不同产品对象不同，生成的产品粒度细
+- **客户端参与程度**
+    - 工厂模式：客户端对产品的创建过程参与度低，对象实例化时属性值相对比较固定
+    - 建造者模式：客户端参与了产品的创建，决定了产品的类型和内容，参与度高；适合实例化对象时属性变化频繁的场景
 
 ### 2.4. 策略模式
 
@@ -1331,7 +1333,7 @@ Configuration getConfiguration();
 
 #### 7.3.1. 配置默认执行器类型
 
-在MyBatis总配置文件中，可以设置默认使用的执行器（*不配置则默认为`SIMPLE`*）。
+在 MyBatis 总配置文件中，可以设置默认使用的执行器（*不配置则默认为`SIMPLE`*）。
 
 ```xml
 <!--配置默认的执行器。SIMPLE 就是普通的执行器；REUSE 执行器会重用预处理语句（prepared statements）；
@@ -1385,17 +1387,21 @@ public Executor newExecutor(Transaction transaction, ExecutorType executorType) 
 
 #### 7.3.3. 执行器的作用与其实现类
 
-`Sqlsession`的功能都是基于`Executor`来实现的，`Executor`是MyBaits核心接口之一，定义了数据库操作最基本的方法，在其内部遵循 JDBC 规范完成对数据库的访问。其类继承结构如下图所示：
+`Sqlsession` 的功能都是基于 `Executor` 来实现的，`Executor` 是 MyBaits 核心接口之一，定义了数据库操作最基本的方法，在其内部遵循 JDBC 规范完成对数据库的访问。其类继承结构如下图所示：
 
 ![](images/20210325101254008_25584.png)
 
-- `BaseExecutor`：抽象类，实现了`Executor`接口的大部分方法，主要提供了缓存管理和事务管理的能力，其他子类需要实现的抽象方法为：`doUpdate`、`doQuery`等方法
-    - `BatchExecutor`：基于 jdbc 的 batch 操作实现批处理，批量执行所有更新语句（没有select，JDBC批处理不支持select），将所有 SQL 都添加到批处理中（`addBatch()`），等待统一执行（`executeBatch()`），它缓存了多个 `Statement` 对象，每个 `Statement` 对象都是 `addBatch()` 执行完毕后，等待逐一执行 `executeBatch()` 批处理。不建议使用，效率不高。**如果涉及批量操作，推荐使用原生的JDBC的`clearbatch`的API**
-    - `SimpleExecutor`：默认执行器，每次执行都会创建一个`statement`对象，用完后关闭。比较鸡肋。
-    - `ReuseExecutor`：可重用执行器，执行 update 或 select 语句后，以 sql 作为 key 在`Map<String, Statement>`的集合内查找 `Statement` 对象，存在就使用，不存在则创建。使用完后，不关闭 `Statement` 对象，并将 `Statement` 对象存入缓存的 Map 中，以后操作 Map 中的 `Statement` 对象而不会重复创建。在不做大量的更新/新增操作的情况下，推荐使用。
-- `CachingExecutor`：使用装饰器模式，对真正提供数据库查询的`Executor`增强了二级缓存的能力，具体生成此增加的位置在`DefaultSqlSessionFactory.openSessionFromDataSource`方法中，会判断是否开启了`<settings>`节点`cacheEnabled`配置，如开启则将原`Executor`实例包装成`CacheingExecutor`
+`BaseExecutor`：抽象类，实现了`Executor`接口的大部分方法，主要提供了缓存管理和事务管理的能力，其他子类需要实现的抽象方法为：`doUpdate`、`doQuery`等方法。主要有以下几种实现：
+
+- `SimpleExecutor`：**默认执行器**，每次执行都会创建一个`Statement`对象，用完后立刻关闭。（比较鸡肋）
+- `ReuseExecutor`：**可重用执行器**，执行 update 或 select 语句后，以 sql 作为 key 在`Map<String, Statement>`的集合内查找 `Statement` 对象，存在就使用，不存在则创建。使用完后，不关闭 `Statement` 对象，并将 `Statement` 对象存入缓存的 Map 中，以后操作 Map 中的 `Statement` 对象而不会重复创建。<u>**在不做大量的更新/新增操作的情况下，推荐使用**</u>。
+- `BatchExecutor`：基于 JDBC 的 Batch 操作实现批处理，批量执行所有更新语句（没有select，JDBC批处理不支持select），将所有 SQL 都添加到批处理中（`addBatch()`），等待统一执行（`executeBatch()`），它缓存了多个 `Statement` 对象，每个 `Statement` 对象都是 `addBatch()` 执行完毕后，等待逐一执行 `executeBatch()` 批处理。<u>**不建议使用，效率不高。如果涉及批量操作，推荐使用原生的 JDBC 的`clearbatch`的 API**</u>。
+
+`CachingExecutor`：使用装饰器模式，对真正提供数据库查询的`Executor`增强了二级缓存的能力，具体生成此增加的位置在`DefaultSqlSessionFactory.openSessionFromDataSource`方法中，会判断是否开启了`<settings>`节点`cacheEnabled`配置，如开启则将原`Executor`实例包装成`CacheingExecutor`
 
 ![](images/20210325102521004_25881.png)
+
+> Notes: 以上 Executor 的各种实现的特点，都严格限制在 SqlSession 生命周期范围内。
 
 ##### 7.3.3.1. ReuseExecutor
 
@@ -3553,5 +3559,3 @@ private void parseConfiguration(XNode root) {
   }
 }
 ```
-
-

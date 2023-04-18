@@ -1,5 +1,3 @@
-# MyBatisPlus （MyBatis 的增强工具）
-
 ## 1. MyBatis-Plus 简介
 
 MyBatis-Plus（简称 MP）是一个 MyBatis 的增强工具，在 MyBatis 的基础上只做增强不做改变，为简化开发、提高效率而生
@@ -2837,9 +2835,9 @@ public class MpFastAutoGenerator {
 }
 ```
 
-# MyBatis 插件
+## 15. MyBatis 插件
 
-## 1. mybatis 的插件机制
+### 15.1. mybatis 的插件机制
 
 MyBatis 允许在已映射语句执行过程中的某一点进行拦截调用。默认情况下，MyBatis 允许使用插件来拦截的方法调用包括：
 
@@ -2857,17 +2855,15 @@ MyBatis 允许在已映射语句执行过程中的某一点进行拦截调用。
 3. 拦截结果集的处理
 4. 拦截 Sql 语法构建的处理
 
-> 详细插件执行机制详见[《MyBatis 源码笔记》](/后端框架/MyBatis/MyBatis源码笔记?id=_8-插件模块源码分析)
+> 详细插件执行机制详见[《MyBatis 源码笔记》](/后端框架/MyBatis/MyBatis-源码分析)的『插件模块源码分析』章节
 
-## 2. MybatisPlusInterceptor 核心插件
+### 15.2. MybatisPlusInterceptor 核心插件
 
 该插件是 MP 核心插件，目前代理了 `Executor#query` 和 `Executor#update` 和 `StatementHandler#prepare` 方法
 
-## 3. 分页插件
+### 15.3. PaginationInnerInterceptor 分页插件
 
-### 3.1. PaginationInnerInterceptor
-
-#### 3.1.1. 配置依赖
+#### 15.3.1. 配置依赖
 
 ```xml
 <dependencies>
@@ -2890,9 +2886,9 @@ MyBatis 允许在已映射语句执行过程中的某一点进行拦截调用。
 </dependencies>
 ```
 
-#### 3.1.2. 配置分页插件
+#### 15.3.2. 配置分页插件
 
-##### 3.1.2.1. spring xml 方式
+##### 15.3.2.1. spring xml 方式
 
 ```xml
 <!-- spring xml 方式 -->
@@ -2913,7 +2909,7 @@ MyBatis 允许在已映射语句执行过程中的某一点进行拦截调用。
 </bean>
 ```
 
-##### 3.1.2.2. Spring boot 方式
+##### 15.3.2.2. Spring boot 方式
 
 - 通过`@Bean`注解配置新版分页插件加入到 spring 容器
 
@@ -2972,7 +2968,7 @@ mybatis-plus:
   mapper-locations: classpath:/mapper/*Mapper.xml
 ```
 
-#### 3.1.3. 基于 BaseMapper 基础分页示例
+#### 15.3.3. 基于 BaseMapper 基础分页示例
 
 ```java
 /**
@@ -3009,7 +3005,7 @@ private <T> void printPageInfo(Page<T> page) {
 }
 ```
 
-#### 3.1.4. PaginationInnerInterceptor 分页插件相关属性介绍
+#### 15.3.4. PaginationInnerInterceptor 分页插件相关属性介绍
 
 |   属性名   |    类型    | 默认值  | 描述                                                                    |
 | :--------: | :--------: | :-----: | ----------------------------------------------------------------------- |
@@ -3020,9 +3016,9 @@ private <T> void printPageInfo(Page<T> page) {
 
 > <font color=red>**建议单一数据库类型的均设置 dbType**</font>
 
-#### 3.1.5. 自定义 mapper 接口分页查询
+#### 15.3.5. 自定义 mapper 接口分页查询
 
-##### 3.1.5.1. 自定义分页方法的入参与出参的说明
+##### 15.3.5.1. 自定义分页方法的入参与出参的说明
 
 - 如果返回类型是 `IPage` 则入参的 `IPage` 不能为`null`，因为`返回的IPage == 入参的IPage`
 
@@ -3044,7 +3040,7 @@ MyPage selectByIPage(MyPage page, ...其他参数);
 
 > 注：如果 xml 需要从 `page` 里取值，需要 `page.属性` 获取
 
-##### 3.1.5.2. 自定义 mapper 接口分页示例
+##### 15.3.5.2. 自定义 mapper 接口分页示例
 
 - 自定义分页类
 
@@ -3179,11 +3175,11 @@ public void testSelectByMyPage() {
 }
 ```
 
-### 3.2. Pagehelper 分页助手
+### 15.4. Pagehelper 分页助手
 
 MP 除了框架自己本身的分页插件之外，也可以引入第三方的 Pagehelper 分页助手
 
-#### 3.2.1. 配置依赖
+#### 15.4.1. 配置依赖
 
 ```xml
 <dependencies>
@@ -3215,7 +3211,7 @@ MP 除了框架自己本身的分页插件之外，也可以引入第三方的 P
 </dependencies>
 ```
 
-#### 3.2.2. 配置分页插件
+#### 15.4.2. 配置分页插件
 
 ```java
 @Configuration
@@ -3231,7 +3227,7 @@ public class MybatisPlusConfig {
 }
 ```
 
-#### 3.2.3. 测试示例
+#### 15.4.3. 测试示例
 
 示例直接使用`BaseMapper`的基础操作测试
 
@@ -3257,11 +3253,11 @@ public void testDoSelectPageInfo() {
 }
 ```
 
-## 4. 执行 SQL 分析插件
+### 15.5. 执行 SQL 分析插件
 
 在 MP 中提供了对 SQL 执行的分析的插件`SqlExplainInterceptor`，可用作阻断全表更新、删除的操作。
 
-> _注意：该插件仅适用于开发环境，不适用于生产环境_。
+> Notes: *该插件仅适用于开发环境，不适用于生产环境*。
 
 在项目配置类中创建相应的插件（拦截器）：
 
@@ -3295,7 +3291,7 @@ public MybatisPlusInterceptor mybatisPlusInterceptor() {
 
 测试时进行一些全表的操作，观察是否被阻断。
 
-## 5. 性能分析插件
+### 15.6. 性能分析插件
 
 性能分析拦截器，用于输出每条 SQL 语句及其执行时间，可以设置最大执行时间，超过时间会抛出异常。
 
@@ -3324,15 +3320,15 @@ public MybatisPlusInterceptor mybatisPlusInterceptor() {
 
 > 注意：以上插件在 3.1.1 版本中生效，3.4.3.4 版本已无此插件
 
-## 6. 乐观锁插件
+### 15.7. 乐观锁插件
 
-### 6.1. 乐观锁实现方式
+#### 15.7.1. 乐观锁实现方式
 
 1. 取出记录时，获取当前 version 字段值
 2. 执行更新时，使用版本做为条件。 `set version = newVersion where version = oldVersion`
 3. 如果 version 不对，就更新失败
 
-### 6.2. 乐观锁插件配置
+#### 15.7.2. 乐观锁插件配置
 
 spring xml 方式:
 
@@ -3373,7 +3369,7 @@ public class MybatisPlusConfig {
 }
 ```
 
-### 6.3. 在实体类的字段上加上@Version 注解
+#### 15.7.3. 在实体类的字段上加上 @Version 注解
 
 给实体类相应版本字段添加 `@Version` 注解
 
@@ -3390,7 +3386,7 @@ private Integer version;
 - 仅支持 `updateById(id)` 与 `update(entity, wrapper)` 方法
 - 在 `update(entity, wrapper)` 方法下, `wrapper` 不能复用!!!
 
-### 6.4. 测试示例
+#### 15.7.4. 测试示例
 
 ```java
 /**
@@ -3509,9 +3505,9 @@ public void testUpdateByEntitySucc() {
 }
 ```
 
-# 原理分析
+## 16. 原理分析
 
-## 1. SQL 注入的原理
+### 16.1. SQL 注入的原理
 
 MP 在启动后会将`BaseMapper`中的一系列的方法注册到`meppedStatements`中，下面分析是如何注入与流程。
 
