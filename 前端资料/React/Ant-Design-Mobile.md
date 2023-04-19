@@ -1,9 +1,10 @@
-# Ant Design Mobile
+## 1. Ant Design Mobile 概述
 
-- 官网：https://mobile.ant.design/index-cn
+> 官网：https://mobile.ant.design/index-cn
 
-## 1. 实践项目相关问题
-### 1.1. Tabs 组件设置标签的宽度
+## 2. 实践项目相关问题
+
+### 2.1. Tabs 组件设置标签的宽度
 
 需求：在使用 Ant Design Mobile 框架的 Tabs 组件时，标签的宽度默认是占满整个Tabs组件，现在需要自定义标签的宽度，不会出现只有一个标签的时候，整个标签都占满全部空间
 
@@ -100,4 +101,3 @@ const TabExample = () => (
 > - [Tabs的underline如何自定义宽度且能居中修改样式后的文字下面](https://github.com/ant-design/ant-design-mobile/issues/3322)
 > - [tabs 下划线 指定样式方法](https://github.com/ant-design/ant-design-mobile/issues/3325)
 > - [antd Mobile Tabs 垂直布局 后台传入数据](https://blog.csdn.net/qq_37786243/article/details/89280048)
-

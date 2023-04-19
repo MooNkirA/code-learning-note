@@ -1,18 +1,18 @@
-# JavaScript( ECMA Script )
+## 1. JavaScript( ECMA Script )
 
-JavaScript 这门语言属于一系列 Web 标准套件中的一部分，这些标准定义出了可互操作的浏览器平台。此部分的内容主要是 ES6 以前的语法，ES6 及其更后的版本详见[《ECMAScript6 基础笔记》](/前端资料/基础语法03-JavaScript/ECMAScript6)
+JavaScript 这门语言属于一系列 Web 标准套件中的一部分，这些标准定义出了可互操作的浏览器平台。此部分的内容主要是 ES6 以前的语法，ES6 及其更后的版本详见[《ECMAScript6 基础笔记》](/前端资料/JavaScript/ECMAScript6)
 
-## 1. JavaScript 数据类型
+## 2. JavaScript 数据类型
 
-### 1.1. 5种基本数据类型
+### 2.1. 5种基本数据类型
 
-|    关键字    |                                                    数据类型                                                    |
-| :---------: | -------------------------------------------------------------------------------------------------------------- |
-|  `Number`   | 数值型（整数和浮点数）                                                                                           |
-|  `String`   | 字符串类型(字符和字符串)，可以使用单引号或双引号                                                                    |
-|  `Boolean`  | 布尔类型(true/false)                                                                                           |
+|    关键字    |                                                  数据类型                                                   |
+| :---------: | ---------------------------------------------------------------------------------------------------------- |
+|  `Number`   | 数值型（整数和浮点数）                                                                                        |
+|  `String`   | 字符串类型(字符和字符串)，可以使用单引号或双引号                                                                  |
+|  `Boolean`  | 布尔类型(true/false)                                                                                        |
 |  `Object`   | 对象类型，对象类型格式：(定义对象，称为JSON对象<br/>(JavaScript Object Notation, JS对象标记)是一种轻量级的数据交换格式 |
-| `undefined` | 未初始化的类型，如果一个变量没有赋值它的类型是不确定的                                                               |
+| `undefined` | 未初始化的类型，如果一个变量没有赋值它的类型是不确定的                                                              |
 
 - Object 示例
 
@@ -28,7 +28,7 @@ const obj = {
 - `null`：其实是Object对象类型，这个对象只是没有值，为空
 - `undefined`：没有初始化的类型，并不知道是什么数据类型
 
-### 1.2. typeof操作符
+### 2.2. typeof操作符
 
 - 作用：用于判断变量是什么数据类型
 - 语法格式：`typeof(变量名)` 或者 `typeof 变量名`
@@ -83,9 +83,9 @@ Code Demo
 </html>
 ```
 
-### 1.3. 类型强制转换
+### 2.3. 类型强制转换
 
-#### 1.3.1. String 强制转换为数字
+#### 2.3.1. String 强制转换为数字
 
 - 可以用 `*1` 来转化为数字(实际上是调用`.valueOf`方法)。然后使用` Number.isNaN` 来判断是否为`NaN`，或者使用 `a!==a` 来判断是否为 `NaN`，因为 `NaN !== NaN`
 
@@ -108,7 +108,7 @@ undefined * 1;  // NaN
 + { valueOf: () => "3" }  // 3
 ```
 
-#### 1.3.2. 取整 `|0`
+#### 2.3.2. 取整 `|0`
 
 对一个数字 `|0` 可以取整，负数也同样适用，`num|0`
 
@@ -117,7 +117,7 @@ const a = 1.3 | 0;  // 1
 const b = -1.9 | 0; // -1
 ```
 
-#### 1.3.3. 判断奇偶数 `&1`
+#### 2.3.3. 判断奇偶数 `&1`
 
 对一个数字 `&1` 可以判断奇偶数，负数也同样适用，`num&1`
 
@@ -127,9 +127,9 @@ const b1 = !!(num & 1);  // true
 const b2 = !!(num % 2);  // true
 ```
 
-## 2. 运算符
+## 3. 运算符
 
-### 2.1. 双位运算符 `~~`
+### 3.1. 双位运算符 `~~`
 
 可以使用双位操作符来替代 `Math.floor()`。双否定位操作符的优势在于它执行相同的操作运行速度更快。
 
@@ -150,9 +150,9 @@ Math.floor(4.5);  // 4
 Math.floor(-4.5);  // -5
 ```
 
-### 2.2. 短路运算符
+### 3.2. 短路运算符
 
-#### 2.2.1. 常规用法 - 逻辑判断
+#### 3.2.1. 常规用法 - 逻辑判断
 
 逻辑与 `&&` 与逻辑或 `||` 是短路运算符。短路运算符就是从左到右的运算中前者满足要求，就不再执行后者了
 
@@ -164,7 +164,7 @@ let param1 = expr1 && expr2;
 let param2 = expr1 || expr2;
 ```
 
-#### 2.2.2. 其他用法
+#### 3.2.2. 其他用法
 
 - 变量赋初值。如下例：如果variable1是真值就直接返回了，后面短路就不会被返回了，如果为假值，则会返回后面的 foo
 
@@ -179,11 +179,11 @@ let variable2 = variable1 || "foo";
 let variable = param && param.prop;
 ```
 
-## 3. 函数
+## 4. 函数
 
-### 3.1. 函数的定义与语法格式
+### 4.1. 函数的定义与语法格式
 
-#### 3.1.1. 函数的定义
+#### 4.1.1. 函数的定义
 
 - 第1种方式：全名函数
 
@@ -228,18 +228,18 @@ var sayHi2 = function (name){
 sayHi2("鸟人");
 ```
 
-#### 3.1.2. 参数类型与返回值
+#### 4.1.2. 参数类型与返回值
 
 1. 形参的类型。在定义函数时，形参的类型是不需要指定的，因是可以变化的类型
 2. 函数的返回值。function前面没有返回类型，如果有返回值，使用return，如果没有返回值则不用写。
 
-#### 3.1.3. 函数的重载
+#### 4.1.3. 函数的重载
 
 在JS中没有函数的重载，后面定义的同名函数会覆盖前面的函数，只有最后一个函数起作用。
 
 形参的个数与实参个数没有关系
 
-#### 3.1.4. arguments隐式数组对象
+#### 4.1.4. arguments隐式数组对象
 
 在每一个函数的内部都有一个隐式的数组对象，名字叫arguments，用来保存用户提交的实际参数。函数运行的时候形参从数组中去取值，再进行运算。
 
@@ -291,7 +291,7 @@ n1 = 10
 n2 = 20
 ```
 
-### 3.2. 函数内 this 的指向
+### 4.2. 函数内 this 的指向
 
 函数内 this 的指向，是当调用函数的时候确定的。调用方式的不同决定了this 的指向不同。一般指向调用者
 
@@ -332,7 +332,7 @@ window.setTimeout(function () {
 
 JavaScript 专门提供了一些函数方法来处理函数内部 this 的指向问题，常用的有 bind()、call()、apply() 三种方法
 
-#### 3.2.1. call 方法
+#### 4.2.1. call 方法
 
 语法：
 
@@ -369,7 +369,7 @@ var son = new Son("路飞", 18, "男")
 console.log(son)
 ```
 
-#### 3.2.2. apply 方法
+#### 4.2.2. apply 方法
 
 `apply()` 方法调用一个函数。简单理解为调用函数的方式，但是它可以改变函数的 this 指向。语法如下：
 
@@ -405,7 +405,7 @@ var min = Math.min.apply(Math, arr)
 console.log(max, min)
 ```
 
-#### 3.2.3. bind 方法
+#### 4.2.3. bind 方法
 
 `bind()` 方法不会调用函数。但是能改变函数内部 this 指向。语法如下：
 
@@ -461,7 +461,7 @@ for (var i = 0; i < btns.length; i++) {
 }
 ```
 
-#### 3.2.4. 改变函数内部 this 指向三种方式总结
+#### 4.2.4. 改变函数内部 this 指向三种方式总结
 
 - 相同点：
     - 都可以改变函数内部的this指向
@@ -488,7 +488,7 @@ for (var i = 0; i < btns.length; i++) {
 
 
 
-## 4. JavaScript 的对象
+## 5. JavaScript 的对象
 
 类就是对象的模板，对象就是类的实例。在 ES6之前，JS 中并没用引入类的概念。
 
@@ -500,7 +500,7 @@ for (var i = 0; i < btns.length; i++) {
 2. `new Object()`。例如：`var obj1 = new Object()`
 3. 自定义构造函数
 
-### 4.1. 构造函数
+### 5.1. 构造函数
 
 **构造函数**是一种特殊的函数，主要用来初始化对象，即为对象成员变量赋初始值，它总与 `new` 关键字一起使用。可以把对象中一些公共的属性和方法抽取出来，然后封装到这个函数里面
 
@@ -532,7 +532,7 @@ jieye.sing()
 3. 执行构造函数里面的代码，给这个新对象添加属性和方法。
 4. 返回这个新对象（所以构造函数里面不需要 return ）。
 
-### 4.2. 静态成员和实例成员
+### 5.2. 静态成员和实例成员
 
 JavaScript 的构造函数中可以添加一些成员，可以在构造函数本身上添加，也可以在构造函数内部的 `this` 上添加。通过这两种方式添加的成员，就分别称为静态成员和实例成员。
 
@@ -560,9 +560,9 @@ console.log(Star.sex) // 静态成员只能通过构造函数来访问
 console.log(ldh.sex) // 不能通过对象来访问
 ```
 
-### 4.3. 原型
+### 5.3. 原型
 
-#### 4.3.1. 构造函数原型 prototype
+#### 5.3.1. 构造函数原型 prototype
 
 JavaScript 规定，<font color=red>**每一个构造函数都有一个 `prototype` 属性**</font>，指向另一个对象。注意这个 `prototype` 就是一个对象，这个对象的所有属性和方法，都会被构造函数所拥有，所有通过此构造函数生成的对象都共享此`prototype`对象。
 
@@ -593,7 +593,7 @@ shiyuan.sing()
 jieye.sing()
 ```
 
-#### 4.3.2. 对象原型 __proto__
+#### 5.3.2. 对象原型 __proto__
 
 <font color=red>**对象都会有一个属性 `__proto__` 指向构造函数的 `prototype` 原型对象**</font>
 
@@ -618,7 +618,7 @@ console.log(shiyuan.__proto__ === Star.prototype)
  */
 ```
 
-#### 4.3.3. 构造函数 constructor
+#### 5.3.3. 构造函数 constructor
 
 对象原型（`__proto__`）和构造函数（`prototype`）原型对象里面都有一个属性 `constructor` 属性 `，constructor` 称为构造函数，因为它指回构造函数本身。
 
@@ -655,11 +655,11 @@ console.log(Star.prototype.constructor)
 console.log(shiyuan.__proto__.constructor)
 ```
 
-#### 4.3.4. 构造函数、实例、原型对象三者之间的关系
+#### 5.3.4. 构造函数、实例、原型对象三者之间的关系
 
 ![](images/20200823105900008_3346.png)
 
-#### 4.3.5. 原型链
+#### 5.3.5. 原型链
 
 ![](images/20200823105941956_20146.png)
 
@@ -680,7 +680,7 @@ console.log(Object.prototype.__proto__)
 // 3. 我们Object.prototype原型对象里面的__proto__原型  指向为 null
 ```
 
-### 4.4. JavaScript 的成员查找机制(规则)
+### 5.4. JavaScript 的成员查找机制(规则)
 
 1. 当访问一个对象的属性（包括方法）时，首先查找这个对象自身有没有该属性。
 2. 如果没有就查找它的原型（也就是 `__proto__` 指向的 `prototype` 原型对象）。
@@ -707,7 +707,7 @@ console.log(Star.prototype)
 console.log(shiyuan.toString())
 ```
 
-### 4.5. 原型对象this指向
+### 5.5. 原型对象this指向
 
 - 构造函数中的 `this` 指向实例对象
 - **原型对象**里面放的是方法，这个方法里面的 `this` 指向的是这个方法的调用者，也就是这个实例对象
@@ -729,7 +729,7 @@ shiyuan.sing()
 console.log(that === shiyuan)
 ```
 
-### 4.6. 扩展 JS 内置对象
+### 5.6. 扩展 JS 内置对象
 
 可以通过原型对象，对JS原来的内置对象进行扩展自定义的方法。
 
@@ -761,9 +761,9 @@ console.log(arr1.sum())
 
 > 注意：数组和字符串内置对象不能给原型对象覆盖操作` Array.prototype = {}` ，只能是 `Array.prototype.xxx = function(){}` 的方式。
 
-### 4.7. 对象常用方法
+### 5.7. 对象常用方法
 
-#### 4.7.1. Object.assign() 对象属性复制，浅拷贝
+#### 5.7.1. Object.assign() 对象属性复制，浅拷贝
 
 - 使用Object.assign方法可以浅克隆一个对象：
 
@@ -777,7 +777,7 @@ let cloneObj = Object.assign({}, targetObj)
 let cloneObj = JSON.parse(JSON.stringify(targetObj))
 ```
 
-#### 4.7.2. Object.keys() 获取对象全部属性
+#### 5.7.2. Object.keys() 获取对象全部属性
 
 `Object.keys()` 用于获取对象自身所有的属性名，返回对象所有属性名的数组
 
@@ -802,7 +802,7 @@ arr.forEach(function (value) {
 })
 ```
 
-#### 4.7.3. Object.values() 获取对象全部（属性）值
+#### 5.7.3. Object.values() 获取对象全部（属性）值
 
 `Object.values(对象)`方法作用是，获取对象内的所有值，返回值的数组。
 
@@ -817,7 +817,7 @@ console.log(Object.values(user));
 // output: ["Alex", 23, false]
 ```
 
-#### 4.7.4. Object.entries() 获取对象的键值
+#### 5.7.4. Object.entries() 获取对象的键值
 
 `Object.entries(对象)`方法的作用是同时获取对象的键和值，返回一个键和值的多维数组。
 
@@ -832,7 +832,7 @@ console.log(Object.entries(user));
 // output: [["name", "Alex"], ["age", 23], ["isOnline", false]]
 ```
 
-#### 4.7.5. Object.defineProperty() 定义属性
+#### 5.7.5. Object.defineProperty() 定义属性
 
 `Object.defineProperty()` 定义对象中新属性或修改原有的属性。语法如下：
 
@@ -902,7 +902,7 @@ Object.defineProperty(obj, "address", {
 console.log(obj.address)
 ```
 
-#### 4.7.6. Object.freeze() 防止对象数据修改
+#### 5.7.6. Object.freeze() 防止对象数据修改
 
 `Object.freeze(对象)`方法作用是防止对象中的数据突变。即不能将`Object.freeze()`作为参数传递给对象，更不能添加，更新或删除对象的属性。
 
@@ -922,7 +922,7 @@ console.log(employee);
 // Output: {name: "James", age: 25, available: true}
 ```
 
-#### 4.7.7. Object.seal() 防止对象增加属性
+#### 5.7.7. Object.seal() 防止对象增加属性
 
 `Object.seal()`方法有点类似于`Object.freeze()`，它可以防止向对象添加新属性，但是可以更改和更新现有属性。
 
@@ -945,7 +945,7 @@ console.log(user);
 
 > 示例中：该对象的`isOnline`属性值已更新，但是无法将新的`active`属性添加到对象中
 
-#### 4.7.8. Object.create() 创建一个新对象
+#### 5.7.8. Object.create() 创建一个新对象
 
 `Object.create()`作用是，从另一个现有对象的原型创建一个新对象。
 
@@ -971,11 +971,11 @@ console.log(newObject);
 ```
 
 
-## 5. 继承（ES6以前的实现方式）
+## 6. 继承（ES6以前的实现方式）
 
 ES6之前并没有提供 `extends` 继承。但可以<font color=red>**通过构造函数+原型对象模拟实现继承，被称为组合继承**</font>
 
-### 5.1. call() 函数
+### 6.1. call() 函数
 
 通过`call()`去调用某个函数, 并且修改函数运行时的 `this` 指向
 
@@ -1004,7 +1004,7 @@ var o = {
 fn.call(o, 1, 2)
 ```
 
-### 5.2. 借用构造函数继承父类型属性
+### 6.2. 借用构造函数继承父类型属性
 
 核心原理：通过 `call()` 把父类型的this指向子类型的this，这样就可以实现子类型继承父类型的属性。
 
@@ -1026,7 +1026,7 @@ var son = new Son("敌法师", 18, 100)
 console.log(son)
 ```
 
-### 5.3. 借用原型对象继承父类型方法
+### 6.3. 借用原型对象继承父类型方法
 
 <font color=red>**一般情况下，对象的方法都在构造函数的原型对象中设置，通过构造函数无法继承父类方法**</font>。实现的核心原理：
 
@@ -1074,12 +1074,12 @@ console.log(Son.prototype.constructor)
 
 
 
-## 6. 数组对象Array
+## 7. 数组对象Array
 
 在JS中，数组等价于集合
 
-### 6.1. 创建数组的方式
-#### 6.1.1. 一维数组
+### 7.1. 创建数组的方式
+#### 7.1.1. 一维数组
 
 1. 创建一个长度为0的数组
 
@@ -1105,7 +1105,7 @@ var arr = new Array(x1,x2,x3……);
 var arr = [x1,x2,x3,……];
 ```
 
-#### 6.1.2. 二维数组
+#### 7.1.2. 二维数组
 
 ```js
 var arr = [[x,x,x],[x,x,x],[x,x],……];
@@ -1114,7 +1114,7 @@ var arr = [[x,x,x],[x,x,x],[x,x],……];
 - 值：`arr[0] = [x,x,x]`
 - 使用嵌套循环遍历
 
-#### 6.1.3. Array.of() 方法
+#### 7.1.3. Array.of() 方法
 
 `Array.of()`方法用于将一组值，转换为数组。这个方法的主要目的，是弥补数组构造函数`Array()`的不足。因为参数个数的不同，会导致`Array()`的行为有差异。
 
@@ -1137,7 +1137,7 @@ Array.of(3).length // 1
 - `Array.of()`方法基本上可以用来替代`Array()`或`new Array()`，并且不存在由于参数不同而导致的重载。它的行为非常统一。
 - `Array.of()`方法总是返回参数值组成的数组。如果没有参数，就返回一个空数组。
 
-### 6.2. 数组中元素的类型
+### 7.2. 数组中元素的类型
 
 1. 数组中的元素类型可以各不相同
 2. 数组的长度可以动态增长
@@ -1153,8 +1153,8 @@ arr[5] = 99;
 - 数组的长度是6
 - 数组的内容是`[1, 3, "hello", 时间对象, undefined, 99]`
 
-### 6.3. 数组的遍历
-#### 6.3.1. for...of 循环
+### 7.3. 数组的遍历
+#### 7.3.1. for...of 循环
 
 - 语法：`for(const item of array)`
 - 作用：循环遍历数组所有元素项
@@ -1171,7 +1171,7 @@ for (const color of colors) {
 // 'white'
 ```
 
-#### 6.3.2. for 循环
+#### 7.3.2. for 循环
 
 - 语法：`for(let i; i < array.length; i++)`
 - 作用：循环使用递增的索引变量的方式遍历数组所有元素项，index变量从0递增到`colors.length-1`
@@ -1189,7 +1189,7 @@ for (let index = 0; index < colors.length; index++) {
 // 'white'
 ```
 
-#### 6.3.3. forEach()方法
+#### 7.3.3. forEach()方法
 
 - 语法：
 
@@ -1211,9 +1211,9 @@ arr.forEach((item, index) => {
 
 > 注：`array.forEach()`迭代中，不能使用`break`来中断操作
 
-### 6.4. 数组的映射
+### 7.4. 数组的映射
 
-#### 6.4.1. map()方法 - ES6新特性
+#### 7.4.1. map()方法 - ES6新特性
 
 - 语法：`map(callback(item[, index[, array]]))`
     - 参数callback函数，该函数参数包括：当前遍历项（item）、索引（index）和数组本身（array）。
@@ -1232,13 +1232,13 @@ console.log(newArr)
 
 ![数组的map方法](images/20190421103633831_23300.png)
 
-#### 6.4.2. Array.from()方法
+#### 7.4.2. Array.from()方法
 
 `Array.from()`方法就是将一个**类数组对象**或者**可遍历对象(包括ES6新增的数据结构Set和Map)**转换成一个真正的数组。
 
 **类数组对象**，最基本的要求就是具有length属性的对象。
 
-##### 6.4.2.1. 语法
+##### 7.4.2.1. 语法
 
 ```js
 Array.from(arrayLike[, mapFunction[, thisArg]])
@@ -1260,7 +1260,7 @@ Array.from(someNumbers, value => value * 2); // => [20, 30]
 > - `Array.from()`创建一个新的映射数组，而不改变原始数组。
 > - `Array.from()`更适合从类似数组的对象进行映射。
 
-##### 6.4.2.2. 用法1：将类数组对象转换为真正数组
+##### 7.4.2.2. 用法1：将类数组对象转换为真正数组
 
 ```js
 let arrayLike = {
@@ -1309,7 +1309,7 @@ console.log(arr)  // [ undefined, undefined, undefined, undefined ]
     2. 该类数组对象的属性名必须为数值型或字符串型的数字
 - ps: 该类数组对象的属性名可以加引号，也可以不加引号
 
-##### 6.4.2.3. 用法2：将Set结构的数据转换为真正的数组
+##### 7.4.2.3. 用法2：将Set结构的数据转换为真正的数组
 
 ```js
 let arr = [12,45,97,9797,564,134,45642]
@@ -1325,14 +1325,14 @@ let set = new Set(arr)
 console.log(Array.from(set, item => item + 1)) // [ 13, 46, 98, 9798, 565, 135, 45643 ]
 ```
 
-##### 6.4.2.4. 用法3：将字符串转换为数组
+##### 7.4.2.4. 用法3：将字符串转换为数组
 
 ```js
 let str = 'hello world!';
 console.log(Array.from(str)) // ["h", "e", "l", "l", "o", " ", "w", "o", "r", "l", "d", "!"]s
 ```
 
-##### 6.4.2.5. Array.from参数是一个真正的数组
+##### 7.4.2.5. Array.from参数是一个真正的数组
 
 Array.from会返回一个一模一样的新数组
 
@@ -1340,8 +1340,8 @@ Array.from会返回一个一模一样的新数组
 console.log(Array.from([12,45,47,56,213,4654,154]))
 ```
 
-### 6.5. 数据的简化
-#### 6.5.1. reduce()方法 - ES6新特性
+### 7.5. 数据的简化
+#### 7.5.1. reduce()方法 - ES6新特性
 
 - 语法：`array.reduce(callback(accumulator, item[, index[, array]])[, initialValue])`
     - 接收一个函数callback（必须）和一个初始值initialValue（可选）
@@ -1366,8 +1366,8 @@ let result4 = arr.reduce((a, b) => a * b, 1);     // 结果：-300
 let result5 = arr.reduce((a, b) => a * b, -1);    // 结果：300
 ```
 
-### 6.6. 数据的连接
-#### 6.6.1. concat()方法
+### 7.6. 数据的连接
+#### 7.6.1. concat()方法
 
 - 语法：`array.concat(array1[, array2, ...])`
 - 作用：连接两个或更多的数组，或者给数组增加元素，并返回结果。一般用于数组的拼接和增加元素操作
@@ -1381,7 +1381,7 @@ const concatArray = arr1.concat(arr2);
 console.log(concatArray); // 1, 2, moon, hehe
 ```
 
-#### 6.6.2. 展开操作符(...)
+#### 7.6.2. 展开操作符(...)
 
 - 语法：`[...array1, ...array2]`
 - 作用：可以使用展开操作符与数组变量一起使用来连接数组，与`concat()`方法效果一样
@@ -1394,7 +1394,7 @@ const concatArray = [...arr1, ...arr2];
 console.log(concatArray); // 1, 2, moon, hehe
 ```
 
-#### 6.6.3. join() 方法 - 将数组转成字符串
+#### 7.6.3. join() 方法 - 将数组转成字符串
 
 - 语法：`array.join(separator分隔符)`
 - join方法正好与**字符串的方法`split(分隔符)`（方法将一个字符串切割成一个字符串数组）**相反，将数组通过分隔符，拼成一个字符串。
@@ -1405,13 +1405,13 @@ var str = a3.join("+")
 // 输出结果："1+2+3"
 ```
 
-#### 6.6.4. split() 方法 - 将字符串转成数组
+#### 7.6.4. split() 方法 - 将字符串转成数组
 
 - 语法：`array.split(separator分隔符)`
 - 作用：将字符串，按指定的分隔符截取成数组，与join()方法相反
 
-### 6.7. 过滤（获取）数组的部分数据
-#### 6.7.1. slice() 方法
+### 7.7. 过滤（获取）数组的部分数据
+#### 7.7.1. slice() 方法
 
 - 语法：`array.slice([fromIndex[，toIndex]])`
     - 可选参数fromIndex：截取的开始索引，默认值为0
@@ -1429,7 +1429,7 @@ console.log(heroes) // ["moon", "abc"]
 console.log(villains) // ["kira", "N"]
 ```
 
-#### 6.7.2. filter()方法
+#### 7.7.2. filter()方法
 
 - 语法：
 
@@ -1449,7 +1449,7 @@ var newarr = arr.filter((item, idx) => {
 
 > 注：`array.filter()` 创建一个新数组，而不改变原始数组
 
-##### 6.7.2.1. 扩展：使用Boolean过滤数组中的所有假值
+##### 7.7.2.1. 扩展：使用Boolean过滤数组中的所有假值
 
 JS中的相关假值：`false`, `null`, `0`, `undefined`, `NaN`。可以使用Boolean构造函数来进行一次转换，快速将数组中假值过滤
 
@@ -1460,8 +1460,8 @@ compact([0, 1, false, 2, "", 3, "a", "e" * 23, NaN, "s", 34]);
 ```
 
 
-### 6.8. 数组的拷贝
-#### 6.8.1. 方式1：使用展开操作符(...)
+### 7.8. 数组的拷贝
+#### 7.8.1. 方式1：使用展开操作符(...)
 
 - 语法：`const clone = [...array]`
 - 作用：复制一个新的数组
@@ -1475,7 +1475,7 @@ console.log(clone); // => ['white', 'black', 'gray']
 console.log(colors === clone); // => false
 ```
 
-#### 6.8.2. 方式2：[].concat(array)
+#### 7.8.2. 方式2：[].concat(array)
 
 - 语法：`[].concat(array)`是另一种复制数组的方式
 - > 注：`[].concat(array)`是创建一个浅拷贝。
@@ -1488,7 +1488,7 @@ console.log(clone); // => ['white', 'black', 'gray']
 console.log(colors === clone); // => false
 ```
 
-#### 6.8.3. 方式3：slice()
+#### 7.8.3. 方式3：slice()
 
 - 语法：`array.slice()`，利用slice的参数默认值，进行数组的复制
 - > `array.slice()` 创建一个浅拷贝。
@@ -1501,8 +1501,8 @@ console.log(clone); // => ['white', 'black', 'gray']
 console.log(colors === clone); // => false
 ```
 
-### 6.9. 查找数组中元素
-#### 6.9.1. includes()方法
+### 7.9. 查找数组中元素
+#### 7.9.1. includes()方法
 
 - 语法：`Array.includes(itemToSearch[，fromIndex])`
     - 参数itemToSearch：数据包含的元素
@@ -1532,7 +1532,7 @@ function test(fruit) {
 ```
 
 
-#### 6.9.2. find() 和 findIndex() 方法
+#### 7.9.2. find() 和 findIndex() 方法
 
 - 语法：`array.find/findIndex((value, index, arr) => {})`
 - 函数参数都是一个查找的回调函数。
@@ -1567,7 +1567,7 @@ console.log('%s', ret3)    // 4
 console.log('%s', ret4)    // -1
 ```
 
-#### 6.9.3. indexOf() 方法
+#### 7.9.3. indexOf() 方法
 
 - 语法：`array.indexOf(itemToSearch[, fromIndex])`
     - 参数itemToSearch：查找的元素
@@ -1582,7 +1582,7 @@ const index = arr.indexOf('b');
 console.log(index); // 1
 ```
 
-#### 6.9.4. every() 方法
+#### 7.9.4. every() 方法
 
 - 语法：`array.every(predicate(item[, index[, array]]))`
     - 参数predicate函数，该函数参数包括：当前遍历项（item）、索引（index）和数组本身（array）。
@@ -1616,7 +1616,7 @@ function test() {
 }
 ```
 
-#### 6.9.5. some() 方法
+#### 7.9.5. some() 方法
 
 - 语法：`array.every(predicate(item[, index[, array]]))`
     - 参数predicate函数，该函数参数包括：当前遍历项（item）、索引（index）和数组本身（array）。
@@ -1638,8 +1638,8 @@ function test() {
 }
 ```
 
-### 6.10. 数组的增删改操作
-#### 6.10.1. push() 方法增加元素
+### 7.10. 数组的增删改操作
+#### 7.10.1. push() 方法增加元素
 
 - 语法：`array.push(item1 [...，itemN])`
 - 作用：将一个或多个项追加到数组的末尾，并返回新的长度
@@ -1651,7 +1651,7 @@ names.push('abc')
 console.log(names) // ["moon", "abc"]
 ```
 
-#### 6.10.2. unshift() 方法增加元素
+#### 7.10.2. unshift() 方法增加元素
 
 - 语法：`array.unshift(item1[..., itemN])`
 - 作用：将一个或多个项追加到数组的开头，并返回新的长度
@@ -1663,7 +1663,7 @@ names.unshift('abc')
 console.log(names) // ["abc", "moon"]
 ```
 
-#### 6.10.3. 展开操作符(...)增加元素
+#### 7.10.3. 展开操作符(...)增加元素
 
 - 通过组合展开操作符和数组变量，以不可变的方式在数组中插入项
 - 在数组末尾追加一个项
@@ -1695,7 +1695,7 @@ const names2 = [
 console.log(names2)  // ["moon", "newWord", "kira"]
 ```
 
-#### 6.10.4. pop() 方法删除元素
+#### 7.10.4. pop() 方法删除元素
 
 - 语法：`array.pop()`
 - 作用：从数组中删除最后一个元素，然后返回该元素
@@ -1708,7 +1708,7 @@ console.log(lastColor); // => 'black'
 console.log(colors); // => ['blue', 'green']
 ```
 
-#### 6.10.5. shift() 方法删除元素
+#### 7.10.5. shift() 方法删除元素
 
 - 语法：`array.shift()`
 - 作用：从数组中删除第一个元素，然后返回该元素
@@ -1721,7 +1721,7 @@ console.log(firstColor); // => 'blue'
 console.log(colors); // => ['green', 'black']
 ```
 
-#### 6.10.6. splice() 方法，对数组删除/替换/插入某一项
+#### 7.10.6. splice() 方法，对数组删除/替换/插入某一项
 
 - 语法：`array.splice(index, len, [item, ...itemN])`
 - 作用：返回增删改后的数组，**该方法会改变原始数组**
@@ -1778,7 +1778,7 @@ delete arr[1];
 arr; // ["a", undefined × 1, "c", "d"] 中间出现两个逗号，数组长度不变，有一项为undefined
 ```
 
-#### 6.10.7. 展开操作符号(...)
+#### 7.10.7. 展开操作符号(...)
 
 可以通过组合展开操作符和数据字面量以不可变的方式从数组中删除项
 
@@ -1795,7 +1795,7 @@ const newNames = [
 console.log(newNames) // ["moon", "L+N"]
 ```
 
-#### 6.10.8. array.length 属性清空数组
+#### 7.10.8. array.length 属性清空数组
 
 - array.length是保存数组长度的属性。 除此之外，array.length是可写的。
 - 如果写一个小于当前长度的`array.length = newLength`，多余的元素从数组中移除
@@ -1806,7 +1806,7 @@ colors.length = 0;
 console.log(colors); // []
 ```
 
-#### 6.10.9. fill() 方法填充数组
+#### 7.10.9. fill() 方法填充数组
 
 - 语法：`arr.fill(value, start, end)`
     - value：填充值
@@ -1825,7 +1825,7 @@ new Array(3).fill(7)    // [7, 7, 7]
 ['a', 'b', 'c'].fill(7, 1, 2)    // ['a', 7, 'c']
 ```
 
-#### 6.10.10. copyWithin() 方法
+#### 7.10.10. copyWithin() 方法
 
 - 语法：`arr.copyWithin(target[, start[, end]])`
 - 参数：
@@ -1862,8 +1862,8 @@ i32a.copyWithin(0, 2);
 // Int32Array [4, 2, 3, 4, 5]
 ```
 
-### 6.11. 数组的扁平化
-#### 6.11.1. flat() 方法
+### 7.11. 数组的扁平化
+#### 7.11.1. flat() 方法
 
 - 语法：`array.flat([depth])`
   
@@ -1878,8 +1878,8 @@ const flatArray = arrays.flat();
 console.log(flatArray); // [0, 1, 3, 5, 2, 4, 6]
 ```
 
-### 6.12. 数组的排序
-#### 6.12.1. sort()方法
+### 7.12. 数组的排序
+#### 7.12.1. sort()方法
 
 - 语法：`array.sort([compare])`
     - 可选参数compare(a, b)是一个自定义排序顺的回调函数。如果按数字排序，需要指定排序的函数（类似java的比较器），如下是函数的比较规则：
@@ -1912,13 +1912,13 @@ numbers.sort(compare);
 console.log(numbers); // => [4, 2, 3, 1]
 ```
 
-#### 6.12.2. reverse()方法
+#### 7.12.2. reverse()方法
 
 - 对数组进行反转，直接操作数组本身
 
-## 7. 字符串(String)
+## 8. 字符串(String)
 
-### 7.1. trim() 方法
+### 8.1. trim() 方法
 
 `trim()`方法会从一个字符串的两端删除空白字符。
 
@@ -1928,10 +1928,10 @@ str.trim();
 
 > <font color=red>**注：`trim()`方法并不影响原字符串本身，它返回的是一个新的字符串。**</font>
 
-## 8. JavaScript 一些语法应用案例
+## 9. JavaScript 一些语法应用案例
 
-### 8.1. 字符串转对象的三种方式
-#### 8.1.1. 方式1：`JSON.parse(str)`
+### 9.1. 字符串转对象的三种方式
+#### 9.1.1. 方式1：`JSON.parse(str)`
 
 ```js
 // 定义一个对象字符串
@@ -1942,7 +1942,7 @@ var obj = JSON.parse(str);
 console.log(obj);
 ```
 
-#### 8.1.2. 方式2：`eval("("+str+")")`
+#### 9.1.2. 方式2：`eval("("+str+")")`
 
 ```js
 // 定义一个对象字符串
@@ -1953,7 +1953,7 @@ var obj = eval("(" + str + ")")
 console.log(obj);
 ```
 
-#### 8.1.3. 方式3：`(new Function("return " + str))()`
+#### 9.1.3. 方式3：`(new Function("return " + str))()`
 
 ```js
 // 定义一个对象字符串
@@ -1964,11 +1964,11 @@ var obj = (new Function("return " + str))();
 console.log(obj);
 ```
 
-## 9. 其他
+## 10. 其他
 
-### 9.1. EventLoop
+### 10.1. EventLoop
 
-#### 9.1.1. JavaScript 是单线程的语言
+#### 10.1.1. JavaScript 是单线程的语言
 
 JavaScript 是一门单线程执行的编程语言。也就是说，同一时间只能做一件事情。
 
@@ -1976,7 +1976,7 @@ JavaScript 是一门单线程执行的编程语言。也就是说，同一时间
 
 > 单线程执行任务队列的问题：如果前一个任务非常耗时，则后续的任务就不得不一直等待，从而导致程序假死的问题。
 
-#### 9.1.2. 同步任务和异步任务
+#### 10.1.2. 同步任务和异步任务
 
 JavaScript 把待执行的任务分为了两类：
 
@@ -1987,7 +1987,7 @@ JavaScript 把待执行的任务分为了两类：
     - 又称为**耗时任务**，异步任务由 JavaScript 委托给宿主环境进行执行
     - 当异步任务执行完成后，会通知 JavaScript 主线程执行异步任务的回调函数
 
-#### 9.1.3. EventLoop 的基本概念
+#### 10.1.3. EventLoop 的基本概念
 
 **同步任务和异步任务的执行过程**
 
@@ -2001,7 +2001,7 @@ JavaScript 把待执行的任务分为了两类：
 
 <font color=red>**JavaScript 主线程从“任务队列”中读取异步任务的回调函数，放到执行栈中依次执行。这个过程是循环不断的，所以整个的这种运行机制又称为 EventLoop（事件循环）。**</font>
 
-#### 9.1.4. 结合 EventLoop 分析输出的顺序案例（面试题）
+#### 10.1.4. 结合 EventLoop 分析输出的顺序案例（面试题）
 
 ```js
 import { getResult } from '../utils/util.js'
@@ -2021,9 +2021,9 @@ console.log('D')
 - A 和 D 属于同步任务。会根据代码的先后顺序依次被执行
 - C 和 B 属于异步任务。它们的回调函数会被加入到任务队列中，等待主线程空闲时再执行
 
-### 9.2. 宏任务和微任务
+### 10.2. 宏任务和微任务
 
-#### 9.2.1. 什么是宏任务和微任务
+#### 10.2.1. 什么是宏任务和微任务
 
 JavaScript 把异步任务又做了进一步的划分，异步任务又分为两类，分别是：
 
@@ -2032,15 +2032,15 @@ JavaScript 把异步任务又做了进一步的划分，异步任务又分为两
 1. 宏任务（macrotask）：异步 Ajax 请求、`setTimeout`、`setInterval`、文件操作等
 2. 微任务（microtask）：`Promise.then`、`Promise.catch`、`Promise.finally`、`process.nextTick` 等
 
-#### 9.2.2. 宏任务和微任务的执行顺序
+#### 10.2.2. 宏任务和微任务的执行顺序
 
 ![](images/20211205110505881_9639.png)
 
 每一个宏任务执行完之后，都会**检查是否存在待执行的微任务**。如果有，则执行完所有微任务之后，再继续执行下一个宏任务。
 
-#### 9.2.3. 宏任务和微任务执行顺序分析案例（面试题）
+#### 10.2.3. 宏任务和微任务执行顺序分析案例（面试题）
 
-##### 9.2.3.1. 案例1
+##### 10.2.3.1. 案例1
 
 ```js
 setTimeout(() => console.log('1'))
@@ -2059,7 +2059,7 @@ console.log('4')
 2. 再执行微任务输出：3
 3. 再执行下一个宏任务输出：1
 
-##### 9.2.3.2. 案例2
+##### 10.2.3.2. 案例2
 
 ```js
 console.log('1')
@@ -2094,9 +2094,9 @@ setTimeout(() => {
 4. 再执行第2个宏任务中的同步任务输出：7、8
 5. 再执行第2个宏任务的微任务输出：9
 
-### 9.3. API 接口案例
+### 10.3. API 接口案例
 
-#### 9.3.1. 案例需求
+#### 10.3.1. 案例需求
 
 基于 MySQL 数据库 + Express 对外提供用户列表的 API 接口服务。用到的技术点如下：
 
@@ -2105,12 +2105,12 @@ setTimeout(() => {
 - Promise
 - async/await
 
-#### 9.3.2. 搭建项目的基本结构
+#### 10.3.2. 搭建项目的基本结构
 
 1. 启用 ES6 模块化支持，在 package.json 中声明 `"type": "module"`
 2. 安装第三方依赖包。`npm install express@4.17.1 mysql2@2.2.5 -S`
 
-#### 9.3.3. 创建基本的服务器
+#### 10.3.3. 创建基本的服务器
 
 在项目的根目录下创建 app.js 入口文件，创建基础的服务器
 
@@ -2142,7 +2142,7 @@ npm install -g nodemon
 npm uninstall -g nodemon
 ```
 
-#### 9.3.4. 创建 db 数据库操作模块
+#### 10.3.4. 创建 db 数据库操作模块
 
 创建`db/index.js`，配置数据库的连接信息
 
@@ -2160,7 +2160,7 @@ const pool = mysql.createPool({
 export default pool.promise()
 ```
 
-#### 9.3.5. 创建请求的处理方法
+#### 10.3.5. 创建请求的处理方法
 
 ```js
 import db from '../db/index.js'
@@ -2185,7 +2185,7 @@ export async function getAllUser(req, res) {
 }
 ```
 
-#### 9.3.6. 配置路由
+#### 10.3.6. 配置路由
 
 ```js
 import express from 'express'
@@ -2201,7 +2201,7 @@ router.get('/user', getAllUser)
 export default router
 ```
 
-#### 9.3.7. 导入并挂载路由模块
+#### 10.3.7. 导入并挂载路由模块
 
 在 app.js 文件中导入并挂载路由模块
 
@@ -2220,13 +2220,13 @@ app.listen(80, () => {
 })
 ```
 
-#### 9.3.8. 测试
+#### 10.3.8. 测试
 
 使用postman等请求工具，请求`http://127.0.0.1/api/user`，获取返回数据
 
-## 10. console 对象使用
+## 11. console 对象使用
 
-### 10.1. 常用方法
+### 11.1. 常用方法
 
 1. `console.log()`
 
@@ -2249,45 +2249,32 @@ console.info("%s", "color:red;这是结果哟");
 console.error("错误");
 ```
 
-4. `console.warn()`
-    - 用于输出警示信息
-5. `console.count()`
-    - 统计代码被执行的次数
-6. `console.assert()`
-    - 对输入的表达式进行断言，只有表达式为false时，才输出相应的信息到控制台
-7. `console.group()`
-    - 输出一组信息的开头
-8. `console.groupEnd()`
-    - 结束一组输出信息
-9. `console.dir()`
-    - 直接将该DOM结点以DOM树的结构进行输出，可以详细查对象的方法发展等等
-10. `console.time()`
-    - 计时开始
-11. `console.timeEnd()`
-    - 计时结束
-12. `console.profile()` 和 `console.profileEnd()`
-    - 一起使用来查看CPU使用相关信息
-13. `console.timeLine()` 和 `console.timeLineEnd()`
-    - 一起使用记录一段时间轴
-14. `console.trace()`
-    - 堆栈跟踪相关的调试
+4. `console.warn()`：用于输出警示信息
+5. `console.count()`：统计代码被执行的次数
+6. `console.assert()`：对输入的表达式进行断言，只有表达式为false时，才输出相应的信息到控制台
+7. `console.group()`：输出一组信息的开头
+8. `console.groupEnd()`：结束一组输出信息
+9. `console.dir()`：直接将该DOM结点以DOM树的结构进行输出，可以详细查对象的方法发展等等
+10. `console.time()`：计时开始
+11. `console.timeEnd()`：计时结束
+12. `console.profile()` 和 `console.profileEnd()`：一起使用来查看CPU使用相关信息
+13. `console.timeLine()` 和 `console.timeLineEnd()`：一起使用记录一段时间轴
+14. `console.trace()`：堆栈跟踪相关的调试
 
-### 10.2. 格式化符号
+### 11.2. 格式化符号
 
-| **格式化符号** |          **实现的功能**           |
-| :-----------: | -------------------------------- |
-|     `%s`      | 格式化成字符串输出                 |
-| `%d` or `%i`  | 格式化成数值输出                   |
-|     `%f`      | 格式化成浮点数输出                 |
-|     `%o`      | 转化成展开的DOM元素输出            |
-|     `%O`      | 转化成JavaScript对象输出           |
-|     `%c`      | 把字符串按照你提供的样式格式化后输入 |
+|   格式化符号   |            实现的功能            |
+| :----------: | ------------------------------ |
+|     `%s`     | 格式化成字符串输出                |
+| `%d` or `%i` | 格式化成数值输出                  |
+|     `%f`     | 格式化成浮点数输出                |
+|     `%o`     | 转化成展开的DOM元素输出            |
+|     `%O`     | 转化成JavaScript对象输出          |
+|     `%c`     | 把字符串按照你提供的样式格式化后输入 |
 
-# ES2020
+## 12. ES2020 新特性
 
-## 1. 表达式和运算符
-
-### 1.1. 可选链操作符
+### 12.1. 可选链操作符
 
 可选链操作符(`?.`)允许读取位于连接对象链深处的属性的值，而不必明确验证链中的每个引用是否有效。`?.`操作符的功能类似于`.`链式操作符，不同之处在于，在引用为空(`nullish`) (`null`或者`undefined`) 的情况下不会引起错误，该表达式短路返回值是`undefined`。与函数调用一起使用时，如果给定的函数不存在，则返回`undefined`。
 
@@ -2313,7 +2300,7 @@ console.log(adventurer.someNonExistentMethod?.());
 // expected output: undefined
 ```
 
-#### 1.1.1. 语法
+**语法**：
 
 ```js
 obj?.prop

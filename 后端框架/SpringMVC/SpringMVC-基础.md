@@ -1183,7 +1183,7 @@ public String queryItemById(Model model,
 
 > 注：上面示例请求设置了 `@RequestParam` 注解，请求参数的名称必须为 `itemId`，如果请求不带参数，则方法形参 id 会有默认值为 3
 >
-> 关于 `@RequestParam` 注解更多使用说明，详见[《Spring MVC 注解汇总.md》文档](/后端框架/SpringMVC/SpringMVC注解汇总)
+> 关于 `@RequestParam` 注解更多使用说明，详见[《Spring MVC 注解汇总.md》文档](/后端框架/SpringMVC/SpringMVC-注解汇总)
 
 ### 5.7. Map 类型参数绑定
 
@@ -1688,7 +1688,7 @@ public void testCustomArgumentResolver() throws Exception {
 
 一些控制器方法参数都基于字符串的请求输入（如 `@RequestParam`、`@RequestHeader`、`@PathVariable`、`@MatrixVariable` 和 `@CookieValue`），如果请求参数非字符串类型，可能需要进行类型转换。
 
-对于这种情况，会根据配置的转换器自动进行类型转换。默认情况下，支持简单类型（int、long、Date 和其他）。可以通过 `WebDataBinder`（详见下面 `DataBinder` 相关章节）或通过向 `FormattingConversionService` 注册 `Formatters` 来定制类型转换。详见[《Spring笔记01-基础.md》文档](/后端框架/Spring/Spring笔记01-基础)中的类型转换章节。
+对于这种情况，会根据配置的转换器自动进行类型转换。默认情况下，支持简单类型（int、long、Date 和其他）。可以通过 `WebDataBinder`（详见下面 `DataBinder` 相关章节）或通过向 `FormattingConversionService` 注册 `Formatters` 来定制类型转换。详见[《Spring笔记01-基础.md》文档](/后端框架/Spring/Spring-基础)中的类型转换章节。
 
 #### 5.11.1. 类型转换与绑定基础使用示例
 
@@ -2520,7 +2520,7 @@ public class WebConfig implements WebMvcConfigurer {
 }
 ```
 
-- 使用 `@InitBinder` 的方式配置，详见[《Spring MVC 注解汇总.md》文档](/后端框架/SpringMVC/SpringMVC注解汇总)
+- 使用 `@InitBinder` 的方式配置，详见[《Spring MVC 注解汇总.md》文档](/后端框架/SpringMVC/SpringMVC-注解汇总)
 
 ## 9. 拦截器
 
@@ -2889,7 +2889,7 @@ public class CustomHandlerExceptionResolver implements HandlerExceptionResolver 
 
 标识 `@Controller` 和 `@ControllerAdvice` 类可以使用 `@ExceptionHandler` 注解标识方法来处理来自控制器方法的异常。
 
-> 详见[《Spring MVC 注解汇总.md》文档](/后端框架/SpringMVC/SpringMVC注解汇总)
+> 详见[《Spring MVC 注解汇总.md》文档](/后端框架/SpringMVC/SpringMVC-注解汇总)
 
 ### 10.5. 番外 - Tomcat 异常处理
 
@@ -3073,7 +3073,7 @@ public String testRestfulDelete(@PathVariable Integer id) {
 }
 ```
 
-> 注：更多 `@PathVariable` 注解的说明，详见[《Spring MVC 注解汇总.md》文档](/后端框架/SpringMVC/SpringMVC注解汇总)
+> 注：更多 `@PathVariable` 注解的说明，详见[《Spring MVC 注解汇总.md》文档](/后端框架/SpringMVC/SpringMVC-注解汇总)
 
 ## 12. 扩展：方法参数名获取
 

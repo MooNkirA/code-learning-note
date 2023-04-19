@@ -2963,7 +2963,7 @@ public class ContextLoaderListener extends ContextLoader implements ServletConte
 
 ### 3.11. FactoryBean 接口
 
-> 接口作用与使用示例详见[《Spring笔记01-基础.md》文档](/后端框架/Spring/Spring笔记01-基础)
+> 接口作用与使用示例详见[《Spring笔记01-基础.md》文档](/后端框架/Spring/Spring-基础)
 
 #### 3.11.1. 源码分析
 

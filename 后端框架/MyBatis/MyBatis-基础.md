@@ -2565,8 +2565,8 @@ Mybatis 的二级缓存是通过 `CacheExecutor` 实现的。`CacheExecutor` 其
 
 除了MyBatis提供的两种缓存机制，还可以实现自定义缓存，或为其他第三方缓存方案创建适配器，来完全覆盖二级缓存的行为。配置开启自定义缓存实现步骤与开启二级缓存一样。
 
-1. 在mybatis总配置文件中，配置开启缓存。
-2. 在xml映射器文件中开启缓存，增加配置`type`属性，需要注意的是，`type`属性指定的类必须实现 `org.apache.ibatis.cache.Cache` 接口
+1. 在 MyBatis 总配置文件中，配置开启缓存。
+2. 在 xml 映射器文件中开启缓存，增加配置`type`属性，需要注意的是，`type`属性指定的类必须实现 `org.apache.ibatis.cache.Cache` 接口
 
 ```xml
 <!-- 启用二级缓存，配置使用自定义缓存 -->

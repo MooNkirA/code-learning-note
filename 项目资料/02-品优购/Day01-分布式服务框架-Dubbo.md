@@ -1575,4 +1575,4 @@ org.I0Itec.zkclient.exception.ZkTimeoutException: Unable to connect to zookeeper
 
 ## 7. Git版本控制（idea）
 
-参考[《Git 笔记 - 客户端使用篇》笔记](/DevOps/版本管理工具/Git-03-客户端)
+参考[《Git 笔记 - 客户端使用篇》笔记](/DevOps/版本管理工具/Git-客户端)

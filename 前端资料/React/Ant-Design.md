@@ -1,22 +1,17 @@
-# Ant Design
+## 1. Ant Design 简介
 
-- 官网：https://ant.design/index-cn
+Ant Design 是阿里蚂蚁金服团队基于 React 开发的 ui 组件，主要用于中后台系统的使用。特性如下：
 
-## 1. 快速入门
+- 提炼自企业级中后台产品的交互语言和视觉风格。
+- 开箱即用的高质量 React 组件。
+- 使用 TypeScript 构建，提供完整的类型定义文件。
+- 全链路开发和设计工具体系。
 
-### 1.1. 什么是Ant Design
+> 官网：https://ant.design/index-cn
 
-- Ant Design是阿里蚂蚁金服团队基于React开发的ui组件，主要用于中后台系统的使用。
-- 官网：https://ant.design/index-cn
-- 特性：
-    - 提炼自企业级中后台产品的交互语言和视觉风格。
-    - 开箱即用的高质量 React 组件。
-    - 使用 TypeScript 构建，提供完整的类型定义文件。
-    - 全链路开发和设计工具体系。
+## 2. 快速入门
 
-### 1.2. 快速使用
-
-#### 1.2.1. 引入Ant Design
+### 2.1. 引入Ant Design
 
 Ant Design 是一个服务于企业级产品的设计体系，组件库是它的 React 实现，antd 被发布为一个 npm 包方便开发者安装并使用。
 
@@ -35,11 +30,11 @@ export default {
 };
 ```
 
-#### 1.2.2. 使用antd组件
+### 2.2. 使用 antd 组件
 
-以tabs组件为例，官网组件使用示例说明：https://ant.design/components/tabs-cn/
+以 tabs 组件为例，官网组件使用示例说明：https://ant.design/components/tabs-cn/
 
-创建MyTabs.jsx文件，复制官网组件示例代码，修改后运行查询效果
+创建 MyTabs.jsx 文件，复制官网组件示例代码，修改后运行查询效果
 
 ```jsx
 import React from 'react';
@@ -66,7 +61,7 @@ class MyTabs extends React.Component {
 export default MyTabs;
 ```
 
-### 1.3. 布局
+### 2.3. 布局
 
 antd布局官网示例：https://ant.design/components/layout-cn/
 
@@ -74,7 +69,7 @@ antd布局官网示例：https://ant.design/components/layout-cn/
 
 ![后台页面布局示例](images/20190423152423825_12335.png)
 
-#### 1.3.1. 组件概述
+#### 2.3.1. 组件概述
 
 - `Layout` ：布局容器，其下可嵌套 `Header` `Sider` `Content` `Footer` 或 `Layout` 本身，可以放在任何父容器中。
 - `Header` ：顶部布局，自带默认样式，其下可嵌套任何元素，只能放在Layout中。
@@ -82,7 +77,7 @@ antd布局官网示例：https://ant.design/components/layout-cn/
 - `Content` ：内容部分，自带默认样式，其下可嵌套任何元素，只能放在Layout中。
 - `Footer` ：底部布局，自带默认样式，其下可嵌套任何元素，只能放在Layout中
 
-#### 1.3.2. 搭建整体框架
+#### 2.3.2. 搭建整体框架
 
 1. 在src目录下创建layouts目录，并且在layouts目录下创建index.jsx文件，根据官网示例，修改相应的代码：
 
@@ -131,7 +126,7 @@ export default {
 
 3. 输入url：http://localhost:8000/，进行测试
 
-#### 1.3.3. 子页面使用布局
+#### 2.3.3. 子页面使用布局
 
 1. 需要在布局文件中，将Content内容替换成{this.props.children}，意思是引入传递的内容。
 
@@ -184,7 +179,7 @@ export default {
 
 3. 输入`http://localhost:8000/myTabs`进行访问测试。
 
-#### 1.3.4. 美化页面
+#### 2.3.4. 美化页面
 
 ```jsx
 import React from 'react'
@@ -216,7 +211,7 @@ class BasicLayout extends React.Component {
 export default BasicLayout;
 ```
 
-#### 1.3.5. 引入导航条
+#### 2.3.5. 引入导航条
 
 使用Menu组件作为导航条，官网示例：https://ant.design/components/menu-cn/
 
@@ -293,7 +288,7 @@ class BasicLayout extends React.Component {
 export default BasicLayout;
 ```
 
-#### 1.3.6. 为导航添加链接
+#### 2.3.6. 为导航添加链接
 
 对左侧的导航条添加链接，点击相应的链接在右侧进行相应页面的显示。
 
@@ -419,9 +414,9 @@ class BasicLayout extends React.Component {
 export default BasicLayout;
 ```
 
-### 1.4. 表格
+### 2.4. 表格
 
-#### 1.4.1. 基本用法
+#### 2.4.1. 基本用法
 
 - 参考官方文档进行实现：https://ant.design/components/table-cn/
 - 改造 UserList.jsx页面：
@@ -500,7 +495,7 @@ class UserList extends React.Component {
 export default UserList;
 ```
 
-#### 1.4.2. 将数据分离到model中
+#### 2.4.2. 将数据分离到 model 中
 
 - model的实现：在models文件夹下创建UserListData.js
 

@@ -1122,13 +1122,13 @@ Spring 提供了一系列的以 `PostProcessor` 为后缀的后置处理器，�
 
 `BeanPostProcessor` 是 Bean 的后置处理器，用于对任意一个 Bean 的**初始化之前以及初始化之后**去额外的做一些用户自定义的逻辑，也可以通过判断 beanName 来进行针对性处理（针对某个Bean，或某部分Bean）。
 
-> Notes: 具体示例详见[《Spring 笔记-核心功能》笔记](/后端框架/Spring/Spring笔记01-基础)
+> Notes: 具体示例详见[《Spring 笔记-核心功能》笔记](/后端框架/Spring/Spring-基础)
 
 ### 8.2. BeanFactoryPostProcessor
 
 `BeanFactoryPostProcessor` 是 Bean 工厂的后置处理器，会干涉 BeanFactory 的创建过程，实现接口的 `postProcessBeanFactory` 方法中，可以获取 `ConfigurableListableBeanFactory` 对象，从而可以对 BeanFactory 进行加工。
 
-> Notes: 具体示例详见[《Spring 笔记-核心功能》笔记](/后端框架/Spring/Spring笔记01-基础)
+> Notes: 具体示例详见[《Spring 笔记-核心功能》笔记](/后端框架/Spring/Spring-基础)
 
 ## 9. BeanDefinitionReader - BeanDefinition 读取器
 
@@ -1242,7 +1242,7 @@ public void test() throws IOException {
 
 以上两个 Filter 是 Spring 扫描过程中用来过滤类是否需要扫描。在 Spring 的扫描逻辑中，默认会添加一个 `AnnotationTypeFilter` 给 `includeFilters`，表示默认情况下 Spring 扫描过程中会包含标识了 `@Component` 注解的类。
 
-详细的使用参考[《Spring 笔记-注解汇总》](/后端框架/Spring/Spring笔记04-注解汇总)的`@ComponentScan`注解章节，基础示例如下：
+详细的使用参考[《Spring 笔记-注解汇总》](/后端框架/Spring/Spring-注解汇总)的`@ComponentScan`注解章节，基础示例如下：
 
 ```java
 @ComponentScan(value = "com.moon",

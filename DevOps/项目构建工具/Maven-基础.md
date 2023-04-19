@@ -492,7 +492,7 @@ Maven 为了让构建过程能够尽可能自动化完成，所以必须约定�
 </project>
 ```
 
-> Tips: 更多 POM 配置与介绍详见[《Maven POM 配置》笔记](/DevOps/项目构建工具/Maven03-POM)
+> Tips: 更多 POM 配置与介绍详见[《Maven POM 配置》笔记](/DevOps/项目构建工具/Maven-POM)
 
 ## 5. maven 命令
 

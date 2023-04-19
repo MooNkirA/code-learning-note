@@ -2126,11 +2126,11 @@ public interface DeferredImportSelector extends ImportSelector
 
 `DeferredImportSelector`接口继承了`ImportSelector`，当使用`@Import`注解引入的是`DeferredImportSelector`类型时，在spring源码中，为延迟导入处理则加入集合当中，处理流程比较复杂，springboot中自动配置会用到
 
-此部分内容示例暂时未整理，先详见[《Spring 源码分析02-IOC(控制反转)》笔记](/后端框架/Spring/Spring源码分析02-IOC)的示例
+此部分内容示例暂时未整理，先详见[《Spring 源码分析02-IOC(控制反转)》笔记](/后端框架/Spring/Spring源码-IOC)的示例
 
 ### 5.5. 实现原理分析
 
-以上`@Import`注解的实现原理，与`ImportSelector`、`ImportBeanDefinitionRegistrar`、`DeferredImportSelector`接口的调用逻辑，此部分内容详见[《Spring 源码分析02-IOC(控制反转)》笔记](/后端框架/Spring/Spring源码分析02-IOC)
+以上`@Import`注解的实现原理，与`ImportSelector`、`ImportBeanDefinitionRegistrar`、`DeferredImportSelector`接口的调用逻辑，此部分内容详见[《Spring 源码分析02-IOC(控制反转)》笔记](/后端框架/Spring/Spring源码-IOC)
 
 ## 6. @PropertySource
 

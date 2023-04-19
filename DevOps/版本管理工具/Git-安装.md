@@ -1,5 +1,3 @@
-# Git 安装笔记
-
 ## 1. Git 下载网址
 
 Git 下载网址：https://git-scm.com/download

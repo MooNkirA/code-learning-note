@@ -1,5 +1,3 @@
-# Git 客户端
-
 ## 1. Git 相关图形化客户端
 
 - Git 第三方 GUI Clients 官方推荐整理：https://git-scm.com/downloads/guis

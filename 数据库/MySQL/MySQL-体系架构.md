@@ -18,7 +18,7 @@ MySQL官方提供了两种不同的版本：
 
 MySQL 下载地址：https://downloads.mysql.com/archives/community/
 
-此部分内容详见[《MySQL 安装与部署》文档](/数据库/MySQL/MySQL-00-安装与部署)
+此部分内容详见[《MySQL 安装与部署》文档](/数据库/MySQL/MySQL-安装与部署)
 
 ### 1.3. MySQL 数据库特点
 
@@ -673,7 +673,7 @@ SELECT * FROM general_log;
 
 #### 4.3.5. redo log（重做日志）、undo log（撤销日志）
 
-> redo log（重做日志）、undo log（撤销日志）是 Innodb 引擎级别的日志，主要用于实现事务，此部分内容详见[《MySQL数据库-事务》笔记](/数据库/MySQL/MySQL-04-事务)
+> redo log（重做日志）、undo log（撤销日志）是 Innodb 引擎级别的日志，主要用于实现事务，此部分内容详见[《MySQL数据库-事务》笔记](/数据库/MySQL/MySQL-事务)
 
 ### 4.4. 其他数据文件
 
