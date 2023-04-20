@@ -1,5 +1,3 @@
-# Servlet
-
 ## 1. Servlet 概述
 
 `javax.servlet.Servlet` 是一个接口。是运行在 Web 服务器（如：Tomcat）上的 Java 小应用程序，由Tomcat去调用，没有main函数。
@@ -8,14 +6,14 @@
 
 ### 1.1. Servlet 的生命周期方法
 
-|                          方法                           |                                       作用                                        | 运行次数 |
-| ------------------------------------------------------ | -------------------------------------------------------------------------------- | -------- |
-| 构造方法(单例模式)                                       | 实例化Servlet的时候调用  用户第一次访问Servlet的时候才会创建单例对象                   | 1次      |
-| void init(ServletConfig config)                        | 初始化的方法，Servlet 实例化的时候执行一次，只有用户第一次访问Servlet的时候才会执行      | 1次      |
-| void service(ServletRequest  req, ServletResponse res) | 用来处理用户每次发送的请求  request请求对象，  response响应对象                       | n次      |
-| void destroy()                                         | 在Servlet销毁的时候执行一次  Servlet是常驻内存的，只在服务器关闭的时候执行一次该销毁方法 | 1次      |
-| ServletConfig getServletConfig()                       | 返回ServletConfig配置对象                                                          |          |
-| String getServletInfo()                                | 返回Servlet中的一些额外信息（几乎不用），如：作者，版本，版权                          |          |
+|                          方法                           |                                     作用                                      | 运行次数 |
+| ------------------------------------------------------ | ---------------------------------------------------------------------------- | ------- |
+| 构造方法(单例模式)                                        | 实例化Servlet的时候调用  用户第一次访问Servlet的时候才会创建单例对象                  | 1次     |
+| void init(ServletConfig config)                        | 初始化的方法，Servlet 实例化的时候执行一次，只有用户第一次访问Servlet的时候才会执行      | 1次     |
+| void service(ServletRequest  req, ServletResponse res) | 用来处理用户每次发送的请求  request请求对象，  response响应对象                      | n次     |
+| void destroy()                                         | 在Servlet销毁的时候执行一次  Servlet是常驻内存的，只在服务器关闭的时候执行一次该销毁方法 | 1次     |
+| ServletConfig getServletConfig()                       | 返回ServletConfig配置对象                                                      |         |
+| String getServletInfo()                                | 返回Servlet中的一些额外信息（几乎不用），如：作者，版本，版权                         |         |
 
 ![](images/590270723243606.jpg)
 
@@ -147,10 +145,48 @@
 
 最后使用浏览器访问刚刚部署的项目 `http://localhost:8080/Day35_Tomcat/test`
 
+## 3. Cookie
 
-## 3. 常见问题
+### 3.1. 会话概述
 
-### 3.1. 找不到 HttpServlet 错误
+> API: Provides a way to identify a user across more than one page request or visit to a Web site and to store information about that user.
+
+会话提供了一种途径，用来标识一个用户访问多个页面或访问一个站点，同时保存用户访问的信息。HTTP 协议是一个无状态协议，不会保存用户的信息，所以需要使用会话来保存用户的信息。
+
+#### 3.1.1. 什么是会话
+
+类似于生活中的打电话，会话从电话接通开始，挂断结束，在整个通话的过程中，双方可以不断通话，类似于浏览器不停的请求和响应。整个通话的过程就是一次会话。
+
+BS结构的程序类似于打电话，从浏览器第一次访问服务器开始，就创建了一个会话，整个过程中，浏览器不断地向服务器发送请求，服务器不断向浏览器做出响应，这个过程就称为一个会话。当用户关闭浏览器，会话就结束。
+
+#### 3.1.2. 会话的技术
+
+Cookie技术：数据保存在浏览器端(缓存中或文件)
+Session 技术：数据保存在服务器的内存中，在 Java 中定义为 `HttpSession` 接口
+
+## 4. HttpSession
+
+### 4.1. Session 概述
+
+1. 会话是运行在服务端，所有的用户信息数据以键和值(可以是 Object)的方式保存在服务器的内存中
+2. 每个浏览器的用户都会在服务器上有一个会话与他对应
+3. 各自保存用户自己的数据，不同的用户之间数据不能共享，每个用户的数据只能是自己使用。
+
+#### 4.1.1. 实现机制
+
+响应的时候把会话ID从服务器发送给浏览器。浏览器下次访问的时候，再把会话ID带到服务器，服务器通过会话ID识别不同的会话
+
+#### 4.1.2. Session 和 Cookie 的主要区别
+
+- **作用范围不同**：Cookie 保存在客户端；Session 保存在服务器端内存中。
+- **值类型不同**：Cookie 键和值都是字符串类型；Session 键是字符串类型，值是Object类型。
+- **有效期不同**：Cookie 可设置为长时间保持，比如经常使用的默认登录功能；Session 一般失效时间较短，客户端关闭或者 Session 超时都会失效。
+- **隐私策略不同**：Cookie 存储在客户端，容易被窃取；Session 存储在服务端，安全性相对 Cookie 要好一些。
+- **存储大小不同**：单个 Cookie 保存的数据不能超过 4K；对于 Session 来说存储没有上限，但出于对服务器的性能考虑，Session 内不要存放过多的数据，并且需要设置 Session 删除机制。
+
+## 5. 常见问题
+
+### 5.1. 找不到 HttpServlet 错误
 
 如果看到 JSP 报错：`The superclass "javax.servlet.http.HttpServlet" was not found on the Java Build Path` 可以加入如下依赖解决。
 
@@ -163,7 +199,7 @@
 </dependency>
 ```
 
-### 3.2. EL 表达式没有提示问题
+### 5.2. EL 表达式没有提示问题
 
 `${pageContext}` 这个 EL 表达式中通过 pageContext 对象访问 reuqest 属性时本身是应该有提示的，如果没有，则加入以下依赖即可。
 

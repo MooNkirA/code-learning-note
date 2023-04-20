@@ -312,7 +312,7 @@ Eureka Server可以通过运行多个实例并相互注册的方式实现高可�
 
 ### 5.1. 搭建 Eureka Server 高可用集群
 
-> 复用`02-springcloud-eureka`工程的代码，在原有基础上增加集群部分配置。详细示例详见`spring-cloud-note\spring-cloud-greenwich-sample\03-springcloud-eureka-cluster\`
+> 复用`spring-cloud-sample-eureka`工程的代码，在原有基础上增加集群部分配置。详细示例详见`spring-cloud-note\spring-cloud-sample-eureka-cluster\`
 
 *注：使用idea开启多个服务的方法有多种，下面是通过定义不同的profiles的方式，还有通过启动多个实例，直接修改配置文件；还有通过启动时定义配置文件的参数方式，详细参考学成项目的配置方式*
 
@@ -535,9 +535,9 @@ eureka:
 
 #### 6.5.2. 服务提供者注册时设置账户信息
 
-服务注册到有认证需求的注册中心时，需要设置如下信息
+服务注册到有认证需求的注册中心时，需要设置如下信息。例子：`http://USER:PASSWORD@127.0.0.1:8001/eureka/`
 
-例子：`http://USER:PASSWORD@127.0.0.1:8001/eureka/`，将原来`eureka.client.serviceUrl.defaultZone`的配置增加用户与密码，与服务配置的密码一致
+将原来`eureka.client.serviceUrl.defaultZone`的配置增加用户与密码，与服务配置的密码一致
 
 ```yml
 # 配置注册eureka服务
