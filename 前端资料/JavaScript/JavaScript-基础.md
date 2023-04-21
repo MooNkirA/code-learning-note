@@ -129,7 +129,7 @@ const b2 = !!(num % 2);  // true
 
 ## 3. 运算符
 
-### 3.1. 双位运算符 `~~`
+### 3.1. 双位运算符 ~~
 
 可以使用双位操作符来替代 `Math.floor()`。双否定位操作符的优势在于它执行相同的操作运行速度更快。
 
@@ -1928,10 +1928,57 @@ str.trim();
 
 > <font color=red>**注：`trim()`方法并不影响原字符串本身，它返回的是一个新的字符串。**</font>
 
-## 9. JavaScript 一些语法应用案例
+### 8.2. replace 方法
 
-### 9.1. 字符串转对象的三种方式
-#### 9.1.1. 方式1：`JSON.parse(str)`
+通过正则表达式，现实去掉中间所有空格
+
+```js
+const str = 字符串.replace(/\s/g, "");
+```
+
+## 9. 数值函数
+
+### 9.1. 案例应用
+
+#### 9.1.1. 生成一个4位的随机码，包含字母
+
+使用到的 js 中 Math 函数：数学对象，提供对数据的数学计算。
+
+```js
+Math.random(); // 返回0和1间(包括0,不包括1)的一个随机数。
+Math.ceil(n); // 返回大于等于n的最小整数。
+Math.round(n); // 返回n四舍五入后整数的值。
+Math.floor(n); // 返回小于等于n的最大整数。
+```
+
+示例代码：
+
+```js
+getVerifyCode: function () {
+    var chars = "1234567890abcdefghijklmnopqrstuvwsyzABCDEFGHIJKLMNOPQRSTUVWSYZ".split("");
+    var randomNum = "";
+    alert(chars.length);
+    for (var i = 0; i < 4; i++) {
+        randomNum += chars[Math.floor(Math.random() * chars.length)];
+    }
+    alert("模拟获取验证码：" + randomNum);
+}
+```
+
+#### 9.1.2. 生成[min,max]的随机数
+
+```js
+// max - 期望的最大值
+// min - 期望的最小值
+parseInt(Math.random()*(max-min+1)+min,10);
+Math.floor(Math.random()*(max-min+1)+min);
+```
+
+## 10. JavaScript 一些语法应用案例
+
+### 10.1. 字符串转对象的三种方式
+
+#### 10.1.1. 方式1：JSON.parse(str)
 
 ```js
 // 定义一个对象字符串
@@ -1942,7 +1989,7 @@ var obj = JSON.parse(str);
 console.log(obj);
 ```
 
-#### 9.1.2. 方式2：`eval("("+str+")")`
+#### 10.1.2. 方式2：`eval("("+str+")")`
 
 ```js
 // 定义一个对象字符串
@@ -1953,7 +2000,7 @@ var obj = eval("(" + str + ")")
 console.log(obj);
 ```
 
-#### 9.1.3. 方式3：`(new Function("return " + str))()`
+#### 10.1.3. 方式3：`(new Function("return " + str))()`
 
 ```js
 // 定义一个对象字符串
@@ -1964,11 +2011,11 @@ var obj = (new Function("return " + str))();
 console.log(obj);
 ```
 
-## 10. 其他
+## 11. 其他
 
-### 10.1. EventLoop
+### 11.1. EventLoop
 
-#### 10.1.1. JavaScript 是单线程的语言
+#### 11.1.1. JavaScript 是单线程的语言
 
 JavaScript 是一门单线程执行的编程语言。也就是说，同一时间只能做一件事情。
 
@@ -1976,7 +2023,7 @@ JavaScript 是一门单线程执行的编程语言。也就是说，同一时间
 
 > 单线程执行任务队列的问题：如果前一个任务非常耗时，则后续的任务就不得不一直等待，从而导致程序假死的问题。
 
-#### 10.1.2. 同步任务和异步任务
+#### 11.1.2. 同步任务和异步任务
 
 JavaScript 把待执行的任务分为了两类：
 
@@ -1987,7 +2034,7 @@ JavaScript 把待执行的任务分为了两类：
     - 又称为**耗时任务**，异步任务由 JavaScript 委托给宿主环境进行执行
     - 当异步任务执行完成后，会通知 JavaScript 主线程执行异步任务的回调函数
 
-#### 10.1.3. EventLoop 的基本概念
+#### 11.1.3. EventLoop 的基本概念
 
 **同步任务和异步任务的执行过程**
 
@@ -2001,7 +2048,7 @@ JavaScript 把待执行的任务分为了两类：
 
 <font color=red>**JavaScript 主线程从“任务队列”中读取异步任务的回调函数，放到执行栈中依次执行。这个过程是循环不断的，所以整个的这种运行机制又称为 EventLoop（事件循环）。**</font>
 
-#### 10.1.4. 结合 EventLoop 分析输出的顺序案例（面试题）
+#### 11.1.4. 结合 EventLoop 分析输出的顺序案例（面试题）
 
 ```js
 import { getResult } from '../utils/util.js'
@@ -2021,9 +2068,9 @@ console.log('D')
 - A 和 D 属于同步任务。会根据代码的先后顺序依次被执行
 - C 和 B 属于异步任务。它们的回调函数会被加入到任务队列中，等待主线程空闲时再执行
 
-### 10.2. 宏任务和微任务
+### 11.2. 宏任务和微任务
 
-#### 10.2.1. 什么是宏任务和微任务
+#### 11.2.1. 什么是宏任务和微任务
 
 JavaScript 把异步任务又做了进一步的划分，异步任务又分为两类，分别是：
 
@@ -2032,15 +2079,15 @@ JavaScript 把异步任务又做了进一步的划分，异步任务又分为两
 1. 宏任务（macrotask）：异步 Ajax 请求、`setTimeout`、`setInterval`、文件操作等
 2. 微任务（microtask）：`Promise.then`、`Promise.catch`、`Promise.finally`、`process.nextTick` 等
 
-#### 10.2.2. 宏任务和微任务的执行顺序
+#### 11.2.2. 宏任务和微任务的执行顺序
 
 ![](images/20211205110505881_9639.png)
 
 每一个宏任务执行完之后，都会**检查是否存在待执行的微任务**。如果有，则执行完所有微任务之后，再继续执行下一个宏任务。
 
-#### 10.2.3. 宏任务和微任务执行顺序分析案例（面试题）
+#### 11.2.3. 宏任务和微任务执行顺序分析案例（面试题）
 
-##### 10.2.3.1. 案例1
+##### 11.2.3.1. 案例1
 
 ```js
 setTimeout(() => console.log('1'))
@@ -2059,7 +2106,7 @@ console.log('4')
 2. 再执行微任务输出：3
 3. 再执行下一个宏任务输出：1
 
-##### 10.2.3.2. 案例2
+##### 11.2.3.2. 案例2
 
 ```js
 console.log('1')
@@ -2094,9 +2141,9 @@ setTimeout(() => {
 4. 再执行第2个宏任务中的同步任务输出：7、8
 5. 再执行第2个宏任务的微任务输出：9
 
-### 10.3. API 接口案例
+### 11.3. API 接口案例
 
-#### 10.3.1. 案例需求
+#### 11.3.1. 案例需求
 
 基于 MySQL 数据库 + Express 对外提供用户列表的 API 接口服务。用到的技术点如下：
 
@@ -2105,12 +2152,12 @@ setTimeout(() => {
 - Promise
 - async/await
 
-#### 10.3.2. 搭建项目的基本结构
+#### 11.3.2. 搭建项目的基本结构
 
 1. 启用 ES6 模块化支持，在 package.json 中声明 `"type": "module"`
 2. 安装第三方依赖包。`npm install express@4.17.1 mysql2@2.2.5 -S`
 
-#### 10.3.3. 创建基本的服务器
+#### 11.3.3. 创建基本的服务器
 
 在项目的根目录下创建 app.js 入口文件，创建基础的服务器
 
@@ -2142,7 +2189,7 @@ npm install -g nodemon
 npm uninstall -g nodemon
 ```
 
-#### 10.3.4. 创建 db 数据库操作模块
+#### 11.3.4. 创建 db 数据库操作模块
 
 创建`db/index.js`，配置数据库的连接信息
 
@@ -2160,7 +2207,7 @@ const pool = mysql.createPool({
 export default pool.promise()
 ```
 
-#### 10.3.5. 创建请求的处理方法
+#### 11.3.5. 创建请求的处理方法
 
 ```js
 import db from '../db/index.js'
@@ -2185,7 +2232,7 @@ export async function getAllUser(req, res) {
 }
 ```
 
-#### 10.3.6. 配置路由
+#### 11.3.6. 配置路由
 
 ```js
 import express from 'express'
@@ -2201,7 +2248,7 @@ router.get('/user', getAllUser)
 export default router
 ```
 
-#### 10.3.7. 导入并挂载路由模块
+#### 11.3.7. 导入并挂载路由模块
 
 在 app.js 文件中导入并挂载路由模块
 
@@ -2220,13 +2267,13 @@ app.listen(80, () => {
 })
 ```
 
-#### 10.3.8. 测试
+#### 11.3.8. 测试
 
 使用postman等请求工具，请求`http://127.0.0.1/api/user`，获取返回数据
 
-## 11. console 对象使用
+## 12. console 对象使用
 
-### 11.1. 常用方法
+### 12.1. 常用方法
 
 1. `console.log()`
 
@@ -2261,7 +2308,7 @@ console.error("错误");
 13. `console.timeLine()` 和 `console.timeLineEnd()`：一起使用记录一段时间轴
 14. `console.trace()`：堆栈跟踪相关的调试
 
-### 11.2. 格式化符号
+### 12.2. 格式化符号
 
 |   格式化符号   |            实现的功能            |
 | :----------: | ------------------------------ |
@@ -2272,9 +2319,9 @@ console.error("错误");
 |     `%O`     | 转化成JavaScript对象输出          |
 |     `%c`     | 把字符串按照你提供的样式格式化后输入 |
 
-## 12. ES2020 新特性
+## 13. ES2020 新特性
 
-### 12.1. 可选链操作符
+### 13.1. 可选链操作符
 
 可选链操作符(`?.`)允许读取位于连接对象链深处的属性的值，而不必明确验证链中的每个引用是否有效。`?.`操作符的功能类似于`.`链式操作符，不同之处在于，在引用为空(`nullish`) (`null`或者`undefined`) 的情况下不会引起错误，该表达式短路返回值是`undefined`。与函数调用一起使用时，如果给定的函数不存在，则返回`undefined`。
 

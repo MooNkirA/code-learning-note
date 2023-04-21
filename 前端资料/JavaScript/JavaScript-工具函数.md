@@ -115,6 +115,7 @@ export function array2string(array, separator, property) {
 ```
 
 ### 1.4. 格式化日期
+
 #### 1.4.1. 网上案例
 
 ```js
@@ -144,6 +145,17 @@ export function formatDate(time, format = 'YY-MM-DD hh:mm:ss') {
   return newTime
 }
 ```
+
+使用示例：
+
+```js
+// 使用格式
+formatDate(new Date().getTime()); // 2022-05-12 10:05:44
+formatDate(new Date().getTime(), 'YY年MM月DD日'); // 2022年05月12日
+formatDate(new Date().getTime(), '今天是YY/MM/DD hh:mm:ss'); // 今天是2022/05/12 10:07:45
+```
+
+注意：js 中 `new Date("2022-07-01 08:00:00")` 格式在 IE 内核浏览器中显示 `NaN` 的不兼容的问题，因为 IE 内核的浏览器只识别 `/` 的日期分隔符。可以将造成 `new Date("2022-07-01 08:10:00").replace(/-/g,"/");`，这样确保了任何一个浏览器都没有问题
 
 #### 1.4.2. 开源项目vue-Element-Admin的工具方法
 

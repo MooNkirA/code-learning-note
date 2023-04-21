@@ -475,7 +475,7 @@ eureka:
 </dependency>
 ```
 
-### 6.5. 为Eureka添加用户认证
+### 6.5. 为 Eureka 添加用户认证(暂时有问题)
 
 #### 6.5.1. Eureka服务端配置用户认证
 
@@ -550,6 +550,8 @@ eureka:
   instance:
     prefer-ip-address: true # 将自己的ip地址注册到Eureka服务中
 ```
+
+> TODO: 目前存在问题，在测试的eureka url 中加上账号密码还是一样提示无法注册，但排查
 
 ## 7. Eureka源码解析
 
