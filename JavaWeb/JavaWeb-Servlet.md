@@ -83,70 +83,73 @@ public abstract class HttpServlet extends GenericServlet {
 	private static final String METHOD_GET = "GET";
 	private static final String METHOD_POST = "POST";
 	//service 方法
-	protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-		
-		String method = req.getMethod();
-		//如果是 GET 方法
-		if (method.equals(METHOD_GET)) {
-			//判断是否使用缓存
-			long lastModified = getLastModified(req);
-			...
-			//调用 doGet 方法
-			doGet(req, resp);
-		//判断是否是 POST 方法
-		} else if (method.equals(METHOD_POST)) {
-			//调用 doPost 方法
-			doPost(req, resp);
-		} else {
-			//发送一个错误信息
-			resp.sendError(HttpServletResponse.SC_NOT_IMPLEMENTED, errMsg);
-		}
-	}
-	protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-	    // 得到请求的方法：GET 或 POST
+	protected void service(HttpServletRequest req, HttpServletResponse resp)
+        throws ServletException, IOException {
+        // 得到请求的方法：GET 或 POST
         String method = req.getMethod();
-        long lastModified;
-        if (method.equals("GET")) {
-            lastModified = this.getLastModified(req);
-            if (lastModified == -1L) {
-                this.doGet(req, resp);
+        // 如果是 GET 方法
+        if (method.equals(METHOD_GET)) {
+            // 判断是否使用缓存
+            long lastModified = getLastModified(req);
+            if (lastModified == -1) {
+                // servlet doesn't support if-modified-since, no reason
+                // to go through further expensive logic
+                // 调用 doGet 方法
+                doGet(req, resp);
             } else {
                 long ifModifiedSince;
                 try {
-                    ifModifiedSince = req.getDateHeader("If-Modified-Since");
-                } catch (IllegalArgumentException var9) {
-                    ifModifiedSince = -1L;
+                    ifModifiedSince = req.getDateHeader(HEADER_IFMODSINCE);
+                } catch (IllegalArgumentException iae) {
+                    // Invalid date header - proceed as if none was set
+                    ifModifiedSince = -1;
                 }
-
-                if (ifModifiedSince < lastModified / 1000L * 1000L) {
-                    this.maybeSetLastModified(resp, lastModified);
-                    this.doGet(req, resp);
+                if (ifModifiedSince < (lastModified / 1000 * 1000)) {
+                    // If the servlet mod time is later, call doGet()
+                    // Round down to the nearest second for a proper compare
+                    // A ifModifiedSince of -1 will always be less
+                    maybeSetLastModified(resp, lastModified);
+                    doGet(req, resp);
                 } else {
-                    resp.setStatus(304);
+                    resp.setStatus(HttpServletResponse.SC_NOT_MODIFIED);
                 }
             }
-        } else if (method.equals("HEAD")) {
-            lastModified = this.getLastModified(req);
-            this.maybeSetLastModified(resp, lastModified);
-            this.doHead(req, resp);
-        } else if (method.equals("POST")) {
-            this.doPost(req, resp);
-        } else if (method.equals("PUT")) {
-            this.doPut(req, resp);
-        } else if (method.equals("DELETE")) {
-            this.doDelete(req, resp);
-        } else if (method.equals("OPTIONS")) {
-            this.doOptions(req, resp);
-        } else if (method.equals("TRACE")) {
-            this.doTrace(req, resp);
-        } else {
-            String errMsg = lStrings.getString("http.method_not_implemented");
-            Object[] errArgs = new Object[]{method};
-            errMsg = MessageFormat.format(errMsg, errArgs);
-            resp.sendError(501, errMsg);
-        }
 
+        } else if (method.equals(METHOD_HEAD)) {
+            long lastModified = getLastModified(req);
+            maybeSetLastModified(resp, lastModified);
+            doHead(req, resp);
+
+        } else if (method.equals(METHOD_POST)) { // 判断是否是 POST 方法
+            doPost(req, resp); // 调用 doPost 方法
+
+        } else if (method.equals(METHOD_PUT)) {
+            doPut(req, resp);
+
+        } else if (method.equals(METHOD_DELETE)) {
+            doDelete(req, resp);
+
+        } else if (method.equals(METHOD_OPTIONS)) {
+            doOptions(req,resp);
+
+        } else if (method.equals(METHOD_TRACE)) {
+            doTrace(req,resp);
+
+        } else {
+            //
+            // Note that this means NO servlet supports whatever
+            // method was requested, anywhere on this server.
+            //
+
+            String errMsg = lStrings.getString("http.method_not_implemented");
+            Object[] errArgs = new Object[1];
+            errArgs[0] = method;
+            errMsg = MessageFormat.format(errMsg, errArgs);
+            // 发送一个错误信息            
+            resp.sendError(HttpServletResponse.SC_NOT_IMPLEMENTED, errMsg);
+        }
     }
+    // ...省略
 }
 ```
 

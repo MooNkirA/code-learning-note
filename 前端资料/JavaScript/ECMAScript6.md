@@ -38,7 +38,7 @@ ECMAScript是浏览器脚本语言的规范，而各种我们熟知的js语言�
 
 该标准从一开始就是针对 JavaScript 语言制定的，但是之所以不叫 JavaScript，有两个原因。一是商标，Java 是 Sun 公司的商标，根据授权协议，只有 Netscape 公司可以合法地使用 JavaScript 这个名字，且 JavaScript 本身也已经被 Netscape 公司注册为商标。二是想体现这门语言的制定者是 ECMA，不是 Netscape，这样有利于保证这门语言的开放性和中立性。
 
-ECMAScript 和 JavaScript 的关系是，前者是后者的规格，后者是前者的一种实现（另外的 ECMAScript 方言还有 JScript 和 ActionScript）。日常场合，这两个词是可以互换的。
+ECMAScript 是一个国际通过的标准化脚本语言。JavaScript 由 ECMAScript 和 DOM、BOM 三者组成。可以简单理解为：ECMAScript 是 JavaScript 的语言规范，JavaScript 是 ECMAScript 的实现和扩展。ECMAScript 和 JavaScript 的关系是，前者是后者的规格，后者是前者的一种实现（另外的 ECMAScript 方言还有 JScript 和 ActionScript）。日常场合，这两个词是可以互换的。
 
 ### 1.4. ES6 与 ECMAScript 2015 的关系
 
@@ -48,7 +48,7 @@ ES6 的第一个版本，就这样在 2015 年 6 月发布了，正式名称就�
 
 因此，ES6 既是一个历史名词，也是一个泛指，含义是 5.1 版以后的 JavaScript 的下一代标准，涵盖了 ES2015、ES2016、ES2017 等等，而 ES2015 则是正式名称，特指该年发布的正式版本的语言标准。
 
-## 2. let 和 const 命令
+## 2. let 和 const
 
 之前`var`是写js定义变量。但`var`有一个问题，就是定义的变量可以在全局使用。例如：
 
@@ -98,7 +98,89 @@ console.log("a = ", a);
 1. 如果是定义是简单数据类型，是不能修改。简单理解是不能通过**“=”**来修改const修饰的变量，**即值不可变**
 2. 对于数组、对象、函数、正则、Set、Map之类等引用类型的可以更改、删除属性，但**引用的地址不能改变**
 
+### 2.3. var、let、const 在块级作用域的区别
+
+#### 2.3.1. 块作用域 {}
+
+JS 中作用域有：全局作用域、函数作用域。没有块作用域的概念。ECMAScript 6(简称ES6)中新增了块级作用域。
+
+块作用域由 `{ }` 包括，if 语句和for 语句里面的`{ }`也属于块作用域。
+
+```js
+script type="text/javascript">
+    {
+        var a = 1;
+        console.log(a); // 1
+    }
+    console.log(a); // 1
+    // 可见，通过var定义的变量可以跨块作用域访问到。
+
+    (function A() {
+        var b = 2;
+        console.log(b); // 2
+    })();
+    // console.log(b); // 报错，
+    // 可见，通过var定义的变量不能跨函数作用域访问到
+
+    if(true) {
+        var c = 3;
+    }
+    console.log(c); // 3
+    for(var i = 0; i < 4; i ++) {
+        var d = 5;
+    };
+    console.log(i); // 4   (循环结束i已经是4，所以此处i为4)
+    console.log(d); // 5
+    // if语句和for语句中用var定义的变量可以在外面访问到，
+    // 可见，if语句和for语句属于块作用域，不属于函数作用域。
+</script>
+```
+
+#### 2.3.2. var、let、const 的区别
+
+- var 定义的变量，没有块的概念，可以跨块访问，不能跨函数访问。
+- let 定义的变量，只能在块作用域里访问，不能跨块访问，也不能跨函数访问。
+- const 用来定义常量，使用时必须初始化(即必须赋值)，只能在块作用域里访问，而且不能修改。
+
+```js
+<script type="text/javascript">
+    // 块作用域
+    {
+        var a = 1;
+        let b = 2;
+        const c = 3;
+        // c = 4; // 报错
+        var aa;
+        let bb;
+        // const cc; // 报错
+        console.log(a); // 1
+        console.log(b); // 2
+        console.log(c); // 3
+        console.log(aa); // undefined
+        console.log(bb); // undefined
+    }
+    console.log(a); // 1
+    // console.log(b); // 报错
+    // console.log(c); // 报错
+
+    // 函数作用域
+    (function A() {
+        var d = 5;
+        let e = 6;
+        const f = 7;
+        console.log(d); // 5
+        console.log(e); // 6  (在同一个{ }中,也属于同一个块，可以正常访问到)
+        console.log(f); // 7  (在同一个{ }中,也属于同一个块，可以正常访问到)
+
+    })();
+    // console.log(d); // 报错
+    // console.log(e); // 报错
+    // console.log(f); // 报错
+</script>
+```
+
 ## 3. 字符串扩展
+
 ### 3.1. ES6中为字符串扩展了几个新的API
 
 - `includes()` ：返回布尔值，表示是否找到了参数字符串。
@@ -132,7 +214,8 @@ console.log(str);
 
 ![字符串模版](images/20190421092816525_26781.png)
 
-#### 3.2.1. `${}`占位符
+#### 3.2.1. ${} 占位符
+
 模板字符串使用反引号 (&#96; &#96;) 来代替普通字符串中的用双引号和单引号。模板字符串可以包含特定语法（`${expression}`）的占位符。占位符中的表达式和周围的文本会一起传递给一个默认函数，该函数负责将所有的部分连接起来，如果一个模板字符串由表达式开头，则该字符串被称为带标签的模板字符串，该表达式通常是一个函数，它会在模板字符串处理后被调用，在输出最终结果前，你都可以通过该函数来对模板字符串进行操作处理。在模版字符串内使用反引号（&#96;）时，需要在它前面加转义符（`\`）
 
 ```js
@@ -173,6 +256,7 @@ console.log(a);
 ![数组解构](images/20190421093712393_25559.png)
 
 ### 4.2. 对象解构
+
 #### 4.2.1. 按属性名称获取对象中的值
 
 解构表达式语法：`const { 属性名1, 属性名2, 属性名3, ...} = Object对象`
@@ -196,8 +280,13 @@ console.log(language);
 
 #### 4.2.2. 指定其他变量获取对象中的值
 
-- 解构表达式语法：`const { 属性名1, 属性名2, 属性名3:赋值的变量名, ...} = Object对象`
-    - 冒号前是对象中的属性名，冒号后面的是解构后要赋值给的变量。
+解构表达式语法：
+
+```js
+const { 属性名1, 属性名2, 属性名3:赋值的变量名, ...} = Object对象
+```
+
+其中 `属性名3:赋值的变量名`，冒号前是对象中的属性名，冒号后面的是解构后要赋值给的变量。
 
 ```js
 const person = {
