@@ -1345,12 +1345,1172 @@ console.log(newObject);
 // 输出：{firstName：“ Mehdi”，lastName：“ Aoussiad”}
 ```
 
+### 7.8. 字符串转对象的三种方式
 
-## 8. 继承（ES6以前的实现方式）
+#### 7.8.1. 方式1：JSON.parse(str)
+
+```js
+// 定义一个对象字符串
+var str = '{"error":1,"data":"用户不存在"}';
+// 使用JSON.parse()
+var obj = JSON.parse(str);
+// 输出该对象
+console.log(obj);
+```
+
+#### 7.8.2. 方式2：eval("("+str+")")
+
+```js
+// 定义一个对象字符串
+var str = '{"error":1,"data":"用户不存在"}';
+// 使用eval();
+var obj = eval("(" + str + ")")
+// 输出该对象
+console.log(obj);
+```
+
+#### 7.8.3. 方式3：(new Function("return " + str))()
+
+```js
+// 定义一个对象字符串
+var str = '{"error":1,"data":"用户不存在"}';
+// 使用Function
+var obj = (new Function("return " + str))();
+// 输出该对象
+console.log(obj);
+```
+
+
+## 8. BOM（浏览器模型）
+
+### 8.1. BOM 模型
+
+Browser Object Model 浏览器对象模型，用来操作浏览器中的对象。
+
+### 8.2. BOM 常用对象
+
+| BOM 常用对象 |         作用          |
+| ----------- | -------------------- |
+| window      | 浏览器窗体对象          |
+| location    | 浏览器上的地址栏对象     |
+| history     | 浏览器访问的历史记录对象 |
+
+### 8.3. window 对象
+
+#### 8.3.1. 对话框的相关方法
+
+|               方法名                |                              作用                              |
+| ---------------------------------- | ------------------------------------------------------------- |
+| `alert("提示信息")`                 | 弹出一个信息框                                                  |
+| `string prompt("提示信息","默认值")` | 弹出一个输入信息框，让用户输入数据                                  |
+| `boolean confirm("提示信息")`       | 弹出一个确认对话框，有确认或取消两个按钮，点确认返回true，否则返回false |
+
+> Notes: 所有 window 对象的属性和方法，都可以省略 window
+
+示例：
+
+```xml
+<script type="text/javascript">
+	if(confirm("你确定是否要输入？")){
+		var s = prompt("请输入你的信息：","看看什么是默认值！")
+		// 输出弹框
+		alert(s);
+	}else{
+		alert("放弃设置");
+	}
+</script>
+```
+
+#### 8.3.2. 计时的相关方法
+
+```js
+setTimeout("函数名", 间隔毫秒数)
+```
+
+- 在指定的时间以后，运行一次指定的函数。返回值是当前的计时器。例如，1秒以后调用`sum()`函数，有以下两种写法：
+    - `setTimeout("sum()", 1000);` 
+    - `setTimeout(sum, 1000);`
+
+```js
+clearTimeout(计时器对象)
+```
+
+- 清除 `setTimeout()` 生成的计时器
+
+```js
+setInterval("函数名", 间隔毫秒数)
+```
+
+- 不停止地每过指定的时间间隔以后调用一次函数。<font color=red>**返回一个当前计时对象，可以利用这个变量清除计时器**</font>
+
+```js
+clearInterval(计时器对象)
+```
+
+- 清除 `setInterval()` 生成的计时器。<font color=red>**`clearInterval()`清空对象，只是把 timer 所指定的计时器清除，timer 的值不会发生变化。timer 的值在这里是一个整数，是 number 类型。**</font>
+
+> Notes: 所有 window 对象的属性和方法，都可以省略 window
+
+### 8.4. 日期对象
+
+#### 8.4.1. 日期对象的创建
+
+通过 `new` 关键字可以得到当前的日期对象
+
+```js
+var date = new Date();
+```
+			
+#### 8.4.2. Date 对象的常用方法
+
+```js
+getFullYear()
+```
+
+- 从 Date 对象以四位数字返回年份
+
+```js
+getMonth()
+```
+
+- 从 Date 对象返回月份（0-11），从0开始，真实的月份要加1
+
+```js
+getDate()
+```
+
+- 从 Date 对象返回一个月中的某一天 (1 ~ 31)
+
+```js
+getDay()
+```
+
+- 从 Date 对象返回一周中的某一天 (0 ~ 6)。0是周日，1是周1，2是周2，依次类推
+
+```js
+getHours()
+```
+
+- 返回 Date 对象的小时 (0 ~ 23
+
+```js
+getMinutes()
+```
+
+- 返回 Date 对象的分钟 (0 ~ 59)
+
+```js
+getSeconds()
+```
+
+- 返回 Date 对象的秒数 (0 ~ 59)
+
+```js
+getMilliseconds()
+```
+
+- 返回 Date 对象的毫秒(0 ~ 999)
+
+```js
+getTime()
+```
+
+- 返回 1970 年 1 月 1 日至今的毫秒数
+
+```js
+toLocaleString()
+```
+
+- 根据本地时间格式，把 Date 对象转换为字符串
+
+### 8.5. location 地址栏对象
+
+#### 8.5.1. location 是什么
+
+浏览器的地址栏对象，`location` 对象提供了关于当前打开窗口或者特定框架的 url 信息。一个多框架的窗口对象在 `location` 属性显示的是父窗口的 URL，每个框架也有一个与之相伴的 `location` 对象
+
+#### 8.5.2. 相关属性
+
+- `hash`：`location.hash` 返回当前框架的 URL 中 `#` 号之后(包括`#`号)的部分，即 URL 的锚点
+- `host`：描述 URL 的主机名和端口，只有端口号是 URL 的一个明确部分时，值中才包括端口号。
+- `hostname`：同 host 属性，但不包括端口号
+- `href`：该属性提供一个指定窗口对象的整个 URL 的字符串。有如下两种操作：
+    - 得到值：当前地址栏中的访问地址
+    - 设置值：可以直接设置为一个值（URL），会对浏览器进行页面的跳转，从当前页面跳转新的页面
+
+```js
+location.href = 'http://www.moon.com';
+```
+
+- `pathname`：URL 的路径名部分，主机名之后的部分，不包括锚点和query(即`?`之后的部分)
+- `port`：端口号。如果 URL 中没有端口号则为空，如果输入 URL 有端口号而被服务器自动忽略(redirect到80)，在 Firefox 中能得到80，而在 IE 中为空
+- `protocol`：协议名，且后面紧跟着冒号
+
+#### 8.5.3. 常用方法
+
+```ts
+/** Navigates to the given URL. */
+assign(url: string | URL): void;
+```
+
+- 导航到指定的 URL
+
+```ts
+/** Reloads the current page. */
+reload(): void;
+```
+
+- 重新加载当前页面，相当于点击了浏览器上的刷新按钮。
+
+```ts
+/** Removes the current page from the session history and navigates to the given URL. */
+replace(url: string | URL): void;
+```
+
+- 导航跳转到新的页面，并将当前页面从历史记录移除。即无法使用后退方法返回到当前页面。
+
+### 8.6. history 对象
+
+#### 8.6.1. 作用
+
+读取浏览器的缓存页面，不访问服务器，访问之前已经访问过的页面。
+
+源码定义如下：
+
+```ts
+interface History {
+    readonly length: number;
+    scrollRestoration: ScrollRestoration;
+    readonly state: any;
+    back(): void;
+    forward(): void;
+    go(delta?: number): void;
+    pushState(data: any, unused: string, url?: string | URL | null): void;
+    replaceState(data: any, unused: string, url?: string | URL | null): void;
+}
+```
+
+#### 8.6.2. 常用方法
+
+```ts
+back(): void;
+```
+
+- 返回前一个页面，相当于浏览器上的后退按钮。
+
+```ts
+forward(): void;
+```
+
+- 前进到曾经访问过的一个页面，相当于浏览器上的前进按钮。
+
+```ts
+go(delta?: number): void;
+```
+
+- 跳转到历史浏览记录中指定的第几个页面。函数的参数是整数类型，可以是负数或正数。如果是负数类似于`back()`；如果是正数，类似于`forward()`。例如是-2，则表示后退2个页面
+
+## 9. DOM（文档对象模型）
+
+### 9.1. DOM 概念
+
+Document Object Model 文档对象模型，用于操作网页中的各种元素。对应 JS 中的一个名为 `document` 对象。
+
+<font color=red>**注：使用 `document.write()` 方法时需要注意，如果直接使用，相当于重新写了一个新的文档，会覆盖原来的网页的元素。**</font>
+
+### 9.2. 获取 DOM 结点(元素)
+
+```js
+document.getElementById("id")
+```
+
+- 文档对象通过 id 得到唯一的一个网页标签元素，如果有同名的 id，则得到第1个元素。
+
+```js
+document.getElementsByName("name")
+```
+
+- 通过 name 属性得到一组同名的元素，返回一个数组
+
+```js
+document.getElementsByTagName("标签名")
+```
+
+- 通过标签的名字得到一组标签，返回一个数组
+
+### 9.3. DOM 元素的 innerHTML 与 innerText 属性
+
+#### 9.3.1. innerHTML 
+
+通过元素对象的 `innerHTML`， 可以得到或设置元素的内容，主体是 HTML 内容。如页面有元素如下：
+
+```html
+<h1 id="moon">xxx</h1>
+```
+
+若要修改其标签元素的内容：
+
+```js
+document.getElementById("moon").innerHTML = "abc";
+```
+
+#### 9.3.2. innerText
+
+元素对象的 `innerText`，可以得到或设置元素的内容，主体是<font color=red>**纯文本内容，标签不起作用**</font>。
+
+#### 9.3.3. innerHTML 与 value 选择
+
+一般是表单元素才有 `value` 属性，会放在 form 中，如：`<input>`、`<select>` 等，其中 `<textarea>` 是没有 value 属性。如果没有 value 属性的，则不能使用 value。
+
+假如要修改元素的主体内容。如：`<h3>xxx</h3>`，则需要通过 `innerHTML` 属性进行修改。
+
+#### 9.3.4. 示例
+
+编写代码实现：实现当点击『计算折扣价』按钮时展示图2的效果。
+
+![](images/451073910230464.jpg) ![](images/521223910248890.jpg)
+
+操作步骤描述：
+
+1. 为『计算折扣价』按钮添加点击事件
+2. 为各标签添加属性 id
+3. 书写方法，实现方法体
+    1. 根据 id 获取标签元素的值
+    2. 根据页面效果拼接结果
+
+页面定义输入框：
+
+```html
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title>图书价格计算器</title>
+		<!--导入外部JS文件-->
+		<script src="js/Day30Test02.js" type="text/javascript"></script>
+	</head>
+	<body>
+		<!--定义表单与表格-->
+		<form name="myForm">
+			<table>
+				<tr>
+					<th colspan="2">图书价格计算器</th>
+				</tr>
+				<tr>
+					<td>书名：</td>
+					<td><input type="text" name="bookname" id="bookname"/></td>
+				</tr>
+				<tr>
+					<td>作者：</td>
+					<td><input type="text" name="author" id="author"/></td>
+				</tr>
+				<tr>
+					<td>价格：</td>
+					<td><input type="text" name="price" id="price"/></td>
+				</tr>
+				<tr>
+					<td>折扣：</td>
+					<td><input type="text" name="discount" id="discount"/></td>
+				</tr>
+				<tr>
+					<td colspan="2"><input type="button" value="计算折扣价" onclick="count()"/></td>
+				</tr>
+			</table>
+		</form>
+	</body>
+</html>
+```
+
+通过 js 获取输入框里的值，输出相关信息
+
+```js
+function count(){
+	//使用文档对象的函数,根据ID获取输入元素的值
+	var bookname = document.getElementById("bookname").value;
+	var author = document.getElementById("author").value;
+	var price = document.getElementById("price").value;
+	var discount = document.getElementById("discount").value;
+	
+	var count = price * discount;
+	alert("这本书名为《" + bookname + "》，" + author + "编著的书，原价是：" + price + "，折扣为：" + discount + "折，折扣后价格为：" + count);
+}
+```
+
+### 9.4. DOM 的创建和修改
+
+#### 9.4.1. 元素操作常用方法
+
+```js
+document.createElement("标签名")
+```
+
+- 创建一个新的标签元素，如：`<input>`
+
+```js
+// element 是元素对象
+element.setAttribute("属性名", "属性值")
+```
+
+- 给标签增加或修改属性和属性值。如果原来没有此属性名，则新增；如果原来有此属性名，则修改属性值。
+
+```js
+document.createTextNode("文本节点内容")
+```
+
+- 创建一个文本节点，参数是文本内容。如：`<h1>文本</h1>`
+
+```js
+// parent 是父元素对象 child 是子元素对象
+parent.appendChild(child)
+```
+
+- 将一个元素追加成当前元素的最后一个子元素
+
+```js
+// parent 是父元素对象 oldElement、newElement 都是元素对象
+parent.insertBefore(newElement,oldElement)
+```
+
+- 在父元素下面，将一个元素(newElement)插入到指定元素(oldElement)的之前
+
+```js
+// parent 是父元素对象 child 是子元素对象
+parent.removeChild(child)
+```
+
+- 删除当前元素的一个子元素
+
+```js
+// element 是元素对象
+element.remove()
+```
+
+- 删除元素本身
+
+#### 9.4.2. 通过关系找节点
+
+通过元素对象的相关属性，可以获取指定的节点元素。若返回的是数组，可以通过遍历的方式来访问相关的节点。以下变量 `element` 为某个元素对象：
+
+```js
+element.childNodes
+```
+
+- 得到当前元素所有的子元素，返回数组
+
+```js
+element.firstChild
+```
+
+- 得到当前元素的第1个子元素
+
+```js
+element.lastChild
+```
+
+- 得到当前元素最后1个子元素
+
+```js
+element.parentNode
+```
+
+- 得到当前元素的父元素
+
+```js
+element.nextSibling
+```
+
+- 得到当前元素的下一个兄弟元素
+
+```js
+element.previousSibling
+```
+
+- 得到当前元素的上一个兄弟元素
+
+### 9.5. DOM 编程综合案例
+
+#### 9.5.1. 案例1：计数器对象使用案例
+
+案例需求：实现5秒后跳转到主页的操作。
+
+编写页面元素：
+
+```html
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title>自动跳转</title>
+		<!--导入外部js文件-->
+		<script src="js/Day30Test03.js" type="text/javascript"></script>
+	</head>
+	<body>
+		<font style="font-size: 28px;">操作成功！！</font><br />
+		<font style="font-size: 28px;"><span id="num">5</span>秒后回到主页</font>&nbsp;&nbsp;
+		<a href="http://ntlias-stu.boxuegu.com">返回</a>
+	</body>
+</html>
+```
+
+编写 js 实现功能（可以写在页面上的`<script>`标签，或者定义在外部js文件中）
+
+```js
+/变量
+var n = 5;
+
+// 2. 编写定时器定时执行的函数
+function refresh(){
+	// 通过id获取span标签的对象
+	document.getElementById("num").innerHTML = --n;
+	
+	// 判断将n=1时跳转
+	if(n == 1){
+		location.href = "http://www.moon.com"
+	}
+}
+
+// 1. 设置定时器
+setInterval("refresh()", 1000);
+```
+
+案例2需求：显示时钟，暂停、开始和根据时间提示相关信息
+
+编写页面元素：
+
+```html
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title>显示当前时间</title>
+		<!--使用外部js文件-->
+		<script src="../js/Day30Exercise01_02.js" type="text/javascript"></script>
+	</head>
+	<body>
+		<table>
+			<caption><h1>当前时间</h1></caption>
+			<tr>
+				<td><h2 id="h2"></h2></td>
+			</tr>
+			<tr>
+				<td><hr/></td>
+			</tr>
+			<tr>
+				<td height="30px"><span id="h3" style="font-weight: bold; color: red;"></span></td>
+			</tr>
+			<tr>
+				<td><input type="button" id="b1" value="点击我say hi" onclick="clickMe()"/>&nbsp;&nbsp;
+					<input type="button" id="b2" value="开始" onclick="begin()"/>&nbsp;&nbsp;
+					<input type="button" id="b3" value="暂停" onclick="pause()"/>
+				</td>
+			</tr>
+		</table>
+	</body>
+</html>
+```
+
+编写 js 实现功能
+
+```js
+var timer = setInterval("time()", 50);
+
+//定义函数
+function time(){
+	//获取当前时间对象
+	var date = new Date();
+	document.getElementById("h2").innerHTML = date.toLocaleString();
+}
+
+function clickMe(){
+	setInterval("checkTime()", 10);
+}
+
+function checkTime(){
+	var d = new Date();
+	var time = d.getHours();
+	// 对当前时间进行判断
+	switch (true){
+		case time>6 && time<12:
+			document.getElementById("h3").innerHTML = "Good morning";
+			break;
+		case time>=12 && time<=18:
+			document.getElementById("h3").innerHTML = "Good afternoon";
+			break;
+		default:
+			document.getElementById("h3").innerHTML = "Good night";
+			break;
+	}
+}
+
+// 开始
+function begin(){
+	// 每次点击开始就将之前的计时器清空
+	window.clearInterval(timer);
+	// 开启新的计时器
+	timer = setInterval("time()", 50);
+}
+
+// 暂停
+function pause(){
+	window.clearInterval(timer);
+}
+```
+
+#### 9.5.2. 案例2：选择商品并计算总金额
+
+案例需求：页面上有5件商品，前面都有复选框，名字叫item，value是商品的价格。下面有一个"全选/全不选"的复选框，id是"all"，点它实现全选或全不选的功能，还有个反选的按钮，点它实现反选的功能。下面有一个按钮，点它则计算选中商品的总金额。
+
+注：在 DOM 编程中，如果要给一个复选框选中，是将`checked`属性设置 true，不选中设置为 false，而不是`checked="checked"`
+
+页面代码：
+
+```html
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8" />
+		<title>商品清单</title>
+		<!-- 引用外部js文件 -->
+		<script src="js/test.js" type="text/javascript"></script>
+	</head>
+	<body>
+		<h3>商品价格列表</h3>
+		<input type="checkbox" name="item" value="1500" /> 山地自行车1500<br />
+		<input type="checkbox" name="item" value="200" /> 时尚女装200<br />
+		<input type="checkbox" name="item" value="3000" /> 笔记本电脑3000元<br />
+		<input type="checkbox" name="item" value="800" /> 情侣手表800<br />
+		<input type="checkbox" name="item" value="2000" /> 桑塔纳2000<br />
+		<hr/>
+		<input type="checkbox" id="all" onclick="selectAll()" />全选/全不选 &nbsp;
+		<input type="button" id="reverse" onclick="reverseSelect()"  value=" 反 选 "/>&nbsp;
+		<input type="button" value=" 结 账 " onclick="total()" />&nbsp;<span id="result"></span>
+	</body>
+</html>
+```
+
+js 代码：
+
+```js
+// 编写选择全部/不选择全部的函数
+function selectAll(){
+	// 当点击全选/全不选按键后，根据该按键自身是否勾选还判断是否选择
+	// 先获取全部的复选框项的元素对象
+	var items = document.getElementsByName("item");
+	// 遍历数组，如果按键自己勾选则选全部，不勾则不选择
+	var all = document.getElementById("all");
+	for (var i = 0; i < items.length; i++) {
+		items[i].checked = all.checked;
+	}
+}
+
+// 编写反选函数
+function reverseSelect(){
+	// 获取所有复选框对象
+	var items = document.getElementsByName("item");
+	// 遍历数组，将所有复选框对象的checked属性取反
+	for (var i = 0; i < items.length; i++) {
+		items[i].checked = !items[i].checked;
+	}
+}
+
+// 结账按钮函数
+function total(){
+	// 获取所有复选框对象
+	var items = document.getElementsByName("item");
+	// 遍历数组，将所有复选框，将所有选中的元素的值相加
+	var sum = 0;
+	for (var i = 0; i < items.length; i++) {
+		if(items[i].checked){
+			sum += parseFloat(items[i].value);
+		}
+	}
+	// 将统计后的结果赋值给result元素
+	document.getElementById("result").innerHTML = sum;
+}
+```
+
+#### 9.5.3. 案例3：学生信息管理
+
+案例要求实现以下功能：
+
+1. 使用 CSS 样式：当鼠标移入时，该行的背景颜色为黄色，当鼠标移出时，该行的背景颜色还原；
+2. 当添加按钮“添加一行数据”时，文本框中的数据添加到表格中且文本框置空； 
+3. 当点击表格中的“删除”时，该行数据被删除。
+
+注意事项：
+
+1. 如果 HTML 里有表格的话，要注意 `<table>` 标签里默认会有一个`<tbody>`的标签，在添加元素的时候需要注意。
+2. `<a>` 标签同时定义了 `href` 与 `onclick` 属性，则点击时会优先执行连接的操作，需要给 `href` 属性设置成`javascript:void(0)`，表示不让 `href` 属性起作用，而是执行 `onclick` 属性中的代码
+
+js 代码：
+
+```js
+JS文件
+// 增加行的函数
+function addRow(){
+	// 获取两个文本框输入的值
+	var num = document.getElementById("no").value;
+	var name = document.getElementById("name").value;
+	// 取出文件框的值后清空文本框
+	document.getElementById("no").value = "";
+	document.getElementById("name").value = "";
+	// 将最后一行的代码包装成字符串,语句的双引号
+	var delString = "<a href='javascript:void(0)' onclick='deleteRow(this)'>删除</a>";
+	
+	// 创建3个td标签对象
+	var td1 = document.createElement("td");
+	var td2 = document.createElement("td");
+	var td3 = document.createElement("td");
+	
+	// 将文本框的内容放到td标签对象中,分别使用两种不同方法
+	// 方式1，先将文本框的内容转成文本节点，再放到td标签中
+	var txt = document.createTextNode(num);
+	td1.appendChild(txt);
+	// 方式2：将文本框的内容直接设置td标签对象的innerHTML属性
+	td2.innerHTML = name;
+	td3.innerHTML = delString;
+	
+	// 创建新的tr标签对象，将3个td标签增加到tr中
+	var tr = document.createElement("tr");
+	tr.appendChild(td1);
+	tr.appendChild(td2);
+	tr.appendChild(td3);
+	
+	// 获取tbody标签对象，将新的tr标签增加到tbody对象中
+	var tbody = document.getElementById("data");
+	tbody.appendChild(tr);
+}
+
+// 删除标签函数,函数有参数，是该链接对象
+function deleteRow(obj){
+	// 提示是否要删除
+	if(confirm("确定是否要删除？")){
+		// 参数是该链接对象，先得到上级td标签对象，再获取上级tr标签对象
+		obj.parentNode.parentNode.remove();
+	}
+}
+```
+
+CSS样式文件代码：
+
+```css
+/*使用CSS样式：当鼠标移入时，该行的背景颜色为黄色，当鼠标移出时，该行的背景颜色还原*/
+table{
+	width: 500px;
+	border-collapse: collapse;
+}
+tr{
+	text-align: center;
+}
+/*使用伪类样式*/
+tr:hover{
+	background-color: lightcyan;
+}
+```
+
+HTML 文件代码：
+
+```html
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8" />
+		<title>商品清单</title>
+		<!-- 引用外部js文件 -->
+		<script src="js/test.js" type="text/javascript"></script>
+		<!--使用外部样式-->
+		<link rel="stylesheet" href="css/test.css" type="text/css" />
+	</head>
+	<body>
+		<div>
+			<table border="1" cellspacing="0" cellpadding="3">
+				<tbody id="data">
+					<tr>
+						<th>学号</th>
+						<th>姓名</th>
+						<th>操作</th>
+					</tr>
+					<tr>
+						<td>00001</td>
+						<td>敌法师</td>
+						<td>
+              <!-- javascript:void(0)表示不让href起作用，而是执行onclick中的代码-->
+							<a href="javascript:void(0)" onclick="deleteRow(this)">删除</a>
+						</td>
+					</tr>
+					<tr>
+						<td>00002</td>
+						<td>剑圣主宰</td>
+						<td>
+							<a href="javascript:void(0)" onclick="deleteRow(this)">删除</a>
+						</td>
+					</tr>
+				</tbody>
+			</table>
+			<br />
+			学号：<input type="text" id="no" value="" />&nbsp;&nbsp;
+			姓名：<input type="text" id="name" value="" />&nbsp;&nbsp;
+			<input type="button" id="add" value="新增" onclick="addRow()" />
+		</div>
+	</body>
+</html>
+```
+
+## 10. 样式操作
+
+### 10.1. JS 修改 CSS 样式
+
+通过获取元素对象，再根据对应样式属性名称修改即可。
+
+在 JavaScript 中，样式的命名规则是：<font color=red>**CSS的名字，多个单词，首字母小写，第二个单词去掉减号，首字母大写**</font>。
+
+#### 10.1.1. 方式一：单个元素修改
+
+每条 JS 代码修改一个样式。一条语句修改一个样式。
+
+```js
+元素名.style.样式名 = 样式值;
+```
+
+#### 10.1.2. 方式二：批量元素修改
+
+首先定义一个类样式，给类起名。一次修改一批样式。
+
+```js
+元素名.className = 类样式名;
+```
+
+注：在使用 CSS 类选择器时，是在需要修改的元素标签里添加属性 `class="xxx"`。但在 JS 中修改 CSS 时，如果用类批量修改样式，是获取到修改的元素对象后，给 `className` 赋值新定义的类选择器名字，而不是 `class`（*可能是因为 `class` 属性的名称与关键字冲突*）。
+
+### 10.2. 在 JS 中操作 CSS 属性命名上的区别
+
+使用 JavaScript 修改元素的 css 样式，与直接定义样式的属性名称有些不一样。例如：
+
+|  CSS中写法   |        JS中的写法        |              说明               |
+| ----------- | ---------------------- | ------------------------------ |
+| `color`     | `元素名.style.color`    | 颜色                            |
+| `font-size` | `元素名.style.fontSize` | 第二个单词首字母大小，去掉中间减号。 |
+
+## 11. 事件的处理
+
+### 11.1. 事件的概述
+
+| 事件机制组成 |        描述        |               具体对象                |
+| ---------- | ----------------- | ----------------------------------- |
+| 事件源      | 发出事件的对象      | 如：按钮，链接，图片                    |
+| 事件        | 发出什么类型的事情   | 如：点击，双击，鼠标移动事件             |
+| 监听者      | 对事件进行处理的函数 | 事件处理函数 `funnction changeCode()` |
+
+### 11.2. 事件命名的规则
+
+1. 所有事件以`on`开头
+2. 所有的事件都是以标签属性的方式存在的，名字的字母都是小写
+
+### 11.3. 设置事件
+
+JavaScript 有两种方式设置事件
+
+- 方式1：**命名函数**。直接在标签中使用，可以多次使用。
+
+```html
+<标签 onclick="函数名()" />
+```
+
+- 方式2：**匿名函数**。使用匿名函数的方式，只能在一个地方使用。
+
+```js
+元素.onclick = function(){
+    // do something...
+}
+```
+
+设置事件的两种方式示例：
+
+```html
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8" />
+		<title>JS事件</title>
+	</head>
+	<body>
+		<!--设置事件的两种方式-->
+		<!--方式一-->
+		<h1>设置事件的两种方式</h1>
+		<!--设置事件的方式一：直接写在标签中-->
+		<input type="button" id="b1" value="我是按键1" onclick="clickMe()" />
+		<br /><br />
+		<!--设置事件的方式二：以匿名函数的方式存在js代码中，标签中没有on开头的属性-->
+		<input type="button" id="b2" value="我是按键2" />&nbsp;&nbsp;
+		<input type="button" id="b3" value="我是按键3" />
+		
+		<script type="text/javascript">
+			function clickMe(){
+				alert("我是一个按键点击出来的");
+			}
+			
+			document.getElementById("b2").onclick = function (){
+				alert("我是匿名函数方式点出来的");
+			}
+			
+			// 使用命名函数,函数后面没有括号
+			document.getElementById("b3").onclick = clickMe;
+		</script>
+	</body>
+</html>
+```
+
+### 11.4. 常用的事件
+
+|     事件名     |           作用           |
+| ------------- | ------------------------ |
+| `onclick`     | 单击事件                  |
+| `ondbclick`   | 双击事件                  |
+| `onsubmit`    | 表单提交事件               |
+| `onload`      | 加载完毕                  |
+| `onfocus`     | 得到焦点                  |
+| `onblur`      | 失去焦点                  |
+| `onchange`    | 文本框和下拉列表内容改变事件 |
+| `onmousemove` | 鼠标移动                  |
+| `onmouseout`  | 鼠标移出                  |
+| `onmouseup`   | 鼠标松开                  |
+| `onmousedown` | 鼠标按下                  |
+| `onkeyup`     | 键盘按键松开               |
+| `onkeydown`   | 键盘按键按下               |
+
+#### 11.4.1. 加载完成事件
+
+`onload` 事件：用于一个元素<font color=red>**加载完毕**</font>以后执行的代码。一般用在页面或图片加载完毕以后激活的事件
+
+<font color=red>**如果使用匿名函数的方式设置事件，要注意要在设置事件之前，要设置在页面加载后再触发匿名函数事件，即 `window.onload = function(){}`，因为匿名函数一般需要先得到元素，即`document.getElementById("xxx")`，如果不设置 `onload` 事件，那么不一定能得到元素，如果加载 script 放在最后，那就可以得到元素**</font>
+
+面试题：在页面加载后就能触发函数执行的三种写法：
+
+1. `window.onload = function()`
+2. `<body onload = "函数名()"></body>`
+3. `onload = function()` 与第一种相同，只是省略了 window 对象
+
+`onload` 事件基础使用示例：
+
+```html
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>事件和对指定的元素样式进行操作</title>
+		<style type="text/css">
+			/*标签选择器*/
+			a{
+				text-decoration: none;
+				font-size: 50px;
+			}
+		</style>
+		<!--使用外部js文件-->
+		<script src="js/Day31Test01_01.js" type="text/javascript"></script>
+	</head>
+	<body>
+		<a href="http://www.baidu.com" title="百度" target="_blank" id="a1">百度</a>
+		<div id="d1" style="color: blue; display: none;" ><a href="#">百度一下你就知道</a></div>
+	</body>
+</html>
+```
+
+js 代码：
+
+```js
+// 在网页加载后再加载事件
+window.onload = function(){
+	// 当鼠标移动到链接时显示div内容
+	document.getElementById("a1").onmouseover = function(){
+		document.getElementById("d1").style.display = "";
+	}
+
+	// 当鼠标移出链接后隐藏div内容
+	document.getElementById("a1").onmouseout = function(){
+		document.getElementById("d1").style.display = "none";
+	}
+}
+```
+
+上面的例子，如果将`<script src="js/Day31Test01_01.js" type="text/javascript"></script>`放到`<body>`标签的最后，就算不设置 `onload` 事件，也可以得到效果。
+
+直接在标签上定义事件：
+
+```html
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>事件和对指定的元素样式进行操作</title>
+		<style type="text/css">
+			/*标签选择器*/
+			a{
+				text-decoration: none;
+				font-size: 50px;
+			}
+		</style>
+		<!--使用外部js文件-->
+		<script src="js/Day31Test01_01_方式2.js" type="text/javascript"></script>
+	</head>
+	<body>
+		<a href="http://www.baidu.com" title="百度" target="_blank" onmouseover="mouseover()" onmouseout="mouseout()">百度</a>
+		<div id="d1" style="color: blue; display: none;" ><a href="#">百度一下你就知道</a></div>
+	</body>
+</html>
+```
+
+#### 11.4.2. 鼠标点击事件
+
+- `onclick` 点击事件
+- `ondblclick` 双击事件
+
+单击与双击代码示例：
+
+```html
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8" />
+		<title>JS事件</title>
+	</head>
+	<body>
+		<table>
+			<tr>
+				<td>Field1:</td>
+				<td><input type="text" id="f1" /></td>
+			</tr>
+			<tr>
+				<td>Field2:</td>
+				<td><input type="text" id="f2" /></td>
+			</tr>
+			<tr>
+				<td colspan="2"><input type="button" id="b1" value="单击复制/双击改变颜色"/></td>
+			</tr>
+		</table>
+		
+		<script type="text/javascript">
+			// 单击事件
+			document.getElementById("b1").onclick = function (){
+				document.getElementById("f2").value = document.getElementById("f1").value;
+			}
+			
+			// 双击事件
+			document.getElementById("b1").ondblclick = function (){
+				document.getElementById("f1").style.color = "red";
+			}
+		</script>
+	</body>
+</html>
+```
+
+#### 11.4.3. 鼠标按下与松开
+
+- `onmousedown` 鼠标按下事件
+- `onmouseup` 鼠标松开事件，必须在按下的元素地方松开才有效果。
+
+#### 11.4.4. 鼠标移动事件
+
+- onmousemove 鼠标移动到某个元素上面，激活事件
+- onmouseout 鼠标从元素上移走，激活事件。
+
+> Notes: <font color=red>**如果是图片的鼠标移动事件，要设置图片的大小**</font>
+
+鼠标按下与松开、移动事件示例：
+
+```html
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8" />
+		<title>JS事件</title>
+	</head>
+	<body>
+		<script type="text/javascript">
+			window.onload = function(){
+				// 鼠标按下事件
+				document.getElementById("t3").onmousedown = function (){
+					document.getElementById("t3").innerHTML = "鼠标按下了";
+				}
+			
+				// 鼠标松开事件
+				document.getElementById("t3").onmouseup = function (){
+					this.innerHTML = "鼠标松开了";
+				}
+			
+				// 鼠标移动事件
+				document.getElementById("pic").onmousemove = function (){
+					this.src = "img/用户登录/bg1.jpg";
+				}
+				
+				// 鼠标移出事件
+				document.getElementById("pic").onmouseout = function (){
+					document.getElementById("pic").src = "";
+				}
+			}
+		</script>
+		
+		<h3 id="t3">试试又不会怀孕</h3>
+		<img src="" id="pic" width="380" height="300"/>
+	</body>
+</html>
+```
+
+#### 11.4.5. 焦点相关事件
+
+如果一个文本框（控件）得到光标，处于一种可以操作或输入的状态，称为**获得焦点**。
+
+- `onblur` 失去焦点
+- `onfocus` 得到焦点
+
+#### 11.4.6. 改变事件
+
+`onchange` 一般用于文本框内容改变，或下拉列表选项发生变化
+
+> Notes: <font color=red>**文本框必须是失去焦点以后才激活改变事件**</font>
+
+#### 11.4.7. 键盘相关事件
+
+- `onkeyup` 松开键盘某个按键激活的事件
+- `onkeydown` 按下键盘某个按键激活的事件
+
+键盘码：键盘上每个按键都有一个对应的键盘码，大小字母的键盘码是一样的。得到键盘码需要传入一个参数：事件对象。keyCode 就是键盘码。
+
+#### 11.4.8. 表单提交事件
+
+`onsubmit` 每个表单在提交之前都会有一个表单的提交的事件。一般可以用于表单验证。
+
+如果 `onsubmit` 中返回 false，可以阻止表单的提交。
+
+```html
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8" />
+		<title>JS事件</title>
+		<script type="text/javascript">
+			function checkUser(){
+				if(document.getElementById("user").value.trim() == ""){
+					alert("用户名不能为空");
+					return false;
+				}
+				return true;
+			}
+		</script>
+	</head>
+	<body>
+		<form action="http://ntlias-stu.boxuegu.com" method="post" onsubmit="return checkUser()">
+			<span id="t1">用户名:</span><input type="text" id="user"/><br/>
+			<input type="submit" value="登录"/>
+		</form>
+	</body>
+</html>
+```
+
+## 12. 继承（ES6以前的实现方式）
 
 ES6之前并没有提供 `extends` 继承。但可以<font color=red>**通过构造函数+原型对象模拟实现继承，被称为组合继承**</font>
 
-### 8.1. call() 函数
+### 12.1. call() 函数
 
 通过`call()`去调用某个函数, 并且修改函数运行时的 `this` 指向
 
@@ -1377,9 +2537,8 @@ var o = {
 // fn.call();
 // 2. call() 可以改变这个函数的this指向 此时这个函数的this 就指向了o这个对象
 fn.call(o, 1, 2)
-```
-
-### 8.2. 借用构造函数继承父类型属性
+```10.2. 
+### 9.6. 借用构造函数继承父类型属性
 
 核心原理：通过 `call()` 把父类型的this指向子类型的this，这样就可以实现子类型继承父类型的属性。
 
@@ -1401,7 +2560,7 @@ var son = new Son("敌法师", 18, 100)
 console.log(son)
 ```
 
-### 8.3. 借用原型对象继承父类型方法
+### 12.2. 借用原型对象继承父类型方法
 
 <font color=red>**一般情况下，对象的方法都在构造函数的原型对象中设置，通过构造函数无法继承父类方法**</font>。实现的核心原理：
 
@@ -1449,12 +2608,12 @@ console.log(Son.prototype.constructor)
 
 
 
-## 9. 数组对象Array
+## 13. 数组对象Array
 
 在JS中，数组等价于集合
 
-### 9.1. 创建数组的方式
-#### 9.1.1. 一维数组
+### 13.1. 创建数组的方式
+#### 13.1.1. 一维数组
 
 1. 创建一个长度为0的数组
 
@@ -1480,7 +2639,7 @@ var arr = new Array(x1,x2,x3……);
 var arr = [x1,x2,x3,……];
 ```
 
-#### 9.1.2. 二维数组
+#### 13.1.2. 二维数组
 
 ```js
 var arr = [[x,x,x],[x,x,x],[x,x],……];
@@ -1489,7 +2648,7 @@ var arr = [[x,x,x],[x,x,x],[x,x],……];
 - 值：`arr[0] = [x,x,x]`
 - 使用嵌套循环遍历
 
-#### 9.1.3. Array.of() 方法
+#### 13.1.3. Array.of() 方法
 
 `Array.of()`方法用于将一组值，转换为数组。这个方法的主要目的，是弥补数组构造函数`Array()`的不足。因为参数个数的不同，会导致`Array()`的行为有差异。
 
@@ -1512,7 +2671,7 @@ Array.of(3).length // 1
 - `Array.of()`方法基本上可以用来替代`Array()`或`new Array()`，并且不存在由于参数不同而导致的重载。它的行为非常统一。
 - `Array.of()`方法总是返回参数值组成的数组。如果没有参数，就返回一个空数组。
 
-### 9.2. 数组中元素的类型
+### 13.2. 数组中元素的类型
 
 1. 数组中的元素类型可以各不相同
 2. 数组的长度可以动态增长
@@ -1528,8 +2687,8 @@ arr[5] = 99;
 - 数组的长度是6
 - 数组的内容是`[1, 3, "hello", 时间对象, undefined, 99]`
 
-### 9.3. 数组的遍历
-#### 9.3.1. for...of 循环
+### 13.3. 数组的遍历
+#### 13.3.1. for...of 循环
 
 - 语法：`for(const item of array)`
 - 作用：循环遍历数组所有元素项
@@ -1546,7 +2705,7 @@ for (const color of colors) {
 // 'white'
 ```
 
-#### 9.3.2. for 循环
+#### 13.3.2. for 循环
 
 - 语法：`for(let i; i < array.length; i++)`
 - 作用：循环使用递增的索引变量的方式遍历数组所有元素项，index变量从0递增到`colors.length-1`
@@ -1564,7 +2723,7 @@ for (let index = 0; index < colors.length; index++) {
 // 'white'
 ```
 
-#### 9.3.3. forEach()方法
+#### 13.3.3. forEach()方法
 
 - 语法：
 
@@ -1586,9 +2745,9 @@ arr.forEach((item, index) => {
 
 > 注：`array.forEach()`迭代中，不能使用`break`来中断操作
 
-### 9.4. 数组的映射
+### 13.4. 数组的映射
 
-#### 9.4.1. map()方法 - ES6新特性
+#### 13.4.1. map()方法 - ES6新特性
 
 - 语法：`map(callback(item[, index[, array]]))`
     - 参数callback函数，该函数参数包括：当前遍历项（item）、索引（index）和数组本身（array）。
@@ -1607,13 +2766,13 @@ console.log(newArr)
 
 ![数组的map方法](images/20190421103633831_23300.png)
 
-#### 9.4.2. Array.from()方法
+#### 13.4.2. Array.from()方法
 
 `Array.from()`方法就是将一个**类数组对象**或者**可遍历对象(包括ES6新增的数据结构Set和Map)**转换成一个真正的数组。
 
 **类数组对象**，最基本的要求就是具有length属性的对象。
 
-##### 9.4.2.1. 语法
+##### 13.4.2.1. 语法
 
 ```js
 Array.from(arrayLike[, mapFunction[, thisArg]])
@@ -1635,7 +2794,7 @@ Array.from(someNumbers, value => value * 2); // => [20, 30]
 > - `Array.from()`创建一个新的映射数组，而不改变原始数组。
 > - `Array.from()`更适合从类似数组的对象进行映射。
 
-##### 9.4.2.2. 用法1：将类数组对象转换为真正数组
+##### 13.4.2.2. 用法1：将类数组对象转换为真正数组
 
 ```js
 let arrayLike = {
@@ -1684,7 +2843,7 @@ console.log(arr)  // [ undefined, undefined, undefined, undefined ]
     2. 该类数组对象的属性名必须为数值型或字符串型的数字
 - ps: 该类数组对象的属性名可以加引号，也可以不加引号
 
-##### 9.4.2.3. 用法2：将Set结构的数据转换为真正的数组
+##### 13.4.2.3. 用法2：将Set结构的数据转换为真正的数组
 
 ```js
 let arr = [12,45,97,9797,564,134,45642]
@@ -1700,14 +2859,14 @@ let set = new Set(arr)
 console.log(Array.from(set, item => item + 1)) // [ 13, 46, 98, 9798, 565, 135, 45643 ]
 ```
 
-##### 9.4.2.4. 用法3：将字符串转换为数组
+##### 13.4.2.4. 用法3：将字符串转换为数组
 
 ```js
 let str = 'hello world!';
 console.log(Array.from(str)) // ["h", "e", "l", "l", "o", " ", "w", "o", "r", "l", "d", "!"]s
 ```
 
-##### 9.4.2.5. Array.from参数是一个真正的数组
+##### 13.4.2.5. Array.from参数是一个真正的数组
 
 Array.from会返回一个一模一样的新数组
 
@@ -1715,8 +2874,8 @@ Array.from会返回一个一模一样的新数组
 console.log(Array.from([12,45,47,56,213,4654,154]))
 ```
 
-### 9.5. 数据的简化
-#### 9.5.1. reduce()方法 - ES6新特性
+### 13.5. 数据的简化
+#### 13.5.1. reduce()方法 - ES6新特性
 
 - 语法：`array.reduce(callback(accumulator, item[, index[, array]])[, initialValue])`
     - 接收一个函数callback（必须）和一个初始值initialValue（可选）
@@ -1741,8 +2900,8 @@ let result4 = arr.reduce((a, b) => a * b, 1);     // 结果：-300
 let result5 = arr.reduce((a, b) => a * b, -1);    // 结果：300
 ```
 
-### 9.6. 数据的连接
-#### 9.6.1. concat()方法
+### 13.6. 数据的连接
+#### 13.6.1. concat()方法
 
 - 语法：`array.concat(array1[, array2, ...])`
 - 作用：连接两个或更多的数组，或者给数组增加元素，并返回结果。一般用于数组的拼接和增加元素操作
@@ -1756,7 +2915,7 @@ const concatArray = arr1.concat(arr2);
 console.log(concatArray); // 1, 2, moon, hehe
 ```
 
-#### 9.6.2. 展开操作符(...)
+#### 13.6.2. 展开操作符(...)
 
 - 语法：`[...array1, ...array2]`
 - 作用：可以使用展开操作符与数组变量一起使用来连接数组，与`concat()`方法效果一样
@@ -1769,7 +2928,7 @@ const concatArray = [...arr1, ...arr2];
 console.log(concatArray); // 1, 2, moon, hehe
 ```
 
-#### 9.6.3. join() 方法 - 将数组转成字符串
+#### 13.6.3. join() 方法 - 将数组转成字符串
 
 - 语法：`array.join(separator分隔符)`
 - join方法正好与**字符串的方法`split(分隔符)`（方法将一个字符串切割成一个字符串数组）**相反，将数组通过分隔符，拼成一个字符串。
@@ -1780,13 +2939,13 @@ var str = a3.join("+")
 // 输出结果："1+2+3"
 ```
 
-#### 9.6.4. split() 方法 - 将字符串转成数组
+#### 13.6.4. split() 方法 - 将字符串转成数组
 
 - 语法：`array.split(separator分隔符)`
 - 作用：将字符串，按指定的分隔符截取成数组，与join()方法相反
 
-### 9.7. 过滤（获取）数组的部分数据
-#### 9.7.1. slice() 方法
+### 13.7. 过滤（获取）数组的部分数据
+#### 13.7.1. slice() 方法
 
 - 语法：`array.slice([fromIndex[，toIndex]])`
     - 可选参数fromIndex：截取的开始索引，默认值为0
@@ -1804,7 +2963,7 @@ console.log(heroes) // ["moon", "abc"]
 console.log(villains) // ["kira", "N"]
 ```
 
-#### 9.7.2. filter()方法
+#### 13.7.2. filter()方法
 
 - 语法：
 
@@ -1824,7 +2983,7 @@ var newarr = arr.filter((item, idx) => {
 
 > 注：`array.filter()` 创建一个新数组，而不改变原始数组
 
-##### 9.7.2.1. 扩展：使用Boolean过滤数组中的所有假值
+##### 13.7.2.1. 扩展：使用Boolean过滤数组中的所有假值
 
 JS中的相关假值：`false`, `null`, `0`, `undefined`, `NaN`。可以使用Boolean构造函数来进行一次转换，快速将数组中假值过滤
 
@@ -1835,8 +2994,8 @@ compact([0, 1, false, 2, "", 3, "a", "e" * 23, NaN, "s", 34]);
 ```
 
 
-### 9.8. 数组的拷贝
-#### 9.8.1. 方式1：使用展开操作符(...)
+### 13.8. 数组的拷贝
+#### 13.8.1. 方式1：使用展开操作符(...)
 
 - 语法：`const clone = [...array]`
 - 作用：复制一个新的数组
@@ -1850,7 +3009,7 @@ console.log(clone); // => ['white', 'black', 'gray']
 console.log(colors === clone); // => false
 ```
 
-#### 9.8.2. 方式2：[].concat(array)
+#### 13.8.2. 方式2：[].concat(array)
 
 - 语法：`[].concat(array)`是另一种复制数组的方式
 - > 注：`[].concat(array)`是创建一个浅拷贝。
@@ -1863,7 +3022,7 @@ console.log(clone); // => ['white', 'black', 'gray']
 console.log(colors === clone); // => false
 ```
 
-#### 9.8.3. 方式3：slice()
+#### 13.8.3. 方式3：slice()
 
 - 语法：`array.slice()`，利用slice的参数默认值，进行数组的复制
 - > `array.slice()` 创建一个浅拷贝。
@@ -1876,8 +3035,8 @@ console.log(clone); // => ['white', 'black', 'gray']
 console.log(colors === clone); // => false
 ```
 
-### 9.9. 查找数组中元素
-#### 9.9.1. includes()方法
+### 13.9. 查找数组中元素
+#### 13.9.1. includes()方法
 
 - 语法：`Array.includes(itemToSearch[，fromIndex])`
     - 参数itemToSearch：数据包含的元素
@@ -1907,7 +3066,7 @@ function test(fruit) {
 ```
 
 
-#### 9.9.2. find() 和 findIndex() 方法
+#### 13.9.2. find() 和 findIndex() 方法
 
 - 语法：`array.find/findIndex((value, index, arr) => {})`
 - 函数参数都是一个查找的回调函数。
@@ -1942,7 +3101,7 @@ console.log('%s', ret3)    // 4
 console.log('%s', ret4)    // -1
 ```
 
-#### 9.9.3. indexOf() 方法
+#### 13.9.3. indexOf() 方法
 
 - 语法：`array.indexOf(itemToSearch[, fromIndex])`
     - 参数itemToSearch：查找的元素
@@ -1957,7 +3116,7 @@ const index = arr.indexOf('b');
 console.log(index); // 1
 ```
 
-#### 9.9.4. every() 方法
+#### 13.9.4. every() 方法
 
 - 语法：`array.every(predicate(item[, index[, array]]))`
     - 参数predicate函数，该函数参数包括：当前遍历项（item）、索引（index）和数组本身（array）。
@@ -1991,7 +3150,7 @@ function test() {
 }
 ```
 
-#### 9.9.5. some() 方法
+#### 13.9.5. some() 方法
 
 - 语法：`array.every(predicate(item[, index[, array]]))`
     - 参数predicate函数，该函数参数包括：当前遍历项（item）、索引（index）和数组本身（array）。
@@ -2013,8 +3172,8 @@ function test() {
 }
 ```
 
-### 9.10. 数组的增删改操作
-#### 9.10.1. push() 方法增加元素
+### 13.10. 数组的增删改操作
+#### 13.10.1. push() 方法增加元素
 
 - 语法：`array.push(item1 [...，itemN])`
 - 作用：将一个或多个项追加到数组的末尾，并返回新的长度
@@ -2026,7 +3185,7 @@ names.push('abc')
 console.log(names) // ["moon", "abc"]
 ```
 
-#### 9.10.2. unshift() 方法增加元素
+#### 13.10.2. unshift() 方法增加元素
 
 - 语法：`array.unshift(item1[..., itemN])`
 - 作用：将一个或多个项追加到数组的开头，并返回新的长度
@@ -2038,7 +3197,7 @@ names.unshift('abc')
 console.log(names) // ["abc", "moon"]
 ```
 
-#### 9.10.3. 展开操作符(...)增加元素
+#### 13.10.3. 展开操作符(...)增加元素
 
 - 通过组合展开操作符和数组变量，以不可变的方式在数组中插入项
 - 在数组末尾追加一个项
@@ -2070,7 +3229,7 @@ const names2 = [
 console.log(names2)  // ["moon", "newWord", "kira"]
 ```
 
-#### 9.10.4. pop() 方法删除元素
+#### 13.10.4. pop() 方法删除元素
 
 - 语法：`array.pop()`
 - 作用：从数组中删除最后一个元素，然后返回该元素
@@ -2083,7 +3242,7 @@ console.log(lastColor); // => 'black'
 console.log(colors); // => ['blue', 'green']
 ```
 
-#### 9.10.5. shift() 方法删除元素
+#### 13.10.5. shift() 方法删除元素
 
 - 语法：`array.shift()`
 - 作用：从数组中删除第一个元素，然后返回该元素
@@ -2096,7 +3255,7 @@ console.log(firstColor); // => 'blue'
 console.log(colors); // => ['green', 'black']
 ```
 
-#### 9.10.6. splice() 方法，对数组删除/替换/插入某一项
+#### 13.10.6. splice() 方法，对数组删除/替换/插入某一项
 
 - 语法：`array.splice(index, len, [item, ...itemN])`
 - 作用：返回增删改后的数组，**该方法会改变原始数组**
@@ -2153,7 +3312,7 @@ delete arr[1];
 arr; // ["a", undefined × 1, "c", "d"] 中间出现两个逗号，数组长度不变，有一项为undefined
 ```
 
-#### 9.10.7. 展开操作符号(...)
+#### 13.10.7. 展开操作符号(...)
 
 可以通过组合展开操作符和数据字面量以不可变的方式从数组中删除项
 
@@ -2170,7 +3329,7 @@ const newNames = [
 console.log(newNames) // ["moon", "L+N"]
 ```
 
-#### 9.10.8. array.length 属性清空数组
+#### 13.10.8. array.length 属性清空数组
 
 - array.length是保存数组长度的属性。 除此之外，array.length是可写的。
 - 如果写一个小于当前长度的`array.length = newLength`，多余的元素从数组中移除
@@ -2181,7 +3340,7 @@ colors.length = 0;
 console.log(colors); // []
 ```
 
-#### 9.10.9. fill() 方法填充数组
+#### 13.10.9. fill() 方法填充数组
 
 - 语法：`arr.fill(value, start, end)`
     - value：填充值
@@ -2200,7 +3359,7 @@ new Array(3).fill(7)    // [7, 7, 7]
 ['a', 'b', 'c'].fill(7, 1, 2)    // ['a', 7, 'c']
 ```
 
-#### 9.10.10. copyWithin() 方法
+#### 13.10.10. copyWithin() 方法
 
 - 语法：`arr.copyWithin(target[, start[, end]])`
 - 参数：
@@ -2237,8 +3396,8 @@ i32a.copyWithin(0, 2);
 // Int32Array [4, 2, 3, 4, 5]
 ```
 
-### 9.11. 数组的扁平化
-#### 9.11.1. flat() 方法
+### 13.11. 数组的扁平化
+#### 13.11.1. flat() 方法
 
 - 语法：`array.flat([depth])`
   
@@ -2253,8 +3412,8 @@ const flatArray = arrays.flat();
 console.log(flatArray); // [0, 1, 3, 5, 2, 4, 6]
 ```
 
-### 9.12. 数组的排序
-#### 9.12.1. sort()方法
+### 13.12. 数组的排序
+#### 13.12.1. sort()方法
 
 - 语法：`array.sort([compare])`
     - 可选参数compare(a, b)是一个自定义排序顺的回调函数。如果按数字排序，需要指定排序的函数（类似java的比较器），如下是函数的比较规则：
@@ -2287,13 +3446,13 @@ numbers.sort(compare);
 console.log(numbers); // => [4, 2, 3, 1]
 ```
 
-#### 9.12.2. reverse()方法
+#### 13.12.2. reverse()方法
 
 - 对数组进行反转，直接操作数组本身
 
-## 10. 字符串(String)
+## 14. 字符串(String)
 
-### 10.1. trim() 方法
+### 14.1. trim() 方法
 
 `trim()`方法会从一个字符串的两端删除空白字符。
 
@@ -2303,7 +3462,7 @@ str.trim();
 
 > <font color=red>**注：`trim()`方法并不影响原字符串本身，它返回的是一个新的字符串。**</font>
 
-### 10.2. replace 方法
+### 14.2. replace 方法
 
 通过正则表达式，现实去掉中间所有空格
 
@@ -2311,11 +3470,11 @@ str.trim();
 const str = 字符串.replace(/\s/g, "");
 ```
 
-## 11. 数值函数
+## 15. 数值函数
 
-### 11.1. 案例应用
+### 15.1. 案例应用
 
-#### 11.1.1. 生成一个4位的随机码，包含字母
+#### 15.1.1. 生成一个4位的随机码，包含字母
 
 使用到的 js 中 Math 函数：数学对象，提供对数据的数学计算。
 
@@ -2340,7 +3499,7 @@ getVerifyCode: function () {
 }
 ```
 
-#### 11.1.2. 生成[min,max]的随机数
+#### 15.1.2. 生成[min,max]的随机数
 
 ```js
 // max - 期望的最大值
@@ -2349,46 +3508,9 @@ parseInt(Math.random()*(max-min+1)+min,10);
 Math.floor(Math.random()*(max-min+1)+min);
 ```
 
-## 12. JavaScript 一些语法应用案例
+## 16. 其他
 
-### 12.1. 字符串转对象的三种方式
-
-#### 12.1.1. 方式1：JSON.parse(str)
-
-```js
-// 定义一个对象字符串
-var str = '{"error":1,"data":"用户不存在"}';
-// 使用JSON.parse()
-var obj = JSON.parse(str);
-// 输出该对象
-console.log(obj);
-```
-
-#### 12.1.2. 方式2：`eval("("+str+")")`
-
-```js
-// 定义一个对象字符串
-var str = '{"error":1,"data":"用户不存在"}';
-// 使用eval();
-var obj = eval("(" + str + ")")
-// 输出该对象
-console.log(obj);
-```
-
-#### 12.1.3. 方式3：`(new Function("return " + str))()`
-
-```js
-// 定义一个对象字符串
-var str = '{"error":1,"data":"用户不存在"}';
-// 使用Function
-var obj = (new Function("return " + str))();
-// 输出该对象
-console.log(obj);
-```
-
-## 13. 其他
-
-## 14. JS的调试
+### 16.1. JS的调试
 
 因为 JS 是运行在浏览器端，几乎所有的主流浏览器都提供了 debug 调试的功能，在开发模式中，设置断点进行调试。不同的浏览器对应的操作与快捷键不一样，下面的调试的快捷键以 Chrome 为例：
 
@@ -2401,9 +3523,9 @@ console.log(obj);
 
 如果有语法错误，进行浏览器开发模式中会出现提示
 
-### 14.1. EventLoop
+### 16.2. EventLoop
 
-#### 14.1.1. JavaScript 是单线程的语言
+#### 16.2.1. JavaScript 是单线程的语言
 
 JavaScript 是一门单线程执行的编程语言。也就是说，同一时间只能做一件事情。
 
@@ -2411,7 +3533,7 @@ JavaScript 是一门单线程执行的编程语言。也就是说，同一时间
 
 > 单线程执行任务队列的问题：如果前一个任务非常耗时，则后续的任务就不得不一直等待，从而导致程序假死的问题。
 
-#### 14.1.2. 同步任务和异步任务
+#### 16.2.2. 同步任务和异步任务
 
 JavaScript 把待执行的任务分为了两类：
 
@@ -2422,7 +3544,7 @@ JavaScript 把待执行的任务分为了两类：
     - 又称为**耗时任务**，异步任务由 JavaScript 委托给宿主环境进行执行
     - 当异步任务执行完成后，会通知 JavaScript 主线程执行异步任务的回调函数
 
-#### 14.1.3. EventLoop 的基本概念
+#### 16.2.3. EventLoop 的基本概念
 
 **同步任务和异步任务的执行过程**
 
@@ -2436,7 +3558,7 @@ JavaScript 把待执行的任务分为了两类：
 
 <font color=red>**JavaScript 主线程从“任务队列”中读取异步任务的回调函数，放到执行栈中依次执行。这个过程是循环不断的，所以整个的这种运行机制又称为 EventLoop（事件循环）。**</font>
 
-#### 14.1.4. 结合 EventLoop 分析输出的顺序案例（面试题）
+#### 16.2.4. 结合 EventLoop 分析输出的顺序案例（面试题）
 
 ```js
 import { getResult } from '../utils/util.js'
@@ -2456,9 +3578,9 @@ console.log('D')
 - A 和 D 属于同步任务。会根据代码的先后顺序依次被执行
 - C 和 B 属于异步任务。它们的回调函数会被加入到任务队列中，等待主线程空闲时再执行
 
-### 14.2. 宏任务和微任务
+### 16.3. 宏任务和微任务
 
-#### 14.2.1. 什么是宏任务和微任务
+#### 16.3.1. 什么是宏任务和微任务
 
 JavaScript 把异步任务又做了进一步的划分，异步任务又分为两类，分别是：
 
@@ -2467,15 +3589,15 @@ JavaScript 把异步任务又做了进一步的划分，异步任务又分为两
 1. 宏任务（macrotask）：异步 Ajax 请求、`setTimeout`、`setInterval`、文件操作等
 2. 微任务（microtask）：`Promise.then`、`Promise.catch`、`Promise.finally`、`process.nextTick` 等
 
-#### 14.2.2. 宏任务和微任务的执行顺序
+#### 16.3.2. 宏任务和微任务的执行顺序
 
 ![](images/20211205110505881_9639.png)
 
 每一个宏任务执行完之后，都会**检查是否存在待执行的微任务**。如果有，则执行完所有微任务之后，再继续执行下一个宏任务。
 
-#### 14.2.3. 宏任务和微任务执行顺序分析案例（面试题）
+#### 16.3.3. 宏任务和微任务执行顺序分析案例（面试题）
 
-##### 14.2.3.1. 案例1
+##### 16.3.3.1. 案例1
 
 ```js
 setTimeout(() => console.log('1'))
@@ -2494,7 +3616,7 @@ console.log('4')
 2. 再执行微任务输出：3
 3. 再执行下一个宏任务输出：1
 
-##### 14.2.3.2. 案例2
+##### 16.3.3.2. 案例2
 
 ```js
 console.log('1')
@@ -2529,9 +3651,9 @@ setTimeout(() => {
 4. 再执行第2个宏任务中的同步任务输出：7、8
 5. 再执行第2个宏任务的微任务输出：9
 
-### 14.3. API 接口案例
+### 16.4. API 接口案例
 
-#### 14.3.1. 案例需求
+#### 16.4.1. 案例需求
 
 基于 MySQL 数据库 + Express 对外提供用户列表的 API 接口服务。用到的技术点如下：
 
@@ -2540,12 +3662,12 @@ setTimeout(() => {
 - Promise
 - async/await
 
-#### 14.3.2. 搭建项目的基本结构
+#### 16.4.2. 搭建项目的基本结构
 
 1. 启用 ES6 模块化支持，在 package.json 中声明 `"type": "module"`
 2. 安装第三方依赖包。`npm install express@4.17.1 mysql2@2.2.5 -S`
 
-#### 14.3.3. 创建基本的服务器
+#### 16.4.3. 创建基本的服务器
 
 在项目的根目录下创建 app.js 入口文件，创建基础的服务器
 
@@ -2577,7 +3699,7 @@ npm install -g nodemon
 npm uninstall -g nodemon
 ```
 
-#### 14.3.4. 创建 db 数据库操作模块
+#### 16.4.4. 创建 db 数据库操作模块
 
 创建`db/index.js`，配置数据库的连接信息
 
@@ -2595,7 +3717,7 @@ const pool = mysql.createPool({
 export default pool.promise()
 ```
 
-#### 14.3.5. 创建请求的处理方法
+#### 16.4.5. 创建请求的处理方法
 
 ```js
 import db from '../db/index.js'
@@ -2620,7 +3742,7 @@ export async function getAllUser(req, res) {
 }
 ```
 
-#### 14.3.6. 配置路由
+#### 16.4.6. 配置路由
 
 ```js
 import express from 'express'
@@ -2636,7 +3758,7 @@ router.get('/user', getAllUser)
 export default router
 ```
 
-#### 14.3.7. 导入并挂载路由模块
+#### 16.4.7. 导入并挂载路由模块
 
 在 app.js 文件中导入并挂载路由模块
 
@@ -2655,13 +3777,13 @@ app.listen(80, () => {
 })
 ```
 
-#### 14.3.8. 测试
+#### 16.4.8. 测试
 
 使用postman等请求工具，请求`http://127.0.0.1/api/user`，获取返回数据
 
-## 15. console 对象使用
+### 16.5. console 对象使用
 
-### 15.1. 常用方法
+#### 16.5.1. 常用方法
 
 1. `console.log()`
 
@@ -2696,7 +3818,7 @@ console.error("错误");
 13. `console.timeLine()` 和 `console.timeLineEnd()`：一起使用记录一段时间轴
 14. `console.trace()`：堆栈跟踪相关的调试
 
-### 15.2. 格式化符号
+#### 16.5.2. 格式化符号
 
 |   格式化符号   |            实现的功能            |
 | :----------: | ------------------------------ |
@@ -2707,9 +3829,9 @@ console.error("错误");
 |     `%O`     | 转化成JavaScript对象输出          |
 |     `%c`     | 把字符串按照你提供的样式格式化后输入 |
 
-## 16. ES2020 新特性
+## 17. ES2020 新特性
 
-### 16.1. 可选链操作符
+### 17.1. 可选链操作符
 
 可选链操作符(`?.`)允许读取位于连接对象链深处的属性的值，而不必明确验证链中的每个引用是否有效。`?.`操作符的功能类似于`.`链式操作符，不同之处在于，在引用为空(`nullish`) (`null`或者`undefined`) 的情况下不会引起错误，该表达式短路返回值是`undefined`。与函数调用一起使用时，如果给定的函数不存在，则返回`undefined`。
 

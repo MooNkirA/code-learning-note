@@ -189,6 +189,7 @@
 ### 🔶 前端工具类库
 
 <ul class="docs">
+  <li><a href="#/前端资料/工具类库/jQuery">jQuery - JavaScript 增强工具框架</a></li>
   <li><a href="#/前端资料/工具类库/Lodash">Lodash 工具函数库</a></li>
   <li><a href="#/前端资料/工具类库/Moment.js">Moment.js 轻量级时间工具库</a></li>
   <li><a href="#/前端资料/工具类库/Axios">Axios 网络请求库</a></li>
@@ -419,7 +420,7 @@
   <li><a href="#/分布式微服务/分布式任务调度/ElasticJob">Elastic-Job 分布式调度解决方案</a></li>
 </ul>
 
-### ✨ 其他
+### ✨ 微服务其他相关内容
 
 <ul class="docs">
   <li><a href="#/分布式微服务/其他/分布式微服务相关概念">分布式微服务相关概念（分布式缓存、负载均衡等）</a></li>
@@ -460,6 +461,7 @@
 <ul class="docs">
   <li><a href="#/其他/编程文档与项目资源分享">编程文档与项目资源分享</a></li>
   <li><a href="#/其他/编程开发相关资料">编程开发相关资料</a></li>
+  <li><a href="#/其他/OS">操作系统知识</a></li>
   <li><a href="#/其他/Develop-Environment">个人开发环境搭建资源信息文档</a></li>
 </ul>
 
