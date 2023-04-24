@@ -82,7 +82,7 @@ ClassLoader.getSystemClassLoader().loadClass("com.moon.TargetObject");
 
 eclipse 中获取类全名的方法：右键类名 -> 选择 Copy Qualified Name
 
-![复制类全名](images/20190801112244830_23962.png)
+![](images/20190801112244830_23962.png)
 
 idea 中获取类全名的方法：右键类文件或者类名 -> 选择 Copy Reference。快捷键：Ctrl+Shift+Alt+C
 
