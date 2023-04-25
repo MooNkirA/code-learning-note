@@ -1196,6 +1196,8 @@ Java 提供的 GC 功能可以自动监测对象是否超过作用域从而达�
 SoftReference<String> softRef = new SoftReference<String>(str);
 ```
 
+> 可用场景：创建缓存的时候，创建的对象放进缓存中，当内存不足时，JVM就会回收早先创建的对象。
+
 - **弱引用**：有用但不是必须的对象，通过 `WeakReference` 类实现。不管当前内存空间足够与否，在下一次 GC 时都会回收只具有弱引用的对象。
 
 ```java
@@ -1203,7 +1205,15 @@ SoftReference<String> softRef = new SoftReference<String>(str);
 WeakReference<String> weakRef = new WeakReference<String>(str);
 ```
 
+> 可用场景：Java 源码中的 `java.util.WeakHashMap` 中的 key 就是使用弱引用，相当于一旦不需要某个引用，JVM会自动处理它，开发者不需要做其它操作。
+
 - **虚引用**（幽灵引用/幻影引用）：无法通过虚引用获得对象，用 `PhantomReference` 实现虚引用。虚引用并不会决定对象的生命周期。如果一个对象仅持有虚引用，那么它就和没有任何引用一样，在任何时候都可能被垃圾回收。**虚引用的用途是跟踪对象的垃圾回收状态，在 gc 时会返回一个系统通知**。
+
+```java
+PhantomReference<String> prf = new PhantomReference<String>(new String("str"), newReferenceQueue<>());
+```
+
+> 可用场景：对象销毁前的一些操作，比如说资源释放等。`Object.finalize()` 虽然也可以做这类动作，但是这个方式即不安全又低效上诉所说的几类引用，都是指对象本身的引用，而不是指 Reference 的四个子类的引用( SoftReference 等)。
 
 ### 7.2. JVM 的垃圾回收算法
 
