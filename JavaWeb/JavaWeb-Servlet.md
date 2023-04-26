@@ -153,13 +153,7 @@ public abstract class HttpServlet extends GenericServlet {
 }
 ```
 
-> Notes: HttpServletRequest和HttpServletResponse是ServletRequest和ServletResponse的子接口
-
-
-
-
-
-
+> Notes: HttpServletRequest 和 HttpServletResponse 是 ServletRequest 和 ServletResponse 的子接口
 
 ## 2. JavaWeb 项目开发步骤
 

@@ -1362,7 +1362,7 @@ public class TreeMap<K,V>
 
 TreeMap 是基于二叉树数据结构存储数据。从功能上讲，有比 HashMap 更为强大的功能，它实现了 `SortedMap` 接口，即可以对元素进行排序，默认按键值的升序排序，也可以自定义排序比较器。
 
-TreeMap 要求存放的键值对所映射的键对象必须实现 `Comparable` 接口，重写 `compareTo` 方法，从而根据键对元素进行排序。否则会抛出 `java.lang.ClassCastException` 异常
+TreeMap 要求存放的键值对所映射的键对象必须实现 `Comparable` 接口，重写 `compareTo` 方法，从而根据键对元素进行排序。否则会抛出 `java.lang.ClassCastException` 异常。
 
 TreeMap 的性能略微低于 HashMap。如果在开发中需要对元素进行<font color=red>排序</font>，那么使用 HashMap 便无法实现这种功能，使用 TreeMap 的迭代输出将会以元素顺序进行。
 
@@ -1389,6 +1389,8 @@ public class Hashtable<K,V>
 ```
 
 `HashTable` 是旧版本的遗留类，很多映射的常用功能都与 `HashMap` 类似，不同的是它继承自 `Dictionary` 类，并且是线程安全的，同一时刻只允许一个线程对 `HashTable` 进行写操作，并发性不如 `ConcurrentHashMap`。
+
+> Tips: `Hashtable` 不建议使用，不需要线程安全的场景可以用 HashMap 替换，需要线程安全的场景可以用 ConcurrentHashMap 替换。
 
 ### 6.8. ConcurrentHashMap（网络资料，未整理）
 

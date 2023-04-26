@@ -1,5 +1,3 @@
-# Java基础-异常
-
 ## 1. 异常概述
 
 ### 1.1. 什么是异常
@@ -28,7 +26,7 @@ Error 类：是 Throwable 一个子类，用来指示运行时环境发生的错
 
 特点：此类错误一般表示代码运行时 JVM 出现问题。通常有 VirtualMachineError（虚拟机运行错误）、NoClassDefFoundError（类定义错误）、OutOfMemoryError（内存不足错误）、StackOverflowError（栈溢出错误）等。此类错误发生时，JVM 将终止线程。
 
-> Tips: <font color=red>**这些错误是不受检异常，非代码性错误。因此，当此类错误发生时，应用程序不应该去处理此类错误。按照 Java 惯例，开发时是不应该实现任何新的Error子类的！**</font>
+> Tips: <font color=red>**这些错误是不受检异常，非代码性错误。因此，当此类错误发生时，应用程序不应该去处理此类错误。按照 Java 惯例，开发时是不应该实现任何新的 Error 子类的！**</font>
 
 #### 1.2.3. Exception（异常）
 
@@ -51,8 +49,8 @@ Exception（异常）指 Java 程序运行异常，即运行中的程序发生�
 
 如何判断程序出现的问题是错误还是异常？
 
-- 根据控制台输入的错误信息，判断类名是以Error还是Exceptiong结尾。
-- 如果是Error则是错误，否是就是Exception。
+- 根据控制台输入的错误信息，判断类名是以 Error 还是 Exception 结尾。
+- 如果是 Error 则是错误，否是就是 Exception。
 
 ### 1.4. Java常见错误与异常
 
@@ -81,7 +79,7 @@ Exception 异常类又分以下两种：
 
 ### 2.1. 运行时异常
 
-RuntimeException（运行时异常）：一般都是程序员犯得错误，需要修改源码的。以下是常见的内置运行时异常：
+运行时异常，是指 RuntimeException及其子类。在编译时，Java 编译器不会对其进行检查，这类异常既不用抛出，也不用捕获，也会编译通过。一般都是程序员运行时才发现的异常，需要修改源码。以下是常见的内置运行时异常：
 
 - ArithmeticException
 - NullPointerException(空指针)
@@ -93,7 +91,7 @@ RuntimeException（运行时异常）：一般都是程序员犯得错误，需�
 
 ### 2.2. 编译时异常
 
-编译时异常：在编译时，Java 编译器会进行检查，如果程序中出现此类异常，必须进行处理，否则无法通过编译。
+编译时异常，是指 Exception 类及其子类（除了 `RuntimeException`）。在编译时，Java 编译器会进行检查，如果程序中出现此类异常，必须进行处理，否则无法通过编译。
 
 比如：`ClassNotFoundException`（没有找到指定的类异常），`IOException`（IO流异常），要么通过 `throws` 进行声明抛出，要么通过 `try-catch` 进行捕获处理，否则不能通过编译。在程序中，通常不会自定义该类异常，而是直接使用系统提供的异常类。<font color=red>**该异常必须手动在代码里添加捕获语句来处理该异常**</font>。
 
@@ -325,20 +323,65 @@ try {
 
 finally 代码块的注意事项：
 
-- 若 catch 代码块中包含 `return` 语句，finally 中的代码依然会执行。并且会先执行 finally 代码块中的逻辑后，再执行 catch 代码块的 return 语句
-- 若 catch 与 finally 代码块中都包含 return 语句，则只会执行 finally 中的 return 语句，不会执行 catch 中的 return 语句
-- 若存在 finally 代码块，try 中的 return 语句不会马上返回调用者，而是记录下返回值待 finally 代码块执行完毕之后再向调用者返回其值，然后如果在 finally 中修改了返回值，就会返回修改后的值
+- 若 catch 代码块中包含 return 语句，finally 中的代码依然会执行。并且会先执行 finally 代码块中的逻辑后，再执行 catch 代码块的 return 语句。
+- 若 catch 与 finally 代码块中都包含 return 语句，则只会执行 finally 中的 return 语句，不会执行 catch 中的 return 语句。
+- finally 中最好不要包含 return 语句，否则程序会提前退出，返回值不是 try 或 catch 中的返回值。
+- `System.exit(0);` 此方法是退出 jvm，只有这种情况 finally 代码块不执行。
+- **finally 代码块是在 return 后面的表达式运算语句之后执行的**。即 return 语句不会马上将运算后的值返回给调用者，而是先把要返回的值保存起来，待 finally 代码块执行完毕之后再向调用者返回其值。不管在 finally 中是否修改了返回值，返回的值都不会改变，仍然返回是之前保存的值。
+
+```java
+public static void main(String[] args) {
+    int sum = doSum(1, 2);
+    System.out.println(sum); // 输出是 3
+}
+
+private static int doSum(int a, int b) {
+    int sum;
+    try {
+        sum = a + b;
+        return sum;
+    } finally {
+        sum = 100;
+        System.out.println("finally sum: " + sum); // 输出是 100
+    }
+}
+```
 
 #### 4.5.5. try-catch-finally 的几种结合方式
 
-|           组合1            |     组合2      |      组合3       |
-| ------------------------- | ------------- | --------------- |
-| try</br>catch</br>finally | try</br>catch | try</br>finally |
+组合1：
 
+```java
+try {
+	// ... do something
+} catch (Exception e) {
+	// ... do something
+} finally {
+	// ... do something
+}
+```
 
-- 这种情况，如果出现异常，并不处理，但是资源一定关闭，所以`try  finally集合只为关闭资源`。
-- 记住：finally很有用，主要用户关闭资源。无论是否发生异常，资源都必须进行关闭。
-- `System.exit(0);` 此方法是退出jvm，只有这种情况finally不执行。
+组合2：
+
+```java
+try {
+	// ... do something
+} catch (Exception e) {
+	// ... do something
+}
+```
+
+组合3：
+
+```java
+try {
+	// ... do something
+} finally {
+	// ... do something
+}
+```
+
+> Tips: `try  finally` 是针对出现了异常时，并不需要处理，但是资源一定关闭的这种特殊情况。记住 `finally` 很有用，主要用于关闭资源。无论是否发生异常，资源都必须进行关闭。
 
 ### 4.6. try-with-resource （待整理）
 

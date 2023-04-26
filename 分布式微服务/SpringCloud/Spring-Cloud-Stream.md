@@ -72,7 +72,7 @@ Spring Cloud Stream 支持各种 binder 实现，*下面包含GitHub项目的链
 
 > 更多 RabbitMQ 的内容详见：[《RabbitMQ 笔记》](/分布式微服务/分布式消息中件间/RabbitMQ)
 
-创建`15-springcloud-stream`聚合工程，引入SpringBoot父工程与SpringCloud版本控制
+创建`spring-cloud-sample-stream`聚合工程，引入SpringBoot父工程与SpringCloud版本控制
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
@@ -82,7 +82,7 @@ Spring Cloud Stream 支持各种 binder 实现，*下面包含GitHub项目的链
 
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.example</groupId>
-    <artifactId>15-springcloud-stream</artifactId>
+    <artifactId>spring-cloud-sample-stream</artifactId>
     <version>1.0-SNAPSHOT</version>
     <name>${project.artifactId}</name>
     <packaging>pom</packaging>
@@ -460,19 +460,35 @@ public class ConsumerApplication {
 
 ### 3.1. 案例准备
 
-此案例为 Spring Cloud Stream 整合 RocketMQ 作为消息中间件，需要先准备 RocketMQ 的环境
+此案例为 Spring Cloud Stream 整合 RocketMQ 作为消息中间件，需要先准备 RocketMQ 的环境。*示例沿用前面整合 RabbitMQ 的工程 `spring-cloud-sample-stream`*
 
 > 更多 RocketMQ 的内容详见：[《RocketMQ 笔记》](/分布式微服务/分布式消息中件间/RocketMQ)
 
-### 3.2. 消费生产者
+### 3.2. 消息生产者开发步骤
 
-#### 3.2.1. 开发实践流程
+消息生产者开发流程
 
 ![](images/184430618230457.png)
 
-### 3.3. 消息消费者
+1. 添加 stream-rocketmq 依赖
 
-#### 3.3.1. 开发实践流程
+```xml
+<!-- Spring Cloud Stream 支持绑定 RocketMQ 的依赖 -->
+<dependency>
+    <groupId>com.alibaba.cloud</groupId>
+    <artifactId>spring-cloud-starter-stream-rocketmq</artifactId>
+</dependency>
+```
+
+2. 修改项目配置，增加 rocketmq binder、binding destination 属性配置
+
+```yml
+
+```
+
+### 3.3. 消息消费者开发步骤
+
+消息消费者开发流程
 
 ![](images/344020618248883.png)
 
