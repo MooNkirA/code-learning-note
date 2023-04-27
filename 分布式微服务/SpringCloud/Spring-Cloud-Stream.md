@@ -483,8 +483,67 @@ public class ConsumerApplication {
 2. 修改项目配置，增加 rocketmq binder、binding destination 属性配置
 
 ```yml
-
+spring:
+  cloud:
+    stream:
+      rocketmq.: # RocketMQ 支持
+        binder:
+          name-server: 127.0.0.1:9876
+      bindings:
+        output: # Spring Cloud Stream 内置的发送消息的通道（名称为output）
+          destination: stream-sample-default  # 指定消息发送的目的地。在 RabbitMQ 中，会发送到一个stream-sample-default的exchange中；在 RocketMQ 中会发送到一个主题上
 ```
+
+3. 在配置类（或者任意 Spring 管理的类）上使用 `@EnableBinding` 注解开启绑定消息通道，此示例绑定的是 Spring Cloud Stream 内置的 Source 接口
+
+```java
+@Component // 注册到spring容器中
+@EnableBinding(Source.class) // 绑定消息通道，此示例绑定的是Spring Cloud Stream内置的Source接口
+public class MessageSender {
+    ...
+}
+```
+
+4. 在消息发送类 `MessageSender` 中导入绑定输出通道对象 `Source`，通过 `source.output()` 方法同样得到与 RabbitMQ 案例中同样的 `MessageChannel` 对象
+
+```java
+@Autowired
+private Source source;
+
+public void sendRocketMQMessage(Object obj) {
+    source.output().send(MessageBuilder.withPayload(obj).build());
+}
+```
+
+5. 测试发送消息
+
+```java
+@RunWith(SpringRunner.class)
+@SpringBootTest
+public class ProducerTest {
+
+    @Autowired
+    private MessageSender messageSender;
+
+    /* 测试基于 RocketMQ 发送消息 */
+    @Test
+    public void testSendRocketMQMessage() {
+        messageSender.sendRocketMQMessage("Spring Cloud Stream Producer use RocketMQ!");
+    }
+}
+```
+
+
+
+
+
+
+
+
+
+
+
+
 
 ### 3.3. 消息消费者开发步骤
 

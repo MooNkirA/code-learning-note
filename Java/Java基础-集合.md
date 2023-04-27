@@ -1433,9 +1433,121 @@ Hashtable 与 HashMap 都是 Map 接口的实现类。
 
 JDK1.8 `ConcurrentHashMap` 采用 CAS 和 `synchronized` 来保证并发安全。数据结构采用数组+链表/红黑二叉树。`synchronized` 只锁定当前链表或红黑二叉树的首节点，支持并发访问、修改。另外 `ConcurrentHashMap` 使用了一种不同的迭代方式。当 `iterator` 被创建后集合再发生改变就不再是抛出 `ConcurrentModificationException`，取而代之的是在改变时 new 新的数据从而不影响原有的数据，`iterator` 完成后再将头指针替换为新的数据，这样 `iterator` 线程可以使用原来老的数据，而写线程也可以并发的完成改变。
 
-## 7. 集合相关的工具类API
+## 7. Comparator 自定义比较器
 
-### 7.1. Collections 工具类
+### 7.1. Comparator 接口概述
+
+```java
+@FunctionalInterface
+public interface Comparator<T> {
+
+    int compare(T o1, T o2);
+    // ...省略其他的 default 与 static 方法   
+}
+```
+
+`java.util.Comparator`，是 JDK 提供的比较器接口，强行对某个对象 collection 进行整体排序的比较函数。它是函数式接口，可以使用 lambda 表达式来实现 `compare(T o1, T o2)` 方法。
+
+`int compare(T o1, T o2);` 方法是比较用来排序的两个参数。根据第一个参数小于、等于或大于第二个参数分别返回负整数、零或正整数。返回值代表的含义如下：
+
+- **返回零**：表示两个元素相同
+- **返回负数**：左边小于右边
+- **返回正数**：左边大于右边
+
+> Notes: <font color=red>**如果用两个不是整数类型的相减做为判断，需要强转。字符串可以用自带的方法 `compareTo` 进行比较**</font>
+
+### 7.2. Collections 工具类的 sort 方法
+
+#### 7.2.1. 简介
+
+`Collections` 工具类中的 `sort` 方法就是使用了 `Comparator` 接口来对集合中的元素进行排序。
+
+```java
+public static <T> void sort(List<T> list, Comparator<? super T> c) {
+    list.sort(c);
+}
+```
+
+方法作用：根据指定比较器现实的顺序，对指定列表进行排序。使用此工具类的排序方法，通过自定义比较器接口 `Comparator` 可以对 List 类集合排序，一般通过匿名内部类使用。例如：
+
+```java
+List<Student> array = new ArrayList<>();
+//...设置集合一些测试数据后
+// Comparator接口排序，使用匿名内部类
+Collections.sort(array, new Comparator<Student>() {
+    // 重写compare方法，可以根据学生类的某个属性去比较
+    @Override
+    public int compare(Student o1, Student o2) {
+        return o1.getScore() - o2.getScore();
+    }
+});
+
+// Comparator接口排序，使用 lambda 表达式
+Collections.sort(array, Comparator.comparingInt(Student::getScore));
+```
+
+#### 7.2.2. 基础示例
+
+对基本数据类型的集合进行排序
+
+```java
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+
+public class MoonZero {
+	public static void main(String[] args) {
+		ArrayList<Integer> array = new ArrayList<>();
+        Collections.addAll(array, 15, 5, 28, 3, 18, 44, 4, 145, 54, 83, 41, 8, 11, 13);
+        System.out.println("排序前：" + array);
+        // Comparator接口排序,使用匿名内部类
+        Collections.sort(array, new Comparator<Integer>() {
+            // 重写 compare 方法
+            @Override
+            public int compare(Integer o1, Integer o2) {
+                return o2 - o1;
+            }
+        });
+        System.out.println("排序后：" + array);
+	}
+}
+```
+
+对象集合进行排序
+
+```java
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+
+public class MoonZero {
+	public static void main(String[] args) {
+		ArrayList<Student> array = new ArrayList<>();
+        array.add(new Student("004", "矮人火枪手", 20, 99));
+        array.add(new Student("003", "敌法师", 21, 88));
+        array.add(new Student("005", "剑圣主宰", 20, 80));
+        array.add(new Student("001", "斧王", 22, 70));
+        array.add(new Student("002", "幽鬼", 22, 30));
+        System.out.println("排序前：" + array);
+        // Comparator接口排序,使用匿名内部类
+        Collections.sort(array, new Comparator<Student>() {
+            // 重写compare方法，可以根据学生类的某个属性去比较
+            @Override
+            public int compare(Student o1, Student o2) {
+                // 按String类型的学号排序 字符串可以用自带的方法compareTo进行比较
+                // return o1.getId().compareTo(o2.getId());
+                // 按Double类型的成绩排序 因为返回值必须为整数，所以要做一个强转
+                return (int) (o1.getScore() - o2.getScore());
+            }
+        });
+        System.out.println("排序后：" + array);
+	}
+}
+```
+
+## 8. 集合相关的工具类API
+
+### 8.1. Collections 工具类
 
 Collection 集合的工具类，提供了大量的方法操作单列集合。里面都是静态方法。直接用`类名.静态方法`使用
 
@@ -1480,7 +1592,7 @@ public static <T> void sort(List<T> list)
 public static <T> void sort(List<T> list, Comparator<? super T> c)
 ```
 
-- 对集合元素进行排序，集合的元素不需要实现 `Comparable` 接口，通过第二个参数 `Comparator` 来定义排序的逻辑。*可以使用 lambda 表达式来定义 `Comparator` 接口实现*
+- 对集合元素进行排序，集合的元素不需要实现 `Comparable` 接口，通过第二个参数 `Comparator` 来定义排序的逻辑。*可以使用 lambda 表达式来定义 `Comparator` 接口实现，更多介绍详细前面章节。*
 
 ```java
 public static void swap(List<?> list, int i, int j);
@@ -1494,7 +1606,7 @@ public static void reverse(List<?> list)
 
 - 反转指定列表中元素的顺序。
 
-#### 7.1.1. 创建不能修改的集合
+#### 8.1.1. 创建不能修改的集合
 
 ```java
 public static <T> Collection<T> unmodifiableCollection(Collection<? extends T> c)
@@ -1512,7 +1624,7 @@ clist.add("y"); // 运行时此行报错
 System.out.println(list.size());
 ```
 
-#### 7.1.2. 创建线程安全的 List、Set、Map 集合
+#### 8.1.2. 创建线程安全的 List、Set、Map 集合
 
 ```java
 public static <T> List<T> synchronizedList(List<T> list)
@@ -1541,7 +1653,7 @@ for (int i = 0; i < synchronizedList.size(); i++) {
 > - `public static <K,V> Map<K,V> synchronizedMap(Map<K,V> m)`
 > - `public static <T> Set<T> synchronizedSet(Set<T> s) `
 
-### 7.2. Arrays 类
+### 8.2. Arrays 类
 
 Arrays 类是工具类，里面都是静态方法，需要导包。Arrays是用来操作**数组**中的元素。
 
@@ -1578,7 +1690,7 @@ public static void fill(Object[] a, Object val)
 - 将数组中所有元素赋值为指定的值val。
 - 将指定的 Object 引用分配给指定 Object 数组的每个元素。
 
-### 7.3. Array 类
+### 8.3. Array 类
 
 Array 类是工具类，里面都是静态方法。直接用类名.使用，需要导包
 
@@ -1601,7 +1713,7 @@ public static void set(Object array, int index, Object value);
 - 将指定数组对象中索引组件的值设置为指定的新值。如果数组的类型为基本组件类型，则新值第一个被自动解包。
 - 方法会throws IllegalArgumentException, ArrayIndexOutOfBoundsException;
 
-### 7.4. LinkedList 类(未整理完)
+### 8.4. LinkedList 类(未整理完)
 
 ```java
 public boolean add(E e)

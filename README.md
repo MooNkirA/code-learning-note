@@ -332,23 +332,23 @@
   <li><a href="#/分布式微服务/SpringCloud/Spring-Cloud-Overview">Spring Cloud 概述</a></li>
   <li>
     <p>Spring Cloud Netflix（包含Eureka、Ribbon、Feign、Hystrix、Zuul 等组件）</p>
-     <ul class="docs">
-        <li><a href="#/分布式微服务/SpringCloud/Spring-Cloud-Netflix-Eureka">Spring Cloud Netflix Eureka 服务注册和发现</a></li>
-        <li><a href="#/分布式微服务/SpringCloud/Spring-Cloud-Netflix-Ribbon">Spring Cloud Netflix Ribbon 基于客户端的服务调用负载均衡工具</a></li>
-        <li>Spring Cloud Netflix Feign 详见《Spring Cloud OpenFeign》笔记</li>
-        <li><a href="#/分布式微服务/SpringCloud/Spring-Cloud-Netflix-Hystrix">Spring Cloud Netflix Hystrix 服务容错解决方案</a></li>
-        <li><a href="#/分布式微服务/SpringCloud/Spring-Cloud-Netflix-Zuul">Spring Cloud Netflix Zuul 微服务网关</a></li>
-      </ul>
+    <ul class="docs">
+      <li><a href="#/分布式微服务/SpringCloud/Spring-Cloud-Netflix-Eureka">Spring Cloud Netflix Eureka 服务注册和发现</a></li>
+      <li><a href="#/分布式微服务/SpringCloud/Spring-Cloud-Netflix-Ribbon">Spring Cloud Netflix Ribbon 基于客户端的服务调用负载均衡工具</a></li>
+      <li>Spring Cloud Netflix Feign 详见《Spring Cloud OpenFeign》笔记</li>
+      <li><a href="#/分布式微服务/SpringCloud/Spring-Cloud-Netflix-Hystrix">Spring Cloud Netflix Hystrix 服务容错解决方案</a></li>
+      <li><a href="#/分布式微服务/SpringCloud/Spring-Cloud-Netflix-Zuul">Spring Cloud Netflix Zuul 微服务网关</a></li>
+    </ul>
   </li>
   <li>
     <p>Spring Cloud Alibaba (包含Nacos、Sentinel、SMS短信服务、Seata等组件)</p>
     <ul class="docs">
-        <li><a href="#/分布式微服务/SpringCloud/Spring-Cloud-Alibaba">Spring Cloud Alibaba 概述</a></li>
-        <li><a href="#/分布式微服务/SpringCloud/Spring-Cloud-Alibaba-Nacos">Spring Cloud Alibaba Nacos 服务注册与配置管理</a></li>
-        <li><a href="#/分布式微服务/SpringCloud/Spring-Cloud-Alibaba-Sentinel">Spring Cloud Alibaba Sentinel 服务容错的综合性解决方案</a></li>
-        <li><a href="#/分布式微服务/SpringCloud/Spring-Cloud-Alibaba-SMS">Spring Cloud Alibaba SMS 阿里云短信服务</a></li>
-        <li><a href="#/分布式微服务/SpringCloud/Spring-Cloud-Alibaba-Seata">Spring Cloud Alibaba Seata 分布式事务解决方案</a></li>
-      </ul>
+      <li><a href="#/分布式微服务/SpringCloud/Spring-Cloud-Alibaba">Spring Cloud Alibaba 概述</a></li>
+      <li><a href="#/分布式微服务/SpringCloud/Spring-Cloud-Alibaba-Nacos">Spring Cloud Alibaba Nacos 服务注册与配置管理</a></li>
+      <li><a href="#/分布式微服务/SpringCloud/Spring-Cloud-Alibaba-Sentinel">Spring Cloud Alibaba Sentinel 服务容错的综合性解决方案</a></li>
+      <li><a href="#/分布式微服务/SpringCloud/Spring-Cloud-Alibaba-SMS">Spring Cloud Alibaba SMS 阿里云短信服务</a></li>
+      <li><a href="#/分布式微服务/SpringCloud/Spring-Cloud-Alibaba-Seata">Spring Cloud Alibaba Seata 分布式事务解决方案</a></li>
+    </ul>
   </li>
   <li><a href="#/分布式微服务/SpringCloud/Spring-Cloud-OpenFeign">Spring Cloud OpenFeign 服务调用</a></li>
   <li><a href="#/分布式微服务/SpringCloud/Spring-Cloud-Consul">Spring Cloud Consul 注册中心</a></li>
