@@ -29,6 +29,58 @@ IO 操作，是指输入和输出操作。
 - I 表示 Intput，是数据从硬盘进内存的过程，称之为读。
 - O 表示 Putput，是数据从内存到硬盘的过程。称之为写。
 
+### 1.4. IO 模型分类
+
+#### 1.4.1. 阻塞 IO 模型
+
+最传统的一种 IO 模型，即在读写数据过程中会发生阻塞现象。
+
+当用户线程发出 IO 请求之后，内核会去查看数据是否就绪，如果没有就绪就会等待数据就绪，而用户线程就会处于阻塞状态，用户线程交出 CPU。当数据就绪之后，内核会将数据拷贝到用户线程，并返回结果给用户线程，用 户线程才解除 block 状态。
+
+典型的阻塞 IO 模型的例子为：`data = socket.read();`，如果数据没有就绪，就会一直阻塞在 `read` 方法处。
+
+#### 1.4.2. 非阻塞 IO 模型
+
+当用户线程发起一个 read 操作后，并不需要等待，而是马上就得到了一个结果。如果结果是一个 error 时，它就知道数据还没有准备好，于是它可以再次发送 read 操作。一旦内核中的数据准备好了，并且又再次收到了用户线程的请求，那么它马上就将数据拷贝到了用户线程，然后返回。
+
+所以事实上，在非阻塞 IO 模型中，用户线程需要不断地询问内核数据是否就绪，也就说非阻塞 IO 不会交出 CPU，但会一直占用 CPU。典型的非阻塞 IO 模型实现一般如下：
+
+```java
+while (true) {
+    data = socket.read();
+    if (data != error) {
+        // 处理数据
+        break;
+    }
+}
+```
+
+但是非阻塞 IO 有一个非常严重的缺点，在 while 循环中需要不断地去询问内核数据是否就绪，这样会导致 CPU 占用率非常高，因此一般情况下很少使用 while 循环这种方式来读取数据。
+
+#### 1.4.3. 多路复用 IO 模型
+
+多路复用 IO 模型是目前使用得比较多的模型。Java NIO 实际上就是多路复用 IO。
+
+在 Java NIO 中，是通过 `selector.select()` 去查询每个通道是否有到达事件，如果没有事件，则一直阻塞在那里，因此这种方式会导致用户线程的阻塞。在多路复用 IO 模型中，会有一个线程不断去轮询多个 socket 的状态，只有当 socket 真正有读写事件时，才真正调用实际的 IO 读写操作。
+
+因为在多路复用 IO 模型中，只需要使用一个线程就可以管理多个 socket，系统不需要建立新的进程或者线程，也不必维护这些线程和进程，并且只有在真正有 socket 读写事件进行时，才会使用 IO 资源，所以它大大减少了资源占用。因此，多路复用 IO 比较适合连接数比较多的情况。
+
+另外多路复用 IO 之所以比非阻塞 IO 模型的效率高，是因为在非阻塞 IO 中，不断地询问 socket 状态时通过用户线程去进行的，；在多路复用 IO 中，轮询每个 socket 状态是内核在进行的，这个效率要比用户线程要高的多。
+
+不过要注意的是，多路复用 IO 模型是通过轮询的方式来检测是否有事件到达，并且对到达的事件逐一进行响应。因此对于多路复用 IO 模型来说，一旦事件响应体很大，那么就会导致后续的事件迟迟得不到处理，并且会影响新的事件轮询。
+
+#### 1.4.4. 信号驱动 IO 模型
+
+在信号驱动 IO 模型中，当用户线程发起一个 IO 请求操作，会给对应的 socket 注册一个信号函数，然后用户线程会继续执行，当内核数据就绪时会发送一个信号给用户线程，用户线程接收到信号之后，便在信号函数中调用 IO 读写操作来进行实际的 IO 请求操作。
+
+#### 1.4.5. 异步 IO 模型
+
+异步 IO 模型是最理想的 IO 模型，在异步 IO 模型中，当用户线程发起 read 操作之后，立刻就可以开始去做其它的事。而另一方面，从内核的角度，当它受到一个 asynchronous read 之后，它会立刻返回，说明 read 请求已经成功发起了，因此不会对用户线程产生任何 block。然后，内核会等待数据准备完成，再将数据拷贝到用户线程，当这一切都完成之后，内核会给用户线程发送一个信号，告诉它 read 操作完成了。也就说用户线程完全不需要实际的整个 IO 操作是如何进行的，只需要先发起一个请求，当接收内核返回的成功信号时表示 IO 操作已经完成，可以直接去使用数据了。
+
+在异步 IO 模型中，IO 操作的两个阶段都不会阻塞用户线程，这两个阶段都是由内核自动完成，然后发送一个信号告知用户线程操作已完成。用户线程中不需要再次调用 IO 函数进行具体的读写。这点是和信号驱动模型有所不同的，在信号驱动模型中，当用户线程接收到信号表示数据已经就绪，然后需要用户线程调用 IO 函数进行实际的读写操作；而在异步 IO 模型中，收到信号表示 IO 操作已经完成，不需要再在用户线程中调用 IO 函数进行实际的读写操作。
+
+> Tips: 异步 IO 是需要操作系统的底层支持，在 Java 7 中，提供了 Asynchronous IO。
+
 ## 2. File 类
 
 ### 2.1. File 简述
@@ -1892,7 +1944,7 @@ BIO 主要的 API 在 Java.io 包中，其中重点包含 5 个类（`File`、`O
 
 ### 9.1. 基于 BIO 的网络 IO
 
-在 JDK1.4 之前，我们建立网络连接的时候只能采用 BIO，需要先在服务端启动一个ServerSocket，然后在客户端启动 Socket 来对服务端进行通信，默认情况下服务端需要对每个请求建立一个线程等待请求，而客户端发送请求后，先咨询服务端是否有线程响应，如果没有则会一直等待或者遭到拒绝，如果有的话，客户端线程会等待请求结束后才继续执行，这就是阻塞式 IO
+在 JDK1.4 之前，我们建立网络连接的时候只能采用 BIO，需要先在服务端启动一个 ServerSocket，然后在客户端启动 Socket 来对服务端进行通信，默认情况下服务端需要对每个请求建立一个线程等待请求，而客户端发送请求后，先咨询服务端是否有线程响应，如果没有则会一直等待或者遭到拒绝，如果有的话，客户端线程会等待请求结束后才继续执行，这就是阻塞式 IO
 
 ### 9.2. 基本用法示例（基于 TCP）
 
@@ -1989,24 +2041,38 @@ public class TCPClient {
 
 java.nio 全称 java non-blocking IO，是指 JDK 提供的新 API。从 JDK1.4 开始，Java 提供了一系列改进的输入/输出的新特性，被统称为 NIO(即 New IO)。新增了许多用于处理输入输出的类，这些类都被放在 java.nio 包及子包下，并且对原 java.io 包中的很多类进行改写，新增了满足 NIO 的功能。
 
-![NIO包结构](images/20191002182312547_11612.png)
+![](images/20191002182312547_11612.png)
 
-NIO 和 BIO 有着相同的目的和作用，但 Java NIO 和传统 I/O 有以下的区别：
+#### 10.1.1. Java NIO 和传统 I/O 的区别
 
-1. 实现方式不同：传统 I/O 是面向流的，以流的方式处理数据；NIO 是面向缓冲区的，以块的方式处理数据。在流的操作中，数据只能在一个流中连续进行读写，数据没有缓冲；而面向缓冲区的操作，数据可以从一个 Channel 读取到一个 Buffer中，再从 Buffer 写入 CHannel 中，可以方便地在缓冲区中进行数据的前后移动等操作。块 I/O 的效率比流 I/O 高很多，这种功能在应用层主要用于数据的粘包、拆包等操作。
+Java NIO 和 传统的 BIO 有着相同的目的和作用，但还是有以下的区别：
+
+1. 实现方式不同：传统 I/O 是面向流的，以流的方式处理数据；NIO 是面向缓冲区的，以块的方式处理数据。在流的操作中，数据只能在一个流中连续进行读写，数据没有缓冲；而面向缓冲区的操作，数据可以从一个 Channel 读取到一个 Buffer 中，再从 Buffer 写入 CHannel 中，可以方便地在缓冲区中进行数据的前后移动等操作。块 I/O 的效率比流 I/O 高很多，这种功能在应用层主要用于数据的粘包、拆包等操作。
 2. 传统 I/O 的流操作是阻塞模式的，NIO 是基于多路复用 I/O 模型实现非阻塞模式的。传统的 I/O 中，用户线程调用 `read()` 或者 `write()` 进行 I/O 读写操作时，该线程将一直阻塞，直到数据读写完成；而 NIO 通过 Selector 监听 Channel 上事件的变化，在 Channel 上有数据变化时通知该线程进行读写操作。
 
-**NIO 主要有三大核心部分：Channel(通道)，Buffer(缓冲区), Selector(选择器)**。传统的 BIO 基于字节流和字符流进行操作，而 NIO 基于 Channel(通道)和 Buffer(缓冲区)进行操作，数据总是从通道读取到缓冲区中，或者从缓冲区写入到通道中。Selector(选择区)用于监听多个通道的事件（比如：连接请求，数据到达等），因此使用单个线程就可以监听多个客户端通道
+#### 10.1.2. NIO 三大核心
+
+<font color=red>**NIO 主要有三大核心部分：Channel(通道)，Buffer(缓冲区), Selector(选择器)**</font>。
+
+传统的 BIO 基于字节流和字符流进行操作，而 NIO 基于 Channel(通道)和 Buffer(缓冲区)进行操作，数据总是从通道读取到缓冲区中，或者从缓冲区写入到通道中。Selector(选择区)用于监听多个通道的事件（比如：连接请求，数据到达等），因此使用单个线程就可以监听多个客户端通道。
+
+#### 10.1.3. NIO 的非阻塞
+
+IO 的各种流是阻塞的。即当一个线程调用 `read()` 或 `write()` 时，该线程被阻塞，直到有一些数据被读取，或数据完全写入。该线程在此期间不能再做任何事情了
+
+NIO 的非阻塞模式，使一个线程从某通道发送请求读取数据，但是它仅能得到目前可用的数据，如果目前没有数据可用时，就什么都不会获取，而不会保持线程阻塞。所以直至数据变的可以读取之前，该线程可以继续做其他的事情。非阻塞写数据也一样，一个线程请求写入一些数据到某通道，但不需要等待它完全写入，这个线程同时可以去做别的事情。
+
+线程通常将非阻塞 IO 的空闲时间用于在其它通道上执行 IO 操作，所以一个单独的线程现在可以管理多个输入和输出通道（channel）。
 
 ### 10.2. 通道（Channel）
 
 #### 10.2.1. 概述
 
-通道（Channel）：类似于 BIO 中的 Stream(流)。只是 Stream(流)是单向，分为 InputStream(输入流)和 OutputStream(输出流)；而 Channel 是双向的，既可以用来进行读操作，也可以用来进行写操作。
+通道（Channel）类似于 BIO 中的 Stream(流)。只是 Stream(流)是单向，分为 InputStream(输入流)和 OutputStream(输出流)；而 **NIO 中的通道(Channel)是双向的**，既可以用来进行读操作，也可以用来进行写操作。
 
-> Notes: **BIO 中的 stream 是单向的**，例如 `FileInputStream` 用来建立到目标（文件，网络套接字，硬件设备等）的一个连接，对象只能进行读取数据的操作。而 **NIO 中的通道(Channel)是双向的**，既可以用来进行读操作，也可以用来进行写操作。
+> Notes: **BIO 中的 stream 是单向的**，例如 `FileInputStream` 用来建立到目标（文件，网络套接字，硬件设备等）的一个连接，对象只能进行读取数据的操作。
 
-#### 10.2.2. Channel 核心 API 实现
+#### 10.2.2. Channel 接口实现类
 
 NIO 中常用的 `Channel` 实现类有：
 
@@ -2019,7 +2085,7 @@ NIO 中常用的 `Channel` 实现类有：
 
 ![](images/20191002190510596_5957.png)
 
-##### 10.2.2.1. FileChannel 类常用方法
+#### 10.2.3. FileChannel 文件的数据读写
 
 该类主要用来对本地文件进行 IO 操作，主要方法如下
 
@@ -2047,163 +2113,7 @@ public long transferFrom(ReadableByteChannel src, long position, long count);
 public long transferTo(long position, long count, WritableByteChannel target);
 ```
 
-### 10.3. 缓冲区（Buffer）
-
-#### 10.3.1. 概述
-
-缓冲区（Buffer）：实际上是一个容器，其内部通过一个连续的字节数组存储 I/O 上的数据。缓冲区对象内置了一些机制，能够跟踪和记录缓冲区的状态变化情况。Channel 提供从文件、网络读取数据的渠道，但是读取或写入的数据都必须经由 Buffer，如下图所示
-
-![](images/20191002184623913_10099.png)
-
-> 在 NIO 中的 Channel 在文件、网络上的数据读取或写人都必须经过 Buffer。
-
-#### 10.3.2. Buffer 核心 API 实现
-
-在 NIO 中，`Buffer` 是一个顶层抽象类，对于 Java 中的不同的基本数据类型都有一个 `Buffer` 类型实现与之相对应，常用的 `Buffer` 子类如下：
-
-| Buffer 子类  |       作用类型       |
-| ------------ | -------------------- |
-| ByteBuffer   | 存储字节数据到缓冲区   |
-| ShortBuffer  | 存储字符串数据到缓冲区 |
-| CharBuffer   | 存储字符数据到缓冲区   |
-| IntBuffer    | 存储整数数据到缓冲区   |
-| LongBuffer   | 存储长整型数据到缓冲区 |
-| DoubleBuffer | 存储小数到缓冲区      |
-| FloatBuffer  | 存储小数到缓冲区      |
-
-##### 10.3.2.1. ByteBuffer 常用方法
-
-最常用的自然是ByteBuffer 类（二进制数据），该类的主要方法如下所示
-
-- 存储字节数据到缓冲区
-
-```java
-public abstract ByteBuffer put(byte[] b);
-```
-
-- 从缓冲区获得字节数据
-
-```java
-public abstract byte[] get();
-```
-
-- 把缓冲区数据转换成字节数组
-
-```java
-public final byte[] array();
-```
-
-- 设置缓冲区的初始容量
-
-```java
-public static ByteBuffer allocate(int capacity);
-```
-
-- 把一个现成的数组放到缓冲区中使用
-
-```java
-public static ByteBuffer wrap(byte[] array);
-```
-
-- 翻转缓冲区，重置位置到初始位置
-
-```java
-public final Buffer flip();
-```
-
-### 10.4. 选择器（Selector）
-
-#### 10.4.1. 概述
-
-Selector（选择器），能够检测多个注册的 Channel 通道上是否有 I/O 事件发生，如果有事件发生，便获取事件然后针对每个事件进行相应的响应和处理。因此只用一个 Selector 单线程去管理多个通道，也就是管理多个连接，并且不必为每个连接都创建一个线程，避免了多线程之间的上下文切换导致的开销。同时，Selector 只有在 Channel 有真正有读写事件发生时，才会调用 I/O 函数来进行读写，从而大大地减少了系统开销。
-
-#### 10.4.2. 核心 API
-
-##### 10.4.2.1. Selector(选择器)
-
-`Selector` 类关系图如下：
-
-![](images/20191003102234080_15327.png)
-
-常用方法如下：
-
-- 得到一个选择器对象
-
-```java
-public static Selector open()
-```
-
-- 监控所有注册的通道，当其中有 IO 操作可以进行时，将对应的 SelectionKey 加入到内部集合中并返回，参数用来设置超时时间
-
-```java
-public int select(long timeout)
-```
-
-- 从内部集合中得到所有的 SelectionKey
-
-```java
-public Set<SelectionKey> selectedKeys()
-```
-
-- 获取所有准备就绪的网络通道
-
-```java
-public abstract Set<SelectionKey> keys();
-```
-
-##### 10.4.2.2. SelectionKey(网络通道key)
-
-`SelectionKey`，代表了 `Selector` 和网络通道的注册关系，一共四种：
-
-- `int OP_ACCEPT`：有新的网络连接可以 accept，值为 16
-- `int OP_CONNECT`：代表连接已经建立，值为 8
-- `int OP_READ` 和 `int OP_WRITE`：代表了读、写操作，值为 1 和 4
-
-该类的常用方法如下所示：
-
-- 得到与之关联的 Selector 对象
-
-```java
-public abstract Selector selector()
-```
-
-- 得到与之关联的通道
-
-```java
-public abstract SelectableChannel channel()
-```
-
-- 得到与之关联的共享数据
-
-```java
-public final Object attachment()
-```
-
-- 设置或改变监听事件
-
-```java
-public abstract SelectionKey interestOps(int ops)
-```
-
-- 是否可以 accept
-
-```java
-public final boolean isAcceptable()
-```
-
-- 是否可以读
-
-```java
-public final boolean isReadable()
-```
-
-- 是否可以写
-
-```java
-public final boolean isWritable()
-```
-
-##### 10.4.2.3. ServerSocketChannel(通道)
+#### 10.2.4. ServerSocketChannel（服务 TCP 的数据读写）
 
 ServerSocketChannel，用来在服务器端监听新的客户端 Socket 连接。常用方法如下
 
@@ -2237,7 +2147,7 @@ public SocketChannel accept()
 public final SelectionKey register(Selector sel, int ops)
 ```
 
-##### 10.4.2.4. SocketChannel(网络 IO 通道)
+#### 10.2.5. SocketChannel（客户端 TCP 的数据读写）
 
 SocketChannel，网络 IO 通道，具体负责进行读写操作。NIO 总是把缓冲区的数据写入通道，或者把通道里的数据读到缓冲区。常用方法如下所示
 
@@ -2287,6 +2197,166 @@ public final SelectionKey register(Selector sel, int ops, Object att)
 
 ```java
 public final void close()
+```
+
+### 10.3. 缓冲区（Buffer）
+
+#### 10.3.1. 概述
+
+Java IO 面向流意味着每次从流中读一个或多个字节，直至读取所有字节，它们没有被缓存在任何地方。此外，它也不能前后移动流中的数据。如果需要前后移动从流中读取的数据，需要先将它缓存到一个缓冲区。 
+
+而 NIO 的缓冲导向方法不同。数据读取到一个它稍后处理的缓冲区，需要时可在缓冲区中前后移动。这就增加了处理过程中的灵活性。但是，还需要检查是否该缓冲区中包含所有需要处理的数据。而且，需确保当更多的数据读入缓冲区时，不要覆盖缓冲区里尚未处理的数据。
+
+缓冲区（Buffer）：实际上是一个容器，其内部通过一个连续的字节数组存储 I/O 上的数据。缓冲区对象内置了一些机制，能够跟踪和记录缓冲区的状态变化情况。**Channel 提供从文件、网络读取数据的渠道，但是读取或写入的数据都必须经由 Buffer**，如下图所示：
+
+![](images/20191002184623913_10099.png)
+
+![](images/443443214230469.png)
+
+上图2描述了，从一个客户端向服务端发送数据，然后服务端接收数据的过程。客户端发送数据时，必须先将数据存入 Buffer 中，然后将 Buffer 中的内容写入通道。服务端这边接收数据必须通过 Channel 将数据读入到 Buffer 中，然后再从 Buffer 中取出数据来处理。
+
+#### 10.3.2. Buffer 抽象实现类
+
+在 NIO 中，`Buffer` 是一个顶层抽象类，对于 Java 中的不同的基本数据类型都有一个 `Buffer` 类型实现与之相对应，常用的 `Buffer` 子类如下：
+
+|   Buffer 子类   |       作用类型       |
+| -------------- | ------------------- |
+| `ByteBuffer`   | 存储字节数据到缓冲区   |
+| `ShortBuffer`  | 存储字符串数据到缓冲区 |
+| `CharBuffer`   | 存储字符数据到缓冲区   |
+| `IntBuffer`    | 存储整数数据到缓冲区   |
+| `LongBuffer`   | 存储长整型数据到缓冲区 |
+| `DoubleBuffer` | 存储小数到缓冲区      |
+| `FloatBuffer`  | 存储小数到缓冲区      |
+
+#### 10.3.3. ByteBuffer（存储字节数据）
+
+最常用的自然是 ByteBuffer 类（二进制数据），该类的主要方法如下所示
+
+- 存储字节数据到缓冲区
+
+```java
+public abstract ByteBuffer put(byte[] b);
+```
+
+- 从缓冲区获得字节数据
+
+```java
+public abstract byte[] get();
+```
+
+- 把缓冲区数据转换成字节数组
+
+```java
+public final byte[] array();
+```
+
+- 设置缓冲区的初始容量
+
+```java
+public static ByteBuffer allocate(int capacity);
+```
+
+- 把一个现成的数组放到缓冲区中使用
+
+```java
+public static ByteBuffer wrap(byte[] array);
+```
+
+- 翻转缓冲区，重置位置到初始位置
+
+```java
+public final Buffer flip();
+```
+
+### 10.4. 选择器（Selector）
+
+#### 10.4.1. 概述
+
+Selector（选择器），能够检测多个注册的 Channel 通道上是否有 I/O 事件发生，如果有事件发生，便获取事件然后针对每个事件进行相应的响应和处理。因此只用一个 Selector 单线程去管理多个通道，也就是管理多个连接，并且不必为每个连接都创建一个线程，避免了多线程之间的上下文切换导致的开销。同时，Selector 只有在 Channel 有真正有读写事件发生时，才会调用 I/O 函数来进行读写，从而大大地减少了系统开销。
+
+#### 10.4.2. Selector(选择器)
+
+`Selector` 类关系图如下：
+
+![](images/20191003102234080_15327.png)
+
+常用方法如下：
+
+- 得到一个选择器对象
+
+```java
+public static Selector open()
+```
+
+- 监控所有注册的通道，当其中有 IO 操作可以进行时，将对应的 SelectionKey 加入到内部集合中并返回，参数用来设置超时时间
+
+```java
+public int select(long timeout)
+```
+
+- 从内部集合中得到所有的 SelectionKey
+
+```java
+public Set<SelectionKey> selectedKeys()
+```
+
+- 获取所有准备就绪的网络通道
+
+```java
+public abstract Set<SelectionKey> keys();
+```
+
+#### 10.4.3. SelectionKey(网络通道key)
+
+`SelectionKey`，代表了 `Selector` 和网络通道的注册关系，一共四种：
+
+- `int OP_ACCEPT`：有新的网络连接可以 accept，值为 16
+- `int OP_CONNECT`：代表连接已经建立，值为 8
+- `int OP_READ` 和 `int OP_WRITE`：代表了读、写操作，值为 1 和 4
+
+该类的常用方法如下所示：
+
+- 得到与之关联的 Selector 对象
+
+```java
+public abstract Selector selector()
+```
+
+- 得到与之关联的通道
+
+```java
+public abstract SelectableChannel channel()
+```
+
+- 得到与之关联的共享数据
+
+```java
+public final Object attachment()
+```
+
+- 设置或改变监听事件
+
+```java
+public abstract SelectionKey interestOps(int ops)
+```
+
+- 是否可以 accept
+
+```java
+public final boolean isAcceptable()
+```
+
+- 是否可以读
+
+```java
+public final boolean isReadable()
+```
+
+- 是否可以写
+
+```java
+public final boolean isWritable()
 ```
 
 ### 10.5. 文件 NIO 示例
@@ -2958,14 +3028,14 @@ public synchronized void load(Reader reader) throws IOException
 >
 > 序列化（serialization）在计算机科学的数据处理中，是指将数据结构或对象状态转换成可取用格式（例如存成文件，存于缓冲，或经由网络中发送），以留待后续在相同或另一台计算机环境中，能恢复原先状态的过程。依照序列化格式重新获取字节的结果时，可以利用它来产生与原始对象相同语义的副本。对于许多对象，像是使用大量引用的复杂对象，这种序列化重建的过程并不容易。面向对象中的对象序列化，并不概括之前原始对象所关系的函数。这种过程也称为对象编组（marshalling）。从一系列字节提取数据结构的反向操作，是反序列化（也称为解编组、deserialization、unmarshalling）。
 
-对象并不只是存在内存中，还需要在传输网络或者持久化到文件，下次再加载出来用，这些场景都需要用到 Java 序列化技术。
-
-- <font color=red>**序列化：将数据结构或对象转换成二进制字节流的过程**</font>。要实现对象的序列化需要使用的流：`ObjectOutputStream` 继承 `OutputStream`
-- <font color=red>**反序列化：将在序列化过程中所生成的二进制字节流的过程转换成数据结构或者对象的过程**</font>。要实现对象的反序列化需要使用的流：`ObjectInputStream` 继承 `InputStream`
+一般情况下，只有当 JVM 处于运行时，创建的对象就存活在内存中，但对象会随着 JVM 的关闭而消失（即对象的生命周期不会比 JVM 的生命周期更长）。在有些实际情况需要在JVM停止运行之后能够保存(持久化)指定的对象，并在将来重新读取被保存的对象。另外对象并不只是存在内存中，还需要在传输网络或者持久化到文件，下次再加载出来用，这些场景都需要用到 Java 序列化技术。
 
 **Java 序列化技术**正是将对象转变成一串由二进制字节组成的数组，可以通过将二进制数据保存到磁盘或者传输网络，磁盘或者网络接收者可以在对象的属类的模板上来反序列化类的对象，达到对象持久化的目的。
 
 ![](images/49242616239297.png)
+
+- <font color=red>**序列化：将数据结构或对象转换成二进制字节流的过程**</font>。要实现对象的序列化需要使用的流：`ObjectOutputStream` 继承 `OutputStream`
+- <font color=red>**反序列化：将在序列化过程中所生成的二进制字节流的过程转换成数据结构或者对象的过程**</font>。要实现对象的反序列化需要使用的流：`ObjectInputStream` 继承 `InputStream`
 
 #### 14.1.1. 序列化协议对应于 TCP/IP 四层模型中的层级
 
@@ -2986,9 +3056,18 @@ public synchronized void load(Reader reader) throws IOException
 2. 将对象存储到文件中的时候需要进行序列化，将对象从文件中读取出来需要进行反序列化
 3. 将对象存储到缓存数据库（如 Redis）时需要用到序列化，将对象从缓存数据库中读取出来需要反序列化
 
-### 14.2. 序列化接口
+#### 14.1.3. 常见序列化协议
 
-#### 14.2.1. Serializable
+常见的序列化协议有：JDK 自带的序列化，比较常用第三方的序列化协议：hessian、kyro、protostuff。
+
+其中 JDK 自带的序列化一般很少用，因为序列化效率低并且部分版本有安全漏洞，主要原因有两个：
+
+- 不支持跨语言调用：如果调用的是其他语言开发的服务的时候就不支持了。
+- 性能差：相比于其他序列化框架性能更低，主要原因是序列化之后的字节数组体积较大，导致传输成本加大。
+
+### 14.2. Serializable 接口
+
+#### 14.2.1. 概述
 
 ```java
 package java.io;
@@ -3001,11 +3080,11 @@ public interface Serializable {
 
 > Notes: <font color=red>**被保存的对象要求实现 `Serializable` 接口，否则不能直接保存到文件中。否则会出现`java.io.NotSerializableException`。**</font>
 
-#### 14.2.2. serialVersionUID 概述
+#### 14.2.2. serialVersionUID
 
 序列化是将对象的状态信息转换为可存储或传输的形式的过程。虚拟机是否允许反序列化，不仅取决于类路径和功能代码是否一致，一个非常重要的一点是两个类的序列化 ID 是否一致，这个所谓的序列化 ID，就是在代码中定义的 `serialVersionUID`。
 
-序列化号 serialVersionUID 属于版本控制的作用。序列化的时候 serialVersionUID 也会被写入二级制序列，当反序列化时会检查 serialVersionUID 是否和当前类的 serialVersionUID 一致。如果 serialVersionUID 不一致则会抛出 `InvalidClassException` 异常。强烈推荐每个序列化类都手动指定其 serialVersionUID，如果不手动指定，那么编译器会动态生成默认的序列化号
+序列化号 serialVersionUID 属于版本控制的作用。序列化的时候 serialVersionUID 也会被写入二级制序列，当反序列化时会检查 serialVersionUID 是否和当前类的 serialVersionUID 一致。如果 serialVersionUID 不一致则会抛出 `InvalidClassException` 异常。强烈推荐每个序列化类都手动指定其 serialVersionUID，如果不手动指定，那么编译器会动态生成默认的序列化号。
 
 #### 14.2.3. Externalizable
 
@@ -3061,8 +3140,8 @@ public class Student implements Serializable {
 ```
 
 2. 创建对象
-3. 创建对象输出流 `ObjectOutputStream`
-4. 调用 `writeObject` 将对象写入文件中
+3. 使用一个输出流(如：`FileOutputStream`)来构建 `ObjectOutputStream` （对象流）对象
+4. 调用 `ObjectOutputStream` 对象的 `writeObject` 将对象写入文件中(即保存其状态)
 5. 关流
 
 ### 14.4. ObjectInputStream（对象反序列化流）
@@ -3143,23 +3222,21 @@ public int available() throws IOException
 
 ### 14.6. 瞬态关键字 transient
 
-序列化对象时，如果不想保存某一个成员变量的值，该如何处理？
-
 #### 14.6.1. transient 的作用
 
-`transient`关键字作用是用于指定**序列化对象时不保存某个成员变量的值**。
+序列化对象时，如果不想保存某一个成员变量的值，该如何处理？`transient` 关键字作用就是用于指定**序列化对象时不保存某个成员变量的值**。
 
 用 `transient` 修饰成员变量，能够保证该成员变量的值不能被序列化到文件中。当对象被反序列化时，被 `transient` 修饰的变量值会设为初始值，如 int 型的是 0，对象型的是 null。
 
 #### 14.6.2. 使用 static 修饰的成员变量（不建议使用）
 
-可以将该成员变量定义为静态的成员变量。因为对象序列化只会保存对象自己的信息，静态成员变量是属于类的信息，所有不会被保存
+可以将该成员变量定义为静态的成员变量。因为对象序列化只会保存对象自己的信息，静态成员变量是属于类的信息，所有不会被保存。**但不建议使用**。
 
 #### 14.6.3. 注意点
 
 `transient` 只能修饰变量，不能修饰类和方法
 
-### 14.7. 序列化和反序列化的注意事项
+### 14.7. 序列化的常见问题与注意事项
 
 #### 14.7.1. InvalidClassException 异常
 
@@ -3170,32 +3247,24 @@ public int available() throws IOException
 
 ![](images/20201105141312805_17748.png)
 
-#### 14.7.2. 要点总结
+#### 14.7.2. 注意事项总结
 
 - 序列化对象必须实现序列化接口。
 - 序列化对象里面的属性是对象的话也要实现序列化接口。
-- 类的对象序列化后，类的序列化ID不能轻易修改，不然反序列化会失败。
+- 类的对象序列化后，类的序列化ID(`serialVersionUID`)不能轻易修改，不然反序列化会失败。
 - 类的对象序列化后，类的属性有增加或者删除不会影响序列化，只是值会丢失。
 - 如果父类实现了序列化接口，子类会继承父类的序列化，子类无需添加序列化接口。
 - 如果父类没有实现序列化接口，而子类序列化了，子类中的属性能正常序列化，但父类的属性会丢失，不能序列化。
 - 用 Java 序列化的二进制字节数据只能由 Java 反序列化，不能被其他语言反序列化。如果要进行前后端或者不同语言之间的交互一般需要将对象转变成 Json/Xml 通用格式的数据，再恢复原来的对象。
 - 如果某个字段不想被序列化，在该字段前加上 `transient` 关键字即可。在被反序列化后，`transient` 修饰的变量值会被设为对应类型的初始值，例如，int 类型变量的值是 0，对象类型变量的值是 null。
-- <font color=red>**序列化不会保存静态变量**</font>
+- <font color=red>**序列化不会保存静态变量**</font>。
+- 序列化对象会将其状态保存为一组字节；反序列化时，再将这些字节组装成对象。
 
-### 14.8. 常见序列化协议对比
-
-常见的序列化协议有：JDK 自带的序列化，比较常用第三方的序列化协议：hessian、kyro、protostuff。
-
-其中 JDK 自带的序列化一般很少用，因为序列化效率低并且部分版本有安全漏洞，主要原因有两个：
-
-- 不支持跨语言调用：如果调用的是其他语言开发的服务的时候就不支持了。
-- 性能差：相比于其他序列化框架性能更低，主要原因是序列化之后的字节数组体积较大，导致传输成本加大。
-
-### 14.9. 序列化对象 - 网上案例
+### 14.8. 序列化对象 - 网上案例
 
 要序列化一个对象，这个对象所在类就必须实现Java序列化的接口：`java.io.Serializable`。
 
-#### 14.9.1. 类添加序列化接口
+#### 14.8.1. 类添加序列化接口
 
 ```java
 import java.io.Serializable;
@@ -3233,7 +3302,7 @@ public class User implements Serializable {
 }
 ```
 
-#### 14.9.2. 序列化/反序列化
+#### 14.8.2. 序列化/反序列化
 
 可以借助commons-lang3工具包里面的类实现对象的序列化及反序列化，无需自己写
 

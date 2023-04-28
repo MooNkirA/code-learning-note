@@ -1,8 +1,6 @@
-# Java基础 - 注解(Annatation)
+## 1. 注解(Annatation)概述
 
-## 1. 概述
-
-注解（Annotation）是 JDK1.5 之后的新特性，是 Java 提供用于设置程序中元素的关联信息和元数据（MetaData）的方法。它是一个接口，程序可以通过反射来获取指定程序中元素的 `Annotation` 注解对象，然后通过该 `Annotation` 对象来获取注解中的元数据信息。
+注解（Annotation）是 JDK1.5 之后的新特性，是 Java 提供用于设置程序中元素的关联信息和元数据（MetaData）的方法。它本质是一个接口，程序可以通过反射来获取指定程序中元素的 `Annotation` 注解对象，然后通过该 `Annotation` 对象来获取注解中的元数据信息。
 
 注解可以标记在类、接口、方法、成员变量，构造方法，局部变量等等元素上。
 
@@ -101,18 +99,18 @@ public @interface T_T {
 
 ## 5. 元注解
 
-### 5.1. 元注解概念
+### 5.1. 元注解的概念
 
-Java 默认提供的注解，用于标识在注解上的注解，用来约束注解的功能，称为元注解。Java 所有的内置注解定义都使用了元注解。元注解有以下4种分类：
+Java 默认提供的注解，用于标识在注解上的注解，用来约束注解的功能，称为元注解。Java 所有的内置注解定义都使用了元注解。元注解有以下几个：
 
-- `@Target`
-- `@Retention`
-- `@Inherited`
-- `@Documented`
+- `@Target`：修饰的对象范围
+- `@Retention`：定义被保留的时间长短
+- `@Inherited`：阐述了某个被标注的类型是被继承的
+- `@Documented`：描述-javadoc
 
 ### 5.2. @Target 元注解
 
-**`@Target` 作用**：标识注解使用范围【*Annotation可被用于 packages、types（类、接口、枚举、Annotation 类型）、类型成员（方法、构造方法、成员变量、枚举值）、方法参数和本地变量（如循环变量、catch 参数）*】，如果不写默认是任何地方都可以使用。元注解可选的值来自于ElemetnType枚举类。(写在自定义注解的类上)。使用格式如下：
+**`@Target`**：标识注解使用范围(写在自定义注解类上)。Annotation可被用于 packages、types（类、接口、枚举、Annotation 类型）、类型成员（方法、构造方法、成员变量、枚举值）、方法参数和本地变量（如循环变量、catch 参数），如果不写默认是任何地方都可以使用。使用格式如下：
 
 ```java
 @Target({TYPE, FIELD, METHOD, PARAMETER, CONSTRUCTOR, LOCAL_VARIABLE})
@@ -134,7 +132,7 @@ public @interface MyAnnotation {}
 
 ### 5.3. @Retention 元注解
 
-**`@Retention` 作用**：用来标识注解的生命周期（有效作用范围）。使用格式如下：
+**`@Retention`**：用来标识注解的生命周期（有效作用范围），表示需要在什么级别保存注解信息。使用格式如下：
 
 ```java
 @Retention(RetentionPolicy.RUNTIME)
@@ -144,7 +142,7 @@ public @interface MyAnnotation {}
 **`@Retention` 可选取值来自 `RetentionPolicy` 枚举类**：
 
 - `RetentionPolicy.SOURCE`：注解只存在于 Java 源代码中，编译生成字节码文件和程序运行时就不存在了。（即源文件保留）
-- `RetentionPolicy.CLASS`：注解存在于 Java 源代码、编译以后的字节码文件中，运行的时候内存就不存在，此注解是默认值。（即 class 保留）
+- `RetentionPolicy.CLASS`：默认值，注解存在于 Java 源代码、编译以后的字节码文件中，运行的时候内存就不存在。（即 class 保留）
 - `RetentionPolicy.RUNTIME`：注解存在于 Java 源代码中、编译以后的字节码文件中、运行时的内存中，程序可以通过反射获取该注解。（即运行时保留）
 
 ### 5.4. @Inherited 元注解

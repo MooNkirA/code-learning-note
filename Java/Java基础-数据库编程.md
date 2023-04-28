@@ -6,6 +6,15 @@ JDBC 需要连接驱动，驱动是两个设备要进行通信，满足一定通
 
 ![](images/20211224190630913_6149.png)
 
+### 1.1. MySQL 数据库 JDBC 相关资源
+
+MySQL 驱动官网下载地址：https://dev.mysql.com/downloads/connector/j/
+
+相关文件夹说明：
+		
+- src 文件夹是源代码
+- docs文件夹是API
+
 ## 2. JDBC 开发
 
 ### 2.1. JDBC 执行流程
@@ -14,10 +23,10 @@ JDBC 需要连接驱动，驱动是两个设备要进行通信，满足一定通
 
 使用 JDBC 连接数据库的四个参数：
 
-- 用户名: xxx
-- 密码: xxx
+- 用户名
+- 密码
 - 连接字符串：jdbc:mysql://localhost:3306/数据库?参数名=参数值
-- 数据库驱动类：com.mysql.jdbc.Driver
+- 数据库驱动类，如 MySQL数据库驱动是 `com.mysql.jdbc.Driver`，8.0版本后驱动类是 `com.mysql.cj.jdbc.Driver`
 
 ### 2.2. JDBC 开发步骤（以 MySQL 为例）
 
@@ -679,35 +688,120 @@ user=root
 password=123456
 ```
 
-## 4. JDBC 连接池
+## 4. JDBC 事务操作
 
-### 4.1. 连接池概述
+### 4.1. JDBC 事务处理的分类
 
-#### 4.1.1. 什么是连接池
+事务处理方式主要分为两种：**自动处理**和**手动处理**。
+
+**自动处理**：每条SQL语句执行后自动提交事务，无法通过回滚撤消操作。
+
+**手动处理**：
+		
+1. 先调用 `setAutoCommit(false)` 开启事务，取消自动提交
+2. 在 SQL 执行完后调用 `commit()` 提交事务；如果出现异常则调用 `rollback()` 回滚事务。
+
+### 4.2. Connection 接口与事务处理相关的方法
+
+```java
+void setAutoCommit(boolean autoCommit) throws SQLException;
+```
+
+- 将此连接的自动提交模式设置为给定状态。如果连接处于自动提交模式下，则它的所有 SQL 语句将被执行并作为单个事务提交。否则，它的 SQL 语句将聚集到事务中，直到调用 commit 方法或 rollback 方法为止。默认情况下，新连接处于自动提交模式。参数 `boolean autoCommit` 的取值说明如下：
+    - autoCommit 设置为 false，则代表开启事务，后面的 SQL 语句将算成一个事务，直到调用 commit 方法或 rollback 方法为止。
+    - 默认情况下，autoCommit 值为 true，是自动提交模式，代表后面每一个 SQL 语句算成一个事务，自动提交事务。
+
+```java
+void commit() throws SQLException;
+```
+
+- 提交事务
+
+```java
+void rollback() throws SQLException;
+```
+
+- 回滚事务
+
+### 4.3. JDBC 事务操作基础示例
+
+```java
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+
+import org.apache.commons.dbutils.DbUtils;
+
+import jdbc.C3P0Utils;
+
+public class MoonZero {
+
+	public static void main(String[] args) {
+		// 声明连接对象
+		Connection conn = null;
+		// 声明操作数据库对象
+		PreparedStatement ps = null;
+
+		try {
+			// 定义操作sql语句
+			String sql = "update users set gender='改' where id=2;";
+			// 使用工具类读取配置文件获取连接
+			conn = C3P0Utils.getConnection();
+			// 关闭事务自动提交
+			conn.setAutoCommit(false);
+
+			// 获取操作对象,对数据库进行更新
+			ps = conn.prepareStatement(sql);
+			ps.executeUpdate();
+
+			DbUtils.closeQuietly(ps);
+			// 手动制造异常
+			// System.out.println(5 / 0);
+
+			ps = conn.prepareStatement("update users set gender='改' where id=4;");
+			ps.executeUpdate();
+			System.out.println("修改成功");
+			// 提交事务
+			DbUtils.commitAndCloseQuietly(conn);
+		} catch (Exception e) {
+			// 事务回滚
+			DbUtils.rollbackAndCloseQuietly(conn);
+			System.out.println("修改失败");
+			e.printStackTrace();
+		} finally {
+			// 使用DbUtils工具类关闭资源
+			DbUtils.closeQuietly(ps);
+		}
+	}
+}
+```
+
+## 5. JDBC 连接池
+
+### 5.1. 连接池概述
 
 一个用来创建和管理数据连接对象的容器。
 
 <font color=red>**连接池的核心思想：连接复用**</font>
 
-#### 4.1.2. JDBC 中连接数据的问题
+#### 5.1.1. JDBC 中连接数据的问题
 
 获取连接对象需要消耗比较多的资源，而每次操作都要重新获取新的连接对象，执行一次操作就把连接关闭，这样连接对象的使用率低。而数据库创建连接通常需要消耗相对较多的资源，创建时间也较长。
 
 使用连接池技术可以避免频繁创建数据库连接对象和销毁连接对象带来的开销。
 
-#### 4.1.3. 连接池的使用步骤
+#### 5.1.2. 连接池的使用步骤
 
 - 创建：程序启动时创建连接池(容器)并初始化连接对象。放在一块内存中，这块内存称为连接池。
 - 获取(使用)：直接从连接池中获得一个已经创建好的连接对象来操作数据库
 - 关闭：关闭的时候不是真正关闭连接，而是将连接对象再次放回到连接池中，等待复用。
 
-### 4.2. DataSource 数据库连接池 API
+### 5.2. DataSource 数据库连接池 API
 
-#### 4.2.1. 数据源(连接池)接口
+#### 5.2.1. 数据源(连接池)接口
 
 `javax.sql.DataSource` 接口表示数据源。只要是实现类实现了该接口的类，就是一个连接池类。
 
-#### 4.2.2. 连接池接口常用方法
+#### 5.2.2. 连接池接口常用方法
 
 ```java
 Connection getConnection() throws SQLException;
@@ -715,35 +809,37 @@ Connection getConnection() throws SQLException;
 
 从数据源（连接池）中获取一个连接对象
 
-#### 4.2.3. 连接池相关参数
+#### 5.2.3. 连接池相关参数
 
 1. 初始连接数：一开始连接池中创建多少个连接对象。
 2. 最大连接数：连接池中最多可以有多少个连接对象。
 3. 最长等待时间：当一个会话要从连接池中得到连接对象的时候，最长等待多久。
 4. 最长空闲时间：当一个连接对象在指定时间内没有被使用时，则回收该连接对象。
 
-#### 4.2.4. 常用数据库连接池（第三方工具）
+#### 5.2.4. 常用数据库连接池（第三方工具）
 
-- C3P0连接池
-- DBCP连接池
+- C3P0 连接池
+- DBCP 连接池
 
-### 4.3. C3P0 连接池技术
+### 5.3. C3P0 连接池技术
 
-#### 4.3.1. C3P0 连接池概述
+#### 5.3.1. C3P0 连接池概述
 
-C3P0是一个开源的JDBC连接池第三方工具，它实现了数据源和JNDI绑定，支持JDBC3规范和JDBC2的标准扩展。目前使用它的开源项目有Hibernate，Spring等。
+C3P0 是一个开源的第三方 JDBC 连接池工具，它实现了数据源和 JNDI 绑定，支持 JDBC3 规范和 JDBC2 的标准扩展。目前使用它的开源项目有 Hibernate，Spring 等。
 
-#### 4.3.2. C3P0 连接池的特点
+> 官网下载地址：https://sourceforge.net/projects/c3p0/
+
+#### 5.3.2. C3P0 连接池的特点
 
 1. 免费开源的连接池技术
 2. 很多主流的第三方框架都是使用该连接池技术。比如：Spring 和 Hibernate 框架，默认推荐使用 C3P0 作为连接池实现
 
-#### 4.3.3. c3p0 与 DBCP 区别
+#### 5.3.3. c3p0 与 DBCP 区别
 
 - dbcp 没有自动回收空闲连接的功能
 - c3p0 有自动回收空闲连接功能
 
-#### 4.3.4. C3P0 的使用步骤
+#### 5.3.4. C3P0 的使用步骤
 
 1. 导入 jar 库 c3p0-0.9.5.2.jar 和 mchange-commons-java-0.2.11.jar。（*注：数据库驱动mysql-connector-java-5.1.37-bin.jar也不能少*）
 2. 创建连接池对象 ComboPooledDataSource 对象
@@ -823,9 +919,9 @@ public class MoonZero {
 }
 ```
 
-#### 4.3.5. C3P0 连接池(使用 xml 配置文件加载)
+#### 5.3.5. C3P0 连接池(使用 xml 配置文件加载)
 
-##### 4.3.5.1. 使用配置文件的好处
+##### 5.3.5.1. 使用配置文件的好处
 
 1. 配置信息和操作数据库代码分离，降低了程序的耦合性。
 2. 配置信息不是硬编码到 Java 源码中，后期维护更加方便。
@@ -833,12 +929,12 @@ public class MoonZero {
 4. 可以连接不同的数据库。如：db1,db2
 5. 可以连接不同厂商的数据库。如：Oracle 或 MySQL
 
-##### 4.3.5.2. 配置文件的要求
+##### 5.3.5.2. 配置文件的要求
 
 1. 文件名命名要求：`c3p0-config.xml`
 2. 位置要求：放在类路径下，源代码即 src 目录下。
 
-##### 4.3.5.3. C3P0 配置文件的使用方式
+##### 5.3.5.3. C3P0 配置文件的使用方式
 
 方式1： 使用默认配置（default-config）
 
@@ -939,7 +1035,7 @@ public class MoonZero {
 }
 ```
 
-#### 4.3.6. 自定义 C3P0 连接池工具类
+#### 5.3.6. 自定义 C3P0 连接池工具类
 
 Code Demo: 自定义C3P0工具类
 
@@ -972,15 +1068,15 @@ public class C3P0Utils {
 }
 ```
 
-### 4.4. DBCP 连接池技术
+### 5.4. DBCP 连接池技术
 
-#### 4.4.1. DBCP 连接池概述
+#### 5.4.1. DBCP 连接池概述
 
 DBCP: DataBase Connection Pool 数据库连接池。
 
 DBCP 是 Apache 旗下组织开发的一款产品，免费开源的，也是 Tomcat 服务器的默认使用连接池
 
-#### 4.4.2. DBCP 使用步骤
+#### 5.4.2. DBCP 使用步骤
 
 1. 导入 dbcp 相关的 jar 包
 		目前使用版本
@@ -1070,9 +1166,9 @@ public class MoonZero {
 10 : 445884362
 ```
 
-#### 4.4.3. 使用 Properties 配置文件加载 DBCP 连接池
+#### 5.4.3. 使用 Properties 配置文件加载 DBCP 连接池
 
-##### 4.4.3.1. DBCP配置文件要求
+##### 5.4.3.1. DBCP配置文件要求
 
 1. 文件名命名要求：xxx.properties，一般使用 dbcp.properties
 2. 位置要求：放在类路径下，源代码即 src 目录下。
@@ -1095,7 +1191,7 @@ maxWait=3000
 maxIdle=7
 ```
 
-##### 4.4.3.2. DBCP 使用配置文件加载连接池步骤
+##### 5.4.3.2. DBCP 使用配置文件加载连接池步骤
 
 1. 创建 `Properties` 属性文件，配置相关参数
 2. 通过类对象的 `getResourceAsStream("/dbcp.properties")` 方法，从类路径下加载文件，以字节流的方式加载。
@@ -1141,9 +1237,9 @@ public class MoonZero {
 }
 ```
 
-## 5. DBUtils 工具
+## 6. DBUtils 工具
 
-### 5.1. DbUtils 工具概述
+### 6.1. DbUtils 工具概述
 
 `DbUtils` 是 Apache 组织开发的一个开源 JDBC 工具类库。是一款方便操作数据库的工具。
 
@@ -1154,9 +1250,9 @@ public class MoonZero {
 
 目前使用的是：commons-dbutils-1.7.jar
 
-### 5.2. DbUtils 工具的核心类
+### 6.2. DbUtils 工具的核心类
 
-#### 5.2.1. DbUtils 类
+#### 6.2.1. DbUtils 类
 
 提供了装载 JDBC 驱动程序、关闭资源和处理事务的相关静态方法
 
@@ -1172,11 +1268,11 @@ public static void closeQuietly(…);
 
 这一类方法不仅能在 `Connection`、`Statement` 和 `ResultSet` 为 `NULL` 情况下避免关闭，还能隐藏一些在程序中抛出的 `SQLException`。
 
-#### 5.2.2. QueryRunner 类
+#### 6.2.2. QueryRunner 类
 
 用来对数据库执行CRUD(增删改查)操作
 
-##### 5.2.2.1. QueryRunner 增删改操作方式1：传入数据源对象
+##### 6.2.2.1. QueryRunner 增删改操作方式1：传入数据源对象
 
 **构造方法**
 
@@ -1206,7 +1302,7 @@ int update(String sql, Object...params);
 > 注：以上方法在内部都有释放资源的代码，所以<font color=red>**无需关闭连接**</font>等操作
 
 
-##### 5.2.2.2. QueryRunner 增删改操作方式2：没有传入任何对象
+##### 6.2.2.2. QueryRunner 增删改操作方式2：没有传入任何对象
 
 **构造方法**
 
@@ -1231,7 +1327,7 @@ int update(Connection conn, String sql, Object...params);
 
 > 注：以上方法没有释放资源的代码，<font color=red>**需要操作者手动关闭连接**</font>
 
-##### 5.2.2.3. QueryRunner 查询操作方式1：没有连接对象
+##### 6.2.2.3. QueryRunner 查询操作方式1：没有连接对象
 
 构造方法
 
@@ -1252,7 +1348,7 @@ Object query(String sql, ResultSetHandler rsh, Object... params)
 
 > 注：以上方法在内部都有释放资源的代码，所以<font color=red>**无需关闭连接**</font>等操作
 
-##### 5.2.2.4. QueryRunner 查询操作方式2：有连接对象，需要手动关闭资源
+##### 6.2.2.4. QueryRunner 查询操作方式2：有连接对象，需要手动关闭资源
 
 构造方法
 
@@ -1269,7 +1365,7 @@ Object query(Connection conn, String sql, ResultSetHandler rsh, Object... params
 
 > 注：以上方法没有释放资源的代码，<font color=red>**需要操作者手动关闭连接**</font>
 
-##### 5.2.2.5. QureyRunner 的操作多个数据方法
+##### 6.2.2.5. QureyRunner 的操作多个数据方法
 
 ```java
 int[] batch(String sql, Object[][] params)
@@ -1319,12 +1415,11 @@ public void delProductBatch(String[] pids) {
 }
 ```
 
-
-#### 5.2.3. ResultSetHandler 接口
+#### 6.2.3. ResultSetHandler 接口
 
 用来定义如何封装查询结果集
 
-##### 5.2.3.1. 接口的方法
+##### 6.2.3.1. 接口的方法
 
 ```java
 Object handle(ResultSet rs);
@@ -1404,9 +1499,9 @@ public class QueryRunnerTest {
 }
 ```
 
-#### 5.2.4. 常用的 ResultSetHandler 接口的实现类
+#### 6.2.4. 常用的 ResultSetHandler 接口的实现类
 
-##### 5.2.4.1. 封装成 JavaBean (BeanHandler / BeanListHandler)
+##### 6.2.4.1. 封装成 JavaBean (BeanHandler / BeanListHandler)
 
 <font color=red>**前提：表的列名与 JavaBean 属性名要相同**</font>
 
@@ -1492,7 +1587,7 @@ public class Test02_04 {
 }
 ```
 
-##### 5.2.4.2. 封装成 Map (MapHandler / MapListHandler)
+##### 6.2.4.2. 封装成 Map (MapHandler / MapListHandler)
 
 <font color=red>**可用于表连接查询的时候**</font>
 
@@ -1581,7 +1676,7 @@ public class Test02_06 {
 }
 ```
 
-##### 5.2.4.3. 封装成数组(ArrayHandler / ArrayListHandler)
+##### 6.2.4.3. 封装成数组(ArrayHandler / ArrayListHandler)
 
 ```java
 Object[] ArrayHandler();
@@ -1653,7 +1748,7 @@ public class Test02_01 {
 }
 ```
 
-##### 5.2.4.4. 封装单行单列数据 (ScalarHandler)
+##### 6.2.4.4. 封装单行单列数据 (ScalarHandler)
 
 ```java
 T ScalarHandler<T>();
@@ -1697,7 +1792,7 @@ public class Test02_04 {
 }
 ```
 
-##### 5.2.4.5. 封装多行单列数据 (ColumnListHandler)
+##### 6.2.4.5. 封装多行单列数据 (ColumnListHandler)
 
 ```java
 List<T> ColumnListHandler<T>();
@@ -1748,7 +1843,7 @@ public class Test02_05 {
 }
 ```
 
-##### 5.2.4.6. KeyedHandler
+##### 6.2.4.6. KeyedHandler
 
 ```java
 Map<String, Map<String, Object>> KeyedHandler<K>(String s);
@@ -1802,13 +1897,60 @@ public class Test02_05 {
 }
 ```
 
-## 6. JPA
+### 6.3. DbUtils 事务操作
 
-### 6.1. 概述
+#### 6.3.1. DbUtils 事务处理方式
+
+**自动提交**：每条SQL语句执行后自动提交事务。无法通过回滚撤消操作。
+
+**手动提交**：
+
+1. 创建 `Connection` 对象和 `QueryRunner` 对象，`QueryRunner` 对象不能使用数据源。
+2. 先调用 `conn.setAutoCommit(false);` 开启事务，取消自动提交。
+3. 在 SQL 执行完后调用 `commitAndCloseQuietly(conn);` 提交事务，如果出现异常则调用 `rollbackAndCloseQuietly(conn);` 回滚事务。
+
+#### 6.3.2. 与事务处理相关的方法（待修改完善）
+
+```java
+conn.setAutoCommit(false);
+```
+
+- 禁止自动提交事务，开启事务
+
+```java
+new QueryRunner();
+```
+
+- 创建核心类，不传数据源(手动管理连接)
+
+```java
+query(conn , sql , handler, params);
+update(conn, sql , params);
+
+```
+- 手动传递连接执行查询或更新的操作
+
+```java
+DbUtils.commitAndClose(conn);
+DbUtils.commitAndCloseQuietly(conn);
+```
+
+- 提交并关闭连接
+
+```java
+DbUtils.rollbackAndClose(conn);
+DbUtils.rollbackAndCloseQuietly(conn);
+```
+
+- 回滚并关闭连接
+
+## 7. JPA
+
+### 7.1. 概述
 
 JPA 是 Java Persistence API 的简称，中文名 Java 持久层 API，是 JDK 5.0 注解或 XML 描述对象－关系表的映射关系，并将运行期的实体对象持久化到数据库中。
 
-### 6.2. Persistence 类
+### 7.2. Persistence 类
 
 `Persistence` 类主要是用于读取配置文件，获得实体管理工厂。常用方法如下所示：
 
@@ -1824,7 +1966,7 @@ public static EntityManagerFactory createEntityManagerFactory(String persistence
 EntityManagerFactory emf = Persistence.createEntityManagerFactory("crm");
 ```
 
-### 6.3. EntityManagerFactory 接口
+### 7.3. EntityManagerFactory 接口
 
 用于管理数据库的连接，获得操作对象实体管理类 `EntityManager`。`EntityManagerFactory` 是一个线程安全的对象，并且其创建极其浪费资源，所以编程的时候要保持它是单例的。常用方法如下所示：
 
@@ -1841,7 +1983,7 @@ EntityManagerFactory emf = Persistence.createEntityManagerFactory("crm");
 EntityManager entityManager = emf.createEntityManager();
 ```
 
-### 6.4. EntityManager 接口
+### 7.4. EntityManager 接口
 
 在 JPA 规范中，EntityManager 实体管理类是操作数据库的重要 API，它是线程不安全的，需要保持线程独有。常用方法如下所示：
 
@@ -1893,9 +2035,9 @@ public <T> TypedQuery<T> createQuery(String qlString, Class<T> resultClass);
 
 - 获取 JPQL 操作对象，用于查询操作
 
-### 6.5. EntityTransaction 接口
+### 7.5. EntityTransaction 接口
 
-#### 6.5.1. 获取 `EntityTransaction` 实例
+#### 7.5.1. 获取 `EntityTransaction` 实例
 
 用于管理事务（开始，提交，回滚）。获取事务（没有开启事务）：
 
@@ -1905,7 +2047,7 @@ EntityManager em = emf.createEntityManager();
 EntityTransaction transaction = em.getTransaction();
 ```
 
-#### 6.5.2. 常用方法
+#### 7.5.2. 常用方法
 
 ```java
 public void begin();
@@ -1925,18 +2067,18 @@ public void rollback();
 
 - 回滚事务
 
-### 6.6. TypedQuery 接口
+### 7.6. TypedQuery 接口
 
 `TypedQuery` 接口继承 `Query` 接口。用于操作 JPQL 的查询的。JPQL 和 HQL 一样。为什么 JPA 的标准，查询需要指定类型，目的就是为了让返回的数据没有没有警告
 
-#### 6.6.1. 获取 `TypedQuery` 实例
+#### 7.6.1. 获取 `TypedQuery` 实例
 
 ```java
 EntityManager em = xxx;
 TypedQuery<Xxx> query = em.createQuery("xxx", Xxx.class);
 ```
 
-#### 6.6.2. 常用方法
+#### 7.6.2. 常用方法
 
 ```java
 int executeUpdate();
@@ -1986,18 +2128,18 @@ X getSingleResult();
 
 - 返回查询的结果是一条数据，常用聚合函数 `count()`，相当于 `uniqueResult()`
 
-### 6.7. Query 接口
+### 7.7. Query 接口
 
 用于操作SQL的查询接口，执行没有返回数据的JPQL（增删改），<font color=red>**用于删除和更新**</font>
 
-#### 6.7.1. 获取 `Query` 实例
+#### 7.7.1. 获取 `Query` 实例
 
 ```java
 EntityManager em = xxx;
 Query query = em.createQuery("xxx");
 ```
 
-#### 6.7.2. 常用方法
+#### 7.7.2. 常用方法
 
 ```java
 int executeUpdate();
@@ -2021,7 +2163,7 @@ Query setParameter(String name, Object value);
     - `String name`：命名参数的名字，不带 `:` 号
     - `Object value`：命名参数的值
 
-### 6.8. CriteriaBuilder 接口
+### 7.8. CriteriaBuilder 接口
 
 用户使用标准查询接口 Criteria 查询接口
 

@@ -87,7 +87,7 @@ Web 容器就是指 Web 服务器，容器中存放的就是 Java 代码。后�
 
 一个 Java Web 服务器是需要实现部分或全部的 JavaEE 规范。
 
-### 2.2. JavaEE规范
+### 2.2. JavaEE 规范
 
 在 Java 中所有的服务器要实现一组 Oracle 公司规定的接口，这些接口称为 JavaEE 规范。不同厂商的 JavaWeb 服务器都实现了这些接口。在 JavaEE 中一共有13种规范。
 
@@ -109,6 +109,8 @@ Web 服务器：由 Java 语言编写。就是实现了JavaEE 规范的 Java 程
 ## 3. Tomcat
 
 ### 3.1. 概述
+
+Apache 是世界使用排名第一的Web服务器软件。它可以运行在几乎所有广泛使用的计算机平台上，由于其跨平台和安全性被广泛使用，是最流行的 Web 服务器端软件之一。它快速、可靠并且可通过简单的 API 扩充，将 Perl/Python 等解释器编译到服务器中。
 
 Tomcat 是 Apache 软件基金会（Apache Software Foundation）的 Jakarta 项目中的一个核心项目，由 Apache、Sun 和其他一些公司及个人共同开发而成。由于有了 Sun 的参与和支持，最新的 Servlet 和 JSP 规范总是能在 Tomcat 中得到体现，因为 Tomcat 技术先进、性能稳定，而且免费，因而深受 Java 爱好者的喜爱并得到了部分软件开发商的认可，成为目前比较流行的 Web 应用服务器。
 
