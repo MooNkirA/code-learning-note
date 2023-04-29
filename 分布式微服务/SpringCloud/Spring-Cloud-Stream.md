@@ -456,7 +456,7 @@ public class ConsumerApplication {
 
 ![](images/20201122092141361_7436.png)
 
-## 3. Spring Cloud Stream 整合 RocketMQ
+## 3. (暂有问题)Spring Cloud Stream 整合 RocketMQ
 
 ### 3.1. 案例准备
 
@@ -491,7 +491,8 @@ spring:
           name-server: 127.0.0.1:9876
       bindings:
         output: # Spring Cloud Stream 内置的发送消息的通道（名称为output）
-          destination: stream-sample-default  # 指定消息发送的目的地。在 RabbitMQ 中，会发送到一个stream-sample-default的exchange中；在 RocketMQ 中会发送到一个主题上
+          destination: topic-test-stream  #  RocketMQ 中会发送到一个主题上
+          group: stream-consumer-group
 ```
 
 3. 在配置类（或者任意 Spring 管理的类）上使用 `@EnableBinding` 注解开启绑定消息通道，此示例绑定的是 Spring Cloud Stream 内置的 Source 接口
@@ -533,29 +534,78 @@ public class ProducerTest {
 }
 ```
 
-
-
-
-
-
-
-
-
-
-
-
-
 ### 3.3. 消息消费者开发步骤
 
 消息消费者开发流程
 
 ![](images/344020618248883.png)
 
-## 4. 自定义消息通道
+1. 添加 stream-rocketmq 依赖
+
+```xml
+<!-- Spring Cloud Stream 支持绑定 RocketMQ 的依赖 -->
+<dependency>
+    <groupId>com.alibaba.cloud</groupId>
+    <artifactId>spring-cloud-starter-stream-rocketmq</artifactId>
+</dependency>
+```
+
+2. 修改项目配置，增加 rocketmq binder、binding destination 属性配置
+
+```yml
+spring:
+  cloud:
+    stream:
+      rocketmq: # RocketMQ 支持
+        binder:
+          name-server: 127.0.0.1:9876
+      bindings:
+        input: # Spring Cloud Stream 内置的接收消息的通道（名称为input）
+          destination: topic-test-stream  #  RocketMQ 中会发送到一个主题上
+          group: stream-consumer-group
+```
+
+3. 在自定义的消息监听类中（或者任意 Spring 管理的类）上使用 `@EnableBinding` 注解开启绑定消息通道。`@StreamListener` 指定 `Sink` 接口
+
+```java
+@Component // 注册到spring容器中
+@EnableBinding(Sink.class)  // 绑定消息通道，此示例绑定的是Spring Cloud Stream内置的Sink接口
+public class MessageListener {
+    /**
+     * 监听binding中的消息，通过@StreamListener注解指定绑定的名称，
+     * 这里使用Spring Cloud Stream内置的Sink接口，名称为“input”
+     * (ps. 方法名称随意)
+     */
+    @StreamListener(Sink.INPUT)
+    public void input(String message) {
+        System.out.println("获取的消息：" + message);
+    }
+}
+```
+
+4. 启动消息生产者与接收者进行测试。
+
+## 4. 消息过滤
+
+对于消息消费者，可能只希望处理具有某些特征的消息，这就需要对消息进行过滤。
+
+为了简化开发，Spring Cloud Stream 提供了消息过滤的方式，在 `@StreamListener` 注解中添加 `condition` 属性，其值编写相应的过滤条件表达式即可。如：
+
+```java
+@StreamListener(
+        value = Sink.INPUT,
+        condition = "headers['test-header']=='my test'"
+)
+public void input(String message) {
+    System.out.println("获取的消息：" + message);
+}
+```
+
+## 5. 自定义消息通道
 
 Spring Cloud Stream 内置了两种接口，分别定义了 binding 为 `input` 的输入流和 `output` 的输出流，而在实际使用中，往往是需要自定义各种输入输出流。
 
-### 4.1. 创建自定义消息binding接口
+### 5.1. 创建自定义消息binding接口
 
 参考 Spring Cloud Stream 内置的 binding 接口，创建一个自定义的消息 binding 接口。接口主要包含的内容是：
 
@@ -596,7 +646,7 @@ public interface CustomProcessor {
 
 > *使用上面快速入门的示例代码，因为将输入与输出两个binding定义在一个接口中，而消息的生产者与消费者工程都用到，所以抽取此消息binding接口到一个工程中，并将Spring Cloud Stream的依赖抽取到此公共工程中，详见《spring-cloud-note\spring-cloud-greenwich-sample\15-springcloud-stream》*
 
-### 4.2. 修改消费者与生产者项目配置
+### 5.2. 修改消费者与生产者项目配置
 
 - 修改生产者工程配置，增加自定义消息通道的配置
 
@@ -631,7 +681,7 @@ spring:
           type: rabbit # 指定绑定消息中间件的类型
 ```
 
-### 4.3. 创建消息发送工具类与消息监听类
+### 5.3. 创建消息发送工具类与消息监听类
 
 - 创建`CustomMessageSender`消息发送工具类，绑定自定义消息通道
 
@@ -677,7 +727,7 @@ public class CustomMessageListener {
 }
 ```
 
-### 4.4. 测试发送与接收消息
+### 5.4. 测试发送与接收消息
 
 - 创建生产者的发送消息的
 
@@ -696,7 +746,7 @@ public void sendMessageByCustomChannel() {
 
 ![](images/20201126172138222_19130.png)
 
-## 5. 消息分组
+## 6. 消息分组
 
 通常在生产环境，每个服务都不会以单节点的方式运行在生产环境，当同一个服务启动多个实例的时候，这些实例都会绑定到同一个消息通道的目标主题（Topic）上。默认情况下，当生产者发出一条消息到绑定通道上，这条消息会产生多个副本被每个消费者实例接收和处理，但是有些业务场景之下，只希望生产者产生的消息只被其中一个实例消费，此时就需要为这些消费者设置消费组来实现这样的功能。
 
@@ -725,13 +775,13 @@ spring:
 
 <font color=red>经测试，同一个分组的多个消费者默认是以**轮询**的方法进行消费</font>
 
-## 6. 消息分区
+## 7. 消息分区
 
 有一些场景需要满足，同一个特征的数据被同一个实例消费，比如同一个id的传感器监测数据必须被同一个实例统计计算分析，否则可能无法获取全部的数据。又比如部分异步任务，首次请求启动task，二次请求取消task，此场景就必须保证两次请求至同一实例
 
 ![](images/20201127085715243_1387.png)
 
-### 6.1. 消息生产者配置
+### 7.1. 消息生产者配置
 
 修改生产者工程的`application.yml`配置文件，增加分区相关配置
 
@@ -763,7 +813,7 @@ spring:
 
 [点击查看官网更多生产者详细配置项](https://cloud.spring.io/spring-cloud-static/spring-cloud-stream/2.2.1.RELEASE/spring-cloud-stream.html#_producer_properties)
 
-### 6.2. 消息消费者配置
+### 7.2. 消息消费者配置
 
 修改消费者工程的`application.yml`配置文件，增加分区相关配置
 
@@ -800,7 +850,7 @@ spring:
 
 [点击查看官网更多消费者详细配置项](https://cloud.spring.io/spring-cloud-static/spring-cloud-stream/2.2.1.RELEASE/spring-cloud-stream.html#_consumer_properties)
 
-### 6.3. 测试
+### 7.3. 测试
 
 编写生产的测试方法，发送多次消息
 
@@ -817,4 +867,3 @@ public void testMessagePartitioningSupport() {
 以上示例的消息分区配置就完成了，可以再次启动这两个应用，同时消费者启动多个，但需要注意的是要为消费者指定不同的实例索引号，这样当同一个消息被发给消费组时，可以发现只有一个消费实例在接收和处理这些相同的消息。
 
 ![](images/20201127145557318_5987.png)
-
