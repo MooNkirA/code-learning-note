@@ -781,6 +781,8 @@ spring:
 
 ![](images/20201127085715243_1387.png)
 
+> Notes: 因为 RocketMQ 对消息分区的支持不够好，所以示例使用了 RabbitMQ
+
 ### 7.1. 消息生产者配置
 
 修改生产者工程的`application.yml`配置文件，增加分区相关配置

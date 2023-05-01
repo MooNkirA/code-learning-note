@@ -1,10 +1,8 @@
-# Spring Cloud Gateway 微服务网关
-
-Spring Cloud Netflix Zuul 1.x 是一个基于阻塞 IO 的 API Gateway 以及 Servlet；直到2018年5月，Zuul 2.x（基于Netty，也是非阻塞的，支持长连接）才发布，但 Spring Cloud 暂时还没有整合计划。Spring Cloud Gateway 比 Zuul 1.x 系列的性能和功能整体要好。
-
-## 1. Spring Cloud Gateway 是什么
+## 1. Spring Cloud Gateway 微服务网关
 
 ### 1.1. 简述
+
+Spring Cloud Netflix Zuul 1.x 是一个基于阻塞 IO 的 API Gateway 以及 Servlet；直到2018年5月，Zuul 2.x（基于Netty，也是非阻塞的，支持长连接）才发布，但 Spring Cloud 暂时还没有整合计划。Spring Cloud Gateway 比 Zuul 1.x 系列的性能和功能整体要好。
 
 Spring Cloud Gateway 是 Spring 官方基于 Spring 5.0，Spring Boot 2.0 和 Project Reactor 等技术开发的网关，旨在为微服务架构提供一种简单而有效的统一的 API 路由管理方式，统一访问接口。Spring Cloud Gateway 作为 Spring Cloud 生态系中的网关，目标是替代 Netflix ZUUL，其不仅提供统一的路由方式，并且基于 Filter 链的方式提供了网关基本的功能，例如：安全，监控/埋点，限流等。它是基于Nttey的响应式开发模式。
 
@@ -15,7 +13,7 @@ Spring Cloud Gateway 是 Spring 官方基于 Spring 5.0，Spring Boot 2.0 和 Pr
 | Spring Cloud Gateway | Requests/sec: 32213.38  |
 |       Zuul 1.x       | Requests/sec: 20800.13  |
 
-上表为Spring Cloud Gateway与Zuul的性能对比，从结果可知，Spring Cloud Gateway的RPS是Zuul的1.6倍
+上表为 Spring Cloud Gateway 与 Zuul 的性能对比，从结果可知，Spring Cloud Gateway 的 RPS 是 Zuul 的 1.6 倍
 
 ### 1.2. 优缺点
 
@@ -31,25 +29,31 @@ Spring Cloud Gateway 是 Spring 官方基于 Spring 5.0，Spring Boot 2.0 和 Pr
 - 不能将其部署在Tomcat、Jetty等Servlet容器里，只能打成jar包执行
 - 需要Spring Boot 2.0及以上的版本，才支持
 
-### 1.3. 核心概念
+### 1.3. 核心概念与架构
 
 **路由（route）**：路由是网关最基础的部分，表示一个具体的路由信息载体。路由信息由一个ID、一个目的地URI、排序order、一组断言工厂和一组Filter组成。如果断言为真，则说明请求URL和配置的路由匹配。
 
 ![](images/20201024155248894_3162.png)
 
-- id，路由标识符，区别于其他 Route。
+- id，路由标识符，唯一的，区别于其他 Route。
 - uri，路由指向的目的地 uri，即客户端请求最终被转发到的微服务。
 - order，用于多个 Route 之间的排序，数值越小排序越靠前，匹配优先级越高。
-- **predicates（断言）**：Java8中的断言函数，断言的作用是进行条件判断，只有断言都返回真，才会真正的执行路由。Spring Cloud Gateway中的断言函数输入类型是Spring5.0框架中的`ServerWebExchange`。Spring Cloud Gateway中的断言函数允许开发者去定义匹配来自Http Request中的任何信息，比如请求头和参数等。
-- **filter（过滤器）**：一个标准的Spring WebFilter，Spring Cloud Gateway中的Filter分为两种类型，分别是`Gateway Filter`和`Global Filter`。过滤器`Filter`可以对请求和响应进行处理。
+- **predicates（断言）**：Java8 中的断言函数，断言的作用是进行条件匹配，只有断言都返回真，才会真正的执行路由到目的地 uri。Spring Cloud Gateway 中的断言函数输入类型是 Spring5.0 框架中的`ServerWebExchange`。Spring Cloud Gateway 中的断言函数允许开发者去定义匹配来自 Http Request 中的任何信息，比如请求头和参数等。
+- **filter（过滤器）**：一个标准的 Spring WebFilter，Spring Cloud Gateway 中的 Filter 分为两种类型，分别是`Gateway Filter`和`Global Filter`。过滤器`Filter`可以对请求和响应进行拦截处理。
+
+### 1.4. 工作流程
+
+![](images/26574209248968.png)
+
+当客户端向 Spring Cloud Gateway 发出请求。如果 Gateway Handler Mapping 匹配到一个请求与路由，它将被发送到 Gateway Web Handler。然后会通过一系列特定于该请求的过滤器链来运行该请求。在代理请求发送之前，流程图中所有的虚线左侧的**前置过滤器**处理逻辑都被执行，然后发出代理请求，在代理请求发出后，虚线右侧的所有后置过滤器逻辑被运行。
 
 ## 2. Spring Cloud Gateway 基础入门案例
 
-> 复用`11-springcloud-zuul`工程的代码，删除zuul网关工程，创建`12-springcloud-gateway`
+> 复用`spring-cloud-sample-zuul`工程的代码，删除zuul网关工程，创建`spring-cloud-sample-gateway`
 
 ### 2.1. 创建工程导入依赖
 
-在`12-springcloud-gateway`项目中添加新的模块`shop-server-gateway`，并导入依赖
+在`spring-cloud-sample-gateway`项目中添加新的模块`sample-gateway-server-gateway`，并导入依赖
 
 ```xml
 <!--
@@ -108,6 +112,85 @@ spring:
 - `predicates`：路由条件。Predicate 接受一个输入参数，返回一个布尔值结果。该接口包含多种默认方法来将 Predicate 组合成其他复杂的逻辑（比如：与，或，非）
 
 上面示例的配置解释：配置了一个`id`为`shop-service-product`的路由规则，当访问网关请求地址以`product`开头时，会自动转发到地址：`http://127.0.0.1:9001/product/xxx`。配置完成启动项目即可在浏览器访问进行测试
+
+### 2.4. 基于 Nacos 注册中心的基础案例
+
+> 示例代码详见 `spring-cloud-note\spring-cloud-sample-gateway-nacos`
+
+#### 2.4.1. 服务提供者
+
+创建服务提供者，整合注册中心 Nacos，并提供一个接口 `/hello`
+
+- 引入 nacos 注册中心客户端依赖
+
+```xml
+<dependency>
+    <groupId>com.alibaba.cloud</groupId>
+    <artifactId>spring-cloud-starter-alibaba-nacos-discovery</artifactId>
+</dependency>
+```
+
+- 配置 nacos
+
+```yml
+server:
+  port: 8080
+spring:
+  application:
+    name: service-provider
+  cloud:
+    nacos:
+      discovery:
+        server-addr: localhost:8848
+```
+
+- 创建启动类，使用 `@EnableDiscoveryClient` 注解开启服务注册客户端功能
+
+```java
+@SpringBootApplication
+@EnableDiscoveryClient
+public class SampleGatewayNacosServiceProvider {
+    public static void main(String[] args) {
+        SpringApplication.run(SampleGatewayNacosServiceProvider.class, args);
+    }
+}
+```
+
+- 测试接口
+
+```java
+@RestController
+public class TestController {
+    @GetMapping("/hello")
+    public String hello(@RequestParam String name) {
+        return "hello " + name + "!";
+    }
+}
+```
+
+#### 2.4.2. 服务网关
+
+创建 gateway 网关服务，整合注册中心 Nacos 与 Spring Cloud Gateway
+
+- 添加 Spring Cloud Gateway 与 nacos 注册中心客户端依赖
+
+```xml
+<!-- Spring Cloud Gateway 服务网关的核心依赖 -->
+<dependency>
+    <groupId>org.springframework.cloud</groupId>
+    <artifactId>spring-cloud-starter-gateway</artifactId>
+</dependency>
+
+<!-- nacos 客户端 -->
+<dependency>
+    <groupId>com.alibaba.cloud</groupId>
+    <artifactId>spring-cloud-starter-alibaba-nacos-discovery</artifactId>
+</dependency>
+```
+
+- 配置 nacos 与 Spring Cloud Gateway 基础路由
+
+
 
 ## 3. 路由配置规则
 
@@ -373,7 +456,7 @@ eureka:
 
 ##### 3.2.2.1. 添加注册中心依赖（Nacos）
 
-在`spring-cloud-alibaba-2.1.x-sample\api-gateway`工程的 pom 文件中添加注册中心的客户端依赖（此示例以 Nacos 做为注册中心）
+在`spring-cloud-alibaba-sample\alibaba-sample-api-gateway`工程的 pom 文件中添加注册中心的客户端依赖（此示例以 Nacos 做为注册中心）
 
 ```xml
 <!-- nacos 客户端 -->
@@ -711,33 +794,33 @@ Spring Cloud Gateway 的 Filter 从作用范围可分为另外两种 `GatewayFil
 
 #### 4.2.2. Spring Cloud Gateway 内置局部过滤器
 
-|          过滤器工厂          |                                           作用                                           |                                参数                                |
-| :-------------------------: | ---------------------------------------------------------------------------------------- | ----------------------------------------------------------------- |
-|      AddRequestHeader       | 为原始请求添加Header                                                                      | Header的名称及值                                                   |
-|     AddRequestParameter     | 为原始请求添加请求参数                                                                     | 参数名称及值                                                       |
-|      AddResponseHeader      | 为原始响应添加Header                                                                      | Header的名称及值                                                   |
-|    DedupeResponseHeader     | 剔除响应头中重复的值                                                                       | 需要去重的Header名称及去重策略                                       |
-|           Hystrix           | 为路由引入Hystrix的断路器保护                                                              | `HystrixCommand`的名称                                             |
-|       FallbackHeaders       | 为fallbackUri的请求头中添加具体的异常信息                                                   | Header的名称                                                       |
-|         PrefixPath          | 为原始请求路径添加前缀                                                                     | 前缀路径                                                           |
+|          过滤器工厂           |                                         作用                                          |                                参数                                |
+| :-------------------------: | ------------------------------------------------------------------------------------ | ----------------------------------------------------------------- |
+|      AddRequestHeader       | 为原始请求添加Header                                                                    | Header的名称及值                                                   |
+|     AddRequestParameter     | 为原始请求添加请求参数                                                                   | 参数名称及值                                                        |
+|      AddResponseHeader      | 为原始响应添加Header                                                                    | Header的名称及值                                                   |
+|    DedupeResponseHeader     | 剔除响应头中重复的值                                                                     | 需要去重的Header名称及去重策略                                        |
+|           Hystrix           | 为路由引入Hystrix的断路器保护                                                            | `HystrixCommand`的名称                                             |
+|       FallbackHeaders       | 为fallbackUri的请求头中添加具体的异常信息                                                 | Header的名称                                                       |
+|         PrefixPath          | 为原始请求路径添加前缀                                                                   | 前缀路径                                                           |
 |     PreserveHostHeader      | 为请求添加一个`preserveHostHeader=true`的属性，路由过滤器会检查该属性以决定是否要发送原始的Host | 无                                                                |
-|     RequestRateLimiter      | 用于对请求限流，限流算法为令版桶                                                            | keyResolver、rateLimiter、statusCode、denyEmptyKey、emptyKeyStatus |
-|         RedirectTo          | 将原始请求重定向到指定的UR                                                                 | http状态码及重定向的url                                             |
-| RemoveHopByHopHeadersFilter | 为原始请求删除IETF组织规定的一系列Header                                                    | 默认就会启用，可以通过配置指定仅删除哪些Header                         |
-|     RemoveRequestHeader     | 为原始请求删除某个Header                                                                   | Header名称                                                         |
-|    RemoveResponseHeader     | 为原始响应删除某个Header                                                                   | Header名称                                                         |
-|         RewritePath         | 重写原始的请求路径                                                                         | 原始路径正则表达式以及重写后路径的正则表达式                           |
-|    RewriteResponseHeader    | 重写原始响应中的某个Header                                                                 | Header名称，值的正则表达式，重写后的值                                |
-|         SaveSession         | 在转发请求之前，强制执行`WebSession::save`操作                                              | 无                                                                |
-|        secureHeaders        | 为原始响应添加一系列起安全作用的响应头                                                       | 无，支持修改这些安全响应头的值                                       |
-|           SetPath           | 修改原始的请求路径                                                                         | 修改后的路径                                                       |
-|      SetResponseHeader      | 修改原始响应中某个Header的值                                                               | Header名称，修改后的值                                              |
-|          SetStatus          | 修改原始响应的状态码                                                                       | HTTP 状态码，可以是数字，也可以是字符串                               |
-|         StripPrefix         | 用于截断原始请求的路径                                                                     | 使用数字表示要截断的路径的数量                                       |
-|            Retry            | 针对不同的响应进行重试                                                                     | retries、statuses、methods、series                                 |
-|         RequestSize         | 设置允许接收最大请求包的大小。如果请求包大小超过设置的值，则返回`413 Payload Too Large`         | 请求包大小，单位为字节，默认值为5M                                    |
-|      ModifyRequestBody      | 在转发请求之前修改原始请求体内容                                                            | 修改后的请求体内容                                                  |
-|     ModifyResponseBody      | 修改原始响应体的内容                                                                       | 修改后的响应体内容                                                  |
+|     RequestRateLimiter      | 用于对请求限流，限流算法为令版桶                                                           | keyResolver、rateLimiter、statusCode、denyEmptyKey、emptyKeyStatus |
+|         RedirectTo          | 将原始请求重定向到指定的UR                                                               | http状态码及重定向的url                                             |
+| RemoveHopByHopHeadersFilter | 为原始请求删除IETF组织规定的一系列Header                                                  | 默认就会启用，可以通过配置指定仅删除哪些Header                           |
+|     RemoveRequestHeader     | 为原始请求删除某个Header                                                                | Header名称                                                         |
+|    RemoveResponseHeader     | 为原始响应删除某个Header                                                                | Header名称                                                         |
+|         RewritePath         | 重写原始的请求路径                                                                      | 原始路径正则表达式以及重写后路径的正则表达式                             |
+|    RewriteResponseHeader    | 重写原始响应中的某个Header                                                               | Header名称，值的正则表达式，重写后的值                                 |
+|         SaveSession         | 在转发请求之前，强制执行`WebSession::save`操作                                            | 无                                                                |
+|        secureHeaders        | 为原始响应添加一系列起安全作用的响应头                                                      | 无，支持修改这些安全响应头的值                                         |
+|           SetPath           | 修改原始的请求路径                                                                      | 修改后的路径                                                        |
+|      SetResponseHeader      | 修改原始响应中某个Header的值                                                             | Header名称，修改后的值                                              |
+|          SetStatus          | 修改原始响应的状态码                                                                     | HTTP 状态码，可以是数字，也可以是字符串                                 |
+|         StripPrefix         | 用于截断原始请求的路径                                                                   | 使用数字表示要截断的路径的数量                                         |
+|            Retry            | 针对不同的响应进行重试                                                                   | retries、statuses、methods、series                                 |
+|         RequestSize         | 设置允许接收最大请求包的大小。如果请求包大小超过设置的值，则返回`413 Payload Too Large`         | 请求包大小，单位为字节，默认值为5M                                     |
+|      ModifyRequestBody      | 在转发请求之前修改原始请求体内容                                                           | 修改后的请求体内容                                                   |
+|     ModifyResponseBody      | 修改原始响应体的内容                                                                     | 修改后的响应体内容                                                   |
 
 以上每个过滤器工厂都对应一个实现类，并且这些类的名称必须以 `GatewayFilterFactory` 结尾，这是 Spring Cloud Gateway 的一个约定，例如 `AddRequestHeader` 对应的实现类为 `AddRequestHeaderGatewayFilterFactory`。对于这些过滤器的使用方式可以参考官方文档
 
