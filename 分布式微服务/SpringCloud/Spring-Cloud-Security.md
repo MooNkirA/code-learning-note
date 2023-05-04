@@ -1,8 +1,6 @@
-# Spring Cloud Security
+## 1. Spring Cloud Security 概述
 
-- [官方文档](https://spring.io/projects/spring-cloud-security)
-
-## 1. 概述
+> [Spring Cloud Security 官方文档](https://spring.io/projects/spring-cloud-security)
 
 Spring Cloud Security 为构建安全的应用程序和分布式服务提供了一套解决方案。在 Spring Boot 和 Spring Security OAuth2 的基础上，可以快速创建系统，实现单点登录、令牌中继和令牌交换等常见模式。
 
