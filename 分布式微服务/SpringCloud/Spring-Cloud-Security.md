@@ -583,13 +583,13 @@ public class AuthorizationServerConfigurerAdapter implements AuthorizationServer
 
 `ClientDetailsServiceConfigurer` 类能够使用内存或者 JDBC 来实现客户端详情服务（`ClientDetailsService`），`ClientDetailsService` 负责查找 `ClientDetails`，而 `ClientDetails` 有几个重要的属性如下列表：
 
-|         属性名         | 描述                                                                         |
-| :--------------------: | ---------------------------------------------------------------------------- |
-|       `clientId`       | （必须的）用来标识客户的 Id                                                  |
-|        `secret`        | （需要值得信任的客户端）客户端安全码，如果有的话                             |
+|         属性名          |                               描述                               |
+| :--------------------: | ---------------------------------------------------------------- |
+|       `clientId`       | （必须的）用来标识客户的 Id                                          |
+|        `secret`        | （需要值得信任的客户端）客户端安全码，如果有的话                         |
 |        `scope`         | 用来限制客户端的访问范围，如果为空（默认）的话，那么客户端拥有全部的访问范围 |
-| `authorizedGrantTypes` | 此客户端可以使用的授权类型，默认为空                                         |
-|     `authorities`      | 此客户端可以使用的权限（基于 Spring Security authorities）                   |
+| `authorizedGrantTypes` | 此客户端可以使用的授权类型，默认为空                                   |
+|     `authorities`      | 此客户端可以使用的权限（基于 Spring Security authorities）            |
 
 客户端详情（Client Details）能够在应用程序运行的时候进行更新，可以通过访问底层的存储服务（例如将客户端详情存储在一个关系数据库的表中，就可以使用 `JdbcClientDetailsService`）或者通过自定义实现 `ClientRegistrationService` 接口（同时也可以实现 `ClientDetailsService` 接口）来进行管理。
 
@@ -724,7 +724,7 @@ public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdap
         service.setRefreshTokenValiditySeconds(259200); // 刷新令牌默认有效期3天
         return service;
     }
-    ....
+    // 省略....
 }
 ```
 
@@ -900,6 +900,8 @@ OAuth2.0 提供了 4 种授权模式，分别是：
 ![](images/124084522220171.png)
 
 #### 4.1.2. 授权码授权流程
+
+![](images/273244609248972.jpg)
 
 1. **资源拥有者打开客户端，客户端要求资源拥有者给予授权，它将浏览器被重定向到授权服务器，重定向时会附加客户端的身份信息**。请求认证服务获取授权码(GET 请求)，如上示例：
 
