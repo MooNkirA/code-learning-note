@@ -1,12 +1,10 @@
-# Spring Security
+## 1. Spring Security 概述
+
+Spring Security 是一个能够为基于 Spring 的企业应用系统提供声明式的安全访问控制解决方案的安全框架。由于它是 Spring 生态系统中的一员，因此它伴随着整个 Spring 生态系统不断修正、升级，在 spring boot 项目中加入 spring security 更是十分简单，使用 Spring Security 减少了为企业系统安全控制编写大量重复代码的工作。
 
 - 官网：https://spring.io/projects/spring-security
 - 官方源码仓库地址：https://github.com/spring-projects/spring-security
 - 官方示例仓库地址：https://github.com/spring-projects/spring-security-samples
-
-## 1. Spring Security 概述
-
-Spring Security 是一个能够为基于 Spring 的企业应用系统提供声明式的安全访问控制解决方案的安全框架。由于它是 Spring 生态系统中的一员，因此它伴随着整个 Spring 生态系统不断修正、升级，在 spring boot 项目中加入 spring security 更是十分简单，使用 Spring Security 减少了为企业系统安全控制编写大量重复代码的工作。
 
 ## 2. Spring Security 快速开始
 
@@ -1785,7 +1783,22 @@ Spring Security 内置了三个基于投票的 `AccessDecisionManager` 实现类
 
 Spring Security 也内置一些投票者实现类，如 `RoleVoter`、`AuthenticatedVoter` 和 `WebExpressionVoter` 等，待查阅资料学习
 
+## 6. Spring Security OAuth 概述
 
+Spring Security OAuth2.0 是对 OAuth2.0 协议的一种实现，并且跟 Spring Security 相辅相成。
 
+- 官网：https://spring.io/projects/spring-security-oauth
+- 官方源码仓库地址：https://github.com/spring-projects/spring-security-oauth
+- 官方 SpringBoot 版本源码仓库地址：https://github.com/spring-projects/spring-security-oauth2-boot
 
+### 6.1. Spring Security OAuth2.0 与 Spring Cloud 整合
 
+Spring Security OAuth2.0 与 Spring Cloud 体系的集成也非常便利
+
+此部分详细内容详见 [《Spring Cloud Security 学习笔记》](/分布式微服务/SpringCloud/Spring-Cloud-Security)
+
+### 6.2. 项目终止维护通知
+
+Spring Security OAuth 项目生命周期已结束，不再积极维护。该项目已被 Spring Security 和 Spring Authorization Server 提供的 OAuth2 支持所取代。
+
+- [Spring Authorization Server 官网](https://spring.io/projects/spring-authorization-server)

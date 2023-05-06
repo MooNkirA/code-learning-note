@@ -55,9 +55,13 @@ JVM 能涉及非常庞大的一块知识体系，比如内存结构、垃圾回�
 
 在JVM的知识体系中，内存结构是核心重点，所有JVM相关的知识都或多或少涉及内存结构。比如垃圾回收回收的就是内存、类加载加载到的地方也是内存、性能优化也涉及到内存优化、执行引擎与内存密不可分、类文件结构与内存的设计有关系，监控工具也会监控内存。
 
-### 1.5. JVM 内存模型图（参考网络）
+### 1.5. JVM 内存模型图（来源网络）
 
 ![](images/475771823239486.png)
+
+### 1.6. JVM 整体结构图
+
+![JVM结构图.drawio - JVM 整体结构图](images/545642912257006.jpg)
 
 ## 2. JVM 内存结构（重点）
 
@@ -65,7 +69,7 @@ JVM 能涉及非常庞大的一块知识体系，比如内存结构、垃圾回�
 
 #### 2.1.1. 结构图
 
-![](images/20200725154323878_4049.jpg)
+![JVM结构图.drawio - 运行时数据区域](images/20200725154323878_4049.jpg)
 
 **运行时数据区的定义**：Java 虚拟机在执行 Java 程序的过程中会把它所管理的内存划分为若干个不同的数据区域
 
@@ -73,8 +77,8 @@ JVM 能涉及非常庞大的一块知识体系，比如内存结构、垃圾回�
 
 JVM 内存主要分为**堆、程序计数器、方法区、虚拟机栈和本地方法栈**等。按照与线程的关系也可以这么划分区域：
 
-- **线程私有区域**：一个线程拥有单独的一份内存区域。主要包含虚拟机栈、本地方法栈、程序计数器
-- **线程共享区域**：被所有线程共享，且在内存中只有一份，主要包含堆、方法区
+- **线程私有区域**：一个线程拥有单独的一份内存区域。主要包含虚拟机栈、本地方法栈、程序计数器。区域生命周期与线程相同，依赖用户线程的启动/结束而创建/销毁
+- **线程共享区域**：被所有线程共享，且在内存中只有一份，主要包含堆、方法区。共享区域随虚拟机的启动/关闭而创建/销毁。
 
 **直接内存**也叫作堆外内存，它并不是JVM 运行时数据区的一部分，它属于没有被JVM虚拟机化的操作系统上的其他内存。比如操作系统上有8G内存，被 JVM 虚拟化了3G，那么还剩余5G，JVM 是借助一些工具使用这5G内存的，这个内存部分称之为直接内存。
 
@@ -142,14 +146,16 @@ public class StackError {
 
 #### 2.2.3. 栈帧
 
-在每个 Java 方法被调用的时候，都会创建一个栈帧，并进入虚拟机栈（入栈）。一旦方法完成相应的调用后，则出栈。栈帧用于存储部分运行时数据及其数据结构。**栈帧大体都包含四个区域**：
+在每个 Java 方法被调用的时候，都会创建一个栈帧，并进入虚拟机栈（入栈）；一旦方法完成相应的调用后，则出栈。栈帧（Frame）用于存储部分运行时数据及其部分过程结果的数据结构，同时也被用来处理动态链接(Dynamic Linking)。**栈帧大体都包含四个区域**：
 
 - **局部变量表**：用于存放方法参数和方法内局部变量。它是一个 32 位的长度，主要存放我们的 Java 的八大基础数据类类型；如果是 64 位的就使用高低位占用两个也可以存放下；如果是局部的对象，比如 Object 对象，只需要存放它的一个引用地址即可
 - **操作数栈**：是存放 java 方法执行的操作数的，先进后出的栈结构。操作的的元素可以是任意的 java 数据类型，所以在一个方法刚刚开始的时候，这个方法操作数栈是空的。<font color=red>**操作数栈本质上是 JVM 执行引擎的一个工作区，也就是方法在执行，才会对操作数栈进行操作，如果代码不不执行，操作数栈其实就是空的**</font>
 - **动态连接**：Java 语言的多态特性。每个栈帧都包含一个指向运行时常量池中该栈所属方法的符号引用，在方法调用过程中，会进行动态链接，将这个符号引用转化为直接引用。
     - 部分符号引用在类加载阶段的时候就转化为直接引用，这种转化就是**静态链接**
     - 部分符号引用在运行期间转化为直接引用，这种转化就是**动态链接**
-- **返回地址**：正常返回（调用程序计数器中的地址作为返回）、异常的话（通过异常处理器表[非栈帧中的]来确定）
+- **返回地址（方法出口）**：正常返回（调用程序计数器中的地址作为返回）、异常的话（通过异常处理器表[非栈帧中的]来确定）
+
+栈帧随着方法调用而创建，随着方法结束而销毁。无论方法是正常完成还是异常完成（抛出了在方法内未被捕获的异常）都算作方法结束。
 
 #### 2.2.4. 栈帧执行对内存区域的影响
 
@@ -218,17 +224,46 @@ java -Xms256m -Xmx1024M
 
 #### 2.5.4. 堆空间分代划分
 
-堆被划分为：**`新生代`**、**`老年代（Tenured）`**和**`永久代`**。其中，新生代默认占 1/3 堆空间，老年代默认占 2/3 堆空间，永久代（主要存放 Class 和 Meta 元数据的信息）占非常少的堆空间。
+堆被划分为：**新生代**、**老年代（Tenured）**和**永久代**。其中，新生代默认占 1/3 堆空间，老年代默认占 2/3 堆空间，永久代（主要存放 Class 和 Meta 元数据的信息）占非常少的堆空间。
 
-新生代又被进一步划分为：`Eden 区`和 `Survivor 区`，而 `Survivor 区`又由 `FromSurvivor 区`和 `ToSurvivor 区`组成。Eden 区默认占 8/10 新生代空间，FromSurvivor 区和 ToSurvivor 区默认分别占 1/10 新生代空间。
-
-值得注意的是：在 Java 8 中永久代已经被元数据区（也称元空间）所取代。元数据区作用与永久代类似，最大区别在于：元数据区并没有使用 Java 虚拟机的内存，而是直接使用操作系统的本地内存。因此，元空间的大小不再受 JVM 内存的限制，加载的元数据信息的多少，由操作系统的内存空间决定。
+新生代又被进一步划分为：**Eden 区**和 **Survivor 区**，而 Survivor 区又由 **SurvivorFrom 区**和 **SurvivorTo 区**组成。Eden 区默认占 8/10 新生代空间，SurvivorFrom 区和 SurvivorTo 区默认分别占 1/10 新生代空间。
 
 > TOOD: 待重画堆的结构图
 
 ![](images/20200726231549257_3347.png)
 
+值得注意的是：在 Java 8 中永久代已经被元数据区（也称元空间）所取代。元数据区作用与永久代类似，最大区别在于：元数据区并没有使用 Java 虚拟机的内存，而是直接使用操作系统的本地内存。因此，元空间的大小不再受 JVM 内存的限制，加载的元数据信息的多少，由操作系统的内存空间决定。
+
+> Notes: 堆空间的分代划分主要是用于 GC 垃圾回收算法
+
+##### 2.5.4.1. Eden 区
+
+Java 新对象的存放区域（如果新创建的对象占用内存很大，则直接分配到老年代）。当 Eden 区内存不够的时候就会触发 MinorGC，对新生代区进行一次垃圾回收。
+
+##### 2.5.4.2. SurvivorFrom 区
+
+上一次 GC 的幸存者，作为本次 GC 的被扫描者。
+
+##### 2.5.4.3. SurvivorTo 区
+
+保留了一次 MinorGC 过程中的幸存者。
+
+##### 2.5.4.4. 老年代
+
+老年代主要存放应用程序中生命周期长的内存对象。老年代的对象比较稳定，所以 MajorGC 不会频繁执行，在进行 MajorGC 前一般都先进行了一次 MinorGC。当无法找到足够大的连续空间分配给新创建的较大对象时也会提前触发一次 MajorGC 进行垃圾回收腾出空间。
+
+##### 2.5.4.5. 永久代
+
+永久代指内存的永久保存区域，主要存放 Class 和 Meta（元数据）的信息，Class 在被加载的时候被放入永久区域。它和和存放实例的区域不同，GC 不会在主程序运行期对永久区域进行清理，所以这也导致了永久代的区域会随着加载的 Class 的增多而胀满，最终抛出 OOM 异常。
+
+#### 2.5.5. 32 位和 64 位 JVM 的最大堆内存
+
+- 32 位的 JVM 理论上堆内存可以到达 2<sup>32</sup>，即 4GB，但实际上会比这个小很多。不同操作系统之间不同，如 Windows 系统大约 1.5 GB，Solaris 大约 3GB。
+- 64 位的 JVM 允许指定最大的堆内存，理论上可以达到 2<sup>64</sup>，这也是一个非常大的数值，实际上可以指定堆内存大小到 100GB。甚至有的 JVM(如 Azul)，堆内存到 1000G 都是可能的。
+
 ### 2.6. 方法区
+
+#### 2.6.1. 方法区的定义
 
 方法区也被称为永久代，与堆空间一样，是各个线程共享的内存区域。**主要是用来存放已被虚拟机加载的类相关信息，包括类信息、静态变量、常量、运行时常量池、字符串常量池、即时编译器编译后的机器码等**。方法区是 JVM 对内存的“逻辑划分”：
 
@@ -239,11 +274,11 @@ JVM 在执行某个类的时候，必须先加载。在加载类（加载、验�
 
 <font color=red>**对方法区进行垃圾回收的主要目标是：常量池的回收和类的卸载。**</font>
 
-#### 2.6.1. 字面量
+#### 2.6.2. 字面量
 
 字面量包括字符串（`String a = "b"`）、基本类型的常量（`final` 修饰的变量）
 
-#### 2.6.2. 符号引用
+#### 2.6.3. 符号引用
 
 符号引用则包括类和方法的全限定名（例如 `String` 这个类，它的全限定名就是 `java.lang.String`）、字段的名称和描述符以及方法的名称和描述符。
 
@@ -253,49 +288,46 @@ JVM 在执行某个类的时候，必须先加载。在加载类（加载、验�
 
 **符号引用与虚拟机实现的内存布局是无关的，引用的目标不一定已经加载到内存中**。
 
-#### 2.6.3. 常量池与运行时常量池
+#### 2.6.4. 常量池与运行时常量池
 
-**运行时常量池是方法区的一部分**。当类加载到内存中后，JVM 就会将 class 文件常量池中的内容存放到运行时的常量池中。在解析阶段，JVM 会把符号引用替换为直接引用（对象的索引值）
+**运行时常量池是方法区的一部分**。当类加载到内存中后，JVM 就会将 class 文件常量池中的内容存放到运行时的常量池中，除了有类的版本、字段、方法、接口等描述等信息外，还有一项信息是常量池（Constant Pool Table），用于存放编译期生成的各种字面量和符号引用。在解析阶段，JVM 会把符号引用替换为直接引用（对象的索引值）。
 
 例如：类中的一个字符串常量在 class 文件中时，存放在 class 文件常量池中的；在 JVM 加载完类之后，JVM 会将这个字符串常量放到运行时常量池中，并在解析阶段，指定该字符串对象的索引值。运行时常量池是全局共享的，多个类共用一个运行时常量池，class 文件中常量池多个相同的字符串在运行时常量池只会存在一份。
 
 常量池与运行时常量池的区别：
 
-- 运行时常量池（Runtime Constant Pool）是每一个类或接口的常量池（Constant_Pool）的运行时表示形式，它包括了若干种不同的常量：从编译期可知的数值字面量到必须运行期解析后才能获得的方法或字段引用。
+- 运行时常量池（Runtime Constant Pool）是每一个类或接口的常量池（Constant Pool）的运行时表示形式，它包括了若干种不同的常量：从编译期可知的数值字面量、必须运行期解析后才能获得的方法或字段引用。
 - 运行时常量池相对于 Class 常量池的另外一个重要特征是具备**动态性**
 
-#### 2.6.4. 元空间
+### 2.7. Java 8 的元空间
 
-JDK1.8 及其之后称之为**元空间**。在 HotSpot 虚拟机中，Java7 版本中已经将永久代的静态变量和运行时常量池转移到了堆中，其余部分则存储在 JVM 的非堆内存中，而 Java8 版本已经将方法区中实现的永久代去掉了，并用元空间（class metadata）代替了之前的永久代，并且元空间的存储位置是本地内存。
+在 HotSpot 虚拟机中，Java7 版本中已经将永久代的静态变量和运行时常量池转移到了堆中，其余部分则存储在 JVM 的非堆内存中。而 Java8 版本已经将方法区中实现的永久代移除，并用**元空间**（class metadata）代替了之前的永久代，并且元空间的存储位置不再是在虚拟机中，而是使用本地内存。
 
-**元空间大小参数设置**
+**元空间与永久代两者最大的区别在于：元空间并不在虚拟机中，而是使用直接内存**。默认情况下，永久代内存受限于 JVM 可用内存，而<u>**元空间使用的是直接内存，受本机可用内存的限制**</u>，虽然元空间仍旧可能溢出，但是相比永久代内存溢出的概率更小。
 
-- jdk1.7 及以前（初始和最大值）：`-XX:PermSize; -XX:MaxPermSize;`
-- jdk1.8 以后（初始和最大值）：`-XX:MetaspaceSize; -XX:MaxMetaspaceSize;`
-- jdk1.8 以后大小就只受本机总内存的限制（如果不设置参数的话）
+**元空间大小参数设置**如下：
 
-> JVM 参数参考：《1.2 JAVA SE 官方文档网址》，了解Java8 为什么使用元空间替代永久代，这样做有什么好处呢？
+- JDK 1.7 及以前（初始和最大值）：`-XX:PermSize; -XX:MaxPermSize;`
+- JDK 1.8 以后（初始和最大值）：`-XX:MetaspaceSize; -XX:MaxMetaspaceSize;`。如果不设置参数的话，大小就只受本机总内存的限制
+
+> JVM 参数参考：《1.2 JAVA SE 官方文档网址》，了解 Java8 为什么使用元空间替代永久代，这样做有什么好处呢？
 >
 > - 官方解释：移除永久代是为了融合 HotSpot JVM 与 JRockit VM 而做出的努力，因为 JRockit 没有永久代，所以不需要配置永久代。
 > - 永久代内存经常不够用或发生内存溢出，抛出异常 `java.lang.OutOfMemoryError: PermGen`。这是因为在 JDK1.7 版本中，指定的 PermGen 区大小为8M，由于 PermGen 中类的元数据信息在每次 FullGC 的时候都可能被收集，回收率都偏低，成绩很难令人满意；还有为 PermGen 分配多大的空间很难确定，PermSize 的大小依赖于很多因素，比如，JVM 加载的 class 总数、常量池的大小和方法的大小等。
 
-为什么要将永久代替换为元空间呢?
-
-元空间与永久代两者最大的区别在于：元空间并不在虚拟机中，而是使用直接内存。永久代内存受限于 JVM 可用内存，而元空间使用的是直接内存，受本机可用内存的限制，虽然元空间仍旧可能溢出，但是相比永久代内存溢出的概率更小。
-
-### 2.7. 直接内存（堆外内存）
+### 2.8. 直接内存（堆外内存）
 
 直接内存，又称堆外内存，是用于进行数据存储。JVM 在运行时，会从操作系统申请大块的堆内存，进行数据的存储；同时还有虚拟机栈、本地方法栈和程序计数器，这块称之为栈区。操作系统剩余的内存也就是堆外内存。
 
-直接内存不是虚拟机运行时数据区的一部分，也不是 java 虚拟机规范中定义的内存区域。堆外内存不受 java 堆大小限制，但受本机总内存的限制，可以通过`-XX:MaxDirectMemorySize`来设置（默认与堆内存最大值一样）大小。这部分内存也被频繁地使用，所以也会出现 OOM 异常。
+<u>**直接内存不是虚拟机运行时数据区的一部分**</u>，也不是 java 虚拟机规范中定义的内存区域。堆外内存不受 JVM 堆大小限制，但受本机总内存的限制，可以通过`-XX:MaxDirectMemorySize`来设置（默认与堆内存最大值一样）大小。这部分内存也被频繁地使用，所以也会出现 OOM 异常。
 
-直接内存的读写操作比堆内存快，可以提升程序I/O操作的性能。通常在I/O通信过程中，会存在堆内内存到堆外内存的数据拷贝操作，对于需要频繁进行内存间数据拷贝且生命周期较短的暂存数据，都建议存储到直接内存。如果使用了 NIO 的话，这块区域会被频繁使用。NIO 提供了 `DirectBuffer`，可以直接访问系统物理内存，避免堆内内存到堆外内存的数据拷贝操作，提高效率。`DirectBuffer` 直接分配在物理内存中，并不占用堆空间，其可申请的最大内存受操作系统限制，不受最大堆内存的限制。
+直接内存的读写操作比堆内存快，可以提升程序I/O操作的性能。通常在I/O通信过程中，会存在堆内内存到堆外内存的数据拷贝操作，对于需要频繁进行内存间数据拷贝且生命周期较短的暂存数据，都建议存储到直接内存。如果使用了 NIO 的话，这块区域会被频繁使用。NIO 提供了 `DirectBuffer`，可以直接访问系统物理内存，避免堆内内存到堆外内存的来回的数据拷贝操作，提高效率。`DirectBuffer` 直接分配在物理内存中，并不占用堆空间，其可申请的最大内存受操作系统限制，不受最大堆内存的限制。
 
 在 java 堆内可以用 `DirectByteBuffer` 对象直接引用并操作。其他堆外内存，主要是指使用了 Unsafe 或者其他 JNI 手段直接申请的内存。
 
 > Tips: 堆外内存的泄漏是非常严重的，它的排查难度高、影响大，甚至会造成主机的程序死亡。同时，要注意 Oracle 之前计划在 Java 9 中去掉 `sun.misc.Unsafe` API。这里删除 `sun.misc.Unsafe` 的原因之一是使 Java 更加安全，并且有替代方案。
 
-### 2.8. 堆和栈的区别
+### 2.9. 堆和栈的区别
 
 **物理地址**：
 
@@ -320,6 +352,8 @@ JDK1.8 及其之后称之为**元空间**。在 HotSpot 虚拟机中，Java7 版
 - 栈只对于线程是可见的，所以也是<font color=red>**线程私有**</font>。栈的生命周期和线程相同。
 
 ## 3. JVM 运行流程示例
+
+### 3.1. 运行流程测试
 
 ```java
 /**
@@ -353,7 +387,7 @@ public class JVMObject {
 }
 ```
 
-配置VM参数：`-Xms30m -Xmx30m -XX:MaxMetaspaceSize=30m -XX:+UseConcMarkSweepGC -XX:-UseCompressedOops`
+配置 VM 参数：`-Xms30m -Xmx30m -XX:MaxMetaspaceSize=30m -XX:+UseConcMarkSweepGC -XX:-UseCompressedOops`
 
 **JVM运行的主要流程**如下：
 
@@ -362,19 +396,13 @@ public class JVMObject {
 3. 进行类加载，主要是把 class 放入方法区、还有 class 中的静态变量和常量也要放入方法区
 4. 执行方法及创建对象。如上面测试代码：启动 main 线程，执行 main 方法，开始执行第一行代码。此时堆内存中会创建一个 Person 对象，对象引用 p1 就存放在栈中。后续代码中遇到 new 关键字，会再创建一个 Person 对象，对象引用 p2 就存放在栈中。
 
-![示例代码运行JVM内存处理全流程](images/20200726230511413_13632.jpg)
+![示例代码运行JVM内存处理全流程.drawio](images/20200726230511413_13632.jpg)
 
-### 3.1. JVM 运行内存的整体流程总结
+### 3.2. JVM 运行内存的整体流程总结
 
 - JVM 在操作系统上启动，申请内存，先进行运行时数据区的初始化，然后把类加载到方法区，最后执行方法。
 - 方法的执行和退出过程在内存上的体现上就是虚拟机栈中栈帧的入栈和出栈。
 - 同时在方法的执行过程中创建的对象一般情况下都是放在堆中，最后堆中的对象也是需要进行垃圾回收清理的。
-
-### 3.2. GC 概念
-
-GC- Garbage Collection(垃圾回收)，在 JVM 中是自动化的垃圾回收机制，一般不用去关注，在 JVM 中 GC 的重要区域是堆空间。
-
-可以通过一些额外方式主动发起 GC 垃圾回收，比如通过`System.gc()`方法可以主动发起。（**项目中切记不要使用**）
 
 ### 3.3. JHSDB 工具
 
@@ -464,7 +492,7 @@ It is also possible to use compressed pointers when Java heap sizes are greater 
 
 #### 3.3.5. JVM 的处理全过程总结
 
-执行上面的示例程序，可以看到JVM在运行程序的全过程如下：
+执行上面的示例程序，可以看到 JVM 在运行程序的全过程如下：
 
 1. JVM 向操作系统申请内存，JVM 第一步就是通过配置参数或者默认配置参数向操作系统申请内存空间。
 2. JVM 获得内存空间后，会根据配置参数分配堆、栈以及方法区的内存大小。
@@ -649,7 +677,7 @@ JVM 在编译阶段后会为 final 类型的变量 value 生成其对应的 Cons
 
 初始化阶段，是指开始执行类中定义的 Java 代码，调用类构造器，对静态变量和静态代码块执行初始化工作。主要通过执行类构造器的`<client>`方法为类进行初始化。`<client>`方法是在编译阶段由编译器自动收集类中静态语句块和变量的赋值操作组成的。JVM 规定，只有在父类的`<client>`方法都执行成功后，子类中的`<client>`方法才可以被执行。在一个类中既没有静态变量赋值操作也没有静态语句块时，编译器不会为该类生成`<client>`方法。
 
-在发生以下几种情况时，JVM 不会执行类的初始化流程：
+在发生以下几种情况时，JVM <u>不会</u>执行类的初始化流程：
 
 - 常量在编译时会将其常量值存入使用该常量的类的常量池中，该过程不需要调用常量所在的类，因此不会触发该常量类的初始化。
 - 在子类引用父类的静态字段时，不会触发子类的初始化，只会触发父类的初始化。
@@ -703,7 +731,7 @@ System.out.println("cl1:" + cl1);
 
 > Notes: **如果在 eclipse 中要使用 lib/ext 包中的类，需要进行如下设置**：
 >
-> 在“Project Properties --> Java Build Path”中的指定 JRE 包的访问规则，Edit 规则 Accessible，指定为 `sun/**`，指定可以在 eclipse 中访问 sun 开头的包。
+> 在【Project Properties】->【Java Build Path】中的指定 JRE 包的访问规则，Edit 规则 Accessible，指定为 `sun/**`，指定可以在 eclipse 中访问 sun 开头的包。
 >
 > ![](images/20190801110350918_7493.png)
 
@@ -740,7 +768,7 @@ System.out.println(cl); // 打印结果sun.misc.Launcher$ExtClassLoader
 
 **应用类加载器（Application ClassLoader），或者称为系统类加载器（System ClassLoader）**：由 Java 程序编写，是一个 Java 内部类，`sun.misc.Launcher$AppClassLoader`类（JDK9是`jdk.internal.loader.ClassLoaders$AppClassLoader`）。负责加载 `CLASSPATH` 环境变量或者系统属性 `java.class.path` 所指定的目录中指定的 jar(包括第三方的库)和 bin 目录下的 Java 类。一般来说，Java 应用的类都是由它来完成加载的。可以通过 `ClassLoader.getSystemClassLoader()` 方法来获取它。一般情况，如果没有自定义类加载器，则默认使用该类加载器。
 
-**其父加载器是扩展类加载器，是用户自定义类加载器的父加载器。**
+**其父加载器是扩展类加载器，是用户自定义类加载器的默认父加载器。**
 
 ```java
 // 平常编写的 Java 类是使用的应用类加载器
@@ -750,11 +778,13 @@ System.out.println(classLoader); // sun.misc.Launcher$AppClassLoader
 
 #### 6.2.4. User ClassLoader（自定义类加载器）
 
-**用户自定义类加载器（User ClassLoader）**：通过继承 `java.lang.ClassLoader` 类的方式实现
+**用户自定义类加载器（User ClassLoader）**，通过继承 `java.lang.ClassLoader` 类的方式实现。**其默认父加载器是系统类加载器**。
 
 ### 6.3. 类加载器的加载机制（双亲委派机制）
 
-从 JDK1.2 开始，<font color=red>**类的加载过程采用双亲委派机制**</font>。这种机制能够很好的保护 java 程序的安全。
+#### 6.3.1. 双亲委派机制的概念
+
+从 JDK1.2 开始，<font color=red>**类的加载过程采用双亲委派机制(PDM)**</font>。这种机制能够很好的保护 java 程序的安全。
 
 双亲委派模型：如果一个类加载器收到了类加载的请求，它首先不会自己去加载这个类，而是把这个请求委派给父类加载器去完成，每一层的类加载器都是如此，这样所有的加载请求都会被传送到顶层的启动类加载器中，只有当父加载无法完成加载请求（它的搜索范围中没找到所需的类）时，才向下委派给子加载器尝试去加载类，直到该类被成功加载。
 
@@ -824,7 +854,7 @@ sun.misc.Launcher$AppClassLoader@18b4aac2
 sun.misc.Launcher$ExtClassLoader@677327b6
 ```
 
-#### 6.3.1. 双亲委派机制的加载流程
+#### 6.3.2. 双亲委派机制的加载流程
 
 ![](images/288710510239286.jpg)
 
@@ -842,7 +872,7 @@ sun.misc.Launcher$ExtClassLoader@677327b6
 
 > Notes: 双亲委派机制的核心是保障类的唯一性和安全性。如果在 JVM 中存在包名和类名相同的两个类，则该类将无法被加载，JVM 也无法完成类加载流程。
 
-#### 6.3.2. 双亲委派机制的好处
+#### 6.3.3. 双亲委派机制的好处
 
 使用双亲委派机制的好处：
 
@@ -884,6 +914,7 @@ Exception in thread "main" java.lang.SecurityException: Prohibited package name:
 通过 Class 对象的 `getClassLoader` 方法可以获得当前类的类加载器对象
 
 ```java
+@CallerSensitive
 public ClassLoader getClassLoader()
 ```
 
@@ -895,22 +926,19 @@ public ClassLoader getClassLoader()
 public final ClassLoader getParent()
 ```
 
-- 获得父加载器对象
-- 三种类加载器之间没有子父类关系。只是一种叫法。
-- 三种加载器的子父关系（上下级关系）：应用类加载器(AppClassLoader) -> 扩展类加载器(ExtClassLoader) -> 引导类加载器(BootstrapClassLoader)
+- 获得父加载器对象。三种类加载器之间没有真正的子父类关系，只是一种叫法。三种加载器的子父关系（上下级关系）：应用类加载器(AppClassLoader) -> 扩展类加载器(ExtClassLoader) -> 引导类加载器(BootstrapClassLoader)
 
 ```java
 public URL getResource(String name)
 ```
 
-- 如果资源文件是在src文件夹下，资源文件路径：不需要加“/”，代表从bin目录查找指定名称的资源文件。
-- 返回的URL对象(统一资源定位符)
+- 如果资源文件是在 src 文件夹下，资源文件路径：不需要加 `/`，代表从 bin 目录查找指定名称的资源文件。返回值是 URL 对象(统一资源定位符)
 
 ```java
 public InputStream getResourceAsStream(String name)
 ```
 
-- 如果资源文件是在src文件夹下，资源文件路径：不需要加“/”，代表从bin目录查找指定名称的资源文件。返回资源文件关联的字节输入流对象。
+- 如果资源文件是在 src 文件夹下，资源文件路径：不需要加 `/`，代表从 bin 目录查找指定名称的资源文件。返回资源文件关联的字节输入流对象。
 
 ```java
 protected Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException
@@ -943,6 +971,10 @@ private native void resolveClass0(Class<?> c);
 - 类加载器可以使用此方法来连接指定的类。
 
 #### 6.4.3. URLClassLoader（实现类）
+
+```java
+public class URLClassLoader extends SecureClassLoader implements Closeable
+```
 
 在 java.net 包中，JDK 提供了一个更加易用的类加载器 `URLClassLoader`，继承了 `ClassLoader`，能够从本地或者网络上指定的位置加载类。*可以将其作为自定义的类加载器来使用*。
 
@@ -1174,21 +1206,30 @@ java.util.ServiceLoader 的部分源码截图：
 
 ### 7.1. Java 垃圾回收机制概述
 
-GC（Gabage Collection）垃圾收集，是 Java 与 C++ 的主要区别之一。
+GC（Gabage Collection）垃圾收集，是 JVM 内部的一个守护线程，也是 Java 与 C++ 的主要区别之一。
 
-在 Java 语言中，程序员不需要显式的去释放一个对象的内存，而是由虚拟机自行执行。在 JVM 中有一个垃圾回收线程（守护线程），它是低优先级的，在正常情况下是不会执行的，只有在虚拟机空闲或者当前堆内存不足时，才会触发执行。GC 线程会对 JVM 中的内存进行标记，扫描并确定哪些没有被任何引用的对象、哪些内存需要回收，根据一定的回收策略，并将它们添加到要回收的集合中，自动的回收内存，保证 JVM 中的内存空间，防止出现内存泄露和溢出问题。
+在 Java 语言中，程序员不需要显式的去释放一个对象的内存，而是由虚拟机自行执行。在 JVM 中有一个垃圾回收线程（守护线程），它是低优先级的，在正常情况下是不会执行的，只有在虚拟机空闲或者当前堆内存不足时，才会触发执行。GC 线程会对 JVM 中的内存进行标记，扫描并确定哪些内存堆中已经死亡的或者长时间没有被任何引用的对象、哪些内存需要回收，根据一定的回收策略，并将它们添加到要回收的集合中，自动的回收内存，保证 JVM 中的内存空间，防止出现内存泄露和溢出问题。**其中 JVM 中 GC 的重点区域是堆空间**。
 
-Java 提供的 GC 功能可以自动监测对象是否超过作用域从而达到自动回收内存的目的，并且 Java 语言没有提供释放已分配内存的显示操作方法。
+在 JVM 中是自动化的垃圾回收机制，Java 提供的 GC 功能可以自动监测对象是否超过作用域从而达到自动回收内存的目的，并且 Java 语言没有提供释放已分配内存的显示操作方法。程序员一般不用去关注，也可以通过 `System.gc()` 或者 `Runtime.getRuntime().gc()` 手动执行的额外方式来主动发起 GC 垃圾回收（**项目中切记不要使用**），但是 Java 语言规范并不保证 GC 一定会执行。
+
+> 在 Java 诞生初期，垃圾回收是 Java 最大的亮点之一，因为服务器端的编程需要有效的防止内存泄露问题，然而如今 Java 的垃圾回收机制已经成为被诟病的存在。移动智能终端用户通常觉得 IOS 的系统比 Android 系统有更好的用户体验，其中一个深层次的原因就在于 Android 系统中垃圾回收的不可预知性。
 
 #### 7.1.1. 内存溢出（内存泄漏）
 
-内存泄漏是指不再被使用的对象或者变量一直被占据在内存中。理论上来说，JVM 是有GC垃圾回收机制的，也就是说，不再被使用的对象，会被GC自动回收掉，自动从内存中清除。
+内存泄漏是指不再被使用的对象或者变量一直被占据在内存中。理论上来说，JVM 是有 GC 垃圾回收机制的，也就是说，不再被使用的对象，会被 GC 自动回收掉，自动从内存中清除。
 
-但是 JVM 也还是存在着内存泄漏的情况，java 导致内存泄露的原因（场景）很明确：**长生命周期的对象持有短生命周期对象的引用就很可能发生内存泄露**，尽管短生命周期对象已经不再需要，但是因为长生命周期对象持有它的引用而导致不能被回收
+但是 JVM 也还是存在着内存泄漏的情况，Java 导致内存泄露的原因（场景）很明确：**长生命周期的对象持有短生命周期对象的引用就很可能发生内存泄露**，尽管短生命周期对象已经不再需要，但是因为长生命周期对象持有它的引用而导致不能被回收
 
 #### 7.1.2. GC 对 Java 中各种引用类型的处理
 
-- **强引用**：Java 中最常见的引用类型，在把一个对象赋给一个引用变量时，这个引用变量就是一个强引用，如：`Object obj = new Object()`。只要强引用关系还存在，发生 GC 的时候不会被回收。强引用是造成 Java 内存泄漏(Memory Link)的主要原因。
+- **强引用**：Java 中最常见的引用类型，在把一个对象赋给一个引用变量时，这个引用变量就是一个强引用。只要强引用关系还存在，发生 GC 的时候不会被回收。
+
+```java
+Object obj = new Object();
+```
+
+> 强引用是造成 Java 内存泄漏(Memory Link)的主要原因。
+
 - **软引用**：有用但不是必须的对象，通过 `SoftReference` 类实现，在内存空间不足时（发生内存溢出之前）会被回收。
 
 ```java
@@ -1234,7 +1275,7 @@ PhantomReference<String> prf = new PhantomReference<String>(new String("str"), n
 算法的优缺点：
 
 - 优点：实现简单，不需要对象进行移动。
-- 缺点：标记、清除过程效率低，无法清除垃圾碎片。产生大量不连续的内存碎片，提高了垃圾回收的频率。
+- 缺点：标记、清除过程效率低，无法清除垃圾碎片。产生大量不连续的内存碎片，提高了垃圾回收的频率。后续可能发生大对象不能找到可利用空间的问题。
 
 #### 7.2.2. 复制算法
 
@@ -1243,7 +1284,7 @@ PhantomReference<String> prf = new PhantomReference<String>(new String("str"), n
 ![](images/370541616232296.png)
 
 - 优点：按顺序分配内存即可，实现简单、运行高效，不用考虑内存碎片。
-- 缺点：内存使用率不高，可用的内存大小缩小为原来的一半，对象存活率高时会频繁进行复制。
+- 缺点：内存使用率不高，可用的内存大小缩小为原来的一半，对象存活率高时会频繁进行复制，效率会大大降低。
 
 #### 7.2.3. 标记-整理算法
 
@@ -1258,7 +1299,7 @@ PhantomReference<String> prf = new PhantomReference<String>(new String("str"), n
 
 #### 7.2.4. 分代收集算法
 
-当前商业虚拟机都采用**分代收集**（Generational Collecting）的垃圾收集算法。分代收集算法，是根据对象的存活周期将内存划分为几块。一般包括**年轻代、老年代和永久代**，如图所示：
+当前商业虚拟机都采用**分代收集**（Generational Collecting）的垃圾收集算法。分代收集算法，是根据对象的存活周期将内存划分为几个不同的区域。一般包括**年轻代、老年代和永久代**，如图所示：
 
 ![](images/441111916247780.png)
 
@@ -1267,20 +1308,18 @@ PhantomReference<String> prf = new PhantomReference<String>(new String("str"), n
 - 新生代采用**复制算法**，该区域主要存储短生命周期的对象，因此在垃圾回收的标记阶段会标记大量已死亡的对象及少量存活的对象，因此只需选用复制算法将少量存活的对象复制到内存的另一端并清理原区域的内存即可。
 - 老年代采用**标记清除算法**或者**标记整理算法**，该区域主要存放长生命周期的对象和大对象，可回收的对象一般较少，因此采用标记整理算法直接释放死亡状态的对象所占用的内存空间即可。
 
-> Notes: Java 8 中已经移除了永久代，新加了一个叫做元数据区的 native 内存区
+> Notes: Java 8 中已经移除了永久代，新增一个叫做元数据区的 native 内存区
 
 ### 7.3. 垃圾回收器的基本原理
 
-对于 GC 来说，当创建对象时，GC 就开始监控这个对象的地址、大小以及使用情况。GC采用有向图的方式记录和管理堆(heap)中的所有对象。
-
-可以手动执行 `System.gc()`，通知 GC 运行，但是 Java 语言规范并不保证 GC 一定会执行。
+对于 GC 来说，当创建对象时，GC 就开始监控这个对象的地址、大小以及使用情况。GC 采用有向图的方式记录和管理堆(heap)中的所有对象。
 
 #### 7.3.1. GC 如何判断对象是否可以被回收（即判断对象是否存活）
 
 垃圾收集器在做垃圾回收的时候，首先需要判定的就是哪些内存是需要被回收的，“存活”的不可以被回收，“死亡”的需要被回收。一般有两种方法来判断：
 
 - **引用计数器法**：为每个对象创建一个引用计数，有对象引用时计数器 +1，引用被释放时计数 -1，当计数器为 0 时就说明对象是不可用、可以被回收。它有一个缺点不能解决循环引用的问题，是指两个对象相互引用，导致它们的引用一直存在，从而不能被回收。
-- **可达性分析算法**：从 GC Roots 对象为起点，开始向下搜索，搜索所走过的路径称为**引用链**。当一个对象到 GC Roots 没有任何引用链相连时，则证明此对象是不可用、可以被回收的。此对象要经过至少两次标记才能判定其是否可以被回收。
+- **可达性分析算法**：从 GC Roots 对象为起点，开始向下搜索，搜索所走过的路径称为**引用链**。当一个对象到 GC Roots 没有任何引用链相连时，则证明此对象是不可用、可以被回收的。值得注意的是，不可达对象不等价于可回收对象，此对象要经过至少两次标记才能判定其是否可以被回收。*此算法解决了引用计数法的循环引用问题*。
 
 ![](images/565224208230361.png)
 
@@ -1303,11 +1342,16 @@ PhantomReference<String> prf = new PhantomReference<String>(new String("str"), n
 
 新生代的 GC 过程叫做 MinorGC，相对触发频繁，采用<u>**复制算法**</u>实现，具体过程如下：
 
-1. 将在 Eden 区和 ServivorFrom 区中存活的对象复制到 ServivorTo 区中。其中某些对象年龄达到老年代的标准（对象晋升老年代的标准由 `XX:MaxTenuringThreshold` 设置，默认为 15）则直接复制到老年代，同时这些对象的年龄都加 1；如果 ServivorTo 区的内存空间不够，也会直接复制到老年代；如果对象属于大对象（通过 `XX:PretenureSizeThreshold` 来设置大小），也会直接复制到老年代。
-2. 清空 Eden 区和 ServivorFrom 区中的对象。
-3. 将 ServivorTo 区和 ServivorFrom 区互换，原来的 ServivorTo 区成为下一次 GC 时的 ServivorFrom 区。
+1. 将在 Eden 区和 SurvivorFrom 区中存活的对象复制到 SurvivorTo 区中，同时这些对象的年龄都加 1。其中有以下几种情况会将对象直接复制到老年代：
+    - 某些对象年龄达到老年代的标准（对象晋升老年代的标准由 `XX:MaxTenuringThreshold` 设置，默认为 15）则直接复制到老年代；
+    - 如果 SurvivorTo 区的内存空间不够，也会直接复制到老年代；
+    - 如果对象属于大对象（通过 `XX:PretenureSizeThreshold` 来设置大小），也会直接复制到老年代。
+2. 清空 Eden 区和 SurvivorFrom 区中的对象。
+3. 将 SurvivorTo 区和 SurvivorFrom 区互换，原来的 SurvivorTo 区成为下一次 GC 时的 SurvivorFrom 区。
 
-老年代的 GC 过程叫做 MajorGC，在老年代的对象比较稳定，MajorGC 不会被频繁触发。在 MajorGC 之前会先进行一次 MinorGC，如果之后出现老年代空间不足或者无法找到足够大的连续空间分配给新创建的大对象时，就会解决 MajorGC 进行垃圾回收，释放内存空间。MajorGC 采用<u>**标记清除算法**</u>，耗时较长，在老年代没有内存空间可分配时，会抛出 Out Of Memory 异常。
+> 对于新生代区域 GC 会如此反复循环以上3步操作。
+
+老年代的 GC 过程叫做 MajorGC，在老年代的对象比较稳定，MajorGC 不会被频繁触发。在 MajorGC 之前会先进行一次 MinorGC，使得有新生代的对象晋身入老年代，如果之后出现老年代空间不足或者无法找到足够大的连续空间分配给新创建的大对象时，就会解决 MajorGC 进行垃圾回收，释放内存空间。MajorGC 采用<u>**标记清除算法**</u>，耗时较长，在老年代没有内存空间可分配时，会抛出 Out Of Memory 异常。
 
 永久代与老年代、新生代不同，GC 不会在程序运行期间对永久代的内存进行清理，因此永久代的内存会随着加载的 Class 文件的增加而增加，在加载的 Class 文件过多时会抛出 Out Of Memory 异常。Java 8 中永久代已经被换成元数据区，元数据区的区别在于，没有使用 JVM 的内存，而是直接使用操作系统的本地内存。
 
@@ -1395,95 +1439,9 @@ G1 收集器的回收过程分为以下几个步骤：
 - **最终标记**：需对其他线程做短暂的暂停，用于处理并发标记阶段对象引用出现变动的区域。
 - **筛选回收**：对各个分区的回收价值和成本进行排序，根据用户所期望的停顿时间来制定回收计划，然后把决定回收的分区的存活对象复制到空的分区中，再清理掉整个旧的分区的全部空间。这里的操作涉及存活对象的移动，会暂停用户线程，由多条收集器线程并行完成。
 
-## 8. JVM 调优
+## 8. Java 对象的布局
 
-### 8.1. 调优的工具
-
-JDK 自带了很多监控工具，都位于 JDK 的 bin 目录下，其中最常用的是 jconsole 和 jvisualvm 这两款视图监控工具。
-
-- jconsole：用于对 JVM 中的内存、线程和类等进行监控；
-- jvisualvm：JDK 自带的全能分析工具，可以分析：内存快照、线程快照、程序死锁、监控内存的变化、gc 变化等。
-
-### 8.2. 常用的 JVM 调优的参数
-
-- Java SE 8 版本JVM虚拟机参数设置参考文档地址：https://docs.oracle.com/javase/8/docs/technotes/tools/unix/java.html
-
-- `-Xms2g`：初始化推大小为 2g；
-- `-Xmx2g`：堆最大内存为 2g；
-- `-XX:NewRatio=4`：设置年轻的和老年代的内存比例为 1:4；
-- `-XX:SurvivorRatio=8`：设置新生代 Eden 和 Survivor 比例为 8:2；
-- `–XX:+UseParNewGC`：指定使用 ParNew + Serial Old 垃圾回收器组合；
-- `-XX:+UseParallelOldGC`：指定使用 ParNew + ParNew Old 垃圾回收器组合；
-- `-XX:+UseConcMarkSweepGC`：指定使用 CMS + Serial Old 垃圾回收器组合；
-- `-XX:+PrintGC`：开启打印 gc 信息；
-- `-XX:+PrintGCDetails`：打印 gc 详细信息。
-
-### 8.3. 常用的 JVM 调优命令
-
-- `jps`：列出本机所有 Java 进程的进程号。常用参数如下：
-    - `-m` 输出 main 方法的参数
-    - `-l` 输出完全的包名和应用主类名
-    - `-v` 输出 JVM 参数
-
-```bash
-jps -lvm
-```
-
-- `jstack`：查看某个 Java 进程内的线程堆栈信息。使用参数 `-l` 可以打印额外的锁信息，发生死锁时可以使用 `jstack -l pid` 观察锁持有情况。
-
-```bash
-jstack -l 4124 | more
-```
-
-- `jstat`：用于查看虚拟机各种**运行状态信息（类装载、内存、垃圾收集等运行数据）**。使用参数 `-gcuitl` 可以查看垃圾回收的统计信息。
-
-```bash
-jstat -gcutil 4124
-
-S0 S1 E O M CCS YGC YGCT FGC FGCT GCT
-0.00 0.00 67.21 19.20 96.36 94.96 10 0.084 3 0.191 0.275
-```
-
-> 参数说明：
->
-> - S0： Survivor0 区当前使用比例
-> - S1： Survivor1 区当前使用比例
-> - E： Eden 区使用比例
-> - O：老年代使用比例
-> - M：元数据区使用比例
-> - CCS：压缩使用比例
-> - YGC：年轻代垃圾回收次数
-> - FGC：老年代垃圾回收次数
-> - FGCT：老年代垃圾回收消耗时间
-> - GCT：垃圾回收消耗总时间
-
-- `jmap`：查看堆内存快照。通过 jmap 命令可以获得运行中的堆内存的快照，从而可以对堆内存进行离线分析。例如，查询进程 4124
-
-```bash
-jmap -heap 4124
-```
-
-- `jinfo`：查看当前的应用 JVM 参数配置。
-
-```bash
-jinfo -flags 1
-```
-
-- 查看所有参数的最终值，*初始值可能被修改掉*。
-
-```bash
-java -XX:+PrintFlagsFinal -version
-```
-
-- 查看所有参数的初始值
-
-```bash
-java -XX:+PrintFlagsInitial
-```
-
-## 9. Java 对象的布局
-
-### 9.1. 概述
+### 8.1. 概述
 
 术语参考: http://openjdk.java.net/groups/hotspot/docs/HotSpotGlossary.html
 
@@ -1491,7 +1449,7 @@ java -XX:+PrintFlagsInitial
 
 ![](images/365882422247717.png)
 
-### 9.2. 对象头
+### 8.2. 对象头
 
 对象头由三部分组成：
 
@@ -1545,7 +1503,7 @@ class oopDesc {
 - `_mark` 表示对象标记、属于 markOop 类型，也就是接下来要讲解的 Mark World，它记录了对象和锁有关的信息
 - `_metadata` 表示类元信息，类元信息存储的是对象指向它的类元数据(Klass)的首地址，其中Klass表示普通指针、`_compressed_klass`表示压缩类指针。
 
-#### 9.2.1. Mark Word
+#### 8.2.1. Mark Word
 
 Mark Word 用于存储对象自身的运行时数据，如哈希码（HashCode）、GC分代年龄、锁状态标志、线程持有的锁、偏向线程ID、偏向时间戳等等，占用内存大小与虚拟机位长一致。Mark Word 对应的类型是 markOop 。源码位于 markOop.hpp 中。
 
@@ -1587,7 +1545,7 @@ Mark Word 用于存储对象自身的运行时数据，如哈希码（HashCode�
 
 ![](images/46532908247718.png)
 
-#### 9.2.2. klass pointer
+#### 8.2.2. klass pointer
 
 这一部分用于存储对象的类型指针，该指针指向它的类元数据，JVM 通过这个指针确定对象是哪个类的实例。该指针的位长度为 JVM 的一个字大小，即 32 位的 JVM 为 32 位，64 位的 JVM 为 64 位。 如果应用的对象过多，使用 64 位的指针将浪费大量内存，统计而言，64 位的 JVM 将会比 32 位的 JVM 多耗费 50% 的内存。为了节约内存可以使用选项 `-XX:+UseCompressedOops` 开启指针压缩，其中，oop 即 ordinary object pointer 普通对象指针。开启该选项后，下列指针将压缩至 32 位：
 
@@ -1602,7 +1560,7 @@ Mark Word 用于存储对象自身的运行时数据，如哈希码（HashCode�
 - 在 32 位系统中，Mark Word = 4 bytes，类型指针 = 4bytes，对象头 = 8 bytes = 64 bits；
 - 在 64 位系统中，Mark Word = 8 bytes，类型指针 = 8bytes，对象头 = 16 bytes = 128bits；
 
-#### 9.2.3. 示例
+#### 8.2.3. 示例
 
 以 32 位虚拟机为例
 
@@ -1610,11 +1568,11 @@ Mark Word 用于存储对象自身的运行时数据，如哈希码（HashCode�
 
 ![](images/20211215111808259_15327.png)
 
-### 9.3. 实例数据
+### 8.3. 实例数据
 
 **实例数据**就是类中定义的成员属性和值。
 
-### 9.4. 对齐填充
+### 8.4. 对齐填充
 
 对齐填充并不是必然存在的，也没有什么特别的意义，它仅仅起着占位符的作用，由于 HotSpot VM 的自动内存管理系统要求对象起始地址必须是 8 字节的整数倍，换句话说，就是对象的大小必须是 8 字节的整数倍。而对象头正好是 8 字节的倍数，因此，当对象实例数据部分没有对齐时，就需要通过对齐填充来补全。
 
@@ -1623,7 +1581,7 @@ Mark Word 用于存储对象自身的运行时数据，如哈希码（HashCode�
 1. 平台原因：不是所有的硬件平台都能访问任意地址上的任意数据的；某些硬件平台只能在某些地址处取某些特定类型的数据，否则抛出硬件异常。
 2. 性能原因：经过内存对齐后，CPU 的内存访问速度大大提升。
 
-### 9.5. 查看 Java 对象布局工具库
+### 8.5. 查看 Java 对象布局工具库
 
 ```xml
 <dependency>
@@ -1633,9 +1591,9 @@ Mark Word 用于存储对象自身的运行时数据，如哈希码（HashCode�
 </dependency>
 ```
 
-## 10. JVM 扩展
+## 9. JVM 扩展
 
-### 10.1. main 方法执行过程
+### 9.1. main 方法执行过程
 
 示例代码：
 
@@ -1668,7 +1626,7 @@ class Person {
 5. 执行 `p.getName()` 时，JVM 根据 p 的引用找到其所指向的对象，然后根据此对象持有的引用定位到方法区中 `Person` 类的类型信息的方法表，获得 `getName()` 的字节码地址。
 6. 执行 `getName()` 方法。
 
-### 10.2. OOM 问题的排查
+### 9.2. OOM 问题的排查
 
 > 线上 JVM 必须配置 `-XX:+HeapDumpOnOutOfMemoryError` 和 `-XX:HeapDumpPath=/tmp/heapdump.hprof`，当OOM发生时自动 dump 堆内存信息到指定目录
 
@@ -1678,269 +1636,24 @@ class Person {
 - 使用 `jstat` 命令工具查看监控 JVM 的内存和 GC 情况，评估问题大概出在什么区域
 - 使用 MAT 工具载入 dump 文件，分析大对象的占用情况
 
-### 10.3. JVM指令手册（了解）
+### 9.3. 如何获取 Java 程序使用的内存？堆使用的百分比？
 
+通过 `java.lang.Runtime` 类中与内存相关方法来获取剩余的内存，总内存及最大堆内存。
+
+```java
+public native long freeMemory();
 ```
-栈和局部变量操作 
-将常量压入栈的指令 
-aconst_null 将null对象引用压入栈 
-iconst_m1 将int类型常量-1压入栈 
-iconst_0 将int类型常量0压入栈 
-iconst_1 将int类型常量1压入操作数栈 
-iconst_2 将int类型常量2压入栈 
-iconst_3 将int类型常量3压入栈 
-iconst_4 将int类型常量4压入栈 
-iconst_5 将int类型常量5压入栈 
-lconst_0 将long类型常量0压入栈 
-lconst_1 将long类型常量1压入栈 
-fconst_0 将float类型常量0压入栈 
-fconst_1 将float类型常量1压入栈 
-dconst_0 将double类型常量0压入栈 
-dconst_1 将double类型常量1压入栈 
-bipush 将一个8位带符号整数压入栈 
-sipush 将16位带符号整数压入栈 
-ldc 把常量池中的项压入栈 
-ldc_w 把常量池中的项压入栈（使用宽索引） 
-ldc2_w 把常量池中long类型或者double类型的项压入栈（使用宽索引） 
-从栈中的局部变量中装载值的指令 
-iload 从局部变量中装载int类型值 
-lload 从局部变量中装载long类型值 
-fload 从局部变量中装载float类型值 
-dload 从局部变量中装载double类型值 
-aload 从局部变量中装载引用类型值（refernce） 
-iload_0 从局部变量0中装载int类型值 
-iload_1 从局部变量1中装载int类型值 
-iload_2 从局部变量2中装载int类型值 
-iload_3 从局部变量3中装载int类型值 
-lload_0 从局部变量0中装载long类型值 
-lload_1 从局部变量1中装载long类型值 
-lload_2 从局部变量2中装载long类型值 
-lload_3 从局部变量3中装载long类型值 
-fload_0 从局部变量0中装载float类型值 
-fload_1 从局部变量1中装载float类型值 
-fload_2 从局部变量2中装载float类型值 
-fload_3 从局部变量3中装载float类型值 
-dload_0 从局部变量0中装载double类型值 
-dload_1 从局部变量1中装载double类型值 
-dload_2 从局部变量2中装载double类型值 
-dload_3 从局部变量3中装载double类型值 
-aload_0 从局部变量0中装载引用类型值 
-aload_1 从局部变量1中装载引用类型值 
-aload_2 从局部变量2中装载引用类型值 
-aload_3 从局部变量3中装载引用类型值 
-iaload 从数组中装载int类型值 
-laload 从数组中装载long类型值 
-faload 从数组中装载float类型值 
-daload 从数组中装载double类型值 
-aaload 从数组中装载引用类型值 
-baload 从数组中装载byte类型或boolean类型值 
-caload 从数组中装载char类型值 
-saload 从数组中装载short类型值 
-将栈中的值存入局部变量的指令 
-istore 将int类型值存入局部变量 
-lstore 将long类型值存入局部变量 
-fstore 将float类型值存入局部变量 
-dstore 将double类型值存入局部变量 
-astore 将将引用类型或returnAddress类型值存入局部变量 
-istore_0 将int类型值存入局部变量0 
-istore_1 将int类型值存入局部变量1 
-istore_2 将int类型值存入局部变量2 
-istore_3 将int类型值存入局部变量3 
-lstore_0 将long类型值存入局部变量0 
-lstore_1 将long类型值存入局部变量1 
-lstore_2 将long类型值存入局部变量2 
-lstore_3 将long类型值存入局部变量3 
-fstore_0 将float类型值存入局部变量0 
-fstore_1 将float类型值存入局部变量1 
-fstore_2 将float类型值存入局部变量2 
-fstore_3 将float类型值存入局部变量3 
-dstore_0 将double类型值存入局部变量0 
-dstore_1 将double类型值存入局部变量1 
-dstore_2 将double类型值存入局部变量2 
-dstore_3 将double类型值存入局部变量3 
-astore_0 将引用类型或returnAddress类型值存入局部变量0 
-astore_1 将引用类型或returnAddress类型值存入局部变量1 
-astore_2 将引用类型或returnAddress类型值存入局部变量2 
-astore_3 将引用类型或returnAddress类型值存入局部变量3 
-iastore 将int类型值存入数组中 
-lastore 将long类型值存入数组中 
-fastore 将float类型值存入数组中 
-dastore 将double类型值存入数组中 
-aastore 将引用类型值存入数组中 
-bastore 将byte类型或者boolean类型值存入数组中 
-castore 将char类型值存入数组中 
-sastore 将short类型值存入数组中 
-wide指令 
-wide 使用附加字节扩展局部变量索引 
-通用(无类型）栈操作 
-nop 不做任何操作 
-pop 弹出栈顶端一个字长的内容 
-pop2 弹出栈顶端两个字长的内容 
-dup 复制栈顶部一个字长内容 
-dup_x1 复制栈顶部一个字长的内容，然后将复制内容及原来弹出的两个字长的内容压入栈
-dup_x2 复制栈顶部一个字长的内容，然后将复制内容及原来弹出的三个字长的内容压入栈 
-dup2 复制栈顶部两个字长内容 
-dup2_x1 复制栈顶部两个字长的内容，然后将复制内容及原来弹出的三个字长的内容压入栈 
-dup2_x2 复制栈顶部两个字长的内容，然后将复制内容及原来弹出的四个字长的内容压入栈 
-swap 交换栈顶部两个字长内容 
-类型转换 
-i2l 把int类型的数据转化为long类型 
-i2f 把int类型的数据转化为float类型 
-i2d 把int类型的数据转化为double类型 
-l2i 把long类型的数据转化为int类型 
-l2f 把long类型的数据转化为float类型 
-l2d 把long类型的数据转化为double类型 
-f2i 把float类型的数据转化为int类型 
-f2l 把float类型的数据转化为long类型 
-f2d 把float类型的数据转化为double类型 
-d2i 把double类型的数据转化为int类型 
-d2l 把double类型的数据转化为long类型 
-d2f 把double类型的数据转化为float类型 
-i2b 把int类型的数据转化为byte类型 
-i2c 把int类型的数据转化为char类型 
-i2s 把int类型的数据转化为short类型 
-整数运算 
-iadd 执行int类型的加法 
-ladd 执行long类型的加法 
-isub 执行int类型的减法 
-lsub 执行long类型的减法 
-imul 执行int类型的乘法 
-lmul 执行long类型的乘法 
-idiv 执行int类型的除法 
-ldiv 执行long类型的除法 
-irem 计算int类型除法的余数 
-lrem 计算long类型除法的余数 
-ineg 对一个int类型值进行取反操作 
-lneg 对一个long类型值进行取反操作 
-iinc 把一个常量值加到一个int类型的局部变量上 
-逻辑运算 
-移位操作 
-ishl 执行int类型的向左移位操作 
-lshl 执行long类型的向左移位操作 
-ishr 执行int类型的向右移位操作 
-lshr 执行long类型的向右移位操作 
-iushr 执行int类型的向右逻辑移位操作 
-lushr 执行long类型的向右逻辑移位操作 
-按位布尔运算 
-iand 对int类型值进行“逻辑与”操作 
-land 对long类型值进行“逻辑与”操作 
-ior 对int类型值进行“逻辑或”操作 
-lor 对long类型值进行“逻辑或”操作 
-ixor 对int类型值进行“逻辑异或”操作 
-lxor 对long类型值进行“逻辑异或”操作 
-浮点运算 
-fadd 执行float类型的加法 
-dadd 执行double类型的加法 
-fsub 执行float类型的减法 
-dsub 执行double类型的减法 
-fmul 执行float类型的乘法 
-dmul 执行double类型的乘法 
-fdiv 执行float类型的除法 
-ddiv 执行double类型的除法 
-frem 计算float类型除法的余数 
-drem 计算double类型除法的余数 
-fneg 将一个float类型的数值取反 
-dneg 将一个double类型的数值取反 
-对象和数组 
-对象操作指令 
-new 创建一个新对象 
-checkcast 确定对象为所给定的类型 
-getfield 从对象中获取字段 
-putfield 设置对象中字段的值 
-getstatic 从类中获取静态字段 
-putstatic 设置类中静态字段的值 
-instanceof 判断对象是否为给定的类型 
-数组操作指令 
-newarray 分配数据成员类型为基本上数据类型的新数组 
-anewarray 分配数据成员类型为引用类型的新数组 
-arraylength 获取数组长度 
-multianewarray 分配新的多维数组 
-控制流 
-条件分支指令 
-ifeq 如果等于0，则跳转 
-ifne 如果不等于0，则跳转 
-iflt 如果小于0，则跳转 
-ifge 如果大于等于0，则跳转 
-ifgt 如果大于0，则跳转 
-ifle 如果小于等于0，则跳转 
-if_icmpcq 如果两个int值相等，则跳转 
-if_icmpne 如果两个int类型值不相等，则跳转 
-if_icmplt 如果一个int类型值小于另外一个int类型值，则跳转 
-if_icmpge 如果一个int类型值大于或者等于另外一个int类型值，则跳转 
-if_icmpgt 如果一个int类型值大于另外一个int类型值，则跳转 
-if_icmple 如果一个int类型值小于或者等于另外一个int类型值，则跳转 
-ifnull 如果等于null，则跳转 
-ifnonnull 如果不等于null，则跳转 
-if_acmpeq 如果两个对象引用相等，则跳转 
-if_acmpnc 如果两个对象引用不相等，则跳转 
-比较指令 
-lcmp 比较long类型值 
-fcmpl 比较float类型值（当遇到NaN时，返回-1） 
-fcmpg 比较float类型值（当遇到NaN时，返回1） 
-dcmpl 比较double类型值（当遇到NaN时，返回-1） 
-dcmpg 比较double类型值（当遇到NaN时，返回1） 
-无条件转移指令 
-goto 无条件跳转 
-goto_w 无条件跳转（宽索引） 
-表跳转指令 
-tableswitch 通过索引访问跳转表，并跳转 
-lookupswitch 通过键值匹配访问跳转表，并执行跳转操作 
-异常 
-athrow 抛出异常或错误 
-finally子句 
-jsr 跳转到子例程 
-jsr_w 跳转到子例程（宽索引） 
-rct 从子例程返回 
-方法调用与返回 
-方法调用指令 
-invokcvirtual 运行时按照对象的类来调用实例方法 
-invokespecial 根据编译时类型来调用实例方法 
-invokestatic 调用类（静态）方法 
-invokcinterface 调用接口方法 
-方法返回指令 
-ireturn 从方法中返回int类型的数据 
-lreturn 从方法中返回long类型的数据 
-freturn 从方法中返回float类型的数据 
-dreturn 从方法中返回double类型的数据 
-areturn 从方法中返回引用类型的数据 
-return 从方法中返回，返回值为void 
-线程同步 
-montiorenter 进入并获取对象监视器 
-monitorexit 释放并退出对象监视器
-JVM指令助记符 
-变量到操作数栈：iload,iload_,lload,lload_,fload,fload_,dload,dload_,aload,aload_ 
-操作数栈到变量：istore,istore_,lstore,lstore_,fstore,fstore_,dstore,dstor_,astore,astore_ 
-常数到操作数栈：bipush,sipush,ldc,ldc_w,ldc2_w,aconst_null,iconst_ml,iconst_,lconst_,fconst_,dconst_ 
-加：iadd,ladd,fadd,dadd 
-减：isub,lsub,fsub,dsub 
-乘：imul,lmul,fmul,dmul 
-除：idiv,ldiv,fdiv,ddiv 
-余数：irem,lrem,frem,drem 
-取负：ineg,lneg,fneg,dneg 
-移位：ishl,lshr,iushr,lshl,lshr,lushr 
-按位或：ior,lor 
-按位与：iand,land 
-按位异或：ixor,lxor 
-类型转换：i2l,i2f,i2d,l2f,l2d,f2d(放宽数值转换) 
-i2b,i2c,i2s,l2i,f2i,f2l,d2i,d2l,d2f(缩窄数值转换) 
-创建类实例：new 
-创建新数组：newarray,anewarray,multianwarray 
-访问类的域和类实例域：getfield,putfield,getstatic,putstatic 
-把数据装载到操作数栈：baload,caload,saload,iaload,laload,faload,daload,aaload 
-从操作数栈存存储到数组：bastore,castore,sastore,iastore,lastore,fastore,dastore,aastore 
-获取数组长度：arraylength 
-检相类实例或数组属性：instanceof,checkcast 
-操作数栈管理：pop,pop2,dup,dup2,dup_xl,dup2_xl,dup_x2,dup2_x2,swap 
-有条件转移：ifeq,iflt,ifle,ifne,ifgt,ifge,ifnull,ifnonnull,if_icmpeq,if_icmpene, 
-if_icmplt,if_icmpgt,if_icmple,if_icmpge,if_acmpeq,if_acmpne,lcmp,fcmpl 
-fcmpg,dcmpl,dcmpg 
-复合条件转移：tableswitch,lookupswitch 
-无条件转移：goto,goto_w,jsr,jsr_w,ret 
-调度对象的实便方法：invokevirtual 
-调用由接口实现的方法：invokeinterface 
-调用需要特殊处理的实例方法：invokespecial 
-调用命名类中的静态方法：invokestatic 
-方法返回：ireturn,lreturn,freturn,dreturn,areturn,return 
-异常：athrow 
-finally关键字的实现使用：jsr,jsr_w,ret
+
+- 返回剩余空间的字节数
+
+```java
+public native long totalMemory();
 ```
+
+- 返回总内存的字节数
+
+```java
+public native long maxMemory();
+```
+
+- 返回最大内存的字节数

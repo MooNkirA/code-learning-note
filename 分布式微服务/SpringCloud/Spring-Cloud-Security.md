@@ -927,7 +927,7 @@ http://授权服务地址/uaa/oauth/token
 请求参数列表如下
 
 - `client_id`：客户端准入标识。
-- `client_secret`：客户端秘钥，和授权配置类（_示例中的`AuthorizationServerConfig`_）中设置的 `secret` 一致。
+- `client_secret`：客户端秘钥，和授权配置类（*示例中的`AuthorizationServerConfig`*）中设置的 `secret` 一致。
 - `grant_type`：授权类型，填写 `authorization_code`，表示授权码模式
 - `code`：授权码，就是刚刚上一步获取的授权码，<font color=red>**注意：授权码只使用一次就无效了，需要重新申请**</font>
 - `redirect_uri`：申请授权码时的跳转 url，<font color=red>**一定和申请授权码时用的 redirect_uri 一致**</font>

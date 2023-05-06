@@ -81,3 +81,10 @@ Oracle JDK 关键补丁更新 (CPUs) 包含安全漏洞修复和重要漏洞修�
 Oracle JDK 补丁集更新 (PSUs) 包含相应 CPUs 中的所有修复以及其他非重要修复，仅当您受到Oracle JDK关键补丁更新 (CPUs)版本之外的其他漏洞的影响时才应当使用相应的补丁集更新 (PSUs) ，Oracle JDK 补丁集更新 (PSUs) 版本号采用偶数编号！
 
 所以，一般情况下只要下载奇数编号的最新版本更新就行了！但要记住：商业收费版本的不要用于商业用途！
+
+## 6. JRE、JDK、JVM 及 JIT 的区别
+
+- JRE（Java run-time） 是 Java 运行时环境，是运行 Java 程序所必须的。
+- JDK（Java development kit）是 Java 程序开发工具集，如 Java 编译器，它也包含 JRE。
+- JVM（Java virtual machine）是 Java 虚拟机，它的责任是运行 Java 应用。
+- JIT（Just In Time compilation）是即时编译，当代码执行的次数超过一定的阈值时，会将 Java 字节码转换为本地代码，如，主要的热点代码会被准换为本地代码，这样有利大幅度提高 Java 应用的性能。

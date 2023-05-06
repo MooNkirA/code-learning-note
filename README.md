@@ -39,6 +39,15 @@
   <li><a href="#/JavaWeb/JavaWeb-JSP">JavaWeb 基础 - JSP</a></li>
 </ul>
 
+### 🖥 JVM（Java 虚拟机）
+
+<ul class="docs">
+  <li><a href="#/JVM/JVM-基础">JVM 基础笔记</a></li>
+  <li><a href="#/JVM/JVM-性能调优">JVM 性能调优</a></li>
+  <li><a href="#/JVM/JVM-指令手册">JVM 指令手册</a></li>
+  <li><a href="#/JVM/JVM-源码分析">JVM 源码分析</a></li>
+</ul>
+
 ## 后端框架
 
 ### 🍀 Spring
@@ -86,7 +95,6 @@
 <ul class="docs">
   <li><a href="#/后端框架/Authorization-Certification/Authorization-Overview">授权认证概述</a></li>
   <li><a href="#/后端框架/Authorization-Certification/Spring-Security">Spring Security</a></li>
-  <li><a href="#/后端框架/Authorization-Certification/Spring-Security-OAuth">Spring Security OAuth</a></li>
   <li><a href="#/后端框架/Authorization-Certification/Shiro">Shiro（整理中...）</a></li>
 </ul>
 
@@ -441,15 +449,6 @@
   <li><a href="#/并发编程/并发编程-应用篇">并发编程 - 应用篇</a></li>
   <li><a href="#/并发编程/并发编程-原理篇">并发编程 - 原理篇</a></li>
   <li><a href="#/并发编程/并发编程-设计模式篇">并发编程 - 设计模式篇</a></li>
-</ul>
-
-## 性能调优
-
-### 🖥 JVM（Java 虚拟机）
-
-<ul class="docs">
-  <li><a href="#/性能调优/JVM/JVM-基础">JVM 基础笔记</a></li>
-  <li><a href="#/性能调优/JVM/JVM-源码分析">JVM 源码分析</a></li>
 </ul>
 
 ## 其他

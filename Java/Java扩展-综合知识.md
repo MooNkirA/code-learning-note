@@ -1,5 +1,3 @@
-# Java扩展 - 综合知识
-
 ## 1. 实体类 VO、PO、DO、DTO、BO、QO、DAO、POJO 的概念
 
 - DO（ Data Object）领域对象：与数据库表结构一一对应，通过DAO层向上传输数据源对象。
