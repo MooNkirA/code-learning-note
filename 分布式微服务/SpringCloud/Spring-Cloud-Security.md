@@ -868,7 +868,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
 授权服务需要
 
-此部分参考[《Spring Security》笔记的《自定义连接数据库认证》章节](/后端框架/Authorization-Certification/Spring-Security?id=_42-自定义连接数据库认证)
+此部分参考[《Spring Security》笔记](/后端框架/Authorization-Certification/Spring-Security)的《自定义连接数据库认证》章节
 
 > 将 `spring-security-boot-2.1.x` 项目中的 dao、model、service 的代码复制到 uaa 项目中
 
@@ -911,9 +911,9 @@ http://授权服务地址/uaa/oauth/authorize?client_id=客户端准入id&respon
 
 参数列表如下：
 
-- `client_id`：客户端准入 id，和授权配置类（_示例中的`AuthorizationServerConfig`_）中设置的客户端 id 一致。
+- `client_id`：客户端准入 id，和授权配置类（*示例中的`AuthorizationServerConfig`*）中设置的客户端 id 一致。
 - `response_type`：授权码模式固定为 code
-- `scop`：客户端权限范围，和授权配置类（_示例中的`AuthorizationServerConfig`_）中设置的 `scop` 一致。
+- `scop`：客户端权限范围，和授权配置类（*示例中的`AuthorizationServerConfig`*）中设置的 `scop` 一致。
 - `redirect_uri`：跳转 uri，当授权码申请成功后会跳转到此地址，并在后边带上 code 参数（授权码）
 
 2. **登陆成功后，浏览器会出现向授权服务器授权页面，之后将用户同意授权**。

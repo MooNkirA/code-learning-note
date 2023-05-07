@@ -268,8 +268,8 @@
 ### 📐 版本管理工具
 
 <ul class="docs">
-  <li><a href="#/DevOps/版本管理工具/Git-基础">Git 笔记 - 基础篇</a></li>
   <li><a href="#/DevOps/版本管理工具/Git-安装">Git 笔记 - 安装篇</a></li>
+  <li><a href="#/DevOps/版本管理工具/Git-基础">Git 笔记 - 基础篇</a></li>
   <li><a href="#/DevOps/版本管理工具/Git-客户端">Git 笔记 - 客户端使用篇</a></li>
   <li><a href="#/DevOps/版本管理工具/Git-命令进阶">Git 笔记 - 命令进阶篇（经典操作场景）</a></li>
   <li><a href="#/DevOps/版本管理工具/GitHub">GitHub 相关资料与常用使用技巧</a></li>
@@ -298,8 +298,8 @@
 ## Linux
 
 <ul class="docs">
-  <li><a href="#/Linux/Linux笔记">Linux 笔记</a></li>
   <li><a href="#/Linux/Linux安装">Linux 安装</a></li>
+  <li><a href="#/Linux/Linux笔记">Linux 笔记</a></li>
   <li><a href="#/Linux/Linux命令">Linux 命令</a></li>
   <li><a href="#/Linux/虚拟机-Multipass">Multipass 虚拟机工具</a></li>
 </ul>
