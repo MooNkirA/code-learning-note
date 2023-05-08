@@ -1,29 +1,39 @@
-# Spring Cloud Sleuth
-
-用于 Spring Cloud 应用程序的分布式跟踪，与Zipkin，HTrace和基于日志的（例如ELK）跟踪兼容。
+## 1. Spring Cloud Sleuth 概述
 
 > sleuth （英）/sluːθ/ （美）/sluːθ/ n. 侦探；警犬；vi. 做侦探；侦查
 
-## 1. Sleuth 概述
+Spring Cloud Sleuth 主要功能就是在分布式系统中提供调用链追踪的解决方案，Sleuth 对用户透明，服务调用的交互信息都能被<font color=red>**自动采集**</font>，可以通过日志文件获取服务调用的链路数据，也可以将数据发送给远程服务统一收集分析。
 
-### 1.1. 简介
+Spring Cloud Sleuth 兼容支持 Zipkin，HTrace 和基于日志的（例如ELK）跟踪等。它大量借用了 Google Dapper 的设计，只需要在 pom 文件中引入相应的依赖即可。
 
-Spring Cloud Sleuth 主要功能就是在分布式系统中提供追踪解决方案，它大量借用了Google Dapper的设计，并且兼容支持了zipkin，只需要在pom文件中引入相应的依赖即可
+### 1.1. Sleuth 中的术语和相关概念
 
-### 1.2. 相关概念
-
-Spring Cloud Sleuth 为Spring Cloud提供了分布式根据的解决方案。它大量借用了Google Dapper的设计。以下是Sleuth中的术语和相关概念：
-
-- **Trace**：由一组Trace Id相同的Span串联形成一个树状结构。为了实现请求跟踪，当请求到达分布式系统的入口端点时，只需要服务跟踪框架为该请求创建一个唯一的标识（即TraceId），同时在分布式系统内部流转的时候，框架始终保持传递该唯一值，直到整个请求的返回。那么我们就可以使用该唯一标识将所有的请求串联起来，形成一条完整的请求链路。例如，如果正在跑一个分布式大数据工程，可能需要创建一个trace。
-- **Span**：代表一组基本工作单元，为了统计各处理单元的延迟，当请求到达各个服务组件的时候，也通过一个唯一标识（SpanId）来标记它的开始、具体过程和结束。通过SpanId的开始和结束时间戳，就能统计该span的调用时间，除此之外，还可以获取如事件的名称、请求信息等元数据。
-    - 例如，在一个新建的span中发送一个RPC等同于发送一个回应请求给RPC，span通过一个64位ID唯一标识，trace以另一个64位ID表示，span还有其他数据信息，比如摘要、时间戳事件、关键值注释(tags)、span的ID、以及进度ID(通常是IP地址)span在不断的启动和停止，同时记录了时间信息，当创建了一个span，必须在未来的某个时刻停止它。
-- **Annotation**：用来及时记录一个事件的存在，一些核心annotations用来定义一个请求的开始和结束，内部使用的重要注释：
-    - cs - Client Sent：客户端发起一个请求，这个annotion描述了这个span的开始
-    - sr - Server Received：服务端获得请求并准备开始处理它，如果将其sr减去cs时间戳便可得到网络延迟
-    - ss - Server Sent：注解表明请求处理的完成(当请求返回客户端)，如果ss减去sr时间戳便可得到服务端需要的处理请求时间
-    - cr - Client Received：表明span的结束，客户端成功接收到服务端的回复，如果cr减去cs时间戳便可得到客户端从服务端获取回复的所有所需时间
+- **Span**：代表一组基本工作单元，为了统计各处理单元的延迟，当请求到达各个服务组件的时候，也通过一个唯一标识（SpanId）来标记它的开始、具体过程和结束。通过 SpanId 的开始和结束时间戳，就能统计该 span 的调用时间，除此之外，还可以获取如事件的名称、请求信息等元数据。
+- **Trace**：由一组 TraceId 相同的 Span 串联形成一个树状结构。为了实现请求跟踪，当请求到达分布式系统的入口端点时，只需要服务跟踪框架为该请求创建一个唯一的标识（即 TraceId），同时在分布式系统内部流转的时候，框架始终保持传递该唯一值，直到整个请求的返回。那么我们就可以使用该唯一标识将所有的请求串联起来，形成一条完整的请求链路。例如，如果正在跑一个分布式大数据工程，可能需要创建一个 trace。
+> 例如，在一个新建的 span 中发送一个 RPC 等同于发送一个回应请求给 RPC，span 通过一个 64 位 ID 唯一标识，trace 以另一个 64 位 ID 表示，span 还有其他数据信息，比如摘要、时间戳事件、关键值注释(tags)、span 的 ID、以及进度 ID(通常是IP地址) span 在不断的启动和停止，同时记录了时间信息，当创建了一个 span，必须在未来的某个时刻停止它。
+- **Annotation**：用来及时记录一个事件的存在，一些核心 annotations 用来定义一个请求的开始和结束，内部使用的重要注释：
+    - cs - Client Sent：客户端发起一个请求，这个 annotion 描述了这个 span 的开始
+    - sr - Server Received：服务端获得请求并准备开始处理它，如果将其 sr 减去 cs 时间戳便可得到网络延迟
+    - ss - Server Sent：注解表明请求处理的完成(当请求返回客户端)，如果 ss 减去 sr 时间戳便可得到服务端需要的处理请求时间
+    - cr - Client Received：表明 span 的结束，客户端成功接收到服务端的回复，如果 cr 减去 cs 时间戳便可得到客户端从服务端获取回复的所有所需时间
 
 ![](images/20201112110429301_23920.png)
+
+### 1.2. 调用链跟踪原理
+
+一个最简单的服务调用，主要涉及以下关键点：
+
+1. Client 发起调用（Client Send）
+2. Server 接收请求（Server Receive）
+3. Server 发送响应（Server Send）
+4. Client 接收响应（Client Receive）
+
+![](images/568011322248974.jpg)
+
+- **调用链跟踪解决异常问题思路**：一次完整的请求包含以上4个关键点，因此只需要<font color=red>跟踪每个关键点</font>，便可知调用是否正常。缺少了哪个阶段的跟踪记录，就说明这个阶段异常了。
+- **调用链跟踪解决性能问题思路**：<font color=red>记录每个关键阶段的时间戳</font>，就可以计算任意阶段的耗时。
+
+![](images/559881522236841.jpg)
 
 ## 2. 链路追踪 Sleuth 基础入门示例
 
@@ -56,7 +66,7 @@ spring:
 
 ### 2.2. 引入依赖
 
-修改网关、订单、商品微服务工程，引入Sleuth依赖。
+修改网关、订单、商品微服务工程，各自引入 Sleuth 依赖。
 
 ```xml
 <!-- sleuth链路追踪依赖 -->
@@ -98,6 +108,8 @@ logging:
 
 ### 2.5. Sleuth 日志格式解析
 
+![](images/390903822257007.jpg)
+
 从上面日志输出可知，Sleuth 的日志的格式为：`[applicationName, traceId, spanId, export]`
 
 - `applicationName`：应用的名称，也就是 `application.properties` 配置文件中的 `spring.application.name` 属性的值。
@@ -105,9 +117,21 @@ logging:
 - `spanId`：表示一个基本的工作单元，一个请求可以包含多个步骤，每个步骤都拥有自己的 spanId。
 - `export`：布尔类型。表示是否要将该信息输出到类似 Zipkin 这样的追踪服务端进行收集和展示。
 
-## 3. Zipkin 的概述
+## 3. Sleuth 对各种服务调用方式的支持
 
-### 3.1. 简介
+RestTemplate 与 Feign 都是服务调用的常用方式，还有多线程调用等。以下测试 Sleuth 对这些服务调用方式的整合跟踪。
+
+### 3.1. 创建基础示例工程
+
+> TODO: 待整理
+
+### 3.2. RestTemplate 服务调用方式跟踪
+
+> TODO: 待整理
+
+## 4. Zipkin 的概述
+
+### 4.1. 简介
 
 Zipkin 是 Twitter 的一个开源项目，它基于 Google Dapper 实现，它致力于收集服务的定时数据，以解决微服务架构中的延迟问题，包括**数据的收集、存储、查找和展现**。
 
@@ -115,9 +139,9 @@ Zipkin 可以用来收集各个服务器上请求链路的跟踪数据，并通�
 
 除了面向开发的 API 接口之外，它也提供了方便的 UI 组件来直观的搜索跟踪信息和分析请求链路明细，比如：可以查询某段时间内各用户请求的处理时间等。Zipkin 提供了可插拔数据存储方式：In-Memory、MySql、Cassandra 以及 Elasticsearch。
 
-官方网址：https://zipkin.io/
+> 官方网址：https://zipkin.io/
 
-### 3.2. Zipkin 核心组件
+### 4.2. Zipkin 核心组件
 
 ![](images/20201112160121290_7521.png)
 
@@ -136,9 +160,9 @@ Zipkin 分为两端，一个是 Zipkin 服务端，一个是 Zipkin 客户端，
 - 一个 Zipkin 服务端。
 - 多个微服务，这些微服务中配置Zipkin客户端。
 
-## 4. Zipkin Server （服务端）的部署和配置
+## 5. Zipkin Server （服务端）的部署和配置
 
-### 4.1. Zipkin Server 下载
+### 5.1. Zipkin Server 下载
 
 从 spring boot 2.0 开始，官方就不再支持使用自建 Zipkin Server 的方式进行服务链路追踪，而是直接提供了编译好的 jar 包来使用。可以从官方网站下载先下载 Zipkin 的 web UI
 
@@ -146,7 +170,7 @@ Zipkin 分为两端，一个是 Zipkin 服务端，一个是 Zipkin 客户端，
 > - Zipkin Server 编译后 jar 下载地址：https://search.maven.org/artifact/io.zipkin/zipkin-server
 > - 此次示例下载的是 zipkin-server-2.20.0-exec.jar
 
-### 4.2. 启动
+### 5.2. 启动
 
 进行jar所在目录，使用命令行直接启动 Zipkin Server
 
@@ -154,18 +178,19 @@ Zipkin 分为两端，一个是 Zipkin 服务端，一个是 Zipkin 客户端，
 java -jar zipkin-server-2.22.0-exec.jar
 ```
 
-### 4.3. 相关部署与配置信息
+### 5.3. 相关部署与配置信息
 
-- 默认 Zipkin Server 的请求端口为 9411
-- Zipkin Server 的启动参数可以通过官方提供的yml配置文件查找
-    - 配置文件地址：https://github.com/openzipkin/zipkin/blob/master/zipkin-server/src/main/resources/zipkin-server-shared.yml
-- 在浏览器输入 `http://127.0.0.1:9411` 即可进入到 Zipkin Server 的管理后台
+默认 Zipkin Server 的请求端口为 `9411`。Zipkin Server 的启动参数可以通过官方提供的 yml 配置文件查找
 
-## 5. 客户端 Zipkin + Sleuth 整合（基于http方式收集数据）
+> 配置文件地址：https://github.com/openzipkin/zipkin/blob/master/zipkin-server/src/main/resources/zipkin-server-shared.yml
+
+在浏览器输入 `http://127.0.0.1:9411` 即可进入到 Zipkin Server 的管理后台
+
+## 6. 客户端 Zipkin + Sleuth 整合（基于http方式收集数据）
 
 结合 zipkin 可以很直观地显示微服务之间的调用关系。ZipKin 客户端和 Sleuth 的集成非常简单，只需要在微服务中添加其依赖和配置即可。
 
-### 5.1. 客户端添加依赖
+### 6.1. 客户端添加依赖
 
 客户端指的是需要被追踪的微服务。*所以示例项目的网关、订单、商品服务都需要添加客户端的依赖*
 
@@ -177,9 +202,9 @@ java -jar zipkin-server-2.22.0-exec.jar
 </dependency>
 ```
 
-### 5.2. 修改客户端配置文件
+### 6.2. 修改客户端配置文件
 
-修改需要被追踪的微服务的 application.ym l配置文件。*所有示例项目的网关、订单、商品服务都需要修改配置文件*
+修改需要被追踪的微服务的 application.yml 配置文件。*所有示例项目的网关、订单、商品服务都需要修改配置文件*
 
 ```yml
 spring:
@@ -201,7 +226,7 @@ spring:
 - `spring.zipkin.sender.type`：用于设置采样的数据传输方式，上面示例是使用http形式向server端发送数据
 - `spring.sleuth.sampler.probability`：制定需采样的百分比，默认为0.1，即10%，此示例配置1，是记录全部的sleuth信息，是为了收集到更多的数据（仅供测试用）。在分布式系统中，过于频繁的采样会影响系统性能，所以这里配置需要采用一个合适的值。
 
-### 5.3. 测试
+### 6.3. 测试
 
 启动 Zipkin Service，并启动每个微服务。通过浏览器发送一次微服务请求。打开 Zipkin Service 控制台，我们可以根据条件追踪每次请求调用过程
 
@@ -211,9 +236,9 @@ spring:
 
 ![](images/20201113090926521_26943.png)
 
-### 5.4. 默认Zipkin数据采集方式存在的问题
+### 6.4. 默认 Zipkin 数据采集方式存在的问题
 
-在默认情况下，zipkin数据采集有如下特点：
+在默认情况下，zipkin数 据采集有如下特点：
 
 1. zipkin 采集到的数据是保存在内存中
 2. Zipkin 客户端和 Server 之间是使用 HTTP 请求的方式进行通信（即同步的请求方式，会拖慢核心业务的处理时间）
@@ -223,17 +248,17 @@ spring:
 1. 当服务出现异常或者宕机的情况，存储在内存的数据就会出现丢失
 2. 在出现网络波动时，Server 端异常等情况下可能存在信息收集不及时的问题。
 
-## 6. 跟踪数据的存储
+## 7. 跟踪数据的存储
 
 Zipkin Server 默认时间追踪数据信息保存到内存，这种方式不适合生产环境。因为一旦 Service 关闭重启或者服务崩溃，就会导致历史数据消失。Zipkin 支持将追踪数据持久化到 mysql 数据库或者存储到 elasticsearch 中。*这里示例以mysql为例*
 
-### 6.1. 追踪数据存储到 MySQL 数据库
+### 7.1. 追踪数据存储到 MySQL 数据库
 
-#### 6.1.1. 准备存储跟踪数据的数据库
+#### 7.1.1. 准备存储跟踪数据的数据库
 
-创建zipkin持久化相应数据库表sql脚本位置：`spring-cloud-note\spring-cloud-greenwich-sample\document\sql\zipkin_db.sql`
+创建 zipkin 持久化相应数据库表 sql 脚本位置：`spring-cloud-note\document\sql\zipkin_db.sql`
 
-> 可以从官网找到Zipkin Server持久mysql的数据库脚本。脚本地址：https://github.com/openzipkin/zipkin/blob/master/zipkin-storage/mysql-v1/src/main/resources/mysql.sql
+> 可以从官网找到 Zipkin Server 持久 mysql 的数据库脚本。脚本地址：https://github.com/openzipkin/zipkin/blob/master/zipkin-storage/mysql-v1/src/main/resources/mysql.sql
 
 ```sql
 --
@@ -300,7 +325,7 @@ CREATE TABLE IF NOT EXISTS zipkin_dependencies (
 ) ENGINE=InnoDB ROW_FORMAT=COMPRESSED CHARACTER SET=utf8 COLLATE utf8_general_ci;
 ```
 
-#### 6.1.2. 配置启动服务端
+#### 7.1.2. 配置启动服务端
 
 在启动zipkin服务端时增加相关数据库参数即可，启动脚本如下：
 
@@ -323,7 +348,7 @@ java -jar zipkin-server-2.22.0-exec.jar --STORAGE_TYPE=mysql --MYSQL_HOST=127.0.
 
 配置好服务端之后，可以在浏览器请求几次。在数据库查看会发现数据已经持久化到mysql中
 
-### 6.2. 追踪数据存储到 ElasticSearch
+### 7.2. 追踪数据存储到 ElasticSearch
 
 - 下载 elasticsearch。[下载地址](https://www.elastic.co/cn/downloads/past-releases/elasticsearch-6-8-4)
 - 启动 elasticsearch
@@ -340,7 +365,7 @@ java -jar zipkin-server-2.23.16-exec.jar --STORAGE_TYPE=elasticsearch --ES_HOST=
 
 ![](images/111214719231886.png)
   
-### 6.3. 依赖分析
+### 7.3. 依赖分析
 
 在 zipkin 图形化界面，点击下图中的【依赖】菜单，即可让 Zipkin 以图形化方式进行微服务之间的依赖关系分析。
 
@@ -358,19 +383,19 @@ java -DSTORAGE_TYPE=elasticsearch -DES_HOSTS=http://localhost:9200 -jar zipkin-d
 
 **值得注意的是：zipkin-dependencies 不是服务而是一个程序，不会持续运行，运行一次即结束。若想让它能够持续运行，需要自己编写定时脚本或定时任务实现。**
 
-## 7. 基于消息中间件收集数据
+## 8. 基于消息中间件收集数据
 
 Zipkin支持与rabbitMQ整合完成异步消息传输。加了MQ之后，通信过程如下图所示：
 
 ![](images/20201113091547938_16673.png)
 
-### 7.1. RabbitMQ 的安装与启动
+### 8.1. RabbitMQ 的安装与启动
 
 要使用消息中间件实现收集数据传输，需要准备MQ的服务。*此示例使用RabbitMQ*
 
 > 更多RabbitMQ的内容详见：[《RabbitMQ》笔记](/分布式微服务/分布式消息中件间/RabbitMQ)
 
-### 7.2. 服务端启动
+### 8.2. 服务端启动
 
 在启动zipkin服务端时增加相关RabbitMQ的参数即可，启动脚本如下：
 
@@ -390,9 +415,9 @@ java -jar zipkin-server-2.22.0-exec.jar --RABBIT_ADDRESSES=192.168.12.132:5672
 
 ![](images/20201113151201801_189.png)
 
-### 7.3. 客户端配置
+### 8.3. 客户端配置
 
-#### 7.3.1. 配置依赖
+#### 8.3.1. 配置依赖
 
 修改需要被追踪的微服务添加zipkin整合sleuth、rabbitmq的依赖。*所以示例项目的网关、订单、商品服务都需要添加依赖*
 
@@ -424,7 +449,7 @@ java -jar zipkin-server-2.22.0-exec.jar --RABBIT_ADDRESSES=192.168.12.132:5672
 
 > 注：如果前面两个依赖已经存在，则不需要重复添加依赖
 
-#### 7.3.2. 配置消息中间件地址等信息
+#### 8.3.2. 配置消息中间件地址等信息
 
 修改需要被追踪的微服务的application.yml配置文件（*所以示例项目的网关、订单、商品服务都需要修改配置文件*）。修改要求如下：
 
@@ -455,7 +480,7 @@ spring:
           enabled: true
 ```
 
-### 7.4. 测试
+### 8.4. 测试
 
 启动所有微服务，关闭Zipkin Server，并发起几个请求连接。打开rabbitmq管理后台可以看到，消息已经推送到rabbitmq。
 

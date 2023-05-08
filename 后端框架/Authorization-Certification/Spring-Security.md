@@ -173,7 +173,7 @@ public class WebConfig {
 
 在 init 包下创建 Spring 容器初始化类 `SpringApplicationInitializer`，此类实现 `WebApplicationInitializer` 接口，Spring 容器启动时加载 `WebApplicationInitializer` 接口的所有实现类。
 
-注：一般自定义的初始化类会继承抽象现实类 `org.springframework.web.servlet.support.AbstractAnnotationConfigDispatcherServletInitializer` ，它实现了 `WebApplicationInitializer` 接口。
+注：一般自定义的初始化类会继承抽象现实类 `org.springframework.web.servlet.support.AbstractAnnotationConfigDispatcherServletInitializer`，它实现了 `WebApplicationInitializer` 接口。
 
 ```java
 /**
@@ -451,7 +451,7 @@ Spring Boot 提供 spring-boot-starter-security 用于快速开发 Spring Securi
 
 创建 maven 工程 spring-security-boot-2.1.x，工程目录结构如下：
 
-
+> TODO: 待补充工程目录结构图
 
 引入依赖
 
@@ -1024,12 +1024,12 @@ public class LoginController {
 
 可以通过以下选项准确控制会话何时创建以及 Spring Security 如何与之交互：
 
-|     机制      |                                                描述                                                 |
-| :----------: | -------------------------------------------------------------------------------------------------- |
-|   `always`   | 如果没有 session 存在就创建一个                                                                       |
-| `ifRequired` | 如果需要就创建一个 Session（默认）登录时                                                              |
+|     机制      |                                               描述                                               |
+| :----------: | ----------------------------------------------------------------------------------------------- |
+|   `always`   | 如果没有 session 存在就创建一个                                                                     |
+| `ifRequired` | 如果需要就创建一个 Session（默认）登录时                                                             |
 |   `never`    | SpringSecurity 将不会创建 Session，但是如果应用中其他地方创建了 Session，那么 Spring Security 将会使用它 |
-| `stateless`  | SpringSecurity 将绝对不会创建 Session，也不使用 Session                                               |
+| `stateless`  | SpringSecurity 将绝对不会创建 Session，也不使用 Session                                             |
 
 通过 Spring Security 安全配置，对会话选项进行配置：
 

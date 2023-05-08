@@ -453,7 +453,7 @@ management:
 
 - 在 resource 目录创建项目配置文件 application.yml
 
-```xml
+```yml
 server:
   port: 53021
   servlet:
@@ -866,7 +866,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
 ### 3.8. 自定义连接数据库认证 UserDetailService 接口实现
 
-授权服务需要
+授权服务需要进行改造。
 
 此部分参考[《Spring Security》笔记](/后端框架/Authorization-Certification/Spring-Security)的《自定义连接数据库认证》章节
 
@@ -903,6 +903,8 @@ OAuth2.0 提供了 4 种授权模式，分别是：
 
 ![](images/273244609248972.jpg)
 
+![](images/153815115230548.jpg)
+
 1. **资源拥有者打开客户端，客户端要求资源拥有者给予授权，它将浏览器被重定向到授权服务器，重定向时会附加客户端的身份信息**。请求认证服务获取授权码(GET 请求)，如上示例：
 
 ```
@@ -936,7 +938,7 @@ http://授权服务地址/uaa/oauth/token
 
 #### 4.1.3. 适用场景
 
-这种模式是四种模式中最安全的一种模式。一般用于 client 是 Web 服务器端应用或第三方的原生 App 调用资源服务的时候。因为在这种模式中 access_token 不会经过浏览器或移动端的 App，而是直接从服务端去交换，这样就最大限度的减小了令牌泄漏的风险。
+这种模式是四种模式中**安全级别最高**的一种模式。一般用于 client 是 Web 服务器端应用或第三方的原生 App 调用资源服务的时候。因为在这种模式中 access_token 不会经过浏览器或移动端的 App，而是直接从服务端去交换，这样就最大限度的减小了令牌泄漏的风险。
 
 #### 4.1.4. 测试
 
@@ -982,6 +984,10 @@ POST http://localhost:53020/uaa/oauth/token
 
 #### 4.2.2. 简化模式授权流程
 
+![](images/502111016248974.jpg)
+
+![](images/418581116236841.jpg)
+
 1. **资源拥有者打开客户端，客户端要求资源拥有者给予授权，它将浏览器被重定向到授权服务器，重定向时会附加客户端的身份信息**
 
 ```
@@ -1020,6 +1026,10 @@ http://127.0.0.1:53020/uaa/oauth/authorize?client_id=c1&response_type=token&scop
 ![](images/569983716244595.png)
 
 #### 4.3.2. 密码模式授权流程
+
+![](images/6971416257007.jpg)
+
+![](images/86931416249676.jpg)
 
 1. **资源拥有者将用户名、密码发送给客户端**
 2. **客户端拿着资源拥有者的用户名、密码向授权服务器请求令牌（access_token）**，post 请求请求如下：
@@ -1062,6 +1072,10 @@ POST http://127.0.0.1:53020/uaa/oauth/token
 
 #### 4.4.2. 客户端模式授权流程
 
+![](images/401751516246231.jpg)
+
+![](images/482511516241985.jpg)
+
 1. **客户端向授权服务器发送自己的身份信息，并请求令牌（access_token）**
 2. **确认客户端身份无误后，将令牌（access_token）发送给 client**，请求如下：
 
@@ -1077,7 +1091,7 @@ http://授权服务地址/uaa/oauth/token
 
 #### 4.4.3. 适用场景
 
-这种模式是最方便但最不安全的模式。因此这就要求对 client 完全的信任，而 client 本身也是安全的。因此这种模式一般用来提供给完全信任的服务器端服务。比如，合作方系统对接，拉取一组用户信息。
+这种模式是最方便但最不安全的模式。因此这就要求对 client 完全的信任，并且 client 本身也是安全的。因此这种模式一般用来提供给完全信任的服务器端服务。比如，合作方系统对接，拉取一组用户信息。
 
 #### 4.4.4. 测试
 
@@ -1090,6 +1104,12 @@ POST http://127.0.0.1:53020/uaa/oauth/token
 请求参数与响应结果：
 
 ![](images/36370417243412.png)
+
+### 4.5. 模式选择策略
+
+授权模式选择策略流程图：
+
+![](images/7005716259865.jpg)
 
 ## 5. 资源服务接入授权
 
@@ -1310,11 +1330,9 @@ http://127.0.0.1:53021/order/check/p1
 
 ![](images/510754118232073.png)
 
-## 6. JWT 令牌
+## 6. OAuth2 整合 JWT 令牌
 
-通过前面的测试可发现，当资源服务和授权服务不在一起时，资源服务使用 `RemoteTokenServices` 远程请求授权服务验证 token，如果访问量较大将会影响系统的性能 。
-
-上面问题的解决方法：
+通过前面的测试可发现，当资源服务和授权服务不在一起时，资源服务使用 `RemoteTokenServices` 远程请求授权服务验证 token，如果访问量较大将会影响系统的性能。此问题的解决方法如下：
 
 令牌可以采用 JWT 格式即可解决前面的问题，用户认证通过会得到一个 JWT 令牌，JWT 令牌中已经包括了用户相关的信息，客户端只需要携带 JWT 访问资源服务，资源服务根据事先约定的算法自行完成令牌校验，无需每次都请求认证服务完成授权。
 
@@ -1372,7 +1390,7 @@ public AuthorizationServerTokenServices tokenService() {
 }
 ```
 
-### 6.2. 生成 jwt 令牌测试
+### 6.2. 生成 JWT 令牌测试
 
 启动 uaa 授权服务，使用密码模式请求测试生成 jwt 令牌
 
@@ -1380,7 +1398,7 @@ public AuthorizationServerTokenServices tokenService() {
 
 生成的令牌与前面的示例不一样
 
-### 6.3. 校验 jwt 令牌
+### 6.3. 校验 JWT 令牌
 
 资源服务需要和授权服务拥有一致的签字、令牌服务等：
 
@@ -1416,7 +1434,6 @@ public class ResouceServerConfig extends ResourceServerConfigurerAdapter {
                 .csrf().disable() // 设置不再限制 CSRF
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS); // 配置不生成本地 session
     }
-
 }
 ```
 
@@ -1441,6 +1458,8 @@ http://127.0.0.1:53020/uaa/oauth/token
 上面的示例中，客户端信息和授权码都是存储在内存中，现实项目生产环境中通常都会存储在数据库中，通过程序去配置与修改客户端信息和授权码等，下面来改造完善环境的配置：
 
 ### 7.1. 创建授权认证相关的表
+
+#### 7.1.1. 自定义脚本
 
 在 user_db 数据库中创建客户端信息表 `oauth_client_details`
 
@@ -1481,6 +1500,15 @@ CREATE TABLE `oauth_code` (
 	INDEX `code_index` ( `code` ) USING BTREE
 ) ENGINE = INNODB CHARACTER SET = utf8 COLLATE = utf8_general_ci ROW_FORMAT = Compact;
 ```
+
+#### 7.1.2. 使用官方示例提供的脚本
+
+oauth2 官方表结构脚本：
+
+- 项目地址：https://github.com/spring-projects/spring-security-oauth
+- 脚本位置： spring-security-oauth2/src/test/resources/schema.sql
+
+修改脚本中 `LONGVARBINARY` 为 `BLOB`，导入脚本。
 
 ### 7.2. 配置授权服务
 
