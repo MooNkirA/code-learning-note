@@ -1,9 +1,11 @@
 ## 1. JVM 性能调优工具
 
-JDK 自带了很多监控工具，都位于 JDK 的 bin 目录下，其中最常用的是 jconsole 和 jvisualvm 这两款视图监控工具。
+JDK 自带了很多监控工具，都位于 JDK 的 bin 目录下，其中最常用的是 jconsole 和 jvisualvm 这两款视图监控工具。第三方有：MAT(Memory Analyzer Tool)、GChisto。
 
-- jconsole：用于对 JVM 中的内存、线程和类等进行监控；
-- jvisualvm：JDK 自带的全能分析工具，可以分析：内存快照、线程快照、程序死锁、监控内存的变化、gc 变化等。
+- jconsole（Java Monitoring and Management Console）：从 Java5 开始，在 JDK 中自带的 java 监控和管理控制台。用于对 JVM 中的内存、线程和类等进行监控
+- jvisualvm：JDK 自带的全能分析工具，可以分析内存快照、线程快照、程序死锁、监控内存的变化、gc 变化等。
+- MAT（Memory Analyzer Tool）：一个基于 Eclipse 的内存分析工具，是一个快速、功能丰富的 Javaheap 分析工具，可以帮助开发者查找内存泄漏和减少内存消耗。
+- GChisto：一款专业分析 gc 日志的工具
 
 ## 2. 常用的 JVM 调优的参数
 
@@ -11,6 +13,7 @@ JDK 自带了很多监控工具，都位于 JDK 的 bin 目录下，其中最常
 
 - `-Xms2g`：初始化推大小为 2g；
 - `-Xmx2g`：堆最大内存为 2g；
+- `-XX:NewSize=1`：设置新生代大小
 - `-XX:NewRatio=4`：设置年轻的和老年代的内存比例为 1:4；
 - `-XX:SurvivorRatio=8`：设置新生代 Eden 和 Survivor 比例为 8:2；
 - `–XX:+UseParNewGC`：指定使用 ParNew + Serial Old 垃圾回收器组合；
@@ -27,22 +30,29 @@ JDK 自带了很多监控工具，都位于 JDK 的 bin 目录下，其中最常
 
 ## 3. 常用的 JVM 调优命令
 
-- `jps`：列出本机所有 Java 进程的进程号。常用参数如下：
-    - `-m` 输出 main 方法的参数
-    - `-l` 输出完全的包名和应用主类名
-    - `-v` 输出 JVM 参数
+### 3.1. jps
+
+`jps`：JVM Process Status Tool，列出本机所有 Java 进程的进程号。常用参数如下：
+
+- `-m` 输出 main 方法的参数
+- `-l` 输出完全的包名和应用主类名
+- `-v` 输出 JVM 参数
 
 ```bash
 jps -lvm
 ```
 
-- `jstack`：查看某个 Java 进程内的线程堆栈信息。使用参数 `-l` 可以打印额外的锁信息，发生死锁时可以使用 `jstack -l pid` 观察锁持有情况。
+### 3.2. jstack
+
+`jstack`：查看某个 Java 进程内当前时刻的线程堆栈信息。使用参数 `-l` 可以打印额外的锁信息，发生死锁时可以使用 `jstack -l pid` 观察锁持有情况。
 
 ```bash
 jstack -l 4124 | more
 ```
 
-- `jstat`：用于查看虚拟机各种**运行状态信息（类装载、内存、垃圾收集等运行数据）**。使用参数 `-gcuitl` 可以查看垃圾回收的统计信息。
+### 3.3. jstat
+
+`jstat`：JVM statistics Monitoring，用于监视虚拟机各种**运行状态信息（类装载、内存、垃圾收集、JIT编译等运行数据）**。使用参数 `-gcuitl` 可以查看垃圾回收的统计信息。
 
 ```bash
 jstat -gcutil 4124
@@ -64,17 +74,27 @@ S0 S1 E O M CCS YGC YGCT FGC FGCT GCT
 > - FGCT：老年代垃圾回收消耗时间
 > - GCT：垃圾回收消耗总时间
 
-- `jmap`：查看堆内存快照。通过 jmap 命令可以获得运行中的堆内存的快照，从而可以对堆内存进行离线分析。例如，查询进程 4124
+### 3.4. jmap
+
+`jmap`：JVM Memory Map，查看运行中的堆内存的快照（heap dump 文件），从而可以对堆内存进行离线分析。例如，查询进程 4124
 
 ```bash
 jmap -heap 4124
 ```
 
-- `jinfo`：查看当前的应用 JVM 参数配置。
+### 3.5. jhat
+
+`jhat`：JVM Heap Analysis Tool，此命令是与 `jmap` 搭配使用，用来分析 `jmap` 生成的 dump，`jhat` 内置了一个微型的 HTTP/HTML 服务器，生成 dump 的分析结果后，可以在浏览器中查看
+
+### 3.6. jinfo
+
+`jinfo`：JVM Configuration info，实时查看当前的应用 JVM 运行参数配置。
 
 ```bash
 jinfo -flags 1
 ```
+
+### 3.7. 查询 JVM 相关参数值
 
 - 查看所有参数的最终值，*初始值可能被修改掉*。
 

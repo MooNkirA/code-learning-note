@@ -119,15 +119,235 @@ logging:
 
 ## 3. Sleuth 对各种服务调用方式的支持
 
-RestTemplate 与 Feign 都是服务调用的常用方式，还有多线程调用等。以下测试 Sleuth 对这些服务调用方式的整合跟踪。
+RestTemplate 与 Feign 都是服务调用的常用方式，还有多线程调用等。创建2个工程：服务提供方、服务调用方，均集成 Sleuth，在服务调用方中分别使用 RestTemplate 和 Feign、多线程的方式调用服务提供方的接口，查看调用各种调用方式是否整合跟踪。
+
+> 示例源码：`spring-cloud-note\spring-cloud-sample-sleuth-calling-support`
 
 ### 3.1. 创建基础示例工程
 
-> TODO: 待整理
+#### 3.1.1. 聚合项目
+
+创建测试聚合项目，引入依赖管理
+
+```xml
+<dependencyManagement>
+    <dependencies>
+        <!-- spring boot 依赖 -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-dependencies</artifactId>
+            <version>${spring-boot.version}</version>
+            <type>pom</type>
+            <scope>import</scope>
+        </dependency>
+        <!-- spring cloud 依赖 -->
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-dependencies</artifactId>
+            <version>${spring-cloud.version}</version>
+            <type>pom</type>
+            <scope>import</scope>
+        </dependency>
+    </dependencies>
+</dependencyManagement>
+
+<!-- 项目构建部分 -->
+<build>
+    <plugins>
+        <plugin>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-maven-plugin</artifactId>
+        </plugin>
+    </plugins>
+</build>
+```
+
+#### 3.1.2. 服务提供者
+
+创建服务提供方工程，引入依赖
+
+```xml
+<dependencies>
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-web</artifactId>
+    </dependency>
+    <dependency>
+        <groupId>org.springframework.cloud</groupId>
+        <artifactId>spring-cloud-starter-sleuth</artifactId>
+    </dependency>
+    <dependency>
+        <groupId>org.projectlombok</groupId>
+        <artifactId>lombok</artifactId>
+    </dependency>
+</dependencies>
+```
+
+创建项目核心配置文件
+
+```yml
+server:
+  port: 8081
+spring:
+  application:
+    name: sleuth-provider
+```
+
+创建启动类与测试接口
+
+```java
+@Slf4j
+@RestController
+public class TestController {
+    @GetMapping("/hello")
+    public String hello() {
+        log.info("service provider");
+        return "hello !";
+    }
+}
+```
+
+#### 3.1.3. 服务调用者
+
+创建服务提供方工程，引入依赖
+
+```xml
+<dependencies>
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-web</artifactId>
+    </dependency>
+
+    <dependency>
+        <groupId>org.springframework.cloud</groupId>
+        <artifactId>spring-cloud-starter-sleuth</artifactId>
+    </dependency>
+    <dependency>
+        <groupId>org.springframework.cloud</groupId>
+        <artifactId>spring-cloud-starter-openfeign</artifactId>
+    </dependency>
+
+    <dependency>
+        <groupId>org.projectlombok</groupId>
+        <artifactId>lombok</artifactId>
+    </dependency>
+</dependencies>
+```
+
+创建项目核心配置文件
+
+```yml
+server:
+  port: 8080
+spring:
+  application:
+    name: sleuth-consumer
+```
+
+创建启动类
 
 ### 3.2. RestTemplate 服务调用方式跟踪
 
-> TODO: 待整理
+#### 3.2.1. 代码实现
+
+1. 在配置类中创建 RestTemplate Bean
+
+```java
+@Configuration
+public class ConsumerConfig {
+
+    // 创建 RestTemplate
+    @Bean
+    public RestTemplate restTemplate() {
+        return new RestTemplate();
+    }
+}
+```
+
+2. 创建测试接口，通过 RestTemplate 调用接口
+
+```java
+@Slf4j
+@RestController
+public class RestTemplateController {
+    // 引入 RestTemplate
+    @Autowired
+    private RestTemplate restTemplate;
+
+    @GetMapping("/testByRestTemplate")
+    public String testByRestTemplate() {
+        // 使用 RestTemplate 服务调用
+        String result = restTemplate.getForObject("http://localhost:8081/hello", String.class);
+        // 输出日志
+        log.info("testByRestTemplate result: {}", result);
+        return result;
+    }
+}
+```
+
+#### 3.2.2. 测试
+
+启动服务，访问服务调用者的接口 `http://127.0.0.1:8080/testByRestTemplate`
+
+服务提供者日志输出：
+
+![](images/323295222248975.png)
+
+服务调用者日志输出：
+
+![](images/122045222230549.png)
+
+验证结果：consumer 与 provider 都应输出 sleuth 结构的日志，Sleuth 可以正常跟踪 RestTemplate。
+
+### 3.3. Feign 服务调用方式跟踪
+
+#### 3.3.1. 代码实现
+
+1. 在配置类或者启动类中使用 `@EnableFeignClients` 注解开启 Feign 支持
+2. 创建 FeignClient 接口
+
+```java
+@FeignClient(name = "sleuth-provider", url = "localhost:8081")
+public interface HelloService {
+    @RequestMapping("/hello")
+    String hello();
+}
+```
+
+3. 创建测试接口，通过 Feign 调用接口
+
+```java
+@Slf4j
+@RestController
+public class FeignController {
+    // 引入 FeignClient 接口
+    @Autowired
+    private HelloService helloService;
+
+    @GetMapping("/testByFeign")
+    public String testByFeign() {
+        // Feign 服务调用
+        String result = helloService.hello();
+        // 输出日志
+        log.info("testByFeign result: {}", result);
+        return result;
+    }
+}
+```
+
+#### 3.3.2. 测试
+
+`http://127.0.0.1:8080/testByFeign`
+
+服务提供者日志输出：
+
+![](images/318141123257008.png)
+
+服务调用者日志输出：
+
+![](images/182941123236842.png)
+
+验证结果：consumer 与 provider 都应输出 sleuth 结构的日志，Sleuth 可以正常跟踪 Feign 调用方式。
 
 ## 4. Zipkin 的概述
 

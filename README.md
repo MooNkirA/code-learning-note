@@ -218,7 +218,8 @@
 <ul class="docs">
   <li><a href="#/数据库/MySQL/MySQL-安装与部署">MySQL - 安装与部署</a></li>
   <li><a href="#/数据库/MySQL/MySQL-体系架构">MySQL - 体系架构</a></li>
-  <li><a href="#/数据库/MySQL/MySQL-基础">MySQL - 基础（SQL基础、函数）</a></li>
+  <li><a href="#/数据库/MySQL/MySQL-基础">MySQL - 基础（SQL 基础语法）</a></li>
+  <li><a href="#/数据库/MySQL/MySQL-函数">MySQL - 函数</a></li>
   <li><a href="#/数据库/MySQL/MySQL-进阶">MySQL - 进阶（存储过程、存储函数、视图、触发器、MySQL 8.x 新特性）</a></li>
   <li><a href="#/数据库/MySQL/MySQL-事务">MySQL - 事务</a></li>
   <li><a href="#/数据库/MySQL/MySQL-索引">MySQL - 索引</a></li>
@@ -304,7 +305,7 @@
   <li><a href="#/Linux/虚拟机-Multipass">Multipass 虚拟机工具</a></li>
 </ul>
 
-## 分布式架构 & 微服务架构
+## 分布式 & 微服务架构
 
 ### 🌠 Spring Boot
 
@@ -425,6 +426,13 @@
   <li><a href="#/分布式微服务/分布式任务调度/Task-Scheduling">任务调度概述</a></li>
   <li><a href="#/分布式微服务/分布式任务调度/Quartz">Quartz 开源作业调度框架</a></li>
   <li><a href="#/分布式微服务/分布式任务调度/ElasticJob">Elastic-Job 分布式调度解决方案</a></li>
+</ul>
+
+### ⏲ 分库分表
+
+<ul class="docs">
+  <li><a href="#/分布式微服务/分库分表/分库分表综合概述">分库分表综合概述</a></li>
+  <li><a href="#/分布式微服务/分库分表/Sharding-JDBC">Sharding-JDBC - 当当网开源分布式数据库中间件</a></li>
 </ul>
 
 ### ✨ 微服务其他相关内容
