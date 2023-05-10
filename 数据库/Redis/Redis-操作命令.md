@@ -1154,8 +1154,6 @@ Redis 客户端执行一条命令分4个过程：发送命令、命令排队、�
 
 ### 7.3. 消息订阅与发布
 
-> TODO: 待整理，其他详见day50笔记
-
 - `subscribe`：订阅指定的一个频道的信息。例如，`subscribe mychat`，订阅“mychat”这个频道
 - `psubscribe`：订阅一个或多个符合指定模式的频道。例如，`psubscribe s*`：批量订阅以“s”开头的频道
 - `unsubscribe`：取消订阅指定的频道
@@ -1163,8 +1161,6 @@ Redis 客户端执行一条命令分4个过程：发送命令、命令排队、�
 - `publish`：在指定的频道中发布消息。例如，`publish mychat 'today is a newday'`
 
 ### 7.4. redis 事务
-
-> TODO: 待整理，详见day50笔记
 
 #### 7.4.1. multi 开启事务
 
