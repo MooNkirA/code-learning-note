@@ -1,5 +1,3 @@
-# MongoDB 安装与使用
-
 ## 1. MongoDB 官网下载地址
 
 MongoDB 的下载地址：

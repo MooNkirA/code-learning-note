@@ -297,7 +297,7 @@ public class RestTemplateController {
 
 ![](images/122045222230549.png)
 
-验证结果：consumer 与 provider 都应输出 sleuth 结构的日志，Sleuth 可以正常跟踪 RestTemplate。
+验证结果：consumer 与 provider 都输出 sleuth 结构的日志，Sleuth 可以正常跟踪 RestTemplate。
 
 ### 3.3. Feign 服务调用方式跟踪
 
@@ -337,7 +337,7 @@ public class FeignController {
 
 #### 3.3.2. 测试
 
-`http://127.0.0.1:8080/testByFeign`
+启动服务，访问服务调用者的接口 `http://127.0.0.1:8080/testByFeign`
 
 服务提供者日志输出：
 
@@ -347,7 +347,83 @@ public class FeignController {
 
 ![](images/182941123236842.png)
 
-验证结果：consumer 与 provider 都应输出 sleuth 结构的日志，Sleuth 可以正常跟踪 Feign 调用方式。
+验证结果：consumer 与 provider 都输出 sleuth 结构的日志，Sleuth 可以正常跟踪 Feign 调用方式。
+
+### 3.4. 多线程调用方式跟踪
+
+#### 3.4.1. 代码实现
+
+通过线程池开启线程，在线程任务中通过 Feign 进行远程调用。
+
+```java
+@Slf4j
+@RestController
+public class ThreadController {
+
+    @Autowired
+    private HelloService helloService;
+
+    // 创建线程池
+    private final ExecutorService executorService = Executors.newFixedThreadPool(1);
+
+    @GetMapping("/testByThread")
+    public String testByThread() throws ExecutionException, InterruptedException {
+        Future<String> future = executorService.submit(() -> {
+            log.info("in thread");
+            return helloService.hello();
+        });
+        // 获取结果
+        String result = future.get();
+        log.info("thread result: {}", result);
+        return result;
+    }
+}
+```
+
+#### 3.4.2. 测试
+
+启动服务，访问服务调用者的接口 `http://localhost:8080/testByThread`
+
+服务调用者日志输出：
+
+![](images/162262322230551.png)
+
+验证结果：consumer 线程内输出无 sleuth 结构的日志，Sleuth 不能正常跟踪 Thread 线程内调用服务的方式！
+
+#### 3.4.3. 正常跟踪线程内调用服务的解决方法
+
+使用 Sleuth 提供的可跟踪的线程池服务 `org.springframework.cloud.sleuth.instrument.async.TraceableExecutorService`。对上面示例进行改造：
+
+在配置类中，定义可跟踪的线程服务
+
+```java
+@Configuration
+public class ConsumerConfig {
+
+    @Autowired
+    private BeanFactory beanFactory;
+
+    // 定义可跟踪的线程服务
+    @Bean
+    public ExecutorService executorService(){
+        ExecutorService executorService = Executors.newFixedThreadPool(1);
+        return new TraceableExecutorService(this.beanFactory, executorService);
+    }
+}
+```
+
+修改测试接口类，注入 sleuth 可跟踪的线程池服务即可
+
+```java
+@Autowired
+private ExecutorService executorService;
+```
+
+启动服务进行测试，结果如下：
+
+![](images/121395022248977.png)
+
+线程内的日志也正常输出 sleuth 结构的日志，说明能正常跟踪。
 
 ## 4. Zipkin 的概述
 

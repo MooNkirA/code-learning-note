@@ -267,6 +267,38 @@ public abstract class HttpServlet extends GenericServlet {
 
 最后使用浏览器访问刚刚部署的项目 `http://localhost:8080/Day35_Tomcat/test`
 
+### 2.3. Web 开发中的路径问题
+
+#### 2.3.1. 相对路径的编写规范
+
+相对路径：以当前的 web 资源为起点的访问地址。
+
+- 当前路径：`./` 或者直接写名称。一般用于 `<a>` 标签的链接，一般都直接写。
+- 上一级目录：`../`
+
+```html
+<a href="../login.html">登录页面</a>
+```
+
+#### 2.3.2. 绝对路径的编写规范
+
+绝对路径：以根目录为起点的访问地址。
+
+- 客户端(浏览器端)绝对路径：`/` 代表的 WebRoot 的上一级，即 webapps 这一级目录下；`/项目名/地址` 例如，`/day36-login/login`。
+> 一般应用于 `<form>` 表单中的 `action` 属性访问的 servlet 地址；`<a>` 标签的 `href` 属性访问的 servlet 地址。
+- 服务器端绝对路径：`/` 代表的时 WebRoot 这一级目录，因为 login.html 也在 WebRoot 目录下，所以可以理解为与 LoginServlet 在同一个目录下。如：`/login`，不用加项目名字。
+> 一般应用于 web.xml 中 servlet 的配置
+
+**绝对路径在浏览器端与服务器端的区别说明**：
+
+- 在<u>浏览器端访问</u>的 `/`，其实是访问 `http://localhost:8080/` 这个目录；表单 `<form action="/login">`，就是访问 `http://localhost:8080/login`。
+- 在<u>服务器端访问</u>的 `/`，其实是访问 `http://localhost:8080/web项目/` 这个目录；在 web.xml 配置中 `<url-pattern>/demo1</url-pattern>`，访问的地址是 `http://localhost:8080/web项目/demo1`
+
+> Tips: 
+>
+> - `/` 访问的这两个目录不是同一个目录，浏览器端的要比服务器端上一级。
+> - WebRoot 这个目录只在 myeclipse 的工程目录中才有，只有开发中存在。它部署到服务器上以后就成了 webapps 目录下的一个文件夹，如果工程名叫：`demo`，则会在 tomcat 的 webapps 目录下出现一个 `/demo` 的目录，这个目录就是 WebRoot，所以 WebRoot 在部署以后是不存在的，但其实就是 `/demo` 这个目录。
+
 ## 3. 会话
 
 ### 3.1. 概述
@@ -285,6 +317,19 @@ BS结构的程序类似于打电话，从浏览器第一次访问服务器开始
 
 - Cookie 技术：数据保存在浏览器端(缓存中或文件)
 - Session 技术：数据保存在服务器的内存中，在 Java 中定义为 `HttpSession` 接口
+
+### 3.4. 实现集群中的 Session 共享存储
+
+Session 是运行在一台服务器上的，所有的访问都会到达此唯一服务器上时，可以根据客户端传来的 sessionID，来获取相应的 Session；或在对应 Session 不存在的情况下（session 生命周期到了/用户第一次登录），创建一个新的 Session。
+
+但如果在实现集群的环境下，用户的请求会由 Nginx 服务器进行转发（别的方案也是同理）到不同的服务器上，如果用户在服务器A已经登陆并生成 Session，如果下次请求转发到服务器B，由于服务器B没有客户端上送的 sessionId 而重新创建一个新的 Session，并且再将这个新的 sessionID 返回给客户端。这样不仅对用户体验特别差，还会让服务器上的 session 激增，加大服务器的运行压力。
+
+为了解决集群环境下的 seesion 共享问题，有以下的解决方案：
+
+1. 粘性 session：是指 Ngnix 每次都将同一用户的所有请求转发至同一台服务器上，即将用户与服务器绑定。
+2. 服务器 session 复制：即每次 session 发生变化时，创建或者修改，就广播给所有集群中的服务器，使所有的服务器上的 session 相同。
+3. session 共享：使用 redis， memcached 等技术缓存 session，让所有集群的服务器共离。
+4. session 持久化：将 session 存储至数据库中，像操作数据一样才做 session。
 
 ## 4. Cookie
 

@@ -138,10 +138,11 @@ public class UserDaoImpl implements IUserDao {
 
 所以需要<font color=red>将 userDao 标签放到上面，才确保创建 userService 层时，xml 全部解析完。因为如果工厂类没有读取到 map 集合有对应的 id 时，是不会去创建对象的。</font>
 
+### 1.2. Spring Framework 的技术模块
 
-### 1.2. Spring 核心部分
+![](images/340260616230552.png)
 
-Spring 核心主要分成两部分：
+主要学习的 Spring 核心主要分成两部分：
 
 - **控制反转（IOC）** - 将对象的创建交给 Spring，通过使用配置等方式创建类对象，Spring 通过一种称作控制反转（IoC）的技术促进了低耦合。当应用了 IoC，一个对象依赖的其它对象会通过被动的方式传递进来，而不是这个对象自己创建或者查找依赖对象。可以认为IoC与JNDI相反，不是对象从容器中查找依赖，而是容器在对象初始化时不等对象请求就主动将依赖传递给它。
 - **面向切面编程（AOP）** - Spring 提供了面向切面编程的丰富支持，可以不通过修改源代码来实现扩展功能，允许通过分离应用的业务逻辑与系统级服务（例如审计（auditing）和事务（transaction）管理）进行内聚性的开发。应用对象只实现它们应该做的“完成业务逻辑”仅此而已。它们并不负责（甚至是意识）其它的系统级关注点，例如日志或事务支持。
@@ -415,14 +416,14 @@ IOC 和 DI 关系：依赖注入不能单独存在，需要在 IOC 基础之上�
 
 在 java 代码中给类的属性注入（就是给对象的属性设置值），有以下几种方式：
 
-1. 使用 set 方法注入
+1. 使用 setter 方法注入
 2. 使用有参构造注入
 3. 使用接口注入
 
 在 spring 框架中，支持以下几种方式：
 
 1. 有参构造器注入
-2. set 方法注入
+2. setter 方法注入
 3. 静态工厂注入
 4. 实例工厂注入
 
@@ -436,9 +437,9 @@ IOC 和 DI 关系：依赖注入不能单独存在，需要在 IOC 基础之上�
 
 标签相关属性：
 
-|  属性名   |                                                  说明                                                  |
-| ------- | ----------------------------------------------------------------------------------------------------- |
-| `index` | 指定参数在构造方法参数列表的索引位置（索引值从0开始）                                                            |
+|  属性名  |                                                  说明                                                   |
+| ------- | ------------------------------------------------------------------------------------------------------- |
+| `index` | 指定参数在构造方法参数列表的索引位置（索引值从0开始）                                                           |
 | `type`  | 指定参数在构造方法中的数据类型（可选，一般很少用）                                                              |
 | `name`  | 指定构造方法中的参数名称（**注：参数名称是构造方法的参数名称**）                                                |
 | `value` | 给成员变量赋值，包含基本数据类型和 String 类型                                                                |
@@ -488,11 +489,11 @@ public void testConstructor () {
 
 #### 4.3.1. property 标签
 
-|  属性名  |                               说明                               |
-| :-----: | --------------------------------------------------------------- |
+|  属性名  |                             说明                              |
+| :-----: | ------------------------------------------------------------ |
 | `name`  | 指定参数的名称，**参数名字是在类中set方法的后面字符串，首字母小写** |
 |  `ref`  | 给属性赋值是其他bean类型，必须是在配置文件中配置过的bean对象          |
-| `value` | 给属性赋值是基本数据类型和String类型                                |
+| `value` | 给属性赋值是基本数据类型和String类型                              |
 
 #### 4.3.2. 示例
 
@@ -731,16 +732,14 @@ Spring 的 Bean 属性依赖注入分成为手动装配和自动装配。上面�
 
 ### 5.1. 概述
 
-Spring 创建的 Bean 对象的都有其作用范围。Spring 框架支持6种作用域，其中4种只有在 Web 环境的 `ApplicationContext` 容器中才可用，使用者也可以创建一个自定义作用域。下表是支持的作用域描述：
+Spring 创建的 Bean 对象的都有其作用范围。Spring 框架支持6种作用域，其中4种只有在 Web 环境的 `ApplicationContext` 容器中才可用，使用者也可以创建一个自定义作用域。内部支持以下作用域：
 
-| 作用范围取值  |                                                                                  描述                                                                                   |
-| :---------: | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-|  singleton  | (默认) Bean 定义的作用域存在整个 Spring IoC 容器                                                                                                                           |
-|  prototype  | Bean 定义的作用域存在任何数量的对象实例。                                                                                                                                   |
-|   request   | Bean 定义的作用域存在单个 HTTP 请求的生命周期中。即每个 HTTP 请求都有自己的 Bean 实例，这些实例基于单个 Bean 定义的基础上创建的。（只在 Web 环境的 `ApplicationContext` 容器中有效） |
-|   session   | Bean 定义的作用域存在一个 HTTP 会话的生命周期。（只在 Web 环境的 `ApplicationContext` 容器中有效）                                                                            |
-| application | Bean 定义的作用域存在 `ServletContext` 的生命周期。（只在 Web 环境的 `ApplicationContext` 容器中有效）                                                                       |
-|  websocket  | Bean 定义的作用域存在 `WebSocket` 的生命周期。（只在 Web 环境的 `ApplicationContext` 容器中有效）                                                                            |
+- `singleton`：(默认) Bean 定义的作用域存在整个 Spring IoC 容器
+- `prototype`：Bean 定义的作用域存在任何数量的对象实例。
+- `request`：Bean 定义的作用域存在单个 HTTP 请求的生命周期中。即每个 HTTP 请求都有自己的 Bean 实例，这些实例基于单个 Bean 定义的基础上创建的。（只在 Web 环境的 `ApplicationContext` 容器中有效）。
+- `session`：Bean 定义的作用域存在一个 HTTP 会话的生命周期。（只在 Web 环境的 `ApplicationContext` 容器中有效）
+- `application`：Bean 定义的作用域存在 `ServletContext` 的生命周期。（只在 Web 环境的 `ApplicationContext` 容器中有效）
+- `websocket`：Bean 定义的作用域存在 `WebSocket` 的生命周期。（只在 Web 环境的 `ApplicationContext` 容器中有效）
 
 > 注：有些历史资料中提及有 `globalSession` 这种作用范围，目前 Spring 中已废弃
 
@@ -1068,22 +1067,6 @@ graph LR
 
 自定义 Bean 初始化和销毁方法有多种方式。参考代码详见：`spring-note\spring-sample\39-annotation-lifecycle\`
 
-Bean 对象在 spring 框架的上下文中的生命周期图（网络资料）
-
-![](images/20200902225528606_28556.jpg)
-
-1. 实例化一个 Bean，也就是我们常说的 new。
-2. IOC 依赖注入：按照 Spring 上下文对实例化的 Bean 进行配置，也就是 IOC 注入。
-3. setBeanName 实现：如果这个 Bean 已经实现了 BeanNameAware 接口，会调用它实现的 setBeanName(String) 方法，此处传递的就是 Spring 配置文件中 Bean 的 id 值
-4. BeanFactoryAware 实现：如果这个 Bean 已经实现了 BeanFactoryAware 接口，会调用它实现的 setBeanFactory，setBeanFactory(BeanFactory)传递的是 Spring 工厂自身（可以用这个方式来获取其它 Bean，只需在 Spring 配置文件中配置一个普通的 Bean 就可以）。
-5. ApplicationContextAware 实现：如果这个 Bean 已经实现了 ApplicationContextAware 接口，会调用 setApplicationContext(ApplicationContext)方法，传入 Spring 上下文（同样这个方式也可以实现步骤 4 的内容，但比 4 更好，因为 ApplicationContext 是 BeanFactory 的子接口，有更多的实现方法）
-6. postProcessBeforeInitialization 接口实现 - 初始化预处理：如果这个 Bean 关联了 BeanPostProcessor 接口，将会调用 postProcessBeforeInitialization(Object obj, String s)方法，BeanPostProcessor 经常被用作是 Bean 内容的更改，并且由于这个是在 Bean 初始化结束时调用那个的方法，也可以被应用于内存或缓存技术。
-7. init-method：如果 Bean 在 Spring 配置文件中配置了 init-method 属性会自动调用其配置的初始化方法。
-8. postProcessAfterInitialization：如果这个 Bean 关联了 BeanPostProcessor 接口，将会调用 postProcessAfterInitialization(Object obj, String s) 方法。
-    - 注：以上工作完成以后就可以应用这个 Bean 了，那这个 Bean 是一个 Singleton 的，所以一般情况下我们调用同一个 id 的 Bean 会是在内容地址相同的实例，当然在 Spring 配置文件中也可以配置非 Singleton。
-9. Destroy 过期自动清理阶段：当 Bean 不再需要时，会经过清理阶段，如果 Bean 实现了 DisposableBean 这个接口，会调用那个其实现的 destroy()方法；
-10. destroy-method 自配置清理：最后，如果这个 Bean 的 Spring 配置中配置了 destroy-method 属性，会自动调用其配置的销毁方法
-
 ### 6.2. @Bean 注解方式实现生命周期回调
 
 - 创建自定义Bean
@@ -1251,7 +1234,7 @@ UserService 实现 DisposableBean 接口实现销毁的 destroy() 方法执行�
 
 ### 6.4. @PostConstruct & @PreDestroy 注解方式实现生命周期回调
 
-还可以使用 `@PostConstruct` 和 `@PreDestroy` 注解修饰方法来指定相应的初始化和销毁方法
+`@PostConstruct` 和 `@PreDestroy` 注解修饰方法来指定相应的初始化和销毁方法。<font color=purple>*注：这两个注解并非 Spring 提供，而是 JSR250 规范提供*</font>
 
 1. 创建 `LogUtil` 类，定义 `@PostConstruct` 和 `@PreDestroy` 注解修饰的方法
 
@@ -1321,8 +1304,6 @@ LogUtil 基于 @PostConstruct 注解的初始化后的方法执行了...
 LogUtil 基于 @PreDestroy 注解销毁前的方法执行了...
 ************* 容器关闭完毕 *************
 ```
-
-<font color=purple>*注：这两个注解并非Spring提供，而是JSR250规范提供*</font>
 
 ### 6.5. 各种初始化与销毁方式的执行顺序
 
@@ -1422,21 +1403,37 @@ OrdinaryBean 构造方法执行了...
 
 1. 调用 bean 的构造方法创建 Bean
 2. 通过反射调用 setter 方法进行属性的依赖注入
-3. 如果 Bean实 现了 `BeanNameAware` 接口，Spring 将调用 `setBeanName()`，设置 Bean 的 name（xml 文件中 bean 标签的 id）
-4. 如果 Bean 实现了 `BeanFactoryAware` 接口，Spring 将调用 `setBeanFactory()` 把 BeanFactory 实例设置给 Bean
-5. 如果 Bean 实现了 `ApplicationContextAware` 接口，Spring 容器将调用 `setApplicationContext()` 给 Bean 设置 ApplictionContext
-6. 如果存在 `BeanPostProcessor`，Spring 将调用它们的 `postProcessBeforeInitialization`（预初始化）方法，在 Bean 初始化前对其进行处理
-7. 如果 Bean 实现了 `InitializingBean` 接口，Spring 将调用它的 `afterPropertiesSet` 方法，然后调用 xml 定义的 `init-method` 方法，两个方法作用类似，都是在初始化 Bean 的时候执行
+3. 如果 Bean 实现了 `BeanNameAware` 接口，Spring 将调用 `setBeanName()`，设置 Bean 的 name（xml 文件中 bean 标签的 id）。
+4. 如果 Bean 实现了 `BeanFactoryAware` 接口，Spring 将调用 `setBeanFactory()` 把 BeanFactory 实例设置给 Bean。
+5. 如果 Bean 实现了 `ApplicationContextAware` 接口，Spring 容器将调用 `setApplicationContext()` 给 Bean 设置 ApplictionContext 实例。
+6. 如果存在 `BeanPostProcessor`，Spring 将调用它们的 `postProcessBeforeInitialization`（预初始化）方法，在 Bean 初始化前对其进行处理。
+7. 如果 Bean 实现了 `InitializingBean` 接口，Spring 将调用它的 `afterPropertiesSet` 方法；然后调用 xml 定义的 `init-method` 方法，两个方法作用类似，都是在初始化 Bean 的时候执行。
 8. 如果存在 `BeanPostProcessor`，Spring 将调用它们的 `postProcessAfterInitialization`（后初始化）方法，在 Bean 初始化后对其进行处理
-9. Bean 初始化完成，供应用使用，直到应用被销毁
-10. 如果 Bean 实现了 `DisposableBean` 接口，Spring 将调用它的 `destory` 方法，然后调用在 xml 中定义的 `destory-method` 方法，这两个方法作用类似，都是在 Bean 实例销毁前执行
+9. Bean 初始化完成，供应用使用，直到应用被销毁。
+10. 应用销毁时，如果 Bean 实现了 `DisposableBean` 接口，Spring 将调用它的 `destory` 方法；然后调用在 xml 中定义的 `destory-method` 方法，这两个方法作用类似，都是在 Bean 实例销毁前执行
+
+#### 6.7.1. Bean 对象在 spring 框架的上下文中的生命周期图（网络资料，待整合）
+
+![](images/20200902225528606_28556.jpg)
+
+1. 实例化一个 Bean，也就是我们常说的 new。
+2. IOC 依赖注入：按照 Spring 上下文对实例化的 Bean 进行配置，也就是 IOC 注入。
+3. setBeanName 实现：如果这个 Bean 已经实现了 BeanNameAware 接口，会调用它实现的 setBeanName(String) 方法，此处传递的就是 Spring 配置文件中 Bean 的 id 值
+4. BeanFactoryAware 实现：如果这个 Bean 已经实现了 BeanFactoryAware 接口，会调用它实现的 setBeanFactory，setBeanFactory(BeanFactory)传递的是 Spring 工厂自身（可以用这个方式来获取其它 Bean，只需在 Spring 配置文件中配置一个普通的 Bean 就可以）。
+5. ApplicationContextAware 实现：如果这个 Bean 已经实现了 ApplicationContextAware 接口，会调用 setApplicationContext(ApplicationContext)方法，传入 Spring 上下文（同样这个方式也可以实现步骤 4 的内容，但比 4 更好，因为 ApplicationContext 是 BeanFactory 的子接口，有更多的实现方法）
+6. postProcessBeforeInitialization 接口实现 - 初始化预处理：如果这个 Bean 关联了 BeanPostProcessor 接口，将会调用 postProcessBeforeInitialization(Object obj, String s)方法，BeanPostProcessor 经常被用作是 Bean 内容的更改，并且由于这个是在 Bean 初始化结束时调用那个的方法，也可以被应用于内存或缓存技术。
+7. init-method：如果 Bean 在 Spring 配置文件中配置了 init-method 属性会自动调用其配置的初始化方法。
+8. postProcessAfterInitialization：如果这个 Bean 关联了 BeanPostProcessor 接口，将会调用 postProcessAfterInitialization(Object obj, String s) 方法。
+> 注：以上工作完成以后就可以应用这个 Bean 了，那这个 Bean 是一个 Singleton 的，所以一般情况下我们调用同一个 id 的 Bean 会是在内容地址相同的实例，当然在 Spring 配置文件中也可以配置非 Singleton。
+9. Destroy 过期自动清理阶段：当 Bean 不再需要时，会经过清理阶段，如果 Bean 实现了 DisposableBean 这个接口，会调用那个其实现的 destroy()方法；
+10. destroy-method 自配置清理：最后，如果这个 Bean 的 Spring 配置中配置了 destroy-method 属性，会自动调用其配置的销毁方法
 
 ## 7. Spring Bean 的 Aware 接口
 
 Spring 框架提供了一系列的以 Aware 结尾的回调接口，可以让 Bean 注入相关 Spring 框架的功能依赖，一般名称表示依赖关系的类型。下表是 Spring 一些常用比较重要的 Aware 接口清单
 
-| Name                             | Injected Dependency                                                                 |
-| :------------------------------- | :---------------------------------------------------------------------------------- |
+|               Name               |                                 Injected Dependency                                 |
+| -------------------------------- | ----------------------------------------------------------------------------------- |
 | `ApplicationContextAware`        | 注入 `ApplicationContext` 容器                                                       |
 | `ApplicationEventPublisherAware` | 注入 `ApplicationContext` 的事件发布者                                                 |
 | `BeanClassLoaderAware`           | 获取用于加载 Bean 类的类加载器                                                          |
@@ -2376,8 +2373,6 @@ public void test() {
 - `FactoryBean`：是用来由开发者来自定义创建比较复杂的 bean。一般的 bean 可以直接用 xml 或者注解配置，但如果一个 bean 的创建过程中涉及到很多其他的 bean 和复杂的逻辑，传统的配置方式比较麻烦，这时可以考虑使用 `FactoryBean` 并且可以隐藏实例化复杂 Bean 的细节。
 
 当配置文件中 `<bean>` 标签的 `class` 属性配置的实现类是 `FactoryBean`，或者在 `FactoryBean` 接口的实现类中标识 `@Component` 等注解时，此时通过 `getBean()` 方法返回的不是 `FactoryBean` 类本身，而是调用 `FactoryBean#getObject()` 方法所返回的对象（相当于 `getObject()` 代理了 `getBean()` 方法）。如果想得到 FactoryBean 实例本身，必须使用名称为 `'&' + beanName` 的方式获取。
-
-
 
 ## 10. ApplicationContext
 
