@@ -142,7 +142,17 @@ public class UserDaoImpl implements IUserDao {
 
 ![](images/340260616230552.png)
 
-主要学习的 Spring 核心主要分成两部分：
+主要由以下几个核心模块组成：
+
+- **Spring Core**：核心类库，提供 IOC 服务
+- **Spring Context**：提供框架式的 Bean 访问方式，以及企业级功能（JNDI、定时任务等）
+- **Spring AOP**：AOP 服务
+- **Spring DAO**：对 JDBC 的抽象，简化了数据访问异常的处理
+- **Spring ORM**：对现有的 ORM 框架的支持
+- **Spring Web**：提供了基本的面向 Web 的综合特性，例如多方文件上传
+- **Spring MVC**：提供面向 Web 应用的 Model-View-Controller 实现
+
+主要关注学习的 Spring 核心主要分成两部分：
 
 - **控制反转（IOC）** - 将对象的创建交给 Spring，通过使用配置等方式创建类对象，Spring 通过一种称作控制反转（IoC）的技术促进了低耦合。当应用了 IoC，一个对象依赖的其它对象会通过被动的方式传递进来，而不是这个对象自己创建或者查找依赖对象。可以认为IoC与JNDI相反，不是对象从容器中查找依赖，而是容器在对象初始化时不等对象请求就主动将依赖传递给它。
 - **面向切面编程（AOP）** - Spring 提供了面向切面编程的丰富支持，可以不通过修改源代码来实现扩展功能，允许通过分离应用的业务逻辑与系统级服务（例如审计（auditing）和事务（transaction）管理）进行内聚性的开发。应用对象只实现它们应该做的“完成业务逻辑”仅此而已。它们并不负责（甚至是意识）其它的系统级关注点，例如日志或事务支持。
@@ -335,7 +345,7 @@ JavaBean：是一种 Java 语言写成的可重用组件。一个 Spring IoC 容
 
 ## 3. Spring Bean 的加载方式
 
-### 3.1. 方式1：基于 xml 配置的 `<bean>` 标签
+### 3.1. 方式1：基于 xml 配置的 bean 标签
 
 Spring 核心配置文件名称和位置不是固定的，只要名字不包含中文和空格即可。建议放到 src 根目录，官方建议：applicationContext.xml，也可以简单命名为 bean.xml
 
@@ -632,6 +642,39 @@ public void testOther() {
 }
 ```
 
+#### 4.3.5. 内部 Bean 注入
+
+内部 Bean 注入，是指 Spring 的基于 XML 的配置元数据或提供给某个元素使用。即将 A 实例用作 B 实例的属性时，就能将 A 实例声明为内部 Bean。内部 bean 总是匿名的，它们总是作为原型。
+
+例如：有一个 Student 类，其中引用了 Person 类。此时可以只创建一个 Person 类实例并在 Student 中使用它。
+
+```java
+public class Student {
+    private Person person;
+    //Setters and Getters
+}
+
+public class Person {
+    private String name;
+    private String address;
+    //Setters and Getters
+}
+```
+
+xml 配置内部 bean 示例如下：
+
+```xml
+<bean id="StudentBean" class="com.moon.Student">
+    <property name="person">
+        <!--This is inner bean -->
+        <bean class="com.monn.Person">
+            <property name="name" value="MooN"></property>
+            <property name="address" value="GZ"></property>
+        </bean>
+    </property>
+</bean>
+```
+
 ### 4.4. 方式3：静态工厂注入
 
 静态工厂注入是通过调用工厂类中定义的静态方法来获取需要的对象。为了让 Spring 管理所有对象，应用程序不能直接通过 `工厂类.静态方法()` 的方式来获取对象，而需要通过 Spring 注入的方式获取。
@@ -727,6 +770,8 @@ Spring 的 Bean 属性依赖注入分成为手动装配和自动装配。上面�
 - byType：通过参数类型自动装配，Bean 的 autowire 被设置为 byType 后，Spring 容器试图匹配并装配与该 Bean 的属性具有相同类型的 Bean
 - constructor：通过设置构造器参数的方式来装配对象，如果没有匹配到带参数的构造器参数类型，则 Spring 会抛出异常
 - autodetect：首先尝试使用 constructor 来自动装配，如果无法完成自动装配，则使用 byType 方式进行装配
+
+> Notes: 基本数据类型的属性（如原数据类型，字符串和类）无法自动装配。 
 
 ## 5. Spring Bean 的作用范围
 

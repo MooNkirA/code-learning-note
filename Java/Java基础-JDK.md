@@ -82,7 +82,9 @@ Oracle JDK 补丁集更新 (PSUs) 包含相应 CPUs 中的所有修复以及其�
 
 所以，一般情况下只要下载奇数编号的最新版本更新就行了！但要记住：商业收费版本的不要用于商业用途！
 
-## 6. JRE、JDK、JVM 及 JIT 的区别
+## 6. 综合扩展
+
+### 6.1. JRE、JDK、JVM 及 JIT 的区别
 
 - JRE（Java run-time） 是 Java 运行时环境，是运行 Java 程序所必须的。
 - JDK（Java development kit）是 Java 程序开发工具集，如 Java 编译器，它也包含 JRE。

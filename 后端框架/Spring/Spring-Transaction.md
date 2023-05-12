@@ -406,11 +406,20 @@ public class SpringLobHandlerTest {
 }
 ```
 
-## 3. Spring 中 NamedParameterJdbcTemplate
+## 3. Spring 中 JDBC 相关类
 
-### 3.1. NamedParameterJdbcTemplate 概述
+### 3.1. 概述
 
-#### 3.1.1. 基本介绍
+在 Spring 中除了提供 `JdbcTeTemplate` 作为操作持久层的对象之外，还提供了以下更多扩展功能的持久层操作类
+
+- ~~SimpleJdbcTemplate~~
+- `org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate`
+- `org.springframework.jdbc.core.simple.SimpleJdbcInsert`
+- `org.springframework.jdbc.core.simple.SimpleJdbcCall`
+
+### 3.2. NamedParameterJdbcTemplate
+
+#### 3.2.1. 基本介绍
 
 在经典的 JDBC 用法中，SQL 参数是用占位符 `?` 表示，并且受到位置的限制，定位参数的问题在于一旦参数的顺序发生变化，就必须改变参数绑定。在 Spring JDBC 框架中，绑定 SQL 参数的另一种选择是使用具名参数(named parameter)
 
@@ -418,7 +427,7 @@ public class SpringLobHandlerTest {
 
 具名参数只在 `NamedParameterJdbcTemplate` 中得到支持。`NamedParameterJdbcTemplate`可以使用全部`jdbcTemplate`方法。
 
-#### 3.1.2. 节选源码
+#### 3.2.2. 节选源码
 
 ```java
 /*
@@ -456,7 +465,7 @@ public class NamedParameterJdbcTemplate implements NamedParameterJdbcOperations 
 }
 ```
 
-### 3.2. 入门案例
+#### 3.2.3. 入门案例
 
 > 注：入门案例使用上面JdbcTemplate的基础代码
 

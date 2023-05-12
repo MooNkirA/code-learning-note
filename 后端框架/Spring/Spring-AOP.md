@@ -1,6 +1,6 @@
 ## 1. Spring AOP（面向切面编程）思想与实现原理
 
-在软件业，AOP 为 Aspect Oriented Programming 的缩写，意为：面向切面编程，通过预编译方式和运行期动态代理实现程序功能的统一维护的一种技术。AOP 是 OOP 的延续，是软件开发中的一个热点，也是 Spring 框架中的一个重要内容，是函数式编程的一种衍生范型。利用 AOP 可以对业务逻辑的各个部分进行隔离，从而使得业务逻辑各部分之间的耦合度降低，提高程序的可重用性，同时提高了开发的效率。
+在软件业，AOP 为 Aspect Oriented Programming 的缩写，意为：面向切面编程，通过预编译方式和运行期动态代理实现程序功能的统一维护的一种技术。AOP 是 OOP(Object-Oriented Programming, 面向对象编程)的延续，是软件开发中的一个热点，也是 Spring 框架中的一个重要内容，是函数式编程的一种衍生范型。利用 AOP 可以对业务逻辑的各个部分进行隔离，从而使得业务逻辑各部分之间的耦合度降低，提高程序的可重用性，同时提高了开发的效率。
 
 ### 1.1. AOP 概述
 
@@ -138,21 +138,51 @@ public class ActorImpl implements IActor {
 
 #### 1.2.4. 基于子类的动态代理
 
-- 提供者：第三方的 cglib，在使用时需要先导包(maven工程导入坐标即可)。*如果报 asmxxxx 异常，缺少jar包，需要导入jar包：`asm.jar`和`cglib-2.1.3.jar`。*
+##### 1.2.4.1. CGlib 框架
+
+第三方的 cglib 工具框架实现基于子类的动态代理，在使用时需要先导包(maven工程导入坐标即可)。*如果报 asmxxxx 异常，缺少jar包，需要导入jar包：`asm.jar`和`cglib-2.1.3.jar`。*
+
 - 使用要求：被代理类不能用 final 修饰的类（最终类）
 - 涉及的类：`Enhancer`
-- 涉及的方法：`create(Class arg, Callback arg1)`
-    - 参数`Class`：与被代理对像的字节码对象。可以创建被代理对象的子类，还可以获取被代理对象的类加载器。
-    - 参数`CallBack`：是接口，里面写的也是增加的策略，要使用一个子接口：`MethodInterceptor`。通常都是写一个接口的实现类或者匿名内部类。
+- 涉及的方法：`create(Class type, Callback callback)`
+    - 参数`Class type`：与被代理对像的字节码对象。可以创建被代理对象的子类，还可以获取被代理对象的类加载器。
+    - 参数`Callback callback`：是接口，里面写的也是增加的策略，要使用一个子接口：`MethodInterceptor`。通常都是写一个接口的实现类或者匿名内部类。
 
-- Callback中没有任何方法，所以一般使用它的子接口，即使用内部类创建`MethodInterceptor`对象，重写`intercept()`方法
-- 涉及的需要重写的拦截方法：`intercept(Object proxy, Method method, Object[] args, MethodProxy methodProxy)`
-    - 此方法也具有拦截功能
-    - 前面三个参数与基于接口的动态代理的`InvocationHandler`中的`invoke`方法的参数一模一样
-    - `proxy`:代理对象的引用【一般不用】
-    - `method`:拦截的方法
-    - `args`:拦截的方法中的参数
-    - `methodProxy`: 方法代理对象的引用【一般不用】
+源码节选：
+
+```java
+public class Enhancer extends AbstractClassGenerator {
+    // ...省略
+    public static Object create(Class type, Callback callback) {
+        Enhancer e = new Enhancer();
+        e.setSuperclass(type);
+        e.setCallback(callback);
+        return e.create();
+    }
+    // ...省略
+}
+```
+
+##### 1.2.4.2. MethodInterceptor 接口
+
+Callback 接口中没有任何方法，所以一般使用它的子接口，即使用匿名内部类的方式来创建`MethodInterceptor`对象，涉及的需要重写的拦截方法 `intercept()`。
+
+```java
+public interface Callback {}
+// 使用 Callback 的子接口
+public interface MethodInterceptor extends Callback {
+    Object intercept(Object proxy, Method method, Object[] args, MethodProxy methodProxy) throws Throwable;
+}
+```
+
+`intercept` 方法也具有拦截功能，前面三个参数与基于接口的动态代理的`InvocationHandler`中的`invoke`方法的参数一模一样。参数说明如下：
+
+- `proxy`:代理对象的引用【一般不用】
+- `method`:拦截的方法
+- `args`:拦截的方法中的参数
+- `methodProxy`: 方法代理对象的引用【一般不用】
+
+##### 1.2.4.3. 基础使用示例
 
 ```java
 /**
@@ -232,7 +262,7 @@ public class Actor {
 
 #### 1.3.1. Joinpoint(连接点)
 
-**Joinpoint(连接点)**：是指那些被拦截到的点，即目标对象中所有的方法或者被拦截的具体某个方法。在 Spring 中这些连接点指的是方法，因为spring只支持方法类型的连接点。
+**Joinpoint(连接点)**：是指那些被拦截到的点，即目标对象中所有的方法或者被拦截的具体某个方法。在 Spring 中这些连接点指的是方法，因为 Spring 只支持方法类型的连接点。
 
 #### 1.3.2. Pointcut(切入点)
 
@@ -242,11 +272,11 @@ public class Actor {
 
 **Advice(通知/增强)**：是指拦截到Joinpoint之后所要做的处理（<font color=red>**即要增强的功能代码**</font>）。通知的类型（<font color=red>**可以理解成拦截到的方法，什么时候进行增强**</font>），主要以下几种类型：
 
-- **前置通知**：在切入点之前执行
-- **后置通知**：在切入点之后执行（只有在切入点方法执行成功时才执行）
-- **异常通知**：切入点出现异常才执行
-- **最终通知**：切入点不管有无异常都会执行
-- **环绕通知**：在切入点之前和之后分别执行
+- **前置通知(Before)**：在切入点之前执行
+- **后置通知(After Returning)**：在切入点之后执行（只有在切入点方法执行成功时才执行）
+- **异常通知(After Throwing)**：在切入点出现异常才执行
+- **最终通知(After)**：在切入点之后执行，不管有无异常都会执行。
+- **环绕通知(Around)**：在切入点之前和之后分别执行
 
 #### 1.3.4. Introduction(引介)
 
@@ -526,7 +556,7 @@ AjcCompilerDemo 类的静态方法执行了...
 
 编写用于增强业务逻辑层核心方法相关功能的类。
 
-#### 3.1.4. 配置bean.xml文件，设置通知类执行方式
+#### 3.1.4. 配置 bean.xml 文件，设置通知类执行方式
 
 1. 使用`<bean>`标签配置通知(增强)类给spring管理
 2. 使用 `aop:config` 声明 aop 配置
@@ -962,6 +992,8 @@ public void testAspectOnAnnotationAround() {
 |         `@Around`         | 同上                                                         | 把当前方法看成是环绕通知 |
 |        `@Pointcut`        | `value`：指定表达式的内容                                      | 指定切入点表达式        |
 
+> Notes: 更多常用注解的说明详见《Spring 注解汇总》笔记
+
 #### 4.2.1. @EnableAspectJAutoProxy
 
 `@EnableAspectJAutoProxy` 注解用于开启 AOP 注解支持，相关属性说明如下：
@@ -1272,7 +1304,7 @@ public void testStaticMethodMatcherPointcut() throws NoSuchMethodException {
 }
 ```
 
-### 5.3. Spring 中 JoinPoint（）的 API
+### 5.3. Spring 中 JoinPoint 的 API
 
 任何增强方法都可以声明一个 `org.aspectj.lang.JoinPoint` 类型的参数作为其方法第一个参数。通过此对象可以获取连接点（被增强的方法）签名（声明类型和方法名称）、方法参数、目标对象与代理对象
 
@@ -1324,7 +1356,7 @@ String toString();
 
 ![](images/20190402140843555_2239.png)
 
-### 6.3. 当同一个方法被多个注解`@Aspect`类拦截时
+### 6.3. 当同一个方法被多个注解 @Aspect 类拦截时
 
 可以通过在为上注解 `@Order` 指定 Aspect 类的执行顺序。例如 Aspect1 上注解了 `@Order(1)`，Aspect2 上注解了 `@Order(2)`，则建言的执行顺序为：
 
@@ -1423,12 +1455,15 @@ execution([修饰符] 返回值类型 包名.类名.方法名(参数))
 
 ### 8.1. Spring AOP 与 AspectJ AOP 的区别
 
-AOP 实现的关键在于 代理模式，AOP 代理主要分为静态代理和动态代理。静态代理的代表为 AspectJ；动态代理则以 Spring AOP 为代表。
+AOP 实现的关键在于代理模式，AOP 代理主要分为静态代理和动态代理。静态代理的代表为 AspectJ；动态代理则以 Spring AOP 为代表。
 
 - AspectJ 是静态代理的增强，所谓静态代理，就是 AOP 框架会在编译阶段生成 AOP 代理类，因此也称为编译时增强，他会在编译阶段将 AspectJ(切面)织入到 Java 字节码中，运行的时候就是增强之后的 AOP 对象。
-- Spring AOP 使用的动态代理，所谓的动态代理就是说 AOP 框架不会去修改字节码，而是每次运行时在内存中临时为方法生成一个 AOP 对象，这个 AOP 对象包含了目标对象的全部方法，并且在特定的切点做了增强处理，并回调原对象的方法
+- Spring AOP 使用的动态代理，所谓的动态代理就是说 AOP 框架不会去修改字节码，而是每次运行时在内存中临时为方法生成一个 AOP 对象，这个 AOP 对象包含了目标对象的全部方法，并且在特定的切点做了增强处理，并回调原对象的方法。
 
-总结：静态代理与动态代理主要区别在于生成 AOP 代理对象的时机不同，相对来说 AspectJ 的静态代理方式具有更好的性能，但是 AspectJ 需要特定的编译器进行处理，而 Spring AOP 则无需特定的编译器处理。
+总结：
+
+- 静态代理与动态代理主要区别在于生成 AOP 代理对象的时机不同，相对来说 AspectJ 的静态代理方式具有更好的性能，但是 AspectJ 需要特定的编译器进行处理，而 Spring AOP 则无需特定的编译器处理。
+- Spring AOP 仅支持方法级别的增强；而 AspectJ 提供了完全的 AOP 支持，还支持属性级别的 AOP 增强。
 
 ### 8.2. 关于通知类型的注意事项
 

@@ -428,6 +428,14 @@
   <li><a href="#/分布式微服务/分布式任务调度/ElasticJob">Elastic-Job 分布式调度解决方案</a></li>
 </ul>
 
+### ⏲ 分布式链路追踪
+
+<ul class="docs">
+  <li><a href="#/分布式微服务/分布式链路追踪/链路追踪综合概述">分布式链路追踪综合概述</a></li>
+  <li><a href="#/分布式微服务/分布式链路追踪/Zipkin">Zipkin - Twitter 开源的分布式链路调用监控系统</a></li>
+  <li><a href="#/分布式微服务/分布式链路追踪/SkyWalking">SkyWalking - 分布式链路追踪和可视化一体化解决方案</a></li>
+</ul>
+
 ### ⏲ 分库分表
 
 <ul class="docs">

@@ -1402,6 +1402,122 @@ debug 调试一个方法时，不需要再往下执行直接结束，右键选�
 
 > Tips: 初学者对于在哪里加断点，缺乏经验，这也是调试程序最麻烦的地方，需要一定的经验。简单来说，在可能发生错误的代码的前面加断点。如果不会判断，就在程序执行的起点处加断点。
 
+### 9.6. 远程 Debug 调试（待测试）
+
+远程调试其实的用处也不是那么大，不能作为长期使用的调试工具。只能作为临时调试的手段。主要难点有几个：
+
+- 难保证本地代码和远程一致，而且也很难判断是否一致。
+- 通过远程调试发现了 bug，但是又不能立即修复后继续调试，只能修复后部署后继续远程调试。
+
+> 以 SpringBoot 微服务为例，远程 debug 的服务。以下截图，高低版本的 IDEA 的设置可能界面有点不一样。
+
+#### 9.6.1. IDEA 设置
+
+打开远程启动的 SpringBoot 应用程序所对应的配置面板，启动加上特定的参数。
+
+- 选择【Edit Configurations...】
+
+![](images/11282712230553.png)
+
+- 点击加号，选择【Remote】
+
+![](images/244512712248979.png)
+
+- 按下图填写相关的配置项
+
+![](images/460762712236846.png)
+
+> 注意端口别被占用。后续这个端口是用来跟远程的 java 进程通信的
+
+切换不同的 JDK 版本，【Command line arguments for remote JVM】的脚本不一样
+
+选择 jdk1.4 的脚本
+
+```bash
+-Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=50055
+```
+
+选择 jdk 5-8 的脚本
+
+```bash
+-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=50055
+```
+
+选择 jdk9 以上的脚本。据说因为 jdk9 变得安全了，远程调试只允许本地。如果要远程，则需要在端口前配置`*`
+
+```bash
+-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:50055
+```
+
+#### 9.6.2. 启动脚本改造
+
+此处使用前面 idea 配置的【Command line arguments for remote JVM】参数即可。改造后的启动脚本(Linux)如下：
+
+```shell
+nohup java \
+-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=50055 \
+-jar remote-debug-0.0.1-SNAPSHOT.jar &
+```
+
+注意在 windows 中，脚本是用 `^` 来进行换行，例如
+
+```shell
+java ^
+-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=50055 ^
+-jar remote-debug-0.0.1-SNAPSHOT.jar
+```
+
+说明：
+
+1. 端口可随意自己定，未被占用的都可以。但是要和 IDEA 里的 remote 中设置的端口一致！其他参数照抄。
+2. `remote-debug-0.0.1-SNAPSHOT.jar` 改成远程服务的 jar 包名字
+3. 以前脚本是后台运行的，如不需要后台运行，自行去掉 `nohup` 和 `&`
+4. 启动配置好的 SpringBoot
+
+![](images/220763812257012.png)
+
+#### 9.6.3. 细节问题
+
+##### 9.6.3.1. 细节1：停在本地断点，关闭程序后会否继续执行
+
+如果远程调试在自己本地的断点处停下来了，此时关闭 IDEA 中的项目停止运行，则还会继续运行执行完剩下的逻辑。
+
+以下面的代码为例，在第一行停住了。然后IDEA中停掉，发现停掉之后控制台还是打印了剩下的日志。
+
+![](images/239524012249681.png)
+
+##### 9.6.3.2. 细节2：jar 包代码和本地不一致
+
+要保证和远程启动 jar 包的代码一致。否则 debug 的时候的行数会对不上，但不会报错抛异常。
+
+例如：调试 test1 方法，test2 方法在 test1 下面，在 test2 里加代码，这样并不影响 test1 中的行号，这种是可以在调试的时候准确反应行号的。
+
+##### 9.6.3.3. 细节3：日志打印的位置
+
+日志不会打印在 IDEA 的控制台上。即 `System.out` 以及 `log.info` 还是打印在远程的。
+
+##### 9.6.3.4. 细节4：断点调试时其他人会卡住
+
+远程调试的时候，打了断点，停住后会导致页面的请求卡住。
+
+##### 9.6.3.5. 细节5：本地代码修复 bug 不会影响远程调用
+
+如果在远程调试过程自己发现了 bug，本地改好后重新启动 IDEA 里的项目，是不会生效。因为运行的还是远程部署的jar中的代码。
+
+##### 9.6.3.6. 细节6：如果 drop frame 重新进行调试，会不会插入2条记录？
+
+Drop Frame 操作相当于回退上一步操作。
+
+![](images/285041414241990.png)
+
+如图 `userMapper.insert(eo)`，本方法没有使用 `@Transactional` 修饰，mapper 方法执行过后事务会被立即提交，则库表里多了一行记录，如果 drop frame 后，再次进行调试，再次执行这代码，于是又插入了一条记录。
+
+![](images/387081314246236.png)
+
+如果加上 `@Transational` 就不会有两条记录了，drop frame 的时候事务没被提交，再次执行该插入代码也不会插入2条。
+
+如果把上述插入数据库的逻辑，换成调用远程的接口，在 drop frame 后，再次执行相同的代码，依然会导致远程接口被执行了2次。
+
 ## 10. Project Structre（项目结构配置）
 
 IDEA 中最重要的各种设置项，就是这个 `Project Structre` 了，关乎项目的运行

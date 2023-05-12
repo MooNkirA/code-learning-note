@@ -2,8 +2,6 @@
 
 > 最新官方文档：https://docs.spring.io/spring-framework/docs/current/reference/html/web.html#spring-web
 
-### 1.1. 概述
-
 Spring Web MVC 是基于 Servlet API 上， MVC 的表现层的 Web 框架，用于 web 项目的开发，也可以称为 "Spring MVC"。是 Spring 框架的一个模块（一部分），包含在 Spring Framework 中 spring-webmvc 模块。Spring MVC 和 Spring 无需通过中间整合层进行整合。
 
 与 Spring Web MVC 并行，Spring Framework 5.0 引入了一个新 Web 框架 Spring WebFlux，具体在 spring-webflux 模块。（*此框架本笔记中不涉及，详见其他笔记*）
@@ -12,7 +10,7 @@ Spring Web MVC 是基于 Servlet API 上， MVC 的表现层的 Web 框架，用
 
 ![](images/359331311220567.png)
 
-### 1.2. MVC 是什么(b/s 系统)
+### 1.1. MVC 是什么(b/s 系统)
 
 MVC 是一种设计模式。模型（model） -> 视图（view） -> 控制器（controller），三层架构设计模式，主要用于实现前端页面的展现和后端业务数据处理逻辑分离
 
@@ -26,14 +24,14 @@ MVC 设计模式的优点：
 2. 有利于系统的可扩展性，可维护性
 3. 有利于实现系统的并行开发，提升开发效率
 
-### 1.3. SpringMVC 优点
+### 1.2. SpringMVC 优点
 
 1. 与 Spring 集成使用非常方便，生态好。
 2. 配置简单，快速上手。
 3. 支持 RESTful 风格。
 4. 支持各种视图技术，支持各种请求资源映射策略。
 
-### 1.4. Spring MVC 与 struts2 的区别
+### 1.3. Spring MVC 与 struts2 的区别
 
 **相同点**：都是基于 mvc 的表现层框架，都用于 web 项目的开发
 
@@ -235,7 +233,7 @@ public class DemoController {
 <h1 style="color: red">${hello}</h1>
 ```
 
-## 3. Spring MVC 整体架构与实现原理
+## 3. Spring MVC 重要组件与整体运行流程
 
 ### 3.1. Spring MVC 框架重要组件
 
@@ -284,11 +282,19 @@ Spring MVC 框架提供了很多的 View 视图类型的支持，包括：jstlVi
 
 Spring 的模型-视图-控制器（MVC）框架是围绕一个 `DispatcherServlet` 来设计的，这个 Servlet 会把请求分发给各个处理器，并支持可配置的处理器映射、视图渲染、本地化、时区与主题渲染等，甚至还能支持文件上传。
 
-- 第 1 步：客户端发起请求到 `DispatcherServlet`
-- 第 2 步：`DispatcherServlet` 请求一个或多个 `HandlerMapping` 查找 Handler，可以根据 xml 配置、注解进行查找处理请求的 Controller
-- 第 3 步：`HandlerMapping` 向前端控制器返回 Handler
-- 第 4 步：`DispatcherServlet` 调用 `HandlerAdapter` 去执行 Handler
-- 第 5 步：`HandlerAdapter` 去执行 Handler
+当浏览器发送一个请求 `http://www.moon.com/hello` 后，请求到达服务器，其处理流程是：
+
+- 第 1 步：客户端向服务器发起HTTP请求，请求会统一转发到 `DispatcherServlet`，它使用的是标准 Servlet 技术，默认映射路径为 `/`，即会匹配到所有请求 URL，它作为请求的统一入口。
+> *注：jsp 不会匹配到 DispatcherServlet （了解）*。其它有路径的 Servlet 匹配优先级也高于 DispatcherServlet。
+- 第 2 步：`DispatcherServlet` 根据 xml 配置、注解配置对请求的 URL 进行解析，得到请求资源标识符（URI）。请求一个或多个 `HandlerMapping` 查找相应的 Handler。 
+- 第 3 步：`HandlerMapping` 获取到相应的 Handler，该 Handler 配置的所有相关的对象（包括 Handler 对象以及 Handler 对象对应的拦截器），最后以 `HandlerExecutionChain` 对象的形式返回到 `DispatcherServlet`。
+- 第 4 步：`DispatcherServlet` 根据获得的 Handler，选择合适的 `HandlerAdapter` 去执行 Handler。
+> 注：如果成功获得 `HandlerAdapter` 后，此时将开始执行拦截器的 `preHandler()` 方法。如果返回 true，则放行继续执行；如果返回 false，则拦截。
+- 第 5 步：`HandlerAdapter` 准备数据绑定工厂、模型工厂、ModelAndViewContainer、将 HandlerMethod 完善为 ServletInvocableHandlerMethod 等工作后，开始执行 Handler。在填充 Handler 的入参过程中，Spring 会根据配置来做一些额外的工作：
+    - 使用 HttpMessageConveter 将请求消息（如 Json、xml 等数据）转换成一个对象，将对象转换为指定的响应信息。
+    - 对请求消息进行**数据转换**。如 String 转换成 Integer、Double 等。
+    - 对请求消息进行**数据格式化**。如将字符串转换成格式化数字或格式化日期等。
+    - **验证数据**的有效性（长度、格式等），验证结果存储到 BindingResult 或 Error 中。
 - 第 6 步：Handler 调用业务逻辑处理完成后，给 `HandlerAdapter` 返回 `ModelAndView`
 - 第 7 步：`HandlerAdapter` 向 `DispatcherServlet` 返回 `ModelAndView`。
 - 第 8 步：`DispatcherServlet` 请求 `ViewResoler` 去进行视图解析，根据逻辑视图名解析成真正的视图(jsp)
@@ -305,12 +311,9 @@ Spring 的模型-视图-控制器（MVC）框架是围绕一个 `DispatcherServl
 > - `ViewResoler` 视图解析器
 > - `ModelAndView` 视图模型，是 Spring MVC 框架的一个底层对象，包括 Model 和 View
 
-当浏览器发送一个请求 `http://localhost:8080/hello` 后，请求到达服务器，其处理流程是：
+整理中内容：
 
-1. 服务器提供了 DispatcherServlet，它使用的是标准 Servlet 技术
-   - 路径：默认映射路径为 `/`，即会匹配到所有请求 URL，可作为请求的统一入口，也被称之为**前端控制器**
-     - *注：jsp 不会匹配到 DispatcherServlet （了解）*
-     - 其它有路径的 Servlet 匹配优先级也高于 DispatcherServlet
+1. 服务器提供了 DispatcherServlet
    - 创建：在 Boot 中，由 DispatcherServletAutoConfiguration 这个自动配置类提供 DispatcherServlet 的 bean
    - 初始化：DispatcherServlet 初始化时会优先到容器里寻找各种组件，作为它的成员变量
      - HandlerMapping，初始化时记录映射关系
@@ -322,8 +325,8 @@ Spring 的模型-视图-控制器（MVC）框架是围绕一个 `DispatcherServl
    - 控制器方法会被封装为 HandlerMethod 对象，并结合匹配到的拦截器一起返回给 DispatcherServlet
    - HandlerMethod 和拦截器合在一起称为 HandlerExecutionChain（调用链）对象
 3. DispatcherServlet 接下来会：
-   1. 调用拦截器的 preHandle 方法，如果返回 true，则放行继续执行；如果返回 false，则拦截。
-   2. RequestMappingHandlerAdapter 调用 handle 方法，准备数据绑定工厂、模型工厂、ModelAndViewContainer、将 HandlerMethod 完善为 ServletInvocableHandlerMethod
+   1. 调用拦截器的 preHandle 方法
+   2. RequestMappingHandlerAdapter 调用 handle 方法
       - @ControllerAdvice 全局增强点 1：补充模型数据
       - @ControllerAdvice 全局增强点 2：补充自定义类型转换器
       - 使用 HandlerMethodArgumentResolver 准备参数
@@ -998,9 +1001,15 @@ mav.setViewName("helloSpringMVC");
 
 ### 4.5. WebApplicationContext 上下文层次结构
 
+```java
+public interface WebApplicationContext extends ApplicationContext
+```
+
 `WebApplicationContext` 是普通 `ApplicationContext` 的扩展，它会绑定到 `ServletContext` 中。可以使用 `RequestContextUtils` 工具类的静态方法来获取 `WebApplicationContext` 上下文对象。一个根 `WebApplicationContext` 被多个 `DispatcherServlet`（或其他 Servlet）实例共享，每个实例有自己的子 `WebApplicationContext` 配置。结构关系如下图：
 
 ![](images/495684710220568.png)
+
+> Tips: WebApplicationContext 与普通的 ApplicationContext 在解析主题和决定与哪个 servlet 关联的能力方面有所不同。英文原文链接：https://www.edureka.co/blog/interview-questions/spring-interview-questions/
 
 #### 4.5.1. 编程式配置
 
@@ -1068,17 +1077,15 @@ public class MyWebAppInitializer extends AbstractAnnotationConfigDispatcherServl
 
 通过 `@RequestMapping` 注解标识的方法都被定义为处理器（Handler）。参数绑定指的是通过处理器（Handler）方法的形参，接收到请求的 url 或者表单中的参数数据。即通过定义方法的形参来封装请求提交的参数数据。
 
-下表是控制器方法支持的绑定参数类型
+以下是控制器方法支持的绑定参数类型：
 
-|   控制器方法参数类型   |                                                                                             说明                                                                                              |
-| :-----------------: | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-|  `ServletRequest`   | 请求类型，例如：`ServletRequest`、`HttpServletRequest`、Spring 的 `MultipartRequest`、`MultipartHttpServletRequest`                                                                              |
-|  `ServletResponse`  | 响应类型，例如：`ServletResponse`、`HttpServletResponse`                                                                                                                                        |
-|    `HttpSession`    | 请求会话类型。此类型可保证方法参数永远不会空。值得注意，使用会话类型的方法形参是非线程安全的。如果允许多个请求同时访问一个会话，考虑将 `RequestMappingHandlerAdapter` 实例的 `synchronizeOnSession` 标志设置为 `true` |
-| `Model`, `ModelMap` | 用于访问 HTML 控制器中使用的模型，并作为视图渲染的一部分暴露给模板。                                                                                                                                    |
-|   `@RequestParam`   | 用于获取请求参数（即查询参数或表单数据、上传的文件），绑定到控制器中的方法参数。参数值会被转换为声明的方法形参的类型。注意，对于简单类型的参数值，只要形参名称与请求参数名称一致，该注解可省略。                             |
-|      `Map`集合       | key 为请求上送的参数名称，value 是参数值。需要与`@RequestParam`注解配置使用                                                                                                                           |
-|    任何其他参数类型    | 控制方法形参是 Java 基本数据类型、对象、包装类型等，由`BeanUtils#isSimpleProperty`决定，它被解析为`@RequestParam`还是`@ModelAttribute`                                                                   |
+- `ServletRequest`：请求类型，例如：`ServletRequest`、`HttpServletRequest`、Spring 的 `MultipartRequest`、`MultipartHttpServletRequest`。
+- `ServletResponse`：响应类型，例如：`ServletResponse`、`HttpServletResponse`。
+- `HttpSession`：请求会话类型。此类型可保证方法参数永远不会空。值得注意，使用会话类型的方法形参是非线程安全的。如果允许多个请求同时访问一个会话，考虑将 `RequestMappingHandlerAdapter` 实例的 `synchronizeOnSession` 标志设置为 `true`
+- `Model`/`ModelMap`：用于访问 HTML 控制器中使用的模型，并作为视图渲染的一部分暴露给模板。
+- `@RequestParam`：用于获取请求参数（即查询参数或表单数据、上传的文件），绑定到控制器中的方法参数。参数值会被转换为声明的方法形参的类型。注意，对于简单类型的参数值，只要形参名称与请求参数名称一致，该注解可省略。
+- `Map`集合：key 为请求上送的参数名称，value 是参数值。需要与`@RequestParam`注解配置使用
+- 任何其他参数类型：控制方法形参是 Java 基本数据类型、对象、包装类型等，由`BeanUtils#isSimpleProperty`决定，它被解析为`@RequestParam`还是`@ModelAttribute`
 
 > 支持使用 JDK 8 的 `java.util.Optional` 作为方法参数，与具有必填属性的注解相结合（例如，`@RequestParam`、`@RequestHeader` 等），相当于 `required=false`
 
@@ -2264,6 +2271,11 @@ public void testCustomReturnValueHandler() throws Exception {
 }
 ```
 
+### 6.3. SpringMVC 返回重定向和转发
+
+- 转发：在返回值前面加 `forward:`，譬如 `"forward:user.do?name=method4"`
+- 重定向：在返回值前面加 `redirect:`，譬如 `"redirect:http://www.baidu.com"`
+
 ## 7. MessageConverter
 
 ### 7.1. 概述
@@ -2276,26 +2288,24 @@ spring-web 模块包含 `HttpMessageConverter` 接口，用于通过 `InputStrea
 - 其次看 request 的 Accept 头有没有指定
 - 最后按 `MessageConverter` 的顺序，谁能谁先转换
 
-### 7.2. HttpMessageConverter 接口默认实现
+### 7.2. HttpMessageConverter 接口默认实现（未整理完）
 
-|                        MessageConverter 实现                        | 说明                                                                                      |
-| :-----------------------------------------------------------------: | ----------------------------------------------------------------------------------------- |
-|                    `StringHttpMessageConverter`                     |                                                                                           |
-|                     `FormHttpMessageConverter`                      |                                                                                           |
-|                   `ByteArrayHttpMessageConverter`                   |                                                                                           |
-|                  `MarshallingHttpMessageConverter`                  |                                                                                           |
+|                        MessageConverter 实现                         |                                         说明                                         |
+| :-----------------------------------------------------------------: | ----------------------------------------------------------------------------------- |
+|                    `StringHttpMessageConverter`                     |                                                                                     |
+|                     `FormHttpMessageConverter`                      |                                                                                     |
+|                   `ByteArrayHttpMessageConverter`                   |                                                                                     |
+|                  `MarshallingHttpMessageConverter`                  |                                                                                     |
 |                `MappingJackson2HttpMessageConverter`                | 通过使用 Jackson 的`ObjectMapper`来读写 JSON 格式数据，默认支持 HTTP 的 application/json  |
 |              `MappingJackson2XmlHttpMessageConverter`               | 通过使用 Jackson XML 扩展的`XmlMapper`读写 XML 格式数据，默认支持 HTTP 的 application/xml |
-|                    `SourceHttpMessageConverter`                     |                                                                                           |
-|                 `BufferedImageHttpMessageConverter`                 |                                                                                           |
-|                               `void`                                |                                                                                           |
-|                         `DeferredResult<V>`                         |                                                                                           |
-|                            `Callable<V>`                            |                                                                                           |
-| `ListenableFuture<V>`, `CompletionStage<V>`, `CompletableFuture<V>` |                                                                                           |
-|                 `ResponseBodyEmitter`, `SseEmitter`                 |                                                                                           |
-|                       `StreamingResponseBody`                       |                                                                                           |
-
-> 注：未整理完
+|                    `SourceHttpMessageConverter`                     |                                                                                     |
+|                 `BufferedImageHttpMessageConverter`                 |                                                                                     |
+|                               `void`                                |                                                                                     |
+|                         `DeferredResult<V>`                         |                                                                                     |
+|                            `Callable<V>`                            |                                                                                     |
+| `ListenableFuture<V>`, `CompletionStage<V>`, `CompletableFuture<V>` |                                                                                     |
+|                 `ResponseBodyEmitter`, `SseEmitter`                 |                                                                                     |
+|                       `StreamingResponseBody`                       |                                                                                     |
 
 ### 7.3. 使用示例
 

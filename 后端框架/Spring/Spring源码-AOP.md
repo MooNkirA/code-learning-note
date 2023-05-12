@@ -1,6 +1,4 @@
-# Spring 源码分析 - AOP
-
-> 此笔记只针对 Spring 源码中 AOP 功能实现分析，关于 Spring AOP 基础理论与使用详见[《Spring 笔记-AOP》](/后端框架/Spring/Spring-AOP)
+> 此笔记只针对 Spring 源码中 AOP 功能实现分析，关于 Spring AOP 基础理论与使用详见[《Spring 基础-AOP》笔记](/后端框架/Spring/Spring-AOP)
 
 ## 1. Spring AOP 前置知识
 
