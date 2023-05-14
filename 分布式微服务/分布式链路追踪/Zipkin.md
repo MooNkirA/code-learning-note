@@ -41,10 +41,24 @@ Zipkin 分为两端，一个是 Zipkin 服务端，一个是 Zipkin 客户端，
 
 ### 2.2. 启动
 
+#### 2.2.1. 已编译后 jar 包运行
+
 进行 jar 所在目录，使用命令行直接启动 Zipkin Server
 
 ```bash
 java -jar zipkin-server-2.22.0-exec.jar
+```
+
+#### 2.2.2. 从源码运行
+
+```bash
+# get the latest source
+git clone https://github.com/openzipkin/zipkin
+cd zipkin
+# Build the server and also make its dependencies
+./mvnw -DskipTests --also-make -pl zipkin-server clean install
+# Run the server
+java -jar ./zipkin-server/target/zipkin-server-*exec.jar
 ```
 
 ### 2.3. 相关部署与配置信息

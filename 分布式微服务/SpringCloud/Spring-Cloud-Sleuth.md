@@ -425,13 +425,80 @@ private ExecutorService executorService;
 
 线程内的日志也正常输出 sleuth 结构的日志，说明能正常跟踪。
 
-## 4. 客户端 Zipkin + Sleuth 整合（基于http方式收集数据）
+## 4. Sleuth 进阶用法
 
-结合 zipkin 可以很直观地显示微服务之间的调用关系。ZipKin 客户端和 Sleuth 的集成非常简单，只需要在微服务中添加其依赖和配置即可。
+### 4.1. Sleuth TraceFilter
+
+#### 4.1.1. 简介
+
+Sleuth 对服务的调用链进行跟踪时，会在服务间传递跟踪数据，例如 Span 信息。而通过 tracefilter（过滤拦截 Span 信息） 和 baggage（包裹，key/value 对） 可以实现传递一些自定义的信息。
+
+整体流程图：
+
+![](images/228903819248979.jpg)
+
+#### 4.1.2. 基础使用步骤
+
+1. 服务消费者创建 filter 继承 `org.springframework.web.filter.GenericFilterBean` 重写 `doFilter` 方法，在过滤方法中使用 `ExtraFieldPropagation` 工具方法封装包裹（信息）。
+
+```java
+@Component
+public class MyTraceFilter extends GenericFilterBean {
+    // 过滤方法
+    @Override
+    public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain chain) throws IOException, ServletException {
+        // 1. 从 request 中取出 header
+        HttpServletRequest request = (HttpServletRequest) servletRequest;
+        String baggageId = request.getHeader("BaggageId");
+        // 2. 封装包裹
+        ExtraFieldPropagation.set("BaggageId", baggageId);
+        // 3. 放行
+        chain.doFilter(servletRequest, servletResponse);
+    }
+}
+```
+
+2. 服务提供者编写测试接口，使用 `ExtraFieldPropagation` 工具方法拆开获取包裹（信息）
+
+```java
+@GetMapping("/testTraceFilter")
+public String testTraceFilter() {
+    // 在 Sleuth 中取出包裹
+    return "hi " + ExtraFieldPropagation.get("BaggageId");
+}
+```
+
+3. 服务消费者与提供者均配置传递的包裹 ID。注意消费者与提供者的包裹ID要一致。
+
+```yml
+spring:
+  application:
+    name: xxx # 服务名称
+  sleuth:
+    baggage-keys: # 配置 Sleuth TraceFilter 传递的包裹ID
+      - BaggageId
+```
+
+4. 服务消费者远程调用服务接口（通过 Feign 调用，在 FeignClient 接口新增相应的方法即可）
+
+```java
+@GetMapping("/testTraceFilter")
+public String testTraceFilter() {
+    return productFeignClient.testTraceFilter();
+}
+```
+
+测试结果：
+
+![](images/275771322230553.png)
+
+## 5. 客户端 Zipkin + Sleuth 整合（基于http方式收集数据）
+
+Sleuth 是做调用链信息采集的，可以结合 zipkin 用来收集系统的时序数据，可以很直观地显示微服务之间的调用关系。ZipKin 客户端和 Sleuth 的集成非常简单，只需要在微服务中添加其依赖和配置即可。
 
 > Zipkin 的部署安装与使用详见[《Zipkin 笔记》](/分布式微服务/分布式链路追踪/Zipkin)
 
-### 4.1. 客户端添加依赖
+### 5.1. 客户端添加依赖
 
 客户端指的是需要被追踪的微服务。*所以示例项目的网关、订单、商品服务都需要添加客户端的依赖*
 
@@ -443,7 +510,9 @@ private ExecutorService executorService;
 </dependency>
 ```
 
-### 4.2. 修改客户端配置文件
+> Tips: 整合 zipkin 依赖 spring-cloud-starter-zipkin 已包含基础示例依赖 spring-cloud-starter-sleuth，可以移除。
+
+### 5.2. 修改客户端配置文件
 
 修改需要被追踪的微服务的 application.yml 配置文件。*所有示例项目的网关、订单、商品服务都需要修改配置文件*
 
@@ -467,7 +536,7 @@ spring:
 - `spring.zipkin.sender.type`：用于设置采样的数据传输方式，上面示例是使用http形式向server端发送数据
 - `spring.sleuth.sampler.probability`：制定需采样的百分比，默认为0.1，即10%，此示例配置1，是记录全部的sleuth信息，是为了收集到更多的数据（仅供测试用）。在分布式系统中，过于频繁的采样会影响系统性能，所以这里配置需要采用一个合适的值。
 
-### 4.3. 测试
+### 5.3. 测试
 
 启动 Zipkin Service，并启动每个微服务。通过浏览器发送一次微服务请求。打开 Zipkin Service 控制台，我们可以根据条件追踪每次请求调用过程
 
@@ -477,9 +546,9 @@ spring:
 
 ![](images/20201113090926521_26943.png)
 
-### 4.4. 默认 Zipkin 数据采集方式存在的问题
+### 5.4. 默认 Zipkin 数据采集方式存在的问题
 
-在默认情况下，zipkin数 据采集有如下特点：
+在默认情况下，zipkin 数据采集有如下特点：
 
 1. zipkin 采集到的数据是保存在内存中
 2. Zipkin 客户端和 Server 之间是使用 HTTP 请求的方式进行通信（即同步的请求方式，会拖慢核心业务的处理时间）
@@ -489,13 +558,18 @@ spring:
 1. 当服务出现异常或者宕机的情况，存储在内存的数据就会出现丢失
 2. 在出现网络波动时，Server 端异常等情况下可能存在信息收集不及时的问题。
 
-## 5. 跟踪数据的存储
+## 6. Zipkin 跟踪数据的存储
 
-Zipkin Server 默认时间追踪数据信息保存到内存，这种方式不适合生产环境。因为一旦 Service 关闭重启或者服务崩溃，就会导致历史数据消失。Zipkin 支持将追踪数据持久化到 mysql 数据库或者存储到 elasticsearch 中。*这里示例以mysql为例*
+Zipkin 支持的数据存储方式：
 
-### 5.1. 追踪数据存储到 MySQL 数据库
+1. In-Memory 默认追踪数据信息保存到内存，这种方式不适合生产环境。因为一旦 Service 关闭重启或者服务崩溃，就会导致历史数据消失。
+2. Cassandra（熟悉度低）
+3. Elasticsearch（熟悉度高，分布式，高性能，适合）
+4. MySQL（熟悉度高，性能不高）
 
-#### 5.1.1. 准备存储跟踪数据的数据库
+### 6.1. 追踪数据存储到 MySQL 数据库
+
+#### 6.1.1. 准备存储跟踪数据的数据库
 
 创建 zipkin 持久化相应数据库表 sql 脚本位置：`spring-cloud-note\document\sql\zipkin_db.sql`
 
@@ -566,7 +640,7 @@ CREATE TABLE IF NOT EXISTS zipkin_dependencies (
 ) ENGINE=InnoDB ROW_FORMAT=COMPRESSED CHARACTER SET=utf8 COLLATE utf8_general_ci;
 ```
 
-#### 5.1.2. 配置启动服务端
+#### 6.1.2. 配置启动服务端
 
 在启动zipkin服务端时增加相关数据库参数即可，启动脚本如下：
 
@@ -589,24 +663,29 @@ java -jar zipkin-server-2.22.0-exec.jar --STORAGE_TYPE=mysql --MYSQL_HOST=127.0.
 
 配置好服务端之后，可以在浏览器请求几次。在数据库查看会发现数据已经持久化到mysql中
 
-### 5.2. 追踪数据存储到 ElasticSearch
+### 6.2. 追踪数据存储到 ElasticSearch
 
-- 下载 elasticsearch。[下载地址](https://www.elastic.co/cn/downloads/past-releases/elasticsearch-6-8-4)
-- 启动 elasticsearch
+1. 下载 elasticsearch。[下载地址](https://www.elastic.co/cn/downloads/past-releases/elasticsearch-6-8-4)
+2. 启动 elasticsearch
 
 ![](images/20220105224357656_3122.png)
 
-- 在启动 ZipKin Server 的时候，指定数据保存的 elasticsearch 的信息
+3. 在启动 ZipKin Server 的时候，指定数据保存的 elasticsearch 的信息
 
 ```bash
 java -jar zipkin-server-2.23.16-exec.jar --STORAGE_TYPE=elasticsearch --ES_HOST=http://localhost:9200
 ```
 
-- 发送请求测试后，通过 head 界面观察是否产生相关索引
+参数说明：
+
+- `STORAGE_TYPE`：指定存储类型
+- `ES_HOSTS`：指定 Elasticsearch 的地址，多个地址用 `,` 分隔
+
+4. 发送请求测试后，通过 head 界面观察是否产生相关索引
 
 ![](images/111214719231886.png)
   
-### 5.3. 依赖分析
+### 6.3. 依赖分析
 
 在 zipkin 图形化界面，点击下图中的【依赖】菜单，即可让 Zipkin 以图形化方式进行微服务之间的依赖关系分析。
 
@@ -622,21 +701,25 @@ zipkin-dependencies 下载地址：https://github.com/openzipkin/zipkin-dependen
 java -DSTORAGE_TYPE=elasticsearch -DES_HOSTS=http://localhost:9200 -jar zipkin-dependencies-x.x.x.jar
 ```
 
-**值得注意的是：zipkin-dependencies 不是服务而是一个程序，不会持续运行，运行一次即结束。若想让它能够持续运行，需要自己编写定时脚本或定时任务实现。**
+**值得注意的是：zipkin-dependencies 不是服务而是一个程序，不会持续运行，运行一次即结束。若想让它能够持续运行，需要自己编写定时脚本或定时任务实现**。每次启动分析一次分析的粒度为天，如不指定日期，默认为当天，指定日期运行
 
-## 6. 基于消息中间件收集数据
+```bash
+STORAGE_TYPE=elasticsearch ES_HOSTS=localhost:9200 java -jar zipkin-dependencies-x.jar 2020-06-01
+```
 
-Zipkin支持与rabbitMQ整合完成异步消息传输。加了MQ之后，通信过程如下图所示：
+## 7. 基于消息中间件收集数据
+
+Zipkin 支持与 rabbitMQ 整合完成异步消息传输。加了 MQ 之后，通信过程如下图所示：
 
 ![](images/20201113091547938_16673.png)
 
-### 6.1. RabbitMQ 的安装与启动
+### 7.1. RabbitMQ 的安装与启动
 
 要使用消息中间件实现收集数据传输，需要准备MQ的服务。*此示例使用RabbitMQ*
 
-> 更多RabbitMQ的内容详见：[《RabbitMQ》笔记](/分布式微服务/分布式消息中件间/RabbitMQ)
+> 更多 RabbitMQ 的内容详见：[《RabbitMQ》笔记](/分布式微服务/分布式消息中件间/RabbitMQ)
 
-### 6.2. 服务端启动
+### 7.2. 服务端启动
 
 在启动zipkin服务端时增加相关RabbitMQ的参数即可，启动脚本如下：
 
@@ -656,28 +739,19 @@ java -jar zipkin-server-2.22.0-exec.jar --RABBIT_ADDRESSES=192.168.12.132:5672
 
 ![](images/20201113151201801_189.png)
 
-### 6.3. 客户端配置
+### 7.3. 客户端配置
 
-#### 6.3.1. 配置依赖
+#### 7.3.1. 配置依赖
 
 修改需要被追踪的微服务添加zipkin整合sleuth、rabbitmq的依赖。*所以示例项目的网关、订单、商品服务都需要添加依赖*
 
 ```xml
-<!-- sleuth链路追踪依赖 -->
-<dependency>
-    <groupId>org.springframework.cloud</groupId>
-    <artifactId>spring-cloud-starter-sleuth</artifactId>
-</dependency>
-<!-- zipkin 依赖 -->
+<!-- zipkin 整合 sleuth 依赖
+    spring-cloud-starter-zipkin 依赖已包含 spring-cloud-starter-sleuth 与 spring-cloud-sleuth-zipkin
+-->
 <dependency>
     <groupId>org.springframework.cloud</groupId>
     <artifactId>spring-cloud-starter-zipkin</artifactId>
-</dependency>
-
-<!-- zipkin整合sleuth依赖 -->
-<dependency>
-    <groupId>org.springframework.cloud</groupId>
-    <artifactId>spring-cloud-sleuth-zipkin</artifactId>
 </dependency>
 <!-- RabbitMQ 依赖 -->
 <dependency>
@@ -688,9 +762,7 @@ java -jar zipkin-server-2.22.0-exec.jar --RABBIT_ADDRESSES=192.168.12.132:5672
 
 导入 `spring-rabbit` 依赖，是Spring提供的对RabbitMQ的封装，客户端会根据配置自动的生产消息并发送到目标队列中
 
-> 注：如果前面两个依赖已经存在，则不需要重复添加依赖
-
-#### 6.3.2. 配置消息中间件地址等信息
+#### 7.3.2. 配置消息中间件地址等信息
 
 修改需要被追踪的微服务的application.yml配置文件（*所以示例项目的网关、订单、商品服务都需要修改配置文件*）。修改要求如下：
 
@@ -721,7 +793,7 @@ spring:
           enabled: true
 ```
 
-### 6.4. 测试
+### 7.4. 测试
 
 启动所有微服务，关闭Zipkin Server，并发起几个请求连接。打开rabbitmq管理后台可以看到，消息已经推送到rabbitmq。
 

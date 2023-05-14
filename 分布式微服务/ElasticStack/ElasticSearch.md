@@ -60,12 +60,12 @@ Elasticsearch 提供 RESTful Api 接口进行索引、搜索，并且支持多�
 
 ### 2.1. 下载地址
 
-下载 ES: Elasticsearch 6.2.1
-
 - ES 更多版本：https://www.elastic.co/cn/downloads/past-releases
 - ES 最新版本：https://www.elastic.co/cn/downloads/elasticsearch
 
-> JDK8 只支持到 7.15.x 版本
+目前下载的是 Elasticsearch 6.2.1
+
+> Notes: JDK8 只支持到 7.15.x 版本，更高的版本需要 JDK11
 
 ### 2.2. 安装说明
 
