@@ -530,11 +530,11 @@ public void close() throws IOException
 
 #### 3.4.1. Scoket 套接字
 
-- Socket 就是为网络编程提供的一种机制，又叫套接字编程
-- Socket 需要理解以下几点内容：
-    - 通信的两端都有Socket。
-    - 网络通信其实就是Socket 间的通信。
-    - 数据在两个Socket 间通过IO 传输。
+Socket 就是为网络编程提供的一种机制，又叫**套接字编程**。对于 Socket 需要理解以下几点内容：
+
+- 通信的两端都有 Socket。
+- 网络通信其实就是 Socket 间的通信。
+- 数据在两个 Socket 间通过 IO 传输。
 
 #### 3.4.2. Socket 类的构造方法
 
@@ -542,16 +542,14 @@ public void close() throws IOException
 public Socket(String host, int port);
 ```
 
-- 传递服务器字符串的IP地址和端口号
+- 使用该构造方法在创建 Socket 对象时，需要传递服务器字符串的IP地址和端口号。会根据参数去连接在指定地址和端口上运行的服务器程序，其中参数host接收的是一个字符串类型的IP地址。
 - **注意：构造方法只要运行，就会和服务器进行连接，如果服务器没有开启则抛出异常。**
-- 使用该构造方法在创建Socket对象时，会根据参数去连接在指定地址和端口上运行的服务器程序，其中参数host接收的是一个字符串类型的IP地址。
 
 ```java
 public Socket(InetAddress address, int port);
 ```
 
-- 参数address用于接收一个InetAddress类型的对象，该对象用于封装一个IP地址
-- 创建一个流套接字并将其连接到指定 IP 地址的指定端口号。
+- 创建一个流套接字并将其连接到指定 IP 地址的指定端口号。参数 `InetAddress address` 用于接收一个 `InetAddress` 类型的对象，该对象用于封装一个IP地址。
 
 #### 3.4.3. Socket 类的常用方法
 
@@ -559,7 +557,7 @@ public Socket(InetAddress address, int port);
 public int getPort()
 ```
 
-- 该方法返回一个int类型对象，该对象是Socket对象与服务器端连接的端口号。
+- 该方法返回一个 `int` 类型对象，该对象是 `Socket` 对象与服务器端连接的端口号。
 
 ```java
 public InetAddress getInetAddress()
@@ -571,25 +569,25 @@ public InetAddress getInetAddress()
 public InetAddress getLocalAddress()
 ```
 
-- 该方法用于获取Socket对象绑定的本地IP地址，并将IP地址封装成InetAddress类型的对象返回
+- 该方法用于获取 `Socket` 对象绑定的本地IP地址，并将IP地址封装成 `InetAddress` 类型的对象返回
 
 ```java
 public void close() throws IOException
 ```
 
-- 该方法用于关闭Socket连接，结束本次通信。在关闭socket之前，应将与socket相关的所有的输入/输出流全部关闭，这是因为一个良好的程序应该在执行完毕时释放所有的资源
+- 该方法用于关闭 `Socket` 连接，结束本次通信。在关闭 `Socket` 之前，应将与 `Socket` 相关的所有的输入/输出流全部关闭，这是因为一个良好的程序应该在执行完毕时释放所有的资源 
 
 ```java
 public InputStream getInputStream() throws IOException
 ```
 
-- 该方法返回一个InputStream类型的字节输入流对象，如果该对象是由服务器端的Socket返回，就用于读取客户端发送的数据，反之，用于读取服务器端发送的数据
+- 该方法返回一个 `InputStream` 类型的字节输入流对象，如果该对象是由服务器端的 `Socket` 返回，就用于读取客户端发送的数据，反之，用于读取服务器端发送的数据
 
 ```java
 public OutputStream getOutputStream() throws IOException
 ```
 
-- 该方法返回一个OutputStream类型的字节输出流对象，如果该对象是由服务器端的Socket返回，就用于向客户端发送数据，反之，用于向服务器端发送数据
+- 该方法返回一个 `OutputStream` 类型的字节输出流对象，如果该对象是由服务器端的 `Socket` 返回，就用于向客户端发送数据，反之，用于向服务器端发送数据
 
 ```java
 public void shutdownOutput() throws IOException
@@ -883,7 +881,7 @@ public class TCPServerThread extends Thread {
     @Override
     public void run() {
         // 创建字节输入流对象读取服务器的文件
-        File file = new File("G:\\！黑马培训班\\Java学习路线图1.jpg");
+        File file = new File("E:\\Java学习路线图1.jpg");
         try {
             BufferedInputStream bis = new BufferedInputStream(new FileInputStream(file));
             // 获取客户端的字节输出流对象，将文件输出到客户端

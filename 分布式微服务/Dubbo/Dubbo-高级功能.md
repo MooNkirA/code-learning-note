@@ -155,28 +155,38 @@ rpcContext.setAttachment("retries", 5);
 
 ## 4. 负载均衡
 
-在集群负载均衡时，Dubbo 提供了多种均衡策略，缺省为 `random` 随机调用
+在集群负载均衡时，Dubbo 提供了多种均衡策略，缺省为 `weighted random` 基于权重的随机负载均衡策略。
+
+具体实现上，Dubbo 提供的是客户端负载均衡，即由 Consumer 通过负载均衡算法得出需要将请求提交到哪个 Provider 实例。
 
 ### 4.1. 负载均衡策略
 
-- Random LoadBalance
-    - 随机，按权重设置随机概率。
-    - 在一个截面上碰撞的概率高，但调用量越大分布越均匀，而且按概率使用权重后也比较均匀，有利于动态调整提供者权重。
-- RoundRobin LoadBalance
-    - 轮询，按公约后的权重设置轮询比率。
-    - 存在慢的提供者累积请求的问题，比如：第二台机器很慢，但没挂，当请求调到第二台时就卡在那，久而久之，所有请求都卡在调到第二台上。
-- LeastActive LoadBalance
-    - 最少活跃调用数，相同活跃数的随机，活跃数指调用前后计数差。
-    - 使慢的提供者收到更少请求，因为越慢的提供者的调用前后计数差会越大。
-- ConsistentHash LoadBalance
-    - 一致性 Hash，相同参数的请求总是发到同一提供者。
-    - 当某一台提供者挂时，原本发往该提供者的请求，基于虚拟节点，平摊到其它提供者，不会引起剧烈变动。
-    - 缺省只对第一个参数 Hash，如果要修改，请配置 `<dubbo:parameter key="hash.arguments" value="0,1" />`
-    - 缺省用 160 份虚拟节点，如果要修改，请配置 `<dubbo:parameter key="hash.nodes" value="320" />`
+目前 Dubbo 内置了如下负载均衡算法，用户可直接配置使用：
+
+|              算法              |         特性          |                     备注                      |      配置值       |
+| ----------------------------- | -------------------- | -------------------------------------------- | ---------------- |
+| Weighted Random LoadBalance   | 加权随机              | 默认算法，默认权重相同                           | random (默认)     |
+| RoundRobin LoadBalance        | 加权轮询              | 借鉴于 Nginx 的平滑加权轮询算法，默认权重相同，     | roundrobin       |
+| LeastActive LoadBalance       | 最少活跃优先 + 加权随机 | 背后是能者多劳的思想                            | leastactive      |
+| Shortest-Response LoadBalance | 最短响应优先 + 加权随机 | 更加关注响应速度                                | shortestresponse |
+| ConsistentHash LoadBalance    | 一致性哈希             | 确定的入参，确定的提供者，适用于有状态请求          | consistenthash   |
+| P2C LoadBalance               | Power of Two Choice  | 随机选择两个节点后，继续选择“连接数”较小的那个节点。 | p2c              |
+| Adaptive LoadBalance          | 自适应负载均衡         | 在 P2C 算法基础上，选择二者中 load 最小的那个节点  | adaptive         |
 
 > 注意：配置时负载均衡策略的单词都是**全小写**，如果出现大写会报错
 
+- Weighted Random LoadBalance：加权随机，按权重设置随机概率。在一个截面上碰撞的概率高，但调用量越大分布越均匀，而且按概率使用权重后也比较均匀，有利于动态调整提供者权重。
+- RoundRobin LoadBalance：轮询，按公约后的权重设置轮询比率。存在慢的提供者累积请求的问题，比如：第二台机器很慢，但没挂，当请求调到第二台时就卡在那，久而久之，所有请求都卡在调到第二台上。
+- LeastActive LoadBalance：最少活跃调用数，相同活跃数的随机，活跃数指调用前后计数差。使慢的提供者收到更少请求，因为越慢的提供者的调用前后计数差会越大。
+- ConsistentHash LoadBalance：一致性 Hash，相同参数的请求总是发到同一提供者。当某一台提供者挂时，原本发往该提供者的请求，基于虚拟节点，平摊到其它提供者，不会引起剧烈变动。
+    - 缺省只对第一个参数 Hash，如果要修改，请配置 `<dubbo:parameter key="hash.arguments" value="0,1" />`
+    - 缺省用 160 份虚拟节点，如果要修改，请配置 `<dubbo:parameter key="hash.nodes" value="320" />`
+
 ### 4.2. 配置示例
+
+Dubbo 支持在服务提供者一侧配置默认的负载均衡策略，这样所有的消费者都将默认使用提供者指定的负载均衡策略。消费者可以自己配置要使用的负载均衡策略，如果都没有任何配置，则默认使用<u>随机负载均衡策略</u>。
+
+同一个应用内支持配置不同的服务使用不同的负载均衡策略，支持为同一服务的不同方法配置不同的负载均衡策略。
 
 - 服务端服务级别
 
@@ -1878,4 +1888,52 @@ configs:
  parameters:
    force: return null
 ...
+```
+
+## 33. Kryo 和 FST 序列化
+
+> 参考官网：https://cn.dubbo.apache.org/zh-cn/overview/mannual/java-sdk/advanced-features-and-usage/performance/serialization/
+
+### 33.1. 高性能序列化概述
+
+序列化 (Serialization) 是将对象状态信息转换为可传输形式的过程。其中 Dubbo RPC 的通信方式在以下几点优于 HTTP 通信方式：
+
+1. 通信协议层次优化，传输层比应用层更高效
+2. 二进制数据比文本数据体积更小，传输更快
+3. TCP/IP 的长连接比 HTTP 的短连接更高效
+
+<font color=red>**优化性能的关注点不能只聚焦在“传输”这个过程，而“序列化/反序列化”是每次『传输』前、后的操作其性能至关重要**</font>。
+
+### 33.2. Kyro 简介
+
+Kyro 相对 Java 原生的序列化技术的优点是：
+
+1. 性能极佳
+2. 成熟，Hive、Storm 等知名开源项目在用
+3. 专门针对 Java 优化
+
+![](images/259380017259872.jpg)
+
+### 33.3. Dubbo 使用 Kyro 序列化步骤
+
+1. 使用 Kryo 非常简单，在 Provider、Consumer 中添加对应的依赖
+
+```xml
+<dependency>
+	<groupId>org.apache.dubbo</groupId>
+	<artifactId>dubbo-serialization-kryo</artifactId>
+	<version>2.7.5</version>
+</dependency>
+```
+
+2. 配置文件中指定使用 Kyro 序列化方式，具体配置项：`dubbo.protocol.serialization`，设置为相应的类型。
+
+```yml
+dubbo:
+  registry:
+    address: spring-cloud://localhost
+  protocol:
+    name: dubbo
+    port: -1
+    serialization: kryo
 ```

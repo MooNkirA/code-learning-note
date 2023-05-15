@@ -242,7 +242,7 @@ public static void populate(Object bean, Map<String, ? extends Object> propertie
 public static Map<String, String> describe(Object bean) throws IllegalAccessException, InvocationTargetException, NoSuchMethodException
 ```
 
-- 将一个 JavaBean 中所有的属性转成 Map 集合，并且多出一个 class 属性键值对。如操作后，类中会多出一个属性 `class = class com.itheima.entity.User`
+- 将一个 JavaBean 中所有的属性转成 Map 集合，并且多出一个 class 属性键值对。如操作后，类中会多出一个属性 `class = class com.moon.entity.User`
 
 ## 4. ConvertUtils 日期转换器
 

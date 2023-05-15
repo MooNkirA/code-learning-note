@@ -784,7 +784,7 @@ protected void configure(HttpSecurity http) throws Exception {
 
 ![](images/369475915235852.png)
 
-问题原因：spring security 为防止 CSRF（Cross-site request forgery跨站请求伪造）的发生，限制了除了 get 以外的大多数方法。因为表单的提交是 post 请求
+问题原因：spring security 为防止 CSRF（Cross-site request forgery 跨站请求伪造）的发生，限制了除了 get 以外的大多数方法。因为表单的提交是 post 请求
 
 - 解决方法1：配置 Spring Security 安全配置类 `WebSecurityConfig`，屏蔽 CSRF 控制，即 spring security 不再限制 CSRF。
 

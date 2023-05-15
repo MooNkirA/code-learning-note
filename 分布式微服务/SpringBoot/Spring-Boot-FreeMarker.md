@@ -1,8 +1,10 @@
-# Spring Boot 整合 FreeMarker
+## 1. FreeMarker 概述
 
-## 1. 整合示例
+FreeMarker 是一个基于 Java 的模板引擎，最初专注于使用 MVC 软件架构进行动态网页生成。使用 Freemarker 的主要优点是表示层和业务层的完全分离。程序员可以处理应用程序代码，而设计人员可以处理 html 页面设计。最后使用 freemarker 可以将这些结合起来，给出最终的输出页面。
 
-### 1.1. 加入依赖
+## 2. Spring Boot 整合 FreeMarker 示例
+
+### 2.1. 加入依赖
 
 ```xml
 <!-- FreeMarker启动器 -->
@@ -12,7 +14,7 @@
 </dependency>
 ```
 
-### 1.2. 编写处理器
+### 2.2. 编写处理器
 
 ```java
 @Controller
@@ -28,7 +30,7 @@ public class UserController {
 }
 ```
 
-### 1.3. 编写模板
+### 2.3. 编写模板
 
 在src\main\resources\templates路径下创建user.ftl模板，内容如下。最后运行启动类测试效果
 
@@ -45,7 +47,7 @@ public class UserController {
 </html>
 ```
 
-### 1.4. 属性配置
+### 2.4. 属性配置
 
 参考spring-boot-autoconfigure-1.5.6.RELEASE.jar中freemarker包中属性文件类**FreeMarkerProperties**
 

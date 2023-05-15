@@ -401,28 +401,28 @@ public class Application {
 Spring Boot uses a very particular `PropertySource` order that is designed to allow sensible overriding of values. Properties are considered in the following order (with values from lower items overriding earlier ones):
 
 1. Default properties (specified by setting `SpringApplication.setDefaultProperties`).
-    > 应用默认属性，使用 `SpringApplication.setDefaultProperties` 定义的内容
+> 应用默认属性，使用 `SpringApplication.setDefaultProperties` 定义的内容
 2. `@PropertySource` annotations on your `@Configuration` classes. Please note that such property sources are not added to the `Environment` until the application context is being refreshed. This is too late to configure certain properties such as `logging.*` and `spring.main.*` which are read before refresh begins.
-    > 在 `@Configuration` 注解修改的类中，通过 `@PropertySource` 注解定义的属性
+> 在 `@Configuration` 注解修改的类中，通过 `@PropertySource` 注解定义的属性
 3. Config data (such as `application.properties` files).
-    > - 位于当前应用 jar 包之外，针对不同`{profile}`环境的配置文件内容，例如`application-{profile}.properties`或是 YAML 定义的配置文件
-    > - 位于当前应用 jar 包之内，针对不同`{profile}`环境的配置文件内容，例如`application-{profile}.properties`或是 YAML 定义的配置文件
-    > - 位于当前应用 jar 包之外的 application.properties 和 YAML 配置内容
-    > - 位于当前应用 jar 包之内的 application.properties 和 YAML 配置内容
+> - 位于当前应用 jar 包之外，针对不同`{profile}`环境的配置文件内容，例如`application-{profile}.properties`或是 YAML 定义的配置文件
+> - 位于当前应用 jar 包之内，针对不同`{profile}`环境的配置文件内容，例如`application-{profile}.properties`或是 YAML 定义的配置文件
+> - 位于当前应用 jar 包之外的 application.properties 和 YAML 配置内容
+> - 位于当前应用 jar 包之内的 application.properties 和 YAML 配置内容
 4. A `RandomValuePropertySource` that has properties only in `random.*`.
-    > 通过`random.*`配置的随机属性
+> 通过`random.*`配置的随机属性
 5. OS environment variables.
-    > 操作系统的环境变量
+> 操作系统的环境变量
 6. Java System properties (`System.getProperties()`).
-    > Java的系统属性，可以通过`System.getProperties()`获得的内容
+> Java的系统属性，可以通过`System.getProperties()`获得的内容
 7. JNDI attributes from `java:comp/env`.
-    > `java:comp/env` 中的JNDI属性
+> `java:comp/env` 中的JNDI属性
 8. `ServletContext` init parameters.
 9. `ServletConfig` init parameters.
 10. Properties from `SPRING_APPLICATION_JSON` (inline JSON embedded in an environment variable or system property).
-    > SPRING_APPLICATION_JSON 中的属性。SPRING_APPLICATION_JSON 是以 JSON 的格式配置在系统环境变量中的内容
+> SPRING_APPLICATION_JSON 中的属性。SPRING_APPLICATION_JSON 是以 JSON 的格式配置在系统环境变量中的内容
 11. Command line arguments.
-    > 在命令行中传入的参数
+> 在命令行中传入的参数
 12. `properties` attribute on your tests. Available on `@SpringBootTest`  and the test annotations for testing a particular slice of your application.
 13. `@TestPropertySource` annotations on your tests.
 14. Devtools global settings properties in the `$HOME/.config/spring-boot` directory when devtools is active.
@@ -439,7 +439,7 @@ Spring Boot 默认加载的配置文件是 application.properties 或者 applica
 - 程序包所在目录中 config 目录下配置文件。如：`file:./config/application.properties`
 - 程序包所在目录中 config 目录的子文件夹的配置文件（不能加载孙子级文件夹）。如：`file:./config/a/application.properties` 可以加载，但不能加载 `file:./config/a/b/application.properties`
 
-> Tips: 以上是Spring Boot 默认加载配置文件的顺序，后面加载的配置会覆盖掉前面的。*也可以理解为后面的配置文件优先级较高*
+> Tips: 以上是 Spring Boot 默认加载配置文件的顺序，后面加载的配置会覆盖掉前面的。*也可以理解为后面的配置文件优先级较高*
 
 ### 5.2. 配置文件加载优先级顺序
 
@@ -809,7 +809,7 @@ spring:
 
 ### 9.1. 使用命令行启动项目
 
-- 准备两套环境的配置文件，application-dev.yml和application-pro.yml
+- 准备两套环境的配置文件，application-dev.yml 和 application-pro.yml
 - 设置总的配置文件，application.yml
     - **注：如果使用`${}`占位符，在开发过程中可以根据输入的参数切换，但在打包输入命令是无法替换，需要使用`@@`包裹才能实现。**
 
@@ -843,9 +843,9 @@ java -jar moon-project.jar --spring.profiles.active=pro
 </properties>
 ```
 
-spring boot 默认是使用 `@@` 占位符来读取maven的配置属性值，如需要修改使用 `${}` 作为动态参数读取配置值，可以有以下处理方案。
+spring boot 默认是使用 `@@` 占位符来读取 maven 的配置属性值，如需要修改使用 `${}` 作为动态参数读取配置值，可以有以下处理方案。
 
-> 注：使用这种方式是为了在使用maven命令时，可以设置配置中相应的变量值
+> 注：使用这种方式是为了在使用 maven 命令时，可以设置配置中相应的变量值
 
 #### 9.2.1. 方案一
 
@@ -877,7 +877,7 @@ spring boot 默认是使用 `@@` 占位符来读取maven的配置属性值，如
                 <!-- 配置替换配置文件的占位符
                     在新的 spring boot 版本中，是使用 @@ 作为占位符，
                     为了兼容旧的写法，所以这些配置使用 ${} 作为占位符
-                    -->
+                -->
                 <delimiters>
                     <delimiter>${*}</delimiter>
                 </delimiters>
@@ -906,7 +906,7 @@ spring boot 默认是使用 `@@` 占位符来读取maven的配置属性值，如
 </properties>
 ```
 
-<font color=red>**注意：使用些方式后，使用mvn命令打包时，不能使用 `${参数名:默认值}` 这种设置默认值方式**</font>
+<font color=red>**注意：使用些方式后，使用 mvn 命令打包时，不能使用 `${参数名:默认值}` 这种设置默认值方式**</font>
 
 ### 9.3. 个人项目实践示例
 
@@ -947,7 +947,7 @@ mvn clean package -DactiveName=pro -Dmaven.test.skip=true
 ### 10.1. SpingBoot 项目在 windows 环境中运行时命令行窗口及日志中文乱码
 
 1. 配置日志的xml文件中，`<appender name="CONSOLE">`与`appender name="FILE">`的标签中都要指定`<encoder>`标签内的`<charset>utf8</charset>`
-2. 由于指定的编码与windows系统默认编码不符，此时命令行窗口将会出现日志输出乱码，需要将系统默认编码改为utf-8。cmd命令窗口在启动jar包之前增加命令`chcp 65001`
+2. 由于指定的编码与 windows 系统默认编码不符，此时命令行窗口将会出现日志输出乱码，需要将系统默认编码改为utf-8。cmd命令窗口在启动jar包之前增加命令`chcp 65001`
 
 ```bash
 $ chcp 65001
@@ -956,15 +956,32 @@ $ java -Dxxxx=xxxx -jar .\app.jar
 
 ### 10.2. Windows 系统常用命令
 
+#### 10.2.1. 查询端口
+
 ```bash
-# 查询端口
 netstat -ano
-# 查询指定端口
+```
+
+#### 10.2.2. 查询指定端口
+
+```bash
 netstat -ano | findstr "端口号"
-# 根据进程PID查询进程名称
+```
+
+#### 10.2.3. 根据进程PID查询进程名称
+
+```bash
 tasklist | findstr "进程PID号"
-# 根据PID杀死任务
+```
+
+#### 10.2.4. 根据 PID 杀死任务
+
+```bash
 taskkill /F /PID "进程PID号"
-# 根据进程名称杀死任务
+```
+
+#### 10.2.5. 根据进程名称杀死任务
+
+```bash
 taskkill -f -t -im "进程名称"
 ```

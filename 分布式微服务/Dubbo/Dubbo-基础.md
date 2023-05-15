@@ -480,21 +480,15 @@ Dubbo 总体架构设计一共划分了10层，而最上面的Service层是留�
 
 ## 3. 快速入门
 
-### 3.1. Dubbo Spring Boot Starter
+### 3.1. 基于 Dubbo Spring Boot Starter（使用 Nacos 注册中心）微服务实践
 
-基于 Dubbo x Spring Boot 的微服务开发，了解 Dubbo x Spring Boot 配置方式。
+基于 Nacos 作为注册中心的 Dubbo x Spring Boot 的微服务开发快速开始示例，用于了解 Dubbo x Spring Boot 配置方式。
 
-> TODO: 待整理
-
-### 3.2. Dubbo 整合 Nacos 服务调用实践
-
-基于 Nacos 作为注册中心的 Dubbo 快速开始示例。
-
-#### 3.2.1. 启动 nacos
+#### 3.1.1. 启动 nacos
 
 启动 nacos 作为服务注册中心，nacos 的使用参考《Spring-Cloud-Alibaba-Nacos 笔记》
 
-#### 3.2.2. 创建聚合工程与 API 模块
+#### 3.1.2. 创建聚合工程与 API 模块
 
 创建示例聚合工程，引入以下依赖：
 
@@ -505,22 +499,12 @@ Dubbo 总体架构设计一共划分了10层，而最上面的Service层是留�
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <maven.compiler.source>1.8</maven.compiler.source>
     <maven.compiler.target>1.8</maven.compiler.target>
-
-    <!-- dubbo版本 -->
-    <dubbo.version>2.6.9</dubbo.version>
-    <spring.version>5.2.13.RELEASE</spring.version>
-    <zookeeper.version>3.6.3</zookeeper.version>
-    <curator.version>2.13.0</curator.version>
-    <!-- netty版本 -->
-    <netty.version>4.1.63.Final</netty.version>
-    <!-- fastjson版本 -->
-    <fastjson.version>1.2.56</fastjson.version>
-
     <!-- spring boot 版本 -->
     <spring-boot.version>2.3.10.RELEASE</spring-boot.version>
     <!-- Spring Cloud Alibaba 版本 -->
     <spring-cloud-alibaba.version>2.1.4.RELEASE</spring-cloud-alibaba.version>
-    <junit.version>4.12</junit.version>
+    <!--ncaos 注册dubbo 服务 -->
+    <dubbo-registry-nacos.version>2.7.5</dubbo-registry-nacos.version>
 </properties>
 
 <!-- 锁定依赖版本 -->
@@ -542,72 +526,11 @@ Dubbo 总体架构设计一共划分了10层，而最上面的Service层是留�
             <type>pom</type>
             <scope>import</scope>
         </dependency>
-
-        <!-- 本项目子工程 start -->
+        <!-- dubbo 与 nacos 整合 -->
         <dependency>
-            <groupId>com.moon</groupId>
-            <artifactId>service-api</artifactId>
-            <version>${dubbo-sample.version}</version>
-        </dependency>
-        <!-- 本项目子工程 end -->
-
-        <!-- alibaba fastjson -->
-        <dependency>
-            <groupId>com.alibaba</groupId>
-            <artifactId>fastjson</artifactId>
-            <version>${fastjson.version}</version>
-        </dependency>
-
-        <!-- SpringMVC -->
-        <dependency>
-            <groupId>javax.servlet</groupId>
-            <artifactId>servlet-api</artifactId>
-            <version>2.5</version>
-        </dependency>
-
-        <!-- dubbo -->
-        <dependency>
-            <groupId>com.alibaba</groupId>
-            <artifactId>dubbo</artifactId>
-            <version>${dubbo.version}</version>
-        </dependency>
-        <!-- zookeeper注册中心客户端 -->
-        <dependency>
-            <groupId>org.apache.zookeeper</groupId>
-            <artifactId>zookeeper</artifactId>
-            <version>${zookeeper.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.slf4j</groupId>
-                    <artifactId>slf4j-log4j12</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>log4j</groupId>
-                    <artifactId>log4j</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <!-- zookeeper注册中心第三方客户端curator依赖 -->
-        <dependency>
-            <groupId>org.apache.curator</groupId>
-            <artifactId>curator-framework</artifactId>
-            <version>${curator.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>io.netty</groupId>
-            <artifactId>netty-all</artifactId>
-            <version>${netty.version}</version>
-        </dependency>
-        <!-- 参数校验 -->
-        <dependency>
-            <groupId>javax.validation</groupId>
-            <artifactId>validation-api</artifactId>
-            <version>2.0.1.Final</version>
-        </dependency>
-        <dependency>
-            <groupId>org.hibernate</groupId>
-            <artifactId>hibernate-validator</artifactId>
-            <version>7.0.0.Final</version>
+            <groupId>org.apache.dubbo</groupId>
+            <artifactId>dubbo-registry-nacos</artifactId>
+            <version>${dubbo-registry-nacos.version}</version>
         </dependency>
     </dependencies>
 </dependencyManagement>
@@ -623,8 +546,245 @@ Dubbo 总体架构设计一共划分了10层，而最上面的Service层是留�
 </build>
 ```
 
-#### 3.2.3. 服务
+创建服务接口工程 dubbo-nacos-api，定义用于测试的接口
 
+```java
+public interface HelloService {
+    String hello(String name);
+}
+```
+
+#### 3.1.3. 服务提供者
+
+1. 引入服务接口工程、dubbo、nacos 等相关依赖
+
+```xml
+ <dependencies>
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-web</artifactId>
+    </dependency>
+
+    <!-- 服务接口工程 -->
+    <dependency>
+        <groupId>com.moon</groupId>
+        <artifactId>dubbo-nacos-api</artifactId>
+        <version>1.0-SNAPSHOT</version>
+    </dependency>
+
+    <!-- nacos 注册中心依赖 -->
+    <dependency>
+        <groupId>com.alibaba.cloud</groupId>
+        <artifactId>spring-cloud-starter-alibaba-nacos-discovery</artifactId>
+    </dependency>
+    <!-- dubbo 依赖 -->
+    <dependency>
+        <groupId>com.alibaba.cloud</groupId>
+        <artifactId>spring-cloud-starter-dubbo</artifactId>
+    </dependency>
+    <!-- dubbo 注册到 nacos 依赖 -->
+    <dependency>
+        <groupId>org.apache.dubbo</groupId>
+        <artifactId>dubbo-registry-nacos</artifactId>
+    </dependency>
+</dependencies>
+```
+
+2. 创建服务接口的实现类，在类中添加了 `@DubboService` 注解，通过这个配置可以基于 Spring Boot 去发布 Dubbo 服务。
+
+> Notes: 要注意使用 dubbo 注解，而不是使用 Spring 的注解。其中 dubbo 以前版本的 `@Service` 注解已经过时，示例使用了官方推荐的 `@DubboService`。
+
+```java
+package com.moon.dubbo.nacos.service;
+
+import org.apache.dubbo.config.annotation.DubboService;
+
+// @Service // org.apache.dubbo.config.annotation.Service 注解已过时
+@DubboService // 标识当前类为 dubbo 的服务提供者
+public class HelloServiceImpl implements HelloService {
+    @Override
+    public String hello(String name) {
+        return "hello " + name;
+    }
+}
+```
+
+3. 创建启动类，并使用 `@EnableDiscoveryClient` 开启服务发现功能
+
+```java
+@EnableDiscoveryClient // 开启服务发现功能
+@SpringBootApplication
+public class DubboNacosProvider {
+    public static void main(String[] args) {
+        SpringApplication.run(DubboNacosProvider.class, args);
+    }
+}
+```
+
+4. 在 resources 资源文件夹下建立 application.yml 文件，定义了 Dubbo 的应用名、Dubbo 协议信息、Dubbo 使用的注册中心地址。定义如下：
+
+```yml
+server:
+  port: 8080
+spring:
+  application:
+    name: dubbo-provider
+  cloud:
+    nacos:
+      discovery:
+        server-addr: localhost:8848
+dubbo:
+  registry:
+    address: spring-cloud://localhost
+  scan:
+    base-packages: com.moon.dubbo.nacos.service
+  protocol:
+    name: dubbo
+    port: -1
+```
+
+#### 3.1.4. 服务消费者
+
+1. 服务消费端同样引入服务接口工程、dubbo、nacos 等相关依赖。*具体参考“服务提供者”*
+2. 创建启动类，并使用 `@EnableDiscoveryClient` 开启服务发现功能。*具体参考“服务提供者”*
+3. 在 resources 资源文件夹下建立 application.yml 文件，定义了 Dubbo 的应用名、Dubbo 协议信息、Dubbo 使用的注册中心地址。定义如下：
+
+```java
+server:
+  port: 8081
+spring:
+  application:
+    name: dubbo-consumer
+  cloud:
+    nacos:
+      discovery:
+        server-addr: localhost:8848
+dubbo:
+  registry:
+    address: spring-cloud://localhost
+  protocol:
+    name: dubbo
+    port: -1
+```
+
+> Tips: 此配置与服务提供者不同的地方是，不需要配置 `dubbo.scan.base-packages` 服务接口扫描包路径。
+
+4. 在 Spring Boot 模式下还可以基于 CommandLineRunner 去创建消费端请求的任务
+
+```java
+import com.moon.dubbo.nacos.service.HelloService;
+import org.apache.dubbo.config.annotation.DubboReference;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+/**
+ * 测试 dubbo RPC 调用接口
+ */
+@RestController
+public class TestController {
+    // @Reference(check=false) // @Reference 注解用于引用服务接口（已过时）
+    // 使用 dubbo 的 @DubboReference 注解引用服务接口，其中 check 属性为 false时，启动时不会去检查是否有可用的服务接口引用
+    @DubboReference(check = false)
+    private HelloService helloService;
+
+    @GetMapping("/hello")
+    public String hello(@RequestParam String name) {
+        // 调用服务接口
+        return helloService.hello(name);
+    }
+}
+```
+
+扩展：在 Spring Boot 模式下还可以基于 `CommandLineRunner` 去创建消费端请求的任务，即可以在消费端启动后进行远程服务接口的调用。在 Task 类中，通过 `@DubboReference` 从 Dubbo 获取了一个 RPC 订阅，可以像本地接口一样直接调用 `HelloService`，在 `run` 方法中创建了一个线程进行调用。
+
+```java
+@Component
+public class Task implements CommandLineRunner {
+
+    @DubboReference
+    private HelloService helloService;
+
+    @Override
+    public void run(String... args) throws Exception {
+        new Thread(() -> {
+            while (true) {
+                try {
+                    Thread.sleep(1000);
+                    System.out.println(new Date() + " Receive result ======> " + helloService.hello("world"));
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                    Thread.currentThread().interrupt();
+                }
+            }
+        }).start();
+    }
+}
+```
+
+#### 3.1.5. 测试
+
+启动 nacos、dubbo-nacos-provider、dubbo-nacos-consumer。在 nacos 控制台可以看到相应的服务列表：
+
+![](images/344912916248981.png)
+
+消费端启动后在任务中输出了调用远程服务接口的内容：
+
+![](images/47143016236848.png)
+
+调用消费端的测试接口，可以成功调用远程服务接口并返回结果：
+
+![](images/547453016257014.png)
+
+### 3.2. Dubbo 整合 Nacos 配置中心实践
+
+基于上个章节『Dubbo 整合 Nacos 服务调用实践』，将项目修改为使用 Nacos Config 来管理项目配置。具体实现步骤如下：
+
+#### 3.2.1. 添加 Nacos Config 依赖
+
+在 dubbo-nacos-consumer、dubbo-nacos-provider 均添加 Nacos Config 的依赖。
+
+```xml
+<dependency>
+    <groupId>com.alibaba.cloud</groupId>
+    <artifactId>spring-cloud-starter-alibaba-nacos-config</artifactId>
+</dependency>
+```
+
+#### 3.2.2. 更改本地与远程配置
+
+以服务提供端（dubbo-nacos-provider）为例，移除（修改为别的名称）原来的 application.yml 文件，创建优先级最高的 bootstrap.yml 文件，只需要配置 nacos 相关选项：
+
+```yml
+spring:
+  application:
+    name: dubbo-provider
+  cloud:
+    nacos:
+      config:
+        server-addr: localhost:8848
+        file-extension: yaml
+```
+
+在 nacos 管理后台中，创建配置 dubbo-provider.yaml，添加原来 application.yml 文件的内容
+
+![](images/272684816246238.png)
+
+![](images/469864716249683.png)
+
+成功修改后，按上个章节步骤测试即可
+
+### 3.3. 基于 Spring XML 微服务实践
+
+基于 Dubbo x Spring XML 的微服务快速开始示例，用于了解 Dubbo x Spring XML 配置方式。
+
+> 参考官网：https://cn.dubbo.apache.org/zh-cn/overview/mannual/java-sdk/quick-start/spring-xml/
+
+### 3.4. 基于 Dubbo API 微服务实践
+
+> 参考官网：https://cn.dubbo.apache.org/zh-cn/overview/mannual/java-sdk/quick-start/api/
+
+基于 Dubbo 的纯 API 的微服务快速开始示例，
 
 ## 4. Dubbo 基础配置使用
 
@@ -796,7 +956,7 @@ Dubbo 总体架构设计一共划分了10层，而最上面的Service层是留�
 
 #### 4.3.1. @EnableDubbo 开启服务
 
-`@EnableDubbo` 注解：开启注解 Dubbo 功能，其中可以加入 `scanBasePackages` 属性配置包扫描的路径，用于扫描并注册bean。其中封装了组件 `@DubboComponentScan`，来扫描Dubbo框架的 `@Service` 注解暴露 Dubbo 服务，以及扫描 Dubbo 框架的 `@Reference` 字段或者方法注入 Dubbo 服务代理。
+`@EnableDubbo` 注解：开启注解 Dubbo 功能，其中可以加入 `scanBasePackages` 属性配置包扫描的路径，用于扫描并注册 bean。其中封装了组件 `@DubboComponentScan`，来扫描Dubbo框架的 `@Service` 注解暴露 Dubbo 服务，以及扫描 Dubbo 框架的 `@Reference` 字段或者方法注入 Dubbo 服务代理。
 
 #### 4.3.2. @Configuration 方式配置公共信息
 
@@ -1460,9 +1620,17 @@ public interface ExtensionFactory {
 
 ExtensionFactory接口有两个实现类，一个适配类（adaptive，接口的默认实现）。AdaptiveExtensionFactory在内部持有了所有的factory实现工厂，即`SpiExtensionFactory`与`SpringExtensionFactory`两个实现类。一个为SPI工厂（依赖类是扩展接口时发挥作用），一个为Spring工厂（依赖的是springbean时发挥作用）。于是，当需要为某个生成的对象注入依赖时，直接调用此对象即可。从而实现Dubbo SPI的IOC功能
 
-## 7. 服务化最佳实践
+## 7. Sentinel 限流
 
-### 7.1. 在 Provider 端应尽量配置的属性
+### 7.1. 概述
+
+随着微服务的流行，服务和服务之间的稳定性变得越来越重要。Sentinel 是面向分布式、多语言异构化服务架构的流量治理组件，主要以流量为切入点，从流量路由、流量控制、流量整形、熔断降级、系统自适应过载保护、热点流量防护等多个维度来帮助开发者保障微服务的稳定性。
+
+
+
+## 8. 服务化最佳实践
+
+### 8.1. 在 Provider 端应尽量配置的属性
 
 Dubbo的属性配置优先度上，遵循顺序：`reference属性 -> service属性 -> Consumer 属性`
 
@@ -1470,7 +1638,7 @@ Dubbo的属性配置优先度上，遵循顺序：`reference属性 -> service属
 
 而对于服务调用的超时时间、重试次数等属性，服务的提供方比消费方更了解服务性能，因此我们应该在 Provider 端尽量多配置 Consumer 端属性，让其漫游到消费端发挥作用
 
-#### 7.1.1. 在 Provider 端尽量多配置 Consumer 端属性
+#### 8.1.1. 在 Provider 端尽量多配置 Consumer 端属性
 
 - Provider 端尽量多配置 Consumer 端的属性，让 Provider 的实现者一开始就思考 Provider 端的服务特点和服务质量等问题
 
@@ -1490,7 +1658,7 @@ Dubbo的属性配置优先度上，遵循顺序：`reference属性 -> service属
     3. `loadbalance`：负载均衡算法，缺省是随机 random。还可以配置轮询 roundrobin、最不活跃优先 leastactive 和一致性哈希 consistenthash 等
     4. `actives`：消费者端的最大并发调用限制，即当 Consumer 对一个服务的并发调用到上限后，新调用会阻塞直到超时，在方法上配置 `dubbo:method` 则针对该方法进行并发限制，在接口上配置 `dubbo:service`，则针对该服务进行并发限制
 
-#### 7.1.2. 在 Provider 端配置合理的 Provider 端属性
+#### 8.1.2. 在 Provider 端配置合理的 Provider 端属性
 
 ```xml
 <dubbo:protocol threads="200" />
@@ -1504,15 +1672,15 @@ Dubbo的属性配置优先度上，遵循顺序：`reference属性 -> service属
 1. `threads`：服务线程池大小
 2. `executes`：一个服务提供者并行执行请求上限，即当 Provider 对一个服务的并发调用达到上限后，新调用会阻塞，此时 Consumer 可能会超时。在方法上配置 `dubbo:method` 则针对该方法进行并发限制，在接口上配置 `dubbo:service`，则针对该服务进行并发限制
 
-### 7.2. 服务拆分最佳实现
+### 8.2. 服务拆分最佳实现
 
-#### 7.2.1. 分包
+#### 8.2.1. 分包
 
 建议将服务接口、服务模型、服务异常等均放在 API 包中，因为服务模型和异常也是 API 的一部分，这样做也符合分包原则：重用发布等价原则(REP)，共同重用原则(CRP)。
 
 如果需要，也可以考虑在 API 包中放置一份 Spring 的引用配置，这样使用方只需在 Spring 加载过程中引用此配置即可。配置建议放在模块的包目录下，以免冲突，如：com/alibaba/china/xxx/dubbo-reference.xml。
 
-#### 7.2.2. 粒度
+#### 8.2.2. 粒度
 
 服务接口尽可能大粒度，每个服务方法应代表一个功能，而不是某功能的一个步骤，否则将面临分布式事务问题，Dubbo 暂未提供分布式事务支持。
 
@@ -1520,7 +1688,7 @@ Dubbo的属性配置优先度上，遵循顺序：`reference属性 -> service属
 
 不建议使用过于抽象的通用接口，如：Map query(Map)，这样的接口没有明确语义，会给后期维护带来不便。
 
-#### 7.2.3. 版本
+#### 8.2.3. 版本
 
 每个接口都应定义版本号，为后续不兼容升级提供可能，如：`<dubbo:service interface="com.xxx.XxxService" version="1.0" />`
 
@@ -1528,7 +1696,7 @@ Dubbo的属性配置优先度上，遵循顺序：`reference属性 -> service属
 
 当不兼容时，先升级一半提供者为新版本，再将消费者全部升为新版本，然后将剩下的一半提供者升为新版本。
 
-#### 7.2.4. 异常
+#### 8.2.4. 异常
 
 建议使用异常汇报错误，而不是返回错误码，异常信息能携带更多信息，并且语义更友好。
 
@@ -1538,13 +1706,13 @@ Dubbo的属性配置优先度上，遵循顺序：`reference属性 -> service属
 
 服务提供方不应将 DAO 或 SQL 等异常抛给消费方，应在服务实现中对消费方不关心的异常进行包装，否则可能出现消费方无法反序列化相应异常。
 
-## 8. 其他
+## 9. 其他
 
-### 8.1. dubbo框架使用示例
+### 9.1. dubbo框架使用示例
 
 dubbo 框架使用示例项目参考：dubbo-note\dubbo-sample\
 
-### 8.2. 相关RPC服务框架（HSF） -- 网络资料
+### 9.2. 相关RPC服务框架（HSF） -- 网络资料
 
 高速服务框架 HSF (High-speed Service Framework)，是在阿里巴巴内部广泛使用的分布式 RPC 服务框架。
 

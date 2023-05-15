@@ -3651,9 +3651,42 @@ setTimeout(() => {
 4. 再执行第2个宏任务中的同步任务输出：7、8
 5. 再执行第2个宏任务的微任务输出：9
 
-### 16.4. API 接口案例
+### 16.4. WebSocket
 
-#### 16.4.1. 案例需求
+#### 16.4.1. 概念
+
+WebSocket 是一种在独立的、创建在 TCP 连接上进行全双工通信的协议。Websocket 通过 HTTP/1.1 协议的 101 状态码进行握手。
+
+WebSocket 使得客户端和服务器之间的数据交换变得更加简单，允许服务端主动向客户端推送数据。在 WebSocket API 中，浏览器和服务器只需要完成一次握手，两者之间就直接可以创建持久性的连接，并进行双向数据传输。
+
+> WebSocket 通信协议于 2011 年被 IETF 定为标准 RFC 6455，并由 RFC7936 补充规范。WebSocket API 也被 W3C 定为标准。
+
+#### 16.4.2. API 方法（待整理）
+
+> TODO: 待参考 MDN 网站整理
+
+#### 16.4.3. 基础示例
+
+WebSockets 它可以在用户的浏览器和服务器之间打开交互式通信会话。使用此API，可以向服务器发送消息并接收事件驱动的响应，而无需通过轮询服务器的方式以获得响应。 WebSocket 对象提供了用于创建和管理 WebSocket 连接，以及可以通过该连接发送和接收数据的API。
+
+```js
+// 创建WebSocket连接.
+const socket = new WebSocket('ws://localhost:8080');
+ 
+// 连接成功触发
+socket.addEventListener('open', function (event) {
+    socket.send('Hello Server!');
+});
+ 
+// 监听消息
+socket.addEventListener('message', function (event) {
+    console.log('Message from server ', event.data);
+});
+```
+
+### 16.5. API 接口案例
+
+#### 16.5.1. 案例需求
 
 基于 MySQL 数据库 + Express 对外提供用户列表的 API 接口服务。用到的技术点如下：
 
@@ -3662,12 +3695,12 @@ setTimeout(() => {
 - Promise
 - async/await
 
-#### 16.4.2. 搭建项目的基本结构
+#### 16.5.2. 搭建项目的基本结构
 
 1. 启用 ES6 模块化支持，在 package.json 中声明 `"type": "module"`
 2. 安装第三方依赖包。`npm install express@4.17.1 mysql2@2.2.5 -S`
 
-#### 16.4.3. 创建基本的服务器
+#### 16.5.3. 创建基本的服务器
 
 在项目的根目录下创建 app.js 入口文件，创建基础的服务器
 
@@ -3699,7 +3732,7 @@ npm install -g nodemon
 npm uninstall -g nodemon
 ```
 
-#### 16.4.4. 创建 db 数据库操作模块
+#### 16.5.4. 创建 db 数据库操作模块
 
 创建`db/index.js`，配置数据库的连接信息
 
@@ -3717,7 +3750,7 @@ const pool = mysql.createPool({
 export default pool.promise()
 ```
 
-#### 16.4.5. 创建请求的处理方法
+#### 16.5.5. 创建请求的处理方法
 
 ```js
 import db from '../db/index.js'
@@ -3742,7 +3775,7 @@ export async function getAllUser(req, res) {
 }
 ```
 
-#### 16.4.6. 配置路由
+#### 16.5.6. 配置路由
 
 ```js
 import express from 'express'
@@ -3758,7 +3791,7 @@ router.get('/user', getAllUser)
 export default router
 ```
 
-#### 16.4.7. 导入并挂载路由模块
+#### 16.5.7. 导入并挂载路由模块
 
 在 app.js 文件中导入并挂载路由模块
 
@@ -3777,13 +3810,13 @@ app.listen(80, () => {
 })
 ```
 
-#### 16.4.8. 测试
+#### 16.5.8. 测试
 
 使用postman等请求工具，请求`http://127.0.0.1/api/user`，获取返回数据
 
-### 16.5. console 对象使用
+### 16.6. console 对象使用
 
-#### 16.5.1. 常用方法
+#### 16.6.1. 常用方法
 
 1. `console.log()`
 
@@ -3818,7 +3851,7 @@ console.error("错误");
 13. `console.timeLine()` 和 `console.timeLineEnd()`：一起使用记录一段时间轴
 14. `console.trace()`：堆栈跟踪相关的调试
 
-#### 16.5.2. 格式化符号
+#### 16.6.2. 格式化符号
 
 |   格式化符号   |            实现的功能            |
 | :----------: | ------------------------------ |
