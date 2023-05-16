@@ -177,13 +177,13 @@ spring-boot 默认提供内嵌的 tomcat，所以打包直接生成 jar 包，�
 </build>
 ```
 
-> - 说明：spring-boot-starter-tomcat 是原来被传递过来的依赖，默认会打到包里，所以再次引入此依赖，并指定依赖范围为provided，这样tomcat 相关的jar就不会打包到war 里了。
-> - 目的：用自己tomcat，不用它内嵌的tomcat，这样内嵌的tomcat相关jar包就不需要。
+> - 说明：spring-boot-starter-tomcat 是原来被传递过来的依赖，默认会打到包里，所以再次引入此依赖，并指定依赖范围为 provided，这样 tomcat 相关的 jar 就不会打包到 war 里了。
+> - 目的：用自己 tomcat，不用它内嵌的 tomcat，这样内嵌的 tomcat 相关 jar 包就不需要。
 
 - 第二步：创建 `ServletInitializer` 类，继承 `org.springframework.boot.web.servlet.support.SpringBootServletInitializer` 抽象类
 
 ```java
-package com.moon.jav;
+package com.moon;
 
 import org.springframework.boot.Banner;
 import org.springframework.boot.builder.SpringApplicationBuilder;
@@ -205,13 +205,13 @@ public class ServletInitializer extends SpringBootServletInitializer {
 }
 ```
 
-> 说明：由于我们采用web3.0 规范，是没有web.xml 的，而此类的作用与web.xml相同。*注意：Application.class是本项目Spring Boot的启动类*
+> 说明：由于我们采用 web3.0 规范，是没有 web.xml 的，而此类的作用与 web.xml 相同。*注意：Application.class 是本项目 Spring Boot 的启动类*
 
 - 第三步：创建用于测试的 jsp 视图，在 main 目录中新建 webapp 目录和一个 hello.jsp 文件，注意文件名与控制器方法返回的视图逻辑名一致
 
 ![](images/169205018239779.png)
 
-- 第四步：创建 Spring Boot 项目配置文件，配置视图前后缀，项目部署后访问时，“prefix + 控制器方法返回值 + suffix” 即为视图完整路径
+- 第四步：创建 Spring Boot 项目配置文件，配置视图前后缀，项目部署后访问时，`prefix + 控制器方法返回值 + suffix` 即为视图完整路径
 
 ```yml
 spring:
@@ -329,6 +329,28 @@ SpringApplication 会默认将命令行选项参数转换为配置信息。例�
 java –jar springboot-demo.jar –-server.port=80 --logging.level.root=debug
 ```
 
+#### 3.1.1. 使用带参数命令行启动注入配置参数
+
+- 准备两套环境的配置文件，application-dev.yml 和 application-pro.yml
+- 设置总的配置文件，application.yml。**注：如果使用`${}`占位符，在开发过程中可以根据输入的参数切换，但在打包输入命令是无法替换，需要使用`@@`包裹才能实现。**
+
+```yml
+spring:
+  profiles:
+    active: ${activeName} # 启动时配置相关的参数，在打包时需要替换成@activeName@
+```
+
+- 输入启动的命令，带上与配置文件相应对应的参数名，直接使用jar启动输入以下命令
+
+```shell
+# 使用dev开发环境配置
+java -jar moon-project.jar --spring.profiles.active=dev
+# 使用pro生产环境配置
+java -jar moon-project.jar --spring.profiles.active=pro
+```
+
+#### 3.1.2. 禁用命令行启动参数
+
 从命令行指定配置项的比较配置文件优先级高，不过可以通过 `setAddCommandLineProperties` 来禁用
 
 ```java
@@ -356,11 +378,9 @@ SpringApplication.setAddCommandLineProperties(false)
 --server.port=8888 --spring.redis.port=6378 --"要配置的参数名"="参数值"
 ```
 
-VM options 配置的优先级比 Program arguments 小，即如果两者都配置相同的属性，则 Program arguments 会覆盖 VM options 中配置的相同的属性。
+> Notes: VM options 配置的优先级比 Program arguments 小，即如果两者都配置相同的属性，则 Program arguments 会覆盖 VM options 中配置的相同的属性。*具体优先级排序详见《属性加载优先级》章节*
 
-> 具体优先级排序详见《属性加载优先级》章节
-
-### 3.3. 使用 junit 测试配置启动参数示例
+### 3.3. 使用 junit 测试配置启动参数
 
 可以通过 `@SpringBootTest` 注解的 `properties` 属性向 `Environment` 中设置新的属性，也可以通过使用 `EnvironmentTestUtils` 工具类来向 `ConfigurableEnvironment` 中添加新的属性。
 
@@ -393,6 +413,120 @@ public class Application {
 ```
 
 通过上面示例可知，命令行参数是通过 `main` 方法的形参，再从 `run` 方法的形参中传递到 Spring Boot 程序的。
+
+### 3.5. 使用 ${} 作为动态参数的解决方案
+
+从 spring-boot-starter-parent 的 pom.xml 文件中可以看到一句注释：`delimiter that doesn't clash with Spring ${}`
+
+```xml
+<properties>
+    <java.version>1.6</java.version>
+    <resource.delimiter>@</resource.delimiter> <!-- delimiter that doesn't clash with Spring ${} placeholders -->
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+    <maven.compiler.source>${java.version}</maven.compiler.source>
+    <maven.compiler.target>${java.version}</maven.compiler.target>
+</properties>
+```
+
+Spring Boot 默认是使用 `@@` 占位符来读取 maven 的配置属性值，如需要修改使用 `${}` 作为动态参数读取配置值，可以有以下处理方案。
+
+> 注：使用这种方式是为了在使用 maven 命令时，可以设置配置中相应的变量值
+
+#### 3.5.1. 方案一
+
+手动配置 maven 的插件来实现使用 `${}` 读取配置值，具体配置如下：
+
+1. 指定配置文件的 `filtering` 属性为 true
+2. 配置 maven 的源码插件，配置 `delimiter` 为 `${*}`
+
+```xml
+<build>
+    <resources>
+        <resource>
+            <directory>src/main/resources/</directory>
+            <!-- 指定以下配置中可填充不同 profile 中变量值 -->
+            <filtering>true</filtering>
+            <includes>
+                <include>**/*.properties</include>
+                <include>**/*.lua</include>
+            </includes>
+        </resource>
+    </resources>
+
+    <plugins>
+        <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-resources-plugin</artifactId>
+            <configuration>
+                <useDefaultDelimiters>false</useDefaultDelimiters>
+                <!-- 配置替换配置文件的占位符
+                    在新的 spring boot 版本中，是使用 @@ 作为占位符，
+                    为了兼容旧的写法，所以这些配置使用 ${} 作为占位符
+                -->
+                <delimiters>
+                    <delimiter>${*}</delimiter>
+                </delimiters>
+                <encoding>UTF-8</encoding>
+            </configuration>
+        </plugin>
+    </plugins>
+</build>
+```
+
+#### 3.5.2. 方案二
+
+若项目使用了 spring-boot-starter-parent 做项目版本管理，替换 `resource.delimiter` 属性
+
+```xml
+<!-- 使用spring-boot-starter-parent管理jar包版本 -->
+<parent>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-parent</artifactId>
+    <version>1.2.5.RELEASE</version>
+</parent>
+
+<!-- 需要在<properties>中添加 -->
+<properties>
+    <resource.delimiter>${}</resource.delimiter>
+</properties>
+```
+
+<font color=red>**注意：使用些方式后，使用 mvn 命令打包时，不能使用 `${参数名:默认值}` 这种设置默认值方式**</font>
+
+### 3.6. 个人项目实践示例
+
+#### 3.6.1. 使用 Spring Boot 的插件命令打包项目时进行赋值参数
+
+因为配置开发与正式版本的两套配置文件，所以开发时运行需要修改`Environment`的`VM options`的参数为：`-DactiveName=dev`，切换到开发环境的配置，再运行main方法启动
+
+> **注意：使用 mvn 命令启动的方式只适用于`${}`占位符情况，不能使用 `@@`**
+
+当时想在打包时，给配置文件中的占位符设置值。如果配置文件是使用`@@`作为占位符，启动需要使用 Spring Boot 的插件命令：`spring-boot:run`
+
+```shell
+# 以开发环境配置启动
+spring-boot:run -DactiveName=dev -Dmaven.test.skip=true
+
+# 以正式环境配置启动
+spring-boot:run -DactiveName=pro -Dmaven.test.skip=true
+```
+
+#### 3.6.2. 使用 maven 命令打包项目时进行赋值参数
+
+需要将依赖的公共包安装到本地仓库，到时需要依赖打包到 war 包中
+
+项目打包：因为配置了开发环境与正式版本环境的两套配置文件，使用 maven 命令打包时，需要输入配置文件的参数，进行打包即可，完成后将 war 包放到 tomcat 运行部署
+
+```shell
+# 项目安装
+mvn clean install -DactiveName=pro -Dmaven.test.skip=true
+
+# 项目打包
+mvn clean package -DactiveName=pro -Dmaven.test.skip=true
+```
+
+> 注：以上是使用了 `<resource.delimiter>` 配置，让配置文件可以使用 `${}` 作为占位符
 
 ## 4. 属性加载优先级
 
@@ -471,7 +605,7 @@ Spring Boot 程序启动时，会按以下位置的从上往下的优先级加�
 
 #### 6.1.1. 设置配置文件名
 
-通过启动参数 `--spring.config.name` 来指定配置文件的名称。<font color=violet>**注意：仅仅是名称，不要带扩展名，多个配置文件之间使用“`,`”号分隔**</font>
+通过启动参数 `--spring.config.name` 来指定配置文件的名称。<font color=violet>**注意：仅仅是名称，不要带扩展名，多个配置文件之间使用 `,` 号分隔**</font>
 
 ```bash
 java -jar springboot-demo.jar --spring.config.name=default,override
@@ -489,7 +623,7 @@ java -jar springboot-demo.jar --spring.config.location=classpath:/default.proper
 java -jar springboot-demo.jar --spring.config.location=D:\config\config.properties
 ```
 
-也可以设置加载多个自定义配置文件，不同配置文件路径之间使用“`,`”号分隔
+也可以设置加载多个自定义配置文件，不同配置文件路径之间使用 `,` 号分隔
 
 ```bash
 java -jar springboot-demo.jar --spring.config.location=D:\config\config.properties,D:\config\confg-dev.properties
@@ -542,6 +676,8 @@ spring.config.import=optional:file:/Users/moon/dev[.properties]
 ```
 
 ### 6.2. 在代码中指定自定义配置文件
+
+通过 `@PropertySource` 注解导入自定义配置文件
 
 ```java
 @SpringBootApplication
@@ -805,146 +941,9 @@ spring:
 
 > 注意：基于 SpringBoot 读取 Maven 配置属性的前提下，如果在 IDEA 下测试工程时 pom.xml 每次更新需要手动 compile 方可生效
 
-## 9. 启动项目时注入配置参数
+## 9. 其他相关知识
 
-### 9.1. 使用命令行启动项目
-
-- 准备两套环境的配置文件，application-dev.yml 和 application-pro.yml
-- 设置总的配置文件，application.yml
-    - **注：如果使用`${}`占位符，在开发过程中可以根据输入的参数切换，但在打包输入命令是无法替换，需要使用`@@`包裹才能实现。**
-
-```yml
-spring:
-  profiles:
-    active: ${activeName} # 启动时配置相关的参数，在打包时需要替换成@activeName@
-```
-
-- 输入启动的命令，带上与配置文件相应对应的参数名，直接使用jar启动输入以下命令
-
-```shell
-# 使用dev开发环境配置
-java -jar moon-project.jar --spring.profiles.active=dev
-# 使用pro生产环境配置
-java -jar moon-project.jar --spring.profiles.active=pro
-```
-
-### 9.2. 使用 ${} 作为动态参数的解决方案
-
-从 spring-boot-starter-parent 的 pom.xml 文件中可以查看  `delimiter that doesn't clash with Spring ${}`
-
-```xml
-<properties>
-    <java.version>1.6</java.version>
-    <resource.delimiter>@</resource.delimiter> <!-- delimiter that doesn't clash with Spring ${} placeholders -->
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-    <maven.compiler.source>${java.version}</maven.compiler.source>
-    <maven.compiler.target>${java.version}</maven.compiler.target>
-</properties>
-```
-
-spring boot 默认是使用 `@@` 占位符来读取 maven 的配置属性值，如需要修改使用 `${}` 作为动态参数读取配置值，可以有以下处理方案。
-
-> 注：使用这种方式是为了在使用 maven 命令时，可以设置配置中相应的变量值
-
-#### 9.2.1. 方案一
-
-手动配置 maven 的插件来实现使用 `${}` 读取配置值，具体配置如下：
-
-1. 指定配置文件的 `filtering` 属性为 true
-2. 配置 maven 的源码插件，配置 `delimiter` 为 `${*}`
-
-```xml
-<build>
-    <resources>
-        <resource>
-            <directory>src/main/resources/</directory>
-            <!-- 指定以下配置中可填充不同 profile 中变量值 -->
-            <filtering>true</filtering>
-            <includes>
-                <include>**/*.properties</include>
-                <include>**/*.lua</include>
-            </includes>
-        </resource>
-    </resources>
-
-    <plugins>
-        <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-resources-plugin</artifactId>
-            <configuration>
-                <useDefaultDelimiters>false</useDefaultDelimiters>
-                <!-- 配置替换配置文件的占位符
-                    在新的 spring boot 版本中，是使用 @@ 作为占位符，
-                    为了兼容旧的写法，所以这些配置使用 ${} 作为占位符
-                -->
-                <delimiters>
-                    <delimiter>${*}</delimiter>
-                </delimiters>
-                <encoding>UTF-8</encoding>
-            </configuration>
-        </plugin>
-    </plugins>
-</build>
-```
-
-#### 9.2.2. 方案二
-
-若项目使用了 spring-boot-starter-parent 做项目版本管理，替换 `resource.delimiter` 属性
-
-```xml
-<!-- 使用spring-boot-starter-parent管理jar包版本 -->
-<parent>
-    <groupId>org.springframework.boot</groupId>
-    <artifactId>spring-boot-starter-parent</artifactId>
-    <version>1.2.5.RELEASE</version>
-</parent>
-
-<!-- 需要在<properties>中添加 -->
-<properties>
-    <resource.delimiter>${}</resource.delimiter>
-</properties>
-```
-
-<font color=red>**注意：使用些方式后，使用 mvn 命令打包时，不能使用 `${参数名:默认值}` 这种设置默认值方式**</font>
-
-### 9.3. 个人项目实践示例
-
-#### 9.3.1. 使用 Spring Boot 的插件命令打包项目时进行赋值参数
-
-因为配置开发与正式版本的两套配置文件，所以开发时运行需要修改`Environment`的`VM options`的参数为：`-DactiveName=dev`，切换到开发环境的配置，再运行main方法启动
-
-> **注意：使用 mvn 命令启动的方式只适用于`${}`占位符情况，不能使用 `@@`**
-
-当时想在打包时，给配置文件中的占位符设置值。如果配置文件是使用`@@`作为占位符，启动需要使用 Spring Boot 的插件命令：`spring-boot:run`
-
-```shell
-# 以开发环境配置启动
-spring-boot:run -DactiveName=dev -Dmaven.test.skip=true
-
-# 以正式环境配置启动
-spring-boot:run -DactiveName=pro -Dmaven.test.skip=true
-```
-
-#### 9.3.2. 使用 maven 命令打包项目时进行赋值参数
-
-需要将依赖的公共包安装到本地仓库，到时需要依赖打包到war包中
-
-项目打包：因为配置了开发环境与正式版本环境的两套配置文件，使用maven命令打包时，需要输入配置文件的参数，进行打包即可，完成后将war包放到tomcat运行部署
-
-```shell
-# 项目安装
-mvn clean install -DactiveName=pro -Dmaven.test.skip=true
-
-# 项目打包
-mvn clean package -DactiveName=pro -Dmaven.test.skip=true
-```
-
-> 注：以上是使用了 `<resource.delimiter>` 配置，让配置文件可以使用 `${}` 作为占位符
-
-## 10. 其他相关知识
-
-### 10.1. SpingBoot 项目在 windows 环境中运行时命令行窗口及日志中文乱码
+### 9.1. SpingBoot 项目在 windows 环境中运行时命令行窗口及日志中文乱码
 
 1. 配置日志的xml文件中，`<appender name="CONSOLE">`与`appender name="FILE">`的标签中都要指定`<encoder>`标签内的`<charset>utf8</charset>`
 2. 由于指定的编码与 windows 系统默认编码不符，此时命令行窗口将会出现日志输出乱码，需要将系统默认编码改为utf-8。cmd命令窗口在启动jar包之前增加命令`chcp 65001`
@@ -954,33 +953,33 @@ $ chcp 65001
 $ java -Dxxxx=xxxx -jar .\app.jar
 ```
 
-### 10.2. Windows 系统常用命令
+### 9.2. Windows 系统常用命令
 
-#### 10.2.1. 查询端口
+#### 9.2.1. 查询端口
 
 ```bash
 netstat -ano
 ```
 
-#### 10.2.2. 查询指定端口
+#### 9.2.2. 查询指定端口
 
 ```bash
 netstat -ano | findstr "端口号"
 ```
 
-#### 10.2.3. 根据进程PID查询进程名称
+#### 9.2.3. 根据进程PID查询进程名称
 
 ```bash
 tasklist | findstr "进程PID号"
 ```
 
-#### 10.2.4. 根据 PID 杀死任务
+#### 9.2.4. 根据 PID 杀死任务
 
 ```bash
 taskkill /F /PID "进程PID号"
 ```
 
-#### 10.2.5. 根据进程名称杀死任务
+#### 9.2.5. 根据进程名称杀死任务
 
 ```bash
 taskkill -f -t -im "进程名称"

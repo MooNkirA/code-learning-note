@@ -230,72 +230,11 @@ public class RedisAutoConfiguration {
 
 ![](images/551005316236751.png)
 
-### 2.6. 变更自动配置
-
-Spring Boot 支持对自动配置的流程做一些高级定制，比如禁用一些自动配置的加载。具体操作有如下几种方式：
-
-#### 2.6.1. 方式1：配置文件排除
-
-通过修改 Spring Boot 配置文件的 `spring.autoconfigure.exclude` 选项，排除指定的自动配置处理类
-
-```yml
-spring:
-  autoconfigure:
-    exclude:
-      - org.springframework.boot.autoconfigure.task.TaskExecutionAutoConfiguration
-```
-
-#### 2.6.2. 方式2：注解属性排除
-
-通过 `@EnableAutoConfiguration` 排除指定的自动配置处理类
-
-- `exclude` 属性：指定排除的多个配置处理类字节码（数组）
-- `excludeName` 属性：指定排除的多个配置处理类全限定名称（数组）
-
-```java
-@EnableAutoConfiguration(
-        exclude = {MongoDataAutoConfiguration.class, DataSourceAutoConfiguration.class}, 
-        excludeName = {"org.springframework.boot.autoconfigure.amqp.RabbitAutoConfiguration", "org.springframework.boot.autoconfigure.jms.JmsAutoConfiguration"}
-)
-// 或者
-@SpringBootApplication(
-        exclude = {MongoDataAutoConfiguration.class, DataSourceAutoConfiguration.class}, 
-        excludeName = {"org.springframework.boot.autoconfigure.amqp.RabbitAutoConfiguration", "org.springframework.boot.autoconfigure.jms.JmsAutoConfiguration"}
-)
-```
-
-#### 2.6.3. 方式3：排除坐标（应用面较窄）
-
-此时可以通过检测条件的控制来管理自动配置是否启动。例如 web 程序启动时会自动启动 tomcat 服务器，可以通过排除坐标的方式，让加载 tomcat 服务器的条件失效。
-
-```xml
-<dependencies>
-    <dependency>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-starter-web</artifactId>
-        <!-- web起步依赖环境中，排除Tomcat起步依赖，匹配自动配置条件 -->
-        <exclusions>
-            <exclusion>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-starter-tomcat</artifactId>
-            </exclusion>
-        </exclusions>
-    </dependency>
-    <!-- 添加Jetty起步依赖，匹配自动配置条件 -->
-    <dependency>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-starter-jetty</artifactId>
-    </dependency>
-</dependencies>
-```
-
-> 不过需要值得注意的是，如把 tomcat 排除掉，记得要增加一个新的可以运行的服务器依赖。
-
-### 2.7. Spring Boot 常见的自动配置实现
+### 2.6. Spring Boot 常见的自动配置实现
 
 > 以下常见的自动配置类选自 spring-boot-autoconfigure-x.x.x.jar!\META-INF\spring.factories 文件中
 
-#### 2.7.1. AopAutoConfiguration
+#### 2.6.1. AopAutoConfiguration
 
 Spring Boot 是利用了自动配置类来简化了 aop 相关配置。AOP 自动配置类为 `org.springframework.boot.autoconfigure.aop.AopAutoConfiguration`。但可以通过 `spring.aop.auto=false` 配置，禁用 aop 自动配置
 
@@ -402,7 +341,7 @@ public abstract class AopConfigUtils {
 }
 ```
 
-#### 2.7.2. DataSourceAutoConfiguration
+#### 2.6.2. DataSourceAutoConfiguration
 
 对应的自动配置类为：`org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration`。它内部采用了条件装配，通过检查容器的 bean，以及类路径下的 class，来决定该 `@Bean` 是否生效。简单说明一下，Spring Boot 支持两大类数据源：
 
@@ -449,7 +388,7 @@ public class DataSourceAutoConfiguration {
 
 其中 `@EnableConfigurationProperties(DataSourceProperties.class)` 用于封装 `spring.datasource` 数据源相关的配置
 
-#### 2.7.3. MybatisAutoConfiguration
+#### 2.6.3. MybatisAutoConfiguration
 
 MyBatis 自动配置类为 `org.mybatis.spring.boot.autoconfigure.MybatisAutoConfiguration`
 
@@ -481,7 +420,7 @@ public class MybatisAutoConfiguration implements InitializingBean {
 
 MyBatis 其实并非将接口交给 Spring 管理，而是每个接口会对应一个 `MapperFactoryBean`，是后者被 Spring 所管理，接口只是作为 `MapperFactoryBean` 的一个属性来配置
 
-#### 2.7.4. TransactionAutoConfiguration
+#### 2.6.4. TransactionAutoConfiguration
 
 事务自动配置类有两个：
 
@@ -498,27 +437,27 @@ MyBatis 其实并非将接口交给 Spring 管理，而是每个接口会对应�
 
 > 注：如果使用者配置了 `DataSourceTransactionManager` 或是在引导类加了 `@EnableTransactionManagement`，则以自定义的配置为准
 
-#### 2.7.5. ServletWebServerFactoryAutoConfiguration
+#### 2.6.5. ServletWebServerFactoryAutoConfiguration
 
 用于提供 `ServletWebServerFactory`
 
-#### 2.7.6. DispatcherServletAutoConfiguration
+#### 2.6.6. DispatcherServletAutoConfiguration
 
 用于提供 `DispatcherServlet`、`DispatcherServletRegistrationBean`
 
-#### 2.7.7. WebMvcAutoConfiguration
+#### 2.6.7. WebMvcAutoConfiguration
 
 用于配置 `DispatcherServlet` 的各项组件，如：多项 `HandlerMapping`、多项 `HandlerAdapter`、`HandlerExceptionResolver`
 
-#### 2.7.8. ErrorMvcAutoConfiguration
+#### 2.6.8. ErrorMvcAutoConfiguration
 
 用于提供 `BasicErrorController`
 
-#### 2.7.9. MultipartAutoConfiguration
+#### 2.6.9. MultipartAutoConfiguration
 
 提供了 `org.springframework.web.multipart.support.StandardServletMultipartResolver`，用来解析 `multipart/form-data` 格式的数据
 
-#### 2.7.10. HttpEncodingAutoConfiguration
+#### 2.6.10. HttpEncodingAutoConfiguration
 
 Spring Boot 已经提供了 `org.springframework.boot.web.servlet.filter.OrderedCharacterEncodingFilter`，对应配置项为 `server.servlet.encoding.charset=UTF-8`，默认就是 UTF-8，只影响非 json 格式的数据。当 POST 请求参数如果有中文，无需特殊设置
 

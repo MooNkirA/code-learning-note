@@ -1944,7 +1944,7 @@ DbUtils.rollbackAndCloseQuietly(conn);
 
 - 回滚并关闭连接
 
-## 7. JPA
+## 7. JPA（Java Persistence API）
 
 ### 7.1. 概述
 

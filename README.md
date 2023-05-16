@@ -316,8 +316,7 @@
   <li><a href="#/分布式微服务/SpringBoot/Spring-Boot-源码分析">Spring Boot 源码分析</a></li>
   <li><a href="#/分布式微服务/SpringBoot/Spring-Boot-Testing">Spring Boot 测试与 Junit</a></li>
   <li><a href="#/分布式微服务/SpringBoot/Spring-Boot-Servlet、Filter、Listener">SpringBoot 整合 Servlet、Filter、Listener</a></li>
-  <li><a href="#/分布式微服务/SpringBoot/Spring-Boot-SQL-Databases">Spring Boot 关系型数据库技术（内置数据源技术、内置数据库）</a></li>
-  <li><a href="#/分布式微服务/SpringBoot/Spring-Boot-SQL-Databases-Technologies">Spring Boot 关系型数据库持久技术框架(JdbcTemplate、MyBatis、MyBatis-Plus)</a></li>
+  <li><a href="#/分布式微服务/SpringBoot/Spring-Boot-SQL-Databases">Spring Boot 关系型数据库技术</a> - 包含内置数据源、内置数据库、持久化技术框架(包含 JdbcTemplate、MyBatis、MyBatis-Plus 等)整合</li>
   <li><a href="#/分布式微服务/SpringBoot/Spring-Boot-Actuator">Spring Boot Actuator 应用运行状态监控与 Spring Boot Admin 监控工具</a></li>
   <li><a href="#/分布式微服务/SpringBoot/Spring-Boot-Redis">Spring Boot 整合 Redis</a></li>
   <li><a href="#/分布式微服务/SpringBoot/Spring-Boot-MongoDB">Spring Boot 整合 MongoDB</a></li>
@@ -330,7 +329,7 @@
   <li><a href="#/分布式微服务/SpringBoot/Spring-Boot-FreeMarker">Spring Boot 整合 FreeMarker（待完善）</a></li>
   <li><a href="#/分布式微服务/SpringBoot/Spring-Boot-Solr">Spring Boot 整合 Solr（待完善）</a></li>
   <li><a href="#/分布式微服务/SpringBoot/Spring-Boot-Spring-Cloud">Spring Boot 整合 Spring Cloud（待完善）</a></li>
-  <li><a href="#/分布式微服务/SpringBoot/Spring-Boot-其他相关内容">Spring Boot 其他相关内容</a></li>
+  <li><a href="#/分布式微服务/SpringBoot/Spring-Boot-Application-Properties">Spring Boot 通用配置项汇总</a></li>
 </ul>
 
 ### ⛅ Spring Cloud

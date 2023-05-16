@@ -188,6 +188,14 @@ Dubbo 支持在服务提供者一侧配置默认的负载均衡策略，这样�
 
 同一个应用内支持配置不同的服务使用不同的负载均衡策略，支持为同一服务的不同方法配置不同的负载均衡策略。
 
+- 修改 Spring Boot 应用的配置文件，通过 `dubbo.provider.loadbalance` 项可配置全局负载均衡策略。只需要调整 loadbalance 相应取值即可，每种负载均衡策略取值参见上一节内容。
+
+```yml
+dubbo:
+  provider: # 配置全局负载均衡策略
+    loadbalance: random
+```
+
 - 服务端服务级别
 
 ```xml

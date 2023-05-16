@@ -2136,7 +2136,7 @@ public interface DeferredImportSelector extends ImportSelector
 
 ### 6.1. 作用与使用场景
 
-用于指定读取资源文件的位置。不仅支持 properties 文件，也支持 xml 文件，并且通过 YAML 解析器，配合自定义 `PropertySourceFactory` 实现解析 yml 配置文件
+用于指定读取资源文件的位置。不仅支持 properties 文件，也支持 xml 文件，并且也能通过 YAML 解析器，配合自定义 `PropertySourceFactory` 实现解析 yml 配置文件
 
 使用场景：实际开发中，使用注解驱动后，xml 配置文件就没有了，此时一些配置如果直接写在类中，会造成和 java 源码的紧密耦合，修改起来不方法。此时一些配置可以使用 properties 或者 yml 来配置就变得很灵活方便。
 
@@ -2148,7 +2148,7 @@ public interface DeferredImportSelector extends ImportSelector
     - 文件路径: `file:/path/to/file.xml`
 - `ignoreResourceNotFound`：指定是否忽略资源文件不存在，可选值是为 true/false，默认是 false，也就是说当资源文件不存在时 Spring 启动将会报错 
 - `encoding`：指定解析资源文件使用的字符集。当有中文的时候，需要指定中文的字符集。如："UTF-8"
-- `factory`：指定读取对应资源文件的工厂类，默认的是 PropertySourceFactory                   |                                                                                     
+- `factory`：指定读取对应资源文件的工厂类，默认的是 PropertySourceFactory
 
 ![](images/354413212248881.png)
 
@@ -2373,8 +2373,8 @@ public void propertySourceFactoryTest() throws Exception {
 
 ### 1.2. 相关属性
 
-|  属性名  |                            作用                            | 取值 |
-| :-----: | ---------------------------------------------------------- | ---- |
+|  属性名  |                             作用                             | 取值 |
+| :-----: | ----------------------------------------------------------- | ---- |
 | `value` | 用于指定bean的唯一标识。被指定的bean(或多个)会在当前bean创建之前加载 |      |
 
 > Notes: `value` 属性是字符串数组类型，可以指定多个bean对象。如：`@DependsOn({"beanA,beanB,beanC,..."})`

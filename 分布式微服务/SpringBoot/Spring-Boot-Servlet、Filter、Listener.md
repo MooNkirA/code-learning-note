@@ -1,8 +1,8 @@
-# Spring Boot 整合 Servlet、Filter、Listener
+## 1. Spring Boot 整合 Servlet、Filter、Listener 概述
 
 有的时候需要在 springboot 工程里面加入 Servlet、Filter 和 Listener 等
 
-## 1. 环境准备 - 项目依赖
+## 2. 环境准备 - 项目依赖
 
 修改pom.xml文件，配置项目相关依赖
 
@@ -23,7 +23,7 @@
 </dependencies>
 ```
 
-## 2. 整合步骤
+## 3. 整合步骤
 
 1. 在项目的启动类上增加注解`@ServletComponentScan(basePackages = {"xxx.xxx.xxx"})`
 
@@ -141,7 +141,7 @@ public class MyListener implements ServletContextListener {
 }
 ```
 
-## 3. 运行测试
+## 4. 运行测试
 
 - 在浏览器输入url：`http://localhost:8080/myservlet/1`
 - 运行结果
