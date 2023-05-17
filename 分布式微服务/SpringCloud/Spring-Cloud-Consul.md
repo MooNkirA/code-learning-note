@@ -1,8 +1,6 @@
-# Spring Cloud Consul
+## 1. Spring Cloud Consul 基础入门
 
-## 1. consul 基础入门
-
-官网：https://www.consul.io/
+> 官网：https://www.consul.io/
 
 ### 1.1. consul 概述
 
@@ -23,32 +21,30 @@ Consul 是 HashiCorp 公司推出的开源工具，用于实现分布式系统�
 - Key/Value 存储
 - 多数据中心
 
-### 1.2. consul与Eureka的区别
+### 1.2. consul 与 Eureka 的区别
 
 1. 一致性
 
-Consul强一致性（CP）
+Consul 强一致性（CP）
 
-- 服务注册相比Eureka会稍慢一些。因为Consul的raft协议要求必须过半数的节点都写入成功才认为注册成功
-- Leader挂掉时，重新选举期间整个consul不可用。保证了强一致性但牺牲了可用性
+- 服务注册相比 Eureka 会稍慢一些。因为 Consul 的 raft 协议要求必须过半数的节点都写入成功才认为注册成功
+- Leader 挂掉时，重新选举期间整个 consul 不可用。保证了强一致性但牺牲了可用性
 
-Eureka保证高可用和最终一致性（AP）
+Eureka 保证高可用和最终一致性（AP）
 
-- 服务注册相对要快，因为不需要等注册信息replicate到其他节点，也不保证注册信息是否replicate成功
-- 当数据出现不一致时，虽然A, B上的注册信息不完全相同，但每个Eureka节点依然能够正常对外提供服务，这会出现查询服务信息时如果请求A查不到，但请求B就能查到。如此保证了可用性但牺牲了一致性
+- 服务注册相对要快，因为不需要等注册信息 replicate 到其他节点，也不保证注册信息是否 replicate 成功
+- 当数据出现不一致时，虽然A, B上的注册信息不完全相同，但每个 Eureka 节点依然能够正常对外提供服务，这会出现查询服务信息时如果请求A查不到，但请求B就能查到。如此保证了可用性但牺牲了一致性
 
 2. 开发语言和使用
 
-- eureka就是个servlet程序，跑在servlet容器中
-- Consul则是go编写而成，安装启动即可
+- eureka 就是个 servlet 程序，跑在 servlet 容器中
+- Consul 则是 go 编写而成，安装启动即可
 
-### 1.3. consul的下载与安装
+### 1.3. consul 下载与安装
 
-Consul 不同于 Eureka 需要单独安装，访问 Consul 官网下载 Consul 的最新版本（本次示例安装consul1.5x版）
+Consul 不同于 Eureka 需要单独安装，访问 Consul 官网下载 Consul 的最新版本（本次示例安装 consul 1.5x 版）
 
-> 已下载的安装包位置：`\07-编程工具资料\注册中心\consul\`
-
-#### 1.3.1. Linux系统安装Consul
+#### 1.3.1. Linux 系统安装 Consul
 
 输入以下命令
 
@@ -81,10 +77,10 @@ consul
 
 启动成功之后访问：`http://linux系统ip:8500`，可以看到 Consul 的管理界面
 
-#### 1.3.2. window系统安装Consul
+#### 1.3.2. window 系统安装 Consul
 
-1. 将window版压缩包`consul_1.5.3_windows_amd64.zip`解压到没有中文和空格的目录
-2. 进入目录，运行命令行。输入以下命令，启动consul服务
+1. 将 window 版压缩包`consul_1.5.3_windows_amd64.zip`解压到没有中文和空格的目录
+2. 进入目录，运行命令行。输入以下命令，启动 consul 服务
 
 ```bash
 # 以开发者模式快速启动
@@ -93,7 +89,7 @@ consul agent -dev -client=0.0.0.0
 
 ![](images/20201014140655017_29915.png)
 
-3. 启动成功后访问`http://127.0.0.1:8500`，进入consul管理界面
+3. 启动成功后访问`http://127.0.0.1:8500`，进入 consul 管理界面
 
 ### 1.4. consul 的基本使用
 
@@ -145,25 +141,25 @@ Consul 支持健康检查，并提供了 HTTP 和 DNS 调用的API接口完成�
 }
 ```
 
-#### 1.4.4. Consul的K/V存储
+#### 1.4.4. Consul 的 K/V 存储
 
 可以参照Consul提供的KV存储的API完成基于Consul的数据存储
 
-|   含义    |   请求路径    | 请求方式 |
+|   含义    |    请求路径     | 请求方式 |
 | --------- | :-----------: | :-----: |
 | 查看key   | `v1/kv/:key`  |   GET   |
 | 保存或更新 | `v1/kv/:key`  |   PUT   |
 | 删除      | `/v1/kv/:key` | DELETE  |
 
-- key值中可以带`/`, 可以看做是不同的目录结构
-- value的值经过了base64_encode,获取到数据后base64_decode才能获取到原始值。数据不能大于512Kb
-- 不同数据中心的kv存储系统是独立的，使用`dc=?`参数指定。
+- key 值中可以带`/`, 可以看做是不同的目录结构
+- value 的值经过了 base64_encode,获取到数据后 base64_decode 才能获取到原始值。数据不能大于 512Kb
+- 不同数据中心的 kv 存储系统是独立的，使用`dc=?`参数指定。
 
 ## 2. 基于consul的服务注册与发现示例
 
 ### 2.1. 示例工程的准备
 
-复用之前eureka单机版的示例项目`02-springcloud-eureka`，将里面eureka子模块、相关的配置与依赖都删除。命名为`05-springcloud-consul`
+复用之前 eureka 单机版的示例项目`02-springcloud-eureka`，将里面 eureka 子模块、相关的配置与依赖都删除。命名为`05-springcloud-consul`
 
 ### 2.2. 引入 consul 依赖
 
@@ -426,7 +422,7 @@ consul members
 
 ### 4.1. 节点和服务注销
 
-当服务或者节点失效，Consul不会对注册的信息进行剔除处理，仅仅标记已状态进行标记（并且不可使用）。如果担心失效节点和失效服务过多影响监控，可以通过调用HTTP API的形式进行处理。节点和服务的注销可以使用HTTP API：
+当服务或者节点失效，Consul 不会对注册的信息进行剔除处理，仅仅标记已状态进行标记（并且不可使用）。如果担心失效节点和失效服务过多影响监控，可以通过调用 HTTP API 的形式进行处理。节点和服务的注销可以使用 HTTP API：
 
 - 注销任意节点和服务：`/catalog/deregister`
 - 注销当前节点的服务：`/agent/service/deregister/:service_id`
@@ -435,6 +431,6 @@ consul members
 
 ### 4.2. 健康检查与故障转移
 
-在集群环境下，健康检查是由服务注册到的Agent来处理的，那么如果这个Agent挂掉了，那么此节点的健康检查就处于无人管理的状态
+在集群环境下，健康检查是由服务注册到的 Agent 来处理的，那么如果这个 Agent 挂掉了，那么此节点的健康检查就处于无人管理的状态
 
-从实际应用看，节点上的服务可能既要被发现，又要发现别的服务，如果节点挂掉了，仅提供被发现的功能实际上服务还是不可用的。当然发现别的服务也可以不使用本机节点，可以通过访问一个Nginx实现的若干Consul节点的负载均衡来实现
+从实际应用看，节点上的服务可能既要被发现，又要发现别的服务，如果节点挂掉了，仅提供被发现的功能实际上服务还是不可用的。当然发现别的服务也可以不使用本机节点，可以通过访问一个 Nginx 实现的若干 Consul 节点的负载均衡来实现

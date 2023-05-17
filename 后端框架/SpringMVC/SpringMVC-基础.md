@@ -2389,9 +2389,77 @@ public class MessageConverterTest {
 
 Spring MVC 提供了 Java 编程式与 xml 命名空间两种方式对 web 程序进行配置。
 
-### 8.1. 开启 MVC 配置
+### 8.1. WebMvcConfigurer 接口
 
-在编程式配置中，可以使用 `@EnableWebMvc` 注解来启用 MVC 配置。通过实现 `WebMvcConfigurer` 接口，在各个配置方法中定制相关的配置
+`org.springframework.web.servlet.config.annotation.WebMvcConfigurer` 接口，是 Spring MVC 提供用于编程式配置，通过实现不能的方法来进行相关的配置。`WebMvcConfigurer` 接口有以下常用的重写方法：
+
+```java
+public interface WebMvcConfigurer {
+    default void configurePathMatch(PathMatchConfigurer configurer) {
+    }
+    /** 配置内容裁决的一些选项 **/
+    default void configureContentNegotiation(ContentNegotiationConfigurer configurer) {
+    }
+
+    default void configureAsyncSupport(AsyncSupportConfigurer configurer) {
+    }
+    /** 默认静态资源处理器 **/
+    default void configureDefaultServletHandling(DefaultServletHandlerConfigurer configurer) {
+    }
+
+    default void addFormatters(FormatterRegistry registry) {
+    }
+    /** 添加拦截器 **/
+    default void addInterceptors(InterceptorRegistry registry) {
+    }
+    /** 静态资源处理 **/
+    default void addResourceHandlers(ResourceHandlerRegistry registry) {
+    }
+    /** 解决跨域问题 **/
+    default void addCorsMappings(CorsRegistry registry) {
+    }
+    /** 视图跳转控制器 **/
+    default void addViewControllers(ViewControllerRegistry registry) {
+    }
+    /** 配置视图解析器 **/
+    default void configureViewResolvers(ViewResolverRegistry registry) {
+    }
+
+    default void addArgumentResolvers(List<HandlerMethodArgumentResolver> resolvers) {
+    }
+
+    default void addReturnValueHandlers(List<HandlerMethodReturnValueHandler> handlers) {
+    }
+
+    default void configureMessageConverters(List<HttpMessageConverter<?>> converters) {
+    }
+
+    default void extendMessageConverters(List<HttpMessageConverter<?>> converters) {
+    }
+
+    default void configureHandlerExceptionResolvers(List<HandlerExceptionResolver> resolvers) {
+    }
+
+    default void extendHandlerExceptionResolvers(List<HandlerExceptionResolver> resolvers) {
+    }
+
+    @Nullable
+    default Validator getValidator() {
+        return null;
+    }
+
+    @Nullable
+    default MessageCodesResolver getMessageCodesResolver() {
+        return null;
+    }
+}
+```
+
+### 8.2. 开启 MVC 配置
+
+#### 8.2.1. 编程式配置
+
+在编程式配置中，可以使用 `@EnableWebMvc` 注解来启用 MVC 配置。然后通过实现 `WebMvcConfigurer` 接口，在各个配置方法中定制相关的配置。
 
 ```java
 @Configuration
@@ -2400,6 +2468,8 @@ public class WebConfig implements WebMvcConfigurer {
     // 实现各个配置方法
 }
 ```
+
+#### 8.2.2. xml 配置
 
 在 xml 配置中，可以使用 `<mvc:annotation-driven>` 标签来启用 MVC 配置，并通过标签中各个属性或者其他`mvc`命名空间的标签来定制相关的配置
 
@@ -2419,7 +2489,7 @@ public class WebConfig implements WebMvcConfigurer {
 </beans>
 ```
 
-### 8.2. 拦截器配置
+### 8.3. 拦截器配置
 
 基于编程式配置，通过 `WebMvcConfigurer` 接口中 `addInterceptors` 来配置拦截器
 
@@ -2454,7 +2524,7 @@ public class WebConfig implements WebMvcConfigurer {
 </mvc:interceptors>
 ```
 
-### 8.3. 自定义类型转换器配置
+### 8.4. 自定义类型转换器配置
 
 默认情况下，Spring MVC 提供了各种数字和日期类型的格式化器，同时支持通过在对象字段上的 `@NumberFormat` 和 `@DateTimeFormat` 进行自定义。在 Spring MVC 配置自定义参数转换器以如下方式：
 

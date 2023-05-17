@@ -221,7 +221,7 @@ curl https://start.spring.io/
 
 ![](images/457801318220651.png)
 
-### 2.5. 添加依赖
+### 2.5. 添加 maven 依赖
 
 > 注：如果使用 Spring Initializr 创建的 SpringBoot 项目，通常都在 pom.xml 文件已经生成好相关依赖
 
@@ -286,7 +286,7 @@ public class Application {
 }
 ```
 
-参考附录二的banner设置，可以通过修改配置文件制定自己的标识。
+> 可参考附录二的banner设置，可以通过修改配置文件制定自己的标识。
 
 ### 2.7. 编写入门程序
 
@@ -342,8 +342,10 @@ public class HelloController {
 
 > `@RestController` 注解：其实就是 `@Controller` 和 `@ResponseBody` 注解加在一起
 
+#### 2.7.3. 启动运行项目
+
 - 启动方式一：直接右键启动编写的引导类即可
-- 启动方式二：使用Maven命令执行
+- 启动方式二：使用 Maven 命令执行
 
 ```bash
 spring-boot:run
@@ -353,9 +355,11 @@ spring-boot:run
 
 ![Spring Boot启动方式二2](images/_springboot_1536463286_8169.jpg)
 
+> Notes: 更多启动 Spring Boot 项目的方式详见《Spring Boot 项目部署运维篇》笔记
+
 ### 2.8. 使用 Gradle 构建 Spring Boot 项目
 
-要了解如何使用 Spring Boot 和 Gradle，请参阅 Spring Boot 的 Gradle 插件文档：
+前面章节都是 Maven 的方式构建 Spring Boot 项目。若要了解如何使用 Gradle 来构建 Spring Boot，请参阅 Spring Boot 的 Gradle 插件文档：
 
 - [最新API文档](https://docs.spring.io/spring-boot/docs/current/api/)
 - 参考文档 ([HTML](https://docs.spring.io/spring-boot/docs/2.5.8/gradle-plugin/reference/htmlsingle/) and [PDF](https://docs.spring.io/spring-boot/docs/2.5.8/gradle-plugin/reference/pdf/spring-boot-gradle-plugin-reference.pdf))
