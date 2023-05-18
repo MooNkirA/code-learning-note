@@ -363,6 +363,7 @@
   <li><a href="#/分布式微服务/SpringCloud/Spring-Cloud-Sleuth">Spring Cloud Sleuth 链路跟踪</a></li>
   <li><a href="#/分布式微服务/SpringCloud/Spring-Cloud-Stream">Spring Cloud Stream 事件驱动型消息传递组件</a></li>
   <li><a href="#/分布式微服务/SpringCloud/Spring-Cloud-Config">Spring Cloud Config 分布式系统的配置管理方案</a></li>
+  <li><a href="#/分布式微服务/SpringCloud/Spring-Cloud-Bus">Spring Cloud Bus 分布式系统消息总线</a></li>
   <li><a href="#/分布式微服务/SpringCloud/Spring-Cloud-Security">Spring Cloud Security 分布式系统认证授权解决方案</a></li>
 </ul>
 
@@ -407,13 +408,13 @@
 ### 📡 分布式服务注册中心
 
 <ul class="docs">
-  <li><a href="#/分布式服务注册中心/服务注册与发现">服务注册与发现综合概述</a></li>
+  <li><a href="#/分布式微服务/分布式服务注册中心/服务注册与发现">服务注册与发现综合概述</a></li>
 </ul>
 
 ### 🧾 分布式配置中心
 
 <ul class="docs">
-  <li><a href="#/分布式微服务/分布式配置中心/">分布式配置中心综述</a></li>
+  <li><a href="#/分布式微服务/分布式配置中心/分布式配置中心概述">分布式配置中心概述</a></li>
   <li><a href="#/分布式微服务/分布式配置中心/Apollo">Apollo 分布式配置中心</a></li>
 </ul>
 
@@ -434,7 +435,7 @@
   <li><a href="#/分布式微服务/分布式任务调度/ElasticJob">Elastic-Job 分布式调度解决方案</a></li>
 </ul>
 
-### ⏲ 分布式链路追踪
+### ⛓️ 分布式链路追踪
 
 <ul class="docs">
   <li><a href="#/分布式微服务/分布式链路追踪/链路追踪综合概述">分布式链路追踪综合概述</a></li>
@@ -442,7 +443,7 @@
   <li><a href="#/分布式微服务/分布式链路追踪/SkyWalking">SkyWalking - 分布式链路追踪和可视化一体化解决方案</a></li>
 </ul>
 
-### ⏲ 分库分表
+### 💾 分库分表
 
 <ul class="docs">
   <li><a href="#/分布式微服务/分库分表/分库分表综合概述">分库分表综合概述</a></li>

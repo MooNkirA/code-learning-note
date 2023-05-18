@@ -15,7 +15,7 @@
 
 ### 1.2. 常见配置中心
 
-内容详见：[Distributed-Configuration-Center-Overview.md](/分布式微服务/分布式配置中心/Distributed-Configuration-Center-Overview)
+内容详见：[《分布式配置中心概述》笔记](/分布式微服务/分布式配置中心/分布式配置中心概述)
 
 ## 2. Spring Cloud Config 简介
 

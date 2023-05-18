@@ -1,26 +1,26 @@
 ## 1. Ribbon 概述
 
-当启动某个服务的时候，可以通过HTTP的形式将信息注册到注册中心，并且可以通过SpringCloud提供的工具获取注册中心的服务列表。但是还存在很多的问题，如服务之间的如何调用，多个微服务的提供者如何选择，如何负载均衡等。Spring Cloud提供了Ribbon组件的解决方案
+当启动某个服务的时候，可以通过 HTTP 的形式将信息注册到注册中心，并且可以通过 Spring Cloud 提供的工具获取注册中心的服务列表。但是还存在很多的问题，如服务之间的如何调用，多个微服务的提供者如何选择，如何负载均衡等。Spring Cloud 提供了 Ribbon 组件的解决方案
 
 ### 1.1. Ribbon 是什么
 
-Ribbon 组件是 Netflixfa 发布的一个负载均衡器，有助于控制 HTTP 和 TCP 客户端行为。在Spring Cloud中推荐使用Ribbon来实现负载均衡。即使用客户端根据服务的负载情况去选择空闲或者访问压力小的服务
+Ribbon 组件是 Netflixfa 发布的一个负载均衡器，有助于控制 HTTP 和 TCP 客户端行为。在 Spring Cloud 中推荐使用 Ribbon 来实现负载均衡。即使用客户端根据服务的负载情况去选择空闲或者访问压力小的服务
 
-负载均衡分为**服务端负载均衡**和**客户端负载均衡**，<font color=red>**SpringCloud Ribbon是基于客户端的负载均衡工具**</font>
+负载均衡分为**服务端负载均衡**和**客户端负载均衡**，<font color=red>**Spring Cloud Ribbon 是基于客户端的负载均衡工具**</font>
 
-在 SpringCloud 中，Eureka一般配合Ribbon进行使用，Ribbon提供了客户端负载均衡的功能，Ribbon自动的从注册中心（如Eureka）中获取服务提供者的列表信息，在调用服务节点提供的服务时，并提供客户端的软件负载均衡算法，如轮询、随机等，会合理的进行负载请求服务。
+在 Spring Cloud 中，Eureka 一般配合 Ribbon 进行使用，Ribbon 提供了客户端负载均衡的功能，Ribbon 自动的从注册中心（如 Eureka）中获取服务提供者的列表信息，在调用服务节点提供的服务时，并提供客户端的软件负载均衡算法，如轮询、随机等，会合理的进行负载请求服务。
 
-Ribbon客户端组件提供一系列完善的配置项如连接超时，重试等。也可为Ribbon实现自定义的负载均衡算法
+Ribbon 客户端组件提供一系列完善的配置项如连接超时，重试等。也可为 Ribbon 实现自定义的负载均衡算法
 
 ### 1.2. Ribbon 的主要作用
 
 #### 1.2.1. 服务调用
 
-基于Ribbon实现服务调用，是通过拉取到的所有服务列表组成（服务名-请求路径的）映射关系。借助estTemplate 最终进行调用
+基于 Ribbon 实现服务调用，是通过拉取到的所有服务列表组成（服务名-请求路径的）映射关系。借助 RestTemplate 最终进行调用
 
 #### 1.2.2. 负载均衡
 
-当有多个服务提供者时，Ribbon可以根据负载均衡的算法自动的选择需要调用的服务地址
+当有多个服务提供者时，Ribbon 可以根据负载均衡的算法自动的选择需要调用的服务地址
 
 ### 1.3. Ribbon 架构
 
@@ -28,13 +28,13 @@ Ribbon客户端组件提供一系列完善的配置项如连接超时，重试�
 
 ## 2. Ribbon 基础使用示例
 
-需求：改造上面Eureka注册中心（单机版）示例，基于Ribbon组件实现订单调用商品服务
+需求：改造上面 Eureka 注册中心（单机版）示例，基于 Ribbon 组件实现订单调用商品服务
 
 > 复制上面`02-springcloud-eureka`工程的代码，在原有基础进行修改。改造后示例源代码详见：`spring-cloud-note\spring-cloud-greenwich-sample\04-springcloud-ribbon\`
 
 ### 2.1. Ribbon 的依赖
 
-在SpringCloud提供的服务工程，主要引入eureka组件，无论是服务端还是客户端，其jar都已经包含了Ribbon的依赖。所以使用Ribbon组件不需要导入任何额外的坐标
+在 Spring Cloud 提供的服务工程，主要引入 eureka 组件，无论是服务端还是客户端，其 jar 都已经包含了 Ribbon 的依赖。所以使用 Ribbon 组件不需要导入任何额外的坐标
 
 ![](images/20201012154059447_22112.png)
 
@@ -42,8 +42,8 @@ Ribbon客户端组件提供一系列完善的配置项如连接超时，重试�
 
 #### 2.2.1. 改造步骤
 
-1. 在创建`RestTemplate`实例的时候，声明Ribbon组件的`@LoadBalanced`注解
-2. 在使用`RestTemplate`调用远程微服务接口时，不需要手动拉普拉斯微服务的url，只需要将指定待请求的服务名称即可
+1. 在创建`RestTemplate`实例的时候，声明 Ribbon 组件的`@LoadBalanced`注解
+2. 在使用`RestTemplate`调用远程微服务接口时，不需要手动拉普拉斯微服务的 url，只需要将指定待请求的服务名称即可
 
 #### 2.2.2. 服务提供者
 
@@ -81,7 +81,7 @@ public class ProductController {
 修改服务消费者`shop_service_order`工程配置类`HttpConfig`，在创建`RestTemplate`方法上添加 `@LoadBalanced` 注解
 
 ```java
-@LoadBalanced // 是Ribbon组件提供的负载均衡的注解，声明此注解后就可以基于Ribbon的服务调用与负载均衡
+@LoadBalanced // 是 Ribbon 组件提供的负载均衡的注解，声明此注解后就可以基于 Ribbon 的服务调用与负载均衡
 @Bean("restTemplate")
 public RestTemplate createRestTemplate() {
     return new RestTemplate();

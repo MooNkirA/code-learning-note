@@ -1056,7 +1056,7 @@ boolean isReadOnly();
 String getName();
 ```
 
-#### 5.4.4. 事务的传播行为（接口的常量属性）
+#### 5.4.4. 事务的传播行为
 
 Spring 事务的传播行为是指，当多个事务同时存在的时候，Spring 如何处理这些事务的行为。主要有以下几种：
 
@@ -1066,9 +1066,9 @@ Spring 事务的传播行为是指，当多个事务同时存在的时候，Spri
 - `PROPAGATION_REQUIRES_NEW`：无论当前存不存在事务，都创建新事务。（*如果当前在事务中，把当前事务挂起？待确认*）需要使用 `JtaTransactionManager` 作为事务管理器。
 - `PROPAGATION_NOT_SUPPORTED`：总是以非事务方式执行操作；如果当前存在事务，则把当前事务挂起。需要使用 `JtaTransactionManager` 作为事务管理器。
 - `PROPAGATION_NEVER`：总是以非事务方式运行；如果当前存在事务，抛出异常
-- `PROPAGATION_NESTED`：如果当前存在事务，则在嵌套事务内执行；如果当前没有事务，则执行 `PROPAGATION_REQUIRED` 类似的操作。
+- `PROPAGATION_NESTED`：如果当前存在事务，则在嵌套事务内执行；如果当前没有事务，则执行 `PROPAGATION_REQUIRED` 类似的操作。嵌套事务是外部事务的一部分，可以在外部事务提交或回滚时部分提交或回滚。
 
-源码节选：
+以上常量定义在 `org.springframework.transaction.TransactionDefinition` 接口中，源码节选如下：
 
 ```java
 public interface TransactionDefinition {
@@ -1094,6 +1094,30 @@ public interface TransactionDefinition {
 
 - 使用 `PROPAGATION_REQUIRES_NEW` 时，内层事务与外层事务是两个独立的事务。一旦内层事务进行了提交后，外层事务不能对其进行回滚。两个事务互不影响。
 - 使用 `PROPAGATION_NESTED` 时，外层事务的回滚可以引起内层事务的回滚。而内层事务的异常并不会导致外层事务的回滚，它是一个真正的嵌套事务。
+
+Spring 较新版本的 `@Transactional` 注解的 `propagation` 属性值已换成 `Propagation` 枚举。
+
+```java
+public @interface Transactional {
+    Propagation propagation() default Propagation.REQUIRED;
+    // ...省略
+}
+```
+
+`org.springframework.transaction.annotation.Propagation` 枚举值（*与 `TransactionDefinition` 的名称一样*）如下：
+
+```java
+public enum Propagation {
+    REQUIRED(0),
+    SUPPORTS(1),
+    MANDATORY(2),
+    REQUIRES_NEW(3),
+    NOT_SUPPORTED(4),
+    NEVER(5),
+    NESTED(6);
+    // ...省略
+}
+```
 
 #### 5.4.5. 事务的隔离级别（接口的常量属性）
 
@@ -1188,3 +1212,277 @@ void flush();
 ```java
 boolean isCompleted();
 ```
+
+## 6. Spring 事务扩展知识
+
+### 6.1. Spring 事务不生效的场景
+
+在某些情况下，Spring 的事务会失效。
+
+1. 使用 `@Transactional` 注解标识的方法所在的类，没有让 Spring 管理。因为 Spring 事务是由 AOP 机制实现的，也就是说从 Spring IOC 容器获取 bean 时，Spring 会为目标类创建代理，从而支持事务的。
+2. 没有在 Spring 配置文件（或者配置类）中启用事务管理器。<font color=red>**注：如果是 Spring Boot 项目，它默认会自动配置事务管理器并开启事务支持**</font>。
+
+```java
+@Configuration
+public class AppConfig {
+    @Bean
+    public PlatformTransactionManager transactionManager() {
+        return new DataSourceTransactionManager(dataSource());
+    }
+}
+```
+
+3. 事务方法被 `final` 或 `static` 关键字修饰，则该方法不能被子类重写，即无法在该方法上进行动态代理，导致 Spring 无法生成事务代理对象来管理事务。
+
+```java
+@Service
+public class OrderServiceImpl implements OrderService {
+    @Transactional
+    public final void addOrder(Order order) {
+         // do something...
+    }
+}
+```
+
+4. 同一个类中，方法内部调用 `@Transactional` 注解标识的事务方法。事务是通过 Spring AOP 代理来实现的，而在同一个类中通过一个普通方法调用事务方法时，实际是通过当前类对象（`this`）直接调用事务方法的代码，而不是通过代理类进行调用。即以下代码，调用目标 `executeAddOrder` 方法不是通过代理类进行的，因此事务不生效。
+
+```java
+@Service
+public class OrderServiceImpl implements OrderService {
+	@Override
+	public void addOrder(Order order) {
+		// 调用内部的事务方法
+		this.executeAddOrder(order);
+	}
+
+	@Transactional
+	public void executeAddOrder(Order order) {
+		// 执行一系列数据库操作
+	}
+}
+```
+
+> 解决方案：将事务定义在另一个类中，再通过注入该类来调用事务方法；或者在 `OrderServiceImpl` 中注入自己，调用注入实例对象来调用事务方法；又或者通过 `AopContext.currentProxy()` 获取代理对象。
+
+5. 事务方法的访问权限非 `public`。
+
+```java
+@Transactional
+private void addOrder(Order order) {
+    // do something...
+}
+```
+
+因为 Spring 事务本质就是动态代理，而代理的事务方法非 `public` 权限时，源码中 `computeTransactionAttribute()` 就会返回 null，即此时事务属性不存在。以下是 `AbstractFallbackTransactionAttributeSource` 类的源码：
+
+![](images/223305214248985.png)
+
+6. 数据库的存储引擎不支持事务。例如，在 MySQL 中，MyISAM 存储引擎是不支持事务的，InnoDB 引擎才支持事务。因此开发阶段设计表的时要正确选择支持事务的存储引擎。
+7. 配置错误的 `@Transactional` 注解。例如，在需要更新的事务方法中，设置注解属性 `readOnly=true`，这表示是一个只读事务，因此在更新操作时会抛出异常。
+
+```java
+@Transactional(readOnly = true)
+public void updateUser(User user) {
+    userDao.updateUser(user);
+}
+```
+
+8. 事务超时时间设置过短。例如，将 `@Transactional` 注解的 `timeout` 属性设置为 1，这就意味着如果事务在 1 秒内无法完成，则报事务超时异常。
+
+```java
+@Transactional(timeout = 1)
+public void doSomething() {
+    //...
+}
+```
+
+9. 设置错误的事务传播机制。例如，设置 `propagation` 属性为 `Propagation.NOT_SUPPORTED`，此传播特性是不支持事务。
+
+```java
+@Transactional(propagation = Propagation.NOT_SUPPORTED)
+public void addOrder(Order order) {
+	// 执行一系列数据库操作
+}
+```
+
+10. `@Transactional` 注解的 `rollbackFor` 属性配置错误。`rollbackFor` 属性指定的异常必须是 `Throwable` 或者其子类。默认情况下，`RuntimeException` 和 `Error` 两种异常都是会自动回滚的。但如下例中，指定了 `rollbackFor = Error.class`，但是抛出的异常却是 `Exception`，而 `Exception` 和 `Error` 没有任何什么继承关系，因此事务就不生效。
+
+```java
+@Transactional(rollbackFor = Error.class)
+public void addOrder(Order order) throws Exception {
+	// 执行一系列数据库操作，模拟异常抛出
+	throw new Exception();
+}
+```
+
+详见 `Transactional` 的源码：
+
+![](images/76763816236852.png)
+
+11. 事务注解被覆盖导致事务失效。如下例中，当调用 `MyServiceNew` 的 `doSomething()` 方法时，由于子类方法覆盖了 `doSomething()` 方法，并且子类的 `@Transactional` 注解使用了不同的传播行为（`REQUIRES_NEW`）覆盖了父类 `MyService` 的注解，Spring 框架将不会在父类的方法中启动事务。因此，当 `MyRepository` 的 `save()` 方法被调用时，事务将不会被启动，进行的数据库操作也不会回滚。这将导致数据不一致的问题。
+
+```java
+public interface MyRepository {
+	@Transactional
+	void save(String data);
+}
+
+public class MyRepositoryImpl implements MyRepository {
+	@Override
+	public void save(String data) {
+		// 数据库操作
+	}
+}
+
+public class MyService {
+	@Autowired
+	private MyRepository myRepository;
+
+	@Transactional
+	public void doSomething(String data) {
+		myRepository.save(data);
+	}
+}
+
+public class MyServiceNew extends MyService {
+	@Transactional(propagation = Propagation.REQUIRES_NEW)
+	public void doSomething(String data) {
+		super.doSomething(data);
+	}
+}
+```
+
+12. 嵌套事务。
+
+```java
+@Service
+public class OrderService {
+	@Autowired
+	private FlowService flowService;
+	@Autowired
+	private OrderMapper orderMapper;
+
+	@Transactional
+	public void addOrder(Order order, Flow flow) throws Exception {
+		orderMapper.save(order);
+		flowService.saveFlow(flow);
+	}
+}
+
+@Service
+public class FlowService {
+	@Autowired
+	private FlowMapper flowMapper;
+
+	@Transactional(propagation = Propagation.NESTED)
+	public void saveFlow(Flow flow) {
+		flowMapper.save(flow);
+		throw new RuntimeException();
+	}
+}
+```
+
+以上代码使用了嵌套事务，如果 `saveFlow` 出现运行时异常，会继续往上抛到外层 `addOrder` 的方法，导致 `orderMapper.save` 也会回滚。如果不想因为被内部嵌套的事务影响，可以用 try-catch 包住，如下：
+
+```java
+@Transactional
+public void addOrder(Order order, Flow flow) throws Exception {
+	orderMapper.save(order);
+	try {
+		flowService.saveFlow(flow);
+	} catch (Exception e) {
+		log.error("save flow fail,message:{}", e.getMessage());
+	}
+}
+```
+
+13. 事务多线程调用。因为 Spring 事务是基于线程绑定的，每个线程都有自己的事务上下文，而多线程环境下可能会存在多个线程共享同一个事务上下文的情况，导致事务不生效。
+
+```java
+@Service
+public class OrderService {
+	@Autowired
+	private FlowService flowService;
+	@Autowired
+	private OrderMapper orderMapper;
+
+	@Transactional
+	public void addOrder(Order order, Flow flow) throws Exception {
+		orderMapper.save(order);
+		// 多线程调用
+		new Thread(() -> {
+			flowService.saveFlow(flow);
+		}).start();
+	}
+}
+
+@Service
+public class FlowService {
+	@Autowired
+	private FlowMapper flowMapper;
+
+	@Transactional
+	public void saveFlow(Flow flow) {
+		flowMapper.save(flow);
+	}
+}
+```
+
+在 Spring 事务管理器中，通过 `TransactionSynchronizationManager` 类来管理事务上下文。该类内部维护了一个线程本地变量 `ThreadLocal` 对象，用来存储当前线程的事务上下文，实现线程安全。在事务开始时，`TransactionSynchronizationManager` 会将事务上下文绑定到当前线程的 `ThreadLocal` 对象中，当事务结束时，就会将事务上下文从 `ThreadLocal` 对象中移除。源码节选如下：
+
+![](images/52602317257018.png)
+
+14. 事务中的异常被捕获并处理了，没有重新抛出被正确地传播回事务管理器，事务将无法回滚。
+
+```java
+@Service
+public class OrderService {
+	@Autowired
+	private FlowMapper flowMapper;
+	@Autowired
+	private OrderMapper orderMapper;
+
+	@Transactional
+	public void addOrder(Order order, Flow flow) throws Exception {
+		try {
+			orderMapper.save(order);
+			flowMapper.save(flow);
+		} catch (Exception e) {
+			log.error("add order fail,message:{}", e.getMessage());
+		}
+	}
+}
+```
+
+具体处理详见 `TransactionAspectSupport` 源码：
+
+```java
+public abstract class TransactionAspectSupport implements BeanFactoryAware, InitializingBean {
+
+	// 这方法会省略部分代码，只留关键代码
+	@Nullable
+	protected Object invokeWithinTransaction(Method method, @Nullable Class<?> targetClass, final InvocationCallback invocation) throws Throwable {
+
+		if (txAttr == null || !(ptm instanceof CallbackPreferringPlatformTransactionManager)) {
+
+			TransactionInfo txInfo = createTransactionIfNecessary(ptm, txAttr, joinpointIdentification);
+			Object retVal;
+			try {
+				// Spring AOP中MethodInterceptor接口的一个方法，它允许拦截器在执行被代理方法之前和之后执行额外的逻辑。
+				retVal = invocation.proceedWithInvocation();
+			} catch (Throwable ex) {
+				// 用于在发生异常时完成事务(如果Spring catch不到对应的异常的话，就不会进入回滚事务的逻辑)
+				completeTransactionAfterThrowing(txInfo, ex);
+				throw ex;
+			} finally {
+				cleanupTransactionInfo(txInfo);
+			}
+
+			// 用于在方法正常返回后提交事务。
+			commitTransactionAfterReturning(txInfo);
+			return retVal;
+		}
+	}
+```
+
+https://mp.weixin.qq.com/s/tHgMwsSawlIvA8eObmqnAg

@@ -1566,20 +1566,20 @@ public void getBeanDefinitionNamesTest() {
 }
 ```
 
-## 5. @Import 注解的高级分析
+## 5. @Import 注解的高级用法
 
 `@Import`注解除了可以直接导入一个（或多个）类，还可以导入实现一些接口的实现类，而这些接口分别是：`ImportSelector`与`ImportBeanDefinitionRegistrar`
 
-<font color=red>**注：`ImportSelector`与`ImportBeanDefinitionRegistrar`这此接口的方法，必须通过`@Import`导入的方式才会被spring调用，如果使用`@Component`等注解加入到spring中，是无法调用接口的方法**</font>
+<font color=red>**注：`ImportSelector`与`ImportBeanDefinitionRegistrar`这此接口的方法，必须通过`@Import`导入的方式才会被 Spring 调用，如果使用`@Component`等注解加入到 Spring 中，是无法调用接口的方法**</font>
 
 ### 5.1. ImportSelector 和 ImportBeanDefinitionRegistrar 介绍
 
-- `ImportSelector`：导入器，用于动态注册bean对象到容器中
-- `ImportBeanDefinitionRegistrar`：注册器，用于动态注册bean对象到容器中
+- `ImportSelector`：导入器，用于动态注册 bean 对象到容器中
+- `ImportBeanDefinitionRegistrar`：注册器，用于动态注册 bean 对象到容器中
 
-#### 5.1.1. bean对象注册到spring容器的方式
+#### 5.1.1. bean 对象注册到 Spring 容器的方式
 
-在spring框架中，注册bean到ioc容器有很多种方式。
+在 Spring 框架中，注册 bean 到 ioc 容器有很多种方式。
 
 1. 自己编写的类，可以使用`@Component`、`@Service`、`@Repository`、`@Controller`等等注解注册到ioc容器中。
 2. 导入的第三方库中的类时，可以使用`@Bean`（*需要做一些初始化操作时，比如`DataSource`对象*），手动创建对象注册到ioc容器中，也可以使用`@Import`注解，直接指定要引入的类的字节码，同样可以实现注册到容器中。
@@ -1611,7 +1611,7 @@ public void getBeanDefinitionNamesTest() {
 
 #### 5.2.1. 代码准备
 
-- 添加示例相关依赖，因为本示例使用aspectJ过滤规则，所以需要添加aspectjweaver的依赖
+- 添加示例相关依赖，因为本示例使用 aspectJ 过滤规则，所以需要添加 aspectjweaver 的依赖
 
 ```xml
 <dependencies>
@@ -1633,7 +1633,7 @@ public void getBeanDefinitionNamesTest() {
 </dependencies>
 ```
 
-- 准备相关待注册到容器的类，*注：此示例通过`ImportSelector`注册，所以不会标识`@Component`等注解*
+- 准备相关待注册到容器的类，*注：此示例通过`ImportSelector`注册，所以待注册的类不需要标识`@Component`等注解*
 
 ```java
 public interface UserService {
@@ -1658,7 +1658,7 @@ public class LogUtil {
 
 ![](images/20200829163002863_5933.png)
 
-- 编写配置文件，用于定义扫描包路径的aspectJ表达式
+- 编写配置文件，用于定义扫描包路径的 aspectJ 表达式
 
 ```properties
 # 指定扫描包路径的ASPECTJ表达式
@@ -1718,12 +1718,12 @@ public class CustomImportSelector implements ImportSelector {
     }
 
     /**
-     * 此方法用于批量导入bean对象到ioc容器，所以需要实现获取要导入的bean全限定类名数组
+     * 此方法用于批量导入 bean 对象到 ioc 容器，所以需要实现获取要导入的 bean 全限定类名数组
      * 需求：
-     * 导入的过滤规则是FilterType的ASPECTJ的类型
+     * 导入的过滤规则是 FilterType 的 ASPECTJ 的类型
      *
-     * @param importingClassMetadata 使用@Import注解的类上所有的注解信息，
-     *                               此示例即SpringConfiguration类上所有注解信息
+     * @param importingClassMetadata 使用 @Import 注解的类上所有的注解信息，
+     *                               此示例即 SpringConfiguration 类上所有注解信息
      * @return
      */
     @Override
@@ -1829,7 +1829,7 @@ custom.importselector.expression=com.moon.springsample.service..*
 
 ![](images/20200829163236262_18296.png)
 
-> <font color=purple>**注：此处有坑，如果aspectJ切入点表达式包含自定义导入器`CustomImportSelector`类的话，会报错，在学习源码后再试试分析分析**</font>
+> <font color=purple>**注：此处有坑，如果 aspectJ 切入点表达式包含自定义导入器`CustomImportSelector`类的话，会报错，在学习源码后再试试分析分析**</font>
 
 #### 5.2.4. 改造自定义导入器逻辑，将扫描包路径也定义在配置文件中
 
@@ -1965,7 +1965,7 @@ custom.importselector.package=com.moon.springsample.service.impl
 
 - 添加示例相关依赖，参考《自定义ImportSelector》
 - 准备相关待注册到容器的类，参考《自定义ImportSelector》
-- 编写配置文件，用于定义扫描包路径的aspectJ表达式
+- 编写配置文件，用于定义扫描包路径的 aspectJ 表达式
 
 ```properties
 # 表示com.moon.springsample.service包及其任意子包的所有类
@@ -2038,9 +2038,9 @@ public class CustomImportDefinitionRegistrar implements ImportBeanDefinitionRegi
     /**
      * 此方法无返回值，需要在方法中手动注册bean到注册中心容器中
      *
-     * @param importingClassMetadata 使用@Import注解的类上所有的注解信息，
-     *                               此示例即SpringConfiguration类上所有注解信息
-     * @param registry               BeanDefinition注册中心
+     * @param importingClassMetadata 使用 @Import 注解的类上所有的注解信息，
+     *                               此示例即 SpringConfiguration 类上所有注解信息
+     * @param registry               BeanDefinition 注册中心
      */
     @Override
     public void registerBeanDefinitions(AnnotationMetadata importingClassMetadata, BeanDefinitionRegistry registry) {
