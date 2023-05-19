@@ -937,14 +937,12 @@ public class XxxServiceImpl implements XxxService {
 
 ## 20. 异步
 
-> 注意：
->
-> Provider 端异步执行和 Consumer 端异步调用是相互独立的，你可以任意正交组合两端配置
->
-> - Consumer同步 - Provider同步
-> - Consumer异步 - Provider同步
-> - Consumer同步 - Provider异步
-> - Consumer异步 - Provider异步
+注意： Provider 端异步执行和 Consumer 端异步调用是相互独立的，你可以任意正交组合两端配置
+
+- Consumer同步 - Provider同步
+- Consumer异步 - Provider同步
+- Consumer同步 - Provider异步
+- Consumer异步 - Provider异步
 
 ### 20.1. 异步执行
 

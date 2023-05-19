@@ -8,11 +8,11 @@ RPC（Remote Procedure Call Protocol）远程过程调用协议，它是一种�
 
 **RPC 使用场景**：在微服务环境下，会存在大量的跨 JVM （不同服务器之间）进行方法调用的场景，服务结构如下图：
 
-![分布式服务结构](images/20200122110030436_24328.png)
+![](images/20200122110030436_24328.png)
 
 具体到一次调用过程来说， A 机器能通过网络，调用 B 机器内的某个服务方法，并得到返回值
 
-![服务调用](images/20200122134326828_23754.png)
+![](images/20200122134326828_23754.png)
 
 ### 1.2. RPC 实现原理
 
@@ -464,15 +464,15 @@ Apache Dubbo™ 是一款高性能 Java RPC 框架。致力于提供高性能和
 
 ### 2.1. Dubbo 实现 RPC 框架
 
-分布式服务架构下，各个服务间的相互RPC调用会越来越复杂。最终形成网状结构，此时服务的治理极为关键。
+分布式服务架构下，各个服务间的相互 RPC 调用会越来越复杂。最终形成网状结构，此时服务的治理极为关键。
 
-Dubbo 是一个带有服务治理功能的 RPC 框架，提供了一套较为完整的服务治理方案，其底层直接实现了 RPC 调用的全过程，并尽力使 RPC 远程对使用者透明。下图展示了Dubbo服务治理的功能。
+Dubbo 是一个带有服务治理功能的 RPC 框架，提供了一套较为完整的服务治理方案，其底层直接实现了 RPC 调用的全过程，并尽力使 RPC 远程对使用者透明。下图展示了 Dubbo 服务治理的功能。
 
 ![dubbo-service-governance](images/20200125181329487_3748.jpg)
 
 简单的说，Dubbo 本质上就是个服务调用的框架，如果没有分布式的需求，其实是不需要用的，只有在分布式的时候，才有使用 Dubbo 这样的远程调用分布式服务框架的需求。其核心部分包含：
 
-- 远程通讯：提供对多种基于长连接的NIO框架抽象封装，包括多种线程模型、序列化以及“请求-响应”模式的信息交换方式。
+- 远程通讯：提供对多种基于长连接的 NIO 框架抽象封装，包括多种线程模型、序列化以及“请求-响应”模式的信息交换方式。
 - 集群容错：提供基于接口方法的透明远程过程调用，包括多协议支持以及软负载均衡，失败容错、地址路由、动态配置等集群支持。
 - 自动发现：基于注册中心目录服务，使服务消费方能动态的查找到×××提供方，使地址透明，使服务提供方可以平滑增加或减少机器。
 
@@ -482,10 +482,10 @@ dubbo 的整体结构如下图：
 
 ![Dubbo架构设计图](images/20200125183026192_30674.png)
 
-Dubbo 总体架构设计一共划分了 10 层，而最上面的 Service 层是留给实际想要使用 Dubbo 开发分布式服务的开发者实现业务逻辑的接口层。图中左边淡蓝背景的为服务消费方使用的接口，右边淡绿色背景的为服务提供方使用的接口，位于中轴线上的为双方都用到的接口
+Dubbo 总体架构设计一共划分了 10 层，而最上面的 Service 层是留给实际想要使用 Dubbo 开发分布式服务的开发者实现业务逻辑的接口层。图中左边淡蓝背景的为服务消费方使用的接口，右边淡绿色背景的为服务提供方使用的接口，位于中轴线上的为双方都用到的接口。Dubbo 对于服务提供方和服务消费方，从框架的 10 层中分别提供了各自需要关心和扩展的接口，构建整个服务生态系统(服务提供方和服务消费方本身就是一个以服务为中心的)
 
 - **Service 服务接口层**：该层是与实际业务逻辑相关的，根据服务提供方和服务消费方的业务设计对应的接口和实现
-- **Config 配置层**：对外配置接口，以 `ServiceConfig`, `ReferenceConfig` 为中心，可以直接初始化配置类，也可以通过 spring 解析配置生成配置类
+- **Config 配置层**：对外配置接口，以 `ServiceConfig`, `ReferenceConfig` 为中心，可以直接初始化配置类，也可以通过 Spring 解析配置生成配置类
 - **Proxy 服务代理层**：服务接口透明代理，生成服务的客户端 Stub 和服务器端 Skeleton, 以 `ServiceProxy` 为中心，扩展接口为 `ProxyFactory`
 - **Registry 注册中心层**：封装服务地址的注册与发现，以服务 URL 为中心，扩展接口为 `RegistryFactory`, `Registry`, `RegistryService`。可能没有服务注册中心，此时服务提供方直接暴露服务。
 - **Cluster 路由层**：封装多个提供者的路由及负载均衡，并桥接注册中心，以 `Invoker` 为中心，扩展接口为 `Cluster`, `Directory`, `Router`, `LoadBalance`。将多个服务提供方组合为一个服务提供方，实现对服务消费方透明，只需要与一个服务提供方进行交互。
@@ -496,8 +496,6 @@ Dubbo 总体架构设计一共划分了 10 层，而最上面的 Service 层是�
 - **Exchange 信息交换层**：封装请求响应模式，同步转异步，以 `Request`, `Response` 为中心，扩展接口为 `Exchanger`, `ExchangeChannel`, `ExchangeClient`, `ExchangeServer`
 - **Transport 网络传输层**：抽象 mina 和 netty 为统一接口，以 `Message` 为中心，扩展接口为 `Channel`, `Transporter`, `Client`, `Server`, `Codec`
 - **Serialize 数据序列化层**：可复用的一些工具，扩展接口为 `Serialization`, `ObjectInput`, `ObjectOutput`, `ThreadPool`
-
-从上图可以看出，Dubbo 对于服务提供方和服务消费方，从框架的 10 层中分别提供了各自需要关心和扩展的接口，构建整个服务生态系统(服务提供方和服务消费方本身就是一个以服务为中心的)
 
 ### 2.3. Dubbo 服务的角色关系
 
@@ -1724,6 +1722,8 @@ Sentinel 提供 Dubbo 的相关适配 Sentinel Dubbo Adapter，用于适配 Dubb
 
 #### 7.3.1. 添加 Sentinel 相关依赖
 
+在服务消费者与服务提供者添加 Sentinel 与 Sentinel Dubbo Adapter 的依赖
+
 ```xml
 <dependency>
     <groupId>com.alibaba.csp</groupId>
@@ -1733,10 +1733,79 @@ Sentinel 提供 Dubbo 的相关适配 Sentinel Dubbo Adapter，用于适配 Dubb
 
 #### 7.3.2. 添加 sentinel 相关属性配置
 
-
+服务提供者增加 sentinel 相关配置
 
 ```yml
+server:
+  port: 8082
+spring:
+  application:
+    name: dubbo-sentinel-provider
+  cloud:
+    nacos:
+      discovery:
+        server-addr: localhost:8848
+    sentinel:
+      transport:
+        dashboard: localhost:9898
+        port: 9898
+dubbo:
+  registry:
+    address: spring-cloud://localhost
+  scan:
+    base-packages: com.moon.dubbo.sentinel.service
+  protocol:
+    name: dubbo
+    port: -1
 ```
+
+服务消费者增加 sentinel 相关配置
+
+```yml
+server:
+  port: 8081
+spring:
+  application:
+    name: dubbo-sentinel-consumer
+  cloud:
+    nacos:
+      discovery:
+        server-addr: localhost:8848
+    sentinel:
+      transport:
+        dashboard: localhost:9898
+        port: 9898
+dubbo:
+  registry:
+    address: spring-cloud://localhost
+  protocol:
+    name: dubbo
+    port: -1
+```
+
+> 注：本机 sentinel 服务端口为 9898，按实际进行修改。
+
+#### 7.3.3. 测试
+
+分别启动 nacos、sentinel 服务、dubbo-sentinel-provider、dubbo-sentinel-consumer 进行测试。
+
+nacos 控制台可以看到服务测试信息
+
+![](images/358374122248985.png)
+
+sentinel 控制看到服务提供者的资源
+
+![](images/232110023257018.png)
+
+点击流控进行测试
+
+![](images/268210223249687.png)
+
+快速刷新调用，成功限流。
+
+![](images/34190323246242.png)
+
+### 7.4. 自定义异常处理
 
 ## 8. 服务化最佳实践
 
@@ -1762,11 +1831,12 @@ Dubbo的属性配置优先度上，遵循顺序：`reference属性 -> service属
 <dubbo:service/>
 ```
 
-- 建议在 Provider 端配置的 Consumer 端属性有：
-    1. `timeout`：方法调用的超时时间
-    2. `retries`：失败重试次数，缺省是 2
-    3. `loadbalance`：负载均衡算法，缺省是随机 random。还可以配置轮询 roundrobin、最不活跃优先 leastactive 和一致性哈希 consistenthash 等
-    4. `actives`：消费者端的最大并发调用限制，即当 Consumer 对一个服务的并发调用到上限后，新调用会阻塞直到超时，在方法上配置 `dubbo:method` 则针对该方法进行并发限制，在接口上配置 `dubbo:service`，则针对该服务进行并发限制
+建议在 Provider 端配置的 Consumer 端属性有：
+
+1. `timeout`：方法调用的超时时间
+2. `retries`：失败重试次数，缺省是 2
+3. `loadbalance`：负载均衡算法，缺省是随机 random。还可以配置轮询 roundrobin、最不活跃优先 leastactive 和一致性哈希 consistenthash 等
+4. `actives`：消费者端的最大并发调用限制，即当 Consumer 对一个服务的并发调用到上限后，新调用会阻塞直到超时，在方法上配置 `dubbo:method` 则针对该方法进行并发限制，在接口上配置 `dubbo:service`，则针对该服务进行并发限制
 
 #### 8.1.2. 在 Provider 端配置合理的 Provider 端属性
 
@@ -1818,11 +1888,11 @@ Dubbo的属性配置优先度上，遵循顺序：`reference属性 -> service属
 
 ## 9. 其他
 
-### 9.1. dubbo框架使用示例
+### 9.1. dubbo 框架使用示例
 
 dubbo 框架使用示例项目参考：dubbo-note\dubbo-sample\
 
-### 9.2. 相关RPC服务框架（HSF） -- 网络资料
+### 9.2. HSF 服务框架（Dubbo 升级版） -- 网络资料
 
 高速服务框架 HSF (High-speed Service Framework)，是在阿里巴巴内部广泛使用的分布式 RPC 服务框架。
 
@@ -1830,15 +1900,15 @@ HSF 联通不同的业务系统，解耦系统间的实现依赖。HSF 从分布
 
 HSF 纯客户端架构的 RPC 框架，本身是没有服务端集群的，所有的 HSF 服务调用都是服务消费方（Consumer）与服务提供方（Provider）点对点进行的。然而，为了实现整套分布式服务体系，HSF 还包含了其他组件，完整的组件如下：
 
-**Provider——服务提供者**
+**Provider —— 服务提供者**
 
 通常是某个业务系统，提供相关的业务服务，一般都是个服务集群。业务系统初期使用HSF，通过引入SDK的方式。后期阿里定制化改造了容器(tomcat/docker)，通过配置完成HSF的接入使用，作为架构中的服务提供方。对业务系统本身(war/jar)不造成侵入性。
 
-**Consumer——服务消费者**
+**Consumer —— 服务消费者**
 
 通常也是某个业务系统集群，跟服务提供者非常类型，只是服务、消费角度区别。
 
-**ConfigServer——配置服务器**
+**ConfigServer ——配 置服务器**
 
 HSF 依赖注册中心进行服务发现，如果没有注册中心，HSF 只能完成简单的点对点调用。因为作为服务提供端，没有办法将自己的服务信息对外发布，让外界知晓；作为服务消费端，可能已经知道需要调用的服务，但是无法获取能够提供这些服务的机器。而ConfigServer就是服务信息的中介，提供服务发现的能力。
 
@@ -1848,13 +1918,13 @@ HSF 依赖注册中心进行服务发现，如果没有注册中心，HSF 只能
 - 长连接与内存级
     - 服务提供方与服务消费方均与配置服务器保持长连接，一旦服务提供方发生变化，会立即被通知，更新内存中的列表数据，并同步给订阅该服务的服务消费方。
 
-**Diamond——持久化配置中心**
+**Diamond —— 持久化配置中心**
 
 持久化的配置中心用于存储 HSF 服务的各种治理规则，HSF 客户端在启动的过程中会向持久化配置中心订阅各种服务治理规则，如白名单、权限、路由规则、归组规则、权重规则等，从而根据规则对调用过程的选址逻辑进行干预。持久化配置中心的角色是由 Diamond组件承担的。
 
 当需要时，用户通过在界面上设计规则，Diamond会快速的将新的规则推送给相关的服务提供方
 
-**addressServer——地址服务**
+**addressServer —— 地址服务**
 
 地址服务器的职责是保存上文的ConfigServer与Diamond服务器的地址列表。在consumer、provider启动时，会首先以域名访问的方式访问地址服务器，从地址服务器获取到ConfigServer与Diamond服务器的地址列表信息，以便访问。
 

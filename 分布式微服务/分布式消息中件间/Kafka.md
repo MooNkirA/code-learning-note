@@ -1,10 +1,8 @@
-# Kafka
-
-> Kafka 官网：https://kafka.apache.org/
-
 ## 1. 初识 Kafka
 
 ### 1.1. 概述
+
+> Kafka 官网：https://kafka.apache.org/
 
 Kafka 最初是由 LinkedIn 公司采用 Scala 语言开发的一个多分区、多副本并且基于 ZooKeeper 协调的分布式消息系统，现在已经捐献给了 Apache 基金会。目前 Kafka 已经定位为一个分布式流式处理平台，它以高吞吐、可持久化、可水平扩展、支持流处理等多种特性而被广泛应用。
 

@@ -1219,6 +1219,8 @@ boolean isCompleted();
 
 在某些情况下，Spring 的事务会失效。
 
+![Spring事务失效的场景.xmind](images/177400010248986.png)
+
 1. 使用 `@Transactional` 注解标识的方法所在的类，没有让 Spring 管理。因为 Spring 事务是由 AOP 机制实现的，也就是说从 Spring IOC 容器获取 bean 时，Spring 会为目标类创建代理，从而支持事务的。
 2. 没有在 Spring 配置文件（或者配置类）中启用事务管理器。<font color=red>**注：如果是 Spring Boot 项目，它默认会自动配置事务管理器并开启事务支持**</font>。
 
@@ -1454,7 +1456,7 @@ public class OrderService {
 }
 ```
 
-具体处理详见 `TransactionAspectSupport` 源码：
+在 `TransactionAspectSupport` 抽象类的 `invokeWithinTransaction` 方法中，当Spring 捕获到 `Throwable` 异常的时候，就会调用 `completeTransactionAfterThrowing()` 方法进行事务回滚的逻辑。但是在上面示例中 `OrderService` 类的事务方法 `addOrder` 中，直接把异常 catch 后，并没有重新 throw 出来，因此 Spring 自然就 catch 不到异常，因此事务回滚的逻辑不会执行，事务失效。以下是部分关键源码：
 
 ```java
 public abstract class TransactionAspectSupport implements BeanFactoryAware, InitializingBean {
@@ -1483,6 +1485,16 @@ public abstract class TransactionAspectSupport implements BeanFactoryAware, Init
 			return retVal;
 		}
 	}
+}
 ```
 
-https://mp.weixin.qq.com/s/tHgMwsSawlIvA8eObmqnAg
+15. 抛出 Spring 默认不处理的异常。因为 Spring 的 `@Transactional` 注解为事务范围的方法中，默认事务的回滚仅仅对于 unchecked 的异常有效，对于 checked 异常无效。即事务回滚仅仅发生在出现 `RuntimeException` 或 `Error` 的时候，对于普通的 `Exception` 不会回滚。例如，代码中出现的空指针等异常，会被回滚；而文件读写、网络超时问题等，Spring 就没法回滚了。但可以通过 `rollbackFor` 属性指定回滚的异常类型，例如，`@Transactional(rollbackFor = Exception.class)`。
+
+```java
+@Transactional
+public void addOrder(Order order, Flow flow) throws Exception {
+	orderMapper.save(order);
+	flowMapper.save(flow);
+	throw new Exception();
+}
+```
