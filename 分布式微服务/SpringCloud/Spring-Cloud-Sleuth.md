@@ -1,29 +1,39 @@
-# Spring Cloud Sleuth
-
-用于 Spring Cloud 应用程序的分布式跟踪，与Zipkin，HTrace和基于日志的（例如ELK）跟踪兼容。
+## 1. Spring Cloud Sleuth 概述
 
 > sleuth （英）/sluːθ/ （美）/sluːθ/ n. 侦探；警犬；vi. 做侦探；侦查
 
-## 1. Sleuth 概述
+Spring Cloud Sleuth 主要功能就是在分布式系统中提供调用链追踪的解决方案，Sleuth 对用户透明，服务调用的交互信息都能被<font color=red>**自动采集**</font>，可以通过日志文件获取服务调用的链路数据，也可以将数据发送给远程服务统一收集分析。
 
-### 1.1. 简介
+Spring Cloud Sleuth 兼容支持 Zipkin，HTrace 和基于日志的（例如ELK）跟踪等。它大量借用了 Google Dapper 的设计，只需要在 pom 文件中引入相应的依赖即可。
 
-Spring Cloud Sleuth 主要功能就是在分布式系统中提供追踪解决方案，它大量借用了Google Dapper的设计，并且兼容支持了zipkin，只需要在pom文件中引入相应的依赖即可
+### 1.1. Sleuth 中的术语和相关概念
 
-### 1.2. 相关概念
-
-Spring Cloud Sleuth 为Spring Cloud提供了分布式根据的解决方案。它大量借用了Google Dapper的设计。以下是Sleuth中的术语和相关概念：
-
-- **Trace**：由一组Trace Id相同的Span串联形成一个树状结构。为了实现请求跟踪，当请求到达分布式系统的入口端点时，只需要服务跟踪框架为该请求创建一个唯一的标识（即TraceId），同时在分布式系统内部流转的时候，框架始终保持传递该唯一值，直到整个请求的返回。那么我们就可以使用该唯一标识将所有的请求串联起来，形成一条完整的请求链路。例如，如果正在跑一个分布式大数据工程，可能需要创建一个trace。
-- **Span**：代表一组基本工作单元，为了统计各处理单元的延迟，当请求到达各个服务组件的时候，也通过一个唯一标识（SpanId）来标记它的开始、具体过程和结束。通过SpanId的开始和结束时间戳，就能统计该span的调用时间，除此之外，还可以获取如事件的名称、请求信息等元数据。
-    - 例如，在一个新建的span中发送一个RPC等同于发送一个回应请求给RPC，span通过一个64位ID唯一标识，trace以另一个64位ID表示，span还有其他数据信息，比如摘要、时间戳事件、关键值注释(tags)、span的ID、以及进度ID(通常是IP地址)span在不断的启动和停止，同时记录了时间信息，当创建了一个span，必须在未来的某个时刻停止它。
-- **Annotation**：用来及时记录一个事件的存在，一些核心annotations用来定义一个请求的开始和结束，内部使用的重要注释：
-    - cs - Client Sent：客户端发起一个请求，这个annotion描述了这个span的开始
-    - sr - Server Received：服务端获得请求并准备开始处理它，如果将其sr减去cs时间戳便可得到网络延迟
-    - ss - Server Sent：注解表明请求处理的完成(当请求返回客户端)，如果ss减去sr时间戳便可得到服务端需要的处理请求时间
-    - cr - Client Received：表明span的结束，客户端成功接收到服务端的回复，如果cr减去cs时间戳便可得到客户端从服务端获取回复的所有所需时间
+- **Span**：代表一组基本工作单元，为了统计各处理单元的延迟，当请求到达各个服务组件的时候，也通过一个唯一标识（SpanId）来标记它的开始、具体过程和结束。通过 SpanId 的开始和结束时间戳，就能统计该 span 的调用时间，除此之外，还可以获取如事件的名称、请求信息等元数据。
+- **Trace**：由一组 TraceId 相同的 Span 串联形成一个树状结构。为了实现请求跟踪，当请求到达分布式系统的入口端点时，只需要服务跟踪框架为该请求创建一个唯一的标识（即 TraceId），同时在分布式系统内部流转的时候，框架始终保持传递该唯一值，直到整个请求的返回。那么我们就可以使用该唯一标识将所有的请求串联起来，形成一条完整的请求链路。例如，如果正在跑一个分布式大数据工程，可能需要创建一个 trace。
+> 例如，在一个新建的 span 中发送一个 RPC 等同于发送一个回应请求给 RPC，span 通过一个 64 位 ID 唯一标识，trace 以另一个 64 位 ID 表示，span 还有其他数据信息，比如摘要、时间戳事件、关键值注释(tags)、span 的 ID、以及进度 ID(通常是IP地址) span 在不断的启动和停止，同时记录了时间信息，当创建了一个 span，必须在未来的某个时刻停止它。
+- **Annotation**：用来及时记录一个事件的存在，一些核心 annotations 用来定义一个请求的开始和结束，内部使用的重要注释：
+    - cs - Client Sent：客户端发起一个请求，这个 annotion 描述了这个 span 的开始
+    - sr - Server Received：服务端获得请求并准备开始处理它，如果将其 sr 减去 cs 时间戳便可得到网络延迟
+    - ss - Server Sent：注解表明请求处理的完成(当请求返回客户端)，如果 ss 减去 sr 时间戳便可得到服务端需要的处理请求时间
+    - cr - Client Received：表明 span 的结束，客户端成功接收到服务端的回复，如果 cr 减去 cs 时间戳便可得到客户端从服务端获取回复的所有所需时间
 
 ![](images/20201112110429301_23920.png)
+
+### 1.2. 调用链跟踪原理
+
+一个最简单的服务调用，主要涉及以下关键点：
+
+1. Client 发起调用（Client Send）
+2. Server 接收请求（Server Receive）
+3. Server 发送响应（Server Send）
+4. Client 接收响应（Client Receive）
+
+![](images/568011322248974.jpg)
+
+- **调用链跟踪解决异常问题思路**：一次完整的请求包含以上4个关键点，因此只需要<font color=red>跟踪每个关键点</font>，便可知调用是否正常。缺少了哪个阶段的跟踪记录，就说明这个阶段异常了。
+- **调用链跟踪解决性能问题思路**：<font color=red>记录每个关键阶段的时间戳</font>，就可以计算任意阶段的耗时。
+
+![](images/559881522236841.jpg)
 
 ## 2. 链路追踪 Sleuth 基础入门示例
 
@@ -56,7 +66,7 @@ spring:
 
 ### 2.2. 引入依赖
 
-修改网关、订单、商品微服务工程，引入Sleuth依赖。
+修改网关、订单、商品微服务工程，各自引入 Sleuth 依赖。
 
 ```xml
 <!-- sleuth链路追踪依赖 -->
@@ -98,6 +108,8 @@ logging:
 
 ### 2.5. Sleuth 日志格式解析
 
+![](images/390903822257007.jpg)
+
 从上面日志输出可知，Sleuth 的日志的格式为：`[applicationName, traceId, spanId, export]`
 
 - `applicationName`：应用的名称，也就是 `application.properties` 配置文件中的 `spring.application.name` 属性的值。
@@ -105,65 +117,386 @@ logging:
 - `spanId`：表示一个基本的工作单元，一个请求可以包含多个步骤，每个步骤都拥有自己的 spanId。
 - `export`：布尔类型。表示是否要将该信息输出到类似 Zipkin 这样的追踪服务端进行收集和展示。
 
-## 3. Zipkin 的概述
+## 3. Sleuth 对各种服务调用方式的支持
 
-### 3.1. 简介
+RestTemplate 与 Feign 都是服务调用的常用方式，还有多线程调用等。创建2个工程：服务提供方、服务调用方，均集成 Sleuth，在服务调用方中分别使用 RestTemplate 和 Feign、多线程的方式调用服务提供方的接口，查看调用各种调用方式是否整合跟踪。
 
-Zipkin 是 Twitter 的一个开源项目，它基于 Google Dapper 实现，它致力于收集服务的定时数据，以解决微服务架构中的延迟问题，包括**数据的收集、存储、查找和展现**。
+> 示例源码：`spring-cloud-note\spring-cloud-sample-sleuth-calling-support`
 
-Zipkin 可以用来收集各个服务器上请求链路的跟踪数据，并通过它提供的 REST API 接口来辅助查询跟踪数据以实现对分布式系统的监控程序，从而及时地发现系统中出现的延迟升高问题并找出系统性能瓶颈的根源。
+### 3.1. 创建基础示例工程
 
-除了面向开发的 API 接口之外，它也提供了方便的 UI 组件来直观的搜索跟踪信息和分析请求链路明细，比如：可以查询某段时间内各用户请求的处理时间等。Zipkin 提供了可插拔数据存储方式：In-Memory、MySql、Cassandra 以及 Elasticsearch。
+#### 3.1.1. 聚合项目
 
-官方网址：https://zipkin.io/
+创建测试聚合项目，引入依赖管理
 
-### 3.2. Zipkin 核心组件
+```xml
+<dependencyManagement>
+    <dependencies>
+        <!-- spring boot 依赖 -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-dependencies</artifactId>
+            <version>${spring-boot.version}</version>
+            <type>pom</type>
+            <scope>import</scope>
+        </dependency>
+        <!-- spring cloud 依赖 -->
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-dependencies</artifactId>
+            <version>${spring-cloud.version}</version>
+            <type>pom</type>
+            <scope>import</scope>
+        </dependency>
+    </dependencies>
+</dependencyManagement>
 
-![](images/20201112160121290_7521.png)
-
-上图展示了 Zipkin 的基础架构，它主要由 4 个核心组件构成：
-
-- **Collector**：收集器组件，它主要用于处理从外部系统发送过来的跟踪信息，将这些信息转换为 Zipkin 内部处理的 Span 格式，以支持后续的存储、分析、展示等功能。
-- **Storage**：存储组件，它主要对处理收集器接收到的跟踪信息，默认会将这些信息存储在内存中，我们也可以修改此存储策略，通过使用其他存储组件将跟踪信息存储到数据库中。
-- **RESTful API**：API 组件，它主要用来提供外部访问接口。比如给客户端展示跟踪信息，或是外接系统访问以实现监控等。
-- **Web UI**：UI 组件，基于 API 组件实现的上层应用。通过 UI 组件用户可以方便而有直观地查询和分析跟踪信息。
-
-Zipkin 分为两端，一个是 Zipkin 服务端，一个是 Zipkin 客户端，客户端也就是微服务的应用。客户端会配置服务端的 URL 地址，一旦发生服务间的调用的时候，会被配置在微服务里面的 Sleuth 的监听器监听，并生成相应的 Trace 和 Span 信息发送给服务端。
-
-发送的方式主要有两种，一种是 HTTP 报文的方式，还有一种是消息总线的方式如 RabbitMQ。不论哪种方式，使用zipkin实现链路追踪的日志收集都需要：
-
-- 一个服务注册中心，*示例项目使用之前的 eureka 项目来当注册中心*。
-- 一个 Zipkin 服务端。
-- 多个微服务，这些微服务中配置Zipkin客户端。
-
-## 4. Zipkin Server （服务端）的部署和配置
-
-### 4.1. Zipkin Server 下载
-
-从 spring boot 2.0 开始，官方就不再支持使用自建 Zipkin Server 的方式进行服务链路追踪，而是直接提供了编译好的 jar 包来使用。可以从官方网站下载先下载 Zipkin 的 web UI
-
-> - Zipkin 源码下载地址：https://github.com/openzipkin/zipkin/releases
-> - Zipkin Server 编译后 jar 下载地址：https://search.maven.org/artifact/io.zipkin/zipkin-server
-> - 此次示例下载的是 zipkin-server-2.20.0-exec.jar
-
-### 4.2. 启动
-
-进行jar所在目录，使用命令行直接启动 Zipkin Server
-
-```bash
-java -jar zipkin-server-2.22.0-exec.jar
+<!-- 项目构建部分 -->
+<build>
+    <plugins>
+        <plugin>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-maven-plugin</artifactId>
+        </plugin>
+    </plugins>
+</build>
 ```
 
-### 4.3. 相关部署与配置信息
+#### 3.1.2. 服务提供者
 
-- 默认 Zipkin Server 的请求端口为 9411
-- Zipkin Server 的启动参数可以通过官方提供的yml配置文件查找
-    - 配置文件地址：https://github.com/openzipkin/zipkin/blob/master/zipkin-server/src/main/resources/zipkin-server-shared.yml
-- 在浏览器输入 `http://127.0.0.1:9411` 即可进入到 Zipkin Server 的管理后台
+创建服务提供方工程，引入依赖
+
+```xml
+<dependencies>
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-web</artifactId>
+    </dependency>
+    <dependency>
+        <groupId>org.springframework.cloud</groupId>
+        <artifactId>spring-cloud-starter-sleuth</artifactId>
+    </dependency>
+    <dependency>
+        <groupId>org.projectlombok</groupId>
+        <artifactId>lombok</artifactId>
+    </dependency>
+</dependencies>
+```
+
+创建项目核心配置文件
+
+```yml
+server:
+  port: 8081
+spring:
+  application:
+    name: sleuth-provider
+```
+
+创建启动类与测试接口
+
+```java
+@Slf4j
+@RestController
+public class TestController {
+    @GetMapping("/hello")
+    public String hello() {
+        log.info("service provider");
+        return "hello !";
+    }
+}
+```
+
+#### 3.1.3. 服务调用者
+
+创建服务提供方工程，引入依赖
+
+```xml
+<dependencies>
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-web</artifactId>
+    </dependency>
+
+    <dependency>
+        <groupId>org.springframework.cloud</groupId>
+        <artifactId>spring-cloud-starter-sleuth</artifactId>
+    </dependency>
+    <dependency>
+        <groupId>org.springframework.cloud</groupId>
+        <artifactId>spring-cloud-starter-openfeign</artifactId>
+    </dependency>
+
+    <dependency>
+        <groupId>org.projectlombok</groupId>
+        <artifactId>lombok</artifactId>
+    </dependency>
+</dependencies>
+```
+
+创建项目核心配置文件
+
+```yml
+server:
+  port: 8080
+spring:
+  application:
+    name: sleuth-consumer
+```
+
+创建启动类
+
+### 3.2. RestTemplate 服务调用方式跟踪
+
+#### 3.2.1. 代码实现
+
+1. 在配置类中创建 RestTemplate Bean
+
+```java
+@Configuration
+public class ConsumerConfig {
+
+    // 创建 RestTemplate
+    @Bean
+    public RestTemplate restTemplate() {
+        return new RestTemplate();
+    }
+}
+```
+
+2. 创建测试接口，通过 RestTemplate 调用接口
+
+```java
+@Slf4j
+@RestController
+public class RestTemplateController {
+    // 引入 RestTemplate
+    @Autowired
+    private RestTemplate restTemplate;
+
+    @GetMapping("/testByRestTemplate")
+    public String testByRestTemplate() {
+        // 使用 RestTemplate 服务调用
+        String result = restTemplate.getForObject("http://localhost:8081/hello", String.class);
+        // 输出日志
+        log.info("testByRestTemplate result: {}", result);
+        return result;
+    }
+}
+```
+
+#### 3.2.2. 测试
+
+启动服务，访问服务调用者的接口 `http://127.0.0.1:8080/testByRestTemplate`
+
+服务提供者日志输出：
+
+![](images/323295222248975.png)
+
+服务调用者日志输出：
+
+![](images/122045222230549.png)
+
+验证结果：consumer 与 provider 都输出 sleuth 结构的日志，Sleuth 可以正常跟踪 RestTemplate。
+
+### 3.3. Feign 服务调用方式跟踪
+
+#### 3.3.1. 代码实现
+
+1. 在配置类或者启动类中使用 `@EnableFeignClients` 注解开启 Feign 支持
+2. 创建 FeignClient 接口
+
+```java
+@FeignClient(name = "sleuth-provider", url = "localhost:8081")
+public interface HelloService {
+    @RequestMapping("/hello")
+    String hello();
+}
+```
+
+3. 创建测试接口，通过 Feign 调用接口
+
+```java
+@Slf4j
+@RestController
+public class FeignController {
+    // 引入 FeignClient 接口
+    @Autowired
+    private HelloService helloService;
+
+    @GetMapping("/testByFeign")
+    public String testByFeign() {
+        // Feign 服务调用
+        String result = helloService.hello();
+        // 输出日志
+        log.info("testByFeign result: {}", result);
+        return result;
+    }
+}
+```
+
+#### 3.3.2. 测试
+
+启动服务，访问服务调用者的接口 `http://127.0.0.1:8080/testByFeign`
+
+服务提供者日志输出：
+
+![](images/318141123257008.png)
+
+服务调用者日志输出：
+
+![](images/182941123236842.png)
+
+验证结果：consumer 与 provider 都输出 sleuth 结构的日志，Sleuth 可以正常跟踪 Feign 调用方式。
+
+### 3.4. 多线程调用方式跟踪
+
+#### 3.4.1. 代码实现
+
+通过线程池开启线程，在线程任务中通过 Feign 进行远程调用。
+
+```java
+@Slf4j
+@RestController
+public class ThreadController {
+
+    @Autowired
+    private HelloService helloService;
+
+    // 创建线程池
+    private final ExecutorService executorService = Executors.newFixedThreadPool(1);
+
+    @GetMapping("/testByThread")
+    public String testByThread() throws ExecutionException, InterruptedException {
+        Future<String> future = executorService.submit(() -> {
+            log.info("in thread");
+            return helloService.hello();
+        });
+        // 获取结果
+        String result = future.get();
+        log.info("thread result: {}", result);
+        return result;
+    }
+}
+```
+
+#### 3.4.2. 测试
+
+启动服务，访问服务调用者的接口 `http://localhost:8080/testByThread`
+
+服务调用者日志输出：
+
+![](images/162262322230551.png)
+
+验证结果：consumer 线程内输出无 sleuth 结构的日志，Sleuth 不能正常跟踪 Thread 线程内调用服务的方式！
+
+#### 3.4.3. 正常跟踪线程内调用服务的解决方法
+
+使用 Sleuth 提供的可跟踪的线程池服务 `org.springframework.cloud.sleuth.instrument.async.TraceableExecutorService`。对上面示例进行改造：
+
+在配置类中，定义可跟踪的线程服务
+
+```java
+@Configuration
+public class ConsumerConfig {
+
+    @Autowired
+    private BeanFactory beanFactory;
+
+    // 定义可跟踪的线程服务
+    @Bean
+    public ExecutorService executorService(){
+        ExecutorService executorService = Executors.newFixedThreadPool(1);
+        return new TraceableExecutorService(this.beanFactory, executorService);
+    }
+}
+```
+
+修改测试接口类，注入 sleuth 可跟踪的线程池服务即可
+
+```java
+@Autowired
+private ExecutorService executorService;
+```
+
+启动服务进行测试，结果如下：
+
+![](images/121395022248977.png)
+
+线程内的日志也正常输出 sleuth 结构的日志，说明能正常跟踪。
+
+## 4. Sleuth 进阶用法
+
+### 4.1. Sleuth TraceFilter
+
+#### 4.1.1. 简介
+
+Sleuth 对服务的调用链进行跟踪时，会在服务间传递跟踪数据，例如 Span 信息。而通过 tracefilter（过滤拦截 Span 信息） 和 baggage（包裹，key/value 对） 可以实现传递一些自定义的信息。
+
+整体流程图：
+
+![](images/228903819248979.jpg)
+
+#### 4.1.2. 基础使用步骤
+
+1. 服务消费者创建 filter 继承 `org.springframework.web.filter.GenericFilterBean` 重写 `doFilter` 方法，在过滤方法中使用 `ExtraFieldPropagation` 工具方法封装包裹（信息）。
+
+```java
+@Component
+public class MyTraceFilter extends GenericFilterBean {
+    // 过滤方法
+    @Override
+    public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain chain) throws IOException, ServletException {
+        // 1. 从 request 中取出 header
+        HttpServletRequest request = (HttpServletRequest) servletRequest;
+        String baggageId = request.getHeader("BaggageId");
+        // 2. 封装包裹
+        ExtraFieldPropagation.set("BaggageId", baggageId);
+        // 3. 放行
+        chain.doFilter(servletRequest, servletResponse);
+    }
+}
+```
+
+2. 服务提供者编写测试接口，使用 `ExtraFieldPropagation` 工具方法拆开获取包裹（信息）
+
+```java
+@GetMapping("/testTraceFilter")
+public String testTraceFilter() {
+    // 在 Sleuth 中取出包裹
+    return "hi " + ExtraFieldPropagation.get("BaggageId");
+}
+```
+
+3. 服务消费者与提供者均配置传递的包裹 ID。注意消费者与提供者的包裹ID要一致。
+
+```yml
+spring:
+  application:
+    name: xxx # 服务名称
+  sleuth:
+    baggage-keys: # 配置 Sleuth TraceFilter 传递的包裹ID
+      - BaggageId
+```
+
+4. 服务消费者远程调用服务接口（通过 Feign 调用，在 FeignClient 接口新增相应的方法即可）
+
+```java
+@GetMapping("/testTraceFilter")
+public String testTraceFilter() {
+    return productFeignClient.testTraceFilter();
+}
+```
+
+测试结果：
+
+![](images/275771322230553.png)
 
 ## 5. 客户端 Zipkin + Sleuth 整合（基于http方式收集数据）
 
-结合 zipkin 可以很直观地显示微服务之间的调用关系。ZipKin 客户端和 Sleuth 的集成非常简单，只需要在微服务中添加其依赖和配置即可。
+Sleuth 是做调用链信息采集的，可以结合 zipkin 用来收集系统的时序数据，可以很直观地显示微服务之间的调用关系。ZipKin 客户端和 Sleuth 的集成非常简单，只需要在微服务中添加其依赖和配置即可。
+
+> Zipkin 的部署安装与使用详见[《Zipkin 笔记》](/分布式微服务/分布式链路追踪/Zipkin)
 
 ### 5.1. 客户端添加依赖
 
@@ -177,9 +510,11 @@ java -jar zipkin-server-2.22.0-exec.jar
 </dependency>
 ```
 
+> Tips: 整合 zipkin 依赖 spring-cloud-starter-zipkin 已包含基础示例依赖 spring-cloud-starter-sleuth，可以移除。
+
 ### 5.2. 修改客户端配置文件
 
-修改需要被追踪的微服务的 application.ym l配置文件。*所有示例项目的网关、订单、商品服务都需要修改配置文件*
+修改需要被追踪的微服务的 application.yml 配置文件。*所有示例项目的网关、订单、商品服务都需要修改配置文件*
 
 ```yml
 spring:
@@ -211,9 +546,9 @@ spring:
 
 ![](images/20201113090926521_26943.png)
 
-### 5.4. 默认Zipkin数据采集方式存在的问题
+### 5.4. 默认 Zipkin 数据采集方式存在的问题
 
-在默认情况下，zipkin数据采集有如下特点：
+在默认情况下，zipkin 数据采集有如下特点：
 
 1. zipkin 采集到的数据是保存在内存中
 2. Zipkin 客户端和 Server 之间是使用 HTTP 请求的方式进行通信（即同步的请求方式，会拖慢核心业务的处理时间）
@@ -223,17 +558,22 @@ spring:
 1. 当服务出现异常或者宕机的情况，存储在内存的数据就会出现丢失
 2. 在出现网络波动时，Server 端异常等情况下可能存在信息收集不及时的问题。
 
-## 6. 跟踪数据的存储
+## 6. Zipkin 跟踪数据的存储
 
-Zipkin Server 默认时间追踪数据信息保存到内存，这种方式不适合生产环境。因为一旦 Service 关闭重启或者服务崩溃，就会导致历史数据消失。Zipkin 支持将追踪数据持久化到 mysql 数据库或者存储到 elasticsearch 中。*这里示例以mysql为例*
+Zipkin 支持的数据存储方式：
+
+1. In-Memory 默认追踪数据信息保存到内存，这种方式不适合生产环境。因为一旦 Service 关闭重启或者服务崩溃，就会导致历史数据消失。
+2. Cassandra（熟悉度低）
+3. Elasticsearch（熟悉度高，分布式，高性能，适合）
+4. MySQL（熟悉度高，性能不高）
 
 ### 6.1. 追踪数据存储到 MySQL 数据库
 
 #### 6.1.1. 准备存储跟踪数据的数据库
 
-创建zipkin持久化相应数据库表sql脚本位置：`spring-cloud-note\spring-cloud-greenwich-sample\document\sql\zipkin_db.sql`
+创建 zipkin 持久化相应数据库表 sql 脚本位置：`spring-cloud-note\document\sql\zipkin_db.sql`
 
-> 可以从官网找到Zipkin Server持久mysql的数据库脚本。脚本地址：https://github.com/openzipkin/zipkin/blob/master/zipkin-storage/mysql-v1/src/main/resources/mysql.sql
+> 可以从官网找到 Zipkin Server 持久 mysql 的数据库脚本。脚本地址：https://github.com/openzipkin/zipkin/blob/master/zipkin-storage/mysql-v1/src/main/resources/mysql.sql
 
 ```sql
 --
@@ -325,18 +665,23 @@ java -jar zipkin-server-2.22.0-exec.jar --STORAGE_TYPE=mysql --MYSQL_HOST=127.0.
 
 ### 6.2. 追踪数据存储到 ElasticSearch
 
-- 下载 elasticsearch。[下载地址](https://www.elastic.co/cn/downloads/past-releases/elasticsearch-6-8-4)
-- 启动 elasticsearch
+1. 下载 elasticsearch。[下载地址](https://www.elastic.co/cn/downloads/past-releases/elasticsearch-6-8-4)
+2. 启动 elasticsearch
 
 ![](images/20220105224357656_3122.png)
 
-- 在启动 ZipKin Server 的时候，指定数据保存的 elasticsearch 的信息
+3. 在启动 ZipKin Server 的时候，指定数据保存的 elasticsearch 的信息
 
 ```bash
 java -jar zipkin-server-2.23.16-exec.jar --STORAGE_TYPE=elasticsearch --ES_HOST=http://localhost:9200
 ```
 
-- 发送请求测试后，通过 head 界面观察是否产生相关索引
+参数说明：
+
+- `STORAGE_TYPE`：指定存储类型
+- `ES_HOSTS`：指定 Elasticsearch 的地址，多个地址用 `,` 分隔
+
+4. 发送请求测试后，通过 head 界面观察是否产生相关索引
 
 ![](images/111214719231886.png)
   
@@ -356,11 +701,15 @@ zipkin-dependencies 下载地址：https://github.com/openzipkin/zipkin-dependen
 java -DSTORAGE_TYPE=elasticsearch -DES_HOSTS=http://localhost:9200 -jar zipkin-dependencies-x.x.x.jar
 ```
 
-**值得注意的是：zipkin-dependencies 不是服务而是一个程序，不会持续运行，运行一次即结束。若想让它能够持续运行，需要自己编写定时脚本或定时任务实现。**
+**值得注意的是：zipkin-dependencies 不是服务而是一个程序，不会持续运行，运行一次即结束。若想让它能够持续运行，需要自己编写定时脚本或定时任务实现**。每次启动分析一次分析的粒度为天，如不指定日期，默认为当天，指定日期运行
+
+```bash
+STORAGE_TYPE=elasticsearch ES_HOSTS=localhost:9200 java -jar zipkin-dependencies-x.jar 2020-06-01
+```
 
 ## 7. 基于消息中间件收集数据
 
-Zipkin支持与rabbitMQ整合完成异步消息传输。加了MQ之后，通信过程如下图所示：
+Zipkin 支持与 rabbitMQ 整合完成异步消息传输。加了 MQ 之后，通信过程如下图所示：
 
 ![](images/20201113091547938_16673.png)
 
@@ -368,7 +717,7 @@ Zipkin支持与rabbitMQ整合完成异步消息传输。加了MQ之后，通信�
 
 要使用消息中间件实现收集数据传输，需要准备MQ的服务。*此示例使用RabbitMQ*
 
-> 更多RabbitMQ的内容详见：[《RabbitMQ》笔记](/分布式微服务/分布式消息中件间/RabbitMQ)
+> 更多 RabbitMQ 的内容详见：[《RabbitMQ》笔记](/分布式微服务/分布式消息中件间/RabbitMQ)
 
 ### 7.2. 服务端启动
 
@@ -397,21 +746,12 @@ java -jar zipkin-server-2.22.0-exec.jar --RABBIT_ADDRESSES=192.168.12.132:5672
 修改需要被追踪的微服务添加zipkin整合sleuth、rabbitmq的依赖。*所以示例项目的网关、订单、商品服务都需要添加依赖*
 
 ```xml
-<!-- sleuth链路追踪依赖 -->
-<dependency>
-    <groupId>org.springframework.cloud</groupId>
-    <artifactId>spring-cloud-starter-sleuth</artifactId>
-</dependency>
-<!-- zipkin 依赖 -->
+<!-- zipkin 整合 sleuth 依赖
+    spring-cloud-starter-zipkin 依赖已包含 spring-cloud-starter-sleuth 与 spring-cloud-sleuth-zipkin
+-->
 <dependency>
     <groupId>org.springframework.cloud</groupId>
     <artifactId>spring-cloud-starter-zipkin</artifactId>
-</dependency>
-
-<!-- zipkin整合sleuth依赖 -->
-<dependency>
-    <groupId>org.springframework.cloud</groupId>
-    <artifactId>spring-cloud-sleuth-zipkin</artifactId>
 </dependency>
 <!-- RabbitMQ 依赖 -->
 <dependency>
@@ -421,8 +761,6 @@ java -jar zipkin-server-2.22.0-exec.jar --RABBIT_ADDRESSES=192.168.12.132:5672
 ```
 
 导入 `spring-rabbit` 依赖，是Spring提供的对RabbitMQ的封装，客户端会根据配置自动的生产消息并发送到目标队列中
-
-> 注：如果前面两个依赖已经存在，则不需要重复添加依赖
 
 #### 7.3.2. 配置消息中间件地址等信息
 

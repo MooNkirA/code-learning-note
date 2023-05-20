@@ -4,13 +4,13 @@
     ],
     "folders": [
         {
-            "name": "基础语法01-HTML"
+            "name": "HTML"
         },
         {
-            "name": "基础语法02-CSS"
+            "name": "CSS"
         },
         {
-            "name": "基础语法03-JavaScript"
+            "name": "JavaScript"
         },
         {
             "name": "Vue"

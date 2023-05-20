@@ -1,8 +1,6 @@
-# Dubbo源码分析
+## 1. dubbo 源码构建
 
-## 1. 源码构建
-
-dubbo源码仓库：https://github.com/apache/dubbo/
+> dubbo源码仓库：https://github.com/apache/dubbo/
 
 Dubbo 使用 maven 作为构建工具。下载源码后，使用以下命令进行构建：
 

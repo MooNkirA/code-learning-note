@@ -1,10 +1,8 @@
-# Swagger 接口文档工具
+## 1. Swagger 接口文档工具简介
 
 > Swagger 官网：https://swagger.io/
 
-## 1. Swagger 简介
-
-OpenAPI规范（OpenAPI Specification 简称OAS）是Linux基金会的一个项目，试图通过定义一种用来描述API格式或API定义的语言，来规范RESTful服务开发过程，目前版本是V3.0，并且已经发布并开源在github上。（https://github.com/OAI/OpenAPI-Specification）
+OpenAPI规范（OpenAPI Specification 简称OAS）是Linux基金会的一个项目，试图通过定义一种用来描述API格式或API定义的语言，来规范RESTful服务开发过程，目前版本是V3.0，并且已经发布并开源在github上。https://github.com/OAI/OpenAPI-Specification
 
 Swagger 是全球最大的 OpenAPI 规范（OAS）API开发工具框架，支持从设计和文档到测试和部署的整个API生命周期的开发。
 

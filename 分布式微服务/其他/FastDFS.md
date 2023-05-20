@@ -1,5 +1,3 @@
-# FastDFS 分布式文件系统
-
 ## 1. 分布式文件系统概述
 
 ### 1.1. 技术应用场景
@@ -77,19 +75,19 @@
 2. 七牛云存储
 3. 百度云存储
 
-## 2. 什么是fastDFS
-### 2.1. fastDFS 介绍
+## 2. FastDFS 分布式文件系统概述
 
-FastDFS是用c语言编写的一款开源的分布式文件系统，它是由淘宝资深架构师余庆编写并开源。FastDFS专为互联网量身定制，充分考虑了冗余备份、负载均衡、线性扩容等机制，并注重高可用、高性能等指标，使用FastDFS很容易搭建一套高性能的文件服务器集群提供文件上传、下载等服务。
+### 2.1. FastDFS 是什么
 
-为什么要使用fastDFS呢？
+FastDFS 是用C语言编写的一款开源的分布式文件系统，它是由淘宝资深架构师余庆编写并开源。FastDFS专为互联网量身定制，充分考虑了冗余备份、负载均衡、线性扩容等机制，并注重高可用、高性能等指标，使用FastDFS很容易搭建一套高性能的文件服务器集群提供文件上传、下载等服务。
 
-上边介绍的NFS、GFS都是通用的分布式文件系统，通用的分布式文件系统的优点的是开发体验好，但是系统复杂性高、性能一般，而专用的分布式文件系统虽然开发体验性差，但是系统复杂性低并且性能高。fastDFS非常适合存储图片等那些小文件，fastDFS不对文件进行分块，所以它就没有分块合并的开销，fastDFS网络通信采用socket，通信速度很快。
+为什么要使用 fastDFS 呢？
 
-### 2.2. fastDFS 工作原理
-#### 2.2.1. fastDFS 架构
+上边介绍的 NFS、GFS 都是通用的分布式文件系统，通用的分布式文件系统的优点的是开发体验好，但是系统复杂性高、性能一般，而专用的分布式文件系统虽然开发体验性差，但是系统复杂性低并且性能高。fastDFS 非常适合存储图片等那些小文件，fastDFS 不对文件进行分块，所以它就没有分块合并的开销，fastDFS 网络通信采用 socket，通信速度很快。
 
-FastDFS架构包括 Tracker server和Storageserver。客户端请求Tracker server进行文件上传、下载，通过Tracker server调度最终由Storage server完成文件上传和下载。
+### 2.2. fastDFS 架构
+
+FastDFS 架构包括 Tracker server 和 Storage server。客户端请求 Tracker server 进行文件上传、下载，通过 Tracker server 调度最终由 Storage server 完成文件上传和下载。
 
 ![fastDFS 架构图](images/20190802183838576_16983.png)
 
@@ -103,7 +101,7 @@ FastDFS架构包括 Tracker server和Storageserver。客户端请求Tracker serv
 3. **Storage状态收集**
     - Storage server会连接集群中所有的Tracker server，定时向他们报告自己的状态，包括磁盘剩余空间、文件同步状况、文件上传下载次数等统计信息
 
-#### 2.2.2. 文件上传流程
+### 2.3. 文件上传流程
 
 - 文件上传流程如下图（时序图）
 
@@ -116,7 +114,7 @@ FastDFS架构包括 Tracker server和Storageserver。客户端请求Tracker serv
 - **数据两级目录**：storage服务器在每个虚拟磁盘路径下创建的两级目录，用于存储数据文件。两级目录的范围都是 00~FF
 - **文件名**：与文件上传时不同。是由存储服务器根据特定信息生成，文件名包含：源存储服务器IP地址、文件创建时间戳、文件大小、随机数和文件拓展名等信息。
 
-#### 2.2.3. 文件下载流程
+### 2.4. 文件下载流程
 
 - 文件下载流程图
 
@@ -128,6 +126,7 @@ FastDFS架构包括 Tracker server和Storageserver。客户端请求Tracker serv
     2. 存储服务器根据“文件存储虚拟磁盘路径”和“数据文件两级目录”可以很快定位到文件所在目录，并根据文件名找到客户端需要访问的文件
 
 ## 3. fastDFS 入门
+
 ### 3.1. fastDFS 安装与配置
 
 对fastDFS的安装过程参考资料：\07-编程工具资料\03-Java相关框架+源代码\FastDFS【分布式文件系统】\分布式文件系统研究.zip。资料中提供已经安装好的虚拟镜像，也有linux系统下安装fastDFS的文档
@@ -441,17 +440,14 @@ public void testDownload() {
 ```
 
 ### 3.3. 搭建图片虚拟主机(!此部分按学成项目的资料暂未实现，但项目2的资料可以实现)
-#### 3.3.1. 在storage上安装Nginx
+
+#### 3.3.1. 在 storage 上安装 Nginx
 
 在 storage server 上安装 nginx 的目的是对外通过 http 访问 storage server 上的文 件。使用 nginx 的模块 FastDFS-nginx-module 的作用是通过 http 方式访问 storage 中 的文件，当 storage 本机没有要找的文件时向源 storage 主机代理请求文件。
 
-在storage上安装nginx（安装FastDFS-nginx-module模块）。具体操作参考：\07-编程工具资料\03-Java相关框架+源代码\FastDFS【分布式文件系统】\分布式文件系统研究\fastDFS安装\FastDFS安装教程.pdf
+在 storage 上安装 nginx（安装FastDFS-nginx-module模块）。具体操作参考：\07-编程工具资料\03-Java相关框架+源代码\FastDFS【分布式文件系统】\分布式文件系统研究\fastDFS安装\FastDFS安装教程.pdf
 
-安装完成启动storage上的nginx
-
-```bash
-
-```
+安装完成启动 storage 上的 nginx
 
 ## 4. 总结
 

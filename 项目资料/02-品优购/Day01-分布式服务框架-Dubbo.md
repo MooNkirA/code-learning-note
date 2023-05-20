@@ -1,5 +1,3 @@
-# Day01 分布式服务框架-Dubbo
-
 ## 1. 电商行业技术特点
 
 - 技术新
@@ -100,25 +98,25 @@ SOA是Service-Oriented Architecture的首字母简称，它是一种支持面向
 
 ### 3.3. 数据库表结构
 
-|         表名称          |             含义             |
-| :---------------------: | :--------------------------: |
-|        tb_brand         |             品牌             |
-|    tb_specification     |             规格             |
-| tb_specification_option |           规格选项           |
+|          表名称          |           含义           |
+| :---------------------: | :----------------------: |
+|        tb_brand         |           品牌           |
+|    tb_specification     |           规格           |
+| tb_specification_option |         规格选项          |
 |    tb_type_template     | 类型模板：用于关联品牌和规格 |
-|       tb_item_cat       |           商品分类           |
-|        tb_seller        |             商家             |
-|        tb_goods         |             商品             |
-|      tb_goods_desc      |           商品详情           |
-|         tb_item         |           商品明细           |
-|       tb_content        |         内容（广告）         |
-|   tb_content_category   |       内容（广告）类型       |
-|         tb_user         |             用户             |
-|        tb_order         |             订单             |
-|      tb_order_item      |           订单明细           |
-|       tb_pay_log        |           支付日志           |
-|    tb_seckill_goods     |           秒杀商品           |
-|    tb_seckill_order     |           秒杀订单           |
+|       tb_item_cat       |         商品分类          |
+|        tb_seller        |           商家           |
+|        tb_goods         |           商品           |
+|      tb_goods_desc      |         商品详情          |
+|         tb_item         |         商品明细          |
+|       tb_content        |        内容（广告）        |
+|   tb_content_category   |      内容（广告）类型      |
+|         tb_user         |           用户           |
+|        tb_order         |           订单           |
+|      tb_order_item      |         订单明细          |
+|       tb_pay_log        |         支付日志          |
+|    tb_seckill_goods     |         秒杀商品          |
+|    tb_seckill_order     |         秒杀订单          |
 
 ### 3.4. 框架组合
 
@@ -129,83 +127,24 @@ SOA是Service-Oriented Architecture的首字母简称，它是一种支持面向
 
 ## 4. Dubbo 框架
 
-### 4.1. RPC框架
+### 4.1. Dubbo 简介
 
-#### 4.1.1. 什么是RPC
+Dubbo 是一个分布式服务框架，是阿里巴巴开源项目Dubbo，被国内电商及互联网项目中使用。
 
-RPC（Remote Procedure Call Protocol）远程过程调用协议，它是一种通过网络从远程计算机程序上请求服务，而不需要了解底层网络技术的协议。简言之，RPC使得程序能够像访问本地系统资源一样，去访问远端系统资源。比较关键的一些方面包括：通讯协议、序列化、资源（接口）描述、服务框架、性能、语言支持等。
+> 更多内容详见[《Dubbo 基础》笔记](/分布式微服务/Dubbo/Dubbo-基础)
 
-简单的说，**RPC就是从一台机器(客户端)上通过参数传递的方式调用另一台机器(服务器)上的一个函数或方法(可以统称为服务)并得到返回的结果。**
+### 4.2. Zookeeper注册中心（Dubbo推荐使用）
 
-#### 4.1.2. RPC架构组件
+#### 4.2.1. Zookeeper 介绍
 
-一个基本的RPC架构里面应该至少包含以下4个组件：
+Dubbo 官方推荐使用 zookeeper 注册中心。注册中心负责服务地址的注册与查找，相当于目录服务，服务提供者和消费者只在启动时与注册中心交互，注册中心不转发请求，压力较小。
 
-1. **客户端（Client）**：服务调用方（服务消费者）
-2. **客户端存根（Client Stub）**：存放服务端地址信息，将客户端的请求参数数据信息打包成网络消息，再通过网络传输发送给服务端
-3. **服务端存根（Server Stub）**：接收客户端发送过来的请求消息并进行解包，然后再调用本地服务进行处理
-4. **服务端（Server）**：服务的真正提供者
+Zookeeper 是 Apacahe Hadoop 的子项目，是一个树型的目录服务，支持变更推送，适合作为 Dubbo 服务的注册中心，工业强度较高，可用于生产环境。**一句话总结：zookeeper = 文件系统 + 监听通知机制**
 
-![RPC实现流程](images/20190409084601897_15104.jpg)
+- **文件系统**：每个目录节点都可以存储数据
+- **监听通知机制**：客户端注册监听它关心的目录节点，当目录节点发生变化（数据改变、被删除、子目录节点增加删除）时，zookeeper 会通知客户端
 
-具体调用过程：
-
-1. 服务消费者（client客户端）通过调用本地服务的方式调用需要消费的服务；
-2. 客户端存根（client stub）接收到调用请求后负责将方法、入参等信息序列化（组装）成能够进行网络传输的消息体；
-3. 客户端存根（client stub）找到远程的服务地址，并且将消息通过网络发送给服务端；
-4. 服务端存根（server stub）收到消息后进行解码（反序列化操作）；
-5. 服务端存根（server stub）根据解码结果调用本地的服务进行相关处理；
-6. 本地服务执行具体业务逻辑并将处理结果返回给服务端存根（server stub）；
-7. 服务端存根（server stub）将返回结果重新打包成消息（序列化）并通过网络发送至消费方；
-8. 客户端存根（client stub）接收到消息，并进行解码（反序列化）；
-9. 服务消费方得到最终结果；
-
-而RPC框架的实现目标则是将上面的第2-10步完好地封装起来，也就是把调用、编码/解码的过程给封装起来，让用户感觉上像调用本地服务一样的调用远程服务。
-
-#### 4.1.3. RPC的实现原理架构图
-
-![RPC的实现原理架构图](images/20190409090340345_9140.jpg)
-
-### 4.2. Dubbo简介
-
-Dubbo是一个分布式服务框架，是阿里巴巴开源项目Dubbo，被国内电商及互联网项目中使用。
-
-Dubbo 致力于提供高性能和透明化的RPC远程服务调用方案，以及SOA服务治理方案。简单的说，dubbo就是个服务框架，如果没有分布式的需求，其实是不需要用的，只有在分布式的时候，才有dubbo这样的分布式服务框架的需求，并且本质上是个服务调用，就是个远程服务调用的分布式框架。
-
-官网地址：
-
-- http://dubbo.io/
-- http://dubbo.apache.org
-
-### 4.3. Dubbo架构图
-
-![dubbo架构图](images/20181202171051700_5151.jpg)
-
-- 节点角色说明：
-    - Provider: 暴露服务的服务提供方。
-    - Consumer: 调用远程服务的服务消费方。
-    - Registry: 服务注册与发现的注册中心。
-    - Monitor: 统计服务的调用次数和调用时间的监控中心。
-    - Container: 服务运行容器。
-- 调用关系说明：
-	0. 服务容器负责启动，加载，运行服务提供者。
-	1. 服务提供者在启动时，向注册中心注册自己提供的服务。
-	2. 服务消费者在启动时，向注册中心订阅自己所需的服务。
-	3. 注册中心返回服务提供者地址列表给消费者，如果有变更，注册中心将基于长连接推送变更数据给消费者。
-	4. 服务消费者，从提供者地址列表中，基于软负载均衡算法，选一台提供者进行调用，如果调用失败，再选另一台调用。
-	5. 服务消费者和提供者，在内存中累计调用次数和调用时间，定时每分钟发送一次统计数据到监控中心。
-
-### 4.4. Zookeeper注册中心（Dubbo推荐使用）
-
-#### 4.4.1. Zookeeper介绍
-
-- 官方推荐使用 zookeeper 注册中心。注册中心负责服务地址的注册与查找，相当于目录服务，服务提供者和消费者只在启动时与注册中心交互，注册中心不转发请求，压力较小。
-- Zookeeper 是 Apacahe Hadoop 的子项目，是一个树型的目录服务，支持变更推送，适合作为 Dubbo 服务的注册中心，工业强度较高，可用于生产环境。
-- **一句话总结：zookeeper = 文件系统 + 监听通知机制**
-    - **文件系统**：每个目录节点都可以存储数据
-    - **监听通知机制**：客户端注册监听它关心的目录节点，当目录节点发生变化（数据改变、被删除、子目录节点增加删除）时，zookeeper会通知客户端
-
-#### 4.4.2. Linux系统安装Zookeeper
+#### 4.2.2. Linux 系统安装 Zookeeper
 
 - 安装参考：【资料\zookeeper\Linux安装zookeeper.docx】
 - 下载地址：http://www.apache.org/dyn/closer.cgi/zookeeper
@@ -266,9 +205,7 @@ cd /usr/local/dubbo-zookeeper/bin
 
 ![启动与查看状态](images/20181202183539212_28418.jpg)
 
-6. 开放2181端口
-
-zookeeper使用2181端口号，为了能对外正常使用zookeeper，需要开放2181端口号，或者关闭防火墙
+6. 开放 2181 端口: zookeeper 使用 2181端口号，为了能对外正常使用zookeeper，需要开放 2181 端口号，或者关闭防火墙
 
 ```cmd
 # 对外开放2181端口
@@ -291,36 +228,36 @@ systemctl stop firewalld.service
 systemctl disable firewalld.service
 ```
 
-### 4.5. Dubbo监控中心
+### 4.3. Dubbo 监控中心
 
 在开发时，需要知道注册中心都注册了哪些服务，以便我们开发和测试。我们可以通过部署一个管理中心来实现。其实管理中心就是一个web应用，部署到tomcat即可。
 
-#### 4.5.1. 监控中心安装
+#### 4.3.1. 监控中心安装
 
 1. 编译源码，得到war包
     - dubbo-2.5.7.zip是dubbo的源码，可以使用maven命令编译源码得到“管理端”的war包
     - 将此压缩包解压，在命令符下进入dubbo-admin目录，输入maven命令：`mvn package -Dmaven.skip.test=true`
 2. 进入target文件夹，有dubbo-admin-2.5.7.war，在linux服务器上安装tomcat，将此war包上传到linux服务器的tomcat的webapps下。
 
-#### 4.5.2. Linux部署dubbo监控中心
+#### 4.3.2. Linux 部署 dubbo 监控中心
 
 部署监控中心参考：【`资料\dubbo\安装部署dubbo的监控中心monitor.docx`】
 
-安装apache-tomcat-8.5.28.tar.gz版本
+安装 apache-tomcat-8.5.28.tar.gz 版本
 
-1. 安装tomcat，部署dubbo-admin-2.5.7.war
+1. 安装 tomcat，部署 dubbo-admin-2.5.7.war
 
-```cmd
+```bash
 cd /usr/local
 
 mkdir web && cd web
 
-使用rz 上传apache-tomcat-8.5.28.tar.gz
+使用 rz 上传 apache-tomcat-8.5.28.tar.gz
 
 tar -xzvf apache-tomcat-8.5.28.tar.gz
 rm -rf apache-tomcat-8.5.28.tar.gz
 
-#重命名
+# 重命名
 mv apache-tomcat-8.5.28 tomcat-dubbo-monitor
 
 cd tomcat-dubbo-monitor/webapps
@@ -329,16 +266,17 @@ rm -rf *
 
 mkdir ROOT && cd ROOT
 
-使用rz 上传dubbo-admin-2.5.7.war
+使用 rz 上传 dubbo-admin-2.5.7.war
 
+# 解压 dubbo-admin
 jar -xvf dubbo-admin-2.5.7.war
-
+# 删除 war 包
 rm -f dubbo-admin-2.5.7.war
 ```
 
 2. 修改 WEB-INF/dubbo.properties属性文件
 
-```cmd
+```bash
 cd  WEB-INF
 
 vi dubbo.properties
@@ -353,18 +291,22 @@ cd /usr/local/web/tomcat-dubbo-monitor/bin
 
 ![修改dubbo注册地址](images/20181202184427911_26478.jpg)
 
-3. 开放8080端口
+3. 开放 8080 端口：tomcat 使用 8080 端口号，为了能对外正常使用 tomcat，需要开放 8080 端口号，或者关闭防火墙
 
-tomcat使用8080端口号，为了能对外正常使用tomcat，需要开放8080端口号，或者关闭防火墙
-
-```cmd
+```bash
 # 对外开放8080端口
 firewall-cmd --zone=public --add-port=8080/tcp --permanent
+```
 
-–zone：作用域
-–add-port=8080/tcp：添加端口，格式为：端口/通讯协议
-–permanent：永久生效，没有此参数重启后失效
+命令参数说明：
 
+- `–zone`：作用域
+- `–add-port=8080/tcp`：添加端口，格式为：端口/通讯协议
+- `–permanent`：永久生效，没有此参数重启后失效
+
+关闭防火墙：
+
+```bash
 #重启防火墙
 firewall-cmd --reload
 
@@ -378,11 +320,11 @@ systemctl stop firewalld.service
 systemctl disable firewalld.service
 ```
 
-#### 4.5.3. 登录监控中心
+#### 4.3.3. 登录监控中心
 
 打开浏览器，输入http://192.168.12.131:8080，登录用户名和密码均为root进入首页。 (192.168.12.131)是部署的linux主机地址。
 
-### 4.6. Dubbo框架使用小结
+### 4.4. Dubbo 框架使用小结（待整理）
 
 ```
 一、服务提供者(pinyougou-sellergoods-service)：
@@ -1538,21 +1480,20 @@ public class BrandController {
 
 1. 先将linux系统中的Zookeeper注册中心和dubbo服务开启
 2. 对linux快照（用于后期如果出现问题时恢复），每次将linux挂起，就不需要每次都开启以上两个服务
-3. 安装品优购所有模块：`pinyougou:  clean install`
+3. 安装品优购所有模块：`pinyougou: clean install`
 4. 启动两个工程（前面两个）：
     - `pinyougou-sellergoods  tomcat7:run`
     - `pinyougou-manager-web  tomcat7:run`
     - `pinyougou-shop-web     tomcat7:run`
 5. 在浏览器地址栏输入：http://localhost:9101/brand/findAll
 
-![dubbo测试1](images/20181215221555976_9853.jpg)
+![](images/20181215221555976_9853.jpg)
 
-![dubbo测试2](images/20181215221612853_621.jpg)
+![](images/20181215221612853_621.jpg)
 
-![dubbo测试3](images/20181215221637879_19214.jpg)
+![](images/20181215221637879_19214.jpg)
 
-![dubbo测试4](images/20181215221649120_29198.jpg)
-
+![](images/20181215221649120_29198.jpg)
 
 ## 6. 附录：常见错误
 
@@ -1575,4 +1516,4 @@ org.I0Itec.zkclient.exception.ZkTimeoutException: Unable to connect to zookeeper
 
 ## 7. Git版本控制（idea）
 
-参考[《Git 笔记 - 客户端使用篇》笔记](/DevOps/版本管理工具/Git-03-客户端)
+参考[《Git 笔记 - 客户端使用篇》笔记](/DevOps/版本管理工具/Git-客户端)

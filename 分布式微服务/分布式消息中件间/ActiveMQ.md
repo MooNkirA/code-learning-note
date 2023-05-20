@@ -1,8 +1,6 @@
-# ActiveMQ
-
-官网：https://activemq.apache.org/
-
 ## 1. ActiveMQ 简介
+
+> 官网：https://activemq.apache.org/
 
 ActiveMQ 是 Apache的开源消息总线，是一个完全支持 JMS1.1 和 j2EE14 规范的 JMS Provider 实现
 

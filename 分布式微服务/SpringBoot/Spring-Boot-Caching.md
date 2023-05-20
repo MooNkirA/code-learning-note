@@ -1,5 +1,3 @@
-# Spring Boot 缓存
-
 > 本笔记主要介绍 Spring Boot 使用缓存的各种解决方案。
 >
 > 代码示例：https://github.com/MooNkirA/spring-boot-note/tree/spring-boot-2.5.x-sample/spring-boot-2.5.x-sample/14-spring-boot-caching
@@ -556,7 +554,7 @@ memcached目录路径\memcached.exe -d stop  # 停止服务
 
 > 注：-m 512 意思是设置 memcached 最大的缓存配置为512M。还可以通过使用 `memcached目录路径\memcached.exe -h` 命令查看更多的参数配置。
 
-- 如需要卸载 memcached ，可以打开管理员权限的命令行，执行以下命令：
+- 如需要卸载 memcached，可以打开管理员权限的命令行，执行以下命令：
 
 ```bash
 memcached目录路径\memcached.exe -d uninstall

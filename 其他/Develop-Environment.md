@@ -33,7 +33,7 @@ cd /d D:\deployment\nacos\bin\
 startup.cmd -m standalone
 ```
 
-> 已配置使用本地mysql保存数据，保存的数据库是 `nacos`
+> 已配置使用本地mysql保存数据，保存的数据库是 `nacos`，需要启动 5.7 版本的 MySQL
 
 ### 1.3. Sentinel 分布式服务架构的流量控制组件（9898）
 

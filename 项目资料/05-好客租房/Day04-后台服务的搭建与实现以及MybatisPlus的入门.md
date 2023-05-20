@@ -69,7 +69,7 @@ chmod 777 /usr/haoke/mysql-data/
 
 在后台系统服务的开发过程中，必然要和数据库进行交互，在本项目中，ORM 这一层的技术选型采用 Mybatis 框架作为持久层框架。为了提升开发的效率，所以选用 MybatisPlus 作为 mybatis 的插件
 
-> MybatisPlus 快速入门示例与基本使用的笔记，详见[《MyBatis-Plus 基础笔记》](/后端框架/MyBatis/MyBatisPlus)
+> MybatisPlus 快速入门示例与基本使用的笔记，详见[《MyBatis-Plus 基础笔记》](/后端框架/MyBatis/MyBatis-Plus)
 
 ## 3. Lombok 工具包
 

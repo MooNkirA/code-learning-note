@@ -1,12 +1,10 @@
-# Spring Security
+## 1. Spring Security 概述
+
+Spring Security 是一个能够为基于 Spring 的企业应用系统提供声明式的安全访问控制解决方案的安全框架。由于它是 Spring 生态系统中的一员，因此它伴随着整个 Spring 生态系统不断修正、升级，在 spring boot 项目中加入 spring security 更是十分简单，使用 Spring Security 减少了为企业系统安全控制编写大量重复代码的工作。
 
 - 官网：https://spring.io/projects/spring-security
 - 官方源码仓库地址：https://github.com/spring-projects/spring-security
 - 官方示例仓库地址：https://github.com/spring-projects/spring-security-samples
-
-## 1. Spring Security 概述
-
-Spring Security 是一个能够为基于 Spring 的企业应用系统提供声明式的安全访问控制解决方案的安全框架。由于它是 Spring 生态系统中的一员，因此它伴随着整个 Spring 生态系统不断修正、升级，在 spring boot 项目中加入 spring security 更是十分简单，使用 Spring Security 减少了为企业系统安全控制编写大量重复代码的工作。
 
 ## 2. Spring Security 快速开始
 
@@ -175,7 +173,7 @@ public class WebConfig {
 
 在 init 包下创建 Spring 容器初始化类 `SpringApplicationInitializer`，此类实现 `WebApplicationInitializer` 接口，Spring 容器启动时加载 `WebApplicationInitializer` 接口的所有实现类。
 
-注：一般自定义的初始化类会继承抽象现实类 `org.springframework.web.servlet.support.AbstractAnnotationConfigDispatcherServletInitializer` ，它实现了 `WebApplicationInitializer` 接口。
+注：一般自定义的初始化类会继承抽象现实类 `org.springframework.web.servlet.support.AbstractAnnotationConfigDispatcherServletInitializer`，它实现了 `WebApplicationInitializer` 接口。
 
 ```java
 /**
@@ -453,7 +451,7 @@ Spring Boot 提供 spring-boot-starter-security 用于快速开发 Spring Securi
 
 创建 maven 工程 spring-security-boot-2.1.x，工程目录结构如下：
 
-
+> TODO: 待补充工程目录结构图
 
 引入依赖
 
@@ -786,7 +784,7 @@ protected void configure(HttpSecurity http) throws Exception {
 
 ![](images/369475915235852.png)
 
-问题原因：spring security 为防止 CSRF（Cross-site request forgery跨站请求伪造）的发生，限制了除了 get 以外的大多数方法。因为表单的提交是 post 请求
+问题原因：spring security 为防止 CSRF（Cross-site request forgery 跨站请求伪造）的发生，限制了除了 get 以外的大多数方法。因为表单的提交是 post 请求
 
 - 解决方法1：配置 Spring Security 安全配置类 `WebSecurityConfig`，屏蔽 CSRF 控制，即 spring security 不再限制 CSRF。
 
@@ -1026,12 +1024,12 @@ public class LoginController {
 
 可以通过以下选项准确控制会话何时创建以及 Spring Security 如何与之交互：
 
-|     机制      |                                                描述                                                 |
-| :----------: | -------------------------------------------------------------------------------------------------- |
-|   `always`   | 如果没有 session 存在就创建一个                                                                       |
-| `ifRequired` | 如果需要就创建一个 Session（默认）登录时                                                              |
+|     机制      |                                               描述                                               |
+| :----------: | ----------------------------------------------------------------------------------------------- |
+|   `always`   | 如果没有 session 存在就创建一个                                                                     |
+| `ifRequired` | 如果需要就创建一个 Session（默认）登录时                                                             |
 |   `never`    | SpringSecurity 将不会创建 Session，但是如果应用中其他地方创建了 Session，那么 Spring Security 将会使用它 |
-| `stateless`  | SpringSecurity 将绝对不会创建 Session，也不使用 Session                                               |
+| `stateless`  | SpringSecurity 将绝对不会创建 Session，也不使用 Session                                             |
 
 通过 Spring Security 安全配置，对会话选项进行配置：
 
@@ -1785,7 +1783,22 @@ Spring Security 内置了三个基于投票的 `AccessDecisionManager` 实现类
 
 Spring Security 也内置一些投票者实现类，如 `RoleVoter`、`AuthenticatedVoter` 和 `WebExpressionVoter` 等，待查阅资料学习
 
+## 6. Spring Security OAuth 概述
 
+Spring Security OAuth2.0 是对 OAuth2.0 协议的一种实现，并且跟 Spring Security 相辅相成。
 
+- 官网：https://spring.io/projects/spring-security-oauth
+- 官方源码仓库地址：https://github.com/spring-projects/spring-security-oauth
+- 官方 SpringBoot 版本源码仓库地址：https://github.com/spring-projects/spring-security-oauth2-boot
 
+### 6.1. Spring Security OAuth2.0 与 Spring Cloud 整合
 
+Spring Security OAuth2.0 与 Spring Cloud 体系的集成也非常便利
+
+此部分详细内容详见 [《Spring Cloud Security 学习笔记》](/分布式微服务/SpringCloud/Spring-Cloud-Security)
+
+### 6.2. 项目终止维护通知
+
+Spring Security OAuth 项目生命周期已结束，不再积极维护。该项目已被 Spring Security 和 Spring Authorization Server 提供的 OAuth2 支持所取代。
+
+- [Spring Authorization Server 官网](https://spring.io/projects/spring-authorization-server)

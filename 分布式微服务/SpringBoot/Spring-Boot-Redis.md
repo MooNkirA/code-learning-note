@@ -1,6 +1,4 @@
-# Spring Boot 整合 Redis
-
-## 1. Redis 概述
+## 1. Spring Boot 整合 Redis 概述
 
 > Redis 更多详细内容详见[《Redis 基础笔记》](/数据库/Redis/Redis-基础)
 

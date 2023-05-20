@@ -361,7 +361,7 @@ Broker 为了实现这些功能，其架构包含了以下几个重要子模块�
 
 ### 4.2. 相关依赖
 
-示例使用 SpringBoot 项目
+示例使用 SpringBoot 项目，引入 RocketMQ 依赖
 
 ```xml
 <!-- Spring Boot 父项目依赖 -->
@@ -391,6 +391,8 @@ Broker 为了实现这些功能，其架构包含了以下几个重要子模块�
     </dependency>
 </dependencies>
 ```
+
+> Notes: 示例依赖 rocketmq-starter 2.0.2 版本时，发送消息时如果当前 topic 不存在，会报 No route info of this topic 这个异常问题。高版本默认自动创建 topic。
 
 ### 4.3. RocketMQ 相关的配置
 
@@ -524,7 +526,14 @@ public void basicTest() throws Exception {
 
 #### 4.5.1. 发送消息
 
-使用 `RocketMQTemplate` 对象发送消息
+注入 `RocketMQTemplate` 对象用于发送消息
+
+```java
+@Autowired
+private RocketMQTemplate rocketMQTemplate;
+```
+
+具体发送消息的示例代码：
 
 ```java
 @RestController
@@ -584,38 +593,11 @@ public class ConsumeService implements RocketMQListener<String> {
 }
 ```
 
-## 5. 不同类型的消息
-
-引入 RocketMQ 依赖
-
-```xml
-<dependency>
-    <groupId>org.apache.rocketmq</groupId>
-    <artifactId>rocketmq-spring-boot-starter</artifactId>
-    <!--<version>2.0.2</version>-->
-    <!--
-        采用客户端调用的时候，可能会相对高频的出现的 No route info of this topic这个异常问题
-        配置 autoCreateTopicEnable=true，如果这个属性没有配置，且没有手动创建topic，就会出现上面的异常
-        注：这个属性在高版本已经默认配置了
-    -->
-    <version>2.1.1</version>
-</dependency>
-```
-
-> 注：示例依赖 rocketmq-starter 2.0.2 版本时，发送消息时如果当前topic不存在，会报No route info of this topic这个异常问题。高版本默认自动创建topic。
-
-注入 `RocketMQTemplate`
-
-```java
-@Autowired
-private RocketMQTemplate rocketMQTemplate;
-```
-
-### 5.1. 普通消息
+## 5. 普通消息
 
 RocketMQ 提供三种方式来发送普通消息：可靠同步发送、可靠异步发送和单向发送。
 
-#### 5.1.1. 可靠同步发送
+### 5.1. 可靠同步发送
 
 同步发送是指消息发送方发出数据后，会在收到接收方发回响应之后才发下一个数据包的通讯方式。
 
@@ -638,7 +620,7 @@ public void testSyncSend() {
 }
 ```
 
-#### 5.1.2. 可靠异步发送
+### 5.2. 可靠异步发送
 
 异步发送是指发送方发出数据后，不等接收方发回响应，接着发送下个数据包的通讯方式。发送方通过回调接口接收服务器响应，并对响应结果进行处理。
 
@@ -674,7 +656,7 @@ public void testAsyncSend() throws InterruptedException {
 }
 ```
 
-#### 5.1.3. 单向发送
+### 5.3. 单向发送
 
 单向发送是指发送方只负责发送消息，不等待服务器回应且没有回调函数触发，即只发送请求不等待应答。
 
@@ -694,15 +676,15 @@ public void testOneWay() {
 }
 ```
 
-#### 5.1.4. 三种发送方式的对比
+### 5.4. 三种发送方式的对比
 
-| 发送方式 | 发送 TPS | 发送结果反馈 | 可靠性  |
-| :-----: | :------: | :---------: | :-----: |
-| 同步发送 |    快    |     有      | 不丢失  |
-| 异步发送 |    快    |     有      | 不丢失  |
+| 发送方式 | 发送 TPS | 发送结果反馈 |  可靠性  |
+| :-----: | :------: | :--------: | :-----: |
+| 同步发送 |    快    |     有      |  不丢失  |
+| 异步发送 |    快    |    有       |  不丢失  |
 | 单向发送 |   最快   |     无      | 可能丢失 |
 
-### 5.2. 顺序消息
+## 6. 顺序消息
 
 顺序消息是消息队列提供的一种严格按照顺序来发布和消费的消息类型。
 
@@ -760,11 +742,11 @@ public void testSendOrderly() throws InterruptedException {
 }
 ```
 
-### 5.3. 事务消息
+## 7. 事务消息
 
 RocketMQ 提供了事务消息，通过事务消息就能达到分布式事务的最终一致。
 
-#### 5.3.1. 事务消息交互流程
+### 7.1. 事务消息交互流程
 
 ![](images/64572517256912.png)
 
@@ -788,7 +770,7 @@ RocketMQ 提供了事务消息，通过事务消息就能达到分布式事务�
 2. 发送方收到消息回查后，需要检查对应消息的本地事务执行的最终结果。
 3. 发送方根据检查得到的本地事务的最终状态再次提交二次确认，服务端仍按照步骤4对半事务消息进行操作。
 
-#### 5.3.2. 基础使用示例
+### 7.2. 基础使用示例
 
 ```java
 @RestController
@@ -881,7 +863,7 @@ public class TxMessageServiceListener implements RocketMQLocalTransactionListene
 }
 ```
 
-#### 5.3.3. @RocketMQTransactionListener 注解与 sendMessageInTransaction 在版本升级的变化
+### 7.3. @RocketMQTransactionListener 注解与 sendMessageInTransaction 在版本升级的变化
 
 依赖：
 
@@ -991,3 +973,10 @@ java.lang.IllegalStateException: rocketMQTemplate already exists RocketMQLocalTr
 
 所以发送事务消息：在客户端，首先用户需要实现 `RocketMQLocalTransactionListener` 接口，并在接口类上注解声明 `@RocketMQTransactionListener`，实现确认和回查方法；然后再使用资源模板 `RocketMQTemplate`，调用方法 `sendMessageInTransaction()` 来进行消息的发布。注意：从 RocketMQ-Spring 2.1.0 版本之后，注解 `@RocketMQTransactionListener` 不能设置 `txProducerGroup`、`ak`、`sk`，这些值均与对应的 `RocketMQTemplate` 保持一致。
 
+### 7.4. 消息的幂等性
+
+在上面事务消息测试中，如果处理本地事务时发生了网络的延迟或者其他问题，导致本地事务处理的方法没有返回，此时会就执行事务回查的方法并发送事务提交标识（`RocketMQLocalTransactionState.COMMIT`）。但后面网络恢复正常后，本地事务处理也会发送一次 `RocketMQLocalTransactionState.COMMIT`，此时 Consumer 会收到 2 次消息，可能导致重复消费。
+
+**保证消息不被重复处理**，就是“幂等”。幂等是一个数学概念，可以理解为：<u>同一个函数，参数相同的情况下，多次执行后的结果一致</u>
+
+**解决思路**：在 Consumer 端创建一个消息中间表，用于记录接收的消息，最好给每条消息设计一个唯一的流水id。每次收到消息后，先根据流水id来查询该表，判断这条消息是否处理过。

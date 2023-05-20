@@ -492,7 +492,7 @@ cat /etc/redhat-release
 
 - shh://git@github.com:MooNkirA/pinyougou.git
     - master分支：空内容
-    - ITheima-develop分支：原黑马版本
+    - ITheima-develop分支：原版本
     - moon-develop分支：第二次重做项目的版本（已按教程完成）
     - moon-cloud-develop分支：将原来的项目，修改成SpringBoot与SpringCloud架构（由moon-develop分支创建）
     - pyg-test-develop分支：品优购相关技术测试项目

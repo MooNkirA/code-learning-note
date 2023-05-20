@@ -999,6 +999,7 @@ Group  :    DEFAULT_GROUP
 
 配置内容时需要注意以下细节：
 
+- nacos 配置中 DataID 名字约定：`${spring.application.name}.${file-extension:properties}`。*因此上例是 `service-product-dev.yaml`，也可以增加环境标识，与本地使用规则一样*
 - 注意 DataID 与 bootstrap 配置文件相应关系，DataID 是以 properties(默认的文件扩展名方式)为扩展名。
 - 配置文件格式要跟配置文件的格式对应，且目前仅仅支持 YAML 和 Properties
 - 配置内容按照上面选定的格式书写
@@ -1084,8 +1085,8 @@ spring.cloud.nacos.config.file-extension=yaml
 ```
 Data ID:    nacos-config.yaml
 Group  :    DEFAULT_GROUP
-配置格式:     YAML
-配置内容:     user.name: nacos-config-yaml
+配置格式:    YAML
+配置内容:    user.name: nacos-config-yaml
             user.age: 68
 ```
 
@@ -1113,10 +1114,12 @@ public String getByConfigurableApplicationContext() {
 
 #### 6.2.2. 方式二：注解方式(推荐)
 
+`@RefreshScope` 是 Spring Cloud 原生注解，实现配置文件的动态加载。只需要在动态读取配置的类上添加此注解即可。
+
 ```java
 @RestController
 @RequestMapping("nacos-config")
-@RefreshScope // Spring Cloud 原生注解，实现配置文件的动态加载。。只需要在需要动态读取配置的类上添加此注解即可。
+@RefreshScope
 public class NacosConfigSampleController implements EnvironmentAware {
     @Value("${user.name}") // 动态注入配置中心相应的配置项
     private String userName;
@@ -1133,9 +1136,16 @@ public class NacosConfigSampleController implements EnvironmentAware {
 
 ### 6.3. 可支持 profile 粒度的配置
 
-spring-cloud-starter-alibaba-nacos-config 在加载配置的时候，不仅仅加载了以 dataId 为 `${spring.application.name}.${file-extension:properties}` 为前缀的基础配置，还加载了 dataId 为 `${spring.application.name}-${profile}.${file-extension:properties}` 的基础配置。在日常开发中如果遇到多套环境下的不同配置，可以通过 Spring 提供的 `${spring.profiles.active}` 这个配置项来配置。
+spring-cloud-starter-alibaba-nacos-config 在加载配置 DataID 有以下约定： 
 
-Nacos 上新增分别两个不同 dataId 的基础配置：如下：
+- 默认配置：`${spring.application.name}.${file-extension:properties}`
+- 特定环境配置：`${spring.application.name}-${profile}.${file-extension:properties}` 
+
+在日常开发中如果遇到多套环境下的不同配置，可以通过 Spring 提供的 `${spring.profiles.active}` 配置项来选择生效的配置。
+
+> Notes: **特定环境配置优先级高于默认配置**，默认配置相当于各个环境下的公共配置。
+
+测试，在 Nacos 上新增分别两个不同 dataId 的基础配置：如下：
 
 ```
 Data ID:        nacos-config-develop.yaml
@@ -1163,11 +1173,33 @@ spring.profiles.active=develop
 > - `${spring.profiles.active}` 当通过配置文件来指定时，必须放在 bootstrap.properties 文件中。
 > - 此案例中通过 `spring.profiles.active=<profilename>` 的方式硬编码在配置文件中，而在真正的项目实施过程中这个变量的值是需要不同环境而有不同的值。通常的做法是通过 `-Dspring.profiles.active=<profile>` 命令参数的方法指定其配置来达到环境间灵活的切换。
 
-### 6.4. 配置共享
+### 6.4. 配置的版本及一键回滚
+
+Nacos 通过提供配置版本管理及其一键回滚能力，帮助用户改错配置的时候能够快速恢复，降低微服务系统在配置管理上的一定会遇到的可用性风险。
+
+#### 6.4.1. 控制台操作
+
+在【配置管理】->【历史版本】，查询并点击相应的版本进行回滚即可
+
+![](images/72001917248970.png)
+
+![](images/143121917236837.png)
+
+> Tips: 历史版本只会保留30天
+
+#### 6.4.2. 历史版本回滚注意问题
+
+需要特别留意，在 1.x 版本中，<font color=red>**不能选择最初的历史版本，会造成此配置丢失**</font>。*官方说 1.2 版本会解决*。
+
+如果不小心遇到了此问题，可以在历史版本中找回。
+
+![](images/295490817230544.png)
+
+### 6.5. 配置共享
 
 配置共享，即将公共配置的部分抽取出来，在其他配置文件中引入。
 
-#### 6.4.1. 同一个微服务的不同环境配置文件之间共享配置
+#### 6.5.1. 同一微服务的不同环境配置文件之间共享
 
 在同一个微服务的不同环境之间实现配置共享，只需要提取一个以 `spring.application.name` 命名的配置文件，然后将其所有环境的公共配置放在里面即可。
 
@@ -1183,9 +1215,9 @@ spring.profiles.active=develop
 
 ![](images/20220108183138237_20271.png)
 
-#### 6.4.2. 不同微服务之间共享配置
+#### 6.5.2. shared-dataids 不同微服务间共享配置
 
-不同为服务之间实现配置共享的原理类似于文件引入，就是定义一个公共配置，然后在不同的服务的配置中引入。
+不同为服务之间实现配置共享的原理类似于文件引入，就是定义一个公共配置，然后在不同的服务的配置中引入。通过 `spring.cloud.nacos.config.refresh-enabled.shared-dataids` 配置项，可以指定共享的配置文件。
 
 以商品微服务为例，在 nacos 配置中心中定义一个 DataID 为 all-service.yaml 的配置，用于所有微服务共享
 
@@ -1216,9 +1248,40 @@ spring:
 
 启动商品微服务进行测试
 
-### 6.5. 配置的隔离
+#### 6.5.3. ext-config 不同微服务间共享配置
 
-#### 6.5.1. 支持自定义 namespace 的配置
+通过 `spring.cloud.nacos.config.ext-config` 属性，也可以实现不同微服务间的共享配置。配置项值是数组，可以配置多个公共配置，数组元素参数说明：
+
+- `data-id`：公共配置的文件名称
+- `group`：配置所属分组名称
+- `refresh`：是否支持动态刷新
+
+```yml
+spring:
+  application:
+    name: service-product
+  cloud:
+    nacos:
+      config:
+        server-addr: 127.0.0.1:8848 # nacos 的服务端地址
+        file-extension: yaml # dataID后缀及内容文件格式，默认值是 properties
+        # 方式2：通过 ext-config 属性引入公共配置，也已过时？！
+        ext-config:
+          - data-id: all-service.yaml
+            group: DEFAULT_GROUP
+            refresh: true
+  profiles:
+    active: dev # 环境标识
+```
+
+#### 6.5.4. 两种服务间的配置共享方式的区别
+
+- `shared-dataids` 配置方式只能加载 `DEFAULT_GROUP` 分组下的配置。*即使增加 group 属性，实际还是只加载 `DEFAULT_GROUP`*
+- `ext-config` 可以灵活指定加载公共配置的 group
+
+### 6.6. 配置的隔离
+
+#### 6.6.1. 支持自定义 namespace 的配置
 
 在没有明确指定 `${spring.cloud.nacos.config.namespace}` 配置的情况下， 默认使用的是 `Public` 的 namespace。如果需要使用自定义的命名空间，可以通过以下配置来实现：
 
@@ -1228,7 +1291,7 @@ spring.cloud.nacos.config.namespace=b3404bc0-d7dc-4855-b519-570ed34b62d7
 
 > Notes: 该配置必须放在 bootstrap.properties 文件中。此外 `spring.cloud.nacos.config.namespace` 的值是 namespace 对应的 id，id 值可以在 Nacos 的控制台获取。并且在添加配置时注意不要选择其他的 namespace，否则将会导致读取不到正确的配置。
 
-#### 6.5.2. 支持自定义 Group 的配置
+#### 6.6.2. 支持自定义 Group 的配置
 
 在没有明确指定 `${spring.cloud.nacos.config.group}` 分组配置的情况下，默认使用的是 `DEFAULT_GROUP`。如果需要自定义 Group，可以通过以下配置来实现：
 
@@ -1238,7 +1301,7 @@ spring.cloud.nacos.config.group=DEVELOP_GROUP
 
 > Notes: 该配置必须放在 bootstrap.properties 文件中。并且在添加配置时 Group 的值一定要和 `spring.cloud.nacos.config.group` 的配置值一致。
 
-#### 6.5.3. 支持自定义扩展的 Data Id 配置
+#### 6.6.3. 支持自定义扩展的 Data Id 配置
 
 Spring Cloud Alibaba Nacos Config 从 0.2.1 版本后，可支持自定义 Data Id 的配置。完整的配置案例如下所示：
 
@@ -1290,17 +1353,49 @@ spring.cloud.nacos.config.shared-configs[0].refresh=true
 - 通过 `spring.cloud.nacos.config.shared-configs[n].group` 来配置自定义 Data Id 所在的组，不明确配置的话，默认是 `DEFAULT_GROUP`。
 - 通过 `spring.cloud.nacos.config.shared-configs[n].refresh` 来控制该 Data Id 在配置变更时，是否支持应用中动态刷新，默认 false。
 
-### 6.6. 配置的优先级
+### 6.7. 配置的优先级
+
+#### 6.7.1. 本地与远程配置优先级
+
+Spring Cloud Alibaba Nacos Config 提供以下多种配置方式：
+
+![](images/556685921230544.png)
+
+经测试，Spring Cloud Alibaba Nacos Config 中的<font color=red>**远程配置优先级高于本地配置**</font>。
+
+#### 6.7.2. 修改本地配置优先级(未测试)
+
+如果需要让本地配置优先级高于 nacos 远程配置，可以在 nacos 控制台远程配置中增加以下配置内容：
+
+```yml
+spring:
+  cloud:
+    config:
+      # 外部源配置是否可被覆盖
+      allowOverride: true
+      # 外部源配置是否不覆盖任何源
+      overrideNone: true
+      # 外部源配置是否可覆盖本地属性
+      overrideSystemProperties: false
+```
+
+#### 6.7.3. 远程配置优先级
 
 Spring Cloud Alibaba Nacos Config 目前提供了三种配置能力从 Nacos 拉取相关的配置。
 
-1. 通过 `spring.cloud.nacos.config.shared-configs[n].data-id` 支持多个共享 Data Id 的配置
-2. 通过 `spring.cloud.nacos.config.extension-configs[n].data-id` 的方式支持多个扩展 Data Id 的配置
-3. 通过内部相关规则(应用名、应用名 + Profile )自动生成相关的 Data Id 配置
+1. 通过 `spring.cloud.nacos.config.shared-configs[n].data-id` 支持多个共享 DataId 的配置
+2. 通过 `spring.cloud.nacos.config.extension-configs[n].data-id` 的方式支持多个扩展 DataId 的配置
+3. 通过内部相关规则(应用名、应用名 + Profile )自动生成相关的 DataId 配置
 
 当三种方式共同使用时，它们的优先级关系是：`1 < 2 < 3`
 
-### 6.7. 完全关闭配置
+#### 6.7.4. 结论
+
+默认情况下，配置的优先级顺序如下图：
+
+![](images/589801822236837.jpg)
+
+### 6.8. 完全关闭配置
 
 通过设置 `spring.cloud.nacos.config.enabled` 配置项来设置是否完全关闭 Spring Cloud Nacos Config
 
