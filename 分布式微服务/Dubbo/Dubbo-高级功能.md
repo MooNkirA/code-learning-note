@@ -75,7 +75,7 @@ Dubbo消费端在发出请求后，需要有一个临界时间界限来判断服
 private XxxService xxxService;
 ```
 
-- 通过RpcContext进行运行时动态配置，优先级高于注解或者xml进行的固定配置(两者都配置的情况下，以RpcContext配置为准)
+- 通过 RpcContext 进行运行时动态配置，优先级高于注解或者xml进行的固定配置(两者都配置的情况下，以RpcContext配置为准)
 
 ```java
 // dubbo服务调用前，通过RpcContext动态设置本次调用的重试次数
@@ -1295,7 +1295,9 @@ class NotifyImpl implements Notify {
 
 ## 24. 本地存根
 
-在 Dubbo 中利用本地存根在客户端执行部分逻辑
+在 Dubbo 中利用本地存根在客户端执行部分逻辑。
+
+![](images/231413316236855.jpg)
 
 远程服务后，客户端通常只剩下接口，而实现全在服务器端，但提供方有些时候想在客户端也执行部分逻辑，比如：做 ThreadLocal 缓存，提前验证参数，调用失败后伪造容错数据等等，此时就需要在 API 中带上 Stub，客户端生成 Proxy 实例，会把 Proxy 通过构造函数传给 Stub，然后把 Stub 暴露给用户，Stub 可以决定要不要去调 Proxy。
 
@@ -1303,15 +1305,13 @@ class NotifyImpl implements Notify {
 
 ### 24.1. 服务端示例
 
+服务端只需要暴露接口即可
+
 在 spring 配置文件中按以下方式配置：
 
 ```xml
 <dubbo:service interface="com.foo.BarService" stub="true" />
-```
-
-或
-
-```xml
+<!-- 或者指定本地存根的类名 -->
 <dubbo:service interface="com.foo.BarService" stub="com.foo.BarServiceStub" />
 ```
 
@@ -1336,7 +1336,10 @@ public class LocalStubServiceImpl implements LocalStubService {
 
 ### 24.2. 客户端示例
 
-在客户端创建与服务提供者同一个接口的实现类，此类会接管服务提供者的接口调用。通过此代理可以实现要不要远程调用服务提供方
+1. 在客户端创建本地本地存根(stub)实现类，与服务提供者实现同一个接口，此类会接管服务提供者的接口调用。通过此代理可以实现要不要远程调用服务提供方。其中需要遵循以下规则：
+    - 在 interface 本地 Stub 实现，它与服务端实现同一个接口。
+    - Stub （即示例`LocalStubProxy`类）必须有可传入 Proxy （即注入实际的服务接口）实例的构造函数。
+    - 如果引入服务接口时配置 `stub` 属性为 true，则需要本地存根实现类与接口在同一个包路径下，并且类名必须是 `接口名 + Stub`；如果 `stub` 属性设置为具体实现类全限定名称，则不需要遵循此默认的命名规则。
 
 ```java
 public class LocalStubProxy implements LocalStubService {
@@ -1358,7 +1361,7 @@ public class LocalStubProxy implements LocalStubService {
                 // 模拟业务，不调用远程接口
                 return "Annotation consumer LocalStubProxy execute: " + params;
             } else if ("remote".equalsIgnoreCase(params)) {
-                // 模拟业务，调用远程服务
+                // 模拟业务，调用原远程服务
                 return localStubService.execute(params);
             }
         } catch (Exception e) {
@@ -1371,13 +1374,7 @@ public class LocalStubProxy implements LocalStubService {
 }
 ```
 
-> 注：
->
-> 1. Stub （即上示例`LocalStubProxy`类）必须有可传入 Proxy 的构造函数。
-> 2. 在 interface 本地 Stub 实现，它与服务端实现同一个接口，并有一个传入远程接口实现实例的构造函数
-> 3. 如果引入服务接口时配置属性`stub = "true"`，则需要本地的实现类与接口在同一个包路径下，并且类名必须是`接口名+Stub`结尾，如`LocalStubServiceStub`
-
-使用`@Reference`注解方式引入测试接口，其中`stub`属性用于指定测试接口的本地实现类。
+2. 使用`@Reference`注解方式引入测试接口，其中`stub`属性用于指定测试接口的本地实现类。
 
 ```java
 @Reference(check = false, stub = "com.moon.dubbo.annotation.stub.LocalStubProxy")
@@ -1391,33 +1388,61 @@ public String testLocalStub(@RequestParam("params") String params) {
 
 ## 25. 本地伪装
 
-本地伪装通常用于服务降级，比如某验权服务，当服务提供方全部挂掉后，客户端不抛出异常，而是通过 Mock 数据返回授权失败。
+### 25.1. 概述
 
-### 25.1. 配置
+本地伪装通常用于服务降级，比如某验权服务，当服务提供方全部挂掉后，此时服务消费方发起了一次远程调用，那么本次调用将会失败并抛出一个 `RpcException` 异常。为了避免出现这种直接抛出异常的情况出现，那么客户端就可以利用本地伪装来提供 Mock 数据返回授权失败。实现思路如下：
+
+![](images/259230716248988.jpg)
+
+`Mock` 是 `Stub` 的一个子集，便于服务提供方在客户端执行容错逻辑，因经常需要在出现 `RpcException` (比如网络失败，超时等)时进行容错，而在出现业务异常(比如登录用户名密码错误)时不需要容错，如果用 `Stub`，可能就需要捕获并依赖 `RpcException` 类，而用 `Mock` 就可以不依赖 `RpcException`，因为它的约定就是只有出现 `RpcException` 时才执行。
+
+### 25.2. 基础使用
+
+1. 在消费端创建 interface 本地 Mock 伪装实现类，需要遵循以下规则：
+    - 本地伪装实现类与服务端接口实现同一个接口，并提供一个无参构造函数。
+    - 本地的实现类与接口在同一个包路径下，即本地伪装的包名需要和服务接口的包名一致。
+    - 本地伪装类名默认必须是`接口名+Mock`，如服务接口是`org.apache.dubbo.samples.stub.api.DemoService`，则本地实现类名称是`org.apache.dubbo.samples.stub.api.DemoServiceMock`。
+
+```java
+// 服务接口
+public interface BarService {
+    String mock(String params);
+}
+
+// 本地伪装实现类
+public class BarServiceMock implements BarService {
+    @Override
+    public String mock(String params) {
+        // 返回伪造容错数据，此方法只在远程调用出现 RpcException 时被执行
+        return "result: " + params;
+    }
+}
+```
+
+2. 消费端引入服务接口时，需要配置`mock`属性为 true 或者是具体的实现类。具体配置如下：
 
 在 spring 配置文件中按以下方式配置：
 
 ```xml
 <dubbo:reference interface="com.foo.BarService" mock="true" />
-```
-
-或
-
-```xml
+<!-- 如果不希望使用默认的命名规则，也可以通过 mock 属性来指定全类名 -->
 <dubbo:reference interface="com.foo.BarService" mock="com.foo.BarServiceMock" />
 ```
 
-> 注：
->
-> 1. `Mock` 是 `Stub` 的一个子集，便于服务提供方在客户端执行容错逻辑，因经常需要在出现 `RpcException` (比如网络失败，超时等)时进行容错，而在出现业务异常(比如登录用户名密码错误)时不需要容错，如果用 `Stub`，可能就需要捕获并依赖 `RpcException` 类，而用 `Mock` 就可以不依赖 `RpcException`，因为它的约定就是只有出现 `RpcException` 时才执行。
-> 2. 在 interface 本地 Mock 实现，它与服务端实现同一个接口，并提供一个无参构造函数
-> 3. 如果引入服务接口时配置属性`mock = "true"`，则需要本地的实现类与接口在同一个包路径下，并且类名必须是`接口名+Mock`，如`LocalMockServiceMock`
+基于注解配置：
 
-### 25.2. 基础示例
+```java
+@Reference(check = false, mock = "true")
+private BarService barService;
+// 如果不希望使用默认的命名规则，也可以通过 mock 属性来指定全类名
+@Reference(check = false, mock = "com.foo.BarServiceMock")
+private BarService barService;
+```
 
-- 编写一个测试接口
-- 在服务提供者工程中，编写一个测试接口的实现，并在相应的方法中模拟出现异常（如通过`Thread.sleep`模拟超时）
-- 在服务消费者工程中，提供 Mock 实现
+### 25.3. 基础示例
+
+1. 编写一个测试接口。在服务提供者工程中，编写一个测试接口的实现，并在相应的方法中模拟出现异常（如通过`Thread.sleep`模拟超时）
+2. 在服务消费者工程中，提供本地 Mock 伪装实现测试接口
 
 ```java
 /**
@@ -1436,7 +1461,7 @@ public class LocalMockServiceMock implements LocalMockService {
 }
 ```
 
-- 在消费者工程
+3. 在消费者工程调用服务接口时，声明使用 Mock
 
 ```java
 /*
@@ -1454,9 +1479,9 @@ public String testLocalMock(@RequestParam("params") String params) {
 }
 ```
 
-### 25.3. 进阶用法
+### 25.4. 进阶用法
 
-#### 25.3.1. return
+#### 25.4.1. return
 
 使用 `return` 来返回一个字符串表示的对象，作为 Mock 的返回值。合法的字符串可以是：
 
@@ -1472,7 +1497,7 @@ public String testLocalMock(@RequestParam("params") String params) {
 @Reference(check = false, mock = "return MooN")
 ```
 
-#### 25.3.2. throw
+#### 25.4.2. throw
 
 使用 `throw` 来返回一个 `Exception` 对象，作为 Mock 的返回值。当调用出错时，抛出一个默认的 `RPCException`:
 
@@ -1486,7 +1511,7 @@ public String testLocalMock(@RequestParam("params") String params) {
 <dubbo:reference interface="com.foo.BarService" mock="throw com.foo.MockException" />
 ```
 
-#### 25.3.3. force 和 fail
+#### 25.4.3. force 和 fail
 
 在 2.6.6 以上的版本，可以开始在 Spring XML 配置文件中使用 `fail:` 和 `force:`。
 
@@ -1507,7 +1532,7 @@ public String testLocalMock(@RequestParam("params") String params) {
 <dubbo:reference interface="com.foo.BarService" mock="force:throw com.foo.MockException" />
 ```
 
-#### 25.3.4. 在方法级别配置 Mock
+#### 25.4.4. 在方法级别配置 Mock
 
 Mock 可以在方法级别上指定，假定 `com.foo.BarService` 上有好几个方法，可以单独为 `sayHello()` 方法指定 Mock 行为。具体配置如下所示，在本例中，只要 `sayHello()` 被调用到时，强制返回 “fake”:
 

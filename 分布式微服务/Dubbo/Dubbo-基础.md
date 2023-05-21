@@ -874,21 +874,13 @@ spring:
 
 **注意：只有group，interface，version是服务的匹配条件，三者决定是不是同一个服务，其它配置项均为调优和治理参数。**
 
-> **各个标签详细属性配置参考官网：http://dubbo.apache.org/zh-cn/docs/user/references/xml/introduction.html**
+> 各个标签详细属性配置参考官网：https://cn.dubbo.apache.org/zh-cn/overview/mannual/java-sdk/reference-manual/config/properties/
 
 ##### 4.1.3.1. dubbo:service【常用】
 
 服务提供者暴露服务配置。对应的配置类：`org.apache.dubbo.config.ServiceConfig`。常用属性如下：
 
-|    属性    | 对应URL参数 |  类型   | 是否必填  | 缺省值 |   作用   |                                       描述                                        | 兼容性  |
-| --------- | ---------- | ------ | -------- | ----- | ------- | --------------------------------------------------------------------------------- | ------ |
-| interface |            | class  | **必填** |       | 服务发现 | 服务接口名                                                                         | 1.0.0+ |
-| ref       |            | object | **必填** |       | 服务发现 | 服务对象实现引用                                                                    | 1.0.0+ |
-| version   | version    | string | 可选     | 0.0.0 | 服务发现 | 服务版本，建议使用两位数字版本，如：1.0，通常在接口不兼容时版本号才需要升级                  | 1.0.0+ |
-| timeout   | timeout    | int    | 可选     | 1000  | 性能调优 | 远程服务调用超时时间(毫秒)                                                            | 2.0.0+ |
-| protocol  |            | string | 可选     |       | 配置关联 | 使用指定的协议暴露服务，在多协议时使用，值为`<dubbo:protocol>`的id属性，多个协议ID用逗号分隔 | 2.0.5+ |
-
-> 全部属性列表详见官方文档（2.7版本）：https://dubbo.apache.org/zh/docs/v2.7/user/references/xml/dubbo-service/
+![](images/274152323230560.png)
 
 ##### 4.1.3.2. dubbo:reference【常用】
 
@@ -1807,17 +1799,59 @@ sentinel 控制看到服务提供者的资源
 
 ### 7.4. 自定义异常处理
 
-## 8. 服务化最佳实践
+像上面示例中被限流后返回的错误不太友好，dubbo 提供了自定义异常处理功能，只实现 `com.alibaba.csp.sentinel.adapter.dubbo.fallback.DubboFallback` 接口，其中 `handle` 就是发现异常后处理逻辑实现。
 
-### 8.1. 在 Provider 端应尽量配置的属性
+1. 修改服务提供者，增加自定义异常处理。
 
-Dubbo的属性配置优先度上，遵循顺序：`reference属性 -> service属性 -> Consumer 属性`
+```java
+public class MyDubboFallback implements DubboFallback {
+    @Override
+    public Result handle(Invoker<?> invoker, Invocation invocation, BlockException ex) {
+        Result result = invoker.invoke(invocation);
+        result.setValue("自定义异常处理");
+        return result;
+    }
+}
+```
+
+2. 通过 `DubboFallbackRegistry` 工具类注册自定义异常处理类。*注：示例为了方便，直接在启动类使用 `@PostConstruct` 注解来注册自定义异常处理类*
+
+```java
+@EnableDiscoveryClient // 开启服务发现功能
+@SpringBootApplication
+public class DubboSentinelProvider {
+
+    public static void main(String[] args) {
+        SpringApplication.run(DubboSentinelProvider.class, args);
+    }
+
+    // 注册自定义的异常处理类
+    @PostConstruct
+    public void signUpCustomFallback() {
+        DubboFallbackRegistry.setProviderFallback(new MyDubboFallback());
+    }
+}
+```
+
+3. 测试限流后的效果
+
+![](images/480870823230561.png)
+
+## 8. 整合 SkyWalking 链路跟踪（待整理）
+
+> TODO: 待学习 SkyWalking 后再整理
+
+## 9. 服务化最佳实践
+
+### 9.1. 在 Provider 端应尽量配置的属性
+
+Dubbo 的属性配置优先度上，遵循顺序：`reference属性 -> service属性 -> Consumer 属性`
 
 其中 reference 和 Consumer 是消费端配置，service 是服务端配置。
 
 而对于服务调用的超时时间、重试次数等属性，服务的提供方比消费方更了解服务性能，因此我们应该在 Provider 端尽量多配置 Consumer 端属性，让其漫游到消费端发挥作用
 
-#### 8.1.1. 在 Provider 端尽量多配置 Consumer 端属性
+#### 9.1.1. 在 Provider 端尽量多配置 Consumer 端属性
 
 - Provider 端尽量多配置 Consumer 端的属性，让 Provider 的实现者一开始就思考 Provider 端的服务特点和服务质量等问题
 
@@ -1838,7 +1872,7 @@ Dubbo的属性配置优先度上，遵循顺序：`reference属性 -> service属
 3. `loadbalance`：负载均衡算法，缺省是随机 random。还可以配置轮询 roundrobin、最不活跃优先 leastactive 和一致性哈希 consistenthash 等
 4. `actives`：消费者端的最大并发调用限制，即当 Consumer 对一个服务的并发调用到上限后，新调用会阻塞直到超时，在方法上配置 `dubbo:method` 则针对该方法进行并发限制，在接口上配置 `dubbo:service`，则针对该服务进行并发限制
 
-#### 8.1.2. 在 Provider 端配置合理的 Provider 端属性
+#### 9.1.2. 在 Provider 端配置合理的 Provider 端属性
 
 ```xml
 <dubbo:protocol threads="200" />
@@ -1852,15 +1886,15 @@ Dubbo的属性配置优先度上，遵循顺序：`reference属性 -> service属
 1. `threads`：服务线程池大小
 2. `executes`：一个服务提供者并行执行请求上限，即当 Provider 对一个服务的并发调用达到上限后，新调用会阻塞，此时 Consumer 可能会超时。在方法上配置 `dubbo:method` 则针对该方法进行并发限制，在接口上配置 `dubbo:service`，则针对该服务进行并发限制
 
-### 8.2. 服务拆分最佳实现
+### 9.2. 服务拆分最佳实现
 
-#### 8.2.1. 分包
+#### 9.2.1. 分包
 
 建议将服务接口、服务模型、服务异常等均放在 API 包中，因为服务模型和异常也是 API 的一部分，这样做也符合分包原则：重用发布等价原则(REP)，共同重用原则(CRP)。
 
 如果需要，也可以考虑在 API 包中放置一份 Spring 的引用配置，这样使用方只需在 Spring 加载过程中引用此配置即可。配置建议放在模块的包目录下，以免冲突，如：com/alibaba/china/xxx/dubbo-reference.xml。
 
-#### 8.2.2. 粒度
+#### 9.2.2. 粒度
 
 服务接口尽可能大粒度，每个服务方法应代表一个功能，而不是某功能的一个步骤，否则将面临分布式事务问题，Dubbo 暂未提供分布式事务支持。
 
@@ -1868,7 +1902,7 @@ Dubbo的属性配置优先度上，遵循顺序：`reference属性 -> service属
 
 不建议使用过于抽象的通用接口，如：Map query(Map)，这样的接口没有明确语义，会给后期维护带来不便。
 
-#### 8.2.3. 版本
+#### 9.2.3. 版本
 
 每个接口都应定义版本号，为后续不兼容升级提供可能，如：`<dubbo:service interface="com.xxx.XxxService" version="1.0" />`
 
@@ -1876,7 +1910,7 @@ Dubbo的属性配置优先度上，遵循顺序：`reference属性 -> service属
 
 当不兼容时，先升级一半提供者为新版本，再将消费者全部升为新版本，然后将剩下的一半提供者升为新版本。
 
-#### 8.2.4. 异常
+#### 9.2.4. 异常
 
 建议使用异常汇报错误，而不是返回错误码，异常信息能携带更多信息，并且语义更友好。
 
@@ -1886,13 +1920,13 @@ Dubbo的属性配置优先度上，遵循顺序：`reference属性 -> service属
 
 服务提供方不应将 DAO 或 SQL 等异常抛给消费方，应在服务实现中对消费方不关心的异常进行包装，否则可能出现消费方无法反序列化相应异常。
 
-## 9. 其他
+## 10. 其他
 
-### 9.1. dubbo 框架使用示例
+### 10.1. dubbo 框架使用示例
 
 dubbo 框架使用示例项目参考：dubbo-note\dubbo-sample\
 
-### 9.2. HSF 服务框架（Dubbo 升级版） -- 网络资料
+### 10.2. HSF 服务框架（Dubbo 升级版） -- 网络资料
 
 高速服务框架 HSF (High-speed Service Framework)，是在阿里巴巴内部广泛使用的分布式 RPC 服务框架。
 
@@ -1908,7 +1942,7 @@ HSF 纯客户端架构的 RPC 框架，本身是没有服务端集群的，所�
 
 通常也是某个业务系统集群，跟服务提供者非常类型，只是服务、消费角度区别。
 
-**ConfigServer ——配 置服务器**
+**ConfigServer —— 配置服务器**
 
 HSF 依赖注册中心进行服务发现，如果没有注册中心，HSF 只能完成简单的点对点调用。因为作为服务提供端，没有办法将自己的服务信息对外发布，让外界知晓；作为服务消费端，可能已经知道需要调用的服务，但是无法获取能够提供这些服务的机器。而ConfigServer就是服务信息的中介，提供服务发现的能力。
 

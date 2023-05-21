@@ -1,6 +1,8 @@
 ## 1. Seata 概述
 
-Seata 是一款开源的分布式事务解决方案，致力于提供高性能和简单易用的分布式事务服务。Seata 将为用户提供了 AT、TCC、SAGA 和 XA 事务模式，为用户打造一站式的分布式解决方案。
+Seata 是一款开源的分布式事务解决方案，致力于提供高性能和简单易用的分布式事务服务。Seata 将为用户提供了 **AT、TCC、SAGA 和 XA 事务模式**，为用户打造一站式的分布式解决方案。
+
+> 官网：https://seata.io/zh-cn/index.html
 
 ![](images/20220109080311518_31131.png)
 
@@ -12,17 +14,11 @@ Seata 的设计目标是对业务无侵入，因此从业务无侵入的 2PC 方
 
 ### 1.2. Seata 三个重要组件
 
-- **TC (Transaction Coordinator) - 事务协调者**
+- **TC (Transaction Coordinator) - 事务协调者**：维护全局和分支事务的状态，驱动全局事务提交或回滚。
+- **TM (Transaction Manager) - 事务管理器**：定义全局事务的范围：开始全局事务、提交或回滚全局事务。
+- **RM (Resource Manager) - 资源管理器**：管理分支事务处理的资源，与 TC 交互以注册分支事务和报告分支事务的状态，并驱动分支事务提交或回滚。
 
-维护全局和分支事务的状态，驱动全局事务提交或回滚。
-
-- **TM (Transaction Manager) - 事务管理器**
-
-定义全局事务的范围：开始全局事务、提交或回滚全局事务。
-
-- **RM (Resource Manager) - 资源管理器**
-
-管理分支事务处理的资源，与TC交谈以注册分支事务和报告分支事务的状态，并驱动分支事务提交或回滚。
+![](images/265511923236855.jpg)
 
 ### 1.3. Seata 的执行流程
 
@@ -42,7 +38,7 @@ Seata 的设计目标是对业务无侵入，因此从业务无侵入的 2PC 方
 1. 架构层次方面，传统 2PC 方案的 RM 实际上是在数据库层，RM 本质上就是数据库自身，通过 XA 协议实现，而 Seata 的 RM 是以 jar 包的形式作为中间件层部署在应用程序这一侧的。
 2. 两阶段提交方面，传统 2PC 无论第二阶段的决议是 commit 还是 rollback，事务性资源的锁都要保持到 Phase2 完成才释放。而 Seata 的做法是在 Phase1 就将本地事务提交，这样就可以省去 Phase2 持锁的时间，整体提高效率。
 
-## 2. Seata 快速开始
+## 2. Seata 快速开始（基于 Seata AT 模式）
 
 快速开始的示例通过Seata中间件实现分布式事务，模拟电商中的下单和扣库存的过程。案例通过订单微服务执行下单操作，然后由订单微服务调用商品微服务扣除库存
 
@@ -50,7 +46,7 @@ Seata 的设计目标是对业务无侵入，因此从业务无侵入的 2PC 方
 
 ### 2.1. 编写业务处理逻辑
 
-此部分详见案例项目 `spring-cloud-note\spring-cloud-alibaba-2.1.x-sample\examples\spring-cloud-alibaba-seata-example\`
+> 此部分详见案例项目 `spring-cloud-note\spring-cloud-alibaba-sample-seata\`
 
 ### 2.2. 启动 Seata 服务(0.9.0 版服务端)
 
@@ -92,8 +88,7 @@ config {
 }
 ```
 
-- nacos-config.txt 用于定义导入到 nocao 配置中心的相关内容。这里需要增加本次示例服务的服务名称。
-    - 这里的语法为：`service.vgroup_mapping.${your-service-gruop}=default`，中间的 `${your-service-gruop}` 为自定义的服务组名称，这里需要在程序的配置文件中配置。
+- nacos-config.txt 用于定义导入到 nocao 配置中心的相关内容。这里需要增加本次示例服务的服务名称。语法为：`service.vgroup_mapping.${your-service-gruop}=default`，中间的 `${your-service-gruop}` 为自定义的服务组名称，这里需要在程序的配置文件中配置。
 
 ```
 service.vgroup_mapping.product-service=default
@@ -250,7 +245,7 @@ spring:
 
 #### 2.3.5. 在微服务开启全局事务
 
-Seata 实现全局事务，只需要在业务的发起方的方法上使用 `@GlobalTransactional` 注解，即可开启全局事务，Seata 会将事务的 xid 通过拦截器添加到调用其他服务的请求中，实现分布式事务。
+Seata 实现全局事务，只需要在<font color=red>**业务发起方**</font>的方法上使用 `@GlobalTransactional` 注解，即可开启全局事务，Seata 会将事务的 xid 通过拦截器添加到调用其他服务的请求中，实现分布式事务。
 
 ```java
 @Override
@@ -271,3 +266,28 @@ public Order createOrder(Long pid)  {
 3. TM 开启全局事务开始，将 XID 全局事务 id 放在事务上下文中，通过 feign 调用也将 XID 传入下游分支事务，每个分支事务将自己的 Branch ID 分支事务 ID 与 XID 关联。
 4. 第二阶段全局事务提交，TC 会通知各各分支参与者提交分支事务，在第一阶段就已经提交了分支事务，这里各各参与者只需要删除 undo_log 即可，并且可以异步执行，第二阶段很快可以完成。
 5. 第二阶段全局事务回滚，TC 会通知各各分支参与者回滚分支事务，通过 XID 和 Branch ID 找到相应的回滚日志，通过回滚日志生成反向的 SQL 并执行，以完成分支事务回滚到之前的状态，如果回滚失败则会重试回滚操作。
+
+![](images/423962223257021.jpg)
+
+## 4. Seata AT 模式
+
+> 前面章节的快速开始案例就是基于 Seata AT 模式的实现。
+
+### 4.1. 实现前提
+
+- 基于支持本地 ACID 事务的关系型数据库。
+- Java 应用，通过 JDBC 访问数据库
+
+### 4.2. 整体机制
+
+两阶段提交协议的演变：
+
+- 一阶段：业务数据和回滚日志记录在同一个本地事务中提交，释放本地锁和连接资源。
+- 二阶段：
+    - 提交异步化，非常快速地完成。
+    - 回滚通过一阶段的回滚日志进行反向补偿。
+
+### 4.3. 写隔离
+
+
+
