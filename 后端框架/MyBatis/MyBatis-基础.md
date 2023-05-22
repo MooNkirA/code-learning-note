@@ -959,39 +959,16 @@ public void findUserByNameTest() throws IOException {
 
 #### 6.3.1. 标签作用与属性
 
-`<insert>`标签的作用是MyBatis对数据库表数据进行新增操作，用于添加映射
+`<insert>`标签的作用是 MyBatis 对数据库表数据进行新增操作，用于添加映射
 
 - `parameterType`属性：在添加功能中指定输入类型是实体类
-- `resultType`属性：指定`select LAST_INSERT_ID()`的结果类型
+- `resultType`属性：用于指定返回值的结果类型，如：`select LAST_INSERT_ID()`
 
-> 标签体可以定义主键的返回，详见下面的MyBatis基本使用
+> 标签体可以定义主键的返回，详见下面的小节
 
-##### 6.3.1.1. 定义主键的方式1
+#### 6.3.2. 添加数据示例
 
-- `select LAST_INSERT_ID()`：得到刚刚insert操作添加的记录的主键，只适用与自增主键
-- `keyColumn` 属性：主键字段名（表）
-- `keyProperty` 属性：将查询到主键值设置到`parameterType`指定的对象的哪一个属性中
-- `order` 属性：指定`select LAST_INSERT_ID()`执行顺序，相对于insert语句来说的执行顺序
-    - `BEFORE`：在insert语句执行之前；
-    - `AFTER`：在insert语句执行之后；
-
-##### 6.3.1.2. 定义主键的方式2
-
-- `useGeneratedKeys="true"`，使用数据库的主键生成策略，默认值是true
-- `keyColumn`：主键字段（表）
-- `keyProperty`：主键属性（pojo）
-
-oracle数据库中使用BEFORE:
-
-```xml
-<selectKey keyColumn="id" keyProperty="id" resultType="int" order="BEFORE">
-	select seq.nextVal from dual;
-</selectKey>
-```
-
-#### 6.3.2. 使用MyBatis添加数据
-
-1. 配置映射文件添加数据，映射文件User.xml如下：
+1. 配置映射文件添加数据，映射文件 User.xml 如下：
 
 ```xml
 <!-- 添加功能<insert>标签
@@ -1011,9 +988,9 @@ oracle数据库中使用BEFORE:
 		resultType属性：指定select LAST_INSERT_ID()的结果类型
 
 			oracle数据库中使用BEFORE:
-	 				<selectKey keyColumn="id" keyProperty="id" resultType="int" order="BEFORE">
+	 			<selectKey keyColumn="id" keyProperty="id" resultType="int" order="BEFORE">
 		 	 	 	select seq.nextVal from dual;
-		 	 	 </selectKey>
+		 	 	</selectKey>
 		 	 	insert into `user`(id,username,birthday,sex,address)
 		 	 	values(#{id},#{username},#{birthday},#{sex},#{address})
 	 -->
@@ -1063,12 +1040,53 @@ public void insertUserTest() throws IOException {
 }
 ```
 
-**说明：数据库中的主键id是自动增长的，不需要传递，由数据库自己进行维护。需要配置获取到自动增长的主键id**
+> Tips: **数据库中的主键id是自动增长的，不需要传递，由数据库自己进行维护。需要配置获取到自动增长的主键id**。
 
-#### 6.3.3. 设置自增主键返回
+#### 6.3.3. 获取自动生成的(主)键值
 
-- mysql自增主键，执行insert提交之前自动生成一个自增主键。
-- 通过mysql函数获取到刚插入记录的自增主键：`LAST_INSERT_ID()`。是insert之后调用此函数
+##### 6.3.3.1. 通过 selectKey 获取主键
+
+使用 `<insert>` 标签的 `<selectKey>` 子标签获取新增后的主键。涉及属性如下：
+
+- `keyColumn` 属性：主键字段名（表）
+- `keyProperty` 属性：将查询到主键值设置到`parameterType`指定的对象的哪一个属性中
+- `order` 属性：指定`select LAST_INSERT_ID()`执行顺序，相对于insert语句来说的执行顺序
+    - `BEFORE`：在 insert 语句执行之前；
+    - `AFTER`：在 insert 语句执行之后；
+
+示例 mysql 数据库可以使用 `select LAST_INSERT_ID()` 来得到刚刚 insert 操作添加的记录的主键。**注意：只适用于自增主键**
+
+```xml
+<selectKey keyProperty="id" order="AFTER" resultType="java.lang.Integer">
+    select LAST_INSERT_ID()
+ </selectKey>
+```
+
+示例 oracle 数据库中使用 `BEFORE`:
+
+```xml
+<selectKey keyColumn="id" keyProperty="id" resultType="int" order="BEFORE">
+	select seq.nextVal from dual;
+</selectKey>
+```
+
+##### 6.3.3.2. 通过 useGeneratedKeys 属性获取主键
+
+使用 `<insert>` 标签的 `useGeneratedKeys` 相关属性获取新增后的主键。涉及属性如下：
+
+- `useGeneratedKeys="true"`，使用数据库的主键生成策略，默认值是 true
+- `keyColumn`：主键字段（表）
+- `keyProperty`：主键属性（pojo）
+
+```xml
+<insert id="insertDemo" parameterType="com.moon.entity.User" useGeneratedKeys="true" keyColumn="id" keyProperty="id">
+	insert into user(username,birthday,address) values(#{username},#{birthday},#{address})
+</insert>
+```
+
+##### 6.3.3.3. 示例1：设置自增主键返回
+
+MySQL 数据库表设置自增主键，执行 insert 提交之前自动生成一个自增主键。通过 MySQL 的 `LAST_INSERT_ID()` 函数可以获取到刚插入记录的自增主键，需要在 insert 操作之后调用此函数。
 
 修改映射文件中添加功能的标签示例:
 
@@ -1088,13 +1106,12 @@ public void insertUserTest() throws IOException {
 </insert>
 ```
 
-#### 6.3.4. 非自增主键返回(使用uuid()，多数用在oracle)
+##### 6.3.3.4. 示例2：非自增主键返回（使用uuid()，多数用在oracle）
 
-使用mysql的`uuid()`函数生成主键，需要修改表中id字段类型为string，长度设置成35位
+使用 mysql 的`uuid()`函数生成主键，需要修改表中id字段类型为string，长度设置成35位。执行思路如下：
 
-- 执行思路：
-    1. 先通过`uuid()`查询到主键，将主键输入到sql语句中。
-    2. 执行`uuid()`语句顺序相对于insert语句之前执行
+1. 先通过`uuid()`查询到主键，将主键输入到sql语句中。
+2. 执行`uuid()`语句顺序相对于insert语句之前执行
 
 修改映射文件中添加功能的标签示例：
 
@@ -1108,25 +1125,24 @@ public void insertUserTest() throws IOException {
 	<selectKey keyProperty="cust_id" order="BEFORE" resultType="java.lang.Long">
 		select uuid()
 	</selectKey>
+	
+    <!-- ========通过oracle的序列生成主键=========== -->
+    <selectKey keyProperty="cust_id" order="BEFORE" resultType="java.lang.Long">
+	    select 序列名.nextval()
+    </selectKey>
 	insert into cst_customer(cust_name,cust_phone) values(#{cust_name},#{cust_phone})
 </insert>
-
-<!-- ========通过oracle的序列生成主键=========== -->
-<selectKey keyProperty="cust_id" order="BEFORE" resultType="java.lang.Long">
-	select 序列名.nextval()
-</selectKey>
 ```
 
 ### 6.4. update 更新映射
 
 #### 6.4.1. 标签作用与属性
 
-`<update>`标签的作用是MyBatis对数据库表数据进行更新操作，用于更新映射。需要传入更新的记录的id，和记录的更新信息
+`<update>`标签的作用是 MyBatis 对数据库表数据进行更新操作，用于更新映射。需要传入更新的记录的id，和记录的更新信息
 
 - `parameterType`指定实体类对象类型，包括id（主键）和更新的信息。**注意：id（主键）必须存在**
 
-
-#### 6.4.2. 使用MyBatis更新数据
+#### 6.4.2. 更新数据示例
 
 1. 配置映射文件更新数据。映射文件Customer.xml:
 
@@ -1171,11 +1187,11 @@ public void updateUserTest() throws IOException {
 
 #### 6.5.1. 标签作用与属性
 
-`<delete>`标签的作用是MyBatis对数据库表数据进行删除操作，用于删除映射
+`<delete>` 标签的作用是 MyBatis 对数据库表数据进行删除操作，用于删除映射
 
-- `parameterType`属性：在映射文件中通过parameterType指定输入参数的类型
+- `parameterType`属性：在映射文件中通过 parameterType 指定输入参数的类型
 
-#### 6.5.2. 使用MyBatis删除数据
+#### 6.5.2. 删除数据示例
 
 1. 配置映射文件删除数据。修改映射文件Customer.xml文件如下：
 
@@ -1222,7 +1238,7 @@ public void deleteUserTest() throws IOException {
 - `keyColumn`：（仅适用于 insert 和 update）设置生成键值在表中的列名，在某些数据库（像 PostgreSQL）中，当主键列不是表中的第一列的时候，是必须设置的。如果生成列不止一个，可以用逗号分隔多个属性名称。
 - `databaseId`：如果配置了数据库厂商标识（databaseIdProvider），MyBatis 会加载所有不带 databaseId 或匹配当前 databaseId 的语句；如果带和不带的语句都有，则不带的会被忽略。
 
-#### 6.6.2. selectKey 元素的属性清单
+#### 6.6.2. selectKey 子元素的属性清单
 
 - `keyProperty`：`selectKey` 语句结果应该被设置到的目标属性。如果生成列不止一个，可以用逗号分隔多个属性名称。
 - `keyColumn`：返回结果集中生成列属性的列名。如果生成列不止一个，可以用逗号分隔多个属性名称。
@@ -1245,7 +1261,7 @@ public void deleteUserTest() throws IOException {
 
 > 官网：`parameterMap` – 老式风格的参数映射。此元素已被废弃，并可能在将来被移除！请使用行内参数映射。此文档中介绍是以前的使用方式。
 
-#### 6.8.1. java的简单类型（四类八种）
+#### 6.8.1. java 的简单类型（四类八种）
 
 示例：parameeterType为整形数据类型
 
@@ -1255,7 +1271,7 @@ public void deleteUserTest() throws IOException {
 </select>
 ```
 
-#### 6.8.2. pojo类型（对象类型）
+#### 6.8.2. pojo 类型（对象类型）
 
 示例：parameeterType是User封装的实体类型
 
@@ -1269,7 +1285,7 @@ public void deleteUserTest() throws IOException {
 </insert>
 ```
 
-#### 6.8.3. pojo包装类型
+#### 6.8.3. pojo 包装类型
 
 > - pojo包装类型：指的是在pojo中包含了其他的pojo。（即实体类的一个属性是引用其他的实体类）
 > - 一般在项目中用于接收综合查询条件

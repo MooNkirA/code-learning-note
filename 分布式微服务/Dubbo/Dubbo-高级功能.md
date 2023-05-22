@@ -50,16 +50,16 @@ java -Ddubbo.registry.check=false
 - `dubbo.consumer.check=false`，是设置 check 的缺省值，如果配置中有显式的声明，如：`<dubbo:reference check="true"/>`，不会受影响。
 - `dubbo.registry.check=false`，前面两个都是指订阅成功，但提供者列表是否为空是否报错，如果注册订阅失败时，也允许启动，需使用此选项，将在后台定时重试。
 
-## 2. Dubbo超时重连
+## 2. Dubbo 超时重连
 
 Dubbo 服务在尝试调用一次之后，如出现非业务异常(服务突然不可用、超时等)，Dubbo 默认会进行额外的最多2次重试。重试次数支持两种自定义配置：
 
-1. 通过注解或者xml配置进行固定配置
+1. 通过注解或者 xml 配置进行固定配置
 2. 通过上下文进行运行时动态配置
 
 ### 2.1. 重试次数配置
 
-Dubbo消费端在发出请求后，需要有一个临界时间界限来判断服务端是否正常。这样消费端达到超时时间，那么Dubbo会进行重试机制，不合理的重试在一些特殊的业务场景下可能会引发很多问题，需要合理设置接口超时时间。Dubbo超时和重试配置示例如下：
+Dubbo消 费端在发出请求后，需要有一个临界时间界限来判断服务端是否正常。这样消费端达到超时时间，那么 Dubbo 会进行重试机制，不合理的重试在一些特殊的业务场景下可能会引发很多问题，需要合理设置接口超时时间。Dubbo 超时和重试配置示例如下：
 
 - xml配置
 
@@ -85,10 +85,12 @@ rpcContext.setAttachment("retries", 5);
 
 ### 2.2. 重试机制注意点
 
-- Dubbo在调用服务不成功时，*默认会重试2次，即`retries="2"`*。通过设置`<dubbo:reference>`标签中`retries="0"`属性控制重试次数
-- Dubbo的路由机制，会把超时的请求路由到其他机器上，而不是本机尝试，所以Dubbo的重试机制也能一定程度的保证服务的质量
+- Dubbo 在调用服务不成功时，*默认会重试 2 次，即`retries="2"`*。通过设置`<dubbo:reference>`标签中`retries="0"`属性控制重试次数
+- Dubbo 的路由机制，会把超时的请求路由到其他机器上，而不是本机尝试，所以 Dubbo 的重试机制也能一定程度的保证服务的质量
 
 ## 3. 集群容错
+
+### 3.1. 概述
 
 当消费端某次调用失败是一些环境偶然因素造成的（如网络抖动），dubbo还给予了容错补救机会。在集群调用失败时，Dubbo 提供了多种容错方案，缺省为 `failover` 重试。容错方案关系图如下：
 
@@ -102,11 +104,11 @@ rpcContext.setAttachment("retries", 5);
 - `Router` 负责从多个 `Invoker` 中按路由规则选出子集，比如读写分离，应用隔离等
 - `LoadBalance` 负责从多个 `Invoker` 中选出具体的一个用于本次调用，选的过程包含了负载均衡算法，调用失败后，需要重选
 
-### 3.1. 集群容错模式
+### 3.2. 集群容错模式
 
-#### 3.1.1. Failover Cluster
+#### 3.2.1. Failover Cluster
 
-失败自动切换，当出现失败，重试其它服务器。通常用于读操作，但重试会带来更长延迟。可通过 `retries="2"` 来设置重试次数(不含第一次)。
+失败自动切换，当出现失败，重试其它服务器。通常用于读操作，但重试会带来更长延迟。可通过 `retries` 属性来设置重试次数(不含第一次)。
 
 ```xml
 <!--
@@ -124,27 +126,27 @@ rpcContext.setAttachment("retries", 5);
 
 > <font color=red>**注：如果服务提供方与消费方都设置了重试次数，最终与消费方的重试次数为准**</font>
 
-#### 3.1.2. Failfast Cluster
+#### 3.2.2. Failfast Cluster
 
 快速失败，只发起一次调用，失败立即报错。通常用于非幂等性的写操作，比如新增记录
 
-#### 3.1.3. Failsafe Cluster
+#### 3.2.3. Failsafe Cluster
 
 失败安全，出现异常时，直接忽略。通常用于写入审计日志等操作。
 
-#### 3.1.4. Failback Cluster
+#### 3.2.4. Failback Cluster
 
 失败自动恢复，后台记录失败请求，定时重发。通常用于消息通知操作。
 
-#### 3.1.5. Forking Cluster
+#### 3.2.5. Forking Cluster
 
 并行调用多个服务器，只要一个成功即返回。通常用于实时性要求较高的读操作，但需要浪费更多服务资源。可通过 `forks="2"` 来设置最大并行数。
 
-#### 3.1.6. Broadcast Cluster
+#### 3.2.6. Broadcast Cluster
 
 广播调用所有提供者，逐个调用，任意一台报错则报错。通常用于通知所有提供者更新缓存或日志等本地资源信息
 
-### 3.2. 集群模式配置
+### 3.3. 集群模式配置
 
 按照以下示例在服务提供方和消费方配置集群模式
 
@@ -421,9 +423,7 @@ dubbo:application name="world" />
 
 ## 10. 服务分组
 
-**使用服务分组区分服务接口的不同实现**
-
-如果想在测试、开发环境等多套环境中共用同一个注册中心。或者当一个接口有多种实现时，可以用 group 区分
+**使用服务分组区分服务接口的不同实现**。如果想在测试、开发环境等多套环境中共用同一个注册中心、或者当一个接口有多种实现时，可以用 group 属性区分。
 
 - 服务提供方
 
@@ -447,9 +447,9 @@ dubbo:application name="world" />
 
 ## 11. 分组聚合
 
-dubbo提供了通过分组对结果进行聚合并返回聚合后的结果的功能。用`group`区分同一接口的多种实现，现在消费方需从每种`group`中调用一次并返回结果，对结果进行合并之后返回
+dubbo 提供了通过分组对结果进行聚合并返回聚合后的结果的功能。用`group`区分同一接口的多种实现，现在消费方需从每种`group`中调用一次并返回结果，对结果进行合并之后返回
 
-dubbo提供了以下类型的合并的实现，是根据服务接口的返回值的类型去找相应的实现
+dubbo 提供了以下类型的合并的实现，是根据服务接口的返回值的类型去找相应的实现
 
 > <font color=red>**值得注意：这个服务返回值合并只是一次PRC调用，如果其中某个服务执行失败，则调用结果失败。**</font>
 
@@ -560,7 +560,6 @@ public class GroupController {
     public String testMergerString() {
         return groupService.getGroupMessage();
     }
-
 }
 ```
 
@@ -590,10 +589,7 @@ registry.register(URL.valueOf("memcached://10.20.153.11/com.foo.BarService?categ
 
 ## 13. 多版本
 
-- 当一个接口实现，出现不兼容升级时，可以用版本号过渡，版本号不同的服务相互间不引用
-- 服务端提供接口的实现升级时，可由dubbo的版本号操作进行过渡。如果上线上测试新版本接口有缺陷，为了不影响业务，要迅速切回原版本接口，最大程度减少损失。
-
-版本迁移步骤：
+当服务端提供接口的实现出现不兼容升级时，可由 dubbo 的版本号操作进行过渡，版本号不同的服务相互间不引用。如果上线后测试新版本接口有缺陷，为了不影响业务，可以迅速切回原版本接口，最大程度减少损失。版本迁移步骤如下：
 
 1. 在低压力时间段，先升级一半提供者为新版本
 2. 再将所有消费者升级为新版本
@@ -944,9 +940,9 @@ public class XxxServiceImpl implements XxxService {
 - Consumer同步 - Provider异步
 - Consumer异步 - Provider异步
 
-### 20.1. 异步执行
+### 20.1. Provider 端异步执行
 
-Dubbo 服务提供方的异步执行。Provider端异步执行将阻塞的业务从Dubbo内部线程池切换到业务自定义线程，避免Dubbo线程池的过度占用，有助于避免不同服务间的互相影响。<font color=red>**异步执行无益于节省资源或提升RPC响应性能（只是提高了应用的吞量）**</font>，因为如果业务执行需要阻塞，则始终还是要有线程来负责执行。
+Dubbo 服务提供方的异步执行。Provider 端异步执行将阻塞的业务从 Dubbo 内部线程池切换到业务自定义线程，避免 Dubbo 线程池的过度占用，有助于避免不同服务间的互相影响。<font color=red>**异步执行无益于节省资源或提升 RPC 响应性能（只是提高了应用的吞量）**</font>，因为如果业务执行需要阻塞，则始终还是要有线程来负责执行。
 
 #### 20.1.1. 定义 CompletableFuture 签名的接口
 
@@ -992,9 +988,9 @@ public class AsyncServiceImpl implements AsyncService {
 
 注：通过 `return CompletableFuture.supplyAsync()`，业务执行已从 Dubbo 线程切换到业务线程，避免了对 Dubbo 线程池的阻塞。
 
-#### 20.1.2. 使用AsyncContext（2.7.0版本后）
+#### 20.1.2. 使用 AsyncContext（2.7.0版本后）
 
-Dubbo 在2.7.0版本后提供了一个类似 Serverlet 3.0 的异步接口`AsyncContext`，在没有 `CompletableFuture` 签名接口的情况下，也可以实现 Provider 端的异步执行。
+Dubbo 在 2.7.0 版本后提供了一个类似 Serverlet 3.0 的异步接口 `AsyncContext`，在没有 `CompletableFuture` 签名接口的情况下，也可以实现 Provider 端的异步执行。
 
 服务接口定义：
 
@@ -1006,7 +1002,7 @@ public interface AsyncService {
 
 服务暴露，和普通服务完全一致：
 
-```java
+```xml
 <bean id="asyncService" class="org.apache.dubbo.samples.governance.impl.AsyncServiceImpl"/>
 <dubbo:service interface="org.apache.dubbo.samples.governance.api.AsyncService" ref="asyncService"/>
 ```
@@ -1045,19 +1041,19 @@ public class AsyncServiceImpl implements AsyncService {
 }
 ```
 
-### 20.2. 异步调用(Consumer端调用)
+### 20.2. Consumer 端异步调用
 
-> 从v2.7.0开始，Dubbo的所有异步编程接口开始以CompletableFuture为基础
+> 从 v2.7.0 版本开始，Dubbo 的所有异步编程接口开始以 `CompletableFuture` 为基础
 
-Dubbo的异步调用是非阻塞的NIO调用，一个线程可同时并发调用多个远程服务，每个服务的调用都是非阻塞的，线程立即返回。就是对java中Futrue模式的扩展支持。异步调用流程图如下：
+Dubbo 的异步调用是非阻塞的 NIO 调用，一个线程可同时并发调用多个远程服务，每个服务的调用都是非阻塞的，线程立即返回。就是对 java 中 `Futrue` 模式的扩展支持。异步调用流程图如下：
 
 ![](images/20200129192643662_18150.png)
 
-如上图，userThread发出调用后，IOThread会立即返回，并在RPC上下文RpcContext中设置Future。userThread后续可以从RpcContext中取得此Future，然后wait这个Future其它的事情都由IOThread完成
+如上图，userThread 发出调用后，IOThread 会立即返回，并在 RPC 上下文 RpcContext 中设置 Future。userThread 后续可以从 RpcContext 中取得此 Future，然后 wait 这个 Future 其它的事情都由 IOThread 完成
 
-总之，userThread发出调用后IOThread会立刻返回，而不是等调用在服务端执行完代码、返回结果后返回。用户返回后可以去做点其它事情，比如调用另外一个服务，然后回头等待前一个调用完成。从上图可以看出，异步调用完全是Consumer端的行为
+总之，userThread 发出调用后 IOThread 会立刻返回，而不是等调用在服务端执行完代码、返回结果后返回。用户返回后可以去做点其它事情，比如调用另外一个服务，然后回头等待前一个调用完成。从上图可以看出，异步调用完全是 Consumer 端的行为
 
-> 详细案例参考busi-mall工程中的dubbo.xml与IndexController
+> 详细案例参考 busi-mall 工程中的 dubbo.xml 与 IndexController
 
 #### 20.2.1. 在消费端配置
 
