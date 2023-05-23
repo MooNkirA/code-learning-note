@@ -68,7 +68,10 @@
 ### 🐦 MyBatis
 
 <ul class="docs">
-  <li><a href="#/后端框架/MyBatis/MyBatis-基础">MyBatis 基础笔记</a></li>
+  <li><a href="#/后端框架/MyBatis/MyBatis-基础">MyBatis 基础</a></li>
+  <li><a href="#/后端框架/MyBatis/MyBatis-XML总配置">MyBatis XML 总配置</a></li>
+  <li><a href="#/后端框架/MyBatis/MyBatis-XML映射配置">MyBatis XML 映射配置</a></li>
+  <li><a href="#/后端框架/MyBatis/MyBatis-动态SQL">MyBatis 动态 SQL</a></li>
   <li><a href="#/后端框架/MyBatis/MyBatis-代码生成器">MyBatis 代码生成器（逆向工程）</a></li>
   <li><a href="#/后端框架/MyBatis/MyBatis-源码分析">MyBatis 源码分析</a></li>
   <li><a href="#/后端框架/MyBatis/MyBatis-Plus">MyBatis-Plus 基础笔记</a></li>
@@ -391,7 +394,8 @@
 ### 🐒 ZooKeeper
 
 <ul class="docs">
-  <li><a href="#/分布式微服务/Zookeeper/Zookeeper-基础">Zookeeper 基础笔记</a></li>
+  <li><a href="#/分布式微服务/Zookeeper/Zookeeper-基础">Zookeeper 基础</a></li>
+  <li><a href="#/分布式微服务/Zookeeper/Zookeeper-客户端">Zookeeper 常用客户端（Zookeeper、Zkclient、Curator）</a></li>
   <li><a href="#/分布式微服务/Zookeeper/Zookeeper-应用场景">Zookeeper 应用场景</a></li>
 </ul>
 

@@ -232,9 +232,7 @@ update product set name = 'TXC' where id = 1;
 
 官方下载地址：https://github.com/seata/seata/releases
 
-本次示例 Seata 版本为 0.9.0。
-
-> demo中使用的相关版本号，具体请看代码。如果搭建个人demo不成功，验证是否是由版本导致，由于目前这几个项目更新比较频繁，版本稍有变化便会出现许多奇怪问题
+> Notes: 本次示例 Seata 版本为 0.9.0。demo 中使用的相关版本号，具体请看代码。如果搭建个人demo不成功，验证是否是由版本导致，由于目前这几个项目更新比较频繁，版本稍有变化便会出现许多奇怪问题
 
 #### 3.2.2. 修改 Seata 配置
 
