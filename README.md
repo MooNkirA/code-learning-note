@@ -299,12 +299,13 @@
   <li><a href="#/DevOps/测试工具/Postman">Postman 接口测试工具</a></li>
 </ul>
 
-## Linux
+## 🖥 Linux
 
 <ul class="docs">
-  <li><a href="#/Linux/Linux安装">Linux 安装</a></li>
-  <li><a href="#/Linux/Linux笔记">Linux 笔记</a></li>
-  <li><a href="#/Linux/Linux命令">Linux 命令</a></li>
+  <li><a href="#/Linux/Linux-安装">Linux 安装</a></li>
+  <li><a href="#/Linux/Linux-基础">Linux 基础</a></li>
+  <li><a href="#/Linux/Linux-命令">Linux 命令</a></li>
+  <li><a href="#/Linux/Linux-shell">Linux shell 编程</a></li>
   <li><a href="#/Linux/虚拟机-Multipass">Multipass 虚拟机工具</a></li>
 </ul>
 

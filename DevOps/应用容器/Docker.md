@@ -1,8 +1,8 @@
-# Docker 应用容器引擎 - 容器部署解决方案
+## 1. Docker 简介
+
+应用容器引擎 - 容器部署解决方案
 
 > Docker 官网：https://www.docker.com/
-
-## 1. Docker 简介
 
 ### 1.1. 什么是 Docker
 
@@ -740,17 +740,17 @@ Dockerfile 是由一系列命令和参数构成的脚本，这些命令应用于
 
 ### 7.2. 常用命令
 
-| 命令                               | 作用                                                                  |
-| ---------------------------------- | --------------------------------------------------------------------- |
-| FROM image_name:tag                | 定义了使用哪个基础镜像启动构建流程                                    |
-| MAINTAINER user_name               | 声明镜像的创建者                                                      |
-| ENV key value                      | 设置环境变量 (可以写多条)                                             |
-| RUN command                        | 是 Dockerfile 的核心部分(可以写多条)                                  |
+|                命令                 |                            作用                             |
+| ---------------------------------- | ---------------------------------------------------------- |
+| FROM image_name:tag                | 定义了使用哪个基础镜像启动构建流程                               |
+| MAINTAINER user_name               | 声明镜像的创建者                                              |
+| ENV key value                      | 设置环境变量 (可以写多条)                                      |
+| RUN command                        | 是 Dockerfile 的核心部分(可以写多条)                           |
 | ADD source_dir/file dest_dir/file  | 将宿主机的文件复制到容器内，如果是一个压缩文件， 将会在复制后自动解压 |
-| COPY source_dir/file dest_dir/file | 和 ADD 相似，但是如果有压缩文件并不能解压                             |
-| WORKDIR path_dir                   | 设置工作目录                                                          |
+| COPY source_dir/file dest_dir/file | 和 ADD 相似，但是如果有压缩文件并不能解压                        |
+| WORKDIR path_dir                   | 设置工作目录                                                 |
 
-### 7.3. 使用脚本创建镜像
+### 7.3. 使用脚本创建镜像示例
 
 1. 创建目录
 

@@ -327,7 +327,7 @@ finally 代码块的注意事项：
 - 若 catch 与 finally 代码块中都包含 return 语句，则只会执行 finally 中的 return 语句，不会执行 catch 中的 return 语句。
 - finally 中最好不要包含 return 语句，否则程序会提前退出，返回值不是 try 或 catch 中的返回值。
 - `System.exit(0);` 此方法是退出 jvm，只有这种情况 finally 代码块不执行。
-- **finally 代码块是在 return 后面的表达式运算语句之后执行的**。即 return 语句不会马上将运算后的值返回给调用者，而是先把要返回的值保存起来，待 finally 代码块执行完毕之后再向调用者返回其值。不管在 finally 中是否修改了返回值，返回的值都不会改变，仍然返回是之前保存的值。
+- **finally 代码块是在 return 后面的表达式运算语句之后执行的**。即 return 语句不会马上将运算后的值返回给调用者，而是先把要返回的值保存起来，待 finally 代码块执行完毕之后再向调用者返回其值。<font color=red>**因此不管在 finally 中是否修改了返回值，返回的值都不会改变，仍然返回是之前保存的值**</font>。
 
 ```java
 public static void main(String[] args) {
@@ -347,7 +347,7 @@ private static int doSum(int a, int b) {
 }
 ```
 
-#### 4.5.5. try-catch-finally 的几种结合方式
+#### 4.5.5. try-catch-finally 的几种组合方式
 
 组合1：
 
@@ -526,7 +526,7 @@ public void doNotThrowAgainExceptions() throws MyBusinessException {
 ```
 
 ### 5.7. 包装异常时不要抛弃原始的异常
-  
+
 捕获标准异常并包装为自定义异常是一个很常见的做法，这样可以添加更为具体的异常信息并能够做针对的异常处理。
 
 在包装异常时，请确保将原始异常设置为原因。否则，将会丢失堆栈跟踪和原始异常的消息，这将会使分析导致异常的异常事件变得困难。
