@@ -1153,7 +1153,7 @@ public class SpringConfiguration {
 }
 ```
 
-*注：其中`initMethod = "init"`和`destroyMethod = "destory"`与CustomBean类里的init，destory方法相对应*
+*注：其中`initMethod = "init"`和`destroyMethod = "destory"`与 CustomBean 类里的 init，destory 方法相对应*
 
 - 测试代码
 
@@ -3016,7 +3016,7 @@ public class ConfigApp {}
 ```
 
 ### 10.8. BeanFactory 和 ApplicationContext 的区别
-  
+
 两者创建对象的时间点不一样
 
 - `ApplicationContext`：只要读取到配置文件，默认情况下就会创建对象

@@ -2330,7 +2330,7 @@ public class CustomPropertySourceFactory implements PropertySourceFactory {
 }
 ```
 
-### 7.4. 使用`@PropertyeSource`的factory属性配置自定义工厂
+### 7.4. 使用 @PropertyeSource 的factory属性配置自定义工厂
 
 ```java
 @Configuration

@@ -5248,7 +5248,7 @@ private Enhancer newEnhancer(Class<?> configSuperClass, @Nullable ClassLoader cl
 
 BeanPostProcessor 接口类型实例是针对某种特定功能的埋点，在这个点会根据接口类型来过滤掉不关注这个点的其他类，只有真正关注的类才会在这个点进行相应的功能实现。
 
-### 1.1. 获取有`@Autowired`注解的构造函数埋点
+### 1.1. 获取有 @Autowired 注解的构造函数埋点
 
 - 作用：用于收集创建中Bean实例中有`@Autowired`注解的构造函数
 - 此功能实现的`BeanPostProcessor`接口类型是：`SmartInstantiationAwareBeanPostProcessor`
@@ -5484,7 +5484,7 @@ public void testPropertiesByXml() {
 
 ![](images/20210213224956223_12043.png)
 
-#### 2.1.4. 通过`ResourceLoaderAware`接口实现读取properties配置文件
+#### 2.1.4. 通过 ResourceLoaderAware 接口实现读取 properties 配置文件
 
 - 实现`ResourceLoaderAware`接口，通过`setResourceLoader`方法获取到资源加载对象`ResourceLoader`，通过该对象读取properties文件，手动设置到spring的占位符解析器`PropertySourcesPlaceholderConfigurer`
 
