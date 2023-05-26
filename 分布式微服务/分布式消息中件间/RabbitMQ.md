@@ -51,7 +51,7 @@ MQ 全称为 Message Queue，即消息队列， RabbitMQ 是由 erlang 语言开
 
 ## 2. RabbitMQ 快速入门
 
-### 2.1. window版 安装
+### 2.1. window 版安装
 
 #### 2.1.1. 说明
 
@@ -133,7 +133,7 @@ RabbitMQ 也提供有 web 控制台服务，但是此功能是一个插件，需
 1. 安装 erlang 和 rabbitMQ 都以管理员身份运行。
 2. 当卸载重新安装时会出现 RabbitMQ 服务注册失败，此时需要进入注册表清理 erlang，搜索 RabbitMQ、ErlSrv，将对应的项全部删除。
 
-### 2.2. Linux版安装
+### 2.2. Linux 版安装
 
 #### 2.2.1. 使用 Docker 安装部署 RabbitMQ
 

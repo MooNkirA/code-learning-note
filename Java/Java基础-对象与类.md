@@ -1494,7 +1494,9 @@ protected void finalize() throws Throwable { }
 
 GC 作为内存回收，其实大部分时候应用都不需要在 finalization 做些事情(也就是不需要重载)。只有在某些很特殊的情况下，比如调用了一些 native 的方法(一般是C写的)，可以要在 finaliztion 里去调用C的释放函数。
 
-### 11.3. 两个对象的 hashCode 相同，则 equals 是否也一定为 true？
+### 11.3. 相关扩展
+
+#### 11.3.1. 两个对象的 hashCode 相同，则 equals 是否也一定为 true？
 
 equals 与 hashcode 的关系：
 
@@ -1503,7 +1505,15 @@ equals 与 hashcode 的关系：
 
 hashcode 方法主要是用来<font color=red>**提升对象比较的效率**</font>，先进行 hashcode() 的比较，如果不相同，那就不必在进行 equals 的比较，这样就大大减少了 equals 比较的次数，当比较对象的数量很大的时候能提升效率。
 
-之所以重写 `equals()` 时也要重写 `hashcode()` ，是为了保证 `equals()` 方法返回 true 的情况下 hashcode 值也要一致；如果重写了 `equals()` 没有重写 `hashcode()`，就会出现两个对象相等但 hashcode 不相等的情况。这样，当用其中的一个对象作为键保存到 hashMap、hashTable 或 hashSet 中，再以另一个对象作为键值去查找他们的时候，则会查找不到。
+之所以重写 `equals()` 时也要重写 `hashcode()` ，是为了保证 `equals()` 方法返回 true 的情况下 hashcode 值也要一致；如果重写了 `equals()` 没有重写 `hashcode()`，就会出现两个对象相等但 hashcode 不相等的情况。这样，当用其中的一个对象作为键保存到 HashMap、HashTable 或 HashSet 中，再以另一个对象作为键值去查找他们的时候，则会查找不到。
+
+#### 11.3.2. 重写 equals 不重写 hashcode 会有什么效果及原理
+
+重写 equals 不重写 hashcode，可能会导致这个类在使用哈希数据结构存储时出现问题。因为哈希数据结构需要根据 hashCode 值来进行数据的查找和定位，这会导致即使两个对象的属性值相等，但它们的 hashCode 值也可能不相等。
+
+由于 equals 方法一般和 hashCode 方法是配合使用的，即当两个对象使用 equals 方法比较返回 true 时，它们的 hashCode 方法应该返回相同的值。因此，如果在重写 equals 方法时不重写 hashCode 方法，那么可能会导致这两个方法的行为不一致，从而破坏哈希数据结构的性质。
+
+为了解决这个问题，通常需要同时重写 equals 方法和 hashCode 方法。在重写 hashCode 方法时，需要根据对象的属性值来计算出一个 hashCode 值，通常可以使用 Java 提供的 `Objects.hash(Object... values)` 方法来实现。同时，在重写 hashCode 方法时，需要保证对于 equals 方法返回 true 的两个对象，它们的 hashCode 方法返回的值相等，从而保证哈希数据结构的正确性。
 
 ## 12. String 类
 

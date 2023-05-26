@@ -1,10 +1,8 @@
-# Netty（网络应用程序框架）
-
-## 1. 相关知识-BIO与NIO编程
+## 1. 前置知识：BIO 与 NIO 编程
 
 此部分内容详见[《Java基础 - IO编程、序列化》笔记](/Java/Java基础-IO编程)
 
-## 2. Netty 概述
+## 2. Netty 网络应用程序框架概述
 
 Netty 是由 JBOSS 提供的一个 Java 开源框架。Netty 提供异步的、基于事件驱动的网络应用程序框架，用以快速开发高性能、高可靠性的网络 IO 程序。
 
@@ -841,15 +839,22 @@ public class ChatClient {
     2. ObjectEncoder，对 Java 对象进行编码
 - *Netty 本身自带的 ObjectDecoder 和 ObjectEncoder 可以用来实现 POJO 对象或各种业务对象的编码和解码，但其内部使用的仍是 Java 序列化技术，所以不建议使用*。因此对于 POJO 对象或各种业务对象要实现编码和解码，需要更高效更强的技术
 
-### 7.2. Google 的 Protobuf
+### 7.2. Netty 编解码器的作用
 
-Protobuf 是 Google 发布的开源项目，全称 Google Protocol Buffers，特点如下
+1. 编码器可以**将 Java 对象转换为字节流**，以便在网络上传输。例如，将字符串、数字、图像等对象编码成二进制数据。
+2. 解码器可以**将字节流转换为 Java 对象**，以便在应用程序中使用。例如，将二进制数据解码成字符串、数字、图像等对象。
+3. 使用编解码器可以减少网络流量，提高网络性能。例如，通过压缩数据来减少数据的大小，从而减少网络流量。
+4. 使用编解码器可以简化开发，减少代码的复杂度。例如，使用 Netty 提供的内置编解码器，可以避免手动处理数据转换的细节。
+
+### 7.3. Google 的 Protobuf
+
+Protobuf 是 Google 发布的开源项目，全称 Google Protocol Buffers，特点如下：
 
 - 支持跨平台、多语言（支持目前绝大多数语言，例如 C++、C#、Java、python 等）
 - 高性能，高可靠性
 - 使用 protobuf 编译器能自动生成代码，Protobuf 是将类的定义使用`.proto`文件进行描述，然后通过 protoc.exe 编译器根据`.proto`自动生成`.java`文件
 
-### 7.3. Protobuf 案例
+### 7.4. Protobuf 案例
 
 目前在使用 Netty 开发时，经常会结合 Protobuf 作为 codec (编解码器)去使用，具体使用步骤如下：
 
