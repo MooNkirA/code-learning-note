@@ -446,44 +446,50 @@ REPOSITORY    TAG    IMAGE ID         CREATED        SIZE
 
 ## 5. Docker 容器操作命令
 
-### 5.1. 查看容器
+### 5.1. 镜像创建启动容器
 
-- 查看正在运行容器（不显示已经停止的容器）
+创建容器命令：`docker run`
 
-```shell
-docker ps
+```bash
+docker run [OPTIONS] IMAGE[:TAG|@DIGEST] [COMMAND] [ARG...]
 ```
 
-- 查看所有的容器（包含已经停止的容器）
+命令示例：
 
-```shell
-docker ps –a
+```bash
+> docker run ubuntu:16.04 /bin/echo 'Hello world'
+Hello world
+
+> docker run -t -i ubuntu:16.04 /bin/bash
+root@b6bb71fb6ef4:/#
 ```
 
-- 查看最后一次运行的容器
+#### 5.1.1. 关键参数说明
 
-```shell
-docker ps –l
-```
-
-- 查看停止的容器
-
-```shell
-docker ps -f status=exited`
-```
-
-### 5.2. 镜像创建启动容器
-
-创建容器命令：`docker run`，参数说明如下：
-
-- `-i`：表示运行容器
+- `-i`：表示运行容器，让容器的标准输入保持打开
 - `-t`：表示容器启动后会进入其命令行。加入这两个参数后，容器创建就能登录进去。即分配一个伪终端。
 - `--name`：为创建的容器命名。
-- `-v`：表示目录映射关系（前者是宿主机目录，后者是容器的目录），可以使用多个`-v`做多个目录或文件映射。注意：最好做目录映射，在宿主机上做修改，然后共享到容器上。
-- `-d`：在 run 后面加上`-d`参数，则会创建一个守护式容器在后台运行（这样创建容器后不会自动登录容器，如果只加`-i -t`两个参数，创建后就会自动进去容器）。
-- `-p`：表示端口映射，前者是宿主机端口，后者是容器内的映射端口。可以使用多个`-p`做多个端口映射
+- `-v`：表示目录映射关系。前者是宿主机目录，后者是容器的目录。可以使用多个`-v`做多个目录或文件映射。注意：最好做目录映射，在宿主机上做修改，然后共享到容器上。
+- `-d`：创建一个守护式容器在后台运行（这样创建容器后不会自动登录容器，如果只加`-i -t`两个参数，创建后就会自动进去容器）。
+- `-p`：表示端口映射关系。前者是宿主机端口，后者是容器内的映射端口。可以使用多个`-p`做多个端口映射
+- `-e`：设置环境变量
 
-#### 5.2.1. 交互式容器（exit 退出时，容器停止）
+命令示例：
+
+```bash
+> docker run --name some-redis -p 6379:6379 -d redis
+
+> docker run -p 3306:3306 --name mysql5.7 \
+        -v /data/mysqldata:/var/lib/mysql \
+        -e MYSQL_ROOT_PASSWORD=123456 \
+        -d mysql:5.7
+
+> docker run -t -i ubuntu:16.04 /bin/bash
+root@b6bb71fb6ef4:/# ls
+bin boot dev etc home lib lib64 media mnt opt proc root
+```
+
+#### 5.1.2. 交互式容器（exit 退出时，容器停止）
 
 - 创建一个交互式容器语法
 
@@ -501,7 +507,7 @@ docker run -it --name=mycentos centos /bin/bash
 - 用`exit`命令退出当前容器
 - 用`docker ps -a`命令查看，发现容器已经停止
 
-#### 5.2.2. 守护式容器（后台运行。使用 exit 退出时，容器不会停止）
+#### 5.1.3. 守护式容器（后台运行。使用 exit 退出时，容器不会停止）
 
 - 创建一个守护式容器：如果对于一个需要长期运行的容器来说，我们可以创建一个守护式容器。命令如下（**容器名称不能重复**）：
 
@@ -513,100 +519,16 @@ docker run -id --name=容器名称 镜像名称:标签
 docker run -id --name=mycentos2 centos
 ```
 
-- 登录守护式容器，语法：
+#### 5.1.4. 目录挂载
 
-```shell
-# 语法
-docker exec -it  容器名称|容器id  /bin/bash
+在创建容器的时候，将宿主机的目录与容器内的目录进行映射，这样就可以通过修改宿主机某个目录的文件从而去影响容器（相当于共享目录一样）。目录挂载语法：
 
-# 方式1：使用容器的name登陆
-docker exec -it mycentos2 /bin/bash
-
-# 方式2：使用容器的id登陆
-docker exec -it 5f4465d7430c /bin/bash
-```
-
-### 5.3. 停止容器
-
-```shell
-# 停止容器语法：
-docker stop 容器名称|容器ID
-
-# 例：停止容器方式1：
-docker stop mycentos2
-# 例：停止容器方式2：
-docker stop 5f4465d7430c
-```
-
-### 5.4. 启动容器
-
-```shell
-# 启动容器语法
-docker start 容器名称|容器ID
-
-# 例：启动容器方式1：
-docker start mycentos2
-# 例：启动容器方式2：
-docker start 5f4465d7430c
-```
-
-### 5.5. 重启容器
-
-```shell
-# 重新启动容器语法：
-docker restart 容器名称|容器ID
-
-# 例：重新启动容器方式1：
-docker restart mycentos2
-# 例：重新启动容器方式1：
-docker restart 5f4465d7430c
-```
-
-### 5.6. 删除容器
-
-```shell
-# 删除指定的容器语法：
-docker rm 容器名称|容器ID
-
-# 例：删除容器方式1：
-docker rm mycentos2
-# 例：删除容器方式2：
-docker rm 2095a22bee70
-```
-
-<font color=red>**注意：只能删除停止的容器**</font>
-
-### 5.7. 文件拷贝
-
-- 将宿主机中的文件拷贝到容器内使用`docker cp`命令（注意，需要后台运行目标容器，在宿主中使用命令）：
-
-```shell
-# 从宿主机复制文件到容器，语法：
-docker cp 需要拷贝的文件或目录 容器名称:容器目录
-
-# 例：
-docker cp anaconda-ks.cfg mycentos:/usr/local
-```
-
-- 将文件从容器内拷贝到宿主机使用`docker cp`命令：
-
-```shell
-# 从容器复制文件到宿主机（是复制到当前停留的宿主机目录中），语法：
-docker cp 容器名称:容器目录 需要拷贝的文件或目录
-
-# 例：
-docker cp mycentos:/usr/local/anaconda-ks.cfg 1.cfg
-```
-
-### 5.8. 目录挂载
-
-- 在创建容器的时候，将宿主机的目录与容器内的目录进行映射，这样就可以通过修改宿主机某个目录的文件从而去影响容器（相当于共享目录一样）
-
-```shell
-# 目录挂载语法：
+```bash
 docker run -id -v 宿主机目录:容器目录 --name=容器名称 镜像名称:TAG
+```
 
-# 例：
+示例：
+```bash
 docker run -id -v /usr/local/web:/usr/local/web --name=mycentos3 centos
 
 # 操作宿主机：
@@ -616,11 +538,191 @@ vim 1.txt
 # 登陆到mycentos3容器中，/usr/local/web可以看到对应的文件与内容
 ```
 
-- 在上文件到挂载的目录时，如果共享的是多级的目录，会出现权限不足的提示
-- 这是因为 CentOS7 中的安全模块 selinux 把权限禁掉了，需要添加参数 `--privileged=true` 来解决挂载的目录没有权限的问题
+在上文件到挂载的目录时，如果共享的是多级的目录，会出现权限不足的提示。这是因为 CentOS7 中的安全模块 selinux 把权限禁掉了，需要添加参数 `--privileged=true` 来解决挂载的目录没有权限的问题
 
-```shell
+```bash
 docker run -id -v /usr/local/web:/usr/local/web --privileged=true --name=mycentos4 centos
+```
+
+### 5.2. 登录守护式容器
+
+登录守护式容器，语法：
+
+```bash
+# 语法
+docker exec -it  容器名称|容器id  /bin/bash
+```
+
+进入容器示例：
+
+```bash
+# 方式1：使用容器的 name 登陆
+docker exec -it mycentos2 /bin/bash
+
+# 方式2：使用容器的id登陆
+docker exec -it 5f4465d7430c /bin/bash
+```
+
+例如后台运行了 MySQL 容器，现在想进入容器，并登陆 MySQL 客户端：
+
+```bash
+# 启动 MySQL 容器
+> docker run -p 3306:3306 --name mysql5.7 \
+    -v /data/mysqldata:/var/lib/mysql \
+    -e MYSQL_ROOT_PASSWORD=123456 \
+    -d mysql:5.7
+
+# 进入 MySQL 容器
+> docker exec -it mysql5.7 bash
+
+# 登录 MySQL
+> mysql -u root -p
+```
+
+### 5.3. 查看容器
+
+- 查看正在运行容器（不显示已经停止的容器）
+
+```bash
+docker ps
+```
+
+- 查看所有的容器（包含已经停止的容器）
+
+```bash
+docker ps –a
+```
+
+- 查看最后一次运行的容器
+
+```bash
+docker ps –l
+```
+
+- 查看停止的容器
+
+```bash
+docker ps -f status=exited`
+```
+
+### 5.4. 停止容器
+
+停止容器语法：
+
+```bash
+docker stop 容器名称|容器ID
+```
+
+示例
+
+```bash
+# 方式1：根据容器名称
+docker stop mycentos2
+# 方式2：根据容器ID
+docker stop 5f4465d7430c
+```
+
+### 5.5. 启动容器
+
+启动容器语法
+
+```bash
+docker start 容器名称|容器ID
+```
+
+启动容器示例：
+
+```bash
+# 方式1：根据容器名称
+docker start mycentos2
+# 方式2：根据容器ID
+docker start 5f4465d7430c
+```
+
+### 5.6. 重启容器
+
+重新启动容器语法：
+
+```bash
+docker restart 容器名称|容器ID
+```
+
+重新启动容器示例：
+
+```bash
+# 方式1：根据容器名称
+docker restart mycentos2
+# 方式2：根据容器ID
+docker restart 5f4465d7430c
+```
+
+### 5.7. 删除容器
+
+<font color=red>**注意：只能删除处于终止状态的容器**</font>
+
+删除指定的容器的语法：
+
+```bash
+docker rm 容器名称|容器ID
+```
+
+删除容器示例：
+
+```bash
+# 方式1：根据容器名称
+docker rm mycentos2
+# 方式2：根据容器ID
+docker rm 2095a22bee70
+```
+
+删除所有终止状态的容器：
+
+```bash
+docker container prune
+```
+
+删除所有容器：
+
+```bash
+# 先停止所有容器
+$ docker stop $(docker ps -a -q)
+# 删除
+$ docker rm $(docker ps -a -q)
+```
+
+批量删除部分容器：
+
+```bash
+> docker stop $(docker ps | grep rock | awk '{print $1}')
+> docker rm $(docker ps -a| grep rock | awk '{print $1}')
+```
+
+### 5.8. 文件拷贝
+
+使用`docker cp`命令将宿主机中的文件拷贝到容器内。**注意：需要后台运行目标容器，在宿主中使用命令**。
+
+从宿主机复制文件到容器语法：
+
+```bash
+docker cp 需要拷贝的文件或目录 容器名称:容器目录
+```
+
+从宿主机复制文件到容器示例：
+
+```bash
+docker cp anaconda-ks.cfg mycentos:/usr/local
+```
+
+从容器复制文件到宿主机（是复制到当前停留的宿主机目录中）语法：
+
+```bash
+docker cp 容器名称:容器目录 需要拷贝的文件或目录
+```
+
+从容器复制文件到宿主机wgi /iegm
+
+```bash
+docker cp mycentos:/usr/local/anaconda-ks.cfg 1.cfg
 ```
 
 ### 5.9. 查看容器 IP
@@ -636,6 +738,20 @@ docker inspect --format='{{.NetworkSettings.IPAddress}}'  容器名称|容器ID
 ```
 
 ![查看容器IP](images/20190406081447562_14798.png)
+
+### 5.10. 导入导出容器
+
+容器导出：
+
+```bash
+> docker export 7691a814370e > ubuntu.tar
+```
+
+导入容器：
+
+```bash
+> docker load < ubuntu.tar
+```
 
 ## 6. 部署应用
 
@@ -870,7 +986,7 @@ docker load -i mynginx.tar
 
 ## 8. Dockerfile 构建镜像
 
-### 8.1. 什么是 Dockerfile
+### 8.1. Dockerfile 简介
 
 Dockerfile 是由一系列命令和参数构成的脚本，这些命令应用于基础镜像并最终创建一个新的镜像。
 
@@ -878,11 +994,11 @@ Dockerfile 是由一系列命令和参数构成的脚本，这些命令应用于
 2. 对于测试人员：可以直接拿开发时所构建的镜像或者通过 Dockerfile 文件构建一个新的镜像开始工作了；
 3. 对于运维人员：在部署时，可以实现应用的无缝移植。
 
-#### 8.1.1. Dockerfile 基础结构
+### 8.2. Dockerfile 基础结构
 
 ![](images/249843522236861.jpg)
 
-### 8.2. 常用命令
+### 8.3. Dockerfile 常用命令
 
 |                命令                 |                              作用                              |
 | ---------------------------------- | ------------------------------------------------------------- |
@@ -895,7 +1011,7 @@ Dockerfile 是由一系列命令和参数构成的脚本，这些命令应用于
 | WORKDIR path_dir                   | 设置工作目录                                                    |
 | CMD、ENTRYPOINT                    | 启动容器执行命令                                                 |
 
-#### 8.2.1. FROM 基础镜像
+#### 8.3.1. FROM 基础镜像
 
 从镜像仓库拿一个镜像，作为此次构建镜像的基石。例：
 
@@ -903,7 +1019,7 @@ Dockerfile 是由一系列命令和参数构成的脚本，这些命令应用于
 FROM centos:6
 ```
 
-#### 8.2.2. RUN 执行命令
+#### 8.3.2. RUN 执行命令
 
 构建镜像过程中运行的 Shell 命令，是 Dockerfile 的核心部分(可以写多条)
 
@@ -915,7 +1031,7 @@ RUN buildDeps='gcc libc6-dev make' \
         && apt-get install -y
 ```
 
-#### 8.2.3. CMD、ENTRYPOINT 启动容器执行命令
+#### 8.3.3. CMD、ENTRYPOINT 启动容器执行命令
 
 此两个命令均为容器启动时执行，两者相同点是：
 
@@ -927,7 +1043,51 @@ RUN buildDeps='gcc libc6-dev make' \
 - CMD 指定的命令可以被 docker run 中指定的命令覆盖，而 ENTRYPOINT 不会，会作为自己命令的参数
 - CMD 可以不指定命令，只有参数，这时可以作为 ENTRYPOINT 的默认参数，而且可以在 docker run 时替换
 
-### 8.3. 使用脚本创建镜像示例
+#### 8.3.4. COPY/ADD 拷贝文件或目录到镜像
+
+ADD 含义同 COPY，区别是 ADD 有增强功能：自动解压。
+
+```dockerfile
+COPY index.jsp /var/www
+ADD webapp.zip /var/www
+```
+
+#### 8.3.5. WORKDIR 指定工作目录
+
+指定当前的工作路径，类似 shell 中的 `cd` 命令，RUN、CMD、ENTRYPOINT、COPY、AND 都基于此路径，也是用户进入容器后的默认路径。
+
+```dockerfile
+WORKDIR /home
+```
+
+#### 8.3.6. EXPOSE 暴露端口
+
+声明容器打算使用什么端口
+
+```dockerfile
+EXPOSE 80 8080
+```
+
+#### 8.3.7. ENV 环境变量
+
+设置容器内的环境变量，其他指令可以直接引用
+
+```dockerfile
+ENV VERSION=3.0 DEBUG=true
+ENV MYSQL_PASSWORD 123456
+```
+
+### 8.4. 构建上下文
+
+命令格式：
+
+```bash
+docker build -t 构建镜像的名称
+```
+
+![](images/447544808230569.jpg)
+
+### 8.5. 使用脚本创建镜像示例
 
 1. 创建目录
 
@@ -972,32 +1132,60 @@ docker build -t='jdk1.8'
 docker images
 ```
 
-## 9. Docker 私有仓库
+## 9. Docker Compose 容器编排
 
-### 9.1. 私有仓库搭建与配置
+### 9.1. 概述
+
+支撑一套服务应用环境通常需要启动多个容器，例如 Tomcat 容器、MySQL 容器、Redis 容器...如果逐个启动、停止，繁琐、易出错。
+
+**Docker Compose 就是实现一键启动、停止应用相关的整套容器编排脚本**。Docker Compose 适用于开发环境和测试环境，生产还是使用专业的部署工具，如 k8s 等。
+
+### 9.2. Docker Compose 安装
+
+docker compose 下载地址：https://github.com/docker/compose/releases
+
+安装命令：
+
+```bash
+# 下载
+> curl -L https://github.com/docker/compose/releases/download/1.25.4/docker-compose-`uname -s`-`uname -m` -o /usr/local/bin/docker-compose
+
+# 授权
+> chmod +x /usr/local/bin/docker-compose
+```
+
+> Tips: 使用 `curl` 命令可能因为网络环境原因无法下载，可以直接到github仓库手动下载
+
+### 9.3. Docker Compose 应用（待整理）
+
+> TODO: 待整理
+
+## 10. Docker 私有仓库
+
+### 10.1. 私有仓库搭建与配置
 
 1. 拉取私有仓库镜像
 
-```shell
+```bash
 docker pull registry
 ```
 
 2. 启动私有仓库容器
 
-```shell
+```bash
 docker run -id --name=moon_registry -p 5000:5000 registry
 ```
 
-3. 打开浏览器 输入地址http://192.168.12.132:5000/v2/_catalog看到 `{"repositories":[]}` 表示私有仓库搭建成功并且内容为空
+3. 打开浏览器 输入地址 `http://192.168.12.132:5000/v2/_catalog` 看到 `{"repositories":[]}` 表示私有仓库搭建成功并且内容为空
 4. 修改 daemon.json
 
-```shell
+```bash
 vi /etc/docker/daemon.json
 ```
 
 添加以下内容（如果已配置其他内容，则在上面的内容后面增加逗号，写下以下 key-value 格式的内容），保存退出
 
-```shell
+```json
 {
     "insecure-registries":["192.168.12.132:5000"]
 }
@@ -1007,26 +1195,26 @@ vi /etc/docker/daemon.json
 
 5. 重启 docker 服务
 
-```shell
+```bash
 systemctl restart docker
 ```
 
-### 9.2. 镜像上传至私有仓库
+### 10.2. 镜像上传至私有仓库
 
 1. 标记此镜像为私有仓库的镜像
 
-```shell
+```bash
 docker tag jdk1.8 192.168.184.141:5000/jdk1.8
 ```
 
 2. 再次启动私服容器
 
-```shell
+```bash
 docker start moon_registry
 ```
 
 3. 上传标记的镜像
 
-```shell
+```bash
 docker push 192.168.184.141:5000/jdk1.8
 ```

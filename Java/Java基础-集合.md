@@ -522,7 +522,7 @@ ArrayList<String> newArray = new ArrayList<String>(array); // newArray 是可以
 
 - **线程安全**：Vector 使用了 `Synchronized` 来实现线程同步，是线程安全的，而 ArrayList 是非线程安全的。
 - **性能**：ArrayList 在性能方面要优于 Vector。
-- **扩容**：ArrayList 和 Vector 都会根据实际的需要动态的调整容量，只不过在 Vector 扩容每次会增加 1 倍，而 ArrayList 只会增加 50%。
+- **扩容**：ArrayList 和 Vector 都会根据实际的需要动态的调整容量，只不过在 Vector 扩容每次会增加 1 倍，而 ArrayList 只会增加 50%。ArrayList 与 Vector 都可以设置初始的空间大小，但 Vector 还可以设置增长的空间大小，而 ArrayList 没有提供设置增长空间的方法。
 
 > Vector 类的所有方法都是同步的。可以由两个线程安全地访问一个 Vector 对象、但是一个线程访问 Vector 的话代码要在同步操作上耗费大量的时间；而 Arraylist 不是同步的，所以在不需要保证线程安全时时建议使用 Arraylist
 
@@ -1438,7 +1438,7 @@ ConcurrentHashMap默认将hash表分为16个桶，诸如get、put、remove等常
 
 Hashtable 与 HashMap 都是 Map 接口的实现类。
 
-- **是否支持 null 为作为 key**：HashMap 可以接受为 null 的 key 和 value，key 为 null 的键值对放在下标为 0 的头结点的链表中；而 Hashtable 则不能。
+- **是否支持 null 为作为 key**：HashMap 可以接受为 null 的 key 和 value，key 为 null 的键值对放在下标为 0 的头结点的链表中，并且只允许存在一个；而 Hashtable 则不能。
 - **线程安全**：HashMap 是非线程安全的；HashTable 是线程安全的。Jdk 1.5 提供了 ConcurrentHashMap，它是 HashTable 的替代。
 - **执行效率**：Hashtable 很多方法是同步方法，在单线程环境下它效率低，比 HashMap 要低。
 - **哈希值**：HashTable 直接使用对象的 hashCode；而 HashMap 重新计算 hash 值。
@@ -1561,7 +1561,7 @@ public class MoonZero {
 }
 ```
 
-## 8. 集合相关的工具类API
+## 8. 集合相关的工具类 API
 
 ### 8.1. Collections 工具类
 

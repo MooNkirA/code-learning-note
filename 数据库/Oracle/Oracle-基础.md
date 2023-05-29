@@ -1,5 +1,3 @@
-# Oracle 基础笔记
-
 ## 1. Oracle 的基本概念
 
 ORACLE 数据库系统是美国 ORACLE 公司（甲骨文）提供的以分布式数据库为核心的一组软件产品，是目前最流行的客户/服务器(CLIENT/SERVER)或 B/S 体系结构的数据库之一。
@@ -3284,9 +3282,9 @@ end;
 insert into my_emp (ename) values ('jack');
 ```
 
-# Oracle 其他知识
+## 15. Oracle 其他知识
 
-## 1. 系统表user_tables/all_tables/dba_tables
+### 15.1. 系统表user_tables/all_tables/dba_tables
 
 - user_tables、all_tables、dba_tables关系：
     - user_tables：可查询当前用户的表；
@@ -3294,7 +3292,7 @@ insert into my_emp (ename) values ('jack');
     - dba_tables：可查询包括系统表在内的所有表。需要DBA权限才能查询
 - 以上3个视图中，user_tables的范围最小，all_tables看到的东西稍多一些，而dba_tables看到最多的信息
 
-## 2. 数据库锁表
+### 15.2. 数据库锁表
 
 `for update`：会对所查询到得结果集进行加锁，不允许其他程序修改
 `for update nowait`：也会对所查询到得结果集进行加锁，别的线程对结果集进行操作时会报错ORA-00054，提示：内容是资源正忙，但指定以 NOWAIT 方式获取资源。
