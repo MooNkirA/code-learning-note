@@ -2,16 +2,12 @@
 
 Spring Boot 提供了一些实用程序和注解来帮助测试应用程序。测试支持由两个模块提供：
 
-- Spring-boot-test 包含核心项目
-- Spring-boot-test-autoconfigure 支持测试的自动配置
+- spring-boot-test 提供测试核心功能
+- spring-boot-test-autoconfigure 提供对测试的自动配置
 
-## 2. 关于 Spring Boot 中 Junit 的概述
+### 1.1. spring-boot-starter-test 依赖
 
-Spring Boot 2.2.x 往后版本开始引入 JUnit 5 作为单元测试默认库，在 Spring Boot 2.2.x 版本之前，`spring-boot-starter-test` 包含了 JUnit 4 的依赖，Spring Boot 2.2.x 版本之后替换成了 Junit Jupiter。
-
-## 3. spring-boot-starter-test 依赖
-
-在 Spring Boot 工程，直接添加 `spring-boot-starter-test` 依赖即可使用 Junit
+Spring Boot 提供了一个 spring-boot-starter-test 一站式启动器，添加以下依赖配置：
 
 ```xml
 <!-- 配置测试启动器 -->
@@ -22,15 +18,32 @@ Spring Boot 2.2.x 往后版本开始引入 JUnit 5 作为单元测试默认库�
 </dependency>
 ```
 
-> 注意：Spring Boot 2.2.x 以前版本默认的测试库是 Junit4，在 2.2.x 其更高版本中，默认的测试库是 Junit5。如果工程是非 web 工程，则至少需要引入 `spring-boot-starter` 的依赖。
+测试启动器依赖不仅包含以上两个 Spring Boot 模块，还包含 Spring Test 测试模块，以及其他第三方测试类库，如下所示：
 
-### 3.1. 排除 junit 4
+- JUnit 5：Java 最主流的单元测试框架。
+- AssertJ：一款快速断言库。
+- Hamcrest：一款单元测试匹配库。
+- Mockito：一款 Mock 测试框架。
+- JSONassert：一款 JSON 断言库。
+- JsonPath：一款 JSON XPath 库。
+
+> Notes: Spring Boot 2.2.x 以前版本默认的单元测试库是 Junit 4，在 2.2.x 及其更高版本中，默认的单元测试库是 Junit 5（即 Junit Jupiter）。如果工程是非 web 工程，则至少需要引入 `spring-boot-starter` 的依赖。
+
+更多测试相关的依赖可见具体的依赖关系树，如下图所示。
+
+![](images/30643222230570.jpg)
+
+### 1.2. 测试相关类库调整
+
+除了 Spring Boot 提供的常用的测试类库，还也可以任意添加自己需要的测试类库。
+
+#### 1.2.1. 排除 JUnit 4
 
 > 引用官方文档：
 >
 > The starter also brings the vintage engine so that you can run both JUnit 4 and JUnit 5 tests. If you have migrated your tests to JUnit 5, you should exclude JUnit 4 support
 > 
-> 翻译：启动器默认自带复古的引擎，这样你就可以同时运行 JUnit 4和JUnit 5 测试。如果你已经将你的测试迁移到 JUnit 5，你应该排除 JUnit 4 的支持
+> 翻译：启动器默认自带复古的引擎，这样你就可以同时运行 JUnit 4 和 JUnit 5 测试。如果你已经将你的测试迁移到 JUnit 5，你应该排除 JUnit 4 的支持
 
 如果只使用 junit 5 并且不需要 junit 4，可以按以下方式进行排除其依赖：
 
@@ -49,20 +62,33 @@ Spring Boot 2.2.x 往后版本开始引入 JUnit 5 作为单元测试默认库�
 </dependency>
 ```
 
-## 4. 基础使用步骤
+#### 1.2.2. 使用 JUnit 4
 
-### 4.1. Spring Boot 2.2.x-
+现在基本上使用的是 JUnit 5，如果应用还在使用 JUnit 4 写的单元测试用例，那么也可以使用 JUnit 5 的 Vintage 引擎来运行，如下面的依赖配置所示。
 
-在 Spring Boot 2.2.x 版本之前，只是 junit 4
+```xml
+<dependency>
+    <groupId>org.junit.vintage</groupId>
+    <artifactId>junit-vintage-engine</artifactId>
+    <scope>test</scope>
+    <exclusions>
+        <exclusion>
+            <groupId>org.hamcrest</groupId>
+            <artifactId>hamcrest-core</artifactId>
+        </exclusion>
+    </exclusions>
+</dependency>
+```
 
-> 引用官方文档：
->
-> If you are using JUnit 4, don’t forget to also add @RunWith(SpringRunner.class) to your test, otherwise the annotations will be ignored. If you are using JUnit 5, there’s no need to add the equivalent @ExtendWith(SpringExtension.class) as @SpringBootTest and the other @…Test annotations are already annotated with it.
->
-> 翻译：如果你使用JUnit 4，别忘了在你的测试中也添加 `@RunWith(SpringRunner.class)`，否则注释会被忽略。如果你使用的是 JUnit 5，就不需要添加等效的 `@ExtendWith(SpringExtension.class)`，因为 `@SpringBootTest` 和其他的 `@...Test` 注解已经有了它的注解。
+> Tips: 引入 junit-vintage-engine 时需要排除 hamcrest-core 依赖，因为该依赖坐标已变更了，并且默认内置在 Spring Boot 依赖管理中，如上面的依赖关系树所示，最新的 Hamcrest 依赖已经是 org.hamcrest:hamcrest 坐标。
 
-1. 开启 Spring Boot 测试，在测试类加 `@RunWith(SpringRunner.class)`。`@RunWith` 是注解运行的主类
-2. 测试类上添加`@SpringBootTest`注解，`classes` 属性要指定启动类的 class
+## 2. 基础使用步骤
+
+### 2.1. Spring Boot 2.2.x- 版本
+
+在 Spring Boot 2.2.x 版本之前，Spring Boot 只是 junit 4。
+
+开启 Spring Boot 测试，测试类上添加`@SpringBootTest`注解，`classes` 属性要指定启动类的 class。因为使用的是 JUnit 4，那么还必须在测试类增加额外的 `@RunWith(SpringRunner.class)` 注解，其中 `@RunWith` 是注解运行的主类
 
 ```java
 @RunWith(SpringRunner.class)
@@ -79,9 +105,13 @@ public class XxxxTest {
 }
 ```
 
-> Tips: 使用 JUnit 4 时，必须使用 `@RunWith(SpringRunner.class)` 修改测试类。
+> 引用官方文档：
+>
+> If you are using JUnit 4, don’t forget to also add @RunWith(SpringRunner.class) to your test, otherwise the annotations will be ignored. If you are using JUnit 5, there’s no need to add the equivalent @ExtendWith(SpringExtension.class) as @SpringBootTest and the other @…Test annotations are already annotated with it.
+>
+> 翻译：如果你使用JUnit 4，别忘了在你的测试中也添加 `@RunWith(SpringRunner.class)`，否则注释会被忽略。如果你使用的是 JUnit 5，就不需要添加等效的 `@ExtendWith(SpringExtension.class)`，因为 `@SpringBootTest` 和其他的 `@...Test` 注解已经有了它的注解。
 
-### 4.2. Spring Boot 2.2.x+
+### 2.2. Spring Boot 2.2.x+
 
 从 2.2.x 版本开始，Spring Boot 使用 Junit 5 做为单元测试默认库（*与 Jnuit4 有一点不同*）。如果是使用 Junit 5，开启 Spring Boot 的测试时只需要在测试类上加上 `@SpringBootTest` 注解即可。
 
@@ -101,7 +131,7 @@ public class XxxxTest {
 
 > Tips: 在 Spring Boot 2.2.x+ 版本中，还是一样可以使用 junit 4。<font color=red>**在使用 Junit 5 已无需 `@RunWith` 注解，但需要注意导包时别导错 junit 4 的包，也可以直接将 junit 4 的依赖排除来防止错导包**</font>。
 
-### 4.3. Spring Boot 测试注意问题
+### 2.3. Spring Boot 测试注意问题
 
 如果当前测试类所在包不在工程引导类所在包或其子包时，就会报错找到配置的错误：`java.lang.IllegalStateException: Unable to find a @SpringBootConfiguration, you need to use @ContextConfiguration or @SpringBootTest(classes=...) with your test`，有两种解决方法如下：
 
@@ -110,12 +140,10 @@ public class XxxxTest {
 ```java
 @SpringBootTest(classes = {JunitApplication.class})
 public class JunitTest2 {
-
     @Test
     public void testBasic() {
         System.out.println("spring boot 整合 junit，测试类不在启动类所在的包及其子包下....");
     }
-
 }
 ```
 
@@ -132,11 +160,11 @@ public class JunitTest2 {
 }
 ```
 
-## 5. 进阶使用示例
+## 3. 进阶使用示例
 
-> Tips: 以下示例，在 Spring Boot 2.2.x 以前版本使用 Junit4，需要添加`@RunWith(SpringRunner.class)`注解，若使用 2.2.x 后更高版本并且使用Junit5，则不需要。
+> Tips: 以下示例，在 Spring Boot 2.2.x 以前版本使用 Junit4，需要添加`@RunWith(SpringRunner.class)`注解，若使用 2.2.x 后更高版本并且使用 Junit5，则不需要。
 
-### 5.1. 指定启动类
+### 3.1. classes - 指定启动类
 
 `@SpringBootTest` 注解的 `classes` 属性，用于指定的是引导类的字节码对象，如：`@SpringBootTest(classes = Application.class)`。*其中 `Application.java` 是Spring boot的引导类*。如果未设置 `classes` 属性，Spring Boot 将从包含测试的包开始，直到找到使用 `@SpringBootApplication` 或 `@SpringBootConfiguration` 注释的主配置类，找不到则报错。
 
@@ -161,11 +189,11 @@ public class MapperTest {
 public final class SpringRunner extends SpringJUnit4ClassRunner
 ```
 
-### 5.2. 加载测试专用属性
+### 3.2. properties - 加载测试专用属性
 
-很多情况下测试时需要模拟一些线上情况，或者模拟一些特殊情况。此时可以每次测试的时候都去修改源码 application.yml 中的配置进行测试。但每次测试前进行修改，测试后又需要改回去，这种做法太麻烦了。于是 Spring Boot 提供了在测试环境中创建一组临时属性，去覆盖源码中设定的属性，这样测试用例就相当于是一个独立的环境，能够独立测试，
+很多情况下测试时需要模拟一些线上情况，或者模拟一些特殊情况。此时可以每次测试的时候都去修改源码 application.yml 中的配置进行测试。但每次测试前进行修改，测试后又需要改回去，这种做法太麻烦了。于是 Spring Boot 提供了在测试环境中创建一组临时属性，去覆盖源码中设定的属性，这样测试用例就相当于是一个独立的环境，能够独立测试。
 
-#### 5.2.1. 测试准备
+#### 3.2.1. 测试准备
 
 创建项目 application.yml 配置文件，设置 `test.message` 属性值
 
@@ -174,7 +202,7 @@ test:
   message: testValueInApplicationYml
 ```
 
-#### 5.2.2. 临时属性
+#### 3.2.2. 临时属性
 
 使用注解 `@SpringBootTest` 的 `properties` 属性，可以为当前测试用例添加临时的属性，覆盖源码配置文件中对应的属性值进行测试。具体使用示例如下：
 
@@ -198,7 +226,7 @@ public class PropertiesAndArgsTest {
 }
 ```
 
-#### 5.2.3. 临时参数
+#### 3.2.3. 临时参数
 
 使用命令行启动 springboot 程序时，通过命令行参数也可以设置属性值。线上启动程序时，通常都会添加一些专用的配置信息。使用注解 `@SpringBootTest` 的 `args` 属性可以为当前测试用例模拟命令行参数并进行测试。
 
@@ -224,7 +252,7 @@ public class PropertiesAndArgsTest {
 
 如果同时设置了 `properties` 与 `args` 属性，在 Spring Boot 属性加载的优先级设定中，明确规定了命令行参数的优先级排序是11，而配置属性的优先级是3，所以 `args` 属性配置优先于 `properties` 属性配置加载
 
-### 5.3. 加载测试专用配置
+### 3.3. 加载测试专用配置
 
 在项目测试过程中，有时会需要临时配置一些专用于测试环境的 bean 对象。一个 Spring 环境中可以设置若干个配置文件或配置类，这些配置信息可以同时生效。在测试环境中增加一个测试专用的配置类，其实现方式与平常 Spring 环境中加载多个配置信息的方式完全一样。具体操作步骤如下：
 
@@ -262,11 +290,11 @@ public class ImportConfigTest {
 
 通过 `@Import` 注解实现了基于开发环境的配置基础上，对配置进行测试环境的追加操作。这样就可以实现每个不同的测试用例加载不同的 bean 的效果，同时不影响原开发环境的配置。
 
-### 5.4. web 环境测试
+### 3.4. Mock Web 环境测试
 
 在测试中对表现层功能进行测试，运行测试程序时，必须启动 web 环境，还需要在测试程序中具备发送 web 请求的能力，否则无法实现 web 功能的测试。
 
-#### 5.4.1. 测试前准备工作
+#### 3.4.1. 测试前准备工作
 
 - 测试工程引入 web 依赖
 
@@ -315,18 +343,20 @@ public class MockController {
 }
 ```
 
-#### 5.4.2. 指定 web 测试环境的端口
+#### 3.4.2. webEnvironment 环境参数
 
 `@SpringBootTest `注解的 `webEnvironment` 属性，用于在测试用例中设置启动 web 测试环境，spring boot 提供了4种的枚举：
 
-- `SpringBootTest.WebEnvironment.MOCK`：根据当前设置确认是否启动 web 环境，例如使用了 Servlet 的 API 就启动 web 环境，属于适配性的配置
-- `SpringBootTest.WebEnvironment.DEFINED_PORT`：使用自定义的端口作为 web 服务器端口
-- `SpringBootTest.WebEnvironment.RANDOM_PORT`：使用随机端口作为 web 服务器端口
-- `SpringBootTest.WebEnvironment.NONE`：不启动 web 环境（默认值）
+- `SpringBootTest.WebEnvironment.MOCK`（默认值）：根据当前设置加载 Web 应用并提供一个 Mock Web Environment，但不会启动内嵌的 Web 服务器，并可以结合 `@AutoConfifigureMockMvcor` 和 `@AutoConfifigure-WebTestClient` 注解一起使用进行 Mock 测试。例如使用了 Servlet 的 API 就启动 web 环境，属于适配性的配置。
+- `SpringBootTest.WebEnvironment.DEFINED_PORT`：使用自定义的端口作为 web 服务器端口，默认端口为 8080。
+- `SpringBootTest.WebEnvironment.RANDOM_PORT`：加载一个 Web 应用以及提供一个真实的 WebEnvironment，并使用随机端口作为 web 服务器端口，启动内嵌服务器。
+- `SpringBootTest.WebEnvironment.NONE`：不启动 web 环境
+
+> Tips: 如果使用的` @SpringBootTest` 注解不带任何参数，则默认为 Mock 环境。
 
 建议测试时使用 `RANDOM_PORT` 模式，避免代码中因为写死端口引发线上功能打包测试时，由于端口冲突导致意外现象的出现。即程序中使用 8080 端口，结果线上环境 8080 端口被占用了，使用随机端口就可以测试出来有没有这种问题的隐患。
 
-示例1
+JUnit 5 示例：
 
 ```java
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -338,7 +368,7 @@ public class WebEnvironmentTest {
 }
 ```
 
-示例2
+JUnit 4 示例：
 
 ```java
 @RunWith(SpringRunner.class)
@@ -366,12 +396,16 @@ public class SpringbootdemoApplicationTests {
 }
 ```
 
-#### 5.4.3. 测试类中发送请求
+以随机端口号启动测试结果如下图所示：
+
+![](images/355802223248996.jpg)
+
+#### 3.4.3. @AutoConfifigureMockMvc 注解 Mock 环境发送请求
 
 Java 提供了 API 用于测试类中发送请求，spring boot 对其又进行了包装，简化了开发步骤，具体操作如下：
 
 1. 在测试类中，标识 `@AutoConfigureMockMvc` 注解，开启 web 虚拟调用功能
-2. 定义发起虚拟调用的 `MockMVC` 对象 ，通过自动装配的形式初始化对象。通过类属性或测试方法形参的两种方式注入均可
+2. 定义发起虚拟调用的 `MockMVC` 对象，通过自动装配的形式初始化对象。通过类属性或测试方法形参的两种方式注入均可
 3. 创建一个虚拟请求对象，封装请求的路径，并使用 `MockMVC` 对象发送对应请求
 
 ```java
@@ -391,7 +425,7 @@ public class WebEnvironmentTest {
 }
 ```
 
-#### 5.4.4. web 环境请求结果比对
+#### 3.4.4. web 环境请求结果比对
 
 > 注意：Spring Boot 在结果比对中，如果成功的话，控制台不会有任何提示输出，只有比对失败时，就会出现所有请求相关的内容，测试时可以通过制造比对失败来观察相关日志
 
@@ -463,7 +497,48 @@ public void testHeaderContentType(@Autowired MockMvc mvc) throws Exception {
 
 一般正常的 web 调用测试，是组合以上几种的比对，分别对头信息，正文信息，状态信息等三种信息同时进行匹配校验，也是一个完整的信息匹配过程。
 
-### 5.5. 数据层测试回滚
+### 3.5. Mock 组件测试
+
+进行测试时，可能需要模拟一些组件，比如某些服务只有上线之后才能调用，在开发阶段不可用，这时就需要 Mock 模拟测试了，提供各种模拟组件以完成测试。
+
+#### 3.5.1. @MockBean
+
+Spring Boot 提供了一个 `@MockBean` 注解，可为 Spring 中的 Bean 组件定义基于 Mockito 的 Mock 测试，它可以创建一个新 Bean 以覆盖 Spring 环境中已有的 Bean，它可以用在测试类、成员变量上，或者 `@Confifiguration` 配置类、成员变量上，被模拟的 Bean 在每次测试结束后自动重置。
+
+假现现在有一个远程的服务 userService，本地不能调用，现在进行 Mock 测试，如以下使用示例所示。
+
+```java
+@SpringBootTest
+class MockBeanTests {
+	// @Autowired
+	// private UserService userService; // 假设测试时此远程服务未上线，无法进行调用
+	@MockBean
+	private UserService userService;
+
+	@Test
+	public void countAllUsers() {
+		BDDMockito.given(this.userService.countAllUsers()).willReturn(88);
+		assertThat(this.userService.countAllUsers()).isEqualTo(88);
+	}
+}
+```
+
+上面示例中 `@MockBean` 注解使用在 `userService` 变量上，表明这个 `userService` 实例在当前测试用例中是被 Mock 覆盖的非实际的服务。如果要模拟的 Bean 有多个，则可以使用 `@Qualififier` 注解指定，然后通过 Mockito 提供的代理工具类方法创建模拟返回数据，运行该服务的测试方法，当模拟数据和预期结果一致时才会测试通过。
+
+示例通过 `BDDMockito` 工具类模拟 `userService#countAllUsers` 方法并让它返回统计的用户总数（88），最后检查该方法的返回值是否和预期一致，测试结果如下图所示。
+
+![](images/500354008230571.png)
+
+#### 3.5.2. @SpyBean
+
+Mock 组件单元测试时，也可以使用 `@SpyBean` 注解代替 `@MockBean` 注解，两者的区别是：
+
+- `@SpyBean` 如果没有提供 Mockito 代理方法，则会调用真实的 Bean 来获取数据。
+- `@MockBean` 不管有没有提供 Mockito 代理方法，都会调用 Mock 的 Bean 来获取数据。
+
+`@MockBean`、`@SpyBean` 注解既可作用于 Mock 环境，也可作用于真实环境，它只是用来模拟、替换环境中指定的 Bean 而已，但不能用于模拟在应用上下文刷新期间 Bean 的行为，因为在执行测试用例时应用上下文已经刷新完成了，所以不可能再去模拟了，这种情况下建议使用 `@Bean` 方法来创建模拟配置。
+
+### 3.6. 数据层测试回滚
 
 测试用例开发完成后，在打包的阶段由于 test 生命周期属于必须被运行的生命周期，如果跳过会给系统带来极高的安全隐患，所以测试用例必须执行。测试用例如果测试时产生了事务提交就会在测试过程中对数据库数据产生影响，进而产生垃圾数据。
 
@@ -493,7 +568,7 @@ public class TransactionalRollbackTest {
 
 > 自行准备最简单的 mybatis 环境测试即可
 
-### 5.6. 测试用例数据设定
+### 3.7. 测试用例数据设定
 
 Spring Boot 提供了在配置中使用随机值的机制，确保每次运行程序加载的数据都是随机的，提高测试用例中的测试数据有效性。对于随机值的产生，还有一些小的限定规则，比如给数值类型的数据设置范围等。具体示例如下：
 

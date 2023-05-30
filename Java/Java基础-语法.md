@@ -324,6 +324,10 @@ byte 字节，bit 是位（二进制的位数）。如：
 - 1 k = 1024 byte
 - 1 byte = 8 bit
 
+#### 3.5.3. int 类型转换为 byte 类型的问题
+
+int 类型可以强制转换为 byte 类型，但是 Java 中 int 是 32 位的，而 byte 是 8 位的，所以如果强制转化，int 类型的高 24 位将会被丢弃，因为 byte 类型的范围是从 -128 到 127。
+
 ## 4. 权限修饰符
 
 **权限大小顺序**：`private < 默认 < protected < public`
