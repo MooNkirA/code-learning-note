@@ -3134,7 +3134,7 @@ public class Foo {
 }
 ```
 
-> Tips: 从 Spring Framework 4.3 版本开始，如果**只有一个构造方法**，则 Spring 会自动使用这个构造方法进行自动装配。在这种情况下， `@Autowired` 注解可以省略不写。
+> Tips: 从 Spring Framework 4.3 版本开始，如果**只有一个构造方法**，则 Spring 会自动使用这个构造方法进行自动装配。在这种情况下，`@Autowired` 注解可以省略不写。
 
 #### 1.3.7. 任意成员方法
 

@@ -1350,21 +1350,7 @@ LogUtil 基于 @PreDestroy 注解销毁前的方法执行了...
 ************* 容器关闭完毕 *************
 ```
 
-### 6.5. 各种初始化与销毁方式的执行顺序
-
-Spring 提供了以上多种初始化与销毁的方式，如果同一个 bean 同时使用了以上方式声明了 3 个初始化方法，那么它们的执行顺序是：
-
-1. `@PostConstruct` 标注的初始化方法
-2. `InitializingBean` 接口的初始化方法
-3. `@Bean(initMethod=xxx)` 指定的初始化方法
-
-与初始化类似，3 个销毁方式的执行顺序为：
-
-1. `@PreDestroy` 标注的销毁方法
-2. `DisposableBean` 接口的销毁方法
-3. `@Bean(destroyMethod=xxx)` 指定的销毁方法
-
-### 6.6. BeanPostProcessor 接口实现生命周期回调
+### 6.5. BeanPostProcessor 接口实现生命周期回调
 
 Spring 提供了一个 `BeanPostProcessor` 接口，俗称 Bean 后置通知处理器，它提供了两个方法 `postProcessBeforeInitialization` 和 `postProcessAfterInitialization`
 
@@ -1442,7 +1428,23 @@ OrdinaryBean 构造方法执行了...
 
 <font color=red>**注：`BeanPostProcessor` 对 IOC 容器中所有组件（对象）都生效**</font>
 
-### 6.7. Bean 的生命周期总结（流程图）
+### 6.6. Bean 的生命周期总结
+
+#### 6.6.1. Spring Bean 不同初始化与销毁方式的执行顺序
+
+Spring 提供了以上多种初始化与销毁的方式，如果同一个 bean 同时使用了以上方式声明了 3 个初始化方法，那么它们的执行顺序是：
+
+1. `@PostConstruct` 标注的初始化方法
+2. `InitializingBean` 接口的初始化方法
+3. `@Bean(initMethod=xxx)` 指定的初始化方法
+
+与初始化类似，3 个销毁方式的执行顺序为：
+
+1. `@PreDestroy` 标注的销毁方法
+2. `DisposableBean` 接口的销毁方法
+3. `@Bean(destroyMethod=xxx)` 指定的销毁方法
+
+#### 6.6.2. Spring Bean 全生命周期流程图
 
 ![](images/412481317230447.png)
 
@@ -1457,7 +1459,7 @@ OrdinaryBean 构造方法执行了...
 9. Bean 初始化完成，供应用使用，直到应用被销毁。
 10. 应用销毁时，如果 Bean 实现了 `DisposableBean` 接口，Spring 将调用它的 `destory` 方法；然后调用在 xml 中定义的 `destory-method` 方法，这两个方法作用类似，都是在 Bean 实例销毁前执行
 
-#### 6.7.1. Bean 对象在 spring 框架的上下文中的生命周期图（网络资料，待整合）
+#### 6.6.3. Bean 对象在 spring 框架的上下文中的生命周期图（网络资料，待整合）
 
 ![](images/20200902225528606_28556.jpg)
 
