@@ -198,7 +198,7 @@ docker exec -it  gitlab /bin/bash
 
 #### 2.3.4. 管理员账号登录
 
-用户名是 `root`，密码存在下面文件中，登录后需要改密码不然24小时之后会失效
+用户名是 `root`，密码存在下面文件中，登录后需要改密码不然24小时之后会失效。*注意：需要进入容器内再执行以下命令*
 
 ```bash
 cat /etc/gitlab/initial_root_password

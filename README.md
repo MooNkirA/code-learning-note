@@ -307,7 +307,7 @@
   <li><a href="#/Linux/Linux-基础">Linux 基础</a></li>
   <li><a href="#/Linux/Linux-命令">Linux 命令</a></li>
   <li><a href="#/Linux/Linux-shell">Linux shell 编程</a></li>
-  <li><a href="#/Linux/虚拟机-Multipass">Multipass 虚拟机工具</a></li>
+  <li><a href="#/Linux/虚拟机">虚拟机</a></li>
 </ul>
 
 ## 分布式 & 微服务架构
