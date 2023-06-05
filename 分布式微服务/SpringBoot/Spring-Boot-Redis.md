@@ -1,6 +1,6 @@
 ## 1. Spring Boot 整合 Redis 概述
 
-> Redis 更多详细内容详见[《Redis 基础笔记》](/数据库/Redis/Redis-基础)
+> Redis 更多详细内容详见[《Redis 基础笔记》](/Database/Redis/Redis-基础)
 
 ### 1.1. 简介
 
@@ -36,7 +36,7 @@ redis-cli.exe
 
 ### 1.4. 基本操作
 
-此部分内容详见[《Redis 笔记》](/数据库/Redis/Redis-基础)
+此部分内容详见[《Redis 笔记》](/Database/Redis/Redis-基础)
 
 ## 2. 整合 Redis 示例
 

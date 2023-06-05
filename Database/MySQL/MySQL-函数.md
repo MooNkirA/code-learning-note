@@ -50,12 +50,12 @@ select department,group_concat(emp_name order by salary desc separator ';' ) fro
 
 ## 3. 数学函数
 
-|     函数      |             功能说明             |
-| :----------: | ------------------------------- |
-|  `CEIL(x)`   | 向上取整                         |
-|  `FLOOR(x)`  | 向下取整                         |
-|  `MOD(x,y)`  | 返回`x/y`的模                    |
-|   `RAND()`   | 返回0~1内的随机数                |
+|     函数      |            功能说明            |
+| :----------: | ----------------------------- |
+|  `CEIL(x)`   | 向上取整                       |
+|  `FLOOR(x)`  | 向下取整                       |
+|  `MOD(x,y)`  | 返回`x/y`的模                  |
+|   `RAND()`   | 返回0~1内的随机数               |
 | `ROUND(x,y)` | 求参数x的四舍五入的值，保留y位小数 |
 
 > Notes: MySQL中，数学函数如果发生错误，都会返回 `NULL`
@@ -666,16 +666,16 @@ SELECT col FROM table WHERE length(col) != char_length(col)
 
 ## 5. 日期函数
 
-|                 函数                 |                   功能说明                    |
-| :---------------------------------: | --------------------------------------------- |
-|             `CURDATE()`             | 返回当前日期                                   |
-|             `CURTIME()`             | 返回当前时间                                   |
-|               `NOW()`               | 返回当前日期和时间                              |
-|            `YEAR(date)`             | 获取指定date的年份                             |
-|            `MONTH(date)`            | 获取指定date的月份                             |
-|             `DAY(date)`             | 获取指定date的日期                             |
+|                 函数                 |                  功能说明                   |
+| :---------------------------------: | ------------------------------------------ |
+|             `CURDATE()`             | 返回当前日期                                 |
+|             `CURTIME()`             | 返回当前时间                                 |
+|               `NOW()`               | 返回当前日期和时间                            |
+|            `YEAR(date)`             | 获取指定date的年份                           |
+|            `MONTH(date)`            | 获取指定date的月份                           |
+|             `DAY(date)`             | 获取指定date的日期                           |
 | `DATE_ADD(date, INTERVAL exprtype)` | 返回一个日期/时间值加上一个时间间隔expr后的时间值 |
-|       `DATEDIFF(date1,date2)`       | 返回起始时间date1和结束时间date2之间的天数       |
+|       `DATEDIFF(date1,date2)`       | 返回起始时间date1和结束时间date2之间的天数      |
 
 ### 5.1. CURDATE / CURRENT_DATE
 
@@ -921,8 +921,8 @@ END
 
 `CASE` 表示函数开始，`END` 表示函数结束。
 
-- 方式1中，如果 value = compare-value1，则返回result1，如果 value = compare-value2，则返回result2，....
-- 方式2中，如果 condition1 成立，则返回result1，如果 condition2 成立，则返回result2，....
+- 方式1中，如果 value = compare-value1，则返回 result1，如果 value = compare-value2，则返回 result2，....
+- 方式2中，如果 condition1 成立，则返回 result1，如果 condition2 成立，则返回 result2，....
 
 如果没有匹配的结果值，则返回结果为 `ELSE` 后的结果，如果没有 `ELSE` 部分，则返回值为 `NULL`。而当有一个成立条件之后，后面的就不再执行了。
 

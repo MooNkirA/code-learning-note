@@ -6,7 +6,7 @@ MongoDB 是一个开源、高性能、无模式的文档型数据库，它是 No
 
 **无模式**是指：MongoDB 作为一款数据库，但没有固定的数据存储结构。第一条数据可能有A、B、C一共3个字段，第二条数据可能有D、E、F也是3个字段，第三条数据可能是A、C、E3个字段，也就是说数据的结构不固定，灵活，随时变更，不受约束。
 
-> 本笔记重点为 Spring Boot 如何整合 MongoDB，更多关于 MongoDB 的内容详见[《MongoDB 笔记》](/数据库/MongoDb/MongoDB-基础)
+> 本笔记重点为 Spring Boot 如何整合 MongoDB，更多关于 MongoDB 的内容详见[《MongoDB 笔记》](/Database/MongoDb/MongoDB-基础)
 
 ### 1.2. 使用场景
 
@@ -27,7 +27,7 @@ MongoDB 是一个开源、高性能、无模式的文档型数据库，它是 No
 
 ### 1.3. 安装
 
-MongoDB 详细的安装说明详见[《MongoDB 安装与使用》 的 《studio3t》 章节](/数据库/MongoDb/MongoDB-安装与使用)
+MongoDB 详细的安装说明详见[《MongoDB 安装与使用》 的 《studio3t》 章节](/Database/MongoDb/MongoDB-安装与使用)
 
 ## 2. 整合 MongoDB 示例
 

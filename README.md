@@ -211,7 +211,7 @@
 ### 数据库综合概述
 
 <ul class="docs">
-  <li><a href="#/数据库/关系型数据库概述与规范">关系型数据库概述与规范</a></li>
+  <li><a href="#/Database/数据库概述">数据库技术概述</a></li>
 </ul>
 
 ### 关系型数据库
@@ -219,24 +219,24 @@
 #### 🔢 MySQL
 
 <ul class="docs">
-  <li><a href="#/数据库/MySQL/MySQL-安装与部署">MySQL - 安装与部署</a></li>
-  <li><a href="#/数据库/MySQL/MySQL-体系架构">MySQL - 体系架构</a></li>
-  <li><a href="#/数据库/MySQL/MySQL-基础">MySQL - 基础（SQL 基础语法）</a></li>
-  <li><a href="#/数据库/MySQL/MySQL-函数">MySQL - 函数</a></li>
-  <li><a href="#/数据库/MySQL/MySQL-进阶">MySQL - 进阶（存储过程、存储函数、视图、触发器、MySQL 8.x 新特性）</a></li>
-  <li><a href="#/数据库/MySQL/MySQL-事务">MySQL - 事务</a></li>
-  <li><a href="#/数据库/MySQL/MySQL-索引">MySQL - 索引</a></li>
-  <li><a href="#/数据库/MySQL/MySQL-锁">MySQL - 锁</a></li>
-  <li><a href="#/数据库/MySQL/MySQL-运维">MySQL - 运维篇（日志、主从复制、读写分离、分库分表）</a></li>
-  <li><a href="#/数据库/MySQL/MySQL-开发规范">MySQL - 开发规范</a></li>
-  <li><a href="#/数据库/MySQL/MySQL-性能优化">MySQL - 性能优化</a></li>
-  <li><a href="#/数据库/MySQL/MySQL-SQL示例">MySQL - 练习示例</a></li>
+  <li><a href="#/Database/MySQL/MySQL-安装与部署">MySQL - 安装与部署</a></li>
+  <li><a href="#/Database/MySQL/MySQL-体系架构">MySQL - 体系架构</a></li>
+  <li><a href="#/Database/MySQL/MySQL-基础">MySQL - 基础（SQL 基础语法）</a></li>
+  <li><a href="#/Database/MySQL/MySQL-函数">MySQL - 函数</a></li>
+  <li><a href="#/Database/MySQL/MySQL-进阶">MySQL - 进阶（存储过程、存储函数、视图、触发器、MySQL 8.x 新特性）</a></li>
+  <li><a href="#/Database/MySQL/MySQL-事务">MySQL - 事务</a></li>
+  <li><a href="#/Database/MySQL/MySQL-索引">MySQL - 索引</a></li>
+  <li><a href="#/Database/MySQL/MySQL-锁">MySQL - 锁</a></li>
+  <li><a href="#/Database/MySQL/MySQL-运维">MySQL - 运维篇（日志、主从复制、读写分离、分库分表）</a></li>
+  <li><a href="#/Database/MySQL/MySQL-开发规范">MySQL - 开发规范</a></li>
+  <li><a href="#/Database/MySQL/MySQL-性能优化">MySQL - 性能优化</a></li>
+  <li><a href="#/Database/MySQL/MySQL-SQL示例">MySQL - 练习示例</a></li>
 </ul>
 
 #### 🅾 Oracle
 
 <ul class="docs">
-  <li><a href="#/数据库/Oracle/Oracle-基础">Oracle 基础笔记</a></li>
+  <li><a href="#/Database/Oracle/Oracle-基础">Oracle 基础笔记</a></li>
 </ul>
 
 ### 非关系型数据库
@@ -244,17 +244,17 @@
 #### 🪐 Redis
 
 <ul class="docs">
-  <li><a href="#/数据库/Redis/Redis-安装部署">Redis 安装部署</a></li>
-  <li><a href="#/数据库/Redis/Redis-基础">Redis 基础笔记</a></li>
-  <li><a href="#/数据库/Redis/Redis-操作命令">Redis 操作命令</a></li>
-  <li><a href="#/数据库/Redis/Redis-场景应用设计">Redis 场景应用设计</a></li>
+  <li><a href="#/Database/Redis/Redis-安装部署">Redis 安装部署</a></li>
+  <li><a href="#/Database/Redis/Redis-基础">Redis 基础笔记</a></li>
+  <li><a href="#/Database/Redis/Redis-操作命令">Redis 操作命令</a></li>
+  <li><a href="#/Database/Redis/Redis-场景应用设计">Redis 场景应用设计</a></li>
 </ul>
 
 #### 🥭 MongoDb
 
 <ul class="docs">
-  <li><a href="#/数据库/MongoDb/MongoDB-基础">MongoDB 基础笔记</a></li>
-  <li><a href="#/数据库/MongoDb/MongoDB-安装与使用">MongoDB 安装与使用</a></li>
+  <li><a href="#/Database/MongoDb/MongoDB-基础">MongoDB 基础笔记</a></li>
+  <li><a href="#/Database/MongoDb/MongoDB-安装与使用">MongoDB 安装与使用</a></li>
 </ul>
 
 ## DevOps 工具

@@ -423,6 +423,10 @@ update user set name = 'MooNkirA' where id = 1;
 
 > Tips: 执行更新语句时，在记录完 redo log，不直接提交，而是先进入 prepare 状态。这是因为假设先写 redo log 直接提交，然后写 binlog，如果在写完 redo log 后，服务器挂了，此时 binlog 日志没有被写入，那么服务器重启后，会通过 redo log 恢复数据，但是此时 binlog 并没有记录该数据，后续进行机器备份的时候，就会丢失这一条数据，同时主从同步也会丢失这一条数据。
 
+#### 2.5.3. SQL 执行流程图
+
+![](images/352023416249773.jpg)
+
 ## 3. 启动选项和参数
 
 ### 3.1. 配置参数文件
