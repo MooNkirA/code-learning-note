@@ -528,7 +528,7 @@ ArrayList<String> newArray = new ArrayList<String>(array); // newArray 是可以
 
 ## 3. Iterator 迭代器
 
-### 3.1. 概念
+### 3.1. Iterator 概述
 
 Collection 集合元素的通用获取方式：在取元素之前先要判断集合中有没有元素，如果有，就把这个元素取出来，继续在判断，如果还有就再取出出来。一直把集合中的所有元素全部取出。这种取出方式专业术语称为**迭代**。JDK 集合中把这种取元素的方式描述在 `Iterator` 接口中。
 
@@ -540,11 +540,18 @@ Iterator 迭代器，是一个接口，集合迭代(集合遍历)的工具。可
 
 > Tips: 不同的容器完成不同方式的数据存储。不同集合的特点不同，ArrayList 有序且可重复且带索引的集合。但是有的集合不带索引。所以如果使用其他集合，可能无法通过 `get+索引` 的方式获取元素。<font color=red>**所有集合的通用获取元素方法并不是通过索引获取，而是通过迭代器获取。**</font>
 
-**迭代器的好处**：
+#### 3.1.1. 迭代器的好处
 
 - 屏蔽了不同类型集合的内部实现，将访问逻辑抽象出来，提供了统一遍历方式。
 - 所有的单列集合都可以使用迭代器遍历。
 - Iterator 的特点是只能单向遍历，但是更加安全，因为它可以确保，在当前遍历的集合元素被更改的时候，就会抛出 ConcurrentModificationException 异常。
+
+#### 3.1.2. 与 Enumeration 接口的区别
+
+Enumeration 的速度是 Iterator的 两倍，也使用更少的内存。Enumeration 能满足非常基础的需求，与 Iterator 有以下区别：
+
+1. Iterator 更加安全，因为当一个集合正在被遍历的时候，Iterator 会阻止其它线程去修改集合。
+2. 迭代器允许调用者从集合中移除元素，而 Enumeration 不能。*迭代器已取代了 Java 集合框架中的 Enumeration*。
 
 ### 3.2. Iterator 常用方法
 

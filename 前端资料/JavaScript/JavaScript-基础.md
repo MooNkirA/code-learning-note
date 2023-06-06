@@ -3870,16 +3870,33 @@ AJAX 全称 Asynchronous Javascript And XML （异步 JavaScript 和 XML），�
 
 AJAX = 异步 JavaScript 和 XML，是一种新的思想，整合之前的多种技术，用于创建快速交互式网页应用的网页开发技术。
 
-### 17.2. 同步与异步的区别
+#### 17.1.1. 同步与异步的区别
 
 - **同步**：客户端发送请求到服务端，当服务端返回响应之前，客户端都处于等待卡死状态。
 - **异步**：客户端发送请求到服务端，无论服务端是否返回响应，客户端都可以在该页面中随意做其他事情，不会被卡死，提高了用户的体验。
 
 ![](images/387051512249072.jpg)
 
-### 17.3. AJAX 原理分析
+#### 17.1.2. 优缺点
 
-1. 使用 JavaScript 获得浏览器内置的 AJAX 引擎（`XMLHttpRequest` 对象）
+**优点**
+
+1. 页面无刷新，用户的体验非常好。
+2. 使用异步方式与服务器通信，具有更加迅速的响应能力。
+3. 将以前一些服务器负担的工作转嫁到客户端，利用客户端闲置的能力来处理，减轻服务器和带宽的负担。ajax 的原则是“按需取数据”，可以最大程度的减少冗余请求和响应对服务器造成的负担。
+4. 基于标准化的并被广泛支持的技术，不需要下载插件或者小程序。
+
+**缺点**
+
+1. ajax 不支持浏览器 back 按钮。
+2. 存在安全问题，AJAX 暴露了与服务器交互的细节。
+3. 对搜索引擎的支持比较弱
+4. 破坏了程序的异常机制
+5. 调试困难
+
+### 17.2. AJAX 原理分析
+
+1. 使用 JavaScript 获得浏览器内置的 AJAX 引擎（`XMLHttpRequest` 异步调用对象）
     1. 通过 AJAX 引擎确定请求路径和请求参数
     2. 通知 AJAX 引擎发送请求
 
@@ -3887,7 +3904,7 @@ AJAX = 异步 JavaScript 和 XML，是一种新的思想，整合之前的多种
 var xmlhttp = new XMLHttpRequest();
 ```
 
-2. AJAX 引擎会在不刷新浏览器地址栏的情况下，发送请求
+2. AJAX 引擎会在不刷新浏览器地址栏的情况下，发送 HTTP 请求
     1. 服务器获得请求参数
     2. 服务器处理请求参数（添加、查询等操作）
     3. 服务器响应数据给浏览器
@@ -3895,16 +3912,16 @@ var xmlhttp = new XMLHttpRequest();
     1. 通过设置给 AJAX 引擎的回调函数获得服务器响应的数据
     2. 使用 JavaScript 在指定的位置，显示响应数据，从而局部修改页面的数据，达到局部刷新目的。 
 
-### 17.4. JavaScript 中 AJAX 的使用
+### 17.3. JavaScript 中 AJAX 的使用
 
-#### 17.4.1. 原生态 JS 操作 ajax 步骤
+#### 17.3.1. 原生态 JS 操作 ajax 步骤
 
 1. 获得 ajax 引擎。
 2. 设置回调函数。作用当前 AJAX 请求服务器过程中不同状态变化的时候都会调用此函数
 3. 确定请求路径
 4. 发送请求。JavaScript ajax 处理 GET 和 POST 请求会有细微差异
 
-#### 17.4.2. ajax 引擎连接状态变化过程
+#### 17.3.2. ajax 引擎连接状态变化过程
 
 ajax 引擎连接状态 readyState 值有 0~4 变化过程。存有 XMLHttpRequest 的状态。从 0 到 4 发生变化。
 
@@ -3925,9 +3942,109 @@ xmlHttp.onreadystatechange = function(){
 }
 ```
 
-#### XMLHttpRequest 对象浏览器兼容
+#### 17.3.3. XMLHttpRequest 对象浏览器兼容
 
+大多数浏览器都支持以下方式得到 `XMLHttpRequest`
 
+```js
+var xmlHttp = new XMLHttpRequest();
+```
+
+IE6.0：
+
+```js
+var xmlHttp = new ActiveXObject("Msxml2.XMLHTTP");
+```
+
+IE5.5 以及更早版本的IE：
+
+```js
+var xmlHttp = new ActiveXObject("Microsoft.XMLHTTP");
+```
+
+示例：
+
+```js
+function getXMLhttp(){
+	var xmlhttp=null;
+	// 谷歌、火狐、IE7+最新浏览器
+	if (window.XMLHttpRequest){
+		xmlhttp=new XMLHttpRequest();
+	}else if (window.ActiveXObject){
+		//IE 老版本浏览器（IE5、6 等）
+		xmlhttp=new ActiveXObject("Microsoft.XMLHTTP");
+	}
+} 
+```
+
+#### 17.3.4. JS 原生 AJAX 现实示例
+
+```html
+<script type="text/javascript">
+	//异步提交请求
+	function sendGet(){
+		//1.获取ajax引擎对象
+		var xmlHttp = new XMLHttpRequest();
+		//2.设置回调函数,作用ajax请求服务器过程中不同状态变化的时候都会调用这个函数
+		xmlHttp.onreadystatechange = function(){
+		//获取服务器响应数据并处理显示
+		//xmlHttp.readyState,ajax引擎对象请求服务器过程中不同的状态值
+		//xmlHttp.readyState，0~4
+		//	0: 请求未初始化 
+		//	1: 服务器连接已建立 
+		//	2: 请求已接收 
+		//	3: 请求处理中 
+		//	4: 请求已完成，且响应已就绪 
+		//获取服务器响应的数据进行处理并显示
+			if(xmlHttp.readyState==4){
+				//200,http状态码，浏览器与服务器通信正常
+				if(xmlHttp.status==200){
+					//通信正常，并且接收到服务器的正常响应数据
+					//获取服务器响应数据
+					var content = xmlHttp.responseText;//服务器响应的文本字符串
+					alert(content);
+				}
+			}
+		};
+		//3.设置请求方法与提交服务器地址
+		//xmlHttp.open(method, url);
+		//method,设置请求方法（get或post）
+		//url，设置服务器地址
+		xmlHttp.open("get", "${pageContext.request.contextPath}/hello?name=admin&pwd=123456");
+		//4.ajax引擎对象发送异步请求
+		xmlHttp.send();
+	}
+	
+	//发送异步的post请求
+	function sendPost(){
+		//1.获取ajax引擎
+		var xmlHttp = new XMLHttpRequest();
+		//2.设置回调函数
+		xmlHttp.onreadystatechange = function(){
+			//获取服务器响应的数据进行处理并显示
+			if(xmlHttp.readyState==4){
+				//200,http状态码，浏览器与服务器通信正常
+				if(xmlHttp.status==200){
+					//通信正常，并且接收到服务器的正常响应数据
+					//获取服务器响应数据
+					var content = xmlHttp.responseText;//服务器响应的文本字符串
+					alert(content);
+				}
+			}
+		};
+		//3.设置请求方法与路径
+		xmlHttp.open("post", "${pageContext.request.contextPath}/hello");
+		//4.设置请求头信息(如果像表单那样post提交数据必须要设置请求头信息，如果不提交参数数据就不用设置)
+		xmlHttp.setRequestHeader("content-type","application/x-www-form-urlencoded");
+		//5.发送
+		xmlHttp.send("name=admin&pwd=123456");
+	}
+</script>
+<body>
+	<input type="button" value="js异步提交get请求" onclick="sendGet();"><br/><br/>
+	<input type="button" value="js异步提交post请求" onclick="sendPost();"><br/><br/>
+</body>
+```
 
 ## 18. ES2020 新特性
 
