@@ -541,7 +541,7 @@ CREATE INDEX idx_no_name ON customer1(customer_no,customer_name); -- 复合索�
 
 开启索引下推：在条件查询时，当前索引树如果满足全部筛选条件，可以在当前树中完成全部筛选过滤，得到比较小的结果集再进行回表操作
 
-### 1.11. 035 有哪些情况会导致索引失效？
+### 1.11. 有哪些情况会导致索引失效？
 
 - 计算、函数导致索引失效
 
@@ -674,7 +674,7 @@ set session optimizer_trace="enabled=off";
 
 没有过滤条件不走索引
 
-#### 1.13.1. 042   通过索引排序内部流程是什么？
+#### 1.13.1. 通过索引排序内部流程是什么？
 
 select name,id  from user where  name like '%明' order by name；
 
@@ -690,19 +690,11 @@ select name,id，age  from user where  name like '%明'
    1. 如果覆盖索引，select的字段和排序都在索引上，那么在内存中进行排序，排序后输出结果
    2. 如果索引没有覆盖查询字段，接下来计算select的字段是否超过max_length_for_sort_data限制，如果超过，启动双路排序，否则使用单路
 
-
-
-
-
-#### 1.13.2. 043   什么是双路排序和单路排序
+#### 1.13.2. 什么是双路排序和单路排序
 
 单路排序：一次取出所有字段进行排序，内存不够用的时候会使用磁盘
 
 双路排序：取出排序字段进行排序，排序完成后再次回表查询所需要的其他字段
-
-
-
-
 
 如果不在索引列上，filesort有两种算法： mysql就要启动双路排序和单路排序
 
@@ -710,11 +702,9 @@ select name,id，age  from user where  name like '%明'
 
 Select id,age,name from stu order by name;
 
-Ø MySQL 4.1之前是使用双路排序，字面意思就是两次扫描磁盘，最终得到数据， 读取行指针和order by列，对他们进行排序，然后扫描已经排序好的列表，按照列表中的值重新从列表中读取对应的数据输出
-
-Ø 从磁盘取排序字段，在buffer进行排序，再从磁盘取其他字段。
-
-Ø 取一批数据，要对磁盘进行两次扫描，众所周知，I\O是很耗时的，所以在mysql4.1之后，出现了第二种改进的算法，就是单路排序。
+- MySQL 4.1之前是使用双路排序，字面意思就是两次扫描磁盘，最终得到数据， 读取行指针和order by列，对他们进行排序，然后扫描已经排序好的列表，按照列表中的值重新从列表中读取对应的数据输出
+- 从磁盘取排序字段，在buffer进行排序，再从磁盘取其他字段。
+- 取一批数据，要对磁盘进行两次扫描，众所周知，I\O是很耗时的，所以在mysql4.1之后，出现了第二种改进的算法，就是单路排序。
 
 **单路排序（快）**
 
@@ -730,48 +720,42 @@ Select id,age,name from stu order by name;
 
 **优化策略**
 
-Ø 增大sort_buffer_size参数的设置
-
-Ø 增大max_length_for_sort_data参数的设置
-
-Ø 减少select 后面的查询的字段。 禁止使用select * 
+- 增大sort_buffer_size参数的设置
+- 增大max_length_for_sort_data参数的设置
+- 减少select 后面的查询的字段。 禁止使用select * 
 
 **提高Order By的速度** 
 
-\1. Order by时select * 是一个大忌。只Query需要的字段， 这点非常重要。在这里的影响是：
+1. Order by时select * 是一个大忌。只Query需要的字段， 这点非常重要。在这里的影响是：
+    - 当Query的字段大小总和小于max_length_for_sort_data 而且排序字段不是 TEXT|BLOB 类型时，会用改进后的算法——单路排序， 否则用老算法——多路排序。
+    - 两种算法的数据都有可能超出sort_buffer的容量，超出之后，会创建tmp文件进行合并排序，导致多次I/O，但是用单路排序算法的风险会更大一些，所以要提高sort_buffer_size。 
+2. 尝试提高 sort_buffer_size
+    - 不管用哪种算法，提高这个参数都会提高效率，当然，要根据系统的能力去提高，因为这个参数是针对每个进程（connection）的 1M-8M之间调整。 MySQL5.7和8.0，InnoDB存储引擎默认值是1048576字节，1MB。
 
-l 当Query的字段大小总和小于max_length_for_sort_data 而且排序字段不是 TEXT|BLOB 类型时，会用改进后的算法——单路排序， 否则用老算法——多路排序。
-
-l 两种算法的数据都有可能超出sort_buffer的容量，超出之后，会创建tmp文件进行合并排序，导致多次I/O，但是用单路排序算法的风险会更大一些，所以要提高sort_buffer_size。 
-
-\2. 尝试提高 sort_buffer_size
-
-l 不管用哪种算法，提高这个参数都会提高效率，当然，要根据系统的能力去提高，因为这个参数是针对每个进程（connection）的 1M-8M之间调整。 MySQL5.7和8.0，InnoDB存储引擎默认值是1048576字节，1MB。
-
+```sql
 SHOW VARIABLES LIKE '%sort_buffer_size%';
+```
 
-​                               
+3. 尝试提高 max_length_for_sort_data
+    - 提高这个参数， 会增加用改进算法的概率。
 
-\3. 尝试提高 max_length_for_sort_data
-
-l 提高这个参数， 会增加用改进算法的概率。
-
+```sql
 SHOW VARIABLES LIKE '%max_length_for_sort_data%'; 
+```
 
-\#5.7默认1024字节
+- 5.7默认1024字节
+- 8.0默认4096字节
 
-\#8.0默认4096字节
+但是如果设的太高，数据总容量超出sort_buffer_size的概率就增大，明显症状是高的磁盘I/O活动和低的处理器使用率。如果需要返回的列的总长度大于max_length_for_sort_data，使用双路算法，否则使用单路算法。1024-8192字节之间调整
 
-l 但是如果设的太高，数据总容量超出sort_buffer_size的概率就增大，明显症状是高的磁盘I/O活动和低的处理器使用率。如果需要返回的列的总长度大于max_length_for_sort_data，使用双路算法，否则使用单路算法。1024-8192字节之间调整
-
-#### 1.13.3. 044   group by 分组和order by在索引使用上有什么区别？
+#### 1.13.3. group by 分组和order by在索引使用上有什么区别？
 
 group by 使用索引的原则几乎跟order by一致 ，唯一区别：
 
 - group by 先排序再分组，遵照索引建的最佳左前缀法则
 - group by没有过滤条件，也可以用上索引。Order By 必须有过滤条件才能使用上索引。
 
-### 1.14. 045  	如果表中有字段为null，又被经常查询该不该给这个字段创建索引？
+### 1.14. 如果表中有字段为null，又被经常查询该不该给这个字段创建索引？
 
 应该创建索引，使用的时候尽量使用is null判断。
 
