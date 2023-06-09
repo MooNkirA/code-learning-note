@@ -496,7 +496,7 @@ ArrayList<String> newArray = new ArrayList<String>(array); // newArray 是可以
 
 #### 2.9.1. ArrayList 和 LinkedList 的区别与选择
 
-区别：
+**区别**：
 
 - **数据结构实现**：ArrayList 是动态数组的数据结构实现；而 LinkedList 是双向链表的数据结构实现。
 - **随机访问效率**：ArrayList 比 LinkedList 在随机访问的时候效率要高，因为 LinkedList 是线性的数据存储方式，所以需要移动指针从前往后依次查找。
@@ -507,8 +507,9 @@ ArrayList<String> newArray = new ArrayList<String>(array); // newArray 是可以
     - LinkedList 比 ArrayList 更占内存，因为 LinkedList 的节点除了存储数据，还存储了两个引用，一个指向前一个元素，一个指向后一个元素。
     - ArrayList 是连续内存存储；而 LinkedList 分散在内存中，
 - **线程安全**：ArrayList 和 LinkedList 都是不同步的，也就是不保证线程安全；
+- **迭代器性能**：在迭代操作时，ArrayList 使用普通迭代器或增强 for 循环的性能比 LinkedList 更优。因为 ArrayList 的数据存储在连续的内存中，迭代时可以直接访问内存，而 LinkedList 需要通过遍历链表来访问每个元素。
 
-类型选择与使用建议：
+**类型选择与使用建议**：
 
 - 如果需要大量非首尾增删元素，则建议使用 LinkedList
 - 如果只是遍历查询元素，不进行增删操作，则建议使用 ArrayList
@@ -521,13 +522,13 @@ ArrayList<String> newArray = new ArrayList<String>(array); // newArray 是可以
 
 - **线程安全**：Vector 使用了 `Synchronized` 来实现线程同步，是线程安全的，而 ArrayList 是非线程安全的。
 - **性能**：ArrayList 在性能方面要优于 Vector。
-- **扩容**：ArrayList 和 Vector 都会根据实际的需要动态的调整容量，只不过在 Vector 扩容每次会增加 1 倍，而 ArrayList 只会增加 50%。
+- **扩容**：ArrayList 和 Vector 都会根据实际的需要动态的调整容量，只不过在 Vector 扩容每次会增加 1 倍，而 ArrayList 只会增加 50%。ArrayList 与 Vector 都可以设置初始的空间大小，但 Vector 还可以设置增长的空间大小，而 ArrayList 没有提供设置增长空间的方法。
 
 > Vector 类的所有方法都是同步的。可以由两个线程安全地访问一个 Vector 对象、但是一个线程访问 Vector 的话代码要在同步操作上耗费大量的时间；而 Arraylist 不是同步的，所以在不需要保证线程安全时时建议使用 Arraylist
 
 ## 3. Iterator 迭代器
 
-### 3.1. 概念
+### 3.1. Iterator 概述
 
 Collection 集合元素的通用获取方式：在取元素之前先要判断集合中有没有元素，如果有，就把这个元素取出来，继续在判断，如果还有就再取出出来。一直把集合中的所有元素全部取出。这种取出方式专业术语称为**迭代**。JDK 集合中把这种取元素的方式描述在 `Iterator` 接口中。
 
@@ -539,11 +540,18 @@ Iterator 迭代器，是一个接口，集合迭代(集合遍历)的工具。可
 
 > Tips: 不同的容器完成不同方式的数据存储。不同集合的特点不同，ArrayList 有序且可重复且带索引的集合。但是有的集合不带索引。所以如果使用其他集合，可能无法通过 `get+索引` 的方式获取元素。<font color=red>**所有集合的通用获取元素方法并不是通过索引获取，而是通过迭代器获取。**</font>
 
-**迭代器的好处**：
+#### 3.1.1. 迭代器的好处
 
 - 屏蔽了不同类型集合的内部实现，将访问逻辑抽象出来，提供了统一遍历方式。
 - 所有的单列集合都可以使用迭代器遍历。
 - Iterator 的特点是只能单向遍历，但是更加安全，因为它可以确保，在当前遍历的集合元素被更改的时候，就会抛出 ConcurrentModificationException 异常。
+
+#### 3.1.2. 与 Enumeration 接口的区别
+
+Enumeration 的速度是 Iterator的 两倍，也使用更少的内存。Enumeration 能满足非常基础的需求，与 Iterator 有以下区别：
+
+1. Iterator 更加安全，因为当一个集合正在被遍历的时候，Iterator 会阻止其它线程去修改集合。
+2. 迭代器允许调用者从集合中移除元素，而 Enumeration 不能。*迭代器已取代了 Java 集合框架中的 Enumeration*。
 
 ### 3.2. Iterator 常用方法
 
@@ -1320,19 +1328,28 @@ public class EntrySetTest {
 
 #### 6.4.1. 概述
 
-HashMap：基于哈希表的 Map 接口的实现类，并允许使用 `null` 的值和 `null` 的键（<font color=purple>**HashMap 最多只允许一条记录的键为 null，允许多条记录的值为 null。**</font>）。
+HashMap：基于哈希表的 Map 接口的实现类
 
-HashMap 使用『数组+链表+红黑树』（JDK1.8增加了红黑树部分）实现的， 链表长度大于8（`TREEIFY_THRESHOLD`）时，会把链表转换为红黑树，红黑树节点个数小于6（`UNTREEIFY_THRESHOLD`）时才转化为链表，防止频繁的转化。
+```java
+public class HashMap<K,V> extends AbstractMap<K,V> implements Map<K,V>, Cloneable, Serializable
+```
 
-HashMap 有如下特点
+HashMap 有如下特点：
 
  - 键是唯一，基于键的 HashCode 值唯一标识一条数据，同时基于键的 HashCode 值进行数据的存取。
  - <font color=red>**存储和取出无法保证顺序一致**</font>。
  - 非线程安全。同一时间有多个线程同时对 HashMap 进行写操作，将可能导致数据的不一致。*如需要满足线程安全的条件，可使用 `Collections` 的 `synchronizedMap` 方法使 HashMap 具有线程安全的能力，或者使用 `ConcurrentHashMap`*。
+ - 允许使用 `null` 的值和 `null` 的键（<font color=purple>**HashMap 最多只允许一条记录的键为 null，允许多条记录的值为 null**</font>）
 
-##### 6.4.1.1. Java 8 以后的实现
+> Tips: 更多实现原理详见[《Java扩展-JDK集合类源码分析》笔记](/Java/Java扩展-JDK集合类源码分析)
 
-为了减少链表遍历的开销，Java 8 对 HashMap 进行了优化，将数据结构修改为**数组+链表或红黑树**。在链表中的元素超过 8 个以后，HashMap 会将链表结构转换为红黑树结构以提高查询效率，因此其时间复杂度为 `O(log N)`。
+##### 6.4.1.1. 存储结构
+
+HashMap 在 JDK 1.7 以前的数据存储结构是『数组+链表』。
+
+为了减少链表遍历的开销，JDK 1.8 开始对 HashMap 进行了优化，增加了红黑树部分，将数据存储结构修改为『数组+链表+红黑树』。当链表长度大于8（`TREEIFY_THRESHOLD`）时，会把链表转换为红黑树，红黑树节点个数小于6（`UNTREEIFY_THRESHOLD`）时才转化为链表，防止频繁的转化。
+
+HashMap 将链表结构转换为红黑树结构后，提高了查询效率，因此其时间复杂度为 `O(log N)`。
 
 ##### 6.4.1.2. 常用参数
 
@@ -1428,7 +1445,7 @@ ConcurrentHashMap默认将hash表分为16个桶，诸如get、put、remove等常
 
 Hashtable 与 HashMap 都是 Map 接口的实现类。
 
-- **是否支持 null 为作为 key**：HashMap 可以接受为 null 的 key 和 value，key 为 null 的键值对放在下标为 0 的头结点的链表中；而 Hashtable 则不能。
+- **是否支持 null 为作为 key**：HashMap 可以接受为 null 的 key 和 value，key 为 null 的键值对放在下标为 0 的头结点的链表中，并且只允许存在一个；而 Hashtable 则不能。
 - **线程安全**：HashMap 是非线程安全的；HashTable 是线程安全的。Jdk 1.5 提供了 ConcurrentHashMap，它是 HashTable 的替代。
 - **执行效率**：Hashtable 很多方法是同步方法，在单线程环境下它效率低，比 HashMap 要低。
 - **哈希值**：HashTable 直接使用对象的 hashCode；而 HashMap 重新计算 hash 值。
@@ -1551,7 +1568,7 @@ public class MoonZero {
 }
 ```
 
-## 8. 集合相关的工具类API
+## 8. 集合相关的工具类 API
 
 ### 8.1. Collections 工具类
 

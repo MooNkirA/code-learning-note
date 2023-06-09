@@ -68,7 +68,10 @@
 ### 🐦 MyBatis
 
 <ul class="docs">
-  <li><a href="#/后端框架/MyBatis/MyBatis-基础">MyBatis 基础笔记</a></li>
+  <li><a href="#/后端框架/MyBatis/MyBatis-基础">MyBatis 基础</a></li>
+  <li><a href="#/后端框架/MyBatis/MyBatis-XML总配置">MyBatis XML 总配置</a></li>
+  <li><a href="#/后端框架/MyBatis/MyBatis-XML映射配置">MyBatis XML 映射配置</a></li>
+  <li><a href="#/后端框架/MyBatis/MyBatis-动态SQL">MyBatis 动态 SQL</a></li>
   <li><a href="#/后端框架/MyBatis/MyBatis-代码生成器">MyBatis 代码生成器（逆向工程）</a></li>
   <li><a href="#/后端框架/MyBatis/MyBatis-源码分析">MyBatis 源码分析</a></li>
   <li><a href="#/后端框架/MyBatis/MyBatis-Plus">MyBatis-Plus 基础笔记</a></li>
@@ -208,7 +211,7 @@
 ### 数据库综合概述
 
 <ul class="docs">
-  <li><a href="#/数据库/关系型数据库概述与规范">关系型数据库概述与规范</a></li>
+  <li><a href="#/Database/数据库概述">数据库技术概述</a></li>
 </ul>
 
 ### 关系型数据库
@@ -216,24 +219,24 @@
 #### 🔢 MySQL
 
 <ul class="docs">
-  <li><a href="#/数据库/MySQL/MySQL-安装与部署">MySQL - 安装与部署</a></li>
-  <li><a href="#/数据库/MySQL/MySQL-体系架构">MySQL - 体系架构</a></li>
-  <li><a href="#/数据库/MySQL/MySQL-基础">MySQL - 基础（SQL 基础语法）</a></li>
-  <li><a href="#/数据库/MySQL/MySQL-函数">MySQL - 函数</a></li>
-  <li><a href="#/数据库/MySQL/MySQL-进阶">MySQL - 进阶（存储过程、存储函数、视图、触发器、MySQL 8.x 新特性）</a></li>
-  <li><a href="#/数据库/MySQL/MySQL-事务">MySQL - 事务</a></li>
-  <li><a href="#/数据库/MySQL/MySQL-索引">MySQL - 索引</a></li>
-  <li><a href="#/数据库/MySQL/MySQL-锁">MySQL - 锁</a></li>
-  <li><a href="#/数据库/MySQL/MySQL-运维">MySQL - 运维篇（日志、主从复制、读写分离、分库分表）</a></li>
-  <li><a href="#/数据库/MySQL/MySQL-开发规范">MySQL - 开发规范</a></li>
-  <li><a href="#/数据库/MySQL/MySQL-性能优化">MySQL - 性能优化</a></li>
-  <li><a href="#/数据库/MySQL/MySQL-SQL示例">MySQL - 练习示例</a></li>
+  <li><a href="#/Database/MySQL/MySQL-安装与部署">MySQL - 安装与部署</a></li>
+  <li><a href="#/Database/MySQL/MySQL-体系架构">MySQL - 体系架构</a></li>
+  <li><a href="#/Database/MySQL/MySQL-基础">MySQL - 基础（SQL 基础语法）</a></li>
+  <li><a href="#/Database/MySQL/MySQL-函数">MySQL - 函数</a></li>
+  <li><a href="#/Database/MySQL/MySQL-进阶">MySQL - 进阶（存储过程、存储函数、视图、触发器、MySQL 8.x 新特性）</a></li>
+  <li><a href="#/Database/MySQL/MySQL-事务">MySQL - 事务</a></li>
+  <li><a href="#/Database/MySQL/MySQL-索引">MySQL - 索引</a></li>
+  <li><a href="#/Database/MySQL/MySQL-锁">MySQL - 锁</a></li>
+  <li><a href="#/Database/MySQL/MySQL-运维">MySQL - 运维篇（日志、主从复制、读写分离、分库分表）</a></li>
+  <li><a href="#/Database/MySQL/MySQL-开发规范">MySQL - 开发规范</a></li>
+  <li><a href="#/Database/MySQL/MySQL-性能优化">MySQL - 性能优化</a></li>
+  <li><a href="#/Database/MySQL/MySQL-SQL示例">MySQL - 练习示例</a></li>
 </ul>
 
 #### 🅾 Oracle
 
 <ul class="docs">
-  <li><a href="#/数据库/Oracle/Oracle-基础">Oracle 基础笔记</a></li>
+  <li><a href="#/Database/Oracle/Oracle-基础">Oracle 基础笔记</a></li>
 </ul>
 
 ### 非关系型数据库
@@ -241,17 +244,17 @@
 #### 🪐 Redis
 
 <ul class="docs">
-  <li><a href="#/数据库/Redis/Redis-安装部署">Redis 安装部署</a></li>
-  <li><a href="#/数据库/Redis/Redis-基础">Redis 基础笔记</a></li>
-  <li><a href="#/数据库/Redis/Redis-操作命令">Redis 操作命令</a></li>
-  <li><a href="#/数据库/Redis/Redis-场景应用设计">Redis 场景应用设计</a></li>
+  <li><a href="#/Database/Redis/Redis-安装部署">Redis 安装部署</a></li>
+  <li><a href="#/Database/Redis/Redis-基础">Redis 基础笔记</a></li>
+  <li><a href="#/Database/Redis/Redis-操作命令">Redis 操作命令</a></li>
+  <li><a href="#/Database/Redis/Redis-场景应用设计">Redis 场景应用设计</a></li>
 </ul>
 
 #### 🥭 MongoDb
 
 <ul class="docs">
-  <li><a href="#/数据库/MongoDb/MongoDB-基础">MongoDB 基础笔记</a></li>
-  <li><a href="#/数据库/MongoDb/MongoDB-安装与使用">MongoDB 安装与使用</a></li>
+  <li><a href="#/Database/MongoDb/MongoDB-基础">MongoDB 基础笔记</a></li>
+  <li><a href="#/Database/MongoDb/MongoDB-安装与使用">MongoDB 安装与使用</a></li>
 </ul>
 
 ## DevOps 工具
@@ -273,7 +276,8 @@
   <li><a href="#/DevOps/版本管理工具/Git-基础">Git 笔记 - 基础篇</a></li>
   <li><a href="#/DevOps/版本管理工具/Git-客户端">Git 笔记 - 客户端使用篇</a></li>
   <li><a href="#/DevOps/版本管理工具/Git-命令进阶">Git 笔记 - 命令进阶篇（经典操作场景）</a></li>
-  <li><a href="#/DevOps/版本管理工具/GitHub">GitHub 相关资料与常用使用技巧</a></li>
+  <li><a href="#/DevOps/版本管理工具/GitHub">GitHub 代码仓库与常用使用技巧</a></li>
+  <li><a href="#/DevOps/版本管理工具/GitLab">GitLab 代码托管服务器</a></li>
   <li><a href="#/DevOps/版本管理工具/SVN">SVN 文件版本控制软件</a></li>
 </ul>
 
@@ -296,13 +300,14 @@
   <li><a href="#/DevOps/测试工具/Postman">Postman 接口测试工具</a></li>
 </ul>
 
-## Linux
+## 🖥 Linux
 
 <ul class="docs">
-  <li><a href="#/Linux/Linux安装">Linux 安装</a></li>
-  <li><a href="#/Linux/Linux笔记">Linux 笔记</a></li>
-  <li><a href="#/Linux/Linux命令">Linux 命令</a></li>
-  <li><a href="#/Linux/虚拟机-Multipass">Multipass 虚拟机工具</a></li>
+  <li><a href="#/Linux/Linux-安装">Linux 安装</a></li>
+  <li><a href="#/Linux/Linux-基础">Linux 基础</a></li>
+  <li><a href="#/Linux/Linux-命令">Linux 命令</a></li>
+  <li><a href="#/Linux/Linux-shell">Linux shell 编程</a></li>
+  <li><a href="#/Linux/虚拟机">虚拟机</a></li>
 </ul>
 
 ## 分布式 & 微服务架构
@@ -391,7 +396,8 @@
 ### 🐒 ZooKeeper
 
 <ul class="docs">
-  <li><a href="#/分布式微服务/Zookeeper/Zookeeper-基础">Zookeeper 基础笔记</a></li>
+  <li><a href="#/分布式微服务/Zookeeper/Zookeeper-基础">Zookeeper 基础</a></li>
+  <li><a href="#/分布式微服务/Zookeeper/Zookeeper-客户端">Zookeeper 常用客户端（Zookeeper、Zkclient、Curator）</a></li>
   <li><a href="#/分布式微服务/Zookeeper/Zookeeper-应用场景">Zookeeper 应用场景</a></li>
 </ul>
 
@@ -441,6 +447,12 @@
   <li><a href="#/分布式微服务/分布式链路追踪/链路追踪综合概述">分布式链路追踪综合概述</a></li>
   <li><a href="#/分布式微服务/分布式链路追踪/Zipkin">Zipkin - Twitter 开源的分布式链路调用监控系统</a></li>
   <li><a href="#/分布式微服务/分布式链路追踪/SkyWalking">SkyWalking - 分布式链路追踪和可视化一体化解决方案</a></li>
+</ul>
+
+### 微服务监控
+
+<ul class="docs">
+  <li><a href="#/分布式微服务/微服务监控/Prometheus">Prometheus（普罗米修斯）系统监控与告警工具</a></li>
 </ul>
 
 ### 💾 分库分表

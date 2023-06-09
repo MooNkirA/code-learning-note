@@ -414,12 +414,12 @@ nsExec::Exec 'cmd /c netsh advfirewall firewall add rule name="TIM" dir=out acti
 1. 运行 -> `regedit`，打开注册表编辑器
 2. 定位到【计算机\HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services】，选择服务名称，右键删除即可
 
-### 3.14. 修改window默认系统安装目录
+### 3.14. 修改 window 默认系统安装目录
 
-Windows10系统更改软件程序默认安装目录的方法
+Windows10 系统更改软件程序默认安装目录的方法
 
-1. 运行 --> regedit，打开注册表编辑器
-2. 进入注册表【HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion】目录下，并左键单击：CurrentVersion；
+1. 运行 -> regedit，打开注册表编辑器
+2. 进入注册表`HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion`目录下，并左键单击：CurrentVersion；
 3. 在CurrentVersion对应的右侧窗口，找到ProgramFilesDir，并左键双击ProgramFilesDir打开编辑字符串对话框，把Program Files的数值数据从C:\Program Files更改为D:\Program Files，再点击：确定；
 4. 如果安装的是Windows10的64位系统，在CurrentVersion对应的右侧窗口，找到ProgramFilesDir（x86），并左键双击ProgramFilesDir（x86）打开编辑字符串对话框，把Program Files（x86）的数值数据从C:\Program Files（x86）更改为D:\Program Files（x86），再点击：确定；
 
@@ -430,7 +430,7 @@ Windows10系统更改软件程序默认安装目录的方法
 3. 在存储对应的右侧窗口，用鼠标左键按住右侧的滑块向下拖动，找到：保存位置，在保存位置下，点击：新的应用将保存到此电脑（C:）后面的小勾
 4. 修改成D盘。之后打开磁盘(D:\)，可以看到磁盘(D:\)中新增了三个文件夹：MoonZero（用户文件：文档、音乐、图片和视频）、Program Files（程序文件）和Windows Apps（窗口应用程序）；
 
-### 3.15. win10一般禁用的服务
+### 3.15. win10 一般禁用的服务
 
 1. 运行输入【services.msc】打开服务面板，禁用以下服务
     1. Connected User Experiences and Telemetry
@@ -438,13 +438,13 @@ Windows10系统更改软件程序默认安装目录的方法
     3. Diagnostic Policy Service
     4. Diagnostic Service Host
     5. Diagnostic System Host
-    6. SysMain（以前的Windows Superfetch 感觉SSD上效果不大，不想禁用的可以改为“手动启动”）
-    7. Windows Search （关联了Win10里的很多新功能，而且对于SSD影响也不大，可以不禁用）
-2. 右击“此电脑” --> “属性” --> “高级系统设置” --> “高级” --> “性能”
-3. 点击“设置” --> “更新与安全” --> “Windows预览体验计划”，退出Windows Insider计划。
+    6. SysMain（以前的 Windows Superfetch 感觉 SSD 上效果不大，不想禁用的可以改为“手动启动”）
+    7. Windows Search （关联了 Win10 里的很多新功能，而且对于 SSD 影响也不大，可以不禁用）
+2. 右击“此电脑” -> “属性” -> “高级系统设置” -> “高级” -> “性能”
+3. 点击“设置” -> “更新与安全” -> “Windows预览体验计划”，退出 Windows Insider 计划。
 4. 右击任务栏空白处选择“任务管理器”，切换到“启动”标签，将没必要的自启动程序全部禁用。
 
-### 3.16. 修复win10右键无新建txt文本文件
+### 3.16. 修复 win10 右键无新建 txt 文本文件
 
 ```bat
 Windows Registry Editor Version 5.00

@@ -574,3 +574,9 @@ public FilterRegistrationBean corsFilter() {
     return bean;
 }
 ```
+
+## 6. 测试相关注解
+
+### 6.1. @WebMvcTest（待完善）
+
+`@WebMvcTest` 注解用于单元测试目标只关注 Spring MVC 组件的情况下，并且只想启动某一个 controller。执行此单元测试时，不会启动所有其他控制器和映射。

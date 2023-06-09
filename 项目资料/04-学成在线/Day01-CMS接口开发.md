@@ -297,11 +297,11 @@ CMS采用MongoDB数据库存储CMS页面信息，CMS选用Mongodb的原因如下
 
 #### 4.3.1. 安装MongoDB
 
-参考[《MongoDb-安装与使用》笔记](/数据库/MongoDb/MongoDb-安装与使用) 或者 课程资料“mongodb安装及入门”文档安装Mongodb Server及 Studio 3T客户端软件。
+参考[《MongoDb-安装与使用》笔记](/Database/MongoDb/MongoDb-安装与使用) 或者 课程资料“mongodb安装及入门”文档安装Mongodb Server及 Studio 3T客户端软件。
 
 #### 4.3.2. MongoDB入门
 
-参考[《MongoDb-基础》笔记](/数据库/MongoDb/MongoDb-基础) 或者 课程资料“mongodb安装及入门”文档
+参考[《MongoDb-基础》笔记](/Database/MongoDb/MongoDb-基础) 或者 课程资料“mongodb安装及入门”文档
 
 ### 4.4. 导入CMS数据库
 
