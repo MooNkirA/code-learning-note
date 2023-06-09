@@ -46,6 +46,8 @@ SHOW INDEX FROM table_name;
 
 ### 2.2. 创建/修改索引
 
+#### 2.2.1. 语法
+
 - 建表同时创建索引
 
 ```sql
@@ -61,13 +63,15 @@ CREATE TALBE 表名 (
 CREATE [UNIQUE] INDEX 索引名 ON 表名(字段名(length));
 ```
 
-- 修改索引
+- 创建/修改索引
 
 ```sql
-ALTER TABLE 表名 ADD [UNIQUE] INDEX [索引名] ON (字段名(length));
+ALTER TABLE 表名 ADD [UNIQUE] INDEX [索引名] (字段名(length));
+-- 可以同时创建多个索引
+ALTER TABLE 表名 ADD [UNIQUE] INDEX [索引名] (字段名(length)), ADD [UNIQUE] INDEX [索引名] (字段名(length)), ...;
 ```
 
-示例：
+#### 2.2.2. 示例
 
 ```sql
 -- 普通索引方式1-创建表的时候直接指定
@@ -110,6 +114,14 @@ alter table student2 add unique index_phone_num(phone_num)
 create index indexname on table_name(column1(length),column2(length)); 
 ```
 
+#### 2.2.3. 两种创建索引的方式的区别
+
+创建(修改) 索引有两种方式，分别使用 `CREATE` 与 `ALTER` 关键字。两种索引的区别：
+
+1. `ALTER` 创建索引时可以省略索引名称，数据库会默认根据第一个索引列作为索引的名称；`CREATE` 创建索引时必须指定索引名称。
+2. **`CREATE` 不能用于创建 Primary Key 索引**。
+3. `ALTER` 方式允许一条语句**同时创建多个索引**；`CREATE` 方式一次**只能创建一个索引**。
+
 ### 2.3. 删除索引
 
 ```sql
@@ -119,6 +131,8 @@ DROP INDEX [索引名] ON 表名;
 -- 方式二
 ALTER TABLE 表名 DROP [INDEX|KEY] 索引名;
 ```
+
+值得注意的是：若删除表中涉及索引的某列，索引会受到影响。对于多列组合索引，如果删除其中的某一列，则该列会从对应的索引中被删除（即**删除列，不会删除索引**）；如果删除组成索引的所有列，则索引将被删除（即**不仅删除列，还删除相应的索引**）。
 
 ## 3. 索引结构
 
@@ -131,11 +145,11 @@ ALTER TABLE 表名 DROP [INDEX|KEY] 索引名;
 
 <center><b>MyISAM、InnoDB、Memory 三种存储引擎对各种索引类型的支持</b></center>
 
-|    索引     |   InnoDB引擎   | MyISAM引擎 | Memory引擎 |
-| ----------- | ------------- | --------- | ---------- |
-| BTREE索引   | 支持           | 支持       | 支持       |
-| HASH 索引   | 不支持         | 不支持     | 支持       |
-| R-tree 索引 | 不支持         | 支持       | 不支持     |
+|    索引     |   InnoDB引擎    | MyISAM引擎 | Memory引擎 |
+| ----------- | -------------- | --------- | --------- |
+| BTREE索引   | 支持            | 支持       | 支持       |
+| HASH 索引   | 不支持          | 不支持     | 支持       |
+| R-tree 索引 | 不支持          | 支持       | 不支持     |
 | Full-text   | 5.6 版本之后支持 | 支持       | 不支持     |
 
 注：平常所说的索引，如果没有特别指明，都是指B+树（多路搜索树，并不一定是二叉的）结构组织的索引。其中**聚集索引、复合索引、前缀索引、唯一索引默认都是使用 B+tree 索引，统称为索引**

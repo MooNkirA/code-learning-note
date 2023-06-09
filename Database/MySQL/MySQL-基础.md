@@ -3159,7 +3159,7 @@ alter table 表名 drop primary key;
 alter table sort drop primary key;
 ```
 
-> 注：因为表只有一个主键，所以删除时不需要指定主键名
+> Tips: 因为表只有一个主键，所以删除时不需要指定主键名
 
 #### 11.5.6. 设置主键自动增长
 
