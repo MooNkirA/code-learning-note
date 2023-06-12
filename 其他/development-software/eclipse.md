@@ -4,21 +4,16 @@
 
 ## 1. Eclipse各版本号
 
-|        名称        | 版本号 |        名称        | 版本号 |
-| :---------------: | :----: | :---------------: | :----: |
-|  Eclipse Indigo   |  3.7   |   Eclipse Juno    |  4.2   |
-|  Eclipse Kepler   |  4.3   |   Eclipse Luna    |  4.4   |
-|   Eclipse Mars    |  4.5   |   Eclipse Neon    |  4.6   |
-|  Eclipse Oxygen   |  4.7   |  Eclipse Photon   |  4.8   |
-|  Eclipse 2018-09  |  4.9   |  Eclipse 2018-12  |  4.10  |
-| Eclipse 2019-03-R |  4.11  | Eclipse 2019-06-R |  4.12  |
-| Eclipse 2019-09-R |  4.13  | Eclipse 2019-12-R |  4.14  |
-| Eclipse 2020-03-R |  4.15  | Eclipse 2020-06-R |  4.16  |
-|  Eclipse 2020-09  |  4.17  |  Eclipse 2020-12  |  4.18  |
-|  Eclipse 2021-03  |  4.19  |  Eclipse 2021-06  |  4.20  |
-|  Eclipse 2021-09  |  4.21  |  Eclipse 2021-12  |  4.22  |
-|  Eclipse 2022-03  |  4.23  |  Eclipse 2022-06  |  4.24  |
-|  Eclipse 2022-09  |  4.25  |  Eclipse 2022-12  |  4.26  |
+|        名称        | 版本号 |        名称        | 版本号 |        名称        | 版本号 |        名称        | 版本号 |
+| :---------------: | :---: | :---------------: | :---: | :---------------: | :---: | :---------------: | :---: |
+|  Eclipse Indigo   |  3.7  |   Eclipse Juno    |  4.2  |  Eclipse Kepler   |  4.3  |   Eclipse Luna    |  4.4  |
+|   Eclipse Mars    |  4.5  |   Eclipse Neon    |  4.6  |  Eclipse Oxygen   |  4.7  |  Eclipse Photon   |  4.8  |
+|  Eclipse 2018-09  |  4.9  |  Eclipse 2018-12  | 4.10  | Eclipse 2019-03-R | 4.11  | Eclipse 2019-06-R | 4.12  |
+| Eclipse 2019-09-R | 4.13  | Eclipse 2019-12-R | 4.14  | Eclipse 2020-03-R | 4.15  | Eclipse 2020-06-R | 4.16  |
+|  Eclipse 2020-09  | 4.17  |  Eclipse 2020-12  | 4.18  |  Eclipse 2021-03  | 4.19  |  Eclipse 2021-06  | 4.20  |
+|  Eclipse 2021-09  | 4.21  |  Eclipse 2021-12  | 4.22  |  Eclipse 2022-03  | 4.23  |  Eclipse 2022-06  | 4.24  |
+|  Eclipse 2022-09  | 4.25  |  Eclipse 2022-12  | 4.26  |  Eclipse 2023‑03  | 4.27  |                   |       |
+
 
 > Notes: Eclipse Mars(4.5) 后版本必须要 JDK 1.7 以上
 

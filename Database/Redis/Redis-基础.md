@@ -13,6 +13,7 @@ Redis 相关网站：
 - [Redis 官网国内中文翻译版](http://redis.cn/)
 - [Redis 命令参考文档](http://redisdoc.com/)
 - [Redisson 官网](https://redisson.org/)
+- [Redis 在线测试](https://try.redis.io/) - Redis 官方命令在线测试工具
 
 ### 1.2. Redis 优缺点
 

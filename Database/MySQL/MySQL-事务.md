@@ -987,3 +987,65 @@ READ COMMITTD、REPEATABLE READ 这两个隔离级别的一个很大不同就是
 - REPEATABLE READ 只在第一次进行普通 SELECT 操作前生成一个 ReadView，之后的查询操作都重复使用该 ReadView，从而基本上可以避免幻读现象
 
 执行 DELETE 语句或者更新主键的 UPDATE 语句并不会立即把对应的记录完全从页面中删除，而是执行一个所谓的 delete mark 操作，相当于只是对记录打上了一个删除标志位，这主要就是为MVCC服务。MVCC 只是在进行**普通的 SEELCT 查询**时才生效
+
+## 10. MySQL 的 XA 协议
+
+> 官方文档：https://dev.mysql.com/doc/refman/8.0/en/xa.html
+
+### 10.1. XA 协议
+
+XA 协议是由 X/Open 组织提出的分布式事务处理规范，主要定义了事务管理器 TM 和局部资源管理器 RM 之间的接口。目前主流的数据库，比如 Oracle、DB2 都是支持 XA 协议的。MySQL 从 5.0 版本开始，innoDB 存储引擎已经支持 XA 协议。
+
+XA 定义了全局的事务管理器（Transaction Manager，用于协调全局事务）和局部的资源管理器（Resource Manager，用于驱动本地事务）之间的通讯接口。XA 接口是双向的，是一个事务管理器和多个资源管理器之间通信的桥梁，通过协调多个数据源的动作保持一致，来实现全局事务的统一提交或者统一回滚。
+
+MySQL XA 实现了分布式事务，是一种二阶段提交协议。Java 基于 XA 协议提出了 JTA（Java Transaction API）接口规范：
+
+- 事务管理器的接口：`javax.transaction.TransactionManager`
+- 资源定义接口：`javax.transaction.xa.XAResource`
+
+具体实现由 Java EE 容器提供
+
+### 10.2. MySQL 的 XA 协议处理流程
+
+#### 10.2.1. 涉及的角色
+
+- AP（Application Program）：应用程序，定义事务边界（定义事务开始和结束）并访问事务边界内的资源。
+- RM（Resource Manger）资源管理器: 管理共享资源并提供外部访问接口。供外部程序来访问数据库等共享资源。此外，RM还具有事务的回滚能力。
+- TM（Transaction Manager）事务管理器：TM是分布式事务的协调者，TM与每个RM进行通信，负责管理全局事务，分配事务唯一标识，监控事务的执行进度，并负责事务的提交、回滚、失败恢复等。
+
+#### 10.2.2. 具体处理流程
+
+![](images/409483217249078.png)
+
+- 应用程序AP向事务管理器TM发起事务请求
+- TM调用xa_open()建立同资源管理器的会话
+- TM调用xa_start()标记一个事务分支的开头
+- AP访问资源管理器RM并定义操作，比如插入记录操作
+- TM调用xa_end()标记事务分支的结束
+- TM调用xa_prepare()通知RM做好事务分支的提交准备工作。其实就是二阶段提交的提交请求阶段。
+- TM调用xa_commit()通知RM提交事务分支，也就是二阶段提交的提交执行阶段。
+- TM调用xa_close管理与RM的会话。
+
+> Notes: 这些接口一定要按顺序执行，比如 xa_start 接口一定要在 xa_end 之前。此外，这里千万要注意的是事务管理器只是标记事务分支并不执行事务，事务操作最终是由应用程序通知资源管理器完成的。
+
+#### 10.2.3. XA 接口方法说明
+
+- xa_start:负责开启或者恢复一个事务分支，并且管理XID到调用线程
+- xa_end:负责取消当前线程与事务分支的关系
+- xa_prepare:负责询问RM 是否准备好了提交事务分支 xa_commit:通知RM提交事务分支
+- xa_rollback:通知RM回滚事务分支
+
+### 10.3. MySQL XA 事务
+
+MySQL 的 XA 事务分为两部分：
+
+1. InnoDB 内部本地普通事务操作协调数据写入与 log 写入两阶段提交
+2. 外部分布式事务
+
+5.7 版本查询 XA 事务支持情况：
+
+```sql
+SHOW VARIABLES LIKE '%innodb_support_xa%';
+```
+
+8.0 默认开启并且无法关闭。
