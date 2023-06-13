@@ -486,11 +486,19 @@ ArrayList<String> array = Arrays.asList(arr);
 ArrayList<String> newArray = new ArrayList<String>(array); // newArray 是可以增删的。
 ```
 
-#### 2.8.3. 集合与数组的的区别
+#### 2.8.3. 集合（List）与数组（Array）的区别与选择
+
+两者的区别是：
 
 1. **长度不同**：组的长度是固定的；集合的长度是可变的。
 2. **存储元素的数据类型不同**：集合只能存储对象（引用类型）的数据，不能存在基本数据类型；而数组既可以存基本类型的元素，也可以存引用类型的元素。
 3. **获取长度的方法不同**：数组是通过 `length` 属性；而集体是通过 `size()` 方法。
+
+通常情况下都会选择集合(如：ArrayList)，因为数据没有提供像集合(List)的那么功能，如：`addAll`、`removeAll`、`iterator` 等。但也有些情况选择数组（Array）比较好用：
+
+1. 如果列表的大小已经指定并且不会变化，大部分情况下是存储和遍历它们。
+2. 对于遍历基本数据类型，尽管集合会对基本类型使用自动装箱，但在处理指定大小的基本类型列表时，效率会较低。
+3. 对于需要使用多维数组，使用 `[][]` 比 `List<List<xx>>` 更容易。
 
 ### 2.9. List 接口相关实现类总结
 
@@ -503,9 +511,8 @@ ArrayList<String> newArray = new ArrayList<String>(array); // newArray 是可以
 - **增加和删除效率**：
     - 在非首尾的增加和删除操作，LinkedList 要比 ArrayList 效率要高，因为 ArrayList 的扩容机制的存在，增删操作时超出存储长度时，需要新建数组，再将原数组中的数据复制到新数组中。要影响数组内的其他数据的下标。
     - 但如果在 ArrayList 指定了合适的初始容量，并且使用尾部插入数据（没有触发数组的扩展）时，会极大提升性能，甚至超过 LinkedList（增删操作还需要创建大量的 node 对象）的效率
-- **内存区域与空间占用**：
-    - LinkedList 比 ArrayList 更占内存，因为 LinkedList 的节点除了存储数据，还存储了两个引用，一个指向前一个元素，一个指向后一个元素。
-    - ArrayList 是连续内存存储；而 LinkedList 分散在内存中，
+- **内存空间占用**：LinkedList 比 ArrayList 更占内存，因为 LinkedList 的节点除了存储数据，还存储了两个引用，一个指向前一个元素，一个指向后一个元素。
+- **内存存储区域**：ArrayList 是连续内存存储；而 LinkedList 分散在内存中。
 - **线程安全**：ArrayList 和 LinkedList 都是不同步的，也就是不保证线程安全；
 - **迭代器性能**：在迭代操作时，ArrayList 使用普通迭代器或增强 for 循环的性能比 LinkedList 更优。因为 ArrayList 的数据存储在连续的内存中，迭代时可以直接访问内存，而 LinkedList 需要通过遍历链表来访问每个元素。
 
@@ -1197,13 +1204,13 @@ public void clear();
 public Set<K> keySet()
 ```
 
-- Map获取所有的键，返回此映射中所包含的键的 Set 视图。
+- 获取 Map 中所有的键，返回此映射中所包含的键的 Set 视图。
 
 ```java
 public Collection<V> values();
 ```
 
-- Map获取所有的值，返回此映射所包含的值的 Collection 视图。
+- Map 获取所有的值，返回此映射所包含的值的 Collection 视图。
 
 ### 6.2. Entry 接口
 
@@ -1218,15 +1225,17 @@ public interface Map<K,V> {
 }
 ```
 
-`Entry<K,V>` 是 Map 的内部接口(嵌套接口，看做普通接口)，将一个键和值封装成了 Entry 对象，并存储在 Set 集合中。可以从一个 Entry 对象中获取一个键值对的键与值。
+`Entry<K,V>` 是 Map 的内部接口(嵌套接口，看做普通接口)，将一个键和值封装成了 Entry 对象，并存储在 Set 集合中。可以使用 `Map.Entry<K,V>` 来定义变量，从一个 Entry 对象中获取一个键值对的键与值。
 
-Entry 其中一个实现是 HashMap 的内部类。可以使用 `Map.Entry<K,V>` 来定义变量。通过调用 Map 对象 `entrySet` 方法，返回某个集合所有的键值对对象。
+> Tips: Entry 其中一个实现是 HashMap 的内部类。
+
+通过调用 Map 对象 `entrySet` 方法，返回某个集合所有的键值对对象(Entry)。
 
 ```java
 Set<Map.Entry<K,V>> entrySet()
 ```
 
-使用格式：
+使用示例：
 
 ```java
 Map<String, Object> map = new HashMap<>();
@@ -1243,17 +1252,17 @@ Set<Map.Entry<K,V>> entrySet = map.entrySet();
 k getKey();
 ```
 
-获得 Entry 类对象的键
+- 获得 Entry 类对象的键
 
 ```java
 V getValue();
 ```
 
-获得 Entry 类对象的值
+- 获得 Entry 类对象的值
 
 ### 6.3. 遍历 Map 集合的方式
 
-> Notes: <font color=red>**不能直接使用增强 for 或迭代器遍历，因为 Map 没有继承 `Iterable<E>` 接口。**</font>
+> Notes: <font color=red>**不能直接使用增强 for 或迭代器遍历，因为 Map 没有继承 `Iterable<E>` 接口**</font>。以下三种遍历方式，若 Map 本身的变化会影响其遍历的结果。
 
 #### 6.3.1. 通过 keySet 方法遍历
 
@@ -1322,7 +1331,7 @@ public class EntrySetTest {
 
 #### 6.3.3. 通过 Values 方法遍历
 
-通过 Map 对象的 `Values()` 方法，获取所有值的 Collection 集合，再使用增加 for 循环遍历。
+通过 Map 对象的 `Values()` 方法获取所有值的 Collection 集合，再使用增加 for 循环遍历。
 
 ### 6.4. HashMap
 
@@ -1357,9 +1366,7 @@ HashMap 将链表结构转换为红黑树结构后，提高了查询效率，因
 - loadFactor：负载因子，默认为 0.75。
 - threshold：扩容的阈值，其值等于 `capacity × loadFactor`。
 
-#### 6.4.2. 扩展内容
-
-##### 6.4.2.1. 一般用什么类型作为 HashMap 的 key
+#### 6.4.2. 一般用什么类型作为 HashMap 的 key
 
 一般用 `Integer`、`String` 这些不可变类当 HashMap 当 key。
 
@@ -1397,11 +1404,6 @@ TreeMap 的性能略微低于 HashMap。如果在开发中需要对元素进行<
 
 - `TreeMap` 是有序的 key-value 集合，通过红黑树实现。根据键的自然顺序进行排序或根据提供的 `Comparator` 进行排序。
 - `TreeMap` 继承了 `AbstractMap`，实现了 `NavigableMap` 接口，支持一系列的导航方法，给定具体搜索目标，可以返回最接近的匹配项。如 `floorEntry()`、`ceilingEntry()` 分别返回小于等于、大于等于给定键关联的 `Map.Entry()` 对象，不存在则返回 null。`lowerKey()`、`floorKey`、`ceilingKey`、`higherKey()` 只返回关联的 key。
-
-#### 6.6.4. 与 LinkedHashMap 的区别
-
-- LinkedHashMap 是基于元素进入集合的顺序或者被访问的先后顺序排序。
-- TreeMap 则是基于元素的 key 固有顺序(由 Comparator 或者 Comparable 确定)进行排序。
 
 ### 6.7. Hashtable
 
@@ -1449,6 +1451,7 @@ Hashtable 与 HashMap 都是 Map 接口的实现类。
 - **线程安全**：HashMap 是非线程安全的；HashTable 是线程安全的。Jdk 1.5 提供了 ConcurrentHashMap，它是 HashTable 的替代。
 - **执行效率**：Hashtable 很多方法是同步方法，在单线程环境下它效率低，比 HashMap 要低。
 - **哈希值**：HashTable 直接使用对象的 hashCode；而 HashMap 重新计算 hash 值。
+- **fail-fast 机制**：`HashMap` 获取的 keySet 是使用 Iterator 遍历，支持 fail-fast 机制；而 HashTable 的 keySet 是使用 Enumeration 遍历，不支持 fail-fast 机制。
 
 #### 6.9.2. SynchronizedMap 和 ConcurrentHashMap 有什么区别
 
@@ -1456,9 +1459,14 @@ Hashtable 与 HashMap 都是 Map 接口的实现类。
 
 JDK1.8 `ConcurrentHashMap` 采用 CAS 和 `synchronized` 来保证并发安全。数据结构采用数组+链表/红黑二叉树。`synchronized` 只锁定当前链表或红黑二叉树的首节点，支持并发访问、修改。另外 `ConcurrentHashMap` 使用了一种不同的迭代方式。当 `iterator` 被创建后集合再发生改变就不再是抛出 `ConcurrentModificationException`，取而代之的是在改变时 new 新的数据从而不影响原有的数据，`iterator` 完成后再将头指针替换为新的数据，这样 `iterator` 线程可以使用原来老的数据，而写线程也可以并发的完成改变。
 
-## 7. Comparator 自定义比较器
+#### 6.9.3. TreeMap 与 LinkedHashMap 的区别
 
-### 7.1. Comparator 接口概述
+- LinkedHashMap 是基于元素进入集合的顺序或者被访问的先后顺序排序。
+- TreeMap 则是基于元素的 key 固有顺序(由 Comparator 或者 Comparable 确定)进行排序。
+
+## 7. 自定义比较器：Comparator 与 Comparable
+
+### 7.1. Comparator 接口
 
 ```java
 @FunctionalInterface
@@ -1471,7 +1479,7 @@ public interface Comparator<T> {
 
 `java.util.Comparator`，是 JDK 提供的比较器接口，强行对某个对象 collection 进行整体排序的比较函数。它是函数式接口，可以使用 lambda 表达式来实现 `compare(T o1, T o2)` 方法。
 
-`int compare(T o1, T o2);` 方法是比较用来排序的两个参数。根据第一个参数小于、等于或大于第二个参数分别返回负整数、零或正整数。返回值代表的含义如下：
+其中 `int compare(T o1, T o2);` 方法是比较用来排序的两个参数。根据第一个参数小于、等于或大于第二个参数分别返回负整数、零或正整数。返回值代表的含义如下：
 
 - **返回零**：表示两个元素相同
 - **返回负数**：左边小于右边
@@ -1479,9 +1487,27 @@ public interface Comparator<T> {
 
 > Notes: <font color=red>**如果用两个不是整数类型的相减做为判断，需要强转。字符串可以用自带的方法 `compareTo` 进行比较**</font>
 
-### 7.2. Collections 工具类的 sort 方法
+### 7.2. Comparable 接口
 
-#### 7.2.1. 简介
+```java
+public interface Comparable<T> {
+
+    public int compareTo(T o);
+}
+```
+
+`java.lang.Comparable` 接口是用于对象的自然排序。
+
+### 7.3. Comparator 与 Comparable 的区别
+
+Comparable 和 Comparator 接口都是用于对象集合或者数组排序，两者主要的区别是：
+
+- Comparable 接口是用于提供对象的**自然排序**，可以使用它来提供基于单个逻辑的排序。
+- Comparator 接口是用于提供**不同的排序算法**，可以选择需要使用的该接口来对给定的对象集合进行排序。
+
+### 7.4. Collections 工具类的 sort 方法
+
+#### 7.4.1. 简介
 
 `Collections` 工具类中的 `sort` 方法就是使用了 `Comparator` 接口来对集合中的元素进行排序。
 
@@ -1509,7 +1535,7 @@ Collections.sort(array, new Comparator<Student>() {
 Collections.sort(array, Comparator.comparingInt(Student::getScore));
 ```
 
-#### 7.2.2. 基础示例
+#### 7.4.2. 基础示例
 
 对基本数据类型的集合进行排序
 

@@ -587,41 +587,41 @@ mvn deploy
 - 创建 maven 项目：`mvn archetype:create`
 - 指定 group：`-DgroupId=packageName`
 - 指定 artifact：`-DartifactId=projectName`
-- 创建web项目：`-DarchetypeArtifactId=maven-archetype-webapp`
-- 创建maven项目：`mvn archetype:generate`
+- 创建 web 项目：`-DarchetypeArtifactId=maven-archetype-webapp`
+- 创建 maven 项目：`mvn archetype:generate`
 - 验证项目是否正确：`mvn validate`
 - maven 打包：`mvn package`
-- 只打jar包：`mvn jar:jar`
-- 生成源码jar包：`mvn source:jar`
+- 只打 jar 包：`mvn jar:jar`
+- 生成源码 jar 包：`mvn source:jar`
 - 产生应用需要的任何额外的源代码：`mvn generate-sources`
 - 编译源代码：`mvn compile`
 - 编译测试代码：`mvn test-compile`
 - 运行测试：`mvn test`
 - 运行检查：`mvn verify`
-- 清理maven项目：`mvn clean`
+- 清理 maven 项目：`mvn clean`
 - 生成 eclipse 项目：`mvn eclipse:eclipse`
 - 清理 eclipse 配置：`mvn eclipse:clean`
 - 生成 idea 项目：`mvn idea:idea`
 - 安装项目到本地仓库：`mvn install`
 - 发布项目到远程仓库：`mvn deploy`
 - 在集成测试可以运行的环境中处理和发布包：`mvn integration-test`
-- 显示maven依赖树：`mvn dependency:tree`
-- 显示maven依赖列表：`mvn dependency:list`
+- 显示 maven 依赖树：`mvn dependency:tree`
+- 显示 maven 依赖列表：`mvn dependency:list`
 - 下载依赖包的源码：`mvn dependency:sources`
-- 安装本地jar到本地仓库：`mvn install:install-file -DgroupId=packageName -DartifactId=projectName -Dversion=version -Dpackaging=jar -Dfile=path`
+- 安装本地 jar 到本地仓库：`mvn install:install-file -DgroupId=packageName -DartifactId=projectName -Dversion=version -Dpackaging=jar -Dfile=path`
 - 生成项目相关信息的网站：`mvn site`
 - 清除以前的包后重新打包，跳过测试类：`mvn clean package -Dmaven.test.skip=true`
 
 web 项目相关命令：
 
-- 启动tomcat：`mvn tomcat:run`
-- 启动jetty：`mvn jetty:run`
+- 启动 tomcat：`mvn tomcat:run`
+- 启动 jetty：`mvn jetty:run`
 - 运行打包部署：`mvn tomcat:deploy`
 - 撤销部署：`mvn tomcat:undeploy`
-- 启动web应用：`mvn tomcat:start`
-- 停止web应用：`mvn tomcat:stop`
+- 启动 web 应用：`mvn tomcat:start`
+- 停止 web 应用：`mvn tomcat:stop`
 - 重新部署：`mvn tomcat:redeploy`
-- 部署展开的war文件：`mvn war:exploded tomcat:exploded`
+- 部署展开的 war 文件：`mvn war:exploded tomcat:exploded`
 
 ## 6. 依赖管理
 

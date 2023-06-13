@@ -1030,10 +1030,11 @@ MySQL XA 实现了分布式事务，是一种二阶段提交协议。Java 基于
 
 #### 10.2.3. XA 接口方法说明
 
-- xa_start:负责开启或者恢复一个事务分支，并且管理XID到调用线程
-- xa_end:负责取消当前线程与事务分支的关系
-- xa_prepare:负责询问RM 是否准备好了提交事务分支 xa_commit:通知RM提交事务分支
-- xa_rollback:通知RM回滚事务分支
+- xa_start：负责开启或者恢复一个事务分支，并且管理 XID 到调用线程
+- xa_end：负责取消当前线程与事务分支的关系
+- xa_prepare：负责询问 RM 是否准备好了提交事务分支
+- xa_commit：通知 RM 提交事务分支
+- xa_rollback：通知 RM 回滚事务分支
 
 ### 10.3. MySQL XA 事务
 
