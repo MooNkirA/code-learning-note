@@ -1496,7 +1496,11 @@ public interface Comparable<T> {
 }
 ```
 
-`java.lang.Comparable` 接口是用于对象的自然排序。
+`java.lang.Comparable` 接口是用于对象的自然排序。其中 `compareTo` 关键方法就是实现排序的规则，方法返回 int 类型数值。例如：`i = x.compareTo(y);`
+
+- 如果返回数值为 0，也表明两个对象排序上是相等的(<font color=red>**并非意味 `equals` 方法为 true，但是jdk api上强烈建议这样处理**</font>)
+- 如果返回数值大于0，则表示 x > y
+- 如果返回数值小于0，则表示 x < y
 
 ### 7.3. Comparator 与 Comparable 的区别
 
