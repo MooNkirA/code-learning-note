@@ -219,10 +219,285 @@ MySQL 安装好后会生成一个临时随机密码，存储位置在 `/root/.my
 mysql –u root –p
 ```
 
+### 3.6. 修改 MySQL 登陆密码
 
+登陆 MySQL 后，执行以下命令修改密码
 
+```sql
+set password = password('密码'); 
+```
 
+![](images/190172022230656.jpg)
 
+> Notes: password 函数的参数是密码
 
+### 3.7. 开启 MySQL 的远程登录权限
 
+默认情况下 MySQL 为安全起见，不支持远程登录 MySQL，所以需要设置开启远程登录 MySQL 的权限。登录 MySQL 后输入如下命令：
 
+```bash
+grant all privileges on *.* to 'root' @'%' identified by '123456';
+flush privileges;
+```
+
+![](images/139742222249082.jpg)
+
+![](images/194502222236949.jpg)
+
+> Notes: 前面已经将 root 账号的密码修改 123456
+
+### 3.8. 开放 Linux 的对外访问的端口 3306
+
+```shell
+/sbin/iptables -I INPUT -p tcp --dport 3306 -j ACCEPT
+# 将修改永久保存到防火墙中
+/etc/rc.d/init.d/iptables save
+```
+
+![](images/432332322257115.jpg)
+
+## 4. CentOS 7.4 安装与配置 MySQL 5.7.21
+
+### 4.1. 环境
+
+- 系统环境：centos-7.4 64位
+- 安装方式：rpm 安装
+- 软件：mysql-5.7.21-1.el7.x86_64.rpm-bundle.tar
+- 描述：上述的 tar 包中已经包含需要安装的 rpm，所以只需要将其放置到系统中使用 tar 命令解包即可。 
+- Mysql 的下载地址：http://dev.mysql.com/downloads/mysql/
+
+![](images/185255122236320.jpg)
+
+![](images/362495222258760.jpg)
+
+### 4.2. 查询系统原 mariadb 版本
+
+查看 MySql 与 mariadb 安装情况。`grep -i` 命令不分大小写字符查询，只要含有 mysql 就显示
+
+```bash
+rpm -qa | grep -i mysql 
+rpm -qa | grep mariadb
+```
+
+![](images/208735622253896.jpg)
+
+卸载 mariadb 否则会与 mysql 冲突
+
+```bash
+rpm -e --nodeps mariadb-libs-5.5.56-2.el7.x86_64
+```
+
+### 4.3. 安装
+
+使用 winSCP 等其他远程软件将下载的 mysql-5.7.21-1.el7.x86_64.rpm-bundle.tar 传到虚拟机系统的 /root 目录下：
+
+![](images/548295207230657.jpg)
+
+在终端上进入 /root 目录，对 mysql-5.7.21-1.el7.x86_64.rpm-bundle.tar 解包，若不是压缩文件不需要解压缩。
+
+```bash
+tar -xvf mysql-5.7.21-1.el7.x86_64.rpm-bundle.tar
+```
+
+![](images/19915407249083.jpg)
+
+解压后，执行如下安装命令：
+
+```shell
+# 1、安装 mysql-community-common
+rpm -ivh mysql-community-common-5.7.21-1.el7.x86_64.rpm
+
+# 2、安装 mysql-community-libs
+rpm -ivh mysql-community-libs-5.7.21-1.el7.x86_64.rpm
+
+# 3、安装 mysql-community-client 
+rpm -ivh mysql-community-client-5.7.21-1.el7.x86_64.rpm
+
+# 4、安装 mysql-community-server
+yum -y install perl
+rpm -ivh mysql-community-server-5.7.21-1.el7.x86_64.rpm
+
+# 5、安装 mysql-community-devel
+rpm -ivh mysql-community-devel-5.7.21-1.el7.x86_64.rpm
+```
+
+安装完成。MySql 默认安装文件位置：
+
+```shell
+/var/lib/mysql/    # 数据库目录
+/usr/share/mysql   # 配置文件目录
+/usr/bin           # 相关命令目录
+/etc/my.cnf        # 核心配置文件
+```
+
+### 4.4. 配置
+
+#### 4.4.1. MySQL 相关命令
+
+MySQL 启动/重启/停止/查看状态等相关命令
+
+```shell
+# 启动 MySQL
+service mysqld start
+# 重启 MySQL
+service mysqld restart
+# 停止 MySQL
+service mysqld stop
+# 查看 MySQL 状态
+service mysqld status
+```
+
+#### 4.4.2. 设置自启动
+
+```shell
+# 设置开机启动Mysql
+systemctl enable mysqld
+
+# 设置开机不启动Mysql
+systemctl disable mysqld
+
+# 查看mysql进程
+ps –ef | grep -i mysqld
+```
+
+#### 4.4.3. 修改 root 密码
+
+MySQL 安装成功后，会生成一个临时密码，首次登录需要输入此密码，所以需要查看该临时密码，登陆后再修改密码。临时密码的位置是 `/var/log/mysqld.log`
+
+```bash
+grep password /var/log/mysqld.log
+```
+
+![](images/164090308236950.jpg)
+
+使用 root 用户登录
+
+```shell
+输入 /var/log/mysqld.log 文件中的临时密码
+mysql –uroot –p
+```
+
+登录后修改密码
+
+```sql
+set password = password('密码');
+```
+
+> Notes: 密码必须包含大小写字母、数字、特殊符号
+
+#### 4.4.4. 设置允许远程访问
+
+设置远程访问，使用修改后的密码登陆 MySQL。（假设是密码是 Root_123）
+
+```bash
+mysql -uroot –p
+
+mysql> grant all privileges on  *.*  to  'root' @'%'  identified by 'Root_123';
+mysql> flush privileges;
+```
+
+#### 4.4.5. 设置 3306 端口开放访问
+
+退出 MySQL 后，设置防火墙中打开 3306 端口
+
+```bash
+firewall-cmd --zone=public --add-port=3306/tcp --permanent
+```
+
+参数解析：
+
+- `-–zone`：作用域
+- `-–add-port`：添加端口，格式为：`端口/通讯协议`
+- `-–permanent`：永久生效，没有此参数重启后失效
+
+防火墙相关操作命令：
+
+```shell
+# 重启防火墙
+firewall-cmd --reload
+# 查看已经开放的端口
+firewall-cmd --list-ports
+
+# 停止防火墙
+systemctl stop firewalld.service
+# 启动防火墙
+systemctl start firewalld.service
+# 禁止防火墙开机启动
+systemctl disable firewalld.service
+```
+
+## 5. tomcat 的安装
+
+1. 上传 Tomcat 压缩包到 linux 上
+2. 解压 Tomcat 到 `/usr/local` 下
+
+```bash
+tar –xvf apache-tomcat-7.0.57.tar.gz –C /usr/local
+```
+
+![](images/381122822249784.jpg)
+
+### 5.1. 开放 Linux 的对外访问的端口 8080
+
+如启动 tomcat 后需要外部访问该服务器，应该要开放 tomcat 的默认对外访问端口 8080。
+
+- 开放8080端口（方式一）：
+
+```bash
+/sbin/iptables -I INPUT -p tcp --dport 8080 -j ACCEPT
+/etc/rc.d/init.d/iptables save
+```
+
+![](images/351593022246339.jpg)
+
+window 系统下，可以使用 telnet 命令查看 linux 系统是否开放 8080 端口
+
+![](images/61733122242093.jpg)
+
+开放8080端口（方式二）：
+
+```shell
+firewall-cmd --zone=public --add-port=8080/tcp --permanent
+```
+
+参数说明：
+
+- `-–zone`：作用域
+- `-–add-port`：添加端口，格式为：`端口/通讯协议`
+- `--permanent`：永久生效，没有此参数重启后失效
+
+防火墙其他操作：
+
+```shell
+# 重启防火墙
+firewall-cmd --reload
+# 查看已经开放的端口
+firewall-cmd --list-ports
+
+# 停止防火墙
+systemctl stop firewalld.service
+# 启动防火墙
+systemctl start firewalld.service
+# 禁止防火墙开机启动
+systemctl disable firewalld.service
+```
+
+### 5.2. 启动与关闭 Tomcat
+
+- 进入 tomcat 的 bin 目录下启动：`./startup.sh`
+- 进入 tomcat 的 bin 目录下关闭：`./shutdown.sh`
+
+### 5.3. 将 web 应用程序部署到 tomcat 的步骤
+
+1. 打开 myeclipse/idea，将开发完成的 web 应用程序导出 war 文件
+2. 选择项目，鼠标右键点击“export” -> 搜索 “war” -> “选择要导出的位置”
+
+![](images/572214722259973.jpg)
+
+3. 生成文件：xxx.war
+4. 将 war 文件上传到 linux 的 tomcat/webapps 里面
+5. 上传后刷新项目就生成了，再使用 linux 的 IP 地址加项目名访问即可
+
+![](images/366294822257577.jpg)
+
+![](images/492744822255079.jpg)
