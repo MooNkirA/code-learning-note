@@ -559,6 +559,8 @@ atler table student modify gender varchar(2);
 ALTER TABLE sort MODIFY sname VARCHAR(50) NOT NULL;
 ```
 
+> Notes: 修改字段是覆盖操作，如果字段原来有一些COMMENT、约束等等，修改时只指定字段的类型，那么COMMENT、约束等会信息会丢失。
+
 #### 5.5.3. 修改字段名称 change
 
 将指定表格中的旧字段名改成新字段名，类型(长度)与约束也是可以同步修改。语法：
