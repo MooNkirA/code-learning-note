@@ -308,6 +308,7 @@
   <li><a href="#/Linux/Linux-命令">Linux 命令</a></li>
   <li><a href="#/Linux/Linux-软件安装">Linux 软件安装</a></li>
   <li><a href="#/Linux/Linux-shell">Linux shell 编程</a></li>
+  <li><a href="#/Linux/WSL">Linux 版的 Windows 子系统(Windows Subsystem for Linux)</a></li>
   <li><a href="#/Linux/虚拟机">虚拟机</a></li>
 </ul>
 
