@@ -1772,7 +1772,7 @@ private InjectionMetadata findResourceMetadata(String beanName, final Class<?> c
 
 ![](images/20210131093846296_3242.png)
 
-#### 3.7.2. DI前是否需要注入判断
+#### 3.7.2. DI 前是否需要注入判断
 
 ![](images/20210131151426080_17297.png)
 
@@ -5881,9 +5881,13 @@ public void testBeanClassByPlaceHolder() {
 
 ### 2.6. Spring 配置文件解析总结
 
-Spring 在属性值（或者一些其他BeanDefinition属性，如`BeanClass`）是可以使用占位符（如`${xx.xx}`），此时需要配合Spring提供的`PropertySourcesPlaceholderConfigurer`类来对占位符解析成相应`Environment`对象或者本地配置文件中的值。如果不配置此类，则会将占位符字符串直接注入属性中。
+Spring 在属性值（或者一些其他 BeanDefinition 属性，如 `BeanClass`）是可以使用占位符（如`${xx.xx}`），此时需要配合 Spring 提供的 `PropertySourcesPlaceholderConfigurer` 类来对占位符解析成相应 `Environment` 对象或者本地配置文件中的值。如果不配置此类，则会将占位符字符串直接注入属性中。
 
-通过xml配置或者`@Bean`注解将`PropertySourcesPlaceholderConfigurer`类注册到spring容器中，会占位符解析方法存入到`AbstractBeanFactory`类的`List<StringValueResolver> embeddedValueResolvers`容器中，在实例创建的过程依赖注入`populateBean`的方法，会使用占位符解析方法进行解析，从而获取到占位符相应的值
+通过 xml 配置或者 `@Bean` 注解将 `PropertySourcesPlaceholderConfigurer` 类注册到 spring 容器中，会占位符解析方法存入到 `AbstractBeanFactory` 类的 `List<StringValueResolver> embeddedValueResolvers` 容器中，在实例创建的过程依赖注入 `populateBean` 的方法，会使用占位符解析方法进行解析，从而获取到占位符相应的值。
+
+#### 2.6.1. 配置项解析流程图
+
+![](images/165115415249086.jpg)
 
 ## 3. @Lazy 注解标识构造函数不会出现循环依赖的问题
 

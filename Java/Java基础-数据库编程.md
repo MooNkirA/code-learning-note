@@ -13,7 +13,7 @@ MySQL 驱动官网下载地址：https://dev.mysql.com/downloads/connector/j/
 相关文件夹说明：
 		
 - src 文件夹是源代码
-- docs文件夹是API
+- docs 文件夹是 API
 
 ## 2. JDBC 开发
 
@@ -2052,9 +2052,9 @@ public <T> TypedQuery<T> createQuery(String qlString, Class<T> resultClass);
 
 ### 7.5. EntityTransaction 接口
 
-#### 7.5.1. 获取 `EntityTransaction` 实例
+EntityTransaction 接口用于管理事务（开始，提交，回滚）。获取事务（没有开启事务）：
 
-用于管理事务（开始，提交，回滚）。获取事务（没有开启事务）：
+#### 7.5.1. 获取实例
 
 ```java
 EntityManagerFactory emf = Persistence.createEntityManagerFactory("crm");
@@ -2084,9 +2084,9 @@ public void rollback();
 
 ### 7.6. TypedQuery 接口
 
-`TypedQuery` 接口继承 `Query` 接口。用于操作 JPQL 的查询的。JPQL 和 HQL 一样。为什么 JPA 的标准，查询需要指定类型，目的就是为了让返回的数据没有没有警告
+`TypedQuery` 接口继承 `Query` 接口。用于操作 JPQL 的查询的。JPQL 和 HQL 一样。为什么 JPA 的标准，查询需要指定类型，目的就是为了让返回的数据没有没有警告。
 
-#### 7.6.1. 获取 `TypedQuery` 实例
+#### 7.6.1. 获取实例
 
 ```java
 EntityManager em = xxx;
@@ -2147,7 +2147,7 @@ X getSingleResult();
 
 用于操作SQL的查询接口，执行没有返回数据的JPQL（增删改），<font color=red>**用于删除和更新**</font>
 
-#### 7.7.1. 获取 `Query` 实例
+#### 7.7.1. 获取实例
 
 ```java
 EntityManager em = xxx;
@@ -2181,4 +2181,3 @@ Query setParameter(String name, Object value);
 ### 7.8. CriteriaBuilder 接口
 
 用户使用标准查询接口 Criteria 查询接口
-

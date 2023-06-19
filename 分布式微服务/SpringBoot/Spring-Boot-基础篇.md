@@ -579,7 +579,17 @@ public class Application {
 
 ### 3.4. 内嵌 web 容器（如 tomcat）
 
-#### 3.4.1. 内嵌 tomcat 定义与运行原理概述
+#### 3.4.1. 什么是嵌入式服务器
+
+首先回想一下在虚拟机上部署应用程序需要哪些步骤：
+
+1. 安装 JDK 环境
+2. 安装 Web 或者是应用程序的服务器（Tomat/Wbesphere/Weblogic 等等）
+3. 部署 Web 应用程序的 war 包
+
+而嵌入式服务就是为简化以上步骤，当创建一个可以部署的应用程序的时候，会将服务器（例如，tomcat）嵌入到可部署的服务器中。例如一个 Spring Boot 应用程序，就会生成一个包含 Embedded Tomcat 的应用程序 jar 文件，即可执行单元包含服务器的二进制文件（例如，tomcat.jar）。
+
+#### 3.4.2. 内嵌 tomcat 定义与运行原理概述
 
 SpringBoot 内嵌的 web 服务器，需要引入 `spring-boot-starter-web` 的依赖
 
@@ -633,17 +643,17 @@ starter 其中有引入 `spring-boot-starter-tomcat` 的依赖，具体如下：
 </dependencies>
 ```
 
-其中有一个核心的坐标，`tomcat-embed-core` 叫做tomcat内嵌核心。就是此依赖把tomcat功能引入到了程序中。而 tomcat 服务器运行其实是以对象的形式保存到 Spring 容器，并在 SpringBoot 程序启动时运行起来。
+其中有一个核心的坐标，`tomcat-embed-core` 叫做 Tomcat 内嵌核心。就是此依赖把 Tomcat 功能引入到了程序中。而 Tomcat 服务器运行其实是以对象的形式保存到 Spring 容器，并在 SpringBoot 程序启动时运行起来。
 
-#### 3.4.2. 更换内嵌默认内嵌 web 服务器
+#### 3.4.3. 更换内嵌默认内嵌 web 服务器
 
-SpringBoot 提供了3款内置的服务器
+SpringBoot 提供了 3 款内置的服务器
 
-- tomcat(默认)：apache出品，粉丝多，应用面广，负载了若干较重的组件
-- jetty：更轻量级，负载性能远不及tomcat
-- undertow：负载性能勉强跑赢tomcat
+- tomcat(默认)：apache 出品，粉丝多，应用面广，负载了若干较重的组件
+- jetty：更轻量级，负载性能远不及 tomcat
+- undertow：负载性能勉强跑赢 tomcat
 
-更新内嵌服务，只需要加入相应的坐标，把默认的 tomcat 排除掉即可，因为tomcat是默认加载的。
+更新内嵌服务，只需要加入相应的坐标，把默认的 tomcat 排除掉即可，因为 tomcat 是默认加载的。
 
 ```xml
 <dependencies>
@@ -666,7 +676,7 @@ SpringBoot 提供了3款内置的服务器
 
 ![](images/20220111170242295_14539.png)
 
-#### 3.4.3. 小结
+#### 3.4.4. 小结
 
 1. 内嵌 Tomcat 服务器是 SpringBoot 辅助功能之一
 2. 内嵌 Tomcat 工作原理是将 Tomcat 服务器作为对象运行，并将该对象交给 Spring 容器管理
