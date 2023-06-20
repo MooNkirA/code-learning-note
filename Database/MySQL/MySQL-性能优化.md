@@ -1443,7 +1443,42 @@ replace into
 insert ignore
 ```
 
-#### 6.3.2. 使用 load 指令
+#### 6.3.2. 存储过程+开启事务
+
+通过存储过程可以实现循环批量插入大量数据，但正常情况与逐条插入的效率差不多，只是存储过程允许编写循环插入。可以开启事务来提高数据导入的速度。示例：
+
+```sql
+DELIMITER $$  -- 定义结束符（为了不跟储存过程的“;”冲突，这里重新定义）
+drop procedure if exists `insert_batch_index` $$
+CREATE procedure `insert_batch_index` (in n int)
+begin
+	declare i int default 1;
+	declare resource_id int default 0;
+	declare test_name varchar(255) default '';
+	declare cate_id int default 0;
+	declare input_time int default 0;
+
+	while i < n do
+		set resource_id = floor(1 + rand() * 3000);
+		set test_name = concat('name_', resource_id);
+		set cate_id = floor(1 + rand() * 20);
+		set input_time = floor(1609430400 + rand() * 32227200);
+		insert into batch_index values (null, resource_id, test_name, cate_id, input_time);
+		set i = i + 1;
+	end while;
+end $$
+delimiter ;  --把结束符再设置回“;”
+```
+
+调用：
+
+```sql
+start transaction;
+call insert_batch_index(10000);
+commit;
+```
+
+#### 6.3.3. 使用 load 指令
 
 如果一次性需要插入大批量数据(几百万的记录)，使用 insert 语句插入性能较低，此时可以使用 MySQL 数据库提供的 `load` 指令进行插入。操作如下：
 
@@ -1479,11 +1514,11 @@ load data local infile 'D:\\sql_data\\sql.log' into table tb_user fields termina
 > - `fields terminated by ','`：每行数据的字段值的分隔符是“`,`”
 > - `lines terminated by '\n'`：每行数据的分隔符是换行符“`\n`”
 
-#### 6.3.3. 主键顺序导入
+#### 6.3.4. 主键顺序导入
 
 因为 InnoDB 类型的表是按照主键的顺序保存的，所以将导入的数据按照主键的顺序排列，可以有效的提高导入数据的效率。如果 InnoDB 表没有主键，那么系统会自动默认创建一个内部列作为主键，所以如果可以给表创建一个主键，将可以利用这点，来提高导入数据的效率。
 
-#### 6.3.4. 关闭唯一性校验
+#### 6.3.5. 关闭唯一性校验
 
 在导入数据前执行 `SET UNIQUE_CHECKS=0`，关闭唯一性校验，在导入结束后执行 `SET UNIQUE_CHECKS=1`，恢复唯一性校验，可以提高导入的效率。
 

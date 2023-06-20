@@ -1410,12 +1410,6 @@ SELECT 字段1,字段2… FROM 表名 [ WHERE 条件 ] GROUP BY 分组字段名 
 - `having 条件表达式`：分组后过滤条件，用来限制分组后的显示内容，满足条件表达式的结果将显示
 - `with rollup`：关键字将会在所有记录的最后加上一条记录。该记录是上面所有记录的总和
 
-> Notes：
->
-> - 执行顺序: where -> 聚合函数 -> having
-> - 如果要进行分组的话，则 `SELECT` 子句之后，只能出现分组的字段和统计函数，其他的字段不能出现：
-> - 按照指定的列对象数据进行分组，查询的字段一般为分组字段与聚合函数（`COUNT()`、`SUM()`、`AVG()`、`MAX()`、`MIN()`）配合使用。如果 `group by` 不与上述函数一起使用，那么查询结果就是字段聚合的分组情况，字段中取值相同记录为一组，但只显示该组的第一条记录（这种使用意义不大）
-
 示例：
 
 ```sql
@@ -1463,11 +1457,13 @@ select category_id ,count(*) from product group by category_id having count(*) >
 - 执行时机不同：`where` 是分组之前进行过滤，不满足 `where` 条件，不参与分组；而 `having` 是分组之后对结果进行过滤。
 - 判断条件不同：`where` 是对行记录进行筛选过滤，`where` 后**不能跟聚合函数**的(如:`count(*)`)；而 `having` 是对组信息进行筛选过滤，`having` 后**可以跟聚合函数**的。(如:`count(*)`)
 
+> Notes: 执行顺序是 where -> 聚合函数 -> having
+
 #### 7.7.4. with rollup 关键字
 
-在所有记录的最后加上一条记录。该记录是上面所有记录的总和
+`with rollup` 关键字的作用是，在查询结果最后加上一条记录，并且该记录是上面所有分组记录的汇总。
 
-```shell
+```sql
 mysql> SELECT sex, COUNT(sex) FROM employee GROUP BY sex WITH ROLLUP;
 +------+------------+
 | sex  | COUNT(sex) |
@@ -1487,7 +1483,15 @@ mysql> SELECT sex, GROUP_CONCAT(name) FROM employee GROUP BY sex WITH ROLLUP;
 +------+--------------------+
 ```
 
-最后一条记录是上面记录的总和
+上面示例中，最后一条记录 `NULL` 就是上面各个分组记录的汇总。
+
+#### 7.7.5. GROUP BY 使用规定
+
+- **GROUP BY 子句必须出现在 WHERE 子句之后，ORDER BY 子句之前**。
+- 使用 GROUP BY 子句进行分组，则 `SELECT` 子句之后，只能出现分组的字段和统计函数，其他的字段不能出现。
+- 按照指定的列对象数据进行分组，查询的字段一般为分组字段与聚合函数（`COUNT()`、`SUM()`、`AVG()`、`MAX()`、`MIN()`）配合使用。如果 `group by` 不与上述函数一起使用，那么查询结果就是字段聚合的分组情况，字段中取值相同记录为一组，但只显示该组的第一条记录（这种使用意义不大）。
+- 如果分组列中具有 NULL 值，则 NULL 将作为一个分组返回。如果列中有多行 NULL 值，它们将分为一组。
+- GROUP BY 子句可以包含任意数目的列。这使得能对分组进行嵌套，为数据分组提供更细致的控制。
 
 ### 7.8. 正则表达式
 

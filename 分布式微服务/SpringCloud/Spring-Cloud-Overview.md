@@ -23,7 +23,6 @@ Spring Cloud 是 Java 语言的微服务框架，依赖于 Spring boot。
 - Spring boot可以离开Spring Cloud独立使用开发项目，但是Spring Cloud离不开Spring boot，属于依赖的关系。
 - spring -> spring booot -> spring cloud 这样的关系。
 
-
 ## 2. Spring Cloud 核心组件
 
 Spring Cloud 的本质是在 Spring Boot 的基础上，增加了一堆微服务相关的规范，并对应用上下文（Application Context）进行了功能增强。目前 Spring Cloud 规范已有 Spring 官方，Spring Cloud Netflix，Spring Cloud Alibaba等实现。通过组件化的方式，Spring Cloud 将这些实现整合到一起构成全家桶式的微服务技术栈。主要组件如下：
@@ -85,11 +84,11 @@ Spring Cloud各个组件相互配合，合作支持了一套完整的微服务�
 - 其中，主版本号表示项目的重大重构；次版本号表示新特性的添加和变化；增量版本号一般表示bug修复；里程碑版本号表示某版本号的里程碑
 - 而Spring Cloud采用了伦敦地铁站的名字，根据字母表的顺序来对应版本时间顺序。以此方式的命名，为了**避免与子项目版本号的重名误解**
 
-### 4.2. 选择Spring Cloud版本与Spring Boot版本例子
+### 4.2. Spring Cloud 与 Spring Boot 版本选择示例
 
-- 在选择了Spring Cloud版本后，需要在官网上选择对应的子项目的版本。pom.xml的依赖配置案例如下：
-  - Spring Cloud版本Finchley.RELEASE对应Spring boot版本为2.0.1.RELEASE
-  - Spring Cloud版本Dalston.SR5对应Spring boot版本为1.5.1.RELEASE
+- 在选择了 Spring Cloud 版本后，需要在官网上选择对应的子项目的版本。pom.xml 的依赖配置案例如下：
+  - Spring Cloud 版本 Finchley.RELEASE 对应 Spring Boot 版本为 2.0.1.RELEASE
+  - Spring Cloud 版本 Dalston.SR5 对应 Spring Boot 版本为 1.5.1.RELEASE
 
 ![版本1](images/_版本1_1537092365_12871.jpg)
 
