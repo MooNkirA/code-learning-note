@@ -192,19 +192,6 @@ $("input[value="+txt+"]").prop("checked","checked");
 - `:selected`：选择(下拉列表`<select>`中的`<option>`标签)
 - `:hidden`：不可见元素
 
-
-
-
-
-
-
-
-
-
-
-
-
-
 ## 3. jQuery 基础使用案例
 
 ### 3.1. 倒计时器
