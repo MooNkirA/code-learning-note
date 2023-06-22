@@ -1464,13 +1464,10 @@ xa事务可以跨库或跨服务器，属于分布式事务，同时xa事务还�
 ### 3.6. 是否使用过select for update？会产生哪些操作？
 
 ```
-
 查询库存 = 100  0 扣减库存  = -1 99
 记录日志 = log
 提交  commit
 ```
-
-
 
 select本身是一个查询语句，查询语句是不会产生冲突的一种行为，一般情况下是没有锁的，用select for update 会让select语句产生一个排它锁(X), 这个锁和update的效果一样，会使两个事务无法同时更新一条记录。
 
@@ -1485,7 +1482,7 @@ https://dev.mysql.com/doc/refman/8.0/en/select.html
 
 示例
 
-```
+```sql
 SELECT … FOR UPDATE [OF column_list][WAIT n|NOWAIT][SKIP LOCKED];
 select * from t for update 会等待行锁释放之后，返回查询结果。
 select * from t for update nowait 不等待行锁释放，提示锁冲突，不返回结果
@@ -1493,12 +1490,9 @@ select * from t for update wait 5 等待5秒，若行锁仍未释放，则提示
 select * from t for update skip locked 查询返回查询结果，但忽略有行锁的记录
 ```
 
-
-
-### 3.7. 091说一下mysql死锁的原因和处理方法
+### 3.7. 说一下mysql死锁的原因和处理方法
 
 ```
-
 事务 a
 
 表 t  id=100 更新  加行锁
@@ -1510,8 +1504,6 @@ select * from t for update skip locked 查询返回查询结果，但忽略有�
 表 t  id=200 更新 加行锁
 表 t  id=100 更新 已加锁
 ```
-
-
 
 - 死锁与锁等待是两个概念
   - 如未开启事务，多个客户端执行的insert操作
@@ -1539,7 +1531,6 @@ lnnodb_row_lock_waits :从系统启动到现在总共等待的次数。
 
 - kill  id 杀死进程
 
-
 解决：
 
 - 死锁无法避免，上线前要进行严格的压力测试
@@ -1553,7 +1544,7 @@ lnnodb_row_lock_waits :从系统启动到现在总共等待的次数。
   - 单张表时先排序再操作
   - 使用排它锁 比如 for update
 
-### 3.8. 092 Mysql会产生几种日志？
+### 3.8. Mysql会产生几种日志？
 
 - **错误日志（error log）**
 
@@ -1563,33 +1554,23 @@ error log主要记录MySQL在启动、关闭或者运行过程中的错误信息
 
 0.1秒
 
+- MySQL的慢查询日志是MySQL提供的一种日志记录，它用来记录在MySQL中响应时间超过阀值的语句，具体指运行时间超过long_query_time值的SQL，则会被记录到慢查询日志中。 
+- long_query_time的默认值为10，意思是运行10秒以上的语句。 
+- 由他来查看哪些SQL超出了我们的最大忍耐时间值，比如一条sql执行超过5秒钟，我们就算慢SQL，希望能收集超过5秒的sql，结合之前explain进行全面分析。
+- 默认情况下，MySQL数据库没有开启慢查询日志，需要我们手动来设置这个参数。
+- 当然，如果不是调优需要的话，一般不建议启动该参数，因为开启慢查询日志会或多或少带来一定的性能影响。慢查询**日志支持将日志记录写入文件**。
 
-
-Ø MySQL的慢查询日志是MySQL提供的一种日志记录，它用来记录在MySQL中响应时间超过阀值的语句，具体指运行时间超过long_query_time值的SQL，则会被记录到慢查询日志中。 
-
-Ø long_query_time的默认值为10，意思是运行10秒以上的语句。 
-
-Ø 由他来查看哪些SQL超出了我们的最大忍耐时间值，比如一条sql执行超过5秒钟，我们就算慢SQL，希望能收集超过5秒的sql，结合之前explain进行全面分析。
-
-
-
-Ø 默认情况下，MySQL数据库没有开启慢查询日志，需要我们手动来设置这个参数。
-
-Ø 当然，如果不是调优需要的话，一般不建议启动该参数，因为开启慢查询日志会或多或少带来一定的性能影响。慢查询**日志支持将日志记录写入文件**。
-
- 在生产环境中，如果要手工分析日志，查找、分析SQL，显然是个体力活，MySQL提供了日志分析工具mysqldumpslow。
+在生产环境中，如果要手工分析日志，查找、分析SQL，显然是个体力活，MySQL提供了日志分析工具mysqldumpslow。
 
 - **一般查询日志（general log）**
 
 general log 记录了客户端连接信息以及执行的SQL语句信息，通过MySQL的命令
 
 - **重写日志（redo log）**
-
 - **回滚日志（undo log）**
-
 - **二进制日志（bin log）**
 
-#### 3.8.1. 093 	bin log作用是什么？
+#### 3.8.1. bin log作用是什么？
 
 MySQL的bin log日志是用来记录MySQL中增删改时的记录日志。
 
@@ -1597,7 +1578,7 @@ MySQL的bin log日志是用来记录MySQL中增删改时的记录日志。
 
 bin log最大的用处就是进行**主从复制，以及数据库的恢复。**
 
-#### 3.8.2. 094	redo log作用是什么？
+#### 3.8.2. redo log作用是什么？
 
 redo log是一种基于磁盘的数据结构，用来在MySQL宕机情况下将不完整的事务执行数据纠正，redo日志记录事务执行后的状态。
 
@@ -1605,7 +1586,7 @@ redo log是一种基于磁盘的数据结构，用来在MySQL宕机情况下将�
 
 redo log就是为了恢复更新了内存但是由于宕机等原因没有刷入磁盘中的那部分数据。
 
-#### 3.8.3. 095 	undo log作用是什么？
+#### 3.8.3. undo log作用是什么？
 
 undo log主要用来回滚到某一个版本，是一种逻辑日志。
 
@@ -1614,7 +1595,7 @@ undo log记录的是修改之前的数据，比如：当delete一条记录时，
 undo log还可以提供多版本并发控制下的读取（MVCC）。
 
 
-### 3.9. 096 	Mysql日志是否实时写入磁盘？ 097  bin log刷盘机制是如何实现的？098  redo log刷盘机制是如何实现的？  099  undo log刷盘机制是如何实现的？
+### 3.9. Mysql日志是否实时写入磁盘？ 097  bin log刷盘机制是如何实现的？098  redo log刷盘机制是如何实现的？  099  undo log刷盘机制是如何实现的？
 
 磁盘写入固然是比较慢的。
 
@@ -1680,7 +1661,7 @@ redo log 的写入拆成了两个步骤：prepare 和 commit
 
 ![img](images/v2-a48d01fd3478ba4d68207fc7ce757658_r.jpg)
 
-### 3.10. 100 MySQL的binlog有有几种录入格式？分别有什么区别？
+### 3.10. MySQL的binlog有有几种录入格式？分别有什么区别？
 
 logbin格式：
 
@@ -1688,7 +1669,7 @@ logbin格式：
 - binlog_format=ROW：批量数据操作时，效率低   不记录每条sql语句的上下文信息，仅需记录哪条数据被修改了，修改成什么样 了。而且不会出 现某些特定情况下的存储过程、或function、或trigger的调用和触发无法被正确复制的 问题。缺 点是会产生大量的日志，尤其是alter table的时候会让日志暴涨。
 - binlog_format=MIXED：是以上两种level的混合使用，有函数用ROW，没函数用STATEMENT，但是无法识别系统变量
 
-### 3.11. 101 Mysql集群同步时为什么使用binlog？优缺点是什么？
+### 3.11. Mysql集群同步时为什么使用binlog？优缺点是什么？
 
 - binlog是mysql提供的日志，所有存储引擎都可用。
 - 支持增量同步
@@ -1946,11 +1927,8 @@ Too many tables; MySQL can only use 61 tables in a join；
 
 开启慢查询日志，收集sql
 
-Ø 默认情况下，MySQL数据库没有开启慢查询日志，需要我们手动来设置这个参数。
-
-Ø 当然，如果不是调优需要的话，一般不建议启动该参数，因为开启慢查询日志会或多或少带来一定的性能影响。慢查询**日志支持将日志记录写入文件**。
-
-
+- 默认情况下，MySQL数据库没有开启慢查询日志，需要我们手动来设置这个参数。
+- 当然，如果不是调优需要的话，一般不建议启动该参数，因为开启慢查询日志会或多或少带来一定的性能影响。慢查询**日志支持将日志记录写入文件**。
 
 **查看及开启**
 
@@ -2008,21 +1986,19 @@ log_output=FILE
 
 **case**
 
-Ø 记录慢SQL并后续分析
+- 记录慢SQL并后续分析
 
 SELECT * FROM emp;
 
 SELECT * FROM emp WHERE deptid > 1;
 
-Ø 查询当前系统中有多少条慢查询记录或者直接看慢查询日志
+- 查询当前系统中有多少条慢查询记录或者直接看慢查询日志
 
 /var/lib/mysql/localhost-slow.log
 
 SHOW GLOBAL STATUS LIKE '%Slow_queries%'; 
 
- 
-
- **日志分析工具mysqldumpslow**
+**日志分析工具mysqldumpslow**
 
 1. 在生产环境中，如果要手工分析日志，查找、分析SQL，显然是个体力活，MySQL提供了日志分析工具mysqldumpslow。
 
