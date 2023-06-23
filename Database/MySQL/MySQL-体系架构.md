@@ -763,7 +763,7 @@ max_binlog_size=200M
 - `expire_logs_days`：设置执行自动删除距离当前以前该值的天数的 binlog 日志文件，默认值是0，表示不自动删除
 - `max_binlog_size`：设置单个 binlog 日志文件的大小限制，默认值为 1GB
 
-#### 5.2.3. binlog_format 日志格式
+#### 5.2.3. binlog_format 日志记录格式
 
 查看 binlog 日志的格式
 
@@ -776,7 +776,7 @@ mysql> show variables like 'binlog_format';
 +---------------+-------+
 ```
 
-- `STATEMENT`：该日志格式在日志文件中记录的都是 SQL 语句（statement），每一条对数据进行修改的 SQL 都会记录在日志文件中，通过 Mysql 提供的 mysqlbinlog 工具，可以清晰的查看到每条语句的文本。主从复制的时候，从库（slave）会将日志解析为原文本，并在从库重新执行一次。这种方式日志量小，节约IO开销，提高性能，但是对于一些执行过程中才能确定结果的函数，比如`UUID()`、`SYSDATE()`等函数如果随 sql 同步到 slave 机器去执行，则结果跟 master 机器执行的不一样。
+- `STATEMENT`（默认）：该日志格式在日志文件中记录的都是 SQL 语句（statement），每一条对数据进行修改的 SQL 都会记录在日志文件中，通过 Mysql 提供的 mysqlbinlog 工具，可以清晰的查看到每条语句的文本。主从复制的时候，从库（slave）会将日志解析为原文本，并在从库重新执行一次。这种方式日志量小，节约IO开销，提高性能，但是对于一些执行过程中才能确定结果的函数，比如`UUID()`、`SYSDATE()`等函数如果随 sql 同步到 slave 机器去执行，则结果跟 master 机器执行的不一样。
 - `ROW`：该日志格式在日志文件中记录的是每一行的数据变更，而不是记录 SQL 语句。比如执行 SQL 语句 `update tb_book set status='1'`，如果是 STATEMENT 日志格式，在日志中会记录一行 SQL 文件；如果是 ROW，由于是对全表进行更新，也就是每一行记录都会发生变更，ROW 格式的日志中会记录每一行的数据变更。但是由于很多操作，会导致大量行的改动(比如 `alter table`)，因此这种模式的文件保存的信息太多，日志量太大。这种方式可以解决函数、存储过程等在 slave 机器的复制问题，但性能不如Statement。
 > Tips: 新版的 MySQL 中对 row 级别也做了一些优化，当表结构发生变化的时候，会记录语句而不是逐行记录。
 - `MIXED`：混合了 STATEMENT 和 ROW 两种格式。在 MIXED 模式下，MySQL 会根据执行的每一条具体的 sql 语句来区分对待记录的日志形式，也就是在 Statement 和 Row 之间选择一种，如果 sql 里有函数或一些在执行时才知道结果的情况，会选择 Row，其它情况选择 Statement。<font color=red>**推荐使用此方式**</font>
@@ -797,9 +797,8 @@ mysql> show variables like '%sync_binlog%';
 参数配置说明：
 
 - 0：表示每次提交事务都只写到 page cache，由系统自行判断什么时候执行 fsync 系统函数写入磁盘。虽然性能得到提升，但是机器宕机时 page cache 里面的 binlog 会丢失。
-- 1：表示每次提交事务都会执行 fsync 系统函数写入磁盘，这种方式最安全。
-
-还有一种折中方式，可以设置为N(N>1)，表示每次提交事务都写到 page cache，但累积 N 个事务后才 fsync 写入磁盘，这种如果机器宕机会丢失 N 个事务的 binlog。
+- 1：表示每次提交事务都会执行 fsync 系统函数写入磁盘，这种方式最安全，**是强一致的选择**。
+- 还可以设置为N(N>1)，是一种折中方式。表示每次提交事务都写到 page cache，但累积 N 个事务后才 fsync 写入磁盘，这种如果机器宕机会丢失 N 个事务的 binlog。
 
 ### 5.3. 删除 binlog 日志文件
 
@@ -1034,13 +1033,13 @@ mysqlbinlog  --no-defaults --start-datetime="2023-1-27 23:32:24" --stop-datetime
 
 备份数据库一般可以使用 mysqldump 命令工具（*具体的使用及其参数作用详见后面章节*）。示例如下：
 
-```bash
+```sql
 # 备份整个数据库
 mysqldump -u root 数据库名>备份文件名;
 # 备份整个表
 mysqldump -u root 数据库名 表名字>备份文件名;
 # 恢复整个数据库，test 为数据库名称，需要先建一个数据库 test
-mysql -u root test < 备份文件名 
+mysql -u root test < 备份文件名
 ```
 
 ### 5.8. 其他小结
