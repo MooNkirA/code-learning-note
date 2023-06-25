@@ -233,12 +233,12 @@ if (tryRelease(arg)) {
 }
 ```
 
-### 2.3. AQS 共享资源的方式
+### 2.3. AQS 对共享资源支持的两种模式
 
-AQS 定义了两种资源共享方式：独占式（Exclusive）和共享式（Share）
+AQS 定义了两种资源共享方式：独占模式（Exclusive mode）和共享模式（Shared mode）
 
-- 独占式：只有一个线程能执行与访问资源，具体的 Java 实现有 `ReentrantLock`
-- 共享式：多个线程可同时执行与访问资源，具体的 Java 实现有 `Semaphore` 和 `CountDownLatch`
+- 独占模式：又称排他模式，相当于互斥锁，只有一个线程能执行与访问资源。当一个线程以独占模式成功获取锁，其它线程获取锁的尝试都将失败，类似 `synchronized` 关键字。具体的 Java 实现有 `ReentrantLock`
+- 共享模式：多个线程可同时执行与访问资源，用于控制一定量的线程并发执行。设计者建议共享模式下的同步状态支持0，小于0和大于0三种情况，以便在某种情况下和独占模式兼容。在此模式下，`同步状态>=0`都代表获取锁成功。具体的 Java 实现有 `Semaphore` 和 `CountDownLatch`
 
 ReentrantLock 对 **AQS 的独占方式实现**为：ReentrantLock 中的 state 初始值为 0 时表示无锁状态。在线程执行 tryAcquire() 获取该锁后 ReentrantLock 中的 state+1，这时该线程独占 ReentrantLock 锁，其他线程在通过 tryAcquire() 获取锁时均会失败，直到该线程释放锁后 state 再次为 0，其他线程才有机会获取该锁。该线程在释放锁之前可以重复获取此锁，每获取一次便会执行一次 state+1，因此 ReentrantLock 也属于可重入锁。但获取多少次锁就要释放多少次锁，这样才能保证 state 最终为 0。如果获取锁的次数多于释放锁的次数，则会出现该线程一直持有该锁的情况；如果获取锁的次数少于释放锁的次数，则运行中的程序会报锁异常。
 

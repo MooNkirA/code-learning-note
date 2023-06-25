@@ -1264,7 +1264,7 @@ Spring 框架的总配置文件 applicationContext.xml，配置如下内容：
 
 #### 8.4.3. 传统 dao 开发方式
 
-示例实现需求：	1.根据用户id查询用户；2.新增用户
+示例实现需求：1.根据用户id查询用户；2.新增用户
 
 创建实体类，与对应映射文件 sqlmap/User.xml
 
@@ -1906,7 +1906,7 @@ Mybatis 底层使用 `PreparedStatement` 和占位符来实现预编译。默认
 
 在 mybatis 的 mapper 配置文件 sql 语句中，有时用到大于，小于等等的比较符，直接写在里面就被当做标签的开头来处理了，会报格式不正确的错。有2种解决方法：
 
-#### 10.3.1. `<![CDATA[   ]]>` 标识
+#### 10.3.1. `<![CDATA[ ]]>` 标识
 
 ```xml
 <if test="menu.authority != null">
