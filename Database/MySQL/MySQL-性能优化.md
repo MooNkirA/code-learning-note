@@ -44,6 +44,7 @@ more /sys/block/vda/queue/scheduler
 
 1. 确认应用程序是否在检索大量超过需要的数据。这通常意味着访问了太多的行，但有时候也可能是访问了太多的列。
 2. 确认 MySQL 服务器层是否在分析大量超过需要的数据行。
+3. 如果对语句的优化已经无法进行，可以考虑表中的数据量是否太大，如果是的话可以进行横向或者纵向的分表。
 
 #### 2.2.1. 请求了不需要的数据
 
@@ -1363,11 +1364,11 @@ show profile all for query 1\G;
 
 能够发现 Sending data 状态下，时间主要消耗在 CPU 上了。所以`show profile`能够在做SQL优化时帮助了解时间都耗费到哪里去了，同时如果 MySQL 源码感兴趣，还可以通过 `show profile source for query` 查看 SQL 解析执行过程中每个步骤对应的源码的文件、函数名以及具体的源文件行数。
 
-|    字段    |            含义             |
-| :--------: | -------------------------- |
-|   Status   | sql语句执行的状态            |
+|    字段     |            含义            |
+| :--------: | ------------------------- |
+|   Status   | sql语句执行的状态           |
 |  Duration  | sql执行过程中第一个步骤的耗时 |
-|  CPU_user  | 当前用户占有的CPU            |
+|  CPU_user  | 当前用户占有的CPU           |
 | CPU_system | 系统占有的CPU               |
 
 ## 6. SQL 优化最佳实践
@@ -1837,8 +1838,7 @@ mysql> explain select profession, count(*) from tb_user where profession = '软�
 1. 在分组操作时，可以通过索引来提高效率
 2. 分组操作时，索引的使用也是满足最左前缀法则的
 
-
-### 6.7. 优化 limit 查询
+### 6.7. 优化 limit 查询（超大分页）
 
 一般分页查询时，通过创建覆盖索引能够比较好地提高性能。但有些情况，如 `limit 9000000,10`，此时需要 MySQL 排序前 9000010 记录，仅仅返回 9000000 - 9000010 的记录，其他记录丢弃，查询排序的代价非常大。
 
@@ -1854,7 +1854,7 @@ mysql> select * from tb_sku limit 9000000,10;
 10 rows in set (11.92 sec)
 ```
 
-- 优化思路一：在索引上完成排序分页操作，通过创建“覆盖索引”+“子查询”的方式进行优化，最后根据主键关联回表查询所需要的其他列内容
+- 优化思路一：在索引上完成排序分页操作，通过创建『覆盖索引』+『子查询』的方式进行优化，最后根据主键关联回表查询所需要的其他列内容
 
 ```sql
 mysql> SELECT * FROM tb_sku a, ( SELECT id FROM tb_sku ORDER BY id LIMIT 9000000, 10 ) b WHERE a.id = b.id;
@@ -1867,6 +1867,12 @@ mysql> SELECT * FROM tb_sku a, ( SELECT id FROM tb_sku ORDER BY id LIMIT 9000000
 mysql> SELECT * FROM tb_sku WHERE id > 9000000 LIMIT 10;
 10 rows in set (0.16 sec)
 ```
+
+- 其他优化思路：
+    - 使用缓存，可预测性的提前查到内容，缓存至 redis 等 K-V 数据库中，查询时直接返回即可。
+    - 从需求的角度减少这种请求，不做类似的需求（直接跳转到几百万页之后的具体某一页，只允许逐页查看或者按照给定的路线走，这样可预测，可缓存）以及防止ID泄漏且连续被人恶意攻击。
+
+> Tips: 优化方式有多种，但其核心思想都一样，就是减少 load 的数据。
 
 ### 6.8. 优化 count 查询
 
@@ -1952,17 +1958,17 @@ select * from A where exists (select 1 from B where B.id = A.id)
 ### 6.13. SQL 语法优化的总结
 
 1. 使用`EXPLAIN`关键字去查看执行计划
-    - `type`列，连接类型。一个好的SQL语句至少要达到range级别。杜绝出现all级别。
-    - `key`列，使用到的索引名。如果没有选择索引，值是NULL。可以采取强制索引方式。
+    - `type`列，连接类型。一个好的 SQL 语句至少要达到 range 级别。杜绝出现 all 级别。
+    - `key`列，使用到的索引名。如果没有选择索引，值是 NULL。可以采取强制索引方式。
     - `key_len`列，索引长度。
     - `rows`列，扫描行数。该值是个预估值。
     - `extra`列，详细说明。注意，常见的不太友好的值，如下：Using filesort，Using temporary。
 2. 比较运算符能用`=`就不用`<>`，因为`=`增加了索引的使用几率。
-2. 如果确定只有一条查询结果，则使用`LIMIT 1`。可以避免全表扫描，找到对应结果后就不会再继续扫描了。使EXPLAIN中type列达到const类型
-3. 为列选择合适的数据类型。能用TINYINT就不用SMALLINT，能用SMALLINT就不用INT
-4. 将大的`DELETE`、`UPDATE`、`INSERT`查询变成多个小查询。一个执行几十行、几百行数据的sql尽量优化成多个小的sql
+2. 如果确定只有一条查询结果，则使用`LIMIT 1`。可以避免全表扫描，找到对应结果后就不会再继续扫描了。使 EXPLAIN 中 type 列达到 const 类型
+3. 为列选择合适的数据类型。能用 TINYINT 就不用 SMALLINT，能用 SMALLINT 就不用 INT
+4. 将大的`DELETE`、`UPDATE`、`INSERT`查询变成多个小查询。一个执行几十行、几百行数据的 sql 尽量优化成多个小的 sql
 5. 如果结果集允许重复或者保证两个结果集不出现重复时，使用`UNION ALL`代替`UNION`，因为`UNION ALL`不去重，效率高于`UNION`
-6. 尽量避免使用`SELECT *`，因为它会进行全表扫描，不能有效利用索引，增大了数据库服务器的负担，以及它与应用程序客户端之间的网络IO开销
+6. 尽量避免使用`SELECT *`，因为它会进行全表扫描，不能有效利用索引，增大了数据库服务器的负担，以及它与应用程序客户端之间的网络 IO 开销
 7. `WHERE`子句、`JOIN`子句、`ORDER BY`的列里面的列尽量使用索引。根据实际情况进行调整，因为有时索引太多也会降低性能
 
 ## 7. 高性能的索引策略

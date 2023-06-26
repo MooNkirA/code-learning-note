@@ -153,7 +153,7 @@ MySQL 中的数据类型有很多，主要分为三类：数值类型、字符�
 
 > Notes: 尽量使用 timestamp，空间效率高于 datetime，用整数保存时间戳通常不方便处理。若需要存储微秒，可以使用 bigint 存储。其中 `DATETIME` 类型与时区无关；`TIMESTAMP` 显示依赖于所指定得时区，默认在第一个列行的数据修改时可以自动得修改
 
-### 3.4. 数据类型总结
+### 3.4. 数据类型小结
 
 #### 3.4.1. 数据类型相关注意事项
 
@@ -186,6 +186,14 @@ MySQL 中的数据类型有很多，主要分为三类：数值类型、字符�
 - TEXT 类型是一个不区分大小写的 BLOB 类型。
 
 两种类型之间的主要的区别是：**BLOB 值进行排序和比较时区分大小写；对 TEXT 值不区分大小写**。
+
+#### 3.4.5. Decimal 类型和 Float、Double 等区别
+
+MySQL 中存在 float, double 等非标准数据类型，可以存浮点数（即小数类型），但是 float 有个坏处，当给定的数据是整数的时候，那么它就以整数处理。这样在存取货币值的时候自然遇到问题，default 值为 0.00 而实际存储是 0，同样存取货币为 12.00，实际存储是 12。
+
+为了解决上面的问题，MySQL 提供了1种标准数据类型：`decimal`。decimal 类型被 MySQL 以同样的类型实现，这在 SQL92 标准中是允许的。它们用于保存对准确精度有重要要求的值，例如与金钱有关的数据。
+
+其中 Decimal 类型和 Float、Double 主要区别在于：float，double 等非标准类型，在 DB 中保存的是近似值；而 Decimal 则以字符串的形式保存数值。
 
 ### 3.5. 关于 Null 类型的特别说明
 
@@ -222,7 +230,7 @@ MySQL 专门提供了一个 `innodb_stats_method` 的系统变量，专门针对
 
 > 详见官网：https://dev.mysql.com/doc/refman/5.7/en/innodb-parameters.html#sysvar_innodb_stats_method
 >
-> 有迹象表明，在 MySQL5.7.22 以后的版本，对这个`innodb_stats_method`的修改不起作用，MySQL 把这个值在代码里写死为`nulls_equal`。也就是说 MySQL在进行索引列的数据统计行为又把 null 视为第二种情况（NULL 值在业务上就是代表没有，所有的 NULL 值和起来算一份），MySQL 对 Null 值的处理比较飘忽。所以总的来说，对于列的声明尽可能的不要允许为null。
+> 有迹象表明，在 MySQL 5.7.22 以后的版本，对这个`innodb_stats_method`的修改不起作用，MySQL 把这个值在代码里写死为`nulls_equal`。也就是说 MySQL在进行索引列的数据统计行为又把 null 视为第二种情况（NULL 值在业务上就是代表没有，所有的 NULL 值和起来算一份），MySQL 对 Null 值的处理比较飘忽。所以总的来说，对于列的声明尽可能的不要允许为null。
 
 ## 4. MySQL 数据库的管理（DDL）
 
@@ -3044,6 +3052,14 @@ select * from s2;
 3. 不允许`null`，指定`default`值，不能指定`default`值为`null`，否则报错 `Invalid default value for xxx`
 4. 不允许`null`，不指定`default`值。这种情况，新增的时候，必须指定值。否则报错 `Field xxx doesn't have a default value`
 
+#### 11.3.4. 字段为什么建议定义为 not null
+
+> MySQL 官网说明:
+>
+> NULL columns require additional space in the rowto record whether their values are NULL. For MyISAM tables, each NULL columntakes one bit extra, rounded up to the nearest byte.
+
+null 值会占用更多的字节，且会在程序中造成很多与预期不符的情况。
+
 ### 11.4. 唯一约束 (unique)
 
 #### 11.4.1. 定义与语法
@@ -3065,6 +3081,7 @@ create table 表名 (
 alter table 表名 add constraint 约束名 unique(列名);
 ```
 
+示例：
 
 ```sql
 -- 创建学生表 s3，列(id,name)，学生姓名这一列设置成唯一约束，即不能出现同名的学生。
@@ -3576,31 +3593,21 @@ cursor.close()
 conn.close()
 ```
 
-### 12.4. MySQL 中 Decimal 类型和 Float、Double 等区别
-
-MySQL 中存在 float, double 等非标准数据类型，也有 decimal 这种标准数据类型。
-
-其区别在于，float，double 等非标准类型，在DB中保存的是近似值，而 Decimal 则以字符串的形式保存数值。
-
-float，double 类型是可以存浮点数（即小数类型），但是 float 有个坏处，当给定的数据是整数的时候，那么它就以整数处理。这样在存取货币值的时候自然遇到问题，default 值为 0.00 而实际存储是 0，同样存取货币为 12.00，实际存储是 12。
-
-mysql 提供了1个数据类型：decimal，这种数据类型可以轻松解决上面的问题：decimal 类型被 MySQL 以同样的类型实现，这在 SQL92 标准中是允许的。它们用于保存对准确精度有重要要求的值，例如与金钱有关的数据。
-
-### 12.5. MySQL 数据库的伪表 DUAL
+### 12.4. MySQL 数据库的伪表 DUAL
 
 与 Oracle 数据库的伪表 DUAL 一样的用法
 
-### 12.6. 在 Unix 和 MySQL 时间戳之间进行转换
+### 12.5. 在 Unix 和 MySQL 时间戳之间进行转换
 
 - `UNIX_TIMESTAMP` 是从 MySQL 时间戳转换为 Unix 时间戳的命令
 - `FROM_UNIXTIME` 是从 Unix 时间戳转换为 MySQL 时间戳的命令
 
-### 12.7. MySQL_fetch_array 和 MySQL_fetch_object 的区别
+### 12.6. MySQL_fetch_array 和 MySQL_fetch_object 的区别
 
 - `MySQL_fetch_array` – 将结果行作为关联数组或来自数据库的常规数组返回。
 - `MySQL_fetch_object` – 从数据库返回结果行作为对象。
 
-### 12.8. 如何存储 IP 地址（待整理）
+### 12.7. 如何存储 IP 地址（待整理）
 
 1. 使用字符串。此方式无法使用范围查询。
 2. 使用无符号整型。只占用 4 个字节的空间，并且此方式可以支持范围查询，传统的 IP 地址使用 `INET_ATON()` 和 `INET_NTOA()`；ipv6 使用 `INET6_ATON()` 和 `INET6_NTOA()`。

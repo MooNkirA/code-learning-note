@@ -778,7 +778,7 @@ mysql> show variables like 'binlog_format';
 
 - `STATEMENT`（默认）：该日志格式在日志文件中记录的都是 SQL 语句（statement），每一条对数据进行修改的 SQL 都会记录在日志文件中，通过 Mysql 提供的 mysqlbinlog 工具，可以清晰的查看到每条语句的文本。主从复制的时候，从库（slave）会将日志解析为原文本，并在从库重新执行一次。这种方式日志量小，节约IO开销，提高性能，但是对于一些执行过程中才能确定结果的函数，比如`UUID()`、`SYSDATE()`等函数如果随 sql 同步到 slave 机器去执行，则结果跟 master 机器执行的不一样。
 - `ROW`：该日志格式在日志文件中记录的是每一行的数据变更，而不是记录 SQL 语句。比如执行 SQL 语句 `update tb_book set status='1'`，如果是 STATEMENT 日志格式，在日志中会记录一行 SQL 文件；如果是 ROW，由于是对全表进行更新，也就是每一行记录都会发生变更，ROW 格式的日志中会记录每一行的数据变更。但是由于很多操作，会导致大量行的改动(比如 `alter table`)，因此这种模式的文件保存的信息太多，日志量太大。这种方式可以解决函数、存储过程等在 slave 机器的复制问题，但性能不如Statement。
-> Tips: 新版的 MySQL 中对 row 级别也做了一些优化，当表结构发生变化的时候，会记录语句而不是逐行记录。
+  > Tips: 新版的 MySQL 中对 row 级别也做了一些优化，当表结构发生变化的时候，会记录语句而不是逐行记录。
 - `MIXED`：混合了 STATEMENT 和 ROW 两种格式。在 MIXED 模式下，MySQL 会根据执行的每一条具体的 sql 语句来区分对待记录的日志形式，也就是在 Statement 和 Row 之间选择一种，如果 sql 里有函数或一些在执行时才知道结果的情况，会选择 Row，其它情况选择 Statement。<font color=red>**推荐使用此方式**</font>
 
 #### 5.2.4. sync_binlog 写入磁盘机制
