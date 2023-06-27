@@ -108,7 +108,7 @@ rpcContext.setAttachment("retries", 5);
 
 #### 3.2.1. Failover Cluster
 
-失败自动切换，当出现失败，重试其它服务器。通常用于读操作，但重试会带来更长延迟。可通过 `retries` 属性来设置重试次数(不含第一次)。
+失败自动切换，当出现失败，重试其它服务器。通常<u>用于读操作</u>，但重试会带来更长延迟。可通过 `retries` 属性来设置重试次数(不含第一次)。
 
 ```xml
 <!--
@@ -128,7 +128,7 @@ rpcContext.setAttachment("retries", 5);
 
 #### 3.2.2. Failfast Cluster
 
-快速失败，只发起一次调用，失败立即报错。通常用于非幂等性的写操作，比如新增记录
+快速失败，只发起一次调用，失败立即报错。通常<u>用于非幂等性的写操作</u>，比如新增记录
 
 #### 3.2.3. Failsafe Cluster
 
@@ -423,7 +423,7 @@ dubbo:application name="world" />
 
 ## 10. 服务分组
 
-**使用服务分组区分服务接口的不同实现**。如果想在测试、开发环境等多套环境中共用同一个注册中心、或者当一个接口有多种实现时，可以用 group 属性区分。
+**使用服务分组区分服务接口的不同实现**。如果想在测试、开发环境等多套环境中共用同一个注册中心、或者当一个接口有多种实现时，可以用 `group` 属性区分。
 
 - 服务提供方
 
@@ -439,7 +439,7 @@ dubbo:application name="world" />
 <dubbo:reference id="memberIndexService" group="member" interface="com.xxx.IndexService" />
 ```
 
-- 任意组：2.2.0 以上版本支持，总是只调一个可用组的实现
+- 2.2.0 以上版本支持任意组配置，使用 `*` 号表示任意组，总是只调一个可用组的实现
 
 ```xml
 <dubbo:reference id="barService" interface="com.foo.BarService" group="*" />
@@ -1063,7 +1063,7 @@ Dubbo 的异步调用是非阻塞的 NIO 调用，一个线程可同时并发调
 </dubbo:reference>
 ```
 
-- 也可以设置是否等待消息发出，即是否等待IOThread发送完Request后再返回
+- 也可以设置是否等待消息发出，即是否等待 IOThread 发送完 Request 后再返回
     - `sent="true"` 等待消息发出去再返回，如果消息发送失败将抛出异常。
     - `sent="false"` 不等待消息发出，将消息放入 IO 队列，即刻返回。
 
@@ -1071,7 +1071,7 @@ Dubbo 的异步调用是非阻塞的 NIO 调用，一个线程可同时并发调
 <dubbo:method name="findFoo" async="true" sent="true" />
 ```
 
-- 如果你只是想异步，完全忽略返回值，可以配置 `return="false"`，以减少 Future 对象的创建和管理成本：
+- 如果只是想异步，完全忽略返回值，可以配置 `return="false"`，以减少 Future 对象的创建和管理成本：
 
 ```xml
 <dubbo:method name="findFoo" async="true" return="false" />
