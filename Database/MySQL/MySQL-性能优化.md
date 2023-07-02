@@ -1066,7 +1066,7 @@ Extra 列用于记录关于 MySQL 如何解析查询的额外信息，包含不�
 
 #### 4.15.4. Using index
 
-当查询列表以及搜索条件中只包含属于某个索引的列。即 select 操作使用了索引覆盖，避免回表访问了表的数据行，效率不错。同时还有以下两种情况：
+当查询列表以及搜索条件中只包含属于某个索引的列。即 select 操作使用了索引覆盖，避免回表访问表的数据行，效率不错。同时还有以下两种情况：
 
 - 如果同时出现 Using where，表明索引被用来执行索引键值的查找。
 - 如果没有同时出现 Using where 表明索引用来读取数据而非执行查找动作。
@@ -1082,15 +1082,13 @@ mysql> explain select order_number from tb_order group by order_number;
 
 #### 4.15.5. Using index condition
 
-搜索条件中虽然出现了索引列，但却不能使用到索引
+搜索条件中虽然出现了索引列，但却不能使用到索引。
 
 ```sql
 SELECT * FROM s1 WHERE order_no > 'z' AND order_no LIKE '%a';
 ```
 
-其中的`order_no > 'z'`可以使用到索引，但是`order_no LIKE '%a'`却无法使用到索引
-
-这里出现了<font color=red>**“索引条件下推”**</font>的概念。
+其中的`order_no > 'z'`可以使用到索引，但是`order_no LIKE '%a'`却无法使用到索引。这里出现了<font color=red>**“索引条件下推”**</font>的概念。
 
 1. 先根据`order_no > 'z'`这个条件，定位到二级索引 idx_order_no 中对应的二级索引记录。
 2. 对于指定的二级索引记录，先不着急回表，而是先检测一下该记录是否满足`order_no LIKE '%a'`这个条件，如果这个条件不满足，则该二级索引记录就没必要回表。
@@ -1100,13 +1098,20 @@ SELECT * FROM s1 WHERE order_no > 'z' AND order_no LIKE '%a';
 
 #### 4.15.6. Using where
 
-表示 mysql 服务器将在存储引擎检索行后再进行过滤。许多where条件里涉及索引中的列，当（并且如果）它读取索引时，就能被存储引擎检验，因此不是所有带 where 字句的查询都会显示"Using where"。有时"Using where"的出现就是一个暗示：查询可受益与不同的索引。
+表示 mysql 服务器将在存储引擎检索行后再进行过滤。许多 where 条件里涉及索引中的列，当（并且如果）它读取索引时，就能被存储引擎检验，因此不是所有带 where 字句的查询都会显示"Using where"。有时"Using where"的出现就是一个暗示：查询可受益与不同的索引。
 
 当使用索引访问来执行对某个表的查询，并且该语句的 WHERE 子句中有除了该索引包含的列之外的其他搜索条件时，在 Extra 列中也会提示上述信息。
 
-![](images/20210502191344123_20124.png)
+```sql
+mysql> EXPLAIN SELECT * FROM s1 WHERE order_no = 'a' AND order_note = 'a';
++----+-------------+-------+------------+------+---------------+--------------+---------+-------+------+----------+-------------+
+| id | select_type | table | partitions | type | possible_keys | key          | key_len | ref   | rows | filtered | Extra       |
++----+-------------+-------+------------+------+---------------+--------------+---------+-------+------+----------+-------------+
+|  1 | SIMPLE      | s1    | NULL       | ref  | idx_order_no  | idx_order_no | 152     | const |    1 |    10.00 | Using where |
++----+-------------+-------+------------+------+---------------+--------------+---------+-------+------+----------+-------------+
+```
 
-出现了 Using where，只是表示在 server 层根据 where 条件进行了过滤，和是否全表扫描或读取了索引文件没有关系，有认为把Using where 和是否读取索引进行关联，也有认为把 Using where 和回表进行了关联，都是不正确。
+出现了 Using where，只是表示在 server 层根据 where 条件进行了过滤，和是否全表扫描或读取了索引文件没有关系，有认为把 Using where 和是否读取索引进行关联，也有认为把 Using where 和回表进行了关联，都是不正确。
 
 > MySQL 官方的说明：https://dev.mysql.com/doc/refman/5.7/en/explain-output.html#explain_extra
 >
@@ -1118,16 +1123,33 @@ SELECT * FROM s1 WHERE order_no > 'z' AND order_no LIKE '%a';
 
 该值强调了在获取连接条件时没有使用索引，并且需要连接缓冲区来存储中间结果。如果出现了这个值，那应该注意，根据查询的具体情况可能需要添加索引来改进性能。
 
-![](images/20210502191718643_23528.png)
+```sql
+mysql> EXPLAIN SELECT * FROM s1 INNER JOIN s2 ON s1.order_note = s2.order_note;
++----+-------------+-------+------------+------+---------------+------+---------+------+-------+----------+--------------------------------------------+
+| id | select_type | table | partitions | type | possible_keys | key  | key_len | ref  | rows  | filtered | Extra                                      |
++----+-------------+-------+------------+------+---------------+------+---------+------+-------+----------+--------------------------------------------+
+|  1 | SIMPLE      | s1    | NULL       | ALL  | NULL          | NULL | NULL    | NULL | 10609 |   100.00 | NULL                                       |
+|  1 | SIMPLE      | s2    | NULL       | ALL  | NULL          | NULL | NULL    | NULL | 10621 |    10.00 | Using where; Using join buffer (hash join) |
++----+-------------+-------+------------+------+---------------+------+---------+------+-------+----------+--------------------------------------------+
+```
 
 > - Using join buffer (Block Nested Loop)：这是因为对表 s1 的访问不能有效利用索引，只好退而求其次，使用 join buffer 来减少对 s1 表的访问次数，从而提高性能。
 > - Using where：可以看到查询语句中有一个`s1.order_note = s2.order_note`条件，因为 s2 是驱动表，s1 是被驱动表，所以在访问 s1 表时，s1.order_note 的值已经确定下来了，所以实际上查询 s1 表的条件就是`s1.order_note = 一个常数`，所以提示了 Using where 额外信息。
+> - 测试时本地是安装 MySQL 8.0 版本，此时 extra 的显示为 “Using join buffer (hash join)”
 
 #### 4.15.8. Not exists
 
 当使用左（外）连接时，如果 WHERE 子句中包含要求被驱动表的某个列等于 NULL 值的搜索条件，而且那个列又是不允许存储 NULL 值的，那么在该表的执行计划的 Extra 列就会提示 Not exists 额外信息
 
-![](images/20210502192025640_19849.png)
+```sql
+mysql> EXPLAIN SELECT * FROM s1 LEFT JOIN s2 ON s1.order_no = s2.order_no WHERE s2.id IS NULL;
++----+-------------+-------+------------+------+---------------+--------------+---------+--------------------+-------+----------+-------------------------+
+| id | select_type | table | partitions | type | possible_keys | key          | key_len | ref                | rows  | filtered | Extra                   |
++----+-------------+-------+------------+------+---------------+--------------+---------+--------------------+-------+----------+-------------------------+
+|  1 | SIMPLE      | s1    | NULL       | ALL  | NULL          | NULL         | NULL    | NULL               | 10609 |   100.00 | NULL                    |
+|  1 | SIMPLE      | s2    | NULL       | ref  | idx_order_no  | idx_order_no | 152     | tempdb.s1.order_no |     1 |    10.00 | Using where; Not exists |
++----+-------------+-------+------------+------+---------------+--------------+---------+--------------------+-------+----------+-------------------------+
+```
 
 > 上述查询中 s1 表是驱动表，s2 表是被驱动表，s2.id 列是主键而且不允许存储 NULL 值的，而 WHERE 子句中又包含`s2.id IS NULL`的搜索条件。
 
@@ -1145,9 +1167,7 @@ SELECT * FROM s1 WHERE order_no > 'z' AND order_no LIKE '%a';
 
 #### 4.15.11. Using filesort（文件排序）
 
-mysql无法按照表内既定的索引顺序进行读取，称为“文件排序”。
-
-很多情况下排序操作无法使用到索引，只能在内存中（记录较少的时候）或者磁盘中（记录较多的时候）进行排序，MySQL把这种在内存中或者磁盘上进行排序的方式统称为文件排序。如果某个查询需要使用文件排序的方式执行查询，就会在执行计划的 Extra 列中显示 Using filesort
+很多情况下排序操作无法使用到索引，只能在内存中（记录较少的时候）或者磁盘中（记录较多的时候）进行排序，MySQL 把这种无法按照表内既定的索引顺序进行读取，并在内存中或者磁盘上进行排序的方式统称为『文件排序』。如果某个查询需要使用文件排序的方式执行查询，就会在执行计划的 Extra 列中显示 Using filesort。
 
 ```shell
 mysql> explain select order_number from tb_order order by order_money;
@@ -1156,10 +1176,9 @@ mysql> explain select order_number from tb_order order by order_money;
 +----+-------------+----------+------+---------------+------+---------+------+------+----------------+
 | 1  | SIMPLE      | tb_order | ALL  | NULL          | NULL | NULL    | NULL |  1   | Using filesort |
 +----+-------------+----------+------+---------------+------+---------+------+------+----------------+
-1 row in set (0.00 sec)
 ```
 
-说明：order_number是表内的一个唯一索引列，但是order by没有使用该索引列排序，所以mysql使用不得不另起一列进行排序。
+说明：order_number 是表内的一个唯一索引列，但是 order by 没有使用该索引列排序，所以 MySQL 使用不得不另起一列进行排序。
 
 ##### 4.15.11.1. filesort 文件排序方式
 
@@ -1194,7 +1213,6 @@ mysql> explain select order_number from tb_order group by order_money;
 +----+-------------+----------+------+---------------+------+---------+------+------+---------------------------------+
 | 1  | SIMPLE      | tb_order | ALL  | NULL          | NULL | NULL    | NULL |  1   | Using temporary; Using filesort |
 +----+-------------+----------+------+---------------+------+---------+------+------+---------------------------------+
-1 row in set (0.00 sec)
 ```
 
 上述执行计划的 Extra 列不仅仅包含 Using temporary 提示，还包含 Using filesort 提示。因为 MySQL 会在包含 GROUP BY 子句的查询中默认添加上 ORDER BY 子句，也就是说上述查询其实和下边这个查询等价：
@@ -1205,7 +1223,14 @@ EXPLAIN SELECT order_note, COUNT(*) AS amount FROM s1 GROUP BY order_note order 
 
 如果并不想为包含 GROUP BY 子句的查询进行排序，需要显式的写上 `ORDER BY NULL`
 
-![](images/20210502192843471_4780.png)
+```sql
+mysql> EXPLAIN SELECT order_note, COUNT(*) AS amount FROM s1 GROUP BY order_note order by NULL;
++----+-------------+-------+------------+------+---------------+------+---------+------+-------+----------+-----------------+
+| id | select_type | table | partitions | type | possible_keys | key  | key_len | ref  | rows  | filtered | Extra           |
++----+-------------+-------+------------+------+---------------+------+---------+------+-------+----------+-----------------+
+|  1 | SIMPLE      | s1    | NULL       | ALL  | NULL          | NULL | NULL    | NULL | 10609 |   100.00 | Using temporary |
++----+-------------+-------+------------+------+---------------+------+---------+------+-------+----------+-----------------+
+```
 
 这样执行计划中就没有 Using filesort 的提示了，也就意味着执行查询时可以省去对记录进行文件排序的成本了。很明显，执行计划中出现 Using temporary 并不是一个好的征兆，因为建立与维护临时表要付出很大成本的，所以我们最好能使用索引来替代掉使用临时表。
 
@@ -1257,10 +1282,19 @@ mysql> show warnings;
 ### 5.1. 通过 show processlist 分析 SQL
 
 ```sql
-show processlist;
+mysql> show processlist;
++----+-----------------+----------------+--------+---------+------+------------------------+------------------+
+| Id | User            | Host           | db     | Command | Time | State                  | Info             |
++----+-----------------+----------------+--------+---------+------+------------------------+------------------+
+|  5 | event_scheduler | localhost      | NULL   | Daemon  | 2784 | Waiting on empty queue | NULL             |
+|  8 | root            | localhost:2772 | tempdb | Query   |    0 | init                   | show processlist |
+|  9 | root            | localhost:2779 | tempdb | Sleep   | 1533 |                        | NULL             |
+| 10 | root            | localhost:2780 | tempdb | Sleep   | 1957 |                        | NULL             |
+| 11 | root            | localhost:2781 | tempdb | Sleep   | 2128 |                        | NULL             |
+| 12 | root            | localhost:2782 | tempdb | Sleep   | 2128 |                        | NULL             |
+| 13 | root            | localhost:2783 | tempdb | Sleep   | 2128 |                        | NULL             |
++----+-----------------+----------------+--------+---------+------+------------------------+------------------+
 ```
-
-![](images/20211224104543121_17316.png)
 
 - id 列：线程 id，用户登录 mysql 时，系统分配的"connection_id"，可以使用函数`connection_id()`查看。此 id 可用于 `kill id` 杀死某个线程
 - user 列：显示当前用户。如果不是root，这个命令就只显示用户权限范围的sql语句
