@@ -1424,7 +1424,29 @@ AspectJ类型匹配的通配符：
 - `||`：或（or）
 - `!`：非（not）
 
-### 7.6. 使用说明
+排除某些类或者方法不拦截的示例：
+
+```java
+// 扫描controller层
+@Pointcut("execution(* com.moon.web.controller..*.*(..)) ")
+public void runningLogPointcat() {
+}
+
+// 排除controller类
+@Pointcut("execution(* com.moon.web.controller.TempController.*(..)) ")
+public void excludePointcut() {
+}
+
+// 切面配置
+@AfterReturning("runningLogPointcat() && !excludePointcut()")
+public void saveSysLog(JoinPoint joinPoint) throws IOException {
+    String className = joinPoint.getSignature().getDeclaringType().getSimpleName();
+	String methodName = joinPoint.getSignature().getName();
+	logger.info("{}.{} start", className, methodName);
+}
+```
+
+### 7.6. execution 表达式使用说明
 
 execution 表达式，用于匹配方法的执行(常用)。**表达式语法**如下：
 
@@ -1448,7 +1470,7 @@ execution([修饰符] 返回值类型 包名.类名.方法名(参数))
 	- 可以使用部分通配的方法：`* com..*.*all()`
 7. 参数列表：
 	- 参数列表可以使用`*`，表示参数可以是任意数据类型，但是必须有参数：`* com..*.*(*)`
-	- 参数列表可以使用 `..` 表示有无参数均可，有参数可以是任意类型：`* com..*.*(..)`
+	- 参数列表可以使用`..`，表示有无参数均可，有参数可以是任意类型：`* com..*.*(..)`
 8. **全通配方式**：`* *..*.*(..)`
 
 ## 8. 其他综合

@@ -193,7 +193,13 @@ Spring 系统的 lib 包中都是以基本 jar 包、文档、源代码三种结
 
 ## 2. Spring IOC 容器
 
-IoC（Inversion of Control）也被称为依赖性注入（DI）。`org.springframework.beans` 和 `org.springframework.context` 包是 Spring Framework 的 IoC 容器的基础。
+### 2.1. 什么是 IOC
+
+IoC（Inversion of Control），控制反转，就是把 new 对象的动作交给容器，所有的对象都被容器控制。依赖性注入（DI），即由 IoC 容器帮对象找相应的依赖对象并注入，而不是由对象主动去找。
+
+![](images/270691316257119.jpg)
+
+`org.springframework.beans` 和 `org.springframework.context` 包是 Spring Framework 的 IoC 容器的基础。
 
 `BeanFactory` 接口提供了一种高级配置机制，能够管理任何类型的对象，提供了配置框架和基本功能，是 Spring 容器中的顶层接口（*远古版本时使用？实现类 `XmlBeanFactory`，已过时*）。`ApplicationContext` 是 `BeanFactory` 的一个子接口，完整的超集，它增加了更多的企业级开发的特定功能：
 
@@ -204,13 +210,13 @@ IoC（Inversion of Control）也被称为依赖性注入（DI）。`org.springfr
 
 在 Spring 构建的应用程序中，Spring IoC 容器管理的对象被称为 Bean。Bean 是一个由 Spring IoC 容器实例化、组装和管理的对象。
 
-### 2.1. 容器概述
+### 2.2. 容器概述
 
 通常 Spring IoC 容器是指 `org.springframework.context.ApplicationContext` 接口，该接口负责实例化、配置和组装 bean。容器通过读取**配置元数据**来获得关于要实例化、配置和组装哪些对象。可以通过 XML 文件、Java 注解或 Java 代码配置元数据，告诉容器要实例化的对象及其依赖关系。在 `ApplicationContext` 被创建和初始化后，就有了一个完全配置好的可执行系统或应用程序。
 
 ![](images/476884009220554.png)
 
-#### 2.1.1. 配置元数据
+#### 2.2.1. 配置元数据
 
 Spring IoC 容器通过使用者对 bean 配置元数据，从而知道如何实例化、配置和组装对象。
 
@@ -238,7 +244,7 @@ Spring IoC 容器通过使用者对 bean 配置元数据，从而知道如何实
 </beans>
 ```
 
-#### 2.1.2. IOC 容器创建（ApplicationContext 接口实现类）
+#### 2.2.2. IOC 容器创建（ApplicationContext 接口实现类）
 
 IOC 容器的创建，即创建 `ApplicationContext` 接口实现类实例。如：
 
@@ -308,7 +314,7 @@ public class AnnotationConfigApplicationContext extends GenericApplicationContex
 }
 ```
 
-#### 2.1.3. ApplicationContext 常用方法（整理中!）
+#### 2.2.3. ApplicationContext 常用方法（整理中!）
 
 - 继承于 `BeanFactory`，根据 bean 的名称获取实例对象
 
@@ -323,7 +329,7 @@ Object getBean(String name) throws BeansException;
 ```
 
 
-### 2.2. Bean 概述
+### 2.3. Bean 概述
 
 JavaBean：是一种 Java 语言写成的可重用组件。一个 Spring IoC 容器管理着一个或多个 Bean。这些 Bean 都根据使用者提供给容器的配置元数据创建的（例如，以 XML 文件 `<bean/>` 标签定义的形式）。
 
@@ -336,7 +342,7 @@ JavaBean：是一种 Java 语言写成的可重用组件。一个 Spring IoC 容
 
 传统上，配置元数据是以简单直观的 XML 格式实现，Spring 2.5 引入了对基于注解的配置元数据的支持。从 Spring 3.0 开始，Spring JavaConfig 项目提供的许多功能成为 Spring 框架的核心部分。后面建议使用 Java 注解来配置 Bean 的元数据。（*具体详见后面 `@Configuration`、`@Bean`、`@Import` 和 `@DependsOn` 等相关内容*）
 
-### 2.3. IOC 底层原理（待整理或删除）
+### 2.4. IOC 底层原理（待整理或删除）
 
 1. xml 配置文件（老旧）、注解
 2. dom4j 解决 xml（老旧）、解析注解
@@ -412,7 +418,7 @@ public class BeanBasicTest {
 ### 4.1. 概述
 
 DI (dependcy injection)：依赖注入，Spring 框架核心 IOC 的具体实现方式。即让框架自动把对象传入，不需要使用者自动去获取。
-	
+
 依赖注入（DI）是一个过程，对象仅通过构造方法的形参、类属性、setter 方法来定义当前类依赖的其他对象。然后 Spring 容器在创建 Bean 时自动注入这些依赖关系的对象实例。这个过程本质是 Bean 本身调用构造方法创建实例时，会到 Spring 容器中查找其依赖的对象，找到的将其依赖的对象引用设置到当前实例化中的 Bean
 
 #### 4.1.1. IOC 和 DI 区别
@@ -448,12 +454,12 @@ IOC 和 DI 关系：依赖注入不能单独存在，需要在 IOC 基础之上�
 标签相关属性：
 
 |  属性名  |                                                  说明                                                   |
-| ------- | ------------------------------------------------------------------------------------------------------- |
+| :-----: | ------------------------------------------------------------------------------------------------------- |
 | `index` | 指定参数在构造方法参数列表的索引位置（索引值从0开始）                                                           |
 | `type`  | 指定参数在构造方法中的数据类型（可选，一般很少用）                                                              |
 | `name`  | 指定构造方法中的参数名称（**注：参数名称是构造方法的参数名称**）                                                |
 | `value` | 给成员变量赋值，包含基本数据类型和 String 类型                                                                |
-| `ref`   | 给成员变量赋值为其他bean类型，值为其他bean的id，<font color=purple>**必须是在配置文件中配置过的bean对象**</font> |
+|  `ref`  | 给成员变量赋值为其他bean类型，值为其他bean的id，<font color=purple>**必须是在配置文件中配置过的bean对象**</font> |
 
 #### 4.2.2. 示例
 
@@ -1092,7 +1098,7 @@ public PrototypeScopeBean4 getBean4() {
 
 ### 6.1. 概述
 
-一个受 Spring 管理的 bean，生命周期主要阶段有
+一个受 Spring 管理的 bean，生命周期主要阶段有：
 
 1. 创建：根据 bean 的构造方法或者工厂方法来创建 bean 实例对象
 2. 依赖注入：根据 `@Autowired`，`@Value` 或其它一些手段，为 bean 的成员变量填充值、建立关系
@@ -1108,9 +1114,11 @@ graph LR
 可用 --> 销毁
 ```
 
+> Notes: 描述 Bean 的生命周期，都是指的 Singleton Bean（单例 Bean）。
+
 在整个生命周期过程中，可以自定义 Bean 的初始化和销毁钩子函数，当 Bean 的生命周期到达相应的阶段的时候，Spring 会调用自定义的 Bean 的初始化和销毁方法。Spring 还提供一种 `BeanPostProcessor` 接口（Bean 后处理器），也可以用于在 bean 的初始化的前后，提供一些扩展逻辑，但不单单只对生命周期有作用（*`BeanPostProcessor` 接口详细说明见后面章节*）
 
-自定义 Bean 初始化和销毁方法有多种方式。参考代码详见：`spring-note\spring-sample\39-annotation-lifecycle\`
+> 自定义 Bean 初始化和销毁方法有多种方式。参考代码详见：`spring-note\spring-sample\39-annotation-lifecycle\`
 
 ### 6.2. @Bean 注解方式实现生命周期回调
 
@@ -1446,7 +1454,18 @@ Spring 提供了以上多种初始化与销毁的方式，如果同一个 bean �
 
 #### 6.6.2. Spring Bean 全生命周期流程图
 
-![](images/412481317230447.png)
+![整合后删除](images/412481317230447.png)
+
+![](images/92911916249788.jpg)
+
+**Bean 生命周期阶段过程总结**：
+
+- **实例化**：第 1 步，实例化一个 Bean 对象；
+- **属性赋值**：第 2 步，为 Bean 设置相关属性和依赖；
+- **初始化**：初始化的阶段的步骤比较多，5、6 步是真正的初始化，第 3、4 步为在初始化前执行，第 7 步在初始化后执行，初始化完成之后，Bean 就可以被使用了；
+- **销毁**：第 8~10 步，第 8 步其实也可以算到销毁阶段，但不是真正意义上的销毁，而是先在使用前注册了销毁的相关调用接口，为了后面第 9、10 步真正销毁 Bean 时再执行相应的方法。
+
+**Bean 生命周期具体步骤总结**：
 
 1. 调用 bean 的构造方法创建 Bean
 2. 通过反射调用 setter 方法进行属性的依赖注入
@@ -1459,9 +1478,7 @@ Spring 提供了以上多种初始化与销毁的方式，如果同一个 bean �
 9. Bean 初始化完成，供应用使用，直到应用被销毁。
 10. 应用销毁时，如果 Bean 实现了 `DisposableBean` 接口，Spring 将调用它的 `destory` 方法；然后调用在 xml 中定义的 `destory-method` 方法，这两个方法作用类似，都是在 Bean 实例销毁前执行
 
-#### 6.6.3. Bean 对象在 spring 框架的上下文中的生命周期图（网络资料，待整合）
-
-![](images/20200902225528606_28556.jpg)
+==Bean 对象在 spring 框架的上下文中的生命周期图（网络资料，待整合）==：
 
 1. 实例化一个 Bean，也就是我们常说的 new。
 2. IOC 依赖注入：按照 Spring 上下文对实例化的 Bean 进行配置，也就是 IOC 注入。

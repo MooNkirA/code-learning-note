@@ -1,5 +1,3 @@
-# Spring Data JPA
-
 ## 1. JPA 基础回顾
 
 > 详情 JPA 详见 [《Java基础-数据库编程》笔记](/Java/Java基础-数据库编程)
@@ -1457,9 +1455,9 @@ public void testSave() {
 
 ![](images/191332917235927.png)
 
-# Spring Data JPA 原理分析
+## 6. Spring Data JPA 原理分析
 
-## 1. Spring Data JPA 中的几个重要 API 接口分析
+### 6.1. Spring Data JPA 中的几个重要 API 接口分析
 
 Spring Data JPA 提供给用户使用的，主要有以下几个接口：
 
@@ -1473,7 +1471,7 @@ Spring Data JPA 提供的接口的类关系图：
 
 ![](images/213741310220244.jpg)
 
-## 2. 底层运行原理
+### 6.2. 底层运行原理
 
 通过 debug 跟踪源码，分析底层运行原理：
 
@@ -1506,7 +1504,7 @@ Spring Data JPA 实现的是数据访问层解决方案，底层的实现就是�
 <jpa:repositories base-package="com.moon.dao"></jpa:repositories>
 ```
 
-## 3. Spring Data Jpa 与 Jpa 及 Hibernate 的关系
+### 6.3. Spring Data Jpa 与 Jpa 及 Hibernate 的关系
 
 ![](images/37464110235927.png)
 

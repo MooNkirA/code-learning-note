@@ -88,7 +88,49 @@
 
 ![](images/20201001081435089_17121.jpg)
 
-### 1.3. 网络配置参考示例
+### 1.3. 网络配置（旧版本）
+
+#### 1.3.1. VIM 命令配置网络
+
+查看网卡配置：
+
+```bash
+cat /etc/sysconfig/network-scripts/ifcfg-eth0
+```
+
+概要信息如下：
+
+```properties
+DEVICE=eth0 #网卡名称
+TYPE=Ethernet #网卡类型
+ONBOOT=yes #是否开机启动网卡
+BOOTPROTO=static #静态获取 IP，其他取值：dhcp （如果设置 dhcp 下面配置不需要）
+IPADDR=192.168.44.100 #ip 地址
+GATEWAY=192.168.44.2 #网关
+NETMASK=255.255.255.0 #子网掩码
+```
+
+#### 1.3.2. setup 设置
+
+`setup`，进行图形化工具修改网卡。具体步骤如下：
+
+1. 选择“网络配置”
+
+![](images/558191916236319.jpg)
+
+2. 选择“设备配置”
+
+![](images/50052016258759.jpg)
+
+3. 选择“第一块网卡”
+
+![](images/323522016253895.jpg)
+
+4. 设置IP地址等详细信息
+
+![](images/439252016247441.jpg)
+
+### 1.4. 网络配置（新版本）参考示例
 
 说明：CentOS 7.0默认安装好之后是没有自动开启网络连接的！
 
@@ -152,20 +194,21 @@ ping www.baidu.com  # 测试网络是否正常
 ip addr  # 查看IP地址
 ```
 
-### 1.4. 设置主机名为www
+### 1.5. 设置主机名为 www
 
-```bash
-hostname  www  # 设置主机名为www
+```shell
+hostname  www  # 设置主机名为 www
 vi /etc/hostname # 编辑配置文件
-www   # 修改localhost.localdomain为www
+www   # 修改 localhost.localdomain 为 www
 :wq!  # 保存退出
+
 vi /etc/hosts # 编辑配置文件
 127.0.0.1   localhost  www   # 修改localhost.localdomain为www
 :wq!  # 保存退出
 shutdown -r now  # 重启系统
 ```
 
-### 1.5. Linux 的静态 ip 地址设置
+### 1.6. Linux 的静态 ip 地址设置
 
 运行命令
 

@@ -109,19 +109,265 @@ JQ对象.get(0);
 
 在 jQuery 对象中无法使用 DOM 对象的任何方法。此时需要进行转换：
 
-jQuery 对象转换成 DOM 对象：
+- jQuery 对象转换成 DOM 对象：jquery 提供了两种方法将一个jquery对象转换成一个dom对象，即`[index]`和`get(index)`。因 jQuery 对象就是一个数组对象
+- DOM 对象转换成 jQuery 对象：对于一个 DOM 对象，只需要用`$()`把 DOM 对象包装起来，就可以获得一个 jQuery 对象了，即`var ele = $(dom对象);`
 
-jquery 提供了两种方法将一个jquery对象转换成一个dom对象，即`[index]`和`get(index)`。因 jQuery 对象就是一个数组对象
+## 2. jQuery 的选择器
 
-DOM 对象转换成 jQuery 对象：对于一个 DOM 对象，只需要用`$()`把 DOM 对象包装起来，就可以获得一个 jQuery 对象了，即`var ele = $(dom对象);`
+### 2.1. 选择器的作用
 
-## 2. jQuery 的 AJAX 使用
+JQ 中如果要对某个或一些元素进行操作，操作之前先要选择对哪些元素来操作，我们就使用选择器。选择器的功能就是用来选元素。类似于 CSS 中选择器
+
+### 2.2. jQuery常用的选择器
+
+1. <font color=red>**基本选择器**</font>
+2. 层级选择器
+3. 属性选择器
+4. 基本过滤选择器
+5. 表单属性选择器
+
+### 2.3. 基本选择器（重点）
+
+- `$("标签名")`：标签选择器，选中所有同名的标签。
+- `$(".类名")`：类选择器，通过类名选中元素。
+- `$("#ID名")`：ID 选择器，通过指定ID选中元素。
+- `$("*")`：通配符选择器，选中当前网页上所有的元素。
+
+注意事项：
+
+- 通过标签、类、通配符选择器等获取到的如果是多个元素，内部已经进行了遍历的操作，不需要像JS一样，遍历修改，直接后面调用修改的方法即可批量修改。
+- `$("xx","xx",……)` 可以选择多个元素操作，不同元素使用逗号(`,`)隔开
+- <font color=red>**ID 名不能是`xx.xx`这种命名**</font>
+
+### 2.4. 层级选择器
+
+- `$("A B")`：获得 A 元素内部的所有的 B 元素。<font color=red>**注意：A 与 B 之间有空格**</font>，B 元素是 A 元素的子孙元素。
+- `$("A>B")`：获得 A 元素下面的所有 B 子元素，<font color=red>**不包含孙元素**</font>。
+- `$("A+B")`：获得 A 元素同级，下一个 B 元素。B 是 A 的下一个兄弟元素，如果 A 是老二，B 是老三。
+- `$("A~B")`：获得 A 元素同级，所有后面 B 元素。返回值是一组 B 元素，A 是老二，B 是老三~最后一个兄弟。
+- `元素.siblings()`：获得所有的兄弟元素。得到所有同级的兄弟元素，无论什么标签。
+- `元素.siblings("标签名")`：获得所有指定标签的兄弟元素。得到同级的同标签名的元素。
+
+### 2.5. 属性选择器
+
+- `$("标签名[属性名]")`：获得指定 **属性名** 的元素
+- `$("标签名[属性名='属性值']")`：获得属性名 **等于值** 的元素
+- `$("标签名[属性名!='属性值']")`：获得属性名 **不等于值** 的元素
+- `$("标签名[属性名^='属性值']")`：获得属性名 **以值开头** 的元素
+- `$("标签名[属性名$='属性值']")`：获得属性名 **以值结尾** 的元素
+- `$("标签名[属性名*='属性值']")`：获得属性名 **含有值** 的元素
+- `$("标签名[属性名='属性值'] [属性名='属性值'] [属性名='属性值']……")`：复合属性选择器，**多个属性同时过滤**。复合属性选择器，可以组合上面任何一种属性选择器。
+
+注：如果属性值是变量，需要做拼接。示例如下：
+
+```js
+// 获取文本框的值
+var txt = $("#city").val();
+// 根据属性选择器获取选定的元素
+$("input[value="+txt+"]").prop("checked","checked");
+```
+
+### 2.6. 基本过滤选择器
+
+基本过滤选择器一般用于表格操作，**过滤选择器前面都有一个冒号(`:`)**。
+
+- `:first`：获得选择的元素中的第一个元素
+- `:last`：获得选择的元素中的最后一个元素
+- `:not()`：不包括指定内容的元素
+- `:even`：偶数，从 0 开始计数（包括0）
+- `:odd`：奇数，从 0 开始计数
+- `:eq()`：等于第几个
+- `:gt()`：大于第n个，不含第index个
+- `:lt()`：小于第n个，不含第index个
+- `:header`：获得标题所有标题元素 （如 `<h1>`/`<h2>`...）
+- `:animated`：获得正在执行动画的元素
+
+> Notes: 如果选择多个情况进行 not 过滤，语法为 `$("标签名:not(:first):not(:last)")`，而不是将几个过滤条件写在括号内。
+
+### 2.7. 表单属性选择器
+
+- `:enabled`：可用
+- `:disabled`：不可用
+- `:checked`：选中(单选 radio，多选 checkbox)
+- `:selected`：选择(下拉列表`<select>`中的`<option>`标签)
+- `:hidden`：不可见元素
+
+## 3. jQuery 基础使用案例
+
+### 3.1. 倒计时器
+
+在页面中有一个按钮，要求按钮默认不可点击，在规定时间后才可以点击这个按钮
+
+```html
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>倒计时按键</title>
+		<!--导入jQuery文件-->
+		<script src="js/jquery-1.8.3.min.js" type="text/javascript"></script>
+	</head>
+	<body>
+		<h1 id="h"><span id="second">20</span>秒后按键生效</h1>
+		<input type="button" id="b" disabled="disabled" value="时间到了再点我呀！"/>
+	</body>
+</html>
+
+<script type="text/javascript">
+	// 设置打开网页每1秒调用一次方法
+	var time = setInterval("change()",1000);
+	
+	// 定义变量做为改变时间的参数
+	var num = 20;
+	
+	function change(){
+		// 每调用一次方法，时间减1
+		num--;
+		// 改变span块的内容
+		$("#second").html(num);
+		//当num到0的时候，将按键恢复可用状态和改变面容相关的提示内容
+		if(num == 0){
+			$("#h").html("现在按键可以使用了");
+			$("#b").attr("value","现在可以点我了呀，来呀~");
+			$("#b").removeAttr("disabled");
+			// 还要将计时器清空
+			clearInterval(time);
+		}
+	}
+	
+	// 设置按键点击事件
+	$("#b").click(function(){
+		alert("终于给你等到了！！！！");
+	});
+</script>
+```
+
+### 3.2. 表单操作
+
+案例需求：文本框中输入内容，下拉列表则选中该内容。
+
+html 页面文件
+
+```html
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>jQuery方法</title>
+		<!-- 导入jQuery文件 -->
+		<script src="js/jquery-1.8.3.min.js" type="text/javascript"></script>
+		<!--导入外部JS文件-->
+		<script src="js/Day33Level02Test01.js" type="text/javascript"></script>
+		<!--1. 在页面中编写标签
+		2.引入jquery的库文件，写jquery代码
+		定义数组，编写数组内容显示到下拉列表，
+		判断输入项值和下拉列表值是否相同，默认选中-->
+	</head>
+	<body>
+		<input type="button" id="b" value="点击导入选择框内容" />
+		<input type="text" id="txt" value="输入内容选择下拉列表内容" />
+		<hr />
+		<select id="e">
+			<option value="0">--匹配文本框内容--</option>
+		</select>
+	</body>
+</html>
+```
+
+JS 文件
+
+```js
+// 定义数组
+var arr = ["帝释天","剑圣","步惊云","聂风","断浪","无名"];
+
+// 定义点击事件，给下拉菜单赋值
+$(function(){
+	$("#b").click(function(){
+		// 每次先清单下拉菜单，不让每次点击都新增
+		$("#e>option:not(:first)").remove();
+	
+		// 遍历数组给下拉菜单赋值
+		$(arr).each(function(index, element){
+			$("#e").append($("<option value="+ (element) +">"+ element+ "</option>"));
+		});
+	});
+	
+	$("#txt").bind({
+		focus:function(){
+			// 设置获取焦点事件，将文本框的内容清除
+			$("#txt").val("");
+		},
+		keyup:function(){
+			// 设置键盘松开事件，判断输入的内容并选择下拉菜单
+			$("option[value="+ $("#txt").val() +"]").prop("selected", "selected");
+		}
+	});
+})
+```
+
+### 3.3. 级联下拉菜单
+
+案例需求：
+
+1. 定义一个二维数组，保存各个城市的数据。
+2. 编写城市下拉框的改变事件。先得到当前选中的城市值，把城市的值做为数组的下标。
+3. 添加数组中的数据到区域的下拉框中，添加之前先清空原有的数组，但要保留第一行。
+4. 使用 `each()` 函数对数组进行遍历，添加元素到区域下拉框中
+
+```html
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title></title>
+		<!--导入jQuery文件-->
+		<script src="../js/jquery-1.8.3.min.js" type="text/javascript"></script>
+	</head>
+	<body>
+		<!-- 城市 -->
+		<select id="city" name="city">
+			<option value="">--请选择城市--</option>
+			<option value="0">北京市</option>
+			<option value="1">天津市</option>
+			<option value="2">上海市</option>
+			<option value="3">广州市</option>
+		</select>
+		<!-- 区域 -->
+		<select id="area" name="area">
+			<option>--请选择区域--</option>
+		</select>
+	</body>
+</html>
+<script type="text/javascript">
+	//准备城市的二维数组
+	var areas = [
+		["海淀区", "昌平区", "朝阳区"], //北京0
+		["南开区", "和平区", "西青区"], //天津1
+		["浦东区", "浦西区", "闵行区"], //上海2
+		["天河区", "番禺区", "海珠区"] //广州3
+	];
+	
+	// 根据城市的值增加右边的数组选项
+	$("#city").change(function(){
+		// 先将城市下拉列表清空
+		$("#area>option:not(:first)").remove();
+		// 根据省份的值，获取相关的城市列表
+		var arr = areas[$("#city>option:selected").val()];
+		// 遍历数组，将相关的城市增加到区域下拉列表中
+		$.each(arr,function(index, element){
+			$("#area").append($("<option>"+ element +"</option>"));
+		});
+	});
+</script>
+```
+
+## 4. jQuery 的 AJAX 使用
 
 使用 jQuery 的 ajax 开发，大大提供开发效率，并且<font color=red>**具有浏览器兼容性**</font>。
 
-### 2.1. jQuery 的 AJAX 语法格式
+### 4.1. jQuery 的 AJAX 语法格式
 
-#### 2.1.1. $.post()
+#### 4.1.1. $.post()
 
 `$.post()` 用于以 post 请求方式发送 ajax。语法格式如下：
 
@@ -157,13 +403,13 @@ function(result) {
     - "text"，默认返回类型
     - "json"，服务器一般响应的一个字符串，默认 js 接收也是一个字符串，但是<font color=red>**如果设置 json，js 接收的就是 js 对象，如果是对象就可以调用属性**</font>。
 
-#### 2.1.2. $.get()
+#### 4.1.2. $.get()
 
 `$.get()` 用于以 get 请求方式发送 ajax。除了请求方式不同，使用方式与 `$.post()` 完全一致。
 
 > Tips: 格式中`[]`代表可选内容
 
-#### 2.1.3. $.ajax
+#### 4.1.3. $.ajax
 
 查看 Jquery API，ajax 请求一共有6种方式：
 
@@ -225,9 +471,9 @@ $.ajax({
 });
 ```
 
-### 2.2. jQuery 的 AJAX 使用注意事项
+### 4.2. jQuery 的 AJAX 使用注意事项
 
-#### 2.2.1. 关于 name 属性
+#### 4.2.1. 关于 name 属性
 
 原本表单的提交是需要 name 的属性，但使用 ajax 提交，不需要 name 的属性。因为使用 ajax 后，是直接走 ajax 发送请求。
 
@@ -236,7 +482,7 @@ $.ajax({
 var data = {username:$("#username").val()};
 ```
 
-#### 2.2.2. 关于 Servlet 响应的类型设定
+#### 4.2.2. 关于 Servlet 响应的类型设定
 
 如果想发送的是 json 格式，servlet 使用 `setContentType` 是 text/html 的格式，前端 js 必须设置 `type="json"`;
 
@@ -250,23 +496,23 @@ response.setContentType("text/html;charset=utf-8");
 response.setContentType("application/json;charset=utf-8");
 ```
 
-#### 2.2.3. 同步与异步处理异常方式不同
+#### 4.2.3. 同步与异步处理异常方式不同
 
 同步处理异常可以在dao数据访问层直接处理。
 
 <font color=red>**异步处理异常不能直接处理**</font>，因为页面不会刷新，如果在 dao 数据访问层处理后，页面完全不会接收到任何提示信息。所以需要在 dao 层抛出异常，最后<font color=red>**在 servlet 层进行捕获**</font>，再响应异常的信息到页面上。
 
-#### 2.2.4. AJAX不能直接进行页面的跳转
+#### 4.2.4. AJAX不能直接进行页面的跳转
 
 不能在 servlet 里进行跳转的操作，需要在 JSP 页面的回调函数中，对返回的数据进行判断，再进行页面的跳转。
 
-#### 2.2.5. 使用拼接字符的方式生成json格式
+#### 4.2.5. 使用拼接字符的方式生成json格式
 
 前端 js 的 ajax 代码获取服务器响应的 json 数据，key 必须使用双引号，value 除了 boolean 或数字也必须使用双引号。
 
-### 2.3. 案例
+### 4.3. AJAX 案例
 
-#### 2.3.1. 基础使用
+#### 4.3.1. 基础使用
 
 后端处理请求代码
 
@@ -363,7 +609,7 @@ public class HelloServlet extends HttpServlet {
 </script>
 ```
 
-#### 2.3.2. 异步用户名校验
+#### 4.3.2. 异步用户名校验
 
 案例需求：
 

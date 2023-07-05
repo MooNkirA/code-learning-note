@@ -229,7 +229,7 @@ public enum EnumSingleton {
 }
 ```
 
-首先创建Enum时，编译器会自动生成一个继承自`java.lang.Enum`的类，枚举成员声明中被`static`和`final`所修饰，虚拟机会保证这些静态成员在多线程环境中被正确的加锁和同步，所以是线程安全的。编译后生成的类代码如下：
+首先创建 Enum 时，编译器会自动生成一个继承自`java.lang.Enum`的类，枚举成员声明中被`static`和`final`所修饰，虚拟机会保证这些静态成员在多线程环境中被正确的加锁和同步，所以是线程安全的。编译后生成的类代码如下：
 
 ```java
 class EnumSingleton extends Enum {
@@ -246,7 +246,7 @@ class EnumSingleton extends Enum {
 
 ![](images/20210318144052471_27465.png)
 
-其实实现原理很容易理解，以一个`HashMap`（Spring是使用了线程安全的`ConcurrentHashMap`）来存储目前已生成的类的实例，如果可以根据类名找到对象，就返回这个对象，不再创建新对象。如果找不到，就利用反射机制创建一个，并加入到Map中。以上只是一个示意代码，作为Spring核心理念IoC的重要部分，单例注册表在Spring中的源码要复杂的多，也做了很多性能上的优化，具体可以参考Spring中`AbstractBeanFactory`类的源码。
+其实实现原理很容易理解，以一个`HashMap`（Spring 是使用了线程安全的`ConcurrentHashMap`）来存储目前已生成的类的实例，如果可以根据类名找到对象，就返回这个对象，不再创建新对象。如果找不到，就利用反射机制创建一个，并加入到 Map 中。以上只是一个示意代码，作为 Spring 核心理念IoC的重要部分，单例注册表在 Spring 中的源码要复杂的多，也做了很多性能上的优化，具体可以参考 Spring 中`AbstractBeanFactory`类的源码。
 
 ## 7. 涉及使用单例类的场景
 

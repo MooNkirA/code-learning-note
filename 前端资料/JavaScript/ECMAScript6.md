@@ -455,11 +455,11 @@ hi(person);
 
 ## 6. set 和 map 数据结构
 
-ES6提供了Set和Map的数据结构。
+ES6 提供了 Set 和 Map 的数据结构。
 
 ### 6.1. set 数据结构
 
-Set本质与数组类似。不同在于Set中只能保存不同元素，如果元素相同会被忽略。和java中的Set集合非常相似。
+Set 本质与数组类似。不同在于 Set 中只能保存不同元素，如果元素相同会被忽略。*和 java 中的 Set 集合非常相似*。
 
 #### 6.1.1. 构造函数
 
@@ -485,7 +485,7 @@ set.forEach(function () {}) // 遍历元素
 set.size; // 元素个数。是属性，不是方法。
 ```
 
-#### 6.1.3. 利用set数据结构进行数组去重
+#### 6.1.3. 利用 set 数据结构进行数组去重
 
 ```js
 const list = [1, 1, 2, 3, 6, 45, 8, 5, 4, 6, 5]
@@ -494,7 +494,7 @@ const uniqueList = [...new Set(list)]    // [1, 2, 3, 6, 45, 8, 5, 4]
 
 ### 6.2. map 数据结构
 
-map本质是与Object类似的结构。不同在于，Object强制规定key只能是字符串。而Map结构的key可以是任意对象。即：
+map 本质是与 Object 类似的结构。不同在于，Object 强制规定 key 只能是字符串。而 Map 结构的 key 可以是任意对象。即：
 
 - object 是`<string, object>`集合
 - map 是`<object, object>`集合
@@ -542,7 +542,7 @@ console.log(...map.values());
 
 ## 7. 扩展运算符(...)
 
-扩展运算符(spread)是三个点(**`...`**)， 将一个数组转为用逗号分隔的参数序列。
+扩展运算符(spread)是三个点(`...`)， 将一个数组转为用逗号分隔的参数序列。
 
 用法例子：
 
@@ -761,10 +761,10 @@ p
 
 ## 9. Generator函数
 
-### 9.1. Generator函数简介
+### 9.1. Generator 函数简介
 
-- Generator函数是ES6提供的一种异步编程解决方案，语法行为与传统函数完全不同。
-- Generator函数有两个特征: 一是function命令与函数名之间有一个星号；二是函数体内部使用yield吾句定义不同的内部状态。
+- Generator 函数是 ES6 提供的一种异步编程解决方案，语法行为与传统函数完全不同。
+- Generator 函数有两个特征: 一是 function 命令与函数名之间有一个星号；二是函数体内部使用 yield 吾句定义不同的内部状态。
 
 用法：
 
@@ -784,11 +784,11 @@ console.log(h.next()); // {value: undefined, done: true}
 
 上例说明，通过hello()返回的h对象，每调用一次next()方法返回一个对象，该对象包含了value值和done状态。直到遇到return关键字或者函数执行完毕，这个时候返回的状态为ture，表示已经执行结束了。
 
-### 9.2. yield关键字简介
+### 9.2. yield 关键字简介
 
-- yield是ES6的新关键字，使生成器函数执行暂停，yield关键字后面的表达式的值返回给生成器的调用者。它可以被认为是一个基于生成器的版本的return关键字。
-- yield关键字实际返回一个IteratorResult（迭代器）对象，它有两个属性，value和done，分别代表返回值和是否完成。
-- yield无法单独工作，需要配合generator(生成器)的其他函数，如next，懒汉式操作，展现强大的主动控制特性。
+- yield 是 ES6 的新关键字，使生成器函数执行暂停，yield 关键字后面的表达式的值返回给生成器的调用者。它可以被认为是一个基于生成器的版本的 eturn 关键字。
+- yield 关键字实际返回一个 IteratorResult（迭代器）对象，它有两个属性，value 和 done，分别代表返回值和是否完成。
+- yield 无法单独工作，需要配合 generator(生成器)的其他函数，如 next，懒汉式操作，展现强大的主动控制特性。
 
 通过上面的案例说明：
 
@@ -798,7 +798,7 @@ console.log(h.next()); // {value: undefined, done: true}
 > 4. 需要next()函数配合使用，每次调用返回两个值：分别是value和done，代表迭代结果和是否完成
 > 5. 函数next()是个迭代器对象，传参可以缺省，默认调用函数。
 
-### 9.3. for...of循环
+### 9.3. for...of 循环
 
 通过for...of可以循环遍历Generator函数返回的迭代器。用法如下：
 

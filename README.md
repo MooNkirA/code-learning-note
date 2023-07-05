@@ -306,7 +306,9 @@
   <li><a href="#/Linux/Linux-安装">Linux 安装</a></li>
   <li><a href="#/Linux/Linux-基础">Linux 基础</a></li>
   <li><a href="#/Linux/Linux-命令">Linux 命令</a></li>
+  <li><a href="#/Linux/Linux-软件安装">Linux 软件安装</a></li>
   <li><a href="#/Linux/Linux-shell">Linux shell 编程</a></li>
+  <li><a href="#/Linux/WSL">Linux 版的 Windows 子系统(Windows Subsystem for Linux)</a></li>
   <li><a href="#/Linux/虚拟机">虚拟机</a></li>
 </ul>
 
@@ -427,10 +429,10 @@
 ### 📝 分布式事务控制解决方案
 
 <ul class="docs">
-  <li><a href="#/分布式微服务/分布式事务控制解决方案/分布式事务基础理论">分布式事务基础理论</a></li>
-  <li><a href="#/分布式微服务/分布式事务控制解决方案/Seata-2PC分布式事务解决方案">Seata - 2PC 分布式事务解决方案</a></li>
-  <li><a href="#/分布式微服务/分布式事务控制解决方案/Hmily-TCC分布式事务解决方案">Hmily - TCC 分布式事务解决方案</a></li>
-  <li><a href="#/分布式微服务/分布式事务控制解决方案/RocketMQ-可靠消息最终一致性事务解决方案">RocketMQ - 可靠消息最终一致性事务解决方案</a></li>
+  <li><a href="#/分布式微服务/分布式事务/分布式事务基础理论">分布式事务基础理论</a></li>
+  <li><a href="#/分布式微服务/分布式事务/Seata-2PC分布式事务解决方案">Seata - 2PC 分布式事务解决方案</a></li>
+  <li><a href="#/分布式微服务/分布式事务/Hmily-TCC分布式事务解决方案">Hmily - TCC 分布式事务解决方案</a></li>
+  <li><a href="#/分布式微服务/分布式事务/RocketMQ-可靠消息最终一致性事务解决方案">RocketMQ - 可靠消息最终一致性事务解决方案</a></li>
 </ul>
 
 ### ⏲ 分布式任务调度
@@ -526,13 +528,13 @@
 ## 收集的项目实战资料
 
 <ul class="docs">
-  <li><a href="#/项目资料/01-国际物流云商系统/">国际物流云商系统 项目资料</a></li>
-  <li><a href="#/项目资料/02-品优购/">品优购 项目资料</a></li>
-  <li><a href="#/项目资料/04-学成在线/">学成在线 项目资料</a></li>
-  <li><a href="#/项目资料/05-好客租房/">好客租房 项目资料</a></li>
-  <li><a href="#/项目资料/06-红包雨场景案例/">红包雨场景案例 项目资料</a></li>
-  <li><a href="#/项目资料/07-万信金融/">万信金融 项目资料</a></li>
-  <li><a href="#/项目资料/08-品达通用权限系统/">品达通用权限系统 项目资料</a></li>
+  <li><a href="#/项目资料/国际物流云商系统/">国际物流云商系统 项目资料</a></li>
+  <li><a href="#/项目资料/品优购/">品优购 项目资料</a></li>
+  <li><a href="#/项目资料/学成在线/">学成在线 项目资料</a></li>
+  <li><a href="#/项目资料/好客租房/">好客租房 项目资料</a></li>
+  <li><a href="#/项目资料/红包雨场景案例/">红包雨场景案例 项目资料</a></li>
+  <li><a href="#/项目资料/万信金融/">万信金融 项目资料</a></li>
+  <li><a href="#/项目资料/品达通用权限系统/">品达通用权限系统 项目资料</a></li>
 </ul>
 
 # 在线阅读地址

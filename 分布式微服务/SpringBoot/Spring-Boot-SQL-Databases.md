@@ -187,7 +187,7 @@ DELETE FROM `user`;
 INSERT INTO `user`(`id`, `name`, `age`) VALUES (1, 'Jone', 18),(2, 'Jack', 20),(3, 'Tom', 28),(4, 'Sandy', 21),(5, 'Billie', 24);
 ```
 
-> 值得注意的是：此处做示例时有一个小坑，就是H2 数据库初始化表结构的sql语句，在定义字段时，不能使用 `NULL` 与 `NOT NULL` 等关键字
+> 值得注意的是：此处做示例时有一个小坑，就是 H2 数据库初始化表结构的sql语句，在定义字段时，不能使用 `NULL` 与 `NOT NULL` 等关键字
 >
 > 参考 [stackoverflow 的一个答复](https://stackoverflow.com/questions/38649370/how-to-make-mysql-database-schema-to-be-compatible-with-h2-database)
 
@@ -931,5 +931,4 @@ public class NoticeController {
 
 - **第五步：编写启动类**
 - **第六步：测试**。浏览器地址栏输入：http://localhost:8080/findAll
-
 

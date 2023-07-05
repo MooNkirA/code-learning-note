@@ -2608,11 +2608,12 @@ console.log(Son.prototype.constructor)
 
 
 
-## 13. 数组对象Array
+## 13. 数组对象 Array
 
 在JS中，数组等价于集合
 
 ### 13.1. 创建数组的方式
+
 #### 13.1.1. 一维数组
 
 1. 创建一个长度为0的数组
@@ -2688,6 +2689,7 @@ arr[5] = 99;
 - 数组的内容是`[1, 3, "hello", 时间对象, undefined, 99]`
 
 ### 13.3. 数组的遍历
+
 #### 13.3.1. for...of 循环
 
 - 语法：`for(const item of array)`
@@ -2875,18 +2877,36 @@ console.log(Array.from([12,45,47,56,213,4654,154]))
 ```
 
 ### 13.5. 数据的简化
-#### 13.5.1. reduce()方法 - ES6新特性
 
-- 语法：`array.reduce(callback(accumulator, item[, index[, array]])[, initialValue])`
-    - 接收一个函数callback（必须）和一个初始值initialValue（可选）
-    - callback函数接收4个参数：
-        - accumulator（必选）：第一个参数是上一次 reduce处理的结果
-        - item（必选）：第二个参数是数组中要处理的下一个元素
-        - index（可选）：当前元素的索引
-        - array（可选）：当前元素所属的数组对象
-- 作用：将数组进行处理返回一个值，可以理解为对数组的所有元素项进行累积操作
-- 具体流程：`reduce()` 会从左到右依次把数组中的元素用reduce处理，并把处理的结果作为下次reduce的第一个参数。如果是第一次，会把前两个元素作为计算参数，或者把用户指定的初始值作为起始参数
-- > 注：如果没有使用 initialValue 来设置初始值，则默认使用数组的第一个元素作为初始值。
+#### 13.5.1. reduce() 方法 - ES6新特性
+
+`reduce()` 方法是 ES6 新增的数组方法，其作用是：对数组中的每个元素依次执行一个回调函数，从左到右依次累积计算出一个最终的值。可以简单理解为对数组的所有元素项进行累积操作。
+
+##### 13.5.1.1. 语法格式
+
+```js
+array.reduce(callback(accumulator, currentValue[, index[, array]])[, initialValue])
+```
+
+参数解析：
+
+- callback（必须）：每个每个元素执行的回调函数，包含以下4个参数：
+    - accumulator（必选）：第一个参数是上一次 reduce处理的结果
+    - currentValue（必选）：第二个参数是数组中要处理的下一个元素
+    - index（可选）：当前元素的索引
+    - array（可选）：当前元素所属的原始数组对象
+- initialValue（可选）：累积器的初始值
+
+`reduce` 函数的执行过程如下：
+
+1. 默认如果没有指定 `initialValue` 初始值作为起始参数，则将数组的第一个元素作为累积器的初始值，否则将 `initialValue` 作为累积器的初始值。
+2. 从数组的第二个元素开始，依次对数组中的每个元素执行回调函数。
+3. 将回调函数的返回值作为下一次回调函数执行时的累积器的值。
+4. 对数组中的每个元素执行完回调函数后，`reduce` 函数返回最后一次回调函数的返回值，即最终的累积值。
+
+##### 13.5.1.2. 示例
+
+基础累积运算示例：
 
 ```js
 const arr = [1, 20, -5, 3];
@@ -2900,7 +2920,180 @@ let result4 = arr.reduce((a, b) => a * b, 1);     // 结果：-300
 let result5 = arr.reduce((a, b) => a * b, -1);    // 结果：300
 ```
 
+计算数组中每个元素出现的次数：
+
+```js
+const fruits = ['apple', 'banana', 'apple', 'orange', 'banana', 'apple']
+const count = fruits.reduce((accumulator, currentValue) => {
+    accumulator[currentValue] = (accumulator[currentValue] || 0) + 1
+    return accumulator
+}, {})
+console.log(count) // Output: { apple: 3, banana: 2, orange: 1 }
+```
+
+拍平嵌套数组：
+
+```js
+const nestedArray = [
+    [1, 2],
+    [3, 4],
+    [5, 6],
+]
+const flattenedArray = nestedArray.reduce(
+    (accumulator, currentValue) => accumulator.concat(currentValue),
+    []
+)
+console.log(flattenedArray) // Output: [1, 2, 3, 4, 5, 6]
+```
+
+按条件分组：
+
+```js
+const people = [
+    { name: 'Alice', age: 25 },
+    { name: 'Bob', age: 30 },
+    { name: 'Charlie', age: 35 },
+    { name: 'David', age: 25 },
+    { name: 'Emily', age: 30 },
+]
+const groupedPeople = people.reduce((accumulator, currentValue) => {
+    const key = currentValue.age
+    if (!accumulator[key]) {
+        accumulator[key] = []
+    }
+    accumulator[key].push(currentValue)
+    return accumulator
+}, {})
+console.log(groupedPeople)
+// Output: {
+//   25: [{ name: 'Alice', age: 25 }, { name: 'David', age: 25 }],
+//   30: [{ name: 'Bob', age: 30 }, { name: 'Emily', age: 30 }],
+//   35: [{ name: 'Charlie', age: 35 }]
+// }
+```
+
+将多个数组合并为一个对象：
+
+```js
+const keys = ['name', 'age', 'gender']
+const values = ['Alice', 25, 'female']
+const person = keys.reduce((accumulator, currentValue, index) => {
+    accumulator[currentValue] = values[index]
+    return accumulator
+}, {})
+console.log(person) // Output: { name: 'Alice', age: 25, gender: 'female' }
+```
+
+将字符串转换为对象：
+
+```js
+const str = 'key1=value1&key2=value2&key3=value3'
+const obj = str.split('&').reduce((accumulator, currentValue) => {
+    const [key, value] = currentValue.split('=')
+    accumulator[key] = value
+    return accumulator
+}, {})
+console.log(obj)
+// Output: { key1: 'value1', key2: 'value2', key3: 'value3' }
+```
+
+将对象转换为查询字符串：
+
+```js
+const params = { foo: 'bar', baz: 42 }
+const queryString = Object.entries(params)
+    .reduce((acc, [key, value]) => {
+        return `${acc}${key}=${value}&`
+    }, '?')
+    .slice(0, -1)
+console.log(queryString) // "?foo=bar&baz=42"
+```
+
+打印斐波那契数列：
+
+```js
+const fibonacci = n => {
+    return [...Array(n)].reduce((accumulator, currentValue, index) => {
+        if (index < 2) {
+            accumulator.push(index)
+        } else {
+            accumulator.push(accumulator[index - 1] + accumulator[index - 2])
+        }
+        return accumulator
+    }, [])
+}
+console.log(fibonacci(10)) // Output: [0, 1, 1, 2, 3, 5, 8, 13, 21, 34]
+```
+
+检查字符串是否是回文字符串：
+
+```js
+const str = 'racecar'
+const isPalindrome = str.split('').reduce((accumulator, currentValue, index, array) => {
+    return accumulator && currentValue === array[array.length - index - 1]
+}, true)
+console.log(isPalindrome) // Output: true
+```
+
+检查括号是否匹配：
+
+```js
+const str = '(()()())'
+const balanced =
+    str.split('').reduce((acc, cur) => {
+        if (cur === '(') {
+            acc++
+        } else if (cur === ')') {
+            acc--
+        }
+        return acc
+    }, 0) === 0
+console.log(balanced) // true
+```
+
+递归获取对象属性：
+
+```js
+const user = {
+    info: {
+        name: 'MooN',
+        address: { home: 'kira', company: 'zero' },
+    },
+}
+function get(config, path, defaultVal) {
+    return path.split('.').reduce((config, name) => config[name], config) || defaultVal
+    return fallback
+}
+get(user, 'info.name') // MooN
+get(user, 'info.address.home') // kira
+get(user, 'info.address.company') // zero
+get(user, 'info.address.abc', 'default') // default
+```
+
+##### 13.5.1.3. 手写 reduce 实现
+
+可以通过手写一个简单的 `reduce` 函数来更好地理解它的实现原理：
+
+```js
+function myReduce(arr, callback, initialValue) {
+    let accumulator = initialValue === undefined ? arr[0] : initialValue
+    for (let i = initialValue === undefined ? 1 : 0; i < arr.length; i++) {
+        accumulator = callback(accumulator, arr[i], i, arr)
+    }
+    return accumulator
+}
+```
+
+上面的代码中，`myReduce` 函数接受 3 个参数：要执行 `reduce` 操作的数组 `arr`、回调函数 `callback` 和累积器的初始值 `initialValue`。如果没有提供初始值，则将数组的第一个元素作为累积器的初始值。
+
+接下来在循环中，如果有 initialValue，则从第一个元素开始遍历 callback，此时 callabck 的第二个参数是从数组的第一项开始的；如果没有 initialValue，则从第二个元素开始遍历 callback，此时 callback 的第二个参数是从数组的第二项开始的从数组的第二个元素开始，依次对数组中的每个元素执行回调函数，并将返回值作为下一次回调函数执行时的累积器的值。
+
+最后，`myReduce` 函数返回最后一次回调函数的返回值，即最终的累积值。
+
+> Notes: 此简易实现只为更好地理解 `reduce` 函数的实现原理，并没有考虑很多边界情况和复杂的应用场景。
+
 ### 13.6. 数据的连接
+
 #### 13.6.1. concat()方法
 
 - 语法：`array.concat(array1[, array2, ...])`
@@ -2945,6 +3138,7 @@ var str = a3.join("+")
 - 作用：将字符串，按指定的分隔符截取成数组，与join()方法相反
 
 ### 13.7. 过滤（获取）数组的部分数据
+
 #### 13.7.1. slice() 方法
 
 - 语法：`array.slice([fromIndex[，toIndex]])`
@@ -2993,8 +3187,8 @@ compact([0, 1, false, 2, "", 3, "a", "e" * 23, NaN, "s", 34]);
 // [ 1, 2, 3, 'a', 's', 34 ]
 ```
 
-
 ### 13.8. 数组的拷贝
+
 #### 13.8.1. 方式1：使用展开操作符(...)
 
 - 语法：`const clone = [...array]`
@@ -3036,6 +3230,7 @@ console.log(colors === clone); // => false
 ```
 
 ### 13.9. 查找数组中元素
+
 #### 13.9.1. includes()方法
 
 - 语法：`Array.includes(itemToSearch[，fromIndex])`
@@ -3064,7 +3259,6 @@ function test(fruit) {
   }
 }
 ```
-
 
 #### 13.9.2. find() 和 findIndex() 方法
 
@@ -3173,6 +3367,7 @@ function test() {
 ```
 
 ### 13.10. 数组的增删改操作
+
 #### 13.10.1. push() 方法增加元素
 
 - 语法：`array.push(item1 [...，itemN])`
@@ -3397,10 +3592,10 @@ i32a.copyWithin(0, 2);
 ```
 
 ### 13.11. 数组的扁平化
+
 #### 13.11.1. flat() 方法
 
 - 语法：`array.flat([depth])`
-  
     - 参数depth：可选参数，默认值为1
 - 作用：通过递归扁平属于数组的项直到一定深度来创建新数组
 - > 注：`array.flat()` 创建一个新数组，而不会改变原始数组
@@ -3413,15 +3608,21 @@ console.log(flatArray); // [0, 1, 3, 5, 2, 4, 6]
 ```
 
 ### 13.12. 数组的排序
+
 #### 13.12.1. sort()方法
 
-- 语法：`array.sort([compare])`
-    - 可选参数compare(a, b)是一个自定义排序顺的回调函数。如果按数字排序，需要指定排序的函数（类似java的比较器），如下是函数的比较规则：
-        - 如果a小于b，在排序后的数组中a应该出现在b之前，就返回一个小于0的值。
-        - 如果a等于b，就返回0。
-        - 如果a大于b，就返回一个大于0的值。
-- 作用：对数组进行排序，如果数组是数字，也是默认按字符串的排序方法进行排序
-- > 注：`array.sort()` 会改变原数组。
+`sort()` 方法作用是对数组进行排序，如果数组是数字，也是默认按字符串的排序方法进行排序。语法格式如下：
+
+```js
+array.sort([compare])
+```
+
+- 可选参数 `compare(a, b)` 是一个自定义排序顺的回调函数。如果按数字排序，需要指定排序的函数（类似java的比较器），如下是函数的比较规则：
+    - 如果a小于b，在排序后的数组中a应该出现在b之前，就返回一个小于0的值。
+    - 如果a等于b，就返回0。
+    - 如果a大于b，就返回一个大于0的值。
+
+> 注：`array.sort()` 会改变原数组。
 
 ```js
 // 对数组 numbers 以升序对数字进行排序

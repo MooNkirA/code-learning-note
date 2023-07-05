@@ -153,7 +153,7 @@ MySQL 中的数据类型有很多，主要分为三类：数值类型、字符�
 
 > Notes: 尽量使用 timestamp，空间效率高于 datetime，用整数保存时间戳通常不方便处理。若需要存储微秒，可以使用 bigint 存储。其中 `DATETIME` 类型与时区无关；`TIMESTAMP` 显示依赖于所指定得时区，默认在第一个列行的数据修改时可以自动得修改
 
-### 3.4. 数据类型总结
+### 3.4. 数据类型小结
 
 #### 3.4.1. 数据类型相关注意事项
 
@@ -186,6 +186,14 @@ MySQL 中的数据类型有很多，主要分为三类：数值类型、字符�
 - TEXT 类型是一个不区分大小写的 BLOB 类型。
 
 两种类型之间的主要的区别是：**BLOB 值进行排序和比较时区分大小写；对 TEXT 值不区分大小写**。
+
+#### 3.4.5. Decimal 类型和 Float、Double 等区别
+
+MySQL 中存在 float, double 等非标准数据类型，可以存浮点数（即小数类型），但是 float 有个坏处，当给定的数据是整数的时候，那么它就以整数处理。这样在存取货币值的时候自然遇到问题，default 值为 0.00 而实际存储是 0，同样存取货币为 12.00，实际存储是 12。
+
+为了解决上面的问题，MySQL 提供了1种标准数据类型：`decimal`。decimal 类型被 MySQL 以同样的类型实现，这在 SQL92 标准中是允许的。它们用于保存对准确精度有重要要求的值，例如与金钱有关的数据。
+
+其中 Decimal 类型和 Float、Double 主要区别在于：float，double 等非标准类型，在 DB 中保存的是近似值；而 Decimal 则以字符串的形式保存数值。
 
 ### 3.5. 关于 Null 类型的特别说明
 
@@ -222,7 +230,7 @@ MySQL 专门提供了一个 `innodb_stats_method` 的系统变量，专门针对
 
 > 详见官网：https://dev.mysql.com/doc/refman/5.7/en/innodb-parameters.html#sysvar_innodb_stats_method
 >
-> 有迹象表明，在 MySQL5.7.22 以后的版本，对这个`innodb_stats_method`的修改不起作用，MySQL 把这个值在代码里写死为`nulls_equal`。也就是说 MySQL在进行索引列的数据统计行为又把 null 视为第二种情况（NULL 值在业务上就是代表没有，所有的 NULL 值和起来算一份），MySQL 对 Null 值的处理比较飘忽。所以总的来说，对于列的声明尽可能的不要允许为null。
+> 有迹象表明，在 MySQL 5.7.22 以后的版本，对这个`innodb_stats_method`的修改不起作用，MySQL 把这个值在代码里写死为`nulls_equal`。也就是说 MySQL在进行索引列的数据统计行为又把 null 视为第二种情况（NULL 值在业务上就是代表没有，所有的 NULL 值和起来算一份），MySQL 对 Null 值的处理比较飘忽。所以总的来说，对于列的声明尽可能的不要允许为null。
 
 ## 4. MySQL 数据库的管理（DDL）
 
@@ -558,6 +566,8 @@ atler table student modify gender varchar(2);
 -- 修改字段约束
 ALTER TABLE sort MODIFY sname VARCHAR(50) NOT NULL;
 ```
+
+> Notes: 修改字段是覆盖操作，如果字段原来有一些COMMENT、约束等等，修改时只指定字段的类型，那么COMMENT、约束等会信息会丢失。
 
 #### 5.5.3. 修改字段名称 change
 
@@ -1408,12 +1418,6 @@ SELECT 字段1,字段2… FROM 表名 [ WHERE 条件 ] GROUP BY 分组字段名 
 - `having 条件表达式`：分组后过滤条件，用来限制分组后的显示内容，满足条件表达式的结果将显示
 - `with rollup`：关键字将会在所有记录的最后加上一条记录。该记录是上面所有记录的总和
 
-> Notes：
->
-> - 执行顺序: where -> 聚合函数 -> having
-> - 如果要进行分组的话，则 `SELECT` 子句之后，只能出现分组的字段和统计函数，其他的字段不能出现：
-> - 按照指定的列对象数据进行分组，查询的字段一般为分组字段与聚合函数（`COUNT()`、`SUM()`、`AVG()`、`MAX()`、`MIN()`）配合使用。如果 `group by` 不与上述函数一起使用，那么查询结果就是字段聚合的分组情况，字段中取值相同记录为一组，但只显示该组的第一条记录（这种使用意义不大）
-
 示例：
 
 ```sql
@@ -1461,11 +1465,13 @@ select category_id ,count(*) from product group by category_id having count(*) >
 - 执行时机不同：`where` 是分组之前进行过滤，不满足 `where` 条件，不参与分组；而 `having` 是分组之后对结果进行过滤。
 - 判断条件不同：`where` 是对行记录进行筛选过滤，`where` 后**不能跟聚合函数**的(如:`count(*)`)；而 `having` 是对组信息进行筛选过滤，`having` 后**可以跟聚合函数**的。(如:`count(*)`)
 
+> Notes: 执行顺序是 where -> 聚合函数 -> having
+
 #### 7.7.4. with rollup 关键字
 
-在所有记录的最后加上一条记录。该记录是上面所有记录的总和
+`with rollup` 关键字的作用是，在查询结果最后加上一条记录，并且该记录是上面所有分组记录的汇总。
 
-```shell
+```sql
 mysql> SELECT sex, COUNT(sex) FROM employee GROUP BY sex WITH ROLLUP;
 +------+------------+
 | sex  | COUNT(sex) |
@@ -1485,7 +1491,15 @@ mysql> SELECT sex, GROUP_CONCAT(name) FROM employee GROUP BY sex WITH ROLLUP;
 +------+--------------------+
 ```
 
-最后一条记录是上面记录的总和
+上面示例中，最后一条记录 `NULL` 就是上面各个分组记录的汇总。
+
+#### 7.7.5. GROUP BY 使用规定
+
+- **GROUP BY 子句必须出现在 WHERE 子句之后，ORDER BY 子句之前**。
+- 使用 GROUP BY 子句进行分组，则 `SELECT` 子句之后，只能出现分组的字段和统计函数，其他的字段不能出现。
+- 按照指定的列对象数据进行分组，查询的字段一般为分组字段与聚合函数（`COUNT()`、`SUM()`、`AVG()`、`MAX()`、`MIN()`）配合使用。如果 `group by` 不与上述函数一起使用，那么查询结果就是字段聚合的分组情况，字段中取值相同记录为一组，但只显示该组的第一条记录（这种使用意义不大）。
+- 如果分组列中具有 NULL 值，则 NULL 将作为一个分组返回。如果列中有多行 NULL 值，它们将分为一组。
+- GROUP BY 子句可以包含任意数目的列。这使得能对分组进行嵌套，为数据分组提供更细致的控制。
 
 ### 7.8. 正则表达式
 
@@ -1568,13 +1582,29 @@ SELECT 'xababy' REGEXP 'x(ab)*y';
 SELECT 'xababy' REGEXP 'x(ab){1,2}y';
 ```
 
-### 7.9. 查询语句的执行顺序
+### 7.9. 查询（select）语句执行顺序分析
+
+#### 7.9.1. 执行顺序说明
 
 DQL 语句在执行的顺序如下：
 
 ![](images/553203115220770.png)
 
-验证过程：
+执行顺序文字说明：
+
+1. from 子句组装来自不同数据源的数据。
+2. where 子句基于指定的条件对记录行进行筛选。
+3. group by 子句将数据划分为多个分组。
+4. 对聚集函数进行计算。
+5. having 子句对分组后筛选分组。
+6. 计算所有的表达式。
+7. select 的字段列表的处理。
+8. 使用 order by 对结果集进行排序。
+9. 根据 limit 参数对结果集进行分页处理。
+
+综上所述，DQL 语句的执行顺序为：`from -> where -> group by -> having -> select -> order by -> limit`
+
+#### 7.9.2. 验证过程
 
 ```sql
 -- 查询年龄大于15的员工姓名、年龄，并根据年龄进行升序排序。
@@ -1599,7 +1629,7 @@ select e.name ename, e.age eage from emp e where eage > 15 order by age asc;
 
 ![](images/453623915239196.png)
 
-由此可以得出结论：from 先执行，然后执行 where，再执行 select
+由此可以得出结论：from 先执行，然后执行 where，再执行 select。
 
 接下来，再执行如下SQL语句，查看执行效果：
 
@@ -1608,8 +1638,6 @@ select e.name ename, e.age eage from emp e where e.age > 15 order by eage asc;
 ```
 
 结果执行成功。那么也就验证了：order by 是在 select 语句之后执行的。
-
-综上所述，DQL 语句的执行顺序为：`from -> where -> group by -> having -> select -> order by -> limit`
 
 ## 8. MySQL 的多表操作
 
@@ -3024,6 +3052,14 @@ select * from s2;
 3. 不允许`null`，指定`default`值，不能指定`default`值为`null`，否则报错 `Invalid default value for xxx`
 4. 不允许`null`，不指定`default`值。这种情况，新增的时候，必须指定值。否则报错 `Field xxx doesn't have a default value`
 
+#### 11.3.4. 字段为什么建议定义为 not null
+
+> MySQL 官网说明:
+>
+> NULL columns require additional space in the rowto record whether their values are NULL. For MyISAM tables, each NULL columntakes one bit extra, rounded up to the nearest byte.
+
+null 值会占用更多的字节，且会在程序中造成很多与预期不符的情况。
+
 ### 11.4. 唯一约束 (unique)
 
 #### 11.4.1. 定义与语法
@@ -3045,6 +3081,7 @@ create table 表名 (
 alter table 表名 add constraint 约束名 unique(列名);
 ```
 
+示例：
 
 ```sql
 -- 创建学生表 s3，列(id,name)，学生姓名这一列设置成唯一约束，即不能出现同名的学生。
@@ -3159,7 +3196,7 @@ alter table 表名 drop primary key;
 alter table sort drop primary key;
 ```
 
-> 注：因为表只有一个主键，所以删除时不需要指定主键名
+> Tips: 因为表只有一个主键，所以删除时不需要指定主键名
 
 #### 11.5.6. 设置主键自动增长
 
@@ -3238,7 +3275,7 @@ create table 表名 (
 
 MySQL 外键约束（FOREIGN KEY）是表的一个特殊字段，经常与主键约束一起使用。对于两个具有关联关系的表而言，相关联字段中主键所在的表就是主表（父表），外键所在的表就是从表（子表）。
 
-外键用来建立主表与从表的关联关系，为两个表的数据建立连接，约束两个表中数据的一致性和完整性。
+外键的主要目的是，用来建立主表与从表的关联关系，为两个表的数据建立连接，**约束两个表中数据的一致性和完整性**。
 
 例如：左侧的 emp 表是员工表，里面存储员工的基本信息，包含员工的ID、姓名、年龄、职位、薪资、入职日期、上级主管ID、部门ID，在员工的信息中存储的是部门的ID dept_id，而这个部门的 ID 是关联的部门表 dept 的主键 id，那 emp 表的 dept_id 就是外键，关联的是另一张表的主键。
 
@@ -3246,7 +3283,12 @@ MySQL 外键约束（FOREIGN KEY）是表的一个特殊字段，经常与主键
 
 > Notes: 目前上述两张表，只是在逻辑上存在这样一层关系；在数据库层面，并未建立外键关联，所以是无法通过数据库本身来保证数据的一致性和完整性的。
 
-#### 11.8.2. 特点
+**外键的优缺点**：
+
+- **优点**：由数据库自身保证数据一致性，完整性，更可靠，因为程序很难 100% 保证数据的完整性，而用外键即使在数据库服务器当机或者出现其他问题的时候，也能够最大限度的保证数据的一致性和完整性。有主外键的数据库设计可以增加 ER 图的可读性，这点在数据库设计时非常重要。外键在一定程度上说明的业务逻辑，会使设计周到具体全面。
+- **缺点**：可以用触发器或应用程序保证数据的完整性；过分强调或者说使用外键会增加开发难度，导致表过多，更改业务困难，扩展困难等问题；不用外键时数据管理简单，操作方便，性能高（导入导出等操作，在 insert, update, delete 数据的时候更快）。
+
+#### 11.8.2. 外键需遵守的规则
 
 定义一个外键时，需要遵守下列规则：
 
@@ -3551,26 +3593,21 @@ cursor.close()
 conn.close()
 ```
 
-### 12.4. MySQL 中 Decimal 类型和 Float、Double 等区别
-
-MySQL 中存在 float, double 等非标准数据类型，也有 decimal 这种标准数据类型。
-
-其区别在于，float，double 等非标准类型，在DB中保存的是近似值，而 Decimal 则以字符串的形式保存数值。
-
-float，double 类型是可以存浮点数（即小数类型），但是 float 有个坏处，当给定的数据是整数的时候，那么它就以整数处理。这样在存取货币值的时候自然遇到问题，default 值为 0.00 而实际存储是 0，同样存取货币为 12.00，实际存储是 12。
-
-mysql 提供了1个数据类型：decimal，这种数据类型可以轻松解决上面的问题：decimal 类型被 MySQL 以同样的类型实现，这在 SQL92 标准中是允许的。它们用于保存对准确精度有重要要求的值，例如与金钱有关的数据。
-
-### 12.5. MySQL 数据库的伪表 DUAL
+### 12.4. MySQL 数据库的伪表 DUAL
 
 与 Oracle 数据库的伪表 DUAL 一样的用法
 
-### 12.6. 在 Unix 和 MySQL 时间戳之间进行转换
+### 12.5. 在 Unix 和 MySQL 时间戳之间进行转换
 
 - `UNIX_TIMESTAMP` 是从 MySQL 时间戳转换为 Unix 时间戳的命令
 - `FROM_UNIXTIME` 是从 Unix 时间戳转换为 MySQL 时间戳的命令
 
-### 12.7. MySQL_fetch_array 和 MySQL_fetch_object 的区别
+### 12.6. MySQL_fetch_array 和 MySQL_fetch_object 的区别
 
 - `MySQL_fetch_array` – 将结果行作为关联数组或来自数据库的常规数组返回。
 - `MySQL_fetch_object` – 从数据库返回结果行作为对象。
+
+### 12.7. 如何存储 IP 地址（待整理）
+
+1. 使用字符串。此方式无法使用范围查询。
+2. 使用无符号整型。只占用 4 个字节的空间，并且此方式可以支持范围查询，传统的 IP 地址使用 `INET_ATON()` 和 `INET_NTOA()`；ipv6 使用 `INET6_ATON()` 和 `INET6_NTOA()`。

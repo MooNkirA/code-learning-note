@@ -957,7 +957,7 @@ Spring 事务机制主要包括<u>**声明式事务**</u>和<u>**编程式事务
 
 - **编程式事务管理**，直接使用 `TransactionTemplate` 或者底层的 `PlatformTransactionManager` 进行事务的控制。对于编程式事务管理，Spring 推荐使用 `TransactionTemplate`。
 - **声明式事务管理**，建立在 AOP 之上的。其本质是对方法前后进行拦截，然后在目标方法开始之前创建或者加入一个事务，在执行完目标方法之后根据执行情况提交或者回滚事务。声明式事务最大的优点就是，不需要像编程的方式管理事务，要在业务逻辑代码中掺杂事务管理的代码，来处理获得连接、关闭连接、事务提交和回滚等这些操作。只需做相关的事务规则声明，便可以将事务规则应用到业务逻辑中。声明式事务管理有以下两种常用的方式：
-    - 基于 tx 和 aop名 字空间的 xml 配置文件
+    - 基于 tx 和 aop 名字空间的 xml 配置文件
     - 基于`@Transactional`注解（*显然基于注解的方式更简单易用，更清爽*）
 
 **总结**：
@@ -1061,11 +1061,11 @@ String getName();
 Spring 事务的传播行为是指，当多个事务同时存在的时候，Spring 如何处理这些事务的行为。主要有以下几种：
 
 - `PROPAGATION_REQUIRED`：（默认值）如果当前没有事务，则新建一个事务；如果已经存在一个事务中，加入到这个事务中。如果嵌套调用的两个方法都加了事务注解，并且运行在相同线程中，则这两个方法使用相同的事务；如果运行在不同线程中，则会开启新的事务。
-- `PROPAGATION_SUPPORTS`：使用当前的事务；如果当前没有事务，就以非事务方式执行（没有事务）
-- `PROPAGATION_MANDATORY`：使用当前的事务；如果当前没有事务，就抛出异常`IllegalTransactionStateException`
+- `PROPAGATION_SUPPORTS`：使用当前的事务；如果当前没有事务，就以非事务方式执行（没有事务）。
+- `PROPAGATION_MANDATORY`：使用当前的事务；如果当前没有事务，就抛出异常`IllegalTransactionStateException`。
 - `PROPAGATION_REQUIRES_NEW`：无论当前存不存在事务，都创建新事务。（*如果当前在事务中，把当前事务挂起？待确认*）需要使用 `JtaTransactionManager` 作为事务管理器。
 - `PROPAGATION_NOT_SUPPORTED`：总是以非事务方式执行操作；如果当前存在事务，则把当前事务挂起。需要使用 `JtaTransactionManager` 作为事务管理器。
-- `PROPAGATION_NEVER`：总是以非事务方式运行；如果当前存在事务，抛出异常
+- `PROPAGATION_NEVER`：总是以非事务方式运行；如果当前存在事务，抛出异常。
 - `PROPAGATION_NESTED`：如果当前存在事务，则在嵌套事务内执行；如果当前没有事务，则执行 `PROPAGATION_REQUIRED` 类似的操作。嵌套事务是外部事务的一部分，可以在外部事务提交或回滚时部分提交或回滚。
 
 以上常量定义在 `org.springframework.transaction.TransactionDefinition` 接口中，源码节选如下：
@@ -1095,7 +1095,7 @@ public interface TransactionDefinition {
 - 使用 `PROPAGATION_REQUIRES_NEW` 时，内层事务与外层事务是两个独立的事务。一旦内层事务进行了提交后，外层事务不能对其进行回滚。两个事务互不影响。
 - 使用 `PROPAGATION_NESTED` 时，外层事务的回滚可以引起内层事务的回滚。而内层事务的异常并不会导致外层事务的回滚，它是一个真正的嵌套事务。
 
-Spring 较新版本的 `@Transactional` 注解的 `propagation` 属性值已换成 `Propagation` 枚举。
+Spring 较新版本的 `@Transactional` 注解的 `propagation` 属性值已换成使用 `Propagation` 枚举。
 
 ```java
 public @interface Transactional {
@@ -1203,7 +1203,6 @@ boolean isRollbackOnly();
 - 刷新事务
 
 ```java
-@Override
 void flush();
 ```
 

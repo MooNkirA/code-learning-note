@@ -478,7 +478,7 @@ public Order createOrder(Long pid)  {
 
 ### 6.1. 模式实现前提
 
-- 支持XA 事务的数据库。
+- 支持 XA 事务的数据库。如 MySQL、DB2、Oracle。
 - Java 应用，通过 JDBC 访问数据库。
 
 ### 6.2. 整体机制
