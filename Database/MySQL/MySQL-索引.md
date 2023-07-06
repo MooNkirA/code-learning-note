@@ -114,7 +114,7 @@ alter table student2 add unique index_phone_num(phone_num)
 create index indexname on table_name(column1(length),column2(length)); 
 ```
 
-#### 2.2.3. 两种创建索引的方式的区别
+#### 2.2.3. 两种创建索引方式的区别
 
 创建(修改) 索引有两种方式，分别使用 `CREATE` 与 `ALTER` 关键字。两种索引的区别：
 
