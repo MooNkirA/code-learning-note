@@ -208,6 +208,8 @@ age、$salary、_value、__1_value
 
 ## 3. Java 基本（内置）数据类型（整理中）
 
+### 3.1. 变量与数据类型
+
 变量就是申请内存来存储值。也就是说，当创建变量的时候，需要在内存中申请空间。
 
 内存管理系统根据变量的类型为变量分配存储空间，分配的空间只能用来储存该类型数据。
@@ -219,7 +221,30 @@ age、$salary、_value、__1_value
 - 内置数据类型
 - 引用数据类型（对象）
 
-### 3.1. char
+#### 3.1.1. Java 基本数据类型汇总表
+
+| 基本类型 | 大小（字节） |     默认值      |   包装类   |
+| ------- | ---------- | -------------- | --------- |
+| byte    | 1          | (byte)0        | Byte      |
+| short   | 2          | (short)0       | Short     |
+| int     | 4          | 0              | Integer   |
+| long    | 8          | 0L             | Long      |
+| float   | 4          | 0.0f           | Float     |
+| double  | 8          | 0.0d           | Double    |
+| boolean | -          | false          | Boolean   |
+| char    | 2          | `\u0000`(null) | Character |
+
+> Tips: boolean 类型单独使用是 4 个字节，在数组中又是 1 个字节。
+
+#### 3.1.2. 各种数据类型的默认值
+
+- byte, short, int, long 默认值均是 `0`
+- boolean 默认值是 `false`
+- char 类型的默认值是 `''`
+- float、double 类型的默认值是 `0.0`
+- 对象类型的默认值是 `null`
+
+### 3.2. char
 
 char 类型是一个单一的 16 位 Unicode 字符。最小值是 `\u0000`（十进制等效值为 0）；最大值是 `\uffff`（即为 65535）。<font color=red>**字符是使用`''`单引号包裹**</font>。
 
@@ -229,23 +254,25 @@ char letter = 'A';
 
 **补充说明**：unicode 编码占用两个字节，所以 <font color=red>**char 类型的变量也是占用两个字节**</font>。
 
-#### 3.1.1. char 类型存储中文
+#### 3.2.1. char 类型存储中文
 
 char 数据类型可以储存任何字符，unicode 编码字符集中也包含了汉字，因此 char 类型变量可以存储汉字。但如果某个特殊的汉字没有被包含在 unicode 编码字符集中，则不能存储这个特殊汉字。
 
-#### 3.1.2. 番外：字符型常量和字符串常量的区别
+#### 3.2.2. 番外：字符型常量和字符串常量的区别
 
 - 形式上：字符常量是单引号引起的一个字符；字符串常量是双引号引起的若干个字符
 - 含义上：字符常量相当于一个整形值(ASCII值)，可以参加表达式运算；字符串常量代表一个地址值(该字符串在内存中存放位置)
 - 占内存大小：字符常量只占一个字节；字符串常量占若干个字节(至少一个字符结束标志)
 
-### 3.2. 各种数据类型的默认值
+#### 3.2.3. 字符存储数值
 
-- byte, short, int, long 默认值均是 `0`
-- boolean 默认值是 `false`
-- char 类型的默认值是 `''`
-- float、double 类型的默认值是 `0.0`
-- 对象类型的默认值是 `null`
+大写字母与小写字母的 ASCII 码相差 32
+
+```java
+'A'=65;
+'a'=97;
+'0'=48;
+```
 
 ### 3.3. 数值类型之间的转换
 
@@ -294,19 +321,9 @@ d * 100 = 1185.3333;
 
 注意：最后一步除以 100 的时候，必须写成 `100.0`，这个才会根据数据隐性转换原理，最后得出来的结果是浮点型。
 
-### 3.4. 字符存储数值
+### 3.4. 类型转换相关问题
 
-大写字母与小写字母的 ASCII 码相差 32
-
-```java
-'A'=65;
-'a'=97;
-'0'=48;
-```
-
-### 3.5. 类型转换相关问题
-
-#### 3.5.1. char 类型能否转成 int、String、double 类型
+#### 3.4.1. char 类型能否转成 int、String、double 类型
 
 char 是 Java 中比较特殊的类型，它的 int 值从 1 开始，一共有 2<sup>16</sup> 个数据。取值范围如下：
 
@@ -316,7 +333,7 @@ char < int < long < float < double
 
 因此，char 类型可以隐式转成 int、double 类型，但是不能隐式转换成 String；如果 char 类型转成 byte、short 类型的时候，需要强转。
 
-#### 3.5.2. 计算机大小单位转换
+#### 3.4.2. 计算机大小单位转换
 
 byte 字节，bit 是位（二进制的位数）。如：
 
@@ -324,9 +341,214 @@ byte 字节，bit 是位（二进制的位数）。如：
 - 1 k = 1024 byte
 - 1 byte = 8 bit
 
-#### 3.5.3. int 类型转换为 byte 类型的问题
+#### 3.4.3. int 类型转换为 byte 类型的问题
 
 int 类型可以强制转换为 byte 类型，但是 Java 中 int 是 32 位的，而 byte 是 8 位的，所以如果强制转化，int 类型的高 24 位将会被丢弃，因为 byte 类型的范围是从 -128 到 127。
+
+### 3.5. Java 包装类
+
+#### 3.5.1. 概述
+
+一般地，当需要使用数字的时候，通常使用内置数据类型，如：byte、int、long、double 等。所有数值类型的包装类（Integer、Long、Byte、Double、Float、Short）都是抽象类 Number 的子类，其实就是基本类型对应的引用类型(包装类)。
+
+![](images/197444010239282.png)
+
+> Tips: 除了 char 与 int 的包装类之外，其他包装类类名称均为基本类型名称的首字母大写
+
+##### 3.5.1.1. 包装类的产生原因
+
+基本类型包装类的产生原因：因为泛型类包括预定义的集合，使用的参数都是对象类型，无法直接使用基本数据类型。在实际开发中，用户输入的内容都是以字符串形式存在，需要参与数学运算时需要将字符串转换成对应的基本数据类型。
+
+##### 3.5.1.2. 基本类型与包装类的区别
+
+基本类型和对应的封装类由于本质的不同。具有一些区别：
+
+1. 基本类型只能按值传递，而封装类按引用传递。
+2. 基本类型会在栈中创建，而对于对象类型，对象在堆中创建，对象的引用在栈中创建，基本类型由于在栈中，效率会比较高，但是可能存在内存泄漏的问题。
+
+#### 3.5.2. Integer
+
+> Tips: 以 `Integer` 包装类为例，其他的包装类相关方法与使用基本一致
+
+##### 3.5.2.1. 概述
+
+```java
+public final class Integer extends Number implements Comparable<Integer> {
+    /**
+     * A constant holding the minimum value an {@code int} can
+     * have, -2<sup>31</sup>.
+     */
+     // 静态成员变量，直接用类名调用，返回整形的最小取值数
+    @Native public static final int   MIN_VALUE = 0x80000000;
+
+    /**
+     * A constant holding the maximum value an {@code int} can
+     * have, 2<sup>31</sup>-1.
+     */
+     // 静态成员变量，直接用类名调用，返回整形的最大取值数
+    @Native public static final int   MAX_VALUE = 0x7fffffff;
+    // 省略...
+}
+```
+
+##### 3.5.2.2. 核心方法
+
+```java
+public Integer(String s) throws NumberFormatException
+```
+
+- 构造一个新分配的 Integer 对象，它表示 String 参数所指示的 int 值。
+
+```java
+public Integer(int value)
+```
+
+- 构造一个新分配的 Integer 对象，它表示指定的 int 值。
+
+```java
+public int intValue()
+```
+
+- 将构造方法中指定的数字字符串转换基本数据类型
+
+```java
+public static int parseInt(String s) throws NumberFormatException
+```
+
+- 将字符串数字转换整数(传入s必须是数字字符串，不能有字母和空格)
+
+```java
+public String toString()
+```
+
+- 重写 Object 类的方法，将整数转换成字符串
+
+```java
+public static String toBinaryString(int i)
+```
+
+- 将指定的整数转成二进制字符串
+
+```java
+public static String toOctalString(int i)
+```
+
+- 将指定的整数转成八进制字符串
+
+```java
+public static String toHexString(int i)
+```
+
+- 将指定的整数转成十六进制字符串
+
+#### 3.5.3. 自动装箱和自动拆箱
+
+##### 3.5.3.1. 概念
+
+JDK 1.5 之前，如果要生成一个数值为 10 的 `Integer` 对象，需要以下操作：
+
+```java
+Integer i = new Integer(10);
+```
+
+在 JDK 1.5 后的增加新特性**自动拆装箱**：
+
+- 自动装箱：Java 自动将基本数据类型转换成其对应的包装类的过程就是自动装箱。
+
+```java
+Integer i = 10; // 自动装箱，本质是调用 Integer.valueOf(10)
+```
+
+- 自动拆箱：Java自动将包装类转换为其对应的基本数据类型的过程就是自动拆箱。
+
+```java
+int a = i; // 自动拆箱，本质是调用 a.intValue()
+```
+
+自动装拆箱的好处：基本数据类型的变量可以直接和对应的包装类引用变量进行数学运算。
+
+##### 3.5.3.2. 自动装拆箱的情况
+
+当基础类型与它们的包装类有如下几种情况时，编译器会自动帮我们进行装箱或拆箱：
+
+- 赋值操作（装箱或拆箱）
+- 进行加减乘除混合运算（拆箱）
+- 进行`>`、`<`、`==`比较运算（拆箱）
+- 调用`equals`进行比较（装箱）
+- `ArrayList`、`HashMap` 等集合类添加基础类型数据时（装箱）
+
+##### 3.5.3.3. 注意事项
+
+1. 自动拆箱和自动装箱是由编译器自动完成，根据语法来决定是否需要装箱和拆箱。
+2. 如果整型字面量的值在 -128 到 127 之间，那么自动装箱时不会创建新的 `Integer` 对象，而是直接引用常量池中的 `Integer` 对象，若超过范围才会创建新的对象（*经典面试题*）
+
+```java
+Integer a = new Integer(3);
+Integer b = 3; // 将3自动装箱成Integer类型
+int c = 3;
+
+System.out.println(a == b); // false 两个引用没有引用同一对象
+System.out.println(a == c); // true a自动拆箱成int类型再和c比较
+System.out.println(b == c); // true
+
+Integer a1 = 128;
+Integer b1 = 128;
+System.out.println(a1 == b1); // false
+
+Integer a2 = 127;
+Integer b2 = 127;
+System.out.println(a2 == b2); // true
+```
+
+以上示例通过查看 Integer 类的源码可知：
+
+```java
+public static Integer valueOf(int i) {
+    if (i >= IntegerCache.low && i <= IntegerCache.high)
+        return IntegerCache.cache[i + (-IntegerCache.low)];
+    return new Integer(i);
+}
+```
+
+示例中的 a1 因为超过 127，所以会调用 `Integer.valueOf(128)` 进行自动拆箱，而从源码可知，该方法并不是直接进行 `new Integer` 操作，而是用内部类 `IntegerCache` 的 `cache[]` 数组中获取数据（即直接引用常量池中的 `Integer` 对象）
+
+```java
+private static class IntegerCache {
+    static final int low = -128;
+    static final int high;
+    static final Integer cache[];
+
+    static {
+        // high value may be configured by property
+        int h = 127;
+        String integerCacheHighPropValue =
+            sun.misc.VM.getSavedProperty("java.lang.Integer.IntegerCache.high");
+        if (integerCacheHighPropValue != null) {
+            try {
+                int i = parseInt(integerCacheHighPropValue);
+                i = Math.max(i, 127);
+                // Maximum array size is Integer.MAX_VALUE
+                h = Math.min(i, Integer.MAX_VALUE - (-low) -1);
+            } catch( NumberFormatException nfe) {
+                // If the property cannot be parsed into an int, ignore it.
+            }
+        }
+        high = h;
+
+        cache = new Integer[(high - low) + 1];
+        int j = low;
+        for(int k = 0; k < cache.length; k++)
+            cache[k] = new Integer(j++);
+
+        // range [-128, 127] must be interned (JLS7 5.1.7)
+        assert IntegerCache.high >= 127;
+    }
+
+    private IntegerCache() {}
+}
+```
+
+默认 Integer cache 的下限是 -128，上限默认 127。当赋值 127 给 Integer 时，刚好在这个范围内，所以从 cache 中取对应的 Integer 并返回，所以 a2 和 b2 返回的是同一个对象，所以使用`==`比较是相等的，当赋值 128 给 Integer 时，不在 cache 的范围内，所以会 `new Integer` 创建新的对象并返回，比较的结果必然不相等的。
 
 ## 4. 权限修饰符
 
@@ -1764,212 +1986,3 @@ public class Test01 {
 
 1. 参数列表中只能有一个可变参数
 2. 如果出现不同类型的参数，可变参数必须放在参数列表的最后
-
-## 12. Java 包装类
-
-### 12.1. 概述
-
-一般地，当需要使用数字的时候，通常使用内置数据类型，如：byte、int、long、double 等。所有的包装类（Integer、Long、Byte、Double、Float、Short）都是抽象类 Number 的子类。
-
-![](images/197444010239282.png)
-
-基本类型包装类的产生原因：其实就是基本类型对应的引用类型(包装类)。在实际开发中，用户输入的内容都是以字符串形式存在，需要参与数学运算时需要将字符串转换成对应的基本数据类型。
-
-### 12.2. 八种基本类型对应的包装类
-
-| 基本类型 | 引用类型(包装类) | 基本类型  | 引用类型(包装类) |
-| ------- | -------------- | ------- | -------------- |
-| char    | Character      | long    | Long           |
-| int     | Integer        | float   | Float          |
-| byte    | Byte           | double  | Double         |
-| short   | Short          | boolean | Boolean        |
-
-> Tips: 除了 char 与 int 的包装类之外，其他包装类类名称均为基本类型名称的首字母大写
-
-```java
-// 数据转换示例
-int n = Integer.parseInt(String str);
-double d = Double.parseDouble(String str);
-```
-
-### 12.3. Integer
-
-#### 12.3.1. 概述
-
-```java
-public final class Integer extends Number implements Comparable<Integer> {
-    /**
-     * A constant holding the minimum value an {@code int} can
-     * have, -2<sup>31</sup>.
-     */
-     // 静态成员变量，直接用类名调用，返回整形的最小取值数
-    @Native public static final int   MIN_VALUE = 0x80000000;
-
-    /**
-     * A constant holding the maximum value an {@code int} can
-     * have, 2<sup>31</sup>-1.
-     */
-     // 静态成员变量，直接用类名调用，返回整形的最大取值数
-    @Native public static final int   MAX_VALUE = 0x7fffffff;
-    // 省略...
-}
-```
-
-#### 12.3.2. 核心方法
-
-```java
-public Integer(String s) throws NumberFormatException
-```
-
-- 构造一个新分配的 Integer 对象，它表示 String 参数所指示的 int 值。
-
-```java
-public Integer(int value)
-```
-
-- 构造一个新分配的 Integer 对象，它表示指定的 int 值。
-
-```java
-public int intValue()
-```
-
-- 将构造方法中指定的数字字符串转换基本数据类型
-
-```java
-public static int parseInt(String s) throws NumberFormatException
-```
-
-- 将字符串数字转换整数(传入s必须是数字字符串，不能有字母和空格)
-
-```java
-public String toString()
-```
-
-- 重写 Object 类的方法，将整数转换成字符串
-
-```java
-public static String toBinaryString(int i)
-```
-
-- 将指定的整数转成二进制字符串
-
-```java
-public static String toOctalString(int i)
-```
-
-- 将指定的整数转成八进制字符串
-
-```java
-public static String toHexString(int i)
-```
-
-- 将指定的整数转成十六进制字符串
-
-### 12.4. 自动装箱和自动拆箱
-
-#### 12.4.1. 概念
-
-JDK 1.5 之前，如果要生成一个数值为 10 的 `Integer` 对象，需要以下操作：
-
-```java
-Integer i = new Integer(10);
-```
-
-在 JDK 1.5 后的增加新特性**自动拆装箱**：
-
-- 自动装箱：Java 自动将基本数据类型转换成其对应的包装类的过程就是自动装箱。
-
-```java
-Integer i = 10; // 自动装箱，本质是调用 Integer.valueOf(10)
-```
-
-- 自动拆箱：Java自动将包装类转换为其对应的基本数据类型的过程就是自动拆箱。
-
-```java
-int a = i; // 自动拆箱，本质是调用 a.intValue()
-```
-
-自动装拆箱的好处：基本数据类型的变量可以直接和对应的包装类引用变量进行数学运算。
-
-#### 12.4.2. 自动装拆箱的情况
-
-当基础类型与它们的包装类有如下几种情况时，编译器会自动帮我们进行装箱或拆箱：
-
-- 赋值操作（装箱或拆箱）
-- 进行加减乘除混合运算（拆箱）
-- 进行`>`、`<`、`==`比较运算（拆箱）
-- 调用`equals`进行比较（装箱）
-- `ArrayList`、`HashMap` 等集合类添加基础类型数据时（装箱）
-
-#### 12.4.3. 注意事项
-
-1. 自动拆箱和自动装箱是由编译器自动完成，根据语法来决定是否需要装箱和拆箱。
-2. 如果整型字面量的值在 -128 到 127 之间，那么自动装箱时不会创建新的 `Integer` 对象，而是直接引用常量池中的 `Integer` 对象，若超过范围才会创建新的对象（*经典面试题*）
-
-```java
-Integer a = new Integer(3);
-Integer b = 3; // 将3自动装箱成Integer类型
-int c = 3;
-
-System.out.println(a == b); // false 两个引用没有引用同一对象
-System.out.println(a == c); // true a自动拆箱成int类型再和c比较
-System.out.println(b == c); // true
-
-Integer a1 = 128;
-Integer b1 = 128;
-System.out.println(a1 == b1); // false
-
-Integer a2 = 127;
-Integer b2 = 127;
-System.out.println(a2 == b2); // true
-```
-
-以上示例通过查看 Integer 类的源码可知：
-
-```java
-public static Integer valueOf(int i) {
-    if (i >= IntegerCache.low && i <= IntegerCache.high)
-        return IntegerCache.cache[i + (-IntegerCache.low)];
-    return new Integer(i);
-}
-```
-
-示例中的 a1 因为超过 127，所以会调用 `Integer.valueOf(128)` 进行自动拆箱，而从源码可知，该方法并不是直接进行 `new Integer` 操作，而是用内部类 `IntegerCache` 的 `cache[]` 数组中获取数据（即直接引用常量池中的 `Integer` 对象）
-
-```java
-private static class IntegerCache {
-    static final int low = -128;
-    static final int high;
-    static final Integer cache[];
-
-    static {
-        // high value may be configured by property
-        int h = 127;
-        String integerCacheHighPropValue =
-            sun.misc.VM.getSavedProperty("java.lang.Integer.IntegerCache.high");
-        if (integerCacheHighPropValue != null) {
-            try {
-                int i = parseInt(integerCacheHighPropValue);
-                i = Math.max(i, 127);
-                // Maximum array size is Integer.MAX_VALUE
-                h = Math.min(i, Integer.MAX_VALUE - (-low) -1);
-            } catch( NumberFormatException nfe) {
-                // If the property cannot be parsed into an int, ignore it.
-            }
-        }
-        high = h;
-
-        cache = new Integer[(high - low) + 1];
-        int j = low;
-        for(int k = 0; k < cache.length; k++)
-            cache[k] = new Integer(j++);
-
-        // range [-128, 127] must be interned (JLS7 5.1.7)
-        assert IntegerCache.high >= 127;
-    }
-
-    private IntegerCache() {}
-}
-```
-
-默认 Integer cache 的下限是 -128，上限默认 127。当赋值 127 给 Integer 时，刚好在这个范围内，所以从 cache 中取对应的 Integer 并返回，所以 a2 和 b2 返回的是同一个对象，所以使用`==`比较是相等的，当赋值 128 给 Integer 时，不在 cache 的范围内，所以会 `new Integer` 创建新的对象并返回，比较的结果必然不相等的。
