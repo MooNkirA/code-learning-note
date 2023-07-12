@@ -649,4 +649,7 @@ private void doReleaseShared() {
 
 AQS 类中定义了一个 `ConditionObject` 类，该类实现了 `java.util.concurrent.locks.Condition` 接口，并提供如 `await`、`signal` 和 `signalAll` 操作，还扩展了带有超时、检测和监控的方法。`ConditionObject` 类有效地将条件与其它同步操作结合到了一起。这里要注意，当且仅当一个线程持有锁且要操作的条件对象属于该锁时，条件操作才是合法的。一个条件对象（`ConditionObject`）关联到一个锁对象（同步器的实例）上就表现出跟 `synchronized` 对象锁一样的行为了。
 
+## 5. AQS 的数据结构
+
+
 

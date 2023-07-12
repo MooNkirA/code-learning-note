@@ -1380,6 +1380,8 @@ public int hashCode() {
 }
 ```
 
+> Tips: **重写了 `equals` 方法一般都要重写 `hashCode` 方法**！
+
 #### 11.2.4. clone
 
 ```java
@@ -1498,7 +1500,7 @@ public final native void wait(long timeout) throws InterruptedException;
 public final void wait(long timeout, int nanos) throws InterruptedException
 ```
 
-- 当前线程调用对象的 `wait()` 方法之后，当前线程会释放对象锁，进入等待状态。等待其他线程调用此对象的 `notify()`/`notifyAll()` 唤醒或者等待超时时间 `wait(long timeout)` 自动唤醒。线程需要获取 Object 对象锁之后才能通过对象调用 `wait()`。
+- 当前线程调用对象的 `wait()` 方法之后，当前线程会释放对象锁，进入等待状态。等待其他线程调用此对象的 `notify()`/`notifyAll()` 唤醒或者等待超时时间 `wait(long timeout)` 自动唤醒。<font color=red>**线程必须获取 Object 对象锁之后才能通过对象调用 `wait()`**</font>。
 
 ```java
 public final native void notify();
