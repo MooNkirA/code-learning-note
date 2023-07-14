@@ -1344,15 +1344,17 @@ public boolean equals(Object o) {
 #### 11.2.2. toString
 
 ```java
-public String toString()
+public String toString() {
+    return getClass().getName() + "@" + Integer.toHexString(hashCode());
+}
 ```
 
-父类 `Object` 类的 `toString` 方法默认返回值是 `包名.类名@对象在内存中的地址`。此方法的调用时机：
+父类 `Object` 类的 `toString` 方法默认返回值是 `包名.类名@对象的哈希码（十六进制）` 的字符串。此方法的调用时机：
 
 - 直接调用：手动通过对象调用，通过`对象名.toString()`;
 - 间接调用：当打印输出该对象时系统自动调用 `toString()` 方法。
 
-直接打印对象的时候，都是默认调用 `toString()` 方法打印对象的地址值。通过重写 `toString` 方法即可自定义输出的内容：
+通过重写 `toString` 方法即可自定义输出的内容：
 
 ```java
 @Override

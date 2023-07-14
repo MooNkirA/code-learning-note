@@ -380,6 +380,51 @@ s2 += 1;
 - 对于写法1，由于 1 默认是 int 类型，因此 `s1+1` 运算结果也是 int 类型，需要强制转换类型才能赋值给 short 型。因此不能正确编译。
 - 对于写法2，**`+=` 操作符会进行隐式自动类型转换，是 Java 语言规定的运算符**。Java 编译器会对它进行特殊处理，`s1 += 1` 相当于 `s1 = (short)(s1 + 1)`，因此可以正确编译。
 
+#### 3.4.5. char 与 byte 的区别
+
+- byte 是字节数据类型，是有符号型的，占 1 个字节。大小范围为`-128 ~ 127`。
+- char 是字符数据类型，是无符号型的，占 2 个字节(Unicode码)。大小范围 是`0 ~ 65535`。
+
+用实例来比较一下二者的区别：
+
+1. char 是无符号型的，可以表示一个整数，不能表示负数；而 byte 是有符号型的，可以表示 `-128 ~ 127` 的数。如：
+
+```java
+char c = (char) -3; // char不能识别负数，必须强制转换否则报错，即使强制转换之后，也无法识别
+System.out.println(c); // 结果是:?
+byte d1 = 1;
+byte d2 = -1;
+byte d3 = 127; // 如果是 byte d3 = 128; 会报错
+byte d4 = -128; // 如果是 byte d4 = -129; 会报错
+System.out.println(d1); // 结果是:1
+System.out.println(d2); // 结果是:-1
+System.out.println(d3); // 结果是:127
+System.out.println(d4); // 结果是:-128
+```
+
+2. char 可以是中文字符；byte 不可以。如：
+
+```java
+char e1 = '中', e2 = '国';
+byte f = (byte) '中';    // 必须强制转换否则报错
+System.out.println(e1);  // 结果是:中
+System.out.println(e2);  // 结果是:国
+System.out.println(f);   // 结果是:45
+```
+
+3. char、byte、int 对于英文字符，可以相互转化。如：
+
+```java
+byte g = 'b';   // b 对应 ASCII 是 98
+char h = (char) g;
+char i = 85;    // U 对应 ASCII 是 85
+int j = 'h';    // h 对应 ASCII 是 104
+System.out.println(g);   // 结果是:97
+System.out.println(h);   // 结果是:b
+System.out.println(i);   // 结果是:u
+System.out.println(j);   // 结果是:14
+```
+
 ### 3.5. Java 包装类
 
 #### 3.5.1. 概述

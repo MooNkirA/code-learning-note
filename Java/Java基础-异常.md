@@ -155,6 +155,11 @@ public Throwable fillInStackTrace()
 
 - 用当前的调用栈层次填充 `Throwable` 对象栈层次，添加到栈层次任何先前信息中。
 
+```java
+public synchronized Throwable initCause(Throwable cause) 
+```
+
+- 初始化原始异常
 
 ## 4. 异常处理
 
@@ -566,3 +571,6 @@ public void wrapException() throws MyBusinessException {
 - 继承关系：继承 `Exception` 或 `RuntimeException`
 - 构造方法：一般提供无参构造方法和1个有参构造方法，用于记录详细异常描述信息
 
+### 6.1. 异常链
+
+异常链是指，同时有很多异常抛出，即一个异常引发另一个异常，另一个异常引发更多异常。一般会在在开头或结尾处找它的原始异常来解决问题，异常可通过 `initCause` 方法串起来，可以通过自定义异常。
