@@ -9,10 +9,6 @@ spring 是一站式框架
 - service 层：spring 的 ioc
 - dao 层：spring 的 jdbcTemplate
 
-> - Spring 框架：https://spring.io/projects/spring-framework
-> - Spring 最新版本文档：https://docs.spring.io/spring-framework/docs/current/reference/html/
-> - Spring 5.2.x 官方参考文档：https://docs.spring.io/spring-framework/docs/5.2.12.RELEASE/spring-framework-reference/
-
 ### 1.1. 工厂模式
 
 #### 1.1.1. 程序的耦合与解耦
@@ -25,9 +21,9 @@ spring 是一站式框架
 
 #### 1.1.2. 使用工厂模式解耦
 
-使用工厂模式，是通过反射来解决耦合性的问题。工厂模式的特点：方法返回类型都是 `Object`，调用时按需进行强转。一般将一些参数写到配置文件中：xml和Properties
+使用工厂模式，是通过反射来解决耦合性的问题。工厂模式的特点：方法返回类型都是 `Object`，调用时按需进行强转。一般将一些参数写到配置文件中：xml 和 Properties。
 
-选择 xml 类型原因是其能够描述类的层级关系
+选择 xml 类型原因是其能够描述类的层级关系。
 
 #### 1.1.3. 工厂模式创建对象
 
@@ -190,6 +186,15 @@ Spring 系统的 lib 包中都是以基本 jar 包、文档、源代码三种结
 - dom4j-1.6.1.jar
 
 > <font color=red>**注：要使用 spring，其实只需要导入 spring-context-x.x.x.RELEASE 即可**</font>
+
+### 1.6. Spring 相关资源文档
+
+- Spring 官网：https://spring.io/projects/spring-framework
+- Spring 最新版本官方文档：https://docs.spring.io/spring-framework/docs/current/reference/html/
+- Spring 5.2.x 官方参考文档：https://docs.spring.io/spring-framework/docs/5.2.12.RELEASE/spring-framework-reference/
+- [Spring 中文文档](https://springdoc.cn/) - SPRINGDOC.CN 提供最新的 Spring Boot, Spring Cloud, Spring Security 等 Spring 框架的官方中文文档。
+- [Spring Framework 5 中文文档](https://felord.cn/_doc/spring/5.x.RELEASE/_book/)
+- [Spring 实战(第 5 版)](https://potoyang.gitbook.io/spring-in-action-v5/)
 
 ## 2. Spring IOC 容器
 

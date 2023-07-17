@@ -2212,13 +2212,9 @@ Java IO 面向流意味着每次从流中读一个或多个字节，直至读取
 
 而 NIO 的缓冲导向方法不同。数据读取到一个它稍后处理的缓冲区，需要时可在缓冲区中前后移动。这就增加了处理过程中的灵活性。但是，还需要检查是否该缓冲区中包含所有需要处理的数据。而且，需确保当更多的数据读入缓冲区时，不要覆盖缓冲区里尚未处理的数据。
 
-缓冲区（Buffer）：实际上是一个容器，其内部通过一个连续的字节数组存储 I/O 上的数据。缓冲区对象内置了一些机制，能够跟踪和记录缓冲区的状态变化情况。**Channel 提供从文件、网络读取数据的渠道，但是读取或写入的数据都必须经由 Buffer**，如下图所示：
+缓冲区（Buffer）：实际上是一个容器，其内部通过一个连续的字节数组存储 I/O 上的数据。缓冲区对象内置了一些机制，能够跟踪和记录缓冲区的状态变化情况。**Channel 提供从文件、网络读取数据的渠道，但是读取或写入的数据都必须经由 Buffer**，如下图所示（以文件读写为例）：
 
 ![](images/20191002184623913_10099.png)
-
-![](images/443443214230469.png)
-
-上图2描述了，从一个客户端向服务端发送数据，然后服务端接收数据的过程。客户端发送数据时，必须先将数据存入 Buffer 中，然后将 Buffer 中的内容写入通道。服务端这边接收数据必须通过 Channel 将数据读入到 Buffer 中，然后再从 Buffer 中取出数据来处理。
 
 #### 10.3.2. Buffer 抽象实现类
 
@@ -2268,42 +2264,56 @@ public static ByteBuffer allocate(int capacity);
 public static ByteBuffer wrap(byte[] array);
 ```
 
-- 翻转缓冲区，重置位置到初始位置
+- 翻转缓冲区，重置位置到初始位置。相当于切换模式，如：『写模式切换成读模式』或者『读模式切换成写模式』 
 
 ```java
 public final Buffer flip();
+```
+
+- 清空整个缓冲区数据。
+
+```java
+public Buffer clear();
+```
+
+- 清空缓冲区部分数据。只清除已经读取的数据，未读取的数据会被移到 buffer 的开头，此时写入数据会从当前数据的末尾开始。
+
+```java
+public abstract ByteBuffer compact();
 ```
 
 ### 10.4. 选择器（Selector）
 
 #### 10.4.1. 概述
 
+一般的IO操作，如果用阻塞 I/O，需要多线程（浪费内存）；如果用非阻塞 I/O，需要不断重试（耗费CPU）。
+
 Selector（选择器），能够检测多个注册的 Channel 通道上是否有 I/O 事件发生，如果有事件发生，便获取事件然后针对每个事件进行相应的响应和处理。因此只用一个 Selector 单线程去管理多个通道，也就是管理多个连接，并且不必为每个连接都创建一个线程，避免了多线程之间的上下文切换导致的开销。同时，Selector 只有在 Channel 有真正有读写事件发生时，才会调用 I/O 函数来进行读写，从而大大地减少了系统开销。
 
-#### 10.4.2. Selector(选择器)
+#### 10.4.2. Selector 类关系图
 
 `Selector` 类关系图如下：
 
 ![](images/20191003102234080_15327.png)
 
-常用方法如下：
+#### 10.4.3. Selector 常用方法
 
 - 得到一个选择器对象
 
 ```java
-public static Selector open()
+public static Selector open();
 ```
 
 - 监控所有注册的通道，当其中有 IO 操作可以进行时，将对应的 SelectionKey 加入到内部集合中并返回，参数用来设置超时时间
 
 ```java
-public int select(long timeout)
+public int select(long timeout);
 ```
 
 - 从内部集合中得到所有的 SelectionKey
 
 ```java
-public Set<SelectionKey> selectedKeys()
+public Set<SelectionKey> selectedKeys();
 ```
 
 - 获取所有准备就绪的网络通道
@@ -2312,13 +2322,14 @@ public Set<SelectionKey> selectedKeys()
 public abstract Set<SelectionKey> keys();
 ```
 
-#### 10.4.3. SelectionKey(网络通道key)
+#### 10.4.4. SelectionKey 类(网络通道key)
 
 `SelectionKey`，代表了 `Selector` 和网络通道的注册关系，一共四种：
 
-- `int OP_ACCEPT`：有新的网络连接可以 accept，值为 16
+- `int OP_ACCEPT`：有新的网络连接可以接受，值为 16
 - `int OP_CONNECT`：代表连接已经建立，值为 8
-- `int OP_READ` 和 `int OP_WRITE`：代表了读、写操作，值为 1 和 4
+- `int OP_READ`：代表读操作，值为 1
+- `int OP_WRITE`：代表写操作，值为 4
 
 该类的常用方法如下所示：
 
@@ -2366,7 +2377,7 @@ public final boolean isWritable()
 
 ### 10.5. 文件 NIO 示例
 
-测试使用NIO进行本地文件的读、写和复制操作，和BIO进行对比
+测试使用 NIO 进行本地文件的读、写和复制操作，和 BIO 进行对比
 
 #### 10.5.1. 往本地文件中写数据
 
@@ -2375,7 +2386,7 @@ public final boolean isWritable()
 @Test
 public void testWrite() throws Exception {
     // 1. 创建输出流
-    FileOutputStream fileOutputStream = new FileOutputStream("E:\\00-Downloads\\moon.txt");
+    FileOutputStream fileOutputStream = new FileOutputStream("E:\\moon.txt");
     // 2. 从流中得到一个通道
     FileChannel fileChannel = fileOutputStream.getChannel();
     // 3. 提供一个缓冲区
@@ -2400,7 +2411,7 @@ public void testWrite() throws Exception {
 /* 从本地文件中读取数据 */
 @Test
 public void test2() throws Exception {
-    File file = new File("E:\\00-Downloads\\moon.txt");
+    File file = new File("E:\\moon.txt");
     // 1. 创建输入流
     FileInputStream fileInputStream = new FileInputStream(file);
     // 2. 得到一个通道
@@ -2419,13 +2430,15 @@ public void test2() throws Exception {
 
 #### 10.5.3. 复制本地文件
 
+以下示例通过传统的 BIO 复制一个文件，分别通过输入流和输出流实现了文件的复制
+
 ```java
-/* 使用BIO实现文件复制 */
+/* 使用 BIO 实现文件复制 */
 @Test
 public void testBioCopy() throws Exception {
     // 1. 创建两个流
-    FileInputStream fileInputStream = new FileInputStream("E:\\00-Downloads\\moon.txt");
-    FileOutputStream fileOutputStream = new FileOutputStream("E:\\00-Downloads\\moon_copy.txt");
+    FileInputStream fileInputStream = new FileInputStream("E:\\moon.txt");
+    FileOutputStream fileOutputStream = new FileOutputStream("E:\\moon_copy.txt");
     // 2. 定义字节数组，使用一次读取数组方式复制文件
     byte[] bytes = new byte[1024];
     int len;
@@ -2438,15 +2451,15 @@ public void testBioCopy() throws Exception {
 }
 ```
 
-> 上面示例是通过传统的 BIO 复制一个文件，分别通过输入流和输出流实现了文件的复制
+以下示例使用 NIO 实现文件复制，分别从两个流中得到两个通道，sourceCh 负责读数据，destCh 负责写数据，然后直接调用 transferFrom 方法一步到位实现了文件复制
 
 ```java
-/* 使用NIO实现文件复制 */
+/* 使用 NIO 实现文件复制 */
 @Test
 public void testNioCopy() throws Exception {
     // 1. 创建两个流
-    FileInputStream fileInputStream = new FileInputStream("E:\\00-Downloads\\moon.txt");
-    FileOutputStream fileOutputStream = new FileOutputStream("E:\\00-Downloads\\moon_copy.txt");
+    FileInputStream fileInputStream = new FileInputStream("E:\\moon.txt");
+    FileOutputStream fileOutputStream = new FileOutputStream("E:\\moon_copy.txt");
     // 2. 得到两个通道
     FileChannel fileInChannel = fileInputStream.getChannel();
     FileChannel fileOutChannel = fileOutputStream.getChannel();
@@ -2458,29 +2471,33 @@ public void testNioCopy() throws Exception {
 }
 ```
 
-> 上面示例分别从两个流中得到两个通道，sourceCh 负责读数据，destCh 负责写数据，然后直接调用 transferFrom 方法一步到位实现了文件复制
-
 ### 10.6. 网络 IO
 
 #### 10.6.1. 概述
 
 Java NIO 中的网络通道是非阻塞 IO 的实现，基于事件驱动，非常适用于服务器需要维持大量连接，但是数据交换量不大的情况，例如一些即时通信的服务等等...
 
-![网络NIO流程图](images/20191003110743007_5665.png)
+![](images/20191003110743007_5665.png)
 
-在 Java 中编写 Socket 服务器，通常有以下几种模式
+如下图描述，从一个客户端向服务端发送数据，然后服务端接收数据的过程。客户端发送数据时，必须先将数据存入 Buffer 中，然后将 Buffer 中的内容写入通道。服务端这边接收数据必须通过 Channel 将数据读入到 Buffer 中，然后再从 Buffer 中取出数据来处理。
 
-- 一个客户端连接用一个线程，优点：程序编写简单；缺点：如果连接非常多，分配的线程也会非常多，服务器可能会因为资源耗尽而崩溃。
-- 把每一个客户端连接交给一个拥有固定数量线程的连接池，优点：程序编写相对简单，可以处理大量的连接。确定：线程的开销非常大，连接如果非常多，排队现象会比较严重。
-- 使用 Java 的 NIO，用非阻塞的 IO 方式处理。这种模式可以用一个线程，处理大量的客户端连接
+![](images/20191004101220248_11427.png)
+
+在 Java 中编写 Socket 服务器，通常有以下几种模式：
+
+- 一个客户端连接用一个线程。
+    - 优点：程序编写简单。
+    - 缺点：如果连接非常多，分配的线程也会非常多，服务器可能会因为资源耗尽而崩溃。
+- 将每一个客户端连接交给一个拥有固定数量线程的连接池。
+    - 优点：程序编写相对简单，可以处理大量的连接。
+    - 缺点：线程的开销非常大，连接如果非常多，排队现象会比较严重。
+- <font color=red>**【推荐】**</font>使用 Java 的 NIO，用非阻塞的 IO 方式处理。这种模式可以用一个线程，处理大量的客户端连接
 
 #### 10.6.2. 基础示例
 
-需求分析：实现服务器端和客户端之间的数据通信（非阻塞）
+需求分析：实现服务器端和客户端之间的数据通信（非阻塞）。
 
-![数据通信示例](images/20191004101220248_11427.png)
-
-- 网络服务器端程序
+- 网络服务器端程序。用 NIO 实现了一个服务器端程序，能不断接受客户端连接并读取客户端发过来的数据。
 
 ```java
 package com.moon.system.testmodule.nio.socket;
@@ -2544,9 +2561,7 @@ public class NIOServer {
 }
 ```
 
-> 上面是用 NIO 实现了一个服务器端程序，能不断接受客户端连接并读取客户端发过来的数据
-
-- 网络客户端程序
+- 网络客户端程序。通过 NIO 实现了一个客户端程序，连接上服务器端后发送了一条数据。
 
 ```java
 package com.moon.system.testmodule.nio.socket;
@@ -2582,9 +2597,9 @@ public class NIOClient {
 }
 ```
 
-> 上面通过 NIO 实现了一个客户端程序，连接上服务器端后发送了一条数据
->
-> ![NIO示例运行效果](images/20191005091833634_10778.png)
+NIO 示例运行效果：
+
+![NIO示例运行效果](images/20191005091833634_10778.png)
 
 #### 10.6.3. 网络聊天案例
 

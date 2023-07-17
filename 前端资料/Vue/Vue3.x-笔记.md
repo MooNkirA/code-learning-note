@@ -1,14 +1,14 @@
-# Vue3.x 笔记
+## 1. Vue3.x 概述
 
-Vue 3 官网：https://v3.cn.vuejs.org/
+Vue 3 官网：https://cn.vuejs.org/
 
 > 以下是vue的学习笔记，大部分内容引用官网
 
-## 1. 组件
+## 2. 组件
 
-### 1.1. 自定义事件
+### 2.1. 自定义事件
 
-#### 1.1.1. 事件名
+#### 2.1.1. 事件名
 
 与组件和 `prop` 一样，事件名提供了自动的大小写转换。如果在子组件中触发一个以 camelCase (驼峰式命名) 命名的事件，你将可以在父组件中添加一个 kebab-case (短横线分隔命名) 的监听器。
 
@@ -20,7 +20,7 @@ this.$emit('myEvent')
 <my-component @my-event="doSomething"></my-component>
 ```
 
-#### 1.1.2. 定义自定义事件
+#### 2.1.2. 定义自定义事件
 
 通过 `emits` 选项在组件上定义发出的事件
 
@@ -32,7 +32,7 @@ app.component('custom-form', {
 
 当在 `emits` 选项中定义了原生事件 (如 click) 时，将使用组件中的事件替代原生事件侦听器。
 
-#### 1.1.3. 验证抛出的事件
+#### 2.1.3. 验证抛出的事件
 
 与 `prop` 类型验证类似，定义发出的事件不是使用数组语法，而使用对象语法，则可以对它进行验证。
 
@@ -62,7 +62,7 @@ app.component('custom-form', {
 })
 ```
 
-#### 1.1.4. 为什么需要在组件上使用 v-model
+#### 2.1.4. 为什么需要在组件上使用 v-model
 
 `v-model` 是双向数据绑定指令，当需要维护组件内外数据的同步时，可以在组件上使用 `v-model` 指令。
 
@@ -70,7 +70,7 @@ app.component('custom-form', {
 
 上面示例图可以看出，外界数据的变化会自动同步到 counter 组件中。counter 组件中数据的变化，也会自动同步到外界
 
-#### 1.1.5. 在组件上使用 v-model 的步骤
+#### 2.1.5. 在组件上使用 v-model 的步骤
 
 ![](images/20211205222111858_7825.png)
 
@@ -83,7 +83,7 @@ app.component('custom-form', {
 2. 在子组件中声明 `emits` 自定义事件，格式为 `update:xxx`
 3. 调用 `$emit()` 触发自定义事件，更新父组件中的数据
 
-#### 1.1.6. v-model 参数
+#### 2.1.6. v-model 参数
 
 默认情况下，组件上的 `v-model` 使用 `modelValue` 作为 `prop` 和 `update:modelValue` 作为事件。如下例：
 
@@ -108,7 +108,7 @@ app.component('my-component', {
 })
 ```
 
-#### 1.1.7. 多个 v-model 绑定
+#### 2.1.7. 多个 v-model 绑定
 
 单个组件实例上也可以使用多个 `v-model` 绑定参数。每个 `v-model` 将同步到不同的 `prop` 属性中，用法与单个 `v-model` 一样
 
@@ -140,16 +140,16 @@ app.component('user-name', {
 })
 ```
 
-#### 1.1.8. 处理 v-model 修饰符（待整理）
+#### 2.1.8. 处理 v-model 修饰符（待整理）
 
 
-### 1.2. Provide / Inject
+### 2.2. Provide / Inject
 
 如果需要从父组件传递给比较深层次结构的子组件（孙级以下组件），可以使用一对 `provide` 和 `inject`，主要应用是，父组件有一个 `provide` 选项来提供数据，子组件有一个 `inject` 选项来开始使用这些数据。
 
 ![](images/20211207161141843_514.png)
 
-#### 1.2.1. 基础用法
+#### 2.2.1. 基础用法
 
 在父组件通过 `provide` 属性共享数据
 
@@ -186,7 +186,7 @@ inject: ['num', 'name'],
 - 父组件不需要知道哪些子组件使用了它 provide 的 property
 - 子组件不需要知道 inject 的 property 来自哪里
 
-#### 1.2.2. 处理响应性
+#### 2.2.2. 处理响应性
 
 默认情况下，`provide`/`inject` 绑定并不是响应式的。想对祖先组件中的更改做出响应，我们需要为 provide 的 todoLength 分配一个组合式 API computed property：
 

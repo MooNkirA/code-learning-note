@@ -6,15 +6,6 @@ redis 是一种基于键值对（key-value）数据库，其中 value 可以为 
 
 > 流水线：Redis 的流水线功能允许客户端一次将多个命令请求发送给服务器，并将被执行的多个命令请求的结果在一个命令回复中全部返回给客户端，使用这个功能可以有效地减少客户端在执行多个命令时需要与服务器进行通信的次数
 
-Redis 相关网站：
-
-- [Redis 官网](https://redis.io/)
-- [Redis 官方文档](https://redis.io/documentation)
-- [Redis 官网国内中文翻译版](http://redis.cn/)
-- [Redis 命令参考文档](http://redisdoc.com/)
-- [Redisson 官网](https://redisson.org/)
-- [Redis 在线测试](https://try.redis.io/) - Redis 官方命令在线测试工具
-
 ### 1.2. Redis 优缺点
 
 优点：
@@ -69,6 +60,16 @@ Redis 相关网站：
     - Memcached 内存管理：使用 Slab Allocation。原理相当简单，预先分配一系列大小固定的组，然后根据数据大小选择最合适的块存储。避免了内存碎片。（缺点：不能变长，浪费了一定空间）memcached 默认情况下下一个 slab 的最大值为前一个的 1.25 倍。
     - Redis 内存管理：通过定义一个数组来记录所有的内存分配情况，Redis 采用的是包装的 malloc/free，相较于 Memcached 简单很多。由于 malloc 首先以链表的方式搜索已管理的内存中可用的空间分配，导致内存碎片比较多。
 - Redis 使用的是单线程模型，保证了数据按顺序提交；Memcache 需要使用 CAS 保证数据一致性(乐观锁)。
+
+### 1.6. Redis 相关资料
+
+- [Redis 官网](https://redis.io/)
+- [Redis 官方文档](https://redis.io/documentation)
+- [Redis 官网国内中文翻译版](http://redis.cn/)
+- [Redis 命令参考文档](http://redisdoc.com/)
+- [Redisson 官网](https://redisson.org/)
+- [Redis 在线测试](https://try.redis.io/) - Redis 官方命令在线测试工具
+- [Redis 命令参考](http://doc.redisfans.com/) - Redis Command Reference 和 Redis Documentation 的中文翻译版
 
 ## 2. Redis数据结构介绍
 
