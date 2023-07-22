@@ -274,6 +274,10 @@ public class AbstractQueuedSynchronizerDemo {
 
 ## 4. AQS 实现原理
 
+
+
+### 4.1. AQS 的工作流程概述
+
 AQS 核心思想是，如果被请求的共享资源空闲，则将当前请求资源的线程设置为有效的工作线程，并且将共享资源设置为锁定状态；如果被请求的共享资源被占用，那么就需要一套线程阻塞等待以及被唤醒时锁分配的机制，这个机制 AQS 是用 CLH 队列锁实现的，即将暂时获取不到锁的线程加入到等待队列中。许多同步类的实现都依赖于 AQS，例如常用的 ReentrantLock、Semaphore 和 CountDownLatch。
 
 > CLH(Craig,Landin,and Hagersten)队列是一个虚拟的双向队列（虚拟的双向队列即不存在队列实例，仅存在结点之间的关联关系）。AQS是将每条请求共享资源的线程封装成一个CLH锁队列的一个结点（Node）来实现锁的分配。
@@ -284,15 +288,19 @@ AQS 核心思想是，如果被请求的共享资源空闲，则将当前请求�
 
 ![](images/113280915248783.png)
 
-### 4.1. state：状态
+![](images/508251523230750.png)
 
-在 `AbstractQueuedSynchronizer` 类中维护了一个 `volatile int` 类型的成员变量 `state`，用于表示当前资源的同步状态（分独占模式和共享模式）。通过内置的 FIFO 队列来完成获取资源线程的排队工作，AQS 使用 `volatile` 和 CAS 操作确保了同步状态（`state`）的原子性管理
+### 4.2. state：同步状态
+
+在 `AbstractQueuedSynchronizer` 类中维护了一个 `volatile int` 类型的成员变量 `state`，用于表示当前资源的同步状态（分独占模式和共享模式，加锁与释放锁的操作，本质就是操作 state 的结果）。通过内置的 FIFO 队列来完成获取资源线程的排队工作。
 
 ```java
 private volatile int state; // 共享变量，使用 volatile 修饰保证线程可见性
 ```
 
-子类需要定义如何维护这个状态，控制如何获取锁和释放锁。state 属性访问方式有三种：
+子类需要定义如何维护 `state` 这个状态属性，控制如何获取锁和释放锁。对 `state` 的操作必须是原子的，而且该属性不能被继承，所有同步机制的实现均依赖于对该变量的原子操作。AQS 使用 `volatile` 和 CAS 操作确保了同步状态（`state`）的原子性管理。
+
+state 属性访问方式有三种：
 
 - `getState()`：获取 state 状态
 - `setState()`：设置 state 状态
@@ -321,7 +329,7 @@ protected final boolean compareAndSetState(int expect, int update) {
 }
 ```
 
-### 4.2. AQS 核心方法
+### 4.3. AQS 核心方法
 
 AQS 是一个框架，只定义了一个接口，具体资源的获取、释放都交由自定义同步器去实现。不同的自定义同步器争用共享资源的方式也不同，自定义同步器在实现时只需实现共享资源 state 的获取与释放方式即可，至于具体线程等待队列的维护，如获取资源失败入队、唤醒出队等，AQS 已经在顶层实现好，不需要具体的同步器再做处理。
 
@@ -359,7 +367,7 @@ protected boolean tryReleaseShared(int arg)
 
 > Tips: 同步器的实现是 AQS 的核心。以上方法均默认抛出 `UnsupportedOperationException`
 
-#### 4.2.1. 基础使用实践
+#### 4.3.1. 基础使用实践
 
 获取锁：
 
@@ -379,15 +387,269 @@ if (tryRelease(arg)) {
 }
 ```
 
-### 4.3. AQS 对共享资源支持的两种模式
+### 4.4. AQS 对共享资源支持的两种模式
 
 AQS 定义了两种资源共享方式：独占模式（Exclusive mode）和共享模式（Shared mode）
 
 - 独占模式：又称排他模式，相当于互斥锁，只有一个线程能执行与访问资源。当一个线程以独占模式成功获取锁，其它线程获取锁的尝试都将失败，类似 `synchronized` 关键字。具体的 Java 实现有 `ReentrantLock`
 - 共享模式：多个线程可同时执行与访问资源，用于控制一定量的线程并发执行。设计者建议共享模式下的同步状态支持0，小于0和大于0三种情况，以便在某种情况下和独占模式兼容。在此模式下，`同步状态>=0`都代表获取锁成功。具体的 Java 实现有 `Semaphore` 和 `CountDownLatch`
 
-ReentrantLock 对 **AQS 的独占方式实现**为：ReentrantLock 中的 state 初始值为 0 时表示无锁状态。在线程执行 tryAcquire() 获取该锁后 ReentrantLock 中的 state+1，这时该线程独占 ReentrantLock 锁，其他线程在通过 tryAcquire() 获取锁时均会失败，直到该线程释放锁后 state 再次为 0，其他线程才有机会获取该锁。该线程在释放锁之前可以重复获取此锁，每获取一次便会执行一次 state+1，因此 ReentrantLock 也属于可重入锁。但获取多少次锁就要释放多少次锁，这样才能保证 state 最终为 0。如果获取锁的次数多于释放锁的次数，则会出现该线程一直持有该锁的情况；如果获取锁的次数少于释放锁的次数，则运行中的程序会报锁异常。
+**AQS 的独占方式实现**（以 ReentrantLock 为例）：ReentrantLock 中的 state 初始值为 0 时表示无锁状态。在线程执行 tryAcquire() 获取该锁后 ReentrantLock 中的 state+1，这时该线程独占 ReentrantLock 锁，其他线程在通过 tryAcquire() 获取锁时均会失败，直到该线程释放锁后 state 再次为 0，其他线程才有机会获取该锁。该线程在释放锁之前可以重复获取此锁，每获取一次便会执行一次 state+1，因此 ReentrantLock 也属于可重入锁。但获取多少次锁就要释放多少次锁，这样才能保证 state 最终为 0。如果获取锁的次数多于释放锁的次数，则会出现该线程一直持有该锁的情况；如果获取锁的次数少于释放锁的次数，则运行中的程序会报锁异常。
 
-CountDownLatch 对 **AQS 的共享方式实现**为：CountDownLatch 将任务分为 N 个子线程去执行，将 state 也初始化为 N，N 与线程的个数一致，N 个子线程是并行执行的，每个子线程都在执行完成后 countDown() 一次，state 会执行 CAS 操作并减 1。在所有子线程都执行完成（即 `state=0`）时会 `unpark()` 主线程，然后主线程会从 `await()` 返回，继续执行后续的动作。
+**AQS 的共享方式实现**（以 CountDownLatch 为例）：CountDownLatch 将任务分为 N 个子线程去执行，将 state 也初始化为 N，N 与线程的个数一致，N 个子线程是并行执行的，每个子线程都在执行完成后 countDown() 一次，state 会执行 CAS 操作并减 1。在所有子线程都执行完成（即 `state=0`）时会 `unpark()` 主线程，然后主线程会从 `await()` 返回，继续执行后续的动作。
 
 一般来说，自定义同步器要么采用独占方式，要么采用共享方式，实现类只需实现 tryAcquire、tryRelease 或 tryAcquireShared、tryReleaseShared 中的一组即可。但 AQS 也支持自定义同步器同时实现独占和共享两种方式，例如 `ReentrantReadWriteLock` 在读取时采用了共享方式，在写入时采用了独占方式。
+
+### 4.5. AQS 源码解析之 acquire（获取独占锁）
+
+```java
+public final void acquire(int arg) {
+    if (!tryAcquire(arg) &&
+        acquireQueued(addWaiter(Node.EXCLUSIVE), arg))
+        selfInterrupt();
+}
+
+/* 尝试获取独占锁，需要子类重写（钩子方法） */
+protected boolean tryAcquire(int arg) {
+    throw new UnsupportedOperationException();
+}
+
+/* 获取独占锁，支持响应线程中断 */
+public final void acquireInterruptibly(int arg)
+        throws InterruptedException {
+    if (Thread.interrupted())
+        throw new InterruptedException();
+    if (!tryAcquire(arg))
+        doAcquireInterruptibly(arg);
+}
+
+/**
+ * 执行获取独占锁之后的工作
+ * 1. 将线程添加到同步队列，并标记为独占模式
+ */
+private Node addWaiter(Node mode) {
+    Node node = new Node(Thread.currentThread(), mode);
+    // Try the fast path of enq; backup to full enq on failure
+    Node pred = tail;
+    if (pred != null) {
+        node.prev = pred;
+        if (compareAndSetTail(pred, node)) {
+            pred.next = node;
+            return node;
+        }
+    }
+    enq(node);
+    return node;
+}
+
+/**
+ * 执行获取独占锁之后的工作
+ * 2. 阻塞添加到队列中的线程，并在该线程被激活时尝试获取锁
+ */
+final boolean acquireQueued(final Node node, int arg) {
+    boolean failed = true;
+    try {
+        boolean interrupted = false;
+        for (;;) {
+            final Node p = node.predecessor();
+            if (p == head && tryAcquire(arg)) {
+                setHead(node);
+                p.next = null; // help GC
+                failed = false;
+                return interrupted;
+            }
+            if (shouldParkAfterFailedAcquire(p, node) &&
+                parkAndCheckInterrupt())
+                interrupted = true;
+        }
+    } finally {
+        if (failed)
+            cancelAcquire(node);
+    }
+}
+```
+
+`acquire` 方法用于以独占模式获取锁，如果获取失败，则将此线程添加到队列（如果不存在则创建）并阻塞此线程，底层调用工具类 `java.util.concurrent.locks.LockSupport` 的静态方法 `park()` 来实现。此方法是独占模式下获取锁（state）的顶层入口，它的调用流程如下：
+
+1. `tryAcquire` 方法：尝试获取共享资源（state），获取成功后，线程就会进入临界区执行相关的代码并导致 `acquire` 方法直接返回。该方法的默认实现只是单纯的抛出 `UnsupportedOperationException` 异常，设计目的就是要让实现的子类去重写该方法，并定义获取共享资源的具体算法。
+2. `addWaiter` 方法：尝试获取共享资源失败，才会执行这个方法。它的作用是将此线程加入同步队列（尾部），并标记为“独占模式”。
+3. `acquireQueued` 方法：线程进入等待队列之后，会执行此方法。该方法的主要作用就是调用 `LockSupport.park()` 方法阻塞当前线程。为了提高效率，线程进入阻塞队列之后，会检查前一个节点是否为头节点，若是，则再进行一次尝试获取锁，一旦成功则直接返回。当阻塞的线程被激活（unpark），会再次尝试获取资源，获取成功则返回，如果失败，则以自旋的方式执行上述操作，直到成功后返回。在此过程中如果发生异常，则取消获取共享资源的动作（这与内置锁是不同的）；如果该线程接收到中断请求，并不会立即响应，而是在获取锁成功之后，将中断状态返回，再由 acquire 方法响应中断。如果想要在线程获取锁的过程中支持响应中断，可以调用 acquire 的兄弟方法：`acquireInterruptibly`，这是与内置锁另一个不同之处。
+
+### 4.6. AQS 源码解析之 release（释放独占锁）
+
+```java
+public final boolean release(int arg) {
+    if (tryRelease(arg)) {
+        Node h = head;
+        if (h != null && h.waitStatus != 0)
+            unparkSuccessor(h);
+        return true;
+    }
+    return false;
+}
+
+/* 尝试释放独占锁，需要子类重写 */
+protected boolean tryRelease(int arg) {
+    throw new UnsupportedOperationException();
+}
+```
+
+`release` 方法用于<font color=purple>**释放独占模式的同步锁**</font>，底层调用工具类 `java.util.concurrent.locks.LockSupport` 的静态方法 `unpark()` 来实现，如果释放失败，则直接返回。此方法是独占模式下释放共享资源的顶层入口。类似的，此方法中调用了 `tryRelease` 并根据其返回值来判断是否完成了释放锁的操作，默认实现也是抛出 `UnsupportedOperationException` 异常的方法，目的也是为了让子类自己去重写。
+
+在独占模式下，线程释放资源之前，必定已经预先拿到了资源，所以重写的方法中只需要减掉相应的资源量即可，不需要过多考虑线程安全问题。当前线程释放完成后，会通过 `unparkSuccessor` 方法激活队列中等待的下一个线程。一般被激活的线程就是当前线程的“next”节点，但如果该线程由于超时或者被中断而已经被激活，则（从队列尾部倒序）查找距离当前线程最近的可激活线程，通过 `LockSupport.unpark()` 方法激活它。
+
+```java
+private void unparkSuccessor(Node node) {
+
+    int ws = node.waitStatus;
+    if (ws < 0)
+        compareAndSetWaitStatus(node, ws, 0);
+
+    Node s = node.next;
+    if (s == null || s.waitStatus > 0) {
+        s = null;
+        for (Node t = tail; t != null && t != node; t = t.prev)
+            if (t.waitStatus <= 0)
+                s = t;
+    }
+    if (s != null)
+        LockSupport.unpark(s.thread);
+}
+```
+
+### 4.7. AQS 源码解析之共享模式获取锁、释放锁
+
+共享模式获取锁、释放锁的顶层方法命名规则和实现逻辑与独占模式几乎相同，以下节选自源码：
+
+```java
+/* 获取共享锁，共享模式获取锁的顶层入口 */
+public final void acquireShared(int arg) {
+    if (tryAcquireShared(arg) < 0)
+        doAcquireShared(arg);
+}
+
+/* 获取共享锁，支持响应中断 */
+public final void acquireSharedInterruptibly(int arg)
+        throws InterruptedException {
+    if (Thread.interrupted())
+        throw new InterruptedException();
+    if (tryAcquireShared(arg) < 0)
+        doAcquireSharedInterruptibly(arg);
+}
+
+/* 释放共享锁，共享模式释放锁的顶层入口 */
+public final boolean releaseShared(int arg) {
+    if (tryReleaseShared(arg)) {
+        doReleaseShared();
+        return true;
+    }
+    return false;
+}
+
+/* 尝试获取共享锁，需要子类重写 */
+protected int tryAcquireShared(int arg) {
+    throw new UnsupportedOperationException();
+}
+
+/* 尝试释放共享锁，需要子类重写 */
+protected boolean tryReleaseShared(int arg) {
+    throw new UnsupportedOperationException();
+}
+
+/* 
+ * 执行获取共享锁之后的工作
+ * 1. 将线程添加到同步队列，并标记为共享模式
+ * 2. 阻塞此线程，并在它被激活时尝试获取锁
+ */
+private void doAcquireShared(int arg) {
+    final Node node = addWaiter(Node.SHARED);
+    boolean failed = true;
+    try {
+        boolean interrupted = false;
+        for (;;) {
+            final Node p = node.predecessor();
+            if (p == head) {
+                int r = tryAcquireShared(arg);
+                if (r >= 0) {
+                    setHeadAndPropagate(node, r);
+                    p.next = null; // help GC
+                    if (interrupted)
+                        selfInterrupt();
+                    failed = false;
+                    return;
+                }
+            }
+            if (shouldParkAfterFailedAcquire(p, node) &&
+                parkAndCheckInterrupt())
+                interrupted = true;
+        }
+    } finally {
+        if (failed)
+            cancelAcquire(node);
+    }
+}
+```
+
+相对于独占模式，共享模式获取锁、释放锁的基本流程没有任何变化。对锁的获取操作都应该被子类重写：独占模式：`tryAcquire` 方法，共享模式：`tryAcquireShared` 方法；同样的，释放锁的具体操作也是在子类中重新定义：独占模式：`tryRelease` 方法，共享模式：`tryReleaseShared` 方法。
+
+不同的地方是，在独占模式下获取锁操作，队列中的线程获取锁成功之后，将当前节点设置为头结点，仅仅是将节点对象关联的前后节点重新赋值：
+
+```java
+private void setHead(Node node) {
+    head = node;
+    node.thread = null;
+    node.prev = null;
+}
+```
+
+而共享模式下，第一个线程获取锁后，如果共享资源仍然可以使用（`state >= 0`），则会唤醒当前节点的后续节点（多个线程是可以同时获取锁）。所以队列中的线程重新被激活之后，除了设置当前节点为头节点，还需要（可能需要）进行后续节点的唤醒：
+
+```java
+private void setHeadAndPropagate(Node node, int propagate) {
+    Node h = head; // Record old head for check below
+    setHead(node);
+
+    if (propagate > 0 || h == null || h.waitStatus < 0 ||
+        (h = head) == null || h.waitStatus < 0) {
+        Node s = node.next;
+        if (s == null || s.isShared())
+            doReleaseShared(); // 继续唤醒后续节点
+    }
+}
+```
+
+共享模式下释放锁操作，释放掉共享资源（state）之后，唤醒后续节点。独占模式下的 `tryRelease()` 在完全释放掉资源（`state=0`）后，才会返回 true 去唤醒其他线程（可重入性）；而共享模式下的 `releaseShared` 则没有这种要求，共享模式的实质是控制一定量的线程并发执行，那么拥有资源的线程在释放掉部分资源时就可以唤醒后继等待结点：
+
+```java
+private void doReleaseShared() {
+    for (;;) {
+        Node h = head;
+        if (h != null && h != tail) {
+            int ws = h.waitStatus;
+            if (ws == Node.SIGNAL) {
+                if (!compareAndSetWaitStatus(h, Node.SIGNAL, 0))
+                    continue;            // loop to recheck cases
+                unparkSuccessor(h);
+            }
+            else if (ws == 0 &&
+                     !compareAndSetWaitStatus(h, 0, Node.PROPAGATE))
+                continue;                // loop on failed CAS
+        }
+        if (h == head)                   // loop if head changed
+            break;
+    }
+}
+```
+
+### 4.8. AQS 的等待队列
+
+当线程进入临界区，发现必须满足某个（些）条件才能继续，则该线程将在该条件对象上等待，并进入等待区（wait set）。因为在多线程并发的环境中，不确定线程的先后执行顺序。因此需要<font color=red>**通过设置 `Condition` 对象让进入临界区却不满足条件的线程等待，并在条件满足时继续执行，从而可以确保程序按设计的顺序执行**</font>。这就是条件对象的本质。
+
+一个锁可以管理多个条件对象，一个条件对象上可能会有多个线程处于等待状态。
+
+AQS 类中定义了一个 `ConditionObject` 类，该类实现了 `java.util.concurrent.locks.Condition` 接口，并提供如 `await`、`signal` 和 `signalAll` 操作，还扩展了带有超时、检测和监控的方法。`ConditionObject` 类有效地将条件与其它同步操作结合到了一起。这里要注意，当且仅当一个线程持有锁且要操作的条件对象属于该锁时，条件操作才是合法的。一个条件对象（`ConditionObject`）关联到一个锁对象（同步器的实例）上就表现出跟 `synchronized` 对象锁一样的行为了。
+
+## 5. AQS 的数据结构
+
+
+

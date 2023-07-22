@@ -1723,11 +1723,18 @@ public static void sort(Object[] a)
 - 根据元素的自然顺序对指定对象数组按**升序进行排序**。数组中的所有元素都必须实现 Comparable 接口。此外，数组中的所有元素都必须是可相互比较的
 
 ```java
-public static String toString(xxx[] a)
+public static String toString(long[] a)
+public static String toString(int[] a)
+public static String toString(short[] a)
+public static String toString(char[] a)
+public static String toString(byte[] a)
+public static String toString(boolean[] a)
+public static String toString(float[] a)
+public static String toString(double[] a)
+public static String toString(Object[] a)
 ```
 
-- **返回指定数组内容的字符串表示形式**。字符串表示形式由数组的元素列表组成，括在方括号（"[]"）中。相邻元素用字符 ", "（逗号加空格）分隔。
-- 可以直接打印输出返回的遍历数组的字符串。多个重载的方法，其中数组类型包括：boolean[], float[], double[], Object[], byte[], char[], short[], int[], long[];
+- **返回指定数组内容的字符串表示形式**。字符串表示形式由数组的元素列表组成，括在方括号（"[]"）中。相邻元素用字符 ", "（逗号加空格）分隔。可以直接打印输出返回的遍历数组的字符串。有多个重载的方法，其中数组类型包括：`boolean[]`, `float[]`, `double[]`, `Object[]`, `byte[]`, `char[]`, `short[]`, `int[]`, `long[]`。
 
 ```java
 public static boolean equals(Object[] a, Object[] a2)

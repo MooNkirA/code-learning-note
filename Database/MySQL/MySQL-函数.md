@@ -217,13 +217,13 @@ SELECT RAND(20); -- 返回 0.15888261251047 (随机)
 
 #### 3.10.1. 使用示例：随机样本
 
-注：在ORDER BY语句中，不能使用一个带有RAND()值的列，原因是 ORDER BY 会计算列的多重时间。然而，可按照如下的随机顺序检索数据行：
+注：在 `ORDER BY` 语句中，不能使用一个带有 `RAND()` 值的列，原因是 `ORDER BY` 会计算列的多重时间。然而可按照如下的随机顺序检索数据行，多用于测试：
 
 ```sql
 SELECT * FROM tbl_name ORDER BY RAND();
 ```
 
-`ORDER BY RAND()`同 `LIMIT` 的结合从一组列中选择随机样本很有用：
+`ORDER BY RAND()`同 `LIMIT` 的结合从一组列中选择随机样本很有用。
 
 ### 3.11. ROUND
 

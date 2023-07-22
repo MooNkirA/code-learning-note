@@ -906,7 +906,7 @@ Java 中使用变量，遵循“就近原则”：局部 -> 本类成员 -> 父�
 - `super()` 和 `this()` 不能同时出现在一个构造函数里面，因为 this 必然会调用其它的构造函数，其它的构造函数必然也会有 super 语句的存在，所以在同一个构造函数里面有相同的语句，就失去了语句的意义，编译器也不会通过。
 - `this()` 和 `super()` 都指的是对象，所以，均不可以在 `static` 环境中使用。包括：`static` 变量、`static` 方法、`static` 语句块。
 
-尽管可以用this调用一个构造器，但却不能调用两个。从本质上讲，this 是一个指向本对象的指针，然而 super 是一个 Java 关键字。
+尽管可以用 this 调用一个构造器，但却不能调用两个。从本质上讲，this 是一个指向本对象的指针，然而 super 是一个 Java 关键字。
 
 ### 7.4. 构造方法调用注意事项
 
@@ -1344,15 +1344,17 @@ public boolean equals(Object o) {
 #### 11.2.2. toString
 
 ```java
-public String toString()
+public String toString() {
+    return getClass().getName() + "@" + Integer.toHexString(hashCode());
+}
 ```
 
-父类 `Object` 类的 `toString` 方法默认返回值是 `包名.类名@对象在内存中的地址`。此方法的调用时机：
+父类 `Object` 类的 `toString` 方法默认返回值是 `包名.类名@对象的哈希码（十六进制）` 的字符串。此方法的调用时机：
 
 - 直接调用：手动通过对象调用，通过`对象名.toString()`;
 - 间接调用：当打印输出该对象时系统自动调用 `toString()` 方法。
 
-直接打印对象的时候，都是默认调用 `toString()` 方法打印对象的地址值。通过重写 `toString` 方法即可自定义输出的内容：
+通过重写 `toString` 方法即可自定义输出的内容：
 
 ```java
 @Override
@@ -1379,6 +1381,8 @@ public int hashCode() {
     return Objects.hash(name, age, height);
 }
 ```
+
+> Tips: **重写了 `equals` 方法一般都要重写 `hashCode` 方法**！
 
 #### 11.2.4. clone
 
@@ -1498,7 +1502,7 @@ public final native void wait(long timeout) throws InterruptedException;
 public final void wait(long timeout, int nanos) throws InterruptedException
 ```
 
-- 当前线程调用对象的 `wait()` 方法之后，当前线程会释放对象锁，进入等待状态。等待其他线程调用此对象的 `notify()`/`notifyAll()` 唤醒或者等待超时时间 `wait(long timeout)` 自动唤醒。线程需要获取 Object 对象锁之后才能通过对象调用 `wait()`。
+- 当前线程调用对象的 `wait()` 方法之后，当前线程会释放对象锁，进入等待状态。等待其他线程调用此对象的 `notify()`/`notifyAll()` 唤醒或者等待超时时间 `wait(long timeout)` 自动唤醒。<font color=red>**线程必须获取 Object 对象锁之后才能通过对象调用 `wait()`**</font>。
 
 ```java
 public final native void notify();
@@ -1819,6 +1823,22 @@ format(Locale locale, String format, Object... args)
 ```
 
 - 使用指定的语言环境，制定字符串格式和参数生成格式化的字符串。
+
+#### 12.2.8. 其他方法
+
+```java
+public native String intern();
+```
+
+`intern()` 是个 Native 方法，其作用是首先从常量池中查找是否存在该常量值的字符串，若不存在则先在常量池中创建，否则直接返回常量池已经存在的字符串的引用。比如
+
+```java
+String s1 = "aa";
+String s2 = s1.intern();
+System.out.print(s1 == s2); // true
+```
+
+上述代码因为`"aa"`会在编译阶段确定下来，并放置字符串常量池中，因此最终 s1 和 s2 引用的是同一个字符串常量对象。
 
 ### 12.3. 字符串的遍历
 
