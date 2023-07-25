@@ -558,9 +558,9 @@ public void AtomicIntegerArrayTest() {
 
 在 J.U.C 并发包提供了原子操作的字段更新器，分别如下：
 
-- `java.util.concurrent.atomic.AtomicReferenceFieldUpdater`
-- `java.util.concurrent.atomic.AtomicIntegerFieldUpdater`
-- `java.util.concurrent.atomic.AtomicLongFieldUpdater`
+- `java.util.concurrent.atomic.AtomicReferenceFieldUpdater`：原子更新带有版本号的引用类型
+- `java.util.concurrent.atomic.AtomicIntegerFieldUpdater`：原子更新整形字段的更新器
+- `java.util.concurrent.atomic.AtomicLongFieldUpdater`：原子更新长整形字段的更新器
 
 利用字段更新器，可以针对对象的某个域（Field）进行原子操作，并必须配合 `volatile` 修饰的字段使用，否则会出现异常
 

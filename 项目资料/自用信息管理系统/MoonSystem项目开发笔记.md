@@ -443,7 +443,7 @@ java -jar mz-govern-gateway.jar --server.port=38080 -DEUREKA_SERVER=http://local
 
 ## 6. 项目版本修改记录
 
-### 6.1. ver2.0.0(待开发)
+### 6.1. ver2.0.0 更新日志(待开发)
 
 #### 6.1.1. 项目待实现功能
 
