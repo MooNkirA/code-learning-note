@@ -1738,3 +1738,16 @@ public native long maxMemory();
 ```
 
 - 返回最大内存的字节数
+
+### class 字节码文件 10 个主要组成部分
+
+- MagicNumber
+- Version
+- Constant_pool
+- Access_flag
+- This_class
+- Super_class
+- Interfaces
+- Fields
+- Methods
+- Attributes

@@ -351,7 +351,7 @@ RDB 持久化有手动触发和自动触发的两种方式。
 
 手动触发有 `save` 和 `bgsave` 两命令
 
-- `save` 命令：阻塞当前 Redis，直到 RDB 持久化过程完成为止，若内存实例比较大会造成长时间阻塞，线上生产环境不建议使用。
+- `save` 命令：阻塞当前 Redis 主线程，直到 RDB 持久化过程完成为止，若内存实例比较大会造成长时间阻塞，线上生产环境不建议使用。
 - `bgsave` 命令：redis 进程执行 fork 操作创建子线程，由子线程完成持久化，阻塞时间很短（微秒级），是 save 的优化，在执行 `redis-cli shutdown` 关闭 redis 服务时，如果没有开启 AOF 持久化，会自动执行 bgsave。显然 bgsave 是对 save 的优化。
 
 `bgsave` 是主流的触发 RDB 持久化的方式，执行过程如下：
@@ -428,45 +428,55 @@ AOF 的主要作用是解决了数据持久化的实时性，AOF 是 Redis 持�
 
 #### 4.3.2. AOF 配置详解
 
+##### 4.3.2.1. 开启 AOF
+
 默认情况下 Redis 没有开启 AOF 方式的持久化，通过 `appendonly` 参数启用。
-
-默认情况下系统每30秒会执行一次同步操作。为了防止缓冲区数据丢失，可以在 Redis 写入 AOF 文件后主动要求系统将缓冲区数据同步到硬盘上。可以通过 `appendfsync` 参数设置同步的时机
-
-```conf
-appendonly yes # 启用 aof 持久化方式
-
-# appendfsync always # 每收到写命令就立即强制写入磁盘，最慢的，但是保证完全的持久化，不推荐使用
-appendfsync everysec # 每秒强制写入磁盘一次，性能和持久化方面做了折中，推荐
-# appendfsync no # 完全依赖 os，性能最好,持久化没保证（操作系统自身的同步）
-
-no-appendfsync-on-rewrite yes # 正在导出 rdb 快照的过程中,要不要停止同步 aof
-auto-aof-rewrite-percentage 100 # aof 文件大小比起上次重写时的大小,增长率100%时,重写
-auto-aof-rewrite-min-size 64mb # aof 文件,至少超过 64M 时,重写
-```
 
 - 修改 redis.conf 设置文件，修改`appendonly yes` (默认AOF处于关闭，为 no)
 
 ![](images/20190511103409610_11558.jpg)
 
-- 手动开启
-
-![](images/20190511103435927_11796.jpg)
-
-- 策略的选择：
-
-```
-always    #每次有数据修改发生时都会写入AOF文件
-everysec  #每秒钟同步一次，该策略为AOF的缺省策略
-no       #从不同步。高效但是数据不会被持久化
+```conf
+appendonly yes # 启用 aof 持久化方式
 ```
 
-![](images/20190511103515067_31126.jpg)
+##### 4.3.2.2. 同步策略选择
 
-![](images/20190511103520130_216.jpg)
+通过 `appendfsync` 参数设置同步策略(时机)，可选如下：
 
-- 默认文件名：appendfilename "appendonly.aof"。可以修改为指定文件名称
+- always：每次有数据修改发生时都会写入AOF文件
+- everysec：每秒钟同步一次，该策略为AOF的缺省策略
+- no：从不同步。高效但是数据不会被持久化
+
+默认情况下系统每30秒会执行一次同步操作。为了防止缓冲区数据丢失，可以在 Redis 写入 AOF 文件后主动要求系统将缓冲区数据同步到硬盘上。
+
+修改 redis.conf 设置文件，设置 `appendfsync` 参数
+
+```conf
+# appendfsync always # 每收到写命令就立即强制写入磁盘，最慢的，但是保证完全的持久化，不推荐使用
+appendfsync everysec # 每秒强制写入磁盘一次，性能和持久化方面做了折中，推荐
+# appendfsync no # 完全依赖 os，性能最好,持久化没保证（操作系统自身的同步）
+```
+
+##### 4.3.2.3. aof 文件名称配置
+
+默认文件名：`appendfilename "appendonly.aof"`。可以修改为指定文件名称
 
 ![](images/20191114140531366_23137.png)
+
+##### 4.3.2.4. AOF 重写
+
+由于 AOF 文件记录每次操作命令，因此会比 RDB 文件大的多。AOF 会记录对同一个 key 的多次写操作，但只有最后一次写操作才有意义。此时通过执行 `bgrewriteaof` 命令，可以让 AOF 文件执行重写功能，用最少的命令达到相同效果。
+
+![](images/511570323249269.png)
+
+Redis 也会在触发阈值时自动去重写 AOF 文件。阈值也可以在 redis.conf 中配置：
+
+```conf
+no-appendfsync-on-rewrite yes # 正在导出 rdb 快照的过程中，要不要停止同步 aof
+auto-aof-rewrite-percentage 100 # aof 文件大小比起上次重写时的大小，增长率100%时，触发重写
+auto-aof-rewrite-min-size 64mb # aof 文件大小至少超过 64M 时，触发重写
+```
 
 #### 4.3.3. AOF 流程说明
 
@@ -503,6 +513,10 @@ AOF 持久化执行流程：命令写入(append)、文件同步(sync)、文件�
 2. 根据同步策略的不同，AOF 在运行启动效率上往往会慢于 RDB。总之，每秒同步策略的效率是比较高的，同步禁用策略的效率和 RDB 一样高效。
 
 ### 4.4. RDB 与 AOF 比较
+
+RDB 和 AOF 各有自己的优缺点，如果对数据安全性要求较高，在实际开发中往往会结合两者来使用。
+
+![](images/535940823257302.jpg)
 
 #### 4.4.1. 重启时恢复加载顺序及流程比较
 
