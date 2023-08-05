@@ -110,7 +110,21 @@ S0 S1 E O M CCS YGC YGCT FGC FGCT GCT
 
 ### 3.4. jmap（内存映像工具）
 
-`jmap`：JVM Memory Map，查看运行中的堆内存的快照（heap dump 文件），从而可以对堆内存进行离线分析。例如，查询进程 4124
+`jmap`：JVM Memory Map，查看运行中的堆内存的快照（heap dump 文件），从而可以对堆内存进行离线分析。该命令工具还可以查询 finalize 执行队列，Java 堆和永久代的详细信息，如果空间使用率、当前用的是哪种收集器等。命令语法：
+
+```bash
+jmap [option] vmid
+```
+
+option 选项说明：
+
+- `-dump` 生成 Java 堆转储快照，其中 live 自参数说明是否只 dump 出存活对象
+- `-finalizerinfo` 显示在 F `-Queue` 中等待 Finalizer 线程执行 finalize 方法的对象。只在 Linux/Solaris 平台下有效
+- `-heap` 显示 Java 堆详细信息，如使用哪种回收器、参数配置、分代状况。
+- `-histo` 显示堆中对象统计信息、包括类、实例数量和合计容量。
+- `-F` 当虚拟机进程对 `-dump` 选项没有响应时，可使用这个选项强制生成 dump 快照。
+
+例如：查询进程 4124
 
 ```bash
 jmap -heap 4124
