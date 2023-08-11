@@ -651,5 +651,119 @@ AQS 类中定义了一个 `ConditionObject` 类，该类实现了 `java.util.con
 
 ## 5. AQS 的数据结构
 
+AQS 使用队列结构来管理入口区和等待区的线程。
+
+- 入口区：同步队列
+- 等待区：等待队列
+
+两种队列的本质相同，都是先进先出的链表结构，而且使用的是同一个内部类 Node 的实例做为节点。唯一的区别是：
+
+- 同步队列是一个**双向队列**
+- 等待队列是一个**单向队列**
+
+### 5.1. AQS 的节点
+
+AQS 使用 `java.util.concurrent.locks.AbstractQueuedSynchronizer.Node` 内部类作为节点，封装线程及相关同步信息，从而构成一个链式结构的队列。源码如下：
+
+```java
+static final class Node {
+    /** Marker to indicate a node is waiting in shared mode */
+    static final Node SHARED = new Node();
+    /** Marker to indicate a node is waiting in exclusive mode */
+    static final Node EXCLUSIVE = null;
+
+    /** waitStatus value to indicate thread has cancelled */
+    static final int CANCELLED =  1;
+    /** waitStatus value to indicate successor's thread needs unparking */
+    static final int SIGNAL    = -1;
+    /** waitStatus value to indicate thread is waiting on condition */
+    static final int CONDITION = -2;
+    /** waitStatus value to indicate the next acquireShared should unconditionally propagate */
+    static final int PROPAGATE = -3;
+
+    /** 节点等待状态，默认0。当前节点的值表示后续节点的状态 */
+    volatile int waitStatus;
+
+    volatile Node prev;
+
+    volatile Node next;
+
+    volatile Thread thread;
+
+    Node nextWaiter;
+
+    final boolean isShared() {
+        return nextWaiter == SHARED;
+    }
+
+    final Node predecessor() throws NullPointerException {
+        Node p = prev;
+        if (p == null)
+            throw new NullPointerException();
+        else
+            return p;
+    }
+
+    Node() {    // Used to establish initial head or SHARED marker
+    }
+
+    Node(Thread thread, Node mode) {     // Used by addWaiter
+        this.nextWaiter = mode;
+        this.thread = thread;
+    }
+
+    Node(Thread thread, int waitStatus) { // Used by Condition
+        this.waitStatus = waitStatus;
+        this.thread = thread;
+    }
+}
+```
 
 
+同步队列：使用 `prev`、`next` 两个指针分别指向前一个、后一个节点，使用 `waitStatus` 属性表示节点的同步状态，同时封装了当前 Thread 对象。源码如下：
+
+```java
+volatile Node prev; // 前一个节点
+volatile Node next; // 下一个节点
+volatile Thread thread; // 线程对象
+```
+
+等待队列：使用 `nextWaiter` 一个指针指向后一个节点，使用 `waitStatus` 属性表示节点的同步状态，同时封装了当前 Thread 对象。
+
+```java
+Node nextWaiter; // 等待队列中的下一个节点
+```
+
+源码中 `waitStatus` 代表**节点等待状态**，默认 0。<font color=red>**当前节点的值表示后续节点的状态**</font>。
+
+```java
+volatile int waitStatus;
+```
+
+等待状态具体的可选值为以下常量：
+
+- `CANCELLED = 1` 取消状态，唯一大于0的值，当线程等待超时、发生异常或中断，节点会变成取消状态。
+- `SIGNAL = -1` 一般正常的节点状态，代表后一个节点需要被唤醒。
+- `CONDITION = -2` 在条件对象上等待的节点处于此状态，与 SIGNAL 唯一的区别就是数值不同，从而表示处于同步队列还是条件队列。
+- `PROPAGATE = -3` 传播，共享模式的节点处于此状态，表示当前节点的行为会向后续节点传播，即后续节点与当前节点行为相同。事实上，很少/很短时间有节点会处于此状态。
+
+
+### 5.2. AQS 的同步队列
+
+AQS 的同步队列用于存放获取锁失败的线程，线程会被封装成 Node 节点加入同步队列的尾部。同步队列有个头指示器（head）和尾指示器（tail）分别指向首节点和尾节点。
+
+![](images/375225510249192.jpg)
+
+**值得注意的是，头节点的状态为-1，即代表后续节点需要被唤醒。头结点（head）中并未封装线程实例，而且，前一个节点的状态其实代表的时候后一个节点的行为，而最后一个节点的状态，是默认值0**。
+
+### 5.3. AQS 的等待（条件）队列
+
+获取锁成功后，线程进入监视区域，但是如果线程不满足某些条件，就会再次进行等待。AQS 的等待（条件）队列用于存放不满足条件对象的线程，并且线程会被封装成节点，进入等待状态并加入等待队列的尾部。
+
+![](images/539255510237059.jpg)
+
+等待队列有个首节点指示器 `firstWaiter` 和尾节点指示器 `lastWaiter`。与同步队列不同的是，`firstWaiter` 指向的首节点是封装了线程实例的；同步队列的首节点是一个标志位，是一个具有特殊功能的头部，而等待队列只需要封装线程和它的同步信息即可。
+
+### 5.4. 同步队列节点的入队和出队（待整理）
+
+> TODO: 整理中

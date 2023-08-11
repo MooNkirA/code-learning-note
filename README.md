@@ -154,6 +154,12 @@
   <li><a href="#/前端资料/JavaScript/JavaScript-代码简洁之道">JavaScript 代码简洁之道</a></li>
 </ul>
 
+### 🎥 基础语法 - TypeScript
+
+<ul class="docs">
+  <li><a href="#/前端资料/TypeScript/TypeScript-基础">TypeScript 基础知识</a></li>
+</ul>
+
 ### 🅰 Angular.js
 
 待整理....
