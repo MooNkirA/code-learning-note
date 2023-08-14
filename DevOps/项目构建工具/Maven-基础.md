@@ -1,7 +1,5 @@
 ## 1. 概述
 
-> Maven 官网：https://maven.apache.org/
-
 ### 1.1. Maven 是什么
 
 Maven 的 Apache 公司开源项目，是项目依赖管理、构建工具。
@@ -51,6 +49,11 @@ maven 将项目构建的过程进行标准化，每个阶段使用一个命令�
 3. maven 的跨平台，可在 window、linux 上使用
 4. 使用 maven 可以分模块化的构建项目
 5. maven 对每个构建阶段都遵循规范开发，有利于提高大型团队的协作开发效率，降低项目的维护成本，大公司都会考虑使用 maven 来构建项目
+
+### 1.4. 相关资源
+
+- Maven 官网：https://maven.apache.org/
+- MvnCenter 更好用的maven搜索引擎，支持直接按类名、包名搜索：https://www.mvncenter.com/index
 
 ## 2. Maven 的安装与配置
 

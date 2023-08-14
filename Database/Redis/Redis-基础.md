@@ -143,19 +143,20 @@ Redis 的 SortedSet 类型，相当于可排序的 Set 集合，内部维护了�
 
 ## 3. Jedis（Java 操作 Redis）
 
-### 3.1. Jedis概述
+### 3.1. Jedis 概述
 
 Jedis 就是 Java 语法操作 Redis 的技术，类似于JDBC
 
 ![](images/20190511103850050_28588.jpg)
 
-### 3.2. Java连接Redis
+### 3.2. Java 连接 Redis
 
 - 导入jar包
     - commons-pool2-2.3.jar
     - jedis-2.7.0.jar
 
-### 3.3. Jedis类相关方法
+### 3.3. Jedis 类相关方法
+
 #### 3.3.1. 构造方法
 
 ```java
@@ -175,7 +176,7 @@ String get(String key, String value);
 // 根据键获取值
 ```
 
-### 3.4. Jedis连接池配置对象
+### 3.4. Jedis 连接池配置对象
 
 - **构造方法**
 
@@ -193,7 +194,7 @@ void setMaxWaitMillis(long maxWaitMillis);
 // 设置最大等待时间，参数为long类型毫秒值
 ```
 
-### 3.5. JedisPool连接池对象
+### 3.5. JedisPool 连接池对象
 
 - **构造方法**
 
@@ -211,7 +212,7 @@ Jedis getResource();
 // 获取Jedis对象
 ```
 
-### 3.6. 单实例与Jedis连接池连接
+### 3.6. 单实例与 Jedis 连接池连接
 
 ```java
 package lessonDemo;
@@ -266,7 +267,7 @@ public class TestJedis {
 }
 ```
 
-### 3.7. Jedis连接池工具类
+### 3.7. Jedis 连接池工具类
 
 ```java
 package com.moonzero.utils;
@@ -774,3 +775,16 @@ Redis 没有命令空间，而且也没有对键名有强制要求。设计合�
 
 - 如果 Redis 被当做缓存使用，使用一致性哈希实现动态扩容缩容。
 - 如果 Redis 被当做一个持久化存储使用，必须使用固定的 keys-to-nodes 映射关系，节点的数量一旦确定不能变化。否则的话（即 Redis 节点需要动态变化的情况），必须使用可以在运行时进行数据再平衡的一套系统，而当前只有 Redis 集群可以做到这样。
+
+## 11. Redis 网络模型
+
+Redis 通过『IO多路复用+事件派发』来提高网络性能，并且支持各种不同的多路复用实现，并且将这些实现进行封装，提供了统一的高性能事件库。
+
+![](images/369090017230854.jpg)
+
+I/O 多路复用是指利用单个线程来同时监听多个 Socket，并在某个 Socket 可读、可写时得到通知，从而避免无效的等待，充分利用 CPU 资源。目前的 I/O 多路复用都是采用的 **epoll 模式**实现，它会在通知用户进程 Socket 就绪的同时，把已就绪的 Socket 写入用户空间，不需要挨个遍历 Socket 来判断是否就绪，提升了性能。
+
+其中 Redis 的网络模型就是使用 I/O 多路复用结合事件的处理器来应对多个 Socket 请求。比如，提供了连接应答处理器、命令回复处理器，命令请求处理器；
+
+在 Redis 6.0 之后，为了提升更好的性能，在命令回复处理器使用了多线程来处理回复事件，在命令请求处理器中，将命令的转换使用了多线程，增加命令转换速度，在命令执行的时候，依然是单线程。
+
