@@ -1187,7 +1187,7 @@ export LESSHARESET=utf-8
 - mac 与 Unix 系统的换行使用 LF
 - windows 系统换行使用 CRLF
 
-因为不同系统的换行不一致，在多人协作共同开发的时候，可能导致提交代码时候产生问题。当使用git库提交代码的时候，不同的开发环境如果都是按照自己系统的方式任意修改换行类型，难免会让代码库整体混乱或者产生许多没有必要的代码更新。
+因为不同系统的换行不一致，在多人协作共同开发的时候，可能导致提交代码时候产生问题。当使用 git 库提交代码的时候，不同的开发环境如果都是按照自己系统的方式任意修改换行类型，难免会让代码库整体混乱或者产生许多没有必要的代码更新。
 
 Git 可以可以使用 `core.autocrlf` 命令设置在 push 时自动地把行结束符 CRLF 转换成 LF，而在 pull 代码时把 LF 转换成 CRLF。如果是在 Windows 系统上，把它设置成 `true`，这样当签出代码时，LF 会被转换成 CRLF
 
@@ -1207,3 +1207,8 @@ git config --global core.autocrlf input
 git config --global core.autocrlf false
 ```
 
+小结：
+
+- git 的 Windows 客户端基本都会默认设置 `core.autocrlf=true`，只要保持工作区都是纯 CRLF 文件，编辑器用 CRLF 换行，就不会出现相关警告。
+- Linux 最好不要设置 `core.autocrlf`，因为该配置算是为 Windows 平台定制。
+- Windows 上设置 `core.autocrlf=false`，仓库里也没有配置 `.gitattributes`，很容易引入 CRLF 或者混合换行符（Mixed Line Endings，一个文件里既有 LF 又有CRLF）到版本库，这样就可能产生各种奇怪的问题。

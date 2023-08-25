@@ -444,10 +444,10 @@ mysql> SHOW VARIABLES LIKE '%innodb_log_%';
 
 通过以上 SQL 语句可以查询到 redo log 相关的关键参数，重点关注的参数如下：
 
-- `innodb_log_buffer_size`：设置 redo log buffer 大小参数，默认16M ，最大值是4096M，最小值为1M。
+- `innodb_log_buffer_size`：设置 redo log buffer 大小参数，默认 16M，最大值是 4096M，最小值为 1M。
 - `innodb_log_group_home_dir`：设置 redo log 文件存储位置参数，默认值为"`./`"，即 innodb 数据文件存储位置，其中 redo log 文件如：ib_logfile0、ib_logfile1。（*注：mysql 8.0 版本后名称好像不一样了*）
-- `innodb_log_files_in_group`：设置 redo log 文件的个数，命名方式如: ib_logfile0, iblogfile1,...iblogfileN。默认2个，最大100个。
-- `innodb_log_file_size`：设置单个 redo log 文件大小，默认值为48M，最大值为512G。注意最大值指的是整个 redo log 系列文件之和，即(`innodb_log_files_in_group * innodb_log_file_size`)不能大于最大值512G。
+- `innodb_log_files_in_group`：设置 redo log 文件的个数，命名方式如: `ib_logfile0, iblogfile1,...iblogfileN`。默认2个，最大100个。
+- `innodb_log_file_size`：设置单个 redo log 文件大小，默认值为 48M，最大值为 512G。注意最大值指的是整个 redo log 系列文件之和，即(`innodb_log_files_in_group × innodb_log_file_size`)不能大于最大值 512G。
 
 > Notes: 后面会结合具体场景分析说明配置的作用。
 
