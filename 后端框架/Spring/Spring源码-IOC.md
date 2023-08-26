@@ -2652,7 +2652,20 @@ protected Object initializeBean(final String beanName, final Object bean, @Nulla
 #### 3.9.2. 循环依赖需要注意的问题
 
 - 循环依赖只会出现在单例实例无参构造函数实例化情况下
-- 有参构造函数的加 `@Autowired` 的方式循环依赖会直接报错
+- 有参构造函数的加 `@Autowired` 的方式循环依赖会直接报错。解决方法：在有参构造方法参数列表中增加 `@Lazy` 注解，让对象延迟加载即可。
+
+```java
+public A(@Lazy B b) {
+    System.out.println("A的构造方法执行了...");
+    this.b = b;
+}
+
+public B(@Lazy A a) {
+    System.out.println("B的构造方法执行了...");
+    this.a = a;
+}
+```
+
 - 多例的循环依赖也是直接报错
 
 #### 3.9.3. 循环依赖步骤与源码分析

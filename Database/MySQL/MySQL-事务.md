@@ -444,10 +444,10 @@ mysql> SHOW VARIABLES LIKE '%innodb_log_%';
 
 通过以上 SQL 语句可以查询到 redo log 相关的关键参数，重点关注的参数如下：
 
-- `innodb_log_buffer_size`：设置 redo log buffer 大小参数，默认16M ，最大值是4096M，最小值为1M。
+- `innodb_log_buffer_size`：设置 redo log buffer 大小参数，默认 16M，最大值是 4096M，最小值为 1M。
 - `innodb_log_group_home_dir`：设置 redo log 文件存储位置参数，默认值为"`./`"，即 innodb 数据文件存储位置，其中 redo log 文件如：ib_logfile0、ib_logfile1。（*注：mysql 8.0 版本后名称好像不一样了*）
-- `innodb_log_files_in_group`：设置 redo log 文件的个数，命名方式如: ib_logfile0, iblogfile1,...iblogfileN。默认2个，最大100个。
-- `innodb_log_file_size`：设置单个 redo log 文件大小，默认值为48M，最大值为512G。注意最大值指的是整个 redo log 系列文件之和，即(`innodb_log_files_in_group * innodb_log_file_size`)不能大于最大值512G。
+- `innodb_log_files_in_group`：设置 redo log 文件的个数，命名方式如: `ib_logfile0, iblogfile1,...iblogfileN`。默认2个，最大100个。
+- `innodb_log_file_size`：设置单个 redo log 文件大小，默认值为 48M，最大值为 512G。注意最大值指的是整个 redo log 系列文件之和，即(`innodb_log_files_in_group × innodb_log_file_size`)不能大于最大值 512G。
 
 > Notes: 后面会结合具体场景分析说明配置的作用。
 
@@ -919,7 +919,7 @@ MVCC 机制是通过 **read-view 机制与 undo 版本链比对机制**来实现
 
 值得注意的是，<font color=red>**begin/start transaction 命令并不是一个事务的起点，而是在它们之后执行的第一个修改操作或加排它锁操作(比如`select...for update`)的语句，事务才真正启动，此时才会向 mysql 申请真正的事务 id，mysql 内部是严格按照事务的启动顺序来分配事务 id**</font>。
 
-ReadView 中主要包含4个比较重要的内容：
+**ReadView 中主要包含4个比较重要的内容**：
 
 - `m_ids`：表示在生成 ReadView 时当前系统中活跃的读写事务的事务 id 列表。
 - `min_trx_id`：表示在生成 ReadView 时当前系统中活跃的读写事务中最小的事务 id，也就是 m_ids 中的最小值。
@@ -930,7 +930,18 @@ ReadView 中主要包含4个比较重要的内容：
 
 ### 9.4. undo 日志版本链与 ReadView 机制详解
 
-#### 9.4.1. 不同隔离级别事务读取记录的区别
+#### 9.4.1. ReadView 访问版本链数据的规则
+
+假设 `trx_id` 是当前访问的版本链数据的事务ID。其版本链数据访问规则如下：
+
+- `trx_id == creator_trx_id`：说明数据是当前这个事务更改的，可以访问该版本。
+- `trx_id < min_trx_id`：说明数据已经提交了，可以访问该版本。
+- `trx_id > max_trx_id`：说明该事务是在 ReadView 生成后才开启。
+- `min_trx_id <= trx_id <= max_trx_id`，分如下两种情况：
+    - 如果 trx_id 不在 m_ids 中，说明数据已经提交。可以访问该版本
+    - 如果 trx_id 在 m_ids 中，说明创建 ReadView 时生成该版本的事务还是活跃的，该版本不可以被访问
+
+#### 9.4.2. 不同隔离级别事务读取记录的区别
 
 - 对于使用 READ UNCOMMITTED 隔离级别的事务来说，由于可以读到未提交事务修改过的记录，所以直接读取记录的最新版本即可。
 - 对于使用 SERIALIZABLE 隔离级别的事务来说，InnoDB 使用加锁的方式来访问记录。
@@ -938,16 +949,23 @@ ReadView 中主要包含4个比较重要的内容：
 
 **因此，READ COMMITTED 和 REPEATABLE READ 这两种隔离级别关键是需要判断一下版本链中的哪个版本是当前事务可见的**。
 
-#### 9.4.2. 不同隔离级别创建 ReadView 的时机
+#### 9.4.3. 不同隔离级别创建 ReadView 的时机
 
 在 MySQL 中，READ COMMITTED 和 REPEATABLE READ 隔离级别的的一个非常大的区别就是它们<font color=red>**生成 ReadView 的时机不同**</font>。
 
 -  实现 READ COMMITTED 隔离级别，事务里每次执行查询操作时都会按照数据库当前状态重新生成 readview，也就是每次查询都是跟数据库里当前所有事务提交状态来比对数据是否可见，因此可以实现每次都能查到已提交的最新数据的效果。
+
+![](images/19375215249284.jpg)
+
 - 实现 REPEATABLE READ 隔离级别，事务里每次执行查询操作时都是使用第一次查询时生成的 readview，也就是都是以第一次查询时当时数据库里所有事务提交状态来比对数据是否可见，因此可以实现每次查询的可重复读的效果。
 
-#### 9.4.3. 修改操作的事务实现原理
+![](images/116765215237151.jpg)
+
+#### 9.4.4. 修改操作的事务实现流程原理解析
 
 *以下是 REPEATABLE READ 隔离级别下的事务实现说明*。假设插入一条记录的事务 id 为 80 并且已经提交事务，后面有3个事务 id 分别为 300、100、200 的事务对这条记录进行 UPDATE 操作，操作流程如下：
+
+![流程图-MVCC多版本并发控制.drawio](images/405512316236656.jpg)
 
 ![流程图-MVCC多版本并发控制.drawio](images/590542116248789.jpg)
 
@@ -961,9 +979,7 @@ ReadView 中主要包含4个比较重要的内容：
     - 如果 row 的 trx_id 不在视图数组中，说明创建 ReadView 时生成该版本的事务已经被提交，该版本可以被访问。
 5. 如果某个版本的数据对当前事务不可见的话，那就顺着版本链找到下一个版本的数据，继续按照上边的步骤判断可见性，依此类推，直到版本链中的最后一个版本。如果最后一个版本也不可见的话，那么就意味着该条记录对该事务完全不可见，查询结果就不包含该记录
 
-![流程图-MVCC多版本并发控制.drawio](images/405512316236656.jpg)
-
-#### 9.4.4. 删除操作的事务实现原理
+#### 9.4.5. 删除操作的事务实现原理
 
 对于删除的情况可以认为是 update 操作的特殊情况，会将版本链上最新的数据复制一份，然后将 trx_id 修改成删除操作的 trx_id，同时将该条记录的头信息（record header）里的（deleted_flag）标记位设置为 true，用于表示当前记录已经被删除，在查询时按照上面的规则查到对应的记录如果 delete_flag 标记位为 true，意味着记录已被删除，则不返回数据。
 

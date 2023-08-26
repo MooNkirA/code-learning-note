@@ -401,6 +401,37 @@ UTF8MB4 常用的排序规则：utf8mb4_unicode_ci、utf8mb4_general_ci、utf8mb
 create database db4 default character set gbk collate gbk_chinese_ci;
 ```
 
+#### 4.8.4. DOS 命令行下汉字乱码的问题（了解）
+
+##### 4.8.4.1. 查看字符集
+
+语法：
+
+```sql
+show variables like 'character%';
+```
+
+参数解释：
+
+- `show variables` 显示所有的全局变量
+- `%` 代表通配符
+
+![](images/20190404083401020_12924.jpg)
+
+##### 4.8.4.2. 修改字符集
+
+DOS命令行默认的字符集是GBK，而数据库的字符集是UTF-8，要将数据库中下列三项的字符集也改成GBK。在命令行插入数据之前输入: `set names gbk;` 则等同于
+
+```sql
+set character_set_connection=gbk; -- 设置数据库连接使用的字符集
+set character_set_results=gbk; -- 设置查询结果的字符集
+set character_set_client=gbk; -- 设置客户端的字符集
+```
+
+![修改字符集](images/20190404083532484_32038.jpg)
+
+注：上面只改变了本次运行时的数据库局部的字符集，重启后也会变回原来的模式。
+
 ## 5. MySQL 表的管理（DDL）
 
 ### 5.1. 查看表结构
@@ -1183,11 +1214,30 @@ SELECT * FROM student WHERE id IN (1,3); -- 这种效率更高
 SELECT * FROM student WHERE id=1 OR id=3; -- 等价于上面的sql
 ```
 
+##### 7.3.4.4. 扩展 - 行行比较（SQL-92）
+
+SQL-92 中加入了行与行比较的功能。如 `=`、`<`、`>` 和 `IN` 等比较运算符就不再只是标量值了，还可以是值列表。
+
+案例需求：业务机构下销售商品，同个业务机构可以销售不同的商品，同个商品可以在不同的业务机构销售，也就说：业务机构与商品是多对多的关系。假设现在有 n 个机构，每个机构下有几个商品，如何查询出这几个门店下各自商品的销售情况？
+
+具体的 SQL 类似如下：
+
+![](images/516312022230863)
+
+Mybatis 的动态 SQL 实现，类似如下
+
+![](images/495842422237156)
+
+此类型 SQL 同样能走索引
+
+![](images/63382222249289)
+
+总结：行行比较是 SQL 规范，不是某个关系型数据库的规范，即关系型数据库都应该支持这种写法。行行比较是 SQL-92 中引入的，SQL-92 是 1992 年制定的规范，即该写法不是新特性，而是很早就存在的基础功能！
 
 #### 7.3.5. 逻辑运算符
 
-|    逻辑运算符    |          说明          |
-| :-------------: | --------------------- |
+|    逻辑运算符    |         说明          |
+| :-------------: | -------------------- |
 | `NOT` 或者 `!`  | 逻辑非，条件不成立      |
 | `AND` 或者 `&&` | 逻辑与，多个条件同时成立 |
 | `OR` 或者 `||`  | 逻辑或，多个条件任一成立 |
@@ -1202,8 +1252,8 @@ SELECT * FROM student WHERE id=3 OR gender='男';
 
 #### 7.3.6. 位运算符(了解)
 
-| 位运算符 |         说明         |
-| :-----: | -------------------- |
+| 位运算符 |        说明         |
+| :-----: | ------------------ |
 |   `|`   | 按位或               |
 |   `&`   | 按位与               |
 |   `^`   | 按位异或             |
@@ -3441,40 +3491,9 @@ constraint foreign key(外键名) references 主表(主键名) on update set nul
 
 ## 12. MySQL 扩展内容
 
-### 12.1. DOS 命令行下汉字乱码的问题（了解）
+### 12.1. 系统变量
 
-#### 12.1.1. 查看字符集
-
-语法：
-
-```sql
-show variables like 'character%';
-```
-
-参数解释：
-
-- `show variables` 显示所有的全局变量
-- `%` 代表通配符
-
-![](images/20190404083401020_12924.jpg)
-
-#### 12.1.2. 修改字符集
-
-DOS命令行默认的字符集是GBK，而数据库的字符集是UTF-8，要将数据库中下列三项的字符集也改成GBK。在命令行插入数据之前输入: `set names gbk;` 则等同于
-
-```sql
-set character_set_connection=gbk; -- 设置数据库连接使用的字符集
-set character_set_results=gbk; -- 设置查询结果的字符集
-set character_set_client=gbk; -- 设置客户端的字符集
-```
-
-![修改字符集](images/20190404083532484_32038.jpg)
-
-注：上面只改变了本次运行时的数据库局部的字符集，重启后也会变回原来的模式。
-
-### 12.2. 系统变量
-
-#### 12.2.1. 简介
+#### 12.1.1. 简介
 
 系统变量又分为**全局变量**与**会话变量**
 
@@ -3485,7 +3504,7 @@ set character_set_client=gbk; -- 设置客户端的字符集
 
 有些系统变量的值是可以利用语句来动态进行更改的，但是有些系统变量的值却是只读的，对于那些可以更改的系统变量，可以利用`set`语句进行更改。
 
-#### 12.2.2. 系统变量-全局变量
+#### 12.1.2. 系统变量-全局变量
 
 由系统提供，在整个数据库有效。
 
@@ -3507,7 +3526,7 @@ set global sort_buffer_size = 40000;
 set @@global.sort_buffer_size = 40000;
 ```
 
-#### 12.2.3. 系统变量-会话变量
+#### 12.1.3. 系统变量-会话变量
 
 由系统提供，当前会话（连接）有效
 
@@ -3529,11 +3548,11 @@ set session sort_buffer_size = 50000;
 set @@session.sort_buffer_size = 50000;
 ```
 
-### 12.3. MySQL 的 pymysql 操作
+### 12.2. MySQL 的 pymysql 操作
 
 PyMySQL 是一个纯 Python 实现的 MySQL 客户端库，支持兼容 Python 3，用于代替 MySQLdb。
 
-#### 12.3.1. 查询示例
+#### 12.2.1. 查询示例
 
 ```python
 import pymysql
@@ -3561,7 +3580,7 @@ cursor.close()
 conn.close()
 ```
 
-#### 12.3.2. 增删改示例
+#### 12.2.2. 增删改示例
 
 ```python
 import pymysql
@@ -3593,21 +3612,21 @@ cursor.close()
 conn.close()
 ```
 
-### 12.4. MySQL 数据库的伪表 DUAL
+### 12.3. MySQL 数据库的伪表 DUAL
 
 与 Oracle 数据库的伪表 DUAL 一样的用法
 
-### 12.5. 在 Unix 和 MySQL 时间戳之间进行转换
+### 12.4. 在 Unix 和 MySQL 时间戳之间进行转换
 
 - `UNIX_TIMESTAMP` 是从 MySQL 时间戳转换为 Unix 时间戳的命令
 - `FROM_UNIXTIME` 是从 Unix 时间戳转换为 MySQL 时间戳的命令
 
-### 12.6. MySQL_fetch_array 和 MySQL_fetch_object 的区别
+### 12.5. MySQL_fetch_array 和 MySQL_fetch_object 的区别
 
 - `MySQL_fetch_array` – 将结果行作为关联数组或来自数据库的常规数组返回。
 - `MySQL_fetch_object` – 从数据库返回结果行作为对象。
 
-### 12.7. 如何存储 IP 地址（待整理）
+### 12.6. 如何存储 IP 地址（待整理）
 
 1. 使用字符串。此方式无法使用范围查询。
 2. 使用无符号整型。只占用 4 个字节的空间，并且此方式可以支持范围查询，传统的 IP 地址使用 `INET_ATON()` 和 `INET_NTOA()`；ipv6 使用 `INET6_ATON()` 和 `INET6_NTOA()`。

@@ -2079,6 +2079,7 @@ explain select * from user u,user_role ur where u.uid = ur.uid;
 
 - 关联字段加索引，让 mysql 做 join 操作时尽量选择 NLJ 算法（*详见后面的章节*）
 - 小表驱动大表，写多表连接 sql 时如果明确知道哪张表是小表可以用 `straight_join` 写法固定连接驱动方式，省去 mysql 优化器判断的时间
+- 尽量 inner join 而不用 left join 或者 right join（*如必须使用，一定要以小表为驱动*）。因为内连接会对两个表进行优化，优先把小表放到外边，把大表放到里边。而 left join 或 right join，不会重新调整顺序。
 
 > Tips: 使用 straight_join 一定要慎重，因为大部分情况下人为指定的执行顺序并不一定会比优化引擎选择的要更优，建议尽可能让优化器去判断。
 

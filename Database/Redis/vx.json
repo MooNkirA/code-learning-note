@@ -2,10 +2,10 @@
     "created_time": "2019-04-08T00:18:19Z",
     "files": [
         {
-            "attachment_folder": "513960823237136",
+            "attachment_folder": "",
             "created_time": "2019-04-18T14:56:36Z",
             "id": "524",
-            "modified_time": "2023-08-05T08:12:13Z",
+            "modified_time": "2023-08-13T09:07:31Z",
             "name": "Redis-基础.md",
             "signature": "118139013209535",
             "tags": [
@@ -22,7 +22,7 @@
             ]
         },
         {
-            "attachment_folder": "553230517249272",
+            "attachment_folder": "",
             "created_time": "2019-11-14T06:37:21Z",
             "id": "483",
             "modified_time": "2023-08-06T14:45:16Z",
