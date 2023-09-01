@@ -2651,3 +2651,12 @@ public class IpCountAutoConfiguration {
 在 web 程序端导入自定义 starter 后功能开启，去掉坐标后功能消失。
 
 自定义 stater 的开发其实就是创建独立模块，导出独立功能，在需要使用的工程中导入对应的 starter 即可。如果是在企业中开发，记得不仅需要将开发完成的 starter 模块 `install` 到本地仓库中，开发完毕后还要 `deploy` 到私服上，否则别人就无法使用了。
+
+## 12. Spring Boot 学习参考资源
+
+- [Spring boot 官网](https://spring.io/projects/spring-boot)
+- [Spring Boot 参考指南- 英文版](https://docs.spring.io/spring-boot/docs/current/reference/htmlsingle/)
+- [方志朋的专栏 - Spring Boot 系列文章](https://www.fangzhipeng.com/spring-boot.html)
+- [纯洁的微笑-Spring Boot系列文章](http://www.ityouknow.com/spring-boot.html)
+- [江南一点雨-关于Spring Boot](https://www.javaboy.org/springboot/)
+- [Spring Boot 中文文档](https://felord.cn/_doc/_springboot/2.1.5.RELEASE/_book/)
