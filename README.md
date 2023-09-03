@@ -21,11 +21,10 @@
   <li><a href="#/Java/Java基础-Java8新特性">Java基础 - Java 8 新特性</a></li>
   <li><a href="#/Java/Java基础-正则表达式">Java基础 - 正则表达式</a></li>
   <li><a href="#/Java/Java基础-JDK常用API">Java基础 - 常用API</a></li>
-  <li><a href="#/Java/Java扩展-综合知识">Java扩展 - 综合知识</a></li>
-  <li><a href="#/Java/Java扩展-设计模式">Java扩展 - 设计模式</a></li>
   <li><a href="#/Java/Java扩展-代码简洁之道">Java扩展 - 代码简洁之道</a></li>
+  <li><a href="#/Java/Java扩展-设计模式">Java扩展 - 设计模式</a></li>
   <li><a href="#/Java/Java扩展-数据结构">Java扩展 - 数据结构</a></li>
-  <li><a href="#/Java/Java扩展-排序算法">Java扩展 - 排序算法</a></li>
+  <li><a href="#/Java/Java扩展-算法">Java扩展 - 算法</a></li>
   <li><a href="#/Java/Java扩展-JDK集合类源码分析">Java扩展 - JDK 集合类源码分析</a></li>
   <li><a href="#/Java/Java扩展-程序案例">Java扩展 - 程序案例</a></li>
 </ul>
@@ -75,6 +74,7 @@
   <li><a href="#/后端框架/MyBatis/MyBatis-代码生成器">MyBatis 代码生成器（逆向工程）</a></li>
   <li><a href="#/后端框架/MyBatis/MyBatis-源码分析">MyBatis 源码分析</a></li>
   <li><a href="#/后端框架/MyBatis/MyBatis-Plus">MyBatis-Plus 基础笔记</a></li>
+  <li><a href="#/后端框架/MyBatis/MyBatis-Flex">MyBatis-Flex 基础笔记（整理中）</a></li>
 </ul>
 
 ### 🧰 SpringMVC

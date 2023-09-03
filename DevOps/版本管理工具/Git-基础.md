@@ -122,6 +122,62 @@ Git 的版本库里存了很多东西，其中最重要的就是称为 stage（�
 
 因为在创建 Git 版本库时，Git 自动创建了唯一一个 master 分支，所以现在 `git commit` 就是往 master 分支上提交更改。可以简单理解为，需要提交的文件修改通通放到暂存区，然后一次性提交暂存区的所有修改。
 
+### 3.4. Git 仓库的特殊文件
+
+#### 3.4.1. .gitkeep 文件
+
+`.gitkeep`文件是用来保证当前目录即使为空，也会上传到远程仓库（如 github）上
+
+#### 3.4.2. .gitignore 忽略规则文件（待整理）
+
+`.gitignore` 的文件用于声明忽略文件或不忽略文件的规则，**规则对当前目录及其子目录生效**。
+
+> 注意：该文件因为没有文件名，没办法直接在windows目录下直接创建（*win10系统后来一些版本可以直接创建没有文件名的文件*），可以通过命令行 Git Bash 来 `touch` 指令来创建。
+
+##### 3.4.2.1. 忽略文件语法规范
+
+- 忽略所有 `.a` 的文件
+
+```
+*.a
+```
+
+- 否定忽略 `lib.a`，尽管已经在前面忽略了所有 `.a` 文件
+
+```
+!lib.a
+```
+
+- 忽略 `build/` 文件夹下的所有文件
+
+```
+/build/
+```
+
+- 忽略指定目录下的所有 `.txt` 文件（不包含其子目录）。例如：`/doc/notes.txt`，但不包括 `doc/server/arch.txt`
+
+```
+/doc/*.txt
+```
+
+- 忽略所有在 doc 目录及其子目录的 `.pdf` 文件
+
+```
+doc/**/*.pdf
+```
+
+##### 3.4.2.2. Gitignore 参考模板
+
+初用 Git 的工程师，都有着一个苦恼，每次都得针对不同项目、不同语言类型来重复写 .gitignore，以忽略一些无需纳入 Git 管理的文件。[Gitignore](https://github.com/github/gitignore)项目就是帮工程师解决这个问题的。每次需要为项目创建 .gitignore 文件时，只需要打开这个项目，针对你当前所用编程语言或框架，去寻找对应 .gitignore 模板替换即可。
+
+如果觉得挨个模板查阅很费劲，推荐一个网站：[gitignore.io](https://www.toptal.com/developers/gitignore)，支持一键搜索你所需的 gitignore 模板。
+
+![](images/38921110220966.png)
+
+#### 3.4.3. .gitconfig 配置文件
+
+在 OS X 和 Linux 下，Git 的配置文件储存在 `~/.gitconfig`。在 windows 系统中，存储在`%HOMEPATH%\.gitconfig`
+
 ## 4. Git 远程仓库
 
 在本地创建了一个 Git 仓库，又想让其他人来协作开发，此时就可以把本地仓库同步到远程仓库，同时还增加了本地仓库的一个备份。
@@ -199,6 +255,41 @@ $ git config --list
 
 # 查看当前 git 指定的配置信息
 $ git config [--global] user.name
+```
+
+#### 7.2.4. 设置 Git 短命令
+
+设置短命令可以很好的提高效率。有以下两种设置短命令的方式：
+
+- 方式一：使用命令配置
+
+```bash
+git config --global alias.ps push
+```
+
+- 方式二：通过 .gitconfig 全局配置文件设置
+
+```bash
+# 打开全局配置文件
+vim ~/.gitconfig
+```
+
+写入内容，例如：
+
+```properties
+[alias] 
+    co = checkout
+    ps = push
+    pl = pull
+    mer = merge --no-ff
+    cp = cherry-pick
+```
+
+通过过以上配置后，使用效果如下：
+
+```bash
+# 等同于 git cherry-pick <commitHash>
+git cp <commitHash>
 ```
 
 ### 7.3. 基础操作命令
@@ -788,65 +879,9 @@ $ git checkout -b <分支名称> <标签名称>
 $ git archive
 ```
 
-## 8. Git 仓库的特殊文件
+## 8. Git Bash 操作 Github 远程仓库
 
-### 8.1. .gitkeep 文件
-
-`.gitkeep`文件是用来保证当前目录即使为空，也会上传到 github 上
-
-### 8.2. .gitignore 忽略规则文件（待整理）
-
-`.gitignore` 的文件用于声明忽略文件或不忽略文件的规则，**规则对当前目录及其子目录生效**。
-
-> 注意：该文件因为没有文件名，没办法直接在windows目录下直接创建（*win10系统后来一些版本可以直接创建没有文件名的文件*），可以通过命令行 Git Bash 来 `touch` 指令来创建。
-
-#### 8.2.1. 忽略文件语法规范
-
-- 忽略所有 `.a` 的文件
-
-```
-*.a
-```
-
-- 否定忽略 `lib.a`，尽管已经在前面忽略了所有 `.a` 文件
-
-```
-!lib.a
-```
-
-- 忽略 `build/` 文件夹下的所有文件
-
-```
-/build/
-```
-
-- 忽略指定目录下的所有 `.txt` 文件（不包含其子目录）。例如：`/doc/notes.txt`，但不包括 `doc/server/arch.txt`
-
-```
-/doc/*.txt
-```
-
-- 忽略所有在 doc 目录及其子目录的 `.pdf` 文件
-
-```
-doc/**/*.pdf
-```
-
-#### 8.2.2. Gitignore 参考模板
-
-初用 Git 的工程师，都有着一个苦恼，每次都得针对不同项目、不同语言类型来重复写 .gitignore，以忽略一些无需纳入 Git 管理的文件。[Gitignore](https://github.com/github/gitignore)项目就是帮工程师解决这个问题的。每次需要为项目创建 .gitignore 文件时，只需要打开这个项目，针对你当前所用编程语言或框架，去寻找对应 .gitignore 模板替换即可。
-
-如果觉得挨个模板查阅很费劲，推荐一个网站：[gitignore.io](https://www.toptal.com/developers/gitignore)，支持一键搜索你所需的 gitignore 模板。
-
-![](images/38921110220966.png)
-
-### 8.3. .gitconfig 配置文件
-
-在 OS X 和 Linux 下，Git 的配置文件储存在 `~/.gitconfig`。在 windows 系统中，存储在`%HOMEPATH%\.gitconfig`
-
-## 9.  Git Bash 操作 Github 远程仓库
-
-### 9.1. Github 仓库同步
+### 8.1. Github 仓库同步
 
 在仓库所在的目录（例如 D:\git_repo）点击右键选择【Git Bash Here】，启动 git bash 程序。
 
@@ -881,7 +916,7 @@ git remote rm mytest
 
 ![](images/531661708236949.jpg)
 
-### 9.2. Github 仓库克隆
+### 8.2. Github 仓库克隆
 
 克隆远程仓库也就是从远程把仓库复制一份到本地，克隆后会创建一个新的本地仓库。选择一个任意部署仓库的目录，然后克隆远程仓库。
 
@@ -891,7 +926,7 @@ $ git clone git@github.com:仓库名称/mytest.git
 
 ![](images/300332008257115.jpg)
 
-### 9.3. Github 拉取代码
+### 8.3. Github 拉取代码
 
 使用以下命令可以从 github 上拉取代码
 
@@ -900,9 +935,9 @@ $ git clone git@github.com:仓库名称/mytest.git
 
 ![](images/163533008249784.jpg)
 
-## 10. Git 扩展知识
+## 9. Git 扩展知识
 
-### 10.1. git 分支命名规范
+### 9.1. git 分支命名规范
 
 **Git 常用分支命名**
 
@@ -934,9 +969,9 @@ $ git clone git@github.com:仓库名称/mytest.git
 - 开发过程中，如果组员A开发的功能依赖组员B正在开发的功能，可以待组员B开发好相关功能之后，组员A直接pull组员B的分支下来开发，不需要先将组员B的分支merge到develop分支。
 - feature 分支在申请合并之前，最好是先 pull 一下 develop 主分支下来，看一下有没有冲突，如果有就先解决冲突后再申请合并。
 
-### 10.2. git提交规范
+### 9.2. git提交规范
 
-#### 10.2.1. 中文式提交格式参考
+#### 9.2.1. 中文式提交格式参考
 
 ```
 <新功能|bug修复|文档改动|格式化|重构|测试代码>: (影响范围) <主题>
@@ -944,7 +979,7 @@ $ git clone git@github.com:仓库名称/mytest.git
 issue #?
 ```
 
-#### 10.2.2. 提交类型
+#### 9.2.2. 提交类型
 
 关于 commit 时类别，一般通用的如下
 
@@ -960,7 +995,7 @@ issue #?
 - chore：构建过程或辅助工具的变动，除上面之外的修改
 - revert：撤销先前的提交
 
-#### 10.2.3. 提交注释示例
+#### 9.2.3. 提交注释示例
 
 ```
 <类型>: <主题>
@@ -984,13 +1019,13 @@ issue #?
 # ---------------- 例子结束 -----------------------
 ```
 
-### 10.3. 免费源代码托管网站
+### 9.3. 免费源代码托管网站
 
-#### 10.3.1. GitHub
+#### 9.3.1. GitHub
 
 > 官网：https://github.com/
 
-#### 10.3.2. 码云（Gitee）
+#### 9.3.2. 码云（Gitee）
 
 > 网址：https://gitee.com/
 
@@ -1000,7 +1035,7 @@ issue #?
 
 7 月 14 日，工业和信息化部技术发展司公布了 「2020 年开源托管平台项目」的招标结果，由深圳市奥思网络科技有限公司（开源中国）牵头，与国家工业信息安全发展研究中心等 10 家单位组成的联合体中标该项目，联合体将依托码云建设中国独立的开源托管平台。
 
-#### 10.3.3. Coding.net
+#### 9.3.3. Coding.net
 
 > 网址：https://coding.net/
 
@@ -1010,7 +1045,7 @@ Coding.net的项目管理包含任务、讨论、文件等功能，支持多成�
 
 随着Github免费策略的推进，CODING 也已经顺势开放所有基础功能（项目协同、代码托管、CI/CD 等）免费使用，不限成员数，帮助国内开发者零成本开始研发协作。
 
-#### 10.3.4. Agit.ai
+#### 9.3.4. Agit.ai
 
 > 网址：https://agit.ai/
 
@@ -1020,7 +1055,7 @@ Coding.net的项目管理包含任务、讨论、文件等功能，支持多成�
 
 Agit.ai为开发者提供集成了Tensorflow、Pytorch、Ray等常用AI库的开发环境镜像，以及一键式运行的的分布式计算资源，每一个为了环境搭建而苦恼的算法攻城狮，看到之后都应该会倍感欣慰。独特的匿名分享功能简直就是为了论文投稿的双盲评审而生，也可以从中看到浓浓的学术背景。
 
-#### 10.3.5. BitBucket
+#### 9.3.5. BitBucket
 
 > 网址：https://bitbucket.org/
 
@@ -1028,9 +1063,9 @@ Agit.ai为开发者提供集成了Tensorflow、Pytorch、Ray等常用AI库的开
 
 值得注意的是，它让用户可以使用任何 Git 客户端或 Git 命令行来推送文件。并且 BitBucket 可以部署在云端、数据中心或本地服务器上。
 
-### 10.4. git 钩子
+### 9.4. git 钩子
 
-#### 10.4.1. 本地禁止提交(commit)到 master 分支
+#### 9.4.1. 本地禁止提交(commit)到 master 分支
 
 一般 master 分支只能从其他分支合并代码，为了防止意外提交和开发者随意提交到 master 分支。可以通过提交前钩子来禁止提交到 master 分支，在 git 项目目录下添加 `.git/hooks/pre-commit` 文件，添加内容如下：
 
@@ -1043,15 +1078,15 @@ if [ "master" == "$branch" ]; then
 fi
 ```
 
-### 10.5. 减小 Git 仓库 .git 文件大小（待测试）
+### 9.5. 减小 Git 仓库 .git 文件大小（待测试）
 
 > 后面待测试与修改，参考：https://blog.csdn.net/LOI_QER/article/details/107911115
 
-#### 10.5.1. 起因
+#### 9.5.1. 起因
 
 使用 git 储存本地音频、相片时，其中很多文件超过 10Mb，更有很多超过 50Mb，这些文件都添加到 git 的历史记录中`(git add . && git commit`)，就算后面删除了这些文件本身，但其提交记录永久的留在了 .git 中，被 git 保存为了 Blob 对象储存起来了，导致 .git 目录超过 35 Gb，占用过多硬盘空间，所以需要进行“瘦身”。
 
-#### 10.5.2. git gc 修剪历史提交
+#### 9.5.2. git gc 修剪历史提交
 
 当运行 `git gc` 命令时，Git 会收集所有松散对象并将它们存入 packfile，合并这些 packfile 进一个大的 packfile，然后将不被任何 `commit` 引用并且已存在一段时间 (数月) 的对象删除。 此外， Git 还会将所有引用 (references) 并入一个单独文件。
 
@@ -1098,9 +1133,9 @@ $ git gc --prune=now
 $ git count-objects -v
 ```
 
-## 11. Git 常见问题解决方法汇总
+## 10. Git 常见问题解决方法汇总
 
-### 11.1. fatal detected dubious ownership in repository 解决办法
+### 10.1. fatal detected dubious ownership in repository 解决办法
 
 问题描述：在git仓库中执行 `git pull` 命令时，提示：`fatal: detected dubious ownership in repository`。这是因为 git 担心的权限安全策略导致的报错，可以按提示把某个（或多个）目录添加到信任列表
 
@@ -1115,9 +1150,9 @@ git config --global --add safe.directory D:/www/other-project
 git config --global --add safe.directory "*"
 ```
 
-### 11.2. git 显示和提交中文乱码
+### 10.2. git 显示和提交中文乱码
 
-#### 11.2.1. git status 无法显示中文
+#### 10.2.1. git status 无法显示中文
 
 使用 `git status` 查看有改动但未提交的文件时总只显示数字串，显示不出中文文件名。这是因为在默认设置下，中文文件名在工作区状态输出，中文名不能正确显示，而是显示为八进制的字符编码。
 
@@ -1129,7 +1164,7 @@ git config --global --add safe.directory "*"
 git config --global core.quotepath false
 ```
 
-#### 11.2.2. git bash 终端显示中文乱码
+#### 10.2.2. git bash 终端显示中文乱码
 
 git bash 终端需要设置成中文和utf-8编码，才能正确显示中文。
 
@@ -1139,7 +1174,7 @@ git bash 终端需要设置成中文和utf-8编码，才能正确显示中文。
 
 > Tips: 英文界面显示则是：【Options】->【Text】->【Locale】改为 `zh_CN`，Character set 改为 `UTF-8`
 
-#### 11.2.3. 修改配置文件方式解决中文乱码
+#### 10.2.3. 修改配置文件方式解决中文乱码
 
 还可以通过直接修改配置文件的方式来解决中文乱码问题。进入 git 的安装目录，编辑 etc\gitconfig 文件，在文件末尾增加以下内容：
 
@@ -1182,7 +1217,7 @@ export LESSHARESET=utf-8
 
 > Notes: 注意以上内容配置时，删除`#`号的注释
 
-### 11.3. Git 在跨平台 CRLF 和 LF 的解决方案
+### 10.3. Git 在跨平台 CRLF 和 LF 的解决方案
 
 - mac 与 Unix 系统的换行使用 LF
 - windows 系统换行使用 CRLF
@@ -1212,3 +1247,7 @@ git config --global core.autocrlf false
 - git 的 Windows 客户端基本都会默认设置 `core.autocrlf=true`，只要保持工作区都是纯 CRLF 文件，编辑器用 CRLF 换行，就不会出现相关警告。
 - Linux 最好不要设置 `core.autocrlf`，因为该配置算是为 Windows 平台定制。
 - Windows 上设置 `core.autocrlf=false`，仓库里也没有配置 `.gitattributes`，很容易引入 CRLF 或者混合换行符（Mixed Line Endings，一个文件里既有 LF 又有CRLF）到版本库，这样就可能产生各种奇怪的问题。
+
+## 11. Git 学习资源分享
+
+- [阮一峰 Git 教程](https://www.bookstack.cn/read/git-tutorial/README.md)

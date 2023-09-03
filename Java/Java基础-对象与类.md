@@ -1986,3 +1986,26 @@ StringBuilder sb = new StringBuilder("MooNkirA");
 
 > TODO: 待整理
 
+## 13. 类与对象综合知识
+
+### 13.1. 实体类各种命名含义
+
+#### 13.1.1. VO、PO、DO、DTO、BO、QO、DAO、POJO 的概念
+
+- DO（ Data Object）领域对象：与数据库表结构一一对应，通过DAO层向上传输数据源对象。
+- PO（persistant object）持久对象：在 o/r 映射的时候出现的概念，如果没有 o/r 映射，没有这个概念存在了。通常对应数据模型 ( 数据库 ), 本身还有部分业务逻辑的处理。可以看成是与数据库中的表相映射的 java 对象。最简单的 PO 就是对应数据库中某个表中的一条记录，多个记录可以用 PO 的集合。 PO 中应该不包含任何对数据库的操作
+- DTO（ Data Transfer Object）数据传输对象：Service或Manager向外传输的对象。这个概念来源于J2EE的设计模式，原来的目的是为了EJB的分布式应用提供粗粒度的数据实体，以减少分布式调用的次数，从而提高分布式调用的性能和降低网络负载，但在这里，泛指用于展示层与服务层之间的数据传输对象。
+- BO（ Business Object）业务对象：由Service层输出的封装业务逻辑的对象。
+- AO（ Application Object）应用对象：在Web层与Service层之间抽象的复用对象模型，极为贴近展示层，复用度不高。
+- VO（ View Object）显示层对象：通常是Web向模板渲染引擎层传输的对象。
+- POJO（ Plain Ordinary Java Object）：POJO专指只有setter/getter/toString的简单类，包括DO/DTO/BO/VO等。
+- Query：数据查询对象，各层接收上层的查询请求。注意超过2个参数的查询封装，禁止使用Map类来传输。
+
+#### 13.1.2. JDO
+
+Java Data Object 简称 JDO，是 Java 对象持久化的新的规范，也是一个用于存取某种数据仓库中的对象的标准化 API。JDO 提供了透明的对象存储，因此对开发人员来说，存储数据对象完全不需要额外的代码（如 JDBC API 的使用）。这些繁琐的例行工作已经转移到 JDO 产品提供商身上，使开发人员解脱出来，从而集中时间和精力在业务逻辑上。另外，JDO 很灵活，因为它可以在任何数据底层上运行。
+
+JDO 与 JDBC 比较：
+
+- JDBC 只是面向关系数据库（RDBMS）
+- JDO 更通用，提供到任何数据底层的存储功能，比如关系数据库、文件、XML以及对象数据库（ODBMS）等等，使得应用可移植性更强。

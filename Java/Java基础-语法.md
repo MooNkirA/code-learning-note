@@ -2092,3 +2092,38 @@ public class Test01 {
 
 1. 参数列表中只能有一个可变参数
 2. 如果出现不同类型的参数，可变参数必须放在参数列表的最后
+
+## 12. GUI 图形用户界面 (了解)
+
+Graphical User Interface，简称 GUI
+
+```java
+JOptionPane.showMessageDialog(null, x);
+```
+x就是要显示的文本字符串，如："Welcome to Java."	用于弹出消息对话框，需要导包
+
+```java
+JOptionPane.showMessageDialog(null, x, y, JOptionPane.INFORMATION_MESSAGE);
+```
+
+X是显示的文本字符串，y是表示消息对话框标题的字符串。第四个参数可以是 `JOptionPane.INFORMATION_MESSAGE` (它是为了让消息框能够显示图标(`!`))
+
+如果是 `JOptionPane.QUESTION_MESSAGE` 让消息框能够显示图标(`?`)
+
+从输入对话框获取输入
+
+```java
+JOptionPane.showInputDialog("xxx")
+```
+
+## 13. Java 语法综合扩展知识
+
+### 13.1. null == object 与 object == null
+
+在 java 里面，`null == object` 与 `object == null` 两者效果是一样的。但是为什么要将 null 写到前面？具体点来说，是在 C 语言里面引申出来的。
+
+在 C 语言里面，为了防止少敲一个等号，编程人员仍然能在编译的时候找到错误。**因为`if(obj=null)`是在编译的时候，不会出现错误，而`if(null=obj)`是会编译出错**。
+
+当然了，在 java 里面，`if(name=null)`是会出现编译错误的，不用担心这个错误了。但是，良好的编程习惯，还是建议写成 `null==objcet`。
+
+因为，`object!=null`，这种形式，会导致判断之前先去读取 object 的信息，然后再判断是否 null。而 `null!=object` 这种形式，不会导致读取 object 信息，从而提高判断速度。一般来说不用考虑非写成后者，但对于性能要求高的系统来说就要考虑用后者了。
