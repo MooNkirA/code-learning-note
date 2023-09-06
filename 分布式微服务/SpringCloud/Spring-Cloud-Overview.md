@@ -602,3 +602,12 @@ public class OrderController {
 - 服务消费者引入 `spring-cloud-starter-openfeign` 依赖
 - 通过 `@FeignClient` 声明一个调用远程微服务接口
 - 启动类上通过 `@EnableFeignClients` 激活 Feign
+
+## 7. Spring Cloud 学习参考资源
+
+- [Spring Cloud 官网](https://spring.io/projects/spring-cloud)
+- [Spring Cloud 中国社区](http://springcloud.cn/)
+- [Spring Cloud 中文网](https://springcloud.cc/)
+- [方志朋 Spring Cloud 专栏](https://www.fangzhipeng.com/spring-cloud.html)
+- [纯洁的微笑 Spring Cloud 系列文章](http://www.ityouknow.com/spring-cloud)
+- [江南一点雨 Spring Cloud](https://wangsong.blog.csdn.net/column/info/17373)
