@@ -509,12 +509,20 @@ ArrayList<String> newArray = new ArrayList<String>(array); // newArray 是可以
 - **数据结构实现**：ArrayList 是动态数组的数据结构实现；而 LinkedList 是双向链表的数据结构实现。
 - **随机访问效率**：ArrayList 比 LinkedList 在随机访问的时候效率要高，因为 LinkedList 是线性的数据存储方式，所以需要移动指针从前往后依次查找。
 - **增加和删除效率**：
-    - 在非首尾的增加和删除操作，LinkedList 要比 ArrayList 效率要高，因为 ArrayList 的扩容机制的存在，增删操作时超出存储长度时，需要新建数组，再将原数组中的数据复制到新数组中。要影响数组内的其他数据的下标。
-    - 但如果在 ArrayList 指定了合适的初始容量，并且使用尾部插入数据（没有触发数组的扩展）时，会极大提升性能，甚至超过 LinkedList（增删操作还需要创建大量的 node 对象）的效率
+    - 在非首尾的增加和删除操作时，LinkedList 和 ArrayList 的时间复杂度是 O(n)。LinkedList 需要遍历链表，但 LinkedList 要比 ArrayList 效率要高，因为 ArrayList 的扩容机制的存在，增删操作时超出存储长度时，需要新建数组，再将原数组中的数据复制到新数组中，并且会影响数组内的其他数据的下标。
+    - 在 ArrayList 尾部插入和删除，时间复杂度是O(1)；LinkedList 头尾节点增删时间复杂度也是 O(1)。
+    - 如果在 ArrayList 指定了合适的初始容量，并且使用尾部插入数据（没有触发数组的扩展）时，会极大提升性能，甚至超过 LinkedList（增删操作还需要创建大量的 node 对象）的效率
 - **内存空间占用**：LinkedList 比 ArrayList 更占内存，因为 LinkedList 的节点除了存储数据，还存储了两个引用，一个指向前一个元素，一个指向后一个元素。
 - **内存存储区域**：ArrayList 是连续内存存储；而 LinkedList 分散在内存中。
-- **线程安全**：ArrayList 和 LinkedList 都是不同步的，也就是不保证线程安全；
 - **迭代器性能**：在迭代操作时，ArrayList 使用普通迭代器或增强 for 循环的性能比 LinkedList 更优。因为 ArrayList 的数据存储在连续的内存中，迭代时可以直接访问内存，而 LinkedList 需要通过遍历链表来访问每个元素。
+- **线程安全**：ArrayList 和 LinkedList 都是不同步的，也就是不保证线程安全。*如果需要保证线程安全，有两种方案：*
+    1. 在方法内使用，局部变量则是线程安全的
+    2. 使用 `Collections` 工具类包装成线程安全的 ArrayList 和 LinkedList
+
+```java
+List<Object> syncArrayList = Collections.synchronizedList(new ArrayList<>());
+List<Object> syncLinkedList = Collections.synchronizedList(new LinkedList<>());
+```
 
 **类型选择与使用建议**：
 
