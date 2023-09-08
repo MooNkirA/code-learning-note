@@ -649,11 +649,76 @@ JDK1.7 VS JDK1.8 具体的区别：
 
 主要是因为红黑树在插入和删除操作时，能够自动平衡树的结构，使得整棵树的高度保持在一个较小的范围内，从而保证查找、插入和删除操作的时间复杂度稳定在 `O(logn)`。而二叉树没有自平衡的特性，如果插入和删除操作不当，可能会导致树的高度过高，使得查找时间复杂度变为 `O(n)`，因此不适合用于高效的 Map 实现。
 
-### 2.2. (待学习)HashMap 的 put 方法的具体流程
+### 2.2. HashMap 重点属性
+
+```java
+public class HashMap<K,V> extends AbstractMap<K,V>
+    implements Map<K,V>, Cloneable, Serializable {
+    // 默认的初始容量
+    static final int DEFAULT_INITIAL_CAPACITY = 1 << 4; // aka 16
+    // 默认的加载因子
+    static final float DEFAULT_LOAD_FACTOR = 0.75f;
+    // 定义的内部类
+    transient Node<K,V>[] table;
+
+    transient int size;
+
+    // ...省略其他属性
+
+    static class Node<K,V> implements Map.Entry<K,V> {
+        final int hash;
+        final K key;
+        V value;
+        Node<K,V> next;
+
+        Node(int hash, K key, V value, Node<K,V> next) {
+            this.hash = hash;
+            this.key = key;
+            this.value = value;
+            this.next = next;
+        }
+
+        public final K getKey()        { return key; }
+        public final V getValue()      { return value; }
+        public final String toString() { return key + "=" + value; }
+
+        public final int hashCode() {
+            return Objects.hashCode(key) ^ Objects.hashCode(value);
+        }
+
+        public final V setValue(V newValue) {
+            V oldValue = value;
+            value = newValue;
+            return oldValue;
+        }
+
+        public final boolean equals(Object o) {
+            if (o == this)
+                return true;
+            if (o instanceof Map.Entry) {
+                Map.Entry<?,?> e = (Map.Entry<?,?>)o;
+                if (Objects.equals(key, e.getKey()) &&
+                    Objects.equals(value, e.getValue()))
+                    return true;
+            }
+            return false;
+        }
+    }
+    
+    public HashMap() {
+        this.loadFactor = DEFAULT_LOAD_FACTOR; // all other fields defaulted
+    }
+
+}
+```
+
+> Tips: 扩容阈值 = 数组容量 × 加载因子
+
+### 2.3. (待学习)HashMap 的 put 方法的具体流程
 
 当 put 元素的时候，首先计算 key 的 hash 值，这里调用了 hash 方法，hash 方法实际是让`key.hashCode()`与`key.hashCode()>>>16`进行异或操作，高 16bit 补 0，一个数和 0 异或不变，所以 hash 函数大概的作用就是：**高 16bit 不变，低 16bit 和高 16bit 做了一个异或，目的是减少碰撞**。按照函数注释，因为 bucket 数组大小是 2 的幂，计算下标`index = (table.length - 1) & hash`，如果不做 hash 处理，相当于散列生效的只有几个低 bit 位，为了减少散列的碰撞，设计者综合考虑了速度、作用、质量之后，使用高 16bit 和低 16bit 异或来简单处理减少碰撞，而且 JDK8 中用了复杂度 `O(logn)`的树结构来提升碰撞下的性能。
 
-#### 2.2.1. putVal 方法执行流程图
+#### 2.3.1. putVal 方法执行流程图
 
 ![](images/10234014227145.png)
 
@@ -668,29 +733,16 @@ JDK1.7 VS JDK1.8 具体的区别：
 
 ![](images/479803615246033.png)
 
-#### 2.2.2. HashMap 源码重点属性
 
-```java
-public class HashMap<K,V> extends AbstractMap<K,V>
-    implements Map<K,V>, Cloneable, Serializable {
 
-    static final int DEFAULT_INITIAL_CAPACITY = 1 << 4; // aka 16
-    
-    static final float DEFAULT_LOAD_FACTOR = 0.75f;
 
-    transient Node<K,V>[] table;
-
-    transient int size;
-}
-```
-
-### 2.3. (待学习)HashMap 的扩容机制实现
+### 2.4. (待学习)HashMap 的扩容机制实现
 
 > TODO: 待整理
 
 当 HashMap 的数组大小达到一定的阈值（默认为 75%），会触发扩容操作。扩容的过程会重新计算每个键值对的哈希值，然后将其存储在新的数组位置上。扩容操作需要耗费一定的时间，因此需要在初始化时预估 HashMap 中键值对的数量，以便尽可能地减少扩容操作的次数。
 
-### 2.4. HashMap 的寻址算法
+### 2.5. HashMap 的寻址算法
 
 在 `HashMap` 类的 `put(K key, V value)` 方法中，会调用 `hash(key)` 方法来计算 key 的 hash 值。
 
