@@ -25,7 +25,7 @@
   <li><a href="#/Java/Java扩展-设计模式">Java扩展 - 设计模式</a></li>
   <li><a href="#/Java/Java扩展-数据结构">Java扩展 - 数据结构</a></li>
   <li><a href="#/Java/Java扩展-算法">Java扩展 - 算法</a></li>
-  <li><a href="#/Java/Java扩展-JDK集合类源码分析">Java扩展 - JDK 集合类源码分析</a></li>
+  <li><a href="#/Java/Java扩展-集合类源码分析">Java扩展 - 集合类源码分析</a></li>
   <li><a href="#/Java/Java扩展-程序案例">Java扩展 - 程序案例</a></li>
 </ul>
 

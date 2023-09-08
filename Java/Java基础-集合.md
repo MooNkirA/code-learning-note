@@ -1358,7 +1358,7 @@ HashMap 有如下特点：
  - 非线程安全。同一时间有多个线程同时对 HashMap 进行写操作，将可能导致数据的不一致。*如需要满足线程安全的条件，可使用 `Collections` 的 `synchronizedMap` 方法使 HashMap 具有线程安全的能力，或者使用 `ConcurrentHashMap`*。
  - 允许使用 `null` 的值和 `null` 的键（<font color=purple>**HashMap 最多只允许一条记录的键为 null，允许多条记录的值为 null**</font>）
 
-> Tips: 更多实现原理详见[《Java扩展-JDK集合类源码分析》笔记](/Java/Java扩展-JDK集合类源码分析)
+> Tips: 更多实现原理详见[《Java扩展-集合类源码分析》笔记](/Java/Java扩展-集合类源码分析)
 
 ##### 6.4.1.1. 存储结构
 

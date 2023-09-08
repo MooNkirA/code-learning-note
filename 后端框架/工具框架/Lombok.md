@@ -1,12 +1,10 @@
-# Lombok 工具插件
-
-## 1. 简介
+## 1. Lombok 简介
 
 Lombok 是一款 Java 开发插件，使得 Java 开发者可以通过其定义的一些注解来消除业务工程中冗长和繁琐的代码，尤其对于简单的 Java 模型对象（POJO）。在开发环境中使用 Lombok 插件后，Java 开发人员可以节省出重复构建，诸如 hashCode 和 equals 这样的方法以及各种业务对象模型的 accessor 和 toString 等方法的大量时间。对于这些方法，Lombok 能够在编译源代码期间自动帮我们生成这些方法，但并不会像反射那样降低程序的性能
 
-## 2. Lombok 安装
+### 1.1. Lombok 依赖
 
-### 2.1. Gradle
+#### 1.1.1. Gradle
 
 在 build.gradle 文件中添加 lombok 依赖
 
@@ -17,7 +15,7 @@ dependencies {
 }
 ```
 
-### 2.2. Maven
+#### 1.1.2. Maven
 
 在 Maven 项目的 pom.xml 文件中添加 lombok 依赖
 
@@ -30,7 +28,7 @@ dependencies {
 </dependency>
 ```
 
-### 2.3. Ant
+#### 1.1.3. Ant
 
 假设在 lib 目录中已经存在 lombok.jar，然后设置 javac 任务
 
@@ -40,41 +38,41 @@ dependencies {
 </javac>
 ```
 
-### 2.4. IDE 插件安装
+### 1.2. IDE 插件安装
 
 直接引入 lombok 依赖，此时 IDE 中的工程会因为没有相应的实体方法而报错，因此需要安装对应的 lombok 插件。插件项目官方地址：https://www.projectlombok.org/
 
-#### 2.4.1. eclipse 安装
+#### 1.2.1. eclipse 安装
 
 在官网中下载 lombok.jar 包，双击安装，选择 eclipse 的目录
 
-#### 2.4.2. idea 安装
+#### 1.2.2. idea 安装
 
 1. 打开 IntelliJ IDEA 后点击菜单栏中的【File】 -> 【Settings】进入到设置页面
 2. 点击设置页面中的 Plugins 进行插件的安装，在右侧选择 【Browse repositories...】，然后在搜索页面输入 lombok，可以查询到下方的 Lombok Plugin，鼠标点击 Lombok Plugin 可在右侧看到 【Install】 按钮，点击该按钮便可安装
 
 > Tips: 在较新版本的 IDEA 中，已经自带 lombok 插件
 
-## 3. 使用详解
+## 2. 使用详解
 
 > Notes: 以下示例所使用的 Lombok 版本是 1.18.10。示例代码在编译后可以使用反编译工具查看生成的 class 文件内容
 
-### 3.1. lombok 常用注解汇总表
+### 2.1. lombok 常用注解汇总表
 
-|            注解             |                                                         说明                                                         |
-| -------------------------- | ------------------------------------------------------------------------------------------------------------------- |
+|            注解             |                                                       说明                                                       |
+| -------------------------- | --------------------------------------------------------------------------------------------------------------- |
 | `@Setter`                  | 注解在类或属性，注解在类时为所有属性生成setter方法，注解在属性上时只为该属性生成setter方法                                   |
-| `@Getter`                  | 使用方法同`@Setter`，区别在于生成的是getter方法                                                                         |
-| `@ToString`                | 注解在类，添加`toString`方法                                                                                          |
-| `@EqualsAndHashCode`       | 注解在类，生成`hashCode`和`equals`方法                                                                                |
-| `@NoArgsConstructor`       | 注解在类，生成无参的构造方法                                                                                           |
+| `@Getter`                  | 使用方法同`@Setter`，区别在于生成的是getter方法                                                                       |
+| `@ToString`                | 注解在类，添加`toString`方法                                                                                       |
+| `@EqualsAndHashCode`       | 注解在类，生成`hashCode`和`equals`方法                                                                              |
+| `@NoArgsConstructor`       | 注解在类，生成无参的构造方法                                                                                         |
 | `@RequiredArgsConstructor` | 注解在类，为类中需要特殊处理的属性生成构造方法，比如`final`和被`@NonNull`注解的属性                                        |
-| `@AllArgsConstructor`      | 注解在类，生成包含类中所有属性的构造方法                                                                                 |
+| `@AllArgsConstructor`      | 注解在类，生成包含类中所有属性的构造方法                                                                               |
 | `@Data`                    | 注解在类，生成setter/getter、equals、canEqual、hashCode、toString方法，如为`final`修饰的属性，则不会为该属性生成setter方法 |
 | `@Slf4j`                   | 注解在类，生成log变量，用于记录日志。注意工程需要引入相应的slf4j的具体实现                                                 |
-| `@Builder`                 | 将类转变为建造者模式                                                                                                  |
+| `@Builder`                 | 将类转变为建造者模式                                                                                                |
 
-### 3.2. @Getter/@Setter 注解
+### 2.2. @Getter/@Setter 注解
 
 使用 `@Getter` 或 `@Setter` 注释任何类或字段，Lombok 会自动生成默认的 getter/setter 方法
 
@@ -102,7 +100,7 @@ public @interface Setter {
 }
 ```
 
-#### 3.2.1. 使用示例
+#### 2.2.1. 使用示例
 
 ```java
 package com.moon.testmodule.lombok;
@@ -144,7 +142,7 @@ public class GetterAndSetterDemo {
 }
 ```
 
-#### 3.2.2. Lazy Getter
+#### 2.2.2. Lazy Getter
 
 `@Getter` 注解支持一个 `lazy` 属性，该属性默认为 false。当设置为 true 时，会启用延迟初始化，即当首次调用 getter 方法时才进行初始化
 
@@ -214,8 +212,8 @@ createValue(lazy)
 
 > 通过以上代码可知，调用 getLazy 方法时，若发现 value 为 null，则会在同步代码块中执行初始化操作
 
-### 3.3. Constructor Annotations(构造方法注解)
-#### 3.3.1. @NoArgsConstructor 注解
+### 2.3. Constructor Annotations(构造方法注解)
+#### 2.3.1. @NoArgsConstructor 注解
 
 使用 `@NoArgsConstructor` 注解可以为指定类，生成默认的构造函数，`@NoArgsConstructor` 源码定义如下
 
@@ -266,7 +264,7 @@ public class NoArgsConstructorDemo {
 }
 ```
 
-#### 3.3.2. @AllArgsConstructor 注解
+#### 2.3.2. @AllArgsConstructor 注解
 
 使用 `@AllArgsConstructor` 注解可以为指定类，生成包含所有成员的构造函数，`@AllArgsConstructor` 注解的源码定义如下
 
@@ -313,7 +311,7 @@ public class AllArgsConstructorDemo {
 }
 ```
 
-#### 3.3.3. @RequiredArgsConstructor 注解
+#### 2.3.3. @RequiredArgsConstructor 注解
 
 使用 `@RequiredArgsConstructor` 注解可以为指定类必需初始化的成员变量，如 final 成员变量，生成对应的构造函数，`@RequiredArgsConstructor` 注解的源码定义如下
 
@@ -358,7 +356,7 @@ public class RequiredArgsConstructorDemo {
 }
 ```
 
-### 3.4. @EqualsAndHashCode 注解
+### 2.4. @EqualsAndHashCode 注解
 
 使用 `@EqualsAndHashCode` 注解可以为指定类生成 equals 和 hashCode 方法，`@EqualsAndHashCode` 注解的源码定义如下
 
@@ -454,7 +452,7 @@ public class EqualsAndHashCodeDemo {
 }
 ```
 
-### 3.5. @ToString 注解
+### 2.5. @ToString 注解
 
 使用 `@ToString` 注解可以为指定类生成 `toString` 方法，`@ToString` 注解的源码定义如下
 
@@ -526,7 +524,7 @@ public class ToStringDemo {
 }
 ```
 
-### 3.6. @Data 注解
+### 2.6. @Data 注解
 
 - `@Data` 注解与同时使用以下的注解的效果是一样的，`@Data` 注解的源码定义如下
     - `@ToString`
@@ -617,7 +615,7 @@ public class DataDemo {
 }
 ```
 
-### 3.7. @Log 注解及其衍生注解
+### 2.7. @Log 注解及其衍生注解
 
 若将 `@Log` 的相关衍生注解标识在类上（适用于所使用的日志记录系统的任何一种），被修改的类将拥有一个静态的 final log 字段，然后就可以使用该字段来输出日志
 
@@ -641,7 +639,7 @@ private static final org.slf4j.ext.XLogger log = org.slf4j.ext.XLoggerFactory.ge
 private static final org.apache.commons.logging.Log log = org.apache.commons.logging.LogFactory.getLog(LogExample.class);
 ```
 
-### 3.8. @Synchronized 注解
+### 2.8. @Synchronized 注解
 
 `@Synchronized` 是同步方法修饰符的更安全的变体。与 synchronized 一样，该注解只能应用在静态和实例方法上。它的操作类似于 synchronized 关键字，但是它锁定在不同的对象上。synchronized 关键字应用在实例方法时，锁定的是 this 对象，而应用在静态方法上锁定的是类对象。对于 `@Synchronized` 注解声明的方法来说，它锁定的是 `$LOCK` 或 `$lock`。`@Synchronized` 注解的源码定义如下：
 
@@ -710,7 +708,7 @@ public class SynchronizedDemo {
 }
 ```
 
-### 3.9. @Builder 注解
+### 2.9. @Builder 注解
 
 使用 `@Builder` 注解可以为指定类实现建造者模式，该注解可以放在类、构造函数或方法上。`@Builder` 注解的源码定义如下：
 
@@ -816,7 +814,163 @@ public class BuilderDemo {
 }
 ```
 
-### 3.10. @SneakyThrows 注解
+#### 2.9.1. 不推荐使用 @Builder 注解的说明
+
+使用 `@Builder` 注解无非就是为了链式编程，然而该注解并不是链式编程的最佳实践，它会额外创建内部类，存在继承关系时还需要使用 `@SuperBuilder` 注解，设置默认值时也需要额外的 `@Builder.Default` 去设置默认值，无疑增加了很多不必要的复杂度。
+
+1. `@Builder` 生成的构造器不是完美的，它不能区分哪些参数是必须的，哪些是可选的。如果没有提供必须的参数，构造器可能会创建出不完整或者不合法的对象。
+
+可以看第三部分的例子，`@Builder` 注解产生的 `Builder` 类的构造方法默认并不能限定必传参数。
+
+2. 常见 `@Builder` 和 `@Data` 搭配使用，但这会导致生成的构造器是可变的，它允许使用 setter 方法修改构造器的状态。这违反了构造器模式的原则，构造器应该是不可变的，一旦创建就不能被修改。
+
+> Tips: 如果非要使用 `@Builder`，就不要用 `@Data`，而使用 `@Getter`。相对来说，反而 `@Accessors` 的行为更符合这个要求。
+
+3. `@Builder` 生成的构造器不适合用于短暂的对象，它会增加代码的复杂度和冗余。构造器模式更适合用于生命周期较长、有多种变体的对象。
+
+> 实际使用中经常发现 `@Builder` 滥用的情况，有些仅仅一两个属性的类也都要用 `@Builder`，真的没必要用，直接用全参的构造方法都比这更简洁。
+
+4. `@Builder` 生成的构造器不能处理抽象类型的参数，它只能接受具体类型的对象。这限制了构造器的灵活性和扩展性，不能根据不同的需求创建不同风格的对象。
+5. 继承关系时，子类需要使用 `@SuperBuilder`。对象继承后，子类的 `Builder` 因为构造函数的问题，使用不当大概率会报错，并且无法设置父类的属性，还需要使用 `@SuperBuilder` 来解决问题。
+6. 设置默认值需要使用 `@Builder.Default`。很容易因为对此不了解，导致默认值不符合预期导致出现 BUG。
+
+### 2.10. @Accessors 注解
+
+使用 `@Accessors` 注解用于生成返回 this 的 setter 方法
+
+#### 2.10.1. 源码
+
+```java
+@Target({ElementType.TYPE, ElementType.FIELD})
+@Retention(RetentionPolicy.SOURCE)
+public @interface Accessors {
+
+    boolean fluent() default false;
+    
+    boolean chain() default false;
+    
+    boolean makeFinal() default false;
+
+    String[] prefix() default {};
+}
+```
+
+#### 2.10.2. 使用示例
+
+```java
+package com.moon.demo;
+
+import lombok.Data;
+import lombok.experimental.Accessors;
+
+
+@Data
+@Accessors(chain = true)
+public class APIResponse<T> {
+
+    private T payload;
+
+    private Status status;
+}
+```
+
+生成等价代码：
+
+```java
+package com.moon.demo;
+
+import lombok.experimental.Accessors;
+
+@Accessors(chain = true)
+public class APIResponse<T> {
+
+    private T payload;
+
+    private Status status;
+
+    public T getPayload() {
+        return this.payload;
+    }
+
+    public APIResponse<T> setPayload(T payload) {
+        this.payload = payload;
+        return this;
+    }
+
+    public Status getStatus() {
+        return this.status;
+    }
+
+    public APIResponse<T> setStatus(Status status) {
+        this.status = status;
+        return this;
+    }
+}
+```
+
+基础使用示例：
+
+```java
+package com.moon.demo;
+
+import lombok.extern.slf4j.Slf4j;
+import lombok.var;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
+
+@Slf4j
+@RestControllerAdvice(basePackageClasses = com.moon.demo.RestApplication.class)
+public class ApplicationExceptionHandler {
+
+    @ResponseStatus(code = HttpStatus.INTERNAL_SERVER_ERROR)
+    public APIResponse handleException(Exception exception) {
+        log.error("Unhandled Exception", exception);
+        var status = new Status().setResponseCode("RESPONSE_CODE_IDENTIFIER").setDescription("Bla Bla Bla");
+        return new APIResponse().setStatus(status);
+    }
+
+}
+```
+
+示例2：此类属性较多，且分为必传属性和选填属性时，可以将必传参数定义在构造方法中，加上 `@Accessors` 注解，这样就可以实现必传参数的传入，又可以实现选填参数的链式调用。
+
+```java
+import lombok.Accessors;
+
+// 使用 @Accessors 注解，设置 chain = true，生成返回 this 的 setter 方法
+@Accessors(chain = true)
+@Getter
+@Setter
+public class Student {
+    // 定义必传属性，使用 final 修饰，不提供 setter 方法
+    private final int studentId; // 学生ID
+    private final int grade; // 年级
+    private final int classNum; // 班级
+
+    // 定义选填属性，提供 setter 方法
+    private String name; // 姓名
+    private String gender; // 性别
+    private String address; // 住址
+
+    // 定义构造方法，接收必传参数
+    public Student(int studentId, int grade, int classNum) {
+        this.studentId = studentId;
+        this.grade = grade;
+        this.classNum = classNum;
+    }
+
+    // 省略 getter 和 setter 方法
+}
+
+// 使用示例
+Student student = new Student(1001, 3, 8) // 创建一个学生对象，传入必传参数
+        .setName("MooN") // 设置姓名
+        .setGender("男") // 设置性别
+        .setAddress("广州市天河区"); // 设置住址
+```
+
+### 2.11. @SneakyThrows 注解
 
 `@SneakyThrows` 注解用于自动抛出已检查的异常，而无需在方法中使用 throw 语句显式抛出。`@SneakyThrows` 注解的源码定义如下：
 
@@ -863,7 +1017,7 @@ public class SneakyThrowsDemo {
 }
 ```
 
-### 3.11. @NonNull 注解
+### 2.12. @NonNull 注解
 
 在方法或构造函数的参数上使用 `@NonNull` 注解，它将会为你自动生成非空校验语句。`@NonNull` 注解的定义如下：
 
@@ -921,7 +1075,7 @@ public class NonNullDemo {
 }
 ```
 
-### 3.12. @Clean 注解
+### 2.13. @Clean 注解
 
 `@Clean` 注解用于自动管理资源，用在局部变量之前，在当前变量范围内即将执行完毕退出之前会自动清理资源，自动生成 try-finally 这样的代码来关闭流。注解的源码定义如下：
 
@@ -998,7 +1152,7 @@ public class CleanupDemo {
 }
 ```
 
-### 3.13. @With 注解(1.18.10版本后才出现)
+### 2.14. @With 注解(1.18.10版本后才出现)
 
 在类的字段上应用 `@With` 注解之后，将会自动生成一个 `withFieldName(newValue)` 的方法，该方法会基于 newValue 调用相应构造函数，创建一个当前类对应的实例。`@With` 注解的源码定义如下：
 
@@ -1075,7 +1229,7 @@ public class WithDemo {
 }
 ```
 
-### 3.14. 其它特性
+### 2.15. 其它特性
 
 val 用在局部变量前面，相当于将变量声明为 final，此外 Lombok 在编译时还会自动进行类型推断。val 的使用示例：
 
@@ -1130,7 +1284,7 @@ public class ValExample {
 }
 ```
 
-## 4. 其他
+## 3. 其他
 
 > 建议阅读猿码道大佬 十分钟搞懂Lombok使用与原理 这篇文章：https://juejin.im/post/5a6eceb8f265da3e467555fe
 >
