@@ -658,7 +658,7 @@ public class HashMap<K,V> extends AbstractMap<K,V>
     static final int DEFAULT_INITIAL_CAPACITY = 1 << 4; // aka 16
     // 默认的加载因子
     static final float DEFAULT_LOAD_FACTOR = 0.75f;
-    // 定义的内部类
+    // 用于存储数据的是内部类 Node 数组
     transient Node<K,V>[] table;
 
     transient int size;
@@ -712,37 +712,227 @@ public class HashMap<K,V> extends AbstractMap<K,V>
 }
 ```
 
+从以上源码可知，HashMap 是懒惰加载，在创建对象时并没有初始化数组。在无参的构造函数中，设置了默认的加载因子是 0.75。
+
 > Tips: 扩容阈值 = 数组容量 × 加载因子
 
-### 2.3. (待学习)HashMap 的 put 方法的具体流程
+### 2.3. put 方法设置值的具体流程
 
 当 put 元素的时候，首先计算 key 的 hash 值，这里调用了 hash 方法，hash 方法实际是让`key.hashCode()`与`key.hashCode()>>>16`进行异或操作，高 16bit 补 0，一个数和 0 异或不变，所以 hash 函数大概的作用就是：**高 16bit 不变，低 16bit 和高 16bit 做了一个异或，目的是减少碰撞**。按照函数注释，因为 bucket 数组大小是 2 的幂，计算下标`index = (table.length - 1) & hash`，如果不做 hash 处理，相当于散列生效的只有几个低 bit 位，为了减少散列的碰撞，设计者综合考虑了速度、作用、质量之后，使用高 16bit 和低 16bit 异或来简单处理减少碰撞，而且 JDK8 中用了复杂度 `O(logn)`的树结构来提升碰撞下的性能。
 
 #### 2.3.1. putVal 方法执行流程图
 
-![](images/10234014227145.png)
+`final V putVal(int hash, K key, V value, boolean onlyIfAbsent, boolean evict)` 流程图：
 
-*另一组图*
+![HashMap源码分析.drawio - putVal方法流程图](images/234353418249376.jpg)
 
-1. 如果 table 没有初始化就先进行初始化过程
-2. 使用 hash 算法计算 key 的索引
-3. 判断索引处有没有存在元素，没有就直接插入
-4. 如果索引处存在元素，则遍历插入，有两种情况，一种是链表形式就直接遍历到尾端插入，一种是红黑树就按照红黑树结构插入
-5. 链表的数量大于阈值8，就要转换成红黑树的结构
-6. 添加成功后会检查是否需要扩容
+具体流程：
 
-![](images/479803615246033.png)
+1. 判断键值对数组 table 是否为空或为 null（没有初始化），否则执行 `resize()` 进行扩容（初始化）过程
+2. 根据键值 key 计算 hash 值得到数组索引
+3. 判断 `table[i] == null` 成立，则代表索引处有没有存在元素，直接新建节点添加
+4. 判断 `table[i] != null` 成立。则代表索引处存在元素，则需要遍历插入。有两种情况，一种是链表形式就直接遍历到尾端插入，一种是红黑树就按照红黑树结构插入
+    1. 判断 `table[i]` 的首个元素是否和 key 一样，如果相同直接覆盖 value
+    2. 判断 `table[i]` 是否为 treeNode，即 `table[i]` 是否是红黑树，如果是红黑树，则直接在树中插入键值对
+    3. 遍历 `table[i]`，链表的尾部插入数据，然后判断链表长度是否大于8。若是，则把链表转换为红黑树，在红黑树中执行插入操作，遍历过程中若发现 key 已经存在直接覆盖 value
+5. 插入成功后，判断实际存在的键值对数量 size 是否超多了最大容量 threshold（`数组长度 * 0.75`），如果超过，执行 `resize()` 进行扩容。
 
+#### 2.3.2. putVal 方法源码分析
 
+> 以下为 JDK 1.8 源码
 
+```java
+public V put(K key, V value) {
+    return putVal(hash(key), key, value, false, true);
+}
 
-### 2.4. (待学习)HashMap 的扩容机制实现
+final V putVal(int hash, K key, V value, boolean onlyIfAbsent,
+               boolean evict) {
+    Node<K,V>[] tab; Node<K,V> p; int n, i;
+    // 判断数组是否未初始化
+    if ((tab = table) == null || (n = tab.length) == 0)
+        n = (tab = resize()).length; // 如果未初始化，调用 resize 方法 进行初始化
+    // 通过 & 运算求出该数据（key）的数组下标并判断该下标位置是否有数据
+    if ((p = tab[i = (n - 1) & hash]) == null)
+        tab[i] = newNode(hash, key, value, null); // 如果没有，直接将数据放在该下标位置
+    else { // 该数组下标有数据的情况
+        Node<K,V> e; K k;
+        // 判断该位置数据的 key 和新来的数据是否一样
+        if (p.hash == hash &&
+            ((k = p.key) == key || (key != null && key.equals(k))))
+            e = p; // 如果一样，证明为修改操作，该节点的数据赋值给 e，后边会用到
+        // 判断是不是红黑树
+        else if (p instanceof TreeNode)
+            e = ((TreeNode<K,V>)p).putTreeVal(this, tab, hash, key, value); // 如果是红黑树的话，进行红黑树的操作
+        else {
+            // 遍历链表
+            for (int binCount = 0; ; ++binCount) {
+                // 判断 next 节点，如果为空的话，证明遍历到链表尾部了
+                if ((e = p.next) == null) {
+                    // 把新值放入链表尾部
+                    p.next = newNode(hash, key, value, null);
+                    // 因为新插入了一条数据，所以判断链表长度是不是大于等于8
+                    if (binCount >= TREEIFY_THRESHOLD - 1) // -1 for 1st
+                        treeifyBin(tab, hash); // 如果是，进行转换红黑树操作
+                    break;
+                }
+                // 判断链表当中有数据相同的值，如果一样，证明为修改操作
+                if (e.hash == hash &&
+                    ((k = e.key) == key || (key != null && key.equals(k))))
+                    break;
+                p = e; // 把下一个节点赋值为当前节点
+            }
+        }
+        // 判断 e 是否为空（e 值为修改操作存放原数据的变量）
+        if (e != null) { // existing mapping for key
+            // 不为空的话证明是修改操作，取出旧值
+            V oldValue = e.value;
+            // 此分支一定会执行，因为方法调用时传入的 onlyIfAbsent 的参数值是 false
+            if (!onlyIfAbsent || oldValue == null)
+                e.value = value;  // 将新值赋值当前节点
+            afterNodeAccess(e);
+            return oldValue; // 返回旧值
+        }
+    }
+    ++modCount; // 计数器，计算当前节点的修改次数
+    // 当前数组中的数据数量如果大于扩容阈值
+    if (++size > threshold)
+        resize(); // 进行扩容操作
+    afterNodeInsertion(evict); // 空方法
+    return null; // 添加操作时 返回空值
+}
+```
 
-> TODO: 待整理
+### 2.4. HashMap 的 resize 扩容机制
 
 当 HashMap 的数组大小达到一定的阈值（默认为 75%），会触发扩容操作。扩容的过程会重新计算每个键值对的哈希值，然后将其存储在新的数组位置上。扩容操作需要耗费一定的时间，因此需要在初始化时预估 HashMap 中键值对的数量，以便尽可能地减少扩容操作的次数。
 
+#### 2.4.1. 扩容流程图
+
+
+- 在添加元素或初始化的时候需要调用 resize 方法进行扩容，第一次添加数据初始化数组长度为16，以后每次每次扩容都是达到了扩容阈值（`数组长度 * 0.75`）
+- 每次扩容的时候，都是扩容之前容量的2倍； 
+- 扩容之后，会新创建一个数组，需要把老数组中的数据挪动到新的数组中
+  - 没有 hash 冲突的节点，则直接使用 `e.hash & (newCap - 1)` 计算新数组的索引位置
+  - 如果是红黑树，走红黑树的添加
+  - 如果是链表，则需要遍历链表，可能需要拆分链表，判断 `(e.hash & oldCap)` 是否为0，该元素的位置要么停留在原始位置，要么移动到`原始位置+增加的数组大小`这个位置上
+
+#### 2.4.2. resize 方法源码分析
+
+```java
+// 扩容、初始化数组
+final Node<K,V>[] resize() {
+    Node<K,V>[] oldTab = table;
+    int oldCap = (oldTab == null) ? 0 : oldTab.length; // 如果当前数组为 null 的时候，把 oldCap 老数组容量设置为 0
+    int oldThr = threshold; // 设置老的扩容阈值
+    int newCap, newThr = 0;
+    // 判断数组容量是否大于0，大于0说明数组已经初始化
+    if (oldCap > 0) {
+        // 判断当前数组长度是否大于最大数组长度
+        if (oldCap >= MAXIMUM_CAPACITY) {
+            threshold = Integer.MAX_VALUE; // 如果是，将扩容阈值直接设置为 int 类型的最大数值并直接返回
+            return oldTab;
+        }
+        // 如果在最大长度范围内，则需要扩容 OldCap << 1 等价于 oldCap * 2
+        // 运算过后判断是不是最大值并且 oldCap 需要大于 16
+        else if ((newCap = oldCap << 1) < MAXIMUM_CAPACITY &&
+                 oldCap >= DEFAULT_INITIAL_CAPACITY)
+            newThr = oldThr << 1; // double threshold 等价于 oldThr * 2
+    }
+    // 如果 oldCap<0，但是已经初始化了，像把元素删除完之后的情况，那么它的临界值肯定还存在，如果是首次初始化，它的临界值则为0
+    else if (oldThr > 0) // initial capacity was placed in threshold
+        newCap = oldThr;
+    // 数组未初始化的情况，将阈值和扩容因子都设置为默认值
+    else {               // zero initial threshold signifies using defaults
+        newCap = DEFAULT_INITIAL_CAPACITY;
+        newThr = (int)(DEFAULT_LOAD_FACTOR * DEFAULT_INITIAL_CAPACITY);
+    }
+    // 初始化容量小于16的时候，扩容阈值是没有赋值的
+    if (newThr == 0) {
+        float ft = (float)newCap * loadFactor; // 创建阈值
+        // 判断新容量和新阈值是否大于最大容量
+        newThr = (newCap < MAXIMUM_CAPACITY && ft < (float)MAXIMUM_CAPACITY ?
+                  (int)ft : Integer.MAX_VALUE);
+    }
+    threshold = newThr; // 计算出来的阈值赋值
+    @SuppressWarnings({"rawtypes","unchecked"})
+    Node<K,V>[] newTab = (Node<K,V>[])new Node[newCap]; // 根据上边计算得出的容量，创建新的数组
+    table = newTab; // 赋值到 table 属性
+    // 扩容操作，判断不为空证明不是初始化数组
+    if (oldTab != null) {
+        // 遍历数组
+        for (int j = 0; j < oldCap; ++j) {
+            Node<K,V> e;
+            // 判断当前下标为j的数组如果不为空的话赋值个e，进行下一步操作
+            if ((e = oldTab[j]) != null) {
+                oldTab[j] = null; // 将数组位置置空
+                // 判断是否有下个节点
+                if (e.next == null)
+                    newTab[e.hash & (newCap - 1)] = e; // 如果没有，就重新计算在新数组中的下标并放进去
+                // 有下个节点的情况，并且判断是否已经树化
+                else if (e instanceof TreeNode)
+                    ((TreeNode<K,V>)e).split(this, newTab, j, oldCap); // 进行红黑树的操作
+                // 有下个节点的情况，并且没有树化（链表形式）
+                else { // preserve order
+                    // 比如老数组容量是 16，那下标就为 0-15
+                    // 扩容操作 * 2，容量就变为 32，下标为 0-31
+                    // 低位：0-15，高位1 6-31
+                    // 定义了四个变量
+                    //        低位头          低位尾
+                    Node<K,V> loHead = null, loTail = null;
+                    //        高位头		     高位尾
+                    Node<K,V> hiHead = null, hiTail = null;
+                    Node<K,V> next; // 下个节点
+                    // 循环遍历
+                    do {
+                        next = e.next; // 取出next节点
+                        // 通过“与”操作，计算得出结果为0
+                        if ((e.hash & oldCap) == 0) {
+                            // 如果低位尾为null，证明当前数组位置为空，没有任何数据
+                            if (loTail == null)
+                                loHead = e; // 将e值放入低位头
+                            // 低位尾不为null，证明已经有数据了
+                            else
+                                loTail.next = e; // 将数据放入next节点
+                            loTail = e; // 记录低位尾数据
+                        }
+                        // 通过“与”操作，计算得出结果不为0
+                        else {
+                            // 如果高位尾为null，证明当前数组位置为空，没有任何数据
+                            if (hiTail == null)
+                                hiHead = e; // 将数据放入next节点
+                            // 高位尾不为null，证明已经有数据了
+                            else
+                                hiTail.next = e; // 将数据放入next节点
+                            hiTail = e; // 记录高位尾数据
+                        }
+                    } while ((e = next) != null); // 如果e不为空，证明没有到链表尾部，继续执行循环
+                    // 低位尾如果记录的有数据，是链表
+                    if (loTail != null) {
+                        loTail.next = null; // 将下一个元素置空
+                        newTab[j] = loHead; // 将低位头放入新数组的原下标位置
+                    }
+                    // 高位尾如果记录的有数据，是链表
+                    if (hiTail != null) {                
+                        hiTail.next = null; // 将下一个元素置空
+                        newTab[j + oldCap] = hiHead; // 将高位头放入新数组的(原下标+原数组容量)位置
+                    }
+                }
+            }
+        }
+    }
+    return newTab; // 返回新的数组对象
+}
+```
+
+#### 2.4.3. 扩展：为何 HashMap 的数组长度一定是2的次幂？
+
+1. **计算索引时效率更高**。如果是 2 的 n 次幂可以使用位与运算代替取模
+2. **扩容时重新计算索引效率更高**。`hash & oldCap == 0` 的元素留在原来位置，否则`新位置 = 旧位置 + oldCap`
+
 ### 2.5. HashMap 的寻址算法
+
+#### 2.5.1. 计算键的 hash 值的源码分析
 
 在 `HashMap` 类的 `put(K key, V value)` 方法中，会调用 `hash(key)` 方法来计算 key 的 hash 值。
 
@@ -760,6 +950,52 @@ static final int hash(Object key) {
     return (key == null) ? 0 : (h = key.hashCode()) ^ (h >>> 16);
 }
 ```
+
+首先获取 key 的 hashCode 值，然后右移 16 位后，与原来的 hashCode 值进行**异或运算**，称为『扰动算法』。主要作用就是使原来的 hash 值更加均匀，减少 hash 冲突。
+
+有了 hash 值之后，就可以计算当前 key 的在数组中存储的下标。例如在 `putVal` 方法中，通过 `(n-1) & hash` 获取数组中的索引，代替取模，性能更好。<u>值得注意：数组长度必须是 2 的 n 次幂</u>
+
+![](images/355165122230950.png)
+
+#### 2.5.2. get 方法源码分析
+
+> 以下为 JDK 1.8 源码
+
+```java
+public V get(Object key) {
+    Node<K,V> e;
+    // hash(key)，获取 key 的 hash 值，调用 getNode 方法获取数据
+    return (e = getNode(hash(key), key)) == null ? null : e.value;
+}
+
+final Node<K,V> getNode(int hash, Object key) {
+    Node<K,V>[] tab; Node<K,V> first, e; int n; K k;
+    // 找到 key 对应的桶下标，赋值给 first 节点
+    if ((tab = table) != null && (n = tab.length) > 0 &&
+        (first = tab[(n - 1) & hash]) != null) {
+        // 判断 hash 值和 key 是否相等，如果是，则直接返回，桶中只有一个数据（大部分的情况）
+        if (first.hash == hash && // always check first node
+            ((k = first.key) == key || (key != null && key.equals(k))))
+            return first;
+        if ((e = first.next) != null) {
+            // 该节点是红黑树，则需要通过红黑树查找数据
+            if (first instanceof TreeNode)
+                return ((TreeNode<K,V>)first).getTreeNode(hash, key);
+            // 链表的情况，则需要遍历链表查找数据
+            do {
+                if (e.hash == hash &&
+                    ((k = e.key) == key || (key != null && key.equals(k))))
+                    return e;
+            } while ((e = e.next) != null);
+        }
+    }
+    return null;
+}
+```
+
+### 2.6. JDK 1.7 版本 HashMap 多线程死循环问题
+
+由于 JDK 1.7 的 HashMap 数据结构是：数组+链表。在数组进行扩容的时候，因为链表是头插法，在进行数据迁移的过程中，有可能导致死循环
 
 ## 3. HashSet 源码分析
 
