@@ -31,5 +31,5 @@ vx_recycle_bin
 ~*.doc
 ~*.tmp
 
-# 忽略同步临时笔记
-temp-nopt.md
+# 忽略临时同步目录
+同步专用目录

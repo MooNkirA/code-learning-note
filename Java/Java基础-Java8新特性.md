@@ -3579,7 +3579,7 @@ public<U> Optional<U> map(Function<? super T, ? extends U> mapper) {
 }
 ```
 
-- `map`方法：如果存在该值，执行参数提供的映射方法`Function`，如果映射方法返回非null值，则`map`最终会返回一个返回值的`Optional`实例。如果映射方法处理返回null时，则返回空的`Optional`实例
+- `map`方法：如果存在该值，执行参数提供的映射方法`Function`，如果映射方法返回非null值，则`map`最终会返回一个包装了返回值的`Optional`实例。如果映射方法处理返回null时，则返回空的`Optional`实例
 
 ```java
 public<U> Optional<U> flatMap(Function<? super T, Optional<U>> mapper) {
@@ -3616,7 +3616,7 @@ public void mapTest() {
     String userName = Optional.ofNullable(user) // 创建User对象的Optional容器
             .map(User::getUserName) // 如果User实例不为空，则调用gteUserName方法获取用户名称，否则返回空Optional实例
             .map(String::toUpperCase) // 如果userName不为空，则调用toUpperCase方法转成大写，否则返回空Optional实例
-            .orElse("null"); // 如果上述其中一步返回空的Optional实例，则会执行则
+            .orElse("null"); // 如果上述其中一步返回空的Optional实例，则会执行 orElse 返回默认的值
 
     System.out.println("用户名转成大写后值为：" + userName);
 }

@@ -25,7 +25,7 @@
   <li><a href="#/Java/Java扩展-设计模式">Java扩展 - 设计模式</a></li>
   <li><a href="#/Java/Java扩展-数据结构">Java扩展 - 数据结构</a></li>
   <li><a href="#/Java/Java扩展-算法">Java扩展 - 算法</a></li>
-  <li><a href="#/Java/Java扩展-JDK集合类源码分析">Java扩展 - JDK 集合类源码分析</a></li>
+  <li><a href="#/Java/Java扩展-集合类源码分析">Java扩展 - 集合类源码分析</a></li>
   <li><a href="#/Java/Java扩展-程序案例">Java扩展 - 程序案例</a></li>
 </ul>
 
@@ -56,7 +56,8 @@
   <li><a href="#/后端框架/Spring/Spring-AOP">Spring 笔记-AOP</a></li>
   <li><a href="#/后端框架/Spring/Spring-Transaction">Spring 笔记-Transaction</a></li>
   <li><a href="#/后端框架/Spring/Spring-注解汇总">Spring 笔记-注解汇总</a></li>
-  <li><a href="#/后端框架/Spring/Spring-其他与案例">Spring 其他相关资料与案例</a></li>
+  <li><a href="#/后端框架/Spring/Spring-常用工具类">Spring 常用工具类</a></li>
+  <li><a href="#/后端框架/Spring/Spring-案例">Spring 案例</a></li>
   <li><a href="#/后端框架/Spring/Spring源码-源码编译教程">Spring 源码分析 - 源码编译教程</a></li>
   <li><a href="#/后端框架/Spring/Spring源码-底层核心概念解析">Spring 源码分析 - 底层核心概念解析</a></li>
   <li><a href="#/后端框架/Spring/Spring源码-IOC">Spring 源码分析 - IOC(控制反转)</a></li>

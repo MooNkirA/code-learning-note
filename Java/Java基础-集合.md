@@ -509,12 +509,20 @@ ArrayList<String> newArray = new ArrayList<String>(array); // newArray 是可以
 - **数据结构实现**：ArrayList 是动态数组的数据结构实现；而 LinkedList 是双向链表的数据结构实现。
 - **随机访问效率**：ArrayList 比 LinkedList 在随机访问的时候效率要高，因为 LinkedList 是线性的数据存储方式，所以需要移动指针从前往后依次查找。
 - **增加和删除效率**：
-    - 在非首尾的增加和删除操作，LinkedList 要比 ArrayList 效率要高，因为 ArrayList 的扩容机制的存在，增删操作时超出存储长度时，需要新建数组，再将原数组中的数据复制到新数组中。要影响数组内的其他数据的下标。
-    - 但如果在 ArrayList 指定了合适的初始容量，并且使用尾部插入数据（没有触发数组的扩展）时，会极大提升性能，甚至超过 LinkedList（增删操作还需要创建大量的 node 对象）的效率
+    - 在非首尾的增加和删除操作时，LinkedList 和 ArrayList 的时间复杂度是 O(n)。LinkedList 需要遍历链表，但 LinkedList 要比 ArrayList 效率要高，因为 ArrayList 的扩容机制的存在，增删操作时超出存储长度时，需要新建数组，再将原数组中的数据复制到新数组中，并且会影响数组内的其他数据的下标。
+    - 在 ArrayList 尾部插入和删除，时间复杂度是O(1)；LinkedList 头尾节点增删时间复杂度也是 O(1)。
+    - 如果在 ArrayList 指定了合适的初始容量，并且使用尾部插入数据（没有触发数组的扩展）时，会极大提升性能，甚至超过 LinkedList（增删操作还需要创建大量的 node 对象）的效率
 - **内存空间占用**：LinkedList 比 ArrayList 更占内存，因为 LinkedList 的节点除了存储数据，还存储了两个引用，一个指向前一个元素，一个指向后一个元素。
 - **内存存储区域**：ArrayList 是连续内存存储；而 LinkedList 分散在内存中。
-- **线程安全**：ArrayList 和 LinkedList 都是不同步的，也就是不保证线程安全；
 - **迭代器性能**：在迭代操作时，ArrayList 使用普通迭代器或增强 for 循环的性能比 LinkedList 更优。因为 ArrayList 的数据存储在连续的内存中，迭代时可以直接访问内存，而 LinkedList 需要通过遍历链表来访问每个元素。
+- **线程安全**：ArrayList 和 LinkedList 都是不同步的，也就是不保证线程安全。*如果需要保证线程安全，有两种方案：*
+    1. 在方法内使用，局部变量则是线程安全的
+    2. 使用 `Collections` 工具类包装成线程安全的 ArrayList 和 LinkedList
+
+```java
+List<Object> syncArrayList = Collections.synchronizedList(new ArrayList<>());
+List<Object> syncLinkedList = Collections.synchronizedList(new LinkedList<>());
+```
 
 **类型选择与使用建议**：
 
@@ -1350,7 +1358,7 @@ HashMap 有如下特点：
  - 非线程安全。同一时间有多个线程同时对 HashMap 进行写操作，将可能导致数据的不一致。*如需要满足线程安全的条件，可使用 `Collections` 的 `synchronizedMap` 方法使 HashMap 具有线程安全的能力，或者使用 `ConcurrentHashMap`*。
  - 允许使用 `null` 的值和 `null` 的键（<font color=purple>**HashMap 最多只允许一条记录的键为 null，允许多条记录的值为 null**</font>）
 
-> Tips: 更多实现原理详见[《Java扩展-JDK集合类源码分析》笔记](/Java/Java扩展-JDK集合类源码分析)
+> Tips: 更多实现原理详见[《Java扩展-集合类源码分析》笔记](/Java/Java扩展-集合类源码分析)
 
 ##### 6.4.1.1. 存储结构
 
@@ -1360,7 +1368,7 @@ HashMap 在 JDK 1.7 以前的数据存储结构是『数组+链表』。
 
 HashMap 将链表结构转换为红黑树结构后，提高了查询效率，因此其时间复杂度为 `O(log N)`。
 
-##### 6.4.1.2. 常用参数
+##### 6.4.1.2. 类的主要参数
 
 - capacity：当前数组的容量，默认为 16，可以扩容，扩容后数组的大小为当前的两倍，因此该值始终为2<sup>n</sup>。
 - loadFactor：负载因子，默认为 0.75。
@@ -1419,27 +1427,13 @@ public class Hashtable<K,V>
 
 ### 6.8. ConcurrentHashMap（网络资料，未整理）
 
-ConcurrentHashMap 底层采用**分段的数组+链表**的方式来实现线程安全。
+#### 6.8.1. 常用 API（整理中）
 
-通过把整个Map分为N个Segment，可以提供相同的线程安全，但是效率提升N倍，默认提升16倍。(读操作不加锁，由于HashEntry的value变量是 volatile的，也能保证读取到最新的值。)
+> TODO: 整理中
 
-`Hashtable` 的 `synchronized` 是针对整张Hash表的，即每次锁住整张表让线程独占，`ConcurrentHashMap` 允许多个修改操作并发进行，其关键在于使用了锁分离技术。有些方法需要跨段，比如size()和containsValue()，它们可能需要锁定整个表而而不仅仅是某个段，这需要按顺序锁定所有段，操作完毕后，又按顺序释放所有段的锁。
+#### 6.8.2. ConcurrentHashMap 实现原理
 
-扩容：段内扩容（段内元素超过该段对应Entry数组长度的75%触发扩容，不会对整个Map进行扩容），插入前检测需不需要扩容，有效避免无效扩容
-
-![](images/158611209239278.jpg)
-
-从类图中可以看出来在存储结构中ConcurrentHashMap比HashMap多出了一个类Segment，而Segment是一个可重入锁。
-
-ConcurrentHashMap 是使用了锁分段技术来保证线程安全的。
-
-锁分段技术：首先将数据分成一段一段的存储，然后给每一段数据配一把锁，当一个线程占用锁访问其中一个段数据的时候，其他段的数据也能被其他线程访问。 
-
-ConcurrentHashMap提供了与Hashtable和SynchronizedMap不同的锁机制。Hashtable中采用的锁机制是一次锁住整个hash表，从而在同一时刻只能由一个线程对其进行操作；而ConcurrentHashMap中则是一次锁住一个桶。
-
-ConcurrentHashMap默认将hash表分为16个桶，诸如get、put、remove等常用操作只锁住当前需要用到的桶。这样，原来只能一个线程进入，现在却能同时有16个写线程执行，并发性能的提升是显而易见的。
-
-![](images/322161417256925.png)
+> Notes: 本章节内容详见[《并发编程 - 原理篇》笔记](/并发编程/并发编程-原理篇)中的『ConcurrentHashMap 原理』章节
 
 ### 6.9. Map 接口相关实现类总结
 

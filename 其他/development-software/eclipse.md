@@ -1,6 +1,4 @@
-# Eclipse 常用配置与使用
-
-> 官网：https://www.eclipse.org/
+> Eclipse 官网：https://www.eclipse.org/
 
 ## 1. Eclipse各版本号
 
@@ -12,8 +10,8 @@
 | Eclipse 2019-09-R | 4.13  | Eclipse 2019-12-R | 4.14  | Eclipse 2020-03-R | 4.15  | Eclipse 2020-06-R | 4.16  |
 |  Eclipse 2020-09  | 4.17  |  Eclipse 2020-12  | 4.18  |  Eclipse 2021-03  | 4.19  |  Eclipse 2021-06  | 4.20  |
 |  Eclipse 2021-09  | 4.21  |  Eclipse 2021-12  | 4.22  |  Eclipse 2022-03  | 4.23  |  Eclipse 2022-06  | 4.24  |
-|  Eclipse 2022-09  | 4.25  |  Eclipse 2022-12  | 4.26  |  Eclipse 2023‑03  | 4.27  |                   |       |
-
+|  Eclipse 2022-09  | 4.25  |  Eclipse 2022-12  | 4.26  |  Eclipse 2023‑03  | 4.27  |  Eclipse 2023‑06  | 4.28  |
+|  Eclipse 2023‑09  | 4.29  |                   |       |                   |       |                   |       |
 
 > Notes: Eclipse Mars(4.5) 后版本必须要 JDK 1.7 以上
 
@@ -345,7 +343,7 @@ eclipse 使用时，可以配合文档注释，导出对类的说明文档，从
 
 ![](images/20201106103251215_4125.png)
 
-## 11. eclipse自定义library jar包步骤
+## 11. eclipse 自定义 library jar 包步骤
 
 右键点击项目 --> Build Path --> Add Libraries --> User Libraries
 
@@ -373,7 +371,7 @@ eclipse 使用时，可以配合文档注释，导出对类的说明文档，从
 
 ![](images/20201106103825907_20251.png)
 
-## 12. Tomcat与Eclipse连接
+## 12. Tomcat 与 Eclipse 连接
 
 打开Eclipse --> 点击Eclipse菜单栏【Window】-->【Preferences】，之后出现【Preferences】对话框面板，在对话框面板左边栏目里找到【Sever】选项点击下出现子选项【Audio】、【Launching】、【Overlays】、【Profiles】和【Runtime Environment】，这是选择点击【Runtime Environment】项，然后在原来打开的【Preferences】面板
 右面看到【Sever Runtime Environment】，选择【Add】之后显示以下界面：
@@ -402,7 +400,7 @@ Eclipse 的首选项 --> 搜索jsp，找到JSP Files 选择指定的编码，如
 
 ![](images/20201106104312363_3483.jpg)
 
-## 15. eclipse中批量修改Java类文件中引入的package包路径
+## 15. eclipse 中批量修改 Java 类文件中引入的 package 包路径
 
 - 方法一：Ctrl+h --> file serach --> 输入原包名(类型为`*.java`) --> Replace --> 找到后输入要替换的包名 然后自己选择是全部替换还是部分替换。通过该方法也可以批量修改配置文件。
 - 方法二(推荐)：直接修改出错的类所在的包的名称再改回来，这样就可以统一修改所有出错的类的package包名称
@@ -411,9 +409,58 @@ Eclipse 的首选项 --> 搜索jsp，找到JSP Files 选择指定的编码，如
 
 在更换了 eclipse 版本后，选择之前的工作空间时，可能会出现 An internal error occurred during: "Repository registry initialization". 的问题时，删除`.metadata/.plugins/org.eclipse.m2e.core/nexus/` 的目录，然后再重启 Eclipse，重新编译一下 maven 项目
 
-## 17. 常用插件安装与插件卸载
+## 17. eclipse 关于 Spring 相关配置
 
-### 17.1. Spring Tool Suite 4 / 3.9.8
+### 17.1. Spring 配置文件中提示配置信息
+
+> 本小节是针对旧版本 eclipse 对于 spring xml 配置文件无提示的问题。配置跟 hibernate 和 struts2 创建 xml 约束一样的操作
+
+打开【Preferences】 -> 【XML Catalog】 -> 【Add...】
+
+![](images/283360423226846.jpg)
+
+- Location：选择【spring-beans-4.2.xsd】文件所在路径
+- Key type：选择Schema location
+- Key：填写【http://www.springframework.org/schema/beans/spring-beans.xsd】
+
+![](images/412730423247012.jpg)
+
+> <font color=red>**注：约束文件的路径在【\spring-framework-4.2.4.RELEASE\schema\beans】，如果使用其他类型，就根据类型选择不同的文件夹**</font>
+
+### 17.2. 向 xml 文件中增加约束
+
+1. 切换到Design视图，右键点击 Beans 标签 【Edit Namespaces】
+
+![](images/126334909238980.jpg)
+
+2. 点击 add 新增约束
+
+![](images/283734909226847.jpg)
+
+3. 选择 XML catalog，选自己创建的 xsd 模版
+    - Prefix: 填写命名空间
+    - Namespacee Name: 将后面文件名字删除
+
+![](images/368034909247013.jpg)
+
+![](images/492934909239682.jpg)
+
+### 17.3. 创建 xml 文件时引入多个约束
+
+1. 先选择导入一个基础的约束
+2. 再点击 add 新增一个约束（之后操作与生成文件增加约束操作一样，命名也一致）
+
+![](images/470835209236237.jpg)
+
+![](images/545435209231991.jpg)
+
+![](images/16235309249871.jpg)
+
+
+
+## 18. 常用插件安装与插件卸载
+
+### 18.1. Spring Tool Suite 4 / 3.9.8
 
 Spring Tool Suite(STS) 是一个基于 Eclipse 针对 Spring 应用量身定制的开发环境。提供了开发 Spring 应用必须的编码、调试、运行和部署功能。STS 在最新的 Eclipse 发布版本基础上集成了 Pivotal tc 服务器、Pivotal Cloud Foundry、Git、Maven、AspectJ 等必要的工具。<font color=red>**两个版本都安装**</font>
 
@@ -443,7 +490,7 @@ File --> new --> other,然后输入spring，选中spring Bean Configuration File
 
 ![](images/20201106104744118_21027.png)
 
-### 17.2. Lombok插件
+### 18.2. Lombok插件
 
 Lombok是一种Java实用工具，可以帮助开发人员消除Java的冗长，具体看lombok的官网：http://projectlombok.org/
 
@@ -461,7 +508,7 @@ Lombok是一种Java实用工具，可以帮助开发人员消除Java的冗长，
 4. 重启myeclipse/eclipse
 5. 右键点击project --> clean 清理项目
 
-### 17.3. 卸载插件
+### 18.3. 卸载插件
 
 在菜单栏中点击【help】-【Eclipse MarketPlace】。点击Installed标签页，选择需要卸载的插件
 
@@ -471,7 +518,7 @@ Lombok是一种Java实用工具，可以帮助开发人员消除Java的冗长，
 
 ![](images/20201106105105562_23741.jpg)
 
-### 17.4. 查看eclipse安装的插件
+### 18.4. 查看eclipse安装的插件
 
 用于查看安装的那些插件与卸载安装
 

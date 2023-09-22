@@ -45,7 +45,7 @@ taskkill /F /PID "进程PID号"
 taskkill -f -t -im "进程名称"
 ```
 
-### 1.2. 系统脚本
+### 1.2. 自用的系统脚本
 
 #### 1.2.1. 内外网IP切换（适用win10系统）.20171122
 
@@ -190,6 +190,69 @@ rd "%%a"
 )
 
 pause
+```
+
+#### 1.2.4. 启用/禁用网络本地连接
+
+启用/禁用网络连接脚本，**注意：需要使用管理员身份运行脚本**。
+
+```shell
+@echo off 
+ 
+:: BatchGotAdmin 
+:------------------------------------- 
+REM --> Check for permissions 
+>nul 2>&1 "%SYSTEMROOT%\system32\cacls.exe" "%SYSTEMROOT%\system32\config\system" 
+ 
+REM --> If error flag set, we do not have admin. 
+if '%errorlevel%' NEQ '0' ( 
+ echo Requesting administrative privileges... 
+ goto UACPrompt 
+) else ( goto gotAdmin ) 
+ 
+:UACPrompt 
+ echo Set UAC = CreateObject^("Shell.Application"^) > "%temp%\getadmin.vbs" 
+ echo UAC.ShellExecute "%~s0", "", "", "runas", 1 >> "%temp%\getadmin.vbs" 
+ 
+ "%temp%\getadmin.vbs" 
+ exit /B 
+ 
+:gotAdmin 
+ if exist "%temp%\getadmin.vbs" ( del "%temp%\getadmin.vbs" ) 
+ pushd "%CD%" 
+ CD /D "%~dp0" 
+:-------------------------------------- 
+ 
+cls
+@ECHO OFF
+title 启用或禁用本地连接
+CLS
+color 0a
+GOTO MENU
+:MENU
+ECHO.
+ECHO. ==============启用禁用本地连接==============
+ECHO.
+ECHO. 1 启用本地连接
+ECHO. 2 禁用本地连接
+ECHO. 3 退 出
+ECHO. ==========================================
+ECHO.
+ECHO.
+echo. 请输入选择项目的序号：
+set /p ID=
+if "%id%"=="1" goto open
+if "%id%"=="2" goto close
+if "%id%"=="3" exit
+PAUSE
+:open
+echo 启用本地连接
+netsh interface set interface name="以太网" admin=ENABLED
+GOTO MENU
+:close
+echo 禁用本地连接
+netsh interface set interface name="以太网" admin=DISABLED
+goto MENU
 ```
 
 ### 1.3. 批处理(bat)脚本命令汇总（待整理）
