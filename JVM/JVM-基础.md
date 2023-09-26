@@ -657,19 +657,25 @@ ClassFile {
 
 #### 5.5.3. 准备
 
-准备阶段，主要工作是在方法区中为类静态变量分配内存空间，并设置类中变量的初始值。初始值指不同数据类型的默认值，这里需要注意 final 类型的变量和非 final 类型的变量在准备阶段的数据初始化过程不同。例如：
+准备阶段，主要工作是在方法区中为<u>**类静态变量分配内存空间，并设置类中变量的初始值**</u>。初始值指不同数据类型的默认值，这里需要注意 final 类型的变量和非 final 类型的变量在准备阶段的数据初始化过程不同。例如：
+
+- static 修饰的变量，分配空间在准备阶段完成（设置默认值），赋值在初始化阶段完成。如下示例的静态变量 value 在准备阶段的初始值是 0，将 value 设置为 1000 是在对象初始化阶段。因为 JVM 在编译阶段会将静态变量的初始化操作定义在构造器中。
 
 ```java
 public static int value = 1000;
 ```
 
-以上示例的静态变量 value 在准备阶段的初始值是 0，将 value 设置为 1000 是在对象初始化阶段。因为 JVM 在编译阶段会将静态变量的初始化操作定义在构造器中。
+- static 修饰的变量是 final 的基本类型，以及字符串常量，值已确定，赋值在准备阶段完成。如下示例，JVM 在编译阶段后会为 final 类型的变量 value 生成其对应的 ConstantValue 属性，虚拟机在准备阶段会根据 ConstantValue 属性将 value 赋值为 1000。
 
 ```java
 public static final int value = 1000;
 ```
 
-JVM 在编译阶段后会为 final 类型的变量 value 生成其对应的 ConstantValue 属性，虚拟机在准备阶段会根据 ConstantValue 属性将 value 赋值为 1000。
+- static 修饰的变量是 final 的引用类型，也会在初始化阶段完成赋值。
+
+```java
+public static final Object obj = new Object();
+```
 
 #### 5.5.4. 解析
 
