@@ -24,39 +24,72 @@ nohup java -Xms512m -Xmx1024m -jar xxxx.jar --spring.profiles.active=prod &
 - `nohup`：用于在系统后台不挂断地运行命令，退出终端不会影响程序的运行
 - `&`：让命令在后台执行，终端退出后命令仍旧执行。
 
-## 2. JVM 性能调优工具
+## 2. 常用的 JVM 调优的参数
 
-JDK 自带了很多监控工具，都位于 JDK 的 bin 目录下，其中最常用的是 jconsole 和 jvisualvm 这两款视图监控工具。第三方有：MAT(Memory Analyzer Tool)、GChisto。
+对于 JVM 调优，主要是调整年轻代、老年代、元空间的内存空间大小及使用的垃圾回收器类型。
 
-- jconsole（Java Monitoring and Management Console）：从 Java5 开始，在 JDK 中自带的 java 监控和管理控制台。用于对 JVM 中的内存、线程和类等进行监控
-- jvisualvm：JDK 自带的全能分析工具，可以分析内存快照、线程快照、程序死锁、监控内存的变化、gc 变化等。
-- MAT（Memory Analyzer Tool）：一个基于 Eclipse 的内存分析工具，是一个快速、功能丰富的 Javaheap 分析工具，可以帮助开发者查找内存泄漏和减少内存消耗。
-- GChisto：一款专业分析 gc 日志的工具
+- Java SE 8 版本 JVM 虚拟机参数设置参考文档地址：https://docs.oracle.com/javase/8/docs/technotes/tools/unix/java.html
+- vm 参数官方文档：https://www.oracle.com/java/technologies/javase/vmoptions-jsp.html
 
-## 3. 常用的 JVM 调优的参数
-
-Java SE 8 版本 JVM 虚拟机参数设置参考文档地址：https://docs.oracle.com/javase/8/docs/technotes/tools/unix/java.html
-
-- `-Xms2g`：初始化推大小为 2g；
-- `-Xmx2g`：堆最大内存为 2g；
-- `-XX:NewSize=1`：设置新生代大小
-- `-XX:NewRatio=4`：设置年轻的和老年代的内存比例为 1:4；
-- `-XX:SurvivorRatio=8`：设置新生代 Eden 和 Survivor 比例为 8:2，具体 `Edem : from : to = 8 : 1 : 1`；
 - `–XX:+UseParNewGC`：指定使用 ParNew + Serial Old 垃圾回收器组合；
 - `-XX:+UseParallelOldGC`：指定使用 ParNew + ParNew Old 垃圾回收器组合；
 - `-XX:+UseConcMarkSweepGC`：指定使用 CMS + Serial Old 垃圾回收器组合；
 - `-XX:+PrintGC`：开启打印 gc 信息；
 - `-XX:+PrintGCDetails`：打印 gc 详细信息。
 
-### 3.1. -XX:+UseCompressedOops
+### 2.1. 设置堆的初始值和最大值
+
+为了防止垃圾收集器在初始大小、最大内存之间收缩堆而产生额外的时间，通常把最大、初始大小设置为相同的值。
+
+- `-Xms`：设置堆的初始化大小
+- `-Xmx`：设置堆的最大内存
+
+例如：
+
+```
+# 初始化推大小为 2g
+-Xms2g
+# 堆最大内存为 2g
+-Xmx2g
+```
+
+### 2.2. 设置 Eden 区和两个 Survivor 区的比例
+
+`-XXSurvivorRatio` 参数用于设置年轻代中 Eden 区和两个 Survivor 区的大小比例。该值如果不设置，则默认比例为 8:1:1。Java 官方通过增大 Eden 区的大小，来减少 YGC 发生的次数，但有时虽然次数减少了，但 Eden 区满的时候，由于占用的空间较大，导致释放缓慢，此时 STW(Stop the world) 的时间较长，因此需要按照程序情况去调优。
+
+```
+# 表示年轻代中的分配比率：survivor : eden = 2:3
+-XXSurvivorRatio=3
+
+# 设置新生代 Eden 和 Survivor 比例为 8:2，具体 Eden : from : to = 8 : 1 : 1
+-XX:SurvivorRatio=8
+```
+
+### 2.3. 年轻代和老年代的比例
+
+年轻代和老年代默认比例为 1:2。可以通过调整二者空间大小比率来设置两者的大小。
+
+- `-XX:newSize`：设置年轻代的初始大小
+- `-XX:MaxNewSize`：设置年轻代的最大大小，初始大小和最大大小两个值通常相同
+
+例如：
+
+```
+# 设置新生代大小
+-XX:NewSize=1
+# 设置年轻的和老年代的内存比例为 1:4
+-XX:NewRatio=4
+```
+
+### 2.4. -XX:+UseCompressedOops
 
 当应用从 32 位的 JVM 迁移到 64 位的 JVM 时，由于对象的指针从 32 位增加到了 64 位，因此堆内存会突然增加差不多翻倍，这也会对 CPU 缓存（容量比内存小很多）的数据产生不利的影响。
 
 迁移到 64 位的 JVM 主要动机在于可以指定最大堆大小，通过压缩 OOP 可以节省一定的内存。通过 `-XX:+UseCompressedOops` 选项，JVM 会使用 32 位的 OOP，而不是 64 位的 OOP。
 
-## 4. 常用的 JVM 调优命令
+## 3. 常用的 JVM 调优命令
 
-### 4.1. jps（虚拟机进程状况工具）
+### 3.1. jps（虚拟机进程状况工具）
 
 `jps`：JVM Process Status Tool，列出本机所有正在运行的虚拟机（Java）进程。显示执行主类(Main Class, main()函数所在的类）的名称，以及进程的本地虚拟机的唯一ID。常用参数如下：
 
@@ -69,7 +102,7 @@ Java SE 8 版本 JVM 虚拟机参数设置参考文档地址：https://docs.orac
 jps -lvm
 ```
 
-### 4.2. jstack（堆栈跟踪工具）
+### 3.2. jstack（堆栈跟踪工具）
 
 `jstack`：查看某个 Java 进程内当前时刻的线程堆栈信息。线程快照就是当前虚拟机内每一条线程正在执行的方法堆栈的集合，生成线程快照的主要目的是定位线程出现长时间停顿的原因。语法如下：
 
@@ -89,7 +122,7 @@ option 选项取值说明：
 jstack -l 4124 | more
 ```
 
-### 4.3. jstat（虚拟机统计信息工具）
+### 3.3. jstat（虚拟机统计信息工具）
 
 `jstat`：JVM statistics Monitoring，用于监视虚拟机各种**运行状态信息（类装载、内存、垃圾收集、JIT编译等运行数据）**。命令语法如下：
 
@@ -109,7 +142,7 @@ jstat [option vmid [interval[s|ms] [count]] ]
 
 > Tips: 如果不指定 `interval` 与 `count` 此两个参数，就默认查询一次。
 
-#### 4.3.1. option 选项取值说明
+#### 3.3.1. option 选项取值说明
 
 - `-class` 监视类装载、卸载数量、总空间及类装载锁消耗的时间
 - `-gc` 监视 Java 堆状况，包括 Eden 区，2 个 survivor 区、老年代
@@ -122,7 +155,7 @@ jstat [option vmid [interval[s|ms] [count]] ]
 - `-gcoldcapacity` 监控内容与 `-gcold` 基本相同，主要关注使用到的最大最小空间
 - `-compiler` 输出 JIT 编译器编译过的方法、耗时等信息
 
-#### 4.3.2. 示例及输出信息说明
+#### 3.3.2. 示例及输出信息说明
 
 例如使用参数 `-gcuitl` 可以查看垃圾回收的统计信息。
 
@@ -146,7 +179,7 @@ S0 S1 E O M CCS YGC YGCT FGC FGCT GCT
 > - FGCT：老年代垃圾回收消耗时间
 > - GCT：垃圾回收消耗总时间
 
-### 4.4. jmap（内存映像工具）
+### 3.4. jmap（内存映像工具）
 
 `jmap`：JVM Memory Map，查看运行中的堆内存的快照（heap dump 文件），从而可以对堆内存进行离线分析。该命令工具还可以查询 finalize 执行队列，Java 堆和永久代的详细信息，如果空间使用率、当前用的是哪种收集器等。命令语法：
 
@@ -168,11 +201,11 @@ option 选项说明：
 jmap -heap 4124
 ```
 
-### 4.5. jhat
+### 3.5. jhat
 
 `jhat`：JVM Heap Analysis Tool，此命令是与 `jmap` 搭配使用，用来分析 `jmap` 生成的 dump，`jhat` 内置了一个微型的 HTTP/HTML 服务器，生成 dump 的分析结果后，可以在浏览器中查看
 
-### 4.6. jinfo（配置信息工具）
+### 3.6. jinfo（配置信息工具）
 
 `jinfo`：JVM Configuration info，实时查看当前的应用 JVM 运行参数配置。语法格式：
 
@@ -188,7 +221,7 @@ jinfo -flags 1
 
 > Tips: 与 `jps -v` 命令比较，该只是查看虚拟机启动时显式指定的参数列表。
 
-### 4.7. 查询 JVM 相关参数值
+### 3.7. 查询 JVM 相关参数值
 
 - 查看所有参数的最终值，*初始值可能被修改掉*。
 
@@ -201,3 +234,16 @@ java -XX:+PrintFlagsFinal -version
 ```bash
 java -XX:+PrintFlagsInitial
 ```
+
+## 4. JVM 性能调优工具
+
+JDK 自带了很多监控工具，都位于 JDK 的 bin 目录下，其中最常用的是 jconsole 和 jvisualvm 这两款视图监控工具。第三方有：MAT(Memory Analyzer Tool)、GChisto。
+
+- jconsole（Java Monitoring and Management Console）：从 Java5 开始，在 JDK 中自带的 java 监控和管理控制台。用于对 JVM 中的内存、线程和类等进行监控
+- jvisualvm：JDK 自带的全能分析工具，可以分析内存快照、线程快照、程序死锁、监控内存的变化、gc 变化等。
+- MAT（Memory Analyzer Tool）：一个基于 Eclipse 的内存分析工具，是一个快速、功能丰富的 Javaheap 分析工具，可以帮助开发者查找内存泄漏和减少内存消耗。
+- GChisto：一款专业分析 gc 日志的工具
+
+### 4.1. VisualVM：故障处理工具
+
+jvisualvm 能够监控线程，内存情况，查看方法的 CPU 时间和内存中的对象，已被 GC 的对象，反向查看分配的堆栈。
