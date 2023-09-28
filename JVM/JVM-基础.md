@@ -1715,17 +1715,7 @@ class Person {
 5. 执行 `p.getName()` 时，JVM 根据 p 的引用找到其所指向的对象，然后根据此对象持有的引用定位到方法区中 `Person` 类的类型信息的方法表，获得 `getName()` 的字节码地址。
 6. 执行 `getName()` 方法。
 
-### 9.2. OOM 问题的排查
-
-> 线上 JVM 必须配置 `-XX:+HeapDumpOnOutOfMemoryError` 和 `-XX:HeapDumpPath=/tmp/heapdump.hprof`，当OOM发生时自动 dump 堆内存信息到指定目录
-
-排查 OOM 的方法如下：
-
-- 查看服务器运行日志日志，捕捉到内存溢出异常
-- 使用 `jstat` 命令工具查看监控 JVM 的内存和 GC 情况，评估问题大概出在什么区域
-- 使用 MAT 工具载入 dump 文件，分析大对象的占用情况
-
-### 9.3. 如何获取 Java 程序使用的内存？堆使用的百分比？
+### 9.2. 如何获取 Java 程序使用的内存？堆使用的百分比？
 
 通过 `java.lang.Runtime` 类中与内存相关方法来获取剩余的内存，总内存及最大堆内存。
 
@@ -1747,7 +1737,7 @@ public native long maxMemory();
 
 - 返回最大内存的字节数
 
-### 9.4. class 字节码文件 10 个主要组成部分
+### 9.3. class 字节码文件 10 个主要组成部分
 
 - MagicNumber
 - Version
