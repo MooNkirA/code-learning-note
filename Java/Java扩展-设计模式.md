@@ -562,9 +562,334 @@ public static void main(String[] args) {
 
 <font color=red>**建造者（Builder）模式由产品、抽象建造者、具体建造者、指挥者等 4 个要素构成**</font>
 
+# 工厂设计模式
+
+## 1. 定义
+
+在 Java 中，万物皆对象，这些对象都需要创建，如果创建的时候直接 new 该对象，就会对该对象耦合严重，假如要更换对象，所有 new 对象的地方都需要修改一遍，这显然违背了软件设计的**开闭原则**。如果使用工厂来生产对象，只需要和工厂打交道即可，彻底和对象解耦，如果要更换对象，直接在工厂里更换该对象即可，达到了与对象解耦的目的；所以工厂模式最大的优点就是：**解耦**。
+
+> 开闭原则：**对扩展开放，对修改关闭**。在程序需要进行拓展的时候，不能去修改原有的代码，实现一个热插拔的效果。简言之，是为了使程序的扩展性好，易于维护和升级。
+
+**三种工厂模式**：
+
+- 简单工厂模式
+- 工厂方法模式
+- 抽象工厂模式
+
+### 1.1. 案例需求概述
+
+需求：设计一个咖啡店点餐系统。设计一个咖啡类（Coffee），并定义其两个子类（美式咖啡【AmericanCoffee】和拿铁咖啡【LatteCoffee】）；再设计一个咖啡店类（CoffeeStore），咖啡店具有点咖啡的功能。
+
+具体类的设计如下：
+
+![](images/402620418249396.jpg)
+
+> 类图的元素说明：
+>
+> 1. 类图中的符号：
+>     - `+`：表示 public 权限方法
+>     - `-`：表示 private 权限方法
+>     - `#`：表示 protected 权限方法
+> 2. 泛化关系(继承)用带空心三角箭头的实线来表示
+> 3. 依赖关系使用带箭头的虚线来表示
+
+### 1.2. 无设计模式实现
+
+- 定义接口：
+
+```java
+public interface Coffee {
+    /**
+     * 获取名字
+     */
+    String getName();
+
+    /**
+     * 加牛奶
+     */
+    void addMilk();
+
+    /**
+     * 加糖
+     */
+    void addSuqar();
+}
+
+
+public class LatteCoffee implements Coffee {
+    /**
+     * 获取名字
+     */
+    @Override
+    public String getName() {
+        return "latteCoffee";
+    }
+
+    /**
+     * 加牛奶
+     */
+    @Override
+    public void addMilk() {
+        System.out.println("LatteCoffee...addMilk...");
+    }
+
+    /**
+     * 加糖
+     */
+    @Override
+    public void addSuqar() {
+        System.out.println("LatteCoffee...addSuqar...");
+    }
+}
+```
+
+- 定义实现类
+
+```java
+public class AmericanCoffee implements Coffee {
+    /**
+     * 获取名字
+     */
+    @Override
+    public String getName() {
+        return "americanCoffee";
+    }
+
+    /**
+     * 加牛奶
+     */
+    @Override
+    public void addMilk() {
+        System.out.println("AmericanCoffee...addMilk...");
+    }
+
+    /**
+     * 加糖
+     */
+    @Override
+    public void addSuqar() {
+        System.out.println("AmericanCoffee...addSuqar...");
+    }
+}
+```
+
+- 无使用设计模式实现获取不同实现类
+
+```java
+public class CoffeeStore {
+
+    public static void main(String[] args) {
+        Coffee coffee = orderCoffee("latte");
+        System.out.println(coffee.getName());
+    }
+
+
+    public static Coffee orderCoffee(String type) {
+        Coffee coffee = null;
+        if ("american".equals(type)) {
+            coffee = new AmericanCoffee();
+        } else if ("latte".equals(type)) {
+            coffee = new LatteCoffee();
+        }
+
+        // 对生产的对象做其他处理
+        coffee.addMilk();
+        coffee.addSuqar();
+        return coffee;
+    }
+}
+```
+
+## 2. 简单工厂模式
+
+简单工厂不是一种设计模式，反而比较像是一种编程习惯。
+
+### 2.1. 涉及角色
+
+简单工厂包含如下角色：
+
+- 抽象产品：定义了产品的规范，描述了产品的主要特性和功能。
+- 具体产品：实现或者继承抽象产品的子类
+- 具体工厂：提供了创建产品的方法，调用者通过该方法来获取产品。
+
+### 2.2. 具体实现
+
+使用简单工厂模式对上面案例进行改进，类图如下：
+
+![](images/46424318237263.png)
+
+- 创建静态工厂类
+
+```java
+public class SimpleCoffeeFactory {
+
+    public static Coffee createCoffee(String type) {
+        Coffee coffee = null;
+        if ("american".equals(type)) {
+            coffee = new AmericanCoffee();
+        } else if ("latte".equals(type)) {
+            coffee = new LatteCoffee();
+        }
+        return coffee;
+    }
+}
+```
+
+> Tips: 在开发中，经常会将工厂类中的创建对象的功能定义为静态的，这就是静态工厂模式，它也不属于 23 种设计模式。
+
+- 改进使用简单静态工厂模式
+
+```java
+public class CoffeeStore {
+
+    public static void main(String[] args) {
+        // 使用简单静态工厂模式
+        Coffee coffee1 = simpleOrderCoffee("american");
+        System.out.println(coffee1.getName());
+    }
+
+    public static Coffee simpleOrderCoffee(String type) {
+        // 通过工厂获得对象，不需要知道对象实现的细节
+        Coffee coffee = SimpleCoffeeFactory.createCoffee(type);
+
+        if (Objects.nonNull(coffee)) {
+            coffee.addMilk();
+            coffee.addSuqar();
+        }
+        return coffee;
+    }
+}
+```
+
+总结：工厂（factory）处理创建对象的细节，一旦有了 SimpleCoffeeFactory，CoffeeStore 类中的 simpleOrderCoffee() 就变成此对象的客户，后期如果需要 Coffee 对象直接从工厂中获取即可。这样也就解除了和 Coffee 实现类的耦合，同时又产生了新的耦合，CoffeeStore 对象和 SimpleCoffeeFactory 工厂对象的耦合，工厂对象和商品对象的耦合。
+
+后期如果再加新品种的咖啡，势必要需求修改 SimpleCoffeeFactory 的代码，违反了开闭原则。工厂类的客户端可能有很多，比如创建美团外卖等，这样只需要修改工厂类的代码，省去其他的修改操作。
+
+### 2.3. 优缺点
+
+- **优点**：封装了创建对象的过程，可以通过参数直接获取对象。把对象的创建和业务逻辑层分开，这样以后就避免了修改客户代码，如果要实现新产品直接修改工厂类，而不需要在原代码中修改，这样就降低了客户代码修改的可能性，更加容易扩展。
+- **缺点**：增加新产品时还是需要修改工厂类的代码，违背了“开闭原则”。
+
+## 3. 工厂方法模式
+
+针对上例中的缺点，使用工厂方法模式就可以完美的解决，完全遵循开闭原则。
+
+### 3.1. 概述
+
+工厂方法模式，需要定义一个用于创建对象的接口，让子类决定实例化哪个产品类对象。工厂方法使一个产品类的实例化延迟到其工厂的子类。
+
+### 3.2. 涉及角色
+
+工厂方法模式的主要角色：
+
+- 抽象工厂（Abstract Factory）：提供了创建产品的接口，调用者通过它访问具体工厂的工厂方法来创建产品。
+- 具体工厂（ConcreteFactory）：主要是实现抽象工厂中的抽象方法，完成具体产品的创建。
+- 抽象产品（Product）：定义了产品的规范，描述了产品的主要特性和功能。
+- 具体产品（ConcreteProduct）：实现了抽象产品角色所定义的接口，由具体工厂来创建，它同具体工厂之间一一对应。
+
+### 3.3. 具体实现
+
+使用工厂方法模式对上例进行改进，类图如下：
+
+![](images/113274319257429.png)
+
+- 抽象工厂
+
+```java
+public interface CoffeeFactory {
+    /**
+     * 创建咖啡
+     */
+    Coffee createCoffee();
+}
+```
+
+- 定义具体的工厂实现
+
+```java
+public class AmericanCoffeeFactory implements CoffeeFactory {
+    /**
+     * 创建美式咖啡
+     */
+    @Override
+    public Coffee createCoffee() {
+        return new AmericanCoffee();
+    }
+}
+
+public class LatteCoffeeFactory implements CoffeeFactory {
+    /**
+     * 创建拿铁咖啡
+     */
+    @Override
+    public Coffee createCoffee() {
+        return new LatteCoffee();
+    }
+}
+```
+
+- 改造通过不同的工厂生成相应的对象
+
+```java
+public class CoffeeStore {
+
+    public static void main(String[] args) {
+        // 使用工厂方法模式
+        CoffeeStore coffeeStore = new CoffeeStore(new LatteCoffeeFactory());
+
+        Coffee coffee2 = coffeeStore.methodOrderCoffee();
+        System.out.println(coffee2.getName());
+    }
+
+
+    private CoffeeFactory coffeeFactory;
+
+    public CoffeeStore(CoffeeFactory coffeeFactory){
+        this.coffeeFactory = coffeeFactory;
+    }
+
+    public Coffee methodOrderCoffee() {
+        // 可以根据不同的工厂，创建不同的产品
+        Coffee coffee = coffeeFactory.createCoffee();
+
+        if (Objects.nonNull(coffee)) {
+            coffee.addMilk();
+            coffee.addSuqar();
+        }
+        return coffee;
+    }
+}
+```
+
+总结：从以上编写的代码可以看到，工厂方法模式是简单工厂模式的进一步抽象。由于使用了多态性，要增加产品类时也要相应地增加工厂类，不需要修改工厂类的代码。工厂方法模式保持了简单工厂模式的优点，而且解决了简单工厂模式的缺点。
+
+### 3.4. 优缺点
+
+**优点：**
+
+- 用户只需要知道具体工厂的名称就可得到所要的产品，无须知道产品的具体创建过程；
+- 在系统增加新的产品时只需要添加具体产品类和对应的具体工厂类，无须对原工厂进行任何修改，满足开闭原则；
+
+**缺点：**
+
+- 每增加一个产品就要增加一个具体产品类和一个对应的具体工厂类，这增加了系统的复杂度。
+
+## 4. 抽象工厂模式
+
+这些工厂只生产同种类产品，同种类产品称为同等级产品，也就是说：工厂方法模式只考虑生产同等级的产品，但是在现实生活中许多工厂是综合型的工厂，能生产多等级（种类） 的产品，如电器厂既生产电视机又生产洗衣机或空调，大学既有软件专业又有生物专业等。
+
+
+
+
+
+
+
+
+
+
 # 策略模式（Strategy Pattern）(整理中！)
 
-
+> TODO: 待整理
 
 # 装饰器模式(整理中！)
 
