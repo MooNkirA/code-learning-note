@@ -25,8 +25,8 @@
 设计模式按照其功能和使用场景可以分为三大类：**创建型模式（Creational Pattern）**、**结构型模式（Structural Pattern）**和**行为型模式（Behavioral Pattern）**
 
 - **创建型模式**：提供了多种优雅创建对象的方法
-  - [ ] 工厂模式（Factory Pattern）
-  - [ ] 抽象工厂模式（A bstract Factory Pattern）
+  - [x] 工厂模式（Factory Pattern）
+  - [ ] 抽象工厂模式（Abstract Factory Pattern）
   - [x] 单例模式（Singleton Pattern）
   - [ ] 建造者模式（Builder Pattern）
   - [ ] 原型模式（Prototype Pattern）
@@ -562,7 +562,7 @@ public static void main(String[] args) {
 
 <font color=red>**建造者（Builder）模式由产品、抽象建造者、具体建造者、指挥者等 4 个要素构成**</font>
 
-# 工厂设计模式
+# 工厂模式（Factory Pattern）
 
 ## 1. 定义
 
@@ -704,7 +704,7 @@ public class CoffeeStore {
 
 简单工厂不是一种设计模式，反而比较像是一种编程习惯。
 
-### 2.1. 涉及角色
+### 2.1. 模式结构
 
 简单工厂包含如下角色：
 
@@ -778,7 +778,7 @@ public class CoffeeStore {
 
 工厂方法模式，需要定义一个用于创建对象的接口，让子类决定实例化哪个产品类对象。工厂方法使一个产品类的实例化延迟到其工厂的子类。
 
-### 3.2. 涉及角色
+### 3.2. 模式结构
 
 工厂方法模式的主要角色：
 
@@ -874,22 +874,370 @@ public class CoffeeStore {
 
 - 每增加一个产品就要增加一个具体产品类和一个对应的具体工厂类，这增加了系统的复杂度。
 
-## 4. 抽象工厂模式
+# 抽象工厂模式（Abstract Factory Pattern）
 
 这些工厂只生产同种类产品，同种类产品称为同等级产品，也就是说：工厂方法模式只考虑生产同等级的产品，但是在现实生活中许多工厂是综合型的工厂，能生产多等级（种类） 的产品，如电器厂既生产电视机又生产洗衣机或空调，大学既有软件专业又有生物专业等。
 
+抽象工厂模式将考虑多等级产品的生产，将同一个具体工厂所生产的位于不同等级的一组产品称为一个产品族，下图所示
 
+- 产品族：一个品牌下面的所有产品；例如华为下面的电脑、手机称为华为的产品族。
+- 产品等级：多个品牌下面的同种产品；例如华为和小米都有手机电脑为一个产品等级。
 
+![](images/534675007230971.png)
 
+## 1. 概念
 
+抽象工厂模式是工厂方法模式的升级版本，工厂方法模式只生产一个等级的产品，而抽象工厂模式可生产多个等级的产品。该模式是一种为访问类提供一个创建一组相关或相互依赖对象的接口，且访问类无须指定所要产品的具体类就能得到同族的不同等级的产品的模式结构。
 
+**一个超级工厂创建其他工厂，该超级工厂又称为其他工厂的工厂。**
 
+## 2. 模式结构
 
+抽象工厂模式的主要角色如下：
 
+- 抽象工厂（Abstract Factory）：提供了创建产品的接口，它包含多个创建产品的方法，可以创建多个不同等级的产品。
+- 具体工厂（Concrete Factory）：主要是实现抽象工厂中的多个抽象方法，完成具体产品的创建。
+- 抽象产品（Product）：定义了产品的规范，描述了产品的主要特性和功能，抽象工厂模式有多个抽象产品。
+- 具体产品（ConcreteProduct）：实现了抽象产品角色所定义的接口，由具体工厂来创建，它 同具体工厂之间是多对一的关系。
 
-# 策略模式（Strategy Pattern）(整理中！)
+## 3. 具体实现（暂未整理代码）
 
-> TODO: 待整理
+现咖啡店业务发生改变，不仅要生产**咖啡**还要生产**甜点**
+
+- 同一个产品等级（产品分类）
+    - 咖啡：拿铁咖啡、美式咖啡 
+    - 甜点：提拉米苏、抹茶慕斯
+- 同一个风味，就是同一个产品族（相当于同一个品牌）
+    - 美式风味：美式咖啡、抹茶慕斯
+    - 意大利风味：拿铁咖啡、提拉米苏
+
+如果按照工厂方法模式，需要定义提拉米苏类、抹茶慕斯类、提拉米苏工厂、抹茶慕斯工厂、甜点工厂类，很容易发生类爆炸情况。所以这个案例可以使用抽象工厂模式实现。类图如下：
+
+![](images/77281008249397.png)
+
+> Tips: 实现关系使用带空心三角箭头的虚线来表示
+
+整体调用思路：
+
+![](images/404191008237264.png)
+
+## 4. 优缺点
+
+- **优点**：当一个产品族中的多个对象被设计成一起工作时，它能保证客户端始终只使用同一个产品族中的对象。
+- **缺点**：当产品族中需要增加一个新的产品时，所有的工厂类都需要进行修改。
+
+## 5. 使用场景
+
+- 当需要创建的对象是一系列相互关联或相互依赖的产品族时，如电器工厂中的电视机、洗衣机、空调等。
+- 系统中有多个产品族，但每次只使用其中的某一族产品。如有人只喜欢穿某一个品牌的衣服和鞋。
+- 系统中提供了产品的类库，且所有产品的接口相同，客户端不依赖产品实例的创建细节和内部结构。
+
+如：输入法换皮肤，一整套一起换。生成不同操作系统的程序。
+
+# 策略模式（Strategy Pattern）
+
+## 1. 定义
+
+策略模式定义了一系列算法，并将每个算法封装起来，使它们可以相互替换，且算法的变化不会影响使用算法的客户。策略模式属于对象行为模式，它通过对算法进行封装，把使用算法的责任和算法的实现分割开来，并委派给不同的对象对这些算法进行管理。
+
+## 2. 模式结构
+
+策略模式的主要角色如下：
+
+- 抽象策略类（Strategy）：这是一个抽象角色，通常由一个接口或抽象类实现。此角色给出所有的具体策略类所需的接口。
+- 具体策略类（Concrete Strategy）：实现了抽象策略定义的接口，提供具体的算法实现或行为。
+- 环境类（Context）：持有一个策略类的引用，最终给客户端调用。
+
+## 3. 基础实现
+
+### 3.1. 需求说明
+
+案例（促销活动）需求：一家百货公司在定年度的促销活动。针对不同的节日（春节、中秋节、圣诞节）推出不同的促销活动，由促销员将促销活动展示给客户。类图如下：
+
+![](images/62783308257430.png)
+
+> Tips: 聚合关系可以用带空心菱形的实线来表示
+
+### 3.2. 代码实现
+
+- 定义百货公司所有促销活动的共同接口
+
+```java
+public interface Strategy {
+    void show();
+}
+```
+
+- 定义具体策略角色（Concrete Strategy）：每个节日具体的促销活动
+
+```java
+public class StrategyA implements Strategy {
+    // 为春节准备的促销活动A
+    @Override
+    public void show() {
+        System.out.println("买一送一");
+    }
+}
+
+public class StrategyB implements Strategy {
+    // 为中秋准备的促销活动B
+    @Override
+    public void show() {
+        System.out.println("满200元减50元");
+    }
+}
+
+public class StrategyC implements Strategy {
+    // 为圣诞准备的促销活动C
+    @Override
+    public void show() {
+        System.out.println("满1000元加一元换购任意200元以下商品");
+    }
+}
+```
+
+- 定义环境角色（Context）：用于连接上下文。这里可以理解为销售员，即把促销活动推销给客户。
+
+```java
+public class SalesMan {
+    // 持有抽象策略角色的引用
+    private Strategy strategy;
+
+    public SalesMan(Strategy strategy) {
+        this.strategy = strategy;
+    }
+
+    // 向客户展示促销活动
+    public void salesManShow() {
+        strategy.show();
+    }
+
+    // 测试
+    public static void main(String[] args) {
+        SalesMan salesMan = new SalesMan(new StrategyB());
+        salesMan.salesManShow();
+    }
+}
+```
+
+## 4. 进阶：工厂方法设计模式+策略模式
+
+### 4.1. 概述
+
+一般网站都会提供有多种方式可以进行登录。如果使用传统方式实现该功能，一般会存在以下问题：
+
+- 业务层代码大量使用到了 if...else，在后期阅读代码的时候会非常不友好，大量使用 if...else 性能也不高
+- 如果业务发生变更，比如现在新增了QQ登录方式，这个时候需要修改业务层代码，违反了开闭原则
+
+解决方案：使用**工厂方法设计模式+策略模式**。
+
+一句话总结：**只要代码中有冗长的 if-else 或 switch 分支判断都可以采用策略模式优化**。
+
+### 4.2. 工厂+策略模式实现
+
+#### 4.2.1. 整体思路
+
+不在 service 中写业务分支逻辑，而去调用工厂，然后通过 service 传递不同的参数来获取不同的登录策略（登录方式）。流程图如下：
+
+![](images/251851111250099.png)
+
+#### 4.2.2. 具体实现
+
+- 基础请求/响应
+
+```java
+// 请求参数：LoginReq
+@Data
+public class LoginReq {
+    private String name;
+    private String password;
+    private String phone;
+    private String validateCode;//手机验证码
+    private String wxCode;//用于微信登录
+    /**
+     * account : 用户名密码登录
+     * sms : 手机验证码登录
+     * we_chat : 微信登录
+     */
+    private String type;
+}
+
+// 响应参数：LoginResp
+@Data
+public class LoginResp{  
+    private Integer userId;
+    private String userName;
+    private String roleCode;
+    private String token; //jwt令牌
+    private boolean success;
+}
+```
+
+- 抽象策略类：UserGranter
+
+```java
+public class UserGranter {
+    /**
+     * 获取数据
+     *
+     * @param loginReq 传入的参数
+     *                 0:账号密码
+     *                 1:短信验证
+     *                 2:微信授权
+     * @return map值
+     */
+    LoginResp login(LoginReq loginReq);
+}
+```
+
+- 提供具体的策略：AccountGranter、SmsGranter、WeChatGranter
+
+```java
+@Component
+public class AccountGranter implements UserGranter {
+    @Override
+    public LoginResp login(LoginReq loginReq) {
+        System.out.println("策略:登录方式为账号登录");
+        // 执行业务操作
+        return new LoginResp();
+    }
+}
+
+@Component
+public class SmsGranter implements UserGranter {
+    @Override
+    public LoginResp login(LoginReq loginReq) {
+        System.out.println("策略:登录方式为短信登录");
+        // 执行业务操作
+        return new LoginResp();
+    }
+}
+
+@Component
+public class WeChatGranter implements UserGranter{
+    @Override
+    public LoginResp login(LoginReq loginReq)  {
+        System.out.println("策略:登录方式为微信登录");
+        // 执行业务操作
+        return new LoginResp();
+    }
+}
+```
+
+- 在 application.yml 文件中新增自定义配置，不同类型
+
+```yml
+login:
+  types:
+    account: accountGranter
+    sms: smsGranter
+    we_chat: weChatGranter
+```
+
+- 新增读取数据配置类
+
+```java
+@Getter
+@Setter
+@Configuration
+@ConfigurationProperties(prefix = "login")
+public class LoginTypeConfig {
+    private Map<String, String> types;
+}
+```
+
+- 工厂类 UserLoginFactory，用于操作策略的上下文的环境类，主要初始化时将策略汇总管理，并对外提供获取具体策略的方法。
+
+```java
+@Component
+public class UserLoginFactory implements ApplicationContextAware {
+
+    private static final Map<String, UserGranter> granterPool = new ConcurrentHashMap<>();
+
+    @Autowired
+    private LoginTypeConfig loginTypeConfig;
+
+    /**
+     * 从配置文件中读取策略信息存储到map中
+     * { account:accountGranter, sms:smsGranter, we_chat:weChatGranter }
+     *
+     * @param applicationContext
+     * @throws BeansException
+     */
+    @Override
+    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+        loginTypeConfig.getTypes().forEach((k, v) -> {
+            granterPool.put(k, (UserGranter) applicationContext.getBean(v));
+        });
+    }
+
+    /**
+     * 对外提供获取具体策略
+     *
+     * @param grantType 用户的登录方式，需要跟配置文件中匹配
+     * @return 具体策略
+     */
+    public UserGranter getGranter(String grantType) {
+        return granterPool.get(grantType);
+    }
+}
+```
+
+- 编写业务类，通过工厂获取不同的策略
+
+```java
+@Service
+public class UserService {
+
+    @Autowired
+    private UserLoginFactory factory;
+
+    public LoginResp login(LoginReq loginReq) {
+        UserGranter granter = factory.getGranter(loginReq.getType());
+        if (granter == null) {
+            LoginResp loginResp = new LoginResp();
+            loginResp.setSuccess(false);
+            return loginResp;
+        }
+        LoginResp resp = granter.login(loginReq);
+        resp.setSuccess(true);
+        return resp;
+    }
+}
+```
+
+- 登陆控制层
+
+```java
+@RestController
+@RequestMapping("/api/user")
+@Slf4j
+public class LoginController {
+
+    @Autowired
+    private UserService userService;
+
+    @PostMapping("/login")
+    public LoginResp login(@RequestBody LoginReq loginReq) throws InterruptedException {
+        if (loginReq.getType().equals("abc")) {
+            log.error("没有这种登录方式:{}", loginReq.getType());
+        }
+        if (loginReq.getType().equals("123")) {
+            throw new RuntimeException("错误的登录方式");
+        }
+
+        return userService.login(loginReq);
+    }
+}
+```
+
+#### 4.2.3. 测试
+
+使用 postman 请求测试
+
+![](images/409771615249397.png)
+
+使用了工厂+策略设计模式之后，业务层的代码不需要使用大量的 if...else，如果后期有新的需求改动，比如加入了QQ登录，只需要添加对应的策略就可以，无需再改动业务层代码。
 
 # 装饰器模式(整理中！)
 
@@ -907,11 +1255,15 @@ public class CoffeeStore {
 
 # 责任链模式（Chain of Responsibility）
 
-## 1. 定义与特点
+## 1. 定义
 
 责任链（Chain of Responsibility）模式（也叫职责链模式）的定义：为了避免请求发送者与多个请求处理者耦合在一起，于是将所有请求的处理者通过前一对象记住其下一个对象的引用而连成一条链；当有请求发生时，可将请求沿着这条链传递，直到有对象处理它为止。
 
 责任链模式的本质是解耦请求与处理，让请求在处理链中能进行传递与被处理。责任链模式的独到之处是将其节点处理者组合成了链式结构，并允许节点自身决定是否进行请求处理或转发，相当于让请求流动起来。
+
+责任链模式的应用比较常见的是，springmvc 中的拦截器，web 开发中的 filter 过滤器等。
+
+## 2. 优缺点
 
 责任链模式是一种对象行为型模式，其主要优点如下：
 
@@ -927,9 +1279,9 @@ public class CoffeeStore {
 2. 对比较长的职责链，请求的处理可能涉及多个处理对象，系统性能将受到一定影响。
 3. 职责链建立的合理性要靠客户端来保证，增加了客户端的复杂性，可能会由于职责链的错误设置而导致系统出错，如可能会造成循环调用。
 
-## 2. 模式结构
+## 3. 模式结构
 
-### 2.1. 主要角色
+### 3.1. 主要角色
 
 职责链模式主要包含以下角色：
 
@@ -937,13 +1289,13 @@ public class CoffeeStore {
 - 具体处理者（Concrete Handler）角色：实现抽象处理者的处理方法，判断能否处理本次请求，如果可以处理请求则处理，否则将该请求转给它的后继者。
 - 客户类（Client）角色：创建处理链，并向链头的具体处理者对象提交请求，它不关心处理细节和请求的传递过程。
 
-### 2.2. 结构图
+### 3.2. 结构图
 
 ![](images/1364513220566.jpg)
 
 ![](images/492494513238992.jpg)
 
-## 3. 基础实现
+## 4. 基础实现
 
 抽象处理者角色
 
