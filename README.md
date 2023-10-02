@@ -458,7 +458,7 @@
   <li><a href="#/分布式微服务/分布式链路追踪/SkyWalking">SkyWalking - 分布式链路追踪和可视化一体化解决方案</a></li>
 </ul>
 
-### 微服务监控
+### 🛡️ 微服务监控
 
 <ul class="docs">
   <li><a href="#/分布式微服务/微服务监控/Prometheus">Prometheus（普罗米修斯）系统监控与告警工具</a></li>
@@ -478,7 +478,7 @@
   <li><a href="#/分布式微服务/其他/FastDFS">FastDFS 分布式文件系统</a></li>
 </ul>
 
-## 并发编程
+## 🎛️ 并发编程
 
 <ul class="docs">
   <li><a href="#/并发编程/并发编程-多线程">并发编程 - 多线程</a></li>
@@ -500,7 +500,7 @@
 
 <ul class="docs">
   <li><a href="#/其他/编程资源分享">编程资源分享</a></li>
-  <li><a href="#/其他/编程开发相关资料">编程开发相关资料</a></li>
+  <li><a href="#/其他/编程开发相关">编程开发相关</a></li>
   <li><a href="#/其他/OS">操作系统知识</a></li>
   <li><a href="#/其他/Develop-Environment">个人开发环境搭建资源信息文档</a></li>
 </ul>

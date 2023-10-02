@@ -1,5 +1,3 @@
-# 其它常用开发工具
-
 ## 1. SQLyog 常用快捷键
 
 **Object Browser**
