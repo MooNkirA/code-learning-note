@@ -1356,7 +1356,7 @@ mysql> EXPLAIN SELECT order_note, COUNT(*) AS amount FROM s1 GROUP BY order_note
 
 #### 4.15.14. select tables optimized away
 
-这个值意味着仅通过使用索引，优化器可能仅从聚合函数结果中返回一行
+这个值意味着仅通过使用索引，优化器可能仅从聚合函数结果中返回一行。
 
 #### 4.15.15. LooseScan
 

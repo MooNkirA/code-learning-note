@@ -743,7 +743,7 @@ mysql> show variables like '%log_bin%';
 在配置文件中的[mysqld]部分增加如下配置：
 
 ```properties
-# # 开启日志 log-bin 设置 binlog 的存放位置，可以是绝对路径，也可以是相对路径，此示例是相对路径，则binlog文件默认会放在data数据目录下
+# 开启日志 log-bin 设置 binlog 的存放位置，可以是绝对路径，也可以是相对路径，此示例是相对路径，则binlog文件默认会放在data数据目录下
 log-bin=mysql-bin
 # Server Id 是数据库服务器id，随便写一个数都可以，这个id用来在mysql集群环境中标记唯一mysql服务器，集群环境中每台mysql服务器的id不能一样，不加启动会报错
 server-id=1
