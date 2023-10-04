@@ -7,11 +7,6 @@
     },
     "history": [
         {
-            "last_accessed_time": "2023-06-11T08:21:48Z",
-            "line_number": 0,
-            "path": "Linux/Linux-安装.md"
-        },
-        {
             "last_accessed_time": "2023-06-13T15:04:56Z",
             "line_number": 177,
             "path": "Linux/Linux-shell.md"
@@ -115,11 +110,6 @@
             "last_accessed_time": "2023-06-30T15:29:48Z",
             "line_number": 3594,
             "path": "前端资料/JavaScript/JavaScript-基础.md"
-        },
-        {
-            "last_accessed_time": "2023-07-14T14:24:07Z",
-            "line_number": 493,
-            "path": "Database/MySQL/MySQL-函数.md"
         },
         {
             "last_accessed_time": "2023-07-16T15:26:34Z",
@@ -467,11 +457,6 @@
             "path": "JVM/JVM-性能调优.md"
         },
         {
-            "last_accessed_time": "2023-10-03T10:38:41Z",
-            "line_number": 167,
-            "path": "Database/MySQL/MySQL-基础.md"
-        },
-        {
             "last_accessed_time": "2023-10-03T14:18:15Z",
             "line_number": 339,
             "path": "其他/system-software/Common-Software.md"
@@ -497,14 +482,29 @@
             "path": "Database/MySQL/MySQL-事务.md"
         },
         {
-            "last_accessed_time": "2023-10-03T14:43:31Z",
-            "line_number": 440,
+            "last_accessed_time": "2023-10-04T14:33:10Z",
+            "line_number": 457,
             "path": "Database/MySQL/MySQL-运维.md"
         },
         {
-            "last_accessed_time": "2023-10-03T14:43:31Z",
-            "line_number": 808,
+            "last_accessed_time": "2023-10-04T14:33:11Z",
+            "line_number": 594,
             "path": "Database/MySQL/MySQL-体系架构.md"
+        },
+        {
+            "last_accessed_time": "2023-10-04T14:33:11Z",
+            "line_number": 193,
+            "path": "Database/MySQL/MySQL-基础.md"
+        },
+        {
+            "last_accessed_time": "2023-10-04T14:33:11Z",
+            "line_number": 826,
+            "path": "Database/MySQL/MySQL-函数.md"
+        },
+        {
+            "last_accessed_time": "2023-10-04T14:33:12Z",
+            "line_number": 408,
+            "path": "Java/Java基础-数据库编程.md"
         }
     ],
     "image_folder": "images",

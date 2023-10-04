@@ -592,7 +592,7 @@ create table a_myisam(c1 int) engine=MyISAM;
 
 ![](images/20210414222629075_25947.png)
 
-如上例所示：`a_myisam.MYD`是表的数据文件；`a_myisam.MYI`是表的索引文件。
+如上例所示：`a_myisam.MYD`是表的数据文件；`a_myisam.MYI`是表的索引文件；`a_myisam.frm`是存储表结构定义。
 
 ### 4.3. 日志文件
 

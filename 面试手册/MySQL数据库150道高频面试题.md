@@ -1774,7 +1774,7 @@ PreparedStatement
 
 - 预编译sql会被mysql缓存下来
 - 作用域是每个session，对其他session无效，重新连接也会失效
-- 提高安全性防止sql注入
+- 提高安全性防止 sql 注入
   - select * from user where id =?
   - "1;delete from user where id = 1";
 - 编译语句有可能被重复调用，也就是说sql相同参数不同在同一session中重复查询执行效率明显比较高
