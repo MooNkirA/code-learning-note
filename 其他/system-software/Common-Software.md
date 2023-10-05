@@ -290,6 +290,7 @@ windows 桌面版缓存目录：`%APPDATA%\listen1\Cache`
 - MyFreeMP3： https://tools.liumingye.cn/music/?page=searchPage#
 - MusicENC： https://www.musicenc.com/
 - Musicbed： https://www.musicbed.com/
+- [好歌多](https://www.haogeduo.com/)
 
 ## 6. 看图软件
 

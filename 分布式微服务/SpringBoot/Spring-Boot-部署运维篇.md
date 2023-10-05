@@ -321,7 +321,7 @@ Spring Boot 有多种启动的方式，并且提供了灵活的配置方式，�
 
 ### 3.1. 命令行方式
 
-#### 3.1.1. 基础使用
+#### 3.1.1. 基础启动（不带参数）
 
 将 Spring Boot 项目打包后，可以直接使用 `java -jar` 命令启动项目：
 
@@ -329,17 +329,45 @@ Spring Boot 有多种启动的方式，并且提供了灵活的配置方式，�
 $ java -jar moon-project.jar
 ```
 
-#### 3.1.2. 带启动参数的命令行
-
-在使用 `java -jar` 命令启动 SpringBoot 程序包的命令时，在最后空一格，然后输入两个`-`号，紧接着按`属性名=属性值`的形式添加对应参数就可以了。注意，这里的格式不是yaml中的书写格式，当属性存在多级名称时，中间使用`.`分隔，和 properties 文件中的属性格式完全相同。也可以同时配置多个属性，不同属性之间使用空格分隔。
-
-SpringApplication 会默认将命令行选项参数转换为配置信息。例如：
+#### 3.1.2. Spring Boot 带参数的命令行启动语法
 
 ```bash
-java –jar springboot-demo.jar –-server.port=80 --logging.level.root=debug
+java [ options ] -jar *.jar [ arguments ]
 ```
 
-#### 3.1.3. 使用带参数命令行注入配置参数
+命令解析：
+
+- `options`：是指**覆盖系统属性中的值**，使用`-D`前缀来指定属性值
+- `arguments`：是指**覆盖application中的某个配置项**，使用`--`前缀来指定相关的配置值
+
+#### 3.1.3. 启动时指定配置项
+
+在 Spring Boot 项目中，一般把配置都会写在 application.yml 文件中，随着项目一并打包到 jar 文件中，在生产环境中，启动项目时可以通过添加 `--spring.config.location=/application.yml` 来修改项目的配置文件指向，从而实现覆盖 application 配置的效果。
+
+同理，在使用 `java -jar` 命令启动 SpringBoot 程序包的命令时，通过配置启动参数来覆盖 application 中的某个配置项。在最后空一格，然后输入两个`-`号，紧接着按`属性名=属性值`的形式添加对应参数就可以了。SpringApplication 会默认将命令行选项参数转换为配置信息。
+
+注意：这里的格式不是yaml中的书写格式，当属性存在多级名称时，中间使用`.`分隔，和 properties 文件中的属性格式完全相同。也可以同时配置多个属性，不同属性之间使用空格分隔。例如：
+
+```bash
+java -jar springboot-demo.jar --server.port=80 --logging.level.root=debug
+```
+
+执行带参数的命令启动，可以在 main 方法的参数中获取该值：
+
+```java
+@SpringBootApplication  // 此注解代表为SpringBoot应用的运行主类
+public class QuickStartApplication {
+    public static void main(String[] args) {
+        log.info(">>>>> args: {}", Arrays.toString(args)); // 获取命令带的参数值
+        SpringApplication.run(QuickStartApplication.class, args);
+    }
+}
+```
+
+> Notes: 参数的位置在上面语法格式对应 arguments 位置。
+
+
+#### 3.1.4. 使用带参数命令行注入配置参数
 
 示例：通过带参数的命令行方式启动，并选择不同环境的配置文件。准备两套环境的配置文件，application-dev.yml 和 application-pro.yml，并设置总配置文件 application.yml 如下内容：
 
@@ -358,11 +386,9 @@ java -jar moon-project.jar --spring.profiles.active=dev
 java -jar moon-project.jar --spring.profiles.active=pro
 ```
 
-> 注：上面示例是直接是直接设置 `spring.profiles.active` 配置项，而不是设置 `activeName` 参数。
+> 注：上面示例是直接设置 `spring.profiles.active` 配置项，而不是设置 `activeName` 参数。**如果使用`${}`占位符，在开发过程中可以根据输入的参数切换，但在打包输入命令是无法替换，需要使用`@@`包裹才能实现。**
 
-> **注：如果使用`${}`占位符，在开发过程中可以根据输入的参数切换，但在打包输入命令是无法替换，需要使用`@@`包裹才能实现。**
-
-#### 3.1.4. 禁用命令行启动参数
+#### 3.1.5. 禁用命令行启动参数
 
 从命令行指定配置项的比较配置文件优先级高，不过可以通过 `setAddCommandLineProperties` 来禁用
 
@@ -370,7 +396,7 @@ java -jar moon-project.jar --spring.profiles.active=pro
 SpringApplication.setAddCommandLineProperties(false)
 ```
 
-### 3.2. 使用 Spring Boot 的插件命令
+### 3.2. 使用 Spring Boot 的插件命令方式
 
 #### 3.2.1. 基础语法
 
