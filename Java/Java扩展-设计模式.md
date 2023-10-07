@@ -1277,7 +1277,7 @@ public class LoginController {
 
 1. 不能保证每个请求一定被处理。由于一个请求没有明确的接收者，所以不能保证它一定会被处理，该请求可能一直传到链的末端都得不到处理。
 2. 对比较长的职责链，请求的处理可能涉及多个处理对象，系统性能将受到一定影响。
-3. 职责链建立的合理性要靠客户端来保证，增加了客户端的复杂性，可能会由于职责链的错误设置而导致系统出错，如可能会造成循环调用。
+3. 职责链建立的合理性要靠客户端来保证，增加了客户端的复杂性，可能会由于职责链的错误设置而导致系统出错，如可能会造成循环调用（死循环）。
 
 ## 3. 模式结构
 
@@ -1370,6 +1370,441 @@ public void chainOfResponsibilityPatternTest() {
 流转至 ConcreteHandler3
 具体处理者3负责处理该请求！
 ```
+
+## 5. 进阶案例实战
+
+### 5.1. 案例需求分析
+
+案例需求：以创建商品为例，假设商品创建逻辑分为以下三步完成：①创建商品、②校验商品参数、③保存商品。
+
+第②步校验商品又分为多种情况的校验，必填字段校验、规格校验、价格校验、库存校验等等。这些检验逻辑像一个流水线，要想创建出一个商品，必须通过这些校验。
+
+综上分析，可以**使用责任链模式优化**：创建商品的每个校验步骤都可以作为一个单独的处理器，抽离为一个单独的类，便于复用。这些处理器形成一条链式调用，请求在处理器链上传递，如果校验条件不通过，则处理器不再向下传递请求，直接返回错误信息；若所有的处理器都通过检验，则执行保存商品步骤。
+
+![](images/138594115249474.png)
+
+### 5.2. 接口设计分析
+
+UML 图：
+
+![](images/179463715231048.png)
+
+`AbstractCheckHandler` 为处理器抽象类，负责抽象处理器行为。定义了处理器的抽象方法 `handle()`，其子类需要重写 `handle()` 方法以实现特殊的处理器校验逻辑。其有 3 个子类，分别是：
+
+- `NullValueCheckHandler`：空值校验处理器
+- `PriceCheckHandler`：价格校验处理
+- `StockCheckHandler`：库存校验处理器
+
+`AbstractCheckHandler` 抽象类其他属性和方法说明：
+
+- `protected ProductCheckHandlerConfig config` 是处理器的动态配置类，使用 `protected` 声明，每个子类处理器都持有该对象。该对象用于声明当前处理器、以及当前处理器的下一个处理器 `nextHandler`，另外也可以配置一些特殊属性，比如说接口降级配置、超时时间配置等。
+- `AbstractCheckHandler` 类中的 `nextHandler` 属性是当前处理器持有的下一个处理器的引用，当前处理器执行完毕时，便调用 `nextHandler` 执行下一处理器的 `handle()` 校验方法；
+- `protected Result next()` 是抽象类中定义执行下一个处理器的方法，使用 `protected` 声明，每个子类处理器都持有该对象。当子类处理器执行完毕(通过)时，调用父类的方法执行下一个处理器 `nextHandler`。
+
+另外，`HandlerClient` 类是执行处理器链路的客户端，`HandlerClient.executeChain()` 方法负责发起整个链路调用，并接收处理器链路的返回值。
+
+### 5.3. 代码实现
+
+#### 5.3.1. 产品实体类
+
+定义 ProductVO ，保存创建商品的参数对象，包含商品的基础信息。并且其作为责任链模式中多个处理器的入参，多个处理器都以 roductVO 为入参进行特定的逻辑处理。
+
+```java
+/**
+ * 商品对象
+ */
+@Data
+@Builder
+public class ProductVO {
+    /** 商品SKU，唯一 */
+    private Long skuId;
+    /** 商品名称 */
+    private String skuName;
+    /** 商品图片路径 */
+    private String Path;
+    /** 价格 */
+    private BigDecimal price;
+    /** 库存 */
+    private Integer stock;
+}
+```
+
+#### 5.3.2. 抽象类处理器：抽象行为，子类共有属性、方法
+
+创建抽象类处理器 `AbstractCheckHandler`，并使用 `@Component` 注解注册为由 Spring 管理的 Bean 对象，方便使用 Spring 来管理各个处理器实现 Bean。
+
+```java
+/**
+ * 抽象类处理器
+ */
+@Component
+public abstract class AbstractCheckHandler {
+    /**
+     * 当前处理器持有下一个处理器的引用
+     */
+    @Getter
+    @Setter
+    protected AbstractCheckHandler nextHandler;
+
+    /**
+     * 处理器配置
+     */
+    @Setter
+    @Getter
+    protected ProductCheckHandlerConfig config;
+
+    /**
+     * 处理器执行方法
+     * @param param
+     * @return
+     */
+    public abstract Result handle(ProductVO param);
+
+    /**
+     * 链路传递
+     * @param param
+     * @return
+     */
+    protected Result next(ProductVO param) {
+        // 下一个链路没有处理器了，直接返回
+        if (Objects.isNull(nextHandler)) {
+            return Result.success();
+        }
+
+        // 执行下一个处理器
+        return nextHandler.handle(param);
+    }
+}
+```
+
+抽象类的属性和方法说明如下：
+
+- `public abstract Result handle(ProductVO param)`：表示抽象的校验方法，每个处理器都应该继承 `AbstractCheckHandler` 抽象类处理器，并重写其 `handle` 方法，各个处理器从而实现特殊的校验逻辑，实际上就是多态的思想。
+- `protected ProductCheckHandlerConfig config`：表示每个处理器的动态配置类，可以通过“配置中心”动态修改该配置，实现处理器的“动态编排”和“顺序控制”。配置类中可以配置处理器的名称、下一个处理器、以及处理器是否降级等属性。
+- `protected AbstractCheckHandler nextHandler`：表示当前处理器持有下一个处理器的引用，如果当前处理器 `handle()` 校验方法执行完毕，则执行下一个处理器 `nextHandler` 的 `handle()` 校验方法执行校验逻辑。
+- `protected Result next(ProductVO param)`：此方法用于处理器链路传递，子类处理器执行完毕后，调用父类的 `next()` 方法执行在 `config` 配置的链路上的下一个处理器，如果所有处理器都执行完毕了，就返回结果了。
+
+创建 ProductCheckHandlerConfig 配置类
+
+```java
+/**
+ * 处理器配置类
+ */
+@AllArgsConstructor
+@Data
+public class ProductCheckHandlerConfig {
+    /**
+     * 处理器Bean名称
+     */
+    private String handler;
+    /**
+     * 下一个处理器
+     */
+    private ProductCheckHandlerConfig next;
+    /**
+     * 是否降级
+     */
+    private Boolean down = Boolean.FALSE;
+}
+```
+
+#### 5.3.3. 子类处理器：处理特有的校验逻辑
+
+创建3个子类处理器，各个处理器继承 `AbstractCheckHandler` 抽象类处理器，并重写其 `handle()` 处理方法以实现特有的校验逻辑。
+
+- `NullValueCheckHandler`：空值校验处理器。针对性校验创建商品中必填的参数。如果校验未通过，则返回错误码 ErrorCode，责任链在此截断(停止)，创建商品返回被校验住的错误信息。*注意代码中的降级配置！*使用 `@Component` 注册到 Spring 容器
+
+```java
+/**
+ * 空值校验处理器
+ */
+@Component
+public class NullValueCheckHandler extends AbstractCheckHandler {
+
+	@Override
+	public Result handle(ProductVO param) {
+		System.out.println("空值校验 Handler 开始...");
+
+		// 降级：如果配置了降级，则跳过此处理器，执行下一个处理器
+		if (super.getConfig().getDown()) {
+			System.out.println("空值校验 Handler 已降级，跳过空值校验 Handler...");
+			return super.next(param);
+		}
+
+		// 参数必填校验
+		if (Objects.isNull(param)) {
+			return Result.failure(ErrorCode.PARAM_NULL_ERROR);
+		}
+		// SkuId 商品主键参数必填校验
+		if (Objects.isNull(param.getSkuId())) {
+			return Result.failure(ErrorCode.PARAM_SKU_NULL_ERROR);
+		}
+		// Price 价格参数必填校验
+		if (Objects.isNull(param.getPrice())) {
+			return Result.failure(ErrorCode.PARAM_PRICE_NULL_ERROR);
+		}
+		// Stock 库存参数必填校验
+		if (Objects.isNull(param.getStock())) {
+			return Result.failure(ErrorCode.PARAM_STOCK_NULL_ERROR);
+		}
+
+		System.out.println("空值校验 Handler 通过...");
+
+		// 执行下一个处理器
+		return super.next(param);
+	}
+}
+```
+
+> Notes: `super.getConfig().getDown()` 是获取 `AbstractCheckHandler` 处理器对象中保存的配置信息，如果处理器配置了降级，则跳过该处理器，直接调用 `super.next()` 执行下一个处理器逻辑。
+
+- `PriceCheckHandler`：价格校验处理。针对创建商品的价格参数进行校验。这里只是做了简单的判断价格大于0的校验，实际业务中比较复杂，比如“价格门”这些防范措施等。
+
+```java
+/**
+ * 价格校验处理器
+ */
+@Component
+public class PriceCheckHandler extends AbstractCheckHandler {
+	@Override
+	public Result handle(ProductVO param) {
+		System.out.println("价格校验 Handler 开始...");
+
+		// 非法价格校验
+		boolean illegalPrice = param.getPrice().compareTo(BigDecimal.ZERO) <= 0;
+		if (illegalPrice) {
+			return Result.failure(ErrorCode.PARAM_PRICE_ILLEGAL_ERROR);
+		}
+		// 其他校验逻辑...
+
+		System.out.println("价格校验 Handler 通过...");
+
+		// 执行下一个处理器
+		return super.next(param);
+	}
+}
+```
+
+- `StockCheckHandler`：库存校验处理器。针对创建商品的库存参数进行校验。
+
+```java
+@Component
+public class StockCheckHandler extends AbstractCheckHandler {
+	@Override
+	public Result handle(ProductVO param) {
+		System.out.println("库存校验 Handler 开始...");
+
+		// 非法库存校验
+		boolean illegalStock = param.getStock() < 0;
+		if (illegalStock) {
+			return Result.failure(ErrorCode.PARAM_STOCK_ILLEGAL_ERROR);
+		}
+		// 其他校验逻辑..
+
+		System.out.println("库存校验 Handler 通过...");
+
+		// 执行下一个处理器
+		return super.next(param);
+	}
+}
+```
+
+#### 5.3.4. 客户端：执行处理器链路
+
+`HandlerClient` 客户端类负责发起整个处理器链路的执行，通过 `executeChain()` 方法。如果处理器链路返回错误信息，即校验未通过，则整个链路截断（停止），返回相应的错误信息。
+
+```java
+public class HandlerClient {
+
+	public static Result executeChain(AbstractCheckHandler handler, ProductVO param) {
+		//执行处理器
+		Result handlerResult = handler.handle(param);
+		if (!handlerResult.isSuccess()) {
+			System.out.println("HandlerClient 责任链执行失败返回：" + handlerResult.toString());
+			return handlerResult;
+		}
+		return Result.success();
+	}
+}
+```
+
+#### 5.3.5. 责任链模式参数校验 paramCheck 方法步骤说明
+
+创建参数校验 `paramCheck()` 方法使用责任链模式进行参数校验，方法内没有声明具体都有哪些校验，具体有哪些参数校验逻辑是通过多个处理器链传递的。如下：
+
+```java
+private Result paramCheck(ProductVO param) {
+
+	// 获取处理器配置：通常配置使用统一配置中心存储，支持动态变更
+	ProductCheckHandlerConfig handlerConfig = this.getHandlerConfigFile();
+
+	// 获取处理器
+	AbstractCheckHandler handler = this.getHandler(handlerConfig);
+
+	// 通过客户端，执行处理器链路
+	Result executeChainResult = HandlerClient.executeChain(handler, param);
+	if (!executeChainResult.isSuccess()) {
+		System.out.println("创建商品 失败...");
+		return executeChainResult;
+	}
+
+	// 处理器链路全部成功
+	return Result.success();
+}
+```
+
+##### 5.3.5.1. 步骤1：获取处理器配置
+
+通过 `getHandlerConfigFile()` 方法获取处理器配置类对象，配置类保存了链上各个处理器的上下级节点配置，支持流程编排、动态扩展。通常配置是通过Ducc(京东自研的配置中心)、Nacos(阿里开源的配置中心)等配置中心存储的，支持动态变更、实时生效。
+
+```java
+/**
+ * 获取处理器配置：通常配置使用统一配置中心存储，支持动态变更
+ */
+private ProductCheckHandlerConfig getHandlerConfigFile() {
+	// 模拟配置中心存储的配置
+	String configJson = "{\"handler\":\"nullValueCheckHandler\",\"down\":true,\"next\":{\"handler\":\"priceCheckHandler\",\"next\":{\"handler\":\"stockCheckHandler\",\"next\":null}}}";
+	// 转成Config对象
+	ProductCheckHandlerConfig handlerConfig = JSON.parseObject(configJson, ProductCheckHandlerConfig.class);
+	return handlerConfig;
+}
+```
+
+> 示例没有使用配置中心存储处理器链路的配置，而是使用 JSON 串的形式去模拟配置。
+
+ConfigJson 存储的处理器链路配置 JSON 串，使用 json.cn 等格式化如下，配置的整个调用链路规则特别清晰
+
+![](images/280124516237341.png)
+
+`getHandlerConfigFile()` 获到配置类方法，只是把在配置中心储存的配置规则，转换成配置类 `ProductCheckHandlerConfig` 对象，用于程序处理。结构如下：
+
+![](images/456605116257507.png)
+
+> Notes: 此时配置类中存储的仅仅是处理器 Spring Bean 的 name 而已，并非实际处理器对象。
+
+###### 5.3.5.1.1. 步骤2-1：配置检查
+
+首先会进行了配置的一些检查操作。如果配置错误，则获取不到对应的处理器。`handlerMap.get(config.getHandler())` 是从所有处理器映射 Map 中获取到对应的处理器 Spring Bean。
+
+> Tips: `handlerMap` 存储了所有的处理器映射，是通过 Spring 的 `@Resource` 注解注入。注入的规则是：所有继承了 `AbstractCheckHandler` 抽象类（它是 Spring 管理的 Bean）的子类（子类也是 Spring 管理的 Bean）都会注入进来。
+
+注入进来的 handlerMap 中 Key 对应 Bean 的 name，Value 是对应的 Bean 实例，也就是实际的处理器，这里指空值校验处理器、价格校验处理器、库存校验处理器。
+
+![](images/420691517250176.png)
+
+###### 5.3.5.1.2. 步骤2-2：保存处理器规则
+
+将配置规则保存到对应的处理器中 `abstractCheckHandler.setConfig(config)`，子类处理器就持有了配置的规则。
+
+###### 5.3.5.1.3. 步骤2-3：递归设置处理器链路
+
+```java
+abstractCheckHandler.setNextHandler(this.getHandler(config.getNext()));
+```
+
+以上方法是递归设置链路上的处理器，结合 ConfigJson 配置的规则来看：
+
+![](images/599961717246731.png)
+
+1. 由上而下，NullValueCheckHandler 空值校验处理器通过 `setNextHandler()` 方法法设置自己持有的下一节点的处理器，也就是价格处理器 PriceCheckHandler。
+2. 接着，PriceCheckHandler 价格处理器，同样需要经过步骤2-1配置检查、步骤2-2保存配置规则，并且最重要的是，它也需要设置下一节点的处理器 StockCheckHandler 库存校验处理器。
+3. 最后 StockCheckHandler 库存校验处理器也一样，同样需要经过步骤2-1配置检查、步骤2-2保存配置规则。值得注意的是，StockCheckHandler 的 next 规则配置了 null，这表示它下面没有任何处理器要执行了，它就是整个链路上的最后一个处理节点。
+
+通过递归调用 `getHandler()` 获取处理器方法，就将整个处理器链路对象串联起来了。如下：
+
+![](images/154142017242485.png)
+
+实际上，`getHandler()` 获取处理器对象的代码就是把在配置中心配置的规则 `ConfigJson`，转换成配置类 `ProductCheckHandlerConfig` 对象，再根据配置类对象，转换成实际的处理器对象，这个处理器对象持有整个链路的调用顺序。
+
+> Tips: 使用递归一定要注意截断递归的条件处理，否则可能造成死循环！
+
+##### 5.3.5.2. 步骤2：根据配置获取处理器
+
+上面步骤1通过 `getHandlerConfigFile()` 方法获取到处理器链路配置规则后，再调用 `getHandler()` 获取处理器。
+
+`getHandler()` 方法参数是如上 `ConfigJson` 配置的规则，即步骤1转换成的 ProductCheckHandlerConfig 对象；根据 ProductCheckHandlerConfig 配置规则转换成处理器链路对象。代码如下：
+
+```java
+/**
+ * 使用 Spring 注入:所有继承了AbstractCheckHandler抽象类的Spring Bean都会注入进来。Map的Key对应Bean的name,Value是name对应相应的Bean
+ */
+@Resource
+private Map<String, AbstractCheckHandler> handlerMap;
+
+/**
+ * 获取处理器
+ *
+ * @param config
+ * @return
+ */
+private AbstractCheckHandler getHandler(ProductCheckHandlerConfig config) {
+	// 配置检查：没有配置处理器链路，则不执行校验逻辑
+	if (Objects.isNull(config)) {
+		return null;
+	}
+	// 配置错误
+	String handler = config.getHandler();
+	if (StringUtils.isBlank(handler)) {
+		return null;
+	}
+	// 配置了不存在的处理器
+	AbstractCheckHandler abstractCheckHandler = handlerMap.get(config.getHandler());
+	if (Objects.isNull(abstractCheckHandler)) {
+		return null;
+	}
+
+	// 处理器设置配置 Config
+	abstractCheckHandler.setConfig(config);
+
+	// 递归设置链路处理器
+	abstractCheckHandler.setNextHandler(this.getHandler(config.getNext()));
+
+	return abstractCheckHandler;
+}
+```
+
+##### 5.3.5.3. 步骤3：客户端执行调用链路
+
+`getHandler()` 获取完处理器后，整个调用链路的执行顺序也就确定了。最后通过 `HandlerClient` 客户端类的 `executeChain(handler, param)` 方法执行处理器整个调用链路，并接收处理器链路的返回值。
+
+`executeChain()` 通过 `AbstractCheckHandler.handle()` 触发整个链路处理器顺序执行，如果某个处理器校验没有通过 `!handlerResult.isSuccess()`，则返回错误信息；所有处理器都校验通过，则返回正确信息 `Result.success()`。
+
+### 5.4. 测试
+
+最后创建 `createProduct()` 测试用例方法，创建商品方法抽象为2个步骤：①参数校验、②创建商品。参数校验使用责任链模式进行校验，包含：空值校验、价格校验、库存校验等等，只有链上的所有处理器均校验通过，才调用 `saveProduct()` 创建商品方法；否则返回校验错误信息。
+
+在 `createProduct()` 创建商品方法中，通过责任链模式，将校验逻辑进行解耦。`createProduct()` 创建商品方法中不需要关注都要经过哪些校验处理器，以及校验处理器的细节。
+
+```java
+@Test
+public Result createProduct(ProductVO param) {
+	// 参数校验，使用责任链模式
+	Result paramCheckResult = this.paramCheck(param);
+	if (!paramCheckResult.isSuccess()) {
+		return paramCheckResult;
+	}
+
+	// 创建商品
+	return this.saveProduct(param);
+}
+```
+
+场景1：创建商品参数中有空值（如下skuId参数为null），链路被空值处理器截断，返回错误信息
+
+```java
+//创建商品参数
+ProductVO param = ProductVO.builder()
+      .skuId(null).skuName("华为手机").Path("http://...")
+      .price(new BigDecimal(1))
+      .stock(1)
+      .build();
+```
+
+测试结果
+
+![](images/333023017260365.png)
+
+
 
 # 门面模式（整理中！）
 
