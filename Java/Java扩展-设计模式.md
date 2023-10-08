@@ -1792,7 +1792,6 @@ public Result createProduct(ProductVO param) {
 场景1：创建商品参数中有空值（如下skuId参数为null），链路被空值处理器截断，返回错误信息
 
 ```java
-//创建商品参数
 ProductVO param = ProductVO.builder()
       .skuId(null).skuName("华为手机").Path("http://...")
       .price(new BigDecimal(1))
@@ -1804,7 +1803,46 @@ ProductVO param = ProductVO.builder()
 
 ![](images/333023017260365.png)
 
+场景2：创建商品价格参数异常（如下price参数），被价格处理器截断，返回错误信息
 
+```java
+ProductVO param = ProductVO.builder()
+      .skuId(1L).skuName("华为手机").Path("http://...")
+      .price(new BigDecimal(-999))
+      .stock(1)
+      .build();
+```
+
+测试结果
+
+![](images/101202020231048)
+
+场景 3：创建商品库存参数异常（如下stock参数），被库存处理器截断，返回错误信息。
+
+```java
+ProductVO param = ProductVO.builder()
+      .skuId(1L).skuName("华为手机").Path("http://...")
+      .price(new BigDecimal(1))
+      .stock(-999)
+      .build();
+```
+
+测试结果
+
+![](images/519432220249474)
+
+场景4：创建商品所有处理器校验通过，保存商品。
+
+```java
+ProductVO param = ProductVO.builder()
+      .skuId(1L).skuName("华为手机").Path("http://...")
+      .price(new BigDecimal(999))
+      .stock(1).build();
+```
+
+测试结果
+
+![](images/262662320237341)
 
 # 门面模式（整理中！）
 
