@@ -44,7 +44,27 @@ SSH是英文Secure Shell的简写形式。通过使用SSH，它可以把所有�
 
 ![](images/502233817224819.jpg)
 
-### 2.4. ssh 密钥配置
+### 2.4. 配置指定 SSH 密钥（非必须）
+
+编辑 SSH 的配置文件 `~/.ssh/config`，并加入以下配置：
+
+```
+Host github.com
+    HostName github.com
+    User git
+    IdentityFile /root/.ssh/xxx
+    IdentitiesOnly yes
+```
+
+参数解析：
+
+- `Host github.com` 用于指定该密钥的主机名，这里必须使用代码库的主机名 github.com。
+- `HostName github.com` 指定主机对应的具体域名，与 Host 保持一致。Host 和 HostName 可以不同，但是 Host 必须与代码库的主机名匹配，也就是 Git 在需要时会使用代码库的主机名来在 SSH 配置文件中查找匹配的 Host，找到后就使用该配置，访问的具体域名将采用 HostName。
+- `User git` 说明该配置的用户必须是 git。
+- `IdentityFile /root/.ssh/xxx` 这一行非常关键，需要指定要使用那个 SSH 密钥文件，这里的密钥文件一定是私钥文件，不是有 pub 后缀的那个。
+- `IdentitiesOnly yes` 请配置为 yes。
+
+### 2.5. ssh 密钥配置
 
 密钥生成后，需要在 github 上配置 ssh 的公钥，本地才可以使用 ssh 方式进行代码拉取与提交。
 

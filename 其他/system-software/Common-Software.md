@@ -369,33 +369,39 @@ ZLibary 网站镜像唯一入口： https://www.zhelper.net/
 - [Zlibrary 最新地址/入口](https://5w.fit/zkmgc) - 5w Short Links（短链接生成器）
 - [zBook](https://zbook.eu.org/)
 - https://zlibrary-global.se
+- Z-Library https://zlibrary-east.se
+> 如果网址失效，可以通过导航网站重新获取。 https://zlib.shop/
+
 
 #### 7.1.2. 国内篇
 
-- [https://nav.yibook.org/](https://nav.yibook.org/) - 电子书搜索网站导航
+- [yibook](https://nav.yibook.org/) - 电子书搜索网站导航
 - [SoBooks](https://sobooks.net/) 图书下载网站是本人最喜欢的一个，它不仅书的种类齐全，而且质量也是相当的高，长期这里获取资源让我受益匪浅。每本书都可以获取百度网盘、微盘等下载站链接，直接下载或者保存网盘即可。
-- [安娜的档案](https://zh.annas-archive.gs/search?q=) - 🔍影子图书馆搜索引擎：书籍、论文、漫画、杂志。 ⭐️ Z-Library、Library Genesis、Sci-Hub。 ⚙️ 通过开源代码和数据完全容灾。
-- ~~[ePUBee 电子书库](http://cn.epubee.com/books/)，电子书的类型非常的全面，而且技术类电子书质量比较高，流行的畅销书都可以在这下载到。~~
-- [鸠摩搜索](https://www.jiumodiary.com)，书籍类的搜索引擎，搜索到书籍后会有下载链接，直接网盘保存即可
+- [鸠摩搜索](https://www.jiumodiary.com/) - 书籍类的搜索引擎，搜索到书籍后会有下载链接，直接网盘保存即可。
 - [超星读书](http://book.chaoxing.com)，专业知识电子书
-- ~~[epubw](https://epubw.com)，每日都会有电子书更新，通过网盘下载~~
 - [图灵社区](https://www.ituring.com.cn)，专为码农提供的电子书下载网站，有些是需要付费的，有些是免费的
 - [莫若书单](https://www.mrsd.top/) - epub电子书、kindle电子书资源下载
 - [书籍知识库](https://www.zhishikoo.com/) - 优质mobi,azw3,TXT,PDF,epub格式电子书分享站
 - [跪读网](https://orzbooks.com/) - 跪读电子书 | 每天都分享优质电子书免费下载
 - [Freembook](https://freembook.com) - 一个快捷的电子书搜索引擎，提供了百度网盘秒传和直接转传的方式。
-- [book123](https://www.book123.info/) - 提供免费电子书下载的网站
+- [无名图书(book123)](https://www.book123.info/) - 提供免费电子书下载的网站，界面非常简洁，广告也少，下载非常方便。缺点是格式单一，一本书只提供一个格式。
 - [Lore Free](https://ebook2.lorefree.com) - Lore Free 致力于让每个人都能自由地获取到知识，是一个基于区块链的电子书下载站，未登录状态下，每天有 3 个下载额度（包括电子书和论文）登陆较复杂默认的额度足以满足日常需求。
 - [libgen](https://libgen.gs/index.php) - libgen 与 Lore Free 类似同样是使用 IPFS 区块链来进行图书存储。
 - [thefuture 书籍搜索](https://bks.thefuture.top) - thefuture 是一个电子书搜索引擎，提供了蓝奏网盘等资源的索引。
-- [知搜](https://zhiso.top)
+- [知搜](https://zhiso.top) - 知搜是一个电子书搜索引擎，雅书是一个下载站，两者的资源均通过城通网盘分享。
 - [雅书](https://yabook.org)
-   - 知搜是一个电子书搜索引擎，雅书是一个下载站，两者的资源均通过城通网盘分享。
-- [书格](https://new.shuge.org) - 书格是一个免费的古籍下载站，由于资源都是些人文古籍类，所以资源非常小众，网站不错可当备用。
-- [找书网_图书信息搜索平台！](https://findbooks.eu.org/)
+- [书格](https://new.shuge.org/) - 书格是一个免费的古籍下载站，由于资源都是些人文古籍类，所以资源非常小众，网站不错可当备用。
+- [找书网_图书信息搜索平台！](https://findbooks.eu.org/) - 找书网的资源相对较全，缺点是只能使用秒传下载，不会使用秒传或者没有百度网盘的不推荐这个网站。
+- [熊猫搜书](https://xmsoushu.com/#/) - 熊猫搜书聚合了鸠摩搜书、Z-library等多个搜书网站的资源。缺点是下载程序比较繁琐，需要多次跳转页面。
+- [奇妙搜索](https://www.magicalsearch.top/main) - 奇妙搜索主要是搜网盘上面的电子书，不止是电子书，其他资源也可以轻松获取。
+- [书伴](https://bookfere.com/) - 书伴又称Kindle人社区，以前图书资源很多，后期整顿以后少了很多，下载的图书格式也大多是awz3，只能适配Kindle等电子阅读器，需要转换一下才能在电脑或者其他电子设备上阅读。
+- [中国哲学书籍电子化计划](https://ctext.org/zh) - 很小众的细分电子书领域。
+- ~~[ePUBee 电子书库](http://cn.epubee.com/books/)，电子书的类型非常的全面，而且技术类电子书质量比较高，流行的畅销书都可以在这下载到。~~
+- ~~[epubw](https://epubw.com)，每日都会有电子书更新，通过网盘下载~~
 
 #### 7.1.3. 国外篇
 
+- [安娜的档案](https://zh.annas-archive.gs/) - 🔍影子图书馆搜索引擎：书籍、论文、漫画、杂志。 ⭐️ Z-Library、Library Genesis、Sci-Hub。 ⚙️ 通过开源代码和数据完全容灾。网站需要代理才能登陆，国内受限。
 - [B-OK](https://b-ok.cc) 号称世界最大的电子图书馆，喜欢看英文原版的推荐使用，全英文网站，查找当然也需要英文。
 - [Library Genesis](http://gen.lib.rus.ec)，是俄罗斯人做的超强英文电子书库。收录各大下载网站，书籍、期刊、文献储存量惊人。和B-OK.xyz不同在于支持更多电子书格式，但会有付费资源。
 - [Libgen Online Library](https://libgen.pw)，电子书版本多，下载方便，格式也比较全。
