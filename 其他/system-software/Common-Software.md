@@ -413,10 +413,6 @@ ZLibary 网站镜像唯一入口： https://www.zhelper.net/
 
 - [编程电子书分享(github)](https://github.com/hello-go-maker/cs-books) - 分享一些从网上整理的计算机类的电子书籍，包括Java电子书籍（Java基础，Java多线程，spring、springboot、springcloud，分布式，微服务等）、Python，Linux，Go，C，C++，数据结构与算法，人工智能，计算机基础，面试，设计模式，数据库，前端等书籍
 
-#### 7.1.5. 网盘分享
-
-- 【公众号：小书呆读书纪】已发布书单电子书合集（200+，持续更新中） 阿里云盘下载链接： https://www.aliyundrive.com/s/TdXTMskCYhn
-
 ### 7.2. 资源搜索下载
 
 - [盘他一下](https://panother.com/) - 一个支持百度网盘和阿里云的在线网盘资源搜索引擎，找到搜索的内容后，需要微信扫码登录小程序，网盘虽然是完全免费的，但是搜索获取资源，会有积分限制
