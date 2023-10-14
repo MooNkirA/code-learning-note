@@ -7,7 +7,8 @@ Ant Design 是阿里蚂蚁金服团队基于 React 开发的 ui 组件，主要�
 - 使用 TypeScript 构建，提供完整的类型定义文件。
 - 全链路开发和设计工具体系。
 
-> 官网：https://ant.design/index-cn
+> - [Ant Design 官网](https://ant-design.gitee.io/index-cn)
+> - [Ant Design Pro 官网](https://ant-design-pro.gitee.io/zh-CN)
 
 ## 2. 快速入门
 

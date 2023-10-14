@@ -215,7 +215,7 @@ SqlMapConfig.xml 示例：
 
 ## 4. MyBatis开发数据层
 
-### 4.1. MyBatis开发数据层两种方式
+### 4.1. MyBatis 开发数据层两种方式
 
 使用 MyBatis 开发 Dao，通常有两种方式：
 
@@ -224,7 +224,7 @@ SqlMapConfig.xml 示例：
 
 > 企业项目开发，推荐 mapper 代理方式
 
-### 4.2. MyBaties原始 dao 开发方式
+### 4.2. MyBaties 原始 dao 开发方式
 
 #### 4.2.1. 原始 dao 开发的步骤
 

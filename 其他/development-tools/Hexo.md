@@ -1,8 +1,4 @@
-# Hexo - blog 搭建工具
-
-## 1. Hexo简介
-
-### 1.1. hexo作用
+## 1. Hexo 简介
 
 Hexo 是一个快速、简洁且高效的博客框架，利用 Markdown 即可自动生成静态网页。
 
@@ -15,12 +11,12 @@ Hexo 是一个快速、简洁且高效的博客框架，利用 Markdown 即可�
 4. 丰富的插件
     - Hexo 拥有强大的插件系统，安装插件可以让 Hexo 支持 Jade, CoffeeScript。
 
-### 1.2. 相关网址
+相关网址：
 
 - 官网：https://hexo.io/
 - 主题选择：https://hexo.io/themes/
-- 使用hexo部署到github：https://levblanc.github.io/2015/07/13/building-github-pages-blog-with-hexo/
-- hexo部署到github：https://www.jianshu.com/p/9ab44093364c
+- 使用 hexo 部署到github：https://levblanc.github.io/2015/07/13/building-github-pages-blog-with-hexo/
+- hexo 部署到 github：https://www.jianshu.com/p/9ab44093364c
 
 ## 2. Hexo 安装
 

@@ -36,13 +36,12 @@
 
 ## 2. ReactJS简介
 
-官网： https://reactjs.org/
+> - React.js 英文官网： https://react.dev/
+> - React.js 中文官网： https://zh-hans.react.dev/
 
-ReactJS，就是一个用于构建用户界面的JavaScript框架，是Facebook开发的一款的JS框架。
+ReactJS，就是一个用于构建用户界面的 JavaScript 框架，是 Facebook 开发的一款的 JS 框架。ReactJS 把复杂的页面，拆分成一个个的组件，将这些组件一个个的拼装起来，就会呈现多样的页面。ReactJS 可以用于 MVC 架构，也可以用于 MVVM 架构，或者别的架构。
 
-ReactJS把复杂的页面，拆分成一个个的组件，将这些组件一个个的拼装起来，就会呈现多样的页面。ReactJS可以用于 MVC 架构，也可以用于 MVVM 架构，或者别的架构。
-
-ReactJS圈内的一些框架简介：
+ReactJS 圈内的一些框架简介：
 
 - Flux
     - Flux是Facebook用户建立客户端Web应用的前端架构，它通过利用一个单向的数据流补充了React的组合视图组件，这更是一种模式而非框架。
@@ -53,6 +52,7 @@ ReactJS圈内的一些框架简介：
     - Ant Design提供了丰富的组件，包括：按钮、表单、表格、布局、分页、树组件、日历等。
 
 ## 3. 搭建环境(案例使用UmiJs)
+
 ### 3.1. 创建项目
 
 本案例使用选择使用 UmiJS作为构建工具。
@@ -64,9 +64,9 @@ ReactJS圈内的一些框架简介：
 npm init -y
 ```
 
-![项目初始化1](images/20190421221552264_20263.png)
+![](images/20190421221552264_20263.png)
 
-![项目初始化2](images/20190421221633309_8209.png)
+![](images/20190421221633309_8209.png)
 
 3. 在命令输入如下命令，添加umi的依赖
 

@@ -20,13 +20,13 @@ webpack 官网文档：https://www.webpackjs.com/concepts/
 
 早期的前端工程化解决方案：
 
-- grunt（ https://www.gruntjs.net/ ）
-- gulp（ https://www.gulpjs.com.cn/ ）
+- grunt，官网：https://www.gruntjs.net/
+- gulp，官网：https://www.gulpjs.com.cn/
 
 目前主流的前端工程化解决方案：
 
-- webpack（ https://www.webpackjs.com/ ）
-- parcel（ https://zh.parceljs.org/ ）
+- webpack，官网：https://www.webpackjs.com/
+- parcel，官网：https://zh.parceljs.org/
 
 ## 2. webpack介绍
 
