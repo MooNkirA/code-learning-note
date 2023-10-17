@@ -882,7 +882,7 @@ logging.level.root=debug
 
 #### 5.2.3. 番外 - xml 类型配置
 
-Spring Boot 推荐无 xml 配置，但实际项目中，可能有一些特殊要求必须使用 xml 配置，在引导类中通过Spring提供的 `@ImportResource` 来加载 xml 配置
+Spring Boot 推荐无 xml 配置，但实际项目中，可能有一些特殊要求必须使用 xml 配置，在引导类中通过 Spring 提供的 `@ImportResource` 来加载 xml 配置
 
 ```java
 @SpringBootApplication(scanBasePackages = {"com.moon.controller"})

@@ -4,11 +4,11 @@
 
 在微服务架构中，会将业务拆分成一个个的服务，服务与服务之间可以相互调用，由于网络原因或者自身的原因，服务并不能保证服务的100%可用，如果单个服务出现问题，调用这个服务就会出现网络延迟，此时若有大量的网络涌入，会形成任务累计，导致服务瘫痪。
 
-在SpringBoot程序中，默认使用内置tomcat作为web服务器。单tomcat支持最大的并发请求是有限的，如果某一接口阻塞，待执行的任务积压越来越多，那么势必会影响其他接口的调用
+在 Spring Boot 程序中，默认使用内置 tomcat 作为 web 服务器。单 tomcat 支持最大的并发请求是有限的，如果某一接口阻塞，待执行的任务积压越来越多，那么势必会影响其他接口的调用
 
 ### 1.2. 搭建模拟高并发并请求响应过慢的示例
 
-> 复用前面`01-microservice-no-springcloud`项目代码，模拟高并发请求的案例
+> 复用前面 `microservice-no-springcloud` 项目代码，模拟高并发请求的案例
 
 ### 1.3. 模拟服务接口响应慢
 
@@ -58,7 +58,7 @@ public String findOrder(@PathVariable Long id) {
 
 ## 2. 基于线程池的形式实现服务隔离
 
-> 改造`07-springcloud-concurrency-isolation`工程，实现线程池的隔离
+> 改造`spring-cloud-sample-concurrency-isolation`工程，实现线程池的隔离
 
 ### 2.1. 引入依赖
 
@@ -193,7 +193,7 @@ Hystrix 是由 Netflix 开源的一个延迟和容错库，用于隔离访问远
 
 ### 4.1. 示例项目搭建
 
-复用`04-springcloud-ribbon`工程的代码，创建新的工程`08-springcloud-hystrix-resttemplate`。整理删除一些无用的依赖与代码
+复用`spring-cloud-sample-ribbon`工程的代码，创建新的工程`spring-cloud-sample-hystrix-resttemplate`。整理删除一些无用的依赖与代码
 
 ### 4.2. 配置 hystrix 依赖
 
@@ -489,7 +489,7 @@ management:
 
 ### 6.2. Hystrix DashBoard 监控平台
 
-Hystrix的实时监控，访问`/hystrix.stream`接口获取的都是已文字形式展示的信息。但通过文字的方式很难直观的展示系统的运行状态，所以Hystrix官方还提供了基于图形化的DashBoard（仪表板）监控平台。Hystrix仪表板可以显示每个断路器（被`@HystrixCommand`注解的方法）的状态。
+Hystrix 的实时监控，访问`/hystrix.stream`接口获取的都是已文字形式展示的信息。但通过文字的方式很难直观的展示系统的运行状态，所以Hystrix官方还提供了基于图形化的DashBoard（仪表板）监控平台。Hystrix仪表板可以显示每个断路器（被`@HystrixCommand`注解的方法）的状态。
 
 #### 6.2.1. 引入依赖
 
@@ -539,7 +539,7 @@ public class OrderApplication {
 
 ### 6.3. 断路器聚合监控 Turbine
 
-在微服务架构体系中，每个服务都需要配置Hystrix DashBoard监控。如果每次只能查看单个实例的监控数据，就需要不断切换监控地址，这显然很不方便。要想看这个系统的Hystrix Dashboard数据就需要用到Hystrix Turbine。Turbine是一个聚合Hystrix 监控数据的工具，他可以将所有相关微服务的Hystrix监控数据聚合到一起，方便使用。引入Turbine后，整个监控系统架构如下：
+在微服务架构体系中，每个服务都需要配置Hystrix DashBoard监控。如果每次只能查看单个实例的监控数据，就需要不断切换监控地址，这显然很不方便。要想看这个系统的 Hystrix Dashboard 数据就需要用到 Hystrix Turbine。Turbine 是一个聚合 Hystrix 监控数据的工具，他可以将所有相关微服务的 Hystrix 监控数据聚合到一起，方便使用。引入 Turbine 后，整个监控系统架构如下：
 
 ![](images/20201019150719838_6878.png)
 
@@ -619,17 +619,17 @@ public class TurbineServerApplication {
 
 熔断器有三个状态：`CLOSED`、`OPEN`、`HALF_OPEN`，熔断器默认是关闭状态。
 
-当触发熔断后状态变更为`OPEN`，在等待到指定的时间，Hystrix会放开部分请求用于检测服务是否开启，这期间熔断器会变为`HALF_OPEN`半开启状态，当熔断探测服务可用时，则会将状态变更为`CLOSED`，关闭熔断器
+当触发熔断后状态变更为 `OPEN`，在等待到指定的时间，Hystrix 会放开部分请求用于检测服务是否开启，这期间熔断器会变为 `HALF_OPEN` 半开启状态，当熔断探测服务可用时，则会将状态变更为 `CLOSED`，关闭熔断器
 
 ![](images/20201019160521917_6966.png)
 
 - `Closed`：关闭状态（断路器关闭），所有请求都正常访问。代理类维护了最近调用失败的次数，如果某次调用失败，则使失败次数加1。如果最近失败次数超过了在给定时间内允许失败的阈值，则代理类切换到断开(Open)状态。此时代理开启了一个超时时钟，当该时钟超过了该时间，则切换到半断开（Half-Open）状态。该超时时间的设定是给了系统一次机会来修正导致调用失败的错误。
 - `Open`：打开状态（断路器打开），所有请求都会被降级。Hystix会对请求情况计数，当一定时间内失败请求百分比达到阈值，则触发熔断，断路器会完全关闭。默认失败比例的阈值是50%，10秒内请求次数最少不低于20次。
-- `Half Open`：半开状态，open状态不是永久的，打开后会进入休眠时间（默认是5s）。随后断路器会自动进入半开状态。此时会释放1次请求通过，若这个请求是健康的，则会关闭断路器，否则继续保持打开，再次进行5秒休眠计时。
+- `Half Open`：半开状态，open 状态不是永久的，打开后会进入休眠时间（默认是5s）。随后断路器会自动进入半开状态。此时会释放1次请求通过，若这个请求是健康的，则会关闭断路器，否则继续保持打开，再次进行5秒休眠计时。
 
 ### 7.2. 状态的测试
 
-在`08-springcloud-hystrix-resttemplate`示例工程中进行熔断状态的测试。
+在`spring-cloud-sample-hystrix-resttemplate`示例工程中进行熔断状态的测试。
 
 #### 7.2.1. 测试的准备
 
@@ -648,7 +648,7 @@ public Product findById(@PathVariable Long id) {
 
 当id为1时，正常请求；id不为1时，请求异常
 
-为了更好观察测试结果，在`shop-service-order`引入Hystrix DashBoard 监控平台，修改项目配置文件`application.yml`，修改熔断器相应的默认配置：
+为了更好观察测试结果，在`shop-service-order`引入 Hystrix DashBoard 监控平台，修改项目配置文件`application.yml`，修改熔断器相应的默认配置：
 
 ```yml
 # hystrix 配置
@@ -686,7 +686,7 @@ hystrix:
 
 ### 8.1. 两种隔离策略
 
-微服务使用Hystrix熔断器实现了服务的自动降级，让微服务具备自我保护的能力，提升了系统的稳定性，也较好的解决雪崩效应。**其使用方式目前支持两种策略**：
+微服务使用 Hystrix 熔断器实现了服务的自动降级，让微服务具备自我保护的能力，提升了系统的稳定性，也较好的解决雪崩效应。**其使用方式目前支持两种策略**：
 
 - **线程池隔离策略**：使用一个线程池来存储当前的请求，线程池对请求作处理，设置任务返回处理超时时间，堆积的请求堆积入线程池队列。这种方式需要为每个依赖的服务申请线程池，有一定的资源消耗，好处是可以应对突发流量（流量洪峰来临时，处理不完可将数据存储到线程池队里慢慢处理）
 - **信号量隔离策略**：使用一个原子计数器（或信号量）来记录当前有多少个线程在运行，请求来先判断计数器的数值，若超过设置的最大线程个数则丢弃改类型的新请求，若不超过则执行计数操作请求来计数器+1，请求返回计数器-1。这种方式是严格的控制线程且立即返回模式，无法应对突发流量（流量洪峰来临时，处理的线程超过数量，其他的请求会直接返回，不继续去请求依赖的服务）
@@ -715,20 +715,20 @@ hystrix:
 
 ## 9. Hystrix 核心源码分析
 
-Hystrix 底层基于 RxJava，RxJava 是响应式编程开发库，因此Hystrix的整个实现策略简单说即：把一个`HystrixCommand`封装成一个`Observable`（待观察者），针对自身要实现的核心功能，对`Observable`进行各种装饰，并在订阅各步装饰的`Observable`，以便在指定事件到达时，添加自己的业务。
+Hystrix 底层基于 RxJava，RxJava 是响应式编程开发库，因此 Hystrix 的整个实现策略简单说即：把一个 `HystrixCommand` 封装成一个 `Observable`（待观察者），针对自身要实现的核心功能，对 `Observable` 进行各种装饰，并在订阅各步装饰的 `Observable`，以便在指定事件到达时，添加自己的业务。
 
 ![](images/20201019172428063_32564.jpg)
 
 ### 9.1. Hystrix主要有4种调用方式
 
-- `toObservable()`：未做订阅，只是返回一个Observable
+- `toObservable()`：未做订阅，只是返回一个 Observable
 - `observe()`：调用 `toObservable()` 方法，并向 `Observable` 注册 `rx.subjects.ReplaySubject` 发起订阅
 - `queue()`：调用 `toObservable()` 方法的基础上，调用：`Observable.toBlocking()` 和 `BlockingObservable.toFuture()` 返回 `Future` 对象
 - `execute()`：调用 `queue()` 方法的基础上，调用 `Future.get()` 方法，同步返回 `run()` 方法的执行结果。
 
 ### 9.2. 主要的执行逻辑
 
-1. 每次调用创建一个新的`HystrixCommand`，把依赖调用封装在`run()`方法中
+1. 每次调用创建一个新的 `HystrixCommand`，把依赖调用封装在`run()`方法中
 2. 执行`execute()`/`queue()`做同步或异步调用.
 3. 判断熔断器(circuit-breaker)是否打开，如果打开跳到步骤8，进行降级策略，如果关闭进入步骤
 4. 判断线程池/队列/信号量是否跑满，如果跑满进入降级步骤8，否则继续后续步骤
@@ -745,7 +745,8 @@ Hystrix 底层基于 RxJava，RxJava 是响应式编程开发库，因此Hystrix
 
 ### 9.3. HystrixCommand 注解
 
-通过`@HystrixCommand`注解能够更加简单快速的实现Hystrix的应用，查看`@HystrixCommand`注解源码，其中包含了诸多参数配置，如执行隔离策略，线程池定义等
+通过 `@HystrixCommand` 注解能够更加简单快速的实现 Hystrix 的应用，查看 `@HystrixCommand` 注解源码，其中包含了诸多参数配置，如执行隔离策略，线程池定义等
+
 ```java
 @Target({ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
@@ -774,7 +775,7 @@ public @interface HystrixCommand {
 }
 ```
 
-其定义了`fallbackMethod`属性，其作用是提供了一个定义回退方法映射，在异常触发时此方法名对应的method将被触发执行，从而实现服务的降级。被 `@HystrixCommand` 注解的方法将会执行切面处理。其切面类是`HystrixCommandAspect.java`，其切点定义如下
+其定义了 `fallbackMethod` 属性，其作用是提供了一个定义回退方法映射，在异常触发时此方法名对应的 method 将被触发执行，从而实现服务的降级。被 `@HystrixCommand` 注解的方法将会执行切面处理。其切面类是 `HystrixCommandAspect.java`，其切点定义如下
 
 ```java
 @Aspect
@@ -834,17 +835,17 @@ public class HystrixCommandAspect {
 
 ## 10. Hystrix 服务熔断的替换方案
 
-18年底Netflix官方宣布 Hystrix 已经足够稳定并且不再开发，该项目将处于维护模式。就目前来看Hystrix是比较稳定的，并且Hystrix只是停止开发新的版本，并不是完全停止维护，出现bug问题依然会维护的。因此短期内，Hystrix依然是继续使用的。但从长远来看，Hystrix总会达到它的生命周期，那么Spring Cloud生态中是否有替代产品呢？
+18年底 Netflix 官方宣布 Hystrix 已经足够稳定并且不再开发，该项目将处于维护模式。就目前来看 Hystrix 是比较稳定的，并且 Hystrix 只是停止开发新的版本，并不是完全停止维护，出现 bug 问题依然会维护的。因此短期内，Hystrix 依然是继续使用的。但从长远来看，Hystrix 总会达到它的生命周期，那么 Spring Cloud 生态中是否有替代产品呢？
 
 ### 10.1. 替换方案介绍
 
 **Alibaba Sentinel**
 
-Sentinel 是阿里巴巴开源的一款断路器实现，目前在Spring Cloud的孵化器项目Spring Cloud Alibaba中的一员Sentinel本身在阿里内部已经被大规模采用，非常稳定。因此可以作为一个较好的替代品
+Sentinel 是阿里巴巴开源的一款断路器实现，目前在 Spring Cloud 的孵化器项目 Spring Cloud Alibaba 中的一员 Sentinel 本身在阿里内部已经被大规模采用，非常稳定。因此可以作为一个较好的替代品
 
 **Resilience4J**
 
-Resilicence4J 一款非常轻量、简单，并且文档非常清晰、丰富的熔断工具，这也是Hystrix官方推荐的替代产品。不仅如此，Resilicence4j还原生支持Spring Boot 1.x/2.x，而且监控也不像Hystrix一样弄Dashboard/Hystrix等一堆轮子，而是支持和Micrometer（Pivotal开源的监控门面，Spring Boot 2.x中的Actuator就是基于Micrometer的）、prometheus（开源监控系统，来自谷歌的论文）、以及Dropwizard metrics（Spring Boot曾经的模仿对象，类似于Spring Boot）进行整合
+Resilicence4J 一款非常轻量、简单，并且文档非常清晰、丰富的熔断工具，这也是 Hystrix 官方推荐的替代产品。不仅如此，Resilicence4j 还原生支持 Spring Boot 1.x/2.x，而且监控也不像 Hystrix 一样弄 Dashboard/Hystrix 等一堆轮子，而是支持和 Micrometer（Pivotal 开源的监控门面，Spring Boot 2.x 中的 Actuator 就是基于 Micrometer）、prometheus（开源监控系统，来自谷歌的论文）、以及 Dropwizard metrics（Spring Boot 曾经的模仿对象）进行整合
 
 ### 10.2. Spring Cloud Alibaba Sentinel
 
