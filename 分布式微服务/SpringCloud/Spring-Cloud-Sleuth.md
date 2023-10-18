@@ -721,7 +721,7 @@ Zipkin 支持与 rabbitMQ 整合完成异步消息传输。加了 MQ 之后，�
 
 ### 7.2. 服务端启动
 
-在启动zipkin服务端时增加相关RabbitMQ的参数即可，启动脚本如下：
+在启动 zipkin 服务端时增加相关 RabbitMQ 的参数即可，启动脚本如下：
 
 ```bash
 java -jar zipkin-server-2.22.0-exec.jar --RABBIT_ADDRESSES=192.168.12.132:5672
@@ -729,9 +729,9 @@ java -jar zipkin-server-2.22.0-exec.jar --RABBIT_ADDRESSES=192.168.12.132:5672
 
 启动参数说明：
 
-- `RABBIT_ADDRESSES`：指定RabbitMQ地址
-- `RABBIT_USER`：用户名（默认guest，如使用默认值，则启动时不需要指定）
-- `RABBIT_PASSWORD` ：密码（默认guest，如使用默认值，则启动时不需要指定）
+- `RABBIT_ADDRESSES`：指定 RabbitMQ 地址
+- `RABBIT_USER`：用户名（默认 guest，如使用默认值，则启动时不需要指定）
+- `RABBIT_PASSWORD` ：密码（默认 guest，如使用默认值，则启动时不需要指定）
 
 > 相关的参数可以参考官方提供的`zipkin-server-shared.yml`
 
@@ -743,7 +743,7 @@ java -jar zipkin-server-2.22.0-exec.jar --RABBIT_ADDRESSES=192.168.12.132:5672
 
 #### 7.3.1. 配置依赖
 
-修改需要被追踪的微服务添加zipkin整合sleuth、rabbitmq的依赖。*所以示例项目的网关、订单、商品服务都需要添加依赖*
+修改需要被追踪的微服务添加 zipkin 整合 sleuth、rabbitmq 的依赖。*所以示例项目的网关、订单、商品服务都需要添加依赖*
 
 ```xml
 <!-- zipkin 整合 sleuth 依赖
@@ -795,11 +795,11 @@ spring:
 
 ### 7.4. 测试
 
-启动所有微服务，关闭Zipkin Server，并发起几个请求连接。打开rabbitmq管理后台可以看到，消息已经推送到rabbitmq。
+启动所有微服务，关闭Zipkin Server，并发起几个请求连接。打开 rabbitmq 管理后台可以看到，消息已经推送到 rabbitmq。
 
 ![](images/20201113153715963_4827.png)
 
-当Zipkin Server启动时，会自动的从rabbitmq获取消息并消费，展示追踪数据
+当 Zipkin Server 启动时，会自动的从 rabbitmq 获取消息并消费，展示追踪数据
 
 ![](images/20201113153812910_3620.png)
 

@@ -535,7 +535,7 @@ RDB 和 AOF 各有自己的优缺点，如果对数据安全性要求较高，�
 - 如果是用做内存数据，要使用 Redis 的持久化，建议是 RDB 和 AOF 都开启。
 - 如果只用 AOF，优先使用 `everysec` 的配置选择，因为它在可靠性和性能之间取了一个平衡。
 
-当 RDB 与 AOF 两种方式都开启时，Redis 会优先使用 AOF 恢复数据，因为 AOF 保存的文件比 RDB 文件更完整。
+<font color=red>**当 RDB 与 AOF 两种方式都开启时，Redis 会优先使用 AOF 恢复数据**</font>，因为 AOF 保存的文件比 RDB 文件更完整。
 
 ## 5. Redis 事务
 

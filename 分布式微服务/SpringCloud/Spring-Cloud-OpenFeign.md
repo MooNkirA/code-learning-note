@@ -1,6 +1,6 @@
 ## 1. Feign 简介
 
-Feign 是 Netflix 开发的声明式，模板化的 HTTP 客户端，其灵感来自 Retrofit，JAXRS-2.0 以及 WebSocket
+Feign 是 Netflix 开发的声明式，模板化的 HTTP 客户端，其灵感来自 Retrofit，JAXRS-2.0 以及 WebSocket。
 
 - Feign 可更加便捷，优雅的调用 HTTP API
 - 在 Spring Cloud 中，使用 Feign 非常简单。创建一个接口，并在接口上添加一些注解，代码就完成了
@@ -11,7 +11,7 @@ Feign 是 Netflix 开发的声明式，模板化的 HTTP 客户端，其灵感�
 
 ### 2.1. 示例工程准备
 
-复用之前eureka单机版的示例项目`02-springcloud-eureka`，命名为`06-springcloud-feign`
+复用之前eureka单机版的示例项目`spring-cloud-sample-eureka`，命名为`spring-cloud-sample-feign`
 
 ### 2.2. 引入 Feign 依赖
 
@@ -554,13 +554,13 @@ public User getUser(Integer id, String name, String city, String email){
 
 ![](images/3123917230367.png)
 
-即使 Feign 接口中的参数定义与服务提供者中接口定义一致，但实际会报错。这就是『多参数传递问题』
+即使 Feign 接口中的参数定义与服务提供者中接口定义一致，但实际会报错。这就是『多参数传递问题』！
 
 ![](images/367673917248793.png)
 
 #### 5.4.2. 解决方案1：参数注解
 
-Spring MVC 的 get 方法支持直接绑定 POJO，而 Feign 并未覆盖所有 Spring MVC 功能，不能直接绑定 POJO。需要在方法参加上添加 `org.springframework.cloud.openfeign.SpringQueryMap` 注解。修改服务消费者 Feign 接口方法
+Spring MVC 的 get 方法支持直接绑定 POJO，而 Feign 并未覆盖所有 Spring MVC 功能，不能直接绑定 POJO。需要修改服务消费者 Feign 接口方法，在方法参数前添加 `org.springframework.cloud.openfeign.SpringQueryMap` 注解。
 
 ```java
 @FeignClient(name = "service-provider")
