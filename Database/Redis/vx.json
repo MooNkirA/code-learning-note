@@ -2,10 +2,10 @@
     "created_time": "2019-04-08T00:18:19Z",
     "files": [
         {
-            "attachment_folder": "",
+            "attachment_folder": "52802708231060",
             "created_time": "2019-04-18T14:56:36Z",
             "id": "524",
-            "modified_time": "2023-10-18T08:55:37Z",
+            "modified_time": "2023-10-19T02:36:24Z",
             "name": "Redis-基础.md",
             "signature": "118139013209535",
             "tags": [
@@ -32,10 +32,10 @@
             ]
         },
         {
-            "attachment_folder": "",
+            "attachment_folder": "433142715249486",
             "created_time": "2021-08-08T07:09:40Z",
             "id": "484",
-            "modified_time": "2023-06-21T09:23:39Z",
+            "modified_time": "2023-10-19T08:56:00Z",
             "name": "Redis-操作命令.md",
             "signature": "125277248855487",
             "tags": [

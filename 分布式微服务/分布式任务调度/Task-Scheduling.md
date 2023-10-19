@@ -202,6 +202,7 @@ cron 表达式是一个字符串，用来设置定时规则，由七部分组成
 ### 2.3. cron 表达式在线工具
 
 - [crontab guru](https://crontab.guru/)：标准 cron 在线生成工具
+- [Cron 表达式生成器](https://www.bejson.com/othertools/cron)：是 BEJSON 站内提供了很多实用的小工具。
 
 ## 3. 分布式任务调度
 

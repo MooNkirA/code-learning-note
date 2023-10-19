@@ -84,3 +84,7 @@ Nginx 同 Apache 一样都是一种 WEB 服务器。基于 REST 架构风格，�
 ### 3.1. 几种常用web服务器对比
 
 ![](images/20190424114152886_2213.png)
+
+## 4. 参考资料
+
+- [nginx 配置在线格式化](http://www.html580.com/tool/nginx/index.php)

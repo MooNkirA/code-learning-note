@@ -1,5 +1,3 @@
-> 参考资料：https://www.markdown.xyz/
-
 ## 1. 基础语法
 
 ### 1.1. 标题（Headings）
@@ -851,9 +849,7 @@ body {
 
 ### 8.2. Typora
 
-一款 Markdown 编辑器和阅读器
-
-官网：https://typoraio.cn/
+一款 Markdown 编辑器和阅读器。官网：https://typoraio.cn/
 
 - [Typora 的 Markdown 语法参考手册](https://support.typoraio.cn/zh/Markdown-Reference/)
 
@@ -869,3 +865,8 @@ body {
 - [Rainbow](https://github.com/garyzhang2002/typora-theme-rainbow)
 - [typora-vue-theme](https://github.com/blinkfox/typora-vue-theme)
 - [typora-theme-next](https://github.com/BillChen2k/typora-theme-next)
+
+## 9. 参考资源
+
+- [Markdown 官方教程](https://markdown.com.cn/)：Markdown 是一种轻量级标记语言，它允许人们使用易读易写的纯文本格式编写文档，Markdown文件的后缀名便是“.md”。
+- [Markdown 指南中文版](https://www.markdown.xyz/)：是一份免费且开源的 Markdown 参考手册，详细讲解了 Markdown 这一简单、易用的文档格式化标记语言的用法。
