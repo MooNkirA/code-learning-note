@@ -866,6 +866,10 @@ body {
 - [typora-vue-theme](https://github.com/blinkfox/typora-vue-theme)
 - [typora-theme-next](https://github.com/BillChen2k/typora-theme-next)
 
+#### 8.2.2. 使用参考资料（待整理）
+
+[typora-生产力工具](https://mp.weixin.qq.com/s/LU175K2F1Uucz1sE2yY8OA)
+
 ## 9. 参考资源
 
 - [Markdown 官方教程](https://markdown.com.cn/)：Markdown 是一种轻量级标记语言，它允许人们使用易读易写的纯文本格式编写文档，Markdown文件的后缀名便是“.md”。
