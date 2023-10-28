@@ -3021,131 +3021,266 @@ public ViewResolver viewResolver() {
 }
 ```
 
-## 11. 对于 Restful 风格支持
+## 11. 请求体与响应体切面增强
 
-### 11.1. Restful 风格简述
+### 11.1. RequestBodyAdvice
 
-restful，它是一种软件设计风格，指的是表现层资源的状态转换（Representational state transfer）。互联网上的一切都可以看成是资源，比如一张图片，一部电影。restful 根据 HTTP 请求方法：POST/GET/PUT/DELETE，定义了资源的操作方法：新增/查询/修改/删除。这样有什么好处呢？好处是使得请求的 URL 更加简洁
+#### 11.1.1. 接口概述
 
-传统的 url：
+`org.springframework.web.servlet.mvc.method.annotation.RequestBodyAdvice` 是 Spring MVC 提供的一个增强接口。通过实现该接口，并注册为 Spring 的 Bean，可以在 `HttpMessageConverter` 读取请求体并把它转换为 Java 对象之前或之后对请求体进行定制化的处理操作。这样可以实现一些常见的需求，例如请求体解密、数据验签、日志记录等。
 
-```
-http://127.0.0.1:8080/springmvc-03/item/queryItem.do?id=1	查询
-http://127.0.0.1:8080/springmvc-03/item/saveItem.do			新增
-http://127.0.0.1:8080/springmvc-03/item/updateItem.do		修改
-http://127.0.0.1:8080/springmvc-03/item/deleteItem.do?id=1	删除
-```
-
-restful 风格的 url：
-
-```
-http://127.0.0.1:8080/springmvc-03/item/1	查询/删除
-http://127.0.0.1:8080/springmvc-03/item		新增/修改
-```
-
-说明：
-
-1. restful 是一种软件设计风格
-2. restful 指的是表现层资源状态转换，是根据 http 的请求方法：post/get/put/delete，定义了资源的：新增/查询/修改/删除操作
-3. 使用 restful 的优点是使得请求的 url 更加简洁，更加优雅。
-
-### 11.2. restful 的使用示例
-
-需求：使用 restful 风格实现根据商品 id 查询数据
-
-#### 11.2.1. 项目配置
-
-修改项目 web.xml 配置中的 `<servlet-mapping>` 标签
-
-如果使用 restful 编程风格，需要修改前端拦截器的拦截 url，因为 restful 风格的 url 不带映射方法的标识，根据请求方式判断执行哪个方法。所以将拦截的 url 修改为 `/`
-
-```xml
-<!-- 配置拦截的url -->
-<servlet-mapping>
-	<servlet-name>SpringMVC</servlet-name>
-	<!-- 拦截所有.do结尾的请求
-	<url-pattern>*.do</url-pattern>
-	-->
-	<!-- !!配置支持restful风格后，拦截url需要修改配置
-		如果按原来的*.do配置，无法拦截该风格的url
-	-->
-	<url-pattern>/</url-pattern>
-</servlet-mapping>
-```
-
-#### 11.2.2. 修改请求控制器的 url
-
-使用 Reatful 风格的 url，需要配置 `@PathVariable` 注解来使用。
-
-- 作用：把路径变量的值，绑定到方法到形参上。
-- 路径变量格式：`{变量名}`，路径变量（模版参数），用于使用 restful 风格时传递提交参数
-- 注解示例写法：
+接口源码如下：
 
 ```java
-@PathVariable(name="变量名")
-@PathVariable(value="变量名")
-@PathVariable("变量名")
-// 以下写法的前提是：路径变量的名称，与方法的形参名称一致
-@PathVariable
+public interface RequestBodyAdvice {
+
+	boolean supports(MethodParameter methodParameter, Type targetType,
+			Class<? extends HttpMessageConverter<?>> converterType);
+
+	HttpInputMessage beforeBodyRead(HttpInputMessage inputMessage, MethodParameter parameter,
+			Type targetType, Class<? extends HttpMessageConverter<?>> converterType) throws IOException;
+
+	Object afterBodyRead(Object body, HttpInputMessage inputMessage, MethodParameter parameter,
+			Type targetType, Class<? extends HttpMessageConverter<?>> converterType);
+
+	@Nullable
+	Object handleEmptyBody(@Nullable Object body, HttpInputMessage inputMessage, MethodParameter parameter,
+			Type targetType, Class<? extends HttpMessageConverter<?>> converterType);
+}
 ```
 
-测试 restful 风格请求
+方法解析：
+
+- `supports` 方法：是否要执行此接口，如果返回 false，则该 `RequestBodyAdvice` 会跳过。在这个方法中，可以获取到 Controller 方法中参数及其类型的信息，以及要使用的 `HttpMessageConverter` 信息。
+- `beforeBodyRead` 方法：在请求体被读取前执行，在这个方法中，可以获取到完整的请求体，请求头以进行修改。最后，需要返回修改后的 `HttpInputMessage`。
+- `afterBodyRead` 方法：在请求体读取后执行。
+- `handleEmptyBody` 方法：如果读取到的请求体是空，则执行。
+
+#### 11.1.2. 基础使用示例
+
+示例需求：假设客户端 POST 给服务器的所有请求数据都是通过 Base64 进行编码的，通过 `RequestBodyAdvice` 进行统一的解码。
+
+定义 `@DecodeBody` 注解。该注解用于 Controller 方法中的参数，只有注解了 `@DecodeBody` 的请求体（`@RequestBody`）才需要解码。
 
 ```java
-/**
- * restful讲解专用
- * 		使用restful风格，实现根据商品id查询商品数据。
- * 		http://127.0.0.1:8080/ssm/item/1
- *
- * 	{id}：路径变量（模版参数）
- * 	@PathVariable注解：把路径变量的值，绑定到方法的形参上
- * 注解写法：
- * 		@PathVariable(name="id")
- * 		@PathVariable(value="id")
- * 		@PathVariable("id")
- *
- * 前提是路径变量的名称，与方法的形参名称一致：
- * 		@PathVariable() 或者 @PathVariable
- */
-@RequestMapping("/item/{id}")
-@ResponseBody
-public Item testRestful(@PathVariable Integer id) {
-	// 1.调用业务层方法，根据id查询
-	Item item = itemService.queryItemById(id);
-	// 2.返回查询结果
-	return item;
-}
+/** 对请求体进行解码 */
+@Retention(RUNTIME)
+@Target(PARAMETER)
+public @interface DecodeBody {}
+```
 
-// 模拟restful风格执行新增方法
-@RequestMapping(value = "/item", method = RequestMethod.POST)
-public String testRestfulInsert(Item item) {
-	System.out.println("执行了新增方法");
-	return "common/success";
-}
+定义一个很简单的 Controller，接收客户端 POST 的字符串，并且原样返回。使用 `@DecodeBody` 注解标识方法参数，表示需要对客户端的请求体进行解码。
 
-// 模拟restful风格执行更新方法
-@RequestMapping(value = "/item", method = RequestMethod.PUT)
-public String testRestfulUpdate(Item item) {
-	System.out.println("执行了修改方法");
-	return "common/success";
-}
-
-// 模拟restful风格执行查询方法
-@RequestMapping(value = "/item/{id}", method = RequestMethod.GET)
-public String testRestfulQuery(@PathVariable Integer id) {
-	System.out.println("执行了查询方法");
-	return "common/success";
-}
-
-// 模拟restful风格执行删除方法
-@RequestMapping(value = "/item/{id}", method = RequestMethod.DELETE)
-public String testRestfulDelete(@PathVariable Integer id) {
-	System.out.println("执行了删除方法");
-	return "common/success";
+```java
+@RestController
+@RequestMapping
+public class DemoController {
+    @PostMapping("/demo")
+    public ResponseEntity<String> demo (@RequestBody @DecodeBody String payload) {
+        return ResponseEntity.ok(payload);
+    }
 }
 ```
 
-> 注：更多 `@PathVariable` 注解的说明，详见[《Spring MVC 注解汇总.md》文档](/后端框架/SpringMVC/SpringMVC-注解汇总)
+编写 `RequestBodyDecodeAdvice` 核心类，直接继承 `RequestBodyAdviceAdapter` 适配器类，该类实现了 `RequestBodyAdvice` 接口，并且提供了默认实现，所以只需要覆写自己感兴趣的方法即可。
+
+```java
+@RestControllerAdvice
+public class RequestBodyDecodeAdvice extends RequestBodyAdviceAdapter {
+
+    static final Logger log = LoggerFactory.getLogger(RequestBodyDecodeAdvice.class);
+
+    @Override
+    public boolean supports(MethodParameter methodParameter, Type targetType, Class<? extends HttpMessageConverter<?>> converterType) {
+        return methodParameter.hasParameterAnnotation(DecodeBody.class);
+    }
+
+    @Override
+    public HttpInputMessage beforeBodyRead(HttpInputMessage inputMessage, MethodParameter parameter, Type targetType,
+                                           Class<? extends HttpMessageConverter<?>> converterType) throws IOException {
+
+        // 读取完整的客户端请求体，也就是加密/编码后的数据
+        byte[] payload = StreamUtils.copyToByteArray(inputMessage.getBody());
+
+        log.info("加密 Payload：{}", new String(payload));
+
+        // 解码为原始数据
+        byte[] rawPayload = Base64.getDecoder().decode(payload);
+
+        log.info("原始 Payload：{}", new String(rawPayload));
+
+        // 返回 HttpInputMessage 匿名对象
+        return new HttpInputMessage() {
+            @Override
+            public HttpHeaders getHeaders() {
+                return inputMessage.getHeaders();
+            }
+
+            @Override
+            public InputStream getBody() throws IOException {
+                // 使用原始数据构建为 ByteArrayInputStream
+                return new ByteArrayInputStream(rawPayload);
+            }
+        };
+    }
+}
+```
+
+启动服务器，在控制台使用 cURL 发起请求测试：
+
+```
+$ curl -H "Content-Type: text/plain; charset=UTF-8" -X POST -d "SGVsbG8gTW9vTmtpckE" "http://localhost:8080/demo"
+```
+
+如上，POST 到服务器的字符串 `SGVsbG8gTW9vTmtpckE` 是 `Hello MooNkirA` 字符串的 Base64 编码。得到的响应和原文相匹配，说明在 Controller 中得到的请求体，已经是正确解码后的数据了。后端输出的日志如下：
+
+```
+[nio-8080-exec-8] c.s.d.w.advice.RequestBodyDecodeAdvice   : 加密 Payload：SGVsbG8gTW9vTmtpckE
+[nio-8080-exec-8] c.s.d.w.advice.RequestBodyDecodeAdvice   : 原始 Payload：Hello MooNkirA
+```
+
+#### 11.1.3. 示例实现流程解析
+
+示例中的 `RequestBodyDecodeAdvice` 类对请求体统一处理的实现流程：
+
+1. 通过 `@RestControllerAdvice` 注解，自动注册到 `RequestMappingHandlerAdapter` 中。
+2. 在 `supports` 方法中判断 Controller 的注解是否有 `@DecodeBody` 注解，如果没有的话，表示不需要进行解码，返回 false。
+3. 当 `beforeBodyRead` 被调用，使用 `StreamUtils` 工具类读取完整的请求体，也就是客户端 Base64 编码后的数据。接着对其进行解码，得到原文。
+4. 返回 `HttpInputMessage` 对象，请求头不做任何修改，但是请求体使用的是 解码后的原文。
+
+### 11.2. ResponseBodyAdvice
+
+#### 11.2.1. 接口概述
+
+`org.springframework.web.servlet.mvc.method.annotation.ResponseBodyAdvice` 是 Spring MVC 提供的一个增强接口，用于 Controller 接口在返回对象被 `HttpMessageConverter` 执行序列化之前对其进行一些自定义的操作。例如添加统一的响应头、修改响应体的内容格式、对响应体进行编码、加密等。这能够更加方便地实现全局的响应处理逻辑，提升代码的可维护性和复用性。
+
+接口源码如下：
+
+```java
+public interface ResponseBodyAdvice<T> {
+
+	boolean supports(MethodParameter returnType, Class<? extends HttpMessageConverter<?>> converterType);
+
+	@Nullable
+	T beforeBodyWrite(@Nullable T body, MethodParameter returnType, MediaType selectedContentType,
+			Class<? extends HttpMessageConverter<?>> selectedConverterType,
+			ServerHttpRequest request, ServerHttpResponse response);
+}
+```
+
+这是一个带泛型 `<T>` 的接口，`T` 表示返回的对象类型，这决定了它会对哪些返回的对象生效。
+
+- `supports` 方法：用于确定该实现类是否支持对响应体进行处理，通过 returnType 参数可以获取到 Controller 方法的返回类型等信息。
+- `beforeBodyWrite`：该方法在响应体写入之前被调用，在这个方法中可以通过参数获取到最终要响应给客户端的对象，可以对这个对象进行一些操作，最后返回修改后的对象。
+
+#### 11.2.2. 基础使用示例
+
+示例需求：将服务器返回的所有 JSON 数据都会被编码为 Base64 格式。
+
+定义 `@EncodeBody` 注解，用于 Controller 方法，并且只有使用 @EncodeBody 注解标识的 API 方法返回的对象，才会被编码。
+
+```java
+@Retention(RUNTIME)
+@Target(METHOD)
+public @interface EncodeBody {}
+```
+
+编写一个非常普通的 API 端点，返回一个 Map 对象，并且方法上标识 `@EncodeBody` 注解。
+
+```java
+@RestController
+@RequestMapping
+public class DemoController {
+    @GetMapping("/demo")
+    @EncodeBody
+    public ResponseEntity<Object> demo() {
+        Map<String, Object> response = new HashMap<>();
+        response.put("title", "MooNkirA");
+        response.put("url", "moon.com");
+        return ResponseEntity.ok(response);
+    }
+}
+```
+
+定义 `ResponseBodyEncodeAdvice` 类，实现 `ResponseBodyAdvice` 接口，用于把响应的 JSON 数据编码为 Base64。
+
+```java
+@RestControllerAdvice
+public class ResponseBodyEncodeAdvice implements ResponseBodyAdvice<Object> {
+
+    // 系统中默认使用的 ObjectMapper
+    @Autowired
+    private ObjectMapper objectMapper;
+
+    @Override
+    public boolean supports(MethodParameter returnType, Class<? extends HttpMessageConverter<?>> converterType) {
+        // 方法上注解了 @EncodeBody，才对返回对象进行编码
+        return returnType.hasMethodAnnotation(EncodeBody.class);
+    }
+
+    @Override
+    public Object beforeBodyWrite(Object body, MethodParameter returnType, MediaType selectedContentType,
+                                  Class<? extends HttpMessageConverter<?>> selectedConverterType, ServerHttpRequest request,
+                                  ServerHttpResponse response) {
+
+        if (body == null) {
+            return body;
+        }
+
+        String jsonText = null;
+
+        try {
+            // 把响应体序列化为 JSON 字符串
+            jsonText = this.objectMapper.writeValueAsString(body);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+
+        // 对原始数据进行 Base64 编码
+        String encodedText = Base64.getEncoder().encodeToString(jsonText.getBytes(StandardCharsets.UTF_8));
+
+        // 以 Map 形式响应给客户端，保持 JSON 格式
+        return Collections.singletonMap("data", encodedText);
+    }
+}
+```
+
+启动应用，使用 cURL 进行测试：
+
+```
+$ curl localhost:8080/demo
+```
+
+返回结果：
+
+```json
+{"data":"eyJ0aXRsZSI6InNwcmluZyDkuK3mlofnvZEiLCJ1cmwiOiJzcHJpbmdkb2MuY24ifQ"}
+```
+
+返回的 JSON 格式正是在 `ResponseBodyEncodeAdvice` 中定义的。其中 data 字段的值就是对响应原文进行 Base64 编码后的密文。测试解码 data：
+
+```java
+public class ResponseBodyEncodeAdviceTest {
+    public static void main(String[] args) throws Exception {
+        byte[] raw = Base64.getDecoder().decode("eyJ0aXRsZSI6InNwcmluZyDkuK3mlofnvZEiLCJ1cmwiOiJzcHJpbmdkb2MuY24ifQ");      
+        System.out.println(new String(raw, StandardCharsets.UTF_8));
+    }
+}
+```
+
+输出如下：
+
+```json
+{"title":"MooNkirA","url":"moon.com"}
+```
+
+#### 11.2.3. 示例实现细节解析
+
+自定义的 `ResponseBodyEncodeAdvice` 类实现了 `ResponseBodyAdvice` 接口，并且指定了泛型为 `Object`，意味着该实现对所有返回对象都生效。
+
+在类中注入了 `ObjectMapper`，用于把返回的对象序列化为 JSON 字符串。spring mvc 默认使用 Jackson 作为 JSON 的序列化、反序列化库，所以 `ObjectMapper` 是已经预置的，不需要自己创建。如果对序列化方式有特殊需求，可以自己实例化一个 `ObjectMapper`，甚至是换一个 JSON 库，比如：FastJson。
+
+在 `beforeBodyWrite` 方法中，先使用 `ObjectMapper` 把返回对象序列化为 JSON 字符串，也就是响应的原文。然后再把原文编码为 Base64 字符串。最后通过一个通用的 Map 返回到客户端。
 
 ## 12. 扩展：方法参数名获取
 
@@ -3588,3 +3723,129 @@ public String queryItem(Model model, QueryVo queryVo) {
 2. 返回 ModelAndView
 3. 通过 ModelMap 对象，可以在这个对象里面调用 put 方法，把对象加到里面，前端就可以通过 el 表达式拿到
 4. 绑定数据到 Session 中
+
+### 13.4. 对于 Restful 风格支持
+
+#### 13.4.1. Restful 风格简述
+
+restful，它是一种软件设计风格，指的是表现层资源的状态转换（Representational state transfer）。互联网上的一切都可以看成是资源，比如一张图片，一部电影。restful 根据 HTTP 请求方法：POST/GET/PUT/DELETE，定义了资源的操作方法：新增/查询/修改/删除。这样有什么好处呢？好处是使得请求的 URL 更加简洁
+
+传统的 url：
+
+```
+http://127.0.0.1:8080/springmvc-03/item/queryItem.do?id=1	查询
+http://127.0.0.1:8080/springmvc-03/item/saveItem.do			新增
+http://127.0.0.1:8080/springmvc-03/item/updateItem.do		修改
+http://127.0.0.1:8080/springmvc-03/item/deleteItem.do?id=1	删除
+```
+
+restful 风格的 url：
+
+```
+http://127.0.0.1:8080/springmvc-03/item/1	查询/删除
+http://127.0.0.1:8080/springmvc-03/item		新增/修改
+```
+
+说明：
+
+1. restful 是一种软件设计风格
+2. restful 指的是表现层资源状态转换，是根据 http 的请求方法：post/get/put/delete，定义了资源的：新增/查询/修改/删除操作
+3. 使用 restful 的优点是使得请求的 url 更加简洁，更加优雅。
+
+#### 13.4.2. restful 的使用示例
+
+需求：使用 restful 风格实现根据商品 id 查询数据
+
+##### 13.4.2.1. 项目配置
+
+修改项目 web.xml 配置中的 `<servlet-mapping>` 标签
+
+如果使用 restful 编程风格，需要修改前端拦截器的拦截 url，因为 restful 风格的 url 不带映射方法的标识，根据请求方式判断执行哪个方法。所以将拦截的 url 修改为 `/`
+
+```xml
+<!-- 配置拦截的url -->
+<servlet-mapping>
+	<servlet-name>SpringMVC</servlet-name>
+	<!-- 拦截所有.do结尾的请求
+	<url-pattern>*.do</url-pattern>
+	-->
+	<!-- !!配置支持restful风格后，拦截url需要修改配置
+		如果按原来的*.do配置，无法拦截该风格的url
+	-->
+	<url-pattern>/</url-pattern>
+</servlet-mapping>
+```
+
+##### 13.4.2.2. 修改请求控制器的 url
+
+使用 Reatful 风格的 url，需要配置 `@PathVariable` 注解来使用。
+
+- 作用：把路径变量的值，绑定到方法到形参上。
+- 路径变量格式：`{变量名}`，路径变量（模版参数），用于使用 restful 风格时传递提交参数
+- 注解示例写法：
+
+```java
+@PathVariable(name="变量名")
+@PathVariable(value="变量名")
+@PathVariable("变量名")
+// 以下写法的前提是：路径变量的名称，与方法的形参名称一致
+@PathVariable
+```
+
+测试 restful 风格请求
+
+```java
+/**
+ * restful讲解专用
+ * 		使用restful风格，实现根据商品id查询商品数据。
+ * 		http://127.0.0.1:8080/ssm/item/1
+ *
+ * 	{id}：路径变量（模版参数）
+ * 	@PathVariable注解：把路径变量的值，绑定到方法的形参上
+ * 注解写法：
+ * 		@PathVariable(name="id")
+ * 		@PathVariable(value="id")
+ * 		@PathVariable("id")
+ *
+ * 前提是路径变量的名称，与方法的形参名称一致：
+ * 		@PathVariable() 或者 @PathVariable
+ */
+@RequestMapping("/item/{id}")
+@ResponseBody
+public Item testRestful(@PathVariable Integer id) {
+	// 1.调用业务层方法，根据id查询
+	Item item = itemService.queryItemById(id);
+	// 2.返回查询结果
+	return item;
+}
+
+// 模拟restful风格执行新增方法
+@RequestMapping(value = "/item", method = RequestMethod.POST)
+public String testRestfulInsert(Item item) {
+	System.out.println("执行了新增方法");
+	return "common/success";
+}
+
+// 模拟restful风格执行更新方法
+@RequestMapping(value = "/item", method = RequestMethod.PUT)
+public String testRestfulUpdate(Item item) {
+	System.out.println("执行了修改方法");
+	return "common/success";
+}
+
+// 模拟restful风格执行查询方法
+@RequestMapping(value = "/item/{id}", method = RequestMethod.GET)
+public String testRestfulQuery(@PathVariable Integer id) {
+	System.out.println("执行了查询方法");
+	return "common/success";
+}
+
+// 模拟restful风格执行删除方法
+@RequestMapping(value = "/item/{id}", method = RequestMethod.DELETE)
+public String testRestfulDelete(@PathVariable Integer id) {
+	System.out.println("执行了删除方法");
+	return "common/success";
+}
+```
+
+> 注：更多 `@PathVariable` 注解的说明，详见[《Spring MVC 注解汇总.md》文档](/后端框架/SpringMVC/SpringMVC-注解汇总)
