@@ -489,9 +489,9 @@ public class SpringTransactionTest {
 
 ### 1.2. 相关属性
 
-|       属性名        |                                                               作用                                                               |    取值     |
-| ------------------ | ------------------------------------------------------------------------------------------------------------------------------- | ---------- |
-| `value`            | 用于存入spring的Ioc容器中Bean的id                                                                                                |            |
+|       属性名        |                                                         作用                                                          |    取值     |
+| ------------------ | -------------------------------------------------------------------------------------------------------------------- | ---------- |
+| `value`            | 用于存入spring的Ioc容器中Bean的id                                                                                       |            |
 | `proxyBeanMethods` | (Spring 5.2 版本后新增)指定类中`@Bean`注解标识的方法是否返回代理对象，默认值为 true，返回代理对象。如设置为 false，则每次创建新的对象 | true/false |
 
 ### 1.3. 使用场景
@@ -3427,14 +3427,24 @@ public void resourceBasicTest() {
 
 ### 4.4. @Autowired 和 @Resource 的区别
 
-- `@Autowired` 默认是按照<u>**类型装配(byType)**</u>注入的，默认情况下它要求依赖对象必须存在（可以设置 `required` 属性为 false，非必须注入）。如果需要按名称(byName)匹配的话，可以与 `@Qualifier` 注解配合使用。
-- `@Resource` 非 Spring 的注解，默认是按照<u>**名称装配(byName)**</u>注入的，只有当找不到与名称匹配的 bean 才会按照类型来装配注入。其中有两个中重要的属性：`name` 和 `type`
-    - 使用 `name` 属性，则按 byName 模式的自动注入策略
-    - 使用 `type` 属性，则按 byType 模式的自动注入策略
-    - 若既不指定 `name` 也不指定 `type` 属性，Spring 容器将通过反射技术默认按 byName 模式注入。
-    - 如果同时指定了 `name` 和 `type`，则同同时检验两个属性，从 Spring 上下文中找到唯一匹配的 bean 进行装配，找不到则抛出异常。
+`@Autowired` 和 `@Resource` 都可以用于实现 Spring 的依赖注入机制。
 
-> Tips: 上述两种自动装配的依赖注入**不适用于简单值类型**，如 int、boolean、long、String 以及 Enum 等，Spring 容器提供了 `@Value` 注解来注入这些类型。`@Value` 接收一个 String 的值，该值指定了将要被注入到内置的 java 类型属性值，Spring 容器会做好类型转换。一般情况下 `@Value` 会与 properties 文件结合使用。
+1. 兼容性：`@Autowired` 是 Spring 特有的注解，主要用于 Spring 框架中，因此在非 Spring 环境中可能无法正常使用；而 `@Resource` 是 Java 标准库中的注解，因此它可以与 Java SE 和 Java EE 应用程序一起使用，不仅限于 Spring 框架，并且在不同的容器中具有较好的兼容性。
+2. 依赖匹配：`@Autowired` 默认通过<u>**类型匹配**</u>来解析依赖关系；而 `@Resource` 默认通过<u>**名称匹配**</u>来解析依赖关系。
+3. 配置方式：`@Autowired` 注解通常与 `@Component`、`@Service` 等 Spring 注解一起使用，通过组件扫描和自动装配来实现依赖注入；而 `@Resource` 注解不需要特定的配置，它可以直接用于字段、方法和构造函数上。
+4. 名称匹配规则：
+    - `@Autowired` 默认是按照<u>**类型装配(byType)**</u>注入的。如果存在多个同类型的 Bean，需要按名称(byName)匹配的话，可以与 `@Qualifier` 注解指定特定的 Bean 名称或限定符。
+    - `@Resource` 默认是按照<u>**名称装配(byName)**</u>注入的，只有当找不到与名称匹配的 bean 才会按照类型来装配注入。其中有 `name` 和 `type` 两个中重要的属性，会有以下几种情况：
+        - 使用 `name` 属性，则按 byName 模式的自动注入策略
+        - 使用 `type` 属性，则按 byType 模式的自动注入策略
+        - 若既不指定 `name` 也不指定 `type` 属性，Spring 容器将通过反射技术默认按 byName 模式注入。
+        - 如果同时指定了 `name` 和 `type`，则同同时检验两个属性，从 Spring 上下文中找到唯一匹配的 bean 进行装配，找不到则抛出异常。
+5. Null 处理：当无法找到匹配的依赖时，`@Autowired` 注解默认情况下要求依赖对象必须存在，但可以设置 `required` 属性为 false，非必须注入，使字段或方法参数可以为 null；而 `@Resource` 注解要求必须找到匹配的依赖，否则会抛出异常。
+
+> Tips: 
+>
+> 1. 尽管 `@Autowired` 和 `@Resource` 有一些区别，但在大多数情况下，它们可以互换使用。
+> 2. 上述两种自动装配的依赖注入**不适用于简单值类型**，如 int、boolean、long、String 以及 Enum 等，Spring 容器提供了 `@Value` 注解来注入这些类型。`@Value` 接收一个 String 的值，该值指定了将要被注入到内置的 java 类型属性值，Spring 容器会做好类型转换。一般情况下 `@Value` 会与 properties 文件结合使用。
 
 ### 4.5. （扩展）同时使用 @Autowired 与 @Resource
 
