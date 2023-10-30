@@ -3290,7 +3290,7 @@ public int available() throws IOException
 2. 使用 XML 序列化框架，如 JAXB、XStream 等，通过将对象转换成 XML 格式，或将 XML 格式转换成对象。使用 Marshaller 和 Unmarshaller 进行读写操作。
 3. 使用 Protobuf 序列化框架，通过定义`.proto`文件来描述数据结构，然后使用编译器生成 Java 代码，使用这些生成的代码进行读写操作。
 
-#### 14.8.2. 序列化对象（网上案例）
+#### 14.8.2. 序列化对象案例
 
 要序列化一个对象，这个对象所在类就必须实现Java序列化的接口：`java.io.Serializable`。
 

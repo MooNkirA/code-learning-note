@@ -134,9 +134,7 @@ import java.util.Map;
  */
 public class InvokeUtils {
 
-    /**
-     * java反射
-     */
+    /** java反射 */
     public static Object call(Object target, String methodName, Class[] argTypes, Object[] args)
             throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
         Method method = target.getClass().getMethod(methodName, argTypes);
@@ -895,23 +893,17 @@ spring:
 
 服务提供者协议配置。对应的配置类：`org.apache.dubbo.config.ProtocolConfig`。同时，如果需要支持多协议，可以声明多个 `<dubbo:protocol>` 标签，并在 `<dubbo:service>` 中通过 protocol 属性指定使用的协议。常用属性如下：
 
-| 属性  |  对应URL参数  |  类型   | 是否必填  |                                                                                                  缺省值                                                                                                   |   作用   |                                                   描述                                                    |    兼容性     |
-| ---- | ------------ | ------ | -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------- | -------------------------------------------------------------------------------------------------------- | ------------ |
-| id   |              | string | 可选     | dubbo                                                                                                                                                                                                    | 配置关联 | 协议BeanId，可以在`<dubbo:service protocol="">`中引用此ID，如果ID不填，缺省和name属性值一样，重复则在name后加序号。 | 2.0.5以上版本 |
-| name | `<protocol>` | string | **必填** | dubbo                                                                                                                                                                                                    | 性能调优 | 协议名称                                                                                                  | 2.0.5以上版本 |
-| port | `<port>`     | int    | 可选     | dubbo协议缺省端口为20880，rmi协议缺省端口为1099，http和hessian协议缺省端口为80；如果没有配置port，则自动采用默认端口，如果配置为-1，则会分配一个没有被占用的端口。Dubbo 2.4.0+，分配的端口在协议缺省端口的基础上增长，确保端口段可控。 | 服务发现 | 服务端口                                                                                                  | 2.0.5以上版本 |
-| host | `<host>`     | string | 可选     | 自动查找本机IP                                                                                                                                                                                             | 服务发现 | -服务主机名，多网卡选择或指定VIP及域名时使用，为空则自动查找本机IP，-**建议不要配置，让Dubbo自动获取本机IP**           | 2.0.5以上版本 |
+![](images/95104208249497.png)
+
+> 详见官方文档：https://cn.dubbo.apache.org/zh-cn/overview/mannual/java-sdk/reference-manual/config/properties/#protocol
 
 ##### 4.1.3.4. dubbo:registry【常用】
 
 注册中心配置。对应的配置类：`org.apache.dubbo.config.RegistryConfig`。同时如果有多个不同的注册中心，可以声明多个 `<dubbo:registry>` 标签，并在 `<dubbo:service>` 或 `<dubbo:reference>` 的 registry 属性指定使用的注册中心。常用属性如下：
 
-|   属性    |  对应URL参数   |  类型   | 是否必填  | 缺省值 |   作用   |                                                                   描述                                                                    |     兼容性     |
-| -------- | ------------- | ------ | -------- | ----- | ------- | ---------------------------------------------------------------------------------------------------------------------------------------- | ------------- |
-| id       |               | string | 可选     |       | 配置关联 | 注册中心引用BeanId，可以在`<dubbo:service registry="">`或`<dubbo:reference registry="">`中引用此ID                                            | 1.0.16以上版本 |
-| address  | `<host:port>` | string | **必填** |       | 服务发现 | 注册中心服务器地址，如果地址没有端口缺省为9090，同一集群内的多个地址用逗号分隔，如：`ip:port,ip:port`，不同集群的注册中心，请配置多个`<dubbo:registry>`标签 | 1.0.16以上版本 |
-| protocol | `<protocol>`  | string | 可选     | dubbo | 服务发现 | 注册中心地址协议，支持dubbo, multicast, zookeeper, redis, consul(2.7.1), sofa(2.7.2), etcd(2.7.2), nacos(2.7.2)等协议                         | 2.0.0以上版本  |
+![](images/539413408231071.png)
 
+> 详见官方文档：https://cn.dubbo.apache.org/zh-cn/overview/mannual/java-sdk/reference-manual/config/properties/#registry
 
 ##### 4.1.3.5. dubbo:monitor
 
@@ -921,9 +913,7 @@ spring:
 
 应用信息配置。对应的配置类：`org.apache.dubbo.config.ApplicationConfig`。常用属性如下：
 
-| 属性  | 对应URL参数  |  类型   | 是否必填  | 缺省值 |   作用   |                                                                                                                                                   描述                                                                                                                                                    |     兼容性     |
-| ---- | ----------- | ------ | -------- | ----- | ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------- |
-| name | application | string | **必填** |       | 服务治理 | 当前应用名称，用于注册中心计算应用间依赖关系，**注意：消费者和提供者应用名不要一样，此参数不是匹配条件**，你当前项目叫什么名字就填什么，和提供者消费者角色无关，比如：kylin应用调用了morgan应用的服务，则kylin项目配成kylin，morgan项目配成morgan，可能kylin也提供其它服务给别人使用，但kylin项目永远配成kylin，这样注册中心将显示kylin依赖于morgan | 1.0.16以上版本 |
+> 详见官方文档：https://cn.dubbo.apache.org/zh-cn/overview/mannual/java-sdk/reference-manual/config/properties/#application
 
 ##### 4.1.3.7. dubbo:module
 
