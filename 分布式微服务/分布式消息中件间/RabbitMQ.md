@@ -520,7 +520,7 @@ public class Producer02_publish {
              *      1、交换机的名称
              *      2、交换机的类型
              *          fanout：对应的rabbitmq的工作模式是 publish/subscribe
-             *          direct：对应的Routing	工作模式
+             *          direct：对应的Routing工作模式
              *          topic：对应的Topics工作模式
              *          headers：对应的headers工作模式
              */
@@ -1464,6 +1464,8 @@ public class ReceiveHandler {
 - RabbitMQ Server 存储的消息丢失
 - RabbitMQ Server 到消费者消息丢失
 
+![](images/575290823231143.jpg)
+
 ### 5.2. 生产者确认机制
 
 #### 5.2.1. 概述
@@ -1585,7 +1587,7 @@ public void onMessage(Message message, Channel channel) throws IOException {
 
 ### 5.5. 消息持久化
 
-如果 RabbitMQ 服务异常导致重启，将会导致消息丢失。RabbitMQ 提供了持久化的机制，将内存中的消息持久化到硬盘上，即使重启 RabbitMQ，消息也不会丢失。消息持久化需要满足以下条件：
+如果 RabbitMQ 服务异常导致重启，将会导致消息丢失。RabbitMQ 提供了持久化的机制，将内存中的消息持久化到硬盘上，即使重启 RabbitMQ，消息也不会丢失。消息持久化需要满足以下条件(**缺一不可**)：
 
 1. 消息设置持久化。发布消息前，设置投递模式 `delivery mode` 为`2`，表示消息需要持久化。
 2. Queue 设置持久化。

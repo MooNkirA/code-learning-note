@@ -160,8 +160,8 @@ kafka-console-producer.bat --broker-list localhost:9092 --topic moon						# 测�
 kafka-console-consumer.bat --bootstrap-server localhost:9092 --topic moon --from-beginning	# 测试消息消费
 ```
 
-### 3.2. linux 版本
+### 3.2. linux 版本（待整理）
 
-
+> TODO: 待整理
 
 
