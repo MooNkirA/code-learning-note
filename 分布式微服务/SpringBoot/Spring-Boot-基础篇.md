@@ -2252,12 +2252,10 @@ public class IpCountServiceImpl implements IpCountService {
     private final Map<String, Integer> ipCounter = new HashMap<>();
 
     @Override
-    public void count() {
-    }
+    public void count() {}
 
     @Override
-    public void print() {
-    }
+    public void print() {}
 }
 ```
 
