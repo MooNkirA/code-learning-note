@@ -4,6 +4,8 @@
 
 ### 1.1. mysql 客户端工具
 
+#### 1.1.1. 命令格式
+
 此 mysql 并非指 mysql 服务，而是指 mysql 的客户端工具。命令语法如下：
 
 ```bash
@@ -20,6 +22,8 @@ mysql [options] [database]
 | `-P`     | `--port=port`       | 指定连接端口       |
 | `-e`     | `--execute=name`    | 执行SQL语句并退出  |
 
+#### 1.1.2. 基础使用示例
+
 示例：`-e` 选项可以在 Mysql 客户端执行 SQL 语句，而不用连接到 MySQL 数据库再执行，此方式对于一些批处理脚本尤其方便。
 
 ```bash
@@ -29,19 +33,27 @@ mysql -uroot –p123456 db01 -e "select * from stu";
 ```sql
 MySQL Server 8.0\bin>mysql -h127.0.0.1 -P3306 -uroot -p123456 tempdb -e "select * from dept"
 mysql: [Warning] Using a password on the command line interface can be insecure.
-+----+-----------+
-| id | name      |
-+----+-----------+
++----+----------+
+| id | name     |
++----+----------+
 |  1 | 研发部    |
 |  2 | 市场部    |
 |  3 | 财务部    |
 |  4 | 销售部    |
 |  5 | 总经办    |
 |  6 | 人事部    |
-+----+-----------+
++----+----------+
 ```
 
-> Notes: 执行完毕，并未进入 MySQL 客户端命令行
+> Notes: 执行完毕，并未进入 MySQL 客户端命令行。但一般不建议这样使用，因为会暴露数据库用户密码。
+
+#### 1.1.3. mysql 命令加载（导入）表数据
+
+可以通过 mysql 命令，直接加载（导入）表数据。语法格式：
+
+```bash
+mysql -u用户名 -p密码 数据库名 < 数据文件的路径
+```
 
 ### 1.2. mysqladmin 管理操作的客户端
 
@@ -237,7 +249,9 @@ mysqldump [options] --all-databases/-A
 | `-d`      | `--no-data`           | 不包含数据                                                                  |
 | `-T`      | `--tab=name`          | 自动生成两个文件：一个.sql文件，创建表结构的语句；一个.txt文件，数据文件            |
 
-示例1：备份 tempdb 数据库
+#### 1.5.1. 备份整个数据库
+
+示例：备份 tempdb 数据库
 
 ```bash
 mysqldump -uroot -p123456 tempdb > tempdb.sql
@@ -253,7 +267,9 @@ mysqldump -uroot -p123456 tempdb > tempdb.sql
 
 如果在数据备份时，不需要创建表，或者不需要备份数据，只需要备份表结构，都可以通过对应的参数来实现。
 
-示例2：备份 tempdb 数据库中的表数据，不备份表结构(`-t`)
+#### 1.5.2. 备份数据库中表数据
+
+示例：备份 tempdb 数据库中的表数据，不备份表结构(`-t`)
 
 ```bash
 mysqldump -uroot -p123456 -t tempdb > tempdb.sql
@@ -261,7 +277,9 @@ mysqldump -uroot -p123456 -t tempdb > tempdb.sql
 
 打开 tempdb.sql 查看备份的数据，只有 insert 语句，没有备份表结构。
 
-示例3：将tempdb 数据库的表结构与数据分开备份(`-T`)
+#### 1.5.3. 数据库的表结构与数据分开备份
+
+示例：将 tempdb 数据库的表结构与数据分开备份(`-T`)
 
 ```sql
 MySQL Server 8.0\bin>mysqldump -uroot -p123456 -T E:/ tempdb dept
@@ -308,11 +326,27 @@ mysqlimport -uroot -p123456 test /tmp/dept.txt
 
 ### 1.7. source 脚本数据导入工具
 
-如果需要导入 sql 文件，可以使用 mysql 中的 source 指令。命令语法如下：
+如果需要导入 sql 文件，可以使用 MySQL 客户端的 `source` 指令将 sql 文件导入到当前数据库中。命令语法如下：
 
 ```bash
+use 数据库名;
+-- 指定导入文件的路径
 source /root/xxxxx.sql
 ```
+
+> Notes: **需要先选择数据库**
+
+### 1.8. 图形化客户端（SQLyog）备份与恢复
+
+> *以 SQLyog 客户端为例，其他图形化客户端参考同样的操作思路*
+
+#### 1.8.1. SQL备份（导出）
+
+选中数据库，右键 -> 『备份/导出』 -> 以SQL转储文件备份数据库，指定导出路径，保存成 `.sql` 文件即可。
+
+#### 1.8.2. SQL恢复（导入）
+
+数据库列表区域右键『从 SQL 转储文件导入数据库』，指定要执行的 SQL 文件，执行即可
 
 ## 2. Mysql 全局配置参数最佳实践
 
@@ -468,42 +502,3 @@ join_buffer_size=4M
 ## 4. 读写分离（待整理）
 
 > Tips: 待整理
-
-## 5. 数据库的备份与恢复
-
-### 5.1. dos命令行备份与恢复
-
-#### 5.1.1. 备份数据库（导出数据库中所有的表和数据）
-
-语法格式：
-
-```bash
-mysqldump –u用户名 –p密码 数据库名 > 备份到的文件路径
-```
-
-#### 5.1.2. 还原数据库（导入）
-
-- 方式1：在 Windows 命令行中使用 mysql 命令。语法格式：
-
-```bash
-mysql -u用户名 -p密码 数据库名 < 文件的路径
-```
-
-- 方式2：在 MySQL 命令行中使用 source 命令把 sql 文件导入到当前数据库中。语法格式：
-
-```sql
-use 数据库名;
-source 导入文件的路径;
-```
-
-> Notes: **方式2需要先选择数据库**
-
-### 5.2. 图形化客户端（SQLyog）备份与恢复
-
-#### 5.2.1. SQL备份（导出）
-
-选中数据库，右键 -> “备份/导出” -> 以SQL转储文件备份数据库，指定导出路径，保存成 `.sql` 文件即可。
-
-#### 5.2.2. SQL恢复（导入）
-
-数据库列表区域右键“从 SQL 转储文件导入数据库”，指定要执行的 SQL 文件，执行即可

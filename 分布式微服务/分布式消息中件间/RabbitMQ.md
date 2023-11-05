@@ -31,6 +31,7 @@ MQ 全称为 Message Queue，即消息队列， RabbitMQ 是由 erlang 语言开
 - Virtual host：每个 vhost 本质上就是一个 mini 版的 RabbitMQ 服务器，拥有自己的队列、交换器、绑定和权限机制。vhost 是 AMQP 概念的基础，必须在连接时指定，RabbitMQ 默认的 vhost 是 `/`。当多个不同的用户使用同一个 RabbitMQ server 提供的服务时，可以划分出多个 vhost，每个用户在自己的 vhost 创建 exchange 和 queue。
 - Producer：消息生产者，即生产方客户端，生产方客户端将消息发送到 MQ。
 - Consumer：消息消费者，即消费方客户端，接收 MQ 转发的消息。
+- Channel：消息通道，在客户端的每个连接里，可建立多个 channel，每个 channel 代表一个会话任务由 Exchange、Queue、RoutingKey 三个要素才能决定一个从 Exchange 到 Queue 的唯一的线路。
 
 ### 1.3. 消息发布与接收流程
 
@@ -55,9 +56,9 @@ MQ 全称为 Message Queue，即消息队列， RabbitMQ 是由 erlang 语言开
 
 #### 2.1.1. 说明
 
-RabbitMQ 由 Erlang 语言开发，Erlang 语言用于并发及分布式系统的开发，在电信领域应用广泛，OTP（Open Telecom Platform）作为 Erlang 语言的一部分，包含了很多基于 Erlang 开发的中间件及工具库，安装 RabbitMQ 需要安装 Erlang/OTP，并保持版本匹配，如下图
+RabbitMQ 由 Erlang 语言开发，Erlang 语言用于并发及分布式系统的开发，在电信领域应用广泛，OTP（Open Telecom Platform）作为 Erlang 语言的一部分，包含了很多基于 Erlang 开发的中间件及工具库，安装 RabbitMQ 需要安装 Erlang/OTP，并保持版本匹配，如下图：
 
-![Erlang/OTP与RebbitMQ的版本关系图](images/20190526170510214_26417.png)
+![](images/20190526170510214_26417.png)
 
 本次测试使用 Erlang/OTP 22.0 版本和 RabbitMQ 3.7.15 版本。
 
@@ -169,8 +170,9 @@ systemctl start firewalld.service
 systemctl disable firewalld.service
 ```
 
-#### 2.2.2. 传统方式安装部署RabbitMQ（待整理）
+#### 2.2.2. 传统方式安装部署 RabbitMQ（待整理）
 
+> TODO: 待整理
 
 ### 2.3. 测试使用
 
@@ -459,7 +461,7 @@ Work queues 工作队列应用场景：对于任务过重或任务较多情况�
 2. rabbitmq 采用轮询的方式将消息是平均发送给消费者的；
 3. 消费者在处理完某条消息后，才会收到下一条消息
 
-### 3.3. Publish/subscribe 发布订阅工作模式
+### 3.3. Publish/Subscribe 发布订阅工作模式
 
 ![](images/20190528152234400_13754.png)
 
@@ -1156,9 +1158,9 @@ public class Consumer04_topics_sms {
 
 header模式与routing不同的地方在于，header模式取消routingkey，使用header中的 key/value（键值对）匹配队列。
 
-案例：根据用户的通知设置去通知用户，设置接收Email的用户只接收Email，设置接收sms的用户只接收sms，设置两种通知类型都接收的则两种通知都有效。
-
 #### 3.6.1. 案例代码
+
+案例需求：根据用户的通知设置去通知用户，设置接收Email的用户只接收Email，设置接收sms的用户只接收sms，设置两种通知类型都接收的则两种通知都有效。
 
 ##### 3.6.1.1. 生产者
 
@@ -1472,7 +1474,7 @@ public class ReceiveHandler {
 
 生产者发送消息到队列，可能会出现网络波动问题，从而无法确保发送的消息成功的到达 server。
 
-#### 5.2.2. 方案1：开启RabbitMQ事务
+#### 5.2.2. 方案1：开启 RabbitMQ 事务
 
 选择开启 RabbitMQ 提供的事务功能。生产者发送数据之前执行 `channel.txSelect` 开启 RabbitMQ 事务，然后发送消息，此时发送端会进入阻塞状态，并等待 RabbitMQ 的回应。如果消息没有成功被 RabbitMQ 接收到，那么生产者会收到异常报错，此时就可以回滚事务 `channel.txRollback`，然后重试发送消息；如果收到了消息，那么可以提交事务 `channel.txCommit`，之后才能继续发送下一条消息。方案实现示例（伪代码）如下：
 

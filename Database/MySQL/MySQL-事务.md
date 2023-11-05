@@ -633,7 +633,7 @@ MySQL 提供了控制 redo log 的写入策略的系统变量参数 `innodb_flus
 
 #### 7.7.1. redo log 写入策略流程图
 
-InnoDB 有一个后台线程，每隔 1 秒，就会把 redo log buffer 中的日志，调用 操作系统函数 write 写到文件系统的 page cache，然后调用操作系统函数 fsync 持久化到磁盘文件。
+InnoDB 有一个后台线程，每隔 1 秒，就会把 redo log buffer 中的日志，调用操作系统函数 write 写到文件系统的 page cache，然后调用操作系统函数 fsync 持久化到磁盘文件。
 
 ![](images/511081916230246.jpg)
 
