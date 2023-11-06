@@ -717,7 +717,7 @@ Zipkin 支持与 rabbitMQ 整合完成异步消息传输。加了 MQ 之后，�
 
 要使用消息中间件实现收集数据传输，需要准备MQ的服务。*此示例使用RabbitMQ*
 
-> 更多 RabbitMQ 的内容详见：[《RabbitMQ》笔记](/分布式微服务/分布式消息中件间/RabbitMQ)
+> 更多 RabbitMQ 的内容详见：[《RabbitMQ》笔记](/分布式微服务/消息中件间/RabbitMQ)
 
 ### 7.2. 服务端启动
 

@@ -414,24 +414,24 @@
 ### 📬 分布式消息中件间
 
 <ul class="docs">
-  <li><a href="#/分布式微服务/分布式消息中件间/消息中间件">消息中间件概述</a></li>
-  <li><a href="#/分布式微服务/分布式消息中件间/ActiveMQ">ActiveMQ</a></li>
-  <li><a href="#/分布式微服务/分布式消息中件间/RabbitMQ">RabbitMQ</a></li>
-  <li><a href="#/分布式微服务/分布式消息中件间/RocketMQ">RocketMQ</a></li>
-  <li><a href="#/分布式微服务/分布式消息中件间/Kafka">Kafka</a></li>
+  <li><a href="#/分布式微服务/消息中件间/消息中间件-Overview">消息中间件概述</a></li>
+  <li><a href="#/分布式微服务/消息中件间/ActiveMQ">ActiveMQ</a></li>
+  <li><a href="#/分布式微服务/消息中件间/RabbitMQ">RabbitMQ</a></li>
+  <li><a href="#/分布式微服务/消息中件间/RocketMQ">RocketMQ</a></li>
+  <li><a href="#/分布式微服务/消息中件间/Kafka">Kafka</a></li>
 </ul>
 
 ### 📡 分布式服务注册中心
 
 <ul class="docs">
-  <li><a href="#/分布式微服务/分布式服务注册中心/服务注册与发现">服务注册与发现综合概述</a></li>
+  <li><a href="#/分布式微服务/服务注册中心/分布式服务注册中心-概述">分布式服务注册中心概述</a></li>
 </ul>
 
 ### 🧾 分布式配置中心
 
 <ul class="docs">
-  <li><a href="#/分布式微服务/分布式配置中心/分布式配置中心概述">分布式配置中心概述</a></li>
-  <li><a href="#/分布式微服务/分布式配置中心/Apollo">Apollo 分布式配置中心</a></li>
+  <li><a href="#/分布式微服务/配置中心/分布式配置中心概述">分布式配置中心概述</a></li>
+  <li><a href="#/分布式微服务/配置中心/Apollo">Apollo 分布式配置中心</a></li>
 </ul>
 
 ### 📝 分布式事务控制解决方案
@@ -446,9 +446,9 @@
 ### ⏲ 分布式任务调度
 
 <ul class="docs">
-  <li><a href="#/分布式微服务/分布式任务调度/Task-Scheduling">任务调度概述</a></li>
-  <li><a href="#/分布式微服务/分布式任务调度/Quartz">Quartz 开源作业调度框架</a></li>
-  <li><a href="#/分布式微服务/分布式任务调度/ElasticJob">Elastic-Job 分布式调度解决方案</a></li>
+  <li><a href="#/分布式微服务/任务调度/Task-Scheduling">分布式任务调度概述</a></li>
+  <li><a href="#/分布式微服务/任务调度/Quartz">Quartz 开源作业调度框架</a></li>
+  <li><a href="#/分布式微服务/任务调度/ElasticJob">Elastic-Job 分布式调度解决方案</a></li>
 </ul>
 
 ### ⛓️ 分布式链路追踪

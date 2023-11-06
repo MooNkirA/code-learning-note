@@ -442,7 +442,7 @@ topic 交换机使用 routing key 和 binding key 进行模糊匹配，匹配成
 
 headers 交换机是根据发送的消息内容中的 headers 属性进行路由的。在绑定 Queue 与 Exchange 时指定一组键值对；当消息发送到 Exchange 时，RabbitMQ 会取到该消息的 headers（也是一个键值对的形式），对比其中的键值对是否完全匹配 Queue 与 Exchange 绑定时指定的键值对；如果完全匹配则消息会路由到该 Queue，否则不会路由到该 Queue。
 
-### 3.2. Work queues 工作队列
+### 3.2. Work queues 工作队列(多个消费者监听同一个队列)
 
 ![](images/20190528152156647_10560.png)
 
@@ -458,7 +458,7 @@ Work queues 工作队列应用场景：对于任务过重或任务较多情况�
 测试结果：
 
 1. 一条消息只会被一个消费者接收；
-2. rabbitmq 采用轮询的方式将消息是平均发送给消费者的；
+2. rabbitmq 采用<font color=red>**轮询**</font>的方式将消息是平均发送给消费者的；
 3. 消费者在处理完某条消息后，才会收到下一条消息
 
 ### 3.3. Publish/Subscribe 发布订阅工作模式
@@ -476,9 +476,9 @@ Work queues 工作队列应用场景：对于任务过重或任务较多情况�
 
 ##### 3.3.1.1. 生产者
 
-- 声明Exchange_fanout_inform交换机。
-- 声明两个队列并且绑定到此交换机，绑定时不需要指定routingkey
-- 发送消息时不需要指定routingkey
+- 声明 Exchange_fanout_inform 交换机。
+- 声明两个队列并且绑定到此交换机，绑定时不需要指定 routingkey
+- 发送消息时不需要指定 routingkey
 
 ```java
 /**

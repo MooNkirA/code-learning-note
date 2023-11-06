@@ -70,7 +70,7 @@ Spring Cloud Stream 支持各种 binder 实现，*下面包含GitHub项目的链
 
 本次 Spring Cloud Stream 案例是通过 RabbitMQ 作为消息中间件，需要先准备 RabbitMQ 的环境
 
-> 更多 RabbitMQ 的内容详见：[《RabbitMQ 笔记》](/分布式微服务/分布式消息中件间/RabbitMQ)
+> 更多 RabbitMQ 的内容详见：[《RabbitMQ 笔记》](/分布式微服务/消息中件间/RabbitMQ)
 
 创建`spring-cloud-sample-stream`聚合工程，引入SpringBoot父工程与SpringCloud版本控制
 
@@ -462,7 +462,7 @@ public class ConsumerApplication {
 
 此案例为 Spring Cloud Stream 整合 RocketMQ 作为消息中间件，需要先准备 RocketMQ 的环境。*示例沿用前面整合 RabbitMQ 的工程 `spring-cloud-sample-stream`*
 
-> 更多 RocketMQ 的内容详见：[《RocketMQ 笔记》](/分布式微服务/分布式消息中件间/RocketMQ)
+> 更多 RocketMQ 的内容详见：[《RocketMQ 笔记》](/分布式微服务/消息中件间/RocketMQ)
 
 ### 3.2. 消息生产者开发步骤
 
