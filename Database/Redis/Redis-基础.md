@@ -71,7 +71,7 @@ redis 是一种基于键值对（key-value）数据库，其中 value 可以为 
 - [Redis 在线测试](https://try.redis.io/) - Redis 官方命令在线测试工具
 - [Redis 命令参考](http://doc.redisfans.com/) - Redis Command Reference 和 Redis Documentation 的中文翻译版
 
-## 2. Redis数据结构介绍
+## 2. Redis 数据结构介绍
 
 Redis 是一种高级的 Key-Value 的存储系统，其中 Value 支持多种类型的数据结构：
 
@@ -433,7 +433,7 @@ AOF 的主要作用是解决了数据持久化的实时性，AOF 是 Redis 持�
 
 默认情况下 Redis 没有开启 AOF 方式的持久化，通过 `appendonly` 参数启用。
 
-- 修改 redis.conf 设置文件，修改`appendonly yes` (默认AOF处于关闭，为 no)
+- 修改 redis.conf 设置文件，修改`appendonly yes` (旧的版本默认 AOF 处于关闭，为 no；在 Redis 6.0 之后已经默认是开启)
 
 ![](images/20190511103409610_11558.jpg)
 
@@ -441,13 +441,13 @@ AOF 的主要作用是解决了数据持久化的实时性，AOF 是 Redis 持�
 appendonly yes # 启用 aof 持久化方式
 ```
 
-##### 4.3.2.2. 同步策略选择
+##### 4.3.2.2. AOF 的同步策略选择
 
-通过 `appendfsync` 参数设置同步策略(时机)，可选如下：
+通过 `appendfsync` 参数设置同步策略(时机)，可选值如下：
 
-- always：每次有数据修改发生时都会写入AOF文件
-- everysec：每秒钟同步一次，该策略为AOF的缺省策略
-- no：从不同步。高效但是数据不会被持久化
+- always：主线程调用 write 执行写操作后，后台线程（ aof_fsync 线程）立即会调用 fsync 函数同步 AOF 文件（刷盘），fsync 完成后线程返回，这样会严重降低 Redis 的性能（write + fsync）。
+- everysec：默认策略，线程调用 write 执行写操作后立即返回，由后台线程（ aof_fsync 线程）每秒钟调用 fsync 函数（系统调用）同步一次 AOF 文件（write+fsync，fsync间隔为 1 秒）
+- no：主线程调用 write 执行写操作后立即返回，让操作系统决定何时进行同步，Linux 下一般为 30 秒一次（write 但不 fsync，fsync 的时机由操作系统决定）。
 
 默认情况下系统每30秒会执行一次同步操作。为了防止缓冲区数据丢失，可以在 Redis 写入 AOF 文件后主动要求系统将缓冲区数据同步到硬盘上。
 
@@ -481,14 +481,17 @@ auto-aof-rewrite-min-size 64mb # aof 文件大小至少超过 64M 时，触发�
 
 #### 4.3.3. AOF 流程说明
 
-AOF 持久化执行流程：命令写入(append)、文件同步(sync)、文件重写(rewrite)、重启加载(load)
+AOF 持久化执行流程：命令写入(append)、文件写入(write)、文件同步(sync)、文件重写(rewrite)、重启加载(load)
 
-![](images/586364018248794.png)
+![](images/346602321231148.png)
 
-1. 所有的写入命令(如：`set`、`hset` 等)会 append（追加）到 aof_buf（缓冲区）中
-2. AOF 缓冲区根据对应的策略，向硬盘做 sync（同步）
-3. 随着 AOF 文件越来越大，需要定期对 AOF 文件进行 rewrite（重写），达到压缩文件体积的目的。AOF 文件重写是把 Redis 进程内的数据转化为写命令同步到新 AOF 文件的过程。
-4. 当 Redis 服务器重启时，可以 load（加载）AOF 文件进行数据恢复。
+1. **命令追加（append）**：所有的写入命令(如：`set`、`hset` 等)会 append（追加）到 aof_buf（缓冲区）中
+2. **文件写入（write）**：将 aof_buf（缓冲区）的数据写入到 AOF 文件中。这一步需要调用 write 函数（系统调用），将数据写入到了系统内核缓冲区之后直接返回了（延迟写）。<font color=purple>**注意！！！此时并没有同步到磁盘**</font>。
+3. **文件同步（fsync）**：AOF 缓冲区根据对应的策略（`fsync` 策略），向硬盘做 sync（同步）操作。这一步需要调用 `fsync` 函数（系统调用），`fsync` 针对单个文件操作，对其进行强制硬盘同步，`fsync` 将阻塞直到写入磁盘完成后返回，保证了数据持久化。
+4. **文件重写（rewrite）**：随着 AOF 文件越来越大，需要定期对 AOF 文件进行 rewrite（重写），达到压缩文件体积的目的。AOF 文件重写是把 Redis 进程内的数据转化为写命令同步到新 AOF 文件的过程。
+5. **重启加载（load）**：当 Redis 服务器重启时，可以 load（加载）AOF 文件进行数据恢复。
+
+> Tips: Linux 系统直接提供了一些函数用于对文件和设备进行访问和控制，这些函数被称为**系统调用（syscall）**。
 
 #### 4.3.4. AOF 恢复操作
 
@@ -512,6 +515,30 @@ AOF 持久化执行流程：命令写入(append)、文件同步(sync)、文件�
 
 1. 对于相同数量的数据集而言，AOF 文件通常要大于 RDB 文件，且恢复速度慢。
 2. 根据同步策略的不同，AOF 在运行启动效率上往往会慢于 RDB。总之，每秒同步策略的效率是比较高的，同步禁用策略的效率和 RDB 一样高效。
+
+#### 4.3.6. Multi Part AOF 机制
+
+从 Redis 7.0.0 开始，Redis 使用了 Multi Part AOF 机制。即将原来的单个 AOF 文件拆分成多个 AOF 文件。在 Multi Part AOF 中，AOF 文件被分为三种类型：
+
+- BASE：表示基础 AOF 文件，它一般由子进程通过重写产生，该文件最多只有一个。
+- INCR：表示增量 AOF 文件，它一般会在 AOFRW 开始执行时被创建，该文件可能存在多个。
+- HISTORY：表示历史 AOF 文件，它由 BASE 和 INCR AOF 变化而来，每次 AOFRW 成功完成时，本次 AOFRW 之前对应的 BASE 和 INCR AOF 都将变为 HISTORY，HISTORY 类型的 AOF 会被 Redis 自动删除。
+
+#### 4.3.7. AOF 为什么是在执行完命令之后记录日志？
+
+关系型数据库（如 MySQL）通常都是执行命令之前记录日志（方便故障恢复），而 Redis AOF 持久化机制是在执行完命令之后再记录日志。
+
+![](images/284833622249574.png)
+
+先执行完命令再记录日志的原因：
+
+- 避免额外的检查开销，AOF 记录日志不会对命令进行语法检查。
+- 在命令执行完之后再记录，不会阻塞当前的命令执行。
+
+先执行完命令再记录日志的风险：
+
+- 如果刚执行完命令 Redis 就宕机会导致对应的修改丢失。
+- 可能会阻塞后续其他命令的执行（AOF 记录日志是在 Redis 主线程中进行的）
 
 ### 4.4. RDB 与 AOF 比较
 

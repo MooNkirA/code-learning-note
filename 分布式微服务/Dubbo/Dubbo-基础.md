@@ -1386,6 +1386,38 @@ Dubbo 缺省协议采用单一长连接和 NIO 异步通讯，适合于小数据
 <dubbo:protocol name="dubbo" accepts="1000" />
 ```
 
+### 5.3. Triple 协议
+
+#### 5.3.1. 概述
+
+Triple 是 Dubbo3 提出的基于 HTTP 的开放协议，旨在解决 Dubbo2 私有协议带来的互通性问题，Tripe 基于 gRPC 和 gRPC-Web 设计而来，保留了两者的优秀设计，Triple 做到了完全兼容 gRPC 协议，并可同时运行在 HTTP/1 和 HTTP/2 之上。
+
+相比于原有 Dubbo2 协议，Triple 有以下优势:
+
+- 原生和 gRPC 协议互通。打通 gRPC 生态，降低从 gRPC 至 Dubbo 的迁移成本。
+- 增强多语言生态。避免因 CPP/C#/RUST 等语言的 Dubbo SDK 能力不足导致业务难以选型适配的问题。
+- 网关友好。网关无需参与序列化，方便用户从传统的 HTTP 转泛化 Dubbo 调用网关升级至开源或云厂商的 Ingress 方案。
+- 完善的异步和流式支持。带来从底层协议到上层业务的性能提升，易于构建全链路异步以及严格保证消息顺序的流式服务。
+
+相比于 gRPC 协议，Triple 有以下优势：
+
+- 协议内置支持 HTTP/1，可以用 curl、浏览器直接访问你的 gRPC 服务
+- 保持性能与 grpc-java 在同一水平的同时，实现上更轻量、简单，协议部分只有几千行代码
+- 不绑定 IDL，支持 Java Interface 定义服务
+- 保持与官方 gRPC 库的 100% 兼容性的同时，与 Dubbo 的微服务治理体系无缝融合
+
+#### 5.3.2. 使用方式
+
+由于 Triple 协议底层需要依赖 protobuf 协议进行传输，即使定义的服务接口不使用 protobuf 也需要在环境中引入 protobuf 的依赖。
+
+```xml
+<dependency>
+    <groupId>com.google.protobuf</groupId>
+    <artifactId>protobuf-java</artifactId>
+    <version>3.19.4</version>
+</dependency>
+```
+
 ## 6. 注册中心
 
 注册中心是 Dubbo 服务治理的核心组件，Dubbo 依赖注册中心的协调实现服务（地址）发现，自动化的服务发现是微服务实现动态扩缩容、负载均衡、流量治理的基础。
