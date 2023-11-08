@@ -1712,7 +1712,10 @@ public static BeanFactoryPostProcessor postProcessor() {
 
 ## 8. 容器扩展点
 
-Spring IoC 容器提供了一些特殊的接口，通过实现此类接口可以对功能进行扩展
+Spring IoC 容器提供了一些特殊的后置处理器接口，并给定了一些实现类，用户也可以通过实现此类接口，来实现对全局的 Bean 相关功能的扩展。接口主要分为两大类：
+
+- 针对 Bean 工厂的 `BeanFactoryPostProcessor` 接口（它还有个子接口 `BeanDefinitionRegistryPostProcessor`），用于调整 Bean 工厂的属性、影响 Bean 定义。注意：此时还没有 Bean 进行实例化。
+- 针对 Bean 的 `BeanPostProcessor` 接口，直接的作用于 Bean 实例生成过程中的修改。
 
 ### 8.1. BeanPostProcessor 接口扩展 Bean 功能
 

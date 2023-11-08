@@ -1,5 +1,3 @@
-# Maven POM 配置
-
 > POM 官方参考文档：https://maven.apache.org/pom.html
 
 ## 1. POM 的四个层次
@@ -298,7 +296,14 @@ maven-compiler-plugin 插件，可以通过 `<configuration>` 标签来指定当
 </build>
 ```
 
-### 2.2. pom.xml 全配置示例注释 (网上资源)
+### 2.2. plugins 标签
+
+plugins的作用是定义 Maven 插件， plugins 主要用于扩展 Maven 的功能，帮助开发人员更方便地构建、打包、发布项目。插件可以通过 Maven 的插件中心或者自己构建的私有仓库来使用，能在构建过程中执行特定的任务，比如编译、打包、测试等。
+
+插件的配置可以分为两种方式：全局配置和项目配置。全局配置是在 Maven 安装目录下的 conf/settings.xml 文件中进行配置，可以被所有的项目使用。项目配置则是在项目的 pom.xml 文件中进行配置，只对当前项目生效。
+
+
+### 2.3. pom.xml 全配置示例注释 (网上资源)
 
 > 引用网上资源的最全面版本pom.xml，后期根据理解修改
 
