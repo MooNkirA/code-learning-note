@@ -1,6 +1,5 @@
-# Day03 CMS页面管理开发
-
 ## 1. 自定义条件查询
+
 ### 1.1. 需求分析
 
 - 在页面输入查询条件，查询符合条件的页面信息。
@@ -9,6 +8,7 @@
     - 页面别名：模糊匹配
 
 ### 1.2. 条件查询服务端
+
 #### 1.2.1. Dao 层条件查询 API 测试
 
 - 使用Spring Data Mongodb中提供的`<S extends T> List<S> findAll(Example<S> example, Sort sort);`方法实现
@@ -125,6 +125,7 @@ public QueryResponseResult findList(int page, int size, QueryPageRequest queryPa
 无需修改，直接使用swagger测试：http://localhost:31001/swagger-ui.html
 
 ### 1.3. 条件查询前端
+
 #### 1.3.1. 页面管理页面
 
 1. 增加查询表单
@@ -223,6 +224,7 @@ query() {
 ```
 
 #### 1.3.3. node.js 的 querystring 工具类
+
 ##### 1.3.3.1. 引入模块
 
 querystring 模块提供用于解析和格式化 URL 查询字符串的实用工具。 它可以使用以下方式访问：
@@ -264,6 +266,7 @@ querystring.stringify({ w: '中文', foo: 'bar' }, null, null,
 ```
 
 ## 2. 新增页面
+
 ### 2.1. 新增页面接口定义
 
 1. 定义响应模型
@@ -302,7 +305,7 @@ public CmsPageResult add(CmsPage cmsPage);
 
 #### 2.2.2. Dao 层
 
-1. 在CmsPageRepository接口，添加根据页面名称、站点Id、页面webpath查询页面方法，此方法用于校验页面是否存在。注：无需实现，spring-data-mongodb默认实现了
+1. 在 `CmsPageRepository` 接口，添加根据页面名称、站点Id、页面webpath查询页面方法，此方法用于校验页面是否存在。注：无需实现，spring-data-mongodb 默认实现了
 
 ```java
 public interface CmsPageRepository extends MongoRepository<CmsPage, String> {
@@ -386,6 +389,7 @@ public CmsPageResult add(@RequestBody CmsPage cmsPage) {
 ```
 
 ### 2.3. 新增页面前端
+
 #### 2.3.1. 编写page_add.vue页面
 
 使用Element-UI的form组件编写添加表单内容，步骤如下：
@@ -740,6 +744,7 @@ public CmsPageResult edit(String id, CmsPage cmsPage);
 **说明：提交数据使用post、put都可以，只是根据http方法的规范，put方法是对服务器指定资源进行修改，所以这里使用put方法对页面修改进行修改。**
 
 ### 3.2. 修改页面服务端
+
 #### 3.2.1. Dao 层
 
 - 使用 Spring Data 提供的findById方法完成根据主键查询
@@ -825,6 +830,7 @@ public CmsPageResult edit(@PathVariable("id") String id, @RequestBody CmsPage cm
 ```
 
 ### 3.3. 修改页面前端
+
 #### 3.3.1. 页面处理流程
 
 1. 进入页面，通过钩子方法请求服务端获取页面信息，并赋值给数据模型对象
@@ -985,6 +991,7 @@ public ResponseResult delete(String id);
 ```
 
 ### 4.2. 删除页面服务端
+
 #### 4.2.1. Dao 层
 
 使用 Spring Data 提供的deleteById方法完成删除操作
@@ -1023,6 +1030,7 @@ public ResponseResult delete(@PathVariable("id") String id) {
 ```
 
 ### 4.3. 删除页面前端
+
 #### 4.3.1. Api方法
 
 ```js
@@ -1061,6 +1069,7 @@ del(pageId) {
 ```
 
 ## 5. 异常处理
+
 ### 5.1. 异常处理的问题分析
 
 - 从PageService服务层中的添加页面的add方法中分析存在问题：
@@ -1093,6 +1102,7 @@ del(pageId) {
 5. 将错误代码及错误信息以Json格式响应给用户。
 
 ### 5.3. 可预知异常处理
+
 #### 5.3.1. 自定义异常类
 
 在common工程定义异常类型
@@ -1166,6 +1176,7 @@ public class ExceptionCatch {
 ```
 
 #### 5.3.4. 异常处理测试
+
 ##### 5.3.4.1. 定义错误代码
 
 每个业务操作的异常使用异常代码去标识。使用cms模块做为示例
@@ -1283,6 +1294,7 @@ addSubmit() {
 ```
 
 ### 5.4. 不可预知异常处理
+
 #### 5.4.1. 异常抛出测试
 
 使用postman测试添加页面，不输入cmsPost信息，提交，报错信息如下：
@@ -1368,6 +1380,7 @@ public class ExceptionCatch {
 ```
 
 ## 6. 待完善功能
+
 ### 6.1. 查询条件完善
 
 - 页面查询条件增加：页面名称、页面类型。

@@ -529,7 +529,7 @@ public class ApiGatewayApplication {
 
 修改项目的 `application.yml` 配置文件，具体修改内容如下：
 
-1. 添加 nacos 注册中心的相关配置，将网关服务注册到 nacos 中，
+1. 添加 nacos 注册中心的相关配置，将网关服务注册到 nacos 中
 2. 修改访问映射的uri，改为注册中心上相应的服务名称
 
 ```yml

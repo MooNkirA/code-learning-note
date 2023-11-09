@@ -413,7 +413,7 @@ db.COLLECTION_NAME.find({"name":"斩月"}, {name:1, age:1, _id:0})
 
 ### 7.1. 创建用户
 
-- 语法格式
+语法格式：
 
 ```
 mongo>db.createUser(
@@ -429,7 +429,7 @@ mongo>db.createUser(
 )
 ```
 
-- 例子：创建 root 用户，角色为 root
+例子：创建 root 用户，角色为 root
 
 ```shell
 # 切换到admin数据库
@@ -444,13 +444,14 @@ db.createUser(
 )
 ```
 
-- 内置角色如下：
-  1. 数据库用户角色：read、readWrite;
-  2. 数据库管理角色：dbAdmin、dbOwner、userAdmin；
-  3. 集群管理角色：clusterAdmin、clusterManager、clusterMonitor、hostManager；
-  4. 备份恢复角色：backup、restore；
-  5. 所有数据库角色：readAnyDatabase、readWriteAnyDatabase、userAdminAnyDatabase、dbAdminAnyDatabase
-  6. 超级用户角色：root
+内置角色如下：
+
+1. 数据库用户角色：read、readWrite;
+2. 数据库管理角色：dbAdmin、dbOwner、userAdmin；
+3. 集群管理角色：clusterAdmin、clusterManager、clusterMonitor、hostManager；
+4. 备份恢复角色：backup、restore；
+5. 所有数据库角色：readAnyDatabase、readWriteAnyDatabase、userAdminAnyDatabase、dbAdminAnyDatabase
+6. 超级用户角色：root
 
 ### 7.2. 认证登录
 

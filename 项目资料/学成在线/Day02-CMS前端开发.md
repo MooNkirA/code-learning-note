@@ -1,5 +1,3 @@
-# Day02 CMS前端开发
-
 ## 1. Vue.js 与Webpack研究
 
 - 参考资料：学成在线-Vue.js与Webpack.pdf
