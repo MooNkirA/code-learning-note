@@ -1380,11 +1380,28 @@ HashMap 将链表结构转换为红黑树结构后，提高了查询效率，因
 
 因为 String 是不可变的，所以在它创建的时候`hashcode`就被缓存了，不需要重新计算。这就是 HashMap 中的 key 经常使用字符串的原因。获取对象的时候要用到 `equals()` 和 `hashCode()` 方法，而 Integer、String 都已经重写了此两个方法，不需要程序员去重写。
 
+#### 6.4.3. HashMap 线程不安全的情况
+
+- JDK 7 时多线程下扩容会造成死循环。
+- 多线程的 put 方法可能导致元素的丢失。
+- put 和 get 在并发时，可能导致 get 的值为 null。原因是 hashcode 可能发生改变，导致 put 进去的值，无法 get 获取。例如：
+
+```java
+HashMap<List<String>, Object> changeMap = new HashMap<>();
+List<String> list = new ArrayList<>();
+list.add("hello");
+Object objectValue = new Object();
+changeMap.put(list, objectValue);
+System.out.println(changeMap.get(list)); // 输出结果：java.lang.Object@74a14482
+list.add("hello world"); // hashcode发生了改变
+System.out.println(changeMap.get(list)); // 输出结果：null
+```
+
 ### 6.5. LinkedHashMap
 
-`LinkedHashMap` 继承 `HashMap`，是 `Map` 接口的实现类，并允许使用 null 值和 null 键，<font color=red>**键是唯一，存储和取出有顺序**</font>
+`LinkedHashMap` 继承 `HashMap`，是 `Map` 接口的实现类，并允许使用 null 值和 null 键，<font color=red>**键是唯一，存储和取出有顺序**</font>。
 
-LinkedHashMap 是基于哈希表(HashTable)的数据结构，该结构保证 key 唯一；使用链表(Linked)结构保存元素，从而保证元素有序性，怎么存就怎么取。*注：这些约束都是针对键起作用*
+`LinkedHashMap` 是基于哈希表(HashTable)的数据结构，该结构保证 key 唯一；使用链表(Linked)结构保存元素，从而保证元素有序性，怎么存就怎么取。*注：这些约束都是针对键起作用*
 
 > Tips: 其他与 HashMap 的功能与用法一样。
 
@@ -1498,10 +1515,10 @@ public interface Comparable<T> {
 
 ### 7.3. Comparator 与 Comparable 的区别
 
-Comparable 和 Comparator 接口都是用于对象集合或者数组排序，两者主要的区别是：
+Comparator 和 Comparable 接口都是用于对象集合或者数组排序，两者主要的区别是：
 
-- Comparable 接口是用于提供对象的**自然排序**，可以使用它来提供基于单个逻辑的排序。
 - Comparator 接口是用于提供**不同的排序算法**，可以选择需要使用的该接口来对给定的对象集合进行排序。
+- Comparable 接口是用于提供对象的**自然排序**，可以使用它来提供基于单个逻辑的排序。
 
 ### 7.4. Collections 工具类的 sort 方法
 

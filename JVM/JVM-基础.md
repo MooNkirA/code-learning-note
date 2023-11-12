@@ -1259,7 +1259,7 @@ WeakReference<String> weakRef = new WeakReference<String>(str);
 
 > 可用场景：Java 源码中的 `java.util.WeakHashMap` 中的 key 就是使用弱引用，相当于一旦不需要某个引用，JVM会自动处理它，开发者不需要做其它操作。
 
-- **虚引用**（幽灵引用/幻影引用）：无法通过虚引用获得对象，用 `PhantomReference` 实现虚引用。虚引用并不会决定对象的生命周期。如果一个对象仅持有虚引用，那么它就和没有任何引用一样，在任何时候都可能被垃圾回收。**虚引用的用途是跟踪对象的垃圾回收状态，在 gc 时会返回一个系统通知**。
+- **虚引用**（幽灵引用/幻影引用）：在 JDK1.2 之后，用 `PhantomReference` 类实现虚引用，通过查看这个类的源码，发现它只有一个构造函数和一个 `get()` 方法，而且它的 `get()` 方法仅仅是返回一个null，即无法通过虚引用获得对象，是最弱的一种引用关系。虚引用必须要和 `ReferenceQueue` 引用队列一起使用，NIO 的堆外内存就是靠其管理。虚引用并不会决定对象的生命周期。如果一个对象仅持有虚引用，那么它就和没有任何引用一样，在任何时候都可能被垃圾回收。**虚引用的用途是跟踪对象的垃圾回收状态，在 gc 时会返回一个系统通知**。
 
 ```java
 PhantomReference<String> prf = new PhantomReference<String>(new String("str"), newReferenceQueue<>());

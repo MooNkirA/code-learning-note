@@ -2,10 +2,8 @@
 
 MySQL 官网：https://www.mysql.com/
 
-MySQL 5.7 版本官方文档：
-
-- https://dev.mysql.com/doc/refman/5.7/en/
-- https://dev.mysql.com/doc/mysql-errors/5.7/en/
+- MySQL 5.7 版本官方文档： https://dev.mysql.com/doc/refman/5.7/en/
+- MySQL 8.0 版本官方文档： https://dev.mysql.com/doc/refman/8.0/en/
 
 ### 1.1. 相关版本说明
 
@@ -53,14 +51,23 @@ MySQL 下载地址：https://downloads.mysql.com/archives/community/
 
 #### 2.2.1. 查询语句执行流程
 
-查询语句的执行流程如下：权限校验 -> 查询缓存 -> 分析器 -> 优化器 -> 权限校验 -> 执行器 -> 引擎。例如有查询语句如下：
+查询语句的执行流程如下：
+
+1. 客户端请求连接器，验证用户身份，权限校验
+2. 查询缓存，存在缓存则直接返回，不存在则执行后续操作
+3. 分析器，对 SQL 进行词法分析和语法分析操作
+4. 优化器，主要对执行的 SQL 优化选择最优的执行方案方法
+5. 权限校验，在执行时会先看用户是否有执行权限，有才去使用相应引擎提供的接口
+6. 执行器，操作引擎层获取数据返回。如果开启查询缓存则会缓存查询结果
+
+例如有查询语句如下：
 
 ```sql
 select * from user where id > 1 and name = 'MooNkirA';
 ```
 
 1. 首先检查权限，没有权限则返回错误；
-2. MySQL8.0 以前会查询缓存，缓存命中则直接返回，没有则执行下一步；
+2. MySQL 8.0 以前会查询缓存，缓存命中则直接返回，没有则执行下一步；
 3. 词法分析和语法分析。提取表名、查询条件，检查语法是否有错误；
 4. 两种执行方案，先查 `id > 1` 还是 `name = 'MooNkirA'`，优化器根据自己的优化算法选择执行效率最好的方案；
 5. 校验权限，有权限就调用数据库引擎接口，返回引擎的执行结果。
@@ -1277,12 +1284,12 @@ create table a(id int primary key auto_increment, name varchar(10)) engine=innod
 1. Master Thread：核心后台线程，负责调度其他线程，还负责将缓冲池中的数据异步刷新到磁盘中, 保持数据的一致性，还包括脏页的刷新、合并插入缓存、undo页的回收
 2. IO Thread：在 InnoDB 存储引擎中大量使用了AIO来处理IO请求，这样可以极大地提高数据库的性能，而IO Thread主要负责这些IO请求的回调
 
-|       线程类型        | 默认个数 |            职责            |
-| -------------------- | -------- | ------------------------- |
-| Read thread          | 4        | 负责读操作                 |
-| Write thread         | 4        | 负责写操作                 |
-| Log thread           | 1        | 负责将日志缓冲区刷新到磁盘   |
-| Insert buffer thread | 1        | 负责将写缓冲区内容刷新到磁盘 |
+|       线程类型        | 默认个数 |           职责           |
+| -------------------- | ------- | ----------------------- |
+| Read thread          | 4       | 负责读操作                |
+| Write thread         | 4       | 负责写操作                |
+| Log thread           | 1       | 负责将日志缓冲区刷新到磁盘   |
+| Insert buffer thread | 1       | 负责将写缓冲区内容刷新到磁盘 |
 
 通过以下的这条指令，查看到 InnoDB 的状态信息，其中就包含IO Thread信息。
 
@@ -1294,6 +1301,18 @@ show engine innodb status \G;
 
 3. Purge Thread：主要用于回收事务已经提交了的undo log，在事务提交之后，undo log可能不用了，就用它来回收
 4. Page Cleaner Thread：协助 Master Thread 刷新脏页到磁盘的线程，它可以减轻 Master Thread 的工作压力，减少阻塞
+
+### 7.7. 数据页结构
+
+一个数据页大致划分七个部分
+
+- File Header：表示页的一些通用信息，占固定的 38 字节。
+- page Header：表示数据页专有信息，占固定的 56 字节。
+- inimum+Supermum：两个虚拟的伪记录，分别表示页中的最小记录和最大记录，占固定的 26 字节。
+- User Records：真正存储我们插入的数据，大小不固定。
+- Free Space：页中尚未使用的部分，大小不固定。
+- Page Directory：页中某些记录的相对位置，也就是各个槽对应的记录在页面中的地址偏移量。
+- File Trailer：用于检验页是否完整，占固定大小 8 字节。
 
 ## 8. 扩展内容
 
