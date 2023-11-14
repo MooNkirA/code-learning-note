@@ -212,6 +212,7 @@ Bin
 >
 > - https://www.cnblogs.com/Can-daydayup/p/13128633.html
 > - http://blog.cocoachina.com/article/71732
+> - [【全网最全面】SourceTree使用教程详解（连接远程仓库，克隆，拉取，提交，推送，新建/切换/合并分支，冲突解决，提交PR）](https://zhuanlan.zhihu.com/p/533052453)
 
 ## 4. TortoiseGit
 

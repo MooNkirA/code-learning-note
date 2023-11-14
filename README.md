@@ -400,6 +400,7 @@
 ### 🔄 Nginx
 
 <ul class="docs">
+  <li><a href="#/分布式微服务/Nginx/Nginx-安装部署">Nginx 安装部署</a></li>
   <li><a href="#/分布式微服务/Nginx/Nginx-基础">Nginx 基础笔记</a></li>
 </ul>
 
