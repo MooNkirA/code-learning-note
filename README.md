@@ -36,6 +36,7 @@
   <li><a href="#/JavaWeb/JavaWeb-Web服务器">JavaWeb 基础 - Web 服务器</a></li>
   <li><a href="#/JavaWeb/JavaWeb-Servlet">JavaWeb 基础 - Servlet</a></li>
   <li><a href="#/JavaWeb/JavaWeb-JSP">JavaWeb 基础 - JSP</a></li>
+  <li><a href="#/JavaWeb/JavaWeb-网络安全">JavaWeb 基础 - 网络安全</a></li>
 </ul>
 
 ### 🖥 JVM（Java 虚拟机）
@@ -399,6 +400,7 @@
 ### 🔄 Nginx
 
 <ul class="docs">
+  <li><a href="#/分布式微服务/Nginx/Nginx-安装部署">Nginx 安装部署</a></li>
   <li><a href="#/分布式微服务/Nginx/Nginx-基础">Nginx 基础笔记</a></li>
 </ul>
 
@@ -413,24 +415,24 @@
 ### 📬 分布式消息中件间
 
 <ul class="docs">
-  <li><a href="#/分布式微服务/分布式消息中件间/消息中间件">消息中间件概述</a></li>
-  <li><a href="#/分布式微服务/分布式消息中件间/ActiveMQ">ActiveMQ</a></li>
-  <li><a href="#/分布式微服务/分布式消息中件间/RabbitMQ">RabbitMQ</a></li>
-  <li><a href="#/分布式微服务/分布式消息中件间/RocketMQ">RocketMQ</a></li>
-  <li><a href="#/分布式微服务/分布式消息中件间/Kafka">Kafka</a></li>
+  <li><a href="#/分布式微服务/消息中件间/消息中间件-Overview">消息中间件概述</a></li>
+  <li><a href="#/分布式微服务/消息中件间/ActiveMQ">ActiveMQ</a></li>
+  <li><a href="#/分布式微服务/消息中件间/RabbitMQ">RabbitMQ</a></li>
+  <li><a href="#/分布式微服务/消息中件间/RocketMQ">RocketMQ</a></li>
+  <li><a href="#/分布式微服务/消息中件间/Kafka">Kafka</a></li>
 </ul>
 
 ### 📡 分布式服务注册中心
 
 <ul class="docs">
-  <li><a href="#/分布式微服务/分布式服务注册中心/服务注册与发现">服务注册与发现综合概述</a></li>
+  <li><a href="#/分布式微服务/服务注册中心/分布式服务注册中心-概述">分布式服务注册中心概述</a></li>
 </ul>
 
 ### 🧾 分布式配置中心
 
 <ul class="docs">
-  <li><a href="#/分布式微服务/分布式配置中心/分布式配置中心概述">分布式配置中心概述</a></li>
-  <li><a href="#/分布式微服务/分布式配置中心/Apollo">Apollo 分布式配置中心</a></li>
+  <li><a href="#/分布式微服务/配置中心/分布式配置中心概述">分布式配置中心概述</a></li>
+  <li><a href="#/分布式微服务/配置中心/Apollo">Apollo 分布式配置中心</a></li>
 </ul>
 
 ### 📝 分布式事务控制解决方案
@@ -445,9 +447,9 @@
 ### ⏲ 分布式任务调度
 
 <ul class="docs">
-  <li><a href="#/分布式微服务/分布式任务调度/Task-Scheduling">任务调度概述</a></li>
-  <li><a href="#/分布式微服务/分布式任务调度/Quartz">Quartz 开源作业调度框架</a></li>
-  <li><a href="#/分布式微服务/分布式任务调度/ElasticJob">Elastic-Job 分布式调度解决方案</a></li>
+  <li><a href="#/分布式微服务/任务调度/Task-Scheduling">分布式任务调度概述</a></li>
+  <li><a href="#/分布式微服务/任务调度/Quartz">Quartz 开源作业调度框架</a></li>
+  <li><a href="#/分布式微服务/任务调度/ElasticJob">Elastic-Job 分布式调度解决方案</a></li>
 </ul>
 
 ### ⛓️ 分布式链路追踪
@@ -458,7 +460,7 @@
   <li><a href="#/分布式微服务/分布式链路追踪/SkyWalking">SkyWalking - 分布式链路追踪和可视化一体化解决方案</a></li>
 </ul>
 
-### 微服务监控
+### 🛡️ 微服务监控
 
 <ul class="docs">
   <li><a href="#/分布式微服务/微服务监控/Prometheus">Prometheus（普罗米修斯）系统监控与告警工具</a></li>
@@ -478,7 +480,7 @@
   <li><a href="#/分布式微服务/其他/FastDFS">FastDFS 分布式文件系统</a></li>
 </ul>
 
-## 并发编程
+## 🎛️ 并发编程
 
 <ul class="docs">
   <li><a href="#/并发编程/并发编程-多线程">并发编程 - 多线程</a></li>
@@ -500,7 +502,7 @@
 
 <ul class="docs">
   <li><a href="#/其他/编程资源分享">编程资源分享</a></li>
-  <li><a href="#/其他/编程开发相关资料">编程开发相关资料</a></li>
+  <li><a href="#/其他/编程开发相关">编程开发相关</a></li>
   <li><a href="#/其他/OS">操作系统知识</a></li>
   <li><a href="#/其他/Develop-Environment">个人开发环境搭建资源信息文档</a></li>
 </ul>

@@ -120,22 +120,11 @@ Tomcat 是 Apache 软件基金会（Apache Software Foundation）的 Jakarta 项
 
 ![](images/157621808220817.png)
 
-Apache Tomcat Versions 一览表（2022.03.26 更新）
+Apache Tomcat Versions 一览表（2023.10.21 更新）
 
-| Servlet Spec | JSP Spec | EL Spec | WebSocket Spec | Authentication (JASPIC) Spec | Apache Tomcat Version | Latest Released Version |         Supported Java Versions         |
-| ------------ | -------- | ------- | -------------- | ---------------------------- | --------------------- | ----------------------- | --------------------------------------- |
-| 6.0          | 3.1      | 5.0     | 2.1            | 3.0                          | 10.1.x                | 10.1.0-M12 (alpha)      | 11 and later                            |
-| 5.0          | 3.0      | 4.0     | 2.0            | 2.0                          | 10.0.x                | 10.0.18                 | 8 and later                             |
-| 4.0          | 2.3      | 3.0     | 1.1            | 1.1                          | 9.0.x                 | 9.0.60                  | 8 and later                             |
-| 3.1          | 2.3      | 3.0     | 1.1            | 1.1                          | 8.5.x                 | 8.5.77                  | 7 and later                             |
-| 3.1          | 2.3      | 3.0     | 1.1            | N/A                          | 8.0.x (superseded)    | 8.0.53 (superseded)     | 7 and later                             |
-| 3.0          | 2.2      | 2.2     | 1.1            | N/A                          | 7.0.x (archived)      | 7.0.109 (archived)      | 6 and later (7 and later for WebSocket) |
-| 2.5          | 2.1      | 2.1     | N/A            | N/A                          | 6.0.x (archived)      | 6.0.53 (archived)       | 5 and later                             |
-| 2.4          | 2.0      | N/A     | N/A            | N/A                          | 5.5.x (archived)      | 5.5.36 (archived)       | 1.4 and later                           |
-| 2.3          | 1.2      | N/A     | N/A            | N/A                          | 4.1.x (archived)      | 4.1.40 (archived)       | 1.3 and later                           |
-| 2.2          | 1.1      | N/A     | N/A            | N/A                          | 3.3.x (archived)      | 3.3.2 (archived)        | 1.1 and later                           |
+![](images/329480618231062.png)
 
-> Notes: 企业用的比较广泛的是 7.0 和 8.0 版本，tomcat 6以下版本不建议使用。
+> Notes: 企业用的比较广泛的是 7.0 和 8.0 版本，tomcat 6 以下版本不建议使用。
 
 #### 3.1.2. 安装包的类别
 
@@ -152,27 +141,21 @@ Apache Tomcat Versions 一览表（2022.03.26 更新）
 
 ![](images/509021323221171.png)
 
-|    目录名     |                                                                                              作用                                                                                              |
-| :---------: | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-|   **bin**   | tomcat的可执行的程序，bat批处理文件，启动或关闭tomcat                                                                                                                                                 |
-|  **conf**   | tomcat服务器的配置文件夹，常用的配置文件都在这里，如：<br/>web.xml：Web服务器的部署描述文件<br/>server.xml：服务器启动读取配置的文件，如果文件有错误，tomcat启动会失败<br/>tomcat-users.xml：用于配置tomcat管理员的配置文件 |
-|   **lib**   | tomcat启动的时候必须的jar库，第三方支持库也可以放在这里                                                                                                                                                |
-|  **logs**   | 日志记录，服务器启动和关闭或运行过程中记录的信息，扩展名.log，文本文件                                                                                                                                     |
-|  **temp**   | 用于存放服务器运行过程中的临时文件，垃圾文件                                                                                                                                                           |
-| **webapps** | 开发的Java项目发布文件夹，所有的项目都要复制到这个目录下，才可以给客户端浏览器使用。如：<br/>文件：/webapps/hello/1.html  访问：`http://localhost:8080/hello/1.html`                                             |
-|  **work**   | tomcat 的工作目录，存放 jsp 生成的 servlet 代码地方                                                                                                                                                 |
-
-- bin：该目录下存放的是二进制可执行文件，如果是安装版，那么这个目录下会有两个exe文件：tomcat6.exe、tomcat6w.exe，前者是在控制台下启动Tomcat，后者是弹出GUI窗口启动Tomcat；如果是解压版，那么会有startup.bat和shutdown.bat文件，startup.bat用来启动Tomcat，但需要先配置JAVA_HOME环境变量才能启动，shutdawn.bat用来停止Tomcat。
-- conf：这是一个非常非常重要的目录，这个目录下有四个最为重要的文件：
-    - server.xml：配置整个服务器信息。例如修改端口号。默认HTTP请求的端口号是：8080
-    - tomcat-users.xml：存储tomcat用户的文件，这里保存的是tomcat的用户名及密码，以及用户的角色信息。可以按着该文件中的注释信息添加tomcat用户，然后就可以在Tomcat主页中进入Tomcat Manager页面了；
-    - web.xml：部署描述符文件，这个文件中注册了很多MIME类型，即文档类型。这些MIME类型是客户端与服务器之间说明文档类型的，如用户请求一个html网页，那么服务器还会告诉客户端浏览器响应的文档是text/html类型的，这就是一个MIME类型。客户端浏览器通过这个MIME类型就知道如何处理它了。当然是在浏览器中显示这个html文件了。但如果服务器响应的是一个exe文件，那么浏览器就不可能显示它，而是应该弹出下载窗口才对。MIME就是用来说明文档的内容是什么类型的！
+- bin：该目录下存放的是 tomcat 的二进制可执行程序文件或 bat 批处理文件。
+    - 如果是安装版，那么这个目录下会有两个exe文件：tomcat6.exe、tomcat6w.exe，前者是在控制台下启动 Tomcat，后者是弹出 GUI 窗口启动 Tomcat；
+    - 如果是解压版，那么会有 startup.bat 和 shutdown.bat 文件，startup.bat 用来启动 Tomcat，但需要先配置 JAVA_HOME 环境变量才能启动，shutdawn.bat 用来停止 Tomcat。
+- conf：这是一个非常非常重要的目录，存放 tomcat 服务器的配置文件，常用的配置文件有以下四个最为重要的文件：
+    - server.xml：配置整个服务器信息。例如修改端口号（默认 HTTP 请求的端口号是 8080）。如果文件有错误，tomcat 启动会失败。
+    - tomcat-users.xml：存储 tomcat 用户的配置文件，保存的是 tomcat 的用户名及密码，以及用户的角色信息。可以按着该文件中的注释信息添加 tomcat 用户，然后就可以在 Tomcat 主页中进入 Tomcat Manager页面
+    - web.xml：部署描述符文件，这个文件中注册了很多 MIME 类型，即文档类型。这些 MIME 类型是客户端与服务器之间说明文档类型的，如用户请求一个 html 网页，那么服务器还会告诉客户端浏览器响应的文档是 text/html 类型的，这就是一个 MIME 类型。客户端浏览器通过这个 MIME 类型就知道如何处理它了。当然是在浏览器中显示这个 html 文件了。但如果服务器响应的是一个 exe 文件，那么浏览器就不可能显示它，而是应该弹出下载窗口才对。MIME就是用来说明文档的内容是什么类型的！
     - context.xml：对所有应用的统一配置，通常我们不会去配置它。
-- lib：Tomcat的类库，里面是一大堆jar文件。如果需要添加Tomcat依赖的jar文件，可以把它放到这个目录中，当然也可以把应用依赖的jar文件放到这个目录中，这个目录中的jar所有项目都可以共享之，但这样你的应用放到其他Tomcat下时就不能再共享这个目录下的jar包了，所以建议只把Tomcat需要的jar包放到这个目录下；
-- logs：这个目录中都是日志文件，记录了Tomcat启动和关闭的信息，如果启动Tomcat时有错误，那么异常也会记录在日志文件中。
-- temp：存放Tomcat的临时文件，这个目录下的东西可以在停止Tomcat后删除！
-- webapps：存放web项目的目录，其中每个文件夹都是一个项目；如果这个目录下已经存在了目录，那么都是tomcat自带的项目。其中ROOT是一个特殊的项目，在地址栏中访问：http://127.0.0.1:8080，没有给出项目目录时，对应的就是ROOT项目。http://localhost:8080/examples，进入示例项目。其中examples就是项目名，即文件夹的名字。
-- work：运行时生成的文件，最终运行的文件都在这里。通过webapps中的项目生成的！可以把这个目录下的内容删除，再次运行时会生再次生成work目录。当客户端用户访问一个JSP文件时，Tomcat会通过JSP生成Java文件，然后再编译Java文件生成class文件，生成的java和class文件都会存放到这个目录下。
+- lib：Tomcat 启动时必须的的 jar 类库。如果需要添加Tomcat依赖的jar文件，可以把它放到这个目录中，当然也可以把应用依赖的jar文件放到这个目录中，这个目录中的jar所有项目都可以共享之，但这样应用放到其他Tomcat下时就不能再共享这个目录下的jar包了，所以建议只把Tomcat需要的jar包放到这个目录下；
+- logs：这个目录存放的是扩展名 `.log` 的文本（日志）文件，记录了 Tomcat 启动和关闭的信息，如果启动 Tomcat 时有错误，那么异常也会记录在日志文件中。
+- temp：存放 Tomcat 服务器运行过程中的临时文件、垃圾文件，这个目录下的东西可以在停止 Tomcat 后删除！
+- webapps：存放 web 项目的目录，其中每个文件夹都是一个项目。所有的项目都要复制到这个目录下，才可以给客户端浏览器使用。如果这个目录下已经存在了目录，那么都是 tomcat 自带的项目。
+    - 其中 ROOT 是一个特殊的项目，在地址栏中访问：http://127.0.0.1:8080，没有给出项目目录时，对应的就是 ROOT 项目。
+    - 例如 examples 文件夹，就是项目名。访问 `http://localhost:8080/examples` 可以进入示例项目。
+- work：Tomcat 的工作目录，运行时生成的文件，最终运行的文件都在这里。通过 webapps 中的项目生成的！可以把这个目录下的内容删除，再次运行时会生再次生成 work 目录。当客户端用户访问一个 JSP 文件时，Tomcat 会通过 JSP 生成 Java 文件(servlet)，然后再编译 Java 文件生成 class 文件，生成的 java 和 class 文件都会存放到这个目录下。
 - LICENSE：许可证。
 - NOTICE：说明文件。
 

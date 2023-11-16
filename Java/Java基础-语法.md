@@ -2116,7 +2116,7 @@ X是显示的文本字符串，y是表示消息对话框标题的字符串。第
 JOptionPane.showInputDialog("xxx")
 ```
 
-## 13. Java 语法综合扩展知识
+## 13. Java 综合扩展知识
 
 ### 13.1. null == object 与 object == null
 
@@ -2127,3 +2127,7 @@ JOptionPane.showInputDialog("xxx")
 当然了，在 java 里面，`if(name=null)`是会出现编译错误的，不用担心这个错误了。但是，良好的编程习惯，还是建议写成 `null==objcet`。
 
 因为，`object!=null`，这种形式，会导致判断之前先去读取 object 的信息，然后再判断是否 null。而 `null!=object` 这种形式，不会导致读取 object 信息，从而提高判断速度。一般来说不用考虑非写成后者，但对于性能要求高的系统来说就要考虑用后者了。
+
+## 14. 参考资料
+
+- [developer.microsoft.com/java](https://developer.microsoft.com/en-us/java)，微软推出了一个专门针对 Java 所有相关内容的新网站，该网站提供了微软 Java 云开发团队的最新内容以及技术文档、工具、资源、教程、视频和代码示例。

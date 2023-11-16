@@ -579,7 +579,6 @@ public class User implements Serializable {
 
 ### 6.1. 作用与用法
 
-
 `@ControllerAdvice`，是 Spring 3.2 版本提供的新注解，用于给控制器提供一个增强的通知。以保证可以在多个控制器之间实现增强共享。
 
 **使用`@ControllerAdvice`，不用任何的配置，只要把这个类放在项目中配置了Spring包扫描的位置（`<context:component-scan>`或`@ComponentScan`），就可以实现全局异常的回调。值得注意：增强通知功能只对标识`@Controller`注解的控制类生效**。

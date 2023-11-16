@@ -124,7 +124,7 @@ Spring Cloud各个组件相互配合，合作支持了一套完整的微服务�
 
 ## 5. 微服务案例（不使用SpringCloud）
 
-> **此案例代码地址：`spring-cloud-note\spring-cloud-greenwich-sample\01-microservice-no-springcloud\`**
+> **此案例代码地址：`spring-cloud-note\microservice-no-springcloud\`**
 
 微服务架构的分布式系统，微服务之间通过网络通信。通过服务提供者与服务消费者来描述微服务间的调用关系
 
@@ -137,7 +137,7 @@ Spring Cloud各个组件相互配合，合作支持了一套完整的微服务�
 
 ### 5.1. 准备数据库表
 
-创建`springcloud_sample_db`数据库，案例中所涉及的表完整建表语句在项目资料`spring-cloud-note\spring-cloud-greenwich-sample\document\sql`中
+创建`springcloud_sample_db`数据库，案例中所涉及的表完整建表语句在项目资料`spring-cloud-note\document\sql`中
 
 用户表：
 
@@ -186,7 +186,7 @@ PRIMARY KEY ( `id` )
 
 ### 5.2. 搭建环境 - 聚合父工程
 
-创建聚合父工程`01-microservice-no-springcloud`，修改pom.xml文件引入相关依赖
+创建聚合父工程`microservice-no-springcloud`，修改pom.xml文件引入相关依赖
 
 ```xml
 <modelVersion>4.0.0</modelVersion>

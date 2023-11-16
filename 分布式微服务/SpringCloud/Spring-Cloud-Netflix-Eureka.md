@@ -428,7 +428,7 @@ eureka:
 
 ### 6.3. 服务节点剔除问题
 
-默认情况下，由于Eureka Server剔除失效服务间隔时间为90s且存在自我保护的机制。所以不能有效而迅速的剔除失效节点，开发或测试时希望可以马上剔除不用的服务。解决方案如下：
+默认情况下，由于 Eureka Server 剔除失效服务间隔时间为 90s 且存在自我保护的机制。所以不能有效而迅速的剔除失效节点，开发或测试时希望可以马上剔除不用的服务。解决方案如下：
 
 - Eureka Server：配置关闭自我保护，设置剔除无效节点的时间间隔
 
@@ -559,7 +559,7 @@ eureka:
 
 ## 7. Eureka源码解析
 
-### 7.1. SpringBoot 中的自动装载原理
+### 7.1. SpringBoot 中的自动装载原理(回顾)
 
 #### 7.1.1. ImportSelector 接口
 
@@ -676,7 +676,7 @@ public class ImportSelectorTest {
 
 分析源码可以看到，`ImportSelector`接口的返回值会递归进行解析，把解析到的类全名按照`@Configuration`进行处理
 
-#### 7.1.4. springBoot自动装载的实现
+#### 7.1.4. Spring Boot 自动装载的实现
 
 SpringBoot开箱即用的特点（自动装载机制），是基于`ImportSelector`实现。
 
@@ -807,7 +807,7 @@ public final class SpringFactoriesLoader {
 }
 ```
 
-### 7.2. Eureka服务注册核心源码解析
+### 7.2. Eureka 服务注册核心源码解析
 
 #### 7.2.1. @EnableEurekaServer 注解的作用
 

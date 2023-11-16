@@ -113,7 +113,7 @@ public class MybatisTest01 {
 	resultType属性：表示单条记录映射成的java对象，就算返回是集合，但集合中存放还是自定义类型
 
 	${}：表示拼接sql串，将接收到参数的内容不加任何修饰拼接在sql中
-		使用${}拼接sql，会引起sql注入问题【不安全，不建议使用】
+		使用${}拼接sql，会引起 sql 注入问题【不安全，不建议使用】
 	${value}：接收输入参数的内容，如果传入类型是简单类型，${}中只能使用value
  -->
 <select id="findUserByName" parameterType="java.lang.String" resultType="com.moon.entity.User">
@@ -1232,7 +1232,7 @@ public void queryUsersAndOrdersTest() {
 
 ### 13.4. 应用案例 - 模糊查询like语句
 
-1. 使用`${}`拼接，可能引起SQL注入，不推荐
+1. 使用`${}`拼接，可能引起 SQL 注入，不推荐
 
 ```sql
 select * from user where username like '%${username}%'

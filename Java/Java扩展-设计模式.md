@@ -25,8 +25,8 @@
 设计模式按照其功能和使用场景可以分为三大类：**创建型模式（Creational Pattern）**、**结构型模式（Structural Pattern）**和**行为型模式（Behavioral Pattern）**
 
 - **创建型模式**：提供了多种优雅创建对象的方法
-  - [ ] 工厂模式（Factory Pattern）
-  - [ ] 抽象工厂模式（A bstract Factory Pattern）
+  - [x] 工厂模式（Factory Pattern）
+  - [ ] 抽象工厂模式（Abstract Factory Pattern）
   - [x] 单例模式（Singleton Pattern）
   - [ ] 建造者模式（Builder Pattern）
   - [ ] 原型模式（Prototype Pattern）
@@ -104,7 +104,7 @@ public class EagerSingleton {
 2. 调用构造器，初始化实例
 3. 返回地址给引用
 
-因为创建对象是一个非原子操作，编译器可能会重排序⌈构造函数可能在整个对象初始化完成前执行完毕，即赋值操作（只是在内存中开辟一片存储区域后直接返回内存的引用）在初始化对象前完成⌋。而线程C在线程A赋值完时判断instance就不为null了，此时C拿到的将是一个没有初始化完成的半成品。这样是很危险的。因为极有可能线程C会继续拿着个没有初始化的对象中的数据进行操作，此时容易触发 NPE
+因为创建对象是一个非原子操作，编译器可能会重排序⌈构造函数可能在整个对象初始化完成前执行完毕，即赋值操作（只是在内存中开辟一片存储区域后直接返回内存的引用）在初始化对象前完成⌋。而线程C在线程A赋值完时判断 instance 就不为 null 了，此时线程C拿到的将是一个没有初始化完成的半成品。这样是很危险的。因为极有可能线程C会继续拿着个没有初始化的对象中的数据进行操作，此时容易触发 NPE。
 
 另外还由于可见性问题，线程A在自己的工作线程内创建了实例，但此时还未同步到主存中；此时线程C在主存中判断 instance 还是 null，那么线程C又将在自己的工作线程中创建一个实例，这样就创建了多个实例。
 
@@ -562,9 +562,682 @@ public static void main(String[] args) {
 
 <font color=red>**建造者（Builder）模式由产品、抽象建造者、具体建造者、指挥者等 4 个要素构成**</font>
 
-# 策略模式（Strategy Pattern）(整理中！)
+# 工厂模式（Factory Pattern）
+
+## 1. 定义
+
+在 Java 中，万物皆对象，这些对象都需要创建，如果创建的时候直接 new 该对象，就会对该对象耦合严重，假如要更换对象，所有 new 对象的地方都需要修改一遍，这显然违背了软件设计的**开闭原则**。如果使用工厂来生产对象，只需要和工厂打交道即可，彻底和对象解耦，如果要更换对象，直接在工厂里更换该对象即可，达到了与对象解耦的目的；所以工厂模式最大的优点就是：**解耦**。
+
+> 开闭原则：**对扩展开放，对修改关闭**。在程序需要进行拓展的时候，不能去修改原有的代码，实现一个热插拔的效果。简言之，是为了使程序的扩展性好，易于维护和升级。
+
+**三种工厂模式**：
+
+- 简单工厂模式
+- 工厂方法模式
+- 抽象工厂模式
+
+### 1.1. 案例需求概述
+
+需求：设计一个咖啡店点餐系统。设计一个咖啡类（Coffee），并定义其两个子类（美式咖啡【AmericanCoffee】和拿铁咖啡【LatteCoffee】）；再设计一个咖啡店类（CoffeeStore），咖啡店具有点咖啡的功能。
+
+具体类的设计如下：
+
+![](images/402620418249396.jpg)
+
+> 类图的元素说明：
+>
+> 1. 类图中的符号：
+>     - `+`：表示 public 权限方法
+>     - `-`：表示 private 权限方法
+>     - `#`：表示 protected 权限方法
+> 2. 泛化关系(继承)用带空心三角箭头的实线来表示
+> 3. 依赖关系使用带箭头的虚线来表示
+
+### 1.2. 无设计模式实现
+
+- 定义接口：
+
+```java
+public interface Coffee {
+    /**
+     * 获取名字
+     */
+    String getName();
+
+    /**
+     * 加牛奶
+     */
+    void addMilk();
+
+    /**
+     * 加糖
+     */
+    void addSuqar();
+}
 
 
+public class LatteCoffee implements Coffee {
+    /**
+     * 获取名字
+     */
+    @Override
+    public String getName() {
+        return "latteCoffee";
+    }
+
+    /**
+     * 加牛奶
+     */
+    @Override
+    public void addMilk() {
+        System.out.println("LatteCoffee...addMilk...");
+    }
+
+    /**
+     * 加糖
+     */
+    @Override
+    public void addSuqar() {
+        System.out.println("LatteCoffee...addSuqar...");
+    }
+}
+```
+
+- 定义实现类
+
+```java
+public class AmericanCoffee implements Coffee {
+    /**
+     * 获取名字
+     */
+    @Override
+    public String getName() {
+        return "americanCoffee";
+    }
+
+    /**
+     * 加牛奶
+     */
+    @Override
+    public void addMilk() {
+        System.out.println("AmericanCoffee...addMilk...");
+    }
+
+    /**
+     * 加糖
+     */
+    @Override
+    public void addSuqar() {
+        System.out.println("AmericanCoffee...addSuqar...");
+    }
+}
+```
+
+- 无使用设计模式实现获取不同实现类
+
+```java
+public class CoffeeStore {
+
+    public static void main(String[] args) {
+        Coffee coffee = orderCoffee("latte");
+        System.out.println(coffee.getName());
+    }
+
+
+    public static Coffee orderCoffee(String type) {
+        Coffee coffee = null;
+        if ("american".equals(type)) {
+            coffee = new AmericanCoffee();
+        } else if ("latte".equals(type)) {
+            coffee = new LatteCoffee();
+        }
+
+        // 对生产的对象做其他处理
+        coffee.addMilk();
+        coffee.addSuqar();
+        return coffee;
+    }
+}
+```
+
+## 2. 简单工厂模式
+
+简单工厂不是一种设计模式，反而比较像是一种编程习惯。
+
+### 2.1. 模式结构
+
+简单工厂包含如下角色：
+
+- 抽象产品：定义了产品的规范，描述了产品的主要特性和功能。
+- 具体产品：实现或者继承抽象产品的子类
+- 具体工厂：提供了创建产品的方法，调用者通过该方法来获取产品。
+
+### 2.2. 具体实现
+
+使用简单工厂模式对上面案例进行改进，类图如下：
+
+![](images/46424318237263.png)
+
+- 创建静态工厂类
+
+```java
+public class SimpleCoffeeFactory {
+
+    public static Coffee createCoffee(String type) {
+        Coffee coffee = null;
+        if ("american".equals(type)) {
+            coffee = new AmericanCoffee();
+        } else if ("latte".equals(type)) {
+            coffee = new LatteCoffee();
+        }
+        return coffee;
+    }
+}
+```
+
+> Tips: 在开发中，经常会将工厂类中的创建对象的功能定义为静态的，这就是静态工厂模式，它也不属于 23 种设计模式。
+
+- 改进使用简单静态工厂模式
+
+```java
+public class CoffeeStore {
+
+    public static void main(String[] args) {
+        // 使用简单静态工厂模式
+        Coffee coffee1 = simpleOrderCoffee("american");
+        System.out.println(coffee1.getName());
+    }
+
+    public static Coffee simpleOrderCoffee(String type) {
+        // 通过工厂获得对象，不需要知道对象实现的细节
+        Coffee coffee = SimpleCoffeeFactory.createCoffee(type);
+
+        if (Objects.nonNull(coffee)) {
+            coffee.addMilk();
+            coffee.addSuqar();
+        }
+        return coffee;
+    }
+}
+```
+
+总结：工厂（factory）处理创建对象的细节，一旦有了 SimpleCoffeeFactory，CoffeeStore 类中的 simpleOrderCoffee() 就变成此对象的客户，后期如果需要 Coffee 对象直接从工厂中获取即可。这样也就解除了和 Coffee 实现类的耦合，同时又产生了新的耦合，CoffeeStore 对象和 SimpleCoffeeFactory 工厂对象的耦合，工厂对象和商品对象的耦合。
+
+后期如果再加新品种的咖啡，势必要需求修改 SimpleCoffeeFactory 的代码，违反了开闭原则。工厂类的客户端可能有很多，比如创建美团外卖等，这样只需要修改工厂类的代码，省去其他的修改操作。
+
+### 2.3. 优缺点
+
+- **优点**：封装了创建对象的过程，可以通过参数直接获取对象。把对象的创建和业务逻辑层分开，这样以后就避免了修改客户代码，如果要实现新产品直接修改工厂类，而不需要在原代码中修改，这样就降低了客户代码修改的可能性，更加容易扩展。
+- **缺点**：增加新产品时还是需要修改工厂类的代码，违背了“开闭原则”。
+
+## 3. 工厂方法模式
+
+针对上例中的缺点，使用工厂方法模式就可以完美的解决，完全遵循开闭原则。
+
+### 3.1. 概述
+
+工厂方法模式，需要定义一个用于创建对象的接口，让子类决定实例化哪个产品类对象。工厂方法使一个产品类的实例化延迟到其工厂的子类。
+
+### 3.2. 模式结构
+
+工厂方法模式的主要角色：
+
+- 抽象工厂（Abstract Factory）：提供了创建产品的接口，调用者通过它访问具体工厂的工厂方法来创建产品。
+- 具体工厂（ConcreteFactory）：主要是实现抽象工厂中的抽象方法，完成具体产品的创建。
+- 抽象产品（Product）：定义了产品的规范，描述了产品的主要特性和功能。
+- 具体产品（ConcreteProduct）：实现了抽象产品角色所定义的接口，由具体工厂来创建，它同具体工厂之间一一对应。
+
+### 3.3. 具体实现
+
+使用工厂方法模式对上例进行改进，类图如下：
+
+![](images/113274319257429.png)
+
+- 抽象工厂
+
+```java
+public interface CoffeeFactory {
+    /**
+     * 创建咖啡
+     */
+    Coffee createCoffee();
+}
+```
+
+- 定义具体的工厂实现
+
+```java
+public class AmericanCoffeeFactory implements CoffeeFactory {
+    /**
+     * 创建美式咖啡
+     */
+    @Override
+    public Coffee createCoffee() {
+        return new AmericanCoffee();
+    }
+}
+
+public class LatteCoffeeFactory implements CoffeeFactory {
+    /**
+     * 创建拿铁咖啡
+     */
+    @Override
+    public Coffee createCoffee() {
+        return new LatteCoffee();
+    }
+}
+```
+
+- 改造通过不同的工厂生成相应的对象
+
+```java
+public class CoffeeStore {
+
+    public static void main(String[] args) {
+        // 使用工厂方法模式
+        CoffeeStore coffeeStore = new CoffeeStore(new LatteCoffeeFactory());
+
+        Coffee coffee2 = coffeeStore.methodOrderCoffee();
+        System.out.println(coffee2.getName());
+    }
+
+
+    private CoffeeFactory coffeeFactory;
+
+    public CoffeeStore(CoffeeFactory coffeeFactory){
+        this.coffeeFactory = coffeeFactory;
+    }
+
+    public Coffee methodOrderCoffee() {
+        // 可以根据不同的工厂，创建不同的产品
+        Coffee coffee = coffeeFactory.createCoffee();
+
+        if (Objects.nonNull(coffee)) {
+            coffee.addMilk();
+            coffee.addSuqar();
+        }
+        return coffee;
+    }
+}
+```
+
+总结：从以上编写的代码可以看到，工厂方法模式是简单工厂模式的进一步抽象。由于使用了多态性，要增加产品类时也要相应地增加工厂类，不需要修改工厂类的代码。工厂方法模式保持了简单工厂模式的优点，而且解决了简单工厂模式的缺点。
+
+### 3.4. 优缺点
+
+**优点：**
+
+- 用户只需要知道具体工厂的名称就可得到所要的产品，无须知道产品的具体创建过程；
+- 在系统增加新的产品时只需要添加具体产品类和对应的具体工厂类，无须对原工厂进行任何修改，满足开闭原则；
+
+**缺点：**
+
+- 每增加一个产品就要增加一个具体产品类和一个对应的具体工厂类，这增加了系统的复杂度。
+
+# 抽象工厂模式（Abstract Factory Pattern）
+
+这些工厂只生产同种类产品，同种类产品称为同等级产品，也就是说：工厂方法模式只考虑生产同等级的产品，但是在现实生活中许多工厂是综合型的工厂，能生产多等级（种类） 的产品，如电器厂既生产电视机又生产洗衣机或空调，大学既有软件专业又有生物专业等。
+
+抽象工厂模式将考虑多等级产品的生产，将同一个具体工厂所生产的位于不同等级的一组产品称为一个产品族，下图所示
+
+- 产品族：一个品牌下面的所有产品；例如华为下面的电脑、手机称为华为的产品族。
+- 产品等级：多个品牌下面的同种产品；例如华为和小米都有手机电脑为一个产品等级。
+
+![](images/534675007230971.png)
+
+## 1. 概念
+
+抽象工厂模式是工厂方法模式的升级版本，工厂方法模式只生产一个等级的产品，而抽象工厂模式可生产多个等级的产品。该模式是一种为访问类提供一个创建一组相关或相互依赖对象的接口，且访问类无须指定所要产品的具体类就能得到同族的不同等级的产品的模式结构。
+
+**一个超级工厂创建其他工厂，该超级工厂又称为其他工厂的工厂。**
+
+## 2. 模式结构
+
+抽象工厂模式的主要角色如下：
+
+- 抽象工厂（Abstract Factory）：提供了创建产品的接口，它包含多个创建产品的方法，可以创建多个不同等级的产品。
+- 具体工厂（Concrete Factory）：主要是实现抽象工厂中的多个抽象方法，完成具体产品的创建。
+- 抽象产品（Product）：定义了产品的规范，描述了产品的主要特性和功能，抽象工厂模式有多个抽象产品。
+- 具体产品（ConcreteProduct）：实现了抽象产品角色所定义的接口，由具体工厂来创建，它 同具体工厂之间是多对一的关系。
+
+## 3. 具体实现（暂未整理代码）
+
+现咖啡店业务发生改变，不仅要生产**咖啡**还要生产**甜点**
+
+- 同一个产品等级（产品分类）
+    - 咖啡：拿铁咖啡、美式咖啡 
+    - 甜点：提拉米苏、抹茶慕斯
+- 同一个风味，就是同一个产品族（相当于同一个品牌）
+    - 美式风味：美式咖啡、抹茶慕斯
+    - 意大利风味：拿铁咖啡、提拉米苏
+
+如果按照工厂方法模式，需要定义提拉米苏类、抹茶慕斯类、提拉米苏工厂、抹茶慕斯工厂、甜点工厂类，很容易发生类爆炸情况。所以这个案例可以使用抽象工厂模式实现。类图如下：
+
+![](images/77281008249397.png)
+
+> Tips: 实现关系使用带空心三角箭头的虚线来表示
+
+整体调用思路：
+
+![](images/404191008237264.png)
+
+## 4. 优缺点
+
+- **优点**：当一个产品族中的多个对象被设计成一起工作时，它能保证客户端始终只使用同一个产品族中的对象。
+- **缺点**：当产品族中需要增加一个新的产品时，所有的工厂类都需要进行修改。
+
+## 5. 使用场景
+
+- 当需要创建的对象是一系列相互关联或相互依赖的产品族时，如电器工厂中的电视机、洗衣机、空调等。
+- 系统中有多个产品族，但每次只使用其中的某一族产品。如有人只喜欢穿某一个品牌的衣服和鞋。
+- 系统中提供了产品的类库，且所有产品的接口相同，客户端不依赖产品实例的创建细节和内部结构。
+
+如：输入法换皮肤，一整套一起换。生成不同操作系统的程序。
+
+# 策略模式（Strategy Pattern）
+
+## 1. 定义
+
+策略模式定义了一系列算法，并将每个算法封装起来，使它们可以相互替换，且算法的变化不会影响使用算法的客户。策略模式属于对象行为模式，它通过对算法进行封装，把使用算法的责任和算法的实现分割开来，并委派给不同的对象对这些算法进行管理。
+
+## 2. 模式结构
+
+策略模式的主要角色如下：
+
+- 抽象策略类（Strategy）：这是一个抽象角色，通常由一个接口或抽象类实现。此角色给出所有的具体策略类所需的接口。
+- 具体策略类（Concrete Strategy）：实现了抽象策略定义的接口，提供具体的算法实现或行为。
+- 环境类（Context）：持有一个策略类的引用，最终给客户端调用。
+
+## 3. 基础实现
+
+### 3.1. 需求说明
+
+案例（促销活动）需求：一家百货公司在定年度的促销活动。针对不同的节日（春节、中秋节、圣诞节）推出不同的促销活动，由促销员将促销活动展示给客户。类图如下：
+
+![](images/62783308257430.png)
+
+> Tips: 聚合关系可以用带空心菱形的实线来表示
+
+### 3.2. 代码实现
+
+- 定义百货公司所有促销活动的共同接口
+
+```java
+public interface Strategy {
+    void show();
+}
+```
+
+- 定义具体策略角色（Concrete Strategy）：每个节日具体的促销活动
+
+```java
+public class StrategyA implements Strategy {
+    // 为春节准备的促销活动A
+    @Override
+    public void show() {
+        System.out.println("买一送一");
+    }
+}
+
+public class StrategyB implements Strategy {
+    // 为中秋准备的促销活动B
+    @Override
+    public void show() {
+        System.out.println("满200元减50元");
+    }
+}
+
+public class StrategyC implements Strategy {
+    // 为圣诞准备的促销活动C
+    @Override
+    public void show() {
+        System.out.println("满1000元加一元换购任意200元以下商品");
+    }
+}
+```
+
+- 定义环境角色（Context）：用于连接上下文。这里可以理解为销售员，即把促销活动推销给客户。
+
+```java
+public class SalesMan {
+    // 持有抽象策略角色的引用
+    private Strategy strategy;
+
+    public SalesMan(Strategy strategy) {
+        this.strategy = strategy;
+    }
+
+    // 向客户展示促销活动
+    public void salesManShow() {
+        strategy.show();
+    }
+
+    // 测试
+    public static void main(String[] args) {
+        SalesMan salesMan = new SalesMan(new StrategyB());
+        salesMan.salesManShow();
+    }
+}
+```
+
+## 4. 进阶：工厂方法设计模式+策略模式
+
+### 4.1. 概述
+
+一般网站都会提供有多种方式可以进行登录。如果使用传统方式实现该功能，一般会存在以下问题：
+
+- 业务层代码大量使用到了 if...else，在后期阅读代码的时候会非常不友好，大量使用 if...else 性能也不高
+- 如果业务发生变更，比如现在新增了QQ登录方式，这个时候需要修改业务层代码，违反了开闭原则
+
+解决方案：使用**工厂方法设计模式+策略模式**。
+
+一句话总结：**只要代码中有冗长的 if-else 或 switch 分支判断都可以采用策略模式优化**。
+
+### 4.2. 工厂+策略模式实现
+
+#### 4.2.1. 整体思路
+
+不在 service 中写业务分支逻辑，而去调用工厂，然后通过 service 传递不同的参数来获取不同的登录策略（登录方式）。流程图如下：
+
+![](images/251851111250099.png)
+
+#### 4.2.2. 具体实现
+
+- 基础请求/响应
+
+```java
+// 请求参数：LoginReq
+@Data
+public class LoginReq {
+    private String name;
+    private String password;
+    private String phone;
+    private String validateCode;//手机验证码
+    private String wxCode;//用于微信登录
+    /**
+     * account : 用户名密码登录
+     * sms : 手机验证码登录
+     * we_chat : 微信登录
+     */
+    private String type;
+}
+
+// 响应参数：LoginResp
+@Data
+public class LoginResp{  
+    private Integer userId;
+    private String userName;
+    private String roleCode;
+    private String token; //jwt令牌
+    private boolean success;
+}
+```
+
+- 抽象策略类：UserGranter
+
+```java
+public class UserGranter {
+    /**
+     * 获取数据
+     *
+     * @param loginReq 传入的参数
+     *                 0:账号密码
+     *                 1:短信验证
+     *                 2:微信授权
+     * @return map值
+     */
+    LoginResp login(LoginReq loginReq);
+}
+```
+
+- 提供具体的策略：AccountGranter、SmsGranter、WeChatGranter
+
+```java
+@Component
+public class AccountGranter implements UserGranter {
+    @Override
+    public LoginResp login(LoginReq loginReq) {
+        System.out.println("策略:登录方式为账号登录");
+        // 执行业务操作
+        return new LoginResp();
+    }
+}
+
+@Component
+public class SmsGranter implements UserGranter {
+    @Override
+    public LoginResp login(LoginReq loginReq) {
+        System.out.println("策略:登录方式为短信登录");
+        // 执行业务操作
+        return new LoginResp();
+    }
+}
+
+@Component
+public class WeChatGranter implements UserGranter{
+    @Override
+    public LoginResp login(LoginReq loginReq)  {
+        System.out.println("策略:登录方式为微信登录");
+        // 执行业务操作
+        return new LoginResp();
+    }
+}
+```
+
+- 在 application.yml 文件中新增自定义配置，不同类型
+
+```yml
+login:
+  types:
+    account: accountGranter
+    sms: smsGranter
+    we_chat: weChatGranter
+```
+
+- 新增读取数据配置类
+
+```java
+@Getter
+@Setter
+@Configuration
+@ConfigurationProperties(prefix = "login")
+public class LoginTypeConfig {
+    private Map<String, String> types;
+}
+```
+
+- 工厂类 UserLoginFactory，用于操作策略的上下文的环境类，主要初始化时将策略汇总管理，并对外提供获取具体策略的方法。
+
+```java
+@Component
+public class UserLoginFactory implements ApplicationContextAware {
+
+    private static final Map<String, UserGranter> granterPool = new ConcurrentHashMap<>();
+
+    @Autowired
+    private LoginTypeConfig loginTypeConfig;
+
+    /**
+     * 从配置文件中读取策略信息存储到map中
+     * { account:accountGranter, sms:smsGranter, we_chat:weChatGranter }
+     *
+     * @param applicationContext
+     * @throws BeansException
+     */
+    @Override
+    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+        loginTypeConfig.getTypes().forEach((k, v) -> {
+            granterPool.put(k, (UserGranter) applicationContext.getBean(v));
+        });
+    }
+
+    /**
+     * 对外提供获取具体策略
+     *
+     * @param grantType 用户的登录方式，需要跟配置文件中匹配
+     * @return 具体策略
+     */
+    public UserGranter getGranter(String grantType) {
+        return granterPool.get(grantType);
+    }
+}
+```
+
+- 编写业务类，通过工厂获取不同的策略
+
+```java
+@Service
+public class UserService {
+
+    @Autowired
+    private UserLoginFactory factory;
+
+    public LoginResp login(LoginReq loginReq) {
+        UserGranter granter = factory.getGranter(loginReq.getType());
+        if (granter == null) {
+            LoginResp loginResp = new LoginResp();
+            loginResp.setSuccess(false);
+            return loginResp;
+        }
+        LoginResp resp = granter.login(loginReq);
+        resp.setSuccess(true);
+        return resp;
+    }
+}
+```
+
+- 登陆控制层
+
+```java
+@RestController
+@RequestMapping("/api/user")
+@Slf4j
+public class LoginController {
+
+    @Autowired
+    private UserService userService;
+
+    @PostMapping("/login")
+    public LoginResp login(@RequestBody LoginReq loginReq) throws InterruptedException {
+        if (loginReq.getType().equals("abc")) {
+            log.error("没有这种登录方式:{}", loginReq.getType());
+        }
+        if (loginReq.getType().equals("123")) {
+            throw new RuntimeException("错误的登录方式");
+        }
+
+        return userService.login(loginReq);
+    }
+}
+```
+
+#### 4.2.3. 测试
+
+使用 postman 请求测试
+
+![](images/409771615249397.png)
+
+使用了工厂+策略设计模式之后，业务层的代码不需要使用大量的 if...else，如果后期有新的需求改动，比如加入了QQ登录，只需要添加对应的策略就可以，无需再改动业务层代码。
 
 # 装饰器模式(整理中！)
 
@@ -582,11 +1255,15 @@ public static void main(String[] args) {
 
 # 责任链模式（Chain of Responsibility）
 
-## 1. 定义与特点
+## 1. 定义
 
 责任链（Chain of Responsibility）模式（也叫职责链模式）的定义：为了避免请求发送者与多个请求处理者耦合在一起，于是将所有请求的处理者通过前一对象记住其下一个对象的引用而连成一条链；当有请求发生时，可将请求沿着这条链传递，直到有对象处理它为止。
 
 责任链模式的本质是解耦请求与处理，让请求在处理链中能进行传递与被处理。责任链模式的独到之处是将其节点处理者组合成了链式结构，并允许节点自身决定是否进行请求处理或转发，相当于让请求流动起来。
+
+责任链模式的应用比较常见的是，springmvc 中的拦截器，web 开发中的 filter 过滤器等。
+
+## 2. 优缺点
 
 责任链模式是一种对象行为型模式，其主要优点如下：
 
@@ -600,11 +1277,11 @@ public static void main(String[] args) {
 
 1. 不能保证每个请求一定被处理。由于一个请求没有明确的接收者，所以不能保证它一定会被处理，该请求可能一直传到链的末端都得不到处理。
 2. 对比较长的职责链，请求的处理可能涉及多个处理对象，系统性能将受到一定影响。
-3. 职责链建立的合理性要靠客户端来保证，增加了客户端的复杂性，可能会由于职责链的错误设置而导致系统出错，如可能会造成循环调用。
+3. 职责链建立的合理性要靠客户端来保证，增加了客户端的复杂性，可能会由于职责链的错误设置而导致系统出错，如可能会造成循环调用（死循环）。
 
-## 2. 模式结构
+## 3. 模式结构
 
-### 2.1. 主要角色
+### 3.1. 主要角色
 
 职责链模式主要包含以下角色：
 
@@ -612,13 +1289,13 @@ public static void main(String[] args) {
 - 具体处理者（Concrete Handler）角色：实现抽象处理者的处理方法，判断能否处理本次请求，如果可以处理请求则处理，否则将该请求转给它的后继者。
 - 客户类（Client）角色：创建处理链，并向链头的具体处理者对象提交请求，它不关心处理细节和请求的传递过程。
 
-### 2.2. 结构图
+### 3.2. 结构图
 
 ![](images/1364513220566.jpg)
 
 ![](images/492494513238992.jpg)
 
-## 3. 基础实现
+## 4. 基础实现
 
 抽象处理者角色
 
@@ -693,6 +1370,479 @@ public void chainOfResponsibilityPatternTest() {
 流转至 ConcreteHandler3
 具体处理者3负责处理该请求！
 ```
+
+## 5. 进阶案例实战
+
+### 5.1. 案例需求分析
+
+案例需求：以创建商品为例，假设商品创建逻辑分为以下三步完成：①创建商品、②校验商品参数、③保存商品。
+
+第②步校验商品又分为多种情况的校验，必填字段校验、规格校验、价格校验、库存校验等等。这些检验逻辑像一个流水线，要想创建出一个商品，必须通过这些校验。
+
+综上分析，可以**使用责任链模式优化**：创建商品的每个校验步骤都可以作为一个单独的处理器，抽离为一个单独的类，便于复用。这些处理器形成一条链式调用，请求在处理器链上传递，如果校验条件不通过，则处理器不再向下传递请求，直接返回错误信息；若所有的处理器都通过检验，则执行保存商品步骤。
+
+![](images/138594115249474.png)
+
+### 5.2. 接口设计分析
+
+UML 图：
+
+![](images/179463715231048.png)
+
+`AbstractCheckHandler` 为处理器抽象类，负责抽象处理器行为。定义了处理器的抽象方法 `handle()`，其子类需要重写 `handle()` 方法以实现特殊的处理器校验逻辑。其有 3 个子类，分别是：
+
+- `NullValueCheckHandler`：空值校验处理器
+- `PriceCheckHandler`：价格校验处理
+- `StockCheckHandler`：库存校验处理器
+
+`AbstractCheckHandler` 抽象类其他属性和方法说明：
+
+- `protected ProductCheckHandlerConfig config` 是处理器的动态配置类，使用 `protected` 声明，每个子类处理器都持有该对象。该对象用于声明当前处理器、以及当前处理器的下一个处理器 `nextHandler`，另外也可以配置一些特殊属性，比如说接口降级配置、超时时间配置等。
+- `AbstractCheckHandler` 类中的 `nextHandler` 属性是当前处理器持有的下一个处理器的引用，当前处理器执行完毕时，便调用 `nextHandler` 执行下一处理器的 `handle()` 校验方法；
+- `protected Result next()` 是抽象类中定义执行下一个处理器的方法，使用 `protected` 声明，每个子类处理器都持有该对象。当子类处理器执行完毕(通过)时，调用父类的方法执行下一个处理器 `nextHandler`。
+
+另外，`HandlerClient` 类是执行处理器链路的客户端，`HandlerClient.executeChain()` 方法负责发起整个链路调用，并接收处理器链路的返回值。
+
+### 5.3. 代码实现
+
+#### 5.3.1. 产品实体类
+
+定义 ProductVO ，保存创建商品的参数对象，包含商品的基础信息。并且其作为责任链模式中多个处理器的入参，多个处理器都以 roductVO 为入参进行特定的逻辑处理。
+
+```java
+/**
+ * 商品对象
+ */
+@Data
+@Builder
+public class ProductVO {
+    /** 商品SKU，唯一 */
+    private Long skuId;
+    /** 商品名称 */
+    private String skuName;
+    /** 商品图片路径 */
+    private String Path;
+    /** 价格 */
+    private BigDecimal price;
+    /** 库存 */
+    private Integer stock;
+}
+```
+
+#### 5.3.2. 抽象类处理器：抽象行为，子类共有属性、方法
+
+创建抽象类处理器 `AbstractCheckHandler`，并使用 `@Component` 注解注册为由 Spring 管理的 Bean 对象，方便使用 Spring 来管理各个处理器实现 Bean。
+
+```java
+/**
+ * 抽象类处理器
+ */
+@Component
+public abstract class AbstractCheckHandler {
+    /**
+     * 当前处理器持有下一个处理器的引用
+     */
+    @Getter
+    @Setter
+    protected AbstractCheckHandler nextHandler;
+
+    /**
+     * 处理器配置
+     */
+    @Setter
+    @Getter
+    protected ProductCheckHandlerConfig config;
+
+    /**
+     * 处理器执行方法
+     * @param param
+     * @return
+     */
+    public abstract Result handle(ProductVO param);
+
+    /**
+     * 链路传递
+     * @param param
+     * @return
+     */
+    protected Result next(ProductVO param) {
+        // 下一个链路没有处理器了，直接返回
+        if (Objects.isNull(nextHandler)) {
+            return Result.success();
+        }
+
+        // 执行下一个处理器
+        return nextHandler.handle(param);
+    }
+}
+```
+
+抽象类的属性和方法说明如下：
+
+- `public abstract Result handle(ProductVO param)`：表示抽象的校验方法，每个处理器都应该继承 `AbstractCheckHandler` 抽象类处理器，并重写其 `handle` 方法，各个处理器从而实现特殊的校验逻辑，实际上就是多态的思想。
+- `protected ProductCheckHandlerConfig config`：表示每个处理器的动态配置类，可以通过“配置中心”动态修改该配置，实现处理器的“动态编排”和“顺序控制”。配置类中可以配置处理器的名称、下一个处理器、以及处理器是否降级等属性。
+- `protected AbstractCheckHandler nextHandler`：表示当前处理器持有下一个处理器的引用，如果当前处理器 `handle()` 校验方法执行完毕，则执行下一个处理器 `nextHandler` 的 `handle()` 校验方法执行校验逻辑。
+- `protected Result next(ProductVO param)`：此方法用于处理器链路传递，子类处理器执行完毕后，调用父类的 `next()` 方法执行在 `config` 配置的链路上的下一个处理器，如果所有处理器都执行完毕了，就返回结果了。
+
+创建 ProductCheckHandlerConfig 配置类
+
+```java
+/**
+ * 处理器配置类
+ */
+@AllArgsConstructor
+@Data
+public class ProductCheckHandlerConfig {
+    /**
+     * 处理器Bean名称
+     */
+    private String handler;
+    /**
+     * 下一个处理器
+     */
+    private ProductCheckHandlerConfig next;
+    /**
+     * 是否降级
+     */
+    private Boolean down = Boolean.FALSE;
+}
+```
+
+#### 5.3.3. 子类处理器：处理特有的校验逻辑
+
+创建3个子类处理器，各个处理器继承 `AbstractCheckHandler` 抽象类处理器，并重写其 `handle()` 处理方法以实现特有的校验逻辑。
+
+- `NullValueCheckHandler`：空值校验处理器。针对性校验创建商品中必填的参数。如果校验未通过，则返回错误码 ErrorCode，责任链在此截断(停止)，创建商品返回被校验住的错误信息。*注意代码中的降级配置！*使用 `@Component` 注册到 Spring 容器
+
+```java
+/**
+ * 空值校验处理器
+ */
+@Component
+public class NullValueCheckHandler extends AbstractCheckHandler {
+
+	@Override
+	public Result handle(ProductVO param) {
+		System.out.println("空值校验 Handler 开始...");
+
+		// 降级：如果配置了降级，则跳过此处理器，执行下一个处理器
+		if (super.getConfig().getDown()) {
+			System.out.println("空值校验 Handler 已降级，跳过空值校验 Handler...");
+			return super.next(param);
+		}
+
+		// 参数必填校验
+		if (Objects.isNull(param)) {
+			return Result.failure(ErrorCode.PARAM_NULL_ERROR);
+		}
+		// SkuId 商品主键参数必填校验
+		if (Objects.isNull(param.getSkuId())) {
+			return Result.failure(ErrorCode.PARAM_SKU_NULL_ERROR);
+		}
+		// Price 价格参数必填校验
+		if (Objects.isNull(param.getPrice())) {
+			return Result.failure(ErrorCode.PARAM_PRICE_NULL_ERROR);
+		}
+		// Stock 库存参数必填校验
+		if (Objects.isNull(param.getStock())) {
+			return Result.failure(ErrorCode.PARAM_STOCK_NULL_ERROR);
+		}
+
+		System.out.println("空值校验 Handler 通过...");
+
+		// 执行下一个处理器
+		return super.next(param);
+	}
+}
+```
+
+> Notes: `super.getConfig().getDown()` 是获取 `AbstractCheckHandler` 处理器对象中保存的配置信息，如果处理器配置了降级，则跳过该处理器，直接调用 `super.next()` 执行下一个处理器逻辑。
+
+- `PriceCheckHandler`：价格校验处理。针对创建商品的价格参数进行校验。这里只是做了简单的判断价格大于0的校验，实际业务中比较复杂，比如“价格门”这些防范措施等。
+
+```java
+/**
+ * 价格校验处理器
+ */
+@Component
+public class PriceCheckHandler extends AbstractCheckHandler {
+	@Override
+	public Result handle(ProductVO param) {
+		System.out.println("价格校验 Handler 开始...");
+
+		// 非法价格校验
+		boolean illegalPrice = param.getPrice().compareTo(BigDecimal.ZERO) <= 0;
+		if (illegalPrice) {
+			return Result.failure(ErrorCode.PARAM_PRICE_ILLEGAL_ERROR);
+		}
+		// 其他校验逻辑...
+
+		System.out.println("价格校验 Handler 通过...");
+
+		// 执行下一个处理器
+		return super.next(param);
+	}
+}
+```
+
+- `StockCheckHandler`：库存校验处理器。针对创建商品的库存参数进行校验。
+
+```java
+@Component
+public class StockCheckHandler extends AbstractCheckHandler {
+	@Override
+	public Result handle(ProductVO param) {
+		System.out.println("库存校验 Handler 开始...");
+
+		// 非法库存校验
+		boolean illegalStock = param.getStock() < 0;
+		if (illegalStock) {
+			return Result.failure(ErrorCode.PARAM_STOCK_ILLEGAL_ERROR);
+		}
+		// 其他校验逻辑..
+
+		System.out.println("库存校验 Handler 通过...");
+
+		// 执行下一个处理器
+		return super.next(param);
+	}
+}
+```
+
+#### 5.3.4. 客户端：执行处理器链路
+
+`HandlerClient` 客户端类负责发起整个处理器链路的执行，通过 `executeChain()` 方法。如果处理器链路返回错误信息，即校验未通过，则整个链路截断（停止），返回相应的错误信息。
+
+```java
+public class HandlerClient {
+
+	public static Result executeChain(AbstractCheckHandler handler, ProductVO param) {
+		//执行处理器
+		Result handlerResult = handler.handle(param);
+		if (!handlerResult.isSuccess()) {
+			System.out.println("HandlerClient 责任链执行失败返回：" + handlerResult.toString());
+			return handlerResult;
+		}
+		return Result.success();
+	}
+}
+```
+
+#### 5.3.5. 责任链模式参数校验 paramCheck 方法步骤说明
+
+创建参数校验 `paramCheck()` 方法使用责任链模式进行参数校验，方法内没有声明具体都有哪些校验，具体有哪些参数校验逻辑是通过多个处理器链传递的。如下：
+
+```java
+private Result paramCheck(ProductVO param) {
+
+	// 获取处理器配置：通常配置使用统一配置中心存储，支持动态变更
+	ProductCheckHandlerConfig handlerConfig = this.getHandlerConfigFile();
+
+	// 获取处理器
+	AbstractCheckHandler handler = this.getHandler(handlerConfig);
+
+	// 通过客户端，执行处理器链路
+	Result executeChainResult = HandlerClient.executeChain(handler, param);
+	if (!executeChainResult.isSuccess()) {
+		System.out.println("创建商品 失败...");
+		return executeChainResult;
+	}
+
+	// 处理器链路全部成功
+	return Result.success();
+}
+```
+
+##### 5.3.5.1. 步骤1：获取处理器配置
+
+通过 `getHandlerConfigFile()` 方法获取处理器配置类对象，配置类保存了链上各个处理器的上下级节点配置，支持流程编排、动态扩展。通常配置是通过Ducc(京东自研的配置中心)、Nacos(阿里开源的配置中心)等配置中心存储的，支持动态变更、实时生效。
+
+```java
+/**
+ * 获取处理器配置：通常配置使用统一配置中心存储，支持动态变更
+ */
+private ProductCheckHandlerConfig getHandlerConfigFile() {
+	// 模拟配置中心存储的配置
+	String configJson = "{\"handler\":\"nullValueCheckHandler\",\"down\":true,\"next\":{\"handler\":\"priceCheckHandler\",\"next\":{\"handler\":\"stockCheckHandler\",\"next\":null}}}";
+	// 转成Config对象
+	ProductCheckHandlerConfig handlerConfig = JSON.parseObject(configJson, ProductCheckHandlerConfig.class);
+	return handlerConfig;
+}
+```
+
+> 示例没有使用配置中心存储处理器链路的配置，而是使用 JSON 串的形式去模拟配置。
+
+ConfigJson 存储的处理器链路配置 JSON 串，使用 json.cn 等格式化如下，配置的整个调用链路规则特别清晰
+
+![](images/280124516237341.png)
+
+`getHandlerConfigFile()` 获到配置类方法，只是把在配置中心储存的配置规则，转换成配置类 `ProductCheckHandlerConfig` 对象，用于程序处理。结构如下：
+
+![](images/456605116257507.png)
+
+> Notes: 此时配置类中存储的仅仅是处理器 Spring Bean 的 name 而已，并非实际处理器对象。
+
+###### 5.3.5.1.1. 步骤2-1：配置检查
+
+首先会进行了配置的一些检查操作。如果配置错误，则获取不到对应的处理器。`handlerMap.get(config.getHandler())` 是从所有处理器映射 Map 中获取到对应的处理器 Spring Bean。
+
+> Tips: `handlerMap` 存储了所有的处理器映射，是通过 Spring 的 `@Resource` 注解注入。注入的规则是：所有继承了 `AbstractCheckHandler` 抽象类（它是 Spring 管理的 Bean）的子类（子类也是 Spring 管理的 Bean）都会注入进来。
+
+注入进来的 handlerMap 中 Key 对应 Bean 的 name，Value 是对应的 Bean 实例，也就是实际的处理器，这里指空值校验处理器、价格校验处理器、库存校验处理器。
+
+![](images/420691517250176.png)
+
+###### 5.3.5.1.2. 步骤2-2：保存处理器规则
+
+将配置规则保存到对应的处理器中 `abstractCheckHandler.setConfig(config)`，子类处理器就持有了配置的规则。
+
+###### 5.3.5.1.3. 步骤2-3：递归设置处理器链路
+
+```java
+abstractCheckHandler.setNextHandler(this.getHandler(config.getNext()));
+```
+
+以上方法是递归设置链路上的处理器，结合 ConfigJson 配置的规则来看：
+
+![](images/599961717246731.png)
+
+1. 由上而下，NullValueCheckHandler 空值校验处理器通过 `setNextHandler()` 方法法设置自己持有的下一节点的处理器，也就是价格处理器 PriceCheckHandler。
+2. 接着，PriceCheckHandler 价格处理器，同样需要经过步骤2-1配置检查、步骤2-2保存配置规则，并且最重要的是，它也需要设置下一节点的处理器 StockCheckHandler 库存校验处理器。
+3. 最后 StockCheckHandler 库存校验处理器也一样，同样需要经过步骤2-1配置检查、步骤2-2保存配置规则。值得注意的是，StockCheckHandler 的 next 规则配置了 null，这表示它下面没有任何处理器要执行了，它就是整个链路上的最后一个处理节点。
+
+通过递归调用 `getHandler()` 获取处理器方法，就将整个处理器链路对象串联起来了。如下：
+
+![](images/154142017242485.png)
+
+实际上，`getHandler()` 获取处理器对象的代码就是把在配置中心配置的规则 `ConfigJson`，转换成配置类 `ProductCheckHandlerConfig` 对象，再根据配置类对象，转换成实际的处理器对象，这个处理器对象持有整个链路的调用顺序。
+
+> Tips: 使用递归一定要注意截断递归的条件处理，否则可能造成死循环！
+
+##### 5.3.5.2. 步骤2：根据配置获取处理器
+
+上面步骤1通过 `getHandlerConfigFile()` 方法获取到处理器链路配置规则后，再调用 `getHandler()` 获取处理器。
+
+`getHandler()` 方法参数是如上 `ConfigJson` 配置的规则，即步骤1转换成的 ProductCheckHandlerConfig 对象；根据 ProductCheckHandlerConfig 配置规则转换成处理器链路对象。代码如下：
+
+```java
+/**
+ * 使用 Spring 注入:所有继承了AbstractCheckHandler抽象类的Spring Bean都会注入进来。Map的Key对应Bean的name,Value是name对应相应的Bean
+ */
+@Resource
+private Map<String, AbstractCheckHandler> handlerMap;
+
+/**
+ * 获取处理器
+ *
+ * @param config
+ * @return
+ */
+private AbstractCheckHandler getHandler(ProductCheckHandlerConfig config) {
+	// 配置检查：没有配置处理器链路，则不执行校验逻辑
+	if (Objects.isNull(config)) {
+		return null;
+	}
+	// 配置错误
+	String handler = config.getHandler();
+	if (StringUtils.isBlank(handler)) {
+		return null;
+	}
+	// 配置了不存在的处理器
+	AbstractCheckHandler abstractCheckHandler = handlerMap.get(config.getHandler());
+	if (Objects.isNull(abstractCheckHandler)) {
+		return null;
+	}
+
+	// 处理器设置配置 Config
+	abstractCheckHandler.setConfig(config);
+
+	// 递归设置链路处理器
+	abstractCheckHandler.setNextHandler(this.getHandler(config.getNext()));
+
+	return abstractCheckHandler;
+}
+```
+
+##### 5.3.5.3. 步骤3：客户端执行调用链路
+
+`getHandler()` 获取完处理器后，整个调用链路的执行顺序也就确定了。最后通过 `HandlerClient` 客户端类的 `executeChain(handler, param)` 方法执行处理器整个调用链路，并接收处理器链路的返回值。
+
+`executeChain()` 通过 `AbstractCheckHandler.handle()` 触发整个链路处理器顺序执行，如果某个处理器校验没有通过 `!handlerResult.isSuccess()`，则返回错误信息；所有处理器都校验通过，则返回正确信息 `Result.success()`。
+
+### 5.4. 测试
+
+最后创建 `createProduct()` 测试用例方法，创建商品方法抽象为2个步骤：①参数校验、②创建商品。参数校验使用责任链模式进行校验，包含：空值校验、价格校验、库存校验等等，只有链上的所有处理器均校验通过，才调用 `saveProduct()` 创建商品方法；否则返回校验错误信息。
+
+在 `createProduct()` 创建商品方法中，通过责任链模式，将校验逻辑进行解耦。`createProduct()` 创建商品方法中不需要关注都要经过哪些校验处理器，以及校验处理器的细节。
+
+```java
+@Test
+public Result createProduct(ProductVO param) {
+	// 参数校验，使用责任链模式
+	Result paramCheckResult = this.paramCheck(param);
+	if (!paramCheckResult.isSuccess()) {
+		return paramCheckResult;
+	}
+
+	// 创建商品
+	return this.saveProduct(param);
+}
+```
+
+场景1：创建商品参数中有空值（如下skuId参数为null），链路被空值处理器截断，返回错误信息
+
+```java
+ProductVO param = ProductVO.builder()
+      .skuId(null).skuName("华为手机").Path("http://...")
+      .price(new BigDecimal(1))
+      .stock(1)
+      .build();
+```
+
+测试结果
+
+![](images/333023017260365.png)
+
+场景2：创建商品价格参数异常（如下price参数），被价格处理器截断，返回错误信息
+
+```java
+ProductVO param = ProductVO.builder()
+      .skuId(1L).skuName("华为手机").Path("http://...")
+      .price(new BigDecimal(-999))
+      .stock(1)
+      .build();
+```
+
+测试结果
+
+![](images/101202020231048)
+
+场景 3：创建商品库存参数异常（如下stock参数），被库存处理器截断，返回错误信息。
+
+```java
+ProductVO param = ProductVO.builder()
+      .skuId(1L).skuName("华为手机").Path("http://...")
+      .price(new BigDecimal(1))
+      .stock(-999)
+      .build();
+```
+
+测试结果
+
+![](images/519432220249474)
+
+场景4：创建商品所有处理器校验通过，保存商品。
+
+```java
+ProductVO param = ProductVO.builder()
+      .skuId(1L).skuName("华为手机").Path("http://...")
+      .price(new BigDecimal(999))
+      .stock(1).build();
+```
+
+测试结果
+
+![](images/262662320237341)
 
 # 门面模式（整理中！）
 

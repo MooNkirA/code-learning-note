@@ -339,6 +339,73 @@ select sql_no_cache count(*) from test_table;
 select sql_cache count(*) from test_table;
 ```
 
+### 2.7. 评估表数据体量
+
+可以从**表容量、磁盘空间、实例容量**三方面评估数据体量。
+
+#### 2.7.1. 表容量
+
+表容量主要从表的记录数、平均长度、增长量、读写量、总大小量进行评估。一般对于 OLTP 的表，建议单表不要超过 2000W 行数据量，总大小 15G 以内。访问量，单表读写量在 1600/s 以内。
+
+一般查询表有多少数据时用到的经典 `count` 语句如下：
+
+```sql
+select count(*) from table;
+```
+
+但是当数据量过大的时候，以上查询就可能会超时，所以要换一种查询方式：
+
+```sql
+use 库名;
+show table status like '表名';
+-- 或者
+show table status like '表名'\G;
+```
+
+上述方法不仅可以查询表的数据，还可以输出表的详细信息，加 `\G` 参加可以格式化输出。包括表名、存储引擎、版本、行数、每行的字节数等等。
+
+#### 2.7.2. 磁盘空间
+
+**查看所有数据库容量大小**：
+
+```sql
+SELECT
+	table_schema AS '数据库',
+	table_name AS '表名',
+	table_rows AS '记录数',
+	TRUNCATE ( data_length / 1024 / 1024, 2 ) AS '数据容量(MB)',
+	TRUNCATE ( index_length / 1024 / 1024, 2 ) AS '索引容量(MB)' 
+FROM
+	information_schema.TABLES 
+ORDER BY
+	data_length DESC,
+	index_length DESC;
+```
+
+**查询单个库中所有表磁盘占用大小**：
+
+```sql
+SELECT
+	table_schema AS '数据库',
+	table_name AS '表名',
+	table_rows AS '记录数',
+	TRUNCATE ( data_length / 1024 / 1024, 2 ) AS '数据容量(MB)',
+	TRUNCATE ( index_length / 1024 / 1024, 2 ) AS '索引容量(MB)' 
+FROM
+	information_schema.TABLES 
+WHERE
+	table_schema = 'mysql' 
+ORDER BY
+	data_length DESC,
+	index_length DESC;
+```
+
+建议数据量占磁盘使用率的70%以内。同时，对于一些数据增长较快，可以考虑使用大的慢盘进行数据归档。
+
+#### 2.7.3. 实例容量
+
+MySQL 是基于线程的服务模型，因此在一些并发较高的场景下，单实例并不能充分利用服务器的 CPU 资源，吞吐量反而会卡在 MySQL 层，可以根据业务考虑相应的实例模式。
+
 ## 3. SQL 语句性能分析
 
 ### 3.1. 定位低效率执行的 SQL
@@ -1356,7 +1423,7 @@ mysql> EXPLAIN SELECT order_note, COUNT(*) AS amount FROM s1 GROUP BY order_note
 
 #### 4.15.14. select tables optimized away
 
-这个值意味着仅通过使用索引，优化器可能仅从聚合函数结果中返回一行
+这个值意味着仅通过使用索引，优化器可能仅从聚合函数结果中返回一行。
 
 #### 4.15.15. LooseScan
 
@@ -1960,11 +2027,20 @@ mysql> select * from tb_sku limit 9000000,10;
 10 rows in set (11.92 sec)
 ```
 
-#### 6.6.1. 优化思路一：子查询覆盖索引
+#### 6.6.1. 优化思路一：子查询（连接查询）覆盖索引
 
 优化此类分页查询的一个最简单的办法是：在索引上完成排序分页操作，通过创建『覆盖索引』+『子查询』的方式进行优化，最后根据主键关联回表查询所需要的其他列内容。
 
-例如：通过子查询先查询翻页中需要的 N 条数据的主键值，然后根据主键值回表查询相应的 N 条数据，在此过程中查询 N 条数据的主键 id 在索引中完成，所以效率会高一些。
+```sql
+SELECT * FROM tb_sku a WHERE id >= (SELECT id FROM tb_sku ORDER BY id LIMIT 9000000, 1) ORDER BY id LIMIT 10;
+```
+
+这种优化方式提升查询速度主要利用了索引覆盖的如下好处：
+
+- 索引文件不包含行数据的所有信息，故其大小远小于数据文件，因此可以减少大量的 IO 操作。
+- 索引覆盖只需要扫描一次索引树，不需要回表扫描行数据，所以性能比回表查询要高。
+
+同理，可以通过创建『覆盖索引』+『连接查询』的方式进行优化。例如：通过子查询先在索引上进行查询翻页中需要的 N 条数据的主键值，然后根据主键值回表查询相应的 N 条数据，在此过程中查询 N 条数据的主键 id 在索引中完成，所以效率会高一些。
 
 ```sql
 mysql> SELECT * FROM tb_sku a, ( SELECT id FROM tb_sku ORDER BY id LIMIT 9000000, 10 ) b WHERE a.id = b.id;
@@ -2005,7 +2081,19 @@ mysql> EXPLAIN SELECT * FROM s1 WHERE id > 9000 ORDER BY id LIMIT 10;
 
 采用这种写法，需要前端通过点击 More 来获得更多数据，而不是纯粹的翻页，因此，每次查询只需要使用上次查询出的数据中的 id 来获取接下来的数据即可，但这种写法需要业务配合。
 
-#### 6.6.3. 其他优化思路
+#### 6.6.3. 优化思路三：计算边界值，转换为已知位置的查询
+
+如果 id 连续不中断，就可以计算出每一页的边界值，让 MySQL 根据边界值进行范围扫描，查出数据。例如：
+
+```sql
+select * from t_order where id between 0 and 10;
+select * from t_order where id between 10000 and 10010;
+select * from t_order where id between 100000 and 100010;
+select * from t_order where id between 1000000 and 1000010;
+select * from t_order where id between 10000000 and 10000010;
+```
+
+#### 6.6.4. 其他优化思路
 
 - 使用缓存，可预测性的提前查到内容，缓存至 redis 等 K-V 数据库中，查询时直接返回即可。
 - 从需求的角度减少这种请求，不做类似的需求（直接跳转到几百万页之后的具体某一页，只允许逐页查看或者按照给定的路线走，这样可预测，可缓存）以及防止ID泄漏且连续被人恶意攻击。

@@ -11,7 +11,7 @@ JDBC 需要连接驱动，驱动是两个设备要进行通信，满足一定通
 MySQL 驱动官网下载地址：https://dev.mysql.com/downloads/connector/j/
 
 相关文件夹说明：
-		
+
 - src 文件夹是源代码
 - docs 文件夹是 API
 
@@ -403,15 +403,19 @@ void close() throws SQLException;
 
 ### 3.7. PreparedStatement 接口
 
-#### 3.7.1. 接口概述
+#### 3.7.1. SQL 注入的概念
 
-用于 SQL 语句的发送，是继承 `Statement` 的子接口，拥有父类所有的功能。可以防止SQL注入的问题，比父类更安全。然后可以使用此对象多次高效地执行该语句。
+SQL 注入是指，用户输入的内容作为了 SQL 语法的一部分，改变了原有 SQL 语句的含义。
+
+#### 3.7.2. 接口概述
+
+用于 SQL 语句的发送，是继承 `Statement` 的子接口，拥有父类所有的功能。可以防止 SQL 注入的问题，比父类更安全。然后可以使用此对象多次高效地执行该语句。
 
 在使用 `Connection` 的方法得到 `PreparedStatement` 对象时，已经定义数据库操作的语句。
 
 > 实际开发时使用 `PreparedStatement` 比较多
 
-#### 3.7.2. 常用方法
+#### 3.7.3. 常用方法
 
 ```java
 int executeUpdate() throws SQLException;
@@ -432,17 +436,13 @@ void setXxx(int index, Xxx xxx);
 
 将指定参数值 `xxx` 赋值给第 `index` 个占位符 `?` 。再将此值发送到数据库时，驱动程序将它转换成一个 SQL Xxx类型值。
 
-#### 3.7.3. SQL注入
-
-SQL 注入是指，用户输入的内容作为了 SQL 语法的一部分，改变了原有 SQL 语句的含义。
-
 #### 3.7.4. 预编译
 
 数据库在接收到 SQL 语句后，需要对词法和语义解析，优化 SQL 语句，制定执行计划等一系列处理，这需要花费一些时间。如果一条 SQL 语句需要反复执行，每次都进行语法检查和优化，显然会造成性能与时间的浪费。
 
 SQL 预编译，指的是数据库驱动在发送 SQL 语句和参数给 DBMS 之前对 SQL 语句进行编译，这样 DBMS 执行 SQL 时，就不需要重新编译，一次编译、多次运行，省去解析优化等过程。
 
-JDBC 中使用对象 `PreparedStatement` 来抽象预编译语句，使用预编译。具体做法是将 SQl 语句中的**值用占位符替代**，即**SQL 语句模板化**。预编译阶段可以优化 SQL 的执行，预编译之后的 SQL 多数情况下可以直接执行，DBMS 不需要再次编译，越复杂的SQL，编译的复杂度将越大，预编译阶段可以合并多次操作为一个操作；同时预编译语句对象可以重复利用，把一个 SQL 预编译后产生的 `PreparedStatement` 对象缓存下来，下次对于同一个SQL，可以直接使用这个缓存的对象。
+JDBC 中使用对象 `PreparedStatement` 来抽象预编译语句，使用预编译。具体做法是将 SQl 语句中的**值用占位符替代**，即**SQL 语句模板化**。预编译阶段可以优化 SQL 的执行，预编译之后的 SQL 多数情况下可以直接执行，DBMS 不需要再次编译，越复杂的 SQL，编译的复杂度将越大，预编译阶段可以合并多次操作为一个操作；同时预编译语句对象可以重复利用，把一个 SQL 预编译后产生的 `PreparedStatement` 对象缓存下来，下次对于同一个SQL，可以直接使用这个缓存的对象。
 
 **预编译的作用小结**：
 
@@ -453,8 +453,8 @@ JDBC 中使用对象 `PreparedStatement` 来抽象预编译语句，使用预编
 #### 3.7.5. Statement 和 PreparedStatement 的区别
 
 1. 安全性
-    - `PreparedStatement` 可以防止SQL注入问题，安全
-    - `Statement` 有SQL注入的隐患问题，不安全
+    - `PreparedStatement` 可以防止 SQL 注入问题，安全
+    - `Statement` 有 SQL注入 的隐患问题，不安全
 2. 预编译功能
     - `PreparedStatement` 有预编译的功能，在创建对象的时候就提供了 SQL 语句并存储在 `PreparedStatement` 对象中。在真正执行前，才把参数传递给 SQL 语句，并且可以反复执行。
     - `Statement` 没有预编译的功能，创建的时候没有 SQL 语句，执行的时候才提供 SQL 语句

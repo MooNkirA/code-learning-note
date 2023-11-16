@@ -155,7 +155,7 @@ Consul 支持健康检查，并提供了 HTTP 和 DNS 调用的API接口完成�
 - value 的值经过了 base64_encode,获取到数据后 base64_decode 才能获取到原始值。数据不能大于 512Kb
 - 不同数据中心的 kv 存储系统是独立的，使用`dc=?`参数指定。
 
-## 2. 基于consul的服务注册与发现示例
+## 2. 基于 consul 的服务注册与发现示例
 
 ### 2.1. 示例工程的准备
 
@@ -219,7 +219,7 @@ spring:
 
 ![](images/20201014155442987_9782.png)
 
-### 2.5. 基于consul的服务发现
+### 2.5. 基于 consul 的服务发现
 
 由于SpringCloud对Consul进行了封装。对于在消费者端获取服务提供者信息和Eureka是一致的。同样使用 `DiscoveryClient` 完成调用获取微服务实例信息，也可以使用 Ribbon 完成服务的调用。
 
@@ -266,7 +266,7 @@ public String createOrder(@PathVariable Long id) {
 }
 ```
 
-## 3. consul高可用集群
+## 3. consul 高可用集群
 
 ### 3.1. consul 集群架构图
 
@@ -301,7 +301,7 @@ server节点也作为WAN gossip Pool的一部分。这个Pool不同于LAN Pool�
 - `client`：用于高可用集群，是consul的代理，主要作用是和consul server进行交互。一般一个微服务会绑定一个client，相当于微服务和client部署到同一台机器上
 - `server`：用于高可用集群，所有操作都由此服务进行。官方建议一般部署3-5个server进行集群，如果过多server会因为数据的同步导致注册比较慢
 
-### 3.2. Consul的核心知识
+### 3.2. Consul 的核心知识
 
 #### 3.2.1. Gossip协议
 

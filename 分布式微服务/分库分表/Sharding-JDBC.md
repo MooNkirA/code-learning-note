@@ -180,7 +180,7 @@ replicate_wild_ignore_table=performance_schema.%
 
 #### 3.4.2. 安装 mysql 服务
 
-进入从库所在位置的 bin 目录， 以<font color=red>**管理员身份**</font>运行命令行窗口，执行以下命令将从库安装为 windows 服务，<font color=red>**注意配置文件位置**</font>：
+进入从库所在位置的 bin 目录，以<font color=red>**管理员身份**</font>运行命令行窗口，执行以下命令将从库安装为 windows 服务，<font color=red>**注意配置文件位置**</font>：
 
 ```bash
 # 初始化
@@ -649,7 +649,7 @@ spring.shardingsphere.props.sql.show=true
 
 以上配置相应梳理，如下图所示：
 
-![sharding-jdbc入门案例配置解](images/229231311220344.png)
+![](images/229231311220344.png)
 
 #### 3.5.3. 持久层接口与业务功能
 

@@ -657,19 +657,25 @@ ClassFile {
 
 #### 5.5.3. 准备
 
-准备阶段，主要工作是在方法区中为类静态变量分配内存空间，并设置类中变量的初始值。初始值指不同数据类型的默认值，这里需要注意 final 类型的变量和非 final 类型的变量在准备阶段的数据初始化过程不同。例如：
+准备阶段，主要工作是在方法区中为<u>**类静态变量分配内存空间，并设置类中变量的初始值**</u>。初始值指不同数据类型的默认值，这里需要注意 final 类型的变量和非 final 类型的变量在准备阶段的数据初始化过程不同。例如：
+
+- static 修饰的变量，分配空间在准备阶段完成（设置默认值），赋值在初始化阶段完成。如下示例的静态变量 value 在准备阶段的初始值是 0，将 value 设置为 1000 是在对象初始化阶段。因为 JVM 在编译阶段会将静态变量的初始化操作定义在构造器中。
 
 ```java
 public static int value = 1000;
 ```
 
-以上示例的静态变量 value 在准备阶段的初始值是 0，将 value 设置为 1000 是在对象初始化阶段。因为 JVM 在编译阶段会将静态变量的初始化操作定义在构造器中。
+- static 修饰的变量是 final 的基本类型，以及字符串常量，值已确定，赋值在准备阶段完成。如下示例，JVM 在编译阶段后会为 final 类型的变量 value 生成其对应的 ConstantValue 属性，虚拟机在准备阶段会根据 ConstantValue 属性将 value 赋值为 1000。
 
 ```java
 public static final int value = 1000;
 ```
 
-JVM 在编译阶段后会为 final 类型的变量 value 生成其对应的 ConstantValue 属性，虚拟机在准备阶段会根据 ConstantValue 属性将 value 赋值为 1000。
+- static 修饰的变量是 final 的引用类型，也会在初始化阶段完成赋值。
+
+```java
+public static final Object obj = new Object();
+```
 
 #### 5.5.4. 解析
 
@@ -1253,7 +1259,7 @@ WeakReference<String> weakRef = new WeakReference<String>(str);
 
 > 可用场景：Java 源码中的 `java.util.WeakHashMap` 中的 key 就是使用弱引用，相当于一旦不需要某个引用，JVM会自动处理它，开发者不需要做其它操作。
 
-- **虚引用**（幽灵引用/幻影引用）：无法通过虚引用获得对象，用 `PhantomReference` 实现虚引用。虚引用并不会决定对象的生命周期。如果一个对象仅持有虚引用，那么它就和没有任何引用一样，在任何时候都可能被垃圾回收。**虚引用的用途是跟踪对象的垃圾回收状态，在 gc 时会返回一个系统通知**。
+- **虚引用**（幽灵引用/幻影引用）：在 JDK1.2 之后，用 `PhantomReference` 类实现虚引用，通过查看这个类的源码，发现它只有一个构造函数和一个 `get()` 方法，而且它的 `get()` 方法仅仅是返回一个null，即无法通过虚引用获得对象，是最弱的一种引用关系。虚引用必须要和 `ReferenceQueue` 引用队列一起使用，NIO 的堆外内存就是靠其管理。虚引用并不会决定对象的生命周期。如果一个对象仅持有虚引用，那么它就和没有任何引用一样，在任何时候都可能被垃圾回收。**虚引用的用途是跟踪对象的垃圾回收状态，在 gc 时会返回一个系统通知**。
 
 ```java
 PhantomReference<String> prf = new PhantomReference<String>(new String("str"), newReferenceQueue<>());
@@ -1709,17 +1715,7 @@ class Person {
 5. 执行 `p.getName()` 时，JVM 根据 p 的引用找到其所指向的对象，然后根据此对象持有的引用定位到方法区中 `Person` 类的类型信息的方法表，获得 `getName()` 的字节码地址。
 6. 执行 `getName()` 方法。
 
-### 9.2. OOM 问题的排查
-
-> 线上 JVM 必须配置 `-XX:+HeapDumpOnOutOfMemoryError` 和 `-XX:HeapDumpPath=/tmp/heapdump.hprof`，当OOM发生时自动 dump 堆内存信息到指定目录
-
-排查 OOM 的方法如下：
-
-- 查看服务器运行日志日志，捕捉到内存溢出异常
-- 使用 `jstat` 命令工具查看监控 JVM 的内存和 GC 情况，评估问题大概出在什么区域
-- 使用 MAT 工具载入 dump 文件，分析大对象的占用情况
-
-### 9.3. 如何获取 Java 程序使用的内存？堆使用的百分比？
+### 9.2. 如何获取 Java 程序使用的内存？堆使用的百分比？
 
 通过 `java.lang.Runtime` 类中与内存相关方法来获取剩余的内存，总内存及最大堆内存。
 
@@ -1741,7 +1737,7 @@ public native long maxMemory();
 
 - 返回最大内存的字节数
 
-### 9.4. class 字节码文件 10 个主要组成部分
+### 9.3. class 字节码文件 10 个主要组成部分
 
 - MagicNumber
 - Version

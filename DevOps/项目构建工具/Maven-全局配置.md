@@ -1,8 +1,6 @@
-# Maven 全局配置 settings.xml
-
 > 官方参考文档：https://maven.apache.org/settings.html
 
-## 1. settings.xml 简介
+## 1. 全局配置 settings.xml 简介
 
 是用来设置 maven 参数的配置文件。settings.xml 中包含类似本地仓储位置、修改远程仓储服务器、认证信息等配置。
 

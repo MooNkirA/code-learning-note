@@ -784,6 +784,32 @@ Spring 的 Bean 属性依赖注入分成为手动装配和自动装配。上面�
 
 > Notes: 基本数据类型的属性（如原数据类型，字符串和类）无法自动装配。 
 
+### 4.7. private final 字段的自动注入
+
+对于 `private final` 修饰的字段自动注入，Spring 使用构造函数注入（Constructor Injection）方式来实现。
+
+构造函数注入的原理是：当一个 Bean 有一个或多个 `private final` 字段需要注入时，Spring 会尝试在容器中查找与这些字段类型匹配的 Bean，并将它们作为参数传递给构造函数，使用构造函数注入来实现对 `private final` 字段的赋值，实例化 Bean 对象。
+
+> Notes: 由于 `private final` 字段是不可变的，一旦注入后就无法修改。这种不可变性有助于确保字段的安全性和线程安全性。
+
+使用 `private final` 字段进行自动注入时，需要遵循以下几个步骤：
+
+1. 在类中定义一个带有 private final 修饰的字段属性，并确保该类是一个 Spring Bean。
+
+```java
+@Component
+public class MyService {
+    private final MyDependency dependency;
+
+    public MyService(MyDependency dependency) {
+        this.dependency = dependency;
+    }
+}
+```
+
+2. 在类的构造函数中接收依赖参数，并将其赋值给 `private final` 字段。
+3. Spring 会自动扫描并创建 Bean 实例，同时检测到带有 `private final` 字段的构造函数，会自动解析依赖并进行注入。
+
 ## 5. Spring Bean 的作用范围
 
 ### 5.1. 概述
@@ -1686,7 +1712,10 @@ public static BeanFactoryPostProcessor postProcessor() {
 
 ## 8. 容器扩展点
 
-Spring IoC 容器提供了一些特殊的接口，通过实现此类接口可以对功能进行扩展
+Spring IoC 容器提供了一些特殊的后置处理器接口，并给定了一些实现类，用户也可以通过实现此类接口，来实现对全局的 Bean 相关功能的扩展。接口主要分为两大类：
+
+- 针对 Bean 工厂的 `BeanFactoryPostProcessor` 接口（它还有个子接口 `BeanDefinitionRegistryPostProcessor`），用于调整 Bean 工厂的属性、影响 Bean 定义。注意：此时还没有 Bean 进行实例化。
+- 针对 Bean 的 `BeanPostProcessor` 接口，直接的作用于 Bean 实例生成过程中的修改。
 
 ### 8.1. BeanPostProcessor 接口扩展 Bean 功能
 

@@ -527,7 +527,7 @@ yum install jenkins
 ## 8. 开启服务
 
 - MySQL 手动开启--服务名称：`MySQL`
-- nexus Maven私服 手动开启--服务名称：`nexus-webapp`
+- nexus Maven 私服 手动开启--服务名称：`nexus-webapp`
 - VisualSVN Server 手动开启--服务名称：`VisualSVNServer`
 
 ## 9. maven私服配置(setting.xml)
@@ -625,6 +625,7 @@ mysql-connector-java-5.1.44
 - gson-2.2.4.jar
 
 ### 1.13. PDF文档处理java组件
+
 - iText
     - iText是著名的开放源码的站点sourceforge一个项目，是用于生成PDF文档的一个java类库。通过iText不仅可以生成PDF或rtf的文档，而且可以将XML、Html文件转化为PDF文件
 - PDFBox是Java实现的PDF文档协作类库，提供PDF文档的创建、处理以及文档内容提取功能，也包含了一些命令行实用工具。主要特性包括：
@@ -732,7 +733,6 @@ mysql-connector-java-5.1.44
 1. 复制三个文件夹(css、fonts、js)的内容到项目目录下
 2. 复制jQuery.js文件到项目中，建议使用1.9以上的版本
 
-
 ### 3.4. 页面使用JSTL
 
 ```html
@@ -790,5 +790,3 @@ mysql-connector-java-5.1.44
 <script type="text/javascript" src="../../../js/jquery.ztree.core-3.5.js"></script>
 <script type="text/javascript" src="../../../js/jquery.ztree.excheck-3.5.js"></script>
 ```
-
-

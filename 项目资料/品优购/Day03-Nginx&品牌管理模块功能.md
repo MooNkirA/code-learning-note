@@ -1,15 +1,12 @@
-# Day03 Nginx & 品牌管理模块功能
-
-- 将“资料\运营商管理后台静态资源”下的静态资源全部拷贝到pinyougou-manager-web的src/main/webapp/目录下。
-- 其中plugins文件夹中包括了angularJS 、bootstrap、JQuery等常用前端库，我们将在项目中用到。
+> 将『资料\运营商管理后台静态资源』下的静态资源全部拷贝到 pinyougou-manager-web 的 src/main/webapp/ 目录下。其中 plugins 文件夹中包括了 angularJS 、bootstrap、JQuery 等常用前端库，将在项目中用到。
 
 ## 1. 使用域名访问后台系统
 
 ### 1.1. 不使用域名存在的问题
 
-1. 开发环境和测试环境的ip不一样，每次环境变化时，都需要修改访问地址；
-2. 页面加载资源文件，有可能使用url的全路径，一旦更换环境（ip变了），资源文件则无法加载；
-3. ip地址没有记忆意义，不容易记忆，用户不通过ip访问，一般通过域名访问。
+1. 开发环境和测试环境的 ip 不一样，每次环境变化时，都需要修改访问地址；
+2. 页面加载资源文件，有可能使用 url 的全路径，一旦更换环境（ip 变了），资源文件则无法加载；
+3. ip 地址没有记忆意义，不容易记忆，用户不通过 ip 访问，一般通过域名访问。
 
 ### 1.2. 配置域名访问
 
@@ -31,32 +28,37 @@
 
 ### 2.1. Nginx 简介
 
-1. Nginx ("engine x") 是一个高性能的HTTP和反向代理服务器；
-2. 支持的操作系统众多，windows、linux、 MacOS X；
+1. Nginx ("engine x") 是一个高性能的 HTTP 和反向代理服务器；
+2. 支持的操作系统众多，windows、linux、MacOS X；
 3. 可实现负载均衡；
 4. Rewrite功能强大；
 5. 电商架构大部分都采用Nginx+Tomcat的架构。
 
-反向代理（Reverse Proxy）方式是指以代理服务器来接受internet上的连接请求，然后将请求转发给内部网络上的服务器，并将从服务器上得到的结果返回给internet上请求连接的客户端，此时代理服务器对外就表现为一个反向代理服务器。
+反向代理（Reverse Proxy）方式是指以代理服务器来接受 internet 上的连接请求，然后将请求转发给内部网络上的服务器，并将从服务器上得到的结果返回给 internet 上请求连接的客户端，此时代理服务器对外就表现为一个反向代理服务器。
 
 ### 2.2. Nginx 官网与下载
 
-- 官网：http://nginx.org/
-- 下载：http://nginx.org/en/download.html
+- 官网：https://nginx.org/
+- 下载：https://nginx.org/en/download.html
 - 本次项目使用版本：nginx-1.13.12.zip
 
 ### 2.3. Nginx 相关命令
 
-- 用cmd进入nginx所在的根目录：
-    - 启动： `start nginx`
-    - 停止： `nginx -s stop`
-    - 重新启动：`nginx -s reload`
-- 注意：启动nginx后在任务管理器中要能看到两个nginx服务启动才是正确的。
+用 cmd 命令行工具进入 nginx 所在的根目录：
 
-![nginx服务](images/20181223103819328_7420.jpg)
+- 启动： `start nginx`
+- 停止： `nginx -s stop`
+- 重新启动：`nginx -s reload`
 
-- 如果启动报错,查看日志文件发现80端口被占用；可以使用命令`netstat -ano`命令查看端口占用情况。再打开任务管理器，查看pid然后停止程序即可。
-- `netstat -ano|findstr "80"`
+> 注意：启动 nginx 后在任务管理器中要能看到两个 nginx 服务启动才是正确的。
+
+![](images/20181223103819328_7420.jpg)
+
+如果启动报错，查看日志文件发现80端口被占用；可以使用命令`netstat -ano`命令查看端口占用情况。再打开任务管理器，查看pid然后停止程序即可。
+
+```bash
+netstat -ano | findstr "80"
+```
 
 ### 2.4. 安装与配置
 

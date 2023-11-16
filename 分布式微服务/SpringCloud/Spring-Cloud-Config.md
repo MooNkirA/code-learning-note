@@ -1,5 +1,3 @@
-# Spring Cloud Config （配置中心）
-
 ## 1. 配置中心概述
 
 ### 1.1. 什么是配置中心
@@ -15,7 +13,7 @@
 
 ### 1.2. 常见配置中心
 
-内容详见：[《分布式配置中心概述》笔记](/分布式微服务/分布式配置中心/分布式配置中心概述)
+内容详见：[《分布式配置中心概述》笔记](/分布式微服务/配置中心/分布式配置中心概述)
 
 ## 2. Spring Cloud Config 简介
 
@@ -36,11 +34,11 @@ Spring Cloud Config 为分布式系统中的外部配置提供服务器和客户
 
 ### 2.1. Spring Cloud Config 服务端特性
 
-- 以HTTP的方式，为外部配置提供基于资源的API（键值对，或者等价的YAML内容）
+- 以 HTTP 的方式，为外部配置提供基于资源的 API（键值对，或者等价的 YAML 内容）
 - 属性值的加密和解密（对称加密和非对称加密）
-- 通过使用`@EnableConfigServer`注解，在Spring boot应用中非常简单的嵌入
+- 通过使用 `@EnableConfigServer` 注解，在 Spring boot 应用中非常简单的嵌入
 
-### 2.2. Spring Cloud Config 客户端特性（特指Spring应用）
+### 2.2. Spring Cloud Config 客户端特性（特指 Spring 应用）
 
 - 绑定 Config 服务端，并使用远程的属性源初始化 Spring 环境
 - 属性值的加密和解密（对称加密和非对称加密）
@@ -51,25 +49,25 @@ Spring Cloud Config 为分布式系统中的外部配置提供服务器和客户
 
 #### 3.1.1. 基础项目准备
 
-1. 创建聚合项目`16-springcloud-config`
+1. 创建聚合项目`spring-cloud-sample-config`
 2. 创建`server-eureka`与`service-product`
-    - > 参考以前做的Spring Cloud的示例项目《spring-cloud-note\spring-cloud-greenwich-sample\》，复制`eureka`与`product`的工程做为测试示例的工程即可，实体类等公共的资源依赖`shop-service-common`工程
+> 参考以前做的Spring Cloud的示例项目《spring-cloud-note》，复制`eureka`与`product`的工程做为测试示例的工程即可，实体类等公共的资源依赖`shop-service-common`工程
 
 基础项目准备效果如下：
 
 ![](images/20201128100352544_24712.png)
 
-启动eureka服务与product商品服务，测试请求是否正常
+启动 eureka 服务与 product 商品服务，测试请求是否正常
 
 #### 3.1.2. 准备远程仓库
 
-Config Server 是一个可横向扩展、集中式的配置服务器，它用于集中管理应用程序各个环境下的配置，默认使用Git存储配置文件内容，也可以使用SVN存储，或者是本地文件存储。此示例使用git作为存储环境（因为国内的原因，案例使用gitee做为远程仓库）
+Config Server 是一个可横向扩展、集中式的配置服务器，它用于集中管理应用程序各个环境下的配置，默认使用 Git 存储配置文件内容，也可以使用 SVN 存储，或者是本地文件存储。此示例使用 git 作为存储环境（因为国内的原因，案例使用 gitee 做为远程仓库）
 
-1. 登陆gitee.com，创建一个用于测试的公共仓库`springcloud-config-sample-repo`
+1. 登陆 gitee.com，创建一个用于测试的公共仓库`springcloud-config-sample-repo`
 
 ![](images/20201128102529976_16815.png)
 
-2. 上传配置文件，将product_service工程的`application.yml`改名为`product-dev.yml`后上传
+2. 上传配置文件，将 product_service 工程的`application.yml`改名为`product-dev.yml`后上传
 
 ![](images/20201128103105551_11242.png)
 
@@ -141,7 +139,7 @@ spring:
 - `spring.cloud.config.server.git.username`：配置git用户名
 - `spring.cloud.config.server.git.password`：配置git密码
 
-> 在Windows系统上，如果文件URL是带驱动器前缀的绝对路径，则在文件URL中需要一个额外的“`/`”（例如：`file:///${user.home}/config-repo`）
+> 在 Windows 系统上，如果文件 URL 是带驱动器前缀的绝对路径，则在文件 URL 中需要一个额外的“`/`”（例如：`file:///${user.home}/config-repo`）
 
 #### 3.2.4. 测试
 
@@ -268,9 +266,9 @@ SpringCloud 提供了相应的解决方案，只需要将Config Server端当做�
 
 ### 4.1. Config Server（服务端）改造
 
-#### 4.1.1. 引入eureka依赖
+#### 4.1.1. 引入 eureka 依赖
 
-修改`server-config`工程，引入eureka客户端依赖
+修改`server-config`工程，引入 eureka 客户端依赖
 
 ```xml
 <dependency>
@@ -313,9 +311,9 @@ eureka: # Eureka 客户端配置
 
 #### 4.2.2. 配置服务获取
 
-修改Config Client客户端（`service-product`）获取从注册中获取Config Server的服务地址
+修改 Config Client 客户端（`service-product`）获取从注册中获取 Config Server 的服务地址
 
-<font color=red>**需要注意的是，原来Config Client工程是直接配置了Config Server的请求地址，上面的示例是先从Config Server中读取到相应的配置文件，从而获取到eureka注册中心的地址。但此时因为需要从注册中心获取Config Server的地址，所以配置中必须配置eureka相关信息，不能像之前示例，将eureka配置部分放到config配置中心的文件中。**</font>
+<font color=red>**需要注意的是，原来 Config Client 工程是直接配置了 Config Server 的请求地址，上面的示例是先从 Config Server 中读取到相应的配置文件，从而获取到 eureka 注册中心的地址。但此时因为需要从注册中心获取 Config Server 的地址，所以配置中必须配置 eureka 相关信息，不能像之前示例，将 eureka 配置部分放到 config 配置中心的文件中。**</font>
 
 ```yml
 spring:

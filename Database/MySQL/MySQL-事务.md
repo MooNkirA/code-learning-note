@@ -621,7 +621,7 @@ SHOW ENGINE INNODB STATUS;
 - `Pages flushed up to`：代表 flush 链表中被最早修改的那个页面对应的 oldest_modification 属性值。
 - `Last checkpoint at`：当前系统的 checkpoint_lsn 值。
 
-### 7.7. innodb_flush_log_at_trx_commit 参数
+### 7.7. redo log 的写入策略参数 innodb_flush_log_at_trx_commit
 
 为了保证事务的持久性，用户线程在事务提交时需要将该事务执行过程中产生的所有 redo 日志都刷新到磁盘上，但这样会很明显的降低数据库性能。
 
@@ -633,7 +633,7 @@ MySQL 提供了控制 redo log 的写入策略的系统变量参数 `innodb_flus
 
 #### 7.7.1. redo log 写入策略流程图
 
-InnoDB 有一个后台线程，每隔 1 秒，就会把 redo log buffer 中的日志，调用 操作系统函数 write 写到文件系统的 page cache，然后调用操作系统函数 fsync 持久化到磁盘文件。
+InnoDB 有一个后台线程，每隔 1 秒，就会把 redo log buffer 中的日志，调用操作系统函数 write 写到文件系统的 page cache，然后调用操作系统函数 fsync 持久化到磁盘文件。
 
 ![](images/511081916230246.jpg)
 
@@ -656,20 +656,37 @@ mysql> show variables like 'innodb_flush_log_at_trx_commit';
 ```sql
 set global innodb_flush_log_at_trx_commit=1;  
 ```
+### 7.8. redo log 的执行流程
 
-### 7.8. 崩溃后的恢复
+假设执行的 SQL 如下：
 
-#### 7.8.1. 恢复机制
+```sql
+update T set a =1 where id =666
+```
+
+![](images/14595617231152.png)
+
+1. MySQL 客户端将请求语句 `update T set a =1 where id = 666`，发往 MySQL Server 层。
+2. MySQL Server 层接收到 SQL 请求后，对其进行分析、优化、执行等处理工作，将生成的 SQL 执行计划发到 InnoDB 存储引擎层执行。
+3. InnoDB 存储引擎层**将 a 修改为 1** 的这个操作记录到内存中。
+4. 记录到内存以后会修改 redo log 的记录，会在添加一行记录，其内容是需要在哪个数据页上做什么修改。
+5. 此后，将事务的状态设置为 prepare ，说明已经准备好提交事务了。
+6. 等到 MySQL Server 层处理完事务以后，会将事务的状态设置为 commit，也就是提交该事务。
+7. 在收到事务提交的请求以后，redo log 会把刚才写入内存中的操作记录写入到磁盘中，从而完成整个日志的记录过程。
+
+### 7.9. 崩溃后的恢复
+
+#### 7.9.1. 恢复机制
 
 MySQL 可以根据 redo 日志中的各种 LSN 值，来确定恢复的起点和终点。然后将 redo 日志中的数据，以哈希表的形式，将一个页面下的放到哈希表的一个槽中。之后就可以遍历哈希表，因为对同一个页面进行修改的 redo 日志都放在了一个槽里，所以可以一次性将一个页面修复好（避免了很多读取页面的随机 IO）。并且通过各种机制，避免无谓的页面修复，比如已经刷新的页面，进而提升崩溃恢复的速度
 
-#### 7.8.2. 崩溃后的恢复为什么不用 binlog？
+#### 7.9.2. 崩溃后的恢复为什么不用 binlog？
 
-1. redo log 与 binlog 两者使用方式不一样。binlog 会记录表所有更改操作，包括更新删除数据，更改表结构等等，主要用于人工恢复数据；而 redo log 对于用户是不可见的，它是 InnoDB 用于保证crash-safe 能力的，也就是在事务提交后 MySQL 崩溃的话，可以保证事务的持久性，即事务提交后其更改是永久性的。
+1. redo log 与 binlog 两者使用方式不一样。binlog 会记录表所有更改操作，包括更新删除数据，更改表结构等等，主要用于人工恢复数据；而 redo log 对于用户是不可见的，它是 InnoDB 用于保证 crash-safe 能力的，也就是在事务提交后 MySQL 崩溃的话，可以保证事务的持久性，即事务提交后其更改是永久性的。
 2. redo log 是 InnoDB 引擎特有的；binlog 是 MySQL 的 Server 层实现的，所有引擎都可以使用。
 3. redo log 是物理日志，记录的是“在某个数据页上做了什么修改”，恢复的速度更快；binlog 是逻辑日志，记录的是这个语句的原始逻辑，比如“给ID=2为的记录的c字段加1”
 4. redo log 是“循环写”的日志文件，redo log 只会记录未刷盘的日志，已经刷入磁盘的数据都会从 redo log 这个有限大小的日志文件里删除。binlog 是追加日志，保存的是全量的日志。
-5. **重点**：当数据库crash（崩溃）后，想要恢复未刷盘但已经写入 redo log 和 binlog 的数据到内存时，binlog 是无法恢复的。虽然 binlog 拥有全量的日志，但没有一个标志让 innoDB 判断哪些数据已经入表(写入磁盘)，哪些数据还没有。
+5. **重点**：当数据库 crash（崩溃）后，想要恢复未刷盘但已经写入 redo log 和 binlog 的数据到内存时，binlog 是无法恢复的。虽然 binlog 拥有全量的日志，但没有一个标志让 innoDB 判断哪些数据已经入表(写入磁盘)，哪些数据还没有。
 
 > 比如，binlog 记录了两条日志：
 >
@@ -713,7 +730,7 @@ mysql> SHOW VARIABLES LIKE '%innodb_undo_%';
 1. 事务执行过程中可能遇到各种错误，比如服务器本身的错误，操作系统错误，甚至是突然断电导致的错误。
 2. 在事务执行过程中手动输入 `ROLLBACK` 语句结束当前的事务的执行。
 
-以上情况都会导致事务执行到一半就结束。为了保证事务的原子性，需要把东西改回原先的样子，这个过程就称之为回滚（英文名：rollback）
+以上情况都会导致事务执行到一半就结束。为了保证事务的原子性，需要把东西改回原先的样子，这个过程就称之为回滚（英文名：rollback）。
 
 每当要对一条记录做改动时（改动是指 `INSERT`、`DELETE`、`UPDATE`等），都需要把回滚时所需的内容都给记录下来。例如：
 

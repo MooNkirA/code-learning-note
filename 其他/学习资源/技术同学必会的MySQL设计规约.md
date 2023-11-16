@@ -368,7 +368,7 @@ select id from t limit 10000, 10; 应该改为 => select id from t where id > 10
 
 24.【推荐】获取大量数据时，建议分批次获取数据，每次获取数据少于2000条，结果集应小于1M
 
-25.【推荐】在做开发时建议使用数据库框架(如mybatis)或prepared statement，可以提升性能并避免SQL注入
+25.【推荐】在做开发时建议使用数据库框架(如 mybatis) 或 prepared statement，可以提升性能并避免 SQL 注入
 
 26.【强制】禁止跨库查询（为数据迁移和分库分表留出余地，降低耦合度，降低风险）
 

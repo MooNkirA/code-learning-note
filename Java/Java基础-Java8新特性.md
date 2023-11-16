@@ -3186,6 +3186,91 @@ public void comprehensiveStreamTest02() {
 }
 ```
 
+### 6.10. Stream 流最佳使用技巧
+
+- **使用专属类型流以获得更好的性能**。例如在使用 int、long 和 double 等基本类型数据时，使用 IntStream、LongStream 和 DoubleStream 等基本流，而不是 Integer、Long 和 Double 等装箱类型流。原始流可以通过避免装箱和拆箱的成本来提供更好的性能。
+
+```java
+int[] array = new int[]{1, 2, 3, 4, 5};
+// not good
+int sum = Arrays.stream(array).sum();
+// best
+IntStream intStream = IntStream.of(array);
+int sum1 = intStream.sum();
+```
+
+- **避免嵌套流**。因为它可能导致代码难以阅读和理解。相反可以尝试将问题分解为更小的部分，并使用中间集合或局部变量来存储中间结果。
+
+```java
+List<String> list1 = Arrays.asList("apple", "banana", "cherry");
+List<String> list2 = Arrays.asList("orange", "pineapple", "mango");
+List<String> collect = Stream.concat(list1.stream(), list2.stream())
+		.filter(s -> s.length() > 5)
+		.collect(Collectors.toList());
+```
+
+- 虽然并行流可以在处理大量数据时提供更好的性能，但它们也会引入开销和竞争条件。**谨慎使用并行流**，并考虑数据大小、操作复杂性和可用处理器数量等因素。
+
+```java
+List<Integer> list = Arrays.asList(1, 2, 3, 4, 5);
+Integer sum = list.parallelStream().reduce(0, Integer::sum);
+```
+
+- Stream API 支持延迟计算，这意味着在调用终端操作之前不会执行中间操作。因此可以尝试**使用惰性计算来通过减少不必要的计算来提高性能**。
+
+```java
+List<Integer> list = Arrays.asList(1, 2, 3, 4, 5);
+Optional<Integer> result = list.stream().filter(n -> n > 3).findFirst();
+```
+
+- Stream API 旨在对数据执行功能操作，需要**避免引入副作用**。例如修改流外部的变量或执行 I/O 操作，因为这可能会导致不可预测的行为并降低代码可读性。
+
+```java
+List<String> list = Arrays.asList("apple", "banana", "cherry");
+int count = 0;
+list.stream().filter(s -> s.startsWith("a")).forEach(s -> count++);
+```
+
+- **将流与不可变对象一起使用**。Stream API 最适合使用不可变对象，可确保流的状态在处理过程中不会被修改，这可以带来更可预测的行为和更好的代码可读性。
+
+```java
+List<String> list = Arrays.asList("apple", "banana", "cherry");
+List<String> result  = list.stream()
+		.map(String::toUpperCase)
+		.collect(Collectors.toList());
+```
+
+- 如果流可能包含大量不符合条件的元素，**在 `map()` 之前使用 `filter()` 以避免不必要的处理**，可以提高代码的性能。
+
+```java
+List<Integer> list = Arrays.asList(1, 2, 3, 4, 5);
+List<Integer> filteredList = list.stream()
+		.filter(i -> i % 2 == 0)
+		.map(i -> i * 2)
+		.collect(Collectors.toList());
+```
+
+- 与使用 lambda 表达式相比，方法引用可以使代码更加简洁和可读。在合适的情况下，**优先使用方法引用代替 lambda 表达式**。
+
+```java
+List<Integer> list = Arrays.asList(1, 2, 3, 4, 5);
+Integer sum = list.stream().reduce(0, Integer::sum);
+```
+
+- 如果流可能包含重复元素，优先使用 `distinct()` 操作来删除它们
+
+```java
+List<Integer> list = Arrays.asList(1, 2, 3, 3, 4, 5, 5);
+List<Integer> distinctList = list.stream().distinct().collect(Collectors.toList());
+```
+
+- 流的 `sorted()` 操作成本可能会很昂贵，尤其是对于大型流。仅在必要时**谨慎使用 `sorted()`**。如果已确定输入的数据已经排序，则可以跳过此操作。
+
+```java
+List<Integer> list = Arrays.asList(3, 2, 1);
+List<Integer> SortedList = list.stream().sorted().collect(Collectors.toList());
+```
+
 ## 7. StringJoiner 类（字符拼接）
 
 ### 7.1. 简介
