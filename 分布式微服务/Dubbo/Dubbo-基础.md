@@ -605,7 +605,6 @@ Dubbo 总体架构设计一共划分了 10 层，而最上面的 Service 层是�
 2. 之后 `DubboProtocol` **根据 provider 的地址和接口信息连接到服务端 server**，开启客户端 client，然后创建 invoker。
 3. 之后通过 invoker 为服务接口**生成代理对象**，这个代理对象用于远程调用 provider，至此完成了服务引用。
 
-
 ## 3. 快速入门
 
 ### 3.1. 基于 Dubbo Spring Boot Starter（使用 Nacos 注册中心）微服务实践
@@ -1611,9 +1610,9 @@ key=com.xxx.xxx
  * 2.将接口实现类的全限定名配置在文件中
  * 3.服务启动时，将由服务加载器读取配置文件，并加载实现类。
  * <p>
- * Dubbo SPI的作法：
+ * Dubbo SPI 的作法：
  * 1.Dubbo 增强原生的SPI机制来更好的满足拓展要求，其以键值对的方式对接口的实现进行配置管理。
- * 2.Dubbo引入三个注解： @SPI、@Adaptive和@Activate。
+ * 2.Dubbo 引入三个注解：@SPI、@Adaptive 和 @Activate。
  * <p>
  * 只有接口上标注 @SPI 注解，才能被Dubbo框架管理起来
  */
@@ -2197,7 +2196,7 @@ quer
 
 Dubbo 是通过 JDK 的 ShutdownHook 来完成优雅停机的，所以如果使用 `kill -9 PID` 等强制关闭指令，是不会执行优雅停机的，只有通过 `kill PID` 时，才会执行。
 
-### 12.4. HSF 服务框架（Dubbo 升级版） -- 网络资料
+### 12.4. HSF 服务框架（Dubbo 升级版）
 
 高速服务框架 HSF (High-speed Service Framework)，是在阿里巴巴内部广泛使用的分布式 RPC 服务框架。
 

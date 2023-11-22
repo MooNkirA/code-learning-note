@@ -238,7 +238,7 @@ private void doExportUrlsFor1Protocol(ProtocolConfig protocolConfig, List<URL> r
 
 #### 2.4.1. Dubbo 框架的 Invoker 机理
 
-- 先明确Dubbo引入Invoker的目标，Invoker的本义是，invoke方法会转嫁到对象到目标ref上，接口定义如下
+- 先明确 Dubbo 引入 Invoker 的目标，Invoker 的本义是，invoke 方法会转嫁到对象到目标 ref 上，接口定义如下
 
 ```java
 public interface Invoker<T> extends Node {
