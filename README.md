@@ -386,7 +386,9 @@
 
 <ul class="docs">
   <li><a href="#/分布式微服务/Dubbo/Dubbo-基础">Dubbo 基础</a></li>
-  <li><a href="#/分布式微服务/Dubbo/Dubbo-高级功能">Dubbo 高级功能进阶 - 常用配置策略用法</a></li>
+  <li><a href="#/分布式微服务/Dubbo/Dubbo-高级功能">Dubbo 高级特性与用法</a></li>
+  <li><a href="#/分布式微服务/Dubbo/Dubbo-注册中心">Dubbo 注册中心</a></li>
+  <li><a href="#/分布式微服务/Dubbo/Dubbo-Admin">Dubbo Admin 控制台</a></li>
   <li><a href="#/分布式微服务/Dubbo/Dubbo-源码分析">Dubbo 源码分析</a></li>
 </ul>
 
