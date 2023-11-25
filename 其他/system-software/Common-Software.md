@@ -249,42 +249,20 @@ Input 不是一个字体，而是一个家族；除了等宽版本，还有两�
 
 ## 5. 音乐软件
 
-### 5.1. foobar2000
-
-- foobar 2000 官网 | https://www.foobar2000.org/
-- foobar 2000 asion 汉化版 
-   - asion's blog | https://www.cnblogs.com/asionwu
-   - [百度网盘](https://pan.baidu.com/s/1wVbB24nSlwiHJWzJOagF9g?pwd=fb2k) 提取码：fb2k
-   - [蓝奏云](https://wwi.lanzoup.com/b0jitwwf) 密码：fb2k
-- foobar 2000 智享阁（YeYo）版本
-   - 网页： https://www.esnpc.com/foobar2000-20-simplified-chinese-version/
-   - 文件名 FB_2.0_x86 开头的是32位，FB_2.0_x64 的是64位，自行选择下载
-   - [百度网盘](https://pan.baidu.com/s/1iOPyEPf_pcZDbl3AbWSEYQ) 提取码: 6rgv
-   - [阿里云盘](https://www.aliyundrive.com/s/6Ly1isy9bwD) 提取码: 4p6o
-   - [天翼云盘](https://cloud.189.cn/web/share?code=mYvAnivuIbIv) 访问码：4owd
-
-#### 5.1.1. 不支持 APE 文件格式的解决方法
-
-这是因为缺少相应的播放插件，需要安装一个插件--monkey's audio(ape)才可以播放。foobar从某个版本起，把原来默认内置的一些插件去掉了，原因不明，可能是为了控制安装包的体积。
-
-插件下载地址：http://www.foobar2000.org/components/view/foo_input_monkey
-
-点击这个页面的 Download，下载后解开压缩包得到 foo_input_monkey.dll 文件。把这个文件放到foobar安装目录里的 compontents 文件夹里。重新打开foobar后就可以播放APE文件了。	
-
-### 5.2. 洛雪音乐助手桌面版
+### 5.1. 洛雪音乐助手桌面版
 
 洛雪音乐桌面版
 
 - Github 仓库： https://github.com/lyswhut/lx-music-desktop/releases
 - [蓝奏云](https://www.lanzoui.com/b0bf2cfa/) 密码：glqw
 
-### 5.3. Listen 1
+### 5.2. Listen 1
 
 Listen 1 音乐播放器主页： https://listen1.github.io/listen1/
 
 windows 桌面版缓存目录：`%APPDATA%\listen1\Cache`
 
-### 5.4. 音乐下载
+### 5.3. 音乐下载
 
 - 下歌吧音乐下载平台 https://music.y444.cn/#/
 - MyFreeMP3： https://tools.liumingye.cn/music/?page=searchPage#

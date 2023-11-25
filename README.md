@@ -534,6 +534,7 @@
   <li><a href="#/其他/system-software/Microsoft-Office">Microsoft Office 系列教程</a></li>
   <li><a href="#/其他/system-software/Web-Browser">网页浏览器系列教程</a></li>
   <li><a href="#/其他/system-software/Common-Software">其他常用软件教程</a></li>
+  <li><a href="#/其他/system-software/foobar2000">foobar2000 - 本地顶级音乐播放器</a></li>
 </ul>
 
 ## 收集的项目实战资料
