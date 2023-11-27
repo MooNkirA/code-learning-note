@@ -1248,7 +1248,7 @@ Object obj = new Object();
 SoftReference<String> softRef = new SoftReference<String>(str);
 ```
 
-> 可用场景：创建缓存的时候，创建的对象放进缓存中，当内存不足时，JVM就会回收早先创建的对象。
+> 可用场景：创建缓存的时候，创建的对象放进缓存中，当内存不足时，JVM 就会回收早先创建的对象。
 
 - **弱引用**：有用但不是必须的对象，通过 `WeakReference` 类实现。不管当前内存空间足够与否，在下一次 GC 时都会回收只具有弱引用的对象。
 
