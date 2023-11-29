@@ -246,23 +246,26 @@ Input 不是一个字体，而是一个家族；除了等宽版本，还有两�
 
 ![](images/233443808253493.png)
 
-
 ## 5. 音乐软件
 
-### 5.1. 洛雪音乐助手桌面版
+### 5.1. foobar2000
+
+> 详见[《foobar2000 - 本地顶级音乐播放器》](/其他/system-software/foobar2000)
+
+### 5.2. 洛雪音乐助手桌面版
 
 洛雪音乐桌面版
 
 - Github 仓库： https://github.com/lyswhut/lx-music-desktop/releases
 - [蓝奏云](https://www.lanzoui.com/b0bf2cfa/) 密码：glqw
 
-### 5.2. Listen 1
+### 5.3. Listen 1
 
 Listen 1 音乐播放器主页： https://listen1.github.io/listen1/
 
 windows 桌面版缓存目录：`%APPDATA%\listen1\Cache`
 
-### 5.3. 音乐下载
+### 5.4. 音乐下载
 
 - 下歌吧音乐下载平台 https://music.y444.cn/#/
 - MyFreeMP3： https://tools.liumingye.cn/music/?page=searchPage#

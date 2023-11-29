@@ -931,9 +931,15 @@ final Node<K,V>[] resize() {
 
 #### 2.4.3. （待整理）为什么 HashMap 默认加载因子是 0.75 而不是其他数值
 
-结论：作为一般规则，默认负载因子（0.75）在时间和空间成本上提供了很好的折衷方案。
+> 参考整理：https://mp.weixin.qq.com/s/a3qfatEWizKK1CpYaxVBbA
 
-> 参考：https://mp.weixin.qq.com/s/a3qfatEWizKK1CpYaxVBbA
+HashMap 负载因子 loadFactor 的默认值是 0.75，为什么是 0.75 呢？官方给的答案如下：
+
+> As a general rule, the default load factor (.75) offers a good tradeoff between time and space costs. Higher values decrease the space overhead but increase the lookup cost (reflected in most of the operations of the HashMap class, including get and put). The expected number of entries in the map and its load factor should be taken into account when setting its initial capacity, so as to minimize the number of rehash operations. If the initial capacity is greater than the maximum number of entries divided by the load factor, no rehash operations will ever occur.
+
+上面的意思，简单来说是默认负载因子为 0.75，是因为它提供了空间和时间复杂度之间的良好平衡。负载因子太低会导致大量的空桶浪费空间，负载因子太高会导致大量的碰撞，降低性能。0.75 的负载因子在这两个因素之间取得了良好的平衡。
+
+**结论：负载因子 loadFactor 是 HashMap 在进行扩容时的一个阈值，扩容的计算公式是：`initialCapacity * loadFactor = HashMap` 扩容。作为一般规则，默认负载因子（0.75）提供了在时间复杂度和空间成本之间的良好平衡，是很好的折衷方案**。
 
 #### 2.4.4. 扩展：为何 HashMap 的数组长度一定是2的次幂？
 

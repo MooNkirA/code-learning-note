@@ -79,6 +79,7 @@ nohup java -Xms512m -Xmx1024m -jar xxxx.jar --spring.profiles.active=prod &
 
 - `-XX:newSize`：设置年轻代的初始大小
 - `-XX:MaxNewSize`：设置年轻代的最大大小，初始大小和最大大小两个值通常相同
+- `-XX:NewRatio`：设置年轻代与老年代的比例值
 
 例如：
 
