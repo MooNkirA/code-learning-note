@@ -120,6 +120,10 @@ $ 文件名结束
 - 官网： https://notepad-plus-plus.org
 - Github 仓库： https://github.com/notepad-plus-plus/notepad-plus-plus
 
+#### 4.3.1. 常用操作
+
+在使用 notepad++ 工具的时候，很多情况下会遇到批量替换空行的操作，操作方法是使用快捷键 `Crtl+h` 调出窗口选择替换栏，在查找目标栏中输入 `\r\n\r\n`，替换栏中输入 `\r\n` 并选择全部替换，从而实现批量删除空行的操作。
+
 ### 4.4. Rime 输入法设置
 
 特殊字符输入
