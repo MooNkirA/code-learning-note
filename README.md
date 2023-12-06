@@ -406,14 +406,6 @@
   <li><a href="#/分布式微服务/Nginx/Nginx-基础">Nginx 基础笔记</a></li>
 </ul>
 
-### 🐒 ZooKeeper
-
-<ul class="docs">
-  <li><a href="#/分布式微服务/Zookeeper/Zookeeper-基础">Zookeeper 基础</a></li>
-  <li><a href="#/分布式微服务/Zookeeper/Zookeeper-客户端">Zookeeper 常用客户端（Zookeeper、Zkclient、Curator）</a></li>
-  <li><a href="#/分布式微服务/Zookeeper/Zookeeper-应用场景">Zookeeper 应用场景</a></li>
-</ul>
-
 ### 📬 分布式消息中件间
 
 <ul class="docs">
@@ -428,6 +420,14 @@
 
 <ul class="docs">
   <li><a href="#/分布式微服务/服务注册中心/分布式服务注册中心-概述">分布式服务注册中心概述</a></li>
+</ul>
+
+#### 🐒 ZooKeeper
+
+<ul class="docs">
+  <li><a href="#/分布式微服务/服务注册中心/Zookeeper-基础">Zookeeper 基础</a></li>
+  <li><a href="#/分布式微服务/服务注册中心/Zookeeper-客户端">Zookeeper 常用客户端（Zookeeper、Zkclient、Curator）</a></li>
+  <li><a href="#/分布式微服务/服务注册中心/Zookeeper-应用场景">Zookeeper 应用场景</a></li>
 </ul>
 
 ### 🧾 分布式配置中心

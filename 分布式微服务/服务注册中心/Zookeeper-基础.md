@@ -25,19 +25,19 @@ Zookeeper 集群是一个基于主从复制的高可用集群，每个服务器�
 
 ![](images/263073017249692.png)
 
-#### 1.2.1. Leader
+#### 1.2.1. Leader（主节点）
 
 一个 Zookeeper 集群同一时间只会有一个实际工作的 Leader，它会发起并维护与各 Follwer 及 Observer 间的心跳。
 
-**所有的写操作必须要通过 Leader 完成再由 Leader 将写操作广播给其它服务器。只要有超过半数节点（不包括 observeer 节点）写入成功，该写请求就会被提交（类 2PC 协议）**。
+**所有的写操作必须要通过 Leader 完成再由 Leader 将写操作广播给其它服务器。只要有超过半数节点（不包括 observeer 节点）写入成功，该写请求就会被提交（类 2PC 协议，两阶段提交：预提交、ACK、确认提交等流程）**。
 
-#### 1.2.2. Follower
+#### 1.2.2. Follower（跟随者）
 
 一个 Zookeeper 集群可能同时存在多个 Follower，它会响应 Leader 的心跳。
 
 **Follower 可直接处理并返回客户端的读请求，同时会将写请求转发给 Leader 处理，并且负责在 Leader 处理写请求时对请求进行投票**。
 
-#### 1.2.3. Observer
+#### 1.2.3. Observer（观察者）
 
 3.0 版本后引入的角色，与 Follower 类似，但是无投票权。
 
@@ -121,7 +121,7 @@ dataDir=/home/zookeeper/zookeeper-x.x.x/data
 
 #### 2.1.2. docker 方式（待整理）
 
-整理中...
+> TODO: 整理中...
 
 ### 2.2. 配置
 
@@ -1313,9 +1313,9 @@ public class ZKGetChildWatcher {
 
 客户端 SendThread 线程接收事件通知，交由 EventThread 线程回调 Watcher。客户端的 Watcher 机制同样是一次性的，一旦被触发后，该 Watcher 就失效了。
 
-## 6. Zookeeper 工作原理（原子广播）
+## 6. Zookeeper 工作原理（原子消息广播协议）
 
-### 6.1. 原子广播整理流程
+### 6.1. 原子广播整体流程
 
 1. **Zookeeper 的核心是原子广播**，这个机制保证了各个 server 之间的同步。实现这个机制的协议叫做 Zab 协议。**Zab 协议有两种模式，分别是恢复模式和广播模式。**
 2. 当服务启动或者在领导者崩溃后，Zab 就进入了恢复模式，当领导者被选举出来，且大多数 server 的完成了和 leader 的状态同步以后，恢复模式就结束了。
@@ -1327,7 +1327,7 @@ public class ZKGetChildWatcher {
 
 ### 6.2. ZAB 协议（了解）
 
-ZAB 协议是为分布式协调服务 Zookeeper 专门设计的一种支持崩溃恢复的原子广播协议。
+ZAB 协议是为分布式协调服务 Zookeeper 专门设计的一种支持崩溃恢复的原子广播协议（ZAB 协议）。通过原子广播的方式，在分布式系统中实现保证了数据的一致性和可靠性。
 
 #### 6.2.1. Zab 协议两种模式及其工程流程
 
@@ -1353,7 +1353,7 @@ Zxid（Transaction id）类似于 RDBMS 中的事务 ID，用于标识一次更�
 
 ##### 6.2.4.1. Leader election （选举阶段 - 选出准 Leader）
 
-**Leader election（选举阶段）**：节点在一开始都处于选举阶段，只要有一个节点得到超半数节点的票数，它就可以当选准 leader。只有到达 广播阶段（broadcast） 准 leader 才会成为真正的 leader。这一阶段的目的是就是为了选出一个准 leader，然后进入下一个阶段。
+**Leader election（选举阶段）**：节点在一开始都处于选举阶段，只要有一个节点得到超半数节点的票数，它就可以当选准 leader。只有到达广播阶段（broadcast）准 leader 才会成为真正的 leader。这一阶段的目的是就是为了选出一个准 leader，然后进入下一个阶段。
 
 ##### 6.2.4.2. Discovery （发现阶段 - 接受提议、生成 epoch 、接受 epoch）
 
