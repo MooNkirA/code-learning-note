@@ -617,16 +617,16 @@ ClassFile {
 
 > Notes: **每一个类只会加载一次，每一个类的 Class 对象是都是唯一的(单例)。当类加载到内存中时会执行该类的静态代码块，而且只会加载一次**
 
-### 5.3. 类加载的时机
+### 5.3. 类加载的时机（触发类加载的时机）
 
-1. 创建该类的对象和子类对象
-2. 访问类的静态变量，或者为静态变量赋值（**静态常量除外**，因为静态常量在编译时已经存在）
-3. 调用类的静态方法
-4. 使用反射方式来强制创建某个类或接口对应的 `java.lang.Class` 对象
-5. 初始化某个类的子类
-6. 直接使用 `java` 命令来执行含有 main 方法的类时
+1. **创建类的实例**：当通过关键字 `new` 创建一个该类的对象或某个类的子类对象时，JVM 需要加载该类以创建对应的对象。
+2. **访问类的静态变量、调用类的静态方法、或者为静态变量赋值（<u>静态常量除外</u>，因为静态常量在编译时已经存在）**：JVM 需要加载该类以获取对应的静态成员。
+3. **调用类的静态成员所在的类被加载**：当访问一个类的静态成员，而该类的静态成员所在的类还没有被加载时，JVM 需要先加载该静态成员所在的类。
+4. **使用反射机制**：使用反射方式来强制创建某个类或接口对应的 `java.lang.Class` 对象，JVM 会在运行时加载相应的类。
+5. **类型转换**：当进行类型转换时（如将一个父类对象强制转换为子类对象），JVM 需要加载目标类型所对应的类。
+6. 直接使用 `java` 命令来执行含有 `main` 方法的类时。
 
-> Notes: Java 类的加载是动态的，它并不会一次性将所有类全部加载后再运行，而是保证程序运行的基础类(像是基类)完全加载到 JVM 中，至于其他类，则在需要的时候才加载。此做法就是为了节省内存开销。
+> Notes: Java 类的加载是动态按需进行的，它并不会一次性将所有类全部加载后再运行，而是保证程序运行的基础类(像是基类)完全加载到 JVM 中。至于其他类，则在运行时根据实际需要来加载。JVM 会采用懒加载的策略，此做法就是为了尽可能避免不必要的类加载和资源消耗，节省内存开销。
 
 ### 5.4. 类装载方式
 
@@ -638,6 +638,8 @@ ClassFile {
 ### 5.5. 类加载过程
 
 **类加载过程**：是指当程序要使用某个类时，JVM 会将类加载到内存中初始完成初始化，类的加载分为5个阶段：**加载、验证、准备、解析、初始化**。在类初始化完成后就可以使用该类的信息，而当一个类不再被需要时可以从 JVM 中卸载。
+
+> Tips: 需要注意，JVM 在内存分配和对象创建过程中可能会做一些优化，如对象的重叠分配、内存预分配等技术手段，以提高对象创建的效率和性能。
 
 #### 5.5.1. 加载
 
@@ -799,6 +801,60 @@ System.out.println(classLoader); // sun.misc.Launcher$AppClassLoader
 
 双亲委派模型：如果一个类加载器收到了类加载的请求，它首先不会自己去加载这个类，而是把这个请求委派给父类加载器去完成，每一层的类加载器都是如此，这样所有的加载请求都会被传送到顶层的启动类加载器中，只有当父加载无法完成加载请求（它的搜索范围中没找到所需的类）时，才向下委派给子加载器尝试去加载类，直到该类被成功加载。
 
+#### 6.3.2. 双亲委派机制的加载流程
+
+![](images/288710510239286.jpg)
+
+双亲委派加载机制的类加载流程如下：
+
+1. 将自定义加载器挂载到应用程序类加载器
+2. 当 AppClassLoader 加载一个 class 时，它首先不会自己去尝试加载这个类，而是把类加载请求委派给父类加载器 ExtClassLoader 去完成
+3. 当 ExtClassLoader 加载一个 class 时，它首先也不会自己去尝试加载这个类，而是把类加载请求委派给 BootStrapClassLoader 去完成
+4. 启动类加载器(BootStrapClassLoader)在加载路径下查找并加载 Class 文件，如果 BootStrapClassLoader 加载失败（例如在 `$JAVA_HOME/jre/lib` 里未查找到该class），会使用 ExtClassLoader 来尝试加载
+5. 扩展类加载器（ExtClassLoader）在加载路径下查找并加载 Class 文件，若 ExtClassLoader 也加载失败，则会使用 AppClassLoader 来加载
+6. AppClassLoader 在加载路径下查找并加载 Class 文件，如果未找到目标 Class 文件，则交由自定义加载器加载。
+7. 在自定义加载器下查找并加载用户指定目录下的 Class 文件，如果在自定义加载路径下未找到目标 Class 文件，则会抛出 ClassNotFoundException 异常
+
+![](images/312510508221063.png)
+
+> Notes: 双亲委派机制的核心是保障类的唯一性和安全性。如果在 JVM 中存在包名和类名相同的两个类，则该类将无法被加载，JVM 也无法完成类加载流程。
+
+#### 6.3.3. 双亲委派机制的好处
+
+双亲委派模型是保证 Java 应用程序的稳定性和安全性的重要机制，使用双亲委派模型能够避免类的冲突、提高安全性、节省资源，并保证类的一致性。使用双亲委派机制的好处：
+
+1. **避免资源浪费问题**：每个类加载器都有自己的类加载搜索路径和加载规则，若没有双亲委派机制，可能导致同一个类被不同的类加载器重复加载，造成资源的浪费。而使用了双亲委派机制，当父类加载器已经加载了该类时，就没有必要子 ClassLoader 再加载一次，可以避免类的重复加载，
+2. **避免类冲突问题**：在没有双亲委派机制的情况下，不同的类加载器可以独立加载相同的类。这可能导致类的冲突和不一致性，因为同一个类在不同的类加载器中会有多个版本存在，最终导致类的不一致问题。
+3. **基于安全因素的考虑**：双亲委派模型可以通过从上层类加载器向下层加载器委派类加载请求来提高安全性，保证 Java 核心 API 中定义类型不会被随意替换。假设通过网络传递一个名为 `java.lang.Object` 的类，通过双亲委托模式传递到启动类加载器，而启动类加载器在核心 Java API 发现该名字的类已被加载，则不会重新加载网络传递过来的 `java.lang.Object` 类，而直接返回已加载过的 `Object.class`，从而可以防止核心 API 库被随意篡改。示例如下：
+
+定义一个类，注意包名与jdk原生的一样
+
+```java
+package java.lang;
+​
+public class MyObject {
+​
+}
+
+加载该类
+
+```java
+public static void main(String[] args) {
+    Class clazz = MyObject.class;
+    System.out.println(clazz.getClassLoader());
+}
+```
+
+输出结果：
+
+```
+Exception in thread "main" java.lang.SecurityException: Prohibited package name: java.lang
+```
+
+示例说明：因为 `java.lang` 包属于核心包，只能由引导类加载器进行加载。而根据类加载的双亲委派机制，引导类加载器是加载不到该自定义的 MyObject 类的，所以只能由 AppClassLoader 进行加载，而这又不是允许的，所以最终会报出 `Prohibited package name: java.lang`（禁止的包名）错误。
+
+#### 6.3.4. 双亲委派模型的实现源码分析
+
 双亲委派模型的具体实现代码在 `java.lang.ClassLoader` 类的 `loadClass()` 方法中，具体的流程是：先检查类是否已经加载过，如果没有则让父类加载器去加载。当父类加载器加载失败时抛出 `ClassNotFoundException`，此时尝试自己去加载。若最后找不到该类，则 JVM 会抛出 `ClassNotFoundException`。源码节选如下：
 
 ```java
@@ -864,57 +920,6 @@ while (loader != null) {
 sun.misc.Launcher$AppClassLoader@18b4aac2
 sun.misc.Launcher$ExtClassLoader@677327b6
 ```
-
-#### 6.3.2. 双亲委派机制的加载流程
-
-![](images/288710510239286.jpg)
-
-双亲委派加载机制的类加载流程如下：
-
-1. 将自定义加载器挂载到应用程序类加载器
-2. 当 AppClassLoader 加载一个 class 时，它首先不会自己去尝试加载这个类，而是把类加载请求委派给父类加载器 ExtClassLoader 去完成
-3. 当 ExtClassLoader 加载一个 class 时，它首先也不会自己去尝试加载这个类，而是把类加载请求委派给 BootStrapClassLoader 去完成
-4. 启动类加载器(BootStrapClassLoader)在加载路径下查找并加载 Class 文件，如果 BootStrapClassLoader 加载失败（例如在 `$JAVA_HOME/jre/lib` 里未查找到该class），会使用 ExtClassLoader 来尝试加载
-5. 扩展类加载器（ExtClassLoader）在加载路径下查找并加载 Class 文件，若 ExtClassLoader 也加载失败，则会使用 AppClassLoader 来加载
-6. AppClassLoader 在加载路径下查找并加载 Class 文件，如果未找到目标 Class 文件，则交由自定义加载器加载。
-7. 在自定义加载器下查找并加载用户指定目录下的 Class 文件，如果在自定义加载路径下未找到目标 Class 文件，则会抛出 ClassNotFoundException 异常
-
-![](images/312510508221063.png)
-
-> Notes: 双亲委派机制的核心是保障类的唯一性和安全性。如果在 JVM 中存在包名和类名相同的两个类，则该类将无法被加载，JVM 也无法完成类加载流程。
-
-#### 6.3.3. 双亲委派机制的好处
-
-使用双亲委派机制的好处：
-
-1. 可以避免类的重复加载，当父类加载器已经加载了该类时，就没有必要子 ClassLoader 再加载一次。
-2. 基于安全因素的考虑，Java 核心 API 中定义类型不会被随意替换。假设通过网络传递一个名为 `java.lang.Object` 的类，通过双亲委托模式传递到启动类加载器，而启动类加载器在核心 Java API 发现该名字的类已被加载，则不会重新加载网络传递过来的 `java.lang.Object` 类，而直接返回已加载过的 `Object.class`，从而可以防止核心 API 库被随意篡改。
-
-定义一个类，注意包名与jdk原生的一样
-
-```java
-package java.lang;
-​
-public class MyObject {
-​
-}
-
-加载该类
-
-```java
-public static void main(String[] args) {
-    Class clazz = MyObject.class;
-    System.out.println(clazz.getClassLoader());
-}
-```
-
-输出结果：
-
-```
-Exception in thread "main" java.lang.SecurityException: Prohibited package name: java.lang
-```
-
-示例说明：因为 java.lang 包属于核心包，只能由引导类加载器进行加载。而根据类加载的双亲委派机制，引导类加载器是加载不到该自定义的 MyObject 类的，所以只能由 AppClassLoader 进行加载，而这又不是允许的，所以最终会报出`Prohibited package name: java.lang`（禁止的包名）错误。
 
 ### 6.4. ClassLoader 抽象类
 
