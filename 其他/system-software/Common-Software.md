@@ -360,7 +360,7 @@ ZLibary 网站镜像唯一入口： https://www.zhelper.net/
 
 #### 7.1.2. 国内篇
 
-- [yibook](https://nav.yibook.org/) - 电子书搜索网站导航
+- ~~[yibook](https://nav.yibook.org/) - 电子书搜索网站导航~~
 - [SoBooks](https://sobooks.net/) 图书下载网站是本人最喜欢的一个，它不仅书的种类齐全，而且质量也是相当的高，长期这里获取资源让我受益匪浅。每本书都可以获取百度网盘、微盘等下载站链接，直接下载或者保存网盘即可。
 - [鸠摩搜索](https://www.jiumodiary.com/) - 书籍类的搜索引擎，搜索到书籍后会有下载链接，直接网盘保存即可。
 - [超星读书](http://book.chaoxing.com)，专业知识电子书
