@@ -19,19 +19,19 @@ Spring Cloud Gateway 是 Spring 官方基于 Spring 5.0，Spring Boot 2.0 和 Pr
 
 优点：
 
-- 性能强劲：是第一代网关Zuul的1.6倍
+- 性能强劲：是第一代网关 Zuul 的 1.6 倍
 - 功能强大：内置了很多实用的功能，例如转发、监控、限流等
 - 设计优雅，容易扩展
 
 缺点：
 
-- 其实现依赖Netty与WebFlux，不是传统的Servlet编程模型，学习成本高
-- 不能将其部署在Tomcat、Jetty等Servlet容器里，只能打成jar包执行
-- 需要Spring Boot 2.0及以上的版本，才支持
+- 其实现依赖 Netty 与 WebFlux，不是传统的 Servlet 编程模型，学习成本高
+- 不能将其部署在 Tomcat、Jetty 等 Servlet 容器里，只能打成 jar 包执行
+- 需要 Spring Boot 2.0 及以上的版本，才支持
 
 ### 1.3. 核心概念与架构
 
-**路由（route）**：路由是网关最基础的部分，表示一个具体的路由信息载体。路由信息由一个ID、一个目的地URI、排序order、一组断言工厂和一组Filter组成。如果断言为真，则说明请求URL和配置的路由匹配。
+**路由（route）**：路由是网关最基础的部分，表示一个具体的路由信息载体。路由信息由一个 ID、一个目的地 URI、排序 order、一组断言工厂和一组 Filter 组成。如果断言为真，则说明请求 URL 和配置的路由匹配。
 
 ![](images/20201024155248894_3162.png)
 
@@ -1144,7 +1144,7 @@ public class LogGatewayFilterFactory extends AbstractGatewayFilterFactory<LogGat
 
 全局过滤器（`GlobalFilter`）作用于所有路由，Spring Cloud Gateway 定义了`GlobalFilter`接口，也可以自定义实现自己的`GlobalFilter`。通过全局过滤器可以实现对权限的统一校验，安全性验证等功能，并且全局过滤器也是使用比较多的过滤器。
 
-> Tips: 一般使用全局过滤器，在配置中并没有使用 filter，因为
+> Tips: 一般使用全局过滤器，在配置中并没有使用 filter
 
 #### 4.4.2. 内置全局过滤器（示例配置使用时再补充整理）
 
@@ -1199,7 +1199,7 @@ Spring Cloud Gateway 内置的过滤器已经可以完成大部分的功能，�
 
 ![](images/20201030110827654_2019.png)
 
-如上图所示，对于验证用户是否已经登录鉴权的过程可以在网关层统一检验。检验的标准就是请求中是否携带token凭证以及token的正确性。
+如上图所示，对于验证用户是否已经登录鉴权的过程可以在网关层统一检验。检验的标准就是请求中是否携带 token 凭证以及 token 的正确性。
 
 #### 4.5.3. 案例实现
 
