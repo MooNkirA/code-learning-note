@@ -21,30 +21,11 @@ Consul 是 HashiCorp 公司推出的开源工具，用于实现分布式系统�
 - Key/Value 存储
 - 多数据中心
 
-### 1.2. consul 与 Eureka 的区别
-
-1. 一致性
-
-Consul 强一致性（CP）
-
-- 服务注册相比 Eureka 会稍慢一些。因为 Consul 的 raft 协议要求必须过半数的节点都写入成功才认为注册成功
-- Leader 挂掉时，重新选举期间整个 consul 不可用。保证了强一致性但牺牲了可用性
-
-Eureka 保证高可用和最终一致性（AP）
-
-- 服务注册相对要快，因为不需要等注册信息 replicate 到其他节点，也不保证注册信息是否 replicate 成功
-- 当数据出现不一致时，虽然A, B上的注册信息不完全相同，但每个 Eureka 节点依然能够正常对外提供服务，这会出现查询服务信息时如果请求A查不到，但请求B就能查到。如此保证了可用性但牺牲了一致性
-
-2. 开发语言和使用
-
-- eureka 就是个 servlet 程序，跑在 servlet 容器中
-- Consul 则是 go 编写而成，安装启动即可
-
-### 1.3. consul 下载与安装
+### 1.2. consul 下载与安装
 
 Consul 不同于 Eureka 需要单独安装，访问 Consul 官网下载 Consul 的最新版本（本次示例安装 consul 1.5x 版）
 
-#### 1.3.1. Linux 系统安装 Consul
+#### 1.2.1. Linux 系统安装 Consul
 
 输入以下命令
 
@@ -77,7 +58,7 @@ consul
 
 启动成功之后访问：`http://linux系统ip:8500`，可以看到 Consul 的管理界面
 
-#### 1.3.2. window 系统安装 Consul
+#### 1.2.2. window 系统安装 Consul
 
 1. 将 window 版压缩包`consul_1.5.3_windows_amd64.zip`解压到没有中文和空格的目录
 2. 进入目录，运行命令行。输入以下命令，启动 consul 服务
@@ -91,13 +72,13 @@ consul agent -dev -client=0.0.0.0
 
 3. 启动成功后访问`http://127.0.0.1:8500`，进入 consul 管理界面
 
-### 1.4. consul 的基本使用
+### 1.3. consul 的基本使用
 
 Consul 支持健康检查，并提供了 HTTP 和 DNS 调用的API接口完成服务注册，服务发现，以及K/V存储这些功能。以下是基于通过发送HTTP请求的形式来实现Consul的基础使用
 
 > *官方的API接口文档地址：https://www.consul.io/api/catalog.html#catalog_register*
 
-#### 1.4.1. 注册服务
+#### 1.3.1. 注册服务
 
 通过postman发送PUT请求到`http://192.168.74.101:8500/v1/catalog/register`地址可以完成服务注册，请求参数如下：
 
@@ -119,7 +100,7 @@ Consul 支持健康检查，并提供了 HTTP 和 DNS 调用的API接口完成�
 }
 ```
 
-#### 1.4.2. 服务查询
+#### 1.3.2. 服务查询
 
 通过postman发送GET请求到`http://192.168.74.101:8500/v1/catalog/services`查看所有的服务列表
 
@@ -129,7 +110,7 @@ Consul 支持健康检查，并提供了 HTTP 和 DNS 调用的API接口完成�
 
 ![](images/20201014144036460_8373.png)
 
-#### 1.4.3. 服务删除
+#### 1.3.3. 服务删除
 
 通过postman发送PUT请求到`http://192.168.74.101:8500/v1/catalog/deregister`删除服务
 
@@ -141,7 +122,7 @@ Consul 支持健康检查，并提供了 HTTP 和 DNS 调用的API接口完成�
 }
 ```
 
-#### 1.4.4. Consul 的 K/V 存储
+#### 1.3.4. Consul 的 K/V 存储
 
 可以参照Consul提供的KV存储的API完成基于Consul的数据存储
 

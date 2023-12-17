@@ -266,7 +266,7 @@ public class EurekaTest {
 }
 ```
 
-### 4.2. 通过Eureka的元数据实现服务调用
+### 4.2. 通过 Eureka 的元数据实现服务调用
 
 修改`shop-service-order`工程的`OrderController`，注入`DiscoveryClient`对象，获取商品服务的url，进行远程调用
 
@@ -1422,23 +1422,3 @@ public class DiscoveryClient implements EurekaClient {
     2. `HeartbeatThread` 通过`renew()`方法实现续约任务，维持于注册中心的心跳(`url=/apps/{id}`)，若返回状态码为404则说明该服务实例没有在注册中心注册，执行`register()`向注册中心注册实例信息
     3. `ApplicationInfoManager.StatusChangeListener` 注册实例状态监听类，监听服务实例状态变化，向注册中心同步实例状态
     4. `InstanceInfoReplicator`定时刷新实例状态，并向注册中心同步，默认`eureka.client.instanceInfoReplicationIntervalSeconds=30`，即30s执行一次。若实例状态有变更，则重新执行注册
-
-## 8. Eureka替换方案（Consul 注册中心）
-
-### 8.1. Eureka 的替换方案
-
-- **Zookeeper**
-
-ZooKeeper是一个分布式的，开放源码的分布式应用程序协调服务，是Google的Chubby一个开源的实现，是Hadoop和Hbase的重要组件。它是一个为分布式应用提供一致性服务的软件，提供的功能包括：配置维护、域名服务、分布式同步、组服务等。
-
-- **Consul**
-
-consul是近几年比较流行的服务发现工具。consul的三个主要应用场景：服务发现、服务隔离、服务配置
-
-- **Nacos**
-
-Nacos 是阿里巴巴推出来的一个新开源项目，这是一个更易于构建云原生应用的动态服务发现、配置管理和服务管理平台。Nacos 致力于帮助您发现、配置和管理微服务。Nacos 提供了一组简单易用的特性集，帮助您快速实现动态服务发现、服务配置、服务元数据及流量管理。Nacos 帮助您更敏捷和容易地构建、交付和管理微服务平台。 Nacos 是构建以“服务”为中心的现代应用架构 (例如微服务范式、云原生范式) 的服务基础设施
-
-### 8.2. Consul 注册中心入门
-
-Consul 注册中心组件的详细介绍与使用，详见`Spring-Cloud-Consul.md`
