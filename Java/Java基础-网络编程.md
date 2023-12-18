@@ -562,9 +562,8 @@ public ServerSocket(int port) throws IOException
 public Socket accept() throws IOException
 ```
 
-- 等待客户端连接并获得客户端的Socket对象。
-- **同步方法，一直等待客户端连接，直到连接成功才能执行后续的代码。**
-> API:侦听并接受到此套接字的连接。此方法在连接传入之前一直阻塞。
+- 等待客户端连接并获得客户端的 Socket 对象。注意：此方法是**同步的，即一直等待客户端连接，直到连接成功才能执行后续的代码**。
+> API: 侦听并接受到此套接字的连接。此方法在连接传入之前一直阻塞。
 
 ```java
 public InetAddress getInetAddress()
@@ -594,8 +593,7 @@ Socket 就是为网络编程提供的一种机制，又叫**套接字编程**。
 public Socket(String host, int port);
 ```
 
-- 使用该构造方法在创建 Socket 对象时，需要传递服务器字符串的IP地址和端口号。会根据参数去连接在指定地址和端口上运行的服务器程序，其中参数host接收的是一个字符串类型的IP地址。
-- **注意：构造方法只要运行，就会和服务器进行连接，如果服务器没有开启则抛出异常。**
+- 使用该构造方法在创建 Socket 对象时，需要传递服务器字符串的IP地址和端口号。会根据参数去连接在指定地址和端口上运行的服务器程序，其中参数host接收的是一个字符串类型的IP地址。**注意：构造方法只要运行，就会和服务器进行连接，如果服务器没有开启则抛出异常。**
 
 ```java
 public Socket(InetAddress address, int port);

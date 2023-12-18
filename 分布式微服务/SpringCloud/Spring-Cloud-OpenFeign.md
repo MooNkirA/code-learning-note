@@ -1148,3 +1148,12 @@ final class SynchronousMethodHandler implements MethodHandler {
 - `SynchronousMethodHandler`内部创建了一个`RequestTemplate`对象，是Feign中的请求模板对象。内部封装了一次请求的所有元数据。
 - `retryer`中定义了用户的重试策略。
 - 调用`executeAndDecode`方法通过client完成请求处理，client的实现类是`LoadBalancerFeignClient`
+
+## 8. 相关知识
+
+### 8.1. Ribbon 和 Feign 调用服务的区别
+
+主要是**调用方式不同**：
+
+- Ribbon 需要开发者自己构建 Http 请求，模拟 Http 请求然后通过 RestTemplate 发给其他服务，步骤相当繁琐；
+- Feign 则是在 Ribbon 的基础上进行了一次改进，采用接口的形式，将需要调用的服务方法定义成抽象方法保存在本地就可以了，不需要开发者构建 Http 请求了，直接调用接口即可。值得注意的是，**调用方法要和本地抽象方法的签名完全一致**。

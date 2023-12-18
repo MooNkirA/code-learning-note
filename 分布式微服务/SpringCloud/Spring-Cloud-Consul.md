@@ -1,6 +1,7 @@
 ## 1. Spring Cloud Consul 基础入门
 
-> 官网：https://www.consul.io/
+> - 官网：https://www.consul.io/
+> - Spring Cloud Consul 官方文档：https://spring.io/projects/spring-cloud-consul
 
 ### 1.1. consul 概述
 
@@ -202,11 +203,11 @@ spring:
 
 ### 2.5. 基于 consul 的服务发现
 
-由于SpringCloud对Consul进行了封装。对于在消费者端获取服务提供者信息和Eureka是一致的。同样使用 `DiscoveryClient` 完成调用获取微服务实例信息，也可以使用 Ribbon 完成服务的调用。
+由于 Spring Cloud 对 Consul 进行了封装。对于在消费者端获取服务提供者信息和 Eureka 是一致的。同样使用 `DiscoveryClient` 完成调用获取微服务实例信息，也可以使用 Ribbon 完成服务的调用。
 
 ![](images/20201014160048541_5289.png)
 
-下面以Ribbon的方式完成服务的调用示例
+下面以 Ribbon 的方式完成服务的调用示例
 
 #### 2.5.1. 修改配置类增加负载均衡
 
