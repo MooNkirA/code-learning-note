@@ -276,6 +276,20 @@ FastStone 官方网站： http://www.faststone.org/
 
 - https://www.faststonesoft.net/DN/FSResizer44.zip
 
+### 6.2. 截图工具
+
+#### 6.2.1. Snipaste
+
+> 官网：https://www.snipaste.com/
+
+#### 6.2.2. Pixpin
+
+> 官网：https://pixpinapp.com/
+
+PixPin 是目前市面上功能最全面的截图工具之一了！包括**截图、贴图、标注、编辑、文字识别、滚屏长截图、动图 GIF 录屏**等等，都是办公编辑时中非常需要用到的功能。PixPin 把它们全都集成在一起，变成一个非常高效实用的生产力利器！目前完全免费。
+
+> 异次元简介：https://www.iplaysoft.com/pixpin.html
+
 ## 7. 网络资源
 
 ### 7.1. 电子书
