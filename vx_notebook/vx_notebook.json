@@ -7,26 +7,6 @@
     },
     "history": [
         {
-            "last_accessed_time": "2023-11-06T07:45:53Z",
-            "line_number": 347,
-            "path": "分布式微服务/分布式消息中件间/消息中间件.md"
-        },
-        {
-            "last_accessed_time": "2023-11-06T07:46:34Z",
-            "line_number": 0,
-            "path": "分布式微服务/消息中件间/消息中间件.md"
-        },
-        {
-            "last_accessed_time": "2023-11-06T07:51:34Z",
-            "line_number": 8,
-            "path": "分布式微服务/分布式服务注册中心/服务注册与发现.md"
-        },
-        {
-            "last_accessed_time": "2023-11-06T07:54:59Z",
-            "line_number": 0,
-            "path": "分布式微服务/分布式任务调度/Quartz.md"
-        },
-        {
             "last_accessed_time": "2023-11-06T08:17:01Z",
             "line_number": 0,
             "path": "分布式微服务/分布式任务调度/Task-Scheduling.md"
@@ -237,11 +217,6 @@
             "path": "Java/Java基础-语法.md"
         },
         {
-            "last_accessed_time": "2023-12-10T08:27:48Z",
-            "line_number": 1355,
-            "path": "分布式微服务/服务注册中心/Zookeeper-基础.md"
-        },
-        {
             "last_accessed_time": "2023-12-10T08:36:33Z",
             "line_number": 15,
             "path": "其他/development-software/eclipse.md"
@@ -427,11 +402,6 @@
             "path": "JavaWeb/JavaWeb-Servlet.md"
         },
         {
-            "last_accessed_time": "2023-12-18T07:33:45Z",
-            "line_number": 290,
-            "path": "JavaWeb/JavaWeb-网络.md"
-        },
-        {
             "last_accessed_time": "2023-12-19T01:58:05Z",
             "line_number": 434,
             "path": "并发编程/并发编程-设计模式篇.md"
@@ -472,11 +442,6 @@
             "path": "Java/Java基础-IO编程.md"
         },
         {
-            "last_accessed_time": "2023-12-20T00:47:39Z",
-            "line_number": 599,
-            "path": "Java/Java基础-网络编程.md"
-        },
-        {
             "last_accessed_time": "2023-12-20T00:47:40Z",
             "line_number": 1553,
             "path": "并发编程/并发编程-多线程.md"
@@ -497,14 +462,49 @@
             "path": "并发编程/并发编程-原理篇.md"
         },
         {
-            "last_accessed_time": "2023-12-20T14:46:53Z",
+            "last_accessed_time": "2023-12-21T01:04:23Z",
+            "line_number": 8,
+            "path": "分布式微服务/服务注册中心/Zookeeper-应用场景.md"
+        },
+        {
+            "last_accessed_time": "2023-12-21T01:52:07Z",
+            "line_number": 64,
+            "path": "分布式微服务/服务注册中心/分布式服务注册中心-概述.md"
+        },
+        {
+            "last_accessed_time": "2023-12-21T01:52:20Z",
+            "line_number": 466,
+            "path": "分布式微服务/SpringCloud/Spring-Cloud-Consul.md"
+        },
+        {
+            "last_accessed_time": "2023-12-21T01:52:24Z",
+            "line_number": 1404,
+            "path": "分布式微服务/服务注册中心/Zookeeper-基础.md"
+        },
+        {
+            "last_accessed_time": "2023-12-21T01:52:25Z",
+            "line_number": 38,
+            "path": "分布式微服务/SpringCloud/Spring-Cloud-Netflix-Eureka.md"
+        },
+        {
+            "last_accessed_time": "2023-12-21T15:00:38Z",
             "line_number": 2040,
             "path": "并发编程/并发编程-线程安全与锁.md"
         },
         {
-            "last_accessed_time": "2023-12-20T14:46:53Z",
-            "line_number": 284,
+            "last_accessed_time": "2023-12-21T15:00:39Z",
+            "line_number": 246,
             "path": "其他/system-software/Common-Software.md"
+        },
+        {
+            "last_accessed_time": "2023-12-21T15:00:39Z",
+            "line_number": 437,
+            "path": "Java/Java基础-网络编程.md"
+        },
+        {
+            "last_accessed_time": "2023-12-21T15:00:39Z",
+            "line_number": 445,
+            "path": "JavaWeb/JavaWeb-网络.md"
         }
     ],
     "image_folder": "images",
