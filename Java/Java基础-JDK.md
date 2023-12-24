@@ -89,7 +89,7 @@ Oracle JDK 补丁集更新 (PSUs) 包含相应 CPUs 中的所有修复以及其�
 - JRE（Java run-time） 是 Java 运行时环境，是运行 Java 程序所必须的。
 - JDK（Java development kit）是 Java 程序开发工具集，如 Java 编译器，它也包含 JRE。
 - JVM（Java virtual machine）是 Java 虚拟机，它的责任是运行 Java 应用。
-- JIT（Just In Time compilation）是即时编译，当代码执行的次数超过一定的阈值时，会将 Java 字节码转换为本地代码，如，主要的热点代码会被准换为本地代码，这样有利大幅度提高 Java 应用的性能。
+- JIT（Just In Time compilation）是即时编译。为了提高热点代码的执行效率，在运行时，当代码执行的次数超过一定的阈值时，虚拟机会将 Java 字节码转换为与本地平台相关的机器码，并进行各种层次的优化。如：主要的热点代码会被准换为本地代码，这样有利大幅度提高 Java 应用的性能。
 
 ### 6.2. javap 反编译工具（待整理）
 

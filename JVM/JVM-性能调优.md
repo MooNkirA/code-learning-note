@@ -171,6 +171,29 @@ nohup java -Xms512m -Xmx1024m -jar xxxx.jar --spring.profiles.active=prod &
 
 迁移到 64 位的 JVM 主要动机在于可以指定最大堆大小，通过压缩 OOP 可以节省一定的内存。通过 `-XX:+UseCompressedOops` 选项，JVM 会使用 32 位的 OOP，而不是 64 位的 OOP。
 
+### 2.5. 示例：生产环境用的什么JDK？如何配置的垃圾收集器？
+
+例如生产环境使用了 Oracle JDK 1.8，G1 收集器相关配置如下：
+
+```
+-Xmx12g
+-Xms12g
+-XX:+UseG1GC
+-XX:InitiatingHeapOccupancyPercent=45
+-XX:MaxGCPauseMillis=200
+-XX:MetaspaceSize=256m
+-XX:MaxMetaspaceSize=256m
+-XX:MaxDirectMemorySize=512m
+-XX:G1HeapRegionSize 未指定
+```
+
+核心思路：
+
+- 每个内存区域设置上限，避免溢出。
+- 堆设置为操作系统的 70% 左右，超过 8G，首选 G1。
+- 根据老年代对象提升速度，调整新生代与老年代之间的内存比例。
+- 等过 GC 信息，针对项目敏感指标优化，比如访问延迟、吞吐量等。
+
 ## 3. 常用的 JVM 调优命令
 
 ### 3.1. jps（虚拟机进程状况工具）
@@ -388,6 +411,12 @@ java -XX:+PrintFlagsFinal -version
 java -XX:+PrintFlagsInitial
 ```
 
+### 3.8. Arthas（Java 诊断工具）
+
+Arthas 是 Alibaba 开源的 Java 诊断工具。支持 JDK 6+，支持 Linux/Mac/Winodws，采用命令行交互模式，同时提供丰富的 Tab 自动补全功能，进一步方便进行问题的定位和诊断。
+
+> 详见[《Arthas - Alibaba 开源的 Java 诊断工具》笔记](/JVM/Arthas)
+
 ## 4. JVM 性能调优可视化工具
 
 JDK 自带了很多监控工具，都位于 JDK 的 bin 目录下，其中最常用的是 jconsole 和 jvisualvm 这两款视图监控工具。第三方有：MAT(Memory Analyzer Tool)、GChisto。
@@ -484,7 +513,7 @@ jmap -dump:format=b,file=heap.hprof pid
 3. 查看当前线程中的进程信息
 
 ```bash
-ps H -eo pid,tid,%cpu | grep 40940
+ps H -eo pid,tid,%cpu | grep 30978
 ```
 
 ![](images/482415116240889.png)
