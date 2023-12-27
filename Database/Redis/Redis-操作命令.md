@@ -1024,8 +1024,17 @@ rpush key value1 value2 ...
 
 ### 4.3. 两边弹出
 
-- `lpop key`：返回并弹出指定的key对应链表中头部（left）第一个元素，如果该key不存在，返回nil。
-- `rpop key`：返回并弹出指定的key对应链表中尾部（right）第一个元素，如果该key不存在，返回nil。
+```bash
+lpop key
+```
+
+- 返回并弹出指定的key对应链表中头部（left）第一个元素，如果该key不存在，返回nil。
+
+```bash
+rpop key
+```
+
+- 返回并弹出指定的key对应链表中尾部（right）第一个元素，如果该key不存在，返回nil。
 
 ### 4.4. 获取列表中元素的个数
 

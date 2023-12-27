@@ -19,9 +19,6 @@
             "name": "Nginx"
         },
         {
-            "name": "Zookeeper"
-        },
-        {
             "name": "消息中件间"
         },
         {

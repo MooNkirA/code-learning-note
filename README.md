@@ -46,6 +46,7 @@
   <li><a href="#/JVM/JVM-性能调优">JVM 性能调优</a></li>
   <li><a href="#/JVM/JVM-指令手册">JVM 指令手册</a></li>
   <li><a href="#/JVM/JVM-源码分析">JVM 源码分析</a></li>
+  <li><a href="#/JVM/Arthas">Arthas - Alibaba 开源的 Java 诊断工具</a></li>
 </ul>
 
 ## 后端框架
@@ -386,7 +387,9 @@
 
 <ul class="docs">
   <li><a href="#/分布式微服务/Dubbo/Dubbo-基础">Dubbo 基础</a></li>
-  <li><a href="#/分布式微服务/Dubbo/Dubbo-高级功能">Dubbo 高级功能进阶 - 常用配置策略用法</a></li>
+  <li><a href="#/分布式微服务/Dubbo/Dubbo-高级功能">Dubbo 高级特性与用法</a></li>
+  <li><a href="#/分布式微服务/Dubbo/Dubbo-注册中心">Dubbo 注册中心</a></li>
+  <li><a href="#/分布式微服务/Dubbo/Dubbo-Admin">Dubbo Admin 控制台</a></li>
   <li><a href="#/分布式微服务/Dubbo/Dubbo-源码分析">Dubbo 源码分析</a></li>
 </ul>
 
@@ -404,14 +407,6 @@
   <li><a href="#/分布式微服务/Nginx/Nginx-基础">Nginx 基础笔记</a></li>
 </ul>
 
-### 🐒 ZooKeeper
-
-<ul class="docs">
-  <li><a href="#/分布式微服务/Zookeeper/Zookeeper-基础">Zookeeper 基础</a></li>
-  <li><a href="#/分布式微服务/Zookeeper/Zookeeper-客户端">Zookeeper 常用客户端（Zookeeper、Zkclient、Curator）</a></li>
-  <li><a href="#/分布式微服务/Zookeeper/Zookeeper-应用场景">Zookeeper 应用场景</a></li>
-</ul>
-
 ### 📬 分布式消息中件间
 
 <ul class="docs">
@@ -426,6 +421,14 @@
 
 <ul class="docs">
   <li><a href="#/分布式微服务/服务注册中心/分布式服务注册中心-概述">分布式服务注册中心概述</a></li>
+</ul>
+
+#### 🐒 ZooKeeper
+
+<ul class="docs">
+  <li><a href="#/分布式微服务/服务注册中心/Zookeeper-基础">Zookeeper 基础</a></li>
+  <li><a href="#/分布式微服务/服务注册中心/Zookeeper-客户端">Zookeeper 常用客户端（Zookeeper、Zkclient、Curator）</a></li>
+  <li><a href="#/分布式微服务/服务注册中心/Zookeeper-应用场景">Zookeeper 应用场景</a></li>
 </ul>
 
 ### 🧾 分布式配置中心
@@ -531,7 +534,9 @@
   <li><a href="#/其他/system-software/Windows">Windows 系统相关教程</a></li>
   <li><a href="#/其他/system-software/Microsoft-Office">Microsoft Office 系列教程</a></li>
   <li><a href="#/其他/system-software/Web-Browser">网页浏览器系列教程</a></li>
-  <li><a href="#/其他/system-software/Common-Software">其他常用软件教程</a></li>
+  <li><a href="#/其他/system-software/Common-Software">常用软件教程</a></li>
+  <li><a href="#/其他/system-software/foobar2000">foobar2000 - 本地顶级音乐播放器</a></li>
+  <li><a href="#/其他/system-software/everything">Everything - 本地高效搜索神器</a></li>
 </ul>
 
 ## 收集的项目实战资料

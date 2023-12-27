@@ -1,6 +1,7 @@
 ## 1. Spring Cloud Consul 基础入门
 
-> 官网：https://www.consul.io/
+> - 官网：https://www.consul.io/
+> - Spring Cloud Consul 官方文档：https://spring.io/projects/spring-cloud-consul
 
 ### 1.1. consul 概述
 
@@ -8,11 +9,11 @@ Consul 是 HashiCorp 公司推出的开源工具，用于实现分布式系统�
 
 **Consul 的优势**：
 
-- 使用 Raft 算法来保证一致性, 比复杂的 Paxos 算法更直接. 相比较而言, zookeeper 采用的是Paxos, 而 etcd 使用的则是 Raft。
-- 支持多数据中心，内外网的服务采用不同的端口进行监听。 多数据中心集群可以避免单数据中心的单点故障,而其部署则需要考虑网络延迟, 分片等情况等。 zookeeper 和 etcd 均不提供多数据中心功能的支持。
-- 支持健康检查。 etcd 不提供此功能。
-- 支持 http 和 dns 协议接口。 zookeeper 的集成较为复杂, etcd 只支持 http 协议。
-- 官方提供 web 管理界面, etcd 无此功能。
+- 使用 Raft 算法来保证一致性，比复杂的 Paxos 算法更直接。相比较而言，zookeeper 采用的是 Paxos，而 etcd 使用的则是 Raft。
+- 支持多数据中心，内外网的服务采用不同的端口进行监听。多数据中心集群可以避免单数据中心的单点故障，而其部署则需要考虑网络延迟，分片等情况等。zookeeper 和 etcd 均不提供多数据中心功能的支持。
+- 支持健康检查。etcd 不提供此功能。
+- 支持 http 和 dns 协议接口。zookeeper 的集成较为复杂，etcd 只支持 http 协议。
+- 官方提供 web 管理界面，etcd 无此功能。
 
 **Consul 的特性**：
 
@@ -21,30 +22,11 @@ Consul 是 HashiCorp 公司推出的开源工具，用于实现分布式系统�
 - Key/Value 存储
 - 多数据中心
 
-### 1.2. consul 与 Eureka 的区别
-
-1. 一致性
-
-Consul 强一致性（CP）
-
-- 服务注册相比 Eureka 会稍慢一些。因为 Consul 的 raft 协议要求必须过半数的节点都写入成功才认为注册成功
-- Leader 挂掉时，重新选举期间整个 consul 不可用。保证了强一致性但牺牲了可用性
-
-Eureka 保证高可用和最终一致性（AP）
-
-- 服务注册相对要快，因为不需要等注册信息 replicate 到其他节点，也不保证注册信息是否 replicate 成功
-- 当数据出现不一致时，虽然A, B上的注册信息不完全相同，但每个 Eureka 节点依然能够正常对外提供服务，这会出现查询服务信息时如果请求A查不到，但请求B就能查到。如此保证了可用性但牺牲了一致性
-
-2. 开发语言和使用
-
-- eureka 就是个 servlet 程序，跑在 servlet 容器中
-- Consul 则是 go 编写而成，安装启动即可
-
-### 1.3. consul 下载与安装
+### 1.2. consul 下载与安装
 
 Consul 不同于 Eureka 需要单独安装，访问 Consul 官网下载 Consul 的最新版本（本次示例安装 consul 1.5x 版）
 
-#### 1.3.1. Linux 系统安装 Consul
+#### 1.2.1. Linux 系统安装 Consul
 
 输入以下命令
 
@@ -77,7 +59,7 @@ consul
 
 启动成功之后访问：`http://linux系统ip:8500`，可以看到 Consul 的管理界面
 
-#### 1.3.2. window 系统安装 Consul
+#### 1.2.2. window 系统安装 Consul
 
 1. 将 window 版压缩包`consul_1.5.3_windows_amd64.zip`解压到没有中文和空格的目录
 2. 进入目录，运行命令行。输入以下命令，启动 consul 服务
@@ -91,13 +73,13 @@ consul agent -dev -client=0.0.0.0
 
 3. 启动成功后访问`http://127.0.0.1:8500`，进入 consul 管理界面
 
-### 1.4. consul 的基本使用
+### 1.3. consul 的基本使用
 
 Consul 支持健康检查，并提供了 HTTP 和 DNS 调用的API接口完成服务注册，服务发现，以及K/V存储这些功能。以下是基于通过发送HTTP请求的形式来实现Consul的基础使用
 
 > *官方的API接口文档地址：https://www.consul.io/api/catalog.html#catalog_register*
 
-#### 1.4.1. 注册服务
+#### 1.3.1. 注册服务
 
 通过postman发送PUT请求到`http://192.168.74.101:8500/v1/catalog/register`地址可以完成服务注册，请求参数如下：
 
@@ -119,7 +101,7 @@ Consul 支持健康检查，并提供了 HTTP 和 DNS 调用的API接口完成�
 }
 ```
 
-#### 1.4.2. 服务查询
+#### 1.3.2. 服务查询
 
 通过postman发送GET请求到`http://192.168.74.101:8500/v1/catalog/services`查看所有的服务列表
 
@@ -129,7 +111,7 @@ Consul 支持健康检查，并提供了 HTTP 和 DNS 调用的API接口完成�
 
 ![](images/20201014144036460_8373.png)
 
-#### 1.4.3. 服务删除
+#### 1.3.3. 服务删除
 
 通过postman发送PUT请求到`http://192.168.74.101:8500/v1/catalog/deregister`删除服务
 
@@ -141,7 +123,7 @@ Consul 支持健康检查，并提供了 HTTP 和 DNS 调用的API接口完成�
 }
 ```
 
-#### 1.4.4. Consul 的 K/V 存储
+#### 1.3.4. Consul 的 K/V 存储
 
 可以参照Consul提供的KV存储的API完成基于Consul的数据存储
 
@@ -154,6 +136,57 @@ Consul 支持健康检查，并提供了 HTTP 和 DNS 调用的API接口完成�
 - key 值中可以带`/`, 可以看做是不同的目录结构
 - value 的值经过了 base64_encode,获取到数据后 base64_decode 才能获取到原始值。数据不能大于 512Kb
 - 不同数据中心的 kv 存储系统是独立的，使用`dc=?`参数指定。
+
+### 1.4. Consul 的服务调用过程
+
+![](images/174892409237555.jpg)
+
+1. 当 Producer 启动的时候，会向 Consul 发送一个 post 请求，告诉 Consul 自己的 IP 和 Port。
+2. Consul 接收到 Producer 的注册后，每隔 10s（默认）会向 Producer 发送一个健康检查的请求，检验 Producer 是否健康。
+3. 当 Consumer 发送 GET 方式请求 /api/address 到 Producer 时，会先从 Consul 中拿到一个存储服务 IP 和 Port 的临时表，从表中拿到 Producer 的 IP 和 Port 后再发送 GET 方式请求 /api/address；
+该临时表每隔 10s 会更新，只包含有通过了健康检查的 Producer。
+
+### 1.5. 多数据中心
+
+Consul 支持开箱即用的多数据中心，这意味着用户不需要担心需要建立额外的抽象层让业务扩展到多个区域。
+
+![](images/538493209250390.png)
+
+在上图中有两个 DataCenter，他们通过 Internet 互联，同时请注意为了提高通信效率，只有 Server 节点才加入跨数据中心的通信。
+
+在单个数据中心中，Consul 分为 Client 和 Server 两种节点（所有的节点也被称为 Agent），Server 节点保存数据，Client 负责健康检查及转发数据请求到 Server；Server 节点有一个 Leader 和多个 Follower，Leader 节点会将数据同步到 Follower，Server 的数量推荐是3个或者5个，在 Leader 挂掉的时候会启动选举机制产生一个新的 Leader。
+
+集群内的 Consul 节点通过 gossip 协议（流言协议）维护成员关系，也就是说某个节点了解集群内现在还有哪些节点，这些节点是 Client 还是 Server。单个数据中心的流言协议同时使用 TCP 和 UDP 通信，并且都使用 8301 端口。跨数据中心的流言协议也同时使用 TCP 和 UDP 通信，端口使用 8302。
+
+集群内数据的读写请求既可以直接发到 Server，也可以通过 Client 使用 RPC 转发到 Server，请求最终会到达 Leader 节点，在允许数据延时的情况下，读请求也可以在普通的 Server 节点完成，集群内数据的读写和复制都是通过 TCP 的 8300 端口完成。
+
+### 1.6. 番外：ETCD
+
+etcd 是一个 Go 言编写的分布式、高可用的一致性键值存储系统，用于提供可靠的分布式键值存储、配置共享和服务发现等功能。
+
+#### 1.6.1. ETCD 特点
+
+- 易使用：基于 HTTP+JSON 的 API，使用 curl 就可以轻松使用；
+- 易部署：使用 Go 语言编写，跨平台，部署和维护简单；
+- 强一致：使用R aft 算法充分保证了分布式系统数据的强一致性；
+- 高可用：具有容错能力，假设集群有 n 个节点，当有`(n-1)/2`节点发送故障，依然能提供服务；
+- 持久化：数据更新后，会通过 WAL 格式数据持久化到磁盘，支持 Snapshot 快照；
+- 快速：每个实例每秒支持一千次写操作，极限写性能可达 10K QPS；
+- 安全：可选 SSL 客户认证机制；
+- ETCD 3.0：除了上述功能，还支持 gRPC 通信、watch 机制。
+
+#### 1.6.2. ETCD 框架
+
+etcd 主要分为四个部分：
+
+- HTTP Server：用于处理用户发送的 API 请求以及其它 etcd 节点的同步与心跳信息请求。
+- Store：用于处理 etcd 支持的各类功能的事务，包括数据索引、节点状态变更、监控与反馈、事件处理与执行等等，是 etcd 对用户提供的大多数 API 功能的具体实现。
+- Raft：Raft 强一致性算法的具体实现，是 etcd 的核心。
+- WAL：Write Ahead Log（预写式日志），是 etcd 的数据存储方式。除了在内存中存有所有数据的状态以及节点的索引以外，etcd 就通过 WAL 进行持久化存储。WAL 中，所有的数据提交前都会事先记录日志。Snapshot 是为了防止数据过多而进行的状态快照；Entry 表示存储的具体日志内容。
+
+![](images/506843009257721.png)
+
+通常，一个用户的请求发送过来，会经由 HTTP Server 转发给 Store 进行具体的事务处理，如果涉及到节点的修改，则交给 Raft 模块进行状态的变更、日志的记录，然后再同步给别的 etcd 节点以确认数据提交，最后进行数据的提交，再次同步。
 
 ## 2. 基于 consul 的服务注册与发现示例
 
@@ -221,11 +254,11 @@ spring:
 
 ### 2.5. 基于 consul 的服务发现
 
-由于SpringCloud对Consul进行了封装。对于在消费者端获取服务提供者信息和Eureka是一致的。同样使用 `DiscoveryClient` 完成调用获取微服务实例信息，也可以使用 Ribbon 完成服务的调用。
+由于 Spring Cloud 对 Consul 进行了封装。对于在消费者端获取服务提供者信息和 Eureka 是一致的。同样使用 `DiscoveryClient` 完成调用获取微服务实例信息，也可以使用 Ribbon 完成服务的调用。
 
 ![](images/20201014160048541_5289.png)
 
-下面以Ribbon的方式完成服务的调用示例
+下面以 Ribbon 的方式完成服务的调用示例
 
 #### 2.5.1. 修改配置类增加负载均衡
 

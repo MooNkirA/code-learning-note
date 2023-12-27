@@ -226,7 +226,7 @@ show master status;
 
 #### 3.4.4. 从库同步主库数据
 
-切换至从库bin目录，登录从库
+切换至从库 bin 目录，登录从库
 
 ```bash
 mysql -h localhost -P3307 -uroot -p123456

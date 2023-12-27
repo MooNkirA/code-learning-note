@@ -212,7 +212,7 @@ Spring Boot Actuator 提供了对单个 Spring Boot 应用的监控，信息包�
 
 ### 4.2. Spring Boot Admin 来源背景
 
-codecentric 的 Spring Boot Admin 是一个社区项目，用于管理和监视您的 Spring Boot® 应用程序。这些应用程序在 Spring Boot Admin Client 中注册（通过HTTP），或者是通过Spring Cloud®（例如Eureka，Consul）发现的。UI 只是 Spring Boot Actuator 端点之上的 Vue.js 应用程序。
+codecentric 的 Spring Boot Admin 是一个社区项目，用于管理和监视 Spring Boot® 应用程序。这些应用程序在 Spring Boot Admin Client 中注册（通过HTTP），或者是通过Spring Cloud®（例如Eureka，Consul）发现的。UI 只是 Spring Boot Actuator 端点之上的 Vue.js 应用程序。
 
 ### 4.3. Spring Boot Admin 功能介绍
 

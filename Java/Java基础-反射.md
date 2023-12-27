@@ -1687,7 +1687,7 @@ com.moon.service.impl.info.InfoServiceBImpl
 ```java
 @Test
 public void testBaseSpi() {
-    //服务加载器，加载实现类
+    // 服务加载器，加载实现类
     ServiceLoader<InfoService> serviceLoader = ServiceLoader.load(InfoService.class);
     // ServiceLoader是实现了Iterable的迭代器，直接遍历实现类
     for (InfoService service : serviceLoader) {

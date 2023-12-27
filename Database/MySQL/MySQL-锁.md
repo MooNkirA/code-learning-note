@@ -120,14 +120,14 @@ mysqldump --single-transaction -uroot –p123456 temp_db > temp_db.sql
 - 快照读：读取的是快照版本。普通的 SELECT 就是快照读。通过 mvcc 机制来进行并发控制的，不用加锁。
 - 当前读：即锁定读（Locking Reads），读取的是最新版本，并且对读取的记录加锁，阻塞其他事务同时改动相同记录，避免出现安全问题。以下的情况是当前读：
 
-|              SQL              | 行锁类型 |                  说明                  |
-| ----------------------------- | ------- | ------------------------------------- |
-| SELECT ... LOCK IN SHARE MODE | 共享锁   | 需要手动在SELECT之后加LOCK IN SHARE MODE |
-| SELECT ... FOR UPDATE         | 排他锁   | 需要手动在SELECT之后加FOR UPDATE         |
-| INSERT ...                    | 排他锁   | 自动加锁                                |
-| UPDATE ...                    | 排他锁   | 自动加锁                                |
-| DELETE ...                    | 排他锁   | 自动加锁                                |
-| 串行化事务隔离级别                |         | 串行                                   |
+|              SQL              | 行锁类型 |                   说明                    |
+| ----------------------------- | ------- | ----------------------------------------- |
+| SELECT ... LOCK IN SHARE MODE | 共享锁   | 需要手动在 SELECT 之后加 LOCK IN SHARE MODE |
+| SELECT ... FOR UPDATE         | 排他锁   | 需要手动在 SELECT 之后加 FOR UPDATE         |
+| INSERT ...                    | 排他锁   | 自动加锁                                   |
+| UPDATE ...                    | 排他锁   | 自动加锁                                   |
+| DELETE ...                    | 排他锁   | 自动加锁                                   |
+| 串行化事务隔离级别               |         | 串行                                      |
 
 当前读这种实现方式，也可以称之为 LBCC（基于锁的并发控制，Lock-Based Concurrency Control）
 

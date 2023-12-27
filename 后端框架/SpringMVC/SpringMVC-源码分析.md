@@ -70,11 +70,120 @@ public @interface HandlesTypes {
 
 #### 3.2.1. doService方法
 
-此方法在接收到请求首先执行的方法，通过跟踪源码得知，它重写父类`FrameworkServlet`的，`FrameworkServlet`是继承了`HttpServlet`，所以它就相当于执行了Servlet中的service方法
+此方法在接收到请求首先执行的方法，通过跟踪源码得知，它重写父类`FrameworkServlet`的，`FrameworkServlet`是继承了`HttpServlet`，所以它就相当于执行了 Servlet 中的 service 方法。
+
+```java
+/**
+ * Override the parent class implementation in order to intercept PATCH requests.
+ */
+@Override
+protected void service(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+
+    HttpMethod httpMethod = HttpMethod.resolve(request.getMethod());
+    if (httpMethod == HttpMethod.PATCH || httpMethod == null) {
+        processRequest(request, response);
+    } else {
+        super.service(request, response);
+    }
+}
+```
+
+`processRequest` 方法实现源码如下：
+
+```java
+protected final void processRequest(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+   // 省略一堆初始化配置
+   try {
+       // 真正执行逻辑的方法
+       doService(request, response);
+   }
+   catch (ServletException | IOException ex) {
+       ...
+   }
+}
+```
+
+其中 `doService` 方法是抽象方法，由子类 `DispatcherServlet` 重写实现了，源码如下：
+
+```java
+protected abstract void doService(HttpServletRequest request, HttpServletResponse response) throws Exception;
+```
 
 #### 3.2.2. doDispatche方法
 
-在doService方法执行的逻辑中，会调用doDispatche方法，此方法是处理请求分发的核心方法。它负责通过反射调用控制器方法、执行拦截器和处理结果视图
+在 `doService` 方法执行的逻辑中，会调用 `doDispatche` 方法，此方法是处理请求分发的核心方法。它负责通过反射调用控制器方法、执行拦截器和处理结果视图
+
+```java
+@Override
+protected void doService(HttpServletRequest request, HttpServletResponse response) throws Exception {
+    // 省略初始化过程...
+    try {
+        doDispatch(request, response);
+    }
+    finally {
+		// 省略其他...
+    }
+}
+
+protected void doDispatch(HttpServletRequest request, HttpServletResponse response) throws Exception {
+    // 获取原生请求
+    HttpServletRequest processedRequest = request;
+    // 获取Handler执行链
+    HandlerExecutionChain mappedHandler = null;
+    // 是否为文件上传请求, 默认为false
+    boolean multipartRequestParsed = false;
+    WebAsyncManager asyncManager = WebAsyncUtils.getAsyncManager(request);
+    try {
+        ModelAndView mv = null;
+        Exception dispatchException = null;
+        try {
+            // 检查是否为文件上传请求
+            processedRequest = checkMultipart(request);
+            multipartRequestParsed = (processedRequest != request);
+            // Determine handler for the current request.
+            // 获取能处理此请求的Handler
+            mappedHandler = getHandler(processedRequest);
+            if (mappedHandler == null) {
+                noHandlerFound(processedRequest, response);
+                return;
+            }
+            // Determine handler adapter for the current request.
+            // 获取适配器
+            HandlerAdapter ha = getHandlerAdapter(mappedHandler.getHandler());
+            // Process last-modified header, if supported by the handler.
+            String method = request.getMethod();
+            boolean isGet = "GET".equals(method);
+            if (isGet || "HEAD".equals(method)) {
+                long lastModified = ha.getLastModified(request, mappedHandler.getHandler());
+                if (new ServletWebRequest(request, response).checkNotModified(lastModified) && isGet) {
+                    return;
+                }
+            }
+            // 执行拦截器（链）的前置处理
+            if (!mappedHandler.applyPreHandle(processedRequest, response)) {
+                return;
+            }
+            // 真正的执行对应方法
+            mv = ha.handle(processedRequest, response, mappedHandler.getHandler());
+            if (asyncManager.isConcurrentHandlingStarted()) {
+                return;
+            }
+            applyDefaultViewName(processedRequest, mv);
+            mappedHandler.applyPostHandle(processedRequest, response, mv);
+        }
+        // 忽略其他...
+}
+```
+
+通过上述 `doDispatch` 请求的核心源码，包含的主要执行流程如下：
+
+1. **调用 HandlerExecutionChain 获取处理器**：DispatcherServlet 首先调用 getHandler 方法，通过 HandlerMapping 获取请求对应的 HandlerExecutionChain 对象，包含了处理器方法和拦截器列表。
+2. **调用 HandlerAdapter 执行处理器方法**：DispatcherServlet 使用 HandlerAdapter 来执行处理器方法。根据 HandlerExecutionChain 中的处理器方法类型不同，选择对应的 HandlerAdapter 进行处理。常用的适配器有 RequestMappingHandlerAdapter 和 HttpRequestHandlerAdapter。
+3. **解析请求参数**：DispatcherServlet 调用 HandlerAdapter 的 handle 方法，解析请求参数，并将解析后的参数传递给处理器方法执行。
+4. **调用处理器方法**：DispatcherServlet 通过反射机制调用处理器方法，执行业务逻辑。
+5. **处理拦截器**：在调用处理器方法前后，DispatcherServlet 会调用拦截器的 preHandle 和 postHandle方法进行相应的处理。
+6. **渲染视图**：处理器方法执行完成后，DispatcherServlet 会通过 ViewResolver 解析视图名称，找到对应的 View 对象，并将模型数据传递给 View 进行渲染。
+7. **生成响应**：View 会将渲染后的视图内容生成响应数据。
 
 ## 4. 处理器映射器 HandlerMapping
 

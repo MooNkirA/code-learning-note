@@ -35,66 +35,7 @@ TrafficMonitor 下载（Gitee）：https://gitee.com/zhongyang219/TrafficMonitor
 
 ### 3.4. Everything
 
-> 使用教程：
->
-> - 官方帮助(中文)：[Searching - voidtools](https://www.voidtools.com/zh-cn/support/everything/searching/)
-> - [《高效搜索神器Everything最全使用技巧(一篇看全)及详细功能帮助教程》](https://zhuanlan.zhihu.com/p/409783518)
-
-#### 3.4.1. 定义热键
-
-打开工具菜单，点击选项 -> 点击快捷键页面 -> 选择热键方式 -> 按下新的热键组合 -> 点击确定
-
-> Tips: Everything 必须后台运行时热键才能工作。无法覆盖已存在热键。
-
-禁用 Windows 默认热键，例如 Win + F：
-
-- 打开运行面板输入 `regedit`，打开注册表编辑器
-
-```
-HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced
-```
-
-- 创建新字符串值 `DisabledHotkeys`
-- 设置 `DisabledHotkeys` 数据为想要释放的字母，例如：F
-- 重启计算机后，在 Everything 中应用释放的热键 Win + F
-
-#### 3.4.2. 基础搜索
-
-要将结果限制为某个驱动器，只需搜索该驱动器，例如，要查找`D:`驱动器上的文件和文件夹，请搜索：
-
-```
-d:
-```
-
-包含路径限制结果到一个文件夹，例如在文件夹 D:\Downloads 中查找文件和文件夹，搜索：
-
-```
-d:\downloads\
-```
-
-##### 3.4.2.1. 示例
-
-- 查找空文件夹：`empty:`
-- 查找重复文件：`dupe:`
-- 使用正则语法搜索：通过“搜索”菜单选择“使用正则表达式”或直接按下 Ctrl+R 组合键均可启用此功能。
-
-```
-a|b a或b
-gr(a|e)y 匹配 gray 或 grey
-. 任一字符
-[abc] 任一字符：a或b或c
-[^abc] 任一字符，但不包括a、b、c
-[a-z] 从a到z之间的任一字符
-[a-zA-Z]从a到z，及从A到Z之间的任一字符
-^ 文件名开始
-$ 文件名结束
-* 前一项内容重复0或多次
-? 前一项内容重复0或1次
-+ 前一项内容重复1或多次
-{x} 前一项内容重复x次
-{x,} 前一项内容重复x或更多次
-{x,y} 前一项内容重复次数介于x和y之间
-```
+> 详见[《Everything - 本地高效搜索神器》](/其他/system-software/everything)
 
 ## 4. 文字编辑器
 
@@ -119,6 +60,10 @@ $ 文件名结束
 
 - 官网： https://notepad-plus-plus.org
 - Github 仓库： https://github.com/notepad-plus-plus/notepad-plus-plus
+
+#### 4.3.1. 常用操作
+
+在使用 notepad++ 工具的时候，很多情况下会遇到批量替换空行的操作，操作方法是使用快捷键 `Crtl+h` 调出窗口选择替换栏，在查找目标栏中输入 `\r\n\r\n`，替换栏中输入 `\r\n` 并选择全部替换，从而实现批量删除空行的操作。
 
 ### 4.4. Rime 输入法设置
 
@@ -246,30 +191,11 @@ Input 不是一个字体，而是一个家族；除了等宽版本，还有两�
 
 ![](images/233443808253493.png)
 
-
 ## 5. 音乐软件
 
 ### 5.1. foobar2000
 
-- foobar 2000 官网 | https://www.foobar2000.org/
-- foobar 2000 asion 汉化版 
-   - asion's blog | https://www.cnblogs.com/asionwu
-   - [百度网盘](https://pan.baidu.com/s/1wVbB24nSlwiHJWzJOagF9g?pwd=fb2k) 提取码：fb2k
-   - [蓝奏云](https://wwi.lanzoup.com/b0jitwwf) 密码：fb2k
-- foobar 2000 智享阁（YeYo）版本
-   - 网页： https://www.esnpc.com/foobar2000-20-simplified-chinese-version/
-   - 文件名 FB_2.0_x86 开头的是32位，FB_2.0_x64 的是64位，自行选择下载
-   - [百度网盘](https://pan.baidu.com/s/1iOPyEPf_pcZDbl3AbWSEYQ) 提取码: 6rgv
-   - [阿里云盘](https://www.aliyundrive.com/s/6Ly1isy9bwD) 提取码: 4p6o
-   - [天翼云盘](https://cloud.189.cn/web/share?code=mYvAnivuIbIv) 访问码：4owd
-
-#### 5.1.1. 不支持 APE 文件格式的解决方法
-
-这是因为缺少相应的播放插件，需要安装一个插件--monkey's audio(ape)才可以播放。foobar从某个版本起，把原来默认内置的一些插件去掉了，原因不明，可能是为了控制安装包的体积。
-
-插件下载地址：http://www.foobar2000.org/components/view/foo_input_monkey
-
-点击这个页面的 Download，下载后解开压缩包得到 foo_input_monkey.dll 文件。把这个文件放到foobar安装目录里的 compontents 文件夹里。重新打开foobar后就可以播放APE文件了。	
+> 详见[《foobar2000 - 本地顶级音乐播放器》](/其他/system-software/foobar2000)
 
 ### 5.2. 洛雪音乐助手桌面版
 
@@ -350,6 +276,20 @@ FastStone 官方网站： http://www.faststone.org/
 
 - https://www.faststonesoft.net/DN/FSResizer44.zip
 
+### 6.2. 截图工具
+
+#### 6.2.1. Snipaste
+
+> 官网：https://www.snipaste.com/
+
+#### 6.2.2. Pixpin
+
+> 官网：https://pixpinapp.com/
+
+PixPin 是目前市面上功能最全面的截图工具之一了！包括**截图、贴图、标注、编辑、文字识别、滚屏长截图、动图 GIF 录屏**等等，都是办公编辑时中非常需要用到的功能。PixPin 把它们全都集成在一起，变成一个非常高效实用的生产力利器！目前完全免费。
+
+> 异次元简介：https://www.iplaysoft.com/pixpin.html
+
 ## 7. 网络资源
 
 ### 7.1. 电子书
@@ -375,7 +315,7 @@ ZLibary 网站镜像唯一入口： https://www.zhelper.net/
 
 #### 7.1.2. 国内篇
 
-- [yibook](https://nav.yibook.org/) - 电子书搜索网站导航
+- ~~[yibook](https://nav.yibook.org/) - 电子书搜索网站导航~~
 - [SoBooks](https://sobooks.net/) 图书下载网站是本人最喜欢的一个，它不仅书的种类齐全，而且质量也是相当的高，长期这里获取资源让我受益匪浅。每本书都可以获取百度网盘、微盘等下载站链接，直接下载或者保存网盘即可。
 - [鸠摩搜索](https://www.jiumodiary.com/) - 书籍类的搜索引擎，搜索到书籍后会有下载链接，直接网盘保存即可。
 - [超星读书](http://book.chaoxing.com)，专业知识电子书

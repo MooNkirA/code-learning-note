@@ -611,6 +611,7 @@ public static long round(double d);
 *注：Math 是一个数字工具类，该类提供了大量与数学运算相关的方法。工具类都是static方法，可以直接用类点调用。如果遇到算术有关的内容，可以到API查找相关的方法。如：求最大，最小值，求三角余弦等*
 
 ## 5. System 工具类
+
 ### 5.1. 常用方法
 
 ```java
@@ -630,8 +631,7 @@ public static void exit(int status);
 public static void gc();
 ```
 
-- 运行垃圾回收器。通知垃圾回收器进行垃圾回收，垃圾回收器可能会回收，也可以不会回收。
-- 当对象被垃圾回收器回收时，系统会自动调用方法protected void finalize() throws Throwable。
+- 运行垃圾回收器。通知垃圾回收器进行垃圾回收，垃圾回收器可能会回收，也可以不会回收。当对象被垃圾回收器回收时，系统会自动调用方法 `protected void finalize() throws Throwable`
 
 ```java
 public static Properties getProperties();

@@ -31,7 +31,9 @@ nohup java -Xms512m -Xmx1024m -jar xxxx.jar --spring.profiles.active=prod &
 - Java SE 8 版本 JVM 虚拟机参数设置参考文档地址：https://docs.oracle.com/javase/8/docs/technotes/tools/unix/java.html
 - vm 参数官方文档：https://www.oracle.com/java/technologies/javase/vmoptions-jsp.html
 
-### 2.1. 设置堆空间大小
+### 2.1. 内存设置
+
+#### 2.1.1. 设置堆空间大小
 
 为了防止垃圾收集器在初始大小、最大内存之间收缩堆而产生额外的时间，通常把最大、初始大小设置为相同的值。
 
@@ -61,7 +63,7 @@ nohup java -Xms512m -Xmx1024m -jar xxxx.jar --spring.profiles.active=prod &
 
 设置参考推荐：尽量大，也要考察一下当前计算机其他程序的内存使用情况。
 
-### 2.2. 设置年轻代中 Eden 区和两个 Survivor 区的大小比例
+#### 2.1.2. 设置年轻代中 Eden 区和两个 Survivor 区的大小比例
 
 `-XXSurvivorRatio` 参数用于设置年轻代中 Eden 区和两个 Survivor 区的大小比例。该值如果不设置，则默认比例为 8:1:1。Java 官方通过增大 Eden 区的大小，来减少 YGC 发生的次数，但有时虽然次数减少了，但 Eden 区满的时候，由于占用的空间较大，导致释放缓慢，此时 STW(Stop the world) 的时间较长，因此需要按照程序情况去调优。
 
@@ -73,12 +75,13 @@ nohup java -Xms512m -Xmx1024m -jar xxxx.jar --spring.profiles.active=prod &
 -XX:SurvivorRatio=8
 ```
 
-### 2.3. 年轻代和老年代的比例
+#### 2.1.3. 年轻代和老年代的比例
 
 年轻代和老年代默认比例为 1:2。可以通过调整二者空间大小比率来设置两者的大小。
 
 - `-XX:newSize`：设置年轻代的初始大小
 - `-XX:MaxNewSize`：设置年轻代的最大大小，初始大小和最大大小两个值通常相同
+- `-XX:NewRatio`：设置年轻代与老年代的比例值
 
 例如：
 
@@ -89,7 +92,7 @@ nohup java -Xms512m -Xmx1024m -jar xxxx.jar --spring.profiles.active=prod &
 -XX:NewRatio=4
 ```
 
-### 2.4. 虚拟机栈的设置
+#### 2.1.4. 虚拟机栈的设置
 
 虚拟机栈的设置，**每个线程默认会开启 1M 的堆栈**，用于存放栈帧、调用参数、局部变量等，但一般 256K 就够用。通常减少每个线程的堆栈，可以产生更多的线程，但这实际上还受限于操作系统。`-Xss` 用于对每个线程 stack 大小的调整。例如：
 
@@ -97,15 +100,19 @@ nohup java -Xms512m -Xmx1024m -jar xxxx.jar --spring.profiles.active=prod &
 -Xss256k
 ```
 
-### 2.5. 年轻代的大小
+#### 2.1.5. 年轻代（新生代）的内存大小
 
 一般来说，当 survivor 区不够大或者占用量达到 50%，就会把一些对象放到老年区。通过设置合理的 eden 区，survivor 区及使用率，可以将年轻对象保存在年轻代，从而避免 full GC，使用 `-Xmn` 设置年轻代的大小。
 
-### 2.6. 大对象分配内存配置
+```
+-Xmn
+```
+
+#### 2.1.6. 大对象分配内存配置
 
 对于占用内存比较多的大对象，一般会选择在老年代分配内存。如果在年轻代给大对象分配内存，年轻代内存不够了，就要在 eden 区移动大量对象到老年代，然后这些移动的对象可能很快消亡，因此导致 full GC。通过设置参数：`-XX:PetenureSizeThreshold=1000000`，单位为 B，标明对象大小超过 1M 时，在老年代(tenured)分配内存空间。
 
-### 2.7. 年轻代晋升老年代阈值
+#### 2.1.7. 年轻代晋升老年代阈值
 
 一般情况下，年轻对象放在 eden 区，当第一次 GC 后，如果对象还存活，放到 survivor 区，此后每 GC 一次，年龄增加 1，当对象的年龄达到阈值，就被放到 tenured 老年区。这个阈值可以通过 `-XX:MaxTenuringThreshold` 设置：
 
@@ -116,22 +123,40 @@ nohup java -Xms512m -Xmx1024m -jar xxxx.jar --spring.profiles.active=prod &
 
 如果想让对象留在年轻代，可以设置比较大的阈值。
 
-### 2.8. 垃圾回收器的配置
+### 2.2. 垃圾回收器的配置
 
-#### 2.8.1. 选择垃圾回收器的类型
+#### 2.2.1. 选择垃圾回收器的类型
 
 - `-XX:+UseParallelGC`：年轻代使用并行垃圾回收收集器。这是一个关注吞吐量的收集器，可以尽可能的减少垃圾回收时间。
 - `-XX:+UseParallelOldGC`：设置老年代使用 ParNew + ParNew Old 组合并行垃圾回收收集器。
 - `–XX:+UseParNewGC`：指定使用 ParNew + Serial Old 垃圾回收器组合。
 - `-XX:+UseConcMarkSweepGC`：老年代使用 CMS + Serial Old 垃圾收集器组合，降低停顿。
-- `-XX:+UseG1GC`
+- `-XX:ParallelGCThreads`：设置 Parallel GC 的线程数。
+- `-XX:+UseG1GC`：使用 G1 垃圾收集器。
 
-#### 2.8.2. GC 打印信息配置
+#### 2.2.2. GC 打印信息配置
 
-- `-XX:+PrintGC`：开启打印 gc 信息；
+- `-XX:+PrintGC`：开启打印 gc 信息
 - `-XX:+PrintGCDetails`：打印 gc 详细信息。
+- `-XX:+PrintGCTimeStamps`：打印 GC 的时间戳
+- `-Xloggc:filename`：设置 GC log 文件的位置
+- `-XX:+PrintTenuringDistribution`：查看熬过收集后剩余对象的年龄分布信息
 
-### 2.9. 内存分页
+#### 2.2.3. CMS 垃圾回收器相关
+
+- `-XX:+UseCMSInitiatingOccupancyOnly`、`-XX:CMSInitiatingOccupancyFraction`：与前者配合使用，指定 MajorGC 的发生时机。
+- `-XX:+ExplicitGCInvokesConcurrent`：代码调用 `System.gc()` 开始并行 FullGC，建议加上这个参数。
+- `-XX:+CMSScavengeBeforeRemark`：表示开启或关闭在 CMS 重新标记阶段之前的清除（YGC）尝试，它可以降低 remark 时间，建议加上。
+- `-XX:+ParallelRefProcEnabled`：可以用来并行处理 Reference，以加快处理速度，缩短耗时。
+
+#### 2.2.4. G1 垃圾回收器相关
+
+- `-XX:MaxGCPauseMillis`：用于设置目标停顿时间，G1 会尽力达成
+- `-XX:G1HeapRegionSize`：用于设置小堆区大小，建议保持默认。
+- `-XX:InitiatingHeapOccupancyPercent`：表示当整个堆内存使用达到一定比例（默认是 45%），并发标记阶段就会被启动。
+- `-XX:ConcGCThreads`：表示并发垃圾收集器使用的线程数量，默认值随 JVM 运行的平台不同而变动，不建议修改
+
+### 2.3. 内存分页
 
 尝试使用大的内存分页，增加 CPU 的内存寻址能力，从而系统的性能。
 
@@ -140,11 +165,34 @@ nohup java -Xms512m -Xmx1024m -jar xxxx.jar --spring.profiles.active=prod &
 -XX:+LargePageSizeInBytes
 ```
 
-### 2.10. -XX:+UseCompressedOops
+### 2.4. -XX:+UseCompressedOops
 
 当应用从 32 位的 JVM 迁移到 64 位的 JVM 时，由于对象的指针从 32 位增加到了 64 位，因此堆内存会突然增加差不多翻倍，这也会对 CPU 缓存（容量比内存小很多）的数据产生不利的影响。
 
 迁移到 64 位的 JVM 主要动机在于可以指定最大堆大小，通过压缩 OOP 可以节省一定的内存。通过 `-XX:+UseCompressedOops` 选项，JVM 会使用 32 位的 OOP，而不是 64 位的 OOP。
+
+### 2.5. 示例：生产环境用的什么JDK？如何配置的垃圾收集器？
+
+例如生产环境使用了 Oracle JDK 1.8，G1 收集器相关配置如下：
+
+```
+-Xmx12g
+-Xms12g
+-XX:+UseG1GC
+-XX:InitiatingHeapOccupancyPercent=45
+-XX:MaxGCPauseMillis=200
+-XX:MetaspaceSize=256m
+-XX:MaxMetaspaceSize=256m
+-XX:MaxDirectMemorySize=512m
+-XX:G1HeapRegionSize 未指定
+```
+
+核心思路：
+
+- 每个内存区域设置上限，避免溢出。
+- 堆设置为操作系统的 70% 左右，超过 8G，首选 G1。
+- 根据老年代对象提升速度，调整新生代与老年代之间的内存比例。
+- 等过 GC 信息，针对项目敏感指标优化，比如访问延迟、吞吐量等。
 
 ## 3. 常用的 JVM 调优命令
 
@@ -363,6 +411,12 @@ java -XX:+PrintFlagsFinal -version
 java -XX:+PrintFlagsInitial
 ```
 
+### 3.8. Arthas（Java 诊断工具）
+
+Arthas 是 Alibaba 开源的 Java 诊断工具。支持 JDK 6+，支持 Linux/Mac/Winodws，采用命令行交互模式，同时提供丰富的 Tab 自动补全功能，进一步方便进行问题的定位和诊断。
+
+> 详见[《Arthas - Alibaba 开源的 Java 诊断工具》笔记](/JVM/Arthas)
+
 ## 4. JVM 性能调优可视化工具
 
 JDK 自带了很多监控工具，都位于 JDK 的 bin 目录下，其中最常用的是 jconsole 和 jvisualvm 这两款视图监控工具。第三方有：MAT(Memory Analyzer Tool)、GChisto。
@@ -459,7 +513,7 @@ jmap -dump:format=b,file=heap.hprof pid
 3. 查看当前线程中的进程信息
 
 ```bash
-ps H -eo pid,tid,%cpu | grep 40940
+ps H -eo pid,tid,%cpu | grep 30978
 ```
 
 ![](images/482415116240889.png)

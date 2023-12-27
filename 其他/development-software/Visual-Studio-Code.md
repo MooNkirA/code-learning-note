@@ -50,7 +50,7 @@ VSCode 的设置文件为 setting.json。用户设置的文件保存在如下目
 
 ![](images/20201106085408474_25960.jpg)
 
-### 2.3. 如何配置VSCODE打开文件总是在一个新的标签
+### 2.3. 如何配置 VSCODE 打开文件总是在一个新的标签
 
 经常搞混单击和双击的区别？这里在左侧资源管理器这边 如果单击文件是打开文件的预览模式，文件所在的标签上显示的文件名是 斜体状态，表明是在 预览模式，会被新打开的文件替换。所以如果是要打开文件进行编辑需要双击文件进行打开
 
@@ -84,15 +84,59 @@ tab的宽度设置
 
 ![](images/330313323248777.png)
 
-## 3. 常用插件
+## 3. 常用操作
 
-### 3.1. 通用类
+### 3.1. 官方快捷键列表
 
-#### 3.1.1. Chinese (Simplified) Language Pack for VS Code
+- 官网地址：https://code.visualstudio.com/shortcuts/keyboard-shortcuts-windows.pdf
+- windows 快捷键
+
+![](../../resources/attachments/IDE/Visual-Studio-Code-keyboard-shortcuts-windows.jpg)
+
+### 3.2. 常用快捷键
+
+- `ctrl+shift+L` 批量修改变量名称
+
+### 3.3. 多行编辑操作
+
+VScode对多行编辑有两种模式。
+
+#### 3.3.1. 第一种模式
+
+竖列选择：长按`Alt+Shift`，按左键拖动鼠标选择多行。这种模式下只可以选择竖列，不可以随意插入光标。所以只限制于同一列且不间隔的情况下
+
+#### 3.3.2. 第二种模式
+
+- 竖列选择：`Shift+Ctrl`
+- 选择多个编辑位点：`Ctrl+光标点击`
+
+这种模式下不仅可以选择竖列，同时还可以在多个地方插入光标
+
+#### 3.3.3. 两种模式的切换
+
+使用`Ctrl+Shift+p`快捷键调用查询输入栏，输入“cursor”，列表中会出现“切换多行修改键”这个选项。选择这个选项就可以在两种模式下切换
+
+### 3.4. 快速删除空行
+
+在 VSCode 中，可以通过 `Ctrl+h` 快捷键调出替换界面，在替换查找界面输入空行对应的正则表达式 `^\s*(?=\r?$)\n` 并 `Alt+R` 选择对应正则表达式查找模式，批量全部替换即可完成需求，具体如下：
+
+1. 快速打开替换界面，在 Find 界面（下图中①的位置）输入`^\s*(?=\r?$)\n`
+2. 使用快速键 `Alt+R` 或者手动点击下图中②位置的按钮，选择 `Use Regular Expression(Alt+R)` 即正则表达式模式。
+3. 选择下图中③位置的 `Replace All(Ctrl+Alt+Enter)` 批量替换全部完成操作。
+
+操作截图如下：
+
+![](images/455570116231242.png)
+
+## 4. 常用插件
+
+### 4.1. 通用类
+
+#### 4.1.1. Chinese (Simplified) Language Pack for VS Code
 
 中文汉化包
 
-#### 3.1.2. eslint 插件
+#### 4.1.2. eslint 插件
 
 ![](images/20201106084622737_26552.jpg)
 
@@ -312,13 +356,13 @@ module.exports = {
 }
 ```
 
-### 3.2. HTML 类
+### 4.2. HTML 类
 
-#### 3.2.1. Highlight Matching Tag
+#### 4.2.1. Highlight Matching Tag
 
 高亮显示选中匹配标签
 
-### 3.3. Vue 相关插件
+### 4.3. Vue 相关插件
 
 |              名称              |                              说明                               |
 | ----------------------------- | -------------------------------------------------------------- |
@@ -327,7 +371,7 @@ module.exports = {
 | Vue Language Features (Volar) | Vue官方插件，支持Vue3                                             |
 | Vscode-element-helper         | 使用element-ui库的可以安装这个插件，编写标签时自动提示element标签名称。 |
 
-#### 3.3.1. Vetur 插件配置
+#### 4.3.1. Vetur 插件配置
 
 <font color=red>**注意：VSCode中使用vetur插件格式化vue文件时，js代码会被添加上分号且单引号会转变为双引号。**</font>设置vscode配置文件
 
@@ -335,7 +379,7 @@ module.exports = {
 "vetur.format.defaultFormatter.js": "vscode-typescript"
 ```
 
-### 3.4. 推荐主题
+### 4.4. 推荐主题
 
 |           名称            |                   说明                   |
 | ------------------------ | --------------------------------------- |
@@ -347,17 +391,17 @@ module.exports = {
 | Material Icon Theme      | vscode资源目录加上图标（必备）              |
 | vscode-icon              | vscode资源目录加上图标（必备）              |
 
-### 3.5. beautify（不再维护）
+### 4.5. beautify（不再维护）
 
 beautify：格式化代码的工具，可以格式化 JSON|JS|HTML|CSS|SCSS。比内置格式化好用；但是 react 工程的 jsx 文件用 beautify 插件格式化会乱掉，建议不要用。
 
 目前 VSCode 内置的格式化器就是使用 js-beautify，但是前端当前最流行的格式化工具是 prettier，建议安装 prettier，然后设置 VSCode 使用 prettier 作为格式化器。
 
-### 3.6. Prettier - Code formatter
+### 4.6. Prettier - Code formatter
 
 格式化代码的工具，可以支持 react
 
-### 3.7. IntelliSense for CSS class names in HTML 或 HTML CSS Support
+### 4.7. IntelliSense for CSS class names in HTML 或 HTML CSS Support
 
 **IntelliSense for CSS class names in HTML**
 
@@ -367,7 +411,7 @@ beautify：格式化代码的工具，可以格式化 JSON|JS|HTML|CSS|SCSS。�
 
 让 html 标签上写class 智能提示当前项目所支持的样式。新版已经支持scss文件检索
 
-### 3.8. cssrem
+### 4.8. cssrem
 
 此插件的功能是实现 px 转换 rem
 
@@ -376,13 +420,13 @@ beautify：格式化代码的工具，可以格式化 JSON|JS|HTML|CSS|SCSS。�
 3. 设置html字体大小基准值，默认是16px
 4. 使用时只需要将光标停留在一些px单位的值上，再按`Alt+z`，就可以换算成 rem 单位的值
 
-### 3.9. Markdown 插件
+### 4.9. Markdown 插件
 
-#### 3.9.1. Markdown All in One
+#### 4.9.1. Markdown All in One
 
 集成了撰写 Markdown 时所需要的大部分功能
 
-#### 3.9.2. markdownlint
+#### 4.9.2. markdownlint
 
 > 参考：https://github.com/DavidAnson/markdownlint/tree/main/doc
 
@@ -469,31 +513,31 @@ markdownlint是vscode上一款非常好用的 Markdown 格式检查扩展工具�
 | MD046  | 	Code block style                                              | 整篇文档采用一致的代码格式                                                                                                              |
 | MD047  | 	Files should end with a single newline character              | 文档末尾需要一个空行结尾                                                                                                               |
 
-#### 3.9.3. Pangu-Markdown
+#### 4.9.3. Pangu-Markdown
 
 插件就是专门用来给中英混排添加空格的。
 
-#### 3.9.4. Past Image
+#### 4.9.4. Past Image
 
 插件可以把粘贴的图片按照指定的命名规则放到指定的路径去，而且这个路径可以是相对路径。
 
-#### 3.9.5. Markdown Preview Mermaid Support
+#### 4.9.5. Markdown Preview Mermaid Support
 
 Markdown Preview Mermaid Support 支持 mermaid 预览，如流程图、甘特图等
 
-#### 3.9.6. MdTableEditor 
+#### 4.9.6. MdTableEditor 
 
 操作表格的插件，提升表格编辑效率
 
-#### 3.9.7. Auto Markdown TOC By AX1
+#### 4.9.7. Auto Markdown TOC By AX1
 
 实现章节自动编号，及生成目录
 
-#### 3.9.8. Draw.io Integration
+#### 4.9.8. Draw.io Integration
 
 Draw.io 的内嵌扩展，绘图神器
 
-### 3.10. 待整理
+### 4.10. 待整理
 
 - Debugger for Chrome
     - 让 vscode 映射 chrome 的 debug功能，静态页面都可以用 vscode 来打断点调试，真666~。配置稍微复杂一些
@@ -504,15 +548,15 @@ Draw.io 的内嵌扩展，绘图神器
 - Project Manager
     - 在多个项目之前快速切换的工具
 
-### 3.11. VSCode 1.81.1 版本后已内置的功能(插件)
+### 4.11. VSCode 1.81.1 版本后已内置的功能(插件)
 
-#### 3.11.1. Auto Close Tag
+#### 4.11.1. Auto Close Tag
 
 **Auto Close Tag**：自动添加 HTML / XML关闭标签。目前测试在 html js, jsx, tsx 都可实现自动添加相应的闭合标签。默认是开启的，不需要额外配置。
 
 > Notes：VSCode 不支持在 `.vue` 文件中原生的自动闭合标签功能。可以通过安装 Vue Languages Features (Volar) 来启用此功能。
 
-#### 3.11.2. Auto Rename Tag
+#### 4.11.2. Auto Rename Tag
 
 修改 html 标签，自动完成尾部闭合标签的同步修改。现在 vscode 也内置了，而且在新版本中 jsx、tsx 中也已经支持 html 标签重命名。在 settings.json 文件中增加配置：
 
@@ -520,7 +564,7 @@ Draw.io 的内嵌扩展，绘图神器
 "editor.linkedEditing": true
 ```
 
-#### 3.11.3. Trailing Spaces
+#### 4.11.3. Trailing Spaces
 
 此扩展的功能是：自动删除末尾的空白字符，确保一致的格式。
 
@@ -542,11 +586,11 @@ VSCode 现在将该功能内置，可以在文件中自动删除末尾的空白�
 }
 ```
 
-#### 3.11.4. 路径自动补全(Path IntelliSense / Path Autocomplete)
+#### 4.11.4. 路径自动补全(Path IntelliSense / Path Autocomplete)
 
 VSCode 已经具备原生的路径自动补全功能。当准备输入要导入的文件名（通常在输入`""`），会列出一个项目中的文件列表，从中选择一个将自动插入文件名。
 
-##### 3.11.4.1. Path Intellisense 配置 @ 路径提示（原插件配置）
+##### 4.11.4.1. Path Intellisense 配置 @ 路径提示（原插件配置）
 
 自动路径补全。路径提示配置的前提是，在 webpack.config.js 文件中配置 `@` 符号指定的目录位置
 
@@ -577,7 +621,7 @@ module.exports ={
 
 > <font color=red>**注意：需要使用vscode打开项目根目录（即 package.json 所在的目录），否则 `@` 路径提示将失效**</font>
 
-##### 3.11.4.2. Path Autocomplete 配置 @ 路径提示（原插件配置）
+##### 4.11.4.2. Path Autocomplete 配置 @ 路径提示（原插件配置）
 
 > 地址补全插件。路径提示配置的前提同上
 
@@ -594,7 +638,7 @@ module.exports ={
 
 重启 vscode，`@`路径提示就配置好了
 
-#### 3.11.5. Settings Sync
+#### 4.11.5. Settings Sync
 
 Settings Sync 用于同步当前的 VSCode 配置环境。具体配置如下：
 
@@ -604,7 +648,7 @@ Settings Sync 用于同步当前的 VSCode 配置环境。具体配置如下：
 
 > Tips: 大致原理是，使用 GitHub Gist 来同步多台计算机上的设置，代码段，主题，文件图标，启动，键绑定，工作区和扩展。
 
-#### 3.11.6. HTML Snippets
+#### 4.11.6. HTML Snippets
 
 超级实用且初级的 H5 代码片段以及提示
 
@@ -630,13 +674,13 @@ ul>li.slide*3>p.item$
 </ul>
 ```
 
-#### 3.11.7. Bracket pair colorization
+#### 4.11.7. Bracket pair colorization
 
 目前 vscode 也内置了，默认是开启的。如果没有开启，点击设置，搜索 Bracket Pair，并勾选上以下设置：
 
 ![](images/33692808237257.png)
 
-#### 3.11.8. Rainbow Brackets
+#### 4.11.8. Rainbow Brackets
 
 此扩展允许使用颜色标识匹配的括号。
 
@@ -649,7 +693,7 @@ ul>li.slide*3>p.item$
 }
 ```
 
-#### 3.11.9. Auto Import
+#### 4.11.9. Auto Import
 
 自动导入功能：当文件中引用了模块的函数、变量或其他成员时，该模块会自动导入到文件中。如果模块文件被移动，这个扩展将帮助自动更新它们。现这些功能也被 VsCode 内置了。
 
@@ -678,49 +722,17 @@ VsCode 内置功能，设置自动导入：
 }
 ```
 
-#### 3.11.10. TypeScript Hero
+#### 4.11.10. TypeScript Hero
 
 TypeScript 相关的扩展的功能基本上全部已经被 VSCode 内置
 
-## 4. 快捷键
-
-### 4.1. 官方快捷键列表
-
-- 官网地址：https://code.visualstudio.com/shortcuts/keyboard-shortcuts-windows.pdf
-- windows 快捷键
-
-![](../../resources/attachments/IDE/Visual-Studio-Code-keyboard-shortcuts-windows.jpg)
-
-### 4.2. 常用快捷键
-
-- `ctrl+shift+L` 批量修改变量名称
-
-### 4.3. 多行编辑操作
-
-VScode对多行编辑有两种模式。
-
-#### 4.3.1. 第一种模式
-
-竖列选择：长按`Alt+Shift`，按左键拖动鼠标选择多行。这种模式下只可以选择竖列，不可以随意插入光标。所以只限制于同一列且不间隔的情况下
-
-#### 4.3.2. 第二种模式
-
-- 竖列选择：`Shift+Ctrl`
-- 选择多个编辑位点：`Ctrl+光标点击`
-
-这种模式下不仅可以选择竖列，同时还可以在多个地方插入光标
-
-#### 4.3.3. 两种模式的切换
-
-使用`Ctrl+Shift+p`快捷键调用查询输入栏，输入“cursor”，列表中会出现“切换多行修改键”这个选项。选择这个选项就可以在两种模式下切换
-
-## 5. VSCode拓展推荐（前端开发）【网络资源】
+### 4.12. VSCode 拓展插件推荐（前端开发）【网络资源】
 
 https://github.com/varHarrie/varharrie.github.io/issues/10
 
 > 最后更新于：2021-05-31
 
-## 6. 个人首选项配置（网络资源，仅供参考）
+## 5. 个人首选项配置（网络资源，仅供参考）
 
 ```json
 {
