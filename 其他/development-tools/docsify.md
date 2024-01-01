@@ -1,10 +1,14 @@
-# docsify-文档类型网站搭建工具
+# -
 
-## 1. 简介
+## 1. docsify 简介
 
-- docsify可以即时生成您的文档网站。与GitBook不同，它不会生成静态html文件。相反，它可以智能地加载和解析您的Markdown文件并将其显示为网站。
+docsify 是文档类型网站搭建工具，可以即时生成您的文档网站。与 GitBook 不同，它不会生成静态html文件。相反，它可以智能地加载和解析您的M arkdown 文件并将其显示为网站。
+
+### 1.1. 参考教程
+
 - 官方教程：https://docsify.js.org/#/zh-cn/quickstart
-- 其他教程：https://mp.weixin.qq.com/s?__biz=Mzg2OTA0Njk0OA==&mid=2247486555&idx=2&sn=8486026ee9f9ba645ff0363df6036184&chksm=cea24390f9d5ca86ff4177c0aca5e719de17dc89e918212513ee661dd56f17ca8269f4a6e303&scene=0&xtrack=1#rd
+- [手把手教你搭建一个文档类型的网站!免费且高速！](https://mp.weixin.qq.com/s?__biz=Mzg2OTA0Njk0OA==&mid=2247486555&idx=2&sn=8486026ee9f9ba645ff0363df6036184&chksm=cea24390f9d5ca86ff4177c0aca5e719de17dc89e918212513ee661dd56f17ca8269f4a6e303&scene=0&xtrack=1#rd)
+- [Docsify 进阶配置](https://clotliu.com/archives/docsify-advanced)
 
 ## 2. 使用说明
 
