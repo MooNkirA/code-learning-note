@@ -1,17 +1,15 @@
-# Hmily - TCC 分布式事务解决方案
-
-- Hmily 官方仓库：https://github.com/yu199195/hmily
-- Hmily 官方文档：https://dromara.org/zh/projects/hmily/overview/
-
-## 1. Hmily 概述
+## 1. Hmily 概述（TCC 分布式事务解决方案）
 
 Hmily 是一款高性能，零侵入，金融级分布式事务解决方案，目前主要提供柔性事务的支持，包含 `TCC`, `TAC`(自动生成回滚SQL) 方案，未来还会支持 `XA` 等方案。
 
 ![](images/394434814220265.png)
 
+> - Hmily 官方仓库：https://github.com/yu199195/hmily
+> - Hmily 官方文档：https://dromara.org/zh/projects/hmily/overview/
+
 ### 1.1. 功能
 
-Hmily 是一个高性能分布式事务tcc开源框架。基于java语言来开发（JDK1.8），支持多种 rpc 框架进行分布式事务。它目前支持以下特性：
+Hmily 是一个高性能分布式事务 tcc 开源框架。基于java语言来开发（JDK1.8），支持多种 rpc 框架进行分布式事务。它目前支持以下特性：
 
 - 高可靠性 ：支持分布式场景下，事务异常回滚，超时异常恢复，防止事务悬挂。
 - 易用性 ：提供零侵入性式的 `Spring-Boot`, `Spring-Namespace` 快速与业务系统集成。

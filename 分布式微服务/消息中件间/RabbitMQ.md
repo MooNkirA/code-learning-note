@@ -1760,7 +1760,6 @@ TTL，即 Time-To-Live。如果一个队列中的消息 TTL 结束仍未消费�
 
 延迟队列的使用场景场景：超时订单、限时优惠、定时发布等。
 
-
 #### 8.3.1. 延迟队列插件
 
 需要在 RabbitMQ 中安装 DelayExchange 插件。在 RabbitMQ 官方的插件社区获取，地址为：https://www.rabbitmq.com/community-plugins.html 
