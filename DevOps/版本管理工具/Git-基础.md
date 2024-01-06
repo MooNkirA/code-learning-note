@@ -250,10 +250,10 @@ $ git config -e [--global]
 #### 7.2.3. 查看配置信息
 
 ```bash
-# 查看当前 git 全部的配置信息
-$ git config --list
+# 查看当前（全局） git 全部的配置信息
+$ git config [--global] --list
 
-# 查看当前 git 指定的配置信息
+# 查看当前（全局） git 指定的配置信息
 $ git config [--global] user.name
 ```
 
@@ -415,7 +415,7 @@ $ git status
 git status –s
 ```
 
-#### 7.4.2. log - 查看版本记录
+#### 7.4.2. log - 查看版本（提交）记录
 
 `git log` 指令，用于查看当前分支 git 的提交记录（版本）
 
@@ -450,13 +450,45 @@ $ git log [tag] HEAD --grep feature
 $ git log --follow [file]
 $ git whatchanged [file]
 
-# 显示过去5次提交
-$ git log -5 --pretty --oneline
+# 控制显示条数。例如：显示过去5次提交
+$ git log -5 --pretty=oneline
+```
+
+图形化展示查看当前分支的版本演变信息
+
+```bash
+git log --graph
+```
+
+按作者名字查看提交记录
+
+```bash
+git log --author="MooN"
+```
+
+按日期查看
+
+```bash
+git log --after="2023-2-1"
+```
+
+搜索过滤合并提交
+
+```bash
+git log --no-merges 
+# 或者
+git log --merges
+```
+
+按提交信息。例如，团队规范要求在提交信息中包括相关的 issue 编号，即可以使用如下命令来显示这个 issue 相关的所有提交。
+
+```bash
+git log --grep="JRA-224:"
 ```
 
 #### 7.4.3. reflog - 查看历史版本
 
-如果发生版本回退的操作，此时使用`git log`就无法查询回退到此版本之前的操作记录，所以需要使用 `git reflog` 指令来查看历史操作，获取最新的 commit id
+如果发生版本回退的操作，此时使用`git log`就无法查询回退到此版本之前的操作记录，所以需要使用 `git reflog` 指令来查看历史操作(包括所有分支的commit，以及已经被删除的commit)，获取最新的 commit id
 
 ```bash
 $ git reflog
@@ -545,11 +577,13 @@ $ git remote add <shortname> <url>
 
 #### 7.5.4. remote rm - 移除远程仓库
 
-移除远程仓库和本地仓库的关系(只是从本地移除远程仓库的关联关系，并不会真正影响到远程仓库)
+移除远程仓库和本地仓库的关系。
 
 ```bash
 $ git remote rm <shortname>
 ```
+
+> Notes: <font color=red>**只是从本地移除远程仓库的关联关系，并不会真正影响到远程仓库**</font>
 
 #### 7.5.5. 拉取远程仓库版本
 
@@ -659,6 +693,22 @@ $ git reset --keep [commit]
 >
 > - `commit` 参数是指“提交编号”，可以通过 `git log` 指令查看
 > - 在使用回退指令的时候 commit id 可以不用写全，git 会自动识别，但是至少需要写前 4 位字符
+
+HEAD 说明：
+
+- `HEAD` 表示当前版本
+- `HEAD^` 上一个版本
+- `HEAD^^` 上上一个版本
+- `HEAD^^^` 上上上一个版本
+
+以此类推...
+
+- `HEAD~0` 表示当前版本
+- `HEAD~1` 上一个版本
+- `HEAD^2` 上上一个版本
+- `HEAD^3` 上上上一个版本
+
+以此类推...
 
 #### 7.6.3. revert
 
