@@ -1,5 +1,7 @@
 ## 1. Foobar2000 简述
 
+foobar2000 是一款免费软件，开发者为 Peter Pawlowski（原 Winamp 开发公司 Nullsoft 成员），是 Windows 平台下的高级音频播放器。包含了一些重放增益支持、低内存占用等基本特色以及内置支持一些流行的音频格式，它不注重外表的修饰，更在乎音质与实用功能上的完美追求，除了播放之外，它还支持生成媒体库、转换媒体文件编码、提取 CD 等功能。
+
 foobar2000 是一款从诞生至今就一直有着优秀口碑的本地音乐播放器，截至目前支持 windows、MAC、Android 和 ios 主流平台，其中最先支持的是 windows 平台，后来随着智能手机的发展陆续的发布了 Android 和 ios 平台的播放器，这是播放器！
 
 foobar2000 受大家喜欢的是其优秀的模块化设计，本身具备强大的功能，通过插件可以全方位的增强 foobar2000 功能，利用可视化插件可以自由的设置主题外观等，foobar2000 在播放时会自动减小间隙，尤其是无损音乐的表现上尤为突出，其音质表现绝对是 T0 级别的（最好的几个之一），通过音质插件可以满足绝大多数人的风格！
@@ -14,6 +16,10 @@ foobar2000 的原生音频格式支持：MP3、 MP4、 AAC,、CD Audio、 WMA、
    - asion's blog | https://www.cnblogs.com/asionwu
    - [百度网盘](https://pan.baidu.com/s/1wVbB24nSlwiHJWzJOagF9g?pwd=fb2k) 提取码：fb2k
    - [蓝奏云](https://wwi.lanzoup.com/b0jitwwf) 密码：fb2k
+- foobox 是一个 foobar2000 默认用户界面 (DUI) 的皮肤配置，具有简洁而美观实用的特点，善于管理曲目数量大的媒体库 ，对音乐各种封面提供丰富的支持。
+    - [foobox 博客](https://dream7180.gitee.io/2023/foobox-release/)
+    - [foobox 更新日志](https://dream7180.gitee.io/2023/foobox-changelog/)
+    - [foobox gitee 仓库](https://gitee.com/dream7180/foobox-cn)
 - foobar2000 智享阁（YeYo）版本
    - 网页： https://www.esnpc.com/foobar2000-20-simplified-chinese-version/
    - 文件名 FB_2.0_x86 开头的是32位，FB_2.0_x64 的是64位，自行选择下载

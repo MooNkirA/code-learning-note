@@ -549,19 +549,19 @@ $ git clone 远程Git仓库地址
 
 #### 7.5.2. remote - 查看远程仓库
 
-查看远程，列出指定的每一个远程服务器的简写
+- `remote` 指令用于查看远程，列出指定的每一个远程服务器的简写
 
 ```bash
 $ git remote
 ```
 
-查看远程，列出简称和地址
+- 查看远程，列出简称和地址
 
 ```bash
 $ git remote -v
 ```
 
-查看远程仓库详细地址
+- 查看远程仓库详细地址
 
 ```bash
 $ git remote show <仓库简称>
@@ -569,7 +569,7 @@ $ git remote show <仓库简称>
 
 #### 7.5.3. remote add - 添加远程仓库
 
-添加远程仓库
+- 添加远程仓库
 
 ```bash
 $ git remote add <shortname> <url>
@@ -577,7 +577,7 @@ $ git remote add <shortname> <url>
 
 #### 7.5.4. remote rm - 移除远程仓库
 
-移除远程仓库和本地仓库的关系。
+- 移除远程仓库和本地仓库的关系。
 
 ```bash
 $ git remote rm <shortname>
@@ -585,9 +585,17 @@ $ git remote rm <shortname>
 
 > Notes: <font color=red>**只是从本地移除远程仓库的关联关系，并不会真正影响到远程仓库**</font>
 
-#### 7.5.5. 拉取远程仓库版本
+#### 7.5.5. remote update - 更新远程分支列表
 
-##### 7.5.5.1. fetch - 手动拉取与合并
+- 更新远程仓库，
+
+```bash
+git remote update origin(仓库源名称) --prune
+```
+
+#### 7.5.6. 拉取远程仓库版本
+
+##### 7.5.6.1. fetch - 手动拉取与合并
 
 从远程仓库拉取 (拉取到.git 目录，不会合并到工作区，工作区发生变化)
 
@@ -601,7 +609,7 @@ $ git fetch <remote> <分支名称>
 $ git merge <remote>/<分支名称>
 ```
 
-##### 7.5.5.2. pull - 自动拉取与合并工作区
+##### 7.5.6.2. pull - 自动拉取与合并工作区
 
 `pull` 指令用于拉取远程仓库的版本记录。(拉取到 .git 目录，合并到工作区，工作区不发生变化。相当于 `fetch` + `merge`)
 
@@ -618,15 +626,15 @@ $ git pull <shortname> <分支名称>
 $ git pull <shortname> <分支名称> --allow-unrelated-histories
 ```
 
-#### 7.5.6. push - 推送到远程仓库
+#### 7.5.7. push - 推送到远程仓库
 
-`push` 指令用于将修改的版本推送到远程仓库某个分支
+- `push` 指令用于将修改的版本推送到远程仓库某个分支
 
 ```bash
 $ git push [remote-name] [branch-name]
 ```
 
-基于http/https协议的远程仓库，首次提交时可能会出现403无权限的错误，需要修改【.git/config】文件内容，增加相应远程仓库的有效的用户名与密码
+- 基于http/https协议的远程仓库，首次提交时可能会出现403无权限的错误，需要修改【.git/config】文件内容，增加相应远程仓库的有效的用户名与密码
 
 ```
 # 原配置
@@ -640,13 +648,13 @@ $ git push [remote-name] [branch-name]
 
 > 注：推送到基于ssh协议的远程仓库，在push的时候并没有提示要求输入帐号密码，因为公私玥已经实现了用户身份鉴权，也不需要修改此配置文件。
 
-强行推送当前分支到远程仓库(有冲突也推送)
+- 强行推送当前分支到远程仓库(即使有冲突也推送)
 
 ```bash
 $ git push [remote] --force
 ```
 
-推送所有分支到远程仓库
+- 推送所有分支到远程仓库
 
 ```bash
 $ git push [remote] --all
@@ -733,6 +741,8 @@ $ git stash pop
 
 #### 7.7.1. 查看分支
 
+- 查看分支基础语法
+
 ```bash
 $ git branch
 ```
@@ -799,7 +809,7 @@ $ git branch --set-upstream [branch] [remote-branch]
 
 #### 7.7.5. 删除分支
 
-删除本地仓库的分支
+- 删除本地仓库的分支
 
 ```bash
 $ git branch -d <分支名>
@@ -807,13 +817,13 @@ $ git branch -d <分支名>
 
 > Notes: **在删除分支的时候，一定要先退出要删除的分支（或切换到其他分支），然后才能删除该分支。或者如果分支已经修改过，则不允许删除。**
 
-强制删除分支（**慎用**）
+- 强制删除分支（**慎用**）
 
 ```bash
 $ git branch -D <分支名>
 ```
 
-删除远程仓库分支
+- 删除远程仓库分支
 
 ```bash
 # 简写
@@ -850,13 +860,13 @@ $ git push <仓库简称> <分支名称>
 
 #### 7.8.1. 查看 tag 信息
 
-列出所有 tag
+- 列出所有 tag
 
 ```bash
 $ git tag
 ```
 
-查看 tag 详细信息
+- 查看 tag 详细信息
 
 ```bash
 $ git show [tagName]
@@ -895,7 +905,6 @@ $ git push origin :refs/tags/[tagName]
 ```
 
 > Notes: **注意空格**
-
 
 #### 7.8.6. 提交 tag
 
@@ -1297,6 +1306,18 @@ git config --global core.autocrlf false
 - git 的 Windows 客户端基本都会默认设置 `core.autocrlf=true`，只要保持工作区都是纯 CRLF 文件，编辑器用 CRLF 换行，就不会出现相关警告。
 - Linux 最好不要设置 `core.autocrlf`，因为该配置算是为 Windows 平台定制。
 - Windows 上设置 `core.autocrlf=false`，仓库里也没有配置 `.gitattributes`，很容易引入 CRLF 或者混合换行符（Mixed Line Endings，一个文件里既有 LF 又有CRLF）到版本库，这样就可能产生各种奇怪的问题。
+
+### 10.4. 解决冲突常用规则(命令版本)
+
+> 只要所有开发者都遵守这个规则，那么解决冲突是一件非常容易的事情
+
+1. 例如有 dev 分支。把代码修改完成了，现在不知道有没有冲突。
+2. 在 dev 分支里面，执行命令 `git merge origin/master`，把远程的 master 分支合并到当前 dev 分支中。如果没有任何报错，那么直接转到第5步。
+3. 如果有冲突，根据提示，把冲突解决，保存文件。然后执行命令 `git add xxx` 把你修改的文件添加到缓存区。然后执行命令 `git commit -m "xxx"` 添加 commit 信息。
+4. 执行如下命令，切换到 master 分支：`git checkout master`。
+5. 执行命令 `git pull` 确保当前 master 分支是最新代码。
+6. 把 dev 分支的代码合并回 master 分支：`git merge dev`。
+7. 提交代码：`git push`。
 
 ## 11. Git 学习资源分享
 
