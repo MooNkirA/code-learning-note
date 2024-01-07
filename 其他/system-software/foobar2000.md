@@ -48,4 +48,13 @@ foobar2000 的原生音频格式支持：MP3、 MP4、 AAC,、CD Audio、 WMA、
 ## 4. 参考资料
 
 - [享受音乐，点亮DSD！关于Foobar2000各项设置的解释和DSD设置教程](https://www.bilibili.com/read/cv16375348/)
+- [foobar2000吧导航——2017年版](https://tieba.baidu.com/p/4923037044)
+- [Foobar2000音乐播放器教程（三）—— 皮肤修改](https://tieba.baidu.com/p/2711054973)
 
+百度 foobar2000 贴吧原吧主伏天的配置美化教程：
+
+- [DUI 初级教程](http://tieba.baidu.com/p/2093467342)
+- [CUI 初级教程](http://tieba.baidu.com/p/2093606833)
+- [CUI 进阶教程](http://tieba.baidu.com/p/2237071201)
+
+> 比较详细，不过因为时间比较久远，一些介绍的插件已经过时，请大家注意。

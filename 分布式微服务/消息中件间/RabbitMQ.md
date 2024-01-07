@@ -28,10 +28,19 @@ MQ 全称为 Message Queue，即消息队列， RabbitMQ 是由 erlang 语言开
 - Exchange：消息队列交换机，接收消息并按一定的规则将消息路由转发到一个或多个队列(Queue)，对消息进行过滤。`default exchange` 是默认的直连交换机，名字为空字符串，每个新建队列都会自动绑定到默认交换机上，绑定的路由键名称与队列名称相同。
 - Queue：存储消息的队列，消息到达队列并转发给指定的消费方。队列的特性是先进先出。一个消息可分发到一个或多个队列。
 - Binding：将 Exchange 和 Queue 进行关联，让 Exchange 就知道将消息路由到哪个 Queue 中。
-- Virtual host：每个 vhost 本质上就是一个 mini 版的 RabbitMQ 服务器，拥有自己的队列、交换器、绑定和权限机制。vhost 是 AMQP 概念的基础，必须在连接时指定，RabbitMQ 默认的 vhost 是 `/`。当多个不同的用户使用同一个 RabbitMQ server 提供的服务时，可以划分出多个 vhost，每个用户在自己的 vhost 创建 exchange 和 queue。
 - Producer：消息生产者，即生产方客户端，生产方客户端将消息发送到 MQ。
 - Consumer：消息消费者，即消费方客户端，接收 MQ 转发的消息。
 - Channel：消息通道，在客户端的每个连接里，可建立多个 channel，每个 channel 代表一个会话任务由 Exchange、Queue、RoutingKey 三个要素才能决定一个从 Exchange 到 Queue 的唯一的线路。
+
+#### 1.2.1. Virtual host（虚拟主机）
+
+RabbitMQ 中虚拟主机（vhost） 是 AMQP 概念的基础，必须在连接时指定，RabbitMQ 默认的 vhost 是 `/`。有以下作用：
+
+1. **隔离性**：虚拟主机在单个 RabbitMQ 服务器上提供逻辑上的隔离。每个 vhost 本质上是一个独立的 mini 版的 RabbitMQ 服务器，拥有自己的队列、交换器、绑定和权限机制。
+2. **权限控制**：可以对不同的 vhost 设置不同的访问权限，控制用户对于特定 vhost 中资源的访问。
+3. **资源管理**：在不同的 vhost 中管理队列、交换器等，使得结构更加清晰，便于维护。
+
+当多个不同的用户使用同一个 RabbitMQ server 提供的服务时，可以划分出多个 vhost，每个用户在自己的 vhost 创建 exchange 和 queue。
 
 ### 1.3. 消息发布与接收流程
 
@@ -1745,16 +1754,18 @@ void basicQos(int prefetchSize, int prefetchCount, boolean global) throws IOExce
 
 ### 8.3. TTL
 
-TTL，即 Time-To-Live。如果一个队列中的消息 TTL 结束仍未消费，则会变为死信，ttl 超时分为两种情况：
+#### 8.3.1. 定义
 
-- 消息所在的队列设置了存活时间
-- 消息本身设置了存活时间
+TTL，即 Time-To-Live，代表消息或队列在 RabbitMQ 中存活的最长时间。如果一个队列中的消息 TTL 结束仍未消费，它们会从队列中移除，如果配置了死信交换器，可以被发送到死信队列。ttl 超时分为两种情况：
 
-参考代码：
+- **消息级别 TTL**：可以在消息属性中设置 `expiration` 字段来定义该消息的存活时间。
+- **队列级别 TTL**：在声明队列时，可以通过 `x-message-ttl` 参数设置该队列中所有消息的存活时间。
+
+#### 8.3.2. 参考代码(整理)
 
 ![](images/62330908250071.png)
 
-流程简图：
+#### 8.3.3. 流程简图
 
 ![](images/288220808257402.jpg)
 
@@ -1936,10 +1947,11 @@ RabbitMQ 对集群的停止的顺序的要求是：**应该先关闭内存节点
 
 监控和管理 RabbitMQ 队列的性能和状态的方法：
 
-1. **RabbitMQ Management Plugin**：这是一个管理 UI，提供了关于队列、交换器、连接等的详细信息。
+1. **RabbitMQ Management Plugin**：这是 RabbitMQ 提供的管理插件，提供了关于队列、交换器、连接、消息流、节点状态等监控的详细信息。
 2. **命令行工具**：如`rabbitmqctl`，用于查询和管理 RabbitMQ 实例。
-3. **监控工具集成**：可以将 RabbitMQ 与诸如 Prometheus、Grafana 等监控工具集成，实时监控队列的性能指标如消息率、队列长度等。
+3. **监控工具集成**：可以将 RabbitMQ 与外部监控工具（如 Prometheus、Grafana）集成，实时监控队列的性能指标如消息率、队列长度、警报等。
 4. **日志分析**：RabbitMQ 会记录详细的日志信息，通过分析日志可了解 RabbitMQ 的运行状态和性能瓶颈。
+5. **Tracing**：开启 RabbitMQ 的消息跟踪功能，记录消息活动。
 
 ### 12.2. RabbitMQ 的常用性能调优方法
 
@@ -1950,4 +1962,12 @@ RabbitMQ的性能调优常用方法：
 3. **消息批处理**：在生产者和消费者端使用批处理来减少网络调用的次数。
 4. **避免使用持久化队列和消息**：如果不需要，避免使用持久化队列和消息，因为它们会降低性能。
 5. **硬件优化**：使用高性能的硬件，特别是更快的 CPU 和更大的内存。
+
+### 12.3. RabbitMQ 实现消费者的公平调度
+
+在 RabbitMQ 中实现消费者公平调度的方法：
+
+1. **预取计数（Prefetch Count）**：通过设置预取计数，限制分配给每个消费者的消息数，防止某些消费者被过度负载。
+2. **不使用自动确认**：使用手动消息确认，这样可以控制消费者在同一时间内处理的消息数量。
+3. **均匀分配消息**：确保所有消费者都有足够的能力处理消息，避免由于处理能力不均导致的不公平。
 
