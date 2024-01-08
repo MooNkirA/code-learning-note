@@ -10,6 +10,67 @@ RocketMQ 是一款阿里巴巴开源的分布式消息中间件，现在是 Apac
 - 实时的消息订阅机制
 - 亿级消息堆积能力
 
+
+### 1.1. 基本概念
+
+- **消息模型（Message Model）**：RocketMQ 主要由 Producer、Broker、Consumer 三部分组成，其中 Producer 负责生产消息，Consumer 负责消费消息，Broker 负责存储消息。Broker 在实际部署过程中对应一台服务器，每个 Broker 可以存储多个 Topic 的消息，每个 Topic 的消息也可以分片存储于不同的 Broker。Message Queue 用于存储消息的物理地址，每个Topic中的消息地址存储于多个 Message Queue 中。ConsumerGroup 由多个 Consumer 实例构成。
+- **消息生产者（Producer）**：负责生产消息，一般由业务系统负责生产消息。一个消息生产者会把业务应用系统里产生的消息发送到broker服务器。RocketMQ提供多种发送方式，同步发送、异步发送、顺序发送、单向发送。同步和异步方式均需要Broker返回确认信息，单向发送不需要。
+- **消息消费者（Consumer）**：负责消费消息，一般是后台系统负责异步消费。一个消息消费者会从Broker服务器拉取消息、并将其提供给应用程序。从用户应用的角度而言提供了两种消费形式：拉取式消费、推动式消费。
+- **主题（Topic）**：表示一类消息的集合，每个主题包含若干条消息，每条消息只能属于一个主题，是RocketMQ进行消息订阅的基本单位。
+- **代理服务器（Broker Server）**：消息中转角色，负责存储消息、转发消息。代理服务器在RocketMQ系统中负责接收从生产者发送来的消息并存储、同时为消费者的拉取请求作准备。代理服务器也存储消息相关的元数据，包括消费者组、消费进度偏移和主题和队列消息等。
+- **名字服务（Name Server）**：名称服务充当路由消息的提供者。生产者或消费者能够通过名字服务查找各主题相应的Broker IP列表。多个Namesrv实例组成集群，但相互独立，没有信息交换。
+- **拉取式消费（Pull Consumer）**：Consumer消费的一种类型，应用通常主动调用Consumer的拉消息方法从Broker服务器拉消息、主动权由应用控制。一旦获取了批量消息，应用就会启动消费过程。
+- **推动式消费（Push Consumer）**：Consumer消费的一种类型，该模式下Broker收到数据后会主动推送给消费端，该消费模式一般实时性较高。
+- **生产者组（Producer Group）**：同一类Producer的集合，这类Producer发送同一类消息且发送逻辑一致。如果发送的是事务消息且原始生产者在发送之后崩溃，则Broker服务器会联系同一生产者组的其他生产者实例以提交或回溯消费。
+- **消费者组（Consumer Group）**：同一类Consumer的集合，这类Consumer通常消费同一类消息且消费逻辑一致。消费者组使得在消息消费方面，实现负载均衡和容错的目标变得非常容易。要注意的是，消费者组的消费者实例必须订阅完全相同的Topic。RocketMQ 支持两种消息模式：集群消费（Clustering）和广播消费（Broadcasting）。
+- **集群消费（Clustering）**：集群消费模式下，相同Consumer Group的每个Consumer实例平均分摊消息。
+- **广播消费（Broadcasting）**：广播消费模式下，相同Consumer Group的每个Consumer实例都接收全量的消息。
+- **普通顺序消息（Normal Ordered Message）**：普通顺序消费模式下，消费者通过同一个消息队列（Topic 分区，称作 Message Queue）收到的消息是有顺序的，不同消息队列收到的消息则可能是无顺序的。
+- **严格顺序消息（Strictly Ordered Message）**：严格顺序消息模式下，消费者收到的所有消息均是有顺序的。
+- **消息（Message）**：消息系统所传输信息的物理载体，生产和消费数据的最小单位，每条消息必须属于一个主题。RocketMQ中每个消息拥有唯一的Message ID，且可以携带具有业务标识的Key。系统提供了通过Message ID和Key查询消息的功能。
+- **标签（Tag）**：为消息设置的标志，用于同一主题下区分不同类型的消息。来自同一业务单元的消息，可以根据不同业务目的在同一主题下设置不同标签。标签能够有效地保持代码的清晰度和连贯性，并优化RocketMQ提供的查询系统。消费者可以根据Tag实现对不同子主题的不同消费逻辑，实现更好的扩展性。
+
+### 1.2. 技术架构
+
+![](images/20220106111459581_10004.png)
+
+RocketMQ 架构上主要分为四部分，如上图所示:
+
+- Producer：消息发布的角色，支持分布式集群方式部署。Producer 通过 MQ 的负载均衡模块选择相应的 Broker 集群队列进行消息投递，投递的过程支持快速失败并且低延迟。
+- Consumer：消息消费的角色，支持分布式集群方式部署。支持以 push（推送），pull（拉取）两种模式对消息进行消费。同时也支持集群方式和广播方式的消费，它提供实时消息订阅机制，可以满足大多数用户的需求。
+- NameServer：NameServer 是一个非常简单的 Topic 路由注册中心，其角色类似 Dubbo 中的 zookeeper，支持 Broker 的动态注册与发现。主要包括两个功能：
+    - Broker 管理，NameServer 接受 Broker 集群的注册信息并且保存下来作为路由信息的基本数据。然后提供心跳检测机制，检查 Broker 是否还存活；
+    - 路由信息管理，每个 NameServer 将保存关于 Broker 集群的整个路由信息和用于客户端查询的队列信息。然后 Producer 和 Conumser 通过 NameServer 就可以知道整个 Broker 集群的路由信息，从而进行消息的投递和消费。
+> NameServer 通常也是集群的方式部署，各实例间相互不进行信息通讯。Broker 会向每一台 NameServer 注册自己的路由信息，所以每一个 NameServer 实例上面都保存一份完整的路由信息。当某个 NameServer 因某种原因下线了，Broker 仍然可以向其它 NameServer 同步其路由信息，Producer、Consumer 仍然可以动态感知 Broker 的路由的信息。
+- BrokerServer：Broker 主要负责消息的存储、投递和查询以及服务高可用保证。
+
+### 1.3. Broker 核心子模块
+
+Broker 为了实现这些功能，其架构包含了以下几个重要子模块：
+
+![](images/20220106111617801_5835.png)
+
+- Remoting Module：整个 Broker 的实体入口，负责处理来自 clients 端的请求。
+- Client Manager：负责管理客户端(Producer/Consumer)和维护 Consumer 的 Topic 订阅信息
+- Store Service：提供方便简单的 API 接口处理消息存储到物理硬盘和查询功能。
+- HA Service：高可用服务，提供 Master Broker 和 Slave Broker 之间的数据同步功能。
+- Index Service：根据特定的 Message key 对投递到 Broker 的消息进行索引服务，以提供消息的快速查询。
+
+### 1.4. 消息系统通用模型
+
+消息发送-消费的通用模型
+
+![](images/382563912248879.png)
+
+### 1.5. RocketMQ 的消息存储机制设计
+
+RocketMQ 消息存储机制的设计原理：
+
+1. **CommitLog 文件**：所有的消息都存储在一个连续的 CommitLog 文件中，保证了消息的顺序写入，提高写入性能。
+2. **消费队列**：为每个主题的每个队列创建消费队列文件，存储指向 CommitLog 中消息的索引，加快消费速度。
+3. **索引机制**：提供索引机制，通过索引快速查找消息。
+4. **文件切割**：CommitLog 和消费队列文件按固定大小切割，便于文件管理和清理。
+
 ## 2. RocketMQ 环境搭建
 
 RocketMQ 学习示例是在 linux 环境下安装
@@ -298,68 +359,15 @@ java -jar rocketmq-console-ng-1.0.0.jar --server.port=7777 --rocketmq.config.nam
 
 ![](images/421073312230453.png)
 
-## 3. RocketMQ 的架构及概念
+## 3. RocketMQ 快速开始
 
-### 3.1. 技术架构
-
-![](images/20220106111459581_10004.png)
-
-RocketMQ 架构上主要分为四部分，如上图所示:
-
-- Producer：消息发布的角色，支持分布式集群方式部署。Producer 通过 MQ 的负载均衡模块选择相应的 Broker 集群队列进行消息投递，投递的过程支持快速失败并且低延迟。
-- Consumer：消息消费的角色，支持分布式集群方式部署。支持以 push（推送），pull（拉取）两种模式对消息进行消费。同时也支持集群方式和广播方式的消费，它提供实时消息订阅机制，可以满足大多数用户的需求。
-- NameServer：NameServer 是一个非常简单的 Topic 路由注册中心，其角色类似 Dubbo 中的 zookeeper，支持 Broker 的动态注册与发现。主要包括两个功能：
-    - Broker 管理，NameServer 接受 Broker 集群的注册信息并且保存下来作为路由信息的基本数据。然后提供心跳检测机制，检查 Broker 是否还存活；
-    - 路由信息管理，每个 NameServer 将保存关于 Broker 集群的整个路由信息和用于客户端查询的队列信息。然后 Producer 和 Conumser 通过 NameServer 就可以知道整个 Broker 集群的路由信息，从而进行消息的投递和消费。
-> NameServer 通常也是集群的方式部署，各实例间相互不进行信息通讯。Broker 会向每一台 NameServer 注册自己的路由信息，所以每一个 NameServer 实例上面都保存一份完整的路由信息。当某个 NameServer 因某种原因下线了，Broker 仍然可以向其它 NameServer 同步其路由信息，Producer、Consumer 仍然可以动态感知 Broker 的路由的信息。
-- BrokerServer：Broker 主要负责消息的存储、投递和查询以及服务高可用保证。
-
-### 3.2. Broker 核心子模块
-
-Broker 为了实现这些功能，其架构包含了以下几个重要子模块：
-
-![](images/20220106111617801_5835.png)
-
-- Remoting Module：整个 Broker 的实体入口，负责处理来自 clients 端的请求。
-- Client Manager：负责管理客户端(Producer/Consumer)和维护 Consumer 的 Topic 订阅信息
-- Store Service：提供方便简单的 API 接口处理消息存储到物理硬盘和查询功能。
-- HA Service：高可用服务，提供 Master Broker 和 Slave Broker 之间的数据同步功能。
-- Index Service：根据特定的 Message key 对投递到 Broker 的消息进行索引服务，以提供消息的快速查询。
-
-### 3.3. 基本概念
-
-- **消息模型（Message Model）**：RocketMQ 主要由 Producer、Broker、Consumer 三部分组成，其中 Producer 负责生产消息，Consumer 负责消费消息，Broker 负责存储消息。Broker 在实际部署过程中对应一台服务器，每个 Broker 可以存储多个 Topic 的消息，每个 Topic 的消息也可以分片存储于不同的 Broker。Message Queue 用于存储消息的物理地址，每个Topic中的消息地址存储于多个 Message Queue 中。ConsumerGroup 由多个Consumer 实例构成。
-- **消息生产者（Producer）**：负责生产消息，一般由业务系统负责生产消息。一个消息生产者会把业务应用系统里产生的消息发送到broker服务器。RocketMQ提供多种发送方式，同步发送、异步发送、顺序发送、单向发送。同步和异步方式均需要Broker返回确认信息，单向发送不需要。
-- **消息消费者（Consumer）**：负责消费消息，一般是后台系统负责异步消费。一个消息消费者会从Broker服务器拉取消息、并将其提供给应用程序。从用户应用的角度而言提供了两种消费形式：拉取式消费、推动式消费。
-- **主题（Topic）**：表示一类消息的集合，每个主题包含若干条消息，每条消息只能属于一个主题，是RocketMQ进行消息订阅的基本单位。
-- **代理服务器（Broker Server）**：消息中转角色，负责存储消息、转发消息。代理服务器在RocketMQ系统中负责接收从生产者发送来的消息并存储、同时为消费者的拉取请求作准备。代理服务器也存储消息相关的元数据，包括消费者组、消费进度偏移和主题和队列消息等。
-- **名字服务（Name Server）**：名称服务充当路由消息的提供者。生产者或消费者能够通过名字服务查找各主题相应的Broker IP列表。多个Namesrv实例组成集群，但相互独立，没有信息交换。
-- **拉取式消费（Pull Consumer）**：Consumer消费的一种类型，应用通常主动调用Consumer的拉消息方法从Broker服务器拉消息、主动权由应用控制。一旦获取了批量消息，应用就会启动消费过程。
-- **推动式消费（Push Consumer）**：Consumer消费的一种类型，该模式下Broker收到数据后会主动推送给消费端，该消费模式一般实时性较高。
-- **生产者组（Producer Group）**：同一类Producer的集合，这类Producer发送同一类消息且发送逻辑一致。如果发送的是事务消息且原始生产者在发送之后崩溃，则Broker服务器会联系同一生产者组的其他生产者实例以提交或回溯消费。
-- **消费者组（Consumer Group）**：同一类Consumer的集合，这类Consumer通常消费同一类消息且消费逻辑一致。消费者组使得在消息消费方面，实现负载均衡和容错的目标变得非常容易。要注意的是，消费者组的消费者实例必须订阅完全相同的Topic。RocketMQ 支持两种消息模式：集群消费（Clustering）和广播消费（Broadcasting）。
-- **集群消费（Clustering）**：集群消费模式下，相同Consumer Group的每个Consumer实例平均分摊消息。
-- **广播消费（Broadcasting）**：广播消费模式下，相同Consumer Group的每个Consumer实例都接收全量的消息。
-- **普通顺序消息（Normal Ordered Message）**：普通顺序消费模式下，消费者通过同一个消息队列（ Topic 分区，称作 Message Queue） 收到的消息是有顺序的，不同消息队列收到的消息则可能是无顺序的。
-- **严格顺序消息（Strictly Ordered Message）**：严格顺序消息模式下，消费者收到的所有消息均是有顺序的。
-- **消息（Message）**：消息系统所传输信息的物理载体，生产和消费数据的最小单位，每条消息必须属于一个主题。RocketMQ中每个消息拥有唯一的Message ID，且可以携带具有业务标识的Key。系统提供了通过Message ID和Key查询消息的功能。
-- **标签（Tag）**：为消息设置的标志，用于同一主题下区分不同类型的消息。来自同一业务单元的消息，可以根据不同业务目的在同一主题下设置不同标签。标签能够有效地保持代码的清晰度和连贯性，并优化RocketMQ提供的查询系统。消费者可以根据Tag实现对不同子主题的不同消费逻辑，实现更好的扩展性。
-
-### 3.4. 消息系统通用模型
-
-消息发送-消费的通用模型
-
-![](images/382563912248879.png)
-
-## 4. RocketMQ 快速开始
-
-### 4.1. 消息发送-消费示例流程图
+### 3.1. 消息发送-消费示例流程图
 
 示例需求：创建一个 Producer，向 RocketMQ 发送消息，通过 RocketMQ Console 验证发送成功；创建一个 Consumer，从 RocketMQ 成功接收消息
 
 ![](images/375155012236746.png)
 
-### 4.2. 相关依赖
+### 3.2. 相关依赖
 
 示例使用 SpringBoot 项目，引入 RocketMQ 依赖
 
@@ -394,7 +402,7 @@ Broker 为了实现这些功能，其架构包含了以下几个重要子模块�
 
 > Notes: 示例依赖 rocketmq-starter 2.0.2 版本时，发送消息时如果当前 topic 不存在，会报 No route info of this topic 这个异常问题。高版本默认自动创建 topic。
 
-### 4.3. RocketMQ 相关的配置
+### 3.3. RocketMQ 相关的配置
 
 修改项目application.yml配置文件，增加 RocketMQ 相关的配置
 
@@ -416,9 +424,9 @@ rocketmq:
   name-server: 127.0.0.1:9876 # RocketMQ 服务的地址
 ```
 
-### 4.4. 使用 RocketMQ 原生的 API 方式
+### 3.4. 使用 RocketMQ 原生的 API 方式
 
-#### 4.4.1. 发送消息
+#### 3.4.1. 发送消息
 
 使用 RocketMQ 发送消息步骤如下：
 
@@ -467,7 +475,7 @@ public void basicTest() throws Exception {
 }
 ```
 
-#### 4.4.2. 接收消息
+#### 3.4.2. 接收消息
 
 使用 RocketMQ 接收消息步骤：
 
@@ -522,9 +530,9 @@ public void basicTest() throws Exception {
 }
 ```
 
-### 4.5. Spring Boot 方式
+### 3.5. Spring Boot 方式
 
-#### 4.5.1. 发送消息
+#### 3.5.1. 发送消息
 
 注入 `RocketMQTemplate` 对象用于发送消息
 
@@ -563,7 +571,7 @@ public class ProducerController {
 }
 ```
 
-#### 4.5.2. 接收消息
+#### 3.5.2. 接收消息
 
 RocketMQ 支持两种消息模式：
 
@@ -593,11 +601,11 @@ public class ConsumeService implements RocketMQListener<String> {
 }
 ```
 
-## 5. 普通消息
+## 4. 普通消息
 
 RocketMQ 提供三种方式来发送普通消息：可靠同步发送、可靠异步发送和单向发送。
 
-### 5.1. 可靠同步发送
+### 4.1. 可靠同步发送
 
 同步发送是指消息发送方发出数据后，会在收到接收方发回响应之后才发下一个数据包的通讯方式。
 
@@ -620,7 +628,7 @@ public void testSyncSend() {
 }
 ```
 
-### 5.2. 可靠异步发送
+### 4.2. 可靠异步发送
 
 异步发送是指发送方发出数据后，不等接收方发回响应，接着发送下个数据包的通讯方式。发送方通过回调接口接收服务器响应，并对响应结果进行处理。
 
@@ -656,7 +664,7 @@ public void testAsyncSend() throws InterruptedException {
 }
 ```
 
-### 5.3. 单向发送
+### 4.3. 单向发送
 
 单向发送是指发送方只负责发送消息，不等待服务器回应且没有回调函数触发，即只发送请求不等待应答。
 
@@ -676,7 +684,7 @@ public void testOneWay() {
 }
 ```
 
-### 5.4. 三种发送方式的对比
+### 4.4. 三种发送方式的对比
 
 | 发送方式 | 发送 TPS | 发送结果反馈 |  可靠性  |
 | :-----: | :------: | :--------: | :-----: |
@@ -684,7 +692,9 @@ public void testOneWay() {
 | 异步发送 |    快    |    有       |  不丢失  |
 | 单向发送 |   最快   |     无      | 可能丢失 |
 
-## 6. 顺序消息
+## 5. 顺序消息
+
+### 5.1. 概述
 
 顺序消息是消息队列提供的一种严格按照顺序来发布和消费的消息类型。
 
@@ -742,35 +752,44 @@ public void testSendOrderly() throws InterruptedException {
 }
 ```
 
-## 7. 事务消息
+### 5.2. 顺序消息保证机制原理
+
+1. **顺序消息类型**：提供顺序消息类型，保证同一主题的同一队列中的消息按发送顺序消费。
+2. **局部顺序**：在单个队列级别实现消息顺序，保证队列内部消息的有序性。
+3. **分布式锁**：在发送和消费顺序消息时，使用分布式锁来保证顺序性。
+4. **重试机制**：当消费失败时，采用重试机制而非立即跳过，保证消息顺序。
+
+## 6. 事务消息
 
 RocketMQ 提供了事务消息，通过事务消息就能达到分布式事务的最终一致。
 
-### 7.1. 事务消息交互流程
+### 6.1. 事务消息相关概念
+
+- 半事务消息：暂不能投递的消息，发送方已经成功地将消息发送到了 RocketMQ 服务端，但是服务端未收到生产者对该消息的二次确认，此时该消息被标记成“暂不能投递”状态，处于该种状态下的消息即半事务消息。
+- 消息回查：由于网络闪断、生产者应用重启等原因，导致某条事务消息的二次确认丢失，RocketMQ 服务端通过扫描发现某条消息长期处于“半事务消息”时，需要主动向消息生产者询问该消息的最终状态（`Commit` 或是 `Rollback`），该询问过程即消息回查。
+
+### 6.2. 事务消息交互流程
 
 ![](images/64572517256912.png)
 
 ![](images/20220107101823197_5114.png)
 
-**相关概念**：
-
-- 半事务消息：暂不能投递的消息，发送方已经成功地将消息发送到了 RocketMQ 服务端，但是服务端未收到生产者对该消息的二次确认，此时该消息被标记成“暂不能投递”状态，处于该种状态下的消息即半事务消息。
-- 消息回查：由于网络闪断、生产者应用重启等原因，导致某条事务消息的二次确认丢失，RocketMQ 服务端通过扫描发现某条消息长期处于“半事务消息”时，需要主动向消息生产者询问该消息的最终状态（`Commit` 或是 `Rollback`），该询问过程即消息回查。
-
-**事务消息发送步骤**：
+#### 6.2.1. 事务消息发送步骤
 
 1. 发送方将半事务消息发送至 RocketMQ 服务端。
 2. RocketMQ 服务端将消息持久化之后，向发送方返回 Ack 确认消息已经发送成功，此时消息为半事务消息。
-3. 发送方开始执行本地事务逻辑。
-4. 发送方根据本地事务执行结果向服务端提交二次确认（`Commit` 或是 `Rollback`），服务端收到 `Commit` 状态则将半事务消息标记为可投递，订阅方最终将收到该消息；服务端收到 `Rollback` 状态则删除半事务消息，订阅方将不会接受该消息。
+3. 消息发送方开始执行本地事务逻辑。
+4. 发送方根据本地事务执行结果向服务端提交二次确认（`Commit` 或是 `Rollback`）。
+    - 服务端收到 `Commit` 状态则将半事务消息标记为可投递，订阅方最终将收到该消息。
+    - 服务端收到 `Rollback` 状态则删除半事务消息，订阅方将不会接受该消息。
 
-**事务消息回查步骤**：
+#### 6.2.2. 事务消息回查步骤
 
-1. 在断网或者是应用重启的特殊情况下，上述步骤4提交的二次确认最终未到达服务端，经过固定时间后服务端将对该消息发起消息回查。
+1. 在断网或者是应用重启的特殊情况下，『事务消息发送』步骤4提交的二次确认最终未到达服务端，经过固定时间后服务端将对该消息发起消息回查。
 2. 发送方收到消息回查后，需要检查对应消息的本地事务执行的最终结果。
-3. 发送方根据检查得到的本地事务的最终状态再次提交二次确认，服务端仍按照步骤4对半事务消息进行操作。
+3. 发送方根据检查得到的本地事务的最终状态再次提交二次确认，服务端仍按照步骤4对半事务消息进行操作，确保消息最终一致性。
 
-### 7.2. 基础使用示例
+### 6.3. 基础使用示例
 
 ```java
 @RestController
@@ -863,7 +882,7 @@ public class TxMessageServiceListener implements RocketMQLocalTransactionListene
 }
 ```
 
-### 7.3. @RocketMQTransactionListener 注解与 sendMessageInTransaction 在版本升级的变化
+### 6.4. @RocketMQTransactionListener 注解与 sendMessageInTransaction 在版本升级的变化
 
 依赖：
 
@@ -973,10 +992,28 @@ java.lang.IllegalStateException: rocketMQTemplate already exists RocketMQLocalTr
 
 所以发送事务消息：在客户端，首先用户需要实现 `RocketMQLocalTransactionListener` 接口，并在接口类上注解声明 `@RocketMQTransactionListener`，实现确认和回查方法；然后再使用资源模板 `RocketMQTemplate`，调用方法 `sendMessageInTransaction()` 来进行消息的发布。注意：从 RocketMQ-Spring 2.1.0 版本之后，注解 `@RocketMQTransactionListener` 不能设置 `txProducerGroup`、`ak`、`sk`，这些值均与对应的 `RocketMQTemplate` 保持一致。
 
-### 7.4. 消息的幂等性
+### 6.5. 消息的幂等性
 
 在上面事务消息测试中，如果处理本地事务时发生了网络的延迟或者其他问题，导致本地事务处理的方法没有返回，此时会就执行事务回查的方法并发送事务提交标识（`RocketMQLocalTransactionState.COMMIT`）。但后面网络恢复正常后，本地事务处理也会发送一次 `RocketMQLocalTransactionState.COMMIT`，此时 Consumer 会收到 2 次消息，可能导致重复消费。
 
 **保证消息不被重复处理**，就是“幂等”。幂等是一个数学概念，可以理解为：<u>同一个函数，参数相同的情况下，多次执行后的结果一致</u>
 
 **解决思路**：在 Consumer 端创建一个消息中间表，用于记录接收的消息，最好给每条消息设计一个唯一的流水id。每次收到消息后，先根据流水id来查询该表，判断这条消息是否处理过。
+
+## 7. RocketMQ 扩展
+
+### 7.1. RocketMQ 处理消息重试和死信队列的机制
+
+- **重试队列**：当消费失败时，消息会被发送到重试队列，按配置的间隔和次数重试。
+- **死信队列**：超过最大重试次数的消息会被转移到死信队列。
+- **配置灵活**：提供灵活的重试间隔和次数配置。
+- **死信队列处理**：可以对死信队列中的消息进行特殊处理，如人工干预或日志记录。
+
+### 7.2. RocketMQ 消息过滤功能
+
+RocketMQ 消息过滤功能的实现方式：
+
+1. **标签过滤**：生产者在发送消息时设置标签，消费者通过指定标签来选择性消费消息。
+2. **SQL92 过滤**：支持基于 SQL92 标准的过滤表达式，允许在消费端进行更复杂的消息过滤。
+3. **客户端过滤**：消费者客户端在接收到消息后，可以根据自定义逻辑进行过滤处理。
+4. **性能优化**：通过过滤减少网络传输的数据量，提高整体性能和效率。

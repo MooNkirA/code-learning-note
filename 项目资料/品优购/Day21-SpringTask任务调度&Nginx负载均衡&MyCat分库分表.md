@@ -1,5 +1,3 @@
-# Day21 SpringTask 任务调度 & Nginx 负载均衡 & MyCat 分库分表
-
 ## 1. 任务调度 SpringTask
 
 ### 1.1. 什么是任务调度
@@ -765,6 +763,8 @@ upstream pinyougou-manager-web {
 
 ### 4.1. Mycat 介绍
 
+> 官网：http://www.mycat.org.cn/
+
 #### 4.1.1. 什么是 Mycat
 
 - 一个彻底开源的，面向企业应用开发的大数据库集群
@@ -792,22 +792,18 @@ upstream pinyougou-manager-web {
 - 支持全局序列号，解决分布式下的主键生成问题。
 - 分片规则丰富，插件化开发，易于扩展。
 - 强大的 web，命令行监控。
-- 支持前端作为 MySQL 通用代理，后端 JDBC 方式支持 Oracle、DB2、SQL Server 、 mongodb 、巨杉。支持密码加密
+- 支持前端作为 MySQL 通用代理，后端 JDBC 方式支持 Oracle、DB2、SQL Server、mongodb、巨杉。支持密码加密
 - 支持 SQL 黑名单、sql 注入攻击拦截
 - 支持 prepare 预编译指令（1.6）支持非堆内存(Direct Memory)聚合计算（1.6）
 - 支持 PostgreSQL 的 native 协议（1.6）
 - 支持 mysql 和 oracle 存储过程，out 参数、多结果集返回（1.6）
 - 支持 zookeeper 协调主从切换、zk 序列、配置 zk 化（1.6）
-- 持库内分表（1.6）
+- 支持库内分表（1.6）
 - 集群基于 ZooKeeper 管理，在线升级，扩容，智能优化，大数据处理（2.0 开发版）。
 
 #### 4.1.3. MyCat 架构
 
 ![Mycat架构图](images/20190325090339777_11160.png)
-
-#### 4.1.4. 官方网站
-
-http://mycat.io/
 
 ### 4.2. Mycat 安装与使用
 
