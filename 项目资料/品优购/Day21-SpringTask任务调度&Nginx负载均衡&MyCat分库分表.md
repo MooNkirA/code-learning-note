@@ -763,47 +763,7 @@ upstream pinyougou-manager-web {
 
 ### 4.1. Mycat 介绍
 
-> 官网：http://www.mycat.org.cn/
-
-#### 4.1.1. 什么是 Mycat
-
-- 一个彻底开源的，面向企业应用开发的大数据库集群
-- 支持事务、ACID【原子性（Atomicity）、一致性（Consistency）、隔离性（Isolation）、持久性（Durability）】、可以替代 MySQL 的加强版数据库
-- 一个可以视为 MySQL 集群的企业级数据库，用来替代昂贵的 Oracle 集群
-- 一个融合内存缓存技术、NoSQL 技术、HDFS 大数据的新型 SQL Server
-- 结合传统数据库和新型分布式数据仓库的新一代企业级数据库产品
-- 一个新颖的数据库中间件产品
-
-**目标**：低成本的将现有的单机数据库和应用平滑迁移到“云”端，解决数据存储和业务规模迅速增长情况下的数据瓶颈问题。
-
-#### 4.1.2. 一些关键特性
-
-- 支持 SQL92 标准
-- 支持 MySQL、Oracle、DB2、SQL Server、PostgreSQL 等 DB 的常见 SQL 语法
-- 遵守 Mysql 原生协议，跨语言，跨平台，跨数据库的通用中间件代理。
-- 基于心跳的自动故障切换，支持读写分离，支持 MySQL 主从，以及 galera cluster 集群。
-- 支持 Galera for MySQL 集群，Percona Cluster 或者 MariaDB cluster
-- 基于 Nio 实现，有效管理线程，解决高并发问题。
-- 支持数据的多片自动路由与聚合，支持 sum,count,max 等常用的聚合函数,支持跨库分页。
-- 支持单库内部任意 join，支持跨库 2 表 join，甚至基于 caltlet 的多表 join。
-- 支持通过全局表，ER 关系的分片策略，实现了高效的多表 join 查询。
-- 支持分布式事务（弱 xa）。
-- 支持 XA 分布式事务（1.6.5）。
-- 支持全局序列号，解决分布式下的主键生成问题。
-- 分片规则丰富，插件化开发，易于扩展。
-- 强大的 web，命令行监控。
-- 支持前端作为 MySQL 通用代理，后端 JDBC 方式支持 Oracle、DB2、SQL Server、mongodb、巨杉。支持密码加密
-- 支持 SQL 黑名单、sql 注入攻击拦截
-- 支持 prepare 预编译指令（1.6）支持非堆内存(Direct Memory)聚合计算（1.6）
-- 支持 PostgreSQL 的 native 协议（1.6）
-- 支持 mysql 和 oracle 存储过程，out 参数、多结果集返回（1.6）
-- 支持 zookeeper 协调主从切换、zk 序列、配置 zk 化（1.6）
-- 支持库内分表（1.6）
-- 集群基于 ZooKeeper 管理，在线升级，扩容，智能优化，大数据处理（2.0 开发版）。
-
-#### 4.1.3. MyCat 架构
-
-![Mycat架构图](images/20190325090339777_11160.png)
+> 更多 Mycat 使用详见[《Mycat2 - 数据库中间件》笔记](/分布式微服务/分库分表/Mycat)
 
 ### 4.2. Mycat 安装与使用
 
