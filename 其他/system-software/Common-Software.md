@@ -299,19 +299,20 @@ PixPin 是目前市面上功能最全面的截图工具之一了！包括**截�
 - 官方网站： https://singlelogin.re/
 - 官方桌面版下载： https://zh.go-to-zlibrary.se/#desktop_app_tab
 
-> 以下是国内镜像
+**据说是入驻国内的网址：**
 
-ZLibary 网站镜像唯一入口： https://www.zhelper.net/
+- https://zh.z-library.se/
+
+**以下是国内镜像**：
+
+- ZLibary 网站镜像唯一入口： https://www.zhelper.net/
 
 > 注：地址经常换，镜像站/公用账号每日更新。本网页本身不具备任何搜索或者下载功能，需要搭配合适的查询接口（API）进行使用 直接访问将显示**无可用API**。
 
 - [zhelper Search Page 搜索界面 🔍](https://search.zhelper.net/?%5B%7B%22name%22:%22Ylibrary%22,%22url%22:%22https://api.ylibrary.org%22,%22type%22:%22full%22,%22sensitive%22:false,%22detail%22:true%7D%5D) - Ylibrary 离线书库
 - [Zlibrary 最新地址/入口](https://5w.fit/zkmgc) - 5w Short Links（短链接生成器）
-- [zBook](https://zbook.eu.org/)
-- https://zlibrary-global.se
-- Z-Library https://zlibrary-east.se
-> 如果网址失效，可以通过导航网站重新获取。 https://zlib.shop/
 
+> 如果网址失效，可以通过导航网站重新获取。 https://zlib.shop/
 
 #### 7.1.2. 国内篇
 
