@@ -213,7 +213,8 @@ windows 桌面版缓存目录：`%APPDATA%\listen1\Cache`
 ### 5.4. 音乐下载
 
 - ~~下歌吧音乐下载平台（*抱歉！该站点已经被管理员停止运行，请联系管理员了解详情！）* https://music.y444.cn/#/ ~~
-- MyFreeMP3： https://tools.liumingye.cn/music/?page=searchPage#
+- MyFreeMP3(离线版)： https://tools.liumingye.cn/music/?page=searchPage#
+- MyFreeMP3： https://www.myfreemp3.com.cn/
 - MusicENC： https://www.musicenc.com/
 - Musicbed： https://www.musicbed.com/
 - [好歌多](https://www.haogeduo.com/)

@@ -52,9 +52,9 @@ nohup java -Xms512m -Xmx1024m -jar xxxx.jar --spring.profiles.active=prod &
 # 设置为 1024 字节
 -Xms:1024
 # 设置为 1024 kb
--Xms:1024k
+-Xms:1024k
 # 设置为 1024 mb
--Xms:1024m
+-Xms:1024m
 ```
 
 堆空间设置多少合适？

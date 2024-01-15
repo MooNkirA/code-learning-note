@@ -379,7 +379,7 @@ feign:
     enabled: true # 开启对hystrix的支持，默认值是false（关闭）
 ```
 
-### 5.3. 配置FeignClient接口的实现类
+### 5.3. 配置 FeignClient 接口的实现类
 
 基于Feign实现熔断降级，需要创建`FeignClient`接口的实现类，在实现类中定义降级方法
 
