@@ -32,3 +32,12 @@ Beats 是 elastic 公司开源的一款采集系统监控数据的代理agent，
 - Filebeat：用于监控、收集服务器日志文件，其已取代 logstash forwarder；
 - Metricbeat：可定期获取外部系统的监控指标信息，其可以监控、收集 Apache、HAProxy、MongoDB、MySQL、Nginx、PostgreSQL、Redis、System、Zookeeper等服务；
 - Winlogbeat：用于监控、收集Windows系统的日志信息
+
+### 2.1. ELK 进行微服务日志收集的一般流程
+
+![](images/226385508258582.png)
+
+1. 在每个微服务中配置日志输出：将微服务的日志输出到标准输出（stdout）或日志文件。
+2. 使用 Logstash 收集日志：配置 Logstash 收集器，通过配置输入插件（如文件输入、网络输入等）监听微服务的日志输出，并进行过滤和处理。
+3. 将日志数据发送到 Elasticsearch：配置 Logstash 的输出插件，将经过处理的日志数据发送到 Elasticsearch 进行存储和索引。
+4. 使用 Kibana 进行可视化和分析：通过 Kibana 连接到 Elasticsearch，创建仪表盘、图表和搜索查询，实时监控和分析微服务的日志数据。

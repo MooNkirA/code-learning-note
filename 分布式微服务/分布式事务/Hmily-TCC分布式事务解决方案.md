@@ -11,13 +11,13 @@ Hmily 是一款高性能，零侵入，金融级分布式事务解决方案，�
 
 Hmily 是一个高性能分布式事务 tcc 开源框架。基于java语言来开发（JDK1.8），支持多种 rpc 框架进行分布式事务。它目前支持以下特性：
 
-- 高可靠性 ：支持分布式场景下，事务异常回滚，超时异常恢复，防止事务悬挂。
-- 易用性 ：提供零侵入性式的 `Spring-Boot`, `Spring-Namespace` 快速与业务系统集成。
-- 高性能 ：去中心化设计，与业务系统完全融合，天然支持集群部署。
-- 可观测性 ：Metrics多项指标性能监控，以及admin管理后台UI展示。
-- 多种RPC ： 支持 `Dubbo`, `SpringCloud`,`Motan`, `brpc`, `tars` 等知名RPC框架。
-- 日志存储 ： 支持 `mysql`, `oracle`, `mongodb`, `redis`, `zookeeper` 等方式。
-- 复杂场景 ： 支持RPC嵌套调用事务。
+- 高可靠性：支持分布式场景下，事务异常回滚，超时异常恢复，防止事务悬挂。
+- 易用性：提供零侵入性式的 `Spring-Boot`, `Spring-Namespace` 快速与业务系统集成。
+- 高性能：去中心化设计，与业务系统完全融合，天然支持集群部署。
+- 可观测性：Metrics 多项指标性能监控，以及 admin 管理后台 UI 展示。
+- 多种 RPC：支持 `Dubbo`, `SpringCloud`,`Motan`, `brpc`, `tars` 等知名RPC框架。
+- 日志存储：支持 `mysql`, `oracle`, `mongodb`, `redis`, `zookeeper` 等方式。
+- 复杂场景：支持 RPC 嵌套调用事务。
 
 Hmily 利用 AOP 对参与分布式事务的本地方法与远程方法进行拦截处理，通过多方拦截，事务参与者能透明的调用到另一方的 Try、Confirm、Cancel 方法；传递事务上下文；并记录事务日志，酌情进行补偿，重试等。
 

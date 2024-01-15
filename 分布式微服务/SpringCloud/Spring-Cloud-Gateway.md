@@ -41,6 +41,11 @@ Spring Cloud Gateway 是 Spring 官方基于 Spring 5.0，Spring Boot 2.0 和 Pr
 - **predicates（断言）**：Java8 中的断言函数，断言的作用是进行条件匹配，只有断言都返回真，才会真正的执行路由到目的地 uri。Spring Cloud Gateway 中的断言函数输入类型是 Spring5.0 框架中的`ServerWebExchange`。Spring Cloud Gateway 中的断言函数允许开发者去定义匹配来自 Http Request 中的任何信息，比如请求头和参数等。
 - **filter（过滤器）**：一个标准的 Spring WebFilter，Spring Cloud Gateway 中的 Filter 分为两种类型，分别是`Gateway Filter`和`Global Filter`。过滤器`Filter`可以对请求和响应进行拦截处理。
 
+有两个比较重要的概念：
+
+- **Gateway Handler（网关处理器）**：网关处理器是 Spring Cloud Gateway 的核心组件，负责将请求转发到匹配的路由上。它根据路由配置和断言条件进行路由匹配，选择合适的路由进行请求转发。网关处理器还会依次应用配置的过滤器链，对请求进行处理和转换。
+- **Gateway Filter Chain（网关过滤器链）**：网关过滤器链由一系列过滤器组成，按照配置的顺序依次执行。每个过滤器可以在请求前、请求后或请求发生错误时进行处理。过滤器链的执行过程可以修改请求、响应以及执行其他自定义逻辑。
+
 ### 1.4. 工作流程
 
 ![](images/26574209248968.png)
@@ -796,33 +801,7 @@ Spring Cloud Gateway 的 Filter 从作用范围可分为另外两种 `GatewayFil
 
 #### 4.2.2. 内置局部过滤器（示例配置使用时再补充整理）
 
-|          过滤器工厂           |                                         作用                                          |                                参数                                |
-| :-------------------------: | ------------------------------------------------------------------------------------ | ----------------------------------------------------------------- |
-|      AddRequestHeader       | 为原始请求添加Header                                                                    | Header的名称及值                                                   |
-|     AddRequestParameter     | 为原始请求添加请求参数                                                                   | 参数名称及值                                                        |
-|      AddResponseHeader      | 为原始响应添加Header                                                                    | Header的名称及值                                                   |
-|    DedupeResponseHeader     | 剔除响应头中重复的值                                                                     | 需要去重的Header名称及去重策略                                        |
-|           Hystrix           | 为路由引入Hystrix的断路器保护                                                            | `HystrixCommand`的名称                                             |
-|       FallbackHeaders       | 为fallbackUri的请求头中添加具体的异常信息                                                 | Header的名称                                                       |
-|         PrefixPath          | 为原始请求路径添加前缀                                                                   | 前缀路径                                                           |
-|     PreserveHostHeader      | 为请求添加一个`preserveHostHeader=true`的属性，路由过滤器会检查该属性以决定是否要发送原始的Host | 无                                                                |
-|     RequestRateLimiter      | 用于对请求限流，限流算法为令版桶                                                           | keyResolver、rateLimiter、statusCode、denyEmptyKey、emptyKeyStatus |
-|         RedirectTo          | 将原始请求重定向到指定的UR                                                               | http状态码及重定向的url                                             |
-| RemoveHopByHopHeadersFilter | 为原始请求删除IETF组织规定的一系列Header                                                  | 默认就会启用，可以通过配置指定仅删除哪些Header                           |
-|     RemoveRequestHeader     | 为原始请求删除某个Header                                                                | Header名称                                                         |
-|    RemoveResponseHeader     | 为原始响应删除某个Header                                                                | Header名称                                                         |
-|         RewritePath         | 重写原始的请求路径                                                                      | 原始路径正则表达式以及重写后路径的正则表达式                             |
-|    RewriteResponseHeader    | 重写原始响应中的某个Header                                                               | Header名称，值的正则表达式，重写后的值                                 |
-|         SaveSession         | 在转发请求之前，强制执行`WebSession::save`操作                                            | 无                                                                |
-|        secureHeaders        | 为原始响应添加一系列起安全作用的响应头                                                      | 无，支持修改这些安全响应头的值                                         |
-|           SetPath           | 修改原始的请求路径                                                                      | 修改后的路径                                                        |
-|      SetResponseHeader      | 修改原始响应中某个Header的值                                                             | Header名称，修改后的值                                              |
-|          SetStatus          | 修改原始响应的状态码                                                                     | HTTP 状态码，可以是数字，也可以是字符串                                 |
-|         StripPrefix         | 用于截断原始请求的路径                                                                   | 使用数字表示要截断的路径的数量                                         |
-|            Retry            | 针对不同的响应进行重试                                                                   | retries、statuses、methods、series                                 |
-|         RequestSize         | 设置允许接收最大请求包的大小。如果请求包大小超过设置的值，则返回`413 Payload Too Large`         | 请求包大小，单位为字节，默认值为5M                                     |
-|      ModifyRequestBody      | 在转发请求之前修改原始请求体内容                                                           | 修改后的请求体内容                                                   |
-|     ModifyResponseBody      | 修改原始响应体的内容                                                                     | 修改后的响应体内容                                                   |
+![](images/578783908240156.png)
 
 以上每个过滤器工厂都对应一个实现类，并且这些类的名称必须以 `GatewayFilterFactory` 结尾，这是 Spring Cloud Gateway 的一个约定，例如 `AddRequestHeader` 对应的实现类为 `AddRequestHeaderGatewayFilterFactory`。对于这些过滤器的使用方式可以参考官方文档
 
