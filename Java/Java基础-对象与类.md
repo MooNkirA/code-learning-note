@@ -1838,10 +1838,17 @@ format(Locale locale, String format, Object... args)
 #### 12.2.8. 其他方法
 
 ```java
+/**
+ * When the intern method is invoked, if the pool already contains a
+ * string equal to this {@code String} object as determined by
+ * the {@link #equals(Object)} method, then the string from the pool is
+ * returned. Otherwise, this {@code String} object is added to the
+ * pool and a reference to this {@code String} object is returned.
+ */
 public native String intern();
 ```
 
-`intern()` 是个 Native 方法，其作用是首先从常量池中查找是否存在该常量值的字符串，若不存在则先在常量池中创建，否则直接返回常量池已经存在的字符串的引用。比如
+`intern()` 是个 Native 方法，其作用是首先从常量池中查找是否存在该常量值的字符串（即 `equals()` 方法为 true，也就是内容一样），若不存在则先在常量池中创建，否则直接返回常量池已经存在的字符串的引用。比如
 
 ```java
 String s1 = "aa";
@@ -1996,6 +2003,53 @@ StringBuilder sb = new StringBuilder("MooNkirA");
 ### 12.6. StringBuffer (待整理)
 
 > TODO: 待整理
+
+### 12.7. 使用“+”拼接字符串
+
+因为 String 是不可变的，使用“+”的拼接操作，会生成新的对象。
+
+```java
+String a = "hello ";
+String b = "world!";
+String ab = a + b;
+```
+
+在 JDK 1.8 之前，a 和 b 初始化时位于字符串常量池，ab 拼接后的对象位于堆中。经过拼接新生成了 String 对象。如果拼接多次，那么会生成多个中间对象。
+
+![](images/398222207240157.png)
+
+在 Java 8 会在编译期对“+”号拼接进行优化处理。拼接方式会被优化为基于 `StringBuilder` 的 `append` 方法进行处理。下面是通过 `javap -verbose` 命令反编译字节码的结果，很显然可以看到 `StringBuilder` 的创建和 `append` 方法的调用。
+
+```java
+stack=2, locals=4, args_size=1
+     0: ldc           #2                  // String hello
+     2: astore_1
+     3: ldc           #3                  // String world!
+     5: astore_2
+     6: new           #4                  // class java/lang/StringBuilder
+     9: dup
+    10: invokespecial #5                  // Method java/lang/StringBuilder."<init>":()V
+    13: aload_1
+    14: invokevirtual #6                  // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+    17: aload_2
+    18: invokevirtual #6                  // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+    21: invokevirtual #7                  // Method java/lang/StringBuilder.toString:()Ljava/lang/String;
+    24: astore_3
+    25: return
+```
+
+上面的代码相当于：
+
+```java
+String a = "hello ";
+String b = "world!";
+StringBuilder sb = new StringBuilder();
+sb.append(a);
+sb.append(b);
+String ab = sb.toString();
+```
+
+所以不能再笼统的回答：通过加号拼接字符串会创建多个 String 对象，因此性能比 StringBuilder 差。这就是错误的，因为本质上加号拼接的效果最终经过编译器处理之后和 StringBuilder 是一致的。
 
 ## 13. 类与对象综合知识
 

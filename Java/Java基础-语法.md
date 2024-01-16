@@ -562,10 +562,10 @@ int a = i; // 自动拆箱，本质是调用 a.intValue()
 - 调用`equals`进行比较（装箱）
 - `ArrayList`、`HashMap` 等集合类添加基础类型数据时（装箱）
 
-##### 3.6.3.3. IntegerCache
+##### 3.6.3.3. IntegerCache 的问题（经典面试题）
 
 1. 自动拆箱和自动装箱是由编译器自动完成，根据语法来决定是否需要装箱和拆箱。
-2. 如果整型字面量的值在 -128 到 127 之间，那么自动装箱时不会创建新的 `Integer` 对象，而是直接引用常量池中的 `Integer` 对象，若超过范围才会创建新的对象（*经典面试题*）
+2. 如果整型字面量的值在 -128 到 127 之间，那么自动装箱时不会创建新的 `Integer` 对象，而是直接引用常量池中的 `Integer` 对象，若超过范围才会创建新的对象
 
 ```java
 Integer a = new Integer(3);
@@ -633,7 +633,7 @@ private static class IntegerCache {
 }
 ```
 
-默认 Integer cache 的下限是 -128，上限默认 127。当赋值 127 给 Integer 时，刚好在这个范围内，所以从 cache 中取对应的 Integer 并返回，所以 a2 和 b2 返回的是同一个对象，所以使用`==`比较是相等的；当赋值 128 给 Integer 时，不在 cache 的范围内，所以会 `new Integer` 创建新的对象并返回，比较的结果必然不相等的。**最大边界可以通过 `-XX:AutoBoxCacheMax` 进行配置。**
+默认 Integer cache 的下限是 -128，上限默认 127。当赋值 127 给 Integer 时，刚好在这个范围内，所以从 cache 中取对应的 Integer 并返回，所以 a2 和 b2 返回的是同一个对象，所以使用`==`比较是相等的；当赋值 128 给 Integer 时，不在 cache 的范围内，所以会 `new Integer` 创建新的对象并返回，比较的结果必然不相等的。**最大边界可以通过 `-XX:AutoBoxCacheMax` 进行配置，最小值改不了。**
 
 ## 4. 权限修饰符
 
