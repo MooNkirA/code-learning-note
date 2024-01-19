@@ -938,7 +938,7 @@ $ git checkout -b <分支名称> <标签名称>
 $ git archive
 ```
 
-## 8. Git Bash 操作 Github 远程仓库
+## 8. Git Bash 操作远程仓库（以 Github 为例）
 
 ### 8.1. Github 仓库同步
 
@@ -1192,7 +1192,62 @@ $ git gc --prune=now
 $ git count-objects -v
 ```
 
-## 10. Git 常见问题解决方法汇总
+### 9.6. 将项目同时提交到多个远程仓库
+
+由于 GitHub 的访问速度慢，因此会有需求将一套开源代码同时提交到多个开源平台（例如 GitHub 和 Gitee）。以下是一套代码同时提交到 GitHub 和 Gitee 为示例，配置 Git 达到同时上传代码到多个平台。
+
+1. 分别在 GitHub 与 Gitee 上创建仓库（最好是同名称）。
+> Tips: 在创建 Gitee 仓库时，除了填写必要信息之后，最下面一栏选择『导入已有仓库』，然后将 GitHub 上的仓库地址（Https 形式）copy 过来，直接粘贴在对应位置。Gitee 会检测并给出提示。点击创建后稍等片刻，发现仓库已经被完美同步过来了。（*以后也可以每次手动同步 Github 的提交记录，这种操作适合非实时同步，可能隔一段时间自己登录账号进行一次同步。*）
+2. 将 GitHub 的仓库 clone 到本地，命令如下：
+
+```bash
+git clone git@github.com:MooNkirA/demo.git
+```
+
+3. 进入本地项目的根目录，在根目录下 `.git` 的隐藏目录中找到 config 文件，对文件进行如下修改：
+
+原文件：
+
+```
+[core]
+	repositoryformatversion = 0
+	filemode = false
+	bare = false
+	logallrefupdates = true
+	symlinks = false
+	ignorecase = true
+[remote "origin"]
+	url = git@github.com:MooNkirA/demo.git
+	fetch = +refs/heads/*:refs/remotes/origin/*
+[branch "develop"]
+	remote = origin
+	merge = refs/heads/develop
+```
+
+在原来的 github 仓库地址下面再添加一个 url 配置，指向 gitee 的地址。修改后：
+
+```
+[core]
+	repositoryformatversion = 0
+	filemode = false
+	bare = false
+	logallrefupdates = true
+	symlinks = false
+	ignorecase = true
+[remote "origin"]
+	url = git@github.com:MooNkirA/demo.git
+	url = git@gitee.com:moonzero/demo.git
+	fetch = +refs/heads/*:refs/remotes/origin/*
+[branch "develop"]
+	remote = origin
+	merge = refs/heads/develop
+```
+
+> Notes: 这里的 GitHub 和 gitee 远程源仓库地址 url 如果是以 https 开头，都是用的是 HTTPS 协议，在从本地推送到远程仓库时候需要输入用户名和密码；也可以使用 GitHub 和 gitee 中的 ssh 协议，在本地配置好 github 和 gitee 的 ssh 秘钥（需要保持一致）后可以免密从本地推送到远程仓库。
+
+4. 使用 `git remote -v` 命令，可以看到本地仓库与两个远程仓库关联
+
+## 10. Git 常见问题及解决方法汇总
 
 ### 10.1. fatal detected dubious ownership in repository 解决办法
 
