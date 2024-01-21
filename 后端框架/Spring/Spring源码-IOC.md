@@ -2653,9 +2653,14 @@ protected Object initializeBean(final String beanName, final Object bean, @Nulla
 
 SpringBoot 2.6.x 以前是默认允许循环依赖的，即如果代码出现了循环依赖问题，一般情况下也不会报错。Spring 的解决办法是三级缓存机制，提前暴露的对象存放在三级缓存中，二级缓存存放过渡 bean（半成品），一级缓存存放最终形态的 bean。但是这种机制也有一些缺点，比如增加了内存开销（需要维护三级缓存，也就是三个 Map），降低了性能（需要进行多次检查和转换）。**并且循环依赖是有限制条件的，还有少部分情况是不支持循环依赖的**，比如：
 
-- 循环依赖只会出现在单例实例无参构造函数实例化情况下
+- 循环依赖只会出现在单例实例无参构造函数实例化情况下，包含采用 setter 方法注入、属性自动注入。
 - 多例的 bean 的循环依赖会直接报错；`@Async` 注解的 bean 无法支持循环依赖。
 - 有参构造函数的加 `@Autowired` 的方式循环依赖会直接报错。（解决方法：在有参构造方法参数列表中增加 `@Lazy` 注解，让对象延迟加载即可）
+- 还有一种 AB 循环依赖的情况，一个是构造器注入，一个是 setter 注入。由于 Spring 在创建 Bean 时默认会根据自然排序进行创建，假设 A 会先于 B 进行创建，会有以下两种情况：
+    - A 中注入的 B 为 setter 注入，B 中注入的 A 为构造器注入，可以成功注入。
+    - B 中注入的 A 为 setter 注入，A 中注入的 B 为构造器注入，注入失败。
+
+#### 3.9.3. 循环依赖解决方案
 
 SpringBoot 2.6.x 以后官方不再推荐编写存在循环依赖的代码，建议开发者自己写代码时减少不必要的互相依赖。循环依赖本身就是一种设计缺陷，开发者不应该过度依赖 Spring 而忽视了编码的规范和质量，说不定未来某个 SpringBoot 版本就彻底禁止循环依赖的代码。
 
@@ -2676,7 +2681,7 @@ public B(@Lazy A a) {
 }
 ```
 
-#### 3.9.3. 循环依赖步骤与源码分析
+#### 3.9.4. 循环依赖步骤与源码分析
 
 > *注：以最简单的两个单例A与B相互引用为案例说明*
 
@@ -2755,7 +2760,7 @@ protected void addSingletonFactory(String beanName, ObjectFactory<?> singletonFa
 - 依赖注入后，B类实例化已经完成，B类的实例化是由A类实例化中B属性的依赖注入触发的 `getBean()` 操作进行的，现在B类已经实例化，所以A类中B属性就可以完成依赖注入了，此时A类B属性已经有值了
 - B类A属性指向的就是A类实例堆空间，所以这时候B类A属性也会有值了。
 
-#### 3.9.4. earlySingletonObjects （二级缓存）的作用总结
+#### 3.9.5. earlySingletonObjects （二级缓存）的作用总结
 
 `earlySingletonObjects`是`DefaultSingletonBeanRegistry`类中的一个Map集合，作用是用于存放提前暴露的bean实例的映射。
 
@@ -2767,7 +2772,7 @@ protected void addSingletonFactory(String beanName, ObjectFactory<?> singletonFa
 
 > *注：其实`singletonFactories`（三级缓存）在多次的循环依赖情况下，只会触发一次就会被删除，将实例放到`earlySingletonObjects`（二级缓存）中*
 
-#### 3.9.5. 有参构造函数的 @Autowired 循环依赖
+#### 3.9.6. 有参构造函数的 @Autowired 循环依赖
 
 1. 创建A类的实例是在方法 `createBeanInstance(beanName, mbd, args)` 中通过无参或标识`@Autowired`注解的有参构造函数实例化进行的
 2. 如果A类的有参构造函数的参数是引用类型B类，创建当前实例的时候，就是触发B类的`getBean`实例化操作。
@@ -2785,7 +2790,7 @@ protected void addSingletonFactory(String beanName, ObjectFactory<?> singletonFa
 
 **如果是通过属性加`@Autowired`方式进行循环依赖，在执行`populateBean`方法进行属性依赖注入之前就会把 bean 放入三级缓存中，从而在`populateBean`方法进行依赖注入操作时触发 `getBean` 操作时就可以直接从三级缓存中获取到提前暴露的实例引入**
 
-#### 3.9.6. 多例模式的循环依赖
+#### 3.9.7. 多例模式的循环依赖
 
 多例模式也是不支持循环依赖，原理同上有参构造函数的循环依赖，多例每次创建的三级缓存都不一样，所以第2次触发`getBean`操作时找不到对应的三级缓存，校验的时候也会报错误。
 
