@@ -285,7 +285,7 @@ Spring 的模型-视图-控制器（MVC）框架是围绕一个 `DispatcherServl
 
 当浏览器发送一个请求 `http://www.moon.com/hello` 后，请求到达服务器，其处理流程是：
 
-- 第 1 步：客户端向服务器发起HTTP请求，请求会统一转发到 `DispatcherServlet`，它使用的是标准 Servlet 技术，默认映射路径为 `/`，即会匹配到所有请求 URL，它作为请求的统一入口。
+- 第 1 步：客户端向服务器发起HTTP请求，请求会统一转发到 `DispatcherServlet`（中央控制器），它使用的是标准 Servlet 技术，默认映射路径为 `/`，即会匹配到所有请求 URL，它作为请求的统一入口。
 > *注：jsp 不会匹配到 DispatcherServlet （了解）*。其它有路径的 Servlet 匹配优先级也高于 DispatcherServlet。
 - 第 2 步：`DispatcherServlet` 根据 xml 配置、注解配置对请求的 URL 进行解析，得到请求资源标识符（URI）。请求一个或多个 `HandlerMapping` 查找相应的 Handler。 
 - 第 3 步：`HandlerMapping` 获取到相应的 Handler，该 Handler 配置的所有相关的对象（包括 Handler 对象以及 Handler 对象对应的拦截器），最后以 `HandlerExecutionChain` 对象的形式返回到 `DispatcherServlet`。
@@ -344,6 +344,8 @@ Spring 的模型-视图-控制器（MVC）框架是围绕一个 `DispatcherServl
 ![](images/20200918135212093_9963.jpg)
 
 ![](images/372305809220858.png)
+
+![](images/28775615240163.png)
 
 ## 4. DispatcherServlet 前端控制器配置
 
