@@ -302,7 +302,7 @@ PixPin 是目前市面上功能最全面的截图工具之一了！包括**截�
 
 **据说是入驻国内的网址：**
 
-- https://zh.z-library.se/
+- https://zlibrary-hk.se/
 > support@z-lib.se 客服邮箱，可以获取最新可用的网址
 
 **以下是国内镜像**：

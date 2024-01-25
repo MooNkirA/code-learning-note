@@ -7,21 +7,6 @@
     },
     "history": [
         {
-            "last_accessed_time": "2023-12-19T15:28:24Z",
-            "line_number": 0,
-            "path": "并发编程/并发编程-应用篇.md"
-        },
-        {
-            "last_accessed_time": "2023-12-19T15:28:25Z",
-            "line_number": 0,
-            "path": "并发编程/并发编程-并发容器.md"
-        },
-        {
-            "last_accessed_time": "2023-12-21T01:04:23Z",
-            "line_number": 8,
-            "path": "分布式微服务/服务注册中心/Zookeeper-应用场景.md"
-        },
-        {
             "last_accessed_time": "2023-12-21T01:52:07Z",
             "line_number": 64,
             "path": "分布式微服务/服务注册中心/分布式服务注册中心-概述.md"
@@ -40,11 +25,6 @@
             "last_accessed_time": "2023-12-21T01:52:25Z",
             "line_number": 38,
             "path": "分布式微服务/SpringCloud/Spring-Cloud-Netflix-Eureka.md"
-        },
-        {
-            "last_accessed_time": "2023-12-22T02:25:40Z",
-            "line_number": 1118,
-            "path": "Java/Java基础-网络编程.md"
         },
         {
             "last_accessed_time": "2023-12-22T02:25:41Z",
@@ -442,11 +422,6 @@
             "path": "分布式微服务/SpringBoot/Spring-Boot-源码分析.md"
         },
         {
-            "last_accessed_time": "2024-01-23T14:01:01Z",
-            "line_number": 305,
-            "path": "其他/system-software/Common-Software.md"
-        },
-        {
             "last_accessed_time": "2024-01-23T15:17:58Z",
             "line_number": 14,
             "path": "后端框架/工具框架/BloomFilter.md"
@@ -477,11 +452,6 @@
             "path": "Database/MySQL/MySQL-性能优化.md"
         },
         {
-            "last_accessed_time": "2024-01-23T15:23:25Z",
-            "line_number": 4,
-            "path": "Database/Redis/Redis-场景应用设计.md"
-        },
-        {
             "last_accessed_time": "2024-01-23T15:24:47Z",
             "line_number": 0,
             "path": "分布式微服务/SpringBoot/Spring-Boot-Caching.md"
@@ -492,19 +462,49 @@
             "path": "分布式微服务/SpringCloud/Spring-Cloud-Overview.md"
         },
         {
-            "last_accessed_time": "2024-01-23T15:25:58Z",
-            "line_number": 918,
-            "path": "分布式微服务/SpringCloud/Microservices-Overview.md"
+            "last_accessed_time": "2024-01-24T04:52:38Z",
+            "line_number": 2,
+            "path": "面试手册/面试题-Redis.md"
         },
         {
-            "last_accessed_time": "2024-01-23T15:47:10Z",
+            "last_accessed_time": "2024-01-24T05:03:41Z",
             "line_number": 537,
             "path": "Database/Redis/Redis-安装部署.md"
         },
         {
-            "last_accessed_time": "2024-01-23T15:47:10Z",
-            "line_number": 960,
+            "last_accessed_time": "2024-01-24T13:35:53Z",
+            "line_number": 304,
+            "path": "其他/system-software/Common-Software.md"
+        },
+        {
+            "last_accessed_time": "2024-01-24T15:29:30Z",
+            "line_number": 1071,
+            "path": "分布式微服务/SpringCloud/Microservices-Overview.md"
+        },
+        {
+            "last_accessed_time": "2024-01-24T15:29:30Z",
+            "line_number": 12,
+            "path": "Database/Redis/Redis-场景应用设计.md"
+        },
+        {
+            "last_accessed_time": "2024-01-24T15:29:30Z",
+            "line_number": 1153,
+            "path": "Database/Redis/Redis-操作命令.md"
+        },
+        {
+            "last_accessed_time": "2024-01-24T15:29:31Z",
+            "line_number": 821,
             "path": "Database/Redis/Redis-基础.md"
+        },
+        {
+            "last_accessed_time": "2024-01-24T15:29:33Z",
+            "line_number": 200,
+            "path": "后端框架/MyBatis/MyBatis-基础.md"
+        },
+        {
+            "last_accessed_time": "2024-01-24T15:29:35Z",
+            "line_number": 113,
+            "path": "Java/Java基础-网络编程.md"
         }
     ],
     "image_folder": "images",
