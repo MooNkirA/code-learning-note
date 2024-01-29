@@ -197,20 +197,31 @@ Input 不是一个字体，而是一个家族；除了等宽版本，还有两�
 
 > 详见[《foobar2000 - 本地顶级音乐播放器》](/其他/system-software/foobar2000)
 
-### 5.2. 洛雪音乐助手桌面版
+### 5.2. MusicPlayer2
+
+MusicPlayer2 是一个开源的纯粹音乐播放器，功能强大，界面极简干净，后台占有资源极少！
+
+> 官网：https://github.com/zhongyang219/MusicPlayer2
+
+下载地址：
+
+- [MusicPlayer2 最新版本下载](https://github.com/zhongyang219/MusicPlayer2/releases)
+- 国内备用下载链接：[百度网盘下载](https://pan.baidu.com/s/1i5QNwFF)
+
+### 5.3. 洛雪音乐助手桌面版
 
 洛雪音乐桌面版
 
 - Github 仓库： https://github.com/lyswhut/lx-music-desktop/releases
 - [蓝奏云](https://www.lanzoui.com/b0bf2cfa/) 密码：glqw
 
-### 5.3. Listen 1
+### 5.4. Listen 1
 
 Listen 1 音乐播放器主页： https://listen1.github.io/listen1/
 
 windows 桌面版缓存目录：`%APPDATA%\listen1\Cache`
 
-### 5.4. 音乐下载
+### 5.5. 音乐下载
 
 - ~~下歌吧音乐下载平台（*抱歉！该站点已经被管理员停止运行，请联系管理员了解详情！）* https://music.y444.cn/#/ ~~
 - MyFreeMP3(离线版)： https://tools.liumingye.cn/music/?page=searchPage#

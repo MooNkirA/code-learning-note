@@ -634,6 +634,8 @@ JSESSIONID 是指，会话ID
 
 简单来说，服务器在响应的时将会话ID 发送给浏览器。浏览器下次访问时，再将会话ID 发送给服务器，服务器通过会话ID 识别不同的会话。具体流程如下：
 
+![](images/542912246462.jpg)
+
 1. 浏览器首次请求服务器访问 web 站点时，此时没有会话 ID，服务器创建一个会话，分配一个唯一的会话 JSESSIONSID 返回给浏览器，**JSESSIONSID 以 Cookie 的方式发送给浏览器**。
 2. 第2次以后，浏览器每次请求时，都会带着这个会话 JSESSIONSIDID 来访问服务器，服务器根据此 JSESSIONSIDID 检索其对应的 Session。
     - 如果成功找到关联的 Session，则说明以前已经为此客户端创建过 Session，可以直接使用该 Session 获取相关信息，以此达到共享数据的目的。
@@ -662,7 +664,7 @@ response.addCookie(jsessionid);
 #### 6.1.4. Session 和 Cookie 的主要区别
 
 - **作用范围不同**：Cookie 保存在客户端；Session 保存在服务器端内存中。
-- **值类型不同**：Cookie 键和值都是字符串类型；Session 键是字符串类型，值是Object类型。
+- **值类型不同**：Cookie 键和值都是字符串类型；Session 键是字符串类型，值是 Object 类型。
 - **有效期不同**：Cookie 可设置为长时间保持，比如经常使用的默认登录功能；Session 一般失效时间较短，客户端关闭或者 Session 超时都会失效。
 - **隐私策略不同**：Cookie 存储在客户端，容易被窃取；Session 存储在服务端，安全性相对 Cookie 要好一些。
 - **存储大小不同**：单个 Cookie 保存的数据不能超过 4K；对于 Session 来说存储没有上限，但出于对服务器的性能考虑，Session 内不要存放过多的数据，并且需要设置 Session 删除机制。
