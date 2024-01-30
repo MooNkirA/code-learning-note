@@ -239,6 +239,7 @@
   <li><a href="#/Database/MySQL/MySQL-运维">MySQL - 运维篇（日志、主从复制、读写分离、分库分表）</a></li>
   <li><a href="#/Database/MySQL/MySQL-开发规范">MySQL - 开发规范</a></li>
   <li><a href="#/Database/MySQL/MySQL-性能优化">MySQL - 性能优化</a></li>
+  <li><a href="#/Database/MySQL/MySQL-原理">MySQL - 原理</a></li>
   <li><a href="#/Database/MySQL/MySQL-SQL示例">MySQL - 练习示例</a></li>
 </ul>
 

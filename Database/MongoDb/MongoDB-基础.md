@@ -130,7 +130,7 @@ windows 版本的 mongodb 安装成功，在安装目录下的 bin 目录有 mon
 
 ### 3.3. 使用 studio3T 连接
 
-内容参考本笔记的[《MongoDB 安装与使用》](/数据库/MongoDb/MongoDB-安装与使用)的《studio3t》章节
+内容参考本笔记的[《MongoDB 安装与使用》](/Database/MongoDb/MongoDB-安装与使用)的《studio3t》章节
 
 ### 3.4. 使用 java 程序连接
 

@@ -16,7 +16,7 @@ MySQL官方提供了两种不同的版本：
 
 MySQL 下载地址：https://downloads.mysql.com/archives/community/
 
-此部分内容详见[《MySQL 安装与部署》文档](/数据库/MySQL/MySQL-安装与部署)
+此部分内容详见[《MySQL 安装与部署》文档](/Database/MySQL/MySQL-安装与部署)
 
 ### 1.3. MySQL 数据库特点
 
@@ -421,9 +421,10 @@ MyISAM、InnoDB 与 Memory 区别汇总：
 - **是否支持事务和崩溃后的安全恢复**：MyISAM 不提供事务支持。而 InnoDB 提供事务支持，具有事务、回滚和崩溃修复能力。
 - **是否支持外键**：MyISAM 不支持，而 InnoDB 支持。
 - **是否支持 MVCC**：MyISAM 不支持，InnoDB 支持。应对高并发事务，MVCC 比单纯的加锁更高效。
-- **是否有聚集索引**：MyISAM 不支持聚集索引；InnoDB 支持聚集索引。
+- **是否有聚集索引**：MyISAM 不支持聚集索引，是非聚簇索引，数据结构是 B 树；InnoDB 支持聚集索引，数据结构是 B+ 树。
 - **数据存储的结构**：MyISAM 数据与索引分开文件存储，索引保存的是数据文件的指针；InnoDB 的聚集索引是数据和索引保存在同一个文件中。
 - **查询全表总记录数的效率**：MyISAM 用一个变量保存了整个表的行数，查询表记录数时只需要读出该变量即可，速度很快；InnoDB 不保存表的具体行数，查询表总记录数时需要全表扫描。
+- **主键必需**：MyISAM 允许没有任何索引和主键的表存在；InnoDB 如果没有设定主键或者非空唯一索引，**就会自动生成一个 6 字节的主键(用户不可见)**，数据是主索引的一部分，附加索引保存的是主索引的值。
 
 #### 2.5.7. 选择合适的引擎
 
@@ -610,9 +611,14 @@ create table a_myisam(c1 int) engine=MyISAM;
 
 ### 4.3. 日志文件
 
-服务器运行过程中，会产生各种各样的日志，比如常规的查询日志、错误日志、二进制日志、redo日志、Undo日志等等，日志文件记录了影响 MySQL 数据库的各种类型活动。
+服务器运行过程中，会产生各种各样的日志，比如常规的查询日志、错误日志、二进制日志、redo日志、Undo日志等等，日志文件记录了影响 MySQL 数据库的各种类型活动。MySQL 常见的日志文件有：
 
-MySQL 常见的日志文件有：错误日志（error log）、慢查询日志（slow query log）、查询日志（query log）、二进制文件（bin log）。
+- 错误日志（error log）
+- 慢查询日志（slow query log）
+- 一般查询日志（general log）
+- 二进制日志（bin log）
+- 重做日志（redo log）
+- 回滚日志（undo log）。
 
 #### 4.3.1. 错误日志
 
@@ -628,24 +634,9 @@ show variables like 'log_error';
 
 #### 4.3.2. 慢查询日志
 
-慢查询日志可以帮助定位可能存在问题的 SQL 语句，从而进行 SQL 语句层面的优化。
+> 慢查询日志可以帮助定位可能存在问题的 SQL 语句，从而进行 SQL 语句层面的优化。此部分内容详见[《MySQL数据库-事务》笔记](/Database/MySQL/MySQL-性能优化)的相关章节
 
-慢查询日志记录了所有执行时间超过参数 `long_query_time` 设置值并且扫描记录数不小于 `min_examined_row_limit` 的所有的SQL语句的日志。`long_query_time` 默认为 10 秒，最小为 0， 精度可以到微秒。
-
-慢查询日志相关配置
-
-```properties
-# 该参数用来控制慢查询日志是否开启，可取值：1|0，1 代表开启， 0 代表关闭
-slow_query_log=1
-
- # 该参数用来指定慢查询日志的文件名。日志文件名称：`主机名-slow.log`
-slow_query_log_file=slow_query.log
-
-# 该选项用来配置查询的时间限制，超过这个时间将认为值慢查询，将需要进行日志记录，默认10s
-long_query_time=10
-```
-
-#### 4.3.3. 查询日志
+#### 4.3.3. 一般查询日志
 
 查询日志记录了用户对 MySQL 数据库的**所有操作**，包括启动和关闭 MySQL 服务、所有用户的连接开始时间和截止时间、发给 MySQL 数据库服务器的所有 SQL 指令等，如 select、show 等，无论 SQL 的语法正确还是错误、执行成功还是失败，MySQL 都会将其记录下来。*与之相比，二进制日志是不包含查询数据的SQL语句*。
 
@@ -699,7 +690,7 @@ SELECT * FROM general_log;
 
 #### 4.3.5. redo log（重做日志）、undo log（撤销日志）
 
-> redo log（重做日志）、undo log（撤销日志）是 Innodb 引擎级别的日志，主要用于实现事务，此部分内容详见[《MySQL数据库-事务》笔记](/数据库/MySQL/MySQL-事务)
+> redo log（重做日志）、undo log（撤销日志）是 Innodb 引擎级别的日志，主要用于实现事务，此部分内容详见[《MySQL数据库-事务》笔记](/Database/MySQL/MySQL-事务)
 
 ### 4.4. 其他数据文件
 
@@ -1322,6 +1313,311 @@ show engine innodb status \G;
 - Free Space：页中尚未使用的部分，大小不固定。
 - Page Directory：页中某些记录的相对位置，也就是各个槽对应的记录在页面中的地址偏移量。
 - File Trailer：用于检验页是否完整，占固定大小 8 字节。
+
+### 7.7. InnoDB 中的统计数据
+
+查询成本的时候经常用到一些统计数据，比如通过 `SHOW TABLE STATUS` 可以看到关于表的统计数据，通过 `SHOW INDEX` 可以看到关于索引的统计数据。这些统计都是相应的存储引擎来实现。
+
+#### 7.7.1. 统计数据存储方式
+
+InnoDB 提供了两种存储统计数据的方式：
+
+- 永久性的统计数据，这种统计数据存储在磁盘上，也就是服务器重启之后这些统计数据还在。
+- 非永久性的统计数据，这种统计数据存储在内存中，当服务器关闭时这些这些统计数据就都被清除掉了，等到服务器重启之后，在某些适当的场景下才会重新收集这些统计数据。
+
+MySQL提供了系统变量`innodb_stats_persistent`来控制到底采用哪种方式去存储统计数据。在 MySQL 5.6.6 之前，`innodb_stats_persistent`的值默认是`OFF`，也就是说 InnoDB 的统计数据默认是存储到内存的，之后的版本中`innodb_stats_persistent`的值默认是`ON`，也就是统计数据默认被存储到磁盘中。
+
+查询当前存储统计数据的方式
+
+```sql
+mysql> SHOW VARIABLES LIKE 'innodb_stats_persistent';
++-------------------------+-------+
+| Variable_name           | Value |
++-------------------------+-------+
+| innodb_stats_persistent | ON    |
++-------------------------+-------+
+```
+
+InnoDB 默认是以表为单位来收集和存储统计数据的，也就是说可以把某些表的统计数据（以及该表的索引统计数据）存储在磁盘上，把另一些表的统计数据存储在内存中。
+
+在创建和修改表的时候通过指定 `STATS_PERSISTENT` 属性来指明该表的统计数据存储方式：
+
+```sql
+CREATE TABLE 表名 (...) Engine=InnoDB, STATS_PERSISTENT = (1|0);
+ALTER TABLE 表名 Engine=InnoDB, STATS_PERSISTENT = (1|0);
+```
+
+> - 当`STATS_PERSISTENT=1`时，表明我们想把该表的统计数据永久的存储到磁盘上
+> - 当`STATS_PERSISTENT=0`时，表明我们想把该表的统计数据临时的存储到内存中
+> - 如果在创建表时未指定`STATS_PERSISTENT`属性，那默认采用系统变量`innodb_stats_persistent`的值作为该属性的值
+
+#### 7.7.2. 基于磁盘的永久性统计数据
+
+当选择把某个表以及该表索引的统计数据存放到磁盘上时，实际上是把这些统计数据存储到了两个表里：
+
+```sql
+mysql> SHOW TABLES FROM mysql LIKE 'innodb%';
++---------------------------+
+| Tables_in_mysql (innodb%) |
++---------------------------+
+| innodb_index_stats        |
+| innodb_table_stats        |
++---------------------------+
+2 rows in set (0.01 sec)
+```
+
+这两个表都位于 mysql 系统数据库下。
+
+- `innodb_table_stats` 存储了关于表的统计数据，每一条记录对应着一个表的统计数据。
+- `innodb_index_stats` 存储了关于索引的统计数据，每一条记录对应着一个索引的一个统计项的统计数据。
+
+##### 7.7.2.1. innodb_table_stats
+
+**innodb_table_stats 表结构与字段的作用**
+
+```sql
+mysql> desc mysql.innodb_table_stats;
++--------------------------+-----------------+------+-----+-------------------+-----------------------------------------------+
+| Field                    | Type            | Null | Key | Default           | Extra                                         |
++--------------------------+-----------------+------+-----+-------------------+-----------------------------------------------+
+| database_name            | varchar(64)     | NO   | PRI | NULL              |                                               |
+| table_name               | varchar(199)    | NO   | PRI | NULL              |                                               |
+| last_update              | timestamp       | NO   |     | CURRENT_TIMESTAMP | DEFAULT_GENERATED on update CURRENT_TIMESTAMP |
+| n_rows                   | bigint unsigned | NO   |     | NULL              |                                               |
+| clustered_index_size     | bigint unsigned | NO   |     | NULL              |                                               |
+| sum_of_other_index_sizes | bigint unsigned | NO   |     | NULL              |                                               |
++--------------------------+-----------------+------+-----+-------------------+-----------------------------------------------+
+```
+
+- database_name 数据库名
+- table_name 表名
+- last_update 本条记录最后更新时间
+- n_rows 表中记录的条数
+- clustered_index_size 表的聚簇索引占用的页面数量
+- sum_of_other_index_sizes 表的其他索引占用的页面数量
+
+**innodb_table_stats 表内容分析**，几个重要统计信息项的值如下：
+
+```sql
+mysql> SELECT * FROM mysql.innodb_table_stats WHERE database_name = 'tempdb';
++---------------+---------------------+---------------------+---------+----------------------+--------------------------+
+| database_name | table_name          | last_update         | n_rows  | clustered_index_size | sum_of_other_index_sizes |
++---------------+---------------------+---------------------+---------+----------------------+--------------------------+
+| tempdb        | account             | 2022-08-04 22:30:34 |       7 |                    1 |                        0 |
+| tempdb        | article             | 2022-08-04 22:29:42 |      17 |                    1 |                        0 |
+| tempdb        | article_data        | 2022-08-04 22:29:42 |       0 |                    1 |                        1 |
+| tempdb        | article_type        | 2022-08-04 22:29:42 |       4 |                    1 |                        1 |
+| tempdb        | comment             | 2022-08-04 22:29:42 |       2 |                    1 |                        1 |
+| tempdb        | course              | 2022-08-05 14:50:03 |       4 |                    1 |                        0 |
+| tempdb        | dept                | 2022-08-05 14:49:53 |       6 |                    1 |                        0 |
+| tempdb        | emp                 | 2022-08-05 14:50:13 |      17 |                    1 |                        0 |
+| tempdb        | employee            | 2022-08-04 22:29:43 |       6 |                    1 |                        0 |
+| tempdb        | order_exp           | 2022-08-04 22:29:43 |   10625 |                   97 |                       74 |
+| tempdb        | order_exp_cut       | 2022-08-04 22:29:43 |       2 |                    1 |                        2 |
+| tempdb        | s1                  | 2022-08-04 22:29:43 |       3 |                    1 |                        3 |
+| tempdb        | s2                  | 2022-08-04 22:29:43 |       3 |                    1 |                        3 |
+| tempdb        | salgrade            | 2022-08-05 14:49:53 |       8 |                    1 |                        0 |
+| tempdb        | score               | 2022-08-04 22:29:43 |       5 |                    1 |                        0 |
+| tempdb        | student             | 2022-08-05 14:49:53 |       4 |                    1 |                        0 |
+| tempdb        | student_course      | 2022-08-05 14:50:23 |       6 |                    1 |                        2 |
+| tempdb        | tb_sku              | 2022-08-05 11:08:22 | 9214983 |               234496 |                        0 |
+| tempdb        | tb_user             | 2022-08-05 10:39:47 |      24 |                    1 |                        2 |
+| tempdb        | teacher             | 2022-08-04 22:29:54 |       5 |                    1 |                        1 |
+| tempdb        | type                | 2022-08-04 22:30:04 |       2 |                    1 |                        0 |
+| tempdb        | user                | 2022-08-04 22:30:14 |       3 |                    1 |                        0 |
++---------------+---------------------+---------------------+---------+----------------------+--------------------------+
+```
+
+- `n_rows` 的值是10625，表明order_exp表中大约有10625条记录，注意这个数据是估计值。
+- `clustered_index_size` 的值是97，表明order_exp表的聚簇索引占用97个页面，这个值是也是一个估计值。
+- `sum_of_other_index_sizes` 的值是74，表明order_exp表的其他索引一共占用81个页面，这个值是也是一个估计值。
+
+**n_rows 统计项的收集**，InnoDB 统计一个表中有多少行记录的执行流程如下：
+
+按照一定算法（并不是纯粹随机的）选取几个叶子节点页面，计算每个页面中主键值记录数量，然后计算平均一个页面中主键值的记录数量乘以全部叶子节点的数量就算是该表的 n_rows 值
+
+这个 n_rows 值精确与否取决于统计时采样的页面数量，MySQL 用名为 innodb_stats_persistent_sample_pages 的系统变量来控制使用永久性的统计数据时，计算统计数据时采样的页面数量。该值设置的越大，统计出的 n_rows值越精确，但是统计耗时也就最久；该值设置的越小，统计出的 n_rows 值越不精确，但是统计耗时特别少。所以在实际使用是需要我们去权衡利弊，该系统变量的默认值是 20。
+
+InnoDB 默认是以表为单位来收集和存储统计数据的，也可以单独设置某个表的采样页面的数量，设置方式就是在创建或修改表的时候通过指定`STATS_SAMPLE_PAGES`属性来指明该表的统计数据存储方式：
+
+```sql
+CREATE TABLE 表名 (...) Engine=InnoDB, STATS_SAMPLE_PAGES = 具体的采样页面数量;
+ALTER TABLE 表名 Engine=InnoDB, STATS_SAMPLE_PAGES = 具体的采样页面数量;
+```
+
+如果在创建表的语句中并没有指定`STATS_SAMPLE_PAGES`属性的话，将默认使用系统变量`innodb_stats_persistent_sample_pages`的值作为该属性的值。`clustered_index_size`和`sum_of_other_index_sizes` 统计项的收集牵涉到很具体的 InnoDB 表空间的知识和存储页面数据的细节
+
+##### 7.7.2.2. innodb_index_stats
+
+**innodb_index_stats 表结构与字段的作用**
+
+```sql
+mysql> desc mysql.innodb_table_stats;
++--------------------------+-----------------+------+-----+-------------------+-----------------------------------------------+
+| Field                    | Type            | Null | Key | Default           | Extra                                         |
++--------------------------+-----------------+------+-----+-------------------+-----------------------------------------------+
+| database_name            | varchar(64)     | NO   | PRI | NULL              |                                               |
+| table_name               | varchar(199)    | NO   | PRI | NULL              |                                               |
+| last_update              | timestamp       | NO   |     | CURRENT_TIMESTAMP | DEFAULT_GENERATED on update CURRENT_TIMESTAMP |
+| n_rows                   | bigint unsigned | NO   |     | NULL              |                                               |
+| clustered_index_size     | bigint unsigned | NO   |     | NULL              |                                               |
+| sum_of_other_index_sizes | bigint unsigned | NO   |     | NULL              |                                               |
++--------------------------+-----------------+------+-----+-------------------+-----------------------------------------------+
+```
+
+- database_name 数据库名
+- table_name 表名
+- index_name 索引名
+- last_update 本条记录最后更新时间
+- stat_name 统计项的名称
+- stat_value 对应的统计项的值
+- sample_size 为生成统计数据而采样的页面数量
+- stat_description 对应的统计项的描述
+
+**innodb_index_stats 表的每条记录代表着一个索引的一个统计项**，几个重要统计信息项的值如下：
+
+![](images/20210503113519207_6718.png)
+
+- `index_name`：说明该记录是哪个索引的统计信息
+    - 从示例结果中可以看出来，PRIMARY 索引（也就是主键）占了3条记录，idx_expire_time 索引占了6条记录。
+- `stat_name`：表示针对该索引的统计项名称
+    - `n_leaf_pages`：表示该索引的叶子节点占用多少页面。
+    - `size`：表示该索引共占用多少页面。
+    - `n_diff_pfxNN`：表示对应的索引列不重复的值有多少。（其中“NN”可以被替换为01、02、03...的数字）
+- `stat_value`：该索引在该统计项上的值
+- `sample_size`：表明了采样的页面数量是多少
+    - 对于有多个列的联合索引来说，采样的页面数量是：`innodb_stats_persistent_sample_pages × 索引列的个数`。
+    - 当需要采样的页面数量大于该索引的叶子节点数量的话，就直接采用全表扫描来统计索引列的不重复值数量了。所以可以在查询结果中看到不同索引对应的size列的值可能是不同的。
+- `stat_description`：指的是来描述该统计项的含义的
+
+以`u_idx_day_status`索引为例。
+
+- n_diff_pfx01 表示的是统计 insert_time 这单单一个列不重复的值有多少。
+- n_diff_pfx02 表示的是统计 insert_time,order_status 这两个列组合起来不重复的值有多少。
+- n_diff_pfx03 表示的是统计 insert_time,order_status,expire_time 这三个列组合起来不重复的值有多少。
+- n_diff_pfx04 表示的是统计 key_pare1、key_pare2、expire_time、id 这四个列组合起来不重复的值有多少。
+
+> 查询`innodb_stats_persistent_sample_pages`值
+
+```sql
+mysql> show variables like '%innodb_stats_persistent_sample_pages%';
++--------------------------------------+-------+
+| Variable_name                        | Value |
++--------------------------------------+-------+
+| innodb_stats_persistent_sample_pages | 20    |
++--------------------------------------+-------+
+```
+
+##### 7.7.2.3. 定期更新统计数据
+
+随着不断的对表进行增删改操作，表中的数据也一直在变化，innodb_table_stats 和 innodb_index_stats 表里的统计数据也在变化。MySQL 提供了如下两种更新统计数据的方式：
+
+**开启 innodb_stats_auto_recalc**
+
+系统变量 innodb_stats_auto_recalc 决定着服务器是否自动重新计算统计数据，它的默认值是 ON，也就是该功能默认是开启的。每个表都维护了一个变量，该变量记录着对该表进行增删改的记录条数，如果发生变动的记录数量超过了表大小的 10%，并且自动重新计算统计数据的功能是打开的，那么服务器会重新进行一次统计数据的计算，并且更新 innodb_table_stats 和 innodb_index_stats 表。
+
+自动重新计算统计数据的过程是异步发生的，也就是即使表中变动的记录数超过了 10%，自动重新计算统计数据也不会立即发生，可能会延迟几秒才会进行计算。
+
+InnoDB 默认是以表为单位来收集和存储统计数据的，所以也可以单独为某个表设置是否自动重新计算统计数的属性，设置方式就是在创建或修改表的时候通过指定`STATS_AUTO_RECALC`属性来指明该表的统计数据存储方式：
+
+```sql
+CREATE TABLE 表名 (...) Engine=InnoDB, STATS_AUTO_RECALC = (1|0);
+ALTER TABLE 表名 Engine=InnoDB, STATS_AUTO_RECALC = (1|0)
+```
+
+- 当`STATS_AUTO_RECALC=1`时，表明想让该表自动重新计算统计数据
+- 当`STATS_AUTO_RECALC=0`时，表明不想让该表自动重新计算统计数据
+- 如果在创建表时未指定`STATS_AUTO_RECALC`属性，那默认采用系统变量`innodb_stats_auto_recalc`的值作为该属性的值。
+
+**手动调用 ANALYZE TABLE 语句来更新统计信息**
+
+如果 innodb_stats_auto_recalc 系统变量的值为 OFF 的话。也可以手动调用 ANALYZE TABLE 语句来重新计算统计数据
+
+```sql
+ANALYZE TABLE 表名;
+```
+
+ANALYZE TABLE 语句会立即重新计算统计数据，也就是这个过程是同步的，在表中索引多或者采样页面特别多时这个过程可能会特别慢最好在业务不是很繁忙的时候再运行。
+
+#### 7.7.3. 手动更新 innodb_table_stats 和 innodb_index_stats 表
+
+innodb_table_stats 和 innodb_index_stats 表就相当于一个普通的表一样，能对它们做增删改查操作。这也就意味着可以手动更新某个表或者索引的统计数据。
+
+- 步骤一：更新 innodb_table_stats 表
+- 步骤二：让 MySQL 查询优化器重新加载更改过的数据
+
+更新完 innodb_table_stats 只是单纯的修改了一个表的数据，需要让 MySQL 查询优化器重新加载我们更改过的数据，运行以下的命令即可：
+
+```sql
+FLUSH TABLE 表名;
+```
+
+### 7.8. InnoDB 记录存储结构和索引页结构(TODO mark: 整理中)
+
+InnoDB 是一个将表中的数据存储到磁盘上的存储引擎，所以即使关机后重启，数据还是存在的。而真正处理数据的过程是发生在内存中的，所以需要把磁盘中的数据加载到内存中，如果是处理写入或修改请求的话，还需要把内存中的内容刷新到磁盘上。
+
+当从表中获取某些记录时，InnoDB 采取的方式是：将数据划分为若干个页，以页作为磁盘和内存之间交互的基本单位，InnoDB 中页的大小一般为 16 KB。也就是在一般情况下，一次最少从磁盘中读取 16KB 的内容到内存中，一次最少把内存中的 16KB 内容刷新到磁盘中。
+
+以记录为单位来向表中插入数据的，这些记录在磁盘上的存放方式也被称为**行格式**或者**记录格式**。InnoDB 存储引擎设计了4种不同类型的行格式，分别是 Compact、Redundant、Dynamic 和 Compressed 行格式。
+
+#### 7.8.1. 指定行格式的语法
+
+创建或修改表的语句中指定行格式：
+
+```sql
+CREATE TABLE 表名 (列的信息) ROW_FORMAT=行格式名称;
+```
+
+##### 7.8.1.1. COMPACT 类型行格式
+
+![](images/20210513100635084_23901.png)
+
+MySQL对于变长列，如 VARCHAR(M)、VARBINARY(M)、各种 TEXT 类型，各种 BLOB 类型。存储真实数据的同时，也会保存这些数据占用的字节数。
+
+Compact 行格式会把可能为 NULL 的列统一管理起来，存储到 NULL 值列表。每个允许存储 NULL 的列对应一个二进制位，二进制位的值为 1 时，代表该列的值为 NULL。二进制位的值为 0 时，代表该列的值不为 NULL。
+
+![](images/20210513144210001_31479.png)
+
+还有用于描述记录的**记录头信息**，它是由固定的 5 个字节组成。5 个字节也就是 40 个二进制位，不同的位代表不同的意思。
+
+|      列名       | 位数 |                                       说明                                       |
+| -------------- | --- | -------------------------------------------------------------------------------- |
+| 预留位1         | 1    | 没有使用                                                                          |
+| 预留位2         | 1    | 没有使用                                                                          |
+| `delete_mask`  | 1    | 标记该记录是否被删除                                                                |
+| `min_rec_mask` | 1    | B+树的每层非叶子节点中的最小记录都会添加该标记                                          |
+| `n_owned`      | 4    | 表示当前记录拥有的记录数                                                             |
+| `heap_no`      | 13   | 表示当前记录在页的位置信息                                                           |
+| `record_type`  | 3    | 表示当前记录的类型，0 表示普通记录，1 表示 B+树非叶子节点记录，2 表示最小记录，3 表示最大记录 |
+| `next_record`  | 16   | 表示下一条记录的相对位置                                                             |
+
+记录的真实数据除了自定义的列的数据以外，MySQL 会为每个记录默认的添加一些列（也称为隐藏列），包括：
+
+- `DB_ROW_ID(row_id)`：非必须，6 字节，表示行 ID，唯一标识一条记录
+- `DB_TRX_ID`：必须，6 字节，表示事务 ID
+- `DB_ROLL_PTR`：必须，7 字节，表示回滚指针
+
+##### 7.8.1.2. Redundant 行格式（待整理）
+
+Redundant 行格式是 MySQL5.0 之前用的一种行格式
+
+#### 7.8.2. 索引页格式（待整理）
+
+> TODO: 待整理
+
+### 7.9. InnoDB 的内存结构和磁盘存储结构图总结
+
+![](images/20210519144320153_7887.png)
+
+其中的 Insert/Change Buffer 主要是用于对二级索引的写入优化，Undo 空间则是 undo 日志一般放在系统表空间，但是通过参数配置后，也可以用独立表空间存放，所以用虚线表示。
+
+### 7.10. 内存扩展知识
+
+计算机基础原理，但凡是对硬盘的读写操作，都是先从硬盘上数据读取到内存，然后cpu再从内存中读取数据。修改数据数据的操作也是一样，从先内存中的数据进行操作后，然后再将内存中的数据持久化到磁盘中。
+
+所以之前在mysql的成本计算中提到的I/O成本与CPU成本。就是分别指从磁盘到内存，然后cpu读取内存的时间成本。
+
+内存的扩容成本是很昂贵的，一般都是尽可能一次申请合适的内存。如JVM，一般会将堆的最小值与最大值都设置为一样，为了防止在运行过程中出现向cpu重新申请内存的操作。因为一般内存区域都是连续的。所以一般内存的扩容是先向cpu申请新的一块内存区域，然后将原本的内存中的数据再复制到新的内存区域中。这个扩容成本是巨大的。
 
 ## 8. 扩展内容
 
