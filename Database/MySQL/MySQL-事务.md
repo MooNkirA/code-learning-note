@@ -548,7 +548,7 @@ InnoDB 认为向某个索引对应的 B+树中插入一条记录的这个过程�
 
 InnoDB 为了更好的进行系统崩溃恢复，把通过 Mini-Transaction 生成的 redo 日志都放在了大小为 512 字节的块（block）中
 
-MySQL 为了解决磁盘速度过慢的问题而引入了 Buffer Pool。同理，写入 redo 日志时也不能直接直接写到磁盘上，实际上在服务器启动时就向操作系统申请了一大片称之为 redo log buffer 的连续内存空间，翻译成中文就是 redo 日志缓冲区，也可以简称为 log buffer。这片内存空间被划分成若干个连续的 redo log block，可以通过启动参数 `innodb_log_buffer_size` 来指定 log buffer 的大小，该启动参数的默认值为 16MB。
+MySQL 为了解决磁盘速度过慢的问题而引入了 Buffer Pool。同理，写入 redo 日志时也不能直接直接写到磁盘上，实际上在服务器启动时就向操作系统申请了一大片称之为 redo log buffer 的连续内存空间，翻译成中文就是 redo 日志缓冲区，也可以简称为 log buffer。可以通过启动参数 `innodb_log_buffer_size` 来指定 log buffer 的大小，该启动参数的默认值为 16MB。这片内存空间被划分成若干个连续的 redo log block(重做日志块)，块的大小是固定的 512 字节。
 
 向 log buffer 中写入 redo 日志的过程是顺序的，也就是先往前边的 block 中写，当该 block 的空闲空间用完之后再往下一个 block 中写。
 
@@ -559,9 +559,10 @@ Mini-Transaction 执行过程中可能产生若干条 redo 日志，这些 redo 
 Mini-Transaction 运行过程中产生的一组 redo 日志是在 Mini-Transaction 结束时会被复制到 log buffer 中，但在一些情况下它们会被刷新到磁盘里，比如：
 
 - log buffer 空间不足时。log buffer 的大小是有限的（通过系统变量 innodb_log_buffer_size 指定），如果不停的往这个有限大小的 log buffer 里塞入日志，很快它就会被填满。InnoDB 认为如果当前写入 log buffer 的 redo 日志量已经占满了 log buffer 总容量的大约一半左右，就需要把这些日志刷新到磁盘上。
-- 事务提交时。使用 redo 日志记录事务的操作主要是因为它占用的空间少，并且是顺序写，在事务提交时可以不把修改过的 Buffer Pool 页面刷新到磁盘，但是为了保证持久性，必须要把修改这些页面对应的 redo 日志刷新到磁盘
-- MySQL 后台有一个线程，大约每秒都会刷新一次 log buffer 中的 redo 日志到磁盘
+- 事务提交时。使用 redo 日志记录事务的操作主要是因为它占用的空间少，并且是顺序写，在事务提交时可以不把修改过的 Buffer Pool 页面刷新到磁盘，但是为了保证持久性，必须要把修改这些页面对应的 redo 日志刷新到磁盘。<u>*注意，此时除了本事务，可能还会有刷入其他事务的日志。</u>*
+- MySQL 后台有一个线程，大约每秒都会刷新一次 log buffer 中的 redo 日志到磁盘。
 - 正常关闭服务器时
+- 触发 checkpoint 规则
 
 #### 7.5.3. redo 日志文件组
 
@@ -580,11 +581,23 @@ SHOW VARIABLES LIKE 'datadir';
 
 磁盘上的 redo 日志文件可以不只一个，而是以一个日志文件组的形式出现的。这些文件以 `ib_logfile[数字]`（数字可以是 0、1、2...）的形式进行命名。在将 redo 日志写入日志文件组时，是从 `ib_logfile0` 开始写，如果 `ib_logfile0` 写满了，就接着 `ib_logfile1` 写，同理，`ib_logfile1` 写满了就去写 `ib_logfile2`，依此类推。如果写满最后一个文件，就会重新转到 `ib_logfile0` 继续写。
 
-#### 7.5.4. redo 日志文件格式
+#### 7.5.4. redo 日志文件格式与写入
 
 log buffer 本质上是一片连续的内存空间，被划分成了若干个 512 字节大小的 block。将 log buffer 中的 redo 日志刷新到磁盘的本质就是把 block 的镜像写入日志文件中，所以 redo 日志文件其实也是由若干个 512 字节大小的 block 组成。
 
 redo 日志文件组中的每个文件大小都一样，格式也一样，都是由两部分组成：前 2048 个字节，也就是前 4 个 block 是用来存储一些管理信息的。从第 2048 字节往后是用来存储 log buffer 中的 block 镜像的。
+
+![](images/118145516259299.jpg)
+
+redo log 的写入方式是从头到尾开始写，写到末尾又回到开头循环写。
+
+其中有两个标记位置：
+
+`write pos`是当前记录的位置，一边写一边后移，写到第 3 号文件末尾后就回到 0 号文件开头。`checkpoint`是当前要擦除的位置，也是往后推移并且循环的，擦除记录前要把记录更新到磁盘。
+
+![](images/265535616255854.jpg)
+
+当`write_pos`追上`checkpoint`时，表示 redo log 日志已经写满。这时候就不能接着往里写数据了，需要执行`checkpoint`规则腾出可写空间。
 
 ### 7.6. Log Sequence Number
 
@@ -659,16 +672,16 @@ set global innodb_flush_log_at_trx_commit=1;
 假设执行的 SQL 如下：
 
 ```sql
-update T set a =1 where id =666
+update T set a = 1 where id = 666;
 ```
 
 ![](images/14595617231152.png)
 
-1. MySQL 客户端将请求语句 `update T set a =1 where id = 666`，发往 MySQL Server 层。
+1. MySQL 客户端将请求的 SQL 语句，发往 MySQL Server 层。
 2. MySQL Server 层接收到 SQL 请求后，对其进行分析、优化、执行等处理工作，将生成的 SQL 执行计划发到 InnoDB 存储引擎层执行。
 3. InnoDB 存储引擎层**将 a 修改为 1** 的这个操作记录到内存中。
 4. 记录到内存以后会修改 redo log 的记录，会在添加一行记录，其内容是需要在哪个数据页上做什么修改。
-5. 此后，将事务的状态设置为 prepare ，说明已经准备好提交事务了。
+5. 此后，将事务的状态设置为 `prepare`，说明已经准备好提交事务了。
 6. 等到 MySQL Server 层处理完事务以后，会将事务的状态设置为 commit，也就是提交该事务。
 7. 在收到事务提交的请求以后，redo log 会把刚才写入内存中的操作记录写入到磁盘中，从而完成整个日志的记录过程。
 
