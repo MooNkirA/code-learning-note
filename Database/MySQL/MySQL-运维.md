@@ -505,6 +505,8 @@ join_buffer_size=4M
 
 ![](images/67862610220867.png)
 
+![](images/455291613240242.jpg)
+
 > 日志名词解释：
 >
 > - Binary log：主数据库的二进制日志
