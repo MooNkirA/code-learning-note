@@ -2,7 +2,7 @@
 
 > RabbitMQ 官方地址：http://www.rabbitmq.com/
 
-MQ 全称为 Message Queue，即消息队列， RabbitMQ 是由 erlang 语言开发，基于 AMQP（Advanced Message Queue 高级消息队列协议）协议实现的消息队列，它是一种应用程序之间的通信方法，实现服务之间的高度解耦。消息队列在分布式系统开发中应用非常广泛，市场上还有其他的消息队列框架，如：ActiveMQ，ZeroMQ，Kafka，MetaMQ，RocketMQ、Redis。
+MQ 全称为 Message Queue，即消息队列， RabbitMQ 是由 erlang 语言开发，基于 AMQP（Advanced Message Queue Protocol 高级消息队列协议）协议实现的消息队列，它是一种应用程序之间的通信方法，实现服务之间的高度解耦。消息队列在分布式系统开发中应用非常广泛，市场上还有其他的消息队列框架，如：ActiveMQ，ZeroMQ，Kafka，MetaMQ，RocketMQ、Redis。
 
 ### 1.1. RabbitMQ 的特点
 
