@@ -80,6 +80,12 @@
   <li><a href="#/后端框架/MyBatis/MyBatis-Flex">MyBatis-Flex 基础笔记（整理中）</a></li>
 </ul>
 
+### Hibernate
+
+<ul class="docs">
+  <li><a href="#/后端框架/Hibernate/Hibernate-基础">Hibernate 基础</a></li>
+</ul>
+
 ### 🧰 SpringMVC
 
 <ul class="docs">
@@ -478,11 +484,17 @@
   <li><a href="#/分布式微服务/分库分表/Mycat">Mycat2 - 数据库中间件</a></li>
 </ul>
 
+### 🗄️ 分布式文件系统
+
+<ul class="docs">
+  <li><a href="#/分布式微服务/分布式文件系统/Distributed-File-System-Overview">分布式文件系统概述</a></li>
+  <li><a href="#/分布式微服务/分布式文件系统/FastDFS">FastDFS 分布式文件系统</a></li>
+</ul>
+
 ### ✨ 微服务其他相关内容
 
 <ul class="docs">
   <li><a href="#/分布式微服务/其他/项目搭建模板">项目搭建模板与规范</a></li>
-  <li><a href="#/分布式微服务/其他/FastDFS">FastDFS 分布式文件系统</a></li>
 </ul>
 
 ## 🎛️ 并发编程

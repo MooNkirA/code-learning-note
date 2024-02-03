@@ -2,25 +2,25 @@
 
 ### 1.1. 概述
 
-ElasticSearch是一个基于Lucene的搜索服务器。它提供了一个分布式多用户能力的全文搜索引擎，基于RESTful web接口。Elasticsearch是用Java语言开发的，并作为Apache许可条款下的开放源码发布，是一种流行的企业级搜索引擎。ElasticSearch用于云计算中，能够达到实时搜索，稳定，可靠，快速，安装使用方便。官方客户端在Java、.NET（C#）、PHP、Python、Apache Groovy、Ruby和许多其他语言中都是可用的。根据DB-Engines的排名显示，Elasticsearch是最受欢迎的企业搜索引擎，其次是Apache Solr，也是基于Lucene
+ElasticSearch 是一个基于 Lucene 的搜索服务器。它提供了一个分布式多用户能力的全文搜索引擎，基于 RESTful web 接口。Elasticsearch 是用 Java 语言开发的，并作为 Apache 许可条款下的开放源码发布，是一种流行的企业级搜索引擎。ElasticSearch 用于云计算中，能够达到实时搜索，稳定，可靠，快速，安装使用方便。官方客户端在 Java、.NET（C#）、PHP、Python、Apache Groovy、Ruby 和许多其他语言中都是可用的。根据 DB-Engines 的排名显示，Elasticsearch 是最受欢迎的企业搜索引擎，其次是 Apache Solr，也是基于 Lucene
 
 > - 官方网址：https://www.elastic.co/cn/elasticsearch
 > - Github ：https://github.com/elastic/elasticsearch
 
 总结：
 
-1. elasticsearch是一个基于Lucene的高扩展的分布式搜索服务器，支持开箱即用。
-2. elasticsearch隐藏了Lucene的复杂性，对外提供Restful 接口来操作索引、搜索。
+1. elasticsearch 是一个基于 Lucene 的高扩展的分布式搜索服务器，支持开箱即用。
+2. elasticsearch 隐藏了 Lucene 的复杂性，对外提供 Restful 接口来操作索引、搜索。
 
 优势：
 
-1. 扩展性好，可部署上百台服务器集群，处理PB级数据
+1. 扩展性好，可部署上百台服务器集群，处理 PB 级数据
 2. 近实时的去索引数据、搜索数据
 
-> es 和 solr 选择哪个？
+> Tips: es 和 solr 选择哪个？
 >
 > 1. 如果公司现在用的 solr 可以满足需求就不要换了。
-> 2. 如果你司准备进行全文检索项目的开发，建议优先考虑 elasticsearch，因为像 Github 这样大规模的搜索都在用它
+> 2. 如果你司准备进行全文检索项目的开发，建议优先考虑 elasticsearch，因为像 Github 这样大规模的搜索都在用它。
 
 ### 1.2. 原理与应用
 
@@ -238,10 +238,10 @@ elasticsearch.bat
 
 head 插件是 ES 的一个可视化管理插件，用来监视 ES 的状态，并通过 head 客户端和 ES 服务进行交互，比如创建映射、创建索引等，head 的项目地址在`https://github.com/mobz/elasticsearch-head`
 
-从ES6.0开始，head插件支持使得node.js运行
+从 ES6.0 开始，head 插件支持使得 node.js 运行
 
-1. 安装node.js
-2. 下载head并运行
+1. 安装 node.js
+2. 下载 head 并运行
 
 方式一：可以使用命令行直接进行下载并运行（推荐）
 
@@ -256,7 +256,7 @@ npm install
 npm run start open HTTP://localhost:9100/
 ```
 
-方式二：到github中下载[elasticsearch-head](https://github.com/mobz/elasticsearch-head/releases)源码。不过好像只打到5.0.0版本
+方式二：到 github 中下载[elasticsearch-head](https://github.com/mobz/elasticsearch-head/releases)源码。*不过好像只打包到 5.0.0 版本*
 
 ![head 插件安装](images/20191016162831802_1509.png)
 
