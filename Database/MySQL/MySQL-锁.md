@@ -571,13 +571,13 @@ MySQL 支持多种存储引擎，不同存储引擎对锁的支持也是不一�
 
 ### 8.2. 锁表的原因分析
 
-1. 锁表发生在insert、update、delete 中
-2. 锁表的原理是 数据库使用独占式封锁机制，当执行上面的语句时，对表进行锁住，直到发生commit 或者 回滚 或者退出数据库用户
+1. 锁表发生在 insert、update、delete 中
+2. 锁表的原理是 数据库使用独占式封锁机制，当执行上面的语句时，对表进行锁住，直到发生 commit 或者 回滚 或者退出数据库用户
 3. 锁表的原因：
 	- 第一、 A程序执行了对 tableA 的 insert ，并还未 commit时，B程序也对tableA 进行insert 则此时会发生资源正忙的异常 就是锁表
 	- 第二、锁表常发生于并发而不是并行（并行时，一个线程操作数据库时，另一个线程是不能操作数据库的，cpu 和i/o 分配原则）
 4. 减少锁表的概率：
-	1. 减少insert 、update 、delete 语句执行 到 commit 之间的时间。具体点批量执行改为单个执行、优化sql自身的非执行速度
+	1. 减少 insert、update、delete 语句执行到 commit 之间的时间。具体点批量执行改为单个执行、优化 sql 自身的非执行速度
 	2. 如果异常对事物进行回滚
 
 ### 8.3. 如何判断数据库表已经锁表
@@ -588,7 +588,7 @@ MySQL 支持多种存储引擎，不同存储引擎对锁的支持也是不一�
 select * from v$locked_object;
 ```
 
-可以获得被锁的对象的object_id及产生锁的会话sid。
+可以获得被锁的对象的 object_id 及产生锁的会话 sid。
 
 ## 9. 锁等待分析
 
@@ -645,7 +645,7 @@ select * from INFORMATION_SCHEMA.DATA_LOCKS;
 select * from INFORMATION_SCHEMA.DATA_LOCK_WAITS;
 ```
 
-> TODO: 本地安装的8.0版本数据库以上的INNODB_LOCKS、INNODB_LOCK_WAITS、DATA_LOCKS、DATA_LOCK_WAITS 表均不存在，待确认什么问题
+> TODO: 本地安装的8.0版本数据库以上的 INNODB_LOCKS、INNODB_LOCK_WAITS、DATA_LOCKS、DATA_LOCK_WAITS 表均不存在，待确认什么问题
 
 ### 9.3. 查看事务加锁的情况
 
@@ -653,7 +653,7 @@ select * from INFORMATION_SCHEMA.DATA_LOCK_WAITS;
 show engine innodb status;
 ```
 
-查看事务加锁的情况，不过一般情况下，看不到哪个事务对哪些记录加了那些锁，需要修改系统变量 `innodb_status_output_locks`（MySQL5.6.16 引入），缺省值是`OFF`。
+查看事务加锁的情况，不过一般情况下，看不到哪个事务对哪些记录加了那些锁，需要修改系统变量 `innodb_status_output_locks`（MySQL 5.6.16 引入），缺省值是`OFF`。
 
 ```sql
 mysql> show variables like 'innodb_status_output_locks';
@@ -685,13 +685,13 @@ mysql> show variables like 'innodb_status_output_locks';
 
 分析结果如下：
 
-```
+```sql
 TABLE LOCK table `mysqladv`.`teacher` trx id 12851 lock mode IX
 ```
 
 1. 表示事务 ID 为 12851 对 mysqladv 下的 teacher 表加了表级意向独占锁。
 
-```
+```sql
 RECORD LOCKS space id 33 page no 4 n bits 72 index idx_name of table `mysqladv`.`teacher` trx id 12852 lock_mode X locks gap before rec
 ```
 
@@ -701,11 +701,15 @@ RECORD LOCKS space id 33 page no 4 n bits 72 index idx_name of table `mysqladv`.
     - `ndex PRIMARY`：对应的索引是 idx_name；
     - `lock_mode X locks gap before rec`：存放的是一个 X 型的 gap 锁
 
-![](images/20210605113841542_15819.png)
+```sql
+Record lock, heap no 6 PHYSICAL RECORD: n_fields 2; compact format; info bits 0
+ 0:len 4; hex 4d61726b; asc Mark;;
+ 1:len 4; hex 80000003; asc     ;;
+```
 
 表示的加锁记录的详细信息
 
-```
+```sql
 RECORD LOCKS space id 33 page no 4 n bits 72 index idx_name of table `mysqladv`.`teacher` trx id 12852 lock_mode X
 ```
 

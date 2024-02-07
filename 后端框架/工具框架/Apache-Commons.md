@@ -1,3 +1,35 @@
+# Apache Common 包简介
+
+Apache Commons 是对 JDK 的拓展，包含了很多开源的工具，用于解决平时编程经常会遇到的问题，减少重复劳动。
+
+> 官网： https://commons.apache.org/
+
+常用包：
+
+- Commons BeanUtils
+- Commons Codec
+- Commons Collections
+- Commons Compress
+- Commons Configuration
+- Commons CSV
+- Commons Daemon
+- Commons DBCP
+- Commons DBUtils
+- Commons Digester
+- Commons Email
+- Commons Exec
+- Commons FileUpload
+- Commons IO
+- Commons JCI
+- Commons Lang3
+- Commons Logging
+- Commons Math
+- Commons Net
+- Commons Pool
+- Commons Primitives
+- Commons Validator
+- Apache HttpClient
+
 # Apache Commons IO
 
 ## 1. 简介
@@ -179,6 +211,50 @@ Apache Commons Lang 包的下载地址：http://commons.apache.org/proper/common
 </dependency>
 ```
 
+# Apache Commons Lang3
+
+是处理 Java 基本对象方法的工具类包，该类包提供对字符、数组等基本对象的操作，弥补了 `java.lang api` 基本处理方法上的不足。
+
+[官方 API 文档](https://commons.apache.org/proper/commons-lang/javadocs/api-release/index.html)
+
+功能结构：
+
+```
+ArrayUtils – 用于对数组的操作，如添加、查找、删除、子数组、倒序、元素类型转换等；
+
+BitField – 用于操作位元，提供了一些方便而安全的方法；
+
+BooleanUtils – 用于操作和转换boolean或者Boolean及相应的数组；
+
+CharEncoding – 包含了Java环境支持的字符编码，提供是否支持某种编码的判断；
+
+CharRange – 用于设定字符范围并做相应检查；
+
+CharSet – 用于设定一组字符作为范围并做相应检查；
+
+CharSetUtils – 用于操作CharSet；
+
+CharUtils – 用于操作char值和Character对象；
+
+ClassUtils – 用于对Java类的操作，不使用反射；
+
+ObjectUtils – 用于操作Java对象，提供null安全的访问和其他一些功能；
+
+RandomStringUtils – 用于生成随机的字符串；
+
+SerializationUtils – 用于处理对象序列化，提供比一般Java序列化更高级的处理能力；
+
+StringEscapeUtils – 用于正确处理转义字符，产生正确的Java、JavaScript、HTML、XML和SQL代码；
+
+StringUtils – 处理String的核心类，提供了相当多的功能；
+
+SystemUtils – 在java.lang.System基础上提供更方便的访问，如用户路径、Java版本、时区、操作系统等判断；
+
+Validate – 提供验证的操作，有点类似assert断言；
+
+WordUtils – 用于处理单词大小写、换行等。
+```
+
 # Apache Commons BeanUtils
 
 ## 1. BeanUtils 概述
@@ -293,3 +369,51 @@ public static void copyProperties(Object dest, Object orig) throws IllegalAccess
 4. 类型转换问题。
     - 基本类型与其对应的封装类型可以相互转换
     - `org.springframework.beans.BeanUtils` 与 `org.apache.commons.beanutils.BeanUtils` 对于 String 和 Date 类型转换的情况是不同的。但无论是那个工具类，默认情况下都不能将 `String` 类型转成 `Date` 类型
+
+# Commons Collections
+
+是一个集合组件，扩展了 Java 标准 Collections API，对常用的集合操作进行了很好的封装、抽象和补充，在保证性能的同时大大简化代码。
+
+相关组件结构
+
+```
+org.apache.commons.collections – CommonsCollections自定义的一组公用的接口和工具类
+
+org.apache.commons.collections.bag – 实现Bag接口的一组类
+
+org.apache.commons.collections.bidimap – 实现BidiMap系列接口的一组类
+
+org.apache.commons.collections.buffer – 实现Buffer接口的一组类
+
+org.apache.commons.collections.collection –实现java.util.Collection接口的一组类
+
+org.apache.commons.collections.comparators– 实现java.util.Comparator接口的一组类
+
+org.apache.commons.collections.functors –Commons Collections自定义的一组功能类
+
+org.apache.commons.collections.iterators – 实现java.util.Iterator接口的一组类
+
+org.apache.commons.collections.keyvalue – 实现集合和键/值映射相关的一组类
+
+org.apache.commons.collections.list – 实现java.util.List接口的一组类
+
+org.apache.commons.collections.map – 实现Map系列接口的一组类
+
+org.apache.commons.collections.set – 实现Set系列接口的一组类
+```
+
+- Bag、Buffer、BidiMap、OrderedMap 等，可以作为容器类的补充
+- CollectionUtils、IteratorUtils、ListUtils、SetUtils 等，可以作为操作类的补充
+- MapIterator、Closure、Predicate、Transformer 等，可以作为辅助类的补充
+
+# Commons Email
+
+是邮件操作组件，该组件依赖 Java Mail API，并对其进行了封装，提供了常用的邮件发送和接收类，简化邮件操作。
+
+# Commons FileUpload
+
+为 Web 应用程序或 Servlet 提供文件上传功能，Struts2 和 SpringMVC 的文件上传组件。
+
+# Commons Logging
+
+提供统一的日志接口，同时兼顾轻量级和不依赖于具体的实现。类包给中间件/日志工具开发者一个简单的日志操作抽象，允许程序开发人员使用不同的具体日志实现工具。

@@ -2,7 +2,7 @@
 
 ## 1. 概述
 
-Quartz 是 OpenSymphony 开源组织在 Job scheduling 领域又一个开源项目
+Quartz 是 OpenSymphony 开源组织在 Job scheduling 领域又一个开源项目。
 
 Quartz 框架的核心是调度器。调度器负责管理 Quartz 应用运行时环境。调度器不是靠自己做所有的工作，而是依赖框架内一些非常重要的部件。Quartz 不仅仅是线程和线程管理。为确保可伸缩性，Quartz 采用了基于多线程的架构。启动时，框架初始化一套 worker 线程，这套线程被调度器用来执行预定的作业。这就是 Quartz 怎样能并发运行多个作业的原理。Quartz 依赖一套松耦合的线程池管理部件来管理线程环境。
 

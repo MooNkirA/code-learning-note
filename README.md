@@ -122,7 +122,6 @@
 
 <ul class="docs">
   <li><a href="#/后端框架/工具框架/JUnit">JUnit（Java 单元测试工具框架）</a></li>
-  <li><a href="#/后端框架/工具框架/Gson">Gson（JSON 处理工具类库）</a></li>
   <li><a href="#/后端框架/工具框架/iTextPdf">iTextPdf（PDF 操作工具类库）</a></li>
   <li><a href="#/后端框架/工具框架/BloomFilter">BloomFilter（布隆过滤器）</a></li>
   <li><a href="#/后端框架/工具框架/Java-Logging">Java 日志工具类库</a></li>
@@ -133,6 +132,15 @@
   <li><a href="#/后端框架/工具框架/PowerMock">PowerMock (单元测试模拟框架)</a></li>
   <li><a href="#/后端框架/工具框架/Swagger">Swagger 接口文档工具(包含 knife4j 增强框架)</a></li>
   <li><a href="#/后端框架/工具框架/Drools">Drools 规则引擎</a></li>
+  <li><a href="#/后端框架/工具框架/MapStruct">MapStruct 对象拷贝工具</a></li>
+</ul>
+
+#### Json 常用类库
+
+<ul class="docs">
+  <li><a href="#/后端框架/工具框架/Gson">Gson</a></li>
+  <li><a href="#/后端框架/工具框架/FastJson">FastJson</a></li>
+  <li><a href="#/后端框架/工具框架/Jackson">Jackson</a></li>
 </ul>
 
 ## 前端资料

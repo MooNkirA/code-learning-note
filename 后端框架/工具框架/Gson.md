@@ -1,8 +1,6 @@
-# JSON处理工具类库-Gson
-
 ## 1. Gson介绍
 
-GSON是Google提供的用来在Java对象和JSON数据之间进行映射的Java类库。可以将一个Json字符转成一个Java对象，或者将一个Java转化为Json字符串。
+Gson 是 Google 提供的用来在 Java 对象和 JSON 数据之间进行映射的 Java 类库。可以将一个 Json 字符转成一个 Java 对象，或者将一个 Java 转化为 Json 字符串。
 
 特点：
 
@@ -11,26 +9,26 @@ GSON是Google提供的用来在Java对象和JSON数据之间进行映射的Java�
 3. 面向对象
 4. 数据传递和解析方便
 
-
-## 2. Gson工具类
+### 1.1. 依赖包
 
 - Gson工具类，需要导入jar包：`gson-2.2.4.jar`
 
-## 3. Gson的创建方式
-### 3.1. 无参构造方法
+## 2. Gson的创建方式
+
+### 2.1. 无参构造方法
 
 - `Gson gson = new Gson();`
 
 
-## 4. Gson的基本用法
+## 3. Gson的基本用法
 
 - `public String toJson(Objcet obj)`
     - 将任意类型转换成Json格式字符串
 - `public T fromJson(String jsonStr, T.class)`
     - 将json字符串转化为指定类型为T的Java对象
 
-## 5. Gson的一些案例
-### 5.1. 案例-输出JSON字符串包含null值的属性
+## 4. Gson的一些案例
+### 4.1. 案例-输出JSON字符串包含null值的属性
 
 ```java
 public static void main(String[] args) {
@@ -71,7 +69,7 @@ public GsonBuilder serializeNulls() {
 }
 ```
 
-#### 5.1.1. Gson其他使用要点
+#### 4.1.1. Gson其他使用要点
 
 可以用@SerializedName注解给属性重命名，用@Expose注解标识属性不进行序列化，支持 Map 的 key 为复杂对象的形式，日期类型转化为特定格式，还有区分版本进行显示，这些在日常项目中都极常用到，只不过好像我们之前都是自己实现的。
 
@@ -102,3 +100,8 @@ public GsonBuilder serializeNulls() {
 ![Gson其他使用要点6](images/20190218234247603_1829.jpeg)
 
 当然，还有好多特性呢，比如字段首字母大写阿、结果格式化阿等等
+
+## 5. 参考资料
+
+- [常用开发库 - JSON库详解](https://www.pdai.tech/md/develop/package/dev-package-x-json.html#gson%E7%AE%80%E4%BB%8B)
+- [Gson用户指南（中文翻译）](https://www.jianshu.com/p/1e20b28c39d1)
