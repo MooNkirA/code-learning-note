@@ -2162,3 +2162,4 @@ JAVA 进程启动的时候，虽然可以为 JVM 指定合适的内存大小，�
 ## 17. 其他参考资料
 
 - [IDEA 高效使用指南](https://idea.javaguide.cn/)：使用指南 | 必备插件推荐 | 插件开发入门 | 重构小技巧 | 源码阅读技巧
+- [单元测试 - IDEA下单元测试详解](https://www.pdai.tech/md/develop/ut/dev-ut-x-junit-idea.html)
