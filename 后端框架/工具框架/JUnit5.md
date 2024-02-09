@@ -639,13 +639,292 @@ public class RepeatTest {
 
 ![](images/274701223258674.png)
 
-## 9. 参数化测试(个人使用的版本无法使用，待确认)
+## 9. 参数化测试（个人使用的版本无法使用，待确认）
 
+JUnit Jupiter 提供了很多开箱即用的 `@*Source` 注解。更多细节请参阅 `org.junit.jupiter.params.provider` 包中的 JavaDoc。
 
+### 9.1. @ValueSource
 
+`@ValueSource` 是最简单的 source 之一。它可以让你指定一个原生类型（String，int，long或double）的数组，并且只能为每次调用提供一个参数。
+
+```java
+@ParameterizedTest
+@ValueSource(ints = { 1, 2, 3 })
+void testWithValueSource(int argument) {
+    assertNotNull(argument);
+}
+```
+
+### 9.2. @EnumSource
+
+`@EnumSource` 提供了一个使用 Enum 常量的简便方法。该注释提供了一个可选的 `name` 参数，可以指定使用哪些常量。如果省略，所有的常量将被用在下面的例子中。
+
+```java
+@ParameterizedTest
+@EnumSource(TimeUnit.class)
+void testWithEnumSource(TimeUnit timeUnit) {
+    assertNotNull(timeUnit);
+}
+
+@ParameterizedTest
+@EnumSource(value = TimeUnit.class, names = { "DAYS", "HOURS" })
+void testWithEnumSourceInclude(TimeUnit timeUnit) {
+    assertTrue(EnumSet.of(TimeUnit.DAYS, TimeUnit.HOURS).contains(timeUnit));
+}
+```
+
+`@EnumSource` 注解还提供了一个可选的 `mode` 参数，可以对将哪些常量传递给测试方法进行细化控制。例如，可以从枚举常量池中排除名称或指定正则表达式。
+
+```java
+@ParameterizedTest
+@EnumSource(value = TimeUnit.class, mode = EXCLUDE, names = { "DAYS", "HOURS" })
+void testWithEnumSourceExclude(TimeUnit timeUnit) {
+    assertFalse(EnumSet.of(TimeUnit.DAYS, TimeUnit.HOURS).contains(timeUnit));
+    assertTrue(timeUnit.name().length() > 5);
+}
+
+@ParameterizedTest
+@EnumSource(value = TimeUnit.class, mode = MATCH_ALL, names = "^(M|N).+SECONDS$")
+void testWithEnumSourceRegex(TimeUnit timeUnit) {
+    String name = timeUnit.name();
+    assertTrue(name.startsWith("M") || name.startsWith("N"));
+    assertTrue(name.endsWith("SECONDS"));
+}
+```
+
+### 9.3. @MethodSource
+
+`@MethodSource` 允许引用一个或多个测试类的工厂方法。这样的方法必须返回一个 Stream，Iterable，Iterator 或者参数数组。另外，这种方法不能接受任何参数。默认情况下，除非测试类用 `@TestInstance(Lifecycle.PER_CLASS)` 注解，否则这些方法必须是静态的。如果只需要一个参数，则可以返回参数类型的实例 Stream。
+
+```java
+@ParameterizedTest
+@MethodSource("stringProvider")
+void testWithSimpleMethodSource(String argument) {
+    assertNotNull(argument);
+}
+static Stream<String> stringProvider() {
+    return Stream.of("foo", "bar");
+}
+```
+
+支持原始类型（DoubleStream，IntStream 和 LongStream）的流，示例如下：
+
+```java
+@ParameterizedTest
+@MethodSource("range")
+void testWithRangeMethodSource(int argument) {
+    assertNotEquals(9, argument);
+}
+static IntStream range() {
+    return IntStream.range(0, 20).skip(10);
+}
+```
+
+如果测试方法声明多个参数，则需要返回一个集合或 Arguments 实例流。请注意，`Arguments.of(Object...)`是 Arguments 接口中定义的静态工厂方法。如下所示：
+
+```java
+@ParameterizedTest
+@MethodSource("stringIntAndListProvider")
+void testWithMultiArgMethodSource(String str, int num, List<String> list) {
+    assertEquals(3, str.length());
+    assertTrue(num >=1 && num <=2);
+    assertEquals(2, list.size());
+}
+static Stream<Arguments> stringIntAndListProvider() {
+    return Stream.of(
+        Arguments.of("foo", 1, Arrays.asList("a", "b")),
+        Arguments.of("bar", 2, Arrays.asList("x", "y"))
+    );
+}
+```
+
+### 9.4. @CsvSource
+
+`@CsvSource` 允许将参数列表表示为以逗号分隔的值（例如，字符串文字）。
+
+```java
+@ParameterizedTest
+@CsvSource({ "foo, 1", "bar, 2", "'baz, qux', 3" })
+void testWithCsvSource(String first, int second) {
+    assertNotNull(first);
+    assertNotEquals(0, second);
+}
+```
+
+`@CsvSource` 使用 `'`(单引号) 作为转义字符。例如上述示例和下表中的`'baz, qux'`值。 一个空的引用值 `''` 会导致一个空的 String；而一个完全空的值被解释为一个 null 引用。如果 null 引用的目标类型是基本类型，则引发 `ArgumentConversionException`。示例输入结果字符列表
+
+|               示例输入                |    结果字符列表     |
+| ----------------------------------- | ----------------- |
+| `@CsvSource({ "foo, bar" })`        | "foo", "bar"      |
+| `@CsvSource({ "foo, 'baz, qux'" })` | "foo", "baz, qux" |
+| `@CsvSource({ "foo, ''" })`         | "foo", ""         |
+| `@CsvSource({ "foo, " })`           | "foo", null       |
+
+### 9.5. @CsvFileSource
+
+`@CsvFileSource` 可以使用 classpath 中的 CSV 文件。CSV 文件中的每一行都会导致参数化测试的一次调用。
+
+```java
+@ParameterizedTest
+@CsvFileSource(resources = "/two-column.csv")
+void testWithCsvFileSource(String first, int second) {
+    assertNotNull(first);
+    assertNotEquals(0, second);
+}
+```
+
+在 resources 目录中创建 two-column.csv 文件，内容如下：
+
+```csv
+foo, 1
+bar, 2
+"baz, qux", 3
+```
+
+与 `@CsvSource` 中使用的语法相反，`@CsvFileSource` 使用双引号`"`作为转义字符，如上面例子中的`"baz, qux"`值，一个空的转义值`""`会产生一个空字符串，一个完全为空的值被解释为 null 引用，如果 null 引用的目标类型是基本类型，则引发 `ArgumentConversionException`。
+
+### 9.6. @ArgumentsSource
+
+可以使用 `@ArgumentsSource` 指定一个自定义的，可重用的 `ArgumentsProvider`。
+
+```java
+@ParameterizedTest
+@ArgumentsSource(MyArgumentsProvider.class)
+void testWithArgumentsSource(String argument) {
+    assertNotNull(argument);
+}
+static class MyArgumentsProvider implements ArgumentsProvider {
+    @Override
+    public Stream< ? extends Arguments > provideArguments(ExtensionContext context) {
+        return Stream.of("foo", "bar").map(Arguments::of);
+    }
+}
+```
 
 ## 10. 动态测试
 
+### 10.1. @TestFactory 注解
 
+除了以上标准测试外，JUnit Jupiter 还引入了一种全新的测试编程模型：**动态测试**，它是由 `@TestFactory `注解的工厂方法在运行时生成的。
 
+与 `@Test` 标识的方法相比，`@TestFactory` 标识的方法本身不是测试用例，而是测试用例的工厂。因此，动态测试是工厂的产物。从技术上讲，`@TestFactory` 方法必须返回 `DynamicNode` 实例的 Stream，Collection，Iterable 或 Iterator。`DynamicNode` 的可实例化的子类是 `DynamicContainer` 和 `DynamicTest`。`DynamicContainer` 实例由一个显示名称和一个动态子节点列表组成，可以创建任意嵌套的动态节点层次结构。然后，`DynamicTest` 实例将被延迟执行，从而实现测试用例的动态甚至非确定性生成。
 
+任何由 `@TestFactory` 返回的 Stream 都要通过调用 `stream.close()` 来正确关闭，使得使用诸如 `Files.lines()` 之类的资源变得安全。与 `@Test` 方法一样，`@TestFactory` 方法不能是 private 或 static，并且可以选择声明参数，以便通过 `ParameterResolvers` 解析。
+
+`DynamicTest` 是运行时生成的测试用例。它由显示名称和 `Executable` 组成。`Executable` 是 `@FunctionalInterface`，这意味着动态测试的实现可以作为 lambda 表达式或方法引用来提供。
+
+### 10.2. 使用示例
+
+```java
+import org.junit.jupiter.api.DynamicNode;
+import org.junit.jupiter.api.DynamicTest;
+import org.junit.jupiter.api.TestFactory;
+import org.junit.jupiter.api.function.ThrowingConsumer;
+
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
+import java.util.function.Function;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
+import java.util.Random;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.DynamicTest.dynamicTest;
+import static org.junit.jupiter.api.DynamicContainer.dynamicContainer;
+
+/**
+ * 动态测试示例
+ */
+public class DynamicsTest {
+    // This will result in a JUnitException!
+    @TestFactory
+    List<String> dynamicTestsWithInvalidReturnType() {
+        return Arrays.asList("Hello");
+    }
+
+    @TestFactory
+    Collection<DynamicTest> dynamicTestsFromCollection() {
+        return Arrays.asList(
+                dynamicTest("1st dynamic test", () -> assertTrue(true)),
+                dynamicTest("2nd dynamic test", () -> assertEquals(4, 2 * 2))
+        );
+    }
+
+    @TestFactory
+    Iterable<DynamicTest> dynamicTestsFromIterable() {
+        return Arrays.asList(
+                dynamicTest("3rd dynamic test", () -> assertTrue(true)),
+                dynamicTest("4th dynamic test", () -> assertEquals(4, 2 * 2))
+        );
+    }
+
+    @TestFactory
+    Iterator<DynamicTest> dynamicTestsFromIterator() {
+        return Arrays.asList(
+                dynamicTest("5th dynamic test", () -> assertTrue(true)),
+                dynamicTest("6th dynamic test", () -> assertEquals(4, 2 * 2))
+        ).iterator();
+    }
+
+    @TestFactory
+    Stream<DynamicTest> dynamicTestsFromStream() {
+        return Stream.of("A", "B", "C")
+                .map(str -> dynamicTest("test" + str, () -> { /* ... */ }));
+    }
+
+    @TestFactory
+    Stream<DynamicTest> dynamicTestsFromIntStream() {
+        // Generates tests for the first 10 even integers.
+        return IntStream.iterate(0, n -> n + 2).limit(10)
+                .mapToObj(n -> dynamicTest("test" + n, () -> assertTrue(n % 2 == 0)));
+    }
+
+    @TestFactory
+    Stream<DynamicTest> generateRandomNumberOfTests() {
+        // Generates random positive integers between 0 and 100 until
+        // a number evenly divisible by 7 is encountered.
+        Iterator<Integer> inputGenerator = new Iterator<Integer>() {
+            Random random = new Random();
+            int current;
+
+            @Override
+            public boolean hasNext() {
+                current = random.nextInt(100);
+                return current % 7 != 0;
+            }
+
+            @Override
+            public Integer next() {
+                return current;
+            }
+        };
+        // Generates display names like: input:5, input:37, input:85, etc.
+        Function<Integer, String> displayNameGenerator = (input) -> "input:" + input;
+        // Executes tests based on the current input value.
+        ThrowingConsumer<Integer> testExecutor = (input) -> assertTrue(input % 7 != 0);
+        // Returns a stream of dynamic tests.
+        return DynamicTest.stream(inputGenerator, displayNameGenerator, testExecutor);
+    }
+
+    @TestFactory
+    Stream<DynamicNode> dynamicTestsWithContainers() {
+        return Stream.of("A", "B", "C")
+                .map(input -> dynamicContainer("Container " + input, Stream.of(
+                        dynamicTest("not null", () -> assertNotNull(input)),
+                        dynamicContainer("properties", Stream.of(
+                                dynamicTest("length > 0", () -> assertTrue(input.length() > 0)),
+                                dynamicTest("not empty", () -> assertFalse(input.isEmpty()))
+                        ))
+                )));
+    }
+}
+```
+
+执行结果：
+
+![](images/559802410240249.png)

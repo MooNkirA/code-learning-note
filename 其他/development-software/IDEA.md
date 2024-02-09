@@ -1909,17 +1909,111 @@ IDEA 2021.2 增加一个自动清理的缓存以及日志的的功能，目前�
 2. 在 Maven Project 的试图里 clean 一下，删除之前编译过的文件；
 3. 项目右键 -> Maven -> Reimport
 
-## 15. 推荐插件
+## 15. 单元测试
 
-### 15.1. 热替换利器：JRebel
+### 15.1. 使用示例准备
+
+创建一个待测试的类，其中还包含着错误。
+
+```java
+public class Calculator {
+
+    public int result = 0;
+
+    public int add(int operand1, int operand2) {
+        result = operand1 + operand2;
+        return result;
+    }
+
+    public int subtract(int operand1, int operand2) {
+        result = operand1 - operand2;
+        return result;
+    }
+
+    public int multiple(int operand1, int operand2) {
+        result = operand1 * operand2;
+        for (; ; ) {                    // 死循环
+        }
+    }
+
+    public int divide(int operand1, int operand2) {
+        result = operand1 / 0;
+        return result;
+    }
+
+    public int getResult() {
+        return this.result;
+    }
+}
+```
+
+### 15.2. 自动生成单元测试插件 JUnit 5 Mockito Code Generator
+
+> 待使用时再截图补充
+
+![](images/39874710258675.png)
+
+### 15.3. 并行测试 JUnit4 Paralle lRunner
+
+在大量的单元测试时，可以通过并行来提升测试的效率。推荐插件：JUnit4 Parallel Runner
+
+![](images/107705210246542.png)
+
+相关测试触发按钮和输出：
+
+![](images/427305610259377.png)
+
+### 15.4. 测试用例的代码覆盖率
+
+选择相应的测试用例
+
+![](images/141291111255932.png)
+
+添加 【Specify alternative coverage runner】 选项
+
+![](images/582871111251686.png)
+
+选择 Choose coverage runner: JaCoCo
+
+![](images/92041211269566.png)
+
+执行后显示结果：
+
+![](images/530052511267170.png)
+
+### 15.5. Profile
+
+选择相关的测试用例，使用 Profile 来运行
+
+![](images/186143811264672.png)
+
+#### 15.5.1. CPU Profile - Flame Graph
+
+![](images/548553811245913.png)
+
+#### 15.5.2. CPU Profile - Call Tree
+
+![](images/259504011268353.png)
+
+#### 15.5.3. CPU Profile - Method List
+
+![](images/430394011263489.png)
+
+#### 15.5.4. Allocation Profile
+
+![](images/270524311257035.png)
+
+## 16. 推荐插件
+
+### 16.1. 热替换利器：JRebel
 
 一款热部署插件，帮助开发者在项目处于运行状态下任意修改 Java 文件并动态反馈到运行的项目中。地址：https://plugins.jetbrains.com/plugin/4441-jrebel-for-intellij
 
-### 15.2. 开发测试必备部署神器：Cloud Toolkit
+### 16.2. 开发测试必备部署神器：Cloud Toolkit
 
 帮助开发者更高效地开发、测试、诊断并部署应用，利用此插件，能够方便地将本地应用一键部署到任意机器（了解更多：[体验链接](https://mp.weixin.qq.com/s?__biz=MzU4NzU0MDIzOQ==&mid=2247485392&idx=3&sn=113a67be48740443b9a29d172da48b12&chksm=fdeb35b0ca9cbca6f48b61c8c333683b6acbaac4f1e8101ff54546d9256347bff629e0e513c5&scene=21#wechat_redirect)）
 
-### 15.3. Lombok 插件
+### 16.3. Lombok 插件
 
 > Notes: 2020 以上版本已经内置此插件
 
@@ -1929,27 +2023,27 @@ Lombok 是一个实用的java工具，使用它可以消除java代码的臃肿�
 
 ![](images/20201105162725764_11523.jpg)
 
-### 15.4. Rainbow Brackets
+### 16.4. Rainbow Brackets
 
 彩虹颜色的括号，分清括号个数与层级，防止括号错乱。插件提供地址：https://plugins.jetbrains.com/plugin/10080-rainbow-brackets
 
-### 15.5. Free Mybatis plugin
+### 16.5. Free Mybatis plugin
 
 可以在mapper接口中和mapper的xml文件中来回跳转，就想接口跳到实现类那样简单。
 
 > 目前安装的版本是：Free Mybatis plugin，还一个插件叫 Mybatis plugin 
 
-### 15.6. Key promoter X（快捷键提示）
+### 16.6. Key promoter X（快捷键提示）
 
 Key Promoter X 是一个提示插件。在 IDEA 里使用鼠标操作时，会有这个操作的快捷键在界面的右下角进行告知。有个小缺点是有些没有快捷键的操作，会直接把操作的名字提示出来，实际上那样的提示是没有作用的，可以点击Don't show again来忽略。
 
 ![](images/20201105162839028_20849.jpg)
 
-### 15.7. RestfulToolkit
+### 16.7. RestfulToolkit
 
 搜索URL，准确的说是搜索SpringMVC项目里，Controller层的`@RequestMapping`里的URL，通过URL匹配到相应的Controller层方法。使用快捷键：`Ctrl + \` 或 `Ctrl + Alt + N`
 
-### 15.8. CamelCase
+### 16.8. CamelCase
 
 在几种字符串格式之间来回切换。有一下几种格式：
 
@@ -1962,7 +2056,7 @@ Key Promoter X 是一个提示插件。在 IDEA 里使用鼠标操作时，会�
 
 使用：按住Shift + Alt再不停的按U，会把选中内容的单词的下划线转驼峰转大写等，不停的转换。~~感觉String Manipulation功能比它强大~~
 
-### 15.9. String Manipulation
+### 16.9. String Manipulation
 
 功能：变量名使用驼峰形式、常量需要全部大写等等，编码解码等等。总的来说就是对字符串的处理。
 
@@ -1970,15 +2064,15 @@ Key Promoter X 是一个提示插件。在 IDEA 里使用鼠标操作时，会�
 
 ![](images/20201105163037745_20986.jpg)
 
-### 15.10. SequenceDiagram
+### 16.10. SequenceDiagram
 
 时序图生成工具。需要梳理业务逻辑或者阅读源码。需要了解整个调用链路，反向生成 UML 的时序图是强需求。其中，SequenceDiagram 插件是一个非常棒的插件。详细使用参考：https://plugins.jetbrains.com/plugin/8286-sequencediagram
 
-### 15.11. Maven Helper
+### 16.11. Maven Helper
 
 Maven辅助工具。如果 Maven 引入的 jar 包有冲突，可以使用 Maven Helper 插件来帮助分析。详细使用参考：https://plugins.jetbrains.com/plugin/7179-maven-helper
 
-### 15.12. GsonFormat/GsonFormatPlus
+### 16.12. GsonFormat/GsonFormatPlus
 
 在对接接口的时候接受对方返回的 JSON 对象，而想要用一个对象去接收时，可以用此插件进行转换。可以根据 json 字符串生成对应的实体类
 
@@ -1986,13 +2080,13 @@ Maven辅助工具。如果 Maven 引入的 jar 包有冲突，可以使用 Maven
 
 ![](images/441241300248771.png)
 
-### 15.13. GenerateAllSetter
+### 16.13. GenerateAllSetter
 
 此插件用于快速生成对象的所有 Setter 函数（可填充默认值），然后再跟进实际需求设置属性值。
 
 ![](images/193940000228838.png)
 
-### 15.14. Grep Console
+### 16.14. Grep Console
 
 Idea的控制台console输出日志时，往往是一大堆信息一起出现，想要快速找到自己想要的日志类型，使用这个插件便可以快速定位到自己关注的日志类型，还可以配置自己喜欢的颜色。
 
@@ -2000,7 +2094,7 @@ Idea的控制台console输出日志时，往往是一大堆信息一起出现，
 
 ![](images/20201105163130518_28244.jpg)
 
-### 15.15. Tabnine AI Code Completion — 代码智能提示
+### 16.15. Tabnine AI Code Completion — 代码智能提示
 
 > 官网：https://www.tabnine.com/code
 
@@ -2014,7 +2108,7 @@ Codota 还有一个在线网站，在这个网站上可以根据代码关键字�
 
 > 注：同时支持Eclipse
 
-### 15.16. jclasslib bytecode viewer
+### 16.16. jclasslib bytecode viewer
 
 可视化的字节码查看器。使用步骤如下：
 
@@ -2031,13 +2125,13 @@ Codota 还有一个在线网站，在这个网站上可以根据代码关键字�
 -Duser.language=en
 ```
 
-### 15.17. JavaDoc
+### 16.17. JavaDoc
 
 按 `alt+insert`，执行操作生成多个注释文档：
 
 ![](images/39771200246674.png)
 
-### 15.18. Translation
+### 16.18. Translation
 
 注册翻译服务（有道智云、百度翻译开放平台、阿里云机器翻译）帐号，开通翻译服务并获取其应用ID和密钥。绑定应用ID和密钥：偏好设置（设置）-> 工具 -> 翻译 -> 常规 -> 翻译引擎 -> 配置…
 
@@ -2045,31 +2139,31 @@ Codota 还有一个在线网站，在这个网站上可以根据代码关键字�
 
 > Tips: 注意保管好应用密钥，防止其泄露。
 
-### 15.19. CodeGlance Pro
+### 16.19. CodeGlance Pro
 
 在编辑器右侧生成代码小地图，可以拖拽小地图光标快速定位代码，阅读行数很多的代码文件时非常实用。
 
 ![](images/195790600249380.png)
 
-### 15.20. Statistic
+### 16.20. Statistic
 
 代码统计工具。
 
 ![](images/562130900227995.png)
 
-### 15.21. Leetcode Editor
+### 16.21. Leetcode Editor
 
 LeetCode插件，可以在IDEA中在线刷题。
 
-### 15.22. Alibaba Java Coding Guidelines（代码规范）
+### 16.22. Alibaba Java Coding Guidelines（代码规范）
 
 阿里巴巴代码规范检测。不符合代码规范的地方会有波浪线，鼠标移上去就会有相应的提示，有些问题甚至可以快速修复。
 
 使用方法：在类中，右键，选择编码规约扫描，在下方显示扫描规约和提示。根据提示规范代码，提高代码质量。
 
-### 15.23. 主题类插件
+### 16.23. 主题类插件
 
-#### 15.23.1. 主题下载地址
+#### 16.23.1. 主题下载地址
 
 - Material Theme UI
 - Xcode-Dark Theme 下载地址：https://plugins.jetbrains.com/plugin/13106-xcode-dark-theme/versions
@@ -2077,19 +2171,19 @@ LeetCode插件，可以在IDEA中在线刷题。
 - One Dark theme 下载地址：https://plugins.jetbrains.com/plugin/11938-one-dark-theme
 - Dark Purple Theme 下载地址：https://plugins.jetbrains.com/plugin/12100-dark-purple-theme
 
-#### 15.23.2. 怎么安装下载的主题
+#### 16.23.2. 怎么安装下载的主题
 
 1. 从主菜单打开你的编辑器选择 File -> Import Setting。选择下载的jar文件;
 2. 等待重启之后进行配置：打开File -> Settings -> Editor -> Colors and fonts 然后选择要安装的主题即可完成
 
-#### 15.23.3. 一些主题网址
+#### 16.23.3. 一些主题网址
 
 - http://www.themesmap.com/
 - http://www.riaway.com/
 - http://www.easycolor.cc/intelliJidea/list.html
 - http://color-themes.com/?view=index
 
-## 16. idea64.exe.vmoptions 配置文件详解
+## 17. idea64.exe.vmoptions 配置文件详解
 
 > 更多配置详解参考：https://www.zender.top/post/idea_jvm.html
 
@@ -2125,13 +2219,13 @@ idea2020.1.2 的配置 idea64.exe.vmoptions 文件示例内容
 -Djdk.module.illegalAccess.silent=true
 ```
 
-### 16.1. -server
+### 17.1. -server
 
 JVM 的参数配置分别是**服务器模式(-server)**和**客户端模式(client)**
 
 比如垃圾回收机制，客户端模式下，要求的是用户体验流程，无明显滞留感（就是没有卡的现象）。而服务端，要求的是吞吐量，就是单位时间内执行的代码要求越多越好。
 
-### 16.2. JVM 配置
+### 17.2. JVM 配置
 
 - `-Xmx1024m`：设置 JVM 最大可用内存为 1024m。
 - `-Xms512m`：设置 JVM 初始内存为 512m(启动时占用内存大小)。此值可以设置与`-Xmx`相同，以避免每次垃圾回收完成后 JVM 重新分配内存。
@@ -2140,7 +2234,7 @@ JVM 的参数配置分别是**服务器模式(-server)**和**客户端模式(cli
 - `-Xverify:none`：关闭 Java 字节码验证，从而加快了类装入的速度，并使得在仅为验证目的而启动的过程中无需装入类，缩短了启动时间。 
 - `-ea`：启动断言检查机制。
 
-### 16.3. -XX:+AlwaysPreTouch
+### 17.3. -XX:+AlwaysPreTouch
 
 参数作用：服务启动的时候分配真实的物理内存给 JVM。
 
@@ -2155,11 +2249,11 @@ JAVA 进程启动的时候，虽然可以为 JVM 指定合适的内存大小，�
 
 配置 `-XX:+AlwaysPreTouch` 参数后，JVM 将 `-Xms` 指定的堆内存中每个字节都写入"0"，这样的话，除了在虚拟内存中以内部数据结构保留之外，还会在物理内存中分配内存。并且由于touch(分配物理内存)这个行为是单线程的，因此它将会让 JVM 进程启动变慢。所以，要么选择减少接下来对每个缓存页的第一次访问时间，要么选择减少 JVM 进程启动时间，这是一种权衡。
 
-### 16.4. -XX:MaxGCPauseMillis
+### 17.4. -XX:MaxGCPauseMillis
 
 设置每次年轻代垃圾回收的最长时间(毫秒单位)，如果无法满足此时间，JVM 会自动调整年轻代大小，以满足此值。
 
-## 17. 其他参考资料
+## 18. 其他参考资料
 
 - [IDEA 高效使用指南](https://idea.javaguide.cn/)：使用指南 | 必备插件推荐 | 插件开发入门 | 重构小技巧 | 源码阅读技巧
 - [单元测试 - IDEA下单元测试详解](https://www.pdai.tech/md/develop/ut/dev-ut-x-junit-idea.html)
