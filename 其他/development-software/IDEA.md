@@ -2029,7 +2029,7 @@ Lombok 是一个实用的java工具，使用它可以消除java代码的臃肿�
 
 ### 16.5. Free Mybatis plugin
 
-可以在mapper接口中和mapper的xml文件中来回跳转，就想接口跳到实现类那样简单。
+可以在 mapper 接口中和 mapper 的 xml 文件中来回跳转，就想接口跳到实现类那样简单。
 
 > 目前安装的版本是：Free Mybatis plugin，还一个插件叫 Mybatis plugin 
 
@@ -2108,13 +2108,13 @@ Codota 还有一个在线网站，在这个网站上可以根据代码关键字�
 
 > 注：同时支持Eclipse
 
-### 16.16. jclasslib bytecode viewer
+### 16.16. jclasslib bytecode viewer（可视化字节码查看器）
 
-可视化的字节码查看器。使用步骤如下：
+jclasslib bytecode viewer 是一个可视化的字节码查看器的插件。使用步骤如下：
 
 1. 在 IDEA 打开想研究的类。
-2. 编译该类或者直接编译整个项目（ 如果想研究的类在 jar 包中，此步可略过）。
-3. 打开 “view” 菜单，选择“Show Bytecode With jclasslib” 选项。
+2. 编译该类或者直接编译整个项目（如果想研究的类在 jar 包中，此步可略过）。
+3. 打开 “view” 菜单，选择 “Show Bytecode With jclasslib” 选项。
 4. 选择上述菜单项后 IDEA 中会弹出 jclasslib 工具窗口。
 
 ![](images/95375623236267.png)

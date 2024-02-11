@@ -42,7 +42,10 @@
 ### 🖥 JVM（Java 虚拟机）
 
 <ul class="docs">
-  <li><a href="#/JVM/JVM-基础">JVM 基础笔记</a></li>
+  <li><a href="#/JVM/JVM-基础">JVM 基础</a></li>
+  <li><a href="#/JVM/JVM-内存模型">JVM 内存模型</a></li>
+  <li><a href="#/JVM/JVM-类加载">JVM 类加载</a></li>
+  <li><a href="#/JVM/JVM-GC">JVM GC（垃圾回收）</a></li>
   <li><a href="#/JVM/JVM-性能调优">JVM 性能调优</a></li>
   <li><a href="#/JVM/JVM-指令手册">JVM 指令手册</a></li>
   <li><a href="#/JVM/JVM-源码分析">JVM 源码分析</a></li>
