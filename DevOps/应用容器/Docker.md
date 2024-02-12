@@ -705,6 +705,12 @@ $ docker rm $(docker ps -a -q)
 > docker rm $(docker ps -a| grep rock | awk '{print $1}')
 ```
 
+强制删除容器（**慎用**），增加 `-f` 参数即可：
+
+```bash
+docker rm -f 容器ID
+```
+
 ### 5.8. 文件拷贝
 
 使用`docker cp`命令将宿主机中的文件拷贝到容器内。**注意：需要后台运行目标容器，在宿主中使用命令**。
@@ -749,16 +755,42 @@ docker inspect --format='{{.NetworkSettings.IPAddress}}'  容器名称|容器ID
 
 ### 5.10. 导入导出容器
 
+在生产环境中，很多时候是无法连接外网的，所以有时候需要用到容器的导入和导出。
+
 容器导出：
 
-```bash
-> docker export 7691a814370e > ubuntu.tar
+```shell
+docker export 7691a814370e > ubuntu.tar
 ```
+
+> Tips: 导出容器的时候，容器无需关闭。
 
 导入容器：
 
-```bash
-> docker load < ubuntu.tar
+```shell
+docker load < ubuntu.tar
+```
+
+### 5.11. 查看容器错误日志
+
+```shell
+# 实时查看docker容器名为user-uat的最后10行日志
+docker logs -f -t --tail 10 user-uat
+
+# 查看指定时间后的日志，只显示最后100行：
+docker logs -f -t --since="2018-02-08" --tail=100 user-uat
+
+# 查看最近30分钟的日志:
+docker logs --since 30m user-uat
+
+# 查看某时间之后的日志：
+docker logs -t --since="2018-02-08T13:23:37" user-uat
+
+# 查看某时间段日志：
+docker logs -t --since="2018-02-08T13:23:37" --until "2018-02-09T12:23:37" user-uat
+
+# 将错误日志写入文件：
+docker logs -f -t --since="2018-02-18" user-uat | grep error >> logs_error.txt
 ```
 
 ## 6. 部署应用

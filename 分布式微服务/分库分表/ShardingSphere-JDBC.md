@@ -6,7 +6,7 @@
 
 **ShardingSphere**是一套开源的分布式数据库中间件解决方案组成的生态圈，它由 Sharding-JDBC、Sharding-Proxy 和 Sharding-Sidecar（计划中）这3款相互独立的产品组成。它们均提供标准化的数据分片、分布式事务和数据库治理功能，可适用于 Java 同构、异构语言、容器、云原生等各种多样化的应用场景。
 
-目前只需关注 Sharding-JDBC，它定位为轻量级Java框架，在 Java 的 JDBC 层提供额外服务。 它使用客户端直连数据库，以jar包形式提供服务，无需额外部署和依赖，可理解为增强版的 JDBC 驱动，完全兼容 JDBC 和各种 ORM 框架。
+目前只需关注 Sharding-JDBC，它定位为轻量级 Java 框架，在 Java 的 JDBC 层提供额外服务。它使用客户端直连数据库，以jar包形式提供服务，无需额外部署和依赖，可理解为增强版的 JDBC 驱动，完全兼容 JDBC 和各种 ORM 框架。
 
 - 适用于任何基于 Java 的 ORM 框架，如：JPA, Hibernate, Mybatis, Spring JDBC Template 或直接使用 JDBC。
 - 适用于任何第三方的数据库连接池，如：DBCP, C3P0, BoneCP, Druid, HikariCP 等。

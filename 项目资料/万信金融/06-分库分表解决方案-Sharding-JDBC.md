@@ -8,4 +8,4 @@
 
 ## 2. Sharding-JDBC
 
-此部分内容详见[《Sharding-JDBC》笔记](/分布式微服务/分库分表/Sharding-JDBC)
+此部分内容详见[《Sharding-JDBC》笔记](/分布式微服务/分库分表/ShardingSphere-JDBC)

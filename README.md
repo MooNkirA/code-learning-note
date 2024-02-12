@@ -497,7 +497,8 @@
 
 <ul class="docs">
   <li><a href="#/分布式微服务/分库分表/分库分表综合概述">分库分表综合概述</a></li>
-  <li><a href="#/分布式微服务/分库分表/Sharding-JDBC">Sharding-JDBC - 当当网开源分布式数据库中间件</a></li>
+  <li><a href="#/分布式微服务/分库分表/ShardingSphere">ShardingSphere</a></li>
+  <li><a href="#/分布式微服务/分库分表/ShardingSphere-JDBC">ShardingSphere-JDBC</a></li>
   <li><a href="#/分布式微服务/分库分表/Mycat">Mycat2 - 数据库中间件</a></li>
 </ul>
 
