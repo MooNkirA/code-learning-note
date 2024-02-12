@@ -7,13 +7,19 @@
 - 其中『验证、准备、解析』 3 个部分统称为『连接（Linking）』。
 - 在使用之前的阶段，称为『类的加载过程』。
 
-## 2. 类加载的概念
+## 2. 类加载的概述
 
 当第一次使用某个类时，如果该类的字节码文件(class)还没有加载到内存中，则 JVM 通过类的完全限定名（包名和类名）查找此类的字节码文件，会将该类的字节码文件（`.class`）加载到内存中，并在内存中创建一个 Class 对象(字节码文件对象)，用来封装类在方法区内的数据结构并存放在堆区内。
 
 > Notes: **每一个类只会加载一次，每一个类的 Class 对象是都是唯一的(单例)。当类加载到内存中时会执行该类的静态代码块，而且只会加载一次**
 
-### 2.1. 类加载的时机（触发类加载的时机）
+### 2.1. JDK 8 的类加载机制总结
+
+- 缓存：每个类加载器对加载过的类都有一个缓存。
+- 双亲委派机制：向上委托查找，向下委托加载。（每步都会先查找当时类加载器的本地缓存是否已经加载过）
+- 沙箱保护机制：不允许应用程序加载 JDK 内部的系统类。
+
+### 2.2. 类加载的时机（触发类加载的时机）
 
 1. **创建类的实例**：当通过关键字 `new` 创建一个该类的对象或某个类的子类对象时，JVM 需要加载该类以创建对应的对象。
 2. **访问类的静态变量、调用类的静态方法、或者为静态变量赋值（<u>静态常量除外</u>，因为静态常量在编译时已经存在）**：JVM 需要加载该类以获取对应的静态成员。
@@ -24,7 +30,7 @@
 
 > Notes: Java 类的加载是动态按需进行的，它并不会一次性将所有类全部加载后再运行，而是保证程序运行的基础类(像是基类)完全加载到 JVM 中。至于其他类，则在运行时根据实际需要来加载。JVM 会采用懒加载的策略，此做法就是为了尽可能避免不必要的类加载和资源消耗，节省内存开销。
 
-### 2.2. 类的显式与隐式加载
+### 2.3. 类的显式与隐式加载
 
 类的加载方式是指虚拟机将 class 文件加载到内存的方式，类装载方式分成以下两种：
 
@@ -33,7 +39,7 @@
     - 程序在运行过程中，当遇到通过 `new` 等方式生成对象时，隐式调用类装载器加载对应的类到 JVM 中。
     - 在加载某个 class 时，该 class 引用了另外一个类的对象，那么这个对象的字节码文件就会被虚拟机自动加载到内存中。
 
-## 3. 类加载过程
+## 3. 类的加载过程
 
 **类加载过程**：是指当程序要使用某个类时，JVM 会将类加载到内存中初始完成初始化，类的加载分为5个阶段：**加载、验证、准备、解析、初始化**。在类初始化完成后就可以使用该类的信息，而当一个类不再被需要时可以从 JVM 中卸载。
 
@@ -102,7 +108,6 @@ public static final Object obj = new Object();
 类加载器是负责加载类的对象。对于任意一个类，都需要由加载它的类加载器和这个类本身，并确立在 JVM 中的唯一性，每一个类加载器，都有一个独立的类名称空间。类加载器通过类的全限定名获取该类的 class 字节码文件（二进制字节流），将硬盘中的 class 文件加载到 Java 内存中，并且在内存中创建一个 Class 对象。
 
 > Notes: **类加载器本身也是一个类**
-
 
 类加载器可以分为两种：
 
@@ -178,9 +183,9 @@ System.out.println(classLoader); // sun.misc.Launcher$AppClassLoader
 
 **用户自定义类加载器（User ClassLoader）**，通过继承 `java.lang.ClassLoader` 类的方式实现。**其默认父加载器是系统类加载器**。
 
-## 5. 类加载器的加载机制（双亲委派机制）
+## 5. 类加载器的加载机制
 
-### 5.1. 概述
+### 5.1. 双亲委派机制概述
 
 从 JDK1.2 开始，<font color=red>**类的加载过程采用双亲委派机制(PDM)**</font>。这种机制能够很好的保护 java 程序的安全。
 
@@ -243,11 +248,13 @@ Exception in thread "main" java.lang.SecurityException: Prohibited package name:
 双亲委派模型的具体实现代码在 `java.lang.ClassLoader` 类的 `loadClass()` 方法中，具体的流程是：先检查类是否已经加载过，如果没有则让父类加载器去加载。当父类加载器加载失败时抛出 `ClassNotFoundException`，此时尝试自己去加载。若最后找不到该类，则 JVM 会抛出 `ClassNotFoundException`。源码节选如下：
 
 ```java
+// 类加载器的核心方法
 protected Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
     synchronized (getClassLoadingLock(name)) {
         // First, check if the class has already been loaded
+        // 每个类加载器，对它加载过的类都有一个缓存，先去缓存中查看有没有加载过
         Class<?> c = findLoadedClass(name);
-        if (c == null) {
+        if (c == null) { // 没有加载过，就走双亲委派，找父类加载器进行加载。
             long t0 = System.nanoTime();
             try {
                 if (parent != null) {
@@ -264,6 +271,7 @@ protected Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundE
                 // If still not found, then invoke findClass in order
                 // to find the class.
                 long t1 = System.nanoTime();
+                // 父类加载器没有加载过，则自行解析 class 文件加载。
                 c = findClass(name);
 
                 // this is the defining class loader; record the stats
@@ -272,6 +280,8 @@ protected Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundE
                 sun.misc.PerfCounter.getFindClasses().increment();
             }
         }
+        // 此处是加载过程中的链接(Linking)部分，分为验证、准备、解析三个部分。
+        // 运行时加载类，默认是无法进行这个链接的步骤。
         if (resolve) {
             resolveClass(c);
         }
@@ -306,7 +316,37 @@ sun.misc.Launcher$AppClassLoader@18b4aac2
 sun.misc.Launcher$ExtClassLoader@677327b6
 ```
 
-### 5.5. 打破双亲委派机制的例子及其原因
+### 5.5. 沙箱保护机制
+
+双亲委派机制最大的作用就是要保护 JDK 内部的核心类不会被应用覆盖。而为此 JAVA 在双亲委派的基础上，还加了一层保险，就是 `ClassLoader` 的 `preDefineClass` 方法。
+
+```java
+private ProtectionDomain preDefineClass(String name, ProtectionDomain pd) {
+    if (!checkName(name))
+        throw new NoClassDefFoundError("IllegalName: " + name);
+
+    // Note:  Checking logic in java.lang.invoke.MemberName.checkForTypeAlias
+    // relies on the fact that spoofing is impossible if a class has a name
+    // of the form "java.*"
+    // 不允许加载核心类，否则直接抛出异常。
+    if ((name != null) && name.startsWith("java.")) {
+        throw new SecurityException
+            ("Prohibited package name: " +
+                name.substring(0, name.lastIndexOf('.')));
+    }
+    if (pd == null) {
+        pd = defaultDomain;
+    }
+
+    if (name != null) checkCerts(name, pd.getCodeSource());
+
+    return pd;
+}
+```
+
+此方法会用在 JAVA 在内部定义一个类之前，以简单粗暴的处理方式来阻止开发者定义 `java.` 开头的包。因此在 JDK 中，可以看到很多 `javax` 开头的包，这些包名也是跟这个沙箱保护机制有关系的。
+
+### 5.6. 打破双亲委派机制的例子及其原因
 
 - JNDI 通过引入线程上下文类加载器，可以在 `Thread.setContextClassLoader` 方法设置，默认是应用程序类加载器，来加载 SPI 的代码。有了线程上下文类加载器，就可以完成父类加载器请求子类加载器完成类加载的行为。打破的原因是为了 JNDI 服务的类加载器是启动器类加载，为了完成高级类加载器请求子类加载器（即上文中的线程上下文加载器）加载类。
 - Tomcat，应用的类加载器优先自行加载应用目录下的 class，并不是先委派给父加载器，加载不了才委派给父加载器。打破的目的是为了完成应用间的类隔离。
