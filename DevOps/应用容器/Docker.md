@@ -976,53 +976,60 @@ docker run -id --name=moon_redis -p 6379:6379 redis
 
 本地电脑 windows 下连接 redis 容器，输入连接主机 ip：192.168.12.132，端口：6379
 
-_注：如果连接不成功，查看是否端口没有开放。输入`/sbin/iptables -I INPUT -p tcp --dport 6379 -j ACCEPT`命令，开放端口_
+> 注：如果连接不成功，查看是否端口没有开放。输入`/sbin/iptables -I INPUT -p tcp --dport 6379 -j ACCEPT`命令，开放端口
 
 ## 7. 备份与迁移
 
 ### 7.1. 容器保存为镜像
 
-```shell
-# 语法：
-docker commit 容器名称 新的镜像名称
+将容器保存为镜像的语法：
 
-# 例：将配置好的容器nginx保存为镜像
+```shell
+docker commit 容器名称 新的镜像名称
+```
+
+示例：将配置好的容器nginx保存为镜像
+
+```shell
 docker commit moon_nginx mynginx_image
 ```
 
-_说明：保存后查看镜像，新的镜像的内容就是当前容器的内容，接下来可以用此新的镜像再次运行创建新的容器，新的容器里的配置都是配置后的内容_
+> 说明：保存后查看镜像，新的镜像的内容就是当前容器的内容，接下来可以用此新的镜像再次运行创建新的容器，新的容器里的配置都是配置后的内容
 
 ### 7.2. 镜像备份
 
-将镜像保存为 tar 文件
+将镜像保存为 tar 文件，参数`-o`：代表输出到的文件。语法：
 
 ```shell
-# 语法：
 docker save -o 文件名称.tar 镜像名称
+```
 
-# 例：将mynginx_image的镜像保存成mynginx.tar文件
+示例：将 mynginx_image 的镜像保存成 mynginx.tar 文件
+
+```shell
 docker save -o mynginx.tar mynginx_image
 ```
 
-注：参数`-o`：代表输出到的文件
-
-执行后，运行 ll 命令即可看到打成的 tar 包
+执行后，运行 `ll` 命令即可看到打成的 tar 包
 
 ### 7.3. 镜像恢复与迁移
 
-```shell
-# 语法
-docker load -i 文件名称.tar
+镜像的恢复与迁移，参数 `-i` 代表输入的文件。语法：
 
+```shell
+docker load -i 文件名称.tar
+```
+
+基础示例：
+
+```shell
 # 例：首先先删除掉mynginx_image镜像
 docker rmi mynginx_image
 # 然后执行此命令进行恢复
 docker load -i mynginx.tar
 ```
 
-注：参数`-i`：代表输入的文件
-
-执行后再次查看镜像 docker images，可以看到镜像已经恢复。
+执行后，通过 `docker images` 命令再次查看镜像，可以看到镜像已经恢复。
 
 ## 8. Dockerfile 构建镜像
 
