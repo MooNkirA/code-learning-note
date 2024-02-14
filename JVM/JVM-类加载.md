@@ -302,7 +302,12 @@ private ProtectionDomain preDefineClass(String name, ProtectionDomain pd) {
 ### 4.6. 打破双亲委派机制的例子及其原因
 
 - JNDI 通过引入线程上下文类加载器，可以在 `Thread.setContextClassLoader` 方法设置，默认是应用程序类加载器，来加载 SPI 的代码。有了线程上下文类加载器，就可以完成父类加载器请求子类加载器完成类加载的行为。打破的原因是为了 JNDI 服务的类加载器是启动器类加载，为了完成高级类加载器请求子类加载器（即上文中的线程上下文加载器）加载类。
-- Tomcat，应用的类加载器优先自行加载应用目录下的 class，并不是先委派给父加载器，加载不了才委派给父加载器。打破的目的是为了完成应用间的类隔离。
+- Tomcat，应用的类加载器优先自行加载应用目录下的 class，并不是先委派给父加载器，加载不了才委派给父加载器。打破的目的是为了完成应用间的类隔离。Tomcat 有几个主要类加载器：
+    - CommonLoader：Tomcat 最基本的类加载器，加载路径中的 class 可以被 Tomcat 容器本身以及各个 Webapp 访问。
+    - CatalinaLoader：Tomcat 容器私有的类加载器，加载路径中的 class 对于 Webapp 不可见。
+    - SaredLoader：各个 Webapp 共享的类加载器，加载路径中的 class 对于所有 Webapp 可见，但是对于 Tomcat 容器不可见。
+    - WebappClassLoader：各个 Webapp 私有的类加载器，加载路径中的 class 只对当前 Webapp 可见。比如加载 war 包里相关的类，每个 war 包应用都有自己的 webappClassLoader，实现相互隔离，比如不同 war 包应用引入了不同的 spring 版本，这样实现就能加载各自的 spring 版本。
+    - JSP 类加载器：针对每个 JSP 页面创建一个加载器。这个加载器比较轻量级，所以 Tomcat 还实现了热加载，也就是 JSP 只要修改了，就创建一个新的加载器，从而实现了 JSP 页面的热更新。
 - OSGi，实现模块化热部署，为每个模块都自定义了类加载器，需要更换模块时，模块与类加载器一起更换。其类加载的过程中，有平级的类加载器加载行为。打破的原因是为了实现模块热替换。
 - JDK 9，Extension ClassLoader 被 Platform ClassLoader 取代，当平台及应用程序类加载器收到类加载请求，在委派给父加载器加载前，要先判断该类是否能够归属到某一个系统模块中，如果可以找到这样的归属关系，就要优先委派给负责那个模块的加载器完成加载。打破的原因，是为了添加模块化的特性。
 
