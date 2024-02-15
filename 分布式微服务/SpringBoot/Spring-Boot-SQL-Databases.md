@@ -928,3 +928,516 @@ public class NoticeController {
 - **第五步：编写启动类**
 - **第六步：测试**。浏览器地址栏输入：http://localhost:8080/findAll
 
+## 9. AbstractRoutingDataSource 多数据源管理方案
+
+现在的 Web 应用大都是读多写少。除了缓存以外还可以通过数据库“主从复制”架构，把读请求路由到从数据库节点上，实现读写分离，从而大大提高应用的吞吐量。
+
+Spring Jdbc 模块类提供了一个 `AbstractRoutingDataSource` 抽象类可以实现注入多个数据源。它本身也实现了 `DataSource` 接口，表示一个“可路由”的数据源。
+
+### 9.1. 概述
+
+`org.springframework.jdbc.datasource.lookup.AbstractRoutingDataSource` 抽象类部分核心代码：
+
+```java
+public abstract class AbstractRoutingDataSource extends AbstractDataSource implements InitializingBean {
+
+    // 维护的所有数据源
+    @Nullable
+    private Map<Object, DataSource> resolvedDataSources;
+
+    // 默认的数据源
+    @Nullable
+    private DataSource resolvedDefaultDataSource;
+
+    // 获取 Jdbc 连接
+    @Override
+    public Connection getConnection() throws SQLException {
+        return determineTargetDataSource().getConnection();
+    }
+    @Override
+    public Connection getConnection(String username, String password) throws SQLException {
+        return determineTargetDataSource().getConnection(username, password);
+    }
+
+    // 获取目标数据源
+    protected DataSource determineTargetDataSource() {
+        Assert.notNull(this.resolvedDataSources, "DataSource router not initialized");
+        // 调用  determineCurrentLookupKey() 抽象方法，获取 resolvedDataSources 中定义的 key。
+        Object lookupKey = determineCurrentLookupKey();
+        DataSource dataSource = this.resolvedDataSources.get(lookupKey);
+        if (dataSource == null && (this.lenientFallback || lookupKey == null)) {
+            dataSource = this.resolvedDefaultDataSource;
+        }
+        if (dataSource == null) {
+            throw new IllegalStateException("Cannot determine target DataSource for lookup key [" + lookupKey + "]");
+        }
+        return dataSource;
+    }
+
+    // 抽象方法，返回 resolvedDataSources 中定义的 key。需要自己实现
+    @Nullable
+    protected abstract Object determineCurrentLookupKey();
+}
+```
+
+它的工作原理是，在内部定义了一个 `Map<Object, DataSource>` 属性，维护了多个数据源。
+
+当尝试从 `AbstractRoutingDataSource` 数据源获取数据源连接对象 `Connection` 时，会调用 `determineCurrentLookupKey()` 方法得到一个 Key，然后从数据源 `Map<Object, DataSource>` 中获取到真正的目标数据源，如果 Key 或者是目标数据源为 `null` 则使用默认的数据源。
+
+得到目标数据数据源后，返回真正的 Jdbc 连接。这一切对于使用到 Jdbc 的组件（`Repository`、`JdbcTemplate` 等）来说都是透明的。
+
+### 9.2. 多数据源实现思路
+
+1. 创建 `AbstractRoutingDataSource` 实现类。把它的默认数据源 `resolvedDefaultDataSource` 设置为主库，从库则保存到 `Map<Object, DataSource> resolvedDataSources` 中。
+2. 在 Spring Boot 应用中通常使用 `@Transactional` 注解来开启声明式事务，它的默认传播级别为 `REQUIRED`，也就是保证多个事务方法之间的相互调用都是在同一个事务中，使用的是同一个 Jdbc 连接。它还有一个 `readOnly` 属性表示是否是只读事务。因此可以通过 AOP 技术，在事务方法执行之前，先获取到方法上的 `@Transactional` 注解从而判断是读、还是写业务。并且把“读写状态”存储到线程上下文（`ThreadLocal`）中！
+3. 在 `AbstractRoutingDataSource` 的 `determineCurrentLookupKey` 方法中，可以根据当前线程上下文中的“读写状态”判断当前是否是只读业务，如果是，则返回从库 `resolvedDataSources` 中的 Key；反之则返回 `null` 表示使用默认数据源也就是主库。
+
+### 9.3. 示例
+
+> 示例代码详见 spring-boot-note\spring-boot-2.5.x-sample\spring-boot-multi-datasource
+
+#### 9.3.1. 初始化数据库
+
+在本地创建 4 个不同名称的数据库，用于模拟“MYSQL 主从”架构。
+
+```sql
+-- 主库
+CREATE DATABASE `demo_master` CHARACTER SET 'utf8mb4' COLLATE 'utf8mb4_general_ci';
+-- 从库
+CREATE DATABASE `demo_slave1` CHARACTER SET 'utf8mb4' COLLATE 'utf8mb4_general_ci';
+-- 从库
+CREATE DATABASE `demo_slave2` CHARACTER SET 'utf8mb4' COLLATE 'utf8mb4_general_ci';
+-- 从库
+CREATE DATABASE `demo_slave3` CHARACTER SET 'utf8mb4' COLLATE 'utf8mb4_general_ci';
+```
+
+> 注：以上数据库它们本质上毫无关系，并非真正意义上的主从架构，此时只用于示例测试。
+
+对各个数据库创建测试表与测试数据：
+
+```sql
+CREATE TABLE `test` (
+  `id` int NOT NULL COMMENT 'ID',
+  `name` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT '名称',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+INSERT INTO `demo_master`.`test` (`id`, `name`) VALUES (1, 'master');
+INSERT INTO `demo_slave1`.`test` (`id`, `name`) VALUES (1, 'slave1');
+INSERT INTO `demo_slave2`.`test` (`id`, `name`) VALUES (1, 'slave2');
+INSERT INTO `demo_slave3`.`test` (`id`, `name`) VALUES (1, 'slave3');
+```
+
+> 注：不同数据库节点下 `test` 表中的 `name` 字段不同，用于区别不同的数据库节点。
+
+#### 9.3.2. 创建应用
+
+创建 Spring Boot 应用，添加 `spring-boot-starter-jdbc` 和 `mysql-connector-j`（MYSQL 驱动）依赖：
+
+```xml
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-jdbc</artifactId>
+</dependency>
+<dependency>
+    <groupId>mysql</groupId>
+    <artifactId>mysql-connector-java</artifactId>
+    <version>${mysql-connector-java.version}</version>
+</dependency>
+
+<!-- aspectj 依赖 -->
+<dependency>
+    <groupId>org.aspectj</groupId>
+    <artifactId>aspectjweaver</artifactId>
+</dependency>
+```
+
+> 注：aspectj 依赖是因为示例需要使用 AOP
+
+#### 9.3.3. 项目的配置
+
+在项目配置文件 application.yml 中定义上面创建好的所有主、从数据库。
+
+```yml
+app:
+  datasource:
+    master: # 唯一主库
+      jdbcUrl: jdbc:mysql://127.0.0.1:3306/demo_master?useUnicode=true&characterEncoding=UTF-8&serverTimezone=GMT%2b8&allowMultiQueries=true
+      username: root
+      password: 123456
+    slave: # 多个从库
+      slave1:
+        jdbcUrl: jdbc:mysql://127.0.0.1:3306/demo_slave1?useUnicode=true&characterEncoding=UTF-8&serverTimezone=GMT%2b8&allowMultiQueries=true
+        username: root
+        password: 123456
+      slave2:
+        jdbcUrl: jdbc:mysql://127.0.0.1:3306/demo_slave2?useUnicode=true&characterEncoding=UTF-8&serverTimezone=GMT%2b8&allowMultiQueries=true
+        username: root
+        password: 123456
+      slave3:
+        jdbcUrl: jdbc:mysql://127.0.0.1:3306/demo_slave3?useUnicode=true&characterEncoding=UTF-8&serverTimezone=GMT%2b8&allowMultiQueries=true
+        username: root
+        password: 123456
+```
+
+在 `app.datasource.master` 下配置了唯一的一个主库（也即是写库）。然后在` app.datasource.slave` 下以 Map 形式配置了多个从库（也就是读库），每个从库使用自定义的名称作为 Key。
+
+> Tips: 数据源的实现使用的是默认的 `HikariDataSource`，并且数据源的配置是按照 `HikariConfig` 类定义的。即可以根据 `HikariConfig` 的属性在配置中添加额外的设置。
+
+定义对应的配置映射类，如下：
+
+```java
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.ConstructorBinding;
+
+import java.util.Map;
+import java.util.Objects;
+import java.util.Properties;
+
+@ConfigurationProperties(prefix = "app.datasource")  //  配置前缀
+public class MasterSlaveDataSourceProperties {
+
+    // 主库
+    private final Properties master;
+    // 从库
+    private final Map<String, Properties> slave;
+
+    @ConstructorBinding // 通过构造函数注入配置文件中的值
+    public MasterSlaveDataSourceProperties(Properties master, Map<String, Properties> slave) {
+        super();
+        Objects.requireNonNull(master);
+        Objects.requireNonNull(slave);
+        this.master = master;
+        this.slave = slave;
+    }
+
+    public Properties master() {
+        return master;
+    }
+
+    public Map<String, Properties> slave() {
+        return slave;
+    }
+}
+```
+
+创建项目的启动类，并且使用 `@EnableConfigurationProperties` 注解来加载的配置类，还使用 `@EnableAspectJAutoProxy` 开启了 AOP 的支持（后面会用到）：
+
+```java
+import com.moon.springboot.routingdatasource.config.MasterSlaveDataSourceProperties;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.context.annotation.EnableAspectJAutoProxy;
+
+@EnableConfigurationProperties(value = {MasterSlaveDataSourceProperties.class})
+@EnableAspectJAutoProxy
+@SpringBootApplication
+public class RoutingDataSourceApp {
+    public static void main(String[] args) {
+        SpringApplication.run(RoutingDataSourceApp.class, args);
+    }
+}
+```
+
+#### 9.3.4. 维护业务的“读写状态”
+
+创建 MasterSlaveDataSourceMarker，用于维护当前业务的“读写状态”。通过 `ThreadLocal<Boolean>` 在当前线程中保存当前业务的读写状态。如果 `get()` 状态标识返回 `null` 或者 `true` 则表示非只读，需要使用主库。反之则表示只读业务，使用从库。
+
+```java
+public class MasterSlaveDataSourceMarker {
+    // 在当前线程中保存当前业务的读写状态
+    private static final ThreadLocal<Boolean> flag = new ThreadLocal<Boolean>();
+
+    // 返回标记
+    public static Boolean get() {
+        return flag.get();
+    }
+
+    // 写状态，标记为主库
+    public static void master() {
+        flag.set(Boolean.TRUE);
+    }
+
+    // 读状态，标记为从库
+    public static void slave() {
+        flag.set(Boolean.FALSE);
+    }
+
+    // 清空标记
+    public static void clean() {
+        flag.remove();
+    }
+}
+```
+
+#### 9.3.5. 通过 AOP 标识业务状态
+
+创建 `MasterSlaveDataSourceAspect` 切面类，通过 `@Order(Ordered.HIGHEST_PRECEDENCE)` 注解保证它必须比声明式事务 AOP 更先执行。
+
+该 AOP 会拦截所有声明了 `@Transactional` 的方法，在执行前从该注解获取 `readOnly` 属性，从而判断是否是只读业务，并且在 `MasterSlaveDataSourceMarker` 标记。
+
+```java
+import com.moon.springboot.routingdatasource.config.MasterSlaveDataSourceMarker;
+import org.aspectj.lang.ProceedingJoinPoint;
+import org.aspectj.lang.annotation.Around;
+import org.aspectj.lang.annotation.Aspect;
+import org.aspectj.lang.annotation.Pointcut;
+import org.aspectj.lang.reflect.MethodSignature;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
+import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
+
+/**
+ * 切面，用于标识当前操作的方法的业务读写状态
+ */
+@Aspect
+@Component
+@Order(Ordered.HIGHEST_PRECEDENCE)  // 保证在事务开始之前执行
+public class MasterSlaveDataSourceAspect {
+
+    private static final Logger log = LoggerFactory.getLogger(MasterSlaveDataSourceAspect.class);
+
+    @Pointcut(value = "@annotation(org.springframework.transaction.annotation.Transactional)")
+    public void txMethod() {
+    }
+
+    @Around("txMethod()")
+    public Object handle(ProceedingJoinPoint joinPoint) throws Throwable {
+        try {
+            // 获取事务方法上的注解
+            Transactional transactional = ((MethodSignature) joinPoint.getSignature()).getMethod().getAnnotation(Transactional.class);
+            // 获取当前请求的主从标识
+            if (transactional != null && transactional.readOnly()) {
+                log.info("标记为从库");
+                MasterSlaveDataSourceMarker.slave();    // 只读，从库
+            } else {
+                log.info("标记为主库");
+                MasterSlaveDataSourceMarker.master(); // 可写，主库
+            }
+
+            // 执行业务方法
+            Object ret = joinPoint.proceed();
+
+            return ret;
+        } catch (Throwable e) {
+            throw e;
+        } finally {
+            MasterSlaveDataSourceMarker.clean();
+        }
+    }
+}
+```
+
+> Tips: 除了通过`@Transactional`注解来判断方法“读写”业务状态，还可以通过自定义注解来标识方法的“读写”状态。
+
+#### 9.3.6. 创建 AbstractRoutingDataSource 的实现
+
+创建 `AbstractRoutingDataSource` 抽象类的实现 `MasterSlaveDataSource`。其中，定义了一个 `List<Object> slaveKeys` 字段，用于存储在配置文件中定义的所有从库的 Key。
+
+在 `determineCurrentLookupKey` 方法中，判断当前业务的“读写状态”，如果是只读则通过 `AtomicInteger` 原子类自增后从 slaveKeys 集合中轮询出一个从库的 Key；反之则返回 null 使用主库。
+
+```java
+package com.moon.springboot.routingdatasource.config;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.jdbc.datasource.lookup.AbstractRoutingDataSource;
+
+import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
+
+/**
+ * AbstractRoutingDataSource 实现，用于判断当前业务的“读写状态”
+ */
+public class MasterSlaveDataSource extends AbstractRoutingDataSource {
+
+    private static final Logger log = LoggerFactory.getLogger(MasterSlaveDataSource.class);
+
+    // 从库的 Key 列表
+    private List<Object> slaveKeys;
+
+    // 从库 key 列表的索引
+    private final AtomicInteger index = new AtomicInteger(0);
+
+    @Override
+    protected Object determineCurrentLookupKey() {
+        // 获取当前线程的主从标识
+        Boolean master = MasterSlaveDataSourceMarker.get();
+
+        if (master == null || master || this.slaveKeys.isEmpty()) {
+            // 主库，返回 null，使用默认数据源
+            log.info("数据库路由：主库");
+            return null;
+        }
+
+        // 从库，从 slaveKeys 中选择一个 Key
+        int index = this.index.getAndIncrement() % this.slaveKeys.size();
+
+        if (this.index.get() > 9999999) {
+            this.index.set(0);
+        }
+
+        Object key = slaveKeys.get(index);
+        log.info("数据库路由：从库 = {}", key);
+        return key;
+    }
+
+    public List<Object> getSlaveKeys() {
+        return slaveKeys;
+    }
+
+    public void setSlaveKeys(List<Object> slaveKeys) {
+        this.slaveKeys = slaveKeys;
+    }
+}
+```
+
+#### 9.3.7. 创建配置类
+
+创建 `MasterSlaveDataSourceConfiguration` 多数据源的 `@Configuration` 配置类，在类中创建 `MasterSlaveDataSource` 数据源 Bean。
+
+通过配置方法注入配置类，该类定义了配置文件中的主库、从库属性。使用 `HikariDataSource` 实例化唯一主库数据源和多个从库数据源，并且设置到 `MasterSlaveDataSource` 对应的属性中。同时还存储每个从库的 Key，且该 Key 不允许重复。
+
+```java
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+import javax.sql.DataSource;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Properties;
+
+@Configuration
+public class MasterSlaveDataSourceConfiguration {
+    @Bean
+    public DataSource dataSource(MasterSlaveDataSourceProperties properties) {
+        MasterSlaveDataSource dataSource = new MasterSlaveDataSource();
+
+        // 设置主数据库
+        dataSource.setDefaultTargetDataSource(new HikariDataSource(new HikariConfig(properties.master())));
+        // 从数据库
+        Map<Object, Object> slaveDataSource = new HashMap<>();
+
+        // 设置从数据库 Key
+        dataSource.setSlaveKeys(new ArrayList<>());
+
+        for (Map.Entry<String, Properties> entry : properties.slave().entrySet()) {
+            if (slaveDataSource.containsKey(entry.getKey())) {
+                throw new IllegalArgumentException("存在同名的从数据库定义：" + entry.getKey());
+            }
+
+            slaveDataSource.put(entry.getKey(), new HikariDataSource(new HikariConfig(entry.getValue())));
+            dataSource.getSlaveKeys().add(entry.getKey());
+        }
+
+        // 设置从库
+        dataSource.setTargetDataSources(slaveDataSource);
+        return dataSource;
+    }
+}
+```
+
+#### 9.3.8. 测试
+
+创建用于测试的业务类。通过构造函数注入 `JdbcTemplate`（spring jdbc 模块自动配置的），在类中定义了 2 个方法：
+
+- `read()`：只读业务，从表中检索 name 字段返回。
+- `write()`：可写业务，先修改表中的 name 字段值，然后再调用 `read()` 方法读取修改后的结果、返回。
+
+
+```java
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+@Service
+public class TestService {
+
+    private final JdbcTemplate jdbcTemplate;
+
+    public TestService(JdbcTemplate jdbcTemplate) {
+        super();
+        this.jdbcTemplate = jdbcTemplate;
+    }
+
+    // 只读
+    @Transactional(readOnly = true)
+    public String read() {
+        return this.jdbcTemplate.queryForObject("SELECT `name` FROM `test` WHERE id = 1;", String.class);
+    }
+
+
+    // 先读，再写
+    @Transactional
+    public String write() {
+        this.jdbcTemplate.update("UPDATE `test` SET `name` = ? WHERE id = 1;", "new name");
+        return this.read();
+    }
+}
+```
+
+创建测试类
+
+```java
+import com.moon.springboot.routingdatasource.service.TestService;
+import org.junit.jupiter.api.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+
+@SpringBootTest
+public class MultiDatasourceTest {
+    private static final Logger log = LoggerFactory.getLogger(MultiDatasourceTest.class);
+
+    @Autowired
+    private TestService testService;
+
+    @Test
+    public void testBasic() throws Exception {
+        // 连续4次读
+        log.info("read={}", this.testService.read());
+        log.info("read={}", this.testService.read());
+        log.info("read={}", this.testService.read());
+        log.info("read={}", this.testService.read());
+        // 写
+        log.info("write={}", this.testService.write());
+    }
+}
+```
+
+在测试类方法中，连续调用 4 次 `TestService` 的 `read()` 方法。由于这是一个只读方法，按照设定，它会在 3 个从库之间轮询查询。由于故意把三个从库 test 表中 name 的字段值设置得不一样，所以可以通过返回的结果看出来是否符合预期。
+
+最后调用了一次 `write()` 方法，按照设定会路由到主库。先 `UPDATE` 修改数据，再调用 `read()` 读取数据，虽然 `read()` 设置了 `@Transactional(readOnly = true)`，但因为入口方法是 `write()`，所以 `read()` 还是会从主库读取数据（默认的事务传播级别）。
+
+执行测试，输出的日志如下：
+
+```
+2024-02-15 13:58:17.495  INFO 10380 --- [           main] c.m.s.r.a.MasterSlaveDataSourceAspect    : 标记为从库
+2024-02-15 13:58:17.501  INFO 10380 --- [           main] c.m.s.r.config.MasterSlaveDataSource     : 数据库路由：从库 = slave1
+2024-02-15 13:58:17.554  INFO 10380 --- [           main] c.m.s.r.test.MultiDatasourceTest         : read=slave1
+2024-02-15 13:58:17.554  INFO 10380 --- [           main] c.m.s.r.a.MasterSlaveDataSourceAspect    : 标记为从库
+2024-02-15 13:58:17.554  INFO 10380 --- [           main] c.m.s.r.config.MasterSlaveDataSource     : 数据库路由：从库 = slave2
+2024-02-15 13:58:17.558  INFO 10380 --- [           main] c.m.s.r.test.MultiDatasourceTest         : read=slave2
+2024-02-15 13:58:17.558  INFO 10380 --- [           main] c.m.s.r.a.MasterSlaveDataSourceAspect    : 标记为从库
+2024-02-15 13:58:17.558  INFO 10380 --- [           main] c.m.s.r.config.MasterSlaveDataSource     : 数据库路由：从库 = slave3
+2024-02-15 13:58:17.561  INFO 10380 --- [           main] c.m.s.r.test.MultiDatasourceTest         : read=slave3
+2024-02-15 13:58:17.561  INFO 10380 --- [           main] c.m.s.r.a.MasterSlaveDataSourceAspect    : 标记为从库
+2024-02-15 13:58:17.561  INFO 10380 --- [           main] c.m.s.r.config.MasterSlaveDataSource     : 数据库路由：从库 = slave1
+2024-02-15 13:58:17.563  INFO 10380 --- [           main] c.m.s.r.test.MultiDatasourceTest         : read=slave1
+2024-02-15 13:58:17.563  INFO 10380 --- [           main] c.m.s.r.a.MasterSlaveDataSourceAspect    : 标记为主库
+2024-02-15 13:58:17.564  INFO 10380 --- [           main] c.m.s.r.config.MasterSlaveDataSource     : 数据库路由：主库
+2024-02-15 13:58:17.584  INFO 10380 --- [           main] c.m.s.r.test.MultiDatasourceTest         : write=new name
+```
+
+### 9.4. 总结
+
+通过 `AbstractRoutingDataSource` 可以不使用任何第三方中间件就可以在 Spring Boot 中实现数据源“读写分离”，但这种方式需要在每个业务方法上通过 `@Transactional` 注解（或者自定义注解）来明确定义是读还是写。
