@@ -370,6 +370,7 @@
   <li><a href="#/分布式微服务/SpringBoot/Spring-Boot-Solr">Spring Boot 整合 Solr（待完善）</a></li>
   <li><a href="#/分布式微服务/SpringBoot/Spring-Boot-Spring-Cloud">Spring Boot 整合 Spring Cloud（待完善）</a></li>
   <li><a href="#/分布式微服务/SpringBoot/Spring-Boot-Application-Properties">Spring Boot 通用配置项汇总</a></li>
+  <li><a href="#/分布式微服务/SpringBoot/Spring-Boot-项目搭建模板">Spring Boot 项目搭建模板与规范</a></li>
 </ul>
 
 ### ⛅ Spring Cloud
@@ -507,12 +508,6 @@
 <ul class="docs">
   <li><a href="#/分布式微服务/分布式文件系统/Distributed-File-System-Overview">分布式文件系统概述</a></li>
   <li><a href="#/分布式微服务/分布式文件系统/FastDFS">FastDFS 分布式文件系统</a></li>
-</ul>
-
-### ✨ 微服务其他相关内容
-
-<ul class="docs">
-  <li><a href="#/分布式微服务/其他/项目搭建模板">项目搭建模板与规范</a></li>
 </ul>
 
 ## 🎛️ 并发编程

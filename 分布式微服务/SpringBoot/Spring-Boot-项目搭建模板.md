@@ -1,4 +1,4 @@
-## 1. Spring Boot 项目搭建基础模板
+## 1. Spring Boot 项目搭建基础模板概述
 
 建立一个全新的项目，或者把旧的庞大的项目，进行拆分成多个项目。在建立新的项目中，经常需要做一些重复的工作，比如说拷贝一下常用的工具类，通用代码等等。所以就可以做一个基础的项目方便使用，在经历新项目的时候，直接在基础项目上进行简单配置就可以开发业务代码了
 
@@ -17,9 +17,9 @@
 - 日志配置。
 - JenkinsFile。
 
-### 1.1. 在线接口文档 Swagger
+## 2. 在线接口文档 Swagger
 
-#### 1.1.1. 简介
+### 2.1. 简介
 
 Swagger可以在线生成接口文档，并且可以在页面上进行测试。
 
@@ -31,7 +31,7 @@ Swagger可以在线生成接口文档，并且可以在页面上进行测试。
 
 注意的点：接口文档只能在测试/开发环境开启，其他环境请关闭。
 
-#### 1.1.2. 常用的Swagger注解
+### 2.2. 常用的Swagger注解
 
 `@Api`用于Controller
 `@ApiOperation`用于Controller内的方法
@@ -72,15 +72,15 @@ public class ListUserForm extends PageForm<ListUserForm> {
 }
 ```
 
-### 1.2. CodeGenerator 代码生成器
+## 3. CodeGenerator 代码生成器
 
 mybatis_plus代码生成器可以一键生成entity，service，serviceImpl，mapper，mapper.xml。省去了建立一大堆实体类的麻烦。
 
 由于配置太长这里就不贴出来了，对应的CodeGenerator的配置可以查看基础项目内的CodeGenerator.java
 
-### 1.3. 常用的封装
+## 4. 常用的封装
 
-#### 1.3.1. 统一返回 ResultVo
+### 4.1. 统一返回 ResultVo
 
 将所有的接口的响应数据的格式进行统一
 
@@ -99,7 +99,7 @@ public class ResultVo {
 }
 ```
 
-#### 1.3.2. 创建抽象基础请求表单类 BaseForm
+### 4.2. 创建抽象基础请求表单类 BaseForm
 
 很多情况都是将接受到的参数，转变成对应的实体类然后**保存或者更新**。所以对于这类的`form`可以继承`baseform`并实现`buildEntity()`方法，这样可以更加符合面向对象，service不需要关心请求参数form如何转变成entity，只需要在使用的时候调用`buildEntity()`即可，尤其是在form转成entity相对复杂的时候，这样做可以减少service内的代码。让代码逻辑看起来更加清晰。
 
@@ -149,7 +149,7 @@ public boolean addUser(AddUserForm userForm) {
 }
 ```
 
-#### 1.3.3. 通用的分页对象
+### 4.3. 通用的分页对象
 
 查询的时候，绝大多数都需要用到分页，所以说封装分页对象就很有必要。可以注意下`PageForm.calcCurrent()`、`PageVo.setCurrentAndSize()`、`PageVo.setTotal()`这个几个方法
 
@@ -281,11 +281,11 @@ public ResultVo listUser(@Validated ListUserForm listUserForm){
 
 
 
-### 1.4. 常用工具类
+## 5. 常用工具类
 
 常用工具类可以根据平时的项目积累与开发习惯引入。
 
-### 1.5. 异常处理
+## 6. 异常处理
 
 
 
