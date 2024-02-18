@@ -1078,7 +1078,7 @@ public List<SysRole> selectRoleList(SysRole role) {
 
 ![](images/20210225230817181_13262.png)
 
-## 5. Spring AOP APIs（了解）
+## 5. Spring AOP API
 
 前面介绍了 Spring 对 AOP 的支持，使用 `@Aspect` 定义切面。此章节，介绍低级别的 Spring AOP API 创建 Advisor 实现 AOP 功能。对于普通的应用，推荐使用前面使用 AspectJ 的 Spring AOP
 

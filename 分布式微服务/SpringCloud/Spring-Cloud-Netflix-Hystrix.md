@@ -363,7 +363,7 @@ hystrix:
 
 ## 5. Hystrix 对 Feign 实现服务的熔断
 
-SpringCloud Fegin 默认已整合了 hystrix，所以添加Feign依赖后就不用在添加hystrix依赖
+SpringCloud Fegin 默认已整合了 hystrix，所以添加 Feign 依赖后就不用在添加 hystrix 依赖
 
 ### 5.1. 示例项目搭建
 

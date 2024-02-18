@@ -6,40 +6,36 @@
 - [Awesome-Linux-Software GitHub](https://github.com/luong-komorebi/Awesome-Linux-Software/blob/master/README_zh-CN.md)
 - [Awesome-MacOS GitHub](https://github.com/jaywcjlove/awesome-mac/blob/master/README-zh.md)
 
-## 2. 开发软件
+## 2. 系统管理类
 
-### 2.1. IDE
+### 2.1. Total Commander
 
-- [IntelliJ IDEA](https://www.jetbrains.com/idea/) - the Leading Java and Kotlin IDE. The IDE that makes development a more productive and enjoyable experience
-- [Visual Studio Code](https://code.visualstudio.com/) - Code editing. Redefined. Free. Built on open source. Runs everywhere.
-- [eclipse](https://www.eclipse.org/) - 经典 Java 开发工具
+Total Commander，简称 TC，原名 Windows Commander，是一款功能非常强大的全能文件管理器。Total Commander 是共享软件，官网下载版本为一个月试用版。支持随意自定义的菜单、工具栏、快捷键，给您最大的自由，打造个性 TC。一般的文件操作，如搜索、复制、移动、改名、删除等功能应有尽有。
 
-## 3. 系统管理类
-
-### 3.1. Total Commander
-
-- Total Commander 官网 https://www.ghisler.com/index.htm
+- 官网 https://www.ghisler.com/index.htm
 - Total Commander 飞扬时空版下载
    - [蓝奏云](https://www.lanzoui.com/b405514/)
    - [百度网盘](https://yun.baidu.com/s/1cp9zuY#list/path=%2F)
 
-### 3.2. TrafficMonitor
+### 2.2. TrafficMonitor
 
 TrafficMonitor 下载（Gitee）：https://gitee.com/zhongyang219/TrafficMonitor/releases
 
-### 3.3. Geek Uninstall
+### 2.3. Geek Uninstall
 
-> Geek Uninstall 是一款高效快速，小巧便携，完全免费的程序卸载神器。不仅可以清理掉一些顽固软件(如一些流氓软件)，同时还可以最大限度清理电脑垃圾缓存。
+Geek Uninstall 是一款高效快速，小巧便携，完全免费的程序卸载神器。不仅可以清理掉一些顽固软件(如一些流氓软件)，同时还可以最大限度清理电脑垃圾缓存。
 
-官网：https://geekuninstaller.com
+> 官网：https://geekuninstaller.com
 
-### 3.4. Everything
+### 2.4. Everything
 
 > 详见[《Everything - 本地高效搜索神器》](/其他/system-software/everything)
 
-## 4. 文字编辑器
+## 3. 文字编辑器
 
-### 4.1. VNote
+### 3.1. VNote
+
+VNote 是一个受 Vim 启发的开源笔记记录实用程序，还具有 Markdown 编辑功能。当然，您可以像具有便笺管理功能的可高度配置的 Markdown 编辑器一样轻松地查看它，它不会让人失望。
 
 - VNote 官网： https://app.vnote.fun/zh_cn/
 - VNote Github 仓库： https://github.com/vnotex/vnote
@@ -47,25 +43,25 @@ TrafficMonitor 下载（Gitee）：https://gitee.com/zhongyang219/TrafficMonitor
    - [百度网盘](https://pan.baidu.com/share/init?surl=Fou1flmBsQUQ8Qs9V_M6Aw#list/path=%2F)  提取码：note
    - [天翼云盘](https://cloud.189.cn/web/share?code=Av67NvmEJVBv)
 
-### 4.2. Typora
+### 3.2. Typora
 
-> Typora 是一款 Markdown 文档编写工具，整个软件的界面感非常简洁，可以边写边预览实时编排效果，同时支持自定义主题。
+Typora 是一款 Markdown 文档编写工具，整个软件的界面感非常简洁，可以边写边预览实时编排效果，同时支持自定义主题。
 
-- Typora 官网（国内无法访问）： https://typora.io/
-- Typora 中文主页（非官方）： https://typoraio.cn/
+> - Typora 官网（国内无法访问）： https://typora.io/
+> - Typora 中文主页（非官方）： https://typoraio.cn/
 
-### 4.3. Notepad++
+### 3.3. Notepad++
 
-> Notepad++ 是一款完全免费的源代码编辑器，支持多种编程开发语言。Notepad++ 底层是用纯 C++ 编写的，同时结合纯 Win32 API 和 STL，保证了更高的执行速度和更小的程序内存。通过在不损失用户友好性的情况下尽可能多地优化程序运行效率。**但因软件作者个人原因，不推荐使用！**
+Notepad++ 是一款完全免费的源代码编辑器，支持多种编程开发语言。Notepad++ 底层是用纯 C++ 编写的，同时结合纯 Win32 API 和 STL，保证了更高的执行速度和更小的程序内存。通过在不损失用户友好性的情况下尽可能多地优化程序运行效率。**但因软件作者个人原因，不推荐使用！**
 
-- 官网： https://notepad-plus-plus.org
-- Github 仓库： https://github.com/notepad-plus-plus/notepad-plus-plus
+> - 官网： https://notepad-plus-plus.org
+> - Github 仓库： https://github.com/notepad-plus-plus/notepad-plus-plus
 
-#### 4.3.1. 常用操作
+#### 3.3.1. 常用操作
 
 在使用 notepad++ 工具的时候，很多情况下会遇到批量替换空行的操作，操作方法是使用快捷键 `Crtl+h` 调出窗口选择替换栏，在查找目标栏中输入 `\r\n\r\n`，替换栏中输入 `\r\n` 并选择全部替换，从而实现批量删除空行的操作。
 
-### 4.4. Rime 输入法设置
+### 3.4. Rime 输入法设置
 
 特殊字符输入
 
@@ -88,9 +84,9 @@ TrafficMonitor 下载（Gitee）：https://gitee.com/zhongyang219/TrafficMonitor
 - `zzzs`
 - `zzzy`：台湾注音
 
-### 4.5. 常用字体
+### 3.5. 常用字体
 
-#### 4.5.1. Cascadia Code
+#### 3.5.1. Cascadia Code
 
 > 下载地址：https://github.com/microsoft/cascadia-code
 
@@ -106,7 +102,7 @@ Cascadia Code 是微软在 5 月份的 Build 大会上宣布推出的等宽字�
 
 ![](images/533992208236546.jpeg)
 
-#### 4.5.2. Fira Code
+#### 3.5.2. Fira Code
 
 > 下载地址：https://github.com/tonsky/FiraCode
 
@@ -116,13 +112,13 @@ Cascadia Code 是微软在 5 月份的 Build 大会上宣布推出的等宽字�
 
 ![](images/387702308249381.jpeg)
 
-#### 4.5.3. Monaco
+#### 3.5.3. Monaco
 
 Mac 的默认字体，好像也只有Mac上有。小字号的时候表现不错，而且再大些也不寒碜。
 
 ![](images/122762408245936.jpeg)
 
-#### 4.5.4. Source Code Pro
+#### 3.5.4. Source Code Pro
 
 Source Code Pro 是由大名鼎鼎的 Adobe 公司发布的一款开源且完全免费的等宽编程字体，它非常适合用于阅读代码，支持 Linux、Mac OS X 和 Windows 等操作系统，而且无论商业或个人都可以免费使用，相当厚道。这款字体和微软的 Consolas 一样均定位于“编程字体”
 
@@ -131,7 +127,7 @@ Source Code Pro 是由大名鼎鼎的 Adobe 公司发布的一款开源且完全
 
 ![](images/341242408241690.jpeg)
 
-#### 4.5.5. JetBrains Mono
+#### 3.5.5. JetBrains Mono
 
 > 官网：https://www.jetbrains.com/lp/mono/
 
@@ -143,7 +139,7 @@ JetBrains 推出了一款名为 "Mono" 的字体。在设计 Mono 字体之初�
 
 ![](images/297713408257174.jpeg)
 
-#### 4.5.6. Input Mono
+#### 3.5.6. Input Mono
 
 > 官网：https://input.djr.com/
 
@@ -153,9 +149,9 @@ Input 可以高度可定制，它有 4 种宽度版本，名称无后缀的最�
 
 Input 不是一个字体，而是一个家族；除了等宽版本，还有两种比例字体：无衬线体 Input Sans 和衬线体 Input Serif。它们和 Input Mono 有类似的骨架，但因为不同的宽度和笔画特征另有一番风格。
 
-#### 4.5.7. 其他字体
+#### 3.5.7. 其他字体
 
-##### 4.5.7.1. 齐伋字体
+##### 3.5.7.1. 齐伋字体
 
 > 官网：https://github.com/LingDong-/qiji-font
 
@@ -163,7 +159,7 @@ Input 不是一个字体，而是一个家族；除了等宽版本，还有两�
 
 ![](images/118593708254676.jpeg)
 
-##### 4.5.7.2. 霞鹜文楷 (LXGW WenKai)
+##### 3.5.7.2. 霞鹜文楷 (LXGW WenKai)
 
 > 官网：https://github.com/lxgw/LxgwWenKai
 
@@ -171,7 +167,7 @@ Input 不是一个字体，而是一个家族；除了等宽版本，还有两�
 
 ![](images/275003708235917.jpeg)
 
-##### 4.5.7.3. 思源黑体
+##### 3.5.7.3. 思源黑体
 
 > 官网：https://github.com/adobe-fonts/source-han-sans
 
@@ -181,7 +177,7 @@ Input 不是一个字体，而是一个家族；除了等宽版本，还有两�
 
 ![](images/510223708258357.jpeg)
 
-##### 4.5.7.4. 思源宋体
+##### 3.5.7.4. 思源宋体
 
 > 官网：https://source.typekit.com/source-han-serif/cn/
 
@@ -191,13 +187,13 @@ Input 不是一个字体，而是一个家族；除了等宽版本，还有两�
 
 ![](images/233443808253493.png)
 
-## 5. 音乐软件
+## 4. 音乐软件
 
-### 5.1. foobar2000
+### 4.1. foobar2000
 
 > 详见[《foobar2000 - 本地顶级音乐播放器》](/其他/system-software/foobar2000)
 
-### 5.2. MusicPlayer2
+### 4.2. MusicPlayer2
 
 MusicPlayer2 是一个开源的纯粹音乐播放器，功能强大，界面极简干净，后台占有资源极少！
 
@@ -208,20 +204,31 @@ MusicPlayer2 是一个开源的纯粹音乐播放器，功能强大，界面极�
 - [MusicPlayer2 最新版本下载](https://github.com/zhongyang219/MusicPlayer2/releases)
 - 国内备用下载链接：[百度网盘下载](https://pan.baidu.com/s/1i5QNwFF)
 
-### 5.3. 洛雪音乐助手桌面版
+### 4.3. Winamp
+
+Winamp 是一款经典的 MP3 软件，从免费到收费，再过渡到免费软件，直到现在整合的版本 5，Winamp 无愧于 Windows 系统下播放器的头把交椅，最新版本修正了旧版中的 Bug，并增加了一些新功能，如果不喜欢现在的 Winamp 过于臃肿，建议定制安装，或选择 Lite 版本。
+
+> 官网：https://player.winamp.com/trending
+
+### 4.4. 洛雪音乐助手桌面版
 
 洛雪音乐桌面版
 
 - Github 仓库： https://github.com/lyswhut/lx-music-desktop/releases
 - [蓝奏云](https://www.lanzoui.com/b0bf2cfa/) 密码：glqw
 
-### 5.4. Listen 1
+### 4.5. Listen 1
 
 Listen 1 音乐播放器主页： https://listen1.github.io/listen1/
 
 windows 桌面版缓存目录：`%APPDATA%\listen1\Cache`
 
-### 5.5. 音乐下载
+### 4.6. 音频标签软件
+
+- [MP3TAG](https://www.mp3tag.de/en/index.html) - MP3 文件 ID3-Tag 信息修改器。所谓 ID3-Tag  信息，就是在 MP3 文件中加入曲名，演唱者，专辑，年月，流派，注释等信息，便于您收集歌曲。其实 Winamp 中带有编辑器，只是把它做的方便一点。可以以文件名批量添加媒体元信息，根据媒体元信息批量重命名文件，执行批量文字替换、导入导出文件信息、创建播放列表等任务。MP3tag 便携版软件运行批量修改，免去了大家一个一个修改的麻烦，也解决了播放 MP3 出现乱码。
+- [音乐标签](https://www.cnblogs.com/vinlxc/p/11347744.html) - 是一款可以编辑歌曲的标题，专辑，艺术家等信息的应用程序，支持 FLAC, APE, WAV, AIFF, WV, TTA, MP3, MP4, M4A, OGG, MPC, OPUS, WMA, DSF, DFF 等音频格式，绿色无广告，无任何功能限制。
+
+### 4.7. 音乐下载
 
 - ~~下歌吧音乐下载平台（*抱歉！该站点已经被管理员停止运行，请联系管理员了解详情！）* https://music.y444.cn/#/ ~~
 - MyFreeMP3(离线版)： https://tools.liumingye.cn/music/?page=searchPage#
@@ -230,9 +237,9 @@ windows 桌面版缓存目录：`%APPDATA%\listen1\Cache`
 - Musicbed： https://www.musicbed.com/
 - [好歌多](https://www.haogeduo.com/)
 
-## 6. 看图软件
+## 5. 看图软件
 
-### 6.1. FastStone 系列软件
+### 5.1. FastStone 系列软件
 
 FastStone 系列软件是个人免费、商业收费，一共有4款软件。
 
@@ -243,11 +250,11 @@ FastStone 系列软件是个人免费、商业收费，一共有4款软件。
 
 FastStone 官方网站： http://www.faststone.org/
 
-#### 6.1.1. 全系列破解器（更新于2023.05.04）
+#### 5.1.1. 全系列破解器（更新于2023.05.04）
 
 解压 Keygen.7z 选择相应的 FastStone 的产品，随便输入一个用户名，然后生成相应的注册码即可。
 
-#### 6.1.2. FastStone Image Viewer（目前更新至7.8版本）
+#### 5.1.2. FastStone Image Viewer（目前更新至7.8版本）
 
 官方网站（无法打开）： https://www.faststone.org/FSViewerDetail.htm
 
@@ -263,7 +270,7 @@ FastStone 官方网站： http://www.faststone.org/
 
 家庭用户可免费使用，商业使用须注册。注册及设置方法：如果您使用的旧版如 7.7 版已授权注册为商业版，可以将旧版如 7.7 商业版注册文件及设置文件 `FSSettings.db`，复制到 7.8 版 FSViewer 目录中就能注册 7.8 版并保持旧版如 7.7 版的设置，不必重新注册和设置。
 
-#### 6.1.3. FastStone Capture（目前更新至10.4版）
+#### 5.1.3. FastStone Capture（目前更新至10.4版）
 
 官网便捷版下载地址（好像暂无安装版）:
 
@@ -276,25 +283,25 @@ FastStone 官方网站： http://www.faststone.org/
 > - 注册名：microsoft
 > - serial/序列号/注册码：WYZQU-RCMZR-KETRH-PKZGN
 
-#### 6.1.4. FastStone MaxView（目前更新至3.4版）
+#### 5.1.4. FastStone MaxView（目前更新至3.4版）
 
 官网安装版下载地址:
 
 - https://www.faststonesoft.net/DN/FSMaxViewSetup34.exe
 
-#### 6.1.5. FastStone Photo Resizer（目前更新至4.4版）
+#### 5.1.5. FastStone Photo Resizer（目前更新至4.4版）
 
 官网便捷版下载地址（好像暂无安装版）:
 
 - https://www.faststonesoft.net/DN/FSResizer44.zip
 
-### 6.2. 截图工具
+### 5.2. 截图工具
 
-#### 6.2.1. Snipaste
+#### 5.2.1. Snipaste
 
 > 官网：https://www.snipaste.com/
 
-#### 6.2.2. Pixpin
+#### 5.2.2. Pixpin
 
 > 官网：https://pixpinapp.com/
 
@@ -302,11 +309,28 @@ PixPin 是目前市面上功能最全面的截图工具之一了！包括**截�
 
 > 异次元简介：https://www.iplaysoft.com/pixpin.html
 
-## 7. 网络资源
+### 5.3. 其他图像软件
 
-### 7.1. 电子书
+- [XnView](https://www.xnview.com/en/)
+> 经典免费实用看图浏览/管理/转换工具 XnView 是一个图像浏览器和多媒体播放器。它能够支持大约400种文件格式（比如说 png、jpeg、targa、tiff、gif、bmp等）。同时还支持动画 gif、多页面 tiff、多图像图标以及 mpeg、avi、wav、aiff 和 Quicktime 格式的文件。此外，XnView还具有浏览器、幻灯片、屏幕捕捉、缩略图制作、批处理转换、十六进制浏览、拖放、通讯录、扫描输入等功能。该软件支持43种语言，并能够在 Linux/FreeBSD/Irix/Solaris/HP-UX/AIX 等操作系统中使用。除了一般的查看、浏览、幻灯显示等功能外，还自带多种滤镜，方便编辑修改；可以批量转换文件格式，创建缩略图并生成网页，还可自己制作 GIF，小巧实用。 选择安装“资源管理器右键菜单扩展插件”，可在资源管理器右键菜单中增加图片预览功能！
+- [ImageGlass](https://github.com/d2phap/ImageGlass/releases)
+- [IrfanView](https://www.irfanview.com/)
+> IrfanView 堪与 ACDSee 媲美，支持的图像、音频、视频格式众多，并可幻灯显示、批量转换格式、批量重命名、JPG 无损旋转，支持拖放操作；亦具有调整图像大小、调整颜色深度、添加覆盖文字、特效（内置）处理等图像编辑功能，自3.85 版已能支持使用 Adobe Photoshop 的滤镜（8BF 格式）；还可以制作 HTML 格式的缩略图目录、创建自播放幻灯显示（EXE 或 SCR），是图像爱好者必备的袖珍精品。
+- [Honeyview · 蜂蜜浏览器](https://www.bandisoft.com/honeyview/)
+> Honeyview 是一款快速的图片查看器，非常快速的漫画阅览器，同时也是一款非常不错的图像浏览器。
+- [ACDSee](https://www.acdsee.cn/)
+- [JPEGView](https://github.com/sylikc/jpegview)
+> JPEGView 是 JPEG，BMP，WEBP，PNG，TGA，RAW，GIF 和 TIFF 图像的查看器/编辑器。它旨在以全屏方式和最高质量查看数码相机中的图像。提供了基本的图像编辑功能-可以在查看图像期间非常快速地交互式地纠正色偏，高/低对比度以及曝光不足或过度曝光等典型问题。JPEGView 便携版不会取代功能强大的图像编辑器-这样的编辑器将不再需要。
+- [FocusOn Image Viewer](https://www.pintosoft.com/en/foni)
+> FocusOn Image Viewer 适用于 Windows 的轻巧快速的免费图像查看器，快速查看和编辑照片，所有人免费-个人和商业用途，按日期自动整理照片，保持照片编辑而不会损坏原始照片，在博客，Twitter，Facebook 上共享照片，支持超过 100 种图像格式。
+- [PicView](https://picview.org/) - Free and customizable image viewer
+- [ScreenToGif](https://www.screentogif.com/) - 屏幕、摄像头和画板录像，并有内置编辑器
 
-#### 7.1.1. ZLibary - 最大的电子书下载
+## 6. 网络资源
+
+### 6.1. 电子书
+
+#### 6.1.1. ZLibary - 最大的电子书下载
 
 - 官方网站： https://singlelogin.re/
 - 官方桌面版下载： https://zh.go-to-zlibrary.se/#desktop_app_tab
@@ -327,7 +351,7 @@ PixPin 是目前市面上功能最全面的截图工具之一了！包括**截�
 
 > 如果网址失效，可以通过导航网站重新获取。 https://zlib.shop/
 
-#### 7.1.2. 国内篇
+#### 6.1.2. 国内篇
 
 - ~~[yibook](https://nav.yibook.org/) - 电子书搜索网站导航~~
 - [SoBooks](https://sobooks.net/) 图书下载网站是本人最喜欢的一个，它不仅书的种类齐全，而且质量也是相当的高，长期这里获取资源让我受益匪浅。每本书都可以获取百度网盘、微盘等下载站链接，直接下载或者保存网盘即可。
@@ -353,7 +377,7 @@ PixPin 是目前市面上功能最全面的截图工具之一了！包括**截�
 - ~~[ePUBee 电子书库](http://cn.epubee.com/books/)，电子书的类型非常的全面，而且技术类电子书质量比较高，流行的畅销书都可以在这下载到。~~
 - ~~[epubw](https://epubw.com)，每日都会有电子书更新，通过网盘下载~~
 
-#### 7.1.3. 国外篇
+#### 6.1.3. 国外篇
 
 - [安娜的档案](https://zh.annas-archive.gs/) | [台湾区镜像](https://tw.annas-archive.se/) - 🔍影子图书馆搜索引擎：书籍、论文、漫画、杂志。 ⭐️ Z-Library、Library Genesis、Sci-Hub。 ⚙️ 通过开源代码和数据完全容灾。网站需要代理才能登陆，国内受限。
 - [B-OK](https://b-ok.cc) 号称世界最大的电子图书馆，喜欢看英文原版的推荐使用，全英文网站，查找当然也需要英文。
@@ -363,11 +387,11 @@ PixPin 是目前市面上功能最全面的截图工具之一了！包括**截�
 - [BookSC](https://booksc.org)，是 Z-Library 项目的一部分。世界上最大的电子书图书馆。还支持指定书中全文搜索
 - [Manybooks](https://manybooks.net)，免费提供数字格式的图书馆
 
-#### 7.1.4. Github 仓库分享
+#### 6.1.4. Github 仓库分享
 
 - [编程电子书分享(github)](https://github.com/hello-go-maker/cs-books) - 分享一些从网上整理的计算机类的电子书籍，包括Java电子书籍（Java基础，Java多线程，spring、springboot、springcloud，分布式，微服务等）、Python，Linux，Go，C，C++，数据结构与算法，人工智能，计算机基础，面试，设计模式，数据库，前端等书籍
 
-### 7.2. 资源搜索下载
+### 6.2. 资源搜索下载
 
 - [盘他一下](https://panother.com/) - 一个支持百度网盘和阿里云的在线网盘资源搜索引擎，找到搜索的内容后，需要微信扫码登录小程序，网盘虽然是完全免费的，但是搜索获取资源，会有积分限制
 - [学搜搜(酷搜kolsou)](https://www.zhaokeya.com/) - 考研、考级、考证、IT教程等学习资料搜索引擎，网站资源主要来自百度网盘
@@ -376,7 +400,7 @@ PixPin 是目前市面上功能最全面的截图工具之一了！包括**截�
     - [万网搜 - 资源搜索聚合神器](https://www.wanwangsou.com/)
     - [猫狸盘搜 - 阿里云盘搜索神器](https://alipansou.com/)
 
-### 7.3. 在线视频网站
+### 6.3. 在线视频网站
 
 - **旋风视频 **官方网址： https://miao101.com/
 - **茶杯狐 **官方网址： https://www.dajin1.com/

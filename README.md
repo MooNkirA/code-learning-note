@@ -347,6 +347,15 @@
 
 ## 分布式 & 微服务架构
 
+### 综合架构
+
+<ul class="docs">
+  <li><a href="#/分布式微服务/综合架构/Microservices-Overview">微服务架构概述</a></li>
+  <li><a href="#/分布式微服务/综合架构/架构-缓存">高并发架构：缓存</a></li>
+  <li><a href="#/分布式微服务/综合架构/架构-负载均衡">高并发架构：负载均衡</a></li>
+  <li><a href="#/分布式微服务/综合架构/架构-服务容错">高并发架构：服务容错</a></li>
+</ul>
+
 ### 🌠 Spring Boot
 
 <ul class="docs">
@@ -376,7 +385,6 @@
 ### ⛅ Spring Cloud
 
 <ul class="docs">
-  <li><a href="#/分布式微服务/SpringCloud/Microservices-Overview">微服务概述</a></li>
   <li><a href="#/分布式微服务/SpringCloud/Spring-Cloud-Overview">Spring Cloud 概述</a></li>
   <li>
     <p>Spring Cloud Netflix（包含Eureka、Ribbon、Feign、Hystrix、Zuul 等组件）</p>
