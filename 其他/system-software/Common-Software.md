@@ -324,6 +324,7 @@ PixPin 是目前市面上功能最全面的截图工具之一了！包括**截�
 - [FocusOn Image Viewer](https://www.pintosoft.com/en/foni)
 > FocusOn Image Viewer 适用于 Windows 的轻巧快速的免费图像查看器，快速查看和编辑照片，所有人免费-个人和商业用途，按日期自动整理照片，保持照片编辑而不会损坏原始照片，在博客，Twitter，Facebook 上共享照片，支持超过 100 种图像格式。
 - [PicView](https://picview.org/) - Free and customizable image viewer
+- [Imagine](https://www.nyam.pe.kr/dev/imagine/) - Freeware Image & Animation Viewer for Windows
 - [ScreenToGif](https://www.screentogif.com/) - 屏幕、摄像头和画板录像，并有内置编辑器
 
 ## 6. 网络资源

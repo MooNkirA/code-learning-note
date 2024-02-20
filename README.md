@@ -347,13 +347,15 @@
 
 ## 分布式 & 微服务架构
 
-### 综合架构
+### 🧱 综合系统架构
 
 <ul class="docs">
-  <li><a href="#/分布式微服务/综合架构/架构-基础">架构基础</a></li>
-  <li><a href="#/分布式微服务/综合架构/架构-缓存">高并发架构：缓存</a></li>
-  <li><a href="#/分布式微服务/综合架构/架构-负载均衡">高并发架构：负载均衡</a></li>
-  <li><a href="#/分布式微服务/综合架构/架构-服务容错">高并发架构：服务容错</a></li>
+  <li><a href="#/分布式微服务/综合系统架构/架构-基础">架构基础</a></li>
+  <li><a href="#/分布式微服务/综合系统架构/架构-缓存">高并发架构：缓存</a></li>
+  <li><a href="#/分布式微服务/综合系统架构/架构-负载均衡">高并发架构：负载均衡</a></li>
+  <li><a href="#/分布式微服务/综合系统架构/架构-服务容错">高并发架构：服务容错</a></li>
+  <li><a href="#/分布式微服务/综合系统架构/分布式系统-基础">分布式系统基础</a></li>
+  <li><a href="#/分布式微服务/综合系统架构/分布式系统-全局唯一ID">分布式系统 - 生成全局唯一 ID 方案</a></li>
 </ul>
 
 ### 🌠 Spring Boot
@@ -551,7 +553,6 @@
   <li><a href="#/其他/development-software/IDEA">IntelliJ IDEA 使用教程</a></li>
   <li><a href="#/其他/development-software/eclipse">Eclipse 使用教程</a></li>
   <li><a href="#/其他/development-software/Visual-Studio-Code">Visual Studio Code 使用教程</a></li>
-  <li><a href="#/其他/development-software/Postman">Postman 使用教程</a></li>
   <li><a href="#/其他/development-software/Common-Development">其它常用开发工具配置与使用</a></li>
 </ul>
 
