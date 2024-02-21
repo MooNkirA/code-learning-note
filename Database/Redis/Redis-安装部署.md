@@ -604,7 +604,7 @@ Redis Desktop Manager，界面比较简洁，功能很全。key 的显示可以�
 
 下载 redis-desktop-manager-0.9.2.806.exe，安装后启动redis客户端。【据说0.9.3（最后一个免费版本），待测试】
 
-配置redis链接：选择连接到Redis服务器，配置主机地址与端口号
+配置 redis 链接：选择连接到 Redis 服务器，配置主机地址与端口号
 
 ### 7.3. medis
 
@@ -618,8 +618,53 @@ Redis Desktop Manager，界面比较简洁，功能很全。key 的显示可以�
 
 ### 7.4. Another Redis Desktop Manager
 
-> https://github.com/qishibo/AnotherRedisDesktopManager
+> 项目地址： https://github.com/qishibo/AnotherRedisDesktopManager
 
-一款比较稳定简洁免费的 redis UI 可视化工具，基本的功能都有。有监控统计，支持暗黑主题，还支持集群的添加。
+一款比较稳定简洁免费、更快、更好、更稳定的 Redis 桌面客户端工具，功能强大（个人认为是国产做的最好的 Redis 桌面客户端工具）。基于 Electron 实现，跨平台，界面美观。有监控统计，支持暗黑主题，还支持集群的添加。
 
 缺点是没什么亮点，UI 很简单，不支持 stream 数据类型。命令行模式也比较单一。value 展示支持的类型也只有3种。
+
+![](images/246421709255945.png)
+
+### 7.5. RedisInsight（官方）
+
+Redis 官方桌面客户端工具，根据官方介绍，RedisInsight 是 The best Redis GUI。可以对 Redis 的内存、连接数、命中率以及正常运行时间进行监控，并且可以在界面上使用 CLI 和连接的 Redis 进行交互（内置对 Redis 模块支持）。
+
+基于 Electron 实现，跨平台，界面美观。唯一支持 Redis Cluster 的 GUI 工具。
+
+效果预览：
+
+![](images/125274108259390.png) ![](images/498094008266721.png)
+
+相关地址：
+
+- 项目地址：https://github.com/redisinsight/redisinsight
+- 官网：https://redis.com/redis-enterprise/redis-insight/
+- 官方文档：https://docs.redis.com/latest/ri/
+
+### 7.6. Tiny RDM
+
+> - 项目地址：https://github.com/tiny-craft/tiny-rdm
+> - 官网：https://redis.tinycraft.cc/
+
+轻量级 Redis 桌面客户端工具，支持可视化键值操作、命令实时监控、数据导入导出等功能。基于 Webview2，无内嵌浏览器，跨平台，非常轻量，界面美观。
+
+![](images/459272009251699.png)
+
+### 7.7. QuickRedis
+
+> - 项目地址：https://gitee.com/quick123official/quick_redis_blog
+> - 官方介绍：https://quick123.net/
+
+基于 Electron 实现的 Redis 桌面客户端工具，跨平台，但内存占用较高。支持直连、哨兵、集群模式，支持亿万数量级的 key。
+
+![](images/586952209269579.png)
+
+### 7.8. RedisFront
+
+> - 项目地址：https://gitee.com/dromara/RedisFront
+> - 下载：https://gitee.com/dromara/RedisFront/releases
+
+基于 Java Swing 开发的 Redis 桌面客户端工具，跨平台，但内存占用较高。支持单机模式，集群模式，哨兵模式以及 SSH 隧道连接。
+
+![](images/171932409267183.png)
