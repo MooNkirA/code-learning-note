@@ -821,7 +821,7 @@ Size：规定文本的尺寸大小。可能的值：从 1 到 7 的数字。浏�
 body {
     font-family: "Open Sans","Clear Sans","Helvetica Neue",Helvetica,Arial,sans-serif;
     color: rgb(51, 51, 51);
-	  background-color:rgb(199, 237, 204); //修改
+	background-color:rgb(199, 237, 204); //修改
     line-height: 1.6;
 }
 ```

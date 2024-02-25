@@ -7,26 +7,6 @@
     },
     "history": [
         {
-            "last_accessed_time": "2024-01-26T03:50:53Z",
-            "line_number": 338,
-            "path": "项目资料/万信金融/01-项目介绍与开发环境搭建.md"
-        },
-        {
-            "last_accessed_time": "2024-01-26T15:09:45Z",
-            "line_number": 655,
-            "path": "项目资料/万信金融/02-前端环境搭建与短信校验注册功能.md"
-        },
-        {
-            "last_accessed_time": "2024-01-26T15:09:46Z",
-            "line_number": 891,
-            "path": "分布式微服务/配置中心/Apollo.md"
-        },
-        {
-            "last_accessed_time": "2024-01-28T05:25:29Z",
-            "line_number": 0,
-            "path": "其他/OS.md"
-        },
-        {
             "last_accessed_time": "2024-01-30T03:14:16Z",
             "line_number": 642,
             "path": "JavaWeb/JavaWeb-Servlet.md"
@@ -317,11 +297,6 @@
             "path": "分布式微服务/分布式文件系统/Distributed-File-System-Overview.md"
         },
         {
-            "last_accessed_time": "2024-02-20T02:44:55Z",
-            "line_number": 70,
-            "path": "分布式微服务/分布式事务/分布式事务基础理论.md"
-        },
-        {
             "last_accessed_time": "2024-02-20T03:33:07Z",
             "line_number": 141,
             "path": "分布式微服务/综合架构/架构-基础.md"
@@ -330,11 +305,6 @@
             "last_accessed_time": "2024-02-20T03:33:07Z",
             "line_number": 90,
             "path": "分布式微服务/综合架构/分布式系统-基础.md"
-        },
-        {
-            "last_accessed_time": "2024-02-20T04:02:20Z",
-            "line_number": 7,
-            "path": "分布式微服务/任务调度/Task-Scheduling.md"
         },
         {
             "last_accessed_time": "2024-02-20T04:02:28Z",
@@ -472,39 +442,69 @@
             "path": "并发编程/并发编程-线程池.md"
         },
         {
-            "last_accessed_time": "2024-02-23T15:18:12Z",
-            "line_number": 155,
-            "path": "Database/Redis/Redis-场景应用设计.md"
+            "last_accessed_time": "2024-02-24T02:42:17Z",
+            "line_number": 63,
+            "path": "其他/system-software/foobar2000.md"
         },
         {
-            "last_accessed_time": "2024-02-23T15:18:12Z",
-            "line_number": 47,
-            "path": "分布式微服务/服务注册中心/Zookeeper-应用场景.md"
-        },
-        {
-            "last_accessed_time": "2024-02-23T15:18:12Z",
+            "last_accessed_time": "2024-02-24T02:42:21Z",
             "line_number": 294,
             "path": "JVM/JVM-GC.md"
         },
         {
-            "last_accessed_time": "2024-02-23T15:18:12Z",
+            "last_accessed_time": "2024-02-24T02:42:22Z",
             "line_number": 933,
             "path": "Database/Redis/Redis-基础.md"
         },
         {
-            "last_accessed_time": "2024-02-23T15:18:13Z",
+            "last_accessed_time": "2024-02-24T02:42:22Z",
             "line_number": 253,
             "path": "分布式微服务/系统架构/架构-基础.md"
         },
         {
-            "last_accessed_time": "2024-02-23T15:18:13Z",
-            "line_number": 74,
+            "last_accessed_time": "2024-02-24T02:42:22Z",
+            "line_number": 250,
+            "path": "Database/MySQL/MySQL-运维.md"
+        },
+        {
+            "last_accessed_time": "2024-02-24T11:34:53Z",
+            "line_number": 8,
+            "path": "分布式微服务/分布式事务/RocketMQ-可靠消息最终一致性事务解决方案.md"
+        },
+        {
+            "last_accessed_time": "2024-02-24T15:57:40Z",
+            "line_number": 123,
             "path": "分布式微服务/系统架构/架构-分布式锁.md"
         },
         {
-            "last_accessed_time": "2024-02-23T15:18:13Z",
-            "line_number": 250,
-            "path": "Database/MySQL/MySQL-运维.md"
+            "last_accessed_time": "2024-02-24T15:57:40Z",
+            "line_number": 8,
+            "path": "Database/Redis/Redis-场景应用设计.md"
+        },
+        {
+            "last_accessed_time": "2024-02-24T15:57:40Z",
+            "line_number": 71,
+            "path": "分布式微服务/服务注册中心/Zookeeper-应用场景.md"
+        },
+        {
+            "last_accessed_time": "2024-02-24T15:57:40Z",
+            "line_number": 68,
+            "path": "分布式微服务/系统架构/架构-全局唯一ID.md"
+        },
+        {
+            "last_accessed_time": "2024-02-24T15:57:40Z",
+            "line_number": 137,
+            "path": "分布式微服务/分布式事务/分布式事务基础理论.md"
+        },
+        {
+            "last_accessed_time": "2024-02-24T15:57:41Z",
+            "line_number": 994,
+            "path": "分布式微服务/消息中件间/RocketMQ.md"
+        },
+        {
+            "last_accessed_time": "2024-02-24T15:57:41Z",
+            "line_number": 41,
+            "path": "分布式微服务/任务调度/Task-Scheduling.md"
         }
     ],
     "image_folder": "images",

@@ -1037,7 +1037,7 @@ READ COMMITTD、REPEATABLE READ 这两个隔离级别的一个很大不同就是
 
 > 官方文档：https://dev.mysql.com/doc/refman/8.0/en/xa.html
 
-### 10.1. XA 协议
+### 10.1. XA 协议概述
 
 XA 协议是由 X/Open 组织提出的分布式事务处理规范，主要定义了事务管理器 TM 和局部资源管理器 RM 之间的接口。目前主流的数据库，比如 Oracle、DB2 都是支持 XA 协议的。MySQL 从 5.0 版本开始，innoDB 存储引擎已经支持 XA 协议。
 
