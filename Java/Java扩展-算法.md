@@ -1,18 +1,8 @@
-在计算机世界里“数据结构+算法=程序”，因此算法在程序开发中起着至关重要的作用。
-
----
-
-目录
-
-[TOC]
-
----
-
 ## 1. 初识算法
 
 ### 1.1. 什么是算法？
 
-**算法的定义**：在数学和计算机科学领域，算法是一系列有限的严谨指令，通常用于解决一类特定问题或执行计算。
+在计算机世界里“数据结构+算法=程序”，因此算法在程序开发中起着至关重要的作用。**算法的定义**：在数学和计算机科学领域，算法是一系列有限的严谨指令，通常用于解决一类特定问题或执行计算。
 
 > In mathematics and computer science, an **algorithm** (/ˈælɡərɪðəm/) is a finite sequence of rigorous instructions, typically used to solve a class of specific problems or to perform a computation.
 >
@@ -1181,6 +1171,7 @@ public class HeapSort {
 2. 为什么最多是N次？这个应该非常简单，还是将快速排序看作一棵二叉树，它的深度最大是N。因此，快读排序的遍历次数最多是N次。
 
 ### 9.2. 快速排序实现
+
 #### 9.2.1. 快速排序Java实现
 
 ```java

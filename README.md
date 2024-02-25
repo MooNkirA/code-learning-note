@@ -108,9 +108,9 @@
 ### 🔑 授权认证框架
 
 <ul class="docs">
-  <li><a href="#/后端框架/Authorization-Certification/Authorization-Overview">授权认证概述</a></li>
-  <li><a href="#/后端框架/Authorization-Certification/Spring-Security">Spring Security</a></li>
-  <li><a href="#/后端框架/Authorization-Certification/Shiro">Shiro（整理中...）</a></li>
+  <li><a href="#/分布式微服务/Authorization-Certification/Authorization-Overview">授权认证概述</a></li>
+  <li><a href="#/分布式微服务/Authorization-Certification/Spring-Security">Spring Security</a></li>
+  <li><a href="#/分布式微服务/Authorization-Certification/Shiro">Shiro（整理中...）</a></li>
 </ul>
 
 ### 📇 Activiti 工作流引擎
@@ -488,6 +488,7 @@
   <li><a href="#/分布式微服务/任务调度/Task-Scheduling">分布式任务调度概述</a></li>
   <li><a href="#/分布式微服务/任务调度/Quartz">Quartz 开源作业调度框架</a></li>
   <li><a href="#/分布式微服务/任务调度/ElasticJob">Elastic-Job 分布式调度解决方案</a></li>
+  <li><a href="#/分布式微服务/任务调度/XXL-JOB">XXL-JOB 分布式任务调度平台</a></li>
 </ul>
 
 ### ⛓️ 分布式链路追踪

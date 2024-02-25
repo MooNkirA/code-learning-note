@@ -49,7 +49,6 @@ public class MyQuartzJob extends QuartzJobBean {
 ```java
 @Configuration
 public class QuartzConfig {
-
     /**
      * 创建 JobDetail 工作明细实例
      */
@@ -77,7 +76,7 @@ public class QuartzConfig {
 
 在工作明细实例中，要设置对应的具体工作实现类 `MyQuartzJob`，使用 `newJob()` 方法传入对应的工作任务类型即可。
 
-触发器需要绑定任务，使用 `forJob()` 方法传入绑定的工作明细对象。此处可以为工作明细设置名称然后使用名称绑定，也可以直接调用对应方法绑定。触发器中最核心的规则是执行时间，此处使用调度器定义执行时间，执行时间描述方式使用的是 cron表达式。
+触发器需要绑定任务，使用 `forJob()` 方法传入绑定的工作明细对象。此处可以为工作明细设置名称然后使用名称绑定，也可以直接调用对应方法绑定。触发器中最核心的规则是执行时间，此处使用调度器定义执行时间，执行时间描述方式使用的是 cron 表达式。
 
 #### 2.2.4. 功能测试
 
@@ -143,3 +142,14 @@ spring:
         await-termination: false          # 线程池关闭时等待所有任务完成
         await-termination-period: 10s     # 调度线程关闭前最大等待时间，确保最后一定关闭
 ```
+
+### 3.4. @Scheduled 支持的参数
+
+- `cron`：cron 表达式，指定任务在特定时间执行。
+- `fixedDelay`：表示上一次任务执行完成后多久再次执行，参数类型为 long，单位 ms。
+- `fixedDelayString`：与 `fixedDelay` 含义一样，只是参数类型变为 String。
+- `fixedRate`：表示按一定的频率执行任务，参数类型为 long，单位 ms。
+- `fixedRateString`：与 `fixedRate` 的含义一样，只是将参数类型变为 String。
+- `initialDelay`：表示延迟多久再第一次执行任务，参数类型为 long，单位 ms。
+- `initialDelayString`：与 `initialDelay` 的含义一样，只是将参数类型变为 String。
+- `zone`：时区，默认为当前时区，一般没有用到。

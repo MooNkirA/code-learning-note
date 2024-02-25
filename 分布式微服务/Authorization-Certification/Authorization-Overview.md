@@ -90,11 +90,129 @@ RBAC 基于资源的访问控制（Resource-Based Access Control）是按资源�
 
 根据上面的例子可发现，根据系统设计时定义好相关权限关系，即使修改主体相关的角色，也不需要修改原授权的逻辑代码，系统可扩展性强。
 
-## 2. 基于 Session 实现认证的示例
+## 2. JWT 令牌
+
+### 2.1. 访问令牌的类型
+
+- **透明令牌**：随机生成的字符串，不包含任何信息，资源服务器需要请求授权服务器验证令牌有效性
+
+![](images/491081217236212.jpg)
+
+- **自包含令牌**：包含一些基本信息，例如谁颁发、颁发给谁、作用域，资源服务器可以本地校验令牌的有效性
+
+![](images/415261217254971.jpg)
+
+### 2.2. JWT 简介
+
+> - 官网地址：https://jwt.io/
+> - JSON Web Token (JWT) 标准：https://tools.ietf.org/html/rfc7519
+
+JSON Web Token（JWT）是一个开放的行业标准（RFC 7519），是目前最流行的跨域身份验证解决方案。它为了在网络应用环境间传递声明而制定的定义了一种简介的、自包含的协议格式，用于在通信双方传递 json 对象，传递的信息经过数字签名可以被验证和信任。JWT 可以使用 HMAC 算法或使用 RSA 的公钥/私钥对来签名，防止被篡改。
+
+JWT 特别适用于分布式站点的单点登录（SSO）场景。JWT 的声明一般被用来在身份提供者和服务提供者间传递被认证的用户身份信息，以便于从资源服务器获取资源，也可被加密。
+
+JWT 令牌的优点：
+
+- jwt 基于 json，非常方便解析。
+- 可以在令牌中自定义丰富的内容，易扩展。
+- 通过非对称加密算法及数字签名技术，JWT 防止篡改，安全性高。
+- 资源服务使用 JWT 可不依赖认证服务即可完成授权。
+
+JWT 令牌的缺点：
+
+- JWT 令牌较长，占存储空间比较大。
+
+### 2.3. JWT 令牌数据结构
+
+JWT 令牌其实是一个很长的字符串，由三部分组成，每部分的字符之间通过点"`.`"分隔符分为三个子串，各字串之间没有换行符。每一个子串表示了一个功能块，总共有三个部分：**JWT 头(header)**、**有效载荷(payload)**、**签名(signature)**，比如：`xxxxx.yyyyy.zzzzz`
+
+#### 2.3.1. Header
+
+头部是一个描述 JWT 元数据的 JSON 对象，包括令牌的类型（即 JWT）及使用的哈希算法（如 HMAC、SHA256 或 RSA）。Header 部分的内容如下：
+
+```json
+{
+  "alg": "HS256",
+  "typ": "JWT"
+}
+```
+
+- `alg`：表示签名使用的算法，默认为 HMAC SHA256（写为 HS256）
+- `typ`：表示令牌的类型，JWT 令牌统一写为 JWT
+
+将上边的内容使用 Base64Url 编码，得到一个字符串就是 JWT 令牌的第一部分。
+
+#### 2.3.2. Payload
+
+第二部分是有效负载，内容也是一个 json 对象，是 JWT 的主体内容部分，它是存放需要传递的数据。它可以存放 jwt 提供的现成字段，有效载荷部分规定有如下七个默认字段供选择：
+
+- iss：签发者
+- exp：到期时间戳
+- sub：主题
+- aud：用户
+- nbf：在此之前不可用
+- iat：发布时间
+- jti：JWT ID 用于标识该 JWT
+
+除以上默认字段外，还可以自定义私有字段。
+
+```json
+{
+  "sub": "1234567890",
+  "name": "456",
+  "admin": true
+}
+```
+
+最后将第二部分负载使用 Base64Url 编码，得到一个字符串就是 JWT 令牌的第二部分。
+
+> 注：此部分不建议存放敏感信息，因为此部分可以解码还原原始内容。
+
+#### 2.3.3. Signature
+
+第三部分是签名，实际上是一个加密的过程，是对上面两部分数据通过指定的算法生成哈希，以确保 JWT 数据不会被篡改。
+
+这个部分使用 base64url 将前两部分进行编码，编码后使用点（`.`）连接组成字符串，还需要指定一个密码（secret），该密码仅仅保存在服务器中，并且不能向用户公开。然后使用 JWT 头（header）中指定的签名算法（默认情况下为 HMAC SHA256）进行签名，根据以下公式生成签名哈希：
+
+```java
+HMACSHA256(base64UrlEncode(header) + "." + base64UrlEncode(payload), secret)
+```
+
+参数说明：
+
+- `base64UrlEncode(header)`：JWT 令牌的第一部分
+- `base64UrlEncode(payload)`：JWT 令牌的第二部分
+- `secret`：签名所使用的密钥
+
+在计算出签名哈希后，JWT 头，有效载荷和签名哈希的三个部分组合成一个字符串，每个部分用"`.`"分隔，就构成整个 JWT 对象。
+
+### 2.4. JWT 签名算法
+
+JWT 签名算法中，一般有两个选择：HS256 和 RS256。
+
+- HS256（带有 SHA-256 的 HMAC）是一种对称加密算法，双方之间仅共享一个密钥。由于使用相同的密钥生成签名和验证签名，因此必须注意确保密钥不被泄密。
+- RS256（采用 SHA-256 的 RSA 签名）是一种非对称加密算法，它使用公共/私钥对：JWT 的提供方采用私钥生成签名，JWT 的使用方获取公钥以验证签名。
+
+### 2.5. jjwt 工具类库简介
+
+jjwt 是一个提供 JWT 创建和验证的 Java 库。永远免费和开源(Apache License，版本 2.0)，JJWT 很容易使用和理解。jjwt 的 maven 坐标如下：
+
+```xml
+<!-- https://mvnrepository.com/artifact/io.jsonwebtoken/jjwt -->
+<dependency>
+    <groupId>io.jsonwebtoken</groupId>
+    <artifactId>jjwt</artifactId>
+    <version>0.9.1</version>
+</dependency>
+```
+
+> 示例项目代码：pinda-authority-project\pinda-authority\pd-examples\jwt-demo\
+
+## 3. 基于 Session 实现认证的示例
 
 本案例工程使用 maven 进行构建，使用 SpringMVC、Servlet3.0 实现。
 
-### 2.1. 认证流程
+### 3.1. 认证流程
 
 > 基于 Session 认证方式的流程描述详见《[基于 session 的认证方式](#_121-基于-session-的认证方式)》
 
@@ -108,9 +226,9 @@ RBAC 基于资源的访问控制（Resource-Based Access Control）是按资源�
 | `void removeAttribute(String name);`          | 移除 session 中对象         |
 | `void invalidate()`                           | 使 `HttpSession` 失效      |
 
-### 2.2. 创建示例工程
+### 3.2. 创建示例工程
 
-#### 2.2.1. 创建 maven 工程
+#### 3.2.1. 创建 maven 工程
 
 创建 maven 工程：security-session-sample。最终项目结构如下：
 
@@ -211,7 +329,7 @@ RBAC 基于资源的访问控制（Resource-Based Access Control）是按资源�
 </project>
 ```
 
-#### 2.2.2. 创建 Spring 容器配置类
+#### 3.2.2. 创建 Spring 容器配置类
 
 创建 `com.moon.security.session.config.ApplicationConfig` 类，用于替代 applicationContext.xml 配置文件。对应在 web.xml 中的 `ContextLoaderListener` 等配置。
 
@@ -227,7 +345,7 @@ public class ApplicationConfig {
 }
 ```
 
-#### 2.2.3. 创建 ServletContext 配置类
+#### 3.2.3. 创建 ServletContext 配置类
 
 本案例采用 Servlet3.0 无 web.xml 方式，创建 `com.moon.security.session.config.WebConfig` 类，它对应于 web.xml 文件中的 `DispatcherServlet` 配置
 
@@ -254,7 +372,7 @@ public class WebConfig implements WebMvcConfigurer {
 }
 ```
 
-#### 2.2.4. 加载 Spring 容器
+#### 3.2.4. 加载 Spring 容器
 
 在 init 包下创建 Spring 容器初始化类 `SpringApplicationInitializer`，此类实现 `WebApplicationInitializer` 接口，Spring 容器启动时加载 `WebApplicationInitializer` 接口的所有实现类。
 
@@ -315,9 +433,9 @@ public class SpringApplicationInitializer extends AbstractAnnotationConfigDispat
 </web‐app>
 ```
 
-### 2.3. 认证功能的实现
+### 3.3. 认证功能的实现
 
-#### 2.3.1. 认证页面
+#### 3.3.1. 认证页面
 
 在 webapp/WEB-INF/views 下创建认证页面 login.jsp，本案例只是测试认证流程，页面没有添加 css 样式，只实现可填入用户名，密码，触发登录将提交表单信息至 /login，内容如下：
 
@@ -353,7 +471,7 @@ public void addViewControllers(ViewControllerRegistry registry) {
 }
 ```
 
-#### 2.3.2. 创建认证接口
+#### 3.3.2. 创建认证接口
 
 用户进入认证页面，输入账号和密码，点击登录，请求 /login 进行身份认证。
 
@@ -470,7 +588,7 @@ public class LoginController {
 }
 ```
 
-#### 2.3.3. 启动项目测试
+#### 3.3.3. 启动项目测试
 
 使用 maven 命令启动项目，以下是使用 idea 为示例：
 
@@ -492,13 +610,13 @@ clean tomcat7:run
 
 以上的测试全部符合预期，到目前为止最基础的认证功能已经完成，但目前仅仅实现了对用户身份凭证的校验，若某用户认证成功，只能说明他是该系统的一个合法用户而已。
 
-### 2.4. 实现会话功能
+### 3.4. 实现会话功能
 
 会话是指用户登入系统后，系统会记住该用户的登录状态，可以在系统连续操作直到退出系统的过程。
 
 认证的目的是对系统资源的保护，每次对资源的访问，系统必须得知道是谁在访问资源，才能对该请求进行合法性拦截。因此，在认证成功后，一般会把认证成功的用户信息放入 Session 中，在后续的请求中，系统能够从 Session 中获取到当前用户，用这样的方式来实现会话机制。
 
-#### 2.4.1. 增加会话控制逻辑
+#### 3.4.1. 增加会话控制逻辑
 
 在 UserDto 定义一个 `SESSION_USER_KEY` 常量，作为 Session 中存放登录用户信息的 key。
 
@@ -532,7 +650,7 @@ public String logout(HttpSession session){
 }
 ```
 
-#### 2.4.2. 增加 session 测试方法
+#### 3.4.2. 增加 session 测试方法
 
 在 `LoginController` 类中增加 session 的校验方法，根据用户的 key 值从当前会话 session 中获取当前登录用户，并返回提示信息给前台。
 
@@ -552,21 +670,21 @@ public String checkSession(HttpSession session) {
 }
 ```
 
-#### 2.4.3. 测试
+#### 3.4.3. 测试
 
 - 未登录情况下直接访问测试资源 /check，返回结果是“匿名访问资源”
 - 成功登录的情况下访问测试资源 /check，返回结果是“管理员访问资源”
 
 测试结果说明，在用户登录成功时，该用户信息已被成功放入 session，并且后续请求可以正常从 session 中获取当前登录用户信息，符合预期结果。
 
-### 2.5. 实现授权功能
+### 3.5. 实现授权功能
 
 通过上次两个步骤，已经实现了用户登陆与使用 session 保存用户的登陆状态。然后现在需要完成如下功能：
 
 - 匿名用户（未登录用户）访问拦截：禁止匿名用户访问某些资源。
 - 登录用户访问拦截：根据用户的权限决定是否能访问某些资源。
 
-#### 2.5.1. 给用户增加权限
+#### 3.5.1. 给用户增加权限
 
 - 在 `UserDto` 类中增加权限属性，用于表示该登录用户所拥有的权限
 
@@ -592,7 +710,7 @@ public class UserDto {
 }
 ```
 
-#### 2.5.2. 增加不同权限测试请求资源
+#### 3.5.2. 增加不同权限测试请求资源
 
 在 `LoginController` 类分别定义两个针对不同的用户访问的不同资源
 
@@ -638,7 +756,7 @@ public String checkSession2(HttpSession session) {
 }
 ```
 
-#### 2.5.3. 授权拦截器
+#### 3.5.3. 授权拦截器
 
 在 interceptor 包下创建 `AuthenticationInterceptor` 拦截器，需要实现 `org.springframework.web.servlet.HandlerInterceptor` 接口，实现简单授权拦截，主要处理的逻辑如下：
 
@@ -697,7 +815,7 @@ public class AuthenticationInterceptor implements HandlerInterceptor {
 }
 ```
 
-#### 2.5.4. 配置拦截器
+#### 3.5.4. 配置拦截器
 
 在 `WebConfig` 配置类中，重写 `addInterceptors` 方法，配置自定义的授权拦截器，匹配 `/check/**` 的资源为受保护的系统资源，访问该资源的请求进入 `AuthenticationInterceptor` 拦截器。
 
@@ -743,7 +861,7 @@ public class WebConfig implements WebMvcConfigurer {
 }
 ```
 
-#### 2.5.5. 测试
+#### 3.5.5. 测试
 
 - 未登陆情况：访问 `/check/p1` 与 `/check/p2`，均提示先登陆
 - 登陆 admin 账号，测试可以访问 `/check/p1`，无权限访问 `/check/p2`
@@ -751,15 +869,15 @@ public class WebConfig implements WebMvcConfigurer {
 
 ![](images/427563923238591.png)
 
-### 2.6. 小结
+### 3.6. 小结
 
 基于 Session 的认证方式是一种常见的认证方式，至今还有非常多的系统在使用。以上示例使用 Spring MVC 技术对它进行简单实现，通过此示例可能了解用户认证、授权以及会话的功能意义及实现套路。
 
-而在正式生产项目中，往往会考虑使用第三方安全框架（如 spring security，shiro 等安全框架）来实现认证授权功能，因为使用这些成熟框架在一定程度提高生产力，提高软件标准化程度，另外往往这些框架的可扩展性考虑的非常全面。但是缺点也非常明显，这些通用化组件为了提高支持范围会增加很多可能不需要的功能，结构上也会比较抽象，如果不够了解它，一旦出现问题，将会很难定位。
+而在正式生产项目中，往往会考虑使用第三方安全框架（如 Spring Security，shiro 等安全框架）来实现认证授权功能，因为使用这些成熟框架在一定程度提高生产力，提高软件标准化程度，另外往往这些框架的可扩展性考虑的非常全面。但是缺点也非常明显，这些通用化组件为了提高支持范围会增加很多可能不需要的功能，结构上也会比较抽象，如果不够了解它，一旦出现问题，将会很难定位。
 
-## 3. 分布式系统认证方案
+## 4. 分布式系统认证方案
 
-### 3.1. 分布式系统概述
+### 4.1. 分布式系统概述
 
 随着软件环境和需求的变化 ，软件的架构由单体结构演变为分布式架构，具有分布式架构的系统叫分布式系统，分布式系统的运行通常依赖网络，它将单体结构的系统分为若干服务，服务之间通过网络交互来完成用户的业务处理，当前流行的微服务架构就是分布式系统架构，如下图：
 
@@ -772,23 +890,23 @@ public class WebConfig implements WebMvcConfigurer {
 3. 共享性：每个部分都可以作为共享资源对外提供服务，多个部分可能有操作共享资源的情况。
 4. 开放性：每个部分根据需求都可以对外发布共享资源的访问接口，并可允许第三方系统访问。
 
-### 3.2. 分布式认证需求
+### 4.2. 分布式认证需求
 
 分布式系统的每个服务都会有认证、授权的需求，如果每个服务都实现一套认证授权逻辑会非常冗余，考虑分布式系统共享性的特点，需要由独立的认证服务处理系统认证授权的请求；考虑分布式系统开放性的特点，不仅对系统内部服务提供认证，对第三方系统也要提供认证。分布式认证的需求总结如下：
 
-#### 3.2.1. 统一认证授权
+#### 4.2.1. 统一认证授权
 
 提供独立的认证服务，统一处理认证授权。无论是不同类型的用户，还是不同种类的客户端(web 端，H5、APP)，均采用一致的认证、权限、会话机制，实现统一认证授权。
 
 要实现统一则认证方式必须可扩展，支持各种认证需求，比如：用户名密码认证、短信验证码、二维码、人脸识别等认证方式，并可以非常灵活的切换。
 
-#### 3.2.2. 应用接入认证
+#### 4.2.2. 应用接入认证
 
 应提供扩展和开放能力，提供安全的系统对接机制，并可开放部分 API 给接入第三方使用，一方应用（内部 系统服务）和三方应用（第三方应用）均采用统一机制接入。
 
-### 3.3. 分布式认证方案选型分析
+### 4.3. 分布式认证方案选型分析
 
-#### 3.3.1. 基于 session 的认证方式
+#### 4.3.1. 基于 session 的认证方式
 
 在分布式的环境下，基于 session 的认证会出现一个问题，每个应用服务都需要在 session 中存储用户身份信息，通过负载均衡将本地的请求分配到另一个应用服务需要将 session 信息带过去，否则会重新认证。
 
@@ -802,7 +920,7 @@ public class WebConfig implements WebMvcConfigurer {
 
 总体来讲，基于 session 认证的认证方式，可以更好的在服务端对会话进行控制，且安全性较高。但是，session 机制方式基于 cookie，在复杂多样的移动客户端上不能有效的使用，并且无法跨域，另外随着系统的扩展需提高 session 的复制、黏贴及存储的容错性。
 
-#### 3.3.2. 基于 token 的认证方式
+#### 4.3.2. 基于 token 的认证方式
 
 优点：基于 token 的认证方式，服务端不用存储认证数据，易维护扩展性强，客户端可以把 token 存在任意地方，并且可以实现 web 和 app 统一认证机制。
 
@@ -810,7 +928,7 @@ public class WebConfig implements WebMvcConfigurer {
 
 ![](images/104910414226463.png)
 
-### 3.4. 分布式认证技术方案
+### 4.4. 分布式认证技术方案
 
 根据认证方案选型的分析，决定采用基于 token 的认证方式，它的优点是：
 
@@ -818,11 +936,11 @@ public class WebConfig implements WebMvcConfigurer {
 2. token 认证方式对第三方应用接入更适合，因为它更开放，可使用当前有流行的开放协议 Oauth2.0、JWT 等。
 3. 一般情况服务端无需存储会话信息，减轻了服务端的压力。
 
-#### 3.4.1. 分布式系统认证技术方案流程图
+#### 4.4.1. 分布式系统认证技术方案流程图
 
 ![](images/516590614246629.png)
 
-#### 3.4.2. 流程描述
+#### 4.4.2. 流程描述
 
 1. 用户通过接入方（应用）登录，接入方采取 OAuth2.0 方式在统一认证服务(UAA)中认证。
 2. 认证服务(UAA)调用验证该用户的身份是否合法，并获取用户权限信息。
@@ -835,7 +953,7 @@ public class WebConfig implements WebMvcConfigurer {
    1. 用户授权拦截（看当前用户是否有权访问该资源）
    2. 将用户信息存储进当前线程上下文（有利于后续业务逻辑随时获取当前用户信息）
 
-#### 3.4.3. 方案涉及的相关组件
+#### 4.4.3. 方案涉及的相关组件
 
 流程所涉及到 UAA 服务、API 网关这些组件职责如下：
 
@@ -847,9 +965,9 @@ public class WebConfig implements WebMvcConfigurer {
 
 作为系统的唯一入口，API 网关为接入方提供定制的 API 集合，它可能还具有其它职责，如身份验证、监控、负载均衡、缓存等。API 网关方式的核心要点是，所有的接入方和消费端都通过统一的网关接入微服务，在网关层处理所有的非业务功能。
 
-## 4. OAuth 2.0
+## 5. OAuth 2.0
 
-### 4.1. 概述
+### 5.1. 概述
 
 OAuth（开放授权）是一个开放标准，允许用户授权第三方应用访问他们存储在另外的服务提供者上的信息，而不需要将用户名和密码提供给第三方应用或分享他们数据的所有内容。OAuth2.0 是 OAuth 协议的延续版本，但不向后兼容 OAuth 1.0 即完全废止了 OAuth1.0。很多大公司如 Google，Yahoo，Microsoft 等都提供了 OAUTH 认证服务，这些都足以说明 OAUTH 标准逐渐成为开放资源授权的标准。
 
@@ -860,7 +978,7 @@ Oauth 协议目前发展到 2.0 版本，1.0 版本过于复杂，2.0 版本已�
 > - OAuth 协议：https://tools.ietf.org/html/rfc6749
 > - oAuth 百度百科：https://baike.baidu.com/item/oAuth/7153134?fr=aladdin
 
-### 4.2. OAuth2.0 协议的认证流程示例
+### 5.2. OAuth2.0 协议的认证流程示例
 
 下面分析一个 Oauth2 认证的例子，通过例子去理解 OAuth2.0 协议的认证流程，本例子是某网站（_<u>下面简称 A 网站</u>_）使用微信认证登陆的过程，这个过程的简要描述如下：
 
@@ -902,7 +1020,7 @@ Oauth 协议目前发展到 2.0 版本，1.0 版本过于复杂，2.0 版本已�
 
 ![](images/64491416225834.jpg)
 
-### 4.3. OAuth2.0 认证流程中相关角色
+### 5.3. OAuth2.0 认证流程中相关角色
 
 > 引自 OAauth2.0 协议 rfc6749：https://tools.ietf.org/html/rfc6749
 
@@ -919,124 +1037,6 @@ Oauth 协议目前发展到 2.0 版本，1.0 版本过于复杂，2.0 版本已�
 - **client_secret**：客户端秘钥
 
 因此，授权服务器对两种 OAuth2.0 中的两个角色进行认证授权，分别是资源拥有者、客户端。
-
-## 5. JWT 令牌
-
-### 5.1. 访问令牌的类型
-
-- **透明令牌**：随机生成的字符串，不包含任何信息，资源服务器需要请求授权服务器验证令牌有效性
-
-![](images/491081217236212.jpg)
-
-- **自包含令牌**：包含一些基本信息，例如谁颁发、颁发给谁、作用域，资源服务器可以本地校验令牌的有效性
-
-![](images/415261217254971.jpg)
-
-### 5.2. JWT 简介
-
-> - 官网地址：https://jwt.io/
-> - JSON Web Token (JWT) 标准：https://tools.ietf.org/html/rfc7519
-
-JSON Web Token（JWT）是一个开放的行业标准（RFC 7519），是目前最流行的跨域身份验证解决方案。它为了在网络应用环境间传递声明而制定的定义了一种简介的、自包含的协议格式，用于在通信双方传递 json 对象，传递的信息经过数字签名可以被验证和信任。JWT 可以使用 HMAC 算法或使用 RSA 的公钥/私钥对来签名，防止被篡改。
-
-JWT 特别适用于分布式站点的单点登录（SSO）场景。JWT 的声明一般被用来在身份提供者和服务提供者间传递被认证的用户身份信息，以便于从资源服务器获取资源，也可被加密。
-
-JWT 令牌的优点：
-
-- jwt 基于 json，非常方便解析。
-- 可以在令牌中自定义丰富的内容，易扩展。
-- 通过非对称加密算法及数字签名技术，JWT 防止篡改，安全性高。
-- 资源服务使用 JWT 可不依赖认证服务即可完成授权。
-
-JWT 令牌的缺点：
-
-- JWT 令牌较长，占存储空间比较大。
-
-### 5.3. JWT 令牌数据结构
-
-JWT 令牌其实是一个很长的字符串，由三部分组成，每部分的字符之间通过点"`.`"分隔符分为三个子串，各字串之间没有换行符。每一个子串表示了一个功能块，总共有三个部分：**JWT 头(header)**、**有效载荷(payload)**、**签名(signature)**，比如：`xxxxx.yyyyy.zzzzz`
-
-#### 5.3.1. Header
-
-头部是一个描述 JWT 元数据的 JSON 对象，包括令牌的类型（即 JWT）及使用的哈希算法（如 HMAC、SHA256 或 RSA）。Header 部分的内容如下：
-
-```json
-{
-  "alg": "HS256",
-  "typ": "JWT"
-}
-```
-
-- `alg`：表示签名使用的算法，默认为 HMAC SHA256（写为 HS256）
-- `typ`：表示令牌的类型，JWT 令牌统一写为 JWT
-
-将上边的内容使用 Base64Url 编码，得到一个字符串就是 JWT 令牌的第一部分。
-
-#### 5.3.2. Payload
-
-第二部分是有效负载，内容也是一个 json 对象，是 JWT 的主体内容部分，它是存放需要传递的数据。它可以存放 jwt 提供的现成字段，有效载荷部分规定有如下七个默认字段供选择：
-
-- iss：签发者
-- exp：到期时间戳
-- sub：主题
-- aud：用户
-- nbf：在此之前不可用
-- iat：发布时间
-- jti：JWT ID 用于标识该 JWT
-
-除以上默认字段外，还可以自定义私有字段。
-
-```json
-{
-  "sub": "1234567890",
-  "name": "456",
-  "admin": true
-}
-```
-
-最后将第二部分负载使用 Base64Url 编码，得到一个字符串就是 JWT 令牌的第二部分。
-
-> 注：此部分不建议存放敏感信息，因为此部分可以解码还原原始内容。
-
-#### 5.3.3. Signature
-
-第三部分是签名，实际上是一个加密的过程，是对上面两部分数据通过指定的算法生成哈希，以确保 JWT 数据不会被篡改。
-
-这个部分使用 base64url 将前两部分进行编码，编码后使用点（`.`）连接组成字符串，还需要指定一个密码（secret），该密码仅仅保存在服务器中，并且不能向用户公开。然后使用 JWT 头（header）中指定的签名算法（默认情况下为 HMAC SHA256）进行签名，根据以下公式生成签名哈希：
-
-```java
-HMACSHA256(base64UrlEncode(header) + "." + base64UrlEncode(payload), secret)
-```
-
-参数说明：
-
-- `base64UrlEncode(header)`：JWT 令牌的第一部分
-- `base64UrlEncode(payload)`：JWT 令牌的第二部分
-- `secret`：签名所使用的密钥
-
-在计算出签名哈希后，JWT 头，有效载荷和签名哈希的三个部分组合成一个字符串，每个部分用"`.`"分隔，就构成整个 JWT 对象。
-
-### 5.4. JWT 签名算法
-
-JWT 签名算法中，一般有两个选择：HS256 和 RS256。
-
-- HS256（带有 SHA-256 的 HMAC）是一种对称加密算法，双方之间仅共享一个密钥。由于使用相同的密钥生成签名和验证签名，因此必须注意确保密钥不被泄密。
-- RS256（采用 SHA-256 的 RSA 签名）是一种非对称加密算法，它使用公共/私钥对：JWT 的提供方采用私钥生成签名，JWT 的使用方获取公钥以验证签名。
-
-### 5.5. jjwt 介绍
-
-jjwt 是一个提供 JWT 创建和验证的 Java 库。永远免费和开源(Apache License，版本 2.0)，JJWT 很容易使用和理解。jjwt 的 maven 坐标如下：
-
-```xml
-<!-- https://mvnrepository.com/artifact/io.jsonwebtoken/jjwt -->
-<dependency>
-    <groupId>io.jsonwebtoken</groupId>
-    <artifactId>jjwt</artifactId>
-    <version>0.9.1</version>
-</dependency>
-```
-
-> 示例项目代码：pinda-authority-project\pinda-authority\pd-examples\jwt-demo\
 
 ## 6. 权限校验框架资料
 

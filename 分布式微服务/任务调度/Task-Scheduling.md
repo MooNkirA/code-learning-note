@@ -169,14 +169,93 @@ public class MyJob implements Job {
 
 ![](images/574173814246829.png)
 
-### 2.2. 相关分布式任务调度产品
+### 2.2. 分布式任务的技术要点
+
+#### 2.2.1. 基础功能
+
+从基础功能看，主要包括 Job 类型支持，Job 生命周期管理，Job 异常处理，接口，拓展性和 UI 等。
+
+**Job 类型支持**
+
+- 常规内置类型：Simple、Dataflow、Script、Http
+- 其它语言任务的支持：Script、py、nodejs、php
+- 特殊任务的支持：有依赖性的 Job，比如有向无环图(DAG)
+- 用户拓展的任务：通过接口拓展自定任务
+
+**Job 生命周期管理**
+
+- Add/Remove
+- Pause/Resume
+- Disable/Enable
+- Shutdown
+
+**Job 异常处理策略**
+
+- LogJobErrorHandler
+- ThrowJobErrorHandler
+- IgnoreJobErrorHandler
+- Message
+    - EmailobErrorHandler
+    - WechatJobErrorHandler
+    - DingtalkJobErrorHandler
+
+**接口，拓展性和 UI**
+
+- 拓展性和 API
+    - 作业 API
+    - 资源 API
+    - 监控诊断 API
+    - 作业监听 API
+- UI 可视化管理
+    - 作业管控端
+    - 作业执行历史数据追踪
+    - 注册中心管理
+
+#### 2.2.2. 高性能和分布式
+
+从性能和分布式的角度看，主要包括：线程池，分片，Transient Job（分如下具体项），注册中心等
+
+- **线程池**
+- **分片策略**
+    - AverageAllocationJobShardingStrategy
+    - OdevitySortByNameJobShardingStrategy
+    - RotateServerByNameJobShardingStrategy
+- **Transient Job**
+    - 高可用性(HA)
+    - 可拓展性(Scale)
+        - 支持任务在分布式场景下的分片和高可用
+        - 能够水平扩展任务的吞吐量和执行效率
+        - 任务处理能力随资源配备弹性伸缩
+    - 故障转移（Failover)
+    - 错过作业（Misfire）重新执行
+    - 幂等(ldempotency)
+- **注册中心**，如：ZooKeeper
+
+#### 2.2.3. 生态构建
+
+从生态构建角度看，主要包括开发拓展接口，三方和平台集成，文档国际化，社区建设等。
+
+- **拓展和接口**
+    - RestAPI
+    - SPI
+- 三**方和平台集成**
+    - Spring
+    - Spring Boot starter
+    - 日志：与消息平台对接 - ELK
+    - 报警：与消息平台对接 － Webchat, DingTalk, Email...
+    - 监控：与监控平台对接
+- **文档国际化**
+- **社区建设**
+
+### 2.3. 相关分布式任务调度产品
 
 针对分布式任务调度的需求，市场上出现了很多的产品：
 
 1. TBSchedule：淘宝推出的一款非常优秀的高性能分布式调度框架，目前被应用于阿里、京东、支付宝、国美等很多互联网企业的流程调度系统中。但是已经多年未更新，文档缺失严重，缺少维护。
 2. XXL-Job：大众点评的分布式任务调度平台，是一个轻量级分布式任务调度平台, 其核心设计目标是开发迅速、学习简单、轻量级、易扩展。现已开放源代码并接入多家公司线上产品线，开箱即用。
-3. Elastic-job：当当网借鉴TBSchedule并基于quartz 二次开发的弹性分布式任务调度系统，功能丰富强大，采用zookeeper实现分布式协调，具有任务高可用以及分片功能。
-4. Saturn： 唯品会开源的一个分布式任务调度平台，基于Elastic-job，可以全域统一配置，统一监控，具有任务高可用以及分片功能。 
+3. ElasticJob：当当网借鉴 TBSchedule 并基于 quartz 二次开发的弹性分布式任务调度系统，功能丰富强大，采用 zookeeper 实现分布式协调，具有任务高可用以及分片功能。
+4. Saturn：唯品会开源的一个分布式任务调度平台，基于 ElasticJob，可以全域统一配置，统一监控，具有任务高可用以及分片功能。
+5. Quartz Cluster
 
 ## 3. cron 表达式(任务执行表达式)
 
