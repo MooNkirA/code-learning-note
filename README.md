@@ -133,14 +133,6 @@
   <li><a href="#/后端框架/工具框架/Drools">Drools 规则引擎</a></li>
   <li><a href="#/后端框架/工具框架/MapStruct">MapStruct 对象拷贝工具</a></li>
   <li>
-    <p>单元测试类库</p>
-    <ul class="docs">
-      <li><a href="#/后端框架/工具框架/JUnit4">单元测试工具框架 - JUnit4</a></li>
-      <li><a href="#/后端框架/工具框架/JUnit5">单元测试工具框架 - JUnit5</a></li>
-      <li><a href="#/后端框架/工具框架/Mockito">单元测试模拟框架 - Mockito（包含 PowerMock）</a></li>
-    </ul>
-  </li>
-  <li>
     <p>Json 常用类库</p>
     <ul class="docs">
       <li><a href="#/后端框架/工具框架/Gson">Gson</a></li>
@@ -329,6 +321,10 @@
 ### ⭕ 测试工具
 
 <ul class="docs">
+  <li><a href="#/DevOps/测试工具/Testing-Overview">程序测试基础概述</a></li>
+  <li><a href="#/DevOps/测试工具/JUnit4">单元测试工具框架 - JUnit4</a></li>
+  <li><a href="#/DevOps/测试工具/JUnit5">单元测试工具框架 - JUnit5</a></li>
+  <li><a href="#/DevOps/测试工具/Mockito">单元测试模拟框架 - Mockito（包含 PowerMock）</a></li>
   <li><a href="#/DevOps/测试工具/JMeter">JMeter 压力测试</a></li>
   <li><a href="#/DevOps/测试工具/Postman">Postman 接口测试工具</a></li>
 </ul>
@@ -551,30 +547,29 @@
 ### 💻 编程开发软件
 
 <ul class="docs">
-  <li><a href="#/其他/development-software/IDEA">IntelliJ IDEA 使用教程</a></li>
-  <li><a href="#/其他/development-software/eclipse">Eclipse 使用教程</a></li>
-  <li><a href="#/其他/development-software/Visual-Studio-Code">Visual Studio Code 使用教程</a></li>
-  <li><a href="#/其他/development-software/Common-Development">其它常用开发工具配置与使用</a></li>
+  <li><a href="#/其他/software/IDEA">IntelliJ IDEA 使用教程</a></li>
+  <li><a href="#/其他/software/eclipse">Eclipse 使用教程</a></li>
+  <li><a href="#/其他/software/Visual-Studio-Code">Visual Studio Code 使用教程</a></li>
 </ul>
 
 ### 🛠️ 编程辅助工具
 
 <ul class="docs">
-  <li><a href="#/其他/development-tools/Hexo">Hexo 博客搭建工具</a></li>
-  <li><a href="#/其他/development-tools/docsify">docsify 文档类型网站搭建工具</a></li>
-  <li><a href="#/其他/development-tools/Mermaid">Mermaid 基于 Javascript 的绘图语法</a></li>
-  <li><a href="#/其他/development-tools/Markdown">Markdown 参考笔记</a></li>
+  <li><a href="#/其他/tools/Hexo">Hexo 博客搭建工具</a></li>
+  <li><a href="#/其他/tools/docsify">docsify 文档类型网站搭建工具</a></li>
+  <li><a href="#/其他/tools/Mermaid">Mermaid 基于 Javascript 的绘图语法</a></li>
+  <li><a href="#/其他/tools/Markdown">Markdown 参考笔记</a></li>
 </ul>
 
 ### 🖥️ 系统软件工具
 
 <ul class="docs">
-  <li><a href="#/其他/system-software/Windows">Windows 系统相关教程</a></li>
-  <li><a href="#/其他/system-software/Microsoft-Office">Microsoft Office 系列教程</a></li>
-  <li><a href="#/其他/system-software/Web-Browser">网页浏览器系列教程</a></li>
-  <li><a href="#/其他/system-software/Common-Software">常用软件教程</a></li>
-  <li><a href="#/其他/system-software/foobar2000">foobar2000 - 本地顶级音乐播放器</a></li>
-  <li><a href="#/其他/system-software/everything">Everything - 本地高效搜索神器</a></li>
+  <li><a href="#/其他/software/Windows">Windows 系统相关教程</a></li>
+  <li><a href="#/其他/software/Microsoft-Office">Microsoft Office 系列教程</a></li>
+  <li><a href="#/其他/software/Web-Browser">网页浏览器系列教程</a></li>
+  <li><a href="#/其他/software/Common-Software">常用软件教程</a></li>
+  <li><a href="#/其他/software/foobar2000">foobar2000 - 本地顶级音乐播放器</a></li>
+  <li><a href="#/其他/software/everything">Everything - 本地高效搜索神器</a></li>
 </ul>
 
 ## 收集的项目实战资料

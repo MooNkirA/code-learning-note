@@ -2100,7 +2100,19 @@ public class Test01 {
 1. 参数列表中只能有一个可变参数
 2. 如果出现不同类型的参数，可变参数必须放在参数列表的最后
 
-## 12. GUI 图形用户界面 (了解)
+## 12. Java 综合扩展知识
+
+### 12.1. null == object 与 object == null
+
+在 java 里面，`null == object` 与 `object == null` 两者效果是一样的。但是为什么要将 null 写到前面？具体点来说，是在 C 语言里面引申出来的。
+
+在 C 语言里面，为了防止少敲一个等号，编程人员仍然能在编译的时候找到错误。**因为`if(obj=null)`是在编译的时候，不会出现错误，而`if(null=obj)`是会编译出错**。
+
+当然了，在 java 里面，`if(name=null)`是会出现编译错误的，不用担心这个错误了。但是，良好的编程习惯，还是建议写成 `null==objcet`。
+
+因为，`object!=null`，这种形式，会导致判断之前先去读取 object 的信息，然后再判断是否 null。而 `null!=object` 这种形式，不会导致读取 object 信息，从而提高判断速度。一般来说不用考虑非写成后者，但对于性能要求高的系统来说就要考虑用后者了。
+
+### 12.2. GUI 图形用户界面 (了解)
 
 Graphical User Interface，简称 GUI
 
@@ -2123,18 +2135,6 @@ X是显示的文本字符串，y是表示消息对话框标题的字符串。第
 JOptionPane.showInputDialog("xxx")
 ```
 
-## 13. Java 综合扩展知识
-
-### 13.1. null == object 与 object == null
-
-在 java 里面，`null == object` 与 `object == null` 两者效果是一样的。但是为什么要将 null 写到前面？具体点来说，是在 C 语言里面引申出来的。
-
-在 C 语言里面，为了防止少敲一个等号，编程人员仍然能在编译的时候找到错误。**因为`if(obj=null)`是在编译的时候，不会出现错误，而`if(null=obj)`是会编译出错**。
-
-当然了，在 java 里面，`if(name=null)`是会出现编译错误的，不用担心这个错误了。但是，良好的编程习惯，还是建议写成 `null==objcet`。
-
-因为，`object!=null`，这种形式，会导致判断之前先去读取 object 的信息，然后再判断是否 null。而 `null!=object` 这种形式，不会导致读取 object 信息，从而提高判断速度。一般来说不用考虑非写成后者，但对于性能要求高的系统来说就要考虑用后者了。
-
-## 14. 参考资料
+## 13. 参考资料
 
 - [developer.microsoft.com/java](https://developer.microsoft.com/en-us/java)，微软推出了一个专门针对 Java 所有相关内容的新网站，该网站提供了微软 Java 云开发团队的最新内容以及技术文档、工具、资源、教程、视频和代码示例。
