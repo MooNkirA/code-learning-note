@@ -67,7 +67,7 @@ Spring Cloud Gateway 是 Spring 官方基于 Spring 5.0，Spring Boot 2.0 和 Pr
 
 ## 2. Spring Cloud Gateway 基础入门案例
 
-### 2.1. 基于 Nacos 注册中心的实现
+### 2.1. 基于硬编码路由的实现
 
 > 复用`spring-cloud-sample-zuul`工程的代码，删除zuul网关工程，创建`spring-cloud-sample-gateway`
 
@@ -87,7 +87,7 @@ Spring Cloud Gateway 是 Spring 官方基于 Spring 5.0，Spring Boot 2.0 和 Pr
 </dependency>
 ```
 
-<font color=red>**注意：SpringCloud Gateway 内部使用的web框架为netty + webflux，和SpringMVC不兼容。引入的限流组件是hystrix。redis底层不再使用jedis，而是lettuce**</font>
+<font color=red>**注意：SpringCloud Gateway 内部使用的 web 框架为 netty + webflux，和 Spring MVC 不兼容。引入的限流组件是 hystrix。redis 底层不再使用 jedis，而是 lettuce**</font>
 
 #### 2.1.2. 配置启动类
 
@@ -2122,7 +2122,7 @@ server:
 
 ### 7.2. 配置nginx
 
-修改nginx配置文件，`nginx-1.18.0\conf\nginx.conf`，添加以下配置
+修改 nginx 配置文件，`nginx-1.18.0\conf\nginx.conf`，添加以下配置
 
 ```
 # 配置多台服务器（这里只在一台服务器上的不同端口）

@@ -64,7 +64,7 @@ java -jar springboot_demo.jar
 java -Xmx80m -Xms20m -jar springboot_demo.jar
 ```
 
-#### 1.2.2. 内嵌tomcat参数
+#### 1.2.2. 内嵌 tomcat 参数
 
 在 application.properties 设置相关参数即可，如：
 
@@ -834,7 +834,7 @@ server:
 ---
 ```
 
-> 值得注意：在比较高版本的Spring Boot中，`spring.profiles` 这个配置项已经过时，最新的配置是 `spring.config.active.on-profile`。过时与最新的配置都是可以使用的。
+> 值得注意：在比较高版本的 Spring Boot 中，`spring.profiles` 这个配置项已经过时，最新的配置是 `spring.config.active.on-profile`。过时与最新的配置都是可以使用的。
 
 ### 7.3. 多环境配置文件命名与引用规则
 

@@ -330,7 +330,7 @@ CGLib 全称为 Code Generation Library，是一个强大的高性能，高质�
 
 Spring 里面进行 AOP 操作是使用 aspectj 实现，但 AspectJ 不是 spring 的组成部分，只是一起使用进行 aop 操作而已。使用 AspectJ 实现 aop 的有以下两种方式：
 
-1. 基于 aspectj 的xml配置
+1. 基于 aspectj 的 xml 配置
 2. 基于 aspectj 的注解方式
 
 Spring 的 aop 操作基本 jar 包：

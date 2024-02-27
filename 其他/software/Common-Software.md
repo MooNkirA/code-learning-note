@@ -424,18 +424,13 @@ PixPin 是目前市面上功能最全面的截图工具之一了！包括**截�
 
 ### 6.3. 其他图像软件
 
-- [XnView](https://www.xnview.com/en/)
-> 经典免费实用看图浏览/管理/转换工具 XnView 是一个图像浏览器和多媒体播放器。它能够支持大约400种文件格式（比如说 png、jpeg、targa、tiff、gif、bmp等）。同时还支持动画 gif、多页面 tiff、多图像图标以及 mpeg、avi、wav、aiff 和 Quicktime 格式的文件。此外，XnView还具有浏览器、幻灯片、屏幕捕捉、缩略图制作、批处理转换、十六进制浏览、拖放、通讯录、扫描输入等功能。该软件支持43种语言，并能够在 Linux/FreeBSD/Irix/Solaris/HP-UX/AIX 等操作系统中使用。除了一般的查看、浏览、幻灯显示等功能外，还自带多种滤镜，方便编辑修改；可以批量转换文件格式，创建缩略图并生成网页，还可自己制作 GIF，小巧实用。 选择安装“资源管理器右键菜单扩展插件”，可在资源管理器右键菜单中增加图片预览功能！
+- [Honeyview · 蜂蜜浏览器](https://www.bandisoft.com/honeyview/) - 是一款快速的图片查看器，非常快速的漫画阅览器，同时也是一款非常不错的图像浏览器。
+- [IrfanView](https://www.irfanview.com/) - 堪与 ACDSee 媲美，支持的图像、音频、视频格式众多，并可幻灯显示、批量转换格式、批量重命名、JPG 无损旋转，支持拖放操作；亦具有调整图像大小、调整颜色深度、添加覆盖文字、特效（内置）处理等图像编辑功能，自3.85 版已能支持使用 Adobe Photoshop 的滤镜（8BF 格式）；还可以制作 HTML 格式的缩略图目录、创建自播放幻灯显示（EXE 或 SCR），是图像爱好者必备的袖珍精品。
+- [XnView](https://www.xnview.com/en/) - 经典免费实用看图浏览/管理/转换工具 XnView 是一个图像浏览器和多媒体播放器。它能够支持大约400种文件格式（比如说 png、jpeg、targa、tiff、gif、bmp等）。同时还支持动画 gif、多页面 tiff、多图像图标以及 mpeg、avi、wav、aiff 和 Quicktime 格式的文件。此外，XnView还具有浏览器、幻灯片、屏幕捕捉、缩略图制作、批处理转换、十六进制浏览、拖放、通讯录、扫描输入等功能。该软件支持43种语言，并能够在 Linux/FreeBSD/Irix/Solaris/HP-UX/AIX 等操作系统中使用。除了一般的查看、浏览、幻灯显示等功能外，还自带多种滤镜，方便编辑修改；可以批量转换文件格式，创建缩略图并生成网页，还可自己制作 GIF，小巧实用。 选择安装“资源管理器右键菜单扩展插件”，可在资源管理器右键菜单中增加图片预览功能！
 - [ImageGlass](https://github.com/d2phap/ImageGlass/releases)
-- [IrfanView](https://www.irfanview.com/)
-> IrfanView 堪与 ACDSee 媲美，支持的图像、音频、视频格式众多，并可幻灯显示、批量转换格式、批量重命名、JPG 无损旋转，支持拖放操作；亦具有调整图像大小、调整颜色深度、添加覆盖文字、特效（内置）处理等图像编辑功能，自3.85 版已能支持使用 Adobe Photoshop 的滤镜（8BF 格式）；还可以制作 HTML 格式的缩略图目录、创建自播放幻灯显示（EXE 或 SCR），是图像爱好者必备的袖珍精品。
-- [Honeyview · 蜂蜜浏览器](https://www.bandisoft.com/honeyview/)
-> Honeyview 是一款快速的图片查看器，非常快速的漫画阅览器，同时也是一款非常不错的图像浏览器。
 - [ACDSee](https://www.acdsee.cn/)
-- [JPEGView](https://github.com/sylikc/jpegview)
-> JPEGView 是 JPEG，BMP，WEBP，PNG，TGA，RAW，GIF 和 TIFF 图像的查看器/编辑器。它旨在以全屏方式和最高质量查看数码相机中的图像。提供了基本的图像编辑功能-可以在查看图像期间非常快速地交互式地纠正色偏，高/低对比度以及曝光不足或过度曝光等典型问题。JPEGView 便携版不会取代功能强大的图像编辑器-这样的编辑器将不再需要。
-- [FocusOn Image Viewer](https://www.pintosoft.com/en/foni)
-> FocusOn Image Viewer 适用于 Windows 的轻巧快速的免费图像查看器，快速查看和编辑照片，所有人免费-个人和商业用途，按日期自动整理照片，保持照片编辑而不会损坏原始照片，在博客，Twitter，Facebook 上共享照片，支持超过 100 种图像格式。
+- [JPEGView](https://github.com/sylikc/jpegview) - 是 JPEG，BMP，WEBP，PNG，TGA，RAW，GIF 和 TIFF 图像的查看器/编辑器。它旨在以全屏方式和最高质量查看数码相机中的图像。提供了基本的图像编辑功能-可以在查看图像期间非常快速地交互式地纠正色偏，高/低对比度以及曝光不足或过度曝光等典型问题。JPEGView 便携版不会取代功能强大的图像编辑器-这样的编辑器将不再需要。
+- [FocusOn Image Viewer](https://www.pintosoft.com/en/foni) - 适用于 Windows 的轻巧快速的免费图像查看器，快速查看和编辑照片，所有人免费-个人和商业用途，按日期自动整理照片，保持照片编辑而不会损坏原始照片，在博客，Twitter，Facebook 上共享照片，支持超过 100 种图像格式。
 - [PicView](https://picview.org/) - Free and customizable image viewer
 - [Imagine](https://www.nyam.pe.kr/dev/imagine/) - Freeware Image & Animation Viewer for Windows
 - [ScreenToGif](https://www.screentogif.com/) - 屏幕、摄像头和画板录像，并有内置编辑器
