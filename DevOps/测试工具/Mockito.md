@@ -729,3 +729,7 @@ public class MockitoDemo {
     }
 }
 ```
+
+## 10. 参考资料
+
+- [万字长文：一文详解单元测试干了什么](https://mp.weixin.qq.com/s/9_TQbVSl1CQLQzuUrsrHLQ)
