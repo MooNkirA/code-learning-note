@@ -14,19 +14,19 @@
 
 前端只是后端 MVC 的 V。
 
-### 1.2. 阶段二：ajax阶段
+### 1.2. 阶段二：ajax 阶段
 
 2004年，AJAX 技术诞生，改变了前端开发。Gmail 和 Google 地图这样革命性的产品出现，使得开发者发现，前端的作用不仅仅是展示页面，还可以管理数据并与用户互动。
 
 就是从这个阶段开始，前端脚本开始变得复杂，不再仅仅是一些玩具性的功能。
 
-### 1.3. 阶段三：前端MVC阶段
+### 1.3. 阶段三：前端 MVC 阶段
 
 2010年，第一个前端 MVC 框架 Backbone.js 诞生。它基本上是把 MVC 模式搬到了前端，但是只有 M（读写数据）和 V（展示数据），没有 C（处理数据）。
 
 有些框架提出了 MVVM模式，用 View Model 代替 Controller。Model 拿到数据以后，View Model 将数据处理成视图层（View）需要的格式，在视图层展示出来。
 
-### 1.4. 阶段四：SPA阶段
+### 1.4. 阶段四：SPA 阶段
 
 前端可以做到读写数据、切换视图、用户交互，这意味着，网页其实是一个应用程序，而不是信息的纯展示。这种单张网页的应用程序称为 SPA（single-page-application）。
 
@@ -34,7 +34,7 @@
 
 目前，最流行的前端框架 Vue、Angular、React 等等，都属于 SPA 开发框架。
 
-## 2. ReactJS简介
+## 2. ReactJS 简介
 
 > - React.js 英文官网： https://react.dev/
 > - React.js 中文官网： https://zh-hans.react.dev/
@@ -51,11 +51,11 @@ ReactJS 圈内的一些框架简介：
     - 阿里开源的基于React的企业级后台产品，其中集成了多种框架，包含了上面提到的Flux、Redux。
     - Ant Design提供了丰富的组件，包括：按钮、表单、表格、布局、分页、树组件、日历等。
 
-## 3. 搭建环境(案例使用UmiJs)
+## 3. 搭建环境（案例使用 UmiJs）
 
 ### 3.1. 创建项目
 
-本案例使用选择使用 UmiJS作为构建工具。
+本案例使用选择使用 UmiJS 作为构建工具。
 
 1. 创建工程。*（如果使用vscode，就创建空的文件夹即可）*
 2. 在命令行窗口，在工程所在路径上输入命令，进行初始化：
@@ -154,8 +154,7 @@ umi build
 
 - 运行命令后，会在dish文件夹中生成*index.html和umi.js*文件。umi.js文件是一个已经压缩过的文件，之前写的代码都已经被转码到此文件中。这些文件就是用于部署到生产环境中
 
-## 4. React快速入门
-### 4.1. JSX语法
+## 4. JSX 语法
 
 - JSX语法就是，可以在js文件中插入html片段，是React自创的一种语法。
 - JSX语法会被Babel等转码工具进行转码，得到正常的js代码再执行。
@@ -168,14 +167,14 @@ umi build
     const div2 = <div>hello</div> <div>world</div> // 错误
     ```
 
-#### 4.1.1. JavaScript 表达式
+### 4.1. JavaScript 表达式
 
 在JSX语法中，如果想要在html标签中插入js脚本，需要通过`{}`插入js脚本。
 
 ![html标签中引入js](images/20190421225348968_32483.png)
 
 
-#### 4.1.2. 样式
+### 4.2. 样式
 
 React 推荐使用内联样式。可以使用 camelCase 语法来设置内联样式。 React 会在指定元素数字后自动添加 px。
 
@@ -190,7 +189,7 @@ ReactDOM.render(
 );
 ```
 
-#### 4.1.3. 注释
+### 4.3. 注释
 
 注释需要写在花括号中
 
@@ -204,7 +203,7 @@ ReactDOM.render(
 );
 ```
 
-#### 4.1.4. 数组
+### 4.4. 数组
 
 JSX 允许在模板中插入数组，数组会自动展开所有成员
 
@@ -219,7 +218,7 @@ ReactDOM.render(
 );
 ```
 
-#### 4.1.5. HTML 标签与 React 组件
+### 4.5. HTML 标签与 React 组件
 
 - React 可以渲染 HTML 标签 (strings) 或 React 组件 (classes)。要渲染 HTML 标签，只需在 JSX 里使用小写字母的标签名。
 
@@ -241,7 +240,7 @@ ReactDOM.render(myElement, document.getElementById('example'));
 > **注意：由于 JSX 就是 JavaScript，一些标识符像 class 和 for 不建议作为 XML 属性名。作为替代，React DOM 使用 className 和 htmlFor 来做对应的属性。**
 
 
-### 4.2. 组件
+## 5. 组件
 
 组件是React中最重要也是最核心的概念，一个网页，可以被拆分成一个个的组件
 
@@ -259,7 +258,7 @@ export default HelloWorld; // 第四步，导出该类
 
 ***注：页面的标签是定义在render中的return，如果是标签是多行，则需要使用“()”进行包裹***
 
-#### 4.2.1. 导入自定义组件
+### 5.1. 导入自定义组件
 
 创建Show.js文件，用于测试导入组件
 
@@ -274,8 +273,8 @@ class Show extends React.Component {
 export default Show;
 ```
 
-#### 4.2.2. 组件参数
-##### 4.2.2.1. 定义传递参数
+### 5.2. 组件参数
+#### 5.2.1. 定义传递参数
 
 组件是可以传递参数的，有2种方式传递，分别是**属性**和**标签包裹的内容**传递
 
@@ -292,7 +291,7 @@ class Show extends React.Component {
 export default Show;
 ```
 
-##### 4.2.2.2. 接收参数
+#### 5.2.2. 接收参数
 
 接收参数也是2种方法：
 
@@ -311,7 +310,7 @@ class HelloWorld extends React.Component {
 export default HelloWorld;
 ```
 
-#### 4.2.3. 组件的状态
+### 5.3. 组件的状态
 
 **每一个组件都有一个状态，其保存在this.state中，当状态值发生变化时，React框架会自动调用render()方法，重新渲染页面。**
 
@@ -373,7 +372,7 @@ export default List;
 
 ![组件状态案例3](images/20190422133358551_22006.png)
 
-#### 4.2.4. React 组件 API
+### 5.4. React 组件 API
 
 - 设置状态：setState
 - 替换状态：replaceState
@@ -383,7 +382,7 @@ export default List;
 - 获取DOM节点：findDOMNode
 - 判断组件挂载状态：isMounted
 
-##### 4.2.4.1. 设置状态：setState
+#### 5.4.1. 设置状态：setState
 
 ```js
 setState(object nextState[, function callback])
@@ -418,7 +417,7 @@ ReactDOM.render(
 );
 ```
 
-##### 4.2.4.2. 替换状态：replaceState
+#### 5.4.2. 替换状态：replaceState
 
 ```js
 replaceState(object nextState[, function callback])
@@ -429,7 +428,7 @@ replaceState(object nextState[, function callback])
 
 `replaceState()`方法与`setState()`类似，但是方法只会保留nextState中状态，原state不在nextState中的状态都会被删除
 
-##### 4.2.4.3. 设置属性：setProps
+#### 5.4.3. 设置属性：setProps
 
 ```js
 setProps(object nextProps[, function callback])
@@ -444,7 +443,7 @@ props相当于组件的数据流，它总是会从父组件向下传递至所有
 
 更新组件，我可以在节点上再次调用`React.render()`，也可以通过`setProps()`方法改变组件属性，触发组件重新渲染。
 
-##### 4.2.4.4. 替换属性：replaceProps
+#### 5.4.4. 替换属性：replaceProps
 
 ```js
 replaceProps(object nextProps[, function callback])
@@ -455,7 +454,7 @@ replaceProps(object nextProps[, function callback])
 
 `replaceProps()`方法与`setProps`类似，但它会删除原有props
 
-##### 4.2.4.5. 强制更新：forceUpdate
+#### 5.4.5. 强制更新：forceUpdate
 
 ```js
 forceUpdate([function callback])
@@ -469,7 +468,7 @@ forceUpdate([function callback])
 
 一般来说，应该尽量避免使用`forceUpdate()`，而仅从`this.props`和`this.state`中读取状态并由React触发`render()`调用。
 
-##### 4.2.4.6. 获取DOM节点：findDOMNode
+#### 5.4.6. 获取DOM节点：findDOMNode
 
 ```js
 DOMElement findDOMNode()
@@ -479,7 +478,7 @@ DOMElement findDOMNode()
 
 如果组件已经挂载到 DOM 中，该方法返回对应的本地浏览器 DOM 元素。当render返回 null 或 false 时，`this.findDOMNode()`也会返回null。从 DOM 中读取值的时候，该方法很有用，如：获取表单字段的值和做一些 DOM 操作。
 
-##### 4.2.4.7. 判断组件挂载状态：isMounted
+#### 5.4.7. 判断组件挂载状态：isMounted
 
 ```js
 boolean isMounted()
@@ -489,7 +488,7 @@ boolean isMounted()
 
 `isMounted()`方法用于判断组件是否已挂载到DOM中。可以使用该方法保证了`setState()`和`forceUpdate()`在异步场景下的调用不会出错。
 
-#### 4.2.5. 组件的生命周期
+### 5.5. 组件的生命周期
 
 组件的运行过程中，存在不同的阶段。React 为这些阶段提供了钩子方法，允许开发者自定义每个阶段自动执行的函数。这些方法统称为生命周期方法（lifecycle methods）。
 
@@ -506,11 +505,11 @@ boolean isMounted()
     - **componentDidUpdate**：在组件完成更新后立即调用。在初始化时不会被调用。
     - **componentWillUnmount**：在组件从 DOM 中移除的时候立刻被调用。
 
-##### 4.2.5.1. 组件生命周期图
+#### 5.5.1. 组件生命周期图
 
 ![组件的生命周期图](images/20190422133625324_6357.png)
 
-##### 4.2.5.2. 生命周期示例
+#### 5.5.2. 生命周期示例
 
 ```jsx
 import React from 'react'; // 导入React
@@ -549,7 +548,7 @@ class LifeCycle extends React.Component {
 export default LifeCycle;
 ```
 
-#### 4.2.6. React 中 Component 和 PureComponent 比较
+### 5.6. React 中 Component 和 PureComponent 比较
 
 React 15.3 中新加了一个 `PureComponent` 类，顾名思义， pure 是纯的意思， `PureComponent` 也就是纯组件，取代其前身 `PureRenderMixin`, `PureComponent` 是优化 React 应用程序最重要的方法之一，易于实施，只要把继承类从 Component 换成 PureComponent 即可，可以减少不必要的 render 操作的次数，从而提高性能，而且可以少写 `shouldComponentUpdate` 函数，节省了点代码。
 
@@ -574,14 +573,14 @@ Component是React App的基本构建的单位，也是React中的基本代码复
 3. 如果数据改变无法反应在浅拷贝上，则应该调用forceUpdate来更新Component。
 4. 一个PureComponent的子Component也应当是PureComponent。
 
-### 4.3. React 的 Refs 属性
-#### 4.3.1. 简述
+## 6. React 的 Refs 属性
+### 6.1. 简述
 
 - React 支持一种非常特殊的属性 Ref ，你可以用来绑定到 `render()` 输出的任何组件上。
 - 这个特殊的属性允许你引用 `render()` 返回的相应的支撑实例（backing instance）。这样就可以确保在任何时间总是拿到正确的实例。
 - ref 属性的值可以是一个字符串也可以是一个函数。
 
-#### 4.3.2. 使用方法
+### 6.2. 使用方法
 
 绑定一个 ref 属性到 render 的返回值上
 
@@ -597,7 +596,7 @@ var inputValue = input.value;
 var inputRect = input.getBoundingClientRect();
 ```
 
-#### 4.3.3. 示例代码
+### 6.3. 示例代码
 
 通过使用 this 来获取当前 React 组件，或使用 ref 来获取组件的引用
 
@@ -628,8 +627,8 @@ ReactDOM.render(
 );
 ```
 
-### 4.4. Model
-#### 4.4.1. 数据分层
+## 7. Model
+### 7.1. 数据分层
 
 ![应用分层示例图](images/20190423105354679_26362.png)
 
@@ -642,11 +641,11 @@ ReactDOM.render(
     - Model 负责处理业务逻辑，为 Page 做数据、状态的读写、变换、暂存等。
     - Service 负责与 HTTP 接口对接，进行纯粹的数据读写。
 
-#### 4.4.2. 使用DVA框架进行数据分层管理（好客租房项目使用，其他项目不一定使用）
+### 7.2. 使用 DVA 框架进行数据分层管理（好客租房项目使用，其他项目不一定使用）
 
-dva是基于 redux、redux-saga 和 react-router 的轻量级前端框架。官网：https://dvajs.com/
+dva 是基于 redux、redux-saga 和 react-router 的轻量级前端框架。官网：https://dvajs.com/
 
-##### 4.4.2.1. 引入dva框架
+#### 7.2.1. 引入 dva 框架
 
 引入dva框架，由于umi对dva进行了整合，所以导入时只需要修改umi项目中的config.js文件，进行如下配置：
 
@@ -660,13 +659,13 @@ export default {
 };
 ```
 
-##### 4.4.2.2. 定义state数据
+#### 7.2.2. 定义 state 数据
 
-创建model文件夹，在umi中，约定在src/models文件夹中定义model，所以，在该文件夹下创建ListData.js文件
+创建 model 文件夹，在 umi 中，约定在 src/models 文件夹中定义 model，所以，在该文件夹下创建 ListData.js 文件
 
 ![model项目架构](images/20190423110648086_8414.png)
 
-将此前定义在组件中的state剪切到ListData.js文件中
+将此前定义在组件中的 state 剪切到 ListData.js 文件中
 
 ```js
 export default {
@@ -678,7 +677,7 @@ export default {
 }
 ```
 
-对之前定义的List.jsx组件进行修改
+对之前定义的 List.jsx 组件进行修改
 
 ```jsx
 import React from 'react';  // 引入react
@@ -737,7 +736,7 @@ export default List;
 4. 拿到model数据中state属性下的data数据，也就是`[1, 2, 3]`数据，进行包裹`{}`后返回
 5. 返回的数据，将被封装到`this.props`中，所以通过`this.props.listData`即可获取到model中的数据
 
-##### 4.4.2.3. 更新state数据
+#### 7.2.3. 更新state数据
 
 此前通过`this.setState()`可以修改组件中的state属性值，从而使react去刷新页面。
 
@@ -826,7 +825,7 @@ export default List;
 
 ![DVA框架绑定方法流程](images/20190423123128283_25306.png)
 
-#### 4.4.3. 在model中请求数据
+### 7.3. 在model中请求数据
 
 实现动态查询后台获取model里的数据
 
@@ -976,7 +975,7 @@ export default List;
 
 ![](images/20190423135552070_25083.png)
 
-#### 4.4.4. mock数据
+### 7.4. mock数据
 
 umi中支持对请求的模拟，当没有后端服务的时候，可以使用mock数据进行测试
 
