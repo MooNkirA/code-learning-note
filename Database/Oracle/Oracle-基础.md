@@ -454,15 +454,14 @@ select * from emp order by sal desc nulls last;
 
 分页操作需要伪列 `rownum`。
 
-注意：不能使用大于号，如`rownum>6`，因为是每查询一行分配一个`rownum`，后面的还没有分配，所以得到的查询永远结果为空
+注意：不能使用大于号，如`rownum > 6`，因为是每查询一行分配一个`rownum`，后面的还没有分配，所以得到的查询永远结果为空
 
 #### 4.9.2. Oracle 分页的语法
 
 ```sql
 select *
-from (select rownum as xx,e.*
-		from emp e) t
-where xx >startIndex and xx <= maxResult;
+from (select rownum as xx,e.* from emp e) t
+where xx > startIndex and xx <= maxResult;
 ```
 
 **相关参数**：
@@ -497,16 +496,117 @@ select *
    where e.rnum>3 and e.rnum<=6;
 ```
 
-### 4.10. 多表查询
+### 4.10. Oracle Fetch 子句
 
-#### 4.10.1. Oracle 的连接条件的类型
+FETCH 子句在 Oracle 中可以用来限制查询返回的行数。
+
+#### 4.10.1. Fetch 语法格式
+
+```sql
+[ OFFSET offset ROWS ]
+FETCH NEXT [ row_count | percent PERCENT ] ROWS [ ONLY | WITH TIES ]
+```
+
+**OFFSET 子句**（可选的）指定在行限制开始之前要跳过行数。如果跳过它，则偏移量为 0，行限制从第一行开始计算。偏移量必须是一个数字或一个表达式，并且遵守以下规则：
+
+- 如果偏移量是负值，则将其视为 0。
+- 如果偏移量为 NULL 或大于查询返回的行数，则不返回任何行。
+- 如果偏移量包含一个分数，则分数部分被截断。
+
+> Tips: 此参数可以用于分页的实现
+
+**FETCH 子句**指定要返回的行数或百分比。为了语义清晰的目的，可以使用关键字 `ROW` 而不是 `ROWS`，`FIRST` 而不是 `NEXT`。例如，以下子句的行为和产生的结果相同：
+
+```sql
+FETCH NEXT 1 ROWS
+FETCH FIRST 1 ROW
+```
+
+**ONLY | WITH TIES 选项**：仅返回 `FETCH NEXT` (或 `FIRST`) 后的行数或行数的百分比。`WITH TIES` 返回与最后一行相同的排序键。值得注意的是，如果使用 WITH TIES，则必须在查询中指定一个 ORDER BY 子句，否则查询将不会返回额外的行。
+
+#### 4.10.2. FETCH 子句实例
+
+> Notes: 以下查询语句仅能在Oracle 12c以上版本执行
+
+1. 获取前 N 行记录的示例。返回库存量最高的前 5 个产品：
+
+```sql
+SELECT
+    product_name,
+    quantity
+FROM
+    inventories
+INNER JOIN products
+        USING(product_id)
+ORDER BY
+    quantity DESC 
+FETCH NEXT 5 ROWS ONLY;
+```
+
+2. 使用 WITH TIES 选项的行限制子句示例：
+
+```sql
+SELECT
+    product_name,
+    quantity
+FROM
+    inventories
+INNER JOIN products
+    USING(product_id)
+ORDER BY
+    quantity DESC 
+FETCH NEXT 10 ROWS WITH TIES;
+```
+
+![](images/197305023240343.png)
+
+以上语句即使查询请求了 10 行数据，因为它具有 WITH TIES 选项，查询还返回了另外两行。 需要注意，这两个附加行在 quantity 列的值与第 10 行 quantity 列的值相同。
+
+3. 以百分比限制返回行的示例。查询返回库存量最高的前 1% 的产品：
+
+```sql
+SELECT
+    product_name,
+    quantity
+FROM
+    inventories
+INNER JOIN products
+        USING(product_id)
+ORDER BY
+    quantity DESC 
+FETCH FIRST 1 PERCENT ROWS ONLY;
+```
+
+![](images/496155323258769.png)
+
+上面的示例，库存 (inventories) 表总共有 1112 行，因此，1112 中的 1% 是 11.1，所以提取 12 (行)。
+
+4. OFFSET 示例。查询将跳过库存量最高的前 10 个产品，并返回接下来的 10 个产品：
+
+```sql
+SELECT
+    product_name,
+    quantity
+FROM
+    inventories
+INNER JOIN products
+    USING(product_id)
+ORDER BY
+    quantity DESC 
+OFFSET 10 ROWS 
+FETCH NEXT 10 ROWS ONLY;
+```
+
+### 4.11. 多表查询
+
+#### 4.11.1. Oracle 的连接条件的类型
 
 - 等值连接
 - 不等值连接
 - 外连接
 - 自连接
 
-#### 4.10.2. 多表连接基本查询
+#### 4.11.2. 多表连接基本查询
 
 使用一张以上的表做查询就是多表查询。语法：
 
@@ -562,7 +662,7 @@ select e.empno,e.ename,e.mgr,e.deptno,decode(s.grade,
        and e1.sal between s1.losal and s1.hisal;
 ```
 
-#### 4.10.3. 外连接（左右连接）
+#### 4.11.3. 外连接（左右连接）
 
 **右连接**
 
@@ -600,15 +700,15 @@ select e.empno,e.ename,e.mgr,e1.empno,e1.ename
        on e.mgr=e1.empno;
 ```
 
-### 4.11. 子查询
+### 4.12. 子查询
 
-#### 4.11.1. 子查询概述
+#### 4.12.1. 子查询概述
 
 一条 SQL 语句(子查询)的查询结果做为另一条查询语句(父查询)的条件或查询结果，这种操作则称为子查询。
 
 多条 SQL 语句嵌套使用，内部的 SQL 查询语句称为子查询。
 
-#### 4.11.2. 子查询的语法
+#### 4.12.2. 子查询的语法
 
 ```sql
 select select_list
@@ -623,11 +723,11 @@ select select_list
 - <font color=red>**子查询 (内查询) 在主查询之前一次执行完成。**</font>
 - <font color=red>**子查询的结果被主查询使用 (外查询)。**</font>
 
-#### 4.11.3. 子查询的类型
+#### 4.12.3. 子查询的类型
 
 ![](images/20211220091000221_3904.png)
 
-#### 4.11.4. 单行子查询
+#### 4.12.4. 单行子查询
 
 只返回一条记录。单行操作符
 
@@ -669,11 +769,11 @@ select e.ename,s.minsal,d.dname
        and e.sal=s.minsal;
 ```
 
-#### 4.11.5. 多行子查询
+#### 4.12.5. 多行子查询
 
 返回了多条记录，多行操作符
 
-#### 4.11.6. 子查询中的 null 值问题
+#### 4.12.6. 子查询中的 null 值问题
 
 多行子查询中 `null` 值需要注意的问题：查询结果为空，不会报错。
 
@@ -685,7 +785,7 @@ select e.ename,s.minsal,d.dname
 
 ![](images/20211220091428940_27892.png)
 
-#### 4.11.7. Exists 用法
+#### 4.12.7. Exists 用法
 
 语法：
 
@@ -710,16 +810,16 @@ select * from dept d where d.deptno in (select  distinct deptno from emp);
 
 > <font color=red>如果是大数据量【百万级】的查询，建议使用 `exists`，使用 `in` 的话会全表查询</font>
 
-#### 4.11.8. Oracle 中的伪列
+#### 4.12.8. Oracle 中的伪列
 
 oracle提供的两个伪列
 
 - `ROWNUM`：表示行号，实际上只是一个列，但是这个列是一个伪列，此列可以在每张表中出现。【先查询数据，再分配序号。找出一条数据，分配一个`rownum`】
 - `ROWID`：表中每行数据指向磁盘上的物理地址
 
-### 4.12. Oracle 查询综合示例
+### 4.13. Oracle 查询综合示例
 
-#### 4.12.1. Oracle查询练习
+#### 4.13.1. Oracle查询练习
 
 - 找到员工表中工资最高的前三名
 
@@ -769,7 +869,7 @@ from (select e.hdate,count(*) dcount
        group by e.hdate) t;
 ```
 
-#### 4.12.2. Oracle 综合查询
+#### 4.13.2. Oracle 综合查询
 
 ```sql
 -- 建表语句和插入数据
@@ -897,9 +997,9 @@ select * from (
        where r>5 and r<=10;
 ```
 
-### 4.13. 集合运算
+### 4.14. 集合运算
 
-#### 4.13.1. 什么是集合运算
+#### 4.14.1. 什么是集合运算
 
 ![](images/20211220092343278_13673.png)
 
@@ -909,7 +1009,7 @@ select * from (
 - `intersect` 交集
 - `minus` 差集
 
-#### 4.13.2. 并集，类似于or
+#### 4.14.2. 并集，类似于or
 
 范例：工资大于 1500，或者是 20 号部门下的员工（并集）
 
@@ -926,7 +1026,7 @@ union -- 使用union all包括重复部分
 select * from emp where deptno = 20;
 ```
 
-#### 4.13.3. 交集，类似于and
+#### 4.14.3. 交集，类似于and
 
 范例：工资大于 1500，并且是 20 号部门下的员工（交集）
 
@@ -942,7 +1042,7 @@ intersect
 select * from emp where deptno = 20;
 ```
 
-#### 4.13.4. 差集
+#### 4.14.4. 差集
 
 范例：1981 年入职的普通员工（不包括总裁和经理）（差集）
 
@@ -954,11 +1054,11 @@ select * from emp where job='MANAGER' or job = 'PRESIDENT'; -- b
 -- 如果a minus b,a 中没有在b 中的数据，全部显示
 ```
 
-#### 4.13.5. 集合运算的特征
+#### 4.14.5. 集合运算的特征
 
 <font color=red>*集合运算两边查询的字段数量、字段类型、顺序必须一致*</font>
 
-### 4.14. 递归查询【了解】
+### 4.15. 递归查询【了解】
 
 语法：
 
