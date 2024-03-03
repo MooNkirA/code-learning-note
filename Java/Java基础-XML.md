@@ -1,5 +1,3 @@
-# Java 基础 - XML
-
 ## 1. XML 概述
 
 XML 的全称 Extensible Markup Language，中文：可扩展标记语言。XML 是一门语言，由 w3c 组织制定。
@@ -172,7 +170,25 @@ ecplise 工具会自动根据 xml 文件的文档声明自动设置保存时的�
 - 注释不能嵌套。
 - XML 注释不能出现在文档声明语句之上。
 
-### 2.5. 转义字符
+### 2.5. xml 文件对特殊符号（&，<）的处理
+
+问题说明：在项目文件的配置或者用 xml 进行数据的存储或传输时，会遇到不能用一些特殊符号的问题，例如使用 c3p0 时配置 jdbcUrl 属性：
+
+```properties
+jdbc:mysql://localhost:3306/tempdb?characterEncoding=utf8&useSSL=false&serverTimezone=UTC&rewriteBatchedStatements=true&allowPublicKeyRetrieval=true
+```
+
+严格地讲，在 XML 元素中仅有字符 `<` 和 `&` 是非法的，而省略号、引号和大于号是合法的。
+
+- `<` 会产生错误，因为解析器会把该字符解释为新元素的开始。
+- `&` 会产生错误，因为解析器会把该字符解释为字符实体的开始。
+
+此时 xml 有两种解决方案来处理这种问题：
+
+- CDATA
+- 转义字符
+
+### 2.6. 转义字符
 
 有些符号在 XML 语言中是有特殊含义的，如果想原样输出 XML 中的特殊字符，那么就需要对其进行转义。
 
@@ -186,13 +202,24 @@ ecplise 工具会自动根据 xml 文件的文档声明自动设置保存时的�
 |   `"`   | `&quot;` | quote        |
 |   `'`   | `&apos;` | apostrophe   |
 
-### 2.6. CDATA 区
+示例：
 
-XML 文档中的所有文本均会被解析器解析。而 CDATA 区的作用是：能够保证在CDATA区的字符数据能够原样输出，不会被浏览器解析。
+```xml
+<property>&amp;&lt;&gt;&apos;&quot;</property>
+<property name="hibernate.connection.url">
+    jdbc:mysql://localhost:3306/hibernate_db?useSSL=false&amp;useUnicode=true&amp;characterEncoding=UTF-8
+</property>
+```
 
-#### 2.6.1. 语法格式
+### 2.7. CDATA 区
 
-CDATA 部分由 "`<![CDATA[`" 开始，由 "`]]>`" 结束，其内容可以换行
+XML 文档中的所有文本均会被解析器解析。比如 JavaScript 代码，包含大量 `<` 或 `&` 字符。为了避免错误，可以将脚本代码定义为 CDATA。
+
+而 CDATA 区的作用是：能够保证在 CDATA 区的字符数据能够原样输出，不会由 XML 解析器（或浏览器）进行解析。
+
+#### 2.7.1. 语法格式
+
+CDATA 的语法格式是由 "`<![CDATA[`" 开始，由 "`]]>`" 结束，其内容可以换行
 
 ```xml
 <![CDATA[字符数据(文本内容)]]
@@ -216,9 +243,11 @@ function matchwo(a,b)
 }
 ]]>
 </script>
+
+<property><![CDATA["&&&&&&<<<<<<<"]]></property>
 ```
 
-#### 2.6.2. 注意事项
+#### 2.7.2. 注意事项
 
 - CDATA 部分不能包含字符串 "`]]>`"。也不允许嵌套的 CDATA 部分。
 - 标记 CDATA 部分结尾的 "`]]>`" 不能包含空格或换行。

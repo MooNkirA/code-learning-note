@@ -262,6 +262,8 @@
 
 <ul class="docs">
   <li><a href="#/Database/Oracle/Oracle-基础">Oracle 基础笔记</a></li>
+  <li><a href="#/Database/Oracle/Oracle-安装部署">Oracle 安装部署笔记</a></li>
+  <li><a href="#/Database/Oracle/Oracle-客户端">Oracle 客户端工具</a></li>
 </ul>
 
 ### 非关系型数据库
