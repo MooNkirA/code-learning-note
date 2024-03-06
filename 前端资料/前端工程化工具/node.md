@@ -1,5 +1,3 @@
-# node.js 笔记
-
 ## 1. Node.js 简介
 
 Node.js 是一个开源和跨平台的 JavaScript 运行时环境。它几乎是任何类型项目的流行工具！Node.js 在浏览器之外运行 V8 JavaScript 引擎（Google Chrome 的内核），性能非常好。
