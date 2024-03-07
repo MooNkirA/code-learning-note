@@ -245,11 +245,84 @@ $ npm run prod
 
 ### 2.10. package.json 指南（待整理）
 
+> TODO: 待整理
 
+## 3. npx
 
-## 3. 常用命令
+### 3.1. npx 概述
 
-### 3.1. 初始化包管理配置文件
+npx 是 npm 5.2.0 版本新增的一个工具包，定义为 npm 包的执行者，相比 npm，npx 会自动安装依赖包并执行某个命令。
+
+假如要用 create-react-app 脚手架创建一个 react 项目，常规的做法是先安装 create-react-app，然后才能使用 create-react-app 执行命令进行项目创建。
+
+```shell
+# 第一步
+npm i -g create-react-app
+# 第二步
+create-react-app my-react-app
+```
+
+有了 npx 后，可以省略安装 create-react-app 这一步。
+
+```shell
+npx create-react-app my-react-app
+```
+
+npx 会在当前目录下的 `./node_modules/.bin` 里去查找是否有可执行的命令，没有找到则再从全局里查找是否有安装对应的模块，全局也没有，就会自动下载对应的模块。如上面的 create-react-app，npx 会将 create-react-app 下载到一个临时目录，用完即删，不会占用本地资源。
+
+> Notes: 高版本的 npm 自带 npx，可以直接使用，如果没有可以手动安装，执行命令：`npm i -g npx`
+
+### 3.2. npx 命令参数
+
+#### 3.2.1. --no-install
+
+`--no-install` 参数是让 npx 不要自动下载，也就意味着如果本地没有该模块则无法执行后续的命令。
+
+```shell
+npx --no-install create-react-app my-react-app
+
+// not found: create-react-app
+```
+
+#### 3.2.2. --ignore-existing
+
+`--ignore-existing` 参数使 npx 忽略本地已经存在的模块，每次都去执行下载操作，即每次都会下载安装临时模块并在用完后删除。
+
+#### 3.2.3. -p
+
+`-p` 用于指定 npx 所要安装的模块，它可以指定某一个版本进行安装：
+
+```bash
+npx -p node@12.0.0 node index.js
+```
+
+还可以用于同时安装多个模块：
+
+```bash
+npx -p lolcatjs -p cowsay [command]
+```
+
+#### 3.2.4. -c
+
+`-c` 参数使 npx 所有命令都用 npx 解释。例如：
+
+```bash
+npx -p lolcatjs -p cowsay 'cowsay hello | lolcatjs'
+```
+
+上面示例运行会报错，因为第一项命令 cowsay hello 默认有 npx 解释，但第二项命令 localcatjs 会有 shell 解释，此时 lolcatjs 并没有全局安装，所有就会报错。此时可以用 `-c` 参数来解决。
+
+```bash
+npx -p lolcatjs -p cowsay -c 'cowsay hello | lolcatjs'
+```
+
+### 3.3. 参考材料
+
+- [npx 使用教程](https://www.ruanyifeng.com/blog/2019/02/npx.html)
+
+## 4. 常用命令
+
+### 4.1. 初始化包管理配置文件
 
 在项目目录路径下，通过命令行工具输入以下命令，初始化包管理配置文件 package.json
 
@@ -257,15 +330,15 @@ $ npm run prod
 npm init –y
 ```
 
-### 3.2. 清理缓存
+### 4.2. 清理缓存
 
 ```bash
 npm cache clean --force
 ```
 
-## 4. 其他
+## 5. 其他
 
-### 4.1. 在 node.js 中体验 ES6 模块化
+### 5.1. 在 node.js 中体验 ES6 模块化
 
 node.js 中默认**仅支持 CommonJS 模块化规范**，若想基于 node.js 体验与学习 ES6 的模块化语法，可以按照如下两个步骤进行配置：
 

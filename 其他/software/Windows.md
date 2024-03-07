@@ -375,7 +375,7 @@ window 系统的 hosts 文件位置：`%windir%\System32\drivers\etc`
 
 路径：`%HOMEPATH%\AppData\Local\Packages\Microsoft.Windows.ContentDeliveryManager_cw5n1h2txyewy\LocalState\Assets`
 
-### 3.4. C盘可清理内容
+### 3.4. C 盘可清理内容
 
 1. **PerfLogs**文件夹，系统的信息日志，文件夹可删。
 2. **Windows**文件夹
@@ -383,7 +383,7 @@ window 系统的 hosts 文件位置：`%windir%\System32\drivers\etc`
     - `C:\Windows\Help`，帮忙文件，可删
 3. **用户**文件夹：`C:\Users\用户名称\AppData\Local\Temp`。这个是Windows存留安装软件时解压的源文件，方便下次安装直接调取使用，节省解压时间，可删除。
 
-### 3.5. win7 系统的Temporary Internet Files清空问题
+### 3.5. win7 系统的 Temporary Internet Files 清空问题
 
 1. `cmd.exe`
 2. `cd AppData\Local\Microsoft\Windows\Temporary Internet Files`（或者如果有Content.IE5目录的话，cd Content.IE5）
@@ -410,9 +410,9 @@ win10系统：
 2. 按照如下顺序找到windows：[HKEY_CURRENT_USER\Control Panel\Colors] windows。双击windows 进入编辑状态 将原本数值删除并输入：`202 234 206`。点击确定退出注册表。
 3. 按照如下顺序找到 window：[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Themes\DefaultColors\Standard]。双击 window 打开编辑窗口，默认是勾选十六进制（若不是请勾选十六进制），将原始数据改为：`caeace`。点击确定退出注册表。
 
-### 3.8. 这个可能与ACHI有关系吧。你先去修改到 compatible（兼容模式）进入系统
+### 3.8. AHCI 开启方法 
 
-AHCI开启方法：
+先去修改到 compatible（兼容模式）进入系统
 
 1. 依次展开：“开始” -> “运行”（或使用Win+R) -> 键入“regedit” -> “确定”后 -> 启动注册表编辑器 -> 展开到`[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\services\msahci]`分支。
 2. 在右侧双击“Start” -> “编辑DWORD值” -> 将“数值数据”的键值由“3”改为“0” -> 单击“确定”。
@@ -420,7 +420,7 @@ AHCI开启方法：
 4. 然后出来看看BIOS里面的硬盘模式，修改为ACHI后（如果没有就算了）
 5. 然后在把SATA Operation Mode改为 enhanced（增强模式）
 
-### 3.9. NSIS：使用netsh advfirewall屏蔽某程序访问网络
+### 3.9. NSIS：使用 netsh advfirewall 屏蔽某程序访问网络
 
 - 关闭防火墙
 
@@ -472,7 +472,7 @@ nsExec::Exec 'cmd /c netsh advfirewall firewall add rule name="TIM" dir=out acti
 
 > Notes: 微软承认 win 11 系统中，删除了注册表值“`ShowSecondsInSystemClock`”，该值允许任务栏时钟以秒为单位显示时间。如果时间需要显示秒，需要安装第三方软件
 
-### 3.13. Win10系统删除无用的服务
+### 3.13. Win10 系统删除无用的服务
 
 1. 运行 -> `regedit`，打开注册表编辑器
 2. 定位到【计算机\HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services】，选择服务名称，右键删除即可
@@ -525,11 +525,11 @@ Windows Registry Editor Version 5.00
 
 打开记事本，复制以上内容，另存为`xxx.reg`。点击文件，确认操作后，重启电脑生效
 
-### 3.17. 关闭cmd命令行窗口的中文输入法
+### 3.17. 关闭 cmd 命令行窗口的中文输入法
 
 运行`regedit`命令，打开注册表窗口，修改注册表：`HKEY_CURRENT_USER\Console\LoadConIme` 的键值由`1`改为`0`
 
-### 3.18. 修改cmd/powershell命令行窗口默认编码
+### 3.18. 修改 cmd / powershell 命令行窗口默认编码
 
 **临时修改**
 
@@ -540,9 +540,9 @@ Windows Registry Editor Version 5.00
 - **修改powershell默认编码**：运行`regedit`命令打开注册表，展开注册表`计算机\HKEY_CURRENT_USER\Console`项。选择powershell，点击修改右边窗口中`CodePage`项，选择十进制，修改值为`65001`。修改后就每次启动都默认改成UTF-8的编码
 - **修改cmd编码**：运行`regedit`命令打开注册表，展开注册表`计算机\HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Command Processor`项。如果右边窗口没有`autorun`字符串值，则右键新建字符串值，数值名称：`autorun`，数值数据：`chcp 65001`。修改后就每次启动都默认改成UTF-8的编码
 
-### 3.19. 彻底关闭Cortana小娜
+### 3.19. 彻底关闭 Cortana 小娜
 
-- **关闭Cortana小娜的权限**
+- **关闭 Cortana 小娜的权限**
 
 Win10的设置菜单 -> "应用" -> 在应用列表中搜索找到Cortana -> 高级选项 -> 可以将Cortana小娜的麦克风、后台以及开机启动的权限全部关闭
 
@@ -558,7 +558,7 @@ Win10的设置菜单 -> "应用" -> 在应用列表中搜索找到Cortana -> 高
 Get-AppxPackage -allusers Microsoft.549981C3F5F10 | Remove-AppxPackage
 ```
 
-### 3.20. 关闭 Win11/ Win 10 内存压缩
+### 3.20. 关闭 Win11 / Win 10 内存压缩
 
 Win11默认开启了内存压缩功能。可以压缩内存中的数据，让内存占用更少，同时减少Swap频次，带来更高的I/O效率。但CPU性能较弱的设备，例如轻薄本，开启内存压缩可能会造成卡顿缓慢。同时，内存压缩需要消耗额外的CPU资源，带来更多耗电发热，这对注重续航的设备来说也是不合适的。
 
@@ -636,7 +636,7 @@ Windows Registry Editor Version 5.00
 
 ### 4.3. 开启 Windows 11 隐藏的教育主题
 
-教育主题适用于 Windows 11 家庭版、专业版和企业版。11若要使 Windows 11 教育版主题可用，用户需要执行以下操作：
+教育主题适用于 Windows 11 家庭版、专业版和企业版。若要使 Windows 11 教育版主题可用，用户需要执行以下操作：
 
 1. 按键盘上的 Win+R 打开运行窗口
 2. 输入 `regedit` 按回车打开注册表编辑器

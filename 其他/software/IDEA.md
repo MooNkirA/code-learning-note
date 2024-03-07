@@ -88,11 +88,11 @@ IDEA 分为两个版本：旗舰版(Ultimate) 和社区版(Community)。两个�
 
 第一次进入Intellij IDEA之前，先修改一下缓存的保存位置
 
-1. 修改idea安装目录下的bin文件中的idea.properties文件（`%IDEA_HOME%/bin/idea.properties`）
+1. 修改 idea 安装目录下的 bin 文件中的 idea.properties 文件（`%IDEA_HOME%/bin/idea.properties`）
 
 ![](images/20201010083449348_26288.png)
 
-2. 修改idea的配置config文件夹与系统system文件。*注：插件与日志的文件夹可以不需要设置，因为这两个文件夹是默认在config与system目录下，但如果打开idea提示*
+2. 修改 idea 的配置 config 文件夹与系统 system 文件。*注：插件与日志的文件夹可以不需要设置，因为这两个文件夹是默认在 config 与 system 目录下，但如果打开 idea 提示*
 
 ![](images/20201010084102634_25410.png)
 
@@ -184,7 +184,7 @@ idea.system.path=D:/development/JetBrains/.IntelliJIdea/system
 1. 打开【Settings】，找到【File Encodings】，把 encoding 相关的选项都选择 UTF-8
 
 ![](images/422814610247212.png)
- 
+
 > Notes: Transparent native-to-ascii conversion 是用于自动转换 ASCII 编码，显式原生内容。工作原理是：在文件中输入文字时他会自动的转换为 Unicode 编码，然后在 idea 中发开文件时他会自动转回文字来显示。这样做是为了防止文件乱码。像 properties 这类文件，一般都不会出现中文乱码！<font color=red>**一般建议都要勾选。**</font>
 
 2. 打开 IDEA 安装路径，找到如下的安装目录。根据所安装的版本修改相应的配置文件（idea64.exe.vmoptions）
@@ -496,7 +496,7 @@ IDEA 代码提示默认是匹配大小写，此开关如果未关。输入字符
 #### 4.3.7. 设置 tab 为 4 个空格
 
 设置位置：Editor -> Code Style -> Java -> Tabs and Indents。取消勾选 Use tab character
- 
+
 ![](images/460514310227046.png)
 
 #### 4.3.8. 设置忽略显示，隐藏文件或者文件夹（类似eclipse的filter功能）
