@@ -165,10 +165,10 @@ umi build
     1. 所有的html标签必须是闭合的，如：`<div>HelloWorld</div>`的写法是正确；`<div>HelloWorld`的写法是错误的；
     2. 在JSX语法中，只能有一个根标签，不能有多个。
 
-    ```jsx
-    const div1 = <div>hello world</div> // 正确
-    const div2 = <div>hello</div> <div>world</div> // 错误
-    ```
+```jsx
+const div1 = <div>hello world</div> // 正确
+const div2 = <div>hello</div> <div>world</div> // 错误
+```
 
 ### 4.1. JavaScript 表达式
 
