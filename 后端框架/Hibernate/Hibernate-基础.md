@@ -1260,7 +1260,175 @@ public static Criterion sqlRestriction(String sql)
 
 ### 6.5. 分页查询
 
+```java
+public Criteria setFirstResult(int firstResult);
+```
 
+- 设置分页查询的首页页码（查询索引是从0开始）
+
+```java
+public Criteria setMaxResults(int maxResults);
+```
+
+- 设置分页查询的每页记录数
+
+### 6.6. 统计查询
+
+```java
+public Criteria setProjection(Projection projection);
+```
+
+- QBC 使用聚合函数统计查询。参数 `Projection`：要添加的查询投影。
+
+#### 6.6.1. Projections 工具类静态方法
+
+```java
+public static CountProjection count(String propertyName)
+```
+
+- 设置查询聚合函数语句
+
+#### 6.6.2. 示例
+
+```java
+// QBC使用聚合函数：统计查询
+@Test
+public void testProjection() {
+	// 获取Session对象
+	Session session = HibernateUtil.getSession();
+	// 开启事务
+	Transaction tx = session.beginTransaction();
+	// 获取Criteria对象,相当于from Customer 或 select * from cst_customer
+	Criteria c = session.createCriteria(Customer.class);
+	// 想办法把 select * 变成 select count(*)
+	c.setProjection(Projections.count("custId"));
+	Long total = (Long) c.uniqueResult();
+	System.out.println(total);
+	// 提交事务
+	tx.commit();
+	// 关闭资源
+	session.close();
+}
+```
+
+### 6.7. 离线查询 DetachedCriteria
+
+Criteria 对象是一个在线对象，它是由一个可用的（活动的）Session 对象获取的出来的。当 session 失效时，就无法再获取该对象了。
+
+有与 Criteria 相对的一个对象，它也可以用于设置条件，但是获取的时候并不需要 Session 对象。该对象就叫做离线对象：`DetachedCriteria`。使用该对象进行的查询就叫做：**离线查询**。
+
+通过 `DetachedCriteria` 类中的 `forClass` 静态方法来获取其对象
+
+```java
+public static DetachedCriteria forClass(Class clazz);
+public static DetachedCriteria forClass(Class clazz, String alias);
+```
+
+示例
+
+```java
+// 离线查询
+@Test
+public void testDetachedCriteria() {
+	// 模拟一次web操作: 浏览器发送请求——调用servlet——调用service——调用dao——拿到结果到jsp上展示
+	List list = servletFindAllCustomer();
+	for (Object o : list) {
+		System.out.println(o);
+	}
+}
+
+// 模拟 servlet
+public List<Customer> servletFindAllCustomer() {
+	// 离线对象
+	DetachedCriteria dCriteria = DetachedCriteria.forClass(Customer.class);
+	// 设置条件：和 Criteria 是一样的
+	dCriteria.add(Restrictions.like("custName", "%剑%"));
+	return serviceFindAllCustomer(dCriteria);
+}
+
+public List<Customer> serviceFindAllCustomer(DetachedCriteria dCriteria) {
+	return daoFindAllCustomer(dCriteria);
+}
+
+public List<Customer> daoFindAllCustomer(DetachedCriteria dCriteria) {
+	Session s = HibernateUtil.getSession();
+	Transaction tx = s.beginTransaction();
+	// 把离线对象使用可用 Session 激活
+	Criteria c = dCriteria.getExecutableCriteria(s);
+	List<Customer> list = c.list();
+	tx.commit();
+	return list;
+}
+```
+
+
+
+### 6.8. 使用示例
+
+```java
+public class TestHibernate_Criteria {
+	// 1.查询所有的数据，QBC
+	public void findAll() {
+		// 获取Session对象
+		Session session = HibernateUtil.getSession();
+		// 获取Criteria对象，必须指定查询的类.class
+		Criteria criteria = session.createCriteria(Customer.class);
+		// 调用list方法，查询所有数据，返回对象list集合
+		List<Customer> list = criteria.list();
+
+		// 遍历集合
+		for (Customer c : list) {
+			System.out.println(c.getCustName());
+		}
+		// 关闭资源
+		session.close();
+	}
+
+	// 通过条件查询,通过客户名模糊查询
+	public void findByName() {
+		// 获取Session对象
+		Session session = HibernateUtil.getSession();
+		// 获取Criteria对象，必须指定查询的类.class
+		Criteria criteria = session.createCriteria(Customer.class);
+		
+		// 设置查询条件
+		criteria.add(Restrictions.like("custName", "%剑%"));
+		
+		// 调用list方法，查询所有数据，返回对象list集合
+		List<Customer> list = criteria.list();
+
+		// 遍历集合
+		for (Customer c : list) {
+			System.out.println(c.getCustName());
+		}
+		// 关闭资源
+		session.close();
+	}
+	
+	// 查询第3条开始，取4条件数据
+	public void findByPage() {
+		// 获取Session对象
+		Session session = HibernateUtil.getSession();
+		// 获取Criteria对象，必须指定查询的类.class
+		Criteria criteria = session.createCriteria(Customer.class);
+		
+		// 设置首页开始索引
+		criteria.setFirstResult(2);
+		// 设置分页显示的数据条数
+		criteria.setMaxResults(4);
+
+		// 调用list方法，查询所有数据，返回对象list集合
+		List<Customer> list = criteria.list();
+
+		// 遍历集合
+		for (Customer c : list) {
+			System.out.println(c.getCustName());
+		}
+		// 关闭资源
+		session.close();
+	}
+}
+```
 
 ## 7. Hibernate 缓存与快照
 
