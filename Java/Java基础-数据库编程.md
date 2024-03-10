@@ -157,9 +157,9 @@ Connection conn = DriverManager.getConnection("jdbc:mysql://10.211.55.3:3306/tem
 
 #### 3.3.4. 连接数据库的 URL 地址格式
 
-URL用于标识数据库的位置，程序员通过URL地址告诉JDBC程序连接哪个数据库，URL的写法为：
+URL 用于标识数据库的位置，程序员通过 URL 地址告诉 JDBC 程序连接哪个数据库，
 
-##### 3.3.4.1. url地址格式
+##### 3.3.4.1. url 地址格式
 
 格式：
 
@@ -170,10 +170,8 @@ jdbc协议名:子协议://数据库服务器地址或 IP 地址:端口号/数据
 示例：
 
 ```java
-jdbc:mysql: [] //localhost:3306/test? 参数名:参数值
-```
+jdbc:mysql://localhost:3306/test?参数名:参数值
 
-```java
 // MySQL写法：
 jdbc:mysql://localhost:3306/temp
 
@@ -183,10 +181,10 @@ jdbc:mysql:///temp
 
 ##### 3.3.4.2. 各类数据库连接字符串
 
-JDBC的URL = 协议名 + 子协议名 + 数据源名
+JDBC 的 URL = 协议名 + 子协议名 + 数据源名
 
 - 协议名总是`jdbc`。
-- 子协议名由JDBC驱动程序的编写者决定。
+- 子协议名由 JDBC 驱动程序的编写者决定。
 - 数据源名也可能包含用户与口令等信息；这些信息也可单独提供。
 
 ##### 3.3.4.3. 几种常见的数据库连接
@@ -219,21 +217,25 @@ JDBC的URL = 协议名 + 子协议名 + 数据源名
     - `machine_name`：数据库所在的机器的名称；
     - `port`：端口号，默认是5000
 
-#### 3.3.5. 解决JDBC无法连接MySQL数据库的问题
+#### 3.3.5. 解决 JDBC 无法连接 MySQL 数据库的问题
 
-MySQL数据连接时只能使用localhost连接，但不能用IP连接问题的解决方案
+MySQL 数据连接时只能使用 localhost 连接，但不能用 IP 连接问题的解决方案
 
-1. 打开cmd窗口，进入MySQL安装的bin目录
-2. 执行命令登录数据库,之后会出现一行要你输入密码的 `mysql -u root -p`
+1. 打开 cmd 窗口，进入M ySQL 安装的 bin 目录
+2. 执行命令登录数据库，之后会出现一行要你输入密码的 `mysql -u root -p`
 3. 执行以下命令分配新用户：
-    ```bash
-    # (%) 表示所有ip
-    grant all privileges on *.* to 'root'@'%' identified by 'root';
-    ```
+
+```sql
+# (%) 表示所有ip
+grant all privileges on *.* to 'root'@'%' identified by 'root';
+```
+
 4. 执行完上述命令后用下面的命令刷新权限
-    ```bash
-    flush privileges;
-    ```
+
+```sql
+flush privileges;
+```
+
 5. 之后关闭mysql服务，然后启动mysql服务，大功告成
 
 #### 3.3.6. mysql 8.0+以上版本驱动连接失败
@@ -243,6 +245,8 @@ MySQL数据连接时只能使用localhost连接，但不能用IP连接问题的�
 ```
 java.sql.SQLNonTransientConnectionException:Public key Retrieval is not allowed…
 ```
+
+原因（参考官网给出的连接选项）：如果用户使用了 sha256_password 认证，密码在传输过程中必须使用 TLS 协议保护，但是如果 RSA 公钥不可用，可以使用服务器提供的公钥。可以在连接中通过 ServerRSAPublicKeyFile 指定服务器的 RSA 公钥，或者 `allowPublicKeyRetrieval=true` 参数以允许客户端从服务器获取公钥。但是需要注意的是，该参数可能会导致恶意的代理通过中间人攻击(MITM)获取到明文密码，所以默认是关闭的，必须显式开启。所以可以用 mysql_native_password，不要用 sha256_password 方式，就不会有问题了。
 
 此时需要修改数据库的连接，增加如下配置：
 

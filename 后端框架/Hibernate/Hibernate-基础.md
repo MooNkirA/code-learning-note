@@ -878,9 +878,120 @@ Criteria createCriteria(String entityName, String alias);
 
 - 获得标准查询的 Criteria 对象（已过时）。继承自 `org.hibernate.SharedSessionContract`
 
-#### 4.4.3. 小结
+#### 4.4.3. 绑定 Session 到当前线程
 
-##### 4.4.3.1. get 和 load 方法的区别（了解）
+##### 4.4.3.1. 将 Session 当参数的传递的方式实现
+
+```java
+@Test
+public void testSession() {
+	// 获取会话对象
+	Session session = HibernateUtil.getSession();
+	System.out.println(session.hashCode());
+	// 开启事务
+	Transaction transaction = session.beginTransaction();
+
+	// 新增数据
+	HibernateDao dao = new HibernateDao(session);
+	Customer c1 = new Customer();
+	Customer c2 = new Customer();
+
+	c1.setCustName("试试");
+	dao.save(c1);
+	c2.setCustName("xx");
+	dao.save(c2);
+	// 提交事务
+	transaction.commit();
+	// 关闭资源
+	session.close();
+}
+
+public class HibernateDao {
+	// 定义session成员变量
+	private Session session;
+
+	// 通过构造函数传递Session
+	public HibernateDao(Session session) {
+		this.session = session;
+	}
+
+	// 增加数据方法
+	public void save(Customer customer) {
+		System.out.println(session.hashCode() + "--dao层");
+		// 保存数据
+		session.save(customer);
+	}
+}
+```
+
+##### 4.4.3.2. Hibernate 内置实现
+
+由于项目几乎都使用 Spring 框架，不能使用 new 创建对象。所以不能使用构造函数传递 session 给 DAO，可以使用线程绑定来实现外层的 session 和 DAO 的 session 是同一个对象。
+
+所谓的线程绑定，就是使用一个线程变量将对象 `ThreadLoad` 保存起来，从而保证同一条线程获得同一个对象。<font color=red>**线程绑定的作用，就是让同一条线程获得 session 对象是相同的，不需要参数传递 session！！！**</font>实现步骤如下：
+
+- 修改全局配置文件配置
+
+```java
+<!-- 配置绑定线程 -->
+<property name="hibernate.current_session_context_class">thread</property>
+```
+
+- 修改工具类获取 Session 代码
+
+```java
+public static Session getSession() {
+	// 每次打开一个新连接
+	return sessionFactory.getCurrentSession();
+	// return sessionFactory.openSession();
+}
+```
+
+**注意事项**：
+
+1. session 不能手动关闭。如果 session 绑定到当前线程，会随线程启动而启动，随线程结束而结束。因此不能手工关闭。
+2. 所有的操作都要打开事务，包括查询（原来查询是不需要启动事务的）。配置了线程绑定，Hibernate 就要验证事务激活状态，导致了所有的操作都要开启事务，包括查询！！
+
+##### 4.4.3.3. 使用 ThreadLocal 实现
+
+使用 `ThreadLocal` 类实现线路绑定。注意，自定义实现线程绑定是不需要配置 Hibernate 的线程绑定的。修改前面示例中 `HibernateUtil` 的核心部分：
+
+```java
+public class HibernateUtil {
+	// 使用static的关键字，整个项目共享一个对象。
+	// 创建静态Session工厂成员变量
+	public static SessionFactory sessionFactory = HibernateUtil.createSessionFactory();
+	// 创建线程共享对象
+	private static ThreadLocal<Session> local = new ThreadLocal<Session>();
+
+	// 获得会话工厂
+	private static SessionFactory createSessionFactory() {
+		// 1.创建Configuration对象
+		Configuration cfg = new Configuration();
+		// 2.读取配置文件，获得框架信息，默认读取classpath根目录hibernate.cfg.xml
+		cfg.configure();
+		// 3.获得会话工厂,如果要连接数据库必须需要连接数据库的信息（四要素）
+		// 获得会话工厂必须要在读取配置文件之后
+		return cfg.buildSessionFactory();
+	}
+
+	// 获取会话操作对象
+	public static Session getSession() {
+		// 判断线程共享对象是否有值
+		if (local.get() == null) {
+			Session session = sessionFactory.openSession();
+			// 将Session存入线程共享对象中
+			local.set(session);
+		}
+		// 返回线路共享值
+		return local.get();
+	}
+}
+```
+
+#### 4.4.4. 小结
+
+##### 4.4.4.1. get 和 load 方法的区别（了解）
 
 `get()` 方法：
 
@@ -900,7 +1011,7 @@ Criteria createCriteria(String entityName, String alias);
 
 > Tips: 由于 load 方法拿不到数据报异常，又需要处理异常导致代码增加。所以开发都是使用 get 方法
 
-#### 4.4.4. 示例
+#### 4.4.5. 示例
 
 基础的增删改查
 
@@ -1324,7 +1435,7 @@ public static DetachedCriteria forClass(Class clazz);
 public static DetachedCriteria forClass(Class clazz, String alias);
 ```
 
-示例
+示例：
 
 ```java
 // 离线查询
@@ -1360,8 +1471,6 @@ public List<Customer> daoFindAllCustomer(DetachedCriteria dCriteria) {
 	return list;
 }
 ```
-
-
 
 ### 6.8. 使用示例
 
@@ -1430,21 +1539,211 @@ public class TestHibernate_Criteria {
 }
 ```
 
-## 7. Hibernate 缓存与快照
+## 7. HQL（Hibernate Query Language）
+
+### 7.1. HQL 概述
+
+Hibernate 查询语言（HQL, Hibernate Query Language）是一种面向对象的查询语言，类似于 SQL，但不是去对表和列进行操作，而是面向对象和它们的属性，操作的是持久化对象。HQL 查询最终会被 Hibernate 翻译为传统的 SQL 查询从而对数据库进行操作。
+
+注意：尽管能直接使用本地 SQL 语句，但还是建议尽可能的使用 HQL 语句。因为<font color=red>使用 HQL 操作数据库表的好处是，不同的关系型数据库使用的 HQL 的语法是相同的，从而避免不同数据库关于可移植性的麻烦，并且体现了 Hibernate 的 SQL 生成和缓存策略。（推荐）</font>
+
+**关于大小写敏感性问题**：在 HQL 中一些关键字比如 SELECT，FROM 和 WHERE 等，是不区分大小写的，但是一些属性（比如 Java 类与属性的名称、表名、列名）是区分大小写。
+
+### 7.2. Query 接口
+
+#### 7.2.1. 获取 Query 对象
+
+`org.hibernate.Query` 是实现 HQL 的主要接口。
+
+```java
+public interface Query<R> extends TypedQuery<R>, CommonQueryContract
+```
+
+使用 Session 对象的 `createQuery` 方法获取 HQL 查询对象 `Query`，其中参数 `queryString` 是 HQL 查询语句。
+
+```java
+Query query = session.createQuery(String queryString);
+```
+
+#### 7.2.2. Query 接口的常用方法
+
+```java
+List<R> list();
+```
+
+- 返回查询的结果 List 集合（查询所有符合条件的数据）
+
+```java
+default Query<R> setString(int position, String val)
+default Query<R> setString(String name, String val)
+```
+
+- 根据参数位置/参数名称，绑定字符串类型的参数值
+
+> Tips: 接口中还有其他数据类型 `setXxx` 方法，都是用于设置不同类型的参数，用法几乎一样。
+
+```java
+R uniqueResult();
+```
+
+- 返回与查询匹配的单个单个结果，如果查询没有返回结果，则返回 null。常用聚合函数，如 `count()`
+
+### 7.3. FROM 语句
+
+FROM 语句用于在存储中加载一个完整并持久的对象。以下是 FROM 语句的一些简单的语法：
+
+- `from com.moon.pojo.Cat`：指定对象类全名
+- `from Cat`：对象类名
+- `from Cat c`：给类起别名 c
+
+<font color=red>**注意：如果需要使用 `select` 查询所有数据，那么返回的是一个对象。不能使用 `*`**</font>。例如：
+
+```sql
+from Cat
+-- 或者
+select c from Cat c
+```
+
+在 HQL 可以直接指定类名，如下：
+
+```java
+String hql = "FROM Employee";
+Query query = session.createQuery(hql);
+List results = query.list();
+```
+
+在 HQL 中的 From 语句可以使用全限定名或者给类指定别名，如下：
+
+```java
+// 全限定名
+Query query = session.createQuery("from Customer");
+List<Customer> list = query.list(query);
+// 给类指定别名
+Query query2 = session.createQuery("select c from Customer c");
+List<Customer> list2 = query.list(query2);
+```
+
+### 7.4. AS 语句
+
+在 HQL 中 AS 语句用于给类分配别名，尤其是在长查询的情况下。例如之前的例子：
+
+```java
+Query query = session.createQuery("FROM Employee AS E");
+List results = query.list();
+```
+
+关键字 `AS` 是可省略的，并且也可以在类名后直接指定一个别名，如下：
+
+```java
+Query query = session.createQuery("FROM Employee E");
+List results = query.list();
+```
+
+### 7.5. SELECT 语句
+
+SELECT 语句比 FROM 语句提供了更多的对结果集的控制。如果只想得到对象的其中的几个属性而不是整个对象时，则需要使用 SELECT 语句。例如仅需要获取 Employee 对象的 first_name 字段：
+
+```java
+Query query = session.createQuery("SELECT e.firstName FROM Employee e");
+List results = query.list();
+```
+
+> Notes: 需要注意 `firstName` 是 `Employee` 对象的属性，而不是 `EMPLOYEE` 表的字段。
+
+### 7.6. WHERE 语句
+
+如果要精确地从数据库存储中返回特定对象，则需要使用 WHERE 语句。
+
+```java
+Query query = session.createQuery("FROM Employee e WHERE e.id = 10");
+List results = query.list();
+```
+
+### 7.7. ORDER BY 语句
+
+使用 ORDER BY 语句可以给 HQL 查询结果进行排序。可以利用任意一个属性对结果进行排序，包括升序或降序排序。
+
+```java
+Query query = session.createQuery("FROM Employee e WHERE e.id > 10 ORDER BY e.salary DESC");
+List results = query.list();
+```
+
+对多个属性进行排序，只需要在 ORDER BY 语句后面添加要进行排序的属性，并且用逗号进行分隔：
+
+```java
+String hql = "FROM Employee e WHERE e.id > 10 " +
+             "ORDER BY e.firstName DESC, e.salary DESC";
+Query query = session.createQuery(hql);
+List results = query.list();
+```
+
+### 7.8. GROUP BY 语句
+
+GROUP BY 语句允许 Hibernate 将从数据库中获取的数据基于某种属性的值来进行分组。通常，该语句会使用得到的结果来包含一个聚合值。
+
+```java
+Query query = session.createQuery("SELECT SUM(e.salary), e.firtName FROM Employee e GROUP BY e.firstName");
+List results = query.list();
+```
+
+### 7.9. 动态参数
+
+#### 7.9.1. ?（问号）占位符
+
+通过 `?` 占位符来动态设置参数值，通过 `setString(int position, String val) ` 方法根据占位符位置来设置参数值。
+
+```java
+// 获取Query查询接口
+Query query = session.createQuery("from Customer c where c.custName like ?");
+// 设置 ? 占位符的值，如果是多个 ? 号，索引是从 0 开始
+query.setString(0, "%剑%");
+List<Customer> list = query.list(query);
+```
+
+#### 7.9.2. 命名参数
+
+Hibernate 的 HQL 查询功能支持命名参数。声明一个命名参数，例如 `:name`(注意参数前有冒号 `:`)，通过 `setString(String name, String val)` 方法来设置参数值。注意：设置命名参数时，不用冒号。
+
+```java
+// 声明一个命名参数，:name(注意参数前有冒号 :)
+Query query = session.createQuery("from Customer c where c.custName like :name");
+// 设置命名参数的值，注意：调用命名参数，不用冒号
+query.setString("name", "%剑%");
+List<Customer> list = query.list(query);
+
+// 示例2 使用 setParameter 方法
+Query query = session.createQuery("FROM Employee e WHERE e.id = :employee_id");
+query.setParameter("employee_id", 10);
+List results = query.list();
+```
+
+### 7.10. 聚合函数
+
+HQL 类似于 SQL，支持一系列的聚合函数，它们以同样的方式在 HQL 和 SQL 中工作。常用的聚合函数如下：
+
+
+
+
+
+
+
+
+
+## 8. Hibernate 缓存与快照
 
 缓存是关于应用程序性能的优化，降低了应用程序对物理数据源访问的频次，从而提高应用程序的运行性能。Hibernate 使用了如下解释的多级缓存方案：
 
 ![](images/585641222240345.jpg)
 
-### 7.1. 一级缓存
+### 8.1. 一级缓存
 
-#### 7.1.1. 概述
+#### 8.1.1. 概述
 
 Hibernate 是支持一级缓存，即 Session 级别的缓存。<font color=red>同一个 session 查询同样的数据，只查询一次数据库</font>。如果出现同多次同样的查询（get/load），直接返回缓存的数据。
 
 Hibernate 默认情况就支持一级缓存。如果支持缓存，使用多次 get 查方法只有一条 sql 语句，说明只查询一次数据库，其余次数的数据直接在缓存中获得。
 
-#### 7.1.2. 清空缓存的方法
+#### 8.1.2. 清空缓存的方法
 
 调用以下三个方法，会清空缓存：
 
@@ -1454,16 +1753,16 @@ Hibernate 默认情况就支持一级缓存。如果支持缓存，使用多次 
 
 <font color=red>**注意：close，clear，evit 清空缓存只是将持久态转成游离态，清空的是数据和数据库的关联，而不是清空数据。**</font>
 
-### 7.2. 二级缓存
+### 8.2. 二级缓存
 
-#### 7.2.1. 概述
+#### 8.2.1. 概述
 
 1. HQL 支持缓存，不过是二级缓存，如果返回的记录是多条数据，需要使用二级缓存。
 2. 一级缓存是 session 级别的缓存。
 
 hql 使用的使用 query 对象，需要配置二级缓存。
 
-#### 7.2.2. 二级缓存的配置
+#### 8.2.2. 二级缓存的配置
 
 1. 导入包 `hibernate-release-5.x.x.Final.jar`（源码在 `\lib\optional\ehcache`）
 2. 在 hibernate.cfg.xml 配置文件中，配置打开缓存。
@@ -1488,13 +1787,13 @@ query.setCacheable(true);
 
 4. <font color=red>**注意：配置二级缓存，实体类必须要实现序列化接口**</font>
 
-### 7.3. 查询层次缓存
+### 8.3. 查询层次缓存
 
 Hibernate 也实现了一个和二级缓存密切集成的查询结果集缓存。这是一个可选择的、并且需要两个额外的物理缓存区域，它们保存着缓存的查询结果和表单上一次更新时的时间戳。这仅对以同一个参数频繁运行的查询来说是有用的。
 
-### 7.4. 快照机制
+### 8.4. 快照机制
 
-#### 7.4.1. 概述
+#### 8.4.1. 概述
 
 当对象变成<font color=red>持久态对象</font>的时候，和数据库表关联后。在 session 中<font color=red>**会保存<u>两份数据的副本</u>：一份是缓存，一个是快照**</font>。缓存与快照的区别如下：
 
@@ -1523,15 +1822,15 @@ public void update2() {
 }
 ```
 
-#### 7.4.2. 实现原理
+#### 8.4.2. 实现原理
 
 当获得一个持久态对象，此时 Session 保存两份副本，一份是快照数据(不能手动修改)，一份是缓存数据。此时再调用对象的 set 方法修改某个属性，<font color=red>修改属性的同时修改缓存的数据，但快照数据保持不变</font>。最后提交事务，就会<font color=red>对比快照与缓存中的数据，如果数据不一样，则更新数据库</font>（不需要再将使用 `update()` 方法）。
 
 ![](images/216724816259477.jpg)
 
-## 8. Hibernate 相关扩展知识
+## 9. Hibernate 相关扩展知识
 
-### 8.1. eclipse 创建 XML 的配置 DTD 规则文件生成配置文件
+### 9.1. eclipse 创建 XML 的配置 DTD 规则文件生成配置文件
 
 大部分的框架规则文件都在核心包，Hibernate 的规则文件也是在 core 核心包里面找。有注意事项如下：
 
@@ -1542,7 +1841,7 @@ public void update2() {
 3. Hibernate 的规则文件都在核心包里面 hibernate-core-5.0.12.Final.jar
 4. 配置文件最重要的步骤，就是在核心包里面 cfg 找到对应的属性！！！！！
 
-#### 8.1.1. 关联本地 dtd 约束文件的方式1
+#### 9.1.1. 关联本地 dtd 约束文件的方式1
 
 ![](images/542580520266705.jpg) ![](images/330700620259374.jpg)
 
@@ -1568,13 +1867,13 @@ hibernate-core-5.0.12.Final.jar -> org.hibernate.cfg -> AvailableSettings.class
 
 ![](images/416761020263486.jpg)
 
-#### 8.1.2. 关联本地 dtd 约束文件的方式2
+#### 9.1.2. 关联本地 dtd 约束文件的方式2
 
 关联 dtd 文件时选择 url，对应是 hibernate/struts 的 dtd 下载网址（注意前后不能有空格和 `""` 双引号）
 
 ![](images/276871120257032.jpg)
 
-### 8.2. Eclipse 插件 ERMaster 根据数据库表生成 JavaBean 代码
+### 9.2. Eclipse 插件 ERMaster 根据数据库表生成 JavaBean 代码
 
 - 将 ERMaster 解压到 Eclipse 里面
 
@@ -1602,12 +1901,12 @@ hibernate-core-5.0.12.Final.jar -> org.hibernate.cfg -> AvailableSettings.class
 
 ![](images/455655112269661.jpg)
 
-### 8.3. Hibernate 的 session 跟 servlet 的 session 的 区别
+### 9.3. Hibernate 的 session 跟 servlet 的 session 的 区别
 
 - servlet 的 session 保持的是请求状态的。（用于返回当前用户的数据到页面）
 - hibernate 的 session 保持程序和数据库连接的状态。（用于操作数据库）
 
-### 8.4. Hibernate 使用 JDBC（了解，基本不用）
+### 9.4. Hibernate 使用 JDBC（了解，基本不用）
 
 ```java
 // 使用 JDBC 操作（了解）

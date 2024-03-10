@@ -306,7 +306,25 @@ Input 不是一个字体，而是一个家族；除了等宽版本，还有两�
 
 > 详见[《foobar2000 - 本地顶级音乐播放器》](/其他/software/foobar2000)
 
-### 5.2. MusicPlayer2
+### 5.2. Winamp
+
+Winamp 是一款经典的 MP3 软件，从免费到收费，再过渡到免费软件，直到现在整合的版本 5，Winamp 无愧于 Windows 系统下播放器的头把交椅，最新版本修正了旧版中的 Bug，并增加了一些新功能，如果不喜欢现在的 Winamp 过于臃肿，建议定制安装，或选择 Lite 版本。
+
+> 官网：https://player.winamp.com/trending
+
+### 5.3. AIMP
+
+AIMP(Artem Izmaylov Media Player)是一款来自俄罗斯的免费专业级音频播放器，除了播放器基本的音频播放之外，还提供了音频转换、标签编辑、录制广播等功能。播放器界面相当友好易用，占用系统资源较少且安装包也不是很大。
+
+> 官网：https://www.aimp.ru/
+
+### 5.4. MusicBee
+
+终极音乐管理器和播放器。MusicBee 可让您轻松管理、查找和播放电脑中的音乐文件。MusicBee 还支持播客、网络电台和 SoundCloud 集成。
+
+> 官网：https://www.getmusicbee.com/
+
+### 5.5. MusicPlayer2
 
 MusicPlayer2 是一个开源的纯粹音乐播放器，功能强大，界面极简干净，后台占有资源极少！
 
@@ -317,31 +335,25 @@ MusicPlayer2 是一个开源的纯粹音乐播放器，功能强大，界面极�
 - [MusicPlayer2 最新版本下载](https://github.com/zhongyang219/MusicPlayer2/releases)
 - 国内备用下载链接：[百度网盘下载](https://pan.baidu.com/s/1i5QNwFF)
 
-### 5.3. Winamp
-
-Winamp 是一款经典的 MP3 软件，从免费到收费，再过渡到免费软件，直到现在整合的版本 5，Winamp 无愧于 Windows 系统下播放器的头把交椅，最新版本修正了旧版中的 Bug，并增加了一些新功能，如果不喜欢现在的 Winamp 过于臃肿，建议定制安装，或选择 Lite 版本。
-
-> 官网：https://player.winamp.com/trending
-
-### 5.4. 洛雪音乐助手桌面版
+### 5.6. 洛雪音乐助手桌面版
 
 洛雪音乐桌面版
 
 - Github 仓库： https://github.com/lyswhut/lx-music-desktop/releases
 - [蓝奏云](https://www.lanzoui.com/b0bf2cfa/) 密码：glqw
 
-### 5.5. Listen 1
+### 5.7. Listen 1
 
 Listen 1 音乐播放器主页： https://listen1.github.io/listen1/
 
 windows 桌面版缓存目录：`%APPDATA%\listen1\Cache`
 
-### 5.6. 音频标签软件
+### 5.8. 音频标签软件
 
 - [MP3TAG](https://www.mp3tag.de/en/index.html) - MP3 文件 ID3-Tag 信息修改器。所谓 ID3-Tag  信息，就是在 MP3 文件中加入曲名，演唱者，专辑，年月，流派，注释等信息，便于您收集歌曲。其实 Winamp 中带有编辑器，只是把它做的方便一点。可以以文件名批量添加媒体元信息，根据媒体元信息批量重命名文件，执行批量文字替换、导入导出文件信息、创建播放列表等任务。MP3tag 便携版软件运行批量修改，免去了大家一个一个修改的麻烦，也解决了播放 MP3 出现乱码。
 - [音乐标签](https://www.cnblogs.com/vinlxc/p/11347744.html) - 是一款可以编辑歌曲的标题，专辑，艺术家等信息的应用程序，支持 FLAC, APE, WAV, AIFF, WV, TTA, MP3, MP4, M4A, OGG, MPC, OPUS, WMA, DSF, DFF 等音频格式，绿色无广告，无任何功能限制。
 
-### 5.7. 音乐下载
+### 5.9. 音乐下载
 
 - ~~下歌吧音乐下载平台（*抱歉！该站点已经被管理员停止运行，请联系管理员了解详情！）* https://music.y444.cn/#/ ~~
 - MyFreeMP3(离线版)： https://tools.liumingye.cn/music/?page=searchPage#
