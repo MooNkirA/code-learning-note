@@ -16,9 +16,9 @@ Ant Design 是阿里蚂蚁金服团队基于 React 开发的 ui 组件，主要�
 
 Ant Design 是一个服务于企业级产品的设计体系，组件库是它的 React 实现，antd 被发布为一个 npm 包方便开发者安装并使用。
 
-在umi中，你可以通过在插件集umi-plugin-react中配置antd打开antd插件，antd插件会帮你引入antd并实现按需编译。
+在 umi 中，你可以通过在插件集 umi-plugin-react 中配置 `antd` 选项，打开 antd 插件，该插件会引入 antd 并实现按需编译。
 
-在config.js文件中进行配置：
+在 config.js 文件中进行配置：
 
 ```js
 export default {

@@ -87,6 +87,11 @@
 
 <ul class="docs">
   <li><a href="#/后端框架/Hibernate/Hibernate-基础">Hibernate 基础</a></li>
+  <li><a href="#/后端框架/Hibernate/Hibernate-配置">Hibernate 配置</a></li>
+  <li><a href="#/后端框架/Hibernate/Hibernate-标准查询">Hibernate 标准查询 Criteria</a></li>
+  <li><a href="#/后端框架/Hibernate/Hibernate-HQL">Hibernate Query Language（HQL）</a></li>
+  <li><a href="#/后端框架/Hibernate/Hibernate-多表关联">Hibernate 多表关联</a></li>
+  <li><a href="#/后端框架/Hibernate/Hibernate-JPA">Hibernate JPA</a></li>
 </ul>
 
 ### 🧰 SpringMVC
@@ -195,9 +200,10 @@
 ### 💫 React.js
 
 <ul class="docs">
-  <li><a href="#/前端资料/React/React-基础">React.js 笔记</a></li>
-  <li><a href="#/前端资料/React/Ant-Design">Ant Design 笔记</a></li>
-  <li><a href="#/前端资料/React/Ant-Design-Mobile">Ant Design Mobile 笔记</a></li>
+  <li><a href="#/前端资料/React/React-基础">React.js 基础</a></li>
+  <li><a href="#/前端资料/React/React-Hook">React Hook 函数式组件</a></li>
+  <li><a href="#/前端资料/React/Ant-Design">Ant Design - React UI 组件库</a></li>
+  <li><a href="#/前端资料/React/Ant-Design-Mobile">Ant Design Mobile - 基于 React 的移动端 Web 组件库</a></li>
 </ul>
 
 ### 🅱 Bootstrap
