@@ -557,7 +557,7 @@ JSX 允许在 JavaScript 中编写类似 HTML 的标签，从而使渲染的逻�
 - 在 JSX 的大括号内调用 JavaScript 函数
 - 在 JSX 的大括号内使用 JavaScript 对象
 
-> Notes: if 语句、switch 语句、变量声明不属于表达式，不能出现在`{}`中
+> Notes: if 语句、switch 语句、变量声明不属于表达式，不能直接出现在`{}`中
 
 #### 4.3.1. 使用引号传递字符串 
 
@@ -666,9 +666,158 @@ ReactDOM.render(
 );
 ```
 
-### 4.5. 数组
+### 4.5. 条件渲染
 
-#### 4.5.1. 自动展开
+#### 4.5.1. 概述
+
+通常组件会需要根据不同的情况显示不同的内容。在 React 中，可以通过使用 JavaScript 的 if 语句、逻辑与（`&&`）运算符和三元表达式（`? :`）来选择性地渲染 JSX。
+
+#### 4.5.2. if/else 语句 
+
+示例中 Item 组件通过判断 `isPacked` 属性是 true 或 false。在那些满足 `isPacked={true}` 条件的物品旁加上一个勾选符号（✔）。
+
+```jsx
+function Item({ name, isPacked }) {
+  if (isPacked) {
+    return <li className="item">{name} ✔</li>;
+  }
+  return <li className="item">{name}</li>;
+}
+
+export default function PackingList() {
+  return (
+    <section>
+      <h1>Sally Ride 的行李清单</h1>
+      <ul>
+        <Item isPacked={true} name="宇航服" />
+        <Item isPacked={true} name="带金箔的头盔" />
+        <Item isPacked={false} name="Tam 的照片" />
+      </ul>
+    </section>
+  );
+}
+```
+
+#### 4.5.3. 选择性地返回 null
+
+在一些情况下，不想有任何东西进行渲染。此时可以直接返回 null。如下例，如果组件的 `isPacked` 属性为 true，那么它将只返回 null。否则，它将返回相应的 JSX 用来渲染。
+
+```jsx
+function Item({ name, isPacked }) {
+  if (isPacked) {
+    return null;
+  }
+  return <li className="item">{name}</li>;
+}
+
+export default function PackingList() {
+  return (
+    <section>
+      <h1>Sally Ride 的行李清单</h1>
+      <ul>
+        <Item isPacked={true} name="宇航服" />
+        <Item isPacked={true} name="带金箔的头盔" />
+        <Item isPacked={false} name="Tam 的照片" />
+      </ul>
+    </section>
+  );
+}
+```
+
+> Tips: 实际上，在组件里返回 null 并不常见，因为这样会让想使用它的开发者感觉奇怪。通常情况下，可以在父组件里选择是否要渲染该组件。
+
+#### 4.5.4. 三目运算符
+
+当渲染的内容有重复的内容，并且只有两个分支的时候，可以使用 JavaScript 的条件运算符（又称“三目运算符”）这种紧凑型语法来实现条件判断表达式。上例可修改为
+
+```jsx
+if (isPacked) {
+  return <li className="item">{name} ✔</li>;
+}
+return <li className="item">{name}</li>;
+// 或者
+return <li className="item">{isPacked ? name + " ✔" : name}</li>;
+```
+
+> Tips: 对于简单的条件判断，以上风格可以很好地实现，但需要适量使用。如果组件里有很多的嵌套式条件表达式，则需要考虑通过提取为子组件来简化这些嵌套表达式。在 React 里，标签也是代码中的一部分，所以可以使用变量和函数来整理一些复杂的表达式。
+
+#### 4.5.5. 与运算符
+
+在 React 组件里，有些情况是，当某个条件成立时，想渲染一些 JSX，或者不做任何渲染。此时可以一种常用的 JavaScript **逻辑与（`&&`）运算符**来实现。如上例可修改为：
+
+```jsx
+function Item({ name, isPacked }) {
+  return (
+    <li className="item">
+      {name} {isPacked && "✔"}
+    </li>
+  );
+}
+
+export default function PackingList() {
+  return (
+    <section>
+      <h1>Sally Ride 的行李清单</h1>
+      <ul>
+        <Item isPacked={true} name="宇航服" />
+        <Item isPacked={true} name="带金箔的头盔" />
+        <Item isPacked={false} name="Tam 的照片" />
+      </ul>
+    </section>
+  );
+}
+```
+
+当 JavaScript `&&` 表达式的左侧（即条件）为 true 时，它则返回其右侧的值（即例子的“勾选符号”）。但条件的结果是 false，则整个表达式会变成 false。在 JSX 里，React 会将 false 视为一个“空值”，就像 null 或者 undefined，这样 React 就不会在这里进行任何渲染。
+
+> Notes: 特别注意，<font color=red>**切勿将数字放在 `&&` 左侧**</font>。因为 JavaScript 会自动将左侧的值转换成布尔类型，用于判断条件成立与否。如果左侧是 0，整个表达式将变成左侧的值（0），React 此时则会渲染 0 而不是不进行渲染。
+
+#### 4.5.6. 选择性地将 JSX 赋值给变量 
+
+还有一些条件渲染的处理方式，就是使用 let 变量根据不同条件进行赋值，若要初始时就展示特定的内容，将内容作为默认值赋予给该变量即可。如上例中，结合 if 语句，当 `isPacked` 为 true 时，将 JSX 表达式的值重新赋值给 itemContent：
+
+```jsx
+function Item({ name, isPacked }) {
+  let itemContent = name;
+  if (isPacked) {
+    itemContent = name + " ✔";
+  }
+  return <li className="item">{itemContent}</li>;
+}
+
+export default function PackingList() {
+  return (
+    <section>
+      <h1>Sally Ride 的行李清单</h1>
+      <ul>
+        <Item isPacked={true} name="宇航服" />
+        <Item isPacked={true} name="带金箔的头盔" />
+        <Item isPacked={false} name="Tam 的照片" />
+      </ul>
+    </section>
+  );
+}
+```
+
+这种方式不仅适用于文本，任意的 JSX 均适用。所以可以将上面的 Item 组件修改为：
+
+```jsx
+function Item({ name, isPacked }) {
+  let itemContent = name;
+  if (isPacked) {
+    itemContent = <del>{name + " ✔"}</del>;
+  }
+  return <li className="item">{itemContent}</li>;
+}
+```
+
+### 4.6. 渲染列表
+
+#### 4.6.1. 概述
+
+在 React 中，经常需要通过 JavaScript 的数组方法来操作数组中的数据，从而将一个数据集渲染成多个相似的组件。例如使用 `filter()` 筛选需要渲染的组件和使用 `map()` 把数组转换成组件数组。
+
+#### 4.6.2. 数组的自动展开
 
 JSX 允许在模板中插入数组，数组会自动展开所有成员
 
@@ -683,33 +832,162 @@ ReactDOM.render(
 );
 ```
 
-#### 4.5.2. 列表渲染
+#### 4.6.3. 使用 map 从数组中渲染数据
 
-在 JSX 中可以使用原生 js 数组的 `map` 方法来实现列表渲染。
+以下是一个由数组生成一系列列表项的简单示例：
 
 ```jsx
-const list = [
-  { id: 1001, name: "Vue" },
-  { id: 1002, name: "React" },
-  { id: 1003, name: "Angular" },
+// 1. 把数据存储到数组中。
+const people = [
+  "凯瑟琳·约翰逊: 数学家",
+  "马里奥·莫利纳: 化学家",
+  "穆罕默德·阿卜杜勒·萨拉姆: 物理学家",
+  "珀西·莱温·朱利亚: 化学家",
+  "苏布拉马尼扬·钱德拉塞卡: 天体物理学家",
 ];
 
-function App() {
-  return (
-    <ul>
-      {list.map((item) => (
-        <li key={item.id}>{item}</li>
-      ))}
-    </ul>
-  );
+export default function List() {
+  // 2. 遍历 people 这个数组中的每一项，并获得一个新的 JSX 节点数组 listItems 
+  const listItems = people.map((person) => <li>{person}</li>);
+  // 3. 把 listItems 用 <ul> 包裹起来，然后 返回 它
+  return <ul>{listItems}</ul>;
 }
 ```
 
-### 4.6. 条件渲染
+#### 4.6.4. 使用 filter 从数组过滤后渲染数据
 
-## 5. 组件（基于类）
+如果只需显示数组中部分数据，可以使用 JavaScript 的 `filter()` 方法来返回满足条件的项。此方法让数组的子项经过 “过滤器”（一个返回值为 true 或 false 的函数）的筛选，最终返回一个只包含满足条件的项的新数组。
 
-### 5.1. 概述
+```jsx
+const people = [
+  { id: 0, name: "凯瑟琳·约翰逊", profession: "数学家" },
+  { id: 1, name: "马里奥·莫利纳", profession: "化学家" },
+  { id: 2, name: "穆罕默德·阿卜杜勒·萨拉姆", profession: "物理学家" },
+  { id: 3, name: "珀西·莱温·朱利亚", profession: "化学家" },
+];
+
+export default function List() {
+  // 1. 创建 一个用来存化学家们的新数组 chemists，用 filter() 方法过滤 people 数组来得到所有的化学家，过滤的条件是 person.profession === '化学家'
+  const chemists = people.filter((person) => person.profession === "化学家");
+  // 2. 用 map 方法遍历 chemists 数组
+  const listItems = chemists.map((person) => (
+    <li>
+      <p>
+        <b>{person.name}:</b>
+        {" " + person.profession + " "}因{person.accomplishment}而闻名世界
+      </p>
+    </li>
+  ));
+  // 3. 返回 listItems
+  return <ul>{listItems}</ul>;
+}
+```
+
+#### 4.6.5. 渲染列表的 key 值 
+
+值得注意的是，以上的示例在渲染后，控制台会出现以下的报错：
+
+```
+Warning: Each child in a list should have a unique “key” prop.
+```
+
+这是因为 React 必须给数组中的每一项都指定一个 `key`，它可以是字符串或数字的形式，只要能唯一标识出各个数组项即可。这些 key 会告诉 React，每个组件对应着数组里的哪一项，所以 React 可以把它们匹配起来。这在数组项进行移动（例如排序）、插入或删除等操作时非常重要。一个合适的 key 可以帮助 React 推断发生了什么，从而得以正确地更新 DOM 树。
+
+```jsx
+<li key={person.id}>...</li>
+```
+
+> Tips: 直接放在 `map()` 方法里的 JSX 元素一般都需要指定 key 值！
+
+##### 4.6.5.1. 如何设定 key 值 
+
+不同来源的数据往往对应不同的 `key` 值获取方式：
+
+- **来自数据库的数据**：如果数据是从数据库中获取的，可以直接使用数据表中的主键，因为它们天然具有唯一性。
+- **本地产生数据**：如果数据的产生和保存都在本地（例如笔记软件里的笔记），那么可以使用一个自增计数器或者一个类似 `uuid` 的库来生成 key。
+
+##### 4.6.5.2. key 需要满足的条件
+
+- **key 值在兄弟节点之间必须是唯一的**。但不要求全局唯一，在不同的数组中可以使用相同的 key。
+- **key 值不能改变**，否则就失去了使用 key 的意义！因此千万不要在渲染时动态地生成 key。
+
+##### 4.6.5.3. key 定义的注意事项
+
+可以把数组项的索引当作 key 值来用，实际上，如果没有显式地指定 key 值，React 确实默认会这么做。但是数组项的顺序在插入、删除或者重新排序等操作中会发生改变，此时把索引顺序用作 key 值会产生一些微妙且令人困惑的 bug。
+
+与之类似，不要在运行过程中动态地产生 key，如 `key={Math.random()}`。这会导致每次重新渲染后的 key 值都不一样，从而使得所有的组件和 DOM 元素每次都要重新创建。这不仅会造成运行变慢的问题，更有可能导致用户输入的丢失。所以，使用能从给定数据中稳定取得的值才是明智的选择。
+
+有一点需要注意，组件不会把 `key` 当作 props 的一部分。Key 的存在只对 React 本身起到提示作用。如果组件需要一个 ID，那么把它作为一个单独的 prop 传给组件：`<Profile key={id} userId={id} />`。
+
+#### 4.6.6. 扩展：为每个列表项显示多个 DOM 节点 
+
+如果想让每个列表项都输出多个 DOM 节点而非一个的话，可以使用 Fragment 语法的简写形式 `<> </>`，但这种方式无法接受 key 值，解决方案有以下两种：
+
+1. 把生成的节点用一个 `<div>` 标签包裹起来
+2. 使用更明确的 `<Fragment>` 标签，并且此 `<Fragment>` 标签本身并不会出现在 DOM 上
+
+```jsx
+import { Fragment } from "react";
+
+// ...
+
+const listItems = people.map((person) => (
+  <Fragment key={person.id}>
+    <h1>{person.name}</h1>
+    <p>{person.bio}</p>
+  </Fragment>
+));
+```
+
+## 5. React 事件绑定
+
+使用 React 可以在 JSX 中添加**事件处理函数**。即自定义函数，它将在响应交互（如点击、悬停、表单输入框获得焦点等）时触发。
+
+### 5.1. 添加事件处理函数
+
+React 中的事件绑定，通过语法 `on + 事件名称 = { 事件处理函数 }`，将其作为 prop 传入 合适的 JSX 标签。事件名称整体上遵循驼峰命名法。例如：
+
+```jsx
+export default function Button() {
+  function handleClick() {
+    alert("你点击了我！");
+  }
+
+  return <button onClick={handleClick}>点我</button>;
+}
+```
+
+1. 在 `Button` 组件**内部**声明一个名为 `handleClick` 的函数。
+2. 实现函数内部的逻辑（示例是使用 `alert` 来显示消息）。
+3. 添加 `onClick={handleClick}` 到 `<button>` JSX 中。
+
+### 5.2. 事件绑定注意事项
+
+传递给事件处理函数的函数应是**直接传递，而非调用**。
+
+|         传递一个函数（正确）         |          调用一个函数（错误）          |
+| -------------------------------- | ---------------------------------- |
+| `<button onClick={handleClick}>` | `<button onClick={handleClick()}>` |
+
+- 左边示例 `handleClick` 函数作为 `onClick` 事件处理函数传递。让 React 绑定它，并且只在用户点击按钮时调用该函数。
+- 右边示例 `handleClick()` 中最后的 `()` 符号表示会**在<u>渲染</u>过程中，即使没有任何点击也会<u>立即触发</u>函数**。这是因为在 JSX `{}` 之间的 JavaScript 会立即执行。
+
+当编写内联代码时，同样的陷阱可能会以不同的方式出现：
+
+|            传递一个函数（正确）             |       调用一个函数（错误）            |
+| --------------------------------------- | --------------------------------- |
+| `<button onClick={() => alert('...')}>` | `<button onClick={alert('...')}>` |
+
+- 右边示例，并不会在点击时触发内联代码，而是会在每次组件渲染时触发。
+- 左边示例，在定义内联事件处理函数时，使用了箭头函数包装，表示它是一个稍后调用的函数，而不会在每次渲染时执行其内部代码。
+
+### 5.3. 事件传播
+
+事件处理函数还将捕获任何来自子组件的事件。通常，事件会沿着树向上“冒泡”或“传播”：它从事件发生的地方开始，然后沿着树向上传播。
+
+## 6. 组件（基于类）
+
+### 6.1. 概述
 
 组件是 React 中最重要也是最核心的概念，一个网页，可以被拆分成一个个的组件。在 React 中，这样定义一个组件：
 
@@ -725,7 +1003,7 @@ export default HelloWorld; // 第四步，导出该类
 
 **注：页面的标签是定义在 render 中的 return，如果是标签是多行，则需要使用 `()` 进行包裹**。
 
-### 5.2. HTML 标签与 React 组件
+### 6.2. HTML 标签与 React 组件
 
 - React 可以渲染 HTML 标签 (strings) 或 React 组件 (classes)。要渲染 HTML 标签，只需在 JSX 里使用小写字母的标签名。
 
@@ -746,7 +1024,7 @@ ReactDOM.render(myElement, document.getElementById('example'));
 
 > **注意：由于 JSX 就是 JavaScript，一些标识符像 class 和 for 不建议作为 XML 属性名。作为替代，React DOM 使用 className 和 htmlFor 来做对应的属性。**
 
-### 5.3. 导入自定义组件
+### 6.3. 导入自定义组件
 
 创建Show.js文件，用于测试导入组件
 
@@ -761,9 +1039,9 @@ class Show extends React.Component {
 export default Show;
 ```
 
-### 5.4. 组件参数
+### 6.4. 组件参数
 
-#### 5.4.1. 定义传递参数
+#### 6.4.1. 定义传递参数
 
 组件是可以传递参数的，有2种方式传递，分别是**属性**和**标签包裹的内容**传递
 
@@ -780,7 +1058,7 @@ class Show extends React.Component {
 export default Show;
 ```
 
-#### 5.4.2. 接收参数
+#### 6.4.2. 接收参数
 
 接收参数也是2种方法：
 
@@ -799,7 +1077,7 @@ class HelloWorld extends React.Component {
 export default HelloWorld;
 ```
 
-### 5.5. 组件的状态
+### 6.5. 组件的状态
 
 **每一个组件都有一个状态，其保存在 `this.state` 中，当状态值发生变化时，React 框架会自动调用 `render()` 方法，重新渲染页面。**
 
@@ -861,7 +1139,7 @@ export default List;
 
 ![组件状态案例3](images/20190422133358551_22006.png)
 
-### 5.6. React 组件 API
+### 6.6. React 组件 API
 
 - 设置状态：setState
 - 替换状态：replaceState
@@ -871,7 +1149,7 @@ export default List;
 - 获取 DOM 节点：findDOMNode
 - 判断组件挂载状态：isMounted
 
-#### 5.6.1. 设置状态：setState
+#### 6.6.1. 设置状态：setState
 
 ```js
 setState(object nextState[, function callback])
@@ -906,7 +1184,7 @@ ReactDOM.render(
 );
 ```
 
-#### 5.6.2. 替换状态：replaceState
+#### 6.6.2. 替换状态：replaceState
 
 ```js
 replaceState(object nextState[, function callback])
@@ -917,7 +1195,7 @@ replaceState(object nextState[, function callback])
 
 `replaceState()`方法与`setState()`类似，但是方法只会保留nextState中状态，原state不在nextState中的状态都会被删除
 
-#### 5.6.3. 设置属性：setProps
+#### 6.6.3. 设置属性：setProps
 
 ```js
 setProps(object nextProps[, function callback])
@@ -932,7 +1210,7 @@ props相当于组件的数据流，它总是会从父组件向下传递至所有
 
 更新组件，我可以在节点上再次调用`React.render()`，也可以通过`setProps()`方法改变组件属性，触发组件重新渲染。
 
-#### 5.6.4. 替换属性：replaceProps
+#### 6.6.4. 替换属性：replaceProps
 
 ```js
 replaceProps(object nextProps[, function callback])
@@ -943,7 +1221,7 @@ replaceProps(object nextProps[, function callback])
 
 `replaceProps()`方法与`setProps`类似，但它会删除原有props
 
-#### 5.6.5. 强制更新：forceUpdate
+#### 6.6.5. 强制更新：forceUpdate
 
 ```js
 forceUpdate([function callback])
@@ -957,7 +1235,7 @@ forceUpdate([function callback])
 
 一般来说，应该尽量避免使用`forceUpdate()`，而仅从`this.props`和`this.state`中读取状态并由React触发`render()`调用。
 
-#### 5.6.6. 获取DOM节点：findDOMNode
+#### 6.6.6. 获取DOM节点：findDOMNode
 
 ```js
 DOMElement findDOMNode()
@@ -967,7 +1245,7 @@ DOMElement findDOMNode()
 
 如果组件已经挂载到 DOM 中，该方法返回对应的本地浏览器 DOM 元素。当render返回 null 或 false 时，`this.findDOMNode()`也会返回null。从 DOM 中读取值的时候，该方法很有用，如：获取表单字段的值和做一些 DOM 操作。
 
-#### 5.6.7. 判断组件挂载状态：isMounted
+#### 6.6.7. 判断组件挂载状态：isMounted
 
 ```js
 boolean isMounted()
@@ -977,7 +1255,7 @@ boolean isMounted()
 
 `isMounted()`方法用于判断组件是否已挂载到DOM中。可以使用该方法保证了`setState()`和`forceUpdate()`在异步场景下的调用不会出错。
 
-### 5.7. 组件的生命周期
+### 6.7. 组件的生命周期
 
 组件的运行过程中，存在不同的阶段。React 为这些阶段提供了钩子方法，允许开发者自定义每个阶段自动执行的函数。这些方法统称为生命周期方法（lifecycle methods）。
 
@@ -994,11 +1272,11 @@ boolean isMounted()
     - **componentDidUpdate**：在组件完成更新后立即调用。在初始化时不会被调用。
     - **componentWillUnmount**：在组件从 DOM 中移除的时候立刻被调用。
 
-#### 5.7.1. 组件生命周期图
+#### 6.7.1. 组件生命周期图
 
 ![组件的生命周期图](images/20190422133625324_6357.png)
 
-#### 5.7.2. 生命周期示例
+#### 6.7.2. 生命周期示例
 
 ```jsx
 import React from 'react'; // 导入React
@@ -1037,7 +1315,7 @@ class LifeCycle extends React.Component {
 export default LifeCycle;
 ```
 
-### 5.8. React 中 Component 和 PureComponent 比较
+### 6.8. React 中 Component 和 PureComponent 比较
 
 React 15.3 中新加了一个 `PureComponent` 类，顾名思义， pure 是纯的意思， `PureComponent` 也就是纯组件，取代其前身 `PureRenderMixin`, `PureComponent` 是优化 React 应用程序最重要的方法之一，易于实施，只要把继承类从 Component 换成 PureComponent 即可，可以减少不必要的 render 操作的次数，从而提高性能，而且可以少写 `shouldComponentUpdate` 函数，节省了点代码。
 
@@ -1062,21 +1340,21 @@ Component是React App的基本构建的单位，也是React中的基本代码复
 3. 如果数据改变无法反应在浅拷贝上，则应该调用forceUpdate来更新Component。
 4. 一个PureComponent的子Component也应当是PureComponent。
 
-### 5.9. 组件的导入与导出
+### 6.9. 组件的导入与导出
 
 通常，文件中仅包含一个组件时，一般会选择默认导出；而当文件中包含多个组件或某个值需要导出时，则会选择具名导出。无论选择哪种方式，建议给组件和相应的文件一个有意义的命名，不建议创建未命名的组件，比如 `export default () => {}`，因为这样会使得调试变得异常困难。
 
 > Notes: 为了减少在默认导出和具名导出之间的混淆，一些团队会选择只使用一种风格（默认或者具名），或者禁止在单个文件内混合使用。
 
-## 6. React 的 Refs 属性
+## 7. React 的 Refs 属性
 
-### 6.1. 简述
+### 7.1. 简述
 
 - React 支持一种非常特殊的属性 Ref，可以用来绑定到 `render()` 输出的任何组件上。
 - 这个特殊的属性允许你引用 `render()` 返回的相应的支撑实例（backing instance）。这样就可以确保在任何时间总是拿到正确的实例。
 - ref 属性的值可以是一个字符串也可以是一个函数。
 
-### 6.2. 使用方法
+### 7.2. 使用方法
 
 绑定一个 ref 属性到 render 的返回值上
 
@@ -1092,7 +1370,7 @@ var inputValue = input.value;
 var inputRect = input.getBoundingClientRect();
 ```
 
-### 6.3. 示例代码
+### 7.3. 示例代码
 
 通过使用 this 来获取当前 React 组件，或使用 ref 来获取组件的引用
 
@@ -1123,8 +1401,8 @@ ReactDOM.render(
 );
 ```
 
-## 7. Model
-### 7.1. 数据分层
+## 8. Model
+### 8.1. 数据分层
 
 ![应用分层示例图](images/20190423105354679_26362.png)
 
@@ -1137,11 +1415,11 @@ ReactDOM.render(
     - Model 负责处理业务逻辑，为 Page 做数据、状态的读写、变换、暂存等。
     - Service 负责与 HTTP 接口对接，进行纯粹的数据读写。
 
-### 7.2. 使用 DVA 框架进行数据分层管理（好客租房项目使用，其他项目不一定使用）
+### 8.2. 使用 DVA 框架进行数据分层管理（好客租房项目使用，其他项目不一定使用）
 
 dva 是基于 redux、redux-saga 和 react-router 的轻量级前端框架。官网：https://dvajs.com/
 
-#### 7.2.1. 引入 dva 框架
+#### 8.2.1. 引入 dva 框架
 
 引入dva框架，由于umi对dva进行了整合，所以导入时只需要修改umi项目中的config.js文件，进行如下配置：
 
@@ -1155,7 +1433,7 @@ export default {
 };
 ```
 
-#### 7.2.2. 定义 state 数据
+#### 8.2.2. 定义 state 数据
 
 创建 model 文件夹，在 umi 中，约定在 src/models 文件夹中定义 model，所以，在该文件夹下创建 ListData.js 文件
 
@@ -1232,7 +1510,7 @@ export default List;
 4. 拿到model数据中state属性下的data数据，也就是`[1, 2, 3]`数据，进行包裹`{}`后返回
 5. 返回的数据，将被封装到`this.props`中，所以通过`this.props.listData`即可获取到model中的数据
 
-#### 7.2.3. 更新state数据
+#### 8.2.3. 更新state数据
 
 此前通过`this.setState()`可以修改组件中的state属性值，从而使react去刷新页面。
 
@@ -1321,7 +1599,7 @@ export default List;
 
 ![DVA框架绑定方法流程](images/20190423123128283_25306.png)
 
-### 7.3. 在model中请求数据
+### 8.3. 在model中请求数据
 
 实现动态查询后台获取model里的数据
 
@@ -1471,7 +1749,7 @@ export default List;
 
 ![](images/20190423135552070_25083.png)
 
-### 7.4. mock数据
+### 8.4. mock数据
 
 umi中支持对请求的模拟，当没有后端服务的时候，可以使用mock数据进行测试
 
@@ -1488,9 +1766,9 @@ export default {
 }
 ```
 
-## 8. React 其他资料
+## 9. React 其他资料
 
-### 8.1. React 相关资源
+### 9.1. React 相关资源
 
 **优质 React UI 库**：
 
