@@ -983,7 +983,73 @@ export default function Button() {
 
 ### 5.3. 事件传播
 
-事件处理函数还将捕获任何来自子组件的事件。通常，事件会沿着树向上“冒泡”或“传播”：它从事件发生的地方开始，然后沿着树向上传播。
+#### 5.3.1. 概述
+
+事件处理函数还将捕获任何来自子组件的事件。通常，事件会沿着树向上“冒泡”或“传播”：它从事件发生的地方开始，然后沿着树向上传播。例如：
+
+```jsx
+export default function Toolbar() {
+  return (
+    <div
+      className="Toolbar"
+      onClick={() => {
+        alert("你点击了 toolbar ！");
+      }}
+    >
+      <button onClick={() => alert("正在播放！")}>播放电影</button>
+      <button onClick={() => alert("正在上传！")}>上传图片</button>
+    </div>
+  );
+}
+```
+
+以上示例如果点击任一按钮，它自身的 `onClick` 将首先执行，然后父级 `<div>` 的 `onClick` 会接着执行。因此会出现两条消息。如果只点击 toolbar 本身，将只有父级 `<div>` 的 `onClick` 会执行。
+
+> Notes: 在 React 中所有事件都会传播，除了 `onScroll`，它仅适用于附加到的 JSX 标签。
+
+#### 5.3.2. 阻止传播
+
+事件处理函数默认会接收一个**事件对象**作为唯一的参数。习惯将参数命名为 `e`，代表 “event”（事件）。可以使用此对象来读取有关事件的信息，还允许阻止传播。只要调用 `e.stopPropagation()` 即可阻止一个事件到达父组件。
+
+```jsx
+function Button({ onClick, children }) {
+  return (
+    <button
+      onClick={(e) => {
+        e.stopPropagation();
+        onClick();
+      }}
+    >
+      {children}
+    </button>
+  );
+}
+
+export default function Toolbar() {
+  return (
+    <div
+      className="Toolbar"
+      onClick={() => {
+        alert("你点击了 toolbar ！");
+      }}
+    >
+      <Button onClick={() => alert("正在播放！")}>播放电影</Button>
+      <Button onClick={() => alert("正在上传！")}>上传图片</Button>
+    </div>
+  );
+}
+```
+
+示例中点击按钮时：
+
+1. React 调用了传递给 `<button>` 的 `onClick` 处理函数。
+2. 定义在 `Button`中的处理函数执行了如下操作：
+    - 调用 `e.stopPropagation()`，阻止事件进一步冒泡。
+    - 调用 `onClick` 函数，它是从 `Toolbar` 组件传递过来的 prop。
+3. 在 `Toolbar` 组件中定义的函数，显示按钮对应的 alert。
+4. 由于传播被阻止，父级 `<div>` 的 `onClick` 处理函数不会执行。
+
+由于调用了 `e.stopPropagation()`，点击按钮现在将只显示一个 alert（来自 `<button>`），而并非两个（分别来自 `<button>` 和父级 toolbar `<div>`）。点击按钮与点击周围的 toolbar 不同，因此阻止传播对这个 UI 是有意义的。
 
 ## 6. 组件（基于类）
 

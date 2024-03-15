@@ -181,7 +181,7 @@ idea.system.path=D:/development/JetBrains/.IntelliJIdea/system
 
 #### 3.5.1. 设置项目文件默认编码（必须修改）
 
-1. 打开【Settings】，找到【File Encodings】，把 encoding 相关的选项都选择 UTF-8
+1. 打开【Settings】->【Editor】->【File Encodings】，把 encoding 相关的选项都选择 UTF-8
 
 ![](images/422814610247212.png)
 
@@ -198,7 +198,7 @@ idea.system.path=D:/development/JetBrains/.IntelliJIdea/system
 在文件的最后一行追加以下一项配置，然后重启 IDEA
 
 ```properties
--Dfile.encoding=UTF-8 
+-Dfile.encoding=UTF-8
 ```
 
 > notes: 最新版本的idea只有64位的配置文件。<font color=red>**特别注意，不能有空格，否则重启后无法打开 IDEA**</font>
@@ -411,13 +411,21 @@ Editor: 选择要应用于编辑器的抗锯齿模式：
 - Doc Comment -> Text：修改文档注释的字体颜色
 - Line comment：修改单行注释的字体颜色
 
-#### 4.3.2. 使用鼠标滚轮调整字体大小
+#### 4.3.2. 取消编辑器右侧竖线
+
+idea 的代码编辑器右侧会有一条提示代码长度的竖线，是用于如果代码超过竖线的位置，建议代码换行。设置关闭的位置在：
+
+【Editor】->【Appearance】，取消勾选【Show hard wrap and visual guides(configured in Code Style options)】项
+
+![](images/85471909240356.png)
+
+#### 4.3.3. 使用鼠标滚轮调整字体大小
 
 设置“Ctrl+滚轴”修改编辑器字体大小，如果需要此功能，勾选下图选项即可。设置位置：Editor -> General -> Mouse Control
 
 ![](images/156211622231085.png)
 
-#### 4.3.3. 设置类和方法注释模板
+#### 4.3.4. 设置类和方法注释模板
 
 > TODO: 待整理方法注释模板设置参考 https://blog.csdn.net/xiaoliulang0324/article/details/79030752
 
@@ -452,7 +460,7 @@ ${MONTH_NAME_SHORT} - the first 3 letters of the month name. Example: Jan, Feb, 
 ${MONTH_NAME_FULL} - full name of a month. Example: January, February, etc.
 ```
 
-#### 4.3.4. 设置显示代码区的行号、方法分隔线、空格
+#### 4.3.5. 设置显示代码区的行号、方法分隔线、空格
 
 设置位置：Editor -> General -> Appearance
 
@@ -462,7 +470,7 @@ ${MONTH_NAME_FULL} - full name of a month. Example: January, February, etc.
 
 ![](images/147643023238545.png)
 
-#### 4.3.5. 代码智能提示忽略区分大小写
+#### 4.3.6. 代码智能提示忽略区分大小写
 
 IDEA 代码提示默认是匹配大小写，此开关如果未关。输入字符一定要符合大小写。比如输入`string`是不会出现代码提示或智能补充。但是，如果开了这个开关，无论输入`String`或者`string`都会出现代码提示或者智能补充！
 
@@ -474,7 +482,7 @@ IDEA 代码提示默认是匹配大小写，此开关如果未关。输入字符
 
 ![](images/20201104160400207_31934.png)
 
-#### 4.3.6. 设置自动导包
+#### 4.3.7. 设置自动导包
 
 默认需要手动导包（Alt+Enter 快捷键）
 
@@ -493,13 +501,13 @@ IDEA 代码提示默认是匹配大小写，此开关如果未关。输入字符
 
 ![](images/339644322225951.png)
 
-#### 4.3.7. 设置 tab 为 4 个空格
+#### 4.3.8. 设置 tab 为 4 个空格
 
 设置位置：Editor -> Code Style -> Java -> Tabs and Indents。取消勾选 Use tab character
 
 ![](images/460514310227046.png)
 
-#### 4.3.8. 设置忽略显示，隐藏文件或者文件夹（类似eclipse的filter功能）
+#### 4.3.9. 设置忽略显示，隐藏文件或者文件夹（类似eclipse的filter功能）
 
 设置位置：Editor -> File Types -> Ignore files and folders 设置内容：
 
@@ -513,7 +521,7 @@ IDEA 代码提示默认是匹配大小写，此开关如果未关。输入字符
 
 ![](images/592044023239840.png)
 
-#### 4.3.9. 设置取消显示形参名提示
+#### 4.3.10. 设置取消显示形参名提示
 
 ![](images/20201105151054543_134.png)
 
@@ -525,11 +533,11 @@ IDEA 代码提示默认是匹配大小写，此开关如果未关。输入字符
 
 ![](images/20201105151319106_30759.png)
 
-#### 4.3.10. 设置为单行注释的两个斜杠跟随在代码的头部
+#### 4.3.11. 设置为单行注释的两个斜杠跟随在代码的头部
 
 ![](images/20201105151625210_6294.jpg)
 
-#### 4.3.11. 设置鼠标悬浮时显示代码的文档信息
+#### 4.3.12. 设置鼠标悬浮时显示代码的文档信息
 
 选择【Editor】->【Code Editing】，勾选`Show quick documentation on mouse move`。可以设置弹出提示响应时间，默认500 ms
 
@@ -537,7 +545,7 @@ IDEA 代码提示默认是匹配大小写，此开关如果未关。输入字符
 
 > 注：旧版本idea是在【General】选项下
 
-#### 4.3.12. 设置编辑器 tab 标签多行显示
+#### 4.3.13. 设置编辑器 tab 标签多行显示
 
 设置位置：Editor -> General -> Editor Tabs -> 不勾选 Show tabs in one row 选项即可
 
@@ -547,7 +555,7 @@ IDEA 代码提示默认是匹配大小写，此开关如果未关。输入字符
 
 ![](images/20201104161614312_9051.jpg)
 
-#### 4.3.13. 设置代码行宽度
+#### 4.3.14. 设置代码行宽度
 
 输入的代码超出宽度界线时，自动将代码换行。
 
@@ -559,7 +567,7 @@ IDEA 代码提示默认是匹配大小写，此开关如果未关。输入字符
 
 ![](images/378444821221166.png)
 
-#### 4.3.14. 设置默认展开与折叠代码
+#### 4.3.15. 设置默认展开与折叠代码
 
 设置位置：Editor -> General -> Code Folding
 
@@ -567,7 +575,7 @@ IDEA 代码提示默认是匹配大小写，此开关如果未关。输入字符
 
 如上图标注红圈所示，可以对指定代码类型进行默认折叠或是展开的设置，勾选上的表示该类型的代码在文件被打开的时候默认是被折叠的，去掉勾选则默认展开。
 
-#### 4.3.15. 关闭注释 doc 默认的 Rendered View 模式
+#### 4.3.16. 关闭注释 doc 默认的 Rendered View 模式
 
 在 idea 2020 版本以后，增加了 Rendered View 模式，用于提升注释文档的阅读体验，默认是开启。如需关闭，按如下步骤操作：
 
@@ -579,7 +587,7 @@ Editor -> Reader Mode -> 取消勾选 【Enable Reader mode】
 
 ![](images/20210223210345370_19141.png)
 
-#### 4.3.16. 标志修改文件带星号（*）
+#### 4.3.17. 标志修改文件带星号（*）
 
 标志修改文件为星号 Editor -> General -> Editor tabs -> 勾选 mark modified files as asterisk 选项
 
@@ -589,7 +597,7 @@ Editor -> Reader Mode -> 取消勾选 【Enable Reader mode】
 
 ![](images/210351322247625.png)
 
-#### 4.3.17. 设置默认换行符
+#### 4.3.18. 设置默认换行符
 
 点击【New Projects Setup】->【Settings for New Projects】，选择【Editor】->【Code Style】->【General】选项卡，其中 Line separator 有四个选项 `System-Dependent/LF/CR/CRLF`，默认是 `System-Dependent`，也就是根据你是什么系统选择什么类型，如果想要自定义的话可以在这里设置，以后创建的新代码也默认用设置的方式
 
@@ -760,7 +768,7 @@ IntelliJ IDEA 有一种叫做“省电模式”的状态，开启这种模式之
 
 ##### 4.6.4.1. 启用 Run Dashboard
 
-**方式一**：	创建/打开一个SpringBoot项目【或者点击Run -> Edit Configurations 添加 Spring Boot 类型的项目配置；或者如图在红框处添加配置】，会弹出一个 Run Dashboard 信息框，点击第一个蓝色连接(Show run configurations in Run Dashboard) 即可。
+**方式一**：创建/打开一个SpringBoot项目【或者点击Run -> Edit Configurations 添加 Spring Boot 类型的项目配置；或者如图在红框处添加配置】，会弹出一个 Run Dashboard 信息框，点击第一个蓝色连接(Show run configurations in Run Dashboard) 即可。
 
 ![](images/20201009221411355_31398.jpg)
 
