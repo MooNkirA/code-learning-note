@@ -303,23 +303,51 @@ $ npm start
 
 浏览器访问查看效果 http://localhost:7777/
 
-### 3.3. create-react-app 脚手架
+### 3.3. Create React App
 
-create-react-app 是一个快速创建 React 开发环境的工具，底层由 Webpack 构件，封装了配置细节，开箱即用。执行以下命令：
+#### 3.3.1. 概述
+
+Create React App 是一种官方支持的创建单页面 React 应用程序的工具，它提供了无需配置的现代构建设置。底层由 Webpack 构建，封装了配置细节，开箱即用。
+
+> Create React App 官网：https://create-react-app.dev/
+
+#### 3.3.2. 快速开始
+
+需要在本地开发机器上安装 Node 14 以上版本（但服务器上不需要）。可以使用 nvm（macOS/Linux）或 nvm-windows 在不同项目之间切换 Node 版本。要创建新应用程序，可以选择以下方法之一：
+
+**方式1：npx**（npx 与 npm 5.2 及更高版本配合使用）
 
 ```bash
 npx create-react-app 项目名称
 ```
 
-命令解释：
+命令参数解释：
 
 1. `npx`：Node.js工具命令，查找并执行后续的包命令
 2. `create-react-app`：核心包（固定写法），用于创建 React 项目
 3. `项目名称`：创建的 React 项目名称（可以自定义）
 
+**方式2：npm**（npm 6+ 版本）
+
+```bash
+npm init react-app 项目名称
+```
+
+**方式3：yarn**（Yarn 0.25+ 版本）
+
+```bash
+yarn create react-app 项目名称
+```
+
+命令执行效果：
+
+![](images/515250618240357.svg)
+
 创建后目录结构：
 
 ![](images/475223110267274.png)
+
+
 
 ### 3.4. UmiJs 构建工具
 
