@@ -385,11 +385,49 @@ npm init –y
 npm cache clean --force
 ```
 
-## 5. 其他
+## 5. 常见问题处理方案
 
-### 5.1. 在 node.js 中体验 ES6 模块化
+### 5.1. 报错 ERR_OSSL_EVP_UNSUPPORTED
+
+最近用 node:lts-alpine 编译时发生 ERR_OSSL_EVP_UNSUPPORTED 错误。
+
+```
+Error: error:0308010C:digital envelope routines::unsupported
+    at new Hash (node:internal/crypto/hash:71:19)
+    at Object.createHash (node:crypto:133:10)
+    at module.exports (/usr/src/gw-app-console/node_modules/webpack/lib/util/createHash.js:90:53)
+    at NormalModule._initBuildHash (/usr/src/gw-app-console/node_modules/webpack/lib/NormalModule.js:401:16)
+    at /usr/src/gw-app-console/node_modules/webpack/lib/NormalModule.js:433:10
+    at /usr/src/gw-app-console/node_modules/webpack/lib/NormalModule.js:308:13
+    at /usr/src/gw-app-console/node_modules/loader-runner/lib/LoaderRunner.js:367:11
+    at /usr/src/gw-app-console/node_modules/loader-runner/lib/LoaderRunner.js:233:18
+    at context.callback (/usr/src/gw-app-console/node_modules/loader-runner/lib/LoaderRunner.js:111:13)
+    at /usr/src/gw-app-console/node_modules/babel-loader/lib/index.js:51:103 {
+  opensslErrorStack: [ 'error:03000086:digital envelope routines::initialization error' ],
+  library: 'digital envelope routines',
+  reason: 'unsupported',
+  code: 'ERR_OSSL_EVP_UNSUPPORTED'
+```
+
+解决方案是：在 package.json 里的脚本命令加入 `--openssl-legacy-provider` 参数。
+
+```json
+"scripts": {
+    "start": "node --openssl-legacy-provider scripts/start.js",
+    "build": "node --openssl-legacy-provider scripts/build.js",
+    "test": "node scripts/test.js"
+},
+```
+
+原因是 node v17 中的 OpenSSL3.0 对允许算法和密钥大小增加了严格的限制。
+
+## 6. 其他
+
+### 6.1. 在 node.js 中体验 ES6 模块化
 
 node.js 中默认**仅支持 CommonJS 模块化规范**，若想基于 node.js 体验与学习 ES6 的模块化语法，可以按照如下两个步骤进行配置：
 
 - 确保安装了 v14.15.1 或更高版本的 node.js
 - 在 `package.json` 的根节点中添加 `"type": "module"` 节点
+
+

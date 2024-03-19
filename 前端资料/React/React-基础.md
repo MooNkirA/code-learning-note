@@ -347,7 +347,31 @@ yarn create react-app 项目名称
 
 ![](images/475223110267274.png)
 
+#### 3.3.3. 常见问题解决方案
 
+##### 3.3.3.1. Add “@babel/plugin-proposal-private-property-in-object“ to your devDependencies to work
+
+启动项目时报以下错误
+
+```
+One of your dependencies, babel-preset-react-app, is importing the
+“@babel/plugin-proposal-private-property-in-object” package without
+declaring it in its dependencies. This is currently working because
+“@babel/plugin-proposal-private-property-in-object” is already in your
+node_modules folder for unrelated reasons, but it may break at any time.
+
+babel-preset-react-app is part of the create-react-app project, which
+is not maintianed anymore. It is thus unlikely that this bug will
+ever be fixed. Add “@babel/plugin-proposal-private-property-in-object” to
+your devDependencies to work around this error. This will make this message
+go away.
+```
+
+解决方案：执行 `npm install --save-dev` 命令，将 `@babel/plugin-proposal-private-property-in-object` 包添加到 devDependencies 中，它会自动下载并安装该包的最新版本，解决报错。
+
+```bash
+npm install --save-dev @babel/plugin-proposal-private-property-in-object
+```
 
 ### 3.4. UmiJs 构建工具
 
