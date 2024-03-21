@@ -1,6 +1,6 @@
 > Eclipse 官网：https://www.eclipse.org/
 
-## 1. Eclipse各版本号
+## 1. Eclipse 各版本号
 
 |        名称        | 版本号 |        名称        | 版本号 |        名称        | 版本号 |        名称        | 版本号 |
 | :---------------: | :---: | :---------------: | :---: | :---------------: | :---: | :---------------: | :---: |
@@ -11,7 +11,7 @@
 |  Eclipse 2020-09  | 4.17  |  Eclipse 2020-12  | 4.18  |  Eclipse 2021-03  | 4.19  |  Eclipse 2021-06  | 4.20  |
 |  Eclipse 2021-09  | 4.21  |  Eclipse 2021-12  | 4.22  |  Eclipse 2022-03  | 4.23  |  Eclipse 2022-06  | 4.24  |
 |  Eclipse 2022-09  | 4.25  |  Eclipse 2022-12  | 4.26  |  Eclipse 2023‑03  | 4.27  |  Eclipse 2023‑06  | 4.28  |
-|  Eclipse 2023‑09  | 4.29  |  Eclipse 2023-12  | 4.30  |                   |       |                   |       |
+|  Eclipse 2023‑09  | 4.29  |  Eclipse 2023-12  | 4.30  |  Eclipse 2024-03  | 4.31  |                   |       |
 
 > Notes: Eclipse Mars(4.5) 后版本必须要 JDK 1.7 以上
 
@@ -57,7 +57,7 @@
 
 1. 去掉自动构建项目，改为手动
 
-在eclipse的菜单栏，选择Project，看到下方的Build Automatically，默认是勾选的，取消勾选就行。然后每次启动项目时，可以先clean所选项目，然后点击右键Build Project，这样不仅可以缓解卡顿，也可以解决某些地方修改了代码后没生效的情况。
+在 eclipse 的菜单栏，选择 Project，看到下方的 Build Automatically，默认是勾选的，取消勾选就行。然后每次启动项目时，可以先 clean 所选项目，然后点击右键 Build Project，这样不仅可以缓解卡顿，也可以解决某些地方修改了代码后没生效的情况。
 
 2. 修改eclipse.ini配置参数
 
@@ -69,54 +69,50 @@
 
 3. 手动释放内存
 
-在eclipse菜单栏，选择Window，看到最下方的preferences，点击选中，在弹出的选项框中，右边显示有三个勾选框，勾选第三个Show heap status，点击右下的Apply，点击确认后，在eclipse的右下方会出现eclipse堆内存使用情况的数据，也可以看到前面提到的Xms和Xmx参数值，并且旁边有个垃圾桶的图标，如果eclipse卡到想哭，可以手动点击那个垃圾桶图标释放内存。
+在 eclipse 菜单栏，选择【Window】->【Preferences】，点击后在弹出的选项框中，右边显示有三个勾选框，勾选第三个【Show heap status】，点击右下的Apply，点击确认后，在 eclipse 的右下方会出现 eclipse 堆内存使用情况的数据，也可以看到前面提到的 Xms 和 Xmx 参数值，并且旁边有个垃圾桶的图标，如果 eclipse 卡到想哭，可以手动点击那个垃圾桶图标释放内存。
 
 4. 关闭启动时不需要用到的插件
 
-在eclipse菜单栏，选择Window，看到最下方的preferences，点击选中，在弹出的选项框中，找到Startup and Shutdown，在右边的详细信息中，去掉上面Refresh workspace on startup和Confirm exit when closing last window勾选，在下面的Plug-ins activated on startup中，没什么用处的可以都去掉勾选，点击右下的Apply，点击确认。
+在 eclipse 菜单栏，选择【Window】->【Preferences】，点击后在弹出的选项框中，找到【General】->【Startup and Shutdown】，在右边的详细信息中，去掉上面【Refresh workspace on startup【和【Confirm exit when closing last window】勾选，在下面的【Plug-ins activated on startup】中，没什么用处的可以都去掉勾选，点击右下的 Apply，点击确认。
 
 5. 关闭自动更新和安装
 
-在eclipse菜单栏，选择Window，看到最下方的preferences，点击选中，在弹出的选项框中，找到Install/Update，在右边的详细信息中，勾选Show only the latest versions of available software和Ask me what to do when it happens，点击右下的Apply，点击确认。在Install/Update菜单下面还有两个子菜单，Automatic Updates和Available Software Sites，根据实际情况来勾选或设置，记得设置完后点击右下的Apply，点击确认。
+在 eclipse 菜单栏，选择【Window】->【Preferences】，点击后在弹出的选项框中，找到【Install/Update】，在右边的详细信息中，勾选【Show only the latest versions of available software】和【Ask me what to do when it happens】，点击右下的 Apply，点击确认。在【Install/Update】菜单下还有两个子菜单，【Automatic Updates】和【Available Software Sites】，根据实际情况来勾选或设置，完成后点击 Apply 确认按钮。
 
-6. 关闭拼写检查
+6. 关闭保存后续动作
 
-在eclipse菜单栏，选择Window，看到最下方的preferences，点击选中，在弹出的选项框中，找到General，选择其下的Editors，再找到Editors下的Text Editors，点开Text Editors，找到Spelling，在右边的详细信息中，最上方的Enable spell checking勾选框，如有勾选，请去掉，然后点击右下的Apply，点击确认。
-
-7. 关闭保存后续动作
-
-在eclipse菜单栏，选择Window，看到最下方的preferences，点击选中，在弹出的选项框中，找到Java，选择其中的Editor，在Editor的子选项中找到Save Actions，在右边的详细信息中，如果perform the selected actions on save选项有优选，请去掉，然后点击右下的Apply，点击确认。
+在 eclipse 菜单栏，选择【Window】->【Preferences】，点击后在弹出的选项框中，找到【Java】->【Editor】】->【Save Actions】，在右边的详细信息中，去掉【perform the selected actions on save】选项的勾选，然后点击 Apply 确认按钮。
 
 ### 4.2. Eclipse统一默认编码
 
-- 修改新建项目默认编码：Window -> Preferences -> General -> Workspace -> Text file encoding 将其修改为UTF-8
-- 根据文件修改默认编码：windows -> preferences -> myeclipse -> file and editors下所有选项中的encoding 修改为 IS010646/Unicode(UTF-8) 即统一编码为UTF-8
+- 修改新建项目默认编码：Window -> Preferences -> General -> Workspace，修改 Text file encoding 将其修改为 UTF-8
+- ~~根据文件修改默认编码：windows -> preferences -> myeclipse -> file and editors下所有选项中的encoding 修改为 IS010646/Unicode(UTF-8) 即统一编码为UTF-8~~
 
-### 4.3. 设置MyEclipse XML Editor成代码编辑状态，需要设置默认打开方式为XML Editor。
+### 4.3. 设置 XML 代码编辑状态，需要设置默认打开方式为 XML Editor。
 
 1. Window -> Preferences -> General -> Editors -> File Associations，选择File types: `*.xml`，修改Associated editors: `XML Editor***` -> Default
-2. 在Associated editors选择框里点击“`XML Editor***`”，点击“Default”按钮。
+2. 在 Associated editors 选择框里点击“`XML Editor***`”，点击“Default”按钮。
 3. 将看到“`XML Editor***`”排在最上面，其变为“`XML Editor(Default)***`”。
 
 ![](images/20201106095327201_12522.png)
 
-### 4.4. 关闭updating indexes
+### 4.4. 关闭 updating indexes
 
-Window -> Preferences -> Myeclipse Enterprise Workbench -> Maven4Myeclipse -> Maven -> 禁用Download repository index updates on startup
+Window -> Preferences -> Maven -> 禁用【Download repository index updates on startup】
 
-### 4.5. 关闭MyEclipse的自动validation
+### 4.5. 关闭自动 validation
 
 validation有一堆，什么xml、jsp、jsf、js等等，没有必要全部都去自动校验一下，只是需要的时候才会手工校验一下，速度立马提升好几个档次
 
-windows -> perferences -> myeclipse -> validation，将Build下全部勾取消
+windows -> perferences -> validation，将 Build 下全部勾取消
 
-如果你需要验证某个文件的时候，可以单独去验证它。方法是：在需要验证的文件上点击右键 -> MyEclipse -> Run Validation
+如果需要验证某个文件的时候，可以单独去验证它。方法是：在需要验证的文件上点击右键 -> MyEclipse -> Run Validation
 
-### 4.6. 去掉MyEclipse的拼写检查（如果觉的有用可以不去）
+### 4.6. 去掉拼写检查（如果觉的有用可以不去）
 
 拼写检查会给带来不少的麻烦，方法命名都会是单词的缩写，也会提示有错，所以最好去掉，没有多大的用处
 
-Window -> perferences -> General -> Editors -> Text Editors -> Spelling -> 将Enable spell checking复选框的勾选去掉
+在 eclipse 菜单栏，选择【Window】->【Preferences】，点击后在弹出的选项框中，找到【General】->【Editors】->【Text Editors】->【Spelling】，在右边的详细信息中，去掉【Enable spell checking】勾选框，然后点击 Apply 确认按钮。
 
 ### 4.7. 设置使用浏览器配置
 
@@ -130,13 +126,13 @@ Window -> perferences -> General -> Editors -> Text Editors -> Spelling -> 将En
 
 ![](images/20201106100442208_27823.png)
 
-### 4.9. MyEclipse定制工具栏
+### 4.9. 定制工具栏
 
 Window --> Customize Perspective
 
 ![](images/20201106100515457_27467.png)
 
-### 4.10. Eclipse设置不格式化注释
+### 4.10. 设置不格式化注释
 
 注释中写点带格式的文字，format后全乱了，解决办法如下：
 
@@ -144,9 +140,9 @@ Windows -> Preferces -> java -> Code Style -> Formatter -> Edit -> Comments
 
 取消勾选 “Enable Javadoc comment formatting”、“Enable block comment formatting”、“Enable line comment formatting”
 
-### 4.11. 配置Eclipse中的编译和运行环境
+### 4.11. 配置 Eclipse 中的编译和运行环境
 
-Eclipse的运行版本要大于等于编译版本号：会出现bad version number版本问题
+Eclipse 的运行版本要大于等于编译版本号：会出现bad version number版本问题
 
 - 高版本的运行环境可以运行低版本编译的java文件
 - 低版本的运行环境不能运行低版本编译的java文件
@@ -176,11 +172,11 @@ windows --> preferences --> 搜索“content assist”
 
 ### 5.2. 取消空格上屏
 
-使用Eclipse与MyEclipse的代码提示功能时，按下空格键后Eclipse会自动将代码提示中的第一项上屏。这一点有时会变得相当讨厌，因为很多时候只是单纯的想要输入一个空格而已。然而这一特性是无法通过配置改变的。好在Eclipse是开源的，仍然可以通过修改相应的源代码来改变这一点。
+使用 Eclipse 与 MyEclipse 的代码提示功能时，按下空格键后 Eclipse 会自动将代码提示中的第一项上屏。这一点有时会变得相当讨厌，因为很多时候只是单纯的想要输入一个空格而已。然而这一特性是无法通过配置改变的。好在 Eclipse 是开源的，仍然可以通过修改相应的源代码来改变这一点。
 
-下面先以Eclipse为例说明。首先，如果下载的Eclipse是SDK版本的，那么可以直接越过下面的一段。
+下面先以 Eclipse 为例说明。首先，如果下载的 Eclipse 是 SDK 版本的，那么可以直接越过下面的一段。
 
-如果没有src这个文件夹，说明你使用的版本中没有带源代码，我正好也是这种情况。源代码可以去这个地址下载（找了我好久好久）
+如果没有 src 这个文件夹，说明使用的版本中没有带源代码，下面正好也是这种情况。源代码可以去这个地址下载（找了好久好久）
 
 http://archive.eclipse.org/eclipse/downloads/
 
@@ -188,11 +184,11 @@ http://archive.eclipse.org/eclipse/downloads/
 
 ![](images/20201106101310370_4467.png)
 
-在页面上选择你Eclipse版本的连接（我使用的是4.4.2），然后在新页面中下载`eclipse-SDK-(*************).zip`，根据自己的需要选择合适的版本下载，大概200M左右。下载完成以后解压缩，在`.\eclipse\plugins\`文件夹下找到`org.eclipse.jface.text.source_3.9.2.v20141003-1326.jar`（这是对应使用的Eclipse版本的文件，实际请根据自己的版本进行选择），将这个文件复制到Eclipse安装目录下的.`\eclipse\plugins\`文件夹下，然后重新启动Eclipse。重复上面的操作导入
+在页面上选择 Eclipse 版本的连接（例如使用的是4.4.2），然后在新页面中下载`eclipse-SDK-(*************).zip`，根据自己的需要选择合适的版本下载，大概200M左右。下载完成以后解压缩，在`.\eclipse\plugins\`文件夹下找到`org.eclipse.jface.text.source_3.9.2.v20141003-1326.jar`（这是对应使用的 Eclipse 版本的文件，实际请根据自己的版本进行选择），将这个文件复制到 Eclipse 安装目录下的.`\eclipse\plugins\`文件夹下，然后重新启动 Eclipse。重复上面的操作导入
 
 ---
 
-如果你的Eclipse不是SDK版本的，强烈建议你改为使用SDK版本的Eclipse，因为SDK版的Eclipse附带了所有源码。如果你不愿意使用SDK版，那么也可以从http://www.eclipse.org/projects/listofprojects.php获得下文所需的源代码，以本文为例，点击Platform Text，会跳转到project页面，再点击Clone on GitHub，即可下载到相应的源代码。
+如果 Eclipse 不是 SDK 版本的，强烈建议改为使用 SDK 版本的 Eclipse，因为 SDK 版的 Eclipse 附带了所有源码。如果不愿意使用 SDK 版，那么也可以从 http://www.eclipse.org/projects/listofprojects.php 获得下文所需的源代码，以本文为例，点击 Platform Text，会跳转到 project 页面，再点击 Clone on GitHub，即可下载到相应的源代码。
 
 依次点击 `Window –> Show View –> Other…`，在弹出的对话框中再选择`Plug-in Development –> Plug-ins`：
 
@@ -200,11 +196,11 @@ http://archive.eclipse.org/eclipse/downloads/
 
 ![](images/20201106101512250_5044.png)
 
-在Plug-ins中找到`org.eclipse.jface.text`，点击右键，选择Import As –> Source Project
+在 Plug-ins 中找到`org.eclipse.jface.text`，点击右键，选择 Import As –> Source Project
 
 ![](images/20201106101547577_8772.png)
 
-这时eclipse就会把该项目导入到workspace工作空间中了。展开该项目，在src目录中选择`org.eclipse.jface.text.contentassist.CompletionProposalPopup.java`文件：
+这时 eclipse 就会把该项目导入到workspace工作空间中了。展开该项目，在 src 目录中选择`org.eclipse.jface.text.contentassist.CompletionProposalPopup.java`文件：
 
 在该文件中找到如下的代码(一般在1300-1350行之间)：
 
@@ -242,50 +238,49 @@ if (key != 0x20 && key != '=' && key != ';' && contains(triggers, key)) {
 }
 ```
 
-经过以上修改，我们去掉了按下空格上屏和`=`上屏`,`上屏的功能，并将其改为按下Tab键上屏，相信这是符合多数人的习惯的，保存修改。
+经过以上修改，去掉了按下空格上屏和`=`上屏`,`上屏的功能，并将其改为按下 Tab 键上屏，相信这是符合多数人的习惯的，保存修改。
 
-接下来要做的就是使用修改过的代码生成插件，并替换掉Eclipse本来的插件。在该工程上单击右键，选择`Export…`：
+接下来要做的就是使用修改过的代码生成插件，并替换掉 Eclipse 本来的插件。在该工程上单击右键，选择`Export…`：
 
 ![](images/20201106101919095_8794.png)
 
-在弹出的对话框中选择Plug-in Development –> Deployable plug-ins and fragments，点击Next：
+在弹出的对话框中选择 Plug-in Development –> Deployable plug-ins and fragments，点击 Next：
 
 ![](images/20201106102015513_32757.png)
 
-指定一个保存即将导出的jar包的位置，点击Finish。
+指定一个保存即将导出的 jar 包的位置，点击 Finish。
 
 ![](images/20201106102036311_27134.png)
 
-这时，在刚才指定的路径下会生成一个plugins文件夹，里面就是导出的jar包：
+这时，在刚才指定的路径下会生成一个 plugins 文件夹，里面就是导出的 jar 包：
 
 ![](images/20201106102102627_3586.png)
 
-最后一步，定位到Eclipse安装目录下的plugins文件夹，使用这个刚生成的jar包替换掉原本的`org.eclipse.jface.text`包即，大功告成！现在，使用代码提示时按下空格键已经不会自动上屏了，而是使用Tab键来上屏。
+最后一步，定位到 Eclipse 安装目录下的 plugins 文件夹，使用这个刚生成的 jar 包替换掉原本的`org.eclipse.jface.text`包即，大功告成！现在，使用代码提示时按下空格键已经不会自动上屏了，而是使用 Tab 键来上屏。
 
-对于MyEclipse:
+对于 MyEclipse:
 
-MyEclipse的修改方法与Eclipse完全一样，用修改好的jar包替换掉MyEclipse自带的jar包即可，MyEclipse中该jar包的位置是：MyEclipse安装目录\Common\plugins。
+MyEclipse 的修改方法与 Eclipse 完全一样，用修改好的 jar 包替换掉 MyEclipse 自带的 jar 包即可，MyEclipse 中该 jar 包的位置是：其安装目录\Common\plugins。
 
-需要额外注意的是MyEclipse中使用的org.eclipse.jface.text包的版本。如笔者使用的MyEclipse 10.6的jface.text的版本是3.7.2，而Eclipse Juno使用的jface.text版本为3.8.1。笔者试图用修改过的3.8.1版本的jar包替换掉MyEclipse自带的3.7.2的jar包，发现替换后的MyEclipse无法启动。无奈只能从网上重新下载了3.7.2版本的Eclipse SDK，将里面的jface.text修改好之后替换道MyEclipse中，最终解决了问题
+需要额外注意的是 MyEclipse 中使用的 org.eclipse.jface.text 包的版本。如笔者使用的 MyEclipse 10.6 的 jface.text 的版本是 3.7.2，而 Eclipse Juno 使用的 jface.text 版本为 3.8.1。笔者试图用修改过的 3.8.1 版本的 jar 包替换掉 MyEclipse 自带的 3.7.2 的 jar 包，发现替换后的 MyEclipse 无法启动。无奈只能从网上重新下载了 3.7.2 版本的 Eclipse SDK，将里面的 jface.text 修改好之后替换道 MyEclipse 中，最终解决了问题
 
-在myeclipse的安装目录中搜索readme_eclipse.html文件， 它在readme文件夹下面双击打开，版本号就显示了myeclipse中的eclipse版本号：如果你的安装目录是D:/MyEclipse ，那么进入到这个目录，按ctrl + F快捷键 ，输入名字：readme_eclipse.html ，按enter进行搜索，双击搜索到的文件就能显示eclipse版本号了。如下图：
+在 myeclipse 的安装目录中搜索 readme_eclipse.html 文件，它在 readme 文件夹下面双击打开，版本号就显示了 myeclipse 中的 eclipse 版本号：如果安装目录是D:/MyEclipse ，那么进入到这个目录，按 ctrl + F 快捷键 ，输入名字：readme_eclipse.html ，按 enter 进行搜索，双击搜索到的文件就能显示 eclipse 版本号了。如下图：
 
 ![](images/20201106102222717_31625.png)
 
 ### 5.3. eclipse SDK 版本
 
-上面的SDK不是用来使用，只是为了拿到里面的源代码。只为了获得`org.eclipse.jface.text`的源代码去修改取消空格上屏而已
+上面的SDK不是用来使用，只是为了拿到里面的源代码。只为了获得`org.eclipse.jface.text`的源代码去修改取消空格上屏而已。例如：
 
 - eclipse-SDK-4.3.1-win32-x86_64 对应 MyEclipse2014
 - eclipse-SDK-4.7.3-win32-x86_64 对应 eclipse-jee-oxygen-3-win32-x86_64
 - eclipse-SDK-4.8-win32-x86_64 对应 eclipse-jee-photon-R-win32-x86_64
-- eclipse-SDK-4.10-win32-x86_64 对应 eclipse-jee-2018-12-R-win32-x86_64
-- eclipse-SDK-4.11-win32-x86_64 对应 eclipse-jee-2019-03-R-win32-x86_64
-- eclipse-SDK-4.13-win32-x86_64 对应 eclipse-jee-2019-09-R-win32-x86_64
 
-## 6. eclipse工作空间配置导出
+> 更新版本详见前面章节《Eclipse 各版本号》
 
-### 6.1. 方法一：使用eclipse的导出功能
+## 6. eclipse 工作空间配置导出
+
+### 6.1. 方法一：使用 eclipse 的导出功能
 
 工作目录中右键选择Export -> General -> Preference，这样可以导出epf文件，新的工作空间中可以用Import导入该配置文件，这个方法的确可以导入绝大多数的配置，但是并不全，导入后会丢失很多配置
 
@@ -392,9 +387,9 @@ eclipse 使用时，可以配合文档注释，导出对类的说明文档，从
 
 ![](images/20201106104045306_12808.png)
 
-## 14. 设置JSP 页面的编码
+## 14. 设置 JSP 页面的编码
 
-Eclipse 的首选项 --> 搜索jsp，找到JSP Files 选择指定的编码，如UTF-8，点击 Apply 后再点击 OK 保存配置。可以分别设置页面编码、页面内容编码
+Eclipse 的首选项 --> 搜索 jsp，找到 JSP Files 选择指定的编码，如UTF-8，点击 Apply 后再点击 OK 保存配置。可以分别设置页面编码、页面内容编码
 
 ![](images/20201106104257915_20704.jpg)
 

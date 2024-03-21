@@ -322,3 +322,9 @@ JDK 1.8 开始：
 - **字符串常量池**：存放在堆中，包括 String 对象执行 `intern()` 方法后存的地方、双引号直接引用的字符串
 - **运行时常量池**：存放在方法区，属于元空间，是类加载后的一些存储区域，大多数是类中 constant_pool 的内容
 - **类文件常量池**：constant_pool，JVM 定义的概念
+
+## 10. 内存相关知识
+
+### 10.1. 工作中最常见的 6 种 OOM 问题（待整理）
+
+> 参考 https://mp.weixin.qq.com/s/Zvj1EoqTODCbkZqTubRWSw

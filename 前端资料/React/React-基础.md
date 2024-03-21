@@ -349,7 +349,7 @@ yarn create react-app 项目名称
 
 #### 3.3.3. 常见问题解决方案
 
-##### 3.3.3.1. Add “@babel/plugin-proposal-private-property-in-object“ to your devDependencies to work
+##### 3.3.3.1. 缺少 @babel/plugin-proposal-private-property-in-object
 
 启动项目时报以下错误
 
