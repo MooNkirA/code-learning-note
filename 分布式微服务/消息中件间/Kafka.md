@@ -62,7 +62,7 @@ Apache Kafka 是一个分布式的发布-订阅消息系统，能够支撑海量
 
 #### 3.1.2. 启动服务器
 
-kafka 服务器的功能相当于 RocketMQ 中的 broker，kafka 运行还需要一个类似于命名服务器的服务。在 kafka 安装目录中自带一个类似于命名服务器的工具，叫做 zookeeper，它的作用是注册中心
+kafka 服务器的功能相当于 RocketMQ 中的 broker，kafka 运行还需要一个类似于命名服务器的服务。在 kafka 安装目录中自带一个类似于命名服务器的工具，叫做 zookeeper，它的作用是注册中心。
 
 ##### 3.1.2.1. zookeeper 配置与启动
 
@@ -99,7 +99,6 @@ cd /d E:\kafka_2.13-2.8.1\
 
 # 启动 zk
 .\bin\windows\zookeeper-server-start.bat .\config\zookeeper.properties
-
 ```
 
 ##### 3.1.2.2. kafka 服务配置与启动

@@ -705,6 +705,12 @@ $ docker rm $(docker ps -a -q)
 > docker rm $(docker ps -a| grep rock | awk '{print $1}')
 ```
 
+强制删除容器（**慎用**），增加 `-f` 参数即可：
+
+```bash
+docker rm -f 容器ID
+```
+
 ### 5.8. 文件拷贝
 
 使用`docker cp`命令将宿主机中的文件拷贝到容器内。**注意：需要后台运行目标容器，在宿主中使用命令**。
@@ -749,16 +755,42 @@ docker inspect --format='{{.NetworkSettings.IPAddress}}'  容器名称|容器ID
 
 ### 5.10. 导入导出容器
 
+在生产环境中，很多时候是无法连接外网的，所以有时候需要用到容器的导入和导出。
+
 容器导出：
 
-```bash
-> docker export 7691a814370e > ubuntu.tar
+```shell
+docker export 7691a814370e > ubuntu.tar
 ```
+
+> Tips: 导出容器的时候，容器无需关闭。
 
 导入容器：
 
-```bash
-> docker load < ubuntu.tar
+```shell
+docker load < ubuntu.tar
+```
+
+### 5.11. 查看容器错误日志
+
+```shell
+# 实时查看docker容器名为user-uat的最后10行日志
+docker logs -f -t --tail 10 user-uat
+
+# 查看指定时间后的日志，只显示最后100行：
+docker logs -f -t --since="2018-02-08" --tail=100 user-uat
+
+# 查看最近30分钟的日志:
+docker logs --since 30m user-uat
+
+# 查看某时间之后的日志：
+docker logs -t --since="2018-02-08T13:23:37" user-uat
+
+# 查看某时间段日志：
+docker logs -t --since="2018-02-08T13:23:37" --until "2018-02-09T12:23:37" user-uat
+
+# 将错误日志写入文件：
+docker logs -f -t --since="2018-02-18" user-uat | grep error >> logs_error.txt
 ```
 
 ## 6. 部署应用
@@ -944,53 +976,60 @@ docker run -id --name=moon_redis -p 6379:6379 redis
 
 本地电脑 windows 下连接 redis 容器，输入连接主机 ip：192.168.12.132，端口：6379
 
-_注：如果连接不成功，查看是否端口没有开放。输入`/sbin/iptables -I INPUT -p tcp --dport 6379 -j ACCEPT`命令，开放端口_
+> 注：如果连接不成功，查看是否端口没有开放。输入`/sbin/iptables -I INPUT -p tcp --dport 6379 -j ACCEPT`命令，开放端口
 
 ## 7. 备份与迁移
 
 ### 7.1. 容器保存为镜像
 
-```shell
-# 语法：
-docker commit 容器名称 新的镜像名称
+将容器保存为镜像的语法：
 
-# 例：将配置好的容器nginx保存为镜像
+```shell
+docker commit 容器名称 新的镜像名称
+```
+
+示例：将配置好的容器nginx保存为镜像
+
+```shell
 docker commit moon_nginx mynginx_image
 ```
 
-_说明：保存后查看镜像，新的镜像的内容就是当前容器的内容，接下来可以用此新的镜像再次运行创建新的容器，新的容器里的配置都是配置后的内容_
+> 说明：保存后查看镜像，新的镜像的内容就是当前容器的内容，接下来可以用此新的镜像再次运行创建新的容器，新的容器里的配置都是配置后的内容
 
 ### 7.2. 镜像备份
 
-将镜像保存为 tar 文件
+将镜像保存为 tar 文件，参数`-o`：代表输出到的文件。语法：
 
 ```shell
-# 语法：
 docker save -o 文件名称.tar 镜像名称
+```
 
-# 例：将mynginx_image的镜像保存成mynginx.tar文件
+示例：将 mynginx_image 的镜像保存成 mynginx.tar 文件
+
+```shell
 docker save -o mynginx.tar mynginx_image
 ```
 
-注：参数`-o`：代表输出到的文件
-
-执行后，运行 ll 命令即可看到打成的 tar 包
+执行后，运行 `ll` 命令即可看到打成的 tar 包
 
 ### 7.3. 镜像恢复与迁移
 
-```shell
-# 语法
-docker load -i 文件名称.tar
+镜像的恢复与迁移，参数 `-i` 代表输入的文件。语法：
 
+```shell
+docker load -i 文件名称.tar
+```
+
+基础示例：
+
+```shell
 # 例：首先先删除掉mynginx_image镜像
 docker rmi mynginx_image
 # 然后执行此命令进行恢复
 docker load -i mynginx.tar
 ```
 
-注：参数`-i`：代表输入的文件
-
-执行后再次查看镜像 docker images，可以看到镜像已经恢复。
+执行后，通过 `docker images` 命令再次查看镜像，可以看到镜像已经恢复。
 
 ## 8. Dockerfile 构建镜像
 
@@ -998,9 +1037,9 @@ docker load -i mynginx.tar
 
 Dockerfile 是由一系列命令和参数构成的脚本，这些命令应用于基础镜像并最终创建一个新的镜像。
 
-1. 对于开发人员：可以为开发团队提供一个完全一致的开发环境；
-2. 对于测试人员：可以直接拿开发时所构建的镜像或者通过 Dockerfile 文件构建一个新的镜像开始工作了；
-3. 对于运维人员：在部署时，可以实现应用的无缝移植。
+- 对于开发人员：可以为开发团队提供一个完全一致的开发环境。
+- 对于测试人员：可以直接拿开发时所构建的镜像或者通过 Dockerfile 文件构建一个新的镜像开始工作。
+- 对于运维人员：在部署时，可以实现应用的无缝移植。
 
 ### 8.2. Dockerfile 基础结构
 
@@ -1226,3 +1265,32 @@ docker start moon_registry
 ```bash
 docker push 192.168.184.141:5000/jdk1.8
 ```
+
+## 11. Docker 扩展知识
+
+### 11.1. 参考资料
+
+- [Docker 项目如何使用 Dockerfile 构建镜像](https://mp.weixin.qq.com/s/T3U1Zdv5xuGoRRzje_in1Q)
+
+### 11.2. Dockerfile 的最佳实践和未来趋势
+
+#### 11.2.1. 最佳实践
+
+1. **保持镜像尽可能小**：选择合适的基础镜像，例如 Alpine Linux，因为它非常小巧。在构建过程中，只安装必要的包和依赖。
+2. **使用多阶段构建**：多阶段构建可以帮助减小最终镜像的大小，通过在一个阶段构建应用，然后在另一个阶段只复制必要的文件。
+3. **避免安装不必要的软件包**：只安装运行应用所必需的软件包，减少安全漏洞的风险。
+4. **使用 .dockerignore 文件**：类似 .gitignore，可以避免不必要的文件被复制到镜像中。
+5. **利用构建缓存**：合理安排 Dockerfile 指令顺序，使得频繁变动的层放在后面，以利用 Docker 的构建缓存。
+6. **安全性**：尽可能使用非 root 用户运行应用，减少安全风险。
+7. **明确标记**：使用 LABEL 指令为镜像添加元数据，比如维护者信息、版本号等。
+
+#### 11.2.2. 未来趋势
+
+1. **与云原生技术的整合**：随着云原生技术的发展，Docker 和 Kubernetes 将更加紧密地协同工作，Dockerfile 在构建云原生应用中将发挥更大的作用。
+2. **安全性关注增加**：随着安全意识的提高，未来 Dockerfile 的编写将更加注重安全性，比如通过更安全的基础镜像和更严格的安全扫描。
+3. **自动化和智能化**：可能会出现更多工具来自动化生成和优化 Dockerfile，甚至在某些情况下，AI 可能参与 Dockerfile 的生成和优化过程。
+4. **更紧密的 DevOps 集成**：Dockerfile 的设计和应用将更加贴近 DevOps 流程，特别是在持续集成和持续部署方面，它将成为自动化管道的核心组件。
+5. **可复用性和模块化**：随着容器化技术的成熟，Dockerfile 的可复用性和模块化将越来越受到重视。我们可能会看到更多针对特定应用或服务的预制 Dockerfile 模板。
+6. **性能优化**：Dockerfile 的未来版本可能会集成更多性能优化的特性，比如更高效的层压缩和缓存机制，以减少构建和部署时间。
+
+通过遵循这些最佳实践并关注未来的趋势，可以更有效地利用 Dockerfile 来构建、测试和部署应用。Dockerfile 不仅是一个工具，它还代表了一种思维方式，即如何更好地在不同环境中一致地部署和管理应用。随着技术的不断进步，Dockerfile 和容器技术将继续演化，为软件开发和部署带来更多的便利和创新。

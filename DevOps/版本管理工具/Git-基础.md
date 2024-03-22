@@ -52,6 +52,14 @@ Git 的工作流程图
 
 ![](images/20201105232233988_19200.jpg)
 
+#### 1.3.1. 代码提交和同步代码
+
+![](images/99655608240247.png)
+
+#### 1.3.2. 代码撤销和撤销同步
+
+![](images/395145608258673.png)
+
 ### 1.4. Git 相关概念
 
 **相关名词**
@@ -250,10 +258,10 @@ $ git config -e [--global]
 #### 7.2.3. 查看配置信息
 
 ```bash
-# 查看当前 git 全部的配置信息
-$ git config --list
+# 查看当前（全局） git 全部的配置信息
+$ git config [--global] --list
 
-# 查看当前 git 指定的配置信息
+# 查看当前（全局） git 指定的配置信息
 $ git config [--global] user.name
 ```
 
@@ -415,7 +423,7 @@ $ git status
 git status –s
 ```
 
-#### 7.4.2. log - 查看版本记录
+#### 7.4.2. log - 查看版本（提交）记录
 
 `git log` 指令，用于查看当前分支 git 的提交记录（版本）
 
@@ -450,13 +458,45 @@ $ git log [tag] HEAD --grep feature
 $ git log --follow [file]
 $ git whatchanged [file]
 
-# 显示过去5次提交
-$ git log -5 --pretty --oneline
+# 控制显示条数。例如：显示过去5次提交
+$ git log -5 --pretty=oneline
+```
+
+图形化展示查看当前分支的版本演变信息
+
+```bash
+git log --graph
+```
+
+按作者名字查看提交记录
+
+```bash
+git log --author="MooN"
+```
+
+按日期查看
+
+```bash
+git log --after="2023-2-1"
+```
+
+搜索过滤合并提交
+
+```bash
+git log --no-merges 
+# 或者
+git log --merges
+```
+
+按提交信息。例如，团队规范要求在提交信息中包括相关的 issue 编号，即可以使用如下命令来显示这个 issue 相关的所有提交。
+
+```bash
+git log --grep="JRA-224:"
 ```
 
 #### 7.4.3. reflog - 查看历史版本
 
-如果发生版本回退的操作，此时使用`git log`就无法查询回退到此版本之前的操作记录，所以需要使用 `git reflog` 指令来查看历史操作，获取最新的 commit id
+如果发生版本回退的操作，此时使用`git log`就无法查询回退到此版本之前的操作记录，所以需要使用 `git reflog` 指令来查看历史操作(包括所有分支的commit，以及已经被删除的commit)，获取最新的 commit id
 
 ```bash
 $ git reflog
@@ -517,19 +557,19 @@ $ git clone 远程Git仓库地址
 
 #### 7.5.2. remote - 查看远程仓库
 
-查看远程，列出指定的每一个远程服务器的简写
+- `remote` 指令用于查看远程，列出指定的每一个远程服务器的简写
 
 ```bash
 $ git remote
 ```
 
-查看远程，列出简称和地址
+- 查看远程，列出简称和地址
 
 ```bash
 $ git remote -v
 ```
 
-查看远程仓库详细地址
+- 查看远程仓库详细地址
 
 ```bash
 $ git remote show <仓库简称>
@@ -537,7 +577,7 @@ $ git remote show <仓库简称>
 
 #### 7.5.3. remote add - 添加远程仓库
 
-添加远程仓库
+- 添加远程仓库
 
 ```bash
 $ git remote add <shortname> <url>
@@ -545,15 +585,25 @@ $ git remote add <shortname> <url>
 
 #### 7.5.4. remote rm - 移除远程仓库
 
-移除远程仓库和本地仓库的关系(只是从本地移除远程仓库的关联关系，并不会真正影响到远程仓库)
+- 移除远程仓库和本地仓库的关系。
 
 ```bash
 $ git remote rm <shortname>
 ```
 
-#### 7.5.5. 拉取远程仓库版本
+> Notes: <font color=red>**只是从本地移除远程仓库的关联关系，并不会真正影响到远程仓库**</font>
 
-##### 7.5.5.1. fetch - 手动拉取与合并
+#### 7.5.5. remote update - 更新远程分支列表
+
+- 更新远程仓库，
+
+```bash
+git remote update origin(仓库源名称) --prune
+```
+
+#### 7.5.6. 拉取远程仓库版本
+
+##### 7.5.6.1. fetch - 手动拉取与合并
 
 从远程仓库拉取 (拉取到.git 目录，不会合并到工作区，工作区发生变化)
 
@@ -567,7 +617,7 @@ $ git fetch <remote> <分支名称>
 $ git merge <remote>/<分支名称>
 ```
 
-##### 7.5.5.2. pull - 自动拉取与合并工作区
+##### 7.5.6.2. pull - 自动拉取与合并工作区
 
 `pull` 指令用于拉取远程仓库的版本记录。(拉取到 .git 目录，合并到工作区，工作区不发生变化。相当于 `fetch` + `merge`)
 
@@ -584,15 +634,15 @@ $ git pull <shortname> <分支名称>
 $ git pull <shortname> <分支名称> --allow-unrelated-histories
 ```
 
-#### 7.5.6. push - 推送到远程仓库
+#### 7.5.7. push - 推送到远程仓库
 
-`push` 指令用于将修改的版本推送到远程仓库某个分支
+- `push` 指令用于将修改的版本推送到远程仓库某个分支
 
 ```bash
 $ git push [remote-name] [branch-name]
 ```
 
-基于http/https协议的远程仓库，首次提交时可能会出现403无权限的错误，需要修改【.git/config】文件内容，增加相应远程仓库的有效的用户名与密码
+- 基于http/https协议的远程仓库，首次提交时可能会出现403无权限的错误，需要修改【.git/config】文件内容，增加相应远程仓库的有效的用户名与密码
 
 ```
 # 原配置
@@ -606,13 +656,13 @@ $ git push [remote-name] [branch-name]
 
 > 注：推送到基于ssh协议的远程仓库，在push的时候并没有提示要求输入帐号密码，因为公私玥已经实现了用户身份鉴权，也不需要修改此配置文件。
 
-强行推送当前分支到远程仓库(有冲突也推送)
+- 强行推送当前分支到远程仓库(即使有冲突也推送)
 
 ```bash
 $ git push [remote] --force
 ```
 
-推送所有分支到远程仓库
+- 推送所有分支到远程仓库
 
 ```bash
 $ git push [remote] --all
@@ -660,6 +710,22 @@ $ git reset --keep [commit]
 > - `commit` 参数是指“提交编号”，可以通过 `git log` 指令查看
 > - 在使用回退指令的时候 commit id 可以不用写全，git 会自动识别，但是至少需要写前 4 位字符
 
+HEAD 说明：
+
+- `HEAD` 表示当前版本
+- `HEAD^` 上一个版本
+- `HEAD^^` 上上一个版本
+- `HEAD^^^` 上上上一个版本
+
+以此类推...
+
+- `HEAD~0` 表示当前版本
+- `HEAD~1` 上一个版本
+- `HEAD^2` 上上一个版本
+- `HEAD^3` 上上上一个版本
+
+以此类推...
+
 #### 7.6.3. revert
 
 新建一个 commit，用来撤销指定 commit。后者的所有变化都将被前者抵消，并且应用到当前分支
@@ -682,6 +748,8 @@ $ git stash pop
 默认分支名称为 master。*2020年Github开始修改为 main*
 
 #### 7.7.1. 查看分支
+
+- 查看分支基础语法
 
 ```bash
 $ git branch
@@ -749,7 +817,7 @@ $ git branch --set-upstream [branch] [remote-branch]
 
 #### 7.7.5. 删除分支
 
-删除本地仓库的分支
+- 删除本地仓库的分支
 
 ```bash
 $ git branch -d <分支名>
@@ -757,13 +825,13 @@ $ git branch -d <分支名>
 
 > Notes: **在删除分支的时候，一定要先退出要删除的分支（或切换到其他分支），然后才能删除该分支。或者如果分支已经修改过，则不允许删除。**
 
-强制删除分支（**慎用**）
+- 强制删除分支（**慎用**）
 
 ```bash
 $ git branch -D <分支名>
 ```
 
-删除远程仓库分支
+- 删除远程仓库分支
 
 ```bash
 # 简写
@@ -800,13 +868,13 @@ $ git push <仓库简称> <分支名称>
 
 #### 7.8.1. 查看 tag 信息
 
-列出所有 tag
+- 列出所有 tag
 
 ```bash
 $ git tag
 ```
 
-查看 tag 详细信息
+- 查看 tag 详细信息
 
 ```bash
 $ git show [tagName]
@@ -846,7 +914,6 @@ $ git push origin :refs/tags/[tagName]
 
 > Notes: **注意空格**
 
-
 #### 7.8.6. 提交 tag
 
 提交指定标签（tag）
@@ -879,7 +946,7 @@ $ git checkout -b <分支名称> <标签名称>
 $ git archive
 ```
 
-## 8. Git Bash 操作 Github 远程仓库
+## 8. Git Bash 操作远程仓库（以 Github 为例）
 
 ### 8.1. Github 仓库同步
 
@@ -1133,7 +1200,62 @@ $ git gc --prune=now
 $ git count-objects -v
 ```
 
-## 10. Git 常见问题解决方法汇总
+### 9.6. 将项目同时提交到多个远程仓库
+
+由于 GitHub 的访问速度慢，因此会有需求将一套开源代码同时提交到多个开源平台（例如 GitHub 和 Gitee）。以下是一套代码同时提交到 GitHub 和 Gitee 为示例，配置 Git 达到同时上传代码到多个平台。
+
+1. 分别在 GitHub 与 Gitee 上创建仓库（最好是同名称）。
+> Tips: 在创建 Gitee 仓库时，除了填写必要信息之后，最下面一栏选择『导入已有仓库』，然后将 GitHub 上的仓库地址（Https 形式）copy 过来，直接粘贴在对应位置。Gitee 会检测并给出提示。点击创建后稍等片刻，发现仓库已经被完美同步过来了。（*以后也可以每次手动同步 Github 的提交记录，这种操作适合非实时同步，可能隔一段时间自己登录账号进行一次同步。*）
+2. 将 GitHub 的仓库 clone 到本地，命令如下：
+
+```bash
+git clone git@github.com:MooNkirA/demo.git
+```
+
+3. 进入本地项目的根目录，在根目录下 `.git` 的隐藏目录中找到 config 文件，对文件进行如下修改：
+
+原文件：
+
+```
+[core]
+	repositoryformatversion = 0
+	filemode = false
+	bare = false
+	logallrefupdates = true
+	symlinks = false
+	ignorecase = true
+[remote "origin"]
+	url = git@github.com:MooNkirA/demo.git
+	fetch = +refs/heads/*:refs/remotes/origin/*
+[branch "develop"]
+	remote = origin
+	merge = refs/heads/develop
+```
+
+在原来的 github 仓库地址下面再添加一个 url 配置，指向 gitee 的地址。修改后：
+
+```
+[core]
+	repositoryformatversion = 0
+	filemode = false
+	bare = false
+	logallrefupdates = true
+	symlinks = false
+	ignorecase = true
+[remote "origin"]
+	url = git@github.com:MooNkirA/demo.git
+	url = git@gitee.com:moonzero/demo.git
+	fetch = +refs/heads/*:refs/remotes/origin/*
+[branch "develop"]
+	remote = origin
+	merge = refs/heads/develop
+```
+
+> Notes: 这里的 GitHub 和 gitee 远程源仓库地址 url 如果是以 https 开头，都是用的是 HTTPS 协议，在从本地推送到远程仓库时候需要输入用户名和密码；也可以使用 GitHub 和 gitee 中的 ssh 协议，在本地配置好 github 和 gitee 的 ssh 秘钥（需要保持一致）后可以免密从本地推送到远程仓库。
+
+4. 使用 `git remote -v` 命令，可以看到本地仓库与两个远程仓库关联
+
+## 10. Git 常见问题及解决方法汇总
 
 ### 10.1. fatal detected dubious ownership in repository 解决办法
 
@@ -1247,6 +1369,18 @@ git config --global core.autocrlf false
 - git 的 Windows 客户端基本都会默认设置 `core.autocrlf=true`，只要保持工作区都是纯 CRLF 文件，编辑器用 CRLF 换行，就不会出现相关警告。
 - Linux 最好不要设置 `core.autocrlf`，因为该配置算是为 Windows 平台定制。
 - Windows 上设置 `core.autocrlf=false`，仓库里也没有配置 `.gitattributes`，很容易引入 CRLF 或者混合换行符（Mixed Line Endings，一个文件里既有 LF 又有CRLF）到版本库，这样就可能产生各种奇怪的问题。
+
+### 10.4. 解决冲突常用规则(命令版本)
+
+> 只要所有开发者都遵守这个规则，那么解决冲突是一件非常容易的事情
+
+1. 例如有 dev 分支。把代码修改完成了，现在不知道有没有冲突。
+2. 在 dev 分支里面，执行命令 `git merge origin/master`，把远程的 master 分支合并到当前 dev 分支中。如果没有任何报错，那么直接转到第5步。
+3. 如果有冲突，根据提示，把冲突解决，保存文件。然后执行命令 `git add xxx` 把你修改的文件添加到缓存区。然后执行命令 `git commit -m "xxx"` 添加 commit 信息。
+4. 执行如下命令，切换到 master 分支：`git checkout master`。
+5. 执行命令 `git pull` 确保当前 master 分支是最新代码。
+6. 把 dev 分支的代码合并回 master 分支：`git merge dev`。
+7. 提交代码：`git push`。
 
 ## 11. Git 学习资源分享
 

@@ -452,7 +452,30 @@ public void doThis() throws NumberFormatException {
 }
 ```
 
-### 5.3. 对异常进行文档说明
+### 5.3. 优先捕获具体的异常子类而不是捕获 Exception 类
+
+对不同类型的异常给出不同的处理逻辑。
+
+```java
+// 反例
+try { 
+    someMethod();
+} catch (Exception e) {
+    //错误方式
+    LOGGER.error("method has failed", e);
+}
+
+// 正例
+try {
+    // 某些可能产生异常的操作
+} catch (FileNotFoundException e) {
+    // 文件未找到的处理逻辑
+} catch (IOException e) {
+    // IO异常的处理逻辑
+}
+```
+
+### 5.4. 对异常进行文档说明
 
 当在方法上声明抛出异常时，也需要进行文档说明。目的是为了给调用者提供尽可能多的信息，从而可以更好地避免或处理异常。在 Javadoc 添加 `@throws` 声明，并且描述抛出异常的场景。
 
@@ -467,11 +490,13 @@ public void doSomething(String input) throws MyBusinessException {
 }
 ```
 
-### 5.4. 不要捕获 Throwable 类
+### 5.5. 不需要捕获的异常
+
+#### 5.5.1. 不要捕获 Throwable 类
 
 `Throwable` 是所有异常和错误的超类。语法上可以允许 catch 子句中使用它，但是建议永远不应该这样做！
 
-如果在 catch 子句中使用 `Throwable`，它不仅会捕获所有异常，也将捕获所有的错误。JVM 抛出错误，指出不应该由应用程序处理的严重问题。典型的例子是 `OutOfMemoryError` 或者 `StackOverflowError`。两者都是由应用程序控制之外的情况引起的，无法处理。所以，最好不要捕获 `Throwable`，除非确定自己处于一种特殊的情况下能够处理错误。
+如果在 catch 子句中使用 `Throwable`，它**不仅会捕获所有异常，也将捕获所有的错误**。JVM 抛出错误，指出不应该由应用程序处理的严重问题。典型的例子是 `OutOfMemoryError` 或者 `StackOverflowError`。两者都是由应用程序控制之外的情况引起的，无法处理。所以，最好不要捕获 `Throwable`，除非确定自己处于一种特殊的情况下能够处理错误。
 
 ```java
 public void doNotCatchThrowable() {
@@ -483,7 +508,27 @@ public void doNotCatchThrowable() {
 }
 ```
 
-### 5.5. 不要忽略异常
+#### 5.5.2. 尽量不要捕获 RuntimeException（Unchecked Exception）
+
+尽量不要 catch RuntimeException，比如 NullPointerException、IndexOutOfBoundsException 等等，应该用预检查的方式来规避。
+
+```java
+// 正例
+if (obj != null) {
+    //...
+}
+
+// 反例
+try {
+    obj.method(); 
+} catch (NullPointerException e) {
+    //...
+}
+```
+
+如果有些异常预检查的，比如说 NumberFormatException，虽然也属于 RuntimeException，但没办法预检查，所以还是应该用 catch 捕获处理。
+
+### 5.6. 不要忽略异常
 
 很多时候，开发者很有自信不抛出异常，因此写了一个 catch 块，但是没有做任何处理或者记录日志。但现实是经常会出现无法预料的异常，或者无法确定这里的代码未来会不会被改动(删除了阻止异常抛出的代码)，而此时由于异常被捕获，使得无法拿到足够的错误信息来定位问题。
 
@@ -505,7 +550,7 @@ public void logAnException() {
 }
 ```
 
-### 5.6. 不要记录并抛出异常
+### 5.7. 不要记录并抛出异常
 
 很多代码甚至类库中都会有捕获异常、记录日志并再次抛出的逻辑。
 
@@ -530,13 +575,42 @@ public void doNotThrowAgainExceptions() throws MyBusinessException {
 }
 ```
 
-### 5.7. 包装异常时不要抛弃原始的异常
+### 5.8. 自定义异常的使用
+
+#### 5.8.1. 使用自定义异常传递更多信息
+
+当内置的异常类型不能满足需求时，可以创建自定义异常。
+
+```java
+public class MyException extends Exception {
+    public MyException(String message) {
+        super(message);
+    }
+}
+
+public void doSomething() throws MyException {
+    // 某些逻辑
+    throw new MyException("特定错误信息");
+}
+```
+
+#### 5.8.2. 自定义异常时不要抛弃原始的异常
 
 捕获标准异常并包装为自定义异常是一个很常见的做法，这样可以添加更为具体的异常信息并能够做针对的异常处理。
 
 在包装异常时，请确保将原始异常设置为原因。否则，将会丢失堆栈跟踪和原始异常的消息，这将会使分析导致异常的异常事件变得困难。
 
 ```java
+// 反例
+public void badDemo() throws MyBusinessException {
+    try {
+        // do something
+    } catch (NumberFormatException e) {
+        throw new MyBusinessException("Some information: " + e.getMessage());
+    }
+}
+
+// 正例
 public void wrapException() throws MyBusinessException {
     try {
         // do something
@@ -548,15 +622,41 @@ public void wrapException() throws MyBusinessException {
 
 > Notes：上例代码 `NumberFormatException e` 中的原始异常 e）。`Exception` 类提供了特殊的构造函数方法，它接受一个 `Throwable` 作为参数。
 
-### 5.8. 不要使用异常来控制程序的流程
+### 5.9. 不要使用异常来控制程序的流程
 
 不应该使用异常控制应用的执行流程，例如，本应该使用 if 语句进行条件判断的情况下，却使用异常处理，这是非常不好的习惯，会严重影响应用的性能。
 
-### 5.9. 使用标准异常
+```java
+public class Demo {
+    public static void main(String[] args) {
+        String input = "1,2,3,a,5";
+        String[] values = input.split(",");
+        for (String value : values) {
+            try {
+                int num = Integer.parseInt(value);
+                System.out.println(num);
+            } catch (NumberFormatException e) {
+                System.err.println(value + " is not a valid number");
+            }
+        }
+    }
+}
+```
+
+### 5.10. 使用标准异常
 
 如果使用内建的异常可以解决问题，就不要用自定义异常。Java API 提供了上百种针对不同情况的异常类型，在开发中首先尽可能使用 Java API 提供的异常，如果标准的异常不能满足要求，这时候创建自己的定制异常。尽可能得使用标准异常有利于新加入的开发者看懂项目代码。
 
-### 5.10. 异常会影响性能
+```java
+public void setValue(int value) {
+    if (value < 0) {
+        throw new IllegalArgumentException("值不能为负"); // 使用标准异常
+    }
+    // 设置值的逻辑
+}
+```
+
+### 5.11. 异常会影响性能
 
 **异常处理的性能成本非常高**，每个 Java 程序员在开发时都应牢记这句话。创建一个异常非常慢，抛出一个异常又会消耗1~5ms，当一个异常在应用的多个层级之间传递时，会拖累整个应用的性能。
 
@@ -564,6 +664,217 @@ public void wrapException() throws MyBusinessException {
 - 在可恢复的异常情况下使用异常
 
 尽管使用异常有利于 Java 开发，但是在应用中最好不要捕获太多的调用栈，因为在很多情况下都不需要打印调用栈就知道哪里出错了。因此，异常消息应该提供恰到好处的信息。
+
+### 5.12. 合理使用 finally 块
+
+#### 5.12.1. 确保释放资源
+
+确保在 finally 块中释放资源，比如关闭文件流或数据库连接，无论是否发生异常。
+
+```java
+FileInputStream file = null;
+try {
+    file = new FileInputStream("someFile.txt");
+    // 使用文件流
+} catch (IOException e) {
+    e.printStackTrace();
+} finally {
+    if (file != null) {
+        try {
+            file.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+}
+```
+
+#### 5.12.2. 不要在 finally 块中使用 return
+
+这会导致 try 块中的 return 语句被忽略。
+
+```java
+public int notGood() {
+    try {
+        // 假设这里有逻辑代码
+        return 1;
+    } finally {
+        return 2;
+    }
+}
+```
+
+#### 5.12.3. 利用 try-with-resources 自动管理资源
+
+Java 7 引入的 try-with-resources 语句可以自动管理资源，减少代码冗余。
+
+```java
+try (FileInputStream input = new FileInputStream("file.txt")) {
+    // 使用资源
+} catch (IOException e) {
+    e.printStackTrace();
+}
+```
+
+#### 5.12.4. 不要 finally 块中抛出任何异常
+
+finally 块用定义的代码，无论 try 块中是否出现异常，都会被执行。如果在 finally 块中抛出异常，可能会导致原始异常被掩盖。
+
+```java
+try {
+    someMethod(); // Throws exceptionOne
+} finally {
+    cleanUp(); // 如果 finally 还抛出异常，那么 exceptionOne 将永远丢失
+}
+```
+
+比如说上例中，一旦 cleanup 抛出异常，someMethod 中的异常将会被覆盖。
+
+#### 5.12.5. 对于不打算处理的异常，直接使用 try-finally，不用 catch
+
+```java
+try {
+    method1(); // 会调用 Method 2
+} finally {
+    cleanUp(); // do cleanup here
+}
+```
+
+如果 method1 正在访问 Method 2，而 Method 2 抛出一些不想在 method 1 中处理的异常，但是仍然希望在发生异常时进行一些清理，可以直接在 finally 块中进行清理，不要使用 catch 块。
+
+### 5.13. 记录异常信息
+
+#### 5.13.1. 尽可能记录所有相关异常信息
+
+有用的异常消息和堆栈跟踪非常重要，记录尽量多的异常日志信息，能方便定位异常位置。
+
+```java
+try {
+    // 某些可能产生异常的操作
+} catch (IOException | SQLException e) {
+    // Log exception message and stack trace
+    LOGGER.debug("Error reading file", e);
+}
+```
+应该尽量把 `String message`、`Throwable cause` 异常信息和堆栈都输出。
+
+#### 5.13.2. 为异常提供详细的上下文信息
+
+在抛出异常时，提供足够的上下文信息，以帮助定位和解决问题。
+
+```java
+public void loadConfiguration(String path) throws IOException {
+    try {
+        // 加载配置逻辑
+    } catch (IOException e) {
+        throw new IOException("加载配置文件失败，路径：" + path, e);
+    }
+}
+```
+
+#### 5.13.3. 不要在生产环境中使用 printStackTrace()
+
+在 Java 中的 `printStackTrace()` 方法用于将异常的堆栈跟踪信息输出到标准错误流中。这个方法对于调试和排错非常有用。但在生产环境中不应该使用此方法，因为它可能会导致以下问题：
+
+- `printStackTrace()` 方法将异常的堆栈跟踪信息输出到标准错误流中，这可能会暴露敏感信息，如文件路径、用户名、密码等。
+- `printStackTrace()` 方法会将堆栈跟踪信息输出到标准错误流中，这可能会影响程序的性能和稳定性。在高并发的生产环境中，大量的异常堆栈跟踪信息可能会导致系统崩溃或出现意外的行为。
+- 由于生产环境中往往是多线程、分布式的复杂系统，`printStackTrace()` 方法输出的堆栈跟踪信息可能并不完整或准确。
+
+在生产环境中，应该使用日志系统来记录异常信息，例如 log4j、slf4j、logback 等。日志系统可以将异常信息记录到文件或数据库中，而不会暴露敏感信息，也不会影响程序的性能和稳定性。同时，日志系统也提供了更多的功能，如级别控制、滚动日志、邮件通知等。
+
+```java
+// 例如，可以使用 logback 记录异常信息，如下所示：
+try {
+    // some code
+} catch (Exception e) {
+    logger.error("An error occurred: ", e);
+}
+```
+
+#### 5.13.4. 一个异常只能包含在一个日志中
+
+在单线程环境中，连续记录两次日志看起来没有问题，但如果在多线程环境中，这两行紧挨着的代码中间可能会输出很多其他的内容，导致问题查起来会很难受。
+
+```java
+// 反例
+log.debug("Using redis one");
+log.debug("Using redis two");
+
+// 正例
+log.debug("Using redis one, Using redis two");
+```
+
+### 5.14. 只抛出和方法相关的异常
+
+相关性对于保持代码的整洁非常重要。假设一个尝试读取文件的方法，如果抛出 NullPointerException，那么它不会给用户提供有价值的信息。相反，如果这种异常被包裹在自定义异常（如 NoSuchFileFoundException）中，则对该方法的用户更有用。
+
+```java
+public class Demo {
+    public static void main(String[] args) {   
+        try {   
+            int result = divide(10, 0);
+            System.out.println("The result is: " + result);
+        } catch (ArithmeticException e) {
+   
+            System.err.println("Error: " + e.getMessage());
+        }
+    }
+
+    public static int divide(int a, int b) throws ArithmeticException {   
+        if (b == 0) {   
+            throw new ArithmeticException("Division by zero");
+        }
+        return a / b;
+    }
+}
+```
+
+### 5.15. 尽早验证用户输入以在请求处理的早期捕获异常
+
+在业务开发中，可以提前验证用户输入，以在请求处理的早期就捕获处理异常。
+
+例如用 JDBC 的方式往数据库插入数据，那么最好是先验证所有数据再插入，而不是先验证用户数据就插入用户数据，验证订单数据，再插入订单数据。
+
+```java
+// 反例
+Connection conn = null;
+try {
+    // Connect to the database
+    conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/mydatabase", "username", "password");
+    // Start a transaction
+    conn.setAutoCommit(false);
+    // Validate user input
+    validateUserInput();
+    // Insert user data
+    insertUserData(conn);
+    // Validate address input
+    validateAddressInput();
+    // Insert address data
+    insertAddressData(conn);
+    // Commit the transaction if everything is successful
+    conn.commit();
+} catch (SQLException e) {
+    // Rollback the transaction if there is an error
+    if (conn != null) {
+        try {
+            conn.rollback();
+        } catch (SQLException ex) {
+            System.err.println("Error: " + ex.getMessage());
+        }
+    }
+    System.err.println("Error: " + e.getMessage());
+} finally { 
+    // Close the database connection
+    if (conn != null) {   
+        try {
+            conn.close();
+        } catch (SQLException e) {
+            System.err.println("Error: " + e.getMessage());
+        }
+    }
+}
+```
+
 
 ## 6. 自定义异常
 

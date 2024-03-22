@@ -8,7 +8,7 @@
 
 随着软件工程的不断演进，针对不同的需求，新的设计模式不断被提出（比如大数据领域中这些年不断被大家认可的数据分片思想），但设计模式的原则不会变。基于设计模式的原则，可以使用已有的设计模式，也可以根据产品或项目的开发需求在现有的设计模式基础上组合、改造或重新设计自身的设计模式。
 
-## 2. 设计模式的原则
+## 2. 设计模式七个原则
 
 设计模式有 7 个原则：单一职责原则、开闭原则、里氏代换原则、依赖倒转原则、接口隔离原则、合成／聚合复用原则、迪米特法则。具体内容如下：
 
@@ -20,37 +20,46 @@
 6. **合成／聚合复用原则**，指通过在一个新的对象中引人（注入）已有的对象以达到类的功能复用和扩展的目的。它的设计原则是要尽量使用合成或聚合而不要使用继承来扩展类的功能。
 7. **迪米特法则**，指一个对象尽可能少地与其他对象发生相互了解或依赖。其核心思想在于降低模块之间的耦合度，提高模块的内聚性。迪米特法则规定每个模块对其他模块都要有尽可能少的了解和依赖，因此很容易使系统模块之间功能独立，这使得各个模块的独立运行变得更简单，同时使得各个模块之间的组合变得更容易。
 
-## 3. 设计模式的分类
+## 3. 设计模式四大分类
 
-设计模式按照其功能和使用场景可以分为三大类：**创建型模式（Creational Pattern）**、**结构型模式（Structural Pattern）**和**行为型模式（Behavioral Pattern）**
+设计模式按照其功能和使用场景可以分为三大类：**创建型模式（Creational Pattern）**、**结构型模式（Structural Pattern）**、**行为型模式（Behavioral Pattern）**和**J2EE 设计模式**。
 
 - **创建型模式**：提供了多种优雅创建对象的方法
-  - [x] 工厂模式（Factory Pattern）
-  - [ ] 抽象工厂模式（Abstract Factory Pattern）
-  - [x] 单例模式（Singleton Pattern）
-  - [ ] 建造者模式（Builder Pattern）
-  - [ ] 原型模式（Prototype Pattern）
+    - [x] 工厂模式（Factory Pattern）
+    - [ ] 抽象工厂模式（Abstract Factory Pattern）
+    - [x] 单例模式（Singleton Pattern）
+    - [ ] 建造者模式（Builder Pattern）
+    - [ ] 原型模式（Prototype Pattern）
 - **结构型模式**：通过类和接口之间的继承和引用实现创建复杂结构对象的功能
-  - [x] 适配器模式（Adapter Pattern ）
-  - [ ] 桥接模式（Bridge Pattern）
-  - [ ] 过滤器模式（Filter 、Criteria Pattern）
-  - [ ] 组合模式（Composite Pattern）
-  - [ ] 装饰器模式（Decorator Pattern）
-  - [ ] 外观模式（Facade Pattern）
-  - [ ] 享元模式（Flyweight Pattern）
-  - [ ] 代理模式（Proxy Pattern）
+    - [x] 适配器模式（Adapter Pattern ）
+    - [ ] 桥接模式（Bridge Pattern）
+    - [ ] 过滤器模式（Filter 、Criteria Pattern）
+    - [ ] 组合模式（Composite Pattern）
+    - [ ] 装饰器模式（Decorator Pattern）
+    - [ ] 外观模式（Facade Pattern）
+    - [ ] 享元模式（Flyweight Pattern）
+    - [ ] 代理模式（Proxy Pattern）
 - **行为型模式**：通过类之间不同的通信方式实现不同的行为方式
-  - [ ] 责任链模式（Chain of Responsibility Pattern）
-  - [ ] 命令模式（Command Pattern）
-  - [ ] 解释器模式（Interpreter Pattern）
-  - [ ] 迭代器模式（Iterator Pattern）
-  - [ ] 中介者模式（Mediator Pattern）
-  - [ ] 备忘录模式（Memento Pattern）
-  - [ ] 观察者模式（Observer Pattern）
-  - [ ] 状态模式（State Pattern）
-  - [ ] 策略模式（Strategy Pattern）
-  - [x] 模板模式（Template Pattern）
-  - [ ] 访问者模式（Visitor Pattern）
+    - [ ] 责任链模式（Chain of Responsibility Pattern）
+    - [ ] 命令模式（Command Pattern）
+    - [ ] 解释器模式（Interpreter Pattern）
+    - [ ] 迭代器模式（Iterator Pattern）
+    - [ ] 中介者模式（Mediator Pattern）
+    - [ ] 备忘录模式（Memento Pattern）
+    - [ ] 观察者模式（Observer Pattern）
+    - [ ] 状态模式（State Pattern）
+    - [ ] 策略模式（Strategy Pattern）
+    - [x] 模板模式（Template Pattern）
+    - [ ] 访问者模式（Visitor Pattern）
+- **J2EE模式**：这些模式是由 Sun Java Center 鉴定的，特别关注表示层
+    - [ ] MVC模式（MVCPattern）
+    - [ ] 业务代表模式（BusinessDelegatePattern）
+    - [ ] 组合实体模式（CompositeEntityPattern）
+    - [ ] 数据访问对象模式（DataAccessObjectPattern）
+    - [ ] 前端控制器模式（FrontControllerPattern）
+    - [ ] 拦截过滤器模式（InterceptingFilterPattern）
+    - [ ] 服务定位器模式（ServiceLocatorPattern）
+    - [ ] 传输对象模式（TransferObjectPattern）
 
 # 单例设计模式（Singleten Pattern）
 
@@ -1857,3 +1866,4 @@ ProductVO param = ProductVO.builder()
 - [设计模式内容聚合](https://mp.weixin.qq.com/s?__biz=MzI4Njc5NjM1NQ==&mid=2247487936&idx=2&sn=02c48b88fa45a32e55b99fa0be610a29&chksm=ebd62eecdca1a7faccf9f26d17bd2108e1b8939421640f71f1ebf5f14b621448ac05ad168a00&mpshare=1&scene=1&srcid=#rd)
 - ~~[Java设计模式：23种设计模式全面解析（超级详细）](http://c.biancheng.net/design_pattern/)~~，内容被清空了？
 - [Java Design Patterns (中文)](https://java-design-patterns.com/zh/)，软件设计模式，编程原则还有代码片段
+- [Java 设计模式](https://www.ddkk.com/category/design/java/index.html)

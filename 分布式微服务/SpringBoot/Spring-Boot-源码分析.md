@@ -220,6 +220,8 @@ public class RedisAutoConfiguration {
 
 #### 2.5.4. 小结
 
+![](images/418415816258589.png)
+
 自动配置类本质上就是一个配置类而已，只是用 META-INF/spring.factories 管理，与应用配置类解耦。Spring Boot 启动时先加载 spring.factories 文件中的 `org.springframework.boot.autoconfigure.EnableAutoConfiguration` 配置项，循环配置中每个自动配置类，然后根据定义在类上的 `@ConditionalOn*` 条件注解来决定哪些 bean 需要加载。
 
 以 `@Enable**` 开头的注解本质是利用了 `@Import` 配合 `DeferredImportSelector` 实现导入，在 `selectImports` 方法的返回值即为要导入的配置类名。值得注意的是，`DeferredImportSelector` 接口的导入会在最后执行，其目的是为了让其它配置优先解析

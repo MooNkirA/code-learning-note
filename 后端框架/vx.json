@@ -16,13 +16,13 @@
             "name": "Spring-Data"
         },
         {
-            "name": "Authorization-Certification"
-        },
-        {
             "name": "Activiti"
         },
         {
             "name": "工具框架"
+        },
+        {
+            "name": "Hibernate"
         }
     ],
     "id": "548",

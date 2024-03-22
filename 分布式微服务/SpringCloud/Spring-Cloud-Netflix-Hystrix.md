@@ -363,7 +363,7 @@ hystrix:
 
 ## 5. Hystrix 对 Feign 实现服务的熔断
 
-SpringCloud Fegin 默认已整合了 hystrix，所以添加Feign依赖后就不用在添加hystrix依赖
+SpringCloud Fegin 默认已整合了 hystrix，所以添加 Feign 依赖后就不用在添加 hystrix 依赖
 
 ### 5.1. 示例项目搭建
 
@@ -379,7 +379,7 @@ feign:
     enabled: true # 开启对hystrix的支持，默认值是false（关闭）
 ```
 
-### 5.3. 配置FeignClient接口的实现类
+### 5.3. 配置 FeignClient 接口的实现类
 
 基于Feign实现熔断降级，需要创建`FeignClient`接口的实现类，在实现类中定义降级方法
 

@@ -58,7 +58,7 @@ transient Object[] elementData; // non-private to simplify nested class access
 
 > Java中transient关键字的作用，简单地说，就是让某些被修饰的成员属性变量不被序列化。
 
-ArrayList 实现了 `Serializable` 接口，意味着  ArrayList 支持序列化。而使用 `transient` 关键字声明的 `elementData` 属性，则这个变量不会参与序列化操作，即使所在类实现了Serializable接口，反序列化后该变量为空值。
+ArrayList 实现了 `Serializable` 接口，意味着  ArrayList 支持序列化。而使用 `transient` 关键字声明的 `elementData` 属性，则这个变量不会参与序列化操作，即使所在类实现了 Serializable 接口，反序列化后该变量为空值。
 
 > 那么问题来了：ArrayList 中数组声明：`transient Object[] elementData;`，事实上使用 ArrayList 在网络传输用的很正常，并没有出现空值。
 
@@ -87,9 +87,9 @@ private void writeObject(java.io.ObjectOutputStream s)
 
 `ArrayList` 在每次序列化时，会调用`writeObject()`方法，首先会调用 `defaultWriteObject()` 方法序列化 ArrayList 中的非 `transient` 元素，如`size`和`element`等写入`ObjectOutputStream`，然后遍历 elementData 属性，只序列化已存入的元素，这样既加快了序列化的速度，又减小了序列化之后的文件大小。反序列化时调用`readObject()`，从`ObjectInputStream`获取`size`和`element`，再恢复到`elementData`。
 
-> 那为什么不直接用elementData来序列化，而采用上诉的方式来实现序列化呢？
+> 那为什么不直接用 elementData 来序列化，而采用上述的方式来实现序列化呢？
 
-原因在于`elementData`是一个缓存数组，它通常会预留一些容量，等容量不足时再扩充容量，那么有些空间可能就没有实际存储元素，采用上诉的方式来实现序列化时，就可以保证只序列化实际存储的那些元素，而不是整个数组，从而**节省空间和时间**。
+原因在于`elementData`是一个缓存数组，它通常会预留一些容量，等容量不足时再扩充容量，那么有些空间可能就没有实际存储元素，采用上述的方式来实现序列化时，就可以保证只序列化实际存储的那些元素，而不是整个数组，从而**节省空间和时间**。
 
 ### 1.2. 构造方法分析
 
@@ -429,7 +429,7 @@ public void forEach(Consumer<? super E> action) {
 
 通过源码分析可知异常的原因：迭代器在遍历时直接访问集合中的内容，并且在遍历过程中使用一个 `modCount` 成员变量，它表示该集合实际被修改的次数。集合在被遍历期间如果内容发生变化，就会改变 `modCount` （用于记录集合操作过程的修改次数）的值，增加1。
 
-`expectedModCount` 是 ArrayList 中的一个内部类 - `Itr` 中的成员变量（`Itr` 是一个 Iterator 的实现，使用 `ArrayList.iterator` 方法可以获取到的迭代器就是 Itr 类的实例。）。`expectedModCount` 表示这个迭代器期望该集合被修改的次数。其值是在 `ArrayList.iterator` 方法被调用的时候初始化的。只有通过迭代器对集合进行操作，该值才会改变。
+`expectedModCount` 是 ArrayList 中的一个内部类 - `Itr` 中的成员变量（`Itr` 是一个 Iterator 的实现，使用 `ArrayList.iterator` 方法可以获取到的迭代器就是 Itr 类的实例）。`expectedModCount` 表示这个迭代器期望该集合被修改的次数。其值是在 `ArrayList.iterator` 方法被调用的时候初始化的。只有通过迭代器对集合进行操作，该值才会改变。
 
 每当迭代器使用`hashNext()`/`next()` 遍历下一个元素之前，都会检测 `modCount` 变量是否为 `expectedmodCount` 值，是的话就返回遍历；否则抛出异常，终止遍历并抛出 `ConcurrentModificationException`。
 
@@ -1073,15 +1073,26 @@ final Node<K,V> getNode(int hash, Object key) {
 
 ### 2.8. HashMap 综合问题小结
 
-#### 2.8.1. 为什么要使用红黑树而不是二叉树
+#### 2.8.1. JDK 1.8 的 HashMap 数据结构示意图
+
+![](images/309095316240157.png)
+
+其中，桶数组是用来存储数据元素，链表是用来解决冲突，红黑树是为了提高查询的效率。
+
+- 数据元素通过映射关系，也就是散列函数，映射到桶数组对应索引的位置
+- 如果发生冲突，从冲突的位置拉一个链表，插入冲突的元素
+- 如果 `链表长度 > 8 & 数组大小>=64`，链表转为红黑树
+- 如果 `红黑树节点个数 < 6`，转为链表
+
+#### 2.8.2. 为什么要使用红黑树而不是二叉树
 
 主要是因为红黑树在插入和删除操作时，能够自动平衡树的结构，使得整棵树的高度保持在一个较小的范围内，从而保证查找、插入和删除操作的时间复杂度稳定在 `O(logn)`。而二叉树没有自平衡的特性，如果插入和删除操作不当，可能会导致树的高度过高，使得查找时间复杂度变为 `O(n)`，因此不适合用于高效的 Map 实现。
 
-#### 2.8.2. 为什么使用 8 作为链表改为红黑树的阈值
+#### 2.8.3. 为什么使用 8 作为链表改为红黑树的阈值
 
 从作者在源码中的注释可知，理想情况下使用随机的哈希码，容器中节点分布在 hash 桶中的频率遵循泊松分布，按照泊松分布的计算公式计算出了桶中元素个数和概率的对照表，可以看到链表中元素个数为 8 时的概率已经非常小，再多的就更少了，所以原作者在选择链表元素个数时选择了 8，是根据概率统计而选择的。
 
-#### 2.8.3. 解决 hash 冲突的时为什么选择先用链表，再转红黑树
+#### 2.8.4. 解决 hash 冲突的时为什么选择先用链表，再转红黑树
 
 当元素小于 8 个的时候，此时做查询操作，链表结构已经能保证查询性能。当元素大于 8 个的时候，红黑树搜索时间复杂度是 `O(logn)`，而链表是 `O(n)`，此时需要红黑树来加快查询速度，因为红黑树需要进行左旋，右旋，变色这些操作来保持平衡，而单链表不需要，但是此时新增节点的效率会变慢。
 

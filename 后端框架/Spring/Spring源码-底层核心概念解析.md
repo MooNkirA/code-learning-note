@@ -891,6 +891,12 @@ parsePropertyElements(ele, bd);
 
 ### 6.2. BeanFactory 类视图
 
+**Spring5 BeanFactory 继承体系**：
+
+![](images/522891123251596.png)
+
+**BeanFactory 总类继承体系视图**：
+
 ![](images/20200903095250647_20309.png)
 
 ### 6.3. 其他类型的 BeanFactory
@@ -898,7 +904,7 @@ parsePropertyElements(ele, bd);
 #### 6.3.1. HierarchicalBeanFactory 接口
 
 ```java
-public interface HierarchicalBeanFactory extends BeanFactory {
+### public interface HierarchicalBeanFactory extends BeanFactory {
 	/**
 	 * Return the parent bean factory, or {@code null} if there is none.
 	 */
@@ -1013,6 +1019,10 @@ public interface ApplicationContext extends EnvironmentCapable, ListableBeanFact
 - 国际化支持：`ApplicationContext` 实现了 `org.springframework.context.MessageSource` 接口，该接口为容器提供国际化消息访问功能，支持具备多语言版本需求的应用开发，并提供了多种实现来简化国际化资源文件的装载和获取。
 - 发布应用上下文事件：实现了 `org.springframework.context.ApplicationEventPublisher` 接口，该接口让容器拥有发布（广播）应用上下文事件的功能（没有添加事件监听器的功能），包括容器启动、关闭事件等，如果一个 bean 需要接收容器事件，则只需要实现 ApplicationListener 接口即可，Spring 会自动扫描对应的监听器配置，并注册成为主题的观察者。
 - 丰富的资源获取的方式：实现了 `org.springframework.core.io.support.ResourcePatternResolver` 接口，因此拥有资源加载功能，可以一次性获取多个资源（文件资源等等）。其中 `ResourcePatternResolver` 的实现类 `PathMatchingResourcePatternResolver` 可以采用 Ant 风格的资源路径去加载配置文件。
+
+**Spring5 ApplicationContext 部分体系类图**：
+
+![](images/283811323269476.png)
 
 ### 7.2. ConfigurableApplicationContext 接口
 

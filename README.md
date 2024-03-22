@@ -42,7 +42,10 @@
 ### 🖥 JVM（Java 虚拟机）
 
 <ul class="docs">
-  <li><a href="#/JVM/JVM-基础">JVM 基础笔记</a></li>
+  <li><a href="#/JVM/JVM-基础">JVM 基础</a></li>
+  <li><a href="#/JVM/JVM-内存模型">JVM 内存模型</a></li>
+  <li><a href="#/JVM/JVM-类加载">JVM 类加载</a></li>
+  <li><a href="#/JVM/JVM-GC">JVM GC（垃圾回收）</a></li>
   <li><a href="#/JVM/JVM-性能调优">JVM 性能调优</a></li>
   <li><a href="#/JVM/JVM-指令手册">JVM 指令手册</a></li>
   <li><a href="#/JVM/JVM-源码分析">JVM 源码分析</a></li>
@@ -80,6 +83,17 @@
   <li><a href="#/后端框架/MyBatis/MyBatis-Flex">MyBatis-Flex 基础笔记（整理中）</a></li>
 </ul>
 
+### Hibernate
+
+<ul class="docs">
+  <li><a href="#/后端框架/Hibernate/Hibernate-基础">Hibernate 基础</a></li>
+  <li><a href="#/后端框架/Hibernate/Hibernate-配置">Hibernate 配置</a></li>
+  <li><a href="#/后端框架/Hibernate/Hibernate-标准查询">Hibernate 标准查询 Criteria</a></li>
+  <li><a href="#/后端框架/Hibernate/Hibernate-HQL">Hibernate Query Language（HQL）</a></li>
+  <li><a href="#/后端框架/Hibernate/Hibernate-多表关联">Hibernate 多表关联</a></li>
+  <li><a href="#/后端框架/Hibernate/Hibernate-JPA">Hibernate JPA</a></li>
+</ul>
+
 ### 🧰 SpringMVC
 
 <ul class="docs">
@@ -99,9 +113,9 @@
 ### 🔑 授权认证框架
 
 <ul class="docs">
-  <li><a href="#/后端框架/Authorization-Certification/Authorization-Overview">授权认证概述</a></li>
-  <li><a href="#/后端框架/Authorization-Certification/Spring-Security">Spring Security</a></li>
-  <li><a href="#/后端框架/Authorization-Certification/Shiro">Shiro（整理中...）</a></li>
+  <li><a href="#/分布式微服务/Authorization-Certification/Authorization-Overview">授权认证概述</a></li>
+  <li><a href="#/分布式微服务/Authorization-Certification/Spring-Security">Spring Security</a></li>
+  <li><a href="#/分布式微服务/Authorization-Certification/Shiro">Shiro（整理中...）</a></li>
 </ul>
 
 ### 📇 Activiti 工作流引擎
@@ -115,18 +129,24 @@
 ### 🔧 工具框架
 
 <ul class="docs">
-  <li><a href="#/后端框架/工具框架/JUnit">JUnit（Java 单元测试工具框架）</a></li>
-  <li><a href="#/后端框架/工具框架/Gson">Gson（JSON 处理工具类库）</a></li>
-  <li><a href="#/后端框架/工具框架/iTextPdf">iTextPdf（PDF 操作工具类库）</a></li>
-  <li><a href="#/后端框架/工具框架/BloomFilter">BloomFilter（布隆过滤器）</a></li>
   <li><a href="#/后端框架/工具框架/Java-Logging">Java 日志工具类库</a></li>
-  <li><a href="#/后端框架/工具框架/Guava">Guava（Google 基于 Java 类库扩展）</a></li>
-  <li><a href="#/后端框架/工具框架/Netty">Netty（网络应用程序框架）</a></li>
-  <li><a href="#/后端框架/工具框架/Lombok">Lombok 实体类工具插件</a></li>
   <li><a href="#/后端框架/工具框架/Apache-Commons">Apache Commons 工具类库（IO 操作、Java 基础 API 增强）</a></li>
-  <li><a href="#/后端框架/工具框架/PowerMock">PowerMock (单元测试模拟框架)</a></li>
+  <li><a href="#/后端框架/工具框架/Guava">Guava - Google 基于 Java 类库扩展</a></li>
+  <li><a href="#/后端框架/工具框架/Lombok">Lombok 实体类工具插件</a></li>
+  <li><a href="#/后端框架/工具框架/Netty">Netty - 网络应用程序框架</a></li>
   <li><a href="#/后端框架/工具框架/Swagger">Swagger 接口文档工具(包含 knife4j 增强框架)</a></li>
   <li><a href="#/后端框架/工具框架/Drools">Drools 规则引擎</a></li>
+  <li><a href="#/后端框架/工具框架/MapStruct">MapStruct 对象拷贝工具</a></li>
+  <li>
+    <p>Json 常用类库</p>
+    <ul class="docs">
+      <li><a href="#/后端框架/工具框架/Gson">Gson</a></li>
+      <li><a href="#/后端框架/工具框架/FastJson">FastJson</a></li>
+      <li><a href="#/后端框架/工具框架/Jackson">Jackson</a></li>
+    </ul>
+  </li>
+  <li><a href="#/后端框架/工具框架/BloomFilter">BloomFilter（布隆过滤器）</a></li>
+  <li><a href="#/后端框架/工具框架/iTextPdf">iTextPdf（PDF 操作工具类库）</a></li>
 </ul>
 
 ## 前端资料
@@ -180,9 +200,12 @@
 ### 💫 React.js
 
 <ul class="docs">
-  <li><a href="#/前端资料/React/React-基础">React.js 笔记</a></li>
-  <li><a href="#/前端资料/React/Ant-Design">Ant Design 笔记</a></li>
-  <li><a href="#/前端资料/React/Ant-Design-Mobile">Ant Design Mobile 笔记</a></li>
+  <li><a href="#/前端资料/React/React-基础">React.js 基础</a></li>
+  <li><a href="#/前端资料/React/React-Hook">React Hook 函数式组件</a></li>
+  <li><a href="#/前端资料/React/Redux">Redux - JavaScript 应用的可预测状态容器</a></li>
+  <li><a href="#/前端资料/React/React-Router">React Router - 支持"客户端路由"</a></li>
+  <li><a href="#/前端资料/React/Ant-Design">Ant Design - React UI 组件库</a></li>
+  <li><a href="#/前端资料/React/Ant-Design-Mobile">Ant Design Mobile - 基于 React 的移动端 Web 组件库</a></li>
 </ul>
 
 ### 🅱 Bootstrap
@@ -239,6 +262,7 @@
   <li><a href="#/Database/MySQL/MySQL-运维">MySQL - 运维篇（日志、主从复制、读写分离、分库分表）</a></li>
   <li><a href="#/Database/MySQL/MySQL-开发规范">MySQL - 开发规范</a></li>
   <li><a href="#/Database/MySQL/MySQL-性能优化">MySQL - 性能优化</a></li>
+  <li><a href="#/Database/MySQL/MySQL-原理">MySQL - 原理</a></li>
   <li><a href="#/Database/MySQL/MySQL-SQL示例">MySQL - 练习示例</a></li>
 </ul>
 
@@ -246,6 +270,8 @@
 
 <ul class="docs">
   <li><a href="#/Database/Oracle/Oracle-基础">Oracle 基础笔记</a></li>
+  <li><a href="#/Database/Oracle/Oracle-安装部署">Oracle 安装部署笔记</a></li>
+  <li><a href="#/Database/Oracle/Oracle-客户端">Oracle 客户端工具</a></li>
 </ul>
 
 ### 非关系型数据库
@@ -305,6 +331,10 @@
 ### ⭕ 测试工具
 
 <ul class="docs">
+  <li><a href="#/DevOps/测试工具/Testing-Overview">程序测试基础概述</a></li>
+  <li><a href="#/DevOps/测试工具/JUnit4">单元测试工具框架 - JUnit4</a></li>
+  <li><a href="#/DevOps/测试工具/JUnit5">单元测试工具框架 - JUnit5</a></li>
+  <li><a href="#/DevOps/测试工具/Mockito">单元测试模拟框架 - Mockito（包含 PowerMock）</a></li>
   <li><a href="#/DevOps/测试工具/JMeter">JMeter 压力测试</a></li>
   <li><a href="#/DevOps/测试工具/Postman">Postman 接口测试工具</a></li>
 </ul>
@@ -322,6 +352,17 @@
 </ul>
 
 ## 分布式 & 微服务架构
+
+### 🧱 系统架构
+
+<ul class="docs">
+  <li><a href="#/分布式微服务/系统架构/架构-基础">系统架构 - 基础</a></li>
+  <li><a href="#/分布式微服务/系统架构/架构-缓存">系统架构 - 缓存</a></li>
+  <li><a href="#/分布式微服务/系统架构/架构-负载均衡">系统架构 - 负载均衡</a></li>
+  <li><a href="#/分布式微服务/系统架构/架构-服务容错">系统架构 - 服务容错</a></li>
+  <li><a href="#/分布式微服务/系统架构/架构-全局唯一ID">系统架构 - 全局唯一 ID 及方案</a></li>
+  <li><a href="#/分布式微服务/系统架构/架构-分布式锁">系统架构 - 分布式锁及实现方案</a></li>
+</ul>
 
 ### 🌠 Spring Boot
 
@@ -346,12 +387,12 @@
   <li><a href="#/分布式微服务/SpringBoot/Spring-Boot-Solr">Spring Boot 整合 Solr（待完善）</a></li>
   <li><a href="#/分布式微服务/SpringBoot/Spring-Boot-Spring-Cloud">Spring Boot 整合 Spring Cloud（待完善）</a></li>
   <li><a href="#/分布式微服务/SpringBoot/Spring-Boot-Application-Properties">Spring Boot 通用配置项汇总</a></li>
+  <li><a href="#/分布式微服务/SpringBoot/Spring-Boot-项目搭建模板">Spring Boot 项目搭建模板与规范</a></li>
 </ul>
 
 ### ⛅ Spring Cloud
 
 <ul class="docs">
-  <li><a href="#/分布式微服务/SpringCloud/Microservices-Overview">微服务概述</a></li>
   <li><a href="#/分布式微服务/SpringCloud/Spring-Cloud-Overview">Spring Cloud 概述</a></li>
   <li>
     <p>Spring Cloud Netflix（包含Eureka、Ribbon、Feign、Hystrix、Zuul 等组件）</p>
@@ -453,6 +494,7 @@
   <li><a href="#/分布式微服务/任务调度/Task-Scheduling">分布式任务调度概述</a></li>
   <li><a href="#/分布式微服务/任务调度/Quartz">Quartz 开源作业调度框架</a></li>
   <li><a href="#/分布式微服务/任务调度/ElasticJob">Elastic-Job 分布式调度解决方案</a></li>
+  <li><a href="#/分布式微服务/任务调度/XXL-JOB">XXL-JOB 分布式任务调度平台</a></li>
 </ul>
 
 ### ⛓️ 分布式链路追踪
@@ -473,14 +515,16 @@
 
 <ul class="docs">
   <li><a href="#/分布式微服务/分库分表/分库分表综合概述">分库分表综合概述</a></li>
-  <li><a href="#/分布式微服务/分库分表/Sharding-JDBC">Sharding-JDBC - 当当网开源分布式数据库中间件</a></li>
+  <li><a href="#/分布式微服务/分库分表/ShardingSphere">ShardingSphere</a></li>
+  <li><a href="#/分布式微服务/分库分表/ShardingSphere-JDBC">ShardingSphere-JDBC</a></li>
+  <li><a href="#/分布式微服务/分库分表/Mycat">Mycat2 - 数据库中间件</a></li>
 </ul>
 
-### ✨ 微服务其他相关内容
+### 🗄️ 分布式文件系统
 
 <ul class="docs">
-  <li><a href="#/分布式微服务/其他/项目搭建模板">项目搭建模板与规范</a></li>
-  <li><a href="#/分布式微服务/其他/FastDFS">FastDFS 分布式文件系统</a></li>
+  <li><a href="#/分布式微服务/分布式文件系统/Distributed-File-System-Overview">分布式文件系统概述</a></li>
+  <li><a href="#/分布式微服务/分布式文件系统/FastDFS">FastDFS 分布式文件系统</a></li>
 </ul>
 
 ## 🎛️ 并发编程
@@ -513,42 +557,41 @@
 ### 💻 编程开发软件
 
 <ul class="docs">
-  <li><a href="#/其他/development-software/IDEA">IntelliJ IDEA 使用教程</a></li>
-  <li><a href="#/其他/development-software/eclipse">Eclipse 使用教程</a></li>
-  <li><a href="#/其他/development-software/Visual-Studio-Code">Visual Studio Code 使用教程</a></li>
-  <li><a href="#/其他/development-software/Common-Development">其它常用开发工具配置与使用</a></li>
+  <li><a href="#/其他/software/IDEA">IntelliJ IDEA 使用教程</a></li>
+  <li><a href="#/其他/software/eclipse">Eclipse 使用教程</a></li>
+  <li><a href="#/其他/software/Visual-Studio-Code">Visual Studio Code 使用教程</a></li>
 </ul>
 
 ### 🛠️ 编程辅助工具
 
 <ul class="docs">
-  <li><a href="#/其他/development-tools/Hexo">Hexo 博客搭建工具</a></li>
-  <li><a href="#/其他/development-tools/docsify">docsify 文档类型网站搭建工具</a></li>
-  <li><a href="#/其他/development-tools/Mermaid">Mermaid 基于 Javascript 的绘图语法</a></li>
-  <li><a href="#/其他/development-tools/Markdown">Markdown 参考笔记</a></li>
+  <li><a href="#/其他/tools/Hexo">Hexo 博客搭建工具</a></li>
+  <li><a href="#/其他/tools/docsify">docsify 文档类型网站搭建工具</a></li>
+  <li><a href="#/其他/tools/Mermaid">Mermaid 基于 Javascript 的绘图语法</a></li>
+  <li><a href="#/其他/tools/Markdown">Markdown 参考笔记</a></li>
 </ul>
 
 ### 🖥️ 系统软件工具
 
 <ul class="docs">
-  <li><a href="#/其他/system-software/Windows">Windows 系统相关教程</a></li>
-  <li><a href="#/其他/system-software/Microsoft-Office">Microsoft Office 系列教程</a></li>
-  <li><a href="#/其他/system-software/Web-Browser">网页浏览器系列教程</a></li>
-  <li><a href="#/其他/system-software/Common-Software">常用软件教程</a></li>
-  <li><a href="#/其他/system-software/foobar2000">foobar2000 - 本地顶级音乐播放器</a></li>
-  <li><a href="#/其他/system-software/everything">Everything - 本地高效搜索神器</a></li>
+  <li><a href="#/其他/software/Windows">Windows 系统相关教程</a></li>
+  <li><a href="#/其他/software/Microsoft-Office">Microsoft Office 系列教程</a></li>
+  <li><a href="#/其他/software/Web-Browser">网页浏览器系列教程</a></li>
+  <li><a href="#/其他/software/Common-Software">常用软件教程</a></li>
+  <li><a href="#/其他/software/foobar2000">foobar2000 - 本地顶级音乐播放器</a></li>
+  <li><a href="#/其他/software/everything">Everything - 本地高效搜索神器</a></li>
 </ul>
 
 ## 收集的项目实战资料
 
 <ul class="docs">
-  <li><a href="#/项目资料/国际物流云商系统/">国际物流云商系统 项目资料</a></li>
-  <li><a href="#/项目资料/品优购/">品优购 项目资料</a></li>
-  <li><a href="#/项目资料/学成在线/">学成在线 项目资料</a></li>
-  <li><a href="#/项目资料/好客租房/">好客租房 项目资料</a></li>
-  <li><a href="#/项目资料/红包雨场景案例/">红包雨场景案例 项目资料</a></li>
-  <li><a href="#/项目资料/万信金融/">万信金融 项目资料</a></li>
-  <li><a href="#/项目资料/品达通用权限系统/">品达通用权限系统 项目资料</a></li>
+  <li><a href="#/项目资料/国际物流云商系统/">国际物流云商系统</a></li>
+  <li><a href="#/项目资料/品优购/">品优购</a></li>
+  <li><a href="#/项目资料/学成在线/">学成在线</a></li>
+  <li><a href="#/项目资料/好客租房/">好客租房</a></li>
+  <li><a href="#/项目资料/红包雨场景案例/">红包雨场景案例</a></li>
+  <li><a href="#/项目资料/万信金融/">万信金融</a></li>
+  <li><a href="#/项目资料/品达通用权限系统/">品达通用权限系统</a></li>
 </ul>
 
 # 在线阅读地址

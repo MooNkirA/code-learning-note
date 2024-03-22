@@ -968,7 +968,7 @@ shiyuan.sing()
 jieye.sing()
 ```
 
-#### 7.3.2. 对象原型 __proto__
+#### 7.3.2. 对象原型 proto
 
 <font color=red>**对象都会有一个属性 `__proto__` 指向构造函数的 `prototype` 原型对象**</font>
 
@@ -1460,7 +1460,7 @@ clearInterval(计时器对象)
 ```js
 var date = new Date();
 ```
-			
+
 #### 8.4.2. Date 对象的常用方法
 
 ```js

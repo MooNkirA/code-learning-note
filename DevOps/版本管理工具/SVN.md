@@ -1,8 +1,4 @@
-# SVN 文件版本控制软件
-
-> 官网地址：http://subversion.apache.org/
-
-## 1. SVN 概述
+## 1. SVN 概述（文件版本控制软件）
 
 ### 1.1. 项目管理中版本控制的问题
 
@@ -47,6 +43,8 @@
 > 目前 Apache Subversion 的主席为 Greg Stein, 项目领导者 Release manager 为 Wandisco 公司。
 
 ### 1.4. 什么是 SVN
+
+> 官网地址：http://subversion.apache.org/
 
 SVN（Subversion）是多年前崛起的版本管理工具，在以前的开源项目里(J2EE)，几乎 95% 以上的项目都用到了 SVN。Subversion 项目的初衷是为了替换当年开源社区最为流行的版本控制软件 CVS，在 CVS 的功能的基础上有很多的提升同时也能较好的解决 CVS 系统的一些不足。
 

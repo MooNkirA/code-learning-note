@@ -302,7 +302,7 @@ GitHub Topic 展示了最新和最流行的讨论主题，在这里不仅能够�
 
 > https://github.com/topics
 
-## 5. 推荐一些Github插件（chrome浏览器插件）
+## 5. 推荐一些 Github 插件（chrome浏览器插件）
 
 ### 5.1. Octotree
 
@@ -318,7 +318,7 @@ GitHub Topic 展示了最新和最流行的讨论主题，在这里不仅能够�
 
 点击进去之后，可以随意在项目中搜索，可以查看变量和方法，以及进行跳转等等。
 
-## 6. GitHub项目定时发布最新Hosts
+## 6. GitHub 项目定时发布最新 Hosts
 
 项目地址：https://github.com/521xueweihan/GitHub520
 
@@ -376,32 +376,93 @@ Tip：推荐 SwitchHosts 工具管理 hosts。以 SwitchHosts 为例，自动修
 - URL: https://gitee.com/xueweihan/codes/6g793pm2k1hacwfbyesl464/raw?blob_name=GitHub520.yml
 - Auto Refresh: 最好选 1 hour
 
-## 7. 解决GitHub Pages访问不了
+## 7. Github 扩展内容
+
+### 7.1. 解决 GitHub Pages 访问不了
 
 GitHub正常访问，但GitHub Pages无法访问。尝试过修改hosts域名的映射，没有作用。后来直接修改网卡的DNS服务器地址为`114.114.114.114`可访问（*不确保百分百有效*）
 
 ![](images/20201105231308260_23184.png)
 
-## 8. 一键生成 Github 简历
+### 7.2. 一键生成 Github 简历
 
 通过 http://resume.github.io/ 这个网站可以一键生成一个在线的 Github 简历。
 
-## 9. 个性化 Github 首页
+### 7.3. 个性化 Github 首页
 
 创建一个和你的 Github 账户同名的仓库，然后自定义README.md的内容，该内容就展示在主页上。
 
 通过 `github-readme-stats` 这个开源项目，可以在 README 中展示动态生成的 GitHub 统计信息。
 
-## 10. 自定义项目徽章
+### 7.4. 自定义项目徽章
 
 通过 https://shields.io/ 这个网站生成的，还可以动态读取你项目的状态并生成对应的徽章。
 
-## 11. Github 表情
+### 7.5. Github 表情
 
-表情素材参考：www.webfx.com/tools/emoji-cheat-sheet/
+表情素材参考：https://www.webfx.com/tools/emoji-cheat-sheet/
 
-## 12. 自动为 Markdown 文件生成目录
+### 7.6. 自动为 Markdown 文件生成目录
 
 如果想为 Github 上的 Markdown 文件生成目录的话，通过 VS Code 的 Markdown Preview Enhanced 这个插件就可以了。
 
 生成的目录后，可以直接点击目录中的链接即可跳转到文章对应的位置，可以优化阅读体验。
+
+### 7.7. Github 项目无法通过 ssh 连接，无法 push pull
+
+#### 7.7.1. 问题描述
+
+2024年01月20日，最近这两天 github 遇到问题，就是以前正常使用的 git 项目，现在无法 push 或 pull 了。错误提示如下：
+
+```
+ssh: connect to host github.com port 22: Connection timed out
+fatal: Could not read from remote repository.
+
+Please make sure you have the correct access rights
+and the repository exists.
+```
+
+#### 7.7.2. 解决方法
+
+解决方案是修改 SSH 配置文件，通过端口 443 以 SSH 方式登录 git@ssh.github.com，则可以覆盖 SSH 设置，强制通过该服务器和端口连接 GitHub.com。（可以参考官方说明，[Using SSH over the HTTPS port](https://docs.github.com/en/authentication/troubleshooting-ssh/using-ssh-over-the-https-port)）
+
+要测试是否可以通过 HTTPS 端口传输 SSH，运行以下命令：
+
+```bash
+$ ssh -T -p 443 git@ssh.github.com
+> Hi USERNAME! You've successfully authenticated, but GitHub does not provide shell access.
+```
+
+如果运行不成功，则在 `~/.ssh/config` 中添加以下配置，以前的项目就都能正常使用了。
+
+```
+Host github.com
+    Hostname ssh.github.com
+    Port 443
+    User git
+```
+
+再次连接到 GitHub.com 来测试是否正常工作：
+
+```bash
+$ ssh -T git@github.com
+> Hi USERNAME! You've successfully authenticated, but GitHub does not provide shell access.
+```
+
+改用端口 443 后，第一次与 GitHub 交互时，可能会收到一条警告信息，称在已知主机中找不到该主机，或以其他名称找到了该主机。
+
+```bash
+> The authenticity of host '[ssh.github.com]:443 ([140.82.112.36]:443)' can't be established.
+> ED25519 key fingerprint is SHA256:+DiY3wvvV6TuJJhbpZisF/zLDA0zPMSvHdkr4UvCOqU.
+> This host key is known by the following other names/addresses:
+>     ~/.ssh/known_hosts:32: github.com
+> Are you sure you want to continue connecting (yes/no/[fingerprint])?
+```
+
+假设 SSH 指纹与 GitHub 公布的指纹之一相符，输入 “yes” 即可。
+
+后面要克隆版本库，可以运行以下命令（主要增加 443 端口号）：
+
+```bash
+git clone ssh://git@ssh.github.com:443/YOUR-USERNAME/YOUR-REPOSITORY.git
+```

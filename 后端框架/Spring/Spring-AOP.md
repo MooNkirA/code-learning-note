@@ -330,7 +330,7 @@ CGLib 全称为 Code Generation Library，是一个强大的高性能，高质�
 
 Spring 里面进行 AOP 操作是使用 aspectj 实现，但 AspectJ 不是 spring 的组成部分，只是一起使用进行 aop 操作而已。使用 AspectJ 实现 aop 的有以下两种方式：
 
-1. 基于 aspectj 的xml配置
+1. 基于 aspectj 的 xml 配置
 2. 基于 aspectj 的注解方式
 
 Spring 的 aop 操作基本 jar 包：
@@ -1078,7 +1078,7 @@ public List<SysRole> selectRoleList(SysRole role) {
 
 ![](images/20210225230817181_13262.png)
 
-## 5. Spring AOP APIs（了解）
+## 5. Spring AOP API
 
 前面介绍了 Spring 对 AOP 的支持，使用 `@Aspect` 定义切面。此章节，介绍低级别的 Spring AOP API 创建 Advisor 实现 AOP 功能。对于普通的应用，推荐使用前面使用 AspectJ 的 Spring AOP
 
@@ -1477,15 +1477,36 @@ execution([修饰符] 返回值类型 包名.类名.方法名(参数))
 
 ### 8.1. Spring AOP 与 AspectJ AOP 的区别
 
-AOP 实现的关键在于代理模式，AOP 代理主要分为静态代理和动态代理。静态代理的代表为 AspectJ；动态代理则以 Spring AOP 为代表。
+AOP 实现的关键在于代理模式，AOP 代理主要分为静态代理和动态代理。**静态代理的代表为 AspectJ；动态代理则以 Spring AOP 为代表**。
 
-- AspectJ 是静态代理的增强，所谓静态代理，就是 AOP 框架会在编译阶段生成 AOP 代理类，因此也称为编译时增强，他会在编译阶段将 AspectJ(切面)织入到 Java 字节码中，运行的时候就是增强之后的 AOP 对象。
-- Spring AOP 使用的动态代理，所谓的动态代理就是说 AOP 框架不会去修改字节码，而是每次运行时在内存中临时为方法生成一个 AOP 对象，这个 AOP 对象包含了目标对象的全部方法，并且在特定的切点做了增强处理，并回调原对象的方法。
+#### 8.1.1. Spring AOP
 
-总结：
+Spring AOP 属于运行时增强，主要具有如下特点：
+
+1. Spring AOP 基于动态代理来实现。默认如果使用接口的，用 JDK 提供的动态代理实现，如果是方法则使用 CGLIB 实现。
+> 所谓的动态代理就是说 AOP 框架不会去修改字节码，而是每次运行时在内存中临时为方法生成一个 AOP 对象，这个 AOP 对象包含了目标对象的全部方法，并且在特定的切点做了增强处理，并回调原对象的方法。
+2. Spring AOP 需要依赖 IOC 容器来管理，并且只能作用于 Spring 容器，使用纯 Java 代码实现。
+3. 在性能上，由于 Spring AOP 是基于动态代理来实现的，在容器启动时需要生成代理实例，在方法调用上也会增加栈的深度，使得 Spring AOP 的性能不如 AspectJ 的那么好。
+4. Spring AOP 致力于解决企业级开发中最普遍的 AOP(方法织入)。
+
+#### 8.1.2. AspectJ
+
+AspectJ 是一个易用的功能强大的 AOP 框架，是静态代理的增强，会在编译阶段生成 AOP 代理类，属于编译时增强，可以单独使用，也可以整合到其它框架中，是 AOP 编程的完全解决方案。AspectJ 需要用到单独的编译器 ajc。
+
+AspectJ 属于静态织入，它通过在编译阶段将 AspectJ(切面)织入到 Java 字节码中，在实际运行之前就完成了织入，运行的时候就是增强之后的 AOP 对象。所以说它生成的类是没有额外运行时开销的，一般有如下几个织入的时机：
+
+1. 编译期织入（Compile-time weaving）：如类 A 使用 AspectJ 添加了一个属性，类 B 引用了它，这个场景就需要编译期的时候就进行织入，否则没法编译类 B。
+2. 编译后织入（Post-compile weaving）：也就是已经生成了 .class 文件，或已经打成 jar 包了，这种情况需要增强处理的话，就要用到编译后织入。
+3. 类加载后织入（Load-time weaving）：指的是在加载类的时候进行织入。
+
+#### 8.1.3. 区别总结
 
 - 静态代理与动态代理主要区别在于生成 AOP 代理对象的时机不同，相对来说 AspectJ 的静态代理方式具有更好的性能，但是 AspectJ 需要特定的编译器进行处理，而 Spring AOP 则无需特定的编译器处理。
 - Spring AOP 仅支持方法级别的增强；而 AspectJ 提供了完全的 AOP 支持，还支持属性级别的 AOP 增强。
+
+整体对比如下：
+
+![](images/13244710240163.png)
 
 ### 8.2. 关于通知类型的注意事项
 

@@ -3,22 +3,23 @@
 Java 8 (又称为 jdk 1.8) 是 Java 语言开发的一个主要版本。Oracle 公司于 2014 年 3 月 18 日发布 Java 8 ，它支持函数式编程，新的 JavaScript 引擎，新的日期 API，新的Stream API 等。Java8 新增了非常多的特性，常用有以下几个：
 
 - **Lambda 表达式** − Lambda 允许把函数作为一个方法的参数（函数作为参数传递到方法中）。
-- **方法引用** − 方法引用提供了非常有用的语法，可以直接引用已有 Java 类或对象（实例）的方法或构造器。与lambda联合使用，方法引用可以使语言的构造更紧凑简洁，减少冗余代码。
-- **默认方法** − 默认方法就是一个在接口里面有了一个实现的方法。
-- **新的编译工具** - 如：Nashorn引擎 jjs、 类依赖分析器jdeps。
+- **方法引用** − 方法引用提供了非常有用的语法，可以直接引用已有 Java 类或对象（实例）的方法或构造器。与 lambda 联合使用，方法引用可以使语言的构造更紧凑简洁，减少冗余代码。
+- **接口默认方法** − 默认方法就是一个在接口里面有了一个实现的方法。
+- **新的编译工具** - 如：Nashorn 引擎 jjs、类依赖分析器 jdeps。
 - **Stream API** − 新添加的 Stream API（java.util.stream） 把真正的函数式编程风格引入到Java中。
-- **Date Time API** − 加强对日期与时间的处理。
+- **Date Time API** − 新的日期时间API，加强对日期与时间的处理。
 - **Optional 类** − Optional 类已经成为 Java 8 类库的一部分，用来解决空指针异常。
-- **Nashorn, JavaScript 引擎** − Java 8 提供了一个新的Nashorn javascript引擎，它允许我们在JVM上运行特定的javascript应用。
+- **Nashorn, JavaScript 引擎** − Java 8 提供了一个新的 Nashorn javascript 引擎，它允许在 JVM 上运行特定的 javascript 应用。
+
+![JDK1.8新特性.xmind](images/310344810266616.png)
 
 ## 2. Lambda 表达式
 
 ### 2.1. Lambda 表达式定义
 
-- Lambda 表达式，也可称为闭包，它是推动 Java 8 发布的最重要新特性
-- Lambda 允许把函数作为一个方法的参数（函数作为参数传递进方法中）
-- 使用 Lambda 表达式可以使代码变的更加简洁紧凑
-- 在调用方法时，如果参数是函数式接口，就可以考虑使用Lambda表达式，Lambda表达式相当于是对接口中抽象方法的重写
+Lambda 表达式，也可称为闭包，它是推动 Java 8 发布的最重要新特性。Lambda 允许把函数作为一个方法的参数（函数作为参数传递进方法中），使用 Lambda 表达式可以使代码变的更加简洁紧凑。
+
+在调用方法时，如果参数是函数式接口，就可以考虑使用 Lambda 表达式，Lambda 表达式相当于是对接口中抽象方法的重写。
 
 示例：当需要启动一个线程去完成任务时，通常会通过 `Runnable` 接口来定义任务内容，并使用 `Thread` 类来启动该线程。
 
@@ -54,7 +55,7 @@ public void quickstartTest() {
 
 ### 2.2. Lambda 表达式语法
 
-#### 2.2.1. Lambda的标准语法格式
+#### 2.2.1. Lambda 标准语法格式
 
 - 标准语法格式
 
@@ -74,7 +75,7 @@ public void quickstartTest() {
 (parameters) -> { statements; }
 ```
 
-#### 2.2.2. lambda表达式的重要特征（可省略规则）
+#### 2.2.2. lambda 表达式的重要特征（可省略规则）
 
 - **可选类型声明**：不需要声明参数类型，编译器可以统一识别参数值。
 - **可选的参数圆括号**：一个参数无需定义圆括号，但多个参数需要定义圆括号。
@@ -176,7 +177,7 @@ Hello Runoob
 Hello Google
 ```
 
-#### 2.3.3. 无参数无返回值的Lambda
+#### 2.3.3. 无参数无返回值的 Lambda
 
 - 定义只有一个抽象方法的接口
 
@@ -212,7 +213,7 @@ private void playBasketball(Sportable sportable) {
 }
 ```
 
-#### 2.3.4. 有参数有返回值的Lambda
+#### 2.3.4. 有参数有返回值的 Lambda
 
 示例：调用 `java.util.Comparator<T>` 接口的使用场景代码，其中的抽象方法定义为：
 
@@ -250,7 +251,7 @@ public void lambdaHasParamsTest() {
 }
 ```
 
-#### 2.3.5. 省略格式的Lambda
+#### 2.3.5. 省略格式的 Lambda
 
 ```java
 /* Lambda表达式省略格式写法示例 */
@@ -277,7 +278,7 @@ public static void main(String[] args) {
 }
 ```
 
-### 2.4. Lambda的实现原理（！待整理）
+### 2.4. Lambda的 实现原理（！待整理）
 
 > 参考《2019.10.25-JavaJDK新特性详解-JDK8》笔记
 
@@ -404,7 +405,7 @@ public class Java8Tester {
 
 ## 3. 方法引用
 
-方法引用是Lambda表达式的一个简化写法。所引用的方法其实是Lambda表达式的方法体的实现。如果正好有某个方法满足一个lambda表达式的形式，那就可以将这个lambda表达式用方法引用的方式表示，但是如果这个lambda表达式的比较复杂就不能用方法引用进行替换。实际上方法引用是lambda表达式的一种语法糖
+方法引用是 Lambda 表达式的一个简化写法。所引用的方法其实是 Lambda 表达式的方法体的实现。如果正好有某个方法满足一个 lambda 表达式的形式，那就可以将这个 lambda 表达式用方法引用的方式表示，但是如果这个 lambda 表达式的比较复杂就不能用方法引用进行替换。实际上方法引用是 lambda 表达式的一种语法糖
 
 - 方法引用通过方法的名字来指向一个方法
 - 方法引用可以使语言的构造更紧凑简洁，减少冗余代码
@@ -412,7 +413,7 @@ public class Java8Tester {
 
 **应用场景**：如果 Lambda 所要实现的方案，已经有其他方法存在相同方案，那么则可以使用方法引用
 
-**方法引用的注意事项**
+**方法引用的注意事项**：
 
 1. <font color=red>**方法引用只能"引用"已经存在的方法**</font>
 2. <font color=red>**Lambda 体中调用的方法的参数列表与返回值类型，要与函数式中接口的抽象方法的参数列表和返回值类型一样**</font>

@@ -200,7 +200,9 @@ public class Person {
     - 成员变量：有默认值(int/byte/short/lnng 默认是 0；char 默认是 `\u0000`；double/float 默认是 0.0；boolean 默认是 false)
     - 局部变量：没有默认值。必须先定义，赋值，才能使用
 
-### 2.6. 类实例化的顺序（重点）
+### 2.6. 类实例化的顺序【重点】
+
+#### 2.6.1. 普通类
 
 Java 类的实例化的顺序是：`静态变量` -> `静态代码块` -> `成员变量（全局变量）` -> `初始化代码块` -> `构造函数`。测试示例如下：
 
@@ -252,6 +254,10 @@ public void testInitializationSequence() {
      */
 }
 ```
+
+#### 2.6.2. 存在继承的类
+
+存在**继承**的情况下，初始化顺序为：`父类静态变量` -> `父类静态代码块` -> `子类静态变量` -> `子类静态代码块` -> `父类成员变量（全局变量）` -> `父类代码块` -> `父类构造函数` -> `子类成员变量（全局变量）` -> `子类代码块` -> `子类构造函数`。
 
 ## 3. Java 方法
 
@@ -309,7 +315,7 @@ public class Dog {
 
 参数在程序语言中分为：
 
-- **实参（实际参数、argument）**：用于传递给函数/方法的参数，可以是常量、变量、表达式、函数等。无论实参是何种类型，在调用函数时，它们都必须具有确定的值， 以便把这些值传送给方法的形参。
+- **实参（实际参数、argument）**：用于传递给函数/方法的参数，可以是常量、变量、表达式、函数等。无论实参是何种类型，在调用函数时，它们都必须具有确定的值，以便把这些值传送给方法的形参。
 - **形参（形式参数、parameter）**：由于它不是实际存在的变量，所以又称虚拟变量。用于定义函数/方法时使用的参数列表，用于接收调用该函数时传入的实参，将实参赋值给形参。*因而，调用函数/方法时必须注意实参的个数、类型应与形参一一对应，并且实参必须要有确定的值。*
 
 ```java
@@ -332,16 +338,18 @@ void sayHello(String str) {
 - **函数调用中发生的数据传送是单向的**。只能把实参的值传送给形参，而不能把形参的值反向地传送给实参。因此在函数调用过程中，形参的值发生改变，而实参中的值不会变化。 
 - 当形参和实参不是引用类型时，在该函数运行时，形参和实参是不同的变量，它们在内存中位于不同的位置，形参将实参的内容复制一份，在该函数运行结束的时候形参被释放，而实参内容不会改变；而如果函数的参数是引用类型变量，在调用该函数的过程中，传给函数的是实参的地址（也是复制的），在函数体内部使用的也是实参的地址，即使用的就是实参本身。所以在函数体内部可以改变实参对象中的值，**但不能改变其引用地址**！！
 
-### 3.4. 值传递 & 引用传递
+### 3.4. Java 方法的参数传递类型
+
+#### 3.4.1. 值传递 & 引用传递
 
 程序设计语言将实参传递给方法（或函数）的方式分为两种：
 
 - **值传递**：指的是在方法调用时，方法接收的是实参值的拷贝，会创建副本，传递后就互不相关了。
 - **引用传递**：指的是在方法调用时，方法接收的直接是实参所引用的对象在堆中的地址，不会创建副本，即传递前和传递后都指向同一个引用（也就是同一个内存空间）。对形参的修改将影响到实参。
 
-很多程序设计语言（比如 C++、 Pascal）提供了两种参数传递的方式，<font color=red>**值得注意的是，在 Java 中只有值传递**</font>。
+很多程序设计语言（比如 C++、Pascal）提供了两种参数传递的方式，<font color=red>**值得注意的是，在 Java 中只有值传递**</font>。
 
-### 3.5. Java 只有通过值传递参数
+#### 3.4.2. Java 只有通过值传递参数
 
 调用一个方法时必须按照参数列表指定的顺序提供参数。
 
@@ -387,7 +395,7 @@ xiaoLi:小李
 
 ![](images/409091916220871.png)
 
-### 3.6. 方法重载(Overload)
+### 3.5. 方法重载(Overload)
 
 方法重载(overloading) 是在一个类里面，定义方法名字相同，而参数不同、返回类型可以相同也可以不同的相关方法（与返回值类型无关）。每个重载的方法（或者构造函数）都必须有一个独一无二的参数类型列表。**最常见就是构造器的重载**。
 
@@ -401,7 +409,7 @@ xiaoLi:小李
 
 > Notes: <font color=red>**不能以返回值类型、访问权限、抛出的异常（数量）等不同作为重载函数的区分标准**</font>
 
-### 3.7. 方法的特点总结
+### 3.6. 方法的特点总结
 
 在调用方法的时候，Java 虚拟机会通过参数列表的不同来区分同名的方法。方法有如下特点：
 
@@ -412,7 +420,7 @@ xiaoLi:小李
 5. 方法的参数如果是基本数据类型：形式参数的改变不影响实际参数。
 6. 如果参数是引用数据类型：形式参数的改变（只是引用对象内的属性值）直接影响实际参数
 
-### 3.8. 扩展：native（本地）方法
+### 3.7. 扩展：native（本地）方法
 
 native 方法表示该方法要用另外一种依赖平台的编程语言实现的。
 
@@ -656,7 +664,7 @@ Outer.Inner x = new Outer().new Inner();
 #### 5.4.4. 使用场景
 
 - 当一个类只被一个类使用时，就可以该类定义为某一个类的内部类。
-- 在描述事物A时，发现事物A中还包含了另一类事物B，而且事物B要使用到事物A的一些成员数据，此时就可以将事物 B定义为事物A的内部类。
+- 在描述事物A时，发现事物A中还包含了另一类事物B，而且事物B要使用到事物A的一些成员数据，此时就可以将事物B定义为事物A的内部类。
 
 #### 5.4.5. 使用案例
 
@@ -814,7 +822,7 @@ public static void enter(Sport s) {
 权限修饰符(public) abstract 返回值类型 方法名(参数列表);
 ```
 
-> Notes: 该方法的具体实现由它的子类确定
+> Notes: 该方法的具体实现由它的子类确定。
 
 ### 6.2. 抽象类的概念
 
@@ -1416,7 +1424,6 @@ Java 赋值是复制对象引用，如果想要得到一个对象的副本，使
 
 如下例中，`Person` 对象里面有个 `Student` 对象，调用 `clone` 方法之后，克隆对象和原对象的 `Student` 引用的是同一个对象，这种即是浅拷贝。
 
-
 ```java
 public class Person implements Cloneable {
 
@@ -1838,10 +1845,17 @@ format(Locale locale, String format, Object... args)
 #### 12.2.8. 其他方法
 
 ```java
+/**
+ * When the intern method is invoked, if the pool already contains a
+ * string equal to this {@code String} object as determined by
+ * the {@link #equals(Object)} method, then the string from the pool is
+ * returned. Otherwise, this {@code String} object is added to the
+ * pool and a reference to this {@code String} object is returned.
+ */
 public native String intern();
 ```
 
-`intern()` 是个 Native 方法，其作用是首先从常量池中查找是否存在该常量值的字符串，若不存在则先在常量池中创建，否则直接返回常量池已经存在的字符串的引用。比如
+`intern()` 是个 Native 方法，其作用是首先从常量池中查找是否存在该常量值的字符串（即 `equals()` 方法为 true，也就是内容一样），若不存在则先在常量池中创建，否则直接返回常量池已经存在的字符串的引用。比如
 
 ```java
 String s1 = "aa";
@@ -1996,6 +2010,53 @@ StringBuilder sb = new StringBuilder("MooNkirA");
 ### 12.6. StringBuffer (待整理)
 
 > TODO: 待整理
+
+### 12.7. 使用“+”拼接字符串
+
+因为 String 是不可变的，使用“+”的拼接操作，会生成新的对象。
+
+```java
+String a = "hello ";
+String b = "world!";
+String ab = a + b;
+```
+
+在 JDK 1.8 之前，a 和 b 初始化时位于字符串常量池，ab 拼接后的对象位于堆中。经过拼接新生成了 String 对象。如果拼接多次，那么会生成多个中间对象。
+
+![](images/398222207240157.png)
+
+在 Java 8 会在编译期对“+”号拼接进行优化处理。拼接方式会被优化为基于 `StringBuilder` 的 `append` 方法进行处理。下面是通过 `javap -verbose` 命令反编译字节码的结果，很显然可以看到 `StringBuilder` 的创建和 `append` 方法的调用。
+
+```java
+stack=2, locals=4, args_size=1
+     0: ldc           #2                  // String hello
+     2: astore_1
+     3: ldc           #3                  // String world!
+     5: astore_2
+     6: new           #4                  // class java/lang/StringBuilder
+     9: dup
+    10: invokespecial #5                  // Method java/lang/StringBuilder."<init>":()V
+    13: aload_1
+    14: invokevirtual #6                  // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+    17: aload_2
+    18: invokevirtual #6                  // Method java/lang/StringBuilder.append:(Ljava/lang/String;)Ljava/lang/StringBuilder;
+    21: invokevirtual #7                  // Method java/lang/StringBuilder.toString:()Ljava/lang/String;
+    24: astore_3
+    25: return
+```
+
+上面的代码相当于：
+
+```java
+String a = "hello ";
+String b = "world!";
+StringBuilder sb = new StringBuilder();
+sb.append(a);
+sb.append(b);
+String ab = sb.toString();
+```
+
+所以不能再笼统的回答：通过加号拼接字符串会创建多个 String 对象，因此性能比 StringBuilder 差。这就是错误的，因为本质上加号拼接的效果最终经过编译器处理之后和 StringBuilder 是一致的。
 
 ## 13. 类与对象综合知识
 

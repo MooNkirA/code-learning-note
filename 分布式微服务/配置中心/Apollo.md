@@ -1,10 +1,4 @@
-# Apollo 分布式配置中心(服务中间件)
-
-- Apollo 官方仓库：https://github.com/ctripcorp/apollo
-- Apollo 官方文档：https://www.apolloconfig.com/#/
-- 官方参考文档：https://github.com/ctripcorp/apollo/wiki
-
-## 1. 概念简介
+## 1. 配置相关概念
 
 ### 1.1. 什么是配置
 
@@ -59,9 +53,13 @@
 - 可以查看配置修改的历史记录
 - 不同部署环境支持隔离
 
-## 2. Apollo 简介
+## 2. Apollo 分布式配置中心(服务中间件)
 
-### 2.1. Apollo 介绍
+- Apollo 官方仓库：https://github.com/ctripcorp/apollo
+- Apollo 官方文档：https://www.apolloconfig.com/#/
+- 官方参考文档：https://github.com/ctripcorp/apollo/wiki
+
+### 2.1. Apollo 简介
 
 Apollo - A reliable configuration management system。Apollo（阿波罗）是携程框架部门研发的分布式配置中心，能够集中化管理应用的不同环境、不同集群的配置，配置修改后能够实时推送到应用端，并且具备规范的权限、流程治理等特性，适用于微服务配置管理场景。
 
@@ -136,21 +134,22 @@ Apollo 包括服务端和客户端两部分：
 
 Apollo 客户端的实现原理如下：
 
-1. 用户通过 Apollo 管理平台，对 Apollo 配置中心修改配置
+1. 用户通过 Apollo 管理平台，对 Apollo 配置中心修改配置。
 2. 应用程序通过 Apollo 客户端从配置中心拉取配置信息。客户端和服务端保持了一个长连接，从而能第一时间获得配置更新的推送。
-3. 客户端还会定时从 Apollo 配置中心服务端拉取应用的最新配置
+3. 客户端还会定时从 Apollo 配置中心服务端拉取应用的最新配置。
    - 这是一个 fallback 机制，为了防止推送机制失效导致配置不更新
    - 客户端定时拉取会上报本地版本，所以一般情况下，对于定时拉取的操作，服务端都会返回`304 - Not Modified`
    - 定时频率默认为每 5 分钟拉取一次，客户端也可以通过在运行时指定`System Property:apollo.refreshInterval`来覆盖，单位为分钟。
-4. 客户端从 Apollo 配置中心服务端获取到应用的最新配置后，会保存在内存中
-5. 客户端会把从服务端获取到的配置在本地文件系统缓存一份
-   - 在遇到服务不可用，或网络不通的时候，依然能从本地恢复配置
-6. 应用程序从 Apollo 客户端获取最新的配置、订阅配置更新通知
+4. 客户端从 Apollo 配置中心服务端获取到应用的最新配置后，会保存在内存中。
+5. 客户端会把从服务端获取到的配置在本地文件系统缓存一份。在遇到服务不可用，或网络不通的时候，依然能从本地恢复配置。
+6. 应用程序从 Apollo 客户端获取最新的配置、订阅配置更新通知。
 
 用户通过 Apollo 配置中心修改或发布配置后，会有两种机制来保证应用程序来获取最新配置：
 
-- 一种是 Apollo 配置中心会向客户端推送最新的配置；
-- 另外一种是 Apollo 客户端会定时从 Apollo 配置中心拉取最新的配置，通过以上两种机制共同来保证应用程序能及时获取到配置。
+- 一种是 Apollo 配置中心会向客户端推送最新的配置。
+- 另一种是 Apollo 客户端会定时从 Apollo 配置中心拉取最新的配置。
+
+通过以上两种机制共同来保证应用程序能及时获取到配置。
 
 ### 3.2. Apollo 安装（v1.6.1）
 
@@ -249,19 +248,19 @@ select `Id`, `Key`, `Value`, `Comment` from `ApolloConfigDB`.`ServerConfig` limi
 2. 启动 apollo-configservice，在 apollo 目录下执行如下命令(根据实际情况修改)。可通过`-Dserver.port=xxxx`修改默认端口
 
 ```bash
-java ‐Xms256m ‐Xmx256m ‐Dspring.datasource.url=jdbc:mysql://localhost:3306/ApolloConfigDB?characterEncoding=utf8 ‐Dspring.datasource.username=root ‐Dspring.datasource.password=123456 ‐jar apollo-configservice-1.6.1.jar
+java -Xms256m -Xmx256m -Dspring.datasource.url=jdbc:mysql://localhost:3306/ApolloConfigDB?characterEncoding=utf8 -Dspring.datasource.username=root -Dspring.datasource.password=123456 -jar apollo-configservice-1.6.1.jar
 ```
 
 3. 启动 apollo-adminservice
 
 ```bash
-java ‐Xms256m ‐Xmx256m ‐Dspring.datasource.url=jdbc:mysql://localhost:3306/ApolloConfigDB?characterEncoding=utf8 ‐Dspring.datasource.username=root ‐Dspring.datasource.password=123456 ‐jar apollo-adminservice-1.6.1.jar
+java -Xms256m -Xmx256m -Dspring.datasource.url=jdbc:mysql://localhost:3306/ApolloConfigDB?characterEncoding=utf8 -Dspring.datasource.username=root -Dspring.datasource.password=123456 -jar apollo-adminservice-1.6.1.jar
 ```
 
 4. 启动 apollo-portal
 
 ```bash
-java ‐Xms256m ‐Xmx256m ‐Ddev_meta=http://localhost:8080/ ‐Dserver.port=8070 ‐Dspring.datasource.url=jdbc:mysql://localhost:3306/ApolloPortalDB?characterEncoding=utf8 ‐Dspring.datasource.username=root ‐Dspring.datasource.password=123456 ‐jar apollo-portal-1.6.1.jar
+java -Xms256m -Xmx256m -Ddev_meta=http://localhost:8080/ -Dserver.port=8070 -Dspring.datasource.url=jdbc:mysql://localhost:3306/ApolloPortalDB?characterEncoding=utf8 -Dspring.datasource.username=root -Dspring.datasource.password=123456 -jar apollo-portal-1.6.1.jar
 ```
 
 也可运行`runApollo.bat`快速启动三个服务（按需修改数据库连接地址，数据库以及密码，日志保存位置等）
@@ -519,27 +518,27 @@ Apollo 的总体设计各模块职责如下：
 
 ### 4.2. 核心概念
 
-- **application (应用)**
-  - 就是实际使用 Apollo 配置的应用，该应用一般指的就是自己的微服务工程，Apollo 客户端在运行时需要知道当前是哪个应用，从而可以去获取对应的配置
-  - **关键字：`appId`**
+#### 4.2.1. application (应用)
+
+就是实际使用 Apollo 配置的应用，该应用一般指的就是自己的微服务工程，Apollo 客户端在运行时需要知道当前是哪个应用，从而可以去获取对应的配置。**关键字：`appId`**
 
 ![](images/473430317246716.png)
 
-- **environment (环境)**
-  - 配置对应的环境，Apollo 客户端在运行时需要知道当前应用处于哪个环境，从而可以去获取应用的配置
-  - **关键字：`env`**
+#### 4.2.2. environment (环境)
+
+配置对应的环境，Apollo 客户端在运行时需要知道当前应用处于哪个环境，从而可以去获取应用的配置。**关键字：`env`**
 
 ![](images/365120417239385.png)
 
-- **cluster (集群)**
-  - 一个应用下不同实例的分组，典型的应用就是不同应用实例按照数据中心进行划分，比如把上海机房的应用实例分为一个集群，把北京机房的应用实例分为另一个集群。
-  - **关键字：`cluster`**
+#### 4.2.3. cluster (集群)
+
+一个应用下不同实例的分组，典型的应用就是不同应用实例按照数据中心进行划分，比如把上海机房的应用实例分为一个集群，把北京机房的应用实例分为另一个集群。**关键字：`cluster`**
 
 ![](images/182480517235940.png)
 
-- **namespace (命名空间)**
-  - 一个应用下不同配置的分组，可以简单地把 namespace 类比为文件，不同类型的配置存放在不同的文件中，如数据库配置文件，RPC 配置文 件，应用自身的配置文件等
-  - **关键字：`namespaces`**
+#### 4.2.4. namespace (命名空间)
+
+一个应用下不同配置的分组，可以简单地把 namespace 类比为文件，不同类型的配置存放在不同的文件中，如数据库配置文件，RPC 配置文 件，应用自身的配置文件等。**关键字：`namespaces`**
 
 ![](images/331590517231694.png)
 
@@ -706,7 +705,7 @@ spring.http.encoding.force = true
 server.tomcat.remote_ip_header = x-forwarded-for
 server.tomcat.protocol_header = x-forwarded-proto
 server.use-forward-headers = true
-server.servlet.context‐path = /
+server.servlet.context-path = /
 ```
 
 ![](images/20200705174512560_30311.png)
@@ -793,6 +792,8 @@ server.servlet.context‐path = /
 ```
 
 ## 5. Apollo 配置发布原理分析(！待整理)
+
+> 待整理
 
 ## 6. Apollo 应用于分布式系统
 
@@ -907,7 +908,7 @@ app:
 
 ```properties
 apollo.bootstrap.enabled = true
-apollo.bootstrap.namespaces = application,micro_service.spring‐boot‐http,spring‐rocketmq,micro_service.spring‐boot‐druid
+apollo.bootstrap.namespaces = application,micro_service.spring-boot-http,spring-rocketmq,micro_service.spring-boot-druid
 ```
 
 ```yml
@@ -1038,7 +1039,7 @@ app.id=account-service
 
 apollo.bootstrap.enabled = true
 # 定义读取配置的Namespace，中间以逗号分隔
-apollo.bootstrap.namespaces = application,micro_service.spring‐boot‐http,spring‐rocketmq,micro_service.spring‐boot‐druid
+apollo.bootstrap.namespaces = application,micro_service.spring-boot-http,spring-rocketmq,micro_service.spring-boot-druid
 ```
 
 ```yml

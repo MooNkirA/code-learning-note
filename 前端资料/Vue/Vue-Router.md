@@ -1,8 +1,4 @@
-# Vue Router 路由
-
-vue-router 的官方文档地址：https://router.vuejs.org/
-
-## 1. vue-router 快速起步
+## 1. vue-router 概述
 
 ### 1.1. 什么是 vue-router
 
@@ -12,11 +8,8 @@ vue-router 是 vue.js 官方推荐的路由解决方案。它只能结合 vue �
 
 vue-router 目前有 3.x 的版本和 4.x 的版本。其中：
 
-- vue-router 3.x 只能结合 vue2 进行使用
-- vue-router 4.x 只能结合 vue3 进行使用
-
-- vue-router 3.x 的官方文档地址：https://router.vuejs.org/zh/
-- vue-router 4.x 的官方文档地址：https://next.router.vuejs.org/zh/
+- vue-router 3.x（只能结合 vue2 进行使用）官方文档地址：https://router.vuejs.org/zh/
+- vue-router 4.x（只能结合 vue3 进行使用）的官方文档地址：https://next.router.vuejs.org/zh/
 
 ### 1.3. vue-router 安装
 

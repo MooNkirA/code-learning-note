@@ -1804,7 +1804,7 @@ SELECT 'xababy' REGEXP 'x(ab)*y';
 SELECT 'xababy' REGEXP 'x(ab){1,2}y';
 ```
 
-### 8.9. 查询（select）语句执行顺序分析
+### 8.9. 查询 SQL 语句的执行顺序
 
 #### 8.9.1. 执行顺序说明
 
@@ -1812,7 +1812,7 @@ DQL 语句在执行的顺序如下：
 
 ![](images/553203115220770.png)
 
-执行顺序文字说明：
+执行顺序说明：
 
 1. from 子句组装来自不同数据源的数据。
 2. where 子句基于指定的条件对记录行进行筛选。
@@ -3814,3 +3814,63 @@ SQL 注入产生的原因：程序开发过程中不注意规范书写 sql 语�
 - 在程序中过滤掉 sql 语句中的一些关键词。如：`update`、`insert`、`delete`、`select`、`*` 等。
 - 执行 sql 语句时使用 `addslashes()` 进行 sql 语句转换。
 - 提高数据库表和字段的命名技巧，对一些重要的字段根据程序的特点命名，不易被攻击者猜中。
+
+### 13.8. MySQL 表结构导出 Excel
+
+#### 13.8.1. 方式一：通过 SQL 输出表结构
+
+在写设计文档时，经常需要把 MySQL 中的表结构按要求导出。但 MySQL 客户端默认的字段不满足需求时，可通过 MySQL 的 `information_schema.COLUMNS` 表，查询并按需求导出字段。
+
+`information_schema.COLUMNS` 表记录了所有库中所有表的字段信息，如下：
+
+![](images/317421522240359.png)
+
+字段具体意义：
+
+![](images/303521722258785.png)
+
+可按照上述字段信息提取相应表的表结构，SQL 如下：
+
+```sql
+SELECT
+	COLUMN_NAME AS '字段名称',
+	COLUMN_TYPE AS '字段类型',
+	COLUMN_DEFAULT AS '默认值',
+	CHARACTER_MAXIMUM_LENGTH AS '最大长度',
+	( CASE WHEN is_nullable = 'NO' THEN '否' ELSE '是' END ) AS '是否可空',
+	( CASE WHEN column_key = 'PRI' THEN '是' ELSE '否' END ) AS '是否主键',
+	COLUMN_COMMENT AS '描述' 
+FROM
+	INFORMATION_SCHEMA.COLUMNS 
+WHERE
+    table_schema = '数据库名'
+    AND table_name = '表名';
+```
+
+> Tips: 其中 `table_schema` 可以省略，执行语句前选择相应数据库即可。如果指定 `table_name`，默认会查询出所有表的结构，就会分不清哪些字段是属于哪张表，所以还是建议写上要导出的名名称。
+
+输出结构之后，还可新建视图，保存该 SQL，通过客户端的导出功能，直接输出 Excel 或其它格式。
+
+![](images/579321822246652.png)
+
+如果对表结构输出的字段没有特殊要求，可以直接使用 `DESC table_name` 命令输出，按上面一样导出到excel即可。
+
+#### 13.8.2. 方式二：具体导出 excel 格式功能的图形化客户端
+
+SQLyog 支持将表结构导出成 HTML 的样式，因此可以直接使用此导出表结构即可。
+
+1. 创建数据库架构 html
+
+![](images/96154722266818.png)
+
+2. 选择要导出的表
+
+![](images/355274722259487.png)
+
+3. 创建 html
+
+![](images/428654722256042.png)
+
+4. 导出的效果图
+
+![](images/519054722251796.png)

@@ -31,9 +31,21 @@ nohup java -Xms512m -Xmx1024m -jar xxxx.jar --spring.profiles.active=prod &
 - Java SE 8 版本 JVM 虚拟机参数设置参考文档地址：https://docs.oracle.com/javase/8/docs/technotes/tools/unix/java.html
 - vm 参数官方文档：https://www.oracle.com/java/technologies/javase/vmoptions-jsp.html
 
-### 2.1. 内存设置
+### 2.1. JVM 的三类参数
 
-#### 2.1.1. 设置堆空间大小
+- 标准参数，以 `-` 为前缀，所有 HotSpot 都支持。例如 `java -version`。这类参数可以使用 `java -help` 或者 `java -?` 命令查询。
+- 非标准参数，以 `-X` 为前缀，是特定 HotSpot 版本支持的指令。例如：`java -Xms200M -Xmx200M`。这类指令可以用 `java -X` 命令查询。
+- 不稳定参数，以 `-XX` 为前缀，这些参数是跟特定 HotSpot 版本对应，很有可能换个版本就没有了。详细的文档资料也特别少。例如 JDK8 有以下几个不稳定参数的指令：
+
+```bash
+java -XX:+PrintFlagsFinal # 所有最终生效的不稳定指令。
+java -XX:+PrintFlagsInitial # 默认的不稳定指令
+java -XX:+PrintCommandLineFlags # 当前命令的不稳定指令 -- 这里可以看到是用的哪种 GC。JDK1.8 默认用的 ParallelGC
+```
+
+### 2.2. 内存设置
+
+#### 2.2.1. 设置堆空间大小
 
 为了防止垃圾收集器在初始大小、最大内存之间收缩堆而产生额外的时间，通常把最大、初始大小设置为相同的值。
 
@@ -52,9 +64,9 @@ nohup java -Xms512m -Xmx1024m -jar xxxx.jar --spring.profiles.active=prod &
 # 设置为 1024 字节
 -Xms:1024
 # 设置为 1024 kb
--Xms:1024k
+-Xms:1024k
 # 设置为 1024 mb
--Xms:1024m
+-Xms:1024m
 ```
 
 堆空间设置多少合适？
@@ -63,7 +75,7 @@ nohup java -Xms512m -Xmx1024m -jar xxxx.jar --spring.profiles.active=prod &
 
 设置参考推荐：尽量大，也要考察一下当前计算机其他程序的内存使用情况。
 
-#### 2.1.2. 设置年轻代中 Eden 区和两个 Survivor 区的大小比例
+#### 2.2.2. 设置年轻代中 Eden 区和两个 Survivor 区的大小比例
 
 `-XXSurvivorRatio` 参数用于设置年轻代中 Eden 区和两个 Survivor 区的大小比例。该值如果不设置，则默认比例为 8:1:1。Java 官方通过增大 Eden 区的大小，来减少 YGC 发生的次数，但有时虽然次数减少了，但 Eden 区满的时候，由于占用的空间较大，导致释放缓慢，此时 STW(Stop the world) 的时间较长，因此需要按照程序情况去调优。
 
@@ -75,7 +87,7 @@ nohup java -Xms512m -Xmx1024m -jar xxxx.jar --spring.profiles.active=prod &
 -XX:SurvivorRatio=8
 ```
 
-#### 2.1.3. 年轻代和老年代的比例
+#### 2.2.3. 年轻代和老年代的比例
 
 年轻代和老年代默认比例为 1:2。可以通过调整二者空间大小比率来设置两者的大小。
 
@@ -92,7 +104,7 @@ nohup java -Xms512m -Xmx1024m -jar xxxx.jar --spring.profiles.active=prod &
 -XX:NewRatio=4
 ```
 
-#### 2.1.4. 虚拟机栈的设置
+#### 2.2.4. 虚拟机栈的设置
 
 虚拟机栈的设置，**每个线程默认会开启 1M 的堆栈**，用于存放栈帧、调用参数、局部变量等，但一般 256K 就够用。通常减少每个线程的堆栈，可以产生更多的线程，但这实际上还受限于操作系统。`-Xss` 用于对每个线程 stack 大小的调整。例如：
 
@@ -100,7 +112,7 @@ nohup java -Xms512m -Xmx1024m -jar xxxx.jar --spring.profiles.active=prod &
 -Xss256k
 ```
 
-#### 2.1.5. 年轻代（新生代）的内存大小
+#### 2.2.5. 年轻代（新生代）的内存大小
 
 一般来说，当 survivor 区不够大或者占用量达到 50%，就会把一些对象放到老年区。通过设置合理的 eden 区，survivor 区及使用率，可以将年轻对象保存在年轻代，从而避免 full GC，使用 `-Xmn` 设置年轻代的大小。
 
@@ -108,11 +120,11 @@ nohup java -Xms512m -Xmx1024m -jar xxxx.jar --spring.profiles.active=prod &
 -Xmn
 ```
 
-#### 2.1.6. 大对象分配内存配置
+#### 2.2.6. 大对象分配内存配置
 
 对于占用内存比较多的大对象，一般会选择在老年代分配内存。如果在年轻代给大对象分配内存，年轻代内存不够了，就要在 eden 区移动大量对象到老年代，然后这些移动的对象可能很快消亡，因此导致 full GC。通过设置参数：`-XX:PetenureSizeThreshold=1000000`，单位为 B，标明对象大小超过 1M 时，在老年代(tenured)分配内存空间。
 
-#### 2.1.7. 年轻代晋升老年代阈值
+#### 2.2.7. 年轻代晋升老年代阈值
 
 一般情况下，年轻对象放在 eden 区，当第一次 GC 后，如果对象还存活，放到 survivor 区，此后每 GC 一次，年龄增加 1，当对象的年龄达到阈值，就被放到 tenured 老年区。这个阈值可以通过 `-XX:MaxTenuringThreshold` 设置：
 
@@ -123,9 +135,9 @@ nohup java -Xms512m -Xmx1024m -jar xxxx.jar --spring.profiles.active=prod &
 
 如果想让对象留在年轻代，可以设置比较大的阈值。
 
-### 2.2. 垃圾回收器的配置
+### 2.3. 垃圾回收器的配置
 
-#### 2.2.1. 选择垃圾回收器的类型
+#### 2.3.1. 选择垃圾回收器的类型
 
 - `-XX:+UseParallelGC`：年轻代使用并行垃圾回收收集器。这是一个关注吞吐量的收集器，可以尽可能的减少垃圾回收时间。
 - `-XX:+UseParallelOldGC`：设置老年代使用 ParNew + ParNew Old 组合并行垃圾回收收集器。
@@ -134,29 +146,66 @@ nohup java -Xms512m -Xmx1024m -jar xxxx.jar --spring.profiles.active=prod &
 - `-XX:ParallelGCThreads`：设置 Parallel GC 的线程数。
 - `-XX:+UseG1GC`：使用 G1 垃圾收集器。
 
-#### 2.2.2. GC 打印信息配置
+#### 2.3.2. 打印 GC 配置信息与日志
 
 - `-XX:+PrintGC`：开启打印 gc 信息
 - `-XX:+PrintGCDetails`：打印 gc 详细信息。
 - `-XX:+PrintGCTimeStamps`：打印 GC 的时间戳
-- `-Xloggc:filename`：设置 GC log 文件的位置
 - `-XX:+PrintTenuringDistribution`：查看熬过收集后剩余对象的年龄分布信息
+- `-XX:PrintHeapAtGC：打印GC前后的堆栈信息`
+- `-Xloggc:filename`：设置 GC log 文件的位置。
 
-#### 2.2.3. CMS 垃圾回收器相关
+> Tips: 不同 JDK 版本会有不同的参数。比如 JDK9 中，就不用分这么多参数，可以统一使用 `-X-log:gc*` 通配符打印所有的 GC 日志。
+
+准备简单的测试示例代码：
+
+```java
+public class GCLogTest {
+    public static void main(String[] args) {
+        ArrayList<byte[]> list = new ArrayList<>();
+
+        for (int i = 0; i < 500; i++) {
+            byte[] arr = new byte[1024 * 100];//100KB
+            list.add(arr);
+            try {
+                Thread.sleep(10);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+}
+```
+
+使用 idea 执行以上代码时，设置 JVM 参数：
+
+```
+-Xms60m -Xmx60m -XX:SurvivorRatio=8 -XX:+PrintGCDetails -Xloggc:./gc.log
+```
+
+![](images/238921212240253.png)
+
+执行后，打开生成的 `gc.log` 文件，查看输出信息：
+
+![](images/492351812258679.png)
+
+文件中记录了两次 MinorGC 和两次 FullGC 的执行效果。另外，在程序执行完成后，也会打印出 Heap 堆区的内存使用情况。如果不添加 `-Xloggc` 参数，这些日志信息只是打印在控制台。
+
+#### 2.3.3. CMS 垃圾回收器相关
 
 - `-XX:+UseCMSInitiatingOccupancyOnly`、`-XX:CMSInitiatingOccupancyFraction`：与前者配合使用，指定 MajorGC 的发生时机。
 - `-XX:+ExplicitGCInvokesConcurrent`：代码调用 `System.gc()` 开始并行 FullGC，建议加上这个参数。
 - `-XX:+CMSScavengeBeforeRemark`：表示开启或关闭在 CMS 重新标记阶段之前的清除（YGC）尝试，它可以降低 remark 时间，建议加上。
 - `-XX:+ParallelRefProcEnabled`：可以用来并行处理 Reference，以加快处理速度，缩短耗时。
 
-#### 2.2.4. G1 垃圾回收器相关
+#### 2.3.4. G1 垃圾回收器相关
 
 - `-XX:MaxGCPauseMillis`：用于设置目标停顿时间，G1 会尽力达成
 - `-XX:G1HeapRegionSize`：用于设置小堆区大小，建议保持默认。
 - `-XX:InitiatingHeapOccupancyPercent`：表示当整个堆内存使用达到一定比例（默认是 45%），并发标记阶段就会被启动。
 - `-XX:ConcGCThreads`：表示并发垃圾收集器使用的线程数量，默认值随 JVM 运行的平台不同而变动，不建议修改
 
-### 2.3. 内存分页
+### 2.4. 内存分页
 
 尝试使用大的内存分页，增加 CPU 的内存寻址能力，从而系统的性能。
 
@@ -165,13 +214,13 @@ nohup java -Xms512m -Xmx1024m -jar xxxx.jar --spring.profiles.active=prod &
 -XX:+LargePageSizeInBytes
 ```
 
-### 2.4. -XX:+UseCompressedOops
+### 2.5. -XX:+UseCompressedOops
 
 当应用从 32 位的 JVM 迁移到 64 位的 JVM 时，由于对象的指针从 32 位增加到了 64 位，因此堆内存会突然增加差不多翻倍，这也会对 CPU 缓存（容量比内存小很多）的数据产生不利的影响。
 
 迁移到 64 位的 JVM 主要动机在于可以指定最大堆大小，通过压缩 OOP 可以节省一定的内存。通过 `-XX:+UseCompressedOops` 选项，JVM 会使用 32 位的 OOP，而不是 64 位的 OOP。
 
-### 2.5. 示例：生产环境用的什么JDK？如何配置的垃圾收集器？
+### 2.6. 示例：生产环境用的什么JDK？如何配置的垃圾收集器？
 
 例如生产环境使用了 Oracle JDK 1.8，G1 收集器相关配置如下：
 
@@ -207,7 +256,7 @@ jps -lvm
 常用参数如下：
 
 - `-m` 输出虚拟机进程启动时传递给主类 main 方法的参数。
-- `-l` 输出完整的包名和应用主类名。如果进程执行是 jar 包，输出 jar 路径。
+- `-l` 输出完整的包名和应用主类名。如果进程执行是 jar 包，输出 jar 的完全的路径名。
 - `-v` 输出虚拟机进程启动时 JVM 参数。
 - `-q` 只输出lvmid，省略主类的名称
 
@@ -224,8 +273,8 @@ jstack [option] vmid
 option 选项取值说明：
 
 - `-F` 当正常输出的请求不被响应时，强制输出线程堆栈
-- `-l` 除堆栈外，显示关于锁的额外附加信息
-- `-m` 如果调用本地方法的花，可以显示 C/C++ 的堆栈
+- `-l` 除堆栈外，显示关于锁的额外附加信息，查看是否死锁
+- `-m` 如果调用本地方法的话，可以显示 C/C++ 的堆栈
 
 ![](images/10374615237262.png)
 
@@ -470,9 +519,9 @@ Java 内存泄露原因：
 
 排查 OOM 的方案：
 
-- 查看服务器运行日志日志，捕捉到内存溢出异常
-- 使用 `jstat` 命令工具查看监控 JVM 的内存和 GC 情况，评估问题大概出在什么区域
-- 使用 MAT 工具载入 dump 文件，分析大对象的占用情况
+- 查看服务器运行日志日志，捕捉到内存溢出异常。
+- 使用 `jstat` 命令工具查看监控 JVM 的内存和 GC 情况，评估问题大概出在什么区域。
+- 使用 MAT 工具载入 dump 文件，分析大对象的占用情况。（dump 文件巨大，实际生产环境很难有机会去获取到 dump 文件）
 
 其中一种排查 OOM 的思路如下：
 
@@ -535,7 +584,7 @@ printf "%x\n" 30979
 5. 可以根据线程 id 找到有问题的线程，进一步定位到问题代码的源码行号。执行以下命令：
 
 ```bash
-jstack 30978
+jstack 7903
 ```
 
 ![](images/508075616233923.png)

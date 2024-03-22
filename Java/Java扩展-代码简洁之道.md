@@ -309,7 +309,6 @@ Long i = 1L;
    - `orElse(T value)` 方法无论前面 Optional 容器值是 null 还是 nonNull，都会提前执行 `orElse` 里的方法；
    - `orElseGet(Supplier supplier)` 方法并不会，只会在 Optional 容器值为 null 时才调用 `orElseGet` 里的方法。
 
-
 ### 3.4. 表达式
 
 1. **尽量减少方法的重复调用**。例如，使用普通 for 循环集合时，将 `list.size()` 方法提取在变量，避免每次循环时重新调用方法获取集合大小。

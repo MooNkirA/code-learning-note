@@ -257,16 +257,16 @@ Spring 4.0 新提供的注解，用来标识一个 Spring Bean 或者  Configura
 
 通过 `@Conditional` 注解可以根据代码中设置的条件装载不同的 bean，在设置条件注解之前，先要把装载的 bean 类去实现 `Condition` 接口，然后对该实现接口的类设置是否装载的条件。Spring Boot 注解中的 `@ConditionalOnProperty`、`@ConditionalOnBean` 等以 `@Conditional*` 开头的注解，都是通过集成了 `@Conditional` 来实现相应功能的。常用的注解列表如下：
 
-|                注解                |                     功能说明                     |
-| --------------------------------- | ------------------------------------------------ |
+|                注解                |                    功能说明                    |
+| --------------------------------- | --------------------------------------------- |
 | `@ConditionalOnBean`              | 仅在当前上下文中存在某个bean时，才会实例化这个Bean   |
-| `@ConditionalOnClass`             | 某个class位于类路径上，才会实例化这个Bean           |
-| `@ConditionalOnExpression`        | 当表达式为true的时候，才会实例化这个Bean            |
+| `@ConditionalOnClass`             | 某个class位于类路径上，才会实例化这个Bean          |
+| `@ConditionalOnExpression`        | 当表达式为true的时候，才会实例化这个Bean           |
 | `@ConditionalOnMissingBean`       | 仅在当前上下文中不存在某个bean时，才会实例化这个Bean |
 | `@ConditionalOnMissingClass`      | 某个class在类路径上不存在的时候，才会实例化这个Bean  |
-| `@ConditionalOnNotWebApplication` | 不是web应用时才会实例化这个Bean                    |
-| `@AutoConfigureAfter`             | 在某个bean完成自动配置后实例化这个bean              |
-| `@AutoConfigureBefore`            | 在某个bean完成自动配置前实例化这个bean              |
+| `@ConditionalOnNotWebApplication` | 不是web应用时才会实例化这个Bean                   |
+| `@AutoConfigureAfter`             | 在某个bean完成自动配置后实例化这个bean             |
+| `@AutoConfigureBefore`            | 在某个bean完成自动配置前实例化这个bean             |
 
 > Notes: 如果在方法或者类上出现以下多个注解，则这多个条件注解是<font color=red>**并且的逻辑关系**</font>，即每个条件都成立，才会加载被标识的 Bean
 

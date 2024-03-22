@@ -1,5 +1,3 @@
-# Spring Boot 整合 Elasticsearch
-
 ## 1. Elasticsearch 简介
 
 > Elasticsearch 介绍、安装及其使用的相关内容，详见[《ElasticSearch 分布式全文搜索引擎》笔记](/分布式微服务/ElasticStack/ElasticSearch)
@@ -229,7 +227,7 @@ PUT http://localhost:9200/books
 }
 ```
 
-​创建完毕后返回结果和不使用分词器创建索引的结果是一样的，此时可以通过查看索引信息观察到添加的请求参数 mappings 已经进入到了索引属性中
+创建完毕后返回结果和不使用分词器创建索引的结果是一样的，此时可以通过查看索引信息观察到添加的请求参数 mappings 已经进入到了索引属性中
 
 ```json
 {
@@ -367,7 +365,7 @@ POST http://localhost:9200/books/_update/1
 }
 ```
 
-## 2. 整合 Elasticsearch 低级别客户端
+## 2. Spring Boot 整合 Elasticsearch 低级别客户端
 
 以下是整合 ES 早期操作使用的客户端，被称为 Low Level Client，这种客户端操作方式性能方面略显不足
 
@@ -406,7 +404,7 @@ public class ElasticsearchTest {
 }
 ```
 
-## 3. 整合 Elasticsearch 高级别客户端
+## 3. Spring Boot 整合 Elasticsearch 高级别客户端
 
 上述示例操作形式是 ES 早期的 Low Level Client，后面 ES 开发了全新的客户端操作方式，称为 High Level Client。高级别客户端与 ES 版本同步更新，但是 Spring Boot 最初整合 ES 的时候使用的是低级别客户端，所以企业开发需要更换成高级别的客户端模式。
 

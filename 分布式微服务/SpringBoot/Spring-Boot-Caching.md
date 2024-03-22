@@ -461,9 +461,9 @@ spring:
 
 #### 3.2.3. 功能测试
 
-经过以上步骤，Spring Boot 整合 Ehcache 已完成。原始代码并没有任何修改，仅仅是加了一组配置就可以变更缓存供应商了，这也是 Spring Boot 提供了统一的缓存操作接口的优势，变更缓存实现并不影响原始编写的代码
+经过以上步骤，Spring Boot 整合 Ehcache 已完成。原始代码并没有任何修改，仅仅是加了一组配置就可以变更缓存供应商了，这也是 Spring Boot 提供了统一的缓存操作接口的优势，变更缓存实现并不影响原始编写的代码。
 
-参考内置缓存案例的步骤进行测试即可
+> 参考内置缓存案例的步骤进行测试即可
 
 ## 4. Spring Boot 整合 Redis 缓存
 
@@ -921,17 +921,17 @@ jetcache:
 
 #### 6.3.5. jetcache 的相关配置
 
-|                             属性                             | 默认值 |                              说明                               |
-| ----------------------------------------------------------- | ------ | -------------------------------------------------------------- |
-| `jetcache.statIntervalMinutes`                              | 0      | 统计间隔，0 表示不统计                                           |
+|                             属性                             | 默认值 |                             说明                             |
+| ----------------------------------------------------------- | ----- | ----------------------------------------------------------- |
+| `jetcache.statIntervalMinutes`                              | 0     | 统计间隔，0 表示不统计                                         |
 | `jetcache.hiddenPackages`                                   | 无     | 自动生成 name 时，隐藏指定的包名前缀                             |
 | `jetcache.[local\|remote].${area}.type`                     | 无     | 缓存类型，本地支持 linkedhashmap、caffeine，远程支持 redis、tair |
-| `jetcache.[local\|remote].${area}.keyConvertor`             | 无     | key 转换器，当前仅支持 fastjson                                  |
-| `jetcache.[local\|remote].${area}.valueEncoder`             | java   | 仅 remote 类型的缓存需要指定，可选 java 和 kryo                  |
-| `jetcache.[local\|remote].${area}.valueDecoder`             | java   | 仅 remote 类型的缓存需要指定，可选 java 和 kryo                  |
-| `jetcache.[local\|remote].${area}.limit`                    | 100    | 仅 local 类型的缓存需要指定，缓存实例最大元素数                   |
-| `jetcache.[local\|remote].${area}.expireAfterWriteInMillis` | 无穷大 | 默认过期时间，毫秒单位                                           |
-| `jetcache.local.${area}.expireAfterAccessInMillis`          | 0      | 仅 local 类型的缓存有效，毫秒单位，最大不活动间隔                 |
+| `jetcache.[local\|remote].${area}.keyConvertor`             | 无     | key 转换器，当前仅支持 fastjson                                |
+| `jetcache.[local\|remote].${area}.valueEncoder`             | java  | 仅 remote 类型的缓存需要指定，可选 java 和 kryo                  |
+| `jetcache.[local\|remote].${area}.valueDecoder`             | java  | 仅 remote 类型的缓存需要指定，可选 java 和 kryo                  |
+| `jetcache.[local\|remote].${area}.limit`                    | 100   | 仅 local 类型的缓存需要指定，缓存实例最大元素数                   |
+| `jetcache.[local\|remote].${area}.expireAfterWriteInMillis` | 无穷大 | 默认过期时间，毫秒单位                                          |
+| `jetcache.local.${area}.expireAfterAccessInMillis`          | 0     | 仅 local 类型的缓存有效，毫秒单位，最大不活动间隔                  |
 
 #### 6.3.6. 方法缓存
 

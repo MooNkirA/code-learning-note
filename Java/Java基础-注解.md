@@ -6,17 +6,15 @@
 
 > Tips: 可以理解为，注解是给编译器或 JVM 查看的，然后可以根据其标记执行对应的功能。
 
-## 2. 注解作用
-
-### 2.1. 注解使用例子
+### 1.1. 注解的应用场景
 
 - 编译检查，如`@Override`。
-- 生成帮忙文档
-- **做为框架的配置方案（重点）**
-    - XML配置
-    - 注解配置
+- 生成帮忙文档。
+- **做为框架的配置化到注解化（重点）**：例如 Spring 由原来的 XML 配置到全注解配置。
+- 继承实现到注解实现。
+- 在 AOP 配合自定义注解，通过切面实现功能增强与解耦。
 
-### 2.2. 扩展：框架的两种配置方案优缺点
+### 1.2. 扩展：框架的两种配置方案优缺点
 
 注：框架 = 代码 + 配置（个性化）。框架（struts2,hibernate,spring)都提供了两种配置方案
 
@@ -27,17 +25,17 @@
     - 优点：将配置信息和类写在一起，可读性高，开发效率相对较高。
     - 缺点：程序耦合性高
 
-## 3. Java常用内置注解的使用
+## 2. Java常用内置注解的使用
 
-### 3.1. @Override 注解
+### 2.1. @Override 注解
 
 该注解只能用于修饰方法声明，表示该方法是限定重写父类方法。该注解只能用于方法
 
-### 3.2. @Deprecated 注解
+### 2.2. @Deprecated 注解
 
 用于表示某个程序中的元素(类，方法等)已经过时。不建议继续使用，还是可以使用。
 
-### 3.3. @SuppressWarnings 注解
+### 2.3. @SuppressWarnings 注解
 
 `@SuppressWarnings` 注解的作用是抑制编译器警告。常用警告名称：
 
@@ -50,11 +48,11 @@
 
 **注：如果多个警告就使用`{}`将多个警告包括起来，封装成字符串数组**
 
-## 4. 自定义注解
+## 3. 自定义注解
 
 属性的作用：可以给每个注解加上多个不同的属性，用户使用注解的时候，可以传递参数给属性，让注解的功能更加强大
 
-### 4.1. 自定义注解格式
+### 3.1. 自定义注解格式
 
 ```java
 修饰符 @interface 注解名 {
@@ -62,9 +60,9 @@
 }
 ```
 
-### 4.2. 注解的属性
+### 3.2. 注解的属性
 
-#### 4.2.1. 属性定义格式
+#### 3.2.1. 属性定义格式
 
 - 第1种定义方式：`数据类型 属性名();`
 - 第2种定义方式：`数据类型 属性名() default 默认值;`
@@ -72,7 +70,7 @@
     - **如果注解有定义了属性，且属性没有默认值，则在使用注解的时候，就需要给属性赋值**
     - **如果属性有默认值，则使用注解的时候，这个属性就可以不赋值。也可以重新赋值，覆盖原有的默认值**
 
-#### 4.2.2. 注解支持的数据类型
+#### 3.2.2. 注解支持的数据类型
 
 - 8种数据类型都支持
 - String
@@ -81,7 +79,7 @@
 - Annotation
 - 以及上面类型的数组形式
 
-### 4.3. 特殊属性名 value
+### 3.3. 特殊属性名 value
 
 - 如果注解中只有一个属性且属性名为 `value` 时，在使用注解时可以直接给出属性值而不需要给属性名。(省略 `value=` 部分)
 - 无论这个 value 是单个元素还是数组，都可以省略。
@@ -97,9 +95,9 @@ public @interface T_T {
 
 ![注解使用案例](images/20190507110437937_17647.jpg)
 
-## 5. 元注解
+## 4. 元注解
 
-### 5.1. 元注解的概念
+### 4.1. 元注解的概念
 
 Java 默认提供的注解，用于标识在注解上的注解，用来约束注解的功能，称为元注解。Java 所有的内置注解定义都使用了元注解。元注解有以下几个：
 
@@ -108,7 +106,7 @@ Java 默认提供的注解，用于标识在注解上的注解，用来约束注
 - `@Inherited`：阐述了某个被标注的类型是被继承的
 - `@Documented`：描述-javadoc
 
-### 5.2. @Target 元注解
+### 4.2. @Target 元注解
 
 **`@Target`**：标识注解使用范围(写在自定义注解类上)。Annotation可被用于 packages、types（类、接口、枚举、Annotation 类型）、类型成员（方法、构造方法、成员变量、枚举值）、方法参数和本地变量（如循环变量、catch 参数），如果不写默认是任何地方都可以使用。使用格式如下：
 
@@ -130,7 +128,7 @@ public @interface MyAnnotation {}
 - `ElementType.TYPE_PARAMETER`：JDK1.8 以后加入，对普通变量的声明
 - `ElementType.TYPE_USE`：JDK1.8 以后加入，能标注任何类型的名称
 
-### 5.3. @Retention 元注解
+### 4.3. @Retention 元注解
 
 **`@Retention`**：用来标识注解的生命周期（有效作用范围），表示需要在什么级别保存注解信息。使用格式如下：
 
@@ -145,7 +143,7 @@ public @interface MyAnnotation {}
 - `RetentionPolicy.CLASS`：默认值，注解存在于 Java 源代码、编译以后的字节码文件中，运行的时候内存就不存在。（即 class 保留）
 - `RetentionPolicy.RUNTIME`：注解存在于 Java 源代码中、编译以后的字节码文件中、运行时的内存中，程序可以通过反射获取该注解。（即运行时保留）
 
-### 5.4. @Inherited 元注解
+### 4.4. @Inherited 元注解
 
 **`@Inherited` 作用**：表示该注解可以被子类继承。如果一个使用了 `@Inherited` 修饰的 annotation 类型被用于一个 class，则这个 annotation 将被用于该 class 的子类。使用格式如下：
 
@@ -154,7 +152,7 @@ public @interface MyAnnotation {}
 public @interface MyAnnotation {}
 ```
 
-### 5.5. @Documented 元注解
+### 4.5. @Documented 元注解
 
 **`@Documented` 作用**：表示该注解会出现在帮忙文档（javadoc）中。描述其它类型的 annotation 应该被作为被标注的程序成员的公共 API，因此可以被例如 javadoc 此类的工具文档化。使用格式如下：
 
@@ -163,13 +161,13 @@ public @interface MyAnnotation {}
 public @interface MyAnnotation {}
 ```
 
-## 6. 注解的原理
+## 5. 注解的原理
 
-### 6.1. Annotation 接口
+### 5.1. Annotation 接口
 
 所有注解类型的公共接口，所有注解都是 `java.lang.annotation.Annotation` 的子类(类似所有类都 Object 的子类)
 
-### 6.2. AnnotatedElement 接口
+### 5.2. AnnotatedElement 接口
 
 该接口中定义了一系列与注解解析相关的方法。**注：当前对象是指方法调用者**
 
@@ -197,13 +195,18 @@ Annotation[] getDeclaredAnnotations()
 
 - 获得类中所有声明的注解，不包括父类的
 
-### 6.3. 注解原理简述
+### 5.3. 注解原理简述
 
 注解本质是一个继承了 `Annotation` 的特殊接口，其具体实现类是 Java 运行时生成的动态代理类。通过反射获取注解时，返回的是 Java 运行时生成的动态代理对象。通过代理对象调用自定义注解的方法，最终会调用 `AnnotationInvocationHandler` 的 `invoke` 方法。该方法会从 `memberValues` 这个 Map 中索引出对应的值。而 `memberValues` 的来源是 Java 常量池。
 
-## 7. 注解解析
+### 5.4. 参考资料（待整理）
 
-### 7.1. 解析原则
+- https://blog.csdn.net/qq_20009015/article/details/106038023
+- https://www.race604.com/annotation-processing/
+
+## 6. 注解解析
+
+### 6.1. 解析原则
 
 注解作用在哪个成员上，就通过该成员对应的对象获得注解对象。
 
@@ -216,7 +219,7 @@ Method method = clazz.getDeclaredMethod("方法名");
 注解类 xx = (注解类) method.getAnnotation(注解类名.class);
 ```
 
-### 7.2. 注解解析案例
+### 6.2. 注解解析案例
 
 ```java
 package level02.test02;
@@ -271,3 +274,13 @@ public class Day20Test02_02 {
     String[] authors();
 }
 ```
+
+## 7. 注解相关扩展知识
+
+### 7.1. 注解是否支持继承
+
+<font color=red>**注解是不支持继承**</font>。不能使用关键字 `extends` 来继承某个 `@interface` 注解，但在编译后，编译器会让注解都自动继承 `java.lang.annotation.Annotation` 接口。
+
+虽然反编译后发现注解继承了 Annotation 接口，请记住，即使 Java 的接口可以实现多继承，但定义注解时依然无法使用 extends 关键字继承@interface。
+
+注意区别于类标识注解的继承，定义可被子类继承的注解时，可以用 `@Inherited` 元注解来标识。如果某个类使用了被 `@Inherited` 修饰的注解，则其子类将自动具有该注解。

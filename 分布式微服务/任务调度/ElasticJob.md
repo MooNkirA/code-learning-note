@@ -1,16 +1,21 @@
 ## 1. Elastic-Job 简介
 
+> - 官网：https://shardingsphere.apache.org/elasticjob/index_zh.html
+> - 官方 github 地址：https://github.com/apache/shardingsphere-elasticjob
+
 ### 1.1. 概述
 
 ElasticJob 是一个分布式调度解决方案，由当当网开源，它由 2 个相互独立的子项目 ElasticJob-Lite 和 ElasticJob-Cloud 组成。
 
-- ElasticJob-Lite 定位为轻量级无中心化解决方案，使用jar的形式提供分布式任务的协调服务
+- ElasticJob-Lite 定位为轻量级无中心化解决方案，使用 jar 的形式提供分布式任务的协调服务
+
+![](images/337041511266725.png)
+
 - ElasticJob-Cloud 使用 Mesos 的解决方案，额外提供资源治理、应用分发以及进程隔离等服务
 
-使用 Elastic-Job 可以快速实现分布式任务调度。ElasticJob 的各个产品使用统一的作业 API，开发者仅需要一次开发，即可随意部署。
+![](images/592771511259394.png)
 
-- 官网：https://shardingsphere.apache.org/elasticjob/index_zh.html
-- Elastic-Job 的 github 地址：https://github.com/apache/shardingsphere-elasticjob
+使用 Elastic-Job 可以快速实现分布式任务调度。ElasticJob 的各个产品使用统一的作业 API，开发者仅需要一次开发，即可随意部署。
 
 ### 1.2. 功能列表
 

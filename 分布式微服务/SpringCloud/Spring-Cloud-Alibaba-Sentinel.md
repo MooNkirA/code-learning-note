@@ -11,15 +11,17 @@
 - **广泛的开源生态**：Sentinel 提供开箱即用的与其它开源框架/库的整合模块，例如与 Spring Cloud、Dubbo、gRPC 的整合。您只需要引入相应的依赖并进行简单的配置即可快速地接入Sentinel。
 - **完善的 SPI 扩展点**：Sentinel 提供简单易用、完善的 SPI 扩展接口。您可以通过实现扩展接口来快速地定制逻辑。例如定制规则管理、适配动态数据源等。
 
-**Sentinel 的构架图**：
+> 官网：https://sentinelguard.io/zh-cn/
+
+### 1.2. Sentinel 的构架图
 
 ![](images/20201020160928442_20800.png)
 
-### 1.2. Sentinel 与 Hystrix 的区别
+### 1.3. Sentinel 与 Hystrix 的区别
 
 ![](images/20201020161451416_30983.png)
 
-### 1.3. 迁移方案
+### 1.4. 迁移方案
 
 Sentinel 官方提供了由 Hystrix 迁移到 Sentinel 的详细方法。详情参考 [Guideline: 从 Hystrix 迁移到 Sentinel](https://github.com/alibaba/Sentinel/wiki/Guideline:-从-Hystrix-迁移到-Sentinel)
 
@@ -30,7 +32,7 @@ Sentinel 官方提供了由 Hystrix 迁移到 Sentinel 的详细方法。详情�
 - 注解支持迁移方案：Sentinel 也提供注解支持，可以很方便地迁移，详见[此处](https://github.com/alibaba/Sentinel/wiki/Guideline:-从-Hystrix-迁移到-Sentinel#注解支持)
 - 开源框架支持迁移方案：Sentinel 提供 Servlet、Dubbo、Spring Cloud、gRPC 的适配模块，开箱即用；若之前使用 Spring Cloud Netflix，可迁移至 [Spring Cloud Alibaba](https://github.com/spring-cloud-incubator/spring-cloud-alibaba)
 
-### 1.4. Sentinel 组成部分
+### 1.5. Sentinel 组成部分
 
 Sentinel 的使用可以分为两个部分:
 

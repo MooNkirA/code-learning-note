@@ -1494,9 +1494,11 @@ a.foo = 'hello'; // 合法操作。不过，这种写法很难查错，建议凡
 
 - 如果多次重复执行同一句 `import` 语句，那么只会执行一次，而不会执行多次。
 
-### 12.6. ES6 中 export 及 export default 的区别
+### 12.6. export(具名导出) 与 export default(默认导出) 的区别
 
-`export const` 与 `export default` 均可用于导出常量、函数、文件、模块等，可以在其它文件或模块中通过`import+(常量 | 函数 | 文件 | 模块名)`的方式将其导入，以便能够对其进行使用，但在一个文件或模块中，export、import可以有多个，export default仅有一个。
+`export` 与 `export default` 均可用于导出常量、函数、文件、模块等，可以在其它文件或模块中通过`import+(常量 | 函数 | 文件 | 模块名)`的方式将其导入，以便能够对其进行使用。可以在一个文件中，选择使用其中一种，或者两种都使用。
+
+值得注意的是，<font color=red>**在一个文件或模块中，有且仅有一个 `export default`(默认导出)，但是可以有任意多个 `export`(具名导出)**</font>。*同样 `import` 也可以有多个*。
 
 ```js
 // demo1.js
@@ -1519,6 +1521,17 @@ import str from 'demo1' // 导入的时候没有花括号
 **总结：其中`export`和`export default`最大的区别就是`export`不限变量数可以一直写，而`export default`只输出一次 而且`export`导出的变量要使用时，必须使用`{}`来定义接收的变量，而`export default`不需要`{}`，只要`import`任意一个名字来接收对象即可。**
 
 `export default`可以跟在非匿名函数之前，也可以跟在匿名函数之前，同时也可以是一个对象之前。
+
+#### 12.6.1. 导入与导出的关系
+
+<font color=red>**导出方式决定了其导入方式**</font>。当用默认导入的方式，导入具名导出的内容时，就会报错。如下表格：
+
+| 语法 |                导出语句                 |                 导入语句                  |
+| ---- | ------------------------------------- | --------------------------------------- |
+| 默认 | `export default function Button() {}` | `import Button from './Button.js';`     |
+| 具名 | `export function Button() {}`         | `import { Button } from './Button.js';` |
+
+当使用默认导入时，可以在 `import` 语句后面进行任意命名。比如 `import Banana from './Button.js'`，如此能获得与默认导出一致的内容。相反，**对于具名导入，导入和导出的名字必须一致**（这就是称其为“具名导入”的原因）。
 
 ## 13. Proxy
 
