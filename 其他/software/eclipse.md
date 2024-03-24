@@ -53,35 +53,18 @@
 
 ## 4. 常用设置（包含MyEclipse设置，与Eclipse设置基本通用）
 
-### 4.1. 7个小技巧，解决eclipse卡顿问题
+### 4.1. 解决 eclipse 卡顿问题相关配置
 
-1. 去掉自动构建项目，改为手动
-
-在 eclipse 的菜单栏，选择 Project，看到下方的 Build Automatically，默认是勾选的，取消勾选就行。然后每次启动项目时，可以先 clean 所选项目，然后点击右键 Build Project，这样不仅可以缓解卡顿，也可以解决某些地方修改了代码后没生效的情况。
-
-2. 修改eclipse.ini配置参数
-
-- 在eclipse.ini的文件中，有两个配置参数：Xms和Xmx。
-    - Xms是指jvm初始分配的堆内存，默认是物理内存的1/64，可以根据项目的实际大小来修改参数值。
-    - Xmx是指jvm最大分配的堆内存，默认是物理内存的1/4，可以根据项目的实际大小来修改参数值。
-- 我自己的eclipse在初始化堆内存时，大概在260M左右，所以我的eclipse.ini文件中，Xms的参数给值512m，Xmx的参数给值1024m，大家可以参考，建议根据实际项目大小和电脑本身物理内存大小来确定两个参数的配值。初始内存占用大于60%后，jvm会将堆内存增大到Xmx的设置值。初始内存占用小于30%时，jvm会将堆内存减少到Xms的设置值。所以在开发过程中，通常会将Xms和Xmx两个参数的配置相同的值，其目的是为了能够在java垃圾回收机制清理完堆区后不需要重新分隔计算堆区的大小而浪费资源。
-- 另外，如果Xmx不指定或者指定偏小，应用可能会导致java.lang.OutOfMemory错误，此错误来自jvm，不是Throwable的，无法用try…catch捕捉。
-
-3. 手动释放内存
-
-在 eclipse 菜单栏，选择【Window】->【Preferences】，点击后在弹出的选项框中，右边显示有三个勾选框，勾选第三个【Show heap status】，点击右下的Apply，点击确认后，在 eclipse 的右下方会出现 eclipse 堆内存使用情况的数据，也可以看到前面提到的 Xms 和 Xmx 参数值，并且旁边有个垃圾桶的图标，如果 eclipse 卡到想哭，可以手动点击那个垃圾桶图标释放内存。
-
-4. 关闭启动时不需要用到的插件
-
-在 eclipse 菜单栏，选择【Window】->【Preferences】，点击后在弹出的选项框中，找到【General】->【Startup and Shutdown】，在右边的详细信息中，去掉上面【Refresh workspace on startup【和【Confirm exit when closing last window】勾选，在下面的【Plug-ins activated on startup】中，没什么用处的可以都去掉勾选，点击右下的 Apply，点击确认。
-
-5. 关闭自动更新和安装
-
-在 eclipse 菜单栏，选择【Window】->【Preferences】，点击后在弹出的选项框中，找到【Install/Update】，在右边的详细信息中，勾选【Show only the latest versions of available software】和【Ask me what to do when it happens】，点击右下的 Apply，点击确认。在【Install/Update】菜单下还有两个子菜单，【Automatic Updates】和【Available Software Sites】，根据实际情况来勾选或设置，完成后点击 Apply 确认按钮。
-
-6. 关闭保存后续动作
-
-在 eclipse 菜单栏，选择【Window】->【Preferences】，点击后在弹出的选项框中，找到【Java】->【Editor】】->【Save Actions】，在右边的详细信息中，去掉【perform the selected actions on save】选项的勾选，然后点击 Apply 确认按钮。
+1. **去掉自动构建项目，改为手动**。在 eclipse 的菜单栏，选择 Project，看到下方的 Build Automatically，默认是勾选的，取消勾选就行。然后每次启动项目时，可以先 clean 所选项目，然后点击右键 Build Project，这样不仅可以缓解卡顿，也可以解决某些地方修改了代码后没生效的情况。
+2. **修改 eclipse.ini 文件的两个配置参数：Xms 和 Xmx**。
+    - Xms 是指 jvm 初始分配的堆内存，默认是物理内存的 1/64，可以根据项目的实际大小来修改参数值。
+    - Xmx 是指 jvm 最大分配的堆内存，默认是物理内存的 1/4，可以根据项目的实际大小来修改参数值。
+    > eclipse 在初始化堆内存时，大概在 260M 左右，所以有 eclipse.ini 文件中，Xms 的参数给值 512m，Xmx 的参数给值 1024m（仅供参考），建议根据实际项目大小和电脑本身物理内存大小来确定两个参数的配值。初始内存占用大于 60% 后，jvm 会将堆内存增大到 Xmx 的设置值。初始内存占用小于 30% 时，JVM 会将堆内存减少到 Xms 的设置值。所以在开发过程中，通常会将 Xms 和 Xmx 两个参数的配置相同的值，其目的是为了能够在 java 垃圾回收机制清理完堆区后不需要重新分隔计算堆区的大小而浪费资源。另外，如果 Xmx 不指定或者指定偏小，应用可能会导致 java.lang.OutOfMemory 错误，此错误来自 jvm，不是 Throwable 的，无法用 try…catch 捕捉。
+    
+3. **手动释放内存**。在 eclipse 菜单栏，选择【Window】->【Preferences】，点击后在弹出的选项框中，右边显示有三个勾选框，勾选第三个【Show heap status】，点击右下的Apply，点击确认后，在 eclipse 的右下方会出现 eclipse 堆内存使用情况的数据，也可以看到前面提到的 Xms 和 Xmx 参数值，并且旁边有个垃圾桶的图标，如果 eclipse 卡到想哭，可以手动点击那个垃圾桶图标释放内存。
+4. **关闭启动时不需要用到的插件**。在 eclipse 菜单栏，选择【Window】->【Preferences】，点击后在弹出的选项框中，找到【General】->【Startup and Shutdown】，在右边的详细信息中，去掉上面【Refresh workspace on startup【和【Confirm exit when closing last window】勾选，在下面的【Plug-ins activated on startup】中，没什么用处的可以都去掉勾选，点击右下的 Apply，点击确认。
+5. **关闭自动更新和安装**。在 eclipse 菜单栏，选择【Window】->【Preferences】，点击后在弹出的选项框中，找到【Install/Update】，在右边的详细信息中，勾选【Show only the latest versions of available software】和【Ask me what to do when it happens】，点击右下的 Apply，点击确认。在【Install/Update】菜单下还有两个子菜单，【Automatic Updates】和【Available Software Sites】，根据实际情况来勾选或设置，完成后点击 Apply 确认按钮。
+6. **关闭保存后续动作**。在 eclipse 菜单栏，选择【Window】->【Preferences】，点击后在弹出的选项框中，找到【Java】->【Editor】】->【Save Actions】，在右边的详细信息中，去掉【perform the selected actions on save】选项的勾选，然后点击 Apply 确认按钮。
 
 ### 4.2. Eclipse统一默认编码
 
