@@ -7,16 +7,6 @@
     },
     "history": [
         {
-            "last_accessed_time": "2024-02-21T01:47:14Z",
-            "line_number": 670,
-            "path": "Database/Redis/Redis-安装部署.md"
-        },
-        {
-            "last_accessed_time": "2024-02-22T23:57:53Z",
-            "line_number": 41,
-            "path": "分布式微服务/ElasticStack/ElasticStack.md"
-        },
-        {
             "last_accessed_time": "2024-02-23T00:19:12Z",
             "line_number": 240,
             "path": "并发编程/并发编程-并发容器.md"
@@ -482,27 +472,37 @@
             "path": "其他/software/Windows.md"
         },
         {
-            "last_accessed_time": "2024-03-24T09:57:22Z",
+            "last_accessed_time": "2024-03-27T16:20:34Z",
+            "line_number": 4306,
+            "path": "前端资料/JavaScript/JavaScript-基础.md"
+        },
+        {
+            "last_accessed_time": "2024-03-27T16:20:35Z",
+            "line_number": 0,
+            "path": "前端资料/JavaScript/ECMAScript6.md"
+        },
+        {
+            "last_accessed_time": "2024-03-27T16:20:54Z",
             "line_number": 1175,
             "path": "后端框架/Hibernate/Hibernate-基础.md"
         },
         {
-            "last_accessed_time": "2024-03-24T09:57:23Z",
+            "last_accessed_time": "2024-03-27T16:20:55Z",
             "line_number": 351,
             "path": "前端资料/React/React-基础.md"
         },
         {
-            "last_accessed_time": "2024-03-24T09:57:23Z",
+            "last_accessed_time": "2024-03-27T16:20:55Z",
             "line_number": 3871,
             "path": "Database/MySQL/MySQL-基础.md"
         },
         {
-            "last_accessed_time": "2024-03-24T09:57:23Z",
+            "last_accessed_time": "2024-03-27T16:20:55Z",
             "line_number": 305,
             "path": "JVM/JVM-内存模型.md"
         },
         {
-            "last_accessed_time": "2024-03-24T09:57:24Z",
+            "last_accessed_time": "2024-03-27T16:20:56Z",
             "line_number": 244,
             "path": "其他/software/Common-Software.md"
         }

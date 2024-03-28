@@ -455,13 +455,11 @@ PixPin 是目前市面上功能最全面的截图工具之一了！包括**截�
 
 - 官方网站： https://singlelogin.re/
 - 官方桌面版下载： https://zh.go-to-zlibrary.se/#desktop_app_tab
+- zlibrary 最新网址(2024年3月25日)：https://zh.zlibrary-sg.se/
 
-**据说是入驻国内的网址：**
+> 注：若链接失效，可以箱给官方邮箱 `blackbox@zlib.se` 发送一条任何内容的邮件，就可以在3到5分钟内自动生成的回信中访问Z-Library。
 
-- https://zlibrary-hk.se/
-> support@z-lib.se 客服邮箱，可以获取最新可用的网址
-
-**以下是国内镜像**：
+**以下是一些国内镜像**：
 
 - ZLibary 网站镜像唯一入口： https://www.zhelper.net/
 
