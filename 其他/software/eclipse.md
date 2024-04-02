@@ -1,6 +1,12 @@
+## 1. Eclipse 概述
+
+Eclipse 是一个开放源代码的、基于 Java 的可扩展开发平台。它是 Java 的集成开发环境（IDE），也可以作为其他开发语言的集成开发环境，如 C，C++，PHP，和 Ruby 等。
+
+Eclipse 附带了一个标准的插件集，包括 Java 开发工具（Java Development Kit，JDK）。
+
 > Eclipse 官网：https://www.eclipse.org/
 
-## 1. Eclipse 各版本号
+### 1.1. Eclipse 各版本号
 
 |        名称        | 版本号 |        名称        | 版本号 |        名称        | 版本号 |        名称        | 版本号 |
 | :---------------: | :---: | :---------------: | :---: | :---------------: | :---: | :---------------: | :---: |
@@ -14,6 +20,10 @@
 |  Eclipse 2023‑09  | 4.29  |  Eclipse 2023-12  | 4.30  |  Eclipse 2024-03  | 4.31  |                   |       |
 
 > Notes: Eclipse Mars(4.5) 后版本必须要 JDK 1.7 以上
+
+### 1.2. 参考资料
+
+- [Eclipse 菜鸟教程](https://www.runoob.com/eclipse/eclipse-tutorial.html)
 
 ## 2. Eclipse的主题颜色
 
@@ -47,9 +57,141 @@
 
 ![](images/20201010235229073_6435.jpg)
 
-## 3. 常用快捷键(待整理)
+## 3. Eclipse 快捷键
 
-> 暂时详见《eclipse-快捷键.doc》
+### 3.1. 查看快捷键
+
+Eclipse 的很多操作都提供了快捷键功能，可以通过键盘就能很好的控制 Eclipse 各个功能：
+
+- 使用快捷键关联菜单或菜单项
+- 使用快捷键关联对话窗口或视图或编辑器
+- 使用快捷键关联工具条上的功能按钮
+
+![](images/147412416240443.jpg)
+
+Eclipse 快捷键列表可通过快捷键 `Ctrl + Shift + L` 打开。
+
+![](images/428302416258869.jpg)
+
+### 3.2. 设置快捷键
+
+Eclipse 系统提供的快捷键有的不好用，甚至有些根本没有提供快捷键，此时就需要手动设置快捷键。通过点击【window】->【preferences】->【general】->【keys】（或直接搜索 `keys`），进入快捷键管理界面：
+
+![](images/538922516246736.jpg)
+
+在这里可以查找所有功能的快捷键，需要修改或新增时，点击需要修改或新增的命令，在【binding】里设置快捷键:
+
+![](images/177082616266902.png)
+
+设置完快捷键后，还需要设置在什么时候可以使用该快捷键，eclipse 提供各种场景供选择，一般选择 In Windows(即在eclipse窗口激活状态)即可。
+
+![](images/375862616259571.jpg)
+
+完成以上操作，点击 OK 按钮即完成设置。
+
+### 3.3. 常用快捷键(待整理)
+
+> 待整理《eclipse-快捷键.doc》
+
+|    快捷键     |                                     描述                                      |
+| ------------ | ---------------------------------------------------------------------------- |
+| Ctrl+1       | 快速修复（最经典的快捷键,就不用多说了，可以解决很多问题，比如import类、try catch包围等） |
+| Ctrl+Shift+F | 格式化当前代码                                                                  |
+| Ctrl+Shift+M | 添加类的import导入                                                             |
+| Ctrl+Shift+O | 组织类的import导入（既有Ctrl+Shift+M的作用，又可以帮你去除没用的导入，很有用）         |
+| Ctrl+Y       | 重做（与撤销Ctrl+Z相反）                                                        |
+| Alt+/        | 内容辅助（帮你省了多少次键盘敲打，太常用了）                                         |
+| Ctrl+D       | 删除当前行或者多行                                                              |
+| Alt+↓        | 当前行和下面一行交互位置（特别实用,可以省去先剪切,再粘贴了）                           |
+| Alt+↑        | 当前行和上面一行交互位置（同上）                                                   |
+| Ctrl+Alt+↓   | 复制当前行到下一行（复制增加）                                                    |
+| Ctrl+Alt+↑   | 复制当前行到上一行（复制增加）                                                    |
+| Shift+Enter  | 在当前行的下一行插入空行（这时鼠标可以在当前行的任一位置,不一定是最后）                  |
+| Ctrl+/       | 注释当前行,再按则取消注释                                                        |
+
+**选择**
+
+|    快捷键     |         描述          |
+| ------------ | -------------------- |
+| Alt+Shift+↑  | 选择封装元素           |
+| Alt+Shift+←  | 选择上一个元素          |
+| Alt+Shift+→  | 选择下一个元素          |
+| Shift+←      | 从光标处开始往左选择字符 |
+| Shift+→      | 从光标处开始往右选择字符 |
+| Ctrl+Shift+← | 选中光标左边的单词      |
+| Ctrl+Shift+→ | 选中光标右边的单词      |
+
+**移动**
+
+| 快捷键  |               描述               |
+| ------ | ------------------------------- |
+| Ctrl+← | 光标移到左边单词的开头，相当于vim的b |
+| Ctrl+→ | 光标移到右边单词的末尾，相当于vim的e |
+
+**搜索**
+
+|    快捷键     |                                                                      描述                                                                      |
+| ------------ | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| Ctrl+K       | 参照选中的Word快速定位到下一个（如果没有选中word，则搜索上一次使用搜索的word）                                                                            |
+| Ctrl+Shift+K | 参照选中的Word快速定位到上一个                                                                                                                     |
+| Ctrl+J       | 正向增量查找（按下Ctrl+J后,你所输入的每个字母编辑器都提供快速匹配定位到某个单词,如果没有,则在状态栏中显示没有找到了,查一个单词时,特别实用,要退出这个模式，按escape建） |
+| Ctrl+Shift+J | 反向增量查找（和上条相同,只不过是从后往前查）                                                                                                         |
+| Ctrl+Shift+U | 列出所有包含字符串的行                                                                                                                            |
+| Ctrl+H       | 打开搜索对话框                                                                                                                                   |
+| Ctrl+G       | 工作区中的声明                                                                                                                                   |
+| Ctrl+Shift+G | 工作区中的引用                                                                                                                                   |
+
+**导航**
+
+|        快捷键         |                          描述                           |
+| -------------------- | ------------------------------------------------------- |
+| Ctrl+Shift+T         | 搜索类（包括工程和关联的第三jar包）                          |
+| Ctrl+Shift+R         | 搜索工程中的文件                                          |
+| Ctrl+E               | 快速显示当前Editer的下拉列表（如果当前页面没有显示的用黑体表示） |
+| F4                   | 打开类型层次结构                                          |
+| F3                   | 跳转到声明处                                              |
+| Alt+←                | 前一个编辑的页面                                          |
+| Alt+→                | 下一个编辑的页面（当然是针对上面那条来说了）                   |
+| Ctrl+PageUp/PageDown | 在编辑器中，切换已经打开的文件                               |
+
+**调试**
+
+|    快捷键     |              描述               |
+| ------------ | ------------------------------- |
+| F5           | 单步跳入                         |
+| F6           | 单步跳过                         |
+| F7           | 单步返回                         |
+| F8           | 继续                            |
+| Ctrl+Shift+D | 显示变量的值                      |
+| Ctrl+Shift+B | 在当前行设置或者去掉断点            |
+| Ctrl+R       | 运行至行(超好用，可以节省好多的断点) |
+
+**重构（一般重构的快捷键都是Alt+Shift开头的了）**
+
+|    快捷键    |                                            描述                                            |
+| ----------- | ----------------------------------------------------------------------------------------- |
+| Alt+Shift+R | 重命名方法名、属性或者变量名 （是我自己最爱用的一个了,尤其是变量和类的Rename,比手工方法能节省很多劳动力） |
+| Alt+Shift+M | 把一段函数内的代码抽取成方法 （这是重构里面最常用的方法之一了,尤其是对一大堆泥团代码有用）               |
+| Alt+Shift+C | 修改函数结构（比较实用,有N个函数调用了这个方法,修改一次搞定）                                       |
+| Alt+Shift+L | 抽取本地变量（ 可以直接把一些魔法数字和字符串抽取成一个变量,尤其是多处调用的时候）                      |
+| Alt+Shift+F | 把Class中的local变量变为field变量 （比较实用的功能）                                            |
+| Alt+Shift+I | 合并变量（可能这样说有点不妥Inline）                                                           |
+| Alt+Shift+V | 移动函数和变量（不怎么常用）                                                                   |
+| Alt+Shift+Z | 重构的后悔药（Undo）                                                                         |
+
+**其他**
+
+|   快捷键   |                                           描述                                           |
+| --------- | ---------------------------------------------------------------------------------------- |
+| Alt+Enter | 显示当前选择资源的属性，windows下的查看文件的属性就是这个快捷键，通常用来查看文件在windows中的实际路径 |
+| Ctrl+↑    | 文本编辑器 上滚行                                                                          |
+| Ctrl+↓    | 文本编辑器 下滚行                                                                          |
+| Ctrl+M    | 最大化当前的Edit或View （再按则反之）                                                        |
+| Ctrl+O    | 快速显示 OutLine（不开Outline窗口的同学，这个快捷键是必不可少的）                                |
+| Ctrl+T    | 快速显示当前类的继承结构                                                                     |
+| Ctrl+W    | 关闭当前Editer（windows下关闭打开的对话框也是这个，还有qq、旺旺、浏览器等都是）                    |
+| Ctrl+L    | 文本编辑器 转至行                                                                          |
+| F2        | 显示工具提示描述                                                                           |
 
 ## 4. 常用设置（包含MyEclipse设置，与Eclipse设置基本通用）
 
@@ -66,7 +208,7 @@
 5. **关闭自动更新和安装**。在 eclipse 菜单栏，选择【Window】->【Preferences】，点击后在弹出的选项框中，找到【Install/Update】，在右边的详细信息中，勾选【Show only the latest versions of available software】和【Ask me what to do when it happens】，点击右下的 Apply，点击确认。在【Install/Update】菜单下还有两个子菜单，【Automatic Updates】和【Available Software Sites】，根据实际情况来勾选或设置，完成后点击 Apply 确认按钮。
 6. **关闭保存后续动作**。在 eclipse 菜单栏，选择【Window】->【Preferences】，点击后在弹出的选项框中，找到【Java】->【Editor】】->【Save Actions】，在右边的详细信息中，去掉【perform the selected actions on save】选项的勾选，然后点击 Apply 确认按钮。
 
-### 4.2. Eclipse统一默认编码
+### 4.2. Eclipse 统一默认编码
 
 - 修改新建项目默认编码：Window -> Preferences -> General -> Workspace，修改 Text file encoding 将其修改为 UTF-8
 - ~~根据文件修改默认编码：windows -> preferences -> myeclipse -> file and editors下所有选项中的encoding 修改为 IS010646/Unicode(UTF-8) 即统一编码为UTF-8~~
@@ -287,7 +429,9 @@ MyEclipse 的修改方法与 Eclipse 完全一样，用修改好的 jar 包替�
 
 eclipse 使用时，可以配合文档注释，导出对类的说明文档，从而供其他人阅读学习与使用。通过使用文档注释，将类或者方法进行注释用`@`简单标注基本信息。如`@author`作者、`@version`代码版本、`@param`方法参数、`@return`方法返回值等。
 
-## 8. 导出Jar包步骤
+## 8. eclipse Jar 包操作
+
+### 8.1. 导出 Jar 包步骤
 
 工程右键 -> Export -> Java -> Jar file -> Next -> 选择要导出的类 -> 选择导出的路径 -> Finish
 
@@ -297,7 +441,7 @@ eclipse 使用时，可以配合文档注释，导出对类的说明文档，从
 
 ![](images/20201106102849714_26751.png)
 
-## 9. 导入Jar包步骤
+### 8.2. 导入 Jar 包步骤
 
 1. 在项目中新建一个文件夹：lib（类库）
 2. 将要使用的第三方jar拷贝到lib目录下
@@ -313,7 +457,7 @@ eclipse 使用时，可以配合文档注释，导出对类的说明文档，从
 
 ![](images/20201106103159782_4577.png)
 
-## 10. 导入第三方源码
+### 8.3. 导入第三方源码
 
 ![](images/20201106103232303_8256.png)
 
@@ -321,7 +465,7 @@ eclipse 使用时，可以配合文档注释，导出对类的说明文档，从
 
 ![](images/20201106103251215_4125.png)
 
-## 11. eclipse 自定义 library jar 包步骤
+### 8.4. eclipse 自定义 library jar 包步骤
 
 右键点击项目 --> Build Path --> Add Libraries --> User Libraries
 
@@ -349,7 +493,7 @@ eclipse 使用时，可以配合文档注释，导出对类的说明文档，从
 
 ![](images/20201106103825907_20251.png)
 
-## 12. Tomcat 与 Eclipse 连接
+## 9. Tomcat 与 Eclipse 连接
 
 打开Eclipse --> 点击Eclipse菜单栏【Window】-->【Preferences】，之后出现【Preferences】对话框面板，在对话框面板左边栏目里找到【Sever】选项点击下出现子选项【Audio】、【Launching】、【Overlays】、【Profiles】和【Runtime Environment】，这是选择点击【Runtime Environment】项，然后在原来打开的【Preferences】面板
 右面看到【Sever Runtime Environment】，选择【Add】之后显示以下界面：
@@ -362,7 +506,7 @@ eclipse 使用时，可以配合文档注释，导出对类的说明文档，从
 
 然后在【Tomcat installation directory】下面的空白文本框里面输入你对应安装的tomcat目录或者点击右边的【`Browse...`】来选择tomcat安装目录，例如：【D:\xampp\tomcat】，继续点击【Finish】就OK了。
 
-## 13. 创建代码模版
+## 10. 创建代码模版
 
 点击Eclipse菜单栏【Window】-->【Preferences】 --> 搜索关键字“Templates”
 
@@ -370,7 +514,7 @@ eclipse 使用时，可以配合文档注释，导出对类的说明文档，从
 
 ![](images/20201106104045306_12808.png)
 
-## 14. 设置 JSP 页面的编码
+## 11. 设置 JSP 页面的编码
 
 Eclipse 的首选项 --> 搜索 jsp，找到 JSP Files 选择指定的编码，如UTF-8，点击 Apply 后再点击 OK 保存配置。可以分别设置页面编码、页面内容编码
 
@@ -378,18 +522,18 @@ Eclipse 的首选项 --> 搜索 jsp，找到 JSP Files 选择指定的编码，�
 
 ![](images/20201106104312363_3483.jpg)
 
-## 15. eclipse 中批量修改 Java 类文件中引入的 package 包路径
+## 12. eclipse 中批量修改 Java 类文件中引入的 package 包路径
 
 - 方法一：Ctrl+h --> file serach --> 输入原包名(类型为`*.java`) --> Replace --> 找到后输入要替换的包名 然后自己选择是全部替换还是部分替换。通过该方法也可以批量修改配置文件。
 - 方法二(推荐)：直接修改出错的类所在的包的名称再改回来，这样就可以统一修改所有出错的类的package包名称
 
-## 16. 出现 "Repository registry initialization" 问题的解决办法
+## 13. 出现 "Repository registry initialization" 问题的解决办法
 
 在更换了 eclipse 版本后，选择之前的工作空间时，可能会出现 An internal error occurred during: "Repository registry initialization". 的问题时，删除`.metadata/.plugins/org.eclipse.m2e.core/nexus/` 的目录，然后再重启 Eclipse，重新编译一下 maven 项目
 
-## 17. eclipse 关于 Spring 相关配置
+## 14. eclipse 关于 Spring 相关配置
 
-### 17.1. Spring 配置文件中提示配置信息
+### 14.1. Spring 配置文件中提示配置信息
 
 > 本小节是针对旧版本 eclipse 对于 spring xml 配置文件无提示的问题。配置跟 hibernate 和 struts2 创建 xml 约束一样的操作
 
@@ -405,7 +549,7 @@ Eclipse 的首选项 --> 搜索 jsp，找到 JSP Files 选择指定的编码，�
 
 > <font color=red>**注：约束文件的路径在【\spring-framework-4.2.4.RELEASE\schema\beans】，如果使用其他类型，就根据类型选择不同的文件夹**</font>
 
-### 17.2. 向 xml 文件中增加约束
+### 14.2. 向 xml 文件中增加约束
 
 1. 切换到Design视图，右键点击 Beans 标签 【Edit Namespaces】
 
@@ -423,7 +567,7 @@ Eclipse 的首选项 --> 搜索 jsp，找到 JSP Files 选择指定的编码，�
 
 ![](images/492934909239682.jpg)
 
-### 17.3. 创建 xml 文件时引入多个约束
+### 14.3. 创建 xml 文件时引入多个约束
 
 1. 先选择导入一个基础的约束
 2. 再点击 add 新增一个约束（之后操作与生成文件增加约束操作一样，命名也一致）
@@ -436,9 +580,9 @@ Eclipse 的首选项 --> 搜索 jsp，找到 JSP Files 选择指定的编码，�
 
 
 
-## 18. 常用插件安装与插件卸载
+## 15. 常用插件安装与插件卸载
 
-### 18.1. Spring Tool Suite 4 / 3.9.8
+### 15.1. Spring Tool Suite 4 / 3.9.8
 
 Spring Tool Suite(STS) 是一个基于 Eclipse 针对 Spring 应用量身定制的开发环境。提供了开发 Spring 应用必须的编码、调试、运行和部署功能。STS 在最新的 Eclipse 发布版本基础上集成了 Pivotal tc 服务器、Pivotal Cloud Foundry、Git、Maven、AspectJ 等必要的工具。<font color=red>**两个版本都安装**</font>
 
@@ -468,25 +612,25 @@ File --> new --> other,然后输入spring，选中spring Bean Configuration File
 
 ![](images/20201106104744118_21027.png)
 
-### 18.2. Lombok插件
+### 15.2. Lombok插件
 
-Lombok是一种Java实用工具，可以帮助开发人员消除Java的冗长，具体看lombok的官网：http://projectlombok.org/
+Lombok 是一种Java实用工具，可以帮助开发人员消除Java的冗长，具体看 lombok 的官网：http://projectlombok.org/
 
 安装步骤：
 
-1. 下载lombok.jar包，双击安装，选择eclipse的目录
+1. 下载 lombok.jar 包，双击安装，选择 eclipse 的目录
 
 ![](images/20201106104945870_3082.jpg)
 
-2. 检查myeclipse.ini/eclipse.ini所在文件目录下是否有lombok.jar包
-3. 打开myeclipse.ini/eclipse.ini，是否有以下代码并保存：
+2. 检查 eclipse.ini 所在文件目录下是否有lombok.jar包
+3. 打开 eclipse.ini，是否有以下代码并保存：
 
 ![](images/20201106105002491_18321.jpg)
 
-4. 重启myeclipse/eclipse
-5. 右键点击project --> clean 清理项目
+4. 重启 eclipse
+5. 右键点击 project --> clean 清理项目
 
-### 18.3. 卸载插件
+### 15.3. 卸载插件
 
 在菜单栏中点击【help】-【Eclipse MarketPlace】。点击Installed标签页，选择需要卸载的插件
 
@@ -496,7 +640,7 @@ Lombok是一种Java实用工具，可以帮助开发人员消除Java的冗长，
 
 ![](images/20201106105105562_23741.jpg)
 
-### 18.4. 查看eclipse安装的插件
+### 15.4. 查看eclipse安装的插件
 
 用于查看安装的那些插件与卸载安装
 

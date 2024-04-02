@@ -1,5 +1,7 @@
 {
     "editor.defaultFormatter": "DavidAnson.vscode-markdownlint",
     "prettier.tabWidth": 4,
-    "files.eol": "auto"
+    "files.eol": "auto",
+    "search.followSymlinks": false,
+    "testing.followRunningTest": false
 }

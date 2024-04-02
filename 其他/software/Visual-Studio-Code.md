@@ -42,9 +42,9 @@ VSCode 的设置文件为 setting.json。用户设置的文件保存在如下目
 
 ### 2.2. 出现CPU 100% 优化的设置
 
-有时，vscode会出现CPU利用率100%的情况，两个rg.exe占用了全部的CPU。
+有时，vscode 会出现 CPU 利用率 100% 的情况，两个 rg.exe 占用了全部的 CPU。
 
-解决办法：文件>首选项>设置, 搜索设置 `"search.followSymlinks" ：false;`
+解决办法：【文件】->首选项】->【设置】, 搜索设置 `"search.followSymlinks" ：false;`
 
 ![](images/20201106085401142_25165.jpg)
 
@@ -400,6 +400,13 @@ beautify：格式化代码的工具，可以格式化 JSON|JS|HTML|CSS|SCSS。�
 ### 4.6. Prettier - Code formatter
 
 格式化代码的工具，可以支持 react
+
+> - [Prettier 官网](https://prettier.io/)
+> - [Prettier 中文网](https://prettier.nodejs.cn/)
+
+#### 4.6.1. 配置指南（包含所有配置项）【!待整理】
+
+> 参考：https://www.jianshu.com/p/18999f6e1668
 
 ### 4.7. IntelliSense for CSS class names in HTML 或 HTML CSS Support
 
