@@ -79,6 +79,8 @@ Native 模式另一个设置方式(适合有带ASIO+DSD输出插件)，按以下
 - [享受音乐，点亮DSD！关于Foobar2000各项设置的解释和DSD设置教程](https://www.bilibili.com/read/cv16375348/)
 - [foobar2000吧导航——2017年版](https://tieba.baidu.com/p/4923037044)
 - [Foobar2000音乐播放器教程（三）—— 皮肤修改](https://tieba.baidu.com/p/2711054973)
+- [如何在Foobar设置DSD输出以及参数优化II](https://zhuanlan.zhihu.com/p/543685453)
+- [Foobar2000 PCM到DSD实时转换软件设置、音质体验与工作原理](https://www.audioapp.cn/bbs/thread-175874-1-1.html)
 
 百度 foobar2000 贴吧原吧主伏天的配置美化教程：
 

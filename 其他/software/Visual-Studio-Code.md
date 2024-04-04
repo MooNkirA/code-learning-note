@@ -84,6 +84,146 @@ tab的宽度设置
 
 ![](images/330313323248777.png)
 
+### 2.6. 个人配置备份
+
+```json
+{
+  "workbench.iconTheme": "material-icon-theme",
+  "workbench.colorTheme": "Monokai",
+  "workbench.editor.enablePreview": false,
+
+  "[html]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[css]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[javascript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[less]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[vue]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+
+  "github.gitAuthentication": false,
+  "git.autorefresh": false,
+  "update.showReleaseNotes": false,
+  "update.enableWindowsBackgroundUpdates": false,
+  "update.mode": "none",
+  "editor.fontFamily": "'Cascadia Code Regular', Consolas, 'Courier New', monospace",
+
+  /* prettier 配置 */
+  "prettier.printWidth": 300,
+  "prettier.jsxSingleQuote": true,
+  "prettier.singleQuote": true,
+  "prettier.arrowParens": "avoid",
+  "prettier.semi": false,
+  "prettier.configPath": "D:\\VSCode\\config\\.prettierrc",
+  "prettier.tabWidth": 4,
+
+  /* vetur 配置 */
+  "vetur.ignoreProjectWarning": true,
+  "vetur.format.defaultFormatterOptions": {
+    "js-beautify-html": {
+      "wrap_attributes": "force-expand-multiline"
+    },
+    "prettyhtml": {
+      "printWidth": 100,
+      "singleQuote": false,
+      "wrapAttributes": false,
+      "sortAttributes": false
+    }
+  },
+
+  "search.followSymlinks": false,
+  "eslint.enable": false,
+  "git.enabled": false,
+  "workbench.startupEditor": "none",
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.bracketPairColorization.enabled": true,
+  "editor.guides.bracketPairs": "active",
+  "files.exclude": {
+    "**/.classpath": true,
+    "**/.project": true,
+    "**/.settings": true,
+    "**/.factorypath": true
+  },
+  "workbench.experimental.layoutControl.type": "both",
+  "markdownlint.config": {
+    "MD004": {
+      "style": "dash"
+    },
+    "MD007": {
+      "indent": 4
+    },
+    "MD010": {
+      "code_blocks": true
+    },
+    "MD025": false,
+    "MD033": false,
+    "MD034": false,
+    "MD040": false,
+    "MD041": false,
+    "MD045": false
+  },
+  "markdownlint.run": "onSave",
+  "markdownlint.lintWorkspaceGlobs": [
+    "!**/bower_components",
+    "!**/node_modules",
+    "!**/vendor",
+    "!**/.git",
+    "**/*.{md,mkd,mdwn,mdown,markdown,markdn,mdtxt,mdtext,workbook}"
+  ]
+}
+```
+
+### 2.7. 网上配置参考
+
+```json
+{
+  "breadcrumbs.enabled": true,
+  "editor.tabSize": 2,
+  "editor.renderWhitespace": "boundary",
+  "editor.cursorBlinking": "smooth",
+  "editor.minimap.renderCharacters": false,
+  "editor.fontFamily": "'Fira Code', 'Droid Sans Mono', 'Courier New', monospace, 'Droid Sans Fallback'",
+  "editor.fontLigatures": true,
+  "explorer.confirmDragAndDrop": false,
+  "extensions.autoUpdate": false,
+  "files.insertFinalNewline": true,
+  "git.autofetch": true,
+  "git.path": "F:\\Program Files\\Git\\cmd\\git.exe",
+  "search.exclude": {
+    "**/node_modules": true,
+    "**/dist": true
+  },
+  "typescript.locale": "en",
+  "window.titleBarStyle": "custom",
+  "window.title": "${dirty}${activeEditorMedium}${separator}${rootName}",
+  "window.zoomLevel": 1,
+  "workbench.activityBar.visible": true,
+  "workbench.colorTheme": "Plastic - deprioritised punctuation",
+  "workbench.iconTheme": "vscode-great-icons",
+  "workbench.startupEditor": "newUntitledFile",
+  "eslint.autoFixOnSave": true,
+  "eslint.validate": ["javascript", "javascriptreact", "vue"],
+  "vsicons.projectDetection.autoReload": true,
+  "vsicons.dontShowNewVersionMessage": true,
+  "tslint.autoFixOnSave": true,
+  "debugwrapper.wrappers": {
+    "default": "console.log('$eSEL', $SEL)"
+  },
+  "prettier.tslintIntegration": true,
+  "cSpell.userWords": [
+    "Unmount"
+  ],
+  "jest.autoEnable": false,
+}
+```
+
 ## 3. 常用操作
 
 ### 3.1. 官方快捷键列表
@@ -407,6 +547,106 @@ beautify：格式化代码的工具，可以格式化 JSON|JS|HTML|CSS|SCSS。�
 #### 4.6.1. 配置指南（包含所有配置项）【!待整理】
 
 > 参考：https://www.jianshu.com/p/18999f6e1668
+
+#### 4.6.2. 个人配置备份
+
+`.prettierrc.js` 配置说明：
+
+```js
+// 此处的规则供参考，其中多半其实都是默认值，可以根据个人习惯改写
+module.exports = {
+  // 1.一行代码的最大字符数，默认是80(printWidth: <int>)
+  printWidth: 80, // 单行长度
+  
+  // 2.tab宽度为2空格(tabWidth: <int>)
+  tabWidth: 2, // 缩进长度
+  
+  // 3.是否使用tab来缩进，我们使用空格(useTabs: <bool>)
+  useTabs: false, // 使用空格代替tab缩进
+  
+  // 4.结尾是否添加分号，false的情况下只会在一些导致ASI错误的其工况下在开头加分号，我选择无分号结尾的风格(semi: <bool>)
+  semi: false, // 句末不使用分号
+  
+  // 5.使用单引号(singleQuote: <bool>)
+  singleQuote: true,
+
+  // 6.object对象中key值是否加引号（quoteProps: "<as-needed|consistent|preserve>"）as-needed只有在需求要的情况下加引号，consistent是有一个需要引号就统一加，preserve是保留用户输入的引号
+  // 仅在必需时为对象的key添加引号
+  // quoteProps: 'as-needed',
+  
+  // 7.在jsx文件中的引号需要单独设置（jsxSingleQuote: <bool>）, true: jsx中使用单引号; false: jsx中不使用单引号
+  // jsxSingleQuote: false,
+  
+  // 8.尾部逗号设置，es5是尾部逗号兼容es5，none就是没有尾部逗号，all是指所有可能的情况，需要node8和es2017以上的环境。（trailingComma: "<es5|none|all>"）
+  // all 多行时尽可能打印尾随逗号
+  // trailingComma: 'es5',
+  
+  // 9.object对象里面的key和value值和括号间的空格(bracketSpacing: <bool>) -eg: { foo: bar }
+  // bracketSpacing: true,
+  
+  // 10.jsx标签多行属性写法时，尖括号是否另起一行(jsxBracketSameLine: <bool>)
+  // jsxBracketSameLine: false,
+  
+  // 11.箭头函数单个参数的情况是否省略括号，默认always是总是带括号（arrowParens: "<always|avoid>"）
+  // arrowParens: 'avoid',
+  
+  // 12.range是format执行的范围，可以选执行一个文件的一部分，默认的设置是整个文件（rangeStart: <int>  rangeEnd: <int>）
+  // rangeStart: 0,
+  // rangeEnd: Infinity,
+  
+  // 14. requirePragma: <bool>,格式化有特定开头编译指示的文件 比如下面两种
+  /**
+   * @prettier
+   */
+  // or
+  /**
+   * @format
+   */
+  // requirePragma: false, // 无需顶部注释即可格式化
+
+  // 15.insertPragma: <bool> 自当插入pragma到已经完成的format的文件开头
+  // insertPragma: false, // 在已被preitter格式化的文件顶部加上标注
+
+  // 16. proseWrap: "<always|never|preserve>" 文章换行,默认情况下会对你的markdown文件换行进行format会控制在printwidth以内
+  // proseWrap: "preserve",
+
+  // 17. htmlWhitespaceSensitivity: "<css|strict|ignore>" html中的空格敏感性
+  // htmlWhitespaceSensitivity: "ignore", // 对HTML全局空白不敏感
+  
+  // 18. vue script和style标签中是否缩进,开启可能会破坏编辑器的代码折叠
+  // vueIndentScriptAndStyle: false,
+  
+  // 19. endOfLine: "<lf|crlf|cr|auto>" 行尾换行符,默认是lf,
+  // endOfLine: 'lf',
+  
+  // 20.embeddedLanguageFormatting: "off",默认是auto,控制被引号包裹的代码是否进行格式化
+  // embeddedLanguageFormatting: 'off',
+};
+```
+
+`.prettierrc` 配置备份：
+
+```json
+{
+  "arrowParens": "avoid",
+  "bracketSameLine": false,
+  "bracketSpacing": true,
+  "embeddedLanguageFormatting": "auto",
+  "htmlWhitespaceSensitivity": "css",
+  "insertPragma": false,
+  "jsxSingleQuote": true,
+  "printWidth": 100,
+  "proseWrap": "preserve",
+  "quoteProps": "as-needed",
+  "requirePragma": false,
+  "semi": false,
+  "singleQuote": true,
+  "tabWidth": 4,
+  "trailingComma": "es5",
+  "useTabs": false,
+  "vueIndentScriptAndStyle": false  
+}
+```
 
 ### 4.7. IntelliSense for CSS class names in HTML 或 HTML CSS Support
 
@@ -738,52 +978,3 @@ TypeScript 相关的扩展的功能基本上全部已经被 VSCode 内置
 https://github.com/varHarrie/varharrie.github.io/issues/10
 
 > 最后更新于：2021-05-31
-
-## 5. 个人首选项配置（网络资源，仅供参考）
-
-```json
-{
-  "breadcrumbs.enabled": true,
-  "editor.tabSize": 2,
-  "editor.renderWhitespace": "boundary",
-  "editor.cursorBlinking": "smooth",
-  "editor.minimap.renderCharacters": false,
-  "editor.fontFamily": "'Fira Code', 'Droid Sans Mono', 'Courier New', monospace, 'Droid Sans Fallback'",
-  "editor.fontLigatures": true,
-  "explorer.confirmDragAndDrop": false,
-  "extensions.autoUpdate": false,
-  "files.insertFinalNewline": true,
-  "git.autofetch": true,
-  "git.path": "F:\\Program Files\\Git\\cmd\\git.exe",
-  "search.exclude": {
-    "**/node_modules": true,
-    "**/dist": true
-  },
-  "typescript.locale": "en",
-  "window.titleBarStyle": "custom",
-  "window.title": "${dirty}${activeEditorMedium}${separator}${rootName}",
-  "window.zoomLevel": 1,
-  "workbench.activityBar.visible": true,
-  "workbench.colorTheme": "Plastic - deprioritised punctuation",
-  "workbench.iconTheme": "vscode-great-icons",
-  "workbench.startupEditor": "newUntitledFile",
-  "eslint.autoFixOnSave": true,
-  "eslint.validate": ["javascript", "javascriptreact", "vue"],
-  "vsicons.projectDetection.autoReload": true,
-  "vsicons.dontShowNewVersionMessage": true,
-  "tslint.autoFixOnSave": true,
-  "debugwrapper.wrappers": {
-    "default": "console.log('$eSEL', $SEL)"
-  },
-  "prettier.tslintIntegration": true,
-  "cSpell.userWords": [
-    "Unmount"
-  ],
-  "jest.autoEnable": false,
-}
-```
-
-
-
-
-
