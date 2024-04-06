@@ -496,6 +496,110 @@ module.exports = {
 }
 ```
 
+#### 4.1.3. Turbo Console Log
+
+![](images/566330210240446.png)
+
+快速添加 console.log 信息，js debug 必备。常用快捷键：
+
+- `ctrl + alt + l` 选中变量之后，使用这个快捷键生成 console.log
+- `alt + shift + c` 注释所有 console.log
+- `alt + shift + u` 启用所有 console.log
+- `alt + shift + d` 删除所有 console.log
+
+![](images/280210410258872.gif) ![](images/367870410246739.gif)
+
+#### 4.1.4. Todo Tree
+
+Todo Tree 是管理项目中的 TODO 注释和其他标记。通过扫描的项目文件，并将其中包含的待办事项和自定义标记显示在一个树状视图中，使得跟踪项目中的任务变得更加容易。
+
+安装完 Todo Tree 插件后，使用步骤如下：
+
+- 启用 Todo Tree： 打开任何项目文件后，按 `Ctrl+Shift+P` 打开命令面板，然后输入 `Toggle Todo Tree` 并选择该命令以启用 Todo Tree 视图。
+- 查看待办事项：在 Todo Tree 视图中，将看到项目中的所有待办事项和标记按照文件结构呈现为树状列表。每个待办事项都附带文件路径和行号信息。
+- 筛选待办事项：Todo Tree 支持快速筛选待办事项。可以在搜索框中输入关键字来过滤显示的待办事项，以便更快地找到感兴趣的内容。
+- 自定义标记：除了默认的 TODO 标记外，还可以在项目中使用自定义的标记。只需按照注释的格式书写自定义标记，Todo Tree 将会识别并在树状视图中显示。
+- 配置选项：Todo Tree 提供了丰富的配置选项，可以根据自己的需要调整插件的行为。可以通过点击 Todo Tree 视图右上角的齿轮图标或者在 VS Code 的设置中找到 Todo Tree 进行配置，也可以在 setting.json 文件中自定义更改 todo tree 的配置。
+
+> 更多详情请查看 [TODO Tree 官方链接](https://github.com/Gruntfuggly/todo-tree)
+
+**个人配置备份**（待续修改中）：
+
+```json
+//todo-tree 标签配置  标签兼容大小写字母(很好的功能!!!)
+"todo-tree.regex.regex": "((%|#|//|<!--|^\\s*\\*)\\s*($TAGS)|^\\s*- \\[ \\])",
+"todo-tree.general.tags": [
+    "TODO", //添加自定义的标签成员,将在下面实现它们的样式
+    "BUG",
+    "tag",
+    "done",
+    "mark",
+    "test",
+    "XXX"
+],
+"todo-tree.regex.regexCaseSensitive": false,
+"todo-tree.highlights.defaultHighlight": { //如果相应变量没赋值就会使用这里的默认值
+    "foreground": "black", //字体颜色
+    "background": "yellow", //背景色
+    "icon": "check", //标签样式 check 是一个对号的样式
+    "rulerColour": "yellow", //边框颜色
+    "type": "tag", //填充色类型  可在TODO TREE 细节页面找到允许的值 
+    "iconColour": "yellow" //标签颜色
+},
+"todo-tree.highlights.customHighlight": {
+    //todo 		需要做的功能
+    "TODO": {
+        "icon": "alert", //标签样式
+        "background": "#c9c552", //背景色
+        "rulerColour": "#c9c552", //外框颜色
+        "iconColour": "#c9c552", //标签颜色
+    },
+    //bug		必须要修复的BUG  
+    "BUG": {
+        "background": "#eb5c5c",
+        "icon": "bug",
+        "rulerColour": "#eb5c5c",
+        "iconColour": "#eb5c5c",
+    },
+    //tag		标签
+    "tag": {
+        "background": "#38b2f4",
+        "icon": "tag",
+        "rulerColour": "#38b2f4",
+        "iconColour": "#38b2f4",
+        "rulerLane": "full"
+    },
+    //done		已完成
+    "done": {
+        "background": "#5eec95",
+        "icon": "check",
+        "rulerColour": "#5eec95",
+        "iconColour": "#5eec95",
+    },
+    //mark     	标记一下
+    "mark:": {
+        "background": "#f90",
+        "icon": "note",
+        "rulerColour": "#f90",
+        "iconColour": "#f90",
+    },
+    //test		测试代码
+    "test": {
+        "background": "#df7be6",
+        "icon": "flame",
+        "rulerColour": "#df7be6",
+        "iconColour": "#df7be6",
+    },
+    //update  	优化升级点
+    "XXX": {
+        "background": "#d65d8e",
+        "icon": "versions",
+        "rulerColour": "#d65d8e",
+        "iconColour": "#d65d8e",
+    }
+}
+```
+
 ### 4.2. HTML 类
 
 #### 4.2.1. Highlight Matching Tag
