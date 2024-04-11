@@ -451,7 +451,7 @@ PixPin 是目前市面上功能最全面的截图工具之一了！包括**截�
 - [ACDSee](https://www.acdsee.cn/)
 - [JPEGView](https://github.com/sylikc/jpegview) - 是 JPEG，BMP，WEBP，PNG，TGA，RAW，GIF 和 TIFF 图像的查看器/编辑器。它旨在以全屏方式和最高质量查看数码相机中的图像。提供了基本的图像编辑功能-可以在查看图像期间非常快速地交互式地纠正色偏，高/低对比度以及曝光不足或过度曝光等典型问题。JPEGView 便携版不会取代功能强大的图像编辑器-这样的编辑器将不再需要。
 - [FocusOn Image Viewer](https://www.pintosoft.com/en/foni) - 适用于 Windows 的轻巧快速的免费图像查看器，快速查看和编辑照片，所有人免费-个人和商业用途，按日期自动整理照片，保持照片编辑而不会损坏原始照片，在博客，Twitter，Facebook 上共享照片，支持超过 100 种图像格式。
-- [PicView](https://picview.org/) - Free and customizable image viewer
+- [PicView](https://picview.org/) - Free and customizable image viewer。据说 MAC 系统最好的看图软件？！
 - [Imagine](https://www.nyam.pe.kr/dev/imagine/) - Freeware Image & Animation Viewer for Windows
 - [ScreenToGif](https://www.screentogif.com/) - 屏幕、摄像头和画板录像，并有内置编辑器
 

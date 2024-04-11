@@ -2,6 +2,8 @@
 
 官方网站：https://code.visualstudio.com/
 
+### 1.1. 下载镜像
+
 由于官网是国外的服务器，所以下载非常慢，可以使用国内镜像加快下载速度。具体步骤如下：
 
 1. 首先在官网找到需要下载的文件，点击下载。
@@ -16,6 +18,10 @@ https://az764295.vo.msecnd.net/stable/64bbfbf67ada9953918d72e1df2f4d8e537d340e/V
 ```
 https://vscode.cdn.azure.cn/stable/64bbfbf67ada9953918d72e1df2f4d8e537d340e/VSCode-win32-x64-1.72.0.zip
 ```
+
+### 1.2. VSCode 修改扩展和用户文件夹目录位置(Windows) - 待整理
+
+> TODO: 参考 https://blog.csdn.net/weixin_53510183/article/details/126906182
 
 ## 2. 常用配置
 
