@@ -1533,6 +1533,69 @@ import str from 'demo1' // 导入的时候没有花括号
 
 当使用默认导入时，可以在 `import` 语句后面进行任意命名。比如 `import Banana from './Button.js'`，如此能获得与默认导出一致的内容。相反，**对于具名导入，导入和导出的名字必须一致**（这就是称其为“具名导入”的原因）。
 
+### 12.7. export 与 import 的复合写法
+
+如果在一个模块之中，先输入后输出同一个模块，`import` 语句可以与 `export` 语句写在一起。例如：
+
+```js
+export { foo, bar } from 'my_module';
+// 等同于
+import { foo, bar } from 'my_module';
+export { foo, bar };
+```
+
+> Notes: 值得注意的是，上面示例的 `export` 和 `import` 语句结合在一起以后，foo 和 bar 实际上并没有被导入当前模块，只是相当于对外转发了这两个接口，导致当前模块不能直接使用 foo 和 bar。
+
+#### 12.7.1. 模块的接口改名和整体输出
+
+```js
+// 接口改名
+export { foo as myFoo } from 'my_module';
+
+// 整体输出
+export * from 'my_module';
+```
+
+#### 12.7.2. 默认接口导出
+
+```js
+export { default } from 'foo';
+```
+
+#### 12.7.3. 具名接口与默认接口转换导出
+
+具名接口改为默认接口：
+
+```js
+export { es6 as default } from './someModule';
+// 等同于
+import { es6 } from './someModule';
+export default es6;
+```
+
+默认接口改名为具名接口：
+
+```js
+export { default as es6 } from './someModule';
+```
+
+#### 12.7.4. ES2020
+
+ES2020 之前，有一种 import 语句，没有对应的复合写法。
+
+```js
+import * as someIdentifier from "someModule";
+```
+
+ES2020 之后可以使用复合写法
+
+```js
+export * as ns from "mod";
+// 等同于
+import * as ns from "mod";
+export { ns };
+```
+
 ## 13. Proxy
 
 ### 13.1. 概述
@@ -2217,3 +2280,7 @@ umi dev
 查看编码后的js文件，可以看到，将上面写的代码进行的编码。
 
 ![测试转码2](images/20190421115922937_25029.png)
+
+## 16. 参考资料
+
+- [阮一峰 ECMAScript 6 入门教程（201801）](https://www.bookstack.cn/read/es6/readme.md)
