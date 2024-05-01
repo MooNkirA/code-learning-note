@@ -786,7 +786,7 @@ console.log(h.next()); // {value: undefined, done: true}
 
 ### 9.2. yield 关键字简介
 
-- yield 是 ES6 的新关键字，使生成器函数执行暂停，yield 关键字后面的表达式的值返回给生成器的调用者。它可以被认为是一个基于生成器的版本的 eturn 关键字。
+- yield 是 ES6 的新关键字，使生成器函数执行暂停，yield 关键字后面的表达式的值返回给生成器的调用者。它可以被认为是一个基于生成器的版本的 return 关键字。
 - yield 关键字实际返回一个 IteratorResult（迭代器）对象，它有两个属性，value 和 done，分别代表返回值和是否完成。
 - yield 无法单独工作，需要配合 generator(生成器)的其他函数，如 next，懒汉式操作，展现强大的主动控制特性。
 

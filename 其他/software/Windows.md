@@ -385,6 +385,20 @@ goto MENU
 
 window 系统的 hosts 文件位置：`%windir%\System32\drivers\etc`
 
+#### 3.4.1. win10 和 win11 使用管理员身份打开 hosts 文件
+
+1. 在右下角输入框输入`cmd`，选择 "命令提示符（以管理员身份运行）"
+
+![](images/512453317240542.png)
+
+2. 在命令行窗口中输入 `cd c:/Windows/System32/drivers/etc`
+
+![](images/378383417258968.png)
+
+3. 输入 `notepad hosts` 命令，便可以打开 hosts 文件并对其进行修改和保存
+
+![](images/459243417246835.png)
+
 ### 3.5. win10 锁屏壁纸位置
 
 路径：`%HOMEPATH%\AppData\Local\Packages\Microsoft.Windows.ContentDeliveryManager_cw5n1h2txyewy\LocalState\Assets`
