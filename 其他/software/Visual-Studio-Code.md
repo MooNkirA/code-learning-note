@@ -46,7 +46,7 @@ VSCode 的设置文件为 setting.json。用户设置的文件保存在如下目
 - 使用编辑器直接打开 setting.json 文件进行设置；
 - 点击 VSCode 的【文件】->【首选项】->【设置】，可以打开设置面板进行设置；
 
-### 2.2. 出现CPU 100% 优化的设置
+### 2.2. 出现 CPU 100% 优化的设置
 
 有时，vscode 会出现 CPU 利用率 100% 的情况，两个 rg.exe 占用了全部的 CPU。
 
@@ -64,9 +64,9 @@ VSCode 的设置文件为 setting.json。用户设置的文件保存在如下目
 
 如果要一起禁用预览模式，可以通过在设置文件中将“`workbench.editor.enablePreview`”属性设置为`false`来实现。还要注意“`workbench.editor.enablePreviewFromQuickOpen`”选项，以防您只想从快速打开菜单禁用此选项。
 
-在您可以禁用预览模式之前，您需要打开您的Settings File。
+在您可以禁用预览模式之前，您需要打开您的 Settings File。
 
-专业提示：您可以使用Command Palette打开您的设置文件，只需输入“首选项：打开用户设置”！
+专业提示：您可以使用 Command Palette 打开您的设置文件，只需输入“首选项：打开用户设置”！
 
 打开设置文件(您的设置文件应位于右侧)后，添加“`workbench.editor.enablePreview`”属性，并将其值设置为`false`。
 
@@ -796,7 +796,7 @@ markdownlint是vscode上一款非常好用的 Markdown 格式检查扩展工具�
     "MD001": false,
     "MD013": false,
     "MD025": false
-},
+}
 ```
 
 如果想在另一个地方全局配置，则在所想要的路径创建 `markdownlint.json`文件。如D:\development\VSCode\config\markdownlint.json。则修改 setting.json
