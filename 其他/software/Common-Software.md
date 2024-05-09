@@ -134,11 +134,19 @@ Total Commander，简称 TC，原名 Windows Commander，是一款功能非常�
 
 TrafficMonitor 下载（Gitee）：https://gitee.com/zhongyang219/TrafficMonitor/releases
 
-### 3.3. Geek Uninstall
+### 3.3. 软件卸载
+
+#### 3.3.1. Geek Uninstall
 
 Geek Uninstall 是一款高效快速，小巧便携，完全免费的程序卸载神器。不仅可以清理掉一些顽固软件(如一些流氓软件)，同时还可以最大限度清理电脑垃圾缓存。
 
 > 官网：https://geekuninstaller.com
+
+#### 3.3.2. Hibit Uninstaller
+
+系统自带的软件卸载工具，会留下注册表的垃圾。而 HiBit Uninstaller 能够运行高级扫描，绝大部分的软件信息都能够被识别并清理。
+
+> 官网：https://www.hibitsoft.ir/Uninstaller.html
 
 ### 3.4. Everything
 
@@ -300,7 +308,7 @@ Input 不是一个字体，而是一个家族；除了等宽版本，还有两�
 
 ![](images/233443808253493.png)
 
-## 5. 音乐软件
+## 5. 音乐播放器
 
 ### 5.1. foobar2000
 
@@ -362,7 +370,7 @@ windows 桌面版缓存目录：`%APPDATA%\listen1\Cache`
 - Musicbed： https://www.musicbed.com/
 - [好歌多](https://www.haogeduo.com/)
 
-## 6. 看图软件
+## 6. 图像处理
 
 ### 6.1. FastStone 系列软件
 
@@ -443,25 +451,42 @@ PixPin 是目前市面上功能最全面的截图工具之一了！包括**截�
 - [ACDSee](https://www.acdsee.cn/)
 - [JPEGView](https://github.com/sylikc/jpegview) - 是 JPEG，BMP，WEBP，PNG，TGA，RAW，GIF 和 TIFF 图像的查看器/编辑器。它旨在以全屏方式和最高质量查看数码相机中的图像。提供了基本的图像编辑功能-可以在查看图像期间非常快速地交互式地纠正色偏，高/低对比度以及曝光不足或过度曝光等典型问题。JPEGView 便携版不会取代功能强大的图像编辑器-这样的编辑器将不再需要。
 - [FocusOn Image Viewer](https://www.pintosoft.com/en/foni) - 适用于 Windows 的轻巧快速的免费图像查看器，快速查看和编辑照片，所有人免费-个人和商业用途，按日期自动整理照片，保持照片编辑而不会损坏原始照片，在博客，Twitter，Facebook 上共享照片，支持超过 100 种图像格式。
-- [PicView](https://picview.org/) - Free and customizable image viewer
+- [PicView](https://picview.org/) - Free and customizable image viewer。据说 MAC 系统最好的看图软件？！
 - [Imagine](https://www.nyam.pe.kr/dev/imagine/) - Freeware Image & Animation Viewer for Windows
 - [ScreenToGif](https://www.screentogif.com/) - 屏幕、摄像头和画板录像，并有内置编辑器
 
-## 7. 网络资源
+## 7. 思维导图
 
-### 7.1. 电子书
+### 7.1. Xmind 安装在指定位置（不修改注册表）
 
-#### 7.1.1. ZLibary - 最大的电子书下载
+新版 Xmind 会默认安装在c盘，之前的版本可以通过修改注册表来实现安装到指定的位置，但事后需要再把注册表调整回来，比较麻烦。有以下方法，可以不需要修改注册表即可实现安装到指定位置。
+
+1. 进入 Xmind 安装包的下载位置。
+2. 在安装包所在位置的地址栏中输入 cmd 命令并回车
+
+![](images/384923923240542.png)
+
+3. （以安装在D盘为例，提前在D盘创建以 Xmind 命名的文件夹）纯英文输入"安装包名称" /D="D:\Xmind"并回车。*tips：安装包名记得要包含.exe*
+
+![](images/466614023258968.png)
+
+4. 安装完成
+
+![](images/139494123246835.png)
+
+## 8. 网络资源
+
+### 8.1. 电子书
+
+#### 8.1.1. ZLibary - 最大的电子书下载
 
 - 官方网站： https://singlelogin.re/
 - 官方桌面版下载： https://zh.go-to-zlibrary.se/#desktop_app_tab
+- zlibrary 最新网址(2024年3月25日)：https://zh.zlibrary-sg.se/
 
-**据说是入驻国内的网址：**
+> 注：若链接失效，可以箱给官方邮箱 `blackbox@zlib.se` 发送一条任何内容的邮件，就可以在3到5分钟内自动生成的回信中访问Z-Library。
 
-- https://zlibrary-hk.se/
-> support@z-lib.se 客服邮箱，可以获取最新可用的网址
-
-**以下是国内镜像**：
+**以下是一些国内镜像**：
 
 - ZLibary 网站镜像唯一入口： https://www.zhelper.net/
 
@@ -472,7 +497,7 @@ PixPin 是目前市面上功能最全面的截图工具之一了！包括**截�
 
 > 如果网址失效，可以通过导航网站重新获取。 https://zlib.shop/
 
-#### 7.1.2. 国内篇
+#### 8.1.2. 国内篇
 
 - ~~[yibook](https://nav.yibook.org/) - 电子书搜索网站导航~~
 - [SoBooks](https://sobooks.net/) 图书下载网站是本人最喜欢的一个，它不仅书的种类齐全，而且质量也是相当的高，长期这里获取资源让我受益匪浅。每本书都可以获取百度网盘、微盘等下载站链接，直接下载或者保存网盘即可。
@@ -498,7 +523,7 @@ PixPin 是目前市面上功能最全面的截图工具之一了！包括**截�
 - ~~[ePUBee 电子书库](http://cn.epubee.com/books/)，电子书的类型非常的全面，而且技术类电子书质量比较高，流行的畅销书都可以在这下载到。~~
 - ~~[epubw](https://epubw.com)，每日都会有电子书更新，通过网盘下载~~
 
-#### 7.1.3. 国外篇
+#### 8.1.3. 国外篇
 
 - [安娜的档案](https://zh.annas-archive.gs/) | [台湾区镜像](https://tw.annas-archive.se/) - 🔍影子图书馆搜索引擎：书籍、论文、漫画、杂志。 ⭐️ Z-Library、Library Genesis、Sci-Hub。 ⚙️ 通过开源代码和数据完全容灾。网站需要代理才能登陆，国内受限。
 - [B-OK](https://b-ok.cc) 号称世界最大的电子图书馆，喜欢看英文原版的推荐使用，全英文网站，查找当然也需要英文。
@@ -508,11 +533,11 @@ PixPin 是目前市面上功能最全面的截图工具之一了！包括**截�
 - [BookSC](https://booksc.org)，是 Z-Library 项目的一部分。世界上最大的电子书图书馆。还支持指定书中全文搜索
 - [Manybooks](https://manybooks.net)，免费提供数字格式的图书馆
 
-#### 7.1.4. Github 仓库分享
+#### 8.1.4. Github 仓库分享
 
 - [编程电子书分享(github)](https://github.com/hello-go-maker/cs-books) - 分享一些从网上整理的计算机类的电子书籍，包括Java电子书籍（Java基础，Java多线程，spring、springboot、springcloud，分布式，微服务等）、Python，Linux，Go，C，C++，数据结构与算法，人工智能，计算机基础，面试，设计模式，数据库，前端等书籍
 
-### 7.2. 资源搜索下载
+### 8.2. 资源搜索下载
 
 - [盘他一下](https://panother.com/) - 一个支持百度网盘和阿里云的在线网盘资源搜索引擎，找到搜索的内容后，需要微信扫码登录小程序，网盘虽然是完全免费的，但是搜索获取资源，会有积分限制
 - [学搜搜(酷搜kolsou)](https://www.zhaokeya.com/) - 考研、考级、考证、IT教程等学习资料搜索引擎，网站资源主要来自百度网盘
@@ -521,7 +546,7 @@ PixPin 是目前市面上功能最全面的截图工具之一了！包括**截�
     - [万网搜 - 资源搜索聚合神器](https://www.wanwangsou.com/)
     - [猫狸盘搜 - 阿里云盘搜索神器](https://alipansou.com/)
 
-### 7.3. 在线视频网站
+### 8.3. 在线视频网站
 
 - **旋风视频 **官方网址： https://miao101.com/
 - **茶杯狐 **官方网址： https://www.dajin1.com/

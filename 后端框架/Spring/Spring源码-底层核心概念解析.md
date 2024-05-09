@@ -1391,3 +1391,7 @@ public class AnnotationAwareOrderComparatorTest {
 JFR 是 Java Flight Record （Java飞行记录） 的缩写，是 JVM 内置的基于事件的JDK监控记录框架。Spring 源码有其应用。
 
 > 附带资料JFR介绍：https://zhuanlan.zhihu.com/p/122247741
+
+### 13.2. 参考资料
+
+- [spring-reading](https://github.com/xuchengsheng/spring-reading) - 深入 Spring，从源码开始！涵盖了 Spring 框架的核心概念和关键功能，包括控制反转（IOC）容器的使用，面向切面编程（AOP）的原理与实践，事务管理的方式与实现，Spring MVC 的流程与控制器工作机制，以及 Spring 中数据访问、安全、Boot 自动配置等方面的深入研究。此外，它还包含了 Spring 事件机制的应用、高级主题如缓存抽象和响应式编程，以及对 Spring 源码的编程风格与设计模式的深入探讨.

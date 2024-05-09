@@ -1897,7 +1897,7 @@ export default {
 
 **React 工具 Github 仓库**：
 
-- [awesome-react react资源大全，该有的都有了](https://github.com/enaqx/awesome-react)
+- [awesome-react](https://github.com/enaqx/awesome-react) - react 资源大全，该有的都有。
 - [react-developer-roadmap react的学习路线图2018版](https://github.com/adam-golab/react-developer-roadmap)
 - [react-bits react最佳实践，有你想知道](https://github.com/vasanthk/react-bits)
 - [react-bits react最佳实践中文版](https://github.com/hateonion/react-bits-CN)

@@ -4284,4 +4284,30 @@ arr?.[index]
 func?.(args)
 ```
 
-参考：https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Operators/Optional_chaining
+> 参考：https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Operators/Optional_chaining
+
+### 18.2. 空值合并运算符（??） -- 整理中
+
+**空值合并运算符**（`??`）是一个逻辑运算符，当左侧的操作数为 `null` 或者 `undefined` 时，返回其右侧操作数，否则返回左侧操作数。语法格式：
+
+```js
+leftExpr ?? rightExpr
+```
+
+与**逻辑或运算符**（`||`）不同，逻辑或运算符会在左侧操作数为假值时返回右侧操作数。即如果使用 `||` 来为某些变量设置默认值，若出现假值（如 `''` 或 `0`）时，可能会遇到意料之外的行为。例如：
+
+```js
+const foo = null ?? 'default string';
+console.log(foo);
+// Expected output: "default string"
+
+const baz = 0 ?? 42;
+console.log(baz);
+// Expected output: 0
+
+const bar = 0 || 42;
+console.log(bar);
+// Expected output: 42
+```
+
+> 参考：https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Operators/Nullish_coalescing

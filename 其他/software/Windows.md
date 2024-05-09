@@ -293,7 +293,21 @@ goto MENU
 
 ## 3. windows 系统相关设置
 
-### 3.1. 环境变量 (用户变量与系统变量)
+### 3.1. 查询电脑配置
+
+使用 Win + R 打开运行，执行 `dxdiag` 命令，查询电脑配置
+
+### 3.2. 关闭隐私
+
+打开设置，【隐私和安全性】->【常规】
+
+![](images/550111222246740.png)
+
+关闭以下四项，可以一键阻拦电脑的自带广告。
+
+![](images/585891322266906.png)
+
+### 3.3. 环境变量 (用户变量与系统变量)
 
 > 参考资源：http://www.dayanzai.me/environment-variables.html
 
@@ -308,13 +322,13 @@ goto MENU
 > - 用户变量只对当前用户起作用，不建议为了省事而配置系统环境变量。
 > - 用户环境变量优先级高于系统环境变量。对于环境变量，系统会先检查用户变量，之后再检查系统变量。
 
-#### 3.1.1. 用户变量
+#### 3.3.1. 用户变量
 
 注册表中用户变量所在位置：`HKEY_CURRENT_USER\Environment`
 
 ![](images/482504916221048.png)
 
-#### 3.1.2. 系统变量
+#### 3.3.2. 系统变量
 
 注册表中系统变量所在位置：`HKEY_LOCAL_MACHINE\SYSTEM\ControlSet001\Control\Session Manager\Environment`
 
@@ -322,7 +336,7 @@ goto MENU
 
 在原有变量 `Path` 的基础上添加英文状态下的分号，然后添加路径名。*不要删除原先的系统变量，只要用分号隔开，然后添加路径名，最后也要加上分号。*
 
-#### 3.1.3. 常用变量清单
+#### 3.3.3. 常用变量清单
 
 |               变量名称                |                                值                                |
 | :----------------------------------: | ---------------------------------------------------------------- |
@@ -367,15 +381,29 @@ goto MENU
 |              `%RANDOM%`              | 输出从 0 到 32767 的随机数。                                       |
 |                `%OS%`                | Windows_NT                                                       |
 
-### 3.2. hosts 文件
+### 3.4. hosts 文件
 
 window 系统的 hosts 文件位置：`%windir%\System32\drivers\etc`
 
-### 3.3. win10 锁屏壁纸位置
+#### 3.4.1. win10 和 win11 使用管理员身份打开 hosts 文件
+
+1. 在右下角输入框输入`cmd`，选择 "命令提示符（以管理员身份运行）"
+
+![](images/512453317240542.png)
+
+2. 在命令行窗口中输入 `cd c:/Windows/System32/drivers/etc`
+
+![](images/378383417258968.png)
+
+3. 输入 `notepad hosts` 命令，便可以打开 hosts 文件并对其进行修改和保存
+
+![](images/459243417246835.png)
+
+### 3.5. win10 锁屏壁纸位置
 
 路径：`%HOMEPATH%\AppData\Local\Packages\Microsoft.Windows.ContentDeliveryManager_cw5n1h2txyewy\LocalState\Assets`
 
-### 3.4. C 盘可清理内容
+### 3.6. C 盘可清理内容
 
 1. **PerfLogs**文件夹，系统的信息日志，文件夹可删。
 2. **Windows**文件夹
@@ -383,20 +411,20 @@ window 系统的 hosts 文件位置：`%windir%\System32\drivers\etc`
     - `C:\Windows\Help`，帮忙文件，可删
 3. **用户**文件夹：`C:\Users\用户名称\AppData\Local\Temp`。这个是Windows存留安装软件时解压的源文件，方便下次安装直接调取使用，节省解压时间，可删除。
 
-### 3.5. win7 系统的 Temporary Internet Files 清空问题
+### 3.7. win7 系统的 Temporary Internet Files 清空问题
 
 1. `cmd.exe`
 2. `cd AppData\Local\Microsoft\Windows\Temporary Internet Files`（或者如果有Content.IE5目录的话，cd Content.IE5）
 3. `del /s/q/f *.*`
 
-### 3.6. 备份开始菜单
+### 3.8. 备份开始菜单
 
 1. 按下Win+R打开运行窗口，输入命令powershell，然后点击确定按钮
 2. 这时就会打开Windows Powershell窗口，在这里输入命令`Export-startlayout –path E:\start.xml`，可以根据自己实际情况来设置相应的路径
 3. 按下回车键后，就会备份好开始菜单的布局文件
 4. 如果需要恢复开始菜单布局的话，只需要再次打开Windows Powershell命令行窗口，然后输入命令`import-startlayout -layoutpath E:\start.xml -mountpath c:`，按下回车键后，就会马上把其还原回来了
 
-### 3.7. 电脑护眼颜色设置
+### 3.9. 电脑护眼颜色设置
 
 win7系统：
 
@@ -410,7 +438,7 @@ win10系统：
 2. 按照如下顺序找到windows：[HKEY_CURRENT_USER\Control Panel\Colors] windows。双击windows 进入编辑状态 将原本数值删除并输入：`202 234 206`。点击确定退出注册表。
 3. 按照如下顺序找到 window：[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Themes\DefaultColors\Standard]。双击 window 打开编辑窗口，默认是勾选十六进制（若不是请勾选十六进制），将原始数据改为：`caeace`。点击确定退出注册表。
 
-### 3.8. AHCI 开启方法 
+### 3.10. AHCI 开启方法 
 
 先去修改到 compatible（兼容模式）进入系统
 
@@ -420,7 +448,7 @@ win10系统：
 4. 然后出来看看BIOS里面的硬盘模式，修改为ACHI后（如果没有就算了）
 5. 然后在把SATA Operation Mode改为 enhanced（增强模式）
 
-### 3.9. NSIS：使用 netsh advfirewall 屏蔽某程序访问网络
+### 3.11. NSIS：使用 netsh advfirewall 屏蔽某程序访问网络
 
 - 关闭防火墙
 
@@ -446,12 +474,12 @@ nsExec::Exec 'cmd /c netsh advfirewall firewall Delete rule name="TIM"'
 nsExec::Exec 'cmd /c netsh advfirewall firewall add rule name="TIM" dir=out action=block program="C:\Program Files\TIM Lite\Bin\TIM.exe"'
 ```
 
-### 3.10. 删掉 WIN10 回收站右键菜单的固定到＂开始＂屏幕！
+### 3.12. 删掉 WIN10 回收站右键菜单的固定到＂开始＂屏幕！
 
 - 删除：打开注册表，定位到 `HKEY_LOCAL_MACHINE\SOFTWARE\Classes\Folder\shellex\ContextMenuHandlers`，删除其子键 `PintoStartScreen`
 - 恢复：在 `HKEY_LOCAL_MACHINE\SOFTWARE\Classes\Folder\shellex\ContextMenuHandlers` 上单击右键，新建项 `PintoStartScreen`，修改其默认值为 `{470C0EBD-5D73-4d58-9CED-E91E22E23282}`
 
-### 3.11. 限制保留宽带设置
+### 3.13. 限制保留宽带设置
 
 1. 按“WIN+R”，打开【运行】对话框；
 2. 输入“regedit”，回车，打开注册表编辑器；
@@ -460,7 +488,7 @@ nsExec::Exec 'cmd /c netsh advfirewall firewall add rule name="TIM" dir=out acti
 5. 计算机配置－管理模板－网络－qos数据包计划程序－限制保留宽带
 6. 选择已启用。一般默认是20，直接把它改成0。
 
-### 3.12. win10 系统任务栏设置时间显示秒
+### 3.14. win10 系统任务栏设置时间显示秒
 
 1. 按“WIN+R”，打开【运行】对话框；
 2. 输入“regedit”，回车，打开注册表编辑器；
@@ -472,12 +500,14 @@ nsExec::Exec 'cmd /c netsh advfirewall firewall add rule name="TIM" dir=out acti
 
 > Notes: 微软承认 win 11 系统中，删除了注册表值“`ShowSecondsInSystemClock`”，该值允许任务栏时钟以秒为单位显示时间。如果时间需要显示秒，需要安装第三方软件
 
-### 3.13. Win10 系统删除无用的服务
+### 3.15. Win10 系统删除无用的服务
 
 1. 运行 -> `regedit`，打开注册表编辑器
 2. 定位到【计算机\HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services】，选择服务名称，右键删除即可
 
-### 3.14. 修改 window 默认系统安装目录
+### 3.16. 修改 window 默认系统安装目录
+
+#### 3.16.1. 通过注册表修改安装目录
 
 Windows10 系统更改软件程序默认安装目录的方法
 
@@ -493,7 +523,17 @@ Windows10 系统更改软件程序默认安装目录的方法
 3. 在存储对应的右侧窗口，用鼠标左键按住右侧的滑块向下拖动，找到：保存位置，在保存位置下，点击：新的应用将保存到此电脑（C:）后面的小勾
 4. 修改成D盘。之后打开磁盘(D:\)，可以看到磁盘(D:\)中新增了三个文件夹：MoonZero（用户文件：文档、音乐、图片和视频）、Program Files（程序文件）和Windows Apps（窗口应用程序）；
 
-### 3.15. win10 一般禁用的服务
+#### 3.16.2. Win 11 设置
+
+在设置中，【系统】->【存储】->【保存新内容的地方】
+
+![](images/64110822240447.png)
+
+将默认盘全部改为D盘，避免C盘的标红状态。
+
+![](images/519700922258873.png)
+
+### 3.17. win10 一般禁用的服务
 
 1. 运行输入【services.msc】打开服务面板，禁用以下服务
     1. Connected User Experiences and Telemetry
@@ -507,7 +547,7 @@ Windows10 系统更改软件程序默认安装目录的方法
 3. 点击“设置” -> “更新与安全” -> “Windows预览体验计划”，退出 Windows Insider 计划。
 4. 右击任务栏空白处选择“任务管理器”，切换到“启动”标签，将没必要的自启动程序全部禁用。
 
-### 3.16. 修复 win10 右键无新建 txt 文本文件
+### 3.18. 修复 win10 右键无新建 txt 文本文件
 
 ```bat
 Windows Registry Editor Version 5.00
@@ -525,11 +565,11 @@ Windows Registry Editor Version 5.00
 
 打开记事本，复制以上内容，另存为`xxx.reg`。点击文件，确认操作后，重启电脑生效
 
-### 3.17. 关闭 cmd 命令行窗口的中文输入法
+### 3.19. 关闭 cmd 命令行窗口的中文输入法
 
 运行`regedit`命令，打开注册表窗口，修改注册表：`HKEY_CURRENT_USER\Console\LoadConIme` 的键值由`1`改为`0`
 
-### 3.18. 修改 cmd / powershell 命令行窗口默认编码
+### 3.20. 修改 cmd / powershell 命令行窗口默认编码
 
 **临时修改**
 
@@ -540,7 +580,7 @@ Windows Registry Editor Version 5.00
 - **修改powershell默认编码**：运行`regedit`命令打开注册表，展开注册表`计算机\HKEY_CURRENT_USER\Console`项。选择powershell，点击修改右边窗口中`CodePage`项，选择十进制，修改值为`65001`。修改后就每次启动都默认改成UTF-8的编码
 - **修改cmd编码**：运行`regedit`命令打开注册表，展开注册表`计算机\HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Command Processor`项。如果右边窗口没有`autorun`字符串值，则右键新建字符串值，数值名称：`autorun`，数值数据：`chcp 65001`。修改后就每次启动都默认改成UTF-8的编码
 
-### 3.19. 彻底关闭 Cortana 小娜
+### 3.21. 彻底关闭 Cortana 小娜
 
 - **关闭 Cortana 小娜的权限**
 
@@ -558,7 +598,7 @@ Win10的设置菜单 -> "应用" -> 在应用列表中搜索找到Cortana -> 高
 Get-AppxPackage -allusers Microsoft.549981C3F5F10 | Remove-AppxPackage
 ```
 
-### 3.20. 关闭 Win11 / Win 10 内存压缩
+### 3.22. 关闭 Win11 / Win 10 内存压缩
 
 Win11默认开启了内存压缩功能。可以压缩内存中的数据，让内存占用更少，同时减少Swap频次，带来更高的I/O效率。但CPU性能较弱的设备，例如轻薄本，开启内存压缩可能会造成卡顿缓慢。同时，内存压缩需要消耗额外的CPU资源，带来更多耗电发热，这对注重续航的设备来说也是不合适的。
 
@@ -567,13 +607,13 @@ Win11默认开启了内存压缩功能。可以压缩内存中的数据，让内
 - **关闭内存压缩**。使用系统管理员权限，打开PowerShell，然后输入命令 `Disable-MMAgent -mc` 后，重启系统，内存压缩就关闭了。
 - **重新打开内存压缩**。使用系统管理员权限，打开PowerShell，然后输入命令 `Enable-MMAgent -mc` 后，重启系统，内存压缩就重新开启。
 
-### 3.21. 清除电脑的运行记录
+### 3.23. 清除电脑的运行记录
 
 1. win+R 打开运行窗口，输入 `regedit` 打开注册表编辑器
 2. 展开 `HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\RunMRU`在右侧除了默认
 3. 将其他选项都删除掉
 
-### 3.22. 删除资源管理器中“此电脑”下面多余的图标
+### 3.24. 删除资源管理器中“此电脑”下面多余的图标
 
 1. WIN+R 打开运行窗口，输入 `regedit` 打开注册表编辑器
 2. 在注册表中定位到：`HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace` 项
@@ -660,6 +700,16 @@ Windows Registry Editor Version 5.00
 ```
 
 完成上述步骤后，计算机应该在重启后在后台自动下载其他主题。您可能需要等待一段时间，直到此过程完成。安装后，可以通过转到“设置”应用并选择“个性化” -> “主题”来应用新主题。
+
+### 4.4. 搜索面板优化
+
+按【Win + S】打开搜索面板，点击右上角的【...】选择【搜索设置】
+
+![](images/356022110269682.png)
+
+取消【历史记录】与【搜索要点】两个选项，减少搜索面板的无用信息
+
+![](images/178312210267286.png)
 
 ## 5. Windows 11 键盘快捷键终极列表
 

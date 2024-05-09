@@ -2,6 +2,8 @@
 
 官方网站：https://code.visualstudio.com/
 
+### 1.1. 下载镜像
+
 由于官网是国外的服务器，所以下载非常慢，可以使用国内镜像加快下载速度。具体步骤如下：
 
 1. 首先在官网找到需要下载的文件，点击下载。
@@ -16,6 +18,10 @@ https://az764295.vo.msecnd.net/stable/64bbfbf67ada9953918d72e1df2f4d8e537d340e/V
 ```
 https://vscode.cdn.azure.cn/stable/64bbfbf67ada9953918d72e1df2f4d8e537d340e/VSCode-win32-x64-1.72.0.zip
 ```
+
+### 1.2. VSCode 修改扩展和用户文件夹目录位置(Windows) - 待整理
+
+> TODO: 参考 https://blog.csdn.net/weixin_53510183/article/details/126906182
 
 ## 2. 常用配置
 
@@ -40,11 +46,11 @@ VSCode 的设置文件为 setting.json。用户设置的文件保存在如下目
 - 使用编辑器直接打开 setting.json 文件进行设置；
 - 点击 VSCode 的【文件】->【首选项】->【设置】，可以打开设置面板进行设置；
 
-### 2.2. 出现CPU 100% 优化的设置
+### 2.2. 出现 CPU 100% 优化的设置
 
-有时，vscode会出现CPU利用率100%的情况，两个rg.exe占用了全部的CPU。
+有时，vscode 会出现 CPU 利用率 100% 的情况，两个 rg.exe 占用了全部的 CPU。
 
-解决办法：文件>首选项>设置, 搜索设置 `"search.followSymlinks" ：false;`
+解决办法：【文件】->首选项】->【设置】, 搜索设置 `"search.followSymlinks" ：false;`
 
 ![](images/20201106085401142_25165.jpg)
 
@@ -58,9 +64,9 @@ VSCode 的设置文件为 setting.json。用户设置的文件保存在如下目
 
 如果要一起禁用预览模式，可以通过在设置文件中将“`workbench.editor.enablePreview`”属性设置为`false`来实现。还要注意“`workbench.editor.enablePreviewFromQuickOpen`”选项，以防您只想从快速打开菜单禁用此选项。
 
-在您可以禁用预览模式之前，您需要打开您的Settings File。
+在您可以禁用预览模式之前，您需要打开您的 Settings File。
 
-专业提示：您可以使用Command Palette打开您的设置文件，只需输入“首选项：打开用户设置”！
+专业提示：您可以使用 Command Palette 打开您的设置文件，只需输入“首选项：打开用户设置”！
 
 打开设置文件(您的设置文件应位于右侧)后，添加“`workbench.editor.enablePreview`”属性，并将其值设置为`false`。
 
@@ -83,6 +89,146 @@ tab的宽度设置
 在 Settings 中，【Text Editor】->【Files: EOl】，选择需要的换行符
 
 ![](images/330313323248777.png)
+
+### 2.6. 个人配置备份
+
+```json
+{
+  "workbench.iconTheme": "material-icon-theme",
+  "workbench.colorTheme": "Monokai",
+  "workbench.editor.enablePreview": false,
+
+  "[html]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[css]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[javascript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[less]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[vue]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+
+  "github.gitAuthentication": false,
+  "git.autorefresh": false,
+  "update.showReleaseNotes": false,
+  "update.enableWindowsBackgroundUpdates": false,
+  "update.mode": "none",
+  "editor.fontFamily": "'Cascadia Code Regular', Consolas, 'Courier New', monospace",
+
+  /* prettier 配置 */
+  "prettier.printWidth": 300,
+  "prettier.jsxSingleQuote": true,
+  "prettier.singleQuote": true,
+  "prettier.arrowParens": "avoid",
+  "prettier.semi": false,
+  "prettier.configPath": "D:\\VSCode\\config\\.prettierrc",
+  "prettier.tabWidth": 4,
+
+  /* vetur 配置 */
+  "vetur.ignoreProjectWarning": true,
+  "vetur.format.defaultFormatterOptions": {
+    "js-beautify-html": {
+      "wrap_attributes": "force-expand-multiline"
+    },
+    "prettyhtml": {
+      "printWidth": 100,
+      "singleQuote": false,
+      "wrapAttributes": false,
+      "sortAttributes": false
+    }
+  },
+
+  "search.followSymlinks": false,
+  "eslint.enable": false,
+  "git.enabled": false,
+  "workbench.startupEditor": "none",
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.bracketPairColorization.enabled": true,
+  "editor.guides.bracketPairs": "active",
+  "files.exclude": {
+    "**/.classpath": true,
+    "**/.project": true,
+    "**/.settings": true,
+    "**/.factorypath": true
+  },
+  "workbench.experimental.layoutControl.type": "both",
+  "markdownlint.config": {
+    "MD004": {
+      "style": "dash"
+    },
+    "MD007": {
+      "indent": 4
+    },
+    "MD010": {
+      "code_blocks": true
+    },
+    "MD025": false,
+    "MD033": false,
+    "MD034": false,
+    "MD040": false,
+    "MD041": false,
+    "MD045": false
+  },
+  "markdownlint.run": "onSave",
+  "markdownlint.lintWorkspaceGlobs": [
+    "!**/bower_components",
+    "!**/node_modules",
+    "!**/vendor",
+    "!**/.git",
+    "**/*.{md,mkd,mdwn,mdown,markdown,markdn,mdtxt,mdtext,workbook}"
+  ]
+}
+```
+
+### 2.7. 网上配置参考
+
+```json
+{
+  "breadcrumbs.enabled": true,
+  "editor.tabSize": 2,
+  "editor.renderWhitespace": "boundary",
+  "editor.cursorBlinking": "smooth",
+  "editor.minimap.renderCharacters": false,
+  "editor.fontFamily": "'Fira Code', 'Droid Sans Mono', 'Courier New', monospace, 'Droid Sans Fallback'",
+  "editor.fontLigatures": true,
+  "explorer.confirmDragAndDrop": false,
+  "extensions.autoUpdate": false,
+  "files.insertFinalNewline": true,
+  "git.autofetch": true,
+  "git.path": "F:\\Program Files\\Git\\cmd\\git.exe",
+  "search.exclude": {
+    "**/node_modules": true,
+    "**/dist": true
+  },
+  "typescript.locale": "en",
+  "window.titleBarStyle": "custom",
+  "window.title": "${dirty}${activeEditorMedium}${separator}${rootName}",
+  "window.zoomLevel": 1,
+  "workbench.activityBar.visible": true,
+  "workbench.colorTheme": "Plastic - deprioritised punctuation",
+  "workbench.iconTheme": "vscode-great-icons",
+  "workbench.startupEditor": "newUntitledFile",
+  "eslint.autoFixOnSave": true,
+  "eslint.validate": ["javascript", "javascriptreact", "vue"],
+  "vsicons.projectDetection.autoReload": true,
+  "vsicons.dontShowNewVersionMessage": true,
+  "tslint.autoFixOnSave": true,
+  "debugwrapper.wrappers": {
+    "default": "console.log('$eSEL', $SEL)"
+  },
+  "prettier.tslintIntegration": true,
+  "cSpell.userWords": [
+    "Unmount"
+  ],
+  "jest.autoEnable": false,
+}
+```
 
 ## 3. 常用操作
 
@@ -356,6 +502,110 @@ module.exports = {
 }
 ```
 
+#### 4.1.3. Turbo Console Log
+
+![](images/566330210240446.png)
+
+快速添加 console.log 信息，js debug 必备。常用快捷键：
+
+- `ctrl + alt + l` 选中变量之后，使用这个快捷键生成 console.log
+- `alt + shift + c` 注释所有 console.log
+- `alt + shift + u` 启用所有 console.log
+- `alt + shift + d` 删除所有 console.log
+
+![](images/280210410258872.gif) ![](images/367870410246739.gif)
+
+#### 4.1.4. Todo Tree
+
+Todo Tree 是管理项目中的 TODO 注释和其他标记。通过扫描的项目文件，并将其中包含的待办事项和自定义标记显示在一个树状视图中，使得跟踪项目中的任务变得更加容易。
+
+安装完 Todo Tree 插件后，使用步骤如下：
+
+- 启用 Todo Tree： 打开任何项目文件后，按 `Ctrl+Shift+P` 打开命令面板，然后输入 `Toggle Todo Tree` 并选择该命令以启用 Todo Tree 视图。
+- 查看待办事项：在 Todo Tree 视图中，将看到项目中的所有待办事项和标记按照文件结构呈现为树状列表。每个待办事项都附带文件路径和行号信息。
+- 筛选待办事项：Todo Tree 支持快速筛选待办事项。可以在搜索框中输入关键字来过滤显示的待办事项，以便更快地找到感兴趣的内容。
+- 自定义标记：除了默认的 TODO 标记外，还可以在项目中使用自定义的标记。只需按照注释的格式书写自定义标记，Todo Tree 将会识别并在树状视图中显示。
+- 配置选项：Todo Tree 提供了丰富的配置选项，可以根据自己的需要调整插件的行为。可以通过点击 Todo Tree 视图右上角的齿轮图标或者在 VS Code 的设置中找到 Todo Tree 进行配置，也可以在 setting.json 文件中自定义更改 todo tree 的配置。
+
+> 更多详情请查看 [TODO Tree 官方链接](https://github.com/Gruntfuggly/todo-tree)
+
+**个人配置备份**（待续修改中）：
+
+```json
+//todo-tree 标签配置  标签兼容大小写字母(很好的功能!!!)
+"todo-tree.regex.regex": "((%|#|//|<!--|^\\s*\\*)\\s*($TAGS)|^\\s*- \\[ \\])",
+"todo-tree.general.tags": [
+    "TODO", //添加自定义的标签成员,将在下面实现它们的样式
+    "BUG",
+    "tag",
+    "done",
+    "mark",
+    "test",
+    "XXX"
+],
+"todo-tree.regex.regexCaseSensitive": false,
+"todo-tree.highlights.defaultHighlight": { //如果相应变量没赋值就会使用这里的默认值
+    "foreground": "black", //字体颜色
+    "background": "yellow", //背景色
+    "icon": "check", //标签样式 check 是一个对号的样式
+    "rulerColour": "yellow", //边框颜色
+    "type": "tag", //填充色类型  可在TODO TREE 细节页面找到允许的值 
+    "iconColour": "yellow" //标签颜色
+},
+"todo-tree.highlights.customHighlight": {
+    //todo 		需要做的功能
+    "TODO": {
+        "icon": "alert", //标签样式
+        "background": "#c9c552", //背景色
+        "rulerColour": "#c9c552", //外框颜色
+        "iconColour": "#c9c552", //标签颜色
+    },
+    //bug		必须要修复的BUG  
+    "BUG": {
+        "background": "#eb5c5c",
+        "icon": "bug",
+        "rulerColour": "#eb5c5c",
+        "iconColour": "#eb5c5c",
+    },
+    //tag		标签
+    "tag": {
+        "background": "#38b2f4",
+        "icon": "tag",
+        "rulerColour": "#38b2f4",
+        "iconColour": "#38b2f4",
+        "rulerLane": "full"
+    },
+    //done		已完成
+    "done": {
+        "background": "#5eec95",
+        "icon": "check",
+        "rulerColour": "#5eec95",
+        "iconColour": "#5eec95",
+    },
+    //mark     	标记一下
+    "mark:": {
+        "background": "#f90",
+        "icon": "note",
+        "rulerColour": "#f90",
+        "iconColour": "#f90",
+    },
+    //test		测试代码
+    "test": {
+        "background": "#df7be6",
+        "icon": "flame",
+        "rulerColour": "#df7be6",
+        "iconColour": "#df7be6",
+    },
+    //update  	优化升级点
+    "XXX": {
+        "background": "#d65d8e",
+        "icon": "versions",
+        "rulerColour": "#d65d8e",
+        "iconColour": "#d65d8e",
+    }
+}
+```
+
 ### 4.2. HTML 类
 
 #### 4.2.1. Highlight Matching Tag
@@ -401,6 +651,113 @@ beautify：格式化代码的工具，可以格式化 JSON|JS|HTML|CSS|SCSS。�
 
 格式化代码的工具，可以支持 react
 
+> - [Prettier 官网](https://prettier.io/)
+> - [Prettier 中文网](https://prettier.nodejs.cn/)
+
+#### 4.6.1. 配置指南（包含所有配置项）【!待整理】
+
+> 参考：https://www.jianshu.com/p/18999f6e1668
+
+#### 4.6.2. 个人配置备份
+
+`.prettierrc.js` 配置说明：
+
+```js
+// 此处的规则供参考，其中多半其实都是默认值，可以根据个人习惯改写
+module.exports = {
+  // 1.一行代码的最大字符数，默认是80(printWidth: <int>)
+  printWidth: 80, // 单行长度
+  
+  // 2.tab宽度为2空格(tabWidth: <int>)
+  tabWidth: 2, // 缩进长度
+  
+  // 3.是否使用tab来缩进，我们使用空格(useTabs: <bool>)
+  useTabs: false, // 使用空格代替tab缩进
+  
+  // 4.结尾是否添加分号，false的情况下只会在一些导致ASI错误的其工况下在开头加分号，我选择无分号结尾的风格(semi: <bool>)
+  semi: false, // 句末不使用分号
+  
+  // 5.使用单引号(singleQuote: <bool>)
+  singleQuote: true,
+
+  // 6.object对象中key值是否加引号（quoteProps: "<as-needed|consistent|preserve>"）as-needed只有在需求要的情况下加引号，consistent是有一个需要引号就统一加，preserve是保留用户输入的引号
+  // 仅在必需时为对象的key添加引号
+  // quoteProps: 'as-needed',
+  
+  // 7.在jsx文件中的引号需要单独设置（jsxSingleQuote: <bool>）, true: jsx中使用单引号; false: jsx中不使用单引号
+  // jsxSingleQuote: false,
+  
+  // 8.尾部逗号设置，es5是尾部逗号兼容es5，none就是没有尾部逗号，all是指所有可能的情况，需要node8和es2017以上的环境。（trailingComma: "<es5|none|all>"）
+  // all 多行时尽可能打印尾随逗号
+  // trailingComma: 'es5',
+  
+  // 9.object对象里面的key和value值和括号间的空格(bracketSpacing: <bool>) -eg: { foo: bar }
+  // bracketSpacing: true,
+  
+  // 10.jsx标签多行属性写法时，尖括号是否另起一行(jsxBracketSameLine: <bool>)
+  // jsxBracketSameLine: false,
+  
+  // 11.箭头函数单个参数的情况是否省略括号，默认always是总是带括号（arrowParens: "<always|avoid>"）
+  // arrowParens: 'avoid',
+  
+  // 12.range是format执行的范围，可以选执行一个文件的一部分，默认的设置是整个文件（rangeStart: <int>  rangeEnd: <int>）
+  // rangeStart: 0,
+  // rangeEnd: Infinity,
+  
+  // 14. requirePragma: <bool>,格式化有特定开头编译指示的文件 比如下面两种
+  /**
+   * @prettier
+   */
+  // or
+  /**
+   * @format
+   */
+  // requirePragma: false, // 无需顶部注释即可格式化
+
+  // 15.insertPragma: <bool> 自当插入pragma到已经完成的format的文件开头
+  // insertPragma: false, // 在已被preitter格式化的文件顶部加上标注
+
+  // 16. proseWrap: "<always|never|preserve>" 文章换行,默认情况下会对你的markdown文件换行进行format会控制在printwidth以内
+  // proseWrap: "preserve",
+
+  // 17. htmlWhitespaceSensitivity: "<css|strict|ignore>" html中的空格敏感性
+  // htmlWhitespaceSensitivity: "ignore", // 对HTML全局空白不敏感
+  
+  // 18. vue script和style标签中是否缩进,开启可能会破坏编辑器的代码折叠
+  // vueIndentScriptAndStyle: false,
+  
+  // 19. endOfLine: "<lf|crlf|cr|auto>" 行尾换行符,默认是lf,
+  // endOfLine: 'lf',
+  
+  // 20.embeddedLanguageFormatting: "off",默认是auto,控制被引号包裹的代码是否进行格式化
+  // embeddedLanguageFormatting: 'off',
+};
+```
+
+`.prettierrc` 配置备份：
+
+```json
+{
+  "arrowParens": "avoid",
+  "bracketSameLine": false,
+  "bracketSpacing": true,
+  "embeddedLanguageFormatting": "auto",
+  "htmlWhitespaceSensitivity": "css",
+  "insertPragma": false,
+  "jsxSingleQuote": true,
+  "printWidth": 100,
+  "proseWrap": "preserve",
+  "quoteProps": "as-needed",
+  "requirePragma": false,
+  "semi": false,
+  "singleQuote": true,
+  "tabWidth": 4,
+  "trailingComma": "es5",
+  "useTabs": false,
+  "vueIndentScriptAndStyle": false  
+}
+```
+
 ### 4.7. IntelliSense for CSS class names in HTML 或 HTML CSS Support
 
 **IntelliSense for CSS class names in HTML**
@@ -439,7 +796,7 @@ markdownlint是vscode上一款非常好用的 Markdown 格式检查扩展工具�
     "MD001": false,
     "MD013": false,
     "MD025": false
-},
+}
 ```
 
 如果想在另一个地方全局配置，则在所想要的路径创建 `markdownlint.json`文件。如D:\development\VSCode\config\markdownlint.json。则修改 setting.json
@@ -731,52 +1088,3 @@ TypeScript 相关的扩展的功能基本上全部已经被 VSCode 内置
 https://github.com/varHarrie/varharrie.github.io/issues/10
 
 > 最后更新于：2021-05-31
-
-## 5. 个人首选项配置（网络资源，仅供参考）
-
-```json
-{
-  "breadcrumbs.enabled": true,
-  "editor.tabSize": 2,
-  "editor.renderWhitespace": "boundary",
-  "editor.cursorBlinking": "smooth",
-  "editor.minimap.renderCharacters": false,
-  "editor.fontFamily": "'Fira Code', 'Droid Sans Mono', 'Courier New', monospace, 'Droid Sans Fallback'",
-  "editor.fontLigatures": true,
-  "explorer.confirmDragAndDrop": false,
-  "extensions.autoUpdate": false,
-  "files.insertFinalNewline": true,
-  "git.autofetch": true,
-  "git.path": "F:\\Program Files\\Git\\cmd\\git.exe",
-  "search.exclude": {
-    "**/node_modules": true,
-    "**/dist": true
-  },
-  "typescript.locale": "en",
-  "window.titleBarStyle": "custom",
-  "window.title": "${dirty}${activeEditorMedium}${separator}${rootName}",
-  "window.zoomLevel": 1,
-  "workbench.activityBar.visible": true,
-  "workbench.colorTheme": "Plastic - deprioritised punctuation",
-  "workbench.iconTheme": "vscode-great-icons",
-  "workbench.startupEditor": "newUntitledFile",
-  "eslint.autoFixOnSave": true,
-  "eslint.validate": ["javascript", "javascriptreact", "vue"],
-  "vsicons.projectDetection.autoReload": true,
-  "vsicons.dontShowNewVersionMessage": true,
-  "tslint.autoFixOnSave": true,
-  "debugwrapper.wrappers": {
-    "default": "console.log('$eSEL', $SEL)"
-  },
-  "prettier.tslintIntegration": true,
-  "cSpell.userWords": [
-    "Unmount"
-  ],
-  "jest.autoEnable": false,
-}
-```
-
-
-
-
-

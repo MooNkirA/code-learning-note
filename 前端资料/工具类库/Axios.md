@@ -692,3 +692,85 @@ export const getRequest = (url, data = '') => {
 
 Get请求的话是不需要进行设置的，因为get请求回默认将参数放在params中，post请求的话会有两个，所以这里post请求封装了两份。
 
+## 9. Axios 常见问题与处理方案
+
+### 9.1. axios 发送 post 请求上传文件(multipart/form-data)报错
+
+#### 9.1.1. 问题描述
+
+问题场景：使用 axios http 请求库，发送 post 请求，将文件发送给后端接口。常规示例写法：
+
+```js
+async handleUploadFile(event) {
+  const file = event.target.files[0]
+  let formData = new FormData()
+  formData.append('files', file)
+  const res = await service({
+    url: '/api/files/upload',
+    method: 'POST',
+    headers: {
+       'Content-Type': 'multipart/form-data'
+    },
+    data: formData
+  })
+  console.log(res.data);
+}
+```
+
+实际运行以上这段代码时，会发现后端报500错误如下：
+
+```
+Caused by: java.io.IOException:
+org.apache.tomcat.util.http.fileupload.FileUploadException: the request was rejected because no multipart boundary was found
+```
+
+原因大概是，后端无法识别到传递来的文件中的 boundary，从而无法区分一个文件的内容从报文的哪个地方开始，又从报文的哪个地方结束，最终导致文件上传失败。
+
+#### 9.1.2. 原因分析
+
+分析以上这种情况的原因，是因为在发送请求时将请求头中 `Content-Type` 属性给写死为 `multipart/form-data`，浏览器无法自动给请求的报文添加 boundary。如果尝试将前端请求 config 中 headers 配置移除，如下：
+
+```js
+async handleUploadFile(event) {
+  const file = event.target.files[0]
+  let formData = new FormData()
+  formData.append('files', file)
+  const res = await service({
+    url: '/api/files/upload',
+    method: 'POST',
+    data: formData
+  })
+  console.log(res.data);
+}
+```
+
+再次发送请求，仍然没有请求成功。而服务器没有报错了，但是后端获取不到文件数据。继续分析请求报文，发现属性值变为 `application/x-www-form-urlencoded`，这是发送普通的表单，肯定是无法正确将文件送达的。
+
+#### 9.1.3. 解决方案
+
+查阅相关资料得知，axios 在请求发送出去之前会进行一次拦截，自动给请求设置一些参数。上面示例会出现 `application/x-www-form-urlencoded` 这个参数就是因为 axios 设置了 post 请求的默认请求头，如果没有在 `config` 中指定其它请求头的话，就会使用默认的。然而，发送 `multipart/form-data` 格式的请求时，不需要自己指定 `Content-Type` 属性，由浏览器自动去设置。
+
+因此<font color=red>**解决问题的关键就是不让 axios 自动配置**</font>！在 axios 的 `config` 中有一个 `transformRequest` 属性，官方的解释是可以在请求发送之前进行人为干预。属性值是一个数组，里面可以定义一个函数，接收两个参数，分别是 `data` 和 `headers`。其中 `data` 参数就是上面示例中定义的 `FormData` 对象；`headers` 参数则是 axios 预定义的请求头。输出 `headers` 信息如下：
+
+![](images/122714011240455.png)
+
+此时只需要将 `post` 属性中的 `Content-Type` 属性删掉即可解决问题。最终代码如下：
+
+```js
+async handleUploadFile(event) {
+  const file = event.target.files[0]
+  let formData = new FormData()
+  formData.append('files', file)
+  const res = await service({
+    url: '/api/files/upload',
+    method: 'POST',
+    transformRequest: [function(data, headers) {
+      // 去除post请求默认的Content-Type
+      delete headers.post['Content-Type']
+      return data
+    }],
+    data: formData
+  })
+  console.log(res.data);
+}
+```

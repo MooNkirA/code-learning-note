@@ -1981,13 +1981,13 @@ public void matchTest() {
 
     // allMatch: 匹配所有元素，所有元素都需要满足条件
     boolean allMatch = list.stream().allMatch(i -> i > 2);
-    System.out.println(allMatch);
+    System.out.println(allMatch); // false
     // anyMatch: 匹配某个元素，只要有其中一个元素满足条件即可
     boolean anyMatch = list.stream().anyMatch(i -> i > 5);
-    System.out.println(anyMatch);
+    System.out.println(anyMatch); // true
     // noneMatch: 匹配所有元素，所有元素都不满足条件
     boolean noneMatch = list.stream().noneMatch(i -> i < 0);
-    System.out.println(noneMatch);
+    System.out.println(noneMatch); // true
 }
 ```
 

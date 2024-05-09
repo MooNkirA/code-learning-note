@@ -1,5 +1,9 @@
 {
     "editor.defaultFormatter": "DavidAnson.vscode-markdownlint",
+    "search.followSymlinks": false,
+    "testing.followRunningTest": false,
     "prettier.tabWidth": 4,
-    "files.eol": "auto"
+    "[json]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+    }
 }
