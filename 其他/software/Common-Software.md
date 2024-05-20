@@ -403,11 +403,11 @@ FastStone 官方网站： http://www.faststone.org/
 
 家庭用户可免费使用，商业使用须注册。注册及设置方法：如果您使用的旧版如 7.7 版已授权注册为商业版，可以将旧版如 7.7 商业版注册文件及设置文件 `FSSettings.db`，复制到 7.8 版 FSViewer 目录中就能注册 7.8 版并保持旧版如 7.7 版的设置，不必重新注册和设置。
 
-#### 6.1.3. FastStone Capture（目前更新至10.4版）
+#### 6.1.3. FastStone Capture（目前更新至10.5版）
 
 官网便捷版下载地址（好像暂无安装版）:
 
-- https://www.faststonesoft.net/DN/FSCapture104.zip
+- https://www.faststonesoft.net/DN/FSCapture105.zip
 
 > 最新版激活注册码 (更新于2023-09-10)
 >
@@ -457,7 +457,9 @@ PixPin 是目前市面上功能最全面的截图工具之一了！包括**截�
 
 ## 7. 思维导图
 
-### 7.1. Xmind 安装在指定位置（不修改注册表）
+### 7.1. Xmind 
+
+#### 7.1.1. 安装在指定位置（不修改注册表）
 
 新版 Xmind 会默认安装在c盘，之前的版本可以通过修改注册表来实现安装到指定的位置，但事后需要再把注册表调整回来，比较麻烦。有以下方法，可以不需要修改注册表即可实现安装到指定位置。
 
@@ -473,6 +475,25 @@ PixPin 是目前市面上功能最全面的截图工具之一了！包括**截�
 4. 安装完成
 
 ![](images/139494123246835.png)
+
+#### 7.1.2. XMind 解决默认安装在C盘的方法 - 已过时
+
+1. win+r 输入regedit打开注册表编辑器
+2. 找到 计算机\HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion，右键点击名称为ProgramFilesDir的文件、修改(一定要记住原来的路径以便结束之后改回去）—— 将路径改为想要安装的文件路径
+3. 安装 xmind
+4. 最后，一定要将修改的注册表路径改回去，否则程序调用注册表时会发生错误
+
+注意：不同的软件可能调用注册表不止这一个，比如安装 office2016 时，注册表调用了三个，分别修改了 ProgramFileDir, ProgramFileDir(x86) 和 ProgramW6432Dir，具体调用注册表情况具体分析。
+
+```
+# 原配置备份
+ProgramFilesDir  --- C:\Program Files
+ProgramFilesDir (x86)  --- C:\Program Files (x86)
+ProgramW6432Dir  --- C:\Program Files
+CommonFilesDir --- C:\Program Files\Common Files
+CommonFilesDir (x86)  ---  C:\Program Files (x86)\Common Files
+CommonW6432Dir  --- C:\Program Files\Common Files
+```
 
 ## 8. 网络资源
 
