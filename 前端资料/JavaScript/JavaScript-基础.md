@@ -3313,7 +3313,7 @@ console.log(index); // 1
 #### 13.9.4. every() 方法
 
 - 语法：`array.every(predicate(item[, index[, array]]))`
-    - 参数predicate函数，该函数参数包括：当前遍历项（item）、索引（index）和数组本身（array）。
+    - 参数 predicate 函数，该函数参数包括：当前遍历项（item）、索引（index）和数组本身（array）。
 - `every()`是对数组中每一项运行给定函数，如果该函数对每一项返回true，则最终返回true。
 
 ```js
@@ -3346,9 +3346,9 @@ function test() {
 
 #### 13.9.5. some() 方法
 
-- 语法：`array.every(predicate(item[, index[, array]]))`
-    - 参数predicate函数，该函数参数包括：当前遍历项（item）、索引（index）和数组本身（array）。
-- `some()`是对数组中每一项运行给定函数，如果该函数对任一项返回true，则返回true。
+- 语法：`array.some(predicate(item[, index[, array]]))`
+    - 参数 predicate 函数，该函数参数包括：当前遍历项（item）、索引（index）和数组本身（array）。
+- `some()`是对数组中每一项运行给定函数，如果该函数对任一项返回 true，则返回 true。
 - 使用`Array.some`判断部分元素符合条件
 
 ```js
