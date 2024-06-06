@@ -1385,3 +1385,4 @@ git config --global core.autocrlf false
 ## 11. Git 学习资源分享
 
 - [阮一峰 Git 教程](https://www.bookstack.cn/read/git-tutorial/README.md)
+- [Learn Git Branching](https://learngitbranching.js.org/?locale=zh_CN) - 最好用的 Git 在线学习工具
