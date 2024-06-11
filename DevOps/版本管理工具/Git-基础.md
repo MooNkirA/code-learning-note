@@ -1385,4 +1385,4 @@ git config --global core.autocrlf false
 ## 11. Git 学习资源分享
 
 - [阮一峰 Git 教程](https://www.bookstack.cn/read/git-tutorial/README.md)
-- [Learn Git Branching](https://learngitbranching.js.org/?locale=zh_CN) - 最好用的 Git 在线学习工具
+- [Learn Git Branching](https://learngitbranching.js.org/?locale=zh_CN) - 最好用的 Git 在线学习工具。提供了多个学习章节，适合不同水平的学习者。如果是初学者，可以按照顺序逐步学习。每个章节都设计有明确的学习目标和提示信息，帮助理解并实践 Git 的各种操作。

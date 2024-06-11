@@ -598,19 +598,43 @@ Navicat是一套快速、可靠的数据库管理工具，Navicat 是以直觉�
 
 ### 11.2. SQLyog
 
-SQLyog 是一个快速而简洁的图形化管理MySQL数据库的工具，它能够在任何地点有效地管理你的数据库，由业界著名的Webyog公司出品。
+SQLyog 是一个快速而简洁的图形化管理 MySQL 数据库的工具，它能够在任何地点有效地管理你的数据库，由业界著名的 Webyog 公司出品。
 
 官网：https://sqlyog.en.softonic.com/
 
-安装：提供的SQLyog软件为免安装版，可直接使用
+#### 11.2.1. 安装与连接
+
+安装：提供的 SQLyog 软件为免安装版，可直接使用
 
 使用：输入用户名、密码，点击连接按钮，进行访问MySQL数据库进行操作
 
 ![SQLyog工具1](images/20190403150510919_18228.jpg)
 
-在Query窗口中，输入SQL代码，选中要执行的SQL代码，按F8键运行，或按执行按钮运行。
+在 Query 窗口中，输入 SQL 代码，选中要执行的 SQL 代码，按 F8/F9 键运行，或按执行按钮运行。
 
 ![SQLyog工具2](images/20190403150517229_19216.jpg)
+
+#### 11.2.2. SQLyog 常用快捷键
+
+**Object Browser**
+
+- F5：刷新浏览对象
+- F8：运行当前的查询并且编辑运行结果
+- F9：运行当前的查询
+- Ctrl+F9：运行选中的多条查询语句
+- Shift+F9：运行所有的查询语句
+
+**SQL Formatter**
+
+- F12：格式化当前查询语句
+- Ctrl+F12：格式化选中的查询语句
+- Shift+F12：格式化所有的查询语句
+
+**SQL Window**
+
+- Ctrl+Shift+C：注释选中的 SQL 语句
+- Ctrl+Shift+R：删除选中的 SQL 语句
+- Ctrl+Enter：显示所有的提示列表
 
 ### 11.3. MySQL Workbench
 
