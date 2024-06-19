@@ -435,7 +435,7 @@ PixPin 是目前市面上功能最全面的截图工具之一了！包括**截�
 
 ## 7. 思维导图
 
-### 7.1. Xmind 
+### 7.1. Xmind
 
 #### 7.1.1. 安装在指定位置（不修改注册表）
 
@@ -473,11 +473,20 @@ CommonFilesDir (x86)  ---  C:\Program Files (x86)\Common Files
 CommonW6432Dir  --- C:\Program Files\Common Files
 ```
 
-## 8. 网络资源
+## 8. 画图工具
 
-### 8.1. 电子书
+### 8.1. Excalidraw
 
-#### 8.1.1. ZLibary - 最大的电子书下载
+Excalidraw 是一款在线白板画图工具
+
+- [官网](https://plus.excalidraw.com/)
+- 在线版：https://excalidraw.com/
+
+## 9. 网络资源
+
+### 9.1. 电子书
+
+#### 9.1.1. ZLibary - 最大的电子书下载
 
 - 官方网站： https://singlelogin.re/
 - 官方桌面版下载： https://zh.go-to-zlibrary.se/#desktop_app_tab
@@ -496,7 +505,7 @@ CommonW6432Dir  --- C:\Program Files\Common Files
 
 > 如果网址失效，可以通过导航网站重新获取。 https://zlib.shop/
 
-#### 8.1.2. 国内篇
+#### 9.1.2. 国内篇
 
 - ~~[yibook](https://nav.yibook.org/) - 电子书搜索网站导航~~
 - [SoBooks](https://sobooks.net/) 图书下载网站是本人最喜欢的一个，它不仅书的种类齐全，而且质量也是相当的高，长期这里获取资源让我受益匪浅。每本书都可以获取百度网盘、微盘等下载站链接，直接下载或者保存网盘即可。
@@ -522,7 +531,7 @@ CommonW6432Dir  --- C:\Program Files\Common Files
 - ~~[ePUBee 电子书库](http://cn.epubee.com/books/)，电子书的类型非常的全面，而且技术类电子书质量比较高，流行的畅销书都可以在这下载到。~~
 - ~~[epubw](https://epubw.com)，每日都会有电子书更新，通过网盘下载~~
 
-#### 8.1.3. 国外篇
+#### 9.1.3. 国外篇
 
 - [安娜的档案](https://zh.annas-archive.gs/) | [台湾区镜像](https://tw.annas-archive.se/) - 🔍影子图书馆搜索引擎：书籍、论文、漫画、杂志。 ⭐️ Z-Library、Library Genesis、Sci-Hub。 ⚙️ 通过开源代码和数据完全容灾。网站需要代理才能登陆，国内受限。
 - [B-OK](https://b-ok.cc) 号称世界最大的电子图书馆，喜欢看英文原版的推荐使用，全英文网站，查找当然也需要英文。
@@ -532,11 +541,11 @@ CommonW6432Dir  --- C:\Program Files\Common Files
 - [BookSC](https://booksc.org)，是 Z-Library 项目的一部分。世界上最大的电子书图书馆。还支持指定书中全文搜索
 - [Manybooks](https://manybooks.net)，免费提供数字格式的图书馆
 
-#### 8.1.4. Github 仓库分享
+#### 9.1.4. Github 仓库分享
 
 - [编程电子书分享(github)](https://github.com/hello-go-maker/cs-books) - 分享一些从网上整理的计算机类的电子书籍，包括Java电子书籍（Java基础，Java多线程，spring、springboot、springcloud，分布式，微服务等）、Python，Linux，Go，C，C++，数据结构与算法，人工智能，计算机基础，面试，设计模式，数据库，前端等书籍
 
-### 8.2. 资源搜索下载
+### 9.2. 资源搜索下载
 
 - [盘他一下](https://panother.com/) - 一个支持百度网盘和阿里云的在线网盘资源搜索引擎，找到搜索的内容后，需要微信扫码登录小程序，网盘虽然是完全免费的，但是搜索获取资源，会有积分限制
 - [学搜搜(酷搜kolsou)](https://www.zhaokeya.com/) - 考研、考级、考证、IT教程等学习资料搜索引擎，网站资源主要来自百度网盘
@@ -545,7 +554,7 @@ CommonW6432Dir  --- C:\Program Files\Common Files
     - [万网搜 - 资源搜索聚合神器](https://www.wanwangsou.com/)
     - [猫狸盘搜 - 阿里云盘搜索神器](https://alipansou.com/)
 
-### 8.3. 在线视频网站
+### 9.3. 在线视频网站
 
 - **旋风视频 **官方网址： https://miao101.com/
 - **茶杯狐 **官方网址： https://www.dajin1.com/
