@@ -204,9 +204,145 @@ Bin
 
 ## 3. SourceTree（待整理）
 
-> Sourcetree 网址：https://www.sourcetreeapp.com/
+### 3.1. 简介
 
-### 3.1. 参考资料
+Sourcetree 是一个用于 Windows 和 Mac 的免费 Git 客户端。通过 Sourcetree 的简单 Git GUI 可视化和管理存储库，简化了与 Git 存储库进行交互。
+
+> Sourcetree 官方网址：https://www.sourcetreeapp.com/
+
+### 3.2. 安装
+
+下载完成后，在安装 SourceTree 的过程中，需要通过账户登录，但注册或登录界面可能根本无法打开，导致软件无法正常安装（*注：此情况是版本 2.5.5，后续版本好像没此问题*）。解决方法：
+
+1. 在目录 `C:\Users\{youruser}\AppData\Local\Atlassian\SourceTree` 下创建文件 `accounts.json`。注：`{youruser}` 需要替换为登录系统用户名。如电脑路径为：
+
+```
+C:\Users\Administrator\AppData\Local\Atlassian\SourceTree
+```
+
+写入如下内容：
+
+```json
+[
+  {
+    "$id": "1",
+    "$type": "SourceTree.Api.Host.Identity.Model.IdentityAccount, SourceTree.Api.Host.Identity",
+    "Authenticate": true,
+    "HostInstance": {
+      "$id": "2",
+      "$type": "SourceTree.Host.Atlassianaccount.AtlassianAccountInstance, SourceTree.Host.AtlassianAccount",
+      "Host": {
+        "$id": "3",
+        "$type": "SourceTree.Host.Atlassianaccount.AtlassianAccountHost, SourceTree.Host.AtlassianAccount",
+        "Id": "atlassian account"
+      },
+      "BaseUrl": "https://id.atlassian.com/"
+    },
+    "Credentials": {
+      "$id": "4",
+      "$type": "SourceTree.Model.BasicAuthCredentials, SourceTree.Api.Account",
+      "Username": "username@email.com"
+    },
+    "IsDefault": false
+  }
+]
+```
+
+2. 重新启动软件，顺利进入界面，如图：
+
+![](images/367333620258985.png)
+
+### 3.3. 基础使用
+
+#### 3.3.1. 拉取代码
+
+> 以下是从 gitlab 上拉取下代码的示例
+
+1. 下载并安装 git。
+2. 运行 git 命令行，输入 `ssh-keygen -t rsa`，生成秘钥。
+
+![](images/481103920246852.png)  ![](images/598933920267018.png)
+
+3. 在 git 服务器上绑定本机的 git 公钥。绑定操作：【Settings】->【SSH Keys】->【Add key】（打开本地公钥文件粘贴里面所有内容）
+
+![](images/269714120259687.png)
+
+4. 利用 sourcetree 拉取代码。点击"工具 -> 选项 -> 一般"，注意以下4个部分的设置。
+
+![](images/102524220256242.png)
+
+5. 点击确定按钮之后，点击"文件->克隆/新建"，打开克隆 tab。
+
+![](images/475984220251996.png)
+
+- 源路径：拉取项目的 git 路径
+- 目标路径：要存放该项目的本地资源路径
+- 名字：为项目名字，一般会自动获取填充。
+
+点击克隆按钮，项目开始拉取到本地。等待项目拉取完毕后，即可在本地开发。
+
+#### 3.3.2. 上传代码
+
+项目克隆完成之后，一般默认拉取的是 master 分支上的代码，由于 master 分支是主分支，项目多人开发的情况下，很容易造成冲突。所以一般会在 gitlab 远程新建一个开发的分支，如命名为：dev。
+
+1. 新建远程开发分支并在 sourcetree 中切换到该分支。双击 origin -> dev，就可以切换到 dev 开发分支。
+
+![](images/242264520269876.png)
+
+2. 切换到文件状态，暂存需要提交的代码，写好描述，点击“拉取”选项(相当 svn 的 update 操作)更新代码并点击提交。
+3. 点击“推送”选项，选择正确的本地和远程分支，确定推送(相当于 svn 的 commit 操作)。
+4. 等待项目管理员将 dev 分支代码合并到 master 分支，完成从开发到上传。
+
+#### 3.3.3. 分支管理和使用
+
+点击“分支”选项，切换到“新分支”选项。
+
+1. 可以在当前的版本下创建分支 
+2. 选择指定的提交创建分支 
+3. 点击“创建分支” 
+
+![](images/407624022240559.png)
+
+定位到需要提交的分支上，点击“推送”选项，选择正确的分支，确定后完成推送，将分支提交到服务器。
+
+![](images/213984622258985.png)
+
+
+
+
+
+
+
+
+
+
+### 3.4. 其他主要功能
+
+#### 3.4.1. 配置忽略文件
+
+利用 .gitignore 过滤文件，如编译过程中的中间文件等等，这些文件不需要被追踪管理。正常情况下，管理员创建项目后需要直接将忽略文件创建好。使用 sourcetree 添加忽略文件的方法以下：
+
+![](images/57664820267480.png)
+
+忽略文件中有忽略文件夹和单个文件，如图：
+
+![](images/218285120264982.png)
+
+#### 3.4.2. 冲突提示信息
+
+![](images/408654822246852.png)
+
+#### 3.4.3. “提交前，先更新”提交信息
+
+![](images/453174922267018.png)
+
+#### 3.4.4. 先拉取后推送
+
+如果推送时，拉取右上方显示数字，则需要先拉取再推送。
+
+![](images/160225022259687.png)
+
+### 3.5. 参考资料
 
 > Git 客户端 SourceTree 使用教程参考：
 >
