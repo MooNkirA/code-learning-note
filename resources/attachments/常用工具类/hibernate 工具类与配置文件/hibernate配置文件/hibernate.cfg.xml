@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE hibernate-configuration PUBLIC
+	"-//Hibernate/Hibernate Configuration DTD 3.0//EN"
+	"hibernate-configuration-3.0.dtd" >
+<hibernate-configuration>
+  <session-factory>
+  	<!-- 第1部分：配置数据连接信息(4要素)(必须) -->
+  	<!-- 任何框架只有是参数名信息，必须可以在代码里面找到对应的声明代码 org.hibernate.cfg.Environment -->
+  	<!-- 这部分信息：hibernate-release-5.0.7.Final\project\etc\hibernate.properties文件中 -->
+  	<!-- 数据库连接驱动 -->
+  	<property name="hibernate.connection.driver_class">com.mysql.jdbc.Driver</property>
+  	 <!-- 连接字符串 -->
+  	<property name="hibernate.connection.url">jdbc:mysql://localhost:3306/day70_crm</property>
+  	<!-- 用户名 -->
+  	<property name="hibernate.connection.username">root</property>
+  	<!-- 密码 -->
+  	<property name="hibernate.connection.password">123456</property>
+  	
+  	<!-- 第2部分：配置hibernate可选常用属性 -->
+  	<!-- 输出sql语句 -->
+  	<property name="hibernate.show_sql">true</property>
+  	<!-- 格式化sql语句 -->
+  	<property name="hibernate.format_sql">true</property>
+  	<!-- 需要配置此属性后，hibernate才会自动创建表
+			update：如果已经有表，则更新；如果没有表，则创建表,
+            create:如果有表覆盖，没有就创建
+            create-drop:启动就创建表，如果关闭sessionFactory会删除表（一般不使用）
+          作用：通过代码生成表结构，可以实现快速部署项目。因为不用创建表结构。
+ 	-->
+  	<property name="hibernate.hbm2ddl.auto">update</property>
+  	<!-- 
+  		数据库方言 ：
+		  所有的数据库的SQL语言都有在标准的SQL语言的基础做了扩展。我们将每一种数据库的SQL语言称为方言。
+		 我们知道，每一种数据库的方言都和标准的SQL语言有差异的。
+		Hibernate将每一种数据库不同的实现写在方言类里面
+		
+		数据库的方言其实已经默认根据连接的信息自动加载了。不用配置也可以。
+		但是我们还是建议手工配置
+		因为，自动加载的方言不是最优化的。
+  	 -->
+  	<property name="hibernate.dialect">org.hibernate.dialect.MySQL5InnoDBDialect</property>
+  	
+  	<!-- c3p0连接池配置 -->
+	<!-- 设置连接的提供者 -->
+  	<property name="hibernate.connection.provider_class">org.hibernate.c3p0.internal.C3P0ConnectionProvider</property>
+  	<!-- 设置c3p0参数 -->
+  	<!-- 设置最大连接数 -->
+  	<property name="hibernate.c3p0.max_size">10</property>
+  	<!-- 设置启动连接池支持的连接数量 -->
+  	<property name="hibernate.c3p0.min_size">5</property>
+  	<!-- 设置操作时间，单位：毫秒。 -->
+  	<property name="hibernate.c3p0.timeout">300000</property>
+  	<!-- 最大操作数据statement,不能大于最大连接数，一般配置95%左右 -->
+  	<property name="hibernate.c3p0.max_statements">9</property>
+  	  	
+  	<!--
+		出现：creation as createClob() method threw error异常的原因
+		答：是因为c3p0和hibernate类型检查不兼容导致。 
+		如何解决？
+		答：关闭hibernate的类型检查
+		
+		由于方言的自动加载是基于Hibernate类型检查的。如果关闭了类型检查，导致无法自动加载方言。
+		所以，配置了关闭hibernate的类型检查。必须要手动设置方言
+	 -->
+  	<!-- 所在位置org.hibernate.engine.jdbc.env.internal.JdbcEnvironmentInitiator -->
+  	<property name="hibernate.temp.use_jdbc_metadata_defaults">false</property>
+  	
+  	<!-- 把session绑定到当前线程上 -->
+	<!-- <property name="hibernate.current_session_context_class">thread</property> -->
+  	
+  	<!-- 第3部分：加载映射文件(必须) -->
+  	<mapping resource="com/moon/entity/hbm/Customer.hbm.xml"/>
+  </session-factory>
+</hibernate-configuration>

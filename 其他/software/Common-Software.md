@@ -141,6 +141,7 @@ VNote 是一个受 Vim 启发的开源笔记记录实用程序，还具有 Markd
 - VNote 下载 
    - [百度网盘](https://pan.baidu.com/share/init?surl=Fou1flmBsQUQ8Qs9V_M6Aw#list/path=%2F)  提取码：note
    - [天翼云盘](https://cloud.189.cn/web/share?code=Av67NvmEJVBv)
+- [VNote’s Documentation](https://vnote.readthedocs.io/zh-cn/latest/) - 用于参考软件相关配置，如主题、片段等。
 
 ### 4.2. Typora
 
