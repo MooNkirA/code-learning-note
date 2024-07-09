@@ -15,17 +15,17 @@ JavaScript 这门语言属于一系列 Web 标准套件中的一部分，这些�
 
 ### 1.3. JavaScript 与 Java 区别
 
-|         |                      Java                       |                  JavaScript                  |
-| ------- | ----------------------------------------------- | -------------------------------------------- |
-| 出品公司 | Oracle                                          | 网景公司                                      |
-| 面向对象 | 完全面向对象：封装、继承、多态                       | 基于对象语言，有一些面向对象特性                  |
+|         |                        Java                        |                   JavaScript                    |
+| ------- | -------------------------------------------------- | ----------------------------------------------- |
+| 出品公司 | Oracle                                             | 网景公司                                         |
+| 面向对象 | 完全面向对象：封装、继承、多态                         | 基于对象语言，有一些面向对象特性                   |
 | 运行方式 | 编译型语言，会产生字节码中间文件。最终是运行字节码文件。 | 解释型，不会产生中间文件  浏览器解析一行运行一句。   |
-| 数据类型 | 强类型，字符串与整数不能互用                         | 弱类型，不同的数据类型之间会自动转换，可以相互赋值。 |
+| 数据类型 | 强类型，字符串与整数不能互用                          | 弱类型，不同的数据类型之间会自动转换，可以相互赋值。 |
 
 ### 1.4. JavaScript三大组成部分
 
-|    取值     |                                   作用                                   |
-| ---------- | ----------------------------------------------------------------------- |
+|    取值     |                                    作用                                    |
+| ---------- | -------------------------------------------------------------------------- |
 | ECMAScript | 也是一种脚本语言的标准，构成了JS的脚本语法基础                                  |
 | BOM        | Browser Object  Model 浏览器对象模型，用来操作浏览器中的对象。如：window对象    |
 | DOM        | Document Object Model 文档对象模型，用来操作网页中的元素。如：`<h1>`、`<span>` |
@@ -3709,376 +3709,22 @@ parseInt(Math.random()*(max-min+1)+min,10);
 Math.floor(Math.random()*(max-min+1)+min);
 ```
 
-## 16. 其他
+## 16. AJAX
 
-### 16.1. JS的调试
-
-因为 JS 是运行在浏览器端，几乎所有的主流浏览器都提供了 debug 调试的功能，在开发模式中，设置断点进行调试。不同的浏览器对应的操作与快捷键不一样，下面的调试的快捷键以 Chrome 为例：
-
-- F12 进入开发模式
-- 单步跳过 F10
-- 单步退出 Shift+F11
-- 运行到最后 F8
-
-![](images/187861610248889.jpg)
-
-如果有语法错误，进行浏览器开发模式中会出现提示
-
-### 16.2. EventLoop
-
-#### 16.2.1. JavaScript 是单线程的语言
-
-JavaScript 是一门单线程执行的编程语言。也就是说，同一时间只能做一件事情。
-
-![](images/20211205104054852_26007.png)
-
-> 单线程执行任务队列的问题：如果前一个任务非常耗时，则后续的任务就不得不一直等待，从而导致程序假死的问题。
-
-#### 16.2.2. 同步任务和异步任务
-
-JavaScript 把待执行的任务分为了两类：
-
-1. 同步任务（synchronous）
-    - 又称为**非耗时任务**，指的是在主线程上排队执行的那些任务
-    - 只有前一个任务执行完毕，才能执行后一个任务
-2. 异步任务（asynchronous）
-    - 又称为**耗时任务**，异步任务由 JavaScript 委托给宿主环境进行执行
-    - 当异步任务执行完成后，会通知 JavaScript 主线程执行异步任务的回调函数
-
-#### 16.2.3. EventLoop 的基本概念
-
-**同步任务和异步任务的执行过程**
-
-![](images/20211205104342254_17359.png)
-
-1. 同步任务由 JavaScript 主线程次序执行
-2. 异步任务委托给宿主环境执行
-3. 已完成的异步任务对应的回调函数，会被加入到任务队列中等待执行
-4. JavaScript **主线程的执行栈被清空后，会读取任务队列中的回调函数，次序执行**
-5. JavaScript **主线程不断重复上面的第 4 步**
-
-<font color=red>**JavaScript 主线程从“任务队列”中读取异步任务的回调函数，放到执行栈中依次执行。这个过程是循环不断的，所以整个的这种运行机制又称为 EventLoop（事件循环）。**</font>
-
-#### 16.2.4. 结合 EventLoop 分析输出的顺序案例（面试题）
-
-```js
-import { getResult } from '../utils/util.js'
-
-console.log('A')
-
-// 模拟请求获取数据
-getResult(3).then(res => console.log('B'))
-
-setTimeout(() => console.log('C'), 0)
-
-console.log('D')
-```
-
-上面示例最终的输出结果是：ADCB
-
-- A 和 D 属于同步任务。会根据代码的先后顺序依次被执行
-- C 和 B 属于异步任务。它们的回调函数会被加入到任务队列中，等待主线程空闲时再执行
-
-### 16.3. 宏任务和微任务
-
-#### 16.3.1. 什么是宏任务和微任务
-
-JavaScript 把异步任务又做了进一步的划分，异步任务又分为两类，分别是：
-
-![](images/20211205110318506_26479.png)
-
-1. 宏任务（macrotask）：异步 Ajax 请求、`setTimeout`、`setInterval`、文件操作等
-2. 微任务（microtask）：`Promise.then`、`Promise.catch`、`Promise.finally`、`process.nextTick` 等
-
-#### 16.3.2. 宏任务和微任务的执行顺序
-
-![](images/20211205110505881_9639.png)
-
-每一个宏任务执行完之后，都会**检查是否存在待执行的微任务**。如果有，则执行完所有微任务之后，再继续执行下一个宏任务。
-
-#### 16.3.3. 宏任务和微任务执行顺序分析案例（面试题）
-
-##### 16.3.3.1. 案例1
-
-```js
-setTimeout(() => console.log('1'))
-
-new Promise(resolve => {
-  console.log('2')
-  resolve()
-}).then(res => console.log('3'))
-
-console.log('4')
-```
-
-最终结果输出是：2431
-
-1. 先执行所有的同步任务输出：2、4
-2. 再执行微任务输出：3
-3. 再执行下一个宏任务输出：1
-
-##### 16.3.3.2. 案例2
-
-```js
-console.log('1')
-
-setTimeout(() => {
-  console.log('2')
-  new Promise(resolve => {
-    console.log('3')
-    resolve()
-  }).then(() => console.log('4'))
-})
-
-new Promise(resolve => {
-  console.log('5')
-  resolve()
-}).then(() => console.log('6'))
-
-setTimeout(() => {
-  console.log('7')
-  new Promise(resolve => {
-    console.log('8')
-    resolve()
-  }).then(() => console.log('9'))
-})
-```
-
-最终结果输出是：156234789
-
-1. 先执行所有的同步任务输出：1、5
-2. 再执行第1个宏任务中的同步任务输出：2、3
-3. 再执行第1个宏任务的微任务输出：4
-4. 再执行第2个宏任务中的同步任务输出：7、8
-5. 再执行第2个宏任务的微任务输出：9
-
-### 16.4. WebSocket
-
-#### 16.4.1. 概念
-
-WebSocket 是一种在独立的、创建在 TCP 连接上进行全双工通信的协议。Websocket 通过 HTTP/1.1 协议的 101 状态码进行握手。
-
-WebSocket 使得客户端和服务器之间的数据交换变得更加简单，允许服务端主动向客户端推送数据。在 WebSocket API 中，浏览器和服务器只需要完成一次握手，两者之间就直接可以创建持久性的连接，并进行双向数据传输。
-
-> WebSocket 通信协议于 2011 年被 IETF 定为标准 RFC 6455，并由 RFC7936 补充规范。WebSocket API 也被 W3C 定为标准。
-
-#### 16.4.2. API 方法（待整理）
-
-> TODO: 待参考 MDN 网站整理
-
-#### 16.4.3. 基础示例
-
-WebSockets 它可以在用户的浏览器和服务器之间打开交互式通信会话。使用此API，可以向服务器发送消息并接收事件驱动的响应，而无需通过轮询服务器的方式以获得响应。 WebSocket 对象提供了用于创建和管理 WebSocket 连接，以及可以通过该连接发送和接收数据的API。
-
-```js
-// 创建WebSocket连接.
-const socket = new WebSocket('ws://localhost:8080');
- 
-// 连接成功触发
-socket.addEventListener('open', function (event) {
-    socket.send('Hello Server!');
-});
- 
-// 监听消息
-socket.addEventListener('message', function (event) {
-    console.log('Message from server ', event.data);
-});
-```
-
-### 16.5. API 接口案例
-
-#### 16.5.1. 案例需求
-
-基于 MySQL 数据库 + Express 对外提供用户列表的 API 接口服务。用到的技术点如下：
-
-- 第三方包 express 和 mysql2
-- ES6 模块化
-- Promise
-- async/await
-
-#### 16.5.2. 搭建项目的基本结构
-
-1. 启用 ES6 模块化支持，在 package.json 中声明 `"type": "module"`
-2. 安装第三方依赖包。`npm install express@4.17.1 mysql2@2.2.5 -S`
-
-#### 16.5.3. 创建基本的服务器
-
-在项目的根目录下创建 app.js 入口文件，创建基础的服务器
-
-```js
-import express from 'express'
-
-const app = express()
-
-app.listen(80, () => {
-  console.log('server running at http://127.0.0.1')
-})
-```
-
-运行以下命令测试是否能开启服务
-
-```bash
-nodemon app.js
-```
-
-如 nodemon 没有安装，先运行全局安装命令
-
-```bash
-npm install -g nodemon
-```
-
-卸载则运行
-
-```bash
-npm uninstall -g nodemon
-```
-
-#### 16.5.4. 创建 db 数据库操作模块
-
-创建`db/index.js`，配置数据库的连接信息
-
-```js
-import mysql from 'mysql2'
-
-const pool = mysql.createPool({
-  host: '127.0.0.1',
-  port: 3306,
-  database: 'tempdb',
-  user: 'root',
-  password: '123456',
-})
-
-export default pool.promise()
-```
-
-#### 16.5.5. 创建请求的处理方法
-
-```js
-import db from '../db/index.js'
-
-// 使用 ES6 的按需导出语法，将 getAllUser 方法导出
-export async function getAllUser(req, res) {
-  try {
-    // db.query() 函数的返回值是 Promise 实例对象。所以可以使用 async/await 进行异步处理简化
-    const [rows] = await db.query('select id, name, gender from user')
-    res.send({
-      status: 0,
-      message: '获取用户列表数据成功！',
-      data: rows,
-    })
-  } catch (err) {
-    res.send({
-      status: 1,
-      message: '获取用户列表数据失败！',
-      desc: err.message,
-    })
-  }
-}
-```
-
-#### 16.5.6. 配置路由
-
-```js
-import express from 'express'
-import { getAllUser } from '../controller/UserController.js'
-
-// 创建路由对象
-const router = new express.Router()
-
-// 挂载路由规则
-router.get('/user', getAllUser)
-
-// 使用 ES6 默认导出语法，将路由对象导出
-export default router
-```
-
-#### 16.5.7. 导入并挂载路由模块
-
-在 app.js 文件中导入并挂载路由模块
-
-```js
-import express from 'express'
-// 默认导入路由对象
-import userRouter from './router/user_router.js'
-
-const app = express()
-
-// 挂载用户路由模块
-app.use('/api', userRouter)
-
-app.listen(80, () => {
-  console.log('server running at http://127.0.0.1')
-})
-```
-
-#### 16.5.8. 测试
-
-使用postman等请求工具，请求`http://127.0.0.1/api/user`，获取返回数据
-
-### 16.6. console 对象使用
-
-#### 16.6.1. 常用方法
-
-1. `console.log()`
-
-```js
-// 用于输出普通信息，最常用
-console.log("%c%s", "color:red;font-size:20px", "结果是：这样的哟");
-```
-
-2. `console.info()`
-
-```js
-// 用于输出提示性信息
-console.info("%s", "color:red;这是结果哟");
-```
-
-3. `console.error()`
-
-```js
-// 用于输出错误信息
-console.error("错误");
-```
-
-4. `console.warn()`：用于输出警示信息
-5. `console.count()`：统计代码被执行的次数
-6. `console.assert()`：对输入的表达式进行断言，只有表达式为false时，才输出相应的信息到控制台
-7. `console.group()`：输出一组信息的开头
-8. `console.groupEnd()`：结束一组输出信息
-9. `console.dir()`：直接将该DOM结点以DOM树的结构进行输出，可以详细查对象的方法发展等等
-10. `console.time()`：计时开始
-11. `console.timeEnd()`：计时结束
-12. `console.profile()` 和 `console.profileEnd()`：一起使用来查看CPU使用相关信息
-13. `console.timeLine()` 和 `console.timeLineEnd()`：一起使用记录一段时间轴
-14. `console.trace()`：堆栈跟踪相关的调试
-
-#### 16.6.2. 格式化符号
-
-|   格式化符号   |            实现的功能            |
-| :----------: | ------------------------------ |
-|     `%s`     | 格式化成字符串输出                |
-| `%d` or `%i` | 格式化成数值输出                  |
-|     `%f`     | 格式化成浮点数输出                |
-|     `%o`     | 转化成展开的DOM元素输出            |
-|     `%O`     | 转化成JavaScript对象输出          |
-|     `%c`     | 把字符串按照你提供的样式格式化后输入 |
-
-## 17. AJAX
-
-### 17.1. AJAX 概述
+### 16.1. AJAX 概述
 
 AJAX 全称 Asynchronous Javascript And XML （异步 JavaScript 和 XML），可以使网页实现<font color=red>**异步更新**</font>，就是不重新加载整个网页的情况下，对网页的某部分进行更新（<font color=red>**局部刷新**</font>）。传统的网页（不使用AJAX）如果需要更新内容，必须重载整个网页页面。
 
 AJAX = 异步 JavaScript 和 XML，是一种新的思想，整合之前的多种技术，用于创建快速交互式网页应用的网页开发技术。
 
-#### 17.1.1. 同步与异步的区别
+#### 16.1.1. 同步与异步的区别
 
 - **同步**：客户端发送请求到服务端，当服务端返回响应之前，客户端都处于等待卡死状态。
 - **异步**：客户端发送请求到服务端，无论服务端是否返回响应，客户端都可以在该页面中随意做其他事情，不会被卡死，提高了用户的体验。
 
 ![](images/387051512249072.jpg)
 
-#### 17.1.2. 优缺点
+#### 16.1.2. 优缺点
 
 **优点**
 
@@ -4095,7 +3741,7 @@ AJAX = 异步 JavaScript 和 XML，是一种新的思想，整合之前的多种
 4. 破坏了程序的异常机制
 5. 调试困难
 
-### 17.2. AJAX 原理分析
+### 16.2. AJAX 原理分析
 
 1. 使用 JavaScript 获得浏览器内置的 AJAX 引擎（`XMLHttpRequest` 异步调用对象）
     1. 通过 AJAX 引擎确定请求路径和请求参数
@@ -4113,16 +3759,16 @@ var xmlhttp = new XMLHttpRequest();
     1. 通过设置给 AJAX 引擎的回调函数获得服务器响应的数据
     2. 使用 JavaScript 在指定的位置，显示响应数据，从而局部修改页面的数据，达到局部刷新目的。 
 
-### 17.3. JavaScript 中 AJAX 的使用
+### 16.3. JavaScript 中 AJAX 的使用
 
-#### 17.3.1. 原生态 JS 操作 ajax 步骤
+#### 16.3.1. 原生态 JS 操作 ajax 步骤
 
 1. 获得 ajax 引擎。
 2. 设置回调函数。作用当前 AJAX 请求服务器过程中不同状态变化的时候都会调用此函数
 3. 确定请求路径
 4. 发送请求。JavaScript ajax 处理 GET 和 POST 请求会有细微差异
 
-#### 17.3.2. ajax 引擎连接状态变化过程
+#### 16.3.2. ajax 引擎连接状态变化过程
 
 ajax 引擎连接状态 readyState 值有 0~4 变化过程。存有 XMLHttpRequest 的状态。从 0 到 4 发生变化。
 
@@ -4143,7 +3789,7 @@ xmlHttp.onreadystatechange = function(){
 }
 ```
 
-#### 17.3.3. XMLHttpRequest 对象浏览器兼容
+#### 16.3.3. XMLHttpRequest 对象浏览器兼容
 
 大多数浏览器都支持以下方式得到 `XMLHttpRequest`
 
@@ -4178,7 +3824,7 @@ function getXMLhttp(){
 } 
 ```
 
-#### 17.3.4. JS 原生 AJAX 现实示例
+#### 16.3.4. JS 原生 AJAX 现实示例
 
 ```html
 <script type="text/javascript">
@@ -4247,9 +3893,554 @@ function getXMLhttp(){
 </body>
 ```
 
-## 18. ES2020 新特性
+## 17. 前端日志输出
 
-### 18.1. 可选链操作符
+在前端开发中，随着项目迭代升级，日志打印逐渐风格不一，合理的日志输出是监控应用状态、调试代码和跟踪用户行为的重要手段。一个好的日志系统能够帮助开发者快速定位问题，提高开发效率。
+
+### 17.1. 日志等级
+
+通常，会定义不同的日志等级，以便根据消息的重要性进行分类。日志等级从低到高可以分为以下几类：
+
+- DEBUG: 详细的开发时信息，用于调试应用。
+- INFO: 重要事件的简要信息，如系统启动、配置等。
+- WARN: 系统能正常运行，但有潜在错误的情况。
+- ERROR: 由于严重的问题，某些功能无法正常运行。
+- FATAL: 非常严重的问题，可能导致系统崩溃。
+
+### 17.2. console 对象
+
+console 是 js 中用于输出日志的对象
+
+#### 17.2.1. 常用方法
+
+1. `console.log()`
+
+```js
+// 用于输出普通信息，最常用
+console.log("%c%s", "color:red;font-size:20px", "结果是：这样的哟");
+```
+
+2. `console.info()`
+
+```js
+// 用于输出提示性信息
+console.info("%s", "color:red;这是结果哟");
+```
+
+3. `console.error()`
+
+```js
+// 用于输出错误信息
+console.error("错误");
+```
+
+4. `console.warn()`：用于输出警示信息
+5. `console.count()`：统计代码被执行的次数
+6. `console.assert()`：对输入的表达式进行断言，只有表达式为 false 时，才输出相应的信息到控制台
+7. `console.group()`：输出一组信息的开头
+8. `console.groupEnd()`：结束一组输出信息
+9. `console.dir()`：直接将该 DOM 结点以 DOM 树的结构进行输出，可以详细查对象的方法发展等等
+10. `console.time()`：计时开始
+11. `console.timeEnd()`：计时结束
+12. `console.profile()` 和 `console.profileEnd()`：一起使用来查看 CPU 使用相关信息
+13. `console.timeLine()` 和 `console.timeLineEnd()`：一起使用记录一段时间轴
+14. `console.trace()`：堆栈跟踪相关的调试
+
+#### 17.2.2. 格式化符号
+
+|   格式化符号   |             实现的功能             |
+| :----------: | -------------------------------- |
+|     `%s`     | 格式化成字符串输出                 |
+| `%d` or `%i` | 格式化成数值输出                   |
+|     `%f`     | 格式化成浮点数输出                 |
+|     `%o`     | 转化成展开的DOM元素输出            |
+|     `%O`     | 转化成JavaScript对象输出           |
+|     `%c`     | 把字符串按照你提供的样式格式化后输入 |
+
+### 17.3. 日志格式
+
+日志内容应该包含足够的信息，以便于开发者理解发生了什么。一个完整的日志消息通常包括：
+
+- 时间戳：精确到毫秒的事件发生时间。
+- 日志等级：当前日志消息的等级。
+- 消息内容：描述事件的详细信息。
+- 错误堆栈：如果是错误，提供错误堆栈信息。
+
+日志的格式应该统一，以便于阅读和解析。常见的日志格式如下：
+
+```js
+[时间戳] [日志等级] [消息内容] [错误堆栈]
+```
+
+示例：
+
+```js
+[2024-04-01T12:00:00.000Z] [ERROR] Failed to load user data. {stack}
+```
+
+### 17.4. 日志类
+
+#### 17.4.1. 基础实现
+
+为了更好地控制日志输出，可以封装一个日志工具，来统一管理日志输出。以下是简单的日志工具实现：
+
+```js
+class Logger {
+    static log(level, message, error) {
+        const timestamp = new Date().toISOString()
+        const stack = error ? error.stack : ''
+        const formattedMessage = `[${timestamp}] [${level}] ${message} ${stack}`
+
+        switch (level) {
+            case 'DEBUG':
+                console.debug(formattedMessage)
+                break
+            case 'INFO':
+                console.info(formattedMessage)
+                break
+            case 'WARN':
+                console.warn(formattedMessage)
+                break
+            case 'ERROR':
+            case 'FATAL':
+                console.error(formattedMessage)
+                break
+            default:
+                console.log(formattedMessage)
+        }
+    }
+
+    static debug(message) {
+        this.log('DEBUG', message)
+    }
+
+    static info(message) {
+        this.log('INFO', message)
+    }
+
+    static warn(message) {
+        this.log('WARN', message)
+    }
+
+    static error(message, error) {
+        this.log('ERROR', message, error)
+    }
+
+    static fatal(message, error) {
+        this.log('FATAL', message, error)
+    }
+}
+
+// 使用示例
+Logger.info('Application is starting...')
+Logger.error('Failed to load user data', new Error('Network Error'))
+```
+
+#### 17.4.2. 日志等级控制
+
+在开发环境中，可能希望看到尽可能多的日志输出，以便更好地调试应用。但在生产环境中，为了避免性能损耗和过多的日志信息，可能只希望输出 `WARN` 和以上等级的日志。可以在 `Logger` 工具类中添加一个等级控制：
+
+```js
+class Logger {
+    static level = 'DEBUG' // 默认为DEBUG级别
+
+    static setLevel(newLevel) {
+        this.level = newLevel
+    }
+
+    static shouldLog(level) {
+        const levels = ['DEBUG', 'INFO', 'WARN', 'ERROR', 'FATAL']
+        return levels.indexOf(level) >= levels.indexOf(this.level)
+    }
+
+    static log(level, message, error) {
+        if (!this.shouldLog(level)) {
+            return
+        }
+        // ...日志输出逻辑
+    }
+
+    // ...其他方法
+}
+
+// 生产环境中设置日志等级
+if (process.env.NODE_ENV === 'production') {
+    Logger.setLevel('WARN')
+}
+
+// 使用示例
+Logger.debug('This will not be logged in production')
+Logger.warn('This will be logged in production')
+```
+
+#### 17.4.3. 日志格式化
+
+为了进一步提高日志的可读性，可以添加格式化功能，比如为不同等级的日志添加颜色，或者为错误堆栈提供更好的格式化。
+
+```js
+class Logger {
+    // ...其他方法
+
+    static formatStack(stack) {
+        if (!stack) return ''
+        // 格式化错误堆栈的逻辑
+        return stack
+            .split('\n')
+            .map(line => `    at ${line}`)
+            .join('\n')
+    }
+
+    static log(level, message, error) {
+        // ...日志输出逻辑
+
+        // 格式化错误堆栈
+        if (error) {
+            formattedMessage += `\n${this.formatStack(error.stack)}`
+        }
+
+        // ...输出逻辑
+    }
+}
+```
+
+#### 17.4.4. 日志收集
+
+在生产环境中，可能需要将日志发送到后端服务器进行收集和分析。这可以通过 AJAX 请求或专门的日志服务来实现。例如，可以修改 Logger 工具，添加一个方法来发送日志：
+
+```js
+class Logger {
+    // ...其他方法
+
+    static sendLog(message) {
+        // 假设我们有一个日志收集的API
+        const logEndpoint = '/api/logs'
+        fetch(logEndpoint, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ message }),
+        }).catch(error => {
+            console.error('Failed to send log', error)
+        })
+    }
+}
+
+// 根据环境变量判断是否发送日志到后端
+if (process.env.NODE_ENV === 'production') {
+    this.sendLog(formattedMessage)
+}
+```
+
+## 18. 其他
+
+### 18.1. JS的调试
+
+因为 JS 是运行在浏览器端，几乎所有的主流浏览器都提供了 debug 调试的功能，在开发模式中，设置断点进行调试。不同的浏览器对应的操作与快捷键不一样，下面的调试的快捷键以 Chrome 为例：
+
+- F12 进入开发模式
+- 单步跳过 F10
+- 单步退出 Shift+F11
+- 运行到最后 F8
+
+![](images/187861610248889.jpg)
+
+如果有语法错误，进行浏览器开发模式中会出现提示
+
+### 18.2. EventLoop
+
+#### 18.2.1. JavaScript 是单线程的语言
+
+JavaScript 是一门单线程执行的编程语言。也就是说，同一时间只能做一件事情。
+
+![](images/20211205104054852_26007.png)
+
+> 单线程执行任务队列的问题：如果前一个任务非常耗时，则后续的任务就不得不一直等待，从而导致程序假死的问题。
+
+#### 18.2.2. 同步任务和异步任务
+
+JavaScript 把待执行的任务分为了两类：
+
+1. 同步任务（synchronous）
+    - 又称为**非耗时任务**，指的是在主线程上排队执行的那些任务
+    - 只有前一个任务执行完毕，才能执行后一个任务
+2. 异步任务（asynchronous）
+    - 又称为**耗时任务**，异步任务由 JavaScript 委托给宿主环境进行执行
+    - 当异步任务执行完成后，会通知 JavaScript 主线程执行异步任务的回调函数
+
+#### 18.2.3. EventLoop 的基本概念
+
+**同步任务和异步任务的执行过程**
+
+![](images/20211205104342254_17359.png)
+
+1. 同步任务由 JavaScript 主线程次序执行
+2. 异步任务委托给宿主环境执行
+3. 已完成的异步任务对应的回调函数，会被加入到任务队列中等待执行
+4. JavaScript **主线程的执行栈被清空后，会读取任务队列中的回调函数，次序执行**
+5. JavaScript **主线程不断重复上面的第 4 步**
+
+<font color=red>**JavaScript 主线程从“任务队列”中读取异步任务的回调函数，放到执行栈中依次执行。这个过程是循环不断的，所以整个的这种运行机制又称为 EventLoop（事件循环）。**</font>
+
+#### 18.2.4. 结合 EventLoop 分析输出的顺序案例（面试题）
+
+```js
+import { getResult } from '../utils/util.js'
+
+console.log('A')
+
+// 模拟请求获取数据
+getResult(3).then(res => console.log('B'))
+
+setTimeout(() => console.log('C'), 0)
+
+console.log('D')
+```
+
+上面示例最终的输出结果是：ADCB
+
+- A 和 D 属于同步任务。会根据代码的先后顺序依次被执行
+- C 和 B 属于异步任务。它们的回调函数会被加入到任务队列中，等待主线程空闲时再执行
+
+### 18.3. 宏任务和微任务
+
+#### 18.3.1. 什么是宏任务和微任务
+
+JavaScript 把异步任务又做了进一步的划分，异步任务又分为两类，分别是：
+
+![](images/20211205110318506_26479.png)
+
+1. 宏任务（macrotask）：异步 Ajax 请求、`setTimeout`、`setInterval`、文件操作等
+2. 微任务（microtask）：`Promise.then`、`Promise.catch`、`Promise.finally`、`process.nextTick` 等
+
+#### 18.3.2. 宏任务和微任务的执行顺序
+
+![](images/20211205110505881_9639.png)
+
+每一个宏任务执行完之后，都会**检查是否存在待执行的微任务**。如果有，则执行完所有微任务之后，再继续执行下一个宏任务。
+
+#### 18.3.3. 宏任务和微任务执行顺序分析案例（面试题）
+
+##### 18.3.3.1. 案例1
+
+```js
+setTimeout(() => console.log('1'))
+
+new Promise(resolve => {
+  console.log('2')
+  resolve()
+}).then(res => console.log('3'))
+
+console.log('4')
+```
+
+最终结果输出是：2431
+
+1. 先执行所有的同步任务输出：2、4
+2. 再执行微任务输出：3
+3. 再执行下一个宏任务输出：1
+
+##### 18.3.3.2. 案例2
+
+```js
+console.log('1')
+
+setTimeout(() => {
+  console.log('2')
+  new Promise(resolve => {
+    console.log('3')
+    resolve()
+  }).then(() => console.log('4'))
+})
+
+new Promise(resolve => {
+  console.log('5')
+  resolve()
+}).then(() => console.log('6'))
+
+setTimeout(() => {
+  console.log('7')
+  new Promise(resolve => {
+    console.log('8')
+    resolve()
+  }).then(() => console.log('9'))
+})
+```
+
+最终结果输出是：156234789
+
+1. 先执行所有的同步任务输出：1、5
+2. 再执行第1个宏任务中的同步任务输出：2、3
+3. 再执行第1个宏任务的微任务输出：4
+4. 再执行第2个宏任务中的同步任务输出：7、8
+5. 再执行第2个宏任务的微任务输出：9
+
+### 18.4. WebSocket
+
+#### 18.4.1. 概念
+
+WebSocket 是一种在独立的、创建在 TCP 连接上进行全双工通信的协议。Websocket 通过 HTTP/1.1 协议的 101 状态码进行握手。
+
+WebSocket 使得客户端和服务器之间的数据交换变得更加简单，允许服务端主动向客户端推送数据。在 WebSocket API 中，浏览器和服务器只需要完成一次握手，两者之间就直接可以创建持久性的连接，并进行双向数据传输。
+
+> WebSocket 通信协议于 2011 年被 IETF 定为标准 RFC 6455，并由 RFC7936 补充规范。WebSocket API 也被 W3C 定为标准。
+
+#### 18.4.2. API 方法（待整理）
+
+> TODO: 待参考 MDN 网站整理
+
+#### 18.4.3. 基础示例
+
+WebSockets 它可以在用户的浏览器和服务器之间打开交互式通信会话。使用此API，可以向服务器发送消息并接收事件驱动的响应，而无需通过轮询服务器的方式以获得响应。 WebSocket 对象提供了用于创建和管理 WebSocket 连接，以及可以通过该连接发送和接收数据的API。
+
+```js
+// 创建WebSocket连接.
+const socket = new WebSocket('ws://localhost:8080');
+ 
+// 连接成功触发
+socket.addEventListener('open', function (event) {
+    socket.send('Hello Server!');
+});
+ 
+// 监听消息
+socket.addEventListener('message', function (event) {
+    console.log('Message from server ', event.data);
+});
+```
+
+### 18.5. API 接口案例
+
+#### 18.5.1. 案例需求
+
+基于 MySQL 数据库 + Express 对外提供用户列表的 API 接口服务。用到的技术点如下：
+
+- 第三方包 express 和 mysql2
+- ES6 模块化
+- Promise
+- async/await
+
+#### 18.5.2. 搭建项目的基本结构
+
+1. 启用 ES6 模块化支持，在 package.json 中声明 `"type": "module"`
+2. 安装第三方依赖包。`npm install express@4.17.1 mysql2@2.2.5 -S`
+
+#### 18.5.3. 创建基本的服务器
+
+在项目的根目录下创建 app.js 入口文件，创建基础的服务器
+
+```js
+import express from 'express'
+
+const app = express()
+
+app.listen(80, () => {
+  console.log('server running at http://127.0.0.1')
+})
+```
+
+运行以下命令测试是否能开启服务
+
+```bash
+nodemon app.js
+```
+
+如 nodemon 没有安装，先运行全局安装命令
+
+```bash
+npm install -g nodemon
+```
+
+卸载则运行
+
+```bash
+npm uninstall -g nodemon
+```
+
+#### 18.5.4. 创建 db 数据库操作模块
+
+创建`db/index.js`，配置数据库的连接信息
+
+```js
+import mysql from 'mysql2'
+
+const pool = mysql.createPool({
+  host: '127.0.0.1',
+  port: 3306,
+  database: 'tempdb',
+  user: 'root',
+  password: '123456',
+})
+
+export default pool.promise()
+```
+
+#### 18.5.5. 创建请求的处理方法
+
+```js
+import db from '../db/index.js'
+
+// 使用 ES6 的按需导出语法，将 getAllUser 方法导出
+export async function getAllUser(req, res) {
+  try {
+    // db.query() 函数的返回值是 Promise 实例对象。所以可以使用 async/await 进行异步处理简化
+    const [rows] = await db.query('select id, name, gender from user')
+    res.send({
+      status: 0,
+      message: '获取用户列表数据成功！',
+      data: rows,
+    })
+  } catch (err) {
+    res.send({
+      status: 1,
+      message: '获取用户列表数据失败！',
+      desc: err.message,
+    })
+  }
+}
+```
+
+#### 18.5.6. 配置路由
+
+```js
+import express from 'express'
+import { getAllUser } from '../controller/UserController.js'
+
+// 创建路由对象
+const router = new express.Router()
+
+// 挂载路由规则
+router.get('/user', getAllUser)
+
+// 使用 ES6 默认导出语法，将路由对象导出
+export default router
+```
+
+#### 18.5.7. 导入并挂载路由模块
+
+在 app.js 文件中导入并挂载路由模块
+
+```js
+import express from 'express'
+// 默认导入路由对象
+import userRouter from './router/user_router.js'
+
+const app = express()
+
+// 挂载用户路由模块
+app.use('/api', userRouter)
+
+app.listen(80, () => {
+  console.log('server running at http://127.0.0.1')
+})
+```
+
+#### 18.5.8. 测试
+
+使用 postman 等请求工具，请求`http://127.0.0.1/api/user`，获取返回数据
+
+## 19. ES2020 新特性
+
+### 19.1. 可选链操作符
 
 可选链操作符(`?.`)允许读取位于连接对象链深处的属性的值，而不必明确验证链中的每个引用是否有效。`?.`操作符的功能类似于`.`链式操作符，不同之处在于，在引用为空(`nullish`) (`null`或者`undefined`) 的情况下不会引起错误，该表达式短路返回值是`undefined`。与函数调用一起使用时，如果给定的函数不存在，则返回`undefined`。
 
@@ -4286,7 +4477,7 @@ func?.(args)
 
 > 参考：https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Operators/Optional_chaining
 
-### 18.2. 空值合并运算符（??） -- 整理中
+### 19.2. 空值合并运算符（??） -- 整理中
 
 **空值合并运算符**（`??`）是一个逻辑运算符，当左侧的操作数为 `null` 或者 `undefined` 时，返回其右侧操作数，否则返回左侧操作数。语法格式：
 
