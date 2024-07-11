@@ -2600,1060 +2600,9 @@ console.log(Father.prototype)
 console.log(Son.prototype.constructor)
 ```
 
+## 13. 字符串(String)
 
-
-
-
-
-
-
-
-## 13. 数组对象 Array
-
-在JS中，数组等价于集合
-
-### 13.1. 创建数组的方式
-
-#### 13.1.1. 一维数组
-
-1. 创建一个长度为0的数组
-
-```js
-var arr = new Array();
-```
-
-2. 创建一个长度为num的数组
-
-```js
-var arr = new Array(num);
-```
-
-3. 创建一个指定元素的数组
-
-```js
-var arr = new Array(x1,x2,x3……);
-```
-
-4. 使用中括号创建数组，指定数组中的每个元素
-
-```js
-var arr = [x1,x2,x3,……];
-```
-
-#### 13.1.2. 二维数组
-
-```js
-var arr = [[x,x,x],[x,x,x],[x,x],……];
-```
-
-- 值：`arr[0] = [x,x,x]`
-- 使用嵌套循环遍历
-
-#### 13.1.3. Array.of() 方法
-
-`Array.of()`方法用于将一组值，转换为数组。这个方法的主要目的，是弥补数组构造函数`Array()`的不足。因为参数个数的不同，会导致`Array()`的行为有差异。
-
-```js
-/* new Array()的构造方法创建数组
- *    Array方法没有参数、一个参数、三个参数时，返回结果都不一样。
- *    只有当参数个数不少于 2 个时，Array()才会返回由参数组成的新数组。参数个数只有一个时，实际上是指定数组的长度。
- */
-Array() // []
-Array(3) // [, , ,]
-Array(3, 11, 8) // [3, 11, 8]
-
-// 使用Array.of()方法创建数组
-Array.of(3, 11, 8) // [3,11,8]
-Array.of(3) // [3]
-Array.of(undefined)    // [ undefined ]
-Array.of(3).length // 1
-```
-
-- `Array.of()`方法基本上可以用来替代`Array()`或`new Array()`，并且不存在由于参数不同而导致的重载。它的行为非常统一。
-- `Array.of()`方法总是返回参数值组成的数组。如果没有参数，就返回一个空数组。
-
-### 13.2. 数组中元素的类型
-
-1. 数组中的元素类型可以各不相同
-2. 数组的长度可以动态增长
-
-```js
-var arr = [1, 3, 2];
-arr[2] = "hello";
-arr[3] = new Date();
-arr[5] = 99;
-```
-
-- 上面的案例最后的结果是：如果跳过增加，则数组也会自动在空的位置加上undefined
-- 数组的长度是6
-- 数组的内容是`[1, 3, "hello", 时间对象, undefined, 99]`
-
-### 13.3. 数组的遍历
-
-#### 13.3.1. for...of 循环
-
-- 语法：`for(const item of array)`
-- 作用：循环遍历数组所有元素项
-- > 注：此方式可以随时使用`break`语句停止遍历
-
-```js
-const colors = ['blue', 'green', 'white'];
-
-for (const color of colors) {
-    console.log(color);
-}
-// 'blue'
-// 'green'
-// 'white'
-```
-
-#### 13.3.2. for 循环
-
-- 语法：`for(let i; i < array.length; i++)`
-- 作用：循环使用递增的索引变量的方式遍历数组所有元素项，index变量从0递增到`colors.length-1`
-- > 注：此方式可以随时使用`break`语句停止遍历
-
-```js
-const colors = ['blue', 'green', 'white'];
-
-for (let index = 0; index < colors.length; index++) {
-    const color = colors[index];
-    console.log(color);
-}
-// 'blue'
-// 'green'
-// 'white'
-```
-
-#### 13.3.3. forEach()方法
-
-- 语法：
-
-```js
-array.forEach(callback(item[, index[, array]]))
-```
-
-- 参数callback函数，该函数参数包括：当前遍历项（item）、索引（index）和数组本身（array）。
-- 作用：forEach是Array新方法中最基本的一个，就是遍历，循环。对数组中的每一项元素调用callback函数，执行相关逻辑来遍历数组所有元素项
-- forEach方法与map方法的区别是：forEach不返回值，只用来操作数据。
-
-```js
-var arr = [1,2,3];
-arr.forEach((item, index) => {
-    console.log(item, index);
-    // 也可以有其他的操作。
-})
-```
-
-> 注：`array.forEach()`迭代中，不能使用`break`来中断操作
-
-### 13.4. 数组的映射
-
-#### 13.4.1. map()方法 - ES6新特性
-
-- 语法：`map(callback(item[, index[, array]]))`
-    - 参数callback函数，该函数参数包括：当前遍历项（item）、索引（index）和数组本身（array）。
-- 作用：接收一个函数，将原数组中的所有元素用这个函数处理后，创建新的数组返回。
-- > 注：`array.map()`创建一个新的映射数组，而不改变原始数组。
-
-例：有一个字符串数组，将其转为int数组
-
-```js
-let arr = ['1', '20', '-5', '3'];
-console.log(arr)
-
-let newArr = arr.map(s => parseInt(s));
-console.log(newArr)
-```
-
-![数组的map方法](images/20190421103633831_23300.png)
-
-#### 13.4.2. Array.from()方法
-
-`Array.from()`方法就是将一个**类数组对象**或者**可遍历对象(包括ES6新增的数据结构Set和Map)**转换成一个真正的数组。
-
-**类数组对象**，最基本的要求就是具有length属性的对象。
-
-##### 13.4.2.1. 语法
-
-```js
-Array.from(arrayLike[, mapFunction[, thisArg]])
-```
-
-- arrayLike：必传参数，想要转换成数组的伪数组对象或可迭代对象。
-- mapFunction：可选参数，`mapFunction(item，index){…}` 是在集合中的每个项目上调用的函数。返回的值将插入到新集合中。
-- thisArg：可选参数，执行回调函数 mapFunction 时 this 对象。这个参数很少使用。
-
-简单的示例
-
-```js
-const someNumbers = { '0': 10, '1': 15, length: 2 };
-Array.from(someNumbers, value => value * 2); // => [20, 30]
-```
-
-> 注：
->
-> - `Array.from()`创建一个新的映射数组，而不改变原始数组。
-> - `Array.from()`更适合从类似数组的对象进行映射。
-
-##### 13.4.2.2. 用法1：将类数组对象转换为真正数组
-
-```js
-let arrayLike = {
-    0: 'tom',
-    1: '65',
-    2: '男',
-    3: ['jane', 'john', 'Mary'],
-    'length': 4
-}
-
-// ES5的写法
-let arrEs5 = [].slice.call(arrayLike);
-
-// ES6的写法
-let arr = Array.from(arrayLike)
-console.log(arr)    // ['tom', '65', '男', ['jane','john','Mary']]
-```
-
-```js
-// 如果将上面代码中length属性去掉，将会是一个长度为0的空数组
-let arrayLike = {
-    'name': 'tom',
-    'age': '65',
-    'sex': '男',
-    'friends': ['jane','john','Mary'],
-}
-let arr = Array.from(arrayLike)
-console.log(arr)  // [ ]
-```
-
-```js
-// 如果具有length属性，但是对象的属性名不再是数字类型的，而是其他字符串型的。输出结果是长度为4，元素均为undefined的数组
-let arrayLike = {
-    'name': 'tom',
-    'age': '65',
-    'sex': '男',
-    'friends': ['jane','john','Mary'],
-    length: 4
-}
-let arr = Array.from(arrayLike)
-console.log(arr)  // [ undefined, undefined, undefined, undefined ]
-```
-
-- **总结，将一个类数组对象转换为一个真正的数组，必须具备以下条件：**
-    1. 该类数组对象必须具有length属性，用于指定数组的长度。如果没有length属性，那么转换后的数组是一个空数组
-    2. 该类数组对象的属性名必须为数值型或字符串型的数字
-- ps: 该类数组对象的属性名可以加引号，也可以不加引号
-
-##### 13.4.2.3. 用法2：将Set结构的数据转换为真正的数组
-
-```js
-let arr = [12,45,97,9797,564,134,45642]
-let set = new Set(arr)
-console.log(Array.from(set))  // [ 12, 45, 97, 9797, 564, 134, 45642 ]
-```
-
-Array.from还可以接受第二个参数，作用类似于数组的map方法，用来对每个元素进行处理，将处理后的值放入返回的数组。
-
-```js
-let arr = [12,45,97,9797,564,134,45642]
-let set = new Set(arr)
-console.log(Array.from(set, item => item + 1)) // [ 13, 46, 98, 9798, 565, 135, 45643 ]
-```
-
-##### 13.4.2.4. 用法3：将字符串转换为数组
-
-```js
-let str = 'hello world!';
-console.log(Array.from(str)) // ["h", "e", "l", "l", "o", " ", "w", "o", "r", "l", "d", "!"]s
-```
-
-##### 13.4.2.5. Array.from参数是一个真正的数组
-
-Array.from会返回一个一模一样的新数组
-
-```js
-console.log(Array.from([12,45,47,56,213,4654,154]))
-```
-
-### 13.5. 数据的简化
-
-#### 13.5.1. reduce() 方法 - ES6新特性
-
-`reduce()` 方法是 ES6 新增的数组方法，其作用是：对数组中的每个元素依次执行一个回调函数，从左到右依次累积计算出一个最终的值。可以简单理解为对数组的所有元素项进行累积操作。
-
-##### 13.5.1.1. 语法格式
-
-```js
-array.reduce(callback(accumulator, currentValue[, index[, array]])[, initialValue])
-```
-
-参数解析：
-
-- callback（必须）：每个每个元素执行的回调函数，包含以下4个参数：
-    - accumulator（必选）：第一个参数是上一次 reduce处理的结果
-    - currentValue（必选）：第二个参数是数组中要处理的下一个元素
-    - index（可选）：当前元素的索引
-    - array（可选）：当前元素所属的原始数组对象
-- initialValue（可选）：累积器的初始值
-
-`reduce` 函数的执行过程如下：
-
-1. 默认如果没有指定 `initialValue` 初始值作为起始参数，则将数组的第一个元素作为累积器的初始值，否则将 `initialValue` 作为累积器的初始值。
-2. 从数组的第二个元素开始，依次对数组中的每个元素执行回调函数。
-3. 将回调函数的返回值作为下一次回调函数执行时的累积器的值。
-4. 对数组中的每个元素执行完回调函数后，`reduce` 函数返回最后一次回调函数的返回值，即最终的累积值。
-
-##### 13.5.1.2. 示例
-
-基础累积运算示例：
-
-```js
-const arr = [1, 20, -5, 3];
-
-/* 没有初始值 */
-let result1 = arr.reduce((a, b) => a + b);        // 结果：19
-let result2 = arr.reduce((a, b) => a * b);        // 结果：-300
-/* 指定初始值 */
-let result3 = arr.reduce((a, b) => a * b, 0);     // 结果：-0
-let result4 = arr.reduce((a, b) => a * b, 1);     // 结果：-300
-let result5 = arr.reduce((a, b) => a * b, -1);    // 结果：300
-```
-
-计算数组中每个元素出现的次数：
-
-```js
-const fruits = ['apple', 'banana', 'apple', 'orange', 'banana', 'apple']
-const count = fruits.reduce((accumulator, currentValue) => {
-    accumulator[currentValue] = (accumulator[currentValue] || 0) + 1
-    return accumulator
-}, {})
-console.log(count) // Output: { apple: 3, banana: 2, orange: 1 }
-```
-
-拍平嵌套数组：
-
-```js
-const nestedArray = [
-    [1, 2],
-    [3, 4],
-    [5, 6],
-]
-const flattenedArray = nestedArray.reduce(
-    (accumulator, currentValue) => accumulator.concat(currentValue),
-    []
-)
-console.log(flattenedArray) // Output: [1, 2, 3, 4, 5, 6]
-```
-
-按条件分组：
-
-```js
-const people = [
-    { name: 'Alice', age: 25 },
-    { name: 'Bob', age: 30 },
-    { name: 'Charlie', age: 35 },
-    { name: 'David', age: 25 },
-    { name: 'Emily', age: 30 },
-]
-const groupedPeople = people.reduce((accumulator, currentValue) => {
-    const key = currentValue.age
-    if (!accumulator[key]) {
-        accumulator[key] = []
-    }
-    accumulator[key].push(currentValue)
-    return accumulator
-}, {})
-console.log(groupedPeople)
-// Output: {
-//   25: [{ name: 'Alice', age: 25 }, { name: 'David', age: 25 }],
-//   30: [{ name: 'Bob', age: 30 }, { name: 'Emily', age: 30 }],
-//   35: [{ name: 'Charlie', age: 35 }]
-// }
-```
-
-将多个数组合并为一个对象：
-
-```js
-const keys = ['name', 'age', 'gender']
-const values = ['Alice', 25, 'female']
-const person = keys.reduce((accumulator, currentValue, index) => {
-    accumulator[currentValue] = values[index]
-    return accumulator
-}, {})
-console.log(person) // Output: { name: 'Alice', age: 25, gender: 'female' }
-```
-
-将字符串转换为对象：
-
-```js
-const str = 'key1=value1&key2=value2&key3=value3'
-const obj = str.split('&').reduce((accumulator, currentValue) => {
-    const [key, value] = currentValue.split('=')
-    accumulator[key] = value
-    return accumulator
-}, {})
-console.log(obj)
-// Output: { key1: 'value1', key2: 'value2', key3: 'value3' }
-```
-
-将对象转换为查询字符串：
-
-```js
-const params = { foo: 'bar', baz: 42 }
-const queryString = Object.entries(params)
-    .reduce((acc, [key, value]) => {
-        return `${acc}${key}=${value}&`
-    }, '?')
-    .slice(0, -1)
-console.log(queryString) // "?foo=bar&baz=42"
-```
-
-打印斐波那契数列：
-
-```js
-const fibonacci = n => {
-    return [...Array(n)].reduce((accumulator, currentValue, index) => {
-        if (index < 2) {
-            accumulator.push(index)
-        } else {
-            accumulator.push(accumulator[index - 1] + accumulator[index - 2])
-        }
-        return accumulator
-    }, [])
-}
-console.log(fibonacci(10)) // Output: [0, 1, 1, 2, 3, 5, 8, 13, 21, 34]
-```
-
-检查字符串是否是回文字符串：
-
-```js
-const str = 'racecar'
-const isPalindrome = str.split('').reduce((accumulator, currentValue, index, array) => {
-    return accumulator && currentValue === array[array.length - index - 1]
-}, true)
-console.log(isPalindrome) // Output: true
-```
-
-检查括号是否匹配：
-
-```js
-const str = '(()()())'
-const balanced =
-    str.split('').reduce((acc, cur) => {
-        if (cur === '(') {
-            acc++
-        } else if (cur === ')') {
-            acc--
-        }
-        return acc
-    }, 0) === 0
-console.log(balanced) // true
-```
-
-递归获取对象属性：
-
-```js
-const user = {
-    info: {
-        name: 'MooN',
-        address: { home: 'kira', company: 'zero' },
-    },
-}
-function get(config, path, defaultVal) {
-    return path.split('.').reduce((config, name) => config[name], config) || defaultVal
-    return fallback
-}
-get(user, 'info.name') // MooN
-get(user, 'info.address.home') // kira
-get(user, 'info.address.company') // zero
-get(user, 'info.address.abc', 'default') // default
-```
-
-##### 13.5.1.3. 手写 reduce 实现
-
-可以通过手写一个简单的 `reduce` 函数来更好地理解它的实现原理：
-
-```js
-function myReduce(arr, callback, initialValue) {
-    let accumulator = initialValue === undefined ? arr[0] : initialValue
-    for (let i = initialValue === undefined ? 1 : 0; i < arr.length; i++) {
-        accumulator = callback(accumulator, arr[i], i, arr)
-    }
-    return accumulator
-}
-```
-
-上面的代码中，`myReduce` 函数接受 3 个参数：要执行 `reduce` 操作的数组 `arr`、回调函数 `callback` 和累积器的初始值 `initialValue`。如果没有提供初始值，则将数组的第一个元素作为累积器的初始值。
-
-接下来在循环中，如果有 initialValue，则从第一个元素开始遍历 callback，此时 callabck 的第二个参数是从数组的第一项开始的；如果没有 initialValue，则从第二个元素开始遍历 callback，此时 callback 的第二个参数是从数组的第二项开始的从数组的第二个元素开始，依次对数组中的每个元素执行回调函数，并将返回值作为下一次回调函数执行时的累积器的值。
-
-最后，`myReduce` 函数返回最后一次回调函数的返回值，即最终的累积值。
-
-> Notes: 此简易实现只为更好地理解 `reduce` 函数的实现原理，并没有考虑很多边界情况和复杂的应用场景。
-
-### 13.6. 数据的连接
-
-#### 13.6.1. concat()方法
-
-- 语法：`array.concat(array1[, array2, ...])`
-- 作用：连接两个或更多的数组，或者给数组增加元素，并返回结果。一般用于数组的拼接和增加元素操作
-- > 注：concat方法是创建一个新的数组，而不改变原来的数组
-
-```js
-const arr1 = [1, 2];
-const arr2 = ['moon', 'hehe'];
-
-const concatArray = arr1.concat(arr2);
-console.log(concatArray); // 1, 2, moon, hehe
-```
-
-#### 13.6.2. 展开操作符(...)
-
-- 语法：`[...array1, ...array2]`
-- 作用：可以使用展开操作符与数组变量一起使用来连接数组，与`concat()`方法效果一样
-
-```js
-const arr1 = [1, 2];
-const arr2 = ['moon', 'hehe'];
-
-const concatArray = [...arr1, ...arr2];
-console.log(concatArray); // 1, 2, moon, hehe
-```
-
-#### 13.6.3. join() 方法 - 将数组转成字符串
-
-- 语法：`array.join(separator分隔符)`
-- join方法正好与**字符串的方法`split(分隔符)`（方法将一个字符串切割成一个字符串数组）**相反，将数组通过分隔符，拼成一个字符串。
-
-```js
-var a3 = [1, 2, 3]
-var str = a3.join("+")
-// 输出结果："1+2+3"
-```
-
-#### 13.6.4. split() 方法 - 将字符串转成数组
-
-- 语法：`array.split(separator分隔符)`
-- 作用：将字符串，按指定的分隔符截取成数组，与join()方法相反
-
-### 13.7. 过滤（获取）数组的部分数据
-
-#### 13.7.1. slice() 方法
-
-- 语法：`array.slice([fromIndex[，toIndex]])`
-    - 可选参数fromIndex：截取的开始索引，默认值为0
-    - 可选参数toIndex：截取结束索引（不包括），默认值为`array.length`
-- 作用：返回数组的一个片段，该片段从fromIndex开始，以toIndex结尾（不包括toIndex本身）
-- > **注意，此方法与splice() 方法很相似，但slice()方法是创建一个新数组，不会改变原数组的。**
-
-```js
-const names = ["moon", "abc", "kira", "N"]
-
-const heroes = names.slice(0, 2)
-const villains = names.splice(2)
-
-console.log(heroes) // ["moon", "abc"]
-console.log(villains) // ["kira", "N"]
-```
-
-#### 13.7.2. filter()方法
-
-- 语法：
-
-```js
-array.filter(predicate(item[, index[, array]]))
-```
-
-- 参数predicate函数，该函数参数包括：当前遍历项（item）、索引（index）和数组本身（array）。
-- 作用：对数组进行筛选出符合条件的项，最终得到一个新的筛选后的数组
-
-```js
-var arr = [1, 2, 3, 4];
-var newarr = arr.filter((item, idx) => {
-    return item % 2 === 0;
-})
-```
-
-> 注：`array.filter()` 创建一个新数组，而不改变原始数组
-
-##### 13.7.2.1. 扩展：使用Boolean过滤数组中的所有假值
-
-JS中的相关假值：`false`, `null`, `0`, `undefined`, `NaN`。可以使用Boolean构造函数来进行一次转换，快速将数组中假值过滤
-
-```js
-const compact = arr => arr.filter(Boolean);
-compact([0, 1, false, 2, "", 3, "a", "e" * 23, NaN, "s", 34]);
-// [ 1, 2, 3, 'a', 's', 34 ]
-```
-
-### 13.8. 数组的拷贝
-
-#### 13.8.1. 方式1：使用展开操作符(...)
-
-- 语法：`const clone = [...array]`
-- 作用：复制一个新的数组
-- > 注：`[...array]`是创建一个浅拷贝
-
-```js
-const colors = ['white', 'black', 'gray'];
-const clone = [...colors];
-
-console.log(clone); // => ['white', 'black', 'gray']
-console.log(colors === clone); // => false
-```
-
-#### 13.8.2. 方式2：[].concat(array)
-
-- 语法：`[].concat(array)`是另一种复制数组的方式
-- > 注：`[].concat(array)`是创建一个浅拷贝。
-
-```js
-const colors = ['white', 'black', 'gray'];
-const clone = [].concat(colors);
-
-console.log(clone); // => ['white', 'black', 'gray']
-console.log(colors === clone); // => false
-```
-
-#### 13.8.3. 方式3：slice()
-
-- 语法：`array.slice()`，利用slice的参数默认值，进行数组的复制
-- > `array.slice()` 创建一个浅拷贝。
-
-```js
-const colors = ['white', 'black', 'gray'];
-const clone = colors.slice();
-
-console.log(clone); // => ['white', 'black', 'gray']
-console.log(colors === clone); // => false
-```
-
-### 13.9. 查找数组中元素
-
-#### 13.9.1. includes()方法
-
-- 语法：`Array.includes(itemToSearch[，fromIndex])`
-    - 参数itemToSearch：数据包含的元素
-    - 参数fromIndex（可选）：默认值为0，表示开始搜索的索引。
-- 作用：返回一个布尔值，判断数组是否包含itemToSearch。如数组array包含itemToSearch，则返回true
-- Array.includes可以使用在多重判断中
-
-```js
-// condition
-function test(fruit) {
-  if (fruit == 'apple' || fruit == 'strawberry') {
-    console.log('red');
-  }
-}
-```
-
-- 如果多个判断条件，则用更多的`||`来拓展条件语句，此时可以使用(Array.includes)重写条件语句。
-
-```js
-function test(fruit) {
-  const redFruits = ['apple', 'strawberry', 'cherry', 'cranberries'];
-
-  if (redFruits.includes(fruit)) {
-    console.log('red');
-  }
-}
-```
-
-#### 13.9.2. find() 和 findIndex() 方法
-
-- 语法：`array.find/findIndex((value, index, arr) => {})`
-- 函数参数都是一个查找的回调函数。
-    - value：每一次迭代查找的数组元素
-    - index：每一次迭代查找的数组元素索引
-    - arr：被查找的数组。
-- `find()`函数用来查找满足回调函数的**第一个目标元素**，找到就返回该元素，找不到返回undefined
-- `findIndex()`函数也是查找目标元素，找到就返回元素的位置（索引），找不到就返回-1
-
-```js
-/* 1. 查找元素，返回找到的值，找不到返回undefined */
-const arr1 = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
-var ret1 = arr1.find((value, index, arr) => {
-  return value > 4
-})
-
-var ret2 = arr1.find((value, index, arr) => {
-  return value > 14
-})
-console.log('%s', ret1)    // 5
-console.log('%s', ret2)    // undefined
-
-/* 2. 查找元素，返回找到的index，找不到返回-1 */
-var ret3 = arr1.findIndex((value, index, arr) => {
-  return value > 4
-})
-
-var ret4 = arr1.findIndex((value, index, arr) => {
-  return value > 14
-})
-console.log('%s', ret3)    // 4
-console.log('%s', ret4)    // -1
-```
-
-#### 13.9.3. indexOf() 方法
-
-- 语法：`array.indexOf(itemToSearch[, fromIndex])`
-    - 参数itemToSearch：查找的元素
-    - 可选参数fromIndex：表示开始搜索的索引，默认值为0
-- 作用：返回array中第一个出现的itemToSearch的索引；如果找不到该项，则返回-1
-- 注：`array.findIndex(predicate)`方法是使用predicate函数查找索引的替代方法
-
-```js
-const arr = ['a', 'b', 'c', 'd'];
-const index = arr.indexOf('b');
-
-console.log(index); // 1
-```
-
-#### 13.9.4. every() 方法
-
-- 语法：`array.every(predicate(item[, index[, array]]))`
-    - 参数 predicate 函数，该函数参数包括：当前遍历项（item）、索引（index）和数组本身（array）。
-- `every()`是对数组中每一项运行给定函数，如果该函数对每一项返回true，则最终返回true。
-
-```js
-const fruits = [
-    { name: 'apple', color: 'red' },
-    { name: 'banana', color: 'yellow' },
-    { name: 'grape', color: 'purple' }
-];
-
-// 传统处理方式
-function test() {
-  let isAllRed = true;
-
-  // 条件：所有水果都是红色
-  for (let f of fruits) {
-    if (!isAllRed) break;
-    isAllRed = (f.color == 'red');
-  }
-
-  console.log(isAllRed); // false
-}
-
-// 使用Array.every()方法判断所有元素都符合条件
-function test() {
-  const isAllRed = fruits.every(f => f.color == 'red');
-
-  console.log(isAllRed); // false
-}
-```
-
-#### 13.9.5. some() 方法
-
-- 语法：`array.some(predicate(item[, index[, array]]))`
-    - 参数 predicate 函数，该函数参数包括：当前遍历项（item）、索引（index）和数组本身（array）。
-- `some()`是对数组中每一项运行给定函数，如果该函数对任一项返回 true，则返回 true。
-- 使用`Array.some`判断部分元素符合条件
-
-```js
-const fruits = [
-    { name: 'apple', color: 'red' },
-    { name: 'banana', color: 'yellow' },
-    { name: 'grape', color: 'purple' }
-];
-
-function test() {
-  // 条件：任何一个水果是红色
-  const isAnyRed = fruits.some(f => f.color == 'red');
-
-  console.log(isAnyRed); // true
-}
-```
-
-### 13.10. 数组的增删改操作
-
-#### 13.10.1. push() 方法增加元素
-
-- 语法：`array.push(item1 [...，itemN])`
-- 作用：将一个或多个项追加到数组的末尾，并返回新的长度
-- > 注：此方法会改变原数组
-
-```js
-const names = ['moon']
-names.push('abc')
-console.log(names) // ["moon", "abc"]
-```
-
-#### 13.10.2. unshift() 方法增加元素
-
-- 语法：`array.unshift(item1[..., itemN])`
-- 作用：将一个或多个项追加到数组的开头，并返回新的长度
-- > 注：此方法会改变原数组
-
-```js
-const names = ['moon']
-names.unshift('abc')
-console.log(names) // ["abc", "moon"]
-```
-
-#### 13.10.3. 展开操作符(...)增加元素
-
-- 通过组合展开操作符和数组变量，以不可变的方式在数组中插入项
-- 在数组末尾追加一个项
-
-```js
-const names = ['moon', 'kira']
-const names2 = [...names, 'N']
-console.log(names2) // ["moon", "kira", "N"]
-```
-
-- 在数组的开头追加一个项
-
-```js
-const names = ['moon', 'kira']
-const names2 = ['N', ...names]
-console.log(names2) // ["N", "moon", "kira"]
-```
-
-- 在任何索引处插入元素
-
-```js
-const names = ['moon', 'kira']
-const indexToInsert = 1
-const names2 = [
-  ...names.slice(0, indexToInsert),
-  'newWord',
-  ...names.slice(indexToInsert)
-]
-console.log(names2)  // ["moon", "newWord", "kira"]
-```
-
-#### 13.10.4. pop() 方法删除元素
-
-- 语法：`array.pop()`
-- 作用：从数组中删除最后一个元素，然后返回该元素
-- 注：`array.pop()`方法会改变原数组
-
-```js
-const colors = ['blue', 'green', 'black'];
-const lastColor = colors.pop();
-console.log(lastColor); // => 'black'
-console.log(colors); // => ['blue', 'green']
-```
-
-#### 13.10.5. shift() 方法删除元素
-
-- 语法：`array.shift()`
-- 作用：从数组中删除第一个元素，然后返回该元素
-- 注：`array.shift()`方法会改变原数组，并具有O(n)复杂度。
-
-```js
-const colors = ['blue', 'green', 'black'];
-const firstColor = colors.shift();
-console.log(firstColor); // => 'blue'
-console.log(colors); // => ['green', 'black']
-```
-
-#### 13.10.6. splice() 方法，对数组删除/替换/插入某一项
-
-- 语法：`array.splice(index, len, [item, ...itemN])`
-- 作用：返回增删改后的数组，**该方法会改变原始数组**
-- 参数：splice有3个参数，它也可以用来替换/删除/添加数组内某一个或者几个值
-    - `index`：数组开始下标，可选参数默认值为0
-    - `len`: 替换/删除的长度，可选参数，默认值为`array.length`
-    - `item`：替换的值，删除操作的时候，item为空
-
-- 删除操作
-
-```js
-// 删除起始下标为1，长度为1的一个值(len设置1，如果为0，则数组不变)
-var arr = ['a', 'b', 'c', 'd'];
-arr.splice(1, 1);
-console.log(arr); // ['a','c','d'];
-
-// 删除起始下标为1，长度为2的一个值(len设置2)
-var arr2 = ['a', 'b', 'c', 'd']
-arr2.splice(1, 2);
-console.log(arr2); // ['a','d']
-
-// 清空数组
-const colors = ['blue', 'green', 'black'];
-colors.splice(0);
-console.log(colors); // []
-```
-
-- 替换操作
-
-```js
-// 替换起始下标为1，长度为1的一个值为‘ttt'，len设置的1
-var arr = ['a', 'b', 'c', 'd'];
-arr.splice(1, 1, 'ttt');
-console.log(arr);   // ['a','ttt','c','d']
-
-var arr2 = ['a', 'b', 'c', 'd'];
-arr2.splice(1, 2, 'ttt');
-console.log(arr2); // ['a','ttt','d'] 替换起始下标为1，长度为2的两个值为‘ttt'，len设置的1
-```
-
-- 添加操作 -- len设置为0，item为添加的值
-
-```js
-var arr = ['a', 'b', 'c', 'd'];
-arr.splice(1, 0, 'ttt');
-console.log(arr); // ['a','ttt','b','c','d'] 表示在下标为1处添加一项'ttt'
-```
-
-- delete方法删除掉数组中的元素后，会把该下标出的值置为undefined,数组的长度不会变
-
-```js
-var arr = ['a', 'b', 'c', 'd'];
-delete arr[1];
-arr; // ["a", undefined × 1, "c", "d"] 中间出现两个逗号，数组长度不变，有一项为undefined
-```
-
-#### 13.10.7. 展开操作符号(...)
-
-可以通过组合展开操作符和数据字面量以不可变的方式从数组中删除项
-
-```js
-const names = ['moon', 'kira', 'N', 'L+N']
-const fromIndex = 1
-const removeCount = 2
-
-const newNames = [
-   ...names.slice(0, fromIndex),
-   ...names.slice(fromIndex + removeCount)
-]
-
-console.log(newNames) // ["moon", "L+N"]
-```
-
-#### 13.10.8. array.length 属性清空数组
-
-- array.length是保存数组长度的属性。 除此之外，array.length是可写的。
-- 如果写一个小于当前长度的`array.length = newLength`，多余的元素从数组中移除
-
-```js
-const colors = ['blue', 'green', 'black'];
-colors.length = 0;
-console.log(colors); // []
-```
-
-#### 13.10.9. fill() 方法填充数组
-
-- 语法：`arr.fill(value, start, end)`
-    - value：填充值
-    - start：填充起始位置，可选参数，默认值为0
-    - end：填充结束位置，可选参数，默认值为`array.length`，即实际结束位置是end-1
-- 作用：`fill()`使用制定的元素填充数组，其实就是用默认内容初始化数组
-
-```js
-// 全部填充
-['a', 'b', 'c'].fill(7)    // [7, 7, 7]
-
-// 使用Array(length).fill(initial)来初始化特定长度和初始值的数组
-new Array(3).fill(7)    // [7, 7, 7]
-
-// 填充指定位置的元素
-['a', 'b', 'c'].fill(7, 1, 2)    // ['a', 7, 'c']
-```
-
-#### 13.10.10. copyWithin() 方法
-
-- 语法：`arr.copyWithin(target[, start[, end]])`
-- 参数：
-    - target（必需）：从该位置开始替换数据
-    - start（可选）：从该位置开始读取数据，默认为0。如果为负值，表示倒数
-    - end（可选）：到该位置前停止读取数据，默认等于数组长度。如果为负值，表示倒数
-
-```js
-let numbers = [1, 2, 3, 4, 5];
-
-numbers.copyWithin(-2);
-// [1, 2, 3, 1, 2]
-
-numbers.copyWithin(0, 3);
-// [4, 5, 3, 4, 5]
-
-numbers.copyWithin(0, 3, 4);
-// [4, 2, 3, 4, 5]
-
-numbers.copyWithin(-2, -3, -1);
-// [1, 2, 3, 3, 4]
-
-[].copyWithin.call({length: 5, 3: 1}, 0, 3);
-// {0: 1, 3: 1, length: 5}
-
-// ES2015 Typed Arrays are subclasses of Array
-var i32a = new Int32Array([1, 2, 3, 4, 5]);
-
-i32a.copyWithin(0, 2);
-// Int32Array [3, 4, 5, 4, 5]
-
-// On platforms that are not yet ES2015 compliant:
-[].copyWithin.call(new Int32Array([1, 2, 3, 4, 5]), 0, 3, 4);
-// Int32Array [4, 2, 3, 4, 5]
-```
-
-### 13.11. 数组的扁平化
-
-#### 13.11.1. flat() 方法
-
-- 语法：`array.flat([depth])`
-    - 参数depth：可选参数，默认值为1
-- 作用：通过递归扁平属于数组的项直到一定深度来创建新数组
-- > 注：`array.flat()` 创建一个新数组，而不会改变原始数组
-
-```js
-// arrays 包含数字和数字数组的混合。 arrays.flat()对数组进行扁平，使其仅包含数字。
-const arrays = [0, [1, 3, 5], [2, 4, 6]];
-const flatArray = arrays.flat();
-console.log(flatArray); // [0, 1, 3, 5, 2, 4, 6]
-```
-
-### 13.12. 数组的排序
-
-#### 13.12.1. sort()方法
-
-`sort()` 方法作用是对数组进行排序，如果数组是数字，也是默认按字符串的排序方法进行排序。语法格式如下：
-
-```js
-array.sort([compare])
-```
-
-- 可选参数 `compare(a, b)` 是一个自定义排序顺的回调函数。如果按数字排序，需要指定排序的函数（类似java的比较器），如下是函数的比较规则：
-    - 如果a小于b，在排序后的数组中a应该出现在b之前，就返回一个小于0的值。
-    - 如果a等于b，就返回0。
-    - 如果a大于b，就返回一个大于0的值。
-
-> 注：`array.sort()` 会改变原数组。
-
-```js
-// 对数组 numbers 以升序对数字进行排序
-const numbers = [4, 3, 1, 2];
-numbers.sort();
-console.log(numbers); // => [1, 2, 3, 4]
-
-// 使用比较函数，让偶数排在奇数前面
-const numbers = [4, 3, 1, 2];
-
-function compare(n1, n2) {
-  if (n1 % 2 === 0 && n2 % 2 !== 0) {
-    return -1;
-  }
-  if (n1 % 2 !== 0 && n2 % 2 === 0) {
-    return 1;
-  }
-  return 0;
-}
-
-numbers.sort(compare);
-console.log(numbers); // => [4, 2, 3, 1]
-```
-
-#### 13.12.2. reverse()方法
-
-- 对数组进行反转，直接操作数组本身
-
-## 14. 字符串(String)
-
-### 14.1. trim() 方法
+### 13.1. trim() 方法
 
 `trim()`方法会从一个字符串的两端删除空白字符。
 
@@ -3663,7 +2612,7 @@ str.trim();
 
 > <font color=red>**注：`trim()`方法并不影响原字符串本身，它返回的是一个新的字符串。**</font>
 
-### 14.2. replace 方法
+### 13.2. replace 方法
 
 通过正则表达式，现实去掉中间所有空格
 
@@ -3671,11 +2620,11 @@ str.trim();
 const str = 字符串.replace(/\s/g, "");
 ```
 
-## 15. 数值函数
+## 14. 数值函数
 
-### 15.1. 案例应用
+### 14.1. 案例应用
 
-#### 15.1.1. 生成一个4位的随机码，包含字母
+#### 14.1.1. 生成一个4位的随机码，包含字母
 
 使用到的 js 中 Math 函数：数学对象，提供对数据的数学计算。
 
@@ -3700,7 +2649,7 @@ getVerifyCode: function () {
 }
 ```
 
-#### 15.1.2. 生成[min,max]的随机数
+#### 14.1.2. 生成[min,max]的随机数
 
 ```js
 // max - 期望的最大值
@@ -3709,22 +2658,22 @@ parseInt(Math.random()*(max-min+1)+min,10);
 Math.floor(Math.random()*(max-min+1)+min);
 ```
 
-## 16. AJAX
+## 15. AJAX
 
-### 16.1. AJAX 概述
+### 15.1. AJAX 概述
 
 AJAX 全称 Asynchronous Javascript And XML （异步 JavaScript 和 XML），可以使网页实现<font color=red>**异步更新**</font>，就是不重新加载整个网页的情况下，对网页的某部分进行更新（<font color=red>**局部刷新**</font>）。传统的网页（不使用AJAX）如果需要更新内容，必须重载整个网页页面。
 
 AJAX = 异步 JavaScript 和 XML，是一种新的思想，整合之前的多种技术，用于创建快速交互式网页应用的网页开发技术。
 
-#### 16.1.1. 同步与异步的区别
+#### 15.1.1. 同步与异步的区别
 
 - **同步**：客户端发送请求到服务端，当服务端返回响应之前，客户端都处于等待卡死状态。
 - **异步**：客户端发送请求到服务端，无论服务端是否返回响应，客户端都可以在该页面中随意做其他事情，不会被卡死，提高了用户的体验。
 
 ![](images/387051512249072.jpg)
 
-#### 16.1.2. 优缺点
+#### 15.1.2. 优缺点
 
 **优点**
 
@@ -3741,7 +2690,7 @@ AJAX = 异步 JavaScript 和 XML，是一种新的思想，整合之前的多种
 4. 破坏了程序的异常机制
 5. 调试困难
 
-### 16.2. AJAX 原理分析
+### 15.2. AJAX 原理分析
 
 1. 使用 JavaScript 获得浏览器内置的 AJAX 引擎（`XMLHttpRequest` 异步调用对象）
     1. 通过 AJAX 引擎确定请求路径和请求参数
@@ -3759,16 +2708,16 @@ var xmlhttp = new XMLHttpRequest();
     1. 通过设置给 AJAX 引擎的回调函数获得服务器响应的数据
     2. 使用 JavaScript 在指定的位置，显示响应数据，从而局部修改页面的数据，达到局部刷新目的。 
 
-### 16.3. JavaScript 中 AJAX 的使用
+### 15.3. JavaScript 中 AJAX 的使用
 
-#### 16.3.1. 原生态 JS 操作 ajax 步骤
+#### 15.3.1. 原生态 JS 操作 ajax 步骤
 
 1. 获得 ajax 引擎。
 2. 设置回调函数。作用当前 AJAX 请求服务器过程中不同状态变化的时候都会调用此函数
 3. 确定请求路径
 4. 发送请求。JavaScript ajax 处理 GET 和 POST 请求会有细微差异
 
-#### 16.3.2. ajax 引擎连接状态变化过程
+#### 15.3.2. ajax 引擎连接状态变化过程
 
 ajax 引擎连接状态 readyState 值有 0~4 变化过程。存有 XMLHttpRequest 的状态。从 0 到 4 发生变化。
 
@@ -3789,7 +2738,7 @@ xmlHttp.onreadystatechange = function(){
 }
 ```
 
-#### 16.3.3. XMLHttpRequest 对象浏览器兼容
+#### 15.3.3. XMLHttpRequest 对象浏览器兼容
 
 大多数浏览器都支持以下方式得到 `XMLHttpRequest`
 
@@ -3824,7 +2773,7 @@ function getXMLhttp(){
 } 
 ```
 
-#### 16.3.4. JS 原生 AJAX 现实示例
+#### 15.3.4. JS 原生 AJAX 现实示例
 
 ```html
 <script type="text/javascript">
@@ -3893,11 +2842,11 @@ function getXMLhttp(){
 </body>
 ```
 
-## 17. 前端日志输出
+## 16. 前端日志输出
 
 在前端开发中，随着项目迭代升级，日志打印逐渐风格不一，合理的日志输出是监控应用状态、调试代码和跟踪用户行为的重要手段。一个好的日志系统能够帮助开发者快速定位问题，提高开发效率。
 
-### 17.1. 日志等级
+### 16.1. 日志等级
 
 通常，会定义不同的日志等级，以便根据消息的重要性进行分类。日志等级从低到高可以分为以下几类：
 
@@ -3907,11 +2856,11 @@ function getXMLhttp(){
 - ERROR: 由于严重的问题，某些功能无法正常运行。
 - FATAL: 非常严重的问题，可能导致系统崩溃。
 
-### 17.2. console 对象
+### 16.2. console 对象
 
 console 是 js 中用于输出日志的对象
 
-#### 17.2.1. 常用方法
+#### 16.2.1. 常用方法
 
 1. `console.log()`
 
@@ -3946,7 +2895,7 @@ console.error("错误");
 13. `console.timeLine()` 和 `console.timeLineEnd()`：一起使用记录一段时间轴
 14. `console.trace()`：堆栈跟踪相关的调试
 
-#### 17.2.2. 格式化符号
+#### 16.2.2. 格式化符号
 
 |   格式化符号   |             实现的功能             |
 | :----------: | -------------------------------- |
@@ -3957,7 +2906,7 @@ console.error("错误");
 |     `%O`     | 转化成JavaScript对象输出           |
 |     `%c`     | 把字符串按照你提供的样式格式化后输入 |
 
-### 17.3. 日志格式
+### 16.3. 日志格式
 
 日志内容应该包含足够的信息，以便于开发者理解发生了什么。一个完整的日志消息通常包括：
 
@@ -3978,9 +2927,9 @@ console.error("错误");
 [2024-04-01T12:00:00.000Z] [ERROR] Failed to load user data. {stack}
 ```
 
-### 17.4. 日志类
+### 16.4. 日志类
 
-#### 17.4.1. 基础实现
+#### 16.4.1. 基础实现
 
 为了更好地控制日志输出，可以封装一个日志工具，来统一管理日志输出。以下是简单的日志工具实现：
 
@@ -4036,7 +2985,7 @@ Logger.info('Application is starting...')
 Logger.error('Failed to load user data', new Error('Network Error'))
 ```
 
-#### 17.4.2. 日志等级控制
+#### 16.4.2. 日志等级控制
 
 在开发环境中，可能希望看到尽可能多的日志输出，以便更好地调试应用。但在生产环境中，为了避免性能损耗和过多的日志信息，可能只希望输出 `WARN` 和以上等级的日志。可以在 `Logger` 工具类中添加一个等级控制：
 
@@ -4073,7 +3022,7 @@ Logger.debug('This will not be logged in production')
 Logger.warn('This will be logged in production')
 ```
 
-#### 17.4.3. 日志格式化
+#### 16.4.3. 日志格式化
 
 为了进一步提高日志的可读性，可以添加格式化功能，比如为不同等级的日志添加颜色，或者为错误堆栈提供更好的格式化。
 
@@ -4103,7 +3052,7 @@ class Logger {
 }
 ```
 
-#### 17.4.4. 日志收集
+#### 16.4.4. 日志收集
 
 在生产环境中，可能需要将日志发送到后端服务器进行收集和分析。这可以通过 AJAX 请求或专门的日志服务来实现。例如，可以修改 Logger 工具，添加一个方法来发送日志：
 
@@ -4132,9 +3081,9 @@ if (process.env.NODE_ENV === 'production') {
 }
 ```
 
-## 18. 其他
+## 17. 其他
 
-### 18.1. JS的调试
+### 17.1. JS的调试
 
 因为 JS 是运行在浏览器端，几乎所有的主流浏览器都提供了 debug 调试的功能，在开发模式中，设置断点进行调试。不同的浏览器对应的操作与快捷键不一样，下面的调试的快捷键以 Chrome 为例：
 
@@ -4147,9 +3096,9 @@ if (process.env.NODE_ENV === 'production') {
 
 如果有语法错误，进行浏览器开发模式中会出现提示
 
-### 18.2. EventLoop
+### 17.2. EventLoop
 
-#### 18.2.1. JavaScript 是单线程的语言
+#### 17.2.1. JavaScript 是单线程的语言
 
 JavaScript 是一门单线程执行的编程语言。也就是说，同一时间只能做一件事情。
 
@@ -4157,7 +3106,7 @@ JavaScript 是一门单线程执行的编程语言。也就是说，同一时间
 
 > 单线程执行任务队列的问题：如果前一个任务非常耗时，则后续的任务就不得不一直等待，从而导致程序假死的问题。
 
-#### 18.2.2. 同步任务和异步任务
+#### 17.2.2. 同步任务和异步任务
 
 JavaScript 把待执行的任务分为了两类：
 
@@ -4168,7 +3117,7 @@ JavaScript 把待执行的任务分为了两类：
     - 又称为**耗时任务**，异步任务由 JavaScript 委托给宿主环境进行执行
     - 当异步任务执行完成后，会通知 JavaScript 主线程执行异步任务的回调函数
 
-#### 18.2.3. EventLoop 的基本概念
+#### 17.2.3. EventLoop 的基本概念
 
 **同步任务和异步任务的执行过程**
 
@@ -4182,7 +3131,7 @@ JavaScript 把待执行的任务分为了两类：
 
 <font color=red>**JavaScript 主线程从“任务队列”中读取异步任务的回调函数，放到执行栈中依次执行。这个过程是循环不断的，所以整个的这种运行机制又称为 EventLoop（事件循环）。**</font>
 
-#### 18.2.4. 结合 EventLoop 分析输出的顺序案例（面试题）
+#### 17.2.4. 结合 EventLoop 分析输出的顺序案例（面试题）
 
 ```js
 import { getResult } from '../utils/util.js'
@@ -4202,9 +3151,9 @@ console.log('D')
 - A 和 D 属于同步任务。会根据代码的先后顺序依次被执行
 - C 和 B 属于异步任务。它们的回调函数会被加入到任务队列中，等待主线程空闲时再执行
 
-### 18.3. 宏任务和微任务
+### 17.3. 宏任务和微任务
 
-#### 18.3.1. 什么是宏任务和微任务
+#### 17.3.1. 什么是宏任务和微任务
 
 JavaScript 把异步任务又做了进一步的划分，异步任务又分为两类，分别是：
 
@@ -4213,15 +3162,15 @@ JavaScript 把异步任务又做了进一步的划分，异步任务又分为两
 1. 宏任务（macrotask）：异步 Ajax 请求、`setTimeout`、`setInterval`、文件操作等
 2. 微任务（microtask）：`Promise.then`、`Promise.catch`、`Promise.finally`、`process.nextTick` 等
 
-#### 18.3.2. 宏任务和微任务的执行顺序
+#### 17.3.2. 宏任务和微任务的执行顺序
 
 ![](images/20211205110505881_9639.png)
 
 每一个宏任务执行完之后，都会**检查是否存在待执行的微任务**。如果有，则执行完所有微任务之后，再继续执行下一个宏任务。
 
-#### 18.3.3. 宏任务和微任务执行顺序分析案例（面试题）
+#### 17.3.3. 宏任务和微任务执行顺序分析案例（面试题）
 
-##### 18.3.3.1. 案例1
+##### 17.3.3.1. 案例1
 
 ```js
 setTimeout(() => console.log('1'))
@@ -4240,7 +3189,7 @@ console.log('4')
 2. 再执行微任务输出：3
 3. 再执行下一个宏任务输出：1
 
-##### 18.3.3.2. 案例2
+##### 17.3.3.2. 案例2
 
 ```js
 console.log('1')
@@ -4275,9 +3224,9 @@ setTimeout(() => {
 4. 再执行第2个宏任务中的同步任务输出：7、8
 5. 再执行第2个宏任务的微任务输出：9
 
-### 18.4. WebSocket
+### 17.4. WebSocket
 
-#### 18.4.1. 概念
+#### 17.4.1. 概念
 
 WebSocket 是一种在独立的、创建在 TCP 连接上进行全双工通信的协议。Websocket 通过 HTTP/1.1 协议的 101 状态码进行握手。
 
@@ -4285,11 +3234,11 @@ WebSocket 使得客户端和服务器之间的数据交换变得更加简单，�
 
 > WebSocket 通信协议于 2011 年被 IETF 定为标准 RFC 6455，并由 RFC7936 补充规范。WebSocket API 也被 W3C 定为标准。
 
-#### 18.4.2. API 方法（待整理）
+#### 17.4.2. API 方法（待整理）
 
 > TODO: 待参考 MDN 网站整理
 
-#### 18.4.3. 基础示例
+#### 17.4.3. 基础示例
 
 WebSockets 它可以在用户的浏览器和服务器之间打开交互式通信会话。使用此API，可以向服务器发送消息并接收事件驱动的响应，而无需通过轮询服务器的方式以获得响应。 WebSocket 对象提供了用于创建和管理 WebSocket 连接，以及可以通过该连接发送和接收数据的API。
 
@@ -4308,9 +3257,9 @@ socket.addEventListener('message', function (event) {
 });
 ```
 
-### 18.5. API 接口案例
+### 17.5. API 接口案例
 
-#### 18.5.1. 案例需求
+#### 17.5.1. 案例需求
 
 基于 MySQL 数据库 + Express 对外提供用户列表的 API 接口服务。用到的技术点如下：
 
@@ -4319,12 +3268,12 @@ socket.addEventListener('message', function (event) {
 - Promise
 - async/await
 
-#### 18.5.2. 搭建项目的基本结构
+#### 17.5.2. 搭建项目的基本结构
 
 1. 启用 ES6 模块化支持，在 package.json 中声明 `"type": "module"`
 2. 安装第三方依赖包。`npm install express@4.17.1 mysql2@2.2.5 -S`
 
-#### 18.5.3. 创建基本的服务器
+#### 17.5.3. 创建基本的服务器
 
 在项目的根目录下创建 app.js 入口文件，创建基础的服务器
 
@@ -4356,7 +3305,7 @@ npm install -g nodemon
 npm uninstall -g nodemon
 ```
 
-#### 18.5.4. 创建 db 数据库操作模块
+#### 17.5.4. 创建 db 数据库操作模块
 
 创建`db/index.js`，配置数据库的连接信息
 
@@ -4374,7 +3323,7 @@ const pool = mysql.createPool({
 export default pool.promise()
 ```
 
-#### 18.5.5. 创建请求的处理方法
+#### 17.5.5. 创建请求的处理方法
 
 ```js
 import db from '../db/index.js'
@@ -4399,7 +3348,7 @@ export async function getAllUser(req, res) {
 }
 ```
 
-#### 18.5.6. 配置路由
+#### 17.5.6. 配置路由
 
 ```js
 import express from 'express'
@@ -4415,7 +3364,7 @@ router.get('/user', getAllUser)
 export default router
 ```
 
-#### 18.5.7. 导入并挂载路由模块
+#### 17.5.7. 导入并挂载路由模块
 
 在 app.js 文件中导入并挂载路由模块
 
@@ -4434,13 +3383,13 @@ app.listen(80, () => {
 })
 ```
 
-#### 18.5.8. 测试
+#### 17.5.8. 测试
 
 使用 postman 等请求工具，请求`http://127.0.0.1/api/user`，获取返回数据
 
-## 19. ES2020 新特性
+## 18. ES2020 新特性
 
-### 19.1. 可选链操作符
+### 18.1. 可选链操作符
 
 可选链操作符(`?.`)允许读取位于连接对象链深处的属性的值，而不必明确验证链中的每个引用是否有效。`?.`操作符的功能类似于`.`链式操作符，不同之处在于，在引用为空(`nullish`) (`null`或者`undefined`) 的情况下不会引起错误，该表达式短路返回值是`undefined`。与函数调用一起使用时，如果给定的函数不存在，则返回`undefined`。
 
@@ -4477,7 +3426,7 @@ func?.(args)
 
 > 参考：https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Operators/Optional_chaining
 
-### 19.2. 空值合并运算符（??） -- 整理中
+### 18.2. 空值合并运算符（??） -- 整理中
 
 **空值合并运算符**（`??`）是一个逻辑运算符，当左侧的操作数为 `null` 或者 `undefined` 时，返回其右侧操作数，否则返回左侧操作数。语法格式：
 
