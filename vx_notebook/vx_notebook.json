@@ -7,11 +7,6 @@
     },
     "history": [
         {
-            "last_accessed_time": "2024-02-24T02:42:17Z",
-            "line_number": 63,
-            "path": "其他/system-software/foobar2000.md"
-        },
-        {
             "last_accessed_time": "2024-02-24T02:42:22Z",
             "line_number": 933,
             "path": "Database/Redis/Redis-基础.md"
@@ -502,9 +497,14 @@
             "path": "后端框架/Hibernate/Hibernate-基础.md"
         },
         {
-            "last_accessed_time": "2024-07-08T15:47:09Z",
-            "line_number": 4132,
+            "last_accessed_time": "2024-07-11T15:41:11Z",
+            "line_number": 3428,
             "path": "前端资料/JavaScript/JavaScript-基础.md"
+        },
+        {
+            "last_accessed_time": "2024-07-11T15:41:12Z",
+            "line_number": 714,
+            "path": "前端资料/JavaScript/JavaScript-数组.md"
         }
     ],
     "image_folder": "images",
