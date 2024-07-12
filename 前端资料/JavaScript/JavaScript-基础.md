@@ -3428,6 +3428,8 @@ func?.(args)
 
 ### 18.2. 空值合并运算符（??） -- 整理中
 
+> 参考：https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Operators/Nullish_coalescing
+
 **空值合并运算符**（`??`）是一个逻辑运算符，当左侧的操作数为 `null` 或者 `undefined` 时，返回其右侧操作数，否则返回左侧操作数。语法格式：
 
 ```js
@@ -3450,4 +3452,15 @@ console.log(bar);
 // Expected output: 42
 ```
 
-> 参考：https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Operators/Nullish_coalescing
+#### 18.2.1. ?? 与 || 的选择建议
+
+**空值合并运算符 (`??`) 的使用场景**：
+
+- 为变量提供默认值：当一个变量可能是 null 或 undefined 时，可以使用空值合并运算符为其提供默认值。 例如：`const name = inputName ?? "Unknown";`
+- 处理可能缺失的属性：当访问对象属性时，如果该属性可能存在但值为 null 或 undefined，可以使用空值合并运算符提供默认值。 例如：`const address = user.address ?? "Unknown";`
+- 避免出现假值的情况：当我们只想处理显式定义的值，并避免处理假值（如 false、0、空字符串等）时，可以使用空值合并运算符。 例如：`const value = userInputValue ?? 0;`
+
+**逻辑或运算符 (`||`) 的使用场景**：
+
+- 提供备选值：当我们需要从多个选项中选择一个有效的值时，可以使用逻辑或运算符。 例如：`const result = value1 || value2 || value3;`
+- 判断条件：当我们需要检查多个条件中的任一条件是否为真时，可以使用逻辑或运算符。 例如：`if (condition1 || condition2) { // 执行操作 }`
