@@ -1,5 +1,3 @@
-# Spring Boot 整合 javax.validation
-
 ## 1. javax.validation 校验框架简介
 
 JSR303 是一套 JavaBean 参数校验的标准，它定义了很多常用的校验注解，可以直接将这些注解加在 JavaBean 的属性上面(面向注解编程的时代)，就可以在需要校验的时候进行校验了。但是这只是一个接口，没有具体实现。
@@ -63,54 +61,43 @@ hibernate-validator 优势：
 
 ![](images/329863814220761.png)
 
-
-## 2. javax.validation 相关注解
+## 2. javax.validation 常用注解
 
 hibernate-validator 提供的校验方式为在类的属性上加入相应的注解来达到校验的目的。hibernate-validator 常用的校验注解如下：
 
 ### 2.1. 空检查
 
-|     注解     |                                                      作用描述                                                       |
-| ----------- | ------------------------------------------------------------------------------------------------------------------ |
-| `@Null`     | 验证对象是否为null                                                                                                  |
-| `@NotNull`  | 验证对象是否不为null，可以为empty，即无法查检长度为0的字符串（如：`""`,`" "`,`" "`）                                     |
-| `@NotBlank` | 检查约束字符串是不是Null，并且调用`trim()`方法后的长度是否大于0，且会去掉前后空格，即：必须有实际字符（*只能作用在String上*） |
-| `@NotEmpty` | 检查约束元素是否为NULL或者是EMPTY长度必须大于0 (如：`" "`)                                                             |
+- `@Null`：验证对象是否为 null
+- `@NotNull`：验证对象是否不为 null，但可以为 empty，即无法查检长度为 0 的字符串（如：`""`,`" "`,`" "`）
+- `@NotBlank`：检查约束字符串是不是 Null，并且调用 `trim()` 方法后的长度是否大于 0，且会去掉前后空格，即必须有实际字符（*只能作用在 String 上*）
+- `@NotEmpty`：检查约束元素是否为 NULL 或者是 EMPTY 长度必须大于 0 (如：`" "`)
 
 ### 2.2. Booelan检查
 
-|      注解       |           作用描述            |
-| -------------- | ---------------------------- |
-| `@AssertTrue`  | 验证 Boolean 对象是否为 true  |
-| `@AssertFalse` | 验证 Boolean 对象是否为 false |
+- `@AssertTrue`：验证 Boolean 对象是否为 true
+- `@AssertFalse`：验证 Boolean 对象是否为 false
 
 ### 2.3. 长度检查
 
-|          注解          |                                  作用描述                                   |
-| --------------------- | -------------------------------------------------------------------------- |
-| `@Size(min=, max=)`   | 验证对象（Array,Collection,Map,String）长度是否在给定的范围之内                |
-| `@Length(min=, max=)` | 验证字符串的长度是否在给定的范围之内，包含两端（*Hibernate validator扩展注解*）   |
+- `@Size(min=, max=)`：验证对象（Array, Collection, Map, String）长度是否在给定的范围之内
+- `@Length(min=, max=)`：验证字符串的长度是否在给定的范围之内，包含两端（*Hibernate validator扩展注解*）
 
 ### 2.4. 日期检查
 
-|    注解    |                  作用描述                  |
-| --------- | ----------------------------------------- |
-| `@Past`   | 验证 Date 和 Calendar 对象是否在当前时间之前 |
-| `@Future` | 验证 Date 和 Calendar 对象是否在当前时间之后 |
+- `@Past`：验证 Date 和 Calendar 对象是否在当前时间之前
+- `@Future`：验证 Date 和 Calendar 对象是否在当前时间之后
 
 ### 2.5. 数值检查
 
-**建议使用在Stirng,Integer类型，不建议使用在int类型上，因为表单值为`""`时无法转换为int，但可以转换为Stirng为`""`，Integer为null**
+- `@Min`：验证 `Number` 和 `String` 对象是否大等于指定的值
+- `@Max`：验证 `Number` 和 `String` 对象是否小等于指定的值
+- `@DecimalMax`：被标注的值必须不大于约束中指定的最大值。这个约束的参数是一个通过 `BigDecimal` 定义的最大值的字符串表示，小数存在精度
+- `@DecimalMin`：被标注的值必须不小于约束中指定的最小值。这个约束的参数是一个通过 `BigDecimal` 定义的最小值的字符串表示，小数存在精度
+- `@Digits`：验证 `Number` 和 `String` 的构成是否合法
+- `@Digits(integer=,fraction=)`：验证字符串是否是符合指定格式的数字，interger 指定整数精度，fraction 指定小数精度
+- `@Range(min=, max=)`：检查注释值是否位于（含）指定的最小值和最大值之间（Hibernate validator 扩展注解）
 
-|              注解              |                                                  作用描述                                                  |
-| ----------------------------- | --------------------------------------------------------------------------------------------------------- |
-| `@Min`                        | 验证 `Number` 和 `String` 对象是否大等于指定的值                                                             |
-| `@Max`                        | 验证 `Number` 和 `String` 对象是否小等于指定的值                                                             |
-| `@DecimalMax`                 | 被标注的值必须不大于约束中指定的最大值。这个约束的参数是一个通过 `BigDecimal` 定义的最大值的字符串表示，小数存在精度 |
-| `@DecimalMin`                 | 被标注的值必须不小于约束中指定的最小值。这个约束的参数是一个通过 `BigDecimal` 定义的最小值的字符串表示，小数存在精度 |
-| `@Digits`                     | 验证 `Number` 和 `String` 的构成是否合法                                                                    |
-| `@Digits(integer=,fraction=)` | 验证字符串是否是符合指定格式的数字，interger指定整数精度，fraction指定小数精度                                   |
-| `@Range(min=, max=)`          | 检查注释值是否位于（含）指定的最小值和最大值之间（*Hibernate validator扩展注解*）                                |
+> Notes: <font color=red>**建议使用在 Stirng, Integer 类型，不建议使用在 int 类型上，因为表单值为`""`时无法转换为 int，但可以转换为 Stirng 为`""`，Integer 为 null**</font>
 
 ```java
 @Range(min=10000, max=50000, message="range.bean.wage")
@@ -119,14 +106,16 @@ private BigDecimal wage;
 
 ### 2.6. 其他类型检查
 
-|                       注解                        |                                                              作用描述                                                               |
-| ------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------- |
-| `@Valid`                                         | 递归的对关联对象进行校验，如果关联对象是个集合或者数组，那么对其中的元素进行递归校验，如果是一个map，则对其中的值部分进行校验。(是否进行递归验证) |
-| `@CreditCardNumber`                              | 信用卡验证                                                                                                                          |
-| `@Email`                                         | 验证是否是邮件地址，如果为null，不进行验证，算通过验证。（*Hibernate validator扩展注解*）                                                 |
-| `@ScriptAssert(lang=, script=, alias=)`          |                                                                                                                                    |
-| `@URL(protocol=, host=, port=, regexp=, flags=)` | 检查是否是一个有效的URL，如果提供了protocol，host等，则该URL还需满足提供的条件                                                            |
-| `@Pattern(regex=)`                               | 验证 String 对象是否符合正则表达式的规则                                                                                              |
+- `@Valid`：是 Bean Validation 所定义，可以添加在普通方法、构造方法、方法参数、方法返回、成员变量上，递归的对关联对象进行校验，如果关联对象是个集合或者数组，那么对其中的元素进行递归校验；如果是一个 map，则对其中的值部分进行校验。(是否进行递归验证)
+- `@Validated`：是 Spring Validation 所定义，可以添加在类、方法参数、普通方法上，表示它们需要进行约束校验。
+
+> Notes: `@Valid` 和 `@Validated` 两者的区别在于，`@Validated` 有 `value` 属性，支持分组校验，即根据不同的分组采用不同的校验机制；`@Valid` 可以添加在成员变量上，支持嵌套校验。所以建议的使用方式是：启动校验（即 Controller 层）时使用 `@Validated` 注解，嵌套校验时使用 `@Valid` 注解，这样就能同时使用分组校验和嵌套校验功能。
+
+- `@CreditCardNumber`：信用卡验证
+- `@Email`：验证是否是邮件地址，如果为 null，不进行验证，算通过验证。（Hibernate validator 扩展注解）
+- `@ScriptAssert(lang=, script=, alias=)` 
+- `@URL(protocol=, host=, port=, regexp=, flags=)`：检查是否是一个有效的 URL，如果提供了 protocol，host 等，则该 URL 还需满足提供的条件
+- `@Pattern(regex=)`：验证 String 对象是否符合正则表达式的规则
 
 ## 3. 普通参数校验
 
@@ -436,7 +425,7 @@ public class GlobalExceptionHandler {
     - groups 这里主要进行将validator进行分类，不同的类group中会执行不同的validator操作
     - payload 主要是针对bean的，使用不多
 
-> 注：在 ValidationMessages.properties 就是校验的message，有着已经写好的默认的message，且是支持i18n的，以阅读源码分析
+> 注：在 ValidationMessages.properties 就是校验的 message，有着已经写好的默认的 message，且是支持 i18n 的，以阅读源码分析
 
 ```java
 package com.moon.springboot.validator.annotation;
@@ -536,14 +525,14 @@ public interface Create extends Default {
 }
 ```
 
-```
+```java
 import javax.validation.groups.Default;
 
 public interface Update extends Default {
 }
 ```
 
-2. 在DTO中的字段上定义好`groups = {}`的分组类型
+2. 在 DTO 中的字段上定义好 `groups = {}` 的分组类型
 
 ```java
 @Data
