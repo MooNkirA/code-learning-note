@@ -277,7 +277,7 @@ goto MENU
 
 |                 快捷键                 |                  程序                   |
 | ------------------------------------- | --------------------------------------- |
-| cmd                                   | 命令行                                   |
+| cmd                                   | 运行 CMD 命令提示符                       |
 | regedit                               | 注册表                                   |
 | services.msc                          | 系统服务                                 |
 | control                               | 所有控制面版项                            |
@@ -290,6 +290,113 @@ goto MENU
 | `Shutdown -r -t 600`                  | 表示600秒后自动重启                       |
 | `rundll32 user32.dll,LockWorkStation` | 表示锁定计算机                            |
 | wt                                    | Microsoft.WindowsTerminal（需要手动安装） |
+
+#### 2.2.1. 整理中
+
+- appwiz.cpl：程序和功能
+- certmgr.msc：证书管理实用程序
+- charmap：启动字符映射表
+- chkdsk.exe：Chkdsk磁盘检查(管理员身份运行命令提示符)
+- cleanmgr: 打开磁盘清理工具
+- cliconfg：SQL SERVER 客户端网络实用工具
+- cmstp：连接管理器配置文件安装程序
+- 自动关机命令：
+    - Shutdown -s -t 30：表示30秒后自动关机，中间带有空格。
+    - shutdown -a ：取消定时关机
+    - Shutdown -r -t 30：表示30秒后自动重新启动
+    - rundll32 user32.dll,LockWorkStation：表示锁定计算机
+- colorcpl：颜色管理，配置显示器和打印机等中的色彩
+- CompMgmtLauncher：计算机管理
+- compmgmt.msc：计算机管理
+- credwiz：备份或还原储存的用户名和密码
+- comexp.msc：打开系统组件服务
+- dcomcnfg：打开系统组件服务
+- Dccw：显示颜色校准
+- devmgmt.msc：设备管理器
+- desk.cpl：屏幕辨别率
+- dfrgui：优化驱动器 Win 7→dfrg.msc：磁盘碎片整理程序
+- dialer：电话拨号程序
+- diskmgmt.msc：磁盘管理
+- dvdplay：DVD播放器
+- dxdiag：检查DirectX信息
+- eudcedit：造字程序
+- eventvwr：事件查看器
+- explorer：打开资源管理器
+- Firewall.cpl：Win防火墙
+- FXSCOVER：传真封面编辑器
+- fsmgmt.msc：共享文件夹管理器
+- gpedit.msc：组策略
+- hdwwiz.cpl：设备管理器
+- inetcpl.cpl：Internet属性
+- intl.cpl：区域
+- iexpress：木马捆绑工具，系统自带
+- joy.cpl：游戏控制器
+- logoff：注销命令
+- lusrmgr.msc：本地用户和组
+- lpksetup：语言包安装/删除向导，安装向导会提示下载语言包
+- lusrmgr.msc：本机用户和组
+- main.cpl：鼠标属性
+- mmsys.cpl：声音
+- magnify：放大镜实用程序
+- mem.exe：显示内存运用情况(如果直接运行无效，可以先管理员身份运行命令提示符，在命令提示符里输入`mem.exe>d:a.txt` 即可打开d盘查看a.txt，里面的就是内存运用情况了。当然什么盘什么文件名可自己决定。
+- MdSched:Win内存诊断程序
+- mmc：打开控制台
+- mobsync：同步命令
+- mplayer2：简易widnows media player
+- Msconfig.exe：系统配置实用程序
+- msdt：微软支持诊断工具
+- msinfo32：系统信息
+- Msra：Win远程协助
+- mstsc：远程桌面连接
+- NAPCLCFG.MSC：客户端配置
+- narrator：屏幕“讲述人”
+- Netplwiz：高级用户帐户控制面板，设置登陆安全相关的选项
+- netstat : an(TC)命令检查接口
+- Nslookup：IP地址侦测器
+- odbcad32：ODBC数据源管理器
+- OptionalFeatures：打开“打开或关闭Win功能”对话框
+- osk：打开屏幕键盘
+- perfmon.msc：计算机性能监测器
+- perfmon：计算机性能监测器
+- PowerShell：提供强大远程处理能力
+- printmanagement.msc：打印管理
+- powercfg.cpl：电源选项
+- psr：问题步骤记录器
+- Rasphone：网络连接
+- Recdisc：创建系统修复光盘
+- Resmon：资源监视器
+- Rstrui：系统还原
+- regedt32：注册表编辑器
+- rsop.msc：组策略结果集
+- sdclt：备份状态与配置，就是查看系统是否已备份
+- secpol.msc：本地安全策略
+- sfc /scannow：扫描错误并复原/windows文件保护
+- sfc.exe：系统文件检查器
+- shrpubw：创建共享文件夹
+- sigverif：文件签名验证程序
+- slui：Win激活，查看系统激活信息
+- slmgr.vbs -dlv ：显示详细的许可证信息
+- snippingtool：截图工具，支持无规则截图
+- soundrecorder：录音机，没有录音时间的限制
+- StikyNot：便笺
+- sysdm.cpl：系统属性
+- sysedit：系统配置编辑器
+- syskey：系统加密，一旦加密就不能解开，保护系统的双重密码
+- taskmgr：任务管理器(旧版)
+- TM任务管理器(新版)
+- taskschd.msc：任务计划程序
+- timedate.cpl：日期和时间
+- UserAccountControlSettings：用户账户控制设置
+- utilman：辅助工具管理器
+- wf.msc：高级安全Win防火墙
+- WFS：Win传真和扫描
+- wiaacmgr：扫描仪和拍照机向导
+- winver：关于Win
+- wmimgmt.msc：打开windows管理体系结构(WMI)
+- write：写字板
+- wscui.cpl：操作中心
+- wuapp：Win更新
+- wscript：windows脚本宿主设置
 
 ## 3. windows 系统相关设置
 

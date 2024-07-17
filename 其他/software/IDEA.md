@@ -385,6 +385,10 @@ Editor: 选择要应用于编辑器的抗锯齿模式：
 
 ![](images/163800209240844.png)
 
+#### 4.2.5. 参考资料
+
+- [IntelliJ IDEA 快捷键大全 + 动图演示](https://mp.weixin.qq.com/s/6Y1bKSm_wIJTdwRZwoXQsA)
+
 ### 4.3. Editor（编辑器）
 
 #### 4.3.1. 编辑器主题、字体与颜色配置
@@ -552,6 +556,10 @@ IDEA 代码提示默认是匹配大小写，此开关如果未关。输入字符
 设置位置：Editor -> General -> Editor Tabs -> 不勾选 Show tabs in one row 选项即可
 
 ![](images/20201104161507103_21878.png)
+
+新版设置：
+
+![](images/251764800982455.png)
 
 效果：
 
