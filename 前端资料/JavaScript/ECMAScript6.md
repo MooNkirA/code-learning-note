@@ -2284,3 +2284,4 @@ umi dev
 ## 16. 参考资料
 
 - [阮一峰 ECMAScript 6 入门教程（201801）](https://www.bookstack.cn/read/es6/readme.md)
+- [ECMAScript 6 入门 阮一峰](https://es6.ruanyifeng.com/)

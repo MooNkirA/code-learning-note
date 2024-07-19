@@ -365,7 +365,7 @@ languageRegex.test(britishSpelling); // true
 languageRegex.test(americanSpelling); // true
 ```
 
-## 4. 匹配上与Java中的不同
+## 4. 匹配上与 Java 中的不同
 
 **Java在默认的情况下是精确匹配，在JS中默认是模糊匹配**，只要**包含**正则表达式中的字符串就返回true
 
@@ -546,4 +546,8 @@ function settime(val) {
   }, 1000);
 }
 ```
+
+## 6. !待整理资料
+
+- [前端进阶必须知道的正则表达式知识](https://mp.weixin.qq.com/s?__biz=MzAxODE2MjM1MA==&mid=2651556814&idx=1&sn=164cf3384791b2aed49a9335ec37b76b&chksm=80255c0fb752d519ac23fecf41a92a59fbfa5bd44077f2f7cc73ebd1364db36cd400a085282a&mpshare=1&scene=1&srcid=&sharer_sharetime=1564238608466&sharer_shareid=6087581adbbb79acccd7e873962f1a09#rd)
 

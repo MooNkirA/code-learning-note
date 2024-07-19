@@ -1542,7 +1542,7 @@ IDEA 中最重要的各种设置项，就是这个 `Project Structre` 了，关�
 
 ![](images/20201105154113621_18429.jpg)
 
-### 10.1. Project选项卡
+### 10.1. Project 选项卡
 
 ![](images/20201105154138246_26519.jpg)
 
@@ -2275,3 +2275,5 @@ JAVA 进程启动的时候，虽然可以为 JVM 指定合适的内存大小，�
 
 - [IDEA 高效使用指南](https://idea.javaguide.cn/)：使用指南 | 必备插件推荐 | 插件开发入门 | 重构小技巧 | 源码阅读技巧
 - [单元测试 - IDEA下单元测试详解](https://www.pdai.tech/md/develop/ut/dev-ut-x-junit-idea.html)
+- [最好的IDEA debug长文](https://mp.weixin.qq.com/s/cMMEQRZmLXfeqGvoii9gqA)
+- [9个服务端提升debug效率的IDEA Debugger技巧](https://mp.weixin.qq.com/s/O6Y-wGXCxGEJdfxuRRh-QA)

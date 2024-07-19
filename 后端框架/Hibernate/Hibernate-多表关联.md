@@ -523,7 +523,7 @@ public void setRoles(List<Role> roles) {
 	声明多对多关系
 	class:本类指定集合的元素对应类的类全名
 	column:配置关联表在中间表对应的外键
-	-->
+-->
 <many-to-many class="day60.entity.Role" column="role_id"></many-to-many>
 ```
 
