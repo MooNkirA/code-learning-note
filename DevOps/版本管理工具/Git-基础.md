@@ -977,11 +977,58 @@ $ git checkout -b <分支名称> <标签名称>
 
 ### 7.9. 其他命令
 
+#### 7.9.1. archive
+
 生成一个可供发布的压缩包
 
 ```bash
 $ git archive
 ```
+
+#### 7.9.2. subtree
+
+Git subtree 是 Git 的一个子命令，可以在一个仓库中嵌入另一个仓库。这对于管理项目的不同部分，或者在多个项目之间共享代码非常有用。
+
+##### 7.9.2.1. 添加一个仓库
+
+要添加一个新的仓库到项目队伍中，需要使用 add 命令。这个命令需要两个参数：一个是想要添加的仓库 URL，另一个是想要将这个仓库添加到的队伍中的位置（目录）。
+
+例如，如果想要将一个名为 library 的仓库添加到队伍中，可以使用以下命令：
+
+```shell
+git subtree add --prefix=src/library https://github.com/example/library.git master
+```
+
+这个命令会将 library 的 master 分支添加到队伍中的 library 位置。
+
+##### 7.9.2.2. 更新一个仓库
+
+要更新一个仓库，可以使用 pull 命令。这个命令需要和 add 命令相同的参数。
+
+例如，如果想要更新 library 这个仓库，可以使用以下命令：
+
+```shell
+git subtree pull --prefix=src/library https://github.com/example/library.git master
+```
+
+此命令会从 library 的 master 分支拉取最新的超能力（更改），并将它们合并到队伍中的 library 位置。
+
+##### 7.9.2.3. 将仓库（更改）推送回仓库
+
+如果在项目中发现了一些新的变更（做了一些更改），并且你想要将这些变更推送回原始的仓库，可以使用 push 命令。这个命令需要和 add 命令相同的参数。
+
+例如，如果想要将 library 变更推送回原始的仓库中，可以使用以下命令：
+
+```shell
+git subtree push --prefix=src/library https://github.com/example/library.git master
+```
+
+这个命令会将在 library 位置发现的变更推送到 library 的 master 分支。
+
+#### 7.9.3. 小结
+
+- Git subtree 就像是一个项目队伍的管理者，它可以帮助更好地管理项目。
+- 通过使用 Git subtree，可以在一个项目中嵌入另一个项目，而不需要将它们合并成一个大的仓库。
 
 ## 8. Git Bash 操作远程仓库（以 Github 为例）
 
