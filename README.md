@@ -544,6 +544,12 @@
   <li><a href="#/并发编程/并发编程-设计模式篇">并发编程 - 设计模式篇</a></li>
 </ul>
 
+## Python
+
+<ul class="docs">
+  <li><a href="#/Python/Python-基础">Python - 基础</a></li>
+</ul>
+
 ## 其他
 
 ### ℹ️ 资源汇总
