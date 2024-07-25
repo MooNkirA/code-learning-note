@@ -1,4 +1,6 @@
-## 1. Python 简介
+## 1. Python
+
+### 1.1. 概述
 
 Python 是一个高层次的结合了解释性、编译性、互动性和面向对象的脚本语言。Python 的设计具有很强的可读性，相比其他语言经常使用英文关键字，其他语言的一些标点符号，它具有比其他语言更有特色语法结构。
 
@@ -8,6 +10,12 @@ Python 是一个高层次的结合了解释性、编译性、互动性和面向�
 - **Python 是初学者的语言**：Python 对初级程序员而言，是一种伟大的语言，它支持广泛的应用程序开发，从简单的文字处理到 WWW 浏览器再到游戏。
 
 官网：https://www.python.org/
+
+### 1.2. Python 的 3.x 版本
+
+Python 的 3.0 版本，常被称为 Python 3000，或简称 Py3k。相对于 Python 的早期版本，这是一个较大的升级。为了不带入过多的累赘，Python 3.0 在设计的时候没有考虑向下兼容。
+
+> 以下笔记主要针对 Python 3.x 版本的学习。*官方宣布，2020 年 1 月 1 日， 停止 Python 2 的更新。Python 2.7 被确定为最后一个 Python 2.x 版本。*
 
 ## 2. Python 环境搭建
 
@@ -256,6 +264,24 @@ C:>python script.py # Windows/DOS
 
 Python 最常见的开发环境是 PyCharm。此集成开发工具（IDE），是当下全球 Python 开发者，使用最频繁的工具软件
 
+#### 2.5.4. Python AI 编程助手
+
+AI 是一个可靠的编程助手，可以提供实时的建议和解决方案，无论是快速修复错误、提升代码质量，或者查找关键文档和资源，AI 作为编程助手都能让事半功倍。
+
+推荐一款适配了 Viusal Studio，VS Code(本文使用)，JetBrains 系列(本文使用)以及Vim等多种编译器环境的插件 Fitten Code，Fitten Code 是由非十大模型驱动的 AI 编程助手，它可以自动生成代码，提升开发效率，帮助调试 Bug，另外还可以对话聊天，解决编程的问题。Fitten Code 免费且支持 80 多种语言：Python、C++、Javascript、Typescript、Java等。
+
+### 2.6. 查看 Python 版本
+
+可以在命令窗口(Windows 使用 win+R 调出 cmd 运行框)使用以下命令查看当前使用的 Python 版本：
+
+```python
+python -V
+# 或
+python --version
+```
+
+> Tips: 注意 `-V` 参数是大写字母
+
 ## 3. Python 基础语法
 
 ### 3.1. 标识符
@@ -284,6 +310,14 @@ Python 最常见的开发环境是 PyCharm。此集成开发工具（IDE），�
 | elif     | in      | while  |
 | else     | is      | with   |
 | except   | lambda  | yield  |
+
+Python 的标准库提供了一个 keyword 模块，可以输出当前版本的所有关键字：
+
+```python
+>>> import keyword
+>>> keyword.kwlist
+['False', 'None', 'True', 'and', 'as', 'assert', 'async', 'await', 'break', 'class', 'continue', 'def', 'del', 'elif', 'else', 'except', 'finally', 'for', 'from', 'global', 'if', 'import', 'in', 'is', 'lambda', 'nonlocal', 'not', 'or', 'pass', 'raise', 'return', 'try', 'while', 'with', 'yield']
+```
 
 ### 3.3. 行和缩进
 
@@ -426,7 +460,36 @@ print ("This is a multi-line comment, using double quotes.")
 
 > Notes: <font color=red>**空行与代码缩进不同，空行并不是 Python 语法的一部分，却是程序代码的一部分。书写时不插入空行，Python 解释器运行也不会出错。但是空行的作用在于分隔两段不同功能或含义的代码，便于日后代码的维护或重构。**</font>
 
-### 3.8. Python 2.0+ 中文编码问题
+### 3.8. import 与 from...import
+
+在 python 用 `import` 或者 `from...import` 来导入相应的模块。
+
+- 将整个模块(somemodule)导入，格式为：`import somemodule`
+- 从某个模块中导入某个函数，格式为：`from somemodule import somefunction`
+- 从某个模块中导入多个函数，格式为：`from somemodule import firstfunc, secondfunc, thirdfunc`
+- 将某个模块中的全部函数导入，格式为：`from somemodule import *`
+
+导入 sys 模块：
+
+```python
+import sys
+print('================Python import mode==========================')
+print ('命令行参数为:')
+for i in sys.argv:
+    print (i)
+print ('\n python 路径为',sys.path)
+```
+
+导入 sys 模块的 argv,path 成员：
+
+```python
+from sys import argv,path  #  导入特定的成员
+ 
+print('================python from import===================================')
+print('path:',path) # 因为已经导入path成员，所以此处引用时不需要加sys.path
+```
+
+### 3.9. Python 2.0+ 中文编码问题
 
 使用 Python 输出 "Hello, World!"，英文没有问题，但是如果你输出中文字符 "你好，世界" 就有可能会碰到中文编码问题。在 Python 2.0+ 的情况，如果 Python 文件中如果未指定编码，在执行过程会出现报错：
 
@@ -459,7 +522,7 @@ SyntaxError: (unicode error) ‘utf-8’ codec can’t decode byte 0xc4 in posit
 invalid continuation byte
 ```
 
-## 4. Python 变量类型
+## 4. Python 基本数据类型
 
 ### 4.1. 字面量
 
@@ -581,7 +644,9 @@ print(y)
 
 print('---------')
 # 不换行输出
-print(x, y)
+print(x, end=" ")
+print(y, end=" ")
+print(1)
 ```
 
 以上实例执行结果为：
@@ -590,7 +655,7 @@ print(x, y)
 a
 b
 ---------
-a b
+a b 1
 ```
 
 ### 5.2. 数据输入
