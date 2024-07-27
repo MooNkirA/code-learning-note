@@ -567,6 +567,7 @@
   <li><a href="#/其他/software/IDEA">IntelliJ IDEA 使用教程</a></li>
   <li><a href="#/其他/software/eclipse">Eclipse 使用教程</a></li>
   <li><a href="#/其他/software/Visual-Studio-Code">Visual Studio Code 使用教程</a></li>
+  <li><a href="#/其他/software/PyCharm">PyCharm 使用教程</a></li>
 </ul>
 
 ### 🛠️ 编程辅助工具
