@@ -2,14 +2,17 @@
 
 IDEA，全称 IntelliJ IDEA ，是 Java 语言的集成开发环境，目前已经（基本）代替了 Eclipse 的使用。IDEA 在业界被公认为是最好的 Java 开发工具（之一），因其功能强悍、设置人性化，而深受Java、大数据、移动端程序员的喜爱。尤其在智能代码助手、代码自动提示、重构、J2EE 支持、Ant、JUnit、CVS 整合、代码审查、创新的 GUI 设计等方面的功能可以说是超常的。
 
-> - 官网：https://www.jetbrains.com/idea/
-> - 官网提供的详细使用文档：https://www.jetbrains.com/help/idea/meet-intellij-idea.html
-
 > IntelliJ IDEA 在 2015 年的官网上介绍：
 >
 > Excel at enterprise, mobile and web development with Java, Scala and Groovy,with all the latest modern technologies and frameworks available out of thebox.
 
 IDEA 分为两个版本：旗舰版(Ultimate) 和社区版(Community)。两个不同版本的详细对比，可以参照官网：https://www.jetbrains.com/idea/features/editions_comparison_matrix.html
+
+### 1.1. 官方资料
+
+- [IntelliJ IDEA 官网](https://www.jetbrains.com/idea/)
+- [IntelliJ IDEA 官方资源](https://www.jetbrains.com/idea/resources/) - 提供了从入门到高级的全面教程和文档。
+- [官网详细使用文档](https://www.jetbrains.com/help/idea/getting-started.html)
 
 ## 2. 安装与卸载
 
