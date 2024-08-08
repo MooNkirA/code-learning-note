@@ -2811,9 +2811,7 @@ public class SpringConfiguration {
 
 ### 10.5. 异步事件（待整理!）
 
-暂未整理，整合 `@EnableAsync`，`@Async` 的用法
-
-> 待参考资料：https://mp.weixin.qq.com/s?__biz=Mzg2MjEwMjI1Mg==&mid=2247492001&idx=3&sn=d755f64a1104034aebe19e8aff9f9c9b&chksm=ce0e5622f979df3491e9775daf23936503213e56cbbd6abf23819f10c589749d3fafe2e20fce&mpshare=1&scene=1&srcid=&sharer_sharetime=1582440241694&sharer_shareid=6087581adbbb79acccd7e873962f1a09#rd
+> 暂未整理，整合 `@EnableAsync`，`@Async` 的用法
 
 #### 10.5.1. @Async 注解失效的情况
 
