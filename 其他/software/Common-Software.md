@@ -97,6 +97,78 @@ filetype:doc
 
 aiXcoder 极速本地版，智能编程助手。功能包括：代码智能补全、支持主流IDE、支持多编程语言、本地深度学习模型。支持多种主流IDE，包含 IntelliJ IDEA，Eclipse，PyCharm，Android Studio，PhpStorm，WebStorm、Clion，Visual Studio Code
 
+### 2.3. SwitchHosts
+
+- 官网：https://github.com/oldj/SwitchHosts
+
+#### 2.3.1. SwitchHosts 简介
+
+SwitchHosts! 是一款可以方便管理和一键切换多个 hosts 方案的免费开源工具，跨平台支持 Windows、macOS 和 Linux 系统。除了可以帮助你快速切换不同的 hosts 设置、编辑 hosts 文件外，它还有着一些很不错的特性，比如:
+
+- 免费、开源、支持三大操作系统
+- 系统托盘快速「一键切换」不同的 hosts 方案
+- 支持 hosts 文件语法高亮，可以方便用户更直观地阅读和修改 Hosts 内容;
+- 编辑 hosts 时，可以点击行号可以对行进行快速注释或取消注释
+- 支持远程 hosts，直接从指定网址读取 hosts 内容，方便多台机器同步 hosts 设置，这是一个很赞的特性！
+- 支持 hosts 配置的导入、导出备份
+- macOS 系统下可以支持 Alfred workflow 快速切换
+
+#### 2.3.2. 解决 host 文件无法修改的问题
+
+1.	首先进入 Win 系统的 hosts 文件所在位置，我们直接输入`C:\Windows\System32\Drivers\etc`后回车就可以打开了，右键 hosts 文件，选择属性，如下图所示。
+
+![](images/164793825603524.jpg)
+
+2. 点击 hosts 属性对话框里的“高级”，如下图所示。
+
+![](images/2264877620234.jpg)
+
+3. 在 hosts 的高级安全设置界面点击更改权限，如下图所示。
+
+![](images/320054545521323.jpg)
+
+4. 在新弹出的对话框里点击添加按钮，如下图所示。
+
+![](images/68564227831566.jpg)
+
+5. 点击hosts的权限项目窗口下面的主体的“选择主体”，如下图所示。
+![](images/205183134378519.jpg)
+
+6. 点击进入选择用户或组界面，点击高级，如下图所示。
+
+![](images/91885299762823.jpg)
+
+7. 点击高级后，我们接着在点击理解查找，然后在查找结果里找到当前用户的账号，选中后点击确定，如下图所示。
+
+![](images/433476677839932.jpg)
+
+8. 在选择用户或组界面里点击确定，如下图所示。
+![](images/592124277962441.jpg)
+
+9. 将 hosts 的权限项目界面下的基本权限的所以项目都勾选上，然后点击确定，如下图所示。
+
+![](images/177543123775867.jpg)
+
+10. 权限添加成功后，直接点击确定，如下图所示。
+
+![](images/375146485171511.jpg)
+
+11. 点击后，系统提示你将要更改系统文件夹的权限设置，这样会降低计算机的安全性，并导致用户访问文件时出现问题。要继续吗？我们点击是。如下图所示。
+
+![](images/362514703113379.jpg)
+
+#### 2.3.3. 修改 hosts 后不生效怎么解决？
+
+无论是手工修改 hosts 还是使用软件来修改，很多人都会遇到修改 hosts 后不生效的情况。其实，这一般是由于 DNS 缓存的原因导致的。因为系统为了加快用户打开网站的速度，在首次访问网站成功之后，会把 DNS 解析的结果暂时性地保存在本地缓存 (称为 DNS 缓存) 里一小段时间，如果浏览器在“这段时间里”再次打开同一个网址，则会自动从 DNS 缓存里取出结果，而不会请求远程的 DNS 服务器，也不会查询 hosts 文件，从而节省时间提高打开速度。因此用户会遇到有时修改了 hosts 文件但并不生效的情况，一般这时候我们想办法清空 (刷新) 一下系统的 DNS 缓存即可。
+
+怎样清空 DNS 缓存？
+
+- Windows 系统，在命令行执行：`ipconfig /flushdns`
+- macOS 系统，执行命令：`sudo killall -HUP mDNSResponder`
+- 如果使用 Chrome 浏览器，那么可以访问：`chrome://net-internals/#dns`，然后点击『Clear host cache』按钮来清空浏览器里的 DNS 缓存。
+
+> 如果这样还不生效，那么只能再试试重启电脑了，一般都OK了。要这样还是不行，可能就是的 hosts 写错了。
+
 ## 3. 系统管理类
 
 ### 3.1. Total Commander
@@ -434,6 +506,15 @@ PixPin 是目前市面上功能最全面的截图工具之一了！包括**截�
 - [Imagine](https://www.nyam.pe.kr/dev/imagine/) - Freeware Image & Animation Viewer for Windows
 - [ScreenToGif](https://www.screentogif.com/) - 屏幕、摄像头和画板录像，并有内置编辑器
 
+### 6.4. Adobe Photoshop Lightroom Classic
+
+Lightroom Classic 作为一个直观的解决方案，可提供在处理大部分数码摄影任务时所需的全部工具。它是日常整理和优化图像的首选应用程序。无论是对于一副图像、一组图像，亦或是一个大型图库，Lightroom 都可以协助摄影师更快、更高效地进行处理。Photoshop 是数码图像编辑的行业标准，提供的多种先进工具可供摄影师、图形设计师及其他图形处理专业人士在执行精细的像素级编辑以及多图层文件处理时进行必要的全面控制。将 Lightroom Classic 和 Photoshop 作为 Creative Cloud 摄影计划的组成部分。
+
+#### 6.4.1. 参考资源
+
+- [官方教程和社区资源](https://helpx.adobe.com/cn/support/lightroom-classic-china.html)
+- [全20集【Adobe Lightroom Classic从思路到后期调色】各功能详解视频教程目录](https://www.bilibili.com/read/cv13519248/)
+
 ## 7. 思维导图
 
 ### 7.1. Xmind
@@ -476,7 +557,13 @@ CommonW6432Dir  --- C:\Program Files\Common Files
 
 ## 8. 画图工具
 
-### 8.1. Excalidraw
+### 8.1. draw.io
+
+- Draw.io 在线官网：https://app.diagrams.net/
+
+draw.io 是用来画各种类型的图，包括 UML、流程图、甘特图、线框图、类图、结构图、泳道图等等。
+
+### 8.2. Excalidraw
 
 Excalidraw 是一款在线白板画图工具
 
