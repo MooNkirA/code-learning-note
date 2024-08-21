@@ -434,6 +434,8 @@ FastStone 系列软件是个人免费、商业收费，一共有4款软件。
 
 FastStone 官方网站： http://www.faststone.org/
 
+> Tips: 以下所有系列的下载链接中，如果输入的压缩包版本号大于当前可用的版本，会出现目前可用的文件选择的界面
+
 #### 6.1.1. 全系列破解器（更新于2023.05.04）
 
 解压 Keygen.7z 选择相应的 FastStone 的产品，随便输入一个用户名，然后生成相应的注册码即可。
@@ -447,18 +449,17 @@ FastStone 官方网站： http://www.faststone.org/
 - 安装版 :
     - https://www.faststonesoft.net/DN/FSViewerSetup78.zip
     - https://www.faststonesoft.net/DN/FSViewerSetup78.exe
-    - https://www.faststone.org/DN/FSViewerSetup78.exe
 - 便携版 : https://www.faststonesoft.net/DN/FSViewer78.zip
 
 > 建议使用迅雷或IDM下载
 
 家庭用户可免费使用，商业使用须注册。注册及设置方法：如果您使用的旧版如 7.7 版已授权注册为商业版，可以将旧版如 7.7 商业版注册文件及设置文件 `FSSettings.db`，复制到 7.8 版 FSViewer 目录中就能注册 7.8 版并保持旧版如 7.7 版的设置，不必重新注册和设置。
 
-#### 6.1.3. FastStone Capture（目前更新至10.6版）
+#### 6.1.3. FastStone Capture（目前更新至10.7版）
 
-官网便捷版下载地址（好像暂无安装版）:
+官网便捷版下载地址（好像暂无安装版）：
 
-- https://www.faststonesoft.net/DN/FSCapture106.zip
+- https://www.faststonesoft.net/DN/FSCapture107.zip
 
 > 最新版激活注册码 (更新于2023-09-10)
 >

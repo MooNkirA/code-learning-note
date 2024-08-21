@@ -608,7 +608,7 @@
 
 Github Pages 在线阅读地址：[点击进入](https://moonkira.github.io/code-learning-note/#/)
 
-Gitee Pages 在线阅读地址：[点击进入](https://moonzero.gitee.io/code-learning-note/#/)（国内访问速度快）
+~~Gitee Pages 在线阅读地址：[点击进入](https://moonzero.gitee.io/code-learning-note/#/)~~（国内访问速度快，目前暂时停用）
 
 语雀版文档在线阅读地址：[点击进入](https://www.yuque.com/moonkira/code-note)
 
