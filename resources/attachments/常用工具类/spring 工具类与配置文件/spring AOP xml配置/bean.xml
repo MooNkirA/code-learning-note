@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+		xmlns:aop="http://www.springframework.org/schema/aop"
+		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		xsi:schemaLocation="http://www.springframework.org/schema/beans
+							http://www.springframework.org/schema/beans/spring-beans.xsd
+							http://www.springframework.org/schema/aop
+							http://www.springframework.org/schema/aop/spring-aop.xsd ">
+	<!-- 配置需要创建对象给spring管理 -->
+	<bean id="customerService" class="com.moonzero.service.impl.CustomerServiceImpl"></bean>
+	
+	<!-- 配置通知类给spring管理 -->
+	<bean id="logger" class="com.moonzero.utils.Logger"></bean>
+	
+	<!-- 声明开始aop的配置 -->
+	<aop:config>
+		<!-- 配置的代码都写在此处 -->
+		
+		<!-- 
+			1. 配置切面：此标签要出现在aop:config内部
+				id：给切面提供一个唯一标识
+				ref：引用的是通知类的 bean 的 id
+		 -->
+		<aop:aspect id="logActive" ref="logger">
+			<!-- 配置通知的类型写在此处 -->
+			
+			<!--
+				2. 配置切入点 aop:pointcut 配置切入点表达式(写在切面aspect内外都可以)
+					expression：用于定义切入点表达式,切入点表达式都写在 execution() 中。
+					id：用于给切入点表达式提供一个唯一标识。
+				表达式语法：execution([修饰符] 返回值类型 包名.类名.方法名(参数))
+			-->
+			<!-- 全匹配方式，public可以省略 -->
+			<aop:pointcut expression="execution(public void com.moonzero.service.impl.CustomerServiceImpl.saveCustomer())" id="pt1"/>
+			<!-- 使用通配方式 -->
+			<!-- <aop:pointcut expression="execution(* com.moonzero.service.impl.CustomerServiceImpl.updateCustomer(..))" id="pt2"/> -->
+			<!-- <aop:pointcut expression="execution(* *.*.*.*.CustomerServiceImpl.updateCustomer(..))" id="pt2"/> -->
+			<!-- <aop:pointcut expression="execution(* *..CustomerServiceImpl.updateCustomer(..))" id="pt2"/> -->
+			<!-- <aop:pointcut expression="execution(* *..*Impl.updateCustomer(..))" id="pt2"/> -->
+			<!-- <aop:pointcut expression="execution(* *..*.updateCustomer(..))" id="pt2"/> -->
+			<!-- <aop:pointcut expression="execution(* *..*.*Customer(..))" id="pt2"/> -->
+			<aop:pointcut expression="execution(* *..*.*(..))" id="pt2"/>
+			
+			<!-- 
+				用于配置前置通知：指定增强的方法在切入点方法之前执行
+					method:用于指定通知类中的增强方法名称
+					pointcut-ref：用于指定切入点的表达式的引用
+					pointcut:直接写切入点表达式
+			-->
+			<!-- 前置通知 -->
+			<aop:before method="beforePrintLog" pointcut-ref="pt1"/>
+			<!-- 后置通知 -->
+			<aop:after method="afterReturnningPrintLog" pointcut-ref="pt2"/>
+			<!-- 异常通知 -->
+			<aop:after-throwing method="afterThrowingPrintLog" pointcut-ref="pt1"/>
+			<!-- 最终通知 -->
+			<aop:after method="afterPrintLog" pointcut-ref="pt1"/>
+			
+			<!-- 环绕通知-->
+			<aop:around method="aroundPrintLog" pointcut-ref="pt1"/>
+			
+		</aop:aspect>
+	</aop:config>
+</beans>
