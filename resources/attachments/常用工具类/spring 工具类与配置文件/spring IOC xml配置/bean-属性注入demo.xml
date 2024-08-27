@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+	<!-- 使用p名称空间注入数据 -->
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:p="http://www.springframework.org/schema/p"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="
+        http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+	
+	<bean id="now" class="java.util.Date"></bean>
+	
+	<!-- 构造方法注入 -->
+	<bean id="customer" class="com.moonzero.entity.Customer">
+		<constructor-arg name="custId" value="23"></constructor-arg>
+		<constructor-arg name="custName" value="剑圣"></constructor-arg>
+		<constructor-arg name="custSource" value="dota2"></constructor-arg>
+		<constructor-arg name="custIndustry" value="剑刃风暴"></constructor-arg>
+		<constructor-arg name="custLevel" value="3级"></constructor-arg>
+		<constructor-arg name="custAddress" value="夜魇"></constructor-arg>
+		<constructor-arg name="custPhone" value="123456789"></constructor-arg>
+		<constructor-arg name="birthday" ref="now"></constructor-arg>
+	</bean>
+	<!-- set方法注入 -->
+	<bean id="customer1" class="com.moonzero.entity.Customer">
+		<property name="custId" value="24"></property>
+		<property name="custName" value="敌法师"></property>
+		<property name="custSource" value="dota2"></property>
+		<property name="custIndustry" value="法力损毁"></property>
+		<property name="custLevel" value="4级"></property>
+		<property name="custAddress" value="天辉"></property>
+		<property name="custPhone" value="123452222"></property>
+		<property name="birthday" ref="now"></property>
+	</bean>
+	
+	<!-- 使用p名称空间注入数据 -->
+	<bean id="customer2" class="com.moonzero.entity.Customer"
+		p:custId="33" p:custName="死灵法师" p:birthday-ref="now"></bean>
+	
+	<!-- 注入集合属性 -->
+	<bean id="user" class="com.moonzero.entity.User">
+		<!-- 数组(可以使用<array>,<list>,<set>标签) -->
+		<property name="arrs">
+			<set>
+				<value>露娜</value>
+				<value>安吉娜</value>
+				<value>幻影刺客</value>
+			</set>
+		</property>
+		<!-- List集合(可以使用<array>,<list>,<set>标签) -->
+		<property name="list">
+			<array>
+				<value>主宰</value>
+				<value>敌法师</value>
+				<value>幽鬼</value>
+			</array>
+		</property>
+		<!-- set集合(可以使用<array>,<list>,<set>标签) -->
+		<property name="set">
+			<list>
+				<value>撼地神牛</value>
+				<value>影魔</value>
+				<value>剧毒术士</value>
+			</list>
+		</property>
+		
+		<!-- map集合(可以使用<map>-<entry>,<props>-<prop>标签) -->
+		<property name="map">
+			<props>
+				<prop key="1">宙斯</prop>
+				<prop key="2">斧王</prop>
+				<prop key="3">地狱领主</prop>
+			</props>
+		</property>
+		
+		<!-- Properties(可以使用<map>,<entry>,<props>,<prop>标签) -->
+		<property name="props">
+			<map>
+				<entry key="A" value="暗影猎手"></entry>
+				<entry key="B" value="矮人阻击手"></entry>
+				<entry key="C">
+					<value>变体精灵</value>
+				</entry>
+			</map>
+		</property>
+	</bean>
+</beans>
