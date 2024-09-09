@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+	"-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+	"hibernate-mapping-3.0.dtd" >
+<!-- 配置hibernate映射关系 -->
+<hibernate-mapping>
+	<!-- 
+		配置类与表的对应
+		class标签
+		name属性：实体类全路径
+		table属性：数据库表名称
+	 -->
+	 <class name="day58.entiry.Customer" table="cst_customer">
+		<!-- 2.配置实体类id和表id对应
+			hibernate要求实体类有一个属性唯一值
+			hibernate要求表有字段作为唯一值
+			id标签
+			name属性：实体类里面id属性名称
+			column属性：生成的表字段名称
+		 -->
+	 	<id name="custId" column="cust_id">
+	 		<!-- generator设置数据库表id生成策略 
+		 		native:生成表id值就是主键并自动增长
+		 	-->
+	 		<generator class="identity"></generator>
+	 	</id>
+	 	<!-- 配置其他属性和表字段对应
+		 	name属性：实体类属性名称
+		 	column属性：生成表字段名称
+	 	 -->
+	 	<property name="custName" column="cust_name"></property>
+	 	<property name="custSource" column="cust_source"></property>
+	 	<property name="custIndustry" column="cust_industry"></property>
+	 	<property name="custLevel" column="cust_level"></property>
+	 </class>
+</hibernate-mapping>

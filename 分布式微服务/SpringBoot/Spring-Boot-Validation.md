@@ -1,5 +1,3 @@
-# Spring Boot 整合 javax.validation
-
 ## 1. javax.validation 校验框架简介
 
 JSR303 是一套 JavaBean 参数校验的标准，它定义了很多常用的校验注解，可以直接将这些注解加在 JavaBean 的属性上面(面向注解编程的时代)，就可以在需要校验的时候进行校验了。但是这只是一个接口，没有具体实现。
@@ -63,54 +61,43 @@ hibernate-validator 优势：
 
 ![](images/329863814220761.png)
 
-
-## 2. javax.validation 相关注解
+## 2. javax.validation 常用注解
 
 hibernate-validator 提供的校验方式为在类的属性上加入相应的注解来达到校验的目的。hibernate-validator 常用的校验注解如下：
 
 ### 2.1. 空检查
 
-|     注解     |                                                      作用描述                                                       |
-| ----------- | ------------------------------------------------------------------------------------------------------------------ |
-| `@Null`     | 验证对象是否为null                                                                                                  |
-| `@NotNull`  | 验证对象是否不为null，可以为empty，即无法查检长度为0的字符串（如：`""`,`" "`,`" "`）                                     |
-| `@NotBlank` | 检查约束字符串是不是Null，并且调用`trim()`方法后的长度是否大于0，且会去掉前后空格，即：必须有实际字符（*只能作用在String上*） |
-| `@NotEmpty` | 检查约束元素是否为NULL或者是EMPTY长度必须大于0 (如：`" "`)                                                             |
+- `@Null`：验证对象是否为 null
+- `@NotNull`：验证对象是否不为 null，但可以为 empty，即无法查检长度为 0 的字符串（如：`""`,`" "`,`" "`）
+- `@NotBlank`：检查约束字符串是不是 Null，并且调用 `trim()` 方法后的长度是否大于 0，且会去掉前后空格，即必须有实际字符（*只能作用在 String 上*）
+- `@NotEmpty`：检查约束元素是否为 NULL 或者是 EMPTY 长度必须大于 0 (如：`" "`)
 
 ### 2.2. Booelan检查
 
-|      注解       |           作用描述            |
-| -------------- | ---------------------------- |
-| `@AssertTrue`  | 验证 Boolean 对象是否为 true  |
-| `@AssertFalse` | 验证 Boolean 对象是否为 false |
+- `@AssertTrue`：验证 Boolean 对象是否为 true
+- `@AssertFalse`：验证 Boolean 对象是否为 false
 
 ### 2.3. 长度检查
 
-|          注解          |                                  作用描述                                   |
-| --------------------- | -------------------------------------------------------------------------- |
-| `@Size(min=, max=)`   | 验证对象（Array,Collection,Map,String）长度是否在给定的范围之内                |
-| `@Length(min=, max=)` | 验证字符串的长度是否在给定的范围之内，包含两端（*Hibernate validator扩展注解*）   |
+- `@Size(min=, max=)`：验证对象（Array, Collection, Map, String）长度是否在给定的范围之内
+- `@Length(min=, max=)`：验证字符串的长度是否在给定的范围之内，包含两端（*Hibernate validator扩展注解*）
 
 ### 2.4. 日期检查
 
-|    注解    |                  作用描述                  |
-| --------- | ----------------------------------------- |
-| `@Past`   | 验证 Date 和 Calendar 对象是否在当前时间之前 |
-| `@Future` | 验证 Date 和 Calendar 对象是否在当前时间之后 |
+- `@Past`：验证 Date 和 Calendar 对象是否在当前时间之前
+- `@Future`：验证 Date 和 Calendar 对象是否在当前时间之后
 
 ### 2.5. 数值检查
 
-**建议使用在Stirng,Integer类型，不建议使用在int类型上，因为表单值为`""`时无法转换为int，但可以转换为Stirng为`""`，Integer为null**
+- `@Min`：验证 `Number` 和 `String` 对象是否大等于指定的值
+- `@Max`：验证 `Number` 和 `String` 对象是否小等于指定的值
+- `@DecimalMax`：被标注的值必须不大于约束中指定的最大值。这个约束的参数是一个通过 `BigDecimal` 定义的最大值的字符串表示，小数存在精度
+- `@DecimalMin`：被标注的值必须不小于约束中指定的最小值。这个约束的参数是一个通过 `BigDecimal` 定义的最小值的字符串表示，小数存在精度
+- `@Digits`：验证 `Number` 和 `String` 的构成是否合法
+- `@Digits(integer=,fraction=)`：验证字符串是否是符合指定格式的数字，interger 指定整数精度，fraction 指定小数精度
+- `@Range(min=, max=)`：检查注释值是否位于（含）指定的最小值和最大值之间（Hibernate validator 扩展注解）
 
-|              注解              |                                                  作用描述                                                  |
-| ----------------------------- | --------------------------------------------------------------------------------------------------------- |
-| `@Min`                        | 验证 `Number` 和 `String` 对象是否大等于指定的值                                                             |
-| `@Max`                        | 验证 `Number` 和 `String` 对象是否小等于指定的值                                                             |
-| `@DecimalMax`                 | 被标注的值必须不大于约束中指定的最大值。这个约束的参数是一个通过 `BigDecimal` 定义的最大值的字符串表示，小数存在精度 |
-| `@DecimalMin`                 | 被标注的值必须不小于约束中指定的最小值。这个约束的参数是一个通过 `BigDecimal` 定义的最小值的字符串表示，小数存在精度 |
-| `@Digits`                     | 验证 `Number` 和 `String` 的构成是否合法                                                                    |
-| `@Digits(integer=,fraction=)` | 验证字符串是否是符合指定格式的数字，interger指定整数精度，fraction指定小数精度                                   |
-| `@Range(min=, max=)`          | 检查注释值是否位于（含）指定的最小值和最大值之间（*Hibernate validator扩展注解*）                                |
+> Notes: <font color=red>**建议使用在 Stirng, Integer 类型，不建议使用在 int 类型上，因为表单值为`""`时无法转换为 int，但可以转换为 Stirng 为`""`，Integer 为 null**</font>
 
 ```java
 @Range(min=10000, max=50000, message="range.bean.wage")
@@ -119,14 +106,16 @@ private BigDecimal wage;
 
 ### 2.6. 其他类型检查
 
-|                       注解                        |                                                              作用描述                                                               |
-| ------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------- |
-| `@Valid`                                         | 递归的对关联对象进行校验，如果关联对象是个集合或者数组，那么对其中的元素进行递归校验，如果是一个map，则对其中的值部分进行校验。(是否进行递归验证) |
-| `@CreditCardNumber`                              | 信用卡验证                                                                                                                          |
-| `@Email`                                         | 验证是否是邮件地址，如果为null，不进行验证，算通过验证。（*Hibernate validator扩展注解*）                                                 |
-| `@ScriptAssert(lang=, script=, alias=)`          |                                                                                                                                    |
-| `@URL(protocol=, host=, port=, regexp=, flags=)` | 检查是否是一个有效的URL，如果提供了protocol，host等，则该URL还需满足提供的条件                                                            |
-| `@Pattern(regex=)`                               | 验证 String 对象是否符合正则表达式的规则                                                                                              |
+- `@Valid`：是 Bean Validation 所定义，可以添加在普通方法、构造方法、方法参数、方法返回、成员变量上，递归的对关联对象进行校验，如果关联对象是个集合或者数组，那么对其中的元素进行递归校验；如果是一个 map，则对其中的值部分进行校验。(是否进行递归验证)
+- `@Validated`：是 Spring Validation 所定义，可以添加在类、方法参数、普通方法上，表示它们需要进行约束校验。
+
+> Notes: `@Valid` 和 `@Validated` 两者的区别在于，`@Validated` 有 `value` 属性，支持分组校验，即根据不同的分组采用不同的校验机制；`@Valid` 可以添加在成员变量上，支持嵌套校验。所以建议的使用方式是：启动校验（即 Controller 层）时使用 `@Validated` 注解，嵌套校验时使用 `@Valid` 注解，这样就能同时使用分组校验和嵌套校验功能。
+
+- `@CreditCardNumber`：信用卡验证
+- `@Email`：验证是否是邮件地址，如果为 null，不进行验证，算通过验证。（Hibernate validator 扩展注解）
+- `@ScriptAssert(lang=, script=, alias=)` 
+- `@URL(protocol=, host=, port=, regexp=, flags=)`：检查是否是一个有效的 URL，如果提供了 protocol，host 等，则该 URL 还需满足提供的条件
+- `@Pattern(regex=)`：验证 String 对象是否符合正则表达式的规则
 
 ## 3. 普通参数校验
 
@@ -431,12 +420,21 @@ public class GlobalExceptionHandler {
 
 ## 6. 自定义参数校验注解
 
-1. 示例：自定义身份证校验注解。这个注解是作用在 Field 字段上，运行时生效，触发的是 `IdentityCardNumber` 这个验证类。
-    - message 定制化的提示信息，主要是从ValidationMessages.properties里提取，也可以依据实际情况进行定制
-    - groups 这里主要进行将validator进行分类，不同的类group中会执行不同的validator操作
-    - payload 主要是针对bean的，使用不多
+### 6.1. 实现步骤
 
-> 注：在 ValidationMessages.properties 就是校验的message，有着已经写好的默认的message，且是支持i18n的，以阅读源码分析
+自定义校验注解的实现步骤如下：
+
+1. 自定义注解需要引入 `@Constraint` 注解。
+2. 自定义 `Validator` 类，实现 `javax.validation.ConstraintValidator` 接口。
+
+### 6.2. 示例
+
+1. 自定义身份证校验注解。这个注解是作用在 Field 字段上，运行时生效，触发的是 `IdentityCardNumber` 这个验证类。注解主要包含以下字段：
+    - message 定制化的提示信息，主要是从 ValidationMessages.properties 里提取，也可以依据实际情况进行定制
+    - groups 这里主要进行将 validator 进行分类，不同的类 group 中会执行不同的 validator 操作
+    - payload 主要是针对 bean 的，使用不多
+
+> 注：在 ValidationMessages.properties 就是校验的 message，有着已经写好的默认的 message，且是支持 i18n 的，以阅读源码分析
 
 ```java
 package com.moon.springboot.validator.annotation;
@@ -468,7 +466,7 @@ public @interface IdCard {
 }
 ```
 
-2. 自定义 `Validator` 类，实现 `javax.validation.ConstraintValidator` 接口，在 `isValid` 方法中编写校验处理逻辑
+2. 自定义 `Validator` 类，实现 `javax.validation.ConstraintValidator` 接口，在 `isValid` 方法中编写校验处理逻辑。如果校验通过，返回 true；反之返回 false：
 
 ```java
 package com.moon.springboot.validator.handler;
@@ -523,6 +521,165 @@ public class UserController {
 
 > Notes: <font color=red>**如果直接在普通类型的方法形参上使用，需要在当前控制类上标识 `@Validated` 注解**</font>
 
+### 6.3. 自定义注解校验原理
+
+1. `org.springframework.validation.beanvalidation.MethodValidationPostProcessor` 是 Spring 提供的来实现基于方法的 JSR 校验的核心处理器，能让约束作用在方法入参、返回值上。关于校验方面的逻辑在切面 `MethodValidationInterceptor`。
+
+```java
+public class MethodValidationPostProcessor extends AbstractBeanFactoryAwareAdvisingPostProcessor
+		implements InitializingBean {
+
+	private Class<? extends Annotation> validatedAnnotationType = Validated.class;
+
+	@Nullable
+	private Validator validator; // javax.validation.Validator
+
+	// 可以传入自定义注解
+	public void setValidatedAnnotationType(Class<? extends Annotation> validatedAnnotationType) {
+		Assert.notNull(validatedAnnotationType, "'validatedAnnotationType' must not be null");
+		this.validatedAnnotationType = validatedAnnotationType;
+	}
+
+	// 默认情况下，使用 LocalValidatorFactoryBean 进行校验，也可以传入自定义的 Validator
+	public void setValidator(Validator validator) {
+		// Unwrap to the native Validator with forExecutables support
+		if (validator instanceof LocalValidatorFactoryBean) {
+			this.validator = ((LocalValidatorFactoryBean) validator).getValidator();
+		}
+		else if (validator instanceof SpringValidatorAdapter) {
+			this.validator = validator.unwrap(Validator.class);
+		}
+		else {
+			this.validator = validator;
+		}
+	}
+
+	// 可以传入自定义 ValidatorFactory
+	public void setValidatorFactory(ValidatorFactory validatorFactory) {
+		this.validator = validatorFactory.getValidator();
+	}
+
+	@Override
+	public void afterPropertiesSet() {
+		Pointcut pointcut = new AnnotationMatchingPointcut(this.validatedAnnotationType, true);
+		this.advisor = new DefaultPointcutAdvisor(pointcut, createMethodValidationAdvice(this.validator));
+	}
+
+	// 使用 MethodValidationInterceptor 切面，配合 @validated 注解使用
+	protected Advice createMethodValidationAdvice(@Nullable Validator validator) {
+		return (validator != null ? new MethodValidationInterceptor(validator) : new MethodValidationInterceptor());
+	}
+}
+```
+
+2. `org.springframework.validation.beanvalidation.MethodValidationInterceptor` 用于处理方法的数据校验
+
+```java
+public class MethodValidationInterceptor implements MethodInterceptor {
+    // ...省略
+
+    @Override
+	@Nullable
+	public Object invoke(MethodInvocation invocation) throws Throwable {
+		// Avoid Validator invocation on FactoryBean.getObjectType/isSingleton
+		// 如果是 FactoryBean.getObject() 方法，就不校验
+		if (isFactoryBeanMetadataMethod(invocation.getMethod())) {
+			return invocation.proceed();
+		}
+
+        // 获取方法上 @Validated 注解里的分组信息
+		Class<?>[] groups = determineValidationGroups(invocation);
+
+		// Standard Bean Validation 1.1 API
+		ExecutableValidator execVal = this.validator.forExecutables();
+		Method methodToValidate = invocation.getMethod();
+		Set<ConstraintViolation<Object>> result;
+
+		Object target = invocation.getThis();
+		Assert.state(target != null, "Target must not be null");
+
+		try {
+            // 对方法的参数进行验证，验证结果保存在 result 中，如果验证失败，result 不为空，此时会抛出异常 ConstraintViolationException
+			result = execVal.validateParameters(target, methodToValidate, invocation.getArguments(), groups);
+		}
+		catch (IllegalArgumentException ex) {
+			// Probably a generic type mismatch between interface and impl as reported in SPR-12237 / HV-1011
+			// Let's try to find the bridged method on the implementation class...
+			methodToValidate = BridgeMethodResolver.findBridgedMethod(
+					ClassUtils.getMostSpecificMethod(invocation.getMethod(), target.getClass()));
+			result = execVal.validateParameters(target, methodToValidate, invocation.getArguments(), groups);
+		}
+		if (!result.isEmpty()) {
+			throw new ConstraintViolationException(result);
+		}
+        // 调用目标方法
+		Object returnValue = invocation.proceed();
+        // 对方法执行的返回值进行验证 ，验证结果保存在 result 中，如果验证失败，result 不为空，此时会抛出异常 ConstraintViolationException
+		result = execVal.validateReturnValue(target, methodToValidate, returnValue, groups);
+		if (!result.isEmpty()) {
+			throw new ConstraintViolationException(result);
+		}
+
+		return returnValue;
+	}    
+
+    // ...省略
+}
+```
+
+3. `org.springframework.validation.beanvalidation.LocalValidatorFactoryBean`，最终是使用它来执行验证功能的，它也是 Spring MVC 默认的验证器。默认情况下，`LocalValidatorFactoryBean` 会配置一个 `SpringConstraintValidatorFactory` 实例。如果有指定的 `ConstraintValidatorFactory`，就会使用指定的，因此在遇到自定义约束注解的时候，就会自动实例化 `@Constraint` 指定的关联 `Validator`，从而完成数据校验过程。
+
+![](images/515756960941110)
+
+4. `org.springframework.validation.beanvalidation.SpringValidatorAdapter` 是 `javax.validation.Validator` 到 Spring 的 Validator 的适配，通过它就可以对接到 Bean Validation 来完成校验了。
+
+```java
+public class SpringValidatorAdapter implements SmartValidator, javax.validation.Validator {
+    // 约束注解必要的三个成员属性
+    private static final Set<String> internalAnnotationAttributes = new HashSet<>(4);
+
+	static {
+        // 命中约束的错误提示信息
+		internalAnnotationAttributes.add("message");
+		// 分组校验使用
+		internalAnnotationAttributes.add("groups");
+		// 负载
+		internalAnnotationAttributes.add("payload");
+	}
+
+	@Nullable
+	private javax.validation.Validator targetValidator;
+	// 创建一个适配器
+    public SpringValidatorAdapter(javax.validation.Validator targetValidator) {
+		Assert.notNull(targetValidator, "Target Validator must not be null");
+		this.targetValidator = targetValidator;
+	}
+
+	SpringValidatorAdapter() {
+	}
+
+	void setTargetValidator(javax.validation.Validator targetValidator) {
+		this.targetValidator = targetValidator;
+	}
+
+	@Override
+	public boolean supports(Class<?> clazz) {
+		return (this.targetValidator != null);
+	}
+
+    // 调用校验器校验目标对象，把 Validator 校验的结果-ConstraintViolations 错误信息，都放在 Errors 的 BindingResult 里。
+    // 总之，就是把失败信息对象转换成 spring 内部的验证失败信息对象
+	@Override
+	public void validate(Object target, Errors errors) {
+		if (this.targetValidator != null) {
+			processConstraintViolations(this.targetValidator.validate(target), errors);
+		}
+	}
+
+	// ...省略
+}
+```
+
 ## 7. groups 分组校验
 
 VO（DTO）同一个对象一般都会复用，比如 `GoodsDTO` 在更新时候要校验 id 字段，在保存的时候不需要校验 id 字段，在两种情况下都要校验 name 字段，可以使用 `groups` 属性进行分组校验
@@ -536,14 +693,14 @@ public interface Create extends Default {
 }
 ```
 
-```
+```java
 import javax.validation.groups.Default;
 
 public interface Update extends Default {
 }
 ```
 
-2. 在DTO中的字段上定义好`groups = {}`的分组类型
+2. 在 DTO 中的字段上定义好 `groups = {}` 的分组类型
 
 ```java
 @Data
@@ -592,7 +749,113 @@ public class GoodsController {
 
 ![](images/555504716247220.png)
 
-## 8. 校验配置文件中设置项
+## 8. Service 层方法的参数校验
+
+除了在 Controller 层进行参数校验，其实更多情况下是需要对 Service 层的接口进行参数校验。
+
+在校验方法入参的约束时，若是 `@Override` 父类/接口的方法，那么这个入参约束只能写在父类/接口上面。
+
+> Tips: 至于为什么只能写在接口处，其实是和 Bean Validation 的实现有关，可参考此类 `OverridingMethodMustNotAlterParameterConstraints`
+
+### 8.1. 普通参数校验
+
+如果入参是普通类型的，首先需要在父类/接口的方法入参里增加注解约束，然后用 `@Validated` 修饰相应的的实现类。
+
+```java
+public interface OrderService {
+    String getOrder(@NotBlank(message = "订单id不能为空") String orderId, String status);
+}
+
+@Service
+@Validated
+public class OrderServiceImpl implements OrderService {
+    @Override
+    public String getOrder(String orderId, String status) {
+        return String.format("成功获取订单号为【%s】，状态为【%s】", orderId, status);
+    }
+}
+```
+
+测试 Controller 调用 Service 接口
+
+```java
+@RestController
+@RequestMapping("/order")
+public class OrderController {
+
+    @Autowired
+    private OrderService orderService;
+
+    /**
+     * 查询，校验普通类型参数
+     */
+    @GetMapping("/get")
+    public String getOrder(String orderId, String status) {
+        return orderService.getOrder(orderId, status);
+    }
+}
+```
+
+如果数据校验通过，就会继续执行方法里的业务逻辑；否则，就会抛出一个 `ConstraintViolationException` 异常。
+
+![](images/214541396551053.png)
+
+### 8.2. 对象参数校验
+
+在实际开发中，其实大多数情况下方法入参是个对象，而不是普通类型的参数。
+
+1. 在方法入参类里增加注解约束（如，`@NotNull`）
+
+```java
+@Data
+public class OrderDTO {
+    @NotBlank(message = "订单不能为空")
+    private String orderId;
+    @IdCard(message = "用户信息有误,请核对后提交")
+    private String customerId;
+    private String customerName;
+}
+```
+
+2. 在父类/接口的方法入参里增加 `@Valid`注解（便于嵌套校验），最后用 `@Validated` 修饰具体的实现类。
+
+```java
+public interface OrderService {
+    String update(@Valid OrderDTO orderDTO);
+}
+
+@Service
+@Validated
+public class OrderServiceImpl implements OrderService {
+    @Override
+    public String update(OrderDTO orderDTO) {
+        return String.format("更新成功。订单号为【%s】，用户ID为【%s】", orderDTO.getOrderId(), orderDTO.getCustomerId());
+    }
+}
+```
+
+3. 测试 Controller 调用 Service 接口。如果需要格式化错误结果，可以增加**异常处理切面**，即可得到一个完美的异常结果。
+
+```java
+@RestController
+@RequestMapping("/order")
+public class OrderController {
+    @Autowired
+    private OrderService orderService;
+
+    /**
+     * 更新操作，校验对象类型参数
+     */
+    @PostMapping("/update")
+    public String update(@RequestBody OrderDTO orderDTO) {
+        return orderService.update(orderDTO);
+    }
+}
+```
+
+![](images/68514927852098.png)
+
+## 9. 校验配置文件中设置项
 
 在 Spring Boot 中进行属性绑定时可以通过松散绑定规则，书写一些配置项名称不统一与不规范。由于无法感知模型类中的数据类型，就会出现类型不匹配的问题，比如代码中需要 `int` 类型，配置中给了非法的数值，例如写一个"a"，这种数据肯定无法有效的绑定，还会引发错误。
 
@@ -634,7 +897,7 @@ public class Person {
 
 ![](images/197152922220458.png)
 
-## 9. 快速失败返回模式
+## 10. 快速失败返回模式
 
 ![](images/593634615227054.png)
 
@@ -710,3 +973,66 @@ public class ValidatorApplication {
 测试结果，只要校验一个参数失败就直接返回异常信息
 
 ![](images/19091822239187.png)
+
+## 11. ValidatorUtils 自定义校验类 - 较简洁的方式
+
+还可以创建通用自定义校验类，直接在需要校验的位置直接调用校验即可。
+
+1. 创建自定义 ValidatorUtils 校验类
+
+```java
+package com.moon.springboot.validator.utils;
+
+import javax.validation.ConstraintViolation;
+import javax.validation.Validation;
+import javax.validation.Validator;
+import java.util.Set;
+
+/**
+ * hibernate-validator 校验工具类
+ */
+public class ValidatorUtils {
+
+    private static final Validator validator;
+
+    static {
+        validator = Validation.buildDefaultValidatorFactory().getValidator();
+    }
+
+    /**
+     * 校验对象
+     *
+     * @param object 待校验对象
+     * @param groups 待校验的组
+     */
+    public static void validateEntity(Object object, Class<?>... groups) throws Exception {
+        Set<ConstraintViolation<Object>> constraintViolations = validator.validate(object, groups);
+        if (!constraintViolations.isEmpty()) {
+            StringBuilder msg = new StringBuilder();
+            for (ConstraintViolation<Object> constraint : constraintViolations) {
+                msg.append(constraint.getMessage()).append("<br>");
+            }
+            throw new Exception(msg.toString());
+        }
+    }
+}
+```
+
+2. 创建请求接口测试，增加在代码里调用校验
+
+```java
+@RestController
+@RequestMapping("/goods")
+public class GoodsController {
+    /**
+     * 新增。通过通用校验工具类进行校验
+     */
+    @PostMapping("/save")
+    public String save(@RequestBody GoodsDTO goodsDTO) throws Exception {
+        ValidatorUtils.validateEntity(goodsDTO, Create.class);
+        return "新增 success";
+    }
+}
+```
+
+![](images/112126560576396.png)

@@ -1,17 +1,29 @@
-## 1. Feign 简介
+## 1. Spring Cloud OpenFeign 简介
 
 Feign 是 Netflix 开发的声明式，模板化的 HTTP 客户端，其灵感来自 Retrofit，JAXRS-2.0 以及 WebSocket。
 
-- Feign 可更加便捷，优雅的调用 HTTP API
-- 在 Spring Cloud 中，使用 Feign 非常简单。创建一个接口，并在接口上添加一些注解，代码就完成了
-- Feign 支持多种注解，例如 Feign 自带的注解或者 JAX-RS 注解等
-- Spring Cloud 对 Feign 进行了增强，使 Feign 支持了 SpringMVC 注解，并整合了 Ribbon 和 Eureka，从而让 Feign 的使用更加方便
+Feign 可更加便捷，优雅的调用 HTTP API。在 Spring Cloud 中，使用 Feign 非常简单。创建一个接口，并在接口上添加一些注解，代码就完成了。
+
+Feign 支持多种注解，例如 Feign 自带的注解或者 JAX-RS 注解等。Spring Cloud 对 Feign 进行了增强，使 Feign 支持了 SpringMVC 注解，并整合了 Ribbon 和 Eureka，从而让 Feign 的使用更加方便。
+
+### 1.1. Feign 和 OpenFeign
+
+OpenFeign 组件的前身是 Netflix Feign 项目，它最早是作为 Netflix OSS 项目的一部分，由 Netflix 公司开发。后来 Feign 项目被贡献给了开源组织，于是就有了 Spring Cloud OpenFeign 组件。
+
+Feign 和 OpenFeign 有很多大同小异之处，不同的是 OpenFeign 支持 MVC 注解。**可以认为 OpenFeign 为 Feign 的增强版**。
+
+### 1.2. OpenFeign 的作用
+
+- OpenFeign 是声明式的 HTTP 客户端，让远程调用更简单。
+- 提供了 HTTP 请求的模板，编写简单的接口和插入注解，就可以定义好 HTTP 请求的参数、格式、地址等信息
+- 整合了 Ribbon（负载均衡组件）和 Hystix（服务熔断组件），不需要显示使用这两个组件
+- Spring Cloud Feign 在 Netflix Feign 的基础上扩展了对 SpringMVC 注解的支持
 
 ## 2. 基于 eureka 的 Feign 服务调用示例
 
 ### 2.1. 示例工程准备
 
-复用之前eureka单机版的示例项目`spring-cloud-sample-eureka`，命名为`spring-cloud-sample-feign`
+复用之前 eureka 单机版的示例项目`spring-cloud-sample-eureka`，命名为`spring-cloud-sample-feign`
 
 ### 2.2. 引入 Feign 依赖
 
@@ -802,6 +814,17 @@ public class OkHttpConfiguration {
 
 ![Spring-Cloud-OpenFeign流程图.drawio](images/506390812249494.jpg)
 
+### 6.4. OpenFeign 的核心流程梳理
+
+1. 在 Spring 项目启动阶段，服务 A 的 OpenFeign 框架会发起一个主动的扫包流程。
+2. 从指定的目录下扫描并加载所有被 `@FeignClient` 注解修饰的接口，然后将这些接口转换成 Bean，统一交给 Spring 来管理。
+3. 根据这些接口会经过 MVC Contract 协议解析，将方法上的注解都解析出来，放到 MethodMetadata 元数据中。
+4. 基于上面加载的每一个 FeignClient 接口，会生成一个动态代理对象，指向了一个包含对应方法的 MethodHandler 的 HashMap。MethodHandler 对元数据有引用关系。生成的动态代理对象会被添加到 Spring 容器中，并注入到对应的服务里。
+5. 服务 A 调用接口，准备发起远程调用。
+6. 从动态代理对象 Proxy 中找到一个 MethodHandler 实例，生成 Request，包含有服务的请求 URL（不包含服务的 IP）。
+7. 经过负载均衡算法找到一个服务的 IP 地址，拼接出请求的 URL
+8. 服务 B 处理服务 A 发起的远程调用请求，执行业务逻辑后，返回响应给服务 A。
+
 ## 7. Feign 源码分析
 
 通过使用过程可知，`@EnableFeignClients`和`@FeignClient`两个注解就实现了Feign的功能，所以从`@EnableFeignClients`注解开始分析Feign的源码
@@ -818,7 +841,7 @@ public @interface EnableFeignClients {
 }
 ```
 
-通过 `@EnableFeignClients` 引入了`FeignClientsRegistrar`客户端注册类
+通过 `@EnableFeignClients` 引入了 `FeignClientsRegistrar` 客户端注册类。
 
 ### 7.2. FeignClientsRegistrar 客户端注册类
 

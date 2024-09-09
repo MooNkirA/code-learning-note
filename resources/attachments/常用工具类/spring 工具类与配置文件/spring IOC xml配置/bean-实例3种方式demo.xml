@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="
+        http://www.springframework.org/schema/beans
+		http://www.springframework.org/schema/beans/spring-beans.xsd">
+	<!-- 配置资源让spring来创建对象 -->
+	<!-- 方式1：使用默认无参构造方法 -->
+	<bean id="customerDao" class="com.moonzero.dao.impl.CustomerDaoImpl" scope="prototype"></bean>
+	<!-- <bean id="customerService" class="com.moonzero.service.impl.CustomerServiceImpl"></bean> -->
+
+	<!-- 方式2：spring管理静态工厂:使用静态工厂的方法创建对象 -->
+	<!-- <bean id="customerService" class="com.moonzero.utils.StaticFactory"
+		factory-method="createCustomerService"></bean> -->
+
+	<!-- 方式3：spring管理实例工厂:使用实例工厂的方法创建对象 -->
+	<bean id="instanceFactory" class="com.moonzero.utils.InstanceFactory"></bean>
+	<bean id="customerService" factory-bean="instanceFactory"
+		factory-method="createCustomerService"></bean>
+
+</beans>

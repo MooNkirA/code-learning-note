@@ -2,9 +2,9 @@
 
 > Swagger 官网：https://swagger.io/
 
-OpenAPI规范（OpenAPI Specification 简称OAS）是Linux基金会的一个项目，试图通过定义一种用来描述API格式或API定义的语言，来规范RESTful服务开发过程，目前版本是V3.0，并且已经发布并开源在github上。https://github.com/OAI/OpenAPI-Specification
+OpenAPI 规范（OpenAPI Specification 简称OAS）是Linux基金会的一个项目，试图通过定义一种用来描述 API 格式或 API 定义的语言，来规范 RESTful 服务开发过程，目前版本是V3.0，并且已经发布并开源在 github 上。https://github.com/OAI/OpenAPI-Specification
 
-Swagger 是全球最大的 OpenAPI 规范（OAS）API开发工具框架，支持从设计和文档到测试和部署的整个API生命周期的开发。
+Swagger 是全球最大的 OpenAPI 规范（OAS）API开发工具框架，支持从设计和文档到测试和部署的整个 API 生命周期的开发。
 
 使用 Swagger 只需要按照它的规范去定义接口及接口相关的信息。再通过 Swagger 衍生出来的一系列项目和工具，就可以做到生成各种格式的接口文档，生成多种语言的客户端和服务端的代码，以及在线接口调试页面等等。这样，如果按照新的开发模式，在开发新版本或者迭代版本的时候，只需要更新 Swagger 描述文件，就可以自动生成接口文档和客户端服务端代码，做到调用端代码、服务端代码以及接口文档的一致性。
 
@@ -12,9 +12,9 @@ Swagger 是全球最大的 OpenAPI 规范（OAS）API开发工具框架，支持
 
 Springfox 是一个开源的 API Doc 的框架，它的前身是 swagger-springmvc，可以将项目的 Controller 中的方法以文档的形式展现。
 
-为了简化 swagger 的使用，Spring 框架对 swagger 进行了整合，建立了 Spring-swagger 项目，后面改成了现在的 Springfox。即 Swagger 是一套规范，而 springfox-swagger 是基于 Spring 生态系统对 Swagger 规范的实现。springfox-swagger-ui 又是对 swagger-ui 的封装，让其可以使用 spring 服务
+为了简化 swagger 的使用，Spring 框架对 swagger 进行了整合，建立了 Spring-swagger 项目，后面改成了现在的 Springfox。即 Swagger 是一套规范，而 springfox-swagger 是基于 Spring 生态系统对 Swagger 规范的实现。springfox-swagger-ui 又是对 swagger-ui 的封装，让其可以使用 spring 服务。
 
-Spring Boot 可以集成 Swagger，生成 Swagger 接口
+Spring Boot 可以集成 Swagger，生成 Swagger 接口。
 
 ### 1.2. knife4j 概述
 
@@ -63,41 +63,393 @@ knife4j 对应的 maven 坐标如下：
 </dependency>
 ```
 
-## 3. Swagger 常用注解
+## 3. Swagger 配置
+
+### 3.1. Springfox Docket 对象各项配置属性
+
+Springfox 提供了一个 `Docket` 对象，用于灵活的配置 Swagger 的各项属性。Docket 对象内提供了很多的方法来配置文档。常用的配置项如下：
+
+#### 3.1.1. select
+
+`select()` 返回一个 `ApiSelectorBuilder` 对象，是使用 `apis()`、`paths()` 两个方法的前提，用于指定 Swagger 要扫描的接口和路径。
+
+#### 3.1.2. apis
+
+默认情况下，Swagger 会扫描整个项目中的接口，通过 `apis()` 方法，可以传入一个 `RequestHandlerSelector` 对象实例来指定要包含的接口所在的包路径。
+
+```java
+@Bean
+public Docket docket(Environment environment) {
+    return new Docket(DocumentationType.SWAGGER_2)
+            .select()
+            .apis(RequestHandlerSelectors.basePackage("com.springboot101.controller"))
+            .build();
+}
+```
+
+#### 3.1.3. paths
+
+仅将某些特定请求路径的 API 展示在 Swagger 文档中。例如路径中包含`/test`，可以使用 apis() 和 paths() 方法一起来过滤接口。
+
+```java
+@Bean
+public Docket docket(Environment environment) {
+    return new Docket(DocumentationType.SWAGGER_2)
+            .select()
+            .paths(PathSelectors.ant("/test/**"))
+            .build();
+}
+```
+
+#### 3.1.4. groupName
+
+为生成的 Swagger 文档指定分组的名称，用来区分不同的文档组。
+
+```java
+@Bean
+public Docket docket(Environment environment) {
+    return new Docket(DocumentationType.SWAGGER_2)
+            .groupName("用户分组")
+            .build();
+}
+```
+
+实现文档的多个分组，则需创建多个 Docket 实例，设置不同的组名，和组内过滤 API 的条件。
+
+```java
+@Bean
+public Docket docket1(Environment environment) {
+    return new Docket(DocumentationType.SWAGGER_2)
+            .groupName("商家分组")
+            .select()
+            .paths(PathSelectors.ant("/test1/**"))
+            .build();
+}
+```
+
+#### 3.1.5. apiInfo
+
+设置 API 文档的基本信息，例如标题、描述、版本等。可以使用 ApiInfo 对象自定义信息。
+
+```java
+@Bean
+public Docket docket(Environment environment) {
+    return new Docket(DocumentationType.SWAGGER_2)
+            .apiInfo(apiInfo()); // 文档基础配置
+}
+
+private ApiInfo apiInfo() {
+    Contact contact = new Contact("测试", "http://moon.com", "email@example.com");
+    return new ApiInfoBuilder()
+            .title("Swagger 学习")
+            .description("一起学习 Swagger")
+            .version("v1.0.1")
+            .termsOfServiceUrl("http://moon.com")
+            .contact(contact)
+            .license("许可证")
+            .licenseUrl("许可链接")
+            .extensions(Arrays.asList(
+                    new StringVendorExtension("我是", "MooN"),
+                    new StringVendorExtension("你是", "谁")
+            ))
+            .build();
+}
+```
+
+#### 3.1.6. enable
+
+启用或禁用 Swagger 文档的生成，有时测试环境会开放 API 文档，但在生产环境则要禁用，可以根据环境变量控制是否显示。
+
+```java
+@Bean
+public Docket docket(Environment environment) {
+    // 可显示 swagger 文档的环境
+    Profiles of = Profiles.of("dev", "test", "pre");
+    boolean enable = environment.acceptsProfiles(of);
+
+    return new Docket(DocumentationType.SWAGGER_2)
+            .enable(enable)
+            .apiInfo(apiInfo()); // 文档基础配置
+}
+```
+
+#### 3.1.7. host
+
+API 文档显示的主机名称或 IP 地址，即在测试执行接口时使用的 IP 或域名。
+
+```java
+@Bean
+public Docket docket(Environment environment) {
+    return new Docket(DocumentationType.SWAGGER_2)
+            .host("http://test.com") // 请求地址
+            .apiInfo(apiInfo()); // 文档基础配置
+}
+```
+
+#### 3.1.8. securitySchemes
+
+配置 API 安全认证方式，比如常见的在 `header` 中设置如 `Bearer`、`Authorization`、`Basic` 等鉴权字段，`ApiKey` 对象中字段含义分别是别名、鉴权字段 key、鉴权字段添加的位置。
+
+```java
+@Bean
+public Docket docket(Environment environment) {
+    return new Docket(DocumentationType.SWAGGER_2)
+            .securitySchemes(
+                    Arrays.asList(
+                            new ApiKey("Bearer鉴权", "Bearer", "header"),
+                            new ApiKey("Authorization鉴权", "Authorization", "header"),
+                            new ApiKey("Basic鉴权", "Basic", "header")
+                    )
+            );
+}
+```
+
+这样配置后，Swagger 文档将会包含一个 Authorize 按钮，供用户输入设定的 Bearer 、Authorization、Basic 进行身份验证。
+
+![](images/248515954455425.jpg)
+
+#### 3.1.9. securityContexts
+
+`securitySchemes` 方法中虽然设置了鉴权字段，但此时在测试接口的时候不会自动在 header 中加上鉴权字段和值，还要配置 API 的安全上下文，指定哪些接口需要进行安全认证。
+
+```java
+@Bean
+public Docket docket(Environment environment) {
+    return new Docket(DocumentationType.SWAGGER_2)
+            .securitySchemes(
+                    Arrays.asList(
+                            new ApiKey("Bearer鉴权", "Bearer", "header"),
+                            new ApiKey("Authorization鉴权", "Authorization", "header"),
+                            new ApiKey("Basic鉴权", "Basic", "header")
+                    )
+            )
+            .securityContexts(Collections.singletonList(securityContext()));
+}
+
+private SecurityContext securityContext() {
+    return SecurityContext.builder()
+            .securityReferences(
+                    Arrays.asList(
+                            new SecurityReference("Authorization", new AuthorizationScope[0]),
+                            new SecurityReference("Bearer", new AuthorizationScope[0]),
+                            new SecurityReference("Basic", new AuthorizationScope[0])))
+            .build();
+}
+```
+
+现在在测试调用 API 接口时，header 中可以正常加上鉴权字段和值了。
+
+![](images/451007221796090.jpg)
+
+#### 3.1.10. tags
+
+为 API 文档中的接口添加标签，标签可以用来对 API 进行分类或分组，并提供更好的组织和导航功能。
+
+```java
+@Bean
+public Docket docket(Environment environment) {
+    return new Docket(DocumentationType.SWAGGER_2)
+            .tags(new Tag("测试接口", "测试相关的测试接口"))
+}
+```
+
+### 3.2. 文档注解
 
 在 Java 类中添加 Swagger 的注解即可生成 Swagger 接口文档，常用 Swagger 注解如下：
 
-### 3.1. 常用注解列表
+|         注解          |                         作用                          |
+| :------------------: | ---------------------------------------------------- |
+|        `@Api`        | 修饰整个请求类，描述 Controller 的作用                   |
+|   `@ApiOperation`    | 用在请求的方法上，描述类的某个方法或者一个接口的用途、作用    |
+|     `@ApiParam`      | 单个参数描述                                           |
+|     `@ApiModel`      | 通常用于用对象来接收参数，表示一个返回响应数据的信息         |
+| `@ApiModelProperty`  | 用对象接收参数时，用在类属性上，描述对象的某一个字段         |
+|    `@ApiResponse`    | HTTP 响应其中 1 个描述                                 |
+|   `@ApiResponses`    | HTTP 响应整体描述                                      |
+|     `@ApiIgnore`     | 使用该注解忽略这个 API                                  |
+|     `@ApiError`      | 发生错误返回的信息                                      |
+| `@ApiImplicitParam`  | 用在`@ApiImplicitParams`注解中，指定一个请求参数的各种说明 |
+| `@ApiImplicitParams` | 用在请求的方法上的多个请求参数，表示一组参数说明             |
 
-|         注解          |                         作用                          | 取值 |
-| :------------------: | ---------------------------------------------------- | ---- |
-|        `@Api`        | 修饰整个请求类，描述Controller的作用                     |      |
-|   `@ApiOperation`    | 用在请求的方法上，描述类的某个方法或者一个接口的用途、作用    |      |
-|     `@ApiParam`      | 单个参数描述                                           |      |
-|     `@ApiModel`      | 通常用于用对象来接收参数，表示一个返回响应数据的信息         |      |
-| `@ApiModelProperty`  | 用对象接收参数时，用在类属性上，描述对象的某一个字段         |      |
-|    `@ApiResponse`    | HTTP响应其中1个描述                                    |      |
-|   `@ApiResponses`    | HTTP响应整体描述                                       |      |
-|     `@ApiIgnore`     | 使用该注解忽略这个API                                   |      |
-|     `@ApiError`      | 发生错误返回的信息                                      |      |
-| `@ApiImplicitParam`  | 用在`@ApiImplicitParams`注解中，指定一个请求参数的各种说明 |      |
-| `@ApiImplicitParams` | 用在请求的方法上的多个请求参数，表示一组参数说明             |      |
+#### 3.2.1. @ApiIgnore
 
-### 3.2. @ApiImplicitParam 属性说明
+在 Docket 配置对象可以根据指定路径或者包路径来提供 API，也可以使用粒度更细的 `@ApiIgnore` 注解，来实现某个 API 在文档中忽略。
 
-- `paramType`：查询参数类型
+```java
+@ApiIgnore
+@GetMapping("/user2/{id}")
+public User test2(@PathVariable Integer id, @RequestBody User user) {
+    return user;
+}
+```
+
+#### 3.2.2. @ApiModel
+
+在接口中，只要使用实体作为参数或响应体，Swagger 就会自动扫描到它们，但这些实体缺乏详细的描述信息。为了让使用者通俗易懂，需要使用 swagger 提供的注解为这些实体添加详细的描述。
+
+`@ApiModel` 注解的使用在实体类上，提供对 Swagger Model 额外信息的描述。
+
+#### 3.2.3. @ApiModelProperty
+
+`@ApiModelProperty` 注解为实体类中的属性添加描述，提供了字段名称、是否必填、字段示例等描述信息。
+
+```java
+@ApiModel(value = "用户实体类", description = "用于存放用户登录信息")
+@Data
+public class User {
+    @ApiModelProperty(value = "用户名字段", required = true, example = "测试")
+    private String name;
+
+    @ApiModelProperty(value = "年龄", required = true, example = "19")
+    private Integer age;
+
+    @ApiModelProperty(value = "邮箱", required = true, example = "测试")
+    private String email;
+}
+```
+
+#### 3.2.4. @Api
+
+`@Api` 注解用于标记一个控制器（`controller`）类，并提供接口的详细信息和配置项。
+
+- `value`：API 接口的描述信息，由于版本 swagger 版本原因，`value` 可能会不生效，此时可以使用 `description`
+- `hidden`：该 API 是否在 Swagger 文档中隐藏
+- `tags`：API 的标签，如果此处与 `new Docket().tags` 中设置的标签一致，则会将该 API 放入到这个标签组内
+- `authorizations`：鉴权配置，配合 `@AuthorizationScope` 注解控制权限范围或者特定密钥才能访问该 API。
+- `produces`：API 的响应内容类型，例如 application/json。
+- `consumes`：API 的请求内容类型，例如 application/json。
+- `protocols`：API 支持的通信协议。
+
+```java
+@Api(value = "用户管理接口描述",
+    description = "用户管理接口描述",
+    hidden = false,
+    produces = "application/json",
+    consumes = "application/json",
+    protocols = "https",
+    tags = {"用户管理"},
+    authorizations = {
+        @Authorization(value = "apiKey", scopes = {
+            @AuthorizationScope(scope = "read:user", description = "读权限"),
+            @AuthorizationScope(scope = "write:user", description = "写权限")
+        }),
+        @Authorization(value = "basicAuth")
+    })
+@RestController
+public class TestController {
+}
+```
+
+#### 3.2.5. @ApiOperation
+
+`@ApiOperation`该注解作用在接口方法上，用来对一个操作或 HTTP 方法进行描述。
+
+- `value`：对接口方法的简单说明
+- `notes`：对操作的详细说明。
+- `httpMethod`：请求方式
+- `code`：状态码，默认为 200。可以传入符合标准的 HTTP Status Code Definitions。
+- `hidden`：在文档中隐藏该接口
+- `response`：返回的对象
+- `tags`：使用该注解后，该接口方法会单独进行分组
+- `produces`：API 的响应内容类型，例如 application/json。
+- `consumes`：API 的请求内容类型，例如 application/json。
+- `protocols`：API 支持的通信协议。
+- `authorizations`：鉴权配置，配合 `@AuthorizationScope` 注解控制权限范围或者特定密钥才能访问该 API。
+- `responseHeaders`：响应的 header 内容
+
+```java
+@ApiOperation(
+    value = "获取用户信息",
+    notes = "通过用户ID获取用户的详细信息",
+    hidden = false,
+    response = UserDto.class,
+    tags = {"用户管理"},
+    produces = "application/json",
+    consumes = "application/json",
+    protocols = "https",
+    authorizations = {
+        @Authorization(value = "apiKey", scopes = {@AuthorizationScope(scope = "read:user", description = "读权限")}),
+        @Authorization(value = "Basic")
+    },
+    responseHeaders = {@ResponseHeader(name = "X-Custom-Header", description = "Custom header", response = String.class)},
+    code = 200,
+    httpMethod = "GET"
+)
+@GetMapping("/user1")
+public UserDto user1(@RequestBody User user) {
+    return new UserDto();
+}
+```
+
+#### 3.2.6. @ApiImplicitParams
+
+`@ApiImplicitParams` 注解用在方法上，以数组方式存储，配合 `@ApiImplicitParam` 注解使用。
+
+#### 3.2.7. @ApiImplicitParam
+
+`@ApiImplicitParam` 注解对API方法中的单一参数进行注解。
+
+> Notes: **此注解 `@ApiImplicitParam` 必须被包含在注解 `@ApiImplicitParams` 之内。**
+
+- `name`：参数名称
+- `value`：参数的简短描述
+- `required`：是否为必传参数
+    - true：必填
+    - false：非必填 
+- `dataType`：参数类型，可以为类名，也可以为基本类型（String，int、boolean等）。只作为标志说明，并没有实际验证。
+- `paramType`：参数的传入（请求）类型，可选的值有 path、query、body、header、form。
     - `path`：以地址的形式提交数据取值
     - `query`：直接跟参数完成自动映射赋值
     - `body`：以流的形式提交，仅支持 POST 请求
     - `header`：参数在 request headers 里边提交
     - `form`：以 form 表单的形式提交，仅支持 POST 请求
-- `dataType`：参数的数据类型 只作为标志说明，并没有实际验证。Long 类型 / String 类型                                                                                                                                                                      
-- `name`：接收参数名
-- `value`：接收参数的意义描述
-- `required`：参数是否必填
-    - true：必填
-    - false：非必填 
 - `defaultValue`：默认值
+
+```java
+@ApiImplicitParams({
+    @ApiImplicitParam(name = "用户名", value = "用户名称信息", required = true, dataType = "String", paramType = "query")
+})
+@GetMapping("/user")
+public String user(String name) {
+    return name;
+}
+```
+
+#### 3.2.8. @ApiParam
+
+`@ApiParam()` 也是对 API 方法中的单一参数进行注解，其内部属性和 `@ApiImplicitParam` 注解相似。
+
+```java
+@GetMapping("/user4")
+public String user4(@ApiParam(name = "主键ID", value = "@ApiParam注解测试", required = true) String id) {
+    return id;
+}
+```
+
+#### 3.2.9. @ApiResponses
+
+`@ApiResponses` 注解可用于描述请求的状态码，作用在方法上，以数组方式存储，配合 `@ApiResponse` 注解使用。
+
+#### 3.2.10. @ApiResponse
+
+`@ApiResponse` 注解描述一种请求的状态信息。
+
+- `code`：HTTP 请求响应码。
+- `message`：响应的文本消息
+- `response`：返回类型信息。
+- `responseContainer`：如果返回类型为容器类型，可以设置相应的值。有效值为 `List`、`Set`、`Map` 其他任何无效的值都会被忽略。
+
+```java
+@ApiResponses(value = {
+    @ApiResponse(code = 200, message = "@ApiResponse注解测试通过", response = String.class),
+    @ApiResponse(code = 401, message = "可能参数填的有问题", response = String.class),
+    @ApiResponse(code = 404, message = "可能请求路径写的有问题", response = String.class)
+})
+@GetMapping("/user4")
+public String user4(@ApiParam(name = "主键ID", value = "@ApiParam注解测试", required = true) String id) {
+    return id;
+}
+```
 
 ## 4. Swagger 入门案例
 
@@ -139,7 +491,53 @@ knife4j 对应的 maven 坐标如下：
 
 > Tips: swagger 文档项目需要是 web 工程
 
-### 4.2. 创建接口与实体类
+### 4.2. swagger 配置
+
+创建 Swagger 配置类，类标注 `@EnableSwagger2` 关键注解
+
+```java
+@Configuration
+@EnableSwagger2 // 开启 Swagger
+public class SwaggerConfiguration {
+
+    // 模拟创建多个文档组 - 用户模块
+    @Bean
+    public Docket createRestApi1() {
+        // docket对象用于封装接口文档相关信息
+        return new Docket(DocumentationType.SWAGGER_2)
+                .apiInfo(apiInfo())
+                .groupName("用户接口组").select()
+                .apis(RequestHandlerSelectors.basePackage("com.moon.examples.swagger.controller.user"))
+                .build();
+    }
+
+    // 模拟创建多个文档组 - 用户模块
+    @Bean
+    public Docket createRestApi2() {
+        // docket对象用于封装接口文档相关信息
+        return new Docket(DocumentationType.SWAGGER_2)
+                .apiInfo(apiInfo())
+                .groupName("菜单接口组").select()
+                .apis(RequestHandlerSelectors.basePackage("com.moon.examples.swagger.controller.menu"))
+                .build();
+    }
+
+    /**
+     * 添加摘要信息
+     */
+    private ApiInfo apiInfo() {
+        // 用ApiInfoBuilder进行定制
+        return new ApiInfoBuilder()
+                .title("我的接口文档")
+                .contact(new Contact("MooNkirA", "http://www.moon.com", "hello@moon.com")) // 设置作者
+                .version("1.0") // 设置版本
+                .description("接口文档描述") // 设置描述
+                .build();
+    }
+}
+```
+
+### 4.3. 创建接口与实体类
 
 - 创建示例测试使用实体类User和Menu，增加相应 swagger 文档的注解
 
@@ -239,52 +637,6 @@ public class UserController {
 
 > Notes: 再创建一个接口类 MenuController，代码与上面一样即可，**但注意将该类放到 `com.moon.examples.swagger.controller.menu` 包，为了后面测试文档分组的功能**
 
-### 4.3. swagger 配置
-
-创建 Swagger 配置类
-
-```java
-@Configuration
-@EnableSwagger2 // 开启 Swagger
-public class SwaggerConfiguration {
-
-    // 模拟创建多个文档组 - 用户模块
-    @Bean
-    public Docket createRestApi1() {
-        // docket对象用于封装接口文档相关信息
-        return new Docket(DocumentationType.SWAGGER_2)
-                .apiInfo(apiInfo())
-                .groupName("用户接口组").select()
-                .apis(RequestHandlerSelectors.basePackage("com.moon.examples.swagger.controller.user"))
-                .build();
-    }
-
-    // 模拟创建多个文档组 - 用户模块
-    @Bean
-    public Docket createRestApi2() {
-        // docket对象用于封装接口文档相关信息
-        return new Docket(DocumentationType.SWAGGER_2)
-                .apiInfo(apiInfo())
-                .groupName("菜单接口组").select()
-                .apis(RequestHandlerSelectors.basePackage("com.moon.examples.swagger.controller.menu"))
-                .build();
-    }
-
-    /**
-     * 添加摘要信息
-     */
-    private ApiInfo apiInfo() {
-        // 用ApiInfoBuilder进行定制
-        return new ApiInfoBuilder()
-                .title("我的接口文档")
-                .contact(new Contact("MooNkirA", "http://www.moon.com", "hello@moon.com")) // 设置作者
-                .version("1.0") // 设置版本
-                .description("接口文档描述") // 设置描述
-                .build();
-    }
-}
-```
-
 ### 4.4. 运行测试
 
 创建启动类 SwaggerApplication
@@ -303,6 +655,126 @@ public class SwaggerApplication {
 ![](images/95310615220760.png)
 
 可以在右上角的下拉框中，选择不同的文档分组
+
+### 4.5. 启动异常
+
+#### 4.5.1. 问题概述
+
+启动时可能会报如下的错误，这是由于高版本的 Springboot 与 Swagger 版本使用的路径匹配策略冲突导致的。
+
+```java
+org.springframework.context.ApplicationContextException: Failed to start bean 'documentationPluginsBootstrapper'; nested exception is java.lang.NullPointerException
+ at org.springframework.context.support.DefaultLifecycleProcessor.doStart(DefaultLifecycleProcessor.java:181) ~[spring-context-5.3.24.jar:5.3.24]
+ at org.springframework.context.support.DefaultLifecycleProcessor.access$200(DefaultLifecycleProcessor.java:54) ~[spring-context-5.3.24.jar:5.3.24]
+ at org.springframework.context.support.DefaultLifecycleProcessor$LifecycleGroup.start(DefaultLifecycleProcessor.java:356) ~[spring-context-5.3.24.jar:5.3.24]
+ at java.lang.Iterable.forEach(Iterable.java:75) ~[na:1.8.0_341]
+ at org.springframework.context.support.DefaultLifecycleProcessor.startBeans(DefaultLifecycleProcessor.java:155) ~[spring-context-5.3.24.jar:5.3.24]
+ at org.springframework.context.support.DefaultLifecycleProcessor.onRefresh(DefaultLifecycleProcessor.java:123) ~[spring-context-5.3.24.jar:5.3.24]
+ at org.springframework.context.support.AbstractApplicationContext.finishRefresh(AbstractApplicationContext.java:935) ~[spring-context-5.3.24.jar:5.3.24]
+ at org.springframework.context.support.AbstractApplicationContext.refresh(AbstractApplicationContext.java:586) ~[spring-context-5.3.24.jar:5.3.24]
+ at org.springframework.boot.web.servlet.context.ServletWebServerApplicationContext.refresh(ServletWebServerApplicationContext.java:147) ~[spring-boot-2.7.6.jar:2.7.6]
+ at org.springframework.boot.SpringApplication.refresh(SpringApplication.java:731) [spring-boot-2.7.6.jar:2.7.6]
+ at org.springframework.boot.SpringApplication.refreshContext(SpringApplication.java:408) [spring-boot-2.7.6.jar:2.7.6]
+ at org.springframework.boot.SpringApplication.run(SpringApplication.java:307) [spring-boot-2.7.6.jar:2.7.6]
+ at org.springframework.boot.SpringApplication.run(SpringApplication.java:1303) [spring-boot-2.7.6.jar:2.7.6]
+ at org.springframework.boot.SpringApplication.run(SpringApplication.java:1292) [spring-boot-2.7.6.jar:2.7.6]
+ at com.springboot101.SwaggerApplication.main(SwaggerApplication.java:10) [classes/:na]
+```
+
+> Springfox 使用的路径匹配规则为 `AntPathMatcher` 的，而 SpringBoot2.7.6 使用的是 `PathPatternMatcher`，两者冲突了。
+
+#### 4.5.2. 解决方案
+
+有以下4种解决方案：
+
+1. **降低版本**：将 SpringBoot 版本降低到 2.5.X 、springfox 降到 3.X 以下可以解决问题，不过不推荐这么做，毕竟降配置做兼容的做法不合理。
+2. **统一路径匹配策略**：将 SpringMVC 的匹配 URL 路径的策略改为 `ant_path_matcher`，application.yml 文件增加如下的配置：
+
+```yml
+spring:
+  mvc:
+    pathmatch:
+      matching-strategy: ant_path_matcher
+```
+
+3. 在配置类 `SwaggerConfig` 上标注 `@EnableWebMvc` 注解。Swagger 框架需要通过解析和扫描带有注解的 Controller 类和方法来生成 API 文档。`@EnableWebMvc` 注解会注册一个 `RequestMappingHandlerMapping` 的 Bean，并将其作为默认的请求映射处理器，以确保这些 Controller 类和方法能够被正确处理，可以与 Swagger 的路径配置规则相匹配，从而使得 Swagger 能够成功生成 API 文档。
+
+```java
+@EnableWebMvc
+@Configuration
+@EnableSwagger2
+public class SwaggerConfig {
+    // ...省略
+}
+```
+
+4. 在 Spring 容器中注册一个 `BeanPostProcessor`，在该处理器中对 `HandlerMappings` 进行定制。通过过滤掉已存在 `PatternParser` 的映射，意味着可以将 Swagger 特定的 `HandlerMappings` 添加到 `HandlerMappings` 列表中，从而使用自定义的设置来替代原有的 `HandlerMappings`。
+
+```java
+@Bean
+public static BeanPostProcessor springfoxHandlerProviderBeanPostProcessor() {
+    return new BeanPostProcessor() {
+        @Override
+        public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
+            if (bean instanceof WebMvcRequestHandlerProvider || bean instanceof WebFluxRequestHandlerProvider) {
+                customizeSpringfoxHandlerMappings(getHandlerMappings(bean));
+            }
+            return bean;
+        }
+
+        private <T extends RequestMappingInfoHandlerMapping> void customizeSpringfoxHandlerMappings(List<T> mappings) {
+            List<T> copy = mappings.stream()
+                    .filter(mapping -> mapping.getPatternParser() == null)
+                    .collect(Collectors.toList());
+            mappings.clear();
+            mappings.addAll(copy);
+        }
+
+        @SuppressWarnings("unchecked")
+        private List<RequestMappingInfoHandlerMapping> getHandlerMappings(Object bean) {
+            try {
+                Field field = ReflectionUtils.findField(bean.getClass(), "handlerMappings");
+                field.setAccessible(true);
+                return (List<RequestMappingInfoHandlerMapping>) field.get(bean);
+            } catch (IllegalArgumentException | IllegalAccessException e) {
+                log.warn("修改 WebMvcRequestHandlerProvider 的属性：handlerMappings 出错，可能导致 swagger 不可用", e);
+                throw new IllegalStateException(e);
+            }
+        }
+    };
+}
+```
+
+### 4.6. 授权登录
+
+出于对系统安全性的考虑，通常还会为 API 文档增加登录功能。
+
+#### 4.6.1. 引入 maven 依赖
+
+swagger 的安全登录是基于 security 实现的，引入相关的 maven 依赖。
+
+```xml
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-security</artifactId>
+</dependency>
+```
+
+#### 4.6.2. 登录配置
+
+在 application.yml 文件中配置登录 swagger 的用户名和密码。
+
+```yml
+spring:
+  security:
+    user:
+      name: admin
+      password: 123456
+```
+
+再次访问文档就会出现如下的登录页
+
+![](images/405147390640373.png)
 
 ## 5. knife4j 入门案例
 

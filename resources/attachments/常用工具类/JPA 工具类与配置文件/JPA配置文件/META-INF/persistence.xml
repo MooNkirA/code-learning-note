@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<persistence version="2.1"
+	xmlns="http://xmlns.jcp.org/xml/ns/persistence" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/persistence http://xmlns.jcp.org/xml/ns/persistence/persistence_2_1.xsd ">
+	<!-- 持久单元，作用：配置一个数据库的连接 name:就是持久单元名，是一个标识符 -->
+	<persistence-unit name="crm">
+	<!-- 加载映射实体类,不写也是默认加载，但建议写 -->
+	<class>day61.entity.Customer</class>
+		<!-- 四要素 -->
+		<properties>
+			<!-- 如果使用Hibernate实现的JPA，使用的就是原来Hibernate的环境参数  -->
+			<property name="hibernate.connection.driver_class" value="com.mysql.jdbc.Driver"/>
+			<property name="hibernate.connection.url" value="jdbc:mysql://localhost:3306/day58_hibernate"/>
+			<property name="hibernate.connection.username" value="root"/>
+			<property name="hibernate.connection.password" value="123456"/>
+			<!-- 配置hibernate可选常用属性 -->
+			<property name="hibernate.show_sql" value="true"/>
+			<property name="hibernate.format_sql" value="true"/>
+			<property name="hibernate.hbm2ddl.auto" value="update"/>
+			<property name="hibernate.dialect" value="org.hibernate.dialect.MySQL5InnoDBDialect"/>
+		</properties>
+	</persistence-unit>
+</persistence>

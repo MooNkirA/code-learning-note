@@ -74,13 +74,37 @@ Host github.com
 
 ![](images/198073417226353.png)
 
-## 3. 常用词的含义
+## 3. 常用操作含义
 
 - watch：会持续收到该项目的动态
 - fork，复制某个项目到自己的Github仓库中
 - star，可以理解为点赞
 - clone，将项目下载至本地
 - follow，关注你感兴趣的作者，会收到他们的动态
+
+### 3.1. Fork
+
+Fork 也是 git 服务网站的功能，用来简化协作流程。在没有 fork 的时候，如果想往开源项目里修 bug 或者加 feature，会需要这样的流程：
+
+1. 克隆 repo
+2. 修改代码
+3. 生成补丁
+4. 发到论坛或者支持的邮件列表
+5. 找作者来 review，合并补丁
+
+很多项目到现在还是这么做的。如果有了 fork，可以简化成：
+
+1. Fork 并克隆 repo
+2. 修改代码
+3. 发出 merge request 或者 pull request
+
+虽然 fork 很有用，但这仍然不是 git 的一部分。它用到的是 git 的分布式能力。本质上，在 fork 的时候，它会克隆一份 repo，把原来的 repo 设置成上游。所以其实如果目标不是为了继续把 repo 放在网络服务上，那就克隆到本地即可。太多的人把 fork 当作 like 来用，根本就是错的。如果没打算改代码，fork 是没意义的。
+
+### 3.2. Merge request / Pull request
+
+Github 上叫 Pull Request，gitlab 上叫 merge request，其实是一个东西的不同视角。这些都是 code review 和合并的流程，不是 git 的一部分。
+
+需要注意的是，它们的重点在“request”，而不是 merge 或者 pull。如果要把一个分支 merge 到自身，没必要开一个 MR 然后自己给自己通过。在本地 merge 就是了，更简单更快。
 
 ## 4. Github 搜索技巧
 

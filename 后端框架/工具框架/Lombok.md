@@ -53,7 +53,7 @@ dependencies {
 
 > Tips: 在较新版本的 IDEA 中，已经自带 lombok 插件
 
-## 2. 使用详解
+## 2. 常用注解
 
 > Notes: 以下示例所使用的 Lombok 版本是 1.18.10。示例代码在编译后可以使用反编译工具查看生成的 class 文件内容
 
@@ -356,7 +356,7 @@ public class RequiredArgsConstructorDemo {
 }
 ```
 
-### 2.4. @EqualsAndHashCode 注解
+### 2.4. @EqualsAndHashCode
 
 使用 `@EqualsAndHashCode` 注解可以为指定类生成 equals 和 hashCode 方法，`@EqualsAndHashCode` 注解的源码定义如下
 
@@ -615,7 +615,7 @@ public class DataDemo {
 }
 ```
 
-### 2.7. @Log 注解及其衍生注解
+### 2.7. @Log 及其衍生注解
 
 若将 `@Log` 的相关衍生注解标识在类上（适用于所使用的日志记录系统的任何一种），被修改的类将拥有一个静态的 final log 字段，然后就可以使用该字段来输出日志
 
@@ -639,7 +639,7 @@ private static final org.slf4j.ext.XLogger log = org.slf4j.ext.XLoggerFactory.ge
 private static final org.apache.commons.logging.Log log = org.apache.commons.logging.LogFactory.getLog(LogExample.class);
 ```
 
-### 2.8. @Synchronized 注解
+### 2.8. @Synchronized
 
 `@Synchronized` 是同步方法修饰符的更安全的变体。与 synchronized 一样，该注解只能应用在静态和实例方法上。它的操作类似于 synchronized 关键字，但是它锁定在不同的对象上。synchronized 关键字应用在实例方法时，锁定的是 this 对象，而应用在静态方法上锁定的是类对象。对于 `@Synchronized` 注解声明的方法来说，它锁定的是 `$LOCK` 或 `$lock`。`@Synchronized` 注解的源码定义如下：
 
@@ -708,9 +708,11 @@ public class SynchronizedDemo {
 }
 ```
 
-### 2.9. @Builder 注解
+### 2.9. @Singular 与 @Builder
 
-使用 `@Builder` 注解可以为指定类实现建造者模式，该注解可以放在类、构造函数或方法上。`@Builder` 注解的源码定义如下：
+#### 2.9.1. @Builder
+
+`@Builder` 注解可以为指定类实现建造者模式，支持链式构造，该注解可以放在类、构造函数或方法上。`@Builder` 注解的源码定义如下：
 
 ```java
 @Target({TYPE, METHOD, CONSTRUCTOR})
@@ -814,7 +816,44 @@ public class BuilderDemo {
 }
 ```
 
-#### 2.9.1. 不推荐使用 @Builder 注解的说明
+#### 2.9.2. @Singular
+
+`@Singular` 注解可以用在集合类型的字段上，让集合类型字段可以更方便的维护。它会生成两个方法，一个是添加单个元素的方法，一个是添加整个集合的方法。这两个方法可以和 `@Builder` 生成的其他方法一起链式调用，可以给类的所有字段赋值。
+
+使用 `@Singular` 注解的好处是，可以灵活地添加集合类型的字段，而不需要手动创建和初始化集合对象。另外，使用 `@Singular` 注解生成的集合字段，在调用 `build()` 方法后，会被转换为不可变的集合，这样可以保证对象的不变性和线程安全性。也可以使用 `clear()` 方法来清空集合字段，例如：
+
+```java
+@Data
+@Builder
+public class User {
+    private String name;
+    private int age;
+    @Singular
+    private List<String> hobbies;
+}
+
+// 使用 @Builder 和 @Singular 生成的方法
+User user = User.builder()
+    .name("练习时长两年半")
+    .age(28)
+    .hobby("篮球") // 添加单个元素
+    .hobby("唱歌") // 添加单个元素
+    .hobbies(Arrays.asList("跳舞", "其他")) // 添加整个集合
+    .build(); // 构造 User 对象
+
+User user = User.builder()
+    .name("签")
+    .age(28)
+    .hobby("说唱")
+    .hobby("跳舞")
+    .clearHobbies() // 清空集合字段
+    .hobby("踩缝纫机") // 重新添加元素
+    .build();
+```
+
+> Notes: <font color=red>**值得需要注意的是，如果类继承了一个父类，那么 `@Builder` 只会生成当前类的字段和参数，不包括父类的。**</font>
+
+#### 2.9.3. 不推荐使用 @Builder 注解的说明
 
 使用 `@Builder` 注解无非就是为了链式编程，然而该注解并不是链式编程的最佳实践，它会额外创建内部类，存在继承关系时还需要使用 `@SuperBuilder` 注解，设置默认值时也需要额外的 `@Builder.Default` 去设置默认值，无疑增加了很多不必要的复杂度。
 
@@ -834,7 +873,7 @@ public class BuilderDemo {
 5. 继承关系时，子类需要使用 `@SuperBuilder`。对象继承后，子类的 `Builder` 因为构造函数的问题，使用不当大概率会报错，并且无法设置父类的属性，还需要使用 `@SuperBuilder` 来解决问题。
 6. 设置默认值需要使用 `@Builder.Default`。很容易因为对此不了解，导致默认值不符合预期导致出现 BUG。
 
-### 2.10. @Accessors 注解
+### 2.10. @Accessors
 
 使用 `@Accessors` 注解用于生成返回 this 的 setter 方法
 
@@ -970,7 +1009,7 @@ Student student = new Student(1001, 3, 8) // 创建一个学生对象，传入�
         .setAddress("广州市天河区"); // 设置住址
 ```
 
-### 2.11. @SneakyThrows 注解
+### 2.11. @SneakyThrows
 
 `@SneakyThrows` 注解用于自动抛出已检查的异常，而无需在方法中使用 throw 语句显式抛出。`@SneakyThrows` 注解的源码定义如下：
 
@@ -1017,7 +1056,7 @@ public class SneakyThrowsDemo {
 }
 ```
 
-### 2.12. @NonNull 注解
+### 2.12. @NonNull
 
 在方法或构造函数的参数上使用 `@NonNull` 注解，它将会为你自动生成非空校验语句。`@NonNull` 注解的定义如下：
 
@@ -1075,9 +1114,37 @@ public class NonNullDemo {
 }
 ```
 
-### 2.13. @Clean 注解
+### 2.13. @Delegate
 
-`@Clean` 注解用于自动管理资源，用在局部变量之前，在当前变量范围内即将执行完毕退出之前会自动清理资源，自动生成 try-finally 这样的代码来关闭流。注解的源码定义如下：
+`@Delegate` 让某个类使用其他类的方法，而不需要编写者写代码。
+
+比如，有一个类叫做 A，它有一个方法叫做 `sayHello()`，想让另一个类 B 也能用这个方法，那就可以在 B 类中加上一个 A 类型的字段，并在这个字段上加上 `@Delegate` 注解，这样，B 类就可以直接调用 `sayHello()` 方法，就像它是自己的方法一样。看个例子：
+
+```java
+// 一个类，有一个方法
+public class A {
+    public void sayHello() {
+        System.out.println("Hello");
+    }
+}
+
+// 一个类，委托了A类的方法
+public class B {
+    @Delegate // 委托A类的方法
+    private A a = new A();
+
+    public static void main(String[] args) {
+        B b = new B();
+        b.sayHello(); // 调用A类的方法
+    }
+}
+```
+
+此写法最大的好处就是可以避免类的层次过深或者耦合过紧，提高代码的可读性和可维护性，省去各种继承。
+
+### 2.14. @Clean
+
+`@Clean` 注解用于自动管理资源，用在局部变量之前，在当前变量范围内即将执行完毕退出之前会自动清理资源，自动生成 try-finally 代码块，并在块中调用 `close()` 方法来关闭流。注解的源码定义如下：
 
 ```java
 @Target(ElementType.LOCAL_VARIABLE)
@@ -1152,9 +1219,15 @@ public class CleanupDemo {
 }
 ```
 
-### 2.14. @With 注解(1.18.10版本后才出现)
+**如果要释放资源的方法名不是叫 `close`，也可以指定要调用的方法名**。例如：
 
-在类的字段上应用 `@With` 注解之后，将会自动生成一个 `withFieldName(newValue)` 的方法，该方法会基于 newValue 调用相应构造函数，创建一个当前类对应的实例。`@With` 注解的源码定义如下：
+```java
+@Cleanup("release") MyResource resource = new MyResource();
+```
+
+### 2.15. @With (1.18.10版本后才出现)
+
+在类的字段上应用 `@With` 注解之后，将会自动生成一个 `withFieldName(newValue)` 的方法，该方法会基于 newValue 调用相应构造函数，创建一个当前类对应的实例（是当前对象的副本，但某些字段的值已被更改）。`@With` 注解的源码定义如下：
 
 ```java
 @Target({ElementType.FIELD, ElementType.TYPE})
@@ -1229,7 +1302,7 @@ public class WithDemo {
 }
 ```
 
-### 2.15. 其它特性
+### 2.16. 其它特性
 
 val 用在局部变量前面，相当于将变量声明为 final，此外 Lombok 在编译时还会自动进行类型推断。val 的使用示例：
 

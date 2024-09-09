@@ -5,5 +5,7 @@
     "prettier.tabWidth": 4,
     "[json]": {
         "editor.defaultFormatter": "esbenp.prettier-vscode"
-    }
+    },
+    "editor.fontSize": 13,
+    "editor.fontFamily": "'Cascadia Code SemiBold', Consolas, 'Courier New', monospace"
 }

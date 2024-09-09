@@ -171,6 +171,7 @@
 
 <ul class="docs">
   <li><a href="#/前端资料/JavaScript/JavaScript-基础">JavaScript 基础知识</a></li>
+  <li><a href="#/前端资料/JavaScript/JavaScript-数组">JavaScript Array（数组）</a></li>
   <li><a href="#/前端资料/JavaScript/ECMAScript6">ECMAScript6 (ES6) 基础知识</a></li>
   <li><a href="#/前端资料/JavaScript/JavaScript-正则表达式">JavaScript 正则表达式</a></li>
   <li><a href="#/前端资料/JavaScript/JavaScript-工具函数">JavaScript 工具函数</a></li>
@@ -543,6 +544,12 @@
   <li><a href="#/并发编程/并发编程-设计模式篇">并发编程 - 设计模式篇</a></li>
 </ul>
 
+## Python
+
+<ul class="docs">
+  <li><a href="#/Python/Python-基础">Python - 基础</a></li>
+</ul>
+
 ## 其他
 
 ### ℹ️ 资源汇总
@@ -560,6 +567,7 @@
   <li><a href="#/其他/software/IDEA">IntelliJ IDEA 使用教程</a></li>
   <li><a href="#/其他/software/eclipse">Eclipse 使用教程</a></li>
   <li><a href="#/其他/software/Visual-Studio-Code">Visual Studio Code 使用教程</a></li>
+  <li><a href="#/其他/software/PyCharm">PyCharm 使用教程</a></li>
 </ul>
 
 ### 🛠️ 编程辅助工具
@@ -600,7 +608,7 @@
 
 Github Pages 在线阅读地址：[点击进入](https://moonkira.github.io/code-learning-note/#/)
 
-Gitee Pages 在线阅读地址：[点击进入](https://moonzero.gitee.io/code-learning-note/#/)（国内访问速度快）
+~~Gitee Pages 在线阅读地址：[点击进入](https://moonzero.gitee.io/code-learning-note/#/)~~（国内访问速度快，目前暂时停用）
 
 语雀版文档在线阅读地址：[点击进入](https://www.yuque.com/moonkira/code-note)
 

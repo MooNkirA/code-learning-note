@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+		xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		xmlns:context="http://www.springframework.org/schema/context"
+		xmlns:aop="http://www.springframework.org/schema/aop"
+		xmlns:tx="http://www.springframework.org/schema/tx"
+		xsi:schemaLocation="http://www.springframework.org/schema/beans
+							http://www.springframework.org/schema/beans/spring-beans.xsd
+							http://www.springframework.org/schema/context
+							http://www.springframework.org/schema/context/spring-context.xsd
+							http://www.springframework.org/schema/aop
+							http://www.springframework.org/schema/aop/spring-aop.xsd
+							http://www.springframework.org/schema/tx
+							http://www.springframework.org/schema/tx/spring-tx.xsd ">
+	<!-- 配置Spring内置数据源给Spring管理 -->
+	<bean id="dataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+		<!-- 设置连接数据库4要素 -->
+		<property name="driverClassName" value="com.mysql.jdbc.Driver"></property>
+		<property name="url" value="jdbc:mysql://localhost:3306/day67_spring"></property>
+		<property name="username" value="root"></property>
+		<property name="password" value="123456"></property>
+	</bean>
+	
+	<!-- 配置数据库JdbcTemplate -->
+	<bean id="jdbcTemplate" class="org.springframework.jdbc.core.JdbcTemplate">
+		<property name="dataSource" ref="dataSource"></property>
+	</bean>
+	
+	<!-- 配置dao层实现类给spring容器管理 -->
+	<bean id="ad" class="com.moon.dao.impl.AccountDaoImpl">
+		<!-- 属性注入 -->
+		<property name="jt" ref="jdbcTemplate"></property>
+	</bean>
+	
+	<!-- 配置service层实现类给spring容器管理 -->
+	<bean id="as" class="com.moon.service.impl.AccountServiceImpl">
+		<!-- 属性注入 -->
+		<property name="dao" ref="ad"></property>
+	</bean>
+	
+	<!-- *******事务控制*******  -->
+	<!-- 1.配置平台事务管理器 -->
+	<bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+		<!-- 属性注入数据源 -->
+		<property name="dataSource" ref="dataSource"></property>
+	</bean>
+
+	<!-- 2、配置事务通知：前提：导入tx的名称空间 -->
+	<!-- 
+		tx:advice :配置事务的通知
+			id：通知的唯一标识
+			transaction-manager：引用平台事务管理器
+	-->
+	<tx:advice id="myTX" transaction-manager="transactionManager">
+		<!--在 tx:advice 标签内部 配置事务的属性 -->
+		<tx:attributes>
+			<!-- tx:method:配置需要事务的方法 
+					name:业务层方法的名称，可以写通配符
+					isolation：隔离级别：一般都是用默认值，可以省略
+						DEFAULT 
+					propagation：传播行为：
+						REQUIRED：传播
+						SUPPORTS:不传播
+					read-only:是否是只读的
+						false：默认值，不只读
+						true:只读
+			-->
+			<tx:method name="transfer" propagation="REQUIRED" read-only="false"/>
+			<tx:method name="find*" propagation="SUPPORTS" read-only="true"/>
+		</tx:attributes>
+	</tx:advice>
+
+	<!-- 3、配置切面 : 前提导入aop的名称空间-->
+	<aop:config>
+		<!-- 配置切入点 -->
+		<aop:pointcut expression="execution(* *..*ServiceImpl.*(..))" id="pt1"/>
+		<!-- 事务切面 
+				我们自己写的通知用这个：aop:aspect
+				用框架的通知：aop:advisor
+		-->
+		<aop:advisor advice-ref="myTX" pointcut-ref="pt1"/>
+	</aop:config>
+</beans>

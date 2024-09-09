@@ -2,14 +2,17 @@
 
 IDEA，全称 IntelliJ IDEA ，是 Java 语言的集成开发环境，目前已经（基本）代替了 Eclipse 的使用。IDEA 在业界被公认为是最好的 Java 开发工具（之一），因其功能强悍、设置人性化，而深受Java、大数据、移动端程序员的喜爱。尤其在智能代码助手、代码自动提示、重构、J2EE 支持、Ant、JUnit、CVS 整合、代码审查、创新的 GUI 设计等方面的功能可以说是超常的。
 
-> - 官网：https://www.jetbrains.com/idea/
-> - 官网提供的详细使用文档：https://www.jetbrains.com/help/idea/meet-intellij-idea.html
-
 > IntelliJ IDEA 在 2015 年的官网上介绍：
 >
 > Excel at enterprise, mobile and web development with Java, Scala and Groovy,with all the latest modern technologies and frameworks available out of thebox.
 
 IDEA 分为两个版本：旗舰版(Ultimate) 和社区版(Community)。两个不同版本的详细对比，可以参照官网：https://www.jetbrains.com/idea/features/editions_comparison_matrix.html
+
+### 1.1. 官方资料
+
+- [IntelliJ IDEA 官网](https://www.jetbrains.com/idea/)
+- [IntelliJ IDEA 官方资源](https://www.jetbrains.com/idea/resources/) - 提供了从入门到高级的全面教程和文档。
+- [官网详细使用文档](https://www.jetbrains.com/help/idea/getting-started.html)
 
 ## 2. 安装与卸载
 
@@ -385,6 +388,10 @@ Editor: 选择要应用于编辑器的抗锯齿模式：
 
 ![](images/163800209240844.png)
 
+#### 4.2.5. 参考资料
+
+- [IntelliJ IDEA 快捷键大全 + 动图演示](https://mp.weixin.qq.com/s/6Y1bKSm_wIJTdwRZwoXQsA)
+
 ### 4.3. Editor（编辑器）
 
 #### 4.3.1. 编辑器主题、字体与颜色配置
@@ -552,6 +559,10 @@ IDEA 代码提示默认是匹配大小写，此开关如果未关。输入字符
 设置位置：Editor -> General -> Editor Tabs -> 不勾选 Show tabs in one row 选项即可
 
 ![](images/20201104161507103_21878.png)
+
+新版设置：
+
+![](images/251764800982455.png)
 
 效果：
 
@@ -1534,7 +1545,7 @@ IDEA 中最重要的各种设置项，就是这个 `Project Structre` 了，关�
 
 ![](images/20201105154113621_18429.jpg)
 
-### 10.1. Project选项卡
+### 10.1. Project 选项卡
 
 ![](images/20201105154138246_26519.jpg)
 
@@ -2267,3 +2278,5 @@ JAVA 进程启动的时候，虽然可以为 JVM 指定合适的内存大小，�
 
 - [IDEA 高效使用指南](https://idea.javaguide.cn/)：使用指南 | 必备插件推荐 | 插件开发入门 | 重构小技巧 | 源码阅读技巧
 - [单元测试 - IDEA下单元测试详解](https://www.pdai.tech/md/develop/ut/dev-ut-x-junit-idea.html)
+- [最好的IDEA debug长文](https://mp.weixin.qq.com/s/cMMEQRZmLXfeqGvoii9gqA)
+- [9个服务端提升debug效率的IDEA Debugger技巧](https://mp.weixin.qq.com/s/O6Y-wGXCxGEJdfxuRRh-QA)

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<c3p0-config>
+	<!-- 默认配置 -->
+	<default-config>
+		<!-- 数据库连接配置 -->
+		<property name="driverClass">com.mysql.jdbc.Driver</property>
+		<property name="jdbcUrl">jdbc:mysql://localhost:3306/day51_javawebShop</property>
+		<property name="user">root</property>
+		<property name="password">123456</property>
+		
+		<!-- 连接池配置 -->
+		<!-- 连接池初始化连接数 -->
+		<property name="initialPoolSize">5</property>
+		<!-- 连接池最大连接数 -->
+		<property name="maxPoolSize">10</property>
+		<!-- 连接池最大等待时间 -->
+		<property name="checkoutTimeout">3000</property>
+		<!-- 连接池最大空闲时间 -->
+		<property name="maxIdleTime">3</property>
+	</default-config>
+</c3p0-config>
