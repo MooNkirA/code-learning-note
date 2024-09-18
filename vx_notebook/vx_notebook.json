@@ -102,11 +102,6 @@
             "path": "其他/development-software/Common-Development.md"
         },
         {
-            "last_accessed_time": "2024-02-26T08:49:47Z",
-            "line_number": 0,
-            "path": "其他/software/Web-Browser.md"
-        },
-        {
             "last_accessed_time": "2024-02-26T09:01:41Z",
             "line_number": 0,
             "path": "其他/software/Common-Development.md"
@@ -502,8 +497,13 @@
             "path": "Python/Python-基础.md"
         },
         {
-            "last_accessed_time": "2024-09-13T16:19:45Z",
-            "line_number": 36,
+            "last_accessed_time": "2024-09-17T04:32:45Z",
+            "line_number": 152,
+            "path": "其他/software/Web-Browser.md"
+        },
+        {
+            "last_accessed_time": "2024-09-17T05:35:27Z",
+            "line_number": 63,
             "path": "前端资料/JavaScript/JavaScript-标准内置对象.md"
         }
     ],
