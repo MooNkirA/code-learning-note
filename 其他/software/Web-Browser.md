@@ -154,3 +154,16 @@ Edge 是支持阅读模式的，而且效果还相当不错。但阅读模式由
 - 改善了新版Edge乃至Chrome的平滑滚动体验。设置项：`smooth-scrolling`
 - 阻止视频自动播放。搜索【Show block option in autoplay settings】，设置项：`edge-autoplay-user-setting-block-option`。重启浏览器后，在Edge的“设置 -> Cookie和网站权限”页面中，找到“站点权限”下的“媒体自动播放”，将其设置为“限制”即可。
 - 开启系统特色。设置项：`edge-visual-rejuv-show-settings`
+
+### 2.7. 常用插件
+
+- ADGUARD 广告拦截器
+- AIX 智能下载器：实现破除网页下载限制，下载图片/视频/音频/文档等内容
+- SUPERCOPY 超级复制：解除网页中禁止复制的内容
+- Global Speed 视频速度控制：最高可设置16倍，最低可设置0.25倍
+- 篡改猴（油猴）脚本管理器
+- iTab 新标签页
+- Dark Reader
+- 电子书全网搜索
+- 沉浸式翻译：网页翻译插件
+- Sider: ChatGPT 侧边栏
