@@ -510,7 +510,17 @@ window 系统的 hosts 文件位置：`%windir%\System32\drivers\etc`
 
 路径：`%HOMEPATH%\AppData\Local\Packages\Microsoft.Windows.ContentDeliveryManager_cw5n1h2txyewy\LocalState\Assets`
 
-### 3.6. C 盘可清理内容
+### 3.6. 清理系统垃圾
+
+#### 3.6.1. 删除系统临时文件
+
+按下 Win+R 打开运行窗口，输入命令 `%temp%`，可以全选里面的文件进行删除。一般建议每周一次即可。
+
+#### 3.6.2. C 盘清理
+
+按下 Win+R 打开运行窗口，输入命令 `cleanmgr`，选择清理 C 盘。
+
+#### 3.6.3. C 盘可清理内容
 
 1. **PerfLogs**文件夹，系统的信息日志，文件夹可删。
 2. **Windows**文件夹
@@ -518,20 +528,24 @@ window 系统的 hosts 文件位置：`%windir%\System32\drivers\etc`
     - `C:\Windows\Help`，帮忙文件，可删
 3. **用户**文件夹：`C:\Users\用户名称\AppData\Local\Temp`。这个是Windows存留安装软件时解压的源文件，方便下次安装直接调取使用，节省解压时间，可删除。
 
-### 3.7. win7 系统的 Temporary Internet Files 清空问题
+#### 3.6.4. 恶意软件清理
+
+按下 Win+R 打开运行窗口，输入命令 `MRT`，找开恶意软件清理程序，按提示操作即可。
+
+#### 3.6.5. win7 系统的 Temporary Internet Files 清空问题
 
 1. `cmd.exe`
 2. `cd AppData\Local\Microsoft\Windows\Temporary Internet Files`（或者如果有Content.IE5目录的话，cd Content.IE5）
 3. `del /s/q/f *.*`
 
-### 3.8. 备份开始菜单
+### 3.7. 备份开始菜单
 
 1. 按下Win+R打开运行窗口，输入命令powershell，然后点击确定按钮
 2. 这时就会打开Windows Powershell窗口，在这里输入命令`Export-startlayout –path E:\start.xml`，可以根据自己实际情况来设置相应的路径
 3. 按下回车键后，就会备份好开始菜单的布局文件
 4. 如果需要恢复开始菜单布局的话，只需要再次打开Windows Powershell命令行窗口，然后输入命令`import-startlayout -layoutpath E:\start.xml -mountpath c:`，按下回车键后，就会马上把其还原回来了
 
-### 3.9. 电脑护眼颜色设置
+### 3.8. 电脑护眼颜色设置
 
 win7系统：
 
@@ -545,7 +559,7 @@ win10系统：
 2. 按照如下顺序找到windows：[HKEY_CURRENT_USER\Control Panel\Colors] windows。双击windows 进入编辑状态 将原本数值删除并输入：`202 234 206`。点击确定退出注册表。
 3. 按照如下顺序找到 window：[HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Themes\DefaultColors\Standard]。双击 window 打开编辑窗口，默认是勾选十六进制（若不是请勾选十六进制），将原始数据改为：`caeace`。点击确定退出注册表。
 
-### 3.10. AHCI 开启方法 
+### 3.9. AHCI 开启方法 
 
 先去修改到 compatible（兼容模式）进入系统
 
@@ -555,7 +569,7 @@ win10系统：
 4. 然后出来看看BIOS里面的硬盘模式，修改为ACHI后（如果没有就算了）
 5. 然后在把SATA Operation Mode改为 enhanced（增强模式）
 
-### 3.11. NSIS：使用 netsh advfirewall 屏蔽某程序访问网络
+### 3.10. NSIS：使用 netsh advfirewall 屏蔽某程序访问网络
 
 - 关闭防火墙
 
@@ -581,12 +595,12 @@ nsExec::Exec 'cmd /c netsh advfirewall firewall Delete rule name="TIM"'
 nsExec::Exec 'cmd /c netsh advfirewall firewall add rule name="TIM" dir=out action=block program="C:\Program Files\TIM Lite\Bin\TIM.exe"'
 ```
 
-### 3.12. 删掉 WIN10 回收站右键菜单的固定到＂开始＂屏幕！
+### 3.11. 删掉 WIN10 回收站右键菜单的固定到＂开始＂屏幕！
 
 - 删除：打开注册表，定位到 `HKEY_LOCAL_MACHINE\SOFTWARE\Classes\Folder\shellex\ContextMenuHandlers`，删除其子键 `PintoStartScreen`
 - 恢复：在 `HKEY_LOCAL_MACHINE\SOFTWARE\Classes\Folder\shellex\ContextMenuHandlers` 上单击右键，新建项 `PintoStartScreen`，修改其默认值为 `{470C0EBD-5D73-4d58-9CED-E91E22E23282}`
 
-### 3.13. 限制保留宽带设置
+### 3.12. 限制保留宽带设置
 
 1. 按“WIN+R”，打开【运行】对话框；
 2. 输入“regedit”，回车，打开注册表编辑器；
@@ -595,7 +609,7 @@ nsExec::Exec 'cmd /c netsh advfirewall firewall add rule name="TIM" dir=out acti
 5. 计算机配置－管理模板－网络－qos数据包计划程序－限制保留宽带
 6. 选择已启用。一般默认是20，直接把它改成0。
 
-### 3.14. win10 系统任务栏设置时间显示秒
+### 3.13. win10 系统任务栏设置时间显示秒
 
 1. 按“WIN+R”，打开【运行】对话框；
 2. 输入“regedit”，回车，打开注册表编辑器；
@@ -607,14 +621,14 @@ nsExec::Exec 'cmd /c netsh advfirewall firewall add rule name="TIM" dir=out acti
 
 > Notes: 微软承认 win 11 系统中，删除了注册表值“`ShowSecondsInSystemClock`”，该值允许任务栏时钟以秒为单位显示时间。如果时间需要显示秒，需要安装第三方软件
 
-### 3.15. Win10 系统删除无用的服务
+### 3.14. Win10 系统删除无用的服务
 
 1. 运行 -> `regedit`，打开注册表编辑器
 2. 定位到【计算机\HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services】，选择服务名称，右键删除即可
 
-### 3.16. 修改 window 默认系统安装目录
+### 3.15. 修改 window 默认系统安装目录
 
-#### 3.16.1. 通过注册表修改安装目录
+#### 3.15.1. 通过注册表修改安装目录
 
 Windows10 系统更改软件程序默认安装目录的方法
 
@@ -630,7 +644,7 @@ Windows10 系统更改软件程序默认安装目录的方法
 3. 在存储对应的右侧窗口，用鼠标左键按住右侧的滑块向下拖动，找到：保存位置，在保存位置下，点击：新的应用将保存到此电脑（C:）后面的小勾
 4. 修改成D盘。之后打开磁盘(D:\)，可以看到磁盘(D:\)中新增了三个文件夹：MoonZero（用户文件：文档、音乐、图片和视频）、Program Files（程序文件）和Windows Apps（窗口应用程序）；
 
-#### 3.16.2. Win 11 设置
+#### 3.15.2. Win 11 设置
 
 在设置中，【系统】->【存储】->【保存新内容的地方】
 
@@ -640,7 +654,7 @@ Windows10 系统更改软件程序默认安装目录的方法
 
 ![](images/519700922258873.png)
 
-### 3.17. win10 一般禁用的服务
+### 3.16. win10 一般禁用的服务
 
 1. 运行输入【services.msc】打开服务面板，禁用以下服务
     1. Connected User Experiences and Telemetry
@@ -654,7 +668,7 @@ Windows10 系统更改软件程序默认安装目录的方法
 3. 点击“设置” -> “更新与安全” -> “Windows预览体验计划”，退出 Windows Insider 计划。
 4. 右击任务栏空白处选择“任务管理器”，切换到“启动”标签，将没必要的自启动程序全部禁用。
 
-### 3.18. 修复 win10 右键无新建 txt 文本文件
+### 3.17. 修复 win10 右键无新建 txt 文本文件
 
 ```bat
 Windows Registry Editor Version 5.00
@@ -672,11 +686,11 @@ Windows Registry Editor Version 5.00
 
 打开记事本，复制以上内容，另存为`xxx.reg`。点击文件，确认操作后，重启电脑生效
 
-### 3.19. 关闭 cmd 命令行窗口的中文输入法
+### 3.18. 关闭 cmd 命令行窗口的中文输入法
 
 运行`regedit`命令，打开注册表窗口，修改注册表：`HKEY_CURRENT_USER\Console\LoadConIme` 的键值由`1`改为`0`
 
-### 3.20. 修改 cmd / powershell 命令行窗口默认编码
+### 3.19. 修改 cmd / powershell 命令行窗口默认编码
 
 **临时修改**
 
@@ -687,7 +701,7 @@ Windows Registry Editor Version 5.00
 - **修改powershell默认编码**：运行`regedit`命令打开注册表，展开注册表`计算机\HKEY_CURRENT_USER\Console`项。选择powershell，点击修改右边窗口中`CodePage`项，选择十进制，修改值为`65001`。修改后就每次启动都默认改成UTF-8的编码
 - **修改cmd编码**：运行`regedit`命令打开注册表，展开注册表`计算机\HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Command Processor`项。如果右边窗口没有`autorun`字符串值，则右键新建字符串值，数值名称：`autorun`，数值数据：`chcp 65001`。修改后就每次启动都默认改成UTF-8的编码
 
-### 3.21. 彻底关闭 Cortana 小娜
+### 3.20. 彻底关闭 Cortana 小娜
 
 - **关闭 Cortana 小娜的权限**
 
@@ -705,7 +719,7 @@ Win10的设置菜单 -> "应用" -> 在应用列表中搜索找到Cortana -> 高
 Get-AppxPackage -allusers Microsoft.549981C3F5F10 | Remove-AppxPackage
 ```
 
-### 3.22. 关闭 Win11 / Win 10 内存压缩
+### 3.21. 关闭 Win11 / Win 10 内存压缩
 
 Win11默认开启了内存压缩功能。可以压缩内存中的数据，让内存占用更少，同时减少Swap频次，带来更高的I/O效率。但CPU性能较弱的设备，例如轻薄本，开启内存压缩可能会造成卡顿缓慢。同时，内存压缩需要消耗额外的CPU资源，带来更多耗电发热，这对注重续航的设备来说也是不合适的。
 
@@ -714,13 +728,13 @@ Win11默认开启了内存压缩功能。可以压缩内存中的数据，让内
 - **关闭内存压缩**。使用系统管理员权限，打开PowerShell，然后输入命令 `Disable-MMAgent -mc` 后，重启系统，内存压缩就关闭了。
 - **重新打开内存压缩**。使用系统管理员权限，打开PowerShell，然后输入命令 `Enable-MMAgent -mc` 后，重启系统，内存压缩就重新开启。
 
-### 3.23. 清除电脑的运行记录
+### 3.22. 清除电脑的运行记录
 
 1. win+R 打开运行窗口，输入 `regedit` 打开注册表编辑器
 2. 展开 `HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\RunMRU`在右侧除了默认
 3. 将其他选项都删除掉
 
-### 3.24. 删除资源管理器中“此电脑”下面多余的图标
+### 3.23. 删除资源管理器中“此电脑”下面多余的图标
 
 1. WIN+R 打开运行窗口，输入 `regedit` 打开注册表编辑器
 2. 在注册表中定位到：`HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\MyComputer\NameSpace` 项
