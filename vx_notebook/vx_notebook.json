@@ -362,11 +362,6 @@
             "path": "其他/software/foobar2000.md"
         },
         {
-            "last_accessed_time": "2024-04-06T14:21:37Z",
-            "line_number": 517,
-            "path": "其他/software/Windows.md"
-        },
-        {
             "last_accessed_time": "2024-04-21T00:01:16Z",
             "line_number": 764,
             "path": "前端资料/工具类库/Axios.md"
@@ -488,11 +483,6 @@
         },
         {
             "last_accessed_time": "2024-09-13T16:08:54Z",
-            "line_number": 532,
-            "path": "其他/software/Common-Software.md"
-        },
-        {
-            "last_accessed_time": "2024-09-13T16:08:54Z",
             "line_number": 952,
             "path": "Python/Python-基础.md"
         },
@@ -502,9 +492,19 @@
             "path": "其他/software/Web-Browser.md"
         },
         {
-            "last_accessed_time": "2024-09-17T05:35:27Z",
+            "last_accessed_time": "2024-10-11T15:17:04Z",
+            "line_number": 532,
+            "path": "其他/software/Windows.md"
+        },
+        {
+            "last_accessed_time": "2024-10-11T15:18:38Z",
             "line_number": 63,
             "path": "前端资料/JavaScript/JavaScript-标准内置对象.md"
+        },
+        {
+            "last_accessed_time": "2024-10-11T15:18:38Z",
+            "line_number": 461,
+            "path": "其他/software/Common-Software.md"
         }
     ],
     "image_folder": "images",
