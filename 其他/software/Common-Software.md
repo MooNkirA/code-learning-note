@@ -447,9 +447,9 @@ FastStone 官方网站： http://www.faststone.org/
 官方简体中文版下载地址：（官网无法打开，但下载地址可以下载）
 
 - 安装版 :
-    - https://www.faststonesoft.net/DN/FSViewerSetup78.zip
-    - https://www.faststonesoft.net/DN/FSViewerSetup78.exe
-- 便携版 : https://www.faststonesoft.net/DN/FSViewer78.zip
+    - https://www.faststonesoft.net/DN/FSViewerSetup79.zip
+    - https://www.faststonesoft.net/DN/FSViewerSetup79.exe
+- 便携版 : https://www.faststonesoft.net/DN/FSViewer79.zip
 
 > 建议使用迅雷或IDM下载
 
