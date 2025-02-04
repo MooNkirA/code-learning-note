@@ -420,6 +420,7 @@ windows 桌面版缓存目录：`%APPDATA%\listen1\Cache`
 - MusicENC： https://www.musicenc.com/
 - Musicbed： https://www.musicbed.com/
 - [好歌多](https://www.haogeduo.com/)
+- [无损生活](https://flac.life/)
 
 ## 6. 图像处理
 
@@ -440,7 +441,7 @@ FastStone 官方网站： http://www.faststone.org/
 
 解压 Keygen.7z 选择相应的 FastStone 的产品，随便输入一个用户名，然后生成相应的注册码即可。
 
-#### 6.1.2. FastStone Image Viewer（目前更新至7.8版本）
+#### 6.1.2. FastStone Image Viewer（目前更新至7.9版本）
 
 官方网站（无法打开）： https://www.faststone.org/FSViewerDetail.htm
 
@@ -455,11 +456,11 @@ FastStone 官方网站： http://www.faststone.org/
 
 家庭用户可免费使用，商业使用须注册。注册及设置方法：如果您使用的旧版如 7.7 版已授权注册为商业版，可以将旧版如 7.7 商业版注册文件及设置文件 `FSSettings.db`，复制到 7.8 版 FSViewer 目录中就能注册 7.8 版并保持旧版如 7.7 版的设置，不必重新注册和设置。
 
-#### 6.1.3. FastStone Capture（目前更新至10.8版）
+#### 6.1.3. FastStone Capture（目前更新至11.0版）
 
 官网便捷版下载地址（好像暂无安装版）：
 
-- https://www.faststonesoft.net/DN/FSCapture108.zip
+- https://www.faststonesoft.net/DN/FSCapture11.zip
 
 > 最新版激活注册码 (更新于2023-09-10)
 >
