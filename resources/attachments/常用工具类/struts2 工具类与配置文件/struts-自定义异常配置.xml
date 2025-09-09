@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE struts PUBLIC
+    "-//Apache Software Foundation//DTD Struts Configuration 2.3//EN"
+    "http://struts.apache.org/dtds/struts-2.3.dtd">
+
+<struts>
+	<constant name="struts.ui.theme" value="simple"/>
+	<constant name="struts.devMode" value="true" />
+	<constant name="struts.i18n.encoding" value="UTF-8" />
+	<constant name="struts.enable.DynamicMethodInvocation" value="true"></constant>
+	<!-- Convention会试图从指定包中发现Action类。 
+    <constant name="struts.convention.action.packages" value="cn.itcast.web.b.sysadmin" />
+	-->
+	
+	<package name="default" namespace="/" extends="struts-default">
+	   <global-results>
+	      <result name="error">/WEB-INF/pages/error.jsp</result>
+	   </global-results>
+		<global-exception-mappings>
+		    <exception-mapping result="error" exception="cn.itcast.exception.SysException"></exception-mapping>
+		    <exception-mapping result="error" exception="java.lang.Exception"></exception-mapping>
+		</global-exception-mappings>
+	</package>
+
+	
+</struts>
+	

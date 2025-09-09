@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE struts PUBLIC "-//Apache Software Foundation//DTD Struts Configuration 2.3//EN" "struts-2.3.dtd" >
+<struts>
+	<!-- 配置请求路径和执行方法的关系 -->
+	<package name="default" extends="struts-default" namespace="/">
+		<!-- 配置拦截器 -->
+		<interceptors>
+			<!-- 声明一个拦截器 -->
+			<interceptor name="VaildataInterceptor"
+				class="com.moonzero.interceptor.VaildataInterceptor"></interceptor>
+			<!-- 声明一个拦截器栈 -->
+			<interceptor-stack name="MyStack">
+				<!-- 引用原来struts2默认拦截器 -->
+				<interceptor-ref name="defaultStack"></interceptor-ref>
+				<!-- 引用自定义拦截器 -->
+				<interceptor-ref name="VaildataInterceptor"></interceptor-ref>
+			</interceptor-stack>
+		</interceptors>
+
+		<!-- 配置登陆方法调用关系 -->
+		<action name="login" class="com.moonzero.action.TestAction" method="login">
+			<!-- 在 action 的里面配置，是局部拦截器 -->
+			<!-- 
+				struts2 所有的功能组件都是使用拦截器实现的，如果我们配置的拦截器没有包括原来配置的默
+				认拦截器会覆盖原来的配置。
+			 -->
+			<interceptor-ref name="MyStack"></interceptor-ref>
+			<result name="login">/result.jsp</result>
+		</action>
+		<!-- 配置注销方法调用关系 -->
+		<action name="undo" class="com.moonzero.action.TestAction" method="undo">
+			<!-- 局部的拦截器一个 <action>标签就要配置一次 -->
+			<interceptor-ref name="MyStack"></interceptor-ref>
+			<result name="undo">/result.jsp</result>
+		</action>
+	</package>
+</struts>
