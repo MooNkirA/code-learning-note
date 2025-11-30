@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE struts PUBLIC
+	"-//Apache Software Foundation//DTD Struts Configuration 2.3//EN"
+	"struts-2.3.dtd" >
+<struts>
+	<!-- 配置请求路径和执行方法的关系 -->
+	<package name="customer" extends="struts-default" namespace="/customer">
+		<!-- 配置方法调用关系 -->
+		<action name="*" class="com.moonzero.action.CustomerAction" method="{1}">
+			<!-- 配置查询返回字符串与跳转路径 -->
+			<result name="listCustomer">/jsp/customer/list.jsp</result>
+			
+			<!-- 配置执行完新增方法后，再执行查询所有方法 -->
+			<result name="updateList" type="chain">
+				<!-- 指定下一个执行的action名字 -->
+				<param name="actionName">listCustomer</param>
+				<!-- 与调用的action同一个命名空间，可以不写 -->
+				<param name="namespace">/customer</param>
+			</result>
+			
+			<!-- 配置更新返回字符串与跳转路径 -->
+			<result name="findCustomerById">/jsp/customer/edit.jsp</result>
+		</action>
+	</package>
+</struts>

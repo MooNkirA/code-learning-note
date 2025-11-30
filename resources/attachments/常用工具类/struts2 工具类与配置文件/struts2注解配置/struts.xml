@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE struts PUBLIC "-//Apache Software Foundation//DTD Struts Configuration 2.3//EN" "struts-2.3.dtd" >
+<struts>
+	<constant name="struts.enable.DynamicMethodInvocation" value="true"></constant>
+	
+	<!-- 声明一个公共包 -->
+	<package name="default" extends="struts-default">
+		<interceptors>
+			<!-- 声明一个拦截器 -->
+			<interceptor name="myInterceptor" class="com.moonzero.interceptor.MyInterceptor"></interceptor>
+			<!-- 声明一个拦截器栈，包括内置的功能 -->
+			<interceptor-stack name="myStack">
+				<!-- 加入struts2默认的拦截器 -->
+				<interceptor-ref name="defaultStack"></interceptor-ref>
+				<!-- 加入自定义拦截器 -->
+				<interceptor-ref name="myInterceptor"></interceptor-ref>
+			</interceptor-stack>
+		</interceptors>
+	</package>
+</struts>

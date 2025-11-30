@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE struts PUBLIC "-//Apache Software Foundation//DTD Struts Configuration 2.3//EN" "struts-2.3.dtd" >
+<struts>
+	<!-- 配置请求路径和执行方法的关系 -->
+	<package name="default" extends="struts-default" namespace="/">
+		<!-- 配置拦截器 -->
+		<interceptors>
+			<!-- 声明一个拦截器 -->
+			<interceptor name="VaildataInterceptor"
+				class="com.moonzero.interceptor.VaildataInterceptor"></interceptor>
+			<!-- 声明一个拦截器栈 -->
+			<interceptor-stack name="MyStack">
+				<!-- 引用原来struts2默认拦截器 -->
+				<interceptor-ref name="defaultStack"></interceptor-ref>
+				<!-- 引用自定义拦截器 -->
+				<interceptor-ref name="VaildataInterceptor"></interceptor-ref>
+			</interceptor-stack>
+		</interceptors>
+
+		<!-- 需求：配置一次拦截器，同一个包里面的所有 action 都可以被拦截 -->
+		<!-- 全局拦截器配置 -->
+		<!-- 该 package下以及子包 所有 action 统一使用默认指定全局的拦截器-->
+		<default-interceptor-ref name="MyStack"></default-interceptor-ref>
+
+		<!-- 配置登陆方法调用关系 -->
+		<action name="login" class="com.moonzero.action.TestAction" method="login">
+			<result name="login">/result.jsp</result>
+		</action>
+		<!-- 配置注销方法调用关系 -->
+		<action name="undo" class="com.moonzero.action.TestAction" method="undo">
+			<result name="undo">/result.jsp</result>
+		</action>
+	</package>
+</struts>
