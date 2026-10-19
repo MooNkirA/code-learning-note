@@ -3,7 +3,7 @@
 本文档是 `MooNkirA.github.io` 项目（VitePress 文档站）的配置说明与维护教程，覆盖站点配置、顶部导航、侧边栏、首页、索引文件维护与部署验证。**日后的配置变更与维护以本文档为准。**
 
 > [!warning] 验证方式红线
-> 任何配置变更的测试与验证，一律通过 `pnpm docs:dev` 本地开发服务器进行，<span style="color: red;">**严禁使用 `docs:build` 与 `docs:preview` 验证**</span>。
+> 任何配置变更的测试与验证，一律通过 `pnpm docs:dev` 本地开发服务器进行，<span style="color: red;">**严禁本地执行 `docs:build`**</span>。
 
 ---
 
@@ -37,11 +37,10 @@
 
 ```bash
 pnpm docs:dev       # 本地开发预览（默认 http://localhost:5173）
-pnpm docs:build     # 构建到 .vitepress/dist/（仅 CI 使用）
-pnpm docs:preview   # 预览构建产物（仅 CI 使用）
+# pnpm docs:build   # 仅 GitHub Actions 使用；本地禁止执行
 ```
 
-<span style="color: purple;">**注意：本地验证只用 `docs:dev`，`docs:build` 与 `docs:preview` 仅用于 CI 部署流程。**</span>
+<span style="color: purple;">**注意：本地验证只用 `docs:dev`；`docs:build` 仅供 GitHub Actions 使用，本地禁止执行。**</span>
 
 ---
 
@@ -446,7 +445,7 @@ pnpm docs:dev
 - 首页、侧边栏、搜索、页面渲染无报错
 
 > [!warning] 禁止项
-> 本地验证 <span style="color: red;">**严禁使用 `docs:build` 与 `docs:preview`**</span>。全量构建耗时长且需要 8GB 堆内存，仅 CI 部署流程使用。
+> 本地验证 <span style="color: red;">**严禁执行 `docs:build`**</span>。全量构建耗时长且需要 8GB 堆内存，仅 CI 部署流程使用。
 
 ### 部署
 
@@ -459,15 +458,9 @@ pnpm docs:dev
 
 ## 常见问题
 
-### 本地全量构建 OOM（exit 134）
+### 构建 OOM（exit 134）
 
-413 篇笔记全量 build 在默认 Node 堆下会内存溢出，需设置：
-
-```bash
-NODE_OPTIONS=--max-old-space-size=8192 pnpm docs:build
-```
-
-CI 已配置好该参数，本地按上面「本地验证」方式用 `docs:dev` 即可避免。
+本仓库禁止在本地执行全量构建；CI 已配置 `NODE_OPTIONS=--max-old-space-size=8192`，约 390 篇笔记的构建由 GitHub Actions 完成。本地只用 `pnpm docs:dev` 验证，不要通过调大内存重试。
 
 ### 链接跳错 / 页面 404
 

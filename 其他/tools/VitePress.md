@@ -91,14 +91,13 @@ const srcDir = resolve(__dirname, '..')
 
 ### 常用命令
 
-package.json 中配置了三个核心脚本：
+package.json 中配置了两个核心脚本：
 
 ```json
 {
   "scripts": {
     "docs:dev": "vitepress dev",
-    "docs:build": "vitepress build",
-    "docs:preview": "vitepress preview"
+    "docs:build": "vitepress build"
   }
 }
 ```
@@ -106,15 +105,10 @@ package.json 中配置了三个核心脚本：
 | 命令 | 作用 | 默认端口 |
 | :---: | :--- | :---: |
 | `pnpm docs:dev` | 本地开发预览，支持热更新 | 5173 |
-| `pnpm docs:build` | 构建静态站点到 `.vitepress/dist/` | - |
-| `pnpm docs:preview` | 本地预览构建产物 | 4173 |
+| `pnpm docs:build` | 构建静态站点到 `.vitepress/dist/`（仅 CI 使用，本地禁止执行） | - |
 
 > [!warning] 构建 OOM 问题
-> 笔记数量多时（本仓库 400+ 篇），全量 build 在默认 Node 堆下会触发 heap out of memory（exit 134）。<span style="color: red;">**本地构建必须设置堆内存上限**</span>：
-
-```bash
-NODE_OPTIONS=--max-old-space-size=8192 pnpm docs:build
-```
+> 笔记数量多时（本仓库 400+ 篇），全量 build 在默认 Node 堆下会触发 heap out of memory（exit 134）。CI 已配置 `NODE_OPTIONS=--max-old-space-size=8192`；<span style="color: red;">**本仓库禁止在本地执行构建**</span>，本地验证只用 `pnpm docs:dev`。
 
 ### 页面与路由
 
@@ -331,7 +325,7 @@ VitePress 支持 `::: 类型` 语法与 GitHub 风格 `> [!类型]` 两种容器
 
 ```markdown
 > [!warning] 构建 OOM 问题
-> 本地构建必须设置堆内存上限：`NODE_OPTIONS=--max-old-space-size=8192`。
+> CI 已配置 8 GB 堆；本仓库禁止本地执行全量构建，本地验证只用 `docs:dev`。
 
 > [!tip] 常用 callout 类型
 > - `note`：补充说明
@@ -600,14 +594,14 @@ vite: {
 | `gen-index.cjs` | 为每个一级分类目录生成 `index.md` 入口文件 |
 | `fix-img-paths.cjs` | 批量修复缺少 `images/` 前缀的图片引用 |
 | `clean-broken-images.cjs` | 扫描并清理指向不存在文件的图片引用，替换为占位文本 |
-| `local-script/*.bat` | Windows 本地开发 / 预览 / 清理脚本 |
+| `local-script/*.bat` | Windows 本地开发 / 清理脚本 |
 
 图片修复脚本的核心逻辑：扫描所有 `.md` 文件，对每个图片引用先检查原路径是否存在，不存在时到同级的 `images/` 子目录按文件名查找，找到则自动补全路径。这也是仓库图片统一使用 `![](images/xxx.png)` 写法的保证。
 
 ## 常见问题与注意事项
 
 > [!warning] 构建 OOM
-> 笔记数量大时全量 build 会内存溢出（exit 134），本地与 CI 都必须设置 `NODE_OPTIONS=--max-old-space-size=8192`。
+> 笔记数量大时全量 build 会内存溢出（exit 134）；CI 已配置 8 GB 堆。本仓库禁止在本地执行构建，本地验证只用 `docs:dev`。
 
 > [!warning] 文件名唯一性
 > wikilink 插件以文件名为键，<span style="color: red;">**新增笔记务必先确认全仓库无同名文件**</span>，否则构建期后者覆盖前者，wiki 链接全部跳错。

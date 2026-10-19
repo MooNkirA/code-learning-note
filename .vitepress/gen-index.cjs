@@ -2,7 +2,8 @@
 const fs = require('fs');
 const path = require('path');
 
-const root = 'C:\\MooN\\Workspace';
+// 仓库根目录：.vitepress 的上一级
+const root = path.resolve(__dirname, '..');
 
 // 一级分类及其显示名称
 const categories = {

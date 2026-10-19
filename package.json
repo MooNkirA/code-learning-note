@@ -5,8 +5,7 @@
   "type": "module",
   "scripts": {
     "docs:dev": "vitepress dev",
-    "docs:build": "vitepress build",
-    "docs:preview": "vitepress preview"
+    "docs:build": "vitepress build"
   },
   "devDependencies": {
     "@braintree/sanitize-url": "^7.1.2",
