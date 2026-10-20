@@ -7,7 +7,7 @@ echo   清理构建产物与缓存
 echo ==============================================
 echo.
 
-cd /d "%~dp0..\.."
+cd /d "%~dp0.."
 
 echo [1/2] 清理构建产物 .vitepress/dist ...
 if exist ".vitepress\dist" (

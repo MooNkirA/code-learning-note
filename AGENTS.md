@@ -34,10 +34,10 @@ Workspace/
 ├── AI/ Database/ DevOps/ Frontend/ Java/ JavaWeb/ JVM/ Linux/ Python/
 ├── 分布式微服务/ 后端框架/ 并发编程/ 面试手册/ 项目资料/ 其他/
 ├── attachments/             # 模板、思维导图、历史学习笔记、README 打赏图（images/）
-├── .script/                 # 语雀导入打包（pack_yuque_notes.py、打包笔记-语雀.bat）
+├── .script/                 # 本地辅助脚本：语雀打包（pack_yuque_notes.py、打包笔记-语雀.bat）、VitePress（vitepress-本地开发预览.bat、vitepress-清理构建缓存.bat）
 ├── .trae/skills/            # moon-note-style 等 Agent Skill
 ├── .obsidian/               # Obsidian 配置与插件（已纳入版本管理）
-├── .vitepress/              # VitePress 配置（config.ts、sidebar.ts、wikilink.ts、html-guard.ts、gen-index.cjs、local-script/）
+├── .vitepress/              # VitePress 配置（config.ts、sidebar.ts、wikilink.ts、html-guard.ts、gen-index.cjs）
 ├── .github/workflows/       # deploy.yml：push main 自动部署到 Pages
 ├── index.md                 # VitePress 首页（home layout）
 ├── README.md                # 手工维护的索引（标准 Markdown 链接，含打赏二维码）
@@ -87,7 +87,7 @@ Workspace/
 | `wikilink.ts` | 构建期扫描所有 `.md` 建立文件名→URL 映射，将 `[[文件名]]` 转为标准 Markdown 链接 |
 | `html-guard.ts` | 从被转义的文本中恢复白名单 `<span>`/`<font>` 标签（旧笔记中的彩色样式） |
 | `gen-index.cjs` | 生成 15 个一级分类的 `index.md` 入口页；根目录从脚本位置推导，运行前确认 `categories` 与当前目录一致 |
-| `local-script/*.bat` | Windows 本地辅助脚本：`local-dev.bat` 启动开发、`cleanup.bat` 清理 `dist`/`cache` |
+| `../.script/vitepress-*.bat` | Windows 本地辅助脚本：`vitepress-本地开发预览.bat` 启动开发、`vitepress-清理构建缓存.bat` 清理 `dist`/`cache` |
 | `clean-broken-images.cjs` / `fix-img-paths.cjs` | 维护期脚本（清理坏图、修正图片路径） |
 
 **常用命令（在仓库根目录执行）：**

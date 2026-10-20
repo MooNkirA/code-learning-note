@@ -70,7 +70,7 @@ Workspace/
 │   ├── html-guard.ts    # 白名单标签恢复插件（自定义）
 │   ├── fix-img-paths.cjs  # 图片路径修复脚本
 │   ├── clean-broken-images.cjs  # 失效图片清理脚本
-│   └── local-script/    # Windows 本地开发脚本（.bat）
+├── .script/             # Windows 本地辅助脚本（vitepress-本地开发预览.bat、vitepress-清理构建缓存.bat）
 ├── index.md             # 站点首页（home layout）
 ├── Java/                # 各主题笔记目录（一级分类）
 ├── 其他/
@@ -594,29 +594,18 @@ vite: {
 | `gen-index.cjs` | 为每个一级分类目录生成 `index.md` 入口文件 |
 | `fix-img-paths.cjs` | 批量修复缺少 `images/` 前缀的图片引用 |
 | `clean-broken-images.cjs` | 扫描并清理指向不存在文件的图片引用，替换为占位文本 |
-| `local-script/*.bat` | Windows 本地开发 / 清理脚本 |
+| `../.script/vitepress-*.bat` | Windows 本地开发 / 清理脚本 |
 
 图片修复脚本的核心逻辑：扫描所有 `.md` 文件，对每个图片引用先检查原路径是否存在，不存在时到同级的 `images/` 子目录按文件名查找，找到则自动补全路径。这也是仓库图片统一使用 `![](images/xxx.png)` 写法的保证。
 
 ## 常见问题与注意事项
 
-> [!warning] 构建 OOM
-> 笔记数量大时全量 build 会内存溢出（exit 134）；CI 已配置 8 GB 堆。本仓库禁止在本地执行构建，本地验证只用 `docs:dev`。
-
-> [!warning] 文件名唯一性
-> wikilink 插件以文件名为键，<span style="color: red;">**新增笔记务必先确认全仓库无同名文件**</span>，否则构建期后者覆盖前者，wiki 链接全部跳错。
-
-> [!note] 裸 HTML 与 Vue 编译
-> `markdown.html: false` 已禁用原始 HTML。笔记中的 `<span style>` 等白名单标签会被 html-guard 恢复，块级标签（`<div>`、`<center>` 等）不会放行，应改写成标准 Markdown 语法。
-
-> [!note] 换行规范
-> 仓库笔记遵循「换行靠空行」约定（`strictLineBreaks: true`），禁止行尾两空格硬换行，VitePress 渲染时行为与 Obsidian 保持一致。
-
-> [!tip] 本地开发建议
-> 使用 `pnpm docs:dev` 边写边预览；改动了 `.vitepress/` 下的插件或配置需要重启 dev 服务，改 Markdown 内容则热更新即时生效。
-
-> [!tip] 快速定位构建问题
-> 构建报错时先看是否与「新增同名文件」「裸 HTML 标签」「`{{ }}` 插值」三类问题相关，这是本仓库迁移过程中踩坑最集中的三个方向。
+- **构建 OOM**：笔记数量大时全量 build 会内存溢出（exit 134）；CI 已配置 8 GB 堆。<span style="color: red;">**本仓库禁止在本地执行构建**</span>，本地验证只用 `docs:dev`。
+- **文件名唯一性**：wikilink 插件以文件名为键，<span style="color: red;">**新增笔记务必先确认全仓库无同名文件**</span>，否则构建期后者覆盖前者，wiki 链接全部跳错。
+- **裸 HTML 与 Vue 编译**：`markdown.html: false` 已禁用原始 HTML。笔记中的 `<span style>` 等白名单标签会被 html-guard 恢复，块级标签（`<div>`、`<center>` 等）不会放行，应改写成标准 Markdown 语法。
+- **换行规范**：仓库笔记遵循「换行靠空行」约定（`strictLineBreaks: true`），禁止行尾两空格硬换行，VitePress 渲染时行为与 Obsidian 保持一致。
+- **本地开发建议**：使用 `pnpm docs:dev` 边写边预览；改动了 `.vitepress/` 下的插件或配置需要重启 dev 服务，改 Markdown 内容则热更新即时生效。
+- **快速定位构建问题**：构建报错时先看是否与「新增同名文件」「裸 HTML 标签」「`{{ }}` 插值」三类问题相关，这是本仓库迁移过程中踩坑最集中的三个方向。
 
 ## 参考链接
 
