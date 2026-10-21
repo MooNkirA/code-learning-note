@@ -9,3 +9,7 @@ onlyBuiltDependencies:
 overrides:
   vite: ^6.4.3
   esbuild: ^0.25.0
+  # dompurify 3.4.13~3.4.15 存在 GHSA-p98j-92pf-mc4p(Low)，由 mermaid 间接引入
+  dompurify: ^3.4.16
+  # source-map-js < 1.2.2 存在 CVE-2026-93749(High)，由 Vue compiler / postcss 间接引入
+  source-map-js: ^1.2.2

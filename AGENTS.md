@@ -38,7 +38,7 @@ Workspace/
 ├── .trae/skills/            # moon-note-style 等 Agent Skill
 ├── .obsidian/               # Obsidian 配置与插件（已纳入版本管理）
 ├── .vitepress/              # VitePress 配置（config.ts、sidebar.ts、wikilink.ts、html-guard.ts、gen-index.cjs）
-├── .github/workflows/       # deploy.yml：push main 自动部署到 Pages
+├── .github/workflows/       # deploy.yml 部署 Pages；mirror-gitee.yml 同步 main/dev 到 Gitee
 ├── index.md                 # VitePress 首页（home layout）
 ├── README.md                # 手工维护的索引（标准 Markdown 链接，含打赏二维码）
 ├── package.json             # VitePress 依赖与脚本（pnpm 管理）
@@ -133,6 +133,7 @@ pnpm docs:dev       # 本地开发预览（唯一推荐的本地命令）
 - **`README.md`**：手工维护的笔记索引，12 个 `##` 分区，条目使用标准 Markdown 相对链接 `[名称](路径.md)`，**不使用 wikilink**；末尾含打赏二维码（引用 `attachments/images/wechat_pay.png`、`ali_pay.jpg`）。分区名称以文件现状为准（AI、Java 核心技术、后端框架、前端资料、数据库、DevOps 工具、Linux、分布式 & 微服务架构、并发编程、Python、其他、收集的项目实战资料）。新增重要笔记应补进对应分区；目前仍有缺口（`面试手册/` 的 10 篇面试题、`AI/AI-Assistance/Agent-Skills` 等尚未收录）。
 - **首页是 `index.md`**（VitePress home layout），不是 `README.md`。
 - **发布方式**：GitHub Actions 自动部署，配置在 `.github/workflows/deploy.yml`。push 到 `main` 分支后自动触发：ubuntu runner 上 `pnpm install` → `pnpm docs:build`（CI 已配 8 GB 堆）→ 上传 `.vitepress/dist` 为 artifact → `deploy-pages` 发布到 GitHub Pages。也支持在 Actions 页面手动 `workflow_dispatch` 触发。**本地不执行 build**。
+- **Gitee 镜像**：`.github/workflows/mirror-gitee.yml` 在 push `main`/`dev` 或手动触发时，通过 SSH 部署公钥将对应分支同步到 [moonzero/code-note](https://gitee.com/moonzero/code-note)。Gitee 端为**只读镜像**，不在 Gitee 上做任何修改；同步依赖 GitHub Secret `GITEE_SSH_PRIVATE_KEY` 与 Gitee 仓库部署公钥（需启用推送）。工作流使用 `fetch-depth: 0` 拉取完整历史（仓库约 700 MiB），运行时间会长于 Pages 构建；轮换密钥时需同时更新 Gitee 部署公钥和 GitHub Secret。该工作流与 Pages 发布相互独立。
 - `.nojekyll`（空文件）用于关闭 Jekyll 处理，保证 `_` 开头文件与点目录原样发布。
 - `.gitignore` 忽略编辑器与构建产物（`.vscode`、`*.class`、`target`、`*.iml`、VNote 缓存、`desktop.ini`、`node_modules/`、`.vitepress/dist/`、`.vitepress/cache/` 等），不忽略笔记内容；语雀打包 zip 未加入忽略，使用后手动清理。
 
