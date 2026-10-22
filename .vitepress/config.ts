@@ -224,7 +224,19 @@ export default withMermaid(
     ignoreDeadLinks: true, // 忽略死链（旧笔记中有一些失效的图片/链接引用）
 
     // 排除非文档文件和不需要处理的目录
-    srcExclude: ['**/images/**', '**/attachments/**', '**/resources/**', 'AGENTS.md', '**/.obsidian/**', '**/.trae/**', '**/.claude/**'],
+    srcExclude: [
+      '**/images/**',
+      '**/attachments/**',
+      '**/resources/**',
+      'AGENTS.md',
+      '**/.obsidian/**',
+      '**/.trae/**',
+      '**/.claude/**',
+      '**/.github/**',
+      '**/.script/**',
+      '**/.vscode/**',
+      '**/.vitepress/**',
+    ],
 
     // ===== Vite 配置 =====
     // 强制预构建 CJS 模块，解决 dev 模式下 ESM 互操作问题

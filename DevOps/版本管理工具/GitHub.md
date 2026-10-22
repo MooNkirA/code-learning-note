@@ -546,17 +546,18 @@ GitHub 访问不稳定、团队主要使用 Gitee 时，可以保留 GitHub 作�
 | GitHub 仓库 | 主仓库，唯一可信源 |
 | GitHub Actions | 执行同步任务 |
 | GitHub Secret | 保存 SSH 私钥 |
-| Gitee 部署公钥 | 授权 Actions 向 Gitee 推送 |
+| Gitee 个人 SSH 公钥 | 授权 Actions 向 Gitee 推送 |
 | Gitee 仓库 | 只读镜像 |
 
 核心原则：<span style="color: purple;">**GitHub 是唯一可信源，Gitee 只接收推送，不产生任何提交。**</span>
 
-#### 为什么用 SSH 部署公钥
+#### 为什么用 SSH 个人公钥
 
-- 权限范围小：部署公钥只作用于一个 Gitee 仓库，不是整个账号。
+- Gitee 当前界面的仓库级「部署公钥」只支持拉取；如果要对仓库执行写操作，需使用账号级「个人 SSH 公钥」。
+- 权限范围覆盖账号：个人公钥可以访问该 Gitee 账号有写权限的仓库，因此建议使用专用的 Gitee 账号或专用密钥，降低泄露后的影响范围。
 - 不需要账号密码：避免在 Actions 中保存 Gitee 账号密码。
-- 便于轮换：私钥只保存在 GitHub Secret（本地副本可删除），公钥只存在 Gitee；更换密钥不影响其他仓库。
-- 便于管理：部署公钥可以单独命名，出问题时能快速定位和删除。
+- 便于轮换：私钥只保存在 GitHub Secret（本地副本可删除），公钥只存在 Gitee 账号；更换镜像密钥时同步更新 Gitee 个人公钥和 GitHub Secret 即可。
+- 便于管理：个人公钥可以在 Gitee 账号设置中单独命名、删除，便于定位和停用。
 
 #### force-with-lease 的作用
 
@@ -579,7 +580,7 @@ fi
 
 | 方案 | 配置位置 | 优点 | 限制 |
 | :---: | --- | --- | --- |
-| GitHub Actions 推送 | 仓库内 `.github/workflows/` | 配置版本化、按分支触发、可控性强 | 需要配置 Secret 和部署公钥；每次运行要拉取完整历史；消耗 Actions 时间 |
+| GitHub Actions 推送 | 仓库内 `.github/workflows/` | 配置版本化、按分支触发、可控性强 | 需要配置 Secret 和 Gitee 个人 SSH 公钥；每次运行要拉取完整历史；消耗 Actions 时间 |
 | Gitee 仓库镜像 | Gitee 仓库设置 | 不需要写工作流 | 自动同步频率、权限受 Gitee 套餐和功能限制；分支与强制策略可控性较弱；配置不在仓库内 |
 | 本地定时推送 | 本地脚本或计划任务 | 实现简单 | 依赖本地机器在线；密钥管理分散；不适合多人协作 |
 
@@ -590,6 +591,7 @@ fi
 
 - GitHub 仓库已启用 Actions，当前账号有仓库管理员权限。
 - Gitee 仓库已创建，且确认没有需要保留的独立提交；首次同步前建议先备份。
+- Gitee 账号对镜像仓库有写权限；当前界面需使用账号级个人 SSH 公钥（仓库部署公钥只读）。
 - 两边分支名称一致，示例使用 `main` 和 `dev`。
 - Gitee 仓库的默认分支建议与 GitHub 主分支一致（通常是 `main`），否则仓库首页展示的可能是旧分支。
 - Gitee 仓库没有会阻止强制推送的分支保护规则。
@@ -630,18 +632,20 @@ ssh-keygen -y -P "" -f ~/.ssh/gitee_mirror
 
 命令会输出对应的公钥；如果命令报错（提示 `incorrect passphrase`），说明生成时设置了口令，需要重新生成，或者改用 `ssh-agent` 方案。
 
-> [!tip] 不要复用个人日常使用的 SSH 密钥。为镜像单独生成一把部署密钥，泄露时只需在 Gitee 删除公钥并轮换。
+> [!tip] 不要复用个人日常使用的 SSH 密钥。为镜像单独生成一把专用密钥，泄露时在 Gitee 账号删除对应个人公钥并轮换。
 
-#### 在 Gitee 添加部署公钥
+#### 在 Gitee 添加个人 SSH 公钥
 
-1. 打开 Gitee 镜像仓库，进入「管理」→「部署公钥」。
-2. 点击「添加部署公钥」。
-3. 把 `gitee_mirror.pub` 的内容完整粘贴到公钥输入框。
-4. 勾选「启用推送」，否则只能读取，不能 push。
+Gitee 仓库级「部署公钥」在当前界面是只读的，不能推送。正确做法是把同一把公钥添加为 Gitee 账号的「个人 SSH 公钥」。
+
+1. 如果之前已经把 `gitee_mirror.pub` 添加到仓库「部署公钥管理」，先删除它，避免出现“公钥已存在”或被识别为只读 DeployKey。
+2. 打开 Gitee 右上角头像 →「设置」→「安全设置」→「SSH 公钥」。
+3. 点击「添加公钥」。
+4. 标题填写 `github-actions:gitee-mirror`，公钥粘贴 `gitee_mirror.pub` 的完整内容。
 5. 保存。
 
 > [!warning]
-> 部署公钥是仓库级权限，只对当前仓库生效。不要使用 Gitee 账号级 SSH 密钥，避免一把密钥拥有账号下所有仓库的权限。
+> 个人公钥是账号级权限，可以访问该 Gitee 账号有写权限的仓库，权限范围比仓库部署公钥大。建议使用专用的 Gitee 账号或专用密钥，并定期轮换。
 
 测试认证：
 
@@ -649,10 +653,13 @@ ssh-keygen -y -P "" -f ~/.ssh/gitee_mirror
 ssh -i ~/.ssh/gitee_mirror -T git@gitee.com
 ```
 
-如果配置正确，会看到类似 `Welcome to Gitee.com` 的提示；Gitee 不提供 shell 访问，所以不会进入交互式终端。出现 `Permission denied (publickey)` 时，依次检查：
+如果配置正确，会显示你的 Gitee 用户名，而不是 `Anonymous (DeployKey)`；Gitee 不提供 shell 访问，所以不会进入交互式终端。如果显示 `Anonymous (DeployKey)` 或 `DeployKey only supports pull/fetch operations`，说明实际使用的仍是仓库部署公钥，需要删除部署公钥后重新添加个人公钥。
+
+出现 `Permission denied (publickey)` 时，依次检查：
 
 - 公钥是否粘贴完整；
-- 是否勾选「启用推送」；
+- 是否添加到「个人 SSH 公钥」而不是仓库「部署公钥」；
+- 同名部署公钥是否已删除；
 - `-i` 指定的私钥是否与公钥配对；
 - 本地是否有多把密钥干扰（可以加 `-o IdentitiesOnly=yes`）。
 
@@ -667,7 +674,7 @@ ssh -i ~/.ssh/gitee_mirror -T git@gitee.com
 > [!warning]
 > 私钥只保存在 GitHub Secret 中。不要提交到仓库、不要写进工作流文件，也不要在 Actions 日志中 `echo` 或 `cat` 私钥。
 
-<span style="color: red;">**私钥一旦泄露，应立即在 Gitee 删除对应部署公钥，并更新 GitHub Secret。**</span>
+<span style="color: red;">**私钥一旦泄露，应立即在 Gitee 账号删除对应个人公钥，生成新密钥并更新 GitHub Secret。**</span>
 
 #### 编写镜像工作流
 
@@ -760,7 +767,7 @@ jobs:
 只提交工作流文件，不要提交私钥或本地临时文件。
 
 > [!info]
-> 推送前先完成「在 Gitee 添加部署公钥」和「在 GitHub 配置 Secret」两步配置，否则首次运行会在 SSH 认证阶段失败。
+> 推送前先完成「在 Gitee 添加个人 SSH 公钥」和「在 GitHub 配置 Secret」两步配置，否则首次运行会在 SSH 认证阶段失败。
 
 ```bash
 git add .github/workflows/mirror-gitee.yml
@@ -826,19 +833,20 @@ git ls-remote https://gitee.com/your-gitee-name/your-mirror-repo.git refs/heads/
 需要更换 SSH 密钥时，按以下顺序操作，避免同步中断：
 
 1. 在本地生成新的密钥对。
-2. 把新公钥添加到 Gitee 部署公钥，暂时保留旧公钥。
+2. 把新公钥添加到 Gitee 账号的个人 SSH 公钥，暂时保留旧公钥。
 3. 把 GitHub Secret `GITEE_SSH_PRIVATE_KEY` 更新为新私钥。
 4. 手动触发一次同步（或 push 一次），确认新密钥可用。
 5. 确认无误后，在 Gitee 删除旧公钥。
 6. 如果本地也使用同一把密钥操作 Gitee，同步更新本地 `~/.ssh/config` 中的 `IdentityFile`。
 
-> [!warning] 只更新 Gitee 公钥而不更新 GitHub Secret，或只更新 Secret 而不添加新公钥，都会导致 `Permission denied (publickey)`。
+> [!warning] 只更新 Gitee 个人公钥而不更新 GitHub Secret，或只更新 Secret 而不添加新公钥，都会导致 `Permission denied (publickey)`。
 
 ### 常见问题
 
 | 现象 | 可能原因 | 处理方式 |
 | :---: | --- | --- |
-| `Permission denied (publickey)` | 公钥未添加、未启用推送、Secret 与公钥不配对 | 检查 Gitee 部署公钥和 GitHub Secret |
+| `Permission denied (publickey)` | 公钥未添加到 Gitee 账号、Secret 与公钥不配对、仍使用只读部署公钥 | 检查 Gitee 个人 SSH 公钥和 GitHub Secret |
+| `Anonymous (DeployKey)` 或 `DeployKey does not support push code` | 使用的是仓库级只读部署公钥 | 删除仓库部署公钥，改为 Gitee 账号个人 SSH 公钥 |
 | `GITEE_SSH_PRIVATE_KEY is not configured` | Secret 名称拼错或未在当前仓库配置 | 按 `GITEE_SSH_PRIVATE_KEY` 重新添加 |
 | `Host key verification failed` | `known_hosts` 生成失败或网络异常 | 检查 `ssh-keyscan gitee.com` 是否成功；重跑工作流 |
 | `shallow update not allowed` | `fetch-depth` 不是 `0` | 改为 `fetch-depth: 0` |
@@ -852,7 +860,8 @@ git ls-remote https://gitee.com/your-gitee-name/your-mirror-repo.git refs/heads/
 ### 注意事项与安全建议
 
 - **Gitee 只读**：所有修改在 GitHub 完成，Gitee 端不要直接提交，否则会被下一次强制同步覆盖。
-- **最小权限**：使用仓库级部署公钥，不要用 Gitee 账号级 SSH 密钥；工作流只申请 `contents: read`。
+- **Gitee 写权限**：当前 Gitee 仓库部署公钥只读，必须使用账号级个人 SSH 公钥；个人公钥权限覆盖账号，建议使用专用 Gitee 账号或专用密钥，并定期轮换。
+- **最小权限**：工作流只申请 `contents: read`，不授予 GitHub 仓库写权限。
 - **私钥保护**：私钥只放在 GitHub Secret；不要写入仓库、日志、Issue 或聊天记录。
 - **不要嵌入 PAT**：不要把 GitHub PAT 或 Gitee 密码拼进远程 URL。`git remote -v` 会明文显示 URL 中的凭据；优先使用 SSH 或系统凭据管理器。
 - **force-with-lease 的边界**：它能防止 fetch 与 push 之间的并发覆盖，但不能防止 Gitee 上早已存在的独立提交被覆盖；需要保护时加祖先检查。
@@ -860,13 +869,13 @@ git ls-remote https://gitee.com/your-gitee-name/your-mirror-repo.git refs/heads/
 - **平台数据不同步**：Issues、Pull Requests、Wiki、Releases、Actions Secrets 等不会镜像；Gitee Pages 也不在同步范围内。
 - **容量限制**：镜像会携带完整历史，同步前确认 Gitee 的单文件大小和仓库容量限制，避免推送被拒绝。
 - **全量拉取成本**：`fetch-depth: 0` 每次都会拉取完整历史，仓库较大时运行时间会明显增加；这是保证 push 成功的必要代价。
-- **密钥轮换**：更换密钥时同时更新 Gitee 公钥和 GitHub Secret，先加新、再验证、最后删旧。
+- **密钥轮换**：更换密钥时同时更新 Gitee 个人公钥和 GitHub Secret，先加新、再验证、最后删旧。
 
 ### 小结
 
 使用 GitHub Actions 把 GitHub 分支推送到 Gitee，核心只有三件事：
 
-1. 用 SSH 部署公钥给 Actions 提供最小化的 Gitee 推送权限。
+1. 用 Gitee 账号级个人 SSH 公钥给 Actions 提供推送权限；仓库部署公钥只读。
 2. 用 GitHub Secret 保存私钥，并在工作流中临时还原成 SSH 配置。
 3. 用 `fetch-depth: 0` + `git push --force-with-lease` 把指定分支同步到 Gitee。
 

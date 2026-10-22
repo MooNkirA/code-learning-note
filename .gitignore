@@ -32,7 +32,6 @@ vx_recycle_bin
 ~*.tmp
 
 # 忽略其他
-Work
 desktop.ini
 .*.cloudSyncDisk
 
@@ -40,3 +39,6 @@ desktop.ini
 node_modules/
 .vitepress/dist/
 .vitepress/cache/
+
+# 临时文件
+temp-draft.md

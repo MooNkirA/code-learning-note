@@ -53,12 +53,21 @@
     }
   ],
   "workspace:goto-tab-1": [],
-  "editor:toggle-code": [
+  "markdown:add-metadata-property": [],
+  "editor:insert-codeblock": [
     {
       "modifiers": [
         "Mod"
       ],
       "key": "'"
+    }
+  ],
+  "editor:toggle-code": [
+    {
+      "modifiers": [
+        "Mod"
+      ],
+      "key": ";"
     }
   ]
 }

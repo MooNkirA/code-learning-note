@@ -137,9 +137,9 @@ Nacos 能让您从微服务平台建设的视角管理数据中心的所有服�
 
 ### 版本选择
 
-Nacos 1.X 是老版本，将来会停止维护。建议使用2.X版本。
+在 Nacos 的 [release notes](https://github.com/alibaba/nacos/releases)及[博客](https://nacos.io/zh-cn/blog/index.html) 中找到每个版本支持的功能的介绍，当前推荐的稳定版本为 2.5.4。（*更新于 2026.10.07*）
 
-在 Nacos 的[release notes](https://github.com/alibaba/nacos/releases)及[博客](https://nacos.io/zh-cn/blog/index.html)中找到每个版本支持的功能的介绍，当前推荐的稳定版本为2.1.1。（*更新于2023.03.11*）
+> [!info] Nacos 1.X 是老版本，将来会停止维护。建议使用 2.X 版本。
 
 ### 预备环境准备
 
@@ -153,9 +153,9 @@ Nacos 依赖 Java 环境来运行。如果是从代码开始构建并运行 Naco
 
 ### Nacos 的获取
 
-Nacos 服务端搭建只需要下载官方安装包，github 仓库下载地址：https://github.com/alibaba/nacos/releases
+Nacos 服务端搭建只需要下载官方安装包，github 仓库下载地址 https://github.com/alibaba/nacos/releases
 
-> Tips: Github 在国内下载速度比较慢，可以到『Gitee 极速下载/Nacos』下载安装包或者源码。地址：https://gitee.com/mirrors/Nacos
+> [!tip] Github 在国内下载速度比较慢，可以到『Gitee 极速下载/Nacos』下载安装包或者源码。地址 https://gitee.com/mirrors/Nacos
 
 可以通过源码和发行包两种方式来获取 Nacos。
 
@@ -182,6 +182,74 @@ cd nacos/bin
 
 > 注：命令中的`$version`为nacos的版本号
 
+### Nacos 配置
+
+#### 权限校验
+
+> [权限校验 | Nacos v2.5.x 权限校验](https://nacos.io/docs/v2.5/manual/admin/auth/)。以下使用 Nacos 2.5.4 版本为例
+
+1. 通过 Python 生成 Base64 随机值三组值，
+
+```bash
+# a. nacos.core.auth.plugin.nacos.token.secret.key：32 字节随机数的 Base64（解码后原始密钥正好 32 字符，满足"不少于 32"）
+python -c "import secrets,base64;print(base64.b64encode(secrets.token_bytes(32)).decode())"
+ 
+# b. nacos.core.auth.server.identity.value：随机串
+python -c "import secrets;print(secrets.token_urlsafe(24))"
+```
+
+> [!important] `server.identity.key` 自行起名，不要用文档示例里的 `serverIdentity`（那对全网公开，等于后门）。
+
+2. 修改 `nacos\conf\application.properties` 配置
+
+```properties
+### The auth system to use, currently only 'nacos' and 'ldap' is supported:
+nacos.core.auth.system.type=nacos
+
+### Turn on/off caching of auth information. By turning on this switch, the update of auth information would have a 15 seconds delay.
+nacos.core.auth.enabled=true
+
+### Since 1.4.1, worked when nacos.core.auth.enabled=true and nacos.core.auth.enable.userAgentAuthWhite=false.
+### The two properties is the white list for auth and used by identity the request from other server.
+nacos.core.auth.server.identity.key=<你起的键名>
+nacos.core.auth.server.identity.value=<第 1 步 b 的值>
+
+### Since 1.4.1, worked when nacos.core.auth.enabled=true and nacos.core.auth.enable.userAgentAuthWhite=false.
+### The two properties is the white list for auth and used by identity the request from other server.
+nacos.core.auth.plugin.nacos.token.secret.key=<第 1 步 a 的值>
+```
+
+3. 重启
+
+```bash
+bin\shutdown.cmd -m standalone
+bin\startup.cmd -m standalone
+```
+
+4. 验证。（使用 git bush 去输入命令）
+
+**红（必须变成非 200）**：
+
+```bash
+for u in "http://127.0.0.1:8848/nacos/v1/ns/service/list?pageNo=1&pageSize=10" \
+         "http://127.0.0.1:8848/nacos/v1/console/namespaces"; do
+  echo "$(curl -s -o /dev/null -w '%{http_code}' --max-time 8 "$u")  $u"
+done
+```
+
+若仍是 200，说明鉴权没生效（conf 没重载、键名写错、或连的不是这个实例）。正常返回如下：
+
+```
+403  http://127.0.0.1:8848/nacos/v1/ns/service/list?pageNo=1&pageSize=10
+200  http://127.0.0.1:8848/nacos/v1/console/namespaces
+```
+
+5. 管理员账号与应用账号分开
+
+官方从 **2.4.0 起不再内置 `nacos/nacos` 这个默认管理员密码**，首次开启鉴权要手工初始化：打开 `http://127.0.0.1:8848/nacos/`，正常应当**自动跳到管理员初始化界面**，在那里设一个专用管理员账号（建议不要沿用 `nacos`）。
+
+管理员只用于登录控制台。再建一个**应用账号**给 Java 侧用：`nacos` 库里的 `users` / `roles` / `permissions` 三张表由建表脚本创建好了，在控制台「权限控制」里创建用户后，并将其不同的命名空间下的读写角色即可，不需要给管理员设置。后续应用项目的 yml 里 `${NACOS_USERNAME}/${NACOS_PASSWORD}` 填的是这个应用账号，日常服务注册不需要管理员权限。
+
 ### Nacos 支持三种部署模式
 
 - 单机模式 - 用于测试和单机试用。
@@ -198,7 +266,7 @@ cd nacos/bin
 $ cmd startup.cmd -m standalone
 ```
 
-> 注：命令参数 `standalone` 代表着单机模式运行，非集群模式。*在2.0.3版本，如果直接点击startup.cmd脚本启动会报错，必须通过命令行方式指定参数运行*
+> [!important]  命令参数 `standalone` 代表着单机模式运行，非集群模式。*在 2.0.3 版本，如果直接点击 startup.cmd 脚本启动会报错，必须通过命令行方式指定参数运行*。不带 `-m` 则会进 cluster 模式
 
 **Linux/Unix/Mac 环境下的启动命令**：
 
@@ -206,7 +274,7 @@ $ cmd startup.cmd -m standalone
 $ sh startup.sh -m standalone
 ```
 
-如果使用的是ubuntu系统，或者运行脚本报错提示[[符号找不到，可尝试如下运行：
+如果使用的是ubuntu系统，或者运行脚本报错提示“符号找不到”，可尝试如下运行：
 
 ```bash
 bash startup.sh -m standalone
@@ -258,23 +326,39 @@ shutdown.cmd
 sh shutdown.sh
 ```
 
-#### 单机模式支持 mysql
+#### 单机模式支持 MySQL
 
 在 nacos 0.7 版本之前，在单机模式时 nacos 使用嵌入式数据库实现数据的存储，不方便观察数据存储的基本情况。0.7 版本增加了支持 mysql 数据源能力，具体的操作步骤：
 
 1. 安装数据库，版本要求：5.6.5+
 2. 初始化 mysql 数据库，数据库初始化文件：mysql-schema.sql
-3. 修改 conf/application.properties 文件，增加支持 mysql 数据源配置（目前只支持mysql），添加 mysql 数据源的 url、用户名和密码。
+3. 建议创建给 nacos 专用最小权限账号（只 GRANT 该库，不给 root）
+
+```bash
+create user 'nacos'@'localhost' identified by '123456';
+# MySQL 8 的写法
+GRANT ALL PRIVILEGES ON nacos.* TO 'nacos'@'localhost';
+# 查询用户权限
+show grants for 'nacos'@'localhost';
+```
+
+查询用户权限解释如下：
+
+- `GRANT USAGE ON *.* TO 'nacos'@'localhost'` — USAGE 不是权限，是 CREATE USER 给每个账号的占位行，含义是"能登录、全局层零权限"。每个账号都会有它，不是配置错误。
+- `GRANT ALL PRIVILEGES ON nacos.*` — 作用域锁在单个库，且 schema 级的 ALL 不包含 GRANT OPTION、SUPER、PROCESS 这些全局权限，正好是应用账号该有的边界。库名 nacos 也和配置 `db.url.0` 里的库名一致。
+
+4. 修改 conf/application.properties 文件，增加支持 mysql 数据源配置（目前只支持mysql），添加 mysql 数据源的 url、用户名和密码。<span style="color: red;">**注：MySQL 8 新建账号默认走 `caching_sha2_password`，这会连带要求连接串带上 `allowPublicKeyRetrieval=true`，否则服务端启动时报 `Public Key Retrieval is not allowed`**</span>
 
 ```properties
+### Deprecated configuration property, it is recommended to use `spring.sql.init.platform` replaced.
 spring.datasource.platform=mysql
 
 ### Count of DB:
 db.num=1
 
 ### Connect URL of DB:
-db.url.0=jdbc:mysql://127.0.0.1:3306/nacos?characterEncoding=utf8&connectTimeout=1000&socketTimeout=3000&autoReconnect=true&useUnicode=true&useSSL=false&serverTimezone=UTC
-db.user.0=root
+db.url.0=jdbc:mysql://127.0.0.1:3306/nacos?characterEncoding=utf8&connectTimeout=1000&socketTimeout=3000&autoReconnect=true&useUnicode=true&useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Shanghai
+db.user.0=nacos
 db.password.0=123456
 ```
 
